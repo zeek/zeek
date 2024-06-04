@@ -1,0 +1,110 @@
+# Operations corresponding to binary expressions.
+
+binary-expr-op Add
+op-type I U D S
+vector
+eval $1 + $2
+eval-type S	vector<const String*> strings;
+		strings.push_back($1->AsString());
+		strings.push_back($2->AsString());
+		auto res = new StringVal(concatenate(strings));
+		$$ = res;
+
+binary-expr-op Sub
+op-type I U D T
+vector
+eval $1 - $2
+#
+eval-type T	auto v = $1->Clone();
+		auto s = v.release()->AsTableVal();
+		$2->RemoveFrom(s);
+		$$ = s;
+
+binary-expr-op Times
+op-type I U D
+vector
+eval $1 * $2
+
+binary-expr-op Divide
+op-type I U D
+vector
+#
+eval-pre	if ( $2 == 0 )
+			{
+			ZAM_run_time_error(Z_LOC, "division by zero");
+			break;
+			}
+eval $1 / $2
+
+binary-expr-op Mask
+# Signal that this expression only has mixed-type evaluation.
+op-type X
+explicit-result-type
+eval-mixed A I	auto mask = static_cast<uint32_t>($2);
+		auto a = $1->AsAddr();
+		if ( a.GetFamily() == IPv4 && mask > 32 )
+			ZAM_run_time_error(Z_LOC, util::fmt("bad IPv4 subnet prefix length: %" PRIu32, mask));
+		if ( a.GetFamily() == IPv6 && mask > 128 )
+			ZAM_run_time_error(Z_LOC, util::fmt("bad IPv6 subnet prefix length: %" PRIu32, mask));
+		auto v = make_intrusive<SubNetVal>(a, mask);
+		Unref($$.subnet_val);
+		$$.subnet_val = v.release();
+
+binary-expr-op Mod
+op-type I U
+vector
+eval-pre	if ( $2 == 0 )
+			{
+			ZAM_run_time_error(Z_LOC, "modulo by zero");
+			break;
+			}
+eval $1 % $2
+
+binary-expr-op And-And
+op-type I
+vector
+eval zeek_int_t($1 && $2)
+
+binary-expr-op Or-Or
+op-type I
+vector
+eval zeek_int_t($1 || $2)
+
+binary-expr-op And
+op-type U P T
+vector
+eval $1 & $2
+#
+eval-type P	$$ = new PatternVal(RE_Matcher_conjunction($1->AsPattern(), $2->AsPattern()));
+#
+eval-type T	$$ = $1->Intersection(*$2).release();
+
+binary-expr-op Or
+op-type U P T
+vector
+eval $1 | $2
+#
+eval-type P	$$ = new PatternVal(RE_Matcher_disjunction($1->AsPattern(), $2->AsPattern()));
+#
+eval-type T	auto v = $1->Clone();
+		auto s = v.release()->AsTableVal();
+		(void) $2->AddTo(s, false, false);
+		$$ = s;
+
+binary-expr-op Xor
+op-type U
+vector
+eval $1 ^ $2
+
+binary-expr-op Lshift
+op-type I U
+vector
+eval-type I	if ( $1 < 0 )
+			ZAM_run_time_error(Z_LOC, "left shifting a negative number is undefined");
+		$$ = $1 << $2;
+eval $1 << $2
+
+binary-expr-op Rshift
+op-type I U
+vector
+eval $1 >> $2

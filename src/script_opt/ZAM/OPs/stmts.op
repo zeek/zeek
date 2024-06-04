@@ -1,0 +1,294 @@
+# Operations corresponding to statements, other than iterations.
+
+macro EvalScheduleArgs(time, is_delta, build_args)
+	if ( run_state::terminating )
+		break;
+	double dt = time.double_val;
+	if ( is_delta )
+		dt += run_state::network_time;
+	auto handler = EventHandlerPtr(Z_AUX->event_handler);
+	ValVec args;
+	build_args
+	auto timer = new ScheduleTimer(handler, std::move(args), dt);
+	timer_mgr->Add(timer);
+
+macro EvalSchedule(time, is_delta)
+	EvalScheduleArgs(time, is_delta, Z_AUX->FillValVec(args, frame);)
+
+op Schedule
+type ViHL
+op1-read
+custom-method return CompileSchedule(n, nullptr, i, h, l);
+eval	EvalSchedule($1, $2)
+
+op Schedule
+type CiHL
+op1-read
+custom-method return CompileSchedule(nullptr, c, i, h, l);
+eval	EvalSchedule($1, $2)
+
+internal-op Schedule0
+types ViH CiH
+op1-read
+eval	EvalScheduleArgs($1, $2,)
+
+macro QueueEvent(eh, args)
+	if ( *eh )
+		event_mgr.Enqueue(eh, std::move(args));
+
+op Event
+type HL
+op1-read
+custom-method return CompileEvent(h, l);
+eval	ValVec args;
+	Z_AUX->FillValVec(args, frame);
+	QueueEvent(Z_AUX->event_handler, args);
+
+internal-op Event0
+type X
+eval	ValVec args(0);
+	QueueEvent(Z_AUX->event_handler, args);
+
+internal-op Event1
+type V
+op1-read
+eval	ValVec args(1);
+	args[0] = $1.ToVal(Z_TYPE);
+	QueueEvent(Z_AUX->event_handler, args);
+
+internal-op Event2
+type VV
+op1-read
+eval	ValVec args(2);
+	args[0] = $1.ToVal(Z_TYPE);
+	args[1] = $2.ToVal(Z_TYPE2);
+	QueueEvent(Z_AUX->event_handler, args);
+
+internal-op Event3
+type VVV
+op1-read
+eval	ValVec args(3);
+	auto& aux = Z_AUX;
+	args[0] = $1.ToVal(Z_TYPE);
+	args[1] = $2.ToVal(Z_TYPE2);
+	args[2] = $3.ToVal(aux->elems[2].GetType());
+	QueueEvent(Z_AUX->event_handler, args);
+
+internal-op Event4
+type VVVV
+op1-read
+eval	ValVec args(4);
+	auto& aux = Z_AUX;
+	args[0] = $1.ToVal(Z_TYPE);
+	args[1] = $2.ToVal(Z_TYPE2);
+	args[2] = $3.ToVal(aux->elems[2].GetType());
+	args[3] = $4.ToVal(aux->elems[3].GetType());
+	QueueEvent(Z_AUX->event_handler, args);
+
+
+op Return
+type X
+eval	EvalReturn(nullptr,)
+
+macro EvalReturn(val, type)
+	ret_u = val;
+	type
+	DO_ZAM_PROFILE
+	pc = end_pc;
+	continue;
+
+op Return
+op1-read
+types V C
+set-type $$
+eval	EvalReturn(&$$, ret_type = Z_TYPE;)
+
+
+# Branch on the value of v1 using switch table v2, with default branch to v3
+
+macro EvalSwitchBody(index, branch, cases, postscript)
+	{
+	auto t = cases[index];
+	if ( t.find(v) == t.end() )
+		pc = branch;
+	else
+		pc = t[v];
+	postscript
+	DO_ZAM_PROFILE
+	continue;
+	}
+
+internal-op SwitchI
+type Vii
+op1-read
+eval	auto v = $1.int_val;
+	EvalSwitchBody($2, $3, int_cases,)
+
+internal-op SwitchU
+op1-read
+type Vii
+eval	auto v = $1.uint_val;
+	EvalSwitchBody($2, $3, uint_cases,)
+
+internal-op SwitchD
+op1-read
+type Vii
+eval	auto v = $1.double_val;
+	EvalSwitchBody($2, $3, double_cases,)
+
+internal-op SwitchS
+op1-read
+type Vii
+eval	auto vs = $1.string_val->AsString()->Render();
+	std::string v(vs);
+	EvalSwitchBody($2, $3, str_cases,delete[] vs;)
+
+internal-op SwitchA
+op1-read
+type Vii
+eval	auto v = $1.addr_val->AsAddr().AsString();
+	EvalSwitchBody($2, $3, str_cases,)
+
+internal-op SwitchN
+op1-read
+type Vii
+eval	auto v = $1.subnet_val->AsSubNet().AsString();
+	EvalSwitchBody($2, $3, str_cases,)
+
+
+internal-op Branch-If-Not-Type
+op1-read
+type Vi
+eval	auto v = $1.any_val;
+	if ( ! can_cast_value_to_type(v, Z_TYPE.get()) )
+		BRANCH($2)
+
+
+op CheckAnyLen
+op1-read
+type Vi
+eval	auto v = $1.list_val;
+	if ( v->Vals().size() != static_cast<zeek_uint_t>($2) )
+		ZAM_run_time_error(Z_LOC, "mismatch in list lengths");
+
+op Print
+type O
+eval	do_print_stmt(Z_AUX->ToValVec(frame));
+method-post z.aux = v->aux;
+
+op Print1
+op1-read
+types V C
+set-type $$
+eval	std::vector<ValPtr> vals;
+	vals.push_back($$.ToVal(Z_TYPE));
+	do_print_stmt(vals);
+
+
+internal-op If-Else
+op1-read
+type Vi
+eval	if ( ! $1.int_val ) BRANCH($2)
+
+internal-op If
+op1-read
+type Vi
+eval	if ( ! $1.int_val ) BRANCH($2)
+
+internal-op If-Not
+op1-read
+type Vi
+eval	if ( $1.int_val ) BRANCH($2)
+
+
+op AddStmt
+op1-read
+type VO
+eval	EvalAddStmt($1, Z_AUX->ToListVal(frame))
+method-post z.aux = v->aux;
+
+macro EvalAddStmt(lhs, ind)
+	auto index = ind;
+	bool iterators_invalidated = false;
+	lhs.table_val->Assign(std::move(index), nullptr, true, &iterators_invalidated);
+	if ( iterators_invalidated )
+		ZAM_run_time_warning(Z_LOC, "possible loop/iterator invalidation");
+
+op AddStmt1
+op1-read
+set-type $1
+types VV VC
+eval	EvalAddStmt($1, $2.ToVal(Z_TYPE))
+
+
+op ClearTable
+op1-read
+type V
+eval	$1.table_val->RemoveAll();
+
+op ClearVector
+op1-read
+type V
+eval	$1.vector_val->Resize(0);
+
+
+op DelTable
+op1-read
+type VO
+eval	auto index = Z_AUX->ToListVal(frame);
+	bool iterators_invalidated = false;
+	$1.table_val->Remove(*index, true, &iterators_invalidated);
+	if ( iterators_invalidated )
+		ZAM_run_time_warning(Z_LOC, "possible loop/iterator invalidation");
+method-post z.aux = v->aux;
+
+op DelField
+op1-read
+type Vi
+eval	$1.record_val->Remove($2);
+
+
+internal-op Init-Record
+type V
+eval	auto r = new RecordVal(cast_intrusive<RecordType>(Z_TYPE));
+	Unref($$.record_val);
+	$$.record_val = r;
+
+internal-op Init-Vector
+type V
+eval	auto vt = cast_intrusive<VectorType>(Z_TYPE);
+	auto vec = new VectorVal(std::move(vt));
+	Unref($$.vector_val);
+	$$.vector_val = vec;
+
+internal-op Init-Table
+type V
+eval	auto tt = cast_intrusive<TableType>(Z_TYPE);
+	auto t = new TableVal(tt, Z_AUX->attrs);
+	Unref($$.table_val);
+	$$.table_val = t;
+
+op When
+type V
+op1-read
+eval	BuildWhen($1, -1.0)
+
+op When-Timeout
+types VV VC
+op1-read
+eval	BuildWhen($1, $2.double_val)
+
+macro BuildWhen(zf, timeout)
+	auto& aux = Z_AUX;
+	auto wi = aux->wi;
+	FuncPtr func{NewRef{}, zf.func_val};
+	auto lambda = make_intrusive<FuncVal>(func);
+	wi->Instantiate(std::move(lambda));
+	std::vector<ValPtr> local_aggrs;
+	for ( int i = 0; i < aux->n; ++i )
+		{
+		auto v = aux->ToVal(frame, i);
+		if ( v )
+			local_aggrs.push_back(v);
+		}
+	(void)make_intrusive<trigger::Trigger>(wi, wi->WhenExprGlobals(), local_aggrs, timeout, f, Z_LOC->Loc());

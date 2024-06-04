@@ -1,0 +1,194 @@
+# Operations corresponding to indexing of tables, vectors, strings,
+# and "any" values.
+
+op IndexVecBoolSelect
+types VVV VCV
+set-type $$
+eval	if ( $1.vector_val->Size() != $2.vector_val->Size() )
+		{
+		ZAM_run_time_error(Z_LOC, "size mismatch, boolean index and vector");
+		break;
+		}
+	auto vt = cast_intrusive<VectorType>(Z_TYPE);
+	auto v2 = $1.vector_val;
+	auto v3 = $2.vector_val;
+	auto v = vector_bool_select(std::move(vt), v2, v3);
+	Unref($$.vector_val);
+	$$.vector_val = v.release();
+
+op IndexVecIntSelect
+types VVV VCV
+set-type $$
+eval	auto vt = cast_intrusive<VectorType>(Z_TYPE);
+	auto v2 = $1.vector_val;
+	auto v3 = $2.vector_val;
+	auto v = vector_int_select(std::move(vt), v2, v3);
+	Unref($$.vector_val);
+	$$.vector_val = v.release();
+
+op Index
+type VVL
+custom-method return CompileIndex(n1, n2, l, false);
+no-eval
+
+op Index
+type VCL
+custom-method return CompileIndex(n, c, l, false);
+no-eval
+
+op WhenIndex
+type VVL
+custom-method return CompileIndex(n1, n2, l, true);
+no-eval
+
+op WhenIndex
+type VCL
+custom-method return CompileIndex(n, c, l, true);
+no-eval
+
+internal-op Index-Vec
+type VVV
+eval	EvalIndexVec($$, $1, $2.int_val)
+
+macro EvalIndexVec(lhs, rhs_vec, index)
+	auto& vv = rhs_vec.vector_val->RawVec();
+	const auto& vec = vv;
+	zeek_int_t ind = index;
+	if ( ind < 0 )
+		ind += vv.size();
+	if ( ind < 0 || ind >= int(vv.size()) )
+		ZAM_run_time_error(Z_LOC, "no such index");
+	AssignTarget(lhs, CopyVal(*vec[ind]))
+
+internal-op Index-VecC
+type VVi
+eval	EvalIndexVec($$, $1, $2)
+
+internal-op Index-Any-Vec
+type VVV
+eval	EvalIndexAnyVec($$, $1, $2.uint_val)
+
+macro EvalIndexAnyVec(lhs, vec, index)
+	auto vv = vec.vector_val;
+	zeek_int_t ind = index;
+	if ( ind < 0 )
+		ind += vv->Size();
+	if ( ind < 0 || ind >= int(vv->Size()) )
+		ZAM_run_time_error(Z_LOC, "no such index");
+	AssignTarget(lhs, ZVal(vv->ValAt(ind).release()))
+
+internal-op Index-Any-VecC
+type VVi
+eval	EvalIndexAnyVec($$, $1, $2)
+
+macro WhenIndexResCheck(vec)
+	auto& res = vec.vector_val;
+	if ( res && IndexExprWhen::evaluating > 0 )
+		IndexExprWhen::results.push_back({NewRef{}, res});
+
+internal-op When-Index-Vec
+type VVV
+eval	EvalIndexAnyVec($$, $1, $2.uint_val)
+	WhenIndexResCheck($$)
+
+internal-op When-Index-VecC
+type VVi
+eval	EvalIndexAnyVec($$, $1, $2)
+	WhenIndexResCheck($$)
+
+macro EvalVecSlice(lhs, vv)
+	auto vec = vv.vector_val;
+	auto lv = Z_AUX->ToListVal(frame);
+	auto v = index_slice(vec, lv.get());
+	Unref(lhs.vector_val);
+	lhs.vector_val = v.release();
+
+internal-op Index-Vec-Slice
+type VV
+eval	EvalVecSlice($$, $1)
+
+internal-op When-Index-Vec-Slice
+type VV
+eval	EvalVecSlice($$, $1)
+	WhenIndexResCheck($$)
+
+internal-op Table-Index
+type VV
+eval	EvalTableIndex($1, Z_AUX->ToListVal(frame))
+	AssignTarget($$, BuildVal(v, Z_TYPE))
+
+internal-op Table-PatStr-Index
+types VVV VVC
+eval	auto vec = ZVal($1.table_val->LookupPattern({NewRef{}, $2.string_val}));
+	ZVal::DeleteManagedType($$);
+	$$ = vec;
+
+internal-op When-Table-Index
+type VV
+eval	EvalTableIndex($1, Z_AUX->ToListVal(frame))
+	if ( IndexExprWhen::evaluating > 0 )
+		IndexExprWhen::results.emplace_back(v);
+	AssignTarget($$, BuildVal(v, Z_TYPE))
+
+macro EvalTableIndex(tbl, index)
+	auto v = tbl.table_val->FindOrDefault(index);
+	if ( ! v )
+		{
+		ZAM_run_time_error(Z_LOC, "no such index");
+		break;
+		}
+
+internal-op When-PatStr-Index
+type VV
+eval	auto args = Z_AUX->ToListVal(frame);
+	auto arg0 = args->Idx(0);
+	auto v = $1.table_val->LookupPattern({NewRef{}, arg0->AsStringVal()});
+	if ( IndexExprWhen::evaluating > 0 )
+		IndexExprWhen::results.emplace_back(v);
+	AssignTarget($$, BuildVal(v, Z_TYPE))
+
+internal-assignment-op Table-Index1
+types VVV VVC
+assign-val v
+eval	EvalTableIndex($1, $2.ToVal(Z_TYPE))
+# No AssignTarget needed, as this is an assignment-op
+
+# This version is for a variable v3.
+internal-op Index-String
+type VVV
+eval	EvalIndexString($$, $1, $2.int_val)
+
+macro EvalIndexString(lhs, s, index)
+	auto str = s.string_val->AsString();
+	auto len = str->Len();
+	auto idx = index;
+	if ( idx < 0 )
+		idx += len;
+	auto v = str->GetSubstring(idx, 1);
+	Unref(lhs.string_val);
+	lhs.string_val = new StringVal(v ? v : new String(""));
+
+# This version is for a constant v3.
+internal-op Index-StringC
+type VVi
+eval	EvalIndexString($$, $1, $2)
+
+internal-op Index-String-Slice
+type VV
+eval	auto str = $1.string_val->AsString();
+	auto lv = Z_AUX->ToListVal(frame);
+	auto slice = index_string(str, lv.get());
+	Unref($$.string_val);
+	$$.string_val = new StringVal(slice->ToStdString());
+
+op AnyIndex
+type VVi
+set-type $$
+eval	auto lv = $1.any_val->AsListVal();
+	if ( $2 < 0 || $2 >= lv->Length() )
+		reporter->InternalError("bad \"any\" element index");
+	ValPtr elem = lv->Idx($2);
+	if ( CheckAnyType(elem->GetType(), Z_TYPE, Z_LOC) )
+		AssignTarget($$, BuildVal(elem, Z_TYPE))
+	else
+		ZAM_error = true;

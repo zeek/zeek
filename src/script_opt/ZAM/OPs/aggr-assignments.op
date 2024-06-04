@@ -1,0 +1,83 @@
+# Operations corresponding to assigning to elements of aggregates.
+
+macro VectorElemAssignPre(vec, index)
+	auto ind = index.uint_val;
+	auto vv = vec.vector_val;
+
+macro EvalVectorElemAssign(vec, index, val_setup, assign_op)
+	VectorElemAssignPre(vec, index)
+	val_setup
+	if ( ! assign_op )
+		ZAM_run_time_error(Z_LOC, "value used but not set");
+
+op Vector-Elem-Assign
+op1-read
+set-type $1
+type VVV
+eval	EvalVectorElemAssign($1, $2,, copy_vec_elem(vv, ind, $3, Z_TYPE))
+
+op Any-Vector-Elem-Assign
+op1-read
+set-type $1
+types VVV VVC
+eval	EvalVectorElemAssign($1, $2,, vv->Assign(ind, $3.ToVal(Z_TYPE)))
+
+op Vector-Elem-Assign-Any
+op1-read
+type VVV
+eval	EvalVectorElemAssign($1, $2, auto any_v = $3.any_val;, vv->Assign(ind, {NewRef{}, any_v}))
+
+op Vector-Elem-Assign
+op1-read
+set-type $2
+type VVC
+eval	VectorElemAssignPre($1, $2)
+	(void) copy_vec_elem(vv, ind, $3, Z_TYPE);
+
+# These versions are used when the constant is the index, not the new value.
+op Vector-Elem-Assign
+op1-read
+set-type $1
+type VVi
+eval	auto vv = $1.vector_val;
+	if ( ! copy_vec_elem(vv, $3, $2, Z_TYPE) )
+		ZAM_run_time_error(Z_LOC, "value used but not set");
+
+op Any-Vector-Elem-Assign
+op1-read
+set-type $1
+type VVi
+eval	auto vv = $1.vector_val;
+	if ( ! vv->Assign($3, $2.ToVal(Z_TYPE)) )
+		ZAM_run_time_error(Z_LOC, "value used but not set");
+
+op Vector-Elem-Assign-Any
+op1-read
+type VVi
+eval	auto vv = $1.vector_val;
+	auto any_v = $2.any_val;
+	vv->Assign($3, {NewRef{}, any_v});
+
+internal-op Vector-Slice-Assign
+op1-read
+type VV
+eval	ValPtr vec = {NewRef{}, $1.vector_val};
+	auto slice = Z_AUX->ToListVal(frame);
+	ValPtr vals = {NewRef{}, $2.vector_val};
+	bool iterators_invalidated;
+	auto error = assign_to_index(std::move(vec), std::move(slice), std::move(vals), iterators_invalidated);
+	if ( error )
+		ZAM_run_time_error(Z_LOC, error);
+	if ( iterators_invalidated )
+		ZAM_run_time_warning(Z_LOC, "possible loop/iterator invalidation");
+
+
+internal-op Table-Elem-Assign
+op1-read
+types VV VC
+eval	auto indices = Z_AUX->ToListVal(frame);
+	auto val = $2.ToVal(Z_TYPE);
+	bool iterators_invalidated = false;
+	$1.table_val->Assign(std::move(indices), std::move(val), true, &iterators_invalidated);
+	if ( iterators_invalidated )
+		ZAM_run_time_warning(Z_LOC, "possible loop/iterator invalidation");

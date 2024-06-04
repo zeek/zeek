@@ -1,0 +1,41 @@
+# General-purpose macros. Those that are specific to a group of instructions
+# are defined with those templates rather than appearing here.
+
+# Macros for information associated with the current instruction.
+
+# The main type.
+macro Z_TYPE z.t
+
+# Whether it's managed.
+macro Z_IS_MANAGED *(z.is_managed)
+
+# Secondary type.
+macro Z_TYPE2 z.t2
+
+# Auxiliary information.
+macro Z_AUX z.aux
+
+# Location in the original script.
+macro Z_LOC z.loc
+
+# The following abstracts the process of creating a frame-assignable value.
+macro BuildVal(v, t) ZVal(v, t)
+
+# Returns a memory-managed-if-necessary copy of an existing value.
+macro CopyVal(v) (ZVal::IsManagedType(Z_TYPE) ? BuildVal((v).ToVal(Z_TYPE), Z_TYPE) : (v))
+
+# Managed assignments to the given target.
+macro AssignTarget(target, v) {
+	if ( Z_IS_MANAGED )
+		{
+		/* It's important to hold a reference to v here prior
+		   to the deletion in case target points to v. */
+		auto v2 = v;
+		ZVal::DeleteManagedType(target);
+		target = v2;
+		}
+	else
+		target = v;
+	}
+
+macro BRANCH(target) { DO_ZAM_PROFILE; pc = target; continue; }

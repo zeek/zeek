@@ -1,0 +1,156 @@
+# Operations corresponding to type coercions.
+
+direct-unary-op Arith-Coerce ArithCoerce
+
+internal-op Coerce-UI
+type VV
+eval	auto v = $1.int_val;
+	if ( v < 0 )
+		{
+		ZAM_run_time_error(Z_LOC, "underflow converting int to count");
+		break;
+		}
+	$$.uint_val = zeek_uint_t(v);
+
+internal-op Coerce-UD
+type VV
+eval	auto v = $1.double_val;
+	if ( v < 0.0 )
+		{
+		ZAM_run_time_error(Z_LOC, "underflow converting double to count");
+		break;
+		}
+	if ( v > static_cast<double>(UINT64_MAX) )
+		{
+		ZAM_run_time_error(Z_LOC, "overflow converting double to count");
+		break;
+		}
+	$$.uint_val = zeek_uint_t(v);
+
+internal-op Coerce-IU
+type VV
+eval	auto v = $1.uint_val;
+	if ( v > INT64_MAX )
+		{
+		ZAM_run_time_error(Z_LOC, "overflow converting count to int");
+		break;
+		}
+	$$.int_val = zeek_int_t(v);
+
+internal-op Coerce-ID
+type VV
+eval	auto v = $1.double_val;
+	if ( v < static_cast<double>(INT64_MIN) )
+		{
+		ZAM_run_time_error(Z_LOC, "underflow converting double to int");
+		break;
+		}
+	if ( v > static_cast<double>(INT64_MAX) )
+		{
+		ZAM_run_time_error(Z_LOC, "overflow converting double to int");
+		break;
+		}
+	$$.int_val = zeek_int_t(v);
+
+internal-op Coerce-DI
+type VV
+eval	$$.double_val = double($1.int_val);
+
+internal-op Coerce-DU
+type VV
+eval	$$.double_val = double($1.uint_val);
+
+
+macro EvalCoerceVec(lhs, rhs, coercer)
+	auto old_v1 = lhs.vector_val;
+	lhs.vector_val = coercer(rhs.vector_val, z);
+	Unref(old_v1);	/* delayed to allow for same value on both sides */
+
+internal-op Coerce-UI-Vec
+type VV
+eval	EvalCoerceVec($$, $1, vec_coerce_UI)
+
+internal-op Coerce-UD-Vec
+type VV
+eval	EvalCoerceVec($$, $1, vec_coerce_UD)
+
+internal-op Coerce-IU-Vec
+type VV
+eval	EvalCoerceVec($$, $1, vec_coerce_IU)
+
+internal-op Coerce-ID-Vec
+type VV
+eval	EvalCoerceVec($$, $1, vec_coerce_ID)
+
+internal-op Coerce-DI-Vec
+type VV
+eval	EvalCoerceVec($$, $1, vec_coerce_DI)
+
+internal-op Coerce-DU-Vec
+type VV
+eval	EvalCoerceVec($$, $1, vec_coerce_DU)
+
+
+direct-unary-op Record-Coerce RecordCoerce
+
+internal-op Record-Coerce
+type VV
+eval	auto rt = cast_intrusive<RecordType>(Z_TYPE);
+	auto v = $1.record_val;
+	auto to_r = coerce_to_record(std::move(rt), v, Z_AUX->map);
+	Unref($$.record_val);
+	$$.record_val = to_r.release();
+
+direct-unary-op Table-Coerce TableCoerce
+
+internal-op Table-Coerce
+type VV
+eval	auto tv = $1.table_val;
+	if ( tv->Size() > 0 )
+		{
+		ZAM_run_time_error(Z_LOC, "coercion of non-empty table/set");
+		break;
+		}
+	auto tt = cast_intrusive<TableType>(Z_TYPE);
+	AttributesPtr attrs = tv->GetAttrs();
+	auto t = make_intrusive<TableVal>(tt, attrs);
+	Unref($$.table_val);
+	$$.table_val = t.release();
+
+direct-unary-op Vector-Coerce VectorCoerce
+
+internal-op Vector-Coerce
+type VV
+eval	if ( $1.vector_val->Size() > 0 )
+		{
+		ZAM_run_time_error(Z_LOC, "coercion of non-empty vector");
+		break;
+		}
+	auto vv = new VectorVal(cast_intrusive<VectorType>(Z_TYPE));
+	Unref($$.vector_val);
+	$$.vector_val = vv;
+
+unary-expr-op To-Any-Coerce
+op-type X
+set-type $1
+eval	AssignTarget($$, ZVal($1.ToVal(Z_TYPE), ZAM::any_base_type))
+
+unary-expr-op From-Any-Coerce
+no-const
+op-type X
+set-type $$
+eval	auto v = $1.any_val;
+	AssignTarget($$, ZVal({NewRef{}, v}, Z_TYPE))
+
+unary-expr-op From-Any-Vec-Coerce
+no-const
+op-type X
+set-type $$
+eval	auto vv = $1.vector_val;
+	if ( ! vv->Concretize(Z_TYPE->Yield()) )
+		{
+		ZAM_run_time_error(Z_LOC, "incompatible vector-of-any");
+		break;
+		}
+	zeek::Ref(vv);
+	AssignTarget($$, ZVal(vv))

@@ -140,7 +140,7 @@ public:
 
     // Whether v1 represents a frame slot type for which we
     // explicitly manage the memory.
-    bool is_managed = false;
+    std::optional<bool> is_managed;
 };
 
 // A intermediary ZAM instruction, one that includes information/methods

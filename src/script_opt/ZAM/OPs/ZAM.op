@@ -262,7 +262,7 @@
 macro Z_TYPE z.t
 
 # Whether it's managed.
-macro Z_IS_MANAGED z.is_managed
+macro Z_IS_MANAGED *(z.is_managed)
 
 # Secondary type.
 macro Z_TYPE2 z.t2

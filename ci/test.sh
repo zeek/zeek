@@ -4,9 +4,6 @@
 # The parallelism level when running tests locally is $1 if provided, else
 # the value of `nproc` if available, otherwise just a single core.
 
-# just for testing, report success
-exit 0
-
 result=0
 BTEST=$(pwd)/auxil/btest/btest
 

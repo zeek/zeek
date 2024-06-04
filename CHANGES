@@ -1,3 +1,10 @@
+7.0.0-dev.347 | 2024-06-04 11:36:13 -0700
+
+  * Update reporter.bif to describe special case of errors in init (Smoot)
+
+    Originally proposed in zeek/zeek-docs#257, but reverted via
+    9f9ebde62380a3012a1471d9ff1c1c91c7aa69da.
+
 7.0.0-dev.345 | 2024-06-04 10:36:46 -0700
 
   * script optimization baseline tweaks due to recent minor changes (Vern Paxson, Corelight)

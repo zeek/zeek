@@ -338,15 +338,20 @@ add_zeek_dynamic_plugin_build_interface_include_directories(
     ${PROJECT_SOURCE_DIR}/auxil/broker/libbroker
     ${PROJECT_SOURCE_DIR}/auxil/paraglob/include
     ${PROJECT_SOURCE_DIR}/auxil/rapidjson/include
+    ${PROJECT_SOURCE_DIR}/auxil/prometheus-cpp/core/include
     ${CMAKE_BINARY_DIR}/src
     ${CMAKE_BINARY_DIR}/src/include
     ${CMAKE_BINARY_DIR}/auxil/binpac/lib
-    ${CMAKE_BINARY_DIR}/auxil/broker/libbroker)
+    ${CMAKE_BINARY_DIR}/auxil/broker/libbroker
+    ${CMAKE_BINARY_DIR}/auxil/prometheus-cpp/core/include)
 
 # threading/formatters/JSON.h includes rapidjson headers and may be used
 # by external plugins, extend the include path.
 target_include_directories(zeek_dynamic_plugin_base SYSTEM
                            INTERFACE $<INSTALL_INTERFACE:include/zeek/3rdparty/rapidjson/include>)
+target_include_directories(
+    zeek_dynamic_plugin_base SYSTEM
+    INTERFACE $<INSTALL_INTERFACE:include/zeek/3rdparty/prometheus-cpp/include>)
 
 # Convenience function for adding an OBJECT library that feeds directly into the
 # main target(s).
@@ -1012,6 +1017,12 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/rapidjson/include/rapidjson
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/filesystem/include/ghc
         DESTINATION include/zeek/3rdparty/)
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/prometheus-cpp/core/include/prometheus
+        DESTINATION include/zeek/3rdparty/prometheus-cpp/include)
+
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/auxil/prometheus-cpp/core/include/prometheus
+        DESTINATION include/zeek/3rdparty/prometheus-cpp/include)
 
 # Create 3rdparty/ghc within the build directory so that the include for
 # "zeek/3rdparty/ghc/filesystem.hpp" works within the build tree.

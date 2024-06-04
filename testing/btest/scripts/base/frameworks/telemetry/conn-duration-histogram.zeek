@@ -18,10 +18,10 @@ global connection_duration_hf = Telemetry::register_histogram_family([
 global realistic_connection_duration_hf = Telemetry::register_histogram_family([
 	$prefix="zeek",
 	$name="realistic_connection_duration",
-	$labels=vector("proto"),
+	$label_names=vector("proto"),
 	$unit="seconds",
 	$help_text="Monitored connection durations by protocol",
-	$bounds=vector(0.1, 1.0, 10.0, 30.0, 60.0, 120.0, 300, 900.0, 1800.0)
+	$bounds=vector(0.1, 1.0, 10.0, 30.0, 60.0, 120.0, 300, 900.0, 1800.0),
 ]);
 
 global connection_duration_h = Telemetry::histogram_with(connection_duration_hf);
@@ -42,8 +42,8 @@ event zeek_done() &priority=-100
 		{
 		local hm = histogram_metrics[i];
 		print hm$opts$metric_type, hm$opts$prefix, hm$opts$name;
-		print hm$opts$labels;
-		print hm$labels;
+		print hm$label_names;
+		print hm$label_values;
 		print hm$opts$bounds;
 		print hm$values;
 		print hm$observations, hm$sum;

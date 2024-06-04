@@ -1,3 +1,33 @@
+7.0.0-dev.362 | 2024-06-04 14:16:54 -0700
+
+  * Switch to zeek fork of prometheus-cpp (Tim Wojtulewicz, Corelight)
+
+  * Remove unnecessary shared_from_this on instrument classes (Tim Wojtulewicz, Corelight)
+
+  * Restore label_names field in MetricOpts record (Tim Wojtulewicz)
+
+  * Change how we count FDs on Linux to fix zeekctl stop issues (Tim Wojtulewicz)
+
+  * Update zeekctl tests for telemetry rework (Tim Wojtulewicz, Corelight)
+
+  * Use forward declarations of prometheus-cpp types in telemetry::Manager (Tim Wojtulewicz, Corelight)
+
+  * Add prometheus-cpp files to install set for plugins to use (Tim Wojtulewicz, Corelight)
+
+  * Fix a memory leak with the CivetWeb callbacks in telemetry (Tim Wojtulewicz, Corelight)
+
+  * Fix a bunch of copy-instead-of-move findings from Coverity (Tim Wojtulewicz, Corelight)
+
+  * Move telmetry label names out of opts records, into main metric records (Tim Wojtulewicz, Corelight)
+
+  * Ensure the order of label values matches the label names (Tim Wojtulewicz, Corelight)
+
+  * Remove prefix column from telemetry.log (Tim Wojtulewicz, Corelight)
+
+  * Fix race condition by pre-building the cluster json data for services.json (Tim Wojtulewicz)
+
+  * Set running_under_test for scripts.base.frameworks.logging.telemetry test (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.347 | 2024-06-04 11:36:13 -0700
 
   * Update reporter.bif to describe special case of errors in init (Smoot)

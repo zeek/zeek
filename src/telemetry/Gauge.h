@@ -81,7 +81,7 @@ private:
 
 using GaugePtr = std::shared_ptr<Gauge>;
 
-class GaugeFamily : public MetricFamily, public std::enable_shared_from_this<GaugeFamily> {
+class GaugeFamily : public MetricFamily {
 public:
     static inline const char* OpaqueName = "GaugeMetricFamilyVal";
 

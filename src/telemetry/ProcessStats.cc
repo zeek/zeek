@@ -67,6 +67,19 @@ std::atomic<long> global_page_size;
 
 namespace zeek::telemetry::detail {
 
+int64_t count_entries_in_directory(const char* path) {
+    int64_t result = 0;
+    if ( auto dptr = opendir(path); dptr != nullptr ) {
+        for ( auto entry = readdir(dptr); entry != nullptr; entry = readdir(dptr) ) {
+            auto fname = entry->d_name;
+            if ( strcmp(".", fname) != 0 && strcmp("..", fname) != 0 )
+                ++result;
+        }
+        closedir(dptr);
+    }
+    return result;
+}
+
 /// Caches the result from a `sysconf` call in a cache variable to avoid
 /// frequent syscalls. Sets `cache_var` to -1 in case of an error. Initially,
 /// `cache_var` must be 0 and we assume a successful syscall would always return
@@ -143,9 +156,7 @@ process_stats get_process_stats() {
         result.vms = vmsize_bytes;
         result.cpu = static_cast<double>(utime_ticks + stime_ticks) / ticks_per_second;
 
-        zeek::filesystem::path fd_path{"/proc/self/fd"};
-        result.fds =
-            std::distance(zeek::filesystem::directory_iterator{fd_path}, zeek::filesystem::directory_iterator{});
+        result.fds = count_entries_in_directory("/proc/self/fd");
     }
 
     return result;

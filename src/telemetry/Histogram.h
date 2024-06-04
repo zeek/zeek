@@ -46,7 +46,7 @@ private:
 
 using HistogramPtr = std::shared_ptr<Histogram>;
 
-class HistogramFamily : public MetricFamily, public std::enable_shared_from_this<HistogramFamily> {
+class HistogramFamily : public MetricFamily {
 public:
     static inline const char* OpaqueName = "HistogramMetricFamilyVal";
 

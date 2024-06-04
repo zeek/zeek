@@ -619,12 +619,12 @@ function startEncryption(handshakesink: sink&, alertsink: sink&, inout sh: Share
   # let's see if it was not encrypted in the past....
   if ( old_state == False ) {
     # disconnect the sinks here? probably yes...
-    print "Closing sink";
+    # print "Closing sink";
     handshakesink.close();
     alertsink.close();
 
     if ( sh.client_encrypted && sh.server_encrypted ) {
-      print "Encrypted first time";
+      # print "Encrypted first time";
       sh.both_sides_encrypted_first_time = True;
       sh.established = True;
     }
@@ -666,7 +666,7 @@ public type Message = unit {
   on %init {
     self.handshakesink.connect(new Handshake(self, self.context()));
     self.alertsink.connect(new Alert(self.context()));
-    print "top-level init";
+    # print "top-level init";
   }
 
   fragment : RecordFragmentChoice(self.handshakesink, self.alertsink, self, self.context())[];
@@ -690,7 +690,7 @@ type RecordFragmentChoice = unit(handshakesink: sink&, alertsink: sink&, inout m
   };
 
   on content_type {
-    print "Content type", self.content_type;
+    # print "Content type", self.content_type;
   }
   on version {
     msg.record_version = self.version;
@@ -737,7 +737,7 @@ type PlaintextRecord = unit(content_type: uint8, handshakesink: sink&, alertsink
   trigger_three: void;
 
   on unhandled {
-    print "Unhandled content type", content_type;
+    # print "Unhandled content type", content_type;
   }
 
   on length {
@@ -753,7 +753,7 @@ type PlaintextRecord = unit(content_type: uint8, handshakesink: sink&, alertsink
     if ( sh.tls_13 )
       return;
 
-    print "CCS accepted";
+    # print "CCS accepted";
     sh.ccs_seen++; # used in TLS.evt
     startEncryption(handshakesink, alertsink, sh);
   }
@@ -851,17 +851,17 @@ type Handshake_message = unit(inout msg: Message, inout sh: Share) {
   };
 
   on %done {
-    print self;
+    # print self;
   }
   on msg_type {
-    print "Handshake message", self.msg_type;
+    # print "Handshake message", self.msg_type;
   }
   on unhandled {
-    print "Unhandled handshake message of type ", self.msg_type;
+    # print "Unhandled handshake message of type ", self.msg_type;
   }
   on %error(emsg: string) {
-    print "Error in handshake message of type", self.msg_type, self, emsg;
-    print self;
+    # print "Error in handshake message of type", self.msg_type, self, emsg;
+    # print self;
   }
 };
 
@@ -938,8 +938,8 @@ type ClientHello = unit(len: uint64, msg: Message, inout sh: Share) {
   extensions_length: uint16 if ( len > self.offset() + 2 );
   extensions: Extension(sh, True)[] &size=self.extensions_length if ( len > self.offset() + 2 );
   on %error(emsg: string) {
-    print "Error in client hello", emsg;
-    print self;
+    # print "Error in client hello", emsg;
+    # print self;
   }
 };
 
@@ -959,13 +959,13 @@ type ServerHelloChoice = unit(len: uint64, msg: Message, inout sh: Share) {
   };
 
   on sv {
-    print "Got server version", self.sv.server_version0, self.sv.server_version1, self.sv.server_version;
+    # print "Got server version", self.sv.server_version0, self.sv.server_version1, self.sv.server_version;
     sh.chosen_version_sh = self.sv.server_version;
     set_version(self.sv.server_version, sh);
-    print "set chosen version", self.sv.server_version, sh.chosen_version_sh;
+    # print "set chosen version", self.sv.server_version, sh.chosen_version_sh;
 
     if ( self.sv.server_version1 == 0x7F ) {
-      print "TLS 13 draft";
+      # print "TLS 13 draft";
       # map any draft version to draft 00
       self.parsed_version = 0x7F00;
     } else {
@@ -984,7 +984,7 @@ type ServerHelloOneThree = unit(len: uint64, msg: Message, inout sh: Share, serv
 
   on cipher_suite {
     sh.chosen_cipher = self.cipher_suite;
-    print "set chosen cipher", self.cipher_suite, sh.chosen_cipher;
+    # print "set chosen cipher", self.cipher_suite, sh.chosen_cipher;
   }
 };
 
@@ -1000,11 +1000,11 @@ type ServerHello = unit(len: uint64, msg: Message, inout sh: Share, server_versi
 
   on cipher_suite {
     sh.chosen_cipher = self.cipher_suite;
-    print "set chosen cipher", self.cipher_suite, sh.chosen_cipher;
+    # print "set chosen cipher", self.cipher_suite, sh.chosen_cipher;
   }
   on %error(emsg: string) {
-    print "Error in server hello", emsg;
-    print self;
+    # print "Error in server hello", emsg;
+    # print self;
   }
 };
 
@@ -1036,13 +1036,13 @@ type Extension = unit(inout sh: Share, client_hello: bool) {
   };
 
   on code {
-    print "Extension", self.code, client_hello;
+    # print "Extension", self.code, client_hello;
   }
   on unknown {
-    print "Unknown extension", self.code;
+    # print "Unknown extension", self.code;
   }
   on %error(emsg: string) {
-    print "Error parsing extension with code", self.code, emsg;
+    # print "Error parsing extension with code", self.code, emsg;
   }
   on raw {
     self.set_input(self.input()+4);
@@ -1108,7 +1108,7 @@ type OneSupportedVersion = unit(inout sh: Share) {
   version: uint16;
 
   on version {
-    print "Setting version to ", self.version;
+    # print "Setting version to ", self.version;
     set_version(self.version, sh);
   }
 };

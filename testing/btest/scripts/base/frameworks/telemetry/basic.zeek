@@ -14,42 +14,42 @@ global btest_a_cf = Telemetry::register_counter_family([
 	$prefix="btest",
 	$name="a_test",
 	$unit="",
-	$help_text="A btest metric"],
-	vector("x", "y")
-);
+	$help_text="A btest metric",
+	$label_names=vector("x", "y")
+]);
 
 global btest_b_cf = Telemetry::register_counter_family([
 	$prefix="btest",
 	$name="b_test",
 	$unit="",
-	$help_text="Another btest metric"],
-	vector("x", "y")
-);
+	$help_text="Another btest metric",
+	$label_names=vector("x", "y")
+]);
 
 global btest_c_cf = Telemetry::register_counter_family([
 	$prefix="btest",
 	$name="c_test",
 	$unit="",
-	$help_text="The last btest metric"],
-	vector("x", "y")
-);
+	$help_text="The last btest metric",
+	$label_names=vector("x", "y")
+]);
 
 global system_sensor_temp_gf = Telemetry::register_gauge_family([
 	$prefix="system",
 	$name="sensor_temperature",
 	$unit="celsius",
-	$help_text="Temperatures reported by sensors in the system"],
-	vector("name")
-);
+	$help_text="Temperatures reported by sensors in the system",
+	$label_names=vector("name")
+]);
 
 global btest_sample_histogram_hf = Telemetry::register_histogram_family([
 	$prefix="btest",
 	$name="sample_histogram",
 	$unit="",
 	$help_text="A sample histogram that is not returned by Telemetry::collect_metrics",
-	$bounds=vector(1.0, 2.0, 3.0, 4.0, 5.0)],
-	vector("dim")
-);
+	$bounds=vector(1.0, 2.0, 3.0, 4.0, 5.0),
+	$label_names=vector("dim")
+]);
 
 function print_metrics(what: string, metrics: vector of Telemetry::Metric)
 	{

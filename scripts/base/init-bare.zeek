@@ -5802,6 +5802,18 @@ export {
 		## Documentation for this metric.
 		help_text: string &optional;
 
+		## The label names (also called dimensions) of the metric. When
+		## instantiating or working with concrete metrics, corresponding
+		## label values have to be provided. Examples of a label might
+		## be the protocol a general observation applies to, the
+		## directionality in a traffic flow, or protocol-specific
+		## context like a particular message type. This field is only
+		## used in the construction of new metrics and will not be
+		## filled in when returned from
+		## :zeek:see:`Telemetry::collect_metrics` or
+		## :zeek:see:`Telemetry::collect_histogram_metrics`,
+		label_names: vector of string &default=vector();
+
 		## Whether the metric represents something that is accumulating.
 		## Defaults to ``T`` for counters and ``F`` for gauges and
 		## histograms.

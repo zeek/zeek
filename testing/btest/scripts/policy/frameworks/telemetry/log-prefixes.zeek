@@ -12,9 +12,9 @@ global connections_by_proto_cf = Telemetry::register_counter_family([
 	$prefix="btest",
 	$name="connections",
 	$unit="",
-	$help_text="Total number of monitored connections"],
-	$labels=vector("proto")
-);
+	$help_text="Total number of monitored connections",
+	$label_names=vector("proto")
+]);
 
 global connection_duration_hf = Telemetry::register_histogram_family([
 	$prefix="btest",

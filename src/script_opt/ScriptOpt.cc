@@ -611,17 +611,11 @@ void analyze_scripts(bool no_unused_warnings) {
     if ( analysis_options.use_CPP )
         use_CPP();
 
-    if ( generating_CPP ) {
-        if ( analysis_options.gen_ZAM )
-            reporter->FatalError("-O ZAM and -O gen-C++ conflict");
+    if ( analysis_options.gen_ZAM )
+        analyze_scripts_for_ZAM();
 
+    if ( generating_CPP )
         generate_CPP();
-        exit(0);
-    }
-
-    // At this point we're done with C++ considerations, so instead
-    // are compiling to ZAM.
-    analyze_scripts_for_ZAM();
 
     if ( reporter->Errors() > 0 )
         reporter->FatalError("Optimized script execution aborted due to errors");

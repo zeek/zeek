@@ -122,6 +122,9 @@
 
 namespace zeek::detail {
 
+class ZInst;
+struct ZAMInstDesc;
+
 class CPPCompile {
 public:
     CPPCompile(std::vector<FuncInfo>& _funcs, std::shared_ptr<ProfileFuncs> pfs, const std::string& gen_name,
@@ -704,6 +707,11 @@ private:
     void GenForOverString(const ExprPtr& str, const IDPList* loop_vars);
 
     void GenAssertStmt(const AssertStmt* a);
+
+    void GenFromZAM(const ZBody* z);
+    void GenFromZAMInst(const ZInst* inst);
+    std::string ExpandInst(const ZInst* inst, const ZAMInstDesc& desc);
+    int GetSlot(const ZInst* inst, int numV);
 
     // Nested level of loops/switches for which "break"'s should be
     // C++ breaks rather than a "hook" break.

@@ -63,6 +63,11 @@ public:
     const std::string& FuncName() const { return func_name; }
 
 private:
+    friend class CPPCompile;
+
+    auto Instructions() const { return insts; }
+    auto NumInsts() const { return end_pc; }
+
     // Initializes profiling information, if needed.
     void InitProfile();
     std::shared_ptr<ProfVec> BuildProfVec() const;

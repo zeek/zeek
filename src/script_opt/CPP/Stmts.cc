@@ -3,6 +3,7 @@
 // C++ compiler methods relating to generating code for Stmt's.
 
 #include "zeek/script_opt/CPP/Compile.h"
+#include "zeek/script_opt/ZAM/ZBody.h"
 
 namespace zeek::detail {
 
@@ -68,6 +69,8 @@ void CPPCompile::GenStmt(const Stmt* s) {
             auto el = static_cast<const ExprListStmt*>(s)->ExprList();
             Emit("do_print_stmt({%s});", GenExpr(el, GEN_VAL_PTR));
         } break;
+
+        case STMT_ZAM: GenFromZAM(static_cast<const ZBody*>(s)); break;
 
         default: reporter->InternalError("bad statement type in CPPCompile::GenStmt");
     }

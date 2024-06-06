@@ -27,8 +27,11 @@ using VectorTypePtr = IntrusivePtr<VectorType>;
 using TableValPtr = IntrusivePtr<TableVal>;
 
 namespace telemetry {
-class Manager;
-}
+class Gauge;
+class Counter;
+using GaugePtr = std::shared_ptr<Gauge>;
+using CounterPtr = std::shared_ptr<Counter>;
+} // namespace telemetry
 
 namespace detail {
 class Frame;
@@ -451,6 +454,16 @@ private:
     std::string zeek_table_db_directory;
 
     static int script_scope;
+
+    telemetry::GaugePtr num_peers_metric;
+    telemetry::GaugePtr num_stores_metric;
+    telemetry::GaugePtr num_pending_queries_metric;
+    telemetry::CounterPtr num_events_incoming_metric;
+    telemetry::CounterPtr num_events_outgoing_metric;
+    telemetry::CounterPtr num_logs_incoming_metric;
+    telemetry::CounterPtr num_logs_outgoing_metric;
+    telemetry::CounterPtr num_ids_incoming_metric;
+    telemetry::CounterPtr num_ids_outgoing_metric;
 };
 
 } // namespace Broker

@@ -145,6 +145,16 @@
 # 		all of possible values not explicitly listed (used in
 # 		conjunction with eval-type - see below)
 #
+#	op-types	similar to op-type, but lists a type for each operand
+#			(including assignment target)
+#
+#		Note that these types collectively apply to each instance of
+#		an operation, whereas listing multiple "op-type" types
+#		iterates through those one-at-a-time in turn (and generally
+#		the point is that the each type applies to *all* operands,
+#		rather than a per-operand list). Given that, the two are
+#		incompatible.
+#
 # 	eval	specifies a block of C++ code used to evaluation the
 # 		execution of the instruction.  The block begins with the
 # 		remainder of the "eval" line and continues until either a

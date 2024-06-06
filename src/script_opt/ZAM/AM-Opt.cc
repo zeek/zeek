@@ -303,7 +303,7 @@ bool ZAMCompiler::PruneUnused() {
         if ( assignmentless_op.count(inst->op) == 0 )
             reporter->InternalError("inconsistency in re-flavoring instruction with side effects");
 
-        inst->op_type = assignmentless_op_type[inst->op];
+        inst->op_type = assignmentless_op_class[inst->op];
         inst->op = assignmentless_op[inst->op];
 
         inst->v1 = inst->v2;

@@ -57,7 +57,7 @@ bool op_side_effects[] = {
 
 std::unordered_map<ZOp, std::unordered_map<TypeTag, ZOp>> assignment_flavor;
 std::unordered_map<ZOp, ZOp> assignmentless_op;
-std::unordered_map<ZOp, ZAMOpType> assignmentless_op_type;
+std::unordered_map<ZOp, ZAMOpType> assignmentless_op_class;
 
 ZOp AssignmentFlavor(ZOp orig, TypeTag tag, bool strict) {
     static bool did_init = false;

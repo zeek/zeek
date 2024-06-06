@@ -551,8 +551,8 @@ extern std::unordered_map<ZOp, std::unordered_map<TypeTag, ZOp>> assignment_flav
 // value is superfluous.
 extern std::unordered_map<ZOp, ZOp> assignmentless_op;
 
-// Maps flavorful assignments to what op-type their non-assignment
+// Maps flavorful assignments to what operand class their non-assignment
 // counterpart uses.
-extern std::unordered_map<ZOp, ZAMOpType> assignmentless_op_type;
+extern std::unordered_map<ZOp, ZAMOpType> assignmentless_op_class;
 
 } // namespace zeek::detail

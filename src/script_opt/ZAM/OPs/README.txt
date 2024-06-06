@@ -151,6 +151,11 @@
 #			the first operand (or assignment target) is an "addr",
 #			the second a "subnet", and the third another "addr".
 #
+#		Supports some additional specifications in addition to those
+#		for op-type:
+#
+#			Z ZVal without further details
+#
 #		Note that these types collectively apply to each instance of
 #		an operation, whereas listing multiple "op-type" types
 #		iterates through those one-at-a-time in turn (and generally

@@ -3,69 +3,76 @@
 internal-op Remove-Teredo
 op1-read
 class V
+op-types R
 eval	auto teredo = zeek::packet_mgr->GetAnalyzer("Teredo");
 	if ( teredo )
 		{
-		zeek::detail::ConnKey conn_key($1.record_val);
+		zeek::detail::ConnKey conn_key($1);
 		static_cast<zeek::packet_analysis::teredo::TeredoAnalyzer*>(teredo.get())->RemoveConnection(conn_key);
 		}
 
 internal-op Remove-Teredo
 side-effects OP_REMOVE_TEREDO_V OP_V
 class VV
+op-types I R
 eval	auto teredo = zeek::packet_mgr->GetAnalyzer("Teredo");
 	if ( teredo )
 		{
-		zeek::detail::ConnKey conn_key($1.record_val);
+		zeek::detail::ConnKey conn_key($1);
 		static_cast<zeek::packet_analysis::teredo::TeredoAnalyzer*>(teredo.get())->RemoveConnection(conn_key);
 		}
-	$$.int_val = 1;
+	$$ = 1;
 
 internal-op Remove-GTPv1
 op1-read
 class V
+op-types R
 eval	auto gtpv1 = zeek::packet_mgr->GetAnalyzer("GTPv1");
 	if ( gtpv1 )
 		{
-		zeek::detail::ConnKey conn_key($1.record_val);
+		zeek::detail::ConnKey conn_key($1);
 		static_cast<zeek::packet_analysis::gtpv1::GTPv1_Analyzer*>(gtpv1.get())->RemoveConnection(conn_key);
 		}
 
 internal-op Remove-GTPv1
 side-effects OP_REMOVE_GTPV1_V OP_V
 class VV
+op-types I R
 eval	auto gtpv1 = zeek::packet_mgr->GetAnalyzer("GTPv1");
 	if ( gtpv1 )
 		{
-		zeek::detail::ConnKey conn_key($1.record_val);
+		zeek::detail::ConnKey conn_key($1);
 		static_cast<zeek::packet_analysis::gtpv1::GTPv1_Analyzer*>(gtpv1.get())->RemoveConnection(conn_key);
 		}
-	$$.int_val = 1;
+	$$ = 1;
 
 internal-op Set-File-Handle
 op1-read
 class V
-eval	auto handle = $1.string_val;
+op-types S
+eval	auto handle = $1;
 	auto bytes = reinterpret_cast<const char*>(handle->Bytes());
 	auto h = std::string(bytes, handle->Len());
 	zeek::file_mgr->SetHandle(h);
 
 internal-op Subnet-To-Addr
 class VV
-eval	auto addr_v = make_intrusive<AddrVal>($1.subnet_val->Prefix());
-	Unref($$.addr_val);
+op-types X N
+eval	auto addr_v = make_intrusive<AddrVal>($1->Prefix());
+	ZVal::DeleteManagedType($$);
 	$$ = ZVal(addr_v);
 
 macro EvalSubBytes(lhs, arg1, arg2, arg3)
 	{
-	auto sv = ZAM_sub_bytes(arg1.AsString(), arg2, arg3);
-	Unref(lhs.AsString());
-	lhs.string_val = sv;
+	auto sv = ZAM_sub_bytes(arg1, arg2, arg3);
+	Unref(lhs);
+	lhs = sv;
 	}
 
 internal-op Sub-Bytes
 classes VVVV VVVC VVCV VCVV VVCi VCVi
-eval	EvalSubBytes($$, $1, $2.uint_val, $3)
+op-types S S U I
+eval	EvalSubBytes($$, $1, $2, $3)
 
 # Use a distinct name because due to the convention when constructing
 # instructions, frame slots are always positioned earlier than non-frame
@@ -73,18 +80,21 @@ eval	EvalSubBytes($$, $1, $2.uint_val, $3)
 # in a different order than above.
 internal-op Sub-Bytes2
 class VCVi
-eval	EvalSubBytes($$, $1, zeek_uint_t($3), $2.uint_val)
+op-types S S I U
+eval	EvalSubBytes($$, $1, $3, $2)
 
 internal-op Time-To-Double
 class VV
+op-types D D
 eval	$$ = $1;
 
 
 internal-op To-Lower
 class VV
-eval	auto sv = ZAM_to_lower($1.string_val);
-	Unref($$.string_val);
-	$$.string_val = sv;
+op-types S S
+eval	auto sv = ZAM_to_lower($1);
+	Unref($$);
+	$$ = sv;
 
 # A ZAM version of Log::__write.  In calls to it, the first argument
 # is generally a constant (enum) *if we inlined*, but otherwise a
@@ -100,15 +110,16 @@ eval	auto sv = ZAM_to_lower($1.string_val);
 
 macro LogWritePre(id_val, columns_val)
 	auto id = id_val.ToVal(ZAM::log_ID_enum_type);
-	auto columns = columns_val.record_val;
+	auto columns = columns_val;
 
 macro LogWriteResPost(lhs)
 	bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());
-	lhs.int_val = result;
+	lhs = result;
 
 internal-op Log-Write
 side-effects OP_LOG_WRITE_VV OP_VV
 class VVV
+op-types I X R
 eval	LogWritePre($1, $2)
 	LogWriteResPost($$)
 
@@ -116,6 +127,7 @@ eval	LogWritePre($1, $2)
 internal-op Log-WriteC
 side-effects OP_LOG_WRITE_CV OP_VC
 class VCV
+op-types I X R
 eval	LogWritePre($1, $2)
 	LogWriteResPost($$)
 
@@ -124,13 +136,15 @@ internal-op Log-Write
 side-effects
 op1-read
 classes VV CV
+op-types X R
 eval	LogWritePre($1, $2)
 	(void) log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());
 
 internal-op Broker-Flush-Logs
 side-effects OP_BROKER_FLUSH_LOGS_X OP_X
 class V
-eval	$$.uint_val = broker_mgr->FlushLogBuffers();
+op-types U
+eval	$$ = broker_mgr->FlushLogBuffers();
 
 internal-op Broker-Flush-Logs
 side-effects
@@ -139,7 +153,8 @@ eval	(void) broker_mgr->FlushLogBuffers();
 
 internal-op Get-Port-Transport-Proto
 class VV
-eval	auto mask = $1.uint_val & PORT_SPACE_MASK;
+op-types U U
+eval	auto mask = $1 & PORT_SPACE_MASK;
 	auto v = 0; /* TRANSPORT_UNKNOWN */
 	if ( mask == TCP_PORT_MASK )
 		v = 1;
@@ -147,15 +162,17 @@ eval	auto mask = $1.uint_val & PORT_SPACE_MASK;
 		v = 2;
 	else if ( mask == ICMP_PORT_MASK )
 		v = 3;
-	$$.uint_val = v;
+	$$ = v;
 
 predicate-op Conn-Exists
 class V
-eval	session_mgr->FindConnection($1.record_val) != nullptr
+op-types R
+eval	session_mgr->FindConnection($1) != nullptr
 
 internal-op Lookup-Conn
 class VV
-eval	auto cid = $1.record_val;
+op-types X R
+eval	auto cid = $1;
 	Connection* conn = session_mgr->FindConnection(cid);
 	ValPtr res;
 	if ( conn )
@@ -169,31 +186,38 @@ eval	auto cid = $1.record_val;
 
 predicate-op Is-ICMP-Port
 class V
-eval	($1.uint_val & PORT_SPACE_MASK) == ICMP_PORT_MASK
+op-types U
+eval	($1 & PORT_SPACE_MASK) == ICMP_PORT_MASK
 
 predicate-op Is-TCP-Port
 class V
-eval	($1.uint_val & PORT_SPACE_MASK) == TCP_PORT_MASK
+op-types U
+eval	($1 & PORT_SPACE_MASK) == TCP_PORT_MASK
 
 predicate-op Is-UDP-Port
 class V
-eval	($1.uint_val & PORT_SPACE_MASK) == UDP_PORT_MASK
+op-types U
+eval	($1 & PORT_SPACE_MASK) == UDP_PORT_MASK
 
 predicate-op Is-V4-Addr
 class V
-eval	$1.addr_val->AsAddr().GetFamily() == IPv4
+op-types A
+eval	$1->AsAddr().GetFamily() == IPv4
 
 predicate-op Is-V6-Addr
 class V
-eval	$1.addr_val->AsAddr().GetFamily() == IPv6
+op-types A
+eval	$1->AsAddr().GetFamily() == IPv6
 
 internal-op Network-Time
 class V
-eval	$$.double_val = run_state::network_time;
+op-types D
+eval	$$ = run_state::network_time;
 
 internal-op Current-Time
 class V
-eval	$$.double_val = util::current_time();
+op-types D
+eval	$$ = util::current_time();
 
 predicate-op Reading-Live-Traffic
 class X
@@ -206,41 +230,46 @@ eval	run_state::reading_traces
 internal-op Sort
 op1-read
 class V
-eval	if ( $1.vector_val->Size() > 1 )
-		$1.vector_val->Sort();
+op-types V
+eval	if ( $1->Size() > 1 )
+		$1->Sort();
 
 internal-op Sort
 class VV
-eval	auto vv = $1.vector_val;
+op-types V V
+eval	auto vv = $1;
 	if ( vv->Size() > 1 )
 		vv->Sort();
 	zeek::Ref(vv);
-	Unref($$.vector_val);
-	$$.vector_val = vv;
+	Unref($$);
+	$$ = vv;
 
 internal-op Sort-With-Cmp
 op1-read
 class VV
-eval	if ( $1.vector_val->Size() > 1 )
-		$1.vector_val->Sort($2.func_val);
+op-types V F
+eval	if ( $1->Size() > 1 )
+		$1->Sort($2);
 
 internal-op Sort-With-Cmp
 class VVV
-eval	auto vv = $1.vector_val;
+op-types V V F
+eval	auto vv = $1;
 	if ( vv->Size() > 1 )
-		vv->Sort($2.func_val);
+		vv->Sort($2);
 	zeek::Ref(vv);
-	Unref($$.vector_val);
-	$$.vector_val = vv;
+	Unref($$);
+	$$ = vv;
 
 internal-op Starts-With
 classes VVV VCV VVC
-eval	auto str = $1.string_val;
-	auto sub = $2.string_val;
+op-types I S S
+eval	auto str = $1;
+	auto sub = $2;
 	auto str_n = str->Len();
 	auto sub_n = sub->Len();
 	if ( str_n < sub_n )
-		$$.int_val = 0;
+		$$ = 0;
 	else
 		{
 		auto str_b = str->Bytes();
@@ -249,20 +278,22 @@ eval	auto str = $1.string_val;
 		for ( i = 0; i < sub_n; ++i )
 			if ( str_b[i] != sub_b[i] )
 				break;
-		$$.int_val = i == sub_n;
+		$$ = i == sub_n;
 		}
 
 internal-op StrCmp
 classes VVV VCV VVC
-eval	auto s1 = $1.string_val;
-	auto s2 = $2.string_val;
-	$$.int_val = Bstr_cmp(s1->AsString(), s2->AsString());
+op-types I S S
+eval	auto s1 = $1;
+	auto s2 = $2;
+	$$ = Bstr_cmp(s1->AsString(), s2->AsString());
 
 internal-op StrStr
 classes VVV VCV VVC
-eval	auto big = $1.string_val;
-	auto little = $2.string_val;
-	$$.int_val = 1 + big->AsString()->FindSubstring(little->AsString());
+op-types I S S
+eval	auto big = $1;
+	auto little = $2;
+	$$ = 1 + big->AsString()->FindSubstring(little->AsString());
 
 macro Cat1Op(lhs, val)
 	auto& v1 = lhs;
@@ -421,23 +452,24 @@ eval	CatNPre()
 
 internal-op Analyzer-Name
 classes VV VC
+op-types S X
 eval	auto atype = $1.ToVal(Z_TYPE);
 	auto val = atype->AsEnumVal();
-	Unref($$.string_val);
+	Unref($$);
 	plugin::Component* component = zeek::analyzer_mgr->Lookup(val);
 	if ( ! component )
 		component = zeek::packet_mgr->Lookup(val);
 	if ( ! component )
 		component = zeek::file_mgr->Lookup(val);
 	if ( component )
-		$$.string_val = new StringVal(component->CanonicalName());
+		$$ = new StringVal(component->CanonicalName());
 	else
-		$$.string_val = new StringVal("<error>");
+		$$ = new StringVal("<error>");
 
 macro FilesAddOrRemoveAnalyzer(file_id_val, tag, args_val, METHOD)
-	auto file_id = file_id_val.string_val;
+	auto file_id = file_id_val;
 	using zeek::BifType::Record::Files::AnalyzerArgs;
-	auto rv = args_val.record_val->CoerceTo(AnalyzerArgs);
+	auto rv = args_val->CoerceTo(AnalyzerArgs);
 	bool result = zeek::file_mgr->METHOD(
 	     file_id->CheckString(),
 	     zeek::file_mgr->GetComponentTag(tag.ToVal(Z_TYPE).get()),
@@ -449,19 +481,22 @@ macro FilesAddAnalyzer(file_id_val, tag, args_val)
 internal-op Files-Add-Analyzer
 op1-read
 classes VVV VCV
+op-types S X R
 eval	FilesAddAnalyzer($1, $2, $3)
 
 internal-op Files-Add-Analyzer
 class VVVV
 side-effects OP_FILES_ADD_ANALYZER_VVV OP_VVV
+op-types I S X R
 eval	FilesAddAnalyzer($1, $2, $3)
-	$$.int_val = result;
+	$$ = result;
 
 internal-op Files-Add-Analyzer
 class VVCV
+op-types I S X R
 side-effects OP_FILES_ADD_ANALYZER_VCV OP_VVC
 eval	FilesAddAnalyzer($1, $2, $3)
-	$$.int_val = result;
+	$$ = result;
 
 macro FilesRemoveAnalyzer(file_id_val, tag, args_slot)
 	FilesAddOrRemoveAnalyzer(file_id_val, tag, args_slot, RemoveAnalyzer)
@@ -469,25 +504,29 @@ macro FilesRemoveAnalyzer(file_id_val, tag, args_slot)
 internal-op Files-Remove-Analyzer
 op1-read
 classes VVV VCV
+op-types S X R
 eval	FilesRemoveAnalyzer($1, $2, $3)
 
 internal-op Files-Remove-Analyzer
 class VVVV
+op-types I S X R
 side-effects OP_FILES_REMOVE_ANALYZER_VVV OP_VVV
 eval	FilesRemoveAnalyzer($1, $2, $3)
-	$$.int_val = result;
+	$$ = result;
 
 internal-op Files-Remove-Analyzer
 class VVCV
+op-types I S X R
 side-effects OP_FILES_REMOVE_ANALYZER_VCV OP_VVC
 eval	FilesRemoveAnalyzer($1, $2, $3)
-	$$.int_val = result;
+	$$ = result;
 
 internal-op Analyzer-Enabled
 classes VV VC
+op-types I X
 eval	auto atype = $1.ToVal(Z_TYPE);
 	auto c = zeek::file_mgr->Lookup(atype->AsEnumVal());
-	$$.int_val = c && c->Enabled();
+	$$ = c && c->Enabled();
 
 internal-op File-Analyzer-Name
 classes VV VC
@@ -497,45 +536,52 @@ eval	auto atype = $1.ToVal(Z_TYPE);
 
 internal-op Is-Protocol-Analyzer
 classes VV VC
+op-types I X
 eval	auto atype = $1.ToVal(Z_TYPE);
-	$$.int_val = analyzer_mgr->Lookup(atype->AsEnumVal()) != nullptr;
+	$$ = analyzer_mgr->Lookup(atype->AsEnumVal()) != nullptr;
 
 internal-op Clear-Table
 op1-read
 class V
-eval	$1.table_val->RemoveAll();
+op-types T
+eval	$1->RemoveAll();
 
 internal-op Files-Enable-Reassembly
 op1-read
 class V
-eval	auto f = $1.string_val->CheckString();
+op-types S
+eval	auto f = $1->CheckString();
 	file_mgr->EnableReassembly(f);
 
 internal-op Files-Set-Reassembly-Buffer
 op1-read
 classes VV Vi
-eval	auto f = $1.string_val->CheckString();
+op-types S U
+eval	auto f = $1->CheckString();
 	file_mgr->SetReassemblyBuffer(f, $2);
 
 internal-op Files-Set-Reassembly-Buffer
 class VVV
+op-types I S U
 side-effects OP_FILES_SET_REASSEMBLY_BUFFER_VV OP_VV
-eval	auto f = $1.string_val->CheckString();
-	$$.int_val = file_mgr->SetReassemblyBuffer(f, $2.uint_val);
+eval	auto f = $1->CheckString();
+	$$ = file_mgr->SetReassemblyBuffer(f, $2);
 
 internal-op Files-Set-Reassembly-Buffer
 class VVi
+op-types I S U
 side-effects OP_FILES_SET_REASSEMBLY_BUFFER_Vi OP_VV_I2
-eval	auto f = $1.string_val->CheckString();
-	$$.int_val = file_mgr->SetReassemblyBuffer(f, zeek_uint_t($2));
+eval	auto f = $1->CheckString();
+	$$ = file_mgr->SetReassemblyBuffer(f, $2);
 
 internal-op Get-Bytes-Thresh
 classes VVV VVC
-eval	auto a = analyzer::conn_size::GetConnsizeAnalyzer($1.record_val);
+op-types U R I
+eval	auto a = analyzer::conn_size::GetConnsizeAnalyzer($1);
 	auto res = 0U;
 	if ( a )
-		res = static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->GetByteAndPacketThreshold(true, $2.int_val);
-	$$.uint_val = res;
+		res = static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->GetByteAndPacketThreshold(true, $2);
+	$$ = res;
 
 macro SetBytesThresh(cid, threshold, is_orig)
 	bool res = false;
@@ -549,28 +595,33 @@ macro SetBytesThresh(cid, threshold, is_orig)
 internal-op Set-Bytes-Thresh
 op1-read
 classes VVV VVC VCV VCi
-eval	SetBytesThresh($1.record_val, $2.uint_val, $3)
+op-types R U I
+eval	SetBytesThresh($1, $2, $3)
 
 internal-op Set-Bytes-Thresh
 class VVVV
+op-types I R U I
 side-effects OP_SET_BYTES_THRESH_VVV OP_VVV
-eval	SetBytesThresh($1.record_val, $2.uint_val, $3.int_val)
-	$$.int_val = res;
+eval	SetBytesThresh($1, $2, $3)
+	$$ = res;
 
 internal-op Set-Bytes-Thresh
 class VVVC
+op-types I R U I
 side-effects OP_SET_BYTES_THRESH_VVC OP_VVC
-eval	SetBytesThresh($1.record_val, $2.uint_val, $3.int_val)
-	$$.int_val = res;
+eval	SetBytesThresh($1, $2, $3)
+	$$ = res;
 
 internal-op Set-Bytes-Thresh
 class VVCV
+op-types I R U I
 side-effects OP_SET_BYTES_THRESH_VCV OP_VVC
-eval	SetBytesThresh($1.record_val, $2.uint_val, $3.int_val)
-	$$.int_val = res;
+eval	SetBytesThresh($1, $2, $3)
+	$$ = res;
 
 internal-op Set-Bytes-Thresh
 class VVCi
+op-types I R U I
 side-effects OP_SET_BYTES_THRESH_VCi OP_VVC_I2
-eval	SetBytesThresh($1.record_val, $2.uint_val, zeek_uint_t($3))
-	$$.int_val = res;
+eval	SetBytesThresh($1, $2, $3)
+	$$ = res;

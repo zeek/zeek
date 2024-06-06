@@ -94,10 +94,10 @@
 # fill out the template, ending by convention with the C++ evaluation snippet
 # (if appropriate).  The most significant (and complex) of these are:
 #
-# 	type	specifies how to interpret the operation in terms of ZAM
+# 	class	specifies how to interpret the operation in terms of ZAM
 # 		instruction slots (and constant).  The specification is
 # 		in terms of single-letter mnemonics for the different
-# 		possible types:
+# 		possible classes:
 #
 # 			F special value designating a record field being
 # 			  assigned to
@@ -115,15 +115,15 @@
 # 		instruction's 4 integer values (stopping with the last one
 # 		used).  If the operation includes a constant, then it is
 # 		listed at the point reflecting where the constant is used as
-# 		an operand.  For example, a type of "VVCV" means that the
+# 		an operand.  For example, a class of "VVCV" means that the
 # 		first integer is used as a frame variable (i.e., the usual
 # 		"assignment slot"), the second integer (first "operand") is
 # 		also a frame variable, the second operand is the instruction's
 # 		constant, and the third operand is the instruction's third
 # 		integer value, with the fourth integer value not being used.
 #
-#	types	specifies a number of "type" values to instantiate over.
-#		Cannot be combined with "type", nor used for expressions.
+#	classes	specifies a number of "class" values to instantiate over.
+#		Cannot be combined with "class", nor used for expressions.
 #
 # 	op-type for some form of expr-op, specifies to which Zeek scripting
 # 		types the expression applies:
@@ -146,7 +146,10 @@
 # 		conjunction with eval-type - see below)
 #
 #	op-types	similar to op-type, but lists a type for each operand
-#			(including assignment target)
+#			(including assignment target), so for example ANA
+#			would correspond to a 3-operand instruction for which
+#			the first operand (or assignment target) is an "addr",
+#			the second a "subnet", and the third another "addr".
 #
 #		Note that these types collectively apply to each instance of
 #		an operation, whereas listing multiple "op-type" types

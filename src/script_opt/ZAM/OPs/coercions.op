@@ -3,7 +3,7 @@
 direct-unary-op Arith-Coerce ArithCoerce
 
 internal-op Coerce-UI
-type VV
+class VV
 eval	auto v = $1.int_val;
 	if ( v < 0 )
 		{
@@ -13,7 +13,7 @@ eval	auto v = $1.int_val;
 	$$.uint_val = zeek_uint_t(v);
 
 internal-op Coerce-UD
-type VV
+class VV
 eval	auto v = $1.double_val;
 	if ( v < 0.0 )
 		{
@@ -28,7 +28,7 @@ eval	auto v = $1.double_val;
 	$$.uint_val = zeek_uint_t(v);
 
 internal-op Coerce-IU
-type VV
+class VV
 eval	auto v = $1.uint_val;
 	if ( v > INT64_MAX )
 		{
@@ -38,7 +38,7 @@ eval	auto v = $1.uint_val;
 	$$.int_val = zeek_int_t(v);
 
 internal-op Coerce-ID
-type VV
+class VV
 eval	auto v = $1.double_val;
 	if ( v < static_cast<double>(INT64_MIN) )
 		{
@@ -53,11 +53,11 @@ eval	auto v = $1.double_val;
 	$$.int_val = zeek_int_t(v);
 
 internal-op Coerce-DI
-type VV
+class VV
 eval	$$.double_val = double($1.int_val);
 
 internal-op Coerce-DU
-type VV
+class VV
 eval	$$.double_val = double($1.uint_val);
 
 
@@ -67,34 +67,34 @@ macro EvalCoerceVec(lhs, rhs, coercer)
 	Unref(old_v1);	/* delayed to allow for same value on both sides */
 
 internal-op Coerce-UI-Vec
-type VV
+class VV
 eval	EvalCoerceVec($$, $1, vec_coerce_UI)
 
 internal-op Coerce-UD-Vec
-type VV
+class VV
 eval	EvalCoerceVec($$, $1, vec_coerce_UD)
 
 internal-op Coerce-IU-Vec
-type VV
+class VV
 eval	EvalCoerceVec($$, $1, vec_coerce_IU)
 
 internal-op Coerce-ID-Vec
-type VV
+class VV
 eval	EvalCoerceVec($$, $1, vec_coerce_ID)
 
 internal-op Coerce-DI-Vec
-type VV
+class VV
 eval	EvalCoerceVec($$, $1, vec_coerce_DI)
 
 internal-op Coerce-DU-Vec
-type VV
+class VV
 eval	EvalCoerceVec($$, $1, vec_coerce_DU)
 
 
 direct-unary-op Record-Coerce RecordCoerce
 
 internal-op Record-Coerce
-type VV
+class VV
 eval	auto rt = cast_intrusive<RecordType>(Z_TYPE);
 	auto v = $1.record_val;
 	auto to_r = coerce_to_record(std::move(rt), v, Z_AUX->map);
@@ -104,7 +104,7 @@ eval	auto rt = cast_intrusive<RecordType>(Z_TYPE);
 direct-unary-op Table-Coerce TableCoerce
 
 internal-op Table-Coerce
-type VV
+class VV
 eval	auto tv = $1.table_val;
 	if ( tv->Size() > 0 )
 		{
@@ -120,7 +120,7 @@ eval	auto tv = $1.table_val;
 direct-unary-op Vector-Coerce VectorCoerce
 
 internal-op Vector-Coerce
-type VV
+class VV
 eval	if ( $1.vector_val->Size() > 0 )
 		{
 		ZAM_run_time_error(Z_LOC, "coercion of non-empty vector");

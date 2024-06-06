@@ -2,12 +2,12 @@
 
 # Direct assignment of an existing value.
 assign-op Assign
-type V
+class V
 
 # The same, but where the assignment target (LHS) is a record field.
 assign-op Field-LHS-Assign
 op1-read
-type F
+class F
 
 unary-expr-op Clone
 no-const
@@ -54,22 +54,22 @@ eval -$1
 
 op IncrI
 op1-read-write
-type V
+class V
 eval	++$$.int_val;
 
 op IncrU
 op1-read-write
-type V
+class V
 eval	++$$.uint_val;
 
 op DecrI
 op1-read-write
-type V
+class V
 eval	--$$.int_val;
 
 op DecrU
 op1-read-write
-type V
+class V
 eval	auto& u = $$.uint_val;
 	if ( u == 0 )
 		ZAM_run_time_warning(Z_LOC, "count underflow");
@@ -104,7 +104,7 @@ eval	auto vv = $1.vector_val;
 	vv->Assign(vv->Size(), $2.ToVal(Z_TYPE));
 
 internal-op AddPatternToField
-types VVi VCi
+classes VVi VCi
 op1-read
 eval	auto r = $$.record_val;
 	auto fpat = r->GetField($2)->AsPatternVal();
@@ -162,13 +162,13 @@ macro EvalCast(lhs, rhs)
 # Cast an "any" type to the given type.  Only needed for type-based switch
 # statements.
 internal-op Cast-Any
-type VV
+class VV
 eval	ValPtr rhs = {NewRef{}, $1.any_val};
 	EvalCast($$, rhs)
 
 direct-unary-op Is Is
 
 internal-op Is
-type VV
+class VV
 eval	auto rhs = $1.ToVal(Z_TYPE2).get();
 	$$.int_val = can_cast_value_to_type(rhs, Z_TYPE.get());

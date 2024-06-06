@@ -1,31 +1,31 @@
 # Operations corresponding to scripting idioms / known script functions.
 
 internal-op MinU
-types VVV VVC
+classes VVV VVC
 eval	$$.uint_val = std::min($1.uint_val, $2.uint_val);
 
 internal-op MinI
-types VVV VVC
+classes VVV VVC
 eval	$$.int_val = std::min($1.int_val, $2.int_val);
 
 internal-op MinD
-types VVV VVC
+classes VVV VVC
 eval	$$.double_val = std::min($1.double_val, $2.double_val);
 
 internal-op MaxU
-types VVV VVC
+classes VVV VVC
 eval	$$.uint_val = std::max($1.uint_val, $2.uint_val);
 
 internal-op MaxI
-types VVV VVC
+classes VVV VVC
 eval	$$.int_val = std::max($1.int_val, $2.int_val);
 
 internal-op MaxD
-types VVV VVC
+classes VVV VVC
 eval	$$.double_val = std::max($1.double_val, $2.double_val);
 
 internal-op Func-Id-String
-type VV
+class VV
 eval	auto id_rec = $1.record_val;
 	auto orig_h = id_rec->RawField(0).addr_val->AsAddr().AsString();
 	auto resp_h = id_rec->RawField(2).addr_val->AsAddr().AsString();

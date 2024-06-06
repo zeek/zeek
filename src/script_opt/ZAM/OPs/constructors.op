@@ -17,7 +17,7 @@ macro ConstructTableOrSetPost(lhs)
 	t = new_t;
 
 internal-op Construct-Table
-type Vi
+class Vi
 eval	ConstructTableOrSetPre($1)
 	for ( auto i = 0; i < n; ++i )
 		{
@@ -31,7 +31,7 @@ eval	ConstructTableOrSetPre($1)
 # When tables are constructed, if their &default is a lambda with captures
 # then we need to explicitly set up the default.
 internal-op Set-Table-Default-Lambda
-type VV
+class VV
 op1-read
 eval	auto& tbl = $1.table_val;
 	auto lambda = $2.ToVal(Z_TYPE);
@@ -40,7 +40,7 @@ eval	auto& tbl = $1.table_val;
 direct-unary-op Set-Constructor ConstructSet
 
 internal-op Construct-Set
-type Vi
+class Vi
 eval	ConstructTableOrSetPre($1)
 	for ( auto i = 0; i < n; i += ind_width )
 		{
@@ -57,31 +57,31 @@ macro ConstructRecordPost(lhs)
 	r = new RecordVal(cast_intrusive<RecordType>(Z_TYPE), std::move(init_vals));
 
 op Construct-Direct-Record
-type V
+class V
 eval	auto init_vals = Z_AUX->ToZValVec(frame);
 	ConstructRecordPost($$)
 
 op Construct-Known-Record
-type V
+class V
 eval	auto init_vals = Z_AUX->ToZValVecWithMap(frame);
 	ConstructRecordPost($$)
 
 op Construct-Known-Record-With-NT
-type Vi
+class Vi
 eval	auto init_vals = Z_AUX->ToZValVecWithMap(frame);
 	ASSERT(! init_vals[$1]);
 	init_vals[$1] = ZVal(run_state::network_time);
 	ConstructRecordPost($$)
 
 op Construct-Known-Record-With-Inits
-type V
+class V
 eval	auto init_vals = Z_AUX->ToZValVecWithMap(frame);
 	for ( auto& fi : *Z_AUX->field_inits )
 		init_vals[fi.first] = fi.second->Generate();
 	ConstructRecordPost($$)
 
 op Construct-Known-Record-With-Inits-And-NT
-type Vi
+class Vi
 eval	auto init_vals = Z_AUX->ToZValVecWithMap(frame);
 	for ( auto& fi : *Z_AUX->field_inits )
 		init_vals[fi.first] = fi.second->Generate();
@@ -94,7 +94,7 @@ eval	auto init_vals = Z_AUX->ToZValVecWithMap(frame);
 # inspect.
 op Concretize-Vector-Fields
 op1-read
-type V
+class V
 eval	auto rt = cast_intrusive<RecordType>(Z_TYPE);
 	auto r = $1.record_val;
 	auto aux = Z_AUX;
@@ -114,7 +114,7 @@ eval	auto rt = cast_intrusive<RecordType>(Z_TYPE);
 direct-unary-op Vector-Constructor ConstructVector
 
 internal-op Construct-Vector
-type V
+class V
 eval	auto new_vv = new VectorVal(cast_intrusive<VectorType>(Z_TYPE));
 	auto aux = Z_AUX;
 	auto n = aux->n;

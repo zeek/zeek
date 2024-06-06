@@ -2,7 +2,7 @@
 # and "any" values.
 
 op IndexVecBoolSelect
-types VVV VCV
+classes VVV VCV
 set-type $$
 eval	if ( $1.vector_val->Size() != $2.vector_val->Size() )
 		{
@@ -17,7 +17,7 @@ eval	if ( $1.vector_val->Size() != $2.vector_val->Size() )
 	$$.vector_val = v.release();
 
 op IndexVecIntSelect
-types VVV VCV
+classes VVV VCV
 set-type $$
 eval	auto vt = cast_intrusive<VectorType>(Z_TYPE);
 	auto v2 = $1.vector_val;
@@ -27,27 +27,27 @@ eval	auto vt = cast_intrusive<VectorType>(Z_TYPE);
 	$$.vector_val = v.release();
 
 op Index
-type VVL
+class VVL
 custom-method return CompileIndex(n1, n2, l, false);
 no-eval
 
 op Index
-type VCL
+class VCL
 custom-method return CompileIndex(n, c, l, false);
 no-eval
 
 op WhenIndex
-type VVL
+class VVL
 custom-method return CompileIndex(n1, n2, l, true);
 no-eval
 
 op WhenIndex
-type VCL
+class VCL
 custom-method return CompileIndex(n, c, l, true);
 no-eval
 
 internal-op Index-Vec
-type VVV
+class VVV
 eval	EvalIndexVec($$, $1, $2.int_val)
 
 macro EvalIndexVec(lhs, rhs_vec, index)
@@ -61,11 +61,11 @@ macro EvalIndexVec(lhs, rhs_vec, index)
 	AssignTarget(lhs, CopyVal(*vec[ind]))
 
 internal-op Index-VecC
-type VVi
+class VVi
 eval	EvalIndexVec($$, $1, $2)
 
 internal-op Index-Any-Vec
-type VVV
+class VVV
 eval	EvalIndexAnyVec($$, $1, $2.uint_val)
 
 macro EvalIndexAnyVec(lhs, vec, index)
@@ -78,7 +78,7 @@ macro EvalIndexAnyVec(lhs, vec, index)
 	AssignTarget(lhs, ZVal(vv->ValAt(ind).release()))
 
 internal-op Index-Any-VecC
-type VVi
+class VVi
 eval	EvalIndexAnyVec($$, $1, $2)
 
 macro WhenIndexResCheck(vec)
@@ -87,12 +87,12 @@ macro WhenIndexResCheck(vec)
 		IndexExprWhen::results.push_back({NewRef{}, res});
 
 internal-op When-Index-Vec
-type VVV
+class VVV
 eval	EvalIndexAnyVec($$, $1, $2.uint_val)
 	WhenIndexResCheck($$)
 
 internal-op When-Index-VecC
-type VVi
+class VVi
 eval	EvalIndexAnyVec($$, $1, $2)
 	WhenIndexResCheck($$)
 
@@ -104,27 +104,27 @@ macro EvalVecSlice(lhs, vv)
 	lhs.vector_val = v.release();
 
 internal-op Index-Vec-Slice
-type VV
+class VV
 eval	EvalVecSlice($$, $1)
 
 internal-op When-Index-Vec-Slice
-type VV
+class VV
 eval	EvalVecSlice($$, $1)
 	WhenIndexResCheck($$)
 
 internal-op Table-Index
-type VV
+class VV
 eval	EvalTableIndex($1, Z_AUX->ToListVal(frame))
 	AssignTarget($$, BuildVal(v, Z_TYPE))
 
 internal-op Table-PatStr-Index
-types VVV VVC
+classes VVV VVC
 eval	auto vec = ZVal($1.table_val->LookupPattern({NewRef{}, $2.string_val}));
 	ZVal::DeleteManagedType($$);
 	$$ = vec;
 
 internal-op When-Table-Index
-type VV
+class VV
 eval	EvalTableIndex($1, Z_AUX->ToListVal(frame))
 	if ( IndexExprWhen::evaluating > 0 )
 		IndexExprWhen::results.emplace_back(v);
@@ -139,7 +139,7 @@ macro EvalTableIndex(tbl, index)
 		}
 
 internal-op When-PatStr-Index
-type VV
+class VV
 eval	auto args = Z_AUX->ToListVal(frame);
 	auto arg0 = args->Idx(0);
 	auto v = $1.table_val->LookupPattern({NewRef{}, arg0->AsStringVal()});
@@ -148,14 +148,14 @@ eval	auto args = Z_AUX->ToListVal(frame);
 	AssignTarget($$, BuildVal(v, Z_TYPE))
 
 internal-assignment-op Table-Index1
-types VVV VVC
+classes VVV VVC
 assign-val v
 eval	EvalTableIndex($1, $2.ToVal(Z_TYPE))
 # No AssignTarget needed, as this is an assignment-op
 
 # This version is for a variable v3.
 internal-op Index-String
-type VVV
+class VVV
 eval	EvalIndexString($$, $1, $2.int_val)
 
 macro EvalIndexString(lhs, s, index)
@@ -170,11 +170,11 @@ macro EvalIndexString(lhs, s, index)
 
 # This version is for a constant v3.
 internal-op Index-StringC
-type VVi
+class VVi
 eval	EvalIndexString($$, $1, $2)
 
 internal-op Index-String-Slice
-type VV
+class VV
 eval	auto str = $1.string_val->AsString();
 	auto lv = Z_AUX->ToListVal(frame);
 	auto slice = index_string(str, lv.get());
@@ -182,7 +182,7 @@ eval	auto str = $1.string_val->AsString();
 	$$.string_val = new StringVal(slice->ToStdString());
 
 op AnyIndex
-type VVi
+class VVi
 set-type $$
 eval	auto lv = $1.any_val->AsListVal();
 	if ( $2 < 0 || $2 >= lv->Length() )

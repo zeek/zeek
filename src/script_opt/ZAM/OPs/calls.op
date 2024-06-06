@@ -3,13 +3,13 @@
 # A call with no arguments and no return value.
 internal-op Call0
 op1-read
-type X
+class X
 side-effects
 num-call-args 0
 
 # A call with no arguments and a return value.
 internal-assignment-op Call0
-type V
+class V
 side-effects OP_CALL0_X OP_X
 assign-val v
 num-call-args 0
@@ -17,68 +17,68 @@ num-call-args 0
 # Calls with 1 argument and no return value.
 internal-op Call1
 op1-read
-types V C
+classes V C
 side-effects
 num-call-args 1
 
 # Same but with a return value.
 internal-assignment-op Call1
-type VV
+class VV
 side-effects OP_CALL1_V OP_V
 assign-val v
 num-call-args 1
 
 internal-assignment-op Call1
-type VC
+class VC
 side-effects OP_CALL1_C OP_C
 assign-val v
 num-call-args 1
 
 # Calls with 2-5 arguments and no return value.
 internal-op Call2
-type X
+class X
 side-effects
 num-call-args 2
 
 # Same with a return value.
 internal-assignment-op Call2
-type V
+class V
 side-effects OP_CALL2_X OP_X
 assign-val v
 num-call-args 2
 
 internal-op Call3
-type X
+class X
 side-effects
 num-call-args 3
 
 # Same with a return value.
 internal-assignment-op Call3
-type V
+class V
 side-effects OP_CALL3_X OP_X
 assign-val v
 num-call-args 3
 
 internal-op Call4
-type X
+class X
 side-effects
 num-call-args 4
 
 # Same with a return value.
 internal-assignment-op Call4
-type V
+class V
 side-effects OP_CALL4_X OP_X
 assign-val v
 num-call-args 4
 
 internal-op Call5
-type X
+class X
 side-effects
 num-call-args 5
 
 # Same with a return value.
 internal-assignment-op Call5
-type V
+class V
 side-effects OP_CALL5_X OP_X
 assign-val v
 num-call-args 5
@@ -86,27 +86,27 @@ num-call-args 5
 # ... and with an arbitrary number of arguments.
 
 internal-op CallN
-type X
+class X
 side-effects
 num-call-args n
 
 # Same with a return value.
 internal-assignment-op CallN
-type V
+class V
 side-effects OP_CALLN_X OP_X
 assign-val v
 num-call-args n
 
 # Same, but for indirect calls via a global variable.
 internal-op IndCallN
-type X
+class X
 side-effects
 indirect-call
 num-call-args n
 
 # Same with a return value.
 internal-assignment-op IndCallN
-type V
+class V
 side-effects OP_INDCALLN_X OP_X
 assign-val v
 indirect-call
@@ -115,13 +115,13 @@ num-call-args n
 # And versions with a local variable rather than a global.
 internal-op Local-IndCallN
 op1-read
-type V
+class V
 side-effects
 indirect-local-call
 num-call-args n
 
 internal-assignment-op Local-IndCallN
-type VV
+class VV
 side-effects OP_LOCAL_INDCALLN_V OP_V
 assign-val v
 indirect-local-call
@@ -163,17 +163,17 @@ macro WhenCall(lhs, func)
 	lhs = ZVal(vp, Z_TYPE);
 
 internal-op WhenCallN
-type V
+class V
 side-effects
 eval	WhenCall($$, Z_AUX->func)
 
 internal-op WhenIndCallN
-type VV
+class VV
 side-effects
 eval	WhenCall($$, $1.AsFunc())
 
 # Form for when we need to look up the function value at run-time.
 internal-op When-ID-IndCallN
-type V
+class V
 side-effects
 eval	WhenCall($$, Z_AUX->id_val->GetVal()->AsFunc())

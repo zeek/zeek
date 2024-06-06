@@ -3,7 +3,7 @@
 # These two are only needed for type-based switch statements.  Could think
 # about replacing them using CoerceFromAnyExpr.
 op Assign-Any
-types VV VC
+classes VV VC
 set-type $1
 eval	auto v = $1.ToVal(Z_TYPE);
 	$$.any_val = v.release();
@@ -11,16 +11,16 @@ eval	auto v = $1.ToVal(Z_TYPE);
 # Lazy way to assign without having to track the specific type of
 # a constant.
 internal-op Assign-Const
-type VC
+class VC
 eval	AssignTarget($$, BuildVal($1.ToVal(Z_TYPE), Z_TYPE))
 
 internal-assignment-op Load-Val
-type Vi
+class Vi
 assign-val v
 eval	auto& v = f->GetElement($1);
 
 internal-assignment-op Load-Global
-type Vi
+class Vi
 assign-val v
 eval	auto& v = globals[$1].id->GetVal();
 	if ( ! v )
@@ -32,18 +32,18 @@ eval	auto& v = globals[$1].id->GetVal();
 # We need a special form here for loading global types, as they don't
 # fit the usual template.
 internal-op Load-Global-Type
-type Vi
+class Vi
 eval	auto& v = $$.type_val;
 	Unref(v);
 	auto& t = globals[$1].id->GetType();
 	v = new TypeVal(t, true);
 
 internal-op Load-Capture
-type Vi
+class Vi
 eval	$$ = f->GetFunction()->GetCapturesVec()[$1];
 
 internal-op Load-Managed-Capture
-type Vi
+class Vi
 eval	auto& lhs = $$;
 	auto& rhs = f->GetFunction()->GetCapturesVec()[$1];
 	zeek::Ref(rhs.ManagedVal());
@@ -52,7 +52,7 @@ eval	auto& lhs = $$;
 
 internal-op Store-Global
 op1-internal
-type i
+class i
 eval	auto& g = globals[$1];
 	g.id->SetVal(frame[g.slot].ToVal(Z_TYPE));
 
@@ -61,12 +61,12 @@ eval	auto& g = globals[$1];
 # currently exist, and would be a pain to add).
 internal-op Store-Capture
 op1-read
-type Vi
+class Vi
 eval	f->GetFunction()->GetCapturesVec()[$2] = $1;
 
 internal-op Store-Managed-Capture
 op1-read
-type Vi
+class Vi
 eval	auto& lhs = f->GetFunction()->GetCapturesVec()[$2];
 	auto& rhs = $1;
 	zeek::Ref(rhs.ManagedVal());
@@ -75,16 +75,16 @@ eval	auto& lhs = f->GetFunction()->GetCapturesVec()[$2];
 
 
 internal-op Copy-To
-type VC
+class VC
 set-type $1
 eval	AssignTarget($$, CopyVal($1))
 
 internal-op GoTo
-type i
+class i
 eval	BRANCH($1)
 
 internal-op Hook-Break
-type X
+class X
 eval	flow = FLOW_BREAK;
 	pc = end_pc;
 	DO_ZAM_PROFILE
@@ -92,7 +92,7 @@ eval	flow = FLOW_BREAK;
 
 # Slot 2 gives frame size.
 internal-op Lambda
-type Vi
+class Vi
 eval	auto& aux = Z_AUX;
 	auto& primary_func = aux->primary_func;
 	auto& body = primary_func->GetBodies()[0].stmts;

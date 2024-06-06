@@ -1,7 +1,7 @@
 # Operations corresponding to non-uniform expressions.
 
 assign-op Field
-type R
+class R
 field-op
 assign-val v
 eval	auto r = $1.record_val;
@@ -20,7 +20,7 @@ eval	auto r = $1.record_val;
 	auto v = *rv;
 
 expr-op Has-Field
-type VRi
+class VRi
 includes-field-op
 eval	$$.int_val = $1.record_val->HasField($2);
 
@@ -28,38 +28,38 @@ eval	$$.int_val = $1.record_val->HasField($2);
 # don't use (because we need the one above that uses "includes-field-op")
 # but lets us compress the two conditionals.
 predicate-op Has-Field
-type Vi
+class Vi
 eval	$1.record_val->HasField($2)
 
 predicate-op Table-Has-Elements
-type V
+class V
 eval	$1.table_val->Size() > 0
 
 predicate-op Vector-Has-Elements
-type V
+class V
 eval	$1.vector_val->Size() > 0
 
 expr-op In
-type VVV
+class VVV
 custom-method return CompileInExpr(n1, n2, n3);
 no-eval
 
 expr-op In
-type VCV
+class VCV
 custom-method return CompileInExpr(n1, c, n2);
 no-eval
 
 expr-op In
-type VVC
+class VVC
 custom-method return CompileInExpr(n1, n2, c);
 no-eval
 
 internal-op P-In-S
-types VVV VCV VVC
+classes VVV VCV VVC
 eval	$$.int_val = $1.re_val->MatchAnywhere($2.string_val->AsString()) != 0;
 
 internal-op Str-In-Pat-Tbl
-types VVV VCV
+classes VVV VCV
 eval	$$.int_val = $2.table_val->MatchPattern({NewRef{}, $1.string_val});
 
 internal-binary-op S-In-S
@@ -78,28 +78,28 @@ eval	$$ = $2->Contains($1->AsAddr());
 
 # Handled differently because of the unusual middle argument.
 op L-In-T
-type VLV
+class VLV
 custom-method return CompileInExpr(n1, l, n2);
 no-eval
 
 op L-In-T
-type VLC
+class VLC
 custom-method return CompileInExpr(n, l, c);
 no-eval
 
 op L-In-Vec
-type VLV
+class VLV
 custom-method return CompileInExpr(n1, l, n2);
 no-eval
 
 op L-In-Vec
-type VLC
+class VLC
 custom-method return CompileInExpr(n, l, c);
 no-eval
 
 
 predicate-op Val-Is-In-Table
-type VV
+class VV
 eval	$2.table_val->Find($1.ToVal(Z_TYPE)) != nullptr
 
 # Variants for indexing two values, one of which might be a constant.
@@ -121,13 +121,13 @@ macro EvalVal2InTablePre(op1, op2, tbl)
 	EvalVal2InTableCore(op1.ToVal(Z_TYPE2), op2.ToVal(tt_ind[1]))
 
 internal-op Val2-Is-In-Table
-type VVVV
+class VVVV
 eval	EvalVal2InTablePre($1,$2,$3)
 	EvalVal2InTableAssignCore($$, $3)
 
 internal-op Val2-Is-In-Table-Cond
 op1-read
-type VVVi
+class VVVi
 eval	EvalVal2InTablePre($1,$2,$3)
 	EvalVal2InTableCond($3, lvp, $4, !)
 
@@ -137,83 +137,83 @@ macro EvalVal2InTableCond(tbl, op, target, negate)
 
 internal-op Val2-Is-Not-In-Table-Cond
 op1-read
-type VVVi
+class VVVi
 eval	EvalVal2InTablePre($1,$2,$3)
 	EvalVal2InTableCond($3, lvp, $4,)
 
 internal-op Val2-Is-In-Table
-type VVVC
+class VVVC
 eval	EvalVal2InTableCore($1.ToVal(Z_TYPE2), $3.ToVal(Z_TYPE))
 	EvalVal2InTableAssignCore($$, $2)
 
 internal-op Val2-Is-In-Table
-type VVCV
+class VVCV
 eval	EvalVal2InTableCore($2.ToVal(Z_TYPE), $1.ToVal(Z_TYPE2))
 	EvalVal2InTableAssignCore($$, $3)
 
 internal-op Val2-Is-In-Table-Cond
 op1-read
-type VViC
+class VViC
 eval	EvalVal2InTableCore($1.ToVal(Z_TYPE2), $4.ToVal(Z_TYPE))
 	EvalVal2InTableCond($2, lvp, $3, !)
 
 internal-op Val2-Is-In-Table-Cond
 op1-read
-type VVCi
+class VVCi
 eval	EvalVal2InTableCore($3.ToVal(Z_TYPE), $1.ToVal(Z_TYPE2))
 	EvalVal2InTableCond($2, lvp, $4, !)
 
 internal-op Val2-Is-Not-In-Table-Cond
 op1-read
-type VViC
+class VViC
 eval	EvalVal2InTableCore($1.ToVal(Z_TYPE2), $4.ToVal(Z_TYPE))
 	EvalVal2InTableCond($2, lvp, $3, )
 
 internal-op Val2-Is-Not-In-Table-Cond
 op1-read
-type VVCi
+class VVCi
 eval	EvalVal2InTableCore($3.ToVal(Z_TYPE), $1.ToVal(Z_TYPE2))
 	EvalVal2InTableCond($2, lvp, $4, )
 
 
 predicate-op Const-Is-In-Table
-type VC
+class VC
 eval	$1.table_val->Find($2.ToVal(Z_TYPE)) != nullptr
 
 internal-op List-Is-In-Table
-types VV VC
+classes VV VC
 eval	auto op1 = Z_AUX->ToListVal(frame);
 	$$.int_val = $1.table_val->Find(std::move(op1)) != nullptr;
 
 internal-op Val-Is-In-Vector
-type VVV
+class VVV
 eval	auto& vec = $2.vector_val;
 	auto ind = $1.int_val;
 	$$.int_val = vec->Has(ind);
 
 internal-op Const-Is-In-Vector
-type VCV
+class VCV
 eval	auto& vec = $2.vector_val;
 	auto ind = $1.int_val;
 	$$.int_val = vec->Has(ind);
 
 expr-op Cond
-type VVVV
+class VVVV
 set-type $2
 eval	AssignTarget($$, $1.int_val ? CopyVal($2) : CopyVal($3))
 
 expr-op Cond
-type VVVC
+class VVVC
 set-type $2
 eval	AssignTarget($$, $1.int_val ? CopyVal($2) : CopyVal($3))
 
 expr-op Cond
-type VVCV
+class VVCV
 set-type $2
 eval	AssignTarget($$, $1.int_val ? CopyVal($2) : CopyVal($3))
 
 op Bool-Vec-Cond
-type VVVV
+class VVVV
 set-type $2
 eval	auto& vsel = $1.vector_val->RawVec();
 	auto& v1 = $2.vector_val->RawVec();
@@ -231,13 +231,13 @@ eval	auto& vsel = $1.vector_val->RawVec();
 # the singular case of a V ? C1 : C2 conditional, we split it into
 # two operations, V ? C1 and !V ? C2.
 op CondC1
-type VVC
+class VVC
 set-type $$
 eval	if ( $1.int_val )
 		AssignTarget($$, CopyVal($2))
 
 op CondC2
 set-type $$
-type VVC
+class VVC
 eval	if ( ! $1.int_val )
 		AssignTarget($$, CopyVal($2))

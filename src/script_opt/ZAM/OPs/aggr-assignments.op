@@ -13,24 +13,24 @@ macro EvalVectorElemAssign(vec, index, val_setup, assign_op)
 op Vector-Elem-Assign
 op1-read
 set-type $1
-type VVV
+class VVV
 eval	EvalVectorElemAssign($1, $2,, copy_vec_elem(vv, ind, $3, Z_TYPE))
 
 op Any-Vector-Elem-Assign
 op1-read
 set-type $1
-types VVV VVC
+classes VVV VVC
 eval	EvalVectorElemAssign($1, $2,, vv->Assign(ind, $3.ToVal(Z_TYPE)))
 
 op Vector-Elem-Assign-Any
 op1-read
-type VVV
+class VVV
 eval	EvalVectorElemAssign($1, $2, auto any_v = $3.any_val;, vv->Assign(ind, {NewRef{}, any_v}))
 
 op Vector-Elem-Assign
 op1-read
 set-type $2
-type VVC
+class VVC
 eval	VectorElemAssignPre($1, $2)
 	(void) copy_vec_elem(vv, ind, $3, Z_TYPE);
 
@@ -38,7 +38,7 @@ eval	VectorElemAssignPre($1, $2)
 op Vector-Elem-Assign
 op1-read
 set-type $1
-type VVi
+class VVi
 eval	auto vv = $1.vector_val;
 	if ( ! copy_vec_elem(vv, $3, $2, Z_TYPE) )
 		ZAM_run_time_error(Z_LOC, "value used but not set");
@@ -46,21 +46,21 @@ eval	auto vv = $1.vector_val;
 op Any-Vector-Elem-Assign
 op1-read
 set-type $1
-type VVi
+class VVi
 eval	auto vv = $1.vector_val;
 	if ( ! vv->Assign($3, $2.ToVal(Z_TYPE)) )
 		ZAM_run_time_error(Z_LOC, "value used but not set");
 
 op Vector-Elem-Assign-Any
 op1-read
-type VVi
+class VVi
 eval	auto vv = $1.vector_val;
 	auto any_v = $2.any_val;
 	vv->Assign($3, {NewRef{}, any_v});
 
 internal-op Vector-Slice-Assign
 op1-read
-type VV
+class VV
 eval	ValPtr vec = {NewRef{}, $1.vector_val};
 	auto slice = Z_AUX->ToListVal(frame);
 	ValPtr vals = {NewRef{}, $2.vector_val};
@@ -74,7 +74,7 @@ eval	ValPtr vec = {NewRef{}, $1.vector_val};
 
 internal-op Table-Elem-Assign
 op1-read
-types VV VC
+classes VV VC
 eval	auto indices = Z_AUX->ToListVal(frame);
 	auto val = $2.ToVal(Z_TYPE);
 	bool iterators_invalidated = false;

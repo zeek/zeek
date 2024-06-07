@@ -68,17 +68,16 @@ classes VVV VCV
 op-types I S T
 eval	$$ = $2->MatchPattern({NewRef{}, $1});
 
-internal-binary-op S-In-S
-op-accessor string_val
-op-type I
+internal-op S-In-S
+classes VVV VCV VVC
+op-types I S S
 eval	auto sc = reinterpret_cast<const unsigned char*>($1->CheckString());
 	auto cmp = util::strstr_n($2->Len(), $2->Bytes(), $1->Len(), sc);
 	$$ = cmp != -1;
 
-internal-binary-op A-In-S
-op1-accessor addr_val
-op2-accessor subnet_val
-op-type I
+internal-op A-In-S
+classes VVV VCV VVC
+op-types I A N
 eval	$$ = $2->Contains($1->AsAddr());
 
 

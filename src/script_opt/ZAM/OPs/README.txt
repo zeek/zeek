@@ -85,7 +85,6 @@
 #
 # 	internal-op	similar to "op", but for ZAM instructions only used
 # 			internally, and thus not having any AST counterpart
-# 	internal-binary-op	the same, for operations that take two operands
 # 	internal-assignment-op	the same, for operations that assign ZVals
 # 				produced by loading interpreter variables
 # 				or calling functions
@@ -238,12 +237,6 @@
 # 			A specification of 'n' means "build a ZAM instruction
 # 			for calling with an arbitrary number of arguments".
 #
-# 	op-accessor	tells Gen-ZAM what ZVal accessor to use to get to
-# 			the underlying values of the operand(s)
-#
-# 	op1-accessor	the same as op-accessor except only for the first
-# 			operand
-#
 # 	op1-internal    states that the operation's treatment of the
 # 			instruction's first integer value is for internal
 # 			purposes; the value does not correspond to a frame
@@ -257,9 +250,6 @@
 # 	op1-read-write	the operation treats the instruction's first integer
 # 			value as a frame variable, and both reads and
 # 			writes the value.
-#
-# 	op2-accessor	the same as op-accessor except only for the second
-# 			operand
 #
 # 	set-type	the instruction's primary type comes from either the
 # 			assignment target ("$$"), the first operand ("$1"),

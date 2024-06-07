@@ -145,15 +145,10 @@
 # 		conjunction with eval-type - see below)
 #
 #	op-types	similar to op-type, but lists a type for each operand
-#			(including assignment target), so for example ANA
+#			(including assignment target), so for example "A N A"
 #			would correspond to a 3-operand instruction for which
 #			the first operand (or assignment target) is an "addr",
 #			the second a "subnet", and the third another "addr".
-#
-#		Supports some additional specifications in addition to those
-#		for op-type:
-#
-#			Z ZVal without further details
 #
 #		Note that these types collectively apply to each instance of
 #		an operation, whereas listing multiple "op-type" types

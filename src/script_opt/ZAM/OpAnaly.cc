@@ -22,9 +22,19 @@ std::unordered_map<ZOp, ZAMInstDesc> zam_inst_desc = {
 };
 
 static std::map<char, string> type_pats = {
+    {'a', "any_val|AsAny\\(\\)"},
+    {'A', "addr_val|AsAddr\\(\\)"},
+    {'D', "double_val|AsDouble\\(\\)"},
+    {'F', "func_val|AsFunc\\(\\)"},
     {'I', "int_val|AsInt\\(\\)"},
+    {'L', "list_val"},
+    {'N', "subnet_val|AsSubNet\\(\\)"},
+    {'P', "re_val|AsPattern\\(\\)"},
+    {'R', "record_val|AsRecord\\(\\)"},
+    {'S', "string_val|AsString\\(\\)"},
+    {'T', "table_val|AsTable\\(\\)"},
     {'U', "uint_val|AsCount\\(\\)"},
-    {'V', "vector_val|AsVector\\(\\)"},
+    {'V', "vector_val|AsVector(Ref)?\\(\\)"},
 };
 
 void analyze_ZAM_inst(const char* op_name, const ZAMInstDesc& zid) {
@@ -34,7 +44,7 @@ void analyze_ZAM_inst(const char* op_name, const ZAMInstDesc& zid) {
         auto& eval = zid.op_desc;
 
         if ( oc.size() != ot.size() )
-            reporter->InternalError("instruction class/types mismatch");
+            reporter->InternalError("%s: instruction class/types mismatch (%s/%s)", op_name, oc.c_str(), ot.c_str());
 
         int nslot = 0;
 

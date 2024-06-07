@@ -6,6 +6,10 @@ module Telemetry;
 # to see the options without needing the rest.
 
 export {
+	## Address used to make metric data available to Prometheus scrapers via
+	## HTTP.
+	const metrics_address = getenv("ZEEK_DEFAULT_LISTEN_ADDRESS") &redef;
+
 	## Port used to make metric data available to Prometheus scrapers via
 	## HTTP.
 	const metrics_port = 0/unknown &redef;

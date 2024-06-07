@@ -35,8 +35,9 @@ void Manager::InitPostScript() {
     // Metrics port setting is used to calculate a URL for prometheus scraping
     std::string prometheus_url;
     auto metrics_port = id::find_val("Telemetry::metrics_port")->AsPortVal();
+    auto metrics_address = id::find_val("Telemetry::metrics_address")->AsStringVal()->ToStdString();
     if ( metrics_port->Port() != 0 )
-        prometheus_url = util::fmt("localhost:%u", metrics_port->Port());
+        prometheus_url = util::fmt("%s:%u", metrics_address.data(), metrics_port->Port());
 
     if ( ! prometheus_url.empty() ) {
         CivetCallbacks* callbacks = nullptr;
@@ -77,7 +78,8 @@ void Manager::InitPostScript() {
                 // CivetWeb stores a copy of the callbacks, so we're safe to delete the pointer here
                 delete callbacks;
             } catch ( const CivetException& exc ) {
-                reporter->FatalError("Failed to setup Prometheus endpoint: %s\n", exc.what());
+                reporter->FatalError("Failed to setup Prometheus endpoint: %s. Attempted to bind to %s.", exc.what(),
+                                     prometheus_url.c_str());
             }
 
             prometheus_exposer->RegisterCollectable(prometheus_registry);

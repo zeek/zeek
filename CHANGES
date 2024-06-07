@@ -1,3 +1,7 @@
+7.0.0-dev.372 | 2024-06-07 09:28:52 -0700
+
+  * Add Telemetry::metrics_address option (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.368 | 2024-06-06 18:08:29 -0700
 
   * Change prometheus test to check for require jq (Tim Wojtulewicz, Corelight)

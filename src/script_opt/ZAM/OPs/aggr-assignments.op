@@ -25,7 +25,8 @@ eval	EvalVectorElemAssign($1, $2,, vv->Assign(ind, $3.ToVal(Z_TYPE)))
 op Vector-Elem-Assign-Any
 op1-read
 class VVV
-eval	EvalVectorElemAssign($1, $2, auto any_v = $3.any_val;, vv->Assign(ind, {NewRef{}, any_v}))
+op-types X X a
+eval	EvalVectorElemAssign($1, $2, auto any_v = $3;, vv->Assign(ind, {NewRef{}, any_v}))
 
 op Vector-Elem-Assign
 op1-read
@@ -39,7 +40,8 @@ op Vector-Elem-Assign
 op1-read
 set-type $1
 class VVi
-eval	auto vv = $1.vector_val;
+op-types V X U
+eval	auto vv = $1;
 	if ( ! copy_vec_elem(vv, $3, $2, Z_TYPE) )
 		ZAM_run_time_error(Z_LOC, "value used but not set");
 
@@ -47,23 +49,26 @@ op Any-Vector-Elem-Assign
 op1-read
 set-type $1
 class VVi
-eval	auto vv = $1.vector_val;
+op-types V X I
+eval	auto vv = $1;
 	if ( ! vv->Assign($3, $2.ToVal(Z_TYPE)) )
 		ZAM_run_time_error(Z_LOC, "value used but not set");
 
 op Vector-Elem-Assign-Any
 op1-read
 class VVi
-eval	auto vv = $1.vector_val;
-	auto any_v = $2.any_val;
+op-types V a I
+eval	auto vv = $1;
+	auto any_v = $2;
 	vv->Assign($3, {NewRef{}, any_v});
 
 internal-op Vector-Slice-Assign
 op1-read
 class VV
-eval	ValPtr vec = {NewRef{}, $1.vector_val};
+op-types V V
+eval	ValPtr vec = {NewRef{}, $1};
 	auto slice = Z_AUX->ToListVal(frame);
-	ValPtr vals = {NewRef{}, $2.vector_val};
+	ValPtr vals = {NewRef{}, $2};
 	bool iterators_invalidated;
 	auto error = assign_to_index(std::move(vec), std::move(slice), std::move(vals), iterators_invalidated);
 	if ( error )
@@ -75,9 +80,10 @@ eval	ValPtr vec = {NewRef{}, $1.vector_val};
 internal-op Table-Elem-Assign
 op1-read
 classes VV VC
+op-types T X
 eval	auto indices = Z_AUX->ToListVal(frame);
 	auto val = $2.ToVal(Z_TYPE);
 	bool iterators_invalidated = false;
-	$1.table_val->Assign(std::move(indices), std::move(val), true, &iterators_invalidated);
+	$1->Assign(std::move(indices), std::move(val), true, &iterators_invalidated);
 	if ( iterators_invalidated )
 		ZAM_run_time_warning(Z_LOC, "possible loop/iterator invalidation");

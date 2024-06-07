@@ -169,8 +169,9 @@ eval	WhenCall($$, Z_AUX->func)
 
 internal-op WhenIndCallN
 class VV
+op-types X F
 side-effects
-eval	WhenCall($$, $1.AsFunc())
+eval	WhenCall($$, $1)
 
 # Form for when we need to look up the function value at run-time.
 internal-op When-ID-IndCallN

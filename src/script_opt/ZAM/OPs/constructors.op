@@ -31,9 +31,10 @@ eval	ConstructTableOrSetPre($1)
 # When tables are constructed, if their &default is a lambda with captures
 # then we need to explicitly set up the default.
 internal-op Set-Table-Default-Lambda
-class VV
 op1-read
-eval	auto& tbl = $1.table_val;
+class VV
+op-types T X
+eval	auto& tbl = $1;
 	auto lambda = $2.ToVal(Z_TYPE);
 	tbl->InitDefaultVal(std::move(lambda));
 
@@ -95,8 +96,9 @@ eval	auto init_vals = Z_AUX->ToZValVecWithMap(frame);
 op Concretize-Vector-Fields
 op1-read
 class V
+op-types R
 eval	auto rt = cast_intrusive<RecordType>(Z_TYPE);
-	auto r = $1.record_val;
+	auto r = $1;
 	auto aux = Z_AUX;
 	auto n = aux->n;
 	for ( auto i = 0; i < n; ++i )
@@ -115,11 +117,12 @@ direct-unary-op Vector-Constructor ConstructVector
 
 internal-op Construct-Vector
 class V
+op-types V
 eval	auto new_vv = new VectorVal(cast_intrusive<VectorType>(Z_TYPE));
 	auto aux = Z_AUX;
 	auto n = aux->n;
 	for ( auto i = 0; i < n; ++i )
 		new_vv->Assign(i, aux->ToVal(frame, i));
-	auto& vv = $$.vector_val;
+	auto& vv = $$;
 	Unref(vv);
 	vv = new_vv;

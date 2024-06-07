@@ -3,28 +3,30 @@
 
 op IndexVecBoolSelect
 classes VVV VCV
+op-types V V V
 set-type $$
-eval	if ( $1.vector_val->Size() != $2.vector_val->Size() )
+eval	if ( $1->Size() != $2->Size() )
 		{
 		ZAM_run_time_error(Z_LOC, "size mismatch, boolean index and vector");
 		break;
 		}
 	auto vt = cast_intrusive<VectorType>(Z_TYPE);
-	auto v2 = $1.vector_val;
-	auto v3 = $2.vector_val;
+	auto v2 = $1;
+	auto v3 = $2;
 	auto v = vector_bool_select(std::move(vt), v2, v3);
-	Unref($$.vector_val);
-	$$.vector_val = v.release();
+	Unref($$);
+	$$ = v.release();
 
 op IndexVecIntSelect
 classes VVV VCV
+op-types V V V
 set-type $$
 eval	auto vt = cast_intrusive<VectorType>(Z_TYPE);
-	auto v2 = $1.vector_val;
-	auto v3 = $2.vector_val;
+	auto v2 = $1;
+	auto v3 = $2;
 	auto v = vector_int_select(std::move(vt), v2, v3);
-	Unref($$.vector_val);
-	$$.vector_val = v.release();
+	Unref($$);
+	$$ = v.release();
 
 op Index
 class VVL
@@ -48,10 +50,11 @@ no-eval
 
 internal-op Index-Vec
 class VVV
-eval	EvalIndexVec($$, $1, $2.int_val)
+op-types X V I
+eval	EvalIndexVec($$, $1, $2)
 
 macro EvalIndexVec(lhs, rhs_vec, index)
-	auto& vv = rhs_vec.vector_val->RawVec();
+	auto& vv = rhs_vec->RawVec();
 	const auto& vec = vv;
 	zeek_int_t ind = index;
 	if ( ind < 0 )
@@ -62,14 +65,16 @@ macro EvalIndexVec(lhs, rhs_vec, index)
 
 internal-op Index-VecC
 class VVi
+op-types X V I
 eval	EvalIndexVec($$, $1, $2)
 
 internal-op Index-Any-Vec
 class VVV
-eval	EvalIndexAnyVec($$, $1, $2.uint_val)
+op-types X V I
+eval	EvalIndexAnyVec($$, $1, $2)
 
 macro EvalIndexAnyVec(lhs, vec, index)
-	auto vv = vec.vector_val;
+	auto vv = vec;
 	zeek_int_t ind = index;
 	if ( ind < 0 )
 		ind += vv->Size();
@@ -79,36 +84,41 @@ macro EvalIndexAnyVec(lhs, vec, index)
 
 internal-op Index-Any-VecC
 class VVi
+op-types X V I
 eval	EvalIndexAnyVec($$, $1, $2)
 
 macro WhenIndexResCheck(vec)
-	auto& res = vec.vector_val;
+	auto& res = vec;
 	if ( res && IndexExprWhen::evaluating > 0 )
 		IndexExprWhen::results.push_back({NewRef{}, res});
 
 internal-op When-Index-Vec
 class VVV
-eval	EvalIndexAnyVec($$, $1, $2.uint_val)
-	WhenIndexResCheck($$)
+op-types X V I
+eval	EvalIndexAnyVec($$, $1, $2)
+	WhenIndexResCheck($$.vector_val)
 
 internal-op When-Index-VecC
 class VVi
+op-types X V I
 eval	EvalIndexAnyVec($$, $1, $2)
-	WhenIndexResCheck($$)
+	WhenIndexResCheck($$.vector_val)
 
 macro EvalVecSlice(lhs, vv)
-	auto vec = vv.vector_val;
+	auto vec = vv;
 	auto lv = Z_AUX->ToListVal(frame);
 	auto v = index_slice(vec, lv.get());
-	Unref(lhs.vector_val);
-	lhs.vector_val = v.release();
+	Unref(lhs);
+	lhs = v.release();
 
 internal-op Index-Vec-Slice
 class VV
+op-types V V
 eval	EvalVecSlice($$, $1)
 
 internal-op When-Index-Vec-Slice
 class VV
+op-types V V
 eval	EvalVecSlice($$, $1)
 	WhenIndexResCheck($$)
 
@@ -119,7 +129,8 @@ eval	EvalTableIndex($1, Z_AUX->ToListVal(frame))
 
 internal-op Table-PatStr-Index
 classes VVV VVC
-eval	auto vec = ZVal($1.table_val->LookupPattern({NewRef{}, $2.string_val}));
+op-types X T S
+eval	auto vec = ZVal($1->LookupPattern({NewRef{}, $2}));
 	ZVal::DeleteManagedType($$);
 	$$ = vec;
 
@@ -140,9 +151,10 @@ macro EvalTableIndex(tbl, index)
 
 internal-op When-PatStr-Index
 class VV
+op-types X T
 eval	auto args = Z_AUX->ToListVal(frame);
 	auto arg0 = args->Idx(0);
-	auto v = $1.table_val->LookupPattern({NewRef{}, arg0->AsStringVal()});
+	auto v = $1->LookupPattern({NewRef{}, arg0->AsStringVal()});
 	if ( IndexExprWhen::evaluating > 0 )
 		IndexExprWhen::results.emplace_back(v);
 	AssignTarget($$, BuildVal(v, Z_TYPE))
@@ -156,35 +168,39 @@ eval	EvalTableIndex($1, $2.ToVal(Z_TYPE))
 # This version is for a variable v3.
 internal-op Index-String
 class VVV
-eval	EvalIndexString($$, $1, $2.int_val)
+op-types S S I
+eval	EvalIndexString($$, $1, $2)
 
 macro EvalIndexString(lhs, s, index)
-	auto str = s.string_val->AsString();
+	auto str = s->AsString();
 	auto len = str->Len();
 	auto idx = index;
 	if ( idx < 0 )
 		idx += len;
 	auto v = str->GetSubstring(idx, 1);
-	Unref(lhs.string_val);
-	lhs.string_val = new StringVal(v ? v : new String(""));
+	Unref(lhs);
+	lhs = new StringVal(v ? v : new String(""));
 
 # This version is for a constant v3.
 internal-op Index-StringC
 class VVi
+op-types S S I
 eval	EvalIndexString($$, $1, $2)
 
 internal-op Index-String-Slice
 class VV
-eval	auto str = $1.string_val->AsString();
+op-types S S
+eval	auto str = $1->AsString();
 	auto lv = Z_AUX->ToListVal(frame);
 	auto slice = index_string(str, lv.get());
-	Unref($$.string_val);
-	$$.string_val = new StringVal(slice->ToStdString());
+	Unref($$);
+	$$ = new StringVal(slice->ToStdString());
 
 op AnyIndex
 class VVi
+op-types X a I
 set-type $$
-eval	auto lv = $1.any_val->AsListVal();
+eval	auto lv = $1->AsListVal();
 	if ( $2 < 0 || $2 >= lv->Length() )
 		reporter->InternalError("bad \"any\" element index");
 	ValPtr elem = lv->Idx($2);

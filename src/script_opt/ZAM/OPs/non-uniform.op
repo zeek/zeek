@@ -21,23 +21,27 @@ eval	auto r = $1.record_val;
 
 expr-op Has-Field
 class VRi
+op-types I R I
 includes-field-op
-eval	$$.int_val = $1.record_val->HasField($2);
+eval	$$ = $1->HasField($2);
 
 # The following generates an assignment version of Has-Field that we
 # don't use (because we need the one above that uses "includes-field-op")
 # but lets us compress the two conditionals.
 predicate-op Has-Field
 class Vi
-eval	$1.record_val->HasField($2)
+op-types R I
+eval	$1->HasField($2)
 
 predicate-op Table-Has-Elements
 class V
-eval	$1.table_val->Size() > 0
+op-types T
+eval	$1->Size() > 0
 
 predicate-op Vector-Has-Elements
 class V
-eval	$1.vector_val->Size() > 0
+op-types V
+eval	$1->Size() > 0
 
 expr-op In
 class VVV
@@ -56,11 +60,13 @@ no-eval
 
 internal-op P-In-S
 classes VVV VCV VVC
-eval	$$.int_val = $1.re_val->MatchAnywhere($2.string_val->AsString()) != 0;
+op-types I P S
+eval	$$ = $1->MatchAnywhere($2->AsString()) != 0;
 
 internal-op Str-In-Pat-Tbl
 classes VVV VCV
-eval	$$.int_val = $2.table_val->MatchPattern({NewRef{}, $1.string_val});
+op-types I S T
+eval	$$ = $2->MatchPattern({NewRef{}, $1});
 
 internal-binary-op S-In-S
 op-accessor string_val
@@ -100,7 +106,8 @@ no-eval
 
 predicate-op Val-Is-In-Table
 class VV
-eval	$2.table_val->Find($1.ToVal(Z_TYPE)) != nullptr
+op-types X T
+eval	$2->Find($1.ToVal(Z_TYPE)) != nullptr
 
 # Variants for indexing two values, one of which might be a constant.
 # We set the instructions's *second* type to be that of the first variable
@@ -178,52 +185,60 @@ eval	EvalVal2InTableCore($3.ToVal(Z_TYPE), $1.ToVal(Z_TYPE2))
 
 predicate-op Const-Is-In-Table
 class VC
-eval	$1.table_val->Find($2.ToVal(Z_TYPE)) != nullptr
+op-types T X
+eval	$1->Find($2.ToVal(Z_TYPE)) != nullptr
 
 internal-op List-Is-In-Table
 classes VV VC
+op-types I T
 eval	auto op1 = Z_AUX->ToListVal(frame);
-	$$.int_val = $1.table_val->Find(std::move(op1)) != nullptr;
+	$$ = $1->Find(std::move(op1)) != nullptr;
 
 internal-op Val-Is-In-Vector
 class VVV
-eval	auto& vec = $2.vector_val;
-	auto ind = $1.int_val;
-	$$.int_val = vec->Has(ind);
+op-types I I V
+eval	auto& vec = $2;
+	auto ind = $1;
+	$$ = vec->Has(ind);
 
 internal-op Const-Is-In-Vector
 class VCV
-eval	auto& vec = $2.vector_val;
-	auto ind = $1.int_val;
-	$$.int_val = vec->Has(ind);
+op-types I I V
+eval	auto& vec = $2;
+	auto ind = $1;
+	$$ = vec->Has(ind);
 
 expr-op Cond
 class VVVV
+op-types X I X X
 set-type $2
-eval	AssignTarget($$, $1.int_val ? CopyVal($2) : CopyVal($3))
+eval	AssignTarget($$, $1 ? CopyVal($2) : CopyVal($3))
 
 expr-op Cond
 class VVVC
+op-types X I X X
 set-type $2
-eval	AssignTarget($$, $1.int_val ? CopyVal($2) : CopyVal($3))
+eval	AssignTarget($$, $1 ? CopyVal($2) : CopyVal($3))
 
 expr-op Cond
 class VVCV
+op-types X I X X
 set-type $2
-eval	AssignTarget($$, $1.int_val ? CopyVal($2) : CopyVal($3))
+eval	AssignTarget($$, $1 ? CopyVal($2) : CopyVal($3))
 
 op Bool-Vec-Cond
 class VVVV
+op-types V V V V
 set-type $2
-eval	auto& vsel = $1.vector_val->RawVec();
-	auto& v1 = $2.vector_val->RawVec();
-	auto& v2 = $3.vector_val->RawVec();
+eval	auto& vsel = $1->RawVec();
+	auto& v1 = $2->RawVec();
+	auto& v2 = $3->RawVec();
 	auto n = v1.size();
 	auto res = new vector<std::optional<ZVal>>(n);
 	for ( auto i = 0U; i < n; ++i )
 		if ( vsel[i] )
 			(*res)[i] = vsel[i]->int_val ? v1[i] : v2[i];
-	auto& full_res = $$.vector_val;
+	auto& full_res = $$;
 	Unref(full_res);
 	full_res = new VectorVal(cast_intrusive<VectorType>(Z_TYPE), res);
 
@@ -232,12 +247,14 @@ eval	auto& vsel = $1.vector_val->RawVec();
 # two operations, V ? C1 and !V ? C2.
 op CondC1
 class VVC
+op-types X I X
 set-type $$
-eval	if ( $1.int_val )
+eval	if ( $1 )
 		AssignTarget($$, CopyVal($2))
 
 op CondC2
-set-type $$
 class VVC
-eval	if ( ! $1.int_val )
+op-types X I X
+set-type $$
+eval	if ( ! $1 )
 		AssignTarget($$, CopyVal($2))

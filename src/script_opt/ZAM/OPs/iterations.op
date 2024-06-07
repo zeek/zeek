@@ -1,10 +1,11 @@
 # Operations corresponding to iterations.
 
 internal-op Init-Table-Loop
-class Vi
 op1-read
+class Vi
+op-types T I
 eval	auto& ti = (*tiv_ptr)[$2];
-	ti.BeginLoop({NewRef{}, $1.table_val}, Z_AUX);
+	ti.BeginLoop({NewRef{}, $1}, Z_AUX);
 
 internal-op Next-Table-Iter
 op1-read
@@ -47,9 +48,10 @@ eval	NextTableIterPre($1, $2)
 
 
 internal-op Init-Vector-Loop
-class Vi
 op1-read
-eval	auto& vv = $1.vector_val->RawVec();
+class Vi
+op-types V I
+eval	auto& vv = $1->RawVec();
 	step_iters[$2].InitLoop(&vv);
 
 macro NextVectorIterCore(info, branch)
@@ -69,8 +71,9 @@ internal-op Next-Vector-Iter
 # v2 = iteration info
 # v3 = branch target if loop done
 class Vii
+op-types U I I
 eval	NextVectorIterCore($1, $2)
-	$$.uint_val = si.iter;
+	$$ = si.iter;
 	si.IterFinished();
 
 internal-op Next-Vector-Blank-Iter
@@ -88,8 +91,9 @@ internal-op Next-Vector-Iter-Val-Var
 # v4 = branch target if loop done
 op1-read-write
 class VVii
+op-types U X I I
 eval	NextVectorIterCore($2, $3)
-	$$.uint_val = si.iter;
+	$$ = si.iter;
 	if ( Z_IS_MANAGED )
 		$1 = BuildVal(vv[si.iter]->ToVal(Z_TYPE), Z_TYPE);
 	else
@@ -110,22 +114,24 @@ eval	NextVectorIterCore($1, $2)
 
 
 internal-op Init-String-Loop
-classes Vi Ci
 op1-read
-eval	step_iters[$2].InitLoop($1.string_val->AsString());
+classes Vi Ci
+op-types S I
+eval	step_iters[$2].InitLoop($1->AsString());
 
 internal-op Next-String-Iter
 # v1 = iteration variable
 # v2 = iteration info
 # v3 = branch target if loop done
 class Vii
+op-types S I I
 eval	auto& si = step_iters[$1];
 	if ( si.IsDoneIterating() )
 		BRANCH($2)
 	auto bytes = (const char*) si.s->Bytes() + si.iter;
 	auto sv = new StringVal(1, bytes);
-	Unref($$.string_val);
-	$$.string_val = sv;
+	Unref($$);
+	$$ = sv;
 	si.IterFinished();
 
 internal-op Next-String-Blank-Iter

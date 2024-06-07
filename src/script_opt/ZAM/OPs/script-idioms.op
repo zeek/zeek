@@ -2,31 +2,38 @@
 
 internal-op MinU
 classes VVV VVC
-eval	$$.uint_val = std::min($1.uint_val, $2.uint_val);
+op-types U U U
+eval	$$ = std::min($1, $2);
 
 internal-op MinI
 classes VVV VVC
-eval	$$.int_val = std::min($1.int_val, $2.int_val);
+op-types I I I
+eval	$$ = std::min($1, $2);
 
 internal-op MinD
 classes VVV VVC
-eval	$$.double_val = std::min($1.double_val, $2.double_val);
+op-types D D D
+eval	$$ = std::min($1, $2);
 
 internal-op MaxU
 classes VVV VVC
-eval	$$.uint_val = std::max($1.uint_val, $2.uint_val);
+op-types U U U
+eval	$$ = std::max($1, $2);
 
 internal-op MaxI
 classes VVV VVC
-eval	$$.int_val = std::max($1.int_val, $2.int_val);
+op-types I I I
+eval	$$ = std::max($1, $2);
 
 internal-op MaxD
 classes VVV VVC
-eval	$$.double_val = std::max($1.double_val, $2.double_val);
+op-types D D D
+eval	$$ = std::max($1, $2);
 
 internal-op Func-Id-String
 class VV
-eval	auto id_rec = $1.record_val;
+op-types S R
+eval	auto id_rec = $1;
 	auto orig_h = id_rec->RawField(0).addr_val->AsAddr().AsString();
 	auto resp_h = id_rec->RawField(2).addr_val->AsAddr().AsString();
 	auto orig_p = static_cast<uint32_t>(id_rec->RawField(1).uint_val) & ~PORT_SPACE_MASK;
@@ -46,5 +53,5 @@ eval	auto id_rec = $1.record_val;
 	 */
 	char buf[128];
 	snprintf(buf, sizeof buf, "%s:%u > %s:%u", orig_h.c_str(), orig_p, resp_h.c_str(), resp_p);
-	Unref($$.string_val);
-	$$.string_val = new StringVal(buf);
+	Unref($$);
+	$$ = new StringVal(buf);

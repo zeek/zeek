@@ -119,47 +119,54 @@ macro EvalSwitchBody(index, branch, cases, postscript)
 	}
 
 internal-op SwitchI
-class Vii
 op1-read
-eval	auto v = $1.int_val;
+class Vii
+op-types I I I
+eval	auto v = $1;
 	EvalSwitchBody($2, $3, int_cases,)
 
 internal-op SwitchU
 op1-read
 class Vii
-eval	auto v = $1.uint_val;
+op-types U I I
+eval	auto v = $1;
 	EvalSwitchBody($2, $3, uint_cases,)
 
 internal-op SwitchD
 op1-read
 class Vii
-eval	auto v = $1.double_val;
+op-types D I I
+eval	auto v = $1;
 	EvalSwitchBody($2, $3, double_cases,)
 
 internal-op SwitchS
 op1-read
 class Vii
-eval	auto vs = $1.string_val->AsString()->Render();
+op-types S I I
+eval	auto vs = $1->AsString()->Render();
 	std::string v(vs);
 	EvalSwitchBody($2, $3, str_cases,delete[] vs;)
 
 internal-op SwitchA
 op1-read
 class Vii
-eval	auto v = $1.addr_val->AsAddr().AsString();
+op-types A I I
+eval	auto v = $1->AsAddr().AsString();
 	EvalSwitchBody($2, $3, str_cases,)
 
 internal-op SwitchN
 op1-read
 class Vii
-eval	auto v = $1.subnet_val->AsSubNet().AsString();
+op-types N I I
+eval	auto v = $1->AsSubNet().AsString();
 	EvalSwitchBody($2, $3, str_cases,)
 
 
 internal-op Branch-If-Not-Type
 op1-read
 class Vi
-eval	auto v = $1.any_val;
+op-types a I
+eval	auto v = $1;
 	if ( ! can_cast_value_to_type(v, Z_TYPE.get()) )
 		BRANCH($2)
 
@@ -167,8 +174,9 @@ eval	auto v = $1.any_val;
 op CheckAnyLen
 op1-read
 class Vi
-eval	auto v = $1.list_val;
-	if ( v->Vals().size() != static_cast<zeek_uint_t>($2) )
+op-types L U
+eval	auto v = $1;
+	if ( v->Vals().size() != $2 )
 		ZAM_run_time_error(Z_LOC, "mismatch in list lengths");
 
 op Print
@@ -188,17 +196,20 @@ eval	std::vector<ValPtr> vals;
 internal-op If-Else
 op1-read
 class Vi
-eval	if ( ! $1.int_val ) BRANCH($2)
+op-types I I
+eval	if ( ! $1 ) BRANCH($2)
 
 internal-op If
 op1-read
 class Vi
-eval	if ( ! $1.int_val ) BRANCH($2)
+op-types I I
+eval	if ( ! $1 ) BRANCH($2)
 
 internal-op If-Not
 op1-read
 class Vi
-eval	if ( $1.int_val ) BRANCH($2)
+op-types I I
+eval	if ( $1 ) BRANCH($2)
 
 
 op AddStmt
@@ -224,20 +235,23 @@ eval	EvalAddStmt($1, $2.ToVal(Z_TYPE))
 op ClearTable
 op1-read
 class V
-eval	$1.table_val->RemoveAll();
+op-types T
+eval	$1->RemoveAll();
 
 op ClearVector
 op1-read
 class V
-eval	$1.vector_val->Resize(0);
+op-types V
+eval	$1->Resize(0);
 
 
 op DelTable
 op1-read
 class VO
+op-types T X
 eval	auto index = Z_AUX->ToListVal(frame);
 	bool iterators_invalidated = false;
-	$1.table_val->Remove(*index, true, &iterators_invalidated);
+	$1->Remove(*index, true, &iterators_invalidated);
 	if ( iterators_invalidated )
 		ZAM_run_time_warning(Z_LOC, "possible loop/iterator invalidation");
 method-post z.aux = v->aux;
@@ -245,43 +259,49 @@ method-post z.aux = v->aux;
 op DelField
 op1-read
 class Vi
-eval	$1.record_val->Remove($2);
+op-types R I
+eval	$1->Remove($2);
 
 
 internal-op Init-Record
 class V
+op-types R
 eval	auto r = new RecordVal(cast_intrusive<RecordType>(Z_TYPE));
-	Unref($$.record_val);
-	$$.record_val = r;
+	Unref($$);
+	$$ = r;
 
 internal-op Init-Vector
 class V
+op-types V
 eval	auto vt = cast_intrusive<VectorType>(Z_TYPE);
 	auto vec = new VectorVal(std::move(vt));
-	Unref($$.vector_val);
-	$$.vector_val = vec;
+	Unref($$);
+	$$ = vec;
 
 internal-op Init-Table
 class V
+op-types T
 eval	auto tt = cast_intrusive<TableType>(Z_TYPE);
 	auto t = new TableVal(tt, Z_AUX->attrs);
-	Unref($$.table_val);
-	$$.table_val = t;
+	Unref($$);
+	$$ = t;
 
 op When
 class V
 op1-read
+op-types F
 eval	BuildWhen($1, -1.0)
 
 op When-Timeout
 classes VV VC
 op1-read
-eval	BuildWhen($1, $2.double_val)
+op-types F D
+eval	BuildWhen($1, $2)
 
 macro BuildWhen(zf, timeout)
 	auto& aux = Z_AUX;
 	auto wi = aux->wi;
-	FuncPtr func{NewRef{}, zf.func_val};
+	FuncPtr func{NewRef{}, zf};
 	auto lambda = make_intrusive<FuncVal>(func);
 	wi->Instantiate(std::move(lambda));
 	std::vector<ValPtr> local_aggrs;

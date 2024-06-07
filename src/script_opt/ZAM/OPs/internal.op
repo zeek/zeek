@@ -5,8 +5,9 @@
 op Assign-Any
 classes VV VC
 set-type $1
+op-types a X
 eval	auto v = $1.ToVal(Z_TYPE);
-	$$.any_val = v.release();
+	$$ = v.release();
 
 # Lazy way to assign without having to track the specific type of
 # a constant.
@@ -33,7 +34,8 @@ eval	auto& v = globals[$1].id->GetVal();
 # fit the usual template.
 internal-op Load-Global-Type
 class Vi
-eval	auto& v = $$.type_val;
+op-types t I
+eval	auto& v = $$;
 	Unref(v);
 	auto& t = globals[$1].id->GetType();
 	v = new TypeVal(t, true);
@@ -93,6 +95,7 @@ eval	flow = FLOW_BREAK;
 # Slot 2 gives frame size.
 internal-op Lambda
 class Vi
+op-types F I
 eval	auto& aux = Z_AUX;
 	auto& primary_func = aux->primary_func;
 	auto& body = primary_func->GetBodies()[0].stmts;
@@ -119,5 +122,5 @@ eval	auto& aux = Z_AUX;
 			}
 		lamb->CreateCaptures(std::move(captures));
 		}
-	ZVal::DeleteManagedType($$);
-	$$.func_val = lamb.release();
+	Unref($$);
+	$$ = lamb.release();

@@ -8,7 +8,9 @@
 #include "zeek/Func.h"
 #include "zeek/script_opt/ProfileFunc.h"
 
-namespace zeek::detail {
+namespace zeek {
+
+namespace detail {
 
 // A subclass of Func used for lambdas that the compiler creates for
 // complex initializations (expressions used in type attributes).
@@ -115,4 +117,6 @@ extern std::unordered_map<p_hash_type, void (*)()> standalone_callbacks;
 // Callbacks to finalize initialization of standalone compiled scripts.
 extern std::vector<void (*)()> standalone_finalizations;
 
-} // namespace zeek::detail
+} // namespace detail
+
+} // namespace zeek

@@ -419,7 +419,6 @@ set(MAIN_SRCS
     script_opt/CPP/Types.cc
     script_opt/CPP/Util.cc
     script_opt/CPP/Vars.cc
-    script_opt/CPP/ZAMComp.cc
     ${_gen_zeek_script_cpp}
     script_opt/CSE.cc
     script_opt/Expr.cc
@@ -442,6 +441,7 @@ set(MAIN_SRCS
     script_opt/ZAM/Expr.cc
     script_opt/ZAM/Inst-Gen.cc
     script_opt/ZAM/Low-Level.cc
+    script_opt/ZAM/OpAnaly.cc
     script_opt/ZAM/Profile.cc
     script_opt/ZAM/Stmt.cc
     script_opt/ZAM/Support.cc

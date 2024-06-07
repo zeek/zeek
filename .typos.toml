@@ -21,6 +21,8 @@ extend-ignore-re = [
     "ot->Tag\\(\\) == TYPE_.*",
     "auto.* ot =",
     "ot = OP_.*",
+    "ot\\[",
+    "ot.size",
     "if \\( ot == OP_.*",
     "ot->Yield\\(\\)->InternalType\\(\\)",
     "switch \\( ot \\)",

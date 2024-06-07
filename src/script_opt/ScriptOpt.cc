@@ -446,7 +446,12 @@ static void generate_CPP() {
     CPPCompile cpp(funcs, pfs, gen_name, standalone, report);
 }
 
+extern void analyze_ZAM_insts();
+
 static void analyze_scripts_for_ZAM() {
+    analyze_ZAM_insts();
+    exit(0);
+
     if ( analysis_options.usage_issues > 0 && analysis_options.optimize_AST ) {
         fprintf(stderr,
                 "warning: \"-O optimize-AST\" option is incompatible with -u option, "

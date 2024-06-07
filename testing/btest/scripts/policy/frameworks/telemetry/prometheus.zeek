@@ -2,6 +2,7 @@
 # Note compilable to C++ due to globals being initialized to a record that
 # has an opaque type as a field.
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
+# @TEST-REQUIRES: which jq
 #
 # @TEST-PORT: BROKER_PORT1
 # @TEST-PORT: BROKER_PORT2

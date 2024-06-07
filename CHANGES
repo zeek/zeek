@@ -1,3 +1,7 @@
+7.0.0-dev.368 | 2024-06-06 18:08:29 -0700
+
+  * Change prometheus test to check for require jq (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.366 | 2024-06-06 18:06:42 -0700
 
   * Check for 'zeekctl check' before trying to start up prometheus (Tim Wojtulewicz, Corelight)

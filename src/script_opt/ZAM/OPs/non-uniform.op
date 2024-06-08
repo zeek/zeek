@@ -21,9 +21,18 @@ eval	auto r = $1.record_val;
 
 expr-op Has-Field
 class VRi
-op-types I R I
 includes-field-op
+no-eval
+
+internal-op Has-Field
+class VRi
+op-types I R I
 eval	$$ = $1->HasField($2);
+
+internal-op Has-Field
+class VRii
+op-types R R I I
+eval	$$->RawOptField($2)->int_val = $1->HasField($3);
 
 # The following generates an assignment version of Has-Field that we
 # don't use (because we need the one above that uses "includes-field-op")

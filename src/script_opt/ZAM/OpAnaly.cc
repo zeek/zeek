@@ -86,6 +86,14 @@ void analyze_ZAM_inst(const char* op_name, const ZAMInstDesc& zid) {
 }
 
 void analyze_ZAM_insts() {
+    (void)AssignmentFlavor(OP_NOP, TYPE_VOID, false);
+
+    for ( int i = 0; i < int(OP_NOP); ++i ) {
+        auto zop = ZOp(i);
+        if ( zam_inst_desc.find(zop) == zam_inst_desc.end() && assignment_flavor.find(zop) == assignment_flavor.end() )
+            reporter->InternalError("op %s missing from description", ZOP_name(zop));
+    }
+
     for ( auto& zid : zam_inst_desc )
         analyze_ZAM_inst(ZOP_name(zid.first), zid.second);
 

@@ -1958,8 +1958,10 @@ EqExpr::EqExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
         }
     }
 
-    else if ( bt1 == TYPE_PATTERN && bt2 == TYPE_STRING )
-        ;
+    else if ( (bt1 == TYPE_PATTERN && bt2 == TYPE_STRING) || (bt1 == TYPE_STRING && bt2 == TYPE_PATTERN) ) {
+        if ( op1->GetType()->Tag() == TYPE_VECTOR )
+            ExprError("cannot compare string vectors with pattern vectors");
+    }
 
     else
         ExprError("type clash in comparison");

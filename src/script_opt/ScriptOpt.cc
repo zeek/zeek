@@ -446,12 +446,7 @@ static void generate_CPP() {
     CPPCompile cpp(funcs, pfs, gen_name, standalone, report);
 }
 
-extern void analyze_ZAM_insts();
-
 static void analyze_scripts_for_ZAM() {
-    // analyze_ZAM_insts();
-    // exit(0);
-
     if ( analysis_options.usage_issues > 0 && analysis_options.optimize_AST ) {
         fprintf(stderr,
                 "warning: \"-O optimize-AST\" option is incompatible with -u option, "
@@ -565,6 +560,11 @@ void clear_script_analysis() {
 
 void analyze_scripts(bool no_unused_warnings) {
     init_options();
+
+    if ( analysis_options.validate_ZAM ) {
+        validate_ZAM_insts();
+        return;
+    }
 
     // Any standalone compiled scripts have already been instantiated
     // at this point, but may require post-loading-of-scripts finalization.

@@ -927,8 +927,8 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
 
     analyze_scripts(options.no_unused_warnings);
 
-    if ( analysis_options.report_recursive ) {
-        // This option is report-and-exit.
+    if ( analysis_options.report_recursive || analysis_options.validate_ZAM ) {
+        // These options are report-and-exit.
         early_shutdown();
         exit(0);
     }

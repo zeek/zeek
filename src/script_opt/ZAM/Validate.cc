@@ -9,12 +9,6 @@ using std::string;
 
 namespace zeek::detail {
 
-struct ZAMInstDesc {
-    string op_class;
-    string op_types;
-    string op_desc;
-};
-
 std::unordered_map<ZOp, ZAMInstDesc> zam_inst_desc = {
 
 #include "ZAM-Desc.h"
@@ -31,14 +25,14 @@ static std::map<char, string> type_pats = {
     {'U', "uint_val|AsCount\\(\\)"},    {'V', "vector_val|AsVector(Ref)?\\(\\)"},
 };
 
-int num_valid = 0;
-int num_tested = 0;
-int num_skipped = 0;
+static int num_valid = 0;
+static int num_tested = 0;
+static int num_skipped = 0;
 
 void analyze_ZAM_inst(const char* op_name, const ZAMInstDesc& zid) {
     auto& oc = zid.op_class;
     auto& ot = zid.op_types;
-    auto& eval = zid.op_desc;
+    auto& eval = zid.op_eval;
 
     bool have_ot = ! ot.empty();
 
@@ -82,7 +76,7 @@ void analyze_ZAM_inst(const char* op_name, const ZAMInstDesc& zid) {
                 if ( ! std::regex_search(eval, std::regex(op)) )
                     reporter->InternalError("%s: operand %s not found", op_name, op.c_str());
 
-		++num_skipped;
+                ++num_skipped;
                 continue;
             }
 
@@ -90,7 +84,7 @@ void analyze_ZAM_inst(const char* op_name, const ZAMInstDesc& zid) {
             if ( tp == type_pats.end() )
                 reporter->InternalError("%s: instruction type %c not found", op_name, ot_i);
             match_pat += ".(" + tp->second + ")";
-	    ++num_tested;
+            ++num_tested;
         }
 
         if ( ! std::regex_search(eval, std::regex(match_pat)) )
@@ -99,7 +93,8 @@ void analyze_ZAM_inst(const char* op_name, const ZAMInstDesc& zid) {
     ++num_valid;
 }
 
-void analyze_ZAM_insts() {
+void validate_ZAM_insts() {
+    // The following primes a data structure we access.
     (void)AssignmentFlavor(OP_NOP, TYPE_VOID, false);
 
     for ( int i = 0; i < int(OP_NOP); ++i ) {

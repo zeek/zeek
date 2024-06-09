@@ -229,16 +229,16 @@ ValPtr ZInst::ConstVal() const {
 
 bool ZInst::IsLoopIterationAdvancement() const {
     switch ( op ) {
-        case OP_NEXT_TABLE_ITER_ib:
-        case OP_NEXT_TABLE_ITER_NO_VARS_ib:
-        case OP_NEXT_TABLE_ITER_VAL_VAR_Vib:
-        case OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_Vib:
-        case OP_NEXT_VECTOR_ITER_Vib:
-        case OP_NEXT_VECTOR_BLANK_ITER_ib:
-        case OP_NEXT_VECTOR_ITER_VAL_VAR_VVib:
-        case OP_NEXT_VECTOR_BLANK_ITER_VAL_VAR_Vib:
-        case OP_NEXT_STRING_ITER_Vib:
-        case OP_NEXT_STRING_BLANK_ITER_ib: return true;
+        case OP_NEXT_TABLE_ITER_fb:
+        case OP_NEXT_TABLE_ITER_NO_VARS_fb:
+        case OP_NEXT_TABLE_ITER_VAL_VAR_Vfb:
+        case OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_Vfb:
+        case OP_NEXT_VECTOR_ITER_Vsb:
+        case OP_NEXT_VECTOR_BLANK_ITER_sb:
+        case OP_NEXT_VECTOR_ITER_VAL_VAR_VVsb:
+        case OP_NEXT_VECTOR_BLANK_ITER_VAL_VAR_Vsb:
+        case OP_NEXT_STRING_ITER_Vsb:
+        case OP_NEXT_STRING_BLANK_ITER_sb: return true;
 
         default: return false;
     }
@@ -281,7 +281,7 @@ bool ZInst::AssignsToSlot1() const {
 
 bool ZInst::AssignsToSlot(int slot) const {
     switch ( op ) {
-        case OP_NEXT_VECTOR_ITER_VAL_VAR_VVib: return slot == 1 || slot == 2;
+        case OP_NEXT_VECTOR_ITER_VAL_VAR_VVsb: return slot == 1 || slot == 2;
 
         default: return slot == 1 && AssignsToSlot1();
     }

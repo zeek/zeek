@@ -32,6 +32,8 @@ static std::map<char, string> type_pats = {
 };
 
 int num_valid = 0;
+int num_tested = 0;
+int num_skipped = 0;
 
 void analyze_ZAM_inst(const char* op_name, const ZAMInstDesc& zid) {
     auto& oc = zid.op_class;
@@ -55,7 +57,9 @@ void analyze_ZAM_inst(const char* op_name, const ZAMInstDesc& zid) {
             case 'R': op = "frame\\[z\\.v" + std::to_string(++nslot) + "\\]"; break;
 
             case 'b':
+            case 'f':
             case 'g':
+            case 's':
             case 'i': op = "z\\.v" + std::to_string(++nslot); break;
 
             case 'C': op = "z\\.c"; break;
@@ -68,7 +72,8 @@ void analyze_ZAM_inst(const char* op_name, const ZAMInstDesc& zid) {
         auto match_pat = op;
         if ( have_ot ) {
             auto ot_i = ot[i];
-            bool bare_int = oc_i == 'i' || oc_i == 'b' || oc_i == 'g';
+
+            bool bare_int = std::string("bfgis").find(oc_i) != std::string::npos;
 
             if ( ot_i == 'X' || bare_int ) {
                 if ( ot_i == 'X' && bare_int )
@@ -77,6 +82,7 @@ void analyze_ZAM_inst(const char* op_name, const ZAMInstDesc& zid) {
                 if ( ! std::regex_search(eval, std::regex(op)) )
                     reporter->InternalError("%s: operand %s not found", op_name, op.c_str());
 
+		++num_skipped;
                 continue;
             }
 
@@ -84,6 +90,7 @@ void analyze_ZAM_inst(const char* op_name, const ZAMInstDesc& zid) {
             if ( tp == type_pats.end() )
                 reporter->InternalError("%s: instruction type %c not found", op_name, ot_i);
             match_pat += ".(" + tp->second + ")";
+	    ++num_tested;
         }
 
         if ( ! std::regex_search(eval, std::regex(match_pat)) )
@@ -104,7 +111,7 @@ void analyze_ZAM_insts() {
     for ( auto& zid : zam_inst_desc )
         analyze_ZAM_inst(ZOP_name(zid.first), zid.second);
 
-    printf("%d valid\n", num_valid);
+    printf("%d valid, %d tested, %d skipped\n", num_valid, num_tested, num_skipped);
 }
 
 } // namespace zeek::detail

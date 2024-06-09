@@ -336,8 +336,8 @@ void ZAMCompiler::ComputeFrameLifetimes() {
 
         // Some special-casing.
         switch ( inst->op ) {
-            case OP_NEXT_TABLE_ITER_ib:
-            case OP_NEXT_TABLE_ITER_VAL_VAR_Vib: {
+            case OP_NEXT_TABLE_ITER_fb:
+            case OP_NEXT_TABLE_ITER_VAL_VAR_Vfb: {
                 // These assign to an arbitrary long list of variables.
                 auto& iter_vars = inst->aux->loop_vars;
                 auto depth = inst->loop_depth;
@@ -361,21 +361,21 @@ void ZAMCompiler::ComputeFrameLifetimes() {
                 }
 
                 // No need to check the additional "var" associated
-                // with OP_NEXT_TABLE_ITER_VAL_VAR_Vib as that's
+                // with OP_NEXT_TABLE_ITER_VAL_VAR_Vfb as that's
                 // a slot-1 assignment.  However, similar to other
                 // loop variables, mark this as a usage.
-                if ( inst->op == OP_NEXT_TABLE_ITER_VAL_VAR_Vib )
+                if ( inst->op == OP_NEXT_TABLE_ITER_VAL_VAR_Vfb )
                     ExtendLifetime(inst->v1, EndOfLoop(inst, depth));
             } break;
 
-            case OP_NEXT_TABLE_ITER_NO_VARS_ib: break;
+            case OP_NEXT_TABLE_ITER_NO_VARS_fb: break;
 
-            case OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_Vib: {
+            case OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_Vfb: {
                 auto depth = inst->loop_depth;
                 ExtendLifetime(inst->v1, EndOfLoop(inst, depth));
             } break;
 
-            case OP_NEXT_VECTOR_ITER_VAL_VAR_VVib: {
+            case OP_NEXT_VECTOR_ITER_VAL_VAR_VVsb: {
                 CheckSlotAssignment(inst->v2, inst);
 
                 auto depth = inst->loop_depth;
@@ -383,13 +383,13 @@ void ZAMCompiler::ComputeFrameLifetimes() {
                 ExtendLifetime(inst->v2, EndOfLoop(inst, depth));
             } break;
 
-            case OP_NEXT_VECTOR_BLANK_ITER_VAL_VAR_Vib: {
+            case OP_NEXT_VECTOR_BLANK_ITER_VAL_VAR_Vsb: {
                 auto depth = inst->loop_depth;
                 ExtendLifetime(inst->v1, EndOfLoop(inst, depth));
             } break;
 
-            case OP_NEXT_VECTOR_ITER_Vib:
-            case OP_NEXT_STRING_ITER_Vib:
+            case OP_NEXT_VECTOR_ITER_Vsb:
+            case OP_NEXT_STRING_ITER_Vsb:
                 // Sometimes loops are written that don't actually
                 // use the iteration variable.  However, we still
                 // need to mark the variable as having usage
@@ -401,12 +401,12 @@ void ZAMCompiler::ComputeFrameLifetimes() {
                 ExtendLifetime(inst->v1, EndOfLoop(inst, inst->loop_depth));
                 break;
 
-            case OP_NEXT_VECTOR_BLANK_ITER_ib:
-            case OP_NEXT_STRING_BLANK_ITER_ib: break;
+            case OP_NEXT_VECTOR_BLANK_ITER_sb:
+            case OP_NEXT_STRING_BLANK_ITER_sb: break;
 
-            case OP_INIT_TABLE_LOOP_Vi:
-            case OP_INIT_VECTOR_LOOP_Vi:
-            case OP_INIT_STRING_LOOP_Vi: {
+            case OP_INIT_TABLE_LOOP_Vf:
+            case OP_INIT_VECTOR_LOOP_Vs:
+            case OP_INIT_STRING_LOOP_Vs: {
                 // For all of these, the scope of the aggregate being
                 // looped over is the entire loop, even if it doesn't
                 // directly appear in it, and not just the initializer.
@@ -549,8 +549,8 @@ void ZAMCompiler::ReMapFrame() {
 
         // Handle special cases.
         switch ( inst->op ) {
-            case OP_NEXT_TABLE_ITER_ib:
-            case OP_NEXT_TABLE_ITER_VAL_VAR_Vib: {
+            case OP_NEXT_TABLE_ITER_fb:
+            case OP_NEXT_TABLE_ITER_VAL_VAR_Vfb: {
                 // Rewrite iteration variables.
                 auto& iter_vars = inst->aux->loop_vars;
                 for ( auto& v : iter_vars ) {

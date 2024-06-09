@@ -41,3 +41,7 @@ macro AssignTarget(target, v) {
 macro Branch(target) { DO_ZAM_PROFILE; pc = target; continue; }
 
 macro Global(slot) globals[slot]
+
+macro StepIter(slot) step_iters[slot]
+
+macro TableIter(slot) (*tiv_ptr)[slot]

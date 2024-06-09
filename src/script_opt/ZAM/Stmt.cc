@@ -777,7 +777,7 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val) 
     auto iter_slot = table_iters.size();
     table_iters.emplace_back();
 
-    auto z = ZInstI(OP_INIT_TABLE_LOOP_Vi, FrameSlot(val), iter_slot);
+    auto z = ZInstI(OP_INIT_TABLE_LOOP_Vf, FrameSlot(val), iter_slot);
     z.op_type = OP_VV_I2;
     z.SetType(value_var ? value_var->GetType() : nullptr);
     z.aux = aux;
@@ -786,13 +786,13 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val) 
     auto iter_head = StartingBlock();
 
     if ( value_var ) {
-        ZOp op = no_loop_vars ? OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_Vib : OP_NEXT_TABLE_ITER_VAL_VAR_Vib;
+        ZOp op = no_loop_vars ? OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_Vfb : OP_NEXT_TABLE_ITER_VAL_VAR_Vfb;
         z = ZInstI(op, FrameSlot(value_var), iter_slot, 0);
         z.CheckIfManaged(value_var->GetType());
         z.op_type = OP_VVV_I2_I3;
     }
     else {
-        ZOp op = no_loop_vars ? OP_NEXT_TABLE_ITER_NO_VARS_ib : OP_NEXT_TABLE_ITER_ib;
+        ZOp op = no_loop_vars ? OP_NEXT_TABLE_ITER_NO_VARS_fb : OP_NEXT_TABLE_ITER_fb;
         z = ZInstI(op, iter_slot, 0);
         z.op_type = OP_VV_I1_I2;
     }
@@ -809,7 +809,7 @@ const ZAMStmt ZAMCompiler::LoopOverVector(const ForStmt* f, const NameExpr* val)
 
     int iter_slot = num_step_iters++;
 
-    auto z = ZInstI(OP_INIT_VECTOR_LOOP_Vi, FrameSlot(val), iter_slot);
+    auto z = ZInstI(OP_INIT_VECTOR_LOOP_Vs, FrameSlot(val), iter_slot);
     z.op_type = OP_VV_I2;
 
     auto init_end = AddInst(z);
@@ -819,11 +819,11 @@ const ZAMStmt ZAMCompiler::LoopOverVector(const ForStmt* f, const NameExpr* val)
 
     if ( value_var ) {
         if ( slot >= 0 ) {
-            z = ZInstI(OP_NEXT_VECTOR_ITER_VAL_VAR_VVib, slot, FrameSlot(value_var), iter_slot, 0);
+            z = ZInstI(OP_NEXT_VECTOR_ITER_VAL_VAR_VVsb, slot, FrameSlot(value_var), iter_slot, 0);
             z.op_type = OP_VVVV_I3_I4;
         }
         else {
-            z = ZInstI(OP_NEXT_VECTOR_BLANK_ITER_VAL_VAR_Vib, FrameSlot(value_var), iter_slot, 0);
+            z = ZInstI(OP_NEXT_VECTOR_BLANK_ITER_VAL_VAR_Vsb, FrameSlot(value_var), iter_slot, 0);
             z.op_type = OP_VVV_I2_I3;
         }
 
@@ -833,11 +833,11 @@ const ZAMStmt ZAMCompiler::LoopOverVector(const ForStmt* f, const NameExpr* val)
 
     else {
         if ( slot >= 0 ) {
-            z = ZInstI(OP_NEXT_VECTOR_ITER_Vib, slot, iter_slot, 0);
+            z = ZInstI(OP_NEXT_VECTOR_ITER_Vsb, slot, iter_slot, 0);
             z.op_type = OP_VVV_I2_I3;
         }
         else {
-            z = ZInstI(OP_NEXT_VECTOR_BLANK_ITER_ib, iter_slot, 0);
+            z = ZInstI(OP_NEXT_VECTOR_BLANK_ITER_sb, iter_slot, 0);
             z.op_type = OP_VV_I1_I2;
         }
     }
@@ -856,12 +856,12 @@ const ZAMStmt ZAMCompiler::LoopOverString(const ForStmt* f, const Expr* e) {
     ZInstI z;
 
     if ( n ) {
-        z = ZInstI(OP_INIT_STRING_LOOP_Vi, FrameSlot(n), iter_slot);
+        z = ZInstI(OP_INIT_STRING_LOOP_Vs, FrameSlot(n), iter_slot);
         z.op_type = OP_VV_I2;
     }
     else {
         ASSERT(c);
-        z = ZInstI(OP_INIT_STRING_LOOP_Ci, iter_slot, c);
+        z = ZInstI(OP_INIT_STRING_LOOP_Cs, iter_slot, c);
         z.op_type = OP_VC_I1;
     }
 
@@ -869,11 +869,11 @@ const ZAMStmt ZAMCompiler::LoopOverString(const ForStmt* f, const Expr* e) {
     auto iter_head = StartingBlock();
 
     if ( loop_var->IsBlank() ) {
-        z = ZInstI(OP_NEXT_STRING_BLANK_ITER_ib, iter_slot, 0);
+        z = ZInstI(OP_NEXT_STRING_BLANK_ITER_sb, iter_slot, 0);
         z.op_type = OP_VV_I1_I2;
     }
     else {
-        z = ZInstI(OP_NEXT_STRING_ITER_Vib, FrameSlot(loop_var), iter_slot, 0);
+        z = ZInstI(OP_NEXT_STRING_ITER_Vsb, FrameSlot(loop_var), iter_slot, 0);
         z.op_type = OP_VVV_I2_I3;
         z.is_managed = true;
     }
@@ -903,7 +903,7 @@ const ZAMStmt ZAMCompiler::FinishLoop(const ZAMStmt iter_head, ZInstI& iter_stmt
     // We only need cleanup for looping over tables, but for now we
     // need some sort of placeholder instruction (until the optimizer
     // can elide it) to resolve loop exits.
-    ZOp op = is_table ? OP_END_TABLE_LOOP_i : OP_NOP;
+    ZOp op = is_table ? OP_END_TABLE_LOOP_f : OP_NOP;
 
     auto loop_end = GoTo(GoToTarget(iter_head));
     auto z = ZInstI(op, iter_slot);

@@ -107,7 +107,12 @@
 # 			R record
 # 			V variable (frame slot)
 # 			X used to indicate an empty specifier
+# 			b branch target
+# 			f iteration information associated with table "for" loop
+# 			g access to a global
 # 			i integer constant, often a record field offset
+#			s iteration information associated with stepping
+#			  through a vector or string
 #
 # 		The full specification consists of concatenating mnemonics
 # 		with the order left-to-right corresponding to each of the
@@ -156,6 +161,10 @@
 #		the point is that the each type applies to *all* operands,
 #		rather than a per-operand list). Given that, the two are
 #		incompatible.
+#
+#		For operands corresponding to 'i' or any of the internal types,
+#		such as 'b', 'f', 'g', and 's', the corresponding type to
+#		list is 'I', used for integer access.
 #
 # 	eval	specifies a block of C++ code used to evaluation the
 # 		execution of the instruction.  The block begins with the

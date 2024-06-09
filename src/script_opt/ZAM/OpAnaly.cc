@@ -55,6 +55,7 @@ void analyze_ZAM_inst(const char* op_name, const ZAMInstDesc& zid) {
             case 'R': op = "frame\\[z\\.v" + std::to_string(++nslot) + "\\]"; break;
 
             case 'b':
+            case 'g':
             case 'i': op = "z\\.v" + std::to_string(++nslot); break;
 
             case 'C': op = "z\\.c"; break;
@@ -67,7 +68,7 @@ void analyze_ZAM_inst(const char* op_name, const ZAMInstDesc& zid) {
         auto match_pat = op;
         if ( have_ot ) {
             auto ot_i = ot[i];
-            bool bare_int = oc_i == 'i' || oc_i == 'b';
+            bool bare_int = oc_i == 'i' || oc_i == 'b' || oc_i == 'g';
 
             if ( ot_i == 'X' || bare_int ) {
                 if ( ot_i == 'X' && bare_int )

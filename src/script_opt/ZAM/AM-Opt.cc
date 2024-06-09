@@ -423,7 +423,7 @@ void ZAMCompiler::ComputeFrameLifetimes() {
                 continue;
             }
 
-            case OP_STORE_GLOBAL_i: {
+            case OP_STORE_GLOBAL_g: {
                 // Use of the global goes to here.
                 auto slot = frame_layout1[globalsI[inst->v1].id.get()];
                 ExtendLifetime(slot, EndOfLoop(inst, 1));

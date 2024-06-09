@@ -39,3 +39,5 @@ macro AssignTarget(target, v) {
 	}
 
 macro Branch(target) { DO_ZAM_PROFILE; pc = target; continue; }
+
+macro Global(slot) globals[slot]

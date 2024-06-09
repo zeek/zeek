@@ -557,7 +557,7 @@ void ZInstI::UpdateSlots(std::vector<int>& slot_mapping) {
 }
 
 bool ZInstI::IsGlobalLoad() const {
-    if ( op == OP_LOAD_GLOBAL_TYPE_Vi )
+    if ( op == OP_LOAD_GLOBAL_TYPE_Vg )
         // These don't have flavors.
         return true;
 
@@ -566,7 +566,7 @@ bool ZInstI::IsGlobalLoad() const {
     if ( global_ops.empty() ) { // Initialize the set.
         for ( int t = 0; t < NUM_TYPES; ++t ) {
             TypeTag tag = TypeTag(t);
-            ZOp global_op_flavor = AssignmentFlavor(OP_LOAD_GLOBAL_Vi, tag, false);
+            ZOp global_op_flavor = AssignmentFlavor(OP_LOAD_GLOBAL_Vg, tag, false);
 
             if ( global_op_flavor != OP_NOP )
                 global_ops.insert(global_op_flavor);

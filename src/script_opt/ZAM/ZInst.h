@@ -254,7 +254,7 @@ public:
     bool IsLoad() const { return op_type == OP_VV_FRAME || IsNonLocalLoad(); }
 
     // True if the instruction corresponds to storing a global.
-    bool IsGlobalStore() const { return op == OP_STORE_GLOBAL_i; }
+    bool IsGlobalStore() const { return op == OP_STORE_GLOBAL_g; }
 
     void CheckIfManaged(const TypePtr& t) {
         if ( ZVal::IsManagedType(t) )

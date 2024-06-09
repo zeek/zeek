@@ -21,9 +21,9 @@ assign-val v
 eval	auto& v = f->GetElement($1);
 
 internal-assignment-op Load-Global
-class Vi
+class Vg
 assign-val v
-eval	auto& v = globals[$1].id->GetVal();
+eval	auto& v = $1.id->GetVal();
 	if ( ! v )
 		{
 		ZAM_run_time_error(Z_LOC, "value used but not set", Z_AUX->id_val.get());
@@ -33,11 +33,11 @@ eval	auto& v = globals[$1].id->GetVal();
 # We need a special form here for loading global types, as they don't
 # fit the usual template.
 internal-op Load-Global-Type
-class Vi
+class Vg
 op-types t I
 eval	auto& v = $$;
 	Unref(v);
-	auto& t = globals[$1].id->GetType();
+	auto& t = $1.id->GetType();
 	v = new TypeVal(t, true);
 
 internal-op Load-Capture
@@ -54,8 +54,8 @@ eval	auto& lhs = $$;
 
 internal-op Store-Global
 op1-internal
-class i
-eval	auto& g = globals[$1];
+class g
+eval	auto& g = $1;
 	g.id->SetVal(frame[g.slot].ToVal(Z_TYPE));
 
 # Both of these have the LHS as v2 not v1, to keep with existing

@@ -142,17 +142,17 @@ eval	EvalVal2InTablePre($1,$2,$3)
 
 internal-op Val2-Is-In-Table-Cond
 op1-read
-class VVVi
+class VVVb
 eval	EvalVal2InTablePre($1,$2,$3)
 	EvalVal2InTableCond($3, lvp, $4, !)
 
-macro EvalVal2InTableCond(tbl, op, target, negate)
+macro EvalVal2InTableCond(tbl, op, BRANCH, negate)
 	if ( negate tbl.table_val->Find(op) )
-		BRANCH(target)
+		BRANCH
 
 internal-op Val2-Is-Not-In-Table-Cond
 op1-read
-class VVVi
+class VVVb
 eval	EvalVal2InTablePre($1,$2,$3)
 	EvalVal2InTableCond($3, lvp, $4,)
 
@@ -168,25 +168,25 @@ eval	EvalVal2InTableCore($2.ToVal(Z_TYPE), $1.ToVal(Z_TYPE2))
 
 internal-op Val2-Is-In-Table-Cond
 op1-read
-class VViC
+class VVbC
 eval	EvalVal2InTableCore($1.ToVal(Z_TYPE2), $4.ToVal(Z_TYPE))
 	EvalVal2InTableCond($2, lvp, $3, !)
 
 internal-op Val2-Is-In-Table-Cond
 op1-read
-class VVCi
+class VVCb
 eval	EvalVal2InTableCore($3.ToVal(Z_TYPE), $1.ToVal(Z_TYPE2))
 	EvalVal2InTableCond($2, lvp, $4, !)
 
 internal-op Val2-Is-Not-In-Table-Cond
 op1-read
-class VViC
+class VVbC
 eval	EvalVal2InTableCore($1.ToVal(Z_TYPE2), $4.ToVal(Z_TYPE))
 	EvalVal2InTableCond($2, lvp, $3, )
 
 internal-op Val2-Is-Not-In-Table-Cond
 op1-read
-class VVCi
+class VVCb
 eval	EvalVal2InTableCore($3.ToVal(Z_TYPE), $1.ToVal(Z_TYPE2))
 	EvalVal2InTableCond($2, lvp, $4, )
 

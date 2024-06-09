@@ -214,7 +214,7 @@ public:
     // True if this instruction always branches elsewhere.  Different
     // from DoesNotContinue() in that returns & hook breaks do not
     // continue, but they are not branches.
-    bool IsUnconditionalBranch() const { return op == OP_GOTO_i; }
+    bool IsUnconditionalBranch() const { return op == OP_GOTO_b; }
 
     // True if this instruction is of the form "v1 = v2".
     bool IsDirectAssignment() const;

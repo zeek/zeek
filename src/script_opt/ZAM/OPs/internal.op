@@ -82,8 +82,8 @@ set-type $1
 eval	AssignTarget($$, CopyVal($1))
 
 internal-op GoTo
-class i
-eval	BRANCH($1)
+class b
+eval	$1
 
 internal-op Hook-Break
 class X

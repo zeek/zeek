@@ -136,7 +136,7 @@ const ZAMStmt ZAMCompiler::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
     if ( e->Tag() == EXPR_NAME ) {
         auto n = e->AsNameExpr();
 
-        ZOp op = (s1 && s2) ? OP_IF_ELSE_Vi : (s1 ? OP_IF_Vi : OP_IF_NOT_Vi);
+        ZOp op = (s1 && s2) ? OP_IF_ELSE_Vb : (s1 ? OP_IF_Vb : OP_IF_NOT_Vb);
 
         ZInstI cond(op, FrameSlot(n), 0);
         cond_stmt = AddInst(cond);
@@ -170,60 +170,60 @@ const ZAMStmt ZAMCompiler::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
     auto z = insts1[cond_stmt.stmt_num];
 
     switch ( z->op ) {
-        case OP_IF_ELSE_Vi:
-        case OP_IF_Vi:
-        case OP_IF_NOT_Vi:
+        case OP_IF_ELSE_Vb:
+        case OP_IF_Vb:
+        case OP_IF_NOT_Vb:
             // These are generated correctly above, no need
             // to fix up.
             break;
 
-        case OP_HAS_FIELD_COND_Vii: z->op = OP_NOT_HAS_FIELD_COND_Vii; break;
-        case OP_NOT_HAS_FIELD_COND_Vii: z->op = OP_HAS_FIELD_COND_Vii; break;
+        case OP_HAS_FIELD_COND_Vib: z->op = OP_NOT_HAS_FIELD_COND_Vib; break;
+        case OP_NOT_HAS_FIELD_COND_Vib: z->op = OP_HAS_FIELD_COND_Vib; break;
 
-        case OP_CONN_EXISTS_COND_Vi: z->op = OP_NOT_CONN_EXISTS_COND_Vi; break;
-        case OP_NOT_CONN_EXISTS_COND_Vi: z->op = OP_CONN_EXISTS_COND_Vi; break;
+        case OP_CONN_EXISTS_COND_Vb: z->op = OP_NOT_CONN_EXISTS_COND_Vb; break;
+        case OP_NOT_CONN_EXISTS_COND_Vb: z->op = OP_CONN_EXISTS_COND_Vb; break;
 
-        case OP_IS_ICMP_PORT_COND_Vi: z->op = OP_NOT_IS_ICMP_PORT_COND_Vi; break;
-        case OP_NOT_IS_ICMP_PORT_COND_Vi: z->op = OP_IS_ICMP_PORT_COND_Vi; break;
+        case OP_IS_ICMP_PORT_COND_Vb: z->op = OP_NOT_IS_ICMP_PORT_COND_Vb; break;
+        case OP_NOT_IS_ICMP_PORT_COND_Vb: z->op = OP_IS_ICMP_PORT_COND_Vb; break;
 
-        case OP_IS_TCP_PORT_COND_Vi: z->op = OP_NOT_IS_TCP_PORT_COND_Vi; break;
-        case OP_NOT_IS_TCP_PORT_COND_Vi: z->op = OP_IS_TCP_PORT_COND_Vi; break;
+        case OP_IS_TCP_PORT_COND_Vb: z->op = OP_NOT_IS_TCP_PORT_COND_Vb; break;
+        case OP_NOT_IS_TCP_PORT_COND_Vb: z->op = OP_IS_TCP_PORT_COND_Vb; break;
 
-        case OP_IS_UDP_PORT_COND_Vi: z->op = OP_NOT_IS_UDP_PORT_COND_Vi; break;
-        case OP_NOT_IS_UDP_PORT_COND_Vi: z->op = OP_IS_UDP_PORT_COND_Vi; break;
+        case OP_IS_UDP_PORT_COND_Vb: z->op = OP_NOT_IS_UDP_PORT_COND_Vb; break;
+        case OP_NOT_IS_UDP_PORT_COND_Vb: z->op = OP_IS_UDP_PORT_COND_Vb; break;
 
-        case OP_IS_V4_ADDR_COND_Vi: z->op = OP_NOT_IS_V4_ADDR_COND_Vi; break;
-        case OP_NOT_IS_V4_ADDR_COND_Vi: z->op = OP_IS_V4_ADDR_COND_Vi; break;
+        case OP_IS_V4_ADDR_COND_Vb: z->op = OP_NOT_IS_V4_ADDR_COND_Vb; break;
+        case OP_NOT_IS_V4_ADDR_COND_Vb: z->op = OP_IS_V4_ADDR_COND_Vb; break;
 
-        case OP_IS_V6_ADDR_COND_Vi: z->op = OP_NOT_IS_V6_ADDR_COND_Vi; break;
-        case OP_NOT_IS_V6_ADDR_COND_Vi: z->op = OP_IS_V6_ADDR_COND_Vi; break;
+        case OP_IS_V6_ADDR_COND_Vb: z->op = OP_NOT_IS_V6_ADDR_COND_Vb; break;
+        case OP_NOT_IS_V6_ADDR_COND_Vb: z->op = OP_IS_V6_ADDR_COND_Vb; break;
 
-        case OP_READING_LIVE_TRAFFIC_COND_i: z->op = OP_NOT_READING_LIVE_TRAFFIC_COND_i; break;
-        case OP_NOT_READING_LIVE_TRAFFIC_COND_i: z->op = OP_READING_LIVE_TRAFFIC_COND_i; break;
+        case OP_READING_LIVE_TRAFFIC_COND_b: z->op = OP_NOT_READING_LIVE_TRAFFIC_COND_b; break;
+        case OP_NOT_READING_LIVE_TRAFFIC_COND_b: z->op = OP_READING_LIVE_TRAFFIC_COND_b; break;
 
-        case OP_READING_TRACES_COND_i: z->op = OP_NOT_READING_TRACES_COND_i; break;
-        case OP_NOT_READING_TRACES_COND_i: z->op = OP_READING_TRACES_COND_i; break;
+        case OP_READING_TRACES_COND_b: z->op = OP_NOT_READING_TRACES_COND_b; break;
+        case OP_NOT_READING_TRACES_COND_b: z->op = OP_READING_TRACES_COND_b; break;
 
-        case OP_TABLE_HAS_ELEMENTS_COND_Vi: z->op = OP_NOT_TABLE_HAS_ELEMENTS_COND_Vi; break;
-        case OP_NOT_TABLE_HAS_ELEMENTS_COND_Vi: z->op = OP_TABLE_HAS_ELEMENTS_COND_Vi; break;
+        case OP_TABLE_HAS_ELEMENTS_COND_Vb: z->op = OP_NOT_TABLE_HAS_ELEMENTS_COND_Vb; break;
+        case OP_NOT_TABLE_HAS_ELEMENTS_COND_Vb: z->op = OP_TABLE_HAS_ELEMENTS_COND_Vb; break;
 
-        case OP_VECTOR_HAS_ELEMENTS_COND_Vi: z->op = OP_NOT_VECTOR_HAS_ELEMENTS_COND_Vi; break;
-        case OP_NOT_VECTOR_HAS_ELEMENTS_COND_Vi: z->op = OP_VECTOR_HAS_ELEMENTS_COND_Vi; break;
+        case OP_VECTOR_HAS_ELEMENTS_COND_Vb: z->op = OP_NOT_VECTOR_HAS_ELEMENTS_COND_Vb; break;
+        case OP_NOT_VECTOR_HAS_ELEMENTS_COND_Vb: z->op = OP_VECTOR_HAS_ELEMENTS_COND_Vb; break;
 
-        case OP_VAL_IS_IN_TABLE_COND_VVi: z->op = OP_NOT_VAL_IS_IN_TABLE_COND_VVi; break;
-        case OP_NOT_VAL_IS_IN_TABLE_COND_VVi: z->op = OP_VAL_IS_IN_TABLE_COND_VVi; break;
+        case OP_VAL_IS_IN_TABLE_COND_VVb: z->op = OP_NOT_VAL_IS_IN_TABLE_COND_VVb; break;
+        case OP_NOT_VAL_IS_IN_TABLE_COND_VVb: z->op = OP_VAL_IS_IN_TABLE_COND_VVb; break;
 
-        case OP_CONST_IS_IN_TABLE_COND_VCi: z->op = OP_NOT_CONST_IS_IN_TABLE_COND_VCi; break;
-        case OP_NOT_CONST_IS_IN_TABLE_COND_VCi: z->op = OP_CONST_IS_IN_TABLE_COND_VCi; break;
+        case OP_CONST_IS_IN_TABLE_COND_VCb: z->op = OP_NOT_CONST_IS_IN_TABLE_COND_VCb; break;
+        case OP_NOT_CONST_IS_IN_TABLE_COND_VCb: z->op = OP_CONST_IS_IN_TABLE_COND_VCb; break;
 
-        case OP_VAL2_IS_IN_TABLE_COND_VVVi: z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVVi; break;
-        case OP_VAL2_IS_NOT_IN_TABLE_COND_VVVi: z->op = OP_VAL2_IS_IN_TABLE_COND_VVVi; break;
+        case OP_VAL2_IS_IN_TABLE_COND_VVVb: z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVVb; break;
+        case OP_VAL2_IS_NOT_IN_TABLE_COND_VVVb: z->op = OP_VAL2_IS_IN_TABLE_COND_VVVb; break;
 
-        case OP_VAL2_IS_IN_TABLE_COND_VViC: z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VViC; break;
-        case OP_VAL2_IS_NOT_IN_TABLE_COND_VViC: z->op = OP_VAL2_IS_IN_TABLE_COND_VViC; break;
+        case OP_VAL2_IS_IN_TABLE_COND_VVbC: z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVbC; break;
+        case OP_VAL2_IS_NOT_IN_TABLE_COND_VVbC: z->op = OP_VAL2_IS_IN_TABLE_COND_VVbC; break;
 
-        case OP_VAL2_IS_IN_TABLE_COND_VVCi: z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVCi; break;
-        case OP_VAL2_IS_NOT_IN_TABLE_COND_VVCi: z->op = OP_VAL2_IS_IN_TABLE_COND_VVCi; break;
+        case OP_VAL2_IS_IN_TABLE_COND_VVCb: z->op = OP_VAL2_IS_NOT_IN_TABLE_COND_VVCb; break;
+        case OP_VAL2_IS_NOT_IN_TABLE_COND_VVCb: z->op = OP_VAL2_IS_IN_TABLE_COND_VVCb; break;
 
         default: reporter->InternalError("inconsistency in ZAMCompiler::IfElse");
     }
@@ -238,7 +238,7 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v) {
 
     if ( e->Tag() == EXPR_HAS_FIELD ) {
         auto hf = e->AsHasFieldExpr();
-        auto z = GenInst(OP_HAS_FIELD_COND_Vii, op1->AsNameExpr(), hf->Field());
+        auto z = GenInst(OP_HAS_FIELD_COND_Vib, op1->AsNameExpr(), hf->Field());
         z.op_type = OP_VVV_I2_I3;
         branch_v = 3;
         return AddInst(z);
@@ -255,14 +255,14 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v) {
         }
 
         if ( op1->Tag() == EXPR_NAME ) {
-            auto z = GenInst(OP_VAL_IS_IN_TABLE_COND_VVi, op1->AsNameExpr(), op2, 0);
+            auto z = GenInst(OP_VAL_IS_IN_TABLE_COND_VVb, op1->AsNameExpr(), op2, 0);
             z.t = op1->GetType();
             branch_v = 3;
             return AddInst(z);
         }
 
         if ( op1->Tag() == EXPR_CONST ) {
-            auto z = GenInst(OP_CONST_IS_IN_TABLE_COND_VCi, op2, op1->AsConstExpr(), 0);
+            auto z = GenInst(OP_CONST_IS_IN_TABLE_COND_VCb, op2, op1->AsConstExpr(), 0);
             z.t = op1->GetType();
             branch_v = 2;
             return AddInst(z);
@@ -290,19 +290,19 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v) {
         ZInstI z;
 
         if ( name0 && name1 ) {
-            z = GenInst(OP_VAL2_IS_IN_TABLE_COND_VVVi, n0, n1, op2, 0);
+            z = GenInst(OP_VAL2_IS_IN_TABLE_COND_VVVb, n0, n1, op2, 0);
             branch_v = 4;
             z.t2 = n0->GetType();
         }
 
         else if ( name0 ) {
-            z = GenInst(OP_VAL2_IS_IN_TABLE_COND_VViC, n0, op2, c1, 0);
+            z = GenInst(OP_VAL2_IS_IN_TABLE_COND_VVbC, n0, op2, c1, 0);
             branch_v = 3;
             z.t2 = n0->GetType();
         }
 
         else if ( name1 ) {
-            z = GenInst(OP_VAL2_IS_IN_TABLE_COND_VVCi, n1, op2, c0, 0);
+            z = GenInst(OP_VAL2_IS_IN_TABLE_COND_VVCb, n1, op2, c0, 0);
             branch_v = 3;
             z.t2 = n1->GetType();
         }
@@ -310,7 +310,7 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v) {
         else { // Both are constants, assign first to temporary.
             auto slot = TempForConst(c0);
 
-            z = ZInstI(OP_VAL2_IS_IN_TABLE_COND_VViC, slot, FrameSlot(op2), 0, c1);
+            z = ZInstI(OP_VAL2_IS_IN_TABLE_COND_VVbC, slot, FrameSlot(op2), 0, c1);
             z.op_type = OP_VVVC_I3;
             branch_v = 3;
             z.t2 = c0->GetType();
@@ -332,9 +332,9 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v) {
 
         ZOp op;
         if ( aggr->GetType()->Tag() == TYPE_TABLE )
-            op = OP_TABLE_HAS_ELEMENTS_COND_Vi;
+            op = OP_TABLE_HAS_ELEMENTS_COND_Vb;
         else
-            op = OP_VECTOR_HAS_ELEMENTS_COND_Vi;
+            op = OP_VECTOR_HAS_ELEMENTS_COND_Vb;
 
         branch_v = 2;
         return AddInst(GenInst(op, aggr, +0));
@@ -577,7 +577,7 @@ const ZAMStmt ZAMCompiler::TypeSwitch(const SwitchStmt* sw, const NameExpr* v, c
 
         ZInstI z;
 
-        z = ZInstI(OP_BRANCH_IF_NOT_TYPE_Vi, slot, 0);
+        z = ZInstI(OP_BRANCH_IF_NOT_TYPE_Vb, slot, 0);
         z.SetType(type);
         auto case_test = AddInst(z);
 
@@ -699,7 +699,7 @@ const ZAMStmt ZAMCompiler::While(const Stmt* cond_stmt, const Expr* cond, const 
 
     if ( cond->Tag() == EXPR_NAME ) {
         auto n = cond->AsNameExpr();
-        cond_IF = AddInst(ZInstI(OP_IF_Vi, FrameSlot(n), 0));
+        cond_IF = AddInst(ZInstI(OP_IF_Vb, FrameSlot(n), 0));
         branch_v = 2;
     }
     else
@@ -786,13 +786,13 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val) 
     auto iter_head = StartingBlock();
 
     if ( value_var ) {
-        ZOp op = no_loop_vars ? OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_Vii : OP_NEXT_TABLE_ITER_VAL_VAR_Vii;
+        ZOp op = no_loop_vars ? OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_Vib : OP_NEXT_TABLE_ITER_VAL_VAR_Vib;
         z = ZInstI(op, FrameSlot(value_var), iter_slot, 0);
         z.CheckIfManaged(value_var->GetType());
         z.op_type = OP_VVV_I2_I3;
     }
     else {
-        ZOp op = no_loop_vars ? OP_NEXT_TABLE_ITER_NO_VARS_ii : OP_NEXT_TABLE_ITER_ii;
+        ZOp op = no_loop_vars ? OP_NEXT_TABLE_ITER_NO_VARS_ib : OP_NEXT_TABLE_ITER_ib;
         z = ZInstI(op, iter_slot, 0);
         z.op_type = OP_VV_I1_I2;
     }
@@ -819,11 +819,11 @@ const ZAMStmt ZAMCompiler::LoopOverVector(const ForStmt* f, const NameExpr* val)
 
     if ( value_var ) {
         if ( slot >= 0 ) {
-            z = ZInstI(OP_NEXT_VECTOR_ITER_VAL_VAR_VVii, slot, FrameSlot(value_var), iter_slot, 0);
+            z = ZInstI(OP_NEXT_VECTOR_ITER_VAL_VAR_VVib, slot, FrameSlot(value_var), iter_slot, 0);
             z.op_type = OP_VVVV_I3_I4;
         }
         else {
-            z = ZInstI(OP_NEXT_VECTOR_BLANK_ITER_VAL_VAR_Vii, FrameSlot(value_var), iter_slot, 0);
+            z = ZInstI(OP_NEXT_VECTOR_BLANK_ITER_VAL_VAR_Vib, FrameSlot(value_var), iter_slot, 0);
             z.op_type = OP_VVV_I2_I3;
         }
 
@@ -833,11 +833,11 @@ const ZAMStmt ZAMCompiler::LoopOverVector(const ForStmt* f, const NameExpr* val)
 
     else {
         if ( slot >= 0 ) {
-            z = ZInstI(OP_NEXT_VECTOR_ITER_Vii, slot, iter_slot, 0);
+            z = ZInstI(OP_NEXT_VECTOR_ITER_Vib, slot, iter_slot, 0);
             z.op_type = OP_VVV_I2_I3;
         }
         else {
-            z = ZInstI(OP_NEXT_VECTOR_BLANK_ITER_ii, iter_slot, 0);
+            z = ZInstI(OP_NEXT_VECTOR_BLANK_ITER_ib, iter_slot, 0);
             z.op_type = OP_VV_I1_I2;
         }
     }
@@ -869,11 +869,11 @@ const ZAMStmt ZAMCompiler::LoopOverString(const ForStmt* f, const Expr* e) {
     auto iter_head = StartingBlock();
 
     if ( loop_var->IsBlank() ) {
-        z = ZInstI(OP_NEXT_STRING_BLANK_ITER_ii, iter_slot, 0);
+        z = ZInstI(OP_NEXT_STRING_BLANK_ITER_ib, iter_slot, 0);
         z.op_type = OP_VV_I1_I2;
     }
     else {
-        z = ZInstI(OP_NEXT_STRING_ITER_Vii, FrameSlot(loop_var), iter_slot, 0);
+        z = ZInstI(OP_NEXT_STRING_ITER_Vib, FrameSlot(loop_var), iter_slot, 0);
         z.op_type = OP_VVV_I2_I3;
         z.is_managed = true;
     }

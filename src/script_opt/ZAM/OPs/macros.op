@@ -38,4 +38,4 @@ macro AssignTarget(target, v) {
 		target = v;
 	}
 
-macro BRANCH(target) { DO_ZAM_PROFILE; pc = target; continue; }
+macro Branch(target) { DO_ZAM_PROFILE; pc = target; continue; }

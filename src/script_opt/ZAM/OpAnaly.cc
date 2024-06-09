@@ -46,26 +46,32 @@ void analyze_ZAM_inst(const char* op_name, const ZAMInstDesc& zid) {
     int nslot = 0;
 
     for ( size_t i = 0; i < oc.size(); ++i ) {
+        auto oc_i = oc[i];
+
         string op;
 
-        switch ( oc[i] ) {
+        switch ( oc_i ) {
             case 'V':
             case 'R': op = "frame\\[z\\.v" + std::to_string(++nslot) + "\\]"; break;
 
+            case 'b':
             case 'i': op = "z\\.v" + std::to_string(++nslot); break;
 
             case 'C': op = "z\\.c"; break;
 
             default:
                 if ( have_ot && ot[i] != 'X' )
-                    reporter->InternalError("instruction types mismatch: %s (%c)", op_name, oc[i]);
+                    reporter->InternalError("instruction types mismatch: %s (%c)", op_name, oc_i);
         }
 
         auto match_pat = op;
         if ( have_ot ) {
-            if ( ot[i] == 'X' || oc[i] == 'i' ) {
-                if ( ot[i] == 'X' && oc[i] == 'i' )
-                    reporter->InternalError("empty instruction type for 'i' class element: %s", op_name);
+            auto ot_i = ot[i];
+            bool bare_int = oc_i == 'i' || oc_i == 'b';
+
+            if ( ot_i == 'X' || bare_int ) {
+                if ( ot_i == 'X' && bare_int )
+                    reporter->InternalError("empty instruction type for '%c' class element: %s", oc_i, op_name);
 
                 if ( ! std::regex_search(eval, std::regex(op)) )
                     reporter->InternalError("%s: operand %s not found", op_name, op.c_str());
@@ -73,9 +79,9 @@ void analyze_ZAM_inst(const char* op_name, const ZAMInstDesc& zid) {
                 continue;
             }
 
-            auto tp = type_pats.find(ot[i]);
+            auto tp = type_pats.find(ot_i);
             if ( tp == type_pats.end() )
-                reporter->InternalError("%s: instruction type %c not found", op_name, ot[i]);
+                reporter->InternalError("%s: instruction type %c not found", op_name, ot_i);
             match_pat += ".(" + tp->second + ")";
         }
 

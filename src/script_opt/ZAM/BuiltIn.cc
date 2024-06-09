@@ -434,14 +434,14 @@ SimpleZBI sta_ZBI{"subnet_to_addr", OP_SUBNET_TO_ADDR_VV, 1};
 SimpleZBI ttd_ZBI{"time_to_double", OP_TIME_TO_DOUBLE_VV, 1};
 SimpleZBI tl_ZBI{"to_lower", OP_TO_LOWER_VV, 1};
 
-CondZBI ce_ZBI{"connection_exists", OP_CONN_EXISTS_VV, OP_CONN_EXISTS_COND_Vi, 1};
-CondZBI iip_ZBI{"is_icmp_port", OP_IS_ICMP_PORT_VV, OP_IS_ICMP_PORT_COND_Vi, 1};
-CondZBI itp_ZBI{"is_tcp_port", OP_IS_TCP_PORT_VV, OP_IS_TCP_PORT_COND_Vi, 1};
-CondZBI iup_ZBI{"is_udp_port", OP_IS_UDP_PORT_VV, OP_IS_UDP_PORT_COND_Vi, 1};
-CondZBI iv4_ZBI{"is_v4_addr", OP_IS_V4_ADDR_VV, OP_IS_V4_ADDR_COND_Vi, 1};
-CondZBI iv6_ZBI{"is_v6_addr", OP_IS_V6_ADDR_VV, OP_IS_V6_ADDR_COND_Vi, 1};
-CondZBI rlt_ZBI{"reading_live_traffic", OP_READING_LIVE_TRAFFIC_V, OP_READING_LIVE_TRAFFIC_COND_i, 0};
-CondZBI rt_ZBI{"reading_traces", OP_READING_TRACES_V, OP_READING_TRACES_COND_i, 0};
+CondZBI ce_ZBI{"connection_exists", OP_CONN_EXISTS_VV, OP_CONN_EXISTS_COND_Vb, 1};
+CondZBI iip_ZBI{"is_icmp_port", OP_IS_ICMP_PORT_VV, OP_IS_ICMP_PORT_COND_Vb, 1};
+CondZBI itp_ZBI{"is_tcp_port", OP_IS_TCP_PORT_VV, OP_IS_TCP_PORT_COND_Vb, 1};
+CondZBI iup_ZBI{"is_udp_port", OP_IS_UDP_PORT_VV, OP_IS_UDP_PORT_COND_Vb, 1};
+CondZBI iv4_ZBI{"is_v4_addr", OP_IS_V4_ADDR_VV, OP_IS_V4_ADDR_COND_Vb, 1};
+CondZBI iv6_ZBI{"is_v6_addr", OP_IS_V6_ADDR_VV, OP_IS_V6_ADDR_COND_Vb, 1};
+CondZBI rlt_ZBI{"reading_live_traffic", OP_READING_LIVE_TRAFFIC_V, OP_READING_LIVE_TRAFFIC_COND_b, 0};
+CondZBI rt_ZBI{"reading_traces", OP_READING_TRACES_V, OP_READING_TRACES_COND_b, 0};
 
 // These have a different form to avoid invoking copy constructors.
 auto cat_ZBI = CatZBI();

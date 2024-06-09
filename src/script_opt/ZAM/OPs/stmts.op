@@ -164,11 +164,11 @@ eval	auto v = $1->AsSubNet().AsString();
 
 internal-op Branch-If-Not-Type
 op1-read
-class Vi
+class Vb
 op-types a I
 eval	auto v = $1;
 	if ( ! can_cast_value_to_type(v, Z_TYPE.get()) )
-		BRANCH($2)
+		$2
 
 
 op CheckAnyLen
@@ -195,21 +195,21 @@ eval	std::vector<ValPtr> vals;
 
 internal-op If-Else
 op1-read
-class Vi
+class Vb
 op-types I I
-eval	if ( ! $1 ) BRANCH($2)
+eval	if ( ! $1 ) $2
 
 internal-op If
 op1-read
-class Vi
+class Vb
 op-types I I
-eval	if ( ! $1 ) BRANCH($2)
+eval	if ( ! $1 ) $2
 
 internal-op If-Not
 op1-read
-class Vi
+class Vb
 op-types I I
-eval	if ( $1 ) BRANCH($2)
+eval	if ( $1 ) $2
 
 
 op AddStmt

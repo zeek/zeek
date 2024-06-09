@@ -449,8 +449,8 @@ static void generate_CPP() {
 extern void analyze_ZAM_insts();
 
 static void analyze_scripts_for_ZAM() {
-    analyze_ZAM_insts();
-    exit(0);
+    // analyze_ZAM_insts();
+    // exit(0);
 
     if ( analysis_options.usage_issues > 0 && analysis_options.optimize_AST ) {
         fprintf(stderr,

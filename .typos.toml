@@ -24,6 +24,7 @@ extend-ignore-re = [
     "ot\\[",
     "ot.size",
     "ot.empty",
+    "ot_i",
     "ot.c_str",
     "have_ot",
     "if \\( ot == OP_.*",

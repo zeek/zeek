@@ -204,10 +204,6 @@
 # 	eval-mixed	an expression "eval" block that applies to two
 # 			different op-type's
 #
-# 	eval-pre	code to add to the beginning of the "eval" block.
-# 			This can be required for operations where Gen-ZAM
-# 			generates elements of the C++ (such as for expr-op's).
-#
 # 	eval-type	evaluation code associated with one specific op-type
 #
 # 	explicit-result-type	the operation's evaluation yields a ZVal
@@ -254,6 +250,14 @@
 # 	op1-read-write	the operation treats the instruction's first integer
 # 			value as a frame variable, and both reads and
 # 			writes the value.
+#
+# 	precheck	a test conducted before evaluating an expression,
+#			which is skipped if the test is true. Must be used
+#			in conjunction with precheck-action.
+#
+# 	precheck-action	code to execute if a precheck is true, instead
+#			of evaluating the expression. Must be used in
+#			conjunction with precheck.
 #
 # 	set-type	the instruction's primary type comes from either the
 # 			assignment target ("$$"), the first operand ("$1"),

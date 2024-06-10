@@ -29,11 +29,8 @@ binary-expr-op Divide
 op-type I U D
 vector
 #
-eval-pre	if ( $2 == 0 )
-			{
-			ERROR("division by zero");
-			break;
-			}
+precheck $2 == 0
+precheck-action ERROR("division by zero");
 eval $1 / $2
 
 binary-expr-op Mask
@@ -53,11 +50,8 @@ eval-mixed A I	auto mask = static_cast<uint32_t>($2);
 binary-expr-op Mod
 op-type I U
 vector
-eval-pre	if ( $2 == 0 )
-			{
-			ERROR("modulo by zero");
-			break;
-			}
+precheck $2 == 0
+precheck-action ERROR("modulo by zero");
 eval $1 % $2
 
 binary-expr-op And-And

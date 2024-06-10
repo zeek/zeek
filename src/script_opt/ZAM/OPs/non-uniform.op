@@ -6,18 +6,17 @@ field-op
 assign-val v
 eval	auto r = $1.record_val;
 	auto& rv = r->RawOptField($2);
+	ZVal v;
 	if ( ! rv )
 		{
 		auto def = r->GetType<RecordType>()->FieldDefault($2);
 		if ( def )
-			rv = ZVal(def, Z_TYPE);
+			v = ZVal(def, Z_TYPE);
 		else
-			{
 			ERROR(util::fmt("field value missing: $%s", r->GetType()->AsRecordType()->FieldName($2)));
-			break;
-			}
 		}
-	auto v = *rv;
+	else
+		v = *rv;
 
 expr-op Has-Field
 class VRi

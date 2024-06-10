@@ -51,6 +51,12 @@ Breaking Changes
   instruments are not. ``Histogram`` instruments don't have the concept of
   summing.
 
+- Zeekctl now sets `FileExtract::prefix` to `spool/extract_files/<node>` to avoid
+  deletion of extracted files when stopping worker nodes. To revert to the
+  previous behavior, set `FileExtractDir` to an empty string in `zeekctl.cfg`.
+
+  If you never enabled Zeek's file extraction functionality, there's no impact.
+
 New Functionality
 -----------------
 

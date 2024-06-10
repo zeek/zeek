@@ -6,16 +6,16 @@ classes VVV VCV
 op-types V V V
 set-type $$
 eval	if ( $1->Size() != $2->Size() )
-		{
 		ZAM_run_time_error(Z_LOC, "size mismatch, boolean index and vector");
-		break;
+	else
+		{
+		auto vt = cast_intrusive<VectorType>(Z_TYPE);
+		auto v2 = $1;
+		auto v3 = $2;
+		auto v = vector_bool_select(std::move(vt), v2, v3);
+		Unref($$);
+		$$ = v.release();
 		}
-	auto vt = cast_intrusive<VectorType>(Z_TYPE);
-	auto v2 = $1;
-	auto v3 = $2;
-	auto v = vector_bool_select(std::move(vt), v2, v3);
-	Unref($$);
-	$$ = v.release();
 
 op IndexVecIntSelect
 classes VVV VCV
@@ -125,7 +125,8 @@ eval	EvalVecSlice($$, $1)
 internal-op Table-Index
 class VV
 eval	EvalTableIndex($1, Z_AUX->ToListVal(frame))
-	AssignTarget($$, BuildVal(v, Z_TYPE))
+	if ( v )
+		AssignTarget($$, BuildVal(v, Z_TYPE))
 
 internal-op Table-PatStr-Index
 classes VVV VVC
@@ -137,17 +138,17 @@ eval	auto vec = ZVal($1->LookupPattern({NewRef{}, $2}));
 internal-op When-Table-Index
 class VV
 eval	EvalTableIndex($1, Z_AUX->ToListVal(frame))
-	if ( IndexExprWhen::evaluating > 0 )
-		IndexExprWhen::results.emplace_back(v);
-	AssignTarget($$, BuildVal(v, Z_TYPE))
+	if ( v )
+		{
+		if ( IndexExprWhen::evaluating > 0 )
+			IndexExprWhen::results.emplace_back(v);
+		AssignTarget($$, BuildVal(v, Z_TYPE))
+		}
 
 macro EvalTableIndex(tbl, index)
 	auto v = tbl.table_val->FindOrDefault(index);
 	if ( ! v )
-		{
 		ZAM_run_time_error(Z_LOC, "no such index");
-		break;
-		}
 
 internal-op When-PatStr-Index
 class VV

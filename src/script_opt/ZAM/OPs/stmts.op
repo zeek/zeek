@@ -1,16 +1,17 @@
 # Operations corresponding to statements, other than iterations.
 
 macro EvalScheduleArgs(time, is_delta, build_args)
-	if ( run_state::terminating )
-		break;
-	double dt = time.double_val;
-	if ( is_delta )
-		dt += run_state::network_time;
-	auto handler = EventHandlerPtr(Z_AUX->event_handler);
-	ValVec args;
-	build_args
-	auto timer = new ScheduleTimer(handler, std::move(args), dt);
-	timer_mgr->Add(timer);
+	if ( ! run_state::terminating )
+		{
+		double dt = time.double_val;
+		if ( is_delta )
+			dt += run_state::network_time;
+		auto handler = EventHandlerPtr(Z_AUX->event_handler);
+		ValVec args;
+		build_args
+		auto timer = new ScheduleTimer(handler, std::move(args), dt);
+		timer_mgr->Add(timer);
+		}
 
 macro EvalSchedule(time, is_delta)
 	EvalScheduleArgs(time, is_delta, Z_AUX->FillValVec(args, frame);)

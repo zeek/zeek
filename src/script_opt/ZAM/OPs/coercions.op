@@ -7,54 +7,40 @@ class VV
 op-types U I
 eval	auto v = $1;
 	if ( v < 0 )
-		{
 		ZAM_run_time_error(Z_LOC, "underflow converting int to count");
-		break;
-		}
-	$$ = zeek_uint_t(v);
+	else
+		$$ = zeek_uint_t(v);
 
 internal-op Coerce-UD
 class VV
 op-types U D
 eval	auto v = $1;
 	if ( v < 0.0 )
-		{
 		ZAM_run_time_error(Z_LOC, "underflow converting double to count");
-		break;
-		}
-	if ( v > static_cast<double>(UINT64_MAX) )
-		{
+	else if ( v > static_cast<double>(UINT64_MAX) )
 		ZAM_run_time_error(Z_LOC, "overflow converting double to count");
-		break;
-		}
-	$$ = zeek_uint_t(v);
+	else
+		$$ = zeek_uint_t(v);
 
 internal-op Coerce-IU
 class VV
 op-types I U
 eval	auto v = $1;
 	if ( v > INT64_MAX )
-		{
 		ZAM_run_time_error(Z_LOC, "overflow converting count to int");
-		break;
-		}
-	$$ = zeek_int_t(v);
+	else
+		$$ = zeek_int_t(v);
 
 internal-op Coerce-ID
 class VV
 op-types I D
 eval	auto v = $1;
 	if ( v < static_cast<double>(INT64_MIN) )
-		{
 		ZAM_run_time_error(Z_LOC, "underflow converting double to int");
-		break;
-		}
-	if ( v > static_cast<double>(INT64_MAX) )
-		{
+	else if ( v > static_cast<double>(INT64_MAX) )
 		ZAM_run_time_error(Z_LOC, "overflow converting double to int");
-		break;
-		}
-	$$ = zeek_int_t(v);
+	else
+		$$ = zeek_int_t(v);
 
 internal-op Coerce-DI
 class VV
@@ -115,15 +101,15 @@ class VV
 op-types T T
 eval	auto tv = $1;
 	if ( tv->Size() > 0 )
-		{
 		ZAM_run_time_error(Z_LOC, "coercion of non-empty table/set");
-		break;
+	else
+		{
+		auto tt = cast_intrusive<TableType>(Z_TYPE);
+		AttributesPtr attrs = tv->GetAttrs();
+		auto t = make_intrusive<TableVal>(tt, attrs);
+		Unref($$);
+		$$ = t.release();
 		}
-	auto tt = cast_intrusive<TableType>(Z_TYPE);
-	AttributesPtr attrs = tv->GetAttrs();
-	auto t = make_intrusive<TableVal>(tt, attrs);
-	Unref($$);
-	$$ = t.release();
 
 direct-unary-op Vector-Coerce VectorCoerce
 
@@ -131,13 +117,13 @@ internal-op Vector-Coerce
 class VV
 op-types V V
 eval	if ( $1->Size() > 0 )
-		{
 		ZAM_run_time_error(Z_LOC, "coercion of non-empty vector");
-		break;
+	else
+		{
+		auto vv = new VectorVal(cast_intrusive<VectorType>(Z_TYPE));
+		Unref($$);
+		$$ = vv;
 		}
-	auto vv = new VectorVal(cast_intrusive<VectorType>(Z_TYPE));
-	Unref($$);
-	$$ = vv;
 
 unary-expr-op To-Any-Coerce
 op-type X
@@ -157,9 +143,9 @@ op-type X
 set-type $$
 eval	auto vv = $1.vector_val;
 	if ( ! vv->Concretize(Z_TYPE->Yield()) )
-		{
 		ZAM_run_time_error(Z_LOC, "incompatible vector-of-any");
-		break;
+	else
+		{
+		zeek::Ref(vv);
+		AssignTarget($$, ZVal(vv))
 		}
-	zeek::Ref(vv);
-	AssignTarget($$, ZVal(vv))

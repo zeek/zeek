@@ -6,7 +6,7 @@ classes VVV VCV
 op-types V V V
 set-type $$
 eval	if ( $1->Size() != $2->Size() )
-		ZAM_run_time_error(Z_LOC, "size mismatch, boolean index and vector");
+		ERROR("size mismatch, boolean index and vector");
 	else
 		{
 		auto vt = cast_intrusive<VectorType>(Z_TYPE);
@@ -60,7 +60,7 @@ macro EvalIndexVec(lhs, rhs_vec, index)
 	if ( ind < 0 )
 		ind += vv.size();
 	if ( ind < 0 || ind >= int(vv.size()) )
-		ZAM_run_time_error(Z_LOC, "no such index");
+		ERROR("no such index");
 	AssignTarget(lhs, CopyVal(*vec[ind]))
 
 internal-op Index-VecC
@@ -79,7 +79,7 @@ macro EvalIndexAnyVec(lhs, vec, index)
 	if ( ind < 0 )
 		ind += vv->Size();
 	if ( ind < 0 || ind >= int(vv->Size()) )
-		ZAM_run_time_error(Z_LOC, "no such index");
+		ERROR("no such index");
 	AssignTarget(lhs, ZVal(vv->ValAt(ind).release()))
 
 internal-op Index-Any-VecC
@@ -148,7 +148,7 @@ eval	EvalTableIndex($1, Z_AUX->ToListVal(frame))
 macro EvalTableIndex(tbl, index)
 	auto v = tbl.table_val->FindOrDefault(index);
 	if ( ! v )
-		ZAM_run_time_error(Z_LOC, "no such index");
+		ERROR("no such index");
 
 internal-op When-PatStr-Index
 class VV

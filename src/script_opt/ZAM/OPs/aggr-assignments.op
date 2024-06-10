@@ -8,7 +8,7 @@ macro EvalVectorElemAssign(vec, index, val_setup, assign_op)
 	VectorElemAssignPre(vec, index)
 	val_setup
 	if ( ! assign_op )
-		ZAM_run_time_error(Z_LOC, "value used but not set");
+		ERROR("value used but not set");
 
 op Vector-Elem-Assign
 op1-read
@@ -43,7 +43,7 @@ class VVi
 op-types V X U
 eval	auto vv = $1;
 	if ( ! copy_vec_elem(vv, $3, $2, Z_TYPE) )
-		ZAM_run_time_error(Z_LOC, "value used but not set");
+		ERROR("value used but not set");
 
 op Any-Vector-Elem-Assign
 op1-read
@@ -52,7 +52,7 @@ class VVi
 op-types V X I
 eval	auto vv = $1;
 	if ( ! vv->Assign($3, $2.ToVal(Z_TYPE)) )
-		ZAM_run_time_error(Z_LOC, "value used but not set");
+		ERROR("value used but not set");
 
 op Vector-Elem-Assign-Any
 op1-read
@@ -72,9 +72,9 @@ eval	ValPtr vec = {NewRef{}, $1};
 	bool iterators_invalidated;
 	auto error = assign_to_index(std::move(vec), std::move(slice), std::move(vals), iterators_invalidated);
 	if ( error )
-		ZAM_run_time_error(Z_LOC, error);
+		ERROR(error);
 	if ( iterators_invalidated )
-		ZAM_run_time_warning(Z_LOC, "possible loop/iterator invalidation");
+		WARN("possible loop/iterator invalidation");
 
 
 internal-op Table-Elem-Assign
@@ -86,4 +86,4 @@ eval	auto indices = Z_AUX->ToListVal(frame);
 	bool iterators_invalidated = false;
 	$1->Assign(std::move(indices), std::move(val), true, &iterators_invalidated);
 	if ( iterators_invalidated )
-		ZAM_run_time_warning(Z_LOC, "possible loop/iterator invalidation");
+		WARN("possible loop/iterator invalidation");

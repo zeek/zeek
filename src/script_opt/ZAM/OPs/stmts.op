@@ -178,7 +178,7 @@ class Vi
 op-types L U
 eval	auto v = $1;
 	if ( v->Vals().size() != $2 )
-		ZAM_run_time_error(Z_LOC, "mismatch in list lengths");
+		ERROR("mismatch in list lengths");
 
 op Print
 class O
@@ -224,7 +224,7 @@ macro EvalAddStmt(lhs, ind)
 	bool iterators_invalidated = false;
 	lhs.table_val->Assign(std::move(index), nullptr, true, &iterators_invalidated);
 	if ( iterators_invalidated )
-		ZAM_run_time_warning(Z_LOC, "possible loop/iterator invalidation");
+		ERROR("possible loop/iterator invalidation");
 
 op AddStmt1
 op1-read
@@ -254,7 +254,7 @@ eval	auto index = Z_AUX->ToListVal(frame);
 	bool iterators_invalidated = false;
 	$1->Remove(*index, true, &iterators_invalidated);
 	if ( iterators_invalidated )
-		ZAM_run_time_warning(Z_LOC, "possible loop/iterator invalidation");
+		ERROR("possible loop/iterator invalidation");
 method-post z.aux = v->aux;
 
 op DelField

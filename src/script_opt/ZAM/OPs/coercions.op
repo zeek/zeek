@@ -7,7 +7,7 @@ class VV
 op-types U I
 eval	auto v = $1;
 	if ( v < 0 )
-		ZAM_run_time_error(Z_LOC, "underflow converting int to count");
+		ERROR("underflow converting int to count");
 	else
 		$$ = zeek_uint_t(v);
 
@@ -16,9 +16,9 @@ class VV
 op-types U D
 eval	auto v = $1;
 	if ( v < 0.0 )
-		ZAM_run_time_error(Z_LOC, "underflow converting double to count");
+		ERROR("underflow converting double to count");
 	else if ( v > static_cast<double>(UINT64_MAX) )
-		ZAM_run_time_error(Z_LOC, "overflow converting double to count");
+		ERROR("overflow converting double to count");
 	else
 		$$ = zeek_uint_t(v);
 
@@ -27,7 +27,7 @@ class VV
 op-types I U
 eval	auto v = $1;
 	if ( v > INT64_MAX )
-		ZAM_run_time_error(Z_LOC, "overflow converting count to int");
+		ERROR("overflow converting count to int");
 	else
 		$$ = zeek_int_t(v);
 
@@ -36,9 +36,9 @@ class VV
 op-types I D
 eval	auto v = $1;
 	if ( v < static_cast<double>(INT64_MIN) )
-		ZAM_run_time_error(Z_LOC, "underflow converting double to int");
+		ERROR("underflow converting double to int");
 	else if ( v > static_cast<double>(INT64_MAX) )
-		ZAM_run_time_error(Z_LOC, "overflow converting double to int");
+		ERROR("overflow converting double to int");
 	else
 		$$ = zeek_int_t(v);
 
@@ -101,7 +101,7 @@ class VV
 op-types T T
 eval	auto tv = $1;
 	if ( tv->Size() > 0 )
-		ZAM_run_time_error(Z_LOC, "coercion of non-empty table/set");
+		ERROR("coercion of non-empty table/set");
 	else
 		{
 		auto tt = cast_intrusive<TableType>(Z_TYPE);
@@ -117,7 +117,7 @@ internal-op Vector-Coerce
 class VV
 op-types V V
 eval	if ( $1->Size() > 0 )
-		ZAM_run_time_error(Z_LOC, "coercion of non-empty vector");
+		ERROR("coercion of non-empty vector");
 	else
 		{
 		auto vv = new VectorVal(cast_intrusive<VectorType>(Z_TYPE));
@@ -143,7 +143,7 @@ op-type X
 set-type $$
 eval	auto vv = $1.vector_val;
 	if ( ! vv->Concretize(Z_TYPE->Yield()) )
-		ZAM_run_time_error(Z_LOC, "incompatible vector-of-any");
+		ERROR("incompatible vector-of-any");
 	else
 		{
 		zeek::Ref(vv);

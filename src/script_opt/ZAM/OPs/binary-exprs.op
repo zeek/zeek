@@ -31,7 +31,7 @@ vector
 #
 eval-pre	if ( $2 == 0 )
 			{
-			ZAM_run_time_error(Z_LOC, "division by zero");
+			ERROR("division by zero");
 			break;
 			}
 eval $1 / $2
@@ -43,9 +43,9 @@ explicit-result-type
 eval-mixed A I	auto mask = static_cast<uint32_t>($2);
 		auto a = $1->AsAddr();
 		if ( a.GetFamily() == IPv4 && mask > 32 )
-			ZAM_run_time_error(Z_LOC, util::fmt("bad IPv4 subnet prefix length: %" PRIu32, mask));
+			ERROR(util::fmt("bad IPv4 subnet prefix length: %" PRIu32, mask));
 		if ( a.GetFamily() == IPv6 && mask > 128 )
-			ZAM_run_time_error(Z_LOC, util::fmt("bad IPv6 subnet prefix length: %" PRIu32, mask));
+			ERROR(util::fmt("bad IPv6 subnet prefix length: %" PRIu32, mask));
 		auto v = make_intrusive<SubNetVal>(a, mask);
 		Unref($$.subnet_val);
 		$$.subnet_val = v.release();
@@ -55,7 +55,7 @@ op-type I U
 vector
 eval-pre	if ( $2 == 0 )
 			{
-			ZAM_run_time_error(Z_LOC, "modulo by zero");
+			ERROR("modulo by zero");
 			break;
 			}
 eval $1 % $2
@@ -100,7 +100,7 @@ binary-expr-op Lshift
 op-type I U
 vector
 eval-type I	if ( $1 < 0 )
-			ZAM_run_time_error(Z_LOC, "left shifting a negative number is undefined");
+			ERROR("left shifting a negative number is undefined");
 		$$ = $1 << $2;
 eval $1 << $2
 

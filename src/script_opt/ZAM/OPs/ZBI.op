@@ -179,7 +179,7 @@ eval	auto cid = $1;
 		res = conn->GetVal();
 	else
 		{
-		ZAM_run_time_error(Z_LOC, "connection ID not a known connection", cid);
+		ERROR2("connection ID not a known connection", cid);
 		res = build_dummy_conn_record();
 		}
 	AssignTarget($$, ZVal(res, res->GetType()));

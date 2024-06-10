@@ -18,6 +18,11 @@ macro Z_AUX z.aux
 # Location in the original script.
 macro Z_LOC z.loc
 
+macro ERROR(msg) ZAM_run_time_error(Z_LOC, msg)
+macro ERROR2(msg, obj) ZAM_run_time_error(Z_LOC, msg, obj)
+
+macro WARN(msg) ZAM_run_time_warning(Z_LOC, msg)
+
 # The following abstracts the process of creating a frame-assignable value.
 macro BuildVal(v, t) ZVal(v, t)
 

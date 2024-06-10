@@ -76,7 +76,7 @@ class V
 op-types U
 eval	auto& u = $$;
 	if ( u == 0 )
-		ZAM_run_time_warning(Z_LOC, "count underflow");
+		ERROR("count underflow");
 	--u;
 
 unary-op AppendTo
@@ -119,7 +119,7 @@ eval	auto r = $$;
 		r->Modified();
 		}
 	else
-		ZAM_run_time_error(Z_LOC, util::fmt("field value missing: $%s", r->GetType()->AsRecordType()->FieldName($2)));
+		ERROR(util::fmt("field value missing: $%s", r->GetType()->AsRecordType()->FieldName($2)));
 
 unary-op ExtendPattern
 op1-read
@@ -128,7 +128,7 @@ eval	$1.re_val->AddTo($$.re_val, false);
 unary-op AddVecToVec
 op1-read
 eval	if ( ! $1.vector_val->AddTo($$.vector_val, false) )
-		ZAM_run_time_error(Z_LOC, "incompatible vector element assignment");
+		ERROR("incompatible vector element assignment");
 
 unary-op AddTableToTable
 op1-read
@@ -162,7 +162,7 @@ macro EvalCast(lhs, rhs)
 	if ( res )
 		AssignTarget(lhs, BuildVal(res, Z_TYPE))
 	else
-		ZAM_run_time_error(Z_LOC, error.c_str());
+		ERROR(error.c_str());
 
 # Cast an "any" type to the given type.  Only needed for type-based switch
 # statements.

@@ -13,7 +13,7 @@ eval	auto r = $1.record_val;
 			rv = ZVal(def, Z_TYPE);
 		else
 			{
-			ZAM_run_time_error(Z_LOC, util::fmt("field value missing: $%s", r->GetType()->AsRecordType()->FieldName($2)));
+			ERROR(util::fmt("field value missing: $%s", r->GetType()->AsRecordType()->FieldName($2)));
 			break;
 			}
 		}

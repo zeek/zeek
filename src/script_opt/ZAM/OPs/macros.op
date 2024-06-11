@@ -14,6 +14,10 @@ macro Z_TYPE2 z.t2
 
 # Auxiliary information.
 macro Z_AUX z.aux
+macro Z_AUX_ID z.aux->id_val
+macro Z_AUX_FUNC z.aux->func
+macro Z_AUX_PRIMARY_FUNC z.aux->primary_func
+macro Z_AUX_LAMBDA_NAME z.aux->lambda_name
 
 # Location in the original script.
 macro Z_LOC z.loc

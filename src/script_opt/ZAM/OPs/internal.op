@@ -25,7 +25,7 @@ class Vg
 assign-val v
 eval	auto& v = GlobalID($1)->GetVal();
 	if ( ! v )
-		ERROR2("value used but not set", Z_AUX->id_val.get());
+		ERROR2("value used but not set", Z_AUX_ID.get());
 
 # We need a special form here for loading global types, as they don't
 # fit the usual template.
@@ -92,13 +92,13 @@ eval	flow = FLOW_BREAK;
 internal-op Lambda
 class Vi
 op-types F I
-eval	auto& aux = Z_AUX;
-	auto& primary_func = aux->primary_func;
+eval	auto& primary_func = Z_AUX_PRIMARY_FUNC;
 	auto& body = primary_func->GetBodies()[0].stmts;
 	ASSERT(body->Tag() == STMT_ZAM);
-	auto lamb = make_intrusive<ScriptFunc>(aux->id_val);
+	auto lamb = make_intrusive<ScriptFunc>(Z_AUX_ID);
 	lamb->AddBody(body, $1);
-	lamb->SetName(aux->lambda_name.c_str());
+	lamb->SetName(Z_AUX_LAMBDA_NAME.c_str());
+	auto& aux = Z_AUX;
 	if ( aux->n > 0 )
 		{
 		auto captures = std::make_unique<std::vector<ZVal>>();

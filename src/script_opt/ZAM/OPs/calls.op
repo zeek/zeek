@@ -165,7 +165,7 @@ macro WhenCall(lhs, func)
 internal-op WhenCallN
 class V
 side-effects
-eval	WhenCall($$, Z_AUX->func)
+eval	WhenCall($$, Z_AUX_FUNC)
 
 internal-op WhenIndCallN
 class VV
@@ -177,4 +177,4 @@ eval	WhenCall($$, $1)
 internal-op When-ID-IndCallN
 class V
 side-effects
-eval	WhenCall($$, Z_AUX->id_val->GetVal()->AsFunc())
+eval	WhenCall($$, Z_AUX_ID->GetVal()->AsFunc())

@@ -1,3 +1,7 @@
+7.0.0-dev.380 | 2024-06-11 15:11:43 +0200
+
+  * Drop EOL centos8-stream in CI (Benjamin Bannier, Corelight)
+
 7.0.0-dev.378 | 2024-06-11 12:01:03 +0200
 
   * Suppress a known data race during civetweb shutdown (Tim Wojtulewicz)

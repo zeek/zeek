@@ -492,6 +492,13 @@ TraversalCode ProfileFunc::PreID(const ID* id) {
     return TC_ABORTSTMT;
 }
 
+TraversalCode ProfileFunc::PreType(const Type* t) {
+    TrackType(t);
+
+    // There's no need for any further analysis of this type.
+    return TC_ABORTSTMT;
+}
+
 void ProfileFunc::TrackType(const Type* t) {
     if ( ! t )
         return;

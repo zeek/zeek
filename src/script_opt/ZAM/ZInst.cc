@@ -340,9 +340,22 @@ TraversalCode ZInstAux::Traverse(TraversalCallback* cb) const {
         HANDLE_TC_STMT_PRE(tc);
     }
 
-    for ( auto& lvt : loop_var_types ) {
-        tc = lvt->Traverse(cb);
-        HANDLE_TC_STMT_PRE(tc);
+    if ( elems ) {
+        for ( int i = 0; i < n; ++i ) {
+            auto& e_i = elems[i];
+
+            auto& c = e_i.Constant();
+            if ( c ) {
+                tc = c->GetType()->Traverse(cb);
+                HANDLE_TC_STMT_PRE(tc);
+            }
+
+            auto& t = e_i.GetType();
+            if ( t ) {
+                tc = t->Traverse(cb);
+                HANDLE_TC_STMT_PRE(tc);
+            }
+        }
     }
 
     return TC_CONTINUE;

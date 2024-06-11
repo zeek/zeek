@@ -139,6 +139,7 @@ protected:
     TraversalCode PreStmt(const Stmt*) override;
     TraversalCode PreExpr(const Expr*) override;
     TraversalCode PreID(const ID*) override;
+    TraversalCode PreType(const Type*) override;
 
     // Take note of the presence of a given type.
     void TrackType(const Type* t);

@@ -1,3 +1,7 @@
+7.0.0-dev.378 | 2024-06-11 12:01:03 +0200
+
+  * Suppress a known data race during civetweb shutdown (Tim Wojtulewicz)
+
 7.0.0-dev.376 | 2024-06-11 11:00:46 +0200
 
   * Bump cmake for -fprofile-update=atomic usage (Arne Welzel, Corelight)

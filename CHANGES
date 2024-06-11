@@ -1,3 +1,18 @@
+7.0.0-dev.376 | 2024-06-11 11:00:46 +0200
+
+  * Bump cmake for -fprofile-update=atomic usage (Arne Welzel, Corelight)
+
+  * cirrus: Unset CCACHE_BASEDIR for asan/coverage build (Arne Welzel, Corelight)
+
+    When CCACHE_BASEDIR is set, ccache will rewrite absolute paths to
+    relative paths in order to allow compilation in different source
+    directories. We do not need this feature on Cirrus (the checkout
+    is always in /zeek) and using absolute paths avoids
+    confusion/normalization needs for the gcov -p results.
+
+    We could consider removing the global CCACHE_BASEDIR, but it'd
+    bust the ccache of every other task, too.
+
 7.0.0-dev.372 | 2024-06-07 09:28:52 -0700
 
   * Add Telemetry::metrics_address option (Tim Wojtulewicz, Corelight)

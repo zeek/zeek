@@ -88,21 +88,20 @@ op-types X V I
 eval	EvalIndexAnyVec($$, $1, $2)
 
 macro WhenIndexResCheck(vec)
-	auto& res = vec;
-	if ( res && IndexExprWhen::evaluating > 0 )
-		IndexExprWhen::results.push_back({NewRef{}, res});
+	if ( vec && IndexExprWhen::evaluating > 0 )
+		IndexExprWhen::results.push_back({NewRef{}, vec});
 
 internal-op When-Index-Vec
 class VVV
 op-types X V I
 eval	EvalIndexAnyVec($$, $1, $2)
-	WhenIndexResCheck($$.vector_val)
+	WhenIndexResCheck($$.AsVector())
 
 internal-op When-Index-VecC
 class VVi
 op-types X V I
 eval	EvalIndexAnyVec($$, $1, $2)
-	WhenIndexResCheck($$.vector_val)
+	WhenIndexResCheck($$.AsVector())
 
 macro EvalVecSlice(lhs, vv)
 	auto vec = vv;
@@ -146,7 +145,7 @@ eval	EvalTableIndex($1, Z_AUX->ToListVal(frame))
 		}
 
 macro EvalTableIndex(tbl, index)
-	auto v = tbl.table_val->FindOrDefault(index);
+	auto v = tbl.AsTable()->FindOrDefault(index);
 	if ( ! v )
 		ERROR("no such index");
 

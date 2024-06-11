@@ -160,7 +160,6 @@ union ZVal {
 private:
     friend class RecordVal;
     friend class VectorVal;
-    friend class zeek::detail::ZBody;
 
     // Used for bool, int, enum.
     zeek_int_t int_val;

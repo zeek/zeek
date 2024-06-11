@@ -54,8 +54,8 @@ eval	$$ = double($1);
 
 
 macro EvalCoerceVec(lhs, rhs, coercer)
-	auto old_v1 = lhs.vector_val;
-	lhs.vector_val = coercer(rhs.vector_val, z);
+	auto old_v1 = lhs.AsVector();
+	lhs.AsVectorRef() = coercer(rhs.AsVector(), z);
 	Unref(old_v1);	/* delayed to allow for same value on both sides */
 
 internal-op Coerce-UI-Vec
@@ -134,14 +134,14 @@ unary-expr-op From-Any-Coerce
 no-const
 op-type X
 set-type $$
-eval	auto v = $1.any_val;
+eval	auto v = $1.AsAny();
 	AssignTarget($$, ZVal({NewRef{}, v}, Z_TYPE))
 
 unary-expr-op From-Any-Vec-Coerce
 no-const
 op-type X
 set-type $$
-eval	auto vv = $1.vector_val;
+eval	auto vv = $1.AsVector();
 	if ( ! vv->Concretize(Z_TYPE->Yield()) )
 		ERROR("incompatible vector-of-any");
 	else

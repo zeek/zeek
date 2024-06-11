@@ -44,8 +44,8 @@ eval-mixed A I	auto mask = static_cast<uint32_t>($2);
 		if ( a.GetFamily() == IPv6 && mask > 128 )
 			ERROR(util::fmt("bad IPv6 subnet prefix length: %" PRIu32, mask));
 		auto v = make_intrusive<SubNetVal>(a, mask);
-		Unref($$.subnet_val);
-		$$.subnet_val = v.release();
+		Unref($$.AsSubNet());
+		$$.AsSubNetRef() = v.release();
 
 binary-expr-op Mod
 op-type I U

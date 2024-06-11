@@ -76,7 +76,7 @@ class V
 op-types U
 eval	auto& u = $$;
 	if ( u == 0 )
-		ERROR("count underflow");
+		WARN("count underflow");
 	--u;
 
 unary-op AppendTo
@@ -86,7 +86,7 @@ unary-op AppendTo
 # value itself.
 op1-read
 set-type $1
-eval	auto vv = $1.vector_val;
+eval	auto vv = $1.AsVector();
 	if ( vv->Size() == 0 )
 		/* Use the slightly more expensive Assign(), since it
 		 * knows how to deal with empty vectors that do not yet
@@ -104,7 +104,7 @@ eval	auto vv = $1.vector_val;
 unary-op AppendToAnyVec
 op1-read
 set-type $1
-eval	auto vv = $1.vector_val;
+eval	auto vv = $1.AsVector();
 	vv->Assign(vv->Size(), $2.ToVal(Z_TYPE));
 
 internal-op AddPatternToField
@@ -123,17 +123,17 @@ eval	auto r = $$;
 
 unary-op ExtendPattern
 op1-read
-eval	$1.re_val->AddTo($$.re_val, false);
+eval	$1.AsPattern()->AddTo($$.AsPattern(), false);
 
 unary-op AddVecToVec
 op1-read
-eval	if ( ! $1.vector_val->AddTo($$.vector_val, false) )
+eval	if ( ! $1.AsVector()->AddTo($$.AsVector(), false) )
 		ERROR("incompatible vector element assignment");
 
 unary-op AddTableToTable
 op1-read
-eval	auto t = $$.table_val;
-	auto v = $1.table_val;
+eval	auto t = $$.AsTable();
+	auto v = $1.AsTable();
 	if ( v->Size() > 0 )
 		{
 		v->AddTo(t, false);
@@ -142,8 +142,8 @@ eval	auto t = $$.table_val;
 
 unary-op RemoveTableFromTable
 op1-read
-eval	auto t = $$.table_val;
-	auto v = $1.table_val;
+eval	auto t = $$.AsTable();
+	auto v = $1.AsTable();
 	if ( v->Size() > 0 )
 		{
 		v->RemoveFrom(t);

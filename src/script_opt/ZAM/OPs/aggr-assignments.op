@@ -1,8 +1,8 @@
 # Operations corresponding to assigning to elements of aggregates.
 
 macro VectorElemAssignPre(vec, index)
-	auto ind = index.uint_val;
-	auto vv = vec.vector_val;
+	auto ind = index.AsCount();
+	auto vv = vec.AsVector();
 
 macro EvalVectorElemAssign(vec, index, val_setup, assign_op)
 	VectorElemAssignPre(vec, index)

@@ -3,7 +3,7 @@
 macro EvalScheduleArgs(time, is_delta, build_args)
 	if ( ! run_state::terminating )
 		{
-		double dt = time.double_val;
+		double dt = time.AsDouble();
 		if ( is_delta )
 			dt += run_state::network_time;
 		auto handler = EventHandlerPtr(Z_AUX->event_handler);
@@ -222,9 +222,9 @@ method-post z.aux = v->aux;
 macro EvalAddStmt(lhs, ind)
 	auto index = ind;
 	bool iterators_invalidated = false;
-	lhs.table_val->Assign(std::move(index), nullptr, true, &iterators_invalidated);
+	lhs.AsTable()->Assign(std::move(index), nullptr, true, &iterators_invalidated);
 	if ( iterators_invalidated )
-		ERROR("possible loop/iterator invalidation");
+		WARN("possible loop/iterator invalidation");
 
 op AddStmt1
 op1-read
@@ -254,7 +254,7 @@ eval	auto index = Z_AUX->ToListVal(frame);
 	bool iterators_invalidated = false;
 	$1->Remove(*index, true, &iterators_invalidated);
 	if ( iterators_invalidated )
-		ERROR("possible loop/iterator invalidation");
+		WARN("possible loop/iterator invalidation");
 method-post z.aux = v->aux;
 
 op DelField

@@ -15,14 +15,12 @@ std::unordered_map<ZOp, ZAMInstDesc> zam_inst_desc = {
 
 };
 
+// While the following has commonalities that could be factored out,
+// for now we keep this form because it provides flexibility for
+// accommodating other forms of accessors.
 static std::map<char, string> type_pats = {
-    {'A', "addr_val|AsAddr\\(\\)"},     {'a', "any_val|AsAny\\(\\)"},
-    {'D', "double_val|AsDouble\\(\\)"}, {'F', "func_val|AsFunc\\(\\)"},
-    {'I', "int_val|AsInt\\(\\)"},       {'L', "list_val"},
-    {'N', "subnet_val|AsSubNet\\(\\)"}, {'P', "re_val|AsPattern\\(\\)"},
-    {'R', "record_val|AsRecord\\(\\)"}, {'S', "string_val|AsString\\(\\)"},
-    {'T', "table_val|AsTable\\(\\)"},   {'t', "type_val|AsType\\(\\)"},
-    {'U', "uint_val|AsCount\\(\\)"},    {'V', "vector_val|AsVector(Ref)?\\(\\)"},
+    {'A', "Addr"},    {'a', "Any"},    {'D', "Double"}, {'F', "Func"},  {'I', "Int"},  {'L', "List"},  {'N', "SubNet"},
+    {'P', "Pattern"}, {'R', "Record"}, {'S', "String"}, {'T', "Table"}, {'t', "Type"}, {'U', "Count"}, {'V', "Vector"},
 };
 
 static int num_valid = 0;
@@ -83,7 +81,7 @@ void analyze_ZAM_inst(const char* op_name, const ZAMInstDesc& zid) {
             auto tp = type_pats.find(ot_i);
             if ( tp == type_pats.end() )
                 reporter->InternalError("%s: instruction type %c not found", op_name, ot_i);
-            match_pat += ".(" + tp->second + ")";
+            match_pat += ".As" + tp->second + "(Ref)?\\(\\)";
             ++num_tested;
         }
 

@@ -303,7 +303,7 @@ macro Cat1Op(lhs, val)
 internal-op Cat1
 classes VV VC
 eval	Cat1Op($$, $1)
-	zeek::Ref(v1.string_val);
+	zeek::Ref(v1.AsString());
 
 internal-op Cat1Full
 classes VV VC
@@ -531,7 +531,7 @@ eval	auto atype = $1.ToVal(Z_TYPE);
 internal-op File-Analyzer-Name
 classes VV VC
 eval	auto atype = $1.ToVal(Z_TYPE);
-	Unref($$.string_val);
+	Unref($$.AsString());
 	$$ = ZVal(file_mgr->GetComponentNameVal({NewRef{}, atype->AsEnumVal()}));
 
 internal-op Is-Protocol-Analyzer

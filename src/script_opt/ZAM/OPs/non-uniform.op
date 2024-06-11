@@ -4,7 +4,7 @@ assign-op Field
 class R
 field-op
 assign-val v
-eval	auto r = $1.record_val;
+eval	auto r = $1.AsRecord();
 	auto& rv = r->RawOptField($2);
 	ZVal v;
 	if ( ! rv )
@@ -128,10 +128,10 @@ macro EvalVal2InTableCore(op1, op2)
 	lvp->Append(op2);
 
 macro EvalVal2InTableAssignCore(lhs, tbl)
-	lhs.int_val = tbl.table_val->Find(std::move(lvp)) != nullptr;
+	lhs.AsIntRef() = tbl.AsTable()->Find(std::move(lvp)) != nullptr;
 
 macro EvalVal2InTablePre(op1, op2, tbl)
-	auto& tt_ind = tbl.table_val->GetType()->AsTableType()->GetIndexTypes();
+	auto& tt_ind = tbl.AsTable()->GetType()->AsTableType()->GetIndexTypes();
 	EvalVal2InTableCore(op1.ToVal(Z_TYPE2), op2.ToVal(tt_ind[1]))
 
 internal-op Val2-Is-In-Table
@@ -146,7 +146,7 @@ eval	EvalVal2InTablePre($1,$2,$3)
 	EvalVal2InTableCond($3, lvp, $4, !)
 
 macro EvalVal2InTableCond(tbl, op, BRANCH, negate)
-	if ( negate tbl.table_val->Find(op) )
+	if ( negate tbl.AsTable()->Find(op) )
 		BRANCH
 
 internal-op Val2-Is-Not-In-Table-Cond
@@ -204,14 +204,14 @@ eval	auto op1 = Z_AUX->ToListVal(frame);
 internal-op Val-Is-In-Vector
 class VVV
 op-types I I V
-eval	auto& vec = $2;
+eval	auto vec = $2;
 	auto ind = $1;
 	$$ = vec->Has(ind);
 
 internal-op Const-Is-In-Vector
 class VCV
 op-types I I V
-eval	auto& vec = $2;
+eval	auto vec = $2;
 	auto ind = $1;
 	$$ = vec->Has(ind);
 
@@ -244,7 +244,7 @@ eval	auto& vsel = $1->RawVec();
 	auto res = new vector<std::optional<ZVal>>(n);
 	for ( auto i = 0U; i < n; ++i )
 		if ( vsel[i] )
-			(*res)[i] = vsel[i]->int_val ? v1[i] : v2[i];
+			(*res)[i] = vsel[i]->AsInt() ? v1[i] : v2[i];
 	auto& full_res = $$;
 	Unref(full_res);
 	full_res = new VectorVal(cast_intrusive<VectorType>(Z_TYPE), res);

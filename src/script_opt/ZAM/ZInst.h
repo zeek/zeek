@@ -6,6 +6,7 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Func.h"
+#include "zeek/TraverseTypes.h"
 #include "zeek/script_opt/ZAM/BuiltInSupport.h"
 #include "zeek/script_opt/ZAM/Support.h"
 #include "zeek/script_opt/ZAM/ZOp.h"
@@ -108,6 +109,8 @@ public:
 
     // Returns a string describing the constant.
     std::string ConstDump() const;
+
+    TraversalCode Traverse(TraversalCallback* cb) const;
 
     ZOp op = OP_NOP;
     ZAMOpType op_type = OP_X;
@@ -454,6 +457,8 @@ public:
 
     // Same but for constants.
     void Add(int i, ValPtr c) { elems[i].SetConstant(c); }
+
+    TraversalCode Traverse(TraversalCallback* cb) const;
 
     // Member variables.  We could add accessors for manipulating
     // these (and make the variables private), but for convenience we

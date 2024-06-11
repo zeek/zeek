@@ -298,6 +298,56 @@ string ZInst::ConstDump() const {
     return d.Description();
 }
 
+TraversalCode ZInst::Traverse(TraversalCallback* cb) const {
+    TraversalCode tc;
+    if ( t ) {
+        tc = t->Traverse(cb);
+        HANDLE_TC_STMT_PRE(tc);
+        if ( t2 ) {
+            tc = t2->Traverse(cb);
+            HANDLE_TC_STMT_PRE(tc);
+        }
+    }
+
+    if ( aux ) {
+        tc = aux->Traverse(cb);
+        HANDLE_TC_STMT_POST(tc);
+    }
+
+    return TC_CONTINUE;
+}
+
+TraversalCode ZInstAux::Traverse(TraversalCallback* cb) const {
+    TraversalCode tc;
+
+    if ( id_val ) {
+        tc = id_val->Traverse(cb);
+        HANDLE_TC_STMT_PRE(tc);
+    }
+
+    if ( attrs ) {
+        tc = attrs->Traverse(cb);
+        HANDLE_TC_STMT_PRE(tc);
+    }
+
+    if ( value_var_type ) {
+        tc = value_var_type->Traverse(cb);
+        HANDLE_TC_STMT_PRE(tc);
+    }
+
+    for ( auto& lvt : loop_var_types ) {
+        tc = lvt->Traverse(cb);
+        HANDLE_TC_STMT_PRE(tc);
+    }
+
+    for ( auto& lvt : loop_var_types ) {
+        tc = lvt->Traverse(cb);
+        HANDLE_TC_STMT_PRE(tc);
+    }
+
+    return TC_CONTINUE;
+}
+
 void ZInstI::Dump(FILE* f, const FrameMap* frame_ids, const FrameReMap* remappings) const {
     int n = NumFrameSlots();
     // fprintf(f, "v%d ", n);

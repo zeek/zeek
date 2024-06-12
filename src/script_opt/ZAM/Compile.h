@@ -167,8 +167,14 @@ private:
     void PushFallThroughs() { PushGoTos(fallthroughs); }
     void PushCatchReturns() { PushGoTos(catches); }
 
-    void ResolveNexts(const InstLabel l) { ResolveGoTos(nexts, l); }
-    void ResolveBreaks(const InstLabel l) { ResolveGoTos(breaks, l); }
+    void ResolveNexts(const InstLabel l) {
+        ResolveGoTos(nexts, l);
+        AddCFT(l, CFT_NEXT);
+    }
+    void ResolveBreaks(const InstLabel l) {
+        ResolveGoTos(breaks, l);
+        AddCFT(l, CFT_BREAK);
+    }
     void ResolveFallThroughs(const InstLabel l) { ResolveGoTos(fallthroughs, l); }
     void ResolveCatchReturns(const InstLabel l) { ResolveGoTos(catches, l); }
 
@@ -318,6 +324,9 @@ private:
     const ZAMStmt EmptyStmt();
     const ZAMStmt ErrorStmt();
     const ZAMStmt LastInst();
+
+    // Adds control flow information to an instruction.
+    void AddCFT(ZInstI* inst, ControlFlowType cft);
 
     // Returns a handle to state associated with building
     // up a list of values.

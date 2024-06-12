@@ -375,6 +375,18 @@ private:
     bool is_managed = false;
 };
 
+enum ControlFlowType {
+    CFT_IF,
+    CFT_IF_NOT,
+    CFT_IF_ELSE,
+    CFT_BLOCK_END,
+    CFT_ELSE,
+    CFT_LOOP,
+    CFT_LOOP_COND,
+    CFT_NEXT,
+    CFT_BREAK,
+};
+
 // Auxiliary information, used when the fixed ZInst layout lacks
 // sufficient expressiveness to represent all of the elements that
 // an instruction needs.
@@ -492,6 +504,9 @@ public:
 
     // Whether we know that we're calling a BiF.
     bool is_BiF_call = false;
+
+    // Associated control flow information.
+    std::set<ControlFlowType> cft;
 
     // Used for referring to events.
     EventHandler* event_handler = nullptr;

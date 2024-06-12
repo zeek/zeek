@@ -203,6 +203,7 @@ StmtPtr ZAMCompiler::CompileBody() {
 
     auto zb = make_intrusive<ZBody>(fname, this);
     zb->SetInsts(insts2);
+    zb->SetLocationInfo(body->GetLocationInfo());
 
     // Could erase insts1 here to recover memory, but it's handy
     // for debugging.

@@ -20,9 +20,15 @@ bool ZAMCompiler::NullStmtOK() const {
 
 const ZAMStmt ZAMCompiler::EmptyStmt() { return ZAMStmt(insts1.size() - 1); }
 
+const ZAMStmt ZAMCompiler::ErrorStmt() { return ZAMStmt(0); }
+
 const ZAMStmt ZAMCompiler::LastInst() { return ZAMStmt(insts1.size() - 1); }
 
-const ZAMStmt ZAMCompiler::ErrorStmt() { return ZAMStmt(0); }
+void ZAMCompiler::AddCFT(ZInstI* inst, ControlFlowType cft) {
+    if ( ! inst->aux )
+        inst->aux = new ZInstAux(0);
+    inst->aux->cft.insert(cft);
+}
 
 OpaqueVals* ZAMCompiler::BuildVals(const ListExprPtr& l) { return new OpaqueVals(InternalBuildVals(l.get())); }
 

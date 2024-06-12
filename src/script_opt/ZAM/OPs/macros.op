@@ -25,6 +25,8 @@ macro Z_AUX_LAMBDA_NAME z.aux->lambda_name
 # Location in the original script.
 macro Z_LOC z.loc
 
+macro SET_RET_TYPE(type) ret_type = type;
+
 macro ERROR(msg) ZAM_run_time_error(Z_LOC, msg)
 macro ERROR2(msg, obj) ZAM_run_time_error(Z_LOC, msg, obj)
 

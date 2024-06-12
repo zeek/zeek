@@ -102,7 +102,7 @@ op Return
 op1-read
 classes V C
 set-type $$
-eval	EvalReturn(&$$, ret_type = Z_TYPE;)
+eval	EvalReturn(&$$, SET_RET_TYPE(Z_TYPE))
 
 
 # Branch on the value of v1 using switch table v2, with default branch to v3

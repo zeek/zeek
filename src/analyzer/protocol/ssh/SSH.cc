@@ -81,7 +81,7 @@ void SSH_Analyzer::ProcessEncryptedSegment(int len, bool orig) {
 }
 
 void SSH_Analyzer::ProcessEncrypted(int len, bool orig) {
-    if ( interp->get_version() != binpac::SSH::SSH2 )
+    if ( interp->get_version(orig) != binpac::SSH::SSH2 )
         return;
 
     if ( orig )

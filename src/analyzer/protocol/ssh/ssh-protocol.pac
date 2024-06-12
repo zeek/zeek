@@ -34,11 +34,11 @@ type SSH_Version(is_orig: bool) = record {
 
 type SSH_Key_Exchange(is_orig: bool) = record {
 	packet_length: uint32;
-	key_ex: case $context.connection.get_version() of {
+	key_ex: case $context.connection.get_version(is_orig) of {
 		SSH1 -> ssh1_msg : SSH1_Key_Exchange(is_orig, packet_length);
 		SSH2 -> ssh2_msg : SSH2_Key_Exchange(is_orig, packet_length);
 	};
-} &length = $context.flow.get_kex_length($context.connection.get_version(), packet_length);
+} &length = $context.flow.get_kex_length($context.connection.get_version(is_orig), packet_length);
 
 # SSH1 constructs
 #################
@@ -48,7 +48,7 @@ type SSH1_Key_Exchange(is_orig: bool, packet_length: uint32) = record {
 	msg_type      : uint8;
 	message       : SSH1_Message(is_orig, msg_type, packet_length - 5);
 	crc           : uint32;
-} &length = $context.flow.get_kex_length($context.connection.get_version(), packet_length) - 4;
+} &length = $context.flow.get_kex_length($context.connection.get_version(is_orig), packet_length) - 4;
 
 type SSH1_Message(is_orig: bool, msg_type: uint8, length: uint32) = case msg_type of {
 	SSH_SMSG_PUBLIC_KEY  -> public_key  : SSH1_PUBLIC_KEY(length);
@@ -342,8 +342,34 @@ refine connection SSH_Conn += {
 		return true;
 		%}
 
-	function get_version() : int
+	function get_version(is_orig: bool) : int
 		%{
+		if ( version_ == SSH1 || version_ == SSH2 )
+			return version_;
+
+		// We only call get_version() if we've parsed SSH_Version,
+		// so the client/server version will be set.
+		version_ = is_orig ? version_client_ : version_server_;
+
+		if ( version_ == SSH199 )
+			{
+			// It's SSH-1.99: We have more data to parse, but
+			// haven't seen the other side and don't know what
+			// they selected.
+			//
+			// A crude heuristic that could work is to check if
+			// the sixth byte of the input buffer looks like
+			// MSG_KEXINIT (0x14) and use SSH2, otherwise SSH1.
+			//
+			// But.. not obvious how to implement this.
+			//
+			// Try with SSH-2.0 after producing a weird for
+			// a bit of visibility around what's going on.
+			zeek_analyzer()->Weird("half_duplex_ssh_with_version_199");
+
+			version_ = SSH2;
+			}
+
 		return version_;
 		%}
 

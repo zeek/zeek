@@ -312,4 +312,4 @@ macro BuildWhen(zf, timeout)
 		if ( v )
 			local_aggrs.push_back(v);
 		}
-	(void)make_intrusive<trigger::Trigger>(wi, wi->WhenExprGlobals(), local_aggrs, timeout, f, Z_LOC->Loc());
+	(void)make_intrusive<trigger::Trigger>(wi, wi->WhenExprGlobals(), local_aggrs, timeout, Z_FRAME, Z_LOC->Loc());

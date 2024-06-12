@@ -3,6 +3,9 @@
 
 # Macros for information associated with the current instruction.
 
+# The Val frame used to pass in arguments.
+macro Z_FRAME f
+
 # The main type.
 macro Z_TYPE z.t
 

@@ -18,7 +18,7 @@ eval	AssignTarget($$, BuildVal($1.ToVal(Z_TYPE), Z_TYPE))
 internal-assignment-op Load-Val
 class Vi
 assign-val v
-eval	auto& v = f->GetElement($1);
+eval	auto& v = Z_FRAME->GetElement($1);
 
 internal-assignment-op Load-Global
 class Vg
@@ -39,12 +39,12 @@ eval	auto& v = $$;
 
 internal-op Load-Capture
 class Vi
-eval	$$ = f->GetFunction()->GetCapturesVec()[$1];
+eval	$$ = Z_FRAME->GetFunction()->GetCapturesVec()[$1];
 
 internal-op Load-Managed-Capture
 class Vi
 eval	auto& lhs = $$;
-	auto& rhs = f->GetFunction()->GetCapturesVec()[$1];
+	auto& rhs = Z_FRAME->GetFunction()->GetCapturesVec()[$1];
 	zeek::Ref(rhs.ManagedVal());
 	ZVal::DeleteManagedType(lhs);
 	lhs = rhs;
@@ -60,12 +60,12 @@ eval	GlobalID($1)->SetVal(GlobalVal($1).ToVal(Z_TYPE));
 internal-op Store-Capture
 op1-read
 class Vi
-eval	f->GetFunction()->GetCapturesVec()[$2] = $1;
+eval	Z_FRAME->GetFunction()->GetCapturesVec()[$2] = $1;
 
 internal-op Store-Managed-Capture
 op1-read
 class Vi
-eval	auto& lhs = f->GetFunction()->GetCapturesVec()[$2];
+eval	auto& lhs = Z_FRAME->GetFunction()->GetCapturesVec()[$2];
 	auto& rhs = $1;
 	zeek::Ref(rhs.ManagedVal());
 	ZVal::DeleteManagedType(lhs);

@@ -133,7 +133,7 @@ num-call-args n
 macro WhenCall(lhs, func)
 	if ( ! func )
 		throw ZAMDelayedCallException();
-	auto trigger = f->GetTrigger();
+	auto trigger = Z_FRAME->GetTrigger();
 	Val* v = trigger ? trigger->Lookup(Z_AUX->call_expr.get()) : nullptr;
 	ValPtr vp;
 	if ( v )
@@ -141,20 +141,20 @@ macro WhenCall(lhs, func)
 	else
 		{
 		auto aux = Z_AUX;
-		auto current_assoc = f->GetTriggerAssoc();
+		auto current_assoc = Z_FRAME->GetTriggerAssoc();
 		auto n = aux->n;
 		std::vector<ValPtr> args;
 		for ( auto i = 0; i < n; ++i )
 			args.push_back(aux->ToVal(frame, i));
-		f->SetCall(Z_AUX->call_expr.get());
+		Z_FRAME->SetCall(Z_AUX->call_expr.get());
 		/* It's possible that this function will call another that
 		 * itself returns null because *it* is the actual blocker.
 		 * That will set ZAM_error, which we need to ignore.
 		 */
 		auto hold_ZAM_error = ZAM_error;
-		vp = func->Invoke(&args, f);
+		vp = func->Invoke(&args, Z_FRAME);
 		ZAM_error = hold_ZAM_error;
-		f->SetTriggerAssoc(current_assoc);
+		Z_FRAME->SetTriggerAssoc(current_assoc);
 		if ( ! vp )
 			throw ZAMDelayedCallException();
 		}

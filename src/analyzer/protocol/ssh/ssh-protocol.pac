@@ -37,7 +37,6 @@ type SSH_Key_Exchange(is_orig: bool) = record {
 	key_ex: case $context.connection.get_version() of {
 		SSH1 -> ssh1_msg : SSH1_Key_Exchange(is_orig, packet_length);
 		SSH2 -> ssh2_msg : SSH2_Key_Exchange(is_orig, packet_length);
-		default -> terminate : bytestring &restofdata &transient;
 	};
 } &length = $context.flow.get_kex_length($context.connection.get_version(), packet_length);
 

@@ -27,8 +27,10 @@ SimpleZBI::SimpleZBI(std::string name, ZOp _const_op, ZOp _op, bool _ret_val_mat
 bool SimpleZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
     ZInstI z;
     if ( nargs == 0 ) {
-        if ( n )
+        if ( n ) {
             z = ZInstI(op, zam->Frame1Slot(n, OP1_WRITE));
+            z.is_managed = ZVal::IsManagedType(n->GetType());
+        }
         else
             z = ZInstI(op);
     }
@@ -61,9 +63,6 @@ bool SimpleZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args
 
         z.SetType(t);
     }
-
-    if ( n )
-        z.is_managed = ZVal::IsManagedType(n->GetType());
 
     zam->AddInst(z);
 

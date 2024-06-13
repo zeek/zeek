@@ -59,7 +59,7 @@ bool SimpleZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args
             z.c = ZVal(args[0]->AsConstExpr()->ValuePtr(), t);
         }
 
-        z.t = t;
+        z.SetType(t);
     }
 
     if ( n )
@@ -104,7 +104,7 @@ bool CondZBI::BuildCond(ZAMCompiler* zam, const ExprPList& args, int& branch_v) 
         auto a0_slot = zam->FrameSlot(a0->AsNameExpr());
         z = ZInstI(cond_op, a0_slot, 0);
         z.op_type = OP_VV_I2;
-        z.t = a0->GetType();
+        z.SetType(a0->GetType());
         branch_v = 2;
     }
 
@@ -129,7 +129,7 @@ bool OptAssignZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& a
         ASSERT(nargs == 1);
         auto a0 = zam->FrameSlot(args[0]->AsNameExpr());
         z = ZInstI(op2, a0);
-        z.t = args[0]->GetType();
+        z.SetType(args[0]->GetType());
     }
 
     zam->AddInst(z);
@@ -145,7 +145,7 @@ bool CatZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) c
     if ( args.empty() ) {
         // Weird, but easy enough to support.
         z = ZInstI(OP_CAT1_VC, nslot);
-        z.t = n->GetType();
+        z.SetType(n->GetType());
         z.c = ZVal(val_mgr->EmptyString());
     }
 
@@ -168,18 +168,18 @@ bool CatZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) c
     else if ( a0->GetType()->Tag() != TYPE_STRING ) {
         if ( a0->Tag() == EXPR_NAME ) {
             z = zam->GenInst(OP_CAT1FULL_VV, n, a0->AsNameExpr());
-            z.t = a0->GetType();
+            z.SetType(a0->GetType());
         }
         else {
             z = ZInstI(OP_CAT1_VC, nslot);
-            z.t = n->GetType();
+            z.SetType(n->GetType());
             z.c = ZVal(ZAM_val_cat(a0->AsConstExpr()->ValuePtr()));
         }
     }
 
     else if ( a0->Tag() == EXPR_CONST ) {
         z = zam->GenInst(OP_CAT1_VC, n, a0->AsConstExpr());
-        z.t = n->GetType();
+        z.SetType(n->GetType());
     }
 
     else
@@ -388,12 +388,12 @@ bool MultiZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args)
         z.is_managed = ZVal::IsManagedType(n->GetType());
 
     if ( ! consts.empty() ) {
-        z.t = consts[0]->GetType();
-        z.c = ZVal(consts[0], z.t);
+        z.SetType(consts[0]->GetType());
+        z.c = ZVal(consts[0], z.GetType());
     }
 
-    if ( type_arg >= 0 && ! z.t )
-        z.t = args[type_arg]->GetType();
+    if ( type_arg >= 0 && ! z.GetType() )
+        z.SetType(args[type_arg]->GetType());
 
     zam->AddInst(z);
 

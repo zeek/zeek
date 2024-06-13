@@ -7,13 +7,13 @@
 macro Z_FRAME f
 
 # The main type.
-macro Z_TYPE z.t
+macro Z_TYPE z.GetType()
 
 # Whether it's managed.
 macro Z_IS_MANAGED *(z.is_managed)
 
 # Secondary type.
-macro Z_TYPE2 z.t2
+macro Z_TYPE2 z.GetType2()
 
 # Auxiliary information.
 macro Z_AUX z.aux

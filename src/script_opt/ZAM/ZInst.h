@@ -127,9 +127,19 @@ public:
 
     // Meta-data associated with the execution.
 
+protected:
+    // These are protected to ensure that setting 't' is done via SetType(),
+    // so we can keep is_managed consistent with it. We don't need that
+    // for 't2' but keep them together for consistency.
+
     // Type, usually for interpreting the constant.
     TypePtr t = nullptr;
+
     TypePtr t2 = nullptr; // just a few ops need two types
+
+public:
+    const TypePtr& GetType() const { return t; }
+    const TypePtr& GetType2() const { return t2; }
 
     // Auxiliary information.  We could in principle use this to
     // consolidate a bunch of the above, though at the cost of
@@ -269,6 +279,8 @@ public:
         if ( t )
             CheckIfManaged(t);
     }
+
+    void SetType2(TypePtr _t) { t2 = std::move(_t); }
 
     // Whether the instruction should be included in final code
     // generation.

@@ -140,7 +140,7 @@ const ZAMStmt ZAMCompiler::AddInst(const ZInstI& inst, bool suppress_non_local) 
 
         auto store_inst = ZInstI(OP_STORE_GLOBAL_g, gs);
         store_inst.op_type = OP_V_I1;
-        store_inst.t = globalsI[gs].id->GetType();
+        store_inst.SetType(globalsI[gs].id->GetType());
 
         return AddInst(store_inst);
     }

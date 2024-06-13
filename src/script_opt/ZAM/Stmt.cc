@@ -266,14 +266,14 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v) {
 
         if ( op1->Tag() == EXPR_NAME ) {
             auto z = GenInst(OP_VAL_IS_IN_TABLE_COND_VVb, op1->AsNameExpr(), op2, 0);
-            z.t = op1->GetType();
+            z.SetType(op1->GetType());
             branch_v = 3;
             return AddInst(z);
         }
 
         if ( op1->Tag() == EXPR_CONST ) {
             auto z = GenInst(OP_CONST_IS_IN_TABLE_COND_VCb, op2, op1->AsConstExpr(), 0);
-            z.t = op1->GetType();
+            z.SetType(op1->GetType());
             branch_v = 2;
             return AddInst(z);
         }
@@ -302,19 +302,19 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v) {
         if ( name0 && name1 ) {
             z = GenInst(OP_VAL2_IS_IN_TABLE_COND_VVVb, n0, n1, op2, 0);
             branch_v = 4;
-            z.t2 = n0->GetType();
+            z.SetType2(n0->GetType());
         }
 
         else if ( name0 ) {
             z = GenInst(OP_VAL2_IS_IN_TABLE_COND_VVbC, n0, op2, c1, 0);
             branch_v = 3;
-            z.t2 = n0->GetType();
+            z.SetType2(n0->GetType());
         }
 
         else if ( name1 ) {
             z = GenInst(OP_VAL2_IS_IN_TABLE_COND_VVCb, n1, op2, c0, 0);
             branch_v = 3;
-            z.t2 = n1->GetType();
+            z.SetType2(n1->GetType());
         }
 
         else { // Both are constants, assign first to temporary.
@@ -323,7 +323,7 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v) {
             z = ZInstI(OP_VAL2_IS_IN_TABLE_COND_VVbC, slot, FrameSlot(op2), 0, c1);
             z.op_type = OP_VVVC_I3;
             branch_v = 3;
-            z.t2 = c0->GetType();
+            z.SetType2(c0->GetType());
         }
 
         return AddInst(z);
@@ -851,8 +851,7 @@ const ZAMStmt ZAMCompiler::LoopOverVector(const ForStmt* f, const NameExpr* val)
             z.op_type = OP_VVV_I2_I3;
         }
 
-        z.t = value_var->GetType();
-        z.is_managed = ZVal::IsManagedType(z.t);
+        z.SetType(value_var->GetType());
     }
 
     else {

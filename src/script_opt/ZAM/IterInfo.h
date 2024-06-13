@@ -24,16 +24,33 @@ public:
     // if we have any pending iterators we clear them.
     ~TableIterInfo() { Clear(); }
 
-    // Start looping over the elements of the given table.  "_aux"
+    // Start looping over the elements of the given table.  "aux"
     // provides information about the index variables, their types,
     // and the type of the value variable (if any).
-    void BeginLoop(TableValPtr _tv, ZInstAux* _aux) {
-        tv = _tv;
-        aux = _aux;
+    void BeginLoop(TableValPtr _tv, ZVal* frame, ZInstAux* aux) {
+        for ( auto lv : aux->loop_vars )
+            if ( lv < 0 )
+                loop_vars.push_back(nullptr);
+            else
+                loop_vars.push_back(&frame[lv]);
+
+        BeginLoop(std::move(_tv), &aux->loop_var_types, &aux->lvt_is_managed, aux->value_var_type);
+    }
+
+    // A lower-level form used for direct access.
+    void BeginLoop(TableValPtr _tv, const std::vector<TypePtr>* _loop_var_types,
+                   const std::vector<bool>* _lvt_is_managed, TypePtr _value_var_type) {
+        tv = std::move(_tv);
         auto tvd = tv->AsTable();
         tbl_iter = tvd->begin();
         tbl_end = tvd->end();
+
+        loop_var_types = _loop_var_types;
+        lvt_is_managed = _lvt_is_managed;
+        value_var_type = std::move(_value_var_type);
     }
+
+    void SetLoopVars(std::vector<ZVal*> _loop_vars) { loop_vars = std::move(_loop_vars); }
 
     // True if we're done iterating, false if not.
     bool IsDoneIterating() const { return *tbl_iter == *tbl_end; }
@@ -43,18 +60,17 @@ public:
 
     // Performs the next iteration (assuming IsDoneIterating() returned
     // false), assigning to the index variables.
-    void NextIter(ZVal* frame) {
+    void NextIter() {
         auto ind_lv = tv->RecreateIndex(*(*tbl_iter)->GetHashKey());
         for ( int i = 0; i < ind_lv->Length(); ++i ) {
-            ValPtr ind_lv_p = ind_lv->Idx(i);
-            auto lv = aux->loop_vars[i];
-            if ( lv < 0 )
+            auto lv = loop_vars[i];
+            if ( ! lv )
                 continue;
-            auto& var = frame[lv];
-            if ( aux->lvt_is_managed[i] )
-                ZVal::DeleteManagedType(var);
-            auto& t = aux->loop_var_types[i];
-            var = ZVal(ind_lv_p, t);
+
+            ValPtr ind_lv_p = ind_lv->Idx(i);
+            if ( (*lvt_is_managed)[i] )
+                ZVal::DeleteManagedType(*lv);
+            *lv = ZVal(ind_lv_p, (*loop_var_types)[i]);
         }
 
         IterFinished();
@@ -63,7 +79,7 @@ public:
     // For the current iteration, returns the corresponding value.
     ZVal IterValue() {
         auto tev = (*tbl_iter)->value;
-        return ZVal(tev->GetVal(), aux->value_var_type);
+        return ZVal(tev->GetVal(), value_var_type);
     }
 
     // Called upon finishing the iteration.
@@ -78,8 +94,10 @@ public:
 private:
     TableValPtr tv = nullptr;
 
-    // Associated auxiliary information.
-    ZInstAux* aux = nullptr;
+    std::vector<ZVal*> loop_vars;
+    const std::vector<TypePtr>* loop_var_types;
+    const std::vector<bool>* lvt_is_managed;
+    TypePtr value_var_type;
 
     std::optional<DictIterator<TableEntryVal>> tbl_iter;
     std::optional<DictIterator<TableEntryVal>> tbl_end;

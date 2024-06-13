@@ -4,13 +4,13 @@ internal-op Init-Table-Loop
 op1-read
 class Vf
 op-types T I
-eval	$2.BeginLoop({NewRef{}, $1}, Z_AUX);
+eval	$2.BeginLoop({NewRef{}, $1}, frame, Z_AUX);
 
 internal-op Next-Table-Iter
 op1-read
 class fb
 eval	NextTableIterPre($1, $2)
-	$1.NextIter(frame);
+	$1.NextIter();
 
 macro NextTableIterPre(iter, BRANCH)
 	if ( iter.IsDoneIterating() )
@@ -27,7 +27,7 @@ internal-op Next-Table-Iter-Val-Var
 class Vfb
 eval	NextTableIterPre($1, $2)
 	AssignTarget($$, $1.IterValue());
-	$1.NextIter(frame);
+	$1.NextIter();
 
 internal-op Next-Table-Iter-Val-Var-No-Vars
 # v1 = slot of the "ValueVar"

@@ -745,7 +745,6 @@ const ZAMStmt ZAMCompiler::CompileFor(const ForStmt* f) {
     PushNexts();
     PushBreaks();
 
-    auto head = StartingBlock();
     ZAMStmt z;
 
     if ( et == TYPE_TABLE )
@@ -759,9 +758,6 @@ const ZAMStmt ZAMCompiler::CompileFor(const ForStmt* f) {
 
     else
         reporter->InternalError("bad \"for\" loop-over value when compiling");
-
-    AddCFT(insts1[head.stmt_num], CFT_LOOP);
-    AddCFT(insts1[z.stmt_num], CFT_BLOCK_END);
 
     return z;
 }
@@ -821,6 +817,7 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val) 
     }
 
     z.aux = aux; // so ZOpt.cc can get to it
+    AddCFT(&z, CFT_LOOP);
     AddCFT(&z, CFT_LOOP_COND);
 
     return FinishLoop(iter_head, z, body, iter_slot, true);
@@ -865,6 +862,7 @@ const ZAMStmt ZAMCompiler::LoopOverVector(const ForStmt* f, const NameExpr* val)
         }
     }
 
+    AddCFT(&z, CFT_LOOP);
     AddCFT(&z, CFT_LOOP_COND);
 
     return FinishLoop(iter_head, z, f->LoopBody(), iter_slot, false);
@@ -903,6 +901,7 @@ const ZAMStmt ZAMCompiler::LoopOverString(const ForStmt* f, const Expr* e) {
         z.is_managed = true;
     }
 
+    AddCFT(&z, CFT_LOOP);
     AddCFT(&z, CFT_LOOP_COND);
 
     return FinishLoop(iter_head, z, f->LoopBody(), iter_slot, false);
@@ -951,6 +950,8 @@ const ZAMStmt ZAMCompiler::FinishLoop(const ZAMStmt iter_head, ZInstI& iter_stmt
 
     ResolveNexts(GoToTarget(iter_head));
     ResolveBreaks(GoToTarget(final_stmt));
+
+    AddCFT(&z, CFT_BLOCK_END);
 
     return final_stmt;
 }

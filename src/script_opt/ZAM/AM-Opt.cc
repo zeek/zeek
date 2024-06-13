@@ -984,11 +984,11 @@ void ZAMCompiler::KillInst(zeek_uint_t i) {
         }
 
         // If's can be killed because their bodies become empty,
-        // and break's because they just lead to their following instruction.
+        // break's because they just lead to their following instruction,
+        // and next's if they become dead code.
         // However, loop's and next's should not be killed.
         ASSERT(cft.count(CFT_LOOP) == 0);
         ASSERT(cft.count(CFT_LOOP_COND) == 0);
-        ASSERT(cft.count(CFT_NEXT) == 0);
     }
 }
 

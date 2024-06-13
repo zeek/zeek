@@ -591,6 +591,11 @@ TraversalCode ZBody::Traverse(TraversalCallback* cb) const {
     TraversalCode tc = cb->PreStmt(this);
     HANDLE_TC_STMT_PRE(tc);
 
+    for ( auto& gi : globals ) {
+        tc = gi.id->Traverse(cb);
+        HANDLE_TC_STMT_PRE(tc);
+    }
+
     for ( size_t i = 0; i < NumInsts(); ++i ) {
         tc = insts[i].Traverse(cb);
         HANDLE_TC_STMT_PRE(tc);

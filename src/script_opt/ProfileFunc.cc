@@ -522,11 +522,10 @@ void ProfileFunc::TrackID(const ID* id) {
         // Already tracked.
         return;
 
-	if ( id->IsGlobal() )
-		{
-                globals.insert(id);
-                all_globals.insert(id);
-		}
+    if ( id->IsGlobal() ) {
+        globals.insert(id);
+        all_globals.insert(id);
+    }
 
     ordered_ids.push_back(id);
 }

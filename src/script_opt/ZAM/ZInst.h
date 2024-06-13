@@ -385,6 +385,8 @@ enum ControlFlowType {
     CFT_LOOP_COND,
     CFT_NEXT,
     CFT_BREAK,
+
+    CFT_NONE,
 };
 
 // Auxiliary information, used when the fixed ZInst layout lacks
@@ -506,7 +508,7 @@ public:
     bool is_BiF_call = false;
 
     // Associated control flow information.
-    std::set<ControlFlowType> cft;
+    std::map<ControlFlowType, int> cft;
 
     // Used for referring to events.
     EventHandler* event_handler = nullptr;

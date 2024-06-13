@@ -167,14 +167,8 @@ private:
     void PushFallThroughs() { PushGoTos(fallthroughs); }
     void PushCatchReturns() { PushGoTos(catches); }
 
-    void ResolveNexts(const InstLabel l) {
-        ResolveGoTos(nexts, l);
-        AddCFT(l, CFT_NEXT);
-    }
-    void ResolveBreaks(const InstLabel l) {
-        ResolveGoTos(breaks, l);
-        AddCFT(l, CFT_BREAK);
-    }
+    void ResolveNexts(const InstLabel l) { ResolveGoTos(nexts, l, CFT_NEXT); }
+    void ResolveBreaks(const InstLabel l) { ResolveGoTos(breaks, l, CFT_BREAK); }
     void ResolveFallThroughs(const InstLabel l) { ResolveGoTos(fallthroughs, l); }
     void ResolveCatchReturns(const InstLabel l) { ResolveGoTos(catches, l); }
 
@@ -280,7 +274,7 @@ private:
     using GoToSets = std::vector<GoToSet>;
 
     void PushGoTos(GoToSets& gotos);
-    void ResolveGoTos(GoToSets& gotos, const InstLabel l);
+    void ResolveGoTos(GoToSets& gotos, const InstLabel l, ControlFlowType cft = CFT_NONE);
 
     ZAMStmt GenGoTo(GoToSet& v);
     ZAMStmt GoToStub();

@@ -27,7 +27,14 @@ const ZAMStmt ZAMCompiler::LastInst() { return ZAMStmt(insts1.size() - 1); }
 void ZAMCompiler::AddCFT(ZInstI* inst, ControlFlowType cft) {
     if ( ! inst->aux )
         inst->aux = new ZInstAux(0);
-    inst->aux->cft.insert(cft);
+
+    auto cft_entry = inst->aux->cft.find(cft);
+    if ( cft_entry == inst->aux->cft.end() )
+        inst->aux->cft[cft] = 1;
+    else {
+        ASSERT(cft == CFT_BLOCK_END);
+        ++cft_entry->second;
+    }
 }
 
 OpaqueVals* ZAMCompiler::BuildVals(const ListExprPtr& l) { return new OpaqueVals(InternalBuildVals(l.get())); }

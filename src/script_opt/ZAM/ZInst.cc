@@ -643,7 +643,7 @@ bool ZInstI::IsCaptureLoad() const { return op == OP_LOAD_CAPTURE_Vi || op == OP
 
 void ZInstI::InitConst(const ConstExpr* ce) {
     auto v = ce->ValuePtr();
-    t = ce->GetType();
+    SetType(ce->GetType());
     c = ZVal(v, t);
 
     if ( ZAM_error )

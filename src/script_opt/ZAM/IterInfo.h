@@ -15,10 +15,19 @@ namespace zeek::detail {
 
 class TableIterInfo {
 public:
-    // No constructor needed, as all of our member variables are
-    // instead instantiated via BeginLoop().  This allows us to
-    // reuse TableIterInfo objects to lower the overhead associated
-    // with executing ZBody::Exec for non-recursive functions.
+    // Empty constructor for a simple version that initializes all the
+    // member variables via BeginLoop(). Helpful for supporting recursive
+    // functions that include table iterations.
+    TableIterInfo() {}
+
+    // Version that populates the fixed fields up front, with the
+    // dynamic ones being done with SetLoopVars().
+    TableIterInfo(const std::vector<TypePtr>* _loop_var_types, const std::vector<bool>* _lvt_is_managed,
+                  TypePtr _value_var_type) {
+        loop_var_types = _loop_var_types;
+        lvt_is_managed = _lvt_is_managed;
+        value_var_type = std::move(_value_var_type);
+    }
 
     // We do, however, want to make sure that when we go out of scope,
     // if we have any pending iterators we clear them.
@@ -34,20 +43,9 @@ public:
             else
                 loop_vars.push_back(&frame[lv]);
 
-        BeginLoop(std::move(_tv), &aux->loop_var_types, &aux->lvt_is_managed, aux->value_var_type);
-    }
-
-    // A lower-level form used for direct access.
-    void BeginLoop(TableValPtr _tv, const std::vector<TypePtr>* _loop_var_types,
-                   const std::vector<bool>* _lvt_is_managed, TypePtr _value_var_type) {
-        tv = std::move(_tv);
-        auto tvd = tv->AsTable();
-        tbl_iter = tvd->begin();
-        tbl_end = tvd->end();
-
-        loop_var_types = _loop_var_types;
-        lvt_is_managed = _lvt_is_managed;
-        value_var_type = std::move(_value_var_type);
+        loop_var_types = &aux->loop_var_types;
+        lvt_is_managed = &aux->lvt_is_managed;
+        value_var_type = aux->value_var_type;
     }
 
     void SetLoopVars(std::vector<ZVal*> _loop_vars) { loop_vars = std::move(_loop_vars); }

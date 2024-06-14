@@ -37,6 +37,8 @@ public:
     // provides information about the index variables, their types,
     // and the type of the value variable (if any).
     void BeginLoop(TableValPtr _tv, ZVal* frame, ZInstAux* aux) {
+        tv = std::move(_tv);
+
         for ( auto lv : aux->loop_vars )
             if ( lv < 0 )
                 loop_vars.push_back(nullptr);
@@ -46,9 +48,21 @@ public:
         loop_var_types = &aux->loop_var_types;
         lvt_is_managed = &aux->lvt_is_managed;
         value_var_type = aux->value_var_type;
+
+        PrimeIter();
     }
 
-    void SetLoopVars(std::vector<ZVal*> _loop_vars) { loop_vars = std::move(_loop_vars); }
+    void BeginLoop(TableValPtr _tv, std::vector<ZVal*> _loop_vars) {
+        tv = std::move(_tv);
+        loop_vars = std::move(_loop_vars);
+        PrimeIter();
+    }
+
+    void PrimeIter() {
+        auto tvd = tv->AsTable();
+        tbl_iter = tvd->begin();
+        tbl_end = tvd->end();
+    }
 
     // True if we're done iterating, false if not.
     bool IsDoneIterating() const { return *tbl_iter == *tbl_end; }

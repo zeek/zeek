@@ -14,9 +14,9 @@ import LDAP;
 on LDAP::Message -> event LDAP::message($conn,
                                         self.messageID,
                                         self.opcode,
-                                        self.result.code,
-                                        self.result.matchedDN,
-                                        self.result.diagnosticMessage,
+                                        self.result_.code,
+                                        self.result_.matchedDN,
+                                        self.result_.diagnosticMessage,
                                         self.obj,
                                         self.arg);
 

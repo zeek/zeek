@@ -1,3 +1,13 @@
+7.0.0-dev.383 | 2024-06-14 13:50:05 +0200
+
+  * GH-3783: Spicy: Disallow repeating replacements of the same analyzer. (Robin Sommer, Corelight)
+
+    We now reject EVT files that attempt to replace the same built-in
+    analyzer multiple times as doing so would be ill-defined and not very
+    intuitive in what exactly it means.
+
+  * Bump Spicy. (Robin Sommer, Corelight)
+
 7.0.0-dev.380 | 2024-06-11 15:11:43 +0200
 
   * Drop EOL centos8-stream in CI (Benjamin Bannier, Corelight)

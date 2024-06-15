@@ -549,9 +549,15 @@ void ZAMCompiler::ReMapFrame() {
 
         // Handle special cases.
         switch ( inst->op ) {
+            case OP_INIT_TABLE_LOOP_Vf:
             case OP_NEXT_TABLE_ITER_fb:
             case OP_NEXT_TABLE_ITER_VAL_VAR_Vfb: {
-                // Rewrite iteration variables.
+                // Rewrite iteration variables. Strictly speaking we only
+                // need to do this for the INIT, not the NEXT, since the
+                // latter currently doesn't access the variables directly but
+                // instead uses pointers set up by the INIT. We do both types
+                // here, though, to keep things consistent and to help avoid
+                // surprises if the implementation changes in the future.
                 auto& iter_vars = inst->aux->loop_vars;
                 for ( auto& v : iter_vars ) {
                     if ( v < 0 )

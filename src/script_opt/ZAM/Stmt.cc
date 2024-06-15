@@ -796,31 +796,38 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val) 
     auto iter_slot = table_iters.size();
     table_iters.emplace_back();
 
-    auto z = ZInstI(OP_INIT_TABLE_LOOP_Vf, FrameSlot(val), iter_slot);
-    z.op_type = OP_VV_I2;
-    z.SetType(value_var ? value_var->GetType() : nullptr);
-    z.aux = aux;
+    auto zi = ZInstI(OP_INIT_TABLE_LOOP_Vf, FrameSlot(val), iter_slot);
+    zi.op_type = OP_VV_I2;
+    zi.SetType(value_var ? value_var->GetType() : nullptr);
+    zi.aux = aux;
 
-    auto init_end = AddInst(z);
+    (void)AddInst(zi);
+
+    ZInstI zn;
     auto iter_head = StartingBlock();
 
     if ( value_var ) {
         ZOp op = no_loop_vars ? OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_Vfb : OP_NEXT_TABLE_ITER_VAL_VAR_Vfb;
-        z = ZInstI(op, FrameSlot(value_var), iter_slot, 0);
-        z.CheckIfManaged(value_var->GetType());
-        z.op_type = OP_VVV_I2_I3;
+        zn = ZInstI(op, FrameSlot(value_var), iter_slot, 0);
+        zn.CheckIfManaged(value_var->GetType());
+        zn.op_type = OP_VVV_I2_I3;
     }
     else {
         ZOp op = no_loop_vars ? OP_NEXT_TABLE_ITER_NO_VARS_fb : OP_NEXT_TABLE_ITER_fb;
-        z = ZInstI(op, iter_slot, 0);
-        z.op_type = OP_VV_I1_I2;
+        zn = ZInstI(op, iter_slot, 0);
+        zn.op_type = OP_VV_I1_I2;
     }
 
-    z.aux = aux; // so ZOpt.cc can get to it
-    AddCFT(&z, CFT_LOOP);
-    AddCFT(&z, CFT_LOOP_COND);
+    // Need a separate instance of aux so the CFT info doesn't get shared with
+    // the loop init. We populate it with the loop_vars (only) because the
+    // optimizer needs access to those for (1) tracking their lifetime, and
+    // (2) remapping them (not strictly needed, see the comment in ReMapFrame().
+    zn.aux = new ZInstAux(0);
+    zn.aux->loop_vars = aux->loop_vars;
+    AddCFT(&zn, CFT_LOOP);
+    AddCFT(&zn, CFT_LOOP_COND);
 
-    return FinishLoop(iter_head, z, body, iter_slot, true);
+    return FinishLoop(iter_head, zn, body, iter_slot, true);
 }
 
 const ZAMStmt ZAMCompiler::LoopOverVector(const ForStmt* f, const NameExpr* val) {

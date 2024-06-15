@@ -936,6 +936,7 @@ const ZAMStmt ZAMCompiler::FinishLoop(const ZAMStmt iter_head, ZInstI& iter_stmt
                                       bool is_table) {
     auto loop_iter = AddInst(iter_stmt);
     auto body_end = CompileStmt(body);
+    AddCFT(insts1[body_end.stmt_num], CFT_BLOCK_END);
 
     // We only need cleanup for looping over tables, but for now we
     // need some sort of placeholder instruction (until the optimizer
@@ -957,8 +958,6 @@ const ZAMStmt ZAMCompiler::FinishLoop(const ZAMStmt iter_head, ZInstI& iter_stmt
 
     ResolveNexts(GoToTarget(iter_head));
     ResolveBreaks(GoToTarget(final_stmt));
-
-    AddCFT(&z, CFT_BLOCK_END);
 
     return final_stmt;
 }

@@ -109,13 +109,21 @@ void Manager::FindReadySources(ReadySources* ready) {
 
     // Remove sources which have gone dry. For simplicity, we only
     // remove at most one each time.
-    for ( SourceList::iterator i = sources.begin(); i != sources.end(); ++i )
-        if ( ! (*i)->src->IsOpen() ) {
-            (*i)->src->Done();
-            delete *i;
+    for ( SourceList::iterator i = sources.begin(); i != sources.end(); ++i ) {
+        auto* src = *i;
+        if ( ! src->src->IsOpen() ) {
+            src->src->Done();
+            if ( src->manage_lifetime )
+                delete src->src;
+
+            if ( src->dont_count )
+                dont_counts--;
+
+            delete src;
             sources.erase(i);
             break;
         }
+    }
 
     // If there aren't any sources and exit_only_after_terminate is false, just
     // return an empty set of sources. We want the main loop to end.

@@ -1,0 +1,99 @@
+# @TEST-REQUIRES: have-spicy
+#
+# @TEST-EXEC: spicyz -d -o test.hlto %INPUT
+# @TEST-EXEC: zeek globals.zeek test.hlto Spicy::enable_print=T >output
+# @TEST-EXEC: btest-diff output
+#
+# @TEST-DOC: Test access to Zeek-side globals.
+
+module Foo;
+
+import zeek;
+
+assert zeek::get_address("Bar::address_") == 1.2.3.4;
+assert zeek::get_bool("Bar::bool_") == True;
+assert zeek::get_count("Bar::count_") == 42;
+assert zeek::get_double("Bar::double_") == 42.0;
+assert zeek::get_enum("Bar::enum_") == "Foo";
+assert zeek::get_int("Bar::int_") == 42;
+assert zeek::get_interval("Bar::interval_") == interval(42);
+assert zeek::get_port("Bar::port_") == 42/tcp;
+assert zeek::get_string("Bar::string_") == b"xxx";
+assert zeek::get_subnet("Bar::subnet_") == 1.2.3.4/16;
+assert zeek::get_time("Bar::time_") == time(42.0);
+
+assert zeek::as_address(zeek::get_value("Bar::address_")) == 1.2.3.4;
+assert zeek::as_bool(zeek::get_value("Bar::bool_")) == True;
+assert zeek::as_count(zeek::get_value("Bar::count_")) == 42;
+assert zeek::as_double(zeek::get_value("Bar::double_")) == 42.0;
+assert zeek::as_enum(zeek::get_value("Bar::enum_")) == "Foo";
+assert zeek::as_int(zeek::get_value("Bar::int_")) == 42;
+assert zeek::as_interval(zeek::get_value("Bar::interval_")) == interval(42);
+assert zeek::as_port(zeek::get_value("Bar::port_")) == 42/tcp;
+assert zeek::as_string(zeek::get_value("Bar::string_")) == b"xxx";
+assert zeek::as_subnet(zeek::get_value("Bar::subnet_")) == 1.2.3.4/16;
+assert zeek::as_time(zeek::get_value("Bar::time_")) == time(42.0);
+
+assert zeek::as_string(zeek::record_field("Bar::record_", "x")) == b"foo";
+assert zeek::as_int(zeek::record_field("Bar::record_", "y")) == 42;
+assert zeek::as_int(zeek::record_field(zeek::get_record("Bar::record_"), "y")) == 42;
+assert zeek::record_has_value("Bar::record_", "x");
+assert zeek::record_has_value(zeek::get_record("Bar::record_"), "y");
+assert zeek::record_has_value("Bar::record_", "y");
+assert ! zeek::record_has_value("Bar::record_", "z");
+assert zeek::record_has_field("Bar::record_", "x");
+assert ! zeek::record_has_field("Bar::record_", "z");
+assert-exception zeek::record_field("Bar::record_", "z"); # not set
+
+assert zeek::set_contains("Bar::set_", "foo");
+assert ! zeek::set_contains("Bar::set_", "xxx");
+assert zeek::set_contains(zeek::get_set("Bar::set_"), "foo");
+
+assert zeek::table_contains("Bar::table_", "foo");
+assert ! zeek::table_contains("Bar::table_", "xxx");
+assert zeek::table_contains(zeek::get_table("Bar::table_"), "foo");
+assert zeek::as_string(*zeek::table_lookup("Bar::table_", "foo")) == b"bar";
+assert zeek::as_string(*zeek::table_lookup(zeek::get_table("Bar::table_"), "foo")) == b"bar";
+assert ! zeek::table_lookup("Bar::table_", "does-not-exist");
+
+assert zeek::as_count(zeek::vector_index("Bar::vector_", 2)) == 2;
+assert zeek::as_count(zeek::vector_index(zeek::get_vector("Bar::vector_"), 2)) == 2;
+
+assert-exception zeek::get_bool("Bar::does_not_exist");
+assert-exception zeek::get_bool("Bar::string_");
+
+# Test stringifcation.
+print zeek::get_value("Bar::bool_");
+print zeek::get_record("Bar::record_");
+print zeek::get_set("Bar::set_");
+print zeek::get_table("Bar::table_");
+print zeek::get_vector("Bar::vector_");
+
+# @TEST-START-FILE globals.zeek
+module Bar;
+
+type Record: record {
+    x: string;
+    y: int &default=42;
+    z: bool &optional;
+};
+
+type Enum: enum { Foo, Bar };
+
+const address_: addr = 1.2.3.4;
+const bool_: bool = T;
+const count_: count = 42;
+const double_: double = 42.0;
+const enum_: Enum = Foo;
+const int_: int = 42;
+const interval_: interval = 42sec;
+const port_: port = 42/tcp;
+const record_: Record = [$x="foo"];
+const set_: set[string] = set("foo", "bar");
+const string_: string = "xxx";
+const subnet_: subnet = 1.2.3.4/16;
+const table_: table[string] of string = table(["foo"] = "bar");
+const time_: time = double_to_time(42.0);
+const vector_: vector of count = vector(0, 1, 2);
+
+# @TEST-END-FILE

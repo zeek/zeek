@@ -165,6 +165,52 @@ bool ReporterMessage::Process() {
     return true;
 }
 
+
+class MsgThread_IOSource : public iosource::IOSource {
+public:
+    explicit MsgThread_IOSource(MsgThread* thread) : thread(thread) {
+        if ( ! iosource_mgr->RegisterFd(flare.FD(), this) )
+            reporter->FatalError("Failed to register MsgThread fd with iosource_mgr");
+
+        SetClosed(false);
+
+        // Register as lifetime managed IO source.
+        iosource_mgr->Register(this, true);
+    }
+
+    ~MsgThread_IOSource() override {
+        if ( ! iosource_mgr->UnregisterFd(flare.FD(), this) )
+            reporter->FatalError("Failed to unregister MsgThread fd from iosource_mgr");
+    }
+
+    void Process() override {
+        flare.Extinguish();
+
+        if ( thread )
+            thread->Process();
+    }
+
+    const char* Tag() override { return thread ? thread->Name() : "<MsgThread_IOSource orphan>"; }
+
+    double GetNextTimeout() override { return -1; }
+
+    void Done() override {
+        if ( thread )
+            thread->io_source = nullptr;
+    }
+
+    void Fire() { flare.Fire(); };
+
+    void Close() {
+        thread = nullptr;
+        SetClosed(true);
+    }
+
+private:
+    MsgThread* thread = nullptr;
+    zeek::detail::Flare flare;
+};
+
 } // namespace detail
 
 ////// Methods.
@@ -181,16 +227,15 @@ MsgThread::MsgThread() : BasicThread(), queue_in(this, nullptr), queue_out(nullp
     failed = false;
     thread_mgr->AddMsgThread(this);
 
-    if ( ! iosource_mgr->RegisterFd(flare.FD(), this) )
-        reporter->FatalError("Failed to register MsgThread fd with iosource_mgr");
-
-    SetClosed(false);
+    io_source = new detail::MsgThread_IOSource(this);
 }
 
 MsgThread::~MsgThread() {
-    // Unregister this thread from the iosource manager so it doesn't wake
-    // up the main poll anymore.
-    iosource_mgr->UnregisterFd(flare.FD(), this);
+    // Unregister this thread from the IO source so we don't
+    // get Process() callbacks anymore. The IO source is
+    // cleaned freed through the IO loop eventually.
+    if ( io_source )
+        io_source->Close();
 }
 
 void MsgThread::OnSignalStop() {
@@ -253,7 +298,13 @@ void MsgThread::OnWaitForStop() {
 }
 
 void MsgThread::OnKill() {
-    SetClosed(true);
+    // Ensure the IO source is closed and won't call Process() on this
+    // thread anymore. The thread got killed, so the threading manager will
+    // remove it forcefully soon.
+    if ( io_source ) {
+        io_source->Close();
+        io_source = nullptr;
+    }
 
     // Send a message to unblock the reader if its currently waiting for
     // input. This is just an optimization to make it terminate more
@@ -345,7 +396,8 @@ void MsgThread::SendOut(BasicOutputMessage* msg, bool force) {
 
     ++cnt_sent_out;
 
-    flare.Fire();
+    if ( io_source )
+        io_source->Fire();
 }
 
 void MsgThread::SendEvent(const char* name, const int num_vals, Value** vals) {
@@ -418,8 +470,6 @@ void MsgThread::GetStats(Stats* stats) {
 }
 
 void MsgThread::Process() {
-    flare.Extinguish();
-
     while ( HasOut() ) {
         Message* msg = RetrieveOut();
         assert(msg);

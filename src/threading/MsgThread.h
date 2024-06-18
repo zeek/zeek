@@ -27,6 +27,8 @@ class FinishMessage;
 class FinishedMessage;
 class KillMeMessage;
 
+class MsgThread_IOSource;
+
 } // namespace detail
 
 /**
@@ -40,7 +42,7 @@ class KillMeMessage;
  * that happens, the thread stops accepting any new messages, finishes
  * processes all remaining ones still in the queue, and then exits.
  */
-class MsgThread : public BasicThread, public iosource::IOSource {
+class MsgThread : public BasicThread {
 public:
     /**
      * Constructor. It automatically registers the thread with the
@@ -209,11 +211,9 @@ public:
     void GetStats(Stats* stats);
 
     /**
-     * Overridden from iosource::IOSource.
+     * Process() from IO source registered with IO loop.
      */
-    void Process() override;
-    const char* Tag() override { return Name(); }
-    double GetNextTimeout() override { return -1; }
+    void Process();
 
 protected:
     friend class Manager;
@@ -362,7 +362,8 @@ private:
     bool child_sent_finish; // Child thread asked to be finished.
     bool failed;            // Set to true when a command failed.
 
-    zeek::detail::Flare flare;
+    friend class detail::MsgThread_IOSource;
+    detail::MsgThread_IOSource* io_source = nullptr; // IO source registered with the IO manager.
 };
 
 /**

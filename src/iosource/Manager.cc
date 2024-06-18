@@ -350,7 +350,7 @@ void Manager::Register(IOSource* src, bool dont_count, bool manage_lifetime) {
 void Manager::Register(PktSrc* src) {
     pkt_src = src;
 
-    Register(src, false);
+    Register(src, false, false);
 
     // Once we know if the source is live or not, adapt the
     // poll_interval accordingly.

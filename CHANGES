@@ -1,3 +1,27 @@
+7.0.0-dev.387 | 2024-06-18 10:52:25 +0200
+
+  * CMakeLists: Disable -Werror for 3rdparty/sqlite3.c (Arne Welzel, Corelight)
+
+    We package vanilla sqlite from upstream and on Fedora 40 with sqlite 3.46
+    there's the following compiler warning:
+
+        In function 'sqlite3Strlen30',
+            inlined from 'sqlite3ColumnSetColl' at
+            ../../src/3rdparty/sqlite3.c:122105:10:
+            ../../src/3rdparty/sqlite3.c:35003:28: error: 'strlen' reading 1 or more bytes from a region of size 0 [-Werror=stringop-overread]
+        35003 |   return 0x3fffffff & (int)strlen(z);
+              |                            ^~~~~~~~~
+        In function 'sqlite3ColumnSetColl':
+
+    Disabling -Werror on sqlite3.c seems sensible given we have little
+    control over that code.
+
+  * Bump zeek-3rdparty to pull in sqlite move to 3.46 (Christian Kreibich, Corelight)
+
+    This avoids a compiler warning/error on Fedora 40.
+
+  * CI: drop Fedora 38, add 40 (Christian Kreibich, Corelight)
+
 7.0.0-dev.383 | 2024-06-14 13:50:05 +0200
 
   * GH-3783: Spicy: Disallow repeating replacements of the same analyzer. (Robin Sommer, Corelight)

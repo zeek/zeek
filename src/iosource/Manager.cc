@@ -76,6 +76,9 @@ Manager::~Manager() {
 
     pkt_dumpers.clear();
 
+    // Was registered without lifetime management.
+    delete pkt_src;
+
 #ifndef _MSC_VER
     // There's a bug here with builds on Windows that causes an assertion with debug builds
     // related to libkqueue returning a zero for the file descriptor. The assert happens
@@ -357,7 +360,7 @@ void Manager::Register(IOSource* src, bool dont_count, bool manage_lifetime) {
 void Manager::Register(PktSrc* src) {
     pkt_src = src;
 
-    Register(src, false);
+    Register(src, false, false);
 
     // Once we know if the source is live or not, adapt the
     // poll_interval accordingly.

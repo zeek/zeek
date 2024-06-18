@@ -170,6 +170,9 @@ private:
 
     void RemoveAll();
 
+    struct Source;
+    void ReapSource(Source* src);
+
     class WakeupHandler final : public IOSource {
     public:
         WakeupHandler();

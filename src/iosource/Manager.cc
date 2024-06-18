@@ -104,26 +104,23 @@ void Manager::Wakeup(std::string_view where) {
         wakeup->Ping(where);
 }
 
+void Manager::ReapSource(Source* src) {
+    auto iosource = src->src;
+    assert(! iosource->IsOpen());
+
+    iosource->Done();
+
+    if ( src->manage_lifetime )
+        delete iosource;
+
+    if ( src->dont_count )
+        dont_counts--;
+
+    delete src;
+}
+
 void Manager::FindReadySources(ReadySources* ready) {
     ready->clear();
-
-    // Remove sources which have gone dry. For simplicity, we only
-    // remove at most one each time.
-    for ( SourceList::iterator i = sources.begin(); i != sources.end(); ++i ) {
-        auto* src = *i;
-        if ( ! src->src->IsOpen() ) {
-            src->src->Done();
-            if ( src->manage_lifetime )
-                delete src->src;
-
-            if ( src->dont_count )
-                dont_counts--;
-
-            delete src;
-            sources.erase(i);
-            break;
-        }
-    }
 
     // If there aren't any sources and exit_only_after_terminate is false, just
     // return an empty set of sources. We want the main loop to end.
@@ -141,8 +138,11 @@ void Manager::FindReadySources(ReadySources* ready) {
     }
 
     // Find the source with the next timeout value.
-    for ( auto src : sources ) {
-        auto iosource = src->src;
+    auto i = sources.begin();
+    while ( i != sources.end() ) {
+        auto* src = *i;
+        auto* iosource = src->src;
+
         if ( iosource->IsOpen() ) {
             double next = iosource->GetNextTimeout();
 
@@ -169,6 +169,13 @@ void Manager::FindReadySources(ReadySources* ready) {
                         ready->push_back({pkt_src, -1, 0});
                 }
             }
+
+            ++i;
+        }
+        else {
+            // Closed IO source, reap and remove it.
+            ReapSource(src);
+            i = sources.erase(i);
         }
     }
 

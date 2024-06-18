@@ -59,15 +59,22 @@ public:
 };
 
 /**
- * Exception thrown by event generation code if there's a type mismatch
- * between the Spicy-side value and what the Zeek event expects.
+ * Exception thrown if there's a type mismatch between Spicy and Zeek side.
  */
 class TypeMismatch : public UsageError {
+    using UsageError::UsageError;
+};
+
+/**
+ * Exception thrown by event generation code if there's a type mismatch between
+ * a Spicy-side parameter value and what the Zeek event expects.
+ */
+class ParameterMismatch : public TypeMismatch {
 public:
-    TypeMismatch(const std::string_view& msg, std::string_view location = "")
-        : UsageError(hilti::rt::fmt("Event parameter mismatch, %s", msg)) {}
-    TypeMismatch(const std::string_view& have, const TypePtr& want, std::string_view location = "")
-        : TypeMismatch(_fmt(have, want)) {}
+    ParameterMismatch(const std::string_view& msg, std::string_view location = "")
+        : TypeMismatch(hilti::rt::fmt("Event parameter mismatch, %s", msg)) {}
+    ParameterMismatch(const std::string_view& have, const TypePtr& want, std::string_view location = "")
+        : ParameterMismatch(_fmt(have, want)) {}
 
 private:
     std::string _fmt(const std::string_view& have, const TypePtr& want) {
@@ -538,7 +545,7 @@ inline ValPtr to_val(const hilti::rt::DeferredExpression<T, E>& t, const TypePtr
  */
 inline ValPtr to_val(const std::string& s, const TypePtr& target) {
     if ( target->Tag() != TYPE_STRING )
-        throw TypeMismatch("string", target);
+        throw ParameterMismatch("string", target);
 
     return make_intrusive<StringVal>(s);
 }
@@ -549,7 +556,7 @@ inline ValPtr to_val(const std::string& s, const TypePtr& target) {
  */
 inline ValPtr to_val(const hilti::rt::Bytes& b, const TypePtr& target) {
     if ( target->Tag() != TYPE_STRING )
-        throw TypeMismatch("string", target);
+        throw ParameterMismatch("string", target);
 
     return make_intrusive<StringVal>(b.str());
 }
@@ -568,7 +575,7 @@ inline ValPtr to_val(hilti::rt::integer::safe<T> i, const TypePtr& target) {
         if ( target->Tag() == TYPE_INT )
             return val_mgr->Int(i);
 
-        throw TypeMismatch("uint64", target);
+        throw ParameterMismatch("uint64", target);
     }
     else {
         if ( target->Tag() == TYPE_INT )
@@ -578,10 +585,10 @@ inline ValPtr to_val(hilti::rt::integer::safe<T> i, const TypePtr& target) {
             if ( i >= 0 )
                 return val_mgr->Count(i);
             else
-                throw TypeMismatch("negative int64", target);
+                throw ParameterMismatch("negative int64", target);
         }
 
-        throw TypeMismatch("int64", target);
+        throw ParameterMismatch("int64", target);
     }
 }
 
@@ -599,7 +606,7 @@ ValPtr to_val(const hilti::rt::ValueReference<T>& t, const TypePtr& target) {
  */
 inline ValPtr to_val(const hilti::rt::Bool& b, const TypePtr& target) {
     if ( target->Tag() != TYPE_BOOL )
-        throw TypeMismatch("bool", target);
+        throw ParameterMismatch("bool", target);
 
     return val_mgr->Bool(b);
 }
@@ -610,7 +617,7 @@ inline ValPtr to_val(const hilti::rt::Bool& b, const TypePtr& target) {
  */
 inline ValPtr to_val(double r, const TypePtr& target) {
     if ( target->Tag() != TYPE_DOUBLE )
-        throw TypeMismatch("double", target);
+        throw ParameterMismatch("double", target);
 
     return make_intrusive<DoubleVal>(r);
 }
@@ -621,7 +628,7 @@ inline ValPtr to_val(double r, const TypePtr& target) {
  */
 inline ValPtr to_val(const hilti::rt::Address& d, const TypePtr& target) {
     if ( target->Tag() != TYPE_ADDR )
-        throw TypeMismatch("addr", target);
+        throw ParameterMismatch("addr", target);
 
     auto in_addr = d.asInAddr();
     if ( auto v4 = std::get_if<struct in_addr>(&in_addr) )
@@ -638,7 +645,7 @@ inline ValPtr to_val(const hilti::rt::Address& d, const TypePtr& target) {
  */
 inline ValPtr to_val(const hilti::rt::Port& p, const TypePtr& target) {
     if ( target->Tag() != TYPE_PORT )
-        throw TypeMismatch("port", target);
+        throw ParameterMismatch("port", target);
 
     switch ( p.protocol().value() ) {
         case hilti::rt::Protocol::TCP: return val_mgr->Port(p.port(), ::TransportProto::TRANSPORT_TCP);
@@ -657,7 +664,7 @@ inline ValPtr to_val(const hilti::rt::Port& p, const TypePtr& target) {
  */
 inline ValPtr to_val(const hilti::rt::Interval& i, const TypePtr& target) {
     if ( target->Tag() != TYPE_INTERVAL )
-        throw TypeMismatch("interval", target);
+        throw ParameterMismatch("interval", target);
 
     return make_intrusive<IntervalVal>(i.seconds());
 }
@@ -668,7 +675,7 @@ inline ValPtr to_val(const hilti::rt::Interval& i, const TypePtr& target) {
  */
 inline ValPtr to_val(const hilti::rt::Time& t, const TypePtr& target) {
     if ( target->Tag() != TYPE_TIME )
-        throw TypeMismatch("time", target);
+        throw ParameterMismatch("time", target);
 
     return make_intrusive<TimeVal>(t.seconds());
 }
@@ -680,7 +687,7 @@ inline ValPtr to_val(const hilti::rt::Time& t, const TypePtr& target) {
 template<typename T>
 inline ValPtr to_val(const hilti::rt::Vector<T>& v, const TypePtr& target) {
     if ( target->Tag() != TYPE_VECTOR && target->Tag() != TYPE_LIST )
-        throw TypeMismatch("expected vector or list", target);
+        throw ParameterMismatch("expected vector or list", target);
 
     auto vt = cast_intrusive<VectorType>(target);
     auto zv = make_intrusive<VectorVal>(vt);
@@ -697,17 +704,17 @@ inline ValPtr to_val(const hilti::rt::Vector<T>& v, const TypePtr& target) {
 template<typename K, typename V>
 inline ValPtr to_val(const hilti::rt::Map<K, V>& m, const TypePtr& target) {
     if constexpr ( hilti::rt::is_tuple<K>::value )
-        throw TypeMismatch("internal error: sets with tuples not yet supported in to_val()");
+        throw ParameterMismatch("internal error: sets with tuples not yet supported in to_val()");
 
     if ( target->Tag() != TYPE_TABLE )
-        throw TypeMismatch("map", target);
+        throw ParameterMismatch("map", target);
 
     auto tt = cast_intrusive<TableType>(target);
     if ( tt->IsSet() )
-        throw TypeMismatch("map", target);
+        throw ParameterMismatch("map", target);
 
     if ( tt->GetIndexTypes().size() != 1 )
-        throw TypeMismatch("map with non-tuple elements", target);
+        throw ParameterMismatch("map with non-tuple elements", target);
 
     auto zv = make_intrusive<TableVal>(tt);
 
@@ -727,20 +734,20 @@ inline ValPtr to_val(const hilti::rt::Map<K, V>& m, const TypePtr& target) {
 template<typename T>
 inline ValPtr to_val(const hilti::rt::Set<T>& s, const TypePtr& target) {
     if ( target->Tag() != TYPE_TABLE )
-        throw TypeMismatch("set", target);
+        throw ParameterMismatch("set", target);
 
     auto tt = cast_intrusive<TableType>(target);
     if ( ! tt->IsSet() )
-        throw TypeMismatch("set", target);
+        throw ParameterMismatch("set", target);
 
     auto zv = make_intrusive<TableVal>(tt);
 
     for ( const auto& i : s ) {
         if constexpr ( hilti::rt::is_tuple<T>::value )
-            throw TypeMismatch("internal error: sets with tuples not yet supported in to_val()");
+            throw ParameterMismatch("internal error: sets with tuples not yet supported in to_val()");
         else {
             if ( tt->GetIndexTypes().size() != 1 )
-                throw TypeMismatch("set with non-tuple elements", target);
+                throw ParameterMismatch("set with non-tuple elements", target);
 
             auto idx = to_val(i, tt->GetIndexTypes()[0]);
             zv->Assign(std::move(idx), nullptr);
@@ -821,7 +828,7 @@ inline void set_record_field(RecordVal* rval, const IntrusivePtr<RecordType>& rt
             // Field must be &optional or &default.
             if ( auto attrs = rtype->FieldDecl(idx)->attrs;
                  ! attrs || ! (attrs->Find(detail::ATTR_DEFAULT) || attrs->Find(detail::ATTR_OPTIONAL)) )
-                throw TypeMismatch(hilti::rt::fmt("missing initialization for field '%s'", rtype->FieldName(idx)));
+                throw ParameterMismatch(hilti::rt::fmt("missing initialization for field '%s'", rtype->FieldName(idx)));
         }
     }
 }
@@ -833,12 +840,12 @@ inline void set_record_field(RecordVal* rval, const IntrusivePtr<RecordType>& rt
 template<typename T, typename std::enable_if_t<hilti::rt::is_tuple<T>::value>*>
 inline ValPtr to_val(const T& t, const TypePtr& target) {
     if ( target->Tag() != TYPE_RECORD )
-        throw TypeMismatch("tuple", target);
+        throw ParameterMismatch("tuple", target);
 
     auto rtype = cast_intrusive<RecordType>(target);
 
     if ( std::tuple_size<T>::value != rtype->NumFields() )
-        throw TypeMismatch("tuple", target);
+        throw ParameterMismatch("tuple", target);
 
     auto rval = make_intrusive<RecordVal>(rtype);
     size_t idx = 0;
@@ -856,12 +863,12 @@ inline ValPtr to_val(const hilti::rt::Bitfield<Ts...>& v, const TypePtr& target)
     using Bitfield = hilti::rt::Bitfield<Ts...>;
 
     if ( target->Tag() != TYPE_RECORD )
-        throw TypeMismatch("bitfield", target);
+        throw ParameterMismatch("bitfield", target);
 
     auto rtype = cast_intrusive<RecordType>(target);
 
     if ( sizeof...(Ts) - 1 != rtype->NumFields() )
-        throw TypeMismatch("bitfield", target);
+        throw ParameterMismatch("bitfield", target);
 
     auto rval = make_intrusive<RecordVal>(rtype);
     size_t idx = 0;
@@ -887,7 +894,7 @@ constexpr bool is_optional = is_optional_impl<std::remove_cv_t<std::remove_refer
 template<typename T, typename std::enable_if_t<std::is_base_of<::hilti::rt::trait::isStruct, T>::value>*>
 inline ValPtr to_val(const T& t, const TypePtr& target) {
     if ( target->Tag() != TYPE_RECORD )
-        throw TypeMismatch("struct", target);
+        throw ParameterMismatch("struct", target);
 
     auto rtype = cast_intrusive<RecordType>(target);
 
@@ -898,7 +905,7 @@ inline ValPtr to_val(const T& t, const TypePtr& target) {
 
     t.__visit([&](std::string_view name, const auto& val) {
         if ( idx >= num_fields )
-            throw TypeMismatch(hilti::rt::fmt("no matching record field for field '%s'", name));
+            throw ParameterMismatch(hilti::rt::fmt("no matching record field for field '%s'", name));
 
         // Special-case: Lift up anonymous bitfields (which always come as std::optionals).
         if ( name == "<anon>" ) {
@@ -924,7 +931,7 @@ inline ValPtr to_val(const T& t, const TypePtr& target) {
             std::string field_name = rtype->FieldName(idx);
 
             if ( field_name != name )
-                throw TypeMismatch(
+                throw ParameterMismatch(
                     hilti::rt::fmt("mismatch in field name: expected '%s', found '%s'", name, field_name));
 
             set_record_field(rval.get(), rtype, idx++, val);
@@ -934,7 +941,7 @@ inline ValPtr to_val(const T& t, const TypePtr& target) {
     // We already check above that all Spicy-side fields are mapped so we
     // can only hit this if there are uninitialized Zeek-side fields left.
     if ( idx != num_fields )
-        throw TypeMismatch(hilti::rt::fmt("missing initialization for field '%s'", rtype->FieldName(idx + 1)));
+        throw ParameterMismatch(hilti::rt::fmt("missing initialization for field '%s'", rtype->FieldName(idx + 1)));
 
     return rval;
 }
@@ -959,7 +966,7 @@ inline ValPtr to_val_for_transport_proto(int64_t val, const TypePtr& target) {
 template<typename T, typename std::enable_if_t<std::is_enum<typename T::Value>::value>*>
 inline ValPtr to_val(const T& t, const TypePtr& target) {
     if ( target->Tag() != TYPE_ENUM )
-        throw TypeMismatch("enum", target);
+        throw ParameterMismatch("enum", target);
 
     // We'll usually be getting an int64_t for T, but allow other signed ints
     // as well.
@@ -969,7 +976,7 @@ inline ValPtr to_val(const T& t, const TypePtr& target) {
     // Special case: map enum values to Zeek's semantics.
     if ( target->GetName() == "transport_proto" ) {
         if ( ! std::is_same_v<T, hilti::rt::Protocol> )
-            throw TypeMismatch(hilti::rt::demangle(typeid(t).name()), target);
+            throw ParameterMismatch(hilti::rt::demangle(typeid(t).name()), target);
 
         return to_val_for_transport_proto(it, target);
     }

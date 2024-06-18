@@ -27,6 +27,8 @@ class FinishMessage;
 class FinishedMessage;
 class KillMeMessage;
 
+class MsgThread_IOSource;
+
 } // namespace detail
 
 /**
@@ -40,7 +42,7 @@ class KillMeMessage;
  * that happens, the thread stops accepting any new messages, finishes
  * processes all remaining ones still in the queue, and then exits.
  */
-class MsgThread : public BasicThread, public iosource::IOSource {
+class MsgThread : public BasicThread {
 public:
     /**
      * Constructor. It automatically registers the thread with the
@@ -208,19 +210,13 @@ public:
      */
     void GetStats(Stats* stats);
 
-    /**
-     * Overridden from iosource::IOSource.
-     */
-    void Process() override;
-    const char* Tag() override { return Name(); }
-    double GetNextTimeout() override { return -1; }
-
 protected:
     friend class Manager;
     friend class detail::HeartbeatMessage;
     friend class detail::FinishMessage;
     friend class detail::FinishedMessage;
     friend class detail::KillMeMessage;
+    friend class detail::MsgThread_IOSource;
 
     /**
      * Pops a message sent by the child from the child-to-main queue.
@@ -285,6 +281,11 @@ protected:
      * or nullptr if nothing is available.
      */
     virtual const zeek::detail::Location* GetLocationInfo() const { return nullptr; }
+
+    /**
+     * Process() forwarded by MsgThread_IOSource.
+     */
+    void Process();
 
 private:
     /**
@@ -362,7 +363,7 @@ private:
     bool child_sent_finish; // Child thread asked to be finished.
     bool failed;            // Set to true when a command failed.
 
-    zeek::detail::Flare flare;
+    detail::MsgThread_IOSource* io_source = nullptr; // IO source registered with the IO manager.
 };
 
 /**

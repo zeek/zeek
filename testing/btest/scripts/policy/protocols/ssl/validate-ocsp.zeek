@@ -1,3 +1,5 @@
+# @TEST-REQUIRES: ! fips-mode-setup --is-enabled >/dev/null 2>&1
+#
 # @TEST-EXEC: zeek -b $SCRIPTS/external-ca-list.zeek -C -r $TRACES/tls/ocsp-stapling.trace %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-x509-names | $SCRIPTS/diff-remove-timestamps" btest-diff ssl.log
 # @TEST-EXEC: zeek -b $SCRIPTS/external-ca-list.zeek -C -r $TRACES/tls/ocsp-stapling-twimg.trace %INPUT

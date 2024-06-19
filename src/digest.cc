@@ -91,6 +91,10 @@ unsigned char* internal_md5(const unsigned char* data, unsigned long len, unsign
     return calculate_digest(Hash_MD5, data, len, out);
 }
 
+unsigned char* internal_sha1(const unsigned char* data, unsigned long len, unsigned char* out) {
+    return calculate_digest(Hash_SHA1, data, len, out);
+}
+
 unsigned char* calculate_digest(HashAlgorithm alg, const unsigned char* data, uint64_t len, unsigned char* out) {
     // maximum possible length for supported hashes
     static unsigned char static_out[SHA512_DIGEST_LENGTH];

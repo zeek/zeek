@@ -89,11 +89,11 @@ type Extensions = enum {
   renegotiation_info = 65281
 };
 
-type ECPointFormat = enum {
- uncompressed = 0,
- ansiX962_compressed_prime = 1,
- ansiX962_compressed_char2 =2
-};
+# type ECPointFormat = enum {
+#  uncompressed = 0,
+#  ansiX962_compressed_prime = 1,
+#  ansiX962_compressed_char2 =2
+# };
 
 type ECCurveType = enum {
   EXPLICIT_PRIME = 1,
@@ -101,19 +101,19 @@ type ECCurveType = enum {
   NAMED_CURVE = 3
 };
 
-type NamedCurve = enum {
-  sect163k1 = 1, sect163r1 = 2, sect163r2 = 3,
-  sect193r1 = 4, sect193r2 = 5, sect233k1 = 6,
-  sect233r1 = 7, sect239k1 = 8, sect283k1 = 9,
-  sect283r1 = 10, sect409k1 = 11, sect409r1 = 12,
-  sect571k1 = 13, sect571r1 = 14, secp160k1 = 15,
-  secp160r1 = 16, secp160r2 = 17, secp192k1 = 18,
-  secp192r1 = 19, secp224k1 = 20, secp224r1 = 21,
-  secp256k1 = 22, secp256r1 = 23, secp384r1 = 24,
-  secp521r1 = 25,
-  arbitrary_explicit_prime_curves = 0xFF01,
-  arbitrary_explicit_char2_curves = 0xFF02
-};
+# type NamedCurve = enum {
+#   sect163k1 = 1, sect163r1 = 2, sect163r2 = 3,
+#   sect193r1 = 4, sect193r2 = 5, sect233k1 = 6,
+#   sect233r1 = 7, sect239k1 = 8, sect283k1 = 9,
+#   sect283r1 = 10, sect409k1 = 11, sect409r1 = 12,
+#   sect571k1 = 13, sect571r1 = 14, secp160k1 = 15,
+#   secp160r1 = 16, secp160r2 = 17, secp192k1 = 18,
+#   secp192r1 = 19, secp224k1 = 20, secp224r1 = 21,
+#   secp256k1 = 22, secp256r1 = 23, secp384r1 = 24,
+#   secp521r1 = 25,
+#   arbitrary_explicit_prime_curves = 0xFF01,
+#   arbitrary_explicit_char2_curves = 0xFF02
+# };
 
 type HeartbeatMode = enum {
  peer_allowed_to_send = 1,
@@ -124,59 +124,46 @@ type NameType = enum {
   host_name = 0
 };
 
-type AlertLevel = enum {
-  warning= 1, fatal= 2
-};
+# type AlertLevel = enum {
+#   warning= 1, fatal= 2
+# };
 
-type AlertDescription = enum {
-  close_notify = 0,
-  unexpected_message = 10,
-  bad_record_mac = 20,
-  decryption_failed_RESERVED = 21,
-  record_overflow = 22,
-  decompression_failure = 30,
-  handshake_failure = 40,
-  no_certificate_RESERVED = 41,
-  bad_certificate = 42,
-  unsupported_certificate = 43,
-  certificate_revoked = 44,
-  certificate_expired = 45,
-  certificate_unknown = 46,
-  illegal_parameter = 47,
-  unknown_ca = 48,
-  access_denied = 49,
-  decode_error = 50,
-  decrypt_error = 51,
-  export_restriction_RESERVED = 60,
-  protocol_version = 70,
-  insufficient_security = 71,
-  internal_error = 80,
-  user_canceled = 90,
-  no_renegotiation = 100,
-  unsupported_extension = 110
-};
+# type AlertDescription = enum {
+#   close_notify = 0,
+#   unexpected_message = 10,
+#   bad_record_mac = 20,
+#   decryption_failed_RESERVED = 21,
+#   record_overflow = 22,
+#   decompression_failure = 30,
+#   handshake_failure = 40,
+#   no_certificate_RESERVED = 41,
+#   bad_certificate = 42,
+#   unsupported_certificate = 43,
+#   certificate_revoked = 44,
+#   certificate_expired = 45,
+#   certificate_unknown = 46,
+#   illegal_parameter = 47,
+#   unknown_ca = 48,
+#   access_denied = 49,
+#   decode_error = 50,
+#   decrypt_error = 51,
+#   export_restriction_RESERVED = 60,
+#   protocol_version = 70,
+#   insufficient_security = 71,
+#   internal_error = 80,
+#   user_canceled = 90,
+#   no_renegotiation = 100,
+#   unsupported_extension = 110
+# };
 
-type HashAlgorithm = enum {
-  none = 0, md5= 1, sha1= 2, sha224= 3, sha256= 4, sha384= 5,
-  sha512 = 6
-};
+# type HashAlgorithm = enum {
+#   none = 0, md5= 1, sha1= 2, sha224= 3, sha256= 4, sha384= 5,
+#   sha512 = 6
+# };
 
-type SignatureAlgorithm = enum {
-  anonymous = 0, rsa= 1, dsa= 2, ecdsa= 3
-};
-
-type TLSVersion = enum {
-  NONE = 0xFFFFFF, # out of range, only used internally
-  SSLv2  = 0x0002,
-  SSLv3  = 0x0300,
-  TLSv10 = 0x0301,
-  TLSv11 = 0x0302,
-  TLSv12 = 0x0303,
-  DTLSv10   = 0xFEFF,
-  # DTLSv11 does not exist.
-  DTLSv12   = 0xFEFD,
-  DTLSv13   = 0xFEFC
-};
+# type SignatureAlgorithm = enum {
+#   anonymous = 0, rsa= 1, dsa= 2, ecdsa= 3
+# };
 
 const UNKNOWN_VERSION : uint16 = 0x0000;
 const SSLv2 = 0x0002;
@@ -191,11 +178,11 @@ const DTLSv10 = 0xFEFF;
 const DTLSv12 = 0xFEFD;
 const DTLSv13 = 0xFEFC;
 
-type ClientCertificateType = enum {
-  rsa_sign = 1, dss_sign = 2, rsa_fixed_dh = 3, dss_fixed_dh = 4,
-  rsa_ephemeral_dh_RESERVED = 5, dss_ephemeral_dh_RESERVED = 6,
-  fortezza_dms_RESERVED = 20
-};
+# type ClientCertificateType = enum {
+#   rsa_sign = 1, dss_sign = 2, rsa_fixed_dh = 3, dss_fixed_dh = 4,
+#   rsa_ephemeral_dh_RESERVED = 5, dss_ephemeral_dh_RESERVED = 6,
+#   fortezza_dms_RESERVED = 20
+# };
 
 type TLSCiphers = enum {
   NO_CHOSEN_CIPHER = 0xFFFFFF,
@@ -689,9 +676,9 @@ type RecordFragmentChoice = unit(handshakesink: sink&, alertsink: sink&, inout m
     False -> tlsfragment : TLSRecordFragment(self.content_type, handshakesink, alertsink, msg, sh);
   };
 
-  on content_type {
-    # print "Content type", self.content_type;
-  }
+  # on content_type {
+  #   print "Content type", self.content_type;
+  # }
   on version {
     msg.record_version = self.version;
     if ( is_dtls_version(self.version) ) {
@@ -731,17 +718,17 @@ type PlaintextRecord = unit(content_type: uint8, handshakesink: sink&, alertsink
     ContentType::change_cipher_spec -> ccs : bytes &size=self.length;
     ContentType::heartbeat -> hn: Heartbeat(sh, self.length);
     ContentType::alert -> : bytes &size=self.length -> alertsink;
-    * -> unhandled : bytes &size=self.length;
+    * -> unhandled: skip bytes &size=self.length;
   };
   trigger_two: void;
   trigger_three: void;
 
-  on unhandled {
-    # print "Unhandled content type", content_type;
-  }
+  # on unhandled {
+  #   print "Unhandled content type", content_type;
+  # }
 
   on length {
-     self.encrypted = determine_encryption_on(self, content_type, handshakesink, alertsink, msg, sh);
+     self.encrypted = determine_encryption_on(self, content_type, handshakesink, alertsink, sh);
   }
 
   on ccs {
@@ -783,7 +770,7 @@ type PlaintextRecord = unit(content_type: uint8, handshakesink: sink&, alertsink
 ## a bit of context here - we can't really say when we get the first packet
 ## that uses the final cryptographic key material - and will contain content
 ## data. We just don't have that information available in TLS 1.3 anymore.
-function determine_encryption_on(pr: PlaintextRecord, content_type: uint8, handshakesink: sink&, alertsink: sink&, inout msg: Message, inout sh: Share) : bool {
+function determine_encryption_on(pr: PlaintextRecord, content_type: uint8, handshakesink: sink&, alertsink: sink&, inout sh: Share) : bool {
     if ( get_encrypted(sh) )
       return True;
 
@@ -847,22 +834,19 @@ type Handshake_message = unit(inout msg: Message, inout sh: Share) {
     HandshakeType::server_key_exchange -> server_key_exchange: ServerKeyExchange(sh, self.length);
     HandshakeType::NewSessionTicket -> session_ticket: NewSessionTicket;
     HandshakeType::certificate_status -> certificate_status: CertificateStatus;
-    * -> unhandled : bytes &size=self.length;
+    * -> unhandled: skip bytes &size=self.length;
   };
 
-  on %done {
-    # print self;
-  }
-  on msg_type {
-    # print "Handshake message", self.msg_type;
-  }
-  on unhandled {
-    # print "Unhandled handshake message of type ", self.msg_type;
-  }
-  on %error(emsg: string) {
-    # print "Error in handshake message of type", self.msg_type, self, emsg;
-    # print self;
-  }
+  # on msg_type {
+  #   print "Handshake message", self.msg_type;
+  # }
+  # on unhandled {
+  #   print "Unhandled handshake message of type ", self.msg_type;
+  # }
+  # on %error(emsg: string) {
+  #   print "Error in handshake message of type", self.msg_type, self, emsg;
+  #   print self;
+  # }
 };
 
 type HelloRequest = unit(inout sh: Share) {
@@ -937,10 +921,10 @@ type ClientHello = unit(len: uint64, msg: Message, inout sh: Share) {
   compression_methods: uint8[self.compression_methods_length];
   extensions_length: uint16 if ( len > self.offset() + 2 );
   extensions: Extension(sh, True)[] &size=self.extensions_length if ( len > self.offset() + 2 );
-  on %error(emsg: string) {
-    # print "Error in client hello", emsg;
-    # print self;
-  }
+  # on %error(emsg: string) {
+  #   print "Error in client hello", emsg;
+  #   print self;
+  # }
 };
 
 # Draft versions of TLS 1.3 had a different server hello - distinguish here
@@ -1002,10 +986,10 @@ type ServerHello = unit(len: uint64, msg: Message, inout sh: Share, server_versi
     sh.chosen_cipher = self.cipher_suite;
     # print "set chosen cipher", self.cipher_suite, sh.chosen_cipher;
   }
-  on %error(emsg: string) {
-    # print "Error in server hello", emsg;
-    # print self;
-  }
+  # on %error(emsg: string) {
+  #   print "Error in server hello", emsg;
+  #   print self;
+  # }
 };
 
 type Extension = unit(inout sh: Share, client_hello: bool) {
@@ -1035,15 +1019,15 @@ type Extension = unit(inout sh: Share, client_hello: bool) {
     * -> unknown : bytes &size=self.length;
   };
 
-  on code {
-    # print "Extension", self.code, client_hello;
-  }
-  on unknown {
-    # print "Unknown extension", self.code;
-  }
-  on %error(emsg: string) {
-    # print "Error parsing extension with code", self.code, emsg;
-  }
+  # on code {
+  #   print "Extension", self.code, client_hello;
+  # }
+  # on unknown {
+  #   print "Unknown extension", self.code;
+  # }
+  # on %error(emsg: string) {
+  #   print "Error parsing extension with code", self.code, emsg;
+  # }
   on raw {
     self.set_input(self.input()+4);
   }

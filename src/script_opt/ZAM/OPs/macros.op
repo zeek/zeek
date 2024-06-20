@@ -58,5 +58,6 @@ macro GlobalID(g) globals[g].id
 macro GlobalVal(g) frame[globals[g].slot]
 
 macro StepIter(slot) step_iters[slot]
-
 macro TableIter(slot) (*tiv_ptr)[slot]
+
+macro DirectField(r, f) r->RawOptField(f)

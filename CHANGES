@@ -1,3 +1,87 @@
+7.0.0-dev.392 | 2024-06-20 15:51:42 +0200
+
+  * Spicy: Provide runtime API to access Zeek-side globals. (Robin Sommer, Corelight)
+
+    This allows to read Zeek global variables from inside Spicy code. The
+    main challenge here is supporting all of Zeek's data type in a
+    type-safe manner.
+
+    The most straight-forward API is a set of functions
+    `get_<type>(<id>)`, where `<type>` is the Zeek-side type
+    name (e.g., `count`, `string`, `bool`) and `<id>` is the fully scoped
+    name of the Zeek-side global (e.g., `MyModule::Boolean`). These
+    functions then return the corresponding Zeek value, converted in an
+    appropriate Spicy type. Example:
+
+        Zeek:
+            module Foo;
+
+            const x: count = 42;
+            const y: string = "xxx";
+
+        Spicy:
+            import zeek;
+
+            assert zeek::get_count("Foo::x") == 42;
+            assert zeek::get_string("Foo::y") == b"xxx"; # returns bytes(!)
+
+    For container types, the `get_*` function returns an opaque types that
+    can be used to access the containers' values. An additional set of
+    functions `as_<type>` allows converting opaque values of atomic
+    types to Spicy equivalents. Example:
+
+        Zeek:
+            module Foo;
+
+            const s: set[count] = { 1, 2 };
+            const t: table[count] of string = { [1] = "One", [2] = "Two" }
+
+        Spicy:
+
+            # Check set membership.
+            local set_ = zeek::get_set("Foo::s");
+            assert zeek::set_contains(set_, 1) == True
+
+            # Look up table element.
+            local table_ = zeek::get_table("Foo::t");
+            local value = zeek::table_lookup(t, 1);
+            assert zeek::as_string(value) == b"One"
+
+    There are also functions for accessing elements of Zeek-side vectors
+    and records.
+
+    If any of these `zeek::*` conversion functions fails (e.g., due to a
+    global of that name not existing), it will throw an exception.
+
+    The documentation has more information on all of this.
+
+    Design considerations:
+
+        - We support only reading Zeek variables, not writing. This is
+          both to simplify the API, and also conceptually to avoid
+          offering backdoors into Zeek state that could end up with a very
+          tight coupling of Spicy and Zeek code.
+
+        - We accept that a single access might be relatively slow due to
+          name lookup and data conversion. This is primarily meant for
+          configuration-style data, not for transferring lots of dynamic
+          state over.
+
+        - In that spirit, we don't support deep-copying complex data types
+          from Zeek over to Spicy. This is (1) to avoid performance
+          problems when accidentally copying large containers over,
+          potentially even at every access; and (2) to avoid the two sides
+          getting out of sync if one ends up modifying a container without
+          the other being able to see it.
+
+  * Spicy: Reformat `zeek.spicy` with `spicy-format`. (Robin Sommer, Corelight)
+
+  * Spicy: Extend exception hierarchy. (Robin Sommer, Corelight)
+
+    We move the current `TypeMismatch` into a  new `ParameterMismatch`
+    exception that's derived from a more general `TypeMismatch` now that
+    can also be used for other, non-parameter mismatches.
+
 7.0.0-dev.387 | 2024-06-18 10:52:25 +0200
 
   * CMakeLists: Disable -Werror for 3rdparty/sqlite3.c (Arne Welzel, Corelight)

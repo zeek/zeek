@@ -1,3 +1,7 @@
+7.0.0-dev.394 | 2024-06-20 17:28:11 -0700
+
+  * Add "zeek/" prefixes to includes in spicy/runtime-support.h (Michael Dopheide)
+
 7.0.0-dev.392 | 2024-06-20 15:51:42 +0200
 
   * Spicy: Provide runtime API to access Zeek-side globals. (Robin Sommer, Corelight)

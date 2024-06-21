@@ -1,3 +1,17 @@
+7.0.0-dev.397 | 2024-06-20 18:16:51 -0700
+
+  * zeek-testing-private: Update baseline (Arne Welzel, Corelight)
+
+  * ssh: Revert half-duplex robustness (Arne Welzel, Corelight)
+
+    This reverts part of commit a0888b7e36308d241f4c62b42715a94d499aab23 due
+    to inhibiting analyzer violations when parsing non SSH traffic when
+    the &restofdata path is entered.
+
+    See additional discussion here:
+    https://github.com/zeek/zeek/pull/3781
+    https://github.com/zeek/zeek/pull/3720/files#r1636314375
+
 7.0.0-dev.394 | 2024-06-20 17:28:11 -0700
 
   * Add "zeek/" prefixes to includes in spicy/runtime-support.h (Michael Dopheide)

@@ -40,5 +40,8 @@ event zeek_init()
 	print join_any_vec(vector(1, 2, 3), ",", function(x: count): string { return cat(x + 1); });
 	print join_any_vec(vector("a", "b", "c", "d"), ",");
 	print join_any_vec(vector(set(1, 10), set(2, 20), set(3, 30), set(4, 40)), ",", set_stringifier);
-	print join_any_vec(vector(1.0.0.0, 2.0.0.0, 3.0.0.0, 4.0.0.0), ",");
+	local v = vector(1.0.0.0, 2.0.0.0, 3.0.0.0, 4.0.0.0);
+	v[5] = 5.0.0.0;
+	print join_any_vec(v, ",");
+	print join_any_vec(v, ",", function(x: addr): string { return cat(x/24); });
 	}

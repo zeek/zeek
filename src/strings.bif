@@ -157,11 +157,11 @@ function join_any_vec%(vec: any_vec, sep: string, stringifier: any_to_string_fun
 		if ( i > 0 )
 			d.AddN(reinterpret_cast<const char*>(sep->Bytes()), sep->Len());
 
-		auto e = stringifier_ptr == default_stringifier_ptr ? v->ValAt(i) : stringifier_ptr->Invoke(v->ValAt(i));
-
 		// If the element is empty, skip it.
-		if ( ! e )
+		if ( ! v->Has(i) )
 			continue;
+
+		auto e = stringifier_ptr == default_stringifier_ptr ? v->ValAt(i) : stringifier_ptr->Invoke(v->ValAt(i));
 
 		e->Describe(&d);
 		}

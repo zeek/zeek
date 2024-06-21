@@ -189,7 +189,7 @@ struct opt_mapping {
 class BrokerState {
 public:
     BrokerState(broker::configuration config, size_t congestion_queue_size)
-        : endpoint(std::move(config)),
+        : endpoint(std::move(config), telemetry_mgr->GetRegistry()),
           subscriber(
               endpoint.make_subscriber({broker::topic::statuses(), broker::topic::errors()}, congestion_queue_size)) {}
 

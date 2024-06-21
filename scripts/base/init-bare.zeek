@@ -138,6 +138,13 @@ type interval_set: set[interval];
 ##    directly and then remove this alias.
 type string_mapper: function(s: string): string;
 
+## Function mapping an any to a string.
+##
+## .. todo:: We need this type definition only for declaring builtin functions
+##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
+##    directly and then remove this alias.
+type any_to_string_func: function(x: any): string;
+
 ## A structure indicating a MIME type and strength of a match against
 ## file magic signatures.
 ##

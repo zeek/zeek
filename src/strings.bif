@@ -99,7 +99,7 @@ function string_cat%(...%): string
 ##          between each element.
 ##
 ## .. zeek:see:: cat cat_sep string_cat
-##              fmt
+##              fmt join_any_vec
 function join_string_vec%(vec: string_vec, sep: string%): string
 	%{
 	ODesc d;
@@ -113,6 +113,51 @@ function join_string_vec%(vec: string_vec, sep: string%): string
 			d.AddN(reinterpret_cast<const char*>(sep->Bytes()), sep->Len());
 
 		auto e = v->ValAt(i);
+
+		// If the element is empty, skip it.
+		if ( ! e )
+			continue;
+
+		e->Describe(&d);
+		}
+
+	zeek::String* s = new zeek::String(1, d.TakeBytes(), d.Len());
+	s->SetUseFreeToDelete(true);
+
+	return zeek::make_intrusive<zeek::StringVal>(s);
+	%}
+
+## Joins all values in the given vector of anys after converting to a string
+## with a separator placed between each element.
+##
+## vec: The :zeek:type:`any_vec` (``vector of any``).
+##
+## sep: The separator to place between each element.
+##
+## stringifier: A function that converts the elements in `vec` to `string`s.
+##              Defaults to using `cat`.
+##
+## Returns: The concatenation of all elements in *vec*, with *sep* placed
+##          between each element.
+##
+## .. zeek:see:: cat cat_sep string_cat
+##              fmt join_string_vec
+function join_any_vec%(vec: any_vec, sep: string, stringifier: any_to_string_func &default=cat%): string
+	%{
+	static auto default_stringifier_ptr = zeek::id::find_func("cat");
+	auto stringifier_ptr = stringifier->AsFuncVal()->AsFuncPtr();
+
+	ODesc d;
+	d.SetStyle(RAW_STYLE);
+
+	zeek::VectorVal *v = vec->AsVectorVal();
+
+	for ( unsigned i = 0; i < v->Size(); ++i )
+		{
+		if ( i > 0 )
+			d.AddN(reinterpret_cast<const char*>(sep->Bytes()), sep->Len());
+
+		auto e = stringifier_ptr == default_stringifier_ptr ? v->ValAt(i) : stringifier_ptr->Invoke(v->ValAt(i));
 
 		// If the element is empty, skip it.
 		if ( ! e )

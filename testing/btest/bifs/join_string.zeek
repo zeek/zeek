@@ -2,6 +2,15 @@
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
 
+function set_stringifier(s: set[count]): string
+	{
+	local tmp: set[string];
+	for ( x in s )
+		add tmp[cat(x)];
+
+	return join_string_set(tmp, ";");
+	}
+
 event zeek_init()
 	{
 	local a: string_array = {
@@ -25,4 +34,11 @@ event zeek_init()
 	print join_string_set(set("one"), ", ");
 	print join_string_set(set("one", "two", "three"), ", ");
 	print join_string_set(set("one", "two"), "");
+
+	print join_any_vec(vector(1, 2, 3), ",");
+	print join_any_vec(vector(1, 2, 3), ",", cat);
+	print join_any_vec(vector(1, 2, 3), ",", function(x: count): string { return cat(x + 1); });
+	print join_any_vec(vector("a", "b", "c", "d"), ",");
+	print join_any_vec(vector(set(1, 10), set(2, 20), set(3, 30), set(4, 40)), ",", set_stringifier);
+	print join_any_vec(vector(1.0.0.0, 2.0.0.0, 3.0.0.0, 4.0.0.0), ",");
 	}

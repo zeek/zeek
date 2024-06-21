@@ -158,4 +158,6 @@ private:
     ProfVec* curr_prof_vec;
 };
 
+extern bool copy_vec_elem(VectorVal* vv, zeek_uint_t ind, ZVal zv, const TypePtr& t);
+
 } // namespace zeek::detail

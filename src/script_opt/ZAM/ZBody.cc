@@ -144,7 +144,7 @@ void report_ZOP_profile() {
 // assigned value was missing (which we can only tell for managed types),
 // true otherwise.
 
-static bool copy_vec_elem(VectorVal* vv, zeek_uint_t ind, ZVal zv, const TypePtr& t) {
+bool copy_vec_elem(VectorVal* vv, zeek_uint_t ind, ZVal zv, const TypePtr& t) {
     if ( vv->Size() <= ind )
         vv->Resize(ind + 1);
 

@@ -329,8 +329,27 @@ TableValPtr Val::GetRecordFields() {
     return rt->GetRecordFieldsVal(rv);
 }
 
-// This is a static method in this file to avoid including rapidjson's headers in Val.h because
-// they're huge.
+// A predicate to identify those types we render as a string in JSON.
+static bool IsQuotedJSONType(const TypePtr& t) {
+    if ( t == nullptr )
+        return false;
+
+    switch ( t->Tag() ) {
+        case TYPE_ADDR:
+        case TYPE_ENUM:
+        case TYPE_FILE:
+        case TYPE_FUNC:
+        case TYPE_INTERVAL:
+        case TYPE_PATTERN:
+        case TYPE_STRING:
+        case TYPE_SUBNET:
+        case TYPE_OPAQUE: return true;
+        default: return false;
+    }
+}
+
+// This is a static method in this file to avoid including rapidjson's headers
+// in Val.h, because they're huge.
 static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool only_loggable = false,
                       RE_Matcher* re = nullptr, const string& key = "") {
     if ( ! key.empty() )

@@ -67,10 +67,10 @@ op1-read
 class VV
 op-types V V
 eval	ValPtr vec = {NewRef{}, $1};
-	auto slice = Z_AUX->ToListVal(frame);
+	auto indices = Z_AUX->ToListVal(frame);
 	ValPtr vals = {NewRef{}, $2};
 	bool iterators_invalidated;
-	auto error = assign_to_index(std::move(vec), std::move(slice), std::move(vals), iterators_invalidated);
+	auto error = assign_to_index(std::move(vec), std::move(indices), std::move(vals), iterators_invalidated);
 	if ( error )
 		ERROR(error);
 	if ( iterators_invalidated )

@@ -216,7 +216,8 @@ eval	if ( $1 ) $2
 op AddStmt
 op1-read
 class VO
-eval	EvalAddStmt($1, Z_AUX->ToListVal(frame))
+eval	auto indices = Z_AUX->ToListVal(frame);
+	EvalAddStmt($1, indices)
 method-post z.aux = v->aux;
 
 macro EvalAddStmt(lhs, ind)
@@ -250,9 +251,9 @@ op DelTable
 op1-read
 class VO
 op-types T X
-eval	auto index = Z_AUX->ToListVal(frame);
+eval	auto indices = Z_AUX->ToListVal(frame);
 	bool iterators_invalidated = false;
-	$1->Remove(*index, true, &iterators_invalidated);
+	$1->Remove(*indices, true, &iterators_invalidated);
 	if ( iterators_invalidated )
 		WARN("possible loop/iterator invalidation");
 method-post z.aux = v->aux;

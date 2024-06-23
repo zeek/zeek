@@ -104,25 +104,27 @@ eval	EvalIndexAnyVec($$, $1, $2)
 
 macro EvalVecSlice(lhs, vv)
 	auto vec = vv;
-	auto lv = Z_AUX->ToListVal(frame);
-	auto v = index_slice(vec, lv.get());
+	auto v = index_slice(vec, indices.get());
 	Unref(lhs);
 	lhs = v.release();
 
 internal-op Index-Vec-Slice
 class VV
 op-types V V
-eval	EvalVecSlice($$, $1)
+eval	auto indices = Z_AUX->ToListVal(frame);
+	EvalVecSlice($$, $1)
 
 internal-op When-Index-Vec-Slice
 class VV
 op-types V V
-eval	EvalVecSlice($$, $1)
+eval	auto indices = Z_AUX->ToListVal(frame);
+	EvalVecSlice($$, $1)
 	WhenIndexResCheck($$)
 
 internal-op Table-Index
 class VV
-eval	EvalTableIndex($1, Z_AUX->ToListVal(frame))
+eval	auto indices = Z_AUX->ToListVal(frame);
+	EvalTableIndex($1, indices)
 	if ( v )
 		AssignTarget($$, BuildVal(v, Z_TYPE))
 
@@ -135,7 +137,8 @@ eval	auto vec = ZVal($1->LookupPattern({NewRef{}, $2}));
 
 internal-op When-Table-Index
 class VV
-eval	EvalTableIndex($1, Z_AUX->ToListVal(frame))
+eval	auto indices = Z_AUX->ToListVal(frame);
+	EvalTableIndex($1, indices)
 	if ( v )
 		{
 		if ( IndexExprWhen::evaluating > 0 )
@@ -151,8 +154,8 @@ macro EvalTableIndex(tbl, index)
 internal-op When-PatStr-Index
 class VV
 op-types X T
-eval	auto args = Z_AUX->ToListVal(frame);
-	auto arg0 = args->Idx(0);
+eval	auto indices = Z_AUX->ToListVal(frame);
+	auto arg0 = indices->Idx(0);
 	auto v = $1->LookupPattern({NewRef{}, arg0->AsStringVal()});
 	if ( IndexExprWhen::evaluating > 0 )
 		IndexExprWhen::results.emplace_back(v);
@@ -190,8 +193,8 @@ internal-op Index-String-Slice
 class VV
 op-types S S
 eval	auto str = $1->AsString();
-	auto lv = Z_AUX->ToListVal(frame);
-	auto slice = index_string(str, lv.get());
+	auto indices = Z_AUX->ToListVal(frame);
+	auto slice = index_string(str, indices.get());
 	Unref($$);
 	$$ = new StringVal(slice->ToStdString());
 

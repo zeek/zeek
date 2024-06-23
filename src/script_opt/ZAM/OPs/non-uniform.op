@@ -198,8 +198,8 @@ eval	$1->Find($2.ToVal(Z_TYPE)) != nullptr
 internal-op List-Is-In-Table
 classes VV VC
 op-types I T
-eval	auto op1 = Z_AUX->ToListVal(frame);
-	$$ = $1->Find(std::move(op1)) != nullptr;
+eval	auto indices = Z_AUX->ToListVal(frame);
+	$$ = $1->Find(std::move(indices)) != nullptr;
 
 internal-op Val-Is-In-Vector
 class VVV

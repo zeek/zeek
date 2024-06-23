@@ -338,20 +338,23 @@ const ZAMStmt ZAMCompiler::CompileFieldLHSAssignExpr(const FieldLHSAssignExpr* e
     auto field = e->Field();
 
     if ( rhs->Tag() == EXPR_NAME )
-        return Field_LHS_AssignFV(e, rhs->AsNameExpr());
+        return Field_LHS_AssignFVi(e, rhs->AsNameExpr(), field);
 
     if ( rhs->Tag() == EXPR_CONST )
-        return Field_LHS_AssignFC(e, rhs->AsConstExpr());
+        return Field_LHS_AssignFCi(e, rhs->AsConstExpr(), field);
 
     auto r1 = rhs->GetOp1();
     auto r2 = rhs->GetOp2();
 
     if ( rhs->Tag() == EXPR_FIELD ) {
         auto rhs_f = rhs->AsFieldExpr();
-        if ( r1->Tag() == EXPR_NAME )
-            return Field_LHS_AssignFVi(e, r1->AsNameExpr(), rhs_f->Field());
 
-        return Field_LHS_AssignFCi(e, r1->AsConstExpr(), rhs_f->Field());
+        // Note, the LHS field comes after the RHS field rather than before,
+        // to maintain layout symmetry close to that for non-field RHS's.
+        if ( r1->Tag() == EXPR_NAME )
+            return Field_LHS_AssignFVii(e, r1->AsNameExpr(), rhs_f->Field(), field);
+
+        return Field_LHS_AssignFCii(e, r1->AsConstExpr(), rhs_f->Field(), field);
     }
 
     if ( r1 && r1->IsConst() )

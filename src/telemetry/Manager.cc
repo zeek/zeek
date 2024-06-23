@@ -112,13 +112,21 @@ void Manager::InitPostScript() {
                                   return metric;
                               });
 
-    cpu_gauge = GaugeInstance("process", "cpu", {}, "Total user and system CPU time spent", "seconds",
-                              []() -> prometheus::ClientMetric {
-                                  auto* s = get_stats();
-                                  prometheus::ClientMetric metric;
-                                  metric.gauge.value = s->cpu;
-                                  return metric;
-                              });
+    user_cpu_gauge = GaugeInstance("process", "user_cpu", {}, "Total user CPU time spent", "seconds",
+                                   []() -> prometheus::ClientMetric {
+                                       auto* s = get_stats();
+                                       prometheus::ClientMetric metric;
+                                       metric.gauge.value = s->user_cpu;
+                                       return metric;
+                                   });
+
+    system_cpu_gauge = GaugeInstance("process", "system_cpu", {}, "Total system CPU time spent", "seconds",
+                                     []() -> prometheus::ClientMetric {
+                                         auto* s = get_stats();
+                                         prometheus::ClientMetric metric;
+                                         metric.gauge.value = s->system_cpu;
+                                         return metric;
+                                     });
 
     fds_gauge = GaugeInstance("process", "open_fds", {}, "Number of open file descriptors", "",
                               []() -> prometheus::ClientMetric {
@@ -549,18 +557,6 @@ HistogramPtr Manager::HistogramInstance(std::string_view prefix, std::string_vie
 
 using namespace std::literals;
 using namespace zeek::telemetry;
-
-namespace {
-
-template<class T>
-auto toVector(zeek::Span<T> xs) {
-    std::vector<std::remove_const_t<T>> result;
-    for ( auto&& x : xs )
-        result.emplace_back(x);
-    return result;
-}
-
-} // namespace
 
 SCENARIO("telemetry managers provide access to counter families") {
     GIVEN("a telemetry manager") {

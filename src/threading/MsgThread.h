@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <memory>
 
 #include "zeek/DebugLogger.h"
 #include "zeek/Flare.h"
@@ -11,6 +12,13 @@
 namespace zeek::detail {
 class Location;
 }
+
+namespace zeek::telemetry {
+class Counter;
+using CounterPtr = std::shared_ptr<Counter>;
+class Gauge;
+using GaugePtr = std::shared_ptr<Gauge>;
+} // namespace zeek::telemetry
 
 namespace zeek::threading {
 
@@ -353,8 +361,22 @@ private:
     Queue<BasicInputMessage*> queue_in;
     Queue<BasicOutputMessage*> queue_out;
 
-    std::atomic<uint64_t> cnt_sent_in;  // Counts message sent to child.
-    std::atomic<uint64_t> cnt_sent_out; // Counts message sent by child.
+    // telemetry counters are atomic underneath, so they should be thread-safe
+    telemetry::CounterPtr cnt_sent_in_metric;
+    telemetry::CounterPtr cnt_sent_out_metric;
+
+    telemetry::GaugePtr pending_in_metric;
+    telemetry::GaugePtr pending_out_metric;
+
+    telemetry::CounterPtr queue_in_num_reads_metric;
+    telemetry::CounterPtr queue_in_num_writes_metric;
+    double queue_in_stats_last_updated = 0;
+    Queue<BasicInputMessage*>::Stats queue_in_last_stats;
+
+    telemetry::CounterPtr queue_out_num_reads_metric;
+    telemetry::CounterPtr queue_out_num_writes_metric;
+    double queue_out_stats_last_updated = 0;
+    Queue<BasicOutputMessage*>::Stats queue_out_last_stats;
 
     bool main_finished;     // Main thread is finished, meaning child_finished propagated back through
                             // message queue.

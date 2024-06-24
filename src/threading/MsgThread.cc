@@ -9,6 +9,7 @@
 #include "zeek/Obj.h"
 #include "zeek/RunState.h"
 #include "zeek/iosource/Manager.h"
+#include "zeek/telemetry/Manager.h"
 #include "zeek/threading/Manager.h"
 
 // Set by Zeek's main signal handler.
@@ -172,14 +173,89 @@ bool ReporterMessage::Process() {
 Message::~Message() { delete[] name; }
 
 MsgThread::MsgThread() : BasicThread(), queue_in(this, nullptr), queue_out(nullptr, this) {
-    cnt_sent_in.store(0);
-    cnt_sent_out.store(0);
-
     main_finished = false;
     child_finished = false;
     child_sent_finish = false;
     failed = false;
     thread_mgr->AddMsgThread(this);
+
+    cnt_sent_in_metric = telemetry_mgr->CounterInstance("zeek", "msg_thread_msgs_sent_in", {{"thread_name", Name()}},
+                                                        "Number of messages sent into thread");
+    cnt_sent_out_metric = telemetry_mgr->CounterInstance("zeek", "msg_thread_msgs_sent_out", {{"thread_name", Name()}},
+                                                         "Number of messages sent from thread");
+    pending_in_metric = telemetry_mgr->GaugeInstance("zeek", "msg_thread_msgs_pending_in", {{"thread_name", Name()}},
+                                                     "Number of pending messages sent into thread", "",
+                                                     [this]() -> prometheus::ClientMetric {
+                                                         prometheus::ClientMetric metric;
+                                                         metric.gauge.value = static_cast<double>(queue_in.Size());
+                                                         return metric;
+                                                     });
+    pending_out_metric = telemetry_mgr->GaugeInstance("zeek", "msg_thread_msgs_pending_in", {{"thread_name", Name()}},
+                                                      "Number of pending messages sent from thread", "",
+                                                      [this]() -> prometheus::ClientMetric {
+                                                          prometheus::ClientMetric metric;
+                                                          metric.gauge.value = static_cast<double>(queue_out.Size());
+                                                          return metric;
+                                                      });
+
+    static auto get_queue_in_stats = [this]() -> const Queue<BasicInputMessage*>::Stats {
+        double now = util::current_time();
+        if ( this->queue_in_stats_last_updated < now - 0.01 ) {
+            queue_in.GetStats(&queue_in_last_stats);
+            this->queue_in_stats_last_updated = now;
+        }
+
+        return queue_in_last_stats;
+    };
+
+    queue_in_num_reads_metric =
+        telemetry_mgr->CounterInstance("zeek", "msg_thread_queue_in_reads", {{"thread_name", Name()}},
+                                       "Number of reads from msg thread input queue", "",
+                                       [this]() -> prometheus::ClientMetric {
+                                           prometheus::ClientMetric metric;
+                                           auto stats = get_queue_in_stats();
+                                           metric.gauge.value = static_cast<double>(stats.num_reads);
+                                           return metric;
+                                       });
+    queue_in_num_writes_metric =
+        telemetry_mgr->CounterInstance("zeek", "msg_thread_queue_in_writes", {{"thread_name", Name()}},
+                                       "Number of writes from msg thread input queue", "",
+                                       [this]() -> prometheus::ClientMetric {
+                                           prometheus::ClientMetric metric;
+                                           auto stats = get_queue_in_stats();
+                                           metric.gauge.value = static_cast<double>(stats.num_writes);
+                                           return metric;
+                                       });
+
+    static auto get_queue_out_stats = [this]() -> const Queue<BasicOutputMessage*>::Stats {
+        double now = util::current_time();
+        if ( this->queue_out_stats_last_updated < now - 0.01 ) {
+            queue_out.GetStats(&queue_out_last_stats);
+            this->queue_out_stats_last_updated = now;
+        }
+
+        return queue_out_last_stats;
+    };
+
+    queue_out_num_reads_metric =
+        telemetry_mgr->CounterInstance("zeek", "msg_thread_queue_out_reads", {{"thread_name", Name()}},
+                                       "Number of reads from msg thread input queue", "",
+                                       [this]() -> prometheus::ClientMetric {
+                                           prometheus::ClientMetric metric;
+                                           auto stats = get_queue_out_stats();
+                                           metric.gauge.value = static_cast<double>(stats.num_reads);
+                                           return metric;
+                                       });
+    queue_out_num_writes_metric =
+        telemetry_mgr->CounterInstance("zeek", "msg_thread_queue_out_writes", {{"thread_name", Name()}},
+                                       "Number of writes from msg thread input queue", "",
+                                       [this]() -> prometheus::ClientMetric {
+                                           prometheus::ClientMetric metric;
+                                           auto stats = get_queue_out_stats();
+                                           metric.gauge.value = static_cast<double>(stats.num_writes);
+                                           return metric;
+                                       });
+
 
     if ( ! iosource_mgr->RegisterFd(flare.FD(), this) )
         reporter->FatalError("Failed to register MsgThread fd with iosource_mgr");
@@ -332,7 +408,7 @@ void MsgThread::SendIn(BasicInputMessage* msg, bool force) {
     DBG_LOG(DBG_THREADING, "Sending '%s' to %s ...", msg->Name(), Name());
 
     queue_in.Put(msg);
-    ++cnt_sent_in;
+    cnt_sent_in_metric->Inc();
 }
 
 void MsgThread::SendOut(BasicOutputMessage* msg, bool force) {
@@ -343,7 +419,7 @@ void MsgThread::SendOut(BasicOutputMessage* msg, bool force) {
 
     queue_out.Put(msg);
 
-    ++cnt_sent_out;
+    cnt_sent_out_metric->Inc();
 
     flare.Fire();
 }
@@ -409,8 +485,8 @@ void MsgThread::Run() {
 }
 
 void MsgThread::GetStats(Stats* stats) {
-    stats->sent_in = cnt_sent_in.load();
-    stats->sent_out = cnt_sent_out.load();
+    stats->sent_in = cnt_sent_in_metric->Value();
+    stats->sent_out = cnt_sent_out_metric->Value();
     stats->pending_in = queue_in.Size();
     stats->pending_out = queue_out.Size();
     queue_in.GetStats(&stats->queue_in_stats);

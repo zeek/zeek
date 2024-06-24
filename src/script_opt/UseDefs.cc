@@ -464,6 +464,13 @@ UDs UseDefs::ExprUDs(const Expr* e) {
             break;
         }
 
+        case EXPR_REC_CONSTRUCT_WITH_REC: {
+            auto constructor_UDs = ExprUDs(e->GetOp1().get());
+            AddInExprUDs(uds, e->GetOp2().get());
+            uds = UD_Union(uds, constructor_UDs);
+            break;
+        }
+
         case EXPR_TABLE_CONSTRUCTOR: {
             auto t = static_cast<const TableConstructorExpr*>(e);
             AddInExprUDs(uds, t->GetOp1().get());

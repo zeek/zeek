@@ -1,3 +1,7 @@
+7.0.0-dev.399 | 2024-06-24 11:19:14 +0200
+
+  * script optimization for record operations sourced (in part) from other records (Vern Paxson, Corelight)
+
 7.0.0-dev.397 | 2024-06-20 18:16:51 -0700
 
   * zeek-testing-private: Update baseline (Arne Welzel, Corelight)

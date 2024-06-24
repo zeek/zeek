@@ -133,6 +133,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
 
         case EXPR_RECORD_COERCE:
         case EXPR_RECORD_CONSTRUCTOR:
+        case EXPR_REC_CONSTRUCT_WITH_REC:
             // Note, record coercion behaves like constructors in terms of
             // potentially executing &default functions. In either case,
             // the type of the expression reflects the type we want to analyze

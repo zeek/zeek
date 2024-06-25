@@ -111,35 +111,6 @@ public:
     };
 
     /**
-     * Configuration options that influence how a Supervised Zeek node
-     * integrates into the normal Zeek Cluster Framework.
-     */
-    struct ClusterEndpoint {
-        /**
-         * The node's role within the cluster.  E.g. manager, logger, worker.
-         */
-        BifEnum::Supervisor::ClusterRole role;
-        /**
-         * The TCP port number at which the cluster node listens for connections.
-         */
-        int port;
-        /**
-         * The host/IP at which the cluster node is listening for connections.
-         */
-        std::string host;
-        /**
-         * The interface name from which the node read/analyze packets.
-         * Typically used by worker nodes.
-         */
-        std::optional<std::string> interface;
-        /**
-         * The PCAP file name from which the node read/analyze packets.
-         * Typically used by worker nodes.
-         */
-        std::optional<std::string> pcap_file;
-    };
-
-    /**
      * Configuration options that influence behavior of a Supervised Zeek node.
      */
     struct NodeConfig {
@@ -233,15 +204,16 @@ public:
          */
         std::vector<std::string> addl_user_scripts;
         /**
-         * Environment variables and values  to define in the node.
+         * Environment variables and values to define in the node.
          */
         std::map<std::string, std::string> env;
         /**
-         * The Cluster Layout definition.  Each node in the Cluster Framework
-         * knows about the full, static cluster topology to which it belongs.
-         * Entries in the map use node names for keys.
+         * The cluster layout definition.  Each node in the Cluster Framework
+         * knows the full, static cluster topology to which it belongs.  The
+         * layout is encoded as the JSON map resulting from ToJSON() on the
+         * corresponding cluster table in the script layer's NodeConfig record.
          */
-        std::map<std::string, ClusterEndpoint> cluster;
+        std::string cluster;
     };
 
     /**

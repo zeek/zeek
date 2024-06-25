@@ -73,10 +73,14 @@ event zeek_init()
 
 @TEST-START-NEXT
 type port_t: port;
-# wrong port format
+# additional & incorrect port formats
 event zeek_init()
 	{
+	# Ports can also be given as objects:
+	print from_json("{\"port\":80,\"proto\":\"tcp\"}", port_t);
+	# These are violations:
 	print from_json("\"80\"", port_t);
+	print from_json("{}", port_t);
 	}
 
 @TEST-START-NEXT

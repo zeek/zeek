@@ -943,28 +943,50 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
         }
 
         case TYPE_PORT: {
-            if ( ! j.IsString() )
-                return mismatch_err();
-
-            int port = 0;
-            if ( j.GetStringLength() > 0 && j.GetStringLength() < 10 ) {
-                char* slash;
-                errno = 0;
-                port = strtol(j.GetString(), &slash, 10);
-                if ( ! errno ) {
-                    ++slash;
-                    if ( util::streq(slash, "tcp") )
-                        return val_mgr->Port(port, TRANSPORT_TCP);
-                    else if ( util::streq(slash, "udp") )
-                        return val_mgr->Port(port, TRANSPORT_UDP);
-                    else if ( util::streq(slash, "icmp") )
-                        return val_mgr->Port(port, TRANSPORT_ICMP);
-                    else if ( util::streq(slash, "unknown") )
-                        return val_mgr->Port(port, TRANSPORT_UNKNOWN);
+            if ( j.IsString() ) {
+                int port = 0;
+                if ( j.GetStringLength() > 0 && j.GetStringLength() < 10 ) {
+                    char* slash;
+                    errno = 0;
+                    port = strtol(j.GetString(), &slash, 10);
+                    if ( ! errno ) {
+                        ++slash;
+                        if ( util::streq(slash, "tcp") )
+                            return val_mgr->Port(port, TRANSPORT_TCP);
+                        else if ( util::streq(slash, "udp") )
+                            return val_mgr->Port(port, TRANSPORT_UDP);
+                        else if ( util::streq(slash, "icmp") )
+                            return val_mgr->Port(port, TRANSPORT_ICMP);
+                        else if ( util::streq(slash, "unknown") )
+                            return val_mgr->Port(port, TRANSPORT_UNKNOWN);
+                    }
                 }
-            }
 
-            return "wrong port format, must be /[0-9]{1,5}\\/(tcp|udp|icmp|unknown)/";
+                return "wrong port format, string must be /[0-9]{1,5}\\/(tcp|udp|icmp|unknown)/";
+            }
+            else if ( j.IsObject() ) {
+                if ( ! j.HasMember("port") || ! j.HasMember("proto") )
+                    return "wrong port format, object must have 'port' and 'proto' members";
+                if ( ! j["port"].IsNumber() )
+                    return "wrong port format, port must be a number";
+                if ( ! j["proto"].IsString() )
+                    return "wrong port format, protocol must be a string";
+
+                std::string proto{j["proto"].GetString()};
+
+                if ( proto == "tcp" )
+                    return val_mgr->Port(j["port"].GetInt(), TRANSPORT_TCP);
+                if ( proto == "udp" )
+                    return val_mgr->Port(j["port"].GetInt(), TRANSPORT_UDP);
+                if ( proto == "icmp" )
+                    return val_mgr->Port(j["port"].GetInt(), TRANSPORT_ICMP);
+                if ( proto == "unknown" )
+                    return val_mgr->Port(j["port"].GetInt(), TRANSPORT_UNKNOWN);
+
+                return "wrong port format, invalid protocol string";
+            }
+            else
+                return "wrong port format, must be string or object";
         }
 
         case TYPE_PATTERN: {

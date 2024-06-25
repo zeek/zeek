@@ -1,3 +1,11 @@
+7.0.0-dev.403 | 2024-06-25 11:29:58 +0200
+
+  * NEWS: Add entry about FileExtractDir (Arne Welzel, Corelight)
+
+  * Update zeekctl submodule (Arne Welzel, Corelight)
+
+  * zeek-testing-private: Update baseline, after merge (Arne Welzel, Corelight)
+
 7.0.0-dev.399 | 2024-06-24 11:19:14 +0200
 
   * script optimization for record operations sourced (in part) from other records (Vern Paxson, Corelight)

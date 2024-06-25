@@ -5,6 +5,7 @@
 #include "zeek/Desc.h"
 #include "zeek/Func.h"
 #include "zeek/Reporter.h"
+#include "zeek/module_util.h"
 
 using std::string;
 
@@ -322,6 +323,18 @@ TraversalCode ZInstAux::Traverse(TraversalCallback* cb) const {
 
     if ( id_val ) {
         tc = id_val->Traverse(cb);
+        HANDLE_TC_STMT_PRE(tc);
+    }
+
+    if ( func ) {
+        tc = func->Traverse(cb);
+        HANDLE_TC_STMT_PRE(tc);
+    }
+
+    if ( event_handler ) {
+        auto g = lookup_ID(event_handler->Name(), GLOBAL_MODULE_NAME, false, false, false);
+        ASSERT(g);
+        tc = g->Traverse(cb);
         HANDLE_TC_STMT_PRE(tc);
     }
 

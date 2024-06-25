@@ -1,3 +1,7 @@
+7.0.0-dev.405 | 2024-06-25 13:35:41 +0200
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 7.0.0-dev.403 | 2024-06-25 11:29:58 +0200
 
   * NEWS: Add entry about FileExtractDir (Arne Welzel, Corelight)

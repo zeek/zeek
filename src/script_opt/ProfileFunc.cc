@@ -192,14 +192,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             TrackType(id->GetType());
 
             if ( id->IsGlobal() ) {
-                globals.insert(id);
-                all_globals.insert(id);
-
-                const auto& t = id->GetType();
-                if ( t->Tag() == TYPE_FUNC )
-                    if ( t->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT )
-                        events.insert(id->Name());
-
+                PreID(id);
                 break;
             }
 
@@ -487,6 +480,16 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
 
 TraversalCode ProfileFunc::PreID(const ID* id) {
     TrackID(id);
+
+    if ( id->IsGlobal() ) {
+        globals.insert(id);
+        all_globals.insert(id);
+
+        const auto& t = id->GetType();
+        if ( t->Tag() == TYPE_FUNC )
+            if ( t->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT )
+                events.insert(id->Name());
+    }
 
     // There's no need for any further analysis of this ID.
     return TC_ABORTSTMT;

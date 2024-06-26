@@ -1,3 +1,14 @@
+7.0.0-dev.407 | 2024-06-26 13:16:10 +0200
+
+  * coverage/lcov_html: Allow missing coveralls token (Arne Welzel, Corelight)
+
+    This is a fixup for 0cd023b83919fca7bfac55e75a41f724e820fd26 which
+    currently causes ASAN coverage builds to fail for non-master branches
+    when due to a missing COVERALLS_REPO_TOKEN.
+
+    Instead of bailing out for non-master branches, pass `--dry-run` to the
+    coveralls-lcov invocation to test more of the script.
+
 7.0.0-dev.405 | 2024-06-25 13:35:41 +0200
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

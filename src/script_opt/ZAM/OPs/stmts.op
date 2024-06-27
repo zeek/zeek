@@ -6,7 +6,7 @@ macro EvalScheduleArgs(time, is_delta, build_args)
 		double dt = time;
 		if ( is_delta )
 			dt += run_state::network_time;
-		auto handler = EventHandlerPtr(Z_AUX->event_handler);
+		auto handler = EventHandlerPtr(Z_AUX_EVENT_HANDLER);
 		ValVec args;
 		build_args
 		auto timer = new ScheduleTimer(handler, std::move(args), dt);
@@ -36,9 +36,7 @@ op-types D I X
 op1-read
 eval	EvalScheduleArgs($1, $2,)
 
-macro QueueEvent(eh, args)
-	if ( *eh )
-		event_mgr.Enqueue(eh, std::move(args));
+macro QueueEvent(eh, args) event_mgr.Enqueue(eh, std::move(args));
 
 op Event
 class HL
@@ -46,19 +44,19 @@ op1-read
 custom-method return CompileEvent(h, l);
 eval	ValVec args;
 	Z_AUX->FillValVec(args, frame);
-	QueueEvent(Z_AUX->event_handler, args);
+	QueueEvent(Z_AUX_EVENT_HANDLER, args);
 
 internal-op Event0
 class X
 eval	ValVec args(0);
-	QueueEvent(Z_AUX->event_handler, args);
+	QueueEvent(Z_AUX_EVENT_HANDLER, args);
 
 internal-op Event1
 class V
 op1-read
 eval	ValVec args(1);
 	args[0] = $1.ToVal(Z_TYPE);
-	QueueEvent(Z_AUX->event_handler, args);
+	QueueEvent(Z_AUX_EVENT_HANDLER, args);
 
 internal-op Event2
 class VV
@@ -66,7 +64,7 @@ op1-read
 eval	ValVec args(2);
 	args[0] = $1.ToVal(Z_TYPE);
 	args[1] = $2.ToVal(Z_TYPE2);
-	QueueEvent(Z_AUX->event_handler, args);
+	QueueEvent(Z_AUX_EVENT_HANDLER, args);
 
 internal-op Event3
 class VVV
@@ -76,7 +74,7 @@ eval	ValVec args(3);
 	args[0] = $1.ToVal(Z_TYPE);
 	args[1] = $2.ToVal(Z_TYPE2);
 	args[2] = $3.ToVal(aux->elems[2].GetType());
-	QueueEvent(Z_AUX->event_handler, args);
+	QueueEvent(Z_AUX_EVENT_HANDLER, args);
 
 internal-op Event4
 class VVVV
@@ -87,7 +85,7 @@ eval	ValVec args(4);
 	args[1] = $2.ToVal(Z_TYPE2);
 	args[2] = $3.ToVal(aux->elems[2].GetType());
 	args[3] = $4.ToVal(aux->elems[3].GetType());
-	QueueEvent(Z_AUX->event_handler, args);
+	QueueEvent(Z_AUX_EVENT_HANDLER, args);
 
 
 op Return

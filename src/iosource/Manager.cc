@@ -104,6 +104,22 @@ void Manager::Wakeup(std::string_view where) {
         wakeup->Ping(where);
 }
 
+void Manager::ReapSource(Source* src) {
+    auto* iosource = src->src;
+    assert(! iosource->IsOpen());
+
+    DBG_LOG(DBG_MAINLOOP, "Reaping %s", src->src->Tag());
+    iosource->Done();
+
+    if ( src->manage_lifetime )
+        delete iosource;
+
+    if ( src->dont_count )
+        dont_counts--;
+
+    delete src;
+}
+
 void Manager::FindReadySources(ReadySources* ready) {
     ready->clear();
 
@@ -111,8 +127,7 @@ void Manager::FindReadySources(ReadySources* ready) {
     // remove at most one each time.
     for ( SourceList::iterator i = sources.begin(); i != sources.end(); ++i )
         if ( ! (*i)->src->IsOpen() ) {
-            (*i)->src->Done();
-            delete *i;
+            ReapSource(*i);
             sources.erase(i);
             break;
         }

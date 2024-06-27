@@ -1062,7 +1062,7 @@ const ZAMStmt ZAMCompiler::CompileWhen(const WhenStmt* ws) {
     auto timeout = wi->TimeoutExpr();
 
     auto lambda = NewSlot(true);
-    (void)BuildLambda(lambda, wi->Lambda().get());
+    (void)BuildLambda(lambda, wi->Lambda());
 
     std::vector<IDPtr> local_aggr_slots;
     for ( auto& l : wi->WhenExprLocals() )

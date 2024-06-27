@@ -133,9 +133,9 @@ protected:
     // for 't2' but keep them together for consistency.
 
     // Type, usually for interpreting the constant.
-    TypePtr t = nullptr;
+    TypePtr t;
 
-    TypePtr t2 = nullptr; // just a few ops need two types
+    TypePtr t2; // just a few ops need two types
 
 public:
     const TypePtr& GetType() const { return t; }
@@ -494,11 +494,8 @@ public:
     AuxElem* elems = nullptr;
     bool elems_has_slots = true;
 
-    // Ingredients associated with lambdas ...
-    ScriptFuncPtr primary_func;
-
-    // ... and its name.
-    std::string lambda_name;
+    // Info for constructing lambdas.
+    LambdaExprPtr lambda;
 
     // For "when" statements.
     std::shared_ptr<WhenInfo> wi;
@@ -507,11 +504,11 @@ public:
     std::unique_ptr<CatArg>* cat_args = nullptr;
 
     // Used for accessing function names.
-    IDPtr id_val = nullptr;
+    IDPtr id_val;
 
     // Interpreter call expression associated with this instruction,
     // for error reporting and stack backtraces.
-    CallExprPtr call_expr = nullptr;
+    CallExprPtr call_expr;
 
     // Used for direct calls.
     Func* func = nullptr;
@@ -526,7 +523,7 @@ public:
     EventHandler* event_handler = nullptr;
 
     // Used for things like constructors.
-    AttributesPtr attrs = nullptr;
+    AttributesPtr attrs;
 
     // Whether the instruction can lead to globals/captures changing.
     // Currently only needed by the optimizer, but convenient to

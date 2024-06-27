@@ -189,7 +189,7 @@ const ZAMStmt ZAMCompiler::CompileAssignExpr(const AssignExpr* e) {
     }
 
     if ( rhs->Tag() == EXPR_LAMBDA )
-        return BuildLambda(lhs, rhs->AsLambdaExpr());
+        return BuildLambda(lhs, op2);
 
     if ( rhs->Tag() == EXPR_COND && r1->GetType()->Tag() == TYPE_VECTOR )
         return Bool_Vec_CondVVVV(lhs, r1->AsNameExpr(), r2->AsNameExpr(), r3->AsNameExpr());
@@ -807,18 +807,18 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
     return AddInst(z);
 }
 
-const ZAMStmt ZAMCompiler::BuildLambda(const NameExpr* n, LambdaExpr* le) {
-    return BuildLambda(Frame1Slot(n, OP1_WRITE), le);
+const ZAMStmt ZAMCompiler::BuildLambda(const NameExpr* n, ExprPtr e) {
+    return BuildLambda(Frame1Slot(n, OP1_WRITE), std::move(e));
 }
 
-const ZAMStmt ZAMCompiler::BuildLambda(int n_slot, LambdaExpr* le) {
-    auto& captures = le->GetCaptures();
+const ZAMStmt ZAMCompiler::BuildLambda(int n_slot, ExprPtr e) {
+    auto lambda = cast_intrusive<LambdaExpr>(e);
+    auto& captures = lambda->GetCaptures();
     int ncaptures = captures ? captures->size() : 0;
 
     auto aux = new ZInstAux(ncaptures);
-    aux->primary_func = le->PrimaryFunc();
-    aux->lambda_name = le->Name();
-    aux->id_val = le->Ingredients()->GetID();
+    aux->lambda = cast_intrusive<LambdaExpr>(std::move(e));
+    aux->id_val = lambda->Ingredients()->GetID();
 
     for ( int i = 0; i < ncaptures; ++i ) {
         auto& id_i = (*captures)[i].Id();
@@ -829,7 +829,7 @@ const ZAMStmt ZAMCompiler::BuildLambda(int n_slot, LambdaExpr* le) {
             aux->Add(i, FrameSlot(id_i), id_i->GetType());
     }
 
-    auto z = ZInstI(OP_LAMBDA_Vi, n_slot, le->PrimaryFunc()->FrameSize());
+    auto z = ZInstI(OP_LAMBDA_Vi, n_slot, lambda->PrimaryFunc()->FrameSize());
     z.op_type = OP_VV_I2;
     z.aux = aux;
 
@@ -1168,7 +1168,7 @@ const ZAMStmt ZAMCompiler::ConstructTable(const NameExpr* n, const Expr* e) {
     if ( ! def_attr || def_attr->GetExpr()->Tag() != EXPR_LAMBDA )
         return zstmt;
 
-    auto def_lambda = def_attr->GetExpr()->AsLambdaExpr();
+    auto def_lambda = cast_intrusive<LambdaExpr>(def_attr->GetExpr());
     auto dl_t = def_lambda->GetType()->AsFuncType();
     auto& captures = dl_t->GetCaptures();
 

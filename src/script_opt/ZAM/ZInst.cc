@@ -326,8 +326,11 @@ TraversalCode ZInstAux::Traverse(TraversalCallback* cb) const {
         HANDLE_TC_STMT_PRE(tc);
     }
 
-    if ( func ) {
-        tc = func->Traverse(cb);
+    // Don't traverse the "func" field, as if it's a recursive function
+    // we can wind up right back here.
+
+    if ( lambda ) {
+        tc = lambda->Traverse(cb);
         HANDLE_TC_STMT_PRE(tc);
     }
 

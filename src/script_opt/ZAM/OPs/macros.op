@@ -19,8 +19,8 @@ macro Z_TYPE2 z.GetType2()
 macro Z_AUX z.aux
 macro Z_AUX_ID z.aux->id_val
 macro Z_AUX_FUNC z.aux->func
-macro Z_AUX_PRIMARY_FUNC z.aux->primary_func
-macro Z_AUX_LAMBDA_NAME z.aux->lambda_name
+macro Z_AUX_PRIMARY_FUNC z.aux->lambda->PrimaryFunc()
+macro Z_AUX_LAMBDA_NAME z.aux->lambda->Name()
 
 # Location in the original script.
 macro Z_LOC z.loc

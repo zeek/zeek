@@ -338,12 +338,11 @@ add_zeek_dynamic_plugin_build_interface_include_directories(
     ${PROJECT_SOURCE_DIR}/auxil/broker/libbroker
     ${PROJECT_SOURCE_DIR}/auxil/paraglob/include
     ${PROJECT_SOURCE_DIR}/auxil/rapidjson/include
-    ${PROJECT_SOURCE_DIR}/auxil/prometheus-cpp/core/include
     ${CMAKE_BINARY_DIR}/src
     ${CMAKE_BINARY_DIR}/src/include
     ${CMAKE_BINARY_DIR}/auxil/binpac/lib
     ${CMAKE_BINARY_DIR}/auxil/broker/libbroker
-    ${CMAKE_BINARY_DIR}/auxil/prometheus-cpp/core/include)
+    ${CMAKE_BINARY_DIR}/zeek-bundle/include/prometheus)
 
 # threading/formatters/JSON.h includes rapidjson headers and may be used
 # by external plugins, extend the include path.
@@ -897,6 +896,21 @@ if (MSVC)
 endif ()
 set(zeekdeps ${zeekdeps} paraglob)
 
+include(cmake/ZeekBundle.cmake)
+zeekbundle_add(
+    NAME
+    prometheus-cpp
+    FETCH
+    SOURCE_DIR
+    "${PROJECT_SOURCE_DIR}/auxil/prometheus-cpp"
+    CONFIGURE
+    CMAKE_MSVC_RUNTIME_LIBRARY=${CMAKE_MSVC_RUNTIME_LIBRARY}
+    CMAKE_MSVC_RUNTIME_LIBRARY_FLAG=${CMAKE_MSVC_RUNTIME_LIBRARY_FLAG}
+    ENABLE_COMPRESSION=OFF
+    ENABLE_PUSH=OFF)
+target_link_libraries(zeek_internal INTERFACE $<BUILD_INTERFACE:prometheus-cpp::core>
+                                              $<BUILD_INTERFACE:prometheus-cpp::pull>)
+
 # Note: Broker gets some special attention in ZeekConfig.cmake.in.
 if (Broker_ROOT)
     find_package(Broker REQUIRED CONFIG)
@@ -1018,10 +1032,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/rapidjson/include/rapidjson
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/filesystem/include/ghc
         DESTINATION include/zeek/3rdparty/)
 
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/prometheus-cpp/core/include/prometheus
-        DESTINATION include/zeek/3rdparty/prometheus-cpp/include)
-
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/auxil/prometheus-cpp/core/include/prometheus
+install(DIRECTORY ${CMAKE_BINARY_DIR}/zeek-bundle/include/prometheus
         DESTINATION include/zeek/3rdparty/prometheus-cpp/include)
 
 # Create 3rdparty/ghc within the build directory so that the include for
@@ -1135,7 +1146,6 @@ include(GetArchitecture)
 include(FindCAres)
 include(FindKqueue)
 
-include(FindPrometheusCpp)
 include_directories(BEFORE "auxil/out_ptr/include")
 
 if ((OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0"))

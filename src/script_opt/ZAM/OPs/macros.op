@@ -55,6 +55,8 @@ macro AssignTarget(target, v) {
 
 macro Branch(target) { DO_ZAM_PROFILE; pc = target; continue; }
 
+macro REDO { --pc; /* so we then increment to here again */ break; }
+
 macro GlobalID(g) globals[g].id
 macro GlobalVal(g) frame[globals[g].slot]
 

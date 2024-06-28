@@ -397,6 +397,8 @@ enum ControlFlowType {
     CFT_LOOP_COND,
     CFT_NEXT,
     CFT_BREAK,
+    CFT_DEFAULT,
+    CFT_INLINED_RETURN,
 
     CFT_NONE,
 };

@@ -170,7 +170,7 @@ private:
     void ResolveNexts(const InstLabel l) { ResolveGoTos(nexts, l, CFT_NEXT); }
     void ResolveBreaks(const InstLabel l) { ResolveGoTos(breaks, l, CFT_BREAK); }
     void ResolveFallThroughs(const InstLabel l) { ResolveGoTos(fallthroughs, l); }
-    void ResolveCatchReturns(const InstLabel l) { ResolveGoTos(catches, l); }
+    void ResolveCatchReturns(const InstLabel l) { ResolveGoTos(catches, l, CFT_INLINED_RETURN); }
 
     const ZAMStmt LoopOverTable(const ForStmt* f, const NameExpr* val);
     const ZAMStmt LoopOverVector(const ForStmt* f, const NameExpr* val);

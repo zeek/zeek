@@ -485,8 +485,11 @@ const ZAMStmt ZAMCompiler::ValueSwitch(const SwitchStmt* sw, const NameExpr* v, 
     ResolveBreaks(sw_end);
 
     int def_ind = sw->DefaultCaseIndex();
-    if ( def_ind >= 0 )
-        SetV3(sw_head, case_start[def_ind]);
+    if ( def_ind >= 0 ) {
+        auto def = case_start[def_ind];
+        SetV3(sw_head, def);
+        AddCFT(def, CFT_DEFAULT);
+    }
     else
         SetV3(sw_head, sw_end);
 
@@ -550,6 +553,8 @@ const ZAMStmt ZAMCompiler::ValueSwitch(const SwitchStmt* sw, const NameExpr* v, 
 
         default: reporter->InternalError("bad switch type");
     }
+
+    AddCFT(insts1[body_end.stmt_num], CFT_BLOCK_END);
 
     return body_end;
 }
@@ -619,6 +624,8 @@ const ZAMStmt ZAMCompiler::TypeSwitch(const SwitchStmt* sw, const NameExpr* v, c
     if ( def_ind >= 0 ) {
         PushFallThroughs();
 
+        AddCFT(insts1[body_end.stmt_num], CFT_DEFAULT);
+
         body_end = CompileStmt((*sw->Cases())[def_ind]->Body());
 
         // Now resolve any fallthrough's in the default.
@@ -627,6 +634,8 @@ const ZAMStmt ZAMCompiler::TypeSwitch(const SwitchStmt* sw, const NameExpr* v, c
         else
             ResolveFallThroughs(GoToTargetBeyond(body_end));
     }
+
+    AddCFT(insts1[body_end.stmt_num], CFT_BLOCK_END);
 
     ResolveBreaks(GoToTargetBeyond(body_end));
 

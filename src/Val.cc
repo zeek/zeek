@@ -996,10 +996,16 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
                 return mismatch_err();
 
             std::string candidate(j.GetString(), j.GetStringLength());
+            // Remove any surrounding '/'s, not needed when creating an RE_matcher.
             if ( candidate.size() > 2 && candidate.front() == candidate.back() && candidate.back() == '/' ) {
-                // Remove the '/'s
                 candidate.erase(0, 1);
                 candidate.erase(candidate.size() - 1);
+            }
+            // Remove any surrounding "^?(" and ")$?", automatically added below.
+            if ( candidate.size() > 6 && candidate.substr(0, 3) == "^?(" &&
+                 candidate.substr(candidate.size() - 3, 3) == ")$?" ) {
+                candidate.erase(0, 3);
+                candidate.erase(candidate.size() - 3);
             }
 
             auto re = std::make_unique<RE_Matcher>(candidate.c_str());

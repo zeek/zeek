@@ -83,8 +83,8 @@ refine flow MySQL_Flow += {
 
 	function proc_resultset(msg: Resultset): bool
 		%{
-		if ( ${msg.is_eof} )
-			return true;  // Raised through proc_eof_packet()
+		if ( ${msg.is_eof_or_ok} )
+			return true;  // Raised through proc_eof_packet() or proc_ok_packet()
 
 		if ( ! mysql_result_row )
 			return true;

@@ -3,37 +3,37 @@ mysql handshake, root
 mysql error, 1158, Got an error reading communication packets
 mysql handshake, root
 mysql ok, 0
-mysql request, 3, \x00\x01show databases
+mysql request, 3, show databases
 mysql result row, [information_schema]
 mysql result row, [mysql]
 mysql result row, [performance_schema]
 mysql result row, [sys]
 mysql result row, [test]
 mysql ok, 0
-mysql request, 3, \x00\x01show tables
+mysql request, 3, show tables
 mysql result row, [t]
 mysql ok, 0
 mysql request, 4, t\x00
 mysql ok, 0
-mysql request, 3, \x00\x01select @@version_comment limit 1
+mysql request, 3, select @@version_comment limit 1
 mysql result row, [MySQL Community Server - GPL]
 mysql ok, 0
 mysql request, 1, 
 mysql handshake, root
 mysql ok, 0
-mysql request, 3, \x00\x01show databases
+mysql request, 3, show databases
 mysql result row, [information_schema]
 mysql result row, [mysql]
 mysql result row, [performance_schema]
 mysql result row, [sys]
 mysql result row, [test]
 mysql ok, 0
-mysql request, 3, \x00\x01show tables
+mysql request, 3, show tables
 mysql result row, [t]
 mysql ok, 0
 mysql request, 4, t\x00
 mysql ok, 0
-mysql request, 3, \x00\x01select @@version_comment limit 1
+mysql request, 3, select @@version_comment limit 1
 mysql result row, [MySQL Community Server - GPL]
 mysql ok, 0
 mysql request, 1, 

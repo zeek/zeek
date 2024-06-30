@@ -9,15 +9,15 @@
 #types	time	string	addr	port	addr	port	string	string	bool	count	string
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	56494	127.0.0.1	3306	login	root	F	-	Got an error reading communication packets
 XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	127.0.0.1	49352	127.0.0.1	3306	login	root	T	0	-
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	127.0.0.1	49352	127.0.0.1	3306	query	\x00\x01show databases	T	0	-
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	127.0.0.1	49352	127.0.0.1	3306	query	\x00\x01show tables	T	0	-
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	127.0.0.1	49352	127.0.0.1	3306	query	show databases	T	0	-
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	127.0.0.1	49352	127.0.0.1	3306	query	show tables	T	0	-
 XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	127.0.0.1	49352	127.0.0.1	3306	field_list	t	T	0	-
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	127.0.0.1	49352	127.0.0.1	3306	query	\x00\x01select @@version_comment limit 1	T	0	-
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	127.0.0.1	49352	127.0.0.1	3306	query	select @@version_comment limit 1	T	0	-
 XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	127.0.0.1	49352	127.0.0.1	3306	quit	(empty)	-	-	-
 XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	127.0.0.1	40950	127.0.0.1	3306	login	root	T	0	-
-XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	127.0.0.1	40950	127.0.0.1	3306	query	\x00\x01show databases	T	0	-
-XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	127.0.0.1	40950	127.0.0.1	3306	query	\x00\x01show tables	T	0	-
+XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	127.0.0.1	40950	127.0.0.1	3306	query	show databases	T	0	-
+XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	127.0.0.1	40950	127.0.0.1	3306	query	show tables	T	0	-
 XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	127.0.0.1	40950	127.0.0.1	3306	field_list	t	T	0	-
-XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	127.0.0.1	40950	127.0.0.1	3306	query	\x00\x01select @@version_comment limit 1	T	0	-
+XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	127.0.0.1	40950	127.0.0.1	3306	query	select @@version_comment limit 1	T	0	-
 XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	127.0.0.1	40950	127.0.0.1	3306	quit	(empty)	-	-	-
 #close XXXX-XX-XX-XX-XX-XX

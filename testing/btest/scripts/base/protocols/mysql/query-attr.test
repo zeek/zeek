@@ -1,0 +1,35 @@
+# @TEST-EXEC: zeek -b -C -r $TRACES/mysql/query-attr.pcapng %INPUT >out
+# @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff mysql.log
+
+@load base/protocols/mysql
+
+event mysql_ok(c: connection, affected_rows: count)
+	{
+	print "mysql ok", affected_rows;
+	}
+
+event mysql_eof(c: connection, is_intermediate: bool)
+	{
+	print "mysql eof", is_intermediate;
+	}
+
+event mysql_result_row(c: connection, row: string_vec)
+	{
+	print "mysql result row", row;
+	}
+
+event mysql_error(c: connection, code: count, msg: string)
+	{
+	print "mysql error", code, msg;
+	}
+
+event mysql_command_request(c: connection, command: count, arg: string)
+	{
+	print "mysql request", command, arg;
+	}
+
+event mysql_handshake(c: connection, username: string)
+	{
+	print "mysql handshake", username;
+	}

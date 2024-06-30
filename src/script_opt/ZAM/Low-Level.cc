@@ -25,6 +25,9 @@ const ZAMStmt ZAMCompiler::ErrorStmt() { return ZAMStmt(0); }
 const ZAMStmt ZAMCompiler::LastInst() { return ZAMStmt(insts1.size() - 1); }
 
 void ZAMCompiler::AddCFT(ZInstI* inst, ControlFlowType cft) {
+    if ( cft == CFT_NONE )
+        return;
+
     if ( ! inst->aux )
         inst->aux = new ZInstAux(0);
 

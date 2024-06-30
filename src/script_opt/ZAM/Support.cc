@@ -35,6 +35,32 @@ bool is_ZAM_compilable(const ProfileFunc* pf, const char** reason) {
 
 bool IsAny(const Type* t) { return t->Tag() == TYPE_ANY; }
 
+bool CheckAnyType(const TypePtr& any_type, const TypePtr& expected_type, const std::shared_ptr<ZAMLocInfo>& loc) {
+    if ( IsAny(expected_type) )
+        return true;
+
+    if ( ! same_type(any_type, expected_type, false, false) ) {
+        auto at = any_type->Tag();
+        auto et = expected_type->Tag();
+
+        if ( at == TYPE_RECORD && et == TYPE_RECORD ) {
+            auto at_r = any_type->AsRecordType();
+            auto et_r = expected_type->AsRecordType();
+
+            if ( record_promotion_compatible(et_r, at_r) )
+                return true;
+        }
+
+        char buf[8192];
+        snprintf(buf, sizeof buf, "run-time type clash (%s/%s)", type_name(at), type_name(et));
+
+        reporter->RuntimeError(loc->Loc(), "%s", buf);
+        return false;
+    }
+
+    return true;
+}
+
 StringVal* ZAM_to_lower(const StringVal* sv) {
     auto bs = sv->AsString();
     const u_char* s = bs->Bytes();

@@ -807,7 +807,8 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val) 
 
     auto zi = ZInstI(OP_INIT_TABLE_LOOP_Vf, FrameSlot(val), iter_slot);
     zi.op_type = OP_VV_I2;
-    zi.SetType(value_var ? value_var->GetType() : nullptr);
+    if ( value_var )
+        zi.SetType(value_var->GetType());
     zi.aux = aux;
 
     (void)AddInst(zi);
@@ -1107,8 +1108,7 @@ const ZAMStmt ZAMCompiler::CompileWhen(const WhenStmt* ws) {
 
     if ( ws->IsReturn() ) {
         (void)AddInst(z);
-        z = ZInstI(OP_RETURN_C);
-        z.c = ZVal();
+        z = ZInstI(OP_WHEN_RETURN_X);
     }
 
     return AddInst(z);

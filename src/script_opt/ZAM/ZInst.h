@@ -276,6 +276,7 @@ public:
 
     void SetType(TypePtr _t) {
         t = std::move(_t);
+        ASSERT(t);
         if ( t )
             CheckIfManaged(t);
     }

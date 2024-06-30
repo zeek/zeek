@@ -486,6 +486,8 @@ TraversalCode ProfileFunc::PreID(const ID* id) {
         all_globals.insert(id);
 
         const auto& t = id->GetType();
+        TrackType(t);
+
         if ( t->Tag() == TYPE_FUNC )
             if ( t->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT )
                 events.insert(id->Name());

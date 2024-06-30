@@ -105,6 +105,11 @@ classes V C
 set-type $$
 eval	EvalReturn(&$$, SET_RET_TYPE(Z_TYPE))
 
+op When-Return
+class X
+eval	static auto any_val = ZVal();
+	EvalReturn(&any_val,);
+
 
 # Branch on the value of v1 using switch table v2, with default branch to v3
 

@@ -439,6 +439,7 @@ bool ZInstI::DoesNotContinue() const {
     switch ( op ) {
         case OP_GOTO_b:
         case OP_HOOK_BREAK_X:
+        case OP_WHEN_RETURN_X:
         case OP_RETURN_C:
         case OP_RETURN_V:
         case OP_RETURN_X: return true;

@@ -96,6 +96,11 @@ type LengthEncodedStringArg(first_byte: uint8) = record {
 		};
 %}
 
+%code{
+	const char* PLUGIN_CACHING_SHA2_PASSWORD = "caching_sha2_password";
+%}
+
+extern type PLUGIN_CACHING_SHA2_PASSWORD;
 extern type to_int;
 
 # Enums
@@ -138,6 +143,9 @@ enum command_consts {
 enum state {
 	CONNECTION_PHASE = 0,
 	COMMAND_PHASE    = 1,
+	SHA2_AUTH_PHASE  = 2,
+	PUB_KEY_PHASE    = 3,
+	SHA2_AUTH_RESP_PHASE = 4,
 };
 
 enum Expected {
@@ -158,12 +166,23 @@ enum EOFType {
 };
 
 enum Client_Capabilities {
+	CLIENT_CONNECT_WITH_DB = 0x00000008,
 	CLIENT_SSL           = 0x00000800,
+	CLIENT_PLUGIN_AUTH   = 0x00080000,
+	CLIENT_CONNECT_ATTRS = 0x00100000,
 	# Expects an OK (instead of EOF) after the resultset rows of a Text Resultset.
 	CLIENT_DEPRECATE_EOF = 0x01000000,
+	CLIENT_ZSTD_COMPRESSION_ALGORITHM = 0x04000000,
+};
+
+enum SHA2_Atuh_State {
+	REQUEST_PUBLIC_KEY          = 2,
+	FAST_AUTH_SUCCESS           = 3,
+	PERFORM_FULL_AUTHENTICATION = 4,
 };
 
 type NUL_String = RE/[^\0]*\0/;
+type EmptyOrNUL_String = RE/([^\0]*\0)?/;
 
 # MySQL PDU
 
@@ -195,6 +214,9 @@ type Server_Message(seq_id: uint8, pkt_len: uint32) = case is_initial of {
 type Client_Message(state: int) = case state of {
 	CONNECTION_PHASE -> connection_phase: Handshake_Response_Packet;
 	COMMAND_PHASE    -> command_phase   : Command_Request_Packet;
+	SHA2_AUTH_PHASE  -> sha2_auth_phase : SHA2_Auth_Packet;
+	PUB_KEY_PHASE    -> pub_key_phase   : Public_Key_Packet;
+	SHA2_AUTH_RESP_PHASE -> sha2_auth_resp_phase : SHA2_Auth_Response_Packet;
 };
 
 # Handshake Request
@@ -220,7 +242,12 @@ type Handshake_v10 = record {
 	status_flags           : uint16;
 	capability_flags_2     : uint16;
 	auth_plugin_data_len   : uint8;
-	auth_plugin_name       : NUL_String;
+	reserved               : padding[10]; 
+	auth_plugin_data_part_2: bytestring &length=13;
+	have_plugin : case ( ( capability_flags_2 << 4 ) & CLIENT_PLUGIN_AUTH ) of {
+		CLIENT_PLUGIN_AUTH -> auth_plugin_name: NUL_String;
+		0x0 -> none    : empty;
+	};
 };
 
 type Handshake_v9 = record {
@@ -240,7 +267,40 @@ type Handshake_Response_Packet = case $context.connection.get_version() of {
 
 type Handshake_Credentials_v10 = record {
 	username : NUL_String;
-	password : bytestring &restofdata;
+	password : LengthEncodedString;
+};
+
+type Connection_Attribute = record {
+	name  : LengthEncodedString;
+	value : LengthEncodedString;
+};
+
+type Handshake_Connection_Attributes = record {
+	length : uint8;
+	attrs  : Connection_Attribute[] &until($input.length() == 0);
+} &length = length+1;
+
+type Handshake_Plain_v10(cap_flags: uint32) = record {
+	credentials: Handshake_Credentials_v10;
+	have_db     : case ( cap_flags & CLIENT_CONNECT_WITH_DB ) of {
+		CLIENT_CONNECT_WITH_DB -> database: NUL_String;
+		0x0 -> none_1    : empty;
+	};
+	have_plugin : case ( cap_flags & CLIENT_PLUGIN_AUTH ) of {
+		CLIENT_PLUGIN_AUTH -> auth_plugin_name: EmptyOrNUL_String;
+		0x0 -> none_2    : empty;
+	};
+	have_attrs  : case ( cap_flags & CLIENT_CONNECT_ATTRS ) of {
+		CLIENT_CONNECT_ATTRS -> conn_attrs: Handshake_Connection_Attributes;
+		0x0 -> none_3    : empty;
+	};
+	have_zstd   : case ( cap_flags & CLIENT_ZSTD_COMPRESSION_ALGORITHM ) of {
+		CLIENT_ZSTD_COMPRESSION_ALGORITHM -> zstd_compression_level: uint8;
+		0x0 -> none_4    : empty;
+	};
+} &let {
+	update_state: bool = $context.connection.update_state(SHA2_AUTH_PHASE)
+		&if(( cap_flags & CLIENT_PLUGIN_AUTH ) && auth_plugin_name==PLUGIN_CACHING_SHA2_PASSWORD);
 };
 
 type Handshake_Response_Packet_v10 = record {
@@ -248,7 +308,10 @@ type Handshake_Response_Packet_v10 = record {
 	max_pkt_size: uint32;
 	char_set    : uint8;
 	pad         : padding[23];
-	credentials : Handshake_Credentials_v10[] &until($input.length() == 0);
+	use_ssl     : case ( cap_flags & CLIENT_SSL ) of {
+		CLIENT_SSL -> none    : empty;
+		default -> plain: Handshake_Plain_v10(cap_flags);
+	};
 } &let {
 	deprecate_eof: bool = $context.connection.set_deprecate_eof(cap_flags & CLIENT_DEPRECATE_EOF);
 };
@@ -258,11 +321,35 @@ type Handshake_Response_Packet_v9 = record {
 	max_pkt_size : uint24le;
 	username     : NUL_String;
 	auth_response: NUL_String;
-	have_db      : case ( cap_flags & 0x8 ) of {
-		0x8 -> database: NUL_String;
+	have_db      : case ( cap_flags & CLIENT_CONNECT_WITH_DB ) of {
+		CLIENT_CONNECT_WITH_DB -> database: NUL_String;
 		0x0 -> none    : empty;
 	};
 	password     : bytestring &restofdata;
+};
+
+# SHA2 Auth
+
+type SHA2_Auth_Packet = record {
+	state: bytestring &restofdata;
+} &let {
+	update_state_1: bool = $context.connection.update_state(COMMAND_PHASE)
+		&if(state[0] == FAST_AUTH_SUCCESS);
+	update_state_2: bool = $context.connection.update_state(PUB_KEY_PHASE)
+		&if(state[1] == REQUEST_PUBLIC_KEY);
+};
+
+type Public_Key_Packet = record {
+	pad    : uint8;
+	pub_key: bytestring &restofdata;
+} &let {
+	update_state: bool = $context.connection.update_state(SHA2_AUTH_RESP_PHASE);
+};
+
+type SHA2_Auth_Response_Packet = record {
+	data: bytestring &restofdata;
+} &let {
+	update_state: bool = $context.connection.update_state(COMMAND_PHASE);
 };
 
 # Command Request

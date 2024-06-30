@@ -344,6 +344,17 @@ void CPPCompile::GenValueSwitchStmt(const Expr* e, const case_list* cases) {
 
 void CPPCompile::GenWhenStmt(const WhenStmt* w) {
     auto wi = w->Info();
+
+    vector<string> local_aggrs;
+
+    for ( auto& l : wi->WhenExprLocals() )
+        if ( IsAggr(l->GetType()) )
+            local_aggrs.push_back(IDNameStr(l.get()));
+
+    GenWhenStmt(wi.get(), w->GetLocationInfo(), std::move(local_aggrs));
+}
+
+void CPPCompile::GenWhenStmt(const WhenInfo* wi, const Location* loc, vector<string> local_aggrs) {
     auto wl = wi->Lambda();
 
     if ( ! wl )
@@ -352,7 +363,6 @@ void CPPCompile::GenWhenStmt(const WhenStmt* w) {
     auto is_return = wi->IsReturn() ? "true" : "false";
     auto timeout = wi->TimeoutExpr();
     auto timeout_val = timeout ? GenExpr(timeout, GEN_NATIVE) : "-1.0";
-    auto loc = w->GetLocationInfo();
 
     Emit("{ // begin a new scope for internal variables");
 
@@ -370,9 +380,8 @@ void CPPCompile::GenWhenStmt(const WhenStmt* w) {
     NL();
 
     Emit("std::vector<ValPtr> CPP__local_aggrs;");
-    for ( auto& l : wi->WhenExprLocals() )
-        if ( IsAggr(l->GetType()) )
-            Emit("CPP__local_aggrs.emplace_back(%s);", IDNameStr(l.get()));
+    for ( auto& la : local_aggrs )
+        Emit("CPP__local_aggrs.emplace_back(%s);", la);
 
     Emit("CPP__wi->Instantiate(%s);", GenExpr(wi->Lambda(), GEN_NATIVE));
 

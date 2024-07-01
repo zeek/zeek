@@ -136,12 +136,15 @@ enum command_consts {
 };
 
 enum state {
-	CONNECTION_PHASE       = 0,
-	COMMAND_PHASE          = 1,
-	SHA2_AUTH_PHASE        = 2,
-	PUB_KEY_PHASE          = 3,
-	SHA2_AUTH_RESP_PHASE   = 4,
-	AUTH_SWITCH_RESP_PHASE = 5,
+	CONNECTION_PHASE = 0,
+	COMMAND_PHASE    = 1,
+};
+
+enum ConnectionExpected {
+	EXPECT_HANDSHAKE,
+	EXPECT_SHA2_AUTH,
+	EXPECT_PUB_KEY,
+	EXPECT_AUTH_SWITCH_RESP,
 };
 
 enum Expected {
@@ -154,6 +157,7 @@ enum Expected {
 	EXPECT_RESULTSET,
 	EXPECT_REST_OF_PACKET,
 	EXPECT_AUTH_SWITCH,
+	EXPECT_SHA2_AUTH_RESP,
 };
 
 enum EOFType {
@@ -209,12 +213,8 @@ type Server_Message(seq_id: uint8, pkt_len: uint32) = case is_initial of {
 };
 
 type Client_Message(state: int) = case state of {
-	CONNECTION_PHASE -> connection_phase: Handshake_Response_Packet;
+	CONNECTION_PHASE -> connection_phase: Connection_Phase_Packets;
 	COMMAND_PHASE    -> command_phase   : Command_Request_Packet;
-	SHA2_AUTH_PHASE  -> sha2_auth_phase : SHA2_Auth_Packet;
-	PUB_KEY_PHASE    -> pub_key_phase   : Public_Key_Packet;
-	SHA2_AUTH_RESP_PHASE -> sha2_auth_resp_phase : SHA2_Auth_Response_Packet;
-	AUTH_SWITCH_RESP_PHASE -> auth_switch_resp_phase : Auth_Switch_Response_Packet;
 };
 
 # Handshake Request
@@ -303,7 +303,7 @@ type Handshake_Plain_v10(cap_flags: uint32) = record {
 } &let {
 	update_auth_plugin: bool = $context.connection.set_auth_plugin(auth_plugin)
 		&if( cap_flags & CLIENT_PLUGIN_AUTH );
-	update_state: bool = $context.connection.update_state_from_auth()
+	update_expected: bool = $context.connection.update_expected_from_auth()
 		&if( cap_flags & CLIENT_PLUGIN_AUTH );
 };
 
@@ -338,9 +338,9 @@ type Handshake_Response_Packet_v9 = record {
 type SHA2_Auth_Packet = record {
 	state: bytestring &restofdata;
 } &let {
-	update_state_1: bool = $context.connection.update_state(COMMAND_PHASE)
+	update_state           : bool = $context.connection.update_state(COMMAND_PHASE)
 		&if(state[0] == FAST_AUTH_SUCCESS);
-	update_state_2: bool = $context.connection.update_state(PUB_KEY_PHASE)
+	update_conn_expectation: bool = $context.connection.set_next_conn_expected(EXPECT_PUB_KEY)
 		&if(state[1] == REQUEST_PUBLIC_KEY);
 };
 
@@ -348,7 +348,7 @@ type Public_Key_Packet = record {
 	pad    : uint8;
 	pub_key: bytestring &restofdata;
 } &let {
-	update_state: bool = $context.connection.update_state(SHA2_AUTH_RESP_PHASE);
+	update_expectation: bool = $context.connection.set_next_expected(EXPECT_SHA2_AUTH_RESP);
 };
 
 type SHA2_Auth_Response_Packet = record {
@@ -362,7 +362,17 @@ type SHA2_Auth_Response_Packet = record {
 type Auth_Switch_Response_Packet = record {
 	data  : bytestring &restofdata;
 } &let {
-	update_state: bool = $context.connection.update_state_from_auth();
+	update_expected: bool = $context.connection.update_expected_from_auth();
+};
+
+# Connection Phase
+
+type Connection_Phase_Packets = case $context.connection.get_conn_expectation() of {
+	EXPECT_HANDSHAKE        -> handshake_resp   : Handshake_Response_Packet;
+	EXPECT_SHA2_AUTH        -> sha2_auth        : SHA2_Auth_Packet;
+	EXPECT_PUB_KEY          -> pub_key          : Public_Key_Packet;
+	EXPECT_AUTH_SWITCH_RESP -> atuh_switch_resp : Auth_Switch_Response_Packet;
+	default                 -> unknown          : empty;
 };
 
 # Command Request
@@ -409,6 +419,7 @@ type Command_Response(pkt_len: uint32) = case $context.connection.get_expectatio
 	EXPECT_REST_OF_PACKET           -> rest          : bytestring &restofdata;
 	EXPECT_STATUS                   -> status        : Command_Response_Status;
 	EXPECT_AUTH_SWITCH              -> auth_switch   : AuthSwitchRequest;
+	EXPECT_SHA2_AUTH_RESP           -> sha2_auth_resp: SHA2_Auth_Response_Packet;
 	EXPECT_EOF_THEN_RESULTSET       -> eof           : EOFIfLegacyThenResultset(pkt_len);
 	default                         -> unknown       : empty;
 };
@@ -516,8 +527,8 @@ type AuthSwitchRequest = record {
 	name  : NUL_String;
 	data  : bytestring &restofdata;
 } &let {
-	update_auth_plugin: bool = $context.connection.set_auth_plugin(name);
-	update_state: bool = $context.connection.update_state(AUTH_SWITCH_RESP_PHASE);
+	update_auth_plugin     : bool = $context.connection.set_auth_plugin(name);
+	update_conn_expectation: bool = $context.connection.set_next_conn_expected(EXPECT_AUTH_SWITCH_RESP);
 };
 
 type ColumnDefinition320 = record {
@@ -565,6 +576,7 @@ refine connection MySQL_Conn += {
 		uint8 previous_seq_id_;
 		int state_;
 		Expected expected_;
+		ConnectionExpected conn_expected_;
 		uint32 col_count_;
 		uint32 remaining_cols_;
 		uint32 results_seen_;
@@ -579,6 +591,7 @@ refine connection MySQL_Conn += {
 		previous_seq_id_ = 0;
 		state_ = CONNECTION_PHASE;
 		expected_ = EXPECT_STATUS;
+		conn_expected_ = EXPECT_HANDSHAKE;
 		col_count_ = 0;
 		remaining_cols_ = 0;
 		results_seen_ = 0;
@@ -622,14 +635,18 @@ refine connection MySQL_Conn += {
 	function update_state(s: state): bool
 		%{
 		state_ = s;
+
+		if ( s == COMMAND_PHASE )
+			conn_expected_ = EXPECT_HANDSHAKE; // Reset connection phase expectation
+
 		return true;
 		%}
 
-	function update_state_from_auth(): bool
+	function update_expected_from_auth(): bool
 		%{
 		if ( auth_plugin_ == "caching_sha2_password" )
 			{
-			state_ = SHA2_AUTH_PHASE;
+			conn_expected_ = EXPECT_SHA2_AUTH;
 			if ( expected_ == EXPECT_AUTH_SWITCH )
 				expected_ = EXPECT_STATUS;
 			}
@@ -696,6 +713,17 @@ refine connection MySQL_Conn += {
 	function set_next_expected(e: Expected): bool
 		%{
 		expected_ = e;
+		return true;
+		%}
+
+	function get_conn_expectation(): ConnectionExpected
+		%{
+		return conn_expected_;
+		%}
+
+	function set_next_conn_expected(c: ConnectionExpected): bool
+		%{
+		conn_expected_ = c;
 		return true;
 		%}
 

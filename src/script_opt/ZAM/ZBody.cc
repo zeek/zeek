@@ -314,6 +314,9 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
     // Type of the return value.  If nil, then we don't have a value.
     TypePtr ret_type;
 
+    // ListVal corresponding to INDEX_LIST.
+    static auto zam_index_val_list = make_intrusive<ListVal>(TYPE_ANY);
+
 #ifdef ENABLE_ZAM_PROFILE
     static bool profiling_active = analysis_options.profile_ZAM;
     static int sampling_rate = analysis_options.profile_sampling_rate;

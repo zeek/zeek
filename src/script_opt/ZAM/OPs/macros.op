@@ -28,6 +28,8 @@ macro Z_LOC z.loc
 
 macro SET_RET_TYPE(type) ret_type = type;
 
+macro INDEX_LIST zam_index_val_list
+
 macro ERROR(msg) ZAM_run_time_error(Z_LOC, msg)
 macro ERROR2(msg, obj) ZAM_run_time_error(Z_LOC, msg, obj)
 

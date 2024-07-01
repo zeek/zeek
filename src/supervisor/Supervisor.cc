@@ -18,6 +18,8 @@
 
 #define RAPIDJSON_HAS_STDSTRING 1
 #include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 
 extern "C" {
 #include "zeek/3rdparty/setsignal.h"
@@ -1243,34 +1245,9 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromRecord(const RecordVal* node)
         rval.env[name] = v->GetVal()->AsStringVal()->ToStdString();
     }
 
-    auto cluster_table_val = node->GetField("cluster")->AsTableVal();
-    auto cluster_table = cluster_table_val->AsTable();
-
-    for ( const auto& cte : *cluster_table ) {
-        auto k = cte.GetHashKey();
-        auto* v = cte.value;
-
-        auto key = cluster_table_val->RecreateIndex(*k);
-        auto name = key->Idx(0)->AsStringVal()->ToStdString();
-        auto rv = v->GetVal()->AsRecordVal();
-
-        Supervisor::ClusterEndpoint ep;
-        ep.role = static_cast<BifEnum::Supervisor::ClusterRole>(rv->GetFieldAs<EnumVal>("role"));
-        ep.host = rv->GetFieldAs<AddrVal>("host").AsString();
-        ep.port = rv->GetFieldAs<PortVal>("p")->Port();
-
-        const auto& iface = rv->GetField("interface");
-
-        if ( iface )
-            ep.interface = iface->AsStringVal()->ToStdString();
-
-        const auto& pcap_file = rv->GetField("pcap_file");
-
-        if ( pcap_file )
-            ep.pcap_file = pcap_file->AsStringVal()->ToStdString();
-
-        rval.cluster.emplace(name, std::move(ep));
-    }
+    auto cluster_table_val = node->GetField("cluster");
+    auto re = std::make_unique<RE_Matcher>("^_");
+    rval.cluster = cluster_table_val->ToJSON(false, re.get())->ToStdString();
 
     return rval;
 }
@@ -1319,26 +1296,10 @@ Supervisor::NodeConfig Supervisor::NodeConfig::FromJSON(std::string_view json) {
 
     auto& cluster = j["cluster"];
 
-    for ( auto it = cluster.MemberBegin(); it != cluster.MemberEnd(); ++it ) {
-        Supervisor::ClusterEndpoint ep;
-
-        auto key = it->name.GetString();
-        auto& val = it->value;
-
-        auto& role_str = val["role"];
-        ep.role = role_str_to_enum(role_str.GetString());
-
-        ep.host = val["host"].GetString();
-        ep.port = val["p"]["port"].GetInt();
-
-        if ( auto it = val.FindMember("interface"); it != val.MemberEnd() )
-            ep.interface = it->value.GetString();
-
-        if ( auto it = val.FindMember("pcap_file"); it != val.MemberEnd() )
-            ep.pcap_file = it->value.GetString();
-
-        rval.cluster.emplace(key, std::move(ep));
-    }
+    rapidjson::StringBuffer sb;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
+    cluster.Accept(writer);
+    rval.cluster = sb.GetString();
 
     return rval;
 }
@@ -1349,7 +1310,7 @@ std::string Supervisor::NodeConfig::ToJSON() const {
 }
 
 RecordValPtr Supervisor::NodeConfig::ToRecord() const {
-    const auto& rt = BifType::Record::Supervisor::NodeConfig;
+    const auto& rt = id::find_type<RecordType>("Supervisor::NodeConfig");
     auto rval = make_intrusive<RecordVal>(rt);
     rval->AssignField("name", name);
 
@@ -1401,27 +1362,18 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const {
     }
 
     auto tt = rt->GetFieldType<TableType>("cluster");
-    auto cluster_val = make_intrusive<TableVal>(std::move(tt));
-    rval->AssignField("cluster", cluster_val);
-
-    for ( const auto& e : cluster ) {
-        auto& name = e.first;
-        auto& ep = e.second;
-        auto key = make_intrusive<StringVal>(name);
-        const auto& ept = BifType::Record::Supervisor::ClusterEndpoint;
-        auto val = make_intrusive<RecordVal>(ept);
-
-        val->AssignField("role", BifType::Enum::Supervisor::ClusterRole->GetEnumVal(ep.role));
-        val->AssignField("host", make_intrusive<AddrVal>(ep.host));
-        val->AssignField("p", val_mgr->Port(ep.port, TRANSPORT_TCP));
-
-        if ( ep.interface )
-            val->AssignField("interface", *ep.interface);
-
-        if ( ep.pcap_file )
-            val->AssignField("pcap_file", *ep.pcap_file);
-
-        cluster_val->Assign(std::move(key), std::move(val));
+    auto json_res = detail::ValFromJSON(cluster, tt, Func::nil);
+    if ( auto val = std::get_if<ValPtr>(&json_res) ) {
+        rval->AssignField("cluster", *val);
+    }
+    else {
+        // This should never happen: the JSON data comes from a table[string] of
+        // ClusterEndpoint and should therefore allow instantiation. Exiting
+        // here can be hard to debug. Other JSON code (see FromJSON()) fails
+        // silently when the JSON is misformatted. We just warn:
+        fprintf(stderr, "Could not parse %s's cluster table from '%s': %s\n", name.c_str(), cluster.c_str(),
+                std::get<std::string>(json_res).c_str());
+        rval->AssignField("cluster", make_intrusive<TableVal>(std::move(tt)));
     }
 
     return rval;
@@ -1437,62 +1389,6 @@ RecordValPtr SupervisorNode::ToRecord() const {
         rval->AssignField("pid", pid);
 
     return rval;
-}
-
-static ValPtr supervisor_role_to_cluster_node_type(BifEnum::Supervisor::ClusterRole role) {
-    static auto node_type = id::find_type<zeek::EnumType>("Cluster::NodeType");
-
-    switch ( role ) {
-        case BifEnum::Supervisor::LOGGER: return node_type->GetEnumVal(node_type->Lookup("Cluster", "LOGGER"));
-        case BifEnum::Supervisor::MANAGER: return node_type->GetEnumVal(node_type->Lookup("Cluster", "MANAGER"));
-        case BifEnum::Supervisor::PROXY: return node_type->GetEnumVal(node_type->Lookup("Cluster", "PROXY"));
-        case BifEnum::Supervisor::WORKER: return node_type->GetEnumVal(node_type->Lookup("Cluster", "WORKER"));
-        default: return node_type->GetEnumVal(node_type->Lookup("Cluster", "NONE"));
-    }
-}
-
-bool SupervisedNode::InitCluster() const {
-    if ( config.cluster.empty() )
-        return false;
-
-    const auto& cluster_node_type = id::find_type<RecordType>("Cluster::Node");
-    const auto& cluster_nodes_id = id::find("Cluster::nodes");
-    const auto& cluster_manager_is_logger_id = id::find("Cluster::manager_is_logger");
-    auto cluster_nodes = cluster_nodes_id->GetVal()->AsTableVal();
-    auto has_logger = false;
-    std::optional<std::string> manager_name;
-
-    for ( const auto& e : config.cluster ) {
-        if ( e.second.role == BifEnum::Supervisor::MANAGER )
-            manager_name = e.first;
-        else if ( e.second.role == BifEnum::Supervisor::LOGGER )
-            has_logger = true;
-    }
-
-    for ( const auto& e : config.cluster ) {
-        const auto& node_name = e.first;
-        const auto& ep = e.second;
-
-        auto key = make_intrusive<StringVal>(node_name);
-        auto val = make_intrusive<RecordVal>(cluster_node_type);
-
-        auto node_type = supervisor_role_to_cluster_node_type(ep.role);
-        val->AssignField("node_type", std::move(node_type));
-        val->AssignField("ip", make_intrusive<AddrVal>(ep.host));
-        val->AssignField("p", val_mgr->Port(ep.port, TRANSPORT_TCP));
-
-        // Remove in v7.1: Interface removed from Cluster::Node.
-        if ( ep.interface )
-            val->AssignField("interface", *ep.interface);
-
-        if ( manager_name && ep.role != BifEnum::Supervisor::MANAGER )
-            val->AssignField("manager", *manager_name);
-
-        cluster_nodes->Assign(std::move(key), std::move(val));
-    }
-
-    cluster_manager_is_logger_id->SetVal(val_mgr->Bool(! has_logger));
-    return true;
 }
 
 void SupervisedNode::Init(Options* options) const {
@@ -1546,7 +1442,7 @@ void SupervisedNode::Init(Options* options) const {
         }
     }
 
-    if ( ! config.cluster.empty() ) {
+    if ( ! config.cluster.empty() && config.cluster != "{}" ) {
         if ( setenv("CLUSTER_NODE", node_name.data(), true) == -1 ) {
             fprintf(stderr, "node '%s' failed to setenv: %s\n", node_name.data(), strerror(errno));
             exit(1);

@@ -107,6 +107,11 @@ New Functionality
   Use ``Analyzer::get_tag()`` if you need to obtain an analyzer's tag from its
   name (such as "HTTP").
 
+- The ``from_json()`` function now supports ingesting JSON representations of
+  tables as produced by the ``to_json()`` function. It now also supports reading
+  the object-based representation of ports that ``to_json()`` generates for that
+  Zeek type.
+
 Changed Functionality
 ---------------------
 

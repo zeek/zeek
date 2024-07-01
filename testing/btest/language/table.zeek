@@ -162,94 +162,130 @@ function basic_functionality()
 	test_case( "!in operator", [cid, T] !in t11 );
 }
 
-function complex_index_types()
+type tss_table: table[table[string] of string] of string;
+
+function complex_index_type_table()
 {
 	# Initialization
-	local t1: table[table[string] of string] of string = {
+	local t: tss_table = {
 		[table(["k1"] = "v1")] = "res1"
 	};
 
 	# Adding a member
-	t1[table(["k2"] = "v2")] = "res2";
+	t[table(["k2"] = "v2")] = "res2";
 
 	# Various checks, including membership test and lookup
-	test_case( "table index size", |t1| == 2 );
-	test_case( "table index membership", table(["k2"] = "v2") in t1 );
-	test_case( "table index non-membership", table(["k2"] = "v3") !in t1 );
-	test_case( "table index lookup", t1[table(["k2"] = "v2")] == "res2" );
+	test_case( "table index size", |t| == 2 );
+	test_case( "table index membership", table(["k2"] = "v2") in t );
+	test_case( "table index non-membership", table(["k2"] = "v3") !in t );
+	test_case( "table index lookup", t[table(["k2"] = "v2")] == "res2" );
 
 	# Member deletion
-	delete t1[table(["k1"] = "v1")];
-	test_case( "table index reduced size", |t1| == 1 );
+	delete t[table(["k1"] = "v1")];
+	test_case( "table index reduced size", |t| == 1 );
 
 	# Iteration
-	for ( ti in t1 )
+	for ( ti in t )
 		{
 		test_case( "table index iteration", to_json(ti) == to_json(table(["k2"] = "v2")) );
 		break;
 		}
 
-	# As above, for other index types
-	local t2: table[vector of string] of string = {
+	# JSON serialize/unserialize
+	local fjr = from_json(to_json(t), tss_table);
+	test_case( "table index JSON roundtrip success", fjr$valid );
+	test_case( "table index JSON roundtrip correct", to_json(t) == to_json(fjr$v) );
+}
+
+type vs_table: table[vector of string] of string;
+
+function complex_index_type_vector()
+{
+	local t: vs_table = {
 		[vector("v1", "v2")] = "res1"
 	};
 
-	t2[vector("v3", "v4")] = "res2";
-	test_case( "vector index size", |t2| == 2 );
-	test_case( "vector index membership", vector("v3", "v4") in t2 );
-	test_case( "vector index non-membership", vector("v4", "v5") !in t2 );
-	test_case( "vector index lookup", t2[vector("v3", "v4")] == "res2" );
+	t[vector("v3", "v4")] = "res2";
+	test_case( "vector index size", |t| == 2 );
+	test_case( "vector index membership", vector("v3", "v4") in t );
+	test_case( "vector index non-membership", vector("v4", "v5") !in t );
+	test_case( "vector index lookup", t[vector("v3", "v4")] == "res2" );
 
-	delete t2[vector("v1", "v2")];
-	test_case( "vector index reduced size", |t2| == 1 );
+	delete t[vector("v1", "v2")];
+	test_case( "vector index reduced size", |t| == 1 );
 
-	for ( vi in t2 )
+	for ( vi in t )
 		{
 		test_case( "vector index iteration", to_json(vi) == to_json(vector("v3", "v4")) );
 		break;
 		}
 
-	local t3: table[set[string]] of string = {
+	local fjr = from_json(to_json(t), vs_table);
+	test_case( "vector index JSON roundtrip success", fjr$valid );
+	test_case( "vector index JSON roundtrip", to_json(t) == to_json(fjr$v) );
+}
+
+type ss_table: table[set[string]] of string;
+
+function complex_index_type_set()
+{
+	local t: ss_table = {
 		[set("s1", "s2")] = "res1"
 	};
 
-	t3[set("s3", "s4")] = "res2";
-	test_case( "set index size", |t3| == 2 );
-	test_case( "set index membership", set("s3", "s4") in t3 );
-	test_case( "set index non-membership", set("s4", "s5") !in t3 );
-	test_case( "set index lookup", t3[set("s3", "s4")] == "res2" );
+	t[set("s3", "s4")] = "res2";
+	test_case( "set index size", |t| == 2 );
+	test_case( "set index membership", set("s3", "s4") in t );
+	test_case( "set index non-membership", set("s4", "s5") !in t );
+	test_case( "set index lookup", t[set("s3", "s4")] == "res2" );
 
-	delete t3[set("s1", "s2")];
-	test_case( "set index reduced size", |t3| == 1 );
+	delete t[set("s1", "s2")];
+	test_case( "set index reduced size", |t| == 1 );
 
-	for ( si in t3 )
+	for ( si in t )
 		{
 		test_case( "set index iteration", to_json(si) == to_json(set("s3", "s4")) );
 		break;
 		}
 
-	local t4: table[pattern] of string = {
+	local fjr = from_json(to_json(t), ss_table);
+	test_case( "set index JSON roundtrip success", fjr$valid );
+	test_case( "set index JSON roundtrip", to_json(t) == to_json(fjr$v) );
+}
+
+type tp_table: table[pattern] of string;
+
+function complex_index_type_pattern()
+{
+	local t: tp_table = {
 		[/pat1/] = "res1"
 	};
 
-	t4[/pat2/] = "res2";
-	test_case( "pattern index size", |t4| == 2 );
-	test_case( "pattern index membership", /pat2/ in t4 );
-	test_case( "pattern index non-membership", /pat3/ !in t4 );
-	test_case( "pattern index lookup", t4[/pat2/] == "res2" );
+	t[/pat2/] = "res2";
+	test_case( "pattern index size", |t| == 2 );
+	test_case( "pattern index membership", /pat2/ in t );
+	test_case( "pattern index non-membership", /pat3/ !in t );
+	test_case( "pattern index lookup", t[/pat2/] == "res2" );
 
-	delete t4[/pat1/];
-	test_case( "pattern index reduced size", |t4| == 1 );
+	delete t[/pat1/];
+	test_case( "pattern index reduced size", |t| == 1 );
 
-	for ( pi in t4 )
+	for ( pi in t )
 		{
 		test_case( "pattern index iteration", to_json(pi) == to_json(/pat2/) );
 		break;
 		}
+
+	local fjr = from_json(to_json(t), tp_table);
+	test_case( "pattern index JSON roundtrip success", fjr$valid );
+	test_case( "pattern index JSON roundtrip", to_json(t) == to_json(fjr$v) );
 }
 
 event zeek_init()
 {
 	basic_functionality();
-	complex_index_types();
+	complex_index_type_table();
+	complex_index_type_vector();
+	complex_index_type_set();
+	complex_index_type_pattern();
 }

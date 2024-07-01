@@ -236,6 +236,20 @@ public:
 
     TableValPtr GetRecordFields();
 
+    /**
+     * Renders the Val into JSON string representation. For record values
+     * contained anywhere in the Val, two arguments control the JSON result
+     * (they have no effect on other types):
+     *
+     * @param only_loggable  If true, skips any fields that don't have the &log
+     * attribute.
+     *
+     * @param re  The regular expression matcher, if given, is used to strip the
+     * first match on any record field name in the resulting output.  See the
+     * to_json() BiF for context.
+     *
+     * @return  JSON data representing the Val.
+     */
     StringValPtr ToJSON(bool only_loggable = false, RE_Matcher* re = nullptr);
 
     template<typename T>

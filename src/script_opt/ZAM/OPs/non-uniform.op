@@ -128,7 +128,7 @@ macro EvalVal2InTableCore(op1, op2)
 	INDEX_LIST->Append(op2);
 
 macro EvalVal2InTableAssignCore(lhs, tbl)
-	lhs.AsIntRef() = tbl.AsTable()->Find(std::move(INDEX_LIST)) != nullptr;
+	lhs.AsIntRef() = tbl.AsTable()->Find(INDEX_LIST) != nullptr;
 
 macro EvalVal2InTablePre(op1, op2, tbl)
 	auto& tt_ind = tbl.AsTable()->GetType()->AsTableType()->GetIndexTypes();

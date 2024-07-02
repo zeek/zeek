@@ -290,7 +290,7 @@ internal-op Init-Table
 class V
 op-types T
 eval	auto tt = cast_intrusive<TableType>(Z_TYPE);
-	auto t = new TableVal(tt, Z_AUX->attrs);
+	auto t = new TableVal(tt, Z_AUX_ATTRS);
 	Unref($$);
 	$$ = t;
 
@@ -308,7 +308,7 @@ eval	BuildWhen($1, $2)
 
 macro BuildWhen(zf, timeout)
 	auto& aux = Z_AUX;
-	auto wi = aux->wi;
+	auto wi = Z_AUX_WHEN_INFO;
 	FuncPtr func{NewRef{}, zf};
 	auto lambda = make_intrusive<FuncVal>(func);
 	wi->Instantiate(std::move(lambda));

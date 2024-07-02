@@ -6,7 +6,7 @@ direct-unary-op Table-Constructor ConstructTable
 
 macro ConstructTableOrSetPre(width)
 	auto tt = cast_intrusive<TableType>(Z_TYPE);
-	auto new_t = new TableVal(tt, Z_AUX->attrs);
+	auto new_t = new TableVal(tt, Z_AUX_ATTRS);
 	auto aux = Z_AUX;
 	auto n = aux->n;
 	auto ind_width = width;

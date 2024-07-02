@@ -1,3 +1,15 @@
+7.0.0-dev.420 | 2024-07-02 14:46:29 -0700
+
+  * Update NEWS file to cover JSON enhancements (Christian Kreibich, Corelight)
+
+  * Support JSON roundtripping via to_json()/from_json() for patterns (Christian Kreibich, Corelight)
+
+  * Support table deserialization in from_json() (Christian Kreibich, Corelight)
+
+  * Support map-based definition of ports in from_json() (Christian Kreibich, Corelight)
+
+  * Document the field_escape_pattern in the to_json() BiF (Christian Kreibich, Corelight)
+
 7.0.0-dev.414 | 2024-07-02 19:42:10 +0200
 
   * Bump cmake submodule [nomail] (Arne Welzel, Corelight)

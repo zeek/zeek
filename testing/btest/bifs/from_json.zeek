@@ -29,11 +29,12 @@ type Foo: record {
 	re: pattern;
 	su: subnet_set;
 	se: set[addr, port];
+	tbl: table[addr, port] of string;
 };
 
 event zeek_init()
 	{
-	local json = "{\"hello\":\"world\",\"t\":true,\"f\":false,\"se\":[[\"192.168.0.1\", \"80/tcp\"], [\"2001:db8::1\", \"8080/udp\"]],\"n\":null,\"i\":123,\"pi\":3.1416,\"a\":[\"1\",\"2\",\"3\",\"4\"],\"su\":[\"[aa:bb::0]/32\",\"192.168.0.0/16\"],\"c1\":\"A::Blue\",\"p\":\"1500/tcp\",\"it\":5000,\"ad\":\"127.0.0.1\",\"s\":\"[::1/128]\",\"re\":\"/a/\",\"ti\":1681652265.042767}";
+	local json = "{\"hello\":\"world\",\"t\":true,\"f\":false,\"se\":[[\"192.168.0.1\", \"80/tcp\"], [\"2001:db8::1\", \"8080/udp\"]],\"n\":null,\"i\":123,\"pi\":3.1416,\"a\":[\"1\",\"2\",\"3\",\"4\"],\"su\":[\"[aa:bb::0]/32\",\"192.168.0.0/16\"],\"c1\":\"A::Blue\",\"p\":\"1500/tcp\",\"it\":5000,\"ad\":\"127.0.0.1\",\"s\":\"[::1/128]\",\"re\":\"/a/\",\"ti\":1681652265.042767,\"tbl\":{\"[\\\"192.168.0.1\\\",\\\"80/tcp\\\"]\":\"foo\"}}";
 	print from_json(json, Foo);
 	}
 
@@ -73,10 +74,14 @@ event zeek_init()
 
 @TEST-START-NEXT
 type port_t: port;
-# wrong port format
+# additional & incorrect port formats
 event zeek_init()
 	{
+	# Ports can also be given as objects:
+	print from_json("{\"port\":80,\"proto\":\"tcp\"}", port_t);
+	# These are violations:
 	print from_json("\"80\"", port_t);
+	print from_json("{}", port_t);
 	}
 
 @TEST-START-NEXT

@@ -329,8 +329,27 @@ TableValPtr Val::GetRecordFields() {
     return rt->GetRecordFieldsVal(rv);
 }
 
-// This is a static method in this file to avoid including rapidjson's headers in Val.h because
-// they're huge.
+// A predicate to identify those types we render as a string in JSON.
+static bool UsesJSONStringType(const TypePtr& t) {
+    if ( t == nullptr )
+        return false;
+
+    switch ( t->Tag() ) {
+        case TYPE_ADDR:
+        case TYPE_ENUM:
+        case TYPE_FILE:
+        case TYPE_FUNC:
+        case TYPE_INTERVAL:
+        case TYPE_PATTERN:
+        case TYPE_STRING:
+        case TYPE_SUBNET:
+        case TYPE_OPAQUE: return true;
+        default: return false;
+    }
+}
+
+// This is a static method in this file to avoid including rapidjson's headers
+// in Val.h, because they're huge.
 static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool only_loggable = false,
                       RE_Matcher* re = nullptr, const string& key = "") {
     if ( ! key.empty() )
@@ -421,8 +440,10 @@ static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool onl
                     BuildJSON(key_writer, entry_key, only_loggable, re);
                     string key_str = buffer.GetString();
 
-                    if ( key_str.length() >= 2 && key_str[0] == '"' && key_str[key_str.length() - 1] == '"' )
-                        // Strip quotes.
+                    // Strip the quotes for any type we render as a string. This
+                    // makes the JSON object's keys look more natural, yielding
+                    // '{ "foo": ... }', not '{ "\"foo\"": ... }', for such types.
+                    if ( UsesJSONStringType(entry_key->GetType()) )
                         key_str = key_str.substr(1, key_str.length() - 2);
 
                     BuildJSON(writer, entry->GetVal().get(), only_loggable, re, key_str);
@@ -924,28 +945,50 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
         }
 
         case TYPE_PORT: {
-            if ( ! j.IsString() )
-                return mismatch_err();
-
-            int port = 0;
-            if ( j.GetStringLength() > 0 && j.GetStringLength() < 10 ) {
-                char* slash;
-                errno = 0;
-                port = strtol(j.GetString(), &slash, 10);
-                if ( ! errno ) {
-                    ++slash;
-                    if ( util::streq(slash, "tcp") )
-                        return val_mgr->Port(port, TRANSPORT_TCP);
-                    else if ( util::streq(slash, "udp") )
-                        return val_mgr->Port(port, TRANSPORT_UDP);
-                    else if ( util::streq(slash, "icmp") )
-                        return val_mgr->Port(port, TRANSPORT_ICMP);
-                    else if ( util::streq(slash, "unknown") )
-                        return val_mgr->Port(port, TRANSPORT_UNKNOWN);
+            if ( j.IsString() ) {
+                int port = 0;
+                if ( j.GetStringLength() > 0 && j.GetStringLength() < 10 ) {
+                    char* slash;
+                    errno = 0;
+                    port = strtol(j.GetString(), &slash, 10);
+                    if ( ! errno ) {
+                        ++slash;
+                        if ( util::streq(slash, "tcp") )
+                            return val_mgr->Port(port, TRANSPORT_TCP);
+                        else if ( util::streq(slash, "udp") )
+                            return val_mgr->Port(port, TRANSPORT_UDP);
+                        else if ( util::streq(slash, "icmp") )
+                            return val_mgr->Port(port, TRANSPORT_ICMP);
+                        else if ( util::streq(slash, "unknown") )
+                            return val_mgr->Port(port, TRANSPORT_UNKNOWN);
+                    }
                 }
-            }
 
-            return "wrong port format, must be /[0-9]{1,5}\\/(tcp|udp|icmp|unknown)/";
+                return "wrong port format, string must be /[0-9]{1,5}\\/(tcp|udp|icmp|unknown)/";
+            }
+            else if ( j.IsObject() ) {
+                if ( ! j.HasMember("port") || ! j.HasMember("proto") )
+                    return "wrong port format, object must have 'port' and 'proto' members";
+                if ( ! j["port"].IsNumber() )
+                    return "wrong port format, port must be a number";
+                if ( ! j["proto"].IsString() )
+                    return "wrong port format, protocol must be a string";
+
+                std::string proto{j["proto"].GetString()};
+
+                if ( proto == "tcp" )
+                    return val_mgr->Port(j["port"].GetInt(), TRANSPORT_TCP);
+                if ( proto == "udp" )
+                    return val_mgr->Port(j["port"].GetInt(), TRANSPORT_UDP);
+                if ( proto == "icmp" )
+                    return val_mgr->Port(j["port"].GetInt(), TRANSPORT_ICMP);
+                if ( proto == "unknown" )
+                    return val_mgr->Port(j["port"].GetInt(), TRANSPORT_UNKNOWN);
+
+                return "wrong port format, invalid protocol string";
+            }
+            else
+                return "wrong port format, must be string or object";
         }
 
         case TYPE_PATTERN: {
@@ -953,10 +996,16 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
                 return mismatch_err();
 
             std::string candidate(j.GetString(), j.GetStringLength());
+            // Remove any surrounding '/'s, not needed when creating an RE_matcher.
             if ( candidate.size() > 2 && candidate.front() == candidate.back() && candidate.back() == '/' ) {
-                // Remove the '/'s
                 candidate.erase(0, 1);
                 candidate.erase(candidate.size() - 1);
+            }
+            // Remove any surrounding "^?(" and ")$?", automatically added below.
+            if ( candidate.size() > 6 && candidate.substr(0, 3) == "^?(" &&
+                 candidate.substr(candidate.size() - 3, 3) == ")$?" ) {
+                candidate.erase(0, 3);
+                candidate.erase(candidate.size() - 3);
             }
 
             auto re = std::make_unique<RE_Matcher>(candidate.c_str());
@@ -1023,34 +1072,69 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
         }
 
         case TYPE_TABLE: {
-            if ( ! j.IsArray() )
-                return mismatch_err();
-
-            if ( ! t->IsSet() )
-                return util::fmt("tables are not supported");
-
-            auto tt = t->AsSetType();
-            auto tl = tt->GetIndices();
+            auto tt = t->AsTableType(); // The table vs set type does not matter below
             auto tv = make_intrusive<TableVal>(IntrusivePtr{NewRef{}, tt});
+            auto tl = tt->GetIndices();
 
-            for ( const auto& item : j.GetArray() ) {
-                std::variant<ValPtr, std::string> v;
+            if ( t->IsSet() ) {
+                if ( ! j.IsArray() )
+                    return mismatch_err();
 
-                if ( tl->GetTypes().size() == 1 )
-                    v = BuildVal(item, tl->GetPureType(), key_func);
-                else
-                    v = BuildVal(item, tl, key_func);
+                for ( const auto& item : j.GetArray() ) {
+                    std::variant<ValPtr, std::string> v;
 
-                if ( ! get_if<ValPtr>(&v) )
-                    return v;
+                    if ( tl->GetTypes().size() == 1 )
+                        v = BuildVal(item, tl->GetPureType(), key_func);
+                    else
+                        v = BuildVal(item, tl, key_func);
 
-                if ( ! std::get<ValPtr>(v) )
-                    continue;
+                    if ( ! get_if<ValPtr>(&v) )
+                        return v;
+                    if ( ! std::get<ValPtr>(v) )
+                        continue;
 
-                tv->Assign(std::move(std::get<ValPtr>(v)), nullptr);
+                    tv->Assign(std::move(std::get<ValPtr>(v)), nullptr);
+                }
+
+                return tv;
             }
+            else {
+                if ( ! j.IsObject() )
+                    return mismatch_err();
 
-            return tv;
+                for ( auto it = j.MemberBegin(); it != j.MemberEnd(); ++it ) {
+                    rapidjson::Document idxstr;
+                    idxstr.Parse(it->name.GetString(), it->name.GetStringLength());
+
+                    std::variant<ValPtr, std::string> idx;
+
+                    if ( tl->GetTypes().size() > 1 )
+                        idx = BuildVal(idxstr, tl, key_func);
+                    else if ( UsesJSONStringType(tl->GetPureType()) )
+                        // Parse this with the quotes the string came with. This
+                        // mirrors the quote-stripping in BuildJSON().
+                        idx = BuildVal(it->name, tl->GetPureType(), key_func);
+                    else
+                        // Parse the string's content, not the full JSON string.
+                        idx = BuildVal(idxstr, tl->GetPureType(), key_func);
+
+                    if ( ! get_if<ValPtr>(&idx) )
+                        return idx;
+                    if ( ! std::get<ValPtr>(idx) )
+                        continue;
+
+                    auto v = BuildVal(it->value, tt->Yield(), key_func);
+
+                    if ( ! get_if<ValPtr>(&v) )
+                        return v;
+                    if ( ! std::get<ValPtr>(v) )
+                        continue;
+
+                    tv->Assign(std::move(std::get<ValPtr>(idx)), std::move(std::get<ValPtr>(v)));
+                }
+
+                return tv;
+            }
         }
 
         case TYPE_RECORD: {

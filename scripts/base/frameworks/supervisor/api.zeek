@@ -30,6 +30,8 @@ export {
 		## The PCAP file name from which the node will read/analyze packets.
 		## Typically used by worker nodes.
 		pcap_file: string &optional;
+		## The TCP port at which the cluster node exposes metrics for Prometheus.
+		metrics_port: port &optional;
 	};
 
 	## Configuration options that influence behavior of a supervised Zeek node.

@@ -60,6 +60,7 @@ export {
 		interface: string &optional;         ##< Interface to sniff
 		cpu_affinity: int &optional;         ##< CPU/core number to pin to
 		env: table[string] of string &default=table(); ##< Custom environment vars
+		metrics_port: port &optional;        ##< Metrics exposure port, for Prometheus
 	};
 
 	## Data structure capturing a cluster's complete configuration.
@@ -88,6 +89,8 @@ export {
 		pid: int &optional;
 		## The node's Broker peering listening port, if any.
 		p: port &optional;
+		## The node's metrics port for Prometheus, if any.
+		metrics_port: port &optional;
 	};
 
 	type NodeStatusVec: vector of NodeStatus;

@@ -151,6 +151,10 @@ Changed Functionality
   it aligns with the same requirement for traditional analyzers and
   enables customizing file handles for protocol-specific semantics.
 
+- The Supervisor's API now returns NodeConfig records with a cluster table whose
+  ClusterEndpoints have a port value of 0/unknown, rather than 0/tcp, to
+  indicate that the node in question has no listening port.
+
 Removed Functionality
 ---------------------
 

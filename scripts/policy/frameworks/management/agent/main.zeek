@@ -625,10 +625,9 @@ function get_nodes_request_finish(areq: Management::Request::Request)
 			if ( node in g_nodes )
 				cns$state = g_nodes[node]$state;
 
-			# The supervisor's responses use 0/tcp (not 0/unknown)
-			# when indicating an unused port because its internal
-			# serialization always assumes TCP.
-			if ( sns$node$cluster[node]$p != 0/tcp )
+			# The supervisor's responses use 0/unknown to indicate
+			# unused ports. (Prior to Zeek 7 this used to be 0/tcp.)
+			if ( sns$node$cluster[node]$p != 0/unknown )
 				cns$p = sns$node$cluster[node]$p;
 			}
 		else

@@ -1,3 +1,9 @@
+7.0.0-dev.423 | 2024-07-02 15:35:36 -0700
+
+  * Remove the Supervisor's internal ClusterEndpoint struct. (Christian Kreibich, Corelight)
+
+  * Provide a script-layer equivalent to Supervisor::__init_cluster(). (Christian Kreibich, Corelight)
+
 7.0.0-dev.420 | 2024-07-02 14:46:29 -0700
 
   * Update NEWS file to cover JSON enhancements (Christian Kreibich, Corelight)

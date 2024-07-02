@@ -14,14 +14,21 @@ redef Broker::log_topic = Cluster::rr_log_topic;
 # Add a cluster prefix.
 @prefixes += cluster
 
-# If this script isn't found anywhere, the cluster bombs out.
-# Loading the cluster framework requires that a script by this name exists
-# somewhere in the ZEEKPATH.  The only thing in the file should be the
-# cluster definition in the :zeek:id:`Cluster::nodes` variable.
+@if ( Supervisor::is_supervised() )
+# When running a supervised cluster, populate Cluster::nodes from the node table
+# the Supervisor provides to new Zeek nodes. The management framework configures
+# the cluster this way.
+@load ./supervisor
+@if ( Cluster::Supervisor::__init_cluster_nodes() && Cluster::get_node_count(Cluster::LOGGER) > 0 )
+redef Cluster::manager_is_logger = F;
+@endif
+@endif
 
-@if ( ! Supervisor::__init_cluster() )
-# When running a supervised cluster, Cluster::nodes is instead populated
-# from the internal C++-layer directly via the above BIF.
+@if ( |Cluster::nodes| == 0 )
+# Fall back to loading a cluster topology from cluster-layout.zeek. If Zeek
+# cannot find this script in your ZEEKPATH, it will exit. The script should only
+# contain the cluster definition in the :zeek:id:`Cluster::nodes` variable.
+# The zeekctl tool manages this file for you.
 @load cluster-layout
 @endif
 

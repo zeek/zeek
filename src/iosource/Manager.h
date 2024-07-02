@@ -144,6 +144,15 @@ public:
 
 private:
     /**
+     * Internal data structure for managing registered IOSources.
+     */
+    struct Source {
+        IOSource* src = nullptr;
+        bool dont_count = false;
+        bool manage_lifetime = false;
+    };
+
+    /**
      * Calls the appropriate poll method to gather a set of IOSources that are
      * ready for processing.
      *
@@ -170,6 +179,19 @@ private:
 
     void RemoveAll();
 
+    /**
+     * Reap a closed IO source.
+     *
+     * Reaping involves calling IOSource::Done() on the underlying IOSource,
+     * freeing it if Source.manage_lifetime is \c true, updating \c dont_counts
+     * and freeing \a src, making it invalid.
+     *
+     * The caller ensures \a src is removed from Manager.sources.
+     *
+     * @param src The source to reap.
+     */
+    void ReapSource(Source* src);
+
     class WakeupHandler final : public IOSource {
     public:
         WakeupHandler();
@@ -190,12 +212,6 @@ private:
 
     private:
         zeek::detail::Flare flare;
-    };
-
-    struct Source {
-        IOSource* src = nullptr;
-        bool dont_count = false;
-        bool manage_lifetime = false;
     };
 
     using SourceList = std::vector<Source*>;

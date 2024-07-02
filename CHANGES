@@ -1,3 +1,50 @@
+7.0.0-dev.413 | 2024-07-02 14:41:27 +0200
+
+  * threading/Manager: Warn if threads are added after termination (Arne Welzel, Corelight)
+
+    The core.file-analyzer-violation test showed that it's possible to
+    create new threads (log writers) when Zeek is in the process of
+    terminating. This can result in the IO manager's deconstructor
+    deleting IO sources for threads that are still running.
+
+    This is sort of a scripting issue, so for now log a reporter warning
+    when it happens to have a bit of a bread-crumb what might be
+    going on. In the future it might make sense to plug APIs with
+    zeek_is_terminating().
+
+  * iosource/Manager: Reap dry sources while computing timeout (Arne Welzel, Corelight)
+
+    Avoids looping over the sources vector twice and should result
+    in the same behavior.
+
+  * GH-3682: threading/MsgThread: Decouple IO source and thread lifetimes (Arne Welzel, Corelight)
+
+    MsgThread acting as an IO source can result in the situation where the
+    threading manager's heartbeat timer deletes a finished MsgThread instance,
+    but at the same time this thread is in the list of ready IO sources the
+    main loop is currently processing.
+
+    Fix this by decoupling the lifetime of the IO source part and properly
+    registering as lifetime managed IO sources with the IO manager.
+
+    Fixes #3682
+
+  * iosource/Manager: Do not manage lifetime of pkt_src (Arne Welzel, Corelight)
+
+    Now that dry sources are properly reaped and freed, an offline packet
+    source would be deleted once dry, resulting in GetPktSrc() returning
+    a wild pointer. Don't manage the packet source lifetime and instead
+    free it during Manager destruction.
+
+  * iosource/Manager: Honor manage_lifetime and dont_count for short-lived IO sources (Arne Welzel, Corelight)
+
+    If an IO source is registered and becomes dry at runtime, the IO
+    manager would not honor its manage_lifetime or dont_count attribute
+    during collection, resulting in memory leaks.
+
+    This probably hasn't mattered so far as there's no IO sources registered
+    in-tree at runtime using manage_lifetime=true.
+
 7.0.0-dev.407 | 2024-06-26 13:16:10 +0200
 
   * coverage/lcov_html: Allow missing coveralls token (Arne Welzel, Corelight)

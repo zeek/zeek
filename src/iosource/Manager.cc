@@ -76,6 +76,9 @@ Manager::~Manager() {
 
     pkt_dumpers.clear();
 
+    // Was registered without lifetime management.
+    delete pkt_src;
+
 #ifndef _MSC_VER
     // There's a bug here with builds on Windows that causes an assertion with debug builds
     // related to libkqueue returning a zero for the file descriptor. The assert happens
@@ -104,23 +107,24 @@ void Manager::Wakeup(std::string_view where) {
         wakeup->Ping(where);
 }
 
+void Manager::ReapSource(Source* src) {
+    auto* iosource = src->src;
+    assert(! iosource->IsOpen());
+
+    DBG_LOG(DBG_MAINLOOP, "Reaping %s", src->src->Tag());
+    iosource->Done();
+
+    if ( src->manage_lifetime )
+        delete iosource;
+
+    if ( src->dont_count )
+        dont_counts--;
+
+    delete src;
+}
+
 void Manager::FindReadySources(ReadySources* ready) {
     ready->clear();
-
-    // Remove sources which have gone dry. For simplicity, we only
-    // remove at most one each time.
-    for ( SourceList::iterator i = sources.begin(); i != sources.end(); ++i )
-        if ( ! (*i)->src->IsOpen() ) {
-            (*i)->src->Done();
-            delete *i;
-            sources.erase(i);
-            break;
-        }
-
-    // If there aren't any sources and exit_only_after_terminate is false, just
-    // return an empty set of sources. We want the main loop to end.
-    if ( Size() == 0 && (! BifConst::exit_only_after_terminate || run_state::terminating) )
-        return;
 
     double timeout = -1;
     IOSource* timeout_src = nullptr;
@@ -133,7 +137,8 @@ void Manager::FindReadySources(ReadySources* ready) {
     }
 
     // Find the source with the next timeout value.
-    for ( auto src : sources ) {
+    for ( auto i = sources.begin(); i != sources.end(); /* noop */ ) {
+        auto* src = *i;
         auto iosource = src->src;
         if ( iosource->IsOpen() ) {
             double next = iosource->GetNextTimeout();
@@ -161,7 +166,19 @@ void Manager::FindReadySources(ReadySources* ready) {
                         ready->push_back({pkt_src, -1, 0});
                 }
             }
+            ++i;
         }
+        else {
+            ReapSource(src);
+            i = sources.erase(i);
+        }
+    }
+
+    // If there aren't any sources and exit_only_after_terminate is false, just
+    // return an empty set of sources. We want the main loop to end.
+    if ( Size() == 0 && (! BifConst::exit_only_after_terminate || run_state::terminating) ) {
+        ready->clear();
+        return;
     }
 
     DBG_LOG(DBG_MAINLOOP, "timeout: %f   ready size: %zu   time_to_poll: %d\n", timeout, ready->size(), time_to_poll);
@@ -342,7 +359,7 @@ void Manager::Register(IOSource* src, bool dont_count, bool manage_lifetime) {
 void Manager::Register(PktSrc* src) {
     pkt_src = src;
 
-    Register(src, false);
+    Register(src, false, false);
 
     // Once we know if the source is live or not, adapt the
     // poll_interval accordingly.

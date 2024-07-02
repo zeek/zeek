@@ -28,6 +28,7 @@ Manager::Manager() {
     did_process = true;
     next_beat = 0;
     terminating = false;
+    terminated = false;
 }
 
 Manager::~Manager() {
@@ -61,10 +62,18 @@ void Manager::Terminate() {
     all_threads.clear();
     msg_threads.clear();
     terminating = false;
+    terminated = true;
 }
 
 void Manager::AddThread(BasicThread* thread) {
     DBG_LOG(DBG_THREADING, "Adding thread %s ...", thread->Name());
+
+    // This can happen when log writers or other threads are
+    // created during the shutdown phase and results in unclean
+    // shutdowns.
+    if ( terminated )
+        reporter->Warning("Thread %s added after threading manager terminated", thread->Name());
+
     all_threads.push_back(thread);
 
     if ( ! heartbeat_timer_running )

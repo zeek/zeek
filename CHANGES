@@ -1,3 +1,7 @@
+7.0.0-dev.414 | 2024-07-02 19:42:10 +0200
+
+  * Bump cmake submodule [nomail] (Arne Welzel, Corelight)
+
 7.0.0-dev.413 | 2024-07-02 14:41:27 +0200
 
   * threading/Manager: Warn if threads are added after termination (Arne Welzel, Corelight)

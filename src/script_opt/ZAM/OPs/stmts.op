@@ -36,7 +36,9 @@ op-types D I X
 op1-read
 eval	EvalScheduleArgs($1, $2,)
 
-macro QueueEvent(eh, args) event_mgr.Enqueue(eh, std::move(args));
+macro QueueEvent(eh, args)
+	if ( *eh )
+		event_mgr.Enqueue(eh, std::move(args));
 
 op Event
 class HL

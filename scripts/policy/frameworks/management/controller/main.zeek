@@ -116,14 +116,18 @@ global config_deploy_to_agents: function(config: Management::Configuration,
     req: Management::Request::Request);
 
 # Returns list of names of nodes in the given configuration that require a
-# listening port. Returns empty list if the config has no such nodes.
-global config_nodes_lacking_ports: function(config: Management::Configuration): vector of string;
+# Broker listening port. Returns empty list if the config has no such nodes.
+global config_nodes_lacking_broker_ports: function(config: Management::Configuration): vector of string;
 
 # Assign node listening ports in the given configuration by counting up from
-# Management::Controller::auto_assign_start_port. Scans the included nodes and
-# fills in ports for any non-worker cluster node that doesn't have an existing
-# port. This assumes those ports are actually available on the instances.
-global config_assign_ports: function(config: Management::Configuration);
+# Management::Controller::auto_assign_broker_start_port. Scans the included
+# nodes and fills in ports for any non-worker cluster node that doesn't have an
+# existing port. This assumes those ports are actually available on the
+# instances.
+global config_assign_broker_ports: function(config: Management::Configuration);
+
+# Assign node metrics ports, similar to config_assign_broker_ports above.
+global config_assign_metrics_ports: function(config: Management::Configuration);
 
 # Validate the given configuration in terms of missing, incorrect, or
 # conflicting content. Returns T if validation succeeds, F otherwise. The
@@ -265,7 +269,7 @@ function drop_instance(inst: Management::Instance)
 	Management::Log::info(fmt("dropped instance %s", inst$name));
 	}
 
-function config_nodes_lacking_ports(config: Management::Configuration): vector of string
+function config_nodes_lacking_broker_ports(config: Management::Configuration): vector of string
 	{
 	local res: vector of string;
 	local roles = { Supervisor::MANAGER, Supervisor::LOGGER, Supervisor::PROXY };
@@ -279,7 +283,23 @@ function config_nodes_lacking_ports(config: Management::Configuration): vector o
 	return sort(res, strcmp);
 	}
 
-function config_assign_ports(config: Management::Configuration)
+# A comparison function for nodes. This first compares according to the node's
+# agent/instance, then by role priority, and finally by node name. This yields a
+# sequence in which ports remain sequential to a node, and to roles on that
+# node.
+function config_nodes_compare(n1: Management::Node, n2: Management::Node, roles: table[Supervisor::ClusterRole] of count): int
+	{
+	local instcmp = strcmp(n1$instance, n2$instance);
+	if ( instcmp != 0 )
+		return instcmp;
+	if ( roles[n1$role] < roles[n2$role] )
+		return -1;
+	if ( roles[n1$role] > roles[n2$role] )
+		return 1;
+	return strcmp(n1$name, n2$name);
+	}
+
+function config_assign_broker_ports(config: Management::Configuration)
 	{
 	# We're changing nodes in the configuration's set, so need to rebuild it:
 	local new_nodes: set[Management::Node];
@@ -295,7 +315,15 @@ function config_assign_ports(config: Management::Configuration)
 	# not per-instance: if the user wants auto-assignment, it seems better
 	# to avoid confusion with the same port being used on multiple
 	# instances.
-	local p = port_to_count(Management::Controller::auto_assign_start_port);
+	local start_port = Management::Controller::auto_assign_broker_start_port;
+
+@pragma push ignore-deprecations
+	# Keep deprecated config setting working until 7.1:
+	if ( Management::Controller::auto_assign_start_port != 2200/tcp )
+		start_port = Management::Controller::auto_assign_start_port;
+@pragma pop ignore-deprecations
+
+	local p = port_to_count(start_port);
 
 	# A set that tracks the ports we've used so far. Helpful for avoiding
 	# collisions between manually specified and auto-enumerated ports.
@@ -327,11 +355,9 @@ function config_assign_ports(config: Management::Configuration)
 			add new_nodes[node];
 		}
 
-	# Now process the ones that may need ports, in order. We first sort by
-	# roles; we go manager -> logger -> proxy. Next are instance names, to
-	# get locally sequential ports among the same roles, and finally by
-	# name.
+	# Now process the ones that need ports, in order.
 	local nodes: vector of Management::Node;
+
 	for ( node in config$nodes )
 		{
 		if ( node?$p )
@@ -342,16 +368,7 @@ function config_assign_ports(config: Management::Configuration)
 		}
 
 	sort(nodes, function [roles] (n1: Management::Node, n2: Management::Node): int
-		{
-		if ( roles[n1$role] < roles[n2$role] )
-			return -1;
-		if ( roles[n1$role] > roles[n2$role] )
-			return 1;
-		local instcmp = strcmp(n1$instance, n2$instance);
-		if ( instcmp != 0 )
-			return instcmp;
-		return strcmp(n1$name, n2$name);
-		});
+		{ return config_nodes_compare(n1, n2, roles); });
 
 	for ( i in nodes )
 		{
@@ -362,6 +379,87 @@ function config_assign_ports(config: Management::Configuration)
 			++p;
 
 		node$p = count_to_port(p, tcp);
+		add new_nodes[node];
+		add ports_set[p];
+
+		# ... and consume it.
+		++p;
+		}
+
+	config$nodes = new_nodes;
+	}
+
+function config_assign_metrics_ports(config: Management::Configuration)
+	{
+	# We're changing nodes in the configuration's set, so need to rebuild it:
+	local new_nodes: set[Management::Node];
+
+	# An ordering of nodes by role:
+	local roles: table[Supervisor::ClusterRole] of count = {
+		[Supervisor::MANAGER] = 0,
+		[Supervisor::LOGGER] = 1,
+		[Supervisor::PROXY] = 2,
+		[Supervisor::WORKER] = 3,
+	};
+
+	local p = port_to_count(Management::Controller::auto_assign_metrics_start_port);
+	local ports_set: set[count];
+	local node: Management::Node;
+
+	# Pre-populate agents ports, if we have them:
+	for ( inst in config$instances )
+		{
+		if ( inst?$listen_port )
+			add ports_set[port_to_count(inst$listen_port)];
+		}
+
+	# Pre-populate nodes with pre-defined metrics ports, as well
+	# as their Broker ports:
+	for ( node in config$nodes )
+		{
+		if ( node?$p )
+			add ports_set[port_to_count(node$p)];
+
+		if ( node?$metrics_port )
+			{
+			add ports_set[port_to_count(node$metrics_port)];
+			add new_nodes[node];
+			}
+		}
+
+	# Copy any nodes to the new set that have roles we don't care about.
+	# (This should be none right now given that every cluster node can have
+	# a metrics port.)
+	for ( node in config$nodes )
+		{
+		if ( node$role !in roles )
+			add new_nodes[node];
+		}
+
+	# Now process the ones that need ports, in order.
+	local nodes: vector of Management::Node;
+
+	for ( node in config$nodes )
+		{
+		if ( node?$metrics_port )
+			next;
+		if ( node$role !in roles )
+			next;
+		nodes += node;
+		}
+
+	sort(nodes, function [roles] (n1: Management::Node, n2: Management::Node): int
+		{ return config_nodes_compare(n1, n2, roles); });
+
+	for ( i in nodes )
+		{
+		node = nodes[i];
+
+		# Find next available port ...
+		while ( p in ports_set )
+			++p;
+
+		node$metrics_port = count_to_port(p, tcp);
 		add new_nodes[node];
 		add ports_set[p];
 
@@ -492,6 +590,36 @@ function config_validate(config: Management::Configuration,
 			add node_ports_done[node$instance][node$p];
 			}
 		}
+
+	# If port auto-configuration is disabled, the user needs to define the
+	# ports.  Verify this both for Broker's ports and the metrics export
+	# ones.
+
+@pragma push ignore-deprecations
+	# Keep deprecated config setting working until 7.1:
+	local auto_broker_ports = Management::Controller::auto_assign_broker_ports;
+	if ( ! Management::Controller::auto_assign_ports )
+		auto_broker_ports = F;
+@pragma pop ignore-deprecations
+
+	local nodes: vector of string;
+	local nodes_str: string;
+
+	if ( ! auto_broker_ports )
+		{
+		nodes = config_nodes_lacking_broker_ports(config);
+
+		if ( |nodes| > 0 )
+			{
+			nodes_str = join_string_vec(nodes, ", ");
+			errors += make_error(req$id, fmt("Broker port auto-assignment disabled but nodes %s lack ports", nodes_str));
+			}
+		}
+
+	# For metrics ports, it is not an error if auto-assignment is disabled
+	# but not all nodes feature a port. They user might intentionally want
+	# telemetry only from select nodes, and the discovery feature supports
+	# this.
 
 	# Possibilities for the future:
 	# - Are node options understood?
@@ -893,32 +1021,20 @@ event Management::Controller::API::stage_configuration_request(reqid: string, co
 		return;
 		}
 
-	if ( ! Management::Controller::auto_assign_ports )
-		{
-		local nodes = config_nodes_lacking_ports(config);
-
-		if ( |nodes| > 0 )
-			{
-			local nodes_str = join_string_vec(nodes, ", ");
-
-			res$success = F;
-			res$error = fmt("port auto-assignment disabled but nodes %s lack ports", nodes_str);
-			req$results += res;
-
-			Management::Log::info(fmt("tx Management::Controller::API::stage_configuration_response %s",
-			    Management::Request::to_string(req)));
-			Broker::publish(Management::Controller::topic,
-			    Management::Controller::API::stage_configuration_response, req$id, req$results);
-			Management::Request::finish(req$id);
-			return;
-			}
-		}
-
 	g_configs[STAGED] = config;
 	config_copy = copy(config);
 
-	if ( Management::Controller::auto_assign_ports )
-		config_assign_ports(config_copy);
+@pragma push ignore-deprecations
+	# Keep deprecated config setting working until 7.1:
+	local auto_broker_ports = Management::Controller::auto_assign_broker_ports;
+	if ( ! Management::Controller::auto_assign_ports )
+		auto_broker_ports = F;
+
+	if ( auto_broker_ports )
+		config_assign_broker_ports(config_copy);
+	if ( Management::Controller::auto_assign_metrics_ports )
+		config_assign_metrics_ports(config_copy);
+@pragma pop ignore-deprecations
 
 	g_configs[READY] = config_copy;
 

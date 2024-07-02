@@ -49,6 +49,8 @@ function __init_cluster_nodes(): bool
 @pragma pop ignore-deprecations
 		if ( |manager_name| > 0 && cnode$node_type != Cluster::MANAGER )
 			cnode$manager = manager_name;
+		if ( endp?$metrics_port )
+			cnode$metrics_port = endp$metrics_port;
 
 		Cluster::nodes[node_name] = cnode;
 		}

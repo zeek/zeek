@@ -1020,6 +1020,36 @@ void HTTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig) {
     }
 }
 
+void HTTP_Analyzer::FlipRoles() {
+    analyzer::tcp::TCP_ApplicationAnalyzer::FlipRoles();
+
+    // If FlipRoles() is invoked after we've upgraded to something,
+    // don't do anything. This shouldn't happen as flipping of TCP
+    // connections currently happens before any data is transferred,
+    // but better safe than sorry.
+    if ( upgraded || pia ) {
+        Weird("HTTP_late_flip_roles");
+        return;
+    }
+
+    // If we haven't upgraded but saw request or replies, just bail
+    // for the rest of this connection. Again, this should never happen
+    // right now, but raise a weird in case it starts to happen.
+    if ( num_requests > 0 || num_replies > 0 ) {
+        Weird("HTTP_late_flip_roles");
+        SetSkip(true);
+        return;
+    }
+
+    // IsOrig() of the support analyzer has been updated, but we still need
+    // to change the analyzer's local state and the partial skipping setting.
+    bool skip_partial_orig = content_line_orig->SkipPartial();
+    bool skip_partial_resp = content_line_resp->SkipPartial();
+    std::swap(content_line_orig, content_line_resp);
+    content_line_orig->SetSkipPartial(skip_partial_orig);
+    content_line_resp->SetSkipPartial(skip_partial_resp);
+}
+
 void HTTP_Analyzer::EndpointEOF(bool is_orig) {
     analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 

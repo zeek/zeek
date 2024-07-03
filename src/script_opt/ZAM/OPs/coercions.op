@@ -90,7 +90,7 @@ class VV
 op-types R R
 eval	auto rt = cast_intrusive<RecordType>(Z_TYPE);
 	auto v = $1;
-	auto to_r = coerce_to_record(std::move(rt), v, Z_AUX->map);
+	auto to_r = coerce_to_record(std::move(rt), v, Z_AUX_MAP);
 	Unref($$);
 	$$ = to_r.release();
 

@@ -19,6 +19,7 @@ macro Z_TYPE2 z.GetType2()
 macro Z_AUX z.aux
 macro Z_AUX_ID z.aux->id_val
 macro Z_AUX_FUNC z.aux->func
+macro Z_AUX_MAP z.aux->map
 macro Z_AUX_ATTRS z.aux->attrs
 macro Z_AUX_WHEN_INFO z.aux->wi
 macro Z_AUX_EVENT_HANDLER z.aux->event_handler

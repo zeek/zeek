@@ -584,7 +584,7 @@ refine connection MySQL_Conn += {
 		bool deprecate_eof_;
 		bool server_query_attrs_;
 		bool client_query_attrs_;
-		bytestring auth_plugin_;
+		std::string auth_plugin_;
 	%}
 
 	%init{
@@ -599,11 +599,6 @@ refine connection MySQL_Conn += {
 		deprecate_eof_ = false;
 		server_query_attrs_ = false;
 		client_query_attrs_ = false;
-		auth_plugin_ = bytestring();
-	%}
-
-	%cleanup{
-		auth_plugin_.free();
 	%}
 
 	function get_version(): uint8
@@ -688,21 +683,16 @@ refine connection MySQL_Conn += {
 		return true;
 		%}
 
-	function get_auth_plugin(): bytestring
-		%{
-		return auth_plugin_;
-		%}
-
 	function set_auth_plugin(a: bytestring): bool
 		%{
-		if ( auth_plugin_.length() > 0 &&
-		     strncmp(c_str(auth_plugin_), c_str(a), auth_plugin_.length()) != 0 )
+		// binpac::std_str() includes trailing \0 from parsing.
+		auto new_auth_plugin = std::string(binpac::c_str(a));
+		if ( ! auth_plugin_.empty() && new_auth_plugin != auth_plugin_ )
 			{
 			expected_ = EXPECT_AUTH_SWITCH;
 			}
 
-		auth_plugin_.free();
-		auth_plugin_.init(a.data(), a.length());
+		auth_plugin_ = std::move(new_auth_plugin);
 		return true;
 		%}
 

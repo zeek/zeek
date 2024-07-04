@@ -306,6 +306,9 @@ function (zeek_add_dependencies dep)
     endforeach ()
 endfunction ()
 
+# Used by library zeek_dynamic_plugin_base and for sanitizer builds.
+find_package(Threads REQUIRED)
+
 # Interface library for propagating extra flags and include paths to dynamically
 # loaded plugins. Also propagates include paths and C++17 mode on the install
 # interface.
@@ -640,11 +643,6 @@ if (NOT BINARY_PACKAGING_MODE)
 endif ()
 
 if (ZEEK_SANITIZERS)
-    # Check the thread library info early as setting compiler flags seems to
-    # interfere with the detection and cause CMAKE_THREAD_LIBS_INIT to not include
-    # -lpthread when it should.
-    find_package(Threads)
-
     string(REPLACE "," " " _sanitizer_args "${ZEEK_SANITIZERS}")
     separate_arguments(_sanitizer_args)
     set(ZEEK_SANITIZERS "")

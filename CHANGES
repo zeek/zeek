@@ -1,3 +1,12 @@
+7.0.0-dev.434 | 2024-07-04 17:34:23 +0200
+
+  * CMakeLists: Ensure Threads::Threads target exists (Arne Welzel, Corelight)
+
+    Fix failure on OSX with CMake 3.30 complaining about missing
+    Threads::Threads target.
+
+  * ci/macos: Only use sonoma image (Arne Welzel, Corelight)
+
 7.0.0-dev.431 | 2024-07-04 17:22:42 +0200
 
   * Bump auxil/zeek-aux (Benjamin Bannier, Corelight)

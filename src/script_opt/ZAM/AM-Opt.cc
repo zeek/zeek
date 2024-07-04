@@ -964,6 +964,17 @@ void ZAMCompiler::KillInst(zeek_uint_t i) {
     if ( inst->aux && ! inst->aux->cft.empty() ) {
         auto& cft = inst->aux->cft;
 
+        if ( cft.count(CFT_ELSE) > 0 ) {
+            // Push forward unless this was the end of the block.
+            if ( cft.count(CFT_BLOCK_END) == 0 ) {
+                ASSERT(succ);
+                AddCFT(succ, CFT_ELSE);
+            }
+            else
+                // But if it *was* the end of the block, remove that block.
+                --cft[CFT_BLOCK_END];
+        }
+
         if ( cft.count(CFT_BLOCK_END) > 0 ) {
             // Propagate block-ends backwards.
             int j = i;
@@ -979,14 +990,6 @@ void ZAMCompiler::KillInst(zeek_uint_t i) {
             auto be_cnt = cft[CFT_BLOCK_END];
             --be_cnt; // we already did one above
             insts1[j]->aux->cft[CFT_BLOCK_END] += be_cnt;
-        }
-
-        if ( cft.count(CFT_ELSE) > 0 ) {
-            // Push forward unless this was the end of the block.
-            if ( cft.count(CFT_BLOCK_END) == 0 ) {
-                ASSERT(succ);
-                AddCFT(succ, CFT_ELSE);
-            }
         }
 
         // If's can be killed because their bodies become empty,

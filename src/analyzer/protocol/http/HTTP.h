@@ -167,6 +167,7 @@ public:
     void Done() override;
     void DeliverStream(int len, const u_char* data, bool orig) override;
     void Undelivered(uint64_t seq, int len, bool orig) override;
+    void FlipRoles() override;
 
     // Overridden from analyzer::tcp::TCP_ApplicationAnalyzer
     void EndpointEOF(bool is_orig) override;

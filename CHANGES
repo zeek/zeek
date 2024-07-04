@@ -1,3 +1,26 @@
+7.0.0-dev.427 | 2024-07-04 13:35:25 +0200
+
+  * GH-3789: HTTP: Implement FlipRoles() (Arne Welzel, Corelight)
+
+    When Zeek flips roles of a HTTP connection subsequent to the HTTP analyzer
+    being attached, that analyzer would not update its own ContentLine analyzer
+    state, resulting in the wrong ContentLine analyzer being switched into
+    plain delivery mode.
+
+    In debug builds, this would result in assertion failures, in production
+    builds, the HTTP analyzer would receive HTTP bodies as individual header
+    lines, or conversely, individual header lines would be delivered as a
+    large chunk from the ContentLine analyzer.
+
+    PCAPs were generated locally using tcprewrite to select well-known-http ports
+    for both endpoints, then editcap to drop the first SYN packet.
+
+    Kudos to @JordanBarnartt for keeping at it.
+
+    Closes #3789
+
+  * ContentLineAnalyzer: Add getter for skip_partial (Arne Welzel, Corelight)
+
 7.0.0-dev.423 | 2024-07-02 15:35:36 -0700
 
   * Remove the Supervisor's internal ClusterEndpoint struct. (Christian Kreibich, Corelight)

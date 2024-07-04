@@ -22,6 +22,9 @@ public:
     // If enabled, flag (first) line with embedded NUL. Default off.
     void SetIsNULSensitive(bool enable) { flag_NULs = enable; }
 
+    // Returns true if skipping data above a hole.
+    bool SkipPartial() const { return skip_partial; }
+
     // If enabled, skip data above a hole. Default off.
     void SetSkipPartial(bool enable) { skip_partial = enable; }
 

@@ -94,8 +94,8 @@ redef digest_salt = "Please change this value.";
 # telemetry_histogram.log.
 @load frameworks/telemetry/log
 
-# Enable metrics centralization on the manager. This opens port 9911/tcp
-# on the manager node that can be readily scraped by Prometheus.
+# Enable Prometheus metrics scraping in the cluster: each Zeek node will listen
+# on the metrics port defined in its Cluster::nodes entry.
 # @load frameworks/telemetry/prometheus
 
 # Uncomment the following line to enable detection of the heartbleed attack. Enabling

@@ -524,7 +524,7 @@ type ColumnDefinition41(first_byte: uint8) = record {
 };
 
 type AuthSwitchRequest = record {
-	status: uint8;
+	status: uint8 &enforce(status==254);
 	name  : NUL_String;
 	data  : bytestring &restofdata;
 } &let {

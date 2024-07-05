@@ -95,8 +95,12 @@ event mysql_handshake%(c: connection, username: string%);
 ##
 ## name: Name of the authentication plugin.
 ##
+## data: The initial auth data. From the server, it is the concatenation of
+##       auth_plugin_data_part_1 and auth_plugin_data_part_2 in the handshake.
+##       For the client it is the auth_response in the handshake response.
+##
 ## .. zeek:see:: mysql_handshake mysql_auth_switch_request mysql_auth_more_data
-event mysql_auth_plugin%(c: connection, is_orig: bool, name: string%);
+event mysql_auth_plugin%(c: connection, is_orig: bool, name: string, data: string%);
 
 ## Generated for a server packet with an auth switch request.
 ##

@@ -19,10 +19,20 @@ refine flow MySQL_Flow += {
 			{
 			if ( ${msg.version} == 10 && (${msg.handshake10.capability_flags_2} << 16) & CLIENT_PLUGIN_AUTH )
 				{
+				auto auth_plugin = zeek::make_intrusive<zeek::StringVal>(c_str(${msg.handshake10.auth_plugin}));
+				auto data_part_1 = ${msg.handshake10.auth_plugin_data_part_1};
+				auto data_part_2 = ${msg.handshake10.auth_plugin_data_part_2};
+				std::vector<zeek::data_chunk_t> data_parts = {
+					zeek::data_chunk_t{data_part_1.length(), reinterpret_cast<const char*>(data_part_1.begin())},
+					zeek::data_chunk_t{data_part_2.length(), reinterpret_cast<const char*>(data_part_2.begin())},
+				};
+				auto data = zeek::make_intrusive<zeek::StringVal>(zeek::concatenate(data_parts));
+
 				zeek::BifEvent::enqueue_mysql_auth_plugin(connection()->zeek_analyzer(),
 				                                          connection()->zeek_analyzer()->Conn(),
 				                                          false /*is_orig*/,
-				                                          zeek::make_intrusive<zeek::StringVal>(c_str(${msg.handshake10.auth_plugin})));
+				                                          std::move(auth_plugin),
+				                                          std::move(data));
 				}
 			}
 		return true;
@@ -56,10 +66,13 @@ refine flow MySQL_Flow += {
 			{
 			if ( ${msg.version} == 10 && ${msg.v10_response.plain.cap_flags} & CLIENT_PLUGIN_AUTH )
 				{
+				auto auth_plugin = zeek::make_intrusive<zeek::StringVal>(c_str(${msg.v10_response.plain.auth_plugin}));
+				auto data = to_stringval(${msg.v10_response.plain.credentials.password.val});
 				zeek::BifEvent::enqueue_mysql_auth_plugin(connection()->zeek_analyzer(),
 				                                          connection()->zeek_analyzer()->Conn(),
 				                                          true /*is_orig*/,
-				                                          zeek::make_intrusive<zeek::StringVal>(c_str(${msg.v10_response.plain.auth_plugin})));
+				                                          std::move(auth_plugin),
+				                                          std::move(data));
 				}
 			}
 

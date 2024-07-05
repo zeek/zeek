@@ -449,7 +449,7 @@ type EOFIfLegacyThenResultset(pkt_len: uint32) = case $context.connection.get_de
 	true  -> resultset: Resultset(pkt_len);
 } &let {
 	update_result_seen: bool = $context.connection.set_results_seen(0);
-	update_expectation: bool = $context.connection.set_next_expected(EXPECT_RESULTSET);
+	update_expectation: bool = $context.connection.set_next_expected(EXPECT_RESULTSET) &if( ! $context.connection.get_deprecate_eof() );
 };
 
 type Resultset(pkt_len: uint32) = record {

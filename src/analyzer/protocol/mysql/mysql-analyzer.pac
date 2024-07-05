@@ -14,6 +14,17 @@ refine flow MySQL_Flow += {
 				                                       connection()->zeek_analyzer()->Conn(),
 				                                       zeek::make_intrusive<zeek::StringVal>(c_str(${msg.handshake9.server_version})));
 			}
+
+		if ( mysql_auth_plugin )
+			{
+			if ( ${msg.version} == 10 && (${msg.handshake10.capability_flags_2} << 16) & CLIENT_PLUGIN_AUTH )
+				{
+				zeek::BifEvent::enqueue_mysql_auth_plugin(connection()->zeek_analyzer(),
+				                                          connection()->zeek_analyzer()->Conn(),
+				                                          false /*is_orig*/,
+				                                          zeek::make_intrusive<zeek::StringVal>(c_str(${msg.handshake10.auth_plugin})));
+				}
+			}
 		return true;
 		%}
 
@@ -40,6 +51,18 @@ refine flow MySQL_Flow += {
 				                                  connection()->zeek_analyzer()->Conn(),
 				                                  zeek::make_intrusive<zeek::StringVal>(c_str(${msg.v9_response.username})));
 			}
+
+		if ( mysql_auth_plugin )
+			{
+			if ( ${msg.version} == 10 && ${msg.v10_response.plain.cap_flags} & CLIENT_PLUGIN_AUTH )
+				{
+				zeek::BifEvent::enqueue_mysql_auth_plugin(connection()->zeek_analyzer(),
+				                                          connection()->zeek_analyzer()->Conn(),
+				                                          true /*is_orig*/,
+				                                          zeek::make_intrusive<zeek::StringVal>(c_str(${msg.v10_response.plain.auth_plugin})));
+				}
+			}
+
 		return true;
 		%}
 
@@ -112,6 +135,24 @@ refine flow MySQL_Flow += {
 		return true;
 		%}
 
+	function proc_auth_switch_request(msg: AuthSwitchRequest): bool
+		%{
+		zeek::BifEvent::enqueue_mysql_auth_switch_request(connection()->zeek_analyzer(),
+		                                                  connection()->zeek_analyzer()->Conn(),
+		                                                  zeek::make_intrusive<zeek::StringVal>(c_str(${msg.name})),
+		                                                  to_stringval(${msg.data}));
+		return true;
+		%}
+
+	function proc_auth_more_data(msg: AuthMoreData): bool
+		%{
+		zeek::BifEvent::enqueue_mysql_auth_more_data(connection()->zeek_analyzer(),
+		                                             connection()->zeek_analyzer()->Conn(),
+		                                             ${is_orig},
+		                                             to_stringval(${msg.data}));
+		return true;
+		%}
+
 };
 
 refine typeattr Initial_Handshake_Packet += &let {
@@ -140,4 +181,12 @@ refine typeattr EOF_Packet += &let {
 
 refine typeattr Resultset += &let {
 	proc = $context.flow.proc_resultset(this);
+};
+
+refine typeattr AuthSwitchRequest += &let {
+	proc = $context.flow.proc_auth_switch_request(this);
+};
+
+refine typeattr AuthMoreData += &let {
+	proc = $context.flow.proc_auth_more_data(this);
 };

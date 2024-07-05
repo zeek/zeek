@@ -87,3 +87,39 @@ event mysql_server_version%(c: connection, ver: string%);
 ## .. zeek:see:: mysql_command_request mysql_error mysql_ok mysql_server_version
 event mysql_handshake%(c: connection, username: string%);
 
+## Generated for information about plugin authentication within handshake packets.
+##
+## c: The connection.
+##
+## is_orig: True if this is from the client, false if from the server.
+##
+## name: Name of the authentication plugin.
+##
+## .. zeek:see:: mysql_handshake mysql_auth_switch_request mysql_auth_more_data
+event mysql_auth_plugin%(c: connection, is_orig: bool, name: string%);
+
+## Generated for a server packet with an auth switch request.
+##
+## c: The connection.
+##
+## name: The plugin name.
+##
+## data: Initial authentication data for the plugin.
+##
+## .. zeek:see:: mysql_handshake mysql_auth_more_data
+event mysql_auth_switch_request%(c: connection, name: string, data: string%);
+
+## Generated for opaque authentication data exchanged between client and server
+## after the client's handshake packet, but before the server replied with
+## an OK_Packet
+##
+## Data is specific to the plugin auth mechanism used by client and server.
+##
+## c: The connection.
+##
+## is_orig: True if this is from the client, false if from the server.
+##
+## data: More authentication data.
+##
+## .. zeek:see:: mysql_handshake mysql_auth_switch_request
+event mysql_auth_more_data%(c: connection, is_orig: bool, data: string%);

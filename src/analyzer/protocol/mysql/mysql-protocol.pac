@@ -142,9 +142,7 @@ enum state {
 
 enum ConnectionExpected {
 	EXPECT_HANDSHAKE,
-	EXPECT_SHA2_AUTH,
-	EXPECT_PUB_KEY,
-	EXPECT_AUTH_SWITCH_RESP,
+	EXPECT_AUTH_DATA,
 };
 
 enum Expected {
@@ -157,7 +155,6 @@ enum Expected {
 	EXPECT_RESULTSET,
 	EXPECT_REST_OF_PACKET,
 	EXPECT_AUTH_SWITCH,
-	EXPECT_SHA2_AUTH_RESP,
 };
 
 enum EOFType {
@@ -174,12 +171,6 @@ enum Client_Capabilities {
 	CLIENT_DEPRECATE_EOF = 0x01000000,
 	CLIENT_ZSTD_COMPRESSION_ALGORITHM = 0x04000000,
 	CLIENT_QUERY_ATTRIBUTES = 0x08000000,
-};
-
-enum SHA2_Auth_State {
-	REQUEST_PUBLIC_KEY          = 2,
-	FAST_AUTH_SUCCESS           = 3,
-	PERFORM_FULL_AUTHENTICATION = 4,
 };
 
 type NUL_String = RE/[^\0]*\0/;
@@ -304,7 +295,10 @@ type Handshake_Plain_v10(cap_flags: uint32) = record {
 } &let {
 	update_auth_plugin: bool = $context.connection.set_auth_plugin(auth_plugin)
 		&if( cap_flags & CLIENT_PLUGIN_AUTH );
-	update_expected: bool = $context.connection.update_expected_from_auth()
+
+	# Switch client state into expecting more auth data. If the server responds
+	# with an OK_Packet before, will switch into COMMAND_PHASE.
+	update_conn_expectation: bool = $context.connection.set_next_conn_expected(EXPECT_AUTH_DATA)
 		&if( cap_flags & CLIENT_PLUGIN_AUTH );
 };
 
@@ -334,46 +328,11 @@ type Handshake_Response_Packet_v9 = record {
 	password     : bytestring &restofdata;
 };
 
-# SHA2 Auth
-
-type SHA2_Auth_Packet = record {
-	state: bytestring &restofdata;
-} &let {
-	update_state           : bool = $context.connection.update_state(COMMAND_PHASE)
-		&if(state[0] == FAST_AUTH_SUCCESS);
-	update_conn_expectation: bool = $context.connection.set_next_conn_expected(EXPECT_PUB_KEY)
-		&if(state[1] == REQUEST_PUBLIC_KEY);
-};
-
-type Public_Key_Packet = record {
-	pad    : uint8;
-	pub_key: bytestring &restofdata;
-} &let {
-	update_expectation: bool = $context.connection.set_next_expected(EXPECT_SHA2_AUTH_RESP);
-};
-
-type SHA2_Auth_Response_Packet = record {
-	data: bytestring &restofdata;
-} &let {
-	update_state: bool = $context.connection.update_state(COMMAND_PHASE);
-};
-
-# Auth Switch
-
-type Auth_Switch_Response_Packet = record {
-	data  : bytestring &restofdata;
-} &let {
-	update_expected: bool = $context.connection.update_expected_from_auth();
-};
-
 # Connection Phase
 
 type Connection_Phase_Packets = case $context.connection.get_conn_expectation() of {
-	EXPECT_HANDSHAKE        -> handshake_resp   : Handshake_Response_Packet;
-	EXPECT_SHA2_AUTH        -> sha2_auth        : SHA2_Auth_Packet;
-	EXPECT_PUB_KEY          -> pub_key          : Public_Key_Packet;
-	EXPECT_AUTH_SWITCH_RESP -> atuh_switch_resp : Auth_Switch_Response_Packet;
-	default                 -> unknown          : empty;
+	EXPECT_HANDSHAKE        -> handshake_resp: Handshake_Response_Packet;
+	EXPECT_AUTH_DATA        -> auth_data: AuthMoreData(true);
 };
 
 # Command Request
@@ -420,7 +379,6 @@ type Command_Response(pkt_len: uint32) = case $context.connection.get_expectatio
 	EXPECT_REST_OF_PACKET           -> rest          : bytestring &restofdata;
 	EXPECT_STATUS                   -> status        : Command_Response_Status;
 	EXPECT_AUTH_SWITCH              -> auth_switch   : AuthSwitchRequest;
-	EXPECT_SHA2_AUTH_RESP           -> sha2_auth_resp: SHA2_Auth_Response_Packet;
 	EXPECT_EOF_THEN_RESULTSET       -> eof           : EOFIfLegacyThenResultset(pkt_len);
 	default                         -> unknown       : empty;
 };
@@ -429,6 +387,10 @@ type Command_Response_Status = record {
 	pkt_type: uint8;
 	response: case pkt_type of {
 		0x00    -> data_ok:  OK_Packet;
+		# When still in the CONNECTION_PHASE, the server can reply
+		# with AuthMoreData which is 0x01 stuffed opaque payload.
+		# https://dev.mysql.com/doc/dev/mysql-server/latest/page_protocol_connection_phase_packets_protocol_auth_more_data.html
+		0x01    -> auth_more_data: AuthMoreData(false);
 		0xfe    -> data_eof: EOF_Packet(EOF_END);
 		0xff    -> data_err: ERR_Packet;
 		default -> unknown:  empty;
@@ -523,13 +485,20 @@ type ColumnDefinition41(first_byte: uint8) = record {
 	filler   : padding[2];
 };
 
+# Opaque auth data exchanged during the connection phase between client and server.
+type AuthMoreData(is_orig: bool) = record {
+	data  : bytestring &restofdata;
+};
+
 type AuthSwitchRequest = record {
 	status: uint8 &enforce(status==254);
 	name  : NUL_String;
 	data  : bytestring &restofdata;
 } &let {
 	update_auth_plugin     : bool = $context.connection.set_auth_plugin(name);
-	update_conn_expectation: bool = $context.connection.set_next_conn_expected(EXPECT_AUTH_SWITCH_RESP);
+	update_conn_expectation: bool = $context.connection.set_next_conn_expected(EXPECT_AUTH_DATA);
+	# After an AuthSwitchRequest, server replies with OK_Packet, ERR_Packet or AuthMoreData.
+	update_expectation: bool = $context.connection.set_next_expected(EXPECT_STATUS);
 };
 
 type ColumnDefinition320 = record {
@@ -634,18 +603,6 @@ refine connection MySQL_Conn += {
 
 		if ( s == COMMAND_PHASE )
 			conn_expected_ = EXPECT_HANDSHAKE; // Reset connection phase expectation
-
-		return true;
-		%}
-
-	function update_expected_from_auth(): bool
-		%{
-		if ( auth_plugin_ == "caching_sha2_password" )
-			{
-			conn_expected_ = EXPECT_SHA2_AUTH;
-			if ( expected_ == EXPECT_AUTH_SWITCH )
-				expected_ = EXPECT_STATUS;
-			}
 
 		return true;
 		%}

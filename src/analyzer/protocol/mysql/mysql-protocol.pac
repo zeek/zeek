@@ -241,12 +241,13 @@ type Handshake_v10 = record {
 	capability_flags_2     : uint16;
 	auth_plugin_data_len   : uint8;
 	reserved               : padding[10]; 
-	auth_plugin_data_part_2: bytestring &length=13;
+	auth_plugin_data_part_2: bytestring &length=auth_plugin_data_part_2_len;
 	have_plugin : case ( ( capability_flags_2 << 16 ) & CLIENT_PLUGIN_AUTH ) of {
 		CLIENT_PLUGIN_AUTH -> auth_plugin: NUL_String;
 		0x0 -> none    : empty;
 	};
 } &let {
+	auth_plugin_data_part_2_len = (auth_plugin_data_len - 8) > 13 ? auth_plugin_data_len - 8 : 13;
 	update_auth_plugin: bool = $context.connection.set_auth_plugin(auth_plugin)
 		&if( ( capability_flags_2 << 16 ) & CLIENT_PLUGIN_AUTH );
 	server_query_attrs: bool = $context.connection.set_server_query_attrs(( capability_flags_2 << 16 ) & CLIENT_QUERY_ATTRIBUTES);
@@ -382,18 +383,18 @@ type AttributeTypeAndName = record {
 	name: LengthEncodedString;
 };
 
-type Attributes(count: uint8) = record {
-	unused              : uint8;
-	send_types_to_server: uint8; # Always 1.
+type Attributes(count: int) = record {
+	unused              : bytestring &length=(count+7)/8;
+	send_types_to_server: uint8 &enforce(send_types_to_server == 1);
 	names               : AttributeTypeAndName[count];
 	values              : LengthEncodedString[count];
 };
 
 type Query_Attributes = record {
-	count     : uint8;
-	set_count  : uint8;
-	have_attr : case ( count > 0 ) of {
-		true  -> attrs: Attributes(count);
+	count     : LengthEncodedInteger;
+	set_count : LengthEncodedInteger;
+	have_attr : case ( to_int()(count) > 0 ) of {
+		true  -> attrs: Attributes(to_int()(count));
 		false -> none: empty;
 	};
 };
@@ -523,7 +524,7 @@ type ColumnDefinition41(first_byte: uint8) = record {
 };
 
 type AuthSwitchRequest = record {
-	status: uint8;
+	status: uint8 &enforce(status==0xfe);
 	name  : NUL_String;
 	data  : bytestring &restofdata;
 } &let {

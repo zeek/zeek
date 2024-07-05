@@ -371,7 +371,7 @@ type Connection_Phase_Packets = case $context.connection.get_conn_expectation() 
 	EXPECT_HANDSHAKE        -> handshake_resp   : Handshake_Response_Packet;
 	EXPECT_SHA2_AUTH        -> sha2_auth        : SHA2_Auth_Packet;
 	EXPECT_PUB_KEY          -> pub_key          : Public_Key_Packet;
-	EXPECT_AUTH_SWITCH_RESP -> atuh_switch_resp : Auth_Switch_Response_Packet;
+	EXPECT_AUTH_SWITCH_RESP -> auth_switch_resp : Auth_Switch_Response_Packet;
 	default                 -> unknown          : empty;
 };
 
@@ -391,7 +391,7 @@ type Attributes(count: uint8) = record {
 
 type Query_Attributes = record {
 	count     : uint8;
-	set_coun  : uint8;
+	set_count  : uint8;
 	have_attr : case ( count > 0 ) of {
 		true  -> attrs: Attributes(count);
 		false -> none: empty;

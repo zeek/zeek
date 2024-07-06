@@ -2858,7 +2858,7 @@ static NameExprPtr get_RFU_LHS_var(const Stmt* s) {
     auto s_e = s->AsExprStmt()->StmtExpr();
     auto var = s_e->GetOp1()->GetOp1()->GetOp1();
     ASSERT(var->Tag() == EXPR_NAME);
-    return cast_intrusive<NameExpr>(var);
+    return cast_intrusive<NameExpr>(std::move(var));
 }
 
 // This one mines out the RHS, so 'y' for "x$foo = y$bar", or for
@@ -2874,7 +2874,7 @@ static NameExprPtr get_RFU_RHS_var(const Stmt* s) {
         var = rhs->GetOp2()->GetOp1();
 
     ASSERT(var->Tag() == EXPR_NAME);
-    return cast_intrusive<NameExpr>(var);
+    return cast_intrusive<NameExpr>(std::move(var));
 }
 
 RecordFieldUpdatesExpr::RecordFieldUpdatesExpr(ExprTag t, const std::vector<const Stmt*>& stmts,
@@ -2952,7 +2952,7 @@ ExprPtr RecordFieldUpdatesExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 ExprPtr AssignRecordFieldsExpr::Duplicate() {
     auto e1 = op1->Duplicate();
     auto e2 = op2->Duplicate();
-    return SetSucc(new AssignRecordFieldsExpr(e1, e2, lhs_map, rhs_map));
+    return SetSucc(new AssignRecordFieldsExpr(std::move(e1), std::move(e2), lhs_map, rhs_map));
 }
 
 void AssignRecordFieldsExpr::FoldField(RecordVal* rv1, RecordVal* rv2, size_t i) const {
@@ -3027,13 +3027,13 @@ FieldExprPtr ConstructFromRecordExpr::FindRecordSource(const Expr* const_e) {
     if ( rhs_rec->Tag() != EXPR_NAME )
         return nullptr;
 
-    return cast_intrusive<FieldExpr>(fa_rhs);
+    return cast_intrusive<FieldExpr>(std::move(fa_rhs));
 }
 
 ExprPtr ConstructFromRecordExpr::Duplicate() {
     auto e1 = op1->Duplicate();
     auto e2 = op2->Duplicate();
-    return SetSucc(new ConstructFromRecordExpr(e1, e2, lhs_map, rhs_map));
+    return SetSucc(new ConstructFromRecordExpr(std::move(e1), std::move(e2), lhs_map, rhs_map));
 }
 
 bool ConstructFromRecordExpr::IsReduced(Reducer* c) const { return op1->HasReducedOps(c) && op2->IsReduced(c); }
@@ -3066,7 +3066,7 @@ ExprPtr ConstructFromRecordExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 ExprPtr AddRecordFieldsExpr::Duplicate() {
     auto e1 = op1->Duplicate();
     auto e2 = op2->Duplicate();
-    return SetSucc(new AddRecordFieldsExpr(e1, e2, lhs_map, rhs_map));
+    return SetSucc(new AddRecordFieldsExpr(std::move(e1), std::move(e2), lhs_map, rhs_map));
 }
 
 void AddRecordFieldsExpr::FoldField(RecordVal* rv1, RecordVal* rv2, size_t i) const {
@@ -3084,7 +3084,7 @@ void AddRecordFieldsExpr::FoldField(RecordVal* rv1, RecordVal* rv2, size_t i) co
     auto sum = add_expr->Eval(nullptr);
     ASSERT(sum);
 
-    rv1->Assign(lhs_map[i], sum);
+    rv1->Assign(lhs_map[i], std::move(sum));
 }
 
 CoerceToAnyExpr::CoerceToAnyExpr(ExprPtr arg_op) : UnaryExpr(EXPR_TO_ANY_COERCE, std::move(arg_op)) {

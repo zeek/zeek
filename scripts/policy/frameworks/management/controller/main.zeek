@@ -186,6 +186,24 @@ global g_configs: table[ConfigState] of Management::Configuration
 
 function config_deploy_to_agents(config: Management::Configuration, req: Management::Request::Request)
 	{
+	# Make any final changes to the configuration we send off.
+
+	# If needed, fill in agent IP address info as learned from their peerings.
+	# XXX this will need revisiting when we support host names.
+	local instances: set[Management::Instance];
+
+	for ( inst in config$instances )
+		{
+		if ( inst$name in g_instances_known
+		    && inst$host == 0.0.0.0
+		    && g_instances_known[inst$name]$host != 0.0.0.0 )
+			inst$host = g_instances_known[inst$name]$host;
+
+		add instances[inst];
+		}
+
+	config$instances = instances;
+
 	for ( name in g_instances )
 		{
 		if ( name !in g_instances_ready )

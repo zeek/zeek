@@ -24,6 +24,12 @@ public:
     // dynamic ones being done with SetLoopVars().
     TableIterInfo(const std::vector<TypePtr>* _loop_var_types, const std::vector<bool>* _lvt_is_managed,
                   TypePtr _value_var_type) {
+        SetIterInfo(_loop_var_types, _lvt_is_managed, std::move(_value_var_type));
+    }
+
+    // Sets the fixed fields.
+    void SetIterInfo(const std::vector<TypePtr>* _loop_var_types, const std::vector<bool>* _lvt_is_managed,
+                     TypePtr _value_var_type) {
         loop_var_types = _loop_var_types;
         lvt_is_managed = _lvt_is_managed;
         value_var_type = std::move(_value_var_type);

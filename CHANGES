@@ -1,3 +1,7 @@
+7.0.0-dev.454 | 2024-07-09 15:12:19 -0700
+
+  * CI: Use ccache and a single CPU when building spicy analyzers for btests (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.452 | 2024-07-09 14:53:41 -0700
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

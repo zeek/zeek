@@ -59,7 +59,9 @@ function run_btests {
 
     pushd testing/btest
 
-    ZEEK_PROFILER_FILE=$(pwd)/.tmp/script-coverage/XXXXXX \
+    HILTI_CXX_COMPILER_LAUNCHER=ccache \
+        HILTI_JIT_PARALLELISM=1 \
+        ZEEK_PROFILER_FILE=$(pwd)/.tmp/script-coverage/XXXXXX \
         ${BTEST} -z ${ZEEK_CI_BTEST_RETRIES} -d -A -x btest-results.xml -j ${ZEEK_CI_BTEST_JOBS} || result=1
     make coverage
     prep_artifacts

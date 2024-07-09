@@ -1,3 +1,7 @@
+7.0.0-dev.452 | 2024-07-09 14:53:41 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 7.0.0-dev.450 | 2024-07-09 10:15:13 -0700
 
   * minor script optimization updates to reflect recent changes, Coverity findings (Vern Paxson, Corelight)

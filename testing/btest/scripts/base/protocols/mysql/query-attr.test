@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -C -r $TRACES/mysql/query-attr.pcapng %INPUT >out
+# @TEST-EXEC: zeek -b -C -r $TRACES/mysql/query-attr.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff mysql.log
 

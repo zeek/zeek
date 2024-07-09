@@ -1,3 +1,7 @@
+7.0.0-dev.450 | 2024-07-09 10:15:13 -0700
+
+  * minor script optimization updates to reflect recent changes, Coverity findings (Vern Paxson, Corelight)
+
 7.0.0-dev.447 | 2024-07-09 17:10:16 +0200
 
   * Fix for --display-cmake in configure (cknill)

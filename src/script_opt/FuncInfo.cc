@@ -142,7 +142,6 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"Spicy::__toggle_analyzer", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Supervisor::__create", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Supervisor::__destroy", ATTR_NO_SCRIPT_SIDE_EFFECTS},
-    {"Supervisor::__init_cluster", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Supervisor::__is_supervised", ATTR_IDEMPOTENT},
     {"Supervisor::__is_supervisor", ATTR_IDEMPOTENT},
     {"Supervisor::__node", ATTR_IDEMPOTENT},

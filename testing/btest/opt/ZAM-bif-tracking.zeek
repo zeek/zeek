@@ -170,7 +170,6 @@ global known_BiFs = set(
 	"Spicy::__toggle_analyzer",
 	"Supervisor::__create",
 	"Supervisor::__destroy",
-	"Supervisor::__init_cluster",
 	"Supervisor::__is_supervised",
 	"Supervisor::__is_supervisor",
 	"Supervisor::__node",

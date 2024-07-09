@@ -143,7 +143,8 @@ public:
 protected:
     // Used for duplicating.
     AssignRecordFieldsExpr(ExprPtr e1, ExprPtr e2, std::vector<int> _lhs_map, std::vector<int> _rhs_map)
-        : RecordFieldUpdatesExpr(EXPR_REC_ASSIGN_FIELDS, e1, e2, _lhs_map, _rhs_map) {}
+        : RecordFieldUpdatesExpr(EXPR_REC_ASSIGN_FIELDS, std::move(e1), std::move(e2), std::move(_lhs_map),
+                                 std::move(_rhs_map)) {}
 
     void FoldField(RecordVal* rv1, RecordVal* rv2, size_t i) const override;
 };
@@ -170,7 +171,7 @@ public:
 
 protected:
     ConstructFromRecordExpr(ExprPtr e1, ExprPtr e2, std::vector<int> _lhs_map, std::vector<int> _rhs_map)
-        : AssignRecordFieldsExpr(e1, e2, _lhs_map, _rhs_map) {
+        : AssignRecordFieldsExpr(std::move(e1), std::move(e2), std::move(_lhs_map), std::move(_rhs_map)) {
         tag = EXPR_REC_CONSTRUCT_WITH_REC;
     }
 
@@ -191,7 +192,8 @@ public:
 
 protected:
     AddRecordFieldsExpr(ExprPtr e1, ExprPtr e2, std::vector<int> _lhs_map, std::vector<int> _rhs_map)
-        : RecordFieldUpdatesExpr(EXPR_REC_ADD_FIELDS, e1, e2, _lhs_map, _rhs_map) {}
+        : RecordFieldUpdatesExpr(EXPR_REC_ADD_FIELDS, std::move(e1), std::move(e2), std::move(_lhs_map),
+                                 std::move(_rhs_map)) {}
 
     void FoldField(RecordVal* rv1, RecordVal* rv2, size_t i) const override;
 };

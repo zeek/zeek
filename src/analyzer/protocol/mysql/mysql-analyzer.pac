@@ -47,6 +47,10 @@ refine flow MySQL_Flow += {
 		if ( ${msg.version} == 10 && ( ${msg.v10_response.cap_flags} & CLIENT_SSL ))
 			{
 			connection()->zeek_analyzer()->StartTLS();
+
+			if ( mysql_ssl_request )
+				zeek::BifEvent::enqueue_mysql_ssl_request(connection()->zeek_analyzer(),
+				                                          connection()->zeek_analyzer()->Conn());
 			return true;
 			}
 

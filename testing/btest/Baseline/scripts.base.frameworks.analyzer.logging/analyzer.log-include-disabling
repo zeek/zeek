@@ -13,6 +13,5 @@ XXXXXXXXXX.XXXXXX	violation	protocol	DCE_RPC	ClEkJM2Vm5giqnMf4h	-	10.0.0.55	5399
 XXXXXXXXXX.XXXXXX	violation	protocol	DCE_RPC	ClEkJM2Vm5giqnMf4h	-	10.0.0.55	53994	60.190.189.214	8124	Binpac exception: binpac exception: &enforce violation : DCE_RPC_Header:rpc_vers	-
 XXXXXXXXXX.XXXXXX	violation	protocol	DCE_RPC	ClEkJM2Vm5giqnMf4h	-	10.0.0.55	53994	60.190.189.214	8124	Binpac exception: binpac exception: &enforce violation : DCE_RPC_Header:rpc_vers	-
 XXXXXXXXXX.XXXXXX	violation	protocol	DCE_RPC	ClEkJM2Vm5giqnMf4h	-	10.0.0.55	53994	60.190.189.214	8124	Binpac exception: binpac exception: &enforce violation : DCE_RPC_Header:rpc_vers	-
-XXXXXXXXXX.XXXXXX	violation	protocol	DCE_RPC	ClEkJM2Vm5giqnMf4h	-	10.0.0.55	53994	60.190.189.214	8124	Binpac exception: binpac exception: &enforce violation : DCE_RPC_Header:rpc_vers	-
-XXXXXXXXXX.XXXXXX	violation	protocol	DCE_RPC	ClEkJM2Vm5giqnMf4h	-	10.0.0.55	53994	60.190.189.214	8124	Binpac exception: binpac exception: &enforce violation : DCE_RPC_Header:rpc_vers	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	DCE_RPC	ClEkJM2Vm5giqnMf4h	-	10.0.0.55	53994	60.190.189.214	8124	-	Disabled after 6 violations
 #close XXXX-XX-XX-XX-XX-XX

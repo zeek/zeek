@@ -173,6 +173,85 @@ enum Client_Capabilities {
 	CLIENT_QUERY_ATTRIBUTES = 0x08000000,
 };
 
+# Binary Protocol Resultset encoding.
+#
+# https://dev.mysql.com/doc/dev/mysql-server/latest/page_protocol_binary_resultset.html
+#
+# Values taken from here: https://dev.mysql.com/doc/dev/mysql-server/latest/namespaceclassic__protocol_1_1field__type.html
+enum field_types {
+	TYPE_DECIMAL = 0x00,
+	TYPE_TINY = 0x01,
+	TYPE_SHORT = 0x02,
+	TYPE_LONG = 0x03,
+	TYPE_FLOAT = 0x04,
+	TYPE_DOUBLE = 0x05,
+	TYPE_NULL = 0x06,
+	TYPE_TIMESTAMP = 0x07,
+	TYPE_LONGLONG = 0x08,
+	TYPE_INT24 = 0x09,
+	TYPE_DATE = 0x0a,
+	TYPE_TIME = 0x0b,
+	TYPE_DATETIME = 0x0c,
+	TYPE_YEAR = 0x0d,
+	TYPE_VARCHAR = 0x0f,
+	TYPE_BIT = 0x10,
+	TYPE_TIMESTAMP2 = 0x11,
+	TYPE_JSON = 0xf5,
+	TYPE_NEWDECIMAL = 0xf6,
+	TYPE_ENUM = 0xf7,
+	TYPE_SET = 0xf8,
+	TYPE_TINYBLOB = 0xf9,
+	TYPE_MEDIUMBLOB = 0xfa,
+	TYPE_LONGBLOB = 0xfb,
+	TYPE_BLOB = 0xfc,
+	TYPE_VARSTRING = 0xfd,
+	TYPE_STRING = 0xfe,
+	TYPE_GEOMETRY = 0xff,
+};
+
+type BinaryDate = record {
+	len: uint8 &enforce(len == 0 || len == 4 || len == 7 || len == 11);
+	not_implemented: bytestring &length=len;
+};
+
+type BinaryTime = record {
+	len: uint8 &enforce(len == 0 || len == 8 || len == 12);
+	not_implemented: bytestring &length=len;
+};
+
+type BinaryValue(type: uint16) = record {
+	value:  case ( type ) of {
+		TYPE_DECIMAL -> decimal_val: LengthEncodedInteger;
+		TYPE_TINY -> tiny_val: int8;
+		TYPE_SHORT -> short_val: int16;
+		TYPE_LONG -> long_val: int32;
+		TYPE_FLOAT -> float_val: bytestring &length=4;
+		TYPE_DOUBLE -> double_val: bytestring &length=8;
+		TYPE_NULL -> null_val: empty;  # in null_bitmap
+		TYPE_TIMESTAMP -> timestamp_val: BinaryDate;
+		TYPE_LONGLONG -> longlong_val: int64;
+		TYPE_INT24 -> int24_val: int32;
+		TYPE_DATE -> date_val: BinaryDate;
+		TYPE_TIME -> time_val: BinaryTime;
+		TYPE_DATETIME -> datetime_val: BinaryDate;
+		TYPE_YEAR -> year_val: int16;
+		TYPE_VARCHAR -> varchar_val: LengthEncodedString;
+		TYPE_BIT -> bit_val: LengthEncodedString;
+		TYPE_TIMESTAMP2 -> timestamp2_val: BinaryDate;
+		TYPE_JSON -> json_val: LengthEncodedString;
+		TYPE_NEWDECIMAL -> newdecimal_val: LengthEncodedString;
+		TYPE_ENUM -> enum_val: LengthEncodedString;
+		TYPE_SET -> set_val: LengthEncodedString;
+		TYPE_TINYBLOB -> tinyblob_val: LengthEncodedString;
+		TYPE_MEDIUMBLOB -> mediumblob_val: LengthEncodedString;
+		TYPE_LONGBLOB -> longblob_val: LengthEncodedString;
+		TYPE_BLOB -> blob_val: LengthEncodedString;
+		TYPE_VARSTRING -> varstring_val: LengthEncodedString;
+		TYPE_STRING -> string_val: LengthEncodedString;
+		TYPE_GEOMETRY -> geometry_val: LengthEncodedString;
+	};
+};
+
 type NUL_String = RE/[^\0]*\0/;
 type EmptyOrNUL_String = RE/([^\0]*\0)?/;
 
@@ -335,28 +414,50 @@ type Connection_Phase_Packets = case $context.connection.get_conn_expectation() 
 	EXPECT_AUTH_DATA        -> auth_data: AuthMoreData(true);
 };
 
-# Command Request
-
+# Query attribute handling for COM_QUERY
+#
 type AttributeTypeAndName = record {
-	type: uint16;
+	type: uint8;
+	unsigned_flag: uint8;
 	name: LengthEncodedString;
 };
 
-type Attributes(count: uint8) = record {
-	unused              : uint8;
-	send_types_to_server: uint8; # Always 1.
+type AttributeValue(is_null: bool, type: uint8) = record {
+	null: case is_null of {
+		false -> val: BinaryValue(type);
+		true -> null_val: empty;
+	};
+} &let {
+	# Move parsing the next query attribute.
+	done = $context.connection.next_query_attr();
+};
+
+type Attributes(count: int) = record {
+	null_bitmap         : bytestring &length=(count + 7) / 8;
+	send_types_to_server: uint8 &enforce(send_types_to_server == 1);
 	names               : AttributeTypeAndName[count];
-	values              : LengthEncodedString[count];
+	values              : AttributeValue(
+		# Check if null_bitmap contains this attribute index. This
+		# will pass true if the attribute value is NULL and parsing
+		# skipped in AttributeValue above.
+		(null_bitmap[$context.connection.query_attr_idx() / 8] >> ($context.connection.query_attr_idx() % 8)) & 0x01,
+		names[$context.connection.query_attr_idx()].type
+	)[] &until($context.connection.query_attr_idx() >= count);
 };
 
 type Query_Attributes = record {
-	count     : uint8;
-	set_coun  : uint8;
-	have_attr : case ( count > 0 ) of {
-		true  -> attrs: Attributes(count);
+	count    : LengthEncodedInteger;
+	set_count: LengthEncodedInteger;
+	have_attr: case ( attr_count > 0 ) of {
+		true  -> attrs: Attributes(attr_count);
 		false -> none: empty;
-	};
+	} &requires(new_query_attrs);
+} &let {
+	attr_count: int = to_int()(count);
+	new_query_attrs = $context.connection.new_query_attrs();
 };
+
+# Command Request
 
 type Command_Request_Packet = record {
 	command: uint8;
@@ -554,6 +655,7 @@ refine connection MySQL_Conn += {
 		bool server_query_attrs_;
 		bool client_query_attrs_;
 		std::string auth_plugin_;
+		int query_attr_idx_;
 	%}
 
 	%init{
@@ -568,6 +670,7 @@ refine connection MySQL_Conn += {
 		deprecate_eof_ = false;
 		server_query_attrs_ = false;
 		client_query_attrs_ = false;
+		query_attr_idx_ = 0;
 	%}
 
 	function get_version(): uint8
@@ -823,6 +926,23 @@ refine connection MySQL_Conn += {
 	function inc_results_seen(): bool
 		%{
 		++results_seen_;
+		return true;
+		%}
+
+	function query_attr_idx(): int
+		%{
+		return query_attr_idx_;
+		%}
+
+	function new_query_attrs(): bool
+		%{
+		query_attr_idx_ = 0;
+		return true;
+		%}
+
+	function next_query_attr(): bool
+		%{
+		query_attr_idx_++;
 		return true;
 		%}
 };

@@ -1,3 +1,23 @@
+7.0.0-dev.445 | 2024-07-09 00:07:25 -0700
+
+  * Management framework: bump cluster testsuite to pull in telemetry tests (Christian Kreibich, Corelight)
+
+  * Management framework: bump zeek-client (Christian Kreibich, Corelight)
+
+  * Management framework: augment deployed configs with instance IP addresses (Christian Kreibich, Corelight)
+
+  * Management framework: add auto-enumeration of metrics ports (Christian Kreibich, Corelight)
+
+  * Management framework: propagate metrics port from agent (Christian Kreibich, Corelight)
+
+  * Management framework: add metrics port in management & Supervisor node records (Christian Kreibich, Corelight)
+
+  * Harden the telemetry manager against unset Telemetry::metrics_address (Christian Kreibich, Corelight)
+
+  * Comment-only tweaks for telemetry-related settings. (Christian Kreibich, Corelight)
+
+  * Update submodules [nomail] (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.434 | 2024-07-04 17:34:23 +0200
 
   * CMakeLists: Ensure Threads::Threads target exists (Arne Welzel, Corelight)

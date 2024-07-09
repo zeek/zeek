@@ -36,6 +36,8 @@ void Manager::InitPostScript() {
     std::string prometheus_url;
     auto metrics_port = id::find_val("Telemetry::metrics_port")->AsPortVal();
     auto metrics_address = id::find_val("Telemetry::metrics_address")->AsStringVal()->ToStdString();
+    if ( metrics_address.empty() )
+        metrics_address = "0.0.0.0";
     if ( metrics_port->Port() != 0 )
         prometheus_url = util::fmt("%s:%u", metrics_address.data(), metrics_port->Port());
 

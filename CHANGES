@@ -1,3 +1,9 @@
+7.0.0-dev.447 | 2024-07-09 17:10:16 +0200
+
+  * Fix for --display-cmake in configure (cknill)
+    Moved build directory creation further down in the script so that --display-cmake
+    has a chance to happen before build tree setup.
+
 7.0.0-dev.445 | 2024-07-09 00:07:25 -0700
 
   * Management framework: bump cluster testsuite to pull in telemetry tests (Christian Kreibich, Corelight)

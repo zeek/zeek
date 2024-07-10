@@ -6,9 +6,9 @@
 # @TEST-EXEC: mv analyzer.log analyzer.log-include-confirmations
 # @TEST-EXEC: btest-diff analyzer.log-include-confirmations
 
-# @TEST-EXEC: zeek -r ${TRACES}/socks.trace %INPUT Analyzer::Logging::include_disabling=T
-# @TEST-EXEC: mv analyzer.log analyzer.log-include-disabling
-# @TEST-EXEC: btest-diff analyzer.log-include-disabling
+# @TEST-EXEC: zeek -r ${TRACES}/socks.trace %INPUT Analyzer::Logging::include_disabling=F
+# @TEST-EXEC: mv analyzer.log analyzer.log-no-disabling
+# @TEST-EXEC: btest-diff analyzer.log-no-disabling
 
 @load base/protocols/conn
 @load base/protocols/dns

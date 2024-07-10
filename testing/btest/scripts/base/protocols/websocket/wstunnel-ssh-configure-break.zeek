@@ -7,8 +7,8 @@
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff conn.log.cut
 # @TEST-EXEC: btest-diff websocket.log
+# @TEST-EXEC: btest-diff analyzer.log
 # @TEST-EXEC: test ! -f ssh.log
-# @TEST-EXEC: test ! -f analyzer.log
 
 @load base/protocols/conn
 @load base/protocols/http

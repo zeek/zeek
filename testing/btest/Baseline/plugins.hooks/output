@@ -304,7 +304,7 @@
 0.000000   MetaHookPost  CallFunction(__init_primary_bifs, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(__init_secondary_bifs, <null>, ()) -> <no result>
 0.000000   MetaHookPost  CallFunction(disable_event_group, <frame>, (Analyzer::Logging::include_confirmations)) -> <no result>
-0.000000   MetaHookPost  CallFunction(disable_event_group, <frame>, (Analyzer::Logging::include_disabling)) -> <no result>
+0.000000   MetaHookPost  CallFunction(enable_event_group, <frame>, (Analyzer::Logging::include_disabling)) -> <no result>
 0.000000   MetaHookPost  CallFunction(enable_module_events, <frame>, (Analyzer::Logging)) -> <no result>
 0.000000   MetaHookPost  CallFunction(getenv, <null>, (CLUSTER_NODE)) -> <no result>
 0.000000   MetaHookPost  CallFunction(getenv, <null>, (ZEEK_DEFAULT_LISTEN_ADDRESS)) -> <no result>
@@ -316,7 +316,7 @@
 0.000000   MetaHookPost  CallFunction(is_packet_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)) -> <no result>
 0.000000   MetaHookPost  CallFunction(lambda_<15261139872714441626>, <frame>, (Analyzer::Logging::include_confirmations, F)) -> <no result>
 0.000000   MetaHookPost  CallFunction(lambda_<2645182068207650863>, <frame>, (Analyzer::Logging::enable, T)) -> <no result>
-0.000000   MetaHookPost  CallFunction(lambda_<3084630089048204467>, <frame>, (Analyzer::Logging::include_disabling, F)) -> <no result>
+0.000000   MetaHookPost  CallFunction(lambda_<3084630089048204467>, <frame>, (Analyzer::Logging::include_disabling, T)) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (2123/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (2152/udp)) -> <no result>
 0.000000   MetaHookPost  CallFunction(port_to_count, <frame>, (3544/udp)) -> <no result>
@@ -1224,7 +1224,7 @@
 0.000000   MetaHookPre   CallFunction(__init_primary_bifs, <null>, ())
 0.000000   MetaHookPre   CallFunction(__init_secondary_bifs, <null>, ())
 0.000000   MetaHookPre   CallFunction(disable_event_group, <frame>, (Analyzer::Logging::include_confirmations))
-0.000000   MetaHookPre   CallFunction(disable_event_group, <frame>, (Analyzer::Logging::include_disabling))
+0.000000   MetaHookPre   CallFunction(enable_event_group, <frame>, (Analyzer::Logging::include_disabling))
 0.000000   MetaHookPre   CallFunction(enable_module_events, <frame>, (Analyzer::Logging))
 0.000000   MetaHookPre   CallFunction(getenv, <null>, (CLUSTER_NODE))
 0.000000   MetaHookPre   CallFunction(getenv, <null>, (ZEEK_DEFAULT_LISTEN_ADDRESS))
@@ -1236,7 +1236,7 @@
 0.000000   MetaHookPre   CallFunction(is_packet_analyzer, <frame>, (AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS))
 0.000000   MetaHookPre   CallFunction(lambda_<15261139872714441626>, <frame>, (Analyzer::Logging::include_confirmations, F))
 0.000000   MetaHookPre   CallFunction(lambda_<2645182068207650863>, <frame>, (Analyzer::Logging::enable, T))
-0.000000   MetaHookPre   CallFunction(lambda_<3084630089048204467>, <frame>, (Analyzer::Logging::include_disabling, F))
+0.000000   MetaHookPre   CallFunction(lambda_<3084630089048204467>, <frame>, (Analyzer::Logging::include_disabling, T))
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (2123/udp))
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (2152/udp))
 0.000000   MetaHookPre   CallFunction(port_to_count, <frame>, (3544/udp))
@@ -2143,7 +2143,7 @@
 0.000000 | HookCallFunction __init_primary_bifs()
 0.000000 | HookCallFunction __init_secondary_bifs()
 0.000000 | HookCallFunction disable_event_group(Analyzer::Logging::include_confirmations)
-0.000000 | HookCallFunction disable_event_group(Analyzer::Logging::include_disabling)
+0.000000 | HookCallFunction enable_event_group(Analyzer::Logging::include_disabling)
 0.000000 | HookCallFunction enable_module_events(Analyzer::Logging)
 0.000000 | HookCallFunction getenv(CLUSTER_NODE)
 0.000000 | HookCallFunction getenv(ZEEK_DEFAULT_LISTEN_ADDRESS)
@@ -2155,7 +2155,7 @@
 0.000000 | HookCallFunction is_packet_analyzer(AllAnalyzers::ANALYZER_ANALYZER_TCPSTATS)
 0.000000 | HookCallFunction lambda_<15261139872714441626>(Analyzer::Logging::include_confirmations, F)
 0.000000 | HookCallFunction lambda_<2645182068207650863>(Analyzer::Logging::enable, T)
-0.000000 | HookCallFunction lambda_<3084630089048204467>(Analyzer::Logging::include_disabling, F)
+0.000000 | HookCallFunction lambda_<3084630089048204467>(Analyzer::Logging::include_disabling, T)
 0.000000 | HookCallFunction port_to_count(2123/udp)
 0.000000 | HookCallFunction port_to_count(2152/udp)
 0.000000 | HookCallFunction port_to_count(3544/udp)

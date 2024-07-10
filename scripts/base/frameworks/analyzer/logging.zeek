@@ -57,7 +57,7 @@ export {
 	## interesting for troubleshooting of analyzers in DPD scenarios.
 	## Setting this option may also generated multiple log entries per
 	## connection.
-	option include_disabling = F;
+	option include_disabling = T;
 
 	## If a violation contains information about the data causing it,
 	## include at most this many bytes of it in the log.

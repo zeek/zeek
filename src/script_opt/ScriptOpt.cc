@@ -391,7 +391,7 @@ static void use_CPP() {
 
     int num_used = 0;
 
-    auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, false);
+    auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, true, false);
 
     for ( auto& f : funcs ) {
         auto hash = f.Profile()->HashVal();
@@ -435,26 +435,22 @@ static void use_CPP() {
         reporter->FatalError("no C++ functions found to use");
 }
 
-static void generate_CPP() {
+static void generate_CPP(std::shared_ptr<ProfileFuncs> pfs) {
     const auto gen_name = CPP_dir + "CPP-gen.cc";
 
     const bool standalone = analysis_options.gen_standalone_CPP;
     const bool report = analysis_options.report_uncompilable;
 
-    auto pfs = std::make_shared<ProfileFuncs>(funcs, is_CPP_compilable, false);
-
     CPPCompile cpp(funcs, pfs, gen_name, standalone, report);
 }
 
-static void analyze_scripts_for_ZAM() {
+static void analyze_scripts_for_ZAM(std::shared_ptr<ProfileFuncs> pfs) {
     if ( analysis_options.usage_issues > 0 && analysis_options.optimize_AST ) {
         fprintf(stderr,
                 "warning: \"-O optimize-AST\" option is incompatible with -u option, "
                 "deactivating optimization\n");
         analysis_options.optimize_AST = false;
     }
-
-    auto pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true);
 
     if ( analysis_options.profile_ZAM ) {
 #ifdef ENABLE_ZAM_PROFILE
@@ -616,11 +612,19 @@ void analyze_scripts(bool no_unused_warnings) {
     if ( analysis_options.use_CPP )
         use_CPP();
 
+    std::shared_ptr<ProfileFuncs> pfs;
+    // Note, in the following it's not clear whether the final argument
+    // for absolute/relative record fields matters any more ...
+    if ( generating_CPP )
+        pfs = std::make_shared<ProfileFuncs>(funcs, is_CPP_compilable, true, false);
+    else
+        pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true, true);
+
     if ( analysis_options.gen_ZAM )
-        analyze_scripts_for_ZAM();
+        analyze_scripts_for_ZAM(pfs);
 
     if ( generating_CPP )
-        generate_CPP();
+        generate_CPP(pfs);
 
     if ( reporter->Errors() > 0 )
         reporter->FatalError("Optimized script execution aborted due to errors");

@@ -564,7 +564,9 @@ void ProfileFunc::CheckRecordConstructor(TypePtr t) {
         }
 }
 
-ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred, bool _full_record_hashes) {
+ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred, bool _compute_func_hashes,
+                           bool _full_record_hashes) {
+    compute_func_hashes = _compute_func_hashes;
     full_record_hashes = _full_record_hashes;
 
     for ( auto& f : funcs ) {
@@ -576,6 +578,11 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred
         // Track the profile even if we're not compiling the function, since
         // the AST optimizer will still need it to reason about function-call
         // side effects.
+
+        // Propagate previous hash if requested.
+        if ( ! compute_func_hashes && f.Profile() )
+            pf->SetHashVal(f.Profile()->HashVal());
+
         f.SetProfile(std::move(pf));
         func_profs[f.Func()] = f.ProfilePtr();
     }
@@ -823,15 +830,18 @@ void ProfileFuncs::ComputeTypeHashes(const std::vector<const Type*>& types) {
 }
 
 void ProfileFuncs::ComputeBodyHashes(std::vector<FuncInfo>& funcs) {
-    for ( auto& f : funcs )
-        if ( ! f.ShouldSkip() )
-            ComputeProfileHash(f.ProfilePtr());
+    if ( compute_func_hashes )
+        for ( auto& f : funcs )
+            if ( ! f.ShouldSkip() )
+                ComputeProfileHash(f.ProfilePtr());
 
     for ( auto& l : lambdas ) {
         auto pf = ExprProf(l);
         func_profs[l->PrimaryFunc().get()] = pf;
         lambda_primaries[l->Name()] = l->PrimaryFunc().get();
-        ComputeProfileHash(pf);
+
+        if ( compute_func_hashes )
+            ComputeProfileHash(pf);
     }
 }
 

@@ -251,7 +251,6 @@ ZBody::ZBody(std::string _func_name, const ZAMCompiler* zc) : Stmt(STMT_ZAM) {
         auto log_ID_type = lookup_ID("ID", "Log");
         ASSERT(log_ID_type);
         ZAM::log_ID_enum_type = log_ID_type->GetType<EnumType>();
-        ZAM::any_base_type = base_type(TYPE_ANY);
         ZVal::SetZValNilStatusAddr(&ZAM_error);
         did_init = false;
     }

@@ -16,7 +16,7 @@ namespace ZAM {
 std::string curr_func;
 std::shared_ptr<ZAMLocInfo> curr_loc;
 TypePtr log_ID_enum_type;
-TypePtr any_base_type;
+TypePtr any_base_type = base_type(TYPE_ANY);
 } // namespace ZAM
 
 bool ZAM_error = false;

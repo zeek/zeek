@@ -1,3 +1,22 @@
+7.0.0-dev.458 | 2024-07-10 11:05:19 +0200
+
+  * testing/btest: Default to HILTI_JIT_PARALLELISM=1 (Arne Welzel, Corelight)
+
+    This is a rework of b59bed9d06f2257a6b4f6c6408b8363a277eebac moving
+    HILTI_JIT_PARALLELISM=1 into btest.cfg to make it default applicable to
+    btest -j users (and CI).
+
+    The background for this change is that spicyz may spawn up to nproc compiler
+    instances by default. Combined with btest -j, this may be nproc x nproc
+    instances worst case. Particularly with gcc, this easily overloads CI or
+    local systems, putting them into hard-to-recover-from thrashing/OOM states.
+
+    Exporting HILTI_JIT_PARALLELISM in the shell allows overriding.
+
+  * Revert "CI: Use ccache and a single CPU when building spicy analyzers for btests" (Arne Welzel, Corelight)
+
+    This reverts commit b59bed9d06f2257a6b4f6c6408b8363a277eebac.
+
 7.0.0-dev.454 | 2024-07-09 15:12:19 -0700
 
   * CI: Use ccache and a single CPU when building spicy analyzers for btests (Tim Wojtulewicz, Corelight)

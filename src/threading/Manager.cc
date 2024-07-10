@@ -7,7 +7,6 @@
 #include "zeek/IPAddr.h"
 #include "zeek/NetVar.h"
 #include "zeek/RunState.h"
-#include "zeek/iosource/Manager.h"
 #include "zeek/telemetry/Manager.h"
 
 namespace zeek::threading {

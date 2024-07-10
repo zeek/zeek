@@ -9,7 +9,6 @@
 #include "zeek/RunState.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/iosource/Manager.h"
-#include "zeek/iosource/PktSrc.h"
 #include "zeek/telemetry/Manager.h"
 #include "zeek/util.h"
 

@@ -112,6 +112,9 @@ New Functionality
   the object-based representation of ports that ``to_json()`` generates for that
   Zeek type.
 
+- The ``analyzer.log`` now optionally supports logging of disabled analyzers
+  through the new option ``Analyzer::logging::include_disabling``.
+
 Changed Functionality
 ---------------------
 

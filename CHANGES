@@ -1,3 +1,9 @@
+7.0.0-dev.461 | 2024-07-10 18:45:36 +0200
+
+  * Extend btest for logging of disabled analyzers (Jan Grashoefer, Corelight)
+
+  * Add logging of disabled analyzers to analyzer.log (Jan Grashoefer, Corelight)
+
 7.0.0-dev.458 | 2024-07-10 11:05:19 +0200
 
   * testing/btest: Default to HILTI_JIT_PARALLELISM=1 (Arne Welzel, Corelight)

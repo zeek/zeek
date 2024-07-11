@@ -1,3 +1,7 @@
+7.0.0-rc1 | 2024-07-11 12:21:02 -0700
+
+  * Updating submodule(s) [nomail] (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.467 | 2024-07-11 12:14:52 -0700
 
   * Update the scripts.base.frameworks.telemetry.internal-metrics test (Christian Kreibich, Corelight)

@@ -20,7 +20,7 @@ Breaking Changes
 
   All of the metrics-related script-level options, type, and methods have been
   moved to the Telemetry framework:
-    * Option ``Broker::metrics_port` is now ``Telemetry::metrics_port``
+    * Option ``Broker::metrics_port`` is now ``Telemetry::metrics_port``
     * Option ``Broker::metrics_export_endpoint_name`` is now ``Telemetry::metrics_endpoint_name``
 
   The following options have been removed:

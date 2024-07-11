@@ -4,10 +4,8 @@
 
 #include <getopt.h>
 
-#include <algorithm>
 #include <memory>
 #include <string>
-#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -46,7 +44,7 @@ struct VisitorTypes : public spicy::visitor::PreOrder {
         module = n->scopeID();
         path = n->uid().path;
 
-        if ( is_resolved )
+        if ( is_resolved && ! n->skipImplementation() )
             glue->addSpicyModule(module, path);
     }
 

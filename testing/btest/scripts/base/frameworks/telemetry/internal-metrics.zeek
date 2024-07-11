@@ -1,7 +1,6 @@
-# @TEST-DOC: Query some internal broker/caf related metrics as they use the int64_t versions, too.
+# @TEST-DOC: Query Broker's telemetry to verify it ends up in Zeek's registry.
 # Note compilable to C++ due to globals being initialized to a record that
 # has an opaque type as a field.
-# @TEST-KNOWN-FAILURE: Implementation for prometheus-cpp missing in broker
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-EXEC: zcat <$TRACES/echo-connections.pcap.gz | zeek -b -Cr - %INPUT > out
 # @TEST-EXEC: btest-diff out
@@ -9,17 +8,19 @@
 
 @load base/frameworks/telemetry
 
+redef running_under_test = T;
+
 function print_histogram_metrics(what: string, metrics: vector of Telemetry::HistogramMetric)
 	{
 	print fmt("### %s |%s|", what, |metrics|);
 	for (i in metrics)
 		{
 		local m = metrics[i];
-		print m$opts$metric_type, m$opts$prefix, m$opts$name, m$opts$bounds, m$opts$labels, m$labels;
+		print m$opts$metric_type, m$opts$prefix, m$opts$name, m$opts$bounds, m$label_names, m?$label_values ? m$label_values : vector();
 		# Don't output actual values as they are runtime dependent.
 		# print m$values, m$sum, m$observations;
-		if ( m$opts?$count_bounds )
-			print m$opts$count_bounds;
+		if ( m$opts?$bounds )
+			print m$opts$bounds;
 		}
 	}
 
@@ -29,19 +30,17 @@ function print_metrics(what: string, metrics: vector of Telemetry::Metric)
 	for (i in metrics)
 		{
 		local m = metrics[i];
-		print m$opts$metric_type, m$opts$prefix, m$opts$name, m$opts$labels, m$labels, m$value;
+		print m$opts$metric_type, m$opts$prefix, m$opts$name, m$label_names, m?$label_values ? m$label_values : vector(), m$value;
 
-		if (m?$count_value)
-			print "count_value", m$count_value;
+		if (m?$value)
+			print "value", m$value;
 		}
 	}
 
 event zeek_done() &priority=-100
 	{
-	local broker_metrics = Telemetry::collect_metrics("broker", "*");
+	local broker_metrics = Telemetry::collect_metrics("broker*", "*");
 	print_metrics("broker", broker_metrics);
-	local caf_metrics = Telemetry::collect_metrics("caf*", "*");
-	print_metrics("caf", caf_metrics);
-	local caf_histogram_metrics = Telemetry::collect_histogram_metrics("caf*", "*");
-	print_histogram_metrics("caf", caf_histogram_metrics);
+	local broker_histogram_metrics = Telemetry::collect_histogram_metrics("broker*", "*");
+	print_histogram_metrics("broker", broker_histogram_metrics);
 	}

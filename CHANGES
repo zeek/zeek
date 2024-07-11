@@ -1,3 +1,11 @@
+7.0.0-dev.467 | 2024-07-11 12:14:52 -0700
+
+  * Update the scripts.base.frameworks.telemetry.internal-metrics test (Christian Kreibich, Corelight)
+
+  * Revert "Temporarily disable the scripts/base/frameworks/telemetry/internal-metrics btest" (Christian Kreibich, Corelight)
+
+  * Bump Broker to pull in new Prometheus support and pass in Zeek's registry (Dominik Charousset and Christian Kreibich, Corelight)
+
 7.0.0-dev.461 | 2024-07-10 18:45:36 +0200
 
   * Extend btest for logging of disabled analyzers (Jan Grashoefer, Corelight)

@@ -19,8 +19,11 @@
 #include <hilti/rt/extension-points.h>
 #include <hilti/rt/fmt.h>
 #include <hilti/rt/types/all.h>
+#include <hilti/rt/util.h>
 
 #include "zeek/Desc.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/Type.h"
 #include "zeek/Val.h"
 #include "zeek/spicy/cookie.h"
 #include "zeek/spicy/manager.h"
@@ -59,15 +62,22 @@ public:
 };
 
 /**
- * Exception thrown by event generation code if there's a type mismatch
- * between the Spicy-side value and what the Zeek event expects.
+ * Exception thrown if there's a type mismatch between Spicy and Zeek side.
  */
 class TypeMismatch : public UsageError {
+    using UsageError::UsageError;
+};
+
+/**
+ * Exception thrown by event generation code if there's a type mismatch between
+ * a Spicy-side parameter value and what the Zeek event expects.
+ */
+class ParameterMismatch : public TypeMismatch {
 public:
-    TypeMismatch(const std::string_view& msg, std::string_view location = "")
-        : UsageError(hilti::rt::fmt("Event parameter mismatch, %s", msg)) {}
-    TypeMismatch(const std::string_view& have, const TypePtr& want, std::string_view location = "")
-        : TypeMismatch(_fmt(have, want)) {}
+    ParameterMismatch(std::string_view msg, std::string_view location = "")
+        : TypeMismatch(hilti::rt::fmt("Event parameter mismatch, %s", msg)) {}
+    ParameterMismatch(std::string_view have, const TypePtr& want, std::string_view location = "")
+        : ParameterMismatch(_fmt(have, want)) {}
 
 private:
     std::string _fmt(const std::string_view& have, const TypePtr& want) {
@@ -90,13 +100,13 @@ public:
  * Begins registration of a Spicy EVT module. All subsequent, other `register_*()`
  * function call will be associated with this module for documentation purposes.
  */
-void register_spicy_module_begin(const std::string& name, const std::string& description);
+void register_spicy_module_begin(const std::string& id, const std::string& description);
 
 /**
  * Registers a Spicy protocol analyzer with its EVT meta information with the
  * plugin's runtime.
  */
-void register_protocol_analyzer(const std::string& name, hilti::rt::Protocol proto,
+void register_protocol_analyzer(const std::string& id, hilti::rt::Protocol proto,
                                 const hilti::rt::Vector<::zeek::spicy::rt::PortRange>& ports,
                                 const std::string& parser_orig, const std::string& parser_resp,
                                 const std::string& replaces, const std::string& linker_scope);
@@ -105,7 +115,7 @@ void register_protocol_analyzer(const std::string& name, hilti::rt::Protocol pro
  * Registers a Spicy file analyzer with its EVT meta information with the
  * plugin's runtime.
  */
-void register_file_analyzer(const std::string& name, const hilti::rt::Vector<std::string>& mime_types,
+void register_file_analyzer(const std::string& id, const hilti::rt::Vector<std::string>& mime_types,
                             const std::string& parser, const std::string& replaces, const std::string& linker_scope);
 
 /** Reports a Zeek-side "weird". */
@@ -115,7 +125,7 @@ void weird(const std::string& id, const std::string& addl);
  * Registers a Spicy packet analyzer with its EVT meta information with the
  * plugin's runtime.
  */
-void register_packet_analyzer(const std::string& name, const std::string& parser, const std::string& replaces,
+void register_packet_analyzer(const std::string& id, const std::string& parser, const std::string& replaces,
                               const std::string& linker_scope);
 
 /** Registers a Spicy-generated type to make it available inside Zeek. */
@@ -538,7 +548,7 @@ inline ValPtr to_val(const hilti::rt::DeferredExpression<T, E>& t, const TypePtr
  */
 inline ValPtr to_val(const std::string& s, const TypePtr& target) {
     if ( target->Tag() != TYPE_STRING )
-        throw TypeMismatch("string", target);
+        throw ParameterMismatch("string", target);
 
     return make_intrusive<StringVal>(s);
 }
@@ -549,7 +559,7 @@ inline ValPtr to_val(const std::string& s, const TypePtr& target) {
  */
 inline ValPtr to_val(const hilti::rt::Bytes& b, const TypePtr& target) {
     if ( target->Tag() != TYPE_STRING )
-        throw TypeMismatch("string", target);
+        throw ParameterMismatch("string", target);
 
     return make_intrusive<StringVal>(b.str());
 }
@@ -568,7 +578,7 @@ inline ValPtr to_val(hilti::rt::integer::safe<T> i, const TypePtr& target) {
         if ( target->Tag() == TYPE_INT )
             return val_mgr->Int(i);
 
-        throw TypeMismatch("uint64", target);
+        throw ParameterMismatch("uint64", target);
     }
     else {
         if ( target->Tag() == TYPE_INT )
@@ -578,10 +588,10 @@ inline ValPtr to_val(hilti::rt::integer::safe<T> i, const TypePtr& target) {
             if ( i >= 0 )
                 return val_mgr->Count(i);
             else
-                throw TypeMismatch("negative int64", target);
+                throw ParameterMismatch("negative int64", target);
         }
 
-        throw TypeMismatch("int64", target);
+        throw ParameterMismatch("int64", target);
     }
 }
 
@@ -599,7 +609,7 @@ ValPtr to_val(const hilti::rt::ValueReference<T>& t, const TypePtr& target) {
  */
 inline ValPtr to_val(const hilti::rt::Bool& b, const TypePtr& target) {
     if ( target->Tag() != TYPE_BOOL )
-        throw TypeMismatch("bool", target);
+        throw ParameterMismatch("bool", target);
 
     return val_mgr->Bool(b);
 }
@@ -610,7 +620,7 @@ inline ValPtr to_val(const hilti::rt::Bool& b, const TypePtr& target) {
  */
 inline ValPtr to_val(double r, const TypePtr& target) {
     if ( target->Tag() != TYPE_DOUBLE )
-        throw TypeMismatch("double", target);
+        throw ParameterMismatch("double", target);
 
     return make_intrusive<DoubleVal>(r);
 }
@@ -621,7 +631,7 @@ inline ValPtr to_val(double r, const TypePtr& target) {
  */
 inline ValPtr to_val(const hilti::rt::Address& d, const TypePtr& target) {
     if ( target->Tag() != TYPE_ADDR )
-        throw TypeMismatch("addr", target);
+        throw ParameterMismatch("addr", target);
 
     auto in_addr = d.asInAddr();
     if ( auto v4 = std::get_if<struct in_addr>(&in_addr) )
@@ -638,7 +648,7 @@ inline ValPtr to_val(const hilti::rt::Address& d, const TypePtr& target) {
  */
 inline ValPtr to_val(const hilti::rt::Port& p, const TypePtr& target) {
     if ( target->Tag() != TYPE_PORT )
-        throw TypeMismatch("port", target);
+        throw ParameterMismatch("port", target);
 
     switch ( p.protocol().value() ) {
         case hilti::rt::Protocol::TCP: return val_mgr->Port(p.port(), ::TransportProto::TRANSPORT_TCP);
@@ -657,7 +667,7 @@ inline ValPtr to_val(const hilti::rt::Port& p, const TypePtr& target) {
  */
 inline ValPtr to_val(const hilti::rt::Interval& i, const TypePtr& target) {
     if ( target->Tag() != TYPE_INTERVAL )
-        throw TypeMismatch("interval", target);
+        throw ParameterMismatch("interval", target);
 
     return make_intrusive<IntervalVal>(i.seconds());
 }
@@ -668,7 +678,7 @@ inline ValPtr to_val(const hilti::rt::Interval& i, const TypePtr& target) {
  */
 inline ValPtr to_val(const hilti::rt::Time& t, const TypePtr& target) {
     if ( target->Tag() != TYPE_TIME )
-        throw TypeMismatch("time", target);
+        throw ParameterMismatch("time", target);
 
     return make_intrusive<TimeVal>(t.seconds());
 }
@@ -680,7 +690,7 @@ inline ValPtr to_val(const hilti::rt::Time& t, const TypePtr& target) {
 template<typename T>
 inline ValPtr to_val(const hilti::rt::Vector<T>& v, const TypePtr& target) {
     if ( target->Tag() != TYPE_VECTOR && target->Tag() != TYPE_LIST )
-        throw TypeMismatch("expected vector or list", target);
+        throw ParameterMismatch("expected vector or list", target);
 
     auto vt = cast_intrusive<VectorType>(target);
     auto zv = make_intrusive<VectorVal>(vt);
@@ -697,17 +707,17 @@ inline ValPtr to_val(const hilti::rt::Vector<T>& v, const TypePtr& target) {
 template<typename K, typename V>
 inline ValPtr to_val(const hilti::rt::Map<K, V>& m, const TypePtr& target) {
     if constexpr ( hilti::rt::is_tuple<K>::value )
-        throw TypeMismatch("internal error: sets with tuples not yet supported in to_val()");
+        throw ParameterMismatch("internal error: sets with tuples not yet supported in to_val()");
 
     if ( target->Tag() != TYPE_TABLE )
-        throw TypeMismatch("map", target);
+        throw ParameterMismatch("map", target);
 
     auto tt = cast_intrusive<TableType>(target);
     if ( tt->IsSet() )
-        throw TypeMismatch("map", target);
+        throw ParameterMismatch("map", target);
 
     if ( tt->GetIndexTypes().size() != 1 )
-        throw TypeMismatch("map with non-tuple elements", target);
+        throw ParameterMismatch("map with non-tuple elements", target);
 
     auto zv = make_intrusive<TableVal>(tt);
 
@@ -727,20 +737,20 @@ inline ValPtr to_val(const hilti::rt::Map<K, V>& m, const TypePtr& target) {
 template<typename T>
 inline ValPtr to_val(const hilti::rt::Set<T>& s, const TypePtr& target) {
     if ( target->Tag() != TYPE_TABLE )
-        throw TypeMismatch("set", target);
+        throw ParameterMismatch("set", target);
 
     auto tt = cast_intrusive<TableType>(target);
     if ( ! tt->IsSet() )
-        throw TypeMismatch("set", target);
+        throw ParameterMismatch("set", target);
 
     auto zv = make_intrusive<TableVal>(tt);
 
     for ( const auto& i : s ) {
         if constexpr ( hilti::rt::is_tuple<T>::value )
-            throw TypeMismatch("internal error: sets with tuples not yet supported in to_val()");
+            throw ParameterMismatch("internal error: sets with tuples not yet supported in to_val()");
         else {
             if ( tt->GetIndexTypes().size() != 1 )
-                throw TypeMismatch("set with non-tuple elements", target);
+                throw ParameterMismatch("set with non-tuple elements", target);
 
             auto idx = to_val(i, tt->GetIndexTypes()[0]);
             zv->Assign(std::move(idx), nullptr);
@@ -821,7 +831,7 @@ inline void set_record_field(RecordVal* rval, const IntrusivePtr<RecordType>& rt
             // Field must be &optional or &default.
             if ( auto attrs = rtype->FieldDecl(idx)->attrs;
                  ! attrs || ! (attrs->Find(detail::ATTR_DEFAULT) || attrs->Find(detail::ATTR_OPTIONAL)) )
-                throw TypeMismatch(hilti::rt::fmt("missing initialization for field '%s'", rtype->FieldName(idx)));
+                throw ParameterMismatch(hilti::rt::fmt("missing initialization for field '%s'", rtype->FieldName(idx)));
         }
     }
 }
@@ -833,12 +843,12 @@ inline void set_record_field(RecordVal* rval, const IntrusivePtr<RecordType>& rt
 template<typename T, typename std::enable_if_t<hilti::rt::is_tuple<T>::value>*>
 inline ValPtr to_val(const T& t, const TypePtr& target) {
     if ( target->Tag() != TYPE_RECORD )
-        throw TypeMismatch("tuple", target);
+        throw ParameterMismatch("tuple", target);
 
     auto rtype = cast_intrusive<RecordType>(target);
 
     if ( std::tuple_size<T>::value != rtype->NumFields() )
-        throw TypeMismatch("tuple", target);
+        throw ParameterMismatch("tuple", target);
 
     auto rval = make_intrusive<RecordVal>(rtype);
     size_t idx = 0;
@@ -856,12 +866,12 @@ inline ValPtr to_val(const hilti::rt::Bitfield<Ts...>& v, const TypePtr& target)
     using Bitfield = hilti::rt::Bitfield<Ts...>;
 
     if ( target->Tag() != TYPE_RECORD )
-        throw TypeMismatch("bitfield", target);
+        throw ParameterMismatch("bitfield", target);
 
     auto rtype = cast_intrusive<RecordType>(target);
 
     if ( sizeof...(Ts) - 1 != rtype->NumFields() )
-        throw TypeMismatch("bitfield", target);
+        throw ParameterMismatch("bitfield", target);
 
     auto rval = make_intrusive<RecordVal>(rtype);
     size_t idx = 0;
@@ -887,7 +897,7 @@ constexpr bool is_optional = is_optional_impl<std::remove_cv_t<std::remove_refer
 template<typename T, typename std::enable_if_t<std::is_base_of<::hilti::rt::trait::isStruct, T>::value>*>
 inline ValPtr to_val(const T& t, const TypePtr& target) {
     if ( target->Tag() != TYPE_RECORD )
-        throw TypeMismatch("struct", target);
+        throw ParameterMismatch("struct", target);
 
     auto rtype = cast_intrusive<RecordType>(target);
 
@@ -898,7 +908,7 @@ inline ValPtr to_val(const T& t, const TypePtr& target) {
 
     t.__visit([&](std::string_view name, const auto& val) {
         if ( idx >= num_fields )
-            throw TypeMismatch(hilti::rt::fmt("no matching record field for field '%s'", name));
+            throw ParameterMismatch(hilti::rt::fmt("no matching record field for field '%s'", name));
 
         // Special-case: Lift up anonymous bitfields (which always come as std::optionals).
         if ( name == "<anon>" ) {
@@ -924,7 +934,7 @@ inline ValPtr to_val(const T& t, const TypePtr& target) {
             std::string field_name = rtype->FieldName(idx);
 
             if ( field_name != name )
-                throw TypeMismatch(
+                throw ParameterMismatch(
                     hilti::rt::fmt("mismatch in field name: expected '%s', found '%s'", name, field_name));
 
             set_record_field(rval.get(), rtype, idx++, val);
@@ -934,7 +944,7 @@ inline ValPtr to_val(const T& t, const TypePtr& target) {
     // We already check above that all Spicy-side fields are mapped so we
     // can only hit this if there are uninitialized Zeek-side fields left.
     if ( idx != num_fields )
-        throw TypeMismatch(hilti::rt::fmt("missing initialization for field '%s'", rtype->FieldName(idx + 1)));
+        throw ParameterMismatch(hilti::rt::fmt("missing initialization for field '%s'", rtype->FieldName(idx + 1)));
 
     return rval;
 }
@@ -959,7 +969,7 @@ inline ValPtr to_val_for_transport_proto(int64_t val, const TypePtr& target) {
 template<typename T, typename std::enable_if_t<std::is_enum<typename T::Value>::value>*>
 inline ValPtr to_val(const T& t, const TypePtr& target) {
     if ( target->Tag() != TYPE_ENUM )
-        throw TypeMismatch("enum", target);
+        throw ParameterMismatch("enum", target);
 
     // We'll usually be getting an int64_t for T, but allow other signed ints
     // as well.
@@ -969,7 +979,7 @@ inline ValPtr to_val(const T& t, const TypePtr& target) {
     // Special case: map enum values to Zeek's semantics.
     if ( target->GetName() == "transport_proto" ) {
         if ( ! std::is_same_v<T, hilti::rt::Protocol> )
-            throw TypeMismatch(hilti::rt::demangle(typeid(t).name()), target);
+            throw ParameterMismatch(hilti::rt::demangle(typeid(t).name()), target);
 
         return to_val_for_transport_proto(it, target);
     }
@@ -984,4 +994,328 @@ inline ValPtr to_val(const T& t, const TypePtr& target) {
     return target->AsEnumType()->GetEnumVal(bt);
 }
 
+
+/**
+ * Returns the Zeek value associated with a global Zeek-side ID. Throws if the
+ * ID does not exist.
+ */
+inline ValPtr get_value(const std::string& name) {
+    if ( auto id = zeek::detail::global_scope()->Find(name) )
+        return id->GetVal();
+    else
+        throw InvalidValue(util::fmt("no such Zeek variable: '%s'", name.c_str()));
+}
+
+namespace detail {
+/** Helper to raise a ``TypeMismatch`` exception. */
+inline auto type_mismatch(const ValPtr& v, const char* expected) {
+    throw TypeMismatch(util::fmt("type mismatch in Zeek value: expected %s, but got %s", expected,
+                                 ::zeek::type_name(v->GetType()->Tag())));
+}
+
+/**
+ * Helper to check the type of Zeek value against an expected type tag, raising
+ * a ``TypeMismatch`` exception on mismatch.
+ */
+inline auto check_type(const ValPtr& v, ::zeek::TypeTag type_tag, const char* expected) {
+    if ( v->GetType()->Tag() != type_tag )
+        type_mismatch(v, expected);
+}
+
+} // namespace detail
+
+/** Type for a Zeek record value. */
+using ValRecordPtr = ::zeek::IntrusivePtr<::zeek::RecordVal>;
+
+/** Type for a Zeek set value. */
+using ValSetPtr = ::zeek::IntrusivePtr<::zeek::TableVal>;
+
+/** Type for a Zeek table value. */
+using ValTablePtr = ::zeek::IntrusivePtr<::zeek::TableVal>;
+
+/** Type for a Zeek vector value. */
+using ValVectorPtr = ::zeek::IntrusivePtr<::zeek::VectorVal>;
+
+/** Converts a Zeek `addr` value to its Spicy equivalent. Throws on error. */
+inline ::hilti::rt::Address as_address(const ValPtr& v) {
+    detail::check_type(v, TYPE_ADDR, "address");
+    return ::hilti::rt::Address(v->AsAddr());
+}
+
+/** Converts a Zeek `bool` value to its Spicy equivalent. Throws on error. */
+inline ::hilti::rt::Bool as_bool(const ValPtr& v) {
+    detail::check_type(v, TYPE_BOOL, "bool");
+    return ::hilti::rt::Bool(v->AsBool());
+}
+
+/** Converts a Zeek `count` value to its Spicy equivalent. Throws on error. */
+inline hilti::rt::integer::safe<uint64_t> as_count(const ValPtr& v) {
+    detail::check_type(v, TYPE_COUNT, "count");
+    return v->AsCount();
+}
+
+/** Converts a Zeek `double` value to its Spicy equivalent. Throws on error. */
+inline double as_double(const ValPtr& v) {
+    detail::check_type(v, TYPE_DOUBLE, "double");
+    return v->AsDouble();
+}
+
+/**
+ * Converts a Zeek `enum` value to a string containing the (unscoped) label
+ * name. Throws on error.
+ */
+inline std::string as_enum(const ValPtr& v) {
+    detail::check_type(v, TYPE_ENUM, "enum");
+    // Zeek returns the name as "<module>::<enum>", we just want the enum name.
+    return hilti::rt::rsplit1(v->GetType()->AsEnumType()->Lookup(v->AsEnum()), "::").second;
+}
+
+/** Converts a Zeek `int` value to its Spicy equivalent. Throws on error. */
+inline hilti::rt::integer::safe<int64_t> as_int(const ValPtr& v) {
+    detail::check_type(v, TYPE_INT, "int");
+    return v->AsInt();
+}
+
+/** Converts a Zeek `interval` value to its Spicy equivalent. Throws on error. */
+inline ::hilti::rt::Interval as_interval(const ValPtr& v) {
+    detail::check_type(v, TYPE_INTERVAL, "interval");
+    return ::hilti::rt::Interval(v->AsInterval(), hilti::rt::Interval::SecondTag{});
+}
+
+/** Converts a Zeek `port` value to its Spicy equivalent. Throws on error. */
+inline ::hilti::rt::Port as_port(const ValPtr& v) {
+    detail::check_type(v, TYPE_PORT, "port");
+    auto p = v->AsPortVal();
+    // Wrap port number into safe integer to catch any overflows (Zeek returns
+    // an uint32, while HILTI wants an uint16).
+    return ::hilti::rt::Port(hilti::rt::integer::safe<uint16_t>(p->Port()), p->PortType());
+}
+
+/** Converts a Zeek `record` value to its Spicy equivalent. Throws on error. */
+inline ValRecordPtr as_record(const ValPtr& v) {
+    detail::check_type(v, TYPE_RECORD, "record");
+    return ::zeek::cast_intrusive<::zeek::RecordVal>(v);
+}
+
+/** Converts a Zeek `set` value to its Spicy equivalent. Throws on error. */
+inline ValSetPtr as_set(const ValPtr& v) {
+    detail::check_type(v, TYPE_TABLE, "set");
+
+    if ( ! v->AsTableVal()->GetType()->IsSet() )
+        detail::type_mismatch(v, "set");
+
+    return ::zeek::cast_intrusive<::zeek::TableVal>(v);
+}
+
+/** Converts a Zeek `string` value to its Spicy equivalent. Throws on error. */
+inline hilti::rt::Bytes as_string(const ValPtr& v) {
+    detail::check_type(v, TYPE_STRING, "string");
+    auto str = v->AsString();
+    return hilti::rt::Bytes(reinterpret_cast<const char*>(str->Bytes()), str->Len());
+}
+
+/** Converts a Zeek `subnet` value to its Spicy equivalent. Throws on error. */
+inline ::hilti::rt::Network as_subnet(const ValPtr& v) {
+    detail::check_type(v, TYPE_SUBNET, "subnet");
+    auto subnet = v->AsSubNet();
+    return ::hilti::rt::Network(subnet.Prefix(), subnet.Length());
+}
+
+/** Converts a Zeek `table` value to its Spicy equivalent. Throws on error. */
+inline ValTablePtr as_table(const ValPtr& v) {
+    detail::check_type(v, TYPE_TABLE, "table");
+
+    if ( v->AsTableVal()->GetType()->IsSet() )
+        detail::type_mismatch(v, "table");
+
+    return ::zeek::cast_intrusive<::zeek::TableVal>(v);
+}
+
+/** Converts a Zeek `time` value to its Spicy equivalent. Throws on error. */
+inline ::hilti::rt::Time as_time(const ValPtr& v) {
+    detail::check_type(v, TYPE_TIME, "time");
+    return ::hilti::rt::Time(v->AsTime(), hilti::rt::Time::SecondTag{});
+}
+
+/** Converts a Zeek `vector` value to its Spicy equivalent. Throws on error. */
+inline ValVectorPtr as_vector(const ValPtr& v) {
+    detail::check_type(v, TYPE_VECTOR, "vector");
+    return ::zeek::cast_intrusive<::zeek::VectorVal>(v);
+}
+
+
+/** Retrieves a global Zeek variable of assumed type `addr`. Throws on error. */
+inline hilti::rt::Address get_address(const std::string& name) { return as_address(get_value(name)); }
+
+/** Retrieves a global Zeek variable of assumed type `bool`. Throws on error. */
+inline hilti::rt::Bool get_bool(const std::string& name) { return as_bool(get_value(name)); }
+
+/** Retrieves a global Zeek variable of assumed type `count`. Throws on error. */
+inline hilti::rt::integer::safe<uint64_t> get_count(const std::string& name) { return as_count(get_value(name)); }
+
+/** Retrieves a global Zeek variable of assumed type `double`. Throws on error. */
+inline double get_double(const std::string& name) { return as_double(get_value(name)); }
+
+/**
+ * Retrieves a global Zeek variable of assumed type `enum` as a string
+ * containing the (unscoped) label name. Throws on error.
+ */
+inline std::string get_enum(const std::string& name) { return as_enum(get_value(name)); }
+
+/** Retrieves a global Zeek variable of assumed type `int`. Throws on error. */
+inline hilti::rt::integer::safe<int64_t> get_int(const std::string& name) { return as_int(get_value(name)); }
+
+/** Retrieves a global Zeek variable of assumed type `interval`. Throws on error. */
+inline hilti::rt::Interval get_interval(const std::string& name) { return as_interval(get_value(name)); }
+
+/** Retrieves a global Zeek variable of assumed type `port`. Throws on error. */
+inline hilti::rt::Port get_port(const std::string& name) { return as_port(get_value(name)); }
+
+/** Retrieves a global Zeek variable of assumed type `record`. Throws on error. */
+inline ValRecordPtr get_record(const std::string& name) { return as_record(get_value(name)); }
+
+/** Retrieves a global Zeek variable of assumed type `set`. Throws on error. */
+inline ValSetPtr get_set(const std::string& name) { return as_set(get_value(name)); }
+
+/** Retrieves a global Zeek variable of assumed type `string`. Throws on error. */
+inline hilti::rt::Bytes get_string(const std::string& name) { return as_string(get_value(name)); }
+
+/** Retrieves a global Zeek variable of assumed type `subnet`. Throws on error. */
+inline hilti::rt::Network get_subnet(const std::string& name) { return as_subnet(get_value(name)); }
+
+/** Retrieves a global Zeek variable of assumed type `table`. Throws on error. */
+inline ValTablePtr get_table(const std::string& name) { return as_table(get_value(name)); }
+
+/** Retrieves a global Zeek variable of assumed type `time`. Throws on error. */
+inline hilti::rt::Time get_time(const std::string& name) { return as_time(get_value(name)); }
+
+/** Retrieves a global Zeek variable of assumed type `vector`. Throws on error. */
+inline ValVectorPtr get_vector(const std::string& name) { return as_vector(get_value(name)); }
+
+/** Retrieves the value of Zeek record field. Throws on error. */
+inline ::zeek::ValPtr record_field(const zeek::spicy::rt::ValRecordPtr& v, const std::string& field) {
+    auto index = v->GetType()->AsRecordType()->FieldOffset(field.c_str());
+    if ( index < 0 )
+        throw InvalidValue(util::fmt("no such record field: %s", field.c_str()));
+
+    if ( auto x = v->GetFieldOrDefault(index) )
+        return x;
+    else
+        throw InvalidValue(util::fmt("record field is not set: %s", field.c_str()));
+}
+
+/** Retrieves the value of Zeek record field. Throws on error. */
+inline ::zeek::ValPtr record_field(const std::string& name, const std::string& index) {
+    return record_field(get_record(name), index);
+}
+
+/** Check if a Zeek record has a field's value set. Throws on errors. */
+inline hilti::rt::Bool record_has_value(const zeek::spicy::rt::ValRecordPtr& v, const std::string& field) {
+    auto index = v->GetType()->AsRecordType()->FieldOffset(field.c_str());
+    if ( index < 0 )
+        throw InvalidValue(util::fmt("no such field in record type: %s", field.c_str()));
+
+    return v->HasField(index);
+}
+
+/** Checks if a Zeek record has a field's value set. Throws on errors. */
+inline hilti::rt::Bool record_has_value(const std::string& name, const std::string& index) {
+    return record_has_value(get_record(name), index);
+}
+
+/** Check if a Zeek record type has a field of a give name. Throws on errors. */
+inline hilti::rt::Bool record_has_field(const zeek::spicy::rt::ValRecordPtr& v, const std::string& field) {
+    return v->GetType()->AsRecordType()->FieldOffset(field.c_str()) >= 0;
+}
+
+/** Check if a Zeek record type has a field of a give name. Throws on errors. */
+inline hilti::rt::Bool record_has_field(const std::string& name, const std::string& index) {
+    return record_has_value(get_record(name), index);
+}
+
+/** Checks if a Zeek set contains a given element. Throws on errors. */
+template<typename T>
+::hilti::rt::Bool set_contains(const ValSetPtr& v, const T& key) {
+    auto index = v->GetType()->AsTableType()->GetIndexTypes()[0];
+    return (v->Find(to_val(key, index)) != nullptr);
+}
+
+/** Checks if a Zeek set contains a given element. Throws on errors. */
+template<typename T>
+::hilti::rt::Bool set_contains(const std::string& name, const T& key) {
+    return set_contains(get_set(name), key);
+}
+
+/** Checks if a Zeek table contains a given element. Throws on errors. */
+template<typename T>
+::hilti::rt::Bool table_contains(const ValTablePtr& v, const T& key) {
+    auto index = v->GetType()->AsTableType()->GetIndexTypes()[0];
+    return (v->Find(to_val(key, index)) != nullptr);
+}
+
+/** Check if a Zeek table contains a given element. Throws on errors. */
+template<typename T>
+::hilti::rt::Bool table_contains(const std::string& name, const T& key) {
+    return table_contains(get_table(name), key);
+}
+
+/**
+ * Retrieves a value from a Zeek table. Returns an error value if the key does
+ * not exist. Throws on other errors.
+ */
+template<typename T>
+std::optional<::zeek::ValPtr> table_lookup(const zeek::spicy::rt::ValTablePtr& v, const T& key) {
+    auto index = v->GetType()->AsTableType()->GetIndexTypes()[0];
+    if ( auto x = v->FindOrDefault(to_val(key, index)) )
+        return x;
+    else
+        return {};
+}
+
+/**
+ * Retrieves a value from a Zeek table. Returns an error value if the key does
+ * not exist. Throws on other errors.
+ */
+template<typename T>
+std::optional<::zeek::ValPtr> table_lookup(const std::string& name, const T& key) {
+    return table_lookup(get_table(name), key);
+}
+
+/** Returns a Zeek vector element. Throws on errors. */
+inline ::zeek::ValPtr vector_index(const zeek::spicy::rt::ValVectorPtr& v,
+                                   const hilti::rt::integer::safe<uint64_t>& index) {
+    if ( index >= v->Size() )
+        throw InvalidValue(util::fmt("vector index out of bounds: %" PRIu64, index.Ref()));
+
+    return v->ValAt(index);
+}
+
+/** Returns a Zeek vector element. Throws on errors. */
+inline ::zeek::ValPtr vector_index(const std::string& name, const hilti::rt::integer::safe<uint64_t>& index) {
+    return vector_index(get_vector(name), index);
+}
+
+/** Returns the size of a Zeek vector. Throws on errors. */
+inline hilti::rt::integer::safe<uint64_t> vector_size(const zeek::spicy::rt::ValVectorPtr& v) { return v->Size(); }
+
+/** Returns the size of a Zeek vector. Throws on errors. */
+inline hilti::rt::integer::safe<uint64_t> vector_size(const std::string& name) { return vector_size(get_vector(name)); }
+
 } // namespace zeek::spicy::rt
+
+namespace hilti::rt::detail::adl {
+// Stringification for opaque type handles.
+inline std::string to_string(const zeek::ValPtr& v, detail::adl::tag /* unused */) { return "<Zeek value>"; }
+
+inline std::string to_string(const zeek::spicy::rt::ValRecordPtr& v, detail::adl::tag /* unused */) {
+    return "<Zeek record>";
+}
+
+inline std::string to_string(const zeek::spicy::rt::ValTablePtr& v, detail::adl::tag /* unused */) {
+    return "<Zeek set/table>";
+}
+
+inline std::string to_string(const zeek::spicy::rt::ValVectorPtr& v, detail::adl::tag /* unused */) {
+    return "<Zeek vector>";
+}
+} // namespace hilti::rt::detail::adl

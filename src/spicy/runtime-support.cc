@@ -133,15 +133,15 @@ TypePtr rt::create_record_type(const std::string& ns, const std::string& id,
     auto decls = std::make_unique<type_decl_list>();
 
     for ( const auto& f : fields ) {
-        auto attrs = make_intrusive<detail::Attributes>(nullptr, true, false);
+        auto attrs = make_intrusive<::zeek::detail::Attributes>(nullptr, true, false);
 
         if ( f.is_optional ) {
-            auto optional_ = make_intrusive<detail::Attr>(detail::ATTR_OPTIONAL);
+            auto optional_ = make_intrusive<::zeek::detail::Attr>(::zeek::detail::ATTR_OPTIONAL);
             attrs->AddAttr(std::move(optional_));
         }
 
         if ( f.is_log ) {
-            auto log_ = make_intrusive<detail::Attr>(detail::ATTR_LOG);
+            auto log_ = make_intrusive<::zeek::detail::Attr>(::zeek::detail::ATTR_LOG);
             attrs->AddAttr(std::move(log_));
         }
 

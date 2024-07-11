@@ -157,7 +157,7 @@ type FrameType = enum {
 
 type VariableLengthInteger = unit {
   var bytes_to_parse: uint64;
-  var result: uint64;
+  var result_: uint64;
 
   # Value of the two most significant bits indicates number of bytes
   # to parse for the variable length integer.
@@ -166,11 +166,11 @@ type VariableLengthInteger = unit {
   # Section 16 and Appendix A
   : uint8 {
     self.bytes_to_parse = 2**((0xC0 & $$) >> 6);
-    self.result = $$ & 0x3F;
+    self.result_ = $$ & 0x3F;
   }
 
   : uint8[self.bytes_to_parse - 1] if (self.bytes_to_parse > 1) foreach {
-    self.result = (self.result << 8) | $$;
+    self.result_ = (self.result_ << 8) | $$;
   }
 };
 
@@ -185,8 +185,8 @@ public type LongHeaderPacketV1 = unit(inout outer: LongHeaderPacket) {
       outer.encrypted_offset = outer.offset() +
                                self.initial_hdr.length.bytes_to_parse +
                                self.initial_hdr.token_length.bytes_to_parse +
-                               self.initial_hdr.token_length.result;
-      outer.payload_length = self.initial_hdr.length.result;
+                               self.initial_hdr.token_length.result_;
+      outer.payload_length = self.initial_hdr.length.result_;
     }
 
     LongPacketTypeV1::ZERO_RTT -> zerortt_hdr : ZeroRTTPacket(outer);
@@ -204,8 +204,8 @@ public type LongHeaderPacketV2 = unit(inout outer: LongHeaderPacket) {
       outer.encrypted_offset = outer.offset() +
                                 self.initial_hdr.length.bytes_to_parse +
                                 self.initial_hdr.token_length.bytes_to_parse +
-                                self.initial_hdr.token_length.result;
-      outer.payload_length = self.initial_hdr.length.result;
+                                self.initial_hdr.token_length.result_;
+      outer.payload_length = self.initial_hdr.length.result_;
     }
 
     LongPacketTypeV2::ZERO_RTT -> zerortt_hdr : ZeroRTTPacket(outer);
@@ -281,7 +281,7 @@ public type Frame = unit(header: LongHeaderPacket, from_client: bool, crypto_sin
     FrameType::ACK2 -> b: ACKPayload;
     FrameType::CRYPTO -> c: CRYPTOPayload(from_client) {
       # Have the sink re-assemble potentially out-of-order cryptodata
-      crypto_sink.write(self.c.cryptodata, self.c.offset.result);
+      crypto_sink.write(self.c.cryptodata, self.c.offset.result_);
     }
     FrameType::CONNECTION_CLOSE1 -> : ConnectionClosePayload(header);
     FrameType::PADDING -> : skip /\x00*/;  # eat the padding
@@ -295,7 +295,7 @@ public type Frame = unit(header: LongHeaderPacket, from_client: bool, crypto_sin
 type CRYPTOPayload = unit(from_client: bool) {
   offset: VariableLengthInteger;
   length: VariableLengthInteger;
-  cryptodata: bytes &size=self.length.result;
+  cryptodata: bytes &size=self.length.result_;
 };
 
 type ACKPayload = unit {
@@ -313,7 +313,7 @@ type ConnectionClosePayload = unit(header: LongHeaderPacket) {
     -> frame_type: VariableLengthInteger;
   };
   reason_phrase_length: VariableLengthInteger;
-  reason_phrase: bytes &size=self.reason_phrase_length.result;
+  reason_phrase: bytes &size=self.reason_phrase_length.result_;
 };
 
 
@@ -326,7 +326,7 @@ type ConnectionClosePayload = unit(header: LongHeaderPacket) {
 type InitialPacket = unit(header: LongHeaderPacket) {
   var header: LongHeaderPacket = header;
   token_length: VariableLengthInteger;
-  token: bytes &size=self.token_length.result;
+  token: bytes &size=self.token_length.result_;
 
   # 5.4.2. Header Protection Sample
   #
@@ -336,25 +336,25 @@ type InitialPacket = unit(header: LongHeaderPacket) {
   #
   # Enforce 4 bytes Packet Number length + 16 bytes sample
   # ciphertext available.
-  length: VariableLengthInteger &requires=self.length.result >= 20;
+  length: VariableLengthInteger &requires=self.length.result_ >= 20;
 
   # Consume the remainder of payload. This
   # includes the packet number field, but we
   # do not know its length yet. We need the
   # payload for sampling, however.
-  payload: skip bytes &size=self.length.result;
+  payload: skip bytes &size=self.length.result_;
 };
 
 type ZeroRTTPacket = unit(header: LongHeaderPacket) {
   var header: LongHeaderPacket = header;
   length: VariableLengthInteger;
-  payload: skip bytes &size=self.length.result;
+  payload: skip bytes &size=self.length.result_;
 };
 
 type HandshakePacket = unit(header: LongHeaderPacket) {
   var header: LongHeaderPacket = header;
   length: VariableLengthInteger;
-  payload: skip bytes &size=self.length.result;
+  payload: skip bytes &size=self.length.result_;
 };
 
 

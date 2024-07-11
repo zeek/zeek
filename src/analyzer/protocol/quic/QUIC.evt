@@ -19,6 +19,6 @@ on QUIC::HandshakePacket -> event QUIC::handshake_packet($conn, $is_orig, self.h
 on QUIC::ZeroRTTPacket -> event QUIC::zero_rtt_packet($conn, $is_orig, self.header.version, self.header.dest_conn_id, self.header.src_conn_id);
 
 on QUIC::ConnectionClosePayload -> event QUIC::connection_close_frame($conn, $is_orig, self.header.version, self.header.dest_conn_id, self.header.src_conn_id,
-                                                                      self.error_code.result, self.reason_phrase);
+                                                                      self.error_code.result_, self.reason_phrase);
 
 on QUIC::UnhandledVersion -> event QUIC::unhandled_version($conn, $is_orig, self.header.version, self.header.dest_conn_id, self.header.src_conn_id);

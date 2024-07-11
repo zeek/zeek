@@ -51,6 +51,12 @@ Breaking Changes
   instruments are not. ``Histogram`` instruments don't have the concept of
   summing.
 
+- Zeekctl now sets `FileExtract::prefix` to `spool/extract_files/<node>` to avoid
+  deletion of extracted files when stopping worker nodes. To revert to the
+  previous behavior, set `FileExtractDir` to an empty string in `zeekctl.cfg`.
+
+  If you never enabled Zeek's file extraction functionality, there's no impact.
+
 New Functionality
 -----------------
 
@@ -101,6 +107,14 @@ New Functionality
   Use ``Analyzer::get_tag()`` if you need to obtain an analyzer's tag from its
   name (such as "HTTP").
 
+- The ``from_json()`` function now supports ingesting JSON representations of
+  tables as produced by the ``to_json()`` function. It now also supports reading
+  the object-based representation of ports that ``to_json()`` generates for that
+  Zeek type.
+
+- The ``analyzer.log`` now optionally supports logging of disabled analyzers
+  through the new option ``Analyzer::logging::include_disabling``.
+
 Changed Functionality
 ---------------------
 
@@ -139,6 +153,10 @@ Changed Functionality
   issue a warning. While this was not necessary in previous versions,
   it aligns with the same requirement for traditional analyzers and
   enables customizing file handles for protocol-specific semantics.
+
+- The Supervisor's API now returns NodeConfig records with a cluster table whose
+  ClusterEndpoints have a port value of 0/unknown, rather than 0/tcp, to
+  indicate that the node in question has no listening port.
 
 Removed Functionality
 ---------------------

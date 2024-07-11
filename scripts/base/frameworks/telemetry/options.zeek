@@ -6,8 +6,12 @@ module Telemetry;
 # to see the options without needing the rest.
 
 export {
-	## Port used to make metric data available to Prometheus scrapers via
+	## Address used to make metric data available to Prometheus scrapers via
 	## HTTP.
+	const metrics_address = getenv("ZEEK_DEFAULT_LISTEN_ADDRESS") &redef;
+
+	## Port used to make metric data available to Prometheus scrapers via
+	## HTTP. The default value means Zeek won't expose the port.
 	const metrics_port = 0/unknown &redef;
 
 	## ID for the metrics exporter. This is used as the 'endpoint' label

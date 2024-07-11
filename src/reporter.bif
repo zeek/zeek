@@ -43,8 +43,9 @@ function Reporter::warning%(msg: string%): bool
 	return zeek::val_mgr->True();
 	%}
 
-## Generates a non-fatal error indicative of a definite problem that should
-## be addressed. Program execution does not terminate.
+## Generates a usually non-fatal error indicative of a definite problem that
+## should be addressed. Program execution does not terminate unless the error
+## is reported during initialization (e.g., :zeek:see:`zeek_init`).
 ##
 ## msg: The error message to report.
 ##

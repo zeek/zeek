@@ -897,13 +897,20 @@ void Manager::disableReplacedAnalyzers() {
         if ( file_mgr->Lookup(replaces, false) || packet_mgr->Lookup(replaces, false) )
             reporter->FatalError("cannot replace '%s' analyzer with a protocol analyzer", replaces);
 
-        auto tag = analyzer_mgr->GetAnalyzerTag(replaces);
-        if ( ! tag ) {
+        auto component = analyzer_mgr->Lookup(replaces, false);
+        if ( ! component ) {
             SPICY_DEBUG(hilti::rt::fmt("%s is supposed to replace protocol analyzer %s, but that does not exist",
                                        info.name_analyzer, replaces));
 
             continue;
         }
+
+        auto tag = component->Tag();
+        if ( analyzer_mgr->HasComponentMapping(tag) )
+            reporter->FatalError(
+                "%s: protocol analyzer %s is already mapped to a different analyzer; cannot replace an analyzer "
+                "multiple times",
+                info.name_analyzer.c_str(), component->Name().c_str());
 
         SPICY_DEBUG(hilti::rt::fmt("%s replaces existing protocol analyzer %s", info.name_analyzer, replaces));
         info.replaces = tag;
@@ -928,10 +935,17 @@ void Manager::disableReplacedAnalyzers() {
             continue;
         }
 
+        auto tag = component->Tag();
+        if ( file_mgr->HasComponentMapping(tag) )
+            reporter->FatalError(
+                "%s: file analyzer %s is already mapped to a different analyzer; cannot replace an analyzer multiple "
+                "times",
+                info.name_analyzer.c_str(), component->Name().c_str());
+
         SPICY_DEBUG(hilti::rt::fmt("%s replaces existing file analyzer %s", info.name_analyzer, replaces));
-        info.replaces = component->Tag();
+        info.replaces = tag;
         component->SetEnabled(false);
-        file_mgr->AddComponentMapping(component->Tag(), info.tag);
+        file_mgr->AddComponentMapping(tag, info.tag);
     }
 
     for ( auto& info : _packet_analyzers_by_type ) {
@@ -948,10 +962,17 @@ void Manager::disableReplacedAnalyzers() {
             continue;
         }
 
+        auto tag = component->Tag();
+        if ( packet_mgr->HasComponentMapping(tag) )
+            reporter->FatalError(
+                "%s: packet analyzer %s is already mapped to a different analyzer; cannot replace an analyzer multiple "
+                "times",
+                info.name_analyzer.c_str(), component->Name().c_str());
+
         SPICY_DEBUG(hilti::rt::fmt("%s replaces existing packet analyzer %s", info.name_analyzer, replaces));
-        info.replaces = component->Tag();
+        info.replaces = tag;
         component->SetEnabled(false);
-        packet_mgr->AddComponentMapping(component->Tag(), info.tag);
+        packet_mgr->AddComponentMapping(tag, info.tag);
     }
 }
 

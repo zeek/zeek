@@ -42,3 +42,7 @@ race:zeek::threading::InputMessage<zeek::threading::MsgThread>::Object
 mutex:zeek::threading::Queue<zeek::threading::BasicInputMessage*>::Put
 mutex:zeek::threading::Queue<zeek::threading::BasicInputMessage*>::LocksForAllQueues
 deadlock:zeek::threading::Queue<zeek::threading::BasicInputMessage*>::LocksForAllQueues
+
+# This only happens at shutdown. It was supposedly fixed in civetweb, but has cropped
+# up again. See https://github.com/civetweb/civetweb/issues/861 for details.
+race:mg_stop

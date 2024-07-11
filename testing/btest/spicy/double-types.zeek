@@ -32,7 +32,7 @@ protocol analyzer spicy::dtest over TCP:
 
 on dtest::Message -> event dtest_message(self.func);
 
-on dtest::Message -> event dtest_result(self.sub.result);
+on dtest::Message -> event dtest_result(self.sub.result_);
 
 on dtest::Message -> event dtest_result_tuple(dtest::bro_result(self));
 
@@ -56,11 +56,11 @@ public type Message = unit {
 };
 
 public type SubMessage = unit {
-  result: uint8 &convert=RESULT($$);
+  result_: uint8 &convert=RESULT($$);
 };
 
 public function bro_result(entry: Message) : tuple<FUNCS, RESULT>  {
-  return (entry.func, entry.sub.result);
+  return (entry.func, entry.sub.result_);
 }
 
 # @TEST-END-FILE

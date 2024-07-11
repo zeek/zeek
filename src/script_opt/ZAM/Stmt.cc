@@ -78,7 +78,7 @@ const ZAMStmt ZAMCompiler::CompilePrint(const PrintStmt* ps) {
             return Print1C(e0->AsConstExpr());
     }
 
-    return PrintO(BuildVals(l));
+    return PrintO(BuildVals(l).get());
 }
 
 const ZAMStmt ZAMCompiler::CompileExpr(const ExprStmt* es) {
@@ -711,8 +711,8 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val) 
         int slot = id->IsBlank() ? -1 : FrameSlot(id);
         aux->loop_vars.push_back(slot);
         auto& t = id->GetType();
-        aux->loop_var_types.push_back(t);
-        aux->lvt_is_managed.push_back(ZVal::IsManagedType(t));
+        aux->types.push_back(t);
+        aux->is_managed.push_back(ZVal::IsManagedType(t));
     }
 
     bool no_loop_vars = (num_unused == loop_vars->length());

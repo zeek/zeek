@@ -45,11 +45,13 @@ if (MSVC)
         # TODO: This is disabled for now because there a bunch of known
         # compiler warnings on Windows that we don't have good fixes for.
         #set(WERROR_FLAG "/WX")
+        #set(WNOERROR_FLAG "/WX:NO")
     endif ()
 else ()
     set(SIGN_COMPARE_FLAG "-Wno-sign-compare")
     if (BUILD_WITH_WERROR)
         set(WERROR_FLAG "-Werror")
+        set(WNOERROR_FLAG "-Wno-error")
     endif ()
 endif ()
 
@@ -444,6 +446,10 @@ set(THIRD_PARTY_SRCS
     3rdparty/setsignal.c
     $<$<BOOL:USE_SQLITE>:3rdparty/sqlite3.c>
     3rdparty/strsep.c)
+
+if (USE_SQLITE AND WNOERROR_FLAG)
+    set_source_files_properties(3rdparty/sqlite3.c PROPERTIES COMPILE_FLAGS ${WNOERROR_FLAG})
+endif ()
 
 # Highwayhash. Highwayhash is a bit special since it has architecture dependent
 # code...

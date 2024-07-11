@@ -53,6 +53,12 @@ export {
 	## service field.
 	option include_confirmations = F;
 
+	## Enable tracking of analyzers getting disabled. This is mostly
+	## interesting for troubleshooting of analyzers in DPD scenarios.
+	## Setting this option may also generated multiple log entries per
+	## connection.
+	option include_disabling = F;
+
 	## If a violation contains information about the data causing it,
 	## include at most this many bytes of it in the log.
 	option failure_data_max_size = 40;
@@ -88,11 +94,24 @@ event zeek_init() &priority=5
 	Option::set_change_handler("Analyzer::Logging::include_confirmations",
 	                           include_confirmations_handler);
 
+	local include_disabling_handler = function(id: string, new_value: bool): bool {
+		if ( new_value )
+		    enable_event_group("Analyzer::Logging::include_disabling");
+		else
+		    disable_event_group("Analyzer::Logging::include_disabling");
+
+		return new_value;
+	};
+	Option::set_change_handler("Analyzer::Logging::include_disabling",
+	                           include_disabling_handler);
+
 	# Call the handlers directly with the current values to avoid config
 	# framework interactions like creating entries in config.log.
 	enable_handler("Analyzer::Logging::enable", Analyzer::Logging::enable);
 	include_confirmations_handler("Analyzer::Logging::include_confirmations",
 	                              Analyzer::Logging::include_confirmations);
+	include_disabling_handler("Analyzer::Logging::include_disabling",
+	                          Analyzer::Logging::include_disabling);
 
 	}
 
@@ -119,7 +138,7 @@ function populate_from_file(rec: Info, f: fa_file)
 	{
 	rec$fuid = f$id;
 	# If the confirmation didn't have a connection, but the
-	# fa_file object has has exactly one, use it.
+	# fa_file object has exactly one, use it.
 	if ( ! rec?$uid && f?$conns && |f$conns| == 1 )
 		{
 		for ( _, c in f$conns )
@@ -151,7 +170,7 @@ event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirm
 	Log::write(LOG, rec);
 	}
 
-event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo)
+event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=6
 	{
 	if ( atype in ignore_analyzers )
 		return;
@@ -176,6 +195,28 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 			rec$failure_data = info$data[0:failure_data_max_size];
 		else
 			rec$failure_data = info$data;
+		}
+
+	Log::write(LOG, rec);
+	}
+
+hook Analyzer::disabling_analyzer(c: connection, atype: AllAnalyzers::Tag, aid: count) &priority=-1000 &group="Analyzer::Logging::include_disabling"
+	{
+	if ( atype in ignore_analyzers )
+		return;
+
+	local rec = Info(
+		$ts=network_time(),
+		$cause="disabled",
+		$analyzer_kind=analyzer_kind(atype),
+		$analyzer_name=Analyzer::name(atype),
+	);
+
+	populate_from_conn(rec, c);
+
+	if ( c?$dpd_state && aid in c$dpd_state$violations )
+		{
+		rec$failure_data = fmt("Disabled after %d violations", c$dpd_state$violations[aid]);
 		}
 
 	Log::write(LOG, rec);

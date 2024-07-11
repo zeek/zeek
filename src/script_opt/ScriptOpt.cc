@@ -592,7 +592,7 @@ void analyze_scripts(bool no_unused_warnings) {
             func.SetShouldNotAnalyze();
 
     if ( ! have_one_to_do )
-        reporter->FatalError("no matching functions/files for C++ compilation");
+        reporter->FatalError("no matching functions/files for script optimization");
 
     if ( CPP_init_hook ) {
         (*CPP_init_hook)();

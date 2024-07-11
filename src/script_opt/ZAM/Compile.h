@@ -189,6 +189,7 @@ private:
     const ZAMStmt CompileAddToExpr(const AddToExpr* e);
     const ZAMStmt CompileRemoveFromExpr(const RemoveFromExpr* e);
     const ZAMStmt CompileAssignExpr(const AssignExpr* e);
+    const ZAMStmt CompileRecFieldUpdates(const RecordFieldUpdatesExpr* e);
     const ZAMStmt CompileZAMBuiltin(const NameExpr* lhs, const ScriptOptBuiltinExpr* zbi);
     const ZAMStmt CompileAssignToIndex(const NameExpr* lhs, const IndexExpr* rhs);
     const ZAMStmt CompileFieldLHSAssignExpr(const FieldLHSAssignExpr* e);
@@ -244,7 +245,9 @@ private:
 
     const ZAMStmt ConstructTable(const NameExpr* n, const Expr* e);
     const ZAMStmt ConstructSet(const NameExpr* n, const Expr* e);
-    const ZAMStmt ConstructRecord(const NameExpr* n, const Expr* e);
+    const ZAMStmt ConstructRecord(const NameExpr* n, const Expr* e) { return ConstructRecord(n, e, false); }
+    const ZAMStmt ConstructRecordFromRecord(const NameExpr* n, const Expr* e) { return ConstructRecord(n, e, true); }
+    const ZAMStmt ConstructRecord(const NameExpr* n, const Expr* e, bool is_from_rec);
     const ZAMStmt ConstructVector(const NameExpr* n, const Expr* e);
 
     const ZAMStmt ArithCoerce(const NameExpr* n, const Expr* e);
@@ -321,7 +324,7 @@ private:
 
     // Returns a handle to state associated with building
     // up a list of values.
-    OpaqueVals* BuildVals(const ListExprPtr&);
+    std::unique_ptr<OpaqueVals> BuildVals(const ListExprPtr&);
 
     // "stride" is how many slots each element of l will consume.
     ZInstAux* InternalBuildVals(const ListExpr* l, int stride = 1);

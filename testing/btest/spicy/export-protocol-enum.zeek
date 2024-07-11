@@ -41,7 +41,7 @@ import spicy;
 
 public type Message = unit {
   sswitch: uint8;
-  result: uint8;
+  result_: uint8;
 
   var p_tcp: spicy::Protocol = spicy::Protocol::TCP;
   var p_udp: spicy::Protocol = spicy::Protocol::UDP;

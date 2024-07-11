@@ -5061,6 +5061,12 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 ## only_loggable: If the v value is a record this will only cause
 ##                fields with the &log attribute to be included in the JSON.
 ##
+## field_escape_pattern: If the v value is a record, the given pattern is
+##                       matched against the field names of its type, and
+##                       the first match, if any, is stripped from the
+##                       rendered name. The default pattern strips a leading
+##                       underscore.
+##
 ## returns: a JSON formatted string.
 ##
 ## .. zeek:see:: fmt cat cat_sep string_cat print_raw from_json

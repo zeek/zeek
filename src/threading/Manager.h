@@ -146,6 +146,7 @@ private:
     bool did_process; // True if the last Process() found some work to do.
     double next_beat; // Timestamp when the next heartbeat will be sent.
     bool terminating; // True if we are in Terminate().
+    bool terminated;  // True if Terminate() finished.
 
     msg_stats_list stats;
 

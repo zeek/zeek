@@ -1783,7 +1783,7 @@ ExprPtr RecordConstructorExpr::Duplicate() {
 
     if ( map ) {
         auto rt = cast_intrusive<RecordType>(type);
-        return SetSucc(new RecordConstructorExpr(rt, op_l));
+        return SetSucc(new RecordConstructorExpr(rt, op_l, false));
     }
     else
         return SetSucc(new RecordConstructorExpr(op_l));
@@ -1807,6 +1807,11 @@ bool RecordConstructorExpr::HasReducedOps(Reducer* c) const {
 }
 
 ExprPtr RecordConstructorExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
+    if ( ConstructFromRecordExpr::FindMostCommonRecordSource(op) ) {
+        auto cfr = with_location_of(make_intrusive<ConstructFromRecordExpr>(this), this);
+        return cfr->Reduce(c, red_stmt);
+    }
+
     red_stmt = ReduceToSingletons(c);
 
     if ( c->Optimizing() )
@@ -2844,6 +2849,242 @@ void FieldLHSAssignExpr::ExprDescribe(ODesc* d) const {
         d->Add(" $= ");
 
     op2->Describe(d);
+}
+
+// Helper functions.
+// This first one mines out of a given statement in an assignment chain the
+// variable that occurs as a LHS target, so 'x' for "x$foo = y$bar".
+static NameExprPtr get_RFU_LHS_var(const Stmt* s) {
+    auto s_e = s->AsExprStmt()->StmtExpr();
+    auto var = s_e->GetOp1()->GetOp1()->GetOp1();
+    ASSERT(var->Tag() == EXPR_NAME);
+    return cast_intrusive<NameExpr>(std::move(var));
+}
+
+// This one mines out the RHS, so 'y' for "x$foo = y$bar", or for
+// "x$foo = x$foo + y$bar" (which is what "x$foo += y$bar" is at this point).
+static NameExprPtr get_RFU_RHS_var(const Stmt* s) {
+    auto s_e = s->AsExprStmt()->StmtExpr();
+    auto rhs = s_e->GetOp2();
+
+    ExprPtr var;
+    if ( rhs->Tag() == EXPR_FIELD )
+        var = rhs->GetOp1();
+    else
+        var = rhs->GetOp2()->GetOp1();
+
+    ASSERT(var->Tag() == EXPR_NAME);
+    return cast_intrusive<NameExpr>(std::move(var));
+}
+
+RecordFieldUpdatesExpr::RecordFieldUpdatesExpr(ExprTag t, const std::vector<const Stmt*>& stmts,
+                                               std::set<const Stmt*>& stmt_pool)
+    : BinaryExpr(t, get_RFU_LHS_var(stmts[0]), get_RFU_RHS_var(stmts[0])) {
+    // Build up the LHS map (record fields we're assigning/adding) and RHS map
+    // (record fields from which we're assigning).
+    for ( auto s : stmts ) {
+        auto s_e = s->AsExprStmt()->StmtExpr();
+        auto lhs = s_e->GetOp1()->GetOp1();
+        auto lhs_field = lhs->AsFieldExpr()->Field();
+
+        auto rhs = s_e->GetOp2();
+        if ( rhs->Tag() != EXPR_FIELD )
+            // It's "x$foo = x$foo + y$bar".
+            rhs = rhs->GetOp2();
+
+        auto rhs_field = rhs->AsFieldExpr()->Field();
+
+        lhs_map.push_back(lhs_field);
+        rhs_map.push_back(rhs_field);
+
+        // Consistency check that the statement is indeed in the pool,
+        // before we remove it.
+        ASSERT(stmt_pool.count(s) > 0);
+        stmt_pool.erase(s);
+    }
+}
+
+RecordFieldUpdatesExpr::RecordFieldUpdatesExpr(ExprTag t, ExprPtr e1, ExprPtr e2, std::vector<int> _lhs_map,
+                                               std::vector<int> _rhs_map)
+    : BinaryExpr(t, std::move(e1), std::move(e2)) {
+    lhs_map = std::move(_lhs_map);
+    rhs_map = std::move(_rhs_map);
+}
+
+ValPtr RecordFieldUpdatesExpr::Fold(Val* v1, Val* v2) const {
+    auto rv1 = v1->AsRecordVal();
+    auto rv2 = v2->AsRecordVal();
+
+    for ( size_t i = 0; i < lhs_map.size(); ++i )
+        FoldField(rv1, rv2, i);
+
+    return nullptr;
+}
+
+bool RecordFieldUpdatesExpr::IsReduced(Reducer* c) const { return HasReducedOps(c); }
+
+void RecordFieldUpdatesExpr::ExprDescribe(ODesc* d) const {
+    op1->Describe(d);
+    d->Add(expr_name(tag));
+    op2->Describe(d);
+}
+
+ExprPtr RecordFieldUpdatesExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
+    if ( c->Optimizing() ) {
+        op1 = c->UpdateExpr(op1);
+        op2 = c->UpdateExpr(op2);
+    }
+
+    red_stmt = nullptr;
+
+    if ( ! op1->IsSingleton(c) )
+        op1 = op1->ReduceToSingleton(c, red_stmt);
+
+    StmtPtr red2_stmt;
+    if ( ! op2->IsSingleton(c) )
+        op2 = op2->ReduceToSingleton(c, red2_stmt);
+
+    red_stmt = MergeStmts(red_stmt, std::move(red2_stmt));
+
+    return ThisPtr();
+}
+
+ExprPtr AssignRecordFieldsExpr::Duplicate() {
+    auto e1 = op1->Duplicate();
+    auto e2 = op2->Duplicate();
+    return SetSucc(new AssignRecordFieldsExpr(std::move(e1), std::move(e2), lhs_map, rhs_map));
+}
+
+void AssignRecordFieldsExpr::FoldField(RecordVal* rv1, RecordVal* rv2, size_t i) const {
+    rv1->Assign(lhs_map[i], rv2->GetField(rhs_map[i]));
+}
+
+ConstructFromRecordExpr::ConstructFromRecordExpr(const RecordConstructorExpr* orig)
+    : AssignRecordFieldsExpr(nullptr, nullptr, {}, {}) {
+    tag = EXPR_REC_CONSTRUCT_WITH_REC;
+    SetType(orig->GetType());
+
+    // Arguments used in original and final constructor.
+    auto& orig_args = orig->Op()->Exprs();
+    // The one we'll build up below:
+    auto args = with_location_of(make_intrusive<ListExpr>(), orig);
+
+    auto src_id = FindMostCommonRecordSource(orig->Op());
+    auto& map = orig->Map();
+
+    for ( size_t i = 0; i < orig_args.size(); ++i ) {
+        auto e = orig_args[i];
+        auto src = FindRecordSource(e);
+        if ( src && src->GetOp1()->AsNameExpr()->IdPtr() == src_id ) {
+            // "map" might be nil if we're optimize [$x = foo$bar].
+            lhs_map.push_back(map ? (*map)[i] : i);
+            rhs_map.push_back(src->Field());
+        }
+        else
+            args->Append({NewRef{}, e});
+    }
+
+    auto rt = cast_intrusive<RecordType>(orig->GetType());
+    op1 = with_location_of(make_intrusive<RecordConstructorExpr>(std::move(rt), std::move(args), false), orig);
+    op2 = with_location_of(make_intrusive<NameExpr>(std::move(src_id)), orig);
+}
+
+IDPtr ConstructFromRecordExpr::FindMostCommonRecordSource(const ListExprPtr& exprs) {
+    // Maps identifiers to how often they appear in the constructor's
+    // arguments as a field reference. Used to find the most common.
+    std::unordered_map<IDPtr, int> id_cnt;
+
+    for ( auto e : exprs->Exprs() ) {
+        auto src = FindRecordSource(e);
+        if ( src ) {
+            auto id = src->GetOp1()->AsNameExpr()->IdPtr();
+            ++id_cnt[id];
+        }
+    }
+
+    if ( id_cnt.empty() )
+        return nullptr;
+
+    // Return the most common.
+    auto max_entry = std::max_element(id_cnt.begin(), id_cnt.end(),
+                                      [](const std::pair<IDPtr, int>& p1, const std::pair<IDPtr, int>& p2) {
+                                          return p1.second < p2.second;
+                                      });
+    return max_entry->first;
+}
+
+FieldExprPtr ConstructFromRecordExpr::FindRecordSource(const Expr* const_e) {
+    // The following cast just saves us from having to define a "const" version
+    // of AsFieldAssignExprPtr().
+    auto e = const_cast<Expr*>(const_e);
+    const auto fa = e->AsFieldAssignExprPtr();
+    auto fa_rhs = e->GetOp1();
+
+    if ( fa_rhs->Tag() != EXPR_FIELD )
+        return nullptr;
+
+    auto rhs_rec = fa_rhs->GetOp1();
+    if ( rhs_rec->Tag() != EXPR_NAME )
+        return nullptr;
+
+    return cast_intrusive<FieldExpr>(std::move(fa_rhs));
+}
+
+ExprPtr ConstructFromRecordExpr::Duplicate() {
+    auto e1 = op1->Duplicate();
+    auto e2 = op2->Duplicate();
+    return SetSucc(new ConstructFromRecordExpr(std::move(e1), std::move(e2), lhs_map, rhs_map));
+}
+
+bool ConstructFromRecordExpr::IsReduced(Reducer* c) const { return op1->HasReducedOps(c) && op2->IsReduced(c); }
+
+bool ConstructFromRecordExpr::HasReducedOps(Reducer* c) const { return IsReduced(c); }
+
+ExprPtr ConstructFromRecordExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
+    if ( c->Optimizing() ) {
+        op1 = c->UpdateExpr(op1);
+        op2 = c->UpdateExpr(op2);
+    }
+
+    red_stmt = nullptr;
+
+    if ( ! op1->HasReducedOps(c) )
+        red_stmt = op1->ReduceToSingletons(c);
+
+    StmtPtr red2_stmt;
+    if ( ! op2->IsSingleton(c) )
+        op2 = op2->ReduceToSingleton(c, red2_stmt);
+
+    red_stmt = MergeStmts(red_stmt, std::move(red2_stmt));
+
+    if ( c->Optimizing() )
+        return ThisPtr();
+    else
+        return AssignToTemporary(c, red_stmt);
+}
+
+ExprPtr AddRecordFieldsExpr::Duplicate() {
+    auto e1 = op1->Duplicate();
+    auto e2 = op2->Duplicate();
+    return SetSucc(new AddRecordFieldsExpr(std::move(e1), std::move(e2), lhs_map, rhs_map));
+}
+
+void AddRecordFieldsExpr::FoldField(RecordVal* rv1, RecordVal* rv2, size_t i) const {
+    // The goal here is correctness, not efficiency, since normally this
+    // expression only exists temporarily before being compiled to ZAM.
+    // Doing it this way saves us from having to switch on the type of the '+'
+    // operands.
+    auto lhs_val = rv1->GetField(lhs_map[i]);
+    auto rhs_val = rv2->GetField(rhs_map[i]);
+
+    auto lhs_const = make_intrusive<ConstExpr>(lhs_val);
+    auto rhs_const = make_intrusive<ConstExpr>(rhs_val);
+
+    auto add_expr = make_intrusive<AddExpr>(lhs_const, rhs_const);
+    auto sum = add_expr->Eval(nullptr);
+    ASSERT(sum);
+
+    rv1->Assign(lhs_map[i], std::move(sum));
 }
 
 CoerceToAnyExpr::CoerceToAnyExpr(ExprPtr arg_op) : UnaryExpr(EXPR_TO_ANY_COERCE, std::move(arg_op)) {

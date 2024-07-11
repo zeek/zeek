@@ -520,6 +520,8 @@ function deploy_request_finish(areq: Management::Request::Request)
 
 		if ( node?$interface )
 			cep$interface = node$interface;
+		if ( node?$metrics_port )
+			cep$metrics_port = node$metrics_port;
 
 		g_cluster[node$name] = cep;
 		}
@@ -618,18 +620,21 @@ function get_nodes_request_finish(areq: Management::Request::Request)
 		# the respective boot.zeek scripts).
 		if ( node in sns$node$cluster )
 			{
-			cns$cluster_role = sns$node$cluster[node]$role;
+			local cep: Supervisor::ClusterEndpoint = sns$node$cluster[node];
+			cns$cluster_role = cep$role;
 
 			# For cluster nodes, copy run state from g_nodes, our
 			# live node status table.
 			if ( node in g_nodes )
 				cns$state = g_nodes[node]$state;
 
-			# The supervisor's responses use 0/tcp (not 0/unknown)
-			# when indicating an unused port because its internal
-			# serialization always assumes TCP.
-			if ( sns$node$cluster[node]$p != 0/tcp )
-				cns$p = sns$node$cluster[node]$p;
+			# The supervisor's responses use 0/unknown to indicate
+			# unused ports. (Prior to Zeek 7 this used to be 0/tcp.)
+			if ( cep$p != 0/unknown )
+				cns$p = cep$p;
+
+			if ( cep?$metrics_port )
+				cns$metrics_port = cep$metrics_port;
 			}
 		else
 			{

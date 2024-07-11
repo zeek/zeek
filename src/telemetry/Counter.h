@@ -63,7 +63,7 @@ private:
 
 using CounterPtr = std::shared_ptr<Counter>;
 
-class CounterFamily : public MetricFamily, public std::enable_shared_from_this<CounterFamily> {
+class CounterFamily : public MetricFamily {
 public:
     static inline const char* OpaqueName = "CounterMetricFamilyVal";
 

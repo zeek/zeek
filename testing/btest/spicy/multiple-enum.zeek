@@ -22,10 +22,10 @@ protocol analyzer spicy::dtest over TCP:
     parse originator with dtest::Message;
 
 on dtest::Message if ( self.sswitch == 83 )
-  -> event dtest_one(self.result);
+  -> event dtest_one(self.result_);
 
 on dtest::Message if ( self.sswitch != 83 )
-  -> event dtest_two(self.result);
+  -> event dtest_two(self.result_);
 
 # @TEST-END-FILE
 # @TEST-START-FILE dtest.spicy
@@ -38,7 +38,7 @@ public type RESULT = enum {
 
 public type Message = unit {
   sswitch: uint8;
-  result: uint8 &convert=RESULT($$);
+  result_: uint8 &convert=RESULT($$);
 };
 
 # @TEST-END-FILE

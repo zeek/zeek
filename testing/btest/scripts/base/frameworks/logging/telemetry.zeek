@@ -8,6 +8,9 @@
 
 @load policy/frameworks/telemetry/log
 
+# Force telemetry output to be sorted for test determinism
+redef running_under_test = T;
+
 global http_logs = 0;
 hook HTTP::log_policy(rec: HTTP::Info, id: Log::ID, filter: Log::Filter)
 	{
@@ -28,7 +31,7 @@ hook Log::log_stream_policy(rec: any, id: Log::ID)
 
 hook Telemetry::log_policy(rec: Telemetry::Info, id: Log::ID, filter: Log::Filter)
 	{
-	if ( rec$prefix != "zeek" || /^zeek_log_/ !in rec$name )
+	if ( /^zeek_log_/ !in rec$name )
 		break;
 
 	if ( /HTTP|DNS|Conn/ !in cat(rec$label_values) )

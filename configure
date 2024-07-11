@@ -462,6 +462,19 @@ if [ -z "$CMakeCommand" ]; then
     fi
 fi
 
+echo "Using $(cmake --version | head -1)"
+echo
+if [ -n "$CMakeGenerator" ]; then
+    cmake="${CMakeCommand} -G ${CMakeGenerator} ${CMakeCacheEntries} ${sourcedir}"
+else
+    cmake="${CMakeCommand} ${CMakeCacheEntries} ${sourcedir}"
+fi
+
+if [ "${display_cmake}" = 1 ]; then
+    echo "${cmake}"
+    exit 0
+fi
+
 if [ -d $builddir ]; then
     # If build directory exists, check if it has a CMake cache
     if [ -f $builddir/CMakeCache.txt ]; then
@@ -477,19 +490,6 @@ fi
 echo "Build Directory : $builddir"
 echo "Source Directory: $sourcedir"
 cd $builddir
-
-echo "Using $(cmake --version | head -1)"
-echo
-if [ -n "$CMakeGenerator" ]; then
-    cmake="${CMakeCommand} -G ${CMakeGenerator} ${CMakeCacheEntries} ${sourcedir}"
-else
-    cmake="${CMakeCommand} ${CMakeCacheEntries} ${sourcedir}"
-fi
-
-if [ "${display_cmake}" = 1 ]; then
-    echo "${cmake}"
-    exit 0
-fi
 
 eval ${cmake} 2>&1
 

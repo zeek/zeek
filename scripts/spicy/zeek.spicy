@@ -12,13 +12,13 @@ import spicy;
 ##
 ## This function has been deprecated and will be removed. Use ``spicy::accept_input``
 ## instead, which will have the same effect with Zeek.
-public function confirm_protocol() : void &cxxname="zeek::spicy::rt::confirm_protocol";
+public function confirm_protocol(): void &cxxname="zeek::spicy::rt::confirm_protocol";
 
 ## [Deprecated] Triggers a DPD protocol violation for the current connection.
 ##
 ## This function has been deprecated and will be removed. Use ``spicy::decline_input``
 ## instead, which will have the same effect with Zeek.
-public function reject_protocol(reason: string) : void &cxxname="zeek::spicy::rt::reject_protocol";
+public function reject_protocol(reason: string): void &cxxname="zeek::spicy::rt::reject_protocol";
 
 ## Reports a "weird" to Zeek. This should be used with similar semantics as in
 ## Zeek: something quite unexpected happening at the protocol level, which however
@@ -31,19 +31,19 @@ public function reject_protocol(reason: string) : void &cxxname="zeek::spicy::rt
 public function weird(id: string, addl: string = "") &cxxname="zeek::spicy::rt::weird";
 
 ## Returns true if we're currently parsing the originator side of a connection.
-public function is_orig() : bool &cxxname="zeek::spicy::rt::is_orig";
+public function is_orig(): bool &cxxname="zeek::spicy::rt::is_orig";
 
 ## Returns the current connection's UID.
-public function uid() : string &cxxname="zeek::spicy::rt::uid";
+public function uid(): string &cxxname="zeek::spicy::rt::uid";
 
 ## Returns the current connection's 4-tuple ID to make IP address and port information available.
-public function conn_id() : tuple<orig_h: addr, orig_p: port, resp_h: addr, resp_p: port> &cxxname="zeek::spicy::rt::conn_id";
+public function conn_id(): tuple<orig_h: addr, orig_p: port, resp_h: addr, resp_p: port> &cxxname="zeek::spicy::rt::conn_id";
 
 ## Instructs Zeek to flip the directionality of the current connection.
-public function flip_roles() : void &cxxname="zeek::spicy::rt::flip_roles";
+public function flip_roles(): void &cxxname="zeek::spicy::rt::flip_roles";
 
 ## Returns the number of packets seen so far on the current side of the current connection.
-public function number_packets() : uint64 &cxxname="zeek::spicy::rt::number_packets";
+public function number_packets(): uint64 &cxxname="zeek::spicy::rt::number_packets";
 
 ## Opaque handle to a protocol analyzer.
 public type ProtocolHandle = __library_type("zeek::spicy::rt::ProtocolHandle");
@@ -65,7 +65,7 @@ public type ProtocolHandle = __library_type("zeek::spicy::rt::ProtocolHandle");
 ## Note: For backwards compatibility, the analyzer argument can be left unset to add
 ## a DPD analyzer. This use is deprecated, though; use the single-argument version of
 ## `protocol_begin` for that instead.
-public function protocol_begin(analyzer: optional<string>, protocol: spicy::Protocol = spicy::Protocol::TCP) : void &cxxname="zeek::spicy::rt::protocol_begin";
+public function protocol_begin(analyzer: optional<string>, protocol: spicy::Protocol = spicy::Protocol::TCP): void &cxxname="zeek::spicy::rt::protocol_begin";
 
 ## Adds a Zeek-side DPD child protocol analyzer performing dynamic protocol detection
 ## on subsequently provided data.
@@ -78,7 +78,7 @@ public function protocol_begin(analyzer: optional<string>, protocol: spicy::Prot
 ##
 ## protocol: the transport-layer protocol on which to perform protocol detection;
 ## only TCP is currently supported here
-public function protocol_begin(protocol: spicy::Protocol = spicy::Protocol::TCP) : void &cxxname="zeek::spicy::rt::protocol_begin";
+public function protocol_begin(protocol: spicy::Protocol = spicy::Protocol::TCP): void &cxxname="zeek::spicy::rt::protocol_begin";
 
 ## Gets a handle to a Zeek-side child protocol analyzer for the current connection.
 ##
@@ -98,7 +98,7 @@ public function protocol_begin(protocol: spicy::Protocol = spicy::Protocol::TCP)
 ## protocol: the transport-layer protocol that the analyser uses; only TCP is
 ## currently supported here
 ##
-public function protocol_handle_get_or_create(analyzer: string, protocol: spicy::Protocol = spicy::Protocol::TCP) : ProtocolHandle &cxxname="zeek::spicy::rt::protocol_handle_get_or_create";
+public function protocol_handle_get_or_create(analyzer: string, protocol: spicy::Protocol = spicy::Protocol::TCP): ProtocolHandle &cxxname="zeek::spicy::rt::protocol_handle_get_or_create";
 
 ## Forwards protocol data to all previously instantiated Zeek-side child protocol analyzers of a given transport-layer.
 ##
@@ -107,7 +107,7 @@ public function protocol_handle_get_or_create(analyzer: string, protocol: spicy:
 ## data: chunk of data to forward to child analyzer
 ##
 ## protocol: the transport-layer protocol of the children to forward to; only TCP is currently supported here
-public function protocol_data_in(is_orig: bool, data: bytes, protocol: spicy::Protocol = spicy::Protocol::TCP) : void &cxxname="zeek::spicy::rt::protocol_data_in";
+public function protocol_data_in(is_orig: bool, data: bytes, protocol: spicy::Protocol = spicy::Protocol::TCP): void &cxxname="zeek::spicy::rt::protocol_data_in";
 
 ## Forwards protocol data to a specific previously instantiated Zeek-side child analyzer.
 ##
@@ -116,7 +116,7 @@ public function protocol_data_in(is_orig: bool, data: bytes, protocol: spicy::Pr
 ## data: chunk of data to forward to child analyzer
 ##
 ## h: handle to the child analyzer to forward data into
-public function protocol_data_in(is_orig: bool, data: bytes, h: ProtocolHandle) : void &cxxname="zeek::spicy::rt::protocol_data_in";
+public function protocol_data_in(is_orig: bool, data: bytes, h: ProtocolHandle): void &cxxname="zeek::spicy::rt::protocol_data_in";
 
 ## Signals a gap in input data to all previously instantiated Zeek-side child protocol analyzers.
 ##
@@ -127,11 +127,11 @@ public function protocol_data_in(is_orig: bool, data: bytes, h: ProtocolHandle) 
 ## len: size of gap
 ##
 ## h: optional handle to the child analyzer signal a gap to, else signal to all child analyzers
-public function protocol_gap(is_orig: bool, offset: uint64, len: uint64, h: optional<ProtocolHandle> = Null) : void &cxxname="zeek::spicy::rt::protocol_gap";
+public function protocol_gap(is_orig: bool, offset: uint64, len: uint64, h: optional<ProtocolHandle> = Null): void &cxxname="zeek::spicy::rt::protocol_gap";
 
 ## Signals end-of-data to all previously instantiated Zeek-side child protocol
 ## analyzers and removes them.
-public function protocol_end() : void &cxxname="zeek::spicy::rt::protocol_end";
+public function protocol_end(): void &cxxname="zeek::spicy::rt::protocol_end";
 
 ## Signals end-of-data to the given child analyzer and removes it.
 ##
@@ -147,54 +147,364 @@ public function protocol_handle_close(handle: ProtocolHandle): void &cxxname="ze
 ## Optionally, a mime type can be provided. It will be passed on to Zeek's file analysis framework.
 ## Optionally, a file ID can be provided. It will be passed on to Zeek's file analysis framework.
 ## Returns the Zeek-side file ID of the new file.
-public function file_begin(mime_type: optional<string> = Null, fuid: optional<string> = Null) : string &cxxname="zeek::spicy::rt::file_begin";
+public function file_begin(mime_type: optional<string> = Null, fuid: optional<string> = Null): string &cxxname="zeek::spicy::rt::file_begin";
 
 ## Returns the current file's FUID.
-public function fuid() : string &cxxname="zeek::spicy::rt::fuid";
+public function fuid(): string &cxxname="zeek::spicy::rt::fuid";
 
 ## Terminates the currently active Zeek-side session, flushing all state. Any
 ## subsequent activity will start a new session from scratch. This can only be
 ## called from inside a protocol analyzer.
-public function terminate_session() : void &cxxname="zeek::spicy::rt::terminate_session";
+public function terminate_session(): void &cxxname="zeek::spicy::rt::terminate_session";
 
 ## Tells Zeek to skip sending any further input data to the current analyzer.
 ## This is supported for protocol and file analyzers.
-public function skip_input() : void &cxxname="zeek::spicy::rt::skip_input";
+public function skip_input(): void &cxxname="zeek::spicy::rt::skip_input";
 
 ## Signals the expected size of a file to Zeek's file analysis.
 ##
 ## size: expected size of file
 ## fid: Zeek-side ID of the file to operate on; if not given, the file started by the most recent file_begin() will be used
-public function file_set_size(size: uint64, fid: optional<string> = Null) : void &cxxname="zeek::spicy::rt::file_set_size";
+public function file_set_size(size: uint64, fid: optional<string> = Null): void &cxxname="zeek::spicy::rt::file_set_size";
 
 ## Passes file content on to Zeek's file analysis.
 ##
 ## data: chunk of raw data to pass into analysis
 ## fid: Zeek-side ID of the file to operate on; if not given, the file started by the most recent file_begin() will be used
-public function file_data_in(data: bytes, fid: optional<string> = Null) : void &cxxname="zeek::spicy::rt::file_data_in";
+public function file_data_in(data: bytes, fid: optional<string> = Null): void &cxxname="zeek::spicy::rt::file_data_in";
 
 ## Passes file content at a specific offset on to Zeek's file analysis.
 ##
 ## data: chunk of raw data to pass into analysis
 ## offset: position in file where data starts
 ## fid: Zeek-side ID of the file to operate on; if not given, the file started by the most recent file_begin() will be used
-public function file_data_in_at_offset(data: bytes, offset: uint64, fid: optional<string> = Null) : void &cxxname="zeek::spicy::rt::file_data_in_at_offset";
+public function file_data_in_at_offset(data: bytes, offset: uint64, fid: optional<string> = Null): void &cxxname="zeek::spicy::rt::file_data_in_at_offset";
 
 ## Signals a gap in a file to Zeek's file analysis.
 ##
 ## offset: position in file where gap starts
 ## len: size of gap
 ## fid: Zeek-side ID of the file to operate on; if not given, the file started by the most recent file_begin() will be used
-public function file_gap(offset: uint64, len: uint64, fid: optional<string> = Null) : void &cxxname="zeek::spicy::rt::file_gap";
+public function file_gap(offset: uint64, len: uint64, fid: optional<string> = Null): void &cxxname="zeek::spicy::rt::file_gap";
 
 ## Signals the end of a file to Zeek's file analysis.
 ##
 ## fid: Zeek-side ID of the file to operate on; if not given, the file started by the most recent file_begin() will be used
-public function file_end(fid: optional<string> = Null) : void &cxxname="zeek::spicy::rt::file_end";
+public function file_end(fid: optional<string> = Null): void &cxxname="zeek::spicy::rt::file_end";
 
 ## Inside a packet analyzer, forwards what data remains after parsing the top-level unit
 ## on to another analyzer. The index specifies the target, per the current dispatcher table.
-public function forward_packet(identifier: uint32) : void &cxxname="zeek::spicy::rt::forward_packet";
+public function forward_packet(identifier: uint32): void &cxxname="zeek::spicy::rt::forward_packet";
 
 ## Gets the network time from Zeek.
-public function network_time() : time &cxxname="zeek::spicy::rt::network_time";
+public function network_time(): time &cxxname="zeek::spicy::rt::network_time";
+
+## Opaque handle for a Zeek-side value.
+public type ZeekVal = __library_type("::zeek::ValPtr");
+
+## Opaque handle for a Zeek-side record value.
+public type ZeekRecord = __library_type("::zeek::spicy::rt::ValRecordPtr");
+
+## Opaque handle for a Zeek-side set value.
+public type ZeekSet = __library_type("::zeek::spicy::rt::ValSetPtr");
+
+## Opaque handle for a Zeek-side table value.
+public type ZeekTable = __library_type("::zeek::spicy::rt::ValTablePtr");
+
+## Opaque handle for a Zeek-side vector value.
+public type ZeekVector = __library_type("::zeek::spicy::rt::ValVectorPtr");
+
+## Returns the value of a global Zeek script variable of Zeek type ``addr``.
+## Throws an exception if there's no such Zeek of that name, or if it's not of
+## the expected type.
+##
+## id: fully-qualified name of the global Zeek variable to retrieve
+public function get_address(id: string): addr &cxxname="zeek::spicy::rt::get_address";
+
+## Returns the value of a global Zeek script variable of Zeek type ``bool``.
+## Throws an exception if there's no such Zeek of that name, or if it's not of
+## the expected type.
+##
+## id: fully-qualified name of the global Zeek variable to retrieve
+public function get_bool(id: string): bool &cxxname="zeek::spicy::rt::get_bool";
+
+## Returns the value of a global Zeek script variable of Zeek type ``count``.
+## Throws an exception if there's no such Zeek of that name, or if it's not of
+## the expected type.
+##
+## id: fully-qualified name of the global Zeek variable to retrieve
+public function get_count(id: string): uint64 &cxxname="zeek::spicy::rt::get_count";
+
+## Returns the value of a global Zeek script variable of Zeek type ``double``.
+## Throws an exception if there's no such Zeek of that name, or if it's not of
+## the expected type.
+##
+## id: fully-qualified name of the global Zeek variable to retrieve
+public function get_double(id: string): real &cxxname="zeek::spicy::rt::get_double";
+
+## Returns the value of a global Zeek script variable of Zeek type ``enum``.
+## The value is returned as a string containing the enum's label name, without
+## any scope. Throws an exception if there's no such Zeek of that name, or if
+## it's not of the expected type.
+##
+## id: fully-qualified name of the global Zeek variable to retrieve
+public function get_enum(id: string): string &cxxname="zeek::spicy::rt::get_enum";
+
+## Returns the value of a global Zeek script variable of Zeek type ``int``.
+## Throws an exception if there's no such Zeek of that name, or if it's not of
+## the expected type.
+##
+## id: fully-qualified name of the global Zeek variable to retrieve
+public function get_int(id: string): int64 &cxxname="zeek::spicy::rt::get_int";
+
+## Returns the value of a global Zeek script variable of Zeek type
+## ``interval``. Throws an exception if there's no such Zeek of that name, or
+## if it's not of the expected type.
+##
+## id: fully-qualified name of the global Zeek variable to retrieve
+public function get_interval(id: string): interval &cxxname="zeek::spicy::rt::get_interval";
+
+## Returns the value of a global Zeek script variable of Zeek type ``port``.
+## Throws an exception if there's no such Zeek of that name, or if it's not of
+## the expected type.
+##
+## id: fully-qualified name of the global Zeek variable to retrieve
+public function get_port(id: string): port &cxxname="zeek::spicy::rt::get_port";
+
+## Returns the value of a global Zeek script variable of Zeek type ``record``.
+## The value is returned as an opaque handle to the record, which can be used
+## with the ``zeek::record_*()`` functions to access the record's fields.
+## Throws an exception if there's no such Zeek of that name, or if it's not of
+## the expected type.
+##
+## id: fully-qualified name of the global Zeek variable to retrieve
+public function get_record(id: string): ZeekRecord &cxxname="zeek::spicy::rt::get_record";
+
+## Returns the value of a global Zeek script variable of Zeek type ``set``. The
+## value is returned as an opaque handle to the set, which can be used with the
+## ``zeek::set_*()`` functions to access the set's content. Throws an exception
+## if there's no such Zeek of that name, or if it's not of the expected type.
+##
+## id: fully-qualified name of the global Zeek variable to retrieve
+public function get_set(id: string): ZeekSet &cxxname="zeek::spicy::rt::get_set";
+
+## Returns the value of a global Zeek script variable of Zeek type ``string``.
+## The string's value is returned as a Spicy ``bytes`` value. Throws an
+## exception if there's no such Zeek of that name, or if it's not of the
+## expected type.
+##
+## id: fully-qualified name of the global Zeek variable to retrieve
+public function get_string(id: string): bytes &cxxname="zeek::spicy::rt::get_string";
+
+## Returns the value of a global Zeek script variable of Zeek type ``subnet``.
+## Throws an exception if there's no such Zeek of that name, or if it's not of
+## the expected type.
+##
+## id: fully-qualified name of the global Zeek variable to retrieve
+public function get_subnet(id: string): network &cxxname="zeek::spicy::rt::get_subnet";
+
+## Returns the value of a global Zeek script variable of Zeek type ``table``.
+## The value is returned as an opaque handle to the set, which can be used with
+## the ``zeek::set_*()`` functions to access the set's content. Throws an
+## exception if there's no such Zeek of that name, or if it's not of the
+## expected type.
+##
+## id: fully-qualified name of the global Zeek variable to retrieve
+public function get_table(id: string): ZeekTable &cxxname="zeek::spicy::rt::get_table";
+
+## Returns the value of a global Zeek script variable of Zeek type ``time``.
+## Throws an exception if there's no such Zeek of that name, or if it's not of
+## the expected type.
+##
+## id: fully-qualified name of the global Zeek variable to retrieve
+public function get_time(id: string): time &cxxname="zeek::spicy::rt::get_time";
+
+## Returns the value of a global Zeek script variable of Zeek type ``vector``.
+## The value is returned as an opaque handle to the vector, which can be used
+## with the ``zeek::vector_*()`` functions to access the vector's content.
+## Throws an exception if there's no such Zeek of that name, or if it's not of
+## the expected type.
+##
+## id: fully-qualified name of the global Zeek variable to retrieve
+public function get_vector(id: string): ZeekVector &cxxname="zeek::spicy::rt::get_vector";
+
+## Returns an opaque handle to a global Zeek script variable. The handle can be
+## used with the ``zeek::as_*()`` functions to access the variable's value.
+## Throws an exception if there's no Zeek variable of that name.
+public function get_value(id: string): ZeekVal &cxxname="zeek::spicy::rt::get_value";
+
+## Returns a Zeek ``addr`` value refereced by an opaque handle. Throws an
+## exception if the referenced value is not of the expected type.
+public function as_address(v: ZeekVal): addr &cxxname="zeek::spicy::rt::as_address";
+
+## Returns a Zeek ``bool`` value refereced by an opaque handle. Throws an
+## exception if the referenced value is not of the expected type.
+public function as_bool(v: ZeekVal): bool &cxxname="zeek::spicy::rt::as_bool";
+
+## Returns a Zeek ``count`` value refereced by an opaque handle. Throws an
+## exception if the referenced value is not of the expected type.
+public function as_count(v: ZeekVal): uint64 &cxxname="zeek::spicy::rt::as_count";
+
+## Returns a Zeek ``double`` value refereced by an opaque handle. Throws an
+## exception if the referenced value is not of the expected type.
+public function as_double(v: ZeekVal): real &cxxname="zeek::spicy::rt::as_double";
+
+## Returns a Zeek ``enum`` value refereced by an opaque handle. Throws an
+## exception if the referenced value is not of the expected type.
+public function as_enum(v: ZeekVal): string &cxxname="zeek::spicy::rt::as_enum";
+
+## Returns a Zeek ``int`` value refereced by an opaque handle. Throws an
+## exception if the referenced value is not of the expected type.
+public function as_int(v: ZeekVal): int64 &cxxname="zeek::spicy::rt::as_int";
+
+## Returns a Zeek ``interval`` value refereced by an opaque handle. Throws an
+## exception if the referenced value is not of the expected type.
+public function as_interval(v: ZeekVal): interval &cxxname="zeek::spicy::rt::as_interval";
+
+## Returns a Zeek ``port`` value refereced by an opaque handle. Throws an
+## exception if the referenced value is not of the expected type.
+public function as_port(v: ZeekVal): port &cxxname="zeek::spicy::rt::as_port";
+
+## Returns a Zeek ``record`` value refereced by an opaque handle. Throws an
+## exception if the referenced value is not of the expected type.
+public function as_record(v: ZeekVal): ZeekRecord &cxxname="zeek::spicy::rt::as_record";
+
+## Returns a Zeek ``set`` value refereced by an opaque handle. Throws an
+## exception if the referenced value is not of the expected type.
+public function as_set(v: ZeekVal): ZeekSet &cxxname="zeek::spicy::rt::as_set";
+
+## Returns a Zeek ``string`` value refereced by an opaque handle. The string's
+## value is returned as a Spicy ``bytes`` value. Throws an exception if the
+## referenced value is not of the expected type.
+public function as_string(v: ZeekVal): bytes &cxxname="zeek::spicy::rt::as_string";
+
+## Returns a Zeek ``subnet`` value refereced by an opaque handle. Throws an
+## exception if the referenced value is not of the expected type.
+public function as_subnet(v: ZeekVal): network &cxxname="zeek::spicy::rt::as_subnet";
+
+## Returns a Zeek ``table`` value refereced by an opaque handle. Throws an
+## exception if the referenced value is not of the expected type.
+public function as_table(v: ZeekVal): ZeekTable &cxxname="zeek::spicy::rt::as_table";
+
+## Returns a Zeek ``time`` value refereced by an opaque handle. Throws an
+## exception if the referenced value is not of the expected type.
+public function as_time(v: ZeekVal): time &cxxname="zeek::spicy::rt::as_time";
+
+## Returns a Zeek ``vector`` value refereced by an opaque handle. Throws an
+## exception if the referenced value is not of the expected type.
+public function as_vector(v: ZeekVal): ZeekVector &cxxname="zeek::spicy::rt::as_vector";
+
+## Returns true if a Zeek set contains a given value. Throws an exception if
+## the given ID does not exist, or does not have the expected type.
+##
+## id: fully-qualified name of the global Zeek set to check
+## v: value to check for, which must be of the Spicy-side equivalent of the set's key type
+public function set_contains(id: string, v: any): bool &cxxname="zeek::spicy::rt::set_contains";
+
+## Returns true if a Zeek set contains a given value. Throws an exception if
+## the set does not have the expected type.
+##
+## s: opaque handle to the Zeek set, as returned by other functions
+## v: value to check for, which must be of the Spicy-side equivalent of the set's key type
+public function set_contains(s: ZeekSet, v: any): bool &cxxname="zeek::spicy::rt::set_contains";
+
+## Returns true if a Zeek table contains a given value. Throws an exception if
+## the given ID does not exist, or does not have the expected type.
+##
+## id: fully-qualified name of the global Zeek table to check
+## v: value to check for, which must be of the Spicy-side equivalent of the table's key type
+public function table_contains(id: string, v: any): bool &cxxname="zeek::spicy::rt::table_contains";
+
+## Returns true if a Zeek table contains a given value. Throws an exception if
+## the given ID does not exist, or does not have the expected type.
+##
+## t: opaque handle to the Zeek table, as returned by other functions
+## v: value to check for, which must be of the Spicy-side equivalent of the table's key type
+public function table_contains(t: ZeekTable, v: any): bool &cxxname="zeek::spicy::rt::table_contains";
+
+## Returns the value associated with a key in a Zeek table. Returns an error
+## result if the key does not exist in the table. Throws an exception if the
+## given table ID does not exist, or does not have the expected type.
+##
+## id: fully-qualified name of the global Zeek table to check
+## v: value to lookup, which must be of the Spicy-side equivalent of the table's key type
+public function table_lookup(id: string, v: any): optional<ZeekVal> &cxxname="zeek::spicy::rt::table_lookup";
+
+## Returns the value associated with a key in a Zeek table. Returns an error
+## result if the key does not exist in the table. Throws an exception if the
+## given table ID does not exist, or does not have the expected type.
+##
+## t: opaque handle to the Zeek table, as returned by other functions
+## v: value to lookup, which must be of the Spicy-side equivalent of the table's key type
+public function table_lookup(t: ZeekTable, v: any): optional<ZeekVal> &cxxname="zeek::spicy::rt::table_lookup";
+
+## Returns true if a Zeek record provides a value for a given field. This
+## includes fields with `&default` values. Throws an exception if the given ID
+## does not exist, or does not have the expected type.
+##
+## id: fully-qualified name of the global Zeek record to check field: name of
+## the field to check
+public function record_has_value(id: string, field: string): bool &cxxname="zeek::spicy::rt::record_has_field";
+
+## Returns true if a Zeek record provides a value for a given field.
+## This includes fields with `&default` values.
+##
+## r: opaque handle to the Zeek record, as returned by other functions
+## field: name of the field to check
+public function record_has_value(r: ZeekRecord, field: string): bool &cxxname="zeek::spicy::rt::record_has_field";
+
+## Returns true if the type of a Zeek record has a field of a given name.
+## Throws an exception if the given ID does not exist, or does not have the
+## expected type.
+##
+## id: fully-qualified name of the global Zeek record to check
+## field: name of the field to check
+public function record_has_field(id: string, field: string): bool &cxxname="zeek::spicy::rt::record_has_field";
+
+## Returns true if the type of a Zeek record has a field of a given name.
+##
+## r: opaque handle to the Zeek record, as returned by other functions
+## field: name of the field to check
+public function record_has_field(r: ZeekRecord, field: string): bool &cxxname="zeek::spicy::rt::record_has_field";
+
+## Returns a field's value from a Zeek record. Throws an exception if the given
+## ID does not exist, or does not have the expected type; or if there's no such
+## field in the record type, or if the field does not have a value.
+##
+## id: fully-qualified name of the global Zeek record to check
+## field: name of the field to retrieve
+public function record_field(id: string, field: string): ZeekVal &cxxname="zeek::spicy::rt::record_field";
+
+## Returns a field's value from a Zeek record. Throws an exception if the given
+## record does not have such a field, or if the field does not have a value.
+##
+## r: opaque handle to the Zeek record, as returned by other functions
+## field: name of the field to retrieve
+public function record_field(r: ZeekRecord, field: string): ZeekVal &cxxname="zeek::spicy::rt::record_field";
+
+## Returns the value of an index in a Zeek vector. Throws an exception if the
+## given ID does not exist, or does not have the expected type; or if the index
+## is out of bounds.
+##
+## id: fully-qualified name of the global Zeek vector to check
+## index: index of the element to retrieve
+public function vector_index(id: string, index: uint64): ZeekVal &cxxname="zeek::spicy::rt::vector_index";
+
+## Returns the value of an index in a Zeek vector. Throws an exception if the
+## index is out of bounds.
+##
+## v: opaque handle to the Zeek vector, as returned by other functions
+## index: index of the element to retrieve
+public function vector_index(v: ZeekVector, index: uint64): ZeekVal &cxxname="zeek::spicy::rt::vector_index";
+
+## Returns the size of a Zeek vector. Throws an exception if the given ID does
+## not exist, or does not have the expected type.
+##
+## id: fully-qualified name of the global Zeek vector to check
+public function vector_size(id: string): uint64 &cxxname="zeek::spicy::rt::vector_size";
+
+## Returns the size of a Zeek vector.
+##
+## v: opaque handle to the Zeek vector, as returned by other functions
+public function vector_size(v: ZeekVector): uint64 &cxxname="zeek::spicy::rt::vector_size";
+

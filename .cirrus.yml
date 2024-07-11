@@ -166,17 +166,17 @@ env:
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
 
+fedora40_task:
+  container:
+    # Fedora 40 EOL: Around May 2025
+    dockerfile: ci/fedora-40/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
 fedora39_task:
   container:
     # Fedora 39 EOL: Around Nov 2024
     dockerfile: ci/fedora-39/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-
-fedora38_task:
-  container:
-    # Fedora 38 EOL: Around May 2024
-    dockerfile: ci/fedora-38/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR
@@ -187,14 +187,6 @@ centosstream9_task:
     dockerfile: ci/centos-stream-9/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
-
-centosstream8_task:
-  container:
-    # Stream 8 EOL: May 31, 2024
-    dockerfile: ci/centos-stream-8/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-  << : *SKIP_TASK_ON_PR
 
 debian12_task:
   container:
@@ -346,18 +338,15 @@ alpine_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
-# Apple doesn't publish official long-term support timelines.
-# We aim to support both the current and previous macOS release.
+# Cirrus only supports the following macos runner currently, selecting
+# anything else automatically upgrades to this one.
+#
+#    ghcr.io/cirruslabs/macos-runner:sonoma
+#
+# See also: https://cirrus-ci.org/guide/macOS/
 macos_sonoma_task:
   macos_instance:
-    image: ghcr.io/cirruslabs/macos-sonoma-xcode:latest
-  prepare_script: ./ci/macos/prepare.sh
-  << : *CI_TEMPLATE
-  << : *MACOS_ENVIRONMENT
-
-macos_ventura_task:
-  macos_instance:
-    image: ghcr.io/cirruslabs/macos-ventura-base:latest
+    image: ghcr.io/cirruslabs/macos-runner:sonoma
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
   << : *MACOS_ENVIRONMENT
@@ -397,6 +386,8 @@ asan_sanitizer_task:
     CXXFLAGS: -DZEEK_DICT_DEBUG
     ZEEK_CI_CONFIGURE_FLAGS: *ASAN_SANITIZER_CONFIG
     ASAN_OPTIONS: detect_leaks=1:detect_odr_violation=0
+    # Use absolute paths for coverage files.
+    CCACHE_BASEDIR:
 
 ubsan_sanitizer_task:
   container:

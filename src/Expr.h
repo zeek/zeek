@@ -103,6 +103,9 @@ enum ExprTag : int {
     EXPR_APPEND_TO,
     EXPR_INDEX_ASSIGN,
     EXPR_FIELD_LHS_ASSIGN,
+    EXPR_REC_ASSIGN_FIELDS,
+    EXPR_REC_ADD_FIELDS,
+    EXPR_REC_CONSTRUCT_WITH_REC,
     EXPR_FROM_ANY_VEC_COERCE,
     EXPR_ANY_INDEX,
     EXPR_SCRIPT_OPT_BUILTIN,
@@ -1166,7 +1169,10 @@ public:
     explicit RecordConstructorExpr(ListExprPtr constructor_list);
 
     // This form is used to construct records of a known (ultimate) type.
-    explicit RecordConstructorExpr(RecordTypePtr known_rt, ListExprPtr constructor_list);
+    // The flag allows skipping of checking for mandatory fields, for
+    // script optimization that may elide them.
+    explicit RecordConstructorExpr(RecordTypePtr known_rt, ListExprPtr constructor_list,
+                                   bool check_mandatory_fields = true);
 
     ListExprPtr Op() const { return op; }
     const auto& Map() const { return map; }

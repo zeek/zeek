@@ -1,0 +1,42 @@
+# @TEST-REQUIRES: have-spicy
+#
+# @TEST-EXEC: spicyz -d -o ssh.hlto ssh.spicy %INPUT
+# @TEST-EXEC-FAIL: zeek ssh.hlto >output 2>&1
+# @TEST-EXEC: btest-diff output
+
+# @TEST-START-FILE ssh.spicy
+module SSH;
+
+import zeek;
+
+public type Banner = unit {};
+# @TEST-END-FILE
+
+protocol analyzer spicy::SSH_1 over TCP:
+    parse with SSH::Banner,
+    replaces SSH;
+
+protocol analyzer spicy::SSH_1 over UDP:
+    parse with SSH::Banner,
+    replaces SSH;
+
+# @TEST-START-NEXT
+
+file analyzer spicy::SSH_1:
+    parse with SSH::Banner,
+    replaces MD5;
+
+file analyzer spicy::SSH_2:
+    parse with SSH::Banner,
+    replaces MD5;
+
+# @TEST-START-NEXT
+
+packet analyzer spicy::SSH_1:
+    parse with SSH::Banner,
+    replaces Ethernet;
+
+packet analyzer spicy::SSH_2:
+    parse with SSH::Banner,
+    replaces Ethernet;
+

@@ -17,7 +17,7 @@ double Gauge::Value() const noexcept {
 Gauge::Gauge(FamilyType* family, const prometheus::Labels& labels, prometheus::CollectCallbackPtr callback) noexcept
     : handle(family->Add(labels)), labels(labels) {
     if ( callback ) {
-        handle.AddCollectCallback(callback);
+        handle.AddCollectCallback(std::move(callback));
         has_callback = true;
     }
 }
@@ -37,5 +37,5 @@ std::shared_ptr<Gauge> GaugeFamily::GetOrAdd(Span<const LabelView> labels, prome
 
 std::shared_ptr<Gauge> GaugeFamily::GetOrAdd(std::initializer_list<LabelView> labels,
                                              prometheus::CollectCallbackPtr callback) {
-    return GetOrAdd(Span{labels.begin(), labels.size()}, callback);
+    return GetOrAdd(Span{labels.begin(), labels.size()}, std::move(callback));
 }

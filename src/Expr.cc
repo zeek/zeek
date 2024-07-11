@@ -99,11 +99,14 @@ const char* expr_name(ExprTag t) {
         "vec+=",
         "[]=",
         "$=",
-        "from_any_vec_coerce ",
+        "$=$",
+        "$+=$",
+        "[=+$]",
+        "from_any_vec_coerce",
         "any[]",
         "ZAM-builtin()",
-        "nop",
 
+        "nop", // don't add after this, it's used to compute NUM_EXPRS
     };
 
     if ( int(t) >= NUM_EXPRS ) {
@@ -2793,7 +2796,7 @@ void FieldExpr::Assign(Frame* f, ValPtr v) {
     if ( IsError() )
         return;
 
-    Assign(op->Eval(f), v);
+    Assign(op->Eval(f), std::move(v));
 }
 
 void FieldExpr::Assign(ValPtr lhs, ValPtr rhs) {
@@ -2807,7 +2810,7 @@ ValPtr FieldExpr::Delete(Frame* f) {
         return nullptr;
 
     auto former = op_v->AsRecordVal()->GetField(field);
-    Assign(op_v, nullptr);
+    Assign(std::move(op_v), nullptr);
     // In the future we could return a value, such as former, here.
     return nullptr;
 }
@@ -2916,7 +2919,8 @@ RecordConstructorExpr::RecordConstructorExpr(ListExprPtr constructor_list)
         Error("bad type in record constructor", constructor_error_expr);
 }
 
-RecordConstructorExpr::RecordConstructorExpr(RecordTypePtr known_rt, ListExprPtr constructor_list)
+RecordConstructorExpr::RecordConstructorExpr(RecordTypePtr known_rt, ListExprPtr constructor_list,
+                                             bool check_mandatory_fields)
     : Expr(EXPR_RECORD_CONSTRUCTOR), op(std::move(constructor_list)) {
     if ( IsError() )
         return;
@@ -2955,6 +2959,9 @@ RecordConstructorExpr::RecordConstructorExpr(RecordTypePtr known_rt, ListExprPtr
     }
 
     if ( IsError() )
+        return;
+
+    if ( ! check_mandatory_fields )
         return;
 
     auto n = known_rt->NumFields();

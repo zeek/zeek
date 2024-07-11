@@ -1,3 +1,420 @@
+7.0.0-dev.461 | 2024-07-10 18:45:36 +0200
+
+  * Extend btest for logging of disabled analyzers (Jan Grashoefer, Corelight)
+
+  * Add logging of disabled analyzers to analyzer.log (Jan Grashoefer, Corelight)
+
+7.0.0-dev.458 | 2024-07-10 11:05:19 +0200
+
+  * testing/btest: Default to HILTI_JIT_PARALLELISM=1 (Arne Welzel, Corelight)
+
+    This is a rework of b59bed9d06f2257a6b4f6c6408b8363a277eebac moving
+    HILTI_JIT_PARALLELISM=1 into btest.cfg to make it default applicable to
+    btest -j users (and CI).
+
+    The background for this change is that spicyz may spawn up to nproc compiler
+    instances by default. Combined with btest -j, this may be nproc x nproc
+    instances worst case. Particularly with gcc, this easily overloads CI or
+    local systems, putting them into hard-to-recover-from thrashing/OOM states.
+
+    Exporting HILTI_JIT_PARALLELISM in the shell allows overriding.
+
+  * Revert "CI: Use ccache and a single CPU when building spicy analyzers for btests" (Arne Welzel, Corelight)
+
+    This reverts commit b59bed9d06f2257a6b4f6c6408b8363a277eebac.
+
+7.0.0-dev.454 | 2024-07-09 15:12:19 -0700
+
+  * CI: Use ccache and a single CPU when building spicy analyzers for btests (Tim Wojtulewicz, Corelight)
+
+7.0.0-dev.452 | 2024-07-09 14:53:41 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+7.0.0-dev.450 | 2024-07-09 10:15:13 -0700
+
+  * minor script optimization updates to reflect recent changes, Coverity findings (Vern Paxson, Corelight)
+
+7.0.0-dev.447 | 2024-07-09 17:10:16 +0200
+
+  * Fix for --display-cmake in configure (cknill)
+    Moved build directory creation further down in the script so that --display-cmake
+    has a chance to happen before build tree setup.
+
+7.0.0-dev.445 | 2024-07-09 00:07:25 -0700
+
+  * Management framework: bump cluster testsuite to pull in telemetry tests (Christian Kreibich, Corelight)
+
+  * Management framework: bump zeek-client (Christian Kreibich, Corelight)
+
+  * Management framework: augment deployed configs with instance IP addresses (Christian Kreibich, Corelight)
+
+  * Management framework: add auto-enumeration of metrics ports (Christian Kreibich, Corelight)
+
+  * Management framework: propagate metrics port from agent (Christian Kreibich, Corelight)
+
+  * Management framework: add metrics port in management & Supervisor node records (Christian Kreibich, Corelight)
+
+  * Harden the telemetry manager against unset Telemetry::metrics_address (Christian Kreibich, Corelight)
+
+  * Comment-only tweaks for telemetry-related settings. (Christian Kreibich, Corelight)
+
+  * Update submodules [nomail] (Tim Wojtulewicz, Corelight)
+
+7.0.0-dev.434 | 2024-07-04 17:34:23 +0200
+
+  * CMakeLists: Ensure Threads::Threads target exists (Arne Welzel, Corelight)
+
+    Fix failure on OSX with CMake 3.30 complaining about missing
+    Threads::Threads target.
+
+  * ci/macos: Only use sonoma image (Arne Welzel, Corelight)
+
+7.0.0-dev.431 | 2024-07-04 17:22:42 +0200
+
+  * Bump auxil/zeek-aux (Benjamin Bannier, Corelight)
+
+7.0.0-dev.429 | 2024-07-04 15:15:56 +0200
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+7.0.0-dev.427 | 2024-07-04 13:35:25 +0200
+
+  * GH-3789: HTTP: Implement FlipRoles() (Arne Welzel, Corelight)
+
+    When Zeek flips roles of a HTTP connection subsequent to the HTTP analyzer
+    being attached, that analyzer would not update its own ContentLine analyzer
+    state, resulting in the wrong ContentLine analyzer being switched into
+    plain delivery mode.
+
+    In debug builds, this would result in assertion failures, in production
+    builds, the HTTP analyzer would receive HTTP bodies as individual header
+    lines, or conversely, individual header lines would be delivered as a
+    large chunk from the ContentLine analyzer.
+
+    PCAPs were generated locally using tcprewrite to select well-known-http ports
+    for both endpoints, then editcap to drop the first SYN packet.
+
+    Kudos to @JordanBarnartt for keeping at it.
+
+    Closes #3789
+
+  * ContentLineAnalyzer: Add getter for skip_partial (Arne Welzel, Corelight)
+
+7.0.0-dev.423 | 2024-07-02 15:35:36 -0700
+
+  * Remove the Supervisor's internal ClusterEndpoint struct. (Christian Kreibich, Corelight)
+
+  * Provide a script-layer equivalent to Supervisor::__init_cluster(). (Christian Kreibich, Corelight)
+
+7.0.0-dev.420 | 2024-07-02 14:46:29 -0700
+
+  * Update NEWS file to cover JSON enhancements (Christian Kreibich, Corelight)
+
+  * Support JSON roundtripping via to_json()/from_json() for patterns (Christian Kreibich, Corelight)
+
+  * Support table deserialization in from_json() (Christian Kreibich, Corelight)
+
+  * Support map-based definition of ports in from_json() (Christian Kreibich, Corelight)
+
+  * Document the field_escape_pattern in the to_json() BiF (Christian Kreibich, Corelight)
+
+7.0.0-dev.414 | 2024-07-02 19:42:10 +0200
+
+  * Bump cmake submodule [nomail] (Arne Welzel, Corelight)
+
+7.0.0-dev.413 | 2024-07-02 14:41:27 +0200
+
+  * threading/Manager: Warn if threads are added after termination (Arne Welzel, Corelight)
+
+    The core.file-analyzer-violation test showed that it's possible to
+    create new threads (log writers) when Zeek is in the process of
+    terminating. This can result in the IO manager's deconstructor
+    deleting IO sources for threads that are still running.
+
+    This is sort of a scripting issue, so for now log a reporter warning
+    when it happens to have a bit of a bread-crumb what might be
+    going on. In the future it might make sense to plug APIs with
+    zeek_is_terminating().
+
+  * iosource/Manager: Reap dry sources while computing timeout (Arne Welzel, Corelight)
+
+    Avoids looping over the sources vector twice and should result
+    in the same behavior.
+
+  * GH-3682: threading/MsgThread: Decouple IO source and thread lifetimes (Arne Welzel, Corelight)
+
+    MsgThread acting as an IO source can result in the situation where the
+    threading manager's heartbeat timer deletes a finished MsgThread instance,
+    but at the same time this thread is in the list of ready IO sources the
+    main loop is currently processing.
+
+    Fix this by decoupling the lifetime of the IO source part and properly
+    registering as lifetime managed IO sources with the IO manager.
+
+    Fixes #3682
+
+  * iosource/Manager: Do not manage lifetime of pkt_src (Arne Welzel, Corelight)
+
+    Now that dry sources are properly reaped and freed, an offline packet
+    source would be deleted once dry, resulting in GetPktSrc() returning
+    a wild pointer. Don't manage the packet source lifetime and instead
+    free it during Manager destruction.
+
+  * iosource/Manager: Honor manage_lifetime and dont_count for short-lived IO sources (Arne Welzel, Corelight)
+
+    If an IO source is registered and becomes dry at runtime, the IO
+    manager would not honor its manage_lifetime or dont_count attribute
+    during collection, resulting in memory leaks.
+
+    This probably hasn't mattered so far as there's no IO sources registered
+    in-tree at runtime using manage_lifetime=true.
+
+7.0.0-dev.407 | 2024-06-26 13:16:10 +0200
+
+  * coverage/lcov_html: Allow missing coveralls token (Arne Welzel, Corelight)
+
+    This is a fixup for 0cd023b83919fca7bfac55e75a41f724e820fd26 which
+    currently causes ASAN coverage builds to fail for non-master branches
+    when due to a missing COVERALLS_REPO_TOKEN.
+
+    Instead of bailing out for non-master branches, pass `--dry-run` to the
+    coveralls-lcov invocation to test more of the script.
+
+7.0.0-dev.405 | 2024-06-25 13:35:41 +0200
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+7.0.0-dev.403 | 2024-06-25 11:29:58 +0200
+
+  * NEWS: Add entry about FileExtractDir (Arne Welzel, Corelight)
+
+  * Update zeekctl submodule (Arne Welzel, Corelight)
+
+  * zeek-testing-private: Update baseline, after merge (Arne Welzel, Corelight)
+
+7.0.0-dev.399 | 2024-06-24 11:19:14 +0200
+
+  * script optimization for record operations sourced (in part) from other records (Vern Paxson, Corelight)
+
+7.0.0-dev.397 | 2024-06-20 18:16:51 -0700
+
+  * zeek-testing-private: Update baseline (Arne Welzel, Corelight)
+
+  * ssh: Revert half-duplex robustness (Arne Welzel, Corelight)
+
+    This reverts part of commit a0888b7e36308d241f4c62b42715a94d499aab23 due
+    to inhibiting analyzer violations when parsing non SSH traffic when
+    the &restofdata path is entered.
+
+    See additional discussion here:
+    https://github.com/zeek/zeek/pull/3781
+    https://github.com/zeek/zeek/pull/3720/files#r1636314375
+
+7.0.0-dev.394 | 2024-06-20 17:28:11 -0700
+
+  * Add "zeek/" prefixes to includes in spicy/runtime-support.h (Michael Dopheide)
+
+7.0.0-dev.392 | 2024-06-20 15:51:42 +0200
+
+  * Spicy: Provide runtime API to access Zeek-side globals. (Robin Sommer, Corelight)
+
+    This allows to read Zeek global variables from inside Spicy code. The
+    main challenge here is supporting all of Zeek's data type in a
+    type-safe manner.
+
+    The most straight-forward API is a set of functions
+    `get_<type>(<id>)`, where `<type>` is the Zeek-side type
+    name (e.g., `count`, `string`, `bool`) and `<id>` is the fully scoped
+    name of the Zeek-side global (e.g., `MyModule::Boolean`). These
+    functions then return the corresponding Zeek value, converted in an
+    appropriate Spicy type. Example:
+
+        Zeek:
+            module Foo;
+
+            const x: count = 42;
+            const y: string = "xxx";
+
+        Spicy:
+            import zeek;
+
+            assert zeek::get_count("Foo::x") == 42;
+            assert zeek::get_string("Foo::y") == b"xxx"; # returns bytes(!)
+
+    For container types, the `get_*` function returns an opaque types that
+    can be used to access the containers' values. An additional set of
+    functions `as_<type>` allows converting opaque values of atomic
+    types to Spicy equivalents. Example:
+
+        Zeek:
+            module Foo;
+
+            const s: set[count] = { 1, 2 };
+            const t: table[count] of string = { [1] = "One", [2] = "Two" }
+
+        Spicy:
+
+            # Check set membership.
+            local set_ = zeek::get_set("Foo::s");
+            assert zeek::set_contains(set_, 1) == True
+
+            # Look up table element.
+            local table_ = zeek::get_table("Foo::t");
+            local value = zeek::table_lookup(t, 1);
+            assert zeek::as_string(value) == b"One"
+
+    There are also functions for accessing elements of Zeek-side vectors
+    and records.
+
+    If any of these `zeek::*` conversion functions fails (e.g., due to a
+    global of that name not existing), it will throw an exception.
+
+    The documentation has more information on all of this.
+
+    Design considerations:
+
+        - We support only reading Zeek variables, not writing. This is
+          both to simplify the API, and also conceptually to avoid
+          offering backdoors into Zeek state that could end up with a very
+          tight coupling of Spicy and Zeek code.
+
+        - We accept that a single access might be relatively slow due to
+          name lookup and data conversion. This is primarily meant for
+          configuration-style data, not for transferring lots of dynamic
+          state over.
+
+        - In that spirit, we don't support deep-copying complex data types
+          from Zeek over to Spicy. This is (1) to avoid performance
+          problems when accidentally copying large containers over,
+          potentially even at every access; and (2) to avoid the two sides
+          getting out of sync if one ends up modifying a container without
+          the other being able to see it.
+
+  * Spicy: Reformat `zeek.spicy` with `spicy-format`. (Robin Sommer, Corelight)
+
+  * Spicy: Extend exception hierarchy. (Robin Sommer, Corelight)
+
+    We move the current `TypeMismatch` into a  new `ParameterMismatch`
+    exception that's derived from a more general `TypeMismatch` now that
+    can also be used for other, non-parameter mismatches.
+
+7.0.0-dev.387 | 2024-06-18 10:52:25 +0200
+
+  * CMakeLists: Disable -Werror for 3rdparty/sqlite3.c (Arne Welzel, Corelight)
+
+    We package vanilla sqlite from upstream and on Fedora 40 with sqlite 3.46
+    there's the following compiler warning:
+
+        In function 'sqlite3Strlen30',
+            inlined from 'sqlite3ColumnSetColl' at
+            ../../src/3rdparty/sqlite3.c:122105:10:
+            ../../src/3rdparty/sqlite3.c:35003:28: error: 'strlen' reading 1 or more bytes from a region of size 0 [-Werror=stringop-overread]
+        35003 |   return 0x3fffffff & (int)strlen(z);
+              |                            ^~~~~~~~~
+        In function 'sqlite3ColumnSetColl':
+
+    Disabling -Werror on sqlite3.c seems sensible given we have little
+    control over that code.
+
+  * Bump zeek-3rdparty to pull in sqlite move to 3.46 (Christian Kreibich, Corelight)
+
+    This avoids a compiler warning/error on Fedora 40.
+
+  * CI: drop Fedora 38, add 40 (Christian Kreibich, Corelight)
+
+7.0.0-dev.383 | 2024-06-14 13:50:05 +0200
+
+  * GH-3783: Spicy: Disallow repeating replacements of the same analyzer. (Robin Sommer, Corelight)
+
+    We now reject EVT files that attempt to replace the same built-in
+    analyzer multiple times as doing so would be ill-defined and not very
+    intuitive in what exactly it means.
+
+  * Bump Spicy. (Robin Sommer, Corelight)
+
+7.0.0-dev.380 | 2024-06-11 15:11:43 +0200
+
+  * Drop EOL centos8-stream in CI (Benjamin Bannier, Corelight)
+
+7.0.0-dev.378 | 2024-06-11 12:01:03 +0200
+
+  * Suppress a known data race during civetweb shutdown (Tim Wojtulewicz)
+
+7.0.0-dev.376 | 2024-06-11 11:00:46 +0200
+
+  * Bump cmake for -fprofile-update=atomic usage (Arne Welzel, Corelight)
+
+  * cirrus: Unset CCACHE_BASEDIR for asan/coverage build (Arne Welzel, Corelight)
+
+    When CCACHE_BASEDIR is set, ccache will rewrite absolute paths to
+    relative paths in order to allow compilation in different source
+    directories. We do not need this feature on Cirrus (the checkout
+    is always in /zeek) and using absolute paths avoids
+    confusion/normalization needs for the gcov -p results.
+
+    We could consider removing the global CCACHE_BASEDIR, but it'd
+    bust the ccache of every other task, too.
+
+7.0.0-dev.372 | 2024-06-07 09:28:52 -0700
+
+  * Add Telemetry::metrics_address option (Tim Wojtulewicz, Corelight)
+
+7.0.0-dev.368 | 2024-06-06 18:08:29 -0700
+
+  * Change prometheus test to check for require jq (Tim Wojtulewicz, Corelight)
+
+7.0.0-dev.366 | 2024-06-06 18:06:42 -0700
+
+  * Check for 'zeekctl check' before trying to start up prometheus (Tim Wojtulewicz, Corelight)
+
+7.0.0-dev.362 | 2024-06-04 14:16:54 -0700
+
+  * Switch to zeek fork of prometheus-cpp (Tim Wojtulewicz, Corelight)
+
+  * Remove unnecessary shared_from_this on instrument classes (Tim Wojtulewicz, Corelight)
+
+  * Restore label_names field in MetricOpts record (Tim Wojtulewicz)
+
+  * Change how we count FDs on Linux to fix zeekctl stop issues (Tim Wojtulewicz)
+
+  * Update zeekctl tests for telemetry rework (Tim Wojtulewicz, Corelight)
+
+  * Use forward declarations of prometheus-cpp types in telemetry::Manager (Tim Wojtulewicz, Corelight)
+
+  * Add prometheus-cpp files to install set for plugins to use (Tim Wojtulewicz, Corelight)
+
+  * Fix a memory leak with the CivetWeb callbacks in telemetry (Tim Wojtulewicz, Corelight)
+
+  * Fix a bunch of copy-instead-of-move findings from Coverity (Tim Wojtulewicz, Corelight)
+
+  * Move telmetry label names out of opts records, into main metric records (Tim Wojtulewicz, Corelight)
+
+  * Ensure the order of label values matches the label names (Tim Wojtulewicz, Corelight)
+
+  * Remove prefix column from telemetry.log (Tim Wojtulewicz, Corelight)
+
+  * Fix race condition by pre-building the cluster json data for services.json (Tim Wojtulewicz)
+
+  * Set running_under_test for scripts.base.frameworks.logging.telemetry test (Tim Wojtulewicz, Corelight)
+
+7.0.0-dev.347 | 2024-06-04 11:36:13 -0700
+
+  * Update reporter.bif to describe special case of errors in init (Smoot)
+
+    Originally proposed in zeek/zeek-docs#257, but reverted via
+    9f9ebde62380a3012a1471d9ff1c1c91c7aa69da.
+
+7.0.0-dev.345 | 2024-06-04 10:36:46 -0700
+
+  * script optimization baseline tweaks due to recent minor changes (Vern Paxson, Corelight)
+
+  * updated list of BiFs for script optimization (Vern Paxson, Corelight)
+
+  * addressed some Coverity nits (Vern Paxson, Corelight)
+
+  * improved error cascade for invalid attributes (Vern Paxson, Corelight)
+
 7.0.0-dev.338 | 2024-05-31 14:18:15 -0700
 
   * Add type aliases for instrument and family shared_ptrs (Tim Wojtulewicz, Corelight)

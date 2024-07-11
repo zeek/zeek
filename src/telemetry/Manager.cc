@@ -6,6 +6,8 @@
 
 // CivetServer is from the civetweb submodule in prometheus-cpp
 #include <CivetServer.h>
+#include <prometheus/exposer.h>
+#include <prometheus/registry.h>
 #include <rapidjson/document.h>
 #include <rapidjson/writer.h>
 #include <algorithm>
@@ -25,12 +27,19 @@ namespace zeek::telemetry {
 
 Manager::Manager() { prometheus_registry = std::make_shared<prometheus::Registry>(); }
 
+// This can't be defined as =default because of the use of unique_ptr with a forward-declared type
+// in Manager.h
+Manager::~Manager() {}
+
 void Manager::InitPostScript() {
     // Metrics port setting is used to calculate a URL for prometheus scraping
     std::string prometheus_url;
     auto metrics_port = id::find_val("Telemetry::metrics_port")->AsPortVal();
+    auto metrics_address = id::find_val("Telemetry::metrics_address")->AsStringVal()->ToStdString();
+    if ( metrics_address.empty() )
+        metrics_address = "0.0.0.0";
     if ( metrics_port->Port() != 0 )
-        prometheus_url = util::fmt("localhost:%u", metrics_port->Port());
+        prometheus_url = util::fmt("%s:%u", metrics_address.data(), metrics_port->Port());
 
     if ( ! prometheus_url.empty() ) {
         CivetCallbacks* callbacks = nullptr;
@@ -44,6 +53,8 @@ void Manager::InitPostScript() {
             static auto manager_type = node_type_type->Lookup("Cluster", "MANAGER");
 
             if ( local_node_type == manager_type ) {
+                BuildClusterJson();
+
                 callbacks = new CivetCallbacks();
                 callbacks->begin_request = [](struct mg_connection* conn) -> int {
                     // Handle the services.json request ourselves by building up a response based on
@@ -62,13 +73,19 @@ void Manager::InitPostScript() {
             }
         }
 
-        try {
-            prometheus_exposer = std::make_unique<prometheus::Exposer>(prometheus_url, 2, callbacks);
-        } catch ( const CivetException& exc ) {
-            reporter->FatalError("Failed to setup Prometheus endpoint: %s\n", exc.what());
-        }
+        if ( ! getenv("ZEEKCTL_CHECK_CONFIG") ) {
+            try {
+                prometheus_exposer = std::make_unique<prometheus::Exposer>(prometheus_url, 2, callbacks);
 
-        prometheus_exposer->RegisterCollectable(prometheus_registry);
+                // CivetWeb stores a copy of the callbacks, so we're safe to delete the pointer here
+                delete callbacks;
+            } catch ( const CivetException& exc ) {
+                reporter->FatalError("Failed to setup Prometheus endpoint: %s. Attempted to bind to %s.", exc.what(),
+                                     prometheus_url.c_str());
+            }
+
+            prometheus_exposer->RegisterCollectable(prometheus_registry);
+        }
     }
 
 #ifdef HAVE_PROCESS_STAT_METRICS
@@ -132,7 +149,6 @@ RecordValPtr Manager::GetMetricOptsRecord(const prometheus::MetricFamily& metric
     static auto name_idx = metric_opts_type->FieldOffset("name");
     static auto help_text_idx = metric_opts_type->FieldOffset("help_text");
     static auto unit_idx = metric_opts_type->FieldOffset("unit");
-    static auto labels_idx = metric_opts_type->FieldOffset("labels");
     static auto is_total_idx = metric_opts_type->FieldOffset("is_total");
     static auto metric_type_idx = metric_opts_type->FieldOffset("metric_type");
 
@@ -154,55 +170,15 @@ RecordValPtr Manager::GetMetricOptsRecord(const prometheus::MetricFamily& metric
     // Assume that a metric ending with _total is always a summed metric so we can set that.
     record_val->Assign(is_total_idx, val_mgr->Bool(util::ends_with(metric_family.name, "_total")));
 
-    auto label_names_vec = make_intrusive<zeek::VectorVal>(string_vec_type);
-
-    // Check if this is a Zeek-internal metric. We keep a little more information about a metric
-    // for these than we do for ones that were inserted into prom-cpp directly.
-    if ( auto it = families.find(metric_family.name); it != families.end() ) {
-        record_val->Assign(metric_type_idx,
-                           zeek::BifType::Enum::Telemetry::MetricType->GetEnumVal(it->second->MetricType()));
-
-        for ( const auto& lbl : it->second->LabelNames() )
-            label_names_vec->Append(make_intrusive<StringVal>(lbl));
-    }
-    else {
-        // prom-cpp stores everything internally as doubles
-        if ( metric_family.type == prometheus::MetricType::Counter )
-            record_val->Assign(metric_type_idx, zeek::BifType::Enum::Telemetry::MetricType->GetEnumVal(
-                                                    BifEnum::Telemetry::MetricType::COUNTER));
-        if ( metric_family.type == prometheus::MetricType::Gauge )
-            record_val->Assign(metric_type_idx, zeek::BifType::Enum::Telemetry::MetricType->GetEnumVal(
-                                                    BifEnum::Telemetry::MetricType::GAUGE));
-        if ( metric_family.type == prometheus::MetricType::Histogram )
-            record_val->Assign(metric_type_idx, zeek::BifType::Enum::Telemetry::MetricType->GetEnumVal(
-                                                    BifEnum::Telemetry::MetricType::HISTOGRAM));
-
-        // prometheus-cpp doesn't store label names anywhere other than in each
-        // instrument. this is valid because label names can be different
-        // between instruments within a single family for prometheus.  we don't
-        // follow that model in Zeek, so use the names from the first instrument
-        // but validate that they're the same in the rest and warn if not.
-        if ( ! metric_family.metric.empty() ) {
-            std::unordered_set<std::string> names;
-            for ( const auto& lbl : metric_family.metric[0].label ) {
-                label_names_vec->Append(make_intrusive<StringVal>(lbl.name));
-                names.insert(lbl.name);
-            }
-
-            if ( metric_family.metric.size() > 1 ) {
-                for ( size_t i = 1; i < metric_family.metric.size(); ++i ) {
-                    for ( const auto& lbl : metric_family.metric[i].label ) {
-                        if ( names.count(lbl.name) == 0 )
-                            reporter->Warning(
-                                "Telemetry labels must be the same across all instruments for metric family %s\n",
-                                metric_family.name.c_str());
-                    }
-                }
-            }
-        }
-    }
-
-    record_val->Assign(labels_idx, label_names_vec);
+    if ( metric_family.type == prometheus::MetricType::Counter )
+        record_val->Assign(metric_type_idx, zeek::BifType::Enum::Telemetry::MetricType->GetEnumVal(
+                                                BifEnum::Telemetry::MetricType::COUNTER));
+    if ( metric_family.type == prometheus::MetricType::Gauge )
+        record_val->Assign(metric_type_idx, zeek::BifType::Enum::Telemetry::MetricType->GetEnumVal(
+                                                BifEnum::Telemetry::MetricType::GAUGE));
+    if ( metric_family.type == prometheus::MetricType::Histogram )
+        record_val->Assign(metric_type_idx, zeek::BifType::Enum::Telemetry::MetricType->GetEnumVal(
+                                                BifEnum::Telemetry::MetricType::HISTOGRAM));
 
     opts_records.insert({metric_family.name, record_val});
 
@@ -242,8 +218,8 @@ static bool comparer(const std::optional<ZVal>& a, const std::optional<ZVal>& b,
     auto a_r = a->ToVal(type)->AsRecordVal();
     auto b_r = b->ToVal(type)->AsRecordVal();
 
-    auto a_labels = a_r->GetField<VectorVal>("labels");
-    auto b_labels = b_r->GetField<VectorVal>("labels");
+    auto a_labels = a_r->GetField<VectorVal>("label_values");
+    auto b_labels = b_r->GetField<VectorVal>("label_values");
     return compare_string_vectors(a_labels, b_labels);
 }
 
@@ -262,8 +238,9 @@ ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view
     static auto string_vec_type = zeek::id::find_type<zeek::VectorType>("string_vec");
     static auto metric_record_type = zeek::id::find_type<zeek::RecordType>("Telemetry::Metric");
     static auto opts_idx = metric_record_type->FieldOffset("opts");
-    static auto labels_idx = metric_record_type->FieldOffset("labels");
     static auto value_idx = metric_record_type->FieldOffset("value");
+    static auto label_names_idx = metric_record_type->FieldOffset("label_names");
+    static auto label_values_idx = metric_record_type->FieldOffset("label_values");
 
     static auto metric_opts_type = zeek::id::find_type<zeek::RecordType>("Telemetry::MetricOpts");
     static auto metric_type_idx = metric_opts_type->FieldOffset("metric_type");
@@ -287,15 +264,7 @@ ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view
         RecordValPtr opts_record = GetMetricOptsRecord(fam);
 
         for ( const auto& inst : fam.metric ) {
-            auto label_values_vec = make_intrusive<VectorVal>(string_vec_type);
-            for ( const auto& label : inst.label ) {
-                // We don't include the endpoint key/value unless it's a prometheus request
-                if ( label.name != "endpoint" )
-                    label_values_vec->Append(make_intrusive<StringVal>(label.value));
-            }
-
             auto r = make_intrusive<zeek::RecordVal>(metric_record_type);
-            r->Assign(labels_idx, label_values_vec);
             r->Assign(opts_idx, opts_record);
 
             if ( fam.type == prometheus::MetricType::Counter )
@@ -303,7 +272,18 @@ ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view
             else if ( fam.type == prometheus::MetricType::Gauge )
                 r->Assign(value_idx, zeek::make_intrusive<DoubleVal>(inst.gauge.value));
 
-            ret_val->Append(r);
+            auto label_names_vec = make_intrusive<zeek::VectorVal>(string_vec_type);
+            auto label_values_vec = make_intrusive<zeek::VectorVal>(string_vec_type);
+
+            for ( const auto& lbl : inst.label ) {
+                label_names_vec->Append(make_intrusive<StringVal>(lbl.name));
+                label_values_vec->Append(make_intrusive<StringVal>(lbl.value));
+            }
+
+            r->Assign(label_names_idx, std::move(label_names_vec));
+            r->Assign(label_values_idx, std::move(label_values_vec));
+
+            ret_val->Append(std::move(r));
         }
     }
 
@@ -320,7 +300,7 @@ ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view
         }
     }
 
-    return ret_val;
+    return std::move(ret_val);
 }
 
 ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::string_view name_pattern) {
@@ -328,8 +308,9 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
     static auto string_vec_type = zeek::id::find_type<zeek::VectorType>("string_vec");
     static auto double_vec_type = zeek::id::find_type<zeek::VectorType>("double_vec");
     static auto histogram_metric_type = zeek::id::find_type<zeek::RecordType>("Telemetry::HistogramMetric");
-    static auto labels_idx = histogram_metric_type->FieldOffset("labels");
     static auto values_idx = histogram_metric_type->FieldOffset("values");
+    static auto label_names_idx = histogram_metric_type->FieldOffset("label_names");
+    static auto label_values_idx = histogram_metric_type->FieldOffset("label_values");
 
     static auto observations_idx = histogram_metric_type->FieldOffset("observations");
     static auto sum_idx = histogram_metric_type->FieldOffset("sum");
@@ -360,16 +341,19 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
         RecordValPtr opts_record = GetMetricOptsRecord(fam);
 
         for ( const auto& inst : fam.metric ) {
-            auto label_values_vec = make_intrusive<VectorVal>(string_vec_type);
-            for ( const auto& label : inst.label ) {
-                // We don't include the endpoint key/value unless it's a prometheus request
-                if ( label.name != "endpoint" )
-                    label_values_vec->Append(make_intrusive<StringVal>(label.value));
+            auto r = make_intrusive<zeek::RecordVal>(histogram_metric_type);
+            r->Assign(opts_idx, opts_record);
+
+            auto label_names_vec = make_intrusive<zeek::VectorVal>(string_vec_type);
+            auto label_values_vec = make_intrusive<zeek::VectorVal>(string_vec_type);
+
+            for ( const auto& lbl : inst.label ) {
+                label_names_vec->Append(make_intrusive<StringVal>(lbl.name));
+                label_values_vec->Append(make_intrusive<StringVal>(lbl.value));
             }
 
-            auto r = make_intrusive<zeek::RecordVal>(histogram_metric_type);
-            r->Assign(labels_idx, label_values_vec);
-            r->Assign(opts_idx, opts_record);
+            r->Assign(label_names_idx, std::move(label_names_vec));
+            r->Assign(label_values_idx, std::move(label_values_vec));
 
             auto double_values_vec = make_intrusive<zeek::VectorVal>(double_vec_type);
             std::vector<double> boundaries;
@@ -392,9 +376,9 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
             r->Assign(sum_idx, zeek::make_intrusive<DoubleVal>(inst.histogram.sample_sum));
 
             RecordValPtr local_opts_record = r->GetField<RecordVal>(opts_idx);
-            local_opts_record->Assign(bounds_idx, bounds_vec);
+            local_opts_record->Assign(bounds_idx, std::move(bounds_vec));
 
-            ret_val->Append(r);
+            ret_val->Append(std::move(r));
         }
     }
 
@@ -411,10 +395,10 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
         }
     }
 
-    return ret_val;
+    return std::move(ret_val);
 }
 
-std::string Manager::GetClusterJson() const {
+void Manager::BuildClusterJson() {
     rapidjson::StringBuffer buffer;
     json::detail::NullDoubleWriter writer(buffer);
 
@@ -423,8 +407,9 @@ std::string Manager::GetClusterJson() const {
 
     writer.Key("targets");
     writer.StartArray();
-    auto cluster_nodes = id::find_val("Cluster::nodes")->AsTableVal()->ToMap();
-    for ( const auto& [idx, value] : cluster_nodes ) {
+    auto& node_val = id::find_val("Cluster::nodes");
+    auto node_map = node_val->AsTableVal()->ToMap();
+    for ( const auto& [idx, value] : node_map ) {
         auto node = value->AsRecordVal();
         auto ip = node->GetField<AddrVal>("ip");
         auto port = node->GetField<PortVal>("metrics_port");
@@ -440,7 +425,7 @@ std::string Manager::GetClusterJson() const {
     writer.EndObject();
     writer.EndArray();
 
-    return buffer.GetString();
+    cluster_json = buffer.GetString();
 }
 
 CounterFamilyPtr Manager::CounterFamily(std::string_view prefix, std::string_view name,
@@ -518,7 +503,7 @@ GaugePtr Manager::GaugeInstance(std::string_view prefix, std::string_view name, 
                                 std::string_view helptext, std::string_view unit,
                                 prometheus::CollectCallbackPtr callback) {
     auto lbl_span = Span{labels.begin(), labels.size()};
-    return GaugeInstance(prefix, name, lbl_span, helptext, unit, callback);
+    return GaugeInstance(prefix, name, lbl_span, helptext, unit, std::move(callback));
 }
 
 HistogramFamilyPtr Manager::HistogramFamily(std::string_view prefix, std::string_view name,

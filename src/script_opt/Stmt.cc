@@ -143,8 +143,13 @@ StmtPtr ExprStmt::DoReduce(Reducer* c) {
         // it has a non-void type it'll generate an
         // assignment to a temporary.
         red_e_stmt = e->ReduceToSingletons(c);
-    else
+    else {
         e = e->Reduce(c, red_e_stmt);
+        // It's possible that 'e' has gone away because it was a call
+        // to an inlined function that doesn't have a return value.
+        if ( ! e )
+            return red_e_stmt;
+    }
 
     if ( red_e_stmt ) {
         auto s = make_intrusive<StmtList>(red_e_stmt, ThisPtr());
@@ -735,10 +740,202 @@ StmtPtr StmtList::DoReduce(Reducer* c) {
     return ThisPtr();
 }
 
+static unsigned int find_rec_assignment_chain(const std::vector<StmtPtr>& stmts, unsigned int i) {
+    const NameExpr* targ_rec = nullptr;
+    std::set<int> fields_seen;
+
+    for ( ; i < stmts.size(); ++i ) {
+        const auto& s = stmts[i];
+
+        // We're looking for either "x$a = y$b" or "x$a = x$a + y$b".
+        if ( s->Tag() != STMT_EXPR )
+            // No way it's an assignment.
+            return i;
+
+        auto se = s->AsExprStmt()->StmtExpr();
+        if ( se->Tag() != EXPR_ASSIGN )
+            return i;
+
+        // The LHS of an assignment starts with a RefExpr.
+        auto lhs_ref = se->GetOp1();
+        ASSERT(lhs_ref->Tag() == EXPR_REF);
+
+        auto lhs = lhs_ref->GetOp1();
+        if ( lhs->Tag() != EXPR_FIELD )
+            // Not of the form "x$a = ...".
+            return i;
+
+        auto lhs_field = lhs->AsFieldExpr()->Field();
+        if ( fields_seen.count(lhs_field) > 0 )
+            // Earlier in this chain we've already seen "x$a", so end the
+            // chain at this repeated use because it's no longer a simple
+            // block of field assignments.
+            return i;
+
+        fields_seen.insert(lhs_field);
+
+        auto lhs_rec = lhs->GetOp1();
+        if ( lhs_rec->Tag() != EXPR_NAME )
+            // Not a simple field reference, e.g. "x$y$a".
+            return i;
+
+        auto lhs_rec_n = lhs_rec->AsNameExpr();
+
+        if ( targ_rec ) {
+            if ( lhs_rec_n->Id() != targ_rec->Id() )
+                // It's no longer "x$..." but some new variable "z$...".
+                return i;
+        }
+        else
+            targ_rec = lhs_rec_n;
+    }
+
+    return i;
+}
+
+using OpChain = std::map<const ID*, std::vector<const Stmt*>>;
+
+static void update_assignment_chains(const StmtPtr& s, OpChain& assign_chains, OpChain& add_chains) {
+    auto se = s->AsExprStmt()->StmtExpr();
+    ASSERT(se->Tag() == EXPR_ASSIGN);
+
+    // The first GetOp1() here accesses the EXPR_ASSIGN's first operand,
+    // which is a RefExpr; the second gets its operand, which we've guaranteed
+    // in find_rec_assignment_chain is a FieldExpr.
+    auto lhs_fe = se->GetOp1()->GetOp1()->AsFieldExpr();
+    auto lhs_id = lhs_fe->GetOp1()->AsNameExpr()->Id();
+    auto rhs = se->GetOp2();
+    const FieldExpr* f;
+    OpChain* c;
+
+    // Check whether RHS is either "y$b" or "x$a + y$b".
+
+    if ( rhs->Tag() == EXPR_ADD ) {
+        auto rhs_op1 = rhs->GetOp1(); // need to see that it's "x$a"
+
+        if ( rhs_op1->Tag() != EXPR_FIELD )
+            return;
+
+        auto rhs1_fe = rhs_op1->AsFieldExpr();
+        auto rhs_op1_rec = rhs1_fe->GetOp1();
+        if ( rhs_op1_rec->Tag() != EXPR_NAME || rhs_op1_rec->AsNameExpr()->Id() != lhs_id ||
+             rhs1_fe->Field() != lhs_fe->Field() )
+            return;
+
+        auto rhs_op2 = rhs->GetOp2(); // need to see that it's "y$b"
+        if ( rhs_op2->Tag() != EXPR_FIELD )
+            return;
+
+        if ( ! IsArithmetic(rhs_op2->GetType()->Tag()) )
+            // Avoid esoteric forms of adding.
+            return;
+
+        f = rhs_op2->AsFieldExpr();
+        c = &add_chains;
+    }
+
+    else if ( rhs->Tag() == EXPR_FIELD ) {
+        f = rhs->AsFieldExpr();
+        c = &assign_chains;
+    }
+
+    else
+        // Not a RHS we know how to leverage.
+        return;
+
+    auto f_rec = f->GetOp1();
+    if ( f_rec->Tag() != EXPR_NAME )
+        // Not a simple RHS, instead something like "y$z$b".
+        return;
+
+    // If we get here, it's a keeper, record the associated statement.
+    auto id = f_rec->AsNameExpr()->Id();
+    (*c)[id].push_back(s.get());
+}
+
+static StmtPtr transform_chain(const OpChain& c, ExprTag t, std::set<const Stmt*>& chain_stmts) {
+    IntrusivePtr<StmtList> sl;
+
+    for ( auto& id_stmts : c ) {
+        auto orig_s = id_stmts.second;
+
+        if ( ! sl )
+            // Now that we have a statement, create our list and associate
+            // its location with the statement.
+            sl = with_location_of(make_intrusive<StmtList>(), orig_s[0]);
+
+        ExprPtr e;
+        if ( t == EXPR_ASSIGN )
+            e = make_intrusive<AssignRecordFieldsExpr>(orig_s, chain_stmts);
+        else if ( t == EXPR_ADD )
+            e = make_intrusive<AddRecordFieldsExpr>(orig_s, chain_stmts);
+        else
+            reporter->InternalError("inconsistency transforming assignment chain");
+
+        e->SetLocationInfo(sl->GetLocationInfo());
+        auto es = with_location_of(make_intrusive<ExprStmt>(std::move(e)), sl);
+        sl->Stmts().emplace_back(std::move(es));
+    }
+
+    return sl;
+}
+
+static bool simplify_chain(const std::vector<StmtPtr>& stmts, unsigned int start, unsigned int end,
+                           std::vector<StmtPtr>& f_stmts) {
+    OpChain assign_chains;
+    OpChain add_chains;
+    std::set<const Stmt*> chain_stmts;
+
+    for ( auto i = start; i <= end; ++i ) {
+        auto& s = stmts[i];
+        chain_stmts.insert(s.get());
+        update_assignment_chains(s, assign_chains, add_chains);
+    }
+
+    // An add-chain of any size is a win. For an assign-chain to be a win,
+    // it needs to have at least two elements, because a single "x$a = y$b"
+    // can be expressed using one ZAM instructino (but "x$a += y$b" cannot).
+    if ( add_chains.empty() ) {
+        bool have_useful_assign_chain = false;
+        for ( auto& ac : assign_chains )
+            if ( ac.second.size() > 1 ) {
+                have_useful_assign_chain = true;
+                break;
+            }
+
+        if ( ! have_useful_assign_chain )
+            // No gains available.
+            return false;
+    }
+
+    auto as_c = transform_chain(assign_chains, EXPR_ASSIGN, chain_stmts);
+    auto ad_c = transform_chain(add_chains, EXPR_ADD, chain_stmts);
+
+    ASSERT(as_c || ad_c);
+
+    if ( as_c )
+        f_stmts.push_back(as_c);
+    if ( ad_c )
+        f_stmts.push_back(ad_c);
+
+    // At this point, chain_stmts has only the remainders that weren't removed.
+    for ( auto s : stmts )
+        if ( chain_stmts.count(s.get()) > 0 )
+            f_stmts.push_back(s);
+
+    return true;
+}
+
 bool StmtList::ReduceStmt(unsigned int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c) {
     bool did_change = false;
     auto& stmt_i = stmts[s_i];
     auto old_stmt = stmt_i;
+
+    auto chain_end = find_rec_assignment_chain(stmts, s_i);
+    if ( chain_end > s_i && simplify_chain(stmts, s_i, chain_end - 1, f_stmts) ) {
+        s_i = chain_end - 1;
+        return true;
+    }
 
     auto stmt = stmt_i->Reduce(c);
 

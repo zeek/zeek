@@ -442,7 +442,8 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             return TC_ABORTSTMT;
         }
 
-        case EXPR_RECORD_CONSTRUCTOR: CheckRecordConstructor(e->GetType()); break;
+        case EXPR_RECORD_CONSTRUCTOR:
+        case EXPR_REC_CONSTRUCT_WITH_REC: CheckRecordConstructor(e->GetType()); break;
 
         case EXPR_SET_CONSTRUCTOR: {
             auto sc = static_cast<const SetConstructorExpr*>(e);

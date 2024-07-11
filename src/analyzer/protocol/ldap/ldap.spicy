@@ -223,7 +223,7 @@ public type Message = unit {
   var opcode: ProtocolOpcode = ProtocolOpcode::Undef;
   var applicationBytes: bytes;
   var unsetResultDefault: Result;
-  var result: Result& = self.unsetResultDefault;
+  var result_: Result& = self.unsetResultDefault;
   var obj: string = "";
   var arg: string = "";
   var success: bool = False;
@@ -328,7 +328,7 @@ type BindRequest = unit(inout message: Message) {
 
 type BindResponse = unit(inout message: Message) {
   : Result {
-    message.result = $$;
+    message.result_ = $$;
   }
 
   # TODO: if we want to parse SASL credentials returned
@@ -777,7 +777,7 @@ type SearchResultEntry = unit(inout message: Message) {
 
 type SearchResultDone = unit(inout message: Message) {
   : Result {
-    message.result = $$;
+    message.result_ = $$;
   }
 };
 
@@ -800,7 +800,7 @@ type ModifyRequest = unit(inout message: Message) {
 
 type ModifyResponse = unit(inout message: Message) {
   : Result {
-    message.result = $$;
+    message.result_ = $$;
   }
 };
 
@@ -816,7 +816,7 @@ type ModifyResponse = unit(inout message: Message) {
 
 type AddResponse = unit(inout message: Message) {
   : Result {
-    message.result = $$;
+    message.result_ = $$;
   }
 };
 
@@ -832,7 +832,7 @@ type DelRequest = unit(inout message: Message) {
 
 type DelResponse = unit(inout message: Message) {
   : Result {
-    message.result = $$;
+    message.result_ = $$;
   }
 };
 
@@ -847,7 +847,7 @@ type DelResponse = unit(inout message: Message) {
 
 type ModDNResponse = unit(inout message: Message) {
   : Result {
-    message.result = $$;
+    message.result_ = $$;
   }
 };
 
@@ -862,7 +862,7 @@ type ModDNResponse = unit(inout message: Message) {
 
 type CompareResponse = unit(inout message: Message) {
   : Result {
-    message.result = $$;
+    message.result_ = $$;
   }
 };
 

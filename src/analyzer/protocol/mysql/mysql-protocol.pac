@@ -209,14 +209,50 @@ enum field_types {
 	TYPE_GEOMETRY = 0xff,
 };
 
+type Date = record {
+	year : int16;
+	month: int8;
+	day  : int8;
+};
+
+type Time = record {
+	hour  : int8;
+	minute: int8;
+	second: int8;
+};
+
 type BinaryDate = record {
 	len: uint8 &enforce(len == 0 || len == 4 || len == 7 || len == 11);
-	not_implemented: bytestring &length=len;
+	have_date: case ( len > 0 ) of {
+		true  -> date  : Date;
+		false -> none_1: empty;
+	};
+	have_time: case ( len > 4 ) of {
+		true  -> time  : Time;
+		false -> none_2: empty;
+	};
+	have_micros: case ( len > 7 ) of {
+		true  -> micros: int32;
+		false -> none_3: empty;
+	};
+};
+
+type DurationTime = record {
+	is_negative: int8 &enforce(is_negative == 0 || is_negative == 1);
+	days       : int32;
+	time       : Time;
 };
 
 type BinaryTime = record {
 	len: uint8 &enforce(len == 0 || len == 8 || len == 12);
-	not_implemented: bytestring &length=len;
+	have_time: case ( len > 0 ) of {
+		true  -> time  : DurationTime;
+		false -> none_1: empty;
+	};
+	have_micros: case ( len > 8 ) of {
+		true  -> micros: int32;
+		false -> none_2: empty;
+	};
 };
 
 type BinaryValue(type: uint16) = record {

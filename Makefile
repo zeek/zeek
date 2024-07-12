@@ -9,7 +9,7 @@ BUILD=build
 REPO=$$(cd $(CURDIR) && basename $$(git config --get remote.origin.url | sed 's/^[^:]*://g'))
 VERSION_FULL=$(REPO)-$$(cd $(CURDIR) && cat VERSION)
 GITDIR=$$(test -f .git && echo $$(cut -d" " -f2 .git) || echo .git)
-REALPATH=$$($$(realpath --relative-to=$(pwd) . >/dev/null 2>&1) && echo 'realpath' || echo 'grealpath')
+REALPATH=$$($$(realpath --relative-to=$(shell pwd) . >/dev/null 2>&1) && echo 'realpath' || echo 'grealpath')
 
 all: configured
 	$(MAKE) -C $(BUILD) $@

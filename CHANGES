@@ -1,3 +1,7 @@
+7.1.0-dev.2 | 2024-07-12 09:46:34 -0700
+
+  * Fix warning about grealpath when running 'make dist' on Linux (Tim Wojtulewicz, Corelight)
+
 7.0.0-dev.467 | 2024-07-11 12:14:52 -0700
 
   * Update the scripts.base.frameworks.telemetry.internal-metrics test (Christian Kreibich, Corelight)

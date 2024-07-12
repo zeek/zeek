@@ -1,3 +1,13 @@
+7.1.0-dev.10 | 2024-07-12 16:02:22 -0700
+
+  * CI: Set FETCH_CONTENT_FULLY_DISCONNECTED flag for configure (Tim Wojtulewicz, Corelight)
+
+  * Fix a broken merge (Tim Wojtulewicz, Corelight)
+
+    I merged an old version of the branch on accident and then merged the right
+    one over top of it, but git ended up including both versions. This fixes
+    that mistake.
+
 7.1.0-dev.6 | 2024-07-12 09:51:39 -0700
 
   * Do not emit hook files for builtin modules (Benjamin Bannier, Corelight)

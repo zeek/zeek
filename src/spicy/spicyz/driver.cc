@@ -35,15 +35,11 @@ struct VisitorTypes : public spicy::visitor::PreOrder {
         : driver(driver), glue(glue), is_resolved(is_resolved) {}
 
     void operator()(hilti::declaration::Module* n) final {
-        // Ignore modules built by us in memory, or builtin modules which
-        // never contain implementations of hooks for user types.
-        if ( n->uid().in_memory ||
-             (module == "hilti" || module == "spicy" || module == "spicy_rt" || module == "zeek_rt") ) {
+        if ( n->uid().in_memory ) {
+            // Ignore modules built by us in memory.
             module = {};
             return;
         }
-
-
         module = n->scopeID();
         path = n->uid().path;
 

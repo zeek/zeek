@@ -47,7 +47,7 @@ struct VisitorTypes : public spicy::visitor::PreOrder {
         module = n->scopeID();
         path = n->uid().path;
 
-        if ( is_resolved )
+        if ( is_resolved && ! n->skipImplementation() )
             glue->addSpicyModule(module, path);
     }
 

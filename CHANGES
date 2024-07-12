@@ -1,4 +1,4 @@
-7.1.0-dev.4 | 2024-07-12 09:47:59 -0700
+7.1.0-dev.6 | 2024-07-12 09:51:39 -0700
 
   * Do not emit hook files for builtin modules (Benjamin Bannier, Corelight)
 
@@ -6,8 +6,9 @@
     `spicy` module even though that module like any other builtin module
     never contains implementations of hooks for types in user code.
 
-    This patch adds a blocklist of builtin modules which are skipped for
-    generating hook files.
+    This patch prevents modules with skipped implementations (such as our
+    builtin modules) from being added to the compilation which prevents
+    generating their hook files.
 
 7.1.0-dev.2 | 2024-07-12 09:46:34 -0700
 

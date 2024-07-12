@@ -1,3 +1,14 @@
+7.1.0-dev.4 | 2024-07-12 09:47:59 -0700
+
+  * Do not emit hook files for builtin modules (Benjamin Bannier, Corelight)
+
+    We would previously emit a C++ file with hooks for at least the builtin
+    `spicy` module even though that module like any other builtin module
+    never contains implementations of hooks for types in user code.
+
+    This patch adds a blocklist of builtin modules which are skipped for
+    generating hook files.
+
 7.1.0-dev.2 | 2024-07-12 09:46:34 -0700
 
   * Fix warning about grealpath when running 'make dist' on Linux (Tim Wojtulewicz, Corelight)

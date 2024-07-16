@@ -15,7 +15,7 @@ public type Request  = unit {
 
     switch {
         -> : /\/W/ { self.whois = True; }
-        -> void;
+        -> : void;
     };
 
     : OptionalWhiteSpace;

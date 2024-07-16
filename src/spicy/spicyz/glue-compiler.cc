@@ -1375,7 +1375,7 @@ bool GlueCompiler::CreateSpicyHook(glue::Event* ev) {
 
     auto attrs = builder()->attributeSet({builder()->attribute("&priority", builder()->integer(ev->priority))});
     auto parameters = hilti::util::transform(ev->parameters, [](const auto& p) { return p.get(); });
-    auto unit_hook = builder()->declarationHook(parameters, body.block(), ::spicy::Engine::All, attrs, meta);
+    auto unit_hook = builder()->declarationHook(parameters, body.block(), attrs, meta);
     auto hook_decl = builder()->declarationUnitHook(ev->hook, unit_hook, meta);
     ev->spicy_module->spicy_module->add(context(), hook_decl);
 

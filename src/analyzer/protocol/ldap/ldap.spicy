@@ -303,25 +303,30 @@ public type MessageWrapper = unit(ctx: Ctx&) {
 public type Message = unit(ctx: Ctx&) {
   var messageID: int64;
   var opcode: ProtocolOpcode = ProtocolOpcode::Undef;
-  var applicationBytes: bytes;
   var unsetResultDefault: Result;
   var result_: Result& = self.unsetResultDefault;
   var obj: string = "";
   var arg: string = "";
-  var success: bool = False;
+  var seqHeaderLen: uint64;
+  var msgLen: uint64;
 
-  : ASN1::ASN1Message(True) {
-    if (($$.head.tag.type_ == ASN1::ASN1Type::Sequence) &&
-        ($$.body?.seq) &&
-        (|$$.body.seq.submessages| >= 2)) {
-      if ($$.body.seq.submessages[0].body?.num_value) {
-        self.messageID = $$.body.seq.submessages[0].body.num_value;
-      }
-      if ($$.body.seq.submessages[1]?.application_id) {
-        self.opcode = cast<ProtocolOpcode>(cast<uint8>($$.body.seq.submessages[1].application_id));
-        self.applicationBytes = $$.body.seq.submessages[1].application_data;
-      }
-    }
+  seqHeader: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Universal && $$.tag.type_ == ASN1::ASN1Type::Sequence) {
+    self.msgLen = $$.len.len;
+  }
+
+  # Use offset() to determine how many bytes the seqHeader took. This
+  # needs to be done after the seqHeader field hook.
+  : void {
+    self.seqHeaderLen = self.offset();
+  }
+
+  messageID_header: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Universal && $$.tag.type_ == ASN1::ASN1Type::Integer);
+  : ASN1::ASN1Body(self.messageID_header, False) {
+    self.messageID = $$.num_value;
+  }
+
+  protocolOp: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Application) {
+    self.opcode = cast<ProtocolOpcode>(cast<uint8>($$.tag.type_));
   }
 
   switch ( self.opcode ) {
@@ -349,17 +354,15 @@ public type Message = unit(ctx: Ctx&) {
     ProtocolOpcode::INTERMEDIATE_RESPONSE   -> INTERMEDIATE_RESPONSE:   NotImplemented(self);
     ProtocolOpcode::MOD_DN_REQUEST          -> MOD_DN_REQUEST:          NotImplemented(self);
     ProtocolOpcode::SEARCH_RESULT_REFERENCE -> SEARCH_RESULT_REFERENCE: NotImplemented(self);
-  } &parse-from=self.applicationBytes if ( self.opcode );
+  } &size=self.protocolOp.len.len;
 
-  on %error {
-    self.backtrack();
-  }
+  # Ensure some invariants hold after parsing the command.
+  : void &requires=(self.offset() >= self.seqHeaderLen);
+  : void &requires=(self.msgLen >= (self.offset() - self.seqHeaderLen));
 
-  on %done {
-    self.success = True;
-  }
-
-} &requires=((self?.messageID) && (self?.opcode) && (self.opcode != ProtocolOpcode::Undef));
+  # Eat the controls field if it exists.
+  : skip bytes &size=self.msgLen - (self.offset() - self.seqHeaderLen);
+};
 
 #-----------------------------------------------------------------------------
 # Bind Operation
@@ -462,7 +465,7 @@ type ServerSaslCreds = unit {
 # TODO(fox-ds): A helper unit for requests for which no handling has been implemented.
 # Eventually all uses of this unit should be replaced with actual parsers so this unit can be removed.
 type NotImplemented = unit(inout message: Message) {
-  # Do nothing
+  : skip bytes &eod;
 };
 
 type BindRequest = unit(inout message: Message) {

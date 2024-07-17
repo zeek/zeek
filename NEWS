@@ -12,8 +12,14 @@ Breaking Changes
 New Functionality
 -----------------
 
+* The LDAP analyzer now supports handling of non-sealed GSS-API WRAP tokens.
+
 Changed Functionality
 ---------------------
+
+* Heuristics for parsing SASL encrypted and signed LDAP traffic have been
+  made more strict and predictable. Please provide input if this results in
+  less visibility in your environment.
 
 Removed Functionality
 ---------------------

@@ -1,3 +1,33 @@
+7.1.0-dev.16 | 2024-07-17 16:45:13 +0200
+
+  * ldap: Remove MessageWrapper with magic 0x30 searching (Arne Welzel, Corelight)
+
+    This unit implements a heuristic to search for the 0x30 sequence
+    byte if Message couldn't readily be parsed. Remove it with the
+    idea of explicit and predictable support for SASL mechanisms.
+
+  * ldap: Harden parsing a bit (Arne Welzel, Corelight)
+
+    ASN1Message(True) may go off parsing arbitrary input data as
+    "something ASN.1" This could be GBs of octet strings or just very
+    long sequences. Avoid this by open-coding some top-level types expected.
+
+    This also tries to avoid some of the &parse-from usages that result
+    in unnecessary copies of data.
+
+    Adds a locally generated PCAP with addRequest/addResponse that we
+    don't currently handle.
+
+  * ldap: Handle integrity-only KRB wrap tokens (Arne Welzel, Corelight)
+
+    Mostly staring at the PCAPs and opened a few RFCs. For now, only if the
+    MS_KRB5 OID is used and accepted in a bind response, start stripping
+    KRB5 wrap tokens for both, client and server traffic.
+
+    Would probably be nice to forward the GSS-API data to the analyzer...
+
+    Closes zeek/spicy-ldap#29.
+
 7.1.0-dev.12 | 2024-07-16 10:16:02 -0700
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

@@ -126,125 +126,126 @@ public type Result = unit {
   # https://tools.ietf.org/html/rfc4511#section-4.1.10
 };
 
+# 1.2.840.48018.1.2.2 (MS KRB5 - Microsoft Kerberos 5)
+const GSSAPI_MECH_MS_KRB5 = "1.2.840.48018.1.2.2";
+
+# Supported SASL stripping modes.
+type SaslStripping = enum {
+  MS_KRB5 = 1,  # Payload starts with a 4 byte length followed by a wrap token that may or may not be sealed.
+};
+
+type Ctx = struct {
+  saslStripping: SaslStripping;  # Which mode of SASL stripping to use.
+};
+
 #-----------------------------------------------------------------------------
 public type Messages = unit {
-  : MessageWrapper[];
+  %context = Ctx;
+  : SASLStrip(self.context())[];
 };
 
 #-----------------------------------------------------------------------------
-type SASLLayer = unit {
-  # For the time being (before we support parsing the SASL layer) this unit
-  # is used by MessageWrapper below to strip it (SASL) so that the parser
-  # can attempt to resume parsing afterward. It also sets the success flag
-  # if '\x30' is found, otherwise backtracks so that we can deal with encrypted
-  # SASL payloads without raising a parse error.
-  var success: bool = False;
-  : bytes &until=b"\x30" {
-    self.success = True;
+public type SASLStrip = unit(ctx: Ctx&) {
+  switch( ctx.saslStripping ) {
+    SaslStripping::Undef -> : Message(ctx);
+    SaslStripping::MS_KRB5 -> : SaslMsKrb5Stripper(ctx);
+  };
+};
+
+
+type KrbWrapToken = unit {
+  # https://datatracker.ietf.org/doc/html/rfc4121#section-4.2.6.2
+
+  # Number of bytes to expect *after* the payload.
+  var trailer_ec: uint64;
+  var header_ec: uint64;
+
+  ctx_flags: bitfield(8) {
+    send_by_acceptor: 0;
+    sealed: 1;
+    acceptor_subkey: 2;
+  };
+  filler: skip b"\xff";
+  ec: uint16; # extra count
+  rrc: uint16 { # right rotation count
+    # Handle rrc == ec or rrc == 0.
+    if ( self.rrc == self.ec ) {
+      self.header_ec = self.ec;
+    } else if ( self.rrc == 0 ) {
+        self.trailer_ec = self.ec;
+    } else {
+      throw "Unhandled rc %s and ec %s" % (self.ec, self.rrc);
+    }
   }
 
-  on %error {
-    self.backtrack();
-  }
+  snd_seq: uint64;
+  header_e: skip bytes &size=self.header_ec;
 };
 
 #-----------------------------------------------------------------------------
-public type MessageWrapper = unit {
-  # A wrapper around 'Message'. First, we try to parse a Message unit.
-  # There are two possible outcomes:
-  #   (1) Success -> We consumed all bytes and successfully parsed a Message unit
-  #   (2) No success -> self.backtrack() is called in the Message unit,
-  #                     so effectively we didn't consume any bytes yet.
-  # The outcome can be determined by checking the `success` variable of the Message unit
+type SaslMsKrb5Stripper = unit(ctx: Ctx&) {
+  # This is based on Wireshark output and example traffic we have. There's always
+  # a 4 byte length field followed by the krb5_tok_id field in messages after
+  # MS_KRB5 was selected. I haven't read enough specs to understand if it's
+  # just this one case that works, or others could use the same stripping.
+  var switch_size: uint64;
 
-  # This success variable is different, because this keeps track of the status for the MessageWrapper object
-  var success: bool = False;
-  var message: Message;
+  len: uint32;
+  krb5_tok_id: uint16;
 
-  # Here, we try to parse the message...
-  : Message &try {
+  switch ( self.krb5_tok_id ) {
+    0x0504 -> krb_wrap_token: KrbWrapToken;
+    * -> : void;
+  };
 
-      # ... and only if the Message unit successfully parsed, we can set
-      # the status of this MessageWrapper's success to 'True'
-      if ( $$.success == True ) {
-        self.success = True;
-        self.message = $$;
-      }
+  : skip bytes &size=0 {
+    self.switch_size = self.len - (self.offset() - 4);
+    if ( self?.krb_wrap_token )
+      self.switch_size -= self.krb_wrap_token.trailer_ec;
   }
 
-  # If we failed to parse the message, then we're going to scan the remaining bytes for the '\x30'
-  # start byte and try to parse a Message starting from that byte. This effectively
-  # strips the SASL layer if SASL Signing was enabled. Until now, I haven't found A
-  # better way to scan / determine the exact SASL header length yet, so we'll stick with this
-  # for the time being. If the entire LDAP packet was encrypted with SASL, then we skip parsing for
-  # now (in the long run we need to be parsing SASL/GSSAPI instead, in which case encrypted payloads
-  # are just another message type).
+  switch ( self?.krb_wrap_token && ! self.krb_wrap_token.ctx_flags.sealed ) {
+    True -> : Message(ctx)[] &eod;
+    * -> : skip bytes &eod;
+  } &size=self.switch_size;
 
-  # SASLLayer (see unit above) just consumes bytes &until=b"\x30" or backtracks if it isn't found
-  # and sets a success flag we can use later to decide if those bytes contain a parsable message.
-  var sasl_success: bool = False;
-  : SASLLayer &try if ( self.success == False ) {
-    if ( $$.success == True ) {
-      self.sasl_success = True;
-    }
-  }
-  var remainder: bytes;
-
-  # SASLLayer consumes the delimiter ('\x30'), and because this is the first byte of a valid LDAP message
-  # we should re-add it to the remainder if the delimiter was found. If the delimiter was not found, we
-  # leave the remainder empty, but note that the bytes must be consumed either way to avoid stalling the
-  # parser and causing an infinite loop error.
-  : bytes &eod if ( self.success == False )  {
-    if ( self.sasl_success == True ) {
-      self.remainder = b"\x30" + $$;
-    }
-  }
-
-  # Again, try to parse a Message unit. Be aware that in this will sometimes fail if the '\x30' byte is
-  # also present in the SASL header.
-
-  # Also, we could try to do this recursively or try a few iterations, but for now I would suggest
-  # to try this extra parsing once to get the best cost/benefit tradeoff.
-  : Message &try &parse-from=self.remainder if ( self.success == False && self.sasl_success == True ) {
-      if ( $$.success == True ) {
-        self.success = True;
-        self.message = $$;
-      }
-  }
-
-  # If we still didn't manage to parse a message (so the &try resulted in another backtrack()) then
-  # this is probably an encrypted LDAP message, so skip it
-
-} &convert=self.message;
+  # Consume the wrap token trailer, if any.
+  trailer_e: skip bytes &size=self.krb_wrap_token.trailer_ec if (self?.krb_wrap_token);
+};
 
 #-----------------------------------------------------------------------------
-public type Message = unit {
+public type Message = unit(ctx: Ctx&) {
   var messageID: int64;
   var opcode: ProtocolOpcode = ProtocolOpcode::Undef;
-  var applicationBytes: bytes;
   var unsetResultDefault: Result;
   var result_: Result& = self.unsetResultDefault;
   var obj: string = "";
   var arg: string = "";
-  var success: bool = False;
+  var seqHeaderLen: uint64;
+  var msgLen: uint64;
 
-  : ASN1::ASN1Message(True) {
-    if (($$.head.tag.type_ == ASN1::ASN1Type::Sequence) &&
-        ($$.body?.seq) &&
-        (|$$.body.seq.submessages| >= 2)) {
-      if ($$.body.seq.submessages[0].body?.num_value) {
-        self.messageID = $$.body.seq.submessages[0].body.num_value;
-      }
-      if ($$.body.seq.submessages[1]?.application_id) {
-        self.opcode = cast<ProtocolOpcode>(cast<uint8>($$.body.seq.submessages[1].application_id));
-        self.applicationBytes = $$.body.seq.submessages[1].application_data;
-      }
-    }
+  seqHeader: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Universal && $$.tag.type_ == ASN1::ASN1Type::Sequence) {
+    self.msgLen = $$.len.len;
+  }
+
+  # Use offset() to determine how many bytes the seqHeader took. This
+  # needs to be done after the seqHeader field hook.
+  : void {
+    self.seqHeaderLen = self.offset();
+  }
+
+  messageID_header: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Universal && $$.tag.type_ == ASN1::ASN1Type::Integer);
+  : ASN1::ASN1Body(self.messageID_header, False) {
+    self.messageID = $$.num_value;
+  }
+
+  protocolOp: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Application) {
+    self.opcode = cast<ProtocolOpcode>(cast<uint8>($$.tag.type_));
   }
 
   switch ( self.opcode ) {
     ProtocolOpcode::BIND_REQUEST            -> BIND_REQUEST:            BindRequest(self);
-    ProtocolOpcode::BIND_RESPONSE           -> BIND_RESPONSE:           BindResponse(self);
+    ProtocolOpcode::BIND_RESPONSE           -> BIND_RESPONSE:           BindResponse(self, ctx);
     ProtocolOpcode::UNBIND_REQUEST          -> UNBIND_REQUEST:          UnbindRequest(self);
     ProtocolOpcode::SEARCH_REQUEST          -> SEARCH_REQUEST:          SearchRequest(self);
     ProtocolOpcode::SEARCH_RESULT_ENTRY     -> SEARCH_RESULT_ENTRY:     SearchResultEntry(self);
@@ -267,17 +268,15 @@ public type Message = unit {
     ProtocolOpcode::INTERMEDIATE_RESPONSE   -> INTERMEDIATE_RESPONSE:   NotImplemented(self);
     ProtocolOpcode::MOD_DN_REQUEST          -> MOD_DN_REQUEST:          NotImplemented(self);
     ProtocolOpcode::SEARCH_RESULT_REFERENCE -> SEARCH_RESULT_REFERENCE: NotImplemented(self);
-  } &parse-from=self.applicationBytes if ( self.opcode );
+  } &size=self.protocolOp.len.len;
 
-  on %error {
-    self.backtrack();
-  }
+  # Ensure some invariants hold after parsing the command.
+  : void &requires=(self.offset() >= self.seqHeaderLen);
+  : void &requires=(self.msgLen >= (self.offset() - self.seqHeaderLen));
 
-  on %done {
-    self.success = True;
-  }
-
-} &requires=((self?.messageID) && (self?.opcode) && (self.opcode != ProtocolOpcode::Undef));
+  # Eat the controls field if it exists.
+  : skip bytes &size=self.msgLen - (self.offset() - self.seqHeaderLen);
+};
 
 #-----------------------------------------------------------------------------
 # Bind Operation
@@ -288,15 +287,99 @@ public type BindAuthType = enum {
   BIND_AUTH_SASL = 3,
 };
 
+type GSS_SPNEGO_negTokenInit = unit {
+  oidHeader: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Universal && $$.tag.type_ == ASN1::ASN1Type::ObjectIdentifier);
+  oid: ASN1::ASN1ObjectIdentifier(self.oidHeader.len.len) &requires=(self.oid.oidstring == "1.3.6.1.5.5.2");
+
+  # TODO: Parse the rest of negTokenInit.
+  : skip bytes &eod;
+};
+
+# Peak into GSS-SPNEGO payload and ensure it is indeed GSS-SPNEGO.
+type GSS_SPNEGO = unit {
+  # This is the optional octet string in SaslCredentials.
+  credentialsHeader: ASN1::ASN1Header &requires=($$.tag.type_ == ASN1::ASN1Type::OctetString);
+
+  # Now we either have the initial message as specified in RFC2743 or
+  # a continuation from RFC4178
+  #
+  #   60 -> APPLICATION [0]  https://datatracker.ietf.org/doc/html/rfc2743#page-81)
+  #   a1 -> CHOICE [1]       https://www.rfc-editor.org/rfc/rfc4178#section-4.2
+  #
+  gssapiHeader: ASN1::ASN1Header &requires=(
+    $$.tag.class == ASN1::ASN1Class::Application && $$.tag.type_ == ASN1::ASN1Type(0)
+    || $$.tag.class == ASN1::ASN1Class::ContextSpecific && $$.tag.type_ == ASN1::ASN1Type(1)
+  );
+
+  switch ( self.gssapiHeader.tag.type_ ) {
+    ASN1::ASN1Type(0) -> initial: GSS_SPNEGO_negTokenInit;
+    * -> : skip bytes &eod;
+  } &size=self.gssapiHeader.len.len;
+};
+
 type SaslCredentials = unit() {
-  mechanism: ASN1::ASN1Message(True) &convert=$$.body.str_value;
-  # TODO: if we want to parse the (optional) credentials string
+  mechanism: ASN1::ASN1Message(False) &convert=$$.body.str_value;
+
+  # Peak into GSS-SPNEGO payload if we have any.
+  switch ( self.mechanism ) {
+    "GSS-SPNEGO" -> gss_spnego: GSS_SPNEGO;
+    * -> : skip bytes &eod;
+  };
+};
+
+type NegTokenResp = unit {
+  var accepted: bool;
+  var supportedMech: ASN1::ASN1Message;
+
+  # Parse the contained Sequence.
+  seq: ASN1::ASN1Message(True) {
+    for ( msg in $$.body.seq.submessages ) {
+      # https://www.rfc-editor.org/rfc/rfc4178#section-4.2.2
+      if ( msg.application_id == 0 ) {
+        self.accepted = msg.application_data == b"\x0a\x01\x00";
+      } else if ( msg.application_id == 1 ) {
+        self.supportedMech = msg;
+      } else if ( msg.application_id == 2 ) {
+        # ignore responseToken
+      } else if ( msg.application_id == 3 ) {
+        # ignore mechListMec
+      } else {
+        throw "unhandled NegTokenResp id %s" % msg.application_id;
+      }
+    }
+  }
+
+  switch ( self?.supportedMech ) {
+    True -> supportedMechOid: ASN1::ASN1Message(False) &convert=$$.body.str_value;
+    * -> : void;
+  } &parse-from=self.supportedMech.application_data;
+};
+
+type ServerSaslCreds = unit {
+  serverSaslCreds: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::ContextSpecific && $$.tag.type_ == ASN1::ASN1Type(7));
+
+  # The PCAP missing_ldap_logs.pcapng has a1 81 b6 here for the GSS-SPNEGO response.
+  #
+  # This is context-specific ID 1, constructed, and a length of 182 as
+  # specified by in 4.2 of RFC4178.
+  #
+  # https://www.rfc-editor.org/rfc/rfc4178#section-4.2
+  #
+  # TODO: This is only valid for a GSS-SPNEGO negTokenResp.
+  # If you want to support something else, remove the requires
+  # and add more to the switch below.
+  choice: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::ContextSpecific);
+
+  switch ( self.choice.tag.type_ ) {
+    ASN1::ASN1Type(1) -> negTokenResp: NegTokenResp;
+    # ...
+  } &size=self.choice.len.len;
 };
 
 # TODO(fox-ds): A helper unit for requests for which no handling has been implemented.
 # Eventually all uses of this unit should be replaced with actual parsers so this unit can be removed.
 type NotImplemented = unit(inout message: Message) {
-  # Do nothing
+  : skip bytes &eod;
 };
 
 type BindRequest = unit(inout message: Message) {
@@ -324,14 +407,32 @@ type BindRequest = unit(inout message: Message) {
                                                              (|self.authData| > 0)) {
     message.arg = self.saslCreds.mechanism;
   }
-} &requires=((self?.authType) && (self.authType != BindAuthType::Undef));
+} &requires=(self?.authType && (self.authType != BindAuthType::Undef));
 
-type BindResponse = unit(inout message: Message) {
+type BindResponse = unit(inout message: Message, ctx: Ctx&) {
   : Result {
     message.result_ = $$;
   }
 
-  # TODO: if we want to parse SASL credentials returned
+  # Try to parse serverSaslCreds if there's any input remaining. This
+  # unit is parsed with &size, so &eod here works.
+  #
+  # Technically we should be able to tell from the ASN.1 structure
+  # if the serverSaslCreds field exists or not. But, not sure we can
+  # check if there's any bytes left at this point outside of passing
+  # in the length and playing with offset().
+  serverSaslCreds: ServerSaslCreds[] &eod {
+    if ( |self.serverSaslCreds| > 0 ) {
+      if ( self.serverSaslCreds[0]?.negTokenResp ) {
+        local token = self.serverSaslCreds[0].negTokenResp;
+        if ( token.accepted && token?.supportedMechOid ) {
+          if ( token.supportedMechOid == GSSAPI_MECH_MS_KRB5 ) {
+            ctx.saslStripping = SaslStripping::MS_KRB5;
+          }
+        }
+      }
+    }
+  }
 };
 
 #-----------------------------------------------------------------------------
@@ -899,6 +1000,6 @@ type AbandonRequest = unit(inout message: Message) {
 #
 # };
 
-on LDAP::MessageWrapper::%done {
+on LDAP::Message::%done {
   spicy::accept_input();
 }

@@ -120,4 +120,11 @@ export {
 	    "searching", [ LDAP::SearchDerefAlias_DEREF_FINDING_BASE ] =
 	    "finding", [ LDAP::SearchDerefAlias_DEREF_ALWAYS ] = "always",  }
 	    &default="unknown";
+
+	const EXTENDED_REQUESTS = {
+	   # StartTLS, https://datatracker.ietf.org/doc/html/rfc4511#section-4.14.1
+	   [ "1.3.6.1.4.1.1466.20037" ] = "StartTLS",
+	   # whoami, https://datatracker.ietf.org/doc/html/rfc4532#section-2
+	   [ "1.3.6.1.4.1.4203.1.11.3" ] = "whoami",
+	} &default="unknown" &redef;
 }

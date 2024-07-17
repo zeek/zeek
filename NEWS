@@ -14,6 +14,10 @@ New Functionality
 
 * The LDAP analyzer now supports handling of non-sealed GSS-API WRAP tokens.
 
+* StartTLS support was added to the LDAP analyzer. The SSL analyzer is enabled
+  for connections where client and server negotiate to TLS through the extended
+  request/response mechanism.
+
 Changed Functionality
 ---------------------
 

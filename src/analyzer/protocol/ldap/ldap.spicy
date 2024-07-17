@@ -130,28 +130,37 @@ public type Result = unit {
 const GSSAPI_MECH_MS_KRB5 = "1.2.840.48018.1.2.2";
 
 # Supported SASL stripping modes.
-type SaslStripping = enum {
-  MS_KRB5 = 1,  # Payload starts with a 4 byte length followed by a wrap token that may or may not be sealed.
+type MessageMode = enum {
+  MS_KRB5 = 1, # Payload starts with a 4 byte length followed by a wrap token that may or may not be sealed.
+  TLS = 2,     # Client/server used StartTLS, forward to SSL analyzer.
 };
 
 type Ctx = struct {
-  saslStripping: SaslStripping;  # Which mode of SASL stripping to use.
+  messageMode: MessageMode;   # Message dispatching mode
+  startTlsRequested: bool;    # Did the client use the StartTLS extended request?
 };
 
 #-----------------------------------------------------------------------------
 public type Messages = unit {
   %context = Ctx;
-  : SASLStrip(self.context())[];
+  : MessageDispatch(self.context())[];
 };
 
 #-----------------------------------------------------------------------------
-public type SASLStrip = unit(ctx: Ctx&) {
-  switch( ctx.saslStripping ) {
-    SaslStripping::Undef -> : Message(ctx);
-    SaslStripping::MS_KRB5 -> : SaslMsKrb5Stripper(ctx);
+public type MessageDispatch = unit(ctx: Ctx&) {
+  switch( ctx.messageMode ) {
+    MessageMode::Undef -> : Message(ctx);
+    MessageMode::MS_KRB5 -> : SaslMsKrb5Stripper(ctx);
+    MessageMode::TLS -> : TlsForward;
   };
 };
 
+
+#-----------------------------------------------------------------------------
+type TlsForward = unit {
+  # Just consume everything. This is hooked in ldap_zeek.spicy
+  chunk: bytes &chunked &eod;
+};
 
 type KrbWrapToken = unit {
   # https://datatracker.ietf.org/doc/html/rfc4121#section-4.2.6.2
@@ -223,6 +232,7 @@ public type Message = unit(ctx: Ctx&) {
   var arg: string = "";
   var seqHeaderLen: uint64;
   var msgLen: uint64;
+  var opLen: uint64;
 
   seqHeader: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Universal && $$.tag.type_ == ASN1::ASN1Type::Sequence) {
     self.msgLen = $$.len.len;
@@ -241,6 +251,7 @@ public type Message = unit(ctx: Ctx&) {
 
   protocolOp: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Application) {
     self.opcode = cast<ProtocolOpcode>(cast<uint8>($$.tag.type_));
+    self.opLen = $$.len.len;
   }
 
   switch ( self.opcode ) {
@@ -263,12 +274,12 @@ public type Message = unit(ctx: Ctx&) {
     # just commenting this out, it will stop processing LDAP Messages in this connection
     ProtocolOpcode::ADD_REQUEST             -> ADD_REQUEST:             NotImplemented(self);
     ProtocolOpcode::COMPARE_REQUEST         -> COMPARE_REQUEST:         NotImplemented(self);
-    ProtocolOpcode::EXTENDED_REQUEST        -> EXTENDED_REQUEST:        NotImplemented(self);
-    ProtocolOpcode::EXTENDED_RESPONSE       -> EXTENDED_RESPONSE:       NotImplemented(self);
+    ProtocolOpcode::EXTENDED_REQUEST        -> EXTENDED_REQUEST:        ExtendedRequest(self, ctx);
+    ProtocolOpcode::EXTENDED_RESPONSE       -> EXTENDED_RESPONSE:       ExtendedResponse(self, ctx);
     ProtocolOpcode::INTERMEDIATE_RESPONSE   -> INTERMEDIATE_RESPONSE:   NotImplemented(self);
     ProtocolOpcode::MOD_DN_REQUEST          -> MOD_DN_REQUEST:          NotImplemented(self);
     ProtocolOpcode::SEARCH_RESULT_REFERENCE -> SEARCH_RESULT_REFERENCE: NotImplemented(self);
-  } &size=self.protocolOp.len.len;
+  } &size=self.opLen;
 
   # Ensure some invariants hold after parsing the command.
   : void &requires=(self.offset() >= self.seqHeaderLen);
@@ -427,7 +438,7 @@ type BindResponse = unit(inout message: Message, ctx: Ctx&) {
         local token = self.serverSaslCreds[0].negTokenResp;
         if ( token.accepted && token?.supportedMechOid ) {
           if ( token.supportedMechOid == GSSAPI_MECH_MS_KRB5 ) {
-            ctx.saslStripping = SaslStripping::MS_KRB5;
+            ctx.messageMode = MessageMode::MS_KRB5;
           }
         }
       }
@@ -980,16 +991,61 @@ type AbandonRequest = unit(inout message: Message) {
 #-----------------------------------------------------------------------------
 # Extended Operation
 # https://tools.ietf.org/html/rfc4511#section-4.12
+type ExtendedRequest = unit(inout message: Message, ctx: Ctx&) {
+  var requestValue: bytes;
+  header: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::ContextSpecific);
+  requestName: bytes &size=self.header.len.len &convert=$$.decode(spicy::Charset::ASCII) {
+    message.obj = $$;
+  }
 
-# TODO: implement ExtendedRequest
-# type ExtendedRequest = unit(inout message: Message) {
-#
-# };
+  # If there's more byte to parse, it's the requestValue.
+  : ASN1::ASN1Message(False)
+      &requires=($$.head.tag.class == ASN1::ASN1Class::ContextSpecific)
+      if ( message.opLen > self.offset() ) {
 
-# TODO: implement ExtendedResponse
-# type ExtendedResponse = unit(inout message: Message) {
-#
-# };
+    self.requestValue = $$.application_data;
+  }
+
+  on %done {
+    # Did the client request StartTLS?
+    #
+    # https://datatracker.ietf.org/doc/html/rfc4511#section-4.14.1
+    if ( self.requestName == "1.3.6.1.4.1.1466.20037" )
+      ctx.startTlsRequested = True;
+  }
+};
+
+#-----------------------------------------------------------------------------
+type ExtendedResponseEntry = unit(inout r: ExtendedResponse) {
+  : ASN1::ASN1Message(False) &requires=($$.head.tag.class == ASN1::ASN1Class::ContextSpecific) {
+    if ( $$.head.tag.type_ == ASN1::ASN1Type(10) )
+      r.responseName = $$.application_data;
+    else if ( $$.head.tag.type_ == ASN1::ASN1Type(11) )
+      r.responseValue = $$.application_data;
+    else
+      throw "Unhandled extended response tag %s" % $$.head.tag;
+  }
+};
+
+#-----------------------------------------------------------------------------
+type ExtendedResponse = unit(inout message: Message, ctx: Ctx&) {
+  var responseName: bytes;
+  var responseValue: bytes;
+  : Result {
+    message.result_ = $$;
+  }
+
+  # Try to parse two ASN1 entries if there are bytes left in the unit.
+  # Both are optional and identified by context specific tagging.
+  : ExtendedResponseEntry(self) if ( message.opLen > self.offset() );
+  : ExtendedResponseEntry(self) if ( message.opLen > self.offset() );
+
+  on %done {
+    # Client had requested StartTLS and it was successful? Switch to SSL.
+    if ( ctx.startTlsRequested && message.result_.code == ResultCode::SUCCESS )
+      ctx.messageMode = MessageMode::TLS;
+  }
+};
 
 #-----------------------------------------------------------------------------
 # IntermediateResponse Message

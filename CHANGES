@@ -1,3 +1,7 @@
+7.1.0-dev.18 | 2024-07-17 15:37:12 -0700
+
+  * Bump zeek-testing-cluster to pull in tee SIGPIPE fix (Christian Kreibich, Corelight)
+
 7.1.0-dev.16 | 2024-07-17 16:45:13 +0200
 
   * ldap: Remove MessageWrapper with magic 0x30 searching (Arne Welzel, Corelight)

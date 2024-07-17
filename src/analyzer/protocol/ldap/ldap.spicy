@@ -145,26 +145,9 @@ public type Messages = unit {
 };
 
 #-----------------------------------------------------------------------------
-type SASLLayer = unit {
-  # For the time being (before we support parsing the SASL layer) this unit
-  # is used by MessageWrapper below to strip it (SASL) so that the parser
-  # can attempt to resume parsing afterward. It also sets the success flag
-  # if '\x30' is found, otherwise backtracks so that we can deal with encrypted
-  # SASL payloads without raising a parse error.
-  var success: bool = False;
-  : bytes &until=b"\x30" {
-    self.success = True;
-  }
-
-  on %error {
-    self.backtrack();
-  }
-};
-
-#-----------------------------------------------------------------------------
 public type SASLStrip = unit(ctx: Ctx&) {
   switch( ctx.saslStripping ) {
-    SaslStripping::Undef -> :MessageWrapper(ctx);
+    SaslStripping::Undef -> : Message(ctx);
     SaslStripping::MS_KRB5 -> : SaslMsKrb5Stripper(ctx);
   };
 };
@@ -229,75 +212,6 @@ type SaslMsKrb5Stripper = unit(ctx: Ctx&) {
   # Consume the wrap token trailer, if any.
   trailer_e: skip bytes &size=self.krb_wrap_token.trailer_ec if (self?.krb_wrap_token);
 };
-
-#-----------------------------------------------------------------------------
-public type MessageWrapper = unit(ctx: Ctx&) {
-  # A wrapper around 'Message'. First, we try to parse a Message unit.
-  # There are two possible outcomes:
-  #   (1) Success -> We consumed all bytes and successfully parsed a Message unit
-  #   (2) No success -> self.backtrack() is called in the Message unit,
-  #                     so effectively we didn't consume any bytes yet.
-  # The outcome can be determined by checking the `success` variable of the Message unit
-
-  # This success variable is different, because this keeps track of the status for the MessageWrapper object
-  var success: bool = False;
-  var message: optional<Message>;
-
-  # Here, we try to parse the message...
-  : Message(ctx) &try {
-
-      # ... and only if the Message unit successfully parsed, we can set
-      # the status of this MessageWrapper's success to 'True'
-      if ( $$.success == True ) {
-        self.success = True;
-        self.message = $$;
-      }
-  }
-
-  # If we failed to parse the message, then we're going to scan the remaining bytes for the '\x30'
-  # start byte and try to parse a Message starting from that byte. This effectively
-  # strips the SASL layer if SASL Signing was enabled. Until now, I haven't found A
-  # better way to scan / determine the exact SASL header length yet, so we'll stick with this
-  # for the time being. If the entire LDAP packet was encrypted with SASL, then we skip parsing for
-  # now (in the long run we need to be parsing SASL/GSSAPI instead, in which case encrypted payloads
-  # are just another message type).
-
-  # SASLLayer (see unit above) just consumes bytes &until=b"\x30" or backtracks if it isn't found
-  # and sets a success flag we can use later to decide if those bytes contain a parsable message.
-  var sasl_success: bool = False;
-  : SASLLayer &try if ( self.success == False ) {
-    if ( $$.success == True ) {
-      self.sasl_success = True;
-    }
-  }
-  var remainder: bytes;
-
-  # SASLLayer consumes the delimiter ('\x30'), and because this is the first byte of a valid LDAP message
-  # we should re-add it to the remainder if the delimiter was found. If the delimiter was not found, we
-  # leave the remainder empty, but note that the bytes must be consumed either way to avoid stalling the
-  # parser and causing an infinite loop error.
-  : bytes &eod if ( self.success == False )  {
-    if ( self.sasl_success == True ) {
-      self.remainder = b"\x30" + $$;
-    }
-  }
-
-  # Again, try to parse a Message unit. Be aware that in this will sometimes fail if the '\x30' byte is
-  # also present in the SASL header.
-
-  # Also, we could try to do this recursively or try a few iterations, but for now I would suggest
-  # to try this extra parsing once to get the best cost/benefit tradeoff.
-  : Message(ctx) &try &parse-from=self.remainder if ( self.success == False && self.sasl_success == True ) {
-      if ( $$.success == True ) {
-        self.success = True;
-        self.message = $$;
-      }
-  }
-
-  # If we still didn't manage to parse a message (so the &try resulted in another backtrack()) then
-  # this is probably an encrypted LDAP message, so skip it
-
-} &convert=self.message;
 
 #-----------------------------------------------------------------------------
 public type Message = unit(ctx: Ctx&) {
@@ -1086,6 +1000,6 @@ type AbandonRequest = unit(inout message: Message) {
 #
 # };
 
-on LDAP::MessageWrapper::%done {
+on LDAP::Message::%done {
   spicy::accept_input();
 }

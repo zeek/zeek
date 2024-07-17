@@ -17,7 +17,7 @@ on SSL::EllipticCurveList -> event ssl_extension_elliptic_curves($conn, SSL::get
 
 on SSL::EcPointsFormat_extension -> event ssl_extension_ec_point_formats($conn, SSL::get_direction(sh), self.ec_point_format_list);
 
-on SSL::ServerNameList -> event ssl_extension_server_name($conn, SSL::get_direction(sh), SSL::convert_server_names(self));
+on SSL::ServerNameList -> event ssl_extension_server_name($conn, SSL::get_direction(sh), self.server_name_list);
 
 on SSL::NewSessionTicket -> event ssl_session_ticket_handshake($conn, self.ticket_lifetime_hint, self.ticket);
 
@@ -33,15 +33,15 @@ on SSL::Extension -> event ssl_extension($conn, SSL::get_direction(sh), self.cod
 
 on SSL::Handshake_message::length -> event ssl_handshake_message($conn, SSL::get_direction(sh), self.msg_type, self.length);
 
-on SSL::SignatureAlgorithms -> event ssl_extension_signature_algorithm($conn, SSL::get_direction(sh), SSL::convert_signature_algorithms(self));
+on SSL::SignatureAlgorithms -> event ssl_extension_signature_algorithm($conn, SSL::get_direction(sh), self.supported_signature_algorithms_converted);
 
 on SSL::ServerHelloKeyShare -> event ssl_extension_key_share($conn, SSL::get_direction(sh), vector<uint16>(self.keyshare.namedgroup,));
 
 on SSL::HelloRetryRequestKeyShare -> event ssl_extension_key_share($conn, SSL::get_direction(sh), vector<uint16>(self.namedgroup,));
 
-on SSL::ClientHelloKeyShare -> event ssl_extension_key_share($conn, SSL::get_direction(sh), SSL::convert_clienthellokeyshare(self));
+on SSL::ClientHelloKeyShare -> event ssl_extension_key_share($conn, SSL::get_direction(sh), self.named_groups);
 
-on SSL::OfferedPsks -> event ssl_extension_pre_shared_key_client_hello($conn, SSL::get_direction(sh), SSL::convert_identities(self.identities), SSL::convert_binders(self.binders));
+on SSL::OfferedPsks -> event ssl_extension_pre_shared_key_client_hello($conn, SSL::get_direction(sh), self.identities, self.binders);
 
 on SSL::SelectedPreSharedKeyIdentity -> event ssl_extension_pre_shared_key_server_hello($conn, SSL::get_direction(sh), self.selected_identity);
 
@@ -62,7 +62,7 @@ on SSL::DhClientKeyExchange -> event ssl_dh_client_params($conn, self.dh_Yc);
 
 on SSL::RsaClientKeyExchange -> event ssl_rsa_client_pms($conn, self.rsa_pms);
 
-on SSL::ProtocolNameList -> event ssl_extension_application_layer_protocol_negotiation($conn, SSL::get_direction(sh), SSL::convert_protocol_name_list(self));
+on SSL::ProtocolNameList -> event ssl_extension_application_layer_protocol_negotiation($conn, SSL::get_direction(sh), self.protocol_name_list);
 
 on SSL::SignedCertificateTimestamp -> event ssl_extension_signed_certificate_timestamp($conn, SSL::get_direction(sh), self.version, self.logid, self.timestamp, tuple(self.digitally_signed_algorithms.hash, self.digitally_signed_algorithms.signature), self.digitally_signed_signature);
 
@@ -78,7 +78,7 @@ on SSL::Heartbeat -> event ssl_heartbeat($conn, SSL::get_direction(sh), length, 
 
 on SSL::CertificateStatus -> event ssl_stapled_ocsp($conn, $is_orig, self.response);
 
-on SSL::CertificateRequest if ( SSL::uses_signature_and_hashalgorithm(sh) ) -> event ssl_certificate_request($conn, SSL::get_direction(sh), self.certificate_types, SSL::convert_signature_algorithms(self.supported_signature_algorithms), SSL::convert_certificate_authorities(self));
-on SSL::CertificateRequest if ( ! SSL::uses_signature_and_hashalgorithm(sh) ) -> event ssl_certificate_request($conn, SSL::get_direction(sh), self.certificate_types, SSL::create_empty_sigmature_algorithms(), SSL::convert_certificate_authorities(self));
+on SSL::CertificateRequest if ( SSL::uses_signature_and_hashalgorithm(sh) ) -> event ssl_certificate_request($conn, SSL::get_direction(sh), self.certificate_types, self.supported_signature_algorithms.supported_signature_algorithms_converted, self.certificate_authorities);
+on SSL::CertificateRequest if ( ! SSL::uses_signature_and_hashalgorithm(sh) ) -> event ssl_certificate_request($conn, SSL::get_direction(sh), self.certificate_types, SSL::create_empty_sigmature_algorithms(), self.certificate_authorities);
 
 on SSL::DirectionCheck::%done if ( self.was_flipped ) -> event ssl_connection_flipped($conn);

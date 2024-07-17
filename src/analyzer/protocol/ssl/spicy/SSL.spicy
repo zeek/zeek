@@ -870,7 +870,7 @@ type CertificateRequest = unit(sh: Share) {
     False -> : bytes &size=0;
   };
   certificate_authorities_len: uint16;
-  certificate_authorities: CertificateAuthority[] &size=self.certificate_authorities_len;
+  certificate_authorities: CertificateAuthority[] &size=self.certificate_authorities_len &convert=convert_certificate_authorities($$);
 };
 
 type CertificateAuthority = unit {
@@ -1059,8 +1059,8 @@ type PSKBindersList = unit {
 };
 
 type OfferedPsks = unit(sh: Share) {
-  identities: PSKIdentitiesList;
-  binders: PSKBindersList;
+  identities: PSKIdentitiesList &convert=convert_identities($$);
+  binders: PSKBindersList &convert=convert_binders($$);
 };
 
 type PreSharedKey = unit(sh: Share, client_hello: bool) {
@@ -1121,6 +1121,11 @@ type ServerHelloKeyShareChoice = unit(sh: Share, length: uint16) {
 type ClientHelloKeyShare = unit(sh: Share) {
   length: uint16;
   keyshares : KeyShareEntry[] &size=self.length;
+
+  var named_groups: vector<uint16>;
+  on keyshares {
+    self.named_groups = convert_clienthellokeyshare(self.keyshares);
+  }
 };
 
 type KeyShare = unit(client_hello: bool, sh: Share, length: uint16) {
@@ -1170,7 +1175,7 @@ type ProtocolName = unit {
 
 type ProtocolNameList = unit(sh: Share) {
   length: uint16;
-  protocol_name_list: ProtocolName[] &size=self.length;
+  protocol_name_list: ProtocolName[] &size=self.length &convert=convert_protocol_name_list($$);
 };
 
 type ServerName = unit {
@@ -1187,7 +1192,7 @@ type ServerName = unit {
 
 type ServerNameList = unit(sh: Share) {
   length: uint16;
-  server_name_list: ServerName[] &size=self.length;
+  server_name_list: ServerName[] &size=self.length &convert=SSL::convert_server_names($$);
 };
 
 type EcPointsFormat_extension = unit(sh: Share) {
@@ -1200,14 +1205,19 @@ type EllipticCurveList = unit(sh: Share) {
   elliptic_curve_list: uint16[self.length/2]; # when possible - convert to enum
 };
 
-type SignatureAlgorithms = unit(sh: Share) {
-  length: uint16;
-  supported_signature_algorithms: SignatureAndHashAlgorithm[] &size=self.length;
-};
-
 type SignatureAndHashAlgorithm = unit {
   hash: uint8; # &convert=HashAlgorithm($$);
   signature: uint8; # &convert=SignatureAlgorithm($$);
+};
+
+type SignatureAlgorithms = unit(sh: Share) {
+  length: uint16;
+  supported_signature_algorithms: SignatureAndHashAlgorithm[] &size=self.length;
+  var supported_signature_algorithms_converted: vector<tuple<uint8, uint8>>;
+
+  on supported_signature_algorithms {
+    self.supported_signature_algorithms_converted = convert_signature_algorithms(self.supported_signature_algorithms);
+  }
 };
 
 type RenegotiationInfo = unit {
@@ -1749,18 +1759,18 @@ type SingleCertificate = unit {
 
 import zeek;
 
-public function convert_server_names(snl: SSL::ServerNameList) : vector<bytes> {
+public function convert_server_names(snl: vector<ServerName>) : vector<bytes> {
   local out: vector<bytes>;
 
-  for ( i in snl.server_name_list )
+  for ( i in snl )
     out.push_back(i.host_name);
 
   return out;
 }
 
-public function convert_signature_algorithms(sa: SSL::SignatureAlgorithms) : vector<tuple<HashAlgorithm: uint8, SignatureAlgorithm: uint8>> {
+public function convert_signature_algorithms(sa: vector<SignatureAndHashAlgorithm>) : vector<tuple<HashAlgorithm: uint8, SignatureAlgorithm: uint8>> {
   local out: vector<tuple<uint8, uint8>>;
-  for ( i in sa.supported_signature_algorithms )
+  for ( i in sa )
     out.push_back(tuple(i.hash, i.signature));
 
   return out;
@@ -1771,10 +1781,10 @@ public function create_empty_sigmature_algorithms() : vector<tuple<HashAlgorithm
   return out;
 }
 
-public function convert_clienthellokeyshare(ks: SSL::ClientHelloKeyShare) : vector<uint16> {
+public function convert_clienthellokeyshare(ks: vector<KeyShareEntry>) : vector<uint16> {
   local out: vector<uint16>;
 
-  for ( i in ks.keyshares )
+  for ( i in ks )
     out.push_back(i.namedgroup);
 
   return out;
@@ -1796,16 +1806,16 @@ public function convert_identities(id: SSL::PSKIdentitiesList) : vector<tuple<id
   return out;
 }
 
-public function convert_protocol_name_list(pns: SSL::ProtocolNameList) : vector<bytes> {
+public function convert_protocol_name_list(pns: vector<ProtocolName>) : vector<bytes> {
   local out: vector<bytes>;
-  for ( i in pns.protocol_name_list )
+  for ( i in pns )
     out.push_back(i.name);
   return out;
 }
 
-public function convert_certificate_authorities(c: SSL::CertificateRequest) : vector<bytes> {
+public function convert_certificate_authorities(c: vector<CertificateAuthority>) : vector<bytes> {
   local out: vector<bytes>;
-  for ( i in c.certificate_authorities )
+  for ( i in c )
     out.push_back(i.certificate_authority);
   return out;
 }

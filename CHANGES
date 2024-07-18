@@ -1,3 +1,17 @@
+7.0.0-rc2 | 2024-07-18 14:31:49 -0700
+
+  * Bump zeek-testing-cluster to pull in tee SIGPIPE fix (Christian Kreibich, Corelight)
+
+    (cherry picked from commit b51a46f94d4012119fd27d5e46328c70af7270a2)
+
+  * CI: Set FETCH_CONTENT_FULLY_DISCONNECTED flag for configure (Tim Wojtulewicz, Corelight)
+
+  * Update broker and cmake submodules [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Fix warning about grealpath when running 'make dist' on Linux (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit e4716b6c912f86cf6b2afd6979c38667c45add95)
+
 7.0.0-rc1 | 2024-07-11 12:21:02 -0700
 
   * Updating submodule(s) [nomail] (Tim Wojtulewicz, Corelight)

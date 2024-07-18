@@ -137,6 +137,7 @@ type MessageMode = enum {
 
 type Ctx = struct {
   messageMode: MessageMode;   # Message dispatching mode
+  saslMechanism: string;      # The SASL mechanism selected by the client.
   startTlsRequested: bool;    # Did the client use the StartTLS extended request?
 };
 
@@ -255,7 +256,7 @@ public type Message = unit(ctx: Ctx&) {
   }
 
   switch ( self.opcode ) {
-    ProtocolOpcode::BIND_REQUEST            -> BIND_REQUEST:            BindRequest(self);
+    ProtocolOpcode::BIND_REQUEST            -> BIND_REQUEST:            BindRequest(self, ctx);
     ProtocolOpcode::BIND_RESPONSE           -> BIND_RESPONSE:           BindResponse(self, ctx);
     ProtocolOpcode::UNBIND_REQUEST          -> UNBIND_REQUEST:          UnbindRequest(self);
     ProtocolOpcode::SEARCH_REQUEST          -> SEARCH_REQUEST:          SearchRequest(self);
@@ -307,7 +308,7 @@ type GSS_SPNEGO_negTokenInit = unit {
 };
 
 # Peak into GSS-SPNEGO payload and ensure it is indeed GSS-SPNEGO.
-type GSS_SPNEGO = unit {
+type GSS_SPNEGO_Init = unit {
   # This is the optional octet string in SaslCredentials.
   credentialsHeader: ASN1::ASN1Header &requires=($$.tag.type_ == ASN1::ASN1Type::OctetString);
 
@@ -333,12 +334,19 @@ type SaslCredentials = unit() {
 
   # Peak into GSS-SPNEGO payload if we have any.
   switch ( self.mechanism ) {
-    "GSS-SPNEGO" -> gss_spnego: GSS_SPNEGO;
+    "GSS-SPNEGO" -> gss_spnego: GSS_SPNEGO_Init;
     * -> : skip bytes &eod;
   };
 };
 
-type NegTokenResp = unit {
+type GSS_SPNEGO_Subsequent = unit {
+  token: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::ContextSpecific);
+  switch ( self.token.tag.type_ ) {
+    ASN1::ASN1Type(1) -> negTokenResp: GSS_SPNEGO_negTokenResp;
+  };
+};
+
+type GSS_SPNEGO_negTokenResp = unit {
   var accepted: bool;
   var supportedMech: ASN1::ASN1Message;
 
@@ -366,34 +374,13 @@ type NegTokenResp = unit {
   } &parse-from=self.supportedMech.application_data;
 };
 
-type ServerSaslCreds = unit {
-  serverSaslCreds: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::ContextSpecific && $$.tag.type_ == ASN1::ASN1Type(7));
-
-  # The PCAP missing_ldap_logs.pcapng has a1 81 b6 here for the GSS-SPNEGO response.
-  #
-  # This is context-specific ID 1, constructed, and a length of 182 as
-  # specified by in 4.2 of RFC4178.
-  #
-  # https://www.rfc-editor.org/rfc/rfc4178#section-4.2
-  #
-  # TODO: This is only valid for a GSS-SPNEGO negTokenResp.
-  # If you want to support something else, remove the requires
-  # and add more to the switch below.
-  choice: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::ContextSpecific);
-
-  switch ( self.choice.tag.type_ ) {
-    ASN1::ASN1Type(1) -> negTokenResp: NegTokenResp;
-    # ...
-  } &size=self.choice.len.len;
-};
-
 # TODO(fox-ds): A helper unit for requests for which no handling has been implemented.
 # Eventually all uses of this unit should be replaced with actual parsers so this unit can be removed.
 type NotImplemented = unit(inout message: Message) {
   : skip bytes &eod;
 };
 
-type BindRequest = unit(inout message: Message) {
+type BindRequest = unit(inout message: Message, ctx: Ctx&) {
   version: ASN1::ASN1Message(True) &convert=$$.body.num_value;
   name: ASN1::ASN1Message(True) &convert=$$.body.str_value {
     message.obj = self.name;
@@ -417,8 +404,14 @@ type BindRequest = unit(inout message: Message) {
   saslCreds: SaslCredentials() &parse-from=self.authData if ((self.authType == BindAuthType::BIND_AUTH_SASL) &&
                                                              (|self.authData| > 0)) {
     message.arg = self.saslCreds.mechanism;
+    ctx.saslMechanism = self.saslCreds.mechanism;
   }
 } &requires=(self?.authType && (self.authType != BindAuthType::Undef));
+
+type ServerSaslCreds = unit {
+  serverSaslCreds: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::ContextSpecific && $$.tag.type_ == ASN1::ASN1Type(7));
+  payload: bytes &size=self.serverSaslCreds.len.len;
+};
 
 type BindResponse = unit(inout message: Message, ctx: Ctx&) {
   : Result {
@@ -432,14 +425,18 @@ type BindResponse = unit(inout message: Message, ctx: Ctx&) {
   # if the serverSaslCreds field exists or not. But, not sure we can
   # check if there's any bytes left at this point outside of passing
   # in the length and playing with offset().
-  serverSaslCreds: ServerSaslCreds[] &eod {
-    if ( |self.serverSaslCreds| > 0 ) {
-      if ( self.serverSaslCreds[0]?.negTokenResp ) {
-        local token = self.serverSaslCreds[0].negTokenResp;
-        if ( token.accepted && token?.supportedMechOid ) {
-          if ( token.supportedMechOid == GSSAPI_MECH_MS_KRB5 ) {
-            ctx.messageMode = MessageMode::MS_KRB5;
-          }
+  serverSaslCreds: ServerSaslCreds[] &eod;
+
+  # If the client requested GSS-SPNEGO, try to parse the server's response
+  # to switch message mode.
+  gss_spnego: GSS_SPNEGO_Subsequent &parse-from=self.serverSaslCreds[0].payload
+      if (ctx.saslMechanism == "GSS-SPNEGO" && |self.serverSaslCreds| > 0) {
+
+    if ( $$?.negTokenResp ) {
+      local token = $$.negTokenResp;
+      if ( token.accepted && token?.supportedMechOid ) {
+        if ( token.supportedMechOid == GSSAPI_MECH_MS_KRB5 ) {
+          ctx.messageMode = MessageMode::MS_KRB5;
         }
       }
     }

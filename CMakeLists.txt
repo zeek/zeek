@@ -2,20 +2,24 @@
 # auxil/zeek-aux/plugin-support/skeleton/CMakeLists.txt
 cmake_minimum_required(VERSION 3.15.0 FATAL_ERROR)
 
+# I tried to just use CMAKE_SOURCE_DIR and CMAKE_CURRENT_SOURCE_DIR
+# but it's not setting the path correctly and so the toolchain
+# variable doesn't get passed down to submodules like libkqueue
+# correctly. Instead get the absolute path to the vcpkg.cmake file
+# and use that.
+get_filename_component(_toolchain ./auxil/vcpkg/scripts/buildsystems/vcpkg.cmake ABSOLUTE)
+
+# This needs to happen before the project() call below so that it
+# doesn't need to be manually passed on the command line.
+set(CMAKE_TOOLCHAIN_FILE ${_toolchain} CACHE STRING "Vcpkg toolchain file")
+
+get_filename_component(_overlays ./auxil/vcpkg-overlays ABSOLUTE)
+set(VCPKG_OVERLAY_PORTS ${_overlays})
+
 if (WIN32)
     # Enable usage of CMAKE_MSVC_RUNTIME_LIBRARY variable
     cmake_policy(SET CMP0091 NEW)
 
-    # I tried to just use CMAKE_SOURCE_DIR and CMAKE_CURRENT_SOURCE_DIR
-    # but it's not setting the path correctly and so the toolchain
-    # variable doesn't get passed down to submodules like libkqueue
-    # correctly. Instead get the absolute path to the vcpkg.cmake file
-    # and use that.
-    get_filename_component(_toolchain ./auxil/vcpkg/scripts/buildsystems/vcpkg.cmake ABSOLUTE)
-
-    # This needs to happen before the project() call below so that it
-    # doesn't need to be manually passed on the command line.
-    set(CMAKE_TOOLCHAIN_FILE ${_toolchain} CACHE STRING "Vcpkg toolchain file")
 endif ()
 
 project(Zeek C CXX)

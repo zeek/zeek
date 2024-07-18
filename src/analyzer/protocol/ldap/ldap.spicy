@@ -133,6 +133,9 @@ const GSSAPI_MECH_MS_KRB5 = "1.2.840.48018.1.2.2";
 type MessageMode = enum {
   MS_KRB5 = 1, # Payload starts with a 4 byte length followed by a wrap token that may or may not be sealed.
   TLS = 2,     # Client/server used StartTLS, forward to SSL analyzer.
+  MAYBE_ENCRYPTED = 3,  # Use a heuristic to determine encrypted traffic.
+  CLEARTEXT = 4,  # Assume cleartext.
+  ENCRYPTED = 5,  # Assume encrypted.
 };
 
 type Ctx = struct {
@@ -152,10 +155,51 @@ public type MessageDispatch = unit(ctx: Ctx&) {
   switch( ctx.messageMode ) {
     MessageMode::Undef -> : Message(ctx);
     MessageMode::MS_KRB5 -> : SaslMsKrb5Stripper(ctx);
-    MessageMode::TLS -> : TlsForward;
+    MessageMode::TLS -> : TlsForward;  # never returns
+    MessageMode::MAYBE_ENCRYPTED -> : MaybeEncrypted(ctx);
+    MessageMode::CLEARTEXT -> : Message(ctx);
+    MessageMode::ENCRYPTED -> : EncryptedMessage;
   };
 };
 
+
+#-----------------------------------------------------------------------------
+type MaybeEncrypted = unit(ctx: Ctx&) {
+  # A plaintext LDAP message always starts with at least 3 bytes and the first
+  # byte is 0x30 for the sequence. A SASL encrypted message starts with a 4 byte
+  # length field. The heuristic here is that if the first byte is a 0x30,
+  # assume it's unencrypted LDAP. This should be pretty good, if it was an
+  # encrypted/SASL wrapped message, it would have a size between 0x30000000 and
+  # 0x30FFFFFF, meaning at least a size of ~768MB, which seems unlikely.
+  var start: iterator<stream>;
+  on %init {
+    self.start = self.input();
+  }
+
+  first: uint8 {
+    if ( $$ == 0x30 ) {
+      ctx.messageMode = MessageMode::CLEARTEXT;
+    } else {
+      ctx.messageMode = MessageMode::ENCRYPTED;
+    }
+  }
+
+  # Rewind the input.
+  : void {
+    # Prevent MessageDispatch from recursing endlessly.
+    assert ctx.messageMode != MessageMode::MAYBE_ENCRYPTED;
+    self.set_input(self.start);
+  }
+
+  # One recursion to parse with the new ctx.messageMode setting.
+  : MessageDispatch(ctx);
+};
+
+#-----------------------------------------------------------------------------
+type EncryptedMessage = unit {
+  len: uint32;
+  : skip bytes &size=self.len;
+};
 
 #-----------------------------------------------------------------------------
 type TlsForward = unit {
@@ -416,6 +460,20 @@ type ServerSaslCreds = unit {
 type BindResponse = unit(inout message: Message, ctx: Ctx&) {
   : Result {
     message.result_ = $$;
+
+    # The SASL authentication was successful. We do not actually
+    # know if the following messages are encrypted or not. This may be
+    # mechanism and parameter specific. For example SCRAM-SHA512 or NTLM
+    # will continue to be cleartext, while SRP or GSS-API would be encrypted.
+    #
+    # Switch messageMode into trial mode which is explored via MessageDispatch
+    # and the MaybeEncrypted unit.
+    #
+    # Note, messageMode may be changed to something more specific like
+    # MS_KRB5 below.
+    if ( |ctx.saslMechanism| > 0 && $$.code == ResultCode::SUCCESS ) {
+      ctx.messageMode = MessageMode::MAYBE_ENCRYPTED;
+    }
   }
 
   # Try to parse serverSaslCreds if there's any input remaining. This

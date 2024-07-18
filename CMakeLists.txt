@@ -1134,7 +1134,10 @@ include(GetArchitecture)
 # value for HAVE_KQUEUE that was set during the libkqueue setup. We don't
 # pass the libkqueue information down to the c-ares cmake run so it won't
 # have the paths or library when it builds.
-include(FindCAres)
+find_package(c-ares CONFIG REQUIRED)
+include_directories(BEFORE ${c-ares_INCLUDE_DIR})
+set(zeekdeps ${zeekdeps} c-ares::cares)
+
 include(FindKqueue)
 
 include(FindPrometheusCpp)

@@ -1140,7 +1140,10 @@ set(zeekdeps ${zeekdeps} c-ares::cares)
 
 include(FindKqueue)
 
-include(FindPrometheusCpp)
+find_package(prometheus-cpp CONFIG REQUIRED)
+set(zeekdeps ${zeekdeps} prometheus-cpp::core prometheus-cpp::pull)
+include_directories(BEFORE ${prometheus-cpp_INCLUDE_DIR})
+
 include_directories(BEFORE "auxil/out_ptr/include")
 
 if ((OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0"))

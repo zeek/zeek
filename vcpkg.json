@@ -3,6 +3,7 @@
   "version-string": "latest",
   "dependencies": [
     "c-ares",
+    "prometheus-cpp",
     {
       "name": "zlib",
       "platform": "windows"

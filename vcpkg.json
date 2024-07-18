@@ -3,7 +3,13 @@
   "version-string": "latest",
   "dependencies": [
     "c-ares",
-    "libpcap",
-    "zlib"
+    {
+      "name": "zlib",
+      "platform": "windows"
+    },
+    {
+      "name": "libpcap",
+      "platform": "windows"
+    }
   ]
 }

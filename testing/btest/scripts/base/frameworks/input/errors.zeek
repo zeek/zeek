@@ -59,6 +59,7 @@ global val_table: table[count] of Val = table();
 global val_table2: table[count, int] of Val = table();
 global val_table3: table[count, int] of int = table();
 global val_table4: table[count] of int;
+global val_set: set[count];
 
 event line_file(description: Input::EventDescription, tpe: Input::Event, r:FileVal)
 	{
@@ -189,6 +190,16 @@ event zeek_init()
 	Input::add_event([$source="input.log", $name="error5", $fields=Val, $ev=event11, $want_record=T, $error_ev=errorhandler5]);
 
 	Input::add_table([$source="input.log", $name="error6", $idx=Idx, $destination=val_table]);
+
+	# Check that we do not crash when a user passes unexpected types to any fields in the description records.
+	Input::add_table([$source="input.log", $name="types1", $idx="string-is-not-allowed", $destination=val_set]);
+	Input::add_table([$source="input.log", $name="types2", $idx=Idx, $val="string-is-not-allowed", $destination=val_set]);
+	Input::add_table([$source="input.log", $name="types3", $idx=Idx, $destination="string-is-not-allowed"]);
+	Input::add_table([$source="input.log", $name="types4", $idx=Idx, $destination=val_set, $ev="not-an-event"]);
+	Input::add_table([$source="input.log", $name="types5", $idx=Idx, $destination=val_set, $error_ev="not-an-event"]);
+	Input::add_event([$source="input.log", $name="types6", $fields="string-is-not-allowed", $ev=event11]);
+	Input::add_event([$source="input.log", $name="types7", $fields=Val, $ev="not-an-event"]);
+	Input::add_event([$source="input.log", $name="types8", $fields=Val, $ev=event11, $error_ev="not-an-event"]);
 
 	schedule 3secs { kill_me() };
 	}

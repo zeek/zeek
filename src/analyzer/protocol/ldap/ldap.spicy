@@ -172,8 +172,14 @@ type MaybeEncrypted = unit(ctx: Ctx&) {
   # encrypted/SASL wrapped message, it would have a size between 0x30000000 and
   # 0x30FFFFFF, meaning at least a size of ~768MB, which seems unlikely.
   var start: iterator<stream>;
+  var saslLen: uint64;
+  var mech: bytes;
+
   on %init {
     self.start = self.input();
+    # Don't have starts_with() on string, work around that.
+    # https://github.com/zeek/spicy/issues/1807
+    self.mech = ctx.saslMechanism.encode(spicy::Charset::UTF8);
   }
 
   first: uint8 {
@@ -181,6 +187,21 @@ type MaybeEncrypted = unit(ctx: Ctx&) {
       ctx.messageMode = MessageMode::CLEARTEXT;
     } else {
       ctx.messageMode = MessageMode::ENCRYPTED;
+    }
+  }
+
+  # As a further heuristic, if encrypted mode was decided and the client
+  # requested GSSAPI or GSS-SPNEGO (or we just didn't see it) peak a bit
+  # into the SASL payload and check if it starts with a 0504 (WRAP_TOKEN).
+  # If so, switch into KRB mode assuming that's what is being used and
+  # have a chance seeing some more plaintext LDAP in non-sealed tokens.
+  rem: uint8[3] if ( ctx.messageMode == MessageMode::ENCRYPTED && (|self.mech| == 0 || self.mech.starts_with(b"GSS")) ) {
+    self.saslLen = (self.first << 24) + ($$[0] << 16) + ($$[1] << 8) + $$[2];
+  }
+
+  : uint16 if ( self.saslLen >= 2 ) {
+    if ( $$ == 0x0504 ) {
+      ctx.messageMode = MessageMode::MS_KRB5;
     }
   }
 

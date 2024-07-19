@@ -345,12 +345,11 @@ add_zeek_dynamic_plugin_build_interface_include_directories(
     ${PROJECT_SOURCE_DIR}/auxil/broker/libbroker
     ${PROJECT_SOURCE_DIR}/auxil/paraglob/include
     ${PROJECT_SOURCE_DIR}/auxil/rapidjson/include
-    ${PROJECT_SOURCE_DIR}/auxil/prometheus-cpp/core/include
     ${CMAKE_BINARY_DIR}/src
     ${CMAKE_BINARY_DIR}/src/include
     ${CMAKE_BINARY_DIR}/auxil/binpac/lib
     ${CMAKE_BINARY_DIR}/auxil/broker/libbroker
-    ${CMAKE_BINARY_DIR}/auxil/prometheus-cpp/core/include)
+    ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include)
 
 # threading/formatters/JSON.h includes rapidjson headers and may be used
 # by external plugins, extend the include path.

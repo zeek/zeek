@@ -975,6 +975,24 @@ void ZAMCompiler::KillInst(zeek_uint_t i) {
                 --cft[CFT_BLOCK_END];
         }
 
+        if ( cft.count(CFT_BREAK) > 0 ) {
+            // ### Factor this with the following
+            // Propagate breaks backwards.
+            int j = i;
+            while ( --j >= 0 )
+                if ( insts1[j]->live )
+                    break;
+
+            ASSERT(j >= 0);
+
+            // Make sure the CFT entry is created.
+            AddCFT(insts1[j], CFT_BREAK);
+
+            auto be_cnt = cft[CFT_BREAK];
+            --be_cnt; // we already did one above
+            insts1[j]->aux->cft[CFT_BREAK] += be_cnt;
+        }
+
         if ( cft.count(CFT_BLOCK_END) > 0 ) {
             // Propagate block-ends backwards.
             int j = i;

@@ -76,3 +76,6 @@
 [submodule "auxil/prometheus-cpp"]
 	path = auxil/prometheus-cpp
 	url = https://github.com/zeek/prometheus-cpp
+[submodule "auxil/vcpkg-overlays"]
+	path = auxil/vcpkg-overlays
+	url = https://github.com/zeek/vcpkg-overlays

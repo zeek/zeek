@@ -1,3 +1,11 @@
+7.1.0-dev.20 | 2024-07-19 19:51:12 +0200
+
+  * GH-3836: input/Manager: Improve type checks of record fields with type any (Arne Welzel, Corelight)
+
+    Calling AsRecordType() or AsFunc() on a Val of type any isn't safe.
+
+    Closes #3836
+
 7.1.0-dev.18 | 2024-07-17 15:37:12 -0700
 
   * Bump zeek-testing-cluster to pull in tee SIGPIPE fix (Christian Kreibich, Corelight)

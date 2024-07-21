@@ -167,6 +167,11 @@ Deprecated Functionality
 - The ``--disable-archiver`` configure flag no longer does anything and will be
   removed in 7.1. zeek-archiver has moved into the zeek-aux repository.
 
+- The policy/frameworks/telemetry/prometheus.zeek script has been deprecated
+  and will be removed with Zeek 7.1. Setting the ``metrics_port`` field on a
+  ``Cluster::Node`` implies listening on that port and exposing telemetry
+  in Prometheus format.
+
 Zeek 6.2.0
 ==========
 

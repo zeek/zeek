@@ -152,7 +152,7 @@ const ZAMStmt ZAMCompiler::AddInst(const ZInstI& inst, bool suppress_non_local) 
         auto cs = pending_capture_store;
         pending_capture_store = -1;
 
-        auto& cv = *func->GetType()->AsFuncType()->GetCaptures();
+        auto& cv = *func->GetType()->GetCaptures();
         auto& c_id = cv[cs].Id();
 
         ZOp op;

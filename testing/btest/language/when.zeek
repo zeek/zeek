@@ -26,6 +26,13 @@ event zeek_init()
 	when [h] ( local hname3 = lookup_addr(h) ) {}
 	timeout to + 2sec {}
 
+	# The following used to generate a spurious warning, so it's here
+	# as a regression test.
+	when ( local res = lookup_addr(127.0.0.1) )
+		{
+		return;
+		}
+
 	print "done";
 }
 

@@ -434,7 +434,7 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
 
     // Warn if the function returns something, but we returned from
     // the function without an explicit return, or without a value.
-    else if ( GetType()->Yield() && GetType()->Yield()->Tag() != TYPE_VOID &&
+    else if ( GetType()->Yield() && GetType()->Yield()->Tag() != TYPE_VOID && ! GetType()->ExpressionlessReturnOkay() &&
               (flow != FLOW_RETURN /* we fell off the end */ || ! result /* explicit return with no result */) &&
               ! f->HasDelayed() )
         reporter->Warning("non-void function returning without a value: %s", Name());

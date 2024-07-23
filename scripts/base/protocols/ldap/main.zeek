@@ -258,6 +258,9 @@ event LDAP::message(c: connection,
       }
 
       m$object = object;
+
+      if ( opcode == LDAP::ProtocolOpcode_EXTENDED_REQUEST )
+        m$object += fmt(" (%s)", EXTENDED_REQUESTS[object]);
     }
 
     if ( argument != "" ) {

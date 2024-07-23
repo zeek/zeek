@@ -130,28 +130,103 @@ public type Result = unit {
 const GSSAPI_MECH_MS_KRB5 = "1.2.840.48018.1.2.2";
 
 # Supported SASL stripping modes.
-type SaslStripping = enum {
-  MS_KRB5 = 1,  # Payload starts with a 4 byte length followed by a wrap token that may or may not be sealed.
+type MessageMode = enum {
+  MS_KRB5 = 1, # Payload starts with a 4 byte length followed by a wrap token that may or may not be sealed.
+  TLS = 2,     # Client/server used StartTLS, forward to SSL analyzer.
+  MAYBE_ENCRYPTED = 3,  # Use a heuristic to determine encrypted traffic.
+  CLEARTEXT = 4,  # Assume cleartext.
+  ENCRYPTED = 5,  # Assume encrypted.
 };
 
 type Ctx = struct {
-  saslStripping: SaslStripping;  # Which mode of SASL stripping to use.
+  messageMode: MessageMode;   # Message dispatching mode
+  saslMechanism: string;      # The SASL mechanism selected by the client.
+  startTlsRequested: bool;    # Did the client use the StartTLS extended request?
 };
 
 #-----------------------------------------------------------------------------
 public type Messages = unit {
   %context = Ctx;
-  : SASLStrip(self.context())[];
+  : MessageDispatch(self.context())[];
 };
 
 #-----------------------------------------------------------------------------
-public type SASLStrip = unit(ctx: Ctx&) {
-  switch( ctx.saslStripping ) {
-    SaslStripping::Undef -> : Message(ctx);
-    SaslStripping::MS_KRB5 -> : SaslMsKrb5Stripper(ctx);
+public type MessageDispatch = unit(ctx: Ctx&) {
+  switch( ctx.messageMode ) {
+    MessageMode::Undef -> : Message(ctx);
+    MessageMode::MS_KRB5 -> : SaslMsKrb5Stripper(ctx);
+    MessageMode::TLS -> : TlsForward;  # never returns
+    MessageMode::MAYBE_ENCRYPTED -> : MaybeEncrypted(ctx);
+    MessageMode::CLEARTEXT -> : Message(ctx);
+    MessageMode::ENCRYPTED -> : EncryptedMessage;
   };
 };
 
+
+#-----------------------------------------------------------------------------
+type MaybeEncrypted = unit(ctx: Ctx&) {
+  # A plaintext LDAP message always starts with at least 3 bytes and the first
+  # byte is 0x30 for the sequence. A SASL encrypted message starts with a 4 byte
+  # length field. The heuristic here is that if the first byte is a 0x30,
+  # assume it's unencrypted LDAP. This should be pretty good, if it was an
+  # encrypted/SASL wrapped message, it would have a size between 0x30000000 and
+  # 0x30FFFFFF, meaning at least a size of ~768MB, which seems unlikely.
+  var start: iterator<stream>;
+  var saslLen: uint64;
+  var mech: bytes;
+
+  on %init {
+    self.start = self.input();
+    # Don't have starts_with() on string, work around that.
+    # https://github.com/zeek/spicy/issues/1807
+    self.mech = ctx.saslMechanism.encode(spicy::Charset::UTF8);
+  }
+
+  first: uint8 {
+    if ( $$ == 0x30 ) {
+      ctx.messageMode = MessageMode::CLEARTEXT;
+    } else {
+      ctx.messageMode = MessageMode::ENCRYPTED;
+    }
+  }
+
+  # As a further heuristic, if encrypted mode was decided and the client
+  # requested GSSAPI or GSS-SPNEGO (or we just didn't see it) peak a bit
+  # into the SASL payload and check if it starts with a 0504 (WRAP_TOKEN).
+  # If so, switch into KRB mode assuming that's what is being used and
+  # have a chance seeing some more plaintext LDAP in non-sealed tokens.
+  rem: uint8[3] if ( ctx.messageMode == MessageMode::ENCRYPTED && (|self.mech| == 0 || self.mech.starts_with(b"GSS")) ) {
+    self.saslLen = (self.first << 24) + ($$[0] << 16) + ($$[1] << 8) + $$[2];
+  }
+
+  : uint16 if ( self.saslLen >= 2 ) {
+    if ( $$ == 0x0504 ) {
+      ctx.messageMode = MessageMode::MS_KRB5;
+    }
+  }
+
+  # Rewind the input.
+  : void {
+    # Prevent MessageDispatch from recursing endlessly.
+    assert ctx.messageMode != MessageMode::MAYBE_ENCRYPTED;
+    self.set_input(self.start);
+  }
+
+  # One recursion to parse with the new ctx.messageMode setting.
+  : MessageDispatch(ctx);
+};
+
+#-----------------------------------------------------------------------------
+type EncryptedMessage = unit {
+  len: uint32;
+  : skip bytes &size=self.len;
+};
+
+#-----------------------------------------------------------------------------
+type TlsForward = unit {
+  # Just consume everything. This is hooked in ldap_zeek.spicy
+  chunk: bytes &chunked &eod;
+};
 
 type KrbWrapToken = unit {
   # https://datatracker.ietf.org/doc/html/rfc4121#section-4.2.6.2
@@ -174,7 +249,10 @@ type KrbWrapToken = unit {
     } else if ( self.rrc == 0 ) {
         self.trailer_ec = self.ec;
     } else {
-      throw "Unhandled rc %s and ec %s" % (self.ec, self.rrc);
+      if ( ! self.ctx_flags.sealed )
+        # If it's sealed, we'll consume until &eod anyhow
+        # and ec/rrc shouldn't apply, otherwise, bail.
+        throw "Unhandled rc %s and ec %s" % (self.ec, self.rrc);
     }
   }
 
@@ -223,6 +301,7 @@ public type Message = unit(ctx: Ctx&) {
   var arg: string = "";
   var seqHeaderLen: uint64;
   var msgLen: uint64;
+  var opLen: uint64;
 
   seqHeader: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Universal && $$.tag.type_ == ASN1::ASN1Type::Sequence) {
     self.msgLen = $$.len.len;
@@ -241,10 +320,11 @@ public type Message = unit(ctx: Ctx&) {
 
   protocolOp: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Application) {
     self.opcode = cast<ProtocolOpcode>(cast<uint8>($$.tag.type_));
+    self.opLen = $$.len.len;
   }
 
   switch ( self.opcode ) {
-    ProtocolOpcode::BIND_REQUEST            -> BIND_REQUEST:            BindRequest(self);
+    ProtocolOpcode::BIND_REQUEST            -> BIND_REQUEST:            BindRequest(self, ctx);
     ProtocolOpcode::BIND_RESPONSE           -> BIND_RESPONSE:           BindResponse(self, ctx);
     ProtocolOpcode::UNBIND_REQUEST          -> UNBIND_REQUEST:          UnbindRequest(self);
     ProtocolOpcode::SEARCH_REQUEST          -> SEARCH_REQUEST:          SearchRequest(self);
@@ -263,12 +343,12 @@ public type Message = unit(ctx: Ctx&) {
     # just commenting this out, it will stop processing LDAP Messages in this connection
     ProtocolOpcode::ADD_REQUEST             -> ADD_REQUEST:             NotImplemented(self);
     ProtocolOpcode::COMPARE_REQUEST         -> COMPARE_REQUEST:         NotImplemented(self);
-    ProtocolOpcode::EXTENDED_REQUEST        -> EXTENDED_REQUEST:        NotImplemented(self);
-    ProtocolOpcode::EXTENDED_RESPONSE       -> EXTENDED_RESPONSE:       NotImplemented(self);
+    ProtocolOpcode::EXTENDED_REQUEST        -> EXTENDED_REQUEST:        ExtendedRequest(self, ctx);
+    ProtocolOpcode::EXTENDED_RESPONSE       -> EXTENDED_RESPONSE:       ExtendedResponse(self, ctx);
     ProtocolOpcode::INTERMEDIATE_RESPONSE   -> INTERMEDIATE_RESPONSE:   NotImplemented(self);
     ProtocolOpcode::MOD_DN_REQUEST          -> MOD_DN_REQUEST:          NotImplemented(self);
     ProtocolOpcode::SEARCH_RESULT_REFERENCE -> SEARCH_RESULT_REFERENCE: NotImplemented(self);
-  } &size=self.protocolOp.len.len;
+  } &size=self.opLen;
 
   # Ensure some invariants hold after parsing the command.
   : void &requires=(self.offset() >= self.seqHeaderLen);
@@ -296,7 +376,7 @@ type GSS_SPNEGO_negTokenInit = unit {
 };
 
 # Peak into GSS-SPNEGO payload and ensure it is indeed GSS-SPNEGO.
-type GSS_SPNEGO = unit {
+type GSS_SPNEGO_Init = unit {
   # This is the optional octet string in SaslCredentials.
   credentialsHeader: ASN1::ASN1Header &requires=($$.tag.type_ == ASN1::ASN1Type::OctetString);
 
@@ -322,12 +402,19 @@ type SaslCredentials = unit() {
 
   # Peak into GSS-SPNEGO payload if we have any.
   switch ( self.mechanism ) {
-    "GSS-SPNEGO" -> gss_spnego: GSS_SPNEGO;
+    "GSS-SPNEGO" -> gss_spnego: GSS_SPNEGO_Init;
     * -> : skip bytes &eod;
   };
 };
 
-type NegTokenResp = unit {
+type GSS_SPNEGO_Subsequent = unit {
+  token: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::ContextSpecific);
+  switch ( self.token.tag.type_ ) {
+    ASN1::ASN1Type(1) -> negTokenResp: GSS_SPNEGO_negTokenResp;
+  };
+};
+
+type GSS_SPNEGO_negTokenResp = unit {
   var accepted: bool;
   var supportedMech: ASN1::ASN1Message;
 
@@ -355,34 +442,13 @@ type NegTokenResp = unit {
   } &parse-from=self.supportedMech.application_data;
 };
 
-type ServerSaslCreds = unit {
-  serverSaslCreds: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::ContextSpecific && $$.tag.type_ == ASN1::ASN1Type(7));
-
-  # The PCAP missing_ldap_logs.pcapng has a1 81 b6 here for the GSS-SPNEGO response.
-  #
-  # This is context-specific ID 1, constructed, and a length of 182 as
-  # specified by in 4.2 of RFC4178.
-  #
-  # https://www.rfc-editor.org/rfc/rfc4178#section-4.2
-  #
-  # TODO: This is only valid for a GSS-SPNEGO negTokenResp.
-  # If you want to support something else, remove the requires
-  # and add more to the switch below.
-  choice: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::ContextSpecific);
-
-  switch ( self.choice.tag.type_ ) {
-    ASN1::ASN1Type(1) -> negTokenResp: NegTokenResp;
-    # ...
-  } &size=self.choice.len.len;
-};
-
 # TODO(fox-ds): A helper unit for requests for which no handling has been implemented.
 # Eventually all uses of this unit should be replaced with actual parsers so this unit can be removed.
 type NotImplemented = unit(inout message: Message) {
   : skip bytes &eod;
 };
 
-type BindRequest = unit(inout message: Message) {
+type BindRequest = unit(inout message: Message, ctx: Ctx&) {
   version: ASN1::ASN1Message(True) &convert=$$.body.num_value;
   name: ASN1::ASN1Message(True) &convert=$$.body.str_value {
     message.obj = self.name;
@@ -406,12 +472,32 @@ type BindRequest = unit(inout message: Message) {
   saslCreds: SaslCredentials() &parse-from=self.authData if ((self.authType == BindAuthType::BIND_AUTH_SASL) &&
                                                              (|self.authData| > 0)) {
     message.arg = self.saslCreds.mechanism;
+    ctx.saslMechanism = self.saslCreds.mechanism;
   }
 } &requires=(self?.authType && (self.authType != BindAuthType::Undef));
+
+type ServerSaslCreds = unit {
+  serverSaslCreds: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::ContextSpecific && $$.tag.type_ == ASN1::ASN1Type(7));
+  payload: bytes &size=self.serverSaslCreds.len.len;
+};
 
 type BindResponse = unit(inout message: Message, ctx: Ctx&) {
   : Result {
     message.result_ = $$;
+
+    # The SASL authentication was successful. We do not actually
+    # know if the following messages are encrypted or not. This may be
+    # mechanism and parameter specific. For example SCRAM-SHA512 or NTLM
+    # will continue to be cleartext, while SRP or GSS-API would be encrypted.
+    #
+    # Switch messageMode into trial mode which is explored via MessageDispatch
+    # and the MaybeEncrypted unit.
+    #
+    # Note, messageMode may be changed to something more specific like
+    # MS_KRB5 below.
+    if ( |ctx.saslMechanism| > 0 && $$.code == ResultCode::SUCCESS ) {
+      ctx.messageMode = MessageMode::MAYBE_ENCRYPTED;
+    }
   }
 
   # Try to parse serverSaslCreds if there's any input remaining. This
@@ -421,14 +507,18 @@ type BindResponse = unit(inout message: Message, ctx: Ctx&) {
   # if the serverSaslCreds field exists or not. But, not sure we can
   # check if there's any bytes left at this point outside of passing
   # in the length and playing with offset().
-  serverSaslCreds: ServerSaslCreds[] &eod {
-    if ( |self.serverSaslCreds| > 0 ) {
-      if ( self.serverSaslCreds[0]?.negTokenResp ) {
-        local token = self.serverSaslCreds[0].negTokenResp;
-        if ( token.accepted && token?.supportedMechOid ) {
-          if ( token.supportedMechOid == GSSAPI_MECH_MS_KRB5 ) {
-            ctx.saslStripping = SaslStripping::MS_KRB5;
-          }
+  serverSaslCreds: ServerSaslCreds[] &eod;
+
+  # If the client requested GSS-SPNEGO, try to parse the server's response
+  # to switch message mode.
+  gss_spnego: GSS_SPNEGO_Subsequent &parse-from=self.serverSaslCreds[0].payload
+      if (ctx.saslMechanism == "GSS-SPNEGO" && |self.serverSaslCreds| > 0) {
+
+    if ( $$?.negTokenResp ) {
+      local token = $$.negTokenResp;
+      if ( token.accepted && token?.supportedMechOid ) {
+        if ( token.supportedMechOid == GSSAPI_MECH_MS_KRB5 ) {
+          ctx.messageMode = MessageMode::MS_KRB5;
         }
       }
     }
@@ -980,16 +1070,61 @@ type AbandonRequest = unit(inout message: Message) {
 #-----------------------------------------------------------------------------
 # Extended Operation
 # https://tools.ietf.org/html/rfc4511#section-4.12
+type ExtendedRequest = unit(inout message: Message, ctx: Ctx&) {
+  var requestValue: bytes;
+  header: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::ContextSpecific);
+  requestName: bytes &size=self.header.len.len &convert=$$.decode(spicy::Charset::ASCII) {
+    message.obj = $$;
+  }
 
-# TODO: implement ExtendedRequest
-# type ExtendedRequest = unit(inout message: Message) {
-#
-# };
+  # If there's more byte to parse, it's the requestValue.
+  : ASN1::ASN1Message(False)
+      &requires=($$.head.tag.class == ASN1::ASN1Class::ContextSpecific)
+      if ( message.opLen > self.offset() ) {
 
-# TODO: implement ExtendedResponse
-# type ExtendedResponse = unit(inout message: Message) {
-#
-# };
+    self.requestValue = $$.application_data;
+  }
+
+  on %done {
+    # Did the client request StartTLS?
+    #
+    # https://datatracker.ietf.org/doc/html/rfc4511#section-4.14.1
+    if ( self.requestName == "1.3.6.1.4.1.1466.20037" )
+      ctx.startTlsRequested = True;
+  }
+};
+
+#-----------------------------------------------------------------------------
+type ExtendedResponseEntry = unit(inout r: ExtendedResponse) {
+  : ASN1::ASN1Message(False) &requires=($$.head.tag.class == ASN1::ASN1Class::ContextSpecific) {
+    if ( $$.head.tag.type_ == ASN1::ASN1Type(10) )
+      r.responseName = $$.application_data;
+    else if ( $$.head.tag.type_ == ASN1::ASN1Type(11) )
+      r.responseValue = $$.application_data;
+    else
+      throw "Unhandled extended response tag %s" % $$.head.tag;
+  }
+};
+
+#-----------------------------------------------------------------------------
+type ExtendedResponse = unit(inout message: Message, ctx: Ctx&) {
+  var responseName: bytes;
+  var responseValue: bytes;
+  : Result {
+    message.result_ = $$;
+  }
+
+  # Try to parse two ASN1 entries if there are bytes left in the unit.
+  # Both are optional and identified by context specific tagging.
+  : ExtendedResponseEntry(self) if ( message.opLen > self.offset() );
+  : ExtendedResponseEntry(self) if ( message.opLen > self.offset() );
+
+  on %done {
+    # Client had requested StartTLS and it was successful? Switch to SSL.
+    if ( ctx.startTlsRequested && message.result_.code == ResultCode::SUCCESS )
+      ctx.messageMode = MessageMode::TLS;
+  }
+};
 
 #-----------------------------------------------------------------------------
 # IntermediateResponse Message

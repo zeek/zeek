@@ -43,3 +43,21 @@ std::string ssl_get_ocsp_fuid() {
     std::string file_id = zeek::file_mgr->HashHandle(file_handle.Description());
     return file_id;
 }
+
+bool ssl_is_partial_tcp() {
+    auto cookie = static_cast<zeek::spicy::rt::Cookie*>(hilti::rt::context::cookie());
+    assert(cookie);
+
+    auto x = cookie->protocol;
+    if ( ! x || ! x->analyzer )
+        return false;
+
+    auto* tcp = dynamic_cast<zeek::analyzer::tcp::TCP_ApplicationAnalyzer*>(x->analyzer);
+    if ( ! tcp )
+        return false;
+
+    if ( tcp->TCP() && tcp->TCP()->IsPartial() )
+        return true;
+
+    return false;
+}

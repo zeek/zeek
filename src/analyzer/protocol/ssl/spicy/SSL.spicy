@@ -6,6 +6,8 @@ public function get_certificate_fuid(is_client: bool, pos: uint32): string &cxxn
 
 public function get_ocsp_fuid(): string &cxxname="ssl_get_ocsp_fuid";
 
+public function is_partial_tcp(): bool &cxxname="ssl_is_partial_tcp";
+
 type ContentType = enum {
     change_cipher_spec = 20,
     alert = 21,
@@ -549,9 +551,9 @@ type Share = unit {
     var flipped: bool;
     var flip_already_alerted: bool;
     # version as seen in server_hello (for signature and hash-alg choice)
-    var chosen_version_sh: uint16;
-    # parsed version, can be used to distinguished tls 1.3
-    var parsed_version: uint16;
+    var chosen_version_sh_outer: uint16;
+    # final negotiated version - can e.g. be used to distinguished tls 1.3
+    var negotiated_version: uint16;
     # set to true if chosen version is identified as a tls 1.3 version
     var tls_13: bool;
     var chosen_cipher: uint16;
@@ -569,7 +571,7 @@ type Share = unit {
         self.ccs_seen = 0;
         self.invalid_dtls_version_count = 0;
         self.tls_13 = False;
-        self.parsed_version = UNKNOWN_VERSION;
+        self.negotiated_version = UNKNOWN_VERSION;
         self.flipped = False;
         self.flip_already_alerted = False;
         self.server_encrypted = False;
@@ -619,11 +621,21 @@ function startEncryption(handshakesink: sink&, alertsink: sink&, inout sh: Share
 # the server hello - and then again due to the supported_versions
 # field in the server hello.
 function set_version(version: uint16, inout sh: Share): bool {
-    sh.parsed_version = version;
+    sh.negotiated_version = version;
     if (version == TLSv13 || version / 0xFF == 0x7F)
         sh.tls_13 = True;
 
     return True;
+}
+
+# check for partial connection - and at the moment just disable the analyzer
+# in that case, for 1:1 equivalence with binpac.
+function check_partial(): bool {
+  if ( is_partial_tcp() ) {
+    zeek::skip_input();
+    return True;
+  }
+  return False;
 }
 
 # public type TLSMessage = unit {
@@ -645,15 +657,18 @@ public type Message = unit {
     sink alertsink;
     var record_version: uint16;
     var dtls: bool = False;
+    var partial: bool = False;
 
     on %init {
         self.handshakesink.connect(new Handshake(self, self.context()));
         self.alertsink.connect(new Alert(self.context()));
-        # print "top-level init";
+
+        self.partial = check_partial();
     }
 
+
+     : skip bytes &eod if ( self.partial );
     fragment: RecordFragmentChoice(self.handshakesink, self.alertsink, self, self.context())[];
-    # : bytes &eod if ( self.context().skipping );
 };
 
 function is_dtls_version(version: uint16): bool {
@@ -672,9 +687,6 @@ type RecordFragmentChoice = unit(handshakesink: sink&, alertsink: sink&, inout m
         False -> tlsfragment: TLSRecordFragment(self.content_type, handshakesink, alertsink, msg, sh);
     };
 
-    # on content_type {
-    #   print "Content type", self.content_type;
-    # }
     on version {
         msg.record_version = self.version;
         if (is_dtls_version(self.version)) {
@@ -764,6 +776,10 @@ type PlaintextRecord = unit(content_type: uint8, handshakesink: sink&, alertsink
 ## a bit of context here - we can't really say when we get the first packet
 ## that uses the final cryptographic key material - and will contain content
 ## data. We just don't have that information available in TLS 1.3 anymore.
+##
+## Currently this returns True if the connection is encrypted, or in an otherwise
+## unclear state (e.g. no known version for the connection), and False if the
+## packet should be in plaintext
 function determine_encryption_on(pr: PlaintextRecord, content_type: uint8, handshakesink: sink&, alertsink: sink&, inout sh: Share): bool {
     if (get_encrypted(sh))
         return True;
@@ -831,16 +847,6 @@ type Handshake_message = unit(inout msg: Message, inout sh: Share) {
         * -> unhandled: skip bytes &size=self.length;
     };
 
-    # on msg_type {
-    #   print "Handshake message", self.msg_type;
-    # }
-    # on unhandled {
-    #   print "Unhandled handshake message of type ", self.msg_type;
-    # }
-    # on %error(emsg: string) {
-    #   print "Error in handshake message of type", self.msg_type, self, emsg;
-    #   print self;
-    # }
 };
 
 type HelloRequest = unit(inout sh: Share) {
@@ -915,10 +921,6 @@ type ClientHello = unit(len: uint64, msg: Message, inout sh: Share) {
     compression_methods: uint8[self.compression_methods_length];
     extensions_length: uint16 if(len > self.offset() + 2);
     extensions: Extension(sh, True)[] &size=self.extensions_length if(len > self.offset() + 2);
-    # on %error(emsg: string) {
-    #   print "Error in client hello", emsg;
-    #   print self;
-    # }
 };
 
 # Draft versions of TLS 1.3 had a different server hello - distinguish here
@@ -929,9 +931,9 @@ type ServerHelloChoice = unit(len: uint64, msg: Message, inout sh: Share) {
         server_version1: 8..15;
         server_version: 0..15;
     };
-    var parsed_version: uint16;
+    var negotiated_version: uint16;
 
-    switch (self.parsed_version) {
+    switch (self.negotiated_version) {
         TLSv13,
         TLSv13_draft,
         0x7F00 -> sh_one_three: ServerHelloOneThree(len, msg, sh, self.sv.server_version);
@@ -940,16 +942,16 @@ type ServerHelloChoice = unit(len: uint64, msg: Message, inout sh: Share) {
 
     on sv {
         # print "Got server version", self.sv.server_version0, self.sv.server_version1, self.sv.server_version;
-        sh.chosen_version_sh = self.sv.server_version;
+        sh.chosen_version_sh_outer = self.sv.server_version;
         set_version(self.sv.server_version, sh);
-        # print "set chosen version", self.sv.server_version, sh.chosen_version_sh;
+        # print "set chosen version", self.sv.server_version, sh.chosen_version_sh_outer;
 
         if (self.sv.server_version1 == 0x7F) {
             # print "TLS 13 draft";
             # map any draft version to draft 00
-            self.parsed_version = 0x7F00;
+            self.negotiated_version = 0x7F00;
         } else {
-            self.parsed_version = self.sv.server_version;
+            self.negotiated_version = self.sv.server_version;
         }
     }
 };
@@ -982,10 +984,6 @@ type ServerHello = unit(len: uint64, msg: Message, inout sh: Share, server_versi
         sh.chosen_cipher = self.cipher_suite;
         # print "set chosen cipher", self.cipher_suite, sh.chosen_cipher;
     }
-    # on %error(emsg: string) {
-    #   print "Error in server hello", emsg;
-    #   print self;
-    # }
 };
 
 type Extension = unit(inout sh: Share, client_hello: bool) {
@@ -1015,15 +1013,6 @@ type Extension = unit(inout sh: Share, client_hello: bool) {
         * -> unknown: bytes &size=self.length;
     };
 
-    # on code {
-    #   print "Extension", self.code, client_hello;
-    # }
-    # on unknown {
-    #   print "Unknown extension", self.code;
-    # }
-    # on %error(emsg: string) {
-    #   print "Error parsing extension with code", self.code, emsg;
-    # }
     on raw {
         self.set_input(self.input() + 4);
     }
@@ -1422,7 +1411,7 @@ type EcdheServerKeyExchange = unit(len: uint64, sh: Share) {
 
 public function uses_signature_and_hashalgorithm(sh: Share): bool {
     # larger TLS11 and not DTLSv10
-    if (sh.chosen_version_sh > TLSv11 && sh.chosen_version_sh != DTLSv10)
+    if (sh.chosen_version_sh_outer > TLSv11 && sh.chosen_version_sh_outer != DTLSv10)
         return True;
 
     return False;
@@ -1873,3 +1862,48 @@ on SSL::Certificate::%done {
         first = False;
     }
 }
+
+# Debug stuff
+
+# on RecordFragmentChoice::content_type {
+#   print "RecordFragmentChoice: Content type", self.content_type;
+# }
+# 
+# on PlaintextRecord::unhandled {
+#   print "PlaintextRecord: Unhandled content type", content_type;
+# }
+# 
+# on Handshake_message::msg_type {
+#   print "Handshake message", self.msg_type;
+# }
+# 
+# on Handshake_message::unhandled {
+#   print "Unhandled handshake message of type ", self.msg_type;
+# }
+# 
+# on Handshake_message::%error(emsg: string) {
+#   print "Error in handshake message of type", self.msg_type, self, emsg;
+#   print self;
+# }
+# 
+# on ClientHello::%error(emsg: string) {
+#   print "Error in client hello", emsg;
+#   print self;
+# }
+# 
+# on ServerHello::%error(emsg: string) {
+#   print "Error in server hello", emsg;
+#   print self;
+# }
+# 
+# on Extension::code {
+#   print "Extension", self.code, client_hello;
+# }
+# 
+# on Extension::unknown {
+#   print "Unknown extension", self.code;
+# }
+# 
+# on Extension::%error(emsg: string) {
+#   print "Error parsing extension with code", self.code, emsg;
+# }

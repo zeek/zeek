@@ -1238,10 +1238,28 @@ ExprPtr EqExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( IsHasElementsTest() )
         return BuildHasElementsTest()->Reduce(c, red_stmt);
 
-    if ( GetType()->Tag() == TYPE_BOOL && same_singletons(op1, op2) ) {
-        bool t = Tag() == EXPR_EQ;
-        auto res = with_location_of(make_intrusive<ConstExpr>(val_mgr->Bool(t)), this);
-        return res->Reduce(c, red_stmt);
+    if ( GetType()->Tag() == TYPE_BOOL ) {
+        if ( same_singletons(op1, op2) ) {
+            bool t = Tag() == EXPR_EQ;
+            auto res = with_location_of(make_intrusive<ConstExpr>(val_mgr->Bool(t)), this);
+            return res->Reduce(c, red_stmt);
+        }
+
+        if ( op1->GetType()->Tag() == TYPE_BOOL ) {
+            if ( op1->Tag() == EXPR_CONST )
+                std::swap(op1, op2);
+
+            if ( op2->Tag() == EXPR_CONST ) {
+                bool t = Tag() == EXPR_EQ;
+                if ( op2->AsConstExpr()->Value()->IsZero() )
+                    t = ! t;
+                if ( t )
+                    return op1->Reduce(c, red_stmt);
+
+                auto res = with_location_of(make_intrusive<NotExpr>(op1), this);
+                return res->Reduce(c, red_stmt);
+            }
+        }
     }
 
     return BinaryExpr::Reduce(c, red_stmt);

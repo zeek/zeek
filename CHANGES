@@ -1,3 +1,46 @@
+7.1.0-dev.30 | 2024-07-23 12:38:54 +0200
+
+  * ldap: Add heuristic for wrap tokens (Arne Welzel, Corelight)
+
+    Instead of dissecting the GSSAPI handshake, add another heuristic
+    into MaybeEncrypted to check for the WRAP token identifier.
+
+    After this change, the pcap on the following ticket is processed
+    nicely: https://gitlab.com/wireshark/migration-test/-/issues/9398
+
+  * ldap: Ignore ec/rrc for sealed wrap tokens (Arne Welzel, Corelight)
+
+    It shouldn't matter for the encrypted payload that we'll
+    just consume and ignore.
+
+  * ldap: Add LDAP sample with SASL-SRP mechanism (Arne Welzel, Corelight)
+
+    This is what @dopheide-esnet actually saw. Produced with a custom
+    cyrus-sasl and openldap build :-(
+
+  * ldap: Reintroduce encryption after SASL heuristic (Arne Welzel, Corelight)
+
+    @dopheide-esnet provided sample captures where SASL SRP is used as
+    a SASL mechanism and the follow-up LDAP messages are encrypted. It's
+    not clear how to determine whether encryption will or will not happen,
+    so re-add a heuristic to determine this based on the first byte of
+    the first message *after* the successful bindResponse handshake. If
+    that byte is 0x30, assume cleartext.
+
+    I haven't been able to produce such pcaps, unfortunately, but the
+    cleartext path is tested via the existing sasl-ntlm.pcap.
+
+  * ldap: Fix assuming GSS-SPNEGO for all bindResponses (Arne Welzel, Corelight)
+
+    In retrospect that's an obvious bug.
+
+  * ldap: Implement extended request/response and StartTLS support (Arne Welzel, Corelight)
+
+    PCAP was produced with a local OpenLDAP server configured to support StartTLS.
+
+    This puts the Zeek calls into a separate ldap_zeek.spicy file/module
+    to separate it from LDAP.
+
 7.1.0-dev.23 | 2024-07-23 10:02:52 +0200
 
   * telemetry: Deprecate prometheus.zeek policy script (Arne Welzel, Corelight)

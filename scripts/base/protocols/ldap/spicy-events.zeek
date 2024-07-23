@@ -98,3 +98,44 @@ global LDAP::search_result_entry: event (
   message_id: int,
   object_name: string
 );
+
+## Event generated for each ExtendedRequest in LDAP messages.
+##
+## c: The connection.
+##
+## message_id: The messageID element.
+##
+## request_name: The name of the extended request.
+##
+## request_value: The value of the extended request (empty if missing).
+global LDAP::extended_request: event (
+  c: connection,
+  message_id: int,
+  request_name: string,
+  request_value: string
+);
+
+## Event generated for each ExtendedResponse in LDAP messages.
+##
+## c: The connection.
+##
+## message_id: The messageID element.
+##
+## result: The result code of the response.
+##
+## response_name: The name of the extended response (empty if missing).
+##
+## response_value: The value of the extended response (empty if missing).
+global LDAP::extended_response: event (
+  c: connection,
+  message_id: int,
+  result: LDAP::ResultCode,
+  response_name: string,
+  response_value: string
+);
+
+## Event generated when a plaintext LDAP connection switched to TLS.
+##
+## c: The connection.
+##
+global LDAP::starttls: event(c: connection);

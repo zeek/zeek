@@ -76,6 +76,9 @@ struct AnalyOpt {
     // Deactivate the low-level ZAM optimizer.
     bool no_ZAM_opt = false;
 
+    // Deactivate ZAM optimization of control flow.
+    bool no_ZAM_control_flow_opt = false;
+
     // Produce a profile of ZAM execution.
     bool profile_ZAM = false;
 

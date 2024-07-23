@@ -144,6 +144,9 @@ bool ZAMCompiler::RemoveDeadCode() {
         if ( ! i0->live )
             continue;
 
+        if ( analysis_options.no_ZAM_control_flow_opt )
+            continue;
+
         auto i1 = NextLiveInst(i0);
 
         // Look for degenerate branches.
@@ -181,6 +184,9 @@ bool ZAMCompiler::RemoveDeadCode() {
 }
 
 bool ZAMCompiler::CollapseGoTos() {
+    if ( analysis_options.no_ZAM_control_flow_opt )
+        return false;
+
     bool did_change = false;
 
     for ( auto& i0 : insts1 ) {

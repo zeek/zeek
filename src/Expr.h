@@ -1594,6 +1594,9 @@ class CoerceToAnyExpr : public UnaryExpr {
 public:
     CoerceToAnyExpr(ExprPtr op);
 
+    bool IsReduced(Reducer* c) const override;
+    ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
+
 protected:
     ValPtr Fold(Val* v) const override;
 

@@ -1894,7 +1894,8 @@ void WhenInfo::Build(StmtPtr ws) {
     auto else_branch = timeout_s ? timeout_s : empty;
 
     auto do_bodies = make_intrusive<IfStmt>(two_test, s, else_branch);
-    auto dummy_return = make_intrusive<ReturnStmt>(true_const);
+    auto any_true_const = make_intrusive<CoerceToAnyExpr>(true_const);
+    auto dummy_return = make_intrusive<ReturnStmt>(any_true_const);
 
     auto shebang = make_intrusive<StmtList>(do_test, do_bodies, dummy_return);
 

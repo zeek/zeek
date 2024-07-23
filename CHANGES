@@ -1,3 +1,17 @@
+7.1.0-dev.23 | 2024-07-23 10:02:52 +0200
+
+  * telemetry: Deprecate prometheus.zeek policy script (Arne Welzel, Corelight)
+
+    With Cluster::Node$metrics_port being optional, there's not really
+    a need for the extra script. New rule, if a metrics_port is set, the
+    node will attempt to listen on it.
+
+    Users can still redef Telemetry::metrics_port *after*
+    base/frameworks/telemetry was loaded to change the port defined
+    in cluster-layout.zeek.
+
+  * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 7.1.0-dev.20 | 2024-07-19 19:51:12 +0200
 
   * GH-3836: input/Manager: Improve type checks of record fields with type any (Arne Welzel, Corelight)

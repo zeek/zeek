@@ -5,9 +5,27 @@
 ##! enabled by setting :zeek:see:`Telemetry::metrics_port`.
 
 @load base/misc/version
+@load base/frameworks/cluster
+
 @load base/frameworks/telemetry/options
 
 module Telemetry;
+
+# In a cluster configuration, open the port number for metrics
+# from the cluster node configuration for exporting data to
+# Prometheus.
+#
+# The manager node will also provide a ``/services.json`` endpoint
+# for the HTTP Service Discovery system in Prometheus to use for
+# configuration. This endpoint will include information for all of
+# the other nodes in the cluster.
+@if ( Cluster::is_enabled() )
+redef Telemetry::metrics_endpoint_name = Cluster::node;
+
+@if ( Cluster::local_node_metrics_port() != 0/unknown )
+redef Telemetry::metrics_port = Cluster::local_node_metrics_port();
+@endif
+@endif
 
 export {
 	## Alias for a vector of label values.

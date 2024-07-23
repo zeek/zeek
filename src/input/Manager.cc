@@ -264,6 +264,15 @@ bool Manager::CreateStream(Stream* info, RecordVal* description) {
     return true;
 }
 
+// Return true if v is a TypeVal that contains a record type, else false.
+static bool is_record_type_val(const zeek::ValPtr& v) {
+    const auto& t = v->GetType();
+    return t->Tag() == TYPE_TYPE && t->AsTypeType()->GetType()->Tag() == TYPE_RECORD;
+}
+
+// Return true if v contains a FuncVal, else false.
+static bool is_func_val(const zeek::ValPtr& v) { return v->GetType()->Tag() == TYPE_FUNC; }
+
 bool Manager::CreateEventStream(RecordVal* fval) {
     RecordType* rtype = fval->GetType()->AsRecordType();
     if ( ! same_type(rtype, BifType::Record::Input::EventDescription, false) ) {
@@ -274,11 +283,21 @@ bool Manager::CreateEventStream(RecordVal* fval) {
     string stream_name = fval->GetFieldOrDefault("name")->AsString()->CheckString();
 
     auto fields_val = fval->GetFieldOrDefault("fields");
+    if ( ! is_record_type_val(fields_val) ) {
+        reporter->Error("Input stream %s: 'idx' field is not a record type", stream_name.c_str());
+        return false;
+    }
+
     RecordType* fields = fields_val->AsType()->AsTypeType()->GetType()->AsRecordType();
 
     auto want_record = fval->GetFieldOrDefault("want_record");
 
     auto ev_val = fval->GetFieldOrDefault("ev");
+    if ( ev_val && ! is_func_val(ev_val) ) {
+        reporter->Error("Input stream %s: 'ev' field is not an event", stream_name.c_str());
+        return false;
+    }
+
     Func* event = ev_val->AsFunc();
 
     const auto& etype = event->GetType();
@@ -356,6 +375,11 @@ bool Manager::CreateEventStream(RecordVal* fval) {
         assert(false);
 
     auto error_event_val = fval->GetFieldOrDefault("error_ev");
+    if ( error_event_val && ! is_func_val(error_event_val) ) {
+        reporter->Error("Input stream %s: 'error_ev' field is not an event", stream_name.c_str());
+        return false;
+    }
+
     Func* error_event = error_event_val ? error_event_val->AsFunc() : nullptr;
 
     if ( ! CheckErrorEventTypes(stream_name, error_event, false) )
@@ -414,15 +438,31 @@ bool Manager::CreateTableStream(RecordVal* fval) {
 
     auto pred = fval->GetFieldOrDefault("pred");
     auto idx_val = fval->GetFieldOrDefault("idx");
+    if ( ! is_record_type_val(idx_val) ) {
+        reporter->Error("Input stream %s: 'idx' field is not a record type", stream_name.c_str());
+        return false;
+    }
+
     RecordType* idx = idx_val->AsType()->AsTypeType()->GetType()->AsRecordType();
 
     RecordTypePtr val;
     auto val_val = fval->GetFieldOrDefault("val");
 
-    if ( val_val )
+    if ( val_val ) {
+        if ( ! is_record_type_val(val_val) ) {
+            reporter->Error("Input stream %s: 'val' field is not a record type", stream_name.c_str());
+            return false;
+        }
+
         val = val_val->AsType()->AsTypeType()->GetType<RecordType>();
+    }
 
     auto dst = fval->GetFieldOrDefault("destination");
+    if ( ! dst->GetType()->IsSet() && ! dst->GetType()->IsTable() ) {
+        reporter->Error("Input stream %s: 'destination' field has type %s, expected table or set identifier",
+                        stream_name.c_str(), obj_desc_short(dst->GetType().get()).c_str());
+        return false;
+    }
 
     // check if index fields match table description
     size_t num = idx->NumFields();
@@ -497,6 +537,11 @@ bool Manager::CreateTableStream(RecordVal* fval) {
     }
 
     auto event_val = fval->GetFieldOrDefault("ev");
+    if ( event_val && ! is_func_val(event_val) ) {
+        reporter->Error("Input stream %s: 'ev' field is not an event", stream_name.c_str());
+        return false;
+    }
+
     Func* event = event_val ? event_val->AsFunc() : nullptr;
 
     if ( event ) {
@@ -572,6 +617,11 @@ bool Manager::CreateTableStream(RecordVal* fval) {
     }
 
     auto error_event_val = fval->GetFieldOrDefault("error_ev");
+    if ( error_event_val && ! is_func_val(error_event_val) ) {
+        reporter->Error("Input stream %s: 'error_ev' field is not an event", stream_name.c_str());
+        return false;
+    }
+
     Func* error_event = error_event_val ? error_event_val->AsFunc() : nullptr;
 
     if ( ! CheckErrorEventTypes(stream_name, error_event, true) )

@@ -7,7 +7,7 @@ import spicy;
 public type Message = unit {
     switch {
         -> prio: Priority;
-        -> void;
+        -> : void;
     };
 
     msg: bytes &eod;

@@ -55,7 +55,6 @@ done
 @TEST-END-FILE
 
 @load policy/frameworks/cluster/experimental
-@load policy/frameworks/telemetry/prometheus
 @load base/frameworks/telemetry
 
 # So the cluster nodes don't terminate right away.

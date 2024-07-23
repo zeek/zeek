@@ -1,3 +1,102 @@
+7.1.0-dev.23 | 2024-07-23 10:02:52 +0200
+
+  * telemetry: Deprecate prometheus.zeek policy script (Arne Welzel, Corelight)
+
+    With Cluster::Node$metrics_port being optional, there's not really
+    a need for the extra script. New rule, if a metrics_port is set, the
+    node will attempt to listen on it.
+
+    Users can still redef Telemetry::metrics_port *after*
+    base/frameworks/telemetry was loaded to change the port defined
+    in cluster-layout.zeek.
+
+  * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+7.1.0-dev.20 | 2024-07-19 19:51:12 +0200
+
+  * GH-3836: input/Manager: Improve type checks of record fields with type any (Arne Welzel, Corelight)
+
+    Calling AsRecordType() or AsFunc() on a Val of type any isn't safe.
+
+    Closes #3836
+
+7.1.0-dev.18 | 2024-07-17 15:37:12 -0700
+
+  * Bump zeek-testing-cluster to pull in tee SIGPIPE fix (Christian Kreibich, Corelight)
+
+7.1.0-dev.16 | 2024-07-17 16:45:13 +0200
+
+  * ldap: Remove MessageWrapper with magic 0x30 searching (Arne Welzel, Corelight)
+
+    This unit implements a heuristic to search for the 0x30 sequence
+    byte if Message couldn't readily be parsed. Remove it with the
+    idea of explicit and predictable support for SASL mechanisms.
+
+  * ldap: Harden parsing a bit (Arne Welzel, Corelight)
+
+    ASN1Message(True) may go off parsing arbitrary input data as
+    "something ASN.1" This could be GBs of octet strings or just very
+    long sequences. Avoid this by open-coding some top-level types expected.
+
+    This also tries to avoid some of the &parse-from usages that result
+    in unnecessary copies of data.
+
+    Adds a locally generated PCAP with addRequest/addResponse that we
+    don't currently handle.
+
+  * ldap: Handle integrity-only KRB wrap tokens (Arne Welzel, Corelight)
+
+    Mostly staring at the PCAPs and opened a few RFCs. For now, only if the
+    MS_KRB5 OID is used and accepted in a bind response, start stripping
+    KRB5 wrap tokens for both, client and server traffic.
+
+    Would probably be nice to forward the GSS-API data to the analyzer...
+
+    Closes zeek/spicy-ldap#29.
+
+7.1.0-dev.12 | 2024-07-16 10:16:02 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+    This patch bump Spicy to the latest development snapshot. This
+    introduces a backwards-incompatible change in that it removes support
+    for a never officially supported syntax to specify unit fields (so I
+    would argue: not strictly a breaking change).
+
+7.1.0-dev.10 | 2024-07-12 16:02:22 -0700
+
+  * CI: Set FETCH_CONTENT_FULLY_DISCONNECTED flag for configure (Tim Wojtulewicz, Corelight)
+
+  * Fix a broken merge (Tim Wojtulewicz, Corelight)
+
+    I merged an old version of the branch on accident and then merged the right
+    one over top of it, but git ended up including both versions. This fixes
+    that mistake.
+
+7.1.0-dev.6 | 2024-07-12 09:51:39 -0700
+
+  * Do not emit hook files for builtin modules (Benjamin Bannier, Corelight)
+
+    We would previously emit a C++ file with hooks for at least the builtin
+    `spicy` module even though that module like any other builtin module
+    never contains implementations of hooks for types in user code.
+
+    This patch prevents modules with skipped implementations (such as our
+    builtin modules) from being added to the compilation which prevents
+    generating their hook files.
+
+7.1.0-dev.2 | 2024-07-12 09:46:34 -0700
+
+  * Fix warning about grealpath when running 'make dist' on Linux (Tim Wojtulewicz, Corelight)
+
+7.0.0-dev.467 | 2024-07-11 12:14:52 -0700
+
+  * Update the scripts.base.frameworks.telemetry.internal-metrics test (Christian Kreibich, Corelight)
+
+  * Revert "Temporarily disable the scripts/base/frameworks/telemetry/internal-metrics btest" (Christian Kreibich, Corelight)
+
+  * Bump Broker to pull in new Prometheus support and pass in Zeek's registry (Dominik Charousset and Christian Kreibich, Corelight)
+
 7.0.0-dev.461 | 2024-07-10 18:45:36 +0200
 
   * Extend btest for logging of disabled analyzers (Jan Grashoefer, Corelight)

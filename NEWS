@@ -3,6 +3,30 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 7.1.0
+==========
+
+Breaking Changes
+----------------
+
+New Functionality
+-----------------
+
+* The LDAP analyzer now supports handling of non-sealed GSS-API WRAP tokens.
+
+Changed Functionality
+---------------------
+
+* Heuristics for parsing SASL encrypted and signed LDAP traffic have been
+  made more strict and predictable. Please provide input if this results in
+  less visibility in your environment.
+
+Removed Functionality
+---------------------
+
+Deprecated Functionality
+------------------------
+
 Zeek 7.0.0
 ==========
 
@@ -166,6 +190,11 @@ Deprecated Functionality
 
 - The ``--disable-archiver`` configure flag no longer does anything and will be
   removed in 7.1. zeek-archiver has moved into the zeek-aux repository.
+
+- The policy/frameworks/telemetry/prometheus.zeek script has been deprecated
+  and will be removed with Zeek 7.1. Setting the ``metrics_port`` field on a
+  ``Cluster::Node`` implies listening on that port and exposing telemetry
+  in Prometheus format.
 
 Zeek 6.2.0
 ==========

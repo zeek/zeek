@@ -1,3 +1,7 @@
+7.1.0-dev.32 | 2024-07-23 08:51:11 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 7.1.0-dev.30 | 2024-07-23 12:38:54 +0200
 
   * ldap: Add heuristic for wrap tokens (Arne Welzel, Corelight)

@@ -1,3 +1,7 @@
+7.1.0-dev.34 | 2024-07-23 08:54:23 -0700
+
+  * Update Mozilla CA list and CT list (Johanna Amann, Corelight)
+
 7.1.0-dev.32 | 2024-07-23 08:51:11 -0700
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

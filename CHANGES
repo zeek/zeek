@@ -1,3 +1,9 @@
+7.1.0-dev.43 | 2024-07-24 13:25:52 -0700
+
+  * Update 7.0 NEWS with blurb about multi-PDU parsing causing increased load [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
+  * Fix handling of zero-length SMB2 error responses (Tim Wojtulewicz, Corelight)
+
 7.1.0-dev.40 | 2024-07-24 11:18:03 +0200
 
   * minor optimization of boolean comparisons (Vern Paxson, Corelight)

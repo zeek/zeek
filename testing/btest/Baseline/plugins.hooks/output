@@ -803,7 +803,7 @@
 0.000000   MetaHookPost  CallFunction(disable_event_group, <frame>, (Analyzer::Logging::include_confirmations)) -> <no result>
 0.000000   MetaHookPost  CallFunction(enable_module_events, <frame>, (Analyzer::Logging)) -> <no result>
 0.000000   MetaHookPost  CallFunction(filter_change_tracking, <null>, ()) -> <no result>
-0.000000   MetaHookPost  CallFunction(find_last, <frame>, (-18, <...>/)) -> <no result>
+0.000000   MetaHookPost  CallFunction(find_last, <frame>, (, <...>/)) -> <no result>
 0.000000   MetaHookPost  CallFunction(getenv, <null>, (CLUSTER_NODE)) -> <no result>
 0.000000   MetaHookPost  CallFunction(getenv, <null>, (ZEEK_DEFAULT_LISTEN_ADDRESS)) -> <no result>
 0.000000   MetaHookPost  CallFunction(global_options, <frame>, ()) -> <no result>
@@ -2428,7 +2428,7 @@
 0.000000   MetaHookPre   CallFunction(disable_event_group, <frame>, (Analyzer::Logging::include_confirmations))
 0.000000   MetaHookPre   CallFunction(enable_module_events, <frame>, (Analyzer::Logging))
 0.000000   MetaHookPre   CallFunction(filter_change_tracking, <null>, ())
-0.000000   MetaHookPre   CallFunction(find_last, <frame>, (-18, <...>/))
+0.000000   MetaHookPre   CallFunction(find_last, <frame>, (, <...>/))
 0.000000   MetaHookPre   CallFunction(getenv, <null>, (CLUSTER_NODE))
 0.000000   MetaHookPre   CallFunction(getenv, <null>, (ZEEK_DEFAULT_LISTEN_ADDRESS))
 0.000000   MetaHookPre   CallFunction(global_options, <frame>, ())
@@ -4052,7 +4052,7 @@
 0.000000 | HookCallFunction disable_event_group(Analyzer::Logging::include_confirmations)
 0.000000 | HookCallFunction enable_module_events(Analyzer::Logging)
 0.000000 | HookCallFunction filter_change_tracking()
-0.000000 | HookCallFunction find_last(-18, <...>/)
+0.000000 | HookCallFunction find_last(, <...>/)
 0.000000 | HookCallFunction getenv(CLUSTER_NODE)
 0.000000 | HookCallFunction getenv(ZEEK_DEFAULT_LISTEN_ADDRESS)
 0.000000 | HookCallFunction global_options()

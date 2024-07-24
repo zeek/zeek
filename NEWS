@@ -113,7 +113,8 @@ New Functionality
   environment variable configures the addition.
 
 - SMB2 packets containing multiple PDUs now correctly parse all of the headers,
-  instead of just the first one and ignoring the rest.
+  instead of just the first one and ignoring the rest. This may cause increased
+  CPU load on SMB2-heavy networks.
 
 - The new built-in function ``lookup_connection_analyzer_id()`` retrieves the
   numeric identifier of an analyzer associated with a connection. This enables

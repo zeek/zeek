@@ -831,7 +831,7 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val) 
     // Need a separate instance of aux so the CFT info doesn't get shared with
     // the loop init. We populate it with the loop_vars (only) because the
     // optimizer needs access to those for (1) tracking their lifetime, and
-    // (2) remapping them (not strictly needed, see the comment in ReMapFrame().
+    // (2) remapping them (not strictly needed, see the comment in ReMapFrame()).
     zn.aux = new ZInstAux(0);
     zn.aux->loop_vars = aux->loop_vars;
     AddCFT(&zn, CFT_LOOP);
@@ -977,6 +977,12 @@ const ZAMStmt ZAMCompiler::CompileReturn(const ReturnStmt* r) {
 
     if ( retvars.empty() ) { // a "true" return
         if ( e ) {
+            if ( pf->ProfiledFunc()->Flavor() == FUNC_FLAVOR_HOOK ) {
+                ASSERT(e->GetType()->Tag() == TYPE_BOOL);
+                auto true_c = make_intrusive<ConstExpr>(val_mgr->True());
+                return ReturnC(true_c.get());
+            }
+
             if ( e->Tag() == EXPR_NAME )
                 return ReturnV(e->AsNameExpr());
             else

@@ -42,7 +42,7 @@ macro WARN(msg) ZAM_run_time_warning(Z_LOC, msg)
 macro BuildVal(v, t) ZVal(v, t)
 
 # Returns a memory-managed-if-necessary copy of an existing value.
-macro CopyVal(v) (ZVal::IsManagedType(Z_TYPE) ? BuildVal((v).ToVal(Z_TYPE), Z_TYPE) : (v))
+macro CopyVal(v) (Z_IS_MANAGED ? BuildVal((v).ToVal(Z_TYPE), Z_TYPE) : (v))
 
 # Managed assignments to the given target.
 macro AssignTarget(target, v) {

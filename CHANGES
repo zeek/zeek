@@ -1,3 +1,9 @@
+7.1.0-dev.40 | 2024-07-24 11:18:03 +0200
+
+  * minor optimization of boolean comparisons (Vern Paxson, Corelight)
+
+  * GH-3839: fix & regression test for GH-3839 (spurious warnings for "when" constructs) (Vern Paxson, Corelight)
+
 7.1.0-dev.37 | 2024-07-23 19:18:37 -0700
 
   * Bump zeek-testing-cluster to reflect deprecation of prometheus.zeek (Christian Kreibich, Corelight)

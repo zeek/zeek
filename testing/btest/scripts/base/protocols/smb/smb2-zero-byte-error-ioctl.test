@@ -1,0 +1,16 @@
+# @TEST-DOC: Tests handling of PDUs containing error ioctls with byte lengths of zero
+# @TEST-EXEC: zeek -b -r $TRACES/smb/smb2-zero-byte-error-ioctl.pcap %INPUT 2>&1 >out
+# @TEST-EXEC: ! test -f analyzer.log
+# @TEST-EXEC: btest-diff out
+
+@load base/protocols/smb
+
+event smb2_close_request(c: connection, hdr: SMB2::Header, file_id: SMB2::GUID)
+{
+    print "smb2_close_request", hdr;
+}
+
+event smb2_close_response(c: connection, hdr: SMB2::Header, response: SMB2::CloseResponse)
+{
+    print "smb2_close_response", hdr, response;
+}

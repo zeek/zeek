@@ -1,3 +1,7 @@
+7.1.0-dev.45 | 2024-07-24 15:28:59 -0700
+
+  * Update binpac submodule to better format output code [nomail] (Tim Wojtulewicz, Corelight)
+
 7.1.0-dev.43 | 2024-07-24 13:25:52 -0700
 
   * Update 7.0 NEWS with blurb about multi-PDU parsing causing increased load [nomail] [skip ci] (Tim Wojtulewicz, Corelight)

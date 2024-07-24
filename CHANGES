@@ -1,3 +1,9 @@
+7.1.0-dev.37 | 2024-07-23 19:18:37 -0700
+
+  * Bump zeek-testing-cluster to reflect deprecation of prometheus.zeek (Christian Kreibich, Corelight)
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
 7.1.0-dev.34 | 2024-07-23 08:54:23 -0700
 
   * Update Mozilla CA list and CT list (Johanna Amann, Corelight)

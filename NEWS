@@ -6,6 +6,13 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 7.0.0
 ==========
 
+We would like to thank the following people for their contributions to this
+release: Christopher Knill (cknill), Jan Grashöfer (J-Gras), Martin van
+Hensbergen (mvhensbergen), Matti Bispham (mbispham), Mike Dopheide
+(dopheide-esnet), Oleksandr Pastushkov (opastushkov), Peter Cullen (pbcullen),
+Steve Smoot (stevesmoot), Tanner Kvarfordt (Kardbord), Victor Dvornikov
+(lydiym).
+
 Breaking Changes
 ----------------
 

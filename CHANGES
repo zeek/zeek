@@ -1,3 +1,11 @@
+7.0.0-rc2.7 | 2024-07-24 17:00:51 -0700
+
+  * Add contributors to 7.0.0 NEWS entry (Christian Kreibich, Corelight)
+
+  * telemetry: Deprecate prometheus.zeek policy script (Arne Welzel, Corelight)
+
+  * Update broker submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 7.0.0-rc2 | 2024-07-18 14:31:49 -0700
 
   * Bump zeek-testing-cluster to pull in tee SIGPIPE fix (Christian Kreibich, Corelight)

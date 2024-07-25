@@ -1,3 +1,77 @@
+7.1.0-dev.61 | 2024-07-25 12:02:51 +0200
+
+  * mysql: Simplify length computation (Arne Welzel, Corelight)
+
+    Thanks Tim!
+
+  * mysql: Improve date and time parsing (Fupeng Zhao)
+
+  * btest/mysql: Clean query-attr.pcapng (Arne Welzel, Corelight)
+
+    It contained some unrelated IntelliJ traffic.
+
+  * mysql: Support non-string query attributes (Arne Welzel, Corelight)
+
+    The query attributes aren't exposed to script layer right now, but this
+    should at least parse over them once encountered and some fixups.
+
+  * btest/mysql: Add pcap with non-string query attributes (Arne Welzel, Corelight)
+
+    Pcap was generated as follows. Doesn't seem wireshark even parses
+    this properly right now.
+
+        with common.get_connection() as c:
+            with c.cursor() as cur:
+                date1 = datetime.date(1987, 10, 18)
+                datetime1 = datetime.datetime(1990, 9, 26, 12, 13, 14)
+                cur.add_attribute("number1", 42)
+                cur.add_attribute("string1", "a string")
+                cur.add_attribute("date1", date1)
+                cur.add_attribute("datetime1", datetime1)
+                cur.execute("SELECT version()")
+                result = cur.fetchall()
+                print("result", result)
+
+  * mysql: Introduce mysql_ssl_request event (Arne Welzel, Corelight)
+
+    This should've been added with fa48c885 for completion. Do it now.
+    The MySQL spec calls it SSLRequest packet, so keep SSL in the name for
+    consistency.
+
+  * mysql: Fix EOFIfLegacyThenResultSet (Arne Welzel, Corelight)
+
+    Only expect a result next if an EOF was consumed.
+
+  * mysql: Add data parameter to mysql_auth_plugin (Arne Welzel, Corelight)
+
+    This may contain salt from the server or a hashed password from the client.
+
+  * mysql: Add mysql_auth_plugin, mysql_auth_more_data and mysql_auth_switch_request events (Arne Welzel, Corelight)
+
+    Remove caching_sha2_password parsing/state from the analyzer and implement
+    the generic events. If we actually want to peak into the authentication
+    mechanism, we could write a separate analyzer for it. For now, treat it
+    as opaque values that are exposed to script land.
+
+    The added tests show the --get-server-public-key in use where
+    mysql_auth_more_data contains an RSA public key.
+
+  * mysql: AuthSwitchRequest: &enforce a 0xfe / 254 status (Arne Welzel, Corelight)
+
+  * mysql: Make auth_plugin_ a std::string (Arne Welzel, Corelight)
+
+  * mysql: Fix auth_plugin_data_part2 length computation (Arne Welzel, Corelight)
+
+  * Refactored connection phase state handling (Fupeng Zhao)
+
+    Added `ConnectionExpected` enum for expected packet types during the connection phase.
+
+  * Add support for "auth switch" and "query attrs" (Fupeng Zhao)
+
+    Also fix the issue where Resultset could not correctly distinguish between EOF_Packet and OK_Packet.
+
+  * Add support for parsing the "caching_sha2_password" auth plugin (Fupeng Zhao)
+
 7.1.0-dev.45 | 2024-07-24 15:28:59 -0700
 
   * Update binpac submodule to better format output code [nomail] (Tim Wojtulewicz, Corelight)

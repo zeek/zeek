@@ -25,6 +25,10 @@ Changed Functionality
   made more strict and predictable. Please provide input if this results in
   less visibility in your environment.
 
+* The MySQL analyzer has been improved to better support plugin authentication
+  mechanisms, like caching_sha2_password, as well as recognizing MySQL query
+  attributes.
+
 Removed Functionality
 ---------------------
 

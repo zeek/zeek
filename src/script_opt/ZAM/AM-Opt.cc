@@ -436,6 +436,20 @@ void ZAMCompiler::ComputeFrameLifetimes() {
                 break;
             }
 
+            case OP_DETERMINE_TYPE_MATCH_VV: {
+                auto aux = inst->aux;
+                int n = aux->n;
+                for ( int i = 0; i < n; ++i ) {
+                    auto slot_i = aux->elems[i].Slot();
+                    if ( slot_i >= 0 ) {
+                        CheckSlotAssignment(slot_i, inst);
+                        // ###
+                        ExtendLifetime(slot_i, insts1[i + 1]);
+                    }
+                }
+                break;
+            }
+
             case OP_LAMBDA_Vi: {
                 auto aux = inst->aux;
                 int n = aux->n;
@@ -492,8 +506,7 @@ void ZAMCompiler::ReMapFrame() {
 
         auto vars = inst_beginnings[inst];
         for ( auto v : vars ) {
-            // Don't remap variables whose values aren't actually
-            // used.
+            // Don't remap variables whose values aren't actually used.
             int slot = frame_layout1[v];
             if ( denizen_ending.count(slot) > 0 )
                 ReMapVar(v, slot, i);

@@ -171,14 +171,29 @@ eval	auto v = $1->AsSubNet().AsString();
 	EvalSwitchBody($2, $3, str_cases,)
 
 
-internal-op Branch-If-Not-Type
-op1-read
-class Vb
-op-types a I
-eval	auto v = $1;
-	if ( ! can_cast_value_to_type(v, Z_TYPE.get()) )
-		$2
-
+internal-op Determine-Type-Match
+class VV
+op-types I a
+eval	auto& aux = Z_AUX;
+	int match = -1;
+	for ( int i = 0; i < aux->n; ++i )
+		{
+		auto& el = aux->elems[i];
+		auto& et = el.GetType();
+		if ( can_cast_value_to_type($1, et.get()) )
+			{
+			match = i;
+			if ( el.Slot() >= 0 )
+				{
+				auto& tv = frame[el.Slot()];
+				if ( el.IsManaged() )
+					Unref(tv.ManagedVal());
+				tv = ZVal(cast_value_to_type($1, et.get()), et);
+				}
+			break;
+			}
+		}
+	$$ = match;
 
 op CheckAnyLen
 op1-read

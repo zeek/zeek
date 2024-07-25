@@ -423,10 +423,15 @@ const ZAMStmt ZAMCompiler::ValueSwitch(const SwitchStmt* sw, const NameExpr* v, 
 
     // Figure out which jump table we're using.
     auto t = v ? v->GetType() : c->GetType();
+
+    return GenSwitch(sw, slot, t->InternalType());
+}
+
+const ZAMStmt ZAMCompiler::GenSwitch(const SwitchStmt* sw, int slot, InternalTypeTag it) {
     int tbl = 0;
     ZOp op;
 
-    switch ( t->InternalType() ) {
+    switch ( it ) {
         case TYPE_INTERNAL_INT:
             op = OP_SWITCHI_Vii;
             tbl = int_casesI.size();
@@ -470,6 +475,7 @@ const ZAMStmt ZAMCompiler::ValueSwitch(const SwitchStmt* sw, const NameExpr* v, 
     // Generate each of the cases.
     auto cases = sw->Cases();
     std::vector<InstLabel> case_start;
+    int case_index = 0;
 
     PushFallThroughs();
     for ( auto sw_case : *cases ) {
@@ -537,10 +543,17 @@ const ZAMStmt ZAMCompiler::ValueSwitch(const SwitchStmt* sw, const NameExpr* v, 
         }
     }
 
+    // ###
+    int tm_ctr = 0;
+    for ( auto [_, index] : *sw->TypeMap() ) {
+        auto case_body_start = case_start[index];
+        new_int_cases[tm_ctr++] = case_body_start;
+    }
+
     // Now add the jump table to the set we're keeping for the
     // corresponding type.
 
-    switch ( t->InternalType() ) {
+    switch ( it ) {
         case TYPE_INTERNAL_INT: int_casesI.push_back(new_int_cases); break;
 
         case TYPE_INTERNAL_UNSIGNED: uint_casesI.push_back(new_uint_cases); break;
@@ -562,84 +575,44 @@ const ZAMStmt ZAMCompiler::ValueSwitch(const SwitchStmt* sw, const NameExpr* v, 
 const ZAMStmt ZAMCompiler::TypeSwitch(const SwitchStmt* sw, const NameExpr* v, const ConstExpr* c) {
     auto cases = sw->Cases();
     auto type_map = sw->TypeMap();
-
-    auto body_end = EmptyStmt();
-
     auto tmp = NewSlot(true); // true since we know "any" is managed
 
     int slot = v ? FrameSlot(v) : 0;
 
-    if ( v && v->GetType()->Tag() != TYPE_ANY ) {
-        auto z = ZInstI(OP_ASSIGN_ANY_VV, tmp, slot);
-        body_end = AddInst(z);
-        slot = tmp;
+    if ( v ) {
+        if ( v->GetType()->Tag() != TYPE_ANY ) {
+            auto z = ZInstI(OP_ASSIGN_ANY_VV, tmp, slot);
+            AddInst(z);
+            slot = tmp;
+        }
     }
 
-    if ( c ) {
+    else {
+        ASSERT(c);
         auto z = ZInstI(OP_ASSIGN_ANY_VC, tmp, c);
-        body_end = AddInst(z);
+        AddInst(z);
         slot = tmp;
     }
 
-    int def_ind = sw->DefaultCaseIndex();
-    ZAMStmt def_succ(0);       // successor to default, if any
-    bool saw_def_succ = false; // whether def_succ is meaningful
+    int ntypes = type_map->size();
+    auto aux = new ZInstAux(ntypes);
 
-    PushFallThroughs();
-    for ( auto& i : *type_map ) {
-        auto id = i.first;
-        auto type = id->GetType();
+    for ( auto i = 0; i < type_map->size(); ++i ) {
+        auto& tm = (*type_map)[i];
+        auto id_i = tm.first;
+        auto id_case = tm.second;
 
-        ZInstI z;
-
-        z = ZInstI(OP_BRANCH_IF_NOT_TYPE_Vb, slot, 0);
-        z.SetType(type);
-        auto case_test = AddInst(z);
-
-        // Type cases that don't use "as" create a placeholder
-        // ID with a null name.
-        if ( id->Name() ) {
-            int id_slot = Frame1Slot(id, OP_CAST_ANY_VV);
-            z = ZInstI(OP_CAST_ANY_VV, id_slot, slot);
-            z.SetType(type);
-            body_end = AddInst(z);
-        }
-        else
-            body_end = case_test;
-
-        ResolveFallThroughs(GoToTargetBeyond(body_end));
-        body_end = CompileStmt((*cases)[i.second]->Body());
-        SetV2(case_test, GoToTargetBeyond(body_end));
-
-        if ( def_ind >= 0 && i.second == def_ind + 1 ) {
-            def_succ = case_test;
-            saw_def_succ = true;
-        }
-
-        PushFallThroughs();
+        auto slot = id_i->Name() ? FrameSlot(id_i) : -1;
+        aux->Add(i, slot, id_i->GetType());
     }
 
-    ResolveFallThroughs(GoToTargetBeyond(body_end));
+    auto match_tmp = NewSlot(false);
+    auto z = ZInstI(OP_DETERMINE_TYPE_MATCH_VV, match_tmp, slot);
+    z.op_type = OP_VV;
+    z.aux = aux;
+    AddInst(z);
 
-    if ( def_ind >= 0 ) {
-        PushFallThroughs();
-
-        AddCFT(insts1[body_end.stmt_num], CFT_DEFAULT);
-
-        body_end = CompileStmt((*sw->Cases())[def_ind]->Body());
-
-        // Now resolve any fallthrough's in the default.
-        if ( saw_def_succ )
-            ResolveFallThroughs(GoToTargetBeyond(def_succ));
-        else
-            ResolveFallThroughs(GoToTargetBeyond(body_end));
-    }
-
-    AddCFT(insts1[body_end.stmt_num], CFT_BLOCK_END);
-
-    ResolveBreaks(GoToTargetBeyond(body_end));
-
-    return body_end;
+    return GenSwitch(sw, match_tmp, TYPE_INTERNAL_INT);
 }
 
 const ZAMStmt ZAMCompiler::CompileAdd(const AddStmt* as) {

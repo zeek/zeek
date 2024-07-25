@@ -161,6 +161,7 @@ private:
 
     const ZAMStmt ValueSwitch(const SwitchStmt* sw, const NameExpr* v, const ConstExpr* c);
     const ZAMStmt TypeSwitch(const SwitchStmt* sw, const NameExpr* v, const ConstExpr* c);
+    const ZAMStmt GenSwitch(const SwitchStmt* sw, int slot, InternalTypeTag it);
 
     void PushNexts() { PushGoTos(nexts); }
     void PushBreaks() { PushGoTos(breaks); }

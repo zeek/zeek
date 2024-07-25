@@ -1,3 +1,27 @@
+7.0.0-rc3 | 2024-07-25 10:52:29 -0700
+
+  * Generate docs for 7.0.0-rc3 (Tim Wojtulewicz)
+
+  * Bump zeek-testing-cluster to reflect deprecation of prometheus.zeek (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 146cf99ff62d729705c155b44199a674911ade09)
+
+  * Update 7.0 NEWS with blurb about multi-PDU parsing causing increased load [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit bd208f4c54f66074315479071c810d792e69f96b)
+
+  * Fix handling of zero-length SMB2 error responses (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit bd208f4c54f66074315479071c810d792e69f96b)
+
+  * Update Mozilla CA list and CT list (Johanna Amann, Corelight)
+
+    (cherry picked from commit cb88f6316c7341da7a2af397932a145be3a0cc29)
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+    (cherry picked from commit da7c3d91385195a7a4ba957e46743bc52a9d4ecb)
+
 7.0.0-rc2.7 | 2024-07-24 17:00:51 -0700
 
   * Add contributors to 7.0.0 NEWS entry (Christian Kreibich, Corelight)

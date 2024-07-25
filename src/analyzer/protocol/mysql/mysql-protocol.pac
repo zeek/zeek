@@ -345,7 +345,7 @@ type Handshake_v10 = record {
 	character_set          : uint8;
 	status_flags           : uint16;
 	capability_flags_2     : uint16;
-	auth_plugin_data_len   : uint8;
+	auth_plugin_data_len   : uint8 &enforce( auth_plugin_data_len==0 || auth_plugin_data_len >= 21);
 	reserved               : padding[10];
 	auth_plugin_data_part_2: bytestring &length=auth_plugin_data_part_2_len;
 	have_plugin : case ( ( capability_flags_2 << 16 ) & CLIENT_PLUGIN_AUTH ) of {
@@ -353,7 +353,13 @@ type Handshake_v10 = record {
 		0x0 -> none    : empty;
 	};
 } &let {
-	auth_plugin_data_part_2_len = (auth_plugin_data_len > 8 && (auth_plugin_data_len - 8) > 13) ? auth_plugin_data_len - 8 : 13;
+	# The length of auth_plugin_data_part_2 is at least 13 bytes,
+	# or auth_plugin_data_len - 8 if that is larger, check for
+	# auth_plugin_data_len > 21 (8 + 13) to prevent underflow for
+	# when subtracting 8.
+	#
+	# https://dev.mysql.com/doc/dev/mysql-server/latest/page_protocol_connection_phase_packets_protocol_handshake_v10.html
+	auth_plugin_data_part_2_len = auth_plugin_data_len > 21 ? auth_plugin_data_len - 8 : 13;
 	update_auth_plugin: bool = $context.connection.set_auth_plugin(auth_plugin)
 		&if( ( capability_flags_2 << 16 ) & CLIENT_PLUGIN_AUTH );
 	server_query_attrs: bool = $context.connection.set_server_query_attrs(( capability_flags_2 << 16 ) & CLIENT_QUERY_ATTRIBUTES);

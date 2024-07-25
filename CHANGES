@@ -1,3 +1,12 @@
+7.1.0-dev.63 | 2024-07-25 09:19:20 -0700
+
+  * Use accessor to reach into X509_ALGOR (Theo Buehler)
+
+    Despite already having an accessor, X509_ALGOR wasn't made opaque
+    during OpenSSL 1.1.0 development. It would be nice if this could be
+    fixed at some point, so avoid reaching into that struct by using the
+    accessor
+
 7.1.0-dev.61 | 2024-07-25 12:02:51 +0200
 
   * mysql: Simplify length computation (Arne Welzel, Corelight)

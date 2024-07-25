@@ -161,8 +161,9 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f) {
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
     i2a_ASN1_OBJECT(bio, ssl_cert->sig_alg->algorithm);
 #else
-    const X509_ALGOR* sigalg = X509_get0_tbs_sigalg(ssl_cert);
-    i2a_ASN1_OBJECT(bio, sigalg->algorithm);
+    const ASN1_OBJECT* alg;
+    X509_ALGOR_get0(&alg, NULL, NULL, X509_get0_tbs_sigalg(ssl_cert));
+    i2a_ASN1_OBJECT(bio, alg);
 #endif
     len = BIO_gets(bio, buf, sizeof(buf));
     pX509Cert->Assign(13, make_intrusive<StringVal>(len, buf));

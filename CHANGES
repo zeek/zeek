@@ -1,3 +1,11 @@
+7.0.0-rc4 | 2024-07-26 10:12:34 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+    
+    This in particular pulls in a fix for zeek/spicy#1808.
+
+    (cherry picked from commit 4c0c7581c835b4dcd5339a4b34c2b82fcfc40dc3)
+
 7.0.0-rc3 | 2024-07-25 10:52:29 -0700
 
   * Generate docs for 7.0.0-rc3 (Tim Wojtulewicz)

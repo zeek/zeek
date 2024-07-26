@@ -16,12 +16,13 @@ storage::Backend* SQLite::Instantiate() { return new SQLite(); }
  * implementation must call \a Opened(); if not, it must call Error()
  * with a corresponding message.
  */
-bool SQLite::DoOpen(RecordValPtr config, TypePtr vt) {
+BoolResult SQLite::DoOpen(RecordValPtr config, TypePtr vt) {
     if ( sqlite3_threadsafe() == 0 ) {
-        Error(
-            "SQLite reports that it is not threadsafe. Zeek needs a threadsafe version of "
-            "SQLite. Aborting");
-        return false;
+        BoolResult res = {false,
+                          "SQLite reports that it is not threadsafe. Zeek needs a threadsafe version of "
+                          "SQLite. Aborting"};
+        Error(res.second.c_str());
+        return res;
     }
 
     // Allow connections to same DB to use single data/schema cache. Also
@@ -37,7 +38,7 @@ bool SQLite::DoOpen(RecordValPtr config, TypePtr vt) {
     if ( checkError(sqlite3_open_v2(full_path.c_str(), &db,
                                     SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL)) ) {
         db = nullptr;
-        return false;
+        return {false, "Failed to open database connection"};
     }
 
     std::string create = "CREATE TABLE IF NOT EXISTS " + table_name + " (\n";
@@ -51,10 +52,10 @@ bool SQLite::DoOpen(RecordValPtr config, TypePtr vt) {
         sqlite3_free(errorMsg);
         sqlite3_close(db);
         db = nullptr;
-        return false;
+        return {false, "Failed to initialize database table"};
     }
 
-    return true;
+    return {true, ""};
 }
 
 /**

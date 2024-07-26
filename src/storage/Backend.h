@@ -33,9 +33,10 @@ public:
      * @param config A record type storing configuration options for the backend.
      * @param vt The script-land type to be used when retrieving values back from
      * the store. This should be stored in the val_type member variable.
-     * @return true if the backend could be opened, false otherwise.
+     * @return A result pair containing a bool with the success state, and a possible
+     * error string if the operation failed.
      */
-    bool Open(RecordValPtr config, TypePtr vt);
+    BoolResult Open(RecordValPtr config, TypePtr vt);
 
     /**
      * Finalizes the backend when it's being closed. Can be overridden by
@@ -94,7 +95,7 @@ protected:
     /**
      * The workhorse method for Open().
      */
-    virtual bool DoOpen(RecordValPtr config, TypePtr vt) = 0;
+    virtual BoolResult DoOpen(RecordValPtr config, TypePtr vt) = 0;
 
     /**
      * The workhorse method for Store().

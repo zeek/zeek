@@ -6,8 +6,8 @@ namespace zeek::storage {
 
 zeek::OpaqueTypePtr detail::backend_opaque;
 
-bool Backend::Open(RecordValPtr config, TypePtr vt) {
-    bool res = DoOpen(std::move(config), vt);
+BoolResult Backend::Open(RecordValPtr config, TypePtr vt) {
+    auto res = DoOpen(std::move(config), vt);
     val_type = std::move(vt);
     return res;
 }

@@ -35,7 +35,7 @@ BackendPtr Manager::OpenBackend(const Tag& type, RecordValPtr config, TypePtr vt
         return nullptr;
     }
 
-    if ( ! b->Open(std::move(config), std::move(vt)) ) {
+    if ( auto res = b->Open(std::move(config), std::move(vt)); ! res.first ) {
         reporter->InternalWarning("Failed to open backend %s\n", GetComponentName(type).c_str());
         delete b;
         return nullptr;

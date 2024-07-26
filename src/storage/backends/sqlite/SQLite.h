@@ -24,7 +24,7 @@ public:
     /**
      * Called by the manager system to open the backend.
      */
-    bool DoOpen(RecordValPtr config, TypePtr vt) override;
+    BoolResult DoOpen(RecordValPtr config, TypePtr vt) override;
 
     /**
      * Finalizes the backend when it's being closed.

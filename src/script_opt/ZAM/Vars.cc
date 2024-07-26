@@ -85,6 +85,7 @@ const ZAMStmt ZAMCompiler::LoadCapture(const ID* id) {
     auto slot = RawSlot(id);
 
     ZInstI z(op, slot, CaptureOffset(id));
+    z.SetType(id->GetType());
     z.op_type = OP_VV_I2;
 
     return AddInst(z, true);

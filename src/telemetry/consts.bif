@@ -1,0 +1,2 @@
+const Telemetry::callback_timeout: interval;
+const Telemetry::civetweb_threads: count;

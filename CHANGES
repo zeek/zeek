@@ -1,3 +1,13 @@
+7.1.0-dev.66 | 2024-07-26 15:14:36 +0200
+
+  * GH-3853: ldap: Recognize SASL+SPNEGO+NTLMSSP (Arne Welzel, Corelight)
+
+    The ctu-sme-11-win7ad-1-ldap-tcp-50041.pcap file was harvested
+    from the CTU-SME-11 (Experiment-VM-Microsoft-Windows7AD-1) dataset
+    at https://zenodo.org/records/7958259 (DOI 10.5281/zenodo.7958258).
+
+    Closes #3853
+
 7.1.0-dev.63 | 2024-07-25 09:19:20 -0700
 
   * Use accessor to reach into X509_ALGOR (Theo Buehler)

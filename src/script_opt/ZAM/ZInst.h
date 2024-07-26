@@ -270,8 +270,7 @@ public:
     bool IsGlobalStore() const { return op == OP_STORE_GLOBAL_g; }
 
     void CheckIfManaged(const TypePtr& t) {
-        if ( ZVal::IsManagedType(t) )
-            is_managed = true;
+	is_managed = ZVal::IsManagedType(t);
     }
 
     void SetType(TypePtr _t) {

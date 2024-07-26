@@ -1,3 +1,9 @@
+7.1.0-dev.68 | 2024-07-26 10:09:48 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+    This in particular pulls in a fix for zeek/spicy#1808.
+
 7.1.0-dev.66 | 2024-07-26 15:14:36 +0200
 
   * GH-3853: ldap: Recognize SASL+SPNEGO+NTLMSSP (Arne Welzel, Corelight)

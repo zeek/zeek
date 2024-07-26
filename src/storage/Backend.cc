@@ -13,6 +13,9 @@ BoolResult Backend::Open(RecordValPtr config, TypePtr vt) {
 }
 
 BoolResult Backend::Store(ValPtr key, ValPtr value, bool overwrite) {
+    if ( ! same_type(value->GetType(), val_type) )
+        return {false, "storage: value type passed does not match value type for backend"};
+
     // The intention for this method is to do some other heavy lifting in regard
     // to backends that need to pass data through the manager instead of directly
     // through the workers. For the first versions of the storage framework it

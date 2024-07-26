@@ -37,11 +37,6 @@ function Storage::__store%(backend: opaque of Storage::BackendHandle, key: any, 
 		return zeek::val_mgr->Bool(false);
 	}
 
-    if ( ! same_type(key->GetType(), b->backend->ValueType()) ) {
-        zeek::emit_builtin_error("value type passed does not match value type for backend");
-        return zeek::val_mgr->Bool(false);
-    }
-
 	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
 	auto val_v = zeek::IntrusivePtr<Val>{NewRef{}, value};
 	auto result = b->backend->Store(key_v, val_v, overwrite);

@@ -375,26 +375,29 @@ type GSS_SPNEGO_negTokenInit = unit {
   : skip bytes &eod;
 };
 
-# Peak into GSS-SPNEGO payload and ensure it is indeed GSS-SPNEGO.
+# Peak into GSS-SPNEGO payload and ensure it is indeed GSS-SPNEGO,
+# or GSS-SPNEGO with a NTMLSSP payload that starts with NTLMSSP.
 type GSS_SPNEGO_Init = unit {
   # This is the optional octet string in SaslCredentials.
   credentialsHeader: ASN1::ASN1Header &requires=($$.tag.type_ == ASN1::ASN1Type::OctetString);
 
   # Now we either have the initial message as specified in RFC2743 or
-  # a continuation from RFC4178
+  # a continuation from RFC4178, or a "NTMLSSP" signature.
   #
-  #   60 -> APPLICATION [0]  https://datatracker.ietf.org/doc/html/rfc2743#page-81)
+  #   60 -> APPLICATION [0]  https://datatracker.ietf.org/doc/html/rfc2743#page-81
   #   a1 -> CHOICE [1]       https://www.rfc-editor.org/rfc/rfc4178#section-4.2
+  #   "NTMLSSP"              https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-nlmp/907f519d-6217-45b1-b421-dca10fc8af0d
   #
-  gssapiHeader: ASN1::ASN1Header &requires=(
-    $$.tag.class == ASN1::ASN1Class::Application && $$.tag.type_ == ASN1::ASN1Type(0)
-    || $$.tag.class == ASN1::ASN1Class::ContextSpecific && $$.tag.type_ == ASN1::ASN1Type(1)
-  );
+  switch {
+    -> spnegoInitByte: uint8(0x60);
+    -> spnegoChoiceByte: uint8(0xa1);
+    -> ntlmSignature: skip b"NTLMSSP"; # Unsupported, should forward to child analyzer!
+  };
 
-  switch ( self.gssapiHeader.tag.type_ ) {
-    ASN1::ASN1Type(0) -> initial: GSS_SPNEGO_negTokenInit;
-    * -> : skip bytes &eod;
-  } &size=self.gssapiHeader.len.len;
+  spnegoLen: skip ASN1::LengthType if (self?.spnegoInitByte || self?.spnegoChoiceByte);
+
+  # Peak into the SPNEGO_negTokenInit
+  spnegoInitial: skip GSS_SPNEGO_negTokenInit if (self?.spnegoInitByte);
 };
 
 type SaslCredentials = unit() {
@@ -408,10 +411,13 @@ type SaslCredentials = unit() {
 };
 
 type GSS_SPNEGO_Subsequent = unit {
-  token: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::ContextSpecific);
-  switch ( self.token.tag.type_ ) {
-    ASN1::ASN1Type(1) -> negTokenResp: GSS_SPNEGO_negTokenResp;
+  switch {
+    -> spnegoChoiceByte: uint8(0xa1);
+    -> ntmlSignature: skip b"NTLMSSP"; # Unsupported, should forward to NTLM!
   };
+
+  spnegoChoiceLen: skip ASN1::LengthType if (self?.spnegoChoiceByte);
+  negTokenResp: GSS_SPNEGO_negTokenResp if (self?.spnegoChoiceByte);
 };
 
 type GSS_SPNEGO_negTokenResp = unit {

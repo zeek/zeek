@@ -18,3 +18,6 @@ Trace Index/Sources:
   - one `\x30` byte in the ciphertext changed to `\x00`
 - ldap/issue-32.pcapng: Provided by GH user martinvanhensbergen,
   <https://github.com/zeek/spicy-ldap/issues/23>
+- ldap/ctu-sme-11-win7ad-1-ldap-tcp-50041.pcap: Harvested from CTU-SME-11
+  (Experiment-VM-Microsoft-Windows7AD-1) dataset, filtering on tcp port 389 and port 50041.
+  https://zenodo.org/records/7958259 (DOI 10.5281/zenodo.7958258).

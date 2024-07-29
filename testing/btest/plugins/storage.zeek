@@ -35,6 +35,9 @@ event zeek_init() {
 	get_res = Storage::get(b, key, F);
 	Storage::close_backend(b);
 
+	# Attempt to use the closed handle, which should report an error.
+	get_res = Storage::get(b, key, F);
+
 	# Test failing to open the handle and test closing an invalid handle.
 	opts$open_fail = T;
 	local b2 = Storage::open_backend(Storage::STORAGEDUMMY, opts, str, str);

@@ -1786,6 +1786,7 @@ WhenInfo::WhenInfo(ExprPtr arg_cond, FuncType::CaptureList* arg_cl, bool arg_is_
 
     param_id = install_ID(lambda_param_id.c_str(), current_module.c_str(), false, false);
     param_id->SetType(count_t);
+    param_id->SetParam(lambda_ft);
 }
 
 WhenInfo::WhenInfo(const WhenInfo* orig) {

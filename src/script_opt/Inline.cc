@@ -254,6 +254,7 @@ void Inliner::CoalesceEventHandlers(ScriptFuncPtr func, const std::vector<Func::
         // see that a given variable came from coalescing event handlers.
         auto p = install_ID(vi->Name(), "<event>", false, false);
         p->SetType(vi->GetType());
+        p->SetParam(cast_intrusive<FuncType>(func->GetType()));
         param_ids.push_back(std::move(p));
     }
 

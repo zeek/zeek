@@ -21,12 +21,14 @@ class RecordType;
 class TableType;
 class VectorType;
 class EnumType;
+class FuncType;
 class Type;
 using TypePtr = IntrusivePtr<Type>;
 using RecordTypePtr = IntrusivePtr<RecordType>;
 using TableTypePtr = IntrusivePtr<TableType>;
 using VectorTypePtr = IntrusivePtr<VectorType>;
 using EnumTypePtr = IntrusivePtr<EnumType>;
+using FuncTypePtr = IntrusivePtr<FuncType>;
 using ValPtr = IntrusivePtr<Val>;
 using FuncPtr = IntrusivePtr<Func>;
 
@@ -81,7 +83,6 @@ public:
     }
 
     bool IsType() const { return is_type; }
-
     void MakeType() { is_type = true; }
 
     void SetVal(ValPtr v);
@@ -94,6 +95,10 @@ public:
     const ValPtr& GetVal() const { return val; }
 
     void ClearVal();
+
+    // ###
+    FuncTypePtr IsParam() const { return param_func_type; }
+    void SetParam(const FuncTypePtr& ft) { param_func_type = ft; }
 
     void SetConst() { is_const = true; }
     bool IsConst() const { return is_const; }
@@ -160,9 +165,15 @@ protected:
     const char* name;
     IDScope scope;
     bool is_export;
-    bool infer_return_type;
     TypePtr type;
-    bool is_const, is_enum_const, is_type, is_option, is_blank;
+    FuncTypePtr param_func_type;
+    bool is_capture = false;
+    bool is_const = false;
+    bool is_enum_const = false;
+    bool is_type = false;
+    bool is_option = false;
+    bool is_blank = false;
+    bool infer_return_type = false;
     int offset;
     ValPtr val;
     AttributesPtr attrs;

@@ -158,6 +158,8 @@ protected:
     // The function, body, or expression profiled.  Can be null
     // depending on which constructor was used.
     const Func* profiled_func = nullptr;
+    // ### null is okay, means "not in a full function context"
+    FuncTypePtr profiled_func_t;
     const Stmt* profiled_body = nullptr;
     const Expr* profiled_expr = nullptr;
 

@@ -328,18 +328,16 @@ void CPPCompile::GatherParamNames(vector<string>& p_names, const FuncTypePtr& ft
 
         if ( param_id ) {
             if ( t->Tag() == TYPE_ANY && param_id->GetType()->Tag() != TYPE_ANY )
-                // We'll need to translate the parameter
-                // from its current representation to
-                // type "any".
+                // We'll need to translate the parameter from its current
+                // representation to type "any".
                 p_names.emplace_back(string("any_param__CPP_") + Fmt(i));
             else
                 p_names.emplace_back(LocalName(param_id));
         }
         else
-            // Parameters that are unused don't wind up in the
-            //  ProfileFunc.  Rather than dig their name out of
-            // the function's declaration, we explicitly name
-            // them to reflect that they're unused.
+            // Parameters that are unused don't wind up in the ProfileFunc.
+            // Rather than dig their name out of the function's declaration,
+            // we explicitly name them to reflect that they're unused.
             p_names.emplace_back(string("unused_param__CPP_") + Fmt(i));
     }
 

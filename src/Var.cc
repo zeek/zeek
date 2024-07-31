@@ -538,8 +538,10 @@ static auto get_prototype(IDPtr id, FuncTypePtr t) {
     return prototype;
 }
 
-static bool check_params(int i, std::optional<FuncType::Prototype> prototype, const RecordTypePtr& args,
+static bool check_params(int i, std::optional<FuncType::Prototype> prototype, const FuncTypePtr& ft,
                          const RecordTypePtr& canon_args, const char* module_name) {
+    const auto& args = ft->Params();
+
     TypeDecl* arg_i;
     bool hide = false;
 
@@ -577,6 +579,7 @@ static bool check_params(int i, std::optional<FuncType::Prototype> prototype, co
 
     arg_id = install_ID(local_name, module_name, false, false);
     arg_id->SetType(arg_i->type);
+    arg_id->SetParam(ft);
 
     return true;
 }
@@ -635,13 +638,12 @@ void begin_func(IDPtr id, const char* module_name, FunctionFlavor flavor, bool i
     if ( IsErrorType(id->GetType()->Tag()) )
         reporter->FatalError("invalid definition of '%s' (see previous errors)", id->Name());
 
-    const auto& args = t->Params();
     const auto& canon_args = id->GetType()->AsFuncType()->Params();
 
     push_scope(std::move(id), std::move(attrs));
 
     for ( int i = 0; i < canon_args->NumFields(); ++i )
-        if ( ! check_params(i, prototype, args, canon_args, module_name) )
+        if ( ! check_params(i, prototype, t, canon_args, module_name) )
             break;
 
     if ( Attr* depr_attr = find_attr(current_scope()->Attrs().get(), ATTR_DEPRECATED) )

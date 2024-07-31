@@ -27,8 +27,8 @@ ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fi
     profiled_body = body.get();
     abs_rec_fields = _abs_rec_fields;
 
-    auto ft = func->GetType()->AsFuncType();
-    auto& fcaps = ft->GetCaptures();
+    profiled_func_t = cast_intrusive<FuncType>(func->GetType());
+    auto& fcaps = profiled_func_t->GetCaptures();
 
     if ( fcaps ) {
         int offset = 0;
@@ -40,7 +40,7 @@ ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fi
         }
     }
 
-    Profile(ft, body);
+    Profile(profiled_func_t.get(), body);
 }
 
 ProfileFunc::ProfileFunc(const Stmt* s, bool _abs_rec_fields) {
@@ -196,6 +196,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                 break;
             }
 
+#if 0
             // This is a tad ugly.  Unfortunately due to the weird way
             // that Zeek function *declarations* work, there's no reliable
             // way to get the list of parameters for a function *definition*,
@@ -205,6 +206,12 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             // to avoid misconfusing a lambda capture with a low frame offset
             // as a parameter.
             if ( captures.count(id) == 0 && id->Offset() < num_params )
+		{
+		ASSERT(id->IsParam());
+                params.insert(id);
+		}
+#endif
+            if ( profiled_func_t && id->IsParam() == profiled_func_t )
                 params.insert(id);
 
             locals.insert(id);
@@ -422,9 +429,16 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                 locals.insert(i);
                 TrackID(i);
 
+#if 0
                 // See above re EXPR_NAME regarding the following
                 // logic.
                 if ( captures.count(i) == 0 && i->Offset() < num_params )
+		    {
+		    ASSERT(i->IsParam());
+                    params.insert(i);
+		    }
+#endif
+                if ( profiled_func_t && i->IsParam() == profiled_func_t )
                     params.insert(i);
             }
 

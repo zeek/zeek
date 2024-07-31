@@ -30,6 +30,7 @@ extend-ignore-re = [
     "\"BaR\"",
     "\"xFoObar\"",
     "\"FoO\"",
+    "Steve Smoot",
 ]
 
 extend-ignore-identifiers-re = [

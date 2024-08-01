@@ -13,6 +13,8 @@ namespace zeek {
 class FuncVal;
 using FuncValPtr = IntrusivePtr<FuncVal>;
 
+using ArgsIter = zeek::Args::const_iterator;
+
 namespace cluster {
 
 namespace detail {
@@ -22,12 +24,13 @@ namespace detail {
  */
 class Event {
 public:
-    // When an Event is published from script land, there's access to a FuncVal.
-    // When it is de-serialized, and EventHandler should be set so that the
+    // When an Event is published from script land, the handler is known
+    // as FuncVal. When an Event is deserialized, and EventHandler from
+    // the registry is used so the event can be enqueued directly.
     // resulting Event instance can be enqueued directly.
     //
     // It seems there's no direct translation between EventHandlerPtr and
-    // FuncValPtr without going through global scope or the event registry.
+    // FuncValPtr without going through the global scope or the event registry.
     using FuncValOrEventHandler = std::variant<FuncValPtr, EventHandlerPtr>;
 
     /**
@@ -37,11 +40,13 @@ public:
         : handler(std::move(handler)), args(std::move(args)), timestamp(timestamp) {}
 
     FuncValOrEventHandler handler;
-    // TODO: Make this some && accessor so we can move args out of Event.
     zeek::Args args;
     double timestamp; // This should be more generic, like proper key-value
                       // metadata? Can delay until metadata is made accessible
                       // in script using a generic mechanism.
+                      //
+                      // This is encoded as vector(vector(count, any), ...) on
+                      // the broker side.
 
     std::string_view HandlerName() const;
 
@@ -74,9 +79,8 @@ public:
      */
     virtual void Terminate() = 0;
 
-
     /**
-     * Helper to publish an event directly BIFs.
+     * Helper to publish an event directly from BiFs
      *
      * This helper expects args to hold a FuncValPtr followed by the arguments, or followed
      * by a prepared "event" as created with MakeEvent().
@@ -88,21 +92,24 @@ public:
     bool PublishEvent(const zeek::Args& args);
 
     /**
-     * Prepare an event with its argument for publishing.
+     * Create a detail::Event instance given a event handler script function arguments to it.
+     */
+    detail::Event MakeClusterEvent(FuncValPtr handler, ArgsIter first, ArgsIter last, double timestamp = 0.0) const;
+
+    /**
+     * Prepare a script-level event.
      *
-     * The returned Val can be ClusterBackend specific. It could be an actual record,
-     * and opaque value, etc.
+     * The returned Val can be ClusterBackend specific. It could be a basic
+     * script level record or vector, or an opaque value.
      *
-     * XXX: I don't quite get why there is `make_event()` or if it's useful, unless
-     *      maybe for debugging. This seems to introduce extra overhead, unless there's
-     *      some idea of re-using a prepared event, but even then it results in
-     *      some amount of overhead.
+     * This function is invoked from the \a Cluster::make_event() bif.
      *
-     * @param args Holds the event as FuncValPtr, followed arguments to be used.
+     * @param first
+     * @param last
      *
      * @return An opaque ValPtr that can be passed to PublishEvent()
      */
-    virtual zeek::ValPtr MakeEvent(const zeek::Args& args) = 0;
+    virtual zeek::ValPtr MakeEvent(ArgsIter first, ArgsIter last) = 0;
 
     /**
      * Send an event as produced by MakeEvent() to the given topic.
@@ -114,14 +121,11 @@ public:
     virtual bool PublishEvent(const std::string& topic, const zeek::ValPtr& event) = 0;
 
     /**
-     * Send an event to the given topic.
-     *
-     * This should be the lowest level entry point. The common
-     * Publish(const zeek::Args& args) method send data here.
+     * Send a cluster::detail::Event to the given topic.
      *
      * @param topic a topic string associated with the message.
      * @param event the Event to publish to the given topic.
-     * @return true if the message is sent successfully.
+     * @return true if the message has been published successfully.
      */
     virtual bool PublishEvent(const std::string& topic, const cluster::detail::Event& event) = 0;
 

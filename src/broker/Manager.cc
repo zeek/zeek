@@ -544,17 +544,19 @@ std::vector<broker::peer_info> Manager::Peers() const {
 std::string Manager::NodeID() const { return to_string(bstate->endpoint.node_id()); }
 
 bool Manager::PublishEvent(const std::string& topic, const cluster::detail::Event& event) {
-    // XXX: We do all this to re-use MakeEvent, but we should probably
-    //      deprecate the ValPList API and use zeek::Args directly.
-    //
-    //      We also loose the timestamp metadata!
-    zeek::ValPList args_copy(1 + event.args.size());
-    args_copy.push_back(event.FuncVal().get());
-    for ( const auto& a : event.args )
-        args_copy.push_back(a.get());
+    broker::vector xs;
+    xs.reserve(event.args.size());
+    for ( const auto& a : event.args ) {
+        auto r = detail::val_to_data(a.get());
+        if ( ! r ) {
+            Error("Failed to convert %s to broker::data", zeek::obj_desc(a.get()).c_str());
+            return false;
+        }
+        xs.push_back(r.value());
+    }
 
-    auto ev = zeek::IntrusivePtr{zeek::AdoptRef{}, MakeEvent(&args_copy)};
-    return PublishEvent(topic, ev.get());
+    std::string name(event.HandlerName());
+    return PublishEvent(topic, name, std::move(xs), event.timestamp);
 }
 
 bool Manager::PublishEvent(string topic, std::string name, broker::vector args, double ts) {
@@ -855,7 +857,6 @@ bool Manager::AutoUnpublishEvent(const string& topic, Val* event) {
     return true;
 }
 
-
 RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame) {
     // Deprecated MakeEvent() version using ValPList - requires extra copy.
     zeek::Args cargs;
@@ -883,7 +884,7 @@ zeek::RecordValPtr Manager::MakeEvent(ArgsSpan args) {
             // Event val must come first.
 
             if ( arg_val->GetType()->Tag() != TYPE_FUNC ) {
-                Error("attempt to convert non-event into an event type");
+                Error("attempt to convert non-event into an event type (%s)", zeek::obj_desc(arg_val.get()).c_str());
                 return rval;
             }
 
@@ -932,16 +933,6 @@ zeek::RecordValPtr Manager::MakeEvent(ArgsSpan args) {
     }
 
     return rval;
-}
-
-ValPtr Manager::MakeEvent(const zeek::Args& args) {
-    // XXX: It would probably be better to skip the ValPList,
-    //      doesn't seems like there's a good reason for it.
-    zeek::ValPList pargs(args.size());
-
-    for ( size_t i = 0; i < args.size(); i++ )
-        pargs.push_back(args[i].get());
-    return zeek::IntrusivePtr(zeek::AdoptRef{}, MakeEvent(&pargs));
 }
 
 bool Manager::Subscribe(const string& topic_prefix) {

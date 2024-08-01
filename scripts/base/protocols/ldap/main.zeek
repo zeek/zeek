@@ -230,6 +230,10 @@ event LDAP::message(c: connection,
       }
 
       m$opcode = opcode_str;
+    } else if ( ! m?$opcode ) {
+      # This can happen if we see a bind response before the bind request.
+      Reporter::conn_weird("LDAP_bind_without_opcode", c, fmt("%s: %s", message_id, opcode_str), "LDAP");
+      m$opcode = opcode_str;
     }
 
     if ( result != LDAP::ResultCode_Undef ) {

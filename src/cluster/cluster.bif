@@ -43,6 +43,8 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 		return zeek::val_mgr->False();
 
 	// Copy args[1:] and put the computed topic at index 0;
+	//
+	// XXX: Replace with MakeClusterEvent() and PublishEvent(topic, cluster_event)
 	const auto& bif_args = @ARGS@;
 	zeek::Args args(std::next(bif_args->begin()), bif_args->end());
 	args[0] = std::move(topic);
@@ -102,7 +104,7 @@ function Cluster::publish%(topic: string, ...%): bool
 
 function Cluster::make_event%(...%): any
 	%{
-	return zeek::cluster::backend->MakeEvent(*(@ARGS@));
+	return zeek::cluster::backend->MakeEvent(@ARGS@->begin(), @ARGS@->end());
 	%}
 
 function Cluster::__subscribe%(topic_prefix: string%): bool

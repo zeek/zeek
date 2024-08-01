@@ -21,14 +21,12 @@ class RecordType;
 class TableType;
 class VectorType;
 class EnumType;
-class FuncType;
 class Type;
 using TypePtr = IntrusivePtr<Type>;
 using RecordTypePtr = IntrusivePtr<RecordType>;
 using TableTypePtr = IntrusivePtr<TableType>;
 using VectorTypePtr = IntrusivePtr<VectorType>;
 using EnumTypePtr = IntrusivePtr<EnumType>;
-using FuncTypePtr = IntrusivePtr<FuncType>;
 using ValPtr = IntrusivePtr<Val>;
 using FuncPtr = IntrusivePtr<Func>;
 
@@ -97,8 +95,8 @@ public:
     void ClearVal();
 
     // ###
-    FuncTypePtr IsParam() const { return param_func_type; }
-    void SetParam(const FuncTypePtr& ft) { param_func_type = ft; }
+    RecordTypePtr IsParam() const { return param_type; }
+    void SetParam(const RecordTypePtr& pt) { param_type = pt; }
 
     void SetConst() { is_const = true; }
     bool IsConst() const { return is_const; }
@@ -166,7 +164,7 @@ protected:
     IDScope scope;
     bool is_export;
     TypePtr type;
-    FuncTypePtr param_func_type;
+    RecordTypePtr param_type;
     bool is_capture = false;
     bool is_const = false;
     bool is_enum_const = false;

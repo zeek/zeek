@@ -269,9 +269,7 @@ public:
     // True if the instruction corresponds to storing a global.
     bool IsGlobalStore() const { return op == OP_STORE_GLOBAL_g; }
 
-    void CheckIfManaged(const TypePtr& t) {
-	is_managed = ZVal::IsManagedType(t);
-    }
+    void CheckIfManaged(const TypePtr& t) { is_managed = ZVal::IsManagedType(t); }
 
     void SetType(TypePtr _t) {
         t = std::move(_t);

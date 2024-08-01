@@ -56,6 +56,8 @@ ProfileFunc::ProfileFunc(const Expr* e, bool _abs_rec_fields) {
 
     if ( e->Tag() == EXPR_LAMBDA ) {
         auto func = e->AsLambdaExpr();
+        ASSERT(func->GetType()->Tag() == TYPE_FUNC);
+        profiled_func_t = cast_intrusive<FuncType>(func->GetType());
 
         int offset = 0;
 
@@ -211,7 +213,8 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                 params.insert(id);
 		}
 #endif
-            if ( profiled_func_t && id->IsParam() == profiled_func_t )
+
+            if ( profiled_func_t && id->IsParam() == profiled_func_t->Params() )
                 params.insert(id);
 
             locals.insert(id);
@@ -438,7 +441,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                     params.insert(i);
 		    }
 #endif
-                if ( profiled_func_t && i->IsParam() == profiled_func_t )
+                if ( profiled_func_t && i->IsParam() == profiled_func_t->Params() )
                     params.insert(i);
             }
 

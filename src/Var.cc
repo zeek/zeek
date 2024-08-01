@@ -538,6 +538,7 @@ static auto get_prototype(IDPtr id, FuncTypePtr t) {
     return prototype;
 }
 
+// ### restore original calling sequence
 static bool check_params(int i, std::optional<FuncType::Prototype> prototype, const FuncTypePtr& ft,
                          const RecordTypePtr& canon_args, const char* module_name) {
     const auto& args = ft->Params();
@@ -579,7 +580,7 @@ static bool check_params(int i, std::optional<FuncType::Prototype> prototype, co
 
     arg_id = install_ID(local_name, module_name, false, false);
     arg_id->SetType(arg_i->type);
-    arg_id->SetParam(ft);
+    arg_id->SetParam(canon_args);
 
     return true;
 }

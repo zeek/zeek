@@ -18,6 +18,8 @@
 @load base/frameworks/control
 @load base/frameworks/broker
 
+@load base/bif/cluster.bif
+
 module Cluster;
 
 export {
@@ -257,6 +259,13 @@ export {
 	## of the cluster that is started up.
 	const node = getenv("CLUSTER_NODE") &redef;
 
+	## Function returning this node's identifier.
+	##
+	## By default this is :zeek:see:`Broker::node_id`, but can be
+	## redefined by alternative cluster backends. This identifier
+	## should be a UUID that reset when a node is restarted.
+	global node_id: function(): string = Broker::node_id &redef;
+
 	## Interval for retrying failed connections between cluster nodes.
 	## If set, the ZEEK_DEFAULT_CONNECT_RETRY (given in number of seconds)
 	## environment variable overrides this option.
@@ -285,7 +294,7 @@ export {
 	##
 	## Returns: a topic string that may used to send a message exclusively to
 	##          a given cluster node.
-	global node_topic: function(name: string): string;
+	global node_topic: function(name: string): string &redef;
 
 	## Retrieve the topic associated with a specific node in the cluster.
 	##
@@ -294,7 +303,18 @@ export {
 	##
 	## Returns: a topic string that may used to send a message exclusively to
 	##          a given cluster node.
-	global nodeid_topic: function(id: string): string;
+	global nodeid_topic: function(id: string): string &redef;
+
+	## Subscribe to the given topic using the currently
+	## active cluster backend.
+	##
+	## Returns: true on success
+	global subscribe: function(topic: string): bool;
+
+	## Unsubscribe from the given topic.
+	##
+	## Returns: true on success
+	global unsubscribe: function(topic: string): bool;
 }
 
 # Track active nodes per type.
@@ -406,24 +426,46 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=
 	if ( ! Cluster::is_enabled() )
 		return;
 
-	local e = Broker::make_event(Cluster::hello, node, Broker::node_id());
+	if ( Cluster::backend != Cluster::CLUSTER_BACKEND_BROKER )
+		return;
+
+	local e = Broker::make_event(Cluster::hello, node, Cluster::node_id());
 	Broker::publish(nodeid_topic(endpoint$id), e);
 	}
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string) &priority=10
 	{
+	if ( Cluster::backend != Cluster::CLUSTER_BACKEND_BROKER )
+		return;
+
 	for ( node_name, n in nodes )
 		{
 		if ( n?$id && n$id == endpoint$id )
 			{
-			Cluster::log(fmt("node down: %s", node_name));
-			delete n$id;
-			delete active_node_ids[n$node_type][endpoint$id];
-
 			event Cluster::node_down(node_name, endpoint$id);
 			break;
 			}
 		}
+	}
+
+event node_down(name: string, id: string) &priority=10
+	{
+	local found = F;
+	for ( node_name, n in nodes )
+		{
+		if ( n?$id && n$id == id )
+			{
+			Cluster::log(fmt("node down: %s", node_name));
+			delete n$id;
+			delete active_node_ids[n$node_type][id];
+			found = T;
+			break;
+			}
+		}
+
+	if ( ! found )
+		Reporter::error(fmt("No node found in Cluster::node_down() node:%s id:%s",
+		                    name, id));
 	}
 
 event zeek_init() &priority=5
@@ -518,4 +560,14 @@ function create_store(name: string, persistent: bool &default=F): Cluster::Store
 function log(msg: string)
 	{
 	Log::write(Cluster::LOG, [$ts = network_time(), $node = node, $message = msg]);
+	}
+
+function subscribe(topic: string): bool
+	{
+	return Cluster::__subscribe(topic);
+	}
+
+function unsubscribe(topic: string): bool
+	{
+	return __unsubscribe(topic);
 	}

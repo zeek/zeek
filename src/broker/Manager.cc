@@ -518,6 +518,20 @@ std::vector<broker::peer_info> Manager::Peers() const {
 
 std::string Manager::NodeID() const { return to_string(bstate->endpoint.node_id()); }
 
+bool Manager::PublishEvent(const std::string& topic, const cluster::detail::Event& event) {
+    // XXX: We do all this to re-use MakeEvent, but we should probably
+    //      deprecate the ValPList API and use zeek::Args directly.
+    //
+    //      We also loose the timestamp metadata!
+    zeek::ValPList args_copy(1 + event.args.size());
+    args_copy.push_back(event.FuncVal().get());
+    for ( const auto& a : event.args )
+        args_copy.push_back(a.get());
+
+    auto ev = zeek::IntrusivePtr{zeek::AdoptRef{}, MakeEvent(&args_copy)};
+    return PublishEvent(topic, ev.get());
+}
+
 bool Manager::PublishEvent(string topic, std::string name, broker::vector args, double ts) {
     if ( bstate->endpoint.is_shutdown() )
         return true;
@@ -812,12 +826,17 @@ bool Manager::AutoUnpublishEvent(const string& topic, Val* event) {
     return true;
 }
 
+
 RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame) {
+    scoped_reporter_location srl{frame};
+    return MakeEvent(args);
+}
+
+RecordVal* Manager::MakeEvent(ValPList* args) {
     auto rval = new RecordVal(BifType::Record::Broker::Event);
     auto arg_vec = make_intrusive<VectorVal>(vector_of_data_type);
     rval->Assign(1, arg_vec);
     Func* func = nullptr;
-    scoped_reporter_location srl{frame};
 
     for ( auto i = 0; i < args->length(); ++i ) {
         auto arg_val = (*args)[i];
@@ -875,6 +894,16 @@ RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame) {
     }
 
     return rval;
+}
+
+ValPtr Manager::MakeEvent(const zeek::Args& args) {
+    // XXX: It would probably be better to skip the ValPList,
+    //      doesn't seems like there's a good reason for it.
+    zeek::ValPList pargs(args.size());
+
+    for ( size_t i = 0; i < args.size(); i++ )
+        pargs.push_back(args[i].get());
+    return zeek::IntrusivePtr(zeek::AdoptRef{}, MakeEvent(&pargs));
 }
 
 bool Manager::Subscribe(const string& topic_prefix) {

@@ -22,12 +22,13 @@ namespace detail {
  */
 class Event {
 public:
-    // When an Event is published from script land, there's access to a FuncVal.
-    // When it is de-serialized, and EventHandler should be set so that the
+    // When an Event is published from script land, the handler is known
+    // as FuncVal. When an Event is deserialized, and EventHandler from
+    // the registry is used so the event can be enqueued directly.
     // resulting Event instance can be enqueued directly.
     //
     // It seems there's no direct translation between EventHandlerPtr and
-    // FuncValPtr without going through global scope or the event registry.
+    // FuncValPtr without going through the global scope or the event registry.
     using FuncValOrEventHandler = std::variant<FuncValPtr, EventHandlerPtr>;
 
     /**
@@ -37,7 +38,9 @@ public:
         : handler(std::move(handler)), args(std::move(args)), timestamp(timestamp) {}
 
     FuncValOrEventHandler handler;
-    // TODO: Make this some && accessor so we can move args out of Event.
+
+    // TODO: Make this some && accessor so we can move args out of Event
+    // when enquing it.
     zeek::Args args;
     double timestamp; // This should be more generic, like proper key-value
                       // metadata? Can delay until metadata is made accessible
@@ -74,9 +77,8 @@ public:
      */
     virtual void Terminate() = 0;
 
-
     /**
-     * Helper to publish an event directly BIFs.
+     * Helper to publish an event directly from BiFs
      *
      * This helper expects args to hold a FuncValPtr followed by the arguments, or followed
      * by a prepared "event" as created with MakeEvent().
@@ -87,6 +89,14 @@ public:
      */
     bool PublishEvent(const zeek::Args& args);
 
+
+    using ArgsIter = zeek::Args::const_iterator;
+
+    /**
+     * Create a detail::Event instance given a event handler script function arguments to it.
+     */
+    detail::Event MakeClusterEvent(FuncValPtr handler, ArgsIter first, ArgsIter last, double timestamp = 0.0) const;
+
     /**
      * Prepare an event with its argument for publishing.
      *
@@ -95,8 +105,7 @@ public:
      *
      * XXX: I don't quite get why there is `make_event()` or if it's useful, unless
      *      maybe for debugging. This seems to introduce extra overhead, unless there's
-     *      some idea of re-using a prepared event, but even then it results in
-     *      some amount of overhead.
+     *      some idea of re-using a prepared event in script land.
      *
      * @param args Holds the event as FuncValPtr, followed arguments to be used.
      *

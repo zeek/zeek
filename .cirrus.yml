@@ -34,8 +34,7 @@ macos_environment: &MACOS_ENVIRONMENT
 
 freebsd_resources_template: &FREEBSD_RESOURCES_TEMPLATE
   cpu: 8
-  # Not allowed to request less than 8GB for an 8 CPU FreeBSD VM.
-  memory: 8GB
+  memory: *MEMORY
   # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
   greedy: true
 

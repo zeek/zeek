@@ -1,3 +1,20 @@
+6.0.5 | 2024-07-31 11:28:08 -0700
+
+  * CI: Drop macOS Ventura build, update FreeBSD 13 to 13.3 (Tim Wojtulewicz, Corelight)
+
+  * Update zeekctl submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+  * GH-3700: Merge remote-tracking branch 'origin/topic/johanna/gh-3700' (Tim Wojtulewicz, Corelight)
+
+    * origin/topic/johanna/gh-3700:
+      Fix cid propagation into files.log
+
+    (cherry picked from commit d7e30d9ee222332f7105203601a31500b96acaa5)
+
+  * Pick up an upstream CAF fix (Tim Wojtulewicz, Corelight)
+
+  * btest: Fixup baseline for plugins.hooks (Arne Welzel, Corelight)
+
 6.0.4 | 2024-05-16 10:23:37 -0700
 
   * Update CHANGES, VERSION, and NEWS for the v6.0.4 release (Tim Wojtulewicz, Corelight)

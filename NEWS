@@ -3,12 +3,27 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 6.0.5
+==========
+
+This release fixes the following bugs:
+
+- The Mozilla CA and Google CT lists were updated to their latest versions.
+
+- Connection IDs now correctly propogate into files.log.
+
+- A rare crash in CAF that happened when shutting down Zeek was resolved.
+
+- Binary addresses passed to Zeekctl were previously assumed to be valid
+  unicode, which wasn't always the case. Some additional checking was added to
+  ensure that's the case and to provide better error messaging when it isn't.
+
 Zeek 6.0.4
 ==========
 
 This release fixes the following bugs:
 
-- The Mozilla CA and Google CT lists was updated to their latest versions.
+- The Mozilla CA and Google CT lists were updated to their latest versions.
 
 - A crash with ICMP packets involving errant length checking was fixed. Thank
   you to Ronny Barkan from Microsoft for reporting this issue.

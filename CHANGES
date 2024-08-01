@@ -1,4 +1,6 @@
-6.0.5 | 2024-07-31 11:28:08 -0700
+6.0.5 | 2024-08-01 11:18:29 -0700
+
+  * Release 6.0.5.
 
   * CI: Drop macOS Ventura build, update FreeBSD 13 to 13.3 (Tim Wojtulewicz, Corelight)
 

@@ -299,11 +299,6 @@ public:
     zeek::RecordValPtr MakeEvent(ArgsSpan args, zeek::detail::Frame* frame);
 
     /**
-     * Cluster::Backend::make_event() support
-     */
-    zeek::ValPtr MakeEvent(const zeek::Args& args) override;
-
-    /**
      * Register interest in peer event messages that use a certain topic prefix.
      * @param topic_prefix a prefix to match against remote message topics.
      * e.g. an empty prefix will match everything and "a" will match "alice"

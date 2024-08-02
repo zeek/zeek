@@ -1,3 +1,13 @@
+7.1.0-dev.74 | 2024-08-02 15:49:40 -0700
+
+  * Process metric callbacks from the main-loop thread (Tim Wojtulewicz, Corelight)
+
+    This avoids the callbacks from being processed on the worker thread
+    spawned by Civetweb. It fixes data race issues with lookups involving
+    global variables, amongst other threading issues.
+
+  * CI: Use 16GB of memory for FreeBSD builds (Tim Wojtulewicz, Corelight)
+
 7.1.0-dev.68 | 2024-07-26 10:09:48 -0700
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

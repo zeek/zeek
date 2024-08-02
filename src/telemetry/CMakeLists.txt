@@ -9,6 +9,7 @@ zeek_add_subdir_library(
     ProcessStats.cc
     Utils.cc
     BIFS
+    consts.bif
     telemetry.bif)
 
 # We don't need to include the civetweb headers across the whole project, only

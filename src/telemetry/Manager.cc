@@ -6,6 +6,7 @@
 
 // CivetServer is from the civetweb submodule in prometheus-cpp
 #include <CivetServer.h>
+#include <prometheus/collectable.h>
 #include <prometheus/exposer.h>
 #include <prometheus/registry.h>
 #include <rapidjson/document.h>
@@ -16,19 +17,32 @@
 
 #include "zeek/3rdparty/doctest.h"
 #include "zeek/ID.h"
+#include "zeek/RunState.h"
 #include "zeek/ZeekString.h"
 #include "zeek/broker/Manager.h"
+#include "zeek/iosource/Manager.h"
 #include "zeek/telemetry/ProcessStats.h"
 #include "zeek/telemetry/Timer.h"
+#include "zeek/telemetry/consts.bif.h"
 #include "zeek/telemetry/telemetry.bif.h"
 #include "zeek/threading/formatters/detail/json.h"
 
 namespace zeek::telemetry {
 
-Manager::Manager() { prometheus_registry = std::make_shared<prometheus::Registry>(); }
+/**
+ * Prometheus Collectable interface used to insert Zeek callback processing
+ * before the Prometheus registry's collection of metric data.
+ */
+class ZeekCollectable : public prometheus::Collectable {
+public:
+    std::vector<prometheus::MetricFamily> Collect() const override {
+        telemetry_mgr->WaitForPrometheusCallbacks();
+        return {};
+    }
+};
 
-// This can't be defined as =default because of the use of unique_ptr with a forward-declared type
-// in Manager.h
+Manager::Manager() : IOSource(true) { prometheus_registry = std::make_shared<prometheus::Registry>(); }
+
 Manager::~Manager() {}
 
 void Manager::InitPostScript() {
@@ -75,7 +89,9 @@ void Manager::InitPostScript() {
 
         if ( ! getenv("ZEEKCTL_CHECK_CONFIG") ) {
             try {
-                prometheus_exposer = std::make_unique<prometheus::Exposer>(prometheus_url, 2, callbacks);
+                prometheus_exposer =
+                    std::make_unique<prometheus::Exposer>(prometheus_url, BifConst::Telemetry::civetweb_threads,
+                                                          callbacks);
 
                 // CivetWeb stores a copy of the callbacks, so we're safe to delete the pointer here
                 delete callbacks;
@@ -83,6 +99,13 @@ void Manager::InitPostScript() {
                 reporter->FatalError("Failed to setup Prometheus endpoint: %s. Attempted to bind to %s.", exc.what(),
                                      prometheus_url.c_str());
             }
+
+            // This has to be inserted before the registry below. The exposer
+            // processes the collectors in order of insertion. We want to make
+            // sure that the callbacks get called and the values in the metrics
+            // are updated before prometheus-cpp scrapes them.
+            zeek_collectable = std::make_shared<ZeekCollectable>();
+            prometheus_exposer->RegisterCollectable(zeek_collectable);
 
             prometheus_exposer->RegisterCollectable(prometheus_registry);
         }
@@ -130,6 +153,21 @@ void Manager::InitPostScript() {
                                   return metric;
                               });
 #endif
+
+    iosource_mgr->RegisterFd(collector_flare.FD(), this);
+}
+
+void Manager::Terminate() {
+    // Notify the collector condition so that it doesn't hang waiting for
+    // a collector request to complete.
+    collector_cv.notify_all();
+
+    // Shut down the exposer first of all so we stop getting requests for
+    // data. This keeps us from getting a request on another thread while
+    // we're shutting down.
+    prometheus_exposer.reset();
+
+    iosource_mgr->UnregisterFd(collector_flare.FD(), this);
 }
 
 // -- collect metric stuff -----------------------------------------------------
@@ -543,6 +581,39 @@ HistogramPtr Manager::HistogramInstance(std::string_view prefix, std::string_vie
     auto lbls = Span{labels.begin(), labels.size()};
     auto bounds_span = Span{bounds.begin(), bounds.size()};
     return HistogramInstance(prefix, name, lbls, bounds_span, helptext, unit);
+}
+
+void Manager::ProcessFd(int fd, int flags) {
+    std::unique_lock<std::mutex> lk(collector_cv_mtx);
+
+    collector_flare.Extinguish();
+
+    prometheus_registry->UpdateViaCallbacks();
+    collector_response_idx = collector_request_idx;
+
+    lk.unlock();
+    collector_cv.notify_all();
+}
+
+void Manager::WaitForPrometheusCallbacks() {
+    std::unique_lock<std::mutex> lk(collector_cv_mtx);
+
+    ++collector_request_idx;
+    uint64_t expected_idx = collector_request_idx;
+    collector_flare.Fire();
+
+    // It should *not* take 5 seconds to go through all of the callbacks, but
+    // set this to have a timeout anyways just to avoid a deadlock.
+    bool res = collector_cv.wait_for(lk,
+                                     std::chrono::microseconds(
+                                         static_cast<long>(BifConst::Telemetry::callback_timeout * 1000000)),
+                                     [expected_idx]() {
+                                         return telemetry_mgr->collector_response_idx >= expected_idx ||
+                                                zeek::run_state::terminating;
+                                     });
+
+    if ( ! res )
+        fprintf(stderr, "Timeout waiting for prometheus callbacks\n");
 }
 
 } // namespace zeek::telemetry

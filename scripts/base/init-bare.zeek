@@ -5883,6 +5883,13 @@ export {
 
 	type MetricVector : vector of Metric;
 	type HistogramMetricVector : vector of HistogramMetric;
+
+	## Maximum amount of time for CivetWeb HTTP threads to
+	## wait for metric callbacks to complete on the IO loop.
+	const callback_timeout: interval = 5sec &redef;
+
+	## Number of CivetWeb threads to use.
+	const civetweb_threads: count = 2 &redef;
 }
 
 module GLOBAL;

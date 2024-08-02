@@ -376,6 +376,7 @@ static void terminate_zeek() {
     input_mgr->Terminate();
     thread_mgr->Terminate();
     broker_mgr->Terminate();
+    telemetry_mgr->Terminate();
 
     event_mgr.Drain();
 
@@ -716,6 +717,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     // when that variable is defined.
     auto early_shutdown = [] {
         broker_mgr->Terminate();
+        telemetry_mgr->Terminate();
         delete iosource_mgr;
         delete telemetry_mgr;
     };

@@ -182,8 +182,6 @@ int dpd_match_only_beginning;
 int dpd_late_match_stop;
 int dpd_ignore_ports;
 
-int check_for_unused_event_handlers;
-
 int record_all_packets;
 
 zeek_uint_t bits_per_uid;
@@ -229,7 +227,6 @@ void init_general_global_var() {
     table_incremental_step = id::find_val("table_incremental_step")->AsCount();
     packet_filter_default = id::find_val("packet_filter_default")->AsBool();
     sig_max_group_size = id::find_val("sig_max_group_size")->AsCount();
-    check_for_unused_event_handlers = id::find_val("check_for_unused_event_handlers")->AsBool();
     record_all_packets = id::find_val("record_all_packets")->AsBool();
     bits_per_uid = id::find_val("bits_per_uid")->AsCount();
 }

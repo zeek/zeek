@@ -996,16 +996,6 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     if ( zeek_init )
         event_mgr.Enqueue(zeek_init, Args{});
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    EventRegistry::string_list dead_handlers = event_registry->UnusedHandlers();
-#pragma GCC diagnostic pop
-
-    if ( ! dead_handlers.empty() && check_for_unused_event_handlers ) {
-        for ( const string& handler : dead_handlers )
-            reporter->Warning("event handler never invoked: %s", handler.c_str());
-    }
-
     // Enable LeakSanitizer before zeek_init() and even before executing
     // top-level statements.  Even though it's not bad if a leak happens only
     // once at initialization, we have to assume that script-layer code causing

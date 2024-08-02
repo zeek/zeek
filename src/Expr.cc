@@ -414,13 +414,6 @@ NameExpr::NameExpr(IDPtr arg_id, bool const_init) : Expr(EXPR_NAME), id(std::mov
         SetType(make_intrusive<TypeType>(id->GetType()));
     else
         SetType(id->GetType());
-
-    EventHandler* h = event_registry->Lookup(id->Name());
-    if ( h )
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        h->SetUsed();
-#pragma GCC diagnostic pop
 }
 
 bool NameExpr::CanDel() const {
@@ -4416,11 +4409,6 @@ EventExpr::EventExpr(const char* arg_name, ListExprPtr arg_args)
         h = new EventHandler(name.c_str());
         event_registry->Register(h, true);
     }
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    h->SetUsed();
-#pragma GCC diagnostic pop
 
     handler = h;
 

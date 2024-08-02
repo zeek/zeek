@@ -417,13 +417,8 @@ static void use_CPP() {
                 f.SetBody(b);
             }
 
-            for ( auto& e : s->second.events ) {
-                auto h = event_registry->Register(e);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-                h->SetUsed();
-#pragma GCC diagnostic pop
-            }
+            for ( auto& e : s->second.events )
+                event_registry->Register(e);
 
             auto finish = s->second.finish_init_func;
             if ( finish )

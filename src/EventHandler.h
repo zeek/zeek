@@ -44,13 +44,6 @@ public:
     // Returns true if there is at least one local or remote handler.
     explicit operator bool() const;
 
-    [[deprecated("Remove in v7.1 - Unused event handlers are now found via UsageAnalyzer.")]] void SetUsed() {
-        used = true;
-    }
-    [[deprecated("Remove in v7.1 - Unused event handlers are now found via UsageAnalyzer.")]] bool Used() const {
-        return used;
-    }
-
     // Handlers marked as error handlers will not be called recursively to
     // avoid infinite loops if they trigger a similar error themselves.
     void SetErrorHandler() { error_handler = true; }

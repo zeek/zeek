@@ -195,7 +195,6 @@ event modbus_write_multiple_registers_response%(c: connection, headers: ModbusHe
 ##
 ## refs: A vector of reference records.
 event modbus_read_file_record_request%(c: connection, headers: ModbusHeaders, byte_count: count, refs: ModbusFileRecordRequests%);
-event modbus_read_file_record_request%(c: connection, headers: ModbusHeaders%) &deprecated="Remove in v7.1. Use the version that takes a byte_count and vector of references";
 
 ## Generated for a Modbus read file record response.
 ##
@@ -207,7 +206,6 @@ event modbus_read_file_record_request%(c: connection, headers: ModbusHeaders%) &
 ##
 ## refs: A vector of reference records.
 event modbus_read_file_record_response%(c: connection, headers: ModbusHeaders, byte_count: count, refs: ModbusFileRecordResponses%);
-event modbus_read_file_record_response%(c: connection, headers: ModbusHeaders%) &deprecated="Remove in v7.1. Use the version that takes a byte_count and vector of references";
 
 ## Generated for a Modbus write file record request.
 ##
@@ -219,7 +217,6 @@ event modbus_read_file_record_response%(c: connection, headers: ModbusHeaders%) 
 ##
 ## refs: A vector of reference records.
 event modbus_write_file_record_request%(c: connection, headers: ModbusHeaders, byte_count: count, refs: ModbusFileReferences%);
-event modbus_write_file_record_request%(c: connection, headers: ModbusHeaders%) &deprecated="Remove in v7.1. Use the version that takes a byte_count and vector of references";
 
 ## Generated for a Modbus write file record response.
 ##
@@ -231,7 +228,6 @@ event modbus_write_file_record_request%(c: connection, headers: ModbusHeaders%) 
 ##
 ## refs: A vector of reference records.
 event modbus_write_file_record_response%(c: connection, headers: ModbusHeaders, byte_count: count, refs: ModbusFileReferences%);
-event modbus_write_file_record_response%(c: connection, headers: ModbusHeaders%) &deprecated="Remove in v7.1. Use the version that takes a byte_count and vector of references";
 
 ## Generated for a Modbus mask write register request.
 ##

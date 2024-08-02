@@ -112,14 +112,14 @@ void Manager::InitPostScript() {
     }
 
 #ifdef HAVE_PROCESS_STAT_METRICS
-    static auto get_stats = [this]() -> const detail::process_stats* {
+    static auto get_stats = []() -> const detail::process_stats* {
         double now = util::current_time();
-        if ( this->process_stats_last_updated < now - 0.01 ) {
-            this->current_process_stats = detail::get_process_stats();
-            this->process_stats_last_updated = now;
+        if ( telemetry_mgr->process_stats_last_updated < now - 0.01 ) {
+            telemetry_mgr->current_process_stats = detail::get_process_stats();
+            telemetry_mgr->process_stats_last_updated = now;
         }
 
-        return &this->current_process_stats;
+        return &telemetry_mgr->current_process_stats;
     };
     rss_gauge = GaugeInstance("process", "resident_memory", {}, "Resident memory size", "bytes",
                               []() -> prometheus::ClientMetric {

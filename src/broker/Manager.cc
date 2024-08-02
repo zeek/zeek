@@ -813,14 +813,32 @@ bool Manager::AutoUnpublishEvent(const string& topic, Val* event) {
 }
 
 RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame) {
-    auto rval = new RecordVal(BifType::Record::Broker::Event);
+    // Deprecated MakeEvent() version using ValPList - requires extra copy.
+    zeek::Args cargs;
+    cargs.reserve(args->size());
+    for ( auto* a : *args )
+        cargs.push_back({zeek::NewRef{}, a});
+
+    return MakeEvent(cargs.begin(), cargs.end(), frame)->Ref()->AsRecordVal();
+}
+
+zeek::RecordValPtr Manager::MakeEvent(ArgsIt first, ArgsIt last, zeek::detail::Frame* frame) {
+    scoped_reporter_location srl{frame};
+    return MakeEvent(first, last);
+}
+
+zeek::RecordValPtr Manager::MakeEvent(ArgsIt first, ArgsIt last) {
+    auto rval = zeek::make_intrusive<RecordVal>(BifType::Record::Broker::Event);
     auto arg_vec = make_intrusive<VectorVal>(vector_of_data_type);
     rval->Assign(1, arg_vec);
     Func* func = nullptr;
-    scoped_reporter_location srl{frame};
 
-    for ( auto i = 0; i < args->length(); ++i ) {
-        auto arg_val = (*args)[i];
+    auto it = first;
+
+    int argc = std::distance(first, last);
+
+    for ( auto i = 0; it != last; ++i, ++it ) {
+        const auto& arg_val = *it;
 
         if ( i == 0 ) {
             // Event val must come first.
@@ -839,8 +857,8 @@ RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame) {
 
             auto num_args = func->GetType()->Params()->NumFields();
 
-            if ( num_args != args->length() - 1 ) {
-                Error("bad # of arguments: got %d, expect %d", args->length(), num_args + 1);
+            if ( num_args != argc - 1 ) {
+                Error("bad # of arguments: got %d, expect %d", argc - 1, num_args + 1);
                 return rval;
             }
 
@@ -848,7 +866,7 @@ RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame) {
             continue;
         }
 
-        const auto& got_type = (*args)[i]->GetType();
+        const auto& got_type = (*it)->GetType();
         const auto& expected_type = func->GetType()->ParamList()->GetTypes()[i - 1];
 
         if ( ! same_type(got_type, expected_type) ) {
@@ -861,9 +879,9 @@ RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame) {
         RecordValPtr data_val;
 
         if ( same_type(got_type, detail::DataVal::ScriptDataType()) )
-            data_val = {NewRef{}, (*args)[i]->AsRecordVal()};
+            data_val = {NewRef{}, (*it)->AsRecordVal()};
         else
-            data_val = BrokerData::ToRecordVal((*args)[i]);
+            data_val = BrokerData::ToRecordVal(*it);
 
         if ( ! data_val->HasField(0) ) {
             rval->Remove(0);

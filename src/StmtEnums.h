@@ -6,7 +6,6 @@ namespace zeek::detail {
 
 // These are in a separate file to break circular dependences
 enum StmtTag {
-    STMT_ANY [[deprecated("Remove in v7.1 - Unused and plugins should use STMT_EXTERN.")]] = -1,
     STMT_ALARM, // Does no longer exist but kept to create enums consistent.
     STMT_PRINT,
     STMT_EVENT,

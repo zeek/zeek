@@ -21,6 +21,8 @@ assign-val v
 eval	auto& v = Z_FRAME->GetElement($1);
 
 internal-assignment-op Load-Global
+# We don't use GlobalVal() for the assignment because we want to leverage
+# the bookkeeping that assign-val gives us in terms of memory management.
 class Vg
 assign-val v
 eval	auto& v = GlobalID($1)->GetVal();

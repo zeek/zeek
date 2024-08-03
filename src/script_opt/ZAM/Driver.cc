@@ -219,8 +219,6 @@ void ZAMCompiler::ResolveHookBreaks() {
             // Rewrite the breaks.
             for ( auto& b : breaks[0] ) {
                 auto& i = insts1[b.stmt_num];
-                // Preserve the auxiliary information (control-flow types
-                // in particular).
                 auto aux = i->aux;
                 *i = ZInstI(OP_HOOK_BREAK_X);
                 i->aux = aux;

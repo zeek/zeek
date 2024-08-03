@@ -55,7 +55,7 @@ eval	$$ = double($1);
 
 macro EvalCoerceVec(lhs, rhs, coercer)
 	auto old_v1 = lhs.AsVector();
-	lhs.AsVectorRef() = coercer(rhs.AsVector(), z);
+	lhs.AsVectorRef() = coercer(rhs.AsVector(), Z_LOC);
 	Unref(old_v1);	/* delayed to allow for same value on both sides */
 
 internal-op Coerce-UI-Vec

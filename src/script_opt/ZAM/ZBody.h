@@ -155,4 +155,11 @@ private:
 
 extern bool copy_vec_elem(VectorVal* vv, zeek_uint_t ind, ZVal zv, const TypePtr& t);
 
+extern VectorVal* vec_coerce_DI(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc);
+extern VectorVal* vec_coerce_DU(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc);
+extern VectorVal* vec_coerce_ID(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc);
+extern VectorVal* vec_coerce_IU(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc);
+extern VectorVal* vec_coerce_UD(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc);
+extern VectorVal* vec_coerce_UI(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc);
+
 } // namespace zeek::detail

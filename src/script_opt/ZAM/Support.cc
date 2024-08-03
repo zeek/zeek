@@ -108,7 +108,10 @@ void ZAM_run_time_error(const char* msg) {
 }
 
 void ZAM_run_time_error(std::shared_ptr<ZAMLocInfo> loc, const char* msg) {
-    reporter->RuntimeError(loc->Loc(), "%s", msg);
+    if ( loc )
+        reporter->RuntimeError(loc->Loc(), "%s", msg);
+    else
+        fprintf(stderr, "<no location in optimized code>: %s\n", msg);
     ZAM_error = true;
 }
 
@@ -118,7 +121,10 @@ void ZAM_run_time_error(const char* msg, const Obj* o) {
 }
 
 void ZAM_run_time_error(std::shared_ptr<ZAMLocInfo> loc, const char* msg, const Obj* o) {
-    reporter->RuntimeError(loc->Loc(), "%s (%s)", msg, obj_desc(o).c_str());
+    if ( loc )
+        reporter->RuntimeError(loc->Loc(), "%s (%s)", msg, obj_desc(o).c_str());
+    else
+        ZAM_run_time_error(msg, o);
     ZAM_error = true;
 }
 

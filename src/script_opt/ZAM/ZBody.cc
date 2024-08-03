@@ -179,7 +179,7 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, con
 
 // Vector coercion.
 #define VEC_COERCE(tag, lhs_type, cast, rhs_accessor, ov_check, ov_err)                                                \
-    static VectorVal* vec_coerce_##tag(VectorVal* vec, const ZInst& z) {                                               \
+    VectorVal* vec_coerce_##tag(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc) {                                   \
         auto& v = vec->RawVec();                                                                                       \
         auto yt = make_intrusive<VectorType>(base_type(lhs_type));                                                     \
         auto res_zv = new VectorVal(yt);                                                                               \
@@ -193,7 +193,7 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, con
                     std::string err = "overflow promoting from ";                                                      \
                     err += ov_err;                                                                                     \
                     err += " arithmetic value";                                                                        \
-                    ZAM_run_time_error(z.loc, err.c_str());                                                            \
+                    ZAM_run_time_error(z_loc, err.c_str());                                                            \
                     res[i] = std::nullopt;                                                                             \
                 }                                                                                                      \
                 else                                                                                                   \
@@ -560,7 +560,7 @@ TraversalCode ZBody::Traverse(TraversalCallback* cb) const {
 }
 
 // Unary vector operation of v1 <vec-op> v2.
-static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, const ZInst& z) {
+static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, const ZInst& /* z */) {
     // We could speed this up further still by gen'ing up an instance
     // of the loop inside each switch case (in which case we might as
     // well move the whole kit-and-caboodle into the Exec method).  But

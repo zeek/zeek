@@ -142,10 +142,5 @@
 @load protocols/ssl/validate-ocsp.zeek
 @load protocols/ssl/validate-sct.zeek
 @load protocols/ssl/weak-keys.zeek
-@load tuning/__load__.zeek
-@load tuning/defaults/__load__.zeek
-@load tuning/defaults/extracted_file_limits.zeek
-@load tuning/defaults/packet-fragments.zeek
-@load tuning/defaults/warnings.zeek
 @load tuning/json-logs.zeek
 @load tuning/track-all-assets.zeek

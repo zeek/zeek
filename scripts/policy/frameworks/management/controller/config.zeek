@@ -65,13 +65,11 @@ export {
 	## cluster nodes that need them and don't have them explicitly specified
 	## in cluster configurations.
 	const auto_assign_broker_ports = T &redef;
-	const auto_assign_ports = T &redef &deprecated="Remove in v7.1: replaced by auto_assign_broker_ports.";
 
 	## The TCP start port to use for auto-assigning cluster node listening
 	## ports, if :zeek:see:`Management::Controller::auto_assign_broker_ports` is
 	## enabled (the default) and nodes don't come with those ports assigned.
 	const auto_assign_broker_start_port = 2200/tcp &redef;
-	const auto_assign_start_port = 2200/tcp &redef &deprecated="Remove in v7.1: replaced by auto_assign_broker_start_port.";
 
 	## Whether the controller should auto-assign metrics ports for Prometheus
 	## to nodes that need them and don't have them explicitly specified in

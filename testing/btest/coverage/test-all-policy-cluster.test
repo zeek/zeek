@@ -9,7 +9,7 @@
 # @TEST-EXEC: CLUSTER_NODE=logger-1 zeek %INPUT
 # @TEST-EXEC: CLUSTER_NODE=proxy-1 zeek %INPUT
 # @TEST-EXEC: CLUSTER_NODE=worker-1 zeek %INPUT
-# @TEST-EXEC: TEST_DIFF_CANONIFIER='grep -v "load-balancing.zeek.*deprecated script" | $SCRIPTS/diff-remove-abspath' btest-diff .stderr
+# @TEST-EXEC: TEST_DIFF_CANONIFIER='$SCRIPTS/diff-remove-abspath' btest-diff .stderr
 
 @load base/frameworks/cluster
 @load misc/loaded-scripts

@@ -93,11 +93,9 @@ const IDPtr& lookup_ID(const char* name, const char* curr_module, bool no_global
                        bool check_export) {
     bool explicit_global = zeek::util::starts_with(name, "::");
 
-    // Ad-hoc deprecation if a name starts with "GLOBAL::". In v7.1 we could
-    // tweak {ID} to reject GLOBAL::, or switch this warning to error instead.
-    static std::string deprecated_prefix = util::fmt("%s::", GLOBAL_MODULE_NAME);
-    if ( zeek::util::starts_with(name, deprecated_prefix) )
-        reporter->Deprecation(util::fmt("Remove in v7.1: Use :: instead of %s (%s)", deprecated_prefix.c_str(), name));
+    static std::string global_prefix = util::fmt("%s::", GLOBAL_MODULE_NAME);
+    if ( zeek::util::starts_with(name, global_prefix) )
+        reporter->Error("Using GLOBAL:: as a prefix is invalid. Use :: instead (%s)", name);
 
     std::string fullname = make_full_var_name(curr_module, name);
     std::string ID_module = extract_module_name(fullname.c_str());

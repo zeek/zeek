@@ -600,6 +600,7 @@ void analyze_scripts(bool no_unused_warnings) {
     }
 
     if ( analysis_options.report_CPP ) {
+        auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, true, false);
         report_CPP();
         exit(0);
     }

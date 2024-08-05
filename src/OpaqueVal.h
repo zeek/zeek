@@ -92,19 +92,6 @@ private:
 };
 
 /**
- * Legacy macro to insert into an OpaqueVal-derived class's declaration. Overrides the "old" serialization methods
- * DoSerialize and DoUnserialize.
- * @deprecated Use DECLARE_OPAQUE_VALUE_DATA instead. Remove in v7.1.
- */
-#define DECLARE_OPAQUE_VALUE(T)                                                                                        \
-    friend class zeek::OpaqueMgr::Register<T>;                                                                         \
-    friend zeek::IntrusivePtr<T> zeek::make_intrusive<T>();                                                            \
-    broker::expected<broker::data> DoSerialize() const override;                                                       \
-    bool DoUnserialize(const broker::data& data) override;                                                             \
-    const char* OpaqueName() const override { return #T; }                                                             \
-    static zeek::OpaqueValPtr OpaqueInstantiate() { return zeek::make_intrusive<T>(); }
-
-/**
  * Macro to insert into an OpaqueVal-derived class's declaration. Overrides the "new" serialization methods
  * DoSerializeData and DoUnserializeData.
  */

@@ -27,8 +27,8 @@ ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fi
     profiled_body = body.get();
     abs_rec_fields = _abs_rec_fields;
 
-    auto ft = func->GetType()->AsFuncType();
-    auto& fcaps = ft->GetCaptures();
+    profiled_func_t = cast_intrusive<FuncType>(func->GetType());
+    auto& fcaps = profiled_func_t->GetCaptures();
 
     if ( fcaps ) {
         int offset = 0;
@@ -40,7 +40,7 @@ ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fi
         }
     }
 
-    Profile(ft, body);
+    Profile(profiled_func_t.get(), body);
 }
 
 ProfileFunc::ProfileFunc(const Stmt* s, bool _abs_rec_fields) {
@@ -56,6 +56,8 @@ ProfileFunc::ProfileFunc(const Expr* e, bool _abs_rec_fields) {
 
     if ( e->Tag() == EXPR_LAMBDA ) {
         auto func = e->AsLambdaExpr();
+        ASSERT(func->GetType()->Tag() == TYPE_FUNC);
+        profiled_func_t = cast_intrusive<FuncType>(func->GetType());
 
         int offset = 0;
 
@@ -181,26 +183,11 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             TrackType(id->GetType());
 
             if ( id->IsGlobal() ) {
-                globals.insert(id);
-                all_globals.insert(id);
-
-                const auto& t = id->GetType();
-                if ( t->Tag() == TYPE_FUNC )
-                    if ( t->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT )
-                        events.insert(id->Name());
-
+                PreID(id);
                 break;
             }
 
-            // This is a tad ugly.  Unfortunately due to the weird way
-            // that Zeek function *declarations* work, there's no reliable
-            // way to get the list of parameters for a function *definition*,
-            // since they can have different names than what's present in the
-            // declaration.  So we identify them directly, by knowing that
-            // they come at the beginning of the frame ... and being careful
-            // to avoid misconfusing a lambda capture with a low frame offset
-            // as a parameter.
-            if ( captures.count(id) == 0 && id->Offset() < num_params )
+            if ( profiled_func_t && id->GetParamRecord() == profiled_func_t->Params() )
                 params.insert(id);
 
             locals.insert(id);
@@ -427,9 +414,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                 locals.insert(i);
                 TrackID(i);
 
-                // See above re EXPR_NAME regarding the following
-                // logic.
-                if ( captures.count(i) == 0 && i->Offset() < num_params )
+                if ( profiled_func_t && i->GetParamRecord() == profiled_func_t->Params() )
                     params.insert(i);
             }
 

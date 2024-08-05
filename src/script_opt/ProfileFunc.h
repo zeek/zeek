@@ -139,6 +139,7 @@ protected:
     TraversalCode PreStmt(const Stmt*) override;
     TraversalCode PreExpr(const Expr*) override;
     TraversalCode PreID(const ID*) override;
+    TraversalCode PreType(const Type*) override;
 
     // Take note of the presence of a given type.
     void TrackType(const Type* t);
@@ -157,6 +158,7 @@ protected:
     // The function, body, or expression profiled.  Can be null
     // depending on which constructor was used.
     const Func* profiled_func = nullptr;
+    FuncTypePtr profiled_func_t; // null when not in a full function context
     const Stmt* profiled_body = nullptr;
     const Expr* profiled_expr = nullptr;
 

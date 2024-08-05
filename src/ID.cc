@@ -100,19 +100,14 @@ ID::ID(const char* arg_name, IDScope arg_scope, bool arg_is_export) {
     name = util::copy_string(arg_name);
     scope = arg_scope;
     is_export = arg_is_export;
-    is_option = false;
-    is_blank = name && extract_var_name(name) == "_";
-    is_const = false;
-    is_enum_const = false;
-    is_type = false;
     offset = 0;
 
-    if ( is_blank )
+    if ( name && extract_var_name(name) == "_" ) {
+        is_blank = true;
         SetType(base_type(TYPE_ANY));
+    }
 
     opt_info = new IDOptInfo(this);
-
-    infer_return_type = false;
 
     SetLocationInfo(&start_location, &end_location);
 }

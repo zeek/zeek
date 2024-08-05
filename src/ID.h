@@ -81,7 +81,6 @@ public:
     }
 
     bool IsType() const { return is_type; }
-
     void MakeType() { is_type = true; }
 
     void SetVal(ValPtr v);
@@ -94,6 +93,11 @@ public:
     const ValPtr& GetVal() const { return val; }
 
     void ClearVal();
+
+    // *If* this identifier is a function parameter, return the record
+    // associated with its declaration, otherwise nil.
+    RecordTypePtr GetParamRecord() const { return param_record; }
+    void SetParamRecord(const RecordTypePtr& pr) { param_record = pr; }
 
     void SetConst() { is_const = true; }
     bool IsConst() const { return is_const; }
@@ -160,9 +164,15 @@ protected:
     const char* name;
     IDScope scope;
     bool is_export;
-    bool infer_return_type;
     TypePtr type;
-    bool is_const, is_enum_const, is_type, is_option, is_blank;
+    RecordTypePtr param_record;
+    bool is_capture = false;
+    bool is_const = false;
+    bool is_enum_const = false;
+    bool is_type = false;
+    bool is_option = false;
+    bool is_blank = false;
+    bool infer_return_type = false;
     int offset;
     ValPtr val;
     AttributesPtr attrs;

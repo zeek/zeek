@@ -1,0 +1,251 @@
+# Operations corresponding to aggregated constructors.
+
+# Table construction requires atypical evaluation of list elements
+# using information from their expression specifics.
+direct-unary-op Table-Constructor ConstructTable
+
+macro ConstructTableOrSetPre(width)
+	auto tt = cast_intrusive<TableType>(Z_TYPE);
+	auto new_t = new TableVal(tt, Z_AUX_ATTRS);
+	auto aux = Z_AUX;
+	auto n = aux->n;
+	auto ind_width = width;
+
+macro ConstructTableOrSetPost(lhs)
+	auto& t = lhs.AsTableRef();
+	Unref(t);
+	t = new_t;
+
+internal-op Construct-Table
+class Vi
+eval	ConstructTableOrSetPre($1)
+	for ( auto i = 0; i < n; ++i )
+		{
+		auto indices = aux->ToIndices(frame, i, ind_width);
+		auto v = aux->ToVal(frame, i + ind_width);
+		new_t->Assign(indices, v);
+		i += ind_width;
+		}
+	ConstructTableOrSetPost($$)
+
+# When tables are constructed, if their &default is a lambda with captures
+# then we need to explicitly set up the default.
+internal-op Set-Table-Default-Lambda
+op1-read
+class VV
+op-types T X
+eval	auto tbl = $1;
+	auto lambda = $2.ToVal(Z_TYPE);
+	tbl->InitDefaultVal(std::move(lambda));
+
+direct-unary-op Set-Constructor ConstructSet
+
+internal-op Construct-Set
+class Vi
+eval	ConstructTableOrSetPre($1)
+	for ( auto i = 0; i < n; i += ind_width )
+		{
+		auto indices = aux->ToIndices(frame, i, ind_width);
+		new_t->Assign(indices, nullptr);
+		}
+	ConstructTableOrSetPost($$)
+
+direct-unary-op Record-Constructor ConstructRecord
+
+direct-unary-op Rec-Construct-With-Rec ConstructRecordFromRecord
+
+macro ConstructRecordPost(lhs)
+	auto& r = lhs.AsRecordRef();
+	Unref(r);
+	r = new RecordVal(cast_intrusive<RecordType>(Z_TYPE), std::move(init_vals));
+
+op Construct-Direct-Record
+class V
+eval	auto init_vals = Z_AUX->ToZValVec(frame);
+	ConstructRecordPost($$)
+
+op Construct-Known-Record
+class V
+eval	auto init_vals = Z_AUX->ToZValVecWithMap(frame);
+	ConstructRecordPost($$)
+
+macro	AssignFromRec(lhs_full, rhs_full)
+	/* The following is defined below, for use by Rec-Assign-Fields */
+	SetUpRecFieldOps(lhs_full, rhs_full, lhs_map)
+	auto is_managed = Z_AUX->is_managed;
+	for ( size_t i = 0U; i < n; ++i )
+		{
+		auto rhs_i = rhs->RawField(rhs_map[i]);
+		if ( is_managed[i] )
+			zeek::Ref(rhs_i.ManagedVal());
+		init_vals[lhs_map[i]] = rhs_i;
+		}
+
+op Construct-Known-Record-From
+class VV
+eval	auto init_vals = Z_AUX->ToZValVecWithMap(frame);
+	AssignFromRec($$, $1)
+	ConstructRecordPost($$)
+
+macro DoNetworkTimeInit(slot)
+	init_vals[slot] = ZVal(run_state::network_time);
+
+op Construct-Known-Record-With-NT
+class Vi
+eval	auto init_vals = Z_AUX->ToZValVecWithMap(frame);
+	DoNetworkTimeInit($1)
+	ConstructRecordPost($$)
+
+op Construct-Known-Record-With-NT-From
+class VVi
+eval	auto init_vals = Z_AUX->ToZValVecWithMap(frame);
+	DoNetworkTimeInit($2)
+	AssignFromRec($$, $1)
+	ConstructRecordPost($$)
+
+macro GenInits()
+	auto init_vals = Z_AUX->ToZValVecWithMap(frame);
+ 	for ( auto& fi : *z.aux->field_inits )
+ 		init_vals[fi.first] = fi.second->Generate();
+
+op Construct-Known-Record-With-Inits
+class V
+eval	GenInits()
+	ConstructRecordPost($$)
+
+op Construct-Known-Record-With-Inits-From
+class VV
+eval	GenInits()
+	AssignFromRec($$, $1)
+	ConstructRecordPost($$)
+
+op Construct-Known-Record-With-Inits-And-NT
+class Vi
+eval	GenInits()
+	DoNetworkTimeInit($1)
+	ConstructRecordPost($$)
+
+op Construct-Known-Record-With-Inits-And-NT-From
+class VVi
+eval	GenInits()
+	DoNetworkTimeInit($2)
+	AssignFromRec($$, $1)
+	ConstructRecordPost($$)
+
+macro SetUpRecFieldOps(lhs_full, rhs_full, which_lhs_map)
+	auto lhs = lhs_full.record_val;
+	auto rhs = rhs_full.record_val;
+	auto& lhs_map = Z_AUX->which_lhs_map;
+	auto& rhs_map = Z_AUX->rhs_map;
+	auto n = rhs_map.size();
+
+op Rec-Assign-Fields
+op1-read
+class VV
+eval	SetUpRecFieldOps($1, $2, map)
+	for ( size_t i = 0U; i < n; ++i )
+		lhs->RawOptField(lhs_map[i]) = rhs->RawField(rhs_map[i]);
+
+macro DoManagedRecAssign()
+	auto is_managed = Z_AUX->is_managed;
+	for ( size_t i = 0U; i < n; ++i )
+		if ( is_managed[i] )
+			{
+			auto& lhs_i = lhs->RawOptField(lhs_map[i]);
+			auto rhs_i = rhs->RawField(rhs_map[i]);
+			zeek::Ref(rhs_i.ManagedVal());
+			if ( lhs_i )
+				ZVal::DeleteManagedType(*lhs_i);
+			lhs_i = rhs_i;
+			}
+		else
+			lhs->RawOptField(lhs_map[i]) = rhs->RawField(rhs_map[i]);
+
+op Rec-Assign-Fields-Managed
+op1-read
+class VV
+eval	SetUpRecFieldOps($1, $2, map)
+	DoManagedRecAssign()
+
+op Rec-Assign-Fields-All-Managed
+op1-read
+class VV
+eval	SetUpRecFieldOps($1, $2, map)
+	for ( size_t i = 0U; i < n; ++i )
+		{
+		auto& lhs_i = lhs->RawOptField(lhs_map[i]);
+		auto rhs_i = rhs->RawField(rhs_map[i]);
+		zeek::Ref(rhs_i.ManagedVal());
+		if ( lhs_i )
+			ZVal::DeleteManagedType(*lhs_i);
+		lhs_i = rhs_i;
+		}
+
+op Rec-Add-Int-Fields
+op1-read
+class VV
+eval	SetUpRecFieldOps($1, $2, map)
+	for ( size_t i = 0U; i < n; ++i )
+		lhs->RawField(lhs_map[i]).int_val += rhs->RawField(rhs_map[i]).int_val;
+
+op Rec-Add-Double-Fields
+op1-read
+class VV
+eval	SetUpRecFieldOps($1, $2, map)
+	for ( size_t i = 0U; i < n; ++i )
+		lhs->RawField(lhs_map[i]).double_val += rhs->RawField(rhs_map[i]).double_val;
+
+op Rec-Add-Fields
+op1-read
+class VV
+eval	SetUpRecFieldOps($1, $2, map)
+	auto& types = Z_AUX->types;
+	for ( size_t i = 0U; i < n; ++i )
+		{
+		auto& lhs_i = lhs->RawField(lhs_map[i]);
+		auto rhs_i = rhs->RawField(rhs_map[i]);
+		auto tag = types[i]->Tag();
+		if ( tag == TYPE_INT )
+			lhs_i.int_val += rhs_i.int_val;
+		else if ( tag == TYPE_COUNT )
+			lhs_i.uint_val += rhs_i.uint_val;
+		else
+			lhs_i.double_val += rhs_i.double_val;
+		}
+
+# Special instruction for concretizing vectors that are fields in a
+# newly-constructed record. "aux" holds which fields in the record to
+# inspect.
+op Concretize-Vector-Fields
+op1-read
+class V
+op-types R
+eval	auto rt = cast_intrusive<RecordType>(Z_TYPE);
+	auto r = $1;
+	auto aux = Z_AUX;
+	auto n = aux->n;
+	for ( auto i = 0; i < n; ++i )
+		{
+		auto ind = aux->elems[i].IntVal();
+		auto v_i = r->GetField(ind);
+		ASSERT(v_i);
+		if ( v_i->GetType<VectorType>()->IsUnspecifiedVector() )
+			{
+			const auto& t_i = rt->GetFieldType(ind);
+			v_i->AsVectorVal()->Concretize(t_i->Yield());
+			}
+		}
+
+direct-unary-op Vector-Constructor ConstructVector
+
+internal-op Construct-Vector
+class V
+op-types V
+eval	auto new_vv = new VectorVal(cast_intrusive<VectorType>(Z_TYPE));
+	auto aux = Z_AUX;
+	auto n = aux->n;
+	for ( auto i = 0; i < n; ++i )
+		new_vv->Assign(i, aux->ToVal(frame, i));
+	auto& vv = $$;
+	Unref(vv);
+	vv = new_vv;

@@ -1,0 +1,151 @@
+# Operations corresponding to type coercions.
+
+direct-unary-op Arith-Coerce ArithCoerce
+
+internal-op Coerce-UI
+class VV
+op-types U I
+eval	auto v = $1;
+	if ( v < 0 )
+		ERROR("underflow converting int to count");
+	else
+		$$ = zeek_uint_t(v);
+
+internal-op Coerce-UD
+class VV
+op-types U D
+eval	auto v = $1;
+	if ( v < 0.0 )
+		ERROR("underflow converting double to count");
+	else if ( v > static_cast<double>(UINT64_MAX) )
+		ERROR("overflow converting double to count");
+	else
+		$$ = zeek_uint_t(v);
+
+internal-op Coerce-IU
+class VV
+op-types I U
+eval	auto v = $1;
+	if ( v > INT64_MAX )
+		ERROR("overflow converting count to int");
+	else
+		$$ = zeek_int_t(v);
+
+internal-op Coerce-ID
+class VV
+op-types I D
+eval	auto v = $1;
+	if ( v < static_cast<double>(INT64_MIN) )
+		ERROR("underflow converting double to int");
+	else if ( v > static_cast<double>(INT64_MAX) )
+		ERROR("overflow converting double to int");
+	else
+		$$ = zeek_int_t(v);
+
+internal-op Coerce-DI
+class VV
+op-types D I
+eval	$$ = double($1);
+
+internal-op Coerce-DU
+class VV
+op-types D U
+eval	$$ = double($1);
+
+
+macro EvalCoerceVec(lhs, rhs, coercer)
+	auto old_v1 = lhs.AsVector();
+	lhs.AsVectorRef() = coercer(rhs.AsVector(), Z_LOC);
+	Unref(old_v1);	/* delayed to allow for same value on both sides */
+
+internal-op Coerce-UI-Vec
+class VV
+eval	EvalCoerceVec($$, $1, vec_coerce_UI)
+
+internal-op Coerce-UD-Vec
+class VV
+eval	EvalCoerceVec($$, $1, vec_coerce_UD)
+
+internal-op Coerce-IU-Vec
+class VV
+eval	EvalCoerceVec($$, $1, vec_coerce_IU)
+
+internal-op Coerce-ID-Vec
+class VV
+eval	EvalCoerceVec($$, $1, vec_coerce_ID)
+
+internal-op Coerce-DI-Vec
+class VV
+eval	EvalCoerceVec($$, $1, vec_coerce_DI)
+
+internal-op Coerce-DU-Vec
+class VV
+eval	EvalCoerceVec($$, $1, vec_coerce_DU)
+
+
+direct-unary-op Record-Coerce RecordCoerce
+
+internal-op Record-Coerce
+class VV
+op-types R R
+eval	auto rt = cast_intrusive<RecordType>(Z_TYPE);
+	auto v = $1;
+	auto to_r = coerce_to_record(std::move(rt), v, Z_AUX_MAP);
+	Unref($$);
+	$$ = to_r.release();
+
+direct-unary-op Table-Coerce TableCoerce
+
+internal-op Table-Coerce
+class VV
+op-types T T
+eval	auto tv = $1;
+	if ( tv->Size() > 0 )
+		ERROR("coercion of non-empty table/set");
+	else
+		{
+		auto tt = cast_intrusive<TableType>(Z_TYPE);
+		AttributesPtr attrs = tv->GetAttrs();
+		auto t = make_intrusive<TableVal>(tt, attrs);
+		Unref($$);
+		$$ = t.release();
+		}
+
+direct-unary-op Vector-Coerce VectorCoerce
+
+internal-op Vector-Coerce
+class VV
+op-types V V
+eval	if ( $1->Size() > 0 )
+		ERROR("coercion of non-empty vector");
+	else
+		{
+		auto vv = new VectorVal(cast_intrusive<VectorType>(Z_TYPE));
+		Unref($$);
+		$$ = vv;
+		}
+
+unary-expr-op To-Any-Coerce
+op-type X
+set-type $1
+eval	AssignTarget($$, ZVal($1.ToVal(Z_TYPE), ZAM::any_base_type))
+
+unary-expr-op From-Any-Coerce
+no-const
+op-type X
+set-type $$
+eval	auto v = $1.AsAny();
+	AssignTarget($$, ZVal({NewRef{}, v}, Z_TYPE))
+
+unary-expr-op From-Any-Vec-Coerce
+no-const
+op-type X
+set-type $$
+eval	auto vv = $1.AsVector();
+	if ( ! vv->Concretize(Z_TYPE->Yield()) )
+		ERROR("incompatible vector-of-any");
+	else
+		{
+		zeek::Ref(vv);
+		AssignTarget($$, ZVal(vv))
+		}

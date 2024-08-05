@@ -1,0 +1,124 @@
+# Operations corresponding to iterations.
+
+internal-op Init-Table-Loop
+op1-read
+class Vf
+op-types T I
+eval	$2.BeginLoop({NewRef{}, $1}, frame, Z_AUX);
+
+internal-op Next-Table-Iter
+op1-read
+class fb
+eval	NextTableIterPre($1, $2)
+	$1.NextIter();
+
+macro NextTableIterPre(iter, BRANCH)
+	if ( iter.IsDoneIterating() )
+		BRANCH
+
+internal-op Next-Table-Iter-No-Vars
+op1-read
+class fb
+eval	NextTableIterPre($1, $2)
+	$1.IterFinished();
+
+internal-op Next-Table-Iter-Val-Var
+# v1 = slot of the "ValueVar"
+class Vfb
+eval	NextTableIterPre($1, $2)
+	AssignTarget($$, $1.IterValue());
+	$1.NextIter();
+
+internal-op Next-Table-Iter-Val-Var-No-Vars
+# v1 = slot of the "ValueVar"
+class Vfb
+eval	NextTableIterPre($1, $2)
+	AssignTarget($$, $1.IterValue());
+	$1.IterFinished();
+
+
+internal-op Init-Vector-Loop
+op1-read
+class Vs
+op-types V I
+eval	auto& vv = $1->RawVec();
+	$2.InitLoop(&vv);
+
+macro NextVectorIterCore(info, BRANCH)
+	if ( info.IsDoneIterating() )
+		BRANCH
+	const auto& vv = *info.vv;
+	if ( ! vv[info.iter] )
+		{ /* Account for vector hole.  Re-execute for next position. */
+		info.IterFinished();
+		REDO
+		}
+
+internal-op Next-Vector-Iter
+# v1 = iteration variable
+class Vsb
+op-types U I I
+eval	NextVectorIterCore($1, $2)
+	$$ = $1.iter;
+	$1.IterFinished();
+
+internal-op Next-Vector-Blank-Iter
+op1-internal
+class sb
+eval	NextVectorIterCore($1, $2)
+	$1.IterFinished();
+
+internal-op Next-Vector-Iter-Val-Var
+# v1 = iteration variable
+# v2 = value variable
+op1-read-write
+class VVsb
+op-types U X I I
+eval	NextVectorIterCore($2, $3)
+	$$ = $2.iter;
+	if ( Z_IS_MANAGED )
+		$1 = BuildVal(vv[$2.iter]->ToVal(Z_TYPE), Z_TYPE);
+	else
+		$1 = *vv[$2.iter];
+	$2.IterFinished();
+
+internal-op Next-Vector-Blank-Iter-Val-Var
+# v1 = value variable
+class Vsb
+eval	NextVectorIterCore($1, $2)
+	if ( Z_IS_MANAGED )
+		$$ = BuildVal(vv[$1.iter]->ToVal(Z_TYPE), Z_TYPE);
+	else
+		$$ = *vv[$1.iter];
+	$1.IterFinished();
+
+
+internal-op Init-String-Loop
+op1-read
+classes Vs Cs
+op-types S I
+eval	$2.InitLoop($1->AsString());
+
+internal-op Next-String-Iter
+# v1 = iteration variable
+class Vsb
+op-types S I I
+eval	if ( $1.IsDoneIterating() )
+		$2
+	auto bytes = (const char*) $1.s->Bytes() + $1.iter;
+	auto sv = new StringVal(1, bytes);
+	Unref($$);
+	$$ = sv;
+	$1.IterFinished();
+
+internal-op Next-String-Blank-Iter
+op1-internal
+class sb
+eval	if ( $1.IsDoneIterating() )
+		$2
+	$1.IterFinished();
+
+internal-op End-Table-Loop
+op1-internal
+class f
+eval	$1.Clear();

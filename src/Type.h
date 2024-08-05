@@ -341,6 +341,9 @@ public:
     void Append(TypePtr t);
     void AppendEvenIfNotPure(TypePtr t);
 
+    // Resets the list to be empty.
+    void Clear() { types.clear(); }
+
     detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
 
 protected:

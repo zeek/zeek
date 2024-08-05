@@ -608,17 +608,25 @@ void analyze_scripts(bool no_unused_warnings) {
     if ( analysis_options.use_CPP )
         use_CPP();
 
+    std::shared_ptr<ProfileFuncs> pfs;
+    // Note, in the following it's not clear whether the final argument
+    // for absolute/relative record fields matters any more ...
+    if ( generating_CPP )
+        pfs = std::make_shared<ProfileFuncs>(funcs, is_CPP_compilable, true, fal
+se);
+    else
+        pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true, true);
+
+    if ( analysis_options.gen_ZAM )
+        analyze_scripts_for_ZAM(pfs);
+
     if ( generating_CPP ) {
         if ( analysis_options.gen_ZAM )
             reporter->FatalError("-O ZAM and -O gen-C++ conflict");
 
-        generate_CPP();
+        generate_CPP(pfs);
         exit(0);
     }
-
-    // At this point we're done with C++ considerations, so instead
-    // are compiling to ZAM.
-    analyze_scripts_for_ZAM();
 
     if ( reporter->Errors() > 0 )
         reporter->FatalError("Optimized script execution aborted due to errors");

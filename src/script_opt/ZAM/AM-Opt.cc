@@ -962,16 +962,75 @@ void ZAMCompiler::KillInst(zeek_uint_t i) {
         }
     }
 
-    if ( num_labels == 0 )
-        // No labels to propagate.
-        return;
+    ZInstI* succ = nullptr;
 
-    for ( auto j = i + 1; j < insts1.size(); ++j ) {
-        auto succ = insts1[j];
-        if ( succ->live ) {
-            succ->num_labels += num_labels;
-            break;
+    if ( num_labels > 0 ) {
+        for ( auto j = i + 1; j < insts1.size(); ++j ) {
+            if ( insts1[j]->live ) {
+                succ = insts1[j];
+                break;
+            }
         }
+        if ( succ )
+            succ->num_labels += num_labels;
+    }
+
+    // Look into propagating control flow info.
+    if ( inst->aux && ! inst->aux->cft.empty() ) {
+        auto& cft = inst->aux->cft;
+
+        if ( cft.count(CFT_ELSE) > 0 ) {
+            // Push forward unless this was the end of the block.
+            if ( cft.count(CFT_BLOCK_END) == 0 ) {
+                ASSERT(succ);
+                AddCFT(succ, CFT_ELSE);
+            }
+            else
+                // But if it *was* the end of the block, remove that block.
+                --cft[CFT_BLOCK_END];
+        }
+
+        if ( cft.count(CFT_BREAK) > 0 ) {
+            // ### Factor this with the following
+            // Propagate breaks backwards.
+            int j = i;
+            while ( --j >= 0 )
+                if ( insts1[j]->live )
+                    break;
+
+            ASSERT(j >= 0);
+
+            // Make sure the CFT entry is created.
+            AddCFT(insts1[j], CFT_BREAK);
+
+            auto be_cnt = cft[CFT_BREAK];
+            --be_cnt; // we already did one above
+            insts1[j]->aux->cft[CFT_BREAK] += be_cnt;
+        }
+
+        if ( cft.count(CFT_BLOCK_END) > 0 ) {
+            // Propagate block-ends backwards.
+            int j = i;
+            while ( --j >= 0 )
+                if ( insts1[j]->live )
+                    break;
+
+            ASSERT(j >= 0);
+
+            // Make sure the CFT entry is created.
+            AddCFT(insts1[j], CFT_BLOCK_END);
+
+            auto be_cnt = cft[CFT_BLOCK_END];
+            --be_cnt; // we already did one above
+            insts1[j]->aux->cft[CFT_BLOCK_END] += be_cnt;
+        }
+
+        // If's can be killed because their bodies become empty,
+        // break's because they just lead to their following instruction,
+        // and next's if they become dead code.
+        // However, loop's and next's should not be killed.
+        ASSERT(cft.count(CFT_LOOP) == 0);
+        ASSERT(cft.count(CFT_LOOP_COND) == 0);
     }
 }
 

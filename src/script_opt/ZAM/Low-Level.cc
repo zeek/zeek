@@ -20,9 +20,25 @@ bool ZAMCompiler::NullStmtOK() const {
 
 const ZAMStmt ZAMCompiler::EmptyStmt() { return ZAMStmt(insts1.size() - 1); }
 
+const ZAMStmt ZAMCompiler::ErrorStmt() { return ZAMStmt(0); }
+
 const ZAMStmt ZAMCompiler::LastInst() { return ZAMStmt(insts1.size() - 1); }
 
-const ZAMStmt ZAMCompiler::ErrorStmt() { return ZAMStmt(0); }
+void ZAMCompiler::AddCFT(ZInstI* inst, ControlFlowType cft) {
+    if ( cft == CFT_NONE )
+        return;
+
+    if ( ! inst->aux )
+        inst->aux = new ZInstAux(0);
+
+    auto cft_entry = inst->aux->cft.find(cft);
+    if ( cft_entry == inst->aux->cft.end() )
+        inst->aux->cft[cft] = 1;
+    else {
+        ASSERT(cft == CFT_BLOCK_END || cft == CFT_BREAK);
+        ++cft_entry->second;
+    }
+}
 
 std::unique_ptr<OpaqueVals> ZAMCompiler::BuildVals(const ListExprPtr& l) {
     return std::make_unique<OpaqueVals>(InternalBuildVals(l.get()));

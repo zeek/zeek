@@ -141,13 +141,21 @@ const ZAMStmt ZAMCompiler::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
     else
         cond_stmt = GenCond(e, branch_v);
 
+    AddCFT(insts1.back(), CFT_IF);
+
     if ( s1 ) {
         auto s1_end = CompileStmt(s1);
+        AddCFT(insts1.back(), CFT_BLOCK_END);
+
         if ( s2 ) {
             auto branch_after_s1 = GoToStub();
+            auto else_start = insts1.size();
             auto s2_end = CompileStmt(s2);
+
             SetV(cond_stmt, GoToTargetBeyond(branch_after_s1), branch_v);
             SetGoTo(branch_after_s1, GoToTargetBeyond(s2_end));
+            AddCFT(insts1[else_start], CFT_ELSE);
+            AddCFT(insts1.back(), CFT_BLOCK_END);
 
             return s2_end;
         }
@@ -462,6 +470,7 @@ const ZAMStmt ZAMCompiler::GenSwitch(const SwitchStmt* sw, int slot, InternalTyp
     // Generate each of the cases.
     auto cases = sw->Cases();
     std::vector<InstLabel> case_start;
+    int case_index = 0;
 
     PushFallThroughs();
     for ( auto sw_case : *cases ) {
@@ -477,8 +486,11 @@ const ZAMStmt ZAMCompiler::GenSwitch(const SwitchStmt* sw, int slot, InternalTyp
     ResolveBreaks(sw_end);
 
     int def_ind = sw->DefaultCaseIndex();
-    if ( def_ind >= 0 )
-        SetV3(sw_head, case_start[def_ind]);
+    if ( def_ind >= 0 ) {
+        auto def = case_start[def_ind];
+        SetV3(sw_head, def);
+        AddCFT(def, CFT_DEFAULT);
+    }
     else
         SetV3(sw_head, sw_end);
 
@@ -651,17 +663,22 @@ const ZAMStmt ZAMCompiler::While(const Stmt* cond_stmt, const Expr* cond, const 
 
     if ( cond->Tag() == EXPR_NAME ) {
         auto n = cond->AsNameExpr();
-        cond_IF = AddInst(ZInstI(OP_IF_VV, FrameSlot(n), 0));
+        cond_IF = AddInst(ZInstI(OP_IF_Vb, FrameSlot(n), 0));
         branch_v = 2;
     }
     else
         cond_IF = GenCond(cond, branch_v);
+
+    AddCFT(insts1[head.stmt_num], CFT_LOOP);
+    AddCFT(insts1[cond_IF.stmt_num], CFT_LOOP_COND);
 
     PushNexts();
     PushBreaks();
 
     if ( body && body->Tag() != STMT_NULL )
         (void)CompileStmt(body);
+
+    AddCFT(insts1.back(), CFT_BLOCK_END);
 
     auto tail = GoTo(GoToTarget(head));
 
@@ -682,17 +699,21 @@ const ZAMStmt ZAMCompiler::CompileFor(const ForStmt* f) {
     PushNexts();
     PushBreaks();
 
+    ZAMStmt z;
+
     if ( et == TYPE_TABLE )
-        return LoopOverTable(f, val);
+        z = LoopOverTable(f, val);
 
     else if ( et == TYPE_VECTOR )
-        return LoopOverVector(f, val);
+        z = LoopOverVector(f, val);
 
     else if ( et == TYPE_STRING )
-        return LoopOverString(f, e);
+        z = LoopOverString(f, e);
 
     else
         reporter->InternalError("bad \"for\" loop-over value when compiling");
+
+    return z;
 }
 
 const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val) {

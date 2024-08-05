@@ -51,6 +51,8 @@ public:
             else
                 loop_vars.push_back(&frame[lv]);
 
+        SetIterInfo(&aux->types, &aux->is_managed, aux->value_var_type);
+
         PrimeIter();
     }
 

@@ -120,26 +120,9 @@ public:
     ~OpaqueVal() override = default;
 
     /**
-     * Serializes the value into a Broker representation.
-     *
-     * @return the broker representation, or an error if serialization
-     * isn't supported or failed.
-     */
-    [[deprecated("Remove in v7.1: use SerializeData instead")]] broker::expected<broker::data> Serialize() const;
-
-    /**
      * @copydoc Serialize
      */
     std::optional<BrokerData> SerializeData() const;
-
-    /**
-     * Reinstantiates a value from its serialized Broker representation.
-     *
-     * @param data Broker representation as returned by *Serialize()*.
-     * @return unserialized instances with reference count at +1
-     */
-    [[deprecated("Remove in v7.1: use UnserializeData instead")]] static OpaqueValPtr Unserialize(
-        const broker::data& data);
 
     /**
      * @copydoc Unserialize
@@ -156,11 +139,6 @@ protected:
     friend class OpaqueMgr;
 
     /**
-     * @deprecated Override DoSerializeData instead. Remove in v7.1.
-     */
-    virtual broker::expected<broker::data> DoSerialize() const;
-
-    /**
      * Must be overridden to provide a serialized version of the derived
      * class' state.
      *
@@ -168,11 +146,6 @@ protected:
      * isn't supported or failed.
      */
     virtual std::optional<BrokerData> DoSerializeData() const;
-
-    /**
-     * @deprecated Override DoUnserializeData instead. Remove in v7.1.
-     */
-    virtual bool DoUnserialize(const broker::data& data);
 
     /**
      * Must be overridden to recreate the derived class' state from a

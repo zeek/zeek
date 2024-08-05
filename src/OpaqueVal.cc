@@ -70,12 +70,6 @@ OpaqueValPtr OpaqueMgr::Instantiate(const std::string& id) const {
     return x != _types.end() ? (*x->second)() : nullptr;
 }
 
-broker::expected<broker::data> OpaqueVal::Serialize() const {
-    if ( auto res = SerializeData() )
-        return zeek::detail::BrokerDataAccess::Unbox(*res);
-    return {broker::make_error(broker::ec::serialization_failed)};
-}
-
 std::optional<BrokerData> OpaqueVal::SerializeData() const {
     auto type = OpaqueMgr::mgr()->TypeID(this);
 
@@ -88,8 +82,6 @@ std::optional<BrokerData> OpaqueVal::SerializeData() const {
     builder.Add(std::move(*d));
     return std::move(builder).Build();
 }
-
-OpaqueValPtr OpaqueVal::Unserialize(const broker::data& data) { return UnserializeData(BrokerDataView(&data)); }
 
 OpaqueValPtr OpaqueVal::UnserializeData(BrokerDataView data) {
     if ( ! data.IsList() )
@@ -114,22 +106,9 @@ OpaqueValPtr OpaqueVal::UnserializeData(BrokerListView v) {
     return val;
 }
 
-broker::expected<broker::data> OpaqueVal::DoSerialize() const {
-    return {broker::make_error(broker::ec::serialization_failed)};
-}
+std::optional<BrokerData> OpaqueVal::DoSerializeData() const { return std::nullopt; }
 
-std::optional<BrokerData> OpaqueVal::DoSerializeData() const {
-    if ( auto res = DoSerialize() ) {
-        return BrokerData{std::move(*res)};
-    }
-    return std::nullopt;
-}
-
-bool OpaqueVal::DoUnserialize(const broker::data&) { return false; }
-
-bool OpaqueVal::DoUnserializeData(BrokerDataView data) {
-    return DoUnserialize(zeek::detail::BrokerDataAccess::Unbox(data));
-}
+bool OpaqueVal::DoUnserializeData(BrokerDataView data) { return false; }
 
 std::optional<BrokerData> OpaqueVal::SerializeType(const TypePtr& t) {
     if ( t->InternalType() == TYPE_INTERNAL_ERROR )

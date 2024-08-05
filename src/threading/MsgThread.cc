@@ -9,6 +9,7 @@
 #include "zeek/Obj.h"
 #include "zeek/RunState.h"
 #include "zeek/iosource/Manager.h"
+#include "zeek/telemetry/Manager.h"
 #include "zeek/threading/Manager.h"
 
 // Set by Zeek's main signal handler.
@@ -229,83 +230,6 @@ MsgThread::MsgThread() : BasicThread(), queue_in(this, nullptr), queue_out(nullp
 
     // Register IOSource as non-counting lifetime managed IO source.
     iosource_mgr->Register(io_source, true);
-
-    cnt_sent_in_metric = telemetry_mgr->CounterInstance("zeek", "msg_thread_msgs_sent_in", {{"thread_name", Name()}},
-                                                        "Number of messages sent into thread");
-    cnt_sent_out_metric = telemetry_mgr->CounterInstance("zeek", "msg_thread_msgs_sent_out", {{"thread_name", Name()}},
-                                                         "Number of messages sent from thread");
-    pending_in_metric = telemetry_mgr->GaugeInstance("zeek", "msg_thread_msgs_pending_in", {{"thread_name", Name()}},
-                                                     "Number of pending messages sent into thread", "",
-                                                     [this]() -> prometheus::ClientMetric {
-                                                         prometheus::ClientMetric metric;
-                                                         metric.gauge.value = static_cast<double>(queue_in.Size());
-                                                         return metric;
-                                                     });
-    pending_out_metric = telemetry_mgr->GaugeInstance("zeek", "msg_thread_msgs_pending_in", {{"thread_name", Name()}},
-                                                      "Number of pending messages sent from thread", "",
-                                                      [this]() -> prometheus::ClientMetric {
-                                                          prometheus::ClientMetric metric;
-                                                          metric.gauge.value = static_cast<double>(queue_out.Size());
-                                                          return metric;
-                                                      });
-
-    static auto get_queue_in_stats = [this]() -> const Queue<BasicInputMessage*>::Stats {
-        double now = util::current_time();
-        if ( this->queue_in_stats_last_updated < now - 0.01 ) {
-            queue_in.GetStats(&queue_in_last_stats);
-            this->queue_in_stats_last_updated = now;
-        }
-
-        return queue_in_last_stats;
-    };
-
-    queue_in_num_reads_metric =
-        telemetry_mgr->CounterInstance("zeek", "msg_thread_queue_in_reads", {{"thread_name", Name()}},
-                                       "Number of reads from msg thread input queue", "",
-                                       []() -> prometheus::ClientMetric {
-                                           prometheus::ClientMetric metric;
-                                           auto stats = get_queue_in_stats();
-                                           metric.gauge.value = static_cast<double>(stats.num_reads);
-                                           return metric;
-                                       });
-    queue_in_num_writes_metric =
-        telemetry_mgr->CounterInstance("zeek", "msg_thread_queue_in_writes", {{"thread_name", Name()}},
-                                       "Number of writes from msg thread input queue", "",
-                                       []() -> prometheus::ClientMetric {
-                                           prometheus::ClientMetric metric;
-                                           auto stats = get_queue_in_stats();
-                                           metric.gauge.value = static_cast<double>(stats.num_writes);
-                                           return metric;
-                                       });
-
-    static auto get_queue_out_stats = [this]() -> const Queue<BasicOutputMessage*>::Stats {
-        double now = util::current_time();
-        if ( this->queue_out_stats_last_updated < now - 0.01 ) {
-            queue_out.GetStats(&queue_out_last_stats);
-            this->queue_out_stats_last_updated = now;
-        }
-
-        return queue_out_last_stats;
-    };
-
-    queue_out_num_reads_metric =
-        telemetry_mgr->CounterInstance("zeek", "msg_thread_queue_out_reads", {{"thread_name", Name()}},
-                                       "Number of reads from msg thread input queue", "",
-                                       []() -> prometheus::ClientMetric {
-                                           prometheus::ClientMetric metric;
-                                           auto stats = get_queue_out_stats();
-                                           metric.gauge.value = static_cast<double>(stats.num_reads);
-                                           return metric;
-                                       });
-    queue_out_num_writes_metric =
-        telemetry_mgr->CounterInstance("zeek", "msg_thread_queue_out_writes", {{"thread_name", Name()}},
-                                       "Number of writes from msg thread input queue", "",
-                                       []() -> prometheus::ClientMetric {
-                                           prometheus::ClientMetric metric;
-                                           auto stats = get_queue_out_stats();
-                                           metric.gauge.value = static_cast<double>(stats.num_writes);
-                                           return metric;
-                                       });
 }
 
 MsgThread::~MsgThread() {

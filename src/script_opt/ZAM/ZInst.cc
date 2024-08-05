@@ -351,7 +351,7 @@ TraversalCode ZInstAux::Traverse(TraversalCallback* cb) const {
         HANDLE_TC_STMT_PRE(tc);
     }
 
-    for ( auto& lvt : loop_var_types ) {
+    for ( auto& lvt : types ) {
         tc = lvt->Traverse(cb);
         HANDLE_TC_STMT_PRE(tc);
     }

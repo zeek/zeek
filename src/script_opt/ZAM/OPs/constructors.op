@@ -69,9 +69,9 @@ class V
 eval	auto init_vals = Z_AUX->ToZValVecWithMap(frame);
 	ConstructRecordPost($$)
 
-macro	AssignFromRec()
+macro	AssignFromRec(lhs_full, rhs_full)
 	/* The following is defined below, for use by Rec-Assign-Fields */
-	SetUpRecFieldOps(lhs_map)
+	SetUpRecFieldOps(lhs_full, rhs_full, lhs_map)
 	auto is_managed = Z_AUX->is_managed;
 	for ( size_t i = 0U; i < n; ++i )
 		{
@@ -84,8 +84,8 @@ macro	AssignFromRec()
 op Construct-Known-Record-From
 class VV
 eval	auto init_vals = Z_AUX->ToZValVecWithMap(frame);
-	AssignFromRec()
-	ConstructRecordPost()
+	AssignFromRec($$, $1)
+	ConstructRecordPost($$)
 
 macro DoNetworkTimeInit(slot)
 	init_vals[slot] = ZVal(run_state::network_time);
@@ -94,14 +94,14 @@ op Construct-Known-Record-With-NT
 class Vi
 eval	auto init_vals = Z_AUX->ToZValVecWithMap(frame);
 	DoNetworkTimeInit($1)
-	ConstructRecordPost()
+	ConstructRecordPost($$)
 
 op Construct-Known-Record-With-NT-From
 class VVi
 eval	auto init_vals = Z_AUX->ToZValVecWithMap(frame);
 	DoNetworkTimeInit($2)
-	AssignFromRec()
-	ConstructRecordPost()
+	AssignFromRec($$, $1)
+	ConstructRecordPost($$)
 
 macro GenInits()
 	auto init_vals = Z_AUX->ToZValVecWithMap(frame);
@@ -111,23 +111,30 @@ macro GenInits()
 op Construct-Known-Record-With-Inits
 class V
 eval	GenInits()
-	ConstructRecordPost()
+	ConstructRecordPost($$)
 
 op Construct-Known-Record-With-Inits-From
 class VV
 eval	GenInits()
-	AssignFromRec()
-	ConstructRecordPost()
+	AssignFromRec($$, $1)
+	ConstructRecordPost($$)
 
 op Construct-Known-Record-With-Inits-And-NT
 class Vi
 eval	GenInits()
 	DoNetworkTimeInit($1)
-	ConstructRecordPost()
+	ConstructRecordPost($$)
 
-macro SetUpRecFieldOps(lhs, rhs, which_lhs_map)
-	auto lhs = lhs.record_val;
-	auto rhs = rhs.record_val;
+op Construct-Known-Record-With-Inits-And-NT-From
+class VVi
+eval	GenInits()
+	DoNetworkTimeInit($2)
+	AssignFromRec($$, $1)
+	ConstructRecordPost($$)
+
+macro SetUpRecFieldOps(lhs_full, rhs_full, which_lhs_map)
+	auto lhs = lhs_full.record_val;
+	auto rhs = rhs_full.record_val;
 	auto& lhs_map = Z_AUX->which_lhs_map;
 	auto& rhs_map = Z_AUX->rhs_map;
 	auto n = rhs_map.size();
@@ -135,7 +142,7 @@ macro SetUpRecFieldOps(lhs, rhs, which_lhs_map)
 op Rec-Assign-Fields
 op1-read
 class VV
-eval	SetUpRecFieldOps(map)
+eval	SetUpRecFieldOps($1, $2, map)
 	for ( size_t i = 0U; i < n; ++i )
 		lhs->RawOptField(lhs_map[i]) = rhs->RawField(rhs_map[i]);
 
@@ -157,13 +164,13 @@ macro DoManagedRecAssign()
 op Rec-Assign-Fields-Managed
 op1-read
 class VV
-eval	SetUpRecFieldOps(map)
+eval	SetUpRecFieldOps($1, $2, map)
 	DoManagedRecAssign()
 
 op Rec-Assign-Fields-All-Managed
 op1-read
 class VV
-eval	SetUpRecFieldOps(map)
+eval	SetUpRecFieldOps($1, $2, map)
 	for ( size_t i = 0U; i < n; ++i )
 		{
 		auto& lhs_i = lhs->RawOptField(lhs_map[i]);
@@ -177,21 +184,21 @@ eval	SetUpRecFieldOps(map)
 op Rec-Add-Int-Fields
 op1-read
 class VV
-eval	SetUpRecFieldOps(map)
+eval	SetUpRecFieldOps($1, $2, map)
 	for ( size_t i = 0U; i < n; ++i )
 		lhs->RawField(lhs_map[i]).int_val += rhs->RawField(rhs_map[i]).int_val;
 
 op Rec-Add-Double-Fields
 op1-read
 class VV
-eval	SetUpRecFieldOps(map)
+eval	SetUpRecFieldOps($1, $2, map)
 	for ( size_t i = 0U; i < n; ++i )
 		lhs->RawField(lhs_map[i]).double_val += rhs->RawField(rhs_map[i]).double_val;
 
 op Rec-Add-Fields
 op1-read
 class VV
-eval	SetUpRecFieldOps(map)
+eval	SetUpRecFieldOps($1, $2, map)
 	auto& types = Z_AUX->types;
 	for ( size_t i = 0U; i < n; ++i )
 		{

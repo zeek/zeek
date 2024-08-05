@@ -1416,12 +1416,12 @@ const ZAMStmt ZAMCompiler::ConstructRecord(const NameExpr* n, const Expr* e, boo
     if ( is_from_rec ) {
         // Map non-from-rec operand to the from-rec equivalent.
         switch ( op ) {
-            case OP_CONSTRUCT_KNOWN_RECORD_WITH_NT_VV: op = OP_CONSTRUCT_KNOWN_RECORD_WITH_NT_FROM_VVV; break;
+            case OP_CONSTRUCT_KNOWN_RECORD_WITH_NT_Vi: op = OP_CONSTRUCT_KNOWN_RECORD_WITH_NT_FROM_VVi; break;
 
             case OP_CONSTRUCT_KNOWN_RECORD_V: op = OP_CONSTRUCT_KNOWN_RECORD_FROM_VV; break;
 
-            case OP_CONSTRUCT_KNOWN_RECORD_WITH_INITS_AND_NT_VV:
-                op = OP_CONSTRUCT_KNOWN_RECORD_WITH_INITS_AND_NT_FROM_VVV;
+            case OP_CONSTRUCT_KNOWN_RECORD_WITH_INITS_AND_NT_Vi:
+                op = OP_CONSTRUCT_KNOWN_RECORD_WITH_INITS_AND_NT_FROM_VVi;
                 break;
 
             case OP_CONSTRUCT_KNOWN_RECORD_WITH_INITS_V:

@@ -51,10 +51,6 @@ public:
             else
                 loop_vars.push_back(&frame[lv]);
 
-        loop_var_types = &aux->loop_var_types;
-        lvt_is_managed = &aux->lvt_is_managed;
-        value_var_type = aux->value_var_type;
-
         PrimeIter();
     }
 
@@ -86,9 +82,8 @@ public:
                 continue;
 
             ValPtr ind_lv_p = ind_lv->Idx(i);
-            if ( (*lvt_is_managed)->is_managed[i] )
+            if ( (*lvt_is_managed)[i] )
                 ZVal::DeleteManagedType(*lv);
-            auto& t = aux->types[i];
             *lv = ZVal(ind_lv_p, (*loop_var_types)[i]);
         }
 

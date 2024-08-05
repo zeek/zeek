@@ -199,19 +199,9 @@ rule_attr:
 				{
 				const char *msg = id_to_str($2);
 				if ( ! zeek::util::streq(msg, "<error>") )
-					zeek::reporter->Deprecation(zeek::util::fmt("Remove in v7.1: Using an identifier for msg is deprecated (%s:%d)",
-					                                            current_rule_file, rules_line_number+1));
-				current_rule->AddAction(new zeek::detail::RuleActionEvent(msg));
+					zeek::reporter->Error("Identifier %s is not an event (%s:%d)", id_to_str($2),
+					                      current_rule_file, rules_line_number+1);
 				}
-			}
-
-	|	TOK_EVENT TOK_IDENT TOK_IDENT
-			{
-			// Maybe remove in v7.1: Once we do not support msg as identifier,
-			// this extra messaging isn't all that useful anymore, but it
-			// beats a syntax error.
-			rules_error("custom event and identifier for msg unsupported");
-			zeek::detail::rule_matcher->SetParseError();
 			}
 
 	|	TOK_EVENT TOK_IDENT TOK_STRING

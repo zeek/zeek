@@ -9,6 +9,7 @@
 #include "zeek/Obj.h"
 #include "zeek/RunState.h"
 #include "zeek/iosource/Manager.h"
+#include "zeek/telemetry/Manager.h"
 #include "zeek/threading/Manager.h"
 
 // Set by Zeek's main signal handler.

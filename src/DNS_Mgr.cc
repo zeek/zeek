@@ -45,6 +45,7 @@ using ztd::out_ptr::out_ptr;
 #include "zeek/Val.h"
 #include "zeek/ZeekString.h"
 #include "zeek/iosource/Manager.h"
+#include "zeek/telemetry/Manager.h"
 
 // Number of seconds we'll wait for a reply.
 constexpr int DNS_TIMEOUT = 5;
@@ -545,6 +546,55 @@ void DNS_Mgr::InitSource() {
 }
 
 void DNS_Mgr::InitPostScript() {
+    num_requests_metric =
+        telemetry_mgr->CounterInstance("zeek", "dnsmgr_requests", {}, "Total number of requests through DNS_Mgr");
+    successful_metric = telemetry_mgr->CounterInstance("zeek", "dnsmgr_successful_requests", {},
+                                                       "Total number of successful requests through DNS_Mgr");
+    failed_metric = telemetry_mgr->CounterInstance("zeek", "dnsmgr_failed_requests", {},
+                                                   "Total number of failed requests through DNS_Mgr");
+    asyncs_pending_metric = telemetry_mgr->GaugeInstance("zeek", "dnsmgr_pending_asyncs_requests", {},
+                                                         "Number of pending async requests through DNS_Mgr");
+
+    cached_hosts_metric =
+        telemetry_mgr->GaugeInstance("zeek", "dnsmgr_cache_entries", {{"type", "host"}},
+                                     "Number of cached hosts in DNS_Mgr", "", []() -> prometheus::ClientMetric {
+                                         prometheus::ClientMetric metric;
+                                         metric.gauge.value = 0;
+
+                                         if ( dns_mgr ) {
+                                             dns_mgr->UpdateCachedStats(false);
+                                             metric.gauge.value = static_cast<double>(dns_mgr->last_cached_stats.hosts);
+                                         }
+                                         return metric;
+                                     });
+
+    cached_addresses_metric =
+        telemetry_mgr->GaugeInstance("zeek", "dnsmgr_cache_entries", {{"type", "address"}},
+                                     "Number of cached addresses in DNS_Mgr", "", []() -> prometheus::ClientMetric {
+                                         prometheus::ClientMetric metric;
+                                         metric.gauge.value = 0;
+
+                                         if ( dns_mgr ) {
+                                             dns_mgr->UpdateCachedStats(false);
+                                             metric.gauge.value =
+                                                 static_cast<double>(dns_mgr->last_cached_stats.addresses);
+                                         }
+                                         return metric;
+                                     });
+
+    cached_texts_metric =
+        telemetry_mgr->GaugeInstance("zeek", "dnsmgr_cache_entries", {{"type", "text"}},
+                                     "Number of cached texts in DNS_Mgr", "", []() -> prometheus::ClientMetric {
+                                         prometheus::ClientMetric metric;
+                                         metric.gauge.value = 0;
+
+                                         if ( dns_mgr ) {
+                                             dns_mgr->UpdateCachedStats(false);
+                                             metric.gauge.value = static_cast<double>(dns_mgr->last_cached_stats.texts);
+                                         }
+                                         return metric;
+                                     });
+
     if ( ! doctest::is_running_in_test ) {
         dm_rec = id::find_type<RecordType>("dns_mapping");
 
@@ -1158,7 +1208,7 @@ void DNS_Mgr::IssueAsyncRequests() {
         AsyncRequest* req = asyncs_queued.front();
         asyncs_queued.pop_front();
 
-        ++num_requests;
+        num_requests_metric->Inc();
         req->time = util::current_time();
 
         if ( req->type == T_PTR )
@@ -1173,6 +1223,7 @@ void DNS_Mgr::IssueAsyncRequests() {
         dns_req->MakeRequest(channel, this);
 
         ++asyncs_pending;
+        asyncs_pending_metric->Inc();
     }
 }
 
@@ -1182,11 +1233,11 @@ void DNS_Mgr::CheckAsyncHostRequest(const std::string& host, bool timeout) {
 
     if ( i != asyncs.end() ) {
         if ( timeout ) {
-            ++failed;
+            failed_metric->Inc();
             i->second->Timeout();
         }
         else if ( auto addrs = LookupNameInCache(host, true, false) ) {
-            ++successful;
+            successful_metric->Inc();
             i->second->Resolved(addrs);
         }
         else
@@ -1195,6 +1246,7 @@ void DNS_Mgr::CheckAsyncHostRequest(const std::string& host, bool timeout) {
         delete i->second;
         asyncs.erase(i);
         --asyncs_pending;
+        asyncs_pending_metric->Dec();
     }
 }
 
@@ -1207,11 +1259,11 @@ void DNS_Mgr::CheckAsyncAddrRequest(const IPAddr& addr, bool timeout) {
 
     if ( i != asyncs.end() ) {
         if ( timeout ) {
-            ++failed;
+            failed_metric->Inc();
             i->second->Timeout();
         }
         else if ( auto name = LookupAddrInCache(addr, true, false) ) {
-            ++successful;
+            successful_metric->Inc();
             i->second->Resolved(name->CheckString());
         }
         else
@@ -1220,6 +1272,7 @@ void DNS_Mgr::CheckAsyncAddrRequest(const IPAddr& addr, bool timeout) {
         delete i->second;
         asyncs.erase(i);
         --asyncs_pending;
+        asyncs_pending_metric->Dec();
     }
 }
 
@@ -1229,11 +1282,11 @@ void DNS_Mgr::CheckAsyncOtherRequest(const std::string& host, bool timeout, int 
     auto i = asyncs.find(std::make_pair(request_type, host));
     if ( i != asyncs.end() ) {
         if ( timeout ) {
-            ++failed;
+            failed_metric->Inc();
             i->second->Timeout();
         }
         else if ( auto name = LookupOtherInCache(host, request_type, true) ) {
-            ++successful;
+            successful_metric->Inc();
             i->second->Resolved(name->CheckString());
         }
         else
@@ -1242,6 +1295,7 @@ void DNS_Mgr::CheckAsyncOtherRequest(const std::string& host, bool timeout, int 
         delete i->second;
         asyncs.erase(i);
         --asyncs_pending;
+        asyncs_pending_metric->Dec();
     }
 }
 
@@ -1293,26 +1347,35 @@ void DNS_Mgr::Process() {
     ares_process_fd(channel, ARES_SOCKET_BAD, ARES_SOCKET_BAD);
 }
 
+void DNS_Mgr::UpdateCachedStats(bool force) {
+    double now = util::current_time();
+    if ( force || last_cached_stats_update < now - 0.01 ) {
+        last_cached_stats.hosts = 0;
+        last_cached_stats.addresses = 0;
+        last_cached_stats.texts = 0;
+        last_cached_stats.total = all_mappings.size();
+
+        for ( const auto& [key, mapping] : all_mappings ) {
+            if ( mapping->ReqType() == T_PTR )
+                last_cached_stats.addresses++;
+            else if ( mapping->ReqType() == T_A )
+                last_cached_stats.hosts++;
+            else
+                last_cached_stats.texts++;
+        }
+
+        last_cached_stats_update = now;
+    }
+}
+
 void DNS_Mgr::GetStats(Stats* stats) {
-    // TODO: can this use the telemetry framework?
-    stats->requests = num_requests;
-    stats->successful = successful;
-    stats->failed = failed;
+    stats->requests = static_cast<unsigned long>(num_requests_metric->Value());
+    stats->successful = static_cast<unsigned long>(successful_metric->Value());
+    stats->failed = static_cast<unsigned long>(failed_metric->Value());
     stats->pending = asyncs_pending;
 
-    stats->cached_hosts = 0;
-    stats->cached_addresses = 0;
-    stats->cached_texts = 0;
-    stats->cached_total = all_mappings.size();
-
-    for ( const auto& [key, mapping] : all_mappings ) {
-        if ( mapping->ReqType() == T_PTR )
-            stats->cached_addresses++;
-        else if ( mapping->ReqType() == T_A )
-            stats->cached_hosts++;
-        else
-            stats->cached_texts++;
-    }
+    UpdateCachedStats(true);
+    stats->cached = last_cached_stats;
 }
 
 void DNS_Mgr::AsyncRequest::Resolved(const std::string& name) {

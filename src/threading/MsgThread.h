@@ -3,8 +3,6 @@
 #include <atomic>
 
 #include "zeek/DebugLogger.h"
-#include "zeek/Flare.h"
-#include "zeek/iosource/IOSource.h"
 #include "zeek/threading/BasicThread.h"
 #include "zeek/threading/Queue.h"
 

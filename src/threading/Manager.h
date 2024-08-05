@@ -1,12 +1,23 @@
 #pragma once
 
 #include <list>
+#include <map>
 #include <utility>
 
 #include "zeek/Timer.h"
 #include "zeek/threading/MsgThread.h"
 
 namespace zeek {
+
+namespace telemetry {
+class Gauge;
+using GaugePtr = std::shared_ptr<Gauge>;
+class GaugeFamily;
+using GaugeFamilyPtr = std::shared_ptr<GaugeFamily>;
+class Counter;
+using CounterPtr = std::shared_ptr<Counter>;
+} // namespace telemetry
+
 namespace threading {
 namespace detail {
 
@@ -47,6 +58,12 @@ public:
     ~Manager();
 
     /**
+     * Performs initialization that can only happen after script parsing has
+     * completed.
+     */
+    void InitPostScript();
+
+    /**
      * Terminates the manager's processor. The method signals all threads
      * to terminates and wait for them to do so. It then joins them and
      * returns to the caller. Afterwards, no more thread instances may be
@@ -77,7 +94,7 @@ public:
      * threads that are not yet joined, including any potentially in
      * Terminating() state.
      */
-    int NumThreads() const { return all_threads.size(); }
+    size_t NumThreads() const { return all_threads.size(); }
 
     /**
      * Signals a specific threads to terminate immediately.
@@ -151,6 +168,29 @@ private:
     msg_stats_list stats;
 
     bool heartbeat_timer_running = false;
+    telemetry::GaugePtr num_threads_metric;
+    telemetry::CounterPtr total_threads_metric;
+    telemetry::CounterPtr total_messages_in_metric;
+    telemetry::CounterPtr total_messages_out_metric;
+    telemetry::GaugePtr pending_messages_in_metric;
+    telemetry::GaugePtr pending_messages_out_metric;
+
+    telemetry::GaugeFamilyPtr pending_message_in_buckets_fam;
+    telemetry::GaugeFamilyPtr pending_message_out_buckets_fam;
+    std::map<uint64_t, telemetry::GaugePtr> pending_message_in_buckets;
+    std::map<uint64_t, telemetry::GaugePtr> pending_message_out_buckets;
+
+    struct BucketedMessages {
+        uint64_t sent_in_total;
+        uint64_t sent_out_total;
+        uint64_t pending_in_total;
+        uint64_t pending_out_total;
+        std::map<uint64_t, uint64_t> pending_in;
+        std::map<uint64_t, uint64_t> pending_out;
+    };
+
+    BucketedMessages current_bucketed_messages;
+    double bucketed_messages_last_updated = 0.0;
 };
 
 } // namespace threading

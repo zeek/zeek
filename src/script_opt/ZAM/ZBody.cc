@@ -591,12 +591,22 @@ TraversalCode ZBody::Traverse(TraversalCallback* cb) const {
     TraversalCode tc = cb->PreStmt(this);
     HANDLE_TC_STMT_PRE(tc);
 
+    for ( auto& gi : globals ) {
+        tc = gi.id->Traverse(cb);
+        HANDLE_TC_STMT_PRE(tc);
+    }
+
+    for ( size_t i = 0; i < NumInsts(); ++i ) {
+        tc = insts[i].Traverse(cb);
+        HANDLE_TC_STMT_PRE(tc);
+    }
+
     tc = cb->PostStmt(this);
     HANDLE_TC_STMT_POST(tc);
 }
 
 // Unary vector operation of v1 <vec-op> v2.
-static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, const ZInst& z) {
+static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, const ZInst& /* z */) {
     // We could speed this up further still by gen'ing up an instance
     // of the loop inside each switch case (in which case we might as
     // well move the whole kit-and-caboodle into the Exec method).  But

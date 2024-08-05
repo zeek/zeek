@@ -4070,11 +4070,15 @@ bool CallExpr::IsPure() const {
     if ( IsError() )
         return true;
 
-    if ( ! func->IsPure() )
+    if ( func->Tag() != EXPR_NAME )
+        // Indirect call, can't resolve up front.
         return false;
 
-    auto func_val = func->Eval(nullptr);
+    auto func_id = func->AsNameExpr()->Id();
+    if ( ! func_id->IsGlobal() )
+        return false;
 
+    auto func_val = func_id->GetVal();
     if ( ! func_val )
         return false;
 

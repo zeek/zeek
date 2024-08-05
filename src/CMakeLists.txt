@@ -162,7 +162,23 @@ list(APPEND BINPAC_OUTPUTS "${BINPAC_OUTPUT_CC}")
 include(Gen-ZAM)
 
 set(GEN_ZAM_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/script_opt/ZAM/OPs)
-set(GEN_ZAM_SRC ${GEN_ZAM_SRC_DIR}/ZAM.op)
+set(ZAM_OP_SRCS
+    ${GEN_ZAM_SRC_DIR}/aggr-assignments.op
+    ${GEN_ZAM_SRC_DIR}/binary-exprs.op
+    ${GEN_ZAM_SRC_DIR}/calls.op
+    ${GEN_ZAM_SRC_DIR}/coercions.op
+    ${GEN_ZAM_SRC_DIR}/constructors.op
+    ${GEN_ZAM_SRC_DIR}/indexing.op
+    ${GEN_ZAM_SRC_DIR}/internal.op
+    ${GEN_ZAM_SRC_DIR}/iterations.op
+    ${GEN_ZAM_SRC_DIR}/macros.op
+    ${GEN_ZAM_SRC_DIR}/non-uniform.op
+    ${GEN_ZAM_SRC_DIR}/rel-exprs.op
+    ${GEN_ZAM_SRC_DIR}/script-idioms.op
+    ${GEN_ZAM_SRC_DIR}/stmts.op
+    ${GEN_ZAM_SRC_DIR}/unary-exprs.op
+    ${GEN_ZAM_SRC_DIR}/ZBI.op)
+set(GEN_ZAM_SRC ${ZAM_OP_SRCS})
 
 gen_zam_target(${GEN_ZAM_SRC_DIR})
 

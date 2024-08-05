@@ -1,0 +1,627 @@
+# Operations corresponding to ZAM BuiltIn Functions.
+
+internal-op Remove-Teredo
+op1-read
+class V
+op-types R
+eval	auto teredo = zeek::packet_mgr->GetAnalyzer("Teredo");
+	if ( teredo )
+		{
+		zeek::detail::ConnKey conn_key($1);
+		static_cast<zeek::packet_analysis::teredo::TeredoAnalyzer*>(teredo.get())->RemoveConnection(conn_key);
+		}
+
+internal-op Remove-Teredo
+side-effects OP_REMOVE_TEREDO_V OP_V
+class VV
+op-types I R
+eval	auto teredo = zeek::packet_mgr->GetAnalyzer("Teredo");
+	if ( teredo )
+		{
+		zeek::detail::ConnKey conn_key($1);
+		static_cast<zeek::packet_analysis::teredo::TeredoAnalyzer*>(teredo.get())->RemoveConnection(conn_key);
+		}
+	$$ = 1;
+
+internal-op Remove-GTPv1
+op1-read
+class V
+op-types R
+eval	auto gtpv1 = zeek::packet_mgr->GetAnalyzer("GTPv1");
+	if ( gtpv1 )
+		{
+		zeek::detail::ConnKey conn_key($1);
+		static_cast<zeek::packet_analysis::gtpv1::GTPv1_Analyzer*>(gtpv1.get())->RemoveConnection(conn_key);
+		}
+
+internal-op Remove-GTPv1
+side-effects OP_REMOVE_GTPV1_V OP_V
+class VV
+op-types I R
+eval	auto gtpv1 = zeek::packet_mgr->GetAnalyzer("GTPv1");
+	if ( gtpv1 )
+		{
+		zeek::detail::ConnKey conn_key($1);
+		static_cast<zeek::packet_analysis::gtpv1::GTPv1_Analyzer*>(gtpv1.get())->RemoveConnection(conn_key);
+		}
+	$$ = 1;
+
+internal-op Set-File-Handle
+op1-read
+class V
+op-types S
+eval	auto handle = $1;
+	auto bytes = reinterpret_cast<const char*>(handle->Bytes());
+	auto h = std::string(bytes, handle->Len());
+	zeek::file_mgr->SetHandle(h);
+
+internal-op Subnet-To-Addr
+class VV
+op-types X N
+eval	auto addr_v = make_intrusive<AddrVal>($1->Prefix());
+	ZVal::DeleteManagedType($$);
+	$$ = ZVal(std::move(addr_v));
+
+macro EvalSubBytes(lhs, arg1, arg2, arg3)
+	{
+	auto sv = ZAM_sub_bytes(arg1, arg2, arg3);
+	Unref(lhs);
+	lhs = sv;
+	}
+
+internal-op Sub-Bytes
+classes VVVV VVVC VVCV VCVV VVCi VCVi
+op-types S S U I
+eval	EvalSubBytes($$, $1, $2, $3)
+
+# Use a distinct name because due to the convention when constructing
+# instructions, frame slots are always positioned earlier than non-frame
+# slots, i.e. we can't construct "VCiV", which is why the arguments are
+# in a different order than above.
+internal-op Sub-Bytes2
+class VCVi
+op-types S S I U
+eval	EvalSubBytes($$, $1, $3, $2)
+
+internal-op Time-To-Double
+class VV
+op-types D D
+eval	$$ = $1;
+
+
+internal-op To-Lower
+class VV
+op-types S S
+eval	auto sv = ZAM_to_lower($1);
+	Unref($$);
+	$$ = sv;
+
+# A ZAM version of Log::__write.  In calls to it, the first argument
+# is generally a constant (enum) *if we inlined*, but otherwise a
+# parameter, so we support both VVV ad VVC.
+#
+# It's actually the case that the return value is pretty much always
+# ignored ... plus optimization can elide it away.  See the second
+# pair of built-ins for versions that discard the return value.
+#
+# Could speed things up further by modifying the Write method to just
+# take the raw enum value, as it appears that that's all that's ever
+# actually used.
+
+macro LogWritePre(id_val, columns_val)
+	auto id = id_val;
+	auto columns = columns_val;
+
+macro LogWriteResPost(lhs)
+	bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());
+	lhs = result;
+
+internal-op Log-Write
+side-effects OP_LOG_WRITE_VV OP_VV
+class VVV
+op-types I X R
+eval	LogWritePre(LogEnum($1), $2)
+	LogWriteResPost($$)
+
+### Check that invoked correctly
+internal-op Log-WriteC
+side-effects OP_LOG_WRITE_CV OP_VC
+class VCV
+op-types I X R
+eval	LogWritePre(LogEnum($1), $2)
+	LogWriteResPost($$)
+
+# Versions that discard the return value.
+internal-op Log-Write
+side-effects
+op1-read
+classes VV CV
+op-types X R
+eval	LogWritePre(LogEnum($1), $2)
+	(void) log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());
+
+internal-op Broker-Flush-Logs
+side-effects OP_BROKER_FLUSH_LOGS_X OP_X
+class V
+op-types U
+eval	$$ = broker_mgr->FlushLogBuffers();
+
+internal-op Broker-Flush-Logs
+side-effects
+class X
+eval	(void) broker_mgr->FlushLogBuffers();
+
+internal-op Get-Port-Transport-Proto
+class VV
+op-types U U
+eval	auto mask = $1 & PORT_SPACE_MASK;
+	auto v = 0; /* TRANSPORT_UNKNOWN */
+	if ( mask == TCP_PORT_MASK )
+		v = 1;
+	else if ( mask == UDP_PORT_MASK )
+		v = 2;
+	else if ( mask == ICMP_PORT_MASK )
+		v = 3;
+	$$ = v;
+
+predicate-op Conn-Exists
+class V
+op-types R
+eval	session_mgr->FindConnection($1) != nullptr
+
+internal-op Lookup-Conn
+class VV
+op-types X R
+eval	auto cid = $1;
+	Connection* conn = session_mgr->FindConnection(cid);
+	ValPtr res;
+	if ( conn )
+		res = conn->GetVal();
+	else
+		{
+		ERROR2("connection ID not a known connection", cid);
+		res = build_dummy_conn_record();
+		}
+	AssignTarget($$, ZVal(res, res->GetType()));
+
+predicate-op Is-ICMP-Port
+class V
+op-types U
+eval	($1 & PORT_SPACE_MASK) == ICMP_PORT_MASK
+
+predicate-op Is-TCP-Port
+class V
+op-types U
+eval	($1 & PORT_SPACE_MASK) == TCP_PORT_MASK
+
+predicate-op Is-UDP-Port
+class V
+op-types U
+eval	($1 & PORT_SPACE_MASK) == UDP_PORT_MASK
+
+predicate-op Is-V4-Addr
+class V
+op-types A
+eval	$1->AsAddr().GetFamily() == IPv4
+
+predicate-op Is-V6-Addr
+class V
+op-types A
+eval	$1->AsAddr().GetFamily() == IPv6
+
+internal-op Network-Time
+class V
+op-types D
+eval	$$ = run_state::network_time;
+
+internal-op Current-Time
+class V
+op-types D
+eval	$$ = util::current_time();
+
+predicate-op Reading-Live-Traffic
+class X
+eval	run_state::reading_live
+
+predicate-op Reading-Traces
+class X
+eval	run_state::reading_traces
+
+internal-op Sort
+op1-read
+class V
+op-types V
+eval	if ( $1->Size() > 1 )
+		$1->Sort();
+
+internal-op Sort
+class VV
+op-types V V
+eval	auto vv = $1;
+	if ( vv->Size() > 1 )
+		vv->Sort();
+	zeek::Ref(vv);
+	Unref($$);
+	$$ = vv;
+
+internal-op Sort-With-Cmp
+op1-read
+class VV
+op-types V F
+eval	if ( $1->Size() > 1 )
+		$1->Sort($2);
+
+internal-op Sort-With-Cmp
+class VVV
+op-types V V F
+eval	auto vv = $1;
+	if ( vv->Size() > 1 )
+		vv->Sort($2);
+	zeek::Ref(vv);
+	Unref($$);
+	$$ = vv;
+
+internal-op Starts-With
+classes VVV VCV VVC
+op-types I S S
+eval	auto str = $1;
+	auto sub = $2;
+	auto str_n = str->Len();
+	auto sub_n = sub->Len();
+	if ( str_n < sub_n )
+		$$ = 0;
+	else
+		{
+		auto str_b = str->Bytes();
+		auto sub_b = sub->Bytes();
+		int i;
+		for ( i = 0; i < sub_n; ++i )
+			if ( str_b[i] != sub_b[i] )
+				break;
+		$$ = i == sub_n;
+		}
+
+internal-op StrCmp
+classes VVV VCV VVC
+op-types I S S
+eval	auto s1 = $1;
+	auto s2 = $2;
+	$$ = Bstr_cmp(s1->AsString(), s2->AsString());
+
+internal-op StrStr
+classes VVV VCV VVC
+op-types I S S
+eval	auto big = $1;
+	auto little = $2;
+	$$ = 1 + big->AsString()->FindSubstring(little->AsString());
+
+macro Cat1Op(lhs, val)
+	auto& v1 = lhs;
+	ZVal::DeleteManagedType(v1);
+	v1 = val;
+
+internal-op Cat1
+classes VV VC
+eval	Cat1Op($$, $1)
+	zeek::Ref(v1.AsString());
+
+internal-op Cat1Full
+classes VV VC
+eval	auto formatted_val = ZVal(ZAM_val_cat($1.ToVal(Z_TYPE)));
+	Cat1Op($$, formatted_val)
+
+internal-op CatN
+class V
+eval	CatNPre()
+	int n = aux->n;
+	size_t max_size = 0;
+	for ( int i = 0; i < n; ++i )
+		max_size += ca[i]->MaxSize(aux->elems[i].ToDirectZVal(frame));
+	auto res = new char[max_size + /* slop */ n + 1];
+	auto res_p = res;
+	for ( int i = 0; i < n; ++i )
+		ca[i]->RenderInto(aux->elems[i].ToDirectZVal(frame), res_p);
+	*res_p = '\0';
+	auto s = new String(true, reinterpret_cast<byte_vec>(res), res_p - res);
+	Cat1Op($$, ZVal(new StringVal(s)))
+
+macro CatNPre()
+	auto aux = Z_AUX;
+	auto& ca = aux->cat_args;
+
+macro CatNMid()
+	auto res = new char[max_size + /* slop */ 10];
+	auto res_p = res;
+
+macro CatNPost(lhs)
+	*res_p = '\0';
+	auto s = new String(true, reinterpret_cast<byte_vec>(res), res_p - res);
+	Cat1Op(lhs, ZVal(new StringVal(s)))
+
+internal-op Cat2
+class V
+eval	CatNPre()
+	size_t max_size = ca[0]->MaxSize(aux->elems[0].ToDirectZVal(frame));
+	max_size += ca[1]->MaxSize(aux->elems[1].ToDirectZVal(frame));
+	CatNMid()
+	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p);
+	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p);
+	CatNPost($$)
+
+internal-op Cat3
+class V
+eval	CatNPre()
+	size_t max_size = ca[0]->MaxSize(aux->elems[0].ToDirectZVal(frame));
+	max_size += ca[1]->MaxSize(aux->elems[1].ToDirectZVal(frame));
+	max_size += ca[2]->MaxSize(aux->elems[2].ToDirectZVal(frame));
+	CatNMid()
+	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p);
+	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p);
+	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p);
+	CatNPost($$)
+
+internal-op Cat4
+class V
+eval	CatNPre()
+	size_t max_size = ca[0]->MaxSize(aux->elems[0].ToDirectZVal(frame));
+	max_size += ca[1]->MaxSize(aux->elems[1].ToDirectZVal(frame));
+	max_size += ca[2]->MaxSize(aux->elems[2].ToDirectZVal(frame));
+	max_size += ca[3]->MaxSize(aux->elems[3].ToDirectZVal(frame));
+	CatNMid()
+	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p);
+	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p);
+	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p);
+	ca[3]->RenderInto(aux->elems[3].ToDirectZVal(frame), res_p);
+	CatNPost($$)
+
+internal-op Cat5
+class V
+eval	CatNPre()
+	size_t max_size = ca[0]->MaxSize(aux->elems[0].ToDirectZVal(frame));
+	max_size += ca[1]->MaxSize(aux->elems[1].ToDirectZVal(frame));
+	max_size += ca[2]->MaxSize(aux->elems[2].ToDirectZVal(frame));
+	max_size += ca[3]->MaxSize(aux->elems[3].ToDirectZVal(frame));
+	max_size += ca[4]->MaxSize(aux->elems[4].ToDirectZVal(frame));
+	CatNMid()
+	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p);
+	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p);
+	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p);
+	ca[3]->RenderInto(aux->elems[3].ToDirectZVal(frame), res_p);
+	ca[4]->RenderInto(aux->elems[4].ToDirectZVal(frame), res_p);
+	CatNPost($$)
+
+internal-op Cat6
+class V
+eval	CatNPre()
+	size_t max_size = ca[0]->MaxSize(aux->elems[0].ToDirectZVal(frame));
+	max_size += ca[1]->MaxSize(aux->elems[1].ToDirectZVal(frame));
+	max_size += ca[2]->MaxSize(aux->elems[2].ToDirectZVal(frame));
+	max_size += ca[3]->MaxSize(aux->elems[3].ToDirectZVal(frame));
+	max_size += ca[4]->MaxSize(aux->elems[4].ToDirectZVal(frame));
+	max_size += ca[5]->MaxSize(aux->elems[5].ToDirectZVal(frame));
+	CatNMid()
+	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p);
+	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p);
+	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p);
+	ca[3]->RenderInto(aux->elems[3].ToDirectZVal(frame), res_p);
+	ca[4]->RenderInto(aux->elems[4].ToDirectZVal(frame), res_p);
+	ca[5]->RenderInto(aux->elems[5].ToDirectZVal(frame), res_p);
+	CatNPost($$)
+
+internal-op Cat7
+class V
+eval	CatNPre()
+	size_t max_size = ca[0]->MaxSize(aux->elems[0].ToDirectZVal(frame));
+	max_size += ca[1]->MaxSize(aux->elems[1].ToDirectZVal(frame));
+	max_size += ca[2]->MaxSize(aux->elems[2].ToDirectZVal(frame));
+	max_size += ca[3]->MaxSize(aux->elems[3].ToDirectZVal(frame));
+	max_size += ca[4]->MaxSize(aux->elems[4].ToDirectZVal(frame));
+	max_size += ca[5]->MaxSize(aux->elems[5].ToDirectZVal(frame));
+	max_size += ca[6]->MaxSize(aux->elems[6].ToDirectZVal(frame));
+	CatNMid()
+	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p);
+	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p);
+	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p);
+	ca[3]->RenderInto(aux->elems[3].ToDirectZVal(frame), res_p);
+	ca[4]->RenderInto(aux->elems[4].ToDirectZVal(frame), res_p);
+	ca[5]->RenderInto(aux->elems[5].ToDirectZVal(frame), res_p);
+	ca[6]->RenderInto(aux->elems[6].ToDirectZVal(frame), res_p);
+	CatNPost($$)
+
+internal-op Cat8
+class V
+eval	CatNPre()
+	size_t max_size = ca[0]->MaxSize(aux->elems[0].ToDirectZVal(frame));
+	max_size += ca[1]->MaxSize(aux->elems[1].ToDirectZVal(frame));
+	max_size += ca[2]->MaxSize(aux->elems[2].ToDirectZVal(frame));
+	max_size += ca[3]->MaxSize(aux->elems[3].ToDirectZVal(frame));
+	max_size += ca[4]->MaxSize(aux->elems[4].ToDirectZVal(frame));
+	max_size += ca[5]->MaxSize(aux->elems[5].ToDirectZVal(frame));
+	max_size += ca[6]->MaxSize(aux->elems[6].ToDirectZVal(frame));
+	max_size += ca[7]->MaxSize(aux->elems[7].ToDirectZVal(frame));
+	CatNMid()
+	ca[0]->RenderInto(aux->elems[0].ToDirectZVal(frame), res_p);
+	ca[1]->RenderInto(aux->elems[1].ToDirectZVal(frame), res_p);
+	ca[2]->RenderInto(aux->elems[2].ToDirectZVal(frame), res_p);
+	ca[3]->RenderInto(aux->elems[3].ToDirectZVal(frame), res_p);
+	ca[4]->RenderInto(aux->elems[4].ToDirectZVal(frame), res_p);
+	ca[5]->RenderInto(aux->elems[5].ToDirectZVal(frame), res_p);
+	ca[6]->RenderInto(aux->elems[6].ToDirectZVal(frame), res_p);
+	ca[7]->RenderInto(aux->elems[7].ToDirectZVal(frame), res_p);
+	CatNPost($$)
+
+internal-op Analyzer-Name
+classes VV VC
+op-types S X
+eval	auto atype = $1.ToVal(Z_TYPE);
+	auto val = atype->AsEnumVal();
+	Unref($$);
+	plugin::Component* component = zeek::analyzer_mgr->Lookup(val);
+	if ( ! component )
+		component = zeek::packet_mgr->Lookup(val);
+	if ( ! component )
+		component = zeek::file_mgr->Lookup(val);
+	if ( component )
+		$$ = new StringVal(component->CanonicalName());
+	else
+		$$ = new StringVal("<error>");
+
+macro FilesAddOrRemoveAnalyzer(file_id_val, tag, args_val, METHOD)
+	auto file_id = file_id_val;
+	using zeek::BifType::Record::Files::AnalyzerArgs;
+	auto rv = args_val->CoerceTo(AnalyzerArgs);
+	bool result = zeek::file_mgr->METHOD(
+	     file_id->CheckString(),
+	     zeek::file_mgr->GetComponentTag(tag.ToVal(Z_TYPE).get()),
+	     std::move(rv));
+
+macro FilesAddAnalyzer(file_id_val, tag, args_val)
+	FilesAddOrRemoveAnalyzer(file_id_val, tag, args_val, AddAnalyzer)
+
+internal-op Files-Add-Analyzer
+op1-read
+classes VVV VCV
+op-types S X R
+eval	FilesAddAnalyzer($1, $2, $3)
+
+internal-op Files-Add-Analyzer
+class VVVV
+side-effects OP_FILES_ADD_ANALYZER_VVV OP_VVV
+op-types I S X R
+eval	FilesAddAnalyzer($1, $2, $3)
+	$$ = result;
+
+internal-op Files-Add-Analyzer
+class VVCV
+op-types I S X R
+side-effects OP_FILES_ADD_ANALYZER_VCV OP_VVC
+eval	FilesAddAnalyzer($1, $2, $3)
+	$$ = result;
+
+macro FilesRemoveAnalyzer(file_id_val, tag, args_slot)
+	FilesAddOrRemoveAnalyzer(file_id_val, tag, args_slot, RemoveAnalyzer)
+
+internal-op Files-Remove-Analyzer
+op1-read
+classes VVV VCV
+op-types S X R
+eval	FilesRemoveAnalyzer($1, $2, $3)
+
+internal-op Files-Remove-Analyzer
+class VVVV
+op-types I S X R
+side-effects OP_FILES_REMOVE_ANALYZER_VVV OP_VVV
+eval	FilesRemoveAnalyzer($1, $2, $3)
+	$$ = result;
+
+internal-op Files-Remove-Analyzer
+class VVCV
+op-types I S X R
+side-effects OP_FILES_REMOVE_ANALYZER_VCV OP_VVC
+eval	FilesRemoveAnalyzer($1, $2, $3)
+	$$ = result;
+
+internal-op Analyzer-Enabled
+classes VV VC
+op-types I X
+eval	auto atype = $1.ToVal(Z_TYPE);
+	auto c = zeek::file_mgr->Lookup(atype->AsEnumVal());
+	$$ = c && c->Enabled();
+
+internal-op File-Analyzer-Name
+classes VV VC
+eval	auto atype = $1.ToVal(Z_TYPE);
+	Unref($$.AsString());
+	$$ = ZVal(file_mgr->GetComponentNameVal({NewRef{}, atype->AsEnumVal()}));
+
+internal-op Is-Protocol-Analyzer
+classes VV VC
+op-types I X
+eval	auto atype = $1.ToVal(Z_TYPE);
+	$$ = analyzer_mgr->Lookup(atype->AsEnumVal()) != nullptr;
+
+internal-op Clear-Table
+op1-read
+class V
+op-types T
+eval	$1->RemoveAll();
+
+internal-op Files-Enable-Reassembly
+op1-read
+class V
+op-types S
+eval	auto f = $1->CheckString();
+	file_mgr->EnableReassembly(f);
+
+internal-op Files-Set-Reassembly-Buffer
+op1-read
+classes VV Vi
+op-types S U
+eval	auto f = $1->CheckString();
+	file_mgr->SetReassemblyBuffer(f, $2);
+
+internal-op Files-Set-Reassembly-Buffer
+class VVV
+op-types I S U
+side-effects OP_FILES_SET_REASSEMBLY_BUFFER_VV OP_VV
+eval	auto f = $1->CheckString();
+	$$ = file_mgr->SetReassemblyBuffer(f, $2);
+
+internal-op Files-Set-Reassembly-Buffer
+class VVi
+op-types I S U
+side-effects OP_FILES_SET_REASSEMBLY_BUFFER_Vi OP_VV_I2
+eval	auto f = $1->CheckString();
+	$$ = file_mgr->SetReassemblyBuffer(f, $2);
+
+internal-op Get-Bytes-Thresh
+classes VVV VVC
+op-types U R I
+eval	auto a = analyzer::conn_size::GetConnsizeAnalyzer($1);
+	auto res = 0U;
+	if ( a )
+		res = static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->GetByteAndPacketThreshold(true, $2);
+	$$ = res;
+
+macro SetBytesThresh(cid, threshold, is_orig)
+	bool res = false;
+	auto a = analyzer::conn_size::GetConnsizeAnalyzer(cid);
+	if ( a )
+		{
+		static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->SetByteAndPacketThreshold(threshold, true, is_orig);
+		res = true;
+		}
+
+internal-op Set-Bytes-Thresh
+op1-read
+classes VVV VVC VCV VCi
+op-types R U I
+eval	SetBytesThresh($1, $2, $3)
+
+internal-op Set-Bytes-Thresh
+class VVVV
+op-types I R U I
+side-effects OP_SET_BYTES_THRESH_VVV OP_VVV
+eval	SetBytesThresh($1, $2, $3)
+	$$ = res;
+
+internal-op Set-Bytes-Thresh
+class VVVC
+op-types I R U I
+side-effects OP_SET_BYTES_THRESH_VVC OP_VVC
+eval	SetBytesThresh($1, $2, $3)
+	$$ = res;
+
+internal-op Set-Bytes-Thresh
+class VVCV
+op-types I R U I
+side-effects OP_SET_BYTES_THRESH_VCV OP_VVC
+eval	SetBytesThresh($1, $2, $3)
+	$$ = res;
+
+internal-op Set-Bytes-Thresh
+class VVCi
+op-types I R U I
+side-effects OP_SET_BYTES_THRESH_VCi OP_VVC_I2
+eval	SetBytesThresh($1, $2, $3)
+	$$ = res;

@@ -612,8 +612,7 @@ void analyze_scripts(bool no_unused_warnings) {
     // Note, in the following it's not clear whether the final argument
     // for absolute/relative record fields matters any more ...
     if ( generating_CPP )
-        pfs = std::make_shared<ProfileFuncs>(funcs, is_CPP_compilable, true, fal
-se);
+        pfs = std::make_shared<ProfileFuncs>(funcs, is_CPP_compilable, true, false);
     else
         pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true, true);
 

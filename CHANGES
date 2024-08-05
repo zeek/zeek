@@ -1,3 +1,33 @@
+7.1.0-dev.87 | 2024-08-05 14:39:56 -0700
+
+  * Remove some unnecessary #includes (Tim Wojtulewicz, Corelight)
+
+  * Avoid capturing 'this' for callback in telemetry::Manager (Tim Wojtulewicz, Corelight)
+
+  * Make telemetry metrics out of MsgThread statistics (Tim Wojtulewicz, Corelight)
+
+  * Split cpu time metric into user/system components like prof.log (Tim Wojtulewicz, Corelight)
+
+    The total can be calculated from the two parts via Prometheus/Grafana
+    if desired, so it's more informative to pass them as separate parts.
+
+  * Move broker statistics to be telemetry metrics (Tim Wojtulewicz, Corelight)
+
+  * Add timer counts as telemetry metrics (Tim Wojtulewicz, Corelight)
+
+  * Move thread manager stats to telemetry metric (Tim Wojtulewicz, Corelight)
+
+  * Add extra metrics to session_mgr (Tim Wojtulewicz, Corelight)
+
+    - Sessions killed by activity
+    - Current number of sessions across all types
+
+  * Move dns_mgr stats to telemetry instruments (Tim Wojtulewicz, Corelight)
+
+  * Move trigger stats to telemetry instruments (Tim Wojtulewicz, Corelight)
+
+  * Move pulling of global state inside 'expensive' check for stats (Tim Wojtulewicz, Corelight)
+
 7.1.0-dev.74 | 2024-08-02 15:49:40 -0700
 
   * Process metric callbacks from the main-loop thread (Tim Wojtulewicz, Corelight)

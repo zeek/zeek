@@ -263,7 +263,8 @@ private:
 
     GaugePtr rss_gauge;
     GaugePtr vms_gauge;
-    GaugePtr cpu_gauge;
+    CounterPtr cpu_user_counter;
+    CounterPtr cpu_system_counter;
     GaugePtr fds_gauge;
 
     std::shared_ptr<prometheus::Registry> prometheus_registry;

@@ -176,8 +176,6 @@ export {
 		## The port that this node will listen on for peer connections.
 		## A value of ``0/unknown`` means the node is not pre-configured to listen.
 		p:            port        &default=0/unknown;
-		## Identifier for the interface a worker is sniffing.
-		interface:    string      &optional &deprecated="Remove in v7.1: interface is not required and not set consistently on workers. Replace usages with packet_source() or keep a separate worker-to-interface mapping in a global table.";
 		## Name of the manager node this node uses.  For workers and proxies.
 		manager:      string      &optional;
 		## A unique identifier assigned to the node by the broker framework.

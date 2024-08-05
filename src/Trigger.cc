@@ -89,12 +89,6 @@ protected:
     double time;
 };
 
-Trigger::Trigger(std::shared_ptr<WhenInfo> wi, double timeout, const IDSet& _globals, std::vector<ValPtr> _local_aggrs,
-                 Frame* f, const Location* loc)
-    : Trigger(std::move(wi), _globals, std::move(_local_aggrs), timeout, f, loc) {
-    Unref(this);
-}
-
 Trigger::Trigger(std::shared_ptr<WhenInfo> wi, const IDSet& _globals, std::vector<ValPtr> _local_aggrs, double timeout,
                  Frame* f, const Location* loc) {
     timeout_value = timeout;

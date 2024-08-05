@@ -127,9 +127,19 @@ public:
 
     // Meta-data associated with the execution.
 
+protected:
+    // These are protected to ensure that setting 't' is done via SetType(),
+    // so we can keep is_managed consistent with it. We don't need that
+    // for 't2' but keep them together for consistency.
+
     // Type, usually for interpreting the constant.
-    TypePtr t = nullptr;
-    TypePtr t2 = nullptr; // just a few ops need two types
+    TypePtr t;
+
+    TypePtr t2; // just a few ops need two types
+
+public:
+    const TypePtr& GetType() const { return t; }
+    const TypePtr& GetType2() const { return t2; }
 
     // Auxiliary information.  We could in principle use this to
     // consolidate a bunch of the above, though at the cost of
@@ -143,7 +153,7 @@ public:
 
     // Whether v1 represents a frame slot type for which we
     // explicitly manage the memory.
-    bool is_managed = false;
+    std::optional<bool> is_managed;
 };
 
 // A intermediary ZAM instruction, one that includes information/methods
@@ -217,7 +227,7 @@ public:
     // True if this instruction always branches elsewhere.  Different
     // from DoesNotContinue() in that returns & hook breaks do not
     // continue, but they are not branches.
-    bool IsUnconditionalBranch() const { return op == OP_GOTO_V; }
+    bool IsUnconditionalBranch() const { return op == OP_GOTO_b; }
 
     // True if this instruction is of the form "v1 = v2".
     bool IsDirectAssignment() const;
@@ -257,18 +267,18 @@ public:
     bool IsLoad() const { return op_type == OP_VV_FRAME || IsNonLocalLoad(); }
 
     // True if the instruction corresponds to storing a global.
-    bool IsGlobalStore() const { return op == OP_STORE_GLOBAL_V; }
+    bool IsGlobalStore() const { return op == OP_STORE_GLOBAL_g; }
 
-    void CheckIfManaged(const TypePtr& t) {
-        if ( ZVal::IsManagedType(t) )
-            is_managed = true;
-    }
+    void CheckIfManaged(const TypePtr& t) { is_managed = ZVal::IsManagedType(t); }
 
     void SetType(TypePtr _t) {
         t = std::move(_t);
+        ASSERT(t);
         if ( t )
             CheckIfManaged(t);
     }
+
+    void SetType2(TypePtr _t) { t2 = std::move(_t); }
 
     // Whether the instruction should be included in final code
     // generation.
@@ -338,6 +348,21 @@ public:
         if ( is_managed )
             Ref(zv.ManagedVal());
         return zv;
+    }
+
+    // The same, but for read-only access for which memory-management is
+    // not required.
+    const ZVal& ToDirectZVal(const ZVal* frame) const {
+        if ( c )
+            return zc;
+        if ( i >= 0 )
+            return frame[i];
+
+        // Currently the way we use AuxElem's we shouldn't get here, but
+        // just in case we do, return something sound rather than mis-indexing
+        // the frame.
+        static ZVal null_zval;
+        return null_zval;
     }
 
     int Slot() const { return i; }
@@ -453,11 +478,8 @@ public:
     AuxElem* elems = nullptr;
     bool elems_has_slots = true;
 
-    // Ingredients associated with lambdas ...
-    ScriptFuncPtr primary_func;
-
-    // ... and its name.
-    std::string lambda_name;
+    // Info for constructing lambdas.
+    LambdaExprPtr lambda;
 
     // For "when" statements.
     std::shared_ptr<WhenInfo> wi;
@@ -466,11 +488,11 @@ public:
     std::unique_ptr<CatArg>* cat_args = nullptr;
 
     // Used for accessing function names.
-    IDPtr id_val = nullptr;
+    IDPtr id_val;
 
     // Interpreter call expression associated with this instruction,
     // for error reporting and stack backtraces.
-    CallExprPtr call_expr = nullptr;
+    CallExprPtr call_expr;
 
     // Used for direct calls.
     Func* func = nullptr;
@@ -555,8 +577,8 @@ extern std::unordered_map<ZOp, std::unordered_map<TypeTag, ZOp>> assignment_flav
 // value is superfluous.
 extern std::unordered_map<ZOp, ZOp> assignmentless_op;
 
-// Maps flavorful assignments to what op-type their non-assignment
+// Maps flavorful assignments to what operand class their non-assignment
 // counterpart uses.
-extern std::unordered_map<ZOp, ZAMOpType> assignmentless_op_type;
+extern std::unordered_map<ZOp, ZAMOpType> assignmentless_op_class;
 
 } // namespace zeek::detail

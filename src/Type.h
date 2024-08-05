@@ -252,7 +252,7 @@ public:
     void SetName(const std::string& arg_name) { name = arg_name; }
     const std::string& GetName() const { return name; }
 
-    virtual detail::TraversalCode Traverse(detail::TraversalCallback* cb) const;
+    detail::TraversalCode Traverse(detail::TraversalCallback* cb) const;
 
     struct TypePtrComparer {
         bool operator()(const TypePtr& a, const TypePtr& b) const { return a.get() < b.get(); }
@@ -298,6 +298,7 @@ public:
     }
 
 protected:
+    virtual detail::TraversalCode DoTraverse(detail::TraversalCallback* cb) const;
     virtual void DoDescribe(ODesc* d) const;
 
     Type() = default;
@@ -310,6 +311,9 @@ private:
     bool is_network_order;
     bool base_type;
     std::string name;
+
+    // Used to avoid infinite traversals for recursive types.
+    mutable bool in_traverse = false;
 
     static TypeAliasMap type_aliases;
 };
@@ -341,7 +345,7 @@ public:
     void Append(TypePtr t);
     void AppendEvenIfNotPure(TypePtr t);
 
-    detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
+    detail::TraversalCode DoTraverse(detail::TraversalCallback* cb) const override;
 
 protected:
     void DoDescribe(ODesc* d) const override;
@@ -368,7 +372,7 @@ public:
     // Returns true if this table has a single index of type pattern.
     bool IsPatternIndex() const { return is_pattern_index; }
 
-    detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
+    detail::TraversalCode DoTraverse(detail::TraversalCallback* cb) const override;
 
 protected:
     IndexType(TypeTag t, TypeListPtr arg_indices, TypePtr arg_yield_type)
@@ -564,7 +568,7 @@ public:
      */
     void SetExpressionlessReturnOkay(bool is_ok) { expressionless_return_okay = is_ok; }
 
-    detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
+    detail::TraversalCode DoTraverse(detail::TraversalCallback* cb) const override;
 
 protected:
     friend FuncTypePtr make_intrusive<FuncType>();
@@ -599,7 +603,7 @@ public:
         return cast_intrusive<T>(type);
     }
 
-    detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
+    detail::TraversalCode DoTraverse(detail::TraversalCallback* cb) const override;
 
 protected:
     TypePtr type;
@@ -715,7 +719,7 @@ public:
 
     std::string GetFieldDeprecationWarning(int field, bool has_check) const;
 
-    detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
+    detail::TraversalCode DoTraverse(detail::TraversalCallback* cb) const override;
 
     // Can initialization of record values of this type be deferred?
     //
@@ -779,7 +783,7 @@ public:
 
     const TypePtr& Yield() const override { return yield; }
 
-    detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
+    detail::TraversalCode DoTraverse(detail::TraversalCallback* cb) const override;
 
 protected:
     void DoDescribe(ODesc* d) const override;
@@ -889,7 +893,7 @@ public:
 
     void DescribeReST(ODesc* d, bool roles_only = false) const override;
 
-    detail::TraversalCode Traverse(detail::TraversalCallback* cb) const override;
+    detail::TraversalCode DoTraverse(detail::TraversalCallback* cb) const override;
 
 protected:
     void DoDescribe(ODesc* d) const override;

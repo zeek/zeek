@@ -203,6 +203,14 @@ void Reporter::CPPRuntimeError(const char* fmt, ...) {
     throw InterpreterException();
 }
 
+void Reporter::CPPRuntimeWarning(const char* fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    FILE* out = EmitToStderr(warnings_to_stderr) ? stderr : nullptr;
+    DoLog("runtime warning in compiled code", reporter_error, out, nullptr, nullptr, true, true, "", fmt, ap);
+    va_end(ap);
+}
+
 void Reporter::InternalError(const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);

@@ -27,8 +27,10 @@ SimpleZBI::SimpleZBI(std::string name, ZOp _const_op, ZOp _op, bool _ret_val_mat
 bool SimpleZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) const {
     ZInstI z;
     if ( nargs == 0 ) {
-        if ( n )
+        if ( n ) {
             z = ZInstI(op, zam->Frame1Slot(n, OP1_WRITE));
+            z.is_managed = ZVal::IsManagedType(n->GetType());
+        }
         else
             z = ZInstI(op);
     }
@@ -59,11 +61,8 @@ bool SimpleZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args
             z.c = ZVal(args[0]->AsConstExpr()->ValuePtr(), t);
         }
 
-        z.t = t;
+        z.SetType(t);
     }
-
-    if ( n )
-        z.is_managed = ZVal::IsManagedType(n->GetType());
 
     zam->AddInst(z);
 
@@ -104,7 +103,7 @@ bool CondZBI::BuildCond(ZAMCompiler* zam, const ExprPList& args, int& branch_v) 
         auto a0_slot = zam->FrameSlot(a0->AsNameExpr());
         z = ZInstI(cond_op, a0_slot, 0);
         z.op_type = OP_VV_I2;
-        z.t = a0->GetType();
+        z.SetType(a0->GetType());
         branch_v = 2;
     }
 
@@ -129,7 +128,7 @@ bool OptAssignZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& a
         ASSERT(nargs == 1);
         auto a0 = zam->FrameSlot(args[0]->AsNameExpr());
         z = ZInstI(op2, a0);
-        z.t = args[0]->GetType();
+        z.SetType(args[0]->GetType());
     }
 
     zam->AddInst(z);
@@ -145,7 +144,7 @@ bool CatZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) c
     if ( args.empty() ) {
         // Weird, but easy enough to support.
         z = ZInstI(OP_CAT1_VC, nslot);
-        z.t = n->GetType();
+        z.SetType(n->GetType());
         z.c = ZVal(val_mgr->EmptyString());
     }
 
@@ -168,18 +167,18 @@ bool CatZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) c
     else if ( a0->GetType()->Tag() != TYPE_STRING ) {
         if ( a0->Tag() == EXPR_NAME ) {
             z = zam->GenInst(OP_CAT1FULL_VV, n, a0->AsNameExpr());
-            z.t = a0->GetType();
+            z.SetType(a0->GetType());
         }
         else {
             z = ZInstI(OP_CAT1_VC, nslot);
-            z.t = n->GetType();
+            z.SetType(n->GetType());
             z.c = ZVal(ZAM_val_cat(a0->AsConstExpr()->ValuePtr()));
         }
     }
 
     else if ( a0->Tag() == EXPR_CONST ) {
         z = zam->GenInst(OP_CAT1_VC, n, a0->AsConstExpr());
-        z.t = n->GetType();
+        z.SetType(n->GetType());
     }
 
     else
@@ -388,12 +387,12 @@ bool MultiZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args)
         z.is_managed = ZVal::IsManagedType(n->GetType());
 
     if ( ! consts.empty() ) {
-        z.t = consts[0]->GetType();
-        z.c = ZVal(consts[0], z.t);
+        z.SetType(consts[0]->GetType());
+        z.c = ZVal(consts[0], z.GetType());
     }
 
-    if ( type_arg >= 0 && ! z.t )
-        z.t = args[type_arg]->GetType();
+    if ( type_arg >= 0 && ! z.GetType() )
+        z.SetType(args[type_arg]->GetType());
 
     zam->AddInst(z);
 
@@ -434,14 +433,14 @@ SimpleZBI sta_ZBI{"subnet_to_addr", OP_SUBNET_TO_ADDR_VV, 1};
 SimpleZBI ttd_ZBI{"time_to_double", OP_TIME_TO_DOUBLE_VV, 1};
 SimpleZBI tl_ZBI{"to_lower", OP_TO_LOWER_VV, 1};
 
-CondZBI ce_ZBI{"connection_exists", OP_CONN_EXISTS_VV, OP_CONN_EXISTS_COND_VV, 1};
-CondZBI iip_ZBI{"is_icmp_port", OP_IS_ICMP_PORT_VV, OP_IS_ICMP_PORT_COND_VV, 1};
-CondZBI itp_ZBI{"is_tcp_port", OP_IS_TCP_PORT_VV, OP_IS_TCP_PORT_COND_VV, 1};
-CondZBI iup_ZBI{"is_udp_port", OP_IS_UDP_PORT_VV, OP_IS_UDP_PORT_COND_VV, 1};
-CondZBI iv4_ZBI{"is_v4_addr", OP_IS_V4_ADDR_VV, OP_IS_V4_ADDR_COND_VV, 1};
-CondZBI iv6_ZBI{"is_v6_addr", OP_IS_V6_ADDR_VV, OP_IS_V6_ADDR_COND_VV, 1};
-CondZBI rlt_ZBI{"reading_live_traffic", OP_READING_LIVE_TRAFFIC_V, OP_READING_LIVE_TRAFFIC_COND_V, 0};
-CondZBI rt_ZBI{"reading_traces", OP_READING_TRACES_V, OP_READING_TRACES_COND_V, 0};
+CondZBI ce_ZBI{"connection_exists", OP_CONN_EXISTS_VV, OP_CONN_EXISTS_COND_Vb, 1};
+CondZBI iip_ZBI{"is_icmp_port", OP_IS_ICMP_PORT_VV, OP_IS_ICMP_PORT_COND_Vb, 1};
+CondZBI itp_ZBI{"is_tcp_port", OP_IS_TCP_PORT_VV, OP_IS_TCP_PORT_COND_Vb, 1};
+CondZBI iup_ZBI{"is_udp_port", OP_IS_UDP_PORT_VV, OP_IS_UDP_PORT_COND_Vb, 1};
+CondZBI iv4_ZBI{"is_v4_addr", OP_IS_V4_ADDR_VV, OP_IS_V4_ADDR_COND_Vb, 1};
+CondZBI iv6_ZBI{"is_v6_addr", OP_IS_V6_ADDR_VV, OP_IS_V6_ADDR_COND_Vb, 1};
+CondZBI rlt_ZBI{"reading_live_traffic", OP_READING_LIVE_TRAFFIC_V, OP_READING_LIVE_TRAFFIC_COND_b, 0};
+CondZBI rt_ZBI{"reading_traces", OP_READING_TRACES_V, OP_READING_TRACES_COND_b, 0};
 
 // These have a different form to avoid invoking copy constructors.
 auto cat_ZBI = CatZBI();
@@ -468,48 +467,48 @@ OptAssignZBI rtc_ZBI{ "PacketAnalyzer::TEREDO::remove_teredo_connection",
 
 MultiZBI faa_ZBI{ "Files::__add_analyzer",
     {{{VVV}, {OP_FILES_ADD_ANALYZER_VVV, OP_VVV}},
-     {{VCV}, {OP_FILES_ADD_ANALYZER_ViV, OP_VVC}}},
+     {{VCV}, {OP_FILES_ADD_ANALYZER_VCV, OP_VVC}}},
     {{{VVV}, {OP_FILES_ADD_ANALYZER_VVVV, OP_VVVV}},
-     {{VCV}, {OP_FILES_ADD_ANALYZER_VViV, OP_VVVC}}},
+     {{VCV}, {OP_FILES_ADD_ANALYZER_VVCV, OP_VVVC}}},
     1
 };
 
 MultiZBI fra_ZBI{ "Files::__remove_analyzer",
     {{{VVV}, {OP_FILES_REMOVE_ANALYZER_VVV, OP_VVV}},
-     {{VCV}, {OP_FILES_REMOVE_ANALYZER_ViV, OP_VVC}}},
+     {{VCV}, {OP_FILES_REMOVE_ANALYZER_VCV, OP_VVC}}},
     {{{VVV}, {OP_FILES_REMOVE_ANALYZER_VVVV, OP_VVVV}},
-     {{VCV}, {OP_FILES_REMOVE_ANALYZER_VViV, OP_VVVC}}},
+     {{VCV}, {OP_FILES_REMOVE_ANALYZER_VVCV, OP_VVVC}}},
     1
 };
 
 MultiZBI fsrb_ZBI{ "Files::__set_reassembly_buffer",
     {{{VV}, {OP_FILES_SET_REASSEMBLY_BUFFER_VV, OP_VV}},
-     {{VC}, {OP_FILES_SET_REASSEMBLY_BUFFER_VC, OP_VV_I2}}},
+     {{VC}, {OP_FILES_SET_REASSEMBLY_BUFFER_Vi, OP_VV_I2}}},
     {{{VV}, {OP_FILES_SET_REASSEMBLY_BUFFER_VVV, OP_VVV}},
-     {{VC}, {OP_FILES_SET_REASSEMBLY_BUFFER_VVC, OP_VVV_I3}}}
+     {{VC}, {OP_FILES_SET_REASSEMBLY_BUFFER_VVi, OP_VVV_I3}}}
 };
 
 MultiZBI lw_ZBI{ "Log::__write",
     {{{VV}, {OP_LOG_WRITE_VV, OP_VV}},
-     {{CV}, {OP_LOG_WRITEC_V, OP_V}}},
+     {{CV}, {OP_LOG_WRITE_CV, OP_V}}},
     {{{VV}, {OP_LOG_WRITE_VVV, OP_VVV}},
-     {{CV}, {OP_LOG_WRITEC_VV, OP_VV}}}
+     {{CV}, {OP_LOG_WRITEC_VCV, OP_VV}}}
 };
 
 MultiZBI gccbt_ZBI{ "get_current_conn_bytes_threshold", true,
     {{{VV}, {OP_GET_BYTES_THRESH_VVV, OP_VVV}},
-     {{VC}, {OP_GET_BYTES_THRESH_VVi, OP_VVC}}}
+     {{VC}, {OP_GET_BYTES_THRESH_VVC, OP_VVC}}}
 };
 
 MultiZBI sccbt_ZBI{ "set_current_conn_bytes_threshold",
     {{{VVV}, {OP_SET_BYTES_THRESH_VVV, OP_VVV}},
-     {{VVC}, {OP_SET_BYTES_THRESH_VVi, OP_VVC}},
-     {{VCV}, {OP_SET_BYTES_THRESH_ViV, OP_VVC}},
-     {{VCC}, {OP_SET_BYTES_THRESH_Vii, OP_VVC_I2}}},
+     {{VVC}, {OP_SET_BYTES_THRESH_VVC, OP_VVC}},
+     {{VCV}, {OP_SET_BYTES_THRESH_VCV, OP_VVC}},
+     {{VCC}, {OP_SET_BYTES_THRESH_VCi, OP_VVC_I2}}},
     {{{VVV}, {OP_SET_BYTES_THRESH_VVVV, OP_VVVV}},
-     {{VVC}, {OP_SET_BYTES_THRESH_VVVi, OP_VVVC}},
-     {{VCV}, {OP_SET_BYTES_THRESH_VViV, OP_VVVC}},
-     {{VCC}, {OP_SET_BYTES_THRESH_VVii, OP_VVVC_I3}}}
+     {{VVC}, {OP_SET_BYTES_THRESH_VVVC, OP_VVVC}},
+     {{VCV}, {OP_SET_BYTES_THRESH_VVCV, OP_VVVC}},
+     {{VCC}, {OP_SET_BYTES_THRESH_VVCi, OP_VVVC_I3}}}
 };
 
 MultiZBI sw_ZBI{ "starts_with", true,
@@ -532,12 +531,12 @@ MultiZBI strstr_ZBI{ "strstr", true,
 
 MultiZBI sb_ZBI{ "sub_bytes", true,
     {{{VVV}, {OP_SUB_BYTES_VVVV, OP_VVVV}},
-     {{VVC}, {OP_SUB_BYTES_VVVi, OP_VVVC}},
-     {{VCV}, {OP_SUB_BYTES_VViV, OP_VVVC}},
-     {{VCC}, {OP_SUB_BYTES_VVii, OP_VVVC_I3}},
-     {{CVV}, {OP_SUB_BYTES_VVVC, OP_VVVC}},
-     {{CVC}, {OP_SUB_BYTES_VViC, OP_VVVC_I3}},
-     {{CCV}, {OP_SUB_BYTES_ViVC, OP_VVVC_I3}}}
+     {{VVC}, {OP_SUB_BYTES_VVVC, OP_VVVC}},
+     {{VCV}, {OP_SUB_BYTES_VVCV, OP_VVVC}},
+     {{VCC}, {OP_SUB_BYTES_VVCi, OP_VVVC_I3}},
+     {{CVV}, {OP_SUB_BYTES_VCVV, OP_VVVC}},
+     {{CVC}, {OP_SUB_BYTES_VCVi, OP_VVVC_I3}},
+     {{CCV}, {OP_SUB_BYTES2_VCVi, OP_VVVC_I3}}}
 };
 
 // clang-format on

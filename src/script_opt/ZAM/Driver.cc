@@ -203,6 +203,7 @@ StmtPtr ZAMCompiler::CompileBody() {
 
     auto zb = make_intrusive<ZBody>(fname, this);
     zb->SetInsts(insts2);
+    zb->SetLocationInfo(body->GetLocationInfo());
 
     // Could erase insts1 here to recover memory, but it's handy
     // for debugging.
@@ -218,7 +219,9 @@ void ZAMCompiler::ResolveHookBreaks() {
             // Rewrite the breaks.
             for ( auto& b : breaks[0] ) {
                 auto& i = insts1[b.stmt_num];
+                auto aux = i->aux;
                 *i = ZInstI(OP_HOOK_BREAK_X);
+                i->aux = aux;
             }
         }
 

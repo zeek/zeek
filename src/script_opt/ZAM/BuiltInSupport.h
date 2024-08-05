@@ -13,9 +13,9 @@ public:
 
     virtual ~CatArg() {}
 
-    size_t MaxSize(ZVal* zframe, int slot) { return max_size ? *max_size : ComputeMaxSize(zframe, slot); }
+    size_t MaxSize(const ZVal& zv) { return max_size ? *max_size : ComputeMaxSize(zv); }
 
-    virtual void RenderInto(ZVal* zframe, int slot, char*& res) {
+    virtual void RenderInto(const ZVal& zv, char*& res) {
         auto n = *max_size;
         memcpy(res, s->data(), n);
         res += n;
@@ -25,7 +25,7 @@ protected:
     CatArg() {}
     CatArg(size_t _max_size) : max_size(_max_size) {}
 
-    virtual size_t ComputeMaxSize(ZVal* zframe, int slot) { return 0; }
+    virtual size_t ComputeMaxSize(const ZVal& zv) { return 0; }
 
     // Present if max size is known a priori.
     std::optional<size_t> max_size;
@@ -38,7 +38,7 @@ class FixedCatArg : public CatArg {
 public:
     FixedCatArg(TypePtr t);
 
-    void RenderInto(ZVal* zframe, int slot, char*& res) override;
+    void RenderInto(const ZVal& zv, char*& res) override;
 
 protected:
     TypePtr t;
@@ -49,22 +49,22 @@ class StringCatArg : public CatArg {
 public:
     StringCatArg() : CatArg() {}
 
-    void RenderInto(ZVal* zframe, int slot, char*& res) override {
-        auto s = zframe[slot].AsString();
+    void RenderInto(const ZVal& zv, char*& res) override {
+        auto s = zv.AsString();
         auto n = s->Len();
         memcpy(res, s->Bytes(), n);
         res += n;
     }
 
 protected:
-    size_t ComputeMaxSize(ZVal* zframe, int slot) override { return zframe[slot].AsString()->Len(); }
+    size_t ComputeMaxSize(const ZVal& zv) override { return zv.AsString()->Len(); }
 };
 
 class PatternCatArg : public CatArg {
 public:
     PatternCatArg() : CatArg() {}
 
-    void RenderInto(ZVal* zframe, int slot, char*& res) override {
+    void RenderInto(const ZVal& zv, char*& res) override {
         *(res++) = '/';
         strcpy(res, text);
         res += n;
@@ -72,7 +72,7 @@ public:
     }
 
 protected:
-    size_t ComputeMaxSize(ZVal* zframe, int slot) override;
+    size_t ComputeMaxSize(const ZVal& zv) override;
 
     const char* text = nullptr;
     size_t n = 0;
@@ -82,7 +82,7 @@ class DescCatArg : public CatArg {
 public:
     DescCatArg(TypePtr _t) : CatArg(), t(std::move(_t)) { d.SetStyle(RAW_STYLE); }
 
-    void RenderInto(ZVal* zframe, int slot, char*& res) override {
+    void RenderInto(const ZVal& zv, char*& res) override {
         auto n = d.Len();
         memcpy(res, d.Bytes(), n);
         res += n;
@@ -90,8 +90,8 @@ public:
     }
 
 protected:
-    size_t ComputeMaxSize(ZVal* zframe, int slot) override {
-        zframe[slot].ToVal(t)->Describe(&d);
+    size_t ComputeMaxSize(const ZVal& zv) override {
+        zv.ToVal(t)->Describe(&d);
         return d.Len();
     }
 

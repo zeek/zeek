@@ -61,16 +61,11 @@ void Manager::InitPostScript() {
                     thread_mgr->current_bucketed_messages.pending_out_total += thread_stats.pending_out;
 
                     for ( auto upper_limit : pending_bucket_brackets ) {
-                        if ( thread_stats.pending_in < upper_limit ) {
+                        if ( thread_stats.pending_in <= upper_limit )
                             thread_mgr->current_bucketed_messages.pending_in[upper_limit]++;
-                            break;
-                        }
-                    }
-                    for ( auto upper_limit : pending_bucket_brackets ) {
-                        if ( thread_stats.pending_out < upper_limit ) {
+
+                        if ( thread_stats.pending_out <= upper_limit )
                             thread_mgr->current_bucketed_messages.pending_out[upper_limit]++;
-                            break;
-                        }
                     }
                 }
 
@@ -127,10 +122,10 @@ void Manager::InitPostScript() {
                                      });
 
     pending_message_in_buckets_fam =
-        telemetry_mgr->GaugeFamily("zeek", "msgthread_pending_messages_in_buckets", {"lt"},
+        telemetry_mgr->GaugeFamily("zeek", "msgthread_pending_messages_in_buckets", {"le"},
                                    "Number of threads with pending inbound messages split into buckets");
     pending_message_out_buckets_fam =
-        telemetry_mgr->GaugeFamily("zeek", "msgthread_pending_messages_out_buckets", {"lt"},
+        telemetry_mgr->GaugeFamily("zeek", "msgthread_pending_messages_out_buckets", {"le"},
                                    "Number of threads with pending outbound messages split into buckets");
 
     for ( auto upper_limit : pending_bucket_brackets ) {
@@ -144,7 +139,7 @@ void Manager::InitPostScript() {
         current_bucketed_messages.pending_out[upper_limit] = 0;
 
         pending_message_in_buckets[upper_limit] =
-            pending_message_in_buckets_fam->GetOrAdd({{"lt", upper_limit_str}},
+            pending_message_in_buckets_fam->GetOrAdd({{"le", upper_limit_str}},
                                                      [upper_limit]() -> prometheus::ClientMetric {
                                                          auto* s = get_message_thread_stats();
                                                          prometheus::ClientMetric metric;
@@ -153,7 +148,7 @@ void Manager::InitPostScript() {
                                                          return metric;
                                                      });
         pending_message_out_buckets[upper_limit] =
-            pending_message_out_buckets_fam->GetOrAdd({{"lt", upper_limit_str}},
+            pending_message_out_buckets_fam->GetOrAdd({{"le", upper_limit_str}},
                                                       [upper_limit]() -> prometheus::ClientMetric {
                                                           auto* s = get_message_thread_stats();
                                                           prometheus::ClientMetric metric;

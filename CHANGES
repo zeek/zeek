@@ -1,3 +1,45 @@
+7.1.0-dev.99 | 2024-08-06 20:08:37 +0200
+
+  * Bump auxil/spicy to latest development snapshot (Arne Welzel, Corelight)
+
+  * spicy/runtime-support: Switch ParameterMismatch::_fmt to static (Arne Welzel, Corelight)
+
+    UBSAN's vptr sanitize isn't happy with the call to _fmt()
+    in its member initializer list.
+
+        $ zeek -r Traces/ssh/single-conn.trace .tmp/spicy.event-args-mismatch/test.hlto .tmp/spicy.event-args-mismatch/event-args-mismatch.zeek
+        <...>/src/include/zeek/spicy/runtime-support.h:80:29: runtime error: member call on address 0x511000369540 which does not point to an object of type 'zeek::spicy::rt::ParameterMismatch'
+        0x511000369540: note: object has invalid vptr
+         00 00 00 00  be be be be be be be be  be be be be be be be be  be be be be be be be be  be be be be
+                      ^~~~~~~~~~~~~~~~~~~~~~~
+                      invalid vptr
+            #0 0x7f9c9977b019 in zeek::spicy::rt::ParameterMismatch::ParameterMismatch(std::basic_string_view<char, std::char_traits<char>>, zeek::IntrusivePtr<zeek::Type> const&, std::basic_string_view<char, std::char_traits<char>>) <...>/src/include/zeek/spicy/runtime-support.h:80:29
+            #1 0x7f9c9977a6a2 in zeek::spicy::rt::to_val(hilti::rt::Bytes const&, zeek::IntrusivePtr<zeek::Type> const&) <...>/src/include/zeek/spicy/runtime-support.h:562:15
+
+  * coverage/lcov_html: Ignore testing/btest/.tmp (Arne Welzel, Corelight)
+
+    gcda/gcno files in the btest/.tmp directory are from .htlo files
+    referencing ephemeral cc files. No need to include these.
+
+  * cirrus: Do not disable Spicy for sanitizer builds (Arne Welzel, Corelight)
+
+  * ldap: Avoid unset m$opcode (Arne Welzel, Corelight)
+
+    Initial fuzzing caused a bind response to arrive before a bind request,
+    resulting in an unset field expression error:
+
+        expression error in base/protocols/ldap/main.zeek, line 270: field value missing (LDAP::m$opcode)
+
+    Prevent this by ensuring m$opcode is set and raising instead.
+
+  * GH-3860: fuzzers: Add LDAP fuzzing (Arne Welzel, Corelight)
+
+    LDAP supports both, UDP and TCP as separate analyzers. The corpus
+    is identical, however. Started to hit the TLS analyzer fairly
+    quickly, too.
+
+    Closes #3860
+
 7.1.0-dev.92 | 2024-08-06 09:01:40 -0700
 
   * Don't install empty ZAM directories (Tim Wojtulewicz, Corelight)

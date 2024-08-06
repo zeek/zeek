@@ -80,7 +80,7 @@ public:
         : ParameterMismatch(_fmt(have, want)) {}
 
 private:
-    std::string _fmt(const std::string_view& have, const TypePtr& want) {
+    static std::string _fmt(const std::string_view& have, const TypePtr& want) {
         ODesc d;
         want->Describe(&d);
         return hilti::rt::fmt("cannot convert Spicy value of type '%s' to Zeek value of type '%s'", have,

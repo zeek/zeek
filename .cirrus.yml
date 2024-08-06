@@ -14,9 +14,9 @@ config: &CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WOR
 no_spicy_config: &NO_SPICY_CONFIG --build-type=release --disable-broker-tests --disable-spicy --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror
 static_config: &STATIC_CONFIG --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror
 binary_config: &BINARY_CONFIG --prefix=$CIRRUS_WORKING_DIR/install --libdir=$CIRRUS_WORKING_DIR/install/lib --binary-package --enable-static-broker --enable-static-binpac --disable-broker-tests --build-type=Release --ccache --enable-werror
-asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --disable-spicy --ccache
-ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --disable-spicy --ccache --enable-werror
-tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --disable-spicy --ccache --enable-werror
+asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --ccache --enable-werror
+ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --ccache --enable-werror
+tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --ccache --enable-werror
 
 resources_template: &RESOURCES_TEMPLATE
   cpu: *CPUS

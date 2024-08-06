@@ -1,3 +1,33 @@
+7.1.0-dev.92 | 2024-08-06 09:01:40 -0700
+
+  * Don't install empty ZAM directories (Tim Wojtulewicz, Corelight)
+
+  * btest/spicy: Make replaces-conflicts trigger replaces code path (Arne Welzel, Corelight)
+
+    The current test attempts to instantiate two spicy::SSH_1 protocol
+    analyzers in the .evt file. The intention likely was to use two
+    distinct protocol analyzer both trying to replace the builtin SSH
+    analyzer.
+
+    Coincidentally, fixing this happens to workaround TSAN errors tickled
+    by the FatalError() call while loading the .hlto with two identically
+    named analyzers.
+
+        $ cat .tmp/spicy.replaces-conflicts/output
+        error: redefinition of protocol analyzer spicy::SSH_1
+        ThreadSanitizer: main thread finished with ignores enabled
+          One of the following ignores was not ended (in order of probability)
+          Ignore was enabled at:
+            #0 __llvm_gcov_init __linker___d192e45c25d5ee23-484d3e0fc2caf5b4.cc (ssh.hlto+0x34036) (BuildId: 091934ca4da885e7)
+            #1 __llvm_gcov_init __linker___d192e45c25d5ee23-484d3e0fc2caf5b4.cc (ssh.hlto+0x34036) (BuildId: 091934ca4da885e7)
+            ...
+
+    I was tempted to replace FatalError() with Error() and rely on
+    zeek-setup.cc's early exiting on any reporter errors, but this
+    seems easier for now.
+
+    Relates to #3865.
+
 7.1.0-dev.87 | 2024-08-05 14:39:56 -0700
 
   * Remove some unnecessary #includes (Tim Wojtulewicz, Corelight)

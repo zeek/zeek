@@ -16,7 +16,7 @@ protocol analyzer spicy::SSH_1 over TCP:
     parse with SSH::Banner,
     replaces SSH;
 
-protocol analyzer spicy::SSH_1 over UDP:
+protocol analyzer spicy::SSH_2 over UDP:
     parse with SSH::Banner,
     replaces SSH;
 

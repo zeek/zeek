@@ -271,6 +271,7 @@ static void init_options() {
     check_env_opt("ZEEK_REPORT_UNCOMPILABLE", analysis_options.report_uncompilable);
     check_env_opt("ZEEK_ZAM_CODE", analysis_options.gen_ZAM_code);
     check_env_opt("ZEEK_NO_ZAM_OPT", analysis_options.no_ZAM_opt);
+    check_env_opt("ZEEK_NO_ZAM_CONTROL_FLOW_OPT", analysis_options.no_ZAM_control_flow_opt);
     check_env_opt("ZEEK_DUMP_ZAM", analysis_options.dump_ZAM);
     check_env_opt("ZEEK_PROFILE", analysis_options.profile_ZAM);
 

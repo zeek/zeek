@@ -2,6 +2,8 @@
 
 #include <sys/socket.h>
 #include <unistd.h>
+#include <cstdint>
+#include <limits>
 
 #include "zeek/Event.h"
 #include "zeek/IPAddr.h"
@@ -22,8 +24,7 @@ void HeartbeatTimer::Dispatch(double t, bool is_expire) {
 
 } // namespace detail
 
-static std::vector<uint64_t> pending_bucket_brackets = {1,    10,    100,
-                                                        1000, 10000, std::numeric_limits<uint64_t>::infinity()};
+static std::vector<uint64_t> pending_bucket_brackets = {1, 10, 100, 1000, 10000, std::numeric_limits<uint64_t>::max()};
 
 Manager::Manager() {
     DBG_LOG(DBG_THREADING, "Creating thread manager ...");
@@ -130,7 +131,7 @@ void Manager::InitPostScript() {
 
     for ( auto upper_limit : pending_bucket_brackets ) {
         std::string upper_limit_str;
-        if ( upper_limit == std::numeric_limits<uint64_t>::infinity() )
+        if ( upper_limit == std::numeric_limits<uint64_t>::max() )
             upper_limit_str = "inf";
         else
             upper_limit_str = std::to_string(upper_limit);

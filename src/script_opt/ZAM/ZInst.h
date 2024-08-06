@@ -387,8 +387,6 @@ private:
 
 enum ControlFlowType {
     CFT_IF,
-    CFT_IF_NOT,
-    CFT_IF_ELSE,
     CFT_BLOCK_END,
     CFT_ELSE,
     CFT_LOOP,

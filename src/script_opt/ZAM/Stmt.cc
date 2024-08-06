@@ -141,8 +141,7 @@ const ZAMStmt ZAMCompiler::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
     else
         cond_stmt = GenCond(e, branch_v);
 
-    auto cft = (s1 && s2) ? CFT_IF_ELSE : (s1 ? CFT_IF : CFT_IF_NOT);
-    AddCFT(insts1.back(), cft);
+    AddCFT(insts1.back(), CFT_IF);
 
     if ( s1 ) {
         auto s1_end = CompileStmt(s1);

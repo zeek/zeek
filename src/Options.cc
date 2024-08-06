@@ -194,6 +194,7 @@ static void print_analysis_help() {
     fprintf(stderr, "    optimize-AST	optimize the (transformed) AST; implies xform\n");
     fprintf(stderr, "    profile-ZAM	generate to zprof.out a ZAM execution profile; implies -O ZAM\n");
     fprintf(stderr, "    report-recursive	report on recursive functions and exit\n");
+    fprintf(stderr, "    validate-ZAM	perform internal assessment of synthesized ZAM instructions and exit\n");
     fprintf(stderr, "    xform	transform scripts to \"reduced\" form\n");
 
     fprintf(stderr, "\n--optimize options when generating C++:\n");
@@ -220,14 +221,14 @@ static void set_analysis_option(const char* opt, Options& opts) {
         exit(0);
     }
 
-    if ( util::streq(opt, "dump-uds") )
+    if ( util::streq(opt, "allow-cond") )
+        a_o.allow_cond = true;
+    else if ( util::streq(opt, "dump-uds") )
         a_o.activate = a_o.dump_uds = true;
     else if ( util::streq(opt, "dump-xform") )
         a_o.activate = a_o.dump_xform = true;
     else if ( util::streq(opt, "dump-ZAM") )
         a_o.activate = a_o.dump_ZAM = true;
-    else if ( util::streq(opt, "allow-cond") )
-        a_o.allow_cond = true;
     else if ( util::streq(opt, "gen-C++") )
         a_o.gen_CPP = true;
     else if ( util::streq(opt, "gen-standalone-C++") )
@@ -254,6 +255,8 @@ static void set_analysis_option(const char* opt, Options& opts) {
         a_o.report_uncompilable = true;
     else if ( util::streq(opt, "use-C++") )
         a_o.use_CPP = true;
+    else if ( util::streq(opt, "validate-ZAM") )
+        a_o.validate_ZAM = true;
     else if ( util::streq(opt, "xform") )
         a_o.activate = true;
 

@@ -11,9 +11,7 @@ function Storage::__open_backend%(btype: Storage::Backend, config: any, val_type
     zeek::Tag tag{btype_val};
 
     auto config_val = zeek::IntrusivePtr<zeek::RecordVal>{NewRef{}, config->AsRecordVal()};
-    auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
-
-    auto b = storage_mgr->OpenBackend(tag, config_val, vt);
+    auto b = storage_mgr->OpenBackend(tag, config_val);
     return zeek::make_intrusive<zeek::storage::BackendHandleVal>(b);
 	%}
 
@@ -29,7 +27,7 @@ function Storage::__close_backend%(backend: opaque of Storage::BackendHandle%) :
 	return zeek::val_mgr->Bool(true);
 	%}
 
-function Storage::__store%(backend: opaque of Storage::BackendHandle, key: any, value: any, overwrite: bool%): bool
+function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, value: any, overwrite: bool%): bool
 	%{
 	auto b = dynamic_cast<zeek::storage::BackendHandleVal*>(backend);
 	if ( ! b ) {
@@ -39,7 +37,7 @@ function Storage::__store%(backend: opaque of Storage::BackendHandle, key: any, 
 
 	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
 	auto val_v = zeek::IntrusivePtr<Val>{NewRef{}, value};
-	auto result = b->backend->Store(key_v, val_v, overwrite);
+	auto result = b->backend->Put(key_v, val_v, overwrite);
 	if ( ! result.first ) {
 		zeek::emit_builtin_error(zeek::util::fmt("Failed to store data: %s", result.second.c_str()));
 		return zeek::val_mgr->Bool(false);
@@ -48,7 +46,7 @@ function Storage::__store%(backend: opaque of Storage::BackendHandle, key: any, 
     return zeek::val_mgr->Bool(result.first);
 	%}
 
-function Storage::__retrieve%(backend: opaque of Storage::BackendHandle, key: any%): any
+function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, val_type: any%): any
 	%{
 	auto b = dynamic_cast<zeek::storage::BackendHandleVal*>(backend);
 	if ( ! b ) {
@@ -57,7 +55,8 @@ function Storage::__retrieve%(backend: opaque of Storage::BackendHandle, key: an
 	}
 
 	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
-	auto result = b->backend->Retrieve(key_v);
+    auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
+	auto result = b->backend->Get(key_v, vt);
 	if ( ! result.first ) {
 		zeek::emit_builtin_error(zeek::util::fmt("Failed to retrieve data: %s", result.second.c_str()));
         return nullptr;

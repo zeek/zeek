@@ -24,7 +24,7 @@ public:
     /**
      * Called by the manager system to open the backend.
      */
-    BoolResult DoOpen(RecordValPtr config, TypePtr vt) override;
+    BoolResult DoOpen(RecordValPtr config) override;
 
     /**
      * Finalizes the backend when it's being closed.
@@ -37,17 +37,17 @@ public:
     bool IsOpen() override { return db != nullptr; }
 
     /**
-     * The workhorse method for Store().
-     */
-    BoolResult DoStore(ValPtr key, ValPtr value, bool overwrite = true) override;
-
-    /**
      * The workhorse method for Retrieve().
      */
-    ValResult DoRetrieve(ValPtr key) override;
+    BoolResult DoPut(ValPtr key, ValPtr value, bool overwrite = true) override;
 
     /**
-     * The workhorse method for Retrieve().
+     * The workhorse method for Get().
+     */
+    ValResult DoGet(ValPtr key, TypePtr value_type) override;
+
+    /**
+     * The workhorse method for Erase().
      */
     BoolResult DoErase(ValPtr key) override;
 

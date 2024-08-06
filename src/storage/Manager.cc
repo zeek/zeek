@@ -16,7 +16,7 @@ void Manager::InitPostScript() { detail::backend_opaque = make_intrusive<OpaqueT
  * type of backend.
  * @return A pointer to a backend instance.
  */
-BackendPtr Manager::OpenBackend(const Tag& type, RecordValPtr config, TypePtr vt) {
+BackendPtr Manager::OpenBackend(const Tag& type, RecordValPtr config) {
     Component* c = Lookup(type);
     if ( ! c ) {
         reporter->Warning("Request to open unknown backend (%d:%d)", type.Type(), type.Subtype());
@@ -35,7 +35,7 @@ BackendPtr Manager::OpenBackend(const Tag& type, RecordValPtr config, TypePtr vt
         return nullptr;
     }
 
-    if ( auto res = b->Open(std::move(config), std::move(vt)); ! res.first ) {
+    if ( auto res = b->Open(std::move(config)); ! res.first ) {
         reporter->InternalWarning("Failed to open backend %s\n", GetComponentName(type).c_str());
         delete b;
         return nullptr;
@@ -43,5 +43,7 @@ BackendPtr Manager::OpenBackend(const Tag& type, RecordValPtr config, TypePtr vt
 
     return IntrusivePtr<Backend>{AdoptRef{}, b};
 }
+
+void Manager::CloseBackend(BackendPtr backend) { backend->Done(); }
 
 } // namespace zeek::storage

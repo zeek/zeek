@@ -16,7 +16,7 @@ storage::Backend* SQLite::Instantiate() { return new SQLite(); }
  * implementation must call \a Opened(); if not, it must call Error()
  * with a corresponding message.
  */
-BoolResult SQLite::DoOpen(RecordValPtr config, TypePtr vt) {
+BoolResult SQLite::DoOpen(RecordValPtr config) {
     if ( sqlite3_threadsafe() == 0 ) {
         BoolResult res = {false,
                           "SQLite reports that it is not threadsafe. Zeek needs a threadsafe version of "
@@ -71,9 +71,9 @@ void SQLite::Done() {
 }
 
 /**
- * The workhorse method for Store(). This must be implemented by plugins.
+ * The workhorse method for Put(). This must be implemented by plugins.
  */
-BoolResult SQLite::DoStore(ValPtr key, ValPtr value, bool overwrite) {
+BoolResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite) {
     if ( ! db )
         return {false, "Database was not open"};
 
@@ -105,9 +105,9 @@ BoolResult SQLite::DoStore(ValPtr key, ValPtr value, bool overwrite) {
 }
 
 /**
- * The workhorse method for Retrieve(). This must be implemented for plugins.
+ * The workhorse method for Get(). This must be implemented for plugins.
  */
-ValResult SQLite::DoRetrieve(ValPtr key) {
+ValResult SQLite::DoGet(ValPtr key, TypePtr value_type) {
     if ( ! db )
         return {nullptr, "Database was not open"};
 
@@ -126,7 +126,7 @@ ValResult SQLite::DoRetrieve(ValPtr key) {
     if ( errorcode == SQLITE_ROW ) {
         // Column 1 is the value
         const char* text = (const char*)sqlite3_column_text(st, 0);
-        auto val = zeek::detail::ValFromJSON(text, val_type, Func::nil);
+        auto val = zeek::detail::ValFromJSON(text, value_type, Func::nil);
         if ( std::holds_alternative<ValPtr>(val) ) {
             ValPtr val_v = std::get<ValPtr>(val);
             return {val_v, ""};
@@ -141,7 +141,7 @@ ValResult SQLite::DoRetrieve(ValPtr key) {
 }
 
 /**
- * The workhorse method for Retrieve(). This must be implemented for plugins.
+ * The workhorse method for Erase(). This must be implemented for plugins.
  */
 BoolResult SQLite::DoErase(ValPtr key) {
     if ( ! db )

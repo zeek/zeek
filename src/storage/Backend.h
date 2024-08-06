@@ -18,9 +18,7 @@ using BoolResult = std::pair<bool, std::string>;
 using ValResult = std::pair<ValPtr, std::string>;
 
 namespace detail {
-
 extern OpaqueTypePtr backend_opaque;
-
 }
 
 class Backend : public zeek::Obj {
@@ -31,12 +29,10 @@ public:
      * Called by the manager system to open the backend.
      *
      * @param config A record type storing configuration options for the backend.
-     * @param vt The script-land type to be used when retrieving values back from
-     * the store. This should be stored in the val_type member variable.
-     * @return A result pair containing a bool with the success state, and a possible
-     * error string if the operation failed.
+     * @return A result pair containing a bool with the success state, and a
+     * possible error string if the operation failed.
      */
-    BoolResult Open(RecordValPtr config, TypePtr vt);
+    BoolResult Open(RecordValPtr config);
 
     /**
      * Finalizes the backend when it's being closed. Can be overridden by
@@ -59,25 +55,28 @@ public:
      * @param key the key for the pair
      * @param value the value for the pair
      * @param overwrite whether an existing value for a key should be overwritten.
-     * @return A result pair containing a bool with the success state, and a possible
-     * error string if the operation failed.
+     * @return A result pair containing a bool with the success state, and a
+     * possible error string if the operation failed.
      */
-    BoolResult Store(ValPtr key, ValPtr value, bool overwrite = true);
+    BoolResult Put(ValPtr key, ValPtr value, bool overwrite = true);
 
     /**
      * Retrieve a value from the backend for a provided key.
      *
      * @param key the key to lookup in the backend.
-     * @return A result pair containing a ValPtr with the resulting value or nullptr
-     * retrieval failed, and a string with the error message if the operation failed.
+     * @param value_type The script-land type to be used when retrieving values
+     * from the backend.
+     * @return A result pair containing a ValPtr with the resulting value or
+     * nullptr retrieval failed, and a string with the error message if the
+     * operation failed.
      */
-    ValResult Retrieve(ValPtr key);
+    ValResult Get(ValPtr key, TypePtr value_type);
 
     /**
      * Erases the value for a key from the backend.
      *
-     * @return A result pair containing a bool with the success state, and a possible
-     * error string if the operation failed.
+     * @return A result pair containing a bool with the success state, and a
+     * possible error string if the operation failed.
      */
     BoolResult Erase(ValPtr key);
 
@@ -86,35 +85,26 @@ public:
      */
     virtual bool IsOpen() = 0;
 
-    const TypePtr ValueType() const { return val_type; }
-
-    // QUESTIONS
-    // Should init method allow for local worker connections vs aggregation?
-
 protected:
     /**
      * The workhorse method for Open().
      */
-    virtual BoolResult DoOpen(RecordValPtr config, TypePtr vt) = 0;
+    virtual BoolResult DoOpen(RecordValPtr config) = 0;
 
     /**
-     * The workhorse method for Store().
+     * The workhorse method for Put().
      */
-    virtual BoolResult DoStore(ValPtr key, ValPtr value, bool overwrite = true) = 0;
+    virtual BoolResult DoPut(ValPtr key, ValPtr value, bool overwrite = true) = 0;
 
     /**
-     * The workhorse method for Retrieve().
+     * The workhorse method for Get().
      */
-    virtual ValResult DoRetrieve(ValPtr key) = 0;
+    virtual ValResult DoGet(ValPtr key, TypePtr value_type) = 0;
 
     /**
      * The workhorse method for Erase().
      */
     virtual BoolResult DoErase(ValPtr key) = 0;
-
-    // The script-land type for values stored in the backend. This is provided as
-    // part of the Open() arguments.
-    TypePtr val_type;
 };
 
 using BackendPtr = zeek::IntrusivePtr<Backend>;

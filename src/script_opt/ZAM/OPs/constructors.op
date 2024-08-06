@@ -133,8 +133,8 @@ eval	GenInits()
 	ConstructRecordPost($$)
 
 macro SetUpRecFieldOps(lhs_full, rhs_full, which_lhs_map)
-	auto lhs = lhs_full.record_val;
-	auto rhs = rhs_full.record_val;
+	auto lhs = lhs_full.AsRecordRef();
+	auto rhs = rhs_full.AsRecord();
 	auto& lhs_map = Z_AUX->which_lhs_map;
 	auto& rhs_map = Z_AUX->rhs_map;
 	auto n = rhs_map.size();
@@ -186,14 +186,14 @@ op1-read
 class VV
 eval	SetUpRecFieldOps($1, $2, map)
 	for ( size_t i = 0U; i < n; ++i )
-		lhs->RawField(lhs_map[i]).int_val += rhs->RawField(rhs_map[i]).int_val;
+		lhs->RawField(lhs_map[i]).AsIntRef() += rhs->RawField(rhs_map[i]).AsInt();
 
 op Rec-Add-Double-Fields
 op1-read
 class VV
 eval	SetUpRecFieldOps($1, $2, map)
 	for ( size_t i = 0U; i < n; ++i )
-		lhs->RawField(lhs_map[i]).double_val += rhs->RawField(rhs_map[i]).double_val;
+		lhs->RawField(lhs_map[i]).AsDoubleRef() += rhs->RawField(rhs_map[i]).AsDouble();
 
 op Rec-Add-Fields
 op1-read
@@ -206,11 +206,11 @@ eval	SetUpRecFieldOps($1, $2, map)
 		auto rhs_i = rhs->RawField(rhs_map[i]);
 		auto tag = types[i]->Tag();
 		if ( tag == TYPE_INT )
-			lhs_i.int_val += rhs_i.int_val;
+			lhs_i.AsIntRef() += rhs_i.AsInt();
 		else if ( tag == TYPE_COUNT )
-			lhs_i.uint_val += rhs_i.uint_val;
+			lhs_i.AsCountRef() += rhs_i.AsCount();
 		else
-			lhs_i.double_val += rhs_i.double_val;
+			lhs_i.AsDoubleRef() += rhs_i.AsDouble();
 		}
 
 # Special instruction for concretizing vectors that are fields in a

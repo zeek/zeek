@@ -446,6 +446,7 @@ set(MAIN_SRCS
     script_opt/ZAM/Profile.cc
     script_opt/ZAM/Stmt.cc
     script_opt/ZAM/Support.cc
+    script_opt/ZAM/Validate.cc
     script_opt/ZAM/Vars.cc
     script_opt/ZAM/ZBody.cc
     script_opt/ZAM/ZInst.cc

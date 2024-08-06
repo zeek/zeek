@@ -558,6 +558,11 @@ void clear_script_analysis() {
 void analyze_scripts(bool no_unused_warnings) {
     init_options();
 
+    if ( analysis_options.validate_ZAM ) {
+        validate_ZAM_insts();
+        return;
+    }
+
     // Any standalone compiled scripts have already been instantiated
     // at this point, but may require post-loading-of-scripts finalization.
     for ( auto cb : standalone_finalizations )

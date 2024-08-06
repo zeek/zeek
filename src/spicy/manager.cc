@@ -61,7 +61,6 @@ void Manager::registerSpicyModuleEnd() {
 }
 
 void Manager::registerProtocolAnalyzer(const std::string& name, hilti::rt::Protocol proto,
-                                       const hilti::rt::Vector<::zeek::spicy::rt::PortRange>& ports,
                                        const std::string& parser_orig, const std::string& parser_resp,
                                        const std::string& replaces, const std::string& linker_scope) {
     SPICY_DEBUG(hilti::rt::fmt("Have Spicy protocol analyzer %s", name));
@@ -74,7 +73,6 @@ void Manager::registerProtocolAnalyzer(const std::string& name, hilti::rt::Proto
     info.name_zeek = hilti::rt::replace(name, "::", "_");
     info.name_zeekygen = hilti::rt::fmt("<Spicy-%s>", name);
     info.protocol = proto;
-    info.ports = ports;
     info.linker_scope = linker_scope;
 
     // We may have that analyzer already iff it was previously pre-registered
@@ -700,25 +698,6 @@ void Manager::InitPostScript() {
         auto tag = analyzer_mgr->GetAnalyzerTag(p.name_zeek.c_str());
         if ( ! tag )
             reporter->InternalError("cannot get analyzer tag for '%s'", p.name_analyzer.c_str());
-
-        for ( const auto& ports : p.ports ) {
-            const auto proto = ports.begin.protocol();
-
-            // Port ranges are closed intervals.
-            for ( auto port = ports.begin.port(); port <= ports.end.port(); ++port ) {
-                const auto port_ = hilti::rt::Port(port, proto);
-                SPICY_DEBUG(hilti::rt::fmt("  Scheduling analyzer for port %s", port_));
-                analyzer_mgr->RegisterAnalyzerForPort(tag, transport_protocol(port_), port);
-
-                // Don't double register in case of single-port ranges.
-                if ( ports.begin.port() == ports.end.port() )
-                    break;
-
-                // Explicitly prevent overflow.
-                if ( port == std::numeric_limits<decltype(port)>::max() )
-                    break;
-            }
-        }
 
         if ( p.parser_resp ) {
             for ( auto port : p.parser_resp->ports ) {

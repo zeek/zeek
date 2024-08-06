@@ -56,8 +56,6 @@ void Manager::InitPostScript() {
                 for ( const auto& t : thread_mgr->msg_threads ) {
                     t->GetStats(&thread_stats);
 
-                    thread_mgr->current_bucketed_messages.sent_in_total += thread_stats.sent_in;
-                    thread_mgr->current_bucketed_messages.sent_out_total += thread_stats.sent_out;
                     thread_mgr->current_bucketed_messages.pending_in_total += thread_stats.pending_in;
                     thread_mgr->current_bucketed_messages.pending_out_total += thread_stats.pending_out;
 
@@ -88,22 +86,10 @@ void Manager::InitPostScript() {
 
     total_threads_metric = telemetry_mgr->CounterInstance("zeek", "msgthread_threads", {}, "Total number of threads");
     total_messages_in_metric =
-        telemetry_mgr->CounterInstance("zeek", "msgthread_in_messages", {}, "Number of inbound messages received", "",
-                                       []() -> prometheus::ClientMetric {
-                                           auto* s = get_message_thread_stats();
-                                           prometheus::ClientMetric metric;
-                                           metric.gauge.value = static_cast<double>(s->sent_in_total);
-                                           return metric;
-                                       });
+        telemetry_mgr->CounterInstance("zeek", "msgthread_in_messages", {}, "Number of inbound messages received", "");
 
-    total_messages_in_metric =
-        telemetry_mgr->CounterInstance("zeek", "msgthread_out_messages", {}, "Number of outbound messages sent", "",
-                                       []() -> prometheus::ClientMetric {
-                                           auto* s = get_message_thread_stats();
-                                           prometheus::ClientMetric metric;
-                                           metric.gauge.value = static_cast<double>(s->sent_out_total);
-                                           return metric;
-                                       });
+    total_messages_out_metric =
+        telemetry_mgr->CounterInstance("zeek", "msgthread_out_messages", {}, "Number of outbound messages sent", "");
 
     pending_messages_in_metric =
         telemetry_mgr->GaugeInstance("zeek", "msgthread_pending_in_messages", {}, "Pending number of inbound messages",
@@ -258,6 +244,10 @@ void Manager::StartHeartbeatTimer() {
     zeek::detail::timer_mgr->Add(
         new detail::HeartbeatTimer(run_state::network_time + BifConst::Threading::heartbeat_interval));
 }
+
+void Manager::MessageIn() { total_messages_in_metric->Inc(); }
+
+void Manager::MessageOut() { total_messages_out_metric->Inc(); }
 
 // Raise everything in here as warnings so it is passed to scriptland without
 // looking "fatal". In addition to these warnings, ReaderBackend will queue

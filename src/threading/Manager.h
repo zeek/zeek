@@ -153,6 +153,16 @@ protected:
      */
     void StartHeartbeatTimer();
 
+    /**
+     * Called by MsgThread::SendIn() to update metrics.
+     */
+    void MessageIn();
+
+    /**
+     * Called by MsgThread::SendOut() to update metrics.
+     */
+    void MessageOut();
+
 private:
     using all_thread_list = std::list<BasicThread*>;
     all_thread_list all_threads;
@@ -181,8 +191,6 @@ private:
     std::map<uint64_t, telemetry::GaugePtr> pending_message_out_buckets;
 
     struct BucketedMessages {
-        uint64_t sent_in_total;
-        uint64_t sent_out_total;
         uint64_t pending_in_total;
         uint64_t pending_out_total;
         std::map<uint64_t, uint64_t> pending_in;

@@ -1,3 +1,15 @@
+7.1.0-dev.107 | 2024-08-07 11:43:15 +0200
+
+  * ci/ubuntu-24.04: Use ccache 4.10.2 (Arne Welzel, Corelight)
+
+    The ccache version shipped with Ubuntu 24.04 does not yet recognize
+    --fprofile-update=atomic, install one that does.
+
+    Now that the asan_sanitizer build also includes building Spicy and
+    running the spicyz test suite, ccache is quite important.
+
+    Reference ccache/ccache#1408 and zeek/zeek#3777.
+
 7.1.0-dev.105 | 2024-08-07 10:54:10 +0200
 
   * telemetry/Manager: Check RegisterFd() return value (Arne Welzel, Corelight)

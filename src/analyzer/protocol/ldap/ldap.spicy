@@ -196,7 +196,7 @@ type MaybeEncrypted = unit(ctx: Ctx&) {
   # If so, switch into KRB mode assuming that's what is being used and
   # have a chance seeing some more plaintext LDAP in non-sealed tokens.
   rem: uint8[3] if ( ctx.messageMode == MessageMode::ENCRYPTED && (|self.mech| == 0 || self.mech.starts_with(b"GSS")) ) {
-    self.saslLen = (self.first << 24) + ($$[0] << 16) + ($$[1] << 8) + $$[2];
+    self.saslLen = (uint64(self.first) << 24) + (uint64($$[0]) << 16) + (uint64($$[1]) << 8) + uint64($$[2]);
   }
 
   : uint16 if ( self.saslLen >= 2 ) {

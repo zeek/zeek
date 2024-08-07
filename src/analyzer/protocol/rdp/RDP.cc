@@ -1,6 +1,7 @@
 #include "zeek/analyzer/protocol/rdp/RDP.h"
 
 #include "zeek/Reporter.h"
+#include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/rdp/events.bif.h"
 #include "zeek/analyzer/protocol/rdp/types.bif.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
@@ -11,7 +12,7 @@ RDP_Analyzer::RDP_Analyzer(Connection* c) : analyzer::tcp::TCP_ApplicationAnalyz
     interp = new binpac::RDP::RDP_Conn(this);
 
     had_gap = false;
-    ssl = nullptr;
+    tls_active = false;
 }
 
 RDP_Analyzer::~RDP_Analyzer() { delete interp; }
@@ -44,12 +45,13 @@ void RDP_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
         // 0x01 is SSL/TLS
         // 0x03-0x04 is CredSSP which is effectively SSL/TLS
         if ( interp->encryption_method() > 0x00 ) {
-            if ( ! ssl ) {
-                ssl = new analyzer::ssl::SSL_Analyzer(Conn());
+            if ( ! tls_active ) {
+                tls_active = true;
+                Analyzer* ssl = analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
                 if ( ! AddChildAnalyzer(ssl) ) {
                     reporter->AnalyzerError(this,
                                             "failed to add TCP child analyzer "
-                                            "to RDP analyzer: already exists");
+                                            "to RDP analyzer");
                     return;
                 }
             }

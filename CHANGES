@@ -1,3 +1,9 @@
+7.1.0-dev.109 | 2024-08-07 14:10:54 +0200
+
+  * ldap: Promote uint8 to uint64 before shifting (Arne Welzel, Corelight)
+
+    Relates to zeek/spicy#1829
+
 7.1.0-dev.107 | 2024-08-07 11:43:15 +0200
 
   * ci/ubuntu-24.04: Use ccache 4.10.2 (Arne Welzel, Corelight)

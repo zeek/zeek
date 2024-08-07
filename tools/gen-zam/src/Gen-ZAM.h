@@ -10,7 +10,9 @@
 #pragma once
 
 #include <assert.h>
+#include <optional>
 #include <map>
+#include <set>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -29,57 +31,66 @@ enum ZAM_InstClass
 	ZIC_FIELD, // a record field assignment
 	};
 
-// For a given instruction operand, its general type.
-enum ZAM_OperandType
+// For a given instruction operand, its general class.
+enum ZAM_OperandClass
 	{
-	ZAM_OT_CONSTANT, // uses the instruction's associated constant
-	ZAM_OT_EVENT_HANDLER, // uses the associated event handler
-	ZAM_OT_INT, // directly specified integer
-	ZAM_OT_VAR, // frame slot associated with a variable
+	ZAM_OC_CONSTANT, // uses the instruction's associated constant
+	ZAM_OC_EVENT_HANDLER, // uses the associated event handler
+	ZAM_OC_INT, // directly specified integer
+	ZAM_OC_VAR, // frame slot associated with a variable
 
-	ZAM_OT_ASSIGN_FIELD, // record field offset to assign to
-	ZAM_OT_RECORD_FIELD, // record field offset to access
+	ZAM_OC_ASSIGN_FIELD, // record field offset to assign to
+	ZAM_OC_RECORD_FIELD, // record field offset to access
 
 	// The following wind up the same in the ultimate instruction,
 	// but they differ in the calling sequences used to generate
 	// the instruction.
-	ZAM_OT_AUX, // uses the instruction's "aux" field
-	ZAM_OT_LIST, // a list, managed via the "aux" field
+	ZAM_OC_AUX, // uses the instruction's "aux" field
+	ZAM_OC_LIST, // a list, managed via the "aux" field
 
-	ZAM_OT_NONE, // instruction has no direct operands
+	// Internal types: branches, tracking globals, step-wise iterations
+	// (vectors and strings), table iterations.
+	ZAM_OC_BRANCH,
+	ZAM_OC_GLOBAL,
+	ZAM_OC_STEP_ITER,
+	ZAM_OC_TBL_ITER,
+
+	ZAM_OC_NONE, // instruction has no direct operands
 	};
+
+using OCVec = vector<ZAM_OperandClass>;
 
 // For instructions corresponding to evaluating expressions, the type
 // of a given operand.  The generator uses these to transform the operand's
 // low-level ZVal into a higher-level type expected by the associated
 // evaluation code.
-enum ZAM_ExprType
+enum ZAM_Type
 	{
-	ZAM_EXPR_TYPE_ADDR,
-	ZAM_EXPR_TYPE_ANY,
-	ZAM_EXPR_TYPE_DOUBLE,
-	ZAM_EXPR_TYPE_FUNC,
-	ZAM_EXPR_TYPE_INT,
-	ZAM_EXPR_TYPE_PATTERN,
-	ZAM_EXPR_TYPE_RECORD,
-	ZAM_EXPR_TYPE_STRING,
-	ZAM_EXPR_TYPE_SUBNET,
-	ZAM_EXPR_TYPE_TABLE,
-	ZAM_EXPR_TYPE_UINT,
-	ZAM_EXPR_TYPE_VECTOR,
-	ZAM_EXPR_TYPE_FILE,
-	ZAM_EXPR_TYPE_OPAQUE,
-	ZAM_EXPR_TYPE_LIST,
-	ZAM_EXPR_TYPE_TYPE,
+	ZAM_TYPE_ADDR,
+	ZAM_TYPE_ANY,
+	ZAM_TYPE_DOUBLE,
+	ZAM_TYPE_FUNC,
+	ZAM_TYPE_INT,
+	ZAM_TYPE_PATTERN,
+	ZAM_TYPE_RECORD,
+	ZAM_TYPE_STRING,
+	ZAM_TYPE_SUBNET,
+	ZAM_TYPE_TABLE,
+	ZAM_TYPE_UINT,
+	ZAM_TYPE_VECTOR,
+	ZAM_TYPE_FILE,
+	ZAM_TYPE_OPAQUE,
+	ZAM_TYPE_LIST,
+	ZAM_TYPE_TYPE,
 
 	// Used to specify "apart from the explicitly specified operand
 	// types, do this action for any other types".
-	ZAM_EXPR_TYPE_DEFAULT,
+	ZAM_TYPE_DEFAULT,
 
 	// Used for expressions where the evaluation code for the
 	// expression deals directly with the operand's ZVal, rather
 	// than the generator providing a higher-level version.
-	ZAM_EXPR_TYPE_NONE,
+	ZAM_TYPE_NONE,
 	};
 
 // We only use the following in the context where the vector's elements
@@ -132,6 +143,9 @@ enum EmitTarget
 	// conditionals.
 	Cond,
 
+	// Descriptions of final ZAM operations, used for validation.
+	Desc,
+
 	// Switch cases that provide the C++ code for executing specific
 	// individual ZAM instructions.
 	Eval,
@@ -176,15 +190,15 @@ enum EmitTarget
 	OpName,
 	};
 
-// A helper class for managing the (ordered) collection of ZAM_OperandType's
+// A helper class for managing the (ordered) collection of ZAM_OperandClass's
 // associated with an instruction in order to generate C++ calling sequences
 // (both parameters for declarations, and arguments for invocations).
 class ArgsManager
 	{
 public:
-	// Constructed by providing the various ZAM_OperandType's along
+	// Constructed by providing the various ZAM_OperandClass's along
 	// with the instruction's class.
-	ArgsManager(const vector<ZAM_OperandType>& ot, ZAM_InstClass ic);
+	ArgsManager(const OCVec& oc, ZAM_InstClass ic);
 
 	// Returns a string defining the parameters for a declaration;
 	// these have full C++ type information along with the parameter
@@ -205,25 +219,23 @@ private:
 	// "x1", "x2", etc.
 	void Differentiate();
 
-	// Maps ZAM_OperandType's to their associated C++ type and
+	// Maps ZAM_OperandClass's to their associated C++ type and
 	// canonical parameter name.
-	static std::unordered_map<ZAM_OperandType, std::pair<const char*, const char*>> ot_to_args;
+	static std::unordered_map<ZAM_OperandClass, std::pair<const char*, const char*>> oc_to_args;
 
 	// For a single argument/parameter, tracks its declaration name,
 	// C++ type, and the name to use when providing it as a parameter.
-	// These last two names are potentially distinct when we're
-	// assigning to record field (which is tracked by the is_field
-	// member variable), hence the need to track both.
+	// We have two names because in some contexts record fields have
+	// different names in declarations vs. in parameter lists.
 	struct Arg
 		{
 		string decl_name;
 		string decl_type;
 		string param_name;
-		bool is_field;
 		};
 
 	// All of the argument/parameters associated with the collection
-	// of ZAM_OperandType's.
+	// of ZAM_OperandClass's.
 	vector<Arg> args;
 
 	// Each of the individual parameters.
@@ -234,10 +246,9 @@ private:
 	string full_params;
 	};
 
-// There are two mutually interacting classes: ZAMGen is the overall
-// driver for the ZAM generator, while ZAM_OpTemplate represents a
-// single operation template, with subclasses for specific types of
-// operations.
+// There are two mutually interacting classes: ZAMGen is the overall driver
+// for the ZAM generator, while ZAM_OpTemplate represents a single operation
+// template, with subclasses for specific types of operations.
 class ZAMGen;
 
 class ZAM_OpTemplate
@@ -270,15 +281,25 @@ public:
 	// with this operation.
 	const string& GetOp1Flavor() const { return op1_flavor; }
 
-	// True if this is an operation with side effects (see OpSideEffects
-	// above).
+	// True if this operation has side effects (see OpSideEffects above).
 	bool HasSideEffects() const { return has_side_effects; }
 
+	// True if this operation has a predicate form (i.e., yields a
+	// boolean value that can be used in conditionals).
+	void SetIsPredicate() { is_predicate = true; }
+	bool IsPredicate() const { return is_predicate; }
+
+	// The number of operands the operation takes (not including its
+	// assignment target).  A value of 0 is used for operations that
+	// require special handling.
+	virtual int Arity() const { return 0; }
+
 protected:
-	// Append to the list of operand types associated with this operation.
-	void AddOpType(ZAM_OperandType ot) { op_types.push_back(ot); }
-	// Retrieve the list of operand types associated with this operation.
-	const vector<ZAM_OperandType>& OperandTypes() const { return op_types; }
+	// Do instantiation for predicate operations.
+	void InstantiatePredicate();
+
+	// Retrieve the list of operand classes associated with this operation.
+	const OCVec& OperandClasses() const { return op_classes; }
 
 	// Specify the ZAMOp1Flavor associated with this operation.  See
 	// GetOp1Flavor() above for the corresponding accessor.
@@ -287,12 +308,12 @@ protected:
 	// Specify/fetch the parameter (operand) from which to take the
 	// primary type of this operation.
 	void SetTypeParam(int param) { type_param = param; }
-	int GetTypeParam() const { return type_param; }
+	const auto& GetTypeParam() const { return type_param; }
 
 	// Specify/fetch the parameter (operand) from which to take the
 	// secondary type of this operation.
 	void SetType2Param(int param) { type2_param = param; }
-	int GetType2Param() const { return type2_param; }
+	const auto& GetType2Param() const { return type2_param; }
 
 	// Tracking of assignment values (C++ variables that hold the
 	// value that should be assigned to usual frame slot).
@@ -353,13 +374,13 @@ protected:
 	// is used in a dead assignment, should be converted to a different
 	// operation that explictly omits any assignment.
 	bool HasAssignmentLess() const { return ! assignment_less_op.empty(); }
-	void SetAssignmentLess(string op, string op_type)
+	void SetAssignmentLess(string op, string op_class)
 		{
 		assignment_less_op = op;
-		assignment_less_op_type = op_type;
+		assignment_less_op_class = op_class;
 		}
 	const string& AssignmentLessOp() const { return assignment_less_op; }
-	const string& AssignmentLessOpType() const { return assignment_less_op_type; }
+	const string& AssignmentLessOpClass() const { return assignment_less_op_class; }
 
 	// Builds the instructions associated with this operation, assuming
 	// a single operand.
@@ -373,6 +394,9 @@ protected:
 	// words.
 	virtual void Parse(const string& attr, const string& line, const Words& words);
 
+	// Helper function that parses "class" specifications.
+	OCVec ParseClass(const string& spec) const;
+
 	// Scans in a C++ evaluation block, which continues until encountering
 	// a line that does not start with whitespace, or that's empty.
 	string GatherEval();
@@ -382,68 +406,89 @@ protected:
 	int ExtractTypeParam(const string& arg);
 
 	// Generates instructions for each of the different flavors of the
-	// given operation. "ot" specifies the types of operands for the
+	// given operation. "oc" specifies the classes of operands for the
 	// instruction, and "do_vec" whether to generate a vector version.
-	void InstantiateOp(const vector<ZAM_OperandType>& ot, bool do_vec);
+	void InstantiateOp(const OCVec& oc, bool do_vec);
 
 	// Generates one specific flavor ("zc") of the given operation,
-	// using a method named 'm', the given operand types, and the class.
-	void InstantiateOp(const string& m, const vector<ZAM_OperandType>& ot, ZAM_InstClass zc);
+	// using a method named 'm', the given operand classes, and the
+	// instruction class.
+	void InstantiateOp(const string& m, const OCVec& oc, ZAM_InstClass zc);
 
 	// Generates the "assignment-less" version of the given op-code.
 	void GenAssignmentlessVersion(const string& op);
 
 	// Generates the method 'm' for an operation, where "suffix" is
 	// a (potentially empty) string differentiating the method from
-	// others for that operation, and "ot" and "zc" are the same
+	// others for that operation, and "oc" and "zc" are the same
 	// as above.
-	void InstantiateMethod(const string& m, const string& suffix, const vector<ZAM_OperandType>& ot,
+	void InstantiateMethod(const string& m, const string& suffix, const OCVec& oc,
 	                       ZAM_InstClass zc);
 
 	// Generates the main logic of an operation's method, given the
-	// specific operand types, an associated suffix for differentiating
+	// specific operand classes, an associated suffix for differentiating
 	// ZAM instructions, and the instruction class.
-	void InstantiateMethodCore(const vector<ZAM_OperandType>& ot, const string& suffix, ZAM_InstClass zc);
+	void InstantiateMethodCore(const OCVec& oc, const string& suffix, ZAM_InstClass zc);
 
 	// Generates the specific code to create a ZInst for the given
 	// operation, operands, parameters to "GenInst", and suffix and
 	// class per the above.
-	virtual void BuildInstruction(const vector<ZAM_OperandType>& ot, const string& params,
+	virtual void BuildInstruction(const OCVec& oc, const string& params,
 	                              const string& suffix, ZAM_InstClass zc);
+
+	// Expands $-parameters into their direct representations given the
+	// operand classes and associated accessors.
+	string ExpandParams(const OCVec& oc, string eval, const vector<string>& accessors) const;
+	string ExpandParams(const OCVec& oc, string eval) const
+		{
+		vector<string> no_accessors;
+		return ExpandParams(oc, std::move(eval), no_accessors);
+		}
 
 	// Top-level driver for generating the C++ evaluation code for
 	// a given flavor of operation.
-	virtual void InstantiateEval(const vector<ZAM_OperandType>& ot, const string& suffix,
+	virtual void InstantiateEval(const OCVec& oc, const string& suffix,
 	                             ZAM_InstClass zc);
 
 	// Generates the C++ case statement for evaluating the given flavor
 	// of operation.
-	void InstantiateEval(EmitTarget et, const string& op_suffix, const string& eval,
-	                     ZAM_InstClass zc);
+	void GenEval(EmitTarget et, const string& ot_str, const string& op_suffix, const string& eval,
+	             ZAM_InstClass zc);
+
+	// Generates a description of the ZAM operation suitable for
+	// reflection.
+	void GenDesc(const string& op_code, const string& ot_str, const string& eval);
+
+	// Generates the first part of a description, up to (but not including)
+	// the evaluation.
+	void StartDesc(const string& op_code, const string& ot_str);
+
+	// Finishes a description, once the evaluation is done.
+	void EndDesc();
 
 	// Generates a set of assignment C++ evaluations, one per each
 	// possible Zeek scripting type of operand.
-	void InstantiateAssignOp(const vector<ZAM_OperandType>& ot, const string& suffix);
+	void InstantiateAssignOp(const OCVec& oc, const string& suffix);
 
 	// Generates a C++ evaluation for an assignment of the type
 	// corresponding to "accessor".  If "is_managed" is true then
 	// generates the associated memory management, too.
-	void GenAssignOpCore(const vector<ZAM_OperandType>& ot, const string& eval,
+	void GenAssignOpCore(const OCVec& oc, const string& eval,
 	                     const string& accessor, bool is_managed);
 
 	// The same, but for when there's an explicit assignment value.
-	void GenAssignOpValCore(const string& eval, const string& accessor, bool is_managed);
+	void GenAssignOpValCore(const OCVec& oc, const string& eval, const string& accessor, bool is_managed);
 
 	// Returns the name of the method associated with the particular
-	// list of operand types.
-	string MethodName(const vector<ZAM_OperandType>& ot) const;
+	// list of operand classes.
+	string MethodName(const OCVec& oc) const;
 
 	// Returns the parameter declarations to use in declaring a method.
-	string MethodDeclare(const vector<ZAM_OperandType>& ot, ZAM_InstClass zc);
+	string MethodDeclare(const OCVec& oc, ZAM_InstClass zc);
 
 	// Returns a suffix that differentiates an operation name for
-	// a specific list of operand types.
-	string OpSuffix(const vector<ZAM_OperandType>& ot) const;
+	// a specific list of operand classes.
+	string OpSuffix(const OCVec& oc) const;
 
 	// Returns a copy of the given string with leading whitespace
 	// removed.
@@ -485,9 +530,18 @@ protected:
 		IndentDown();
 		}
 
-	// Maps an operand type to a character mnemonic used to distinguish
+	// Start/finish emiting a (likely multi-line) string literal -
+	// see corresponding ZAMGen methods.
+	void StartString();
+	void EndString();
+
+	// Exit with an error, mainly for consistency-checking.
+	void Gripe(const char* msg) const;
+	void Gripe(string msg, string addl) const;
+
+	// Maps an operand class to a character mnemonic used to distinguish
 	// it from others.
-	static std::unordered_map<ZAM_OperandType, char> ot_to_char;
+	static std::unordered_map<ZAM_OperandClass, char> oc_to_char;
 
 	// The associated driver object.
 	ZAMGen* g;
@@ -503,18 +557,31 @@ protected:
 	// The current emission target.
 	EmitTarget curr_et = None;
 
-	// The operand types for operations that have a single fixed list.
+	// The operand classes for operations that have a single fixed list.
 	// Some operations (like those evaluating expressions) instead have
-	// dynamically generated range of possible operand types.
-	vector<ZAM_OperandType> op_types;
+	// dynamically generated range of possible operand classes.
+	OCVec op_classes;
+
+	// For operations that have several fixed operand sets to work through.
+	vector<OCVec> op_classes_vec;
+
+	// If non-empty, the ZAM types associated with each operand,
+	// left-to-right mirroring the order of the op_classes.
+	vector<ZAM_Type> op_types;
+
+	// The following is usually empty, but can be instantiated when
+	// iterating across "types" that in some instances include ZAM_OC_INT,
+	// in which case those will have ".int_val" accessors associated
+	// with those slots.
+	vector<string> accessors;
 
 	// See the description of Op1Flavor above.
 	string op1_flavor = "OP1_WRITE";
 
 	// Tracks the result of ExtractTypeParam() used for "type" and
 	// "type2" attributes.
-	int type_param = 0; // 0 = not set
-	int type2_param = 0;
+	std::optional<int> type_param;
+	std::optional<int> type2_param;
 
 	// If non-empty, the value to assign to the target in an assignment
 	// operation.
@@ -547,11 +614,17 @@ protected:
 	// If true, then this operation has side effects.
 	bool has_side_effects = false;
 
+	// Whether to instantiate this operation as a predicate, which
+	// results in three versions: (1) assignment of the evaluation to
+	// a (integer-typed) target, (2) branch if the evaluation *is not*
+	// the case, (3) branch if the evaluation *is* the case.
+	bool is_predicate = false;
+
 	// If non-empty, then specifies the associated operation that
 	// is a version of this operation but without assigning the result;
-	// and the operand type (like "OP_V") of that associated operation.
+	// and the operand class (like "OP_V") of that associated operation.
 	string assignment_less_op;
-	string assignment_less_op_type;
+	string assignment_less_op_class;
 	};
 
 // A subclass used for "unary-op" templates.
@@ -595,7 +668,7 @@ public:
 	// "is_def" is true if this instance is for the default catch-all
 	// where the operand types don't match any of the explicitly
 	// specified evaluations;
-	EvalInstance(ZAM_ExprType lhs_et, ZAM_ExprType op1_et, ZAM_ExprType op2_et, string eval,
+	EvalInstance(ZAM_Type lhs_et, ZAM_Type op1_et, ZAM_Type op2_et, string eval,
 	             bool is_def);
 
 	// Returns the accessor to use for assigning to the LHS.  "is_ptr"
@@ -608,20 +681,23 @@ public:
 	string Op2Accessor(bool is_ptr = false) const { return Accessor(op2_et, is_ptr); }
 
 	// Provides an accessor for an operand of the given type.
-	string Accessor(ZAM_ExprType et, bool is_ptr = false) const;
+	string Accessor(ZAM_Type zt, bool is_ptr = false) const;
 
 	// Returns the "marker" use to make unique the opcode for this
 	// flavor of expression-evaluation instruction.
 	string OpMarker() const;
 
 	const string& Eval() const { return eval; }
-	ZAM_ExprType LHS_ET() const { return lhs_et; }
 	bool IsDefault() const { return is_def; }
 
+	ZAM_Type LHS_ET() const { return lhs_et; }
+	ZAM_Type Op1_ET() const { return op1_et; }
+	ZAM_Type Op2_ET() const { return op2_et; }
+
 private:
-	ZAM_ExprType lhs_et;
-	ZAM_ExprType op1_et;
-	ZAM_ExprType op2_et;
+	ZAM_Type lhs_et;
+	ZAM_Type op1_et;
+	ZAM_Type op2_et;
 	string eval;
 	bool is_def;
 	};
@@ -632,19 +708,14 @@ class ZAM_ExprOpTemplate : public ZAM_OpTemplate
 public:
 	ZAM_ExprOpTemplate(ZAMGen* _g, string _base_name);
 
-	// The number of operands the operation takes (not including its
-	// assignment target).  A value of 0 is used for expressions that
-	// require special handling.
-	virtual int Arity() const { return 0; }
-
 	int HasExplicitResultType() const { return explicit_res_type; }
 	void SetHasExplicitResultType() { explicit_res_type = true; }
 
-	void AddExprType(ZAM_ExprType et) { expr_types.insert(et); }
-	const std::unordered_set<ZAM_ExprType>& ExprTypes() const { return expr_types; }
+	void AddExprType(ZAM_Type zt) { expr_types.insert(zt); }
+	const std::unordered_set<ZAM_Type>& ExprTypes() const { return expr_types; }
 
-	void AddEvalSet(ZAM_ExprType et, string ev) { eval_set[et] += ev; }
-	void AddEvalSet(ZAM_ExprType et1, ZAM_ExprType et2, string ev)
+	void AddEvalSet(ZAM_Type zt, string ev) { eval_set[zt] += ev; }
+	void AddEvalSet(ZAM_Type et1, ZAM_Type et2, string ev)
 		{
 		eval_mixed_set[et1][et2] += ev;
 		}
@@ -652,9 +723,13 @@ public:
 	bool IncludesFieldOp() const override { return includes_field_op; }
 	void SetIncludesFieldOp() { includes_field_op = true; }
 
-	bool HasPreEval() const { return ! pre_eval.empty(); }
-	void SetPreEval(string pe) { pre_eval = SkipWS(pe); }
-	const string& GetPreEval() const { return pre_eval; }
+	bool HasPreCheck() const { return ! pre_check.empty(); }
+	void SetPreCheck(string pe) { pre_check = SkipWS(pe); }
+	const string& GetPreCheck() const { return pre_check; }
+
+	bool HasPreCheckAction() const { return ! pre_check_action.empty(); }
+	void SetPreCheckAction(string pe) { pre_check_action = SkipWS(pe); }
+	const string& GetPreCheckAction() const { return pre_check_action; }
 
 protected:
 	// Returns a regular expression used to access the value of the
@@ -671,12 +746,12 @@ protected:
 
 	// Instantiates versions of the operation that have a constant
 	// as the first, second, or third operand ...
-	void InstantiateC1(const vector<ZAM_OperandType>& ots, size_t arity, bool do_vec = false);
-	void InstantiateC2(const vector<ZAM_OperandType>& ots, size_t arity);
-	void InstantiateC3(const vector<ZAM_OperandType>& ots);
+	void InstantiateC1(const OCVec& ocs, size_t arity);
+	void InstantiateC2(const OCVec& ocs, size_t arity);
+	void InstantiateC3(const OCVec& ocs);
 
 	// ... or if all of the operands are non-constant.
-	void InstantiateV(const vector<ZAM_OperandType>& ots);
+	void InstantiateV(const OCVec& ocs);
 
 	// Generates code that instantiates either the vectorized version
 	// of an operation, or the non-vector one, depending on whether
@@ -689,30 +764,34 @@ protected:
 
 	// Generates an if-else cascade element that matches one of the
 	// specific Zeek types associated with the instruction.
-	void GenMethodTest(ZAM_ExprType et1, ZAM_ExprType et2, const string& params,
+	void GenMethodTest(ZAM_Type et1, ZAM_Type et2, const string& params,
 	                   const string& suffix, bool do_else, ZAM_InstClass zc);
 
-	void InstantiateEval(const vector<ZAM_OperandType>& ot, const string& suffix,
+	void InstantiateEval(const OCVec& oc, const string& suffix,
 	                     ZAM_InstClass zc) override;
 
 private:
 	// The Zeek types that can appear as operands for the expression.
-	std::unordered_set<ZAM_ExprType> expr_types;
+	std::unordered_set<ZAM_Type> expr_types;
 
 	// The C++ evaluation template for a given operand type.
-	std::unordered_map<ZAM_ExprType, string> eval_set;
+	std::unordered_map<ZAM_Type, string> eval_set;
 
 	// Some expressions take two operands of different types.  This
 	// holds their C++ evaluation template.
-	std::unordered_map<ZAM_ExprType, std::unordered_map<ZAM_ExprType, string>> eval_mixed_set;
+	std::unordered_map<ZAM_Type, std::unordered_map<ZAM_Type, string>> eval_mixed_set;
 
 	// Whether this expression's operand is a field access (and thus
 	// needs both the record as an operand and an additional constant
 	// offset into the record to get to the field).
 	bool includes_field_op = false;
 
-	// If non-zero, code to generate prior to evaluating the expression.
-	string pre_eval;
+	// If non-empty, a check to conduct before evaluating the expression ...
+	string pre_check;
+
+	// ... and the action to take if the check is true, *instead* of
+	// evaluating the expression.
+	string pre_check_action;
 
 	// If true, then the evaluations will take care of ensuring
 	// proper result types when assigning to $$.
@@ -725,7 +804,7 @@ class ZAM_UnaryExprOpTemplate : public ZAM_ExprOpTemplate
 public:
 	ZAM_UnaryExprOpTemplate(ZAMGen* _g, string _base_name) : ZAM_ExprOpTemplate(_g, _base_name) { }
 
-	bool IncludesFieldOp() const override { return ExprTypes().count(ZAM_EXPR_TYPE_NONE) == 0; }
+	bool IncludesFieldOp() const override { return ExprTypes().count(ZAM_TYPE_NONE) == 0; }
 
 	int Arity() const override { return 1; }
 
@@ -733,7 +812,7 @@ protected:
 	void Parse(const string& attr, const string& line, const Words& words) override;
 	void Instantiate() override;
 
-	void BuildInstruction(const vector<ZAM_OperandType>& ot, const string& params,
+	void BuildInstruction(const OCVec& oc, const string& params,
 	                      const string& suffix, ZAM_InstClass zc) override;
 	};
 
@@ -770,7 +849,7 @@ public:
 protected:
 	void Instantiate() override;
 
-	void BuildInstruction(const vector<ZAM_OperandType>& ot, const string& params,
+	void BuildInstruction(const OCVec& oc, const string& params,
 	                      const string& suffix, ZAM_InstClass zc) override;
 	};
 
@@ -797,41 +876,8 @@ protected:
 
 	void Instantiate() override;
 
-	void BuildInstruction(const vector<ZAM_OperandType>& ot, const string& params,
+	void BuildInstruction(const OCVec& oc, const string& params,
 	                      const string& suffix, ZAM_InstClass zc) override;
-	};
-
-// A version of ZAM_BinaryExprOpTemplate for binary operations generated
-// by custom methods rather than directly from the AST.
-class ZAM_InternalBinaryOpTemplate : public ZAM_BinaryExprOpTemplate
-	{
-public:
-	ZAM_InternalBinaryOpTemplate(ZAMGen* _g, string _base_name)
-		: ZAM_BinaryExprOpTemplate(_g, _base_name)
-		{
-		}
-
-	bool IsInternalOp() const override { return true; }
-
-	// The accessors used to get to the underlying Zeek script value
-	// of the first and second operand.
-	void SetOp1Accessor(string accessor) { op1_accessor = accessor; }
-	void SetOp2Accessor(string accessor) { op2_accessor = accessor; }
-	void SetOpAccessor(string accessor)
-		{
-		SetOp1Accessor(accessor);
-		SetOp2Accessor(accessor);
-		}
-
-protected:
-	void Parse(const string& attr, const string& line, const Words& words) override;
-
-	void InstantiateEval(const vector<ZAM_OperandType>& ot, const string& suffix,
-	                     ZAM_InstClass zc) override;
-
-private:
-	string op1_accessor;
-	string op2_accessor;
 	};
 
 // A version of ZAM_OpTemplate for operations used internally (and not
@@ -847,6 +893,8 @@ protected:
 	void Parse(const string& attr, const string& line, const Words& words) override;
 
 private:
+	void ParseCall(const string& line, const Words& words);
+
 	// True if the internal operation corresponds to an indirect call,
 	// i.e., one through a variable rather than one directly specified.
 	bool is_indirect_call = false;
@@ -944,6 +992,8 @@ public:
 
 	void IndentUp() { ++indent_level; }
 	void IndentDown() { --indent_level; }
+	void StartString() { string_lit = true; }
+	void EndString() { string_lit = false; }
 	void SetNoNL(bool _no_NL) { no_NL = _no_NL; }
 
 	[[noreturn]] void Gripe(const char* msg, const string& input) const { ti->Gripe(msg, input); }
@@ -986,6 +1036,9 @@ private:
 	// per EmitTarget, so the caller needs to ensure it is managed
 	// consistently.
 	int indent_level = 0;
+
+	// If true, we're generating a string literal.
+	bool string_lit = false;
 
 	// If true, refrain from appending a newline to any emitted lines.
 	bool no_NL = false;

@@ -5256,12 +5256,6 @@ const dpd_ignore_ports = F &redef;
 ## connection if it misses the initial handshake.
 const likely_server_ports: set[port] &redef;
 
-## If true, output profiling for Time-Machine queries.
-const time_machine_profiling = F &redef &deprecated="Remove in v7.1. Unused.";
-
-## If true, warns about unused event handlers at startup.
-const check_for_unused_event_handlers = F &redef &deprecated="Remove in v7.1. This has been replaced by usage analyzer functionality.";
-
 ## Holds the filename of the trace file given with ``-w`` (empty if none).
 ##
 ## .. zeek:see:: record_all_packets

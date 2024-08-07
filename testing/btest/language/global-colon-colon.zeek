@@ -30,7 +30,7 @@ hook my_hook() &priority=9
 	print "  MyModule::my_hook()";
 	}
 
-# This implements GLOBAL::my_hook()
+# This implements a global my_hook()
 hook ::my_hook() &priority=8
 	{
 	print "  ::my_hook() (in MyModule using ::)";
@@ -63,37 +63,29 @@ event zeek_init() &priority=5
 	print fmt("  %s", X);
 	print "(MyModule) print MyModule::X";
 	print fmt("  %s", MyModule::X);
-	print "(MyModule) print GLOBAL::X";
-	print fmt("  %s", GLOBAL::X);
 	print "(MyModule) print ::X";
 	print fmt("  %s", ::X);
 	print "(MyModule) hook my_hook()";
 	hook my_hook();  # This uses MyModule::my_hook();
 	print "(MyModule) hook MyModule::my_hook()";
 	hook MyModule::my_hook();  # This uses MyModule::hook();
-	print "(MyModule) hook GLOBAL::my_hook()";
-	hook GLOBAL::my_hook();
 	print "(MyModule) hook ::my_hook()";
 	hook ::my_hook();
 
 	print "(MyModule) call func()";
 	func();
-	print "(MyModule) call GLOBAL::func()";
-	GLOBAL::func();
 	print "(MyModule) call ::func()";
 	::func();
 
 	print "(MyModule) call funcX()";
 	funcX();
-	print "(MyModule) call GLOBAL::funcX()";
-	GLOBAL::funcX();
 	print "(MyModule) call ::funcX()";
 	::funcX();
 
 	# This schedules MyEvent::my_event()
 	event my_event();
 
-	# This schedules the GLOBAL::my_event();
+	# This schedules the global ::my_event()
 	event ::my_event();
 	}
 
@@ -106,30 +98,22 @@ event zeek_init() &priority=5
 	print fmt("  %s", X);
 	print "(G) print MyModule::X";
 	print fmt("  %s", MyModule::X);
-	print "(G) print GLOBAL::X";
-	print fmt("  %s", GLOBAL::X);
 	print "(G) print ::X";
 	print fmt("  %s", ::X);
 	print "(G) hook my_hook()";
-	hook my_hook();  # This uses GLOBAL::my_hook();
+	hook my_hook();  # This uses global my_hook();
 	print "(G) MyModule::my_hook()";
 	hook MyModule::my_hook();  # This uses MyModule::hook();
-	print "(G) hook GLOBAL::my_hook()";
-	hook GLOBAL::my_hook();
 	print "(G) hook ::my_hook()";
 	hook ::my_hook();
 
 	print "(G) call func()";
 	func();
-	print "(G) call GLOBAL::func()";
-	GLOBAL::func();
 	print "(G) call ::func()";
 	::func();
 
 	print "(G) call funcX()";
 	funcX();
-	print "(G) call GLOBAL::funcX()";
-	GLOBAL::funcX();
 	print "(G) call ::funcX()";
 	::funcX();
 	}

@@ -9,7 +9,7 @@ type r: record { b: count; };
 
 event zeek_init()
 	{
-	local x: GLOBAL::r;
+	local x: ::r;
 	x$a = 5;
 
 	local y: test::r;

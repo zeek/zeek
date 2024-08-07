@@ -21,22 +21,11 @@ EventHandlerPtr EventRegistry::Register(std::string_view name, bool is_from_scri
         if ( ! is_from_script )
             not_only_from_script.insert(std::string(name));
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        // Remove in v7.1
-        h->SetUsed();
-#pragma GCC diagnostic pop
         return h;
     }
 
     h = new EventHandler(std::string(name));
     event_registry->Register(h, is_from_script);
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    // Remove in v7.1
-    h->SetUsed();
-#pragma GCC diagnostic pop
 
     return h;
 }
@@ -69,36 +58,6 @@ EventRegistry::string_list EventRegistry::Match(RE_Matcher* pattern) {
         EventHandler* v = entry.second.get();
         if ( v->GetFunc() && pattern->MatchExactly(v->Name()) )
             names.push_back(entry.first);
-    }
-
-    return names;
-}
-
-EventRegistry::string_list EventRegistry::UnusedHandlers() {
-    string_list names;
-
-    for ( const auto& entry : handlers ) {
-        EventHandler* v = entry.second.get();
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        if ( v->GetFunc() && ! v->Used() )
-            names.push_back(entry.first);
-#pragma GCC diagnostic pop
-    }
-
-    return names;
-}
-
-EventRegistry::string_list EventRegistry::UsedHandlers() {
-    string_list names;
-
-    for ( const auto& entry : handlers ) {
-        EventHandler* v = entry.second.get();
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        if ( v->GetFunc() && v->Used() )
-            names.push_back(entry.first);
-#pragma GCC diagnostic pop
     }
 
     return names;

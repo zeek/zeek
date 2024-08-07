@@ -40,10 +40,6 @@ export {
 	## worker nodes in a cluster.  Used with broker-enabled cluster communication.
 	const worker_topic = "zeek/cluster/worker" &redef;
 
-	## The topic name used for exchanging messages that are relevant to
-	## time machine nodes in a cluster.  Used with broker-enabled cluster communication.
-	const time_machine_topic = "zeek/cluster/time_machine" &redef &deprecated="Remove in v7.1: Unused.";
-
 	## A set of topic names to be used for broadcasting messages that are
 	## relevant to all nodes in a cluster. Currently, there is not a common
 	## topic to broadcast to, because enabling implicit Broker forwarding would
@@ -53,9 +49,6 @@ export {
 		manager_topic,
 		proxy_topic,
 		worker_topic,
-@pragma push ignore-deprecations
-		time_machine_topic,
-@pragma pop ignore-deprecations
 	};
 
 	## The topic prefix used for exchanging messages that are relevant to
@@ -169,10 +162,6 @@ export {
 		PROXY,
 		## The node type doing all the actual traffic analysis.
 		WORKER,
-		## A node acting as a traffic recorder using the
-		## `Time Machine <https://github.com/zeek/time-machine>`_
-		## software.
-		TIME_MACHINE &deprecated="Remove in v7.1: Unused.",
 	};
 
 	## Record type to indicate a node in a cluster.
@@ -187,12 +176,8 @@ export {
 		## The port that this node will listen on for peer connections.
 		## A value of ``0/unknown`` means the node is not pre-configured to listen.
 		p:            port        &default=0/unknown;
-		## Identifier for the interface a worker is sniffing.
-		interface:    string      &optional &deprecated="Remove in v7.1: interface is not required and not set consistently on workers. Replace usages with packet_source() or keep a separate worker-to-interface mapping in a global table.";
 		## Name of the manager node this node uses.  For workers and proxies.
 		manager:      string      &optional;
-		## Name of a time machine node with which this node connects.
-		time_machine: string      &optional &deprecated="Remove in v7.1: Unused.";
 		## A unique identifier assigned to the node by the broker framework.
 		## This field is only set while a node is connected.
 		id: string                &optional;

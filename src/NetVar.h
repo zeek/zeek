@@ -85,8 +85,6 @@ extern int dpd_match_only_beginning;
 extern int dpd_late_match_stop;
 extern int dpd_ignore_ports;
 
-extern int check_for_unused_event_handlers;
-
 extern int record_all_packets;
 
 extern zeek_uint_t bits_per_uid;

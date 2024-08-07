@@ -1,3 +1,46 @@
+7.1.0-dev.129 | 2024-08-07 12:20:22 -0700
+
+  * Remove deprecated port/ports fields for spicy analyzers (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated Cluster::Node::interface field (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated signature definition format (Tim Wojtulewicz, Corelight)
+
+  * Return an error if GLOBAL:: prefix is used (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated BloomFilter serialization methods (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated OpaqueVal serialization methods (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated DECLARE_OPAQUE_VALUE macro (Tim Wojtulewicz, Corelight)
+
+  * Make TypePtr::Capture member variables private (Tim Wojtulewicz, Corelight)
+
+    The public versions were marked as deprecated for 7.0, and accessors
+    should be used to manage them now.
+
+  * Remove deprecated Trigger constructor (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated Controller::auto_assign_ports and Controller::auto_assign_start_port (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated load-balacing policy script (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated prometheus telemetry policy script (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated policy/tuning/default package (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated time machine settings (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated json NullDoubleWriter class (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated modbus event definitions (Tim Wojtulewicz, Corelight)
+
+  * Remove Connection::AppendAddl (Tim Wojtulewicz, Corelight)
+
+  * Remove STMT_ANY statement type (Tim Wojtulewicz, Corelight)
+
+  * Remove EventRegistry::Used and EventRegistry::SetUsed (Tim Wojtulewicz, Corelight)
+
 7.1.0-dev.109 | 2024-08-07 14:10:54 +0200
 
   * ldap: Promote uint8 to uint64 before shifting (Arne Welzel, Corelight)

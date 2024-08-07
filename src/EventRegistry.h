@@ -69,8 +69,6 @@ public:
     // themselves.
     void SetErrorHandler(std::string_view name);
 
-    [[deprecated("Remove in v7.1 - Unused handlers are now found via UsageAnalyzer.")]] string_list UnusedHandlers();
-    [[deprecated("Remove in v7.1 - UsedHandlers() is unreliable - use AllHandlers().")]] string_list UsedHandlers();
     string_list AllHandlers();
 
     void PrintDebug();

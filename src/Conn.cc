@@ -258,15 +258,6 @@ analyzer::Analyzer* Connection::FindAnalyzer(const zeek::Tag& tag) {
 
 analyzer::Analyzer* Connection::FindAnalyzer(const char* name) { return adapter->FindChild(name); }
 
-void Connection::AppendAddl(const char* str) {
-    const auto& cv = GetVal();
-
-    const char* old = cv->GetFieldAs<StringVal>(6)->CheckString();
-    const char* format = *old ? "%s %s" : "%s%s";
-
-    cv->Assign(6, util::fmt(format, old, str));
-}
-
 void Connection::Match(detail::Rule::PatternType type, const u_char* data, int len, bool is_orig, bool bol, bool eol,
                        bool clear_state) {
     if ( primary_PIA )

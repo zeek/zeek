@@ -18,12 +18,6 @@ BloomFilter::BloomFilter(const detail::Hasher* arg_hasher) { hasher = arg_hasher
 
 BloomFilter::~BloomFilter() { delete hasher; }
 
-broker::expected<broker::data> BloomFilter::Serialize() const {
-    if ( auto res = SerializeData() )
-        return zeek::detail::BrokerDataAccess::Unbox(*res);
-    return {broker::make_error(broker::ec::serialization_failed)};
-}
-
 std::optional<BrokerData> BloomFilter::SerializeData() const {
     auto h = hasher->Serialize();
 
@@ -41,10 +35,6 @@ std::optional<BrokerData> BloomFilter::SerializeData() const {
     builder.Add(std::move(*h));
     builder.Add(std::move(*d));
     return std::move(builder).Build();
-}
-
-std::unique_ptr<BloomFilter> BloomFilter::Unserialize(const broker::data& data) {
-    return UnserializeData(BrokerDataView{&data});
 }
 
 std::unique_ptr<BloomFilter> BloomFilter::UnserializeData(BrokerDataView data) {

@@ -335,12 +335,6 @@ function config_assign_broker_ports(config: Management::Configuration)
 	# instances.
 	local start_port = Management::Controller::auto_assign_broker_start_port;
 
-@pragma push ignore-deprecations
-	# Keep deprecated config setting working until 7.1:
-	if ( Management::Controller::auto_assign_start_port != 2200/tcp )
-		start_port = Management::Controller::auto_assign_start_port;
-@pragma pop ignore-deprecations
-
 	local p = port_to_count(start_port);
 
 	# A set that tracks the ports we've used so far. Helpful for avoiding
@@ -613,17 +607,10 @@ function config_validate(config: Management::Configuration,
 	# ports.  Verify this both for Broker's ports and the metrics export
 	# ones.
 
-@pragma push ignore-deprecations
-	# Keep deprecated config setting working until 7.1:
-	local auto_broker_ports = Management::Controller::auto_assign_broker_ports;
-	if ( ! Management::Controller::auto_assign_ports )
-		auto_broker_ports = F;
-@pragma pop ignore-deprecations
-
 	local nodes: vector of string;
 	local nodes_str: string;
 
-	if ( ! auto_broker_ports )
+	if ( ! Management::Controller::auto_assign_broker_ports )
 		{
 		nodes = config_nodes_lacking_broker_ports(config);
 
@@ -1042,17 +1029,10 @@ event Management::Controller::API::stage_configuration_request(reqid: string, co
 	g_configs[STAGED] = config;
 	config_copy = copy(config);
 
-@pragma push ignore-deprecations
-	# Keep deprecated config setting working until 7.1:
-	local auto_broker_ports = Management::Controller::auto_assign_broker_ports;
-	if ( ! Management::Controller::auto_assign_ports )
-		auto_broker_ports = F;
-
-	if ( auto_broker_ports )
+	if ( Management::Controller::auto_assign_broker_ports )
 		config_assign_broker_ports(config_copy);
 	if ( Management::Controller::auto_assign_metrics_ports )
 		config_assign_metrics_ports(config_copy);
-@pragma pop ignore-deprecations
 
 	g_configs[READY] = config_copy;
 

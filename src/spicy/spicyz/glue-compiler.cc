@@ -260,79 +260,6 @@ static std::string extract_expr(const std::string& chunk, size_t* i) {
     return expr;
 }
 
-static hilti::rt::Port extract_port(const std::string& chunk, size_t* i) {
-    eat_spaces(chunk, i);
-
-    std::string s;
-    size_t j = *i;
-
-    while ( j < chunk.size() && isdigit(chunk[j]) )
-        ++j;
-
-    if ( *i == j )
-        throw ParseError("cannot parse port specification");
-
-    hilti::rt::Protocol proto;
-    uint64_t port = std::numeric_limits<uint64_t>::max();
-
-    s = chunk.substr(*i, j - *i);
-    hilti::util::atoi_n(s.begin(), s.end(), 10, &port);
-
-    if ( port > 65535 )
-        throw ParseError("port outside of valid range");
-
-    *i = j;
-
-    if ( chunk[*i] != '/' )
-        throw ParseError("cannot parse port specification");
-
-    (*i)++;
-
-    if ( looking_at(chunk, *i, "tcp") ) {
-        proto = hilti::rt::Protocol::TCP;
-        eat_token(chunk, i, "tcp");
-    }
-
-    else if ( looking_at(chunk, *i, "udp") ) {
-        proto = hilti::rt::Protocol::UDP;
-        eat_token(chunk, i, "udp");
-    }
-
-    else if ( looking_at(chunk, *i, "icmp") ) {
-        proto = hilti::rt::Protocol::ICMP;
-        eat_token(chunk, i, "icmp");
-    }
-
-    else
-        throw ParseError("cannot parse port specification");
-
-    return {static_cast<uint16_t>(port), proto};
-}
-
-static ::zeek::spicy::rt::PortRange extract_port_range(const std::string& chunk, size_t* i) {
-    auto start = extract_port(chunk, i);
-    auto end = std::optional<hilti::rt::Port>();
-
-    if ( looking_at(chunk, *i, "-") ) {
-        eat_token(chunk, i, "-");
-        end = extract_port(chunk, i);
-    }
-
-    if ( end ) {
-        if ( start.protocol() != end->protocol() )
-            throw ParseError("start and end of port range must have same protocol");
-
-        if ( start.port() > end->port() )
-            throw ParseError("start of port range cannot be after its end");
-    }
-
-    if ( ! end )
-        // EVT port ranges are a closed.
-        end = hilti::rt::Port(start.port(), start.protocol());
-
-    return {start, *end};
-}
-
 void GlueCompiler::init(Driver* driver, int zeek_version) {
     _driver = driver;
     _zeek_version = zeek_version;
@@ -704,27 +631,6 @@ glue::ProtocolAnalyzer GlueCompiler::parseProtocolAnalyzer(const std::string& ch
             }
         }
 
-        else if ( looking_at(chunk, i, "ports") ) {
-            eat_token(chunk, &i, "ports");
-            eat_token(chunk, &i, "{");
-
-            while ( true ) {
-                a.ports.push_back(extract_port_range(chunk, &i));
-
-                if ( looking_at(chunk, i, "}") ) {
-                    eat_token(chunk, &i, "}");
-                    break;
-                }
-
-                eat_token(chunk, &i, ",");
-            }
-        }
-
-        else if ( looking_at(chunk, i, "port") ) {
-            eat_token(chunk, &i, "port");
-            a.ports.push_back(extract_port_range(chunk, &i));
-        }
-
         else if ( looking_at(chunk, i, "replaces") ) {
             eat_token(chunk, &i, "replaces");
             a.replaces = extract_id(chunk, &i);
@@ -738,14 +644,6 @@ glue::ProtocolAnalyzer GlueCompiler::parseProtocolAnalyzer(const std::string& ch
 
         eat_token(chunk, &i, ",");
     }
-
-    if ( ! a.ports.empty() )
-        hilti::logger().warning(
-            hilti::rt::
-                fmt("Remove in v7.1: Analyzer %s is using the deprecated 'port' or 'ports' keyword to register "
-                    "well-known ports. Use Analyzer::register_for_ports() in the accompanying Zeek script instead.",
-                    a.name),
-            a.location);
 
     return a;
 }
@@ -1034,13 +932,6 @@ bool GlueCompiler::compile() {
 
         preinit_body.addCall("zeek_rt::register_protocol_analyzer",
                              {builder()->stringMutable(a.name.str()), builder()->id(protocol),
-                              builder()->vector(
-                                  hilti::util::transform(a.ports,
-                                                         [this](const auto& p) -> hilti::Expression* {
-                                                             return builder()->call("zeek_rt::make_port_range",
-                                                                                    {builder()->port(p.begin),
-                                                                                     builder()->port(p.end)});
-                                                         })),
                               builder()->stringMutable(a.unit_name_orig.str()),
                               builder()->stringMutable(a.unit_name_resp.str()), builder()->stringMutable(a.replaces),
                               builder()->scope()});

@@ -2,6 +2,8 @@
 
 #include <sys/socket.h>
 #include <unistd.h>
+#include <cstdint>
+#include <limits>
 
 #include "zeek/Event.h"
 #include "zeek/IPAddr.h"
@@ -22,8 +24,7 @@ void HeartbeatTimer::Dispatch(double t, bool is_expire) {
 
 } // namespace detail
 
-static std::vector<uint64_t> pending_bucket_brackets = {1,    10,    100,
-                                                        1000, 10000, std::numeric_limits<uint64_t>::infinity()};
+static std::vector<uint64_t> pending_bucket_brackets = {1, 10, 100, 1000, 10000, std::numeric_limits<uint64_t>::max()};
 
 Manager::Manager() {
     DBG_LOG(DBG_THREADING, "Creating thread manager ...");
@@ -55,22 +56,15 @@ void Manager::InitPostScript() {
                 for ( const auto& t : thread_mgr->msg_threads ) {
                     t->GetStats(&thread_stats);
 
-                    thread_mgr->current_bucketed_messages.sent_in_total += thread_stats.sent_in;
-                    thread_mgr->current_bucketed_messages.sent_out_total += thread_stats.sent_out;
                     thread_mgr->current_bucketed_messages.pending_in_total += thread_stats.pending_in;
                     thread_mgr->current_bucketed_messages.pending_out_total += thread_stats.pending_out;
 
                     for ( auto upper_limit : pending_bucket_brackets ) {
-                        if ( thread_stats.pending_in < upper_limit ) {
+                        if ( thread_stats.pending_in <= upper_limit )
                             thread_mgr->current_bucketed_messages.pending_in[upper_limit]++;
-                            break;
-                        }
-                    }
-                    for ( auto upper_limit : pending_bucket_brackets ) {
-                        if ( thread_stats.pending_out < upper_limit ) {
+
+                        if ( thread_stats.pending_out <= upper_limit )
                             thread_mgr->current_bucketed_messages.pending_out[upper_limit]++;
-                            break;
-                        }
                     }
                 }
 
@@ -92,22 +86,10 @@ void Manager::InitPostScript() {
 
     total_threads_metric = telemetry_mgr->CounterInstance("zeek", "msgthread_threads", {}, "Total number of threads");
     total_messages_in_metric =
-        telemetry_mgr->CounterInstance("zeek", "msgthread_in_messages", {}, "Number of inbound messages received", "",
-                                       []() -> prometheus::ClientMetric {
-                                           auto* s = get_message_thread_stats();
-                                           prometheus::ClientMetric metric;
-                                           metric.gauge.value = static_cast<double>(s->sent_in_total);
-                                           return metric;
-                                       });
+        telemetry_mgr->CounterInstance("zeek", "msgthread_in_messages", {}, "Number of inbound messages received", "");
 
-    total_messages_in_metric =
-        telemetry_mgr->CounterInstance("zeek", "msgthread_out_messages", {}, "Number of outbound messages sent", "",
-                                       []() -> prometheus::ClientMetric {
-                                           auto* s = get_message_thread_stats();
-                                           prometheus::ClientMetric metric;
-                                           metric.gauge.value = static_cast<double>(s->sent_out_total);
-                                           return metric;
-                                       });
+    total_messages_out_metric =
+        telemetry_mgr->CounterInstance("zeek", "msgthread_out_messages", {}, "Number of outbound messages sent", "");
 
     pending_messages_in_metric =
         telemetry_mgr->GaugeInstance("zeek", "msgthread_pending_in_messages", {}, "Pending number of inbound messages",
@@ -127,15 +109,15 @@ void Manager::InitPostScript() {
                                      });
 
     pending_message_in_buckets_fam =
-        telemetry_mgr->GaugeFamily("zeek", "msgthread_pending_messages_in_buckets", {"lt"},
+        telemetry_mgr->GaugeFamily("zeek", "msgthread_pending_messages_in_buckets", {"le"},
                                    "Number of threads with pending inbound messages split into buckets");
     pending_message_out_buckets_fam =
-        telemetry_mgr->GaugeFamily("zeek", "msgthread_pending_messages_out_buckets", {"lt"},
+        telemetry_mgr->GaugeFamily("zeek", "msgthread_pending_messages_out_buckets", {"le"},
                                    "Number of threads with pending outbound messages split into buckets");
 
     for ( auto upper_limit : pending_bucket_brackets ) {
         std::string upper_limit_str;
-        if ( upper_limit == std::numeric_limits<uint64_t>::infinity() )
+        if ( upper_limit == std::numeric_limits<uint64_t>::max() )
             upper_limit_str = "inf";
         else
             upper_limit_str = std::to_string(upper_limit);
@@ -144,7 +126,7 @@ void Manager::InitPostScript() {
         current_bucketed_messages.pending_out[upper_limit] = 0;
 
         pending_message_in_buckets[upper_limit] =
-            pending_message_in_buckets_fam->GetOrAdd({{"lt", upper_limit_str}},
+            pending_message_in_buckets_fam->GetOrAdd({{"le", upper_limit_str}},
                                                      [upper_limit]() -> prometheus::ClientMetric {
                                                          auto* s = get_message_thread_stats();
                                                          prometheus::ClientMetric metric;
@@ -153,7 +135,7 @@ void Manager::InitPostScript() {
                                                          return metric;
                                                      });
         pending_message_out_buckets[upper_limit] =
-            pending_message_out_buckets_fam->GetOrAdd({{"lt", upper_limit_str}},
+            pending_message_out_buckets_fam->GetOrAdd({{"le", upper_limit_str}},
                                                       [upper_limit]() -> prometheus::ClientMetric {
                                                           auto* s = get_message_thread_stats();
                                                           prometheus::ClientMetric metric;
@@ -262,6 +244,10 @@ void Manager::StartHeartbeatTimer() {
     zeek::detail::timer_mgr->Add(
         new detail::HeartbeatTimer(run_state::network_time + BifConst::Threading::heartbeat_interval));
 }
+
+void Manager::MessageIn() { total_messages_in_metric->Inc(); }
+
+void Manager::MessageOut() { total_messages_out_metric->Inc(); }
 
 // Raise everything in here as warnings so it is passed to scriptland without
 // looking "fatal". In addition to these warnings, ReaderBackend will queue

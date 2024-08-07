@@ -162,7 +162,9 @@ void Manager::InitPostScript() {
                               });
 #endif
 
-    iosource_mgr->RegisterFd(collector_flare.FD(), this);
+    if ( ! iosource_mgr->RegisterFd(collector_flare.FD(), this) ) {
+        reporter->FatalError("Failed to register telemetry collector descriptor");
+    }
 }
 
 void Manager::Terminate() {

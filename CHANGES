@@ -1,3 +1,47 @@
+7.1.0-dev.105 | 2024-08-07 10:54:10 +0200
+
+  * telemetry/Manager: Check RegisterFd() return value (Arne Welzel, Corelight)
+
+    Please coverity.
+
+  * telemetry/Manager: Track sent_in and sent_out totals without callback (Arne Welzel, Corelight)
+
+    For terminated threads, the totals would go down once the threads are
+    removed, which isn't great. Move tracking of sent in and sent out
+    messages from callback to explicit `Inc()` calls.
+
+    Also fixes total_messages_in_metric being initialized twice rather
+    than total_messages_out_metric.
+
+  * threading/Manager: Switch inf bucket from infinity() to max() (Arne Welzel, Corelight)
+
+    For uint64_t, std::numeric_limits<T>::has_infinity is false and infinity()
+    actually returns 0. Use uint64_t's max() instead. We could cast to double
+    and use the double infinity, but this seems reasonable, too.
+
+    This was found while trying to provoke some pending messages and being
+    confused why all but the "inf" bucket increased.
+
+  * threading/Manager: "lt" to "le" and do not break (Arne Welzel, Corelight)
+
+    The buckets are specified as lower-equal (changed from lower-than now),
+    which means we shouldn't break: The larger "le" bucket contains all previous
+    buckets, too. The "inf" bucket represents the current number of threads.
+
+    For example, with a total of 10 threads, 5 threads with 0 messages pending,
+    another 4 threads with 50 messages, and on with 2000 messages, the metrics
+    would end end up as follows:
+
+        pending_buckets{le=1}      = 5
+        pending_buckets{le=10}     = 5
+        pending_buckets{le=100}    = 9
+        pending_buckets{le=1000}   = 9
+        pending_buckets{le=10000}  = 10
+        pending_buckets{le=inf}    = 10
+
+    This might be strange initially, but aligns with the Prometheus
+    histogram approach (though we're using gauges here).
+
 7.1.0-dev.99 | 2024-08-06 20:08:37 +0200
 
   * Bump auxil/spicy to latest development snapshot (Arne Welzel, Corelight)

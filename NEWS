@@ -9,6 +9,13 @@ Zeek 7.1.0
 Breaking Changes
 ----------------
 
+* The ``OpaqueVal::DoSerialize`` and ``OpaqueVal::DoUnserialize`` methods were
+  marked as deprecated in v7.0 and have now been removed as per the Zeek
+  deprecation policy. Plugins that were overriding these methods and were not
+  updated will fail to compile. Those plugins should be updated to override the
+  new ``OpaqueVal::DoSerializeData`` and ``OpaqueVal::DoUnserializeData``
+  methods.
+
 New Functionality
 -----------------
 

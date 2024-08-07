@@ -622,9 +622,6 @@ void analyze_scripts(bool no_unused_warnings) {
     else
         pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true, true);
 
-    if ( analysis_options.gen_ZAM )
-        analyze_scripts_for_ZAM(pfs);
-
     if ( generating_CPP ) {
         if ( analysis_options.gen_ZAM )
             reporter->FatalError("-O ZAM and -O gen-C++ conflict");
@@ -632,6 +629,8 @@ void analyze_scripts(bool no_unused_warnings) {
         generate_CPP(pfs);
         exit(0);
     }
+
+    analyze_scripts_for_ZAM(pfs);
 
     if ( reporter->Errors() > 0 )
         reporter->FatalError("Optimized script execution aborted due to errors");

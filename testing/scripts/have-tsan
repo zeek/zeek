@@ -1,0 +1,7 @@
+#!/bin/sh
+
+if grep -q "ZEEK_SANITIZERS:STRING=.*thread.*" "${BUILD}"/CMakeCache.txt; then
+    exit 0
+fi
+
+exit 1

@@ -225,6 +225,10 @@ struct Manager::Filter {
     vector<list<int>> indices;
 
     ~Filter();
+
+    // Invoke path_func of this filter and sets write_path with the
+    // result. Returns true on success, otherwise false.
+    bool InvokePathFunc(const Manager::Stream* stream, const zeek::RecordValPtr& columns, std::string& write_path);
 };
 
 struct Manager::WriterInfo {
@@ -284,6 +288,47 @@ struct Manager::Stream {
     void ScheduleLogDelayExpiredTimer(double t);
     void DispatchDelayExpiredTimer(double t, bool is_expire);
 };
+
+bool Manager::Filter::InvokePathFunc(const Manager::Stream* stream, const zeek::RecordValPtr& columns,
+                                     std::string& write_path) {
+    ValPtr path_arg;
+
+    if ( path_val )
+        path_arg = {NewRef{}, path_val};
+    else
+        path_arg = val_mgr->EmptyString();
+
+    ValPtr rec_arg;
+    const auto& rt = path_func->GetType()->Params()->GetFieldType("rec");
+
+    if ( rt->Tag() == TYPE_RECORD )
+        rec_arg = columns->CoerceTo(cast_intrusive<RecordType>(rt), true);
+    else
+        // Can be TYPE_ANY here.
+        rec_arg = columns;
+
+    auto v = path_func->Invoke(IntrusivePtr{NewRef{}, stream->id}, std::move(path_arg), std::move(rec_arg));
+
+    if ( ! v ) {
+        reporter->Error("path_func did not return a value");
+        return false;
+    }
+
+    if ( v->GetType()->Tag() != TYPE_STRING ) {
+        reporter->Error("path_func did not return string");
+        return false;
+    }
+
+    // If this filter didn't have path_val set, do so now.
+    if ( ! path_val ) {
+        path = v->AsString()->CheckString();
+        path_val = v->Ref();
+    }
+
+    write_path = v->AsString()->CheckString();
+
+    return true;
+}
 
 Manager::Filter::~Filter() {
     Unref(fval);
@@ -1034,44 +1079,11 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
             continue;
 
         if ( filter->path_func ) {
-            ValPtr path_arg;
-
-            if ( filter->path_val )
-                path_arg = {NewRef{}, filter->path_val};
-            else
-                path_arg = val_mgr->EmptyString();
-
-            ValPtr rec_arg;
-            const auto& rt = filter->path_func->GetType()->Params()->GetFieldType("rec");
-
-            if ( rt->Tag() == TYPE_RECORD )
-                rec_arg = columns->CoerceTo(cast_intrusive<RecordType>(rt), true);
-            else
-                // Can be TYPE_ANY here.
-                rec_arg = columns;
-
-            auto v =
-                filter->path_func->Invoke(IntrusivePtr{NewRef{}, stream->id}, std::move(path_arg), std::move(rec_arg));
-
-            if ( ! v )
+            if ( ! filter->InvokePathFunc(stream, columns, path) )
                 return false;
 
-            if ( v->GetType()->Tag() != TYPE_STRING ) {
-                reporter->Error("path_func did not return string");
-                return false;
-            }
-
-            if ( ! filter->path_val ) {
-                filter->path = v->AsString()->CheckString();
-                filter->path_val = v->Ref();
-            }
-
-            path = v->AsString()->CheckString();
-
-#ifdef DEBUG
             DBG_LOG(DBG_LOGGING, "Path function for filter '%s' on stream '%s' return '%s'", filter->name.c_str(),
                     stream->name.c_str(), path.c_str());
-#endif
         }
 
         Stream::WriterPathPair wpp(filter->writer->AsEnum(), path);

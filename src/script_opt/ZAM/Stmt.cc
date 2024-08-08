@@ -423,45 +423,27 @@ const ZAMStmt ZAMCompiler::ValueSwitch(const SwitchStmt* sw, const NameExpr* v, 
 }
 
 const ZAMStmt ZAMCompiler::GenSwitch(const SwitchStmt* sw, int slot, InternalTypeTag it) {
-    int tbl = 0;
     ZOp op;
 
     switch ( it ) {
-        case TYPE_INTERNAL_INT:
-            op = OP_SWITCHI_Vii;
-            tbl = int_casesI.size();
-            break;
+        case TYPE_INTERNAL_INT: op = OP_SWITCHI_Vii; break;
 
-        case TYPE_INTERNAL_UNSIGNED:
-            op = OP_SWITCHU_Vii;
-            tbl = uint_casesI.size();
-            break;
+        case TYPE_INTERNAL_UNSIGNED: op = OP_SWITCHU_Vii; break;
 
-        case TYPE_INTERNAL_DOUBLE:
-            op = OP_SWITCHD_Vii;
-            tbl = double_casesI.size();
-            break;
+        case TYPE_INTERNAL_DOUBLE: op = OP_SWITCHD_Vii; break;
 
-        case TYPE_INTERNAL_STRING:
-            op = OP_SWITCHS_Vii;
-            tbl = str_casesI.size();
-            break;
+        case TYPE_INTERNAL_STRING: op = OP_SWITCHS_Vii; break;
 
-        case TYPE_INTERNAL_ADDR:
-            op = OP_SWITCHA_Vii;
-            tbl = str_casesI.size();
-            break;
+        case TYPE_INTERNAL_ADDR: op = OP_SWITCHA_Vii; break;
 
-        case TYPE_INTERNAL_SUBNET:
-            op = OP_SWITCHN_Vii;
-            tbl = str_casesI.size();
-            break;
+        case TYPE_INTERNAL_SUBNET: op = OP_SWITCHN_Vii; break;
 
         default: reporter->InternalError("bad switch type");
     }
 
-    // Add the "head", i.e., the execution of the jump table.
-    auto sw_head_op = ZInstI(op, slot, tbl, 0);
+    // Add the "head", i.e., the execution of the jump table. At this point,
+    // we leave the table (v2) and default (v3) TBD.
+    auto sw_head_op = ZInstI(op, slot, 0, 0);
     sw_head_op.op_type = OP_VVV_I2_I3;
 
     auto sw_head = AddInst(sw_head_op);
@@ -549,19 +531,35 @@ const ZAMStmt ZAMCompiler::GenSwitch(const SwitchStmt* sw, int slot, InternalTyp
     // Now add the jump table to the set we're keeping for the
     // corresponding type.
 
+    size_t tbl;
+
     switch ( it ) {
-        case TYPE_INTERNAL_INT: int_casesI.push_back(new_int_cases); break;
+        case TYPE_INTERNAL_INT:
+            tbl = int_casesI.size();
+            int_casesI.push_back(new_int_cases);
+            break;
 
-        case TYPE_INTERNAL_UNSIGNED: uint_casesI.push_back(new_uint_cases); break;
+        case TYPE_INTERNAL_UNSIGNED:
+            tbl = uint_casesI.size();
+            uint_casesI.push_back(new_uint_cases);
+            break;
 
-        case TYPE_INTERNAL_DOUBLE: double_casesI.push_back(new_double_cases); break;
+        case TYPE_INTERNAL_DOUBLE:
+            tbl = double_casesI.size();
+            double_casesI.push_back(new_double_cases);
+            break;
 
         case TYPE_INTERNAL_STRING:
         case TYPE_INTERNAL_ADDR:
-        case TYPE_INTERNAL_SUBNET: str_casesI.push_back(new_str_cases); break;
+        case TYPE_INTERNAL_SUBNET:
+            tbl = str_casesI.size();
+            str_casesI.push_back(new_str_cases);
+            break;
 
         default: reporter->InternalError("bad switch type");
     }
+
+    insts1[sw_head.stmt_num]->v2 = int(tbl);
 
     AddCFT(insts1[body_end.stmt_num], CFT_BLOCK_END);
 

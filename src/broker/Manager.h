@@ -262,7 +262,29 @@ public:
      * @return an `Event` record value.  If an invalid event or arguments
      * were supplied the optional "name" field will not be set.
      */
-    RecordVal* MakeEvent(ValPList* args, zeek::detail::Frame* frame);
+    [[deprecated("Remove in v8.1: Use the Args iterator version instead")]] RecordVal* MakeEvent(
+        ValPList* args, zeek::detail::Frame* frame);
+
+    using ArgsIt = Args::const_iterator;
+
+    /**
+     * Create an `Event` record value from an event and its arguments.
+     * @param first Iterator for the first argument, a FuncValPtr representing an event.
+     * @param last Iterator pointing past the last argument.
+     * @return an `Event` record value.  If an invalid event or arguments
+     * were supplied the optional "name" field will not be set.
+     */
+    zeek::RecordValPtr MakeEvent(ArgsIt first, ArgsIt last);
+
+    /**
+     * Create an `Event` record value from an event and its arguments.
+     * @param first Iterator for the first argument, a FuncValPtr representing an event.
+     * @param last Iterator pointing past the last argument.
+     * @param frame the calling frame, used to report location info upon error
+     * @return an `Event` record value.  If an invalid event or arguments
+     * were supplied the optional "name" field will not be set.
+     */
+    zeek::RecordValPtr MakeEvent(ArgsIt first, ArgsIt last, zeek::detail::Frame* frame);
 
     /**
      * Register interest in peer event messages that use a certain topic prefix.

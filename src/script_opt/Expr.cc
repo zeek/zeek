@@ -115,6 +115,9 @@ bool Expr::IsReducedConditional(Reducer* c) const {
                 return NonReduced(this);
 
             if ( op1->Tag() == EXPR_LIST ) {
+                if ( ! op1->IsReduced(c) )
+                    return NonReduced(this);
+
                 auto l1 = op1->AsListExpr();
                 auto& l1_e = l1->Exprs();
 

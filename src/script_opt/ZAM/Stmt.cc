@@ -591,7 +591,7 @@ const ZAMStmt ZAMCompiler::TypeSwitch(const SwitchStmt* sw, const NameExpr* v, c
     int ntypes = type_map->size();
     auto aux = new ZInstAux(ntypes);
 
-    for ( auto i = 0; i < type_map->size(); ++i ) {
+    for ( size_t i = 0; i < type_map->size(); ++i ) {
         auto& tm = (*type_map)[i];
         auto id_i = tm.first;
         auto id_case = tm.second;

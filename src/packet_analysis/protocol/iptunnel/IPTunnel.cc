@@ -17,6 +17,8 @@ IPTunnelAnalyzer* ip_tunnel_analyzer;
 IPTunnelAnalyzer::IPTunnelAnalyzer() : zeek::packet_analysis::Analyzer("IPTunnel") { ip_tunnel_analyzer = this; }
 
 bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     if ( ! packet->ip_hdr ) {
         reporter->InternalError("IPTunnelAnalyzer: null ip_hdr in packet");
         return false;
@@ -107,7 +109,7 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt, co
     // Construct fake packet containing the inner packet so it can be processed
     // like a normal one.
     Packet p;
-    p.Init(DLT_RAW, &ts, caplen, len, data, false, "");
+    p.Init(DLT_RAW, &ts, caplen, len, data, pkt, false, "");
     p.encap = outer;
 
     // Forward the packet back to the IP analyzer.
@@ -138,7 +140,7 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt, ui
     // Construct fake packet containing the inner packet so it can be processed
     // like a normal one.
     Packet p;
-    p.Init(link_type, &ts, caplen, len, data, false, "");
+    p.Init(link_type, &ts, caplen, len, data, pkt, false, "");
     p.encap = outer;
 
     // Process the packet as if it was a brand new packet by passing it back
@@ -164,7 +166,8 @@ std::unique_ptr<Packet> build_inner_packet(Packet* outer_pkt, int* encap_index,
     uint32_t consumed_len = outer_pkt->cap_len - inner_cap_len;
     uint32_t inner_wire_len = outer_pkt->len - consumed_len;
 
-    auto inner_pkt = std::make_unique<Packet>(link_type, &outer_pkt->ts, inner_cap_len, inner_wire_len, data);
+    auto inner_pkt =
+        std::make_unique<Packet>(link_type, &outer_pkt->ts, inner_cap_len, inner_wire_len, data, outer_pkt);
 
     *encap_index = 0;
     if ( outer_pkt->session ) {

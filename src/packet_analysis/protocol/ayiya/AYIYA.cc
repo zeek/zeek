@@ -9,6 +9,8 @@ using namespace zeek::packet_analysis::AYIYA;
 AYIYAAnalyzer::AYIYAAnalyzer() : zeek::packet_analysis::Analyzer("AYIYA") {}
 
 bool AYIYAAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     // AYIYA always comes from a TCP or UDP connection, which means that session
     // should always be valid and always be a connection. Return a weird if we
     // didn't have a session stored.

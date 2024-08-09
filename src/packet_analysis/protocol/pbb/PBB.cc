@@ -10,6 +10,8 @@ constexpr int PBB_C_DST_OFF = 4;
 PBBAnalyzer::PBBAnalyzer() : zeek::packet_analysis::Analyzer("PBB") {}
 
 bool PBBAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     if ( PBB_LEN >= len ) {
         Weird("truncated_PBB_header", packet);
         return false;

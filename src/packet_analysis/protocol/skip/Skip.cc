@@ -17,5 +17,6 @@ void SkipAnalyzer::Initialize() {
 }
 
 bool SkipAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
     return ForwardPacket(len - skip_bytes, data + skip_bytes, packet);
 }

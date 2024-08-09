@@ -7,6 +7,8 @@ using namespace zeek::packet_analysis::NFLog;
 NFLogAnalyzer::NFLogAnalyzer() : zeek::packet_analysis::Analyzer("NFLog") {}
 
 bool NFLogAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     if ( 4 >= len ) {
         Weird("truncated_nflog_header", packet);
         return false;

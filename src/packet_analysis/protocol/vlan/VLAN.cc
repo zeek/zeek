@@ -11,6 +11,8 @@ VLANAnalyzer::VLANAnalyzer() : zeek::packet_analysis::Analyzer("VLAN") {
 }
 
 bool VLANAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     if ( 4 >= len ) {
         Weird("truncated_VLAN_header", packet);
         return false;

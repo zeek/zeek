@@ -7,6 +7,8 @@ using namespace zeek::packet_analysis::LLC;
 LLCAnalyzer::LLCAnalyzer() : zeek::packet_analysis::Analyzer("LLC") {}
 
 bool LLCAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     // An LLC header is at least 3 bytes, check for that first.
     if ( len < 3 ) {
         Weird("truncated_llc_header", packet);

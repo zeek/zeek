@@ -9,6 +9,8 @@ using namespace zeek::packet_analysis::IEEE802_11_Radio;
 IEEE802_11_RadioAnalyzer::IEEE802_11_RadioAnalyzer() : zeek::packet_analysis::Analyzer("IEEE802_11_Radio") {}
 
 bool IEEE802_11_RadioAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     if ( 3 >= len ) {
         Weird("truncated_radiotap_header", packet);
         return false;

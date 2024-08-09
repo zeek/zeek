@@ -85,6 +85,8 @@ ARPAnalyzer::ARPAnalyzer() : zeek::packet_analysis::Analyzer("ARP") {}
 #endif
 
 bool ARPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     packet->l3_proto = L3_ARP;
 
     // Check whether the header is complete.

@@ -7,6 +7,8 @@ using namespace zeek::packet_analysis::PPPoE;
 PPPoEAnalyzer::PPPoEAnalyzer() : zeek::packet_analysis::Analyzer("PPPoE") {}
 
 bool PPPoEAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     if ( 8 >= len ) {
         Weird("truncated_pppoe_header", packet);
         return false;

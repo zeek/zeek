@@ -7,6 +7,8 @@ using namespace zeek::packet_analysis::PPP;
 PPPAnalyzer::PPPAnalyzer() : zeek::packet_analysis::Analyzer("PPP") {}
 
 bool PPPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     // Analyzer is meant to handle DLT_PPP.
     //
     // From https://www.tcpdump.org/linktypes.html for LINKTYPE_PPP (0x9):

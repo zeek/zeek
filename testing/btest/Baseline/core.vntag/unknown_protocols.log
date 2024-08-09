@@ -5,9 +5,9 @@
 #unset_field	-
 #path	unknown_protocols
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	analyzer	protocol_id	first_bytes
-#types	time	string	string	string
-XXXXXXXXXX.XXXXXX	IP	0xfd	1b794b175fac06aba658
-XXXXXXXXXX.XXXXXX	IP	0xfd	9d6c1f9e20274bb66385
-XXXXXXXXXX.XXXXXX	IP	0xfd	06ffb64ded001f65f818
+#fields	ts	analyzer	protocol_id	first_bytes	analyzer_history
+#types	time	string	string	string	vector[string]
+XXXXXXXXXX.XXXXXX	IP	0xfd	1b794b175fac06aba658	ETHERNET,VNTAG,VLAN,IP
+XXXXXXXXXX.XXXXXX	IP	0xfd	9d6c1f9e20274bb66385	ETHERNET,VNTAG,VLAN,IP
+XXXXXXXXXX.XXXXXX	IP	0xfd	06ffb64ded001f65f818	ETHERNET,VNTAG,VLAN,IP
 #close XXXX-XX-XX-XX-XX-XX

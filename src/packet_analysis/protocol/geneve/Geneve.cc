@@ -10,6 +10,8 @@ using namespace zeek::packet_analysis::Geneve;
 GeneveAnalyzer::GeneveAnalyzer() : zeek::packet_analysis::Analyzer("Geneve") {}
 
 bool GeneveAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     // Geneve always comes from a UDP connection, which means that session should always
     // be valid and always be a connection. Return a weird if we didn't have a session
     // stored.

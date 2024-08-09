@@ -3831,7 +3831,7 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 		len = pkt_r->GetFieldAs<zeek::CountVal>(3);
 		data = pkt_r->GetFieldAs<zeek::StringVal>(4)->Bytes();
 		link_type = pkt_r->GetFieldAs<zeek::EnumVal>(5);
-		Packet p(link_type, &ts, caplen, len, data, true);
+		Packet p(link_type, &ts, caplen, len, data, nullptr, true);
 
 		addl_pkt_dumper->Dump(&p);
 		}

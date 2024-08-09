@@ -7,6 +7,8 @@ using namespace zeek::packet_analysis::SNAP;
 SNAPAnalyzer::SNAPAnalyzer() : zeek::packet_analysis::Analyzer("SNAP") {}
 
 bool SNAPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     // The first part of the header is an LLC header, which we need to determine the
     // length of the full header. Check to see if the shorter 3-byte version will fit.
     if ( len < 3 ) {

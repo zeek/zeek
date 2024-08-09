@@ -7,6 +7,8 @@ using namespace zeek::packet_analysis::LinuxSLL2;
 LinuxSLL2Analyzer::LinuxSLL2Analyzer() : zeek::packet_analysis::Analyzer("LinuxSLL2") {}
 
 bool LinuxSLL2Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     auto len_sll2_hdr = sizeof(SLL2Header);
     if ( len_sll2_hdr >= len ) {
         Weird("truncated_Linux_SLL2_header", packet);

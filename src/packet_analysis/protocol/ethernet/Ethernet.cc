@@ -13,6 +13,8 @@ EthernetAnalyzer::EthernetAnalyzer() : zeek::packet_analysis::Analyzer("Ethernet
 }
 
 bool EthernetAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     // Make sure that we actually got an entire ethernet header before trying
     // to pull bytes out of it.
     if ( 16 >= len ) {

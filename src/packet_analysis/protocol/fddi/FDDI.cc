@@ -7,6 +7,8 @@ using namespace zeek::packet_analysis::FDDI;
 FDDIAnalyzer::FDDIAnalyzer() : zeek::packet_analysis::Analyzer("FDDI") {}
 
 bool FDDIAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     size_t hdr_size = 13 + 8; // FDDI header + LLC
 
     if ( hdr_size >= len ) {

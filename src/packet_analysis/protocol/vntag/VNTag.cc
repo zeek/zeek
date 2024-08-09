@@ -7,6 +7,8 @@ using namespace zeek::packet_analysis::VNTag;
 VNTagAnalyzer::VNTagAnalyzer() : zeek::packet_analysis::Analyzer("VNTag") {}
 
 bool VNTagAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     if ( 6 >= len ) {
         Weird("truncated_vntag_header", packet);
         return false;

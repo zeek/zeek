@@ -227,13 +227,14 @@ bool Manager::PermitUnknownProtocol(const std::string& analyzer, uint32_t protoc
     return false;
 }
 
-void Manager::ReportUnknownProtocol(const std::string& analyzer, uint32_t protocol, const uint8_t* data, size_t len) {
+void Manager::ReportUnknownProtocol(const std::string& analyzer, uint32_t protocol, const Packet* packet,
+                                    const uint8_t* data, size_t len) {
     if ( unknown_protocol ) {
         if ( PermitUnknownProtocol(analyzer, protocol) ) {
             int bytes_len = std::min(unknown_first_bytes_count, static_cast<uint64_t>(len));
 
             event_mgr.Enqueue(unknown_protocol, make_intrusive<StringVal>(analyzer), val_mgr->Count(protocol),
-                              make_intrusive<StringVal>(bytes_len, (const char*)data));
+                              make_intrusive<StringVal>(bytes_len, (const char*)data), packet->BuildAnalyzerHistory());
         }
     }
 }

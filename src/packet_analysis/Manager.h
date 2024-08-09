@@ -151,12 +151,13 @@ public:
      *
      * @param analyzer The name of the analyzer that was trying to forward the packet.
      * @param protocol The protocol of the next header that couldn't be forwarded.
+     * @param packet The packet the unknown protocol occurred in.
      * @param data A pointer to the data of the next header being processed. If this
      * is passed as a nullptr, the first_bytes log column will be blank.
      * @param len The remaining length of the data in the packet being processed.
      */
-    void ReportUnknownProtocol(const std::string& analyzer, uint32_t protocol, const uint8_t* data = nullptr,
-                               size_t len = 0);
+    void ReportUnknownProtocol(const std::string& analyzer, uint32_t protocol, const Packet* packet,
+                               const uint8_t* data = nullptr, size_t len = 0);
 
     /**
      * Callback method for UnknownProtocolTimer to remove an analyzer/protocol

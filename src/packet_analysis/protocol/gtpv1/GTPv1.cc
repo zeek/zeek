@@ -10,6 +10,8 @@ namespace zeek::packet_analysis::gtpv1 {
 GTPv1_Analyzer::GTPv1_Analyzer() : zeek::packet_analysis::Analyzer("GTPV1") {}
 
 bool GTPv1_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    Analyzer::AnalyzePacket(len, data, packet);
+
     // GTPv1 always comes from a UDP connection, which means that session should always
     // be valid and always be a connection. Return a weird if we didn't have a session
     // stored.

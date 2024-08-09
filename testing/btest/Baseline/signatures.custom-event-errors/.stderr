@@ -5,4 +5,6 @@ warning in <...>/custom-event-errors.zeek, line 9: Wrong number of arguments for
 error: wrong event parameters for 'wrong_signature3'
 warning in <...>/custom-event-errors.zeek, line 11: Type mismatch in function argument #1. Expected string, got count. (event(state:signature_state, msg:count, data:string))
 error: wrong event parameters for 'wrong_signature4'
-error: Error in signature (./id.sig:19): unknown script-level identifier (non_existing_event)
+error: Error in signature (./id.sig:19): identifier is not an event (non_existing_event)
+error: Error in signature (./id.sig:24): identifier is not an event (cat)
+error: Error in signature (./id.sig:29): identifier is not an event (ignore_checksums)

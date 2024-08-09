@@ -29,7 +29,12 @@ public:
 };
 
 // Convenient way to refer to an offset associated with a particular Zeek type.
-using CPP_ValElem = std::pair<TypeTag, int>;
+// A "struct" rather than a std::pair because C++ compilers are terribly slow
+// at initializing large numbers of the latter.
+struct CPP_ValElem {
+    TypeTag tag;
+    int offset;
+};
 
 // This class groups together all of the vectors needed for run-time
 // initialization.  We gather them together into a single object so as
@@ -57,7 +62,7 @@ public:
     // index.
     ValPtr ConstVals(int offset) const {
         auto& cv = const_vals[offset];
-        return Consts(cv.first, cv.second);
+        return Consts(cv.tag, cv.offset);
     }
 
     // Retrieves the Zeek constant value for a particular Zeek type.

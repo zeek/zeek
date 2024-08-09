@@ -18,7 +18,7 @@
 // standalone globals (for example, one for each BiF that a compiled script
 // may call).
 //
-// For each of these types of initialization, our general approach is to a
+// For each of these types of initialization, our general approach is to have a
 // class that manages a single instance of that type, and an an object that
 // manages all of those instances collectively.  The latter object will, for
 // example, attend to determining the offset into the run-time vector associated
@@ -48,8 +48,15 @@
 // safely use cohort(X) = cohort(Y).)  We then execute run-time initialization
 // in waves, one cohort at a time.
 //
+// Many forms of initialization are specified in terms of indices into globals
+// that hold items of various types.  Thus, the most common initialization
+// information is a vector of integers/indices.  These data structures can
+// be recursive, too, namely we sometimes associate an index with a vector
+// of integers/indices and then we can track multiple such vectors using
+// another vector of integers/indices.
+//
 // Because C++ compilers can struggle when trying to optimize large quantities
-// of code - clang in particular could take many CPU *hours* back when our
+// of code - clang in particular could take many CPU *hours* back when the
 // compiler just generated C++ code snippets for each initialization - rather
 // than producing code that directly executes each given initialization, we
 // instead employ a table-driven approach.  The C++ initializers for the
@@ -58,12 +65,14 @@
 // cohort at a time) to obtain the information needed to initialize any given
 // item.
 //
-// Many forms of initialization are specified in terms of indices into globals
-// that hold items of various types.  Thus, the most common initialization
-// information is a vector of integers/indices.  These data structures can
-// be recursive, too, namely we sometimes associate an index with a vector
-// of integers/indices and then we can track multiple such vectors using
-// another vector of integers/indices.
+// Even this has headaches for very large initializations: both clang and g++
+// are *much* slower to initialize large vectors of simple template types
+// (such as std::pair) than non-template types (such as a struct with two
+// fields, which is all std::pair is, at the end of the day). A similar problem
+// holds for initializing vectors-of-vectors-of-vectors, so we reduce these
+// cases to simpler forms (structs for the first example, a single vector
+// with information embedded within it for how to expand its values into
+// a vector-of-vector-of-vector fr the second).
 
 #include "zeek/File.h"
 #include "zeek/Val.h"

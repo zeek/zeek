@@ -259,7 +259,7 @@ protected:
 // on subclasses of TypePtr.
 class CPP_TypeInits : public CPP_IndexedInits<TypePtr> {
 public:
-    CPP_TypeInits(std::vector<TypePtr>& _inits_vec, int _offsets_set, std::vector<std::vector<ValElemVec>> _inits)
+    CPP_TypeInits(std::vector<TypePtr>& _inits_vec, int _offsets_set, std::vector<ValElemVecVec> _inits)
         : CPP_IndexedInits<TypePtr>(_inits_vec, _offsets_set, _inits) {}
 
 protected:

@@ -162,9 +162,6 @@ protected:
     // Pre-initialize all elements requiring it.
     virtual void DoPreInits(InitsManager* im, const std::vector<int>& offsets_vec) {}
 
-    // Generate a single element.
-    virtual void GenerateElement(InitsManager* im, T2& init, int offset) {}
-
     // The initialization vector in its entirety.
     std::vector<T1>& inits_vec;
 

@@ -1,3 +1,19 @@
+7.1.0-dev.139 | 2024-08-09 20:57:23 +0200
+
+  * rule-parse: Remove id_to_str() lookup to squelch coverity warning (Arne Welzel, Corelight)
+
+    Coverity didn't like that id_to_str() allocates memory and we didn't
+    free it. Remote its usage wholesale.
+
+  * GH-3774: btest: Skip core.script-args under TSAN (Arne Welzel, Corelight)
+
+    TSAN may re-execute the executable when the memory layout doesn't
+    fullfill requirements, causing argument confusion when that happens.
+
+    Closes #3774.
+
+  * Update zeekctl submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 7.1.0-dev.133 | 2024-08-08 10:44:31 +0200
 
   * Update zeekctl submodule (Tim Wojtulewicz)

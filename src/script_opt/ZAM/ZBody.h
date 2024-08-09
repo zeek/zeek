@@ -8,6 +8,31 @@
 #include "zeek/script_opt/ZAM/Profile.h"
 #include "zeek/script_opt/ZAM/Support.h"
 
+////////////////////////////////////////////////////////////////////////
+// Headers needed for run-time execution:
+
+// Needed for managing the corresponding values.
+#include "zeek/File.h"
+#include "zeek/Func.h"
+#include "zeek/OpaqueVal.h"
+
+// Just needed for BiFs.
+#include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/protocol/conn-size/ConnSize.h"
+#include "zeek/broker/Manager.h"
+#include "zeek/file_analysis/Manager.h"
+#include "zeek/file_analysis/file_analysis.bif.h"
+#include "zeek/logging/Manager.h"
+#include "zeek/packet_analysis/Manager.h"
+#include "zeek/packet_analysis/protocol/gtpv1/GTPv1.h"
+#include "zeek/packet_analysis/protocol/teredo/Teredo.h"
+
+#include "zeek.bif.func_h"
+
+// For reading_live and reading_traces
+#include "zeek/RunState.h"
+////////////////////////////////////////////////////////////////////////
+
 namespace zeek::detail {
 
 // Static information about globals used in a function.
@@ -63,17 +88,17 @@ public:
     const std::string& FuncName() const { return func_name; }
 
 private:
+    friend class CPPCompile;
+
+    auto Instructions() const { return insts; }
+    auto NumInsts() const { return end_pc; }
+
     // Initializes profiling information, if needed.
     void InitProfile();
     std::shared_ptr<ProfVec> BuildProfVec() const;
 
     void ReportProfile(ProfMap& pm, const ProfVec& pv, const std::string& prefix,
                        std::set<std::string> caller_modules) const;
-
-    // Run-time checking for "any" type being consistent with
-    // expected typed.  Returns true if the type match is okay.
-    bool CheckAnyType(const TypePtr& any_type, const TypePtr& expected_type,
-                      const std::shared_ptr<ZAMLocInfo>& loc) const;
 
     StmtPtr Duplicate() override { return {NewRef{}, this}; }
 
@@ -127,5 +152,14 @@ private:
     std::shared_ptr<ProfVec> default_prof_vec;
     ProfVec* curr_prof_vec;
 };
+
+extern bool copy_vec_elem(VectorVal* vv, zeek_uint_t ind, ZVal zv, const TypePtr& t);
+
+extern VectorVal* vec_coerce_DI(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc);
+extern VectorVal* vec_coerce_DU(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc);
+extern VectorVal* vec_coerce_ID(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc);
+extern VectorVal* vec_coerce_IU(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc);
+extern VectorVal* vec_coerce_UD(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc);
+extern VectorVal* vec_coerce_UI(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc);
 
 } // namespace zeek::detail

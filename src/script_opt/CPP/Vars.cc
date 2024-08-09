@@ -111,10 +111,12 @@ string CPPCompile::LocalName(const ID* l) const {
     auto n = l->Name();
     auto without_module = strstr(n, "::");
 
-    if ( without_module )
-        return Canonicalize(without_module + 2);
-    else
-        return Canonicalize(n);
+    while ( without_module ) {
+        n = without_module + 2;
+        without_module = strstr(n, "::");
+    }
+
+    return Canonicalize(n);
 }
 
 string CPPCompile::Canonicalize(const char* name) const {

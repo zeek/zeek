@@ -1,0 +1,89 @@
+# Operations corresponding to assigning to elements of aggregates.
+
+macro VectorElemAssignPre(vec, index)
+	auto ind = index.AsCount();
+	auto vv = vec.AsVector();
+
+macro EvalVectorElemAssign(vec, index, val_setup, assign_op)
+	VectorElemAssignPre(vec, index)
+	val_setup
+	if ( ! assign_op )
+		ERROR("value used but not set");
+
+op Vector-Elem-Assign
+op1-read
+set-type $1
+class VVV
+eval	EvalVectorElemAssign($1, $2,, copy_vec_elem(vv, ind, $3, Z_TYPE))
+
+op Any-Vector-Elem-Assign
+op1-read
+set-type $1
+classes VVV VVC
+eval	EvalVectorElemAssign($1, $2,, vv->Assign(ind, $3.ToVal(Z_TYPE)))
+
+op Vector-Elem-Assign-Any
+op1-read
+class VVV
+op-types X X a
+eval	EvalVectorElemAssign($1, $2, auto any_v = $3;, vv->Assign(ind, {NewRef{}, any_v}))
+
+op Vector-Elem-Assign
+op1-read
+set-type $2
+class VVC
+eval	VectorElemAssignPre($1, $2)
+	(void) copy_vec_elem(vv, ind, $3, Z_TYPE);
+
+# These versions are used when the constant is the index, not the new value.
+op Vector-Elem-Assign
+op1-read
+set-type $1
+class VVi
+op-types V X U
+eval	auto vv = $1;
+	if ( ! copy_vec_elem(vv, $3, $2, Z_TYPE) )
+		ERROR("value used but not set");
+
+op Any-Vector-Elem-Assign
+op1-read
+set-type $1
+class VVi
+op-types V X I
+eval	auto vv = $1;
+	if ( ! vv->Assign($3, $2.ToVal(Z_TYPE)) )
+		ERROR("value used but not set");
+
+op Vector-Elem-Assign-Any
+op1-read
+class VVi
+op-types V a I
+eval	auto vv = $1;
+	auto any_v = $2;
+	vv->Assign($3, {NewRef{}, any_v});
+
+internal-op Vector-Slice-Assign
+op1-read
+class VV
+op-types V V
+eval	ValPtr vec = {NewRef{}, $1};
+	auto indices = Z_AUX->ToListVal(frame);
+	ValPtr vals = {NewRef{}, $2};
+	bool iterators_invalidated;
+	auto error = assign_to_index(std::move(vec), std::move(indices), std::move(vals), iterators_invalidated);
+	if ( error )
+		ERROR(error);
+	if ( iterators_invalidated )
+		WARN("possible loop/iterator invalidation");
+
+
+internal-op Table-Elem-Assign
+op1-read
+classes VV VC
+op-types T X
+eval	auto indices = Z_AUX->ToListVal(frame);
+	auto val = $2.ToVal(Z_TYPE);
+	bool iterators_invalidated = false;
+	$1->Assign(std::move(indices), std::move(val), true, &iterators_invalidated);
+	if ( iterators_invalidated )
+		WARN("possible loop/iterator invalidation");

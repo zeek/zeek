@@ -1985,8 +1985,10 @@ EqExpr::EqExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
         }
     }
 
-    else if ( bt1 == TYPE_PATTERN && bt2 == TYPE_STRING )
-        ;
+    else if ( (bt1 == TYPE_PATTERN && bt2 == TYPE_STRING) || (bt1 == TYPE_STRING && bt2 == TYPE_PATTERN) ) {
+        if ( op1->GetType()->Tag() == TYPE_VECTOR )
+            ExprError("cannot compare string vectors with pattern vectors");
+    }
 
     else
         ExprError("type clash in comparison");
@@ -4063,11 +4065,15 @@ bool CallExpr::IsPure() const {
     if ( IsError() )
         return true;
 
-    if ( ! func->IsPure() )
+    if ( func->Tag() != EXPR_NAME )
+        // Indirect call, can't resolve up front.
         return false;
 
-    auto func_val = func->Eval(nullptr);
+    auto func_id = func->AsNameExpr()->Id();
+    if ( ! func_id->IsGlobal() )
+        return false;
 
+    auto func_val = func_id->GetVal();
     if ( ! func_val )
         return false;
 

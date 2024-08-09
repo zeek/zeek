@@ -14,27 +14,6 @@
 #include "zeek/script_opt/ZAM/Compile.h"
 #include "zeek/session/Manager.h"
 
-// Needed for managing the corresponding values.
-#include "zeek/File.h"
-#include "zeek/Func.h"
-#include "zeek/OpaqueVal.h"
-
-// Just needed for BiFs.
-#include "zeek/analyzer/Manager.h"
-#include "zeek/analyzer/protocol/conn-size/ConnSize.h"
-#include "zeek/broker/Manager.h"
-#include "zeek/file_analysis/Manager.h"
-#include "zeek/file_analysis/file_analysis.bif.h"
-#include "zeek/logging/Manager.h"
-#include "zeek/packet_analysis/Manager.h"
-#include "zeek/packet_analysis/protocol/gtpv1/GTPv1.h"
-#include "zeek/packet_analysis/protocol/teredo/Teredo.h"
-
-#include "zeek.bif.func_h"
-
-// For reading_live and reading_traces
-#include "zeek/RunState.h"
-
 namespace zeek::detail {
 
 static double CPU_prof_overhead = 0.0;
@@ -165,7 +144,7 @@ void report_ZOP_profile() {
 // assigned value was missing (which we can only tell for managed types),
 // true otherwise.
 
-static bool copy_vec_elem(VectorVal* vv, zeek_uint_t ind, ZVal zv, const TypePtr& t) {
+bool copy_vec_elem(VectorVal* vv, zeek_uint_t ind, ZVal zv, const TypePtr& t) {
     if ( vv->Size() <= ind )
         vv->Resize(ind + 1);
 
@@ -200,7 +179,7 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, con
 
 // Vector coercion.
 #define VEC_COERCE(tag, lhs_type, cast, rhs_accessor, ov_check, ov_err)                                                \
-    static VectorVal* vec_coerce_##tag(VectorVal* vec, const ZInst& z) {                                               \
+    VectorVal* vec_coerce_##tag(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc) {                                   \
         auto& v = vec->RawVec();                                                                                       \
         auto yt = make_intrusive<VectorType>(base_type(lhs_type));                                                     \
         auto res_zv = new VectorVal(yt);                                                                               \
@@ -214,7 +193,7 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, con
                     std::string err = "overflow promoting from ";                                                      \
                     err += ov_err;                                                                                     \
                     err += " arithmetic value";                                                                        \
-                    ZAM_run_time_error(z.loc, err.c_str());                                                            \
+                    ZAM_run_time_error(z_loc, err.c_str());                                                            \
                     res[i] = std::nullopt;                                                                             \
                 }                                                                                                      \
                 else                                                                                                   \
@@ -272,7 +251,6 @@ ZBody::ZBody(std::string _func_name, const ZAMCompiler* zc) : Stmt(STMT_ZAM) {
         auto log_ID_type = lookup_ID("ID", "Log");
         ASSERT(log_ID_type);
         ZAM::log_ID_enum_type = log_ID_type->GetType<EnumType>();
-        ZAM::any_base_type = base_type(TYPE_ANY);
         ZVal::SetZValNilStatusAddr(&ZAM_error);
         did_init = false;
     }
@@ -334,6 +312,9 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
 
     // Type of the return value.  If nil, then we don't have a value.
     TypePtr ret_type;
+
+    // ListVal corresponding to INDEX_LIST.
+    static auto zam_index_val_list = make_intrusive<ListVal>(TYPE_ANY);
 
 #ifdef ENABLE_ZAM_PROFILE
     static bool profiling_active = analysis_options.profile_ZAM;
@@ -529,33 +510,6 @@ void ZBody::ReportProfile(ProfMap& pm, const ProfVec& pv, const std::string& pre
     }
 }
 
-bool ZBody::CheckAnyType(const TypePtr& any_type, const TypePtr& expected_type,
-                         const std::shared_ptr<ZAMLocInfo>& loc) const {
-    if ( IsAny(expected_type) )
-        return true;
-
-    if ( ! same_type(any_type, expected_type, false, false) ) {
-        auto at = any_type->Tag();
-        auto et = expected_type->Tag();
-
-        if ( at == TYPE_RECORD && et == TYPE_RECORD ) {
-            auto at_r = any_type->AsRecordType();
-            auto et_r = expected_type->AsRecordType();
-
-            if ( record_promotion_compatible(et_r, at_r) )
-                return true;
-        }
-
-        char buf[8192];
-        snprintf(buf, sizeof buf, "run-time type clash (%s/%s)", type_name(at), type_name(et));
-
-        reporter->RuntimeError(loc->Loc(), "%s", buf);
-        return false;
-    }
-
-    return true;
-}
-
 void ZBody::Dump() const {
     printf("Frame:\n");
 
@@ -591,12 +545,22 @@ TraversalCode ZBody::Traverse(TraversalCallback* cb) const {
     TraversalCode tc = cb->PreStmt(this);
     HANDLE_TC_STMT_PRE(tc);
 
+    for ( auto& gi : globals ) {
+        tc = gi.id->Traverse(cb);
+        HANDLE_TC_STMT_PRE(tc);
+    }
+
+    for ( size_t i = 0; i < NumInsts(); ++i ) {
+        tc = insts[i].Traverse(cb);
+        HANDLE_TC_STMT_PRE(tc);
+    }
+
     tc = cb->PostStmt(this);
     HANDLE_TC_STMT_POST(tc);
 }
 
 // Unary vector operation of v1 <vec-op> v2.
-static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, const ZInst& z) {
+static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, const ZInst& /* z */) {
     // We could speed this up further still by gen'ing up an instance
     // of the loop inside each switch case (in which case we might as
     // well move the whole kit-and-caboodle into the Exec method).  But

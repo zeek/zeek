@@ -9,6 +9,7 @@ extend-ignore-re = [
     "Remove in v6.1.*SupressWeird",
     "max_repititions:.*Remove in v6.1",
     "mis-aliasing of",
+    "mis-indexing",
     # On purpose
     "\"THE NETBIOS NAM\"",
     # NFS stuff.
@@ -20,6 +21,12 @@ extend-ignore-re = [
     "ot->Tag\\(\\) == TYPE_.*",
     "auto.* ot =",
     "ot = OP_.*",
+    "ot\\[",
+    "ot.size",
+    "ot.empty",
+    "ot_i",
+    "ot.c_str",
+    "have_ot",
     "if \\( ot == OP_.*",
     "ot->Yield\\(\\)->InternalType\\(\\)",
     "switch \\( ot \\)",
@@ -53,7 +60,7 @@ ND_REDIRECT = "ND_REDIRECT"
 NED_ACK = "NED_ACK"
 NFS3ERR_ACCES = "NFS3ERR_ACCES"
 NO_SEH = "NO_SEH"
-OP_SWITCHS_VVV = "OP_SWITCHS_VVV"
+OP_SWITCHS_Vii = "OP_SWITCHS_Vii"
 O_WRONLY = "O_WRONLY"
 RPC_NT_CALL_FAILED_DNE = "RPC_NT_CALL_FAILED_DNE"
 RpcAddPrintProvidor = "RpcAddPrintProvidor"

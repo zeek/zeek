@@ -1,0 +1,339 @@
+# Operations corresponding to statements, other than iterations.
+
+macro EvalScheduleArgs(time, is_delta, build_args)
+	if ( ! run_state::terminating )
+		{
+		double dt = time;
+		if ( is_delta )
+			dt += run_state::network_time;
+		auto handler = EventHandlerPtr(Z_AUX_EVENT_HANDLER);
+		ValVec args;
+		build_args
+		auto timer = new ScheduleTimer(handler, std::move(args), dt);
+		timer_mgr->Add(timer);
+		}
+
+macro EvalSchedule(time, is_delta)
+	EvalScheduleArgs(time, is_delta, Z_AUX->FillValVec(args, frame);)
+
+op Schedule
+class ViHL
+op-types D I X X
+op1-read
+custom-method return CompileSchedule(n, nullptr, i, h, l);
+eval	EvalSchedule($1, $2)
+
+op Schedule
+class CiHL
+op-types D I X X
+op1-read
+custom-method return CompileSchedule(nullptr, c, i, h, l);
+eval	EvalSchedule($1, $2)
+
+internal-op Schedule0
+classes ViH CiH
+op-types D I X
+op1-read
+eval	EvalScheduleArgs($1, $2,)
+
+macro QueueEvent(eh, args)
+	if ( *eh )
+		event_mgr.Enqueue(eh, std::move(args));
+
+op Event
+class HL
+op1-read
+custom-method return CompileEvent(h, l);
+eval	ValVec args;
+	Z_AUX->FillValVec(args, frame);
+	QueueEvent(Z_AUX_EVENT_HANDLER, args);
+
+internal-op Event0
+class X
+eval	ValVec args(0);
+	QueueEvent(Z_AUX_EVENT_HANDLER, args);
+
+internal-op Event1
+class V
+op1-read
+eval	ValVec args(1);
+	args[0] = $1.ToVal(Z_TYPE);
+	QueueEvent(Z_AUX_EVENT_HANDLER, args);
+
+internal-op Event2
+class VV
+op1-read
+eval	ValVec args(2);
+	args[0] = $1.ToVal(Z_TYPE);
+	args[1] = $2.ToVal(Z_TYPE2);
+	QueueEvent(Z_AUX_EVENT_HANDLER, args);
+
+internal-op Event3
+class VVV
+op1-read
+eval	ValVec args(3);
+	auto& aux = Z_AUX;
+	args[0] = $1.ToVal(Z_TYPE);
+	args[1] = $2.ToVal(Z_TYPE2);
+	args[2] = $3.ToVal(aux->elems[2].GetType());
+	QueueEvent(Z_AUX_EVENT_HANDLER, args);
+
+internal-op Event4
+class VVVV
+op1-read
+eval	ValVec args(4);
+	auto& aux = Z_AUX;
+	args[0] = $1.ToVal(Z_TYPE);
+	args[1] = $2.ToVal(Z_TYPE2);
+	args[2] = $3.ToVal(aux->elems[2].GetType());
+	args[3] = $4.ToVal(aux->elems[3].GetType());
+	QueueEvent(Z_AUX_EVENT_HANDLER, args);
+
+
+op Return
+class X
+eval	EvalReturn(nullptr,)
+
+macro EvalReturn(val, type)
+	ret_u = val;
+	type
+	DO_ZAM_PROFILE
+	pc = end_pc;
+	continue;
+
+op Return
+op1-read
+classes V C
+set-type $$
+eval	EvalReturn(&$$, SET_RET_TYPE(Z_TYPE))
+
+op When-Return
+class X
+eval	static auto any_val = ZVal();
+	EvalReturn(&any_val,);
+
+
+# Branch on the value of v1 using switch table v2, with default branch to v3
+
+macro EvalSwitchBody(index, branch, cases, postscript)
+	{
+	auto t = cases[index];
+	if ( t.find(v) == t.end() )
+		pc = branch;
+	else
+		pc = t[v];
+	postscript
+	DO_ZAM_PROFILE
+	continue;
+	}
+
+internal-op SwitchI
+op1-read
+class Vii
+op-types I I I
+eval	auto v = $1;
+	EvalSwitchBody($2, $3, int_cases,)
+
+internal-op SwitchU
+op1-read
+class Vii
+op-types U I I
+eval	auto v = $1;
+	EvalSwitchBody($2, $3, uint_cases,)
+
+internal-op SwitchD
+op1-read
+class Vii
+op-types D I I
+eval	auto v = $1;
+	EvalSwitchBody($2, $3, double_cases,)
+
+internal-op SwitchS
+op1-read
+class Vii
+op-types S I I
+eval	auto vs = $1->AsString()->Render();
+	std::string v(vs);
+	EvalSwitchBody($2, $3, str_cases,delete[] vs;)
+
+internal-op SwitchA
+op1-read
+class Vii
+op-types A I I
+eval	auto v = $1->AsAddr().AsString();
+	EvalSwitchBody($2, $3, str_cases,)
+
+internal-op SwitchN
+op1-read
+class Vii
+op-types N I I
+eval	auto v = $1->AsSubNet().AsString();
+	EvalSwitchBody($2, $3, str_cases,)
+
+
+internal-op Determine-Type-Match
+class VV
+op-types I a
+eval	auto& aux = Z_AUX;
+	int match = -1;
+	for ( int i = 0; i < aux->n; ++i )
+		{
+		auto& el = aux->elems[i];
+		auto& et = el.GetType();
+		if ( can_cast_value_to_type($1, et.get()) )
+			{
+			match = i;
+			if ( el.Slot() >= 0 )
+				{
+				auto& tv = frame[el.Slot()];
+				if ( el.IsManaged() )
+					Unref(tv.ManagedVal());
+				tv = ZVal(cast_value_to_type($1, et.get()), et);
+				}
+			break;
+			}
+		}
+	$$ = match;
+
+op CheckAnyLen
+op1-read
+class Vi
+op-types L U
+eval	auto v = $1;
+	if ( v->Vals().size() != $2 )
+		ERROR("mismatch in list lengths");
+
+op Print
+class O
+eval	do_print_stmt(Z_AUX->ToValVec(frame));
+method-post z.aux = v->aux;
+
+op Print1
+op1-read
+classes V C
+set-type $$
+eval	std::vector<ValPtr> vals;
+	vals.push_back($$.ToVal(Z_TYPE));
+	do_print_stmt(vals);
+
+
+internal-op If-Else
+op1-read
+class Vb
+op-types I I
+eval	if ( ! $1 ) $2
+
+internal-op If
+op1-read
+class Vb
+op-types I I
+eval	if ( ! $1 ) $2
+
+internal-op If-Not
+op1-read
+class Vb
+op-types I I
+eval	if ( $1 ) $2
+
+
+op AddStmt
+op1-read
+class VO
+eval	auto indices = Z_AUX->ToListVal(frame);
+	EvalAddStmt($1, indices)
+method-post z.aux = v->aux;
+
+macro EvalAddStmt(lhs, ind)
+	auto index = ind;
+	bool iterators_invalidated = false;
+	lhs.AsTable()->Assign(std::move(index), nullptr, true, &iterators_invalidated);
+	if ( iterators_invalidated )
+		WARN("possible loop/iterator invalidation");
+
+op AddStmt1
+op1-read
+set-type $1
+classes VV VC
+eval	EvalAddStmt($1, $2.ToVal(Z_TYPE))
+
+
+op ClearTable
+op1-read
+class V
+op-types T
+eval	$1->RemoveAll();
+
+op ClearVector
+op1-read
+class V
+op-types V
+eval	$1->Resize(0);
+
+
+op DelTable
+op1-read
+class VO
+op-types T X
+eval	auto indices = Z_AUX->ToListVal(frame);
+	bool iterators_invalidated = false;
+	$1->Remove(*indices, true, &iterators_invalidated);
+	if ( iterators_invalidated )
+		WARN("possible loop/iterator invalidation");
+method-post z.aux = v->aux;
+
+op DelField
+op1-read
+class Vi
+op-types R I
+eval	$1->Remove($2);
+
+
+internal-op Init-Record
+class V
+op-types R
+eval	auto r = new RecordVal(cast_intrusive<RecordType>(Z_TYPE));
+	Unref($$);
+	$$ = r;
+
+internal-op Init-Vector
+class V
+op-types V
+eval	auto vt = cast_intrusive<VectorType>(Z_TYPE);
+	auto vec = new VectorVal(std::move(vt));
+	Unref($$);
+	$$ = vec;
+
+internal-op Init-Table
+class V
+op-types T
+eval	auto tt = cast_intrusive<TableType>(Z_TYPE);
+	auto t = new TableVal(tt, Z_AUX_ATTRS);
+	Unref($$);
+	$$ = t;
+
+op When
+class V
+op1-read
+op-types F
+eval	BuildWhen($1, -1.0)
+
+op When-Timeout
+classes VV VC
+op1-read
+op-types F D
+eval	BuildWhen($1, $2)
+
+macro BuildWhen(zf, timeout)
+	auto& aux = Z_AUX;
+	auto wi = Z_AUX_WHEN_INFO;
+	FuncPtr func{NewRef{}, zf};
+	auto lambda = make_intrusive<FuncVal>(func);
+	wi->Instantiate(std::move(lambda));
+	std::vector<ValPtr> local_aggrs;
+	for ( int i = 0; i < aux->n; ++i )
+		{
+		auto v = aux->ToVal(frame, i);
+		if ( v )
+			local_aggrs.push_back(v);
+		}
+	(void)make_intrusive<trigger::Trigger>(wi, wi->WhenExprGlobals(), local_aggrs, timeout, Z_FRAME, Z_LOC->Loc());

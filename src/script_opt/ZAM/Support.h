@@ -42,6 +42,10 @@ extern bool IsAny(const Type* t);
 inline bool IsAny(const TypePtr& t) { return IsAny(t.get()); }
 inline bool IsAny(const Expr* e) { return IsAny(e->GetType()); }
 
+// Run-time checking for "any" type being consistent with
+// expected typed.  Returns true if the type match is okay.
+extern bool CheckAnyType(const TypePtr& any_type, const TypePtr& expected_type, const std::shared_ptr<ZAMLocInfo>& loc);
+
 extern void ZAM_run_time_error(const char* msg);
 extern void ZAM_run_time_error(std::shared_ptr<ZAMLocInfo> loc, const char* msg);
 extern void ZAM_run_time_error(std::shared_ptr<ZAMLocInfo> loc, const char* msg, const Obj* o);

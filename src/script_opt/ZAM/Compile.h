@@ -159,16 +159,17 @@ private:
 
     const ZAMStmt ValueSwitch(const SwitchStmt* sw, const NameExpr* v, const ConstExpr* c);
     const ZAMStmt TypeSwitch(const SwitchStmt* sw, const NameExpr* v, const ConstExpr* c);
+    const ZAMStmt GenSwitch(const SwitchStmt* sw, int slot, InternalTypeTag it);
 
     void PushNexts() { PushGoTos(nexts); }
     void PushBreaks() { PushGoTos(breaks); }
     void PushFallThroughs() { PushGoTos(fallthroughs); }
     void PushCatchReturns() { PushGoTos(catches); }
 
-    void ResolveNexts(const InstLabel l) { ResolveGoTos(nexts, l); }
-    void ResolveBreaks(const InstLabel l) { ResolveGoTos(breaks, l); }
+    void ResolveNexts(const InstLabel l) { ResolveGoTos(nexts, l, CFT_NEXT); }
+    void ResolveBreaks(const InstLabel l) { ResolveGoTos(breaks, l, CFT_BREAK); }
     void ResolveFallThroughs(const InstLabel l) { ResolveGoTos(fallthroughs, l); }
-    void ResolveCatchReturns(const InstLabel l) { ResolveGoTos(catches, l); }
+    void ResolveCatchReturns(const InstLabel l) { ResolveGoTos(catches, l, CFT_INLINED_RETURN); }
 
     const ZAMStmt LoopOverTable(const ForStmt* f, const NameExpr* val);
     const ZAMStmt LoopOverVector(const ForStmt* f, const NameExpr* val);
@@ -229,8 +230,8 @@ private:
     const ZAMStmt CompileIndex(const NameExpr* n1, int n2_slot, const TypePtr& n2_type, const ListExpr* l,
                                bool in_when);
 
-    const ZAMStmt BuildLambda(const NameExpr* n, LambdaExpr* le);
-    const ZAMStmt BuildLambda(int n_slot, LambdaExpr* le);
+    const ZAMStmt BuildLambda(const NameExpr* n, ExprPtr le);
+    const ZAMStmt BuildLambda(int n_slot, ExprPtr le);
 
     // Second argument is which instruction slot holds the branch target.
     const ZAMStmt GenCond(const Expr* e, int& branch_v);
@@ -277,7 +278,7 @@ private:
     using GoToSets = std::vector<GoToSet>;
 
     void PushGoTos(GoToSets& gotos);
-    void ResolveGoTos(GoToSets& gotos, const InstLabel l);
+    void ResolveGoTos(GoToSets& gotos, const InstLabel l, ControlFlowType cft = CFT_NONE);
 
     ZAMStmt GenGoTo(GoToSet& v);
     ZAMStmt GoToStub();
@@ -321,6 +322,9 @@ private:
     const ZAMStmt EmptyStmt();
     const ZAMStmt ErrorStmt();
     const ZAMStmt LastInst();
+
+    // Adds control flow information to an instruction.
+    void AddCFT(ZInstI* inst, ControlFlowType cft);
 
     // Returns a handle to state associated with building
     // up a list of values.

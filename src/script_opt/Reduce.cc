@@ -833,6 +833,9 @@ IDPtr Reducer::GenLocal(const IDPtr& orig) {
     local_id->SetType(orig->GetType());
     local_id->SetAttrs(orig->GetAttrs());
 
+    // Don't propagate GetParamRecord() since if we're creating a local for the
+    // identifier then that's for a context where it's not a parameter.
+
     if ( orig->IsBlank() )
         local_id->SetBlank();
 

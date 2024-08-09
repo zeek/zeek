@@ -190,8 +190,7 @@ event krb_as_response(c: connection, msg: KDC_Response) &priority=-5
 
 event krb_ap_request(c: connection, ticket: KRB::Ticket, opts: KRB::AP_Options) &priority=5
 	{
-	if ( set_session(c) )
-		return;
+	set_session(c);
 	}
 
 event krb_tgs_request(c: connection, msg: KDC_Request) &priority=5

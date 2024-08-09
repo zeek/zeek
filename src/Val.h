@@ -609,6 +609,8 @@ class FileVal final : public Val {
 public:
     explicit FileVal(FilePtr f);
 
+    FilePtr AsFilePtr() const;
+
     ValPtr SizeVal() const override;
 
     File* Get() const { return file_val.get(); }
@@ -681,6 +683,12 @@ public:
      * @param v  the value to append.
      */
     void Append(ValPtr v);
+
+    /**
+     * Empties the list.
+     * @param v  the value to append.
+     */
+    void Clear() { vals.clear(); }
 
     // Returns a Set representation of the list (which must be homogeneous).
     TableValPtr ToSetVal() const;

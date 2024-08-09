@@ -291,6 +291,9 @@ protected:
      */
     virtual void SetCaptures(Frame* f);
 
+    // Captures when using ZVal block instead of a Frame.
+    std::unique_ptr<std::vector<ZVal>> captures_vec;
+
 private:
     size_t frame_size = 0;
 
@@ -303,9 +306,6 @@ private:
     Frame* captures_frame = nullptr;
 
     OffsetMap* captures_offset_mapping = nullptr;
-
-    // Captures when using ZVal block instead of a Frame.
-    std::unique_ptr<std::vector<ZVal>> captures_vec;
 
     // The most recently added/updated body ...
     StmtPtr current_body;

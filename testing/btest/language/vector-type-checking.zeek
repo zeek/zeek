@@ -44,3 +44,16 @@ event zeek_init()
     {
     local lea: MyVec = vector("thousand-three"); # type clash
     }
+
+# check operation that's okay as a scalar but not as a vector
+event zeek_init()
+    {
+    if ( "foo" == /fo*/ )
+	print "should not complain";
+    }
+
+event zeek_init()
+    {
+    if ( vector("foo") == vector(/fo*/) )
+	print "should complain";
+    }

@@ -234,6 +234,17 @@ void Type::DescribeReST(ODesc* d, bool roles_only) const { d->Add(util::fmt(":ze
 void Type::SetError() { tag = TYPE_ERROR; }
 
 detail::TraversalCode Type::Traverse(detail::TraversalCallback* cb) const {
+    if ( in_traverse )
+        return detail::TC_CONTINUE;
+
+    in_traverse = true;
+    auto tc = DoTraverse(cb);
+    in_traverse = false;
+
+    return tc;
+}
+
+detail::TraversalCode Type::DoTraverse(detail::TraversalCallback* cb) const {
     auto tc = cb->PreType(this);
     HANDLE_TC_TYPE_PRE(tc);
 
@@ -293,7 +304,7 @@ void TypeList::DoDescribe(ODesc* d) const {
     }
 }
 
-detail::TraversalCode TypeList::Traverse(detail::TraversalCallback* cb) const {
+detail::TraversalCode TypeList::DoTraverse(detail::TraversalCallback* cb) const {
     auto tc = cb->PreType(this);
     HANDLE_TC_TYPE_PRE(tc);
 
@@ -383,7 +394,7 @@ void IndexType::DescribeReST(ODesc* d, bool roles_only) const {
     }
 }
 
-detail::TraversalCode IndexType::Traverse(detail::TraversalCallback* cb) const {
+detail::TraversalCode IndexType::DoTraverse(detail::TraversalCallback* cb) const {
     auto tc = cb->PreType(this);
     HANDLE_TC_TYPE_PRE(tc);
 
@@ -601,6 +612,9 @@ SetType::~SetType() = default;
 
 FuncType::Capture::Capture(detail::IDPtr _id, bool _deep_copy) : id(std::move(_id)), deep_copy(_deep_copy) {
     is_managed = id ? ZVal::IsManagedType(id->GetType()) : false;
+    if ( ! is_managed )
+        // For non-managed types, deep copying isn't applicable.
+        deep_copy = false;
 }
 
 FuncType::FuncType(RecordTypePtr arg_args, TypePtr arg_yield, FunctionFlavor arg_flavor)
@@ -779,7 +793,7 @@ std::optional<FuncType::Prototype> FuncType::FindPrototype(const RecordType& arg
     return {};
 }
 
-detail::TraversalCode FuncType::Traverse(detail::TraversalCallback* cb) const {
+detail::TraversalCode FuncType::DoTraverse(detail::TraversalCallback* cb) const {
     auto tc = cb->PreType(this);
     HANDLE_TC_TYPE_PRE(tc);
 
@@ -795,7 +809,7 @@ detail::TraversalCode FuncType::Traverse(detail::TraversalCallback* cb) const {
     HANDLE_TC_TYPE_POST(tc);
 }
 
-detail::TraversalCode TypeType::Traverse(detail::TraversalCallback* cb) const {
+detail::TraversalCode TypeType::DoTraverse(detail::TraversalCallback* cb) const {
     auto tc = cb->PreType(this);
     HANDLE_TC_TYPE_PRE(tc);
 
@@ -1412,7 +1426,7 @@ string RecordType::GetFieldDeprecationWarning(int field, bool has_check) const {
     return "";
 }
 
-detail::TraversalCode RecordType::Traverse(detail::TraversalCallback* cb) const {
+detail::TraversalCode RecordType::DoTraverse(detail::TraversalCallback* cb) const {
     auto tc = cb->PreType(this);
     HANDLE_TC_TYPE_PRE(tc);
 
@@ -1456,7 +1470,7 @@ void FileType::DoDescribe(ODesc* d) const {
     }
 }
 
-detail::TraversalCode FileType::Traverse(detail::TraversalCallback* cb) const {
+detail::TraversalCode FileType::DoTraverse(detail::TraversalCallback* cb) const {
     auto tc = cb->PreType(this);
     HANDLE_TC_TYPE_PRE(tc);
 
@@ -1771,7 +1785,7 @@ void VectorType::DescribeReST(ODesc* d, bool roles_only) const {
         d->Add(util::fmt(":zeek:type:`%s`", yield_type->GetName().c_str()));
 }
 
-detail::TraversalCode VectorType::Traverse(detail::TraversalCallback* cb) const {
+detail::TraversalCode VectorType::DoTraverse(detail::TraversalCallback* cb) const {
     auto tc = cb->PreType(this);
     HANDLE_TC_TYPE_PRE(tc);
 

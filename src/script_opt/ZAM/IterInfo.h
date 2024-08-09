@@ -15,21 +15,54 @@ namespace zeek::detail {
 
 class TableIterInfo {
 public:
-    // No constructor needed, as all of our member variables are
-    // instead instantiated via BeginLoop().  This allows us to
-    // reuse TableIterInfo objects to lower the overhead associated
-    // with executing ZBody::Exec for non-recursive functions.
+    // Empty constructor for a simple version that initializes all the
+    // member variables via BeginLoop(). Helpful for supporting recursive
+    // functions that include table iterations.
+    TableIterInfo() {}
+
+    // Version that populates the fixed fields up front, with the
+    // dynamic ones being done with SetLoopVars().
+    TableIterInfo(const std::vector<TypePtr>* _loop_var_types, const std::vector<bool>* _lvt_is_managed,
+                  TypePtr _value_var_type) {
+        SetIterInfo(_loop_var_types, _lvt_is_managed, std::move(_value_var_type));
+    }
+
+    // Sets the fixed fields.
+    void SetIterInfo(const std::vector<TypePtr>* _loop_var_types, const std::vector<bool>* _lvt_is_managed,
+                     TypePtr _value_var_type) {
+        loop_var_types = _loop_var_types;
+        lvt_is_managed = _lvt_is_managed;
+        value_var_type = std::move(_value_var_type);
+    }
 
     // We do, however, want to make sure that when we go out of scope,
     // if we have any pending iterators we clear them.
     ~TableIterInfo() { Clear(); }
 
-    // Start looping over the elements of the given table.  "_aux"
+    // Start looping over the elements of the given table.  "aux"
     // provides information about the index variables, their types,
     // and the type of the value variable (if any).
-    void BeginLoop(TableValPtr _tv, ZInstAux* _aux) {
-        tv = _tv;
-        aux = _aux;
+    void BeginLoop(TableValPtr _tv, ZVal* frame, ZInstAux* aux) {
+        tv = std::move(_tv);
+
+        for ( auto lv : aux->loop_vars )
+            if ( lv < 0 )
+                loop_vars.push_back(nullptr);
+            else
+                loop_vars.push_back(&frame[lv]);
+
+        SetIterInfo(&aux->types, &aux->is_managed, aux->value_var_type);
+
+        PrimeIter();
+    }
+
+    void BeginLoop(TableValPtr _tv, std::vector<ZVal*> _loop_vars) {
+        tv = std::move(_tv);
+        loop_vars = std::move(_loop_vars);
+        PrimeIter();
+    }
+
+    void PrimeIter() {
         auto tvd = tv->AsTable();
         tbl_iter = tvd->begin();
         tbl_end = tvd->end();
@@ -43,18 +76,17 @@ public:
 
     // Performs the next iteration (assuming IsDoneIterating() returned
     // false), assigning to the index variables.
-    void NextIter(ZVal* frame) {
+    void NextIter() {
         auto ind_lv = tv->RecreateIndex(*(*tbl_iter)->GetHashKey());
         for ( int i = 0; i < ind_lv->Length(); ++i ) {
-            ValPtr ind_lv_p = ind_lv->Idx(i);
-            auto lv = aux->loop_vars[i];
-            if ( lv < 0 )
+            auto lv = loop_vars[i];
+            if ( ! lv )
                 continue;
-            auto& var = frame[lv];
-            if ( aux->is_managed[i] )
-                ZVal::DeleteManagedType(var);
-            auto& t = aux->types[i];
-            var = ZVal(ind_lv_p, t);
+
+            ValPtr ind_lv_p = ind_lv->Idx(i);
+            if ( (*lvt_is_managed)[i] )
+                ZVal::DeleteManagedType(*lv);
+            *lv = ZVal(ind_lv_p, (*loop_var_types)[i]);
         }
 
         IterFinished();
@@ -63,7 +95,7 @@ public:
     // For the current iteration, returns the corresponding value.
     ZVal IterValue() {
         auto tev = (*tbl_iter)->value;
-        return ZVal(tev->GetVal(), aux->value_var_type);
+        return ZVal(tev->GetVal(), value_var_type);
     }
 
     // Called upon finishing the iteration.
@@ -78,8 +110,10 @@ public:
 private:
     TableValPtr tv = nullptr;
 
-    // Associated auxiliary information.
-    ZInstAux* aux = nullptr;
+    std::vector<ZVal*> loop_vars;
+    const std::vector<TypePtr>* loop_var_types;
+    const std::vector<bool>* lvt_is_managed;
+    TypePtr value_var_type;
 
     std::optional<DictIterator<TableEntryVal>> tbl_iter;
     std::optional<DictIterator<TableEntryVal>> tbl_end;

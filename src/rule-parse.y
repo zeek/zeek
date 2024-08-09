@@ -196,12 +196,7 @@ rule_attr:
 			if ( is_event($2) )
 				current_rule->AddAction(new zeek::detail::RuleActionEvent(nullptr, $2));
 			else
-				{
-				const char *msg = id_to_str($2);
-				if ( ! zeek::util::streq(msg, "<error>") )
-					zeek::reporter->Error("Identifier %s is not an event (%s:%d)", id_to_str($2),
-					                      current_rule_file, rules_line_number+1);
-				}
+				rules_error("identifier is not an event", $2);
 			}
 
 	|	TOK_EVENT TOK_IDENT TOK_STRING

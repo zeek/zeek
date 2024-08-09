@@ -23,6 +23,16 @@ signature udp-proto4 {
   ip-proto == 17
   event non_existing_event
 }
+
+signature udp-proto5 {
+  ip-proto == 17
+  event cat  # builtin function
+}
+
+signature udp-proto6 {
+  ip-proto == 17
+  event ignore_checksums  # variable
+}
 @TEST-END-FILE
 
 event wrong_signature2(state: signature_state, data: string) { }

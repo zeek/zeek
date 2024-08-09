@@ -58,7 +58,7 @@ public:
     // TODO: add support for checking for expired data
 
 private:
-    bool checkError(int code);
+    ErrorResult checkError(int code);
 
     sqlite3* db = nullptr;
     std::string full_path;

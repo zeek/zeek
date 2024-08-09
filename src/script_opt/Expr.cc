@@ -475,7 +475,8 @@ ExprPtr UnaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     auto op_val = op->FoldVal();
     if ( op_val ) {
         auto fold = Fold(op_val.get());
-        return TransformMe(make_intrusive<ConstExpr>(fold), c, red_stmt);
+        if ( fold->GetType()->Tag() != TYPE_OPAQUE )
+            return TransformMe(make_intrusive<ConstExpr>(fold), c, red_stmt);
     }
 
     if ( c->Optimizing() )
@@ -523,7 +524,8 @@ ExprPtr BinaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     auto op2_fold_val = op2->FoldVal();
     if ( op1_fold_val && op2_fold_val ) {
         auto fold = Fold(op1_fold_val.get(), op2_fold_val.get());
-        return TransformMe(make_intrusive<ConstExpr>(fold), c, red_stmt);
+        if ( fold->GetType()->Tag() != TYPE_OPAQUE )
+            return TransformMe(make_intrusive<ConstExpr>(fold), c, red_stmt);
     }
 
     if ( c->Optimizing() )

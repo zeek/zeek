@@ -19,6 +19,23 @@ using FuncValPtr = IntrusivePtr<FuncVal>;
 
 class InitsManager;
 
+// Helper function that takes a (large) array of int's and from them
+// constructs the corresponding vector-of-vector-of-indices.  Each
+// vector-of-indices is represented first by an int specifying its
+// size, and then that many int's for its values.  We recognize the
+// end of the array upon encountering a "size" entry of -1.
+//
+// Returns how many elements were processed out of "inits", including its
+// terminator.
+extern size_t generate_indices_set(int* inits, std::vector<std::vector<int>>& indices_set);
+
+// The same but for one more level of vector construction. The source array
+// has sub-arrays terminated with -1 per the above, and the whole shebang
+// is terminated with -2.
+//
+// Returns the vector construction.
+extern std::vector<std::vector<std::vector<int>>> generate_indices_set(int* inits);
+
 // An abstract helper class used to access elements of an initialization vector.
 // We need the abstraction because InitsManager below needs to be able to refer
 // to any of a range of templated classes.
@@ -223,16 +240,16 @@ using ValElemVecVec = std::vector<ValElemVec>;
 template<class T>
 class CPP_IndexedInits : public CPP_AbstractInits<T, ValElemVecVec> {
 public:
-    CPP_IndexedInits(std::vector<T>& _inits_vec, int _offsets_set, std::vector<ValElemVecVec> _inits)
-        : CPP_AbstractInits<T, ValElemVecVec>(_inits_vec, _offsets_set, std::move(_inits)) {}
+    CPP_IndexedInits(std::vector<T>& _inits_vec, int _offsets_set, int* raw_inits)
+        : CPP_AbstractInits<T, ValElemVecVec>(_inits_vec, _offsets_set, generate_indices_set(raw_inits)) {}
 
 protected:
     void InitializeCohortWithOffsets(InitsManager* im, int cohort, const std::vector<int>& cohort_offsets) override;
 
-    // Note, in the following we pass in the inits_vec, even though
-    // the method will have direct access to it, because we want to
-    // use overloading to dispatch to custom generation for different
-    // types of values.
+    // Note, in the following we pass in the inits_vec ("ivec", even though
+    // the method will have direct access to it, because we want to use
+    // overloading to dispatch to custom generation for different types of
+    // values.
     void Generate(InitsManager* im, std::vector<EnumValPtr>& ivec, int offset, ValElemVec& init_vals);
     void Generate(InitsManager* im, std::vector<StringValPtr>& ivec, int offset, ValElemVec& init_vals);
     void Generate(InitsManager* im, std::vector<PatternValPtr>& ivec, int offset, ValElemVec& init_vals);
@@ -256,8 +273,8 @@ protected:
 // on subclasses of TypePtr.
 class CPP_TypeInits : public CPP_IndexedInits<TypePtr> {
 public:
-    CPP_TypeInits(std::vector<TypePtr>& _inits_vec, int _offsets_set, std::vector<ValElemVecVec> _inits)
-        : CPP_IndexedInits<TypePtr>(_inits_vec, _offsets_set, _inits) {}
+    CPP_TypeInits(std::vector<TypePtr>& _inits_vec, int _offsets_set, int* raw_inits)
+        : CPP_IndexedInits<TypePtr>(_inits_vec, _offsets_set, raw_inits) {}
 
 protected:
     void DoPreInits(InitsManager* im, const std::vector<int>& offsets_vec) override;
@@ -505,12 +522,5 @@ struct CPP_RegisterBody {
     int line_num;
     std::vector<std::string> events;
 };
-
-// Helper function that takes a (large) array of int's and from them
-// constructs the corresponding vector-of-vector-of-indices.  Each
-// vector-of-indices is represented first by an int specifying its
-// size, and then that many int's for its values.  We recognize the
-// end of the array upon encountering a "size" entry of -1.
-extern void generate_indices_set(int* inits, std::vector<std::vector<int>>& indices_set);
 
 } // namespace zeek::detail

@@ -38,6 +38,13 @@ void CPP_InitsInfo::GenerateInitializers(CPPCompile* c) {
     c->Emit("%s %s = %s(%s, %s,", gt, InitializersName(), gt, base_name, Fmt(offset_set));
 
     c->IndentUp();
+    GenerateCohorts(c);
+    c->IndentDown();
+
+    c->Emit(");");
+}
+
+void CPP_InitsInfo::GenerateCohorts(CPPCompile* c) {
     c->Emit("{");
 
     int n = 0;
@@ -47,7 +54,7 @@ void CPP_InitsInfo::GenerateInitializers(CPPCompile* c) {
         if ( ++n > 1 )
             c->Emit("");
 
-        if ( cohort.size() == 1 && ! IsCompound() )
+        if ( cohort.size() == 1 && ! UsesCompoundVectors() )
             BuildCohort(c, cohort);
         else {
             c->Emit("{");
@@ -57,8 +64,6 @@ void CPP_InitsInfo::GenerateInitializers(CPPCompile* c) {
     }
 
     c->Emit("}");
-    c->IndentDown();
-    c->Emit(");");
 }
 
 void CPP_InitsInfo::BuildOffsetSet(CPPCompile* c) {
@@ -117,12 +122,36 @@ void CPP_InitsInfo::BuildCohortElement(CPPCompile* c, string init_type, vector<s
     c->Emit("std::make_shared<%s>(%s),", init_type, full_init);
 }
 
+void CPP_CompoundInitsInfo::GenerateInitializers(CPPCompile* c) {
+    c->Emit("static int %s_init[] = {", tag);
+    int n = 0;
+
+    c->IndentUp();
+
+    for ( auto& cohort : instances ) {
+        if ( ++n > 1 )
+            c->Emit("");
+
+        c->Emit(Fmt(int(cohort.size())) + ",");
+        BuildCohort(c, cohort);
+        c->Emit("-1,");
+    }
+
+    c->Emit("-2,");
+    c->IndentDown();
+    c->Emit("};");
+
+    CPP_InitsInfo::GenerateInitializers(c);
+}
+
+void CPP_CompoundInitsInfo::GenerateCohorts(CPPCompile* c) { c->Emit("%s_init", tag); }
+
 void CPP_CompoundInitsInfo::BuildCohortElement(CPPCompile* c, string init_type, vector<string>& ivs) {
     string init_line;
     for ( auto& iv : ivs )
-        init_line += iv + ", ";
+        init_line += iv;
 
-    c->Emit("{ %s},", init_line);
+    c->Emit("%s,", init_line);
 }
 
 void CPP_BasicConstInitsInfo::BuildCohortElement(CPPCompile* c, string init_type, vector<string>& ivs) {

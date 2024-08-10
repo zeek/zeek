@@ -7,6 +7,7 @@
 #include "zeek/ZeekString.h"
 #include "zeek/script_opt/CPP/Attrs.h"
 #include "zeek/script_opt/CPP/Compile.h"
+#include "zeek/script_opt/CPP/RuntimeInits.h"
 
 using namespace std;
 
@@ -85,25 +86,25 @@ void CPP_InitsInfo::BuildOffsetSet(CPPCompile* c) {
     offset_set = c->IndMgr().AddIndices(offsets_vec);
 }
 
-void CPP_InitsInfo::BuildCohort(CPPCompile* c, std::vector<std::shared_ptr<CPP_InitInfo>>& cohort) {
-    int n = 0;
+static std::string describe_initializer(const Obj* o) {
+    auto od = obj_desc(o);
 
+    // Escape any embedded comment characters.
+    od = regex_replace(od, std::regex("/\\*"), "<<SLASH-STAR>>");
+    od = regex_replace(od, std::regex("\\*/"), "<<STAR-SLASH>>");
+
+    return od;
+}
+
+void CPP_InitsInfo::BuildCohort(CPPCompile* c, std::vector<std::shared_ptr<CPP_InitInfo>>& cohort) {
     for ( auto& co : cohort ) {
         vector<string> ivs;
         auto o = co->InitObj();
-        if ( o ) {
-            auto od = obj_desc(o);
-
-            // Escape any embedded comment characters.
-            od = regex_replace(od, std::regex("/\\*"), "<<SLASH-STAR>>");
-            od = regex_replace(od, std::regex("\\*/"), "<<STAR-SLASH>>");
-
-            c->Emit("/* #%s: Initializing %s: */", Fmt(co->Offset()), od);
-        }
+        if ( o )
+            c->Emit("/* #%s: Initializing %s: */", Fmt(co->Offset()), describe_initializer(o));
 
         co->InitializerVals(ivs);
         BuildCohortElement(c, co->InitializerType(), ivs);
-        ++n;
     }
 }
 
@@ -123,6 +124,7 @@ void CPP_InitsInfo::BuildCohortElement(CPPCompile* c, string init_type, vector<s
 }
 
 void CPP_CompoundInitsInfo::GenerateInitializers(CPPCompile* c) {
+    c->Emit("");
     c->Emit("static int %s_init[] = {", tag);
     int n = 0;
 
@@ -132,12 +134,25 @@ void CPP_CompoundInitsInfo::GenerateInitializers(CPPCompile* c) {
         if ( ++n > 1 )
             c->Emit("");
 
-        c->Emit(Fmt(int(cohort.size())) + ",");
-        BuildCohort(c, cohort);
-        c->Emit("-1,");
+        // Figure out the size of the cohort.
+        for ( auto& co : cohort ) {
+            auto o = co->InitObj();
+            if ( o )
+                c->Emit("/* #%s: Initializing %s: */", Fmt(co->Offset()), describe_initializer(o));
+
+            vector<string> ivs;
+            co->InitializerVals(ivs);
+            c->Emit(Fmt(int(ivs.size())) + ",");
+            BuildCohortElement(c, co->InitializerType(), ivs);
+        }
+
+        static const auto end_of_vv = Fmt(END_OF_VEC_VEC) + ",";
+        c->Emit(end_of_vv);
     }
 
-    c->Emit("-2,");
+    static const auto end_of_vvv = Fmt(END_OF_VEC_VEC_VEC) + ",";
+    c->Emit(end_of_vvv);
+
     c->IndentDown();
     c->Emit("};");
 
@@ -149,9 +164,9 @@ void CPP_CompoundInitsInfo::GenerateCohorts(CPPCompile* c) { c->Emit("%s_init", 
 void CPP_CompoundInitsInfo::BuildCohortElement(CPPCompile* c, string init_type, vector<string>& ivs) {
     string init_line;
     for ( auto& iv : ivs )
-        init_line += iv;
+        init_line += iv + ",";
 
-    c->Emit("%s,", init_line);
+    c->Emit("%s", init_line);
 }
 
 void CPP_BasicConstInitsInfo::BuildCohortElement(CPPCompile* c, string init_type, vector<string>& ivs) {
@@ -581,7 +596,8 @@ void IndicesManager::Generate(CPPCompile* c) {
             c->Emit(line);
     }
 
-    c->Emit("-1");
+    static const auto end_of_vv = Fmt(END_OF_VEC_VEC);
+    c->Emit(end_of_vv);
     c->EndBlock(true);
 }
 

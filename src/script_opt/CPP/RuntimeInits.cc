@@ -470,7 +470,7 @@ size_t generate_indices_set(int* inits, std::vector<std::vector<int>>& indices_s
     // can pre-allocate the outer vector.
     auto i_ptr = inits;
     int num_inits = 0;
-    while ( *i_ptr >= 0 ) {
+    while ( *i_ptr != END_OF_VEC_VEC && *i_ptr != END_OF_VEC_VEC_VEC ) {
         ++num_inits;
         int n = *i_ptr;
         i_ptr += n + 1; // skip over vector elements
@@ -479,7 +479,7 @@ size_t generate_indices_set(int* inits, std::vector<std::vector<int>>& indices_s
     indices_set.reserve(num_inits);
 
     i_ptr = inits;
-    while ( *i_ptr >= 0 ) {
+    while ( *i_ptr != END_OF_VEC_VEC ) {
         int n = *i_ptr;
         ++i_ptr;
         std::vector<int> indices;
@@ -495,19 +495,13 @@ size_t generate_indices_set(int* inits, std::vector<std::vector<int>>& indices_s
 }
 
 std::vector<std::vector<std::vector<int>>> generate_indices_set(int* inits) {
-    // Figure out how many vector-of-vectors there are.
-    int num_vv = 0;
-    for ( int i = 0; inits[i] >= -1; ++i )
-        if ( inits[i] == -1 )
-            ++num_vv;
+    std::vector<std::vector<std::vector<int>>> indices_set;
 
-    std::vector<std::vector<std::vector<int>>> indices_set(num_vv);
-
-    auto i_ptr = inits;
-    for ( int i = 0; i < num_vv; ++i )
-        i_ptr += generate_indices_set(i_ptr, indices_set[i]);
-
-    ASSERT(*i_ptr == -2);
+    while ( *inits != END_OF_VEC_VEC_VEC ) {
+        std::vector<std::vector<int>> cohort_inits;
+        inits += generate_indices_set(inits, cohort_inits);
+        indices_set.push_back(std::move(cohort_inits));
+    }
 
     return indices_set;
 }

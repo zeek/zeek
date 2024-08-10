@@ -23,18 +23,23 @@ class InitsManager;
 // constructs the corresponding vector-of-vector-of-indices.  Each
 // vector-of-indices is represented first by an int specifying its
 // size, and then that many int's for its values.  We recognize the
-// end of the array upon encountering a "size" entry of -1.
+// end of the array upon encountering a "size" entry of END_OF_VEC_VEC.
 //
 // Returns how many elements were processed out of "inits", including its
 // terminator.
 extern size_t generate_indices_set(int* inits, std::vector<std::vector<int>>& indices_set);
 
 // The same but for one more level of vector construction. The source array
-// has sub-arrays terminated with -1 per the above, and the whole shebang
-// is terminated with -2.
+// has sub-arrays terminated with END_OF_VEC_VEC per the above, and the whole
+// shebang is terminated with END_OF_VEC_VEC_VEC.
 //
 // Returns the vector construction.
 extern std::vector<std::vector<std::vector<int>>> generate_indices_set(int* inits);
+
+// These need to be distinct from any values that can appear, which means
+// they should be negative, and not -1, which is used as a "N/A" value.
+#define END_OF_VEC_VEC -100
+#define END_OF_VEC_VEC_VEC -200
 
 // An abstract helper class used to access elements of an initialization vector.
 // We need the abstraction because InitsManager below needs to be able to refer

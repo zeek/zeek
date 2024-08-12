@@ -25,16 +25,23 @@ export {
 		## A certain number of bytes at the start of the unknown protocol's
 		## header.
 		first_bytes:  string   &log;
+
+		## The chain of packet analyzers that processed the packet up to this
+		## point. This includes the history of encapsulating packets in case
+		## of tunneling.
+		analyzer_history: vector of string &log;
 	};
 }
 
-event unknown_protocol(analyzer_name: string, protocol: count, first_bytes: string)
+event unknown_protocol(analyzer_name: string, protocol: count, first_bytes: string,
+	analyzer_history: string_vec)
 	{
 	local info : Info;
 	info$ts = network_time();
 	info$analyzer = analyzer_name;
 	info$protocol_id = fmt("0x%x", protocol);
 	info$first_bytes = bytestring_to_hexstr(first_bytes);
+	info$analyzer_history = analyzer_history;
 
 	Log::write(LOG, info);
 	}

@@ -180,6 +180,8 @@ public:
      * Tracks the given analyzer for the current packet's analyzer history.
      * The packet analyzer history is implemented in form of a stack, which is reset on a
      * call to ProcessPacket() but maintained throughout calls to ProcessInnerPacket().
+     *
+     * @param analyzer The analyzer to track.
      */
     void TrackAnalyzer(Analyzer* analyzer) { analyzer_stack.push_back(analyzer); }
 

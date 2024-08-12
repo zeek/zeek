@@ -181,7 +181,7 @@ public:
      * The packet analyzer history is implemented in form of a stack, which is reset on a
      * call to ProcessPacket() but maintained throughout calls to ProcessInnerPacket().
      */
-    void TrackAnalyzer(AnalyzerPtr analyzer) { analyzer_stack.push_back(std::move(analyzer)); }
+    void TrackAnalyzer(Analyzer* analyzer) { analyzer_stack.push_back(analyzer); }
 
 private:
     /**
@@ -232,7 +232,7 @@ private:
     uint64_t total_not_processed = 0;
     iosource::PktDumper* unprocessed_dumper = nullptr;
 
-    std::vector<AnalyzerPtr> analyzer_stack;
+    std::vector<Analyzer*> analyzer_stack;
 };
 
 } // namespace packet_analysis

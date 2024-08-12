@@ -76,3 +76,6 @@
 [submodule "auxil/prometheus-cpp"]
 	path = auxil/prometheus-cpp
 	url = https://github.com/zeek/prometheus-cpp
+[submodule "auxil/expected-lite"]
+	path = auxil/expected-lite
+	url = https://github.com/martinmoene/expected-lite.git

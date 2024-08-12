@@ -631,6 +631,13 @@ glue::ProtocolAnalyzer GlueCompiler::parseProtocolAnalyzer(const std::string& ch
             }
         }
 
+        else if ( looking_at(chunk, i, "ports") || looking_at(chunk, i, "port") ) {
+            throw ParseError(hilti::rt::fmt(
+                "Analyzer %s is using the removed 'port' or 'ports' keyword to register "
+                "well-known ports. Use Analyzer::register_for_ports() in the accompanying Zeek script instead.",
+                a.name));
+        }
+
         else if ( looking_at(chunk, i, "replaces") ) {
             eat_token(chunk, &i, "replaces");
             a.replaces = extract_id(chunk, &i);

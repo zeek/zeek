@@ -48,7 +48,11 @@ public:
      */
     ErrorResult DoErase(ValPtr key, ErrorResultCallback* cb = nullptr) override;
 
-    // TODO: add support for checking for expired data
+    /**
+     * Removes any entries in the backend that have expired. Can be overridden by
+     * derived classes.
+     */
+    void Expire() override;
 
 private:
     ErrorResult checkError(int code);

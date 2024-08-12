@@ -44,7 +44,7 @@ ErrorResult SQLite::DoOpen(RecordValPtr config) {
     }
 
     std::string create = "create table if not exists " + table_name + " (";
-    create.append("key_str text primary key, value_str text not null);");
+    create.append("key_str text primary key, value_str text not null, expiration_time real);");
 
     char* errorMsg = nullptr;
     int res = sqlite3_exec(db, create.c_str(), NULL, NULL, &errorMsg);
@@ -84,15 +84,17 @@ ErrorResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite, double expir
 
     std::string stmt = "INSERT INTO ";
     stmt.append(table_name);
-    stmt.append("(key_str, value_str) VALUES('");
+    stmt.append("(key_str, value_str, expiration_time) VALUES('");
     stmt.append(json_key->ToStdStringView());
     stmt.append("', '");
     stmt.append(json_value->ToStdStringView());
+    stmt.append("', ");
+    stmt.append(std::to_string(expiration_time));
     if ( ! overwrite )
-        stmt.append("');");
+        stmt.append(");");
     else {
         // if overwriting, add an UPSERT conflict resolution block
-        stmt.append("') ON CONFLICT(key_str) DO UPDATE SET value_str='");
+        stmt.append(") ON CONFLICT(key_str) DO UPDATE SET value_str='");
         stmt.append(json_value->ToStdStringView());
         stmt.append("';");
     }

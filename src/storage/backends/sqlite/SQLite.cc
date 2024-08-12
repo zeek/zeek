@@ -44,7 +44,7 @@ ErrorResult SQLite::DoOpen(RecordValPtr config) {
     }
 
     std::string create = "create table if not exists " + table_name + " (";
-    create.append("key_str text primary key, value_str text not null);");
+    create.append("key_str text primary key, value_str text not null, expire_time real);");
 
     char* errorMsg = nullptr;
     if ( int res = sqlite3_exec(db, create.c_str(), NULL, NULL, &errorMsg); res != SQLITE_OK ) {
@@ -56,12 +56,14 @@ ErrorResult SQLite::DoOpen(RecordValPtr config) {
     }
 
     static std::map<std::string, std::string> statements =
-        {{"put", util::fmt("insert into %s (key_str, value_str) values(?, ?)", table_name.c_str())},
-         {"put_update", util::fmt("insert into %s (key_str, value_str) values(?, ?) ON CONFLICT(key_str) "
-                                  "DO UPDATE SET value_str=?",
-                                  table_name.c_str())},
+        {{"put", util::fmt("insert into %s (key_str, value_str, expire_time) values(?, ?, ?)", table_name.c_str())},
+         {"put_update",
+          util::fmt("insert into %s (key_str, value_str, expire_time) values(?, ?, ?) ON CONFLICT(key_str) "
+                    "DO UPDATE SET value_str=?",
+                    table_name.c_str())},
          {"get", util::fmt("select value_str from %s where key_str=?", table_name.c_str())},
-         {"erase", util::fmt("delete from %s where key_str=?", table_name.c_str())}};
+         {"erase", util::fmt("delete from %s where key_str=?", table_name.c_str())},
+         {"expire", util::fmt("delete from %s where expire_time > 0 and expire_time <= ?", table_name.c_str())}};
 
     for ( const auto& [key, stmt] : statements ) {
         sqlite3_stmt* ps;
@@ -125,8 +127,13 @@ ErrorResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite, double expir
         return res;
     }
 
+    if ( auto res = checkError(sqlite3_bind_double(stmt, 3, expiration_time)); res.has_value() ) {
+        sqlite3_reset(stmt);
+        return res;
+    }
+
     if ( overwrite ) {
-        if ( auto res = checkError(sqlite3_bind_text(stmt, 3, value_str.data(), value_str.size(), SQLITE_STATIC));
+        if ( auto res = checkError(sqlite3_bind_text(stmt, 4, value_str.data(), value_str.size(), SQLITE_STATIC));
              res.has_value() ) {
             sqlite3_reset(stmt);
             return res;
@@ -200,6 +207,23 @@ ErrorResult SQLite::DoErase(ValPtr key, ErrorResultCallback* cb) {
     }
 
     return std::nullopt;
+}
+
+/**
+ * Removes any entries in the backend that have expired. Can be overridden by
+ * derived classes.
+ */
+void SQLite::Expire() {
+    auto stmt = prepared_stmts["expire"];
+
+    if ( auto res = checkError(sqlite3_bind_double(stmt, 1, util::current_time())); res.has_value() ) {
+        sqlite3_reset(stmt);
+        // TODO: do something with the error here?
+    }
+
+    if ( auto res = checkError(sqlite3_step(stmt)); res.has_value() ) {
+        // TODO: do something with the error here?
+    }
 }
 
 // returns true in case of error

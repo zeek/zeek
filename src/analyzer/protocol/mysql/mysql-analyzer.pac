@@ -87,10 +87,44 @@ refine flow MySQL_Flow += {
 	function proc_mysql_command_request_packet(msg: Command_Request_Packet): bool
 		%{
 		if ( mysql_command_request )
+			{
+			auto arg = to_stringval(${msg.arg});
+
+			// CHANGE_USER will have parsed away the arg,
+			// restore it for backwards compat.
+			if ( ${msg.command} == COM_CHANGE_USER )
+				arg = to_stringval(${msg.change_user.sourcedata});
+
 			zeek::BifEvent::enqueue_mysql_command_request(connection()->zeek_analyzer(),
 			                                        connection()->zeek_analyzer()->Conn(),
 			                                        ${msg.command},
-			                                        to_stringval(${msg.arg}));
+			                                        std::move(arg));
+			}
+
+		return true;
+		%}
+
+	function proc_mysql_change_user_packet(msg: Change_User_Packet): bool
+		%{
+		if ( mysql_change_user )
+			zeek::BifEvent::enqueue_mysql_change_user(connection()->zeek_analyzer(),
+			                                          connection()->zeek_analyzer()->Conn(),
+			                                          zeek::make_intrusive<zeek::StringVal>(c_str(${msg.username})));
+
+		if ( mysql_auth_plugin )
+			{
+			auto data = to_stringval(${msg.auth_plugin_data});
+			auto auth_plugin = zeek::val_mgr->EmptyString();
+			if ( ${msg.have_more_data} )
+				auth_plugin = zeek::make_intrusive<zeek::StringVal>(c_str(${msg.auth_plugin_name}));
+
+			zeek::BifEvent::enqueue_mysql_auth_plugin(connection()->zeek_analyzer(),
+								  connection()->zeek_analyzer()->Conn(),
+								  true /*is_orig*/,
+								  std::move(auth_plugin),
+								  std::move(data));
+			}
+
 		return true;
 		%}
 
@@ -153,7 +187,7 @@ refine flow MySQL_Flow += {
 		return true;
 		%}
 
-	function proc_auth_switch_request_payload(msg: AuthSwitchRequestPayload): bool
+	function proc_auth_switch_request(msg: AuthSwitchRequest): bool
 		%{
 		zeek::BifEvent::enqueue_mysql_auth_switch_request(connection()->zeek_analyzer(),
 		                                                  connection()->zeek_analyzer()->Conn(),
@@ -183,6 +217,8 @@ refine typeattr Handshake_Response_Packet += &let {
 
 refine typeattr Command_Request_Packet += &let {
 	proc = $context.flow.proc_mysql_command_request_packet(this);
+	# Enqueue mysql_change_user() *after* mysql_command_request().
+	proc_change_user = $context.flow.proc_mysql_change_user_packet(change_user) &if(is_change_user);
 };
 
 refine typeattr ERR_Packet += &let {
@@ -201,8 +237,8 @@ refine typeattr Resultset += &let {
 	proc = $context.flow.proc_resultset(this);
 };
 
-refine typeattr AuthSwitchRequestPayload += &let {
-	proc = $context.flow.proc_auth_switch_request_payload(this);
+refine typeattr AuthSwitchRequest += &let {
+	proc = $context.flow.proc_auth_switch_request(this);
 };
 
 refine typeattr AuthMoreData += &let {

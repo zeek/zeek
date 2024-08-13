@@ -84,6 +84,11 @@ event mysql_command_request(c: connection, command: count, arg: string) &priorit
 	Conn::register_removal_hook(c, finalize_mysql);
 	}
 
+event mysql_change_user(c: connection, username: string) &priority=5
+	{
+	c$mysql$arg = username;
+	}
+
 event mysql_command_request(c: connection, command: count, arg: string) &priority=-5
 	{
 	if ( c?$mysql && c$mysql?$cmd && c$mysql$cmd == "quit" )

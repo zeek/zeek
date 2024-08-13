@@ -176,6 +176,15 @@ public:
      */
     uint64_t GetUnprocessedCount() const { return total_not_processed; }
 
+    /**
+     * Tracks the given analyzer for the current packet's analyzer history.
+     * The packet analyzer history is implemented in form of a stack, which is reset on a
+     * call to ProcessPacket() but maintained throughout calls to ProcessInnerPacket().
+     *
+     * @param analyzer The analyzer to track.
+     */
+    void TrackAnalyzer(Analyzer* analyzer) { analyzer_stack.push_back(analyzer); }
+
 private:
     /**
      * Instantiates a new analyzer instance.
@@ -197,6 +206,14 @@ private:
      */
     AnalyzerPtr InstantiateAnalyzer(const std::string& name);
 
+    /**
+     * Generates a string vector that represents the analyzer history of the
+     * current packet based on the analyzers' tags.
+     *
+     * @return A vector of strings representing the packet analyzer history.
+     */
+    VectorValPtr BuildAnalyzerHistory() const;
+
     bool PermitUnknownProtocol(const std::string& analyzer, uint32_t protocol);
 
     std::map<std::string, AnalyzerPtr> analyzers;
@@ -216,6 +233,8 @@ private:
 
     uint64_t total_not_processed = 0;
     iosource::PktDumper* unprocessed_dumper = nullptr;
+
+    std::vector<Analyzer*> analyzer_stack;
 };
 
 } // namespace packet_analysis

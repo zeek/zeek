@@ -25,6 +25,10 @@ New Functionality
   for connections where client and server negotiate to TLS through the extended
   request/response mechanism.
 
+* The ``unknown_protocols()`` event now includes the name of all packet
+  analyzer used for processing the packet when the event is raised. The
+  ``unknown_protocol.log`` file was extended to include this information.
+
 Changed Functionality
 ---------------------
 

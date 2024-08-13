@@ -885,8 +885,13 @@ event Pcap::file_done%(path: string%);
 ##
 ## first_bytes: A certain number of bytes at the start of the unknown protocol's header.
 ##
+## analyzer_history: The chain of packet analyzers that processed the packet up to this
+##                   point. This includes the history of encapsulating packets in case
+##                   of tunneling.
+##
 ## .. zeek:see:: UnknownProtocol::first_bytes_count
-event unknown_protocol%(analyzer_name: string, protocol: count, first_bytes: string%);
+event unknown_protocol%(analyzer_name: string, protocol: count, first_bytes: string, analyzer_history: string_vec%);
+event unknown_protocol%(analyzer_name: string, protocol: count, first_bytes: string%) &deprecated="Remove in v8.1. Use the version that includes analyzer_history.";
 
 ## An event for handling packets that reached the end of processing without
 ## being marked as processed. Note that this event may lead to unpredictable

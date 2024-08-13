@@ -360,8 +360,6 @@ type Handshake_v10 = record {
 	#
 	# https://dev.mysql.com/doc/dev/mysql-server/latest/page_protocol_connection_phase_packets_protocol_handshake_v10.html
 	auth_plugin_data_part_2_len = auth_plugin_data_len > 21 ? auth_plugin_data_len - 8 : 13;
-	update_auth_plugin: bool = $context.connection.set_auth_plugin(auth_plugin)
-		&if( ( capability_flags_2 << 16 ) & CLIENT_PLUGIN_AUTH );
 	server_query_attrs: bool = $context.connection.set_server_query_attrs(( capability_flags_2 << 16 ) & CLIENT_QUERY_ATTRIBUTES);
 };
 
@@ -427,9 +425,6 @@ type Handshake_Plain_v10(cap_flags: uint32) = record {
 		0x0 -> none_4    : empty;
 	};
 } &let {
-	update_auth_plugin: bool = $context.connection.set_auth_plugin(auth_plugin)
-		&if( cap_flags & CLIENT_PLUGIN_AUTH );
-
 	# Switch client state into expecting more auth data. If the server responds
 	# with an OK_Packet before, will switch into COMMAND_PHASE.
 	update_conn_expectation: bool = $context.connection.set_next_conn_expected(EXPECT_AUTH_DATA)
@@ -656,7 +651,6 @@ type AuthSwitchRequestPayload = record {
 	name  : NUL_String;
 	data  : bytestring &restofdata;
 } &let {
-	update_auth_plugin     : bool = $context.connection.set_auth_plugin(name);
 	update_conn_expectation: bool = $context.connection.set_next_conn_expected(EXPECT_AUTH_DATA);
 	# After an AuthSwitchRequest, server replies with OK_Packet, ERR_Packet or AuthMoreData.
 	update_expectation: bool = $context.connection.set_next_expected(EXPECT_STATUS);
@@ -800,19 +794,6 @@ refine connection MySQL_Conn += {
 	function set_client_query_attrs(q: bool): bool
 		%{
 		client_query_attrs_ = q;
-		return true;
-		%}
-
-	function set_auth_plugin(a: bytestring): bool
-		%{
-		// binpac::std_str() includes trailing \0 from parsing.
-		auto new_auth_plugin = std::string(binpac::c_str(a));
-		if ( ! auth_plugin_.empty() && new_auth_plugin != auth_plugin_ )
-			{
-			expected_ = EXPECT_AUTH_SWITCH;
-			}
-
-		auth_plugin_ = std::move(new_auth_plugin);
 		return true;
 		%}
 

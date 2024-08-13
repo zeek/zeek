@@ -218,7 +218,7 @@ PatternConstInfo::PatternConstInfo(CPPCompile* c, ValPtr v) : CPP_InitInfo(v) {
 CompoundItemInfo::CompoundItemInfo(CPPCompile* _c, ValPtr v) : CPP_InitInfo(v), c(_c) {
     auto& t = v->GetType();
     type = c->TypeOffset(t);
-    init_cohort = c->TypeCohort(t) + 1;
+    init_cohort = c->TypeFinalCohort(t) + 1;
 }
 
 ListConstInfo::ListConstInfo(CPPCompile* _c, ValPtr v) : CompoundItemInfo(_c) {

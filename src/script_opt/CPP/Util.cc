@@ -17,6 +17,16 @@ string Fmt(double d) {
     if ( d == 0.0 && signbit(d) )
         return "-0.0";
 
+    if ( isinf(d) ) {
+        string infty = "std::numeric_limits<double>::infinity()";
+        if ( d < 0.0 )
+            infty = "-" + infty;
+        return infty;
+    }
+
+    if ( isnan(d) )
+        return "std::numeric_limits<double>::quiet_NaN()";
+
     // Unfortunately, to_string(double) is hardwired to use %f with
     // default of 6 digits precision.
     char buf[8192];

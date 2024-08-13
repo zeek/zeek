@@ -296,7 +296,7 @@ type EmptyOrNUL_String = RE/([^\0]*\0)?/;
 type MySQL_PDU(is_orig: bool) = record {
 	hdr  : Header;
 	msg  : case is_orig of {
-		false -> server_msg: Server_Message(hdr.seq_id, hdr.len);
+		false -> server_msg: Server_Message(hdr.seq_id, hdr.len, state);
 		true  -> client_msg: Client_Message(state);
 	} &requires(state);
 } &let {
@@ -310,17 +310,17 @@ type Header = record {
 	len   : uint32 = to_int()(le_len) + 4;
 } &length=4;
 
-type Server_Message(seq_id: uint8, pkt_len: uint32) = case is_initial of {
-	true  -> initial_handshake: Initial_Handshake_Packet;
-	false -> command_response : Command_Response(pkt_len);
-} &let {
+type Server_Message(seq_id: uint8, pkt_len: uint32, state: int) = case state of {
+	CONNECTION_PHASE -> connection_phase: Server_Connection_Phase(is_initial);
+	COMMAND_PHASE    -> command_response: Command_Response(pkt_len);
+} &requires(is_initial) &let {
 	is_initial : bool = (seq_id == 0) && ($context.connection.get_previous_seq_id() != 255);
 	update_seq_id : bool = $context.connection.set_previous_seq_id(seq_id);
 };
 
-type Client_Message(state: int) = case state of {
-	CONNECTION_PHASE -> connection_phase: Connection_Phase_Packets;
-	COMMAND_PHASE    -> command_phase   : Command_Request_Packet;
+type Server_Connection_Phase(is_initial: bool) = case is_initial of {
+	true  -> initial_handshake: Initial_Handshake_Packet;
+	false -> subsequent_handshake: Server_Connection_Phase_Packets;
 };
 
 # Handshake Request
@@ -369,6 +369,19 @@ type Handshake_v9 = record {
 	server_version: NUL_String;
 	connection_id : uint32;
 	scramble      : NUL_String;
+};
+
+# While in the CONNECTION_PHASE, handle the following packets. Note that
+# this is subtly different from Command_Response_Status which interprets
+# 0xfe as EOF packet and also has does not support AuthMoreData.
+type Server_Connection_Phase_Packets = record {
+	pkt_type: uint8;
+	packet: case pkt_type of {
+		0x00 -> data_ok: OK_Packet;
+		0x01 -> auth_more_data: AuthMoreData(false);
+		0xfe -> auth_switch_request: AuthSwitchRequestPayload;
+		0xff -> data_err: ERR_Packet;
+	};
 };
 
 # Handshake Response
@@ -451,6 +464,11 @@ type Handshake_Response_Packet_v9 = record {
 
 # Connection Phase
 
+type Client_Message(state: int) = case state of {
+	CONNECTION_PHASE -> connection_phase: Connection_Phase_Packets;
+	COMMAND_PHASE    -> command_phase   : Command_Request_Packet;
+};
+
 type Connection_Phase_Packets = case $context.connection.get_conn_expectation() of {
 	EXPECT_HANDSHAKE        -> handshake_resp: Handshake_Response_Packet;
 	EXPECT_AUTH_DATA        -> auth_data: AuthMoreData(true);
@@ -530,10 +548,6 @@ type Command_Response_Status = record {
 	pkt_type: uint8;
 	response: case pkt_type of {
 		0x00    -> data_ok:  OK_Packet;
-		# When still in the CONNECTION_PHASE, the server can reply
-		# with AuthMoreData which is 0x01 stuffed opaque payload.
-		# https://dev.mysql.com/doc/dev/mysql-server/latest/page_protocol_connection_phase_packets_protocol_auth_more_data.html
-		0x01    -> auth_more_data: AuthMoreData(false);
 		0xfe    -> data_eof: EOF_Packet(EOF_END);
 		0xff    -> data_err: ERR_Packet;
 		default -> unknown:  empty;
@@ -635,6 +649,10 @@ type AuthMoreData(is_orig: bool) = record {
 
 type AuthSwitchRequest = record {
 	status: uint8 &enforce(status==254);
+	payload: AuthSwitchRequestPayload;
+};
+
+type AuthSwitchRequestPayload = record {
 	name  : NUL_String;
 	data  : bytestring &restofdata;
 } &let {
@@ -875,6 +893,7 @@ refine connection MySQL_Conn += {
 			expected_ = EXPECT_STATUS;
 			break;
 		case COM_CHANGE_USER:
+			// XXX: Could we switch into CONNECTION_PHASE instead?
 			expected_ = EXPECT_AUTH_SWITCH;
 			break;
 		case COM_BINLOG_DUMP:

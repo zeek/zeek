@@ -153,7 +153,7 @@ refine flow MySQL_Flow += {
 		return true;
 		%}
 
-	function proc_auth_switch_request(msg: AuthSwitchRequest): bool
+	function proc_auth_switch_request_payload(msg: AuthSwitchRequestPayload): bool
 		%{
 		zeek::BifEvent::enqueue_mysql_auth_switch_request(connection()->zeek_analyzer(),
 		                                                  connection()->zeek_analyzer()->Conn(),
@@ -201,8 +201,8 @@ refine typeattr Resultset += &let {
 	proc = $context.flow.proc_resultset(this);
 };
 
-refine typeattr AuthSwitchRequest += &let {
-	proc = $context.flow.proc_auth_switch_request(this);
+refine typeattr AuthSwitchRequestPayload += &let {
+	proc = $context.flow.proc_auth_switch_request_payload(this);
 };
 
 refine typeattr AuthMoreData += &let {

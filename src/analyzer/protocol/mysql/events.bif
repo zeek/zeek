@@ -84,6 +84,57 @@ event mysql_server_version%(c: connection, ver: string%);
 ##
 ## username: The username supplied by the client
 ##
-## .. zeek:see:: mysql_command_request mysql_error mysql_ok mysql_server_version
+## .. zeek:see:: mysql_command_request mysql_error mysql_ok mysql_server_version mysql_ssl_request
 event mysql_handshake%(c: connection, username: string%);
 
+## Generated for a short client handshake response packet with the CLIENT_SSL
+## flag set. Usually the client will initiate a TLS handshake afterwards.
+#
+## See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+## for more information about the MySQL protocol.
+##
+## c: The connection.
+##
+## .. zeek:see:: mysql_handshake
+event mysql_ssl_request%(c: connection%);
+
+## Generated for information about plugin authentication within handshake packets.
+##
+## c: The connection.
+##
+## is_orig: True if this is from the client, false if from the server.
+##
+## name: Name of the authentication plugin.
+##
+## data: The initial auth data. From the server, it is the concatenation of
+##       auth_plugin_data_part_1 and auth_plugin_data_part_2 in the handshake.
+##       For the client it is the auth_response in the handshake response.
+##
+## .. zeek:see:: mysql_handshake mysql_auth_switch_request mysql_auth_more_data
+event mysql_auth_plugin%(c: connection, is_orig: bool, name: string, data: string%);
+
+## Generated for a server packet with an auth switch request.
+##
+## c: The connection.
+##
+## name: The plugin name.
+##
+## data: Initial authentication data for the plugin.
+##
+## .. zeek:see:: mysql_handshake mysql_auth_more_data
+event mysql_auth_switch_request%(c: connection, name: string, data: string%);
+
+## Generated for opaque authentication data exchanged between client and server
+## after the client's handshake packet, but before the server replied with
+## an OK_Packet
+##
+## Data is specific to the plugin auth mechanism used by client and server.
+##
+## c: The connection.
+##
+## is_orig: True if this is from the client, false if from the server.
+##
+## data: More authentication data.
+##
+## .. zeek:see:: mysql_handshake mysql_auth_switch_request
+event mysql_auth_more_data%(c: connection, is_orig: bool, data: string%);

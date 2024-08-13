@@ -41,3 +41,18 @@ on LDAP::SearchRequest -> event LDAP::search_request($conn,
 on LDAP::SearchResultEntry -> event LDAP::search_result_entry($conn,
                                                               message.messageID,
                                                               self.objectName);
+
+on LDAP::ExtendedRequest -> event LDAP::extended_request($conn,
+                                                         message.messageID,
+                                                         self.requestName,
+                                                         self.requestValue);
+
+on LDAP::ExtendedResponse -> event LDAP::extended_response($conn,
+                                                           message.messageID,
+                                                           message.result_.code,
+                                                           self.responseName,
+                                                           self.responseValue);
+
+# Once switched into MessageMode::TLS, we won't parse messages anymore,
+# so this is raised just once.
+on LDAP::Message if (ctx.messageMode == LDAP::MessageMode::TLS) -> event LDAP::starttls($conn);

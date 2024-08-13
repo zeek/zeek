@@ -34,10 +34,10 @@ process_stats get_process_stats() {
         if ( task_info(mach_task_self(), TASK_THREAD_TIMES_INFO, reinterpret_cast<task_info_t>(&info), &count) ==
              KERN_SUCCESS ) {
             // Round to milliseconds.
-            result.cpu += info.user_time.seconds;
-            result.cpu += ceil(info.user_time.microseconds / 1000.0) / 1000.0;
-            result.cpu += info.system_time.seconds;
-            result.cpu += ceil(info.system_time.microseconds / 1000.0) / 1000.0;
+            result.cpu_user += info.user_time.seconds;
+            result.cpu_user += ceil(info.user_time.microseconds / 1000.0) / 1000.0;
+            result.cpu_system += info.system_time.seconds;
+            result.cpu_system += ceil(info.system_time.microseconds / 1000.0) / 1000.0;
         }
     }
     // Fetch open file handles.
@@ -154,7 +154,8 @@ process_stats get_process_stats() {
 
         result.rss = rss_pages * page_size;
         result.vms = vmsize_bytes;
-        result.cpu = static_cast<double>(utime_ticks + stime_ticks) / ticks_per_second;
+        result.cpu_user = static_cast<double>(utime_ticks) / ticks_per_second;
+        result.cpu_system = static_cast<double>(stime_ticks) / ticks_per_second;
 
         result.fds = count_entries_in_directory("/proc/self/fd");
     }
@@ -187,7 +188,10 @@ process_stats get_process_stats() {
     if ( kp ) {
         result.vms = kp->ki_size;
         result.rss = kp->ki_rssize * getpagesize();
-        result.cpu = static_cast<double>(kp->ki_runtime) / 1000000.0;
+        result.cpu_user = static_cast<double>(kp->ki_rusage.ru_utime.tv_sec) +
+                          (static_cast<double>(kp->ki_rusage.ru_utime.tv_usec) / 1e6);
+        result.cpu_system = static_cast<double>(kp->ki_rusage.ru_stime.tv_sec) +
+                            (static_cast<double>(kp->ki_rusage.ru_stime.tv_usec) / 1e6);
 
         struct procstat* procstat = procstat_open_sysctl();
         struct filestat_list* files = procstat_getfiles(procstat, kp, 0);

@@ -1,7 +1,6 @@
 # @TEST-DOC: Using the wrong paramters for custom signature events.
 #
 # @TEST-EXEC-FAIL: zeek -b -s id -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >id.out
-# @TEST-EXEC-FAIL: zeek -b -s id2 -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >id.out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 
 @TEST-START-FILE id.sig
@@ -24,13 +23,15 @@ signature udp-proto4 {
   ip-proto == 17
   event non_existing_event
 }
-@TEST-END-FILE
 
-@TEST-START-FILE id2.sig
-# Using two identifiers is not supported.
-signature udp-proto-msg-id {
+signature udp-proto5 {
   ip-proto == 17
-  event signature_match message_as_id
+  event cat  # builtin function
+}
+
+signature udp-proto6 {
+  ip-proto == 17
+  event ignore_checksums  # variable
 }
 @TEST-END-FILE
 

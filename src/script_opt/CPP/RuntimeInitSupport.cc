@@ -131,13 +131,8 @@ void activate_bodies__CPP(const char* fn, const char* module, bool exported, Typ
         events.insert(cs.events.begin(), cs.events.end());
     }
 
-    for ( const auto& e : events ) {
-        auto eh = event_registry->Register(e);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        eh->SetUsed();
-#pragma GCC diagnostic pop
-    }
+    for ( const auto& e : events )
+        event_registry->Register(e);
 }
 
 IDPtr lookup_global__CPP(const char* g, const TypePtr& t, bool exported) {
@@ -191,13 +186,8 @@ FuncValPtr lookup_func__CPP(string name, int num_bodies, vector<p_hash_type> has
         // This might register the same event more than once,
         // if it's used in multiple bodies, but that's okay as
         // the semantics for Register explicitly allow it.
-        for ( auto& e : f.events ) {
-            auto eh = event_registry->Register(e);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-            eh->SetUsed();
-#pragma GCC diagnostic pop
-        }
+        for ( auto& e : f.events )
+            event_registry->Register(e);
     }
 
     auto sf = make_intrusive<ScriptFunc>(std::move(name), std::move(ft), std::move(bodies), std::move(priorities));

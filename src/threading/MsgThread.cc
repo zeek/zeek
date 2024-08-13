@@ -9,6 +9,7 @@
 #include "zeek/Obj.h"
 #include "zeek/RunState.h"
 #include "zeek/iosource/Manager.h"
+#include "zeek/telemetry/Manager.h"
 #include "zeek/threading/Manager.h"
 
 // Set by Zeek's main signal handler.
@@ -387,6 +388,8 @@ void MsgThread::SendIn(BasicInputMessage* msg, bool force) {
 
     queue_in.Put(msg);
     ++cnt_sent_in;
+
+    zeek::thread_mgr->MessageIn();
 }
 
 void MsgThread::SendOut(BasicOutputMessage* msg, bool force) {
@@ -398,6 +401,8 @@ void MsgThread::SendOut(BasicOutputMessage* msg, bool force) {
     queue_out.Put(msg);
 
     ++cnt_sent_out;
+
+    zeek::thread_mgr->MessageOut();
 
     if ( io_source )
         io_source->Fire();

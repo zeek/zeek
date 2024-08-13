@@ -116,7 +116,7 @@ verify_run "which lcov" \
 
 # 4. Create a "tracefile" through lcov, which is necessary to create output later on.
 echo -n "Creating tracefile for output generation... "
-verify_run "lcov --no-external --capture --directory . --output-file $COVERAGE_FILE"
+verify_run "lcov --no-external --capture --directory . --exclude 'testing/btest/.tmp/*' --output-file $COVERAGE_FILE"
 
 # 5. Remove a number of 3rdparty and "extra" files that shouldn't be included in the
 # Zeek coverage numbers.

@@ -1,3 +1,421 @@
+7.1.0-dev.141 | 2024-08-12 11:07:32 +0200
+
+  * spicyz: Add back message about removed support for port / ports in evt (Arne Welzel, Corelight)
+
+    spicy-dhcp, spicy-http and spicy-dns all have this still in their .evt files,
+    so it seems popular. Be more helpful than "unexpected token" to users.
+
+7.1.0-dev.139 | 2024-08-09 20:57:23 +0200
+
+  * rule-parse: Remove id_to_str() lookup to squelch coverity warning (Arne Welzel, Corelight)
+
+    Coverity didn't like that id_to_str() allocates memory and we didn't
+    free it. Remote its usage wholesale.
+
+  * GH-3774: btest: Skip core.script-args under TSAN (Arne Welzel, Corelight)
+
+    TSAN may re-execute the executable when the memory layout doesn't
+    fullfill requirements, causing argument confusion when that happens.
+
+    Closes #3774.
+
+  * Update zeekctl submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+7.1.0-dev.133 | 2024-08-08 10:44:31 +0200
+
+  * Update zeekctl submodule (Tim Wojtulewicz)
+
+  * Add note to NEWS about the removal of OpaqueVal::DoSerialize and OpaqueVal::DoUnserialize (Tim Wojtulewicz, Corelight)
+
+7.1.0-dev.129 | 2024-08-07 12:20:22 -0700
+
+  * Remove deprecated port/ports fields for spicy analyzers (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated Cluster::Node::interface field (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated signature definition format (Tim Wojtulewicz, Corelight)
+
+  * Return an error if GLOBAL:: prefix is used (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated BloomFilter serialization methods (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated OpaqueVal serialization methods (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated DECLARE_OPAQUE_VALUE macro (Tim Wojtulewicz, Corelight)
+
+  * Make TypePtr::Capture member variables private (Tim Wojtulewicz, Corelight)
+
+    The public versions were marked as deprecated for 7.0, and accessors
+    should be used to manage them now.
+
+  * Remove deprecated Trigger constructor (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated Controller::auto_assign_ports and Controller::auto_assign_start_port (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated load-balacing policy script (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated prometheus telemetry policy script (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated policy/tuning/default package (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated time machine settings (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated json NullDoubleWriter class (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated modbus event definitions (Tim Wojtulewicz, Corelight)
+
+  * Remove Connection::AppendAddl (Tim Wojtulewicz, Corelight)
+
+  * Remove STMT_ANY statement type (Tim Wojtulewicz, Corelight)
+
+  * Remove EventRegistry::Used and EventRegistry::SetUsed (Tim Wojtulewicz, Corelight)
+
+7.1.0-dev.109 | 2024-08-07 14:10:54 +0200
+
+  * ldap: Promote uint8 to uint64 before shifting (Arne Welzel, Corelight)
+
+    Relates to zeek/spicy#1829
+
+7.1.0-dev.107 | 2024-08-07 11:43:15 +0200
+
+  * ci/ubuntu-24.04: Use ccache 4.10.2 (Arne Welzel, Corelight)
+
+    The ccache version shipped with Ubuntu 24.04 does not yet recognize
+    --fprofile-update=atomic, install one that does.
+
+    Now that the asan_sanitizer build also includes building Spicy and
+    running the spicyz test suite, ccache is quite important.
+
+    Reference ccache/ccache#1408 and zeek/zeek#3777.
+
+7.1.0-dev.105 | 2024-08-07 10:54:10 +0200
+
+  * telemetry/Manager: Check RegisterFd() return value (Arne Welzel, Corelight)
+
+    Please coverity.
+
+  * telemetry/Manager: Track sent_in and sent_out totals without callback (Arne Welzel, Corelight)
+
+    For terminated threads, the totals would go down once the threads are
+    removed, which isn't great. Move tracking of sent in and sent out
+    messages from callback to explicit `Inc()` calls.
+
+    Also fixes total_messages_in_metric being initialized twice rather
+    than total_messages_out_metric.
+
+  * threading/Manager: Switch inf bucket from infinity() to max() (Arne Welzel, Corelight)
+
+    For uint64_t, std::numeric_limits<T>::has_infinity is false and infinity()
+    actually returns 0. Use uint64_t's max() instead. We could cast to double
+    and use the double infinity, but this seems reasonable, too.
+
+    This was found while trying to provoke some pending messages and being
+    confused why all but the "inf" bucket increased.
+
+  * threading/Manager: "lt" to "le" and do not break (Arne Welzel, Corelight)
+
+    The buckets are specified as lower-equal (changed from lower-than now),
+    which means we shouldn't break: The larger "le" bucket contains all previous
+    buckets, too. The "inf" bucket represents the current number of threads.
+
+    For example, with a total of 10 threads, 5 threads with 0 messages pending,
+    another 4 threads with 50 messages, and on with 2000 messages, the metrics
+    would end end up as follows:
+
+        pending_buckets{le=1}      = 5
+        pending_buckets{le=10}     = 5
+        pending_buckets{le=100}    = 9
+        pending_buckets{le=1000}   = 9
+        pending_buckets{le=10000}  = 10
+        pending_buckets{le=inf}    = 10
+
+    This might be strange initially, but aligns with the Prometheus
+    histogram approach (though we're using gauges here).
+
+7.1.0-dev.99 | 2024-08-06 20:08:37 +0200
+
+  * Bump auxil/spicy to latest development snapshot (Arne Welzel, Corelight)
+
+  * spicy/runtime-support: Switch ParameterMismatch::_fmt to static (Arne Welzel, Corelight)
+
+    UBSAN's vptr sanitize isn't happy with the call to _fmt()
+    in its member initializer list.
+
+        $ zeek -r Traces/ssh/single-conn.trace .tmp/spicy.event-args-mismatch/test.hlto .tmp/spicy.event-args-mismatch/event-args-mismatch.zeek
+        <...>/src/include/zeek/spicy/runtime-support.h:80:29: runtime error: member call on address 0x511000369540 which does not point to an object of type 'zeek::spicy::rt::ParameterMismatch'
+        0x511000369540: note: object has invalid vptr
+         00 00 00 00  be be be be be be be be  be be be be be be be be  be be be be be be be be  be be be be
+                      ^~~~~~~~~~~~~~~~~~~~~~~
+                      invalid vptr
+            #0 0x7f9c9977b019 in zeek::spicy::rt::ParameterMismatch::ParameterMismatch(std::basic_string_view<char, std::char_traits<char>>, zeek::IntrusivePtr<zeek::Type> const&, std::basic_string_view<char, std::char_traits<char>>) <...>/src/include/zeek/spicy/runtime-support.h:80:29
+            #1 0x7f9c9977a6a2 in zeek::spicy::rt::to_val(hilti::rt::Bytes const&, zeek::IntrusivePtr<zeek::Type> const&) <...>/src/include/zeek/spicy/runtime-support.h:562:15
+
+  * coverage/lcov_html: Ignore testing/btest/.tmp (Arne Welzel, Corelight)
+
+    gcda/gcno files in the btest/.tmp directory are from .htlo files
+    referencing ephemeral cc files. No need to include these.
+
+  * cirrus: Do not disable Spicy for sanitizer builds (Arne Welzel, Corelight)
+
+  * ldap: Avoid unset m$opcode (Arne Welzel, Corelight)
+
+    Initial fuzzing caused a bind response to arrive before a bind request,
+    resulting in an unset field expression error:
+
+        expression error in base/protocols/ldap/main.zeek, line 270: field value missing (LDAP::m$opcode)
+
+    Prevent this by ensuring m$opcode is set and raising instead.
+
+  * GH-3860: fuzzers: Add LDAP fuzzing (Arne Welzel, Corelight)
+
+    LDAP supports both, UDP and TCP as separate analyzers. The corpus
+    is identical, however. Started to hit the TLS analyzer fairly
+    quickly, too.
+
+    Closes #3860
+
+7.1.0-dev.92 | 2024-08-06 09:01:40 -0700
+
+  * Don't install empty ZAM directories (Tim Wojtulewicz, Corelight)
+
+  * btest/spicy: Make replaces-conflicts trigger replaces code path (Arne Welzel, Corelight)
+
+    The current test attempts to instantiate two spicy::SSH_1 protocol
+    analyzers in the .evt file. The intention likely was to use two
+    distinct protocol analyzer both trying to replace the builtin SSH
+    analyzer.
+
+    Coincidentally, fixing this happens to workaround TSAN errors tickled
+    by the FatalError() call while loading the .hlto with two identically
+    named analyzers.
+
+        $ cat .tmp/spicy.replaces-conflicts/output
+        error: redefinition of protocol analyzer spicy::SSH_1
+        ThreadSanitizer: main thread finished with ignores enabled
+          One of the following ignores was not ended (in order of probability)
+          Ignore was enabled at:
+            #0 __llvm_gcov_init __linker___d192e45c25d5ee23-484d3e0fc2caf5b4.cc (ssh.hlto+0x34036) (BuildId: 091934ca4da885e7)
+            #1 __llvm_gcov_init __linker___d192e45c25d5ee23-484d3e0fc2caf5b4.cc (ssh.hlto+0x34036) (BuildId: 091934ca4da885e7)
+            ...
+
+    I was tempted to replace FatalError() with Error() and rely on
+    zeek-setup.cc's early exiting on any reporter errors, but this
+    seems easier for now.
+
+    Relates to #3865.
+
+7.1.0-dev.87 | 2024-08-05 14:39:56 -0700
+
+  * Remove some unnecessary #includes (Tim Wojtulewicz, Corelight)
+
+  * Avoid capturing 'this' for callback in telemetry::Manager (Tim Wojtulewicz, Corelight)
+
+  * Make telemetry metrics out of MsgThread statistics (Tim Wojtulewicz, Corelight)
+
+  * Split cpu time metric into user/system components like prof.log (Tim Wojtulewicz, Corelight)
+
+    The total can be calculated from the two parts via Prometheus/Grafana
+    if desired, so it's more informative to pass them as separate parts.
+
+  * Move broker statistics to be telemetry metrics (Tim Wojtulewicz, Corelight)
+
+  * Add timer counts as telemetry metrics (Tim Wojtulewicz, Corelight)
+
+  * Move thread manager stats to telemetry metric (Tim Wojtulewicz, Corelight)
+
+  * Add extra metrics to session_mgr (Tim Wojtulewicz, Corelight)
+
+    - Sessions killed by activity
+    - Current number of sessions across all types
+
+  * Move dns_mgr stats to telemetry instruments (Tim Wojtulewicz, Corelight)
+
+  * Move trigger stats to telemetry instruments (Tim Wojtulewicz, Corelight)
+
+  * Move pulling of global state inside 'expensive' check for stats (Tim Wojtulewicz, Corelight)
+
+7.1.0-dev.74 | 2024-08-02 15:49:40 -0700
+
+  * Process metric callbacks from the main-loop thread (Tim Wojtulewicz, Corelight)
+
+    This avoids the callbacks from being processed on the worker thread
+    spawned by Civetweb. It fixes data race issues with lookups involving
+    global variables, amongst other threading issues.
+
+  * CI: Use 16GB of memory for FreeBSD builds (Tim Wojtulewicz, Corelight)
+
+7.1.0-dev.68 | 2024-07-26 10:09:48 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+    This in particular pulls in a fix for zeek/spicy#1808.
+
+7.1.0-dev.66 | 2024-07-26 15:14:36 +0200
+
+  * GH-3853: ldap: Recognize SASL+SPNEGO+NTLMSSP (Arne Welzel, Corelight)
+
+    The ctu-sme-11-win7ad-1-ldap-tcp-50041.pcap file was harvested
+    from the CTU-SME-11 (Experiment-VM-Microsoft-Windows7AD-1) dataset
+    at https://zenodo.org/records/7958259 (DOI 10.5281/zenodo.7958258).
+
+    Closes #3853
+
+7.1.0-dev.63 | 2024-07-25 09:19:20 -0700
+
+  * Use accessor to reach into X509_ALGOR (Theo Buehler)
+
+    Despite already having an accessor, X509_ALGOR wasn't made opaque
+    during OpenSSL 1.1.0 development. It would be nice if this could be
+    fixed at some point, so avoid reaching into that struct by using the
+    accessor
+
+7.1.0-dev.61 | 2024-07-25 12:02:51 +0200
+
+  * mysql: Simplify length computation (Arne Welzel, Corelight)
+
+    Thanks Tim!
+
+  * mysql: Improve date and time parsing (Fupeng Zhao)
+
+  * btest/mysql: Clean query-attr.pcapng (Arne Welzel, Corelight)
+
+    It contained some unrelated IntelliJ traffic.
+
+  * mysql: Support non-string query attributes (Arne Welzel, Corelight)
+
+    The query attributes aren't exposed to script layer right now, but this
+    should at least parse over them once encountered and some fixups.
+
+  * btest/mysql: Add pcap with non-string query attributes (Arne Welzel, Corelight)
+
+    Pcap was generated as follows. Doesn't seem wireshark even parses
+    this properly right now.
+
+        with common.get_connection() as c:
+            with c.cursor() as cur:
+                date1 = datetime.date(1987, 10, 18)
+                datetime1 = datetime.datetime(1990, 9, 26, 12, 13, 14)
+                cur.add_attribute("number1", 42)
+                cur.add_attribute("string1", "a string")
+                cur.add_attribute("date1", date1)
+                cur.add_attribute("datetime1", datetime1)
+                cur.execute("SELECT version()")
+                result = cur.fetchall()
+                print("result", result)
+
+  * mysql: Introduce mysql_ssl_request event (Arne Welzel, Corelight)
+
+    This should've been added with fa48c885 for completion. Do it now.
+    The MySQL spec calls it SSLRequest packet, so keep SSL in the name for
+    consistency.
+
+  * mysql: Fix EOFIfLegacyThenResultSet (Arne Welzel, Corelight)
+
+    Only expect a result next if an EOF was consumed.
+
+  * mysql: Add data parameter to mysql_auth_plugin (Arne Welzel, Corelight)
+
+    This may contain salt from the server or a hashed password from the client.
+
+  * mysql: Add mysql_auth_plugin, mysql_auth_more_data and mysql_auth_switch_request events (Arne Welzel, Corelight)
+
+    Remove caching_sha2_password parsing/state from the analyzer and implement
+    the generic events. If we actually want to peak into the authentication
+    mechanism, we could write a separate analyzer for it. For now, treat it
+    as opaque values that are exposed to script land.
+
+    The added tests show the --get-server-public-key in use where
+    mysql_auth_more_data contains an RSA public key.
+
+  * mysql: AuthSwitchRequest: &enforce a 0xfe / 254 status (Arne Welzel, Corelight)
+
+  * mysql: Make auth_plugin_ a std::string (Arne Welzel, Corelight)
+
+  * mysql: Fix auth_plugin_data_part2 length computation (Arne Welzel, Corelight)
+
+  * Refactored connection phase state handling (Fupeng Zhao)
+
+    Added `ConnectionExpected` enum for expected packet types during the connection phase.
+
+  * Add support for "auth switch" and "query attrs" (Fupeng Zhao)
+
+    Also fix the issue where Resultset could not correctly distinguish between EOF_Packet and OK_Packet.
+
+  * Add support for parsing the "caching_sha2_password" auth plugin (Fupeng Zhao)
+
+7.1.0-dev.45 | 2024-07-24 15:28:59 -0700
+
+  * Update binpac submodule to better format output code [nomail] (Tim Wojtulewicz, Corelight)
+
+7.1.0-dev.43 | 2024-07-24 13:25:52 -0700
+
+  * Update 7.0 NEWS with blurb about multi-PDU parsing causing increased load [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
+  * Fix handling of zero-length SMB2 error responses (Tim Wojtulewicz, Corelight)
+
+7.1.0-dev.40 | 2024-07-24 11:18:03 +0200
+
+  * minor optimization of boolean comparisons (Vern Paxson, Corelight)
+
+  * GH-3839: fix & regression test for GH-3839 (spurious warnings for "when" constructs) (Vern Paxson, Corelight)
+
+7.1.0-dev.37 | 2024-07-23 19:18:37 -0700
+
+  * Bump zeek-testing-cluster to reflect deprecation of prometheus.zeek (Christian Kreibich, Corelight)
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
+7.1.0-dev.34 | 2024-07-23 08:54:23 -0700
+
+  * Update Mozilla CA list and CT list (Johanna Amann, Corelight)
+
+7.1.0-dev.32 | 2024-07-23 08:51:11 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+7.1.0-dev.30 | 2024-07-23 12:38:54 +0200
+
+  * ldap: Add heuristic for wrap tokens (Arne Welzel, Corelight)
+
+    Instead of dissecting the GSSAPI handshake, add another heuristic
+    into MaybeEncrypted to check for the WRAP token identifier.
+
+    After this change, the pcap on the following ticket is processed
+    nicely: https://gitlab.com/wireshark/migration-test/-/issues/9398
+
+  * ldap: Ignore ec/rrc for sealed wrap tokens (Arne Welzel, Corelight)
+
+    It shouldn't matter for the encrypted payload that we'll
+    just consume and ignore.
+
+  * ldap: Add LDAP sample with SASL-SRP mechanism (Arne Welzel, Corelight)
+
+    This is what @dopheide-esnet actually saw. Produced with a custom
+    cyrus-sasl and openldap build :-(
+
+  * ldap: Reintroduce encryption after SASL heuristic (Arne Welzel, Corelight)
+
+    @dopheide-esnet provided sample captures where SASL SRP is used as
+    a SASL mechanism and the follow-up LDAP messages are encrypted. It's
+    not clear how to determine whether encryption will or will not happen,
+    so re-add a heuristic to determine this based on the first byte of
+    the first message *after* the successful bindResponse handshake. If
+    that byte is 0x30, assume cleartext.
+
+    I haven't been able to produce such pcaps, unfortunately, but the
+    cleartext path is tested via the existing sasl-ntlm.pcap.
+
+  * ldap: Fix assuming GSS-SPNEGO for all bindResponses (Arne Welzel, Corelight)
+
+    In retrospect that's an obvious bug.
+
+  * ldap: Implement extended request/response and StartTLS support (Arne Welzel, Corelight)
+
+    PCAP was produced with a local OpenLDAP server configured to support StartTLS.
+
+    This puts the Zeek calls into a separate ldap_zeek.spicy file/module
+    to separate it from LDAP.
+
 7.1.0-dev.23 | 2024-07-23 10:02:52 +0200
 
   * telemetry: Deprecate prometheus.zeek policy script (Arne Welzel, Corelight)

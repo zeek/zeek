@@ -3,7 +3,7 @@
 using namespace zeek::telemetry;
 
 Counter::Counter(FamilyType* family, const prometheus::Labels& labels, prometheus::CollectCallbackPtr callback) noexcept
-    : handle(family->Add(labels)), labels(labels) {
+    : family(family), handle(family->Add(labels)), labels(labels) {
     if ( callback ) {
         handle.AddCollectCallback(std::move(callback));
         has_callback = true;

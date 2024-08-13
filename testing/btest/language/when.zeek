@@ -1,6 +1,6 @@
 # @TEST-EXEC: btest-bg-run test1 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 10
-# @TEST-EXEC: mv test1/.stdout out
+# @TEST-EXEC: cat test1/.stdout test1/.stderr >> out
 # @TEST-EXEC: btest-diff out
 
 redef exit_only_after_terminate = T;
@@ -25,6 +25,13 @@ event zeek_init()
 	timeout to {}
 	when [h] ( local hname3 = lookup_addr(h) ) {}
 	timeout to + 2sec {}
+
+	# The following used to generate a spurious warning, so it's here
+	# as a regression test.
+	when ( local res = lookup_addr(127.0.0.1) )
+		{
+		return;
+		}
 
 	print "done";
 }

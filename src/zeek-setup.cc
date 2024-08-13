@@ -376,6 +376,7 @@ static void terminate_zeek() {
     input_mgr->Terminate();
     thread_mgr->Terminate();
     broker_mgr->Terminate();
+    telemetry_mgr->Terminate();
 
     event_mgr.Drain();
 
@@ -716,6 +717,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     // when that variable is defined.
     auto early_shutdown = [] {
         broker_mgr->Terminate();
+        telemetry_mgr->Terminate();
         delete iosource_mgr;
         delete telemetry_mgr;
     };
@@ -800,6 +802,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         RecordType::InitPostScript();
 
         telemetry_mgr->InitPostScript();
+        thread_mgr->InitPostScript();
         iosource_mgr->InitPostScript();
         log_mgr->InitPostScript();
         plugin_mgr->InitPostScript();
@@ -992,16 +995,6 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
 
     if ( zeek_init )
         event_mgr.Enqueue(zeek_init, Args{});
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    EventRegistry::string_list dead_handlers = event_registry->UnusedHandlers();
-#pragma GCC diagnostic pop
-
-    if ( ! dead_handlers.empty() && check_for_unused_event_handlers ) {
-        for ( const string& handler : dead_handlers )
-            reporter->Warning("event handler never invoked: %s", handler.c_str());
-    }
 
     // Enable LeakSanitizer before zeek_init() and even before executing
     // top-level statements.  Even though it's not bad if a leak happens only

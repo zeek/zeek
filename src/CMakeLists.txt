@@ -636,6 +636,8 @@ install(
     # https://gitlab.kitware.com/cmake/cmake/-/issues/17122 Exclude the ones that
     # this affects explicitly.
     PATTERN "script_opt/CPP/maint" EXCLUDE
+    PATTERN "script_opt/ZAM/maint" EXCLUDE
+    PATTERN "script_opt/ZAM/OPs" EXCLUDE
     PATTERN "fuzzers/corpora" EXCLUDE)
 
 install(

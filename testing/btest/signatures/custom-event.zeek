@@ -10,19 +10,12 @@ signature udp-proto {
   event my_signature_match3 "message"
 }
 
-signature udp-proto-msg-id2 {
-  ip-proto == 17
-  event message_as_id
-}
-
 signature udp-stuff {
   dst-ip == mynets
   event my_signature_match2
 }
 
 @TEST-END-FILE
-
-const message_as_id = "message from identifier (cannot be changed)";
 
 const mynets: set[subnet] = {
 	192.168.1.0/24,

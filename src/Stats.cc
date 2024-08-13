@@ -119,7 +119,7 @@ void ProfileLogger::Log() {
 
     // TODO: This previously output the number of connections, but now that we're storing
     // sessions as well as connections, this might need to be renamed.
-    file->Write(util::fmt("%.06f Conns: total=%" PRIu64 " current=%" PRIu64 "/%u\n", run_state::network_time,
+    file->Write(util::fmt("%.06f Conns: total=%" PRIu64 " current=%" PRIu64 "/%zu\n", run_state::network_time,
                           Connection::TotalConnections(), Connection::CurrentConnections(),
                           session_mgr->CurrentSessions()));
 
@@ -173,7 +173,7 @@ void ProfileLogger::Log() {
         util::fmt("%.06f DNS_Mgr: requests=%lu successful=%lu failed=%lu pending=%lu "
                   "cached_hosts=%lu cached_addrs=%lu\n",
                   run_state::network_time, dstats.requests, dstats.successful, dstats.failed, dstats.pending,
-                  dstats.cached_hosts, dstats.cached_addresses));
+                  dstats.cached.hosts, dstats.cached.addresses));
 
     trigger::Manager::Stats tstats;
     trigger_mgr->GetStats(&tstats);
@@ -188,7 +188,7 @@ void ProfileLogger::Log() {
                                   timer_type_to_string(static_cast<TimerType>(i)), current_timers[i]));
     }
 
-    file->Write(util::fmt("%0.6f Threads: current=%d\n", run_state::network_time, thread_mgr->NumThreads()));
+    file->Write(util::fmt("%0.6f Threads: current=%zu\n", run_state::network_time, thread_mgr->NumThreads()));
 
     const threading::Manager::msg_stats_list& thread_stats = thread_mgr->GetMsgThreadStats();
     for ( threading::Manager::msg_stats_list::const_iterator i = thread_stats.begin(); i != thread_stats.end(); ++i ) {
@@ -213,14 +213,12 @@ void ProfileLogger::Log() {
                   cs.num_events_outgoing, cs.num_logs_incoming, cs.num_logs_outgoing, cs.num_ids_incoming,
                   cs.num_ids_outgoing));
 
-    // Script-level state.
-    const auto& globals = global_scope()->Vars();
-
     if ( expensive ) {
+        // Script-level state.
         int total_table_entries = 0;
         int total_table_rentries = 0;
 
-        for ( const auto& global : globals ) {
+        for ( const auto& global : global_scope()->Vars() ) {
             auto& id = global.second;
 
             // We don't show/count internal globals as they are always

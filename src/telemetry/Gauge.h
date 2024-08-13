@@ -74,6 +74,7 @@ public:
     bool CompareLabels(const prometheus::Labels& lbls) const { return labels == lbls; }
 
 private:
+    FamilyType* family = nullptr;
     Handle& handle;
     prometheus::Labels labels;
     bool has_callback = false;

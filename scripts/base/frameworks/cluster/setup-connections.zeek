@@ -94,11 +94,6 @@ event zeek_init() &priority=-10
 	case WORKER:
 		Broker::subscribe(Cluster::worker_topic);
 		break;
-@pragma push ignore-deprecations
-	case TIME_MACHINE:
-		Broker::subscribe(Cluster::time_machine_topic);
-		break;
-@pragma pop ignore-deprecations
 	default:
 		Reporter::error(fmt("Unhandled cluster node type: %s", self$node_type));
 		return;
@@ -121,11 +116,6 @@ event zeek_init() &priority=-10
 	case MANAGER:
 		connect_peers_with_type(LOGGER);
 
-@pragma push ignore-deprecations
-		if ( self?$time_machine )
-			connect_peer(TIME_MACHINE, self$time_machine);
-@pragma pop ignore-deprecations
-
 		break;
 	case PROXY:
 		connect_peers_with_type(LOGGER);
@@ -140,11 +130,6 @@ event zeek_init() &priority=-10
 
 		if ( self?$manager )
 			connect_peer(MANAGER, self$manager);
-
-@pragma push ignore-deprecations
-		if ( self?$time_machine )
-			connect_peer(TIME_MACHINE, self$time_machine);
-@pragma pop ignore-deprecations
 
 		break;
 	}

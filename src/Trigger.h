@@ -18,6 +18,13 @@ class Val;
 
 using ValPtr = IntrusivePtr<Val>;
 
+namespace telemetry {
+class Gauge;
+class Counter;
+using GaugePtr = std::shared_ptr<Gauge>;
+using CounterPtr = std::shared_ptr<Counter>;
+} // namespace telemetry
+
 namespace detail {
 
 class Frame;
@@ -39,13 +46,6 @@ class TriggerTraversalCallback;
 
 class Trigger final : public Obj, public notifier::detail::Receiver {
 public:
-    // This first constructor can return an invalid pointer, so
-    // its value must not be used further.
-    [[deprecated(
-        "Remove in v7.1.  Use second Trigger constructor via "
-        "make_intrusive<...>.")]] Trigger(std::shared_ptr<WhenInfo> wi, double timeout, const IDSet& globals,
-                                          std::vector<ValPtr> local_aggrs, Frame* f, const Location* loc);
-
     // Use this constructor via make_intrusive<...>. The usual pattern is
     // to then discard what's returned, i.e. "(void)make_intrusive<...>" -
     // however, a valid pointer will be returned that can be used for
@@ -187,7 +187,8 @@ public:
 private:
     using TriggerList = std::list<Trigger*>;
     TriggerList* pending;
-    unsigned long total_triggers = 0;
+    telemetry::CounterPtr trigger_count;
+    telemetry::GaugePtr trigger_pending;
 };
 
 } // namespace trigger

@@ -14,6 +14,28 @@ refine flow MySQL_Flow += {
 				                                       connection()->zeek_analyzer()->Conn(),
 				                                       zeek::make_intrusive<zeek::StringVal>(c_str(${msg.handshake9.server_version})));
 			}
+
+		if ( mysql_auth_plugin )
+			{
+			if ( ${msg.version} == 10 && (${msg.handshake10.capability_flags_2} << 16) & CLIENT_PLUGIN_AUTH )
+				{
+				auto auth_plugin = zeek::make_intrusive<zeek::StringVal>(c_str(${msg.handshake10.auth_plugin}));
+				auto data_part_1 = ${msg.handshake10.auth_plugin_data_part_1};
+				auto data_part_2 = ${msg.handshake10.auth_plugin_data_part_2};
+				std::vector<zeek::data_chunk_t> data_parts = {
+					zeek::data_chunk_t{data_part_1.length(), reinterpret_cast<const char*>(data_part_1.begin())},
+					zeek::data_chunk_t{data_part_2.length(), reinterpret_cast<const char*>(data_part_2.begin())},
+				};
+				auto data = zeek::make_intrusive<zeek::StringVal>(zeek::concatenate(data_parts));
+
+				zeek::BifEvent::enqueue_mysql_auth_plugin(connection()->zeek_analyzer(),
+				                                          connection()->zeek_analyzer()->Conn(),
+				                                          false /*is_orig*/,
+				                                          std::move(auth_plugin),
+				                                          std::move(data));
+				}
+			}
+
 		return true;
 		%}
 
@@ -23,23 +45,42 @@ refine flow MySQL_Flow += {
 			connection()->zeek_analyzer()->AnalyzerConfirmation();
 
 		// If the client requested SSL and didn't provide credentials, switch to SSL
-		if ( ${msg.version} == 10 && ( ${msg.v10_response.cap_flags} & CLIENT_SSL ) && ${msg.v10_response.credentials}->empty() )
+		if ( ${msg.version} == 10 && ( ${msg.v10_response.cap_flags} & CLIENT_SSL ))
 			{
 			connection()->zeek_analyzer()->StartTLS();
+
+			if ( mysql_ssl_request )
+				zeek::BifEvent::enqueue_mysql_ssl_request(connection()->zeek_analyzer(),
+				                                          connection()->zeek_analyzer()->Conn());
 			return true;
 			}
 
 		if ( mysql_handshake )
 			{
-			if ( ${msg.version} == 10 && ${msg.v10_response.credentials}->size() > 0 )
+			if ( ${msg.version} == 10 )
 				zeek::BifEvent::enqueue_mysql_handshake(connection()->zeek_analyzer(),
 				                                  connection()->zeek_analyzer()->Conn(),
-				                                  zeek::make_intrusive<zeek::StringVal>(c_str(${msg.v10_response.credentials[0].username})));
+				                                  zeek::make_intrusive<zeek::StringVal>(c_str(${msg.v10_response.plain.credentials.username})));
 			if ( ${msg.version} == 9 )
 				zeek::BifEvent::enqueue_mysql_handshake(connection()->zeek_analyzer(),
 				                                  connection()->zeek_analyzer()->Conn(),
 				                                  zeek::make_intrusive<zeek::StringVal>(c_str(${msg.v9_response.username})));
 			}
+
+		if ( mysql_auth_plugin )
+			{
+			if ( ${msg.version} == 10 && ${msg.v10_response.plain.cap_flags} & CLIENT_PLUGIN_AUTH )
+				{
+				auto auth_plugin = zeek::make_intrusive<zeek::StringVal>(c_str(${msg.v10_response.plain.auth_plugin}));
+				auto data = to_stringval(${msg.v10_response.plain.credentials.password.val});
+				zeek::BifEvent::enqueue_mysql_auth_plugin(connection()->zeek_analyzer(),
+				                                          connection()->zeek_analyzer()->Conn(),
+				                                          true /*is_orig*/,
+				                                          std::move(auth_plugin),
+				                                          std::move(data));
+				}
+			}
+
 		return true;
 		%}
 
@@ -83,8 +124,8 @@ refine flow MySQL_Flow += {
 
 	function proc_resultset(msg: Resultset): bool
 		%{
-		if ( ${msg.is_eof} )
-			return true;  // Raised through proc_eof_packet()
+		if ( ${msg.is_eof_or_ok} )
+			return true;  // Raised through proc_eof_packet() or proc_ok_packet()
 
 		if ( ! mysql_result_row )
 			return true;
@@ -109,6 +150,24 @@ refine flow MySQL_Flow += {
 		                                   connection()->zeek_analyzer()->Conn(),
 		                                   std::move(vv));
 
+		return true;
+		%}
+
+	function proc_auth_switch_request(msg: AuthSwitchRequest): bool
+		%{
+		zeek::BifEvent::enqueue_mysql_auth_switch_request(connection()->zeek_analyzer(),
+		                                                  connection()->zeek_analyzer()->Conn(),
+		                                                  zeek::make_intrusive<zeek::StringVal>(c_str(${msg.name})),
+		                                                  to_stringval(${msg.data}));
+		return true;
+		%}
+
+	function proc_auth_more_data(msg: AuthMoreData): bool
+		%{
+		zeek::BifEvent::enqueue_mysql_auth_more_data(connection()->zeek_analyzer(),
+		                                             connection()->zeek_analyzer()->Conn(),
+		                                             ${is_orig},
+		                                             to_stringval(${msg.data}));
 		return true;
 		%}
 
@@ -140,4 +199,12 @@ refine typeattr EOF_Packet += &let {
 
 refine typeattr Resultset += &let {
 	proc = $context.flow.proc_resultset(this);
+};
+
+refine typeattr AuthSwitchRequest += &let {
+	proc = $context.flow.proc_auth_switch_request(this);
+};
+
+refine typeattr AuthMoreData += &let {
+	proc = $context.flow.proc_auth_more_data(this);
 };

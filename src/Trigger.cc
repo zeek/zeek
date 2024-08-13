@@ -13,6 +13,7 @@
 #include "zeek/Traverse.h"
 #include "zeek/Val.h"
 #include "zeek/iosource/Manager.h"
+#include "zeek/telemetry/Manager.h"
 
 using namespace zeek::detail;
 using namespace zeek::detail::trigger;
@@ -87,12 +88,6 @@ protected:
     double timeout;
     double time;
 };
-
-Trigger::Trigger(std::shared_ptr<WhenInfo> wi, double timeout, const IDSet& _globals, std::vector<ValPtr> _local_aggrs,
-                 Frame* f, const Location* loc)
-    : Trigger(std::move(wi), _globals, std::move(_local_aggrs), timeout, f, loc) {
-    Unref(this);
-}
 
 Trigger::Trigger(std::shared_ptr<WhenInfo> wi, const IDSet& _globals, std::vector<ValPtr> _local_aggrs, double timeout,
                  Frame* f, const Location* loc) {
@@ -437,7 +432,19 @@ Manager::Manager() : iosource::IOSource() { pending = new TriggerList(); }
 
 Manager::~Manager() { delete pending; }
 
-void Manager::InitPostScript() { iosource_mgr->Register(this, true); }
+void Manager::InitPostScript() {
+    trigger_count = telemetry_mgr->CounterInstance("zeek", "triggers", {}, "Total number of triggers scheduled");
+    trigger_pending =
+        telemetry_mgr->GaugeInstance("zeek", "pending_triggers", {}, "Pending number of triggers", "",
+                                     []() -> prometheus::ClientMetric {
+                                         prometheus::ClientMetric metric;
+                                         metric.gauge.value =
+                                             trigger_mgr ? static_cast<double>(trigger_mgr->pending->size()) : 0.0;
+                                         return metric;
+                                     });
+
+    iosource_mgr->Register(this, true);
+}
 
 double Manager::GetNextTimeout() { return pending->empty() ? -1 : run_state::network_time + 0.100; }
 
@@ -468,13 +475,13 @@ void Manager::Queue(Trigger* trigger) {
     if ( std::find(pending->begin(), pending->end(), trigger) == pending->end() ) {
         Ref(trigger);
         pending->push_back(trigger);
-        total_triggers++;
+        trigger_count->Inc();
         iosource_mgr->Wakeup(Tag());
     }
 }
 
 void Manager::GetStats(Stats* stats) {
-    stats->total = total_triggers;
+    stats->total = static_cast<unsigned long>(trigger_count->Value());
     stats->pending = pending->size();
 }
 

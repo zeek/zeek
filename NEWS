@@ -9,10 +9,21 @@ Zeek 7.1.0
 Breaking Changes
 ----------------
 
+* The ``OpaqueVal::DoSerialize`` and ``OpaqueVal::DoUnserialize`` methods were
+  marked as deprecated in v7.0 and have now been removed as per the Zeek
+  deprecation policy. Plugins that were overriding these methods and were not
+  updated will fail to compile. Those plugins should be updated to override the
+  new ``OpaqueVal::DoSerializeData`` and ``OpaqueVal::DoUnserializeData``
+  methods.
+
 New Functionality
 -----------------
 
 * The LDAP analyzer now supports handling of non-sealed GSS-API WRAP tokens.
+
+* StartTLS support was added to the LDAP analyzer. The SSL analyzer is enabled
+  for connections where client and server negotiate to TLS through the extended
+  request/response mechanism.
 
 Changed Functionality
 ---------------------
@@ -20,6 +31,10 @@ Changed Functionality
 * Heuristics for parsing SASL encrypted and signed LDAP traffic have been
   made more strict and predictable. Please provide input if this results in
   less visibility in your environment.
+
+* The MySQL analyzer has been improved to better support plugin authentication
+  mechanisms, like caching_sha2_password, as well as recognizing MySQL query
+  attributes.
 
 Removed Functionality
 ---------------------
@@ -109,7 +124,8 @@ New Functionality
   environment variable configures the addition.
 
 - SMB2 packets containing multiple PDUs now correctly parse all of the headers,
-  instead of just the first one and ignoring the rest.
+  instead of just the first one and ignoring the rest. This may cause increased
+  CPU load on SMB2-heavy networks.
 
 - The new built-in function ``lookup_connection_analyzer_id()`` retrieves the
   numeric identifier of an analyzer associated with a connection. This enables

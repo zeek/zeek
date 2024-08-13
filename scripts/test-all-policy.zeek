@@ -78,7 +78,6 @@
 # @load frameworks/spicy/record-spicy-batch.zeek
 # @load frameworks/spicy/resource-usage.zeek
 @load frameworks/software/windows-version-detection.zeek
-@load frameworks/telemetry/prometheus.zeek
 @load frameworks/telemetry/log.zeek
 @load integration/collective-intel/__load__.zeek
 @load integration/collective-intel/main.zeek
@@ -86,7 +85,6 @@
 @load misc/detect-traceroute/__load__.zeek
 @load misc/detect-traceroute/main.zeek
 # @load misc/dump-events.zeek
-@load misc/load-balancing.zeek
 @load misc/loaded-scripts.zeek
 @load misc/profiling.zeek
 @load misc/stats.zeek
@@ -142,10 +140,5 @@
 @load protocols/ssl/validate-ocsp.zeek
 @load protocols/ssl/validate-sct.zeek
 @load protocols/ssl/weak-keys.zeek
-@load tuning/__load__.zeek
-@load tuning/defaults/__load__.zeek
-@load tuning/defaults/extracted_file_limits.zeek
-@load tuning/defaults/packet-fragments.zeek
-@load tuning/defaults/warnings.zeek
 @load tuning/json-logs.zeek
 @load tuning/track-all-assets.zeek

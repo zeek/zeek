@@ -46,9 +46,9 @@ public:
 
     ProtocolMap::iterator InitCounters(const std::string& protocol) {
         auto active_family =
-            telemetry_mgr->GaugeFamily("zeek", "active-sessions", {"protocol"}, "Active Zeek Sessions");
+            telemetry_mgr->GaugeFamily("zeek", "active_sessions", {"protocol"}, "Active Zeek Sessions");
         auto total_family =
-            telemetry_mgr->CounterFamily("zeek", "total-sessions", {"protocol"}, "Total number of sessions");
+            telemetry_mgr->CounterFamily("zeek", "total_sessions", {"protocol"}, "Total number of sessions");
 
         auto [it, inserted] = entries.insert({protocol, Protocol{active_family, total_family, protocol}});
 
@@ -75,7 +75,17 @@ private:
 
 } // namespace detail
 
-Manager::Manager() { stats = new detail::ProtocolStats(); }
+Manager::Manager() {
+    stats = new detail::ProtocolStats();
+    ended_sessions_metric_family = telemetry_mgr->CounterFamily("zeek", "ended_sessions", {"reason"},
+                                                                "Number of sessions ended for specific reasons");
+    ended_by_inactivity_metric =
+        ended_sessions_metric_family->GetOrAdd({{"reason", "inactivity"}}, []() -> prometheus::ClientMetric {
+            prometheus::ClientMetric metric;
+            metric.counter.value = static_cast<double>(zeek::detail::killed_by_inactivity);
+            return metric;
+        });
+}
 
 Manager::~Manager() {
     Clear();

@@ -8,6 +8,8 @@
 #define __STDC_LIMIT_MACROS
 #endif
 
+#define RAPIDJSON_HAS_STDSTRING 1
+
 #include <rapidjson/internal/ieee754.h>
 #include <cerrno>
 #include <cmath>
@@ -19,12 +21,6 @@
 #include "zeek/threading/formatters/detail/json.h"
 
 namespace zeek::threading::formatter {
-
-// For deprecated NullDoubleWriter
-JSON::NullDoubleWriter::NullDoubleWriter(rapidjson::StringBuffer& stream)
-    : writer(std::make_unique<zeek::json::detail::NullDoubleWriter>(stream)) {}
-
-bool JSON::NullDoubleWriter::Double(double d) { return writer->Double(d); }
 
 JSON::JSON(MsgThread* t, TimeFormat tf, bool arg_include_unset_fields)
     : Formatter(t), timestamps(tf), include_unset_fields(arg_include_unset_fields) {}

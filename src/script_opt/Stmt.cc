@@ -245,6 +245,12 @@ StmtPtr IfStmt::DoReduce(Reducer* c) {
             red_e_stmt = cond_red_stmt;
     }
 
+    // Check again for negation given above reductions/replacements.
+    if ( e->Tag() == EXPR_NOT ) {
+        std::swap(s1, s2);
+        e = e->GetOp1();
+    }
+
     StmtPtr sl;
 
     if ( e->IsConst() ) {

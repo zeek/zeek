@@ -42,6 +42,13 @@ using TableValPtr = IntrusivePtr<TableVal>;
 using StringValPtr = IntrusivePtr<StringVal>;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 
+namespace telemetry {
+class Gauge;
+class Counter;
+using GaugePtr = std::shared_ptr<Gauge>;
+using CounterPtr = std::shared_ptr<Counter>;
+} // namespace telemetry
+
 } // namespace zeek
 
 namespace zeek::detail {
@@ -198,15 +205,19 @@ public:
      */
     bool Save();
 
+    struct CachedStats {
+        unsigned long hosts;
+        unsigned long addresses;
+        unsigned long texts;
+        unsigned long total;
+    };
+
     struct Stats {
         unsigned long requests; // These count only async requests.
         unsigned long successful;
         unsigned long failed;
         unsigned long pending;
-        unsigned long cached_hosts;
-        unsigned long cached_addresses;
-        unsigned long cached_texts;
-        unsigned long cached_total;
+        CachedStats cached;
     };
 
     /**
@@ -285,6 +296,8 @@ protected:
     const char* Tag() override { return "DNS_Mgr"; }
     double GetNextTimeout() override;
 
+    void UpdateCachedStats(bool force);
+
     DNS_MgrMode mode;
 
     MappingMap all_mappings;
@@ -293,7 +306,6 @@ protected:
     std::string dir; // directory in which cache_name resides
 
     bool did_init = false;
-    int asyncs_pending = 0;
 
     RecordTypePtr dm_rec;
 
@@ -327,9 +339,19 @@ protected:
     using QueuedList = std::list<AsyncRequest*>;
     QueuedList asyncs_queued;
 
-    unsigned long num_requests = 0;
-    unsigned long successful = 0;
-    unsigned long failed = 0;
+    telemetry::CounterPtr num_requests_metric;
+    telemetry::CounterPtr successful_metric;
+    telemetry::CounterPtr failed_metric;
+    telemetry::GaugePtr asyncs_pending_metric;
+
+    telemetry::GaugePtr cached_hosts_metric;
+    telemetry::GaugePtr cached_addresses_metric;
+    telemetry::GaugePtr cached_texts_metric;
+
+    double last_cached_stats_update = 0;
+    CachedStats last_cached_stats;
+
+    int asyncs_pending = 0;
 
     std::set<int> socket_fds;
     std::set<int> write_socket_fds;

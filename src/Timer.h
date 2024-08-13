@@ -10,7 +10,14 @@
 
 namespace zeek {
 class ODesc;
-}
+
+namespace telemetry {
+class Gauge;
+class Counter;
+using GaugePtr = std::shared_ptr<Gauge>;
+using CounterPtr = std::shared_ptr<Counter>;
+} // namespace telemetry
+} // namespace zeek
 
 namespace zeek::detail {
 
@@ -153,10 +160,12 @@ private:
     // for the max_timer_expires=0 case.
     bool dispatch_all_expired = false;
 
-    size_t peak_size = 0;
-    size_t cumulative_num = 0;
-
     static unsigned int current_timers[NUM_TIMER_TYPES];
+
+    telemetry::CounterPtr cumulative_num_metric;
+    telemetry::GaugePtr lag_time_metric;
+    telemetry::GaugePtr current_timer_metrics[NUM_TIMER_TYPES];
+
     std::unique_ptr<PriorityQueue> q;
 };
 

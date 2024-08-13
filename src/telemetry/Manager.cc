@@ -6,6 +6,7 @@
 
 // CivetServer is from the civetweb submodule in prometheus-cpp
 #include <CivetServer.h>
+#include <prometheus/collectable.h>
 #include <prometheus/exposer.h>
 #include <prometheus/registry.h>
 #include <rapidjson/document.h>
@@ -16,19 +17,32 @@
 
 #include "zeek/3rdparty/doctest.h"
 #include "zeek/ID.h"
+#include "zeek/RunState.h"
 #include "zeek/ZeekString.h"
 #include "zeek/broker/Manager.h"
+#include "zeek/iosource/Manager.h"
 #include "zeek/telemetry/ProcessStats.h"
 #include "zeek/telemetry/Timer.h"
+#include "zeek/telemetry/consts.bif.h"
 #include "zeek/telemetry/telemetry.bif.h"
 #include "zeek/threading/formatters/detail/json.h"
 
 namespace zeek::telemetry {
 
-Manager::Manager() { prometheus_registry = std::make_shared<prometheus::Registry>(); }
+/**
+ * Prometheus Collectable interface used to insert Zeek callback processing
+ * before the Prometheus registry's collection of metric data.
+ */
+class ZeekCollectable : public prometheus::Collectable {
+public:
+    std::vector<prometheus::MetricFamily> Collect() const override {
+        telemetry_mgr->WaitForPrometheusCallbacks();
+        return {};
+    }
+};
 
-// This can't be defined as =default because of the use of unique_ptr with a forward-declared type
-// in Manager.h
+Manager::Manager() : IOSource(true) { prometheus_registry = std::make_shared<prometheus::Registry>(); }
+
 Manager::~Manager() {}
 
 void Manager::InitPostScript() {
@@ -75,7 +89,9 @@ void Manager::InitPostScript() {
 
         if ( ! getenv("ZEEKCTL_CHECK_CONFIG") ) {
             try {
-                prometheus_exposer = std::make_unique<prometheus::Exposer>(prometheus_url, 2, callbacks);
+                prometheus_exposer =
+                    std::make_unique<prometheus::Exposer>(prometheus_url, BifConst::Telemetry::civetweb_threads,
+                                                          callbacks);
 
                 // CivetWeb stores a copy of the callbacks, so we're safe to delete the pointer here
                 delete callbacks;
@@ -84,19 +100,26 @@ void Manager::InitPostScript() {
                                      prometheus_url.c_str());
             }
 
+            // This has to be inserted before the registry below. The exposer
+            // processes the collectors in order of insertion. We want to make
+            // sure that the callbacks get called and the values in the metrics
+            // are updated before prometheus-cpp scrapes them.
+            zeek_collectable = std::make_shared<ZeekCollectable>();
+            prometheus_exposer->RegisterCollectable(zeek_collectable);
+
             prometheus_exposer->RegisterCollectable(prometheus_registry);
         }
     }
 
 #ifdef HAVE_PROCESS_STAT_METRICS
-    static auto get_stats = [this]() -> const detail::process_stats* {
+    static auto get_stats = []() -> const detail::process_stats* {
         double now = util::current_time();
-        if ( this->process_stats_last_updated < now - 0.01 ) {
-            this->current_process_stats = detail::get_process_stats();
-            this->process_stats_last_updated = now;
+        if ( telemetry_mgr->process_stats_last_updated < now - 0.01 ) {
+            telemetry_mgr->current_process_stats = detail::get_process_stats();
+            telemetry_mgr->process_stats_last_updated = now;
         }
 
-        return &this->current_process_stats;
+        return &telemetry_mgr->current_process_stats;
     };
     rss_gauge = GaugeInstance("process", "resident_memory", {}, "Resident memory size", "bytes",
                               []() -> prometheus::ClientMetric {
@@ -114,13 +137,21 @@ void Manager::InitPostScript() {
                                   return metric;
                               });
 
-    cpu_gauge = GaugeInstance("process", "cpu", {}, "Total user and system CPU time spent", "seconds",
-                              []() -> prometheus::ClientMetric {
-                                  auto* s = get_stats();
-                                  prometheus::ClientMetric metric;
-                                  metric.gauge.value = s->cpu;
-                                  return metric;
-                              });
+    cpu_user_counter = CounterInstance("process", "cpu_user", {}, "Total user CPU time spent", "seconds",
+                                       []() -> prometheus::ClientMetric {
+                                           auto* s = get_stats();
+                                           prometheus::ClientMetric metric;
+                                           metric.gauge.value = s->cpu_user;
+                                           return metric;
+                                       });
+
+    cpu_system_counter = CounterInstance("process", "cpu_system", {}, "Total system CPU time spent", "seconds",
+                                         []() -> prometheus::ClientMetric {
+                                             auto* s = get_stats();
+                                             prometheus::ClientMetric metric;
+                                             metric.gauge.value = s->cpu_system;
+                                             return metric;
+                                         });
 
     fds_gauge = GaugeInstance("process", "open_fds", {}, "Number of open file descriptors", "",
                               []() -> prometheus::ClientMetric {
@@ -130,6 +161,23 @@ void Manager::InitPostScript() {
                                   return metric;
                               });
 #endif
+
+    if ( ! iosource_mgr->RegisterFd(collector_flare.FD(), this) ) {
+        reporter->FatalError("Failed to register telemetry collector descriptor");
+    }
+}
+
+void Manager::Terminate() {
+    // Notify the collector condition so that it doesn't hang waiting for
+    // a collector request to complete.
+    collector_cv.notify_all();
+
+    // Shut down the exposer first of all so we stop getting requests for
+    // data. This keeps us from getting a request on another thread while
+    // we're shutting down.
+    prometheus_exposer.reset();
+
+    iosource_mgr->UnregisterFd(collector_flare.FD(), this);
 }
 
 // -- collect metric stuff -----------------------------------------------------
@@ -545,24 +593,45 @@ HistogramPtr Manager::HistogramInstance(std::string_view prefix, std::string_vie
     return HistogramInstance(prefix, name, lbls, bounds_span, helptext, unit);
 }
 
+void Manager::ProcessFd(int fd, int flags) {
+    std::unique_lock<std::mutex> lk(collector_cv_mtx);
+
+    collector_flare.Extinguish();
+
+    prometheus_registry->UpdateViaCallbacks();
+    collector_response_idx = collector_request_idx;
+
+    lk.unlock();
+    collector_cv.notify_all();
+}
+
+void Manager::WaitForPrometheusCallbacks() {
+    std::unique_lock<std::mutex> lk(collector_cv_mtx);
+
+    ++collector_request_idx;
+    uint64_t expected_idx = collector_request_idx;
+    collector_flare.Fire();
+
+    // It should *not* take 5 seconds to go through all of the callbacks, but
+    // set this to have a timeout anyways just to avoid a deadlock.
+    bool res = collector_cv.wait_for(lk,
+                                     std::chrono::microseconds(
+                                         static_cast<long>(BifConst::Telemetry::callback_timeout * 1000000)),
+                                     [expected_idx]() {
+                                         return telemetry_mgr->collector_response_idx >= expected_idx ||
+                                                zeek::run_state::terminating;
+                                     });
+
+    if ( ! res )
+        fprintf(stderr, "Timeout waiting for prometheus callbacks\n");
+}
+
 } // namespace zeek::telemetry
 
 // -- unit tests ---------------------------------------------------------------
 
 using namespace std::literals;
 using namespace zeek::telemetry;
-
-namespace {
-
-template<class T>
-auto toVector(zeek::Span<T> xs) {
-    std::vector<std::remove_const_t<T>> result;
-    for ( auto&& x : xs )
-        result.emplace_back(x);
-    return result;
-}
-
-} // namespace
 
 SCENARIO("telemetry managers provide access to counter families") {
     GIVEN("a telemetry manager") {

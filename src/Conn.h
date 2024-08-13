@@ -145,12 +145,6 @@ public:
      */
     const RecordValPtr& GetVal() override;
 
-    /**
-     * Append additional entries to the history field in the connection record.
-     */
-    [[deprecated("Remove in v7.1 - Appears unused and named rough. Use CheckHistory() or AddHistory() instead.")]] void
-    AppendAddl(const char* str);
-
     void Match(detail::Rule::PatternType type, const u_char* data, int len, bool is_orig, bool bol, bool eol,
                bool clear_state);
 

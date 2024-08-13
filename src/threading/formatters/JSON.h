@@ -4,12 +4,6 @@
 
 #include <memory>
 
-#define RAPIDJSON_HAS_STDSTRING 1
-// Remove in v7.1 when removing NullDoubleWriter below and also remove
-// rapidjson include tweaks from  CMake's dynamic_plugin_base target.
-#include <rapidjson/document.h>
-#include <rapidjson/writer.h>
-
 #include "zeek/threading/Formatter.h"
 
 namespace zeek::json::detail {
@@ -38,16 +32,6 @@ public:
     bool Describe(ODesc* desc, int num_fields, const Field* const* fields, Value** vals) const override;
     Value* ParseValue(const std::string& s, const std::string& name, TypeTag type,
                       TypeTag subtype = TYPE_ERROR) const override;
-
-    class NullDoubleWriter : public rapidjson::Writer<rapidjson::StringBuffer> {
-    public:
-        [[deprecated("Remove in v7.1 - This is an implementation detail.")]] NullDoubleWriter(
-            rapidjson::StringBuffer& stream);
-        bool Double(double d);
-
-    private:
-        std::unique_ptr<json::detail::NullDoubleWriter> writer;
-    };
 
 private:
     void BuildJSON(zeek::json::detail::NullDoubleWriter& writer, Value* val, const std::string& name = "") const;

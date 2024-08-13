@@ -43,10 +43,6 @@ function __init_cluster_nodes(): bool
 			typ = rolemap[endp$role];
 
 		cnode = [$node_type=typ, $ip=endp$host, $p=endp$p];
-@pragma push ignore-deprecations
-		if ( endp?$interface )
-			cnode$interface = endp$interface;
-@pragma pop ignore-deprecations
 		if ( |manager_name| > 0 && cnode$node_type != Cluster::MANAGER )
 			cnode$manager = manager_name;
 		if ( endp?$metrics_port )

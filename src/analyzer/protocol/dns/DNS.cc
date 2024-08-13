@@ -256,6 +256,8 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg, const u_char*& data,
 
         case detail::TYPE_EDNS: status = ParseRR_EDNS(msg, data, len, rdlength, msg_start); break;
 
+        case detail::TYPE_TKEY: status = ParseRR_TKEY(msg, data, len, rdlength, msg_start); break;
+
         case detail::TYPE_TSIG: status = ParseRR_TSIG(msg, data, len, rdlength, msg_start); break;
 
         case detail::TYPE_RRSIG: status = ParseRR_RRSIG(msg, data, len, rdlength, msg_start); break;
@@ -819,6 +821,48 @@ bool DNS_Interpreter::ParseRR_TSIG(detail::DNS_MsgInfo* msg, const u_char*& data
         tsig.rr_error = rr_error;
 
         analyzer->EnqueueConnEvent(dns_TSIG_addl, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildTSIG_Val(&tsig));
+    }
+
+    return true;
+}
+
+bool DNS_Interpreter::ParseRR_TKEY(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength,
+                                   const u_char* msg_start) {
+    if ( ! dns_TKEY || msg->skip_event ) {
+        data += rdlength;
+        len -= rdlength;
+        return true;
+    }
+
+    if ( len < 16 )
+        return false;
+
+    const u_char* data_start = data;
+    u_char alg_name[513];
+    int alg_name_len = sizeof(alg_name) - 1;
+
+    u_char* alg_name_end = ExtractName(data, len, alg_name, alg_name_len, msg_start);
+
+    if ( ! alg_name_end )
+        return false;
+
+    uint32_t inception = ExtractLong(data, len);
+    uint32_t expiration = ExtractLong(data, len);
+    uint16_t mode = ExtractShort(data, len);
+    uint16_t error = ExtractShort(data, len);
+    String* key_data;
+    ExtractOctets(data, len, dns_TKEY ? &key_data : nullptr);
+    ExtractOctets(data, len, nullptr); // Other data
+
+    if ( dns_TKEY ) {
+        detail::TKEY_DATA tkey;
+        tkey.alg_name = new String(alg_name, int(alg_name_end - alg_name), true);
+        tkey.inception = inception;
+        tkey.expiration = expiration;
+        tkey.mode = mode;
+        tkey.error = error;
+        tkey.key = key_data;
+        analyzer->EnqueueConnEvent(dns_TKEY, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildTKEY_Val(&tkey));
     }
 
     return true;
@@ -1656,6 +1700,23 @@ RecordValPtr DNS_MsgInfo::BuildEDNS_COOKIE_Val(struct EDNS_COOKIE* opt) {
     if ( opt->server_cookie != nullptr ) {
         r->Assign(1, opt->server_cookie);
     }
+
+    return r;
+}
+
+RecordValPtr DNS_MsgInfo::BuildTKEY_Val(struct TKEY_DATA* tkey) {
+    static auto dns_tkey = id::find_type<RecordType>("dns_tkey");
+    auto r = make_intrusive<RecordVal>(dns_tkey);
+
+    r->Assign(0, query_name);
+    r->Assign(1, answer_type);
+    r->Assign(2, tkey->alg_name);
+    r->AssignTime(3, static_cast<double>(tkey->inception));
+    r->AssignTime(4, static_cast<double>(tkey->expiration));
+    r->Assign(5, static_cast<uint16_t>(tkey->mode));
+    r->Assign(6, static_cast<uint16_t>(tkey->error));
+    r->Assign(7, tkey->key);
+    r->Assign(8, is_query);
 
     return r;
 }

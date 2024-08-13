@@ -32,6 +32,9 @@ New Functionality
 * The MySQL analyzer now generates a ``mysql_user_change()`` event when
   the user changes mid-session via the ``COM_USER_CHANGE`` command.
 
+* The DNS analyzer was extended to support TKEY RRs (RFC 2390). A corresponding
+  ``dns_TKEY`` event was added.
+
 Changed Functionality
 ---------------------
 

@@ -640,12 +640,14 @@ string CPPCompile::GenScheduleExpr(const Expr* e) {
 
 string CPPCompile::GenLambdaExpr(const Expr* e) {
     auto l = static_cast<const LambdaExpr*>(e);
+    auto& body = l->Ingredients()->Body();
+    return GenLambdaExpr(e, GenLambdaClone(l, false));
+}
+
+string CPPCompile::GenLambdaExpr(const Expr* e, string capture_args) {
+    auto l = static_cast<const LambdaExpr*>(e);
     auto name = Canonicalize(l->Name().c_str()) + "_lb_cl";
-    auto cl_args = string("\"") + name + "\"";
-
-    if ( l->OuterIDs().size() > 0 )
-        cl_args = cl_args + GenLambdaClone(l, false);
-
+    auto cl_args = string("\"") + name + "\"" + std::move(capture_args);
     auto body = string("make_intrusive<") + name + ">(" + cl_args + ")";
     auto func = string("make_intrusive<CPPLambdaFunc>(\"") + l->Name() + "\", cast_intrusive<FuncType>(" +
                 GenTypeName(l->GetType()) + "), " + body + ")";
@@ -1175,7 +1177,7 @@ string CPPCompile::GenLambdaClone(const LambdaExpr* l, bool all_deep) {
 
     for ( const auto& id : ids ) {
         const auto& id_t = id->GetType();
-        auto arg = LocalName(id);
+        auto arg = CaptureName(id);
 
         if ( captures && ! IsNativeType(id_t) ) {
             for ( const auto& c : *captures )
@@ -1183,7 +1185,7 @@ string CPPCompile::GenLambdaClone(const LambdaExpr* l, bool all_deep) {
                     arg = string("cast_intrusive<") + TypeName(id_t) + ">(" + arg + "->Clone())";
         }
 
-        cl_args = cl_args + ", " + arg;
+        cl_args += ", " + arg;
     }
 
     return cl_args;

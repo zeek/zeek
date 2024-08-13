@@ -31,7 +31,7 @@ void CPPCompile::DeclareLambda(const LambdaExpr* l, const ProfileFunc* pf) {
     auto& ids = l->OuterIDs();
 
     for ( auto id : ids )
-        lambda_names[id] = LocalName(id);
+        lambda_names[id] = CaptureName(id);
 
     CreateFunction(l_id->GetType<FuncType>(), pf, lname, body, 0, l, FUNC_FLAVOR_FUNCTION);
 }
@@ -40,7 +40,12 @@ void CPPCompile::CreateFunction(const FuncTypePtr& ft, const ProfileFunc* pf, co
                                 int priority, const LambdaExpr* l, FunctionFlavor flavor) {
     const auto& yt = ft->Yield();
     in_hook = flavor == FUNC_FLAVOR_HOOK;
-    const IDPList* lambda_ids = l ? &l->OuterIDs() : nullptr;
+
+    IDPList effective_lambda_ids;
+    if ( l )
+        effective_lambda_ids = l->OuterIDs();
+
+    const IDPList* lambda_ids = l ? &effective_lambda_ids : nullptr;
 
     string args = BindArgs(ft, lambda_ids);
 
@@ -313,7 +318,7 @@ void CPPCompile::GatherParamTypes(vector<string>& p_types, const FuncTypePtr& ft
             auto tn = FullTypeName(t);
 
             // Allow the captures to be modified.
-            p_types.emplace_back(string(tn) + "& ");
+            p_types.emplace_back(string(tn) + "&");
         }
 }
 
@@ -328,18 +333,16 @@ void CPPCompile::GatherParamNames(vector<string>& p_names, const FuncTypePtr& ft
 
         if ( param_id ) {
             if ( t->Tag() == TYPE_ANY && param_id->GetType()->Tag() != TYPE_ANY )
-                // We'll need to translate the parameter
-                // from its current representation to
-                // type "any".
+                // We'll need to translate the parameter from its current
+                // representation to type "any".
                 p_names.emplace_back(string("any_param__CPP_") + Fmt(i));
             else
                 p_names.emplace_back(LocalName(param_id));
         }
         else
-            // Parameters that are unused don't wind up in the
-            //  ProfileFunc.  Rather than dig their name out of
-            // the function's declaration, we explicitly name
-            // them to reflect that they're unused.
+            // Parameters that are unused don't wind up in the ProfileFunc.
+            // Rather than dig their name out of the function's declaration,
+            // we explicitly name them to reflect that they're unused.
             p_names.emplace_back(string("unused_param__CPP_") + Fmt(i));
     }
 

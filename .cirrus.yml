@@ -14,6 +14,7 @@ config: &CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WOR
 no_spicy_config: &NO_SPICY_CONFIG --build-type=release --disable-broker-tests --disable-spicy --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror
 static_config: &STATIC_CONFIG --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror
 binary_config: &BINARY_CONFIG --prefix=$CIRRUS_WORKING_DIR/install --libdir=$CIRRUS_WORKING_DIR/install/lib --binary-package --enable-static-broker --enable-static-binpac --disable-broker-tests --build-type=Release --ccache --enable-werror
+spicy_ssl_config: &SPICY_SSL_CONFIG --build-type=release --disable-broker-tests --enable-spicy-ssl --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror
 asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --ccache --enable-werror
 ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --ccache --enable-werror
 tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --ccache --enable-werror
@@ -227,6 +228,17 @@ debian12_binary_task:
   << : *SKIP_TASK_ON_PR
   env:
     ZEEK_CI_CONFIGURE_FLAGS: *BINARY_CONFIG
+
+debian12_spicy_ssl_task:
+  container:
+    # Just use a recent/common distro to run a test using spicy ssl.
+    # Debian 12 (bookworm) EOL: TBD
+    dockerfile: ci/debian-12/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
+  env:
+    ZEEK_CI_CONFIGURE_FLAGS: *SPICY_SSL_CONFIG
 
 debian11_task:
   container:

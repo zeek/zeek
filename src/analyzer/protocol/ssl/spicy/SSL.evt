@@ -1,8 +1,8 @@
 protocol analyzer SSL over TCP:
 	parse with SSL::Message;
 
- protocol analyzer DTLS over UDP:
- 	parse with SSL::Message;
+protocol analyzer DTLS over UDP:
+	parse with SSL::DTLSMessage;
 
 import SSL;
 import zeek;
@@ -31,7 +31,7 @@ on SSL::PlaintextRecord::trigger_two if ( self.encrypted == True ) -> event ssl_
 
 on SSL::Extension -> event ssl_extension($conn, SSL::get_direction(sh), self.code, self.raw);
 
-on SSL::Handshake_message::length -> event ssl_handshake_message($conn, SSL::get_direction(sh), self.msg_type, self.length);
+on SSL::Handshake_message -> event ssl_handshake_message($conn, SSL::get_direction(sh), self.msg_type, self.length);
 
 on SSL::SignatureAlgorithms -> event ssl_extension_signature_algorithm($conn, SSL::get_direction(sh), self.supported_signature_algorithms_converted);
 

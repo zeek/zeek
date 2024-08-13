@@ -1,5 +1,8 @@
 # This tests the certificate_request message parsing
 
+# Does not work in spicy version, due to missing DTLS support
+# @TEST-REQUIRES: ! grep -q "#define ENABLE_SPICY_SSL" $BUILD/zeek-config.h
+
 # @TEST-EXEC: zeek -b -r $TRACES/tls/client-certificate.pcap %INPUT > out
 # @TEST-EXEC: zeek -C -b -r $TRACES/tls/certificate-request-failed.pcap %INPUT >> out
 # @TEST-EXEC: zeek -C -b -r $TRACES/tls/webrtc-stun.pcap %INPUT >> out

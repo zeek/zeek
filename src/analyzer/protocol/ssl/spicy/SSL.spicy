@@ -412,7 +412,7 @@ type TLSCiphers = enum {
     TLS_RSA_WITH_ARIA_256_CBC_SHA384 = 0xC03D,
     TLS_DH_DSS_WITH_ARIA_128_CBC_SHA256 = 0xC03E,
     TLS_DH_DSS_WITH_ARIA_256_CBC_SHA384 = 0xC03F,
-    TLS_DH_RSA_WITH_ARIA_128_CBC_SHA256 = 0xC040,
+    TLSDH_RSA_WITH_ARIA_128_CBC_SHA256 = 0xC040,
     TLS_DH_RSA_WITH_ARIA_256_CBC_SHA384 = 0xC041,
     TLS_DHE_DSS_WITH_ARIA_128_CBC_SHA256 = 0xC042,
     TLS_DHE_DSS_WITH_ARIA_256_CBC_SHA384 = 0xC043,
@@ -644,11 +644,17 @@ function check_partial(): bool {
 #  m: Message(False);
 # };
 #
-# public type DTLSMessage = unit {
+public type DTLSMessage = unit {
 #  %context = Share;
 #
 #  m: Message(True);
-# };
+ : skip bytes &eod;
+
+ on %init {
+  zeek::skip_input();
+  # spicy::decline_input("No DTLS support");
+ }
+};
 
 public type Message = unit {
     %context = Share;
@@ -665,7 +671,6 @@ public type Message = unit {
 
         self.partial = check_partial();
     }
-
 
      : skip bytes &eod if ( self.partial );
     fragment: RecordFragmentChoice(self.handshakesink, self.alertsink, self, self.context())[];
@@ -718,7 +723,7 @@ type PlaintextRecord = unit(content_type: uint8, handshakesink: sink&, alertsink
         ContentType::application_data -> {
             switch (self.encrypted) {
                 False -> appdata: bytes &size=self.length;
-                True -> cryptdata: bytes &size=self.length;
+                True -> : skip bytes &size=self.length;
             };
         }
         ContentType::change_cipher_spec -> ccs: bytes &size=self.length;
@@ -728,10 +733,6 @@ type PlaintextRecord = unit(content_type: uint8, handshakesink: sink&, alertsink
     };
     trigger_two: void;
     trigger_three: void;
-
-    # on unhandled {
-    #   print "Unhandled content type", content_type;
-    # }
 
     on length {
         self.encrypted = determine_encryption_on(self, content_type, handshakesink, alertsink, sh);
@@ -831,19 +832,24 @@ type Handshake_message = unit(inout msg: Message, inout sh: Share) {
     fragment_offset: bytes &size=3 &convert=$$.to_uint(spicy::ByteOrder::Network) if(msg.dtls);
     fragment_length: bytes &size=3 &convert=$$.to_uint(spicy::ByteOrder::Network) if(msg.dtls);
 
+		# This indirection in a way seems a bit unnecessary, but I don't se a nice way around it.
+		# We need to make sure that the length of the inner message cannot extend beyond the length
+		# of this message. In binpac we did this by attaching an &size field to the unit that self-referred
+		# to itself.
+
     switch (HandshakeType(self.msg_type)) {
-        HandshakeType::hello_request -> hr: HelloRequest(sh);
-        HandshakeType::client_hello -> client_hello: ClientHello(self.length, msg, sh);
-        HandshakeType::server_hello_done -> : bytes &size=self.length; # Fixme: alert if length != 0
-        HandshakeType::hello_verify_request -> hello_verify_request: HelloVerifyRequest;
-        HandshakeType::server_hello -> server_hello: ServerHelloChoice(self.length, msg, sh);
-        HandshakeType::certificate -> certificate: Certificate(sh);
-        HandshakeType::certificate_request -> certificate_request: CertificateRequest(sh);
+        HandshakeType::hello_request -> hr: HelloRequest(sh) &max-size=self.length;
+        HandshakeType::client_hello -> client_hello: ClientHello(self.length, msg, sh) &max-size=self.length;
+        HandshakeType::server_hello_done -> : bytes &size=self.length; # TODO: raise error if != 0
+        HandshakeType::hello_verify_request -> hello_verify_request: HelloVerifyRequest &max-size=self.length;
+        HandshakeType::server_hello -> server_hello: ServerHelloChoice(self.length, msg, sh) &max-size=self.length;
+        HandshakeType::certificate -> certificate: Certificate(sh) &max-size=self.length;
+        HandshakeType::certificate_request -> certificate_request: CertificateRequest(sh) &max-size=self.length;
         HandshakeType::certificate_verify -> : bytes &size=self.length; # opaque encrypted data
-        HandshakeType::client_key_exchange -> client_key_exchange: ClientKeyExchange(sh, self.length);
-        HandshakeType::server_key_exchange -> server_key_exchange: ServerKeyExchange(sh, self.length);
-        HandshakeType::NewSessionTicket -> session_ticket: NewSessionTicket;
-        HandshakeType::certificate_status -> certificate_status: CertificateStatus;
+        HandshakeType::client_key_exchange -> client_key_exchange: ClientKeyExchange(sh, self.length) &max-size=self.length;
+        HandshakeType::server_key_exchange -> server_key_exchange: ServerKeyExchange(sh, self.length) &max-size=self.length;
+        HandshakeType::NewSessionTicket -> session_ticket: NewSessionTicket &max-size=self.length;
+        HandshakeType::certificate_status -> certificate_status: CertificateStatus &max-size=self.length;
         * -> unhandled: skip bytes &size=self.length;
     };
 
@@ -995,21 +1001,21 @@ type Extension = unit(inout sh: Share, client_hello: bool) {
 
     switch (Extensions(self.code)) {
         # Extensions::next_protocol_negotiation -> :bytes &size=self.extension_size; # alert if != 0
-        Extensions::ec_point_formats -> ec_point_formats: EcPointsFormat_extension(sh) if(self.length > 0);
-        Extensions::supported_groups -> elliptic_curves: EllipticCurveList(sh) if(self.length > 0);
+        Extensions::ec_point_formats -> ec_point_formats: EcPointsFormat_extension(sh) &max-size=self.length if(self.length > 0);
+        Extensions::supported_groups -> elliptic_curves: EllipticCurveList(sh) &max-size=self.length if(self.length > 0);
         Extensions::SessionTicket_TLS -> ticket_data: bytes &size=self.length; # ticket data
-        Extensions::heartbeat -> heartbeat: uint8 &convert=HeartbeatMode($$) if(self.length > 0);
-        Extensions::signature_algorithms -> signature_algorithms: SignatureAlgorithms(sh) if(self.length > 0);
-        Extensions::renegotiation_info -> renegotiation_info: RenegotiationInfo if(self.length > 0);
-        Extensions::server_name -> server_name: ServerNameList(sh) if(self.length > 0);
-        Extensions::application_layer_protocol_negotiation -> application_layer_protocol_negotiation: ProtocolNameList(sh) if(self.length > 0);
-        Extensions::status_request -> status_request: StatusRequest(self.length) if(self.length > 0);
-        Extensions::signed_certificate_timestamp -> signed_certificate_timestamp: SignedCertificateTimestampList(sh) if(self.length > 0);
-        Extensions::key_share_old -> key_share_old: KeyShare(client_hello, sh, self.length) if(self.length > 0);
-        Extensions::key_share -> key_share: KeyShare(client_hello, sh, self.length) if(self.length > 0);
-        Extensions::supported_versions -> supported_versions: SupportedVersionsSelector(sh, client_hello) if(self.length > 0);
-        Extensions::psk_key_exchange_modes -> psk_key_exchange_modes: PSKKeyExchangeModes(sh) if(self.length > 0);
-        Extensions::pre_shared_key -> pre_shared_key: PreSharedKey(sh, client_hello) if(self.length > 0);
+        Extensions::heartbeat -> heartbeat: uint8 &convert=HeartbeatMode($$) &max-size=self.length if(self.length > 0);
+        Extensions::signature_algorithms -> signature_algorithms: SignatureAlgorithms(sh) &max-size=self.length if(self.length > 0);
+        Extensions::renegotiation_info -> renegotiation_info: RenegotiationInfo &max-size=self.length if(self.length > 0);
+        Extensions::server_name -> server_name: ServerNameList(sh) &max-size=self.length if(self.length > 0);
+        Extensions::application_layer_protocol_negotiation -> application_layer_protocol_negotiation: ProtocolNameList(sh) &max-size=self.length if(self.length > 0);
+        Extensions::status_request -> status_request: StatusRequest(self.length) &max-size=self.length if(self.length > 0);
+        Extensions::signed_certificate_timestamp -> signed_certificate_timestamp: SignedCertificateTimestampList(sh) &max-size=self.length if(self.length > 0);
+        Extensions::key_share_old -> key_share_old: KeyShare(client_hello, sh, self.length) &max-size=self.length if(self.length > 0);
+        Extensions::key_share -> key_share: KeyShare(client_hello, sh, self.length) &max-size=self.length if(self.length > 0);
+        Extensions::supported_versions -> supported_versions: SupportedVersionsSelector(sh, client_hello) &max-size=self.length if(self.length > 0);
+        Extensions::psk_key_exchange_modes -> psk_key_exchange_modes: PSKKeyExchangeModes(sh) &max-size=self.length if(self.length > 0);
+        Extensions::pre_shared_key -> pre_shared_key: PreSharedKey(sh, client_hello) &max-size=self.length if(self.length > 0);
         * -> unknown: bytes &size=self.length;
     };
 
@@ -1838,16 +1844,24 @@ on SSL::ClientHello::%done {
     spicy::accept_input();
 }
 
-on SSL::ClientHello::%error {
-    spicy::decline_input("error while parsing TLS client hello");
+on SSL::ClientHello::%error(emsg: string) {
+    spicy::decline_input("error while parsing TLS client hello - " + emsg);
 }
 
 on SSL::ServerHello::%done {
     spicy::accept_input();
 }
 
-on SSL::ServerHello::%error {
-    spicy::decline_input("error while parsing TLS server hello");
+on SSL::ServerHello::%error(emsg: string) {
+    spicy::decline_input("error while parsing TLS server hello - " +emsg);
+}
+
+#on SSL::Handshake_message::%error(emsg: string) {
+#		spicy::decline_input("lalala");
+#}
+
+on SSL::Handshake::%error(emsg: string) {
+	spicy::decline_input(emsg);
 }
 
 on SSL::Certificate::%done {
@@ -1893,6 +1907,11 @@ on SSL::Certificate::%done {
 # 
 # on ServerHello::%error(emsg: string) {
 #   print "Error in server hello", emsg;
+#   print self;
+# }
+# 
+# on PlaintextRecord::%error(emsg: string) {
+#   print "Error in plaintextrecord", emsg;
 #   print self;
 # }
 # 

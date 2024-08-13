@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: ! grep -q "#define ENABLE_SPICY_SSL" $BUILD/zeek-config.h
 # @TEST-EXEC: zeek -b -r $TRACES/tls/webrtc-stun.pcap %INPUT
 # @TEST-EXEC: btest-diff ssl.log
 # @TEST-EXEC: touch dpd.log

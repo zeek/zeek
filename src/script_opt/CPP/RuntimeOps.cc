@@ -91,7 +91,7 @@ ValPtr when_index_slice__CPP(VectorVal* vec, const ListVal* lv) {
     return v;
 }
 
-ValPtr when_invoke__CPP(Func* f, std::vector<ValPtr> args, Frame* frame, void* caller_addr) {
+ValPtr when_invoke__CPP(Func* f, ValVec args, Frame* frame, void* caller_addr) {
     auto trigger = frame->GetTrigger();
 
     if ( trigger ) {

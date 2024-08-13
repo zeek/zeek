@@ -10,6 +10,8 @@
 
 namespace zeek {
 
+using IntVec = std::vector<int>;
+using ValVec = std::vector<ValPtr>;
 using SubNetValPtr = IntrusivePtr<zeek::SubNetVal>;
 
 namespace detail {
@@ -27,21 +29,21 @@ extern bool str_in__CPP(const String* s1, const String* s2);
 
 // Converts a vector of individual ValPtr's into a single ListValPtr
 // suitable for indexing an aggregate.
-extern ListValPtr index_val__CPP(std::vector<ValPtr> indices);
+extern ListValPtr index_val__CPP(ValVec indices);
 
 // Returns the value corresponding to indexing the given table/vector/string
 // with the given set of indices.  These are functions rather than something
 // generated directly so that they can package up the error handling for
 // the case where there's no such index.  "patstr" refers to indexing a
 // table[pattern] of X with a string value.
-extern ValPtr index_table__CPP(const TableValPtr& t, std::vector<ValPtr> indices);
-extern ValPtr index_patstr_table__CPP(const TableValPtr& t, std::vector<ValPtr> indices);
+extern ValPtr index_table__CPP(const TableValPtr& t, ValVec indices);
+extern ValPtr index_patstr_table__CPP(const TableValPtr& t, ValVec indices);
 extern ValPtr index_vec__CPP(const VectorValPtr& vec, int index);
-extern ValPtr index_string__CPP(const StringValPtr& svp, std::vector<ValPtr> indices);
+extern ValPtr index_string__CPP(const StringValPtr& svp, ValVec indices);
 
 // The same, but for indexing happening inside a "when" clause.
-extern ValPtr when_index_table__CPP(const TableValPtr& t, std::vector<ValPtr> indices);
-extern ValPtr when_index_patstr__CPP(const TableValPtr& t, std::vector<ValPtr> indices);
+extern ValPtr when_index_table__CPP(const TableValPtr& t, ValVec indices);
+extern ValPtr when_index_patstr__CPP(const TableValPtr& t, ValVec indices);
 extern ValPtr when_index_vec__CPP(const VectorValPtr& vec, int index);
 
 // For vector slices, we use the existing index_slice(), but we need a
@@ -50,7 +52,7 @@ extern ValPtr when_index_slice__CPP(VectorVal* vec, const ListVal* lv);
 
 // Calls out to the given script or BiF function, which does not return
 // a value.
-inline ValPtr invoke_void__CPP(Func* f, std::vector<ValPtr> args, Frame* frame) { return f->Invoke(&args, frame); }
+inline ValPtr invoke_void__CPP(Func* f, ValVec args, Frame* frame) { return f->Invoke(&args, frame); }
 
 // Used for error propagation by failed calls.
 class CPPInterpreterException : public InterpreterException {};
@@ -58,7 +60,7 @@ class CPPInterpreterException : public InterpreterException {};
 // Calls out to the given script or BiF function.  A separate function because
 // of the need to (1) construct the "args" vector using {} initializers,
 // but (2) needing to have the address of that vector.
-inline ValPtr invoke__CPP(Func* f, std::vector<ValPtr> args, Frame* frame) {
+inline ValPtr invoke__CPP(Func* f, ValVec args, Frame* frame) {
     auto v = f->Invoke(&args, frame);
     if ( ! v )
         throw CPPInterpreterException();
@@ -71,7 +73,7 @@ inline ValPtr invoke__CPP(Func* f, std::vector<ValPtr> args, Frame* frame) {
 // last argument is the address of the calling function; we just need
 // it to be distinct to the call, so we can associate a Trigger cache
 // with it.
-extern ValPtr when_invoke__CPP(Func* f, std::vector<ValPtr> args, Frame* frame, void* caller_addr);
+extern ValPtr when_invoke__CPP(Func* f, ValVec args, Frame* frame, void* caller_addr);
 
 // Thrown when a call inside a "when" delays.
 class CPPDelayedCallException : public InterpreterException {};
@@ -201,29 +203,35 @@ inline VectorValPtr vector_coerce__CPP(const ValPtr& v, const TypePtr& t) {
     return make_intrusive<VectorVal>(cast_intrusive<VectorType>(t));
 }
 
+// Takes parallel vectors of attribute tags and values and returns a
+// collective AttributesPtr corresponding to those instantiated attributes.
+// For attributes that don't have associated expressions, the corresponding
+// value should be nil.
+
+extern AttributesPtr build_attrs__CPP(IntVec attr_tags, std::vector<ValPtr> attr_vals);
+
 // Constructs a set of the given type, containing the given elements, and
 // with the associated attributes.
-extern TableValPtr set_constructor__CPP(std::vector<ValPtr> elements, TableTypePtr t, std::vector<int> attr_tags,
-                                        std::vector<ValPtr> attr_vals);
+extern TableValPtr set_constructor__CPP(ValVec elements, TableTypePtr t, IntVec attr_tags, ValVec attr_vals);
 
 // Constructs a table of the given type, containing the given elements
 // (specified as parallel index/value vectors), and with the associated
 // attributes.
-extern TableValPtr table_constructor__CPP(std::vector<ValPtr> indices, std::vector<ValPtr> vals, TableTypePtr t,
-                                          std::vector<int> attr_tags, std::vector<ValPtr> attr_vals);
+extern TableValPtr table_constructor__CPP(ValVec indices, ValVec vals, TableTypePtr t, IntVec attr_tags,
+                                          ValVec attr_vals);
 
 // Assigns a set of attributes to an identifier.
-extern void assign_attrs__CPP(IDPtr id, std::vector<int> attr_tags, std::vector<ValPtr> attr_vals);
+extern void assign_attrs__CPP(IDPtr id, IntVec attr_tags, ValVec attr_vals);
 
 // Constructs a record of the given type, whose (ordered) fields are
 // assigned to the corresponding elements of the given vector of values.
-extern RecordValPtr record_constructor__CPP(std::vector<ValPtr> vals, RecordTypePtr t);
+extern RecordValPtr record_constructor__CPP(ValVec vals, RecordTypePtr t);
 
 // Same, but with a map when using a named constructor.
-extern RecordValPtr record_constructor_map__CPP(std::vector<ValPtr> vals, std::vector<int> map, RecordTypePtr t);
+extern RecordValPtr record_constructor_map__CPP(ValVec vals, IntVec map, RecordTypePtr t);
 
 // Constructs a vector of the given type, populated with the given values.
-extern VectorValPtr vector_constructor__CPP(std::vector<ValPtr> vals, VectorTypePtr t);
+extern VectorValPtr vector_constructor__CPP(ValVec vals, VectorTypePtr t);
 
 // For patterns, executes p1 += p2.
 inline PatternValPtr re_append__CPP(const PatternValPtr& p1, const PatternValPtr& p2) {
@@ -234,7 +242,7 @@ inline PatternValPtr re_append__CPP(const PatternValPtr& p1, const PatternValPtr
 // Schedules an event to occur at the given absolute time, parameterized
 // with the given set of values.  A separate function to facilitate avoiding
 // the scheduling if Zeek is terminating.
-extern ValPtr schedule__CPP(double dt, EventHandlerPtr event, std::vector<ValPtr> args);
+extern ValPtr schedule__CPP(double dt, EventHandlerPtr event, ValVec args);
 
 // Simple helper functions for supporting absolute value.
 inline zeek_uint_t iabs__CPP(zeek_int_t v) { return v < 0 ? -v : v; }

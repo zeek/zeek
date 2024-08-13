@@ -352,7 +352,7 @@ void CPPCompile::GenWhenStmt(const WhenStmt* w) {
 
     if ( ret_type && ret_type->Tag() != TYPE_VOID ) {
         // Note, ret_type can be active but we *still* don't have
-        // a return type, due to the faked-up "any" return type
+        // a return value, due to the faked-up "any" return type
         // associated with "when" lambdas, so check for that case.
         Emit("if ( curr_t )");
         StartBlock();

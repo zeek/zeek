@@ -1248,7 +1248,7 @@ string CPPCompile::GenEnum(const TypePtr& t, const ValPtr& ev) {
 
     if ( ! et->HasRedefs() )
         // Can use direct access.
-        return std::to_string(v);
+        return "zeek_int_t(" + std::to_string(v) + ")";
 
     // Need to dynamically map the access.
     int mapping_slot;

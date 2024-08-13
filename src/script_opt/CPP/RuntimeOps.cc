@@ -194,11 +194,7 @@ void remove_element__CPP(TableValPtr aggr, ListValPtr indices) {
     check_iterators__CPP(iterators_invalidated);
 }
 
-// A helper function that takes a parallel vectors of attribute tags
-// and values and returns a collective AttributesPtr corresponding to
-// those instantiated attributes.  For attributes that don't have
-// associated expressions, the corresponding value should be nil.
-static AttributesPtr build_attrs__CPP(vector<int> attr_tags, vector<ValPtr> attr_vals) {
+AttributesPtr build_attrs__CPP(IntVec attr_tags, vector<ValPtr> attr_vals) {
     vector<AttrPtr> attrs;
     int nattrs = attr_tags.size();
     for ( auto i = 0; i < nattrs; ++i ) {
@@ -243,7 +239,7 @@ TableValPtr table_constructor__CPP(vector<ValPtr> indices, vector<ValPtr> vals, 
     return aggr;
 }
 
-void assign_attrs__CPP(IDPtr id, std::vector<int> attr_tags, std::vector<ValPtr> attr_vals) {
+void assign_attrs__CPP(IDPtr id, IntVec attr_tags, ValVec attr_vals) {
     id->SetAttrs(build_attrs__CPP(std::move(attr_tags), std::move(attr_vals)));
 }
 

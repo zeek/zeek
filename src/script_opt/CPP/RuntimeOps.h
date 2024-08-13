@@ -18,7 +18,16 @@ namespace detail {
 
 class CPPRuntime {
 public:
-    static auto RawOptField(const RecordValPtr& rv, int field) { return rv->RawOptField(field); }
+    static auto& RawField(const RecordValPtr& rv, int field) { return rv->RawField(field); }
+    static auto& RawField(RecordVal* rv, int field) { return rv->RawField(field); }
+    static auto& RawOptField(const RecordValPtr& rv, int field) { return rv->RawOptField(field); }
+    static auto& RawOptField(RecordVal* rv, int field) { return rv->RawOptField(field); }
+
+    static const auto& GetCreationInits(const RecordType* rt) { return rt->CreationInits(); }
+
+    static RecordVal* BuildRecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals) {
+        return new RecordVal(std::move(t), std::move(init_vals));
+    }
 };
 
 // Returns the concatenation of the given strings.

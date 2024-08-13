@@ -109,7 +109,7 @@ VEC_OP1(comp, ~, )
     }
 
 // Analogous to VEC_OP1, instantiates a function for a given binary operation,
-// with customimzable kernels for "int" and "double" operations.
+// with customizable kernels for "int" and "double" operations.
 // This version is for operations whose result type is the same as the
 // operand type.
 #define VEC_OP2(name, op, int_kernel, double_kernel, zero_check, is_bool)                                              \

@@ -444,7 +444,11 @@ void TypeTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const {
 }
 
 VectorTypeInfo::VectorTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, std::move(_t)) {
-    yield = t->Yield();
+    auto vt = t->AsVectorType();
+    if ( vt->IsUnspecifiedVector() )
+        yield = base_type(TYPE_VOID);
+    else
+        yield = t->Yield();
     auto gi = c->RegisterType(yield);
     if ( gi )
         init_cohort = gi->InitCohort();

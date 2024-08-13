@@ -35,6 +35,7 @@ class CompositeHash;
 class Expr;
 class ListExpr;
 class ZAMCompiler;
+class CPPRuntime;
 
 using ExprPtr = IntrusivePtr<Expr>;
 using ListExprPtr = IntrusivePtr<ListExpr>;
@@ -752,6 +753,7 @@ private:
     class CreationInitsOptimizer;
     friend zeek::RecordVal;
     friend zeek::detail::ZAMCompiler;
+    friend zeek::detail::CPPRuntime;
     const auto& DeferredInits() const { return deferred_inits; }
     const auto& CreationInits() const { return creation_inits; }
 

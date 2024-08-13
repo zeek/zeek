@@ -401,7 +401,6 @@ static void use_CPP() {
             ++num_used;
 
             auto b = s->second.body;
-            b->SetHash(hash);
 
             // We may have already updated the body if
             // we're using code compiled for standalone.
@@ -532,6 +531,9 @@ static void analyze_scripts_for_ZAM() {
 }
 
 void clear_script_analysis() {
+    if ( analysis_options.gen_CPP )
+        return;
+
     IDOptInfo::ClearGlobalInitExprs();
 
     // We need to explicitly clear out the optimization information

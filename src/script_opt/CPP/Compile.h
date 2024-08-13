@@ -385,6 +385,10 @@ private:
     std::string LocalName(const ID* l) const;
     std::string LocalName(const IDPtr& l) const { return LocalName(l.get()); }
 
+    // The same, but for a capture.
+    std::string CaptureName(const ID* l) const;
+    std::string CaptureName(const IDPtr& l) const { return CaptureName(l.get()); }
+
     // Returns a canonicalized name, with various non-alphanumeric
     // characters stripped or transformed, and guaranteed not to
     // conflict with C++ keywords.
@@ -585,8 +589,11 @@ private:
     // Maps function names to events relevant to them.
     std::unordered_map<std::string, std::vector<std::string>> body_events;
 
+    // Full type of the function we're currently compiling.
+    FuncTypePtr func_type;
+
     // Return type of the function we're currently compiling.
-    TypePtr ret_type = nullptr;
+    TypePtr ret_type;
 
     // Internal name of the function we're currently compiling.
     std::string body_name;
@@ -697,6 +704,8 @@ private:
     void GenValueSwitchStmt(const Expr* e, const case_list* cases);
 
     void GenWhenStmt(const WhenStmt* w);
+    void GenWhenStmt(const WhenInfo* wi, const std::string& when_lambda, const Location* loc,
+                     std::vector<std::string> local_aggrs);
     void GenForStmt(const ForStmt* f);
     void GenForOverTable(const ExprPtr& tbl, const IDPtr& value_var, const IDPList* loop_vars);
     void GenForOverVector(const ExprPtr& tbl, const IDPtr& value_var, const IDPList* loop_vars);
@@ -771,6 +780,7 @@ private:
     std::string GenSizeExpr(const Expr* e, GenType gt);
     std::string GenScheduleExpr(const Expr* e);
     std::string GenLambdaExpr(const Expr* e);
+    std::string GenLambdaExpr(const Expr* e, std::string capture_args);
     std::string GenIsExpr(const Expr* e, GenType gt);
 
     std::string GenArithCoerceExpr(const Expr* e, GenType gt);

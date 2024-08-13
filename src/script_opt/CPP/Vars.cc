@@ -111,10 +111,30 @@ string CPPCompile::LocalName(const ID* l) const {
     auto n = l->Name();
     auto without_module = strstr(n, "::");
 
-    if ( without_module )
-        return Canonicalize(without_module + 2);
-    else
-        return Canonicalize(n);
+    while ( without_module ) {
+        n = without_module + 2;
+        without_module = strstr(n, "::");
+    }
+
+    return Canonicalize(n);
+}
+
+string CPPCompile::CaptureName(const ID* l) const {
+    // We want to strip both the module and any inlining appendage.
+    auto n = l->Name();
+    auto without_module = strstr(n, "::");
+
+    while ( without_module ) {
+        n = without_module + 2;
+        without_module = strstr(n, "::");
+    }
+
+    auto appendage = strchr(n, '.');
+
+    if ( appendage )
+        return string(n, appendage - n) + "_";
+
+    return string(n) + "_";
 }
 
 string CPPCompile::Canonicalize(const char* name) const {
@@ -127,7 +147,7 @@ string CPPCompile::Canonicalize(const char* name) const {
         if ( c == '<' || c == '>' )
             continue;
 
-        if ( c == ':' || c == '-' )
+        if ( c == ':' || c == '-' || c == '.' )
             c = '_';
 
         cname += c;

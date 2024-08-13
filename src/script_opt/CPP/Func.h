@@ -8,9 +8,7 @@
 #include "zeek/Func.h"
 #include "zeek/script_opt/ProfileFunc.h"
 
-namespace zeek {
-
-namespace detail {
+namespace zeek::detail {
 
 // A subclass of Func used for lambdas that the compiler creates for
 // complex initializations (expressions used in type attributes).
@@ -42,11 +40,6 @@ public:
 
     const std::string& Name() { return name; }
 
-    // Sets/returns a hash associated with this statement.  A value
-    // of 0 means "not set".
-    p_hash_type GetHash() const { return hash; }
-    void SetHash(p_hash_type h) { hash = h; }
-
     // The following only get defined by lambda bodies.
     virtual void SetLambdaCaptures(Frame* f) {}
     virtual std::vector<ValPtr> SerializeLambdaCaptures() const { return std::vector<ValPtr>{}; }
@@ -64,7 +57,6 @@ protected:
     TraversalCode Traverse(TraversalCallback* cb) const override { return TC_CONTINUE; }
 
     std::string name;
-    p_hash_type hash = 0ULL;
 
     // A pseudo AST "call" node, used to support error localization.
     CallExprPtr ce;
@@ -85,6 +77,7 @@ protected:
     // Methods related to sending lambdas via Broker.
     std::optional<BrokerData> SerializeCaptures() const override;
     void SetCaptures(Frame* f) override;
+    void SetCapturesVec(std::unique_ptr<std::vector<ZVal>> _captures_vec) { captures_vec = std::move(_captures_vec); }
 
     FuncPtr DoClone() override;
 
@@ -117,6 +110,4 @@ extern std::unordered_map<p_hash_type, void (*)()> standalone_callbacks;
 // Callbacks to finalize initialization of standalone compiled scripts.
 extern std::vector<void (*)()> standalone_finalizations;
 
-} // namespace detail
-
-} // namespace zeek
+} // namespace zeek::detail

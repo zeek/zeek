@@ -465,12 +465,12 @@ void CPP_GlobalInit::Generate(InitsManager* im, std::vector<void*>& /* inits_vec
         global->SetAttrs(im->Attributes(attrs));
 }
 
-void generate_indices_set(int* inits, std::vector<std::vector<int>>& indices_set) {
+size_t generate_indices_set(int* inits, std::vector<std::vector<int>>& indices_set) {
     // First figure out how many groups of indices there are, so we
     // can pre-allocate the outer vector.
     auto i_ptr = inits;
     int num_inits = 0;
-    while ( *i_ptr >= 0 ) {
+    while ( *i_ptr != END_OF_VEC_VEC && *i_ptr != END_OF_VEC_VEC_VEC ) {
         ++num_inits;
         int n = *i_ptr;
         i_ptr += n + 1; // skip over vector elements
@@ -479,7 +479,7 @@ void generate_indices_set(int* inits, std::vector<std::vector<int>>& indices_set
     indices_set.reserve(num_inits);
 
     i_ptr = inits;
-    while ( *i_ptr >= 0 ) {
+    while ( *i_ptr != END_OF_VEC_VEC ) {
         int n = *i_ptr;
         ++i_ptr;
         std::vector<int> indices;
@@ -490,6 +490,20 @@ void generate_indices_set(int* inits, std::vector<std::vector<int>>& indices_set
 
         indices_set.emplace_back(std::move(indices));
     }
+
+    return i_ptr - inits + 1;
+}
+
+std::vector<std::vector<std::vector<int>>> generate_indices_set(int* inits) {
+    std::vector<std::vector<std::vector<int>>> indices_set;
+
+    while ( *inits != END_OF_VEC_VEC_VEC ) {
+        std::vector<std::vector<int>> cohort_inits;
+        inits += generate_indices_set(inits, cohort_inits);
+        indices_set.push_back(std::move(cohort_inits));
+    }
+
+    return indices_set;
 }
 
 } // namespace zeek::detail

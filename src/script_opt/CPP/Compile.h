@@ -143,6 +143,7 @@ public:
     // cohort associated with a given type.
     int TypeOffset(const TypePtr& t) { return GI_Offset(RegisterType(t)); }
     int TypeCohort(const TypePtr& t) { return GI_Cohort(RegisterType(t)); }
+    int TypeFinalCohort(const TypePtr& t) { return GI_FinalCohort(RegisterType(t)); }
 
     // Tracks a Zeek ValPtr used as a constant value.  These occur
     // in two contexts: directly as constant expressions, and indirectly
@@ -963,6 +964,7 @@ private:
     // associated with an initialization.
     int GI_Offset(const std::shared_ptr<CPP_InitInfo>& gi) const { return gi ? gi->Offset() : -1; }
     int GI_Cohort(const std::shared_ptr<CPP_InitInfo>& gi) const { return gi ? gi->InitCohort() : 0; }
+    int GI_FinalCohort(const std::shared_ptr<CPP_InitInfo>& gi) const { return gi ? gi->FinalInitCohort() : 0; }
 
     // Generate code to initialize the mappings for record field
     // offsets for field accesses into regions of records that

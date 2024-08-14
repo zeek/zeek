@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include <array>
 #include <cstddef>
 #include <iterator>
 #include <type_traits>
@@ -127,9 +126,6 @@ private:
 
 template<class T>
 Span(T*, size_t) -> Span<T>;
-
-template<class Iter>
-Span(Iter, Iter) -> Span<typename std::iterator_traits<Iter>::value_type>;
 
 template<class T, size_t N>
 Span(T (&)[N]) -> Span<T>;

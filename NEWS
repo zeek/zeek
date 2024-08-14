@@ -29,6 +29,9 @@ New Functionality
   analyzer used for processing the packet when the event is raised. The
   ``unknown_protocol.log`` file was extended to include this information.
 
+* The MySQL analyzer now generates a ``mysql_user_change()`` event when
+  the user changes mid-session via the ``COM_USER_CHANGE`` command.
+
 Changed Functionality
 ---------------------
 
@@ -39,6 +42,9 @@ Changed Functionality
 * The MySQL analyzer has been improved to better support plugin authentication
   mechanisms, like caching_sha2_password, as well as recognizing MySQL query
   attributes.
+
+* The ``mysql.log`` for user change commands will contain *just* the username
+  instead of the remaining parts of the command, including auth plugin data.
 
 Removed Functionality
 ---------------------

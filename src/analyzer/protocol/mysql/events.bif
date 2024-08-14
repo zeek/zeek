@@ -12,6 +12,18 @@
 ## .. zeek:see:: mysql_error mysql_ok mysql_server_version mysql_handshake
 event mysql_command_request%(c: connection, command: count, arg: string%);
 
+## Generated for a change user command from a MySQL client.
+##
+## See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+## for more information about the MySQL protocol.
+##
+## c: The connection.
+##
+## username: The username supplied by the client
+##
+## .. zeek:see:: mysql_error mysql_ok mysql_server_version mysql_handshake
+event mysql_change_user%(c: connection, username: string%);
+
 ## Generated for an unsuccessful MySQL response.
 ##
 ## See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__

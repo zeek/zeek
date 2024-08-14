@@ -1,0 +1,50 @@
+# @TEST-EXEC: zeek -b -C -r $TRACES/mysql/change-user-success.pcap %INPUT >out
+# @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff mysql.log
+
+@load base/protocols/mysql
+
+event mysql_ok(c: connection, affected_rows: count)
+	{
+	print "mysql ok", affected_rows;
+	}
+
+event mysql_eof(c: connection, is_intermediate: bool)
+	{
+	print "mysql eof", is_intermediate;
+	}
+
+event mysql_error(c: connection, code: count, msg: string)
+	{
+	print "mysql error", code, msg;
+	}
+
+event mysql_command_request(c: connection, command: count, arg: string)
+	{
+	print "mysql request", command, arg;
+	}
+
+event mysql_change_user(c: connection, username: string)
+	{
+	print "mysql change user", username;
+	}
+
+event mysql_handshake(c: connection, username: string)
+	{
+	print "mysql handshake", username;
+	}
+
+event mysql_auth_plugin(c: connection, is_orig: bool, name: string, data: string)
+	{
+	print "mysql auth plugin", is_orig, name, data, |data|;
+	}
+
+event mysql_auth_switch_request(c: connection, name: string, data: string)
+	{
+	print "mysql auth switch request", name, data, |data|;
+	}
+
+event mysql_auth_more_data(c: connection, is_orig: bool, data: string)
+	{
+	print "mysql auth more data", is_orig, data, |data|;
+	}

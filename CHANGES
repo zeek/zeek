@@ -1,3 +1,28 @@
+7.1.0-dev.152 | 2024-08-14 20:08:14 +0200
+
+  * mysql: Implement and test COM_CHANGE_USER (Arne Welzel, Corelight)
+
+    This reworks the parser such that COM_CHANGE_USER switches the
+    connection back into the CONNECTION_PHASE so that we can remove the
+    EXPECT_AUTH_SWITCH special case in the COMMAND_PHASE. Adds two pcaps
+    produced with Python that actually do COM_CHANGE_USER as it seems
+    not possible from the MySQL CLI.
+
+  * mysql: Remove auth plugin state (Arne Welzel, Corelight)
+
+    Now that we use CONNECTION_PHASE and interpret AuthSwitchRequest
+    correctly, we can remove reliance on the plugin discrepancy to
+    determine expectations.
+
+  * GH-3880: mysql: Handle server connection phase separately from command phase (Arne Welzel, Corelight)
+
+    This avoids interpreting an AuthSwitchRequest (0xfe) during the command
+    phase as EOF_Packet.
+
+    Thanks @AmazingPP.
+
+    Closes #3880
+
 7.1.0-dev.147 | 2024-08-13 12:37:17 +0200
 
   * Deprecate old unknown_protocol event signature (Jan Grashoefer, Corelight)

@@ -55,12 +55,14 @@ public:
      */
     ErrorResult DoErase(ValPtr key, ErrorResultCallback* cb = nullptr) override;
 
-    // TODO: add support for checking for expired data
+    void Expire() override;
 
 private:
     ErrorResult checkError(int code);
 
     sqlite3* db = nullptr;
+    std::unordered_map<std::string, sqlite3_stmt*> prepared_stmts;
+
     std::string full_path;
     std::string table_name;
 };

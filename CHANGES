@@ -1,3 +1,29 @@
+7.1.0-dev.164 | 2024-08-15 10:30:37 +0200
+
+  * Func: Add SetCapturesVec() (Arne Welzel, Corelight)
+
+    Add an API to directly set captures_vec for use by C++ compilation. The
+    current code keys off or asserts on ZAM stmts, making it difficult to
+    leverage captures_vec in other contexts.
+
+  * marked some recently added BTests as not suitable for -O gen-C++ testing (Vern Paxson, Corelight)
+
+  * robustness improvements for -O gen-C++ generation of lambdas / "when"s (Vern Paxson, Corelight)
+
+  * speedups for compilation of initializers in -O gen-C++ generated code (Vern Paxson, Corelight)
+
+  * fixes for -O gen-C++ generation of floating point constants (Vern Paxson, Corelight)
+
+  * -O gen-C++ fix for dealing with use of more than one module qualifier (Vern Paxson, Corelight)
+
+  * header tweaks to provide gen-C++ script optimization with more flexibility (Vern Paxson, Corelight)
+
+  * fix for script optimization of constants of type "opaque" (Vern Paxson, Corelight)
+
+  * fix for script optimization of "in" operations (Vern Paxson, Corelight)
+
+  * some minor tidying of -O gen-C++ sources (Vern Paxson, Corelight)
+
 7.1.0-dev.152 | 2024-08-14 20:08:14 +0200
 
   * mysql: Implement and test COM_CHANGE_USER (Arne Welzel, Corelight)

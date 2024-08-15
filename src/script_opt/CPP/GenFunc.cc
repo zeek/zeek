@@ -38,12 +38,18 @@ void CPPCompile::GenInvokeBody(const string& call, const TypePtr& t) {
 
 void CPPCompile::DefineBody(const FuncTypePtr& ft, const ProfileFunc* pf, const string& fname, const StmtPtr& body,
                             const IDPList* lambda_ids, FunctionFlavor flavor) {
+    IDPList l_ids;
+    if ( lambda_ids )
+        l_ids = *lambda_ids;
+
     locals.clear();
     params.clear();
 
     body_name = fname;
 
+    func_type = ft;
     ret_type = ft->Yield();
+
     in_hook = flavor == FUNC_FLAVOR_HOOK;
     auto ret_type_str = in_hook ? "bool" : FullTypeName(ret_type);
 
@@ -52,7 +58,7 @@ void CPPCompile::DefineBody(const FuncTypePtr& ft, const ProfileFunc* pf, const 
 
     NL();
 
-    Emit("%s %s(%s)", ret_type_str, fname, ParamDecl(ft, lambda_ids, pf));
+    Emit("%s %s(%s)", ret_type_str, fname, ParamDecl(ft, &l_ids, pf));
 
     StartBlock();
 
@@ -64,7 +70,7 @@ void CPPCompile::DefineBody(const FuncTypePtr& ft, const ProfileFunc* pf, const 
     InitializeEvents(pf);
 
     // Create the local variables.
-    DeclareLocals(pf, lambda_ids);
+    DeclareLocals(pf, &l_ids);
 
     GenStmt(body);
 
@@ -135,11 +141,12 @@ void CPPCompile::InitializeEvents(const ProfileFunc* pf) {
 }
 
 void CPPCompile::DeclareLocals(const ProfileFunc* pf, const IDPList* lambda_ids) {
-    // It's handy to have a set of the lambda captures rather than a list.
-    IDSet lambda_set;
+    // We track captures by their names rather than their ID*'s because the
+    // latter can be inconsistent when inlining.
+    set<string> capture_names;
     if ( lambda_ids )
         for ( auto li : *lambda_ids )
-            lambda_set.insert(li);
+            capture_names.insert(CaptureName(li));
 
     const auto& ls = pf->Locals();
 
@@ -149,11 +156,11 @@ void CPPCompile::DeclareLocals(const ProfileFunc* pf, const IDPList* lambda_ids)
 
     for ( const auto& l : ls ) {
         auto ln = LocalName(l);
+        auto cn = CaptureName(l);
 
-        if ( lambda_set.count(l) > 0 )
-            // No need to declare these, they're passed in as
-            // parameters.
-            ln = lambda_names[l];
+        if ( capture_names.count(cn) > 0 )
+            // No need to declare these, they're passed in as parameters.
+            ln = cn;
 
         else if ( params.count(l) == 0 ) { // Not a parameter, so must be a local.
             Emit("%s %s;", FullTypeName(l->GetType()), ln);

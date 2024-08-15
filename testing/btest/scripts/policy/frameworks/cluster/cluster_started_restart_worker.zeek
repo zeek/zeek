@@ -1,4 +1,5 @@
 # @TEST-DOC: Verify cluster_started() is not rebroadcasted if a worker restarts.
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-PORT: SUPERVISOR_PORT
 # @TEST-PORT: MANAGER_PORT
 # @TEST-PORT: PROXY_PORT

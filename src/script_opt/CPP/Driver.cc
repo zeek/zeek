@@ -37,11 +37,12 @@ void CPPCompile::Compile(bool report_uncompilable) {
     // previously compiled instances of those if present.
     for ( auto& func : funcs ) {
         const auto& f = func.Func();
+        auto& body = func.Body();
 
         auto& ofiles = analysis_options.only_files;
         auto allow_cond = analysis_options.allow_cond;
 
-        string fn = func.Body()->GetLocationInfo()->filename;
+        string fn = body->GetLocationInfo()->filename;
 
         if ( ! allow_cond && ! func.ShouldSkip() && ! ofiles.empty() && files_with_conditionals.count(fn) > 0 ) {
             if ( report_uncompilable )
@@ -184,8 +185,8 @@ void CPPCompile::GenProlog() {
     Emit("namespace CPP_%s { // %s\n", Fmt(total_hash), string(working_dir));
 
     // The following might-or-might-not wind up being populated/used.
-    Emit("std::vector<int> field_mapping;");
-    Emit("std::vector<int> enum_mapping;");
+    Emit("std::vector<zeek_int_t> field_mapping;");
+    Emit("std::vector<zeek_int_t> enum_mapping;");
     NL();
 
     const_info[TYPE_BOOL] = CreateConstInitInfo("Bool", "ValPtr", "bool");

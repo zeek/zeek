@@ -474,7 +474,16 @@ public:
 
     // Optimization-related:
     ExprPtr Duplicate() override;
-    ValPtr FoldVal() const override { return val; }
+
+    ValPtr FoldVal() const override {
+        if ( type->Tag() == TYPE_OPAQUE )
+            // Aggressive constant propagation can lead to the appearance of
+            // opaque "constants". Don't consider these as foldable because
+            // they're problematic to generate independently.
+            return nullptr;
+
+        return val;
+    }
 
 protected:
     void ExprDescribe(ODesc* d) const override;

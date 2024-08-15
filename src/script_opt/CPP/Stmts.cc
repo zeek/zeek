@@ -305,15 +305,22 @@ void CPPCompile::GenValueSwitchStmt(const Expr* e, const case_list* cases) {
 
 void CPPCompile::GenWhenStmt(const WhenStmt* w) {
     auto wi = w->Info();
-    auto wl = wi->Lambda();
 
-    if ( ! wl )
-        reporter->FatalError("cannot compile deprecated \"when\" statement");
+    vector<string> local_aggrs;
 
+    for ( auto& l : wi->WhenExprLocals() )
+        if ( IsAggr(l->GetType()) )
+            local_aggrs.push_back(IDNameStr(l.get()));
+
+    auto when_lambda = GenExpr(wi->Lambda(), GEN_NATIVE);
+    GenWhenStmt(wi.get(), when_lambda, w->GetLocationInfo(), std::move(local_aggrs));
+}
+
+void CPPCompile::GenWhenStmt(const WhenInfo* wi, const std::string& when_lambda, const Location* loc,
+                             vector<string> local_aggrs) {
     auto is_return = wi->IsReturn() ? "true" : "false";
     auto timeout = wi->TimeoutExpr();
     auto timeout_val = timeout ? GenExpr(timeout, GEN_NATIVE) : "-1.0";
-    auto loc = w->GetLocationInfo();
 
     Emit("{ // begin a new scope for internal variables");
 
@@ -331,17 +338,18 @@ void CPPCompile::GenWhenStmt(const WhenStmt* w) {
     NL();
 
     Emit("std::vector<ValPtr> CPP__local_aggrs;");
-    for ( auto& l : wi->WhenExprLocals() )
-        if ( IsAggr(l->GetType()) )
-            Emit("CPP__local_aggrs.emplace_back(%s);", IDNameStr(l.get()));
+    for ( auto& la : local_aggrs )
+        Emit("CPP__local_aggrs.emplace_back(%s);", la);
 
-    Emit("CPP__wi->Instantiate(%s);", GenExpr(wi->Lambda(), GEN_NATIVE));
+    Emit("CPP__wi->Instantiate(%s);", when_lambda);
 
     // We need a new frame for the trigger to unambiguously associate
     // with, in case we're called multiple times with our existing frame.
     Emit("auto new_frame = make_intrusive<Frame>(0, nullptr, nullptr);");
     Emit("auto curr_t = f__CPP->GetTrigger();");
     Emit("auto curr_assoc = f__CPP->GetTriggerAssoc();");
+    if ( ! ret_type || ret_type->Tag() == TYPE_VOID )
+        Emit("// Note, the following works even if curr_t is nil.");
     Emit("new_frame->SetTrigger({NewRef{}, curr_t});");
     Emit("new_frame->SetTriggerAssoc(curr_assoc);");
 
@@ -352,7 +360,7 @@ void CPPCompile::GenWhenStmt(const WhenStmt* w) {
 
     if ( ret_type && ret_type->Tag() != TYPE_VOID ) {
         // Note, ret_type can be active but we *still* don't have
-        // a return type, due to the faked-up "any" return type
+        // a return value, due to the faked-up "any" return type
         // associated with "when" lambdas, so check for that case.
         Emit("if ( curr_t )");
         StartBlock();

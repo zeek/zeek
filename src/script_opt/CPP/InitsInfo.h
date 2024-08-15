@@ -18,7 +18,7 @@
 // standalone globals (for example, one for each BiF that a compiled script
 // may call).
 //
-// For each of these types of initialization, our general approach is to a
+// For each of these types of initialization, our general approach is to have a
 // class that manages a single instance of that type, and an an object that
 // manages all of those instances collectively.  The latter object will, for
 // example, attend to determining the offset into the run-time vector associated
@@ -48,8 +48,15 @@
 // safely use cohort(X) = cohort(Y).)  We then execute run-time initialization
 // in waves, one cohort at a time.
 //
+// Many forms of initialization are specified in terms of indices into globals
+// that hold items of various types.  Thus, the most common initialization
+// information is a vector of integers/indices.  These data structures can
+// be recursive, too, namely we sometimes associate an index with a vector
+// of integers/indices and then we can track multiple such vectors using
+// another vector of integers/indices.
+//
 // Because C++ compilers can struggle when trying to optimize large quantities
-// of code - clang in particular could take many CPU *hours* back when our
+// of code - clang in particular could take many CPU *hours* back when the
 // compiler just generated C++ code snippets for each initialization - rather
 // than producing code that directly executes each given initialization, we
 // instead employ a table-driven approach.  The C++ initializers for the
@@ -58,12 +65,14 @@
 // cohort at a time) to obtain the information needed to initialize any given
 // item.
 //
-// Many forms of initialization are specified in terms of indices into globals
-// that hold items of various types.  Thus, the most common initialization
-// information is a vector of integers/indices.  These data structures can
-// be recursive, too, namely we sometimes associate an index with a vector
-// of integers/indices and then we can track multiple such vectors using
-// another vector of integers/indices.
+// Even this has headaches for very large initializations: both clang and g++
+// are *much* slower to initialize large vectors of simple template types
+// (such as std::pair) than non-template types (such as a struct with two
+// fields, which is all std::pair is, at the end of the day). A similar problem
+// holds for initializing vectors-of-vectors-of-vectors, so we reduce these
+// cases to simpler forms (structs for the first example, a single vector
+// with information embedded within it for how to expand its values into
+// a vector-of-vector-of-vector fr the second).
 
 #include "zeek/File.h"
 #include "zeek/Val.h"
@@ -124,10 +133,10 @@ public:
     // Sets the associated C++ type.
     virtual void SetCPPType(std::string ct) { CPP_type = std::move(ct); }
 
-    // Whether this initializer is in terms of compound objects. Used
+    // Whether this initializer is in terms of compound vectors. Used
     // for avoiding compiler warnings about singleton initializations in
     // braces.
-    virtual bool IsCompound() const { return false; }
+    virtual bool UsesCompoundVectors() const { return false; }
 
     // Returns the type associated with the table used for initialization
     // (i.e., this is the type of the global returned by InitializersName()).
@@ -137,9 +146,11 @@ public:
     void AddInstance(std::shared_ptr<CPP_InitInfo> g);
 
     // Emit code to populate the table used to initialize this collection.
-    void GenerateInitializers(CPPCompile* c);
+    virtual void GenerateInitializers(CPPCompile* c);
 
 protected:
+    virtual void GenerateCohorts(CPPCompile* c);
+
     // Computes offset_set - see below.
     void BuildOffsetSet(CPPCompile* c);
 
@@ -205,7 +216,7 @@ public:
         BuildInitType();
     }
 
-    bool IsCompound() const override { return true; }
+    bool UsesCompoundVectors() const override { return true; }
 
 private:
     void BuildInitType() { inits_type = std::string("CPP_CustomInits<") + CPPType() + ">"; }
@@ -227,7 +238,7 @@ public:
             inits_type = std::string("CPP_BasicConsts<") + CPP_type + ", " + c_type + ", " + tag + "Val>";
     }
 
-    bool IsCompound() const override { return false; }
+    bool UsesCompoundVectors() const override { return false; }
 
     void BuildCohortElement(CPPCompile* c, std::string init_type, std::vector<std::string>& ivs) override;
 };
@@ -245,7 +256,12 @@ public:
             inits_type = std::string("CPP_IndexedInits<") + CPPType() + ">";
     }
 
-    bool IsCompound() const override { return true; }
+    // This isn't true (anymore) because we separately build up the compound
+    // vectors needed for the initialization.
+    bool UsesCompoundVectors() const override { return false; }
+
+    void GenerateInitializers(CPPCompile* c) override;
+    void GenerateCohorts(CPPCompile* c) override;
 
     void BuildCohortElement(CPPCompile* c, std::string init_type, std::vector<std::string>& ivs) override;
 };

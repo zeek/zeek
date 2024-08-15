@@ -83,6 +83,7 @@ public:
     // Returns the function, body, or expression profiled.  Each can be
     // null depending on the constructor used.
     const Func* ProfiledFunc() const { return profiled_func; }
+    const ScopePtr& ProfiledScope() const { return profiled_scope; }
     const Stmt* ProfiledBody() const { return profiled_body; }
     const Expr* ProfiledExpr() const { return profiled_expr; }
 
@@ -139,6 +140,7 @@ protected:
     TraversalCode PreStmt(const Stmt*) override;
     TraversalCode PreExpr(const Expr*) override;
     TraversalCode PreID(const ID*) override;
+    TraversalCode PreType(const Type*) override;
 
     // Take note of the presence of a given type.
     void TrackType(const Type* t);
@@ -157,6 +159,8 @@ protected:
     // The function, body, or expression profiled.  Can be null
     // depending on which constructor was used.
     const Func* profiled_func = nullptr;
+    ScopePtr profiled_scope;     // null when not in a full function context
+    FuncTypePtr profiled_func_t; // null when not in a full function context
     const Stmt* profiled_body = nullptr;
     const Expr* profiled_expr = nullptr;
 

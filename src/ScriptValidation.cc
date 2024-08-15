@@ -58,6 +58,15 @@ public:
         return TC_CONTINUE;
     }
 
+    TraversalCode PreType(const Type* t) override {
+        if ( types_seen.count(t) > 0 )
+            return TC_ABORTSTMT;
+
+        types_seen.insert(t);
+
+        return TC_CONTINUE;
+    }
+
     void SetHookDepth(int hd) { hook_depth = hd; }
 
     bool IsValid() const { return valid_script; }
@@ -83,6 +92,7 @@ private:
     }
 
     std::unordered_map<StmtTag, int> stmt_depths;
+    std::unordered_set<const Type*> types_seen;
     int hook_depth = 0;
     bool report; // whether to report problems via "reporter"
     bool valid_script = true;

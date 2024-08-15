@@ -24,6 +24,13 @@ public:
     TraversalCode PreExpr(const Expr*) override;
     TraversalCode PostExpr(const Expr*) override;
 
+    TraversalCode PreType(const Type* t) override {
+        if ( types_seen.count(t) > 0 )
+            return TC_ABORTSTMT;
+        types_seen.insert(t);
+        return TC_CONTINUE;
+    }
+
     // Returns the ultimate verdict re safety.
     bool IsValid() const {
         if ( ! is_valid )
@@ -105,6 +112,9 @@ protected:
     //
     // A count to allow for nesting.
     int in_aggr_mod_expr = 0;
+
+    // Used to limit traversal of recursive types.
+    std::unordered_set<const Type*> types_seen;
 };
 
 // Used for debugging, to communicate which expression wasn't

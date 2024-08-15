@@ -77,7 +77,6 @@ protected:
     // Methods related to sending lambdas via Broker.
     std::optional<BrokerData> SerializeCaptures() const override;
     void SetCaptures(Frame* f) override;
-    void SetCapturesVec(std::unique_ptr<std::vector<ZVal>> _captures_vec) { captures_vec = std::move(_captures_vec); }
 
     FuncPtr DoClone() override;
 

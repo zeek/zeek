@@ -131,8 +131,6 @@ void TCP_Analyzer::Init() {
 }
 
 void TCP_Analyzer::Done() {
-    ProtocolAnalyzer::Done();
-
     EndOfData(true);
     EndOfData(false);
 

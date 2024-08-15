@@ -2,7 +2,10 @@
 
 #include "zeek/script_opt/UsageAnalyzer.h"
 
+#include <memory>
+
 #include "zeek/EventRegistry.h"
+#include "zeek/Traverse.h"
 #include "zeek/module_util.h"
 #include "zeek/script_opt/IDOptInfo.h"
 
@@ -109,14 +112,6 @@ public:
         return TC_CONTINUE;
     }
 
-    TraversalCode PreType(const Type* t) override {
-        if ( analyzed_types.count(t) > 0 )
-            return TC_ABORTSTMT;
-
-        analyzed_types.insert(t);
-        return TC_CONTINUE;
-    }
-
     TraversalCode PreID(const ID* id) override {
         if ( ids.count(id) > 0 )
             return TC_ABORTSTMT;
@@ -124,21 +119,16 @@ public:
         if ( attr_depth > 0 )
             ids.insert(id);
 
-        id->GetType()->Traverse(this);
-
-        if ( auto& attrs = id->GetAttrs() )
-            attrs->Traverse(this);
-
         return TC_CONTINUE;
     }
 
-    int attr_depth = 0;                   // Are we in an attribute?
-    std::set<const detail::ID*> ids;      // List of IDs found in attributes.
-    std::set<const Type*> analyzed_types; // Endless recursion avoidance.
+    int attr_depth = 0;              // Are we in an attribute?
+    std::set<const detail::ID*> ids; // List of IDs found in attributes.
 };
 
 void UsageAnalyzer::FindSeeds(IDSet& seeds) const {
-    AttrExprIdsCollector attr_ids_collector;
+    auto attr_ids_collector = std::make_shared<AttrExprIdsCollector>();
+    DelegatingTraversalCallback ttc{attr_ids_collector};
     for ( auto& gpair : global_scope()->Vars() ) {
         auto& id = gpair.second;
 
@@ -164,10 +154,10 @@ void UsageAnalyzer::FindSeeds(IDSet& seeds) const {
         else
             // ...otherwise, find all IDs referenced from attribute expressions
             // found through this identifier.
-            id->Traverse(&attr_ids_collector);
+            id->Traverse(&ttc);
     }
 
-    seeds.insert(attr_ids_collector.ids.begin(), attr_ids_collector.ids.end());
+    seeds.insert(attr_ids_collector->ids.begin(), attr_ids_collector->ids.end());
 }
 
 const Func* UsageAnalyzer::GetFuncIfAny(const ID* id) const {

@@ -131,11 +131,15 @@ void TCP_Analyzer::Init() {
 }
 
 void TCP_Analyzer::Done() {
-    analyzer::tcp::TCP_ApplicationAnalyzer::Done();
     ProtocolAnalyzer::Done();
 
     EndOfData(true);
     EndOfData(false);
+
+    // ProtocolAnalyzer::Done() or EndOfData() may instantiate
+    // new child analyzers which isn't valid after a call to
+    // Analyzer::Done() anymore. So delay calling it.
+    analyzer::tcp::TCP_ApplicationAnalyzer::Done();
 }
 
 void TCP_Analyzer::DeliverStream(int len, const u_char* data, bool is_orig) {

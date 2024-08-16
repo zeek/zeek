@@ -7,6 +7,9 @@
 
 #include "zeek/EventHandler.h"
 #include "zeek/IntrusivePtr.h"
+#include "zeek/Span.h"
+
+#include "threading/SerialTypes.h"
 
 namespace zeek {
 
@@ -15,6 +18,10 @@ using FuncValPtr = IntrusivePtr<FuncVal>;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 
 using ArgsSpan = Span<const ValPtr>;
+
+namespace logging {
+class WriterFrontend;
+}
 
 namespace cluster {
 
@@ -54,6 +61,30 @@ public:
     const EventHandlerPtr& Handler() const { return std::get<EventHandlerPtr>(handler); }
     const FuncValPtr& FuncVal() const { return std::get<FuncValPtr>(handler); }
 };
+
+// A log write on a filter with a given path.
+//
+struct LogRecord {
+    std::string path;
+    size_t num_fields;
+    threading::Value** vals;
+    // std::vector<threading::Value> vals;
+
+    void Delete() {
+        for ( size_t i = 0; i < num_fields; i++ )
+            delete vals[i];
+
+        delete[] vals;
+    }
+};
+
+struct LogWriteHeader {
+    EnumValPtr stream;                    // The enum identifying the stream.
+    EnumValPtr writer;                    // The enum identifying the writer for backwards compat.
+    std::string filter_name;              // The name of the filter.
+    std::vector<threading::Field> schema; // The schema for log records.
+};
+
 
 } // namespace detail
 
@@ -148,6 +179,32 @@ public:
      * @return true if interest in topic prefix is no longer advertised.
      */
     virtual bool Unsubscribe(const std::string& topic_prefix) = 0;
+
+
+    /**
+     * A publish could also mean pushing.
+     *
+     * XXX: I want to name this PushLogWrite() and move away from the Pub/Sub notion.
+     * and the backend decides what to do with it.We just push it out.
+     *
+     * @param frontend the writer frontend where this write originates from. No lifetime guarantee!
+     */
+    virtual bool PublishLogWrite(const detail::LogWriteHeader& header, std::vector<detail::LogRecord>&& r) {
+        std::fprintf(stderr, "PublishLogWrite not implemented");
+
+        auto rs = std::move(r);
+
+        for ( auto& r : rs )
+            r.Delete();
+
+        return true;
+    }
+
+    /**
+     * Enable log receipt.
+     *
+     * Enable receiving logs on this node.
+     */
 };
 
 // Cluster backend instance used for publish() and subscribe() calls.

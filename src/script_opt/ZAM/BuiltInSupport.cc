@@ -48,8 +48,7 @@ FixedCatArg::FixedCatArg(TypePtr _t) : t(std::move(_t)) {
     }
 }
 
-void FixedCatArg::RenderInto(ZVal* zframe, int slot, char*& res) {
-    auto& z = zframe[slot];
+void FixedCatArg::RenderInto(const ZVal& z, char*& res) {
     int n;
     const char* text;
     std::string str;
@@ -140,8 +139,8 @@ void FixedCatArg::RenderInto(ZVal* zframe, int slot, char*& res) {
     }
 }
 
-size_t PatternCatArg::ComputeMaxSize(ZVal* zframe, int slot) {
-    text = zframe[slot].AsPattern()->AsPattern()->PatternText();
+size_t PatternCatArg::ComputeMaxSize(const ZVal& zv) {
+    text = zv.AsPattern()->AsPattern()->PatternText();
     n = strlen(text);
     return n;
 }

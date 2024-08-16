@@ -1,3 +1,71 @@
+7.1.0-dev.198 | 2024-08-16 12:10:00 +0200
+
+  * simpler and more robust identification of function parameters for AST profiling (Vern Paxson, Corelight)
+
+  * fixes to limit AST traversal in the face of recursive types (Vern Paxson, Corelight)
+
+  * address some script optimization compiler warnings under Linux (Vern Paxson, Corelight)
+
+  * fix for -O C++ construction of variable names that use multiple module namespaces (Vern Paxson, Corelight)
+
+  * fix for script optimization of "opaque" values that are run-time constants (Vern Paxson, Corelight)
+
+  * fix for script optimization of nested switch statements (Vern Paxson, Corelight)
+
+  * script optimization fix for complex "in" expressions in conditionals (Vern Paxson, Corelight)
+
+  * updates to typos allow-list reflecting ZAM regularization changes (Vern Paxson, Corelight)
+
+  * BTest updates for ZAM regularization changes (Vern Paxson, Corelight)
+
+  * convert new ZAM operations to use typed operands (Vern Paxson, Corelight)
+
+  * complete migration of ZAM to use only public ZVal methods (Vern Paxson, Corelight)
+
+  * "-O validate-ZAM" option to validate generated ZAM instructions (Vern Paxson, Corelight)
+
+  * internal option to suppress control-flow optimization (Vern Paxson, Corelight)
+
+  * exposing some functionality for greater flexibility in structuring run-time execution (Vern Paxson, Corelight)
+
+  * rework ZAM compilation of type switches to leverage value switches (Vern Paxson, Corelight)
+
+  * add tracking of control flow information (Vern Paxson, Corelight)
+
+  * factoring of ZAM operation specifications into separate files (Vern Paxson, Corelight)
+
+  * updates to ZAM operations / gen-zam regularization, other than the operations themselves (Vern Paxson, Corelight)
+
+  * type-checking fix for vector-of-string operations (Vern Paxson, Corelight)
+
+  * ZVal constructor for booleans (Vern Paxson, Corelight)
+
+  * fix for nit in base/protocols/krb/main.zeek (Vern Paxson, Corelight)
+
+  * mark functions skipped by ZAM compilation as such (Vern Paxson, Corelight)
+
+  * fix for avoiding inadvertent interpreter errors in CallExpr::IsPure() (Vern Paxson, Corelight)
+
+  * support for traversing ZAM code similar to AST traversal (Vern Paxson, Corelight)
+
+  * run-time warnings for scripts compiled to C++ (Vern Paxson, Corelight)
+
+  * allow C++ script compiler access to type internals (Vern Paxson, Corelight)
+
+  * fixes for script optimization of coerce-to-any expressions (Vern Paxson, Corelight)
+
+  * fix to correctly track whether a capture needs deep-copying (Vern Paxson, Corelight)
+
+  * fix for -O report-C++ (Vern Paxson, Corelight)
+
+  * support for more in-depth AST profiling (Vern Paxson, Corelight)
+
+  * allow profiling without updating of hash values (Vern Paxson, Corelight)
+
+  * ListVal method to clear the list to allow reusing w/o new construction (Vern Paxson, Corelight)
+
+  * accessor for smart-pointer version of FileVal's value (Vern Paxson, Corelight)
+
 7.1.0-dev.164 | 2024-08-15 10:30:37 +0200
 
   * Func: Add SetCapturesVec() (Arne Welzel, Corelight)

@@ -1,0 +1,124 @@
+# Internal operations not directly driven off of AST elements.
+
+# These two are only needed for type-based switch statements.  Could think
+# about replacing them using CoerceFromAnyExpr.
+op Assign-Any
+classes VV VC
+set-type $1
+op-types a X
+eval	auto v = $1.ToVal(Z_TYPE);
+	$$ = v.release();
+
+# Lazy way to assign without having to track the specific type of
+# a constant.
+internal-op Assign-Const
+class VC
+eval	AssignTarget($$, BuildVal($1.ToVal(Z_TYPE), Z_TYPE))
+
+internal-assignment-op Load-Val
+class Vi
+assign-val v
+eval	auto& v = Z_FRAME->GetElement($1);
+
+internal-assignment-op Load-Global
+# We don't use GlobalVal() for the assignment because we want to leverage
+# the bookkeeping that assign-val gives us in terms of memory management.
+class Vg
+assign-val v
+eval	auto& v = GlobalID($1)->GetVal();
+	if ( ! v )
+		ERROR2("value used but not set", Z_AUX_ID.get());
+
+# We need a special form here for loading global types, as they don't
+# fit the usual template.
+internal-op Load-Global-Type
+class Vg
+op-types t I
+eval	auto& v = $$;
+	Unref(v);
+	auto& t = GlobalID($1)->GetType();
+	v = new TypeVal(t, true);
+
+internal-op Load-Capture
+class Vi
+eval	$$ = Z_FRAME->GetFunction()->GetCapturesVec()[$1];
+
+internal-op Load-Managed-Capture
+class Vi
+eval	auto& lhs = $$;
+	auto& rhs = Z_FRAME->GetFunction()->GetCapturesVec()[$1];
+	zeek::Ref(rhs.ManagedVal());
+	ZVal::DeleteManagedType(lhs);
+	lhs = rhs;
+
+internal-op Store-Global
+op1-internal
+class g
+eval	GlobalID($1)->SetVal(GlobalVal($1).ToVal(Z_TYPE));
+
+# Both of these have the LHS as v2 not v1, to keep with existing
+# conventions of OP_VV_I2 op type (as opposed to OP_VV_I1_V2, which doesn't
+# currently exist, and would be a pain to add).
+internal-op Store-Capture
+op1-read
+class Vi
+eval	Z_FRAME->GetFunction()->GetCapturesVec()[$2] = $1;
+
+internal-op Store-Managed-Capture
+op1-read
+class Vi
+eval	auto& lhs = Z_FRAME->GetFunction()->GetCapturesVec()[$2];
+	auto& rhs = $1;
+	zeek::Ref(rhs.ManagedVal());
+	ZVal::DeleteManagedType(lhs);
+	lhs = rhs;
+
+
+internal-op Copy-To
+class VC
+set-type $1
+eval	AssignTarget($$, CopyVal($1))
+
+internal-op GoTo
+class b
+eval	$1
+
+internal-op Hook-Break
+class X
+eval	flow = FLOW_BREAK;
+	pc = end_pc;
+	DO_ZAM_PROFILE
+	continue;
+
+# Slot 2 gives frame size.
+internal-op Lambda
+class Vi
+op-types F I
+eval	auto& primary_func = Z_AUX_PRIMARY_FUNC;
+	auto& body = primary_func->GetBodies()[0].stmts;
+	ASSERT(body->Tag() == STMT_ZAM);
+	auto lamb = make_intrusive<ScriptFunc>(Z_AUX_ID);
+	lamb->AddBody(body, $1);
+	lamb->SetName(Z_AUX_LAMBDA_NAME.c_str());
+	auto& aux = Z_AUX;
+	if ( aux->n > 0 )
+		{
+		auto captures = std::make_unique<std::vector<ZVal>>();
+		for ( auto i = 0; i < aux->n; ++i )
+			{
+			auto slot = aux->elems[i].Slot();
+			if ( slot >= 0 )
+				{
+				auto& cp = frame[slot];
+				if ( aux->elems[i].IsManaged() )
+					zeek::Ref(cp.ManagedVal());
+				captures->push_back(cp);
+				}
+			else
+				/* Used for when-locals. */
+				captures->push_back(ZVal());
+			}
+		lamb->CreateCaptures(std::move(captures));
+		}
+	Unref($$);
+	$$ = lamb.release();

@@ -10,9 +10,12 @@ namespace zeek::detail {
 
 void ZAMCompiler::PushGoTos(GoToSets& gotos) { gotos.emplace_back(); }
 
-void ZAMCompiler::ResolveGoTos(GoToSets& gotos, const InstLabel l) {
-    for ( auto& gi : gotos.back() )
+void ZAMCompiler::ResolveGoTos(GoToSets& gotos, const InstLabel l, ControlFlowType cft) {
+    for ( auto& gi : gotos.back() ) {
         SetGoTo(gi, l);
+        if ( cft != CFT_NONE )
+            AddCFT(insts1[gi.stmt_num], cft);
+    }
 
     gotos.pop_back();
 }
@@ -25,13 +28,13 @@ ZAMStmt ZAMCompiler::GenGoTo(GoToSet& v) {
 }
 
 ZAMStmt ZAMCompiler::GoToStub() {
-    ZInstI z(OP_GOTO_V, 0);
+    ZInstI z(OP_GOTO_b, 0);
     z.op_type = OP_V_I1;
     return AddInst(z);
 }
 
 ZAMStmt ZAMCompiler::GoTo(const InstLabel l) {
-    ZInstI inst(OP_GOTO_V, 0);
+    ZInstI inst(OP_GOTO_b, 0);
     inst.target = l;
     inst.target_slot = 1;
     inst.op_type = OP_V_I1;

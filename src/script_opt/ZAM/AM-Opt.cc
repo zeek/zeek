@@ -144,6 +144,9 @@ bool ZAMCompiler::RemoveDeadCode() {
         if ( ! i0->live )
             continue;
 
+        if ( analysis_options.no_ZAM_control_flow_opt )
+            continue;
+
         auto i1 = NextLiveInst(i0);
 
         // Look for degenerate branches.
@@ -181,6 +184,9 @@ bool ZAMCompiler::RemoveDeadCode() {
 }
 
 bool ZAMCompiler::CollapseGoTos() {
+    if ( analysis_options.no_ZAM_control_flow_opt )
+        return false;
+
     bool did_change = false;
 
     for ( auto& i0 : insts1 ) {
@@ -303,7 +309,7 @@ bool ZAMCompiler::PruneUnused() {
         if ( assignmentless_op.count(inst->op) == 0 )
             reporter->InternalError("inconsistency in re-flavoring instruction with side effects");
 
-        inst->op_type = assignmentless_op_type[inst->op];
+        inst->op_type = assignmentless_op_class[inst->op];
         inst->op = assignmentless_op[inst->op];
 
         inst->v1 = inst->v2;
@@ -336,8 +342,8 @@ void ZAMCompiler::ComputeFrameLifetimes() {
 
         // Some special-casing.
         switch ( inst->op ) {
-            case OP_NEXT_TABLE_ITER_VV:
-            case OP_NEXT_TABLE_ITER_VAL_VAR_VVV: {
+            case OP_NEXT_TABLE_ITER_fb:
+            case OP_NEXT_TABLE_ITER_VAL_VAR_Vfb: {
                 // These assign to an arbitrary long list of variables.
                 auto& iter_vars = inst->aux->loop_vars;
                 auto depth = inst->loop_depth;
@@ -361,21 +367,21 @@ void ZAMCompiler::ComputeFrameLifetimes() {
                 }
 
                 // No need to check the additional "var" associated
-                // with OP_NEXT_TABLE_ITER_VAL_VAR_VVV as that's
+                // with OP_NEXT_TABLE_ITER_VAL_VAR_Vfb as that's
                 // a slot-1 assignment.  However, similar to other
                 // loop variables, mark this as a usage.
-                if ( inst->op == OP_NEXT_TABLE_ITER_VAL_VAR_VVV )
+                if ( inst->op == OP_NEXT_TABLE_ITER_VAL_VAR_Vfb )
                     ExtendLifetime(inst->v1, EndOfLoop(inst, depth));
             } break;
 
-            case OP_NEXT_TABLE_ITER_NO_VARS_VV: break;
+            case OP_NEXT_TABLE_ITER_NO_VARS_fb: break;
 
-            case OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_VVV: {
+            case OP_NEXT_TABLE_ITER_VAL_VAR_NO_VARS_Vfb: {
                 auto depth = inst->loop_depth;
                 ExtendLifetime(inst->v1, EndOfLoop(inst, depth));
             } break;
 
-            case OP_NEXT_VECTOR_ITER_VAL_VAR_VVVV: {
+            case OP_NEXT_VECTOR_ITER_VAL_VAR_VVsb: {
                 CheckSlotAssignment(inst->v2, inst);
 
                 auto depth = inst->loop_depth;
@@ -383,13 +389,13 @@ void ZAMCompiler::ComputeFrameLifetimes() {
                 ExtendLifetime(inst->v2, EndOfLoop(inst, depth));
             } break;
 
-            case OP_NEXT_VECTOR_BLANK_ITER_VAL_VAR_VVV: {
+            case OP_NEXT_VECTOR_BLANK_ITER_VAL_VAR_Vsb: {
                 auto depth = inst->loop_depth;
                 ExtendLifetime(inst->v1, EndOfLoop(inst, depth));
             } break;
 
-            case OP_NEXT_VECTOR_ITER_VVV:
-            case OP_NEXT_STRING_ITER_VVV:
+            case OP_NEXT_VECTOR_ITER_Vsb:
+            case OP_NEXT_STRING_ITER_Vsb:
                 // Sometimes loops are written that don't actually
                 // use the iteration variable.  However, we still
                 // need to mark the variable as having usage
@@ -401,12 +407,12 @@ void ZAMCompiler::ComputeFrameLifetimes() {
                 ExtendLifetime(inst->v1, EndOfLoop(inst, inst->loop_depth));
                 break;
 
-            case OP_NEXT_VECTOR_BLANK_ITER_VV:
-            case OP_NEXT_STRING_BLANK_ITER_VV: break;
+            case OP_NEXT_VECTOR_BLANK_ITER_sb:
+            case OP_NEXT_STRING_BLANK_ITER_sb: break;
 
-            case OP_INIT_TABLE_LOOP_VV:
-            case OP_INIT_VECTOR_LOOP_VV:
-            case OP_INIT_STRING_LOOP_VV: {
+            case OP_INIT_TABLE_LOOP_Vf:
+            case OP_INIT_VECTOR_LOOP_Vs:
+            case OP_INIT_STRING_LOOP_Vs: {
                 // For all of these, the scope of the aggregate being
                 // looped over is the entire loop, even if it doesn't
                 // directly appear in it, and not just the initializer.
@@ -423,14 +429,30 @@ void ZAMCompiler::ComputeFrameLifetimes() {
                 continue;
             }
 
-            case OP_STORE_GLOBAL_V: {
+            case OP_STORE_GLOBAL_g: {
                 // Use of the global goes to here.
                 auto slot = frame_layout1[globalsI[inst->v1].id.get()];
                 ExtendLifetime(slot, EndOfLoop(inst, 1));
                 break;
             }
 
-            case OP_LAMBDA_VV: {
+            case OP_DETERMINE_TYPE_MATCH_VV: {
+                auto aux = inst->aux;
+                int n = aux->n;
+                for ( int i = 0; i < n; ++i ) {
+                    auto slot_i = aux->elems[i].Slot();
+                    if ( slot_i >= 0 ) {
+                        CheckSlotAssignment(slot_i, inst);
+                        // The variable gets used in the switch that
+                        // immediately follows this instruction, hence
+                        // "i + 1" in the following.
+                        ExtendLifetime(slot_i, insts1[i + 1]);
+                    }
+                }
+                break;
+            }
+
+            case OP_LAMBDA_Vi: {
                 auto aux = inst->aux;
                 int n = aux->n;
                 for ( int i = 0; i < n; ++i ) {
@@ -486,8 +508,7 @@ void ZAMCompiler::ReMapFrame() {
 
         auto vars = inst_beginnings[inst];
         for ( auto v : vars ) {
-            // Don't remap variables whose values aren't actually
-            // used.
+            // Don't remap variables whose values aren't actually used.
             int slot = frame_layout1[v];
             if ( denizen_ending.count(slot) > 0 )
                 ReMapVar(v, slot, i);
@@ -549,9 +570,15 @@ void ZAMCompiler::ReMapFrame() {
 
         // Handle special cases.
         switch ( inst->op ) {
-            case OP_NEXT_TABLE_ITER_VV:
-            case OP_NEXT_TABLE_ITER_VAL_VAR_VVV: {
-                // Rewrite iteration variables.
+            case OP_INIT_TABLE_LOOP_Vf:
+            case OP_NEXT_TABLE_ITER_fb:
+            case OP_NEXT_TABLE_ITER_VAL_VAR_Vfb: {
+                // Rewrite iteration variables. Strictly speaking we only
+                // need to do this for the INIT, not the NEXT, since the
+                // latter currently doesn't access the variables directly but
+                // instead uses pointers set up by the INIT. We do both types
+                // here, though, to keep things consistent and to help avoid
+                // surprises if the implementation changes in the future.
                 auto& iter_vars = inst->aux->loop_vars;
                 for ( auto& v : iter_vars ) {
                     if ( v < 0 )
@@ -941,16 +968,75 @@ void ZAMCompiler::KillInst(zeek_uint_t i) {
         }
     }
 
-    if ( num_labels == 0 )
-        // No labels to propagate.
-        return;
+    ZInstI* succ = nullptr;
 
-    for ( auto j = i + 1; j < insts1.size(); ++j ) {
-        auto succ = insts1[j];
-        if ( succ->live ) {
-            succ->num_labels += num_labels;
-            break;
+    if ( num_labels > 0 ) {
+        for ( auto j = i + 1; j < insts1.size(); ++j ) {
+            if ( insts1[j]->live ) {
+                succ = insts1[j];
+                break;
+            }
         }
+        if ( succ )
+            succ->num_labels += num_labels;
+    }
+
+    // Look into propagating control flow info.
+    if ( inst->aux && ! inst->aux->cft.empty() ) {
+        auto& cft = inst->aux->cft;
+
+        if ( cft.count(CFT_ELSE) > 0 ) {
+            // Push forward unless this was the end of the block.
+            if ( cft.count(CFT_BLOCK_END) == 0 ) {
+                ASSERT(succ);
+                AddCFT(succ, CFT_ELSE);
+            }
+            else
+                // But if it *was* the end of the block, remove that block.
+                --cft[CFT_BLOCK_END];
+        }
+
+        if ( cft.count(CFT_BREAK) > 0 ) {
+            // ### Factor this with the following
+            // Propagate breaks backwards.
+            int j = i;
+            while ( --j >= 0 )
+                if ( insts1[j]->live )
+                    break;
+
+            ASSERT(j >= 0);
+
+            // Make sure the CFT entry is created.
+            AddCFT(insts1[j], CFT_BREAK);
+
+            auto be_cnt = cft[CFT_BREAK];
+            --be_cnt; // we already did one above
+            insts1[j]->aux->cft[CFT_BREAK] += be_cnt;
+        }
+
+        if ( cft.count(CFT_BLOCK_END) > 0 ) {
+            // Propagate block-ends backwards.
+            int j = i;
+            while ( --j >= 0 )
+                if ( insts1[j]->live )
+                    break;
+
+            ASSERT(j >= 0);
+
+            // Make sure the CFT entry is created.
+            AddCFT(insts1[j], CFT_BLOCK_END);
+
+            auto be_cnt = cft[CFT_BLOCK_END];
+            --be_cnt; // we already did one above
+            insts1[j]->aux->cft[CFT_BLOCK_END] += be_cnt;
+        }
+
+        // If's can be killed because their bodies become empty,
+        // break's because they just lead to their following instruction,
+        // and next's if they become dead code.
+        // However, loop's and next's should not be killed.
+        ASSERT(cft.count(CFT_LOOP) == 0);
+        ASSERT(cft.count(CFT_LOOP_COND) == 0);
     }
 }
 

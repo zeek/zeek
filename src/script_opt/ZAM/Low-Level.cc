@@ -20,9 +20,25 @@ bool ZAMCompiler::NullStmtOK() const {
 
 const ZAMStmt ZAMCompiler::EmptyStmt() { return ZAMStmt(insts1.size() - 1); }
 
+const ZAMStmt ZAMCompiler::ErrorStmt() { return ZAMStmt(0); }
+
 const ZAMStmt ZAMCompiler::LastInst() { return ZAMStmt(insts1.size() - 1); }
 
-const ZAMStmt ZAMCompiler::ErrorStmt() { return ZAMStmt(0); }
+void ZAMCompiler::AddCFT(ZInstI* inst, ControlFlowType cft) {
+    if ( cft == CFT_NONE )
+        return;
+
+    if ( ! inst->aux )
+        inst->aux = new ZInstAux(0);
+
+    auto cft_entry = inst->aux->cft.find(cft);
+    if ( cft_entry == inst->aux->cft.end() )
+        inst->aux->cft[cft] = 1;
+    else {
+        ASSERT(cft == CFT_BLOCK_END || cft == CFT_BREAK);
+        ++cft_entry->second;
+    }
+}
 
 std::unique_ptr<OpaqueVals> ZAMCompiler::BuildVals(const ListExprPtr& l) {
     return std::make_unique<OpaqueVals>(InternalBuildVals(l.get()));
@@ -127,9 +143,9 @@ const ZAMStmt ZAMCompiler::AddInst(const ZInstI& inst, bool suppress_non_local) 
         auto gs = pending_global_store;
         pending_global_store = -1;
 
-        auto store_inst = ZInstI(OP_STORE_GLOBAL_V, gs);
+        auto store_inst = ZInstI(OP_STORE_GLOBAL_g, gs);
         store_inst.op_type = OP_V_I1;
-        store_inst.t = globalsI[gs].id->GetType();
+        store_inst.SetType(globalsI[gs].id->GetType());
 
         return AddInst(store_inst);
     }
@@ -138,15 +154,15 @@ const ZAMStmt ZAMCompiler::AddInst(const ZInstI& inst, bool suppress_non_local) 
         auto cs = pending_capture_store;
         pending_capture_store = -1;
 
-        auto& cv = *func->GetType()->AsFuncType()->GetCaptures();
+        auto& cv = *func->GetType()->GetCaptures();
         auto& c_id = cv[cs].Id();
 
         ZOp op;
 
         if ( ZVal::IsManagedType(c_id->GetType()) )
-            op = OP_STORE_MANAGED_CAPTURE_VV;
+            op = OP_STORE_MANAGED_CAPTURE_Vi;
         else
-            op = OP_STORE_CAPTURE_VV;
+            op = OP_STORE_CAPTURE_Vi;
 
         auto store_inst = ZInstI(op, RawSlot(c_id.get()), cs);
         store_inst.op_type = OP_VV_I2;

@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <string>
+#include <unordered_map>
+
 namespace zeek::detail {
 
 // Opcodes associated with ZAM instructions.
@@ -58,6 +61,16 @@ enum ZAMOp1Flavor {
     OP1_READ_WRITE, // the slot is both read and then modified, e.g. "++"
     OP1_INTERNAL,   // we're doing some internal manipulation of the slot
 };
+
+// Used to describe ZAM instructions for validation.
+struct ZAMInstDesc {
+    std::string op_class; // associated class
+    std::string op_types; // operand types
+    std::string op_eval;  // evaluation
+};
+
+// Provides access to the validation description of each operation.
+extern std::unordered_map<ZOp, ZAMInstDesc> zam_inst_desc;
 
 // Maps an operand to its flavor.
 extern ZAMOp1Flavor op1_flavor[];

@@ -61,6 +61,10 @@ struct AnalyOpt {
     // recursive, and exit.  Only germane if running the inliner.
     bool report_recursive = false;
 
+    // If true, assess the instructions generated from ZAM templates
+    // for validity, and exit.
+    bool validate_ZAM = false;
+
     // If true, generate ZAM code for applicable function bodies,
     // activating all optimizations.
     bool gen_ZAM = false;
@@ -71,6 +75,9 @@ struct AnalyOpt {
 
     // Deactivate the low-level ZAM optimizer.
     bool no_ZAM_opt = false;
+
+    // Deactivate ZAM optimization of control flow.
+    bool no_ZAM_control_flow_opt = false;
 
     // Produce a profile of ZAM execution.
     bool profile_ZAM = false;
@@ -240,6 +247,11 @@ extern bool should_analyze(const ScriptFuncPtr& f, const StmtPtr& body);
 // Analyze all of the parsed scripts collectively for usage issues (unless
 // suppressed by the flag) and optimization.
 extern void analyze_scripts(bool no_unused_warnings);
+
+// Conduct internal validation of ZAM instructions. Upon success, generates
+// a terse report to stdout.  Exits with an internal error if a problem is
+// encountered.
+extern void validate_ZAM_insts();
 
 // Called when all script processing is complete and we can discard
 // unused ASTs and associated state.

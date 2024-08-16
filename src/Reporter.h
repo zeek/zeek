@@ -115,6 +115,9 @@ public:
     // function will not return but raise an InterpreterException.
     [[noreturn]] void CPPRuntimeError(const char* fmt, ...) __attribute__((format(printf, 2, 3)));
 
+    // Similar, but for warnings. This function does return.
+    void CPPRuntimeWarning(const char* fmt, ...) __attribute__((format(printf, 2, 3)));
+
     // Report a traffic weirdness, i.e., an unexpected protocol situation
     // that may lead to incorrectly processing a connection.
     void Weird(const char* name, const char* addl = "",

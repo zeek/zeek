@@ -1,0 +1,267 @@
+# Operations corresponding to non-uniform expressions.
+
+assign-op Field
+class R
+field-op
+assign-val v
+eval	auto r = $1.AsRecord();
+	auto& rv = DirectOptField(r, $2);
+	ZVal v;
+	if ( ! rv )
+		{
+		auto def = r->GetType<RecordType>()->FieldDefault($2);
+		if ( def )
+			v = ZVal(def, Z_TYPE);
+		else
+			ERROR(util::fmt("field value missing: $%s", r->GetType()->AsRecordType()->FieldName($2)));
+		}
+	else
+		v = *rv;
+
+expr-op Has-Field
+class VRi
+includes-field-op
+no-eval
+
+internal-op Has-Field
+class VRi
+op-types I R I
+eval	$$ = $1->HasField($2);
+
+internal-op Has-Field
+class VRii
+op-types R R I I
+eval	DirectOptField($$, $2) = ZVal(zeek_int_t($1->HasField($3)));
+
+# The following generates an assignment version of Has-Field that we
+# don't use (because we need the one above that uses "includes-field-op")
+# but lets us compress the two conditionals.
+predicate-op Has-Field
+class Vi
+op-types R I
+eval	$1->HasField($2)
+
+predicate-op Table-Has-Elements
+class V
+op-types T
+eval	$1->Size() > 0
+
+predicate-op Vector-Has-Elements
+class V
+op-types V
+eval	$1->Size() > 0
+
+expr-op In
+class VVV
+custom-method return CompileInExpr(n1, n2, n3);
+no-eval
+
+expr-op In
+class VCV
+custom-method return CompileInExpr(n1, c, n2);
+no-eval
+
+expr-op In
+class VVC
+custom-method return CompileInExpr(n1, n2, c);
+no-eval
+
+internal-op P-In-S
+classes VVV VCV VVC
+op-types I P S
+eval	$$ = $1->MatchAnywhere($2->AsString()) != 0;
+
+internal-op Str-In-Pat-Tbl
+classes VVV VCV
+op-types I S T
+eval	$$ = $2->MatchPattern({NewRef{}, $1});
+
+internal-op S-In-S
+classes VVV VCV VVC
+op-types I S S
+eval	auto sc = reinterpret_cast<const unsigned char*>($1->CheckString());
+	auto cmp = util::strstr_n($2->Len(), $2->Bytes(), $1->Len(), sc);
+	$$ = cmp != -1;
+
+internal-op A-In-S
+classes VVV VCV VVC
+op-types I A N
+eval	$$ = $2->Contains($1->AsAddr());
+
+
+# Handled differently because of the unusual middle argument.
+op L-In-T
+class VLV
+custom-method return CompileInExpr(n1, l, n2);
+no-eval
+
+op L-In-T
+class VLC
+custom-method return CompileInExpr(n, l, c);
+no-eval
+
+op L-In-Vec
+class VLV
+custom-method return CompileInExpr(n1, l, n2);
+no-eval
+
+op L-In-Vec
+class VLC
+custom-method return CompileInExpr(n, l, c);
+no-eval
+
+
+predicate-op Val-Is-In-Table
+class VV
+op-types X T
+eval	$2->Find($1.ToVal(Z_TYPE)) != nullptr
+
+# Variants for indexing two values, one of which might be a constant.
+# We set the instructions's *second* type to be that of the first variable
+# index.  We get the type of the second variable (if any) by digging it
+# out of the table's type.  For a constant in either position, we use
+# the main instruction type, as always.
+
+macro EvalVal2InTableCore(op1, op2)
+	INDEX_LIST->Clear();
+	INDEX_LIST->Append(op1);
+	INDEX_LIST->Append(op2);
+
+macro EvalVal2InTableAssignCore(lhs, tbl)
+	lhs.AsIntRef() = tbl.AsTable()->Find(INDEX_LIST) != nullptr;
+
+macro EvalVal2InTablePre(op1, op2, tbl)
+	auto& tt_ind = tbl.AsTable()->GetType()->AsTableType()->GetIndexTypes();
+	EvalVal2InTableCore(op1.ToVal(Z_TYPE2), op2.ToVal(tt_ind[1]))
+
+internal-op Val2-Is-In-Table
+class VVVV
+eval	EvalVal2InTablePre($1,$2,$3)
+	EvalVal2InTableAssignCore($$, $3)
+
+internal-op Val2-Is-In-Table-Cond
+op1-read
+class VVVb
+eval	EvalVal2InTablePre($1,$2,$3)
+	EvalVal2InTableCond($3, INDEX_LIST, $4, !)
+
+macro EvalVal2InTableCond(tbl, op, BRANCH, negate)
+	if ( negate tbl.AsTable()->Find(op) )
+		BRANCH
+
+internal-op Val2-Is-Not-In-Table-Cond
+op1-read
+class VVVb
+eval	EvalVal2InTablePre($1,$2,$3)
+	EvalVal2InTableCond($3, INDEX_LIST, $4,)
+
+internal-op Val2-Is-In-Table
+class VVVC
+eval	EvalVal2InTableCore($1.ToVal(Z_TYPE2), $3.ToVal(Z_TYPE))
+	EvalVal2InTableAssignCore($$, $2)
+
+internal-op Val2-Is-In-Table
+class VVCV
+eval	EvalVal2InTableCore($2.ToVal(Z_TYPE), $1.ToVal(Z_TYPE2))
+	EvalVal2InTableAssignCore($$, $3)
+
+internal-op Val2-Is-In-Table-Cond
+op1-read
+class VVbC
+eval	EvalVal2InTableCore($1.ToVal(Z_TYPE2), $4.ToVal(Z_TYPE))
+	EvalVal2InTableCond($2, INDEX_LIST, $3, !)
+
+internal-op Val2-Is-In-Table-Cond
+op1-read
+class VVCb
+eval	EvalVal2InTableCore($3.ToVal(Z_TYPE), $1.ToVal(Z_TYPE2))
+	EvalVal2InTableCond($2, INDEX_LIST, $4, !)
+
+internal-op Val2-Is-Not-In-Table-Cond
+op1-read
+class VVbC
+eval	EvalVal2InTableCore($1.ToVal(Z_TYPE2), $4.ToVal(Z_TYPE))
+	EvalVal2InTableCond($2, INDEX_LIST, $3, )
+
+internal-op Val2-Is-Not-In-Table-Cond
+op1-read
+class VVCb
+eval	EvalVal2InTableCore($3.ToVal(Z_TYPE), $1.ToVal(Z_TYPE2))
+	EvalVal2InTableCond($2, INDEX_LIST, $4, )
+
+
+predicate-op Const-Is-In-Table
+class VC
+op-types T X
+eval	$1->Find($2.ToVal(Z_TYPE)) != nullptr
+
+internal-op List-Is-In-Table
+classes VV VC
+op-types I T
+eval	auto indices = Z_AUX->ToListVal(frame);
+	$$ = $1->Find(std::move(indices)) != nullptr;
+
+internal-op Val-Is-In-Vector
+class VVV
+op-types I I V
+eval	auto vec = $2;
+	auto ind = $1;
+	$$ = vec->Has(ind);
+
+internal-op Const-Is-In-Vector
+class VCV
+op-types I I V
+eval	auto vec = $2;
+	auto ind = $1;
+	$$ = vec->Has(ind);
+
+expr-op Cond
+class VVVV
+op-types X I X X
+set-type $2
+eval	AssignTarget($$, $1 ? CopyVal($2) : CopyVal($3))
+
+expr-op Cond
+class VVVC
+op-types X I X X
+set-type $2
+eval	AssignTarget($$, $1 ? CopyVal($2) : CopyVal($3))
+
+expr-op Cond
+class VVCV
+op-types X I X X
+set-type $2
+eval	AssignTarget($$, $1 ? CopyVal($2) : CopyVal($3))
+
+op Bool-Vec-Cond
+class VVVV
+op-types V V V V
+set-type $2
+eval	auto& vsel = $1->RawVec();
+	auto& v1 = $2->RawVec();
+	auto& v2 = $3->RawVec();
+	auto n = v1.size();
+	auto res = new vector<std::optional<ZVal>>(n);
+	for ( auto i = 0U; i < n; ++i )
+		if ( vsel[i] )
+			(*res)[i] = vsel[i]->AsInt() ? v1[i] : v2[i];
+	auto& full_res = $$;
+	Unref(full_res);
+	full_res = new VectorVal(cast_intrusive<VectorType>(Z_TYPE), res);
+
+# Our instruction format doesn't accommodate two constants, so for
+# the singular case of a V ? C1 : C2 conditional, we split it into
+# two operations, V ? C1 and !V ? C2.
+op CondC1
+class VVC
+op-types X I X
+set-type $$
+eval	if ( $1 )
+		AssignTarget($$, CopyVal($2))
+
+op CondC2
+class VVC
+op-types X I X
+set-type $$
+eval	if ( ! $1 )
+		AssignTarget($$, CopyVal($2))

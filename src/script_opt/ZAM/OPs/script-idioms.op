@@ -1,0 +1,57 @@
+# Operations corresponding to scripting idioms / known script functions.
+
+internal-op MinU
+classes VVV VVC
+op-types U U U
+eval	$$ = std::min($1, $2);
+
+internal-op MinI
+classes VVV VVC
+op-types I I I
+eval	$$ = std::min($1, $2);
+
+internal-op MinD
+classes VVV VVC
+op-types D D D
+eval	$$ = std::min($1, $2);
+
+internal-op MaxU
+classes VVV VVC
+op-types U U U
+eval	$$ = std::max($1, $2);
+
+internal-op MaxI
+classes VVV VVC
+op-types I I I
+eval	$$ = std::max($1, $2);
+
+internal-op MaxD
+classes VVV VVC
+op-types D D D
+eval	$$ = std::max($1, $2);
+
+internal-op Func-Id-String
+class VV
+op-types S R
+eval	auto id_rec = $1;
+	auto orig_h = DirectField(id_rec, 0).AsAddr()->AsAddr().AsString();
+	auto resp_h = DirectField(id_rec, 2).AsAddr()->AsAddr().AsString();
+	auto orig_p = static_cast<uint32_t>(DirectField(id_rec, 1).AsCount()) & ~PORT_SPACE_MASK;
+	auto resp_p = static_cast<uint32_t>(DirectField(id_rec, 3).AsCount()) & ~PORT_SPACE_MASK;
+	/* Maximum address size is for IPv6 with no compression. Each
+	 * 8 16-bit hex elements plus 7 colons between them plus the two []'s
+	 * = 8*4 + 7 + 2 = 41 characters.
+	 *
+	 * Maximum port size is 5.
+	 *
+	 * Two of these = 2*41 + 2*5 = 92.
+	 * Other delimiters: two ':', one ' < ' for 5 more.
+	 *
+	 * TOTAL: 97 characters.
+	 *
+	 * We use considerably more for safety.
+	 */
+	char buf[128];
+	snprintf(buf, sizeof buf, "%s:%u > %s:%u", orig_h.c_str(), orig_p, resp_h.c_str(), resp_p);
+	Unref($$);
+	$$ = new StringVal(buf);

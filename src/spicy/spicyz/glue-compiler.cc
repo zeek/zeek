@@ -739,14 +739,6 @@ glue::ProtocolAnalyzer GlueCompiler::parseProtocolAnalyzer(const std::string& ch
         eat_token(chunk, &i, ",");
     }
 
-    if ( ! a.ports.empty() )
-        hilti::logger().warning(
-            hilti::rt::
-                fmt("Remove in v7.1: Analyzer %s is using the deprecated 'port' or 'ports' keyword to register "
-                    "well-known ports. Use Analyzer::register_for_ports() in the accompanying Zeek script instead.",
-                    a.name),
-            a.location);
-
     return a;
 }
 

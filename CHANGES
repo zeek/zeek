@@ -1,3 +1,10 @@
+7.1.0-dev.202 | 2024-08-16 09:06:41 -0700
+
+  * Remove unused wrapper packet analyzer (Jan Grashoefer, Corelight)
+
+    This is a leftover from the migration to the packet analysis framework.
+    The analyzer wrapped the original packet analysis code for comparison.
+
 7.1.0-dev.200 | 2024-08-16 16:50:47 +0200
 
   * Add DNS TKEY event (Evan Typanski, Corelight)

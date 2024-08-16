@@ -26,11 +26,12 @@ void rt::register_spicy_module_begin(const std::string& name, const std::string&
 
 void rt::register_spicy_module_end() { spicy_mgr->registerSpicyModuleEnd(); }
 
-void rt::register_protocol_analyzer(const std::string& name, hilti::rt::Protocol proto, const std::string& parser_orig,
-                                    const std::string& parser_resp, const std::string& replaces,
-                                    const std::string& linker_scope) {
+void rt::register_protocol_analyzer(const std::string& name, hilti::rt::Protocol proto,
+                                    const hilti::rt::Vector<::zeek::spicy::rt::PortRange>& ports,
+                                    const std::string& parser_orig, const std::string& parser_resp,
+                                    const std::string& replaces, const std::string& linker_scope) {
     auto _ = hilti::rt::profiler::start("zeek/rt/register_protocol_analyzer");
-    spicy_mgr->registerProtocolAnalyzer(name, proto, parser_orig, parser_resp, replaces, linker_scope);
+    spicy_mgr->registerProtocolAnalyzer(name, proto, ports, parser_orig, parser_resp, replaces, linker_scope);
 }
 
 void rt::register_file_analyzer(const std::string& name, const hilti::rt::Vector<std::string>& mime_types,

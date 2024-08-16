@@ -547,6 +547,8 @@ bool Manager::CompareFields(const Filter* filter, const WriterFrontend* writer) 
     return true;
 }
 
+// Local: Returns true if filter names differ.
+// Remote: Returns true if fields false if fields agree
 bool Manager::CheckFilterWriterConflict(const WriterInfo* winfo, const Filter* filter) {
     if ( winfo->from_remote )
         // If the writer was instantiated as a result of remote logging, then
@@ -1093,6 +1095,17 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
 
         if ( w != stream->writers.end() && CheckFilterWriterConflict(w->second, filter) ) {
             // Auto-correct path due to conflict over the writer/path pairs.
+            //
+            // How is path collision an issue if one doesn't write to a filesystem?
+            //
+            // Mostly because the current logger code can't deal with it due to keying
+            // of remote writes on (stream, writer, path). If this was (stream, filter),
+            // we might as well have path collisions (assuming filters are configured
+            // non-conflicting.
+            //
+            // Stream::WriterMap::iterator w = stream->writers.find(Stream::WriterPathPair(writer->AsEnum(), path));
+            //
+            // Why is this so complicated?
             string instantiator = w->second->instantiating_filter;
             string new_path;
             unsigned int i = 2;

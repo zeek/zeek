@@ -4083,6 +4083,21 @@ type dns_edns_cookie: record {
 	server_cookie: string &default="";	##< Cookie from the server (0 bytes if missing, or 8 to 32 bytes).
 };
 
+## A DNS TKEY record.
+##
+## .. zeek:see:: dns_TKEY
+type dns_tkey: record {
+	query: string;		##< Query.
+	qtype: count;		##< Query type.
+	alg_name: string;	##< Algorithm name.
+	inception: time;	##< Requested or provided start of validity interval for keying material.
+	expiration: time;	##< Requested or provided end of validity interval for keying material.
+	mode: count;		##< Key agreement or purpose of the message.
+	rr_error: count;	##< Error code.
+	key_data: string;	##< Key exchange data field.
+	is_query: count;	##< The RR is a query/Response.
+};
+
 ## An additional DNS TSIG record.
 ##
 ## .. zeek:see:: dns_TSIG_addl

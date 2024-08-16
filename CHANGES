@@ -1,3 +1,7 @@
+7.1.0-dev.200 | 2024-08-16 16:50:47 +0200
+
+  * Add DNS TKEY event (Evan Typanski, Corelight)
+
 7.1.0-dev.198 | 2024-08-16 12:10:00 +0200
 
   * simpler and more robust identification of function parameters for AST profiling (Vern Paxson, Corelight)

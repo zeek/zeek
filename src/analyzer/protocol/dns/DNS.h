@@ -191,6 +191,15 @@ struct EDNS_COOKIE {
     zeek::String* server_cookie; ///< cookie value sent by the server (0 or 8-32 bytes)
 };
 
+struct TKEY_DATA {
+    String* alg_name;
+    unsigned long inception;
+    unsigned long expiration;
+    unsigned short mode;
+    unsigned short error;
+    String* key;
+};
+
 struct TSIG_DATA {
     String* alg_name;
     unsigned long time_s;
@@ -278,6 +287,7 @@ public:
     RecordValPtr BuildEDNS_ECS_Val(struct EDNS_ECS*);
     RecordValPtr BuildEDNS_TCP_KA_Val(struct EDNS_TCP_KEEPALIVE*);
     RecordValPtr BuildEDNS_COOKIE_Val(struct EDNS_COOKIE*);
+    RecordValPtr BuildTKEY_Val(struct TKEY_DATA*);
     RecordValPtr BuildTSIG_Val(struct TSIG_DATA*);
     RecordValPtr BuildRRSIG_Val(struct RRSIG_DATA*);
     RecordValPtr BuildDNSKEY_Val(struct DNSKEY_DATA*);
@@ -361,6 +371,7 @@ protected:
     bool ParseRR_TXT(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength, const u_char* msg_start);
     bool ParseRR_SPF(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength, const u_char* msg_start);
     bool ParseRR_CAA(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength, const u_char* msg_start);
+    bool ParseRR_TKEY(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength, const u_char* msg_start);
     bool ParseRR_TSIG(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength, const u_char* msg_start);
     bool ParseRR_RRSIG(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength, const u_char* msg_start);
     bool ParseRR_DNSKEY(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength, const u_char* msg_start);

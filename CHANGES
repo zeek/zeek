@@ -1,3 +1,15 @@
+7.1.0-dev.211 | 2024-08-20 11:38:48 +0100
+
+  * Make ssl_history work for SSLv2 handshakes/connections (Johanna Amann, Corelight)
+
+    It turns out that the ssl_history field never was populated with C/S for
+    SSLv2 connections, or connections using the SSLv2 handshake. In our
+    testcases, the latter is especially common - with connections up to TLS1
+    using the old SSLv2 client hello for backwards compatibility.
+
+    This change resolves this issue. As the history is not by default
+    enabled in a lot of locations, baseline impact is minor.
+
 7.1.0-dev.209 | 2024-08-20 10:10:46 +0200
 
   * broker: Deprecate MakeEvent(ValPList*) (Arne Welzel, Corelight)

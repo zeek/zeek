@@ -282,6 +282,11 @@ event ssl_client_hello(c: connection, version: count, record_version: count, pos
 		c$ssl$session_id = bytestring_to_hexstr(session_id);
 		c$ssl$client_ticket_empty_session_seen = F;
 		}
+
+	# add manually for SSLv2, since the handshake_message event is not raised, as there is no handshake protocol.
+	# We don't really have a direction in that case
+	if ( version == 2 )
+		add_to_history(c, T, "c");
 	}
 
 event ssl_server_hello(c: connection, version: count, record_version: count, possible_ts: time, server_random: string, session_id: string, cipher: count, comp_method: count) &priority=5
@@ -302,6 +307,11 @@ event ssl_server_hello(c: connection, version: count, record_version: count, pos
 
 	if ( c$ssl?$session_id && c$ssl$session_id == bytestring_to_hexstr(session_id) && c$ssl$version_num/0xFF != 0x7F && c$ssl$version_num != TLSv13 )
 		c$ssl$resumed = T;
+
+	# add manually for SSLv2, since the handshake_message event is not raised, as there is no handshake protocol.
+	# We don't really have a direction in that case
+	if ( version == 2 )
+		add_to_history(c, F, "s");
 	}
 
 event ssl_extension_supported_versions(c: connection, is_client: bool, versions: index_vec)

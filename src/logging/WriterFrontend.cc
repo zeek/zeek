@@ -1,6 +1,7 @@
 #include "zeek/logging/WriterFrontend.h"
 
 #include "zeek/RunState.h"
+#include "zeek/Span.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/logging/Manager.h"
 #include "zeek/logging/WriterBackend.h"
@@ -50,18 +51,16 @@ private:
 
 class WriteMessage final : public threading::InputMessage<WriterBackend> {
 public:
-    WriteMessage(WriterBackend* backend, int num_fields, int num_writes, Value*** vals)
+    WriteMessage(WriterBackend* backend, int num_fields, std::vector<detail::LogRecord>&& records)
         : threading::InputMessage<WriterBackend>("Write", backend),
           num_fields(num_fields),
-          num_writes(num_writes),
-          vals(vals) {}
+          records(std::move(records)) {}
 
-    bool Process() override { return Object()->Write(num_fields, num_writes, vals); }
+    bool Process() override { return Object()->Write(num_fields, zeek::Span{records}); }
 
 private:
     int num_fields;
-    int num_writes;
-    Value*** vals;
+    std::vector<detail::LogRecord> records;
 };
 
 class SetBufMessage final : public threading::InputMessage<WriterBackend> {
@@ -89,7 +88,8 @@ private:
 // Frontend methods.
 
 WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVal* arg_stream, EnumVal* arg_writer,
-                               bool arg_local, bool arg_remote) {
+                               bool arg_local, bool arg_remote)
+    : write_buffer(detail::WriteBuffer(WRITER_BUFFER_SIZE)) {
     stream = arg_stream;
     writer = arg_writer;
     Ref(stream);
@@ -99,8 +99,6 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVa
     buf = true;
     local = arg_local;
     remote = arg_remote;
-    write_buffer = nullptr;
-    write_buffer_pos = 0;
     info = new WriterBackend::WriterInfo(arg_info);
 
     num_fields = 0;
@@ -173,37 +171,28 @@ void WriterFrontend::Init(int arg_num_fields, const Field* const* arg_fields) {
     }
 }
 
-void WriterFrontend::Write(int arg_num_fields, Value** vals) {
-    if ( disabled ) {
-        DeleteVals(arg_num_fields, vals);
-        return;
-    }
+void WriterFrontend::Write(detail::LogRecord&& arg_vals) {
+    std::vector<threading::Value> vals = std::move(arg_vals);
 
-    if ( arg_num_fields != num_fields ) {
-        reporter->Warning("WriterFrontend %s expected %d fields in write, got %d. Skipping line.", name, num_fields,
-                          arg_num_fields);
-        DeleteVals(arg_num_fields, vals);
+    if ( disabled )
+        return;
+
+    if ( vals.size() != static_cast<size_t>(num_fields) ) {
+        reporter->Warning("WriterFrontend %s expected %d fields in write, got %zu. Skipping line.", name, num_fields,
+                          vals.size());
         return;
     }
 
     if ( remote ) {
-        broker_mgr->PublishLogWrite(stream, writer, info->path, num_fields, vals);
+        broker_mgr->PublishLogWrite(stream, writer, info->path, vals);
     }
 
-    if ( ! backend ) {
-        DeleteVals(arg_num_fields, vals);
+    if ( ! backend )
         return;
-    }
 
-    if ( ! write_buffer ) {
-        // Need new buffer.
-        write_buffer = new Value**[WRITER_BUFFER_SIZE];
-        write_buffer_pos = 0;
-    }
+    write_buffer.WriteRecord(std::move(vals));
 
-    write_buffer[write_buffer_pos++] = vals;
-
-    if ( write_buffer_pos >= WRITER_BUFFER_SIZE || ! buf || run_state::terminating )
+    if ( write_buffer.Full() || ! buf || run_state::terminating )
         // Buffer full (or no buffering desired or terminating).
         FlushWriteBuffer();
 }
@@ -214,16 +203,12 @@ void WriterFrontend::FlushWriteBuffer() {
         return;
     }
 
-    if ( ! write_buffer_pos )
+    if ( write_buffer.Empty() )
         // Nothing to do.
         return;
 
     if ( backend )
-        backend->SendIn(new WriteMessage(backend, num_fields, write_buffer_pos, write_buffer));
-
-    // Clear buffer (no delete, we pass ownership to child thread.)
-    write_buffer = nullptr;
-    write_buffer_pos = 0;
+        backend->SendIn(new WriteMessage(backend, num_fields, std::move(write_buffer).TakeRecords()));
 }
 
 void WriterFrontend::SetBuf(bool enabled) {
@@ -263,24 +248,6 @@ void WriterFrontend::Rotate(const char* rotated_path, double open, double close,
         log_mgr->FinishedRotation(this, nullptr, nullptr, 0, 0, false, terminating);
 }
 
-void WriterFrontend::DeleteVals(int num_fields, Value** vals) {
-    // Note this code is duplicated in Manager::DeleteVals().
-    for ( int i = 0; i < num_fields; i++ )
-        delete vals[i];
-
-    delete[] vals;
-}
-
-void WriterFrontend::CleanupWriteBuffer() {
-    if ( ! write_buffer || write_buffer_pos == 0 )
-        return;
-
-    for ( int j = 0; j < write_buffer_pos; j++ )
-        DeleteVals(num_fields, write_buffer[j]);
-
-    delete[] write_buffer;
-    write_buffer = nullptr;
-    write_buffer_pos = 0;
-}
+void WriterFrontend::CleanupWriteBuffer() { write_buffer.Clear(); }
 
 } // namespace zeek::logging

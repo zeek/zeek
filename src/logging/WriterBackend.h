@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "zeek/Span.h"
 #include "zeek/logging/Component.h"
 #include "zeek/threading/MsgThread.h"
 
@@ -12,6 +13,12 @@ class data;
 }
 
 namespace zeek::logging {
+
+namespace detail {
+
+using LogRecord = std::vector<threading::Value>;
+
+}
 
 class WriterFrontend;
 
@@ -137,21 +144,16 @@ public:
     bool Init(int num_fields, const threading::Field* const* fields);
 
     /**
-     * Writes one log entry.
+     * Write a batch of log records.
      *
      * @param num_fields: The number of log fields for this stream. The
      * value must match what was passed to Init().
      *
-     * @param An array of size \a num_fields with the log values. Their
-     * types must match with the field passed to Init(). The method
-     * takes ownership of \a vals..
-     *
-     * Returns false if an error occurred, in which case the writer must
-     * not be used any further.
+     * @param records Span of LogRecord instances to write out.
      *
      * @return False if an error occurred.
      */
-    bool Write(int num_fields, int num_writes, threading::Value*** vals);
+    bool Write(int arg_num_fields, zeek::Span<detail::LogRecord> records);
 
     /**
      * Sets the buffering status for the writer, assuming the writer

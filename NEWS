@@ -16,6 +16,15 @@ Breaking Changes
   new ``OpaqueVal::DoSerializeData`` and ``OpaqueVal::DoUnserializeData``
   methods.
 
+* Certain internal methods on the broker and logging classes have been changed to
+  accept std::vector<threading::Value> parameters instead of threading::Value**
+  to leverage automatic memory management, reduce the number of allocations
+  and use move semantics to express ownership.
+
+  The DoWrite() and HookLogWrite() methods which can be provided by plugins
+  are not affected by this change, so we keep backwards compatibility with
+  existing log writers.
+
 New Functionality
 -----------------
 

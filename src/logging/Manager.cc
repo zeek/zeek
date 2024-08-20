@@ -1153,21 +1153,25 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
         }
 
         // Alright, can do the write now.
+        auto rec = RecordToLogRecord(stream, filter, columns.get());
 
-        threading::Value** vals = RecordToFilterVals(stream, filter, columns.get());
+        if ( zeek::plugin_mgr->HavePluginForHook(zeek::plugin::HOOK_LOG_WRITE) ) {
+            // The current HookLogWrite API takes a threading::Value**.
+            // Fabricate the pointer array on the fly. Mutation is allowed.
+            std::vector<threading::Value*> vals(rec.size());
+            for ( size_t i = 0; i < rec.size(); i++ )
+                vals[i] = &rec[i];
 
-        if ( ! PLUGIN_HOOK_WITH_RESULT(HOOK_LOG_WRITE,
-                                       HookLogWrite(filter->writer->GetType()->AsEnumType()->Lookup(
-                                                        filter->writer->InternalInt()),
-                                                    filter->name, *info, filter->num_fields, filter->fields, vals),
-                                       true) ) {
-            DeleteVals(filter->num_fields, vals);
+            bool res =
+                zeek::plugin_mgr->HookLogWrite(filter->writer->GetType()->AsEnumType()->Lookup(
+                                                   filter->writer->InternalInt()),
+                                               filter->name, *info, filter->num_fields, filter->fields, &vals[0]);
+            if ( ! res ) {
+                DBG_LOG(DBG_LOGGING, "Hook prevented writing to filter '%s' on stream '%s'", filter->name.c_str(),
+                        stream->name.c_str());
 
-#ifdef DEBUG
-            DBG_LOG(DBG_LOGGING, "Hook prevented writing to filter '%s' on stream '%s'", filter->name.c_str(),
-                    stream->name.c_str());
-#endif
-            return true;
+                return true;
+            }
         }
 
         assert(w != stream->writers.end());
@@ -1175,7 +1179,7 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
 
         // Write takes ownership of vals.
         assert(writer);
-        writer->Write(filter->num_fields, vals);
+        writer->Write(std::move(rec));
 
 #ifdef DEBUG
         DBG_LOG(DBG_LOGGING, "Wrote record to filter '%s' on stream '%s'", filter->name.c_str(), stream->name.c_str());
@@ -1385,35 +1389,38 @@ bool Manager::SetMaxDelayQueueSize(const EnumValPtr& id, zeek_uint_t queue_size)
     return true;
 }
 
-threading::Value* Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty) {
+threading::Value Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty) {
     if ( ! val )
-        return new threading::Value(ty->Tag(), false);
+        return {ty->Tag(), false};
 
-    threading::Value* lval = new threading::Value(ty->Tag());
+    threading::Value lval{ty->Tag()};
 
-    switch ( lval->type ) {
+    switch ( lval.type ) {
         case TYPE_BOOL:
-        case TYPE_INT: lval->val.int_val = val->AsInt(); break;
+        case TYPE_INT: lval.val.int_val = val->AsInt(); break;
 
         case TYPE_ENUM: {
             const char* s = ty->AsEnumType()->Lookup(val->AsInt());
 
             if ( s ) {
                 auto len = strlen(s);
-                lval->val.string_val.data = util::copy_string(s, len);
-                lval->val.string_val.length = len;
+                lval.val.string_val.data = util::copy_string(s, len);
+                lval.val.string_val.length = len;
             }
 
             else {
                 auto err_msg = "enum type does not contain value:" + std::to_string(val->AsInt());
                 ty->Error(err_msg.c_str());
-                lval->val.string_val.data = util::copy_string("", 0);
-                lval->val.string_val.length = 0;
+                lval.val.string_val.data = util::copy_string("", 0);
+                lval.val.string_val.length = 0;
             }
             break;
         }
 
-        case TYPE_COUNT: lval->val.uint_val = val->AsCount(); break;
+        case TYPE_COUNT: {
+            lval.val.uint_val = val->AsCount();
+            break;
+        }
 
         case TYPE_PORT: {
             auto p = val->AsCount();
@@ -1427,26 +1434,26 @@ threading::Value* Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty) {
             else if ( pm == ICMP_PORT_MASK )
                 pt = TRANSPORT_ICMP;
 
-            lval->val.port_val.port = p & ~PORT_SPACE_MASK;
-            lval->val.port_val.proto = pt;
+            lval.val.port_val.port = p & ~PORT_SPACE_MASK;
+            lval.val.port_val.proto = pt;
             break;
         }
 
-        case TYPE_SUBNET: val->AsSubNet()->Get().ConvertToThreadingValue(&lval->val.subnet_val); break;
+        case TYPE_SUBNET: val->AsSubNet()->Get().ConvertToThreadingValue(&lval.val.subnet_val); break;
 
-        case TYPE_ADDR: val->AsAddr()->Get().ConvertToThreadingValue(&lval->val.addr_val); break;
+        case TYPE_ADDR: val->AsAddr()->Get().ConvertToThreadingValue(&lval.val.addr_val); break;
 
         case TYPE_DOUBLE:
         case TYPE_TIME:
-        case TYPE_INTERVAL: lval->val.double_val = val->AsDouble(); break;
+        case TYPE_INTERVAL: lval.val.double_val = val->AsDouble(); break;
 
         case TYPE_STRING: {
             const String* s = val->AsString()->AsString();
             char* buf = new char[s->Len()];
             memcpy(buf, s->Bytes(), s->Len());
 
-            lval->val.string_val.data = buf;
-            lval->val.string_val.length = s->Len();
+            lval.val.string_val.data = buf;
+            lval.val.string_val.length = s->Len();
             break;
         }
 
@@ -1454,8 +1461,8 @@ threading::Value* Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty) {
             const File* f = val->AsFile();
             const char* s = f->Name();
             auto len = strlen(s);
-            lval->val.string_val.data = util::copy_string(s, len);
-            lval->val.string_val.length = len;
+            lval.val.string_val.data = util::copy_string(s, len);
+            lval.val.string_val.length = len;
             break;
         }
 
@@ -1465,8 +1472,8 @@ threading::Value* Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty) {
             f->Describe(&d);
             const char* s = d.Description();
             auto len = strlen(s);
-            lval->val.string_val.data = util::copy_string(s, len);
-            lval->val.string_val.length = len;
+            lval.val.string_val.data = util::copy_string(s, len);
+            lval.val.string_val.length = len;
             break;
         }
 
@@ -1483,12 +1490,12 @@ threading::Value* Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty) {
             auto& set_t = tbl_t->GetIndexTypes()[0];
             bool is_managed = ZVal::IsManagedType(set_t);
 
-            lval->val.set_val.size = set->Length();
-            lval->val.set_val.vals = new threading::Value*[lval->val.set_val.size];
+            lval.val.set_val.size = set->Length();
+            lval.val.set_val.vals = new threading::Value*[lval.val.set_val.size];
 
-            for ( zeek_int_t i = 0; i < lval->val.set_val.size; i++ ) {
+            for ( zeek_int_t i = 0; i < lval.val.set_val.size; i++ ) {
                 std::optional<ZVal> s_i = ZVal(set->Idx(i), set_t);
-                lval->val.set_val.vals[i] = ValToLogVal(s_i, set_t.get());
+                lval.val.set_val.vals[i] = new threading::Value(ValToLogVal(s_i, set_t.get()));
                 if ( is_managed )
                     ZVal::DeleteManagedType(*s_i);
             }
@@ -1498,26 +1505,26 @@ threading::Value* Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty) {
 
         case TYPE_VECTOR: {
             VectorVal* vec = val->AsVector();
-            lval->val.vector_val.size = vec->Size();
-            lval->val.vector_val.vals = new threading::Value*[lval->val.vector_val.size];
+            lval.val.vector_val.size = vec->Size();
+            lval.val.vector_val.vals = new threading::Value*[lval.val.vector_val.size];
 
             auto& vv = vec->RawVec();
             auto& vt = vec->GetType()->Yield();
 
-            for ( zeek_int_t i = 0; i < lval->val.vector_val.size; i++ ) {
-                lval->val.vector_val.vals[i] = ValToLogVal(vv[i], vt.get());
+            for ( zeek_int_t i = 0; i < lval.val.vector_val.size; i++ ) {
+                lval.val.vector_val.vals[i] = new threading::Value(ValToLogVal(vv[i], vt.get()));
             }
 
             break;
         }
 
-        default: reporter->InternalError("unsupported type %s for log_write", type_name(lval->type));
+        default: reporter->InternalError("unsupported type %s for log_write", type_name(lval.type));
     }
 
     return lval;
 }
 
-threading::Value** Manager::RecordToFilterVals(const Stream* stream, Filter* filter, RecordVal* columns) {
+detail::LogRecord Manager::RecordToLogRecord(const Stream* stream, Filter* filter, RecordVal* columns) {
     RecordValPtr ext_rec;
 
     if ( filter->num_ext_fields > 0 ) {
@@ -1527,7 +1534,9 @@ threading::Value** Manager::RecordToFilterVals(const Stream* stream, Filter* fil
             ext_rec = {AdoptRef{}, res.release()->AsRecordVal()};
     }
 
-    threading::Value** vals = new threading::Value*[filter->num_fields];
+    // Allocate storage for all vals.
+    detail::LogRecord vals;
+    vals.reserve(filter->num_fields);
 
     for ( int i = 0; i < filter->num_fields; ++i ) {
         std::optional<ZVal> val;
@@ -1535,7 +1544,7 @@ threading::Value** Manager::RecordToFilterVals(const Stream* stream, Filter* fil
         if ( i < filter->num_ext_fields ) {
             if ( ! ext_rec ) {
                 // executing function did not return record. Send empty for all vals.
-                vals[i] = new threading::Value(filter->fields[i]->type, false);
+                vals.emplace_back(filter->fields[i]->type, false);
                 continue;
             }
 
@@ -1557,7 +1566,7 @@ threading::Value** Manager::RecordToFilterVals(const Stream* stream, Filter* fil
 
             if ( ! val ) {
                 // Value, or any of its parents, is not set.
-                vals[i] = new threading::Value(filter->fields[i]->type, false);
+                vals.emplace_back(filter->fields[i]->type, false);
                 break;
             }
 
@@ -1565,7 +1574,7 @@ threading::Value** Manager::RecordToFilterVals(const Stream* stream, Filter* fil
         }
 
         if ( val )
-            vals[i] = ValToLogVal(val, vt);
+            vals.emplace_back(ValToLogVal(val, vt));
     }
 
     return vals;
@@ -1688,16 +1697,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
     return winfo->writer;
 }
 
-void Manager::DeleteVals(int num_fields, threading::Value** vals) {
-    // Note this code is duplicated in WriterBackend::DeleteVals().
-    for ( int i = 0; i < num_fields; i++ )
-        delete vals[i];
-
-    delete[] vals;
-}
-
-bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, const string& path, int num_fields,
-                              threading::Value** vals) {
+bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, const string& path, detail::LogRecord&& rec) {
     Stream* stream = FindStream(id);
 
     if ( ! stream ) {
@@ -1707,12 +1707,10 @@ bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, const string& path, 
         id->Describe(&desc);
         DBG_LOG(DBG_LOGGING, "unknown stream %s in Manager::Write()", desc.Description());
 #endif
-        DeleteVals(num_fields, vals);
         return false;
     }
 
     if ( ! stream->enabled ) {
-        DeleteVals(num_fields, vals);
         return true;
     }
 
@@ -1725,11 +1723,10 @@ bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, const string& path, 
         id->Describe(&desc);
         DBG_LOG(DBG_LOGGING, "unknown writer %s in Manager::Write()", desc.Description());
 #endif
-        DeleteVals(num_fields, vals);
         return false;
     }
 
-    w->second->writer->Write(num_fields, vals);
+    w->second->writer->Write(std::move(rec));
 
     DBG_LOG(DBG_LOGGING, "Wrote pre-filtered record to path '%s' on stream '%s'", path.c_str(), stream->name.c_str());
 

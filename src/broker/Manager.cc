@@ -680,8 +680,8 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer, const logging::
     return true;
 }
 
-bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int num_fields,
-                              const threading::Value* const* vals) {
+bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, const string& path,
+                              const logging::detail::LogRecord& rec) {
     if ( bstate->endpoint.is_shutdown() )
         return true;
 
@@ -709,16 +709,17 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, string path, int
 
     fmt.StartWrite();
 
-    bool success = fmt.Write(num_fields, "num_fields");
+    // Cast to int for binary compatibility.
+    bool success = fmt.Write(static_cast<int>(rec.size()), "num_fields");
 
     if ( ! success ) {
         reporter->Error("Failed to remotely log stream %s: num_fields serialization failed", stream_id);
         return false;
     }
 
-    for ( int i = 0; i < num_fields; ++i ) {
-        if ( ! vals[i]->Write(&fmt) ) {
-            reporter->Error("Failed to remotely log stream %s: field %d serialization failed", stream_id, i);
+    for ( size_t i = 0; i < rec.size(); ++i ) {
+        if ( ! rec[i].Write(&fmt) ) {
+            reporter->Error("Failed to remotely log stream %s: field %zu serialization failed", stream_id, i);
             return false;
         }
     }
@@ -1375,16 +1376,10 @@ bool Manager::ProcessMessage(std::string_view, broker::zeek::LogWrite& lw) {
         return false;
     }
 
-    auto vals = new threading::Value*[num_fields];
+    logging::detail::LogRecord rec(num_fields);
 
     for ( int i = 0; i < num_fields; ++i ) {
-        vals[i] = new threading::Value;
-
-        if ( ! vals[i]->Read(&fmt) ) {
-            for ( int j = 0; j <= i; ++j )
-                delete vals[j];
-
-            delete[] vals;
+        if ( ! rec[i].Read(&fmt) ) {
             reporter->Warning("failed to unserialize remote log field %d for stream: %s", i,
                               c_str_safe(stream_id_name).c_str());
 
@@ -1392,7 +1387,7 @@ bool Manager::ProcessMessage(std::string_view, broker::zeek::LogWrite& lw) {
         }
     }
 
-    log_mgr->WriteFromRemote(stream_id->AsEnumVal(), writer_id->AsEnumVal(), path, num_fields, vals);
+    log_mgr->WriteFromRemote(stream_id->AsEnumVal(), writer_id->AsEnumVal(), path, std::move(rec));
     fmt.EndRead();
     return true;
 }

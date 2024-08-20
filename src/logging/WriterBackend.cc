@@ -181,7 +181,7 @@ bool WriterBackend::Init(int arg_num_fields, const Field* const* arg_fields) {
     return true;
 }
 
-bool WriterBackend::Write(int arg_num_fields, int num_writes, Value*** vals) {
+bool WriterBackend::Write(int arg_num_fields, zeek::Span<detail::LogRecord> records) {
     // Double-check that the arguments match. If we get this from remote,
     // something might be mixed up.
     if ( num_fields != arg_num_fields ) {
@@ -191,22 +191,20 @@ bool WriterBackend::Write(int arg_num_fields, int num_writes, Value*** vals) {
         Debug(DBG_LOGGING, msg);
 #endif
 
-        DeleteVals(num_writes, vals);
         DisableFrontend();
         return false;
     }
 
     // Double-check all the types match.
-    for ( int j = 0; j < num_writes; j++ ) {
+    for ( size_t j = 0; j < records.size(); j++ ) {
         for ( int i = 0; i < num_fields; ++i ) {
-            if ( vals[j][i]->type != fields[i]->type ) {
+            if ( records[j][i].type != fields[i]->type ) {
 #ifdef DEBUG
                 const char* msg = Fmt("Field #%d type doesn't match in WriterBackend::Write() (%d vs. %d)", i,
-                                      vals[j][i]->type, fields[i]->type);
+                                      records[j][i].type, fields[i]->type);
                 Debug(DBG_LOGGING, msg);
 #endif
                 DisableFrontend();
-                DeleteVals(num_writes, vals);
                 return false;
             }
         }
@@ -215,15 +213,26 @@ bool WriterBackend::Write(int arg_num_fields, int num_writes, Value*** vals) {
     bool success = true;
 
     if ( ! Failed() ) {
-        for ( int j = 0; j < num_writes; j++ ) {
-            success = DoWrite(num_fields, fields, vals[j]);
+        // Populate a Value* array for backwards compat with plugin
+        // provided WriterBackend implementations that expect to
+        // receive a threading::Value**.
+        //
+        // We keep the raw pointer for this API, as threading::Value
+        // itself manages strings, sets and vectors using raw pointers,
+        // so this seems more consistent than mixing.
+        std::vector<Value*> valps(num_fields);
+
+        for ( size_t j = 0; j < records.size(); j++ ) {
+            auto& write_vals = records[j];
+            for ( int f = 0; f < num_fields; f++ )
+                valps[f] = &write_vals[f];
+
+            success = DoWrite(num_fields, fields, &valps[0]);
 
             if ( ! success )
                 break;
         }
     }
-
-    DeleteVals(num_writes, vals);
 
     if ( ! success )
         DisableFrontend();

@@ -18,5 +18,14 @@ export {
 
 		## Name of the table used for storing data.
 		table_name: string;
+
+		## Key/value table for passing tuning parameters when opening
+		## the database.  These must be pairs that can be passed to the
+		## ``pragma`` command in sqlite.
+		tuning_params: table[string] of string &default=table(
+			["journal_mode"] = "WAL",
+			["synchronous"] = "normal",
+			["temp_store"] = "memory"
+		);
 	};
 }

@@ -53,6 +53,21 @@ ErrorResult SQLite::DoOpen(RecordValPtr options) {
         return err;
     }
 
+    auto tuning_params = options->GetField<TableVal>("tuning_params")->ToMap();
+    for ( const auto& [k, v] : tuning_params ) {
+        auto ks = k->AsListVal()->Idx(0)->AsStringVal();
+        auto vs = v->AsStringVal();
+        std::string cmd = util::fmt("pragma %s = %s", ks->ToStdStringView().data(), vs->ToStdStringView().data());
+
+        if ( int res = sqlite3_exec(db, cmd.c_str(), NULL, NULL, &errorMsg); res != SQLITE_OK ) {
+            std::string err = util::fmt("Error executing tuning pragma statement: %s", errorMsg);
+            Error(err.c_str());
+            sqlite3_free(errorMsg);
+            Close();
+            return err;
+        }
+    }
+
     static std::map<std::string, std::string> statements =
         {{"put", util::fmt("insert into %s (key_str, value_str, expire_time) values(?, ?, ?)", table_name.c_str())},
          {"put_update",
@@ -88,6 +103,12 @@ void SQLite::Close() {
         }
 
         prepared_stmts.clear();
+
+        char* errmsg;
+        if ( int res = sqlite3_exec(db, "pragma optimize", NULL, NULL, &errmsg); res != SQLITE_OK ) {
+            Error(util::fmt("Sqlite failed to optimize at shutdown: %s", errmsg));
+            sqlite3_free(&errmsg);
+        }
 
         if ( int res = sqlite3_close_v2(db); res != SQLITE_OK )
             Error("Sqlite could not close connection");

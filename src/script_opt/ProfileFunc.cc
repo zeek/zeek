@@ -80,6 +80,8 @@ ProfileFunc::ProfileFunc(const Expr* e, bool _abs_rec_fields) {
 void ProfileFunc::Profile(const FuncType* ft, const StmtPtr& body) {
     num_params = ft->Params()->NumFields();
 
+    assert(profiled_scope != nullptr);
+
     auto& ov = profiled_scope->OrderedVars();
     for ( int i = 0; i < num_params; ++i )
         params.insert(ov[i].get());

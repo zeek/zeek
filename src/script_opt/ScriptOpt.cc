@@ -66,12 +66,14 @@ void analyze_global_stmts(Stmt* stmts) {
     auto id = install_ID("<global-stmts>", GLOBAL_MODULE_NAME, true, false);
     auto empty_args_t = make_intrusive<RecordType>(nullptr);
     auto func_t = make_intrusive<FuncType>(empty_args_t, nullptr, FUNC_FLAVOR_FUNCTION);
+    func_t->SetName("<global-stmts>");
     id->SetType(func_t);
 
     auto sc = current_scope();
     std::vector<IDPtr> empty_inits;
     global_stmts = make_intrusive<ScriptFunc>(id);
     global_stmts->AddBody(stmts->ThisPtr(), empty_inits, sc->Length());
+    global_stmts->SetScope(sc);
 
     global_stmts_ind = funcs.size();
     funcs.emplace_back(global_stmts, sc, stmts->ThisPtr(), 0);

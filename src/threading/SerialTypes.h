@@ -19,13 +19,21 @@ namespace zeek::threading {
  * Definition of a log file, i.e., one column of a log stream.
  */
 struct Field {
-    const char* name; //! Name of the field.
+    const char* name = nullptr; //! Name of the field.
     //! Needed by input framework. Port fields have two names (one for the
     //! port, one for the type), and this specifies the secondary name.
-    const char* secondary_name;
-    TypeTag type;    //! Type of the field.
-    TypeTag subtype; //! Inner type for sets and vectors.
-    bool optional;   //! True if field is optional.
+    const char* secondary_name = nullptr;
+    TypeTag type = TYPE_ERROR;    //! Type of the field.
+    TypeTag subtype = TYPE_ERROR; //! Inner type for sets and vectors.
+    bool optional = false;        //! True if field is optional.
+
+
+    /**
+     * Constructor.
+     *
+     * For Unserializes() - initializes with TYPE_ERROR.
+     */
+    Field() = default;
 
     /**
      * Constructor.
@@ -46,6 +54,21 @@ struct Field {
           type(other.type),
           subtype(other.subtype),
           optional(other.optional) {}
+
+    /**
+     * Move constructor.
+     */
+    Field(Field&& other) noexcept {
+        name = other.name;
+        other.name = nullptr;
+
+        secondary_name = other.secondary_name;
+        other.secondary_name = nullptr;
+
+        type = other.type;
+        subtype = other.subtype;
+        optional = other.optional;
+    }
 
     ~Field() {
         delete[] name;
@@ -91,10 +114,6 @@ struct Field {
      * thread-safe.
      */
     std::string TypeName() const;
-
-private:
-    // Force usage of constructor above.
-    Field() {}
 };
 
 /**

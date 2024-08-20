@@ -21,3 +21,9 @@ Trace Index/Sources:
 - ldap/ctu-sme-11-win7ad-1-ldap-tcp-50041.pcap: Harvested from CTU-SME-11
   (Experiment-VM-Microsoft-Windows7AD-1) dataset, filtering on tcp port 389 and port 50041.
   https://zenodo.org/records/7958259 (DOI 10.5281/zenodo.7958258).
+- dns/tkey.pcap: Harvested from CTU-SME-11
+  (Experiment-VM-Microsoft-Windows7AD-1) dataset, filtering on tcp port 53.
+  https://zenodo.org/records/7958259 (DOI 10.5281/zenodo.7958258).
+- dns/dynamic-update.pcap: : Harvested from CTU-SME-11
+  (Experiment-VM-Microsoft-Windows7AD-1) dataset, filtering on tcp port 53.
+  https://zenodo.org/records/7958259 (DOI 10.5281/zenodo.7958258).

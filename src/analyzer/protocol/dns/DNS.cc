@@ -27,6 +27,7 @@ DNS_Interpreter::DNS_Interpreter(analyzer::Analyzer* arg_analyzer) {
 }
 
 void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query) {
+    // Every packet for every opcode starts with same size header.
     int hdr_len = sizeof(detail::DNS_RawMsgHdr);
 
     if ( len < hdr_len ) {
@@ -34,7 +35,20 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query) {
         return;
     }
 
-    detail::DNS_MsgInfo msg((detail::DNS_RawMsgHdr*)data, is_query);
+    // The flags section may be different between the different opcodes, but the
+    // opcode is always in the same location. Parse out just that part of it here
+    // even though it will probably be reparsed later.
+    auto* hdr = (detail::DNS_RawMsgHdr*)data;
+    unsigned short flags = ntohs(hdr->flags);
+    int opcode = (flags & 0x7800) >> 11;
+
+    if ( opcode != DNS_OP_QUERY ) {
+        analyzer->Weird("DNS_unknown_opcode", util::fmt("%d", opcode));
+        analyzer->Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+        return;
+    }
+
+    detail::DNS_MsgInfo msg(hdr, is_query);
 
     if ( first_message && msg.QR && is_query == 1 ) {
         is_query = msg.is_query = 0;

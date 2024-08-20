@@ -115,6 +115,9 @@ bool Expr::IsReducedConditional(Reducer* c) const {
                 return NonReduced(this);
 
             if ( op1->Tag() == EXPR_LIST ) {
+                if ( ! op1->IsReduced(c) )
+                    return NonReduced(this);
+
                 auto l1 = op1->AsListExpr();
                 auto& l1_e = l1->Exprs();
 
@@ -472,7 +475,8 @@ ExprPtr UnaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     auto op_val = op->FoldVal();
     if ( op_val ) {
         auto fold = Fold(op_val.get());
-        return TransformMe(make_intrusive<ConstExpr>(fold), c, red_stmt);
+        if ( fold->GetType()->Tag() != TYPE_OPAQUE )
+            return TransformMe(make_intrusive<ConstExpr>(fold), c, red_stmt);
     }
 
     if ( c->Optimizing() )
@@ -520,7 +524,8 @@ ExprPtr BinaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     auto op2_fold_val = op2->FoldVal();
     if ( op1_fold_val && op2_fold_val ) {
         auto fold = Fold(op1_fold_val.get(), op2_fold_val.get());
-        return TransformMe(make_intrusive<ConstExpr>(fold), c, red_stmt);
+        if ( fold->GetType()->Tag() != TYPE_OPAQUE )
+            return TransformMe(make_intrusive<ConstExpr>(fold), c, red_stmt);
     }
 
     if ( c->Optimizing() )
@@ -3107,6 +3112,23 @@ void AddRecordFieldsExpr::FoldField(RecordVal* rv1, RecordVal* rv2, size_t i) co
 
 CoerceToAnyExpr::CoerceToAnyExpr(ExprPtr arg_op) : UnaryExpr(EXPR_TO_ANY_COERCE, std::move(arg_op)) {
     type = base_type(TYPE_ANY);
+}
+
+bool CoerceToAnyExpr::IsReduced(Reducer* c) const { return HasReducedOps(c); }
+
+ExprPtr CoerceToAnyExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
+    if ( c->Optimizing() )
+        op = c->UpdateExpr(op);
+
+    red_stmt = nullptr;
+
+    if ( ! op->IsSingleton(c) )
+        op = op->ReduceToSingleton(c, red_stmt);
+
+    if ( c->Optimizing() )
+        return ThisPtr();
+    else
+        return AssignToTemporary(c, red_stmt);
 }
 
 ValPtr CoerceToAnyExpr::Fold(Val* v) const { return {NewRef{}, v}; }

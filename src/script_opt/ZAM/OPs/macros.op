@@ -1,0 +1,74 @@
+# General-purpose macros. Those that are specific to a group of instructions
+# are defined with those templates rather than appearing here.
+
+# Macros for information associated with the current instruction.
+
+# The Val frame used to pass in arguments.
+macro Z_FRAME f
+
+# The main type.
+macro Z_TYPE z.GetType()
+
+# Whether it's managed.
+macro Z_IS_MANAGED *(z.is_managed)
+
+# Secondary type.
+macro Z_TYPE2 z.GetType2()
+
+# Auxiliary information.
+macro Z_AUX z.aux
+macro Z_AUX_ID z.aux->id_val
+macro Z_AUX_FUNC z.aux->func
+macro Z_AUX_MAP z.aux->map
+macro Z_AUX_ATTRS z.aux->attrs
+macro Z_AUX_WHEN_INFO z.aux->wi
+macro Z_AUX_EVENT_HANDLER z.aux->event_handler
+macro Z_AUX_PRIMARY_FUNC z.aux->lambda->PrimaryFunc()
+macro Z_AUX_LAMBDA_NAME z.aux->lambda->Name()
+
+# Location in the original script.
+macro Z_LOC z.loc
+
+macro SET_RET_TYPE(type) ret_type = type;
+
+macro INDEX_LIST zam_index_val_list
+
+macro ERROR(msg) ZAM_run_time_error(Z_LOC, msg)
+macro ERROR2(msg, obj) ZAM_run_time_error(Z_LOC, msg, obj)
+
+macro WARN(msg) ZAM_run_time_warning(Z_LOC, msg)
+
+# The following abstracts the process of creating a frame-assignable value.
+macro BuildVal(v, t) ZVal(v, t)
+
+# Returns a memory-managed-if-necessary copy of an existing value.
+macro CopyVal(v) (Z_IS_MANAGED ? BuildVal((v).ToVal(Z_TYPE), Z_TYPE) : (v))
+
+# Managed assignments to the given target.
+macro AssignTarget(target, v) {
+	if ( Z_IS_MANAGED )
+		{
+		/* It's important to hold a reference to v here prior
+		   to the deletion in case target points to v. */
+		auto v2 = v;
+		ZVal::DeleteManagedType(target);
+		target = v2;
+		}
+	else
+		target = v;
+	}
+
+macro Branch(target) { DO_ZAM_PROFILE; pc = target; continue; }
+
+macro REDO { --pc; /* so we then increment to here again */ break; }
+
+macro GlobalID(g) globals[g].id
+macro GlobalVal(g) frame[globals[g].slot]
+
+macro StepIter(slot) step_iters[slot]
+macro TableIter(slot) (*tiv_ptr)[slot]
+
+macro DirectField(r, f) r->RawField(f)
+macro DirectOptField(r, f) r->RawOptField(f)
+
+macro LogEnum(v) v.ToVal(ZAM::log_ID_enum_type)

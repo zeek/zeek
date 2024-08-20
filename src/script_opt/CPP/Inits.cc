@@ -166,7 +166,7 @@ void CPPCompile::InitializeConsts() {
     StartBlock();
 
     for ( const auto& c : consts )
-        Emit("CPP_ValElem(%s, %s),", TypeTagName(c.first), Fmt(c.second));
+        Emit("{%s, %s},", TypeTagName(c.first), Fmt(c.second));
 
     EndBlock(true);
 }

@@ -1,3 +1,177 @@
+7.1.0-dev.209 | 2024-08-20 10:10:46 +0200
+
+  * broker: Deprecate MakeEvent(ValPList*) (Arne Welzel, Corelight)
+
+    The variadic broker messaging BIFs currently convert @ARGS@ into a
+    ValPList before passing it on to MakeEvent(). This appears historic
+    plumbing. Implement the same functionality using Span<const ValPtr>
+    and do the extra copying in the now deprecated MakeEvent().
+
+    Further, make passing a frame optional as not all callers may
+    have one available.
+
+  * Span: Remove deduction guideline for Iter, Iter, include cleanup (Arne Welzel, Corelight)
+
+    We don't have a constructor for that, so that's confusing, also
+    <array> isn't used.
+
+  * ScriptOpt: Ensure global statements have non-null scope (Arne Welzel, Corelight)
+
+    The ProfileFunc() logic assumed that GetScope() returned a non-nullptr.
+    This holds except for the synthetic global statements function.
+
+    Fix the latter and add an assert, also add a name to the type so it's
+    easier to recognize in a debugger what's going on, otherwise the name
+    is "".
+
+    This was found by UBSAN due to it seeing the ->OrderedVars() call on a
+    nullptr. Elsewhere, num_params == 0 shielded from that access and so
+    didn't lead to crashes.
+
+  * Update gen-zam submodule [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
+7.1.0-dev.202 | 2024-08-16 09:06:41 -0700
+
+  * Remove unused wrapper packet analyzer (Jan Grashoefer, Corelight)
+
+    This is a leftover from the migration to the packet analysis framework.
+    The analyzer wrapped the original packet analysis code for comparison.
+
+7.1.0-dev.200 | 2024-08-16 16:50:47 +0200
+
+  * Add DNS TKEY event (Evan Typanski, Corelight)
+
+7.1.0-dev.198 | 2024-08-16 12:10:00 +0200
+
+  * simpler and more robust identification of function parameters for AST profiling (Vern Paxson, Corelight)
+
+  * fixes to limit AST traversal in the face of recursive types (Vern Paxson, Corelight)
+
+  * address some script optimization compiler warnings under Linux (Vern Paxson, Corelight)
+
+  * fix for -O C++ construction of variable names that use multiple module namespaces (Vern Paxson, Corelight)
+
+  * fix for script optimization of "opaque" values that are run-time constants (Vern Paxson, Corelight)
+
+  * fix for script optimization of nested switch statements (Vern Paxson, Corelight)
+
+  * script optimization fix for complex "in" expressions in conditionals (Vern Paxson, Corelight)
+
+  * updates to typos allow-list reflecting ZAM regularization changes (Vern Paxson, Corelight)
+
+  * BTest updates for ZAM regularization changes (Vern Paxson, Corelight)
+
+  * convert new ZAM operations to use typed operands (Vern Paxson, Corelight)
+
+  * complete migration of ZAM to use only public ZVal methods (Vern Paxson, Corelight)
+
+  * "-O validate-ZAM" option to validate generated ZAM instructions (Vern Paxson, Corelight)
+
+  * internal option to suppress control-flow optimization (Vern Paxson, Corelight)
+
+  * exposing some functionality for greater flexibility in structuring run-time execution (Vern Paxson, Corelight)
+
+  * rework ZAM compilation of type switches to leverage value switches (Vern Paxson, Corelight)
+
+  * add tracking of control flow information (Vern Paxson, Corelight)
+
+  * factoring of ZAM operation specifications into separate files (Vern Paxson, Corelight)
+
+  * updates to ZAM operations / gen-zam regularization, other than the operations themselves (Vern Paxson, Corelight)
+
+  * type-checking fix for vector-of-string operations (Vern Paxson, Corelight)
+
+  * ZVal constructor for booleans (Vern Paxson, Corelight)
+
+  * fix for nit in base/protocols/krb/main.zeek (Vern Paxson, Corelight)
+
+  * mark functions skipped by ZAM compilation as such (Vern Paxson, Corelight)
+
+  * fix for avoiding inadvertent interpreter errors in CallExpr::IsPure() (Vern Paxson, Corelight)
+
+  * support for traversing ZAM code similar to AST traversal (Vern Paxson, Corelight)
+
+  * run-time warnings for scripts compiled to C++ (Vern Paxson, Corelight)
+
+  * allow C++ script compiler access to type internals (Vern Paxson, Corelight)
+
+  * fixes for script optimization of coerce-to-any expressions (Vern Paxson, Corelight)
+
+  * fix to correctly track whether a capture needs deep-copying (Vern Paxson, Corelight)
+
+  * fix for -O report-C++ (Vern Paxson, Corelight)
+
+  * support for more in-depth AST profiling (Vern Paxson, Corelight)
+
+  * allow profiling without updating of hash values (Vern Paxson, Corelight)
+
+  * ListVal method to clear the list to allow reusing w/o new construction (Vern Paxson, Corelight)
+
+  * accessor for smart-pointer version of FileVal's value (Vern Paxson, Corelight)
+
+7.1.0-dev.164 | 2024-08-15 10:30:37 +0200
+
+  * Func: Add SetCapturesVec() (Arne Welzel, Corelight)
+
+    Add an API to directly set captures_vec for use by C++ compilation. The
+    current code keys off or asserts on ZAM stmts, making it difficult to
+    leverage captures_vec in other contexts.
+
+  * marked some recently added BTests as not suitable for -O gen-C++ testing (Vern Paxson, Corelight)
+
+  * robustness improvements for -O gen-C++ generation of lambdas / "when"s (Vern Paxson, Corelight)
+
+  * speedups for compilation of initializers in -O gen-C++ generated code (Vern Paxson, Corelight)
+
+  * fixes for -O gen-C++ generation of floating point constants (Vern Paxson, Corelight)
+
+  * -O gen-C++ fix for dealing with use of more than one module qualifier (Vern Paxson, Corelight)
+
+  * header tweaks to provide gen-C++ script optimization with more flexibility (Vern Paxson, Corelight)
+
+  * fix for script optimization of constants of type "opaque" (Vern Paxson, Corelight)
+
+  * fix for script optimization of "in" operations (Vern Paxson, Corelight)
+
+  * some minor tidying of -O gen-C++ sources (Vern Paxson, Corelight)
+
+7.1.0-dev.152 | 2024-08-14 20:08:14 +0200
+
+  * mysql: Implement and test COM_CHANGE_USER (Arne Welzel, Corelight)
+
+    This reworks the parser such that COM_CHANGE_USER switches the
+    connection back into the CONNECTION_PHASE so that we can remove the
+    EXPECT_AUTH_SWITCH special case in the COMMAND_PHASE. Adds two pcaps
+    produced with Python that actually do COM_CHANGE_USER as it seems
+    not possible from the MySQL CLI.
+
+  * mysql: Remove auth plugin state (Arne Welzel, Corelight)
+
+    Now that we use CONNECTION_PHASE and interpret AuthSwitchRequest
+    correctly, we can remove reliance on the plugin discrepancy to
+    determine expectations.
+
+  * GH-3880: mysql: Handle server connection phase separately from command phase (Arne Welzel, Corelight)
+
+    This avoids interpreting an AuthSwitchRequest (0xfe) during the command
+    phase as EOF_Packet.
+
+    Thanks @AmazingPP.
+
+    Closes #3880
+
+7.1.0-dev.147 | 2024-08-13 12:37:17 +0200
+
+  * Deprecate old unknown_protocol event signature (Jan Grashoefer, Corelight)
+
+  * Use raw pointer for packet analyzer history (Jan Grashoefer, Corelight)
+
+  * Update external baselines for analyzer history (Jan Grashoefer, Corelight)
+
+  * Update btest baselines for analyzer history (Jan Grashoefer, Corelight)
+
+  * Add packet analyzer history (Jan Grashoefer, Corelight)
+
 7.1.0-dev.141 | 2024-08-12 11:07:32 +0200
 
   * spicyz: Add back message about removed support for port / ports in evt (Arne Welzel, Corelight)

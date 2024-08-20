@@ -66,12 +66,14 @@ void analyze_global_stmts(Stmt* stmts) {
     auto id = install_ID("<global-stmts>", GLOBAL_MODULE_NAME, true, false);
     auto empty_args_t = make_intrusive<RecordType>(nullptr);
     auto func_t = make_intrusive<FuncType>(empty_args_t, nullptr, FUNC_FLAVOR_FUNCTION);
+    func_t->SetName("<global-stmts>");
     id->SetType(func_t);
 
     auto sc = current_scope();
     std::vector<IDPtr> empty_inits;
     global_stmts = make_intrusive<ScriptFunc>(id);
     global_stmts->AddBody(stmts->ThisPtr(), empty_inits, sc->Length());
+    global_stmts->SetScope(sc);
 
     global_stmts_ind = funcs.size();
     funcs.emplace_back(global_stmts, sc, stmts->ThisPtr(), 0);
@@ -271,6 +273,7 @@ static void init_options() {
     check_env_opt("ZEEK_REPORT_UNCOMPILABLE", analysis_options.report_uncompilable);
     check_env_opt("ZEEK_ZAM_CODE", analysis_options.gen_ZAM_code);
     check_env_opt("ZEEK_NO_ZAM_OPT", analysis_options.no_ZAM_opt);
+    check_env_opt("ZEEK_NO_ZAM_CONTROL_FLOW_OPT", analysis_options.no_ZAM_control_flow_opt);
     check_env_opt("ZEEK_DUMP_ZAM", analysis_options.dump_ZAM);
     check_env_opt("ZEEK_PROFILE", analysis_options.profile_ZAM);
 
@@ -391,7 +394,7 @@ static void use_CPP() {
 
     int num_used = 0;
 
-    auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, false);
+    auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, true, false);
 
     for ( auto& f : funcs ) {
         auto hash = f.Profile()->HashVal();
@@ -401,7 +404,6 @@ static void use_CPP() {
             ++num_used;
 
             auto b = s->second.body;
-            b->SetHash(hash);
 
             // We may have already updated the body if
             // we're using code compiled for standalone.
@@ -430,26 +432,22 @@ static void use_CPP() {
         reporter->FatalError("no C++ functions found to use");
 }
 
-static void generate_CPP() {
+static void generate_CPP(std::shared_ptr<ProfileFuncs> pfs) {
     const auto gen_name = CPP_dir + "CPP-gen.cc";
 
     const bool standalone = analysis_options.gen_standalone_CPP;
     const bool report = analysis_options.report_uncompilable;
 
-    auto pfs = std::make_shared<ProfileFuncs>(funcs, is_CPP_compilable, false);
-
     CPPCompile cpp(funcs, pfs, gen_name, standalone, report);
 }
 
-static void analyze_scripts_for_ZAM() {
+static void analyze_scripts_for_ZAM(std::shared_ptr<ProfileFuncs> pfs) {
     if ( analysis_options.usage_issues > 0 && analysis_options.optimize_AST ) {
         fprintf(stderr,
                 "warning: \"-O optimize-AST\" option is incompatible with -u option, "
                 "deactivating optimization\n");
         analysis_options.optimize_AST = false;
     }
-
-    auto pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true);
 
     if ( analysis_options.profile_ZAM ) {
 #ifdef ENABLE_ZAM_PROFILE
@@ -506,12 +504,12 @@ static void analyze_scripts_for_ZAM() {
 
         if ( ! analysis_options.compile_all && ! is_lambda && inl && inl->WasFullyInlined(func.get()) &&
              func_used_indirectly.count(func.get()) == 0 ) {
-            // No need to compile as it won't be called directly.
-            // We'd like to zero out the body to recover the
-            // memory, but a *few* such functions do get called,
-            // such as by the event engine reaching up, or
-            // BiFs looking for them, so we can't safely zero
-            // them.
+            // No need to compile as it won't be called directly.  We'd
+            // like to zero out the body to recover the memory, but a *few*
+            // such functions do get called, such as by the event engine
+            // reaching up, or BiFs looking for them, so we can't safely
+            // zero them.
+            f.SetSkip(true);
             continue;
         }
 
@@ -532,6 +530,9 @@ static void analyze_scripts_for_ZAM() {
 }
 
 void clear_script_analysis() {
+    if ( analysis_options.gen_CPP )
+        return;
+
     IDOptInfo::ClearGlobalInitExprs();
 
     // We need to explicitly clear out the optimization information
@@ -555,6 +556,11 @@ void clear_script_analysis() {
 
 void analyze_scripts(bool no_unused_warnings) {
     init_options();
+
+    if ( analysis_options.validate_ZAM ) {
+        validate_ZAM_insts();
+        return;
+    }
 
     // Any standalone compiled scripts have already been instantiated
     // at this point, but may require post-loading-of-scripts finalization.
@@ -599,6 +605,7 @@ void analyze_scripts(bool no_unused_warnings) {
     }
 
     if ( analysis_options.report_CPP ) {
+        auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, true, false);
         report_CPP();
         exit(0);
     }
@@ -606,17 +613,23 @@ void analyze_scripts(bool no_unused_warnings) {
     if ( analysis_options.use_CPP )
         use_CPP();
 
+    std::shared_ptr<ProfileFuncs> pfs;
+    // Note, in the following it's not clear whether the final argument
+    // for absolute/relative record fields matters any more ...
+    if ( generating_CPP )
+        pfs = std::make_shared<ProfileFuncs>(funcs, is_CPP_compilable, true, false);
+    else
+        pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true, true);
+
     if ( generating_CPP ) {
         if ( analysis_options.gen_ZAM )
             reporter->FatalError("-O ZAM and -O gen-C++ conflict");
 
-        generate_CPP();
+        generate_CPP(pfs);
         exit(0);
     }
 
-    // At this point we're done with C++ considerations, so instead
-    // are compiling to ZAM.
-    analyze_scripts_for_ZAM();
+    analyze_scripts_for_ZAM(pfs);
 
     if ( reporter->Errors() > 0 )
         reporter->FatalError("Optimized script execution aborted due to errors");

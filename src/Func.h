@@ -211,6 +211,15 @@ public:
         return *captures_vec;
     }
 
+    /**
+     * Set the set of ZVal's used for captures.
+     *
+     * Used for script optimization purposes.
+     *
+     * @param cv The value used for captures_vec.
+     */
+    void SetCapturesVec(std::unique_ptr<std::vector<ZVal>> cv) { captures_vec = std::move(cv); }
+
     // Same definition as in Frame.h.
     using OffsetMap = std::unordered_map<std::string, int>;
 
@@ -291,6 +300,9 @@ protected:
      */
     virtual void SetCaptures(Frame* f);
 
+    // Captures when using ZVal block instead of a Frame.
+    std::unique_ptr<std::vector<ZVal>> captures_vec;
+
 private:
     size_t frame_size = 0;
 
@@ -303,9 +315,6 @@ private:
     Frame* captures_frame = nullptr;
 
     OffsetMap* captures_offset_mapping = nullptr;
-
-    // Captures when using ZVal block instead of a Frame.
-    std::unique_ptr<std::vector<ZVal>> captures_vec;
 
     // The most recently added/updated body ...
     StmtPtr current_body;

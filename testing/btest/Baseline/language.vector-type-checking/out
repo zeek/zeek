@@ -17,3 +17,4 @@ error in count and <...>/vector-type-checking.zeek, line 39: arithmetic mixed wi
 error in <...>/vector-type-checking.zeek, line 39 and count: type mismatch (thousand-two and count)
 error in <...>/vector-type-checking.zeek, line 39: inconsistent types in vector constructor (vector(thousand-two))
 error in <...>/vector-type-checking.zeek, line 45: type clash in assignment (lea = vector(thousand-three))
+error in <...>/vector-type-checking.zeek, line 57: cannot compare string vectors with pattern vectors (vector(foo) == vector(<...>/))

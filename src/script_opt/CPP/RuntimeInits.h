@@ -19,6 +19,28 @@ using FuncValPtr = IntrusivePtr<FuncVal>;
 
 class InitsManager;
 
+// Helper function that takes a (large) array of int's and from them
+// constructs the corresponding vector-of-vector-of-indices.  Each
+// vector-of-indices is represented first by an int specifying its
+// size, and then that many int's for its values.  We recognize the
+// end of the array upon encountering a "size" entry of END_OF_VEC_VEC.
+//
+// Returns how many elements were processed out of "inits", including its
+// terminator.
+extern size_t generate_indices_set(int* inits, std::vector<std::vector<int>>& indices_set);
+
+// The same but for one more level of vector construction. The source array
+// has sub-arrays terminated with END_OF_VEC_VEC per the above, and the whole
+// shebang is terminated with END_OF_VEC_VEC_VEC.
+//
+// Returns the vector construction.
+extern std::vector<std::vector<std::vector<int>>> generate_indices_set(int* inits);
+
+// These need to be distinct from any values that can appear, which means
+// they should be negative, and not -1, which is used as a "N/A" value.
+#define END_OF_VEC_VEC -100
+#define END_OF_VEC_VEC_VEC -200
+
 // An abstract helper class used to access elements of an initialization vector.
 // We need the abstraction because InitsManager below needs to be able to refer
 // to any of a range of templated classes.
@@ -29,7 +51,12 @@ public:
 };
 
 // Convenient way to refer to an offset associated with a particular Zeek type.
-using CPP_ValElem = std::pair<TypeTag, int>;
+// A "struct" rather than a std::pair because C++ compilers are terribly slow
+// at initializing large numbers of the latter.
+struct CPP_ValElem {
+    TypeTag tag;
+    int offset;
+};
 
 // This class groups together all of the vectors needed for run-time
 // initialization.  We gather them together into a single object so as
@@ -57,7 +84,7 @@ public:
     // index.
     ValPtr ConstVals(int offset) const {
         auto& cv = const_vals[offset];
-        return Consts(cv.first, cv.second);
+        return Consts(cv.tag, cv.offset);
     }
 
     // Retrieves the Zeek constant value for a particular Zeek type.
@@ -157,9 +184,6 @@ protected:
     // Pre-initialize all elements requiring it.
     virtual void DoPreInits(InitsManager* im, const std::vector<int>& offsets_vec) {}
 
-    // Generate a single element.
-    virtual void GenerateElement(InitsManager* im, T2& init, int offset) {}
-
     // The initialization vector in its entirety.
     std::vector<T1>& inits_vec;
 
@@ -221,16 +245,16 @@ using ValElemVecVec = std::vector<ValElemVec>;
 template<class T>
 class CPP_IndexedInits : public CPP_AbstractInits<T, ValElemVecVec> {
 public:
-    CPP_IndexedInits(std::vector<T>& _inits_vec, int _offsets_set, std::vector<ValElemVecVec> _inits)
-        : CPP_AbstractInits<T, ValElemVecVec>(_inits_vec, _offsets_set, std::move(_inits)) {}
+    CPP_IndexedInits(std::vector<T>& _inits_vec, int _offsets_set, int* raw_inits)
+        : CPP_AbstractInits<T, ValElemVecVec>(_inits_vec, _offsets_set, generate_indices_set(raw_inits)) {}
 
 protected:
     void InitializeCohortWithOffsets(InitsManager* im, int cohort, const std::vector<int>& cohort_offsets) override;
 
-    // Note, in the following we pass in the inits_vec, even though
-    // the method will have direct access to it, because we want to
-    // use overloading to dispatch to custom generation for different
-    // types of values.
+    // Note, in the following we pass in the inits_vec ("ivec"), even though
+    // the method will have direct access to it, because we want to use
+    // overloading to dispatch to custom generation for different types of
+    // values.
     void Generate(InitsManager* im, std::vector<EnumValPtr>& ivec, int offset, ValElemVec& init_vals);
     void Generate(InitsManager* im, std::vector<StringValPtr>& ivec, int offset, ValElemVec& init_vals);
     void Generate(InitsManager* im, std::vector<PatternValPtr>& ivec, int offset, ValElemVec& init_vals);
@@ -254,8 +278,8 @@ protected:
 // on subclasses of TypePtr.
 class CPP_TypeInits : public CPP_IndexedInits<TypePtr> {
 public:
-    CPP_TypeInits(std::vector<TypePtr>& _inits_vec, int _offsets_set, std::vector<std::vector<ValElemVec>> _inits)
-        : CPP_IndexedInits<TypePtr>(_inits_vec, _offsets_set, _inits) {}
+    CPP_TypeInits(std::vector<TypePtr>& _inits_vec, int _offsets_set, int* raw_inits)
+        : CPP_IndexedInits<TypePtr>(_inits_vec, _offsets_set, raw_inits) {}
 
 protected:
     void DoPreInits(InitsManager* im, const std::vector<int>& offsets_vec) override;
@@ -503,12 +527,5 @@ struct CPP_RegisterBody {
     int line_num;
     std::vector<std::string> events;
 };
-
-// Helper function that takes a (large) array of int's and from them
-// constructs the corresponding vector-of-vector-of-indices.  Each
-// vector-of-indices is represented first by an int specifying its
-// size, and then that many int's for its values.  We recognize the
-// end of the array upon encountering a "size" entry of -1.
-extern void generate_indices_set(int* inits, std::vector<std::vector<int>>& indices_set);
 
 } // namespace zeek::detail

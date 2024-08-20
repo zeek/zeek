@@ -16,7 +16,7 @@ namespace ZAM {
 std::string curr_func;
 std::shared_ptr<ZAMLocInfo> curr_loc;
 TypePtr log_ID_enum_type;
-TypePtr any_base_type;
+TypePtr any_base_type = base_type(TYPE_ANY);
 } // namespace ZAM
 
 bool ZAM_error = false;
@@ -34,6 +34,32 @@ bool is_ZAM_compilable(const ProfileFunc* pf, const char** reason) {
 }
 
 bool IsAny(const Type* t) { return t->Tag() == TYPE_ANY; }
+
+bool CheckAnyType(const TypePtr& any_type, const TypePtr& expected_type, const std::shared_ptr<ZAMLocInfo>& loc) {
+    if ( IsAny(expected_type) )
+        return true;
+
+    if ( ! same_type(any_type, expected_type, false, false) ) {
+        auto at = any_type->Tag();
+        auto et = expected_type->Tag();
+
+        if ( at == TYPE_RECORD && et == TYPE_RECORD ) {
+            auto at_r = any_type->AsRecordType();
+            auto et_r = expected_type->AsRecordType();
+
+            if ( record_promotion_compatible(et_r, at_r) )
+                return true;
+        }
+
+        char buf[8192];
+        snprintf(buf, sizeof buf, "run-time type clash (%s/%s)", type_name(at), type_name(et));
+
+        reporter->RuntimeError(loc->Loc(), "%s", buf);
+        return false;
+    }
+
+    return true;
+}
 
 StringVal* ZAM_to_lower(const StringVal* sv) {
     auto bs = sv->AsString();
@@ -82,7 +108,10 @@ void ZAM_run_time_error(const char* msg) {
 }
 
 void ZAM_run_time_error(std::shared_ptr<ZAMLocInfo> loc, const char* msg) {
-    reporter->RuntimeError(loc->Loc(), "%s", msg);
+    if ( loc )
+        reporter->RuntimeError(loc->Loc(), "%s", msg);
+    else
+        fprintf(stderr, "<no location in optimized code>: %s\n", msg);
     ZAM_error = true;
 }
 
@@ -92,7 +121,10 @@ void ZAM_run_time_error(const char* msg, const Obj* o) {
 }
 
 void ZAM_run_time_error(std::shared_ptr<ZAMLocInfo> loc, const char* msg, const Obj* o) {
-    reporter->RuntimeError(loc->Loc(), "%s (%s)", msg, obj_desc(o).c_str());
+    if ( loc )
+        reporter->RuntimeError(loc->Loc(), "%s (%s)", msg, obj_desc(o).c_str());
+    else
+        ZAM_run_time_error(msg, o);
     ZAM_error = true;
 }
 

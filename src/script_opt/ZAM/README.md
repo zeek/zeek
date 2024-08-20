@@ -100,6 +100,7 @@ issues:
 |`profile-ZAM`	|	Generate to "zprof.out" a ZAM execution profile. (Requires configuring with `--enable-ZAM-profiling` or `--enable-debug`.)|
 |`report-recursive`	|	Report on recursive functions and exit.|
 |`report-uncompilable`	|	Report on uncompilable functions and exit. For ZAM, all functions should be compilable.|
+|`validate-ZAM`		|	Perform internal validation of ZAM instructions and exit.|
 |`xform`		|	Transform scripts to "reduced" form.|
 
 <a name="ZAM-profiling"></a>

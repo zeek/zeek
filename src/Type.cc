@@ -601,6 +601,9 @@ SetType::~SetType() = default;
 
 FuncType::Capture::Capture(detail::IDPtr _id, bool _deep_copy) : id(std::move(_id)), deep_copy(_deep_copy) {
     is_managed = id ? ZVal::IsManagedType(id->GetType()) : false;
+    if ( ! is_managed )
+        // For non-managed types, deep copying isn't applicable.
+        deep_copy = false;
 }
 
 FuncType::FuncType(RecordTypePtr arg_args, TypePtr arg_yield, FunctionFlavor arg_flavor)

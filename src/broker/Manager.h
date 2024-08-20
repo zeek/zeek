@@ -14,6 +14,7 @@
 #include <unordered_map>
 
 #include "zeek/IntrusivePtr.h"
+#include "zeek/Span.h"
 #include "zeek/broker/Data.h"
 #include "zeek/iosource/IOSource.h"
 #include "zeek/logging/WriterBackend.h"
@@ -262,7 +263,27 @@ public:
      * @return an `Event` record value.  If an invalid event or arguments
      * were supplied the optional "name" field will not be set.
      */
-    RecordVal* MakeEvent(ValPList* args, zeek::detail::Frame* frame);
+    [[deprecated("Remove in v8.1: Use the ArgsSpan version instead")]] RecordVal* MakeEvent(ValPList* args,
+                                                                                            zeek::detail::Frame* frame);
+
+    using ArgsSpan = Span<const ValPtr>;
+
+    /**
+     * Create an `Event` record value from an event and its arguments.
+     * @param args A span pointing at the event arguments.
+     * @return an `Event` record value.  If an invalid event or arguments
+     * were supplied the optional "name" field will not be set.
+     */
+    zeek::RecordValPtr MakeEvent(ArgsSpan args);
+
+    /**
+     * Create an `Event` record value from an event and its arguments.
+     * @param args A span pointing at the event arguments.
+     * @param frame the calling frame, used to report location info upon error
+     * @return an `Event` record value.  If an invalid event or arguments
+     * were supplied the optional "name" field will not be set.
+     */
+    zeek::RecordValPtr MakeEvent(ArgsSpan args, zeek::detail::Frame* frame);
 
     /**
      * Register interest in peer event messages that use a certain topic prefix.

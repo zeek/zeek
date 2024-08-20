@@ -83,6 +83,7 @@ public:
     // Returns the function, body, or expression profiled.  Each can be
     // null depending on the constructor used.
     const Func* ProfiledFunc() const { return profiled_func; }
+    const ScopePtr& ProfiledScope() const { return profiled_scope; }
     const Stmt* ProfiledBody() const { return profiled_body; }
     const Expr* ProfiledExpr() const { return profiled_expr; }
 
@@ -139,6 +140,7 @@ protected:
     TraversalCode PreStmt(const Stmt*) override;
     TraversalCode PreExpr(const Expr*) override;
     TraversalCode PreID(const ID*) override;
+    TraversalCode PreType(const Type*) override;
 
     // Take note of the presence of a given type.
     void TrackType(const Type* t);
@@ -157,6 +159,8 @@ protected:
     // The function, body, or expression profiled.  Can be null
     // depending on which constructor was used.
     const Func* profiled_func = nullptr;
+    ScopePtr profiled_scope;     // null when not in a full function context
+    FuncTypePtr profiled_func_t; // null when not in a full function context
     const Stmt* profiled_body = nullptr;
     const Expr* profiled_expr = nullptr;
 
@@ -347,13 +351,15 @@ using is_compilable_pred = bool (*)(const ProfileFunc*, const char** reason);
 // Collectively profile an entire collection of functions.
 class ProfileFuncs {
 public:
-    // Updates entries in "funcs" to include profiles.  If pred is
-    // non-nil, then it is called for each profile to see whether it's
-    // compilable, and, if not, the FuncInfo is marked as ShouldSkip().
-    // "full_record_hashes" controls whether the hashes for extended
-    // records covers their final, full form, or should only their
-    // original fields.
-    ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred, bool full_record_hashes);
+    // Updates entries in "funcs" to include profiles.  If pred is non-nil,
+    // then it is called for each profile to see whether it's compilable,
+    // and, if not, the FuncInfo is marked as ShouldSkip().
+    // "compute_func_hashes" governs whether we compute hashes for the
+    // FuncInfo entries, or keep their existing ones.  "full_record_hashes"
+    // controls whether the hashes for extended records covers their final,
+    // full form, or should only their original fields.
+    ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred, bool compute_func_hashes,
+                 bool full_record_hashes);
 
     // The following accessors provide a global profile across all of
     // the (non-skipped) functions in "funcs".  See the comments for
@@ -603,6 +609,9 @@ protected:
     // Expressions that we've discovered that we need to further profile.
     // These can arise for example due to lambdas or record attributes.
     std::vector<const Expr*> pending_exprs;
+
+    // Whether to compute new hashes for the FuncInfo entries.
+    bool compute_func_hashes;
 
     // Whether the hashes for extended records should cover their final,
     // full form, or only their original fields.

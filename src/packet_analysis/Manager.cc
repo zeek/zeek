@@ -113,6 +113,7 @@ void Manager::ProcessPacket(Packet* packet) {
     }
 
     // Start packet analysis
+    analyzer_stack.clear();
     root_analyzer->ForwardPacket(packet->cap_len, packet->data, packet, packet->link_type);
 
     if ( ! packet->processed ) {
@@ -227,13 +228,24 @@ bool Manager::PermitUnknownProtocol(const std::string& analyzer, uint32_t protoc
     return false;
 }
 
+zeek::VectorValPtr Manager::BuildAnalyzerHistory() const {
+    auto history = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
+
+    for ( unsigned int i = 0; i < analyzer_stack.size(); i++ ) {
+        auto analyzer_name = analyzer_stack[i]->GetAnalyzerName();
+        history->Assign(i, make_intrusive<StringVal>(analyzer_name));
+    }
+
+    return history;
+}
+
 void Manager::ReportUnknownProtocol(const std::string& analyzer, uint32_t protocol, const uint8_t* data, size_t len) {
     if ( unknown_protocol ) {
         if ( PermitUnknownProtocol(analyzer, protocol) ) {
             int bytes_len = std::min(unknown_first_bytes_count, static_cast<uint64_t>(len));
 
             event_mgr.Enqueue(unknown_protocol, make_intrusive<StringVal>(analyzer), val_mgr->Count(protocol),
-                              make_intrusive<StringVal>(bytes_len, (const char*)data));
+                              make_intrusive<StringVal>(bytes_len, (const char*)data), BuildAnalyzerHistory());
         }
     }
 }

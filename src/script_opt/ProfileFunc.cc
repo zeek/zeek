@@ -24,11 +24,12 @@ p_hash_type p_hash(const Obj* o) {
 
 ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fields) {
     profiled_func = func;
+    profiled_scope = profiled_func->GetScope();
     profiled_body = body.get();
     abs_rec_fields = _abs_rec_fields;
 
-    auto ft = func->GetType()->AsFuncType();
-    auto& fcaps = ft->GetCaptures();
+    profiled_func_t = cast_intrusive<FuncType>(func->GetType());
+    auto& fcaps = profiled_func_t->GetCaptures();
 
     if ( fcaps ) {
         int offset = 0;
@@ -40,7 +41,7 @@ ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fi
         }
     }
 
-    Profile(ft, body);
+    Profile(profiled_func_t.get(), body);
 }
 
 ProfileFunc::ProfileFunc(const Stmt* s, bool _abs_rec_fields) {
@@ -56,6 +57,9 @@ ProfileFunc::ProfileFunc(const Expr* e, bool _abs_rec_fields) {
 
     if ( e->Tag() == EXPR_LAMBDA ) {
         auto func = e->AsLambdaExpr();
+        ASSERT(func->GetType()->Tag() == TYPE_FUNC);
+        profiled_scope = func->GetScope();
+        profiled_func_t = cast_intrusive<FuncType>(func->GetType());
 
         int offset = 0;
 
@@ -75,6 +79,13 @@ ProfileFunc::ProfileFunc(const Expr* e, bool _abs_rec_fields) {
 
 void ProfileFunc::Profile(const FuncType* ft, const StmtPtr& body) {
     num_params = ft->Params()->NumFields();
+
+    assert(profiled_scope != nullptr);
+
+    auto& ov = profiled_scope->OrderedVars();
+    for ( int i = 0; i < num_params; ++i )
+        params.insert(ov[i].get());
+
     TrackType(ft);
     body->Traverse(this);
 }
@@ -181,27 +192,9 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             TrackType(id->GetType());
 
             if ( id->IsGlobal() ) {
-                globals.insert(id);
-                all_globals.insert(id);
-
-                const auto& t = id->GetType();
-                if ( t->Tag() == TYPE_FUNC )
-                    if ( t->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT )
-                        events.insert(id->Name());
-
+                PreID(id);
                 break;
             }
-
-            // This is a tad ugly.  Unfortunately due to the weird way
-            // that Zeek function *declarations* work, there's no reliable
-            // way to get the list of parameters for a function *definition*,
-            // since they can have different names than what's present in the
-            // declaration.  So we identify them directly, by knowing that
-            // they come at the beginning of the frame ... and being careful
-            // to avoid misconfusing a lambda capture with a low frame offset
-            // as a parameter.
-            if ( captures.count(id) == 0 && id->Offset() < num_params )
-                params.insert(id);
 
             locals.insert(id);
 
@@ -426,11 +419,6 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             for ( const auto& i : l->OuterIDs() ) {
                 locals.insert(i);
                 TrackID(i);
-
-                // See above re EXPR_NAME regarding the following
-                // logic.
-                if ( captures.count(i) == 0 && i->Offset() < num_params )
-                    params.insert(i);
             }
 
             // In general, we don't want to recurse into the body.
@@ -487,7 +475,26 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
 TraversalCode ProfileFunc::PreID(const ID* id) {
     TrackID(id);
 
+    if ( id->IsGlobal() ) {
+        globals.insert(id);
+        all_globals.insert(id);
+
+        const auto& t = id->GetType();
+        TrackType(t);
+
+        if ( t->Tag() == TYPE_FUNC )
+            if ( t->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT )
+                events.insert(id->Name());
+    }
+
     // There's no need for any further analysis of this ID.
+    return TC_ABORTSTMT;
+}
+
+TraversalCode ProfileFunc::PreType(const Type* t) {
+    TrackType(t);
+
+    // There's no need for any further analysis of this type.
     return TC_ABORTSTMT;
 }
 
@@ -513,6 +520,11 @@ void ProfileFunc::TrackID(const ID* id) {
     if ( ! inserted )
         // Already tracked.
         return;
+
+    if ( id->IsGlobal() ) {
+        globals.insert(id);
+        all_globals.insert(id);
+    }
 
     ordered_ids.push_back(id);
 }
@@ -546,7 +558,9 @@ void ProfileFunc::CheckRecordConstructor(TypePtr t) {
         }
 }
 
-ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred, bool _full_record_hashes) {
+ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred, bool _compute_func_hashes,
+                           bool _full_record_hashes) {
+    compute_func_hashes = _compute_func_hashes;
     full_record_hashes = _full_record_hashes;
 
     for ( auto& f : funcs ) {
@@ -558,6 +572,11 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred
         // Track the profile even if we're not compiling the function, since
         // the AST optimizer will still need it to reason about function-call
         // side effects.
+
+        // Propagate previous hash if requested.
+        if ( ! compute_func_hashes && f.Profile() )
+            pf->SetHashVal(f.Profile()->HashVal());
+
         f.SetProfile(std::move(pf));
         func_profs[f.Func()] = f.ProfilePtr();
     }
@@ -805,15 +824,18 @@ void ProfileFuncs::ComputeTypeHashes(const std::vector<const Type*>& types) {
 }
 
 void ProfileFuncs::ComputeBodyHashes(std::vector<FuncInfo>& funcs) {
-    for ( auto& f : funcs )
-        if ( ! f.ShouldSkip() )
-            ComputeProfileHash(f.ProfilePtr());
+    if ( compute_func_hashes )
+        for ( auto& f : funcs )
+            if ( ! f.ShouldSkip() )
+                ComputeProfileHash(f.ProfilePtr());
 
     for ( auto& l : lambdas ) {
         auto pf = ExprProf(l);
         func_profs[l->PrimaryFunc().get()] = pf;
         lambda_primaries[l->Name()] = l->PrimaryFunc().get();
-        ComputeProfileHash(pf);
+
+        if ( compute_func_hashes )
+            ComputeProfileHash(pf);
     }
 }
 

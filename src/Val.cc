@@ -1277,6 +1277,8 @@ FileVal::FileVal(FilePtr f) : Val(make_intrusive<FileType>(base_type(TYPE_STRING
     assert(file_val->GetType()->Tag() == TYPE_STRING);
 }
 
+FilePtr FileVal::AsFilePtr() const { return file_val; }
+
 ValPtr FileVal::SizeVal() const { return make_intrusive<DoubleVal>(file_val->Size()); }
 
 void FileVal::ValDescribe(ODesc* d) const { file_val->Describe(d); }

@@ -1,3 +1,35 @@
+7.1.0-dev.209 | 2024-08-20 10:10:46 +0200
+
+  * broker: Deprecate MakeEvent(ValPList*) (Arne Welzel, Corelight)
+
+    The variadic broker messaging BIFs currently convert @ARGS@ into a
+    ValPList before passing it on to MakeEvent(). This appears historic
+    plumbing. Implement the same functionality using Span<const ValPtr>
+    and do the extra copying in the now deprecated MakeEvent().
+
+    Further, make passing a frame optional as not all callers may
+    have one available.
+
+  * Span: Remove deduction guideline for Iter, Iter, include cleanup (Arne Welzel, Corelight)
+
+    We don't have a constructor for that, so that's confusing, also
+    <array> isn't used.
+
+  * ScriptOpt: Ensure global statements have non-null scope (Arne Welzel, Corelight)
+
+    The ProfileFunc() logic assumed that GetScope() returned a non-nullptr.
+    This holds except for the synthetic global statements function.
+
+    Fix the latter and add an assert, also add a name to the type so it's
+    easier to recognize in a debugger what's going on, otherwise the name
+    is "".
+
+    This was found by UBSAN due to it seeing the ->OrderedVars() call on a
+    nullptr. Elsewhere, num_params == 0 shielded from that access and so
+    didn't lead to crashes.
+
+  * Update gen-zam submodule [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
 7.1.0-dev.202 | 2024-08-16 09:06:41 -0700
 
   * Remove unused wrapper packet analyzer (Jan Grashoefer, Corelight)

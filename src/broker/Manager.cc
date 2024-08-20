@@ -853,16 +853,29 @@ bool Manager::AutoUnpublishEvent(const string& topic, Val* event) {
 }
 
 RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame) {
-    auto rval = new RecordVal(BifType::Record::Broker::Event);
+    // Deprecated MakeEvent() version using ValPList - requires extra copy.
+    zeek::Args cargs;
+    cargs.reserve(args->size());
+    for ( auto* a : *args )
+        cargs.push_back({zeek::NewRef{}, a});
+
+    return MakeEvent(ArgsSpan{cargs}, frame)->Ref()->AsRecordVal();
+}
+
+zeek::RecordValPtr Manager::MakeEvent(ArgsSpan args, zeek::detail::Frame* frame) {
+    scoped_reporter_location srl{frame};
+    return MakeEvent(args);
+}
+
+zeek::RecordValPtr Manager::MakeEvent(ArgsSpan args) {
+    auto rval = zeek::make_intrusive<RecordVal>(BifType::Record::Broker::Event);
     auto arg_vec = make_intrusive<VectorVal>(vector_of_data_type);
     rval->Assign(1, arg_vec);
-    Func* func = nullptr;
-    scoped_reporter_location srl{frame};
+    const Func* func = nullptr;
 
-    for ( auto i = 0; i < args->length(); ++i ) {
-        auto arg_val = (*args)[i];
-
-        if ( i == 0 ) {
+    for ( size_t index = 0; index < args.size(); index++ ) {
+        const auto& arg_val = args[index];
+        if ( index == 0 ) {
             // Event val must come first.
 
             if ( arg_val->GetType()->Tag() != TYPE_FUNC ) {
@@ -877,10 +890,10 @@ RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame) {
                 return rval;
             }
 
-            auto num_args = func->GetType()->Params()->NumFields();
+            auto num_args = static_cast<size_t>(func->GetType()->Params()->NumFields());
 
-            if ( num_args != args->length() - 1 ) {
-                Error("bad # of arguments: got %d, expect %d", args->length(), num_args + 1);
+            if ( num_args != args.size() - 1 ) {
+                Error("bad # of arguments: got %zu, expect %zu", args.size() - 1, num_args + 1);
                 return rval;
             }
 
@@ -888,12 +901,12 @@ RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame) {
             continue;
         }
 
-        const auto& got_type = (*args)[i]->GetType();
-        const auto& expected_type = func->GetType()->ParamList()->GetTypes()[i - 1];
+        const auto& got_type = arg_val->GetType();
+        const auto& expected_type = func->GetType()->ParamList()->GetTypes()[index - 1];
 
         if ( ! same_type(got_type, expected_type) ) {
             rval->Remove(0);
-            Error("event parameter #%d type mismatch, got %s, expect %s", i, type_name(got_type->Tag()),
+            Error("event parameter #%zu type mismatch, got %s, expect %s", index, type_name(got_type->Tag()),
                   type_name(expected_type->Tag()));
             return rval;
         }
@@ -901,17 +914,17 @@ RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame) {
         RecordValPtr data_val;
 
         if ( same_type(got_type, detail::DataVal::ScriptDataType()) )
-            data_val = {NewRef{}, (*args)[i]->AsRecordVal()};
+            data_val = {NewRef{}, arg_val->AsRecordVal()};
         else
-            data_val = BrokerData::ToRecordVal((*args)[i]);
+            data_val = BrokerData::ToRecordVal(arg_val);
 
         if ( ! data_val->HasField(0) ) {
             rval->Remove(0);
-            Error("failed to convert param #%d of type %s to broker data", i, type_name(got_type->Tag()));
+            Error("failed to convert param #%zu of type %s to broker data", index, type_name(got_type->Tag()));
             return rval;
         }
 
-        arg_vec->Assign(i - 1, std::move(data_val));
+        arg_vec->Assign(index - 1, std::move(data_val));
     }
 
     return rval;

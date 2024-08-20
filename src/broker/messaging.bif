@@ -5,8 +5,15 @@
 #include <set>
 #include <string>
 
+#include "zeek/Span.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/logging/Manager.h"
+
+namespace {
+
+using ArgsSpan = zeek::Span<const zeek::ValPtr>;
+
+}
 
 static bool is_string_set(const zeek::Type* type)
 	{
@@ -46,7 +53,7 @@ std::set<std::string> val_to_topic_set(zeek::Val* val)
 	return rval;
 	}
 
-static bool publish_event_args(zeek::ValPList& args, const zeek::String* topic,
+static bool publish_event_args(ArgsSpan args, const zeek::String* topic,
                                zeek::detail::Frame* frame)
 	{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
@@ -57,9 +64,8 @@ static bool publish_event_args(zeek::ValPList& args, const zeek::String* topic,
 		                                      args[0]->AsRecordVal());
 	else
 		{
-		auto ev = zeek::broker_mgr->MakeEvent(&args, frame);
-		rval = zeek::broker_mgr->PublishEvent(topic->CheckString(), ev);
-		Unref(ev);
+		auto ev = zeek::broker_mgr->MakeEvent(args, frame);
+		rval = zeek::broker_mgr->PublishEvent(topic->CheckString(), ev->AsRecordVal());
 		}
 
 	return rval;
@@ -92,13 +98,9 @@ type Broker::Event: record;
 function Broker::make_event%(...%): Broker::Event
 	%{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
-	const auto& bif_args = @ARGS@;
-	ValPList args(bif_args->size());
 
-	for ( auto i = 0u; i < bif_args->size(); ++i )
-		args.push_back((*bif_args)[i].get());
-
-	return RecordValPtr{zeek::AdoptRef{}, zeek::broker_mgr->MakeEvent(&args, frame)};
+	auto ev = zeek::broker_mgr->MakeEvent(ArgsSpan{*@ARGS@});
+	return zeek::cast_intrusive<RecordVal>(ev);
 	%}
 
 ## Publishes an event at a given topic.
@@ -112,13 +114,8 @@ function Broker::make_event%(...%): Broker::Event
 ## Returns: true if the message is sent.
 function Broker::publish%(topic: string, ...%): bool
 	%{
-	const auto& bif_args = @ARGS@;
-	ValPList args(bif_args->size() - 1);
-
-	for ( auto i = 1u; i < bif_args->size(); ++i )
-		args.push_back((*bif_args)[i].get());
-
-	auto rval = publish_event_args(args, topic->AsString(), frame);
+	auto rval = publish_event_args(ArgsSpan{*@ARGS@}.subspan(1),
+	                               topic->AsString(), frame);
 	return zeek::val_mgr->Bool(rval);
 	%}
 
@@ -208,13 +205,8 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 	if ( ! topic->AsString()->Len() )
 		return zeek::val_mgr->False();
 
-	const auto& bif_args = @ARGS@;
-	ValPList args(bif_args->size() - 2);
-
-	for ( auto i = 2u; i < bif_args->size(); ++i )
-		args.push_back((*bif_args)[i].get());
-
-	auto rval = publish_event_args(args, topic->AsString(), frame);
+	auto rval = publish_event_args(ArgsSpan{*@ARGS@}.subspan(2),
+	                               topic->AsString(), frame);
 	return zeek::val_mgr->Bool(rval);
 	%}
 
@@ -251,12 +243,7 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 	if ( ! topic->AsString()->Len() )
 		return zeek::val_mgr->False();
 
-	const auto& bif_args = @ARGS@;
-	ValPList args(bif_args->size() - 2);
-
-	for ( auto i = 2u; i < bif_args->size(); ++i )
-		args.push_back((*bif_args)[i].get());
-
-	auto rval = publish_event_args(args, topic->AsString(), frame);
+	auto rval = publish_event_args(ArgsSpan{*@ARGS@}.subspan(2),
+	                               topic->AsString(), frame);
 	return zeek::val_mgr->Bool(rval);
 	%}

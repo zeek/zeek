@@ -33,6 +33,18 @@ type HandshakeType = enum {
     certificate_status = 22, # RFC 3546
 };
 
+type SSL2ProtocolMessages = enum {
+    ssl_error = 0,
+    ssl_client_hello = 1,
+    ssl_client_master_key = 2,
+    ssl_client_finished = 3,
+    ssl_server_hello = 4,
+    ssl_server_verify = 5,
+    ssl_server_finished = 6,
+    ssl_request_certificate = 7,
+    ssl_client_certificate = 8,
+};
+
 type Extensions = enum {
     server_name = 0,
     max_fragment_length = 1,
@@ -631,11 +643,11 @@ function set_version(version: uint16, inout sh: Share): bool {
 # check for partial connection - and at the moment just disable the analyzer
 # in that case, for 1:1 equivalence with binpac.
 function check_partial(): bool {
-  if ( is_partial_tcp() ) {
-    zeek::skip_input();
-    return True;
-  }
-  return False;
+    if (is_partial_tcp()) {
+        zeek::skip_input();
+        return True;
+    }
+    return False;
 }
 
 # public type TLSMessage = unit {
@@ -645,15 +657,15 @@ function check_partial(): bool {
 # };
 #
 public type DTLSMessage = unit {
-#  %context = Share;
-#
-#  m: Message(True);
- : skip bytes &eod;
+    #  %context = Share;
+    #
+    #  m: Message(True);
+    : skip bytes &eod;
 
- on %init {
-  zeek::skip_input();
-  # spicy::decline_input("No DTLS support");
- }
+    on %init {
+        zeek::skip_input();
+        # spicy::decline_input("No DTLS support");
+    }
 };
 
 public type Message = unit {
@@ -664,6 +676,7 @@ public type Message = unit {
     var record_version: uint16;
     var dtls: bool = False;
     var partial: bool = False;
+    var first_packet: bool = True; # needed for SSLv2, which sadly is quite stateful.
 
     on %init {
         self.handshakesink.connect(new Handshake(self, self.context()));
@@ -672,7 +685,7 @@ public type Message = unit {
         self.partial = check_partial();
     }
 
-     : skip bytes &eod if ( self.partial );
+    : skip bytes &eod if(self.partial);
     fragment: RecordFragmentChoice(self.handshakesink, self.alertsink, self, self.context())[];
 };
 
@@ -683,13 +696,45 @@ function is_dtls_version(version: uint16): bool {
     return False;
 }
 
+# Determine if this is SSL or TLS.
 type RecordFragmentChoice = unit(handshakesink: sink&, alertsink: sink&, inout msg: Message, inout sh: Share) {
-    content_type: uint8; # &convert=ContentType($$);
+    firstbyte: uint8;
+    # 0x80 in the first byte is a pretty god clue that this is SSLv2 - it can't be anything newer.
+    # In theory, the SSLv2 header can also have a 0 there if using a 3-byte size field; we don't have
+    # any practical examples of that, and the old analyzer never supported it even in the times that SSLv2
+    # existed. So we are ignoring this here.
+    switch ((self.firstbyte & 0x80) == 0x80) {
+        True -> ssl2record: SSL2Record(self.firstbyte, msg, sh);
+        False -> fragment: TLSRecordFragmentChoice(self.firstbyte, handshakesink, alertsink, msg, sh);
+    };
+};
+
+type SSL2Record = unit(lengthone: uint8, inout msg: Message, inout sh: Share) {
+    lengthtwo: uint8;
+    var length: uint16;
+
+    on lengthtwo {
+        self.length = (cast<uint16>(lengthone) & 0x7F)<<8 | self.lengthtwo;
+    }
+    message_type: uint8;
+
+    switch (SSL2ProtocolMessages(self.message_type)) {
+        SSL2ProtocolMessages::ssl_client_hello -> client_hello: SSL2ClientHello(self.length, msg, sh) &max-size=self.length;
+    };
+
+    on %done {
+        msg.first_packet = False;
+    }
+};
+
+# For TLS-y protocols - determine how to continue
+type TLSRecordFragmentChoice = unit(content_type: uint8, handshakesink: sink&, alertsink: sink&, inout msg: Message, inout sh: Share) {
+    # content_type: uint8; # &convert=ContentType($$);
     version: uint16;
 
     switch (is_dtls_version(self.version)) {
-        True -> dtlsfragment: DTLSRecordFragment(self.content_type, handshakesink, alertsink, msg, sh);
-        False -> tlsfragment: TLSRecordFragment(self.content_type, handshakesink, alertsink, msg, sh);
+        True -> dtlsfragment: DTLSRecordFragment(content_type, handshakesink, alertsink, msg, sh);
+        False -> tlsfragment: TLSRecordFragment(content_type, handshakesink, alertsink, msg, sh);
     };
 
     on version {
@@ -832,10 +877,10 @@ type Handshake_message = unit(inout msg: Message, inout sh: Share) {
     fragment_offset: bytes &size=3 &convert=$$.to_uint(spicy::ByteOrder::Network) if(msg.dtls);
     fragment_length: bytes &size=3 &convert=$$.to_uint(spicy::ByteOrder::Network) if(msg.dtls);
 
-		# This indirection in a way seems a bit unnecessary, but I don't se a nice way around it.
-		# We need to make sure that the length of the inner message cannot extend beyond the length
-		# of this message. In binpac we did this by attaching an &size field to the unit that self-referred
-		# to itself.
+    # This indirection in a way seems a bit unnecessary, but I don't se a nice way around it.
+    # We need to make sure that the length of the inner message cannot extend beyond the length
+    # of this message. In binpac we did this by attaching an &size field to the unit that self-referred
+    # to itself.
 
     switch (HandshakeType(self.msg_type)) {
         HandshakeType::hello_request -> hr: HelloRequest(sh) &max-size=self.length;
@@ -852,7 +897,6 @@ type Handshake_message = unit(inout msg: Message, inout sh: Share) {
         HandshakeType::certificate_status -> certificate_status: CertificateStatus &max-size=self.length;
         * -> unhandled: skip bytes &size=self.length;
     };
-
 };
 
 type HelloRequest = unit(inout sh: Share) {
@@ -912,6 +956,37 @@ type Random = unit {
 type ClientHelloCookie = unit {
     cookie_len: uint8;
     cookie: bytes &size=self.cookie_len;
+};
+
+type uint24 = unit {
+    a: bytes &size=3;
+} &convert=$$.a.to_uint(spicy::ByteOrder::Big);
+
+type SSL2ClientHello = unit(len: uint64, msg: Message, inout sh: Share) {
+    direction_check: DirectionCheck(sh, True); # should be sent by originator
+    client_version: uint16;
+    csuite_len: uint16;
+    session_len: uint16;
+    chal_len: uint16;
+    ciphers: uint24[self.csuite_len / 3];
+    session_id: bytes &size=self.session_len;
+    challenge: bytes &size=self.chal_len;
+
+    # to make the event easier
+    compression_methods: uint8[0];
+
+    on client_version {
+        if (self.client_version != SSLv2 && self.client_version != SSLv3 && self.client_version != TLSv10 && self.client_version != TLSv11 && self.client_version != TLSv12) {
+            spicy::decline_input("Invalid version in SSL client hello. Version: %s, self.client_version"); # Version: " + self.client_version);
+            zeek::skip_input();
+        }
+    }
+
+    on %init {
+        if (msg.first_packet == False) {
+            spicy::decline_input("SSLv2 client hello late in connection");
+        }
+    }
 };
 
 type ClientHello = unit(len: uint64, msg: Message, inout sh: Share) {
@@ -1853,7 +1928,7 @@ on SSL::ServerHello::%done {
 }
 
 on SSL::ServerHello::%error(emsg: string) {
-    spicy::decline_input("error while parsing TLS server hello - " +emsg);
+    spicy::decline_input("error while parsing TLS server hello - " + emsg);
 }
 
 #on SSL::Handshake_message::%error(emsg: string) {
@@ -1861,7 +1936,7 @@ on SSL::ServerHello::%error(emsg: string) {
 #}
 
 on SSL::Handshake::%error(emsg: string) {
-	spicy::decline_input(emsg);
+    spicy::decline_input(emsg);
 }
 
 on SSL::Certificate::%done {
@@ -1882,47 +1957,47 @@ on SSL::Certificate::%done {
 # on RecordFragmentChoice::content_type {
 #   print "RecordFragmentChoice: Content type", self.content_type;
 # }
-# 
+#
 # on PlaintextRecord::unhandled {
 #   print "PlaintextRecord: Unhandled content type", content_type;
 # }
-# 
+#
 # on Handshake_message::msg_type {
 #   print "Handshake message", self.msg_type;
 # }
-# 
+#
 # on Handshake_message::unhandled {
 #   print "Unhandled handshake message of type ", self.msg_type;
 # }
-# 
+#
 # on Handshake_message::%error(emsg: string) {
 #   print "Error in handshake message of type", self.msg_type, self, emsg;
 #   print self;
 # }
-# 
+#
 # on ClientHello::%error(emsg: string) {
 #   print "Error in client hello", emsg;
 #   print self;
 # }
-# 
+#
 # on ServerHello::%error(emsg: string) {
 #   print "Error in server hello", emsg;
 #   print self;
 # }
-# 
+#
 # on PlaintextRecord::%error(emsg: string) {
 #   print "Error in plaintextrecord", emsg;
 #   print self;
 # }
-# 
+#
 # on Extension::code {
 #   print "Extension", self.code, client_hello;
 # }
-# 
+#
 # on Extension::unknown {
 #   print "Unknown extension", self.code;
 # }
-# 
+#
 # on Extension::%error(emsg: string) {
 #   print "Error parsing extension with code", self.code, emsg;
 # }

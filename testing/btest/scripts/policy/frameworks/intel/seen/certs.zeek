@@ -1,6 +1,3 @@
-# Does not work in spicy version, due to missing SSLv2 handshake support
-# @TEST-REQUIRES: ! grep -q "#define ENABLE_SPICY_SSL" $BUILD/zeek-config.h
-
 # @TEST-EXEC: zeek -b -Cr $TRACES/tls/ecdsa-cert.pcap %INPUT
 # @TEST-EXEC: cat intel.log > intel-all.log
 # @TEST-EXEC: zeek -b -r $TRACES/tls/ssl.v3.trace %INPUT

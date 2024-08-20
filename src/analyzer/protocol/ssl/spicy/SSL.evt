@@ -9,6 +9,7 @@ import zeek;
 import spicy;
 
 on SSL::ClientHello -> event ssl_client_hello($conn, self.client_version, msg.record_version, cast<time>(self.random.gmt_unix_time), self.random.random_bytes, self.session_id, self.cipher_suites, self.compression_methods);
+on SSL::SSL2ClientHello -> event ssl_client_hello($conn, self.client_version, 0, cast<time>(0), self.challenge, self.session_id, self.ciphers, self.compression_methods);
 
 on SSL::ServerHello -> event ssl_server_hello($conn, server_version, msg.record_version, cast<time>(self.gmt_unix_time), self.random_bytes, self.session_id, self.cipher_suite, self.compression_method);
 on SSL::ServerHelloOneThree -> event ssl_server_hello($conn, server_version, msg.record_version, cast<time>(self.gmt_unix_time), self.random_bytes, "", self.cipher_suite, 0);

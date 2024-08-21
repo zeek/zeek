@@ -12,8 +12,9 @@ namespace zeek {
 
 class FuncVal;
 using FuncValPtr = IntrusivePtr<FuncVal>;
+using RecordValPtr = IntrusivePtr<RecordVal>;
 
-using ArgsIter = zeek::Args::const_iterator;
+using ArgsSpan = Span<const ValPtr>;
 
 namespace cluster {
 
@@ -94,7 +95,7 @@ public:
     /**
      * Create a detail::Event instance given a event handler script function arguments to it.
      */
-    detail::Event MakeClusterEvent(FuncValPtr handler, ArgsIter first, ArgsIter last, double timestamp = 0.0) const;
+    detail::Event MakeClusterEvent(FuncValPtr handler, ArgsSpan args, double timestamp = 0.0) const;
 
     /**
      * Prepare a script-level event.
@@ -104,21 +105,24 @@ public:
      *
      * This function is invoked from the \a Cluster::make_event() bif.
      *
-     * @param first
+     * @param args FuncVal representing the event and its argument.
      * @param last
      *
      * @return An opaque ValPtr that can be passed to PublishEvent()
      */
-    virtual zeek::ValPtr MakeEvent(ArgsIter first, ArgsIter last) = 0;
+    virtual zeek::RecordValPtr MakeEvent(ArgsSpan args);
 
     /**
      * Send an event as produced by MakeEvent() to the given topic.
      *
+     * The default implementation expects the Cluster::Event script
+     * type.
+     *
      * @param topic a topic string associated with the message.
-     * @param event an event Val as produced by MakeEvent().
+     * @param event an event RecordVal as produced by MakeEvent().
      * @return true if the message is sent successfully.
      */
-    virtual bool PublishEvent(const std::string& topic, const zeek::ValPtr& event) = 0;
+    virtual bool PublishEvent(const std::string& topic, const zeek::ValPtr& event);
 
     /**
      * Send a cluster::detail::Event to the given topic.

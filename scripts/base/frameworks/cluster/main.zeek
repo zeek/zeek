@@ -300,6 +300,18 @@ export {
 	##
 	## Returns: true on success
 	global unsubscribe: function(topic: string): bool;
+
+	## Type to support Cluster::make_event(). Seems to work.
+	##
+	## This type may be used by cluster backends and returned
+	## by Cluster::make_event(). But implementations may use
+	## their own record types, too.
+	type Event: record {
+		## The function to be invoked as an event on the remote side.
+		ev: any;
+		## The arguments for the event.
+		args: vector of any;
+	};
 }
 
 # Track active nodes per type.

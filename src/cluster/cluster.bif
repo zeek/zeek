@@ -104,7 +104,7 @@ function Cluster::publish%(topic: string, ...%): bool
 
 function Cluster::make_event%(...%): any
 	%{
-	return zeek::cluster::backend->MakeEvent(@ARGS@->begin(), @ARGS@->end());
+	return zeek::cluster::backend->MakeEvent(zeek::ArgsSpan{*@ARGS@});
 	%}
 
 function Cluster::__subscribe%(topic_prefix: string%): bool

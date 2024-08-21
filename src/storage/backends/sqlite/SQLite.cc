@@ -56,6 +56,13 @@ ErrorResult SQLite::DoOpen(RecordValPtr config) {
         return err;
     }
 
+    if ( int res = sqlite3_exec(db, "pragma integrity_check", NULL, NULL, &errorMsg); res != SQLITE_OK ) {
+        std::string err = util::fmt("Error executing integrity check: %s", errorMsg);
+        Error(err.c_str());
+        sqlite3_free(errorMsg);
+        Done();
+        return err;
+    }
 
     auto tuning_params = config->GetField<TableVal>("tuning_params")->ToMap();
     for ( const auto& [k, v] : tuning_params ) {

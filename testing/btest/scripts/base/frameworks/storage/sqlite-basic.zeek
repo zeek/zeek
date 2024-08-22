@@ -1,11 +1,13 @@
-# @TEST-DOC: Basic functionality for storage: opening/closing an sqlite backend, storing/retrieving/erasing basic data
+# @TEST-DOC: Basic functionality for storage: opening/closing an sqlite backend, storing/retrieving data, using async methods
 # @TEST-EXEC: zeek -b %INPUT > out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff .stderr
 
 @load base/frameworks/storage
 
-# Create a typename here that can be passed down into open_backend.
+redef exit_only_after_terminate = T;
+
+# Create a typename here that can be passed down into get().
 type str: string;
 
 event zeek_init() {
@@ -14,42 +16,31 @@ event zeek_init() {
 	opts$database_path = "test.sqlite";
 	opts$table_name = "testing";
 
-	local key = "key1111";
-	local value = "value";
+	local key = "key1234";
+	local value = "value5678";
 
 	# Test inserting/retrieving a key/value pair that we know won't be in
 	# the backend yet.
 	local b = Storage::open_backend(Storage::SQLITE, opts, str, str);
-	local res = Storage::put([$backend=b, $key=key, $value=value, $overwrite=T, $async_mode=F]);
-	print res;
 
-	local res2 = Storage::get(b, key, F);
-	print res2;
+	when [b, key, value] ( local res = Storage::put([$backend=b, $key=key, $value=value, $overwrite=F]) ) {
+		print "put result", res;
 
-	# Test overwriting a value with put()
-	local value2 = "value2";
-	local res3 = Storage::put([$backend=b, $key=key, $value=value2, $overwrite=T, $async_mode=F]);
-	print res3;
+		when [b, key, value] ( local res2 = Storage::get(b, key) ) {
+			print "get result", res2;
+			print "get result same as inserted", value == (res2 as string);
 
-	local res4 = Storage::get(b, key, F);
-	print res4;
+			Storage::close_backend(b);
 
-	# Test erasing a key and getting a "false" result
-	local res5 = Storage::erase(b, key, F);
-	print res5;
-
-	local res6 = Storage::get(b, key, F);
-	if ( ! res6 as bool ) {
-		print "got empty result";
+			terminate();
+		}
+		timeout 5 sec {
+			print "get requeest timed out";
+			terminate();
+		}
 	}
-
-	# Insert something back into the database to test reopening
-	Storage::put([$backend=b, $key=key, $value=value2, $overwrite=T, $async_mode=F]);
-
-	Storage::close_backend(b);
-
-	# Test reopening the same database and getting the data back out of it
-	local b2 = Storage::open_backend(Storage::SQLITE, opts, str, str);
-	local res7 = Storage::get(b2, key, F);
-	print res7;
+	timeout 5 sec {
+		print "put request timed out";
+		terminate();
+	}
 }

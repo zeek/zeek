@@ -273,7 +273,10 @@ void TCP_Reassembler::MatchUndelivered(uint64_t up_to_seq, bool use_last_upper) 
         if ( b.upper > last_reassem_seq )
             break;
 
-        tcp_analyzer->Conn()->Match(zeek::detail::Rule::PAYLOAD, b.block, b.Size(), false, false, IsOrig(), false);
+        // Note: Even though this passes bol=false, at the point where
+        // this code runs, the matcher is re-initialized resulting in
+        // undelivered data implicitly being bol-anchored.
+        tcp_analyzer->Conn()->Match(zeek::detail::Rule::PAYLOAD, b.block, b.Size(), IsOrig(), false, false, false);
     }
 }
 

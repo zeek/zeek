@@ -283,9 +283,11 @@ event ssl_client_hello(c: connection, version: count, record_version: count, pos
 		c$ssl$client_ticket_empty_session_seen = F;
 		}
 
-	# add manually for SSLv2, since the handshake_message event is not raised, as there is no handshake protocol.
-	# We don't really have a direction in that case
-	if ( version == 2 )
+	# add manually for SSLv2 client hello, since the handshake_message event is not raised, as there is no handshake protocol.
+	# We don't really have a direction in that case.
+	# SSLv2 client hello is signified by a record_layer version of 0, as the client-hello itself can indicate
+	# a higher supported maximum version
+	if ( record_version == 0 )
 		add_to_history(c, T, "c");
 	}
 

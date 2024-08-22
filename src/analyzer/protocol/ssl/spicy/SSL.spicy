@@ -720,10 +720,33 @@ type SSL2Record = unit(lengthone: uint8, inout msg: Message, inout sh: Share) {
 
     switch (SSL2ProtocolMessages(self.message_type)) {
         SSL2ProtocolMessages::ssl_client_hello -> client_hello: SSL2ClientHello(self.length, msg, sh) &max-size=self.length;
-    };
+        SSL2ProtocolMessages::ssl_server_hello -> server_hello: SSL2ServerHello(self.length, msg, sh) &max-size=self.length;
+        SSL2ProtocolMessages::ssl_client_master_key -> client_master_key: SSL2ClientMasterKey(self.length, sh);
+        SSL2ProtocolMessages::ssl_server_verify -> : skip bytes &size=self.length;
+        SSL2ProtocolMessages::ssl_request_certificate -> : skip bytes &size=self.length;
+        SSL2ProtocolMessages::ssl_client_certificate -> : skip bytes &size=self.length;
+    } if(get_encrypted(sh) == False) ;
+    : skip bytes &size=self.length if(get_encrypted(sh) == True);
 
     on %done {
         msg.first_packet = False;
+    }
+
+    on %init {
+        if (sh.negotiated_version != UNKNOWN_VERSION && sh.negotiated_version != SSLv2) {
+            spicy::decline_input("Late switch to SSLv2 record");
+        }
+    }
+};
+
+type SSL2ClientMasterKey = unit(length: uint16, inout sh: Share) {
+    : skip bytes &size=length;
+
+    on %init {
+        sh.client_encrypted = True;
+        sh.server_encrypted = True;
+        sh.established = True;
+        zeek::skip_input();
     }
 };
 
@@ -777,7 +800,6 @@ type PlaintextRecord = unit(content_type: uint8, handshakesink: sink&, alertsink
         * -> unhandled: skip bytes &size=self.length;
     };
     trigger_two: void;
-    trigger_three: void;
 
     on length {
         self.encrypted = determine_encryption_on(self, content_type, handshakesink, alertsink, sh);
@@ -797,7 +819,7 @@ type PlaintextRecord = unit(content_type: uint8, handshakesink: sink&, alertsink
         startEncryption(handshakesink, alertsink, sh);
     }
     on trigger_two {
-        if (sh.both_sides_encrypted_first_time)
+        if (sh.both_sides_encrypted_first_time && content_type != 20)
             sh.both_sides_encrypted_first_time = False;
     }
 };
@@ -965,15 +987,12 @@ type uint24 = unit {
 type SSL2ClientHello = unit(len: uint64, msg: Message, inout sh: Share) {
     direction_check: DirectionCheck(sh, True); # should be sent by originator
     client_version: uint16;
-    csuite_len: uint16;
+    ciphers_len: uint16;
     session_len: uint16;
     chal_len: uint16;
-    ciphers: uint24[self.csuite_len / 3];
+    ciphers: uint24[self.ciphers_len / 3];
     session_id: bytes &size=self.session_len;
     challenge: bytes &size=self.chal_len;
-
-    # to make the event easier
-    compression_methods: uint8[0];
 
     on client_version {
         if (self.client_version != SSLv2 && self.client_version != SSLv3 && self.client_version != TLSv10 && self.client_version != TLSv11 && self.client_version != TLSv12) {
@@ -986,6 +1005,34 @@ type SSL2ClientHello = unit(len: uint64, msg: Message, inout sh: Share) {
         if (msg.first_packet == False) {
             spicy::decline_input("SSLv2 client hello late in connection");
         }
+    }
+};
+
+type SSL2ServerHello = unit(len: uint64, msg: Message, inout sh: Share) {
+    direction_check: DirectionCheck(sh, False); # should be sent by responder
+    session_id_hit: uint8 &requires=($$ < 2);
+    certificate_type: uint8 &requires=($$ == 1); # X509 certificate
+    server_version: uint16 &requires=($$ == 2); # Has to be version 2, everything else uses new server hello format
+    cert_len: uint16;
+    ciphers_len: uint16;
+    conn_id_len: uint16;
+    cert_data: bytes &size=self.cert_len;
+    ciphers: uint24[self.ciphers_len / 3];
+    conn_id_data: bytes &size=self.conn_id_len;
+
+    on %init {
+        if (msg.first_packet == False) {
+            spicy::decline_input("SSLv2 server hello late in connection");
+        }
+    }
+
+    on %done {
+        sh.chosen_version_sh_outer = self.server_version;
+        set_version(self.server_version, sh);
+
+        zeek::file_begin("application/x-x509-user-cert", get_certificate_fuid(get_direction(sh), get_and_increase_certificate_depth(sh)));
+        zeek::file_data_in(self.cert_data);
+        zeek::file_end();
     }
 };
 
@@ -1913,6 +1960,14 @@ public function check_direction(inout sh: Share, desired: bool): bool {
         }
     }
     return False;
+}
+
+on SSL::SSL2ClientHello::%done {
+    spicy::accept_input();
+}
+
+on SSL::SSL2ServerHello::%done {
+    spicy::accept_input();
 }
 
 on SSL::ClientHello::%done {

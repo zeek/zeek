@@ -9,6 +9,7 @@
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Span.h"
 
+#include "logging/WriterBackend.h"
 #include "threading/SerialTypes.h"
 
 namespace zeek {
@@ -26,6 +27,8 @@ class WriterFrontend;
 namespace cluster {
 
 namespace detail {
+
+using LogRecords = zeek::Span<zeek::logging::detail::LogRecord>;
 
 /**
  * Event class as received by and serializers.
@@ -64,25 +67,12 @@ public:
 
 // A log write on a filter with a given path.
 //
-struct LogRecord {
-    std::string path;
-    size_t num_fields;
-    threading::Value** vals;
-    // std::vector<threading::Value> vals;
-
-    void Delete() {
-        for ( size_t i = 0; i < num_fields; i++ )
-            delete vals[i];
-
-        delete[] vals;
-    }
-};
-
 struct LogWriteHeader {
-    EnumValPtr stream;                    // The enum identifying the stream.
-    EnumValPtr writer;                    // The enum identifying the writer for backwards compat.
-    std::string filter_name;              // The name of the filter.
-    std::vector<threading::Field> schema; // The schema for log records.
+    EnumValPtr stream_id;    // The enum identifying the stream.
+    EnumValPtr writer_id;    // The enum identifying the writer for backwards compat.
+    std::string filter_name; // The name of the filter.
+    std::string path;
+    std::vector<threading::Field> schema; // The schema of the log records.
 };
 
 
@@ -180,30 +170,23 @@ public:
      */
     virtual bool Unsubscribe(const std::string& topic_prefix) = 0;
 
-
     /**
-     * A publish could also mean pushing.
+     * Publish multiple log writes.
      *
-     * XXX: I want to name this PushLogWrite() and move away from the Pub/Sub notion.
-     * and the backend decides what to do with it.We just push it out.
+     * All log records belong to (the stream, filter, path) pair that is
+     * described by \a header.
      *
-     * @param frontend the writer frontend where this write originates from. No lifetime guarantee!
+     * @param header fixed information about the stream, writer, filter and the schema.
+     * @param path Separate from the header. One header may log to multiple paths, but the header fields are constant.
+     * @param records A span of logging::detail::LogRecords
      */
-    virtual bool PublishLogWrite(const detail::LogWriteHeader& header, std::vector<detail::LogRecord>&& r) {
-        std::fprintf(stderr, "PublishLogWrite not implemented");
-
-        auto rs = std::move(r);
-
-        for ( auto& r : rs )
-            r.Delete();
-
-        return true;
-    }
+    virtual bool PublishLogWrites(const detail::LogWriteHeader& header, detail::LogRecords records) = 0;
 
     /**
-     * Enable log receipt.
-     *
-     * Enable receiving logs on this node.
+     * Enable receiving of logs? Do we need an API or can that be done
+     * on a per plugin basis? Maybe we want to inject the logging manager
+     * where consumed messages can be pushed instead of coing via zeek::log_mgr
+     * directly?
      */
 };
 

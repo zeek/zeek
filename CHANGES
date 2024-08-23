@@ -1,3 +1,25 @@
+7.1.0-dev.217 | 2024-08-23 09:40:53 +0200
+
+  * TCP_Reassembler: Fix IsOrig() position in Match() call (Arne Welzel, Corelight)
+
+    Found during a debug session with @rsmmr. Undelivered TCP data
+    would only be matched for the responder and eol set to IsOrig().
+
+  * Spicy: Register well-known ports through an event handler. (Robin Sommer, Corelight)
+
+    This avoids the earlier problem of not tracking ports correctly in
+    scriptland, while still supporting `port` in EVT files and `%port` in
+    Spicy files.
+
+    As it turns out we are already following the same approach for file
+    analyzers' MIME types, so I'm applying the same pattern: it's one
+    event per port, without further customization points. That leaves the
+    patch pretty small after all while fixing the original issue.
+
+  * Revert "Remove deprecated port/ports fields for spicy analyzers" (Robin Sommer, Corelight)
+
+    This reverts commit 15d404dd191a723960e4efd956eec22739d3f1c2.
+
 7.1.0-dev.211 | 2024-08-20 11:38:48 +0100
 
   * Make ssl_history work for SSLv2 handshakes/connections (Johanna Amann, Corelight)

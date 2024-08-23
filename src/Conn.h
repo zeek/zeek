@@ -201,6 +201,9 @@ public:
 
     bool PermitWeird(const char* name, uint64_t threshold, uint64_t rate, double duration);
 
+    // Returns true once Done() is called.
+    bool IsFinished() { return finished; }
+
 private:
     friend class session::detail::Timer;
 

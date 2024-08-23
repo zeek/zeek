@@ -19,6 +19,11 @@ struct PortRange {
 
     hilti::rt::Port begin; /**< first port in the range */
     hilti::rt::Port end;   /**< last port in the range */
+
+    bool operator<(const PortRange& other) const {
+        // Just get us a deterministic order.
+        return std::tie(begin, end) < std::tie(other.begin, other.end);
+    }
 };
 
 inline bool operator==(const PortRange& a, const PortRange& b) {

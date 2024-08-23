@@ -85,7 +85,7 @@ public:
      *
      * @param name name of the analyzer as defined in its EVT file
      * @param proto analyzer's transport-layer protocol
-     * @param prts well-known ports for the analyzer; it'll be activated automatically for these
+     * @param ports well-known ports for the analyzer; it'll be activated automatically for these
      * @param parser_orig name of the Spicy parser for the originator side; must match the name that
      * Spicy registers the unit's parser with
      * @param parser_resp name of the Spicy parser for the originator side; must match the name that
@@ -343,7 +343,7 @@ private:
         std::string name_parser_resp;
         std::string name_replaces;
         hilti::rt::Protocol protocol = hilti::rt::Protocol::Undef;
-        hilti::rt::Vector<::zeek::spicy::rt::PortRange> ports;
+        std::vector<::zeek::spicy::rt::PortRange> ports; // we keep this sorted
         std::string linker_scope;
 
         // Computed and available once the analyzer has been registered.

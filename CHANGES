@@ -1,3 +1,24 @@
+7.0.0-11 | 2024-08-30 12:38:59 -0700
+
+  * Spicy: Register well-known ports through an event handler. (Robin Sommer, Corelight)
+
+    This avoids the earlier problem of not tracking ports correctly in
+    scriptland, while still supporting `port` in EVT files and `%port` in
+    Spicy files.
+
+    As it turns out we are already following the same approach for file
+    analyzers' MIME types, so I'm applying the same pattern: it's one
+    event per port, without further customization points. That leaves the
+    patch pretty small after all while fixing the original issue.
+
+    (cherry picked from commit a2079bcda6e40180b888240a281c12cc0ca735be)
+
+  * Revert "Remove deprecated port/ports fields for spicy analyzers" (Robin Sommer, Corelight)
+
+    This reverts commit 15d404dd191a723960e4efd956eec22739d3f1c2.
+
+    (cherry picked from commit a2079bcda6e40180b888240a281c12cc0ca735be)
+
 7.0.0-9 | 2024-08-30 11:47:39 -0700
 
   * ldap: Promote uint8 to uint64 before shifting (Arne Welzel, Corelight)

@@ -1,3 +1,30 @@
+7.1.0-dev.219 | 2024-08-23 14:18:35 +0200
+
+  * Analyzer: Do not add child analyzers when finished (Arne Welzel, Corelight)
+
+    Depending on an analyzer's implementation, its Done() method may
+    attempt to access analyzer or connection state when executing.
+    When this happens in the destructor of the parent analyzer during
+    the process of destructing a connection, this state may have been
+    deleted, resulting in use-after-free crashes or worse memory
+    corruption.
+
+    The following cases have been observed in the wild for when this happens.
+
+      * PIA matching during Done() for undelivered TCP data enables a Spicy
+        based analyzer which in turn attempts to raise an analyzer violation
+        during Done()->EndOfData().
+
+      * Spicy analyzers attaching new analyzers during their Done() processing
+        which in turn attempt to use TCP() (to call FindChild()) during Done()
+        while the analyzer tree / connection is being destructed.
+
+    The second scenario was previously found to happen in the HTTP analyzer
+    and fixed with 6ef9423f3cff13e6c73f97eb6a3a27d6f64cc320.
+
+    Plug these scenarios by short-circuiting AddChildAnalyzer() if the analyzer
+    or connection have finished or are being finished.
+
 7.1.0-dev.217 | 2024-08-23 09:40:53 +0200
 
   * TCP_Reassembler: Fix IsOrig() position in Match() call (Arne Welzel, Corelight)

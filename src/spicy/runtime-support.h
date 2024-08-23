@@ -106,9 +106,10 @@ void register_spicy_module_begin(const std::string& id, const std::string& descr
  * Registers a Spicy protocol analyzer with its EVT meta information with the
  * plugin's runtime.
  */
-void register_protocol_analyzer(const std::string& id, hilti::rt::Protocol proto, const std::string& parser_orig,
-                                const std::string& parser_resp, const std::string& replaces,
-                                const std::string& linker_scope);
+void register_protocol_analyzer(const std::string& id, hilti::rt::Protocol proto,
+                                const hilti::rt::Vector<::zeek::spicy::rt::PortRange>& ports,
+                                const std::string& parser_orig, const std::string& parser_resp,
+                                const std::string& replaces, const std::string& linker_scope);
 
 /**
  * Registers a Spicy file analyzer with its EVT meta information with the

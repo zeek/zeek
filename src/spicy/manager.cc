@@ -6,6 +6,7 @@
 #include <glob.h>
 
 #include <exception>
+#include <iterator>
 #include <limits>
 #include <utility>
 
@@ -32,6 +33,7 @@
 #include "zeek/spicy/file-analyzer.h"
 #include "zeek/spicy/packet-analyzer.h"
 #include "zeek/spicy/protocol-analyzer.h"
+#include "zeek/spicy/runtime-support.h"
 #include "zeek/zeek-config-paths.h"
 
 using namespace zeek;
@@ -61,6 +63,7 @@ void Manager::registerSpicyModuleEnd() {
 }
 
 void Manager::registerProtocolAnalyzer(const std::string& name, hilti::rt::Protocol proto,
+                                       const hilti::rt::Vector<::zeek::spicy::rt::PortRange>& ports,
                                        const std::string& parser_orig, const std::string& parser_resp,
                                        const std::string& replaces, const std::string& linker_scope) {
     SPICY_DEBUG(hilti::rt::fmt("Have Spicy protocol analyzer %s", name));
@@ -74,6 +77,11 @@ void Manager::registerProtocolAnalyzer(const std::string& name, hilti::rt::Proto
     info.name_zeekygen = hilti::rt::fmt("<Spicy-%s>", name);
     info.protocol = proto;
     info.linker_scope = linker_scope;
+
+    // Store ports in a deterministic order. We can't (easily) sort the
+    // `hilti::rt::Vector` unfortunately.
+    std::copy(ports.begin(), ports.end(), std::back_inserter(info.ports));
+    std::sort(info.ports.begin(), info.ports.end());
 
     // We may have that analyzer already iff it was previously pre-registered
     // without a linker scope. We'll then only set the scope now.
@@ -699,6 +707,36 @@ void Manager::InitPostScript() {
         if ( ! tag )
             reporter->InternalError("cannot get analyzer tag for '%s'", p.name_analyzer.c_str());
 
+        auto register_analyzer_for_port = [&](auto tag, const hilti::rt::Port& port_) {
+            SPICY_DEBUG(hilti::rt::fmt("  Scheduling analyzer for port %s", port_));
+
+            // Well-known ports are registered in scriptland, so we'll raise an
+            // event that will do it for us through a predefined handler.
+            zeek::Args vals = Args();
+            vals.emplace_back(tag.AsVal());
+            vals.emplace_back(zeek::spicy::rt::to_val(port_, base_type(TYPE_PORT)));
+            EventHandlerPtr handler = event_registry->Register("spicy_analyzer_for_port");
+            event_mgr.Enqueue(handler, vals);
+        };
+
+        for ( const auto& ports : p.ports ) {
+            const auto proto = ports.begin.protocol();
+
+            // Port ranges are closed intervals.
+            for ( auto port = ports.begin.port(); port <= ports.end.port(); ++port ) {
+                const auto port_ = hilti::rt::Port(port, proto);
+                register_analyzer_for_port(tag, port_);
+
+                // Don't double register in case of single-port ranges.
+                if ( ports.begin.port() == ports.end.port() )
+                    break;
+
+                // Explicitly prevent overflow.
+                if ( port == std::numeric_limits<decltype(port)>::max() )
+                    break;
+            }
+        }
+
         if ( p.parser_resp ) {
             for ( auto port : p.parser_resp->ports ) {
                 if ( port.direction != ::spicy::rt::Direction::Both &&
@@ -706,7 +744,7 @@ void Manager::InitPostScript() {
                     continue;
 
                 SPICY_DEBUG(hilti::rt::fmt("  Scheduling analyzer for port %s", port.port));
-                analyzer_mgr->RegisterAnalyzerForPort(tag, transport_protocol(port.port), port.port.port());
+                register_analyzer_for_port(tag, port.port);
             }
         }
     }

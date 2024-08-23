@@ -684,6 +684,16 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer, const logging::
     return true;
 }
 
+bool Manager::PublishLogWrites(const cluster::detail::LogWriteHeader& header, cluster::detail::LogRecords records) {
+    // Cheap vectored implementation. It would probably be better to go to batches directly.
+    for ( const auto& r : records ) {
+        if ( ! PublishLogWrite(header.stream_id.get(), header.writer_id.get(), header.path, r) )
+            return false;
+    }
+
+    return true;
+}
+
 bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, const string& path,
                               const logging::detail::LogRecord& rec) {
     if ( bstate->endpoint.is_shutdown() )

@@ -249,6 +249,8 @@ public:
     bool PublishLogWrite(EnumVal* stream, EnumVal* writer, const std::string& path,
                          const logging::detail::LogRecord& rec);
 
+    bool PublishLogWrites(const cluster::detail::LogWriteHeader& header, cluster::detail::LogRecords records) override;
+
     /**
      * Automatically send an event to any interested peers whenever it is
      * locally dispatched (e.g. using "event my_event(...);" in a script).

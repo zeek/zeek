@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "zeek/SerializationFormat.h"
+#include "zeek/threading/SerialTypes.h"
 
 #include "ID.h"
 #include "cluster/Backend.h"
@@ -14,13 +15,14 @@ using namespace zeek::cluster::detail;
  *
  */
 
-#define SERIALIZER_DEBUG(...) fprintf(stderr, __VA_ARGS__)
-// #define SERIALIZER_DEBUG(...)                                                                                          \
+// #define SERIALIZER_DEBUG(...) fprintf(stderr, __VA_ARGS__)
+#define SERIALIZER_DEBUG(...)                                                                                          \
     do {                                                                                                               \
     } while ( 0 )
 
-bool BinarySerializationFormatLogSerializer::SerializeLogWriteInto(byte_buffer& buf, const LogWriteHeader& header,
-                                                                   cluster::detail::LogRecords records) {
+bool BinarySerializationFormatLogSerializer::SerializeLogWriteInto(byte_buffer& buf,
+                                                                   const logging::detail::LogWriteHeader& header,
+                                                                   zeek::Span<logging::detail::LogRecord> records) {
     auto stream_id_num = header.stream_id->AsEnum();
     auto stream_id = header.stream_id->GetType()->AsEnumType()->Lookup(stream_id_num);
 
@@ -39,7 +41,7 @@ bool BinarySerializationFormatLogSerializer::SerializeLogWriteInto(byte_buffer& 
     zeek::detail::BinarySerializationFormat fmt;
 
     SERIALIZER_DEBUG("Serializing stream=%s writer=%s filter=%s path=%s num_fields=%zu num_records=%zu\n", stream_id,
-                     writer_id, header.filter_name.c_str(), header.path.c_str(), header.schema.size(), records.size());
+                     writer_id, header.filter_name.c_str(), header.path.c_str(), header.fields.size(), records.size());
 
     fmt.StartWrite();
 
@@ -49,8 +51,8 @@ bool BinarySerializationFormatLogSerializer::SerializeLogWriteInto(byte_buffer& 
     success &= fmt.Write(writer_id, "writer_id");
     success &= fmt.Write(header.filter_name, "filter_name");
     success &= fmt.Write(header.path, "path");
-    success &= fmt.Write(static_cast<uint32_t>(header.schema.size()), "num_fields");
-    for ( const auto& f : header.schema )
+    success &= fmt.Write(static_cast<uint32_t>(header.fields.size()), "num_fields");
+    for ( const auto& f : header.fields )
         success &= f.Write(&fmt);
 
     success &= fmt.Write(static_cast<uint32_t>(records.size()), "num_records");
@@ -91,7 +93,7 @@ UnserializeLogWriteResult BinarySerializationFormatLogSerializer::UnserializeLog
     zeek::detail::BinarySerializationFormat fmt;
     fmt.StartRead(reinterpret_cast<const char*>(buf), size);
 
-    LogWriteHeader header;
+    logging::detail::LogWriteHeader header;
     std::vector<logging::detail::LogRecord> records;
 
     std::string stream_id_str;
@@ -123,11 +125,11 @@ UnserializeLogWriteResult BinarySerializationFormatLogSerializer::UnserializeLog
         return {};
     }
 
-    header.schema.resize(num_fields);
+    header.fields.resize(num_fields);
 
     // Field reading/writing has never been tested :-(
-    for ( size_t i = 0; i < header.schema.size(); i++ )
-        if ( ! header.schema[i].Read(&fmt) ) {
+    for ( size_t i = 0; i < header.fields.size(); i++ )
+        if ( ! header.fields[i].Read(&fmt) ) {
             reporter->Error("Failed to read schema field %zu", i);
             return {};
         }

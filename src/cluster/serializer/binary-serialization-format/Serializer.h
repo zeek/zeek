@@ -2,37 +2,22 @@
 
 #include "zeek/cluster/Backend.h"
 #include "zeek/cluster/Serializer.h"
-
-#include "SerializationFormat.h"
-#include "logging/WriterBackend.h"
+#include "zeek/logging/WriterBackend.h"
+#include "zeek/logging/WriterFrontend.h"
 
 namespace zeek::cluster::detail {
 
-/**
- * How should we buffer and write?
- *
- * header, path
- * - record
- * - record
- * - record
- *
- * or
-
- * header,
- * - path, record
- * - path, record
- */
-
-
 struct UnserializeLogWriteResult_ {
-    cluster::detail::LogWriteHeader header;
+    logging::detail::LogWriteHeader header;
     std::vector<logging::detail::LogRecord> records;
 };
 
 using UnserializeLogWriteResult = std::optional<UnserializeLogWriteResult_>;
 
 /**
- * TODO: Make this a pluggable component in the future?
+ * A serializer interface for a batch of log records.
+ *
+ * TODO: Make this a pluggable component, also.
  */
 class LogSerializer {
 public:
@@ -41,11 +26,13 @@ public:
      */
     explicit LogSerializer(std::string name) : name(std::move(name)){};
 
+    virtual ~LogSerializer() = default;
+
     /**
      * Serialize all records into the given buffer.
      */
-    virtual bool SerializeLogWriteInto(byte_buffer& buf, const LogWriteHeader& header,
-                                       cluster::detail::LogRecords records) = 0;
+    virtual bool SerializeLogWriteInto(byte_buffer& buf, const logging::detail::LogWriteHeader& header,
+                                       zeek::Span<logging::detail::LogRecord> records) = 0;
 
     /**
      * Unserialize log writes from a given buffer.
@@ -67,8 +54,8 @@ private:
 class BinarySerializationFormatLogSerializer : public LogSerializer {
 public:
     BinarySerializationFormatLogSerializer() : LogSerializer("zeek-bin-serializer") {}
-    bool SerializeLogWriteInto(byte_buffer& buf, const LogWriteHeader& header,
-                               cluster::detail::LogRecords records) override;
+    bool SerializeLogWriteInto(byte_buffer& buf, const logging::detail::LogWriteHeader& header,
+                               zeek::Span<logging::detail::LogRecord> records) override;
 
     cluster::detail::UnserializeLogWriteResult UnserializeLogWrite(const std::byte* buf, size_t size) override;
 };

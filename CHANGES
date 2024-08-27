@@ -1,3 +1,80 @@
+7.1.0-dev.222 | 2024-08-27 13:29:12 +0100
+
+  * Fix parsing of version field in SSLv2 client hello (Johanna Amann, Corelight)
+
+    It turns out that, for probably a long time, we have reported an
+    incorrect version when parsing an SSLv2 client hello. We always reported
+    this as SSLv2, no matter which version the client hello actually
+    contained.
+
+    This bug probably went unnoticed for a long time, as SSLv2 is
+    essentially unused nowadays, and as this field does not show up in the
+    default logs.
+
+    This was found due to a baseline difference when writing the Spicy SSL
+    analyzer.
+
+7.1.0-dev.219 | 2024-08-23 14:18:35 +0200
+
+  * Analyzer: Do not add child analyzers when finished (Arne Welzel, Corelight)
+
+    Depending on an analyzer's implementation, its Done() method may
+    attempt to access analyzer or connection state when executing.
+    When this happens in the destructor of the parent analyzer during
+    the process of destructing a connection, this state may have been
+    deleted, resulting in use-after-free crashes or worse memory
+    corruption.
+
+    The following cases have been observed in the wild for when this happens.
+
+      * PIA matching during Done() for undelivered TCP data enables a Spicy
+        based analyzer which in turn attempts to raise an analyzer violation
+        during Done()->EndOfData().
+
+      * Spicy analyzers attaching new analyzers during their Done() processing
+        which in turn attempt to use TCP() (to call FindChild()) during Done()
+        while the analyzer tree / connection is being destructed.
+
+    The second scenario was previously found to happen in the HTTP analyzer
+    and fixed with 6ef9423f3cff13e6c73f97eb6a3a27d6f64cc320.
+
+    Plug these scenarios by short-circuiting AddChildAnalyzer() if the analyzer
+    or connection have finished or are being finished.
+
+7.1.0-dev.217 | 2024-08-23 09:40:53 +0200
+
+  * TCP_Reassembler: Fix IsOrig() position in Match() call (Arne Welzel, Corelight)
+
+    Found during a debug session with @rsmmr. Undelivered TCP data
+    would only be matched for the responder and eol set to IsOrig().
+
+  * Spicy: Register well-known ports through an event handler. (Robin Sommer, Corelight)
+
+    This avoids the earlier problem of not tracking ports correctly in
+    scriptland, while still supporting `port` in EVT files and `%port` in
+    Spicy files.
+
+    As it turns out we are already following the same approach for file
+    analyzers' MIME types, so I'm applying the same pattern: it's one
+    event per port, without further customization points. That leaves the
+    patch pretty small after all while fixing the original issue.
+
+  * Revert "Remove deprecated port/ports fields for spicy analyzers" (Robin Sommer, Corelight)
+
+    This reverts commit 15d404dd191a723960e4efd956eec22739d3f1c2.
+
+7.1.0-dev.211 | 2024-08-20 11:38:48 +0100
+
+  * Make ssl_history work for SSLv2 handshakes/connections (Johanna Amann, Corelight)
+
+    It turns out that the ssl_history field never was populated with C/S for
+    SSLv2 connections, or connections using the SSLv2 handshake. In our
+    testcases, the latter is especially common - with connections up to TLS1
+    using the old SSLv2 client hello for backwards compatibility.
+
+    This change resolves this issue. As the history is not by default
+    enabled in a lot of locations, baseline impact is minor.
+
 7.1.0-dev.209 | 2024-08-20 10:10:46 +0200
 
   * broker: Deprecate MakeEvent(ValPList*) (Arne Welzel, Corelight)

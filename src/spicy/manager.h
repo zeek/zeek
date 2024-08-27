@@ -85,6 +85,7 @@ public:
      *
      * @param name name of the analyzer as defined in its EVT file
      * @param proto analyzer's transport-layer protocol
+     * @param ports well-known ports for the analyzer; it'll be activated automatically for these
      * @param parser_orig name of the Spicy parser for the originator side; must match the name that
      * Spicy registers the unit's parser with
      * @param parser_resp name of the Spicy parser for the originator side; must match the name that
@@ -94,9 +95,10 @@ public:
      * @param linker_scope scope of current HLTO file, which will restrict visibility of the
      * registration
      */
-    void registerProtocolAnalyzer(const std::string& name, hilti::rt::Protocol proto, const std::string& parser_orig,
-                                  const std::string& parser_resp, const std::string& replaces,
-                                  const std::string& linker_scope);
+    void registerProtocolAnalyzer(const std::string& name, hilti::rt::Protocol proto,
+                                  const hilti::rt::Vector<::zeek::spicy::rt::PortRange>& ports,
+                                  const std::string& parser_orig, const std::string& parser_resp,
+                                  const std::string& replaces, const std::string& linker_scope);
 
     /**
      * Runtime method to register a file analyzer with its Zeek-side
@@ -341,6 +343,7 @@ private:
         std::string name_parser_resp;
         std::string name_replaces;
         hilti::rt::Protocol protocol = hilti::rt::Protocol::Undef;
+        std::vector<::zeek::spicy::rt::PortRange> ports; // we keep this sorted
         std::string linker_scope;
 
         // Computed and available once the analyzer has been registered.
@@ -354,7 +357,7 @@ private:
         bool operator==(const ProtocolAnalyzerInfo& other) const {
             return name_analyzer == other.name_analyzer && name_parser_orig == other.name_parser_orig &&
                    name_parser_resp == other.name_parser_resp && name_replaces == other.name_replaces &&
-                   protocol == other.protocol && linker_scope == other.linker_scope;
+                   protocol == other.protocol && ports == other.ports && linker_scope == other.linker_scope;
         }
 
         bool operator!=(const ProtocolAnalyzerInfo& other) const { return ! (*this == other); }

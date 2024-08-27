@@ -25,7 +25,8 @@ type Y = unit {
 
 # @TEST-START-FILE foo.evt
 protocol analyzer spicy::foo over UDP:
-    parse with foo::X;
+    parse with foo::X,
+    ports { 12345/udp, 31337/udp };
 
 import foo;
 
@@ -35,13 +36,6 @@ on foo::X -> event foo::X($conn, $is_orig, self.y);
 # @TEST-END-FILE
 
 # @TEST-START-FILE foo.zeek
-const foo_ports = { 12345/udp, 31337/udp};
-
-event zeek_init()
-{
-	Analyzer::register_for_ports(Analyzer::ANALYZER_SPICY_FOO, foo_ports);
-}
-
 event foo::X(c: connection, is_orig: bool, y: foo::Y)
 {
 	print fmt("is_orig=%d y=%s", is_orig, y);

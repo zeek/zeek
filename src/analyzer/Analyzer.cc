@@ -113,19 +113,7 @@ void Analyzer::CtorInit(const zeek::Tag& arg_tag, Connection* arg_conn) {
 
 Analyzer::~Analyzer() {
     assert(finished);
-
-    // Make sure any late entries into the analyzer tree are handled (e.g.
-    // from some Done() implementation).
-    LOOP_OVER_GIVEN_CHILDREN(i, new_children) {
-        if ( ! (*i)->finished )
-            (*i)->Done();
-    }
-
-    // Deletion of new_children done in separate loop in case a Done()
-    // implementation tries to inspect analyzer tree w/ assumption that
-    // all analyzers are still valid.
-    LOOP_OVER_GIVEN_CHILDREN(i, new_children)
-    delete *i;
+    assert(new_children.empty());
 
     LOOP_OVER_CHILDREN(i)
     delete *i;
@@ -329,6 +317,30 @@ void Analyzer::ForwardEndOfData(bool orig) {
 
 bool Analyzer::AddChildAnalyzer(Analyzer* analyzer, bool init) {
     auto t = analyzer->GetAnalyzerTag();
+
+    // Prevent attaching child analyzers to analyzer subtrees where
+    // either the parent has finished or is being removed. Further,
+    // don't attach analyzers when the connection has finished or is
+    // currently being finished (executing Done()).
+    //
+    // Scenarios in which analyzers have been observed that late in
+    // analyzer / connection lifetime are:
+    //
+    // * A DPD signature match on undelivered TCP data that is flushed
+    //   during Connection::Done(). The PIA analyzer activates a new
+    //   analyzer adding it to the TCP analyzer.
+    //
+    // * Analyzers flushing buffered state during Done(), resulting
+    //   in new analyzers being created.
+    //
+    // Analyzers added during Done() are problematic as calling Done()
+    // within the parent's destructor isn't safe, so we prevent these
+    // situations.
+    if ( Removing() || IsFinished() || Conn()->IsFinished() ) {
+        analyzer->Done();
+        delete analyzer;
+        return false;
+    }
 
     if ( HasChildAnalyzer(t) || IsPreventedChildAnalyzer(t) ) {
         analyzer->Done();

@@ -8,24 +8,24 @@ type SSLRecord(is_orig: bool) = record {
 	head2 : uint8;
 	head3 : uint8;
 	head4 : uint8;
-	rec : RecordText(this)[] &length=length, &requires(version,content_type,raw_tls_version);
+	rec : RecordText(this)[] &length=length, &requires(record_layer_version,content_type,raw_tls_version);
 } &length = length+5, &byteorder=bigendian,
 	&let {
-	version : int =
+	record_layer_version : int =
 		$context.connection.determine_ssl_record_layer(head0, head1, head2, head3, head4, is_orig);
 
 	# unmodified tls record layer version of this packet. Do not use this if you are parsing SSLv2
-	raw_tls_version: uint16 = case version of {
+	raw_tls_version: uint16 = case record_layer_version of {
 		SSLv20 -> 0;
 		default -> (head1<<8) | head2;
 	} &requires(version);
 
-	content_type : int = case version of {
+	content_type : int = case record_layer_version of {
 		SSLv20 -> head2+300;
 		default -> head0;
 	} &requires(version);
 
-	length : int = case version of {
+	length : int = case record_layer_version of {
 		# fail analyzer if the packet cannot be recognized as TLS.
 		UNKNOWN_VERSION -> 0;
 		SSLv20 -> (((head0 & 0x7f) << 8) | head1) - 3;
@@ -77,7 +77,7 @@ type V2ClientHello(rec: SSLRecord) = record {
 	session_id : uint8[session_len];
 	challenge : bytestring &length = chal_len;
 } &length = 6 + csuit_len + session_len + chal_len, &let {
-	client_version : int = rec.version;
+	client_version : int = (rec.head3 << 8) | rec.head4;
 };
 
 

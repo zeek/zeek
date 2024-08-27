@@ -26,6 +26,7 @@
 #include "zeek/broker/store.bif.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/logging/Manager.h"
+#include "zeek/logging/WriterFrontend.h" // should we move LogWriteHeader out of here?
 #include "zeek/telemetry/Manager.h"
 #include "zeek/util.h"
 
@@ -684,7 +685,8 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer, const logging::
     return true;
 }
 
-bool Manager::PublishLogWrites(const cluster::detail::LogWriteHeader& header, cluster::detail::LogRecords records) {
+bool Manager::PublishLogWrites(const logging::detail::LogWriteHeader& header,
+                               zeek::Span<logging::detail::LogRecord> records) {
     // Cheap vectored implementation. It would probably be better to go to batches directly.
     for ( const auto& r : records ) {
         if ( ! PublishLogWrite(header.stream_id.get(), header.writer_id.get(), header.path, r) )

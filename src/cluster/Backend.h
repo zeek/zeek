@@ -8,9 +8,7 @@
 #include "zeek/EventHandler.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Span.h"
-
-#include "logging/WriterBackend.h"
-#include "threading/SerialTypes.h"
+#include "zeek/logging/WriterBackend.h"
 
 namespace zeek {
 
@@ -22,13 +20,15 @@ using ArgsSpan = Span<const ValPtr>;
 
 namespace logging {
 class WriterFrontend;
+
+namespace detail {
+class LogWriteHeader;
 }
+} // namespace logging
 
 namespace cluster {
 
 namespace detail {
-
-using LogRecords = zeek::Span<zeek::logging::detail::LogRecord>;
 
 /**
  * Event class as received by and serializers.
@@ -64,17 +64,6 @@ public:
     const EventHandlerPtr& Handler() const { return std::get<EventHandlerPtr>(handler); }
     const FuncValPtr& FuncVal() const { return std::get<FuncValPtr>(handler); }
 };
-
-// A log write on a filter with a given path.
-//
-struct LogWriteHeader {
-    EnumValPtr stream_id;    // The enum identifying the stream.
-    EnumValPtr writer_id;    // The enum identifying the writer for backwards compat.
-    std::string filter_name; // The name of the filter.
-    std::string path;
-    std::vector<threading::Field> schema; // The schema of the log records.
-};
-
 
 } // namespace detail
 
@@ -180,7 +169,8 @@ public:
      * @param path Separate from the header. One header may log to multiple paths, but the header fields are constant.
      * @param records A span of logging::detail::LogRecords
      */
-    virtual bool PublishLogWrites(const detail::LogWriteHeader& header, detail::LogRecords records) = 0;
+    virtual bool PublishLogWrites(const zeek::logging::detail::LogWriteHeader& header,
+                                  zeek::Span<zeek::logging::detail::LogRecord> records) = 0;
 
     /**
      * Enable receiving of logs? Do we need an API or can that be done

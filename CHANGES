@@ -1,3 +1,19 @@
+7.1.0-dev.222 | 2024-08-27 13:29:12 +0100
+
+  * Fix parsing of version field in SSLv2 client hello (Johanna Amann, Corelight)
+
+    It turns out that, for probably a long time, we have reported an
+    incorrect version when parsing an SSLv2 client hello. We always reported
+    this as SSLv2, no matter which version the client hello actually
+    contained.
+
+    This bug probably went unnoticed for a long time, as SSLv2 is
+    essentially unused nowadays, and as this field does not show up in the
+    default logs.
+
+    This was found due to a baseline difference when writing the Spicy SSL
+    analyzer.
+
 7.1.0-dev.219 | 2024-08-23 14:18:35 +0200
 
   * Analyzer: Do not add child analyzers when finished (Arne Welzel, Corelight)

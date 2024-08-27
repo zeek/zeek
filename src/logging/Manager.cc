@@ -1760,8 +1760,7 @@ bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, const string& path, 
     return WriteFromRemote(id, writer, path, std::move(rec));
 }
 
-bool Manager::WritesFromRemote(const cluster::detail::LogWriteHeader& header,
-                               std::vector<detail::LogRecord>&& arg_records) {
+bool Manager::WritesFromRemote(const detail::LogWriteHeader& header, std::vector<detail::LogRecord>&& arg_records) {
     auto records = std::move(arg_records);
 
     Stream* stream = FindStream(header.stream_id.get());
@@ -1785,9 +1784,9 @@ bool Manager::WritesFromRemote(const cluster::detail::LogWriteHeader& header,
     }
 
     // Basic validation of incoming log record with local filter configuration.
-    if ( static_cast<int>(header.schema.size()) != filter->num_fields ) {
+    if ( static_cast<int>(header.fields.size()) != filter->num_fields ) {
         reporter->Error("Local filter '%s' of stream '%s' has '%d' fields, got %zu", filter->name.c_str(),
-                        obj_desc_short(header.stream_id.get()).c_str(), filter->num_fields, header.schema.size());
+                        obj_desc_short(header.stream_id.get()).c_str(), filter->num_fields, header.fields.size());
         return false;
     }
 
@@ -1850,7 +1849,7 @@ bool Manager::WritesFromRemote(const cluster::detail::LogWriteHeader& header,
         }
 
 
-        if ( ! CreateWriter(header.stream_id.get(), filter->writer, info, header.schema.size(), arg_fields,
+        if ( ! CreateWriter(header.stream_id.get(), filter->writer, info, header.fields.size(), arg_fields,
                             true /*local*/, false /*remote*/, true /*from_remote*/, header.filter_name) ) {
             reporter->Error("Failed to create writer for filter '%s' of stream '%s'", filter->name.c_str(),
                             obj_desc_short(header.stream_id.get()).c_str());

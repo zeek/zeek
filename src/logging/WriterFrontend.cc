@@ -122,7 +122,7 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVa
         .writer_id = {zeek::NewRef{}, writer},
         .filter_name = arg_info.filter_name,
         .path = arg_info.path,
-        .schema = {}, // Populated in Init()
+        .fields = {}, // Populated in Init()
     };
 }
 
@@ -177,9 +177,9 @@ void WriterFrontend::Init(int arg_num_fields, const Field* const* arg_fields) {
         broker_mgr->PublishLogCreate(stream, writer, *info, arg_num_fields, arg_fields);
     }
 
-    header.schema.reserve(arg_num_fields);
+    header.fields.reserve(arg_num_fields);
     for ( int i = 0; i < arg_num_fields; i++ )
-        header.schema.emplace_back(*arg_fields[i]);
+        header.fields.emplace_back(*arg_fields[i]);
 }
 
 void WriterFrontend::Write(detail::LogRecord&& arg_vals) {

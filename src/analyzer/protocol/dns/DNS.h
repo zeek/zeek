@@ -328,7 +328,7 @@ public:
     ///< for forward lookups
 };
 
-class DNS_Interpreter {
+class DNS_Interpreter final {
 public:
     explicit DNS_Interpreter(analyzer::Analyzer* analyzer);
 
@@ -390,6 +390,7 @@ protected:
 
     analyzer::Analyzer* analyzer;
     bool first_message;
+    bool is_netbios;
 };
 
 enum TCP_DNS_state {

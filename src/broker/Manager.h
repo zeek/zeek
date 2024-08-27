@@ -249,7 +249,8 @@ public:
     bool PublishLogWrite(EnumVal* stream, EnumVal* writer, const std::string& path,
                          const logging::detail::LogRecord& rec);
 
-    bool PublishLogWrites(const cluster::detail::LogWriteHeader& header, cluster::detail::LogRecords records) override;
+    bool PublishLogWrites(const logging::detail::LogWriteHeader& header,
+                          zeek::Span<logging::detail::LogRecord> records) override;
 
     /**
      * Automatically send an event to any interested peers whenever it is

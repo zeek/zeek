@@ -1,4 +1,4 @@
-# Does not work in spicy version, due to missing SSLv2 handshake support
+# Does not work in spicy version, due to missing DTLS support
 # @TEST-REQUIRES: ! grep -q "#define ENABLE_SPICY_SSL" $BUILD/zeek-config.h
 
 # @TEST-EXEC: zeek -b -r $TRACES/tls/dhe.pcap %INPUT

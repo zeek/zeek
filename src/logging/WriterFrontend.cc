@@ -223,7 +223,6 @@ void WriterFrontend::FlushWriteBuffer() {
 
     auto records = std::move(write_buffer).TakeRecords();
 
-    std::fprintf(stderr, "%s: Flushing %zu records\n", name, records.size());
     // We've already pushed to broker during Write(). If another backend
     // is used, push all the buffered log records to it now.
     if ( remote && zeek::cluster::backend != zeek::broker_mgr )

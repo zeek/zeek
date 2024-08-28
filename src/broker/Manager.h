@@ -109,7 +109,7 @@ public:
     /**
      * Returns true if any Broker communication is currently active.
      */
-    bool Active();
+    [[deprecated("Remove with v8.1 - unused")]] bool Active();
 
     /**
      * Advances time.  Broker data store expiration is driven by this

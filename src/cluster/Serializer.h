@@ -6,6 +6,7 @@
 #pragma once
 
 #include <optional>
+#include <string>
 #include <vector>
 
 
@@ -33,10 +34,12 @@ using byte_buffer = std::vector<std::byte>;
  * This class handles encoding of Events into byte buffers and back.
  *
  * An event and its parameters can be serialized as a message which
- * another node can unserialize and enqueue.
+ * another node can unserialize and enqueue as an event.
  */
 class Serializer {
 public:
+    Serializer(std::string name) : name(std::move(name)) {}
+
     virtual ~Serializer() = default;
     /**
      * Serialize an Event into the given buffer \a buf.
@@ -85,6 +88,14 @@ public:
      */
     virtual std::optional<zeek::ValPtr> UnserializeVal(const std::byte* buf, size_t size,
                                                        const zeek::TypePtr& type) = 0;
+
+    /**
+     * Return the name of the serializer - this should be included in message headers.
+     */
+    const std::string& Name() { return name; }
+
+private:
+    std::string name;
 };
 
 } // namespace cluster

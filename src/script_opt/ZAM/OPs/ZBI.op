@@ -4,56 +4,33 @@ internal-op Remove-Teredo
 op1-read
 class V
 op-types R
-eval	auto teredo = zeek::packet_mgr->GetAnalyzer("Teredo");
-	if ( teredo )
-		{
-		zeek::detail::ConnKey conn_key($1);
-		static_cast<zeek::packet_analysis::teredo::TeredoAnalyzer*>(teredo.get())->RemoveConnection(conn_key);
-		}
+eval	ZAM::packet_mgr_remove_teredo($1);
 
 internal-op Remove-Teredo
 side-effects OP_REMOVE_TEREDO_V OP_V
 class VV
 op-types I R
-eval	auto teredo = zeek::packet_mgr->GetAnalyzer("Teredo");
-	if ( teredo )
-		{
-		zeek::detail::ConnKey conn_key($1);
-		static_cast<zeek::packet_analysis::teredo::TeredoAnalyzer*>(teredo.get())->RemoveConnection(conn_key);
-		}
+eval	ZAM::packet_mgr_remove_teredo($1);
 	$$ = 1;
 
 internal-op Remove-GTPv1
 op1-read
 class V
 op-types R
-eval	auto gtpv1 = zeek::packet_mgr->GetAnalyzer("GTPv1");
-	if ( gtpv1 )
-		{
-		zeek::detail::ConnKey conn_key($1);
-		static_cast<zeek::packet_analysis::gtpv1::GTPv1_Analyzer*>(gtpv1.get())->RemoveConnection(conn_key);
-		}
+eval	ZAM::packet_mgr_remove_gtpv1($1);
 
 internal-op Remove-GTPv1
 side-effects OP_REMOVE_GTPV1_V OP_V
 class VV
 op-types I R
-eval	auto gtpv1 = zeek::packet_mgr->GetAnalyzer("GTPv1");
-	if ( gtpv1 )
-		{
-		zeek::detail::ConnKey conn_key($1);
-		static_cast<zeek::packet_analysis::gtpv1::GTPv1_Analyzer*>(gtpv1.get())->RemoveConnection(conn_key);
-		}
+eval	ZAM::packet_mgr_remove_gtpv1($1);
 	$$ = 1;
 
 internal-op Set-File-Handle
 op1-read
 class V
 op-types S
-eval	auto handle = $1;
-	auto bytes = reinterpret_cast<const char*>(handle->Bytes());
-	auto h = std::string(bytes, handle->Len());
-	zeek::file_mgr->SetHandle(h);
+eval	ZAM::file_mgr_set_handle($1);
 
 internal-op Subnet-To-Addr
 class VV
@@ -113,7 +90,7 @@ macro LogWritePre(id_val, columns_val)
 	auto columns = columns_val;
 
 macro LogWriteResPost(lhs)
-	bool result = log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());
+	bool result = ZAM::log_mgr_write(id->AsEnumVal(), columns->AsRecordVal());
 	lhs = result;
 
 internal-op Log-Write
@@ -138,18 +115,18 @@ op1-read
 classes VV CV
 op-types X R
 eval	LogWritePre(LogEnum($1), $2)
-	(void) log_mgr->Write(id->AsEnumVal(), columns->AsRecordVal());
+	(void) ZAM::log_mgr_write(id->AsEnumVal(), columns->AsRecordVal());
 
 internal-op Broker-Flush-Logs
 side-effects OP_BROKER_FLUSH_LOGS_X OP_X
 class V
 op-types U
-eval	$$ = broker_mgr->FlushLogBuffers();
+eval	$$ = ZAM::broker_mgr_flush_log_buffers();
 
 internal-op Broker-Flush-Logs
 side-effects
 class X
-eval	(void) broker_mgr->FlushLogBuffers();
+eval	(void) ZAM::broker_mgr_flush_log_buffers();
 
 internal-op Get-Port-Transport-Proto
 class VV
@@ -167,13 +144,13 @@ eval	auto mask = $1 & PORT_SPACE_MASK;
 predicate-op Conn-Exists
 class V
 op-types R
-eval	session_mgr->FindConnection($1) != nullptr
+eval	ZAM::session_mgr_find_connection($1) != nullptr
 
 internal-op Lookup-Conn
 class VV
 op-types X R
 eval	auto cid = $1;
-	Connection* conn = session_mgr->FindConnection(cid);
+	Connection* conn = ZAM::session_mgr_find_connection(cid);
 	ValPtr res;
 	if ( conn )
 		res = conn->GetVal();
@@ -453,92 +430,61 @@ eval	CatNPre()
 internal-op Analyzer-Name
 classes VV VC
 op-types S X
-eval	auto atype = $1.ToVal(Z_TYPE);
-	auto val = atype->AsEnumVal();
-	Unref($$);
-	plugin::Component* component = zeek::analyzer_mgr->Lookup(val);
-	if ( ! component )
-		component = zeek::packet_mgr->Lookup(val);
-	if ( ! component )
-		component = zeek::file_mgr->Lookup(val);
-	if ( component )
-		$$ = new StringVal(component->CanonicalName());
-	else
-		$$ = new StringVal("<error>");
-
-macro FilesAddOrRemoveAnalyzer(file_id_val, tag, args_val, METHOD)
-	auto file_id = file_id_val;
-	using zeek::BifType::Record::Files::AnalyzerArgs;
-	auto rv = args_val->CoerceTo(AnalyzerArgs);
-	bool result = zeek::file_mgr->METHOD(
-	     file_id->CheckString(),
-	     zeek::file_mgr->GetComponentTag(tag.ToVal(Z_TYPE).get()),
-	     std::move(rv));
-
-macro FilesAddAnalyzer(file_id_val, tag, args_val)
-	FilesAddOrRemoveAnalyzer(file_id_val, tag, args_val, AddAnalyzer)
+eval	Unref($$);
+	$$ = ZAM::analyzer_name($1.ToVal(Z_TYPE)->AsEnumVal());
 
 internal-op Files-Add-Analyzer
 op1-read
 classes VVV VCV
 op-types S X R
-eval	FilesAddAnalyzer($1, $2, $3)
+eval	ZAM::file_mgr_add_analyzer($1, $2.ToVal(Z_TYPE)->AsEnumVal(), $3);
 
 internal-op Files-Add-Analyzer
 class VVVV
 side-effects OP_FILES_ADD_ANALYZER_VVV OP_VVV
 op-types I S X R
-eval	FilesAddAnalyzer($1, $2, $3)
-	$$ = result;
+eval	$$ = ZAM::file_mgr_add_analyzer($1, $2.ToVal(Z_TYPE)->AsEnumVal(), $3);
 
 internal-op Files-Add-Analyzer
 class VVCV
 op-types I S X R
 side-effects OP_FILES_ADD_ANALYZER_VCV OP_VVC
-eval	FilesAddAnalyzer($1, $2, $3)
-	$$ = result;
-
-macro FilesRemoveAnalyzer(file_id_val, tag, args_slot)
-	FilesAddOrRemoveAnalyzer(file_id_val, tag, args_slot, RemoveAnalyzer)
+eval	$$ = ZAM::file_mgr_add_analyzer($1, $2.ToVal(Z_TYPE)->AsEnumVal(), $3);
 
 internal-op Files-Remove-Analyzer
 op1-read
 classes VVV VCV
 op-types S X R
-eval	FilesRemoveAnalyzer($1, $2, $3)
+eval	ZAM::file_mgr_remove_analyzer($1, $2.ToVal(Z_TYPE)->AsEnumVal(), $3);
 
 internal-op Files-Remove-Analyzer
 class VVVV
 op-types I S X R
 side-effects OP_FILES_REMOVE_ANALYZER_VVV OP_VVV
-eval	FilesRemoveAnalyzer($1, $2, $3)
-	$$ = result;
+eval	$$ = ZAM::file_mgr_remove_analyzer($1, $2.ToVal(Z_TYPE)->AsEnumVal(), $3);
 
 internal-op Files-Remove-Analyzer
 class VVCV
 op-types I S X R
 side-effects OP_FILES_REMOVE_ANALYZER_VCV OP_VVC
-eval	FilesRemoveAnalyzer($1, $2, $3)
-	$$ = result;
+eval	$$ = ZAM::file_mgr_remove_analyzer($1, $2.ToVal(Z_TYPE)->AsEnumVal(), $3);
 
 internal-op Analyzer-Enabled
 classes VV VC
 op-types I X
-eval	auto atype = $1.ToVal(Z_TYPE);
-	auto c = zeek::file_mgr->Lookup(atype->AsEnumVal());
-	$$ = c && c->Enabled();
+eval	$$ = ZAM::file_mgr_analyzer_enabled($1.ToVal(Z_TYPE)->AsEnumVal());
 
 internal-op File-Analyzer-Name
 classes VV VC
 eval	auto atype = $1.ToVal(Z_TYPE);
 	Unref($$.AsString());
-	$$ = ZVal(file_mgr->GetComponentNameVal({NewRef{}, atype->AsEnumVal()}));
+	$$ = ZVal(ZAM::file_mgr_analyzer_name(atype->AsEnumVal()));
 
 internal-op Is-Protocol-Analyzer
 classes VV VC
 op-types I X
 eval	auto atype = $1.ToVal(Z_TYPE);
-	$$ = analyzer_mgr->Lookup(atype->AsEnumVal()) != nullptr;
+	$$ = ZAM::analyzer_mgr_lookup(atype->AsEnumVal()) != nullptr;
 
 internal-op Clear-Table
 op1-read
@@ -550,47 +496,33 @@ internal-op Files-Enable-Reassembly
 op1-read
 class V
 op-types S
-eval	auto f = $1->CheckString();
-	file_mgr->EnableReassembly(f);
+eval	ZAM::file_mgr_enable_reassembly($1);
 
 internal-op Files-Set-Reassembly-Buffer
 op1-read
 classes VV Vi
 op-types S U
-eval	auto f = $1->CheckString();
-	file_mgr->SetReassemblyBuffer(f, $2);
+eval	ZAM::file_mgr_set_reassembly_buffer($1, $2);
 
 internal-op Files-Set-Reassembly-Buffer
 class VVV
 op-types I S U
 side-effects OP_FILES_SET_REASSEMBLY_BUFFER_VV OP_VV
-eval	auto f = $1->CheckString();
-	$$ = file_mgr->SetReassemblyBuffer(f, $2);
+eval	$$ = ZAM::file_mgr_set_reassembly_buffer($1, $2);
 
 internal-op Files-Set-Reassembly-Buffer
 class VVi
 op-types I S U
 side-effects OP_FILES_SET_REASSEMBLY_BUFFER_Vi OP_VV_I2
-eval	auto f = $1->CheckString();
-	$$ = file_mgr->SetReassemblyBuffer(f, $2);
+eval	$$ = ZAM::file_mgr_set_reassembly_buffer($1, $2);
 
 internal-op Get-Bytes-Thresh
 classes VVV VVC
 op-types U R I
-eval	auto a = analyzer::conn_size::GetConnsizeAnalyzer($1);
-	auto res = 0U;
-	if ( a )
-		res = static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->GetByteAndPacketThreshold(true, $2);
-	$$ = res;
+eval	$$ = ZAM::conn_size_get_bytes_threshold($1, $2);
 
 macro SetBytesThresh(cid, threshold, is_orig)
-	bool res = false;
-	auto a = analyzer::conn_size::GetConnsizeAnalyzer(cid);
-	if ( a )
-		{
-		static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->SetByteAndPacketThreshold(threshold, true, is_orig);
-		res = true;
-		}
+	bool res = ZAM::conn_size_set_bytes_threshold(threshold, cid, is_orig);
 
 internal-op Set-Bytes-Thresh
 op1-read

@@ -8,31 +8,6 @@
 #include "zeek/script_opt/ZAM/Profile.h"
 #include "zeek/script_opt/ZAM/Support.h"
 
-////////////////////////////////////////////////////////////////////////
-// Headers needed for run-time execution:
-
-// Needed for managing the corresponding values.
-#include "zeek/File.h"
-#include "zeek/Func.h"
-#include "zeek/OpaqueVal.h"
-
-// Just needed for BiFs.
-#include "zeek/analyzer/Manager.h"
-#include "zeek/analyzer/protocol/conn-size/ConnSize.h"
-#include "zeek/broker/Manager.h"
-#include "zeek/file_analysis/Manager.h"
-#include "zeek/file_analysis/file_analysis.bif.h"
-#include "zeek/logging/Manager.h"
-#include "zeek/packet_analysis/Manager.h"
-#include "zeek/packet_analysis/protocol/gtpv1/GTPv1.h"
-#include "zeek/packet_analysis/protocol/teredo/Teredo.h"
-
-#include "zeek.bif.func_h"
-
-// For reading_live and reading_traces
-#include "zeek/RunState.h"
-////////////////////////////////////////////////////////////////////////
-
 namespace zeek::detail {
 
 // Static information about globals used in a function.

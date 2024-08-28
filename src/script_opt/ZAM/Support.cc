@@ -8,7 +8,17 @@
 #include "zeek/Reporter.h"
 #include "zeek/ScriptValidation.h"
 #include "zeek/ZeekString.h"
+#include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/protocol/conn-size/ConnSize.h"
+#include "zeek/broker/Manager.h"
+#include "zeek/file_analysis/Manager.h"
+#include "zeek/file_analysis/file_analysis.bif.h"
+#include "zeek/logging/Manager.h"
+#include "zeek/packet_analysis/Manager.h"
+#include "zeek/packet_analysis/protocol/gtpv1/GTPv1.h"
+#include "zeek/packet_analysis/protocol/teredo/Teredo.h"
 #include "zeek/script_opt/ProfileFunc.h"
+#include "zeek/session/Manager.h"
 
 namespace zeek::detail {
 
@@ -17,6 +27,113 @@ std::string curr_func;
 std::shared_ptr<ZAMLocInfo> curr_loc;
 TypePtr log_ID_enum_type;
 TypePtr any_base_type = base_type(TYPE_ANY);
+
+bool log_mgr_write(zeek::EnumVal* v, zeek::RecordVal* r) { return zeek::log_mgr->Write(v, r); }
+
+size_t broker_mgr_flush_log_buffers() { return zeek::broker_mgr->FlushLogBuffers(); }
+
+zeek::Connection* session_mgr_find_connection(zeek::Val* cid) { return zeek::session_mgr->FindConnection(cid); }
+
+bool packet_mgr_remove_teredo(zeek::Val* cid) {
+    auto teredo = zeek::packet_mgr->GetAnalyzer("Teredo");
+    if ( teredo ) {
+        zeek::detail::ConnKey conn_key(cid);
+        static_cast<zeek::packet_analysis::teredo::TeredoAnalyzer*>(teredo.get())->RemoveConnection(conn_key);
+        return true;
+    }
+    return false;
+}
+
+bool packet_mgr_remove_gtpv1(zeek::Val* cid) {
+    auto gtpv1 = zeek::packet_mgr->GetAnalyzer("GTPv1");
+    if ( gtpv1 ) {
+        zeek::detail::ConnKey conn_key(cid);
+        static_cast<zeek::packet_analysis::gtpv1::GTPv1_Analyzer*>(gtpv1.get())->RemoveConnection(conn_key);
+        return true;
+    }
+    return false;
+}
+
+zeek::StringVal* analyzer_name(zeek::EnumVal* val) {
+    plugin::Component* component = zeek::analyzer_mgr->Lookup(val);
+
+    if ( ! component )
+        component = zeek::packet_mgr->Lookup(val);
+
+    if ( ! component )
+        component = zeek::file_mgr->Lookup(val);
+
+    if ( component )
+        return new StringVal(component->CanonicalName());
+    return new StringVal("<error>");
+}
+
+zeek::plugin::Component* analyzer_mgr_lookup(zeek::EnumVal* v) { return zeek::analyzer_mgr->Lookup(v); }
+
+zeek_uint_t conn_size_get_bytes_threshold(Val* cid, bool is_orig) {
+    if ( auto* a = analyzer::conn_size::GetConnsizeAnalyzer(cid) )
+        return static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->GetByteAndPacketThreshold(true, is_orig);
+
+    return 0;
+}
+
+bool conn_size_set_bytes_threshold(zeek_uint_t threshold, Val* cid, bool is_orig) {
+    if ( auto* a = analyzer::conn_size::GetConnsizeAnalyzer(cid) ) {
+        static_cast<analyzer::conn_size::ConnSize_Analyzer*>(a)->SetByteAndPacketThreshold(threshold, true, is_orig);
+        return true;
+    }
+
+    return false;
+}
+
+// File analysis wrappers
+void file_mgr_set_handle(StringVal* h) { zeek::file_mgr->SetHandle(h->ToStdString()); }
+
+bool file_mgr_add_analyzer(StringVal* file_id, EnumVal* tag, RecordVal* args) {
+    const auto& tag_ = zeek::file_mgr->GetComponentTag(tag);
+    if ( ! tag_ )
+        return false;
+
+    using zeek::BifType::Record::Files::AnalyzerArgs;
+    auto rv = args->CoerceTo(AnalyzerArgs);
+    return zeek::file_mgr->AddAnalyzer(file_id->CheckString(), tag_, std::move(rv));
+}
+
+bool file_mgr_remove_analyzer(StringVal* file_id, EnumVal* tag, RecordVal* args) {
+    const auto& tag_ = zeek::file_mgr->GetComponentTag(tag);
+    if ( ! tag_ )
+        return false;
+
+    using zeek::BifType::Record::Files::AnalyzerArgs;
+    auto rv = args->CoerceTo(AnalyzerArgs);
+    return zeek::file_mgr->RemoveAnalyzer(file_id->CheckString(), tag_, std::move(rv));
+}
+
+bool file_mgr_analyzer_enabled(zeek::EnumVal* v) {
+    auto c = zeek::file_mgr->Lookup(v->AsEnumVal());
+    return c && c->Enabled();
+}
+
+zeek::StringVal* file_mgr_analyzer_name(EnumVal* v) {
+    // to be placed into a ZVal
+    return file_mgr->GetComponentNameVal({NewRef{}, v}).release();
+}
+
+bool file_mgr_enable_reassembly(StringVal* file_id) {
+    std::string fid = file_id->CheckString();
+    return zeek::file_mgr->EnableReassembly(fid);
+}
+
+bool file_mgr_disable_reassembly(StringVal* file_id) {
+    std::string fid = file_id->CheckString();
+    return zeek::file_mgr->DisableReassembly(fid);
+}
+
+bool file_mgr_set_reassembly_buffer(StringVal* file_id, uint64_t max) {
+    std::string fid = file_id->CheckString();
+    return zeek::file_mgr->SetReassemblyBuffer(fid, max);
+}
+
 } // namespace ZAM
 
 bool ZAM_error = false;

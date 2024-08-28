@@ -110,6 +110,8 @@ std::optional<detail::Event> to_zeek_event(const broker::zeek::Event& ev) {
 // and broker::format::bin::v1::encode()
 class BrokerBinV1_Serializer : public Serializer {
 public:
+    BrokerBinV1_Serializer() : Serializer("broker-bin-v1") {}
+
     bool SerializeEventInto(detail::byte_buffer& buf, const detail::Event& event) override {
         auto ev = to_broker_event(event);
         if ( ! ev )
@@ -154,6 +156,8 @@ public:
 // for events as used by the WebSocket analyzer.
 class BrokerJsonV1_Serializer : public Serializer {
 public:
+    BrokerJsonV1_Serializer() : Serializer("broker-json-v1") {}
+
     bool SerializeEventInto(zeek::cluster::detail::byte_buffer& buf, const detail::Event& event) override {
         // json::v1::encode() wants a back inserter for char, but buf is std::vector<byte>.
         // There's an extra memcpy() into buf below.

@@ -124,6 +124,12 @@ event zeek_init() &priority=-10
 	Cluster::subscribe(nodeid_topic(Cluster::node_id()));
 	Cluster::subscribe(node_topic(node));
 
+
+	# Listening and connecting to peers is broker specific, so we
+	# short circuit this here.
+	if ( Cluster::backend != Cluster::CLUSTER_BACKEND_BROKER )
+		return;
+
 	if ( self$p != 0/unknown )
 		{
 		Broker::listen(Broker::default_listen_address,

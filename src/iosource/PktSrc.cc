@@ -6,13 +6,11 @@
 
 #include <sys/stat.h>
 
-#include "zeek/Hash.h"
+#include "zeek/DebugLogger.h"
 #include "zeek/RunState.h"
-#include "zeek/broker/Manager.h"
 #include "zeek/iosource/BPF_Program.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/iosource/pcap/pcap.bif.h"
-#include "zeek/packet_analysis/Manager.h"
 #include "zeek/session/Manager.h"
 #include "zeek/util.h"
 

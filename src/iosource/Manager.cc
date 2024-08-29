@@ -14,13 +14,11 @@
 
 #include "zeek/NetVar.h"
 #include "zeek/RunState.h"
-#include "zeek/broker/Manager.h"
 #include "zeek/iosource/Component.h"
 #include "zeek/iosource/IOSource.h"
 #include "zeek/iosource/PktDumper.h"
 #include "zeek/iosource/PktSrc.h"
 #include "zeek/plugin/Manager.h"
-#include "zeek/util.h"
 
 #define DEFAULT_PREFIX "pcap"
 

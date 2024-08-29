@@ -550,25 +550,7 @@ void DNS_Mgr::InitSource() {
     // the lookup.
     auto dns_resolver = getenv("ZEEK_DNS_RESOLVER");
     if ( dns_resolver ) {
-        ares_addr_node servers;
-        servers.next = NULL;
-
-        auto dns_resolver_addr = IPAddr(dns_resolver);
-
-        if ( dns_resolver_addr.GetFamily() == IPv4 ) {
-            servers.family = AF_INET;
-            dns_resolver_addr.CopyIPv4(&(servers.addr.addr4));
-        }
-        else {
-            struct sockaddr_in6 sa = {0};
-            sa.sin6_family = AF_INET6;
-            dns_resolver_addr.CopyIPv6(&sa.sin6_addr);
-
-            servers.family = AF_INET6;
-            memcpy(&(servers.addr.addr6), &sa.sin6_addr, sizeof(ares_in6_addr));
-        }
-
-        ares_set_servers(channel, &servers);
+        ares_set_servers_csv(channel, dns_resolver);
     }
 
     did_init = true;

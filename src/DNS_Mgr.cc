@@ -127,11 +127,12 @@ struct ares_deleter {
     void operator()(ares_addrinfo* s) const { ares_freeaddrinfo(s); }
     void operator()(struct hostent* h) const { ares_free_hostent(h); }
     void operator()(struct ares_txt_reply* h) const { ares_free_data(h); }
+    void operator()(ares_dns_record_t* r) const { ares_dns_record_destroy(r); }
 };
 
 namespace zeek::detail {
 static void addrinfo_cb(void* arg, int status, int timeouts, struct ares_addrinfo* result);
-static void query_cb(void* arg, int status, int timeouts, unsigned char* buf, int len);
+static void query_cb(void* arg, ares_status_t status, size_t timeouts, const ares_dns_record* dnsrec);
 static void sock_cb(void* data, int s, int read, int write);
 
 struct CallbackArgs {
@@ -158,7 +159,7 @@ private:
     IPAddr addr;
     int request_type = 0; // Query type
     bool async = false;
-    std::unique_ptr<unsigned char, ares_deleter> query;
+    std::unique_ptr<ares_dns_record_t, ares_deleter> query_rec;
     static uint16_t request_id;
 };
 
@@ -200,17 +201,23 @@ void DNS_Request::MakeRequest(ares_channel channel, DNS_Mgr* mgr) {
         else
             query_host = host;
 
-        std::unique_ptr<unsigned char, ares_deleter> query_str;
+        std::unique_ptr<ares_dns_record_t, ares_deleter> dnsrec;
         int len = 0;
-        int status = ares_create_query(query_host.c_str(), C_IN, request_type, DNS_Request::request_id, 1,
-                                       out_ptr<unsigned char*>(query_str), &len, MAX_UDP_BUFFER_SIZE);
+        ares_status_t status = ares_dns_record_create(out_ptr<ares_dns_record_t*>(dnsrec), DNS_Request::request_id,
+                                                      ARES_FLAG_RD, ARES_OPCODE_QUERY, ARES_RCODE_NOERROR);
 
-        if ( status != ARES_SUCCESS || query_str == nullptr )
+        if ( status != ARES_SUCCESS || dnsrec == nullptr )
+            return;
+
+        status = ares_dns_record_query_add(dnsrec.get(), query_host.c_str(),
+                                           static_cast<ares_dns_rec_type_t>(request_type), ARES_CLASS_IN);
+
+        if ( status != ARES_SUCCESS )
             return;
 
         // Store this so it can be destroyed when the request is destroyed.
-        this->query = std::move(query_str);
-        ares_send(channel, this->query.get(), len, query_cb, req_data.release());
+        this->query_rec = std::move(dnsrec);
+        ares_send_dnsrec(channel, query_rec.get(), query_cb, req_data.release(), NULL);
     }
 }
 
@@ -347,7 +354,7 @@ static void addrinfo_cb(void* arg, int status, int timeouts, struct ares_addrinf
     delete arg_data;
 }
 
-static void query_cb(void* arg, int status, int timeouts, unsigned char* buf, int len) {
+static void query_cb(void* arg, ares_status_t status, size_t timeouts, const ares_dns_record_t* dnsrec) {
     auto arg_data = reinterpret_cast<CallbackArgs*>(arg);
     const auto [req, mgr] = *arg_data;
 
@@ -365,65 +372,87 @@ static void query_cb(void* arg, int status, int timeouts, unsigned char* buf, in
         }
     }
     else {
-        // We don't really care that we couldn't properly parse the TTL here, since the
-        // later parsing will fail with better error messages. In that case, it's ok
-        // that we throw away the status value.
-        int ttl;
-        get_ttl(buf, len, &ttl);
+        struct hostent he {};
 
-        switch ( req->RequestType() ) {
-            case T_PTR: {
-                std::unique_ptr<struct hostent, ares_deleter> he;
-                if ( req->Addr().GetFamily() == IPv4 ) {
-                    struct in_addr addr;
-                    req->Addr().CopyIPv4(&addr);
-                    status = ares_parse_ptr_reply(buf, len, &addr, sizeof(addr), AF_INET, out_ptr<struct hostent*>(he));
+        uint32_t ttl = 0;
+        size_t rr_cnt = ares_dns_record_rr_cnt(dnsrec, ARES_SECTION_ANSWER);
+        bool error = false;
+
+        for ( size_t idx = 0; idx < rr_cnt; idx++ ) {
+            const ares_dns_rr_t* rr = ares_dns_record_rr_get_const(dnsrec, ARES_SECTION_ANSWER, 0);
+
+            // Use the ttl from the first record, since we don't keep track of the TTLs for each
+            // individually.
+            if ( idx == 0 )
+                ttl = ares_dns_rr_get_ttl(rr);
+
+            ares_dns_rec_type_t type = ares_dns_rr_get_type(rr);
+            if ( req->RequestType() != type )
+                continue;
+
+            if ( type == ARES_REC_TYPE_PTR ) {
+                const char* txt = ares_dns_rr_get_str(rr, ARES_RR_PTR_DNAME);
+                if ( txt == NULL ) {
+                    // According to the c-ares docs, this can happen but only in cases of "misuse". We
+                    // still need to check for it though.
+                    error = true;
+                    break;
+                }
+
+                if ( idx == 0 ) {
+                    he.h_name = util::copy_string(txt);
+                    he.h_aliases = new char*[rr_cnt];
+                    he.h_aliases[0] = NULL;
                 }
                 else {
-                    struct in6_addr addr;
-                    req->Addr().CopyIPv6(&addr);
-                    status =
-                        ares_parse_ptr_reply(buf, len, &addr, sizeof(addr), AF_INET6, out_ptr<struct hostent*>(he));
+                    he.h_aliases[idx - 1] = util::copy_string(txt);
+                }
+            }
+            else if ( type == ARES_REC_TYPE_TXT ) {
+                size_t abin_cnt = ares_dns_rr_get_abin_cnt(rr, ARES_RR_TXT_DATA);
+                if ( abin_cnt == 0 )
+                    break;
+
+                // TODO: We only process the first abin in the response. There might be more.
+                size_t abin_len;
+                const unsigned char* abin = ares_dns_rr_get_abin(rr, ARES_RR_TXT_DATA, 0, &abin_len);
+                if ( abin == NULL ) {
+                    // According to the c-ares docs, this can happen but only in cases of "misuse". We
+                    // still need to check for it though.
+                    error = true;
+                    break;
                 }
 
-                if ( status == ARES_SUCCESS )
-                    mgr->AddResult(req, he.get(), ttl);
-                else {
-                    // See above for why DNS_TIMEOUT here.
-                    mgr->AddResult(req, nullptr, DNS_TIMEOUT);
-                }
+                he.h_name = new char[abin_len + 1];
+                strncpy(he.h_name, reinterpret_cast<const char*>(abin), abin_len);
+                he.h_name[abin_len] = 0;
+                he.h_aliases = new char*[1];
+                he.h_aliases[0] = NULL;
+
+                // TODO: We only process the first RR for a TXT query, even if there are more of them.
                 break;
             }
-            case T_TXT: {
-                std::unique_ptr<struct ares_txt_reply, ares_deleter> reply;
-                int r = ares_parse_txt_reply(buf, len, out_ptr<struct ares_txt_reply*>(reply));
-                if ( r == ARES_SUCCESS ) {
-                    // Use a hostent to send the data into AddResult(). We only care about
-                    // setting the host field, but everything else should be zero just for
-                    // safety.
-
-                    // We don't currently handle more than the first response, and throw the
-                    // rest away. There really isn't a good reason for this, we just haven't
-                    // ever done so. It would likely require some changes to the output from
-                    // Lookup(), since right now it only returns one value.
-                    struct hostent he {};
-                    he.h_name = util::copy_string(reinterpret_cast<const char*>(reply->txt));
-                    mgr->AddResult(req, &he, ttl);
-
-                    delete[] he.h_name;
-                }
-                else {
-                    // See above for why DNS_TIMEOUT here.
-                    mgr->AddResult(req, nullptr, DNS_TIMEOUT);
-                }
-
+            else {
+                error = true;
+                reporter->Error("Requests of type %d (%s) are unsupported", type, ares_dns_rec_type_tostr(type));
                 break;
             }
+        }
 
-            default:
-                reporter->Error("Requests of type %d (%s) are unsupported", req->RequestType(),
-                                request_type_string(req->RequestType()));
-                break;
+        if ( rr_cnt != 0 && ! error )
+            mgr->AddResult(req, &he, ttl);
+        else
+            // See above for why DNS_TIMEOUT here.
+            mgr->AddResult(req, nullptr, DNS_TIMEOUT);
+
+        delete[] he.h_name;
+
+        if ( he.h_aliases ) {
+            for ( size_t idx = 0; he.h_aliases[idx] != NULL; idx++ ) {
+                delete[] he.h_aliases;
+            }
+
+            delete[] he.h_aliases;
         }
     }
 

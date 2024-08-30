@@ -1,3 +1,33 @@
+7.1.0-dev.230 | 2024-08-30 15:38:52 +0200
+
+  * RunState: Drop broker_mgr->Active() usage (Arne Welzel, Corelight)
+
+    ...and deprecate it. The communication_enabled flag doesn't really
+    make a difference in how the IO loop works.
+
+  * logging/WriterFrontend: No need for explicit CleanupWriteBuffer() (Arne Welzel, Corelight)
+
+    Any pending records will be cleaned in the destructor of WriterFrontend
+    and WriteBuffer, no need to do this explicitly.
+
+  * logging: Switch index-assignment of raw pointers to emplace_back() (Arne Welzel, Corelight)
+
+  * broker/logging: Change threading::Value** usage std::vector instead (Arne Welzel, Corelight)
+
+    This allows to leverage automatic memory management, less allocations
+    and using move semantics for expressing ownership.
+
+    This breaks the existing logging and broker API, but keeps the plugin
+    DoWrite() and HookLogWrite() methods functioning.
+
+    It further changes ValToLogVal to return a threading::Value rather than
+    a threading::Value*. The vector_val and set_val fields unfortunately
+    use the same pointer-to-array-of-pointers approach. this can'tbe changed
+    as it'd break backwards compatibility for plugin provided input readers
+    and log writers.
+
+  * threading/Value: Support move and copy constructors (Arne Welzel, Corelight)
+
 7.1.0-dev.222 | 2024-08-27 13:29:12 +0100
 
   * Fix parsing of version field in SSLv2 client hello (Johanna Amann, Corelight)

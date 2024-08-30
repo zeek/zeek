@@ -61,11 +61,6 @@ public:
      */
     bool Full() const { return records.size() >= buffer_size; }
 
-    /**
-     * Clear the records buffer.
-     */
-    void Clear() { records.clear(); }
-
 private:
     size_t buffer_size;
     std::vector<LogRecord> records;
@@ -269,9 +264,6 @@ protected:
     // Buffer for bulk writes.
     static const int WRITER_BUFFER_SIZE = 1000;
     detail::WriteBuffer write_buffer; // Buffer of size WRITER_BUFFER_SIZE.
-
-private:
-    void CleanupWriteBuffer();
 };
 
 } // namespace zeek::logging

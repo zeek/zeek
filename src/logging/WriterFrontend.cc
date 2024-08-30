@@ -132,7 +132,6 @@ WriterFrontend::~WriterFrontend() {
 
 void WriterFrontend::Stop() {
     if ( disabled ) {
-        CleanupWriteBuffer();
         return;
     }
 
@@ -198,10 +197,8 @@ void WriterFrontend::Write(detail::LogRecord&& arg_vals) {
 }
 
 void WriterFrontend::FlushWriteBuffer() {
-    if ( disabled ) {
-        CleanupWriteBuffer();
+    if ( disabled )
         return;
-    }
 
     if ( write_buffer.Empty() )
         // Nothing to do.
@@ -247,7 +244,5 @@ void WriterFrontend::Rotate(const char* rotated_path, double open, double close,
         // Still signal log manager that we're done.
         log_mgr->FinishedRotation(this, nullptr, nullptr, 0, 0, false, terminating);
 }
-
-void WriterFrontend::CleanupWriteBuffer() { write_buffer.Clear(); }
 
 } // namespace zeek::logging

@@ -219,15 +219,18 @@ bool WriterBackend::Write(int arg_num_fields, zeek::Span<detail::LogRecord> reco
         //
         // We keep the raw pointer for this API, as threading::Value
         // itself manages strings, sets and vectors using raw pointers,
-        // so this seems more consistent than mixing.
-        std::vector<Value*> valps(num_fields);
+        // so this is more consistent than mixing.
+        std::vector<Value*> valps;
+        valps.reserve(num_fields);
 
         for ( size_t j = 0; j < records.size(); j++ ) {
             auto& write_vals = records[j];
             for ( int f = 0; f < num_fields; f++ )
-                valps[f] = &write_vals[f];
+                valps.emplace_back(&write_vals[f]);
 
             success = DoWrite(num_fields, fields, &valps[0]);
+
+            valps.clear();
 
             if ( ! success )
                 break;

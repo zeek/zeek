@@ -1158,9 +1158,10 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
         if ( zeek::plugin_mgr->HavePluginForHook(zeek::plugin::HOOK_LOG_WRITE) ) {
             // The current HookLogWrite API takes a threading::Value**.
             // Fabricate the pointer array on the fly. Mutation is allowed.
-            std::vector<threading::Value*> vals(rec.size());
-            for ( size_t i = 0; i < rec.size(); i++ )
-                vals[i] = &rec[i];
+            std::vector<threading::Value*> vals;
+            vals.reserve(rec.size());
+            for ( auto& v : rec )
+                vals.emplace_back(&v);
 
             bool res =
                 zeek::plugin_mgr->HookLogWrite(filter->writer->GetType()->AsEnumType()->Lookup(

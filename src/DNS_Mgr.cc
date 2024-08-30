@@ -1315,23 +1315,19 @@ double DNS_Mgr::GetNextTimeout() {
     if ( asyncs_pending == 0 )
         return -1;
 
-    int nfds = 0;
-    ares_socket_t socks[ARES_GETSOCK_MAXNUM];
-    int bitmap = ares_getsock(channel, socks, ARES_GETSOCK_MAXNUM);
-    for ( int i = 0; i < ARES_GETSOCK_MAXNUM; i++ ) {
-        if ( ARES_GETSOCK_READABLE(bitmap, i) || ARES_GETSOCK_WRITABLE(bitmap, i) )
-            ++nfds;
-    }
+    struct timeval tv;
+    struct timeval* tvp = ares_timeout(channel, NULL, &tv);
 
-    // Do we have any sockets that are read or writable?
-    if ( nfds == 0 )
+    // If you pass NULL as the max time argument to ares_timeout, it will return null if there
+    // isn't anything waiting to be processed.
+    if ( ! tvp )
         return -1;
 
-    struct timeval tv;
-    tv.tv_sec = DNS_TIMEOUT;
-    tv.tv_usec = 0;
-
-    struct timeval* tvp = ares_timeout(channel, &tv, &tv);
+    // Clamp the timeout to our desired max, since we passed NULl to ares_timeout.
+    if ( tvp->tv_sec > DNS_TIMEOUT ) {
+        tvp->tv_sec = DNS_TIMEOUT;
+        tvp->tv_usec = 0;
+    }
 
     return static_cast<double>(tvp->tv_sec) + (static_cast<double>(tvp->tv_usec) / 1e6);
 }

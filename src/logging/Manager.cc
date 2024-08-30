@@ -1796,7 +1796,8 @@ bool Manager::WritesFromRemote(const detail::LogWriteHeader& header, std::vector
 
     Stream::WriterMap::const_iterator w = stream->writers.find(wpp);
     if ( w == stream->writers.end() ) {
-        fprintf(stderr, "no writer\n");
+        fprintf(stderr, "creating writer for %s %s %s\n", obj_desc_short(header.stream_id.get()).c_str(),
+                obj_desc_short(header.writer_id.get()).c_str(), header.filter_name.c_str());
 
         // This is all copied copied from  WriteToFilters() - should extract to function.
         WriterBackend::WriterInfo* info = nullptr;

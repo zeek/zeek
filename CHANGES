@@ -1,3 +1,148 @@
+7.0.0-9 | 2024-08-30 11:47:39 -0700
+
+  * ldap: Promote uint8 to uint64 before shifting (Arne Welzel, Corelight)
+
+    (cherry picked from commit 97fa7cdc0a49869ee6605fac9cfc15f11d8c855b)
+
+  * ldap: Add heuristic for wrap tokens (Arne Welzel, Corelight)
+
+    Instead of dissecting the GSSAPI handshake, add another heuristic
+    into MaybeEncrypted to check for the WRAP token identifier.
+
+    After this change, the pcap on the following ticket is processed
+    nicely: https://gitlab.com/wireshark/migration-test/-/issues/9398
+
+    (cherry picked from commit 6a6a5c3d0d60a1d4d32ba2173c035023c29fbf1d)
+
+  * ldap: Ignore ec/rrc for sealed wrap tokens (Arne Welzel, Corelight)
+
+    It shouldn't matter for the encrypted payload that we'll
+    just consume and ignore.
+
+    (cherry picked from commit 6a6a5c3d0d60a1d4d32ba2173c035023c29fbf1d)
+
+  * ldap: Add LDAP sample with SASL-SRP mechanism (Arne Welzel, Corelight)
+
+    This is what @dopheide-esnet actually saw. Produced with a custom
+    cyrus-sasl and openldap build :-(
+
+    (cherry picked from commit 6a6a5c3d0d60a1d4d32ba2173c035023c29fbf1d)
+
+  * ldap: Reintroduce encryption after SASL heuristic (Arne Welzel, Corelight)
+
+    @dopheide-esnet provided sample captures where SASL SRP is used as
+    a SASL mechanism and the follow-up LDAP messages are encrypted. It's
+    not clear how to determine whether encryption will or will not happen,
+    so re-add a heuristic to determine this based on the first byte of
+    the first message *after* the successful bindResponse handshake. If
+    that byte is 0x30, assume cleartext.
+
+    I haven't been able to produce such pcaps, unfortunately, but the
+    cleartext path is tested via the existing sasl-ntlm.pcap.
+
+    (cherry picked from commit 6a6a5c3d0d60a1d4d32ba2173c035023c29fbf1d)
+
+  * ldap: Fix assuming GSS-SPNEGO for all bindResponses (Arne Welzel, Corelight)
+
+    In retrospect that's an obvious bug.
+
+    (cherry picked from commit 6a6a5c3d0d60a1d4d32ba2173c035023c29fbf1d)
+
+  * ldap: Implement extended request/response and StartTLS support (Arne Welzel, Corelight)
+
+    PCAP was produced with a local OpenLDAP server configured to support StartTLS.
+
+    This puts the Zeek calls into a separate ldap_zeek.spicy file/module
+    to separate it from LDAP.
+
+    (cherry picked from commit 6a6a5c3d0d60a1d4d32ba2173c035023c29fbf1d)
+
+  * ldap: Remove MessageWrapper with magic 0x30 searching (Arne Welzel, Corelight)
+
+    This unit implements a heuristic to search for the 0x30 sequence
+    byte if Message couldn't readily be parsed. Remove it with the
+    idea of explicit and predictable support for SASL mechanisms.
+
+    (cherry picked from commit 2ea3a651bd83b0dfa15924417e4667241531b57b)
+
+  * ldap: Harden parsing a bit (Arne Welzel, Corelight)
+
+    ASN1Message(True) may go off parsing arbitrary input data as
+    "something ASN.1" This could be GBs of octet strings or just very
+    long sequences. Avoid this by open-coding some top-level types expected.
+
+    This also tries to avoid some of the &parse-from usages that result
+    in unnecessary copies of data.
+
+    Adds a locally generated PCAP with addRequest/addResponse that we
+    don't currently handle.
+
+    (cherry picked from commit 2ea3a651bd83b0dfa15924417e4667241531b57b)
+
+  * ldap: Handle integrity-only KRB wrap tokens (Arne Welzel, Corelight)
+
+    Mostly staring at the PCAPs and opened a few RFCs. For now, only if the
+    MS_KRB5 OID is used and accepted in a bind response, start stripping
+    KRB5 wrap tokens for both, client and server traffic.
+
+    Would probably be nice to forward the GSS-API data to the analyzer...
+
+    (cherry picked from commit 2ea3a651bd83b0dfa15924417e4667241531b57b)
+
+  * http: fix password capture when enabled (Pierre Lalet)
+
+    The current implementation would only log, if the password contains a
+    colon, the part before the first colon (e.g., the password
+    `password:password` would be logged as `password`).
+
+    (cherry picked from commit c27e18631c5d9c6f04c230bd421c9750a1f02342)
+
+  * Analyzer: Do not add child analyzers when finished (Arne Welzel, Corelight)
+
+    Depending on an analyzer's implementation, its Done() method may
+    attempt to access analyzer or connection state when executing.
+    When this happens in the destructor of the parent analyzer during
+    the process of destructing a connection, this state may have been
+    deleted, resulting in use-after-free crashes or worse memory
+    corruption.
+
+    The following cases have been observed in the wild for when this happens.
+
+      * PIA matching during Done() for undelivered TCP data enables a Spicy
+        based analyzer which in turn attempts to raise an analyzer violation
+        during Done()->EndOfData().
+
+      * Spicy analyzers attaching new analyzers during their Done() processing
+        which in turn attempt to use TCP() (to call FindChild()) during Done()
+        while the analyzer tree / connection is being destructed.
+
+    The second scenario was previously found to happen in the HTTP analyzer
+    and fixed with 6ef9423f3cff13e6c73f97eb6a3a27d6f64cc320.
+
+    Plug these scenarios by short-circuiting AddChildAnalyzer() if the analyzer
+    or connection have finished or are being finished.
+
+    (cherry picked from commit 45b33bf5c17d5e8cf6c777a9bd57e4a803dfad19)
+
+  * TCP_Reassembler: Fix IsOrig() position in Match() call (Arne Welzel, Corelight)
+
+    Found during a debug session with @rsmmr. Undelivered TCP data
+    would only be matched for the responder and eol set to IsOrig().
+
+    (cherry picked from commit 4a4cbf25765f387f0aa20277afd133918292b9c4)
+
+  * Process metric callbacks from the main-loop thread (Tim Wojtulewicz, Corelight)
+
+    This avoids the callbacks from being processed on the worker thread
+    spawned by Civetweb. It fixes data race issues with lookups involving
+    global variables, amongst other threading issues.
+
+    (cherry picked from commit 3c3853dc7da9aad94a9b2d5a143cc7bd9476ea7a)
+
+  * CI: Use 16GB of memory for FreeBSD builds (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 9d9cc51e9dd93668cd332aa1aef283c9dc23a677)
+
 7.0.0 | 2024-07-31 09:37:03 -0700
 
   * Release 7.0.0.

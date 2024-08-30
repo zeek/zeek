@@ -8,6 +8,66 @@ namespace zeek::logging {
 
 class Manager;
 
+
+namespace detail {
+
+/**
+ * Implements a buffer accumulating log records in \a WriterFrontend instance
+ * before passing them to \a WriterBackend instances.
+ *
+ * \see WriterFrontend::Write
+ */
+class WriteBuffer {
+public:
+    /**
+     * Constructor.
+     */
+    explicit WriteBuffer(size_t buffer_size) : buffer_size(buffer_size) {}
+
+    /**
+     * Push a record to the buffer.
+     *
+     * @param record The records vals.
+     */
+    void WriteRecord(LogRecord&& record) { records.emplace_back(std::move(record)); }
+
+    /**
+     * Moves the records out of the buffer and resets it.
+     *
+     * @return The currently buffered log records.
+     */
+    std::vector<LogRecord> TakeRecords() && {
+        auto tmp = std::move(records);
+
+        // Re-initialize the buffer.
+        records.clear();
+        records.reserve(buffer_size);
+
+        return tmp;
+    }
+
+    /**
+     * @return The size of the buffer.
+     */
+    size_t Size() const { return records.size(); }
+
+    /**
+     * @return True if buffer is empty.
+     */
+    size_t Empty() const { return records.empty(); }
+
+    /**
+     * @return True if size equals or exceeds configured buffer size.
+     */
+    bool Full() const { return records.size() >= buffer_size; }
+
+private:
+    size_t buffer_size;
+    std::vector<LogRecord> records;
+};
+
+} // namespace detail
+
 /**
  * Bridge class between the logging::Manager and backend writer threads. The
  * Manager instantiates one \a WriterFrontend for each open logging filter.
@@ -84,13 +144,14 @@ public:
      * FlushWriteBuffer(). The backend writer triggers this with a
      * message at every heartbeat.
      *
-     * See WriterBackend::Writer() for arguments (except that this method
-     * takes only a single record, not an array). The method takes
-     * ownership of \a vals.
+     * If the frontend has remote logging enabled, the record is also
+     * published to interested peers.
      *
+     * @param rec Representation of the log record. Callee takes ownership.
+
      * This method must only be called from the main thread.
      */
-    void Write(int num_fields, threading::Value** vals);
+    void Write(detail::LogRecord&& rec);
 
     /**
      * Sets the buffering state.
@@ -185,8 +246,6 @@ public:
 protected:
     friend class Manager;
 
-    void DeleteVals(int num_fields, threading::Value** vals);
-
     EnumVal* stream;
     EnumVal* writer;
 
@@ -204,11 +263,7 @@ protected:
 
     // Buffer for bulk writes.
     static const int WRITER_BUFFER_SIZE = 1000;
-    int write_buffer_pos;             // Position of next write in buffer.
-    threading::Value*** write_buffer; // Buffer of size WRITER_BUFFER_SIZE.
-
-private:
-    void CleanupWriteBuffer();
+    detail::WriteBuffer write_buffer; // Buffer of size WRITER_BUFFER_SIZE.
 };
 
 } // namespace zeek::logging

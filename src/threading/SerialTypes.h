@@ -104,9 +104,9 @@ private:
  * those Vals supported).
  */
 struct Value {
-    TypeTag type;    //! The type of the value.
-    TypeTag subtype; //! Inner type for sets and vectors.
-    bool present;    //! False for optional record fields that are not set.
+    TypeTag type;         //! The type of the value.
+    TypeTag subtype;      //! Inner type for sets and vectors.
+    bool present = false; //! False for optional record fields that are not set.
 
     struct set_t {
         zeek_int_t size;
@@ -186,6 +186,16 @@ struct Value {
         : type(arg_type), subtype(arg_subtype), present(arg_present) {}
 
     /**
+     * Copy constructor.
+     */
+    Value(const Value& other);
+
+    /**
+     * Move constructor.
+     */
+    Value(Value&& other) noexcept;
+
+    /**
      * Destructor.
      */
     ~Value();
@@ -241,7 +251,6 @@ struct Value {
 
 private:
     friend class IPAddr;
-    Value(const Value& other) = delete;
 
     // For values read by the input framework, this can represent the line number
     // containing this value. Used by the Ascii reader primarily.

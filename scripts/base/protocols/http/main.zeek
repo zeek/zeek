@@ -291,8 +291,8 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &pr
 			if ( /^[bB][aA][sS][iI][cC] / in value )
 				{
 				local userpass = decode_base64_conn(c$id, sub(value, /[bB][aA][sS][iI][cC][[:blank:]]+/, ""));
-				local up = split_string(userpass, /:/);
-				if ( |up| >= 2 )
+				local up = split_string1(userpass, /:/);
+				if ( |up| == 2 )
 					{
 					c$http$username = up[0];
 					if ( c$http$capture_password )

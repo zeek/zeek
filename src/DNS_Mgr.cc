@@ -887,30 +887,34 @@ void DNS_Mgr::Lookup(const std::string& name, int request_type, LookupCallback* 
 void DNS_Mgr::Resolve() {
     int nfds = 0;
     struct timeval *tvp, tv;
-    struct pollfd pollfds[ARES_GETSOCK_MAXNUM];
-    ares_socket_t socks[ARES_GETSOCK_MAXNUM];
+    struct pollfd pollfds[1024];
 
     tv.tv_sec = DNS_TIMEOUT;
     tv.tv_usec = 0;
 
     for ( int i = 0; i < MAX_PENDING_REQUESTS; i++ ) {
-        int nfds = 0;
-        int bitmap = ares_getsock(channel, socks, ARES_GETSOCK_MAXNUM);
+        if ( socket_fds.empty() && write_socket_fds.empty() )
+            break;
 
-        for ( int i = 0; i < ARES_GETSOCK_MAXNUM; i++ ) {
-            bool rd = ARES_GETSOCK_READABLE(bitmap, i);
-            bool wr = ARES_GETSOCK_WRITABLE(bitmap, i);
-            if ( rd || wr ) {
-                pollfds[nfds].fd = socks[i];
-                pollfds[nfds].events = rd ? POLLIN : 0;
-                pollfds[nfds].events |= wr ? POLLOUT : 0;
-                ++nfds;
-            }
+        memset(pollfds, 0, sizeof(pollfd) * 1024);
+
+        for ( int fd : socket_fds ) {
+            if ( nfds == 1024 )
+                break;
+
+            pollfds[nfds].fd = fd;
+            pollfds[nfds].events = POLLIN;
+            ++nfds;
         }
 
-        // Do we have any sockets that are read or writable?
-        if ( nfds == 0 )
-            break;
+        for ( int fd : write_socket_fds ) {
+            if ( nfds == 1024 )
+                break;
+
+            pollfds[nfds].fd = fd;
+            pollfds[nfds].events = POLLIN | POLLOUT;
+            ++nfds;
+        }
 
         // poll() timeout is in milliseconds.
         tvp = ares_timeout(channel, &tv, &tv);

@@ -1,3 +1,24 @@
+6.0.5-3 | 2024-08-30 14:45:25 -0700
+
+  * http: fix password capture when enabled (Pierre Lalet)
+
+    The current implementation would only log, if the password contains a
+    colon, the part before the first colon (e.g., the password
+    `password:password` would be logged as `password`).
+
+    (cherry picked from commit c27e18631c5d9c6f04c230bd421c9750a1f02342)
+
+  * TCP_Reassembler: Fix IsOrig() position in Match() call (Arne Welzel, Corelight)
+
+    Found during a debug session with @rsmmr. Undelivered TCP data
+    would only be matched for the responder and eol set to IsOrig().
+
+    (cherry picked from commit 4a4cbf25765f387f0aa20277afd133918292b9c4)
+
+  * CI: Use 16GB of memory for FreeBSD builds (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 9d9cc51e9dd93668cd332aa1aef283c9dc23a677)
+
 6.0.5 | 2024-08-01 11:18:29 -0700
 
   * Release 6.0.5.

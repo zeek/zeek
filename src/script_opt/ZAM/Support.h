@@ -9,15 +9,24 @@
 
 #pragma once
 
-#include "zeek/Expr.h"
+#include <vector>
+
+#include "zeek/IntrusivePtr.h"
 #include "zeek/script_opt/ZAM/Profile.h"
+#include "zeek/util.h"
 
 namespace zeek {
+
 class Connection;
 class EnumVal;
 class RecordVal;
-class Val;
 class StringVal;
+class Type;
+class Val;
+
+using ValPtr = IntrusivePtr<Val>;
+using StringValPtr = IntrusivePtr<StringVal>;
+using TypePtr = IntrusivePtr<Type>;
 
 namespace plugin {
 class Component;
@@ -25,6 +34,7 @@ class Component;
 
 namespace detail {
 
+class Expr;
 class Stmt;
 
 using ValVec = std::vector<ValPtr>;
@@ -96,7 +106,6 @@ extern bool IsAny(const Type* t);
 
 // Convenience functions for getting to these.
 inline bool IsAny(const TypePtr& t) { return IsAny(t.get()); }
-inline bool IsAny(const Expr* e) { return IsAny(e->GetType()); }
 
 // Run-time checking for "any" type being consistent with
 // expected typed.  Returns true if the type match is okay.

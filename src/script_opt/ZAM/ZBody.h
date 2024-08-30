@@ -4,9 +4,9 @@
 
 #pragma once
 
+#include <vector>
+
 #include "zeek/script_opt/ZAM/IterInfo.h"
-#include "zeek/script_opt/ZAM/Profile.h"
-#include "zeek/script_opt/ZAM/Support.h"
 
 namespace zeek::detail {
 

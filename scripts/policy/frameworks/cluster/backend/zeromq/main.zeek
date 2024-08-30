@@ -91,6 +91,8 @@ export {
 
 redef Cluster::backend = Cluster::CLUSTER_BACKEND_ZEROMQ;
 
+redef run_broker_thread = Cluster::local_node_type() == Cluster::MANAGER;
+
 function zeromq_node_topic(name: string): string {
 	return node_topic_prefix + "." + name;
 }

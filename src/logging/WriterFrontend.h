@@ -262,7 +262,6 @@ protected:
     const threading::Field* const* fields; // The log fields.
 
     // Buffer for bulk writes.
-    static const int WRITER_BUFFER_SIZE = 1000;
     detail::WriteBuffer write_buffer; // Buffer of size WRITER_BUFFER_SIZE.
 };
 

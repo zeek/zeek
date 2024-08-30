@@ -50,6 +50,8 @@ const char* TimerNames[] = {
     "ThreadHeartbeat",
     "UnknownProtocolExpire",
     "LogDelayExpire",
+    "LogFlushWriteBufferTimer",
+    "<last>",
 };
 
 const char* timer_type_to_string(TimerType type) { return TimerNames[type]; }

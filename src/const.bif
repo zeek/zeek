@@ -29,3 +29,6 @@ const Tunnel::ip_tunnel_timeout: interval;
 const Tunnel::validate_vxlan_checksums: bool;
 
 const Threading::heartbeat_interval: interval;
+
+const Log::flush_interval: interval;
+const Log::write_buffer_size: count;

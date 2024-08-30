@@ -32,6 +32,8 @@ class RotationTimer;
 
 namespace detail {
 
+class LogFlushWriteBufferTimer;
+
 class DelayInfo;
 
 using WriteIdx = uint64_t;
@@ -348,6 +350,7 @@ protected:
     friend class RotationFinishedMessage;
     friend class RotationFailedMessage;
     friend class RotationTimer;
+    friend class detail::LogFlushWriteBufferTimer;
 
     // Instantiates a new WriterBackend of the given type (note that
     // doing so creates a new thread!).
@@ -363,6 +366,12 @@ protected:
     // Signals that a file has been rotated.
     bool FinishedRotation(WriterFrontend* writer, const char* new_name, const char* old_name, double open, double close,
                           bool success, bool terminating);
+
+    // Flush write buffers of all writers.
+    void FlushAllWriteBuffers();
+
+    // Start the regular log flushing timer.
+    void StartLogFlushTimer();
 
 private:
     struct Filter;
@@ -404,6 +413,9 @@ private:
 
     zeek_uint_t last_delay_token = 0;
     std::vector<detail::WriteContext> active_writes;
+
+    // Timer for flushing write buffers of frontends.
+    detail::LogFlushWriteBufferTimer* log_flush_timer = nullptr;
 };
 
 } // namespace logging

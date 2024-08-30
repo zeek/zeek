@@ -2903,6 +2903,32 @@ export {
 
 } # end export
 
+module Log;
+
+export {
+
+	## Default interval for flushing the write buffers of all
+	## enabled log streams.
+	##
+	## In earlier Zeek releases this was governed by :zeek:see:`Threading::heartbeat_interval`.
+	## For Broker, see also :zeek::see:`Broker::log_batch_interval`.
+	##
+	## .. :zeek:see:`Log::flush`
+	## .. :zeek:see:`Log::set_buf`
+	## .. :zeek:see:`Log::write_buffer_size`
+	const flush_interval = 1.0sec &redef;
+
+	## Default maximum size of the log write buffer per filter/path pair.
+	## If this many log writes are buffered, the writer frontend flushes
+	## its writes to its backend before flush_interval expires.
+	##
+	## In earlier Zeek releases this was hard-coded to 1000.
+	##
+	## .. :zeek:see:`Log::flush`
+	## .. :zeek:see:`Log::set_buf`
+	## .. :zeek:see:`Log::flush_interval`
+	const write_buffer_size = 1000 &redef;
+}
 
 module Threading;
 

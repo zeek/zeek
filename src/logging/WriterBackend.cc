@@ -46,17 +46,6 @@ private:
     bool terminating;
 };
 
-class FlushWriteBufferMessage final : public threading::OutputMessage<WriterFrontend> {
-public:
-    FlushWriteBufferMessage(WriterFrontend* writer)
-        : threading::OutputMessage<WriterFrontend>("FlushWriteBuffer", writer) {}
-
-    bool Process() override {
-        Object()->FlushWriteBuffer();
-        return true;
-    }
-};
-
 class DisableMessage final : public threading::OutputMessage<WriterFrontend> {
 public:
     DisableMessage(WriterFrontend* writer) : threading::OutputMessage<WriterFrontend>("Disable", writer) {}
@@ -305,7 +294,6 @@ bool WriterBackend::OnHeartbeat(double network_time, double current_time) {
     if ( Failed() )
         return true;
 
-    SendOut(new FlushWriteBufferMessage(frontend));
     return DoHeartbeat(network_time, current_time);
 }
 

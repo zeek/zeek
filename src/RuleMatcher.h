@@ -173,6 +173,7 @@ private:
     };
 
     using matcher_list = PList<Matcher>;
+    using match_offset_list = std::vector<MatchPos>;
 
     analyzer::Analyzer* analyzer;
     RuleEndpointState* opposite;
@@ -182,10 +183,12 @@ private:
     rule_hdr_test_list hdr_tests;
 
     // The follow tracks which rules for which all patterns have matched,
-    // and in a parallel list the (first instance of the) corresponding
-    // matched text.
+    // in a parallel list the (first instance of the) corresponding
+	// matched text, and in another parallel list the offset of the
+	// end of the last pattern match.
     rule_list matched_by_patterns;
     bstr_list matched_text;
+    match_offset_list match_offsets;
 
     int payload_size;
     bool is_orig;

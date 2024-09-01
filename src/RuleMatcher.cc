@@ -91,6 +91,10 @@ Val* RuleMatcher::BuildRuleStateValue(const Rule* rule, const RuleEndpointState*
     val->Assign(1, state->GetAnalyzer()->ConnVal());
     val->Assign(2, state->is_orig);
     val->Assign(3, state->payload_size);
+
+    int rule_offset = state->matched_by_patterns.member_pos(const_cast<Rule*>(rule));
+    if ( rule_offset >= 0 )
+        val->Assign(4, state->match_offsets[rule_offset]);
     return val;
 }
 
@@ -825,7 +829,7 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type, const 
     // matched patterns per connection (which is a plausible assumption).
 
     // Find rules for which patterns have matched.
-    set<Rule*> rule_matches;
+    set<pair<Rule*, MatchPos>> rule_matches;
 
     for ( AcceptingMatchSet::const_iterator it = accepted_matches.begin(); it != accepted_matches.end(); ++it ) {
         AcceptIdx aidx = it->first;
@@ -834,13 +838,14 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type, const 
         Rule* r = Rule::rule_table[aidx - 1];
 
         if ( AllRulePatternsMatched(r, mpos, accepted_matches) )
-            rule_matches.insert(r);
+            rule_matches.insert(make_pair(r, mpos));
     }
 
     // Check which of the matching rules really belong to any of our nodes.
 
-    for ( set<Rule*>::const_iterator it = rule_matches.begin(); it != rule_matches.end(); ++it ) {
-        Rule* r = *it;
+    for ( set<pair<Rule*, MatchPos>>::const_iterator it = rule_matches.begin(); it != rule_matches.end(); ++it ) {
+        Rule* r = it->first;
+        MatchPos match_end_offset = it->second;
 
         DBG_LOG(DBG_RULES, "Accepted rule: %s", r->id);
 
@@ -862,6 +867,7 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type, const 
                 state->matched_by_patterns.push_back(r);
                 String* s = new String(data, data_len, false);
                 state->matched_text.push_back(s);
+                state->match_offsets.push_back(match_end_offset);
             }
 
             DBG_LOG(DBG_RULES, "And has not already fired");

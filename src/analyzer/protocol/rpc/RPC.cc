@@ -527,7 +527,7 @@ bool Contents_RPC::CheckResync(int& len, const u_char*& data, bool orig) {
                 NeedResync();
                 return false;
         } // end switch
-    }     // end while (len>0)
+    } // end while (len>0)
 
     return false;
 }
@@ -623,7 +623,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig) {
                 // yet.
             } break;
         } // end switch
-    }     // end while
+    } // end while
 }
 
 RPC_Analyzer::RPC_Analyzer(const char* name, Connection* conn, detail::RPC_Interpreter* arg_interp)

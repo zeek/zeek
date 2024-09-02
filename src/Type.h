@@ -794,7 +794,7 @@ class OpaqueType final : public Type {
 public:
     explicit OpaqueType(const std::string& name);
     TypePtr ShallowClone() override { return make_intrusive<OpaqueType>(name); }
-    ~OpaqueType() override{};
+    ~OpaqueType() override {};
 
     const std::string& Name() const { return name; }
 

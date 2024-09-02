@@ -19,7 +19,7 @@ namespace detail {
 // with recursive types.
 class CPPTableType : public TableType {
 public:
-    CPPTableType() : TableType(nullptr, nullptr){};
+    CPPTableType() : TableType(nullptr, nullptr) {};
 
     void SetIndexAndYield(TypeListPtr ind, TypePtr yield) {
         indices = std::move(ind);

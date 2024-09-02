@@ -26,7 +26,6 @@ repos:
   rev: v0.6.13
   hooks:
   - id: cmake-format
-    exclude: '^auxil/.*$'
 
 - repo: https://github.com/crate-ci/typos
   rev: v1.16.21

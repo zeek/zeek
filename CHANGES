@@ -1,4 +1,6 @@
-6.0.6 | 2024-09-03 10:43:50 -0700
+6.0.6 | 2024-09-03 14:46:02 -0700
+
+  * CI: Fix centos-7 Dockerfile to replace obsolete yum repos (Tim Wojtulewicz)
 
   * Update CHANGES, VERSION, and NEWS for 6.0.6 (Tim Wojtulewicz)
 

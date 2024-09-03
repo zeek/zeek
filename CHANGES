@@ -1,3 +1,9 @@
+7.0.1 | 2024-09-03 13:04:23 -0700
+
+  * Update CHANGES, VERSION, and NEWS for 7.0.1 release (Tim Wojtulewicz, Corelight)
+
+  * Update zeek-aux submodule to pick up zeek-archiver permissions fix (Tim Wojtulewicz, Corelight)
+
 7.0.0-14 | 2024-09-03 09:02:19 -0700
 
   * Bump auxil/spicy to latest release (Benjamin Bannier, Corelight)

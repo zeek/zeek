@@ -3,6 +3,26 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 7.0.1
+==========
+
+This release fixes the following bugs:
+
+- HTTP passwords with colon characters in them are now correctly logged.
+
+- The LDAP analyzer now supports handling of non-sealed GSS-API WRAP tokens.
+
+- Heuristics for parsing SASL encrypted and signed LDAP traffic have been made
+  more strict and predictable. Please provide input if this results in less
+  visibility in your environment.
+
+- StartTLS support was added to the LDAP analyzer. The SSL analyzer is enabled
+  for connections where client and server negotiate to TLS through the extended
+  request/response mechanism.
+
+- Specify less-strict permissions for directories and files created by
+  zeek-archiver to play more nicely with user's umask setting.
+
 Zeek 7.0.0
 ==========
 

@@ -1,3 +1,20 @@
+7.1.0-dev.236 | 2024-09-03 10:18:32 +0200
+
+  * Remove pre-commit exclusions for clang-format (Benjamin Bannier, Corelight)
+
+    We previously would ignore any files under `auxil/`. Since pre-commit
+    only formats files tracked in this repo, and `auxil/` today contains
+    only submodules this exclusion did not exclude anything; if however we
+    ever end up adding C++ files under `auxil/` we would like them to be
+    formatted consistently.
+
+  * Bump clang-format (Benjamin Bannier, Corelight)
+
+    This patch contains a bump of the configured clang-format version from
+    17.0.3 to 18.1.8 and automatically generated C++ source updates. The
+    main difference we are seeing from this is fixes for previously
+    incomplete reformats.
+
 7.1.0-dev.233 | 2024-09-03 10:02:59 +0200
 
   * Bump zeek-aux for zeek/zeek-aux#57 (Arne Welzel, Corelight)

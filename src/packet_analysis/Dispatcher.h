@@ -19,7 +19,7 @@ namespace detail {
  */
 class Dispatcher {
 public:
-    Dispatcher() : table(std::vector<AnalyzerPtr>(1, nullptr)){};
+    Dispatcher() : table(std::vector<AnalyzerPtr>(1, nullptr)) {};
     ~Dispatcher();
 
     /**

@@ -1,3 +1,7 @@
+7.0.0-14 | 2024-09-03 09:02:19 -0700
+
+  * Bump auxil/spicy to latest release (Benjamin Bannier, Corelight)
+
 7.0.0-11 | 2024-08-30 12:38:59 -0700
 
   * Spicy: Register well-known ports through an event handler. (Robin Sommer, Corelight)

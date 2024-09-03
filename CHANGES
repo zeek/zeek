@@ -1,3 +1,7 @@
+7.1.0-dev.233 | 2024-09-03 10:02:59 +0200
+
+  * Bump zeek-aux for zeek/zeek-aux#57 (Arne Welzel, Corelight)
+
 7.1.0-dev.232 | 2024-08-30 18:56:24 +0200
 
   * http: fix password capture when enabled (Pierre Lalet)

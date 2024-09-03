@@ -1,3 +1,9 @@
+6.0.6 | 2024-09-03 10:43:50 -0700
+
+  * Update CHANGES, VERSION, and NEWS for 6.0.6 (Tim Wojtulewicz)
+
+  * Update plugins.hooks Baseline (Tim Wojtulewicz)
+
 6.0.5-3 | 2024-08-30 14:45:25 -0700
 
   * http: fix password capture when enabled (Pierre Lalet)

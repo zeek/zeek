@@ -10,6 +10,11 @@ ENV FLEX_DIR=/opt/flex
 # Disabled lookup of fastest mirror since the list seems to be outdated and no valid mirror can be detected.
 RUN sed -i 's/enabled=1/enabled=0/' /etc/yum/pluginconf.d/fastestmirror.conf
 
+# mirrorlist.centos.org doesn't exist anymore. Replace uses of it with vault.centos.org.
+RUN sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
+RUN sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
+RUN sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
+
 # The version of git in the standard repos is 1.8 and CI needs 2.3+
 # for the use of GIT_SSH_COMMAND when cloning private repos.
 RUN yum -y install \
@@ -25,6 +30,13 @@ RUN yum -y install \
 RUN yum -y install \
     centos-release-scl \
   && yum clean all && rm -rf /var/cache/yum
+
+# This has to be run a second time due to the additional repositories that were
+# added above. The first pass allows those to be installed. The second pass
+# updates the new ones and allows everything else to be installed.
+RUN sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
+RUN sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
+RUN sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
 
 RUN yum -y install \
     devtoolset-8 \

@@ -17,12 +17,12 @@ event zeek_init() {
 	local key = "key1234";
 	local value = "value7890";
 
-	local b = Storage::open_backend(Storage::SQLITE, opts);
+	local b = Storage::open_backend(Storage::SQLITE, opts, str, str);
 
 	local res = Storage::put(b, key, value, T, 0sec, F);
 	print "put result", res;
 
-	local res2 = Storage::get(b, key, str, F);
+	local res2 = Storage::get(b, key, F);
 	print "get result", res2;
 	print "get result same as inserted", value == (res2 as string);
 

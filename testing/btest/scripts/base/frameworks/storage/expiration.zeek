@@ -16,7 +16,7 @@ global key: string = "key1234";
 global value: string = "value7890";
 
 event check_removed() {
-	local res2 = Storage::get(backend, key, str, F);
+	local res2 = Storage::get(backend, key, F);
 	print "get result", res2;
 
 	Storage::close_backend(backend);
@@ -28,12 +28,12 @@ event zeek_init() {
 	opts$database_path = "storage-test.sqlite";
 	opts$table_name = "testing";
 
-	backend = Storage::open_backend(Storage::SQLITE, opts);
+	backend = Storage::open_backend(Storage::SQLITE, opts, str, str);
 
 	local res = Storage::put(backend, key, value, T, 2 secs, F);
 	print "put result", res;
 
-	local res2 = Storage::get(backend, key, str, F);
+	local res2 = Storage::get(backend, key, F);
 	print "get result", res2;
 	print "get result same as inserted", value == (res2 as string);
 

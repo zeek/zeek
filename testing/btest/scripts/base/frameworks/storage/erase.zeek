@@ -19,12 +19,12 @@ event zeek_init() {
 
 	# Test inserting/retrieving a key/value pair that we know won't be in
 	# the backend yet.
-	local b = Storage::open_backend(Storage::SQLITE, opts);
+	local b = Storage::open_backend(Storage::SQLITE, opts, str, str);
 
 	local res = Storage::erase(b, key, F);
 	print "erase result", res;
 
-	local res2 = Storage::get(b, key, str, F);
+	local res2 = Storage::get(b, key, F);
 	if ( ! res2 as bool ) {
 		print "get result, got empty result";
 	}

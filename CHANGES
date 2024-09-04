@@ -1,3 +1,9 @@
+7.1.0-dev.241 | 2024-09-04 14:53:19 -0700
+
+  * Check for netbios to avoid reporting extra bad DNS opcodes (Tim Wojtulewicz, Corelight)
+
+  * Add weird for unhandled opcodes in DNS analyzer (Tim Wojtulewicz, Corelight)
+
 7.1.0-dev.238 | 2024-09-03 09:03:24 -0700
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

@@ -21,12 +21,19 @@ namespace zeek::analyzer::dns {
 
 namespace detail {
 
+// Used for checking whether the connection being parsed comes from NetBIOS,
+// since it's similar to DNS but does some things differently.
+constexpr int NETBIOS_PORT = 137;
+
 DNS_Interpreter::DNS_Interpreter(analyzer::Analyzer* arg_analyzer) {
     analyzer = arg_analyzer;
     first_message = true;
+    is_netbios =
+        ntohs(analyzer->Conn()->OrigPort()) == NETBIOS_PORT || ntohs(analyzer->Conn()->RespPort()) == NETBIOS_PORT;
 }
 
 void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query) {
+    // Every packet for every opcode starts with same size header.
     int hdr_len = sizeof(detail::DNS_RawMsgHdr);
 
     if ( len < hdr_len ) {
@@ -34,7 +41,21 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query) {
         return;
     }
 
-    detail::DNS_MsgInfo msg((detail::DNS_RawMsgHdr*)data, is_query);
+    // The flags section may be different between the different opcodes, but the
+    // opcode is always in the same location. Parse out just that part of it here
+    // even though it will probably be reparsed later.
+    auto* hdr = (detail::DNS_RawMsgHdr*)data;
+    unsigned short flags = ntohs(hdr->flags);
+    int opcode = (flags & 0x7800) >> 11;
+
+    // NetBIOS registration and release messages look like regular DNS requests, so parse them as such
+    if ( opcode != DNS_OP_QUERY && ! is_netbios ) {
+        analyzer->Weird("DNS_unknown_opcode", util::fmt("%d", opcode));
+        analyzer->Conn()->CheckHistory(zeek::session::detail::HIST_UNKNOWN_PKT, 'X');
+        return;
+    }
+
+    detail::DNS_MsgInfo msg(hdr, is_query);
 
     if ( first_message && msg.QR && is_query == 1 ) {
         is_query = msg.is_query = 0;
@@ -242,7 +263,7 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg, const u_char*& data,
         case detail::TYPE_NBS: status = ParseRR_NBS(msg, data, len, rdlength, msg_start); break;
 
         case detail::TYPE_SRV:
-            if ( ntohs(analyzer->Conn()->RespPort()) == 137 ) {
+            if ( ntohs(analyzer->Conn()->RespPort()) == NETBIOS_PORT ) {
                 // This is an NBSTAT (NetBIOS NODE STATUS) record.
                 // The SRV RFC reused the value that was already being
                 // used for this.
@@ -385,7 +406,7 @@ bool DNS_Interpreter::ExtractLabel(const u_char*& data, int& len, u_char*& name,
 
     if ( label_len > 63 &&
          // NetBIOS name service look ups can use longer labels.
-         ntohs(analyzer->Conn()->RespPort()) != 137 ) {
+         ntohs(analyzer->Conn()->RespPort()) != NETBIOS_PORT ) {
         analyzer->Weird("DNS_label_too_long");
         return false;
     }

@@ -827,15 +827,23 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         if ( broker_enum == cluster_backend_val->AsEnum() )
             cluster::backend = broker_mgr;
         else {
-            const auto& cluster_serializer_val = id::find_val<zeek::EnumVal>("Cluster::serializer");
-            auto* serializer = cluster::manager->InstantiateSerializer(cluster_serializer_val);
-            if ( serializer == nullptr ) {
-                reporter->Error("Failed to instantiate cluster serializer: %s",
-                                zeek::obj_desc(cluster_serializer_val.get()).c_str());
+            const auto& event_serializer_val = id::find_val<zeek::EnumVal>("Cluster::event_serializer");
+            const auto& log_serializer_val = id::find_val<zeek::EnumVal>("Cluster::log_serializer");
+            auto* event_serializer = cluster::manager->InstantiateEventSerializer(event_serializer_val);
+            auto* log_serializer = cluster::manager->InstantiateLogSerializer(log_serializer_val);
+            if ( event_serializer == nullptr ) {
+                reporter->Error("Failed to instantiate event serializer: %s",
+                                zeek::obj_desc(event_serializer_val.get()).c_str());
+                exit(1);
+            }
+            if ( log_serializer == nullptr ) {
+                reporter->Error("Failed to instantiate log serializer: %s",
+                                zeek::obj_desc(log_serializer_val.get()).c_str());
                 exit(1);
             }
 
-            cluster::backend = cluster::manager->InstantiateBackend(cluster_backend_val, serializer);
+            cluster::backend =
+                cluster::manager->InstantiateBackend(cluster_backend_val, event_serializer, log_serializer);
         }
 
         if ( cluster::backend == nullptr ) {

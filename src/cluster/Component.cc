@@ -3,7 +3,6 @@
 #include "zeek/cluster/Component.h"
 
 #include "zeek/Desc.h"
-#include "zeek/Func.h"
 #include "zeek/Tag.h"
 #include "zeek/cluster/Manager.h"
 #include "zeek/util.h"
@@ -48,7 +47,7 @@ LogSerializerComponent::LogSerializerComponent(const std::string& name, factory_
 
 void LogSerializerComponent::Initialize() {
     InitializeTag();
-    cluster::manager->EventSerializers().RegisterComponent(this, "LOG_SERIALIZER_");
+    cluster::manager->LogSerializers().RegisterComponent(this, "LOG_SERIALIZER_");
 }
 
 void LogSerializerComponent::DoDescribe(ODesc* d) const {

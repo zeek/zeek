@@ -39,11 +39,11 @@ using byte_buffer = std::vector<std::byte>;
  * An event and its parameters can be serialized as a message which
  * another node can unserialize and enqueue as an event.
  */
-class Serializer {
+class EventSerializer {
 public:
-    Serializer(std::string name) : name(std::move(name)) {}
+    EventSerializer(std::string name) : name(std::move(name)) {}
 
-    virtual ~Serializer() = default;
+    virtual ~EventSerializer() = default;
     /**
      * Serialize an Event into the given buffer \a buf.
      *
@@ -63,34 +63,6 @@ public:
      * @returns The event or std::nullopt on error.
      */
     virtual std::optional<cluster::detail::Event> UnserializeEvent(const std::byte* buf, size_t size) = 0;
-
-
-    /**
-     * Serialize a given Val into a byte_buffer.
-     *
-     * NOTE: This is to support Key-Value storage systems and possibly should live
-     *       in its own Val serializer component?
-     * NOTE: Should this return a std::variant with some error notification?
-     *
-     * @param buf
-     * @param v The value to serialize.
-     */
-    virtual bool SerializeValInto(detail::byte_buffer& buf, const zeek::ValPtr& v) = 0;
-
-    /**
-     * Attempt to unserialize some data into a Val of a given type.
-     *
-     * NOTE: This is to support Key-Value storage systems and possibly should live
-     *       in its own Val serializer component?
-     *
-     * NOTE: Should this return a std::variant with error notification?
-     *
-     * @param buf
-     * @param size
-     * @param type
-     */
-    virtual std::optional<zeek::ValPtr> UnserializeVal(const std::byte* buf, size_t size,
-                                                       const zeek::TypePtr& type) = 0;
 
     /**
      * Return the name of the serializer - this should be included in message headers.

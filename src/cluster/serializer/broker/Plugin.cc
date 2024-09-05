@@ -105,13 +105,13 @@ std::optional<detail::Event> to_zeek_event(const broker::zeek::Event& ev) {
 
     return detail::Event{handler, std::move(vl), ts};
 }
+} // namespace
 
 // Implementation of the EventSerializer that uses the existing broker::detail::val_to_data()
 // and broker::format::bin::v1::encode()
-class BrokerBinV1_Serializer : public Serializer {
+class BrokerBinV1_Serializer : public EventSerializer {
 public:
-    BrokerBinV1_Serializer() : Serializer("broker-bin-v1") {}
-
+    BrokerBinV1_Serializer() : EventSerializer("broker-bin-v1") {}
     bool SerializeEventInto(detail::byte_buffer& buf, const detail::Event& event) override {
         auto ev = to_broker_event(event);
         if ( ! ev )
@@ -129,34 +129,14 @@ public:
 
         broker::zeek::Event ev(*r);
         return to_zeek_event(ev);
-    };
-
-    bool SerializeValInto(detail::byte_buffer& buf, const zeek::ValPtr& v) override {
-        auto res = zeek::Broker::detail::val_to_data(v.get());
-        if ( ! res )
-            return false;
-
-        broker::format::bin::v1::encode(*res, std::back_inserter(buf));
-        return true;
-    }
-
-    std::optional<zeek::ValPtr> UnserializeVal(const std::byte* buf, size_t size, const zeek::TypePtr& type) override {
-        auto maybe_msg = broker::data_envelope::deserialize(broker::endpoint_id::nil(), broker::endpoint_id::nil(), 0,
-                                                            "", buf, size);
-        if ( ! maybe_msg )
-            return std::nullopt;
-
-        // data to val takes non-const broker::data&, need copy?
-        auto data = (*maybe_msg)->value()->to_data();
-        return zeek::Broker::detail::data_to_val(data, type.get());
     }
 };
 
 // Implementation of the EventSerializer that uses broker's JSON format
 // for events as used by the WebSocket analyzer.
-class BrokerJsonV1_Serializer : public Serializer {
+class BrokerJsonV1_Serializer : public EventSerializer {
 public:
-    BrokerJsonV1_Serializer() : Serializer("broker-json-v1") {}
+    BrokerJsonV1_Serializer() : EventSerializer("broker-json-v1") {}
 
     bool SerializeEventInto(zeek::cluster::detail::byte_buffer& buf, const detail::Event& event) override {
         // json::v1::encode() wants a back inserter for char, but buf is std::vector<byte>.
@@ -222,9 +202,9 @@ using namespace zeek::plugin::Zeek_Cluster_Serializer_Broker;
 
 zeek::plugin::Configuration Plugin::Configure() {
     AddComponent(
-        new SerializerComponent("BROKER_BIN_V1", []() -> Serializer* { return new BrokerBinV1_Serializer(); }));
+        new EventSerializerComponent("BROKER_BIN_V1", []() -> Serializer* { return new BrokerBinV1_Serializer(); }));
     AddComponent(
-        new SerializerComponent("BROKER_JSON_V1", []() -> Serializer* { return new BrokerJsonV1_Serializer(); }));
+        new EventSerializerComponent("BROKER_JSON_V1", []() -> Serializer* { return new BrokerJsonV1_Serializer(); }));
 
     zeek::plugin::Configuration config;
     config.name = "Zeek::Cluster_Serializer_Broker";

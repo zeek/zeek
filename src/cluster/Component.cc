@@ -25,17 +25,33 @@ void BackendComponent::DoDescribe(ODesc* d) const {
     d->Add(CanonicalName());
 }
 
-SerializerComponent::SerializerComponent(const std::string& name, factory_callback arg_factory)
-    : plugin::Component(plugin::component::CLUSTER_SERIALIZER, name, 0, cluster::manager->Serializers().GetTagType()) {
+EventSerializerComponent::EventSerializerComponent(const std::string& name, factory_callback arg_factory)
+    : plugin::Component(plugin::component::EVENT_SERIALIZER, name, 0,
+                        cluster::manager->EventSerializers().GetTagType()) {
     factory = arg_factory;
 }
 
-void SerializerComponent::Initialize() {
+void EventSerializerComponent::Initialize() {
     InitializeTag();
-    cluster::manager->Serializers().RegisterComponent(this, "CLUSTER_SERIALIZER_");
+    cluster::manager->EventSerializers().RegisterComponent(this, "EVENT_SERIALIZER_");
 }
 
-void SerializerComponent::DoDescribe(ODesc* d) const {
-    d->Add("Cluster::CLUSTER_SERIALIZER_");
+void EventSerializerComponent::DoDescribe(ODesc* d) const {
+    d->Add("Cluster::EVENT_SERIALIZER_");
+    d->Add(CanonicalName());
+}
+
+LogSerializerComponent::LogSerializerComponent(const std::string& name, factory_callback arg_factory)
+    : plugin::Component(plugin::component::LOG_SERIALIZER, name, 0, cluster::manager->LogSerializers().GetTagType()) {
+    factory = arg_factory;
+}
+
+void LogSerializerComponent::Initialize() {
+    InitializeTag();
+    cluster::manager->EventSerializers().RegisterComponent(this, "LOG_SERIALIZER_");
+}
+
+void LogSerializerComponent::DoDescribe(ODesc* d) const {
+    d->Add("Cluster::LOG_SERIALIZER_");
     d->Add(CanonicalName());
 }

@@ -507,4 +507,3 @@ public function vector_size(id: string): uint64 &cxxname="zeek::spicy::rt::vecto
 ##
 ## v: opaque handle to the Zeek vector, as returned by other functions
 public function vector_size(v: ZeekVector): uint64 &cxxname="zeek::spicy::rt::vector_size";
-

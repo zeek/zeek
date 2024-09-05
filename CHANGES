@@ -1,3 +1,18 @@
+7.1.0-dev.247 | 2024-09-05 19:19:31 +0200
+
+  * testing/external: Update private baselines (Arne Welzel, Corelight)
+
+  * analyzer/syslog: Reformat with spicy-format (Arne Welzel, Corelight)
+
+  * analyzer/finger: Reformat with spicy-format (Arne Welzel, Corelight)
+
+  * scripts/spicy: Reformat with spicy-format (Arne Welzel, Corelight)
+
+  * pre-commit: Add spicy-format (Arne Welzel, Corelight)
+
+    This excludes the larger protocol analyzers. These should be formatted
+    during the 7.2 cycle, shortly before 8.0.
+
 7.1.0-dev.241 | 2024-09-04 14:53:19 -0700
 
   * Check for netbios to avoid reporting extra bad DNS opcodes (Tim Wojtulewicz, Corelight)

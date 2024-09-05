@@ -9,6 +9,9 @@
 #include <string>
 #include <vector>
 
+#include "zeek/Span.h"
+#include "zeek/logging/Types.h"
+
 
 namespace zeek {
 
@@ -91,6 +94,41 @@ public:
 
     /**
      * Return the name of the serializer - this should be included in message headers.
+     */
+    const std::string& Name() { return name; }
+
+private:
+    std::string name;
+};
+
+/**
+ * Interface for a serializer for logging::LogRecord instances.
+ */
+class LogSerializer {
+public:
+    /**
+     * Constructor.
+     */
+    explicit LogSerializer(std::string name) : name(std::move(name)){};
+
+    virtual ~LogSerializer() = default;
+
+    /**
+     * Serialize all records into the given buffer.
+     */
+    virtual bool SerializeLogWriteInto(detail::byte_buffer& buf, const logging::detail::LogWriteHeader& header,
+                                       zeek::Span<logging::detail::LogRecord> records) = 0;
+
+    /**
+     * Unserialize log writes from a given buffer.
+     *
+     * Not sure this is so clever for cap-n-proto style protocols
+     * where the underlying buffer shouldn't be freed.
+     */
+    virtual std::optional<logging::detail::LogWriteBatch> UnserializeLogWrite(const std::byte* buf, size_t size) = 0;
+
+    /**
+     * Return the name of the serializer.
      */
     const std::string& Name() { return name; }
 

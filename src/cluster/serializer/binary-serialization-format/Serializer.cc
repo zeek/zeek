@@ -2,18 +2,14 @@
 
 #include <cstdint>
 
+#include "zeek/ID.h"
 #include "zeek/SerializationFormat.h"
+#include "zeek/Val.h"
+#include "zeek/cluster/Backend.h"
+#include "zeek/logging/Types.h"
 #include "zeek/threading/SerialTypes.h"
 
-#include "ID.h"
-#include "cluster/Backend.h"
-
 using namespace zeek::cluster::detail;
-
-/**
- * The serialization format for log write batches
- *
- */
 
 // #define SERIALIZER_DEBUG(...) fprintf(stderr, __VA_ARGS__)
 #define SERIALIZER_DEBUG(...)                                                                                          \
@@ -84,9 +80,8 @@ bool BinarySerializationFormatLogSerializer::SerializeLogWriteInto(byte_buffer& 
     return true;
 }
 
-
-UnserializeLogWriteResult BinarySerializationFormatLogSerializer::UnserializeLogWrite(const std::byte* buf,
-                                                                                      size_t size) {
+std::optional<logging::detail::LogWriteBatch> BinarySerializationFormatLogSerializer::UnserializeLogWrite(
+    const std::byte* buf, size_t size) {
     static const auto& stream_id_type = zeek::id::find_type<zeek::EnumType>("Log::ID");
     static const auto& writer_id_type = zeek::id::find_type<zeek::EnumType>("Log::Writer");
 
@@ -159,5 +154,5 @@ UnserializeLogWriteResult BinarySerializationFormatLogSerializer::UnserializeLog
 
     fmt.EndRead();
 
-    return UnserializeLogWriteResult({.header = std::move(header), .records = std::move(records)});
+    return logging::detail::LogWriteBatch{.header = std::move(header), .records = std::move(records)};
 }

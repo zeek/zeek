@@ -1,3 +1,12 @@
+7.1.0-dev.252 | 2024-09-06 19:17:29 +0200
+
+  * btest/ldap: Add regression test for #3919 (Arne Welzel, Corelight)
+
+    This works as expected in master, it's just that we forgot to backport
+    PR #3845 to 7.0.1. Add the PCAP from Martin anyhow.
+
+    Closes #3919.
+
 7.1.0-dev.250 | 2024-09-06 17:47:36 +0200
 
   * postgresql: Simplify SSL buffering and forwarding (Arne Welzel, Corelight)

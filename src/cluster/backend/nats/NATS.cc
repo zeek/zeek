@@ -14,7 +14,7 @@
 #include "zeek/Flare.h"
 #include "zeek/ID.h"
 #include "zeek/Val.h"
-#include "zeek/cluster/serializer/binary-serialization-format/Serializer.h"
+#include "zeek/cluster/Serializer.h"
 #include "zeek/iosource/IOSource.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/logging/Manager.h"
@@ -55,9 +55,9 @@ void connection_reconnected_cb(natsConnection* nc, void* closure);
 
 class NATSManagerImpl : public zeek::iosource::IOSource {
 public:
-    explicit NATSManagerImpl(Serializer* serializer) : serializer(serializer) {
+    explicit NATSManagerImpl(EventSerializer* event_serializer, LogSerializer* log_serializer)
+        : event_serializer(event_serializer), log_serializer(log_serializer) {
         publish_buffer.resize(4096);
-        log_serializer = std::make_unique<zeek::cluster::detail::BinarySerializationFormatLogSerializer>();
     }
 
     struct SubscriptionMessage {
@@ -196,7 +196,7 @@ public:
 
         publish_buffer.clear();
 
-        if ( ! serializer->SerializeEventInto(publish_buffer, event) )
+        if ( ! event_serializer->SerializeEventInto(publish_buffer, event) )
             return false;
 
         natsMsg* msg = nullptr;
@@ -432,7 +432,7 @@ public:
 
 
             // If it wasn't a log message, it's an event :-)
-            auto r = serializer->UnserializeEvent(payload, payload_size);
+            auto r = event_serializer->UnserializeEvent(payload, payload_size);
             natsMsg_Destroy(sub_msg.msg); // This is deep copy, for the better or worse
 
             if ( ! r )
@@ -450,8 +450,8 @@ public:
     const char* Tag() override { return "NATS"; }
 
 private:
-    std::unique_ptr<Serializer> serializer;
-    std::unique_ptr<cluster::detail::LogSerializer> log_serializer;
+    std::unique_ptr<EventSerializer> event_serializer;
+    std::unique_ptr<cluster::LogSerializer> log_serializer;
     cluster::detail::byte_buffer publish_buffer;
 
     bool logger_queue_consume = false;
@@ -507,7 +507,9 @@ void connection_reconnected_cb(natsConnection* nc, void* closure) {
 
 } // namespace detail
 
-NATSBackend::NATSBackend(Serializer* serializer) { impl = std::make_unique<nats::detail::NATSManagerImpl>(serializer); }
+NATSBackend::NATSBackend(EventSerializer* event_serializer, LogSerializer* log_serializer) {
+    impl = std::make_unique<nats::detail::NATSManagerImpl>(event_serializer, log_serializer);
+}
 NATSBackend::~NATSBackend() {}
 
 bool NATSBackend::Connect() { return impl->Connect(); }

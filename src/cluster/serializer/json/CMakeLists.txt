@@ -1,0 +1,10 @@
+zeek_add_plugin(
+    Zeek
+    Zeek_JSON_Serializer
+    INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDENCIES
+    SOURCES
+    Plugin.cc
+    Serializer.cc)

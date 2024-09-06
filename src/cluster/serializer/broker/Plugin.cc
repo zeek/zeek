@@ -168,7 +168,7 @@ public:
 };
 
 
-using namespace zeek::plugin::Zeek_Cluster_Serializer_Broker;
+using namespace zeek::plugin::Broker_Serializer;
 
 zeek::plugin::Configuration Plugin::Configure() {
     AddComponent(new EventSerializerComponent("BROKER_BIN_V1",
@@ -177,7 +177,7 @@ zeek::plugin::Configuration Plugin::Configure() {
                                               []() -> EventSerializer* { return new BrokerJsonV1_Serializer(); }));
 
     zeek::plugin::Configuration config;
-    config.name = "Zeek::Cluster_Serializer_Broker";
-    config.description = "Event serialization using broker's even formats (bin and json)";
+    config.name = "Zeek::Broker_Serializer";
+    config.description = "Event serialization using Broker's event formats (binary and json)";
     return config;
 }

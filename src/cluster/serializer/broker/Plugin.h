@@ -4,11 +4,11 @@
 
 #include "zeek/plugin/Plugin.h"
 
-namespace zeek::plugin::Zeek_Cluster_Serializer_Broker {
+namespace zeek::plugin::Broker_Serializer {
 
 class Plugin : public zeek::plugin::Plugin {
 public:
     zeek::plugin::Configuration Configure() override;
 } plugin;
 
-} // namespace zeek::plugin::Zeek_Cluster_Serializer_Broker
+} // namespace zeek::plugin::Broker_Serializer

@@ -18,7 +18,7 @@ class NATSManagerImpl;
 
 class NATSBackend : public cluster::Backend {
 public:
-    NATSBackend(Serializer* serializer);
+    NATSBackend(EventSerializer* event_serializer, LogSerializer* log_serializer);
     ~NATSBackend();
 
     void InitPostScript() override;
@@ -35,7 +35,9 @@ public:
     bool PublishLogWrites(const logging::detail::LogWriteHeader& header,
                           zeek::Span<logging::detail::LogRecord> records) override;
 
-    static Backend* Instantiate(Serializer* serializer) { return new NATSBackend(serializer); }
+    static Backend* Instantiate(EventSerializer* event_serializer, LogSerializer* log_serializer) {
+        return new NATSBackend(event_serializer, log_serializer);
+    }
 
 private:
     std::unique_ptr<nats::detail::NATSManagerImpl> impl;

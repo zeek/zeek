@@ -1,3 +1,24 @@
+7.1.0-dev.250 | 2024-09-06 17:47:36 +0200
+
+  * postgresql: Simplify SSL buffering and forwarding (Arne Welzel, Corelight)
+
+    The ssl_sink can only be connected form the backend side, so don't
+    overcomplicate it.
+
+  * postgresql: Initial parser implementation (Arne Welzel, Corelight)
+
+    This adds a protocol parser for the PostgreSQL protocol and a new
+    postgresql.log similar to the existing mysql.log.
+
+    This should be considered preliminary and hopefully during 7.1 and 7.2
+    with feedback from the community, we can improve on the events and logs.
+    Even if most PostgreSQL communication is encrypted in the real-world, this
+    will minimally allow monitoring of the SSLRequest and hand off further
+    analysis to the SSL analyzer.
+
+    This originates from github.com/awelzel/spicy-postgresql, with lots of
+    polishing happening in the past two days.
+
 7.1.0-dev.247 | 2024-09-05 19:19:31 +0200
 
   * testing/external: Update private baselines (Arne Welzel, Corelight)

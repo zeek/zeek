@@ -28,6 +28,22 @@ Breaking Changes
 New Functionality
 -----------------
 
+- Zeek now includes a PostgreSQL protocol analyzer. This analyzer is enabled
+  by default. The analyzer's events and its ``postgresql.log`` should be
+  considered preliminary and experimental until the arrival of Zeek's next
+  long-term-stable release (8.0).
+
+  If you observe unusually high CPU consumption or other issues due to this
+  analyzer being enabled by default, the easiest way to disable it is via the
+  ``Analyzer::disabled_analyzers`` const as follows:
+
+	redef Analyzer::disabled_analyzers += {
+		Analyzer::ANALYZER_POSTGRESQL,
+	};
+
+  If you observe PostgreSQL traffic in your environment, please provide feedback
+  about the analyzer and structure of the new log.
+
 * The LDAP analyzer now supports handling of non-sealed GSS-API WRAP tokens.
 
 * StartTLS support was added to the LDAP analyzer. The SSL analyzer is enabled

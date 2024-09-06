@@ -64,7 +64,8 @@ public type FrontendMessages = unit {
     on %init {
         # Until the first FrontendMessages are initialized, ssl_sink in the
         # context is a Null reference. Also, we want to use a single sink
-        # for both, frontend and backend by calling beg
+        # for both, frontend and backend by calling begin_protocol() within
+        # the SSLSink's %init hook (see postgresql_zeek.spicy).
         self.context().ssl_sink = self.s1;
     }
 
@@ -112,9 +113,9 @@ public type FrontendMessages = unit {
     # the context() is populated.
     #
     # In normal operations, Zeek should see the server's response before
-    # attempting to parse more data, but Robin was concerned it that in
-    # some circumstances (out-of-order packets, reassembly artifacts) we
-    # may see the client's data before the server's.
+    # attempting to parse more data, but Robin was concerned that in some
+    # circumstances (out-of-order packets, reassembly artifacts) we may
+    # see the client's data before the server's.
     #
     # In the future, barrier: https://github.com/zeek/spicy/pull/1373
     : bytes &chunked &eod {
@@ -126,14 +127,11 @@ public type FrontendMessages = unit {
         } else {
             # print "frontend ssl_state backend set!", self.context();
             if (!self.s1_connected) {
-                if (self.context().ssl_backend_state == SSLBackendState::S) {
-                    if (!self.context().ssl_sink_connected) {
-                        self.context().ssl_sink.connect(new SSLSink());
-                        self.context().ssl_sink_connected = True;
-                    }
-                } else {
-                    # print "connecting plain frontend messages";
+                if (self.context().ssl_backend_state == SSLBackendState::N) {
                     self.s1.connect(new PlainFrontendMessages());
+                } else {
+                    assert (self.context().ssl_sink_connected);
+                    assert (self.context().ssl_backend_state == SSLBackendState::S);
                 }
 
                 self.s1_connected = True;
@@ -181,22 +179,20 @@ type SimpleQuery = unit {
 };
 
 # The client has requested SSL, the server either confirms (S) or
-# stays in plaintext (N) mode. Depending on the result, we connect
-# our sink to the SSL sink, or to a PlainBackendMessages unit.
+# denies (N). Depending on the result, the ssl_sink in the context
+# is connected with a SSLUnit and used, or a sink connected with the
+# PlainBackendMessages unit.
 #
 type MaybeBackendSSL = unit(ctx: Context&) {
-
-    # Connected SSL, or plaintext.
+    # Connected to SSLSink or plaintext messages.
     sink s1;
 
     ssl_byte: uint8 &requires=($$ == 'S' || $$ == 'N') {
         # print "backend ssl_byte", $$;
         if ($$ == 'S') {
             ctx.ssl_backend_state = SSLBackendState::S;
-            if (!ctx.ssl_sink_connected) {
-                ctx.ssl_sink.connect(new SSLSink());
-                ctx.ssl_sink_connected = True;
-            }
+            ctx.ssl_sink.connect(new SSLSink());
+            ctx.ssl_sink_connected = True;
 
             # Share the SSL sink with the frontend.
             self.s1 = ctx.ssl_sink;

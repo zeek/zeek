@@ -18,7 +18,7 @@ class ZeroMQManagerImpl;
 
 class ZeroMQBackend : public cluster::Backend {
 public:
-    ZeroMQBackend(Serializer* serializer);
+    ZeroMQBackend(EventSerializer* event_serializer, LogSerializer* log_serializer);
     ~ZeroMQBackend();
 
     using cluster::Backend::PublishEvent;
@@ -46,7 +46,9 @@ public:
     bool PublishLogWrites(const logging::detail::LogWriteHeader& header,
                           zeek::Span<logging::detail::LogRecord> records) override;
 
-    static Backend* Instantiate(Serializer* serializer) { return new ZeroMQBackend(serializer); }
+    static Backend* Instantiate(EventSerializer* event_serializer, LogSerializer* log_serializer) {
+        return new ZeroMQBackend(event_serializer, log_serializer);
+    }
 
 private:
     std::unique_ptr<detail::ZeroMQManagerImpl> impl;

@@ -84,10 +84,9 @@ public:
 
     using RemoteMessage = std::variant<SubscriptionMessage, UnSubscriptionMessage, TopicMessage, LogMessage>;
 
-    ZeroMQManagerImpl(cluster::Serializer* serializer) : serializer(serializer) {
+    ZeroMQManagerImpl(cluster::EventSerializer* event_serializer, cluster::LogSerializer* log_serializer)
+        : event_serializer(event_serializer), log_serializer(log_serializer) {
         publish_buffer.reserve(4096); // magic
-
-        log_serializer = std::make_unique<zeek::cluster::detail::BinarySerializationFormatLogSerializer>();
     }
 
     // Populate C++ side variables from script land.
@@ -432,7 +431,7 @@ public:
 
     bool PublishEvent(const std::string& topic, const cluster::detail::Event& event) {
         publish_buffer.clear();
-        if ( ! serializer->SerializeEventInto(publish_buffer, event) )
+        if ( ! event_serializer->SerializeEventInto(publish_buffer, event) )
             return false;
 
         // XXX: xpub is polled from the background thread. Not sure it's safe to publish
@@ -449,7 +448,7 @@ public:
         std::array<zmq::const_buffer, 4> parts = {
             zmq::const_buffer(topic.data(), topic.size()),
             zmq::const_buffer(my_node_id.data(), my_node_id.size()),
-            zmq::const_buffer(serializer->Name().data(), serializer->Name().size()),
+            zmq::const_buffer(event_serializer->Name().data(), event_serializer->Name().size()),
             zmq::const_buffer(publish_buffer.data(), publish_buffer.size()),
         };
 
@@ -569,7 +568,7 @@ public:
             else if ( auto* tm = std::get_if<TopicMessage>(&msg) ) {
                 auto* payload = reinterpret_cast<const std::byte*>(tm->payload.data());
                 auto payload_size = tm->payload.size();
-                auto r = serializer->UnserializeEvent(payload, payload_size);
+                auto r = event_serializer->UnserializeEvent(payload, payload_size);
 
                 if ( ! r ) {
                     auto escaped = util::get_escaped_string(tm->payload, false);
@@ -616,8 +615,8 @@ public:
     const char* Tag() override { return "ZeroMQ"; }
 
 private:
-    std::unique_ptr<Serializer> serializer;
-    std::unique_ptr<cluster::detail::LogSerializer> log_serializer;
+    std::unique_ptr<EventSerializer> event_serializer;
+    std::unique_ptr<cluster::LogSerializer> log_serializer;
     cluster::detail::byte_buffer publish_buffer;
 
     // Script level variables.
@@ -664,7 +663,9 @@ void self_thread_fun(void* arg) {
 } // namespace detail
 
 
-ZeroMQBackend::ZeroMQBackend(Serializer* serializer) { impl = std::make_unique<detail::ZeroMQManagerImpl>(serializer); }
+ZeroMQBackend::ZeroMQBackend(EventSerializer* event_serializer, LogSerializer* log_serializer) {
+    impl = std::make_unique<detail::ZeroMQManagerImpl>(event_serializer, log_serializer);
+}
 ZeroMQBackend::~ZeroMQBackend() {}
 
 void ZeroMQBackend::InitPostScript() { impl->InitPostScript(); }

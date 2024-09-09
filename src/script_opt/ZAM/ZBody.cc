@@ -4,7 +4,9 @@
 
 #include "zeek/Desc.h"
 #include "zeek/EventHandler.h"
+#include "zeek/File.h"
 #include "zeek/Frame.h"
+#include "zeek/OpaqueVal.h"
 #include "zeek/Overflow.h"
 #include "zeek/RE.h"
 #include "zeek/Reporter.h"
@@ -12,7 +14,15 @@
 #include "zeek/Trigger.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/ZAM/Compile.h"
-#include "zeek/session/Manager.h"
+#include "zeek/script_opt/ZAM/Support.h"
+
+// Forward declarations from RunState.cc
+namespace zeek::run_state {
+extern double network_time;
+extern bool reading_traces;
+extern bool reading_live;
+extern bool terminating;
+} // namespace zeek::run_state
 
 namespace zeek::detail {
 

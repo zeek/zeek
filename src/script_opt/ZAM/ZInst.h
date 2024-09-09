@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "zeek/Desc.h"
 #include "zeek/Func.h"
 #include "zeek/TraverseTypes.h"
 #include "zeek/script_opt/ZAM/BuiltInSupport.h"

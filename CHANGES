@@ -1,3 +1,42 @@
+7.1.0-dev.259 | 2024-09-09 13:24:45 +0200
+
+  * script_opt/ZAM/IterInfo.h: Add missing Dict.h dependency (Arne Welzel, Corelight)
+
+    Triggered when trying to remove some other includes elsewhere.
+
+  * script_opt/ZAM: ZBody.h / Support.h: Cleanup includes, use forward declarations (Arne Welzel, Corelight)
+
+    Not sure the IsAny() convenience functions were really worth the
+    include zeek/Expr.h.
+
+  * script_opt/ZAM/Profile: Remove Zeek header includes (Arne Welzel, Corelight)
+
+    This can stand by itself.
+
+  * script_opt: Extend Support.h to break include dependencies (Arne Welzel, Corelight)
+
+    Rebuilding ZBody.cc is annoyingly slow with UBSAN or ASAN enabled. A rebuild
+    is currently triggered when touching Manager.h files like logging/Manager.h,
+    broker/Manager.h or file_analysis/Manager.h and various other headers that are
+    included from there or directly in ZBody.h.
+
+    Add tiny wrapper functions to Support.h that encapsulate the actual Zeek
+    functionality and move the includes to Support.cc instead. This will
+    cause frequent Support.cc rebuilds, but that is decently fast.
+
+    This comes at the expense of one indirect function call for some ops, but
+    its overhead should be negligible in comparison to a lookup for a
+    connection or component or a log_mgr->Write() call.
+
+  * script_opt: Do not include ZBody.h in ZAM/Validate.cc (Arne Welzel, Corelight)
+
+    Touching broker/Manager.h or logging/Manager.h or anything that's
+    included in ZBody.h results in a rebuild of a bunch of files in ZAM.
+    Particularly, ZAM/Validate.cc takes much too long to recompile for
+    me (45+ seconds) and apparently that's mostly by accident.
+
+    Clean up the ZAM/Validate.cc includes to prevent this.
+
 7.1.0-dev.252 | 2024-09-06 19:17:29 +0200
 
   * btest/ldap: Add regression test for #3919 (Arne Welzel, Corelight)

@@ -135,6 +135,7 @@ double non_analyzed_lifetime;
 double tcp_inactivity_timeout;
 double udp_inactivity_timeout;
 double icmp_inactivity_timeout;
+double unknown_ip_inactivity_timeout;
 
 int tcp_storm_thresh;
 double tcp_storm_interarrival_thresh;
@@ -263,6 +264,7 @@ void init_net_var() {
     tcp_inactivity_timeout = id::find_val("tcp_inactivity_timeout")->AsInterval();
     udp_inactivity_timeout = id::find_val("udp_inactivity_timeout")->AsInterval();
     icmp_inactivity_timeout = id::find_val("icmp_inactivity_timeout")->AsInterval();
+    unknown_ip_inactivity_timeout = id::find_val("unknown_ip_inactivity_timeout")->AsInterval();
 
     tcp_storm_thresh = id::find_val("tcp_storm_thresh")->AsCount();
     tcp_storm_interarrival_thresh = id::find_val("tcp_storm_interarrival_thresh")->AsInterval();

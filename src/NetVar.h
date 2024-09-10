@@ -36,6 +36,7 @@ extern double non_analyzed_lifetime;
 extern double tcp_inactivity_timeout;
 extern double udp_inactivity_timeout;
 extern double icmp_inactivity_timeout;
+extern double unknown_ip_inactivity_timeout;
 
 extern int tcp_storm_thresh;
 extern double tcp_storm_interarrival_thresh;

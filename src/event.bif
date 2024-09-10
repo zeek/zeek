@@ -163,7 +163,8 @@ event connection_timeout%(c: connection%);
 ##    connection_pending connection_rejected connection_reset connection_reused
 ##    connection_status_update connection_timeout scheduled_analyzer_applied
 ##    new_connection new_connection_contents partial_connection udp_inactivity_timeout
-##    tcp_inactivity_timeout icmp_inactivity_timeout conn_stats
+##    tcp_inactivity_timeout icmp_inactivity_timeout unknown_ip_inactivity_timeout
+##    conn_stats
 event connection_state_remove%(c: connection%);
 
 ## Generated when a connection 4-tuple is reused. This event is raised when Zeek

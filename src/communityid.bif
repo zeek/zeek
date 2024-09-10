@@ -49,8 +49,8 @@ function community_id_v1%(cid: conn_id, seed: count &default=0, do_base64: bool 
 
             break;
         case TRANSPORT_UNKNOWN:
-            emit_builtin_error("CommunityID: unknown transport layer", cid);
-            return zeek::make_intrusive<zeek::StringVal>("");
+            hash_proto = ntohs(orig_port->Port());
+            break;
         default:
             emit_builtin_error("CommunityID: unhandled transport layer", cid);
             return zeek::make_intrusive<zeek::StringVal>("");

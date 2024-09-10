@@ -1,5 +1,10 @@
 module PacketAnalyzer::IP;
 
+export {
+	## Default analyzer
+	const default_analyzer: PacketAnalyzer::Tag = PacketAnalyzer::ANALYZER_UNKNOWN_IP &redef;
+}
+
 const IPPROTO_TCP : count = 6;
 const IPPROTO_UDP : count = 17;
 const IPPROTO_ICMP : count = 1;

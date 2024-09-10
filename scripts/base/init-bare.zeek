@@ -1300,20 +1300,26 @@ const non_analyzed_lifetime = 0 secs &redef;
 ## If a TCP connection is inactive, time it out after this interval. If 0 secs,
 ## then don't time it out.
 ##
-## .. zeek:see:: udp_inactivity_timeout icmp_inactivity_timeout set_inactivity_timeout
+## .. zeek:see:: udp_inactivity_timeout icmp_inactivity_timeout unknown_ip_inactivity_timeout set_inactivity_timeout
 const tcp_inactivity_timeout = 5 min &redef;
 
 ## If a UDP flow is inactive, time it out after this interval. If 0 secs, then
 ## don't time it out.
 ##
-## .. zeek:see:: tcp_inactivity_timeout icmp_inactivity_timeout set_inactivity_timeout
+## .. zeek:see:: tcp_inactivity_timeout icmp_inactivity_timeout unknown_ip_inactivity_timeout set_inactivity_timeout
 const udp_inactivity_timeout = 1 min &redef;
 
 ## If an ICMP flow is inactive, time it out after this interval. If 0 secs, then
 ## don't time it out.
 ##
-## .. zeek:see:: tcp_inactivity_timeout udp_inactivity_timeout set_inactivity_timeout
+## .. zeek:see:: tcp_inactivity_timeout udp_inactivity_timeout unknown_ip_inactivity_timeout set_inactivity_timeout
 const icmp_inactivity_timeout = 1 min &redef;
+
+## If a flow with an unknown IP-based protocol is inactive, time it out after
+## this interval. If 0 secs, then don't time it out.
+##
+## .. zeek:see:: tcp_inactivity_timeout udp_inactivity_timeout icmp_inactivity_timeout set_inactivity_timeout
+const unknown_ip_inactivity_timeout = 1 min &redef;
 
 ## Number of FINs/RSTs in a row that constitute a "storm". Storms are reported
 ## as ``weird`` via the notice framework, and they must also come within

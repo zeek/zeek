@@ -213,11 +213,12 @@ type transport_proto: enum {
 ##    see :ref:`the manual's description of the connection record
 ##    <writing-scripts-connection-record>`.
 type conn_id: record {
-	orig_h: addr;	##< The originator's IP address.
-	orig_p: port;	##< The originator's port number.
-	resp_h: addr;	##< The responder's IP address.
-	resp_p: port;	##< The responder's port number.
-} &log;
+	orig_h: addr &log;	##< The originator's IP address.
+	orig_p: port &log;	##< The originator's port number.
+	resp_h: addr &log;	##< The responder's IP address.
+	resp_p: port &log;	##< The responder's port number.
+	proto: count;
+};
 
 ## The identifying 4-tuple of a uni-directional flow.
 ##
@@ -1300,20 +1301,26 @@ const non_analyzed_lifetime = 0 secs &redef;
 ## If a TCP connection is inactive, time it out after this interval. If 0 secs,
 ## then don't time it out.
 ##
-## .. zeek:see:: udp_inactivity_timeout icmp_inactivity_timeout set_inactivity_timeout
+## .. zeek:see:: udp_inactivity_timeout icmp_inactivity_timeout unknown_ip_inactivity_timeout set_inactivity_timeout
 const tcp_inactivity_timeout = 5 min &redef;
 
 ## If a UDP flow is inactive, time it out after this interval. If 0 secs, then
 ## don't time it out.
 ##
-## .. zeek:see:: tcp_inactivity_timeout icmp_inactivity_timeout set_inactivity_timeout
+## .. zeek:see:: tcp_inactivity_timeout icmp_inactivity_timeout unknown_ip_inactivity_timeout set_inactivity_timeout
 const udp_inactivity_timeout = 1 min &redef;
 
 ## If an ICMP flow is inactive, time it out after this interval. If 0 secs, then
 ## don't time it out.
 ##
-## .. zeek:see:: tcp_inactivity_timeout udp_inactivity_timeout set_inactivity_timeout
+## .. zeek:see:: tcp_inactivity_timeout udp_inactivity_timeout unknown_ip_inactivity_timeout set_inactivity_timeout
 const icmp_inactivity_timeout = 1 min &redef;
+
+## If a flow with an unknown IP-based protocol is inactive, time it out after
+## this interval. If 0 secs, then don't time it out.
+##
+## .. zeek:see:: tcp_inactivity_timeout udp_inactivity_timeout icmp_inactivity_timeout set_inactivity_timeout
+const unknown_ip_inactivity_timeout = 1 min &redef;
 
 ## Number of FINs/RSTs in a row that constitute a "storm". Storms are reported
 ## as ``weird`` via the notice framework, and they must also come within

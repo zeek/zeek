@@ -5,8 +5,8 @@
 #unset_field	-
 #path	conn
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
-#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.2.42	54297	192.168.88.100	502	tcp	modbus	0.022532	11	18	OTH	T	T	0	Dd	1	51	1	58	-
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.2.42	54298	192.168.88.100	502	tcp	modbus	3.019519	11	9	OTH	T	T	0	Dd	1	51	1	49	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents	protocol_id
+#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]	count
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.2.42	54297	192.168.88.100	502	tcp	modbus	0.022532	11	18	OTH	T	T	0	Dd	1	51	1	58	-	6
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.2.42	54298	192.168.88.100	502	tcp	modbus	3.019519	11	9	OTH	T	T	0	Dd	1	51	1	49	-	6
 #close XXXX-XX-XX-XX-XX-XX

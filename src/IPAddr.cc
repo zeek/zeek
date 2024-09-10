@@ -20,9 +20,9 @@ const IPAddr IPAddr::v6_unspecified = IPAddr();
 
 namespace detail {
 
-ConnKey::ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, TransportProto t,
+ConnKey::ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, uint8_t proto,
                  bool one_way) {
-    Init(src, dst, src_port, dst_port, t, one_way);
+    Init(src, dst, src_port, dst_port, proto, one_way);
 }
 
 ConnKey::ConnKey(const ConnTuple& id) {
@@ -60,12 +60,14 @@ ConnKey::ConnKey(Val* v) {
 
     int orig_h, orig_p; // indices into record's value list
     int resp_h, resp_p;
+    uint8_t proto;
 
     if ( vr == id::conn_id ) {
         orig_h = 0;
         orig_p = 1;
         resp_h = 2;
         resp_p = 3;
+        proto = 4;
     }
     else {
         // While it's not a conn_id, it may have equivalent fields.
@@ -73,13 +75,14 @@ ConnKey::ConnKey(Val* v) {
         resp_h = vr->FieldOffset("resp_h");
         orig_p = vr->FieldOffset("orig_p");
         resp_p = vr->FieldOffset("resp_p");
+        proto = vr->FieldOffset("proto");
 
-        if ( orig_h < 0 || resp_h < 0 || orig_p < 0 || resp_p < 0 ) {
+        if ( orig_h < 0 || resp_h < 0 || orig_p < 0 || resp_p < 0 || proto < 0 ) {
             valid = false;
             return;
         }
 
-        // ### we ought to check that the fields have the right
+        // TODO we ought to check that the fields have the right
         // types, too.
     }
 
@@ -89,11 +92,13 @@ ConnKey::ConnKey(Val* v) {
     auto orig_portv = vl->GetFieldAs<PortVal>(orig_p);
     auto resp_portv = vl->GetFieldAs<PortVal>(resp_p);
 
+    auto protov = vl->GetFieldAs<CountVal>(proto);
+
     Init(orig_addr, resp_addr, htons((unsigned short)orig_portv->Port()), htons((unsigned short)resp_portv->Port()),
-         orig_portv->PortType(), false);
+         protov, false);
 }
 
-void ConnKey::Init(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, TransportProto t,
+void ConnKey::Init(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, uint8_t proto,
                    bool one_way) {
     // Because of padding in the object, this needs to memset to clear out
     // the extra memory used by padding. Otherwise, the session key stuff
@@ -116,7 +121,7 @@ void ConnKey::Init(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint
         port2 = src_port;
     }
 
-    transport = t;
+    transport = proto;
     valid = true;
 }
 

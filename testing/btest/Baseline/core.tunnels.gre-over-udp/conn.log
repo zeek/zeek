@@ -5,12 +5,12 @@
 #unset_field	-
 #path	conn
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
-#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]
-XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	172.17.0.2	51714	1.1.1.1	53	udp	dns	0.054277	52	171	SF	T	F	0	Dd	2	108	2	227	ClEkJM2Vm5giqnMf4h
-XXXXXXXXXX.XXXXXX	CmES5u32sYpV7JYN	172.17.0.2	36518	192.0.78.150	80	tcp	http	0.107970	72	379	SF	T	F	0	ShADadFf	6	332	4	551	ClEkJM2Vm5giqnMf4h
-XXXXXXXXXX.XXXXXX	CP5puj4I8PtEU4qzYg	192.168.0.107	36527	192.168.5.1	4754	udp	-	0.080847	567	0	S0	T	T	0	D	4	679	0	0	-
-XXXXXXXXXX.XXXXXX	CUM0KZ3MLUfNB0cl11	192.168.0.107	40987	192.168.5.1	4754	udp	-	0.108139	356	0	S0	T	T	0	D	6	524	0	0	-
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.0.107	50343	192.168.5.1	4754	udp	-	0.000089	116	0	S0	T	T	0	D	2	172	0	0	-
-XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	192.168.0.107	53571	192.168.5.1	4754	udp	-	0.000039	235	0	S0	T	T	0	D	2	291	0	0	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents	protocol_id
+#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]	count
+XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	172.17.0.2	51714	1.1.1.1	53	udp	dns	0.054277	52	171	SF	T	F	0	Dd	2	108	2	227	ClEkJM2Vm5giqnMf4h	17
+XXXXXXXXXX.XXXXXX	CmES5u32sYpV7JYN	172.17.0.2	36518	192.0.78.150	80	tcp	http	0.107970	72	379	SF	T	F	0	ShADadFf	6	332	4	551	ClEkJM2Vm5giqnMf4h	6
+XXXXXXXXXX.XXXXXX	CP5puj4I8PtEU4qzYg	192.168.0.107	36527	192.168.5.1	4754	udp	-	0.080847	567	0	S0	T	T	0	D	4	679	0	0	-	17
+XXXXXXXXXX.XXXXXX	CUM0KZ3MLUfNB0cl11	192.168.0.107	40987	192.168.5.1	4754	udp	-	0.108139	356	0	S0	T	T	0	D	6	524	0	0	-	17
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.0.107	50343	192.168.5.1	4754	udp	-	0.000089	116	0	S0	T	T	0	D	2	172	0	0	-	17
+XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	192.168.0.107	53571	192.168.5.1	4754	udp	-	0.000039	235	0	S0	T	T	0	D	2	291	0	0	-	17
 #close XXXX-XX-XX-XX-XX-XX

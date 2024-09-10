@@ -40,7 +40,7 @@ bool ICMPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packe
 
     tuple.src_addr = packet->ip_hdr->SrcAddr();
     tuple.dst_addr = packet->ip_hdr->DstAddr();
-    tuple.proto = TRANSPORT_ICMP;
+    tuple.proto = packet->proto;
 
     const struct icmp* icmpp = (const struct icmp*)data;
     tuple.src_port = htons(icmpp->icmp_type);
@@ -312,6 +312,7 @@ zeek::RecordValPtr ICMPAnalyzer::ExtractICMP4Context(int len, const u_char*& dat
     id_val->Assign(1, val_mgr->Port(src_port, proto));
     id_val->Assign(2, make_intrusive<AddrVal>(dst_addr));
     id_val->Assign(3, val_mgr->Port(dst_port, proto));
+    id_val->Assign(4, IPPROTO_ICMP);
 
     iprec->Assign(0, std::move(id_val));
     iprec->Assign(1, val_mgr->Count(ip_len));
@@ -368,6 +369,7 @@ zeek::RecordValPtr ICMPAnalyzer::ExtractICMP6Context(int len, const u_char*& dat
     id_val->Assign(1, val_mgr->Port(src_port, proto));
     id_val->Assign(2, make_intrusive<AddrVal>(dst_addr));
     id_val->Assign(3, val_mgr->Port(dst_port, proto));
+    id_val->Assign(4, IPPROTO_ICMPV6);
 
     iprec->Assign(0, std::move(id_val));
     iprec->Assign(1, val_mgr->Count(ip_len));

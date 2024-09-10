@@ -17,11 +17,10 @@ event new_software()
 	{
 	local v = versions[version_index];
 	local cid = conn_id($orig_h = 127.0.0.1, $orig_p = 22/tcp,
-						$resp_h = 127.0.0.1, $resp_p = 22/tcp);
+			    $resp_h = 127.0.0.1, $resp_p = 22/tcp, $proto = 6);
 	local si = Software::Info($name=fake_software_name,
-							  $unparsed_version=fmt("%s %s",
-							  						fake_software_name, v),
-							  $host=127.0.0.1);
+				  $unparsed_version=fmt("%s %s", fake_software_name, v),
+				  $host=127.0.0.1);
 	Software::found(cid, si);
 
 	++version_index;

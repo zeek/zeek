@@ -33,6 +33,7 @@ static RecordValPtr get_conn_id_val(const Connection* conn) {
     v->Assign(1, val_mgr->Port(ntohs(conn->OrigPort()), conn->ConnTransport()));
     v->Assign(2, make_intrusive<AddrVal>(conn->RespAddr()));
     v->Assign(3, val_mgr->Port(ntohs(conn->RespPort()), conn->ConnTransport()));
+    v->Assign(4, conn->KeyProto());
     return v;
 }
 

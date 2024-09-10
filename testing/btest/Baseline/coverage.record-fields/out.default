@@ -10,6 +10,7 @@ connection {
             conn_id {
               * orig_h: addr, log=T, optional=F
               * orig_p: port, log=T, optional=F
+              * proto: count, log=F, optional=F
               * resp_h: addr, log=T, optional=F
               * resp_p: port, log=T, optional=F
              }
@@ -20,6 +21,7 @@ connection {
         * orig_ip_bytes: count, log=T, optional=T
         * orig_pkts: count, log=T, optional=T
         * proto: enum transport_proto, log=T, optional=F
+        * protocol_id: count, log=T, optional=T
         * resp_bytes: count, log=T, optional=T
         * resp_ip_bytes: count, log=T, optional=T
         * resp_pkts: count, log=T, optional=T

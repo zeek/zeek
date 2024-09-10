@@ -95,6 +95,7 @@
 @load protocols/conn/known-hosts.zeek
 @load protocols/conn/known-services.zeek
 @load protocols/conn/mac-logging.zeek
+@load protocols/conn/protocol-strings.zeek
 @load protocols/conn/vlan-logging.zeek
 @load protocols/conn/weirds.zeek
 #@load protocols/conn/speculative-service.zeek

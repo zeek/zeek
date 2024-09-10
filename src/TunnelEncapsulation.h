@@ -46,6 +46,7 @@ public:
           src_port(0),
           dst_port(0),
           proto(TRANSPORT_UNKNOWN),
+          proto_id(255),
           type(t),
           uid(UID(detail::bits_per_uid)) {}
 
@@ -70,6 +71,7 @@ public:
           src_port(other.src_port),
           dst_port(other.dst_port),
           proto(other.proto),
+          proto_id(other.proto_id),
           type(other.type),
           uid(other.uid) {}
 
@@ -85,6 +87,7 @@ public:
             src_port = other.src_port;
             dst_port = other.dst_port;
             proto = other.proto;
+            proto_id = other.proto_id;
             type = other.type;
             uid = other.uid;
             ip_hdr = other.ip_hdr;
@@ -106,7 +109,7 @@ public:
 
         if ( ec1.type == BifEnum::Tunnel::IP || ec1.type == BifEnum::Tunnel::GRE )
             // Reversing endpoints is still same tunnel.
-            return ec1.uid == ec2.uid && ec1.proto == ec2.proto &&
+            return ec1.uid == ec2.uid && ec1.proto == ec2.proto && ec1.proto_id == ec2.proto_id &&
                    ((ec1.src_addr == ec2.src_addr && ec1.dst_addr == ec2.dst_addr) ||
                     (ec1.src_addr == ec2.dst_addr && ec1.dst_addr == ec2.src_addr));
 
@@ -114,11 +117,13 @@ public:
             // Reversing endpoints is still same tunnel, destination port is
             // always the same.
             return ec1.dst_port == ec2.dst_port && ec1.uid == ec2.uid && ec1.proto == ec2.proto &&
+                   ec1.proto_id == ec2.proto_id &&
                    ((ec1.src_addr == ec2.src_addr && ec1.dst_addr == ec2.dst_addr) ||
                     (ec1.src_addr == ec2.dst_addr && ec1.dst_addr == ec2.src_addr));
 
         return ec1.src_addr == ec2.src_addr && ec1.dst_addr == ec2.dst_addr && ec1.src_port == ec2.src_port &&
-               ec1.dst_port == ec2.dst_port && ec1.uid == ec2.uid && ec1.proto == ec2.proto;
+               ec1.dst_port == ec2.dst_port && ec1.uid == ec2.uid && ec1.proto == ec2.proto &&
+               ec1.proto_id == ec2.proto_id;
     }
 
     friend bool operator!=(const EncapsulatingConn& ec1, const EncapsulatingConn& ec2) { return ! (ec1 == ec2); }
@@ -132,6 +137,7 @@ protected:
     uint16_t src_port;
     uint16_t dst_port;
     TransportProto proto;
+    uint8_t proto_id;
     BifEnum::Tunnel::Type type;
     UID uid;
 };

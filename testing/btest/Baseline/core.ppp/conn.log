@@ -5,9 +5,9 @@
 #unset_field	-
 #path	conn
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
-#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]
-0.000000	CHhAvVGS1DHFjwGM9	::	135	ff02::1:ff00:3	136	icmp	-	0.008000	48	0	OTH	T	F	0	-	2	144	0	0	-
-0.016059	ClEkJM2Vm5giqnMf4h	::	135	ff02::1:ff00:4	136	icmp	-	0.002000	48	0	OTH	T	F	0	-	2	144	0	0	-
-0.669020	C4J4Th3PJpwUYZZ6gc	193.167.0.100	42834	193.167.100.100	443	udp	-	0.112400	4039	11996	SF	F	F	0	Dd	10	4319	12	12332	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents	protocol_id
+#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]	count
+0.000000	CHhAvVGS1DHFjwGM9	::	135	ff02::1:ff00:3	136	icmp	-	0.008000	48	0	OTH	T	F	0	-	2	144	0	0	-	58
+0.016059	ClEkJM2Vm5giqnMf4h	::	135	ff02::1:ff00:4	136	icmp	-	0.002000	48	0	OTH	T	F	0	-	2	144	0	0	-	58
+0.669020	C4J4Th3PJpwUYZZ6gc	193.167.0.100	42834	193.167.100.100	443	udp	-	0.112400	4039	11996	SF	F	F	0	Dd	10	4319	12	12332	-	17
 #close XXXX-XX-XX-XX-XX-XX

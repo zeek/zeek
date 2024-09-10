@@ -315,6 +315,7 @@ zeek::RecordValPtr zeek::detail::build_dummy_conn_record()
 	id_val->Assign(1, zeek::val_mgr->Port(ntohs(0), TRANSPORT_UDP));
 	id_val->Assign(2, zeek::make_intrusive<zeek::AddrVal>((unsigned int) 0));
 	id_val->Assign(3, zeek::val_mgr->Port(ntohs(0), TRANSPORT_UDP));
+    id_val->Assign(4, 255);
 	c->Assign(0, std::move(id_val));
 
 	auto orig_endp = zeek::make_intrusive<zeek::RecordVal>(zeek::id::endpoint);

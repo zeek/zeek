@@ -60,7 +60,7 @@ struct ConnTuple {
     uint32_t src_port = 0;
     uint32_t dst_port = 0;
     bool is_one_way = false; // if true, don't canonicalize order
-    TransportProto proto = TRANSPORT_UNKNOWN;
+    uint8_t proto;
 };
 
 static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1, const IPAddr& addr2, uint32_t p2) {
@@ -134,6 +134,8 @@ public:
         else
             return "unknown";
     }
+
+    uint8_t KeyProto() const { return key.transport; }
 
     // Returns true if the packet reflects a reuse of this
     // connection (i.e., not a continuation but the beginning of

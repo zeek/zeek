@@ -252,6 +252,11 @@ protected:
      */
     bool ForwardPacket(size_t len, const uint8_t* data, Packet* packet) const;
 
+    /**
+     * Flag for whether to report unknown protocols in ForwardPacket.
+     */
+    bool report_unknown_protocols = true;
+
 private:
     // Internal helper to raise analyzer_confirmation events
     void EnqueueAnalyzerConfirmationInfo(session::Session* session, const zeek::Tag& arg_tag);
@@ -269,11 +274,6 @@ private:
     detail::Dispatcher dispatcher;
     AnalyzerPtr default_analyzer = nullptr;
     bool enabled = true;
-
-    /**
-     * Flag for whether to report unknown protocols in ForwardPacket.
-     */
-    bool report_unknown_protocols = true;
 
     std::set<AnalyzerPtr> analyzers_to_detect;
 

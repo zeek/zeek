@@ -24,12 +24,12 @@ function basic_functionality()
 	local t7: table[port, string, bool] of string = table();
 	local t8: table[port, string, bool] of string;
 	local t9 = table( [8/tcp, "type inference", T] = "this" );
-	local t10: table[port, string, bool] of string = { 
+	local t10: table[port, string, bool] of string = {
 		[10/udp, "curly", F] = "first",
 		[11/udp, "braces", T] = "second" };
 	local t11: table[conn_id, bool] of count = {
 	    [ [$orig_h=1.1.1.1, $orig_p=1234/tcp,
-	       $resp_h=2.2.2.2, $resp_p=4321/tcp], T ] = 42 };
+	       $resp_h=2.2.2.2, $resp_p=4321/tcp, $proto=6], T ] = 42 };
 
 	# Type inference tests
 
@@ -99,7 +99,7 @@ function basic_functionality()
 
 	t1[5] = "overwrite";
 	test_case( "overwrite element", |t1| == 2 && t1[5] == "overwrite" );
- 
+
 	# Test adding elements to each table (Note: cannot add elements to
 	# tables of multiple types)
 
@@ -127,11 +127,11 @@ function basic_functionality()
 	test_case( "in operator", 10 in t5 );
 
 	local cid = [$orig_h=1.1.1.1, $orig_p=1234/tcp,
-	             $resp_h=2.2.2.2, $resp_p=4321/tcp];
-	t11[[$orig_h=[::1], $orig_p=3/tcp, $resp_h=[::2], $resp_p=3/tcp], F] = 3;
+	             $resp_h=2.2.2.2, $resp_p=4321/tcp, $proto=6];
+	t11[[$orig_h=[::1], $orig_p=3/tcp, $resp_h=[::2], $resp_p=3/tcp, $proto=6], F] = 3;
 	test_case( "composite index add element", |t11| == 2 );
 	test_case( "composite index in operator", [cid, T] in t11 );
-	test_case( "composite index in operator", [[$orig_h=[::1], $orig_p=3/tcp, $resp_h=[::2], $resp_p=3/tcp], F] in t11 );
+	test_case( "composite index in operator", [[$orig_h=[::1], $orig_p=3/tcp, $resp_h=[::2], $resp_p=3/tcp, $proto=6], F] in t11 );
 
 	# Test removing elements from each table (Note: cannot remove elements
 	# from tables of multiple types)

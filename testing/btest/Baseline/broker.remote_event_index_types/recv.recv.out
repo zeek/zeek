@@ -12,7 +12,7 @@ setrecord, {
 [a=97, b=B]
 }
 setfunction, {
-foo
+foo: function() : void
 { 
 print foo;
 }
@@ -33,7 +33,7 @@ tablerecord, {
 [[a=97, b=B]] = trec
 }
 tablefunction, {
-[foo
+[foo: function() : void
 { 
 print foo;
 }] = tfunc

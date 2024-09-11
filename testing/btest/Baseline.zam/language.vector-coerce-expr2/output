@@ -2,7 +2,7 @@
 [5.5, 5.2, -3.9, 20.0]
 [11, 5, , 107, , , 1046]
 [-2, -4, , -7, , -18, -999]
-[connT
-ZAM-code connT, connF
-ZAM-code connF, connMaybe
+[connT: function(c:connection, r:recursive) : bool
+ZAM-code connT, connF: function(c:connection, r:recursive) : bool
+ZAM-code connF, connMaybe: function(c:connection, r:recursive) : bool
 ZAM-code connMaybe]

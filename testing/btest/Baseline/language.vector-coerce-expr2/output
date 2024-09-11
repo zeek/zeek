@@ -3,13 +3,13 @@
 [11, 5, , 107, , , 1046]
 [-2, -4, , -7, , -18, -999]
 [, -1, 11, 15]
-[connT
+[connT: function(c:connection, r:recursive) : bool
 { 
 return (T);
-}, connF
+}, connF: function(c:connection, r:recursive) : bool
 { 
 return (F);
-}, connMaybe
+}, connMaybe: function(c:connection, r:recursive) : bool
 { 
 return (c$id$orig_p < c$id$resp_p);
 }]

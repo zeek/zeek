@@ -1,3 +1,18 @@
+7.1.0-dev.305 | 2024-09-11 16:55:55 +0200
+
+  * Spicy SSL analyzer:
+
+    This commit adds an alternative Spicy-based SSL analyzer. It supports
+    nearly the entire functionality of the current binpac analyzer, with
+    the exception of DTLS and decryption.
+
+    This currently is mostly for internal tests, or for Spicy testing purposes.
+    There is no functional advantage to use the Spicy based analyzer - it does
+    not have any additional features.
+
+    It is currently gated behind a configure-time flag that needs to be provided
+    to enable it (--enable-spicy-ssl).
+
 7.1.0-dev.259 | 2024-09-09 13:24:45 +0200
 
   * script_opt/ZAM/IterInfo.h: Add missing Dict.h dependency (Arne Welzel, Corelight)

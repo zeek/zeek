@@ -1,8 +1,12 @@
 
 %%{
 #include <openssl/x509.h>
-#include "zeek/analyzer/protocol/ssl/SSL.h"
 #include "zeek/Reporter.h"
+#include "zeek/zeek-config.h"
+
+#ifndef ENABLE_SPICY_SSL
+#include "zeek/analyzer/protocol/ssl/SSL.h"
+#endif
 %%}
 
 ## Sets if the SSL analyzer should consider the connection established (handshake
@@ -13,6 +17,8 @@
 ## Returns: T on success, F on failure.
 function set_ssl_established%(c: connection%): bool
 	%{
+#ifndef ENABLE_SPICY_SSL
+/* not implemented for Spicy ssl */
 	zeek::analyzer::Analyzer* sa = c->FindAnalyzer("SSL");
 
 	if ( sa )
@@ -20,6 +26,7 @@ function set_ssl_established%(c: connection%): bool
 		static_cast<zeek::analyzer::ssl::SSL_Analyzer*>(sa)->StartEncryption();
 		return zeek::val_mgr->True();
 		}
+#endif
 
 	return zeek::val_mgr->False();
 	%}
@@ -34,6 +41,8 @@ function set_ssl_established%(c: connection%): bool
 ## Returns: T on success, F on failure.
 function set_secret%(c: connection, secret: string%): bool
 	%{
+#ifndef ENABLE_SPICY_SSL
+/* not implemented for Spicy ssl */
 	analyzer::Analyzer* sa = c->FindAnalyzer("SSL");
 
 	if ( sa )
@@ -41,6 +50,7 @@ function set_secret%(c: connection, secret: string%): bool
 		static_cast<zeek::analyzer::ssl::SSL_Analyzer*>(sa)->SetSecret(*secret);
 		return zeek::val_mgr->True();
 		}
+#endif
 
 	return zeek::val_mgr->False();
 	%}
@@ -55,6 +65,8 @@ function set_secret%(c: connection, secret: string%): bool
 ## Returns: T on success, F on failure.
 function set_keys%(c: connection, keys: string%): bool
 	%{
+#ifndef ENABLE_SPICY_SSL
+/* not implemented for Spicy ssl */
 	analyzer::Analyzer* sa = c->FindAnalyzer("SSL");
 
 	if ( sa )
@@ -62,6 +74,7 @@ function set_keys%(c: connection, keys: string%): bool
 		static_cast<zeek::analyzer::ssl::SSL_Analyzer*>(sa)->SetKeys(*keys);
 		return zeek::val_mgr->True();
 		}
+#endif
 
 	return zeek::val_mgr->False();
 	%}

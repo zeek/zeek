@@ -7,5 +7,5 @@ PASS: expected '1:HhA1B+6CoLbiKPEs5nhNYN4XWfk=', got '1:HhA1B+6CoLbiKPEs5nhNYN4X
 PASS: expected '1:OShq+iKDAMVouh/4bMxB9Sz4amw=', got '1:OShq+iKDAMVouh/4bMxB9Sz4amw=' ([orig_h=1.2.3.4, orig_p=1122/udp, resp_h=5.6.7.8, resp_p=3344/udp], seed=1)
 PASS: expected '1:9pr4ZGTICiuZoIh90RRYE2RyXpU=', got '1:9pr4ZGTICiuZoIh90RRYE2RyXpU=' ([orig_h=1.2.3.4, orig_p=8/icmp, resp_h=5.6.7.8, resp_p=0/icmp], seed=1)
 PASS: expected '1:IO27GQzPuCtNnwFvjWALMHu5tJE=', got '1:IO27GQzPuCtNnwFvjWALMHu5tJE=' ([orig_h=fe80:1:203:405:607:809:a0b:c0d, orig_p=128/icmp, resp_h=fe80:1011:1213:1415:1617:1819:1a1b:1c1d, resp_p=129/icmp], seed=1)
-PASS: expected '', got '' ([orig_h=1.2.3.4, orig_p=0/unknown, resp_h=5.6.7.8, resp_p=0/unknown], seed=0)
-PASS: expected '', got '' ([orig_h=fe80:1:203:405:607:809:a0b:c0d, orig_p=0/unknown, resp_h=fe80:1011:1213:1415:1617:1819:1a1b:1c1d, resp_p=0/unknown], seed=1)
+FAIL: expected '', got '1:sryUGlncUGOU9hpA1tO/7SLUdWU=' ([orig_h=1.2.3.4, orig_p=0/unknown, resp_h=5.6.7.8, resp_p=0/unknown], seed=0)
+FAIL: expected '', got '1:lSXdOyOzJ1psY9gnKXzWdOBI6uo=' ([orig_h=fe80:1:203:405:607:809:a0b:c0d, orig_p=0/unknown, resp_h=fe80:1011:1213:1415:1617:1819:1a1b:1c1d, resp_p=0/unknown], seed=1)

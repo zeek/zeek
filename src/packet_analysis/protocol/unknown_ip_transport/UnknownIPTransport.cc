@@ -11,10 +11,16 @@ using namespace zeek::packet_analysis::UnknownIPTransport;
 using namespace zeek::packet_analysis::IP;
 
 UnknownIPTransportAnalyzer::UnknownIPTransportAnalyzer()
-    : IPBasedAnalyzer("Unknown_IP_Transport", TRANSPORT_UNKNOWN, 0 /*mask*/, false) {}
+    : IPBasedAnalyzer("Unknown_IP_Transport", TRANSPORT_UNKNOWN, 0 /*mask*/, true) {}
 
 bool UnknownIPTransportAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
     IPBasedAnalyzer::AnalyzePacket(len, data, packet);
+
+    packet->processed = false;
+
+    if ( report_unknown_protocols )
+        packet_mgr->ReportUnknownProtocol(GetAnalyzerName(), htons(packet->ip_hdr->NextProto()), data, len);
+
     return false;
 }
 
@@ -32,9 +38,8 @@ bool UnknownIPTransportAnalyzer::BuildConnTuple(size_t len, const uint8_t* data,
     tuple.dst_addr = packet->ip_hdr->DstAddr();
     tuple.proto = TRANSPORT_UNKNOWN;
 
-    // Unknown IP encodes the protocol identifier in the port field so it can be logged
+    // Unknown IP encodes the protocol identifier in the source port field so it can be logged
     tuple.src_port = htons(uint16_t(packet->ip_hdr->NextProto()));
-    tuple.dst_port = htons(uint16_t(packet->ip_hdr->NextProto()));
 
     return true;
 }

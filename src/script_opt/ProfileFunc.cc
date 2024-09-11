@@ -584,8 +584,9 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred
         // side effects.
 
         // Propagate previous hash if requested.
-        if ( ! compute_func_hashes && f.Profile() )
-            pf->SetHashVal(f.Profile()->HashVal());
+        auto prev_pf = f.Profile();
+        if ( ! compute_func_hashes && prev_pf && prev_pf->HasHashVal() )
+            pf->SetHashVal(prev_pf->HashVal());
 
         f.SetProfile(std::move(pf));
         func_profs[f.Func()] = f.ProfilePtr();
@@ -834,17 +835,20 @@ void ProfileFuncs::ComputeTypeHashes(const std::vector<const Type*>& types) {
 }
 
 void ProfileFuncs::ComputeBodyHashes(std::vector<FuncInfo>& funcs) {
-    if ( compute_func_hashes )
-        for ( auto& f : funcs )
-            if ( ! f.ShouldSkip() )
-                ComputeProfileHash(f.ProfilePtr());
+    for ( auto& f : funcs ) {
+        if ( f.ShouldSkip() )
+            continue;
+        auto pf = f.ProfilePtr();
+        if ( compute_func_hashes || ! pf->HasHashVal() )
+            ComputeProfileHash(f.ProfilePtr());
+    }
 
     for ( auto& l : lambdas ) {
         auto pf = ExprProf(l);
         func_profs[l->PrimaryFunc().get()] = pf;
         lambda_primaries[l->Name()] = l->PrimaryFunc().get();
 
-        if ( compute_func_hashes )
+        if ( compute_func_hashes || ! pf->HasHashVal() )
             ComputeProfileHash(pf);
     }
 }
@@ -856,6 +860,12 @@ void ProfileFuncs::ComputeProfileHash(std::shared_ptr<ProfileFunc> pf) {
     // prevent collisions due to elements with simple hashes
     // (such as Stmt's or Expr's that are only represented by
     // the hash of their tag).
+    h = merge_p_hashes(h, p_hash("params"));
+    auto& ov = pf->ProfiledScope()->OrderedVars();
+    int n = pf->NumParams();
+    for ( int i = 0; i < n; ++i )
+        h = merge_p_hashes(h, p_hash(ov[i]->Name()));
+
     h = merge_p_hashes(h, p_hash("stmts"));
     for ( auto i : pf->Stmts() )
         h = merge_p_hashes(h, p_hash(i->Tag()));

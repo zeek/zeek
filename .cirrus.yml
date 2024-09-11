@@ -229,17 +229,6 @@ debian12_binary_task:
   env:
     ZEEK_CI_CONFIGURE_FLAGS: *BINARY_CONFIG
 
-debian12_spicy_ssl_task:
-  container:
-    # Just use a recent/common distro to run a test using spicy ssl.
-    # Debian 12 (bookworm) EOL: TBD
-    dockerfile: ci/debian-12/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-  << : *SKIP_TASK_ON_PR
-  env:
-    ZEEK_CI_CONFIGURE_FLAGS: *SPICY_SSL_CONFIG
-
 debian11_task:
   container:
     # Debian 11 EOL: June 2026
@@ -298,6 +287,7 @@ ubuntu22_task:
         $CIRRUS_BRANCH =~ 'release/.*' ||
         $CIRRUS_CRON == 'benchmark-nightly' )
 
+# Also enable Spicy SSL for this
 ubuntu22_spicy_task:
   container:
     # Ubuntu 22.04 EOL: April 2027
@@ -306,7 +296,7 @@ ubuntu22_spicy_task:
   << : *CI_TEMPLATE
   env:
     ZEEK_CI_CREATE_ARTIFACT: 1
-  test_script: true  # Don't run tests, these are redundant.
+    ZEEK_CI_CONFIGURE_FLAGS: *SPICY_SSL_CONFIG
   spicy_install_analyzers_script: ./ci/spicy-install-analyzers.sh
   upload_binary_artifacts:
     path: build.tgz

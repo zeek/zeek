@@ -33,6 +33,20 @@ if (NOT ENABLE_SPICY_SSL)
         ssl-dtls-protocol.pac
         dtls-protocol.pac
         ssl-defs.pac)
+
+    if (NOT DISABLE_SPICY)
+        # Even if we are using the binpac SSL analyzer make sure the Spicy
+        # analyzer builds successfully. We use a debug build (`-d`) to perform
+        # a faster build.
+        add_custom_command(
+            OUTPUT spicy-ssl.hlto
+            COMMENT "Compiling Spicy SSL analyzer"
+            COMMAND spicyz -d spicy/SSL.spicy spicy/SSL.evt spicy/support.cc -o
+                    ${CMAKE_CURRENT_BINARY_DIR}/spicy-ssl.hlto
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            DEPENDS spicyz spicy/SSL.spicy spicy/SSL.evt spicy/support.cc)
+        add_custom_target(spicy-ssl ALL DEPENDS spicy-ssl.hlto)
+    endif ()
 else ()
     add_subdirectory(spicy)
     zeek_add_plugin(Zeek SSL SOURCES Plugin.cc BIFS functions.bif)

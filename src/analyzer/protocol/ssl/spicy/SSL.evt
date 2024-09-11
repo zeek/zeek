@@ -1,3 +1,5 @@
+# Copyright (c) 2024 by the Zeek Project. See LICENSE for details.
+
 protocol analyzer SSL over TCP:
 	parse with SSL::Message;
 
@@ -84,4 +86,4 @@ on SSL::CertificateStatus -> event ssl_stapled_ocsp($conn, $is_orig, self.respon
 on SSL::CertificateRequest if ( SSL::uses_signature_and_hashalgorithm(sh) ) -> event ssl_certificate_request($conn, SSL::get_direction(sh), self.certificate_types, self.supported_signature_algorithms.supported_signature_algorithms_converted, self.certificate_authorities);
 on SSL::CertificateRequest if ( ! SSL::uses_signature_and_hashalgorithm(sh) ) -> event ssl_certificate_request($conn, SSL::get_direction(sh), self.certificate_types, SSL::create_empty_sigmature_algorithms(), self.certificate_authorities);
 
-on SSL::DirectionCheck::%done if ( self.was_flipped ) -> event ssl_connection_flipped($conn);
+on SSL::DirectionCheck if ( self.was_flipped ) -> event ssl_connection_flipped($conn);

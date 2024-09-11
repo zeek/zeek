@@ -594,7 +594,7 @@ void IntervalVal::ValDescribe(ODesc* d) const {
     }
 }
 
-ValPtr PortVal::SizeVal() const { return val_mgr->Int(uint_val); }
+ValPtr PortVal::SizeVal() const { return val_mgr->Count(uint_val); }
 
 uint32_t PortVal::Mask(uint32_t port_num, TransportProto port_type) {
     // Note, for ICMP one-way connections:
@@ -3133,10 +3133,10 @@ unsigned int RecordVal::ComputeFootprint(std::unordered_set<const Val*>* analyze
     return fp;
 }
 
-ValPtr EnumVal::SizeVal() const { return val_mgr->Int(AsInt()); }
+ValPtr EnumVal::SizeVal() const { return val_mgr->Count(AsCount()); }
 
 void EnumVal::ValDescribe(ODesc* d) const {
-    const char* ename = type->AsEnumType()->Lookup(int_val);
+    const char* ename = type->AsEnumType()->Lookup(uint_val);
 
     if ( ! ename )
         ename = "<undefined>";

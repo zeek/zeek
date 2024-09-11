@@ -4,7 +4,6 @@
 
 #include <sys/types.h> // for u_char
 #include <array>
-#include <list>
 #include <unordered_map>
 #include <variant>
 #include <vector>
@@ -1497,7 +1496,7 @@ private:
     const std::vector<bool>& is_managed;
 };
 
-class EnumVal final : public detail::IntValImplementation {
+class EnumVal final : public detail::UnsignedValImplementation {
 public:
     ValPtr SizeVal() const override;
 
@@ -1505,12 +1504,12 @@ protected:
     friend class Val;
     friend class EnumType;
 
-    friend EnumValPtr make_enum__CPP(TypePtr t, zeek_int_t i);
+    friend EnumValPtr make_enum__CPP(TypePtr t, zeek_uint_t i);
 
     template<class T, class... Ts>
     friend IntrusivePtr<T> make_intrusive(Ts&&... args);
 
-    EnumVal(EnumTypePtr t, zeek_int_t i) : detail::IntValImplementation(std::move(t), i) {}
+    EnumVal(EnumTypePtr t, zeek_uint_t i) : detail::UnsignedValImplementation(std::move(t), i) {}
 
     void ValDescribe(ODesc* d) const override;
     ValPtr DoClone(CloneState* state) override;

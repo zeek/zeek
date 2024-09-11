@@ -25,6 +25,10 @@ Breaking Changes
   are not affected by this change, so we keep backwards compatibility with
   existing log writers.
 
+* Enum values can no longer be negative even if created internally. This is
+  enforced at parse time for scripts, but not internally. With this change, the
+  ``|...|`` operator for enums will properly return a count in all instances.
+
 New Functionality
 -----------------
 

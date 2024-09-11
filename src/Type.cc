@@ -1542,6 +1542,12 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name, zeek
         return;
     }
 
+    if ( val < 0 ) {
+        reporter->Error("enumerator value cannot be negative");
+        SetError();
+        return;
+    }
+
     auto fullname = detail::make_full_var_name(module_name.c_str(), name);
     auto id = id::find(fullname);
 

@@ -511,6 +511,7 @@ FuncTypeInfo::FuncTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, st
     flavor = f->Flavor();
     params = f->Params();
     yield = f->Yield();
+    expressionless_return_okay = f->ExpressionlessReturnOkay();
 
     auto gi = c->RegisterType(params);
     if ( gi )
@@ -527,6 +528,7 @@ void FuncTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const {
     ivs.emplace_back(Fmt(c->TypeOffset(params)));
     ivs.emplace_back(Fmt(yield ? c->TypeOffset(yield) : -1));
     ivs.emplace_back(Fmt(static_cast<int>(flavor)));
+    ivs.emplace_back(Fmt(static_cast<int>(expressionless_return_okay)));
 }
 
 RecordTypeInfo::RecordTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, std::move(_t)) {

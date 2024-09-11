@@ -357,6 +357,7 @@ TypePtr CPP_TypeInits::BuildFuncType(InitsManager* im, ValElemVec& init_vals) co
     auto p = cast_intrusive<RecordType>(im->Types(init_vals[1]));
     auto yield_i = init_vals[2];
     auto flavor = static_cast<FunctionFlavor>(init_vals[3]);
+    auto expressionless_return_okay = static_cast<FunctionFlavor>(init_vals[4]);
 
     TypePtr y;
 
@@ -366,7 +367,9 @@ TypePtr CPP_TypeInits::BuildFuncType(InitsManager* im, ValElemVec& init_vals) co
     else if ( flavor == FUNC_FLAVOR_FUNCTION || flavor == FUNC_FLAVOR_HOOK )
         y = base_type(TYPE_VOID);
 
-    return make_intrusive<FuncType>(p, y, flavor);
+    auto ft = make_intrusive<FuncType>(p, y, flavor);
+    ft->SetExpressionlessReturnOkay(expressionless_return_okay);
+    return ft;
 }
 
 TypePtr CPP_TypeInits::BuildRecordType(InitsManager* im, ValElemVec& init_vals, int offset) const {

@@ -4,13 +4,13 @@
 
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 
-namespace zeek::packet_analysis::UnknownIP {
+namespace zeek::packet_analysis::UnknownIPTransport {
 
 class UnknownIPSessionAdapter final : public IP::SessionAdapter {
 public:
-    UnknownIPSessionAdapter(Connection* conn) : IP::SessionAdapter("Unknown_IP", conn) {}
+    UnknownIPSessionAdapter(Connection* conn) : IP::SessionAdapter("Unknown_IP_Transport", conn) {}
 
     void AddExtraAnalyzers(Connection* conn) override;
 };
 
-} // namespace zeek::packet_analysis::UnknownIP
+} // namespace zeek::packet_analysis::UnknownIPTransport

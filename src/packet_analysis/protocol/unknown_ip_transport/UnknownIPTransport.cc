@@ -1,18 +1,24 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/packet_analysis/protocol/unknown_ip//UnknownIP.h"
+#include "zeek/packet_analysis/protocol/unknown_ip_transport/UnknownIPTransport.h"
 
 #include "zeek/Conn.h"
 #include "zeek/RunState.h"
-#include "zeek/packet_analysis/protocol/unknown_ip//UnknownIPSessionAdapter.h"
+#include "zeek/packet_analysis/protocol/unknown_ip_transport/UnknownIPSessionAdapter.h"
 #include "zeek/session/Manager.h"
 
-using namespace zeek::packet_analysis::UnknownIP;
+using namespace zeek::packet_analysis::UnknownIPTransport;
 using namespace zeek::packet_analysis::IP;
 
-UnknownIPAnalyzer::UnknownIPAnalyzer() : IPBasedAnalyzer("Unknown_IP", TRANSPORT_UNKNOWN, 0 /*mask*/, false) {}
+UnknownIPTransportAnalyzer::UnknownIPTransportAnalyzer()
+    : IPBasedAnalyzer("Unknown_IP_Transport", TRANSPORT_UNKNOWN, 0 /*mask*/, false) {}
 
-SessionAdapter* UnknownIPAnalyzer::MakeSessionAdapter(Connection* conn) {
+bool UnknownIPTransportAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
+    IPBasedAnalyzer::AnalyzePacket(len, data, packet);
+    return false;
+}
+
+SessionAdapter* UnknownIPTransportAnalyzer::MakeSessionAdapter(Connection* conn) {
     auto* root = new UnknownIPSessionAdapter(conn);
     root->SetParent(this);
 
@@ -21,7 +27,7 @@ SessionAdapter* UnknownIPAnalyzer::MakeSessionAdapter(Connection* conn) {
     return root;
 }
 
-bool UnknownIPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet, ConnTuple& tuple) {
+bool UnknownIPTransportAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet, ConnTuple& tuple) {
     tuple.src_addr = packet->ip_hdr->SrcAddr();
     tuple.dst_addr = packet->ip_hdr->DstAddr();
     tuple.proto = TRANSPORT_UNKNOWN;
@@ -33,7 +39,7 @@ bool UnknownIPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* 
     return true;
 }
 
-void UnknownIPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remaining, Packet* pkt) {
+void UnknownIPTransportAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remaining, Packet* pkt) {
     auto* adapter = static_cast<UnknownIPSessionAdapter*>(c->GetSessionAdapter());
 
     const u_char* data = pkt->ip_hdr->Payload();

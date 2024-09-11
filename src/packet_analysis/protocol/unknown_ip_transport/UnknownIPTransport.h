@@ -7,16 +7,18 @@
 #include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 
-namespace zeek::packet_analysis::UnknownIP {
+namespace zeek::packet_analysis::UnknownIPTransport {
 
 class UnknownIPSessionAdapter;
 
-class UnknownIPAnalyzer final : public IP::IPBasedAnalyzer {
+class UnknownIPTransportAnalyzer final : public IP::IPBasedAnalyzer {
 public:
-    UnknownIPAnalyzer();
-    ~UnknownIPAnalyzer() override = default;
+    UnknownIPTransportAnalyzer();
+    ~UnknownIPTransportAnalyzer() override = default;
 
-    static zeek::packet_analysis::AnalyzerPtr Instantiate() { return std::make_shared<UnknownIPAnalyzer>(); }
+    static zeek::packet_analysis::AnalyzerPtr Instantiate() { return std::make_shared<UnknownIPTransportAnalyzer>(); }
+
+    bool AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) override;
 
     packet_analysis::IP::SessionAdapter* MakeSessionAdapter(Connection* conn) override;
 
@@ -29,4 +31,4 @@ protected:
     void DeliverPacket(Connection* c, double t, bool is_orig, int remaining, Packet* pkt) override;
 };
 
-} // namespace zeek::packet_analysis::UnknownIP
+} // namespace zeek::packet_analysis::UnknownIPTransport

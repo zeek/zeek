@@ -2,7 +2,7 @@ module PacketAnalyzer::IP;
 
 export {
 	## Default analyzer
-	const default_analyzer: PacketAnalyzer::Tag = PacketAnalyzer::ANALYZER_UNKNOWN_IP &redef;
+	const default_analyzer: PacketAnalyzer::Tag = PacketAnalyzer::ANALYZER_UNKNOWN_IP_TRANSPORT &redef;
 }
 
 const IPPROTO_TCP : count = 6;

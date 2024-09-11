@@ -1134,8 +1134,10 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n) {
     ZInstI z;
 
     if ( call_case == 0 ) {
-        if ( n )
+        if ( n ) {
             z = ZInstI(AssignmentFlavor(OP_CALL0_V, nt), n_slot);
+            z.SetType(n->GetType());
+        }
         else
             z = ZInstI(OP_CALL0_X);
     }
@@ -1228,6 +1230,8 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n) {
                 z = ZInstI(op, n_slot);
                 z.op_type = OP_V;
             }
+
+            z.SetType(n->GetType());
         }
         else {
             if ( indirect && ! func_id->IsGlobal() ) {
@@ -1262,9 +1266,6 @@ const ZAMStmt ZAMCompiler::DoCall(const CallExpr* c, const NameExpr* n) {
     }
 
     z.aux->call_expr = {NewRef{}, const_cast<CallExpr*>(c)};
-
-    if ( in_when )
-        z.SetType(n->GetType());
 
     if ( ! indirect || func_id->IsGlobal() ) {
         z.aux->id_val = func_id;

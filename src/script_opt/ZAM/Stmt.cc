@@ -650,7 +650,7 @@ const ZAMStmt ZAMCompiler::While(const Stmt* cond_stmt, const Expr* cond, const 
     if ( body && body->Tag() != STMT_NULL )
         (void)CompileStmt(body);
 
-    AddCFT(insts1.back(), CFT_BLOCK_END);
+    AddCFT(insts1.back(), CFT_LOOP_END);
 
     auto tail = GoTo(GoToTarget(head));
 
@@ -849,7 +849,7 @@ const ZAMStmt ZAMCompiler::Loop(const Stmt* body) {
     auto b = CompileStmt(body);
 
     AddCFT(insts1[head.stmt_num], CFT_LOOP);
-    AddCFT(insts1[b.stmt_num], CFT_BLOCK_END);
+    AddCFT(insts1[b.stmt_num], CFT_LOOP_END);
 
     auto tail = GoTo(GoToTarget(head));
 
@@ -863,14 +863,15 @@ const ZAMStmt ZAMCompiler::FinishLoop(const ZAMStmt iter_head, ZInstI& iter_stmt
                                       bool is_table) {
     auto loop_iter = AddInst(iter_stmt);
     auto body_end = CompileStmt(body);
-    AddCFT(insts1[body_end.stmt_num], CFT_BLOCK_END);
+
+    auto loop_end = GoTo(GoToTarget(iter_head));
+    AddCFT(insts1[loop_end.stmt_num], CFT_LOOP_END);
 
     // We only need cleanup for looping over tables, but for now we
     // need some sort of placeholder instruction (until the optimizer
     // can elide it) to resolve loop exits.
     ZOp op = is_table ? OP_END_TABLE_LOOP_f : OP_NOP;
 
-    auto loop_end = GoTo(GoToTarget(iter_head));
     auto z = ZInstI(op, iter_slot);
     z.op_type = is_table ? OP_V_I1 : OP_X;
     auto final_stmt = AddInst(z);

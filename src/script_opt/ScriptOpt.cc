@@ -241,7 +241,7 @@ static void optimize_func(ScriptFuncPtr f, std::shared_ptr<ProfileFunc> pf, std:
         if ( reporter->Errors() > 0 )
             return;
 
-        if ( analysis_options.dump_ZAM )
+        if ( analysis_options.dump_final_ZAM )
             ZAM.Dump();
 
         f->ReplaceBody(body, new_body);
@@ -275,6 +275,7 @@ static void init_options() {
     check_env_opt("ZEEK_NO_ZAM_OPT", analysis_options.no_ZAM_opt);
     check_env_opt("ZEEK_NO_ZAM_CONTROL_FLOW_OPT", analysis_options.no_ZAM_control_flow_opt);
     check_env_opt("ZEEK_DUMP_ZAM", analysis_options.dump_ZAM);
+    check_env_opt("ZEEK_DUMP_FINAL_ZAM", analysis_options.dump_final_ZAM);
     check_env_opt("ZEEK_PROFILE", analysis_options.profile_ZAM);
 
     // Compile-to-C++-related options.
@@ -339,7 +340,7 @@ static void init_options() {
     }
 
     if ( analysis_options.dump_ZAM )
-        analysis_options.gen_ZAM_code = true;
+        analysis_options.dump_final_ZAM = analysis_options.gen_ZAM_code = true;
 
     if ( ! analysis_options.only_funcs.empty() || ! analysis_options.only_files.empty() ) {
         if ( analysis_options.gen_ZAM_code || generating_CPP )

@@ -672,6 +672,8 @@ std::optional<BrokerData> ScriptFunc::SerializeCaptures() const {
 
 void ScriptFunc::Describe(ODesc* d) const {
     d->Add(GetName().c_str());
+    d->AddSP(":");
+    type->Describe(d);
 
     d->NL();
     d->AddCount(frame_size);

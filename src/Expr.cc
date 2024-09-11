@@ -4368,7 +4368,7 @@ ValPtr LambdaExpr::Eval(Frame* f) const {
 }
 
 void LambdaExpr::ExprDescribe(ODesc* d) const {
-    d->Add(expr_name(Tag()));
+    type->Describe(d);
 
     if ( captures && d->IsReadable() ) {
         d->Add("[");

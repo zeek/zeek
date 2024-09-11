@@ -107,8 +107,8 @@ const string& CPPCompile::IDNameStr(const ID* id) {
     return l->second;
 }
 
-string CPPCompile::LocalName(const ID* l) const {
-    auto n = l->Name();
+static string trim_name(const ID* id) {
+    auto n = id->Name();
     auto without_module = strstr(n, "::");
 
     while ( without_module ) {
@@ -116,25 +116,32 @@ string CPPCompile::LocalName(const ID* l) const {
         without_module = strstr(n, "::");
     }
 
-    return Canonicalize(n);
+    string ns = n;
+
+    // Look for suffices added by check_params() (src/Var.cc).
+    static auto hidden_suffix = "-hidden";
+    static auto hidden_suffix_len = strlen(hidden_suffix);
+    auto hidden_loc = ns.find(hidden_suffix);
+
+    if ( hidden_loc != string::npos )
+        ns.erase(hidden_loc, hidden_loc + hidden_suffix_len);
+
+    return ns;
 }
 
-string CPPCompile::CaptureName(const ID* l) const {
-    // We want to strip both the module and any inlining appendage.
-    auto n = l->Name();
-    auto without_module = strstr(n, "::");
+string CPPCompile::LocalName(const ID* l) const { return Canonicalize(trim_name(l).c_str()); }
 
-    while ( without_module ) {
-        n = without_module + 2;
-        without_module = strstr(n, "::");
+string CPPCompile::CaptureName(const ID* c) const {
+    // We want to strip both the module and any inlining appendage.
+    auto n = Canonicalize(trim_name(c).c_str());
+
+    auto appendage = n.find(".");
+    if ( appendage != string::npos ) {
+        n.erase(n.begin() + appendage, n.end());
+        n.push_back('_');
     }
 
-    auto appendage = strchr(n, '.');
-
-    if ( appendage )
-        return string(n, appendage - n) + "_";
-
-    return string(n) + "_";
+    return n;
 }
 
 string CPPCompile::Canonicalize(const char* name) const {

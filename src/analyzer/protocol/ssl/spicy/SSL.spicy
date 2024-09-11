@@ -701,7 +701,7 @@ type SSL2Record = unit(lengthone: uint8, inout msg: Message, inout sh: Share) {
     var length: uint16;
 
     on lengthtwo {
-        self.length = (cast<uint16>(lengthone) & 0x7F)<<8 | self.lengthtwo;
+        self.length = (cast<uint16>(lengthone) & 0x7F) << 8 | self.lengthtwo;
     }
     message_type: uint8;
 
@@ -712,7 +712,7 @@ type SSL2Record = unit(lengthone: uint8, inout msg: Message, inout sh: Share) {
         SSL2ProtocolMessages::ssl_server_verify -> : skip bytes &size=self.length;
         SSL2ProtocolMessages::ssl_request_certificate -> : skip bytes &size=self.length;
         SSL2ProtocolMessages::ssl_client_certificate -> : skip bytes &size=self.length;
-    } if(get_encrypted(sh) == False) ;
+    } if(get_encrypted(sh) == False);
     : skip bytes &size=self.length if(get_encrypted(sh) == True);
 
     on %done {
@@ -842,7 +842,7 @@ function determine_encryption_on(pr: PlaintextRecord, content_type: uint8, hands
         return False;
 
     if (content_type != 23) # application_data
-    return False;
+        return False;
 
     ## in theory, we should check for TLS13 or draft-TLS13 instead of doing the reverse.
     ## But - people use weird version numbers. And all of those weird version numbers are

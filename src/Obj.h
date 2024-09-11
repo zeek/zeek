@@ -104,7 +104,7 @@ public:
     [[noreturn]] void Internal(const char* msg) const;
     void InternalWarning(const char* msg) const;
 
-    virtual void Describe(ODesc* d) const {/* FIXME: Add code */};
+    virtual void Describe(ODesc* d) const { /* FIXME: Add code */ };
 
     void AddLocation(ODesc* d) const;
 

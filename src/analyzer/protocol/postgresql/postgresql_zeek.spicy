@@ -1,0 +1,43 @@
+# Set up protocol confirmation/rejection for analyzers, as well as any further
+# Zeek-specific analysis.
+
+module PostgreSQL_Zeek;
+
+import PostgreSQL;
+import zeek;
+
+# If we see a client StartupMessage, that's pretty good.
+on PostgreSQL::StartupMessage::%done {
+    zeek::confirm_protocol();
+}
+
+# If the server replied with an ssl_byte and we let it through,
+# that's also pretty good.
+on PostgreSQL::MaybeBackendSSL::ssl_byte {
+    zeek::confirm_protocol();
+}
+
+on PostgreSQL::SSLSink::%init {
+    zeek::protocol_begin("SSL");
+}
+
+on PostgreSQL::SSLSink::%done {
+    zeek::protocol_end();
+}
+
+on PostgreSQL::SSLSink::chunk {
+    # print "ssl_chunk", zeek::is_orig(), self;
+    zeek::protocol_data_in(zeek::is_orig(), self.chunk);
+}
+
+on PostgreSQL::StartupMessage::%error(msg: string) {
+    zeek::reject_protocol("error while parsing PostgreSQL StartupMessage: %s" % msg);
+}
+
+on PostgreSQL::FrontendMessage::%error(msg: string) {
+    zeek::reject_protocol("error while parsing PostgreSQL: %s" % msg);
+}
+
+on PostgreSQL::BackendMessage::%error(msg: string) {
+    zeek::reject_protocol("error while parsing PostgreSQL: %s" % msg);
+}

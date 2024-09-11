@@ -509,6 +509,35 @@ connection {
         * size: count, log=F, optional=F
         * state: count, log=F, optional=F
        }
+  * postgresql: record PostgreSQL::Info, log=F, optional=T
+      PostgreSQL::Info {
+        * application_name: string, log=T, optional=T
+        * backend: string, log=T, optional=T
+        * backend_arg: string, log=T, optional=T
+        * database: string, log=T, optional=T
+        * frontend: string, log=T, optional=T
+        * frontend_arg: string, log=T, optional=T
+        * id: record conn_id, log=T, optional=F
+            conn_id { ... }
+        * rows: count, log=T, optional=T
+        * success: bool, log=T, optional=T
+        * ts: time, log=T, optional=F
+        * uid: string, log=T, optional=F
+        * user: string, log=T, optional=T
+       }
+  * postgresql_state: record PostgreSQL::State, log=F, optional=T
+      PostgreSQL::State {
+        * application_name: string, log=F, optional=T
+        * database: string, log=F, optional=T
+        * errors: vector of string, log=F, optional=F
+        * rows: count, log=F, optional=T
+        * user: string, log=F, optional=T
+        * version: record PostgreSQL::Version, log=F, optional=T
+            PostgreSQL::Version {
+              * major: count, log=F, optional=F
+              * minor: count, log=F, optional=F
+             }
+       }
   * quic: record QUIC::Info, log=F, optional=T
       QUIC::Info {
         * client_initial_dcid: string, log=T, optional=T

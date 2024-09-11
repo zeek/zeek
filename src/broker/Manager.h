@@ -109,7 +109,7 @@ public:
     /**
      * Returns true if any Broker communication is currently active.
      */
-    bool Active();
+    [[deprecated("Remove with v8.1 - unused")]] bool Active();
 
     /**
      * Advances time.  Broker data store expiration is driven by this
@@ -223,18 +223,16 @@ public:
                           const broker::endpoint_info& peer = NoPeer);
 
     /**
-     * Send a log entry to any interested peers.  The topic name used is
-     * implicitly "bro/log/<stream-name>".
+     * Send a log entry to any interested peers.
+     *
      * @param stream the stream to which the log entry belongs.
      * @param writer the writer to use for outputting this log entry.
      * @param path the log path to output the log entry to.
-     * @param num_vals the number of fields to log.
-     * @param vals the log values to log, of size num_vals.
-     * See the Broker::SendFlags record type.
+     * @param rec the log record.
      * @return true if the message is sent successfully.
      */
-    bool PublishLogWrite(EnumVal* stream, EnumVal* writer, std::string path, int num_vals,
-                         const threading::Value* const* vals);
+    bool PublishLogWrite(EnumVal* stream, EnumVal* writer, const std::string& path,
+                         const logging::detail::LogRecord& rec);
 
     /**
      * Automatically send an event to any interested peers whenever it is

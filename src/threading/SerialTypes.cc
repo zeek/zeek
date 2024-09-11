@@ -82,6 +82,57 @@ std::string Field::TypeName() const {
     return n;
 }
 
+Value::Value(const Value& other) {
+    type = other.type;
+    subtype = other.subtype;
+    present = other.present;
+
+    switch ( other.type ) {
+        case TYPE_ENUM:
+        case TYPE_STRING:
+        case TYPE_FILE:
+        case TYPE_FUNC: {
+            val.string_val.data = util::copy_string(other.val.string_val.data, other.val.string_val.length);
+            break;
+        }
+
+        case TYPE_PATTERN: {
+            val.pattern_text_val = util::copy_string(val.pattern_text_val);
+            break;
+        }
+        case TYPE_TABLE: {
+            val.set_val.vals = new Value*[other.val.set_val.size];
+            for ( zeek_int_t i = 0; i < other.val.set_val.size; i++ )
+                val.set_val.vals[i] = new Value(*other.val.set_val.vals[i]);
+            break;
+        }
+        case TYPE_VECTOR: {
+            val.vector_val.vals = new Value*[other.val.vector_val.size];
+            for ( zeek_int_t i = 0; i < other.val.vector_val.size; i++ )
+                val.vector_val.vals[i] = new Value(*other.val.vector_val.vals[i]);
+            break;
+        }
+        default: {
+            // Deal with simple/atomic types.
+            val = other.val;
+            break;
+        }
+    };
+}
+
+Value::Value(Value&& other) noexcept {
+    present = other.present;
+    type = other.type;
+    subtype = other.type;
+    line_number = other.line_number;
+
+    val = other.val; // take ownership.
+
+    other.val = _val();
+    other.line_number = -1;
+    other.present = false;
+}
+
 Value::~Value() {
     if ( ! present )
         return;

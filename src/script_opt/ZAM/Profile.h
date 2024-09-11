@@ -4,10 +4,13 @@
 
 #pragma once
 
-#include "zeek/script_opt/ProfileFunc.h"
-#include "zeek/util.h"
+#include <memory>
+#include <set>
+#include <string>
 
 namespace zeek::detail {
+
+class Location;
 
 class ZAMLocInfo {
 public:

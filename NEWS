@@ -16,8 +16,33 @@ Breaking Changes
   new ``OpaqueVal::DoSerializeData`` and ``OpaqueVal::DoUnserializeData``
   methods.
 
+* Certain internal methods on the broker and logging classes have been changed to
+  accept std::vector<threading::Value> parameters instead of threading::Value**
+  to leverage automatic memory management, reduce the number of allocations
+  and use move semantics to express ownership.
+
+  The DoWrite() and HookLogWrite() methods which can be provided by plugins
+  are not affected by this change, so we keep backwards compatibility with
+  existing log writers.
+
 New Functionality
 -----------------
+
+- Zeek now includes a PostgreSQL protocol analyzer. This analyzer is enabled
+  by default. The analyzer's events and its ``postgresql.log`` should be
+  considered preliminary and experimental until the arrival of Zeek's next
+  long-term-stable release (8.0).
+
+  If you observe unusually high CPU consumption or other issues due to this
+  analyzer being enabled by default, the easiest way to disable it is via the
+  ``Analyzer::disabled_analyzers`` const as follows:
+
+	redef Analyzer::disabled_analyzers += {
+		Analyzer::ANALYZER_POSTGRESQL,
+	};
+
+  If you observe PostgreSQL traffic in your environment, please provide feedback
+  about the analyzer and structure of the new log.
 
 * The LDAP analyzer now supports handling of non-sealed GSS-API WRAP tokens.
 

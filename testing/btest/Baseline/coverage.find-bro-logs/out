@@ -41,6 +41,7 @@ ocsp
 openflow
 packet_filter
 pe
+postgresql
 print_log_path
 quic
 radius

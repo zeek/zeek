@@ -1,3 +1,158 @@
+7.1.0-dev.259 | 2024-09-09 13:24:45 +0200
+
+  * script_opt/ZAM/IterInfo.h: Add missing Dict.h dependency (Arne Welzel, Corelight)
+
+    Triggered when trying to remove some other includes elsewhere.
+
+  * script_opt/ZAM: ZBody.h / Support.h: Cleanup includes, use forward declarations (Arne Welzel, Corelight)
+
+    Not sure the IsAny() convenience functions were really worth the
+    include zeek/Expr.h.
+
+  * script_opt/ZAM/Profile: Remove Zeek header includes (Arne Welzel, Corelight)
+
+    This can stand by itself.
+
+  * script_opt: Extend Support.h to break include dependencies (Arne Welzel, Corelight)
+
+    Rebuilding ZBody.cc is annoyingly slow with UBSAN or ASAN enabled. A rebuild
+    is currently triggered when touching Manager.h files like logging/Manager.h,
+    broker/Manager.h or file_analysis/Manager.h and various other headers that are
+    included from there or directly in ZBody.h.
+
+    Add tiny wrapper functions to Support.h that encapsulate the actual Zeek
+    functionality and move the includes to Support.cc instead. This will
+    cause frequent Support.cc rebuilds, but that is decently fast.
+
+    This comes at the expense of one indirect function call for some ops, but
+    its overhead should be negligible in comparison to a lookup for a
+    connection or component or a log_mgr->Write() call.
+
+  * script_opt: Do not include ZBody.h in ZAM/Validate.cc (Arne Welzel, Corelight)
+
+    Touching broker/Manager.h or logging/Manager.h or anything that's
+    included in ZBody.h results in a rebuild of a bunch of files in ZAM.
+    Particularly, ZAM/Validate.cc takes much too long to recompile for
+    me (45+ seconds) and apparently that's mostly by accident.
+
+    Clean up the ZAM/Validate.cc includes to prevent this.
+
+7.1.0-dev.252 | 2024-09-06 19:17:29 +0200
+
+  * btest/ldap: Add regression test for #3919 (Arne Welzel, Corelight)
+
+    This works as expected in master, it's just that we forgot to backport
+    PR #3845 to 7.0.1. Add the PCAP from Martin anyhow.
+
+    Closes #3919.
+
+7.1.0-dev.250 | 2024-09-06 17:47:36 +0200
+
+  * postgresql: Simplify SSL buffering and forwarding (Arne Welzel, Corelight)
+
+    The ssl_sink can only be connected form the backend side, so don't
+    overcomplicate it.
+
+  * postgresql: Initial parser implementation (Arne Welzel, Corelight)
+
+    This adds a protocol parser for the PostgreSQL protocol and a new
+    postgresql.log similar to the existing mysql.log.
+
+    This should be considered preliminary and hopefully during 7.1 and 7.2
+    with feedback from the community, we can improve on the events and logs.
+    Even if most PostgreSQL communication is encrypted in the real-world, this
+    will minimally allow monitoring of the SSLRequest and hand off further
+    analysis to the SSL analyzer.
+
+    This originates from github.com/awelzel/spicy-postgresql, with lots of
+    polishing happening in the past two days.
+
+7.1.0-dev.247 | 2024-09-05 19:19:31 +0200
+
+  * testing/external: Update private baselines (Arne Welzel, Corelight)
+
+  * analyzer/syslog: Reformat with spicy-format (Arne Welzel, Corelight)
+
+  * analyzer/finger: Reformat with spicy-format (Arne Welzel, Corelight)
+
+  * scripts/spicy: Reformat with spicy-format (Arne Welzel, Corelight)
+
+  * pre-commit: Add spicy-format (Arne Welzel, Corelight)
+
+    This excludes the larger protocol analyzers. These should be formatted
+    during the 7.2 cycle, shortly before 8.0.
+
+7.1.0-dev.241 | 2024-09-04 14:53:19 -0700
+
+  * Check for netbios to avoid reporting extra bad DNS opcodes (Tim Wojtulewicz, Corelight)
+
+  * Add weird for unhandled opcodes in DNS analyzer (Tim Wojtulewicz, Corelight)
+
+7.1.0-dev.238 | 2024-09-03 09:03:24 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+7.1.0-dev.236 | 2024-09-03 10:18:32 +0200
+
+  * Remove pre-commit exclusions for clang-format (Benjamin Bannier, Corelight)
+
+    We previously would ignore any files under `auxil/`. Since pre-commit
+    only formats files tracked in this repo, and `auxil/` today contains
+    only submodules this exclusion did not exclude anything; if however we
+    ever end up adding C++ files under `auxil/` we would like them to be
+    formatted consistently.
+
+  * Bump clang-format (Benjamin Bannier, Corelight)
+
+    This patch contains a bump of the configured clang-format version from
+    17.0.3 to 18.1.8 and automatically generated C++ source updates. The
+    main difference we are seeing from this is fixes for previously
+    incomplete reformats.
+
+7.1.0-dev.233 | 2024-09-03 10:02:59 +0200
+
+  * Bump zeek-aux for zeek/zeek-aux#57 (Arne Welzel, Corelight)
+
+7.1.0-dev.232 | 2024-08-30 18:56:24 +0200
+
+  * http: fix password capture when enabled (Pierre Lalet)
+
+    The current implementation would only log, if the password contains a
+    colon, the part before the first colon (e.g., the password
+    `password:password` would be logged as `password`).
+
+    A test has been added to confirm the expected behaviour.
+
+7.1.0-dev.230 | 2024-08-30 15:38:52 +0200
+
+  * RunState: Drop broker_mgr->Active() usage (Arne Welzel, Corelight)
+
+    ...and deprecate it. The communication_enabled flag doesn't really
+    make a difference in how the IO loop works.
+
+  * logging/WriterFrontend: No need for explicit CleanupWriteBuffer() (Arne Welzel, Corelight)
+
+    Any pending records will be cleaned in the destructor of WriterFrontend
+    and WriteBuffer, no need to do this explicitly.
+
+  * logging: Switch index-assignment of raw pointers to emplace_back() (Arne Welzel, Corelight)
+
+  * broker/logging: Change threading::Value** usage std::vector instead (Arne Welzel, Corelight)
+
+    This allows to leverage automatic memory management, less allocations
+    and using move semantics for expressing ownership.
+
+    This breaks the existing logging and broker API, but keeps the plugin
+    DoWrite() and HookLogWrite() methods functioning.
+
+    It further changes ValToLogVal to return a threading::Value rather than
+    a threading::Value*. The vector_val and set_val fields unfortunately
+    use the same pointer-to-array-of-pointers approach. this can'tbe changed
+    as it'd break backwards compatibility for plugin provided input readers
+    and log writers.
+
+  * threading/Value: Support move and copy constructors (Arne Welzel, Corelight)
+
 7.1.0-dev.222 | 2024-08-27 13:29:12 +0100
 
   * Fix parsing of version field in SSLv2 client hello (Johanna Amann, Corelight)

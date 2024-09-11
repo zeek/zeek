@@ -3,7 +3,7 @@
 #
 repos:
 - repo: https://github.com/pre-commit/mirrors-clang-format
-  rev: 'v17.0.3'
+  rev: 'v18.1.8'
   hooks:
   - id: clang-format
     types_or:
@@ -26,10 +26,16 @@ repos:
   rev: v0.6.13
   hooks:
   - id: cmake-format
-    exclude: '^auxil/.*$'
 
 - repo: https://github.com/crate-ci/typos
   rev: v1.16.21
   hooks:
     - id: typos
       exclude: '^(.typos.toml|src/SmithWaterman.cc|testing/.*|auxil/.*|scripts/base/frameworks/files/magic/.*|CHANGES)$'
+
+- repo: https://github.com/bbannier/spicy-format
+  rev: v0.15.0
+  hooks:
+    - id: spicy-format
+      # TODO: Reformat existing large analyzers just before 8.0.
+      exclude: '(^testing/.*)|(protocol/ldap/.*)|(protocol/quic/.*)|(protocol/websocket/.*)'

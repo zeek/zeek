@@ -33,7 +33,7 @@ class Fuzzer {
 public:
     Fuzzer(TransportProto proto, const zeek::Tag& analyzer_tag) : proto{proto}, analyzer_tag{analyzer_tag} {}
 
-    virtual ~Fuzzer(){};
+    virtual ~Fuzzer() {};
 
     zeek::Connection* AddConnection() {
         static constexpr double network_time_start = 1439471031;

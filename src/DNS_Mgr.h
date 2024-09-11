@@ -77,14 +77,14 @@ public:
          *
          * @param name The resulting name from the lookup.
          */
-        virtual void Resolved(const std::string& name){};
+        virtual void Resolved(const std::string& name) {};
 
         /**
          * Called when a name lookup finishes.
          *
          * @param addrs A table of the resulting addresses from the lookup.
          */
-        virtual void Resolved(TableValPtr addrs){};
+        virtual void Resolved(TableValPtr addrs) {};
 
         /**
          * Generic callback method for all request types.

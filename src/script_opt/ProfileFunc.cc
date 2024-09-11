@@ -41,7 +41,20 @@ ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fi
         }
     }
 
-    Profile(profiled_func_t.get(), body);
+    TrackType(profiled_func_t);
+    body->Traverse(this);
+
+    // Examine the locals and identify the parameters based on their offsets
+    // (being careful not to be fooled by captures that incidentally have low
+    // offsets). This approach allows us to accommodate function definitions
+    // that use different parameter names than appear in the original
+    // declaration.
+    num_params = profiled_func_t->Params()->NumFields();
+
+    for ( auto l : locals ) {
+        if ( captures.count(l) == 0 && l->Offset() < num_params )
+            params.insert(l);
+    }
 }
 
 ProfileFunc::ProfileFunc(const Stmt* s, bool _abs_rec_fields) {
@@ -68,26 +81,23 @@ ProfileFunc::ProfileFunc(const Expr* e, bool _abs_rec_fields) {
             captures_offsets[oid] = offset++;
         }
 
-        Profile(func->GetType()->AsFuncType(), func->Ingredients()->Body());
+        auto ft = func->GetType()->AsFuncType();
+        auto& body = func->Ingredients()->Body();
+
+        num_params = ft->Params()->NumFields();
+
+        auto& ov = profiled_scope->OrderedVars();
+        for ( int i = 0; i < num_params; ++i )
+            params.insert(ov[i].get());
+
+        TrackType(ft);
+        body->Traverse(this);
     }
 
     else
         // We don't have a function type, so do the traversal
         // directly.
         e->Traverse(this);
-}
-
-void ProfileFunc::Profile(const FuncType* ft, const StmtPtr& body) {
-    num_params = ft->Params()->NumFields();
-
-    assert(profiled_scope != nullptr);
-
-    auto& ov = profiled_scope->OrderedVars();
-    for ( int i = 0; i < num_params; ++i )
-        params.insert(ov[i].get());
-
-    TrackType(ft);
-    body->Traverse(this);
 }
 
 TraversalCode ProfileFunc::PreStmt(const Stmt* s) {

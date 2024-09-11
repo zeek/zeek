@@ -5,7 +5,6 @@
 #include <cerrno>
 
 #include "zeek/script_opt/CPP/Compile.h"
-#include "zeek/script_opt/IDOptInfo.h"
 
 extern std::unordered_set<std::string> files_with_conditionals;
 

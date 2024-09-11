@@ -435,13 +435,9 @@ Manager::~Manager() { delete pending; }
 void Manager::InitPostScript() {
     trigger_count = telemetry_mgr->CounterInstance("zeek", "triggers", {}, "Total number of triggers scheduled");
     trigger_pending =
-        telemetry_mgr->GaugeInstance("zeek", "pending_triggers", {}, "Pending number of triggers", "",
-                                     []() -> prometheus::ClientMetric {
-                                         prometheus::ClientMetric metric;
-                                         metric.gauge.value =
-                                             trigger_mgr ? static_cast<double>(trigger_mgr->pending->size()) : 0.0;
-                                         return metric;
-                                     });
+        telemetry_mgr->GaugeInstance("zeek", "pending_triggers", {}, "Pending number of triggers", "", []() {
+            return trigger_mgr ? static_cast<double>(trigger_mgr->pending->size()) : 0.0;
+        });
 
     iosource_mgr->Register(this, true);
 }

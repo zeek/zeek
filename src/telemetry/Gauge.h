@@ -4,7 +4,7 @@
 
 #include <prometheus/family.h>
 #include <prometheus/gauge.h>
-#include <cstdint>
+#include <unistd.h>
 #include <initializer_list>
 #include <memory>
 
@@ -14,6 +14,10 @@
 #include "zeek/telemetry/telemetry.bif.h"
 
 namespace zeek::telemetry {
+
+namespace detail {
+using CollectCallbackPtr = std::function<double()>;
+}
 
 /**
  * A handle to a metric that can count up and down.
@@ -26,7 +30,7 @@ public:
     using FamilyType = prometheus::Family<Handle>;
 
     explicit Gauge(FamilyType* family, const prometheus::Labels& labels,
-                   prometheus::CollectCallbackPtr callback = nullptr) noexcept;
+                   detail::CollectCallbackPtr callback = nullptr) noexcept;
 
     /**
      * Increments the value by 1.
@@ -58,6 +62,11 @@ public:
     void Dec(double amount) noexcept { handle.Decrement(amount); }
 
     /**
+     * Set the value by @p val.
+     */
+    void Set(double val) noexcept { handle.Set(val); }
+
+    /**
      * Decrements the value by 1.
      * @return The new value.
      */
@@ -73,11 +82,14 @@ public:
 
     bool CompareLabels(const prometheus::Labels& lbls) const { return labels == lbls; }
 
+    bool HasCallback() const noexcept { return callback != nullptr; }
+    double RunCallback() const { return callback(); }
+
 private:
     FamilyType* family = nullptr;
     Handle& handle;
     prometheus::Labels labels;
-    bool has_callback = false;
+    detail::CollectCallbackPtr callback;
 };
 
 using GaugePtr = std::shared_ptr<Gauge>;
@@ -90,17 +102,19 @@ public:
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    GaugePtr GetOrAdd(Span<const LabelView> labels, prometheus::CollectCallbackPtr callback = nullptr);
+    GaugePtr GetOrAdd(Span<const LabelView> labels, detail::CollectCallbackPtr callback = nullptr);
 
     /**
      * @copydoc GetOrAdd
      */
-    GaugePtr GetOrAdd(std::initializer_list<LabelView> labels, prometheus::CollectCallbackPtr callback = nullptr);
+    GaugePtr GetOrAdd(std::initializer_list<LabelView> labels, detail::CollectCallbackPtr callback = nullptr);
 
     zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::GAUGE; }
 
     GaugeFamily(prometheus::Family<prometheus::Gauge>* family, Span<const std::string_view> labels)
         : MetricFamily(labels), family(family) {}
+
+    void RunCallbacks() override;
 
 private:
     prometheus::Family<prometheus::Gauge>* family;

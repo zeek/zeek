@@ -79,12 +79,9 @@ Manager::Manager() {
     stats = new detail::ProtocolStats();
     ended_sessions_metric_family = telemetry_mgr->CounterFamily("zeek", "ended_sessions", {"reason"},
                                                                 "Number of sessions ended for specific reasons");
-    ended_by_inactivity_metric =
-        ended_sessions_metric_family->GetOrAdd({{"reason", "inactivity"}}, []() -> prometheus::ClientMetric {
-            prometheus::ClientMetric metric;
-            metric.counter.value = static_cast<double>(zeek::detail::killed_by_inactivity);
-            return metric;
-        });
+    ended_by_inactivity_metric = ended_sessions_metric_family->GetOrAdd({{"reason", "inactivity"}}, []() {
+        return static_cast<double>(zeek::detail::killed_by_inactivity);
+    });
 }
 
 Manager::~Manager() {

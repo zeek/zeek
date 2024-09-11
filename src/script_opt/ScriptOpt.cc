@@ -294,8 +294,8 @@ static void init_options() {
     if ( analysis_options.use_CPP && generating_CPP )
         reporter->FatalError("generating C++ incompatible with using C++");
 
-    if ( analysis_options.allow_cond && ! analysis_options.gen_standalone_CPP )
-        reporter->FatalError("\"-O allow-cond\" only relevant when also using \"-O gen-standalone-C++\"");
+    if ( analysis_options.allow_cond && ! generating_CPP )
+        reporter->FatalError("\"-O allow-cond\" only relevant when using \"-O gen-C++\" or \"-O gen-standalone-C++\"");
 
     auto usage = getenv("ZEEK_USAGE_ISSUES");
 

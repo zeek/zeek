@@ -35,5 +35,5 @@ RUN apt-get -q update \
 
 # Copy over Zeek installation from build
 COPY --from=zeek-build /usr/local/zeek /usr/local/zeek
-ENV PATH "/usr/local/zeek/bin:${PATH}"
-ENV PYTHONPATH "/usr/local/zeek/lib/zeek/python:${PYTHONPATH}"
+ENV PATH="/usr/local/zeek/bin:${PATH}"
+ENV PYTHONPATH="/usr/local/zeek/lib/zeek/python:${PYTHONPATH}"

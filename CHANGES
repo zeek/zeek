@@ -1,3 +1,9 @@
+7.1.0-dev.315 | 2024-09-12 09:18:35 +0200
+
+  * Update Dockerfile to avoid LegacyKeyValueFormat warning (MP-Corelight)
+
+  * Fix potential endless loop in util::strreplace (Tim Wojtulewicz, Corelight)
+
 7.1.0-dev.311 | 2024-09-12 08:52:02 +0200
 
   * Remove core.negative-time btest (Tim Wojtulewicz, Corelight)

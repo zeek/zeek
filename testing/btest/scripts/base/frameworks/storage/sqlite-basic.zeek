@@ -23,7 +23,7 @@ event zeek_init() {
 	# the backend yet.
 	local b = Storage::open_backend(Storage::SQLITE, opts, str, str);
 
-	when [b, key, value] ( local res = Storage::put([$backend=b, $key=key, $value=value, $overwrite=F]) ) {
+	when [b, key, value] ( local res = Storage::put([$backend=b, $key=key, $value=value]) ) {
 		print "put result", res;
 
 		when [b, key, value] ( local res2 = Storage::get(b, key) ) {

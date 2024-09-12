@@ -1,3 +1,9 @@
+7.1.0-dev.309 | 2024-09-12 08:51:08 +0200
+
+  * Bump spicy-format to 0.16.2 (Johanna Amann, Corelight)
+
+  * Spicy SSL: reformat with new version of spicy format (Johanna Amann, Corelight)
+
 7.1.0-dev.305 | 2024-09-11 16:55:55 +0200
 
   * Spicy SSL analyzer:

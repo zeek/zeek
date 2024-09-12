@@ -1,3 +1,47 @@
+7.0.1-6 | 2024-09-23 10:01:55 -0700
+
+  * Remove core.negative-time btest (Tim Wojtulewicz, Corelight)
+
+    This test is failing with libpcap libpcap 1.10.5; for more information
+    see https://github.com/zeek/zeek/issues/3921
+
+    (cherry picked from commit 899f7297d7b8c83ef2640e7cf40d3f230e42cc6b)
+
+  * Update broker submodule (Arne Welzel, Corelight)
+
+    ...to pin prometheus to 1.2.4
+
+    (cherry picked from commit f24bc1ee882b3b266ca9dc325a1b5584addb155e)
+
+  * telemetry: Move callbacks to Zeek (Arne Welzel, Corelight)
+
+    Now that we run callbacks on the main loop, we can move callback support
+    for Counter and Gauge instances directly into Zeek and don't need to patch
+    prometheus-cpp anymore.
+
+    (cherry picked from commit f24bc1ee882b3b266ca9dc325a1b5584addb155e)
+
+  * auxil/prometheus-cpp: Pin to 1.2.4 (Arne Welzel, Corelight)
+
+    (cherry picked from commit f24bc1ee882b3b266ca9dc325a1b5584addb155e)
+
+  * btest/ldap: Add regression test for #3919 (Arne Welzel, Corelight)
+
+    This works as expected in master, it's just that we forgot to backport
+    PR #3845 to 7.0.1. Add the PCAP from Martin anyhow.
+
+    (cherry picked from commit a339cfa4c007762c6fbb16a35576220851fe4a82)
+
+  * GH-3853: ldap: Recognize SASL+SPNEGO+NTLMSSP (Arne Welzel, Corelight)
+
+    The ctu-sme-11-win7ad-1-ldap-tcp-50041.pcap file was harvested
+    from the CTU-SME-11 (Experiment-VM-Microsoft-Windows7AD-1) dataset
+    at https://zenodo.org/records/7958259 (DOI 10.5281/zenodo.7958258).
+
+    (cherry picked from commit 152bbbd680e6c329255dc28d57cd506e7d2c09ff)
+
+  * Bump auxil/spicy to latest release (Benjamin Bannier, Corelight)
+
 7.0.1 | 2024-09-03 13:04:23 -0700
 
   * Update CHANGES, VERSION, and NEWS for 7.0.1 release (Tim Wojtulewicz, Corelight)

@@ -50,6 +50,31 @@ export {
 		);
 	};
 
+	## Options record for the built-in Redis backend.
+	type RedisOptions: record {
+		# Address to the server
+		server_addr: string;
+
+		# Port for the server
+		server_port: port;
+
+		# Server unix socket file. This can be used instead of the
+		# address and port above to connect to a local server.
+		server_unix_socket: string;
+
+		# Prefix used in key values stored to differentiate varying
+		# types of data on the same server.
+		key_prefix: string;
+
+		# Redis only supports sync and async separately. You cannot do
+		# both with the same connection. If this flag is true, the
+		# connection will be async and will only allow commands via
+		# ``when`` commands. You will still need to set the
+		# ``async_mode`` flags of the put, get, and erase methods to
+		# match this flag.
+		async_mode: bool &default=F;
+	};
+
 	## Opens a new backend connection based on a configuration object.
 	##
 	## btype: A tag indicating what type of backend should be opened.

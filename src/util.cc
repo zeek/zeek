@@ -1540,18 +1540,22 @@ TEST_CASE("util strreplace") {
     string s = "this is not a string";
     CHECK(strreplace(s, "not", "really") == "this is really a string");
     CHECK(strreplace(s, "not ", "") == "this is a string");
+    CHECK(strreplace("\"abc\"", "\"", "\\\"") == "\\\"abc\\\"");
+    CHECK(strreplace("\\\"abc\\\"", "\\\"", "\"") == "\"abc\"");
 }
 
 string strreplace(const string& s, const string& o, const string& n) {
     string r = s;
 
+    size_t i = 0;
     while ( true ) {
-        size_t i = r.find(o);
+        i = r.find(o, i);
 
         if ( i == std::string::npos )
             break;
 
         r.replace(i, o.size(), n);
+        i += n.size();
     }
 
     return r;

@@ -1,3 +1,10 @@
+7.1.0-dev.311 | 2024-09-12 08:52:02 +0200
+
+  * Remove core.negative-time btest (Tim Wojtulewicz, Corelight)
+
+    This test is failing with libpcap libpcap 1.10; for more information
+    see https://github.com/zeek/zeek/issues/3921
+
 7.1.0-dev.309 | 2024-09-12 08:51:08 +0200
 
   * Bump spicy-format to 0.16.2 (Johanna Amann, Corelight)

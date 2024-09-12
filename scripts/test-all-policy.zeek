@@ -83,6 +83,8 @@
 # @load frameworks/spicy/record-spicy-batch.zeek
 # @load frameworks/spicy/resource-usage.zeek
 @load frameworks/software/windows-version-detection.zeek
+@load frameworks/storage/backend/redis/__load__.zeek
+@load frameworks/storage/backend/redis/main.zeek
 @load frameworks/storage/backend/sqlite/__load__.zeek
 @load frameworks/storage/backend/sqlite/main.zeek
 @load frameworks/telemetry/log.zeek

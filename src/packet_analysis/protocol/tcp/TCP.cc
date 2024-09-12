@@ -42,7 +42,7 @@ bool TCPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet
     tuple.src_port = tp->th_sport;
     tuple.dst_port = tp->th_dport;
     tuple.is_one_way = false;
-    tuple.proto = TRANSPORT_TCP;
+    tuple.proto = packet->proto;
 
     return true;
 }

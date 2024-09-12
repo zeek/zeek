@@ -33,7 +33,15 @@ Connection::Connection(const detail::ConnKey& k, double t, const ConnTuple* id, 
     resp_addr = id->dst_addr;
     orig_port = id->src_port;
     resp_port = id->dst_port;
-    proto = TRANSPORT_UNKNOWN;
+
+    switch ( id->proto ) {
+        case IPPROTO_TCP: proto = TRANSPORT_TCP; break;
+        case IPPROTO_UDP: proto = TRANSPORT_UDP; break;
+        case IPPROTO_ICMP:
+        case IPPROTO_ICMPV6: proto = TRANSPORT_ICMP; break;
+        default: proto = TRANSPORT_UNKNOWN; break;
+    }
+
     orig_flow_label = flow;
     resp_flow_label = 0;
     saw_first_orig_packet = 1;
@@ -187,6 +195,7 @@ const RecordValPtr& Connection::GetVal() {
         id_val->Assign(1, val_mgr->Port(ntohs(orig_port), prot_type));
         id_val->Assign(2, make_intrusive<AddrVal>(resp_addr));
         id_val->Assign(3, val_mgr->Port(ntohs(resp_port), prot_type));
+        id_val->Assign(4, KeyProto());
 
         auto orig_endp = make_intrusive<RecordVal>(id::endpoint);
         orig_endp->Assign(0, 0);

@@ -213,11 +213,12 @@ type transport_proto: enum {
 ##    see :ref:`the manual's description of the connection record
 ##    <writing-scripts-connection-record>`.
 type conn_id: record {
-	orig_h: addr;	##< The originator's IP address.
-	orig_p: port;	##< The originator's port number.
-	resp_h: addr;	##< The responder's IP address.
-	resp_p: port;	##< The responder's port number.
-} &log;
+	orig_h: addr &log;	##< The originator's IP address.
+	orig_p: port &log;	##< The originator's port number.
+	resp_h: addr &log;	##< The responder's IP address.
+	resp_p: port &log;	##< The responder's port number.
+	proto: count;
+};
 
 ## The identifying 4-tuple of a uni-directional flow.
 ##

@@ -36,10 +36,7 @@ SessionAdapter* UnknownIPTransportAnalyzer::MakeSessionAdapter(Connection* conn)
 bool UnknownIPTransportAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet, ConnTuple& tuple) {
     tuple.src_addr = packet->ip_hdr->SrcAddr();
     tuple.dst_addr = packet->ip_hdr->DstAddr();
-    tuple.proto = TRANSPORT_UNKNOWN;
-
-    // Unknown IP encodes the protocol identifier in the source port field so it can be logged
-    tuple.src_port = htons(uint16_t(packet->ip_hdr->NextProto()));
+    tuple.proto = packet->proto;
 
     return true;
 }

@@ -448,7 +448,8 @@ event flow_weird(name: string, src: addr, dst: addr, addl: string, source: strin
 	# We add the source and destination as port 0/unknown because that is
 	# what fits best here.
 	local id = conn_id($orig_h=src, $orig_p=count_to_port(0, unknown_transport),
-	                   $resp_h=dst, $resp_p=count_to_port(0, unknown_transport));
+	                   $resp_h=dst, $resp_p=count_to_port(0, unknown_transport),
+	                   $proto=256);
 
 	local i = Info($ts=network_time(), $name=name, $id=id, $identifier=flow_id_string(src,dst));
 

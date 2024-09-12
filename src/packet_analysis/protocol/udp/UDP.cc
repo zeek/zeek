@@ -66,7 +66,7 @@ bool UDPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet
     tuple.src_port = up->uh_sport;
     tuple.dst_port = up->uh_dport;
     tuple.is_one_way = false;
-    tuple.proto = TRANSPORT_UDP;
+    tuple.proto = packet->proto;
 
     return true;
 }

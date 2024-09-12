@@ -28,10 +28,10 @@ public:
     in6_addr ip2;
     uint16_t port1 = 0;
     uint16_t port2 = 0;
-    TransportProto transport = TRANSPORT_UNKNOWN;
+    uint8_t transport;
     bool valid = true;
 
-    ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, TransportProto t, bool one_way);
+    ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, uint8_t proto, bool one_way);
     ConnKey(const ConnTuple& conn);
     ConnKey(const ConnKey& rhs) { *this = rhs; }
     ConnKey(Val* v);
@@ -46,8 +46,7 @@ public:
     ConnKey& operator=(const ConnKey& rhs);
 
 private:
-    void Init(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, TransportProto t,
-              bool one_way);
+    void Init(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, uint8_t proto, bool one_way);
 };
 
 } // namespace detail

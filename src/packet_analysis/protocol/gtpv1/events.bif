@@ -1,3 +1,13 @@
+module GLOBAL;
+
+## Generated when a new GTP analyzer is instantiated for a connection.
+##
+## This event exists to install a connection removal hook to clear
+## internal per-connection GTPv1 state.
+##
+## c: The connection for which the analyzer is instantiated.
+event new_gtpv1_state%(c: connection%);
+
 ## Generated for any GTP message with a GTPv1 header.
 ##
 ## c: The connection over which the message is sent.

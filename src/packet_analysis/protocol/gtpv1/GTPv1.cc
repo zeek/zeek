@@ -22,8 +22,13 @@ bool GTPv1_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
     zeek::detail::ConnKey conn_key = conn->Key();
 
     auto cm_it = conn_map.find(conn_key);
-    if ( cm_it == conn_map.end() )
+    if ( cm_it == conn_map.end() ) {
         cm_it = conn_map.insert(cm_it, {conn_key, std::make_unique<binpac::GTPv1::GTPv1_Conn>(this)});
+
+        // Let script land know about the state we created, so it will
+        // register a conn removal hook for cleanup.
+        BifEvent::enqueue_new_gtpv1_state(nullptr, conn);
+    }
 
     try {
         cm_it->second->set_raw_packet(packet);

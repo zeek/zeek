@@ -66,7 +66,7 @@ void Manager::InitPostScript() {
             static auto node_type_type = id::find_type("Cluster::NodeType")->AsEnumType();
             static auto manager_type = node_type_type->Lookup("Cluster", "MANAGER");
 
-            if ( local_node_type == manager_type ) {
+            if ( manager_type > -1 && local_node_type == static_cast<unsigned int>(manager_type) ) {
                 BuildClusterJson();
 
                 callbacks = new CivetCallbacks();

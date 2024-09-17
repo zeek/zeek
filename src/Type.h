@@ -110,11 +110,11 @@ constexpr InternalTypeTag to_internal_type_tag(TypeTag tag) noexcept {
         case TYPE_VOID: return TYPE_INTERNAL_VOID;
 
         case TYPE_BOOL:
-        case TYPE_INT:
-        case TYPE_ENUM: return TYPE_INTERNAL_INT;
+        case TYPE_INT: return TYPE_INTERNAL_INT;
 
         case TYPE_COUNT:
-        case TYPE_PORT: return TYPE_INTERNAL_UNSIGNED;
+        case TYPE_PORT:
+        case TYPE_ENUM: return TYPE_INTERNAL_UNSIGNED;
 
         case TYPE_DOUBLE:
         case TYPE_TIME:

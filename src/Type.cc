@@ -1548,6 +1548,12 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name, zeek
         return;
     }
 
+    if ( val > std::numeric_limits<::zeek_int_t>::max() ) {
+        reporter->Error("enumerator value cannot be greater than max int");
+        SetError();
+        return;
+    }
+
     auto fullname = detail::make_full_var_name(module_name.c_str(), name);
     auto id = id::find(fullname);
 

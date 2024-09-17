@@ -142,9 +142,7 @@ bool CompositeHash::RecoverOneVal(const HashKey& hk, Type* t, ValPtr* pval, bool
             zeek_int_t i;
             hk.Read("int", i);
 
-            if ( tag == TYPE_ENUM )
-                *pval = t->AsEnumType()->GetEnumVal(i);
-            else if ( tag == TYPE_BOOL )
+            if ( tag == TYPE_BOOL )
                 *pval = val_mgr->Bool(i);
             else if ( tag == TYPE_INT )
                 *pval = val_mgr->Int(i);
@@ -163,6 +161,8 @@ bool CompositeHash::RecoverOneVal(const HashKey& hk, Type* t, ValPtr* pval, bool
                 case TYPE_COUNT: *pval = val_mgr->Count(u); break;
 
                 case TYPE_PORT: *pval = val_mgr->Port(u); break;
+
+                case TYPE_ENUM: *pval = t->AsEnumType()->GetEnumVal(static_cast<int>(u)); break;
 
                 default:
                     reporter->InternalError("bad internal unsigned int in CompositeHash::RecoverOneVal()");

@@ -66,6 +66,8 @@ public:
 
     zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::HISTOGRAM; }
 
+    void RunCallbacks() override {}
+
 private:
     prometheus::Family<prometheus::Histogram>* family;
     prometheus::Histogram::BucketBoundaries boundaries;

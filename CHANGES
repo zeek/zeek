@@ -1,3 +1,17 @@
+7.1.0-dev.319 | 2024-09-17 18:50:40 +0200
+
+  * Update broker submodule (Arne Welzel, Corelight)
+
+    ...to pin prometheus to 1.2.4
+
+  * telemetry: Move callbacks to Zeek (Arne Welzel, Corelight)
+
+    Now that we run callbacks on the main loop, we can move callback support
+    for Counter and Gauge instances directly into Zeek and don't need to patch
+    prometheus-cpp anymore.
+
+  * auxil/prometheus-cpp: Pin to 1.2.4 (Arne Welzel, Corelight)
+
 7.1.0-dev.315 | 2024-09-12 09:18:35 +0200
 
   * Update Dockerfile to avoid LegacyKeyValueFormat warning (MP-Corelight)

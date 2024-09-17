@@ -343,27 +343,15 @@ void Manager::InitPostScript() {
 
     num_peers_metric =
         telemetry_mgr->GaugeInstance("zeek", "broker_peers", {}, "Current number of peers connected via broker", "",
-                                     []() -> prometheus::ClientMetric {
-                                         prometheus::ClientMetric metric;
-                                         metric.gauge.value = static_cast<double>(broker_mgr->peer_count);
-                                         return metric;
-                                     });
+                                     []() { return static_cast<double>(broker_mgr->peer_count); });
 
     num_stores_metric =
         telemetry_mgr->GaugeInstance("zeek", "broker_stores", {}, "Current number of stores connected via broker", "",
-                                     []() -> prometheus::ClientMetric {
-                                         prometheus::ClientMetric metric;
-                                         metric.gauge.value = static_cast<double>(broker_mgr->data_stores.size());
-                                         return metric;
-                                     });
+                                     []() { return static_cast<double>(broker_mgr->data_stores.size()); });
 
     num_pending_queries_metric =
         telemetry_mgr->GaugeInstance("zeek", "broker_pending_queries", {}, "Current number of pending broker queries",
-                                     "", []() -> prometheus::ClientMetric {
-                                         prometheus::ClientMetric metric;
-                                         metric.gauge.value = static_cast<double>(broker_mgr->pending_queries.size());
-                                         return metric;
-                                     });
+                                     "", []() { return static_cast<double>(broker_mgr->pending_queries.size()); });
 
     num_events_incoming_metric = telemetry_mgr->CounterInstance("zeek", "broker_incoming_events", {},
                                                                 "Total number of incoming events via broker");

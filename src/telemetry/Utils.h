@@ -5,7 +5,6 @@
 #include <string_view>
 
 #include "zeek/Span.h"
-#include "zeek/Val.h"
 
 namespace zeek::telemetry {
 

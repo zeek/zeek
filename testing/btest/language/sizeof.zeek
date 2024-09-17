@@ -91,7 +91,7 @@ print fmt("Double %s: %f", d, |d|);
 print fmt("Enum %s: %d", ENUM3, |ENUM3|);
 
 # Within a record, enum sizeof should still be ok
-print fmt("Enum in record: %d", |with_enum$e|);
+print fmt("Enum in record: %d %d", with_enum$e, |with_enum$e|);
 
 # Size of file: returns current file size.
 # Note that this is a double so that file sizes >> 4GB
@@ -111,7 +111,7 @@ print fmt("Interval %s: %f", iv, |iv|);
 print fmt("Port %s: %d", p, |p|);
 
 # Within a record, port sizeof should still be ok
-print fmt("Port in record: %d", |with_port$p|);
+print fmt("Port in record: %d %d", with_port$p, |with_port$p|);
 
 # Size of record: returns number of fields (assigned + unassigned)
 print fmt("Record %s: %d", r, |r|);

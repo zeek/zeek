@@ -7,13 +7,13 @@ Expr: 18446744073709551612
 Signed Expr: 4
 Double -1.23: 1.230000
 Enum ENUM3: 2
-Enum in record: 2
+Enum in record: 2 2
 File 21.000000
 Function add_interface: 2
 Integer -10: 10
 Interval -5.0 secs: 5.000000
 Port 80/tcp: 65616
-Port in record: 65616
+Port in record: 65616 65616
 Record [i=10, j=<uninitialized>, k=<uninitialized>]: 3
 Set: 3
 String 'Hello': 5

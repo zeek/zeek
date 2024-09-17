@@ -4,7 +4,6 @@
 
 #include <prometheus/counter.h>
 #include <prometheus/family.h>
-#include <cstdint>
 #include <initializer_list>
 #include <memory>
 
@@ -14,6 +13,12 @@
 #include "zeek/telemetry/telemetry.bif.h"
 
 namespace zeek::telemetry {
+
+namespace detail {
+using CollectCallbackPtr = std::function<double()>;
+}
+
+class CounterFamily;
 
 /**
  * A handle to a metric that can only go up.
@@ -26,7 +31,7 @@ public:
     using FamilyType = prometheus::Family<Handle>;
 
     explicit Counter(FamilyType* family, const prometheus::Labels& labels,
-                     prometheus::CollectCallbackPtr callback = nullptr) noexcept;
+                     detail::CollectCallbackPtr callback = nullptr) noexcept;
 
     /**
      * Increments the value by 1.
@@ -55,10 +60,21 @@ public:
 
     bool CompareLabels(const prometheus::Labels& lbls) const { return labels == lbls; }
 
+    bool HasCallback() const noexcept { return callback != nullptr; }
+    double RunCallback() const { return callback(); }
+
 private:
+    friend class CounterFamily;
+    void Set(double val) {
+        // Counter has no Set(), but we can fake it.
+        handle.Reset();
+        handle.Increment(val);
+    }
+
+    FamilyType* family = nullptr;
     Handle& handle;
     prometheus::Labels labels;
-    bool has_callback = false;
+    detail::CollectCallbackPtr callback;
 };
 
 using CounterPtr = std::shared_ptr<Counter>;
@@ -74,14 +90,16 @@ public:
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    CounterPtr GetOrAdd(Span<const LabelView> labels, prometheus::CollectCallbackPtr callback = nullptr);
+    CounterPtr GetOrAdd(Span<const LabelView> labels, detail::CollectCallbackPtr callback = nullptr);
 
     /**
      * @copydoc GetOrAdd
      */
-    CounterPtr GetOrAdd(std::initializer_list<LabelView> labels, prometheus::CollectCallbackPtr callback = nullptr);
+    CounterPtr GetOrAdd(std::initializer_list<LabelView> labels, detail::CollectCallbackPtr callback = nullptr);
 
     zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::COUNTER; }
+
+    void RunCallbacks() override;
 
 private:
     prometheus::Family<prometheus::Counter>* family;

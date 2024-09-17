@@ -31,6 +31,10 @@ class Registry;
 
 namespace zeek::telemetry {
 
+namespace detail {
+using CollectCallbackPtr = std::function<double()>;
+}
+
 class ZeekCollectable;
 
 /**
@@ -98,12 +102,12 @@ public:
      */
     CounterPtr CounterInstance(std::string_view prefix, std::string_view name, Span<const LabelView> labels,
                                std::string_view helptext, std::string_view unit = "",
-                               prometheus::CollectCallbackPtr callback = nullptr);
+                               detail::CollectCallbackPtr callback = nullptr);
 
     /// @copydoc counterInstance
     CounterPtr CounterInstance(std::string_view prefix, std::string_view name, std::initializer_list<LabelView> labels,
                                std::string_view helptext, std::string_view unit = "",
-                               prometheus::CollectCallbackPtr callback = nullptr);
+                               detail::CollectCallbackPtr callback = nullptr);
 
     /**
      * @return A gauge metric family. Creates the family lazily if necessary.
@@ -134,12 +138,12 @@ public:
      */
     GaugePtr GaugeInstance(std::string_view prefix, std::string_view name, Span<const LabelView> labels,
                            std::string_view helptext, std::string_view unit = "",
-                           prometheus::CollectCallbackPtr callback = nullptr);
+                           detail::CollectCallbackPtr callback = nullptr);
 
     /// @copydoc GaugeInstance
     GaugePtr GaugeInstance(std::string_view prefix, std::string_view name, std::initializer_list<LabelView> labels,
                            std::string_view helptext, std::string_view unit = "",
-                           prometheus::CollectCallbackPtr callback = nullptr);
+                           detail::CollectCallbackPtr callback = nullptr);
 
     // Forces the compiler to use the type `Span<const T>` instead of trying to
     // match parameters to a `span`.

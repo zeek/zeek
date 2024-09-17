@@ -2,14 +2,11 @@
 
 #include "zeek/Timer.h"
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/Desc.h"
 #include "zeek/NetVar.h"
 #include "zeek/RunState.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/iosource/Manager.h"
-#include "zeek/iosource/PktSrc.h"
 #include "zeek/util.h"
 
 namespace zeek::detail {

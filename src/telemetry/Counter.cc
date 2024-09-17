@@ -2,27 +2,17 @@
 
 using namespace zeek::telemetry;
 
-Counter::Counter(FamilyType* family, const prometheus::Labels& labels, prometheus::CollectCallbackPtr callback) noexcept
-    : handle(family->Add(labels)), labels(labels) {
-    if ( callback ) {
-        handle.AddCollectCallback(std::move(callback));
-        has_callback = true;
-    }
-}
+Counter::Counter(FamilyType* family, const prometheus::Labels& labels, detail::CollectCallbackPtr callback) noexcept
+    : family(family), handle(family->Add(labels)), labels(labels), callback(std::move(callback)) {}
 
 double Counter::Value() const noexcept {
-    if ( has_callback ) {
-        // Use Collect() here instead of Value() to correctly handle metrics with
-        // callbacks.
-        auto metric = handle.Collect();
-        return metric.counter.value;
-    }
+    if ( callback )
+        return callback();
 
     return handle.Value();
 }
 
-std::shared_ptr<Counter> CounterFamily::GetOrAdd(Span<const LabelView> labels,
-                                                 prometheus::CollectCallbackPtr callback) {
+std::shared_ptr<Counter> CounterFamily::GetOrAdd(Span<const LabelView> labels, detail::CollectCallbackPtr callback) {
     prometheus::Labels p_labels = detail::BuildPrometheusLabels(labels);
 
     auto check = [&](const std::shared_ptr<Counter>& counter) { return counter->CompareLabels(p_labels); };
@@ -36,6 +26,15 @@ std::shared_ptr<Counter> CounterFamily::GetOrAdd(Span<const LabelView> labels,
 }
 
 std::shared_ptr<Counter> CounterFamily::GetOrAdd(std::initializer_list<LabelView> labels,
-                                                 prometheus::CollectCallbackPtr callback) {
+                                                 detail::CollectCallbackPtr callback) {
     return GetOrAdd(Span{labels.begin(), labels.size()}, std::move(callback));
+}
+
+void CounterFamily::RunCallbacks() {
+    for ( auto& c : counters ) {
+        if ( c->HasCallback() ) {
+            double val = c->RunCallback();
+            c->Set(val);
+        }
+    }
 }

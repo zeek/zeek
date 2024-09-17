@@ -34,6 +34,7 @@ connection {
         * size: count, log=F, optional=F
         * state: count, log=F, optional=F
        }
+  * removal_hooks: set[func], log=F, optional=T
   * resp: record endpoint, log=F, optional=F
       endpoint { ... }
   * service: set[string], log=F, optional=F

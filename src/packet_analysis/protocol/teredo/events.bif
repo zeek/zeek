@@ -1,3 +1,5 @@
+module GLOBAL;
+
 ## Generated for any IPv6 packet encapsulated in a Teredo tunnel.
 ## See :rfc:`4380` for more information about the Teredo protocol.
 ##
@@ -10,6 +12,14 @@
 ## .. note:: Since this event may be raised on a per-packet basis, handling
 ##    it may become particularly expensive for real-time analysis.
 event teredo_packet%(outer: connection, inner: teredo_hdr%);
+
+## Generated when per connection Teredo state is created.
+##
+## This is primarily useful to install a connection removal hook to clear
+## internal per-connection Teredo state.
+##
+## c: The Teredo tunnel connection.
+event new_teredo_state%(c: connection%);
 
 ## Generated for IPv6 packets encapsulated in a Teredo tunnel that
 ## use the Teredo authentication encapsulation method.

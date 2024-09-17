@@ -1,3 +1,25 @@
+7.1.0-dev.324 | 2024-09-17 18:51:34 +0200
+
+  * btest: Update baselines for removal-hooks addition (Arne Welzel, Corelight)
+
+    The removal_hooks field exists in bare mode (seems fine) and moved within the
+    connection record to earlier, so a bunch of baselines changed
+
+  * gtpv1: Replace connection_state_remove() with RemovalHook (Arne Welzel, Corelight)
+
+  * teredo: Replace connection_state_remove() with RemovalHook (Arne Welzel, Corelight)
+
+    Remove overhead of unconditionally calling remove_teredo_connection()
+    for *every* connection by installing a connection removal hook for only
+    when state was allocated.
+
+  * teredo: Move conn member from analyzer to encapsulation (Arne Welzel, Corelight)
+
+    There's only a single instance of the Teredo analyzer. Mutating the conn
+    member for every new packet and leaving it set after processing the
+    packet is confusing. Move conn into TeredoEncapsulation instead, or pass
+    it explicitly.
+
 7.1.0-dev.319 | 2024-09-17 18:50:40 +0200
 
   * Update broker submodule (Arne Welzel, Corelight)

@@ -594,7 +594,7 @@ void IntervalVal::ValDescribe(ODesc* d) const {
     }
 }
 
-ValPtr PortVal::SizeVal() const { return val_mgr->Int(uint_val); }
+ValPtr PortVal::SizeVal() const { return val_mgr->Count(uint_val); }
 
 uint32_t PortVal::Mask(uint32_t port_num, TransportProto port_type) {
     // Note, for ICMP one-way connections:
@@ -3133,7 +3133,15 @@ unsigned int RecordVal::ComputeFootprint(std::unordered_set<const Val*>* analyze
     return fp;
 }
 
-ValPtr EnumVal::SizeVal() const { return val_mgr->Int(AsInt()); }
+ValPtr EnumVal::SizeVal() const {
+    // Negative enums are rejected at parse time, but not internally. Handle the
+    // negative case just like a signed integer, as that is an enum's underlying
+    // type.
+    if ( AsInt() < 0 )
+        return val_mgr->Count(-AsInt());
+    else
+        return val_mgr->Count(AsInt());
+}
 
 void EnumVal::ValDescribe(ODesc* d) const {
     const char* ename = type->AsEnumType()->Lookup(int_val);

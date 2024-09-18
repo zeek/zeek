@@ -106,6 +106,7 @@ protected:
 
     analyzer::mime::MIME_Mail* mail;
     std::list<std::string> cmds;
+    zeek_uint_t unknown_client_cmds;
 
 private:
     bool tls;

@@ -1,3 +1,22 @@
+7.1.0-dev.328 | 2024-09-18 19:10:43 +0200
+
+  * Add enum value negative check (Evan Typanski, Corelight)
+
+    There was one already at parse time, this adds a check later so that
+    cases like overflows or internal enums with negative values get caught.
+
+  * Fix port/enum values `SizeOf` not being a count (Evan Typanski, Corelight)
+
+    Really, they both should be count. But, they were getting provided as an
+    integer. Port is easy since it is backed by an unsigned value. Enums
+    *should* be unsigned, but aren't. This doesn't address that, it just
+    takes the other name for this operator (absolute value) and makes the
+    enum value positive if it's negative.
+
+    This fixes a case where using the size of operator on enum/port values
+    in certain contexts (like the default parameter of a struct) would cause
+    an internal error.
+
 7.1.0-dev.324 | 2024-09-17 18:51:34 +0200
 
   * btest: Update baselines for removal-hooks addition (Arne Welzel, Corelight)

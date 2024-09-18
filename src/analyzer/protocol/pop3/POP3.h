@@ -4,11 +4,9 @@
 
 #pragma once
 
-#include <algorithm>
 #include <string>
 #include <vector>
 
-#include "zeek/analyzer/protocol/login/NVT.h"
 #include "zeek/analyzer/protocol/mime/MIME.h"
 #include "zeek/analyzer/protocol/tcp/ContentLine.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"

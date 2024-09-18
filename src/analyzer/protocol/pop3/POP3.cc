@@ -3,8 +3,6 @@
 
 #include "zeek/analyzer/protocol/pop3/POP3.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cctype>
 #include <string>
 #include <vector>

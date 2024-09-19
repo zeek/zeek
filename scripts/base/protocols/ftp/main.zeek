@@ -172,6 +172,7 @@ function set_ftp_session(c: connection)
 function ftp_message(c: connection)
 	{
 	if ( ! c?$ftp ) return;
+	local password_censor_string:string = "<hidden>";
 	local s: Info = c$ftp;
 	s$ts=s$cmdarg$ts;
 	s$command=s$cmdarg$cmd;
@@ -193,6 +194,12 @@ function ftp_message(c: connection)
 		s$reply_msg = s$reply_msg[:max_reply_msg_length];
 		}
 
+	if ( s$command == "PASS" &&
+		 ! s$capture_password &&
+		 to_lower(s$user) !in guest_ids )
+		{
+			s$arg = password_censor_string;
+		}
 
 	if ( s$arg == "" )
 		delete s$arg;
@@ -201,7 +208,7 @@ function ftp_message(c: connection)
 	     ! s$capture_password &&
 	     to_lower(s$user) !in guest_ids )
 		{
-		s$password = "<hidden>";
+		s$password = password_censor_string;
 		}
 
 	if ( s?$cmdarg && s$command in logged_commands)

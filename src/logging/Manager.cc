@@ -1796,49 +1796,10 @@ bool Manager::WritesFromRemote(const detail::LogWriteHeader& header, std::vector
 
     Stream::WriterMap::const_iterator w = stream->writers.find(wpp);
     if ( w == stream->writers.end() ) {
-        fprintf(stderr, "creating writer for %s %s %s\n", obj_desc_short(header.stream_id.get()).c_str(),
+        DBG_LOG(DBG_LOGGING, "creating writer for %s %s %s\n", obj_desc_short(header.stream_id.get()).c_str(),
                 obj_desc_short(header.writer_id.get()).c_str(), header.filter_name.c_str());
 
-        // This is all copied copied from  WriteToFilters() - should extract to function.
-        WriterBackend::WriterInfo* info = nullptr;
-
-        // Copy the fields for WriterFrontend::Init() as it
-        // will take ownership.
-        threading::Field** arg_fields = new threading::Field*[filter->num_fields];
-
-        for ( int j = 0; j < filter->num_fields; ++j ) {
-            // Rename fields if a field name map is set.
-            if ( filter->field_name_map ) {
-                const char* name = filter->fields[j]->name;
-                if ( const auto& val = filter->field_name_map->Find(make_intrusive<StringVal>(name)) ) {
-                    delete[] filter->fields[j]->name;
-                    auto [data, len] = val->AsStringVal()->CheckStringWithSize();
-                    filter->fields[j]->name = util::copy_string(data, len);
-                }
-            }
-            arg_fields[j] = new threading::Field(*filter->fields[j]);
-        }
-
-        info = new WriterBackend::WriterInfo;
-        info->path = util::copy_string(header.path.c_str(), header.path.size());
-        info->filter_name = filter->name;
-        info->network_time = run_state::network_time;
-
-        auto* filter_config_table = filter->config->AsTable();
-        for ( const auto& fcte : *filter_config_table ) {
-            auto k = fcte.GetHashKey();
-            auto* v = fcte.value;
-
-            auto index = filter->config->RecreateIndex(*k);
-            string key = index->Idx(0)->AsString()->CheckString();
-            string value = v->GetVal()->AsString()->CheckString();
-            info->config.emplace(util::copy_string(key.c_str(), key.size()),
-                                 util::copy_string(value.c_str(), value.size()));
-        }
-
-
-        if ( ! CreateWriter(header.stream_id.get(), filter->writer, info, header.fields.size(), arg_fields,
-                            true /*local*/, false /*remote*/, true /*from_remote*/, header.filter_name) ) {
+        if ( ! CreateWriterForFilter(filter, header.path, WriterOrigin::REMOTE) ) {
             reporter->Error("Failed to create writer for filter '%s' of stream '%s'", filter->name.c_str(),
                             obj_desc_short(header.stream_id.get()).c_str());
             return false;

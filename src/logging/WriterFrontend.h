@@ -268,6 +268,8 @@ protected:
 
     // Buffer for bulk writes.
     detail::WriteBuffer write_buffer; // Buffer of size WRITER_BUFFER_SIZE.
+
+    cluster::detail::LogWriteHeader header;
 };
 
 } // namespace zeek::logging

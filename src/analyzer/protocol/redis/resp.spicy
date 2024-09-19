@@ -1,0 +1,107 @@
+module RESP;
+
+public type Messages = unit {
+    : Data[];
+};
+
+public type Data = unit {
+    ty: uint8 &convert=DataType($$);
+    switch ( self.ty ) {
+        DataType::SIMPLE_STRING -> simple_string: SimpleString(False);
+        DataType::SIMPLE_ERROR -> simple_error: SimpleString(True);
+        DataType::INTEGER -> integer: Integer;
+        DataType::BULK_STRING -> bulk_string: BulkString(False);
+        DataType::ARRAY -> array: Array;
+        DataType::NULL -> null: Null_;
+        DataType::BOOLEAN -> boolean: Boolean;
+        DataType::DOUBLE -> double: Double;
+        DataType::BIG_NUM -> big_num: BigNum;
+        DataType::BULK_ERROR -> bulk_error: BulkString(True);
+        # This can be a different type, but the docs also say:
+        # "Some client libraries may ignore the difference between this type and the string type"
+        # It just includes the encoding first in the content
+        DataType::VERBATIM_STRING -> verbatim_string: BulkString(False);
+        DataType::MAP -> map_: Map;
+        DataType::SET -> set_: Set;
+        # "Push events are encoded similarly to arrays, differing only in their
+        # first byte" - TODO: can probably make it more obvious, though
+        DataType::PUSH -> push: Array;
+        };
+};
+
+type DataType = enum {
+    SIMPLE_STRING = '+',
+    SIMPLE_ERROR = '-',
+    INTEGER = ':',
+    BULK_STRING = '$',
+    ARRAY = '*',
+    NULL = '_',
+    BOOLEAN = '#',
+    DOUBLE = ',',
+    BIG_NUM = '(',
+    BULK_ERROR = '!',
+    VERBATIM_STRING = '=',
+    MAP = '%',
+    SET = '~',
+    PUSH = '>'
+};
+
+type SimpleString = unit(is_error: bool) {
+    content: bytes &until=b"\x0d\x0a";
+};
+
+type Integer = unit {
+    int: bytes &convert=$$.to_int(10) &until=b"\x0d\x0a";
+};
+
+type BulkString = unit(is_error: bool) {
+    length: bytes &convert=$$.to_int(10) &until=b"\x0d\x0a";
+    # NullBulkString is a BulkString with content unset
+    content: bytes &size=uint64( self.length ) if ( self.length >= 0 );
+
+    # Consume last CLRF
+    : bytes &until=b"\x0d\x0a";
+};
+
+type Array = unit {
+    num_elements: bytes &convert=$$.to_int(10) &until=b"\x0d\x0a";
+    # Null array is an array with elements unset. This is different from an empty array
+    elements: Data[uint64(self.num_elements)] if ( self.num_elements >= 0 );
+};
+
+type Null_ = unit {
+    # Still must consume CLRF
+    : bytes &until=b"\x0d\x0a";
+};
+
+type Boolean = unit {
+    val: uint8 &convert=$$ == 't';
+    : bytes &until=b"\x0d\x0a";
+};
+
+type Double = unit {
+    val: bytes &convert=$$.to_real() &until=b"\x0d\x0a";
+};
+
+type BigNum = unit {
+    # Big num can be very big so put it in a UTF-8 decoded string
+    val: bytes &convert=$$.decode() &until=b"\x0d\x0a";
+};
+
+type Map = unit {
+    var key_val_pairs: vector<tuple<Data, Data>>;
+    num_elements: bytes &convert=$$.to_uint(10) &until=b"\x0d\x0a";
+    # TODO: How can I make this into a map? Alternatively, how can I do this better?
+    raw_data: Data[self.num_elements*2] {
+        while ( local i = 0; i < self.num_elements ) {
+            self.key_val_pairs.push_back(($$[i], $$[i+1]));
+            i += 2;
+        }
+    }
+};
+
+type Set = unit {
+    num_elements: bytes &convert=$$.to_uint(10) &until=b"\x0d\x0a";
+    # TODO: This should be a set but doesn't go in the backed C++ set
+    elements: Data[self.num_elements];
+};

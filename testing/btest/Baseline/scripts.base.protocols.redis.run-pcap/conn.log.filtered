@@ -1,0 +1,2 @@
+ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	10.1.9.63	63526	54.175.222.246	80	tcp	http	0.755677	207	489	SF	0	ShADTadFf	7	790	4	705	-

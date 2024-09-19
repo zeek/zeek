@@ -1,0 +1,72 @@
+# Set up protocol confirmation/rejection for analyzers, as well as any further
+# Zeek-specific analysis.
+
+module Zeek_RESP;
+
+import RESP;
+import zeek;
+
+# Any error bubbling up to the top unit will trigger a protocol rejection.
+on RESP::Data::%done {
+    zeek::confirm_protocol();
+}
+
+on RESP::Data::%error {
+    zeek::reject_protocol("error while parsing RESP data");
+}
+
+type ZeekData = tuple<
+    optional<bytes>, 
+    optional<bytes>, 
+    optional<int64>,
+    optional<bytes>, 
+    #optional<vector<ZeekData>>, # TODO: This segfaults because recursive type :(
+    bool,
+    optional<bool>,
+    optional<real>,
+    optional<string>, 
+    optional<bytes>, 
+    optional<bytes>, 
+>;
+
+public function create_data(data: RESP::Data): ZeekData {
+    local simple_string: optional<bytes>;
+    local simple_error: optional<bytes>;
+    local i: optional<int64>;
+    local bulk_string: optional<bytes>;
+    #local array: optional<vector<ZeekData>>;
+    local null: bool;
+    local boolean: optional<bool>;
+    local double: optional<real>;
+    local big_num: optional<string>;
+    local bulk_error: optional<bytes>;
+    local verbatim_string: optional<bytes>;
+    if (data?.simple_string)
+        simple_string = data.simple_string.content;
+    if (data?.simple_error)
+        simple_error = data.simple_error.content;
+    if (data?.integer)
+        i = data.integer.int;
+    if (data?.bulk_string)
+        bulk_string = data.bulk_string.content;
+    #if (data?.array) {
+    #    for ( data in data.array.elements ) {
+    #        array.push_back(data);
+    #    }
+    #}
+    if (data?.null)
+        null = True;
+    else
+        null = False;
+    if (data?.boolean)
+        boolean = data.boolean.val;
+    if (data?.double)
+        double = data.double.val;
+    if (data?.big_num)
+        big_num = data.big_num.val;
+    if (data?.bulk_error)
+        bulk_error = data.bulk_error.content;
+    if (data?.verbatim_string)
+        verbatim_string = data.verbatim_string.content;
+    return (simple_string, simple_error, i, bulk_string, null, boolean, double, big_num, bulk_error, verbatim_string);
+}

@@ -116,6 +116,14 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVa
 
     else
         backend = nullptr;
+
+    header = {
+        .stream_id = {zeek::NewRef{}, stream},
+        .writer_id = {zeek::NewRef{}, writer},
+        .filter_name = arg_info.filter_name,
+        .path = arg_info.path,
+        .schema = {}, // Populated in Init()
+    };
 }
 
 WriterFrontend::~WriterFrontend() {
@@ -168,6 +176,10 @@ void WriterFrontend::Init(int arg_num_fields, const Field* const* arg_fields) {
     if ( remote ) {
         broker_mgr->PublishLogCreate(stream, writer, *info, arg_num_fields, arg_fields);
     }
+
+    header.schema.reserve(arg_num_fields);
+    for ( int i = 0; i < arg_num_fields; i++ )
+        header.schema.emplace_back(*arg_fields[i]);
 }
 
 void WriterFrontend::Write(detail::LogRecord&& arg_vals) {
@@ -182,11 +194,16 @@ void WriterFrontend::Write(detail::LogRecord&& arg_vals) {
         return;
     }
 
-    if ( remote ) {
-        broker_mgr->PublishLogWrite(stream, writer, info->path, vals);
-    }
+    // If remote logging is enabled *and* broker is used as cluster backend,
+    // push the record directly to broker, it has its own buffering logic.
+    //
+    // Other cluster backends will leverage the write buffering in the
+    // frontend. See FlushWriteBuffer() where PublishLogWrite() happens
+    // on zeek::cluster::backend instead with all buffered writes.
+    if ( remote && zeek::cluster::backend == zeek::broker_mgr )
+        zeek::broker_mgr->PublishLogWrite(stream, writer, info->path, vals);
 
-    if ( ! backend )
+    if ( ! remote && ! backend )
         return;
 
     write_buffer.WriteRecord(std::move(vals));
@@ -204,8 +221,16 @@ void WriterFrontend::FlushWriteBuffer() {
         // Nothing to do.
         return;
 
+    auto records = std::move(write_buffer).TakeRecords();
+
+    std::fprintf(stderr, "%s: Flushing %zu records\n", name, records.size());
+    // We've already pushed to broker during Write(). If another backend
+    // is used, push all the buffered log records to it now.
+    if ( remote && zeek::cluster::backend != zeek::broker_mgr )
+        zeek::cluster::backend->PublishLogWrites(header, Span{records});
+
     if ( backend )
-        backend->SendIn(new WriteMessage(backend, num_fields, std::move(write_buffer).TakeRecords()));
+        backend->SendIn(new WriteMessage(backend, num_fields, std::move(records)));
 }
 
 void WriterFrontend::SetBuf(bool enabled) {

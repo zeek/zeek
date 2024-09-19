@@ -29,6 +29,8 @@
 #include "zeek/threading/Manager.h"
 #include "zeek/threading/SerialTypes.h"
 
+#include "cluster/Backend.h"
+
 using namespace std;
 
 namespace zeek::detail {
@@ -1743,6 +1745,130 @@ WriterFrontend* Manager::CreateWriterForFilter(Filter* filter, const std::string
     bool from_remote = from == Manager::WriterOrigin::REMOTE;
     return CreateWriter(filter->id, filter->writer, info, filter->num_fields, arg_fields, filter->local, filter->remote,
                         from_remote, filter->name);
+}
+
+bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, const string& path, int num_fields,
+                              threading::Value** vals) {
+    // Slow version for backwards compat.
+    detail::LogRecord rec;
+    rec.reserve(num_fields);
+    for ( int i = 0; i < num_fields; i++ )
+        rec.emplace_back(*vals[i]);
+
+    DeleteVals(num_fields, vals);
+
+    return WriteFromRemote(id, writer, path, std::move(rec));
+}
+
+bool Manager::WritesFromRemote(const cluster::detail::LogWriteHeader& header,
+                               std::vector<detail::LogRecord>&& arg_records) {
+    auto records = std::move(arg_records);
+
+    Stream* stream = FindStream(header.stream_id.get());
+    if ( ! stream ) {
+        reporter->Error("Failed to find stream for !");
+        return false;
+    }
+
+    Filter* filter = nullptr;
+
+    // Okay, find the filter!
+    for ( const auto& f : stream->filters ) {
+        if ( f->name == header.filter_name ) {
+            filter = f;
+            break;
+        }
+    }
+    if ( ! filter ) {
+        reporter->Error("Did not find filter '%s' for stream", header.filter_name.c_str());
+        return false;
+    }
+
+    // Basic validation of incoming log record with local filter configuration.
+    if ( static_cast<int>(header.schema.size()) != filter->num_fields ) {
+        reporter->Error("Local filter '%s' of stream '%s' has '%d' fields, got %zu", filter->name.c_str(),
+                        obj_desc_short(header.stream_id.get()).c_str(), filter->num_fields, header.schema.size());
+        return false;
+    }
+
+    if ( header.writer_id.get() != filter->writer ) {
+        reporter->Error("Local filter '%s' of stream '%s' has writer '%s', got '%s'", filter->name.c_str(),
+                        obj_desc_short(header.stream_id.get()).c_str(), obj_desc_short(filter->writer).c_str(),
+                        obj_desc_short(header.writer_id.get()).c_str());
+        return false;
+    }
+
+    // if ( ! SchemaCompatible(filter->fields, header.schema )) {
+    //
+    //    return false;
+    // }
+
+    // XXX: Not sure we should use WriterPathPair, we should probably
+    //      better change to <filter_name, path> pair, that should also
+    //      avoid conflicts? Maybe.
+    Stream::WriterPathPair wpp(filter->writer->AsEnum(), header.path);
+
+    Stream::WriterMap::const_iterator w = stream->writers.find(wpp);
+    if ( w == stream->writers.end() ) {
+        fprintf(stderr, "no writer\n");
+
+        // This is all copied copied from  WriteToFilters() - should extract to function.
+        WriterBackend::WriterInfo* info = nullptr;
+
+        // Copy the fields for WriterFrontend::Init() as it
+        // will take ownership.
+        threading::Field** arg_fields = new threading::Field*[filter->num_fields];
+
+        for ( int j = 0; j < filter->num_fields; ++j ) {
+            // Rename fields if a field name map is set.
+            if ( filter->field_name_map ) {
+                const char* name = filter->fields[j]->name;
+                if ( const auto& val = filter->field_name_map->Find(make_intrusive<StringVal>(name)) ) {
+                    delete[] filter->fields[j]->name;
+                    auto [data, len] = val->AsStringVal()->CheckStringWithSize();
+                    filter->fields[j]->name = util::copy_string(data, len);
+                }
+            }
+            arg_fields[j] = new threading::Field(*filter->fields[j]);
+        }
+
+        info = new WriterBackend::WriterInfo;
+        info->path = util::copy_string(header.path.c_str(), header.path.size());
+        info->filter_name = filter->name;
+        info->network_time = run_state::network_time;
+
+        auto* filter_config_table = filter->config->AsTable();
+        for ( const auto& fcte : *filter_config_table ) {
+            auto k = fcte.GetHashKey();
+            auto* v = fcte.value;
+
+            auto index = filter->config->RecreateIndex(*k);
+            string key = index->Idx(0)->AsString()->CheckString();
+            string value = v->GetVal()->AsString()->CheckString();
+            info->config.emplace(util::copy_string(key.c_str(), key.size()),
+                                 util::copy_string(value.c_str(), value.size()));
+        }
+
+
+        if ( ! CreateWriter(header.stream_id.get(), filter->writer, info, header.schema.size(), arg_fields,
+                            true /*local*/, false /*remote*/, true /*from_remote*/, header.filter_name) ) {
+            reporter->Error("Failed to create writer for filter '%s' of stream '%s'", filter->name.c_str(),
+                            obj_desc_short(header.stream_id.get()).c_str());
+            return false;
+        }
+    }
+
+    w = stream->writers.find(wpp);
+    assert(w != stream->writers.end());
+
+    // Hmm, if we had a batch method on the writer frontend, we could
+    // bypass any buffering there and just write to the backend
+    // immediately. At the same time, this way the logger may buffer
+    // together writes from different workers, so I guess that's nice.
+    for ( auto& r : records )
+        w->second->writer->Write(std::move(r));
+
+    return true;
 }
 
 bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, const string& path, detail::LogRecord&& rec) {

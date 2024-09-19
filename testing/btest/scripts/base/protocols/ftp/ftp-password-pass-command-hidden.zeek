@@ -1,4 +1,4 @@
-# @TEST-DOC: Adding PASS to logged commands should log the password in password and arg column
+# @TEST-DOC: Adding PASS to logged commands should hide the password in password and arg column
 # @TEST-EXEC: zeek -b -Cr $TRACES/ftp/ftp-password-pass-command.pcap %INPUT
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff ftp.log

@@ -9,6 +9,7 @@
 #include "zeek/EventHandler.h"
 #include "zeek/Tag.h"
 #include "zeek/Val.h"
+#include "zeek/cluster/Backend.h"
 #include "zeek/logging/Component.h"
 #include "zeek/logging/WriterBackend.h"
 #include "zeek/plugin/ComponentManager.h"
@@ -286,6 +287,11 @@ public:
      * @return Returns true if the record was processed successfully.
      */
     bool WriteFromRemote(EnumVal* id, EnumVal* writer, const std::string& path, detail::LogRecord&& rec);
+
+    // Process multiple records from a remote.
+    bool WritesFromRemote(const zeek::cluster::detail::LogWriteHeader& header,
+                          std::vector<detail::LogRecord>&& records);
+
 
     /**
      * Announces all instantiated writers to a given Broker peer.

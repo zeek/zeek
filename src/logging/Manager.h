@@ -290,7 +290,9 @@ public:
      */
     bool WriteFromRemote(EnumVal* id, EnumVal* writer, const std::string& path, detail::LogRecord&& rec);
 
-    // Process multiple records from a remote.
+    /**
+     * Entry point for cluster backends.
+     */
     bool WritesFromRemote(const detail::LogWriteHeader& header, std::vector<detail::LogRecord>&& records);
 
 

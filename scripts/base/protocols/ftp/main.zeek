@@ -169,15 +169,14 @@ function set_ftp_session(c: connection)
 		}
 	}
 
-function should_sensor_password(s: Info) : bool
+function should_hide_sensor_password(s: Info) : bool
 	{
-		if ( ! s$capture_password &&
-		     to_lower(s$user) !in guest_ids)
-			 {
-				return T;
-			 }
-		return F;
-
+	if ( ! s$capture_password &&
+			to_lower(s$user) !in guest_ids)
+			{
+			return T;
+			}
+	return F;
 	}
 
 function ftp_message(c: connection)
@@ -207,7 +206,7 @@ function ftp_message(c: connection)
 
 	# In case of logging PASS command, the password will appear in arg column and might need hiding
 	if ( s$command == "PASS" &&
-		 should_sensor_password(s))
+		 should_hide_sensor_password(s))
 		{
 		s$arg = password_hidden_string;
 		}
@@ -216,7 +215,7 @@ function ftp_message(c: connection)
 		delete s$arg;
 
 	if ( s?$password &&
-	     should_sensor_password(s))
+	     should_hide_sensor_password(s))
 		{
 		s$password = password_hidden_string;
 		}

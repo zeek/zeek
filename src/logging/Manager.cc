@@ -1710,6 +1710,7 @@ WriterFrontend* Manager::CreateWriterForFilter(Filter* filter, const std::string
     }
 
     auto* info = new WriterBackend::WriterInfo;
+    info->filter_name = filter->name;
     info->path = util::copy_string(path.c_str(), path.size());
     info->network_time = run_state::network_time;
 

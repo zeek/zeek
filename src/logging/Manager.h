@@ -378,6 +378,23 @@ private:
     struct Stream;
     struct WriterInfo;
 
+    /**
+     * Helper enum for CreateWriterForFilter to avoid bool params.
+     */
+    enum class WriterOrigin {
+        REMOTE,
+        LOCAL,
+    };
+
+    /**
+     * Helper to create a new writer for a filter with the given path.
+     *
+     * @param filter the filter for which to create the writer.
+     * @param path the path for the new writer
+     * @param from whether instantiated for a remote log, or locally created.
+     */
+    WriterFrontend* CreateWriterForFilter(Filter* filter, const std::string& path, WriterOrigin origin);
+
     bool TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, TableVal* include, TableVal* exclude,
                         const std::string& path, const std::list<int>& indices);
 

@@ -4321,7 +4321,7 @@ void LambdaExpr::BuildName() {
 
         my_name = "lambda_<" + std::to_string(h[0]) + ">";
         auto fullname = make_full_var_name(current_module.data(), my_name.data());
-        const auto& id = current_scope()->Find(fullname);
+        const auto& id = current_function_scope()->Find(fullname);
 
         if ( id )
             // Just try again to make a unique lambda name.

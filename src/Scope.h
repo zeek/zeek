@@ -81,7 +81,7 @@ protected:
 
 // If no_global is true, don't search in the default "global" namespace.
 extern const IDPtr& lookup_ID(const char* name, const char* module, bool no_global = false,
-                              bool same_module_only = false, bool check_export = true);
+                              bool same_module_only = false, bool check_export = true, bool same_scope_only = false);
 
 extern IDPtr install_ID(const char* name, const char* module_name, bool is_global, bool is_export);
 
@@ -91,7 +91,10 @@ extern void push_existing_scope(ScopePtr scope);
 // Returns the one popped off.
 extern ScopePtr pop_scope();
 
+extern void pop_local_scope();
+
 extern ScopePtr current_scope();
+extern ScopePtr current_function_scope();
 extern ScopePtr global_scope();
 
 // Current module (identified by its name).

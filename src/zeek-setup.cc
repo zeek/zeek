@@ -406,7 +406,7 @@ static void terminate_zeek() {
 #endif
 
     // free the global scope
-    pop_scope();
+    pop_local_scope();
 
     reporter = nullptr;
 }

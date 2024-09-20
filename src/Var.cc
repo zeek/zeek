@@ -644,8 +644,8 @@ void begin_func(IDPtr id, const char* module_name, FunctionFlavor flavor, bool i
         if ( ! check_params(i, prototype, args, canon_args, module_name) )
             break;
 
-    if ( Attr* depr_attr = find_attr(current_scope()->Attrs().get(), ATTR_DEPRECATED) )
-        current_scope()->GetID()->MakeDeprecated(depr_attr->GetExpr());
+    if ( Attr* depr_attr = find_attr(current_function_scope()->Attrs().get(), ATTR_DEPRECATED) )
+        current_function_scope()->GetID()->MakeDeprecated(depr_attr->GetExpr());
 
     // Reset the AST node statistics to track afresh for this function.
     Stmt::ResetNumStmts();

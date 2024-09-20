@@ -154,9 +154,6 @@ bool defining_global_ID = false;
 std::vector<int> saved_in_init;
 static int expr_list_has_opt_comma = 0;
 
-std::vector<std::set<const ID*>> locals_at_this_scope;
-static std::unordered_set<const ID*> out_of_scope_locals;
-
 static Location func_hdr_location;
 static int func_hdr_cond_epoch = 0;
 EnumType* cur_enum_type = nullptr;
@@ -772,8 +769,6 @@ expr:
 	|	TOK_WHEN_LOCAL local_id '=' rhs
 			{
 			set_location(@2, @4);
-			if ( ! locals_at_this_scope.empty() )
-			       locals_at_this_scope.back().insert($2);
 			$$ = add_and_assign_local({AdoptRef{}, $2}, {AdoptRef{}, $4},
 			                                        val_mgr->True()).release();
 			}
@@ -1012,9 +1007,6 @@ expr:
 					}
 				else
 					{
-					if ( out_of_scope_locals.count(id.get()) > 0 )
-						id->Error("use of out-of-scope local; move declaration to outer scope");
-
 					$$ = new NameExpr(std::move(id));
 					}
 				}
@@ -1545,9 +1537,6 @@ func_body:
 			{
 			saved_in_init.push_back(in_init);
 			in_init = 0;
-
-			locals_at_this_scope.clear();
-			out_of_scope_locals.clear();
 			}
 
 		stmt_list
@@ -1832,19 +1821,18 @@ attr:
 stmt:
 		'{'
 			{
+            push_scope(nullptr, nullptr);
 			std::set<const ID*> id_set;
-			locals_at_this_scope.emplace_back(id_set);
 			}
 		opt_no_test_block stmt_list '}'
 			{
-			auto& scope_locals = locals_at_this_scope.back();
-			out_of_scope_locals.insert(scope_locals.begin(), scope_locals.end());
-			locals_at_this_scope.pop_back();
 
 			set_location(@1, @5);
 			$$ = $4;
 			if ( $3 )
 			    script_coverage_mgr.DecIgnoreDepth();
+
+            pop_local_scope();
 			}
 
 	|	TOK_ASSERT expr opt_assert_msg ';'
@@ -1949,8 +1937,6 @@ stmt:
 	|	TOK_LOCAL local_id opt_type init_class opt_init opt_attr ';' opt_no_test
 			{
 			set_location(@1, @7);
-			if ( ! locals_at_this_scope.empty() )
-			       locals_at_this_scope.back().insert($2);
 			$$ = build_local($2, $3, $4, $5, $6, VAR_REGULAR, ! $8).release();
 			}
 
@@ -2174,7 +2160,7 @@ local_id:
 		TOK_ID
 			{
 			set_location(@1);
-			auto id = lookup_ID($1, current_module.c_str());
+			auto id = lookup_ID($1, current_module.c_str(), false, false, true, true);
 			$$ = id.release();
 
 			if ( $$ )

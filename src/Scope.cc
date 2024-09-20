@@ -90,7 +90,7 @@ TraversalCode Scope::Traverse(TraversalCallback* cb) const {
 }
 
 const IDPtr& lookup_ID(const char* name, const char* curr_module, bool no_global, bool same_module_only,
-                       bool check_export) {
+                       bool check_export, bool same_scope_only) {
     bool explicit_global = zeek::util::starts_with(name, "::");
 
     static std::string global_prefix = util::fmt("%s::", GLOBAL_MODULE_NAME);
@@ -123,6 +123,9 @@ const IDPtr& lookup_ID(const char* name, const char* curr_module, bool no_global
 
                 return id;
             }
+
+            if ( same_scope_only )
+                break;
         }
     }
 
@@ -170,19 +173,38 @@ void push_scope(IDPtr id, std::unique_ptr<std::vector<AttrPtr>> attrs) {
     scopes.push_back(top_scope);
 }
 
+void pop_local_scope() {
+    scopes.pop_back();
+    top_scope = scopes.empty() ? nullptr : scopes.back();
+}
+
 ScopePtr pop_scope() {
     if ( scopes.empty() )
         reporter->InternalError("scope underflow");
+
+    while ( scopes.back()->GetID() == nullptr )
+        scopes.pop_back();
+
+    auto old_top = scopes.back();
+
     scopes.pop_back();
 
-    auto old_top = top_scope;
-
-    top_scope = scopes.empty() ? nullptr : scopes.back();
+    top_scope = scopes.back();
 
     return old_top;
 }
 
 ScopePtr current_scope() { return top_scope; }
+
+ScopePtr current_function_scope() {
+    for ( auto s_i = scopes.rbegin(); s_i != scopes.rend(); ++s_i ) {
+        if ( (*s_i)->GetID() != nullptr ) {
+            return *s_i;
+        }
+    }
+
+    return top_scope;
+}
 
 ScopePtr global_scope() { return scopes.empty() ? 0 : scopes.front(); }
 

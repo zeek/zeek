@@ -1355,9 +1355,9 @@ TraversalCode FallthroughStmt::Traverse(TraversalCallback* cb) const {
 }
 
 ReturnStmt::ReturnStmt(ExprPtr arg_e) : ExprStmt(STMT_RETURN, std::move(arg_e)) {
-    auto s = current_scope();
+    auto s = current_function_scope();
 
-    if ( ! s || ! s->GetID() ) {
+    if ( ! s ) {
         Error("return statement outside of function/event");
         return;
     }
@@ -1419,6 +1419,7 @@ void ReturnStmt::StmtDescribe(ODesc* d) const {
 StmtList::StmtList() : Stmt(STMT_LIST) {}
 
 ValPtr StmtList::Exec(Frame* f, StmtFlowType& flow) {
+    push_scope(nullptr, nullptr);
     RegisterAccess();
     flow = FLOW_NEXT;
 
@@ -1439,6 +1440,7 @@ ValPtr StmtList::Exec(Frame* f, StmtFlowType& flow) {
             return result;
     }
 
+    pop_local_scope();
     return nullptr;
 }
 
@@ -1729,7 +1731,7 @@ WhenInfo::WhenInfo(ExprPtr arg_cond, FuncType::CaptureList* arg_cl, bool arg_is_
 
     lambda_ft->SetCaptures(*cl);
 
-    auto id = current_scope()->GenerateTemporary("when-internal");
+    auto id = current_function_scope()->GenerateTemporary("when-internal");
     id->SetType(lambda_ft);
     push_scope(std::move(id), nullptr);
 
@@ -1848,7 +1850,7 @@ void WhenInfo::Build(StmtPtr ws) {
 
     auto shebang = make_intrusive<StmtList>(do_test, do_bodies, dummy_return);
 
-    auto ingredients = std::make_shared<FunctionIngredients>(current_scope(), shebang, current_module);
+    auto ingredients = std::make_shared<FunctionIngredients>(current_function_scope(), shebang, current_module);
     auto outer_ids = gather_outer_ids(pop_scope(), ingredients->Body());
 
     lambda = make_intrusive<LambdaExpr>(std::move(ingredients), std::move(outer_ids), "", ws);

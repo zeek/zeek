@@ -3,6 +3,23 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 7.0.2
+==========
+
+This release fixes the following security issues:
+
+- The POP3 parser has been hardened to avoid unbounded state growth in the
+  face of one-sided traffic capture or when enabled for non-POP3 traffic.
+  Concretely, the Redis protocol's AUTH mechanism enables the POP3 analyzer
+  for such connections through DPD.
+
+This release fixes the following bugs:
+
+- Support for SASL+SPNEGO+NTLMSSP was added to the LDAP analyzer.
+
+- Telemetry callbacks are now handled via Zeek instead of depending on the
+  prometehus-cpp library to handle them.
+
 Zeek 7.0.1
 ==========
 

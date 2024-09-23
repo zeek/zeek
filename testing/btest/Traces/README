@@ -29,3 +29,6 @@ Trace Index/Sources:
 - dns/dynamic-update.pcap: : Harvested from CTU-SME-11
   (Experiment-VM-Microsoft-Windows7AD-1) dataset, filtering on tcp port 53.
   https://zenodo.org/records/7958259 (DOI 10.5281/zenodo.7958258).
+- pop3/POP3.pcap: Picked up from POP tutorial on tranalyzer.com
+  https://tranalyzer.com/tutorial/pop
+  https://tranalyzer.com/download/data/pop3.pcap

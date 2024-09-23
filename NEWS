@@ -74,6 +74,11 @@ Changed Functionality
 * The ``mysql.log`` for user change commands will contain *just* the username
   instead of the remaining parts of the command, including auth plugin data.
 
+* The POP3 parser has been hardened to avoid unbounded state growth in the
+  face of one-sided traffic capture or when enabled for non-POP3 traffic.
+  Concretely, the Redis protocol's AUTH mechanism enables the POP3 analyzer
+  for such connections through DPD.
+
 Removed Functionality
 ---------------------
 

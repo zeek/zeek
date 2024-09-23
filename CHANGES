@@ -1,3 +1,26 @@
+7.1.0-dev.332 | 2024-09-23 10:59:51 -0700
+
+  * pop3: Remove unused headers (Arne Welzel, Corelight)
+
+  * pop3: Prevent unbounded state growth (Arne Welzel, Corelight)
+
+    The cmds list may grow unbounded due to the POP3 analyzer being in
+    multiLine mode after seeing `AUTH` in a Redis connection, but never
+    a `.` terminator. This can easily be provoked by the Redis ping
+    command.
+
+    This adds two heuristics: 1) Forcefully process the oldest commands in
+    the cmds list and cap it at max_pending_commands. 2) Start raising
+    analyzer violations if the client has been using more than
+    max_unknown_client_commands commands (default 10).
+
+    Closes #3936
+
+  * btest/pop3: Add somewhat more elaborate testing (Arne Welzel, Corelight)
+
+    PCAP taken from here: https://tranalyzer.com/tutorial/pop and reference
+    added to Traces/README.
+
 7.1.0-dev.328 | 2024-09-18 19:10:43 +0200
 
   * Add enum value negative check (Evan Typanski, Corelight)

@@ -3,8 +3,6 @@
 
 #include "zeek/analyzer/protocol/pop3/POP3.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cctype>
 #include <string>
 #include <vector>
@@ -12,6 +10,7 @@
 #include "zeek/Base64.h"
 #include "zeek/Reporter.h"
 #include "zeek/analyzer/Manager.h"
+#include "zeek/analyzer/protocol/pop3/consts.bif.h"
 #include "zeek/analyzer/protocol/pop3/events.bif.h"
 
 namespace zeek::analyzer::pop3 {
@@ -41,6 +40,7 @@ POP3_Analyzer::POP3_Analyzer(Connection* conn) : analyzer::tcp::TCP_ApplicationA
     authLines = 0;
 
     mail = nullptr;
+    unknown_client_cmds = 0;
 
     cl_orig = new analyzer::tcp::ContentLine_Analyzer(conn, true);
     AddSupportAnalyzer(cl_orig);
@@ -205,6 +205,21 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line) {
         // keep a list of pending commands.
         cmds.emplace_back(line);
 
+        // Prevent unbounded state growth of cmds if there are no matching
+        // server replies by just processing commands even if we didn't see
+        // the server response.
+        //
+        // This may be caused by packet drops, one-sided traffic, analyzing
+        // the wrong protocol (Redis), etc.
+        if ( zeek::BifConst::POP3::max_pending_commands > 0 ) {
+            if ( cmds.size() > zeek::BifConst::POP3::max_pending_commands ) {
+                Weird("pop3_client_too_many_pending_commands");
+
+                ProcessClientCmd();
+                cmds.pop_front();
+            }
+        }
+
         if ( cmds.size() == 1 )
             // Not waiting for another server response,
             // so we can process it immediately.
@@ -236,10 +251,19 @@ void POP3_Analyzer::ProcessClientCmd() {
 
     if ( cmd_code == -1 ) {
         if ( ! waitingForAuthentication ) {
-            Weird("pop3_client_command_unknown");
+            Weird("pop3_client_command_unknown", (tokens.size() > 0 ? tokens[0].c_str() : "???"));
             if ( subState == detail::POP3_WOK )
                 subState = detail::POP3_OK;
+
+            ++unknown_client_cmds;
+
+            if ( zeek::BifConst::POP3::max_unknown_client_commands > 0 ) {
+                if ( unknown_client_cmds > zeek::BifConst::POP3::max_unknown_client_commands ) {
+                    AnalyzerViolation("too many unknown client commands");
+                }
+            }
         }
+
         return;
     }
 
@@ -299,6 +323,7 @@ void POP3_Analyzer::ProcessClientCmd() {
             if ( masterState == detail::POP3_AUTHORIZATION ) {
                 POP3Event(pop3_request, true, cmd, message);
                 if ( ! *message ) {
+                    // This is the client requesting a list of AUTH mechanisms available.
                     requestForMultiLine = true;
                     state = detail::AUTH;
                     subState = detail::POP3_WOK;
@@ -555,9 +580,13 @@ void POP3_Analyzer::ProcessReply(int length, const char* line) {
             AnalyzerViolation(util::fmt("unknown server command (%s)", (tokens.size() > 0 ? tokens[0].c_str() : "???")),
                               line, length);
 
-            Weird("pop3_server_command_unknown");
+            Weird("pop3_server_command_unknown", (tokens.size() > 0 ? tokens[0].c_str() : "???"));
             if ( subState == detail::POP3_WOK )
                 subState = detail::POP3_OK;
+
+            // If we're not in state AUTH and receive "some" response,
+            // assume it was for the last command from the client.
+            FinishClientCmd();
         }
         return;
     }

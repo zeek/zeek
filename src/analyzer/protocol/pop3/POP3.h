@@ -4,11 +4,9 @@
 
 #pragma once
 
-#include <algorithm>
 #include <string>
 #include <vector>
 
-#include "zeek/analyzer/protocol/login/NVT.h"
 #include "zeek/analyzer/protocol/mime/MIME.h"
 #include "zeek/analyzer/protocol/tcp/ContentLine.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
@@ -106,6 +104,7 @@ protected:
 
     analyzer::mime::MIME_Mail* mail;
     std::list<std::string> cmds;
+    zeek_uint_t unknown_client_cmds;
 
 private:
     bool tls;

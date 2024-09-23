@@ -1,0 +1,2 @@
+const POP3::max_pending_commands: count;
+const POP3::max_unknown_client_commands: count;

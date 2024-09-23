@@ -2793,6 +2793,22 @@ export {
 
 } # end export
 
+module POP3;
+
+export {
+	## How many commands a POP3 client may have pending
+	## before Zeek forcefully removes the oldest.
+	##
+	## Setting this value to 0 removes the limit.
+	const max_pending_commands = 10 &redef;
+
+	## How many invalid commands a POP3 client may use
+	## before Zeek starts raising analyzer violations.
+	##
+	## Setting this value to 0 removes the limit.
+	const max_unknown_client_commands = 10 &redef;
+
+} # end export
 
 module Threading;
 

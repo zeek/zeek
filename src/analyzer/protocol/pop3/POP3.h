@@ -4,11 +4,9 @@
 
 #pragma once
 
-#include <algorithm>
 #include <string>
 #include <vector>
 
-#include "zeek/analyzer/protocol/login/NVT.h"
 #include "zeek/analyzer/protocol/mime/MIME.h"
 #include "zeek/analyzer/protocol/tcp/ContentLine.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
@@ -79,7 +77,10 @@ public:
 	void Done() override;
 	void DeliverStream(int len, const u_char* data, bool orig) override;
 
-	static analyzer::Analyzer* Instantiate(Connection* conn) { return new POP3_Analyzer(conn); }
+	static analyzer::Analyzer* Instantiate(Connection* conn)
+		{
+		return new POP3_Analyzer(conn);
+		}
 
 protected:
 	int masterState;
@@ -114,6 +115,7 @@ protected:
 
 	analyzer::mime::MIME_Mail* mail;
 	std::list<std::string> cmds;
+	zeek_uint_t unknown_client_cmds;
 
 private:
 	bool tls;

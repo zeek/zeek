@@ -1,3 +1,30 @@
+6.0.6-1 | 2024-09-23 12:45:07 -0700
+
+  * pop3: Remove unused headers (Arne Welzel, Corelight)
+
+    (cherry picked from commit 702fb031a4ea2b00364d6a7321384a45551ce3a2)
+
+  * pop3: Prevent unbounded state growth (Arne Welzel, Corelight)
+
+    The cmds list may grow unbounded due to the POP3 analyzer being in
+    multiLine mode after seeing `AUTH` in a Redis connection, but never
+    a `.` terminator. This can easily be provoked by the Redis ping
+    command.
+
+    This adds two heuristics: 1) Forcefully process the oldest commands in
+    the cmds list and cap it at max_pending_commands. 2) Start raising
+    analyzer violations if the client has been using more than
+    max_unknown_client_commands commands (default 10).
+
+    (cherry picked from commit 702fb031a4ea2b00364d6a7321384a45551ce3a2)
+
+  * btest/pop3: Add somewhat more elaborate testing (Arne Welzel, Corelight)
+
+    PCAP taken from here: https://tranalyzer.com/tutorial/pop and reference
+    added to Traces/README.
+
+    (cherry picked from commit 702fb031a4ea2b00364d6a7321384a45551ce3a2)
+
 6.0.6 | 2024-09-03 14:46:02 -0700
 
   * CI: Fix centos-7 Dockerfile to replace obsolete yum repos (Tim Wojtulewicz)

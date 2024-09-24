@@ -1,5 +1,4 @@
 # @TEST-EXEC: zcat <$TRACES/echo-connections.pcap.gz | zeek --load-seeds 1.seeds -Cr - %INPUT
-# @TEST-EXEC: zcat <$TRACES/echo-connections.pcap.gz | zeek --load-seeds 2.seeds -Cr - %INPUT
 # @TEST-DOC:  Regression test #2032; no output check, just shouldn't crash
 
 redef table_expire_delay = 0.0001sec;

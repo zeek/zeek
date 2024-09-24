@@ -1,3 +1,46 @@
+6.0.7 | 2024-09-23 21:27:31 -0700
+
+  * Remove core.negative-time btest (Tim Wojtulewicz, Corelight)
+
+    This test is failing with libpcap libpcap 1.10; for more information
+    see https://github.com/zeek/zeek/issues/3921
+
+    (cherry picked from commit 899f7297d7b8c83ef2640e7cf40d3f230e42cc6b)
+
+  * btest/plugins/hooks: Run in bare mode (Arne Welzel, Corelight)
+
+    Motivation is basically the same as in 88bb5270263934f0004fd9fdeebf5ac25015d213.
+    For plugin.hooks, one example is that adding a new option in the default script
+    changes the baseline due registration of change handlers. Also, the connection
+    record is printed in various places, resulting in churn when the default
+    scripts change.
+
+    (cherry picked from commit 07ac6fa07447d380eadc1e74482a1f15c76cb416)
+
+  * btest/dump-events: Run in bare mode, load conn and smtp scripts only (Arne Welzel, Corelight)
+
+    The dump-events baseline changes are pure noise and have spurred confusion
+    for internal and external contributors. For example, adding new
+    analyzers have perturbed orderings of sets holding analyzer tags.
+
+    Running in non-bare mode, the baselines change almost whenever any of the
+    record types attached to connections change in the default scripts. This
+    causes continuous and seemingly little useful updates to the baselines.
+
+    This change switches the test to run in bare mode and explicitly loads
+    just base/protocols/conn and base/protocols/smtp. The primary intention
+    of the test should be testing the functionality of the misc/dump-events
+    script, not the raised events of all loaded default scripts (for that the
+    used PCAP is too narrow).
+
+    Protocol specific scripts that do want to leverage misc/dump-events for
+    baseline creation of their or their analyzer's events can add additional
+    specific tests with suitable PCAP files.
+
+    (cherry picked from commit 88bb5270263934f0004fd9fdeebf5ac25015d213)
+
+  * Force flushing ccache to try to fix plugins.hooks btest (Tim Wojtulewicz)
+
 6.0.6-1 | 2024-09-23 12:45:07 -0700
 
   * pop3: Remove unused headers (Arne Welzel, Corelight)

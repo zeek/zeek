@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "zeek/cluster/Backend.h"
 #include "zeek/cluster/Serializer.h"
 #include "zeek/plugin/Component.h"
@@ -10,7 +12,7 @@ namespace zeek::cluster {
 
 class BackendComponent : public plugin::Component {
 public:
-    using factory_callback = Backend* (*)(EventSerializer*, LogSerializer*);
+    using factory_callback = Backend* (*)(std::unique_ptr<EventSerializer>, std::unique_ptr<LogSerializer>);
 
     /**
      * Constructor.
@@ -50,7 +52,7 @@ private:
 
 class EventSerializerComponent : public plugin::Component {
 public:
-    using factory_callback = EventSerializer* (*)();
+    using factory_callback = std::unique_ptr<EventSerializer> (*)();
 
     /**
      * Constructor.
@@ -89,7 +91,7 @@ private:
 
 class LogSerializerComponent : public plugin::Component {
 public:
-    using factory_callback = LogSerializer* (*)();
+    using factory_callback = std::unique_ptr<LogSerializer> (*)();
 
     /**
      * Constructor.

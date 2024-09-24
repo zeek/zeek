@@ -30,6 +30,8 @@ namespace detail {
 class Event;
 
 using byte_buffer = std::vector<std::byte>;
+
+using byte_buffer_span = Span<const std::byte>;
 } // namespace detail
 
 
@@ -81,7 +83,7 @@ public:
     /**
      * Constructor.
      */
-    explicit LogSerializer(std::string name) : name(std::move(name)){};
+    explicit LogSerializer(std::string name) : name(std::move(name)) {};
 
     virtual ~LogSerializer() = default;
 

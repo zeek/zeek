@@ -8,8 +8,8 @@ using namespace zeek::plugin::Zeek_Binary_Serializer;
 using namespace zeek::cluster;
 
 zeek::plugin::Configuration Plugin::Configure() {
-    AddComponent(new LogSerializerComponent("ZEEK_BIN_V1", []() -> cluster::LogSerializer* {
-        return new cluster::detail::BinarySerializationFormatLogSerializer();
+    AddComponent(new LogSerializerComponent("ZEEK_BIN_V1", []() -> std::unique_ptr<LogSerializer> {
+        return std::make_unique<cluster::detail::BinarySerializationFormatLogSerializer>();
     }));
 
     zeek::plugin::Configuration config;

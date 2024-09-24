@@ -42,14 +42,13 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 	if ( ! topic->AsString()->Len() )
 		return zeek::val_mgr->False();
 
-	// Copy args[1:] and put the computed topic at index 0;
-	//
-	// XXX: Replace with MakeClusterEvent() and PublishEvent(topic, cluster_event)
-	const auto& bif_args = @ARGS@;
-	zeek::Args args(std::next(bif_args->begin()), bif_args->end());
-	args[0] = std::move(topic);
+	// TODO: Check type!
+	const auto& bif_args = *@ARGS@;
+	const auto& func = zeek::cast_intrusive<zeek::FuncVal>(bif_args[2]);
+	auto evargs = zeek::Span{*@ARGS@}.subspan(3);
+	auto ev = zeek::cluster::backend->MakeClusterEvent(func, evargs);
 
-	auto rval = zeek::cluster::backend->PublishEvent(args);
+	auto rval = zeek::cluster::backend->PublishEvent(topic->AsStringVal()->ToStdString(), ev);
 	return zeek::val_mgr->Bool(rval);
 	%}
 
@@ -86,12 +85,12 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 	if ( ! topic->AsString()->Len() )
 		return zeek::val_mgr->False();
 
-	// Copy args[1:] and put the computed topic at index 0;
-	const auto& bif_args = @ARGS@;
-	zeek::Args args(std::next(bif_args->begin()), bif_args->end());
-	args[0] = std::move(topic);
+	const auto& bif_args = *@ARGS@;
+	const auto& func = zeek::cast_intrusive<zeek::FuncVal>(bif_args[2]);
+	auto evargs = zeek::Span{*@ARGS@}.subspan(3);
+	auto ev = zeek::cluster::backend->MakeClusterEvent(func, evargs);
 
-	auto rval = zeek::cluster::backend->PublishEvent(args);
+	auto rval = zeek::cluster::backend->PublishEvent(topic->AsStringVal()->ToStdString(), ev);
 	return zeek::val_mgr->Bool(rval);
 	%}
 

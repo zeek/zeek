@@ -2,13 +2,17 @@
 
 #pragma once
 
+#include <memory>
+#include <mutex>
 #include <string_view>
 #include <variant>
 
 #include "zeek/EventHandler.h"
+#include "zeek/Flare.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Span.h"
-#include "zeek/logging/WriterBackend.h"
+#include "zeek/cluster/Serializer.h"
+#include "zeek/iosource/IOSource.h"
 
 namespace zeek {
 
@@ -64,7 +68,6 @@ public:
     const EventHandlerPtr& Handler() const { return std::get<EventHandlerPtr>(handler); }
     const FuncValPtr& FuncVal() const { return std::get<FuncValPtr>(handler); }
 };
-
 } // namespace detail
 
 /**
@@ -74,27 +77,27 @@ public:
  */
 class Backend {
 public:
+    Backend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls)
+        : event_serializer(std::move(es)), log_serializer(std::move(ls)) {}
+
     virtual ~Backend() = default;
 
     /**
      * Hook invoked after all scripts have been parsed.
-     *
-     * A cluster backend should initialize itself based on script variables,
-     * register any IO sources and possibly start connections with a central
-     * broker or peers.
      */
-    virtual void InitPostScript() = 0;
+    void InitPostScript() { DoInitPostScript(); }
 
     /**
      * Hook invoked when Zeek is about to terminate.
      */
-    virtual void Terminate() = 0;
+    void Terminate() { DoTerminate(); }
 
     /**
      * Helper to publish an event directly from BiFs
      *
-     * This helper expects args to hold a FuncValPtr followed by the arguments, or followed
-     * by a prepared "event" as created with MakeEvent().
+     * This helper expects args to hold a FuncValPtr followed by
+     * the arguments, or followed by a prepared "event" as created
+     * with MakeEvent().
      *
      * @return true if the message is sent successfully.
      *
@@ -103,9 +106,24 @@ public:
     bool PublishEvent(const zeek::Args& args);
 
     /**
-     * Create a detail::Event instance given a event handler script function arguments to it.
+     * Create a detail::Event instance given a event handler and script function
+     * arguments to it.
+     *
+     * @param handler
+     * @param args
+     * @param timestamp
      */
     detail::Event MakeClusterEvent(FuncValPtr handler, ArgsSpan args, double timestamp = 0.0) const;
+
+    /**
+     * Publish \a event to topic \a topic.
+     *
+     * @param topic
+     * @param event
+     */
+    bool PublishEvent(const std::string& topic, const cluster::detail::Event& event) {
+        return DoPublishEvent(topic, event);
+    }
 
     /**
      * Prepare a script-level event.
@@ -115,33 +133,24 @@ public:
      *
      * This function is invoked from the \a Cluster::make_event() bif.
      *
-     * @param args FuncVal representing the event and its argument.
-     * @param last
+     * @param args FuncVal representing the event followed by its argument.
      *
-     * @return An opaque ValPtr that can be passed to PublishEvent()
+     * @return An opaque RecordValPtr that can be passed to PublishEvent()
      */
-    virtual zeek::RecordValPtr MakeEvent(ArgsSpan args);
+    zeek::RecordValPtr MakeEvent(ArgsSpan args) { return DoMakeEvent(args); }
 
     /**
      * Send an event as produced by MakeEvent() to the given topic.
      *
-     * The default implementation expects the Cluster::Event script
-     * type.
+     * The default implementation expects the \a Cluster::Event script type.
      *
      * @param topic a topic string associated with the message.
      * @param event an event RecordVal as produced by MakeEvent().
      * @return true if the message is sent successfully.
      */
-    virtual bool PublishEvent(const std::string& topic, const zeek::ValPtr& event);
-
-    /**
-     * Send a cluster::detail::Event to the given topic.
-     *
-     * @param topic a topic string associated with the message.
-     * @param event the Event to publish to the given topic.
-     * @return true if the message has been published successfully.
-     */
-    virtual bool PublishEvent(const std::string& topic, const cluster::detail::Event& event) = 0;
+    bool PublishEvent(const std::string& topic, const zeek::RecordValPtr& event) {
+        return DoPublishEvent(topic, event);
+    }
 
     /**
      * Register interest in messages that use a certain topic prefix.
@@ -149,7 +158,7 @@ public:
      * @param topic_prefix a prefix to match against remote message topics.
      * @return true if it's a new event subscription and it is now registered.
      */
-    virtual bool Subscribe(const std::string& topic_prefix) = 0;
+    bool Subscribe(const std::string& topic_prefix) { return DoSubscribe(topic_prefix); }
 
     /**
      * Unregister interest in messages on a certain topic.
@@ -157,7 +166,7 @@ public:
      * @param topic_prefix a prefix previously supplied to Subscribe()
      * @return true if interest in topic prefix is no longer advertised.
      */
-    virtual bool Unsubscribe(const std::string& topic_prefix) = 0;
+    bool Unsubscribe(const std::string& topic_prefix) { return DoUnsubscribe(topic_prefix); }
 
     /**
      * Publish multiple log writes.
@@ -165,20 +174,232 @@ public:
      * All log records belong to (the stream, filter, path) pair that is
      * described by \a header.
      *
-     * @param header fixed information about the stream, writer, filter and the schema.
-     * @param path Separate from the header. One header may log to multiple paths, but the header fields are constant.
+     * @param header fixed information about the stream, writer, filter and the
+     * schema.
+     * @param path Separate from the header. One header may log to multiple paths,
+     * but the header fields are constant.
      * @param records A span of logging::detail::LogRecords
      */
-    virtual bool PublishLogWrites(const zeek::logging::detail::LogWriteHeader& header,
-                                  zeek::Span<zeek::logging::detail::LogRecord> records) = 0;
+    bool PublishLogWrites(const zeek::logging::detail::LogWriteHeader& header,
+                          zeek::Span<zeek::logging::detail::LogRecord> records) {
+        return DoPublishLogWrites(header, records);
+    }
+
+protected:
+    /**
+     * Process an incoming event message.
+     */
+    bool ProcessEventMessage(const std::string_view& topic, const std::string_view& format,
+                             detail::byte_buffer_span payload);
 
     /**
-     * Enable receiving of logs? Do we need an API or can that be done
-     * on a per plugin basis? Maybe we want to inject the logging manager
-     * where consumed messages can be pushed instead of coing via zeek::log_mgr
-     * directly?
+     * Process an incoming log message.
      */
+    bool ProcessLogMessage(const std::string_view& format, detail::byte_buffer_span payload);
+
+private:
+    /**
+     * Called after all Zeek scripts have been loaded.
+     *
+     * A cluster backend should initialize itself based on script variables,
+     * register any IO sources and possibly start connections. It should not
+     * yet start any connections.
+     */
+    virtual void DoInitPostScript() = 0;
+
+    /**
+     * Called at termination time.
+     *
+     * This should be used to shut down connectivity. Any last messages
+     * to be published should be sent from script land, rather than in
+     * DoTerminate(). A backend may wait for a bounded amount of time to
+     * flush any last messages out.
+     */
+    virtual void DoTerminate() = 0;
+
+    /**
+     * Given arguments for the Cluster::make_event() function, create
+     * a script-level record value that represents the event.
+     *
+     * The default implementation produces the \a Cluster::Event script type,
+     * but may be overridden by implementations.
+     *
+     * @param args FuncVal representing the event followed by its argument.
+     *
+     * @return An opaque RecordValPtr that can be passed to PublishEvent()
+     */
+    virtual zeek::RecordValPtr DoMakeEvent(ArgsSpan args);
+
+    /**
+     * Send an event as produced by MakeEvent() to the given topic.
+     *
+     * The default implementation expects the \a Cluster::Event script type,
+     * converts it to a cluster::detail::Event and publishes that.
+     *
+     * @param topic a topic string associated with the message.
+     * @param event an event RecordVal as produced by MakeEvent().
+     * @return true if the message is sent successfully.
+     */
+    virtual bool DoPublishEvent(const std::string& topic, const zeek::RecordValPtr& event);
+
+    /**
+     * Publish a cluster::detail::Event to the given topic.
+     *
+     * The default implementation serializes to a detail::byte_buffer and
+     * calls DoPublishEvent() with it.
+     *
+     * This is virtual so that the existing broker implementation can provide
+     * a short-circuit serialization. Other backends should not need to
+     * implement this method.
+     */
+    virtual bool DoPublishEvent(const std::string& topic, const cluster::detail::Event& event);
+
+    /**
+     * Send a serialized cluster::detail::Event to the given topic.
+     *
+     * Semantics of this call are "fire-and-forget". An implementation should
+     * ensure the message is enqueued for delivery, but may not have been send out
+     * let alone received by any subscribers of topic when this call returns.
+     *
+     * @param topic a topic string associated with the message.
+     * @param buf the serialized Event
+     * @return true if the message has been published successfully.
+     */
+    virtual bool DoPublishEvent(const std::string& topic, const std::string& format,
+                                const detail::byte_buffer& buf) = 0;
+
+    /**
+     * Register interest in messages that use a certain topic prefix.
+     *
+     * @param topic_prefix a prefix to match against remote message topics.
+     * @return true if it's a new event subscription and it is now registered.
+     */
+    virtual bool DoSubscribe(const std::string& topic_prefix) = 0;
+
+    /**
+     * Unregister interest in messages on a certain topic.
+     *
+     * @param topic_prefix a prefix previously supplied to Subscribe()
+     * @return true if interest in topic prefix is no longer advertised.
+     */
+    virtual bool DoUnsubscribe(const std::string& topic_prefix) = 0;
+
+    /**
+     * Serialize a log batch, then forward it to DoPublishLogWrites() below.
+     *
+     * This is provided as a virtual method so that the existing broker
+     * implementation can provide a short-circuit serialization. Other backends
+     * should not need to override this.
+     *
+     * @param header
+     * @param records
+     */
+    virtual bool DoPublishLogWrites(const zeek::logging::detail::LogWriteHeader& header,
+                                    zeek::Span<zeek::logging::detail::LogRecord> records);
+
+    /**
+     * Send out a serialized log batch.
+     *
+     * A backend implementation may use the values from \a header to
+     * construct a topic to write the logs to.
+     *
+     * Semantics of this call are "fire-and-forget". An implementation should
+     * ensure the message is enqueue for delivery, but may not have been send out
+     * let alone received by the destination when this call returns.
+     *
+     * @param header The header describing the log.
+     * @param buf The serialized log batch. This is the message payload.
+     * @return true if the message has been published successfully.
+     */
+    virtual bool DoPublishLogWrites(const zeek::logging::detail::LogWriteHeader& header, const std::string& format,
+                                    detail::byte_buffer& buf) = 0;
+
+    std::unique_ptr<EventSerializer> event_serializer;
+    std::unique_ptr<LogSerializer> log_serializer;
 };
+
+/**
+ * A cluster backend may receive event and log messages through threads.
+ * The following structs can be used together with Backend::QueueForProcessing()
+ * to enqueue these into the main IO loop for processing.
+ *
+ * EventMessage and LogMessage are processed generically, while the
+ * BackendMessage is forwarded to DoProcessBackendMessage().
+ */
+
+// A message on a topic was received.
+struct EventMessage {
+    std::string topic;
+    std::string format;
+    detail::byte_buffer payload;
+
+    auto payload_span() const { return Span(payload.data(), payload.size()); };
+};
+
+// A message on a topic was received.
+struct LogMessage {
+    std::string format;
+    detail::byte_buffer payload;
+
+    auto payload_span() const { return Span(payload.data(), payload.size()); };
+};
+
+// A backend specific message processed.
+struct BackendMessage {
+    int tag;
+    detail::byte_buffer payload;
+    auto payload_span() const { return Span(payload.data(), payload.size()); };
+};
+
+using QueueMessage = std::variant<EventMessage, LogMessage, BackendMessage>;
+using QueueMessages = std::vector<QueueMessage>;
+
+/**
+ * Support for backends that start threads.
+ *
+ * We could probably/better use composition than inheritance?
+ */
+class ThreadedBackend : public Backend, public zeek::iosource::IOSource {
+public:
+    using Backend::Backend;
+
+protected:
+    /**
+     * To be used by implementations to enqueue messages for processing on the IO loop.
+     *
+     * It's safe to call this method from other threads.
+     */
+    void QueueForProcessing(QueueMessages&& qmessage);
+
+    enum class IOSourceCount { COUNT, DONT_COUNT };
+
+    /**
+     * Register this as IO source with the IO loop;
+     */
+    bool RegisterIOSource(IOSourceCount count);
+
+    void Process() override;
+
+    double GetNextTimeout() override { return -1; }
+
+private:
+    /**
+     * Process a backend specific message queued as BackendMessage.
+     */
+    bool ProcessBackendMessage(int tag, detail::byte_buffer_span payload);
+
+    /**
+     * If a cluster backend produces messages of type BackendMessage,
+     * this method will be invoked by the main thread to process it.
+     */
+    virtual bool DoProcessBackendMessage(int tag, detail::byte_buffer_span payload) { return false; };
+
+    // Members used for communication with the main thread.
+    std::mutex messages_mtx;
+    std::vector<QueueMessage> messages;
+    zeek::detail::Flare messages_flare;
+};
+
 
 // Cluster backend instance used for publish() and subscribe() calls.
 extern Backend* backend;

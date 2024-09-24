@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "zeek/cluster/Component.h"
 #include "zeek/cluster/Serializer.h"
 #include "zeek/plugin/ComponentManager.h"
@@ -20,8 +22,8 @@ public:
      *
      * @return New ClusterBackend instance, or null if there's no such component.
      */
-    Backend* InstantiateBackend(const EnumValPtr& tag, EventSerializer* event_serializer,
-                                LogSerializer* log_serializer);
+    Backend* InstantiateBackend(const EnumValPtr& tag, std::unique_ptr<EventSerializer> event_serializer,
+                                std::unique_ptr<LogSerializer> log_serializer);
 
     /**
      * Instantiate a event serializer with the given enum value.
@@ -30,7 +32,7 @@ public:
      *
      * @return New Serializer instance, or null if there's no such component.
      */
-    EventSerializer* InstantiateEventSerializer(const EnumValPtr& tag);
+    std::unique_ptr<EventSerializer> InstantiateEventSerializer(const EnumValPtr& tag);
 
     /**
      * Instantiate a log serializer with the given enum value.
@@ -39,7 +41,7 @@ public:
      *
      * @return New Serializer instance, or null if there's no such component.
      */
-    LogSerializer* InstantiateLogSerializer(const EnumValPtr& tag);
+    std::unique_ptr<LogSerializer> InstantiateLogSerializer(const EnumValPtr& tag);
 
     /**
      * @return The ComponentManager for backends.

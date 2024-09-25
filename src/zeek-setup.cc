@@ -833,8 +833,8 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         else {
             const auto& event_serializer_val = id::find_val<zeek::EnumVal>("Cluster::event_serializer");
             const auto& log_serializer_val = id::find_val<zeek::EnumVal>("Cluster::log_serializer");
-            auto* event_serializer = cluster::manager->InstantiateEventSerializer(event_serializer_val);
-            auto* log_serializer = cluster::manager->InstantiateLogSerializer(log_serializer_val);
+            auto event_serializer = cluster::manager->InstantiateEventSerializer(event_serializer_val);
+            auto log_serializer = cluster::manager->InstantiateLogSerializer(log_serializer_val);
             if ( event_serializer == nullptr ) {
                 reporter->Error("Failed to instantiate event serializer: %s",
                                 zeek::obj_desc(event_serializer_val.get()).c_str());
@@ -846,8 +846,8 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
                 exit(1);
             }
 
-            cluster::backend =
-                cluster::manager->InstantiateBackend(cluster_backend_val, event_serializer, log_serializer);
+            cluster::backend = cluster::manager->InstantiateBackend(cluster_backend_val, std::move(event_serializer),
+                                                                    std::move(log_serializer));
         }
 
         if ( cluster::backend == nullptr ) {

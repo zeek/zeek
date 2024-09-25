@@ -251,7 +251,7 @@ std::string RenderEvent(const std::string& topic, const std::string& name, const
 } // namespace
 #endif
 
-Manager::Manager(bool arg_use_real_time) {
+Manager::Manager(bool arg_use_real_time) : Backend(nullptr, nullptr) {
     bound_port = 0;
     use_real_time = arg_use_real_time;
     peer_count = 0;
@@ -261,7 +261,7 @@ Manager::Manager(bool arg_use_real_time) {
     writer_id_type = nullptr;
 }
 
-void Manager::InitPostScript() {
+void Manager::DoInitPostScript() {
     DBG_LOG(DBG_BROKER, "Initializing");
 
     log_batch_size = get_option("Broker::log_batch_size")->AsCount();
@@ -403,7 +403,7 @@ void Manager::InitializeBrokerStoreForwarding() {
     }
 }
 
-void Manager::Terminate() {
+void Manager::DoTerminate() {
     FlushLogBuffers();
 
     iosource_mgr->UnregisterFd(bstate->subscriber.fd(), this);
@@ -544,7 +544,7 @@ std::vector<broker::peer_info> Manager::Peers() const {
 
 std::string Manager::NodeID() const { return to_string(bstate->endpoint.node_id()); }
 
-bool Manager::PublishEvent(const std::string& topic, const cluster::detail::Event& event) {
+bool Manager::DoPublishEvent(const std::string& topic, const cluster::detail::Event& event) {
     broker::vector xs;
     xs.reserve(event.args.size());
     for ( const auto& a : event.args ) {
@@ -685,8 +685,8 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer, const logging::
     return true;
 }
 
-bool Manager::PublishLogWrites(const logging::detail::LogWriteHeader& header,
-                               zeek::Span<logging::detail::LogRecord> records) {
+bool Manager::DoPublishLogWrites(const logging::detail::LogWriteHeader& header,
+                                 zeek::Span<logging::detail::LogRecord> records) {
     // Cheap vectored implementation. It would probably be better to go to batches directly.
     for ( const auto& r : records ) {
         if ( ! PublishLogWrite(header.stream_id.get(), header.writer_id.get(), header.path, r) )
@@ -881,10 +881,10 @@ RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame) {
 
 zeek::RecordValPtr Manager::MakeEvent(ArgsSpan args, zeek::detail::Frame* frame) {
     scoped_reporter_location srl{frame};
-    return MakeEvent(args);
+    return DoMakeEvent(args);
 }
 
-zeek::RecordValPtr Manager::MakeEvent(ArgsSpan args) {
+zeek::RecordValPtr Manager::DoMakeEvent(ArgsSpan args) {
     auto rval = zeek::make_intrusive<RecordVal>(BifType::Record::Broker::Event);
     auto arg_vec = make_intrusive<VectorVal>(vector_of_data_type);
     rval->Assign(1, arg_vec);
@@ -947,7 +947,7 @@ zeek::RecordValPtr Manager::MakeEvent(ArgsSpan args) {
     return rval;
 }
 
-bool Manager::Subscribe(const string& topic_prefix) {
+bool Manager::DoSubscribe(const string& topic_prefix) {
     DBG_LOG(DBG_BROKER, "Subscribing to topic prefix %s", topic_prefix.c_str());
     bstate->subscriber.add_topic(topic_prefix, ! run_state::detail::zeek_init_done);
 
@@ -965,7 +965,7 @@ bool Manager::Forward(string topic_prefix) {
     return true;
 }
 
-bool Manager::Unsubscribe(const string& topic_prefix) {
+bool Manager::DoUnsubscribe(const string& topic_prefix) {
     for ( size_t i = 0; i < forwarded_prefixes.size(); ++i )
         if ( forwarded_prefixes[i] == topic_prefix ) {
             DBG_LOG(DBG_BROKER, "Unforwarding topic prefix %s", topic_prefix.c_str());

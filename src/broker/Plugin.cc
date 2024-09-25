@@ -10,7 +10,8 @@ zeek::plugin::Configuration Plugin::Configure() {
     // Currently, there's always the broker_mgr instance that's explicitly
     // instantiated, so don't even allow to instantiate a second one via this
     // mechanism. In the future, *maybe* this could be enabled.
-    auto fail_instantiate = [](cluster::EventSerializer*, cluster::LogSerializer*) -> cluster::Backend* {
+    auto fail_instantiate = [](std::unique_ptr<cluster::EventSerializer>,
+                               std::unique_ptr<cluster::LogSerializer>) -> cluster::Backend* {
         zeek::reporter->FatalError("do not instantiate broker explicitly");
         return nullptr;
     };

@@ -35,6 +35,18 @@
 module Cluster::Backend::ZeroMQ;
 
 export {
+	## How many milliseconds to stall termination to flush
+	## out messages on sockets.
+	##
+	## The default is 30 seconds (30 000) which is very long in zeek -j
+	## settings when shutting down loggers before workers.
+	const linger_ms: int = 500 &redef;
+
+	## Whether to conifgure ZMQ_XPUB_NODROP on the xpub socket
+	## to detect when sending a message fails due to reaching
+	## the HWM.
+	const xpub_nodrop: bool = T &redef;
+
 	## On which endpoints should the broker thread listen?
 	## This doesn't need to run in Zeek. It could also be
 	## a separate process. But: All nodes need to connect
@@ -55,7 +67,7 @@ export {
 	const connect_log_endpoints: vector of string &redef;
 
 	## Queue log writes only to completed connections.
-	const log_immediate: bool = T &redef;
+	const log_immediate: bool = F &redef;
 
 	## High water mark value for logging PUSH sockets. If reached,
 	## Zeek workers will block or drop messages.

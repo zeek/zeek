@@ -11,18 +11,30 @@ export {
         6379/tcp,
     } &redef;
 
-    type RESPData: record {
-        simple_string: string &optional &log;
-        simple_error: string &optional &log;
-        i: int &optional &log;
-        bulk_string: string &optional &log;
-        #array:
-        is_null: bool &log;
-        boolean: bool &optional &log;
-        double_: double &optional &log;
-        big_num: string &optional &log;
-        bulk_error: string &optional &log;
-        verbatim_string: string &optional &log;
+    type SetCommand: record {
+        key: string &log;
+        value: string &log;
+        nx: bool;
+        xx: bool;
+        get: bool;
+        ex: count &optional;
+        px: count &optional;
+        exat: count &optional;
+        pxat: count &optional;
+        keep_ttl: bool;
+    };
+
+    type GetCommand: record {
+        key: string &log;
+    };
+
+    type Command: record {
+        ## The raw command, exactly as parsed
+        raw: vector of string &log;
+        ## The key, if this command is known to have a key
+        key: string &log &optional;
+        ## The value, if this command is known to have a value
+        value: string &log &optional;
     };
 
     ## Record type containing the column fields of the RESP log.
@@ -33,7 +45,8 @@ export {
         uid: string &log;
         ## The connection's 4-tuple of endpoint addresses/ports.
         id: conn_id &log;
-        resp_data: RESPData &log;
+        ## The Redis command
+        cmd: Command &log;
     };
 
     ## A default logging policy hook for the stream.
@@ -69,12 +82,12 @@ event zeek_init() &priority=5
     }
 
 # Initialize logging state.
-hook set_session(c: connection)
+hook set_session(c: connection, cmd: Command)
     {
     if ( c?$redis_resp )
         return;
 
-    c$redis_resp = Info($ts=network_time(), $uid=c$uid, $id=c$id);
+    c$redis_resp = Info($ts=network_time(), $uid=c$uid, $id=c$id, $cmd=cmd);
     }
 
 function emit_log(c: connection)
@@ -86,12 +99,10 @@ function emit_log(c: connection)
     delete c$redis_resp;
     }
 
-# Example event defined in resp.evt.
-event RESP::data(c: connection, payload: RESPData)
+event RESP::command(c: connection, is_orig: bool, command: Command)
     {
-    hook set_session(c);
+    hook set_session(c, command);
 
     local info = c$redis_resp;
-    info$resp_data = payload;
     emit_log(c);
     }

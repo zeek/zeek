@@ -1,10 +1,13 @@
 module RESP;
 
+import spicy;
+
 public type Messages = unit {
-    : Data[];
+    : (Data &synchronize)[];
 };
 
 public type Data = unit {
+    %synchronize-after=b"\x0d\x0a";
     ty: uint8 &convert=DataType($$);
     switch ( self.ty ) {
         DataType::SIMPLE_STRING -> simple_string: SimpleString(False);
@@ -26,6 +29,11 @@ public type Data = unit {
         # "Push events are encoded similarly to arrays, differing only in their
         # first byte" - TODO: can probably make it more obvious, though
         DataType::PUSH -> push: Array;
+        # HACK: If the type isn't recognized, this is just some random unserialized
+        # string until \r\n - do this by prepending the type to the remaining bytes.
+        # We will, however, cap this data off at 1024 bytes. This may be encrypted, we
+        # don't want to accept random gibberish here.
+        * -> not_serialized: bytes &convert=(pack(cast<uint8>(self.ty), spicy::ByteOrder::Network) + $$) &until=b"\x0d\x0a" &max-size=1024;
         };
 };
 
@@ -60,7 +68,7 @@ type BulkString = unit(is_error: bool) {
     content: bytes &size=uint64( self.length ) if ( self.length >= 0 );
 
     # Consume last CLRF
-    : bytes &until=b"\x0d\x0a";
+    : skip bytes &until=b"\x0d\x0a";
 };
 
 type Array = unit {
@@ -71,12 +79,12 @@ type Array = unit {
 
 type Null_ = unit {
     # Still must consume CLRF
-    : bytes &until=b"\x0d\x0a";
+    : skip bytes &until=b"\x0d\x0a";
 };
 
 type Boolean = unit {
     val: uint8 &convert=$$ == 't';
-    : bytes &until=b"\x0d\x0a";
+    : skip bytes &until=b"\x0d\x0a";
 };
 
 type Double = unit {

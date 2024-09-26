@@ -5,4 +5,12 @@ protocol analyzer spicy::RESP over TCP:
 import RESP;
 import Zeek_RESP;
 
-on RESP::Data -> event RESP::data($conn, Zeek_RESP::create_data(self));
+on RESP::Array if ( Zeek_RESP::is_set(self) ) -> event RESP::set_command($conn, $is_orig, Zeek_RESP::make_set(self));
+on RESP::Array if ( Zeek_RESP::is_get(self) ) -> event RESP::get_command($conn, $is_orig, Zeek_RESP::make_get(self));
+
+# Generic catch-all for commands. A command is an array of bulk strings, so we hope that
+# this will catch those, but the server can provide that as well.
+on RESP::Array if ( Zeek_RESP::is_command(self) ) -> event RESP::command($conn, $is_orig, Zeek_RESP::make_command(self));
+
+# These are from commands that weren't serialized
+on RESP::Data if ( self?.not_serialized ) -> event RESP::command($conn, $is_orig, Zeek_RESP::unserialized_command(self));

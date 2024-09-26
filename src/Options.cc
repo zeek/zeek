@@ -170,7 +170,10 @@ void usage(const char* prog, int code) {
                                           "not set, will use first IPv4 address from /etc/resolv.conf");
     fprintf(stderr,
             "    $ZEEK_DEBUG_LOG_STDERR          | Use stderr for debug logs generated via "
-            "the -B flag");
+            "the -B flag\n");
+    fprintf(stderr,
+            "    $ZEEK_DEBUG_LOG_STREAMS         | Enable debugging output for selected "
+            "streams (see the -B flag)");
 
     fprintf(stderr, "\n");
 

@@ -67,7 +67,6 @@ private:
     std::string connect_xpub_endpoint;
     std::string listen_xsub_endpoint;
     std::string listen_xpub_endpoint;
-    std::vector<std::string> connect_log_endpoints;
     std::string listen_log_endpoint;
 
     EventHandlerPtr event_subscription;

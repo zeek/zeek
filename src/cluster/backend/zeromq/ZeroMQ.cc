@@ -58,13 +58,8 @@ void ZeroMQBackend::DoInitPostScript() {
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::connect_xpub_endpoint")->ToStdString();
     connect_xsub_endpoint =
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::connect_xsub_endpoint")->ToStdString();
-
     listen_log_endpoint =
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::listen_log_endpoint")->ToStdString();
-
-    const auto& log_endpoints = zeek::id::find_val<zeek::VectorVal>("Cluster::Backend::ZeroMQ::connect_log_endpoints");
-    for ( unsigned int i = 0; i < log_endpoints->Size(); i++ )
-        connect_log_endpoints.push_back(log_endpoints->StringValAt(i)->ToStdString());
 
     event_unsubscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::unsubscription");
     event_subscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::subscription");
@@ -101,20 +96,25 @@ bool ZeroMQBackend::Connect() {
     auto linger_ms = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::linger_ms")->AsInt());
     int xpub_nodrop = zeek::id::find_val<zeek::BoolVal>("Cluster::Backend::ZeroMQ::xpub_nodrop")->AsBool() ? 1 : 0;
 
+    xsub = zmq::socket_t(ctx, zmq::socket_type::xsub);
+
+    xpub = zmq::socket_t(ctx, zmq::socket_type::xpub);
+    xpub.set(zmq::sockopt::linger, linger_ms);
+    xpub.set(zmq::sockopt::xpub_nodrop, xpub_nodrop);
+
     try {
-        xsub = zmq::socket_t(ctx, zmq::socket_type::xsub);
-
-        xpub = zmq::socket_t(ctx, zmq::socket_type::xpub);
-        xpub.set(zmq::sockopt::linger, linger_ms);
-        xpub.set(zmq::sockopt::xpub_nodrop, xpub_nodrop);
-
         xsub.connect(connect_xsub_endpoint);
-        xpub.connect(connect_xpub_endpoint);
-
     } catch ( zmq::error_t& err ) {
-        zeek::reporter->Error("Failed to connect ZeroMQ: %s", err.what());
+        zeek::reporter->Error("ZeroMQ: Failed to connect to XSUB %s: %s", connect_xsub_endpoint.c_str(), err.what());
+        return false;
     }
 
+    try {
+        xpub.connect(connect_xpub_endpoint);
+    } catch ( zmq::error_t& err ) {
+        zeek::reporter->Error("ZeroMQ: Failed to connect to XPUB %s: %s", connect_xpub_endpoint.c_str(), err.what());
+        return false;
+    }
 
     log_push = zmq::socket_t(ctx, zmq::socket_type::push);
     log_pull = zmq::socket_t(ctx, zmq::socket_type::pull);
@@ -146,14 +146,30 @@ bool ZeroMQBackend::Connect() {
     log_pull.set(zmq::sockopt::rcvbuf, log_rcvbuf);
 
 
+    std::vector<std::string> connect_log_endpoints;
+    const auto& log_endpoints = zeek::id::find_val<zeek::VectorVal>("Cluster::Backend::ZeroMQ::connect_log_endpoints");
+    for ( unsigned int i = 0; i < log_endpoints->Size(); i++ )
+        connect_log_endpoints.push_back(log_endpoints->StringValAt(i)->ToStdString());
+
     for ( const auto& endp : connect_log_endpoints ) {
         ZEROMQ_DEBUG("Connecting log_push socket with %s", endp.c_str());
-        log_push.connect(endp);
+        try {
+            log_push.connect(endp);
+        } catch ( zmq::error_t& err ) {
+            zeek::reporter->Error("ZeroMQ: Failed to connect to PUSH socket %s: %s", endp.c_str(), err.what());
+            return false;
+        }
     }
 
     if ( ! listen_log_endpoint.empty() ) {
         ZEROMQ_DEBUG("Listening on log pull socket: %s", listen_log_endpoint.c_str());
-        log_pull.bind(listen_log_endpoint);
+        try {
+            log_pull.bind(listen_log_endpoint);
+        } catch ( zmq::error_t& err ) {
+            zeek::reporter->Error("ZeroMQ: Failed to bind to PULL socket %s: %s", listen_log_endpoint.c_str(),
+                                  err.what());
+            return false;
+        }
     }
 
     // We may not be connected yet, but there's no logging either unless
@@ -197,6 +213,8 @@ bool ZeroMQBackend::DoPublishEvent(const std::string& topic, const std::string& 
         zmq::const_buffer(format.data(), format.size()),
         zmq::const_buffer(buf.data(), buf.size()),
     };
+
+    ZEROMQ_DEBUG("Publishing %zu bytes to %s", buf.size(), topic.c_str());
 
     for ( size_t i = 0; i < parts.size(); i++ ) {
         zmq::send_flags flags = zmq::send_flags::dontwait;
@@ -250,6 +268,7 @@ bool ZeroMQBackend::DoUnsubscribe(const std::string& topic_prefix) {
 
 bool ZeroMQBackend::DoPublishLogWrites(const logging::detail::LogWriteHeader& header, const std::string& format,
                                        cluster::detail::byte_buffer& buf) {
+    ZEROMQ_DEBUG("Publishing %zu bytes of log writes (path %s)", buf.size(), header.path.c_str());
     static std::string message_type = "log-write";
 
     log_push.send(zmq::const_buffer{my_node_id.data(), my_node_id.size()},
@@ -315,7 +334,7 @@ void ZeroMQBackend::Run() {
             if ( first == 0 || first == 1 ) {
                 QueueMessage qm;
                 auto* start = msg[0].data<std::byte>() + 1;
-                auto* end = msg[0].data<std::byte>() + msg.size();
+                auto* end = msg[0].data<std::byte>() + msg[0].size();
                 detail::byte_buffer topic(start, end);
                 if ( first == 1 ) {
                     qm = BackendMessage{1, std::move(topic)};
@@ -447,8 +466,9 @@ void ZeroMQBackend::Run() {
 bool ZeroMQBackend::DoProcessBackendMessage(int tag, detail::byte_buffer_span payload) {
     if ( tag == 0 || tag == 1 ) {
         std::string topic{reinterpret_cast<const char*>(payload.data()), payload.size()};
-
         zeek::EventHandlerPtr eh = tag == 1 ? event_subscription : event_unsubscription;
+
+        ZEROMQ_DEBUG("BackendMessage: %s for %s", eh->Name(), topic.c_str());
         zeek::event_mgr.Enqueue(eh, zeek::make_intrusive<zeek::StringVal>(topic));
         return true;
     }

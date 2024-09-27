@@ -150,7 +150,7 @@ void UsageAnalyzer::FindSeeds(IDSet& seeds) const {
         auto f = GetFuncIfAny(id);
 
         if ( f && id->GetType<FuncType>()->Flavor() == FUNC_FLAVOR_EVENT ) {
-            if ( script_events.count(f->Name()) == 0 )
+            if ( script_events.count(f->GetName()) == 0 )
                 seeds.insert(id.get());
 
             continue;

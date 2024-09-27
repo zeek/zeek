@@ -615,7 +615,7 @@ std::string DeltaUnsupportedCreate::Generate(ValTraceMgr* vtm) const {
 }
 
 EventTrace::EventTrace(const ScriptFunc* _ev, double _nt, size_t event_num) : ev(_ev), nt(_nt) {
-    auto ev_name = std::regex_replace(ev->Name(), std::regex(":"), "_");
+    auto ev_name = std::regex_replace(ev->GetName(), std::regex(":"), "_");
 
     name = ev_name + "_" + std::to_string(event_num) + "__et";
 }
@@ -678,7 +678,7 @@ void EventTrace::Generate(FILE* f, ValTraceMgr& vtm, const DeltaGenVec& dvec, st
     if ( ! dvec.empty() )
         fprintf(f, "\n");
 
-    fprintf(f, "\tevent %s(%s);\n\n", ev->Name(), args.c_str());
+    fprintf(f, "\tevent %s(%s);\n\n", ev->GetName().c_str(), args.c_str());
 
     if ( successor.empty() ) {
         // The following isn't necessary with our current approach
@@ -880,7 +880,7 @@ std::string ValTraceMgr::GenValName(const ValPtr& v) {
             break;
         }
 
-        case TYPE_FUNC: rep = v->AsFunc()->Name(); break;
+        case TYPE_FUNC: rep = v->AsFunc()->GetName(); break;
 
         case TYPE_TIME: {
             auto tm = v->AsDouble();
@@ -1004,11 +1004,11 @@ EventTraceMgr::~EventTraceMgr() {
 }
 
 void EventTraceMgr::StartEvent(const ScriptFunc* ev, const zeek::Args* args) {
-    if ( script_events.count(ev->Name()) > 0 )
+    if ( script_events.count(ev->GetName()) > 0 )
         return;
 
     auto nt = run_state::network_time;
-    if ( nt == 0.0 || util::streq(ev->Name(), "zeek_init") )
+    if ( nt == 0.0 || ev->GetName() == "zeek_init" )
         return;
 
     if ( ! vtm.GetBaseTime() )
@@ -1021,10 +1021,10 @@ void EventTraceMgr::StartEvent(const ScriptFunc* ev, const zeek::Args* args) {
 }
 
 void EventTraceMgr::EndEvent(const ScriptFunc* ev, const zeek::Args* args) {
-    if ( script_events.count(ev->Name()) > 0 )
+    if ( script_events.count(ev->GetName()) > 0 )
         return;
 
-    if ( run_state::network_time > 0.0 && ! util::streq(ev->Name(), "zeek_init") )
+    if ( run_state::network_time > 0.0 && ev->GetName() != "zeek_init" )
         vtm.FinishCurrentEvent(args);
 }
 

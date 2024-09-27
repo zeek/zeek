@@ -123,8 +123,13 @@ public:
 
     Kind GetKind() const { return kind; }
 
-    const char* Name() const { return name.c_str(); }
-    void SetName(const char* arg_name) { name = arg_name; }
+    [[deprecated("Remove with v8.1 - use GetName() instead")]]
+    const char* Name() const {
+        return name.c_str();
+    }
+
+    const std::string& GetName() const { return name; }
+    void SetName(const std::string& arg_name) { name = arg_name; }
 
     void Describe(ODesc* d) const override = 0;
     virtual void DescribeDebug(ODesc* d, const zeek::Args* args) const;

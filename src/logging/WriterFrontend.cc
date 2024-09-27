@@ -89,7 +89,7 @@ private:
 
 WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVal* arg_stream, EnumVal* arg_writer,
                                bool arg_local, bool arg_remote)
-    : write_buffer(detail::WriteBuffer(WRITER_BUFFER_SIZE)) {
+    : write_buffer(detail::WriteBuffer(BifConst::Log::write_buffer_size)) {
     stream = arg_stream;
     writer = arg_writer;
     Ref(stream);

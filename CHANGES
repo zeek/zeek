@@ -1,3 +1,47 @@
+7.1.0-dev.349 | 2024-09-27 15:37:13 +0200
+
+  * NEWS: Update (Arne Welzel, Corelight)
+
+  * scripts/base/cluster: Move active node management into node_down() (Arne Welzel, Corelight)
+
+    With the idea of an alternative cluster backend, we should
+    not maintain Cluster state within low-level Broker events.
+
+  * logging/Manager: Extract another CreateWriter() helper (Arne Welzel, Corelight)
+
+    For other cluster backends, CreateWriter() will use a logger's filter
+    configuration rather than receiving all configuration through CreateLog.
+    Extract a helper out from WriteToFilters() for reuse.
+
+  * logging/Manager: Extract path_func invocation into helper (Arne Welzel, Corelight)
+
+  * logging: Dedicated log flush timer (Arne Welzel, Corelight)
+
+    Log flushing is currently triggered based on the threading heartbeat timer
+    of WriterBackends and the hard-coded WRITE_BUFFER_SIZE 1000.
+
+    This change introduces a separate timer that is managed by the logger
+    manager instead of piggy-backing on the heartbeat timer, as well as a
+    const &redef for the buffer size.
+
+    This allows to modify the log flush frequency and batch size independently
+    of the threading heartbeat interval. Later, this will allow to re-use the
+    buffering and flushing logic of writer frontends for non-Broker cluster
+    backends, too.
+
+    One change here is that even frontends that do not have a backend will
+    be flushed regularly. This is wanted for non-Broker backends and should be
+    very cheap. Possibly, Broker can piggy back on this timer down the road, too,
+    rather than using its own script-level timer (see Broker::log_flush()).
+
+  * all: Change to use Func::GetName() (Arne Welzel, Corelight)
+
+  * script_opt: Use Func::GetName() (Arne Welzel, Corelight)
+
+  * Func: Add std::string name accessors, deprecate const char* versions (Arne Welzel, Corelight)
+
+  * plugin/ComponentManager: Support lookup by EnumValPtr (Arne Welzel, Corelight)
+
 7.1.0-dev.339 | 2024-09-27 14:59:45 +0200
 
   * zeek-setup: Support enabling debug streams through env variable (Arne Welzel, Corelight)

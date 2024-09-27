@@ -784,7 +784,7 @@ void Ascii::RotateLeftoverLogs() {
             reporter->Info("Rotated/postprocessed leftover log '%s' -> '%s' ", ll.filename.data(),
                            rotation_path.data());
         } catch ( InterpreterException& e ) {
-            reporter->Warning("Postprocess function '%s' failed for leftover log '%s'", ppf->Name(),
+            reporter->Warning("Postprocess function '%s' failed for leftover log '%s'", ppf->GetName().c_str(),
                               ll.filename.data());
         }
     }

@@ -81,7 +81,7 @@ void ZAMCompiler::OptimizeInsts() {
             KillInst(i);
 
     if ( analysis_options.dump_ZAM ) {
-        printf("Original ZAM code for %s:\n", func->Name());
+        printf("Original ZAM code for %s:\n", func->GetName().c_str());
         DumpInsts1(nullptr);
     }
 
@@ -915,7 +915,7 @@ zeek_uint_t ZAMCompiler::FirstLiveInst(zeek_uint_t i, bool follow_gotos) {
         if ( i0->live ) {
             if ( follow_gotos && i0->IsUnconditionalBranch() ) {
                 if ( ++num_inspected > insts1.size() ) {
-                    reporter->Error("%s contains an infinite loop", func->Name());
+                    reporter->Error("%s contains an infinite loop", func->GetName().c_str());
                     return i;
                 }
 

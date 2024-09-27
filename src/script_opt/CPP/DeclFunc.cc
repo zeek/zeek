@@ -19,7 +19,7 @@ void CPPCompile::DeclareFunc(const FuncInfo& func) {
     CreateFunction(f->GetType(), pf, fname, body, priority, nullptr, f->Flavor());
 
     if ( f->GetBodies().size() == 1 )
-        compiled_simple_funcs[f->Name()] = fname;
+        compiled_simple_funcs[f->GetName()] = fname;
 }
 
 void CPPCompile::DeclareLambda(const LambdaExpr* l, const ProfileFunc* pf) {

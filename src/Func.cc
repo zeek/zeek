@@ -89,7 +89,7 @@ std::string render_call_stack() {
             rval += " | ";
 
         auto& ci = *it;
-        auto name = ci.func->Name();
+        const auto& name = ci.func->GetName();
         std::string arg_desc;
 
         for ( const auto& arg : ci.args ) {
@@ -103,7 +103,7 @@ std::string render_call_stack() {
             arg_desc += d.Description();
         }
 
-        rval += util::fmt("#%d %s(%s)", lvl, name, arg_desc.data());
+        rval += util::fmt("#%d %s(%s)", lvl, name.c_str(), arg_desc.data());
 
         if ( ci.call ) {
             auto loc = ci.call->GetLocationInfo();
@@ -157,7 +157,7 @@ FuncPtr Func::DoClone() {
 }
 
 void Func::DescribeDebug(ODesc* d, const Args* args) const {
-    d->Add(Name());
+    d->Add(GetName().c_str());
 
     if ( args ) {
         d->Add("(");
@@ -238,13 +238,13 @@ void Func::CheckPluginResult(bool handled, const ValPtr& hook_result, FunctionFl
     switch ( flavor ) {
         case FUNC_FLAVOR_EVENT:
             if ( hook_result )
-                reporter->InternalError("plugin returned non-void result for event %s", this->Name());
+                reporter->InternalError("plugin returned non-void result for event %s", GetName().c_str());
 
             break;
 
         case FUNC_FLAVOR_HOOK:
             if ( hook_result->GetType()->Tag() != TYPE_BOOL )
-                reporter->InternalError("plugin returned non-bool for hook %s", this->Name());
+                reporter->InternalError("plugin returned non-bool for hook %s", GetName().c_str());
 
             break;
 
@@ -253,12 +253,12 @@ void Func::CheckPluginResult(bool handled, const ValPtr& hook_result, FunctionFl
 
             if ( (! yt) || yt->Tag() == TYPE_VOID ) {
                 if ( hook_result )
-                    reporter->InternalError("plugin returned non-void result for void method %s", this->Name());
+                    reporter->InternalError("plugin returned non-void result for void method %s", GetName().c_str());
             }
 
             else if ( hook_result && hook_result->GetType()->Tag() != yt->Tag() && yt->Tag() != TYPE_ANY ) {
                 reporter->InternalError("plugin returned wrong type (got %d, expecting %d) for %s",
-                                        hook_result->GetType()->Tag(), yt->Tag(), this->Name());
+                                        hook_result->GetType()->Tag(), yt->Tag(), GetName().c_str());
             }
 
             break;
@@ -437,7 +437,7 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
     else if ( GetType()->Yield() && GetType()->Yield()->Tag() != TYPE_VOID && ! GetType()->ExpressionlessReturnOkay() &&
               (flow != FLOW_RETURN /* we fell off the end */ || ! result /* explicit return with no result */) &&
               ! f->HasDelayed() )
-        reporter->Warning("non-void function returning without a value: %s", Name());
+        reporter->Warning("non-void function returning without a value: %s", GetName().c_str());
 
     if ( result && g_trace_state.DoTrace() ) {
         ODesc d;
@@ -671,7 +671,7 @@ std::optional<BrokerData> ScriptFunc::SerializeCaptures() const {
 }
 
 void ScriptFunc::Describe(ODesc* d) const {
-    d->Add(Name());
+    d->Add(GetName().c_str());
 
     d->NL();
     d->AddCount(frame_size);
@@ -699,11 +699,11 @@ BuiltinFunc::BuiltinFunc(built_in_func arg_func, const char* arg_name, bool arg_
     name = make_full_var_name(GLOBAL_MODULE_NAME, arg_name);
     is_pure = arg_is_pure;
 
-    const auto& id = lookup_ID(Name(), GLOBAL_MODULE_NAME, false);
+    const auto& id = lookup_ID(GetName().c_str(), GLOBAL_MODULE_NAME, false);
     if ( ! id )
-        reporter->InternalError("built-in function %s missing", Name());
+        reporter->InternalError("built-in function %s missing", GetName().c_str());
     if ( id->HasVal() )
-        reporter->InternalError("built-in function %s multiply defined", Name());
+        reporter->InternalError("built-in function %s multiply defined", GetName().c_str());
 
     type = id->GetType<FuncType>();
     id->SetVal(make_intrusive<FuncVal>(IntrusivePtr{NewRef{}, this}));
@@ -753,7 +753,7 @@ ValPtr BuiltinFunc::Invoke(Args* args, Frame* parent) const {
 }
 
 void BuiltinFunc::Describe(ODesc* d) const {
-    d->Add(Name());
+    d->Add(GetName().c_str());
     d->AddCount(is_pure);
 }
 
@@ -940,7 +940,7 @@ zeek::VectorValPtr get_current_script_backtrace() {
         auto args = MakeCallArgumentVector(ci.args, params);
 
         auto elem =
-            make_backtrace_element(ci.func->Name(), std::move(args), ci.call ? ci.call->GetLocationInfo() : nullptr);
+            make_backtrace_element(ci.func->GetName(), std::move(args), ci.call ? ci.call->GetLocationInfo() : nullptr);
         rval->Append(std::move(elem));
     }
 
@@ -996,7 +996,7 @@ static void emit_builtin_error_common(const char* msg, Obj* arg, bool unwind) {
     auto starts_with_double_underscore = [](const std::string& name) -> bool {
         return name.size() > 2 && name[0] == '_' && name[1] == '_';
     };
-    std::string last_func = last_call.func->Name();
+    const std::string& last_func = last_call.func->GetName();
 
     auto pos = last_func.find_first_of("::");
     std::string wrapper_func;
@@ -1022,7 +1022,7 @@ static void emit_builtin_error_common(const char* msg, Obj* arg, bool unwind) {
     }
 
     auto parent_call = call_stack[call_stack.size() - 2];
-    auto parent_func = parent_call.func->Name();
+    const auto& parent_func = parent_call.func->GetName();
 
     if ( wrapper_func == parent_func )
         emit(parent_call.call);

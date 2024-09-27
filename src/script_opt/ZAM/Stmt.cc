@@ -932,7 +932,7 @@ const ZAMStmt ZAMCompiler::CompileCatchReturn(const CatchReturnStmt* cr) {
     auto hold_func = ZAM::curr_func;
     auto hold_loc = ZAM::curr_loc;
 
-    ZAM::curr_func = cr->Func()->Name();
+    ZAM::curr_func = cr->Func()->GetName();
 
     bool is_event_inline = (hold_func == ZAM::curr_func);
 

@@ -14,8 +14,8 @@
 # @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-2 zeek -b ../other.zeek >out"
 #
 # @TEST-EXEC: btest-bg-wait 30
-# @TEST-EXEC: zeek-cut -F ' '  < ./logger/node_up.log | sort > test.sorted
-# @TEST-EXEC: btest-diff test.sorted
+# @TEST-EXEC: zeek-cut -F ' '  < ./logger/node_up.log | sort > node_up.sorted
+# @TEST-EXEC: btest-diff node_up.sorted
 
 # @TEST-START-FILE common.zeek
 @load base/utils/numbers

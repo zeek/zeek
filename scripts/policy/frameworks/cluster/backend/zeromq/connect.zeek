@@ -4,8 +4,8 @@ module Cluster::Backend::ZeroMQ;
 
 event zeek_init()
 	{
-	if ( run_broker_thread )
-		Cluster::Backend::ZeroMQ::spawn_broker_thread();
+	if ( run_proxy_thread )
+		Cluster::Backend::ZeroMQ::spawn_zmq_proxy_thread();
 
 	# Connect to the broker thread (connect_xpub_endpoint
 	# and connect_xsub_endpoint) and the logger endpoints

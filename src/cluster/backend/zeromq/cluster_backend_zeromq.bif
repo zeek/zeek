@@ -2,7 +2,7 @@
 #include "ZeroMQ.h"
 %%}
 
-function Cluster::Backend::ZeroMQ::spawn_broker_thread%(%): bool
+function Cluster::Backend::ZeroMQ::spawn_zmq_proxy_thread%(%): bool
 	%{
 	// Spawn the ZeroMQ broker thread.
 	auto *zeromq_backend = dynamic_cast<zeek::cluster::zeromq::ZeroMQBackend*>(zeek::cluster::backend);
@@ -12,7 +12,7 @@ function Cluster::Backend::ZeroMQ::spawn_broker_thread%(%): bool
 		return zeek::val_mgr->Bool(false);
 		}
 
-	return zeek::val_mgr->Bool(zeromq_backend->SpawnBrokerThread());
+	return zeek::val_mgr->Bool(zeromq_backend->SpawnZmqProxyThread());
 	%}
 
 function Cluster::Backend::ZeroMQ::connect%(%): bool

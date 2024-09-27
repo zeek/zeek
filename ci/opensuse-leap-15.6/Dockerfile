@@ -21,6 +21,7 @@ RUN zypper addrepo https://download.opensuse.org/repositories/openSUSE:Leap:15.6
     libpcap-devel \
     make \
     openssh \
+    procps \
     python312 \
     python312-devel \
     python312-pip \

@@ -996,65 +996,39 @@ void ZAMCompiler::KillInst(zeek_uint_t i) {
                 --cft[CFT_BLOCK_END];
         }
 
-        if ( cft.count(CFT_BREAK) > 0 ) {
-            // ### Factor this with the following
-            // Propagate breaks backwards.
-            int j = i;
-            while ( --j >= 0 )
-                if ( insts1[j]->live )
-                    break;
+        BackPropagateCFT(i, CFT_BREAK);
+        BackPropagateCFT(i, CFT_BLOCK_END);
+        BackPropagateCFT(i, CFT_LOOP_END);
 
-            ASSERT(j >= 0);
-
-            // Make sure the CFT entry is created.
-            AddCFT(insts1[j], CFT_BREAK);
-
-            auto be_cnt = cft[CFT_BREAK];
-            --be_cnt; // we already did one above
-            insts1[j]->aux->cft[CFT_BREAK] += be_cnt;
-        }
-
-        if ( cft.count(CFT_BLOCK_END) > 0 ) {
-            // Propagate block-ends backwards.
-            int j = i;
-            while ( --j >= 0 )
-                if ( insts1[j]->live )
-                    break;
-
-            ASSERT(j >= 0);
-
-            // Make sure the CFT entry is created.
-            AddCFT(insts1[j], CFT_BLOCK_END);
-
-            auto be_cnt = cft[CFT_BLOCK_END];
-            --be_cnt; // we already did one above
-            insts1[j]->aux->cft[CFT_BLOCK_END] += be_cnt;
-        }
-
-        if ( cft.count(CFT_LOOP_END) > 0 ) {
-            // Propagate block-ends backwards.
-            int j = i;
-            while ( --j >= 0 )
-                if ( insts1[j]->live )
-                    break;
-
-            ASSERT(j >= 0);
-
-            // Make sure the CFT entry is created.
-            AddCFT(insts1[j], CFT_LOOP_END);
-
-            auto le_cnt = cft[CFT_LOOP_END];
-            --le_cnt; // we already did one above
-            insts1[j]->aux->cft[CFT_LOOP_END] += le_cnt;
-        }
-
-        // If's can be killed because their bodies become empty,
-        // break's because they just lead to their following instruction,
-        // and next's if they become dead code.
-        // However, loop's and next's should not be killed.
+        // If's can be killed because their bodies become empty, break's
+        // because they just lead to their following instruction, and next's
+        // if they become dead code. However, loops and loop conditionals
+        // should not be killed.
         ASSERT(cft.count(CFT_LOOP) == 0);
         ASSERT(cft.count(CFT_LOOP_COND) == 0);
     }
+}
+
+void ZAMCompiler::BackPropagateCFT(int inst_num, ControlFlowType cf_type) {
+    auto inst = insts1[inst_num];
+    auto& cft = inst->aux->cft;
+    if ( cft.count(cf_type) == 0 )
+        return;
+
+    int j = inst_num;
+    while ( --j >= 0 )
+        if ( insts1[j]->live )
+            break;
+
+    // We should never wind up killing an instruction that has no predecessor.
+    ASSERT(j >= 0);
+
+    // Make sure the CFT entry is created.
+    AddCFT(insts1[j], cf_type);
+
+    auto cft_cnt = cft[cf_type];
+    --cft_cnt; // we already did one with the AddCFT just above
+    insts1[j]->aux->cft[cf_type] += cft_cnt;
 }
 
 void ZAMCompiler::KillInsts(zeek_uint_t i) {

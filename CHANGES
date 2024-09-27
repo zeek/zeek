@@ -1,3 +1,27 @@
+7.1.0-dev.339 | 2024-09-27 14:59:45 +0200
+
+  * zeek-setup: Support enabling debug streams through env variable (Arne Welzel, Corelight)
+
+    For debugging btests, it can be convenient to enable debug streams
+    by setting an environment variable rather than editing zeek invocations
+    and adding -B selectively.
+
+    Sample use case:
+
+        $ export ZEEK_DEBUG_LOG_STREAMS=all
+        $ btest -d core/failing-test.zeek
+        $ less .tmp/core/failing-test/debug.log
+
+    This change makes Zeek's -B option and ZEEK_DEBUG_LOG_STREAMS are additive.
+
+  * Install `procps` in OpenSuse Leap images (Benjamin Bannier, Corelight)
+
+    The tests `core.sigterm-regular` and `core.sigterm-stdin` rely on `ps`
+    to be present which is not the case anymore on OpenSuse Leap; install it
+    explicitly there.
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 7.1.0-dev.332 | 2024-09-23 10:59:51 -0700
 
   * pop3: Remove unused headers (Arne Welzel, Corelight)

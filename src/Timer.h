@@ -57,8 +57,9 @@ enum TimerType : uint8_t {
     TIMER_THREAD_HEARTBEAT,
     TIMER_UNKNOWN_PROTOCOL_EXPIRE,
     TIMER_LOG_DELAY_EXPIRE,
+    TIMER_LOG_FLUSH_WRITE_BUFFER,
 };
-constexpr int NUM_TIMER_TYPES = int(TIMER_LOG_DELAY_EXPIRE) + 1;
+constexpr int NUM_TIMER_TYPES = int(TIMER_LOG_FLUSH_WRITE_BUFFER) + 1;
 
 extern const char* timer_type_to_string(TimerType type);
 

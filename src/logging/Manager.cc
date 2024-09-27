@@ -16,6 +16,7 @@
 #include "zeek/NetVar.h"
 #include "zeek/OpaqueVal.h"
 #include "zeek/RunState.h"
+#include "zeek/Timer.h"
 #include "zeek/Type.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/input.h"
@@ -39,6 +40,21 @@ extern zeek::OpaqueTypePtr log_delay_token_type;
 namespace zeek::logging {
 
 namespace detail {
+
+// A timer that regularly flushes the write buffer of all WriterFrontends.
+class LogFlushWriteBufferTimer : public zeek::detail::Timer {
+public:
+    explicit LogFlushWriteBufferTimer(double t) : Timer(t, zeek::detail::TIMER_LOG_FLUSH_WRITE_BUFFER) {}
+
+    void Dispatch(double t, bool is_expire) override {
+        zeek::log_mgr->FlushAllWriteBuffers();
+
+        if ( ! is_expire )
+            zeek::log_mgr->StartLogFlushTimer();
+    }
+};
+
+
 using DelayTokenType = zeek_uint_t;
 
 class DelayInfo;
@@ -414,7 +430,6 @@ void Manager::Stream::DispatchDelayExpiredTimer(double t, bool is_expire) {
         ScheduleLogDelayExpiredTimer(delay_queue.front()->ExpireTime());
 }
 
-
 Manager::Manager()
     : plugin::ComponentManager<logging::Component>("Log", "Writer"),
       total_log_stream_writes_family(telemetry_mgr->CounterFamily("zeek", "log-stream-writes", {"module", "stream"},
@@ -597,6 +612,9 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval) {
 
     DBG_LOG(DBG_LOGGING, "Created new logging stream '%s', raising event %s", streams[idx]->name.c_str(),
             event ? streams[idx]->event->Name() : "<none>");
+
+    if ( ! log_flush_timer )
+        StartLogFlushTimer();
 
     return true;
 }
@@ -2031,6 +2049,22 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
         result = v->AsBool();
 
     return result;
+}
+
+void Manager::FlushAllWriteBuffers() {
+    for ( const auto* s : zeek::log_mgr->streams ) {
+        if ( ! s ) // may store nullptr
+            continue;
+
+        for ( const auto& [_, info] : s->writers )
+            info->writer->FlushWriteBuffer();
+    }
+}
+
+void Manager::StartLogFlushTimer() {
+    double next_t = zeek::run_state::network_time + BifConst::Log::flush_interval;
+    log_flush_timer = new detail::LogFlushWriteBufferTimer(next_t);
+    zeek::detail::timer_mgr->Add(log_flush_timer);
 }
 
 } // namespace zeek::logging

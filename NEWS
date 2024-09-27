@@ -25,6 +25,8 @@ Breaking Changes
   are not affected by this change, so we keep backwards compatibility with
   existing log writers.
 
+* ``Func::Name()`` was deprecated, use ``Func::GetName()`` instead.
+
 New Functionality
 -----------------
 
@@ -78,6 +80,11 @@ Changed Functionality
   face of one-sided traffic capture or when enabled for non-POP3 traffic.
   Concretely, the Redis protocol's AUTH mechanism enables the POP3 analyzer
   for such connections through DPD.
+
+* Batching and flushing for local log writers can now be controlled via the
+  options ``Log::flush_interval`` and ``Log::write_buffer_size``. Previously
+  the ``Threading::heartbeat_interval`` was used for flushing and the buffer
+  size fixed at 1000.
 
 Removed Functionality
 ---------------------

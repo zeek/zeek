@@ -139,14 +139,14 @@ bool Ascii::OpenFile() {
     if ( ! file.is_open() ) {
         FailWarn(fail_on_file_problem, Fmt("Init: cannot open %s", fname.c_str()), true);
 
-        return ! fail_on_file_problem;
+        return false;
     }
 
     if ( ReadHeader(false) == false ) {
         FailWarn(fail_on_file_problem, Fmt("Init: cannot open %s; problem reading file header", fname.c_str()), true);
 
         file.close();
-        return ! fail_on_file_problem;
+        return false;
     }
 
     if ( ! read_location ) {

@@ -624,6 +624,7 @@ private:
     FunctionFlavor flavor;
     RecordTypePtr params;
     TypePtr yield;
+    bool expressionless_return_okay;
 };
 
 class RecordTypeInfo : public AbstractTypeInfo {

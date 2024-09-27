@@ -188,7 +188,8 @@ static void print_analysis_help() {
     fprintf(stderr, "\n  primarily for developers:\n");
     fprintf(stderr, "    dump-uds	dump use-defs to stdout; implies xform\n");
     fprintf(stderr, "    dump-xform	dump transformed scripts to stdout; implies xform\n");
-    fprintf(stderr, "    dump-ZAM	dump generated ZAM code; implies gen-ZAM-code\n");
+    fprintf(stderr, "    dump-ZAM	dump generated ZAM code, including intermediaries; implies gen-ZAM-code\n");
+    fprintf(stderr, "    dump-final-ZAM	dump final generated ZAM code; implies gen-ZAM-code\n");
     fprintf(stderr, "    gen-ZAM-code	generate ZAM code (without turning on additional optimizations)\n");
     fprintf(stderr, "    inline	inline function calls\n");
     fprintf(stderr, "    no-inline	turn off inlining\n");
@@ -232,6 +233,8 @@ static void set_analysis_option(const char* opt, Options& opts) {
         a_o.activate = a_o.dump_xform = true;
     else if ( util::streq(opt, "dump-ZAM") )
         a_o.activate = a_o.dump_ZAM = true;
+    else if ( util::streq(opt, "dump-final-ZAM") )
+        a_o.activate = a_o.dump_final_ZAM = true;
     else if ( util::streq(opt, "gen-C++") )
         a_o.gen_CPP = true;
     else if ( util::streq(opt, "gen-standalone-C++") )

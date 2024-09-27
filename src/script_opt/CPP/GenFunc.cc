@@ -149,6 +149,7 @@ void CPPCompile::DeclareLocals(const ProfileFunc* pf, const IDPList* lambda_ids)
             capture_names.insert(CaptureName(li));
 
     const auto& ls = pf->Locals();
+    int num_params = static_cast<int>(pf->Params().size());
 
     // Track whether we generated a declaration.  This is just for
     // tidiness in the output.
@@ -162,7 +163,7 @@ void CPPCompile::DeclareLocals(const ProfileFunc* pf, const IDPList* lambda_ids)
             // No need to declare these, they're passed in as parameters.
             ln = cn;
 
-        else if ( params.count(l) == 0 ) { // Not a parameter, so must be a local.
+        else if ( params.count(l) == 0 && l->Offset() >= num_params ) { // Not a parameter, so must be a local.
             Emit("%s %s;", FullTypeName(l->GetType()), ln);
             did_decl = true;
         }

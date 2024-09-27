@@ -314,6 +314,20 @@ std::shared_ptr<ProfVec> ZBody::BuildProfVec() const {
     return pv;
 }
 
+// Helper class for managing dynamic frames to ensure that their memory
+// is recovered if a ZBody is exited via an exception.
+class ZBodyDynamicFrame {
+public:
+    ZBodyDynamicFrame(int frame_size) { frame = frame_size > 0 ? new ZVal[frame_size] : nullptr; }
+
+    ~ZBodyDynamicFrame() { delete[] frame; }
+
+    auto Frame() { return frame; }
+
+private:
+    ZVal* frame;
+};
+
 ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
     unsigned int pc = 0;
 
@@ -349,14 +363,16 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
     }
 #endif
 
-    ZVal* frame;
+    ZBodyDynamicFrame dynamic_frame(fixed_frame ? 0 : frame_size);
     std::unique_ptr<TableIterVec> local_table_iters;
     std::vector<StepIterInfo> step_iters(num_step_iters);
+
+    ZVal* frame;
 
     if ( fixed_frame )
         frame = fixed_frame;
     else {
-        frame = new ZVal[frame_size];
+        frame = dynamic_frame.Frame();
         // Clear slots for which we do explicit memory management.
         for ( auto s : managed_slots )
             frame[s].ClearManagedVal();
@@ -437,8 +453,6 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
             auto& v = frame[ms];
             ZVal::DeleteManagedType(v);
         }
-
-        delete[] frame;
     }
 
 #ifdef ENABLE_ZAM_PROFILE

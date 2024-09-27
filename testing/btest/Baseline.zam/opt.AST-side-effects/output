@@ -178,7 +178,7 @@ print <internal>::#4;
 Original: { 
 print 2 * g1, tbl_c_of_c[2], tbl_c_of_c2[1], tbl_c_of_c2[10];
 print 2 * g1, tbl_c_of_c[2], tbl_c_of_c2[1], tbl_c_of_c2[10];
-local_tbl_c_of_c3 = table(4 = 1, 12 = 0)&default=function(){ 
+local_tbl_c_of_c3 = table(4 = 1, 12 = 0)&default=function(c:count) : count{ 
 return (benign(c + 7) - 2);
 }, &optional;
 print local_tbl_c_of_c3[12];
@@ -201,7 +201,7 @@ print <internal>::#0, <internal>::#1, <internal>::#2, <internal>::#3;
 <internal>::#6 = tbl_c_of_c2[1];
 <internal>::#7 = tbl_c_of_c2[10];
 print <internal>::#4, <internal>::#5, <internal>::#6, <internal>::#7;
-local_tbl_c_of_c3 = table(4 = 1, 12 = 0)&default=function(){ 
+local_tbl_c_of_c3 = table(4 = 1, 12 = 0)&default=function(c:count) : count{ 
 return (benign(c + 7) - 2);
 }, &optional;
 <internal>::#8 = local_tbl_c_of_c3[12];
@@ -244,7 +244,7 @@ Optimized: {
 <internal>::#3 = tbl_c_of_c2[10];
 print <internal>::#0, <internal>::#1, <internal>::#2, <internal>::#3;
 print <internal>::#0, <internal>::#1, <internal>::#2, <internal>::#3;
-local_tbl_c_of_c3 = table(4 = 1, 12 = 0)&default=function(){ 
+local_tbl_c_of_c3 = table(4 = 1, 12 = 0)&default=function(c:count) : count{ 
 return (benign(c + 7) - 2);
 }, &optional;
 <internal>::#8 = local_tbl_c_of_c3[12];
@@ -271,7 +271,7 @@ Post removal of unused: {
 <internal>::#3 = tbl_c_of_c2[10];
 print <internal>::#0, <internal>::#1, <internal>::#2, <internal>::#3;
 print <internal>::#0, <internal>::#1, <internal>::#2, <internal>::#3;
-local_tbl_c_of_c3 = table(4 = 1, 12 = 0)&default=function(){ 
+local_tbl_c_of_c3 = table(4 = 1, 12 = 0)&default=function(c:count) : count{ 
 return (benign(c + 7) - 2);
 }, &optional;
 <internal>::#8 = local_tbl_c_of_c3[12];
@@ -295,7 +295,7 @@ Original: {
 side_effect_free = table(0 = 0.5, 1 = 1.5);
 print side_effect_free[1];
 print side_effect_free[1];
-has_side_effects = table(0 = -0.5, 1 = -1.5)&default_insert=function(){ 
+has_side_effects = table(0 = -0.5, 1 = -1.5)&default_insert=function(c:count) : double{ 
 my_exponential = my_exponential * my_exponential;
 return (my_exponential);
 };
@@ -308,7 +308,7 @@ side_effect_free = table(0 = 0.5, 1 = 1.5);
 print <internal>::#0;
 <internal>::#1 = side_effect_free[1];
 print <internal>::#1;
-has_side_effects = table(0 = -0.5, 1 = -1.5)&default_insert=function(){ 
+has_side_effects = table(0 = -0.5, 1 = -1.5)&default_insert=function(c:count) : double{ 
 my_exponential = my_exponential * my_exponential;
 return (my_exponential);
 };
@@ -325,7 +325,7 @@ side_effect_free = table(0 = 0.5, 1 = 1.5);
 print <internal>::#0;
 <internal>::#1 = side_effect_free[1];
 print <internal>::#1;
-has_side_effects = table(0 = -0.5, 1 = -1.5)&default_insert=function(){ 
+has_side_effects = table(0 = -0.5, 1 = -1.5)&default_insert=function(c:count) : double{ 
 my_exponential = my_exponential * my_exponential;
 return (my_exponential);
 };
@@ -342,7 +342,7 @@ side_effect_free = table(0 = 0.5, 1 = 1.5);
 print <internal>::#0;
 <internal>::#1 = side_effect_free[1];
 print <internal>::#1;
-has_side_effects = table(0 = -0.5, 1 = -1.5)&default_insert=function(){ 
+has_side_effects = table(0 = -0.5, 1 = -1.5)&default_insert=function(c:count) : double{ 
 my_exponential = my_exponential * my_exponential;
 return (my_exponential);
 };
@@ -356,7 +356,7 @@ print <internal>::#4, <internal>::#5;
 Original: { 
 print 2 * g1, tbl_c_of_c[2], tbl_c_of_c2[1], tbl_c_of_b[100], tbl_s_of_s[4];
 print 2 * g1, tbl_c_of_c[2], tbl_c_of_c2[1], tbl_c_of_b[100], tbl_s_of_s[4];
-print table(11 = F)&default=function(){ 
+print table(11 = F)&default=function(c:count) : bool{ 
 tbl_s_of_s2[2] = two;
 return (sizeof tbl_s_of_s2 < 9);
 }, &optional;
@@ -374,7 +374,7 @@ print <internal>::#0, <internal>::#1, <internal>::#2, <internal>::#3, <internal>
 <internal>::#8 = tbl_c_of_b[100];
 <internal>::#9 = tbl_s_of_s[4];
 print <internal>::#5, <internal>::#6, <internal>::#7, <internal>::#8, <internal>::#9;
-<internal>::#10 = table(11 = F)&default=function(){ 
+<internal>::#10 = table(11 = F)&default=function(c:count) : bool{ 
 tbl_s_of_s2[2] = two;
 return (sizeof tbl_s_of_s2 < 9);
 }, &optional;
@@ -390,7 +390,7 @@ print <internal>::#0, <internal>::#1, <internal>::#2, <internal>::#3, <internal>
 <internal>::#8 = tbl_c_of_b[100];
 <internal>::#9 = tbl_s_of_s[4];
 print <internal>::#0, <internal>::#1, <internal>::#2, <internal>::#8, <internal>::#9;
-<internal>::#10 = table(11 = F)&default=function(){ 
+<internal>::#10 = table(11 = F)&default=function(c:count) : bool{ 
 tbl_s_of_s2[2] = two;
 return (sizeof tbl_s_of_s2 < 9);
 }, &optional;
@@ -406,7 +406,7 @@ print <internal>::#0, <internal>::#1, <internal>::#2, <internal>::#3, <internal>
 <internal>::#8 = tbl_c_of_b[100];
 <internal>::#9 = tbl_s_of_s[4];
 print <internal>::#0, <internal>::#1, <internal>::#2, <internal>::#8, <internal>::#9;
-<internal>::#10 = table(11 = F)&default=function(){ 
+<internal>::#10 = table(11 = F)&default=function(c:count) : bool{ 
 tbl_s_of_s2[2] = two;
 return (sizeof tbl_s_of_s2 < 9);
 }, &optional;
@@ -481,11 +481,11 @@ print <internal>::#4, <internal>::#7;
 Original: { 
 print 5 * g2;
 print 5 * g2;
-l1 = table(1, 3 = 4, 2, 5 = 6)&default=function(){ 
+l1 = table(1, 3 = 4, 2, 5 = 6)&default=function(i1:count, i2:count) : count{ 
 my_tbl = table(1.0, 3.0 = 10000.0);
 return (double_to_count(my_tbl[1.0, 3.0]));
 }, &optional;
-l2 = table(1.0, 3.0 = 4.0, 2.0, 5.0 = 6.0)&default=function(){ 
+l2 = table(1.0, 3.0 = 4.0, 2.0, 5.0 = 6.0)&default=function(d1:double, d2:double) : double{ 
 my_tbl = table(1, 3 = 1000);
 return ((coerce my_tbl[1, 3] to double));
 }, &optional;
@@ -503,11 +503,11 @@ Transformed: {
 print <internal>::#0;
 <internal>::#1 = 5 * g2;
 print <internal>::#1;
-l1 = table(1, 3 = 4, 2, 5 = 6)&default=function(){ 
+l1 = table(1, 3 = 4, 2, 5 = 6)&default=function(i1:count, i2:count) : count{ 
 my_tbl = table(1.0, 3.0 = 10000.0);
 return (double_to_count(my_tbl[1.0, 3.0]));
 }, &optional;
-l2 = table(1.0, 3.0 = 4.0, 2.0, 5.0 = 6.0)&default=function(){ 
+l2 = table(1.0, 3.0 = 4.0, 2.0, 5.0 = 6.0)&default=function(d1:double, d2:double) : double{ 
 my_tbl = table(1, 3 = 1000);
 return ((coerce my_tbl[1, 3] to double));
 }, &optional;
@@ -532,11 +532,11 @@ Optimized: {
 <internal>::#0 = 5 * g2;
 print <internal>::#0;
 print <internal>::#0;
-l1 = table(1, 3 = 4, 2, 5 = 6)&default=function(){ 
+l1 = table(1, 3 = 4, 2, 5 = 6)&default=function(i1:count, i2:count) : count{ 
 my_tbl = table(1.0, 3.0 = 10000.0);
 return (double_to_count(my_tbl[1.0, 3.0]));
 }, &optional;
-l2 = table(1.0, 3.0 = 4.0, 2.0, 5.0 = 6.0)&default=function(){ 
+l2 = table(1.0, 3.0 = 4.0, 2.0, 5.0 = 6.0)&default=function(d1:double, d2:double) : double{ 
 my_tbl = table(1, 3 = 1000);
 return ((coerce my_tbl[1, 3] to double));
 }, &optional;
@@ -557,11 +557,11 @@ Post removal of unused: {
 <internal>::#0 = 5 * g2;
 print <internal>::#0;
 print <internal>::#0;
-l1 = table(1, 3 = 4, 2, 5 = 6)&default=function(){ 
+l1 = table(1, 3 = 4, 2, 5 = 6)&default=function(i1:count, i2:count) : count{ 
 my_tbl = table(1.0, 3.0 = 10000.0);
 return (double_to_count(my_tbl[1.0, 3.0]));
 }, &optional;
-l2 = table(1.0, 3.0 = 4.0, 2.0, 5.0 = 6.0)&default=function(){ 
+l2 = table(1.0, 3.0 = 4.0, 2.0, 5.0 = 6.0)&default=function(d1:double, d2:double) : double{ 
 my_tbl = table(1, 3 = 1000);
 return ((coerce my_tbl[1, 3] to double));
 }, &optional;

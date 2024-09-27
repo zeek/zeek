@@ -96,8 +96,11 @@ struct AnalyOpt {
     // If true, dump out the use-defs for each analyzed function.
     bool dump_uds = false;
 
-    // If true, dump out generated ZAM code.
+    // If true, dump out generated ZAM code, including intermediaries.
     bool dump_ZAM = false;
+
+    // If true, dump out final generated ZAM code (only).
+    bool dump_final_ZAM = false;
 
     // If non-zero, looks for variables that are used-but-possibly-not-set,
     // or set-but-not-used.  We store this as an int rather than a bool

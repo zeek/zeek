@@ -369,6 +369,11 @@ void CPPCompile::GenWhenStmt(const WhenInfo* wi, const std::string& when_lambda,
         Emit("\tthrow CPPDelayedCallException();");
         Emit("return %s;", GenericValPtrToGT("retval", ret_type, GEN_NATIVE));
         EndBlock();
+
+        // Return something to avoid return-without-value warnings - but not
+        // if this is a when-inside-a-when, or a hook.
+        if ( ! func_type->ExpressionlessReturnOkay() && ! in_hook )
+            Emit("return 0;");
     }
 
     Emit("}");

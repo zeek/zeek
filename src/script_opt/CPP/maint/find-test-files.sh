@@ -1,7 +1,7 @@
 #! /bin/sh
 
 find ../testing/btest -type f |
-    grep -E -v 'Baseline|\.tmp' |
+    grep -E -v 'Baseline|\.tmp|__load__' |
     grep -E '\.(zeek|test)$' |
     sort |
     xargs grep -E -l '^[ 	]*(event|print)' |

@@ -1,3 +1,27 @@
+7.1.0-dev.371 | 2024-09-27 15:17:04 -0700
+
+  * A round of ZAM/gen-C++-related updates and fixes (Vern Paxson, Corelight)
+
+    - factoring of logic used by ZAM's low-level optimizer when adjusting control flow info
+    - BTest baseline update for more complete function/lambda names
+    - tweak to -O gen-C++ maintenance script to avoid treating plugins as BTests
+    - fixed lambda hash collision bug due to function descriptions lacking full parameter information
+    - fixes (to avoid collisions) for AST profiling's function hash computations
+    - removed unused ZAM cast-to-any operation
+    - fixes for ZAM tracking the return type associated with function calls
+    - ZAM control-flow tracking now explicitly includes the ends of loops
+    - fix for ZAM identification of common subexpressions
+    - "-O dump-final-ZAM" option similar to "dump-ZAM" only prints final version of functions
+    - fix for setting object locations to avoid use-after-free situation
+    - extended "-O allow-cond" to apply to both gen-C++ and gen-standalone-C++
+    - -O gen-C++ fix for run-time warnings for "when" lambdas
+    - fix to -O gen-C++ for recent AST profiling changes for identifying function parameters
+    - fix to -O gen-C++ for dealing with "hidden" parameters
+    - tweak to prevent an incorrect warning for scripts compiled to C++
+    - fixed overly narrow Spicy test for manipulating packet analyzers
+    - fixed memory leak for recursive ZAM functions that exit via an exception
+    - remove unnecessary header include
+
 7.1.0-dev.351 | 2024-09-27 16:47:39 +0200
 
   * Honor no plaintext password logging for PASS cmd (Martin van Hensbergen)

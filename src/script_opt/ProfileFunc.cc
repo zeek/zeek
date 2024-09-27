@@ -41,7 +41,20 @@ ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fi
         }
     }
 
-    Profile(profiled_func_t.get(), body);
+    TrackType(profiled_func_t);
+    body->Traverse(this);
+
+    // Examine the locals and identify the parameters based on their offsets
+    // (being careful not to be fooled by captures that incidentally have low
+    // offsets). This approach allows us to accommodate function definitions
+    // that use different parameter names than appear in the original
+    // declaration.
+    num_params = profiled_func_t->Params()->NumFields();
+
+    for ( auto l : locals ) {
+        if ( captures.count(l) == 0 && l->Offset() < num_params )
+            params.insert(l);
+    }
 }
 
 ProfileFunc::ProfileFunc(const Stmt* s, bool _abs_rec_fields) {
@@ -68,26 +81,23 @@ ProfileFunc::ProfileFunc(const Expr* e, bool _abs_rec_fields) {
             captures_offsets[oid] = offset++;
         }
 
-        Profile(func->GetType()->AsFuncType(), func->Ingredients()->Body());
+        auto ft = func->GetType()->AsFuncType();
+        auto& body = func->Ingredients()->Body();
+
+        num_params = ft->Params()->NumFields();
+
+        auto& ov = profiled_scope->OrderedVars();
+        for ( int i = 0; i < num_params; ++i )
+            params.insert(ov[i].get());
+
+        TrackType(ft);
+        body->Traverse(this);
     }
 
     else
         // We don't have a function type, so do the traversal
         // directly.
         e->Traverse(this);
-}
-
-void ProfileFunc::Profile(const FuncType* ft, const StmtPtr& body) {
-    num_params = ft->Params()->NumFields();
-
-    assert(profiled_scope != nullptr);
-
-    auto& ov = profiled_scope->OrderedVars();
-    for ( int i = 0; i < num_params; ++i )
-        params.insert(ov[i].get());
-
-    TrackType(ft);
-    body->Traverse(this);
 }
 
 TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
@@ -574,8 +584,9 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred
         // side effects.
 
         // Propagate previous hash if requested.
-        if ( ! compute_func_hashes && f.Profile() )
-            pf->SetHashVal(f.Profile()->HashVal());
+        auto prev_pf = f.Profile();
+        if ( ! compute_func_hashes && prev_pf && prev_pf->HasHashVal() )
+            pf->SetHashVal(prev_pf->HashVal());
 
         f.SetProfile(std::move(pf));
         func_profs[f.Func()] = f.ProfilePtr();
@@ -824,17 +835,20 @@ void ProfileFuncs::ComputeTypeHashes(const std::vector<const Type*>& types) {
 }
 
 void ProfileFuncs::ComputeBodyHashes(std::vector<FuncInfo>& funcs) {
-    if ( compute_func_hashes )
-        for ( auto& f : funcs )
-            if ( ! f.ShouldSkip() )
-                ComputeProfileHash(f.ProfilePtr());
+    for ( auto& f : funcs ) {
+        if ( f.ShouldSkip() )
+            continue;
+        auto pf = f.ProfilePtr();
+        if ( compute_func_hashes || ! pf->HasHashVal() )
+            ComputeProfileHash(f.ProfilePtr());
+    }
 
     for ( auto& l : lambdas ) {
         auto pf = ExprProf(l);
         func_profs[l->PrimaryFunc().get()] = pf;
         lambda_primaries[l->Name()] = l->PrimaryFunc().get();
 
-        if ( compute_func_hashes )
+        if ( compute_func_hashes || ! pf->HasHashVal() )
             ComputeProfileHash(pf);
     }
 }
@@ -846,6 +860,12 @@ void ProfileFuncs::ComputeProfileHash(std::shared_ptr<ProfileFunc> pf) {
     // prevent collisions due to elements with simple hashes
     // (such as Stmt's or Expr's that are only represented by
     // the hash of their tag).
+    h = merge_p_hashes(h, p_hash("params"));
+    auto& ov = pf->ProfiledScope()->OrderedVars();
+    int n = pf->NumParams();
+    for ( int i = 0; i < n; ++i )
+        h = merge_p_hashes(h, p_hash(ov[i]->Name()));
+
     h = merge_p_hashes(h, p_hash("stmts"));
     for ( auto i : pf->Stmts() )
         h = merge_p_hashes(h, p_hash(i->Tag()));

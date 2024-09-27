@@ -32,12 +32,12 @@ void Inliner::Analyze() {
         //
         // We deal with cases where these defaults are overridden to refer
         // to some other function below, when we go through indirect functions.
-        if ( is_special_script_func(f.Func()->Name()) )
+        if ( is_special_script_func(f.Func()->GetName()) )
             continue;
 
         // If ZAM can replace the script, don't inline it, so its usage
         // remains visible during the AST reduction process.
-        if ( is_ZAM_replaceable_script_func(f.Func()->Name()) )
+        if ( is_ZAM_replaceable_script_func(f.Func()->GetName()) )
             continue;
 
         std::unordered_set<const Func*> cs;
@@ -50,7 +50,7 @@ void Inliner::Analyze() {
 
             if ( func == f.Func() ) {
                 if ( report_recursive )
-                    printf("%s is directly recursive\n", func->Name());
+                    printf("%s is directly recursive\n", func->GetName().c_str());
 
                 non_recursive_funcs.erase(func);
             }
@@ -79,7 +79,7 @@ void Inliner::Analyze() {
             // for cutting down noise from the following recursion report.
 
             if ( report_recursive )
-                printf("%s is used indirectly, and thus potentially recursively\n", sf->Name());
+                printf("%s is used indirectly, and thus potentially recursively\n", sf->GetName().c_str());
 
             non_recursive_funcs.erase(sf);
         }
@@ -127,7 +127,8 @@ void Inliner::Analyze() {
                         continue;
 
                     if ( report_recursive )
-                        printf("%s is indirectly recursive, called by %s\n", c.first->Name(), cc->Name());
+                        printf("%s is indirectly recursive, called by %s\n", c.first->GetName().c_str(),
+                               cc->GetName().c_str());
 
                     non_recursive_funcs.erase(c.first);
                     non_recursive_funcs.erase(cc);
@@ -193,7 +194,7 @@ void Inliner::CoalesceEventHandlers() {
         // it takes more time to compile it than to just run it via the
         // interpreter, it's a lose.
         static std::string zeek_init_name = "zeek_init";
-        if ( func->Name() == zeek_init_name )
+        if ( func->GetName() == zeek_init_name )
             continue;
 
         const auto& body = f.Body();
@@ -286,12 +287,12 @@ void Inliner::CoalesceEventHandlers(ScriptFuncPtr func, const std::vector<Func::
     inlined_func->SetScope(new_scope);
 
     // Replace the function for that EventHandler with the delegating one.
-    auto* eh = event_registry->Lookup(func->Name());
+    auto* eh = event_registry->Lookup(func->GetName());
     ASSERT(eh);
     eh->SetFunc(inlined_func);
 
     // Likewise, replace the value of the identifier.
-    auto fid = lookup_ID(func->Name(), GLOBAL_MODULE_NAME, false, false, false);
+    auto fid = lookup_ID(func->GetName().c_str(), GLOBAL_MODULE_NAME, false, false, false);
     ASSERT(fid);
     fid->SetVal(make_intrusive<FuncVal>(inlined_func));
 

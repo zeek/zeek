@@ -573,7 +573,7 @@ bool IsZAM_BuiltIn(ZAMCompiler* zam, const Expr* e) {
     if ( ! func )
         return false;
 
-    std::string fn = func->Name();
+    auto fn = func->GetName();
 
     // It's useful to intercept any lingering calls to the script-level
     // Log::write as well as the Log::__write BiF. When inlining there can
@@ -619,7 +619,7 @@ bool IsZAM_BuiltInCond(ZAMCompiler* zam, const CallExpr* c, int& branch_v) {
     if ( ! func )
         return false;
 
-    auto b = builtins.find(func->Name());
+    auto b = builtins.find(func->GetName());
     if ( b == builtins.end() )
         return false;
 

@@ -656,7 +656,7 @@ bool ProfileFuncs::GetCallSideEffects(const NameExpr* n, IDSet& non_local_ids, T
 
     auto func = fv->AsFunc();
     if ( func->GetKind() == Func::BUILTIN_FUNC ) {
-        if ( has_script_side_effects(func->Name()) )
+        if ( has_script_side_effects(func->GetName()) )
             is_unknown = true;
         return true;
     }
@@ -1392,8 +1392,8 @@ bool ProfileFuncs::AssessSideEffects(const SideEffectsOp* se, SideEffectsOp::Acc
 }
 
 std::shared_ptr<SideEffectsOp> ProfileFuncs::GetCallSideEffects(const ScriptFunc* sf) {
-    if ( lambda_primaries.count(sf->Name()) > 0 )
-        sf = lambda_primaries[sf->Name()];
+    if ( lambda_primaries.count(sf->GetName()) > 0 )
+        sf = lambda_primaries[sf->GetName()];
 
     auto sf_se = func_side_effects.find(sf);
     if ( sf_se != func_side_effects.end() )
@@ -1502,7 +1502,7 @@ ASTBlockAnalyzer::ASTBlockAnalyzer(std::vector<FuncInfo>& funcs) {
             continue;
 
         auto func = f.Func();
-        std::string fn = func->Name();
+        auto fn = func->GetName();
         auto body = f.Body();
 
         // First get the line numbers all sorted out.

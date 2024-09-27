@@ -80,12 +80,12 @@ void ZInst::Dump(FILE* f, const string& prefix, const string& id1, const string&
     auto func = aux ? aux->func : nullptr;
 
     if ( func )
-        fprintf(f, " (func %s)", func->Name());
+        fprintf(f, " (func %s)", func->GetName().c_str());
 
     if ( loc ) {
         auto l = loc->Describe(true);
         if ( func && (func->GetBodies().empty() || func->GetBodies()[0].stmts->Tag() != STMT_ZAM) )
-            l = l + ";" + func->Name();
+            l = l + ";" + func->GetName();
         if ( ! prefix.empty() )
             l = prefix + l;
         fprintf(f, " // %s", l.c_str());

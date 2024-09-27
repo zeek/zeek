@@ -28,7 +28,7 @@ ZAMCompiler::ZAMCompiler(ScriptFuncPtr f, std::shared_ptr<ProfileFuncs> _pfs, st
     ASSERT(loc->first_line != 0 || body->Tag() == STMT_NULL);
     auto loc_copy =
         std::make_shared<Location>(loc->filename, loc->first_line, loc->last_line, loc->first_column, loc->last_column);
-    ZAM::curr_func = func->Name();
+    ZAM::curr_func = func->GetName();
     ZAM::curr_loc = std::make_shared<ZAMLocInfo>(ZAM::curr_func, std::move(loc_copy), nullptr);
 
     Init();
@@ -196,7 +196,7 @@ StmtPtr ZAMCompiler::CompileBody() {
 
     ConcretizeSwitches();
 
-    std::string fname = func->Name();
+    auto fname = func->GetName();
 
     if ( func->Flavor() == FUNC_FLAVOR_FUNCTION )
         fname = func_name_at_loc(fname, body->GetLocationInfo());
@@ -357,13 +357,13 @@ void ZAMCompiler::Dump() {
     bool remapped_frame = ! analysis_options.no_ZAM_opt;
 
     if ( remapped_frame )
-        printf("Original frame for %s:\n", func->Name());
+        printf("Original frame for %s:\n", func->GetName().c_str());
 
     for ( const auto& elem : frame_layout1 )
         printf("frame[%d] = %s\n", elem.second, elem.first->Name());
 
     if ( remapped_frame ) {
-        printf("Final frame for %s:\n", func->Name());
+        printf("Final frame for %s:\n", func->GetName().c_str());
 
         for ( auto i = 0U; i < shared_frame_denizens.size(); ++i ) {
             printf("frame2[%d] =", i);
@@ -374,14 +374,14 @@ void ZAMCompiler::Dump() {
     }
 
     if ( ! insts2.empty() )
-        printf("Pre-removal of dead code for %s:\n", func->Name());
+        printf("Pre-removal of dead code for %s:\n", func->GetName().c_str());
 
     auto remappings = remapped_frame ? &shared_frame_denizens : nullptr;
 
     DumpInsts1(remappings);
 
     if ( ! insts2.empty() )
-        printf("Final intermediary code for %s:\n", func->Name());
+        printf("Final intermediary code for %s:\n", func->GetName().c_str());
 
     remappings = remapped_frame ? &shared_frame_denizens_final : nullptr;
 
@@ -403,7 +403,7 @@ void ZAMCompiler::Dump() {
     }
 
     if ( ! insts2.empty() )
-        printf("Final code for %s:\n", func->Name());
+        printf("Final code for %s:\n", func->GetName().c_str());
 
     for ( auto i = 0U; i < insts2.size(); ++i ) {
         auto& inst = insts2[i];

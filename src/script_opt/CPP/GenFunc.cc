@@ -177,7 +177,7 @@ void CPPCompile::DeclareLocals(const ProfileFunc* pf, const IDPList* lambda_ids)
 string CPPCompile::BodyName(const FuncInfo& func) {
     const auto& f = func.Func();
     const auto& body = func.Body();
-    string fname = f->Name();
+    auto fname = f->GetName();
 
     // Extend name with location information.
     auto loc = body->GetLocationInfo();

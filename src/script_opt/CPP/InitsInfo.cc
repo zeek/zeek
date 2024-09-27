@@ -283,7 +283,7 @@ FuncConstInfo::FuncConstInfo(CPPCompile* _c, ValPtr v) : CompoundItemInfo(_c, v)
 
 void FuncConstInfo::InitializerVals(std::vector<std::string>& ivs) const {
     auto f = fv->AsFunc();
-    const auto& fn = f->Name();
+    const auto& fn = f->GetName();
     const auto& bodies = f->GetBodies();
 
     ivs.emplace_back(Fmt(type));

@@ -282,15 +282,15 @@ void CPPCompile::GenStandaloneActivation() {
         hashes = "{" + hashes + "}";
 
         auto f = fb.first;
-        auto fn = f->Name();
+        const auto& fn = f->GetName();
         const auto& ft = f->GetType();
 
-        auto var = extract_var_name(fn);
-        auto mod = extract_module_name(fn);
+        auto var = extract_var_name(fn.c_str());
+        auto mod = extract_module_name(fn.c_str());
 
         auto fid = lookup_ID(var.c_str(), mod.c_str(), false, true, false);
         if ( ! fid )
-            reporter->InternalError("can't find identifier %s", fn);
+            reporter->InternalError("can't find identifier %s", fn.c_str());
 
         auto exported = fid->IsExport() ? "true" : "false";
 

@@ -1,4 +1,4 @@
-#include "ZeroMQ-Broker.h"
+#include "ZeroMQ-Proxy.h"
 
 #include <zmq.hpp>
 

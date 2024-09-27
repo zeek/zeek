@@ -42,12 +42,17 @@ export {
 	## settings when shutting down loggers before workers.
 	const linger_ms: int = 500 &redef;
 
-	## Whether to conifgure ZMQ_XPUB_NODROP on the xpub socket
+	## Bitmask to enable fprintf based debug printing.
+	##
+	##     poll debugging: 1
+	const debug_flags: count = 0 &redef;
+
+	## Whether to configure ZMQ_XPUB_NODROP on the xpub socket
 	## to detect when sending a message fails due to reaching
 	## the HWM.
 	const xpub_nodrop: bool = T &redef;
 
-	## On which endpoints should the broker thread listen?
+	## On which endpoints should the proxy thread listen?
 	## This doesn't need to run in Zeek. It could also be
 	## a separate process. But: All nodes need to connect
 	## to the same broker thread.
@@ -69,11 +74,16 @@ export {
 	## Queue log writes only to completed connections.
 	const log_immediate: bool = F &redef;
 
-	## High water mark value for logging PUSH sockets. If reached,
-	## Zeek workers will block or drop messages.
+	## Send high water mark value for the log PUSH sockets.
+	## If reached, Zeek workers will block or drop messages.
 	##
 	## TODO: Make action configurable (block vs drop)
 	const log_sndhwm: int = 1000 &redef;
+
+	## Receive high water mark value for the log PULL sockets.
+	## If reached, Zeek workers will block or drop messages.
+	##
+	## TODO: Make action configurable (block vs drop)
 	const log_rcvhwm: int = 1000 &redef;
 
 	## Kernel send and receive buffer sizes. Use -1 as the default.
@@ -85,7 +95,7 @@ export {
 	const listen_log_endpoint = "" &redef;
 
 	# Whether to run the zmq_proxy() thread on this node.
-	const run_broker_thread: bool = F &redef;
+	const run_proxy_thread: bool = F &redef;
 
 	global node_topic_prefix = "zeek.cluster.node" &redef;
 	global nodeid_topic_prefix = "zeek.cluster.nodeid" &redef;
@@ -95,15 +105,13 @@ export {
 	## on that node.
 	global subscription: event(topic: string);
 
-	## Low level event when nodes jnsubscribe.
+	## Low level event when nodes unsubscribe.
 	global unsubscription: event(topic: string);
 
 	global hello: event(name: string, id: string);
 }
 
 redef Cluster::backend = Cluster::CLUSTER_BACKEND_ZEROMQ;
-
-redef run_broker_thread = Cluster::local_node_type() == Cluster::MANAGER;
 
 function zeromq_node_topic(name: string): string {
 	return node_topic_prefix + "." + name;
@@ -140,6 +148,37 @@ redef Cluster::logger_pool_spec = Cluster::PoolSpec(
 redef Cluster::worker_pool_spec = Cluster::PoolSpec(
 	$topic = "zeek.cluster.pool.worker",
 	$node_type = Cluster::WORKER);
+
+
+redef Cluster::manager_is_logger = F;
+
+@if ( Cluster::local_node_type() == Cluster::LOGGER )
+const my_node = Cluster::nodes[Cluster::node];
+@if ( my_node?$p )
+redef listen_log_endpoint = fmt("tcp://%s:%s", my_node$ip, port_to_count(my_node$p));
+@endif
+@endif
+
+# Populate connect_log_endpoints based on Cluster::nodes on non-logger nodes.
+# If you're experimenting with zero-logger clusters, ignore this code and set
+# connect_log_endpoints yourself.
+event zeek_init() &priority=100
+	{
+	if ( Cluster::local_node_type() == Cluster::LOGGER )
+		return;
+
+	for ( _, node in Cluster::nodes )
+		{
+		if ( node$node_type == Cluster::LOGGER && node?$p )
+			{
+			local endp = fmt("tcp://%s:%s", node$ip, port_to_count(node$p));
+			connect_log_endpoints += endp;
+			}
+		}
+	}
+
+# By default, let the manager node run the proxy thread.
+redef run_proxy_thread = Cluster::local_node_type() == Cluster::MANAGER;
 
 # The ZeroMQ plugin notifies script land when a subscription arrived
 # on the XPUB socket. If such a subscription starts with the nodeid_topic_prefix,

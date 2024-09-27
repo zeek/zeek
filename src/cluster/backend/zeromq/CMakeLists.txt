@@ -14,8 +14,8 @@ zeek_add_plugin(
     DEPENDENCIES
     ${ZeroMQ_LIBRARIES}
     SOURCES
-    ZeroMQ-Broker.cc
     Plugin.cc
+    ZeroMQ-Proxy.cc
     ZeroMQ.cc
     BIFS
     cluster_backend_zeromq.bif)

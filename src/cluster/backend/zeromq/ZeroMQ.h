@@ -9,7 +9,7 @@
 #include "zeek/cluster/Backend.h"
 #include "zeek/cluster/Serializer.h"
 
-#include "ZeroMQ-Broker.h"
+#include "ZeroMQ-Proxy.h"
 
 namespace zeek::cluster::zeromq {
 
@@ -23,10 +23,10 @@ public:
     bool Connect();
 
     /**
-     * Spawns thread running zmq_proxy() or some reimplementation. Only one node in a
-     * cluster should run the broker thread.
+     * Spawns a thread running zmq_proxy() for the configured XPUB/XSUB listen
+     * sockets. Only one node in a cluster should do this.
      */
-    bool SpawnBrokerThread();
+    bool SpawnZmqProxyThread();
 
     /**
      * Run method for background thread.
@@ -71,6 +71,8 @@ private:
 
     EventHandlerPtr event_subscription;
     EventHandlerPtr event_unsubscription;
+
+    zeek_uint_t debug_flags = 0;
 
     zmq::context_t ctx;
     zmq::socket_t xsub;

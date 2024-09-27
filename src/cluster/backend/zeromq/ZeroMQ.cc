@@ -21,7 +21,7 @@
 #include "zeek/cluster/Serializer.h"
 #include "zeek/logging/Manager.h"
 
-#include "ZeroMQ-Broker.h"
+#include "ZeroMQ-Proxy.h"
 
 namespace zeek {
 
@@ -36,9 +36,28 @@ extern Plugin plugin;
 
 namespace cluster::zeromq {
 
+enum class DebugFlag : zeek_uint_t {
+    NONE = 0,
+    POLL = 1,
+};
+
+constexpr DebugFlag operator&(zeek_uint_t x, DebugFlag y) {
+    return static_cast<DebugFlag>(x & static_cast<zeek_uint_t>(y));
+}
+
 #define ZEROMQ_DEBUG(...) PLUGIN_DBG_LOG(zeek::plugin::Zeek_Cluster_Backend_ZeroMQ::plugin, __VA_ARGS__)
 
-#define ZEROMQ_THREAD_PRINTF(...) std::fprintf(stderr, "[zeromq] " __VA_ARGS__);
+#define ZEROMQ_THREAD_PRINTF(...)                                                                                      \
+    do {                                                                                                               \
+        std::fprintf(stderr, "[zeromq] " __VA_ARGS__);                                                                 \
+    } while ( 0 )
+
+#define ZEROMQ_DEBUG_THREAD_PRINTF(flag, ...)                                                                          \
+    do {                                                                                                               \
+        if ( (debug_flags & flag) == flag ) {                                                                          \
+            ZEROMQ_THREAD_PRINTF(__VA_ARGS__);                                                                         \
+        }                                                                                                              \
+    } while ( 0 )
 
 namespace {
 void self_thread_fun(void* arg) {
@@ -60,6 +79,7 @@ void ZeroMQBackend::DoInitPostScript() {
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::connect_xsub_endpoint")->ToStdString();
     listen_log_endpoint =
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::listen_log_endpoint")->ToStdString();
+    debug_flags = zeek::id::find_val<zeek::CountVal>("Cluster::Backend::ZeroMQ::debug_flags")->Get();
 
     event_unsubscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::unsubscription");
     event_subscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::subscription");
@@ -187,12 +207,10 @@ bool ZeroMQBackend::Connect() {
     return true;
 }
 
-
-bool ZeroMQBackend::SpawnBrokerThread() {
+bool ZeroMQBackend::SpawnZmqProxyThread() {
     broker_thread = std::make_unique<BrokerThread>(listen_xpub_endpoint, listen_xsub_endpoint);
     return broker_thread->Start();
 }
-
 
 bool ZeroMQBackend::DoPublishEvent(const std::string& topic, const std::string& format,
                                    const cluster::detail::byte_buffer& buf) {
@@ -296,9 +314,9 @@ bool ZeroMQBackend::DoPublishLogWrites(const logging::detail::LogWriteHeader& he
     return true;
 }
 
-using MultipartMessage = std::vector<zmq::message_t>;
-
 void ZeroMQBackend::Run() {
+    using MultipartMessage = std::vector<zmq::message_t>;
+
     auto HandleLogMessages = [this](const std::vector<MultipartMessage>& msgs) {
         QueueMessages qmsgs;
         qmsgs.reserve(msgs.size());
@@ -398,13 +416,13 @@ void ZeroMQBackend::Run() {
         std::array<std::vector<std::vector<zmq::message_t>>, 3> rcv_messages = {};
         try {
             int r = zmq::poll(poll_items, std::chrono::seconds(-1));
+            ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::POLL, "poll: r=%d", r);
 
             for ( size_t i = 0; i < poll_items.size(); i++ ) {
                 const auto& item = poll_items[i];
-
-                // ZEROMQ_THREAD_PRINTF("poll: items[%lu]=%s %s %s\n", i, sockets[i].name.c_str(),
-                //                      item.revents & ZMQ_POLLIN ? "pollin " : "",
-                //                      item.revents & ZMQ_POLLERR ? "err" : "");
+                ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::POLL, "poll: items[%lu]=%s %s %s\n", i, sockets[i].name.c_str(),
+                                           item.revents & ZMQ_POLLIN ? "pollin " : "",
+                                           item.revents & ZMQ_POLLERR ? "err" : "");
 
                 if ( item.revents & ZMQ_POLLERR ) {
                     // What should we be doing? Re-open sockets? Terminate?

@@ -1,3 +1,11 @@
+6.0.8-7 | 2024-11-14 16:06:49 -0700
+
+  * Install procps in OpenSuse Leap images (Benjamin Bannier, Corelight)
+
+    (cherry picked from commit a27066e3fc58d70401359887fcf34bd0bb83d433)
+
+  * CI: Remove EOL (and broken) centos-stream-8 task (Tim Wojtulewicz, Corelight)
+
 6.0.8-5 | 2024-11-14 14:44:21 -0700
 
   * Fix potential nullptr deref in Spicy plugin runtime (Benjamin Bannier, Corelight)

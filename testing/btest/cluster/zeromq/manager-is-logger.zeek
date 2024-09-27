@@ -57,16 +57,8 @@ global nodes_up: set[string] = {"manager"};
 global nodes_down: set[string] = {"manager"};
 
 event send_finish() {
-	print "send_finish";
-
-	Log::flush(TEST_LOG);
-
-	# For debugging
-	Log::flush(Cluster::LOG);
-
 	for ( n in nodes_up )
-		if ( n != "logger" )
-			Cluster::publish(Cluster::node_topic(n), finish, Cluster::node);
+		Cluster::publish(Cluster::node_topic(n), finish, Cluster::node);
 }
 
 event Cluster::node_up(name: string, id: string) {
@@ -88,13 +80,11 @@ event Cluster::node_down(name: string, id: string) {
 	if ( |nodes_down| == |Cluster::nodes| )
 		terminate();
 }
-
 # @TEST-END-FILE
 
 # @TEST-START-FILE other.zeek
 @load ./common.zeek
 
-# If finish is received, shutdown.
 event finish(name: string) {
 	print fmt("finish from %s", name);
 	terminate();

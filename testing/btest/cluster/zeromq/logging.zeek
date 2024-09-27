@@ -1,4 +1,6 @@
-# @TEST-DOC: Startup a ZeroMQ cluster, testing basic logging and node_up and node_down events.
+# @TEST-DOC: Startup a ZeroMQ cluster by hand, testing basic logging and node_up and node_down events.
+#
+# The manager runs the ZeroMQ proxy functionality, so it needs to be shutdown last.
 #
 # @TEST-GROUP: cluster-zeromq
 #
@@ -90,13 +92,11 @@ event Cluster::node_down(name: string, id: string) {
 	if ( |nodes_down| == |Cluster::nodes| )
 		terminate();
 }
-
 # @TEST-END-FILE
 
 # @TEST-START-FILE other.zeek
 @load ./common.zeek
 
-# If finish is received, shutdown.
 event finish(name: string) {
 	print fmt("finish from %s", name);
 	terminate();

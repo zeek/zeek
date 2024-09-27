@@ -412,8 +412,8 @@ bool Manager::CreateEventStream(RecordVal* fval) {
 
     stream->num_fields = fieldsV.size();
     stream->fields = fields->Ref()->AsRecordType();
-    stream->event = event_registry->Lookup(event->Name());
-    stream->error_event = error_event ? event_registry->Lookup(error_event->Name()) : nullptr;
+    stream->event = event_registry->Lookup(event->GetName());
+    stream->error_event = error_event ? event_registry->Lookup(error_event->GetName()) : nullptr;
     stream->want_record = (want_record->InternalInt() == 1);
 
     assert(stream->reader);
@@ -679,8 +679,8 @@ bool Manager::CreateTableStream(RecordVal* fval) {
     stream->tab = dst.release()->AsTableVal();
     stream->rtype = val.release();
     stream->itype = idx->Ref()->AsRecordType();
-    stream->event = event ? event_registry->Lookup(event->Name()) : nullptr;
-    stream->error_event = error_event ? event_registry->Lookup(error_event->Name()) : nullptr;
+    stream->event = event ? event_registry->Lookup(event->GetName()) : nullptr;
+    stream->error_event = error_event ? event_registry->Lookup(error_event->GetName()) : nullptr;
     stream->currDict = new PDict<InputHash>;
     stream->currDict->SetDeleteFunc(input_hash_delete_func);
     stream->lastDict = new PDict<InputHash>;

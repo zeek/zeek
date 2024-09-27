@@ -121,7 +121,7 @@ ScriptProfileMgr::~ScriptProfileMgr() {
             auto func = body_to_func[o];
 
             if ( func_stats.count(func) == 0 )
-                func_stats[func] = ScriptProfileStats(func->Name());
+                func_stats[func] = ScriptProfileStats(func->GetName());
 
             func_stats[func].AddIn(p);
         }

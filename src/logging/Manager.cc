@@ -587,7 +587,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval) {
     streams[idx]->id = id->Ref()->AsEnumVal();
     streams[idx]->enabled = true;
     streams[idx]->name = id->GetType()->AsEnumType()->Lookup(idx);
-    streams[idx]->event = event ? event_registry->Lookup(event->Name()) : nullptr;
+    streams[idx]->event = event ? event_registry->Lookup(event->GetName()) : nullptr;
     streams[idx]->policy = policy;
     streams[idx]->columns = columns->Ref()->AsRecordType();
     streams[idx]->max_delay_interval = sval->GetField("max_delay_interval")->AsInterval();
@@ -1651,7 +1651,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 
             if ( f->postprocessor ) {
                 delete[] winfo->info->post_proc_func;
-                winfo->info->post_proc_func = util::copy_string(f->postprocessor->Name());
+                winfo->info->post_proc_func = util::copy_string(f->postprocessor->GetName().c_str());
             }
 
             break;

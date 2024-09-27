@@ -803,9 +803,9 @@ bool Manager::AutoPublishEvent(string topic, Val* event) {
         return false;
     }
 
-    auto handler = event_registry->Lookup(event_val->Name());
+    auto handler = event_registry->Lookup(event_val->GetName());
     if ( ! handler ) {
-        Error("Broker::auto_publish failed to lookup event '%s'", event_val->Name());
+        Error("Broker::auto_publish failed to lookup event '%s'", event_val->GetName().c_str());
         return false;
     }
 
@@ -828,10 +828,10 @@ bool Manager::AutoUnpublishEvent(const string& topic, Val* event) {
         return false;
     }
 
-    auto handler = event_registry->Lookup(event_val->Name());
+    auto handler = event_registry->Lookup(event_val->GetName());
 
     if ( ! handler ) {
-        Error("Broker::auto_event_stop failed to lookup event '%s'", event_val->Name());
+        Error("Broker::auto_event_stop failed to lookup event '%s'", event_val->GetName().c_str());
         return false;
     }
 
@@ -886,7 +886,7 @@ zeek::RecordValPtr Manager::MakeEvent(ArgsSpan args) {
                 return rval;
             }
 
-            rval->Assign(0, func->Name());
+            rval->Assign(0, func->GetName());
             continue;
         }
 

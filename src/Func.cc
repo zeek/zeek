@@ -437,7 +437,7 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
     else if ( GetType()->Yield() && GetType()->Yield()->Tag() != TYPE_VOID && ! GetType()->ExpressionlessReturnOkay() &&
               (flow != FLOW_RETURN /* we fell off the end */ || ! result /* explicit return with no result */) &&
               ! f->HasDelayed() )
-        reporter->Warning("non-void function returning without a value: %s", Name());
+        reporter->Warning("non-void function returning without a value: %s", GetName().c_str());
 
     if ( result && g_trace_state.DoTrace() ) {
         ODesc d;

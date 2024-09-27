@@ -103,7 +103,7 @@ void HookArgument::Describe(ODesc* d) const {
 
         case FUNC:
             if ( arg.func )
-                d->Add(arg.func->Name());
+                d->Add(arg.func->GetName());
             else
                 d->Add("<null>");
             break;

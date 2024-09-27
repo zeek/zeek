@@ -87,7 +87,7 @@ private:
 
 class ScriptProfile : public ScriptProfileStats {
 public:
-    ScriptProfile(const Func* _func, const detail::StmtPtr& body) : ScriptProfileStats(_func->Name()) {
+    ScriptProfile(const Func* _func, const detail::StmtPtr& body) : ScriptProfileStats(_func->GetName()) {
         func = {NewRef{}, const_cast<Func*>(_func)};
         is_BiF = body == nullptr;
 

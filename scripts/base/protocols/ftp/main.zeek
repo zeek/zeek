@@ -169,9 +169,15 @@ function set_ftp_session(c: connection)
 		}
 	}
 
+function should_hide_password(s: Info) : bool
+	{
+	return ! s$capture_password && to_lower(s$user) !in guest_ids;
+	}
+
 function ftp_message(c: connection)
 	{
 	if ( ! c?$ftp ) return;
+	local password_hidden_string = "<hidden>";
 	local s: Info = c$ftp;
 	s$ts=s$cmdarg$ts;
 	s$command=s$cmdarg$cmd;
@@ -193,16 +199,15 @@ function ftp_message(c: connection)
 		s$reply_msg = s$reply_msg[:max_reply_msg_length];
 		}
 
+	# In case of logging PASS command, the password will appear in arg column and might need hiding
+	if ( s$command == "PASS" && should_hide_password(s))
+		s$arg = password_hidden_string;
 
 	if ( s$arg == "" )
 		delete s$arg;
 
-	if ( s?$password &&
-	     ! s$capture_password &&
-	     to_lower(s$user) !in guest_ids )
-		{
-		s$password = "<hidden>";
-		}
+	if ( s?$password && should_hide_password(s))
+		s$password = password_hidden_string;
 
 	if ( s?$cmdarg && s$command in logged_commands)
 		Log::write(FTP::LOG, s);

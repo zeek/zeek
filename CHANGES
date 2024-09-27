@@ -1,3 +1,7 @@
+7.1.0-dev.351 | 2024-09-27 16:47:39 +0200
+
+  * Honor no plaintext password logging for PASS cmd (Martin van Hensbergen)
+
 7.1.0-dev.349 | 2024-09-27 15:37:13 +0200
 
   * NEWS: Update (Arne Welzel, Corelight)

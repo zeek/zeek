@@ -86,6 +86,10 @@ Changed Functionality
   the ``Threading::heartbeat_interval`` was used for flushing and the buffer
   size fixed at 1000.
 
+* Logging of the FTP PASS command in ``ftp.log`` now honors ``FTP::default_capture_password``
+  and the password is blanked with "<hidden>". Previously, the argument for the PASS
+  command would be logged in clear.
+
 Removed Functionality
 ---------------------
 

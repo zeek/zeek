@@ -10,7 +10,7 @@
 # @TEST-EXEC: btest-bg-run manager "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=manager zeek -b ../manager.zeek >out"
 # @TEST-EXEC: btest-bg-run worker "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-1 zeek -b ../worker.zeek >out"
 #
-# @TEST-EXEC: btest-bg-wait 10
+# @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff ./manager/out
 # @TEST-EXEC: btest-diff ./worker/out
 
@@ -32,10 +32,6 @@ global finish: event(name: string);
 
 # @TEST-START-FILE manager.zeek
 @load ./common.zeek
-
-redef Cluster::node = "manager";
-redef Cluster::Backend::ZeroMQ::run_broker_thread = T;
-
 # If a node comes up that isn't us, send it a finish event.
 event Cluster::node_up(name: string, id: string) {
 	print "node_up", name;
@@ -51,8 +47,6 @@ event Cluster::node_down(name: string, id: string) {
 
 # @TEST-START-FILE worker.zeek
 @load ./common.zeek
-
-redef Cluster::node = "worker-1";
 
 event Cluster::node_up(name: string, id: string) {
 	print "node_up", name;

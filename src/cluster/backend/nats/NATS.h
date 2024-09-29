@@ -20,11 +20,6 @@ class NATSBackend : public cluster::ThreadedBackend {
 public:
     using ThreadedBackend::ThreadedBackend;
 
-    /**
-     * Connect to the NATS server.
-     */
-    bool Connect();
-
     void HandleSubscriptionMessage(natsSubscription* sub, natsMsg* msg);
 
     void HandleSubscriptionError(natsSubscription* sub, natsStatus err);
@@ -44,6 +39,8 @@ public:
 
 private:
     void DoInitPostScript() override;
+
+    bool DoInit() override;
 
     void DoTerminate() override;
 

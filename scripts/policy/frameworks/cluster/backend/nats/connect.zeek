@@ -1,10 +1,12 @@
 ##! Establish NATS connectivity
 
+@load ./main
+
 module Cluster::Backend::NATS;
 
-event zeek_init()
+event zeek_init() &priority=-10
 	{
-	Cluster::Backend::NATS::connect();
+	Cluster::init();
 	}
 
 event zeek_done() &priority=-100

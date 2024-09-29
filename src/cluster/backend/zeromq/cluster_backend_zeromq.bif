@@ -14,16 +14,3 @@ function Cluster::Backend::ZeroMQ::spawn_zmq_proxy_thread%(%): bool
 
 	return zeek::val_mgr->Bool(zeromq_backend->SpawnZmqProxyThread());
 	%}
-
-function Cluster::Backend::ZeroMQ::connect%(%): bool
-	%{
-	// Connect to the ZeroMQ and setup subscriptions.
-	auto *zeromq_backend = dynamic_cast<zeek::cluster::zeromq::ZeroMQBackend*>(zeek::cluster::backend);
-	if ( ! zeromq_backend )
-		{
-		zeek::emit_builtin_error("Cluster::backend not set to ZeroMQ?");
-		return zeek::val_mgr->Bool(false);
-		}
-
-	return zeek::val_mgr->Bool(zeromq_backend->Connect());
-	%}

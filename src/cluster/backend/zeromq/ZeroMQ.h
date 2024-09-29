@@ -18,11 +18,6 @@ public:
     using ThreadedBackend::ThreadedBackend;
 
     /**
-     * Connect to the node running the broker thread.
-     */
-    bool Connect();
-
-    /**
      * Spawns a thread running zmq_proxy() for the configured XPUB/XSUB listen
      * sockets. Only one node in a cluster should do this.
      */
@@ -32,7 +27,6 @@ public:
      * Run method for background thread.
      */
     void Run();
-
 
     /**
      * Component factory.
@@ -44,6 +38,8 @@ public:
 
 private:
     void DoInitPostScript() override;
+
+    bool DoInit() override;
 
     void DoTerminate() override;
 

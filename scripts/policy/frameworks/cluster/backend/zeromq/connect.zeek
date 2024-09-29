@@ -1,17 +1,16 @@
 ##! Establish ZeroMQ connectivity with the broker.
 
+@load ./main
+
 module Cluster::Backend::ZeroMQ;
 
-event zeek_init()
+
+event zeek_init() &priority=10
 	{
 	if ( run_proxy_thread )
 		Cluster::Backend::ZeroMQ::spawn_zmq_proxy_thread();
 
-	# Connect to the broker thread (connect_xpub_endpoint
-	# and connect_xsub_endpoint) and the logger endpoints
-	# via connect_log_endpoints. Also starts listening on
-	# logging pull sockets if configured.
-	Cluster::Backend::ZeroMQ::connect();
+	Cluster::init();
 
 	# Get things going by subscribing to our own topic.
 	Cluster::subscribe(Cluster::nodeid_topic(Cluster::node_id()));

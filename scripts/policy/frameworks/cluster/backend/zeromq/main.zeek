@@ -150,9 +150,8 @@ redef Cluster::worker_pool_spec = Cluster::PoolSpec(
 	$node_type = Cluster::WORKER);
 
 
-redef Cluster::manager_is_logger = F;
-
-@if ( Cluster::local_node_type() == Cluster::LOGGER )
+# Configure listen_log_endpoint based on port in cluster-layout, if any.
+@if ( Cluster::local_node_type() == Cluster::LOGGER || (Cluster::manager_is_logger && Cluster::local_node_type() == Cluster::MANAGER) )
 const my_node = Cluster::nodes[Cluster::node];
 @if ( my_node?$p )
 redef listen_log_endpoint = fmt("tcp://%s:%s", my_node$ip, port_to_count(my_node$p));
@@ -167,14 +166,27 @@ event zeek_init() &priority=100
 	if ( Cluster::local_node_type() == Cluster::LOGGER )
 		return;
 
+	if ( Cluster::manager_is_logger && Cluster::local_node_type() == Cluster::MANAGER )
+		return;
+
 	for ( _, node in Cluster::nodes )
 		{
+		local endp: string;
 		if ( node$node_type == Cluster::LOGGER && node?$p )
 			{
-			local endp = fmt("tcp://%s:%s", node$ip, port_to_count(node$p));
+			endp = fmt("tcp://%s:%s", node$ip, port_to_count(node$p));
+			connect_log_endpoints += endp;
+			}
+
+		if ( Cluster::manager_is_logger && node$node_type == Cluster::MANAGER && node?$p )
+			{
+			endp = fmt("tcp://%s:%s", node$ip, port_to_count(node$p));
 			connect_log_endpoints += endp;
 			}
 		}
+
+	if ( |connect_log_endpoints| == 0 )
+		Reporter::fatal("no ZeroMQ connect_log_endpoints configured");
 	}
 
 # By default, let the manager node run the proxy thread.

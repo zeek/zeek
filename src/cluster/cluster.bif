@@ -117,3 +117,12 @@ function Cluster::__unsubscribe%(topic_prefix: string%): bool
 	auto rval = zeek::cluster::backend->Unsubscribe(topic_prefix->CheckString());
 	return zeek::val_mgr->Bool(rval);
 	%}
+
+## Initialize the global cluster backend.
+##
+## Returns: true on success.
+function Cluster::Backend::__init%(%): bool
+	%{
+	auto rval = zeek::cluster::backend->Init();
+	return zeek::val_mgr->Bool(rval);
+	%}

@@ -202,6 +202,10 @@ bool ThreadedBackend::ProcessBackendMessage(int tag, detail::byte_buffer_span pa
     return DoProcessBackendMessage(tag, payload);
 }
 
+bool ThreadedBackend::DoInit() { return RegisterIOSource(IOSourceCount::COUNT); }
+
+void ThreadedBackend::DoInitPostScript() { RegisterIOSource(IOSourceCount::DONT_COUNT); }
+
 void ThreadedBackend::QueueForProcessing(QueueMessages&& qmessages) {
     bool fire = false;
 

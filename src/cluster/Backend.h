@@ -88,6 +88,11 @@ public:
     void InitPostScript() { DoInitPostScript(); }
 
     /**
+     * Method invoked from Cluster::Backend::__init() bif.
+     */
+    bool Init() { return DoInit(); }
+
+    /**
      * Hook invoked when Zeek is about to terminate.
      */
     void Terminate() { DoTerminate(); }
@@ -208,12 +213,21 @@ private:
     virtual void DoInitPostScript() = 0;
 
     /**
+     * Called during Cluster::Backend::__init().
+     *
+     * Backend implementations should start connections with
+     * remote systems or other nodes, open listening port or
+     * do whatever is needed to be functional.
+     */
+    virtual bool DoInit() = 0;
+
+    /**
      * Called at termination time.
      *
      * This should be used to shut down connectivity. Any last messages
      * to be published should be sent from script land, rather than in
-     * DoTerminate(). A backend may wait for a bounded amount of time to
-     * flush any last messages out.
+     * DoTerminate(). A backend may wait for a bounded and configurable
+     * amount of time to flush any last messages out.
      */
     virtual void DoTerminate() = 0;
 
@@ -371,6 +385,35 @@ protected:
      */
     void QueueForProcessing(QueueMessages&& qmessage);
 
+    void Process() override;
+
+    double GetNextTimeout() override { return -1; }
+
+    /**
+     * The DoInit() implementation of ThreadedBackend
+     * registers itself as a counting IO source that
+     * keeps the IO loop alive.
+     *
+     * Classes deriving from ThreadedBackend should invoke
+     * this method at some point, or register themselves
+     * with the IO loop if needed.
+     */
+    bool DoInit() override;
+
+    /**
+     * The DoInitPostScript() implementation of ThreadedBackend
+     * registers itself as a non-counting IO source.
+     *
+     * Classes deriving from ThreadedBackend should invoke
+     * this method at some point, or register themselves
+     * with the IO loop if needed.
+     */
+    void DoInitPostScript() override;
+
+private:
+    /**
+     * Helper enum to avoid bool parameters.
+     */
     enum class IOSourceCount { COUNT, DONT_COUNT };
 
     /**
@@ -378,11 +421,6 @@ protected:
      */
     bool RegisterIOSource(IOSourceCount count);
 
-    void Process() override;
-
-    double GetNextTimeout() override { return -1; }
-
-private:
     /**
      * Process a backend specific message queued as BackendMessage.
      */

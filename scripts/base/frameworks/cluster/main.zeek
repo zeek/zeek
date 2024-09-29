@@ -290,6 +290,9 @@ export {
 	##          a given cluster node.
 	global nodeid_topic: function(id: string): string &redef;
 
+	## Initialize the cluster.
+	global init: function(): bool;
+
 	## Subscribe to the given topic using the currently
 	## active cluster backend.
 	##
@@ -557,6 +560,11 @@ function create_store(name: string, persistent: bool &default=F): Cluster::Store
 function log(msg: string)
 	{
 	Log::write(Cluster::LOG, [$ts = network_time(), $node = node, $message = msg]);
+	}
+
+function init(): bool
+	{
+	return Cluster::Backend::__init();
 	}
 
 function subscribe(topic: string): bool

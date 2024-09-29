@@ -106,6 +106,11 @@ public:
     void DoInitPostScript() override;
 
     /**
+     * Broker doesn't do anything during Broker::Backend::init().
+     */
+    bool DoInit() override { return true; }
+
+    /**
      * Shuts Broker down at termination.
      */
     void DoTerminate() override;

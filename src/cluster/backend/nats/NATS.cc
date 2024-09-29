@@ -128,7 +128,10 @@ void NATSBackend::HandleConnectionCallback(ConnectionEvent ev) {
 
 
 void NATSBackend::DoInitPostScript() {
+    ThreadedBackend::DoInitPostScript();
+
     natsStatus status = NATS_OK;
+
     if ( status = natsOptions_Create(&options); status != NATS_OK ) {
         zeek::reporter->Error("natsOption_Create failed");
         return;
@@ -189,8 +192,6 @@ void NATSBackend::DoInitPostScript() {
     logger_queue_name = zeek::id::find_val<zeek::StringVal>("Cluster::Backend::NATS::logger_queue_name")->ToStdString();
     logger_queue_subject_prefix =
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::NATS::logger_queue_subject_prefix")->ToStdString();
-
-    RegisterIOSource(IOSourceCount::DONT_COUNT);
 }
 
 void NATSBackend::DoTerminate() {
@@ -208,7 +209,7 @@ void NATSBackend::DoTerminate() {
     natsConnection_Destroy(conn);
 }
 
-bool NATSBackend::Connect() {
+bool NATSBackend::DoInit() {
     if ( conn != nullptr ) {
         zeek::reporter->Error("Connect(url) called twice?");
         return false;
@@ -244,12 +245,10 @@ bool NATSBackend::Connect() {
         }
     }
 
-    RegisterIOSource(IOSourceCount::COUNT);
-
     // Notify script land that the connection has been established.
     zeek::event_mgr.Enqueue(event_nats_connected, zeek::Args{});
 
-    return true;
+    return ThreadedBackend::DoInit();
 }
 
 

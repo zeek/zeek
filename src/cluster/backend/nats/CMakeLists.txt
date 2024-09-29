@@ -15,6 +15,4 @@ zeek_add_plugin(
     ${LIBNATS_LIBRARIES}
     SOURCES
     NATS.cc
-    Plugin.cc
-    BIFS
-    cluster_backend_nats.bif)
+    Plugin.cc)

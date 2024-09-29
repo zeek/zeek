@@ -16,7 +16,7 @@ using namespace zeek::cluster;
 
 std::string_view detail::Event::HandlerName() const {
     if ( std::holds_alternative<FuncValPtr>(handler) )
-        return std::get<FuncValPtr>(handler)->AsFunc()->Name();
+        return std::get<FuncValPtr>(handler)->AsFunc()->GetName();
 
     return std::get<EventHandlerPtr>(handler)->Name();
 }

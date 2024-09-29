@@ -446,7 +446,20 @@ private:
 
     void Error(const char* format, ...) __attribute__((format(printf, 2, 3)));
 
+    // Processes events from the Broker message queue.
+    void ProcessMessages();
+
+    // Process events from Broker logger.
+    void ProcessLogEvents();
+
+    // Process events from @p store.
+    void ProcessDataStore(detail::StoreHandleVal* store);
+
+    // Process events from all Broker data stores.
+    void ProcessDataStores();
+
     // IOSource interface overrides:
+    void ProcessFd(int fd, int flags) override;
     void Process() override;
     const char* Tag() override { return "Broker::Manager"; }
     double GetNextTimeout() override { return -1; }

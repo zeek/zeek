@@ -16,6 +16,8 @@
 
 @load base/frameworks/broker/store
 
+redef Broker::log_stderr_severity_level = Broker::LOG_ERROR;
+
 global test_store: opaque of Broker::Store;
 global test_table: table[string] of count &broker_store="test_store_42";
 

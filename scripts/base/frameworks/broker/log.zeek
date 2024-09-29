@@ -14,7 +14,19 @@ export {
 		## An informational status update.
 		STATUS,
 		## An error situation.
-		ERROR
+		ERROR,
+		## Fatal event, normal operation has most likely broken down.
+		CRITICAL_EVENT,
+		## Unrecoverable event that imparts at least part of the system.
+		ERROR_EVENT,
+		## Unespected or conspicuous event that may still be recoverable.
+		WARNING_EVENT,
+		## Noteworthy event during normal operation.
+		INFO_EVENT,
+		## Information that might be relevant for a user to understand system behavior.
+		VERBOSE_EVENT,
+		## An event that is relevant only for troubleshooting and debugging.
+		DEBUG_EVENT,
 	};
 
 	## A record type containing the column fields of the Broker log.

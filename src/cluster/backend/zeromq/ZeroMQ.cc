@@ -68,6 +68,8 @@ void self_thread_fun(void* arg) {
 } // namespace
 
 void ZeroMQBackend::DoInitPostScript() {
+    ThreadedBackend::DoInitPostScript();
+
     my_node_id = zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::my_node_id")->ToStdString();
     listen_xpub_endpoint =
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::listen_xpub_endpoint")->ToStdString();
@@ -83,8 +85,6 @@ void ZeroMQBackend::DoInitPostScript() {
 
     event_unsubscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::unsubscription");
     event_subscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::subscription");
-
-    RegisterIOSource(IOSourceCount::DONT_COUNT);
 }
 
 
@@ -110,9 +110,7 @@ void ZeroMQBackend::DoTerminate() {
     ZEROMQ_DEBUG("Terminated");
 }
 
-bool ZeroMQBackend::Connect() {
-    ZEROMQ_DEBUG("Connect");
-
+bool ZeroMQBackend::DoInit() {
     auto linger_ms = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::linger_ms")->AsInt());
     int xpub_nodrop = zeek::id::find_val<zeek::BoolVal>("Cluster::Backend::ZeroMQ::xpub_nodrop")->AsBool() ? 1 : 0;
 
@@ -201,10 +199,9 @@ bool ZeroMQBackend::Connect() {
     // https://funcptr.net/2012/09/10/zeromq---edge-triggered-notification/
     self_thread = std::thread(self_thread_fun, this);
 
-    // After connecting, re-register as counting IO source so the IO loop stays alive.
-    RegisterIOSource(IOSourceCount::COUNT);
-
-    return true;
+    // After connecting, call ThreadedBackend::DoInit() to register
+    // the IO source with the loop.
+    return ThreadedBackend::DoInit();
 }
 
 bool ZeroMQBackend::SpawnZmqProxyThread() {

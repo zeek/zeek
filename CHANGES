@@ -1,3 +1,18 @@
+7.1.0-dev.375 | 2024-10-01 11:40:16 +0200
+
+  * Report suppressed warnings count (Evan Typanski, Corelight)
+
+    This also triggers if there is one warning, which seems a little weird,
+    but it seems mostly reasonable.
+
+  * GH-3692: Avoid duplicating warnings when reading table (Evan Typanski, Corelight)
+
+    Invalid lines in a file was the one case that would not suppress future
+    warnings. Just make it suppress warnings too, but clear that suppression
+    if there is a field in between that doesn't error.
+
+    Fixes #3692
+
 7.1.0-dev.371 | 2024-09-27 15:17:04 -0700
 
   * A round of ZAM/gen-C++-related updates and fixes (Vern Paxson, Corelight)

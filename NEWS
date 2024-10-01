@@ -90,6 +90,9 @@ Changed Functionality
   and the password is blanked with "<hidden>". Previously, the argument for the PASS
   command would be logged in clear.
 
+* The ASCII input reader now suppresses warnings for consecutive invalid lines,
+  producing a summary of total suppressions once a valid line is encountered.
+
 Removed Functionality
 ---------------------
 

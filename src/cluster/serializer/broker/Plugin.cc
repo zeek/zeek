@@ -1,5 +1,6 @@
 #include "Plugin.h"
 
+#include <iterator>
 #include <optional>
 #include <string_view>
 
@@ -13,7 +14,6 @@
 #include "zeek/cluster/Serializer.h"
 
 #include "broker/data_envelope.hh"
-#include "broker/format/bin.hh"
 #include "broker/format/json.hh"
 #include "broker/zeek.hh"
 
@@ -78,8 +78,8 @@ std::optional<detail::Event> to_zeek_event(const broker::zeek::Event& ev) {
 
     if ( arg_types.size() != args.size() ) {
         std::string event_name(name);
-        zeek::reporter->Error("Unserialize error '%s' arg_types.size()=%" PRIu64 " and args.size()=%" PRIu64,
-                              event_name.c_str(), arg_types.size(), args.size());
+        zeek::reporter->Error("Unserialize error '%s' arg_types.size()=%zu and args.size()=%zu", event_name.c_str(),
+                              arg_types.size(), args.size());
 
         return std::nullopt;
     }
@@ -116,7 +116,14 @@ public:
         if ( ! ev )
             return false;
 
-        broker::format::bin::v1::encode(ev->move_data(), std::back_inserter(buf));
+        // The produced broker::zeek::Event is already in bin::v1 format after
+        // constructing it, so we can take the raw bytes directly rather than
+        // going through encode() again.
+        //
+        // broker::format::bin::v1::encode(ev->move_data(), std::back_inserter(buf));
+        assert(ev->raw()->shared_envelope() != nullptr);
+        auto [raw, size] = ev->raw().shared_envelope()->raw_bytes();
+        buf.insert(buf.begin(), raw, raw + size);
         return true;
     }
 
@@ -131,6 +138,19 @@ public:
     }
 };
 
+// Convert char to std::byte during push_back() so that
+// we don't need to copy from std::vector<char> into
+// std::vector<std::byte>.
+template<typename _Container>
+struct PushBackAdaptor {
+    explicit PushBackAdaptor(_Container& c) : container(&c) {}
+    using value_type = char;
+
+    void push_back(char c) { container->push_back(static_cast<std::byte>(c)); }
+
+    _Container* container;
+};
+
 // Implementation of the EventSerializer that uses broker's JSON format
 // for events as used by the WebSocket analyzer.
 class BrokerJsonV1_Serializer : public EventSerializer {
@@ -138,18 +158,12 @@ public:
     BrokerJsonV1_Serializer() : EventSerializer("broker-json-v1") {}
 
     bool SerializeEventInto(zeek::cluster::detail::byte_buffer& buf, const detail::Event& event) override {
-        // json::v1::encode() wants a back inserter for char, but buf is std::vector<byte>.
-        // There's an extra memcpy() into buf below.
-        //
-        // XXX: Should we switch to char buffer?
-        std::vector<char> cbuf;
         auto ev = to_broker_event(event);
         if ( ! ev )
             return false;
 
-        broker::format::json::v1::encode(ev->move_data(), std::back_inserter(cbuf));
-        buf.resize(cbuf.size());
-        memcpy(buf.data(), cbuf.data(), buf.size());
+        auto push_back_adaptor = PushBackAdaptor(buf);
+        broker::format::json::v1::encode(ev->move_data(), std::back_inserter(push_back_adaptor));
         return true;
     }
 

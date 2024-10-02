@@ -1,3 +1,12 @@
+7.1.0-dev.377 | 2024-10-02 20:17:28 +0200
+
+  * Fix input error test nondeterminism (Evan Typanski, Corelight)
+
+    It seems like other similar tests get by because they have more "stuff"
+    before they call `terminate()` most likely. But, to be safe, just
+    removing the "received termination signal" line seems like the best
+    approach.
+
 7.1.0-dev.375 | 2024-10-01 11:40:16 +0200
 
   * Report suppressed warnings count (Evan Typanski, Corelight)

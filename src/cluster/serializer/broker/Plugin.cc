@@ -116,7 +116,11 @@ public:
         if ( ! ev )
             return false;
 
-        broker::format::bin::v1::encode(ev->move_data(), std::back_inserter(buf));
+        assert(ev->raw()->shared_envelope() != nullptr);
+        auto [raw, size] = ev->raw().shared_envelope()->raw_bytes();
+        buf.insert(buf.begin(), raw, raw + size);
+
+        // broker::format::bin::v1::encode(ev->move_data(), std::back_inserter(buf));
         return true;
     }
 
@@ -147,6 +151,7 @@ public:
         if ( ! ev )
             return false;
 
+        // XXX: Implement OutputIter converting from char to byte, then use buf.
         broker::format::json::v1::encode(ev->move_data(), std::back_inserter(cbuf));
         buf.resize(cbuf.size());
         memcpy(buf.data(), cbuf.data(), buf.size());

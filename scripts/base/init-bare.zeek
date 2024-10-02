@@ -5933,6 +5933,21 @@ export {
 		sum: double;
 	};
 
+	## Telemetry sync hook.
+	##
+	## This hook is invoked when metrics are requested via functions
+	## :zeek:see:`Telemetry::collect_metrics` and :zeek:see:`Telemetry::collect_histogram_metrics`,
+	## or just before Zeek collects metrics when being scraped through
+	## its Prometheus endpoint.
+	## Script writers can use it to synchronize (or mirror) metrics with the
+	## telemetry subsystem. For example, when tracking table or value
+	## footprints with gauges, the value in question can be set on an actual
+	## :zeek:see:`Telemetry::Gauge` instance during execution of this hook.
+	##
+	## Implementations should be lightweight, this hook may be called
+	## multiple times per minute.
+	global sync: hook();
+
 	type MetricVector : vector of Metric;
 	type HistogramMetricVector : vector of HistogramMetric;
 

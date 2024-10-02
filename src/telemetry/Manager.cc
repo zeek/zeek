@@ -16,6 +16,7 @@
 #include <variant>
 
 #include "zeek/3rdparty/doctest.h"
+#include "zeek/Func.h"
 #include "zeek/ID.h"
 #include "zeek/RunState.h"
 #include "zeek/ZeekString.h"
@@ -256,6 +257,28 @@ static bool compare_histograms(const std::optional<ZVal>& a, const std::optional
     return comparer(a, b, metric_record_type);
 }
 
+void Manager::InvokeTelemetrySyncHook() {
+    static const auto sync_hook = zeek::id::find_func("Telemetry::sync");
+
+    if ( sync_hook->Flavor() != FUNC_FLAVOR_HOOK )
+        reporter->InternalError("Telemetry::sync not a hook?");
+
+    if ( in_sync_hook ) {
+        reporter->Warning("Telemetry::sync() hook invoked recursively");
+        return;
+    }
+
+    in_sync_hook = true;
+
+    zeek::Args empty;
+    auto result = sync_hook->Invoke(&empty);
+
+    if ( ! result->IsOne() )
+        reporter->Warning("Telemetry::sync() implementations skipped due to 'break' usage");
+
+    in_sync_hook = false;
+}
+
 ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view name_pattern) {
     static auto metrics_vector_type = zeek::id::find_type<VectorType>("Telemetry::MetricVector");
     static auto string_vec_type = zeek::id::find_type<zeek::VectorType>("string_vec");
@@ -267,6 +290,8 @@ ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view
 
     static auto metric_opts_type = zeek::id::find_type<zeek::RecordType>("Telemetry::MetricOpts");
     static auto metric_type_idx = metric_opts_type->FieldOffset("metric_type");
+
+    InvokeTelemetrySyncHook();
 
     VectorValPtr ret_val = make_intrusive<VectorVal>(metrics_vector_type);
 
@@ -344,6 +369,8 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
 
     static auto metric_opts_type = zeek::id::find_type<zeek::RecordType>("Telemetry::MetricOpts");
     static auto metric_type_idx = metric_opts_type->FieldOffset("metric_type");
+
+    InvokeTelemetrySyncHook();
 
     VectorValPtr ret_val = make_intrusive<VectorVal>(metrics_vector_type);
 
@@ -573,6 +600,8 @@ void Manager::ProcessFd(int fd, int flags) {
 
     for ( const auto& [name, f] : families )
         f->RunCallbacks();
+
+    InvokeTelemetrySyncHook();
 
     collector_response_idx = collector_request_idx;
 

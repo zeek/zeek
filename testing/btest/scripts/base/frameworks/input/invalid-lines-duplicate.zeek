@@ -1,6 +1,6 @@
 # @TEST-EXEC: btest-bg-run zeek zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 10
-# @TEST-EXEC: sed 1d .stderr > .stderrwithoutfirstline
+# @TEST-EXEC: sed -e 1d -e '/received termination/d' .stderr > .stderrwithoutfirstline
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderrwithoutfirstline
 
 redef exit_only_after_terminate = T;
@@ -46,5 +46,5 @@ event zeek_init() {
 
 
 event Input::end_of_data(name: string, source:string) {
-	terminate();
+    terminate();
 }

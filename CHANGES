@@ -1,3 +1,7 @@
+7.1.0-dev.383 | 2024-10-04 12:45:05 -0700
+
+  * Bump zeek-testing-cluster to pull in a baseline update (Christian Kreibich, Corelight)
+
 7.1.0-dev.381 | 2024-10-04 19:31:36 +0200
 
   * GH-3949: Fix flaky `missing-file-initially` test (Evan Typanski, Corelight)

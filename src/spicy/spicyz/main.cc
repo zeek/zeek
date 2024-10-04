@@ -72,7 +72,7 @@ static void usage() {
                  "instrumentation."
                  "(comma-separated; see 'help' for list).\n"
                  "       --cxx-link <lib>           Link specified static archive or shared library "
-                 "during JIT or to "
+                 "during JIT\n"
                  "  -Z | --enable-profiling         Report profiling statistics after execution.\n"
                  "\n"
                  "Inputs can be *.spicy, *.evt, *.hlt, .cc/.cxx\n"

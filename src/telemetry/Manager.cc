@@ -13,7 +13,6 @@
 #include <rapidjson/writer.h>
 #include <algorithm>
 #include <thread>
-#include <variant>
 
 #include "zeek/3rdparty/doctest.h"
 #include "zeek/Func.h"

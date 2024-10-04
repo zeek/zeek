@@ -1,3 +1,7 @@
+6.0.8 | 2024-10-04 14:50:18 -0700
+
+  * Update CHANGES, VERSION, and NEWS for 6.0.8 release (Christian Kreibich, Corelight)
+
 6.0.7-1 | 2024-10-04 10:49:29 -0700
 
   * Merge remote-tracking branch 'security/topic/awelzel/215-pop3-mail-null-deref' (Christian Kreibich, Corelight)

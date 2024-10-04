@@ -1,3 +1,7 @@
+7.1.0-dev.379 | 2024-10-04 13:34:31 +0200
+
+  * Add missing newline in `spicyz` usage message (Benjamin Bannier, Corelight)
+
 7.1.0-dev.377 | 2024-10-02 20:17:28 +0200
 
   * Fix input error test nondeterminism (Evan Typanski, Corelight)

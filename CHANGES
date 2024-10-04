@@ -1,3 +1,11 @@
+7.0.2-3 | 2024-10-04 09:54:48 -0700
+
+  * Bump auxil/spicy to latest release (Benjamin Bannier, Corelight)
+
+  * Install procps in OpenSuse Leap images (Benjamin Bannier, Corelight)
+
+    (cherry picked from commit a27066e3fc58d70401359887fcf34bd0bb83d433)
+
 7.0.2 | 2024-09-23 12:01:55 -0700
 
   * pop3: Remove unused headers (Arne Welzel, Corelight)

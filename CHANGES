@@ -1,3 +1,12 @@
+6.0.7-1 | 2024-10-04 10:49:29 -0700
+
+  * Merge remote-tracking branch 'security/topic/awelzel/215-pop3-mail-null-deref' (Christian Kreibich, Corelight)
+
+    * security/topic/awelzel/215-pop3-mail-null-deref:
+      POP3: Rework unbounded pending command fix
+
+    (cherry picked from commit 7fea32c6edc5d4d14646366f87c9208c8c9cf555)
+
 6.0.7 | 2024-09-23 21:27:31 -0700
 
   * Remove core.negative-time btest (Tim Wojtulewicz, Corelight)

@@ -1,3 +1,12 @@
+7.0.2-5 | 2024-10-04 10:46:01 -0700
+
+  * Merge remote-tracking branch 'security/topic/awelzel/215-pop3-mail-null-deref' (Christian Kreibich, Corelight)
+
+    * security/topic/awelzel/215-pop3-mail-null-deref:
+      POP3: Rework unbounded pending command fix
+
+    (cherry picked from commit 7fea32c6edc5d4d14646366f87c9208c8c9cf555)
+
 7.0.2-4 | 2024-10-04 10:28:13 -0700
 
   * Update docs submodule [nomail] [skip ci] (Christian Kreibich, Corelight)

@@ -9,6 +9,8 @@
 @load base/protocols/conn
 @load base/protocols/pop3
 
+redef POP3::max_unknown_client_commands = 3;
+
 event pop3_request(c: connection, is_orig: bool, cmd: string, arg: string)
 	{
 	print c$uid, "pop3_request", is_orig, cmd, arg;

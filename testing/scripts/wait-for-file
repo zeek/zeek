@@ -7,17 +7,21 @@ if [[ $# -ne 2 ]]; then
     exit 1
 fi
 
+SLEEP_INTERVAL=0.1
+SLEEP_INTERVAL_MS=100
+
 wait_file=$1
 max_wait=$2
-wait_count=0
+# Avoid floating point arithmetic by using milliseconds
+wait_countdown=$((${max_wait}000 / SLEEP_INTERVAL_MS))
 
 while [[ ! -e $wait_file ]]; do
-    let "wait_count += 1"
+    wait_countdown=$((wait_countdown - 1))
 
-    if [[ $wait_count -ge $max_wait ]]; then
+    if [[ $wait_countdown -le 0 ]]; then
         echo >&2 "error: file '$wait_file' does not exist after $max_wait seconds"
         exit 1
     fi
 
-    sleep 1
+    sleep $SLEEP_INTERVAL
 done

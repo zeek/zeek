@@ -1,3 +1,17 @@
+7.1.0-dev.381 | 2024-10-04 19:31:36 +0200
+
+  * GH-3949: Fix flaky `missing-file-initially` test (Evan Typanski, Corelight)
+
+    That test got flaky probably from #3949 on centosstream9 CI. You can
+    replicate that behavior by increasing the sleep time when waiting for
+    the file such that the test will attempt to read the missing file again.
+    Since the one second wait for file is glacially slow for this, speeding
+    it up should mean that the file gets created sooner and so the test
+    won't try to open the file again. But, it's always still technically
+    possible, since the test will wait for 10 seconds and the heartbeat
+    seems to be 1 second. At least if that happens, it's probably a bug or
+    massive slowdown of some kind.
+
 7.1.0-dev.379 | 2024-10-04 13:34:31 +0200
 
   * Add missing newline in `spicyz` usage message (Benjamin Bannier, Corelight)

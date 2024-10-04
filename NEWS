@@ -3,6 +3,21 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 7.0.3
+==========
+
+This release fixes the following security issue:
+
+- Adding to the POP3 hardening in 7.0.2, the parser now simply discards too many
+  pending commands, rather than any attempting to process them. Further, invalid
+  server responses do not result in command completion anymore.  Processing
+  out-of-order commands or finishing commands based on invalid server responses
+  could result in inconsistent analyzer state, potentially triggering null
+  pointer references for crafted traffic.
+
+This release ships with Spicy 1.11.3, a bugfix release. Please refer to its
+release notes for details.
+
 Zeek 7.0.2
 ==========
 

@@ -227,18 +227,16 @@ void POP3_Analyzer::ProcessRequest(int length, const char* line)
 		cmds.push_back(std::string(line));
 
 		// Prevent unbounded state growth of cmds if there are no matching
-		// server replies by just processing commands even if we didn't see
-		// the server response.
+		// server replies by simply dropping the oldest command.
 		//
-		// This may be caused by packet drops, one-sided traffic, analyzing
-		// the wrong protocol (Redis), etc.
+		// This may be caused by packet drops of the server side, one-sided
+		// traffic, or analyzing the wrong protocol (Redis), etc.
 		if ( zeek::BifConst::POP3::max_pending_commands > 0 )
 			{
 			if ( cmds.size() > zeek::BifConst::POP3::max_pending_commands )
 				{
 				Weird("pop3_client_too_many_pending_commands");
 
-				ProcessClientCmd();
 				cmds.pop_front();
 				}
 			}
@@ -660,10 +658,6 @@ void POP3_Analyzer::ProcessReply(int length, const char* line)
 			Weird("pop3_server_command_unknown", (tokens.size() > 0 ? tokens[0].c_str() : "???"));
 			if ( subState == detail::POP3_WOK )
 				subState = detail::POP3_OK;
-
-			// If we're not in state AUTH and receive "some" response,
-			// assume it was for the last command from the client.
-			FinishClientCmd();
 			}
 
 		return;

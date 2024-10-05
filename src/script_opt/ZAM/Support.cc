@@ -15,8 +15,6 @@
 #include "zeek/file_analysis/file_analysis.bif.h"
 #include "zeek/logging/Manager.h"
 #include "zeek/packet_analysis/Manager.h"
-#include "zeek/packet_analysis/protocol/gtpv1/GTPv1.h"
-#include "zeek/packet_analysis/protocol/teredo/Teredo.h"
 #include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/session/Manager.h"
 
@@ -33,26 +31,6 @@ bool log_mgr_write(zeek::EnumVal* v, zeek::RecordVal* r) { return zeek::log_mgr-
 size_t broker_mgr_flush_log_buffers() { return zeek::broker_mgr->FlushLogBuffers(); }
 
 zeek::Connection* session_mgr_find_connection(zeek::Val* cid) { return zeek::session_mgr->FindConnection(cid); }
-
-bool packet_mgr_remove_teredo(zeek::Val* cid) {
-    auto teredo = zeek::packet_mgr->GetAnalyzer("Teredo");
-    if ( teredo ) {
-        zeek::detail::ConnKey conn_key(cid);
-        static_cast<zeek::packet_analysis::teredo::TeredoAnalyzer*>(teredo.get())->RemoveConnection(conn_key);
-        return true;
-    }
-    return false;
-}
-
-bool packet_mgr_remove_gtpv1(zeek::Val* cid) {
-    auto gtpv1 = zeek::packet_mgr->GetAnalyzer("GTPv1");
-    if ( gtpv1 ) {
-        zeek::detail::ConnKey conn_key(cid);
-        static_cast<zeek::packet_analysis::gtpv1::GTPv1_Analyzer*>(gtpv1.get())->RemoveConnection(conn_key);
-        return true;
-    }
-    return false;
-}
 
 zeek::StringVal* analyzer_name(zeek::EnumVal* val) {
     plugin::Component* component = zeek::analyzer_mgr->Lookup(val);

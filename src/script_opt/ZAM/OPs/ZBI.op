@@ -1,31 +1,5 @@
 # Operations corresponding to ZAM BuiltIn Functions.
 
-internal-op Remove-Teredo
-op1-read
-class V
-op-types R
-eval	ZAM::packet_mgr_remove_teredo($1);
-
-internal-op Remove-Teredo
-side-effects OP_REMOVE_TEREDO_V OP_V
-class VV
-op-types I R
-eval	ZAM::packet_mgr_remove_teredo($1);
-	$$ = 1;
-
-internal-op Remove-GTPv1
-op1-read
-class V
-op-types R
-eval	ZAM::packet_mgr_remove_gtpv1($1);
-
-internal-op Remove-GTPv1
-side-effects OP_REMOVE_GTPV1_V OP_V
-class VV
-op-types I R
-eval	ZAM::packet_mgr_remove_gtpv1($1);
-	$$ = 1;
-
 internal-op Set-File-Handle
 op1-read
 class V

@@ -64,11 +64,6 @@ size_t broker_mgr_flush_log_buffers();
 // session_mgr->FindConnection()
 zeek::Connection* session_mgr_find_connection(Val* cid);
 
-// We've seen these two cause overhead even with normal script execution,
-// maybe we should fix them via conn removal hooks or some such.
-bool packet_mgr_remove_teredo(Val* cid);
-bool packet_mgr_remove_gtpv1(Val* cid);
-
 // Analyzer-Name op
 StringVal* analyzer_name(zeek::EnumVal* v);
 

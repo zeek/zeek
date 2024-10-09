@@ -1,3 +1,9 @@
+7.1.0-dev.386 | 2024-10-09 14:26:35 -0700
+
+  * GH-3957: input/Raw: Rework GetLine() (Arne Welzel, Corelight)
+
+  * GH-215: POP3: Rework unbounded pending command fix (Arne Welzel, Corelight)
+
 7.1.0-dev.383 | 2024-10-04 12:45:05 -0700
 
   * Bump zeek-testing-cluster to pull in a baseline update (Christian Kreibich, Corelight)

@@ -58,7 +58,8 @@ private:
     std::string separator;
     unsigned int sep_length; // length of the separator
 
-    int bufpos;
+    size_t bufpos;  // Where in buf to read more data.
+    size_t bufsize; // Currently allocated size of buf.
     std::unique_ptr<char[]> buf;
     std::unique_ptr<char[]> outbuf;
 

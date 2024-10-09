@@ -1,3 +1,7 @@
+7.1.0-dev.388 | 2024-10-09 15:36:09 -0700
+
+  * -a zam baseline updates reflecting recent changes to main baselines (Vern Paxson, Corelight)
+
 7.1.0-dev.386 | 2024-10-09 14:26:35 -0700
 
   * GH-3957: input/Raw: Rework GetLine() (Arne Welzel, Corelight)

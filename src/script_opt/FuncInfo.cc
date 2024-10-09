@@ -252,6 +252,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"fmt", ATTR_FOLDABLE},
     {"fmt_ftp_port", ATTR_IDEMPOTENT}, // can error
     {"fnv1a32", ATTR_FOLDABLE},
+    {"fnv1a64", ATTR_FOLDABLE},
     {"generate_all_events", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"get_broker_stats", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"get_conn_stats", ATTR_NO_ZEEK_SIDE_EFFECTS},

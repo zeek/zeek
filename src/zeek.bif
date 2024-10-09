@@ -922,6 +922,37 @@ function paraglob_equals%(p_one: opaque of paraglob, p_two: opaque of paraglob%)
 	);
 	%}
 
+%%{
+template<typename IntType>
+IntType fnva(zeek::Val* input, IntType offset, IntType prime) {
+	zeek::ODesc desc(zeek::DESC_BINARY);
+
+	auto length = 0;
+	const u_char* bytes = NULL;
+
+	if (input->GetType()->Tag() == zeek::TYPE_STRING)
+		{
+			length = ((zeek::StringVal*) input) -> Len();
+			bytes = ((zeek::StringVal*) input)-> Bytes();
+		}
+	else
+		{
+			input->Describe(&desc);
+			bytes = desc.Bytes();
+			length = desc.Len();
+		}
+
+	IntType rval = offset;
+	for ( auto i = 0; i < length; ++i )
+	{
+		rval ^= bytes[i];
+		rval *= prime;
+	}
+
+	return rval;
+}
+%%}
+
 ## Returns 32-bit digest of arbitrary input values using FNV-1a hash algorithm.
 ## See `<https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function>`_.
 ##
@@ -932,21 +963,26 @@ function paraglob_equals%(p_one: opaque of paraglob, p_two: opaque of paraglob%)
 ## .. zeek:see:: hrw_weight
 function fnv1a32%(input: any%): count
 	%{
-	zeek::ODesc desc(DESC_BINARY);
-	input->Describe(&desc);
-	auto bytes = desc.Bytes();
+	uint32_t offset = 2166136261;
+	uint32_t prime = 16777619;
 
-	uint32_t offset32 = 2166136261;
-	uint32_t prime32 = 16777619;
-	uint32_t rval = offset32;
+	auto hash = fnva<uint32_t>(input, offset, prime);
+	return zeek::val_mgr->Count(hash);
+	%}
 
-	for ( auto i = 0; i < desc.Len(); ++i )
-		{
-		rval ^= (uint32_t) bytes[i];
-		rval *= prime32;
-		}
+## Returns 64-bit digest of arbitrary input values using FNV-1a hash algorithm.
+## See `<https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function>`_.
+##
+## input: The desired input value to hash.
+##
+## Returns: The hashed value.
+function fnv1a64%(input: any%): count
+	%{
+	uint64_t offset = 0xCBF29CE484222325;
+	uint64_t prime = 0x100000001B3;
 
-	return zeek::val_mgr->Count(rval);
+	uint64_t hash = fnva(input, offset, prime);
+	return zeek::val_mgr->Count(hash);
 	%}
 
 ## Calculates a weight value for use in a Rendezvous Hashing algorithm.

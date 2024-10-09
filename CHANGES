@@ -1,3 +1,13 @@
+6.0.8-2 | 2024-11-14 13:49:22 -0700
+
+  * GH-3957: input/Raw: Rework GetLine() (Arne Welzel, Corelight)
+
+    (cherry picked from commit 2a23e9fc1962419e41133689c2a682455d24e35e)
+
+  * GH-215: POP3: Rework unbounded pending command fix (Arne Welzel, Corelight)
+
+    (cherry picked from commit 2a23e9fc1962419e41133689c2a682455d24e35e)
+
 6.0.8-1 | 2024-10-18 17:17:27 -0700
 
   * Merge remote-tracking branch 'origin/topic/bbannier/fix-docs-ci-again' (Christian Kreibich, Corelight)

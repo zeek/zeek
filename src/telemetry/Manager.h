@@ -259,6 +259,13 @@ private:
     RecordValPtr GetMetricOptsRecord(const prometheus::MetricFamily& metric_family);
     void BuildClusterJson();
 
+    /**
+     * Runs the Telemetry::sync() hook in Zeek script land.
+     */
+    void InvokeTelemetrySyncHook();
+
+    bool in_sync_hook = false;
+
     std::map<std::string, std::shared_ptr<MetricFamily>> families;
     std::map<std::string, RecordValPtr> opts_records;
 

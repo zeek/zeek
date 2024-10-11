@@ -94,7 +94,7 @@ refine flow ModbusTCP_Flow += {
 
 	function deliver_message(header: ModbusTCP_TransportHeader): bool
 		%{
-		if ( ::modbus_message && connection()->IsValidHeader(header) )
+		if ( ::modbus_message && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			zeek::BifEvent::enqueue_modbus_message(connection()->zeek_analyzer(),
 			                                 connection()->zeek_analyzer()->Conn(),
@@ -123,7 +123,7 @@ refine flow ModbusTCP_Flow += {
 	# EXCEPTION
 	function deliver_Exception(header: ModbusTCP_TransportHeader, message: Exception): bool
 		%{
-		if ( ::modbus_exception && connection()->IsValidHeader(header) )
+		if ( ::modbus_exception && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			zeek::BifEvent::enqueue_modbus_exception(connection()->zeek_analyzer(),
 			                                   connection()->zeek_analyzer()->Conn(),
@@ -137,7 +137,7 @@ refine flow ModbusTCP_Flow += {
 	# REQUEST FC=1
 	function deliver_ReadCoilsRequest(header: ModbusTCP_TransportHeader, message: ReadCoilsRequest): bool
 		%{
-		if ( ::modbus_read_coils_request && connection()->IsValidHeader(header) )
+		if ( ::modbus_read_coils_request && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			zeek::BifEvent::enqueue_modbus_read_coils_request(connection()->zeek_analyzer(),
 			                                            connection()->zeek_analyzer()->Conn(),
@@ -152,7 +152,7 @@ refine flow ModbusTCP_Flow += {
 	# RESPONSE FC=1
 	function deliver_ReadCoilsResponse(header: ModbusTCP_TransportHeader, message: ReadCoilsResponse): bool
 		%{
-		if ( ::modbus_read_coils_response && connection()->IsValidHeader(header) )
+		if ( ::modbus_read_coils_response && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			zeek::BifEvent::enqueue_modbus_read_coils_response(connection()->zeek_analyzer(),
 			                                             connection()->zeek_analyzer()->Conn(),
@@ -165,7 +165,7 @@ refine flow ModbusTCP_Flow += {
 	# REQUEST FC=2
 	function deliver_ReadDiscreteInputsRequest(header: ModbusTCP_TransportHeader, message: ReadDiscreteInputsRequest): bool
 		%{
-		if ( ::modbus_read_discrete_inputs_request && connection()->IsValidHeader(header) )
+		if ( ::modbus_read_discrete_inputs_request && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			zeek::BifEvent::enqueue_modbus_read_discrete_inputs_request(connection()->zeek_analyzer(),
 			                                                      connection()->zeek_analyzer()->Conn(),
@@ -179,7 +179,7 @@ refine flow ModbusTCP_Flow += {
 	# RESPONSE FC=2
 	function deliver_ReadDiscreteInputsResponse(header: ModbusTCP_TransportHeader, message: ReadDiscreteInputsResponse): bool
 		%{
-		if ( ::modbus_read_discrete_inputs_response && connection()->IsValidHeader(header) )
+		if ( ::modbus_read_discrete_inputs_response && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			zeek::BifEvent::enqueue_modbus_read_discrete_inputs_response(connection()->zeek_analyzer(),
 			                                                       connection()->zeek_analyzer()->Conn(),
@@ -194,7 +194,7 @@ refine flow ModbusTCP_Flow += {
 	# REQUEST FC=3
 	function deliver_ReadHoldingRegistersRequest(header: ModbusTCP_TransportHeader, message: ReadHoldingRegistersRequest): bool
 		%{
-		if ( ::modbus_read_holding_registers_request && connection()->IsValidHeader(header) )
+		if ( ::modbus_read_holding_registers_request && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			zeek::BifEvent::enqueue_modbus_read_holding_registers_request(connection()->zeek_analyzer(),
 			                                                        connection()->zeek_analyzer()->Conn(),
@@ -215,7 +215,7 @@ refine flow ModbusTCP_Flow += {
 			return false;
 			}
 
-		if ( ::modbus_read_holding_registers_response && connection()->IsValidHeader(header) )
+		if ( ::modbus_read_holding_registers_response && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			auto t = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::ModbusRegisters);
 
@@ -238,7 +238,7 @@ refine flow ModbusTCP_Flow += {
 	# REQUEST FC=4
 	function deliver_ReadInputRegistersRequest(header: ModbusTCP_TransportHeader, message: ReadInputRegistersRequest): bool
 		%{
-		if ( ::modbus_read_input_registers_request && connection()->IsValidHeader(header) )
+		if ( ::modbus_read_input_registers_request && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			zeek::BifEvent::enqueue_modbus_read_input_registers_request(connection()->zeek_analyzer(),
 			                                                      connection()->zeek_analyzer()->Conn(),
@@ -259,7 +259,7 @@ refine flow ModbusTCP_Flow += {
 			return false;
 			}
 
-		if ( ::modbus_read_input_registers_response && connection()->IsValidHeader(header) )
+		if ( ::modbus_read_input_registers_response && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			auto t = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::ModbusRegisters);
 
@@ -282,7 +282,7 @@ refine flow ModbusTCP_Flow += {
 	# REQUEST FC=5
 	function deliver_WriteSingleCoilRequest(header: ModbusTCP_TransportHeader, message: WriteSingleCoilRequest): bool
 		%{
-		if ( ::modbus_write_single_coil_request && connection()->IsValidHeader(header) )
+		if ( ::modbus_write_single_coil_request && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			int val;
 			if ( ${message.value} == 0x0000 )
@@ -309,7 +309,7 @@ refine flow ModbusTCP_Flow += {
 	# RESPONSE FC=5
 	function deliver_WriteSingleCoilResponse(header: ModbusTCP_TransportHeader, message: WriteSingleCoilResponse): bool
 		%{
-		if ( ::modbus_write_single_coil_response && connection()->IsValidHeader(header) )
+		if ( ::modbus_write_single_coil_response && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			int val;
 			if ( ${message.value} == 0x0000 )
@@ -337,7 +337,7 @@ refine flow ModbusTCP_Flow += {
 	# REQUEST FC=6
 	function deliver_WriteSingleRegisterRequest(header: ModbusTCP_TransportHeader, message: WriteSingleRegisterRequest): bool
 		%{
-		if ( ::modbus_write_single_register_request && connection()->IsValidHeader(header) )
+		if ( ::modbus_write_single_register_request && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			zeek::BifEvent::enqueue_modbus_write_single_register_request(connection()->zeek_analyzer(),
 			                                                       connection()->zeek_analyzer()->Conn(),
@@ -351,7 +351,7 @@ refine flow ModbusTCP_Flow += {
 	# RESPONSE FC=6
 	function deliver_WriteSingleRegisterResponse(header: ModbusTCP_TransportHeader, message: WriteSingleRegisterResponse): bool
 		%{
-		if ( ::modbus_write_single_register_response && connection()->IsValidHeader(header) )
+		if ( ::modbus_write_single_register_response && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			zeek::BifEvent::enqueue_modbus_write_single_register_response(connection()->zeek_analyzer(),
 			                                                        connection()->zeek_analyzer()->Conn(),
@@ -366,7 +366,7 @@ refine flow ModbusTCP_Flow += {
 	# REQUEST FC=8
 	function deliver_DiagnosticsRequest(header: ModbusTCP_TransportHeader, message: DiagnosticsRequest): bool
 		%{
-		if ( ::modbus_diagnostics_request && connection()->IsValidHeader(header) )
+		if ( ::modbus_diagnostics_request && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			auto data = to_stringval(${message.data});
 
@@ -439,7 +439,7 @@ refine flow ModbusTCP_Flow += {
 	# RESPONSE FC=8
 	function deliver_DiagnosticsResponse(header: ModbusTCP_TransportHeader, message: DiagnosticsResponse): bool
 		%{
-		if ( ::modbus_diagnostics_response && connection()->IsValidHeader(header) )
+		if ( ::modbus_diagnostics_response && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			zeek::BifEvent::enqueue_modbus_diagnostics_response(connection()->zeek_analyzer(),
 			                                                    connection()->zeek_analyzer()->Conn(),
@@ -454,7 +454,7 @@ refine flow ModbusTCP_Flow += {
 	# REQUEST FC=15
 	function deliver_WriteMultipleCoilsRequest(header: ModbusTCP_TransportHeader, message: WriteMultipleCoilsRequest): bool
 		%{
-		if ( ::modbus_write_multiple_coils_request && connection()->IsValidHeader(header) )
+		if ( ::modbus_write_multiple_coils_request && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			zeek::BifEvent::enqueue_modbus_write_multiple_coils_request(connection()->zeek_analyzer(),
 			                                                      connection()->zeek_analyzer()->Conn(),
@@ -469,7 +469,7 @@ refine flow ModbusTCP_Flow += {
 	# RESPONSE FC=15
 	function deliver_WriteMultipleCoilsResponse(header: ModbusTCP_TransportHeader, message: WriteMultipleCoilsResponse): bool
 		%{
-		if ( ::modbus_write_multiple_coils_response && connection()->IsValidHeader(header) )
+		if ( ::modbus_write_multiple_coils_response && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			zeek::BifEvent::enqueue_modbus_write_multiple_coils_response(connection()->zeek_analyzer(),
 			                                                       connection()->zeek_analyzer()->Conn(),
@@ -491,7 +491,7 @@ refine flow ModbusTCP_Flow += {
 			return false;
 			}
 
-		if ( ::modbus_write_multiple_registers_request && connection()->IsValidHeader(header) )
+		if ( ::modbus_write_multiple_registers_request && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			auto t = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::ModbusRegisters);
 
@@ -513,7 +513,7 @@ refine flow ModbusTCP_Flow += {
 	# RESPONSE FC=16
 	function deliver_WriteMultipleRegistersResponse(header: ModbusTCP_TransportHeader, message: WriteMultipleRegistersResponse): bool
 		%{
-		if ( ::modbus_write_multiple_registers_response && connection()->IsValidHeader(header) )
+		if ( ::modbus_write_multiple_registers_response && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			zeek::BifEvent::enqueue_modbus_write_multiple_registers_response(connection()->zeek_analyzer(),
 			                                                           connection()->zeek_analyzer()->Conn(),
@@ -527,7 +527,7 @@ refine flow ModbusTCP_Flow += {
 	# REQUEST FC=20
 	function deliver_ReadFileRecordRequest(header: ModbusTCP_TransportHeader, message: ReadFileRecordRequest): bool
 		%{
-		if ( ::modbus_read_file_record_request && connection()->IsValidHeader(header) )
+		if ( ::modbus_read_file_record_request && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			auto vect = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::ModbusFileRecordRequests);
 
@@ -554,7 +554,7 @@ refine flow ModbusTCP_Flow += {
 	# RESPONSE FC=20
 	function deliver_ReadFileRecordResponse(header: ModbusTCP_TransportHeader, message: ReadFileRecordResponse): bool
 		%{
-		if ( ::modbus_read_file_record_response && connection()->IsValidHeader(header) )
+		if ( ::modbus_read_file_record_response && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			auto vect = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::ModbusFileRecordResponses);
 
@@ -580,7 +580,7 @@ refine flow ModbusTCP_Flow += {
 	# REQUEST FC=21
 	function deliver_WriteFileRecordRequest(header: ModbusTCP_TransportHeader, message: WriteFileRecordRequest): bool
 		%{
-		if ( ::modbus_write_file_record_request && connection()->IsValidHeader(header) )
+		if ( ::modbus_write_file_record_request && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			auto vect = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::ModbusFileReferences);
 
@@ -607,7 +607,7 @@ refine flow ModbusTCP_Flow += {
 	# RESPONSE FC=21
 	function deliver_WriteFileRecordResponse(header: ModbusTCP_TransportHeader, message: WriteFileRecordResponse): bool
 		%{
-		if ( ::modbus_write_file_record_response && connection()->IsValidHeader(header) )
+		if ( ::modbus_write_file_record_response && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			auto vect = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::ModbusFileReferences);
 
@@ -634,7 +634,7 @@ refine flow ModbusTCP_Flow += {
 	# REQUEST FC=22
 	function deliver_MaskWriteRegisterRequest(header: ModbusTCP_TransportHeader, message: MaskWriteRegisterRequest): bool
 		%{
-		if ( ::modbus_mask_write_register_request && connection()->IsValidHeader(header) )
+		if ( ::modbus_mask_write_register_request && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			zeek::BifEvent::enqueue_modbus_mask_write_register_request(connection()->zeek_analyzer(),
 			                                                     connection()->zeek_analyzer()->Conn(),
@@ -649,7 +649,7 @@ refine flow ModbusTCP_Flow += {
 	# RESPONSE FC=22
 	function deliver_MaskWriteRegisterResponse(header: ModbusTCP_TransportHeader, message: MaskWriteRegisterResponse): bool
 		%{
-		if ( ::modbus_mask_write_register_response && connection()->IsValidHeader(header) )
+		if ( ::modbus_mask_write_register_response && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			zeek::BifEvent::enqueue_modbus_mask_write_register_response(connection()->zeek_analyzer(),
 			                                                      connection()->zeek_analyzer()->Conn(),
@@ -671,7 +671,7 @@ refine flow ModbusTCP_Flow += {
 			return false;
 			}
 
-		if ( ::modbus_read_write_multiple_registers_request && connection()->IsValidHeader(header) )
+		if ( ::modbus_read_write_multiple_registers_request && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			auto t = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::ModbusRegisters);
 
@@ -703,7 +703,7 @@ refine flow ModbusTCP_Flow += {
 			return false;
 			}
 
-		if ( ::modbus_read_write_multiple_registers_response && connection()->IsValidHeader(header) )
+		if ( ::modbus_read_write_multiple_registers_response && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			auto t = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::ModbusRegisters);
 
@@ -725,7 +725,7 @@ refine flow ModbusTCP_Flow += {
 	# REQUEST FC=24
 	function deliver_ReadFIFOQueueRequest(header: ModbusTCP_TransportHeader, message: ReadFIFOQueueRequest): bool
 		%{
-		if ( ::modbus_read_fifo_queue_request && connection()->IsValidHeader(header) )
+		if ( ::modbus_read_fifo_queue_request && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			zeek::BifEvent::enqueue_modbus_read_fifo_queue_request(connection()->zeek_analyzer(),
 			                                                 connection()->zeek_analyzer()->Conn(),
@@ -747,7 +747,7 @@ refine flow ModbusTCP_Flow += {
 			return false;
 			}
 
-		if ( ::modbus_read_fifo_queue_response && connection()->IsValidHeader(header) )
+		if ( ::modbus_read_fifo_queue_response && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			auto t = create_vector_of_count();
 
@@ -769,7 +769,7 @@ refine flow ModbusTCP_Flow += {
 	# REQUEST FC=2B
 	function deliver_EncapInterfaceTransportRequest(header: ModbusTCP_TransportHeader, message: EncapInterfaceTransportRequest): bool
 		%{
-		if ( ::modbus_encap_interface_transport_request && connection()->IsValidHeader(header) )
+		if ( ::modbus_encap_interface_transport_request && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			zeek::BifEvent::enqueue_modbus_encap_interface_transport_request(
 			    connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(),
@@ -782,7 +782,7 @@ refine flow ModbusTCP_Flow += {
 	# RESPONSE FC=2B
 	function deliver_EncapInterfaceTransportResponse(header: ModbusTCP_TransportHeader, message: EncapInterfaceTransportResponse): bool
 		%{
-		if ( ::modbus_encap_interface_transport_response && connection()->IsValidHeader(header) )
+		if ( ::modbus_encap_interface_transport_response && ( connection()->IsConfirmed() || connection()->IsValidHeader(header) ) )
 			{
 			zeek::BifEvent::enqueue_modbus_encap_interface_transport_response(
 			    connection()->zeek_analyzer(), connection()->zeek_analyzer()->Conn(),

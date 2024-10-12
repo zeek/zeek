@@ -23,6 +23,7 @@ export {
 		[0x17] = "READ_WRITE_MULTIPLE_REGISTERS",
 		[0x18] = "READ_FIFO_QUEUE",
 		[0x2B] = "ENCAP_INTERFACE_TRANSPORT",
+		[0x5B] = "OBJECT_MESSAGING", # See https://modbus.org/docs/Object_Messaging_Protocol_ExtensionsVers1.1.doc
 
 		# Machine/vendor/network specific functions
 		[0x09] = "PROGRAM_484",
@@ -32,6 +33,8 @@ export {
 		[0x12] = "PROGRAM_884_U84",
 		[0x13] = "RESET_COMM_LINK_884_U84",
 		[0x28] = "PROGRAM_CONCEPT",
+		[0x29] = "MULTIPLE_FUNCTION_CODES", # See https://patents.google.com/patent/US20040054829A1/en
+		[0x5A] = "PROGRAM_UNITY", # See https://lirasenlared.blogspot.com/2017/08/the-unity-umas-protocol-part-i.html
 		[0x7D] = "FIRMWARE_REPLACEMENT",
 		[0x7E] = "PROGRAM_584_984_2",
 		[0x7F] = "REPORT_LOCAL_ADDRESS",
@@ -44,13 +47,33 @@ export {
 		[0x85] = "WRITE_SINGLE_COIL_EXCEPTION",
 		[0x86] = "WRITE_SINGLE_REGISTER_EXCEPTION",
 		[0x87] = "READ_EXCEPTION_STATUS_EXCEPTION",
+		[0x88] = "DIAGNOSTICS_EXCEPTION",
+		[0x8B] = "GET_COMM_EVENT_COUNTER_EXCEPTION",
+		[0x8C] = "GET_COMM_EVENT_LOG_EXCEPTION",
 		[0x8F] = "WRITE_MULTIPLE_COILS_EXCEPTION",
 		[0x90] = "WRITE_MULTIPLE_REGISTERS_EXCEPTION",
+		[0x91] = "REPORT_SLAVE_ID_EXCEPTION",
 		[0x94] = "READ_FILE_RECORD_EXCEPTION",
 		[0x95] = "WRITE_FILE_RECORD_EXCEPTION",
 		[0x96] = "MASK_WRITE_REGISTER_EXCEPTION",
 		[0x97] = "READ_WRITE_MULTIPLE_REGISTERS_EXCEPTION",
 		[0x98] = "READ_FIFO_QUEUE_EXCEPTION",
+		[0xAB] = "ENCAP_INTERFACE_TRANSPORT_EXCEPTION",
+		[0xDB] = "OBJECT_MESSAGING_EXCEPTION",
+
+		# Machine/vendor/network specific exceptions
+		[0x89] = "PROGRAM_484_EXCEPTION",
+		[0x8A] = "POLL_484_EXCEPTION",
+		[0x8D] = "PROGRAM_584_984_EXCEPTION",
+		[0x8E] = "POLL_584_984_EXCEPTION",
+		[0x92] = "PROGRAM_884_U84_EXCEPTION",
+		[0x93] = "RESET_COMM_LINK_884_U84_EXCEPTION",
+		[0xA8] = "PROGRAM_CONCEPT_EXCEPTION",
+		[0xA9] = "MULTIPLE_FUNCTION_CODES_EXCEPTION",
+		[0xDA] = "PROGRAM_UNITY_EXCEPTION",
+		[0xFD] = "FIRMWARE_REPLACEMENT_EXCEPTION",
+		[0xFE] = "PROGRAM_584_984_2_EXCEPTION",
+		[0xFF] = "REPORT_LOCAL_ADDRESS_EXCEPTION",
 	} &default=function(i: count):string { return fmt("unknown-%d", i); } &redef;
 
 	const exception_codes = {

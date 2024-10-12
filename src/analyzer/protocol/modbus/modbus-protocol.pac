@@ -125,7 +125,12 @@ type ModbusTCP_Request(header: ModbusTCP_TransportHeader) = case header.fc of {
 
 # Responses
 #
-type ModbusTCP_Response(header: ModbusTCP_TransportHeader) = case header.fc of {
+type ModbusTCP_Response(header: ModbusTCP_TransportHeader) = case header.fc & 0x80 of {
+    0       -> normal_response      : ModbusTCP_NormalResponse(header);
+    default -> exception_response   : Exception(header);
+};
+
+type ModbusTCP_NormalResponse(header: ModbusTCP_TransportHeader) = case header.fc of {
 	READ_COILS                          -> readCoils:                       ReadCoilsResponse(header);
 	READ_DISCRETE_INPUTS                -> readDiscreteInputs:              ReadDiscreteInputsResponse(header);
 	READ_HOLDING_REGISTERS              -> readHoldingRegisters:            ReadHoldingRegistersResponse(header);
@@ -144,25 +149,7 @@ type ModbusTCP_Response(header: ModbusTCP_TransportHeader) = case header.fc of {
 	MASK_WRITE_REGISTER                 -> maskWriteRegister:               MaskWriteRegisterResponse(header);
 	READ_WRITE_MULTIPLE_REGISTERS       -> readWriteMultipleRegisters:      ReadWriteMultipleRegistersResponse(header);
 	READ_FIFO_QUEUE                     -> readFIFOQueue:                   ReadFIFOQueueResponse(header);
-	ENCAP_INTERFACE_TRANSPORT           -> encapInterfaceException:         EncapInterfaceTransportResponse(header);
-
-	# Exceptions
-	READ_HOLDING_REGISTERS_EXCEPTION        -> readHoldingRegistersException:    Exception(header);
-	WRITE_MULTIPLE_REGISTERS_EXCEPTION      -> writeMultRegistersException:      Exception(header);
-	READ_COILS_EXCEPTION                    -> readCoilsException:               Exception(header);
-	READ_DISCRETE_INPUTS_EXCEPTION          -> readDiscreteInputsException:      Exception(header);
-	READ_INPUT_REGISTERS_EXCEPTION          -> readInputRegistersException:      Exception(header);
-	WRITE_SINGLE_COIL_EXCEPTION             -> writeCoilException:               Exception(header);
-	WRITE_SINGLE_REGISTER_EXCEPTION         -> writeSingleRegisterException:     Exception(header);
-	READ_EXCEPTION_STATUS_EXCEPTION         -> readExceptionStatusException:     Exception(header);
-	DIAGNOSTICS_EXCEPTION                   -> diagnosticsException:             Exception(header);
-	WRITE_MULTIPLE_COILS_EXCEPTION          -> forceMultipleCoilsException:      Exception(header);
-	READ_FILE_RECORD_EXCEPTION              -> readGeneralReferenceException:    Exception(header);
-	WRITE_FILE_RECORD_EXCEPTION             -> writeGeneralReferenceException:   Exception(header);
-	MASK_WRITE_REGISTER_EXCEPTION           -> maskWriteRegisterException:       Exception(header);
-	READ_WRITE_MULTIPLE_REGISTERS_EXCEPTION -> readWriteRegistersException:      Exception(header);
-	READ_FIFO_QUEUE_EXCEPTION               -> readFIFOQueueException:           Exception(header);
-	ENCAP_INTERFACE_TRANSPORT_EXCEPTION     -> encapInterfaceTransportException: Exception(header);
+	ENCAP_INTERFACE_TRANSPORT           -> encapInterfaceTransport:         EncapInterfaceTransportResponse(header);
 
 	# All the rest
 	default                                 -> unknown:                         bytestring &restofdata;

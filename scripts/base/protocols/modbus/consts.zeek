@@ -23,6 +23,7 @@ export {
 		[0x17] = "READ_WRITE_MULTIPLE_REGISTERS",
 		[0x18] = "READ_FIFO_QUEUE",
 		[0x2B] = "ENCAP_INTERFACE_TRANSPORT",
+		[0x5B] = "OBJECT_MESSAGING", # See https://modbus.org/docs/Object_Messaging_Protocol_ExtensionsVers1.1.doc
 
 		# Machine/vendor/network specific functions
 		[0x09] = "PROGRAM_484",
@@ -32,25 +33,11 @@ export {
 		[0x12] = "PROGRAM_884_U84",
 		[0x13] = "RESET_COMM_LINK_884_U84",
 		[0x28] = "PROGRAM_CONCEPT",
+		[0x29] = "MULTIPLE_FUNCTION_CODES", # See https://patents.google.com/patent/US20040054829A1/en
+		[0x5A] = "PROGRAM_UNITY", # See https://lirasenlared.blogspot.com/2017/08/the-unity-umas-protocol-part-i.html
 		[0x7D] = "FIRMWARE_REPLACEMENT",
 		[0x7E] = "PROGRAM_584_984_2",
 		[0x7F] = "REPORT_LOCAL_ADDRESS",
-
-		# Exceptions
-		[0x81] = "READ_COILS_EXCEPTION",
-		[0x82] = "READ_DISCRETE_INPUTS_EXCEPTION",
-		[0x83] = "READ_HOLDING_REGISTERS_EXCEPTION",
-		[0x84] = "READ_INPUT_REGISTERS_EXCEPTION",
-		[0x85] = "WRITE_SINGLE_COIL_EXCEPTION",
-		[0x86] = "WRITE_SINGLE_REGISTER_EXCEPTION",
-		[0x87] = "READ_EXCEPTION_STATUS_EXCEPTION",
-		[0x8F] = "WRITE_MULTIPLE_COILS_EXCEPTION",
-		[0x90] = "WRITE_MULTIPLE_REGISTERS_EXCEPTION",
-		[0x94] = "READ_FILE_RECORD_EXCEPTION",
-		[0x95] = "WRITE_FILE_RECORD_EXCEPTION",
-		[0x96] = "MASK_WRITE_REGISTER_EXCEPTION",
-		[0x97] = "READ_WRITE_MULTIPLE_REGISTERS_EXCEPTION",
-		[0x98] = "READ_FIFO_QUEUE_EXCEPTION",
 	} &default=function(i: count):string { return fmt("unknown-%d", i); } &redef;
 
 	const exception_codes = {

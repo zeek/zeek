@@ -12,9 +12,19 @@ event zeek_init()
 	Analyzer::register_for_port(Analyzer::ANALYZER_FOO, 80/tcp);
 	}
 
+event foo_last(x: foo::X)
+	{
+	print "Zeek: lowest prio", x;
+	}
+
 event foo(x: foo::X)
 	{
 	print "Zeek: default prio", x;
+	}
+
+event foo_first(x: foo::X)
+	{
+	print "Zeek: highest prio", x;
 	}
 
 # @TEST-START-FILE foo.spicy
@@ -54,8 +64,8 @@ protocol analyzer Foo over TCP:
 # by examining the data though which above Spicy hooks mutate; we expect to see
 # data from the default priority handler since we should run right after it.
 on foo::X -> event foo(self);
+on foo::X -> event foo_first(self) &priority=-500;
+on foo::X -> event foo_last(self) &priority=-1500;
 
 export foo::X;
-
-# TODO(bbannier): test that EVT hook priority can correctly be overriden.
 # @TEST-END-FILE

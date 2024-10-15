@@ -1,3 +1,15 @@
+7.1.0-dev.400 | 2024-10-15 17:11:57 +0200
+
+  * Fix invalid Sphinx directive in docstring (Benjamin Bannier, Corelight)
+
+  * Bump GH actions for generate-docs job (Benjamin Bannier, Corelight)
+
+  * Fix installation of Python packages in generate docs CI job (Benjamin Bannier, Corelight)
+
+  * Bump GH actions for pre-commit job (Benjamin Bannier, Corelight)
+
+  * Pin distribution for pre-commit CI job (Benjamin Bannier, Corelight)
+
 7.1.0-dev.393 | 2024-10-15 09:56:19 +0200
 
   * Test `.evt` file `&priority` (Evan Typanski, Corelight)

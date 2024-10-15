@@ -2,7 +2,7 @@
 
 #include "zeek/script_opt/ZAM/ZOp.h"
 
-#include "zeek/script_opt/ZAM/Support.h"
+#include "zeek/Type.h"
 
 namespace zeek::detail {
 

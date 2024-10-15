@@ -1,9 +1,7 @@
 #pragma once
 
-#include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/analyzer/protocol/rdp/events.bif.h"
 #include "zeek/analyzer/protocol/rdp/rdp_pac.h"
-#include "zeek/analyzer/protocol/ssl/SSL.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::analyzer::rdp {
@@ -25,7 +23,7 @@ protected:
     binpac::RDP::RDP_Conn* interp;
 
     bool had_gap;
-    analyzer::ssl::SSL_Analyzer* ssl;
+    bool tls_active;
 };
 
 } // namespace zeek::analyzer::rdp

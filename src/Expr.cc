@@ -4368,7 +4368,7 @@ ValPtr LambdaExpr::Eval(Frame* f) const {
 }
 
 void LambdaExpr::ExprDescribe(ODesc* d) const {
-    d->Add(expr_name(Tag()));
+    type->Describe(d);
 
     if ( captures && d->IsReadable() ) {
         d->Add("[");
@@ -4469,7 +4469,7 @@ TraversalCode EventExpr::Traverse(TraversalCallback* cb) const {
         // to infinite traversals.  We do, however, see if we can
         // locate the corresponding identifier, and traverse that.
 
-        auto& id = lookup_ID(f->Name(), GLOBAL_MODULE_NAME, false, false, false);
+        auto& id = lookup_ID(f->GetName().c_str(), GLOBAL_MODULE_NAME, false, false, false);
 
         if ( id ) {
             tc = id->Traverse(cb);

@@ -15,7 +15,7 @@ public type Message = unit {
     on %done {
         spicy::accept_input();
 
-        if ( self?.prio ) {
+        if (self?.prio) {
             self.severity = (self.prio.value & 0x07);
             self.facility = (self.prio.value & 0x03f8) >> 3;
         }

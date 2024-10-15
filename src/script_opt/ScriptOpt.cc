@@ -110,7 +110,7 @@ bool should_analyze(const ScriptFuncPtr& f, const StmtPtr& body) {
     if ( ofiles.empty() && ofuncs.empty() )
         return true;
 
-    auto fun = f->Name();
+    const auto& fun = f->GetName();
 
     for ( auto& o : ofuncs )
         if ( std::regex_match(fun, o) )
@@ -165,7 +165,7 @@ static void optimize_func(ScriptFuncPtr f, std::shared_ptr<ProfileFunc> pf, std:
     const char* reason;
     if ( ! is_ZAM_compilable(pf.get(), &reason) ) {
         if ( analysis_options.report_uncompilable )
-            printf("Skipping compilation of %s due to %s\n", f->Name(), reason);
+            printf("Skipping compilation of %s due to %s\n", f->GetName().c_str(), reason);
         return;
     }
 
@@ -184,10 +184,10 @@ static void optimize_func(ScriptFuncPtr f, std::shared_ptr<ProfileFunc> pf, std:
 
     if ( ! new_body->IsReduced(rc.get()) ) {
         if ( non_reduced_perp )
-            reporter->InternalError("Reduction inconsistency for %s: %s\n", f->Name(),
+            reporter->InternalError("Reduction inconsistency for %s: %s\n", f->GetName().c_str(),
                                     obj_desc(non_reduced_perp).c_str());
         else
-            reporter->InternalError("Reduction inconsistency for %s\n", f->Name());
+            reporter->InternalError("Reduction inconsistency for %s\n", f->GetName().c_str());
     }
 
     checking_reduction = false;
@@ -241,7 +241,7 @@ static void optimize_func(ScriptFuncPtr f, std::shared_ptr<ProfileFunc> pf, std:
         if ( reporter->Errors() > 0 )
             return;
 
-        if ( analysis_options.dump_ZAM )
+        if ( analysis_options.dump_final_ZAM )
             ZAM.Dump();
 
         f->ReplaceBody(body, new_body);
@@ -275,6 +275,7 @@ static void init_options() {
     check_env_opt("ZEEK_NO_ZAM_OPT", analysis_options.no_ZAM_opt);
     check_env_opt("ZEEK_NO_ZAM_CONTROL_FLOW_OPT", analysis_options.no_ZAM_control_flow_opt);
     check_env_opt("ZEEK_DUMP_ZAM", analysis_options.dump_ZAM);
+    check_env_opt("ZEEK_DUMP_FINAL_ZAM", analysis_options.dump_final_ZAM);
     check_env_opt("ZEEK_PROFILE", analysis_options.profile_ZAM);
 
     // Compile-to-C++-related options.
@@ -294,8 +295,8 @@ static void init_options() {
     if ( analysis_options.use_CPP && generating_CPP )
         reporter->FatalError("generating C++ incompatible with using C++");
 
-    if ( analysis_options.allow_cond && ! analysis_options.gen_standalone_CPP )
-        reporter->FatalError("\"-O allow-cond\" only relevant when also using \"-O gen-standalone-C++\"");
+    if ( analysis_options.allow_cond && ! generating_CPP )
+        reporter->FatalError("\"-O allow-cond\" only relevant when using \"-O gen-C++\" or \"-O gen-standalone-C++\"");
 
     auto usage = getenv("ZEEK_USAGE_ISSUES");
 
@@ -339,7 +340,7 @@ static void init_options() {
     }
 
     if ( analysis_options.dump_ZAM )
-        analysis_options.gen_ZAM_code = true;
+        analysis_options.dump_final_ZAM = analysis_options.gen_ZAM_code = true;
 
     if ( ! analysis_options.only_funcs.empty() || ! analysis_options.only_files.empty() ) {
         if ( analysis_options.gen_ZAM_code || generating_CPP )
@@ -365,11 +366,11 @@ static void report_CPP() {
     std::unordered_set<unsigned long long> already_reported;
 
     for ( auto& f : funcs ) {
-        auto name = f.Func()->Name();
+        const auto& name = f.Func()->GetName();
         auto hash = f.Profile()->HashVal();
         bool have = compiled_scripts.count(hash) > 0;
 
-        printf("script function %s (hash %llu): %s\n", name, hash, have ? "yes" : "no");
+        printf("script function %s (hash %llu): %s\n", name.c_str(), hash, have ? "yes" : "no");
 
         if ( have )
             already_reported.insert(hash);
@@ -409,7 +410,7 @@ static void use_CPP() {
             // we're using code compiled for standalone.
             if ( f.Body()->Tag() != STMT_CPP ) {
                 auto func = f.Func();
-                if ( added_bodies[func->Name()].count(hash) > 0 )
+                if ( added_bodies[func->GetName()].count(hash) > 0 )
                     // We've already added the
                     // replacement.  Delete orig.
                     func->ReplaceBody(f.Body(), nullptr);

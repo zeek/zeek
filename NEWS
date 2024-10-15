@@ -25,8 +25,26 @@ Breaking Changes
   are not affected by this change, so we keep backwards compatibility with
   existing log writers.
 
+* ``Func::Name()`` was deprecated, use ``Func::GetName()`` instead.
+
 New Functionality
 -----------------
+
+- Zeek now includes a PostgreSQL protocol analyzer. This analyzer is enabled
+  by default. The analyzer's events and its ``postgresql.log`` should be
+  considered preliminary and experimental until the arrival of Zeek's next
+  long-term-stable release (8.0).
+
+  If you observe unusually high CPU consumption or other issues due to this
+  analyzer being enabled by default, the easiest way to disable it is via the
+  ``Analyzer::disabled_analyzers`` const as follows:
+
+	redef Analyzer::disabled_analyzers += {
+		Analyzer::ANALYZER_POSTGRESQL,
+	};
+
+  If you observe PostgreSQL traffic in your environment, please provide feedback
+  about the analyzer and structure of the new log.
 
 * The LDAP analyzer now supports handling of non-sealed GSS-API WRAP tokens.
 
@@ -57,6 +75,23 @@ Changed Functionality
 
 * The ``mysql.log`` for user change commands will contain *just* the username
   instead of the remaining parts of the command, including auth plugin data.
+
+* The POP3 parser has been hardened to avoid unbounded state growth in the
+  face of one-sided traffic capture or when enabled for non-POP3 traffic.
+  Concretely, the Redis protocol's AUTH mechanism enables the POP3 analyzer
+  for such connections through DPD.
+
+* Batching and flushing for local log writers can now be controlled via the
+  options ``Log::flush_interval`` and ``Log::write_buffer_size``. Previously
+  the ``Threading::heartbeat_interval`` was used for flushing and the buffer
+  size fixed at 1000.
+
+* Logging of the FTP PASS command in ``ftp.log`` now honors ``FTP::default_capture_password``
+  and the password is blanked with "<hidden>". Previously, the argument for the PASS
+  command would be logged in clear.
+
+* The ASCII input reader now suppresses warnings for consecutive invalid lines,
+  producing a summary of total suppressions once a valid line is encountered.
 
 Removed Functionality
 ---------------------

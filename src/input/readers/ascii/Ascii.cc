@@ -6,7 +6,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <cerrno>
-#include <sstream>
 
 #include "zeek/input/readers/ascii/ascii.bif.h"
 #include "zeek/threading/SerialTypes.h"
@@ -140,14 +139,14 @@ bool Ascii::OpenFile() {
     if ( ! file.is_open() ) {
         FailWarn(fail_on_file_problem, Fmt("Init: cannot open %s", fname.c_str()), true);
 
-        return ! fail_on_file_problem;
+        return false;
     }
 
     if ( ReadHeader(false) == false ) {
         FailWarn(fail_on_file_problem, Fmt("Init: cannot open %s; problem reading file header", fname.c_str()), true);
 
         file.close();
-        return ! fail_on_file_problem;
+        return false;
     }
 
     if ( ! read_location ) {
@@ -345,7 +344,8 @@ bool Ascii::DoUpdate() {
                 FailWarn(fail_on_invalid_lines,
                          Fmt("Not enough fields in line '%s' of %s. Found "
                              "%d fields, want positions %d and %d",
-                             line.c_str(), fname.c_str(), pos, fit.position, fit.secondary_position));
+                             line.c_str(), fname.c_str(), pos, fit.position, fit.secondary_position),
+                         ! fail_on_invalid_lines);
 
                 if ( fail_on_invalid_lines ) {
                     for ( int i = 0; i < fpos; i++ )
@@ -374,8 +374,6 @@ bool Ascii::DoUpdate() {
             if ( fit.secondary_position != -1 ) {
                 // we have a port definition :)
                 assert(val->type == TYPE_PORT);
-                //	Error(Fmt("Got type %d != PORT with secondary position!", val->type));
-
                 val->val.port_val.proto = formatter->ParseProto(stringfields[fit.secondary_position]);
             }
 
@@ -395,8 +393,10 @@ bool Ascii::DoUpdate() {
             delete[] fields;
             continue;
         }
+        // If there's no error, then it makes sense to report the next error.
+        else
+            StopWarningSuppression();
 
-        // printf("fpos: %d, second.num_fields: %d\n", fpos, (*it).second.num_fields);
         assert(fpos == NumFields());
 
         if ( Info().mode == MODE_STREAM )
@@ -408,6 +408,7 @@ bool Ascii::DoUpdate() {
     if ( Info().mode != MODE_STREAM )
         EndCurrentSend();
 
+    StopWarningSuppression();
     return true;
 }
 

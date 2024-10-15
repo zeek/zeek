@@ -557,42 +557,38 @@ void DNS_Mgr::InitPostScript() {
 
     cached_hosts_metric =
         telemetry_mgr->GaugeInstance("zeek", "dnsmgr_cache_entries", {{"type", "host"}},
-                                     "Number of cached hosts in DNS_Mgr", "", []() -> prometheus::ClientMetric {
-                                         prometheus::ClientMetric metric;
-                                         metric.gauge.value = 0;
+                                     "Number of cached hosts in DNS_Mgr", "", []() {
+                                         double value = 0;
 
                                          if ( dns_mgr ) {
                                              dns_mgr->UpdateCachedStats(false);
-                                             metric.gauge.value = static_cast<double>(dns_mgr->last_cached_stats.hosts);
+                                             value = static_cast<double>(dns_mgr->last_cached_stats.hosts);
                                          }
-                                         return metric;
+                                         return value;
                                      });
 
     cached_addresses_metric =
         telemetry_mgr->GaugeInstance("zeek", "dnsmgr_cache_entries", {{"type", "address"}},
-                                     "Number of cached addresses in DNS_Mgr", "", []() -> prometheus::ClientMetric {
-                                         prometheus::ClientMetric metric;
-                                         metric.gauge.value = 0;
+                                     "Number of cached addresses in DNS_Mgr", "", []() {
+                                         double value = 0;
 
                                          if ( dns_mgr ) {
                                              dns_mgr->UpdateCachedStats(false);
-                                             metric.gauge.value =
-                                                 static_cast<double>(dns_mgr->last_cached_stats.addresses);
+                                             value = static_cast<double>(dns_mgr->last_cached_stats.addresses);
                                          }
-                                         return metric;
+                                         return value;
                                      });
 
     cached_texts_metric =
         telemetry_mgr->GaugeInstance("zeek", "dnsmgr_cache_entries", {{"type", "text"}},
-                                     "Number of cached texts in DNS_Mgr", "", []() -> prometheus::ClientMetric {
-                                         prometheus::ClientMetric metric;
-                                         metric.gauge.value = 0;
+                                     "Number of cached texts in DNS_Mgr", "", []() {
+                                         double value = 0;
 
                                          if ( dns_mgr ) {
                                              dns_mgr->UpdateCachedStats(false);
-                                             metric.gauge.value = static_cast<double>(dns_mgr->last_cached_stats.texts);
+                                             value = static_cast<double>(dns_mgr->last_cached_stats.texts);
                                          }
-                                         return metric;
+                                         return value;
                                      });
 
     if ( ! doctest::is_running_in_test ) {

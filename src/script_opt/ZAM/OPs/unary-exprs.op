@@ -164,14 +164,6 @@ macro EvalCast(lhs, rhs)
 	else
 		ERROR(error.c_str());
 
-# Cast an "any" type to the given type.  Only needed for type-based switch
-# statements.
-internal-op Cast-Any
-class VV
-op-types X a
-eval	ValPtr rhs = {NewRef{}, $1};
-	EvalCast($$, rhs)
-
 direct-unary-op Is Is
 
 internal-op Is

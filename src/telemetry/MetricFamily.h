@@ -22,6 +22,8 @@ public:
 
     std::vector<std::string> LabelNames() const { return label_names; }
 
+    virtual void RunCallbacks() = 0;
+
 protected:
     MetricFamily(Span<const std::string_view> labels) {
         for ( const auto& lbl : labels )

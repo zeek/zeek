@@ -1719,7 +1719,7 @@ struct VisitorUnitFields : spicy::visitor::PreOrder {
 
     void operator()(::spicy::type::unit::item::Switch* n) {
         for ( const auto& c : n->cases() ) {
-            for ( const auto& i : c->items() )
+            for ( const auto& i : c->block()->items() )
                 dispatch(i);
         }
     }

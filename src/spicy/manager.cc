@@ -458,21 +458,21 @@ bool Manager::togglePacketAnalyzer(const Tag& tag, bool enable) {
 }
 
 bool Manager::toggleAnalyzer(EnumVal* tag, bool enable) {
-    if ( tag->GetType() == analyzer_mgr->GetTagType() ) {
+    if ( tag->GetType()->GetName() == analyzer_mgr->GetTagType()->GetName() ) {
         if ( auto analyzer = analyzer_mgr->Lookup(tag, false) )
             return toggleProtocolAnalyzer(analyzer->Tag(), enable);
         else
             return false;
     }
 
-    if ( tag->GetType() == file_mgr->GetTagType() ) {
+    if ( tag->GetType()->GetName() == file_mgr->GetTagType()->GetName() ) {
         if ( auto analyzer = file_mgr->Lookup(tag, false) )
             return toggleFileAnalyzer(analyzer->Tag(), enable);
         else
             return false;
     }
 
-    if ( tag->GetType() == packet_mgr->GetTagType() ) {
+    if ( tag->GetType()->GetName() == packet_mgr->GetTagType()->GetName() ) {
         if ( auto analyzer = packet_mgr->Lookup(tag, false) )
             return togglePacketAnalyzer(analyzer->Tag(), enable);
         else

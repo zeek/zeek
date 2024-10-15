@@ -131,7 +131,11 @@ public:
 
     // Set this function's hash to the given value; retrieve that value.
     void SetHashVal(p_hash_type hash) { hash_val = hash; }
-    p_hash_type HashVal() const { return hash_val; }
+    p_hash_type HashVal() const {
+        ASSERT(hash_val);
+        return *hash_val;
+    }
+    bool HasHashVal() const { return bool(hash_val); }
 
 protected:
     // Construct the profile for the given function signature and body.
@@ -286,7 +290,7 @@ protected:
     std::vector<p_hash_type> addl_hashes;
 
     // Associated hash value.
-    p_hash_type hash_val = 0;
+    std::optional<p_hash_type> hash_val;
 
     // How many when statements appear in the function body.  We could
     // track these individually, but to date all that's mattered is
@@ -610,7 +614,8 @@ protected:
     // These can arise for example due to lambdas or record attributes.
     std::vector<const Expr*> pending_exprs;
 
-    // Whether to compute new hashes for the FuncInfo entries.
+    // Whether to compute new hashes for the FuncInfo entries. If the FuncInfo
+    // doesn't have a hash, it will always be computed.
     bool compute_func_hashes;
 
     // Whether the hashes for extended records should cover their final,

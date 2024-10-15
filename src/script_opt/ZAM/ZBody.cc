@@ -4,7 +4,9 @@
 
 #include "zeek/Desc.h"
 #include "zeek/EventHandler.h"
+#include "zeek/File.h"
 #include "zeek/Frame.h"
+#include "zeek/OpaqueVal.h"
 #include "zeek/Overflow.h"
 #include "zeek/RE.h"
 #include "zeek/Reporter.h"
@@ -12,7 +14,15 @@
 #include "zeek/Trigger.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/ZAM/Compile.h"
-#include "zeek/session/Manager.h"
+#include "zeek/script_opt/ZAM/Support.h"
+
+// Forward declarations from RunState.cc
+namespace zeek::run_state {
+extern double network_time;
+extern bool reading_traces;
+extern bool reading_live;
+extern bool terminating;
+} // namespace zeek::run_state
 
 namespace zeek::detail {
 
@@ -304,6 +314,20 @@ std::shared_ptr<ProfVec> ZBody::BuildProfVec() const {
     return pv;
 }
 
+// Helper class for managing dynamic frames to ensure that their memory
+// is recovered if a ZBody is exited via an exception.
+class ZBodyDynamicFrame {
+public:
+    ZBodyDynamicFrame(int frame_size) { frame = frame_size > 0 ? new ZVal[frame_size] : nullptr; }
+
+    ~ZBodyDynamicFrame() { delete[] frame; }
+
+    auto Frame() { return frame; }
+
+private:
+    ZVal* frame;
+};
+
 ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
     unsigned int pc = 0;
 
@@ -339,14 +363,16 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
     }
 #endif
 
-    ZVal* frame;
+    ZBodyDynamicFrame dynamic_frame(fixed_frame ? 0 : frame_size);
     std::unique_ptr<TableIterVec> local_table_iters;
     std::vector<StepIterInfo> step_iters(num_step_iters);
+
+    ZVal* frame;
 
     if ( fixed_frame )
         frame = fixed_frame;
     else {
-        frame = new ZVal[frame_size];
+        frame = dynamic_frame.Frame();
         // Clear slots for which we do explicit memory management.
         for ( auto s : managed_slots )
             frame[s].ClearManagedVal();
@@ -427,8 +453,6 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
             auto& v = frame[ms];
             ZVal::DeleteManagedType(v);
         }
-
-        delete[] frame;
     }
 
 #ifdef ENABLE_ZAM_PROFILE

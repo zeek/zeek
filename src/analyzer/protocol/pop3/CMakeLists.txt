@@ -5,4 +5,5 @@ zeek_add_plugin(
     POP3.cc
     Plugin.cc
     BIFS
+    consts.bif
     events.bif)

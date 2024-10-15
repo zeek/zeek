@@ -1,3 +1,393 @@
+7.1.0-dev.393 | 2024-10-15 09:56:19 +0200
+
+  * Test `.evt` file `&priority` (Evan Typanski, Corelight)
+
+    This was not documented nor tested, so this tests the behavior.
+    Documentation should be added later.
+
+7.1.0-dev.390 | 2024-10-09 15:36:41 -0700
+
+  * removed specialized ZAM instructions for GTPv1 and Teredo cleanup BiFs (Vern Paxson, Corelight)
+
+7.1.0-dev.388 | 2024-10-09 15:36:09 -0700
+
+  * -a zam baseline updates reflecting recent changes to main baselines (Vern Paxson, Corelight)
+
+7.1.0-dev.386 | 2024-10-09 14:26:35 -0700
+
+  * GH-3957: input/Raw: Rework GetLine() (Arne Welzel, Corelight)
+
+  * GH-215: POP3: Rework unbounded pending command fix (Arne Welzel, Corelight)
+
+7.1.0-dev.383 | 2024-10-04 12:45:05 -0700
+
+  * Bump zeek-testing-cluster to pull in a baseline update (Christian Kreibich, Corelight)
+
+7.1.0-dev.381 | 2024-10-04 19:31:36 +0200
+
+  * GH-3949: Fix flaky `missing-file-initially` test (Evan Typanski, Corelight)
+
+    That test got flaky probably from #3949 on centosstream9 CI. You can
+    replicate that behavior by increasing the sleep time when waiting for
+    the file such that the test will attempt to read the missing file again.
+    Since the one second wait for file is glacially slow for this, speeding
+    it up should mean that the file gets created sooner and so the test
+    won't try to open the file again. But, it's always still technically
+    possible, since the test will wait for 10 seconds and the heartbeat
+    seems to be 1 second. At least if that happens, it's probably a bug or
+    massive slowdown of some kind.
+
+7.1.0-dev.379 | 2024-10-04 13:34:31 +0200
+
+  * Add missing newline in `spicyz` usage message (Benjamin Bannier, Corelight)
+
+7.1.0-dev.377 | 2024-10-02 20:17:28 +0200
+
+  * Fix input error test nondeterminism (Evan Typanski, Corelight)
+
+    It seems like other similar tests get by because they have more "stuff"
+    before they call `terminate()` most likely. But, to be safe, just
+    removing the "received termination signal" line seems like the best
+    approach.
+
+7.1.0-dev.375 | 2024-10-01 11:40:16 +0200
+
+  * Report suppressed warnings count (Evan Typanski, Corelight)
+
+    This also triggers if there is one warning, which seems a little weird,
+    but it seems mostly reasonable.
+
+  * GH-3692: Avoid duplicating warnings when reading table (Evan Typanski, Corelight)
+
+    Invalid lines in a file was the one case that would not suppress future
+    warnings. Just make it suppress warnings too, but clear that suppression
+    if there is a field in between that doesn't error.
+
+    Fixes #3692
+
+7.1.0-dev.371 | 2024-09-27 15:17:04 -0700
+
+  * A round of ZAM/gen-C++-related updates and fixes (Vern Paxson, Corelight)
+
+    - factoring of logic used by ZAM's low-level optimizer when adjusting control flow info
+    - BTest baseline update for more complete function/lambda names
+    - tweak to -O gen-C++ maintenance script to avoid treating plugins as BTests
+    - fixed lambda hash collision bug due to function descriptions lacking full parameter information
+    - fixes (to avoid collisions) for AST profiling's function hash computations
+    - removed unused ZAM cast-to-any operation
+    - fixes for ZAM tracking the return type associated with function calls
+    - ZAM control-flow tracking now explicitly includes the ends of loops
+    - fix for ZAM identification of common subexpressions
+    - "-O dump-final-ZAM" option similar to "dump-ZAM" only prints final version of functions
+    - fix for setting object locations to avoid use-after-free situation
+    - extended "-O allow-cond" to apply to both gen-C++ and gen-standalone-C++
+    - -O gen-C++ fix for run-time warnings for "when" lambdas
+    - fix to -O gen-C++ for recent AST profiling changes for identifying function parameters
+    - fix to -O gen-C++ for dealing with "hidden" parameters
+    - tweak to prevent an incorrect warning for scripts compiled to C++
+    - fixed overly narrow Spicy test for manipulating packet analyzers
+    - fixed memory leak for recursive ZAM functions that exit via an exception
+    - remove unnecessary header include
+
+7.1.0-dev.351 | 2024-09-27 16:47:39 +0200
+
+  * Honor no plaintext password logging for PASS cmd (Martin van Hensbergen)
+
+7.1.0-dev.349 | 2024-09-27 15:37:13 +0200
+
+  * NEWS: Update (Arne Welzel, Corelight)
+
+  * scripts/base/cluster: Move active node management into node_down() (Arne Welzel, Corelight)
+
+    With the idea of an alternative cluster backend, we should
+    not maintain Cluster state within low-level Broker events.
+
+  * logging/Manager: Extract another CreateWriter() helper (Arne Welzel, Corelight)
+
+    For other cluster backends, CreateWriter() will use a logger's filter
+    configuration rather than receiving all configuration through CreateLog.
+    Extract a helper out from WriteToFilters() for reuse.
+
+  * logging/Manager: Extract path_func invocation into helper (Arne Welzel, Corelight)
+
+  * logging: Dedicated log flush timer (Arne Welzel, Corelight)
+
+    Log flushing is currently triggered based on the threading heartbeat timer
+    of WriterBackends and the hard-coded WRITE_BUFFER_SIZE 1000.
+
+    This change introduces a separate timer that is managed by the logger
+    manager instead of piggy-backing on the heartbeat timer, as well as a
+    const &redef for the buffer size.
+
+    This allows to modify the log flush frequency and batch size independently
+    of the threading heartbeat interval. Later, this will allow to re-use the
+    buffering and flushing logic of writer frontends for non-Broker cluster
+    backends, too.
+
+    One change here is that even frontends that do not have a backend will
+    be flushed regularly. This is wanted for non-Broker backends and should be
+    very cheap. Possibly, Broker can piggy back on this timer down the road, too,
+    rather than using its own script-level timer (see Broker::log_flush()).
+
+  * all: Change to use Func::GetName() (Arne Welzel, Corelight)
+
+  * script_opt: Use Func::GetName() (Arne Welzel, Corelight)
+
+  * Func: Add std::string name accessors, deprecate const char* versions (Arne Welzel, Corelight)
+
+  * plugin/ComponentManager: Support lookup by EnumValPtr (Arne Welzel, Corelight)
+
+7.1.0-dev.339 | 2024-09-27 14:59:45 +0200
+
+  * zeek-setup: Support enabling debug streams through env variable (Arne Welzel, Corelight)
+
+    For debugging btests, it can be convenient to enable debug streams
+    by setting an environment variable rather than editing zeek invocations
+    and adding -B selectively.
+
+    Sample use case:
+
+        $ export ZEEK_DEBUG_LOG_STREAMS=all
+        $ btest -d core/failing-test.zeek
+        $ less .tmp/core/failing-test/debug.log
+
+    This change makes Zeek's -B option and ZEEK_DEBUG_LOG_STREAMS are additive.
+
+  * Install `procps` in OpenSuse Leap images (Benjamin Bannier, Corelight)
+
+    The tests `core.sigterm-regular` and `core.sigterm-stdin` rely on `ps`
+    to be present which is not the case anymore on OpenSuse Leap; install it
+    explicitly there.
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+7.1.0-dev.332 | 2024-09-23 10:59:51 -0700
+
+  * pop3: Remove unused headers (Arne Welzel, Corelight)
+
+  * pop3: Prevent unbounded state growth (Arne Welzel, Corelight)
+
+    The cmds list may grow unbounded due to the POP3 analyzer being in
+    multiLine mode after seeing `AUTH` in a Redis connection, but never
+    a `.` terminator. This can easily be provoked by the Redis ping
+    command.
+
+    This adds two heuristics: 1) Forcefully process the oldest commands in
+    the cmds list and cap it at max_pending_commands. 2) Start raising
+    analyzer violations if the client has been using more than
+    max_unknown_client_commands commands (default 10).
+
+    Closes #3936
+
+  * btest/pop3: Add somewhat more elaborate testing (Arne Welzel, Corelight)
+
+    PCAP taken from here: https://tranalyzer.com/tutorial/pop and reference
+    added to Traces/README.
+
+7.1.0-dev.328 | 2024-09-18 19:10:43 +0200
+
+  * Add enum value negative check (Evan Typanski, Corelight)
+
+    There was one already at parse time, this adds a check later so that
+    cases like overflows or internal enums with negative values get caught.
+
+  * Fix port/enum values `SizeOf` not being a count (Evan Typanski, Corelight)
+
+    Really, they both should be count. But, they were getting provided as an
+    integer. Port is easy since it is backed by an unsigned value. Enums
+    *should* be unsigned, but aren't. This doesn't address that, it just
+    takes the other name for this operator (absolute value) and makes the
+    enum value positive if it's negative.
+
+    This fixes a case where using the size of operator on enum/port values
+    in certain contexts (like the default parameter of a struct) would cause
+    an internal error.
+
+7.1.0-dev.324 | 2024-09-17 18:51:34 +0200
+
+  * btest: Update baselines for removal-hooks addition (Arne Welzel, Corelight)
+
+    The removal_hooks field exists in bare mode (seems fine) and moved within the
+    connection record to earlier, so a bunch of baselines changed
+
+  * gtpv1: Replace connection_state_remove() with RemovalHook (Arne Welzel, Corelight)
+
+  * teredo: Replace connection_state_remove() with RemovalHook (Arne Welzel, Corelight)
+
+    Remove overhead of unconditionally calling remove_teredo_connection()
+    for *every* connection by installing a connection removal hook for only
+    when state was allocated.
+
+  * teredo: Move conn member from analyzer to encapsulation (Arne Welzel, Corelight)
+
+    There's only a single instance of the Teredo analyzer. Mutating the conn
+    member for every new packet and leaving it set after processing the
+    packet is confusing. Move conn into TeredoEncapsulation instead, or pass
+    it explicitly.
+
+7.1.0-dev.319 | 2024-09-17 18:50:40 +0200
+
+  * Update broker submodule (Arne Welzel, Corelight)
+
+    ...to pin prometheus to 1.2.4
+
+  * telemetry: Move callbacks to Zeek (Arne Welzel, Corelight)
+
+    Now that we run callbacks on the main loop, we can move callback support
+    for Counter and Gauge instances directly into Zeek and don't need to patch
+    prometheus-cpp anymore.
+
+  * auxil/prometheus-cpp: Pin to 1.2.4 (Arne Welzel, Corelight)
+
+7.1.0-dev.315 | 2024-09-12 09:18:35 +0200
+
+  * Update Dockerfile to avoid LegacyKeyValueFormat warning (MP-Corelight)
+
+  * Fix potential endless loop in util::strreplace (Tim Wojtulewicz, Corelight)
+
+7.1.0-dev.311 | 2024-09-12 08:52:02 +0200
+
+  * Remove core.negative-time btest (Tim Wojtulewicz, Corelight)
+
+    This test is failing with libpcap libpcap 1.10; for more information
+    see https://github.com/zeek/zeek/issues/3921
+
+7.1.0-dev.309 | 2024-09-12 08:51:08 +0200
+
+  * Bump spicy-format to 0.16.2 (Johanna Amann, Corelight)
+
+  * Spicy SSL: reformat with new version of spicy format (Johanna Amann, Corelight)
+
+7.1.0-dev.305 | 2024-09-11 16:55:55 +0200
+
+  * Spicy SSL analyzer:
+
+    This commit adds an alternative Spicy-based SSL analyzer. It supports
+    nearly the entire functionality of the current binpac analyzer, with
+    the exception of DTLS and decryption.
+
+    This currently is mostly for internal tests, or for Spicy testing purposes.
+    There is no functional advantage to use the Spicy based analyzer - it does
+    not have any additional features.
+
+    It is currently gated behind a configure-time flag that needs to be provided
+    to enable it (--enable-spicy-ssl).
+
+7.1.0-dev.259 | 2024-09-09 13:24:45 +0200
+
+  * script_opt/ZAM/IterInfo.h: Add missing Dict.h dependency (Arne Welzel, Corelight)
+
+    Triggered when trying to remove some other includes elsewhere.
+
+  * script_opt/ZAM: ZBody.h / Support.h: Cleanup includes, use forward declarations (Arne Welzel, Corelight)
+
+    Not sure the IsAny() convenience functions were really worth the
+    include zeek/Expr.h.
+
+  * script_opt/ZAM/Profile: Remove Zeek header includes (Arne Welzel, Corelight)
+
+    This can stand by itself.
+
+  * script_opt: Extend Support.h to break include dependencies (Arne Welzel, Corelight)
+
+    Rebuilding ZBody.cc is annoyingly slow with UBSAN or ASAN enabled. A rebuild
+    is currently triggered when touching Manager.h files like logging/Manager.h,
+    broker/Manager.h or file_analysis/Manager.h and various other headers that are
+    included from there or directly in ZBody.h.
+
+    Add tiny wrapper functions to Support.h that encapsulate the actual Zeek
+    functionality and move the includes to Support.cc instead. This will
+    cause frequent Support.cc rebuilds, but that is decently fast.
+
+    This comes at the expense of one indirect function call for some ops, but
+    its overhead should be negligible in comparison to a lookup for a
+    connection or component or a log_mgr->Write() call.
+
+  * script_opt: Do not include ZBody.h in ZAM/Validate.cc (Arne Welzel, Corelight)
+
+    Touching broker/Manager.h or logging/Manager.h or anything that's
+    included in ZBody.h results in a rebuild of a bunch of files in ZAM.
+    Particularly, ZAM/Validate.cc takes much too long to recompile for
+    me (45+ seconds) and apparently that's mostly by accident.
+
+    Clean up the ZAM/Validate.cc includes to prevent this.
+
+7.1.0-dev.252 | 2024-09-06 19:17:29 +0200
+
+  * btest/ldap: Add regression test for #3919 (Arne Welzel, Corelight)
+
+    This works as expected in master, it's just that we forgot to backport
+    PR #3845 to 7.0.1. Add the PCAP from Martin anyhow.
+
+    Closes #3919.
+
+7.1.0-dev.250 | 2024-09-06 17:47:36 +0200
+
+  * postgresql: Simplify SSL buffering and forwarding (Arne Welzel, Corelight)
+
+    The ssl_sink can only be connected form the backend side, so don't
+    overcomplicate it.
+
+  * postgresql: Initial parser implementation (Arne Welzel, Corelight)
+
+    This adds a protocol parser for the PostgreSQL protocol and a new
+    postgresql.log similar to the existing mysql.log.
+
+    This should be considered preliminary and hopefully during 7.1 and 7.2
+    with feedback from the community, we can improve on the events and logs.
+    Even if most PostgreSQL communication is encrypted in the real-world, this
+    will minimally allow monitoring of the SSLRequest and hand off further
+    analysis to the SSL analyzer.
+
+    This originates from github.com/awelzel/spicy-postgresql, with lots of
+    polishing happening in the past two days.
+
+7.1.0-dev.247 | 2024-09-05 19:19:31 +0200
+
+  * testing/external: Update private baselines (Arne Welzel, Corelight)
+
+  * analyzer/syslog: Reformat with spicy-format (Arne Welzel, Corelight)
+
+  * analyzer/finger: Reformat with spicy-format (Arne Welzel, Corelight)
+
+  * scripts/spicy: Reformat with spicy-format (Arne Welzel, Corelight)
+
+  * pre-commit: Add spicy-format (Arne Welzel, Corelight)
+
+    This excludes the larger protocol analyzers. These should be formatted
+    during the 7.2 cycle, shortly before 8.0.
+
+7.1.0-dev.241 | 2024-09-04 14:53:19 -0700
+
+  * Check for netbios to avoid reporting extra bad DNS opcodes (Tim Wojtulewicz, Corelight)
+
+  * Add weird for unhandled opcodes in DNS analyzer (Tim Wojtulewicz, Corelight)
+
+7.1.0-dev.238 | 2024-09-03 09:03:24 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+7.1.0-dev.236 | 2024-09-03 10:18:32 +0200
+
+  * Remove pre-commit exclusions for clang-format (Benjamin Bannier, Corelight)
+
+    We previously would ignore any files under `auxil/`. Since pre-commit
+    only formats files tracked in this repo, and `auxil/` today contains
+    only submodules this exclusion did not exclude anything; if however we
+    ever end up adding C++ files under `auxil/` we would like them to be
+    formatted consistently.
+
+  * Bump clang-format (Benjamin Bannier, Corelight)
+
+    This patch contains a bump of the configured clang-format version from
+    17.0.3 to 18.1.8 and automatically generated C++ source updates. The
+    main difference we are seeing from this is fixes for previously
+    incomplete reformats.
+
+7.1.0-dev.233 | 2024-09-03 10:02:59 +0200
+
+  * Bump zeek-aux for zeek/zeek-aux#57 (Arne Welzel, Corelight)
+
 7.1.0-dev.232 | 2024-08-30 18:56:24 +0200
 
   * http: fix password capture when enabled (Pierre Lalet)

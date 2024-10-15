@@ -26,7 +26,7 @@ public:
      * than helpful.  The *force* param is meant for cases where just one side
      * has a valid encapsulation and so the weird would be informative.
      */
-    void Weird(const char* name, bool force = false) const {
+    void Weird(Connection* conn, const char* name, bool force = false) const {
         if ( AnalyzerConfirmed(conn) || force )
             reporter->Weird(conn, name, "", GetAnalyzerName());
     }
@@ -35,7 +35,7 @@ public:
      * If the delayed confirmation option is set, then a valid encapsulation
      * seen from both end points is required before confirming.
      */
-    void Confirm(bool valid_orig, bool valid_resp) {
+    void Confirm(Connection* conn, bool valid_orig, bool valid_resp) {
         if ( ! BifConst::Tunnel::delay_teredo_confirmation || (valid_orig && valid_resp) ) {
             AnalyzerConfirmation(conn);
         }
@@ -46,8 +46,6 @@ public:
     void RemoveConnection(const zeek::detail::ConnKey& conn_key) { orig_resp_map.erase(conn_key); }
 
 protected:
-    Connection* conn = nullptr;
-
     struct OrigResp {
         bool valid_orig = false;
         bool valid_resp = false;
@@ -63,7 +61,7 @@ namespace detail {
 
 class TeredoEncapsulation {
 public:
-    explicit TeredoEncapsulation(const TeredoAnalyzer* ta) : analyzer(ta) {}
+    TeredoEncapsulation(const TeredoAnalyzer* ta, Connection* conn) : analyzer(ta), conn(conn) {}
 
     /**
      * Returns whether input data parsed as a valid Teredo encapsulation type.
@@ -82,12 +80,13 @@ public:
 private:
     bool DoParse(const u_char* data, size_t& len, bool found_orig, bool found_au);
 
-    void Weird(const char* name) const { analyzer->Weird(name); }
+    void Weird(const char* name) const { analyzer->Weird(conn, name); }
 
     const u_char* inner_ip = nullptr;
     const u_char* origin_indication = nullptr;
     const u_char* auth = nullptr;
     const TeredoAnalyzer* analyzer = nullptr;
+    Connection* conn = nullptr;
 };
 
 } // namespace detail

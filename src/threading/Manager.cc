@@ -76,13 +76,9 @@ void Manager::InitPostScript() {
     };
 
     num_threads_metric =
-        telemetry_mgr->GaugeInstance("zeek", "msgthread_active_threads", {}, "Number of active threads", "",
-                                     []() -> prometheus::ClientMetric {
-                                         prometheus::ClientMetric metric;
-                                         metric.gauge.value =
-                                             thread_mgr ? static_cast<double>(thread_mgr->all_threads.size()) : 0.0;
-                                         return metric;
-                                     });
+        telemetry_mgr->GaugeInstance("zeek", "msgthread_active_threads", {}, "Number of active threads", "", []() {
+            return thread_mgr ? static_cast<double>(thread_mgr->all_threads.size()) : 0.0;
+        });
 
     total_threads_metric = telemetry_mgr->CounterInstance("zeek", "msgthread_threads", {}, "Total number of threads");
     total_messages_in_metric =
@@ -91,22 +87,16 @@ void Manager::InitPostScript() {
     total_messages_out_metric =
         telemetry_mgr->CounterInstance("zeek", "msgthread_out_messages", {}, "Number of outbound messages sent", "");
 
-    pending_messages_in_metric =
-        telemetry_mgr->GaugeInstance("zeek", "msgthread_pending_in_messages", {}, "Pending number of inbound messages",
-                                     "", []() -> prometheus::ClientMetric {
-                                         auto* s = get_message_thread_stats();
-                                         prometheus::ClientMetric metric;
-                                         metric.gauge.value = static_cast<double>(s->pending_in_total);
-                                         return metric;
-                                     });
-    pending_messages_out_metric =
-        telemetry_mgr->GaugeInstance("zeek", "msgthread_pending_out_messages", {},
-                                     "Pending number of outbound messages", "", []() -> prometheus::ClientMetric {
-                                         auto* s = get_message_thread_stats();
-                                         prometheus::ClientMetric metric;
-                                         metric.gauge.value = static_cast<double>(s->pending_out_total);
-                                         return metric;
-                                     });
+    pending_messages_in_metric = telemetry_mgr->GaugeInstance("zeek", "msgthread_pending_in_messages", {},
+                                                              "Pending number of inbound messages", "", []() {
+                                                                  auto* s = get_message_thread_stats();
+                                                                  return static_cast<double>(s->pending_in_total);
+                                                              });
+    pending_messages_out_metric = telemetry_mgr->GaugeInstance("zeek", "msgthread_pending_out_messages", {},
+                                                               "Pending number of outbound messages", "", []() {
+                                                                   auto* s = get_message_thread_stats();
+                                                                   return static_cast<double>(s->pending_out_total);
+                                                               });
 
     pending_message_in_buckets_fam =
         telemetry_mgr->GaugeFamily("zeek", "msgthread_pending_messages_in_buckets", {"le"},
@@ -126,23 +116,15 @@ void Manager::InitPostScript() {
         current_bucketed_messages.pending_out[upper_limit] = 0;
 
         pending_message_in_buckets[upper_limit] =
-            pending_message_in_buckets_fam->GetOrAdd({{"le", upper_limit_str}},
-                                                     [upper_limit]() -> prometheus::ClientMetric {
-                                                         auto* s = get_message_thread_stats();
-                                                         prometheus::ClientMetric metric;
-                                                         metric.gauge.value =
-                                                             static_cast<double>(s->pending_in.at(upper_limit));
-                                                         return metric;
-                                                     });
+            pending_message_in_buckets_fam->GetOrAdd({{"le", upper_limit_str}}, [upper_limit]() {
+                auto* s = get_message_thread_stats();
+                return static_cast<double>(s->pending_in.at(upper_limit));
+            });
         pending_message_out_buckets[upper_limit] =
-            pending_message_out_buckets_fam->GetOrAdd({{"le", upper_limit_str}},
-                                                      [upper_limit]() -> prometheus::ClientMetric {
-                                                          auto* s = get_message_thread_stats();
-                                                          prometheus::ClientMetric metric;
-                                                          metric.gauge.value =
-                                                              static_cast<double>(s->pending_out.at(upper_limit));
-                                                          return metric;
-                                                      });
+            pending_message_out_buckets_fam->GetOrAdd({{"le", upper_limit_str}}, [upper_limit]() {
+                auto* s = get_message_thread_stats();
+                return static_cast<double>(s->pending_out.at(upper_limit));
+            });
     }
 }
 

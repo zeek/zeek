@@ -3,26 +3,17 @@
 using namespace zeek::telemetry;
 
 double Gauge::Value() const noexcept {
-    if ( has_callback ) {
-        // Use Collect() here instead of Value() to correctly handle metrics
-        // with callbacks.
-        auto metric = handle.Collect();
-        return metric.gauge.value;
-    }
+    if ( callback )
+        return callback();
 
     return handle.Value();
 }
 
 
-Gauge::Gauge(FamilyType* family, const prometheus::Labels& labels, prometheus::CollectCallbackPtr callback) noexcept
-    : family(family), handle(family->Add(labels)), labels(labels) {
-    if ( callback ) {
-        handle.AddCollectCallback(std::move(callback));
-        has_callback = true;
-    }
-}
+Gauge::Gauge(FamilyType* family, const prometheus::Labels& labels, detail::CollectCallbackPtr callback) noexcept
+    : family(family), handle(family->Add(labels)), labels(labels), callback(std::move(callback)) {}
 
-std::shared_ptr<Gauge> GaugeFamily::GetOrAdd(Span<const LabelView> labels, prometheus::CollectCallbackPtr callback) {
+std::shared_ptr<Gauge> GaugeFamily::GetOrAdd(Span<const LabelView> labels, detail::CollectCallbackPtr callback) {
     prometheus::Labels p_labels = detail::BuildPrometheusLabels(labels);
 
     auto check = [&](const std::shared_ptr<Gauge>& gauge) { return gauge->CompareLabels(p_labels); };
@@ -36,6 +27,13 @@ std::shared_ptr<Gauge> GaugeFamily::GetOrAdd(Span<const LabelView> labels, prome
 }
 
 std::shared_ptr<Gauge> GaugeFamily::GetOrAdd(std::initializer_list<LabelView> labels,
-                                             prometheus::CollectCallbackPtr callback) {
+                                             detail::CollectCallbackPtr callback) {
     return GetOrAdd(Span{labels.begin(), labels.size()}, std::move(callback));
+}
+
+void GaugeFamily::RunCallbacks() {
+    for ( const auto& g : gauges ) {
+        if ( g->HasCallback() )
+            g->Set(g->RunCallback());
+    }
 }

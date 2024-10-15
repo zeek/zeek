@@ -43,13 +43,14 @@ TraversalCode CSE_ValidityChecker::PreStmt(const Stmt* s) {
 
 TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
     if ( e == start_e ) {
-        ASSERT(! have_start_e);
-        have_start_e = true;
+        if ( ! have_start_e ) {
+            have_start_e = true;
 
-        // Don't analyze the expression, as it's our starting
-        // point and we don't want to conflate its properties
-        // with those of any intervening expressions.
-        return TC_CONTINUE;
+            // Don't analyze the expression, as it's our starting
+            // point and we don't want to conflate its properties
+            // with those of any intervening expressions.
+            return TC_CONTINUE;
+        }
     }
 
     if ( e == end_e ) {

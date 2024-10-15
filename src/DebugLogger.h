@@ -85,6 +85,9 @@ public:
 
     bool IsEnabled(DebugStream stream) const { return streams[int(stream)].enabled; }
 
+    // Are any streams enabled?
+    bool HasEnabledStreams() const { return ! enabled_streams.empty(); }
+
     void SetVerbose(bool arg_verbose) { verbose = arg_verbose; }
     bool IsVerbose() const { return verbose; }
 

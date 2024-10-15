@@ -1540,18 +1540,22 @@ TEST_CASE("util strreplace") {
     string s = "this is not a string";
     CHECK(strreplace(s, "not", "really") == "this is really a string");
     CHECK(strreplace(s, "not ", "") == "this is a string");
+    CHECK(strreplace("\"abc\"", "\"", "\\\"") == "\\\"abc\\\"");
+    CHECK(strreplace("\\\"abc\\\"", "\\\"", "\"") == "\"abc\"");
 }
 
 string strreplace(const string& s, const string& o, const string& n) {
     string r = s;
 
+    size_t i = 0;
     while ( true ) {
-        size_t i = r.find(o);
+        i = r.find(o, i);
 
         if ( i == std::string::npos )
             break;
 
         r.replace(i, o.size(), n);
+        i += n.size();
     }
 
     return r;
@@ -1645,36 +1649,34 @@ FILE* open_file(const string& path, const string& mode) {
     return rval;
 }
 
-TEST_CASE("util path ops"){
+TEST_CASE("util path ops") {
 #ifdef _MSC_VER
 // TODO: adapt these tests to Windows paths
 #else
-    SUBCASE("SafeDirname"){SafeDirname d("/this/is/a/path", false);
-CHECK(d.result == "/this/is/a");
+    SUBCASE("SafeDirname") {
+        SafeDirname d("/this/is/a/path", false);
+        CHECK(d.result == "/this/is/a");
 
-SafeDirname d2("invalid", false);
-CHECK(d2.result == ".");
+        SafeDirname d2("invalid", false);
+        CHECK(d2.result == ".");
 
-SafeDirname d3("./filename", false);
-CHECK(d2.result == ".");
-}
+        SafeDirname d3("./filename", false);
+        CHECK(d2.result == ".");
+    }
 
-SUBCASE("SafeBasename") {
-    SafeBasename b("/this/is/a/path", false);
-    CHECK(b.result == "path");
-    CHECK(! b.error);
+    SUBCASE("SafeBasename") {
+        SafeBasename b("/this/is/a/path", false);
+        CHECK(b.result == "path");
+        CHECK(! b.error);
 
-    SafeBasename b2("justafile", false);
-    CHECK(b2.result == "justafile");
-    CHECK(! b2.error);
-}
+        SafeBasename b2("justafile", false);
+        CHECK(b2.result == "justafile");
+        CHECK(! b2.error);
+    }
 #endif
 }
 
-SafeDirname::SafeDirname(const char* path, bool error_aborts)
-    : SafePathOp() {
-    DoFunc(path ? path : "", error_aborts);
-}
+SafeDirname::SafeDirname(const char* path, bool error_aborts) : SafePathOp() { DoFunc(path ? path : "", error_aborts); }
 
 SafeDirname::SafeDirname(const string& path, bool error_aborts) : SafePathOp() { DoFunc(path, error_aborts); }
 
@@ -2303,8 +2305,7 @@ static void strerror_r_helper(char* result, char* buf, size_t buflen) {
         buf[buflen - 1] = 0;
 }
 
-static void strerror_r_helper(int result, char* buf, size_t buflen) { /* XSI flavor of strerror_r, no-op. */
-}
+static void strerror_r_helper(int result, char* buf, size_t buflen) { /* XSI flavor of strerror_r, no-op. */ }
 
 void zeek_strerror_r(int zeek_errno, char* buf, size_t buflen) {
 #ifdef _MSC_VER

@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "zeek/Desc.h"
 #include "zeek/Func.h"
 #include "zeek/TraverseTypes.h"
 #include "zeek/script_opt/ZAM/BuiltInSupport.h"
@@ -391,6 +390,7 @@ enum ControlFlowType {
     CFT_ELSE,
     CFT_LOOP,
     CFT_LOOP_COND,
+    CFT_LOOP_END,
     CFT_NEXT,
     CFT_BREAK,
     CFT_DEFAULT,

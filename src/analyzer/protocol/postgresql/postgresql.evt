@@ -1,0 +1,42 @@
+import PostgreSQL;
+import PostgreSQL_Zeek;
+
+protocol analyzer PostgreSQL over TCP:
+    parse originator with PostgreSQL::FrontendMessages,
+    parse responder with PostgreSQL::BackendMessages;
+
+on PostgreSQL::NotImplemented -> event PostgreSQL::not_implemented($conn, $is_orig, ("%c" % typ), self.chunk);
+
+on PostgreSQL::AuthenticationRequest if ( self.identifier != 0 )-> event PostgreSQL::authentication_request($conn, self.identifier, self.data);
+
+on PostgreSQL::AuthenticationRequest if ( self.identifier == 0 ) -> event PostgreSQL::authentication_ok($conn);
+
+on PostgreSQL::AuthenticationResponse -> event PostgreSQL::authentication_response($conn, self.data);
+
+on PostgreSQL::FrontendMessages::ssl_request -> event PostgreSQL::ssl_request($conn);
+
+on PostgreSQL::MaybeBackendSSL::ssl_byte -> event PostgreSQL::ssl_reply($conn, ("%c" % self.ssl_byte));
+
+on PostgreSQL::StartupParameter -> event PostgreSQL::startup_parameter($conn, self.name, self.value);
+
+on PostgreSQL::StartupMessage -> event PostgreSQL::startup_message($conn, self.version.major, self.version.minor);
+
+on PostgreSQL::ErrorIdentifiedField -> event PostgreSQL::error_response_identified_field($conn, ("%c" % self.code), self.value);
+
+on PostgreSQL::ErrorResponse -> event PostgreSQL::error_response($conn);
+
+on PostgreSQL::SimpleQuery -> event PostgreSQL::simple_query($conn, self.query);
+
+on PostgreSQL::ReadyForQuery -> event PostgreSQL::ready_for_query($conn, "%c" % self.transaction_status);
+
+on PostgreSQL::NoticeIdentifiedField -> event PostgreSQL::notice_response_identified_field($conn, ("%c" % self.code), self.value);
+
+on PostgreSQL::NoticeResponse -> event PostgreSQL::notice_response($conn);
+
+on PostgreSQL::Terminate -> event PostgreSQL::terminate($conn);
+
+on PostgreSQL::DataRow -> event PostgreSQL::data_row($conn, self.column_values);
+
+on PostgreSQL::ParameterStatus -> event PostgreSQL::parameter_status($conn, self.name, self.value);
+
+on PostgreSQL::BackendKeyData -> event PostgreSQL::backend_key_data($conn, self.process_id, self.secret_key);

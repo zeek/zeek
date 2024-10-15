@@ -122,44 +122,19 @@ void Manager::InitPostScript() {
         return &telemetry_mgr->current_process_stats;
     };
     rss_gauge = GaugeInstance("process", "resident_memory", {}, "Resident memory size", "bytes",
-                              []() -> prometheus::ClientMetric {
-                                  auto* s = get_stats();
-                                  prometheus::ClientMetric metric;
-                                  metric.gauge.value = static_cast<double>(s->rss);
-                                  return metric;
-                              });
+                              []() { return static_cast<double>(get_stats()->rss); });
 
     vms_gauge = GaugeInstance("process", "virtual_memory", {}, "Virtual memory size", "bytes",
-                              []() -> prometheus::ClientMetric {
-                                  auto* s = get_stats();
-                                  prometheus::ClientMetric metric;
-                                  metric.gauge.value = static_cast<double>(s->vms);
-                                  return metric;
-                              });
+                              []() { return static_cast<double>(get_stats()->vms); });
 
     cpu_user_counter = CounterInstance("process", "cpu_user", {}, "Total user CPU time spent", "seconds",
-                                       []() -> prometheus::ClientMetric {
-                                           auto* s = get_stats();
-                                           prometheus::ClientMetric metric;
-                                           metric.gauge.value = s->cpu_user;
-                                           return metric;
-                                       });
+                                       []() { return get_stats()->cpu_user; });
 
     cpu_system_counter = CounterInstance("process", "cpu_system", {}, "Total system CPU time spent", "seconds",
-                                         []() -> prometheus::ClientMetric {
-                                             auto* s = get_stats();
-                                             prometheus::ClientMetric metric;
-                                             metric.gauge.value = s->cpu_system;
-                                             return metric;
-                                         });
+                                         []() { return get_stats()->cpu_system; });
 
     fds_gauge = GaugeInstance("process", "open_fds", {}, "Number of open file descriptors", "",
-                              []() -> prometheus::ClientMetric {
-                                  auto* s = get_stats();
-                                  prometheus::ClientMetric metric;
-                                  metric.gauge.value = static_cast<double>(s->fds);
-                                  return metric;
-                              });
+                              []() { return static_cast<double>(get_stats()->fds); });
 #endif
 
     if ( ! iosource_mgr->RegisterFd(collector_flare.FD(), this) ) {
@@ -501,7 +476,7 @@ CounterFamilyPtr Manager::CounterFamily(std::string_view prefix, std::string_vie
 
 CounterPtr Manager::CounterInstance(std::string_view prefix, std::string_view name, Span<const LabelView> labels,
                                     std::string_view helptext, std::string_view unit,
-                                    prometheus::CollectCallbackPtr callback) {
+                                    detail::CollectCallbackPtr callback) {
     return WithLabelNames(labels, [&, this](auto labelNames) {
         auto family = CounterFamily(prefix, name, labelNames, helptext, unit);
         return family->GetOrAdd(labels, callback);
@@ -510,7 +485,7 @@ CounterPtr Manager::CounterInstance(std::string_view prefix, std::string_view na
 
 CounterPtr Manager::CounterInstance(std::string_view prefix, std::string_view name,
                                     std::initializer_list<LabelView> labels, std::string_view helptext,
-                                    std::string_view unit, prometheus::CollectCallbackPtr callback) {
+                                    std::string_view unit, detail::CollectCallbackPtr callback) {
     auto lbl_span = Span{labels.begin(), labels.size()};
     return CounterInstance(prefix, name, lbl_span, helptext, unit, std::move(callback));
 }
@@ -539,8 +514,7 @@ GaugeFamilyPtr Manager::GaugeFamily(std::string_view prefix, std::string_view na
 }
 
 GaugePtr Manager::GaugeInstance(std::string_view prefix, std::string_view name, Span<const LabelView> labels,
-                                std::string_view helptext, std::string_view unit,
-                                prometheus::CollectCallbackPtr callback) {
+                                std::string_view helptext, std::string_view unit, detail::CollectCallbackPtr callback) {
     return WithLabelNames(labels, [&, this](auto labelNames) {
         auto family = GaugeFamily(prefix, name, labelNames, helptext, unit);
         return family->GetOrAdd(labels, callback);
@@ -548,8 +522,7 @@ GaugePtr Manager::GaugeInstance(std::string_view prefix, std::string_view name, 
 }
 
 GaugePtr Manager::GaugeInstance(std::string_view prefix, std::string_view name, std::initializer_list<LabelView> labels,
-                                std::string_view helptext, std::string_view unit,
-                                prometheus::CollectCallbackPtr callback) {
+                                std::string_view helptext, std::string_view unit, detail::CollectCallbackPtr callback) {
     auto lbl_span = Span{labels.begin(), labels.size()};
     return GaugeInstance(prefix, name, lbl_span, helptext, unit, std::move(callback));
 }
@@ -598,7 +571,9 @@ void Manager::ProcessFd(int fd, int flags) {
 
     collector_flare.Extinguish();
 
-    prometheus_registry->UpdateViaCallbacks();
+    for ( const auto& [name, f] : families )
+        f->RunCallbacks();
+
     collector_response_idx = collector_request_idx;
 
     lk.unlock();

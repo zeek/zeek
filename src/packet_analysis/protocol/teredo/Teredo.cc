@@ -153,14 +153,9 @@ bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
         return false;
     }
 
-    conn = static_cast<Connection*>(packet->session);
-    zeek::detail::ConnKey conn_key = conn->Key();
+    auto* conn = static_cast<Connection*>(packet->session);
 
-    OrigRespMap::iterator or_it = orig_resp_map.find(conn_key);
-    if ( or_it == orig_resp_map.end() )
-        or_it = orig_resp_map.insert(or_it, {conn_key, {}});
-
-    detail::TeredoEncapsulation te(this);
+    detail::TeredoEncapsulation te(this, conn);
     if ( ! te.Parse(data, len) ) {
         AnalyzerViolation("Bad Teredo encapsulation", conn, (const char*)data, len);
         return false;
@@ -175,7 +170,7 @@ bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
         if ( inner->NextProto() == IPPROTO_NONE && inner->PayloadLen() == 0 )
             // Teredo bubbles having data after IPv6 header isn't strictly a
             // violation, but a little weird.
-            Weird("Teredo_bubble_with_payload", true);
+            Weird(conn, "Teredo_bubble_with_payload", true);
         else {
             AnalyzerViolation("Teredo payload length", conn, (const char*)data, len);
             return false;
@@ -188,12 +183,25 @@ bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
         return false;
     }
 
+    zeek::detail::ConnKey conn_key = conn->Key();
+    OrigRespMap::iterator or_it = orig_resp_map.find(conn_key);
+
+    // The first time a teredo packet is parsed successfully, insert
+    // state into orig_resp_map so we can confirm when both sides
+    // see valid Teredo packets. Further, raise an event so that script
+    // layer can install a connection removal hooks to cleanup later.
+    if ( or_it == orig_resp_map.end() ) {
+        or_it = orig_resp_map.insert(or_it, {conn_key, {}});
+
+        packet->session->EnqueueEvent(new_teredo_state, nullptr, packet->session->GetVal());
+    }
+
     if ( packet->is_orig )
         or_it->second.valid_orig = true;
     else
         or_it->second.valid_resp = true;
 
-    Confirm(or_it->second.valid_orig, or_it->second.valid_resp);
+    Confirm(conn, or_it->second.valid_orig, or_it->second.valid_resp);
 
     ValPtr teredo_hdr;
 

@@ -5,7 +5,6 @@
 #include <cerrno>
 
 #include "zeek/script_opt/CPP/Compile.h"
-#include "zeek/script_opt/IDOptInfo.h"
 
 extern std::unordered_set<std::string> files_with_conditionals;
 
@@ -47,7 +46,7 @@ void CPPCompile::Compile(bool report_uncompilable) {
         if ( ! allow_cond && ! func.ShouldSkip() && ! ofiles.empty() && files_with_conditionals.count(fn) > 0 ) {
             if ( report_uncompilable )
                 reporter->Warning("%s cannot be compiled to C++ due to source file %s having conditional code",
-                                  f->Name(), fn.c_str());
+                                  f->GetName().c_str(), fn.c_str());
 
             else if ( filenames_reported_as_skipped.count(fn) == 0 ) {
                 reporter->Warning("skipping compilation of files in %s due to presence of conditional code",
@@ -60,7 +59,7 @@ void CPPCompile::Compile(bool report_uncompilable) {
         }
 
         if ( func.ShouldSkip() ) {
-            not_fully_compilable.insert(f->Name());
+            not_fully_compilable.insert(f->GetName());
             continue;
         }
 
@@ -79,10 +78,10 @@ void CPPCompile::Compile(bool report_uncompilable) {
         else {
             if ( reason && report_uncompilable ) {
                 had_to_skip = true;
-                reporter->Warning("%s cannot be compiled to C++ due to %s", f->Name(), reason);
+                reporter->Warning("%s cannot be compiled to C++ due to %s", f->GetName().c_str(), reason);
             }
 
-            not_fully_compilable.insert(f->Name());
+            not_fully_compilable.insert(f->GetName());
         }
     }
 

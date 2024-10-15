@@ -2,4 +2,6 @@
 Spicy: highest prio
 Spicy: default prio
 Spicy: lowest prio
+Zeek: highest prio, [x=default]
 Zeek: default prio, [x=default]
+Zeek: lowest prio, [x=default]

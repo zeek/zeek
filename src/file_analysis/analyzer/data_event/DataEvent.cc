@@ -28,10 +28,10 @@ file_analysis::Analyzer* DataEvent::Instantiate(RecordValPtr args, file_analysis
     EventHandlerPtr stream;
 
     if ( chunk_val )
-        chunk = event_registry->Lookup(chunk_val->AsFunc()->Name());
+        chunk = event_registry->Lookup(chunk_val->AsFunc()->GetName());
 
     if ( stream_val )
-        stream = event_registry->Lookup(stream_val->AsFunc()->Name());
+        stream = event_registry->Lookup(stream_val->AsFunc()->GetName());
 
     return new DataEvent(std::move(args), file, chunk, stream);
 }

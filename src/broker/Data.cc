@@ -761,12 +761,10 @@ std::optional<broker::data> val_to_data(const Val* v) {
         case TYPE_FILE: return {string(v->AsFile()->Name())};
         case TYPE_FUNC: {
             const Func* f = v->AsFunc();
-            std::string name(f->Name());
-
             broker::vector rval;
-            rval.emplace_back(name);
+            rval.emplace_back(f->GetName());
 
-            if ( name.find("lambda_<") == 0 ) {
+            if ( f->GetName().find("lambda_<") == 0 ) {
                 // Only ScriptFuncs have closures.
                 if ( auto b = dynamic_cast<const zeek::detail::ScriptFunc*>(f) ) {
                     auto bc = b->SerializeCaptures();

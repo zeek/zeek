@@ -89,7 +89,8 @@ issues:
 |---|---|
 |`dump-uds`	|	Dump use-defs to _stdout_.|
 |`dump-xform`	|	Dump transformed scripts to _stdout_.|
-|`dump-ZAM`	|	Dump generated ZAM code to _stdout_.|
+|`dump-ZAM`	|	Dump generated ZAM code to _stdout_, including intermediaries.|
+|`dump-final-ZAM`	|	Dump final generated ZAM code to _stdout_.|
 |`gen-ZAM-code`		|	Generate ZAM without additional optimizations.|
 |`help`		|	Print this list.|
 |`inline`		|	Inline function calls.|

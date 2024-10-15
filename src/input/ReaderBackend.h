@@ -203,7 +203,7 @@ public:
      */
     void FailWarn(bool is_error, const char* msg, bool suppress_future = false);
 
-    inline void StopWarningSuppression() { suppress_warnings = false; };
+    void StopWarningSuppression();
 
     // Overridden from MsgThread.
     bool OnHeartbeat(double network_time, double current_time) override;
@@ -365,6 +365,7 @@ private:
     // this is an internal indicator in case the read is currently in a failed state
     // it's used to suppress duplicate error messages.
     bool suppress_warnings = false;
+    size_t warnings_suppressed = 0;
 };
 
 } // namespace zeek::input

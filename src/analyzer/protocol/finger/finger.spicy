@@ -8,13 +8,15 @@ module Finger;
 import spicy;
 
 const OptionalWhiteSpace = /[ \t]*/;
-const NewLine    = /\r?\n/;
+const NewLine = /\r?\n/;
 
-public type Request  = unit {
+public type Request = unit {
     : OptionalWhiteSpace;
 
     switch {
-        -> : /\/W/ { self.whois = True; }
+        -> : /\/W/ {
+            self.whois = True;
+        }
         -> : void;
     };
 
@@ -24,12 +26,12 @@ public type Request  = unit {
         # We require valid UTF-8 to weed out binary data.
         self.user = self.arg[0].decode();
 
-        if ( |self.arg[1]| > 0 )
+        if (|self.arg[1]| > 0)
             self.host = self.arg[1].decode();
     }
 
-    on %done  {
-        if ( |self.arg[0]| > 0 || self.whois )
+    on %done {
+        if (|self.arg[0]| > 0 || self.whois)
             spicy::accept_input();
     }
 
@@ -43,12 +45,12 @@ type ReplyLine = unit {
     : NewLine;
 
     on %done {
-        if ( |self.data| > 10 )
+        if (|self.data| > 10)
             # Require some non-trivial output to accept.
             spicy::accept_input();
     }
 };
 
-public type Reply  = unit {
+public type Reply = unit {
     : ReplyLine[];
 };

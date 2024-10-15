@@ -28,7 +28,7 @@ ZAMCompiler::ZAMCompiler(ScriptFuncPtr f, std::shared_ptr<ProfileFuncs> _pfs, st
     ASSERT(loc->first_line != 0 || body->Tag() == STMT_NULL);
     auto loc_copy =
         std::make_shared<Location>(loc->filename, loc->first_line, loc->last_line, loc->first_column, loc->last_column);
-    ZAM::curr_func = func->Name();
+    ZAM::curr_func = func->GetName();
     ZAM::curr_loc = std::make_shared<ZAMLocInfo>(ZAM::curr_func, std::move(loc_copy), nullptr);
 
     Init();
@@ -196,7 +196,7 @@ StmtPtr ZAMCompiler::CompileBody() {
 
     ConcretizeSwitches();
 
-    std::string fname = func->Name();
+    auto fname = func->GetName();
 
     if ( func->Flavor() == FUNC_FLAVOR_FUNCTION )
         fname = func_name_at_loc(fname, body->GetLocationInfo());
@@ -356,17 +356,60 @@ void ZAMCompiler::ConcretizeSwitchTables(const CaseMapsI<T>& abstract_cases, Cas
 void ZAMCompiler::Dump() {
     bool remapped_frame = ! analysis_options.no_ZAM_opt;
 
-    if ( remapped_frame )
-        printf("Original frame for %s:\n", func->Name());
+    if ( analysis_options.dump_ZAM ) {
+        if ( remapped_frame )
+            printf("\nOriginal frame for %s:\n", func->GetName().c_str());
 
-    for ( const auto& elem : frame_layout1 )
-        printf("frame[%d] = %s\n", elem.second, elem.first->Name());
+        for ( const auto& elem : frame_layout1 )
+            printf("frame[%d] = %s\n", elem.second, elem.first->Name());
 
-    if ( remapped_frame ) {
-        printf("Final frame for %s:\n", func->Name());
+        if ( remapped_frame ) {
+            printf("Final frame for %s:\n", func->GetName().c_str());
+
+            for ( auto i = 0U; i < shared_frame_denizens.size(); ++i ) {
+                printf("frame2[%d] =", i);
+                for ( auto& id : shared_frame_denizens[i].ids )
+                    printf(" %s", id->Name());
+                printf("\n");
+            }
+        }
+
+        if ( ! insts2.empty() )
+            printf("Pre-removal of dead code for %s:\n", func->GetName().c_str());
+
+        auto remappings = remapped_frame ? &shared_frame_denizens : nullptr;
+
+        DumpInsts1(remappings);
+
+        if ( ! insts2.empty() )
+            printf("Final intermediary code for %s:\n", func->GetName().c_str());
+
+        remappings = remapped_frame ? &shared_frame_denizens_final : nullptr;
+
+        for ( auto i = 0U; i < insts2.size(); ++i ) {
+            auto& inst = insts2[i];
+            std::string liveness, depth;
+
+            if ( inst->live )
+                liveness = util::fmt("(labels %d)", inst->num_labels);
+            else
+                liveness = "(dead)";
+
+            if ( inst->loop_depth )
+                depth = util::fmt(" (loop %d)", inst->loop_depth);
+
+            printf("%d %s%s: ", i, liveness.c_str(), depth.c_str());
+
+            inst->Dump(stdout, &frame_denizens, remappings);
+        }
+    }
+    else if ( analysis_options.dump_final_ZAM ) {
+        ASSERT(remapped_frame);
+
+        printf("\nFrame for %s:\n", func->GetName().c_str());
 
         for ( auto i = 0U; i < shared_frame_denizens.size(); ++i ) {
-            printf("frame2[%d] =", i);
+            printf("frame[%d] =", i);
             for ( auto& id : shared_frame_denizens[i].ids )
                 printf(" %s", id->Name());
             printf("\n");
@@ -374,37 +417,9 @@ void ZAMCompiler::Dump() {
     }
 
     if ( ! insts2.empty() )
-        printf("Pre-removal of dead code for %s:\n", func->Name());
+        printf("Final code for %s:\n", func->GetName().c_str());
 
-    auto remappings = remapped_frame ? &shared_frame_denizens : nullptr;
-
-    DumpInsts1(remappings);
-
-    if ( ! insts2.empty() )
-        printf("Final intermediary code for %s:\n", func->Name());
-
-    remappings = remapped_frame ? &shared_frame_denizens_final : nullptr;
-
-    for ( auto i = 0U; i < insts2.size(); ++i ) {
-        auto& inst = insts2[i];
-        std::string liveness, depth;
-
-        if ( inst->live )
-            liveness = util::fmt("(labels %d)", inst->num_labels);
-        else
-            liveness = "(dead)";
-
-        if ( inst->loop_depth )
-            depth = util::fmt(" (loop %d)", inst->loop_depth);
-
-        printf("%d %s%s: ", i, liveness.c_str(), depth.c_str());
-
-        inst->Dump(stdout, &frame_denizens, remappings);
-    }
-
-    if ( ! insts2.empty() )
-        printf("Final code for %s:\n", func->Name());
-
+    auto remappings = remapped_frame ? &shared_frame_denizens_final : nullptr;
     for ( auto i = 0U; i < insts2.size(); ++i ) {
         auto& inst = insts2[i];
         // printf("%s:%d\n", inst->loc->filename, inst->loc->first_line);

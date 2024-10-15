@@ -484,6 +484,10 @@ private:
     void KillInst(ZInstI* i) { KillInst(i->inst_num); }
     void KillInst(zeek_uint_t i);
 
+    // Helper function for propagating control flow (of a given type)
+    // backwards, when the instruction at the given offset has been killed.
+    void BackPropagateCFT(int inst_num, ControlFlowType cf_type);
+
     // The same, but kills any successor instructions until finding
     // one that's labeled.
     void KillInsts(ZInstI* i) { KillInsts(i->inst_num); }

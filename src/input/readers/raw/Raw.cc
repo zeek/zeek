@@ -46,6 +46,7 @@ Raw::Raw(ReaderFrontend* frontend) : ReaderBackend(frontend), file(nullptr, fclo
     sep_length = BifConst::InputRaw::record_separator->Len();
 
     bufpos = 0;
+    bufsize = 0;
 
     stdin_fileno = fileno(stdin);
     stdout_fileno = fileno(stdout);
@@ -420,59 +421,74 @@ bool Raw::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fie
 
 int64_t Raw::GetLine(FILE* arg_file) {
     errno = 0;
-    int pos = 0; // strstr_n only works on ints - so no use to use something different here
-    int offset = 0;
 
-    if ( ! buf )
+    if ( ! buf ) {
         buf = std::unique_ptr<char[]>(new char[block_size]);
-
-    int repeats = 1;
+        bufpos = 0;
+        bufsize = block_size;
+    }
 
     for ( ;; ) {
-        size_t readbytes = fread(buf.get() + bufpos + offset, 1, block_size - bufpos, arg_file);
-        pos += bufpos + readbytes;
-        // printf("Pos: %d\n", pos);
-        bufpos = offset = 0; // read full block size in next read...
+        size_t readbytes = fread(buf.get() + bufpos, 1, bufsize - bufpos, arg_file);
 
-        if ( pos == 0 && errno != 0 )
+        bufpos = bufpos + readbytes;
+
+        // Nothing in the buffer and errno set, yield.
+        if ( bufpos == 0 && errno != 0 )
             break;
 
         // researching everything each time is a bit... cpu-intensive. But otherwise we have
         // to deal with situations where the separator is multi-character and split over multiple
         // reads...
-        int found = util::strstr_n(pos, (unsigned char*)buf.get(), separator.size(), (unsigned char*)separator.c_str());
+        //
+        // memmem() would be more appropriate, but not available on Windows.
+        int found = util::strstr_n(bufpos, reinterpret_cast<u_char*>(buf.get()), separator.size(),
+                                   reinterpret_cast<const u_char*>(separator.c_str()));
 
         if ( found == -1 ) {
-            // we did not find it and have to search again in the next try. resize buffer....
+            // we did not find it and have to search again in the next try.
             // but first check if we encountered the file end - because if we did this was it.
             if ( feof(arg_file) != 0 ) {
-                if ( pos == 0 )
+                if ( bufpos == 0 )
                     return -1; // signal EOF - and that we had no more data.
                 else {
                     outbuf = std::move(buf); // buf is null after this
-                    return pos;
+                    return bufpos;           // flush out remaining buffered data as line
                 }
             }
 
-            repeats++;
-            // bah, we cannot use realloc because we would have to change the delete in the manager
-            // to a free.
-            std::unique_ptr<char[]> newbuf = std::unique_ptr<char[]>(new char[block_size * repeats]);
-            memcpy(newbuf.get(), buf.get(), block_size * (repeats - 1));
-            buf = std::move(newbuf);
-            offset = block_size * (repeats - 1);
+            // No separator found and buffer full, realloc and retry reading more right away.
+            if ( bufpos == bufsize ) {
+                std::unique_ptr<char[]> newbuf = std::unique_ptr<char[]>(new char[bufsize + block_size]);
+                memcpy(newbuf.get(), buf.get(), bufsize);
+                buf = std::move(newbuf);
+                bufsize = bufsize + block_size;
+            }
+            else {
+                // Short or empty read, some data in the buffer, but no separator found
+                // and also not EOF: This is likely reading from a pipe where the separator
+                // wasn't yet produced. Yield to retry on the next heartbeat.
+                return -2;
+            }
         }
         else {
+            size_t sep_idx = static_cast<size_t>(found);
+            assert(sep_idx <= bufsize - sep_length);
+            size_t remaining = bufpos - sep_idx - sep_length;
+
             outbuf = std::move(buf);
 
-            if ( found < pos ) {
+            if ( remaining > 0 ) {
                 // we have leftovers. copy them into the buffer for the next line
+                assert(remaining <= block_size);
                 buf = std::unique_ptr<char[]>(new char[block_size]);
-                memcpy(buf.get(), outbuf.get() + found + sep_length, pos - found - sep_length);
-                bufpos = pos - found - sep_length;
+                bufpos = remaining;
+                bufsize = block_size;
+
+                memcpy(buf.get(), outbuf.get() + sep_idx + sep_length, remaining);
             }
 
-            return found;
+            return sep_idx;
         }
     }
 

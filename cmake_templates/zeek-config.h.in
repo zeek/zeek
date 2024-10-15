@@ -244,6 +244,9 @@
 /* Enable/disable ZAM profiling capability */
 #cmakedefine ENABLE_ZAM_PROFILE
 
+/* Enable/disable the Spicy SSL analyzer */
+#cmakedefine ENABLE_SPICY_SSL
+
 /* String with host architecture (e.g., "linux-x86_64") */
 #define HOST_ARCHITECTURE "@HOST_ARCHITECTURE@"
 

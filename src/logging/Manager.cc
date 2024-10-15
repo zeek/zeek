@@ -16,6 +16,7 @@
 #include "zeek/NetVar.h"
 #include "zeek/OpaqueVal.h"
 #include "zeek/RunState.h"
+#include "zeek/Timer.h"
 #include "zeek/Type.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/input.h"
@@ -39,6 +40,21 @@ extern zeek::OpaqueTypePtr log_delay_token_type;
 namespace zeek::logging {
 
 namespace detail {
+
+// A timer that regularly flushes the write buffer of all WriterFrontends.
+class LogFlushWriteBufferTimer : public zeek::detail::Timer {
+public:
+    explicit LogFlushWriteBufferTimer(double t) : Timer(t, zeek::detail::TIMER_LOG_FLUSH_WRITE_BUFFER) {}
+
+    void Dispatch(double t, bool is_expire) override {
+        zeek::log_mgr->FlushAllWriteBuffers();
+
+        if ( ! is_expire )
+            zeek::log_mgr->StartLogFlushTimer();
+    }
+};
+
+
 using DelayTokenType = zeek_uint_t;
 
 class DelayInfo;
@@ -209,6 +225,10 @@ struct Manager::Filter {
     vector<list<int>> indices;
 
     ~Filter();
+
+    // Invoke path_func of this filter and sets write_path with the
+    // result. Returns true on success, otherwise false.
+    bool InvokePathFunc(const Manager::Stream* stream, const zeek::RecordValPtr& columns, std::string& write_path);
 };
 
 struct Manager::WriterInfo {
@@ -268,6 +288,47 @@ struct Manager::Stream {
     void ScheduleLogDelayExpiredTimer(double t);
     void DispatchDelayExpiredTimer(double t, bool is_expire);
 };
+
+bool Manager::Filter::InvokePathFunc(const Manager::Stream* stream, const zeek::RecordValPtr& columns,
+                                     std::string& write_path) {
+    ValPtr path_arg;
+
+    if ( path_val )
+        path_arg = {NewRef{}, path_val};
+    else
+        path_arg = val_mgr->EmptyString();
+
+    ValPtr rec_arg;
+    const auto& rt = path_func->GetType()->Params()->GetFieldType("rec");
+
+    if ( rt->Tag() == TYPE_RECORD )
+        rec_arg = columns->CoerceTo(cast_intrusive<RecordType>(rt), true);
+    else
+        // Can be TYPE_ANY here.
+        rec_arg = columns;
+
+    auto v = path_func->Invoke(IntrusivePtr{NewRef{}, stream->id}, std::move(path_arg), std::move(rec_arg));
+
+    if ( ! v ) {
+        reporter->Error("path_func did not return a value");
+        return false;
+    }
+
+    if ( v->GetType()->Tag() != TYPE_STRING ) {
+        reporter->Error("path_func did not return string");
+        return false;
+    }
+
+    // If this filter didn't have path_val set, do so now.
+    if ( ! path_val ) {
+        path = v->AsString()->CheckString();
+        path_val = v->Ref();
+    }
+
+    write_path = v->AsString()->CheckString();
+
+    return true;
+}
 
 Manager::Filter::~Filter() {
     Unref(fval);
@@ -413,7 +474,6 @@ void Manager::Stream::DispatchDelayExpiredTimer(double t, bool is_expire) {
     if ( ! delay_queue.empty() )
         ScheduleLogDelayExpiredTimer(delay_queue.front()->ExpireTime());
 }
-
 
 Manager::Manager()
     : plugin::ComponentManager<logging::Component>("Log", "Writer"),
@@ -587,7 +647,7 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval) {
     streams[idx]->id = id->Ref()->AsEnumVal();
     streams[idx]->enabled = true;
     streams[idx]->name = id->GetType()->AsEnumType()->Lookup(idx);
-    streams[idx]->event = event ? event_registry->Lookup(event->Name()) : nullptr;
+    streams[idx]->event = event ? event_registry->Lookup(event->GetName()) : nullptr;
     streams[idx]->policy = policy;
     streams[idx]->columns = columns->Ref()->AsRecordType();
     streams[idx]->max_delay_interval = sval->GetField("max_delay_interval")->AsInterval();
@@ -597,6 +657,9 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval) {
 
     DBG_LOG(DBG_LOGGING, "Created new logging stream '%s', raising event %s", streams[idx]->name.c_str(),
             event ? streams[idx]->event->Name() : "<none>");
+
+    if ( ! log_flush_timer )
+        StartLogFlushTimer();
 
     return true;
 }
@@ -1016,44 +1079,11 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
             continue;
 
         if ( filter->path_func ) {
-            ValPtr path_arg;
-
-            if ( filter->path_val )
-                path_arg = {NewRef{}, filter->path_val};
-            else
-                path_arg = val_mgr->EmptyString();
-
-            ValPtr rec_arg;
-            const auto& rt = filter->path_func->GetType()->Params()->GetFieldType("rec");
-
-            if ( rt->Tag() == TYPE_RECORD )
-                rec_arg = columns->CoerceTo(cast_intrusive<RecordType>(rt), true);
-            else
-                // Can be TYPE_ANY here.
-                rec_arg = columns;
-
-            auto v =
-                filter->path_func->Invoke(IntrusivePtr{NewRef{}, stream->id}, std::move(path_arg), std::move(rec_arg));
-
-            if ( ! v )
+            if ( ! filter->InvokePathFunc(stream, columns, path) )
                 return false;
 
-            if ( v->GetType()->Tag() != TYPE_STRING ) {
-                reporter->Error("path_func did not return string");
-                return false;
-            }
-
-            if ( ! filter->path_val ) {
-                filter->path = v->AsString()->CheckString();
-                filter->path_val = v->Ref();
-            }
-
-            path = v->AsString()->CheckString();
-
-#ifdef DEBUG
             DBG_LOG(DBG_LOGGING, "Path function for filter '%s' on stream '%s' return '%s'", filter->name.c_str(),
                     stream->name.c_str(), path.c_str());
-#endif
         }
 
         Stream::WriterPathPair wpp(filter->writer->AsEnum(), path);
@@ -1086,13 +1116,11 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
             path = filter->path = filter->path_val->AsString()->CheckString();
         }
 
-        WriterBackend::WriterInfo* info = nullptr;
         WriterFrontend* writer = nullptr;
 
         if ( w != stream->writers.end() ) {
             // We know this writer already.
             writer = w->second->writer;
-            info = w->second->info;
 
             if ( ! w->second->hook_initialized ) {
                 auto wi = w->second;
@@ -1106,51 +1134,17 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
 
         else {
             // No, need to create one.
-
-            // Copy the fields for WriterFrontend::Init() as it
-            // will take ownership.
-            threading::Field** arg_fields = new threading::Field*[filter->num_fields];
-
-            for ( int j = 0; j < filter->num_fields; ++j ) {
-                // Rename fields if a field name map is set.
-                if ( filter->field_name_map ) {
-                    const char* name = filter->fields[j]->name;
-                    if ( const auto& val = filter->field_name_map->Find(make_intrusive<StringVal>(name)) ) {
-                        delete[] filter->fields[j]->name;
-                        auto [data, len] = val->AsStringVal()->CheckStringWithSize();
-                        filter->fields[j]->name = util::copy_string(data, len);
-                    }
-                }
-                arg_fields[j] = new threading::Field(*filter->fields[j]);
-            }
-
-            info = new WriterBackend::WriterInfo;
-            info->path = util::copy_string(path.c_str(), path.size());
-            info->network_time = run_state::network_time;
-
-            auto* filter_config_table = filter->config->AsTable();
-            for ( const auto& fcte : *filter_config_table ) {
-                auto k = fcte.GetHashKey();
-                auto* v = fcte.value;
-
-                auto index = filter->config->RecreateIndex(*k);
-                string key = index->Idx(0)->AsString()->CheckString();
-                string value = v->GetVal()->AsString()->CheckString();
-                info->config.emplace(util::copy_string(key.c_str(), key.size()),
-                                     util::copy_string(value.c_str(), value.size()));
-            }
-
-            // CreateWriter() will set the other fields in info.
-
-            writer = CreateWriter(stream->id, filter->writer, info, filter->num_fields, arg_fields, filter->local,
-                                  filter->remote, false, filter->name);
+            writer = CreateWriterForFilter(filter, path, WriterOrigin::LOCAL);
 
             if ( ! writer )
                 return false;
 
             // Find the newly inserted WriterInfo record.
             w = stream->writers.find(wpp);
+            assert(w != stream->writers.end());
         }
+
+        assert(writer);
 
         // Alright, can do the write now.
         auto rec = RecordToLogRecord(stream, filter, columns.get());
@@ -1163,10 +1157,10 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
             for ( auto& v : rec )
                 vals.emplace_back(&v);
 
-            bool res =
-                zeek::plugin_mgr->HookLogWrite(filter->writer->GetType()->AsEnumType()->Lookup(
-                                                   filter->writer->InternalInt()),
-                                               filter->name, *info, filter->num_fields, filter->fields, &vals[0]);
+            bool res = zeek::plugin_mgr->HookLogWrite(filter->writer->GetType()->AsEnumType()->Lookup(
+                                                          filter->writer->InternalInt()),
+                                                      filter->name, *writer->info, filter->num_fields, filter->fields,
+                                                      &vals[0]);
             if ( ! res ) {
                 DBG_LOG(DBG_LOGGING, "Hook prevented writing to filter '%s' on stream '%s'", filter->name.c_str(),
                         stream->name.c_str());
@@ -1175,11 +1169,9 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
             }
         }
 
-        assert(w != stream->writers.end());
         w->second->total_writes->Inc();
 
         // Write takes ownership of vals.
-        assert(writer);
         writer->Write(std::move(rec));
 
 #ifdef DEBUG
@@ -1651,7 +1643,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 
             if ( f->postprocessor ) {
                 delete[] winfo->info->post_proc_func;
-                winfo->info->post_proc_func = util::copy_string(f->postprocessor->Name());
+                winfo->info->post_proc_func = util::copy_string(f->postprocessor->GetName().c_str());
             }
 
             break;
@@ -1696,6 +1688,47 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
     InstallRotationTimer(winfo);
 
     return winfo->writer;
+}
+
+WriterFrontend* Manager::CreateWriterForFilter(Filter* filter, const std::string& path, WriterOrigin from) {
+    // Copy the fields for WriterFrontend::Init() as it
+    // will take ownership.
+    threading::Field** arg_fields = new threading::Field*[filter->num_fields];
+
+    for ( int j = 0; j < filter->num_fields; ++j ) {
+        // Rename fields if a field name map is set.
+        if ( filter->field_name_map ) {
+            const char* name = filter->fields[j]->name;
+            if ( const auto& val = filter->field_name_map->Find(make_intrusive<StringVal>(name)) ) {
+                delete[] filter->fields[j]->name;
+                auto [data, len] = val->AsStringVal()->CheckStringWithSize();
+                filter->fields[j]->name = util::copy_string(data, len);
+            }
+        }
+        arg_fields[j] = new threading::Field(*filter->fields[j]);
+    }
+
+    auto* info = new WriterBackend::WriterInfo;
+    info->path = util::copy_string(path.c_str(), path.size());
+    info->network_time = run_state::network_time;
+
+    auto* filter_config_table = filter->config->AsTable();
+    for ( const auto& fcte : *filter_config_table ) {
+        auto k = fcte.GetHashKey();
+        auto* v = fcte.value;
+
+        auto index = filter->config->RecreateIndex(*k);
+        string key = index->Idx(0)->AsString()->CheckString();
+        string value = v->GetVal()->AsString()->CheckString();
+        info->config.emplace(util::copy_string(key.c_str(), key.size()),
+                             util::copy_string(value.c_str(), value.size()));
+    }
+
+    // CreateWriter() will set the other fields in info.
+
+    bool from_remote = from == Manager::WriterOrigin::REMOTE;
+    return CreateWriter(filter->id, filter->writer, info, filter->num_fields, arg_fields, filter->local, filter->remote,
+                        from_remote, filter->name);
 }
 
 bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, const string& path, detail::LogRecord&& rec) {
@@ -2031,6 +2064,22 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
         result = v->AsBool();
 
     return result;
+}
+
+void Manager::FlushAllWriteBuffers() {
+    for ( const auto* s : zeek::log_mgr->streams ) {
+        if ( ! s ) // may store nullptr
+            continue;
+
+        for ( const auto& [_, info] : s->writers )
+            info->writer->FlushWriteBuffer();
+    }
+}
+
+void Manager::StartLogFlushTimer() {
+    double next_t = zeek::run_state::network_time + BifConst::Log::flush_interval;
+    log_flush_timer = new detail::LogFlushWriteBufferTimer(next_t);
+    zeek::detail::timer_mgr->Add(log_flush_timer);
 }
 
 } // namespace zeek::logging

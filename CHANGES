@@ -1,3 +1,10 @@
+7.1.0-dev.393 | 2024-10-15 09:56:19 +0200
+
+  * Test `.evt` file `&priority` (Evan Typanski, Corelight)
+
+    This was not documented nor tested, so this tests the behavior.
+    Documentation should be added later.
+
 7.1.0-dev.390 | 2024-10-09 15:36:41 -0700
 
   * removed specialized ZAM instructions for GTPv1 and Teredo cleanup BiFs (Vern Paxson, Corelight)

@@ -93,6 +93,10 @@ Changed Functionality
 * The ASCII input reader now suppresses warnings for consecutive invalid lines,
   producing a summary of total suppressions once a valid line is encountered.
 
+* The `Telemetry::sync()` hook is now invoked on demand. Either when the metrics
+  of a node are scraped via the Prometheus HTTP endpoint, or one of the collect
+  methods is invoked from Zeek script.
+
 Removed Functionality
 ---------------------
 

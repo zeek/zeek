@@ -5,10 +5,10 @@
 #unset_field	-
 #path	resp
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd.raw	cmd.key	cmd.value
-#types	time	string	addr	port	addr	port	vector[string]	string	string
-XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	127.0.0.1	53426	127.0.0.1	6379	subscribe,my_channel	-	-
-XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	127.0.0.1	53426	127.0.0.1	6379	message,my_channel,hi there!	-	-
-XXXXXXXXXX.XXXXXX	CUM0KZ3MLUfNB0cl11	127.0.0.1	53450	127.0.0.1	6379	PUBLISH,my_channel,1	-	-
-XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	127.0.0.1	53426	127.0.0.1	6379	message,my_channel,1	-	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd.command	cmd.key	cmd.value
+#types	time	string	addr	port	addr	port	string	string	string
+XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	127.0.0.1	53426	127.0.0.1	6379	subscribe	-	-
+XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	127.0.0.1	53426	127.0.0.1	6379	message	-	-
+XXXXXXXXXX.XXXXXX	CUM0KZ3MLUfNB0cl11	127.0.0.1	53450	127.0.0.1	6379	PUBLISH	-	-
+XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	127.0.0.1	53426	127.0.0.1	6379	message	-	-
 #close XXXX-XX-XX-XX-XX-XX

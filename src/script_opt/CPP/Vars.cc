@@ -133,15 +133,13 @@ string CPPCompile::LocalName(const ID* l) const { return Canonicalize(trim_name(
 
 string CPPCompile::CaptureName(const ID* c) const {
     // We want to strip both the module and any inlining appendage.
-    auto n = Canonicalize(trim_name(c).c_str());
+    auto tn = trim_name(c);
 
-    auto appendage = n.find(".");
-    if ( appendage != string::npos ) {
-        n.erase(n.begin() + appendage, n.end());
-        n.push_back('_');
-    }
+    auto appendage = tn.find(".");
+    if ( appendage != string::npos )
+        tn.erase(tn.begin() + appendage, tn.end());
 
-    return n;
+    return Canonicalize(tn.c_str());
 }
 
 string CPPCompile::Canonicalize(const char* name) const {

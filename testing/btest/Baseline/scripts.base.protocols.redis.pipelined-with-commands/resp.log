@@ -5,10 +5,10 @@
 #unset_field	-
 #path	resp
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd.raw	cmd.key	cmd.value
-#types	time	string	addr	port	addr	port	vector[string]	string	string
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd.command	cmd.key	cmd.value
+#types	time	string	addr	port	addr	port	string	string	string
 XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	::1	56731	::1	6379	PING	-	-
 XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	::1	56731	::1	6379	PING	-	-
-XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	::1	56731	::1	6379	SET,HI,3	HI	3
-XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	::1	56731	::1	6379	GET,HI	HI	-
+XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	::1	56731	::1	6379	SET	HI	3
+XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	::1	56731	::1	6379	GET	HI	-
 #close XXXX-XX-XX-XX-XX-XX

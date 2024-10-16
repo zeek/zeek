@@ -2,14 +2,18 @@ module RESP;
 
 import spicy;
 
+# Maximum size for parsing of certain fields. By restricting this we avoid
+# exhausting main memory.
+const MAX_SIZE = 1024 * 1024;
+
 public type Messages = unit {
     : (Data &synchronize)[];
 };
 
 public type Data = unit {
-    %synchronize-after=b"\x0d\x0a";
+    %synchronize-after = b"\x0d\x0a";
     ty: uint8 &convert=DataType($$);
-    switch ( self.ty ) {
+    switch (self.ty) {
         DataType::SIMPLE_STRING -> simple_string: SimpleString(False);
         DataType::SIMPLE_ERROR -> simple_error: SimpleString(True);
         DataType::INTEGER -> integer: Integer;
@@ -31,10 +35,12 @@ public type Data = unit {
         DataType::PUSH -> push: Array;
         # HACK: If the type isn't recognized, this is just some random unserialized
         # string until \r\n - do this by prepending the type to the remaining bytes.
-        # We will, however, cap this data off at 1024 bytes. This may be encrypted, we
-        # don't want to accept random gibberish here.
-        * -> not_serialized: bytes &convert=(pack(cast<uint8>(self.ty), spicy::ByteOrder::Network) + $$) &until=b"\x0d\x0a" &max-size=1024;
-        };
+        # Formally in Redis code, that's an "inline protocol."
+        #
+        # As an extra point, this is handled in redis in `processInlineBuffer`,
+        # which has a hardcoded limit of 1024*64. That seems too big. We'll do 1024.
+        * -> not_serialized: RedisBytes &convert=(pack(cast<uint8>(self.ty), spicy::ByteOrder::Network) + $$) &max-size=1024;
+    };
 };
 
 type DataType = enum {
@@ -51,65 +57,78 @@ type DataType = enum {
     VERBATIM_STRING = '=',
     MAP = '%',
     SET = '~',
-    PUSH = '>'
+    PUSH = '>',
 };
 
+# Helper unit to extract bytes of some reasonable size so we do not exhaust mem.
+type RedisBytes = unit {
+    data: bytes &until=b"\x0d\x0a" &max-size=MAX_SIZE;
+} &convert=self.data;
+
 type SimpleString = unit(is_error: bool) {
-    content: bytes &until=b"\x0d\x0a";
+    content: RedisBytes;
 };
 
 type Integer = unit {
-    int: bytes &convert=$$.to_int(10) &until=b"\x0d\x0a";
+    int: RedisBytes &convert=$$.to_int(10);
 };
 
 type BulkString = unit(is_error: bool) {
-    length: bytes &convert=$$.to_int(10) &until=b"\x0d\x0a";
+    length: RedisBytes &convert=$$.to_int(10) &requires=self.length <= int64(MAX_SIZE);
     # NullBulkString is a BulkString with content unset
-    content: bytes &size=uint64( self.length ) if ( self.length >= 0 );
+    content: bytes &size=uint64(self.length) if(self.length >= 0);
 
     # Consume last CLRF
-    : skip bytes &until=b"\x0d\x0a";
+    : skip RedisBytes;
 };
 
 type Array = unit {
-    num_elements: bytes &convert=$$.to_int(10) &until=b"\x0d\x0a";
+    num_elements: RedisBytes &convert=$$.to_int(10) &requires=self.num_elements <= int64(MAX_SIZE);
     # Null array is an array with elements unset. This is different from an empty array
-    elements: Data[uint64(self.num_elements)] if ( self.num_elements >= 0 );
+    elements: Data[uint64(self.num_elements)];
 };
 
 type Null_ = unit {
     # Still must consume CLRF
-    : skip bytes &until=b"\x0d\x0a";
+    : skip RedisBytes;
 };
 
 type Boolean = unit {
     val: uint8 &convert=$$ == 't';
-    : skip bytes &until=b"\x0d\x0a";
+    : skip RedisBytes;
 };
 
 type Double = unit {
-    val: bytes &convert=$$.to_real() &until=b"\x0d\x0a";
+    val: RedisBytes &convert=$$.to_real();
 };
 
 type BigNum = unit {
-    # Big num can be very big so put it in a UTF-8 decoded string
-    val: bytes &convert=$$.decode() &until=b"\x0d\x0a";
+    # Big num can be very big so leave it in bytes.
+    val: RedisBytes;
 };
 
 type Map = unit {
     var key_val_pairs: vector<tuple<Data, Data>>;
-    num_elements: bytes &convert=$$.to_uint(10) &until=b"\x0d\x0a";
+    num_elements: RedisBytes &convert=$$.to_uint(10);
     # TODO: How can I make this into a map? Alternatively, how can I do this better?
-    raw_data: Data[self.num_elements*2] {
-        while ( local i = 0; i < self.num_elements ) {
-            self.key_val_pairs.push_back(($$[i], $$[i+1]));
+    raw_data: Data[self.num_elements * 2] {
+        while (local i = 0; i < self.num_elements) {
+            self.key_val_pairs.push_back(($$[i], $$[i + 1]));
             i += 2;
         }
     }
 };
 
 type Set = unit {
-    num_elements: bytes &convert=$$.to_uint(10) &until=b"\x0d\x0a";
+    num_elements: RedisBytes &convert=$$.to_uint(10) &requires=self.num_elements <= MAX_SIZE;
     # TODO: This should be a set but doesn't go in the backed C++ set
     elements: Data[self.num_elements];
 };
+
+on Data::%done {
+    spicy::accept_input();
+}
+
+on Data::%error {
+    spicy::decline_input("error while parsing RESP data");
+}

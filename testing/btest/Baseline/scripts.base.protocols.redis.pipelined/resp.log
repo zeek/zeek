@@ -5,8 +5,8 @@
 #unset_field	-
 #path	resp
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd.raw	cmd.key	cmd.value
-#types	time	string	addr	port	addr	port	vector[string]	string	string
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd.command	cmd.key	cmd.value
+#types	time	string	addr	port	addr	port	string	string	string
 XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	::1	51122	::1	6379	PING	-	-
 XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	::1	51122	::1	6379	PING	-	-
 XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	::1	51122	::1	6379	PING	-	-

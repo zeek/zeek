@@ -4,16 +4,8 @@
 module Zeek_RESP;
 
 import RESP;
+
 import zeek;
-
-# Any error bubbling up to the top unit will trigger a protocol rejection.
-on RESP::Data::%done {
-    zeek::confirm_protocol();
-}
-
-on RESP::Data::%error {
-    zeek::reject_protocol("error while parsing RESP data");
-}
 
 type KnownCommand = enum {
     APPEND,
@@ -69,21 +61,22 @@ public function is_command(arr: RESP::Array): bool {
 }
 
 type Command = tuple<
-    # raw command
-    vector<bytes>,
-    # key
-    optional<bytes>,
-    # value
-    optional<bytes>,
->;
+# raw command
+vector<bytes>,
+# command
+bytes,
+# key
+optional<bytes>,
+# value
+optional<bytes>, >;
 
 # This just assumes all elements in the array is a bulk string and puts them in a vector
 public function make_command(arr: RESP::Array): Command {
     local v: vector<bytes>;
-    for ( ele in arr.elements ) {
+    for (ele in arr.elements) {
         # TODO: Stringify the other data too. Apparently commands *can* have other stuff
         # such as SUBSCRIBE, which will magically put an integer after it.
-        if ( ele?.bulk_string )
+        if (ele?.bulk_string)
             v.push_back(ele.bulk_string.content);
     }
     return parse_command(v);
@@ -92,58 +85,151 @@ public function make_command(arr: RESP::Array): Command {
 public function unserialized_command(unserialized: RESP::Data): Command {
     # Only call this if it's unserialized :)
     assert unserialized?.not_serialized;
-    local content = unserialized.not_serialized;
-    # TODO: escaping/strings? For example, string "Hi there" should be one element.
-    return parse_command(content.split());
+
+    local tokenized: vector<bytes>;
+    local it = unserialized.not_serialized.at(0);
+    # Redis whitespace characters are null, tab, LF, CR, and space
+    local whitespace = set<uint8>(0, 9, 10, 13, 32);
+    # Note: this logic is a bit different from Redis. Hopefully it doesn't matter
+    while (True) {
+        while (it != end(unserialized.not_serialized) && ((*it) in whitespace))
+            it++;
+
+        # Get a token
+        local start = it;
+        if (it != end(unserialized.not_serialized)) {
+            local double_quotes = False;
+            local single_quotes = False;
+            local done = False;
+            while (!done) {
+                if (double_quotes) {
+                    if (*it == '\' && it + 1 != end(unserialized.not_serialized) && *(it + 1) == '"') {
+                        # Skip one, then later we skip another
+                        it++;
+                    } else if (*it == '"') {
+                        double_quotes = False;
+                    }
+
+                    it++;
+                } else if (single_quotes) {
+                    if (*it == '\' && it + 1 != end(unserialized.not_serialized) && *(it + 1) == ''') {
+                        # Skip one, then later we skip another
+                        it++;
+                    } else if (*it == ''') {
+                        single_quotes = False;
+                    }
+
+                    it++;
+                } else {
+                    if (it != end(unserialized.not_serialized)) {
+                        switch (*it) {
+                            case '"': double_quotes = True;
+                            case ''': single_quotes = True;
+                            default: {
+                                if ((*it) in whitespace)
+                                    done = True;
+                            }
+                        }
+
+                        if (!done)
+                            it++;
+                    }
+                }
+
+                if (it == end(unserialized.not_serialized)) {
+                    done = True;
+                    # If we're still in quotes, that's weird, but not really too bad.
+                    if (double_quotes || single_quotes)
+                        zeek::weird("unbalanced_quotes", "unbalanced quotes in inline buffer: '" + unserialized.not_serialized.sub(start, it).decode() + "'");
+                }
+            }
+        } else {
+            break;
+        }
+        tokenized.push_back(unserialized.not_serialized.sub(start, it));
+    }
+    return parse_command(tokenized);
 }
 
 # Parses the vector of bytes to get a Command object
 function parse_command(raw: vector<bytes>): Command {
     assert |raw| >= 1;
-    local parsed: Command = (raw, Null, Null);
+    local parsed: Command = (raw, raw[0], Null, Null);
     local cmd = command_from(raw[0]);
-    if ( ! cmd )
+    if (!cmd)
         return parsed;
 
-    if ( |raw| >= 2 ) {
-        switch ( *cmd ) {
+    if (|raw| >= 2) {
+        switch (*cmd) {
             case KnownCommand::KEYS:
-                    parsed[2] = raw[1];
-            case KnownCommand::APPEND, KnownCommand::BITCOUNT, KnownCommand::BITFIELD,
-                 KnownCommand::BITFIELD_RO, KnownCommand::BITPOS, KnownCommand::BLPOP,
-                 KnownCommand::BRPOP, KnownCommand::COPY, KnownCommand::DECR,
-                 KnownCommand::DECRBY, KnownCommand::DEL, KnownCommand::DUMP,
-                 KnownCommand::EXISTS, KnownCommand::EXPIRE, KnownCommand::EXPIREAT,
-                 KnownCommand::EXPIRETIME, KnownCommand::GET, KnownCommand::GETBIT,
-                 KnownCommand::GETDEL, KnownCommand::GETEX, KnownCommand::GETRANGE,
-                 KnownCommand::GETSET, KnownCommand::HDEL, KnownCommand::HGET,
-                 KnownCommand::HSET, KnownCommand::INCR, KnownCommand::INCRBY,
-                 KnownCommand::MGET, KnownCommand::MOVE, KnownCommand::MSET,
-                 KnownCommand::PERSIST, KnownCommand::RENAME, KnownCommand::SET,
-                 KnownCommand::STRLEN, KnownCommand::TTL, KnownCommand::TYPE:
-                    parsed[1] = raw[1];
+                parsed[3] = raw[1];
+            case KnownCommand::APPEND,
+                 KnownCommand::BITCOUNT,
+                 KnownCommand::BITFIELD,
+                 KnownCommand::BITFIELD_RO,
+                 KnownCommand::BITPOS,
+                 KnownCommand::BLPOP,
+                 KnownCommand::BRPOP,
+                 KnownCommand::COPY,
+                 KnownCommand::DECR,
+                 KnownCommand::DECRBY,
+                 KnownCommand::DEL,
+                 KnownCommand::DUMP,
+                 KnownCommand::EXISTS,
+                 KnownCommand::EXPIRE,
+                 KnownCommand::EXPIREAT,
+                 KnownCommand::EXPIRETIME,
+                 KnownCommand::GET,
+                 KnownCommand::GETBIT,
+                 KnownCommand::GETDEL,
+                 KnownCommand::GETEX,
+                 KnownCommand::GETRANGE,
+                 KnownCommand::GETSET,
+                 KnownCommand::HDEL,
+                 KnownCommand::HGET,
+                 KnownCommand::HSET,
+                 KnownCommand::INCR,
+                 KnownCommand::INCRBY,
+                 KnownCommand::MGET,
+                 KnownCommand::MOVE,
+                 KnownCommand::MSET,
+                 KnownCommand::PERSIST,
+                 KnownCommand::RENAME,
+                 KnownCommand::SET,
+                 KnownCommand::STRLEN,
+                 KnownCommand::TTL,
+                 KnownCommand::TYPE:
+                parsed[2] = raw[1];
             default: ();
         }
     }
 
-    if ( |raw| >= 3 ) {
-        switch ( *cmd ) {
-            case KnownCommand::SET, KnownCommand::APPEND, KnownCommand::DECRBY,
-                 KnownCommand::EXPIRE, KnownCommand::EXPIREAT, KnownCommand::GETBIT,
-                 KnownCommand::GETSET, KnownCommand::HDEL, KnownCommand::HGET,
-                 KnownCommand::INCRBY, KnownCommand::MOVE, KnownCommand::MSET,
+    if (|raw| >= 3) {
+        switch (*cmd) {
+            case KnownCommand::SET,
+                 KnownCommand::APPEND,
+                 KnownCommand::DECRBY,
+                 KnownCommand::EXPIRE,
+                 KnownCommand::EXPIREAT,
+                 KnownCommand::GETBIT,
+                 KnownCommand::GETSET,
+                 KnownCommand::HDEL,
+                 KnownCommand::HGET,
+                 KnownCommand::INCRBY,
+                 KnownCommand::MOVE,
+                 KnownCommand::MSET,
                  KnownCommand::RENAME:
-                    parsed[2] = raw[2];
+                parsed[3] = raw[2];
             # Op first, destination second, then a list of keys. Just log dest
-            case KnownCommand::BITOP: parsed[1] = raw[2];
+            case KnownCommand::BITOP: parsed[2] = raw[2];
             default: ();
         }
     }
 
-    if ( |raw| >= 4 ) {
-        switch ( *cmd ) {
+    if (|raw| >= 4) {
+        switch (*cmd) {
             # timeout, numkeys, then key
-            case KnownCommand::BLMPOP: parsed[1] = raw[3];
+            case KnownCommand::BLMPOP: parsed[2] = raw[3];
             default: ();
         }
     }
@@ -201,32 +287,29 @@ function command_from(cmd_bytes: bytes): optional<KnownCommand> {
 }
 
 type Set = tuple<
-    # key
-    bytes,
-    # value
-    bytes,
-    # NX
-    bool,
-    # XX
-    bool,
-    # GET
-    bool,
-    # EX
-    optional<uint64>,
-    # PX
-    optional<uint64>,
-    # EXAT
-    optional<uint64>,
-    # PXAT
-    optional<uint64>,
-    # KEEPTTL
-    bool,
->;
+# key
+bytes,
+# value
+bytes,
+# NX
+bool,
+# XX
+bool,
+# GET
+bool,
+# EX
+optional<uint64>,
+# PX
+optional<uint64>,
+# EXAT
+optional<uint64>,
+# PXAT
+optional<uint64>,
+# KEEPTTL
+bool, >;
 
 public function make_set(arr: RESP::Array): Set {
     assert arr.num_elements >= 3 : "Must have at least 3 elements in SET";
-    local key = arr.elements[1].bulk_string.content;
-    local value = arr.elements[2].bulk_string.content;
     local nx = False;
     local xx = False;
     local get = False;
@@ -237,45 +320,40 @@ public function make_set(arr: RESP::Array): Set {
     local keep_ttl = False;
     local i = 3;
     local elements = cast<uint64>(arr.num_elements);
-    while ( i < elements ) {
+    while (i < elements) {
         # All array elements in a command will be a bulk string by default
-        if ( ! arr.elements[i]?.bulk_string ) {
+        if (!arr.elements[i]?.bulk_string) {
             ++i;
             continue;
         }
 
-        local content = arr.elements[i].bulk_string.content;
-        switch (content.lower()) {
+        switch (arr.elements[i].bulk_string.content.lower()) {
             case b"nx": nx = True;
             case b"xx": xx = True;
             case b"get": get = True;
             case b"ex": {
                 ++i;
-                if ( i >= elements || ! arr.elements[i]?.bulk_string )
+                if (i >= elements || !arr.elements[i]?.bulk_string)
                     break;
-                local inner = arr.elements[i].bulk_string.content;
-                ex = inner.to_uint();
+                ex = arr.elements[i].bulk_string.content.to_uint();
             }
             case b"px": {
                 ++i;
-                if ( i >= elements || ! arr.elements[i]?.bulk_string )
+                if (i >= elements || !arr.elements[i]?.bulk_string)
                     break;
-                local inner = arr.elements[i].bulk_string.content;
-                px = inner.to_uint();
+                px = arr.elements[i].bulk_string.content.to_uint();
             }
             case b"exat": {
                 ++i;
-                if ( i >= elements || ! arr.elements[i]?.bulk_string )
+                if (i >= elements || !arr.elements[i]?.bulk_string)
                     break;
-                local inner = arr.elements[i].bulk_string.content;
-                exat = inner.to_uint();
+                exat = arr.elements[i].bulk_string.content.to_uint();
             }
             case b"pxat": {
                 ++i;
-                if ( i >= elements || ! arr.elements[i]?.bulk_string )
+                if (i >= elements || !arr.elements[i]?.bulk_string)
                     break;
-                local inner = arr.elements[i].bulk_string.content;
-                pxat = inner.to_uint();
+                pxat = arr.elements[i].bulk_string.content.to_uint();
             }
             case b"keepttl": keep_ttl = True;
             default: ();
@@ -283,7 +361,7 @@ public function make_set(arr: RESP::Array): Set {
 
         ++i;
     }
-    return (key, value, nx, xx, get, ex, px, exat, pxat, keep_ttl);
+    return (arr.elements[1].bulk_string.content, arr.elements[2].bulk_string.content, nx, xx, get, ex, px, exat, pxat, keep_ttl);
 }
 
 # Convenience method to avoid comparison with an optional in the evt
@@ -292,13 +370,10 @@ public function is_set(arr: RESP::Array): bool {
     if (arr.num_elements < 3)
         return False;
 
-    local first = arr.elements[0];
-    if (!first?.bulk_string)
+    if (!arr.elements[0]?.bulk_string)
         return False;
 
-    local cmd_bytes = first.bulk_string.content;
-
-    local cmd = command_from(cmd_bytes);
+    local cmd = command_from(arr.elements[0].bulk_string.content);
     return cmd && (*cmd == KnownCommand::SET);
 }
 
@@ -314,12 +389,9 @@ public function is_get(arr: RESP::Array): bool {
     if (arr.num_elements != 2)
         return False;
 
-    local first = arr.elements[0];
-    if (!first?.bulk_string)
+    if (!arr.elements[0]?.bulk_string)
         return False;
 
-    local cmd_bytes = first.bulk_string.content;
-
-    local cmd = command_from(cmd_bytes);
+    local cmd = command_from(arr.elements[0].bulk_string.content);
     return cmd && (*cmd == KnownCommand::GET);
 }

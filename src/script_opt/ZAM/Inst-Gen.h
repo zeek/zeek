@@ -4,8 +4,7 @@
 // NameExpr*'s to slots.  Some aren't needed, but we provide a complete
 // set mirroring the ZInstI constructors for consistency.
 //
-// Maintained separately from Compile.h to make it conceptually simple to
-// add new helpers.
+// This file is included by Compile.h to insert into the ZAMCompiler class.
 
 ZInstI GenInst(ZOp op);
 ZInstI GenInst(ZOp op, const NameExpr* v1);

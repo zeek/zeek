@@ -6,6 +6,14 @@
 
 module Cluster;
 
+global slow_peers_cf = Telemetry::register_counter_family([
+    $prefix="zeek",
+    $name="slow-peers",
+    $unit="",
+    $label_names=vector("peer"),
+    $help_text="Number of peering drops due to a neighbor falling too far behind in message I/O",
+]);
+
 event Broker::peer_removed(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	# This is our clue that we're dealing with a drop due to backpressure.
@@ -62,6 +70,7 @@ event Broker::peer_removed(endpoint: Broker::EndpointInfo, msg: string)
 	                 Cluster::retry_interval, status));
 	Reporter::warning(fmt("Node %s removed slow peer %s:%s (%s), re-peering",
 	                      node, endpoint$network$address, endpoint$network$bound_port, namepair));
+	Telemetry::counter_family_inc(slow_peers_cf, vector(name));
 }
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
@@ -102,4 +111,5 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	                 endpoint$network$address, endpoint$network$bound_port, namepair));
 	Reporter::warning(fmt("Node %s lost slow peer %s:%s (%s)",
 	                      node, endpoint$network$address, endpoint$network$bound_port, namepair));
+	Telemetry::counter_family_inc(slow_peers_cf, vector(name));
 	}

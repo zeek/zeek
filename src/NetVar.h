@@ -107,4 +107,6 @@ extern void init_builtin_types();
 #include "packet_analysis.bif.netvar_h"
 #include "reporter.bif.netvar_h"
 #include "supervisor.bif.netvar_h"
+#include "telemetry_consts.bif.netvar_h"
+#include "telemetry_types.bif.netvar_h"
 #include "types.bif.netvar_h"

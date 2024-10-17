@@ -205,9 +205,11 @@ static void bif_init_net_var() {
 #include "packet_analysis.bif.netvar_init"
 #include "reporter.bif.netvar_init"
 #include "supervisor.bif.netvar_init"
+#include "telemetry_consts.bif.netvar_init"
 }
 
 static void init_bif_types() {
+#include "telemetry_types.bif.netvar_init"
 #include "types.bif.netvar_init"
 }
 
@@ -216,6 +218,8 @@ static void init_bif_types() {
 #include "packet_analysis.bif.netvar_def"
 #include "reporter.bif.netvar_def"
 #include "supervisor.bif.netvar_def"
+#include "telemetry_consts.bif.netvar_def"
+#include "telemetry_types.bif.netvar_def"
 #include "types.bif.netvar_def"
 
 // Re-open the namespace now that the bif headers are all included.

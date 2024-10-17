@@ -5787,15 +5787,11 @@ export {
 	const flowbuffer_contract_threshold = 2 * 1024 * 1024 &redef;
 }
 
+@load base/bif/telemetry_functions.bif
+@load base/bif/telemetry_types.bif
+
 module Telemetry;
 export {
-
-	type MetricType: enum {
-		COUNTER,
-		GAUGE,
-		HISTOGRAM,
-	};
-
 	## Type that captures options used to create metrics.
 	type MetricOpts: record {
 		## The prefix (namespace) of the metric. Zeek uses the ``zeek``

@@ -17,14 +17,13 @@
 
 #include "zeek/3rdparty/doctest.h"
 #include "zeek/ID.h"
+#include "zeek/IPAddr.h"
 #include "zeek/RunState.h"
 #include "zeek/ZeekString.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/telemetry/ProcessStats.h"
 #include "zeek/telemetry/Timer.h"
-#include "zeek/telemetry/consts.bif.h"
-#include "zeek/telemetry/telemetry.bif.h"
 #include "zeek/threading/formatters/detail/json.h"
 
 namespace zeek::telemetry {

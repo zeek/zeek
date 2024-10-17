@@ -123,6 +123,11 @@ set(BIF_SRCS
     strings.bif
     types.bif
     zeek.bif
+    # The script-layer telemetry API needs to be available to our own frameworks
+    # to allow them to add metrics, so we source it in early.
+    telemetry/telemetry_types.bif
+    telemetry/telemetry_consts.bif
+    telemetry/telemetry_functions.bif
     # The packet analysis BIF is treated like other top-level BIFs because it's
     # needed before parsing the packet protocol scripts, which happen very near
     # to the start of parsing.

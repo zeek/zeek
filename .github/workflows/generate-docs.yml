@@ -17,7 +17,7 @@ jobs:
     permissions:
       contents: write  # for Git to git push
     if: github.repository == 'zeek/zeek'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       # We only perform a push if the action was triggered via a schedule

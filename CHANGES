@@ -1,3 +1,12 @@
+7.0.3-1 | 2024-10-18 17:15:02 -0700
+
+  * Merge remote-tracking branch 'origin/topic/bbannier/fix-docs-ci-again' (Christian Kreibich, Corelight)
+
+    * origin/topic/bbannier/fix-docs-ci-again:
+      Fix installation of Python packages in generate docs CI job again
+
+    (cherry picked from commit c28442a9a178b735e3fe1b5f5938f922a5aa7a66)
+
 7.0.3 | 2024-10-04 15:42:14 -0700
 
   * Update CHANGES, VERSION, and NEWS for 7.0.3 release (Christian Kreibich, Corelight)

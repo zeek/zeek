@@ -1,3 +1,9 @@
+7.1.0-dev.403 | 2024-10-18 09:55:20 -0700
+
+  * Fix installation of Python packages in generate docs CI job again (Benjamin Bannier, Corelight)
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
 7.1.0-dev.400 | 2024-10-15 17:11:57 +0200
 
   * Fix invalid Sphinx directive in docstring (Benjamin Bannier, Corelight)

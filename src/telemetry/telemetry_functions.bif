@@ -2,12 +2,6 @@
 
 module Telemetry;
 
-enum MetricType %{
-    COUNTER,
-    GAUGE,
-    HISTOGRAM,
-%}
-
 %%{
 
 #include "zeek/telemetry/Counter.h"

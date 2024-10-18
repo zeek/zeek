@@ -4,6 +4,9 @@
 
 @if ( Cluster::is_enabled() )
 
+# Handling of peers that fall substantially behind in message I/O.
+@load ./slow-peers
+
 # Give the node being started up it's peer name.
 redef peer_description = Cluster::node;
 

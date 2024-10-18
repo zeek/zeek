@@ -3,7 +3,6 @@
 #include "zeek/ID.h"
 #include "zeek/Reporter.h"
 #include "zeek/Val.h"
-#include "zeek/telemetry/telemetry.bif.h"
 #include "zeek/util.h"
 
 using namespace zeek;

@@ -294,6 +294,36 @@ void Manager::InitPostScript() {
     options.disable_forwarding = ! get_option("Broker::forward_messages")->AsBool();
     options.use_real_time = use_real_time;
 
+    options.peer_buffer_size = get_option("Broker::peer_buffer_size")->AsCount();
+    auto peer_overflow_policy = get_option("Broker::peer_overflow_policy")->AsString()->CheckString();
+    if ( util::streq(peer_overflow_policy, "disconnect") ) {
+        options.peer_overflow_policy = broker::overflow_policy::disconnect;
+    }
+    else if ( util::streq(peer_overflow_policy, "drop_oldest") ) {
+        options.peer_overflow_policy = broker::overflow_policy::drop_oldest;
+    }
+    else if ( util::streq(peer_overflow_policy, "drop_newest") ) {
+        options.peer_overflow_policy = broker::overflow_policy::drop_newest;
+    }
+    else {
+        reporter->FatalError("Invalid Broker::peer_overflow_policy: %s", peer_overflow_policy);
+    }
+
+    options.web_socket_buffer_size = get_option("Broker::web_socket_buffer_size")->AsCount();
+    auto web_socket_overflow_policy = get_option("Broker::web_socket_overflow_policy")->AsString()->CheckString();
+    if ( util::streq(web_socket_overflow_policy, "disconnect") ) {
+        options.web_socket_overflow_policy = broker::overflow_policy::disconnect;
+    }
+    else if ( util::streq(web_socket_overflow_policy, "drop_oldest") ) {
+        options.web_socket_overflow_policy = broker::overflow_policy::drop_oldest;
+    }
+    else if ( util::streq(web_socket_overflow_policy, "drop_newest") ) {
+        options.web_socket_overflow_policy = broker::overflow_policy::drop_newest;
+    }
+    else {
+        reporter->FatalError("Invalid Broker::web_socket_overflow_policy: %s", web_socket_overflow_policy);
+    }
+
     broker::configuration config{std::move(options)};
 
     config.openssl_cafile(get_option("Broker::ssl_cafile")->AsString()->CheckString());

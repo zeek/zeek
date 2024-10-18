@@ -1,0 +1,8 @@
+module Telemetry;
+
+## An enum that specifies which type of metric you're operating on.
+enum MetricType %{
+    COUNTER,	##< Counters track entities that increment over time.
+    GAUGE,	##< Gauges track entities that fluctuate over time.
+    HISTOGRAM,	##< Histograms group observations into predefined bins.
+%}

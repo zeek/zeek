@@ -261,6 +261,24 @@ export {
 	## locally whenever a connected cluster node becomes disconnected.
 	global node_down: event(name: string, id: string);
 
+	## When running a multi-node cluster, this event triggers when a peered
+	## node has fallen sufficiently behind in its message I/O that the local
+	## node unpeers it. The cluster will attempt to re-peer. Use this event
+	## to track and react to slow nodes in your own scripts. The event only
+	## fires for Zeek cluster nodes, not for any other peers connected via
+	## Broker bindings, Websockets, etc.
+	##
+	## name: The name of the now fully connected node.
+	##
+	## id: The identifier of the now fully connected node.
+	##
+	## repeering: If true, the local node has removed the peering with the
+	##            indicated node and is trying to re-peer. If false, the
+	##            local node has lost the peering and is waiting for the
+	##            indicated node to recover and re-peer.
+	##
+	global node_slow: event(name: string, id: string, repeering: bool);
+
 	## Write a message to the cluster logging stream.
 	global log: function(msg: string);
 

@@ -5,7 +5,7 @@
 #include "zeek/Desc.h"
 #include "zeek/RE.h"
 #include "zeek/ZeekString.h"
-#include "zeek/script_opt/CPP/Attrs.h"
+#include "zeek/script_opt/CPP/AttrExprType.h"
 #include "zeek/script_opt/CPP/Compile.h"
 #include "zeek/script_opt/CPP/RuntimeInits.h"
 

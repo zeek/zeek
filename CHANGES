@@ -1,3 +1,18 @@
+6.0.8-4 | 2024-11-14 13:51:17 -0700
+
+  * GH-3962: Prevent non-Modbus on port 502 to be reported as Modbus (Emmanuele Zambon)
+
+    This commit prevents most non-Modbus TCP traffic on port 502 to be
+    reported as Modbus in conn.log as well as in modbus.log.
+    To do so, we have introduced two &enforce checks in the Modbus
+    protocol definition that checks that some specific fields of the
+    (supposedly) Modbus header are compatible with values specified in
+    the specs.
+
+    (cherry picked from commit 4763282f36d13808b58948cc378a7df00201c9f5)
+
+  * Minor clang-format fix (Tim Wojtulewicz, Corelight)
+
 6.0.8-2 | 2024-11-14 13:49:22 -0700
 
   * GH-3957: input/Raw: Rework GetLine() (Arne Welzel, Corelight)

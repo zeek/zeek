@@ -1,3 +1,19 @@
+7.1.0-dev.410 | 2024-10-21 15:51:05 +0200
+
+  * GH-3962: Prevent non-Modbus on port 502 to be reported as Modbus (Emmanuele Zambon)
+
+    This commit prevents most non-Modbus TCP traffic on port 502 to be
+    reported as Modbus in conn.log as well as in modbus.log.
+    To do so, we have introduced two &enforce checks in the Modbus
+    protocol definition that checks that some specific fields of the
+    (supposedly) Modbus header are compatible with values specified in
+    the specs.
+
+    To ensure non-regression, with this commit we also introduce a
+    new btest.
+
+    Closes #3962
+
 7.1.0-dev.408 | 2024-10-18 17:51:04 -0700
 
   * factored CPP source's main header into collection of per-source-file headers (Vern Paxson, Corelight)

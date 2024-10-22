@@ -1,3 +1,27 @@
+7.1.0-dev.418 | 2024-10-22 19:04:22 +0200
+
+  * btest/telemetry: Fix "Note compilable" typo (Arne Welzel, Corelight)
+
+  * misc/stats: Add zeek_net_timestamp_seconds (Arne Welzel, Corelight)
+
+    Adding a metric for the network time value itself should make it
+    possible to observe it stopping or growing slowly as compared to
+    realtime when Zeek isn't able to keep up.
+
+    Also, modify the telemetry/log.zeek test to include misc/stats and
+    log at a higher frequency with a more interesting pcap.
+
+  * telemetry/Manager: Remove variant include (Arne Welzel, Corelight)
+
+  * GH-3947: telemetry: Invoke Telemetry::sync() only at scrape/collection time (Arne Welzel, Corelight)
+
+    This stops invoking Telemetry::sync() via a scheduled event and instead
+    only invokes it on-demand. This makes metric collection network time
+    independent and lazier, too.
+
+    With Prometheus scrape requests being processed on Zeek's main thread
+    now, we can safely invoke the script layer Telemetry::sync() hook.
+
 7.1.0-dev.413 | 2024-10-22 11:24:50 +0200
 
   * GH-3978: Bump zeekjs to 0.12.1 (Arne Welzel, Corelight)

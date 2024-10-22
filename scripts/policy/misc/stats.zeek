@@ -130,9 +130,20 @@ global packet_lag_gf = Telemetry::register_gauge_family([
     $help_text="Difference of network time and wallclock time in seconds.",
 ]);
 
+# Gauge as motivated by:
+# https://www.robustperception.io/are-increasing-timestamps-counters-or-gauges/
+global network_time_cf = Telemetry::register_gauge_family([
+    $prefix="zeek",
+    $name="net-timestamp",
+    $unit="seconds",
+    $help_text="The current network time.",
+]);
+
 global no_labels: vector of string;
 
-hook Telemetry::sync() {
+hook Telemetry::sync()
+	{
+	Telemetry::gauge_family_set(network_time_cf, no_labels, time_to_double(network_time()));
 	local net_stats = get_net_stats();
 	Telemetry::counter_family_set(bytes_received_cf, no_labels, net_stats$bytes_recvd);
 	Telemetry::counter_family_set(packets_received_cf, no_labels, net_stats$pkts_recvd);
@@ -148,7 +159,7 @@ hook Telemetry::sync() {
 		Telemetry::gauge_family_set(packet_lag_gf, no_labels,
 		                            interval_to_double(current_time() - network_time()));
 		}
-}
+	}
 
 event zeek_init() &priority=5
 	{

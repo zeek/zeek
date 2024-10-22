@@ -263,22 +263,15 @@ export {
 	                                          label_values: labels_vector,
 	                                          measurement: double): bool;
 
-	## Telemetry sync hook.
-	##
-	## This hook is invoked every :zeek:see:`Telemetry::sync_interval`
-	## for script writers to synchronize or mirror metrics with the
-	## telemetry subsystem. For example, when tracking table or value
-	## footprints with gauges, the value in question can be set on an actual
-	## :zeek:see:`Telemetry::Gauge` instance during execution of this hook.
-	##
-	## Implementations should be lightweight, this hook may be called
-	## multiple times per minute. The interval can increased by changing
-	## :zeek:see:`Telemetry::sync_interval` at the cost of delaying
-	## metric updates and thereby reducing granularity.
-	global sync: hook();
-
 	## Interval at which the :zeek:see:`Telemetry::sync` hook is invoked.
-	option sync_interval = 10sec;
+	##
+	## By default, the hook is invoked on demand, setting this option to
+	## a positive interval allows to invoke it regularly, too. Regular
+	## invocations are relative to Zeek's network time.
+	##
+	## Note that on-demand hook invocation will happen even if this
+	## is set.
+	option sync_interval = 0sec &deprecated="Remove in 8.1. If you require regular sync invocation, do so explicitly in a scheduled event.";
 
 	## Collect all counter and gauge metrics matching the given *name* and *prefix*.
 	##
@@ -493,7 +486,9 @@ function collect_histogram_metrics(prefix: string, name: string): vector of Hist
 event run_sync_hook()
 	{
 	hook Telemetry::sync();
+@pragma push ignore-deprecations
 	schedule sync_interval { run_sync_hook() };
+@pragma pop ignore-deprecations
 	}
 
 # Expose the Zeek version as Prometheus style info metric
@@ -508,7 +503,10 @@ global version_gauge_family = Telemetry::register_gauge_family([
 
 event zeek_init()
 	{
-	schedule sync_interval { run_sync_hook() };
+@pragma push ignore-deprecations
+	if ( sync_interval > 0sec )
+		schedule sync_interval { run_sync_hook() };
+@pragma pop ignore-deprecations
 
 	local v = Version::info;
 	local labels = vector(cat(v$version_number),

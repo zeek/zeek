@@ -1,3 +1,11 @@
+7.1.0-dev.413 | 2024-10-22 11:24:50 +0200
+
+  * GH-3978: Bump zeekjs to 0.12.1 (Arne Welzel, Corelight)
+
+        7ec0953 ci: Bump actions/upload-artifact
+        8e5914d ci/docker: Bump distros, update some OBS repos
+        129b737 Fix crash during shutdown
+
 7.1.0-dev.410 | 2024-10-21 15:51:05 +0200
 
   * GH-3962: Prevent non-Modbus on port 502 to be reported as Modbus (Emmanuele Zambon)

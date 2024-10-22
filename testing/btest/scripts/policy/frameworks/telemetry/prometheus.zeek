@@ -1,5 +1,5 @@
 # @TEST-DOC: Query the Prometheus endpoint and smoke check that zeek_version_info{...} is contained in the response for all cluster nodes.
-# Note compilable to C++ due to globals being initialized to a record that
+# Not compilable to C++ due to globals being initialized to a record that
 # has an opaque type as a field.
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-REQUIRES: which jq

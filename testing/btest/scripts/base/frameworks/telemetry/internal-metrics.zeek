@@ -1,5 +1,5 @@
 # @TEST-DOC: Query Broker's telemetry to verify it ends up in Zeek's registry.
-# Note compilable to C++ due to globals being initialized to a record that
+# Not compilable to C++ due to globals being initialized to a record that
 # has an opaque type as a field.
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-EXEC: zcat <$TRACES/echo-connections.pcap.gz | zeek -b -Cr - %INPUT > out

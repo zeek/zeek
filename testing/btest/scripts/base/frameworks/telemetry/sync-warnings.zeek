@@ -1,5 +1,5 @@
 # @TEST-DOC: Breaking and recursive Telemetry::sync() warning
-# Note compilable to C++ due to globals being initialized to a record that
+# Not compilable to C++ due to globals being initialized to a record that
 # has an opaque type as a field.
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 #

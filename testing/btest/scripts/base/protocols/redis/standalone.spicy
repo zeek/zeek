@@ -1,6 +1,6 @@
 # @TEST-DOC: Test parsing behavior of RESP.
 #
-# @TEST-EXEC: spicyc ${DIST}/analyzer/resp.spicy -j -d -o resp.hlto
+# @TEST-EXEC: spicyc ${DIST}/analyzer/resp.spicy ${DIST}/analyzer/redis.spicy -j -d -o resp.hlto
 #
 # TODO: A lot of tests are possible from the docs and having them would be nice.
 # But, a lot of characters ($, -, etc.) cause problems with TEST_EXEC. ugh.

@@ -5,9 +5,9 @@
 #unset_field	-
 #path	resp
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd.command	cmd.key	cmd.value
-#types	time	string	addr	port	addr	port	string	string	string
-XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	::1	51122	::1	6379	PING	-	-
-XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	::1	51122	::1	6379	PING	-	-
-XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	::1	51122	::1	6379	PING	-	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd.command	cmd.key	cmd.value	response.err	response.data
+#types	time	string	addr	port	addr	port	string	string	string	bool	string
+XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	::1	51122	::1	6379	PING	-	-	F	PONG
+XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	::1	51122	::1	6379	PING	-	-	F	PONG
+XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	::1	51122	::1	6379	PING	-	-	F	PONG
 #close XXXX-XX-XX-XX-XX-XX

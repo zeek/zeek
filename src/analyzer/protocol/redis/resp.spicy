@@ -1,5 +1,7 @@
 module RESP;
 
+import Redis;
+
 import spicy;
 
 # Maximum size for parsing of certain fields. By restricting this we avoid
@@ -8,6 +10,42 @@ const MAX_SIZE = 1024 * 1024;
 
 public type Messages = unit {
     : (Data &synchronize)[];
+};
+
+public type ClientMessages = unit {
+    : (ClientData &synchronize)[];
+};
+
+public type ServerMessages = unit {
+    : (ServerData &synchronize)[];
+};
+
+public type ClientData = unit {
+    %synchronize-after = b"\x0d\x0a";
+    # Clients can only be an array or inline
+    ty: uint8 &convert=DataType($$);
+    if (self.ty == DataType::ARRAY) {
+        multibulk: Array;
+    } else {
+        # HACK: If the type isn'tan array, this is just some random unserialized
+        # string until \r\n - do this by prepending the type to the remaining bytes.
+        # Formally in Redis code, that's an "inline command."
+        #
+        # As an extra point, this is handled in redis in `processInlineBuffer`,
+        # which has a hardcoded limit of 1024*64. That seems too big. We'll do 1024.
+        inline: RedisBytes &convert=(pack(cast<uint8>(self.ty), spicy::ByteOrder::Network) + $$) &max-size=1024;
+    };
+
+    var command: Redis::Command;
+
+    on %done {
+        self.command = Redis::make_command(self);
+    }
+};
+
+public type ServerData = unit {
+    %synchronize-after = b"\x0d\x0a";
+    data: Data;
 };
 
 public type Data = unit {
@@ -33,13 +71,6 @@ public type Data = unit {
         # "Push events are encoded similarly to arrays, differing only in their
         # first byte" - TODO: can probably make it more obvious, though
         DataType::PUSH -> push: Array;
-        # HACK: If the type isn't recognized, this is just some random unserialized
-        # string until \r\n - do this by prepending the type to the remaining bytes.
-        # Formally in Redis code, that's an "inline protocol."
-        #
-        # As an extra point, this is handled in redis in `processInlineBuffer`,
-        # which has a hardcoded limit of 1024*64. That seems too big. We'll do 1024.
-        * -> not_serialized: RedisBytes &convert=(pack(cast<uint8>(self.ty), spicy::ByteOrder::Network) + $$) &max-size=1024;
     };
 };
 

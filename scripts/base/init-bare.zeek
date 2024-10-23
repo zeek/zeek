@@ -4527,6 +4527,7 @@ type signature_state: record {
 	conn:         connection;	##< Matching connection.
 	is_orig:      bool;	##< True if matching endpoint is originator.
 	payload_size: count;	##< Payload size of the first matching packet of current endpoint.
+	pattern_end_offset: count &optional; ##< 0-based offset of the last character of the matched payload in the last matching chunk of current endpoint. Non-existing for pure rules
 };
 
 ## A BitTorrent peer.

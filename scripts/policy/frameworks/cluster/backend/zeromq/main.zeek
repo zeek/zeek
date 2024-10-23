@@ -1,37 +1,17 @@
 ##! ZeroMQ cluster backend support.
 ##!
-##! One node in a Zeek cluster runs a broker thread (likely the manager) and
-##! all other threads connect to it.
+##! For publish-subscribe functionality, one node in the Zeek cluster runs a
+##! central proxy listening on XPUB and XSUB sockets that are connected via
+##! zmq_proxy(). All other nodes connect to this central proxy process with
+##! XSUB and XPUB sockets.
 ##!
-##!                    broker thread
+##! For logging, all logger nodes listen on their PULL sockets, all other
+##! nodes connect via PUSH sockets to all the logger's PULL sockets.
 ##!
-##!         XPUB -> +-----------------+
-##! worker          |  XPUB <-> XSUB  |
-##!         XSUB <- +-----------------+
-##!
-##! How does this work conceptually? All workers subscribe using their
-##! XSUB socket.
-##!
-##! How other nodes discover each other: We should see subscriptions
-##! coming in on the XPUB socket and can work with those.
-##!
-##!
-##! How does logging work?
-##!
-##! Workers open a PUSH socket and connect to one or more PULL sockets
-##! which logger nodes listen on.
-##!
-##!  node |push| --+  +--> [pull] logger
-##!                 \/
-##!    round robin  X----> [pull] logger
-##!                 /\
-##!  node |push| --+  +--> [pull] logger
-##!
-##! Workers either connect to all loggers (because they know them),
-##! but workers may also connect to a single proxy in the middle that
-##! forwards the log writes to logger nodes. In that case, workers do
-##! not need to know the loggers and/or the middleman might not even
-##! be Zeek.
+##! This setup actually allows to run a non-Zeek central proxy (it only needs
+##! to offer XPUB and XSUB sockets, but also allows running non-Zeek logger
+##! nodes. All a logger node needs to do is open a PULL socket (and understand
+##! the format used by Zeek.
 module Cluster::Backend::ZeroMQ;
 
 export {
@@ -109,6 +89,11 @@ export {
 	global unsubscription: event(topic: string);
 
 	global hello: event(name: string, id: string);
+
+	## How long before expiring information about
+	## subscriptions and hello messages from other
+	## nodes.
+	const hello_expiration: interval = 10sec &redef;
 }
 
 redef Cluster::backend = Cluster::CLUSTER_BACKEND_ZEROMQ;
@@ -160,7 +145,7 @@ redef listen_log_endpoint = fmt("tcp://%s:%s", my_node$ip, port_to_count(my_node
 
 # Populate connect_log_endpoints based on Cluster::nodes on non-logger nodes.
 # If you're experimenting with zero-logger clusters, ignore this code and set
-# connect_log_endpoints yourself.
+# connect_log_endpoints yourself via redef.
 event zeek_init() &priority=100
 	{
 	if ( Cluster::local_node_type() == Cluster::LOGGER )
@@ -185,16 +170,36 @@ event zeek_init() &priority=100
 			}
 		}
 
-	if ( |connect_log_endpoints| == 0 )
-		Reporter::fatal("no ZeroMQ connect_log_endpoints configured");
+	# If there's no endpoints configured, but more than a single
+	# node in cluster layout, log an error, that's probably not
+	# intended.
+	if ( |connect_log_endpoints| == 0 && |Cluster::nodes| > 1 )
+		Reporter::error("No ZeroMQ connect_log_endpoints configured");
 	}
 
 # By default, let the manager node run the proxy thread.
 redef run_proxy_thread = Cluster::local_node_type() == Cluster::MANAGER;
 
+
+function nodeid_subscription_expired(nodeids: set[string], nodeid: string): interval
+	{
+	Reporter::warning(fmt("Expired subscription from nodeid %s", nodeid));
+	return 0.0sec;
+	}
+
+function nodeid_hello_expired(nodeids: set[string], nodeid: string): interval
+	{
+	Reporter::warning(fmt("Expired hello from nodeid %s", nodeid));
+	return 0.0sec;
+	}
+
+# State about subscriptions and hellos seen from other nodes.
+global nodeid_subscriptions: set[string] &create_expire=hello_expiration &expire_func=nodeid_subscription_expired;
+global nodeid_hellos: set[string] &create_expire=hello_expiration &expire_func=nodeid_hello_expired;
+
 # The ZeroMQ plugin notifies script land when a subscription arrived
 # on the XPUB socket. If such a subscription starts with the nodeid_topic_prefix,
-# then send a ZeroMQ::hello() event to it, announcing the presence of this
+# send a ZeroMQ::hello() event to it, announcing the presence of this
 # node to the one that created the subscriptions. This goes in both directions,
 # the other node will see the subscription incoming from existing or new nodes
 # and publish ZeroMQ::hello() as well. So every node says hello to all other
@@ -203,11 +208,23 @@ event Cluster::Backend::ZeroMQ::subscription(topic: string)
 	{
 	local prefix = nodeid_topic_prefix + ".";
 	if ( starts_with(topic, prefix) )
+		{
 		Cluster::publish(topic, Cluster::Backend::ZeroMQ::hello, Cluster::node, Cluster::node_id());
+		local nodeid = topic[|prefix|:];
+		add nodeid_subscriptions[nodeid];
+
+		if ( nodeid in nodeid_hellos )
+			{
+			Cluster::publish(Cluster::nodeid_topic(nodeid), Cluster::hello, Cluster::node, Cluster::node_id());
+			delete nodeid_hellos[nodeid];
+			delete nodeid_subscriptions[nodeid];
+			}
+		}
 	}
 
-# Receiving ZeroMQ::hello() from another node: Raise a Cluster::node_up()
-# locally and if we never saw the node go away, log a warning.
+# Receiving ZeroMQ::hello() from another node: Raise Cluster::hello()
+# locally to trigger local Cluster functionality. Also, if we never saw
+# the node go away, log a warning and raise Cluster::node_down().
 event Cluster::Backend::ZeroMQ::hello(name: string, id: string)
 	{
 	if ( name in Cluster::nodes )
@@ -224,7 +241,16 @@ event Cluster::Backend::ZeroMQ::hello(name: string, id: string)
 			}
 		}
 
-	event Cluster::hello(name, id);
+	add nodeid_hellos[id];
+
+	# We can only publish here if the other system *also* has
+	# a subscription setup, otherwise we can't reach the node.
+	if ( id in nodeid_subscriptions )
+		{
+		Cluster::publish(Cluster::nodeid_topic(id), Cluster::hello, Cluster::node, Cluster::node_id());
+		delete nodeid_hellos[id];
+		delete nodeid_subscriptions[id];
+		}
 	}
 
 # If the unsubscription is for a nodeid prefix, extract the

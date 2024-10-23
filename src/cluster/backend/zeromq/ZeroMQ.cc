@@ -67,6 +67,16 @@ void self_thread_fun(void* arg) {
 
 } // namespace
 
+
+// Constructor.
+ZeroMQBackend::ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls)
+    : ThreadedBackend(std::move(es), std::move(ls)) {
+    xsub = zmq::socket_t(ctx, zmq::socket_type::xsub);
+    xpub = zmq::socket_t(ctx, zmq::socket_type::xpub);
+    log_push = zmq::socket_t(ctx, zmq::socket_type::push);
+    log_pull = zmq::socket_t(ctx, zmq::socket_type::pull);
+}
+
 void ZeroMQBackend::DoInitPostScript() {
     ThreadedBackend::DoInitPostScript();
 
@@ -103,9 +113,11 @@ void ZeroMQBackend::DoTerminate() {
     ZEROMQ_DEBUG("Closing ctx");
     ctx.close();
 
-    // If running the broker thread, terminate it, too.
-    if ( broker_thread )
-        broker_thread->Shutdown();
+    // If running the proxy thread, terminate it, too.
+    if ( proxy_thread ) {
+        ZEROMQ_DEBUG("Shutting down proxy thread");
+        proxy_thread->Shutdown();
+    }
 
     ZEROMQ_DEBUG("Terminated");
 }
@@ -114,9 +126,6 @@ bool ZeroMQBackend::DoInit() {
     auto linger_ms = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::linger_ms")->AsInt());
     int xpub_nodrop = zeek::id::find_val<zeek::BoolVal>("Cluster::Backend::ZeroMQ::xpub_nodrop")->AsBool() ? 1 : 0;
 
-    xsub = zmq::socket_t(ctx, zmq::socket_type::xsub);
-
-    xpub = zmq::socket_t(ctx, zmq::socket_type::xpub);
     xpub.set(zmq::sockopt::linger, linger_ms);
     xpub.set(zmq::sockopt::xpub_nodrop, xpub_nodrop);
 
@@ -134,8 +143,6 @@ bool ZeroMQBackend::DoInit() {
         return false;
     }
 
-    log_push = zmq::socket_t(ctx, zmq::socket_type::push);
-    log_pull = zmq::socket_t(ctx, zmq::socket_type::pull);
 
     auto log_immediate =
         static_cast<int>(zeek::id::find_val<zeek::BoolVal>("Cluster::Backend::ZeroMQ::log_immediate")->AsBool());
@@ -164,7 +171,17 @@ bool ZeroMQBackend::DoInit() {
     log_pull.set(zmq::sockopt::rcvbuf, log_rcvbuf);
 
 
-    std::vector<std::string> connect_log_endpoints;
+    if ( ! listen_log_endpoint.empty() ) {
+        ZEROMQ_DEBUG("Listening on log pull socket: %s", listen_log_endpoint.c_str());
+        try {
+            log_pull.bind(listen_log_endpoint);
+        } catch ( zmq::error_t& err ) {
+            zeek::reporter->Error("ZeroMQ: Failed to bind to PULL socket %s: %s", listen_log_endpoint.c_str(),
+                                  err.what());
+            return false;
+        }
+    }
+
     const auto& log_endpoints = zeek::id::find_val<zeek::VectorVal>("Cluster::Backend::ZeroMQ::connect_log_endpoints");
     for ( unsigned int i = 0; i < log_endpoints->Size(); i++ )
         connect_log_endpoints.push_back(log_endpoints->StringValAt(i)->ToStdString());
@@ -175,17 +192,6 @@ bool ZeroMQBackend::DoInit() {
             log_push.connect(endp);
         } catch ( zmq::error_t& err ) {
             zeek::reporter->Error("ZeroMQ: Failed to connect to PUSH socket %s: %s", endp.c_str(), err.what());
-            return false;
-        }
-    }
-
-    if ( ! listen_log_endpoint.empty() ) {
-        ZEROMQ_DEBUG("Listening on log pull socket: %s", listen_log_endpoint.c_str());
-        try {
-            log_pull.bind(listen_log_endpoint);
-        } catch ( zmq::error_t& err ) {
-            zeek::reporter->Error("ZeroMQ: Failed to bind to PULL socket %s: %s", listen_log_endpoint.c_str(),
-                                  err.what());
             return false;
         }
     }
@@ -205,8 +211,8 @@ bool ZeroMQBackend::DoInit() {
 }
 
 bool ZeroMQBackend::SpawnZmqProxyThread() {
-    broker_thread = std::make_unique<BrokerThread>(listen_xpub_endpoint, listen_xsub_endpoint);
-    return broker_thread->Start();
+    proxy_thread = std::make_unique<BrokerThread>(listen_xpub_endpoint, listen_xsub_endpoint);
+    return proxy_thread->Start();
 }
 
 bool ZeroMQBackend::DoPublishEvent(const std::string& topic, const std::string& format,
@@ -304,6 +310,13 @@ bool ZeroMQBackend::DoPublishLogWrites(const logging::detail::LogWriteHeader& he
         //      and have metrics. This may happen regularly at shutdown.
         //
         //      Maybe that should be configurable?
+
+        // If no logging endpoints were configured, that almost seems on
+        // purpose (and there's a warning elsewhere about this), so skip
+        // logging an error on a failed publish.
+        if ( connect_log_endpoints.empty() )
+            return true;
+
         reporter->Error("Failed to send log write HWM reached?!");
         return false;
     }

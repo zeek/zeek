@@ -12,6 +12,7 @@
 # @TEST-EXEC: btest-diff supervisor/cluster.log
 
 redef Log::default_rotation_interval = 0secs;
+redef Log::flush_interval = 0.01sec;
 
 @if ( ! Supervisor::is_supervisor() )
 @load base/utils/numbers
@@ -32,7 +33,7 @@ redef Cluster::Backend::ZeroMQ::connect_xsub_endpoint = fmt("tcp://127.0.0.1:%s"
 event check_cluster_log() {
 	system_env("../check-cluster-log.sh", table(["SUPERVISOR_PID"] = cat(getpid())));
 
-	schedule 0.25sec { check_cluster_log() };
+	schedule 0.1sec { check_cluster_log() };
 }
 
 event zeek_init()
@@ -73,6 +74,10 @@ if [ ! -f logger/cluster.log ]; then
 	exit 1;
 fi
 
+if [ -f DONE ]; then
+	exit 0
+fi
+
 # Remove hostname and pid from node id in message.
 zeek-cut node message < logger/cluster.log | sed -r 's/_[^_]+_[0-9]+_/_<hostname>_<pid>_/g' | sort > cluster.log
 
@@ -80,5 +85,6 @@ if [ $(wc -l < cluster.log) = 20 ]; then
 	echo "DONE!" >&2
 	# Trigger shutdown through supervisor.
 	kill ${ZEEK_ARG_SUPERVISOR_PID};
+	echo "DONE" > DONE
 fi
 # @TEST-END-FILE

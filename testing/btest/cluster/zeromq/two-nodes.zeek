@@ -53,7 +53,6 @@ event Cluster::node_up(name: string, id: string) {
 }
 
 event finish(name: string) &is_used {
-	print fmt("finish from %s", name);
 	terminate();
 }
 # @TEST-END-FILE

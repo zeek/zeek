@@ -7,10 +7,10 @@
 #include <initializer_list>
 #include <memory>
 
+#include "zeek/NetVar.h"
 #include "zeek/Span.h"
 #include "zeek/telemetry/MetricFamily.h"
 #include "zeek/telemetry/Utils.h"
-#include "zeek/telemetry/telemetry.bif.h"
 
 namespace zeek::telemetry {
 

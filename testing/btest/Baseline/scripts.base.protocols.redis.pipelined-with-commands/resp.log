@@ -5,10 +5,10 @@
 #unset_field	-
 #path	resp
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd.command	cmd.key	cmd.value
-#types	time	string	addr	port	addr	port	string	string	string
-XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	::1	56731	::1	6379	PING	-	-
-XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	::1	56731	::1	6379	PING	-	-
-XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	::1	56731	::1	6379	SET	HI	3
-XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	::1	56731	::1	6379	GET	HI	-
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd.command	cmd.key	cmd.value	response.err	response.data
+#types	time	string	addr	port	addr	port	string	string	string	bool	string
+XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	::1	56731	::1	6379	PING	-	-	F	PONG
+XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	::1	56731	::1	6379	PING	-	-	F	PONG
+XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	::1	56731	::1	6379	SET	HI	3	F	OK
+XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	::1	56731	::1	6379	GET	HI	-	F	-
 #close XXXX-XX-XX-XX-XX-XX

@@ -1,13 +1,10 @@
-# Set up protocol confirmation/rejection for analyzers, as well as any further
-# Zeek-specific analysis.
+# Handle any Redis-specific "parsing"
 
-module Zeek_RESP;
+module Redis;
 
 import RESP;
 
-import zeek;
-
-type KnownCommand = enum {
+public type KnownCommand = enum {
     APPEND,
     BITCOUNT,
     BITFIELD,
@@ -49,31 +46,25 @@ type KnownCommand = enum {
     TYPE,
 };
 
-# Determines whether the structure of the array is a command. A command is just an array
-# of bulk strings, so that's what we're looking for.
-#
-# TODO: Really commands will only go from client->server, so maybe encode that somehow?
-public function is_command(arr: RESP::Array): bool {
-    if (arr.num_elements < 1)
-        return False;
-
-    return True;
-}
-
-type Command = tuple<
-# raw command
-vector<bytes>,
-# command
-bytes,
-# key
-optional<bytes>,
-# value
-optional<bytes>, >;
+type Command = struct {
+    raw: vector<bytes>;
+    command: bytes;
+    key: optional<bytes>;
+    value:optional<bytes>;
+    known: optional<KnownCommand>;
+};
 
 # This just assumes all elements in the array is a bulk string and puts them in a vector
-public function make_command(arr: RESP::Array): Command {
+public function make_command(command: RESP::ClientData): Command {
+    if (command?.multibulk)
+        return bulk_command(command);
+    else
+        return inline_command(command);
+}
+
+public function bulk_command(command: RESP::ClientData): Command {
     local v: vector<bytes>;
-    for (ele in arr.elements) {
+    for (ele in command.multibulk.elements) {
         # TODO: Stringify the other data too. Apparently commands *can* have other stuff
         # such as SUBSCRIBE, which will magically put an integer after it.
         if (ele?.bulk_string)
@@ -82,28 +73,28 @@ public function make_command(arr: RESP::Array): Command {
     return parse_command(v);
 }
 
-public function unserialized_command(unserialized: RESP::Data): Command {
-    # Only call this if it's unserialized :)
-    assert unserialized?.not_serialized;
+public function inline_command(command: RESP::ClientData): Command {
+    # Only call this if it's inline :)
+    assert command?.inline;
 
     local tokenized: vector<bytes>;
-    local it = unserialized.not_serialized.at(0);
+    local it = command.inline.at(0);
     # Redis whitespace characters are null, tab, LF, CR, and space
     local whitespace = set<uint8>(0, 9, 10, 13, 32);
     # Note: this logic is a bit different from Redis. Hopefully it doesn't matter
     while (True) {
-        while (it != end(unserialized.not_serialized) && ((*it) in whitespace))
+        while (it != end(command.inline) && ((*it) in whitespace))
             it++;
 
         # Get a token
         local start = it;
-        if (it != end(unserialized.not_serialized)) {
+        if (it != end(command.inline)) {
             local double_quotes = False;
             local single_quotes = False;
             local done = False;
             while (!done) {
                 if (double_quotes) {
-                    if (*it == '\' && it + 1 != end(unserialized.not_serialized) && *(it + 1) == '"') {
+                    if (*it == '\' && it + 1 != end(command.inline) && *(it + 1) == '"') {
                         # Skip one, then later we skip another
                         it++;
                     } else if (*it == '"') {
@@ -112,7 +103,7 @@ public function unserialized_command(unserialized: RESP::Data): Command {
 
                     it++;
                 } else if (single_quotes) {
-                    if (*it == '\' && it + 1 != end(unserialized.not_serialized) && *(it + 1) == ''') {
+                    if (*it == '\' && it + 1 != end(command.inline) && *(it + 1) == ''') {
                         # Skip one, then later we skip another
                         it++;
                     } else if (*it == ''') {
@@ -121,7 +112,7 @@ public function unserialized_command(unserialized: RESP::Data): Command {
 
                     it++;
                 } else {
-                    if (it != end(unserialized.not_serialized)) {
+                    if (it != end(command.inline)) {
                         switch (*it) {
                             case '"': double_quotes = True;
                             case ''': single_quotes = True;
@@ -136,17 +127,17 @@ public function unserialized_command(unserialized: RESP::Data): Command {
                     }
                 }
 
-                if (it == end(unserialized.not_serialized)) {
+                if (it == end(command.inline)) {
                     done = True;
                     # If we're still in quotes, that's weird, but not really too bad.
-                    if (double_quotes || single_quotes)
-                        zeek::weird("unbalanced_quotes", "unbalanced quotes in inline buffer: '" + unserialized.not_serialized.sub(start, it).decode() + "'");
+                    #if (double_quotes || single_quotes)
+                    #    zeek::weird("unbalanced_quotes", "unbalanced quotes in inline buffer: '" + command.inline.sub(start, it).decode() + "'");
                 }
             }
         } else {
             break;
         }
-        tokenized.push_back(unserialized.not_serialized.sub(start, it));
+        tokenized.push_back(command.inline.sub(start, it));
     }
     return parse_command(tokenized);
 }
@@ -154,15 +145,15 @@ public function unserialized_command(unserialized: RESP::Data): Command {
 # Parses the vector of bytes to get a Command object
 function parse_command(raw: vector<bytes>): Command {
     assert |raw| >= 1;
-    local parsed: Command = (raw, raw[0], Null, Null);
     local cmd = command_from(raw[0]);
+    local parsed: Command = [$raw = raw, $command = raw[0], $key = Null, $value = Null, $known = cmd];
     if (!cmd)
         return parsed;
 
     if (|raw| >= 2) {
         switch (*cmd) {
             case KnownCommand::KEYS:
-                parsed[3] = raw[1];
+                parsed.key = raw[1];
             case KnownCommand::APPEND,
                  KnownCommand::BITCOUNT,
                  KnownCommand::BITFIELD,
@@ -199,7 +190,7 @@ function parse_command(raw: vector<bytes>): Command {
                  KnownCommand::STRLEN,
                  KnownCommand::TTL,
                  KnownCommand::TYPE:
-                parsed[2] = raw[1];
+                parsed.key = raw[1];
             default: ();
         }
     }
@@ -219,9 +210,9 @@ function parse_command(raw: vector<bytes>): Command {
                  KnownCommand::MOVE,
                  KnownCommand::MSET,
                  KnownCommand::RENAME:
-                parsed[3] = raw[2];
+                parsed.value = raw[2];
             # Op first, destination second, then a list of keys. Just log dest
-            case KnownCommand::BITOP: parsed[2] = raw[2];
+            case KnownCommand::BITOP: parsed.key = raw[2];
             default: ();
         }
     }
@@ -229,7 +220,7 @@ function parse_command(raw: vector<bytes>): Command {
     if (|raw| >= 4) {
         switch (*cmd) {
             # timeout, numkeys, then key
-            case KnownCommand::BLMPOP: parsed[2] = raw[3];
+            case KnownCommand::BLMPOP: parsed.key = raw[3];
             default: ();
         }
     }
@@ -286,112 +277,76 @@ function command_from(cmd_bytes: bytes): optional<KnownCommand> {
     return cmd;
 }
 
-type Set = tuple<
-# key
-bytes,
-# value
-bytes,
-# NX
-bool,
-# XX
-bool,
-# GET
-bool,
-# EX
-optional<uint64>,
-# PX
-optional<uint64>,
-# EXAT
-optional<uint64>,
-# PXAT
-optional<uint64>,
-# KEEPTTL
-bool, >;
+type Set = struct {
+    key: bytes;
+    value: bytes;
+    nx: bool &default=False;
+    xx: bool &default=False;
+    get: bool &default=False;
+    ex: optional<uint64> &default=Null;
+    px: optional<uint64> &default=Null;
+    exat: optional<uint64> &default=Null;
+    pxat: optional<uint64> &default=Null;
+    keep_ttl: bool &default=False;
+};
 
-public function make_set(arr: RESP::Array): Set {
-    assert arr.num_elements >= 3 : "Must have at least 3 elements in SET";
-    local nx = False;
-    local xx = False;
-    local get = False;
-    local ex: optional<uint64> = Null;
-    local px: optional<uint64> = Null;
-    local exat: optional<uint64> = Null;
-    local pxat: optional<uint64> = Null;
-    local keep_ttl = False;
+public function make_set(command: Command): Set {
+    assert |command.raw| >= 3 : "Must have at least 3 elements in SET";
+    assert command.key : "SET must validate a key";
+    assert command.value : "SET must validate a value";
+    local parsed: Set = [$key = *command.key, $value = *command.value];
     local i = 3;
-    local elements = cast<uint64>(arr.num_elements);
-    while (i < elements) {
-        # All array elements in a command will be a bulk string by default
-        if (!arr.elements[i]?.bulk_string) {
-            ++i;
-            continue;
-        }
-
-        switch (arr.elements[i].bulk_string.content.lower()) {
-            case b"nx": nx = True;
-            case b"xx": xx = True;
-            case b"get": get = True;
+    while (i < |command.raw|) {
+        switch (command.raw[i].lower()) {
+            case b"nx": parsed.nx = True;
+            case b"xx": parsed.xx = True;
+            case b"get": parsed.get = True;
             case b"ex": {
                 ++i;
-                if (i >= elements || !arr.elements[i]?.bulk_string)
+                if (i >= |command.raw|)
                     break;
-                ex = arr.elements[i].bulk_string.content.to_uint();
+                parsed.ex = command.raw[i].to_uint();
             }
             case b"px": {
                 ++i;
-                if (i >= elements || !arr.elements[i]?.bulk_string)
+                if (i >= |command.raw|)
                     break;
-                px = arr.elements[i].bulk_string.content.to_uint();
+                parsed.px = command.raw[i].to_uint();
             }
             case b"exat": {
                 ++i;
-                if (i >= elements || !arr.elements[i]?.bulk_string)
+                if (i >= |command.raw|)
                     break;
-                exat = arr.elements[i].bulk_string.content.to_uint();
+                parsed.exat = command.raw[i].to_uint();
             }
             case b"pxat": {
                 ++i;
-                if (i >= elements || !arr.elements[i]?.bulk_string)
+                if (i >= |command.raw|)
                     break;
-                pxat = arr.elements[i].bulk_string.content.to_uint();
+                parsed.pxat = command.raw[i].to_uint();
             }
-            case b"keepttl": keep_ttl = True;
+            case b"keepttl": parsed.keep_ttl = True;
             default: ();
         }
 
         ++i;
     }
-    return (arr.elements[1].bulk_string.content, arr.elements[2].bulk_string.content, nx, xx, get, ex, px, exat, pxat, keep_ttl);
+    return parsed;
 }
 
-# Convenience method to avoid comparison with an optional in the evt
-public function is_set(arr: RESP::Array): bool {
-    # SET key value
-    if (arr.num_elements < 3)
-        return False;
-
-    if (!arr.elements[0]?.bulk_string)
-        return False;
-
-    local cmd = command_from(arr.elements[0].bulk_string.content);
-    return cmd && (*cmd == KnownCommand::SET);
+public function is_set(data: RESP::ClientData): bool {
+    return data.command.known && *(data.command.known) == KnownCommand::SET && data.command.key && data.command.value;
 }
 
-type Get = tuple<bytes>;
+type Get = struct {
+    key: bytes;
+};
 
-public function make_get(arr: RESP::Array): Get {
-    return (arr.elements[1].bulk_string.content, );
+public function make_get(command: Command): Get {
+    assert command.key : "GET must validate a key";
+    return [$key = *command.key];
 }
 
-# Convenience method to avoid comparison with an optional in the evt
-public function is_get(arr: RESP::Array): bool {
-    # GET key
-    if (arr.num_elements != 2)
-        return False;
-
-    if (!arr.elements[0]?.bulk_string)
-        return False;
-
-    local cmd = command_from(arr.elements[0].bulk_string.content);
-    return cmd && (*cmd == KnownCommand::GET);
+public function is_get(data: RESP::ClientData): bool {
+    return data.command.known && *(data.command.known) == KnownCommand::GET && |data.command.raw| >= 2;
 }

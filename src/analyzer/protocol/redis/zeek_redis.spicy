@@ -1,0 +1,22 @@
+# Zeek-specific Redis handling
+
+module Zeek_Redis;
+
+import RESP;
+
+public type ZeekServerData = struct {
+    err: bool;
+    data: optional<bytes>;
+};
+
+public function make_server_data(data: RESP::ServerData): ZeekServerData {
+    local res: ZeekServerData = [$err = False, $data = Null];
+    # TODO: Redo this so it's not ugly and supports more. maybe
+    if (data.data?.simple_error) {
+        res.err = True;
+        res.data = data.data.simple_error.content;
+    } else if (data.data?.simple_string) {
+        res.data = data.data.simple_string.content;
+    }
+    return res;
+}

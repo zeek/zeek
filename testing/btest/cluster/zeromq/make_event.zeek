@@ -5,9 +5,9 @@
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff .stderr
 
-@load frameworks/cluster/backend/nats
+@load frameworks/cluster/backend/zeromq
 
-redef Cluster::backend = Cluster::CLUSTER_BACKEND_NATS;
+redef Cluster::backend = Cluster::CLUSTER_BACKEND_ZEROMQ;
 
 function test_fun() { }
 hook test_hook() { }

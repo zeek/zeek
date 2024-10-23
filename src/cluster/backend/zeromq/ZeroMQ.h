@@ -15,7 +15,10 @@ namespace zeek::cluster::zeromq {
 
 class ZeroMQBackend : public cluster::ThreadedBackend {
 public:
-    using ThreadedBackend::ThreadedBackend;
+    /**
+     * Constructor.
+     */
+    ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls);
 
     /**
      * Spawns a thread running zmq_proxy() for the configured XPUB/XSUB listen
@@ -77,12 +80,13 @@ private:
     // Sockets used for logging. The log_push socket connects
     // with one or more logger-like nodes. Logger nodes listen
     // on the log_pull socket.
+    std::vector<std::string> connect_log_endpoints;
     zmq::socket_t log_push;
     zmq::socket_t log_pull;
 
     std::thread self_thread;
 
-    std::unique_ptr<BrokerThread> broker_thread;
+    std::unique_ptr<BrokerThread> proxy_thread;
 };
 
 } // namespace zeek::cluster::zeromq

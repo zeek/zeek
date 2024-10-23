@@ -1,3 +1,9 @@
+7.1.0-dev.420 | 2024-10-23 05:49:31 -0700
+
+  * Update broker submodule (Christian Kreibich, Corelight)
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
 7.1.0-dev.418 | 2024-10-22 19:04:22 +0200
 
   * btest/telemetry: Fix "Note compilable" typo (Arne Welzel, Corelight)

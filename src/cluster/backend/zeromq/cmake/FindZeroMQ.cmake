@@ -1,6 +1,6 @@
 include(FindPackageHandleStandardArgs)
 
-find_library(ZeroMQ_LIBRARY NAMES libzmq.so HINTS ${ZeroMQ_ROOT_DIR}/lib)
+find_library(ZeroMQ_LIBRARY NAMES zmq HINTS ${ZeroMQ_ROOT_DIR}/lib)
 
 find_path(ZeroMQ_INCLUDE_DIR NAMES zmq.h HINTS ${ZeroMQ_ROOT_DIR}/include)
 

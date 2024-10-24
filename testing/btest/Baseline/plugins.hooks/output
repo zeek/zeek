@@ -337,6 +337,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_BenchmarkReader.benchmark.bif.zeek, <...>/Zeek_BenchmarkReader.benchmark.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_BinaryReader.binary.bif.zeek, <...>/Zeek_BinaryReader.binary.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_BitTorrent.events.bif.zeek, <...>/Zeek_BitTorrent.events.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek, <...>/Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_ConfigReader.config.bif.zeek, <...>/Zeek_ConfigReader.config.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_ConnSize.events.bif.zeek, <...>/Zeek_ConnSize.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_ConnSize.functions.bif.zeek, <...>/Zeek_ConnSize.functions.bif.zeek) -> -1
@@ -462,6 +463,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./api, <...>/api.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./bloom-filter.bif.zeek, <...>/bloom-filter.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./cardinality-counter.bif.zeek, <...>/cardinality-counter.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./cluster.bif.zeek, <...>/cluster.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./comm.bif.zeek, <...>/comm.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./communityid.bif.zeek, <...>/communityid.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./const.bif.zeek, <...>/const.bif.zeek) -> -1
@@ -540,6 +542,7 @@
 0.000000   MetaHookPost  LoadFile(0, base<...>/ayiya, <...>/ayiya) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/broker, <...>/broker) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/cluster, <...>/cluster) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/cluster.bif, <...>/cluster.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/comm.bif, <...>/comm.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/communityid.bif, <...>/communityid.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/config, <...>/config) -> -1
@@ -638,6 +641,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_BenchmarkReader.benchmark.bif.zeek, <...>/Zeek_BenchmarkReader.benchmark.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_BinaryReader.binary.bif.zeek, <...>/Zeek_BinaryReader.binary.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_BitTorrent.events.bif.zeek, <...>/Zeek_BitTorrent.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek, <...>/Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_ConfigReader.config.bif.zeek, <...>/Zeek_ConfigReader.config.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_ConnSize.events.bif.zeek, <...>/Zeek_ConnSize.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_ConnSize.functions.bif.zeek, <...>/Zeek_ConnSize.functions.bif.zeek) -> (-1, <no content>)
@@ -763,6 +767,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./api, <...>/api.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./bloom-filter.bif.zeek, <...>/bloom-filter.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./cardinality-counter.bif.zeek, <...>/cardinality-counter.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./cluster.bif.zeek, <...>/cluster.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./comm.bif.zeek, <...>/comm.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./communityid.bif.zeek, <...>/communityid.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./const.bif.zeek, <...>/const.bif.zeek) -> (-1, <no content>)
@@ -841,6 +846,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/ayiya, <...>/ayiya) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/broker, <...>/broker) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/cluster, <...>/cluster) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/cluster.bif, <...>/cluster.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/comm.bif, <...>/comm.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/communityid.bif, <...>/communityid.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/config, <...>/config) -> (-1, <no content>)
@@ -1271,6 +1277,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_BenchmarkReader.benchmark.bif.zeek, <...>/Zeek_BenchmarkReader.benchmark.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_BinaryReader.binary.bif.zeek, <...>/Zeek_BinaryReader.binary.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_BitTorrent.events.bif.zeek, <...>/Zeek_BitTorrent.events.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek, <...>/Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_ConfigReader.config.bif.zeek, <...>/Zeek_ConfigReader.config.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_ConnSize.events.bif.zeek, <...>/Zeek_ConnSize.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_ConnSize.functions.bif.zeek, <...>/Zeek_ConnSize.functions.bif.zeek)
@@ -1396,6 +1403,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./api, <...>/api.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./bloom-filter.bif.zeek, <...>/bloom-filter.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./cardinality-counter.bif.zeek, <...>/cardinality-counter.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./cluster.bif.zeek, <...>/cluster.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./comm.bif.zeek, <...>/comm.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./communityid.bif.zeek, <...>/communityid.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./const.bif.zeek, <...>/const.bif.zeek)
@@ -1474,6 +1482,7 @@
 0.000000   MetaHookPre   LoadFile(0, base<...>/ayiya, <...>/ayiya)
 0.000000   MetaHookPre   LoadFile(0, base<...>/broker, <...>/broker)
 0.000000   MetaHookPre   LoadFile(0, base<...>/cluster, <...>/cluster)
+0.000000   MetaHookPre   LoadFile(0, base<...>/cluster.bif, <...>/cluster.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/comm.bif, <...>/comm.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/communityid.bif, <...>/communityid.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/config, <...>/config)
@@ -1572,6 +1581,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_BenchmarkReader.benchmark.bif.zeek, <...>/Zeek_BenchmarkReader.benchmark.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_BinaryReader.binary.bif.zeek, <...>/Zeek_BinaryReader.binary.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_BitTorrent.events.bif.zeek, <...>/Zeek_BitTorrent.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek, <...>/Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_ConfigReader.config.bif.zeek, <...>/Zeek_ConfigReader.config.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_ConnSize.events.bif.zeek, <...>/Zeek_ConnSize.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_ConnSize.functions.bif.zeek, <...>/Zeek_ConnSize.functions.bif.zeek)
@@ -1697,6 +1707,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./api, <...>/api.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./bloom-filter.bif.zeek, <...>/bloom-filter.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./cardinality-counter.bif.zeek, <...>/cardinality-counter.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./cluster.bif.zeek, <...>/cluster.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./comm.bif.zeek, <...>/comm.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./communityid.bif.zeek, <...>/communityid.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./const.bif.zeek, <...>/const.bif.zeek)
@@ -1775,6 +1786,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/ayiya, <...>/ayiya)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/broker, <...>/broker)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/cluster, <...>/cluster)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/cluster.bif, <...>/cluster.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/comm.bif, <...>/comm.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/communityid.bif, <...>/communityid.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/config, <...>/config)
@@ -2204,6 +2216,7 @@
 0.000000 | HookLoadFile  ./Zeek_BenchmarkReader.benchmark.bif.zeek <...>/Zeek_BenchmarkReader.benchmark.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_BinaryReader.binary.bif.zeek <...>/Zeek_BinaryReader.binary.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_BitTorrent.events.bif.zeek <...>/Zeek_BitTorrent.events.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek <...>/Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_ConfigReader.config.bif.zeek <...>/Zeek_ConfigReader.config.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_ConnSize.events.bif.zeek <...>/Zeek_ConnSize.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_ConnSize.functions.bif.zeek <...>/Zeek_ConnSize.functions.bif.zeek
@@ -2331,6 +2344,7 @@
 0.000000 | HookLoadFile  ./audio <...>/audio.sig
 0.000000 | HookLoadFile  ./bloom-filter.bif.zeek <...>/bloom-filter.bif.zeek
 0.000000 | HookLoadFile  ./cardinality-counter.bif.zeek <...>/cardinality-counter.bif.zeek
+0.000000 | HookLoadFile  ./cluster.bif.zeek <...>/cluster.bif.zeek
 0.000000 | HookLoadFile  ./comm.bif.zeek <...>/comm.bif.zeek
 0.000000 | HookLoadFile  ./communityid.bif.zeek <...>/communityid.bif.zeek
 0.000000 | HookLoadFile  ./const.bif.zeek <...>/const.bif.zeek
@@ -2419,6 +2433,7 @@
 0.000000 | HookLoadFile  base<...>/ayiya <...>/ayiya
 0.000000 | HookLoadFile  base<...>/broker <...>/broker
 0.000000 | HookLoadFile  base<...>/cluster <...>/cluster
+0.000000 | HookLoadFile  base<...>/cluster.bif <...>/cluster.bif.zeek
 0.000000 | HookLoadFile  base<...>/comm.bif <...>/comm.bif.zeek
 0.000000 | HookLoadFile  base<...>/communityid.bif <...>/communityid.bif.zeek
 0.000000 | HookLoadFile  base<...>/config <...>/config
@@ -2505,6 +2520,7 @@
 0.000000 | HookLoadFileExtended ./Zeek_BenchmarkReader.benchmark.bif.zeek <...>/Zeek_BenchmarkReader.benchmark.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_BinaryReader.binary.bif.zeek <...>/Zeek_BinaryReader.binary.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_BitTorrent.events.bif.zeek <...>/Zeek_BitTorrent.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek <...>/Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_ConfigReader.config.bif.zeek <...>/Zeek_ConfigReader.config.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_ConnSize.events.bif.zeek <...>/Zeek_ConnSize.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_ConnSize.functions.bif.zeek <...>/Zeek_ConnSize.functions.bif.zeek
@@ -2632,6 +2648,7 @@
 0.000000 | HookLoadFileExtended ./audio <...>/audio.sig
 0.000000 | HookLoadFileExtended ./bloom-filter.bif.zeek <...>/bloom-filter.bif.zeek
 0.000000 | HookLoadFileExtended ./cardinality-counter.bif.zeek <...>/cardinality-counter.bif.zeek
+0.000000 | HookLoadFileExtended ./cluster.bif.zeek <...>/cluster.bif.zeek
 0.000000 | HookLoadFileExtended ./comm.bif.zeek <...>/comm.bif.zeek
 0.000000 | HookLoadFileExtended ./communityid.bif.zeek <...>/communityid.bif.zeek
 0.000000 | HookLoadFileExtended ./const.bif.zeek <...>/const.bif.zeek
@@ -2720,6 +2737,7 @@
 0.000000 | HookLoadFileExtended base<...>/ayiya <...>/ayiya
 0.000000 | HookLoadFileExtended base<...>/broker <...>/broker
 0.000000 | HookLoadFileExtended base<...>/cluster <...>/cluster
+0.000000 | HookLoadFileExtended base<...>/cluster.bif <...>/cluster.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/comm.bif <...>/comm.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/communityid.bif <...>/communityid.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/config <...>/config

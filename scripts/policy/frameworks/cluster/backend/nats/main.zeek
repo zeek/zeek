@@ -60,8 +60,14 @@ export {
 	global reconnected: event();
 }
 
-# Actually use NATS
+@ifdef ( Cluster::CLUSTER_BACKEND_NATS )
 redef Cluster::backend = Cluster::CLUSTER_BACKEND_NATS;
+@else
+event zeek_init()
+	{
+	Reporter::fatal("NATS policy script loaded but no support compiled in!");
+	}
+@endif
 
 # Logger or manager subscribes to the logging queue.
 redef logger_queue_consume = Cluster::local_node_type() == Cluster::LOGGER || ( Cluster::manager_is_logger && Cluster::local_node_type() == Cluster::MANAGER );

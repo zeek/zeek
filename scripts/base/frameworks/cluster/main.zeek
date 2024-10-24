@@ -426,18 +426,12 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=
 	if ( ! Cluster::is_enabled() )
 		return;
 
-	if ( Cluster::backend != Cluster::CLUSTER_BACKEND_BROKER )
-		return;
-
 	local e = Broker::make_event(Cluster::hello, node, Cluster::node_id());
 	Broker::publish(nodeid_topic(endpoint$id), e);
 	}
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string) &priority=10
 	{
-	if ( Cluster::backend != Cluster::CLUSTER_BACKEND_BROKER )
-		return;
-
 	for ( node_name, n in nodes )
 		{
 		if ( n?$id && n$id == endpoint$id )

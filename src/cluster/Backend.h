@@ -26,7 +26,7 @@ namespace logging {
 class WriterFrontend;
 
 namespace detail {
-class LogWriteHeader;
+struct LogWriteHeader;
 }
 } // namespace logging
 

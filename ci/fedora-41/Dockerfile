@@ -8,6 +8,7 @@ RUN dnf -y install \
     bison \
     ccache \
     cmake \
+    cppzmq-devel \
     diffutils \
     findutils \
     flex \

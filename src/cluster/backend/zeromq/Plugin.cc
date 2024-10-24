@@ -5,7 +5,9 @@
 #include "ZeroMQ.h"
 
 
-using namespace zeek::plugin::Zeek_Cluster_Backend_ZeroMQ;
+namespace zeek::plugin::Zeek_Cluster_Backend_ZeroMQ {
+
+Plugin plugin;
 
 zeek::plugin::Configuration Plugin::Configure() {
     AddComponent(new cluster::BackendComponent("ZeroMQ", zeek::cluster::zeromq::ZeroMQBackend::Instantiate));
@@ -15,3 +17,5 @@ zeek::plugin::Configuration Plugin::Configure() {
     config.description = "Cluster backend using ZeroMQ";
     return config;
 }
+
+} // namespace zeek::plugin::Zeek_Cluster_Backend_ZeroMQ

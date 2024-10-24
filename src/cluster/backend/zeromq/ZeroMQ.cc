@@ -21,18 +21,16 @@
 #include "zeek/cluster/Serializer.h"
 #include "zeek/logging/Manager.h"
 
+#include "Plugin.h"
 #include "ZeroMQ-Proxy.h"
 
 namespace zeek {
 
-namespace plugin {
+namespace plugin::Zeek_Cluster_Backend_ZeroMQ {
 
-namespace Zeek_Cluster_Backend_ZeroMQ {
+extern zeek::plugin::Zeek_Cluster_Backend_ZeroMQ::Plugin plugin;
 
-extern Plugin plugin;
-
-} // namespace Zeek_Cluster_Backend_ZeroMQ
-} // namespace plugin
+}
 
 namespace cluster::zeromq {
 

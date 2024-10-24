@@ -142,7 +142,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* con
         case SQLITE_SYNCHRONOUS_EXTRA:
             res = sqlite3_exec(db, "PRAGMA synchronous=EXTRA;", NULL, NULL, &errorMsg);
             break;
-        default: Error(Fmt("Invalid LogSQLite::synchronous enum: %lld", synchronous)); return false;
+        default: Error("Invalid LogSQLite::synchronous enum"); return false;
     }
     if ( res != SQLITE_OK ) {
         Error(Fmt("Error setting synchronous pragma %s", errorMsg));
@@ -165,7 +165,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* con
             break;
         case SQLITE_JOURNAL_MODE_WAL: res = sqlite3_exec(db, "PRAGMA journal_mode=WAL;", NULL, NULL, &errorMsg); break;
         case SQLITE_JOURNAL_MODE_OFF: res = sqlite3_exec(db, "PRAGMA journal_mode=OFF;", NULL, NULL, &errorMsg); break;
-        default: Error(Fmt("Invalid LogSQLite::journal_mode enum: %lld", synchronous)); return false;
+        default: Error("Invalid LogSQLite::journal_mode enum"); return false;
     }
     if ( res != SQLITE_OK ) {
         Error(Fmt("Error setting journal_mode pragma %s", errorMsg));

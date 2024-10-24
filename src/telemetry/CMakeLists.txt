@@ -7,10 +7,10 @@ zeek_add_subdir_library(
     Manager.cc
     Opaques.cc
     ProcessStats.cc
-    Utils.cc
-    BIFS
-    consts.bif
-    telemetry.bif)
+    Utils.cc)
+
+# BIFs are loaded in src/CMakeLists.txt so they are available early on, to allow
+# our own frameworks to establish metrics in the script layer.
 
 # We don't need to include the civetweb headers across the whole project, only
 # here in the telemetry framework.

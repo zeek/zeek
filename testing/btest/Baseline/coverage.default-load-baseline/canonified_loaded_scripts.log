@@ -24,6 +24,8 @@ scripts/base/init-bare.zeek
   build/scripts/base/bif/plugins/Zeek_SNMP.types.bif.zeek
   build/scripts/base/bif/plugins/Zeek_KRB.types.bif.zeek
   build/scripts/base/bif/event.bif.zeek
+  build/scripts/base/bif/telemetry_functions.bif.zeek
+  build/scripts/base/bif/telemetry_types.bif.zeek
   scripts/base/packet-protocols/__load__.zeek
     scripts/base/packet-protocols/main.zeek
       scripts/base/frameworks/analyzer/main.zeek
@@ -149,8 +151,7 @@ scripts/base/init-frameworks-and-bifs.zeek
     scripts/base/frameworks/files/magic/__load__.zeek
   scripts/base/frameworks/telemetry/options.zeek
   build/scripts/base/bif/__load__.zeek
-    build/scripts/base/bif/consts.bif.zeek
-    build/scripts/base/bif/telemetry.bif.zeek
+    build/scripts/base/bif/telemetry_consts.bif.zeek
     build/scripts/base/bif/zeekygen.bif.zeek
     build/scripts/base/bif/pcap.bif.zeek
     build/scripts/base/bif/bloom-filter.bif.zeek

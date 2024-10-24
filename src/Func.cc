@@ -53,6 +53,7 @@
 #include "packet_analysis.bif.func_h"
 #include "CPP-load.bif.func_h"
 #include "mmdb.bif.func_h"
+#include "telemetry_functions.bif.func_h"
 
 #include "zeek.bif.func_def"
 #include "communityid.bif.func_def"
@@ -64,6 +65,7 @@
 #include "packet_analysis.bif.func_def"
 #include "CPP-load.bif.func_def"
 #include "mmdb.bif.func_def"
+#include "telemetry_functions.bif.func_def"
 // clang-format on
 
 extern RETSIGTYPE sig_handler(int signo);
@@ -1067,6 +1069,7 @@ void init_primary_bifs() {
 #include "stats.bif.func_init"
 #include "strings.bif.func_init"
 #include "supervisor.bif.func_init"
+#include "telemetry_functions.bif.func_init"
 #include "zeek.bif.func_init"
 
     init_builtin_types();

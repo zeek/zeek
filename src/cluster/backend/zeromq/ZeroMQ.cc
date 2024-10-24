@@ -27,7 +27,9 @@
 namespace zeek {
 
 namespace plugin::Zeek_Cluster_Backend_ZeroMQ {
-extern Plugin plugin;
+
+extern zeek::plugin::Zeek_Cluster_Backend_ZeroMQ::Plugin plugin;
+
 }
 
 namespace cluster::zeromq {

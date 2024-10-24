@@ -1,6 +1,6 @@
 include(FindPackageHandleStandardArgs)
 
-find_library(LibNATS_LIBRARY NAMES libnats.so libnats_static.a HINTS ${LIBNATS_ROOT_DIR}/lib)
+find_library(LibNATS_LIBRARY NAMES nats nats_static HINTS ${LIBNATS_ROOT_DIR}/lib)
 
 find_path(LibNATS_INCLUDE_DIR NAMES nats.h HINTS ${LIBNATS_ROOT_DIR}/include)
 

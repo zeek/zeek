@@ -78,8 +78,8 @@ std::optional<detail::Event> to_zeek_event(const broker::zeek::Event& ev) {
 
     if ( arg_types.size() != args.size() ) {
         std::string event_name(name);
-        zeek::reporter->Error("Unserialize error '%s' arg_types.size()=%" PRIu64 " and args.size()=%" PRIu64,
-                              event_name.c_str(), arg_types.size(), args.size());
+        zeek::reporter->Error("Unserialize error '%s' arg_types.size()=%zu and args.size()=%zu", event_name.c_str(),
+                              arg_types.size(), args.size());
 
         return std::nullopt;
     }
@@ -143,7 +143,7 @@ public:
 // std::vector<std::byte>.
 template<typename _Container>
 struct PushBackAdaptor {
-    explicit PushBackAdaptor(_Container c) : container(&c) {}
+    explicit PushBackAdaptor(_Container& c) : container(&c) {}
     using value_type = char;
 
     void push_back(char c) { container->push_back(static_cast<std::byte>(c)); }

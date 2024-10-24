@@ -5,7 +5,7 @@
 using namespace zeek::cluster;
 
 Manager::Manager()
-    : backends(plugin::ComponentManager<BackendComponent>("Cluster", "ClusterBackendTag")),
+    : backends(plugin::ComponentManager<BackendComponent>("Cluster", "BackendTag")),
       event_serializers(plugin::ComponentManager<EventSerializerComponent>("Cluster", "EventSerializerTag")),
       log_serializers(plugin::ComponentManager<LogSerializerComponent>("Cluster", "LogSerializerTag")) {}
 

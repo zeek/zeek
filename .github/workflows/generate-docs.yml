@@ -17,7 +17,7 @@ jobs:
     permissions:
       contents: write  # for Git to git push
     if: github.repository == 'zeek/zeek'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       # We only perform a push if the action was triggered via a schedule
@@ -51,6 +51,7 @@ jobs:
             bsdmainutils \
             ccache \
             cmake \
+            cppzmq-dev \
             flex \
             g++ \
             gcc \
@@ -71,7 +72,7 @@ jobs:
           # `python2` so this is a simple workaround until we drop Python 2
           # support and explicitly use `python3` for all invocations.
           sudo ln -sf /usr/bin/python3 /usr/local/bin/python
-          sudo pip3 install -r doc/requirements.txt
+          sudo pip3 install --break-system-packages -r doc/requirements.txt
 
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2

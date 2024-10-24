@@ -26,6 +26,9 @@ SQLite::SQLite(WriterFrontend* frontend) : WriterBackend(frontend), fields(), nu
 
     empty_field.assign((const char*)BifConst::LogSQLite::empty_field->Bytes(), BifConst::LogSQLite::empty_field->Len());
 
+    synchronous = BifConst::LogSQLite::synchronous->AsInt();
+    journal_mode = BifConst::LogSQLite::journal_mode->AsInt();
+
     threading::formatter::Ascii::SeparatorInfo sep_info(string(), set_separator, unset_field, empty_field);
     io = new threading::formatter::Ascii(this, sep_info);
 }
@@ -128,6 +131,49 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* con
                                     SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL)) )
         return false;
 
+    char* errorMsg = 0;
+    int res;
+    switch ( synchronous ) {
+        case SQLITE_SYNCHRONOUS_OFF: res = sqlite3_exec(db, "PRAGMA synchronous=OFF;", NULL, NULL, &errorMsg); break;
+        case SQLITE_SYNCHRONOUS_NORMAL:
+            res = sqlite3_exec(db, "PRAGMA synchronous=NORMAL;", NULL, NULL, &errorMsg);
+            break;
+        case SQLITE_SYNCHRONOUS_FULL: res = sqlite3_exec(db, "PRAGMA synchronous=FULL;", NULL, NULL, &errorMsg); break;
+        case SQLITE_SYNCHRONOUS_EXTRA:
+            res = sqlite3_exec(db, "PRAGMA synchronous=EXTRA;", NULL, NULL, &errorMsg);
+            break;
+        default: Error("Invalid LogSQLite::synchronous enum"); return false;
+    }
+    if ( res != SQLITE_OK ) {
+        Error(Fmt("Error setting synchronous pragma %s", errorMsg));
+        sqlite3_free(errorMsg);
+        return false;
+    }
+
+    switch ( journal_mode ) {
+        case SQLITE_JOURNAL_MODE_DELETE:
+            res = sqlite3_exec(db, "PRAGMA journal_mode=DELETE;", NULL, NULL, &errorMsg);
+            break;
+        case SQLITE_JOURNAL_MODE_TRUNCATE:
+            res = sqlite3_exec(db, "PRAGMA journal_mode=TRUNCATE;", NULL, NULL, &errorMsg);
+            break;
+        case SQLITE_JOURNAL_MODE_PERSIST:
+            res = sqlite3_exec(db, "PRAGMA journal_mode=PERSIST;", NULL, NULL, &errorMsg);
+            break;
+        case SQLITE_JOURNAL_MODE_MEMORY:
+            res = sqlite3_exec(db, "PRAGMA journal_mode=MEMORY;", NULL, NULL, &errorMsg);
+            break;
+        case SQLITE_JOURNAL_MODE_WAL: res = sqlite3_exec(db, "PRAGMA journal_mode=WAL;", NULL, NULL, &errorMsg); break;
+        case SQLITE_JOURNAL_MODE_OFF: res = sqlite3_exec(db, "PRAGMA journal_mode=OFF;", NULL, NULL, &errorMsg); break;
+        default: Error("Invalid LogSQLite::journal_mode enum"); return false;
+    }
+    if ( res != SQLITE_OK ) {
+        Error(Fmt("Error setting journal_mode pragma %s", errorMsg));
+        sqlite3_free(errorMsg);
+        return false;
+    }
+
+
     string create = "CREATE TABLE IF NOT EXISTS " + tablename + " (\n";
     //"id SERIAL UNIQUE NOT NULL"; // SQLite has rowids, we do not need a counter here.
 
@@ -163,8 +209,8 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* con
 
     create += "\n);";
 
-    char* errorMsg = 0;
-    int res = sqlite3_exec(db, create.c_str(), NULL, NULL, &errorMsg);
+    errorMsg = 0;
+    res = sqlite3_exec(db, create.c_str(), NULL, NULL, &errorMsg);
     if ( res != SQLITE_OK ) {
         Error(Fmt("Error executing table creation statement: %s", errorMsg));
         sqlite3_free(errorMsg);

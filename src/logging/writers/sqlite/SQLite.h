@@ -45,6 +45,24 @@ private:
     std::string unset_field;
     std::string empty_field;
 
+    int64_t synchronous;
+    int64_t journal_mode;
+
+    enum SQLiteSynchronous {
+        SQLITE_SYNCHRONOUS_OFF,
+        SQLITE_SYNCHRONOUS_NORMAL,
+        SQLITE_SYNCHRONOUS_FULL,
+        SQLITE_SYNCHRONOUS_EXTRA,
+    };
+    enum SQLiteJournalMode {
+        SQLITE_JOURNAL_MODE_DELETE,
+        SQLITE_JOURNAL_MODE_TRUNCATE,
+        SQLITE_JOURNAL_MODE_PERSIST,
+        SQLITE_JOURNAL_MODE_MEMORY,
+        SQLITE_JOURNAL_MODE_WAL,
+        SQLITE_JOURNAL_MODE_OFF,
+    };
+
     threading::formatter::Ascii* io;
 };
 

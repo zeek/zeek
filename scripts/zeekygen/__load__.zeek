@@ -2,6 +2,10 @@
 
 # Scripts which are commented out in test-all-policy.zeek.
 @load protocols/ssl/decryption.zeek
+@load frameworks/cluster/backend/nats/__load__.zeek
+@load frameworks/cluster/backend/nats/connect.zeek
+@load frameworks/cluster/backend/nats/main.zeek
+@load frameworks/cluster/backend/zeromq/connect.zeek
 @load frameworks/cluster/nodes-experimental/manager.zeek
 @load frameworks/control/controllee.zeek
 @load frameworks/control/controller.zeek
@@ -28,6 +32,8 @@ event zeek_init() &priority=1000
 	# fail when run under zeekygen. For the purpose of zeekygen, we could
 	# probably disable all modules, too.
 	disable_module_events("Control");
+	disable_module_events("Cluster::Backend::NATS");
+	disable_module_events("Cluster::Backend::ZeroMQ");
 	disable_module_events("Management::Agent::Runtime");
 	disable_module_events("Management::Controller::Runtime");
 	disable_module_events("Management::Node");

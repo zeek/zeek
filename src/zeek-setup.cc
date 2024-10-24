@@ -821,12 +821,11 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         plugin_mgr->InitPostScript();
         zeekygen_mgr->InitPostScript();
 
-
         // If Cluster::backend is set to broker, just set zeek::cluster::backend
         // to broker_mgr like it has always been. If it's an alternative
         // implementation, instantiate it.
         const auto& cluster_backend_val = id::find_val<zeek::EnumVal>("Cluster::backend");
-        const auto& cluster_backend_type = zeek::id::find_type<EnumType>("Cluster::ClusterBackendTag");
+        const auto& cluster_backend_type = zeek::id::find_type<EnumType>("Cluster::BackendTag");
         zeek_int_t broker_enum = cluster_backend_type->Lookup("Cluster::CLUSTER_BACKEND_BROKER");
         if ( broker_enum == cluster_backend_val->AsEnum() )
             cluster::backend = broker_mgr;

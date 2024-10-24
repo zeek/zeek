@@ -10,14 +10,18 @@
 #include <broker/peer_info.hh>
 #include <broker/zeek.hh>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Span.h"
 #include "zeek/broker/Data.h"
+#include "zeek/cluster/Backend.h"
 #include "zeek/iosource/IOSource.h"
 #include "zeek/logging/WriterBackend.h"
+
+#include "cluster/Serializer.h"
 
 namespace zeek {
 
@@ -75,7 +79,7 @@ struct Stats {
  * Manages various forms of communication between peer Zeek processes
  * or other external applications via use of the Broker messaging library.
  */
-class Manager : public iosource::IOSource {
+class Manager : public zeek::cluster::Backend, public iosource::IOSource {
 public:
     /** Broker protocol to expect on a listening port. */
     enum class BrokerProtocol {
@@ -99,12 +103,17 @@ public:
      * Initialization of the manager. This is called late during Zeek's
      * initialization after any scripts are processed.
      */
-    void InitPostScript();
+    void DoInitPostScript() override;
+
+    /**
+     * Broker doesn't do anything during Broker::Backend::init().
+     */
+    bool DoInit() override { return true; }
 
     /**
      * Shuts Broker down at termination.
      */
-    void Terminate();
+    void DoTerminate() override;
 
     /**
      * Returns true if any Broker communication is currently active.
@@ -206,6 +215,23 @@ public:
     bool PublishEvent(std::string topic, RecordVal* ev);
 
     /**
+     * Cluster::Backend::DoPublishEvent() implementation.
+     */
+    bool DoPublishEvent(const std::string& topic, const zeek::RecordValPtr& event) override {
+        return PublishEvent(topic, event->AsRecordVal());
+    }
+
+    bool DoPublishEvent(const std::string& topic, const cluster::detail::Event& event) override;
+
+    bool DoPublishEvent(const std::string& topic, const std::string& format,
+                        const cluster::detail::byte_buffer& buf) override {
+        // This should never be reached, broker doesn't use a configurable serializers.
+        throw std::logic_error("not implemented");
+    }
+
+    using cluster::Backend::PublishEvent;
+
+    /**
      * Send a message to create a log stream to any interested peers.
      * The log stream may or may not already exist on the receiving side.
      * The topic name used is implicitly "bro/log/<stream-name>".
@@ -233,6 +259,15 @@ public:
      */
     bool PublishLogWrite(EnumVal* stream, EnumVal* writer, const std::string& path,
                          const logging::detail::LogRecord& rec);
+
+    bool DoPublishLogWrites(const logging::detail::LogWriteHeader& header,
+                            zeek::Span<logging::detail::LogRecord> records) override;
+
+    bool DoPublishLogWrites(const logging::detail::LogWriteHeader& header, const std::string& format,
+                            cluster::detail::byte_buffer& buf) override {
+        // Not implemented by broker
+        throw std::logic_error("not implemented");
+    }
 
     /**
      * Automatically send an event to any interested peers whenever it is
@@ -266,13 +301,15 @@ public:
 
     using ArgsSpan = Span<const ValPtr>;
 
+    using Backend::MakeEvent;
+
     /**
      * Create an `Event` record value from an event and its arguments.
      * @param args A span pointing at the event arguments.
      * @return an `Event` record value.  If an invalid event or arguments
      * were supplied the optional "name" field will not be set.
      */
-    zeek::RecordValPtr MakeEvent(ArgsSpan args);
+    zeek::RecordValPtr DoMakeEvent(ArgsSpan args) override;
 
     /**
      * Create an `Event` record value from an event and its arguments.
@@ -290,7 +327,7 @@ public:
      * and "amy" but not "bob".
      * @return true if it's a new event subscription and it is now registered.
      */
-    bool Subscribe(const std::string& topic_prefix);
+    bool DoSubscribe(const std::string& topic_prefix) override;
 
     /**
      * Register interest in peer event messages that use a certain topic prefix,
@@ -309,7 +346,7 @@ public:
      * to zeek::Broker::Manager::Subscribe() or zeek::Broker::Manager::Forward().
      * @return true if interest in topic prefix is no longer advertised.
      */
-    bool Unsubscribe(const std::string& topic_prefix);
+    bool DoUnsubscribe(const std::string& topic_prefix) override;
 
     /**
      * Create a new *master* data store.

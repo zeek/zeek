@@ -313,6 +313,14 @@ void ScriptInfo::DoInitPostScript() {
         const auto& id = zeek::detail::global_scope()->Find("Log::Writer");
         types.push_back(new IdentifierInfo(id, this));
     }
+    else if ( name == "base/frameworks/cluster/main.zeek" ) {
+        const auto& backend_id = zeek::detail::global_scope()->Find("Cluster::BackendTag");
+        types.push_back(new IdentifierInfo(backend_id, this));
+        const auto& event_serializer_id = zeek::detail::global_scope()->Find("Cluster::EventSerializerTag");
+        types.push_back(new IdentifierInfo(event_serializer_id, this));
+        const auto& log_serializer_id = zeek::detail::global_scope()->Find("Cluster::LogSerializerTag");
+        types.push_back(new IdentifierInfo(log_serializer_id, this));
+    }
 }
 
 vector<string> ScriptInfo::GetComments() const { return comments; }

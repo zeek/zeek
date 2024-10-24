@@ -11,6 +11,12 @@
 
 # @load frameworks/control/controllee.zeek
 # @load frameworks/control/controller.zeek
+# @load frameworks/cluster/backend/nats/__load__.zeek
+# @load frameworks/cluster/backend/nats/connect.zeek
+# @load frameworks/cluster/backend/nats/main.zeek
+@load frameworks/cluster/backend/zeromq/__load__.zeek
+# @load frameworks/cluster/backend/zeromq/connect.zeek
+@load frameworks/cluster/backend/zeromq/main.zeek
 @load frameworks/cluster/experimental.zeek
 # Loaded via the above through test-all-policy-cluster.test
 # when running as a manager, creates cluster.log entries

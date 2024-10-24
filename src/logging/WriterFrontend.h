@@ -239,6 +239,11 @@ public:
     const char* Name() const { return name; }
 
     /**
+     * Returns the name of the filter that belongs to the frontend.
+     */
+    const std::string& GetFilterName() const { return info->filter_name; }
+
+    /**
      * Returns the log fields as passed into the constructor.
      */
     const threading::Field* const* Fields() const { return fields; }
@@ -262,6 +267,8 @@ protected:
     const threading::Field* const* fields; // The log fields.
 
     detail::WriteBuffer write_buffer; // Buffer for bulk writes.
+
+    detail::LogWriteHeader header;
 };
 
 } // namespace zeek::logging

@@ -54,6 +54,8 @@
 #include "zeek/analyzer/Manager.h"
 #include "zeek/binpac_zeek.h"
 #include "zeek/broker/Manager.h"
+#include "zeek/cluster/Backend.h"
+#include "zeek/cluster/Manager.h"
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/input.h"
 #include "zeek/input/Manager.h"
@@ -171,6 +173,8 @@ zeek::input::Manager* zeek::input_mgr = nullptr;
 zeek::file_analysis::Manager* zeek::file_mgr = nullptr;
 zeek::zeekygen::detail::Manager* zeek::detail::zeekygen_mgr = nullptr;
 zeek::iosource::Manager* zeek::iosource_mgr = nullptr;
+zeek::cluster::Manager* zeek::cluster::manager = nullptr;
+zeek::cluster::Backend* zeek::cluster::backend = nullptr;
 zeek::Broker::Manager* zeek::broker_mgr = nullptr;
 zeek::telemetry::Manager* zeek::telemetry_mgr = nullptr;
 zeek::Supervisor* zeek::supervisor_mgr = nullptr;
@@ -377,6 +381,9 @@ static void terminate_zeek() {
     thread_mgr->Terminate();
     broker_mgr->Terminate();
     telemetry_mgr->Terminate();
+
+    if ( cluster::backend != broker_mgr )
+        cluster::backend->Terminate();
 
     event_mgr.Drain();
 
@@ -668,6 +675,8 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     log_mgr = new logging::Manager();
     input_mgr = new input::Manager();
     file_mgr = new file_analysis::Manager();
+    cluster::manager = new cluster::Manager();
+
     auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;
     broker_mgr = new Broker::Manager(broker_real_time);
     trigger_mgr = new trigger::Manager();
@@ -811,7 +820,45 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         log_mgr->InitPostScript();
         plugin_mgr->InitPostScript();
         zeekygen_mgr->InitPostScript();
+
+        // If Cluster::backend is set to broker, just set zeek::cluster::backend
+        // to broker_mgr like it has always been. If it's an alternative
+        // implementation, instantiate it.
+        const auto& cluster_backend_val = id::find_val<zeek::EnumVal>("Cluster::backend");
+        const auto& cluster_backend_type = zeek::id::find_type<EnumType>("Cluster::BackendTag");
+        zeek_int_t broker_enum = cluster_backend_type->Lookup("Cluster::CLUSTER_BACKEND_BROKER");
+        if ( broker_enum == cluster_backend_val->AsEnum() )
+            cluster::backend = broker_mgr;
+        else {
+            const auto& event_serializer_val = id::find_val<zeek::EnumVal>("Cluster::event_serializer");
+            const auto& log_serializer_val = id::find_val<zeek::EnumVal>("Cluster::log_serializer");
+            auto event_serializer = cluster::manager->InstantiateEventSerializer(event_serializer_val);
+            auto log_serializer = cluster::manager->InstantiateLogSerializer(log_serializer_val);
+            if ( event_serializer == nullptr ) {
+                reporter->Error("Failed to instantiate event serializer: %s",
+                                zeek::obj_desc(event_serializer_val.get()).c_str());
+                exit(1);
+            }
+            if ( log_serializer == nullptr ) {
+                reporter->Error("Failed to instantiate log serializer: %s",
+                                zeek::obj_desc(log_serializer_val.get()).c_str());
+                exit(1);
+            }
+
+            cluster::backend = cluster::manager->InstantiateBackend(cluster_backend_val, std::move(event_serializer),
+                                                                    std::move(log_serializer));
+        }
+
+        if ( cluster::backend == nullptr ) {
+            reporter->Error("Failed to instantiate cluster backend: %s",
+                            zeek::obj_desc(cluster_backend_val.get()).c_str());
+            exit(1);
+        }
+
         broker_mgr->InitPostScript();
+        if ( cluster::backend != broker_mgr )
+            cluster::backend->InitPostScript();
+
         timer_mgr->InitPostScript();
         event_mgr.InitPostScript();
 

@@ -29,6 +29,8 @@
 #include "zeek/threading/Manager.h"
 #include "zeek/threading/SerialTypes.h"
 
+#include "cluster/Backend.h"
+
 using namespace std;
 
 namespace zeek::detail {
@@ -547,6 +549,8 @@ bool Manager::CompareFields(const Filter* filter, const WriterFrontend* writer) 
     return true;
 }
 
+// Local: Returns true if filter names differ.
+// Remote: Returns true if fields false if fields agree
 bool Manager::CheckFilterWriterConflict(const WriterInfo* winfo, const Filter* filter) {
     if ( winfo->from_remote )
         // If the writer was instantiated as a result of remote logging, then
@@ -1093,6 +1097,17 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
 
         if ( w != stream->writers.end() && CheckFilterWriterConflict(w->second, filter) ) {
             // Auto-correct path due to conflict over the writer/path pairs.
+            //
+            // How is path collision an issue if one doesn't write to a filesystem?
+            //
+            // Mostly because the current logger code can't deal with it due to keying
+            // of remote writes on (stream, writer, path). If this was (stream, filter),
+            // we might as well have path collisions (assuming filters are configured
+            // non-conflicting.
+            //
+            // Stream::WriterMap::iterator w = stream->writers.find(Stream::WriterPathPair(writer->AsEnum(), path));
+            //
+            // Why is this so complicated?
             string instantiator = w->second->instantiating_filter;
             string new_path;
             unsigned int i = 2;
@@ -1709,6 +1724,7 @@ WriterFrontend* Manager::CreateWriterForFilter(Filter* filter, const std::string
     }
 
     auto* info = new WriterBackend::WriterInfo;
+    info->filter_name = filter->name;
     info->path = util::copy_string(path.c_str(), path.size());
     info->network_time = run_state::network_time;
 
@@ -1729,6 +1745,78 @@ WriterFrontend* Manager::CreateWriterForFilter(Filter* filter, const std::string
     bool from_remote = from == Manager::WriterOrigin::REMOTE;
     return CreateWriter(filter->id, filter->writer, info, filter->num_fields, arg_fields, filter->local, filter->remote,
                         from_remote, filter->name);
+}
+
+bool Manager::WritesFromRemote(const detail::LogWriteHeader& header, std::vector<detail::LogRecord>&& arg_records) {
+    auto records = std::move(arg_records);
+
+    Stream* stream = FindStream(header.stream_id.get());
+    if ( ! stream ) {
+        reporter->Error("Failed to find stream for !");
+        return false;
+    }
+
+    Filter* filter = nullptr;
+
+    // Okay, find the filter!
+    for ( const auto& f : stream->filters ) {
+        if ( f->name == header.filter_name ) {
+            filter = f;
+            break;
+        }
+    }
+    if ( ! filter ) {
+        reporter->Error("Did not find filter '%s' for stream", header.filter_name.c_str());
+        return false;
+    }
+
+    // Basic validation of incoming log record with local filter configuration.
+    if ( static_cast<int>(header.fields.size()) != filter->num_fields ) {
+        reporter->Error("Local filter '%s' of stream '%s' has '%d' fields, got %zu", filter->name.c_str(),
+                        obj_desc_short(header.stream_id.get()).c_str(), filter->num_fields, header.fields.size());
+        return false;
+    }
+
+    if ( header.writer_id.get() != filter->writer ) {
+        reporter->Error("Local filter '%s' of stream '%s' has writer '%s', got '%s'", filter->name.c_str(),
+                        obj_desc_short(header.stream_id.get()).c_str(), obj_desc_short(filter->writer).c_str(),
+                        obj_desc_short(header.writer_id.get()).c_str());
+        return false;
+    }
+
+    // if ( ! SchemaCompatible(filter->fields, header.schema )) {
+    //
+    //    return false;
+    // }
+
+    // XXX: Not sure we should use WriterPathPair, we should probably
+    //      better change to <filter_name, path> pair, that should also
+    //      avoid conflicts? Maybe.
+    Stream::WriterPathPair wpp(filter->writer->AsEnum(), header.path);
+
+    Stream::WriterMap::const_iterator w = stream->writers.find(wpp);
+    if ( w == stream->writers.end() ) {
+        DBG_LOG(DBG_LOGGING, "creating writer for %s %s %s\n", obj_desc_short(header.stream_id.get()).c_str(),
+                obj_desc_short(header.writer_id.get()).c_str(), header.filter_name.c_str());
+
+        if ( ! CreateWriterForFilter(filter, header.path, WriterOrigin::REMOTE) ) {
+            reporter->Error("Failed to create writer for filter '%s' of stream '%s'", filter->name.c_str(),
+                            obj_desc_short(header.stream_id.get()).c_str());
+            return false;
+        }
+    }
+
+    w = stream->writers.find(wpp);
+    assert(w != stream->writers.end());
+
+    // Hmm, if we had a batch method on the writer frontend, we could
+    // bypass any buffering there and just write to the backend
+    // immediately. At the same time, this way the logger may buffer
+    // together writes from different workers, so I guess that's nice.
+    for ( auto& r : records )
+        w->second->writer->Write(std::move(r));
+
+    return true;
 }
 
 bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, const string& path, detail::LogRecord&& rec) {

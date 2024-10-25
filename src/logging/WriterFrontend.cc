@@ -1,5 +1,6 @@
 #include "zeek/logging/WriterFrontend.h"
 
+#include "zeek/Desc.h"
 #include "zeek/RunState.h"
 #include "zeek/Span.h"
 #include "zeek/broker/Manager.h"
@@ -119,10 +120,12 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVa
 
     header = {
         .stream_id = {zeek::NewRef{}, stream},
+        .stream_name = obj_desc_short(stream),
         .writer_id = {zeek::NewRef{}, writer},
+        .writer_name = obj_desc_short(writer),
         .filter_name = arg_info.filter_name,
         .path = arg_info.path,
-        .fields = {}, // Populated in Init()
+        .fields = {}, // These are populated in Init()
     };
 }
 

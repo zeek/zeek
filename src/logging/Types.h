@@ -2,8 +2,9 @@
 //
 // Header for types shared between cluster and logging components.
 //
-// Currently these are in detail, but over time may move into zeek once
-// the proper interfaces have been figured out.
+// Currently these are in detail, but over time may move into the
+// public namespace once established.
+
 #pragma once
 
 #include <vector>
@@ -15,7 +16,9 @@ namespace zeek::logging::detail {
 /**
  * A single log record.
  *
- * This is what a Zeek script Info record is rendered into.
+ * This is what a Zeek record value passed into Log::write()
+ * is rendered into before passed to a local log writer or
+ * sent via the cluster to a remote node.
  */
 using LogRecord = std::vector<threading::Value>;
 
@@ -26,7 +29,9 @@ using LogRecord = std::vector<threading::Value>;
  */
 struct LogWriteHeader {
     EnumValPtr stream_id;                 // The enum identifying the stream.
-    EnumValPtr writer_id;                 // The enum identifying the writer for backwards compat.
+    std::string stream_name;              // The name of the stream, e.g. Conn::LOG
+    EnumValPtr writer_id;                 // The enum identifying the writer. Mostly for backwards compat with broker.
+    std::string writer_name;              // The name of the writer, e.g. WRITER_ASCII.
     std::string filter_name;              // The name of the filter.
     std::string path;                     // The path as configured or produced by the filter's path_func.
     std::vector<threading::Field> fields; // The schema describing a log record.
@@ -35,13 +40,14 @@ struct LogWriteHeader {
 /**
  * A batch of log records including their header.
  *
- * Log serializers produce instances when unserializing.
+ * This is the object created when unserialziing a log-write
+ * message sent between nodes.
  *
  * This currently implies that the serializer process copies
  * into LogRecord / threading::Value structures. If the need
- * arises, there could be more abstractions to leverage
- * zero-copy approaches if the serialization format supports it
- * (capnproto or flatbuffers)
+ * for zero-copy approaches arises, might need a different
+ * approach to free the underlying buffer. Think capnproto or
+ * flatbuffers.
  */
 struct LogWriteBatch {
     LogWriteHeader header;

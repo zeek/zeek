@@ -1,7 +1,8 @@
 #include "Plugin.h"
 
 #include "zeek/cluster/Component.h"
-#include "zeek/cluster/serializer/binary-serialization-format/Serializer.h"
+
+#include "Serializer.h"
 
 
 using namespace zeek::plugin::Zeek_Binary_Serializer;

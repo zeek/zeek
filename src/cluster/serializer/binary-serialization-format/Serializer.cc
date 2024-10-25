@@ -19,21 +19,6 @@ using namespace zeek::cluster::detail;
 bool BinarySerializationFormatLogSerializer::SerializeLogWriteInto(byte_buffer& buf,
                                                                    const logging::detail::LogWriteHeader& header,
                                                                    zeek::Span<logging::detail::LogRecord> records) {
-    auto stream_id_num = header.stream_id->AsEnum();
-    auto stream_id = header.stream_id->GetType()->AsEnumType()->Lookup(stream_id_num);
-
-    if ( ! stream_id ) {
-        reporter->Error("Failed to remotely log: stream %" PRId64 " doesn't have name", header.stream_id->AsEnum());
-        return false;
-    }
-
-    auto writer_id = header.writer_id->GetType()->AsEnumType()->Lookup(header.writer_id->AsEnum());
-
-    if ( ! writer_id ) {
-        reporter->Error("Failed to remotely log: writer %" PRId64 " doesn't have name", header.writer_id->AsEnum());
-        return false;
-    }
-
     zeek::detail::BinarySerializationFormat fmt;
 
     SERIALIZER_DEBUG("Serializing stream=%s writer=%s filter=%s path=%s num_fields=%zu num_records=%zu\n", stream_id,
@@ -43,8 +28,8 @@ bool BinarySerializationFormatLogSerializer::SerializeLogWriteInto(byte_buffer& 
 
     // Header: stream_name, writer_id, filter_name, path, num_fields, schema fields
     bool success = true;
-    success &= fmt.Write(stream_id, "stream_id");
-    success &= fmt.Write(writer_id, "writer_id");
+    success &= fmt.Write(header.stream_name, "stream_id");
+    success &= fmt.Write(header.writer_name, "writer_id");
     success &= fmt.Write(header.filter_name, "filter_name");
     success &= fmt.Write(header.path, "path");
     success &= fmt.Write(static_cast<uint32_t>(header.fields.size()), "num_fields");
@@ -54,7 +39,7 @@ bool BinarySerializationFormatLogSerializer::SerializeLogWriteInto(byte_buffer& 
     success &= fmt.Write(static_cast<uint32_t>(records.size()), "num_records");
 
     if ( ! success ) {
-        reporter->Error("Failed to remotely log stream %s: header serialization failed", stream_id);
+        reporter->Error("Failed to remotely log stream %s: header serialization failed", header.stream_name.c_str());
         return false;
     }
 
@@ -62,7 +47,8 @@ bool BinarySerializationFormatLogSerializer::SerializeLogWriteInto(byte_buffer& 
     for ( const auto& rec : records ) {
         for ( size_t i = 0; i < rec.size(); ++i ) {
             if ( ! rec[i].Write(&fmt) ) {
-                reporter->Error("Failed to remotely log stream %s: field %zu serialization failed", stream_id, i);
+                reporter->Error("Failed to remotely log stream %s: field %zu serialization failed",
+                                header.stream_name.c_str(), i);
                 return false;
             }
         }
@@ -80,7 +66,7 @@ bool BinarySerializationFormatLogSerializer::SerializeLogWriteInto(byte_buffer& 
     return true;
 }
 
-std::optional<logging::detail::LogWriteBatch> BinarySerializationFormatLogSerializer::UnserializeLogWrite(
+std::optional<zeek::logging::detail::LogWriteBatch> BinarySerializationFormatLogSerializer::UnserializeLogWrite(
     const std::byte* buf, size_t size) {
     static const auto& stream_id_type = zeek::id::find_type<zeek::EnumType>("Log::ID");
     static const auto& writer_id_type = zeek::id::find_type<zeek::EnumType>("Log::Writer");
@@ -91,23 +77,20 @@ std::optional<logging::detail::LogWriteBatch> BinarySerializationFormatLogSerial
     logging::detail::LogWriteHeader header;
     std::vector<logging::detail::LogRecord> records;
 
-    std::string stream_id_str;
-    std::string writer_id_str;
-    fmt.Read(&stream_id_str, "stream_id");
-    fmt.Read(&writer_id_str, "writer_id");
+    fmt.Read(&header.stream_name, "stream_id");
+    fmt.Read(&header.writer_name, "writer_id");
     fmt.Read(&header.filter_name, "filter_name");
     fmt.Read(&header.path, "path");
 
-
-    auto stream_id = stream_id_type->Lookup(stream_id_str);
+    auto stream_id = stream_id_type->Lookup(header.stream_name);
     if ( stream_id < 0 ) {
-        reporter->Error("Failed to unserialize stream %s: unknown enum", stream_id_str.c_str());
+        reporter->Error("Failed to unserialize stream %s: unknown enum", header.stream_name.c_str());
         return {};
     }
 
-    auto writer_id = writer_id_type->Lookup(writer_id_str);
+    auto writer_id = writer_id_type->Lookup(header.writer_name);
     if ( writer_id < 0 ) {
-        reporter->Error("Failed to unserialize writer %s: unknown enum", writer_id_str.c_str());
+        reporter->Error("Failed to unserialize writer %s: unknown enum", header.writer_name.c_str());
         return {};
     }
 
@@ -122,7 +105,6 @@ std::optional<logging::detail::LogWriteBatch> BinarySerializationFormatLogSerial
 
     header.fields.resize(num_fields);
 
-    // Field reading/writing has never been tested :-(
     for ( size_t i = 0; i < header.fields.size(); i++ )
         if ( ! header.fields[i].Read(&fmt) ) {
             reporter->Error("Failed to read schema field %zu", i);

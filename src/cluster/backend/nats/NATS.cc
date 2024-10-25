@@ -12,9 +12,8 @@
 #include "zeek/EventRegistry.h"
 #include "zeek/ID.h"
 #include "zeek/Val.h"
+#include "zeek/cluster/Backend.h"
 #include "zeek/logging/Manager.h"
-
-#include "cluster/Backend.h"
 
 
 namespace zeek {

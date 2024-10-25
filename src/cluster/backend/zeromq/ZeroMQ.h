@@ -77,6 +77,12 @@ private:
     zmq::socket_t xsub;
     zmq::socket_t xpub;
 
+    // inproc sockets used for sending
+    // publish messages to xpub in a
+    // thread safe manner.
+    zmq::socket_t main_inproc;
+    zmq::socket_t child_inproc;
+
     // Sockets used for logging. The log_push socket connects
     // with one or more logger-like nodes. Logger nodes listen
     // on the log_pull socket.

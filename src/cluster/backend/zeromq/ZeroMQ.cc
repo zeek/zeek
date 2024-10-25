@@ -73,6 +73,9 @@ ZeroMQBackend::ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_pt
     xpub = zmq::socket_t(ctx, zmq::socket_type::xpub);
     log_push = zmq::socket_t(ctx, zmq::socket_type::push);
     log_pull = zmq::socket_t(ctx, zmq::socket_type::pull);
+
+    main_inproc = zmq::socket_t(ctx, zmq::socket_type::pair);
+    child_inproc = zmq::socket_t(ctx, zmq::socket_type::pair);
 }
 
 void ZeroMQBackend::DoInitPostScript() {
@@ -93,6 +96,9 @@ void ZeroMQBackend::DoInitPostScript() {
 
     event_unsubscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::unsubscription");
     event_subscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::subscription");
+
+    main_inproc.bind("inproc://publish-bridge");
+    child_inproc.connect("inproc://publish-bridge");
 }
 
 
@@ -107,6 +113,8 @@ void ZeroMQBackend::DoTerminate() {
     log_pull.close();
     xsub.close();
     xpub.close();
+    main_inproc.close();
+    child_inproc.close();
 
     ZEROMQ_DEBUG("Closing ctx");
     ctx.close();
@@ -215,18 +223,6 @@ bool ZeroMQBackend::SpawnZmqProxyThread() {
 
 bool ZeroMQBackend::DoPublishEvent(const std::string& topic, const std::string& format,
                                    const cluster::detail::byte_buffer& buf) {
-    // XXX: xpub is polled from the background thread. Not sure it's safe to publish
-    // while we're polling it in parallel :-/
-    //
-    // We could instead use a pair or inproc socket to forward the Publish() to the
-    // background thread which would then do the actual publishing.
-    //
-    // Or could attempt to remove the background thread and integrate with the IO loop.
-    //
-    // XXX: Saw a crash, suppose it's not safe. Use inproc socket to
-    // and forward to xpub is the suggestion from the documentation.
-    //
-
     // Parts to send for an event publish.
     std::array<zmq::const_buffer, 4> parts = {
         zmq::const_buffer(topic.data(), topic.size()),
@@ -238,24 +234,14 @@ bool ZeroMQBackend::DoPublishEvent(const std::string& topic, const std::string& 
     ZEROMQ_DEBUG("Publishing %zu bytes to %s", buf.size(), topic.c_str());
 
     for ( size_t i = 0; i < parts.size(); i++ ) {
-        zmq::send_flags flags = zmq::send_flags::dontwait;
+        zmq::send_flags flags = zmq::send_flags::none;
         if ( i < parts.size() - 1 )
             flags = flags | zmq::send_flags::sndmore;
 
-        zmq::send_result_t result;
-        do {
-            try {
-                result = xpub.send(parts[i], flags);
-            } catch ( zmq::error_t& err ) {
-                // XXX: Not sure if the return false is so great here.
-                //
-                // Also, if we fail to publish, should we block rather
-                // than discard?
-                zeek::reporter->Error("Failed to publish to %s: %s (%d)", topic.c_str(), err.what(), err.num());
-                return false;
-            }
-            // EAGAIN returns empty result, means try again!
-        } while ( ! result );
+        // This should never fail, it will instead block
+        // when HWM is reached. I guess we need to see if
+        // and how this can happen :-/
+        main_inproc.send(parts[i], flags);
     }
 
     return true;
@@ -346,6 +332,34 @@ void ZeroMQBackend::Run() {
         QueueForProcessing(std::move(qmsgs));
     };
 
+    auto HandleInprocMessages = [this](std::vector<MultipartMessage>& msgs) {
+        // Forward messages from the inprocess bridge to xpub.
+        for ( auto& msg : msgs ) {
+            assert(msg.size() == 4);
+
+            for ( auto& part : msg ) {
+                zmq::send_flags flags = zmq::send_flags::dontwait;
+                if ( part.more() )
+                    flags = flags | zmq::send_flags::sndmore;
+
+                zmq::send_result_t result;
+                do {
+                    try {
+                        result = xpub.send(part, flags);
+                    } catch ( zmq::error_t& err ) {
+                        // XXX: Not sure if the return false is so great here.
+                        //
+                        // Also, if we fail to publish, should we block rather
+                        // than discard?
+                        ZEROMQ_THREAD_PRINTF("xpub: Failed to publish: %s (%d)", err.what(), err.num());
+                        break;
+                    }
+                    // EAGAIN returns empty result, means try again!
+                } while ( ! result );
+            }
+        }
+    };
+
     auto HandleXPubMessages = [this](const std::vector<MultipartMessage>& msgs) {
         QueueMessages qmsgs;
         qmsgs.reserve(msgs.size());
@@ -409,12 +423,15 @@ void ZeroMQBackend::Run() {
     struct SocketInfo {
         zmq::socket_ref socket;
         std::string name;
-        std::function<void(const std::vector<MultipartMessage>&)> handler;
+        std::function<void(std::vector<MultipartMessage>&)> handler;
     };
 
-    std::vector<SocketInfo> sockets = {{.socket = xsub, .name = "xsub", .handler = HandleXSubMessages},
-                                       {.socket = xpub, .name = "xpub", .handler = HandleXPubMessages},
-                                       {.socket = log_pull, .name = "log_pull", .handler = HandleLogMessages}};
+    std::vector<SocketInfo> sockets = {
+        {.socket = child_inproc, .name = "inproc", .handler = HandleInprocMessages},
+        {.socket = xpub, .name = "xpub", .handler = HandleXPubMessages},
+        {.socket = xsub, .name = "xsub", .handler = HandleXSubMessages},
+        {.socket = log_pull, .name = "log_pull", .handler = HandleLogMessages},
+    };
 
     std::vector<zmq::pollitem_t> poll_items(sockets.size());
 
@@ -423,7 +440,7 @@ void ZeroMQBackend::Run() {
             poll_items[i] = {.socket = sockets[i].socket.handle(), .fd = 0, .events = ZMQ_POLLIN | ZMQ_POLLERR};
 
         // Awkward.
-        std::array<std::vector<std::vector<zmq::message_t>>, 3> rcv_messages = {};
+        std::vector<std::vector<MultipartMessage>> rcv_messages(sockets.size());
         try {
             int r = zmq::poll(poll_items, std::chrono::seconds(-1));
             ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::POLL, "poll: r=%d", r);

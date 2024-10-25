@@ -2,8 +2,6 @@
 
 #include "Backend.h"
 
-#include <cstdio>
-
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
 #include "zeek/Func.h"

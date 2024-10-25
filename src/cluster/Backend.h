@@ -131,7 +131,7 @@ public:
     }
 
     /**
-     * Prepare a script-level event.
+     * Prepare a script-level event for publishing.
      *
      * The returned Val can be ClusterBackend specific. It could be a basic
      * script level record or vector, or an opaque value.

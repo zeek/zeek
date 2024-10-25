@@ -3,11 +3,9 @@
 # @TEST-EXEC: zeek -b %INPUT >out
 #
 # @TEST-EXEC: btest-diff out
-# @TEST-EXEC: btest-diff .stderr
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 
 @load frameworks/cluster/backend/zeromq
-
-redef Cluster::backend = Cluster::CLUSTER_BACKEND_ZEROMQ;
 
 function test_fun() { }
 hook test_hook() { }

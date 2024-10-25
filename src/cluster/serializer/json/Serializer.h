@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #pragma once
 
 #include <memory>
@@ -5,8 +7,6 @@
 
 #include "zeek/cluster/Serializer.h"
 #include "zeek/logging/Types.h"
-
-using namespace zeek;
 
 namespace zeek {
 
@@ -22,6 +22,7 @@ class JSONLinesLogSerializer : public cluster::LogSerializer {
 public:
     JSONLinesLogSerializer();
     ~JSONLinesLogSerializer();
+
     bool SerializeLogWriteInto(cluster::detail::byte_buffer& buf, const logging::detail::LogWriteHeader& header,
                                zeek::Span<logging::detail::LogRecord> records) override;
 

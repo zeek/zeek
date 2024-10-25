@@ -18,7 +18,7 @@ namespace {
 //
 // This is an absolute hack and likely will blow up! Should
 // fix the formatter API instead.
-class FakeThread : public threading::MsgThread {
+class FakeThread : public zeek::threading::MsgThread {
 public:
     FakeThread() {}
 
@@ -71,7 +71,7 @@ bool JSONLinesLogSerializer::SerializeLogWriteInto(byte_buffer& buf, const loggi
     return true;
 }
 
-std::optional<logging::detail::LogWriteBatch> JSONLinesLogSerializer::UnserializeLogWrite(const std::byte* buf,
-                                                                                          size_t size) {
+std::optional<zeek::logging::detail::LogWriteBatch> JSONLinesLogSerializer::UnserializeLogWrite(const std::byte* buf,
+                                                                                                size_t size) {
     return std::nullopt;
 }

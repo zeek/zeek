@@ -6,4 +6,5 @@ zeek_add_plugin(
     ${CMAKE_CURRENT_BINARY_DIR}
     DEPENDENCIES
     SOURCES
-    Plugin.cc)
+    Plugin.cc
+    Serializer.cc)

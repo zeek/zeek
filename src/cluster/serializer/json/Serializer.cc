@@ -3,7 +3,6 @@
 #include <optional>
 
 #include "zeek/Desc.h"
-#include "zeek/Val.h"
 #include "zeek/cluster/Serializer.h"
 #include "zeek/logging/Types.h"
 #include "zeek/threading/MsgThread.h"

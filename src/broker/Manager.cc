@@ -28,7 +28,7 @@
 #include "zeek/broker/store.bif.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/logging/Manager.h"
-#include "zeek/logging/WriterFrontend.h" // should we move LogWriteHeader out of here?
+#include "zeek/logging/Types.h"
 #include "zeek/telemetry/Manager.h"
 #include "zeek/util.h"
 

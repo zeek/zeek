@@ -9,7 +9,10 @@
 # @TEST-PORT: LOG_PULL_PORT
 #
 # @TEST-EXEC: chmod +x ./check-cluster-log.sh
+#
 # @TEST-EXEC: cp $FILES/zeromq/cluster-layout-simple.zeek cluster-layout.zeek
+# @TEST-EXEC: cp $FILES/zeromq/test-bootstrap.zeek zeromq-test-bootstrap.zeek
+#
 # @TEST-EXEC: btest-bg-run manager "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=manager zeek -b ../manager.zeek >out"
 # @TEST-EXEC: btest-bg-run logger "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=logger zeek -b ../other.zeek >out"
 # @TEST-EXEC: btest-bg-run proxy "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=proxy zeek -b ../other.zeek >out"
@@ -24,7 +27,10 @@
 # @TEST-EXEC: btest-diff manager.out
 
 # @TEST-START-FILE common.zeek
-@load base/utils/numbers
+@load ./zeromq-test-bootstrap
+
+redef Log::default_rotation_interval = 0sec;
+redef Log::flush_interval = 0.01sec;
 
 type Info: record {
 	self: string &log &default=Cluster::node;
@@ -32,20 +38,6 @@ type Info: record {
 };
 
 redef enum Log::ID += { TEST_LOG };
-
-@load base/frameworks/cluster
-@load frameworks/cluster/backend/zeromq
-@load frameworks/cluster/backend/zeromq/connect
-
-redef Log::default_rotation_interval = 0sec;
-redef Log::flush_interval = 0.01sec;
-
-# The manager runs the ZeroMQ proxy thread.
-redef Cluster::Backend::ZeroMQ::listen_xpub_endpoint = fmt("tcp://127.0.0.1:%s", extract_count(getenv("XPUB_PORT")));
-redef Cluster::Backend::ZeroMQ::listen_xsub_endpoint = fmt("tcp://127.0.0.1:%s", extract_count(getenv("XSUB_PORT")));
-redef Cluster::Backend::ZeroMQ::connect_xpub_endpoint = fmt("tcp://127.0.0.1:%s", extract_count(getenv("XSUB_PORT")));
-redef Cluster::Backend::ZeroMQ::connect_xsub_endpoint = fmt("tcp://127.0.0.1:%s", extract_count(getenv("XPUB_PORT")));
-redef Cluster::Backend::ZeroMQ::linger_ms = 5;
 
 global finish: event(name: string) &is_used;
 

@@ -7,24 +7,18 @@
 # @TEST-PORT: LOG_PULL_PORT
 
 # @TEST-EXEC: chmod +x ./check-cluster-log.sh
+#
+# @TEST-EXEC: cp $FILES/zeromq/test-bootstrap.zeek zeromq-test-bootstrap.zeek
+#
 # @TEST-EXEC: btest-bg-run supervisor "ZEEKPATH=$ZEEKPATH:.. && zeek -j ../supervisor.zeek >out"
-# @TEST-EXEC: btest-bg-wait 30
+# @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff supervisor/cluster.log
 
 redef Log::default_rotation_interval = 0secs;
 redef Log::flush_interval = 0.01sec;
 
 @if ( ! Supervisor::is_supervisor() )
-@load base/utils/numbers
-
-# Enable ZeroMQ for non-supervisor nodes, this disables broker communication.
-@load frameworks/cluster/backend/zeromq
-@load frameworks/cluster/backend/zeromq/connect
-
-redef Cluster::Backend::ZeroMQ::listen_xpub_endpoint = fmt("tcp://127.0.0.1:%s", extract_count(getenv("XPUB_PORT")));
-redef Cluster::Backend::ZeroMQ::listen_xsub_endpoint = fmt("tcp://127.0.0.1:%s", extract_count(getenv("XSUB_PORT")));
-redef Cluster::Backend::ZeroMQ::connect_xpub_endpoint = fmt("tcp://127.0.0.1:%s", extract_count(getenv("XSUB_PORT")));
-redef Cluster::Backend::ZeroMQ::connect_xsub_endpoint = fmt("tcp://127.0.0.1:%s", extract_count(getenv("XPUB_PORT")));
+@load ./zeromq-test-bootstrap
 @else
 
 # The supervisor peeks into logger/cluster.log to initate a shutdown when

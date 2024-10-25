@@ -2,6 +2,7 @@
 #include <string>
 
 #include "zeek/cluster/Backend.h"
+#include "zeek/cluster/BifSupport.h"
 
 %%}
 
@@ -42,14 +43,8 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 	if ( ! topic->AsString()->Len() )
 		return zeek::val_mgr->False();
 
-	// TODO: Check type!
-	const auto& bif_args = *@ARGS@;
-	const auto& func = zeek::cast_intrusive<zeek::FuncVal>(bif_args[2]);
-	auto evargs = zeek::Span{*@ARGS@}.subspan(3);
-	auto ev = zeek::cluster::backend->MakeClusterEvent(func, evargs);
-
-	auto rval = zeek::cluster::backend->PublishEvent(topic->AsStringVal()->ToStdString(), ev);
-	return zeek::val_mgr->Bool(rval);
+	auto args = zeek::ArgsSpan{*@ARGS@}.subspan(2);
+	return zeek::cluster::detail::bif::publish_event(topic, args);
 	%}
 
 
@@ -85,20 +80,15 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 	if ( ! topic->AsString()->Len() )
 		return zeek::val_mgr->False();
 
-	const auto& bif_args = *@ARGS@;
-	const auto& func = zeek::cast_intrusive<zeek::FuncVal>(bif_args[2]);
-	auto evargs = zeek::Span{*@ARGS@}.subspan(3);
-	auto ev = zeek::cluster::backend->MakeClusterEvent(func, evargs);
-
-	auto rval = zeek::cluster::backend->PublishEvent(topic->AsStringVal()->ToStdString(), ev);
-	return zeek::val_mgr->Bool(rval);
+	auto args = zeek::ArgsSpan{*@ARGS@}.subspan(2);
+	return zeek::cluster::detail::bif::publish_event(topic, args);
 	%}
 
 ## Publishes an event to a give topic.
 function Cluster::publish%(topic: string, ...%): bool
 	%{
-	auto rval = zeek::cluster::backend->PublishEvent(*(@ARGS@));
-	return zeek::val_mgr->Bool(rval);
+	auto args = zeek::ArgsSpan{*@ARGS@}.subspan(1);
+	return zeek::cluster::detail::bif::publish_event({zeek::NewRef{}, topic}, args);
 	%}
 
 function Cluster::make_event%(...%): any

@@ -6,6 +6,7 @@ zeek_add_subdir_library(
     SOURCES
     Component.cc
     Backend.cc
+    BifSupport.cc
     Manager.cc
     BIFS
     cluster.bif)

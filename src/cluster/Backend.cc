@@ -23,33 +23,6 @@ detail::Event Backend::MakeClusterEvent(FuncValPtr handler, ArgsSpan args, doubl
     return detail::Event{handler, zeek::Args(args.begin(), args.end()), timestamp};
 }
 
-bool Backend::PublishEvent(const zeek::Args& args) {
-    if ( args.size() < 2 ) {
-        zeek::emit_builtin_error("publish expected at least 2 args");
-        return false;
-    }
-
-    if ( args[0]->GetType()->Tag() != zeek::TYPE_STRING ) {
-        zeek::emit_builtin_error("publish expects topic string");
-        return false;
-    }
-
-    const auto& topic = cast_intrusive<zeek::StringVal>(args[0]);
-    if ( args[1]->GetType()->Tag() == TYPE_FUNC ) {
-        const auto& func = cast_intrusive<zeek::FuncVal>(args[1]);
-        zeek::ArgsSpan span{args};
-        auto ev = MakeClusterEvent(func, span.subspan(2));
-        return PublishEvent(topic->ToStdString(), ev);
-    }
-    else if ( args[1]->GetType()->Tag() == zeek::TYPE_RECORD ) {
-        return PublishEvent(topic->ToStdString(), zeek::cast_intrusive<zeek::RecordVal>(args[1]));
-    }
-    else {
-        zeek::emit_builtin_error("publish second argument neither function nor record");
-        return false;
-    }
-}
-
 zeek::RecordValPtr Backend::DoMakeEvent(zeek::ArgsSpan args) {
     static const auto& any_vec_type = zeek::id::find_type<zeek::VectorType>("any_vec");
     static const auto& event_record_type = zeek::id::find_type<zeek::RecordType>("Cluster::Event");

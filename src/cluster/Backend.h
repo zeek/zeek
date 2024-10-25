@@ -16,7 +16,10 @@
 
 namespace zeek {
 
+class Val;
 class FuncVal;
+
+using ValPtr = IntrusivePtr<Val>;
 using FuncValPtr = IntrusivePtr<FuncVal>;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 
@@ -40,12 +43,12 @@ namespace detail {
 class Event {
 public:
     // When an Event is published from script land, the handler is known
-    // as FuncVal. When an Event is deserialized, and EventHandler from
+    // as FuncVal. When an Event is deserialized an EventHandler from
     // the registry is used so the event can be enqueued directly.
-    // resulting Event instance can be enqueued directly.
     //
     // It seems there's no direct translation between EventHandlerPtr and
-    // FuncValPtr without going through the global scope or the event registry.
+    // FuncValPtr without going through the global scope or event registry,
+    // so this is done via a variant.
     using FuncValOrEventHandler = std::variant<FuncValPtr, EventHandlerPtr>;
 
     /**
@@ -57,14 +60,13 @@ public:
     FuncValOrEventHandler handler;
     zeek::Args args;
     double timestamp; // This should be more generic, like proper key-value
-                      // metadata? Can delay until metadata is made accessible
-                      // in script using a generic mechanism.
+                      // metadata as a vector? Can delay until metadata is made
+                      // accessible in script using a generic mechanism.
                       //
                       // This is encoded as vector(vector(count, any), ...) on
                       // the broker side.
 
     std::string_view HandlerName() const;
-
     const EventHandlerPtr& Handler() const { return std::get<EventHandlerPtr>(handler); }
     const FuncValPtr& FuncVal() const { return std::get<FuncValPtr>(handler); }
 };
@@ -98,21 +100,8 @@ public:
     void Terminate() { DoTerminate(); }
 
     /**
-     * Helper to publish an event directly from BiFs
-     *
-     * This helper expects args to hold a FuncValPtr followed by
-     * the arguments, or followed by a prepared "event" as created
-     * with MakeEvent().
-     *
-     * @return true if the message is sent successfully.
-     *
-     * @param args: The args, either [topic, event(FuncValPtr), args...] or [topic, opaque event]
-     */
-    bool PublishEvent(const zeek::Args& args);
-
-    /**
-     * Create a detail::Event instance given a event handler and script function
-     * arguments to it.
+     * Create a detail::Event instance given a event handler and the
+     * script function arguments to it.
      *
      * @param handler
      * @param args
@@ -133,10 +122,10 @@ public:
     /**
      * Prepare a script-level event for publishing.
      *
-     * The returned Val can be ClusterBackend specific. It could be a basic
-     * script level record or vector, or an opaque value.
-     *
      * This function is invoked from the \a Cluster::make_event() bif.
+     *
+     * The returned Val can be ClusterBackend specific. It could be a basic
+     * script level record holding the required information.
      *
      * @param args FuncVal representing the event followed by its argument.
      *
@@ -262,9 +251,9 @@ private:
      * The default implementation serializes to a detail::byte_buffer and
      * calls DoPublishEvent() with it.
      *
-     * This is virtual so that the existing broker implementation can provide
-     * a short-circuit serialization. Other backends should not need to
-     * implement this method.
+     * This only exists for the existing Broker implementation so that it can
+     * short-circuit serialization. Other backends should not need to implement
+     * this.
      */
     virtual bool DoPublishEvent(const std::string& topic, const cluster::detail::Event& event);
 
@@ -334,11 +323,12 @@ private:
 
 /**
  * A cluster backend may receive event and log messages through threads.
- * The following structs can be used together with Backend::QueueForProcessing()
- * to enqueue these into the main IO loop for processing.
+ * The following structs can be used together with QueueForProcessing()
+ * to enqueue these onto the main IO loop for processing.
  *
- * EventMessage and LogMessage are processed generically, while the
- * BackendMessage is forwarded to DoProcessBackendMessage().
+ * EventMessage and LogMessage are processed in a generic fashion in
+ * Process(), while BackendMessage can be intercepted with
+ * DoProcessBackendMessage().
  */
 
 // A message on a topic was received.
@@ -350,7 +340,7 @@ struct EventMessage {
     auto payload_span() const { return Span(payload.data(), payload.size()); };
 };
 
-// A message on a topic was received.
+// Represents a received log message.
 struct LogMessage {
     std::string format;
     detail::byte_buffer payload;
@@ -358,10 +348,11 @@ struct LogMessage {
     auto payload_span() const { return Span(payload.data(), payload.size()); };
 };
 
-// A backend specific message processed.
+// Represents a backend specific message.
 struct BackendMessage {
     int tag;
     detail::byte_buffer payload;
+
     auto payload_span() const { return Span(payload.data(), payload.size()); };
 };
 
@@ -369,9 +360,8 @@ using QueueMessage = std::variant<EventMessage, LogMessage, BackendMessage>;
 using QueueMessages = std::vector<QueueMessage>;
 
 /**
- * Support for backends that start threads.
- *
- * We could probably/better use composition than inheritance?
+ * Support for backends that use background threads or invoke
+ * callbacks on non-main threads.
  */
 class ThreadedBackend : public Backend, public zeek::iosource::IOSource {
 public:

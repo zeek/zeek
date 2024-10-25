@@ -919,7 +919,7 @@ zeek::RecordValPtr Manager::DoMakeEvent(ArgsSpan args) {
             auto num_args = static_cast<size_t>(func->GetType()->Params()->NumFields());
 
             if ( num_args != args.size() - 1 ) {
-                Error("bad # of arguments: got %zu, expect %zu", args.size() - 1, num_args + 1);
+                Error("bad # of arguments: got %zu, expect %zu", args.size() - 1, num_args);
                 return rval;
             }
 

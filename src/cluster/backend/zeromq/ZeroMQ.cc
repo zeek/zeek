@@ -223,7 +223,9 @@ bool ZeroMQBackend::DoPublishEvent(const std::string& topic, const std::string& 
     //
     // Or could attempt to remove the background thread and integrate with the IO loop.
     //
-    // So far, there haven't been crashes though...
+    // XXX: Saw a crash, suppose it's not safe. Use inproc socket to
+    // and forward to xpub is the suggestion from the documentation.
+    //
 
     // Parts to send for an event publish.
     std::array<zmq::const_buffer, 4> parts = {

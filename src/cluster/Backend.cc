@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Backend.h"
+#include "zeek/cluster/Backend.h"
 
 #include <optional>
 

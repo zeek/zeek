@@ -1,4 +1,4 @@
-#include "BifSupport.h"
+#include "zeek/cluster/BifSupport.h"
 
 #include "zeek/Frame.h"
 #include "zeek/Func.h"

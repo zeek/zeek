@@ -1,5 +1,5 @@
 # @TEST-DOC: The SSL analyzer picks up on the traffic in pppoe-over-qing, but then raises analyzer_violation_info
-# @TEST-REQUIRES: ! grep -q "#define ENABLE_SPICY_SSL" $BUILD/zeek-config.h
+# @TEST-REQUIRES: ! have-spicy-ssl
 # @TEST-EXEC: zeek -r $TRACES/pppoe-over-qinq.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 

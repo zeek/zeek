@@ -1,0 +1,7 @@
+#!/bin/sh
+
+if grep -q "#define ENABLE_SPICY_SSL" "${BUILD}/zeek-config.h"; then
+    exit 0
+fi
+
+exit 1

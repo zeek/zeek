@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string_view>
 #include <variant>
 
@@ -107,7 +108,7 @@ public:
      * @param args
      * @param timestamp
      */
-    detail::Event MakeClusterEvent(FuncValPtr handler, ArgsSpan args, double timestamp = 0.0) const;
+    std::optional<detail::Event> MakeClusterEvent(FuncValPtr handler, ArgsSpan args, double timestamp = 0.0) const;
 
     /**
      * Publish \a event to topic \a topic.

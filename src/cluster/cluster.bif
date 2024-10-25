@@ -4,6 +4,8 @@
 #include "zeek/cluster/Backend.h"
 #include "zeek/cluster/BifSupport.h"
 
+using namespace zeek::cluster::detail::bif;
+
 %%}
 
 module Cluster;
@@ -44,7 +46,7 @@ function Cluster::publish_rr%(pool: Pool, key: string, ...%): bool
 		return zeek::val_mgr->False();
 
 	auto args = zeek::ArgsSpan{*@ARGS@}.subspan(2);
-	return zeek::cluster::detail::bif::publish_event(topic, args);
+	return publish_event(topic, args);
 	%}
 
 
@@ -81,29 +83,39 @@ function Cluster::publish_hrw%(pool: Pool, key: any, ...%): bool
 		return zeek::val_mgr->False();
 
 	auto args = zeek::ArgsSpan{*@ARGS@}.subspan(2);
-	return zeek::cluster::detail::bif::publish_event(topic, args);
+
+	ScriptLocationScope scope{frame};
+	return publish_event(topic, args);
 	%}
 
 ## Publishes an event to a give topic.
 function Cluster::publish%(topic: string, ...%): bool
 	%{
+	ScriptLocationScope scope{frame};
+
 	auto args = zeek::ArgsSpan{*@ARGS@}.subspan(1);
-	return zeek::cluster::detail::bif::publish_event({zeek::NewRef{}, topic}, args);
+	return publish_event({zeek::NewRef{}, topic}, args);
 	%}
 
 function Cluster::make_event%(...%): any
 	%{
+	ScriptLocationScope scope{frame};
+
 	return zeek::cluster::backend->MakeEvent(zeek::ArgsSpan{*@ARGS@});
 	%}
 
 function Cluster::__subscribe%(topic_prefix: string%): bool
 	%{
+	ScriptLocationScope scope{frame};
+
 	auto rval = zeek::cluster::backend->Subscribe(topic_prefix->CheckString());
 	return zeek::val_mgr->Bool(rval);
 	%}
 
 function Cluster::__unsubscribe%(topic_prefix: string%): bool
 	%{
+	ScriptLocationScope scope{frame};
+
 	auto rval = zeek::cluster::backend->Unsubscribe(topic_prefix->CheckString());
 	return zeek::val_mgr->Bool(rval);
 	%}

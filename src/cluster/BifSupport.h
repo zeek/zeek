@@ -9,6 +9,10 @@
 
 namespace zeek {
 
+namespace detail {
+class Frame;
+}
+
 class Val;
 
 using ValPtr = IntrusivePtr<Val>;
@@ -16,6 +20,12 @@ using ValPtr = IntrusivePtr<Val>;
 using ArgsSpan = Span<const ValPtr>;
 
 namespace cluster::detail::bif {
+
+class ScriptLocationScope {
+public:
+    ScriptLocationScope(const zeek::detail::Frame* frame);
+    ~ScriptLocationScope();
+};
 
 /**
  * Publish helper.

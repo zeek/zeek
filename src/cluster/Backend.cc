@@ -2,6 +2,8 @@
 
 #include "Backend.h"
 
+#include <optional>
+
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
 #include "zeek/Func.h"
@@ -19,8 +21,52 @@ std::string_view detail::Event::HandlerName() const {
     return std::get<EventHandlerPtr>(handler)->Name();
 }
 
-detail::Event Backend::MakeClusterEvent(FuncValPtr handler, ArgsSpan args, double timestamp) const {
-    return detail::Event{handler, zeek::Args(args.begin(), args.end()), timestamp};
+namespace {
+
+std::optional<zeek::Args> check_args(const zeek::FuncValPtr& handler, zeek::ArgsSpan args) {
+    const auto& func_type = handler->GetType<zeek::FuncType>();
+
+    if ( func_type->Flavor() != zeek::FUNC_FLAVOR_EVENT ) {
+        zeek::reporter->Error("unexpected function type for %s: %s", handler->AsFunc()->GetName().c_str(),
+                              func_type->FlavorString().c_str());
+        return std::nullopt;
+    }
+
+    const auto& types = func_type->ParamList()->GetTypes();
+    if ( args.size() != types.size() ) {
+        zeek::reporter->Error("bad number of arguments for %s: got %zu, expect %zu",
+                              handler->AsFunc()->GetName().c_str(), args.size(), types.size());
+        return std::nullopt;
+    }
+
+    zeek::Args result(args.size());
+
+    for ( size_t i = 0; i < args.size(); i++ ) {
+        const auto& a = args[i];
+        const auto& got_type = a->GetType();
+        const auto& expected_type = types[i];
+
+        if ( ! same_type(got_type, expected_type) ) {
+            zeek::reporter->Error("event parameter #%zu type mismatch, got %s, expecting %s", i,
+                                  zeek::obj_desc_short(got_type.get()).c_str(),
+                                  zeek::obj_desc_short(expected_type.get()).c_str());
+            return std::nullopt;
+        }
+
+        result[i] = args[i];
+    }
+
+    return result;
+}
+
+} // namespace
+
+std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsSpan args, double timestamp) const {
+    auto checked_args = check_args(handler, args);
+    if ( ! checked_args )
+        return std::nullopt;
+
+    return zeek::cluster::detail::Event{handler, std::move(*checked_args), timestamp};
 }
 
 zeek::RecordValPtr Backend::DoMakeEvent(zeek::ArgsSpan args) {
@@ -29,7 +75,7 @@ zeek::RecordValPtr Backend::DoMakeEvent(zeek::ArgsSpan args) {
     auto rec = zeek::make_intrusive<zeek::RecordVal>(event_record_type);
 
     if ( args.size() < 1 ) {
-        zeek::reporter->Error("not enough arguments to make_event");
+        zeek::reporter->Error("not enough arguments to Cluster::make_event()");
         return rec;
     }
 
@@ -41,38 +87,17 @@ zeek::RecordValPtr Backend::DoMakeEvent(zeek::ArgsSpan args) {
         return rec;
     }
 
-    const auto* func = maybe_func_val->AsFunc();
-    const auto func_type = func->GetType();
-    if ( func_type->Flavor() != zeek::FUNC_FLAVOR_EVENT ) {
-        zeek::reporter->Error("attempt to convert non-event into an event type (%s)",
-                              func_type->FlavorString().c_str());
+    const auto func = zeek::FuncValPtr{zeek::NewRef{}, maybe_func_val->AsFuncVal()};
+    auto checked_args = check_args(func, args.subspan(1));
+    if ( ! checked_args )
         return rec;
-    }
 
-
-    const auto& types = func->GetType()->ParamList()->GetTypes();
-    if ( args.size() - 1 != types.size() ) {
-        zeek::reporter->Error("bad # of arguments: got %zu, expect %zu", args.size() - 1, types.size());
-        return rec;
-    }
-
+    // Making a copy from zeek::Args to a VectorVal and then back again on publish.
     auto vec = zeek::make_intrusive<zeek::VectorVal>(any_vec_type);
-    vec->Reserve(args.size() - 1);
+    vec->Reserve(checked_args->size());
     rec->Assign(0, maybe_func_val);
-
-    for ( size_t i = 1; i < args.size(); i++ ) {
-        const auto& a = args[i];
-        const auto& got_type = a->GetType();
-        const auto& expected_type = types[i - 1];
-
-        if ( ! same_type(got_type, expected_type) ) {
-            zeek::reporter->Error("event parameter #%zu type mismatch, got %s, expect %s", i - 1,
-                                  zeek::obj_desc(got_type.get()).c_str(), zeek::obj_desc(expected_type.get()).c_str());
-            return rec;
-        }
-
-        vec->Append(a);
-    }
+    for ( const auto& arg : *checked_args )
+        vec->Append(arg);
 
     rec->Assign(1, vec); // Args
 

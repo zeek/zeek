@@ -19,6 +19,7 @@
 #include "zeek/Timer.h"
 #include "zeek/Type.h"
 #include "zeek/broker/Manager.h"
+#include "zeek/cluster/Backend.h"
 #include "zeek/input.h"
 #include "zeek/logging/WriterBackend.h"
 #include "zeek/logging/WriterFrontend.h"
@@ -28,8 +29,6 @@
 #include "zeek/telemetry/Manager.h"
 #include "zeek/threading/Manager.h"
 #include "zeek/threading/SerialTypes.h"
-
-#include "cluster/Backend.h"
 
 using namespace std;
 

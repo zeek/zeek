@@ -21,8 +21,6 @@
 #include "zeek/iosource/IOSource.h"
 #include "zeek/logging/WriterBackend.h"
 
-#include "cluster/Serializer.h"
-
 namespace zeek {
 
 class Func;

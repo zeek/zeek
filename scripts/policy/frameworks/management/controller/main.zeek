@@ -414,15 +414,17 @@ function config_assign_metrics_ports(config: Management::Configuration)
 		[Supervisor::WORKER] = 3,
 	};
 
-	local p = port_to_count(Management::Controller::auto_assign_metrics_start_port);
-	local ports_set: set[count];
+        local instance_metrics_start_port: table[string] of count;
+        local instance_ports_set: table[string] of set[count];
 	local node: Management::Node;
 
 	# Pre-populate agents ports, if we have them:
 	for ( inst in config$instances )
 		{
+		instance_metrics_start_port[inst$name] = port_to_count(Management::Controller::auto_assign_metrics_start_port);
+		instance_ports_set[inst$name] = {};
 		if ( inst?$listen_port )
-			add ports_set[port_to_count(inst$listen_port)];
+			add instance_ports_set[inst$name][port_to_count(inst$listen_port)];
 		}
 
 	# Pre-populate nodes with pre-defined metrics ports, as well
@@ -430,11 +432,10 @@ function config_assign_metrics_ports(config: Management::Configuration)
 	for ( node in config$nodes )
 		{
 		if ( node?$p )
-			add ports_set[port_to_count(node$p)];
-
+			add instance_ports_set[node$instance][port_to_count(node$p)];
 		if ( node?$metrics_port )
 			{
-			add ports_set[port_to_count(node$metrics_port)];
+			add instance_ports_set[node$instance][port_to_count(node$metrics_port)];
 			add new_nodes[node];
 			}
 		}
@@ -468,15 +469,15 @@ function config_assign_metrics_ports(config: Management::Configuration)
 		node = nodes[i];
 
 		# Find next available port ...
-		while ( p in ports_set )
-			++p;
+		while ( instance_metrics_start_port[node$instance] in instance_ports_set[node$instance] )
+			++instance_metrics_start_port[node$instance];
 
-		node$metrics_port = count_to_port(p, tcp);
+		node$metrics_port = count_to_port(instance_metrics_start_port[node$instance], tcp);
 		add new_nodes[node];
-		add ports_set[p];
+		add instance_ports_set[node$instance][instance_metrics_start_port[node$instance]];
 
 		# ... and consume it.
-		++p;
+		++instance_metrics_start_port[node$instance];
 		}
 
 	config$nodes = new_nodes;

@@ -307,7 +307,7 @@ ubuntu22_task:
     ZEEK_CI_CREATE_ARTIFACT: 1
   upload_binary_artifacts:
     path: build.tgz
-  benchmark_script: ./ci/benchmark.sh
+  # benchmark_script: ./ci/benchmark.sh
   # Run on PRs, merges to master and release/.* and benchmark-nightly cron.
   only_if: >
     ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
@@ -329,7 +329,7 @@ ubuntu22_spicy_task:
   spicy_install_analyzers_script: ./ci/spicy-install-analyzers.sh
   upload_binary_artifacts:
     path: build.tgz
-  benchmark_script: ./ci/benchmark.sh
+  #  benchmark_script: ./ci/benchmark.sh
   << : *BENCHMARK_ONLY_IF_TEMPLATE
 
 ubuntu22_spicy_head_task:
@@ -345,7 +345,7 @@ ubuntu22_spicy_head_task:
   spicy_install_analyzers_script: ./ci/spicy-install-analyzers.sh
   upload_binary_artifacts:
     path: build.tgz
-  benchmark_script: ./ci/benchmark.sh
+  #  benchmark_script: ./ci/benchmark.sh
   # Don't run this job on release branches. It tests against spicy HEAD, which
   # will frequently require other fixes that won't be in a release branch.
   skip: $CIRRUS_BRANCH =~ 'release/.*'

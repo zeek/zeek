@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "zeek/ID.h"
+#include "zeek/Reporter.h"
 #include "zeek/SerializationFormat.h"
 #include "zeek/Val.h"
 #include "zeek/cluster/Backend.h"
@@ -68,9 +69,6 @@ bool BinarySerializationFormatLogSerializer::SerializeLogWriteInto(byte_buffer& 
 
 std::optional<zeek::logging::detail::LogWriteBatch> BinarySerializationFormatLogSerializer::UnserializeLogWrite(
     const std::byte* buf, size_t size) {
-    static const auto& stream_id_type = zeek::id::find_type<zeek::EnumType>("Log::ID");
-    static const auto& writer_id_type = zeek::id::find_type<zeek::EnumType>("Log::Writer");
-
     zeek::detail::BinarySerializationFormat fmt;
     fmt.StartRead(reinterpret_cast<const char*>(buf), size);
 
@@ -82,20 +80,11 @@ std::optional<zeek::logging::detail::LogWriteBatch> BinarySerializationFormatLog
     fmt.Read(&header.filter_name, "filter_name");
     fmt.Read(&header.path, "path");
 
-    auto stream_id = stream_id_type->Lookup(header.stream_name);
-    if ( stream_id < 0 ) {
-        reporter->Error("Failed to unserialize stream %s: unknown enum", header.stream_name.c_str());
+    if ( ! header.PopulateEnumVals() ) {
+        reporter->Error("Failed to populate enum vals from stream_name='%s' writer_name='%s'",
+                        header.stream_name.c_str(), header.writer_name.c_str());
         return {};
-    }
-
-    auto writer_id = writer_id_type->Lookup(header.writer_name);
-    if ( writer_id < 0 ) {
-        reporter->Error("Failed to unserialize writer %s: unknown enum", header.writer_name.c_str());
-        return {};
-    }
-
-    header.stream_id = stream_id_type->GetEnumVal(stream_id);
-    header.writer_id = writer_id_type->GetEnumVal(writer_id);
+    };
 
     uint32_t num_fields;
     if ( ! fmt.Read(&num_fields, "num_fields") ) {
@@ -136,5 +125,5 @@ std::optional<zeek::logging::detail::LogWriteBatch> BinarySerializationFormatLog
 
     fmt.EndRead();
 
-    return logging::detail::LogWriteBatch{.header = std::move(header), .records = std::move(records)};
+    return logging::detail::LogWriteBatch{std::move(header), std::move(records)};
 }

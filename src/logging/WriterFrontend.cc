@@ -1,10 +1,10 @@
 #include "zeek/logging/WriterFrontend.h"
 
-#include "zeek/Desc.h"
 #include "zeek/RunState.h"
 #include "zeek/Span.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/logging/Manager.h"
+#include "zeek/logging/Types.h"
 #include "zeek/logging/WriterBackend.h"
 #include "zeek/threading/SerialTypes.h"
 
@@ -118,15 +118,9 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVa
     else
         backend = nullptr;
 
-    header = {
-        .stream_id = {zeek::NewRef{}, stream},
-        .stream_name = obj_desc_short(stream),
-        .writer_id = {zeek::NewRef{}, writer},
-        .writer_name = obj_desc_short(writer),
-        .filter_name = arg_info.filter_name,
-        .path = arg_info.path,
-        .fields = {}, // These are populated in Init()
-    };
+    // .fields initialized in Init()
+    header =
+        detail::LogWriteHeader{{zeek::NewRef{}, stream}, {zeek::NewRef{}, writer}, arg_info.filter_name, arg_info.path};
 }
 
 WriterFrontend::~WriterFrontend() {

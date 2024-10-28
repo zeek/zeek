@@ -2,12 +2,17 @@
 
 #include "zeek/zeek-config.h"
 
+#include <algorithm>
 #include <string>
 
 #include "zeek/Conn.h"
+#include "zeek/Desc.h"
 #include "zeek/Event.h"
+#include "zeek/Func.h"
+#include "zeek/ID.h"
 #include "zeek/NetVar.h"
 #include "zeek/RuleMatcher.h"
+#include "zeek/Type.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
 
@@ -18,7 +23,7 @@ namespace zeek::detail {
 bool is_event(const char* id) { return zeek::event_registry->Lookup(id) != nullptr; }
 
 RuleActionEvent::RuleActionEvent(const char* arg_msg)
-    : msg(make_intrusive<StringVal>(arg_msg)), handler(signature_match) {}
+    : msg(make_intrusive<StringVal>(arg_msg)), handler(signature_match), want_end_of_match(true) {}
 
 RuleActionEvent::RuleActionEvent(const char* arg_msg, const char* event_name) {
     if ( arg_msg ) // Message can be null (not provided).
@@ -36,32 +41,74 @@ RuleActionEvent::RuleActionEvent(const char* arg_msg, const char* event_name) {
 
     static const auto& signature_match_params = signature_match->GetFunc()->GetType()->ParamList()->GetTypes();
     // Fabricated params for non-message event(state: signature_state, data: string)
-    static const std::vector<zeek::TypePtr> signature_match2_params = {signature_match_params[0],
-                                                                       signature_match_params[2]};
+    static const std::vector<zeek::TypePtr> signature_match_no_msg2_params = {signature_match_params[0],
+                                                                              signature_match_params[2]};
+    // Fabricated params for non-message event(state: signature_state, data: string, end_of_match: count)
+    static const std::vector<zeek::TypePtr> signature_match_no_msg3_params = {signature_match_params[0],
+                                                                              signature_match_params[2],
+                                                                              signature_match_params[3]};
 
     if ( msg ) {
         // If msg was provided, the function signature needs to agree with
-        // the signature_match event, even if it's a different event.
-        if ( ! handler->GetFunc()->GetType()->CheckArgs(signature_match_params, true, true) )
-            zeek::reporter->Error("wrong event parameters for '%s'", event_name);
+        // one of the signature_match() events that take the message.
+        const auto& handler_args_rt = handler->GetType()->Params();
+        auto prototype = signature_match->GetFunc()->GetType()->FindPrototype(*handler_args_rt);
+
+        // No prototype matched, call CheckArgs() for those where at least
+        // the number of arguments matches for better error messaging (if any).
+        if ( ! prototype ) {
+            for ( const auto& p : signature_match->GetType()->Prototypes() ) {
+                if ( p.args->NumFields() != handler_args_rt->NumFields() )
+                    continue;
+
+                std::vector<TypePtr> tplist;
+                std::for_each(p.args->Types()->begin(), p.args->Types()->end(),
+                              [&tplist](const auto* td) { tplist.push_back(td->type); });
+
+                (void)handler->GetType()->CheckArgs(tplist, true, true);
+            }
+
+            zeek::reporter->Error("wrong event parameters for '%s' (%s)", event_name,
+                                  obj_desc_short(handler_args_rt.get()).c_str());
+            return;
+        }
+
+        // signature_match(state, msg, data, [end_of_match])
+        want_end_of_match = prototype->args->NumFields() > 3;
     }
     else {
         // When no message is provided, use non-message parameters.
-        if ( ! handler->GetFunc()->GetType()->CheckArgs(signature_match2_params, true, true) )
+        const auto& handler_args_rt = handler->GetType()->Params();
+        want_end_of_match = handler_args_rt->NumFields() > 2;
+
+        const auto& check_args =
+            handler_args_rt->NumFields() == 2 ? signature_match_no_msg2_params : signature_match_no_msg3_params;
+
+        if ( ! handler->GetFunc()->GetType()->CheckArgs(check_args, true, true) )
             zeek::reporter->Error("wrong event parameters for '%s'", event_name);
     }
 }
+
 void RuleActionEvent::DoAction(const Rule* parent, RuleEndpointState* state, const u_char* data, int len) {
     if ( handler ) {
         zeek::Args args;
         args.reserve(msg ? 3 : 2);
         args.push_back({AdoptRef{}, rule_matcher->BuildRuleStateValue(parent, state)});
+
         if ( msg )
             args.push_back(msg);
+
         if ( data )
             args.push_back(make_intrusive<StringVal>(len, reinterpret_cast<const char*>(data)));
         else
             args.push_back(zeek::val_mgr->EmptyString());
+
+        if ( want_end_of_match ) {
+            // PList::member_pos() doesn't like const Rule*, need const_cast.
+            int rule_offset = state->matched_by_patterns.member_pos(const_cast<Rule*>(parent));
+            MatchPos end_of_match = (rule_offset >= 0 && data) ? state->matched_text_end_of_match[rule_offset] : 0;
+            args.push_back(zeek::val_mgr->Count(end_of_match));
+        }
 
         event_mgr.Enqueue(handler, std::move(args));
     }

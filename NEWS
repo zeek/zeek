@@ -62,6 +62,12 @@ New Functionality
 * The DNS analyzer was extended to support TKEY RRs (RFC 2390). A corresponding
   ``dns_TKEY`` event was added.
 
+* The ``signature_match()`` and custom signature events now receive the end of
+  match offset within the ``data`` parameter as an optional parameter named
+  ``end_of_match``.
+
+	event signature_match(state: signature_state, msg: string, data: string, end_of_match: count);
+
 Changed Functionality
 ---------------------
 

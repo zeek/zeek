@@ -10,6 +10,16 @@ signature udp-proto {
   event my_signature_match3 "message"
 }
 
+signature udp-proto-with-offset {
+  ip-proto == 17
+  event my_signature_match4 "message"
+}
+
+signature udp-proto-with-offset-no-msg {
+  ip-proto == 17
+  event my_signature_match5
+}
+
 signature udp-stuff {
   dst-ip == mynets
   event my_signature_match2
@@ -36,4 +46,14 @@ event my_signature_match2(state: signature_state, data: string)
 event my_signature_match3(state: signature_state, msg: string, data: string)
 	{
 	print fmt("signature_match3 %s - %s", state$conn$id, msg);
+	}
+
+event my_signature_match4(state: signature_state, msg: string, data: string, end_of_match: count)
+	{
+	print fmt("signature_match4 %s - %s end_of_match=%s", state$conn$id, msg, end_of_match);
+	}
+
+event my_signature_match5(state: signature_state, data: string, end_of_match: count)
+	{
+	print fmt("signature_match5 %s - end_of_match=%s", state$conn$id, end_of_match);
 	}

@@ -161,6 +161,7 @@ public:
 
 private:
     friend class RuleMatcher;
+    friend class RuleActionEvent; // For access to match state.
 
     // Constructor is private; use RuleMatcher::InitEndpoint()
     // for creating an instance.
@@ -184,13 +185,14 @@ private:
 
     // The follow tracks which rules for which all patterns have matched,
     // in a parallel list the (first instance of the) corresponding
-	// matched text, and in another parallel list the offset of the
-	// end of the last pattern match.
+    // matched text, and in another parallel list the offset of the
+    // end of the last pattern match.
     rule_list matched_by_patterns;
     bstr_list matched_text;
-    match_offset_list match_offsets;
+    match_offset_list matched_text_end_of_match;
 
     int payload_size;
+    size_t current_pos; // The number of bytes fed into state.
     bool is_orig;
 
     int_list matched_rules; // Rules for which all conditions have matched

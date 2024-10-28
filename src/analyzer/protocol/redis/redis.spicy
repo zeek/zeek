@@ -14,6 +14,7 @@ public type KnownCommand = enum {
     BLMPOP,
     BLPOP,
     BRPOP,
+    CLIENT,
     COPY,
     DECR,
     DECRBY,
@@ -241,6 +242,7 @@ function command_from(cmd_bytes: bytes): optional<KnownCommand> {
         case b"blmpop": cmd = KnownCommand::BLMPOP;
         case b"blpop": cmd = KnownCommand::BLPOP;
         case b"brpop": cmd = KnownCommand::BRPOP;
+        case b"client": cmd = KnownCommand::CLIENT;
         case b"copy": cmd = KnownCommand::COPY;
         case b"decr": cmd = KnownCommand::DECR;
         case b"decrby": cmd = KnownCommand::DECRBY;

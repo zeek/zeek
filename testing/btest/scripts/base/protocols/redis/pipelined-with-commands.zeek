@@ -2,7 +2,7 @@
 #
 # @TEST-EXEC: zeek -Cr $TRACES/redis/pipeline-with-commands.trace base/protocols/redis %INPUT >output
 # @TEST-EXEC: btest-diff output
-# @TEST-EXEC: btest-diff resp.log
+# @TEST-EXEC: btest-diff redis.log
 
 # Sometimes commands aren't serialized, like when pipelining. This still works! So we
 # should handle this. This particular example has a few commands, amongst them a SET and

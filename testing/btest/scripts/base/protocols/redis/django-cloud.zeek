@@ -2,7 +2,7 @@
 #
 # @TEST-EXEC: zeek -Cr $TRACES/redis/django-cloud.trace base/protocols/redis %INPUT >output
 # @TEST-EXEC: btest-diff output
-# @TEST-EXEC: btest-diff resp.log
+# @TEST-EXEC: btest-diff redis.log
 
 redef Redis::ports += {
     10625/tcp,

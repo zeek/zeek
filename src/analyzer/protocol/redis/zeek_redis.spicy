@@ -11,7 +11,6 @@ public type ZeekServerData = struct {
 
 public function make_server_data(data: RESP::ServerData): ZeekServerData {
     local res: ZeekServerData = [$err = False, $data = Null];
-    # TODO: Redo this so it's not ugly and supports more. maybe
     if (data.data?.simple_error) {
         res.err = True;
         res.data = data.data.simple_error.content;

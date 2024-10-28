@@ -8,10 +8,6 @@ import spicy;
 # exhausting main memory.
 const MAX_SIZE = 1024 * 1024;
 
-public type Messages = unit {
-    : (Data &synchronize)[];
-};
-
 public type ClientMessages = unit {
     : (ClientData &synchronize)[];
 };

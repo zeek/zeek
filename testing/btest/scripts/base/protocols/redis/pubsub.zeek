@@ -2,7 +2,7 @@
 #
 # @TEST-EXEC: zeek -Cr $TRACES/redis/pubsub.trace base/protocols/redis %INPUT >output
 # @TEST-EXEC: btest-diff output
-# @TEST-EXEC: btest-diff resp.log
+# @TEST-EXEC: btest-diff redis.log
 
 # Testing the example of pub sub in REDIS docs:
 # https://redis.io/docs/latest/develop/interact/pubsub/

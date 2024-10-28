@@ -76,36 +76,30 @@ export {
 		current_request:  count &default=0;
 		## Current response in the pending queue.
 		current_response: count &default=0;
+		## Ranges where we do not expect a response
+		## Each range is one or two elements, one meaning it's unbounded, two meaning
+		## it begins at one and ends at the second.
+		no_response_ranges: vector of vector of count;
 	};
 
+	# Redis specifically mentions 10k commands as a good pipelining threshold, so
+	# we'll piggyback on that.
+	option max_pending_requests = 10000;
 }
 
 redef record connection += {
-	# TODO: Rename
-	redis_resp: Info &optional;
+	redis: Info &optional;
 	redis_state: State &optional;
 };
 
 redef likely_server_ports += { ports };
 
-# TODO: If you're going to send file data into the file analysis framework, you
-# need to provide a file handle function. This is a simple example that's
-# sufficient if the protocol only transfers a single, complete file at a time.
-#
-# function get_file_handle(c: connection, is_orig: bool): string
-#   {
-#   return cat(Analyzer::ANALYZER_SPICY_REDIS, c$start_time, c$id, is_orig);
-#   }
-
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Redis::LOG, [ $columns=Info, $ev=log_resp, $path="resp",
+	Log::create_stream(Redis::LOG, [ $columns=Info, $ev=log_resp, $path="redis",
 	    $policy=log_policy ]);
 
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SPICY_REDIS, ports);
-
-	# TODO: To activate the file handle function above, uncomment this.
-	# Files::register_protocol(Analyzer::ANALYZER_SPICY_REDIS, [$get_file_handle=Redis::get_file_handle ]);
 	}
 
 function new_redis_session(c: connection): Info
@@ -113,66 +107,140 @@ function new_redis_session(c: connection): Info
 	return Info($ts=network_time(), $uid=c$uid, $id=c$id);
 	}
 
+function make_new_state(c: connection)
+	{
+	local s: State;
+	c$redis_state = s;
+	Conn::register_removal_hook(c, finalize_redis);
+	}
+
 function set_state(c: connection, is_orig: bool)
 	{
-	if ( ! c?$redis_state )
-		{
-		local s: State;
-		c$redis_state = s;
-		Conn::register_removal_hook(c, finalize_redis);
-		}
+	if ( ! c?$redis_state ) make_new_state(c);
 
-	if ( is_orig )
-		{
-		if ( c$redis_state$current_request !in c$redis_state$pending )
-			c$redis_state$pending[c$redis_state$current_request] = new_redis_session(c);
+	local current: count;
+	if ( is_orig ) current = c$redis_state$current_request;
+	else current = c$redis_state$current_response;
 
-		c$redis_resp = c$redis_state$pending[c$redis_state$current_request];
-		}
-	else
-		{
-		if ( c$redis_state$current_response !in c$redis_state$pending )
-			c$redis_state$pending[c$redis_state$current_response] = new_redis_session(c);
+	if ( current !in c$redis_state$pending )
+		c$redis_state$pending[current] = new_redis_session(c);
 
-		c$redis_resp = c$redis_state$pending[c$redis_state$current_response];
-		}
+	c$redis = c$redis_state$pending[current];
+	}
+
+# Returns true if the last interval exists and is closed
+function is_last_interval_closed(c: connection): bool
+	{
+	return |c$redis_state$no_response_ranges| == 0 || |c$redis_state$no_response_ranges[|c$redis_state$no_response_ranges| - 1]| != 1;
 	}
 
 event Redis::command(c: connection, is_orig: bool, command: Command)
 	{
-	#hook set_session(c, command);
+	if ( ! c?$redis_state ) make_new_state(c);
 
-	# TODO: We need to care about whether the reply was suppressed with
-	# CLIENT REPLY [OFF|SKIP]
-	#local info = c$redis_resp;
-	#emit_log(c);
-	# TODO refactor this since it's used a couple times
-	if ( ! c?$redis_state )
+	if ( max_pending_requests > 0 && |c$redis_state$pending| > max_pending_requests )
 		{
-		local s: State;
-		c$redis_state = s;
-		Conn::register_removal_hook(c, finalize_redis);
+		Reporter::conn_weird("Redis_excessive_pipelining", c);
+
+		# Just spit out what we have
+		while ( c$redis_state$current_response < c$redis_state$current_request )
+			{
+			local cr = c$redis_state$current_response;
+			if ( cr in c$redis_state$pending )
+				{
+				Log::write(Redis::LOG, c$redis_state$pending[cr]);
+				delete c$redis_state$pending[cr];
+				}
+			++c$redis_state$current_response;
+			}
 		}
+
 	++c$redis_state$current_request;
+	if ( command?$known && command$known == KnownCommand_CLIENT )
+		{
+		# All 3 CLIENT commands we care about have 3 elements
+		if ( |command$raw| == 3 )
+			{
+			if ( to_lower(command$raw[2]) == "on" )
+				{
+				# If the last range is open, close it here. Otherwise, noop
+				if  ( |c$redis_state$no_response_ranges| > 0 )
+					{
+					local range = c$redis_state$no_response_ranges[|c$redis_state$no_response_ranges| - 1];
+					if ( |range| == 1 )
+						{
+						range += c$redis_state$current_request;
+						}
+					}
+				}
+			if ( to_lower(command$raw[2]) == "off" )
+				{
+				# Only add a new interval if the last one is closed
+				if  ( is_last_interval_closed(c) )
+					{
+					c$redis_state$no_response_ranges += vector(c$redis_state$current_request);
+					}
+				}
+			if ( to_lower(command$raw[2]) == "skip" )
+				{
+				if  ( is_last_interval_closed(c) )
+					# It skips this one and the next one
+					c$redis_state$no_response_ranges += vector(c$redis_state$current_request, c$redis_state$current_request + 2);
+				}
+			}
+		}
 	set_state(c, T);
 
-	c$redis_resp$cmd = command;
+	c$redis$cmd = command;
+	}
+
+## Gets the next response number based on a connection. This is necessary since
+## some responses may have been skipped.
+function response_num(c: connection): count
+	{
+	local resp_num = c$redis_state$current_response + 1;
+	for ( i in c$redis_state$no_response_ranges )
+		{
+		local range = c$redis_state$no_response_ranges[i];
+		assert |range| >= 1;
+		if ( |range| == 1 && resp_num > range[0] )
+			{} # TODO: This is necessary if not using pipelining
+		if ( |range| == 2 && resp_num >= range[0]  && resp_num < range[1] )
+			return range[1];
+		}
+
+	# Default: no disable/enable shenanigans
+	return resp_num;
 	}
 
 event Redis::server_data(c: connection, is_orig: bool, data: ServerData)
 	{
-	if ( ! c?$redis_state )
-		{
-		local s: State;
-		c$redis_state = s;
-		Conn::register_removal_hook(c, finalize_redis);
-		}
-	++c$redis_state$current_response;
+	if ( ! c?$redis_state ) make_new_state(c);
+
+	local previous_response_num = c$redis_state$current_response;
+	c$redis_state$current_response = response_num(c);
 	set_state(c, F);
 
-	c$redis_resp$response = data;
-	# TODO: Do stuff with pending so that finalize_redis and pipelining work
-	Log::write(Redis::LOG, c$redis_resp);
+	c$redis$response = data;
+	# Log each of the pending responses to this point - we will not go
+	# back.
+	while ( previous_response_num < c$redis_state$current_response )
+		{
+		if ( previous_response_num == 0 )
+			{
+			++previous_response_num;
+			next;
+			}
+
+		if ( previous_response_num in c$redis_state$pending )
+			{
+			Log::write(Redis::LOG, c$redis_state$pending[previous_response_num]);
+			delete c$redis_state$pending[previous_response_num];
+			}
+		previous_response_num += 1;
+		}
+	# Log this one
+	Log::write(Redis::LOG, c$redis);
 	delete c$redis_state$pending[c$redis_state$current_response];
 	}
 
@@ -185,10 +253,7 @@ hook finalize_redis(c: connection)
 			{
 			# We don't use pending elements at index 0.
 			if ( r == 0 ) next;
-			#Log::write(HTTP::LOG, info);
 			Log::write(Redis::LOG, info);
-			#delete c$redis_resp;
 			}
 		}
 	}
-

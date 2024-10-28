@@ -3,11 +3,11 @@
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
-#path	resp
+#path	redis
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd.command	cmd.key	cmd.value	response.err	response.data
 #types	time	string	addr	port	addr	port	string	string	string	bool	string
-XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	127.0.0.1	58972	127.0.0.1	6379	SET	hi:2	2	F	OK
-XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	127.0.0.1	58972	127.0.0.1	6379	SET	hi:3	sup	F	OK
-XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	127.0.0.1	58972	127.0.0.1	6379	GET	hi:3	-	F	-
+XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	::1	51122	::1	6379	PING	-	-	F	PONG
+XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	::1	51122	::1	6379	PING	-	-	F	PONG
+XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	::1	51122	::1	6379	PING	-	-	F	PONG
 #close XXXX-XX-XX-XX-XX-XX

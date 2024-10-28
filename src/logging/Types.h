@@ -29,11 +29,24 @@ namespace logging::detail {
 using LogRecord = std::vector<threading::Value>;
 
 /**
- * A struct holding all ncessary information that relates to
+ * A struct holding all necessary information that relates to
  * log writes for a given path. These values are constant over
  * the lifetime of a \a WriterFrontend.
  */
 struct LogWriteHeader {
+    LogWriteHeader();
+    LogWriteHeader(EnumValPtr stream_id, EnumValPtr writer_id, std::string filter_name, std::string path);
+    LogWriteHeader& operator=(const LogWriteHeader& other);
+    LogWriteHeader(LogWriteHeader&& other) noexcept;
+    ~LogWriteHeader();
+
+    /**
+     * Call this method to populate stream_id and writer_id after stream_name and writer_name were set.
+     *
+     * @return true if enum values were found for the given stream_name and writer_name, else false.
+     */
+    bool PopulateEnumVals();
+
     EnumValPtr stream_id;                 // The enum identifying the stream.
     std::string stream_name;              // The name of the stream, e.g. Conn::LOG
     EnumValPtr writer_id;                 // The enum identifying the writer. Mostly for backwards compat with broker.
@@ -41,8 +54,6 @@ struct LogWriteHeader {
     std::string filter_name;              // The name of the filter.
     std::string path;                     // The path as configured or produced by the filter's path_func.
     std::vector<threading::Field> fields; // The schema describing a log record.
-
-    ~LogWriteHeader(); // Avoid Val.h include for auto-generated destructor.
 };
 
 /**

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <sys/types.h> // for u_char
+#include <sys/types.h>
 #include <cassert>
 #include <map>
 #include <string>
@@ -67,7 +67,7 @@ protected:
     DFA_State* mark;
 };
 
-using DigestStr = std::basic_string<u_char>;
+using DigestStr = std::string;
 
 struct DFA_State_Cache_Stats {
     // Sum of all NFA states

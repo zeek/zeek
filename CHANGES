@@ -1,3 +1,9 @@
+7.0.3-24 | 2024-11-19 09:32:54 -0700
+
+  * account for spaces encoding to plus signs in sqli regex detection (Cooper Grill)
+
+    (cherry picked from commit 5200b84fb3ce6c19e9d114b3d8fb0d964639446d)
+
 7.0.3-23 | 2024-11-14 19:06:56 -0700
 
   * btest: Skip core.script-args under TSAN (Arne Welzel, Corelight)

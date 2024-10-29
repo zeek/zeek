@@ -37,6 +37,8 @@ event zeek_init()
 	add positive_matches["/index.php?id=22 /*!49999 and 1=2*/-- and 1=1"];
 	add positive_matches["/index.php?ID=59 and (select count(table_name) from user_tables)>0 and 1=1"];
 	add positive_matches["/index.php?ID=60 and exists (select * from [news])"];
+	add positive_matches["?id=1'+OR+'1'='1"];
+	add positive_matches["?id=1'+UNION+SELECT+NULL,+version()+#"];
 
 	# These are not detected currently.
 	#add positive_matches["/index.asp?ARF_ID=(1/(1-(asc(mid(now(),18,1))\(2^7) mod 2)))"];

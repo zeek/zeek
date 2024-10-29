@@ -368,7 +368,7 @@ macos_sonoma_task:
 freebsd14_task:
   freebsd_instance:
     # FreeBSD 14 EOL: Nov 30 2028
-    image_family: freebsd-14-0
+    image_family: freebsd-14-1
     << : *FREEBSD_RESOURCES_TEMPLATE
 
   prepare_script: ./ci/freebsd/prepare.sh

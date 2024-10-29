@@ -32,3 +32,6 @@ Trace Index/Sources:
 - pop3/POP3.pcap: Picked up from POP tutorial on tranalyzer.com
   https://tranalyzer.com/tutorial/pop
   https://tranalyzer.com/download/data/pop3.pcap
+- http/cooper-grill-dvwa.pcapng
+  Provided by cooper-grill on #3995
+  https://github.com/zeek/zeek/pull/3995

@@ -1,3 +1,7 @@
+7.1.0-dev.430 | 2024-10-29 14:08:25 +0100
+
+  * account for spaces encoding to plus signs in sqli regex detection (Cooper Grill)
+
 7.1.0-dev.428 | 2024-10-29 13:50:05 +0100
 
   * fixed "-O gen-C++" naming of "when" captures to avoid ambiguities due to inlining (Vern Paxson, Corelight)

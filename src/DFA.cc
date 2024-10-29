@@ -2,8 +2,6 @@
 
 #include "zeek/DFA.h"
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/Desc.h"
 #include "zeek/EquivClass.h"
 #include "zeek/Hash.h"

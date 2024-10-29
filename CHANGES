@@ -1,3 +1,19 @@
+7.0.3-14 | 2024-11-14 11:52:34 -0700
+
+  * Fix up minor warnings in touched files (Evan Typanski, Corelight)
+
+    (cherry picked from commit 36af0591a6f2c7270c68deaee4c4d733fa4086b1)
+
+  * Fix Clang 19 deprecation failure (Evan Typanski, Corelight)
+
+    Clang 19 with libc++ started failing to compile because the default
+    implementation of `std::char_traits` was removed, making uses of
+    `std::char_traits<unsigned char>` invalid. This was more of used for
+    convenience before, but it should be roughly the same behavior with
+    `char`.
+
+    (cherry picked from commit 985f4f7c725ae1a9f85dbc112e5bc340a34a034b)
+
 7.0.3-12 | 2024-11-14 11:33:09 -0700
 
   * GH-3978: Bump zeekjs to 0.12.1 (Arne Welzel, Corelight)

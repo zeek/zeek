@@ -18,7 +18,7 @@ class DFA_Machine;
 
 // Transitions to the uncomputed state indicate that we haven't yet
 // computed the state to go to.
-#define DFA_UNCOMPUTED_STATE -2
+#define DFA_UNCOMPUTED_STATE (-2)
 #define DFA_UNCOMPUTED_STATE_PTR ((DFA_State*)DFA_UNCOMPUTED_STATE)
 
 class DFA_State : public Obj {

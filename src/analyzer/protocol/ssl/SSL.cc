@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "zeek/Reporter.h"
-#include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/ssl/events.bif.h"
 #include "zeek/analyzer/protocol/ssl/ssl_pac.h"
 #include "zeek/analyzer/protocol/ssl/tls-handshake_pac.h"
@@ -276,7 +275,7 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
 
         // FIXME: should we change types here?
         const u_char* encrypted = data;
-        size_t encrypted_len = len;
+        int encrypted_len = len;
 
         if ( is_orig )
             c_seq++;

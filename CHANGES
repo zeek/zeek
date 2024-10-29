@@ -1,3 +1,16 @@
+7.1.0-dev.428 | 2024-10-29 13:50:05 +0100
+
+  * fixed "-O gen-C++" naming of "when" captures to avoid ambiguities due to inlining (Vern Paxson, Corelight)
+
+    	Previously there was logic for doing this, but it was ineffectual
+    	due to the order in which canonicalization was done. This problem
+    	manifested non-deterministically depending on order-of-generation
+    	of "when" lambdas, which is why previous testing didn't catch it.
+
+  * Simplified & made more robust maintenance helper script for "-O gen-C++" testing (Vern Paxson, Corelight)
+
+  * "-a cpp" baseline updates to reflect recent BTest changes (Vern Paxson, Corelight)
+
 7.1.0-dev.423 | 2024-10-24 07:08:45 -0700
 
   * Telemetry framework: move BIFs to the primary-bif stage (Christian Kreibich, Corelight)

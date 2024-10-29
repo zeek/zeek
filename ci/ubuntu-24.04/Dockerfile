@@ -36,6 +36,8 @@ RUN apt-get update && apt-get -y install \
     unzip \
     wget \
     zlib1g-dev \
+    libc++-dev \
+    libc++abi-dev \
   && apt autoclean \
   && rm -rf /var/lib/apt/lists/*
 

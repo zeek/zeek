@@ -1,3 +1,32 @@
+7.1.0-dev.441 | 2024-10-30 14:36:57 +0100
+
+  * GH-3984: Fix issues with Modbus message logging (Emmanuele Zambon)
+
+    This commit fixes three issues with Zeek's Modbus message logging:
+
+    1 - Some exception responses (e.g., READ_COILS_EXCEPTION) are logged
+        twice: once without and once with the exception message.
+    2 - Some exception responses (e.g., PROGRAM_484_EXCEPTION) are not
+        logged.
+    3 - Some known but reserved function codes (e.g., PROGRAM_UNITY) are
+        logged as unk-xxx (e.g., unk-90), while it would be possible to
+        log their known name.
+
+    To address these inconsistencies, the modbus parser has been updated
+    to parse all exception responses (i.e., all responses where the MSB
+    of the function code is set) using the already defined Exception
+    message.
+    Also, the Modbus main.zeek script has been updated to consistently
+    demand logging exception responses to the specialized
+    modbus_exception event, rather than logging some exception responses
+    in the modbus_message event and others in the modbus_exception event.
+    Finally, the main.zeek script has been updated to make sure that
+    for every known function code, the corresponding exception code was
+    also present, and the enumeration of known function codes in
+    consts.zeek has been expanded.
+
+    Closes #3984
+
 7.1.0-dev.439 | 2024-10-30 14:33:48 +0100
 
   * signatures: Add data_end_offset to signature_match() and custom events (Arne Welzel, Corelight)

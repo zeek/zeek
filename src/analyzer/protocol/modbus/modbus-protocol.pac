@@ -8,55 +8,40 @@
 
 enum function_codes {
 	# Standard functions
-	READ_COILS                    = 0x01,
-	READ_DISCRETE_INPUTS          = 0x02,
-	READ_HOLDING_REGISTERS        = 0x03,
-	READ_INPUT_REGISTERS          = 0x04,
-	WRITE_SINGLE_COIL             = 0x05,
-	WRITE_SINGLE_REGISTER         = 0x06,
+	READ_COILS                      = 0x01,
+	READ_DISCRETE_INPUTS            = 0x02,
+	READ_HOLDING_REGISTERS          = 0x03,
+	READ_INPUT_REGISTERS            = 0x04,
+	WRITE_SINGLE_COIL               = 0x05,
+	WRITE_SINGLE_REGISTER           = 0x06,
 	# READ_EXCEPTION_STATUS         = 0x07,
-	DIAGNOSTICS                   = 0x08,
+	DIAGNOSTICS                     = 0x08,
 	# GET_COMM_EVENT_COUNTER        = 0x0B,
 	# GET_COMM_EVENT_LOG            = 0x0C,
-	WRITE_MULTIPLE_COILS          = 0x0F,
-	WRITE_MULTIPLE_REGISTERS      = 0x10,
+	WRITE_MULTIPLE_COILS            = 0x0F,
+	WRITE_MULTIPLE_REGISTERS        = 0x10,
 	# REPORT_SLAVE_ID               = 0x11,
-	READ_FILE_RECORD              = 0x14,
-	WRITE_FILE_RECORD             = 0x15,
-	MASK_WRITE_REGISTER           = 0x16,
-	READ_WRITE_MULTIPLE_REGISTERS = 0x17,
-	READ_FIFO_QUEUE               = 0x18,
-	ENCAP_INTERFACE_TRANSPORT     = 0x2B,
+	READ_FILE_RECORD                = 0x14,
+	WRITE_FILE_RECORD               = 0x15,
+	MASK_WRITE_REGISTER             = 0x16,
+	READ_WRITE_MULTIPLE_REGISTERS   = 0x17,
+	READ_FIFO_QUEUE                 = 0x18,
+	ENCAP_INTERFACE_TRANSPORT       = 0x2B,
+	OBJECT_MESSAGING                = 0x5B,
 
 	# Machine/vendor/network specific functions
-	PROGRAM_484                   = 0x09,
-	POLL_484                      = 0x0A,
-	PROGRAM_584_984               = 0x0D,
-	POLL_584_984                  = 0x0E,
-	PROGRAM_884_U84               = 0x12,
-	RESET_COMM_LINK_884_U84       = 0x13,
-	PROGRAM_CONCEPT               = 0x28,
-	FIRMWARE_REPLACEMENT          = 0x7D,
-	PROGRAM_584_984_2             = 0x7E,
-	REPORT_LOCAL_ADDRESS          = 0x7F,
-
-	# Exceptions (not really function codes but they are used similarly)
-	READ_COILS_EXCEPTION                    = 0x81,
-	READ_DISCRETE_INPUTS_EXCEPTION          = 0x82,
-	READ_HOLDING_REGISTERS_EXCEPTION        = 0x83,
-	READ_INPUT_REGISTERS_EXCEPTION          = 0x84,
-	WRITE_SINGLE_COIL_EXCEPTION             = 0x85,
-	WRITE_SINGLE_REGISTER_EXCEPTION         = 0x86,
-	READ_EXCEPTION_STATUS_EXCEPTION         = 0x87,
-	DIAGNOSTICS_EXCEPTION                   = 0x88,
-	WRITE_MULTIPLE_COILS_EXCEPTION          = 0x8F,
-	WRITE_MULTIPLE_REGISTERS_EXCEPTION      = 0x90,
-	READ_FILE_RECORD_EXCEPTION              = 0x94,
-	WRITE_FILE_RECORD_EXCEPTION             = 0x95,
-	MASK_WRITE_REGISTER_EXCEPTION           = 0x96,
-	READ_WRITE_MULTIPLE_REGISTERS_EXCEPTION = 0x97,
-	READ_FIFO_QUEUE_EXCEPTION               = 0x98,
-	ENCAP_INTERFACE_TRANSPORT_EXCEPTION     = 0xAB,
+	PROGRAM_484                     = 0x09,
+	POLL_484                        = 0x0A,
+	PROGRAM_584_984                 = 0x0D,
+	POLL_584_984                    = 0x0E,
+	PROGRAM_884_U84                 = 0x12,
+	RESET_COMM_LINK_884_U84         = 0x13,
+	PROGRAM_CONCEPT                 = 0x28,
+	MULTIPLE_FUNCTION_CODES         = 0x29,
+	PROGRAM_UNITY                   = 0x5A,
+	FIRMWARE_REPLACEMENT            = 0x7D,
+	PROGRAM_584_984_2               = 0x7E,
+	REPORT_LOCAL_ADDRESS            = 0x7F,
 };
 
 enum diagnostic_subfunctions {
@@ -125,7 +110,12 @@ type ModbusTCP_Request(header: ModbusTCP_TransportHeader) = case header.fc of {
 
 # Responses
 #
-type ModbusTCP_Response(header: ModbusTCP_TransportHeader) = case header.fc of {
+type ModbusTCP_Response(header: ModbusTCP_TransportHeader) = case header.fc & 0x80 of {
+    0       -> normal_response      : ModbusTCP_NormalResponse(header);
+    default -> exception_response   : Exception(header);
+};
+
+type ModbusTCP_NormalResponse(header: ModbusTCP_TransportHeader) = case header.fc of {
 	READ_COILS                          -> readCoils:                       ReadCoilsResponse(header);
 	READ_DISCRETE_INPUTS                -> readDiscreteInputs:              ReadDiscreteInputsResponse(header);
 	READ_HOLDING_REGISTERS              -> readHoldingRegisters:            ReadHoldingRegistersResponse(header);
@@ -144,25 +134,7 @@ type ModbusTCP_Response(header: ModbusTCP_TransportHeader) = case header.fc of {
 	MASK_WRITE_REGISTER                 -> maskWriteRegister:               MaskWriteRegisterResponse(header);
 	READ_WRITE_MULTIPLE_REGISTERS       -> readWriteMultipleRegisters:      ReadWriteMultipleRegistersResponse(header);
 	READ_FIFO_QUEUE                     -> readFIFOQueue:                   ReadFIFOQueueResponse(header);
-	ENCAP_INTERFACE_TRANSPORT           -> encapInterfaceException:         EncapInterfaceTransportResponse(header);
-
-	# Exceptions
-	READ_HOLDING_REGISTERS_EXCEPTION        -> readHoldingRegistersException:    Exception(header);
-	WRITE_MULTIPLE_REGISTERS_EXCEPTION      -> writeMultRegistersException:      Exception(header);
-	READ_COILS_EXCEPTION                    -> readCoilsException:               Exception(header);
-	READ_DISCRETE_INPUTS_EXCEPTION          -> readDiscreteInputsException:      Exception(header);
-	READ_INPUT_REGISTERS_EXCEPTION          -> readInputRegistersException:      Exception(header);
-	WRITE_SINGLE_COIL_EXCEPTION             -> writeCoilException:               Exception(header);
-	WRITE_SINGLE_REGISTER_EXCEPTION         -> writeSingleRegisterException:     Exception(header);
-	READ_EXCEPTION_STATUS_EXCEPTION         -> readExceptionStatusException:     Exception(header);
-	DIAGNOSTICS_EXCEPTION                   -> diagnosticsException:             Exception(header);
-	WRITE_MULTIPLE_COILS_EXCEPTION          -> forceMultipleCoilsException:      Exception(header);
-	READ_FILE_RECORD_EXCEPTION              -> readGeneralReferenceException:    Exception(header);
-	WRITE_FILE_RECORD_EXCEPTION             -> writeGeneralReferenceException:   Exception(header);
-	MASK_WRITE_REGISTER_EXCEPTION           -> maskWriteRegisterException:       Exception(header);
-	READ_WRITE_MULTIPLE_REGISTERS_EXCEPTION -> readWriteRegistersException:      Exception(header);
-	READ_FIFO_QUEUE_EXCEPTION               -> readFIFOQueueException:           Exception(header);
-	ENCAP_INTERFACE_TRANSPORT_EXCEPTION     -> encapInterfaceTransportException: Exception(header);
+	ENCAP_INTERFACE_TRANSPORT           -> encapInterfaceTransport:         EncapInterfaceTransportResponse(header);
 
 	# All the rest
 	default                                 -> unknown:                         bytestring &restofdata;

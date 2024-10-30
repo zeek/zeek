@@ -45,6 +45,25 @@ event zeek_init() &priority=5
 	Log::create_stream(Modbus::LOG, [$columns=Info, $ev=log_modbus, $path="modbus", $policy=log_policy]);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_MODBUS, ports);
 	}
+	
+function build_func(func: count): string
+	{
+	local masked = func & ~0x80;
+
+	# If the function code is in function_codes, use it. Also,
+	# if the masked value isn't in function_codes, use function_codes
+	# &default functionality.
+	if ( func in function_codes || masked !in function_codes )
+	        return function_codes[func];
+
+	local s = function_codes[masked];
+
+	# Suffix exceptions with _EXCEPTION.
+	if ( func & 0x80 == 0x80 )
+	        s += "_EXCEPTION";
+
+	return s;
+	}
 
 event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool) &priority=5
 	{
@@ -56,7 +75,7 @@ event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool) &prio
 	c$modbus$ts   = network_time();
 	c$modbus$tid = headers$tid;
 	c$modbus$unit = headers$uid;
-	c$modbus$func = function_codes[headers$function_code];
+	c$modbus$func = build_func(headers$function_code);
 	## If this message is from the TCP originator, it is a request. Otherwise,
 	## it is a response.
 	c$modbus$pdu_type = is_orig ? "REQ" : "RESP";
@@ -65,7 +84,7 @@ event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool) &prio
 event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool) &priority=-5
 	{
 	# Don't log now if this is an exception (log in the exception event handler)
-	if ( headers$function_code <= 0x81 || headers$function_code >= 0x98 )
+	if ( headers$function_code < 0x80 )
 		Log::write(LOG, c$modbus);
 	}
 

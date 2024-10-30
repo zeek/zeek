@@ -1,5 +1,5 @@
 # @TEST-REQUIRES: grep -q "#define OPENSSL_HAVE_KDF_H" $BUILD/zeek-config.h
-# @TEST-REQUIRES: ! grep -q "#define ENABLE_SPICY_SSL" $BUILD/zeek-config.h # Decryption is not supported in Spicy SSL
+# @TEST-REQUIRES: ! have-spicy-ssl  # Decryption is not supported in Spicy SSL
 
 # @TEST-EXEC: zeek -B dpd -C -r $TRACES/tls/tls12-decryption.pcap %INPUT
 # @TEST-EXEC: btest-diff http.log

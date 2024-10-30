@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: ! have-spicy-ssl  # Spicy analyzer causes conn.log baseline difference
 # @TEST-EXEC: zeek -r $TRACES/modbus/modbus-and-non-modbus-p502.pcap
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff modbus.log

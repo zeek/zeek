@@ -1,3 +1,17 @@
+7.1.0-dev.436 | 2024-10-30 11:47:53 +0000
+
+  * modbus: Skip non-modbus traffic testing with Spicy SSL (Arne Welzel, Corelight)
+
+    With Spicy SSL, there's no SSL conn.log produced.
+
+  * testing: Add have-spicy-ssl helper and update tests (Arne Welzel, Corelight)
+
+  * Improvements in FNV1A hash functions (Martin van Hensbergen)
+
+    - Add FNV1a64 hash function
+    - make hash function type aware
+    - add unit tests
+
 7.1.0-dev.430 | 2024-10-29 14:08:25 +0100
 
   * account for spaces encoding to plus signs in sqli regex detection (Cooper Grill)

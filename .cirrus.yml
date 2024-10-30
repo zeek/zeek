@@ -268,6 +268,19 @@ ubuntu24_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
+# Same as above, but using Clang and libc++
+ubuntu24_clang_libcpp_task:
+  container:
+    # Ubuntu 24.04 EOL: Jun 2029
+    dockerfile: ci/ubuntu-24.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
+  env:
+    CC: clang-18
+    CXX: clang++-18
+    CXXFLAGS: -stdlib=libc++
+
 ubuntu22_task:
   container:
     # Ubuntu 22.04 EOL: June 2027
@@ -356,7 +369,7 @@ macos_sonoma_task:
 freebsd14_task:
   freebsd_instance:
     # FreeBSD 14 EOL: Nov 30 2028
-    image_family: freebsd-14-0
+    image_family: freebsd-14-1
     << : *FREEBSD_RESOURCES_TEMPLATE
 
   prepare_script: ./ci/freebsd/prepare.sh

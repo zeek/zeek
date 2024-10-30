@@ -1,3 +1,33 @@
+7.1.0-dev.447 | 2024-10-30 14:52:40 +0100
+
+  * CI: Upgrade FreeBSD 14 to 14.1 (Evan Typanski, Corelight)
+
+  * CI: Add Ubuntu Clang task (Evan Typanski, Corelight)
+
+    This feels more like a band-aid solution - it still requires very manual
+    intervention to get the next builds, but at least this way we don't rely
+    on whatever Clang/libc++ happens to ship with FreeBSD for the only
+    libc++ testing. It seems like sanitizer builds don't use libc++, but I'd
+    rather a dedicated Linux/Clang/libc++ task at least.
+
+  * Fix up minor warnings in touched files (Evan Typanski, Corelight)
+
+  * GH-3994: Fix Clang 19 deprecation failure (Evan Typanski, Corelight)
+
+    Fixes #3994
+
+    Clang 19 with libc++ started failing to compile because the default
+    implementation of `std::char_traits` was removed, making uses of
+    `std::char_traits<unsigned char>` invalid. This was more of used for
+    convenience before, but it should be roughly the same behavior with
+    `char`.
+
+    See relevant LLVM commits:
+
+    https://github.com/llvm/llvm-project/commit/aeecef08c385b1e4955155dd649a2d3724463849
+
+    https://github.com/llvm/llvm-project/commit/08a0faf4cd32bce6c51027ea9b5ec351747995b4
+
 7.1.0-dev.442 | 2024-10-30 14:43:18 +0100
 
   * pre-commit-config: Disable spicy-format (Arne Welzel, Corelight)

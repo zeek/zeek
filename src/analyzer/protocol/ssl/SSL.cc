@@ -3,9 +3,9 @@
 #include <arpa/inet.h>
 #include <openssl/evp.h>
 #include <openssl/opensslv.h>
+#include <vector>
 
 #include "zeek/Reporter.h"
-#include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/ssl/events.bif.h"
 #include "zeek/analyzer/protocol/ssl/ssl_pac.h"
 #include "zeek/analyzer/protocol/ssl/tls-handshake_pac.h"
@@ -22,6 +22,8 @@
 
 namespace zeek::analyzer::ssl {
 
+using byte_buffer = std::vector<u_char>;
+
 template<typename T>
 static inline T MSB(const T a) {
     return ((a >> 8) & 0xff);
@@ -32,12 +34,13 @@ static inline T LSB(const T a) {
     return (a & 0xff);
 }
 
-static std::basic_string<unsigned char> fmt_seq(uint32_t num) {
-    std::basic_string<unsigned char> out(4, '\0');
+static byte_buffer fmt_seq(uint32_t num) {
+    byte_buffer out(4, '\0');
     out.reserve(13);
     uint32_t netnum = htonl(num);
-    out.append(reinterpret_cast<u_char*>(&netnum), 4);
-    out.append(5, '\0');
+    uint8_t* p = reinterpret_cast<uint8_t*>(&netnum);
+    out.insert(out.end(), p, p + 4);
+    out.insert(out.end(), 5, '\0');
     return out;
 }
 
@@ -271,8 +274,8 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
         const u_char* s_iv = keys.data() + 68;
 
         // FIXME: should we change types here?
-        u_char* encrypted = (u_char*)data;
-        size_t encrypted_len = len;
+        const u_char* encrypted = data;
+        int encrypted_len = len;
 
         if ( is_orig )
             c_seq++;
@@ -280,14 +283,15 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
             s_seq++;
 
         // AEAD nonce, length 12
-        std::basic_string<unsigned char> s_aead_nonce;
+        byte_buffer s_aead_nonce;
+        s_aead_nonce.reserve(12);
         if ( is_orig )
-            s_aead_nonce.assign(c_iv, 4);
+            s_aead_nonce.insert(s_aead_nonce.end(), c_iv, c_iv + 4);
         else
-            s_aead_nonce.assign(s_iv, 4);
+            s_aead_nonce.insert(s_aead_nonce.end(), s_iv, s_iv + 4);
 
         // this should be the explicit counter
-        s_aead_nonce.append(encrypted, 8);
+        s_aead_nonce.insert(s_aead_nonce.end(), encrypted, encrypted + 8);
         assert(s_aead_nonce.size() == 12);
 
         EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
@@ -310,28 +314,28 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
         else
             EVP_DecryptInit(ctx, EVP_aes_256_gcm(), s_wk, s_aead_nonce.data());
 
-        EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG, 16, encrypted + encrypted_len);
+        EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG, 16, const_cast<u_char*>(encrypted + encrypted_len));
 
         // AEAD tag
-        std::basic_string<unsigned char> s_aead_tag;
+        byte_buffer s_aead_tag;
         if ( is_orig )
             s_aead_tag = fmt_seq(c_seq);
         else
             s_aead_tag = fmt_seq(s_seq);
 
+        assert(s_aead_tag.size() == 13);
         s_aead_tag[8] = content_type;
         s_aead_tag[9] = MSB(raw_tls_version);
         s_aead_tag[10] = LSB(raw_tls_version);
         s_aead_tag[11] = MSB(encrypted_len);
         s_aead_tag[12] = LSB(encrypted_len);
-        assert(s_aead_tag.size() == 13);
 
         auto decrypted = std::vector<u_char>(encrypted_len +
                                              16); // see OpenSSL manpage - 16 is the block size for the supported cipher
         int decrypted_len = 0;
 
         EVP_DecryptUpdate(ctx, NULL, &decrypted_len, s_aead_tag.data(), s_aead_tag.size());
-        EVP_DecryptUpdate(ctx, decrypted.data(), &decrypted_len, (const u_char*)encrypted, encrypted_len);
+        EVP_DecryptUpdate(ctx, decrypted.data(), &decrypted_len, encrypted, encrypted_len);
         assert(static_cast<decltype(decrypted.size())>(decrypted_len) <= decrypted.size());
         decrypted.resize(decrypted_len);
 

@@ -43,6 +43,7 @@ public:
 private:
     StringValPtr msg;
     EventHandlerPtr handler;
+    bool want_end_of_match; // Whether handler accepts end_of_match parameter.
 };
 
 class RuleActionMIME : public RuleAction {

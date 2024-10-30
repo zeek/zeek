@@ -575,6 +575,11 @@ event file_weird%(name: string, f: fa_file, addl: string%);
 ##       specifics here are not well-defined as Zeek does not buffer any input.
 ##       If a match is split across packet boundaries, only the last chunk
 ##       triggering the match will be passed on to the event.
+## end_of_match: Where within data the pattern match ended. 0 if not applicable or when *data* is empty.
+event signature_match%(state: signature_state, msg: string, data: string, end_of_match: count%);
+
+# Same as above, but allow users to ignore the end_of_match parameter
+# for backwards compatibility, but also convenience.
 event signature_match%(state: signature_state, msg: string, data: string%);
 
 ## Generated each time Zeek's internal profiling log is updated. The file is

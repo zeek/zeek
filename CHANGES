@@ -1,3 +1,16 @@
+7.1.0-dev.439 | 2024-10-30 14:33:48 +0100
+
+  * signatures: Add data_end_offset to signature_match() and custom events (Arne Welzel, Corelight)
+
+    This change tracks the current offset (number of bytes fed into matchers)
+    on the top-level RuleEndpointState such that we can compute the relative ending
+    for matched texts individually.
+
+    Additionally, it adds the data_end_offset as a new optional parameter to
+    signature_match().
+
+  * Add pattern_end_offset to signature_state (ronny8360988)
+
 7.1.0-dev.436 | 2024-10-30 11:47:53 +0000
 
   * modbus: Skip non-modbus traffic testing with Spicy SSL (Arne Welzel, Corelight)

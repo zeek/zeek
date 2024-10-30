@@ -161,6 +161,7 @@ public:
 
 private:
     friend class RuleMatcher;
+    friend class RuleActionEvent; // For access to match state.
 
     // Constructor is private; use RuleMatcher::InitEndpoint()
     // for creating an instance.
@@ -173,6 +174,7 @@ private:
     };
 
     using matcher_list = PList<Matcher>;
+    using match_offset_list = std::vector<MatchPos>;
 
     analyzer::Analyzer* analyzer;
     RuleEndpointState* opposite;
@@ -182,12 +184,15 @@ private:
     rule_hdr_test_list hdr_tests;
 
     // The follow tracks which rules for which all patterns have matched,
-    // and in a parallel list the (first instance of the) corresponding
-    // matched text.
+    // in a parallel list the (first instance of the) corresponding
+    // matched text, and in another parallel list the offset of the
+    // end of the last pattern match.
     rule_list matched_by_patterns;
     bstr_list matched_text;
+    match_offset_list matched_text_end_of_match;
 
     int payload_size;
+    size_t current_pos; // The number of bytes fed into state.
     bool is_orig;
 
     int_list matched_rules; // Rules for which all conditions have matched

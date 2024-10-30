@@ -1,3 +1,9 @@
+7.1.0-dev.442 | 2024-10-30 14:43:18 +0100
+
+  * pre-commit-config: Disable spicy-format (Arne Welzel, Corelight)
+
+    This fails to install currently: bbannier/spicy-format#157
+
 7.1.0-dev.441 | 2024-10-30 14:36:57 +0100
 
   * GH-3984: Fix issues with Modbus message logging (Emmanuele Zambon)

@@ -33,9 +33,9 @@ repos:
     - id: typos
       exclude: '^(.typos.toml|src/SmithWaterman.cc|testing/.*|auxil/.*|scripts/base/frameworks/files/magic/.*|CHANGES)$'
 
-- repo: https://github.com/bbannier/spicy-format
-  rev: v0.16.2
-  hooks:
-    - id: spicy-format
-      # TODO: Reformat existing large analyzers just before 8.0.
-      exclude: '(^testing/.*)|(protocol/ldap/.*)|(protocol/quic/.*)|(protocol/websocket/.*)'
+#- repo: https://github.com/bbannier/spicy-format
+#  rev: v0.16.2
+#  hooks:
+#    - id: spicy-format
+#      # TODO: Reformat existing large analyzers just before 8.0.
+#      exclude: '(^testing/.*)|(protocol/ldap/.*)|(protocol/quic/.*)|(protocol/websocket/.*)'

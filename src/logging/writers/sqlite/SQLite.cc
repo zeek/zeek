@@ -134,6 +134,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* con
     char* errorMsg = 0;
     int res;
     switch ( synchronous ) {
+        case SQLITE_SYNCHRONOUS_DEFAULT: res = SQLITE_OK; break;
         case SQLITE_SYNCHRONOUS_OFF: res = sqlite3_exec(db, "PRAGMA synchronous=OFF;", NULL, NULL, &errorMsg); break;
         case SQLITE_SYNCHRONOUS_NORMAL:
             res = sqlite3_exec(db, "PRAGMA synchronous=NORMAL;", NULL, NULL, &errorMsg);
@@ -151,6 +152,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* con
     }
 
     switch ( journal_mode ) {
+        case SQLITE_JOURNAL_MODE_DEFAULT: res = SQLITE_OK; break;
         case SQLITE_JOURNAL_MODE_DELETE:
             res = sqlite3_exec(db, "PRAGMA journal_mode=DELETE;", NULL, NULL, &errorMsg);
             break;

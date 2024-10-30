@@ -49,12 +49,14 @@ private:
     int64_t journal_mode;
 
     enum SQLiteSynchronous {
+        SQLITE_SYNCHRONOUS_DEFAULT,
         SQLITE_SYNCHRONOUS_OFF,
         SQLITE_SYNCHRONOUS_NORMAL,
         SQLITE_SYNCHRONOUS_FULL,
         SQLITE_SYNCHRONOUS_EXTRA,
     };
     enum SQLiteJournalMode {
+        SQLITE_JOURNAL_MODE_DEFAULT,
         SQLITE_JOURNAL_MODE_DELETE,
         SQLITE_JOURNAL_MODE_TRUNCATE,
         SQLITE_JOURNAL_MODE_PERSIST,

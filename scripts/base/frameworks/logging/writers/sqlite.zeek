@@ -23,14 +23,16 @@ export {
 	const empty_field = Log::empty_field &redef;
 	
 	type SQLiteSynchronous: enum {
+		SQLITE_SYNCHRONOUS_DEFAULT,
 		SQLITE_SYNCHRONOUS_OFF,
 		SQLITE_SYNCHRONOUS_NORMAL,
 		SQLITE_SYNCHRONOUS_FULL,
-		SQLITE_SYNCHRONOUS_EXTRA,
+		SQLITE_SYNCHRONOUS_EXTRA
 	};
 
 	## Values supported for SQLite's PRAGMA journal_mode statement.
 	type SQLiteJournalMode: enum {
+		SQLITE_JOURNAL_MODE_DEFAULT,
 		SQLITE_JOURNAL_MODE_DELETE,
 		SQLITE_JOURNAL_MODE_TRUNCATE,
 		SQLITE_JOURNAL_MODE_PERIST,
@@ -39,19 +41,20 @@ export {
 		SQLITE_JOURNAL_MODE_OFF,
 	};
 	
-	## If set, runs the PRAGMA synchronous statement with the
-	## provided value after connecting to the SQLite database. See
+	## If changed from SQLITE_SYNCHRONOUS_DEFAULT, runs the PRAGMA synchronous 
+	## statement with the provided value after connecting to the SQLite database. See
 	## `SQLite's synchronous documentation <https://www.sqlite.org/pragma.html#pragma_synchronous>`_
 	## for more details around performance and data safety trade offs.
 	
-	const synchronous = SQLITE_SYNCHRONOUS_FULL &redef;
+	const synchronous = SQLITE_SYNCHRONOUS_DEFAULT &redef;
 	
-	## If set, runs the PRAGMA journal_mode statement with the
-	## provided value after connecting to the SQLite database. See
+	## If changed from SQLITE_JOURNAL_MODE_DEFAULT, runs the PRAGMA 
+	## journal_mode statement with the provided value after connecting to 
+	## the SQLite database.
 	## `SQLite's journal_mode documentation <https://www.sqlite.org/pragma.html#pragma_journal_mode>`_
 	## for more details around performance, data safety trade offs
 	## and interaction with the PRAGMA synchronous statement.
-	const journal_mode = SQLITE_JOURNAL_MODE_DELETE &redef;
+	const journal_mode = SQLITE_JOURNAL_MODE_DEFAULT &redef;
 
 	
 }

@@ -1,4 +1,4 @@
-# @TEST-REQUIRES: ! grep -q "#define ENABLE_SPICY_SSL" $BUILD/zeek-config.h # DTLS is not supported in Spicy SSL yet
+# @TEST-REQUIRES: ! have-spicy-ssl  # DTLS is not supported in Spicy SSL yet
 # @TEST-EXEC: zeek -b -r $TRACES/tls/webrtc-stun.pcap %INPUT
 # @TEST-EXEC: btest-diff ssl.log
 # @TEST-EXEC: touch dpd.log

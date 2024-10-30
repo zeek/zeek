@@ -1,5 +1,5 @@
 # Does not work in spicy version, due to missing DTLS support
-# @TEST-REQUIRES: ! grep -q "#define ENABLE_SPICY_SSL" $BUILD/zeek-config.h
+# @TEST-REQUIRES: ! have-spicy-ssl
 
 # @TEST-EXEC: zeek -b -r $TRACES/tls/dhe.pcap %INPUT
 # @TEST-EXEC: cat ssl.log > ssl-all.log

@@ -12,6 +12,7 @@
 #include "zeek/RE.h"
 #include "zeek/Rule.h"
 #include "zeek/ScannedFile.h"
+#include "zeek/ZeekString.h"
 #include "zeek/plugin/Manager.h"
 
 // #define MATCHER_PRINT_STATS
@@ -168,6 +169,31 @@ private:
     RuleEndpointState(analyzer::Analyzer* arg_analyzer, bool arg_is_orig, RuleEndpointState* arg_opposite,
                       analyzer::pia::PIA* arg_PIA);
 
+    // Tracking pattern matches for a given Rule.
+    struct RulePatternMatch {
+        RulePatternMatch(Rule* rule, const u_char* data, int data_len, MatchPos end_of_match)
+            : rule(rule), text(data, data_len, false), end_of_match(end_of_match) {}
+
+        RulePatternMatch(RulePatternMatch&& other) noexcept
+            : rule(other.rule), text(std::move(other.text)), end_of_match(other.end_of_match) {
+            other.rule = nullptr;
+            other.end_of_match = 0;
+        }
+
+        RulePatternMatch(const RulePatternMatch&) = delete;
+        RulePatternMatch& operator=(const RulePatternMatch&) = delete;
+
+        Rule* rule = nullptr;
+        String text;
+        MatchPos end_of_match = 0;
+    };
+
+    // Find the RulePatternMatch for rules for which all patterns
+    // matches. Returns null if no pattern match for the given
+    // rule exists.
+    const RulePatternMatch* FindRulePatternMatch(const Rule* r) const;
+    void AddRulePatternMatch(Rule* r, const u_char* data, int data_len, MatchPos end_of_match);
+
     struct Matcher {
         RE_Match_State* state;
         Rule::PatternType type;
@@ -183,13 +209,9 @@ private:
     matcher_list matchers;
     rule_hdr_test_list hdr_tests;
 
-    // The follow tracks which rules for which all patterns have matched,
-    // in a parallel list the (first instance of the) corresponding
-    // matched text, and in another parallel list the offset of the
-    // end of the last pattern match.
-    rule_list matched_by_patterns;
-    bstr_list matched_text;
-    match_offset_list matched_text_end_of_match;
+    // The following tracks all pattern matches for rules
+    // for which all patterns have matched.
+    std::vector<RulePatternMatch> pattern_matches;
 
     int payload_size;
     size_t current_pos; // The number of bytes fed into state.
@@ -343,7 +365,7 @@ private:
     // Eval a rule under the assumption that all its patterns
     // have already matched.  s holds the text the rule matched,
     // or nil if N/A.
-    bool ExecRulePurely(Rule* r, String* s, RuleEndpointState* state, bool eos);
+    bool ExecRulePurely(Rule* r, const String* s, RuleEndpointState* state, bool eos);
 
     // Execute the actions associated with a rule.
     void ExecRuleActions(Rule* r, RuleEndpointState* state, const u_char* data, int len, bool eos);

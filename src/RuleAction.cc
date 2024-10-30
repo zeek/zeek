@@ -104,9 +104,8 @@ void RuleActionEvent::DoAction(const Rule* parent, RuleEndpointState* state, con
             args.push_back(zeek::val_mgr->EmptyString());
 
         if ( want_end_of_match ) {
-            // PList::member_pos() doesn't like const Rule*, need const_cast.
-            int rule_offset = state->matched_by_patterns.member_pos(const_cast<Rule*>(parent));
-            MatchPos end_of_match = (rule_offset >= 0 && data) ? state->matched_text_end_of_match[rule_offset] : 0;
+            auto* match = state->FindRulePatternMatch(parent);
+            MatchPos end_of_match = (match != nullptr && data) ? match->end_of_match : 0;
             args.push_back(zeek::val_mgr->Count(end_of_match));
         }
 

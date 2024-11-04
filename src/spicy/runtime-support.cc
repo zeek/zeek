@@ -285,12 +285,14 @@ void rt::debug(const Cookie& cookie, const std::string& msg) {
 inline rt::cookie::FileStateStack* _file_state_stack(rt::Cookie* cookie) {
     auto _ = hilti::rt::profiler::start("zeek/rt/file_state_stack");
 
-    if ( auto c = cookie->protocol )
-        return c->is_orig ? &c->fstate_orig : &c->fstate_resp;
-    else if ( auto f = cookie->file )
-        return &f->fstate;
-    else
-        throw rt::ValueUnavailable("no current connection or file available");
+    if ( cookie ) {
+        if ( auto c = cookie->protocol )
+            return c->is_orig ? &c->fstate_orig : &c->fstate_resp;
+        else if ( auto f = cookie->file )
+            return &f->fstate;
+    }
+
+    throw rt::ValueUnavailable("no current connection or file available");
 }
 
 inline const rt::cookie::FileState* _file_state(rt::Cookie* cookie, std::optional<std::string> fid) {

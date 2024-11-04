@@ -2613,9 +2613,16 @@ ExprPtr InlineExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     body = body->Reduce(c);
     c->PopInlineBlock();
 
-    auto catch_ret = with_location_of(make_intrusive<CatchReturnStmt>(sf, body, ret_val), this);
+    StmtPtr repl_stmt;
 
-    red_stmt = MergeStmts(red_stmt, catch_ret);
+    if ( body->Tag() == STMT_NULL )
+        // The inlined body reduced down to nothing, expose that fact
+        // rather than masking it with an empty catch-return.
+        repl_stmt = make_intrusive<NullStmt>();
+    else
+        repl_stmt = make_intrusive<CatchReturnStmt>(sf, body, ret_val);
+
+    red_stmt = MergeStmts(red_stmt, with_location_of(repl_stmt, this));
 
     return ret_val ? ret_val->Duplicate() : nullptr;
 }

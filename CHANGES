@@ -1,3 +1,9 @@
+7.1.0-dev.461 | 2024-11-04 19:35:21 +0100
+
+  * btest: Add detect-sqli test script (Arne Welzel, Corelight)
+
+    ...I added the baselines during the merge, just not the test itself.
+
 7.1.0-dev.459 | 2024-11-04 18:47:02 +0100
 
   * switched CPPCompile::Canonicalize() to take std::string instead of const char* (Vern Paxson, Corelight)

@@ -47,7 +47,7 @@ std::string CaptureName(const IDPtr& l) const { return CaptureName(l.get()); }
 
 // Returns a canonicalized name, with various non-alphanumeric characters
 // stripped or transformed, and guaranteed not to conflict with C++ keywords.
-std::string Canonicalize(const char* name) const;
+std::string Canonicalize(const std::string& name) const;
 
 // Returns the name of the global corresponding to an expression (which must
 // be a EXPR_NAME).

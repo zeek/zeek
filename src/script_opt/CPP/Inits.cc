@@ -259,7 +259,7 @@ void CPPCompile::GenStandaloneActivation() {
 
         auto f = func.Func();
         auto fname = BodyName(func);
-        auto bname = Canonicalize(fname.c_str()) + "_zf";
+        auto bname = Canonicalize(fname) + "_zf";
 
         if ( compiled_funcs.count(bname) == 0 )
             // We didn't wind up compiling it.

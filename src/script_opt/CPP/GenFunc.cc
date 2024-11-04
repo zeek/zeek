@@ -10,7 +10,7 @@ void CPPCompile::CompileFunc(const FuncInfo& func) {
     if ( ! IsCompilable(func) )
         return;
 
-    auto fname = Canonicalize(BodyName(func).c_str()) + "_zf";
+    auto fname = Canonicalize(BodyName(func)) + "_zf";
     auto pf = func.Profile();
     auto f = func.Func();
     const auto& body = func.Body();
@@ -19,7 +19,7 @@ void CPPCompile::CompileFunc(const FuncInfo& func) {
 }
 
 void CPPCompile::CompileLambda(const LambdaExpr* l, const ProfileFunc* pf) {
-    auto lname = Canonicalize(l->Name().c_str()) + "_lb";
+    auto lname = Canonicalize(l->Name()) + "_lb";
     auto body = l->Ingredients()->Body();
     auto l_id = l->Ingredients()->GetID();
     auto& ids = l->OuterIDs();

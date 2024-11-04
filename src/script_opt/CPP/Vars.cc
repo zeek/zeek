@@ -129,7 +129,7 @@ static string trim_name(const ID* id) {
     return ns;
 }
 
-string CPPCompile::LocalName(const ID* l) const { return Canonicalize(trim_name(l).c_str()); }
+string CPPCompile::LocalName(const ID* l) const { return Canonicalize(trim_name(l)); }
 
 string CPPCompile::CaptureName(const ID* c) const {
     // We want to strip both the module and any inlining appendage.
@@ -139,15 +139,13 @@ string CPPCompile::CaptureName(const ID* c) const {
     if ( appendage != string::npos )
         tn.erase(tn.begin() + appendage, tn.end());
 
-    return Canonicalize(tn.c_str());
+    return Canonicalize(tn);
 }
 
-string CPPCompile::Canonicalize(const char* name) const {
+string CPPCompile::Canonicalize(const std::string& name) const {
     string cname;
 
-    for ( int i = 0; name[i]; ++i ) {
-        auto c = name[i];
-
+    for ( auto c : name ) {
         // Strip <>'s - these get introduced for lambdas.
         if ( c == '<' || c == '>' )
             continue;

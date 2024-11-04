@@ -646,7 +646,7 @@ string CPPCompile::GenLambdaExpr(const Expr* e) {
 
 string CPPCompile::GenLambdaExpr(const Expr* e, string capture_args) {
     auto l = static_cast<const LambdaExpr*>(e);
-    auto name = Canonicalize(l->Name().c_str()) + "_lb_cl";
+    auto name = Canonicalize(l->Name()) + "_lb_cl";
     auto cl_args = string("\"") + name + "\"" + std::move(capture_args);
     auto body = string("make_intrusive<") + name + ">(" + cl_args + ")";
     auto func = string("make_intrusive<CPPLambdaFunc>(\"") + l->Name() + "\", cast_intrusive<FuncType>(" +

@@ -47,6 +47,9 @@ public:
     // Constructor that takes ownership of the vector passed in.
     String(bool arg_final_NUL, byte_vec str, int arg_n);
 
+    // Move constructor
+    String(String&& s) noexcept;
+
     String();
     ~String() { Reset(); }
 

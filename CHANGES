@@ -1,3 +1,17 @@
+7.1.0-dev.455 | 2024-11-04 16:32:37 +0100
+
+  * RuleMatcher: Use a single list for tracking pattern_matches (Arne Welzel, Corelight)
+
+  * ZeekString: Implement move constructor (Arne Welzel, Corelight)
+
+  * Bump and reenable spicy-format pre-commit hook (Benjamin Bannier, Corelight)
+
+  * Add test for TCP over 802.3/SNAP (Johanna Amann, Corelight)
+
+    This admittedly is a quite esoteric combination of protocols. But - as
+    we do correctly support them, it seems nice to have a slightly more
+    complete testcase that covers this.
+
 7.1.0-dev.447 | 2024-10-30 14:52:40 +0100
 
   * CI: Upgrade FreeBSD 14 to 14.1 (Evan Typanski, Corelight)

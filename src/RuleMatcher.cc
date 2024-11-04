@@ -187,14 +187,24 @@ RuleEndpointState::RuleEndpointState(analyzer::Analyzer* arg_analyzer, bool arg_
     pia = arg_PIA;
 }
 
+const RuleEndpointState::RulePatternMatch* RuleEndpointState::FindRulePatternMatch(const Rule* r) const {
+    const auto it =
+        std::find_if(pattern_matches.begin(), pattern_matches.end(), [r](const auto& m) { return m.rule == r; });
+    if ( it != pattern_matches.end() )
+        return &(*it);
+
+    return nullptr;
+}
+
+void RuleEndpointState::AddRulePatternMatch(Rule* r, const u_char* data, int data_len, MatchPos end_of_match) {
+    pattern_matches.emplace_back(r, data, data_len, end_of_match);
+}
+
 RuleEndpointState::~RuleEndpointState() {
     for ( auto matcher : matchers ) {
         delete matcher->state;
         delete matcher;
     }
-
-    for ( auto text : matched_text )
-        delete text;
 }
 
 RuleFileMagicState::~RuleFileMagicState() {
@@ -865,11 +875,9 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type, const 
                 continue;
 
             // Remember that all patterns have matched.
-            if ( ! state->matched_by_patterns.is_member(r) ) {
-                state->matched_by_patterns.push_back(r);
-                String* s = new String(data, data_len, false);
-                state->matched_text.push_back(s);
-                state->matched_text_end_of_match.push_back(match_end_pos - pre_match_pos);
+            if ( ! state->FindRulePatternMatch(r) ) {
+                MatchPos end_of_match = match_end_pos - pre_match_pos;
+                state->AddRulePatternMatch(r, data, data_len, end_of_match);
             }
 
             DBG_LOG(DBG_RULES, "And has not already fired");
@@ -893,8 +901,8 @@ void RuleMatcher::FinishEndpoint(RuleEndpointState* state) {
 
     ExecPureRules(state, true);
 
-    loop_over_list(state->matched_by_patterns, i)
-        ExecRulePurely(state->matched_by_patterns[i], state->matched_text[i], state, true);
+    for ( const auto& m : state->pattern_matches )
+        ExecRulePurely(m.rule, &m.text, state, true);
 }
 
 void RuleMatcher::ExecPureRules(RuleEndpointState* state, bool eos) {
@@ -904,7 +912,7 @@ void RuleMatcher::ExecPureRules(RuleEndpointState* state, bool eos) {
     }
 }
 
-bool RuleMatcher::ExecRulePurely(Rule* r, String* s, RuleEndpointState* state, bool eos) {
+bool RuleMatcher::ExecRulePurely(Rule* r, const String* s, RuleEndpointState* state, bool eos) {
     if ( is_member_of(state->matched_rules, r->Index()) )
         return false;
 
@@ -999,9 +1007,8 @@ void RuleMatcher::ExecRule(Rule* rule, RuleEndpointState* state, bool eos) {
 
         // It must be a non-pure rule. It can only match right now if
         // all its patterns are satisfied already.
-        int pos = state->matched_by_patterns.member_pos(rule);
-        if ( pos >= 0 ) { // they are, so let's evaluate it
-            ExecRulePurely(rule, state->matched_text[pos], state, eos);
+        if ( auto* match = state->FindRulePatternMatch(rule) ) { // they are, so let's evaluate it
+            ExecRulePurely(rule, &match->text, state, eos);
             return;
         }
     }

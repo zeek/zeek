@@ -37,6 +37,12 @@ String::String(bool arg_final_NUL, byte_vec str, int arg_n) {
     use_free_to_delete = false;
 }
 
+String::String(String&& other) noexcept
+    : b(other.b), n(other.n), final_NUL(other.final_NUL), use_free_to_delete(other.use_free_to_delete) {
+    other.b = nullptr;
+    other.Reset();
+}
+
 String::String(const u_char* str, int arg_n, bool add_NUL) : String() { Set(str, arg_n, add_NUL); }
 
 String::String(std::string_view str) : String() { Set(str); }

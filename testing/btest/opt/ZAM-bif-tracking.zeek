@@ -282,6 +282,7 @@ global known_BiFs = set(
 	"fmt",
 	"fmt_ftp_port",
 	"fnv1a32",
+	"fnv1a64",
 	"from_json",
 	"generate_all_events",
 	"get_broker_stats",

@@ -148,7 +148,7 @@ event zeek_init()
 # @TEST-END-FILE
 
 @TEST-START-FILE check-log.sh
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # This script regularly checks for the loggers rr1.log file until
 # both workers appear. Once this happens, creates a READY file

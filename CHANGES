@@ -1,3 +1,21 @@
+7.1.0-dev.464 | 2024-11-05 17:38:41 +0100
+
+  * Fix potential nullptr deref in Spicy plugin runtime (Benjamin Bannier, Corelight)
+
+    If we added a file but the other side of the connection had already run
+    into a protocol violation and shut down we could previously have
+    dereferenced a null cookie. This patch fixes the code so it now throws
+    in such scenarios.
+
+  * Assume no Spicy cookie in most places (Benjamin Bannier, Corelight)
+
+    We would previously assert that it was available which could have lead
+    to aborts since when the analyzer for either side of a connection shuts
+    down the connection cookie could get cleared and become nil. This patch
+    reworks the code slightly so we now never assume it is available. We do
+    this by either throwing or by making the whole operation requesting the
+    cookie a noop.
+
 7.1.0-dev.461 | 2024-11-04 19:35:21 +0100
 
   * btest: Add detect-sqli test script (Arne Welzel, Corelight)

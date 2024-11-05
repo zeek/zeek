@@ -281,18 +281,6 @@ export {
 	## identifier: The identifier string of the notice that should be suppressed.
 	global begin_suppression: event(ts: time, suppress_for: interval, note: Type, identifier: string);
 
-	## This is an internal event that is used to broadcast the begin_suppression
-	## event over a cluster.
-	##
-	## ts: time indicating then when the notice to be suppressed occurred.
-	##
-	## suppress_for: length of time that this notice should be suppressed.
-	##
-	## note: The :zeek:type:`Notice::Type` of the notice.
-	##
-	## identifier: The identifier string of the notice that should be suppressed.
-	global manager_begin_suppression: event(ts: time, suppress_for: interval, note: Type, identifier: string);
-
 	## A function to determine if an event is supposed to be suppressed.
 	##
 	## n: The record containing the notice in question.
@@ -536,38 +524,33 @@ hook Notice::notice(n: Notice::Info) &priority=-5
 		event Notice::begin_suppression(n$ts, n$suppress_for, n$note, n$identifier);
 		suppressing[n$note, n$identifier] = n$ts + n$suppress_for;
 @if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
-		event Notice::manager_begin_suppression(n$ts, n$suppress_for, n$note, n$identifier);
+		# Notify the manager about the new suppression, it'll broadcast
+		# to the other nodes in the cluster.
+		# Once we have global pub/sub, we could also unconditionally
+		# send to a notice specific topic for communicating
+		# suppressions directly to all nodes.
+		Broker::publish(Cluster::manager_topic, Notice::begin_suppression,
+		                n$ts, n$suppress_for, n$note, n$identifier);
 @endif
 		}
 	}
 
-event Notice::begin_suppression(ts: time, suppress_for: interval, note: Type,
-								identifier: string)
+# The manager currently re-publishes Notice::begin_suppression to worker
+# and proxy nodes.
+@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
+event Notice::begin_suppression(ts: time, suppress_for: interval, note: Type, identifier: string)
+	{
+	local e = Broker::make_event(Notice::begin_suppression, ts, suppress_for, note, identifier);
+	Broker::publish(Cluster::worker_topic, e);
+	Broker::publish(Cluster::proxy_topic, e);
+	}
+@endif
+
+event Notice::begin_suppression(ts: time, suppress_for: interval, note: Type, identifier: string)
 	{
 	local suppress_until = ts + suppress_for;
 	suppressing[note, identifier] = suppress_until;
 	}
-
-@if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
-event zeek_init()
-	{
-	Broker::auto_publish(Cluster::worker_topic, Notice::begin_suppression);
-	Broker::auto_publish(Cluster::proxy_topic, Notice::begin_suppression);
-	}
-
-event Notice::manager_begin_suppression(ts: time, suppress_for: interval, note: Type,
-								identifier: string)
-	{
-	event Notice::begin_suppression(ts, suppress_for, note, identifier);
-	}
-@endif
-
-@if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
-event zeek_init()
-	{
-	Broker::auto_publish(Cluster::manager_topic, Notice::manager_begin_suppression);
-	}
-@endif
 
 function is_being_suppressed(n: Notice::Info): bool
 	{

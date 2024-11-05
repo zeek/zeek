@@ -206,47 +206,47 @@ TypePtr rt::event_arg_type(const EventHandlerPtr& handler, const hilti::rt::inte
 
 ValPtr& rt::current_conn() {
     auto _ = hilti::rt::profiler::start("zeek/rt/current_conn");
-    auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
 
-    if ( cookie->cache.conn )
-        return cookie->cache.conn;
+    if ( auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie()) ) {
+        if ( cookie->cache.conn )
+            return cookie->cache.conn;
 
-    if ( auto x = cookie->protocol ) {
-        cookie->cache.conn = x->analyzer->Conn()->GetVal();
-        return cookie->cache.conn;
+        if ( auto x = cookie->protocol ) {
+            cookie->cache.conn = x->analyzer->Conn()->GetVal();
+            return cookie->cache.conn;
+        }
     }
-    else
-        throw ValueUnavailable("$conn not available");
+
+    throw ValueUnavailable("$conn not available");
 }
 
 ValPtr& rt::current_is_orig() {
     auto _ = hilti::rt::profiler::start("zeek/rt/current_is_orig");
-    auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
 
-    if ( cookie->cache.is_orig )
-        return cookie->cache.is_orig;
+    if ( auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie()) ) {
+        if ( cookie->cache.is_orig )
+            return cookie->cache.is_orig;
 
-    if ( auto x = cookie->protocol ) {
-        cookie->cache.is_orig = val_mgr->Bool(x->is_orig);
-        return cookie->cache.is_orig;
+        if ( auto x = cookie->protocol ) {
+            cookie->cache.is_orig = val_mgr->Bool(x->is_orig);
+            return cookie->cache.is_orig;
+        }
     }
-    else
-        throw ValueUnavailable("$is_orig not available");
+
+    throw ValueUnavailable("$is_orig not available");
 }
 
 void rt::debug(const std::string& msg) {
     auto _ = hilti::rt::profiler::start("zeek/rt/debug");
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
+    if ( ! cookie )
+        return SPICY_DEBUG(msg);
+
     rt::debug(*cookie, msg);
 }
 
 void rt::debug(const Cookie& cookie, const std::string& msg) {
     auto _ = hilti::rt::profiler::start("zeek/rt/debug");
-    std::string name;
-    std::string id;
 
     if ( const auto p = cookie.protocol ) {
         auto name = p->analyzer->GetAnalyzerName();
@@ -268,12 +268,14 @@ void rt::debug(const Cookie& cookie, const std::string& msg) {
 inline rt::cookie::FileStateStack* _file_state_stack(rt::Cookie* cookie) {
     auto _ = hilti::rt::profiler::start("zeek/rt/file_state_stack");
 
-    if ( auto c = cookie->protocol )
-        return c->is_orig ? &c->fstate_orig : &c->fstate_resp;
-    else if ( auto f = cookie->file )
-        return &f->fstate;
-    else
-        throw rt::ValueUnavailable("no current connection or file available");
+    if ( cookie ) {
+        if ( auto c = cookie->protocol )
+            return c->is_orig ? &c->fstate_orig : &c->fstate_resp;
+        else if ( auto f = cookie->file )
+            return &f->fstate;
+    }
+
+    throw rt::ValueUnavailable("no current connection or file available");
 }
 
 inline const rt::cookie::FileState* _file_state(rt::Cookie* cookie, std::optional<std::string> fid) {
@@ -296,14 +298,14 @@ inline const rt::cookie::FileState* _file_state(rt::Cookie* cookie, std::optiona
 
 ValPtr rt::current_file() {
     auto _ = hilti::rt::profiler::start("zeek/rt/current_file");
-    auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
 
-    if ( auto x = cookie->file )
-        return x->analyzer->GetFile()->ToVal();
-    else if ( auto* fstate = _file_state(cookie, {}) ) {
-        if ( auto* f = file_mgr->LookupFile(fstate->fid) )
-            return f->ToVal();
+    if ( auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie()) ) {
+        if ( auto x = cookie->file )
+            return x->analyzer->GetFile()->ToVal();
+        else if ( auto* fstate = _file_state(cookie, {}) ) {
+            if ( auto* f = file_mgr->LookupFile(fstate->fid) )
+                return f->ToVal();
+        }
     }
 
     throw ValueUnavailable("$file not available");
@@ -311,43 +313,43 @@ ValPtr rt::current_file() {
 
 ValPtr rt::current_packet() {
     auto _ = hilti::rt::profiler::start("zeek/rt/current_packet");
-    auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
 
-    if ( auto c = cookie->packet ) {
-        if ( ! c->packet_val )
-            // We cache the built value in case we need it multiple times.
-            c->packet_val = c->packet->ToRawPktHdrVal();
+    if ( auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie()) ) {
+        if ( auto c = cookie->packet ) {
+            if ( ! c->packet_val )
+                // We cache the built value in case we need it multiple times.
+                c->packet_val = c->packet->ToRawPktHdrVal();
 
-        return c->packet_val;
+            return c->packet_val;
+        }
     }
-    else
-        throw ValueUnavailable("$packet not available");
+
+    throw ValueUnavailable("$packet not available");
 }
 
 hilti::rt::Bool rt::is_orig() {
     auto _ = hilti::rt::profiler::start("zeek/rt/is_orig");
-    auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
 
-    if ( auto x = cookie->protocol )
-        return x->is_orig;
-    else
-        throw ValueUnavailable("is_orig() not available in current context");
+    if ( auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie()) ) {
+        if ( auto x = cookie->protocol )
+            return x->is_orig;
+    }
+
+    throw ValueUnavailable("is_orig() not available in current context");
 }
 
 std::string rt::uid() {
     auto _ = hilti::rt::profiler::start("zeek/rt/uid");
-    auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
 
-    if ( auto c = cookie->protocol ) {
-        // Retrieve the ConnVal() so that we ensure the UID has been set.
-        c->analyzer->ConnVal();
-        return c->analyzer->Conn()->GetUID().Base62("C");
+    if ( auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie()) ) {
+        if ( auto c = cookie->protocol ) {
+            // Retrieve the ConnVal() so that we ensure the UID has been set.
+            c->analyzer->ConnVal();
+            return c->analyzer->Conn()->GetUID().Base62("C");
+        }
     }
-    else
-        throw ValueUnavailable("uid() not available in current context");
+
+    throw ValueUnavailable("uid() not available in current context");
 }
 
 std::tuple<hilti::rt::Address, hilti::rt::Port, hilti::rt::Address, hilti::rt::Port> rt::conn_id() {
@@ -378,58 +380,59 @@ std::tuple<hilti::rt::Address, hilti::rt::Port, hilti::rt::Address, hilti::rt::P
         hilti::rt::cannot_be_reached();
     };
 
-    auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
-
-    if ( auto c = cookie->protocol ) {
-        const auto* conn = c->analyzer->Conn();
-        return std::make_tuple(convert_address(conn->OrigAddr()), convert_port(conn->OrigPort(), conn->ConnTransport()),
-                               convert_address(conn->RespAddr()),
-                               convert_port(conn->RespPort(), conn->ConnTransport()));
+    if ( auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie()) ) {
+        if ( auto c = cookie->protocol ) {
+            const auto* conn = c->analyzer->Conn();
+            return std::make_tuple(convert_address(conn->OrigAddr()),
+                                   convert_port(conn->OrigPort(), conn->ConnTransport()),
+                                   convert_address(conn->RespAddr()),
+                                   convert_port(conn->RespPort(), conn->ConnTransport()));
+        }
     }
-    else
-        throw ValueUnavailable("conn_id() not available in current context");
+
+    throw ValueUnavailable("conn_id() not available in current context");
 }
 
 void rt::flip_roles() {
     auto _ = hilti::rt::profiler::start("zeek/rt/flip_roles");
-    auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
 
-    rt::debug(*cookie, "flipping roles");
+    if ( auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie()) ) {
+        rt::debug(*cookie, "flipping roles");
 
-    if ( auto x = cookie->protocol )
-        x->analyzer->Conn()->FlipRoles();
-    else
-        throw ValueUnavailable("flip_roles() not available in current context");
+        if ( auto x = cookie->protocol )
+            return x->analyzer->Conn()->FlipRoles();
+    }
+
+    throw ValueUnavailable("flip_roles() not available in current context");
 }
 
 hilti::rt::integer::safe<uint64_t> rt::number_packets() {
     auto _ = hilti::rt::profiler::start("zeek/rt/number_packets");
-    auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
 
-    if ( auto x = cookie->protocol ) {
-        return x->num_packets;
+    if ( auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie()) ) {
+        if ( auto x = cookie->protocol ) {
+            return x->num_packets;
+        }
     }
-    else
-        throw ValueUnavailable("number_packets() not available in current context");
+
+    throw ValueUnavailable("number_packets() not available in current context");
 }
 
 void rt::confirm_protocol() {
     auto _ = hilti::rt::profiler::start("zeek/rt/confirm_protocol");
-    auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
 
-    if ( cookie->cache.confirmed )
-        return;
+    if ( auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie()) ) {
+        if ( cookie->cache.confirmed )
+            return;
 
-    if ( auto x = cookie->protocol ) {
-        auto tag = spicy_mgr->tagForProtocolAnalyzer(x->analyzer->GetAnalyzerTag());
-        SPICY_DEBUG(hilti::rt::fmt("confirming protocol %s", tag.AsString()));
-        cookie->cache.confirmed = true;
-        return x->analyzer->AnalyzerConfirmation(tag);
+        if ( auto x = cookie->protocol ) {
+            auto tag = spicy_mgr->tagForProtocolAnalyzer(x->analyzer->GetAnalyzerTag());
+            SPICY_DEBUG(hilti::rt::fmt("confirming protocol %s", tag.AsString()));
+            cookie->cache.confirmed = true;
+            return x->analyzer->AnalyzerConfirmation(tag);
+        }
     }
+
     throw ValueUnavailable("no current connection available");
 }
 
@@ -454,18 +457,17 @@ void rt::reject_protocol(const std::string& reason) {
 
 void rt::weird(const std::string& id, const std::string& addl) {
     auto _ = hilti::rt::profiler::start("zeek/rt/weird");
-    auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
 
-    if ( const auto x = cookie->protocol )
-        x->analyzer->Weird(id.c_str(), addl.data());
-    else if ( const auto x = cookie->file )
-        zeek::reporter->Weird(x->analyzer->GetFile(), id.c_str(), addl.data());
-    else if ( const auto x = cookie->packet ) {
-        x->analyzer->Weird(id.c_str(), x->packet, addl.c_str());
+    if ( auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie()) ) {
+        if ( const auto x = cookie->protocol )
+            return x->analyzer->Weird(id.c_str(), addl.data());
+        else if ( const auto x = cookie->file )
+            return zeek::reporter->Weird(x->analyzer->GetFile(), id.c_str(), addl.data());
+        else if ( const auto x = cookie->packet )
+            return x->analyzer->Weird(id.c_str(), x->packet, addl.c_str());
     }
-    else
-        throw ValueUnavailable("none of $conn, $file, or $packet available for weird reporting");
+
+    throw ValueUnavailable("none of $conn, $file, or $packet available for weird reporting");
 }
 
 void rt::protocol_begin(const std::optional<std::string>& analyzer) {
@@ -478,11 +480,11 @@ void rt::protocol_begin(const std::optional<std::string>& analyzer) {
 
     // Instantiate a DPD analyzer.
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
+
+    if ( ! cookie || ! cookie->protocol )
+        throw ValueUnavailable("no current connection available");
 
     auto c = cookie->protocol;
-    if ( ! c )
-        throw ValueUnavailable("no current connection available");
 
     // Use a Zeek PIA stream analyzer performing DPD.
     auto pia_tcp = std::make_unique<analyzer::pia::PIA_TCP>(c->analyzer->Conn());
@@ -515,12 +517,12 @@ void rt::protocol_begin(const std::optional<std::string>& analyzer) {
 
 rt::ProtocolHandle rt::protocol_handle_get_or_create(const std::string& analyzer) {
     auto _ = hilti::rt::profiler::start("zeek/rt/protocol_handle_get_or_create");
+
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
+    if ( ! cookie || ! cookie->protocol )
+        throw ValueUnavailable("no current connection available");
 
     auto c = cookie->protocol;
-    if ( ! c )
-        throw ValueUnavailable("no current connection available");
 
     // Forward empty payload to trigger lifecycle management in this analyzer tree.
     c->analyzer->ForwardStream(0, reinterpret_cast<const u_char*>(c->analyzer), true);
@@ -574,11 +576,11 @@ void rt::protocol_data_in(const hilti::rt::Bool& is_orig, const hilti::rt::Bytes
                           const std::optional<rt::ProtocolHandle>& h) {
     auto _ = hilti::rt::profiler::start("zeek/rt/protocol_data_in");
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
+
+    if ( ! cookie || ! cookie->protocol )
+        throw ValueUnavailable("no current connection available");
 
     auto c = cookie->protocol;
-    if ( ! c )
-        throw ValueUnavailable("no current connection available");
 
     auto len = data.size();
     auto* data_ = reinterpret_cast<const u_char*>(data.data());
@@ -605,11 +607,11 @@ void rt::protocol_gap(const hilti::rt::Bool& is_orig, const hilti::rt::integer::
                       const hilti::rt::integer::safe<uint64_t>& len, const std::optional<rt::ProtocolHandle>& h) {
     auto _ = hilti::rt::profiler::start("zeek/rt/protocol_gap");
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
+
+    if ( ! cookie || ! cookie->protocol )
+        throw ValueUnavailable("no current connection available");
 
     auto c = cookie->protocol;
-    if ( ! c )
-        throw ValueUnavailable("no current connection available");
 
     if ( h ) {
         if ( auto* output_handler = c->analyzer->GetOutputHandler() )
@@ -631,25 +633,25 @@ void rt::protocol_gap(const hilti::rt::Bool& is_orig, const hilti::rt::integer::
 
 void rt::protocol_end() {
     auto _ = hilti::rt::profiler::start("zeek/rt/protocol_end");
-    auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
 
-    auto c = cookie->protocol;
-    if ( ! c )
-        throw ValueUnavailable("no current connection available");
+    if ( auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie()) ) {
+        auto c = cookie->protocol;
+        if ( ! c )
+            throw ValueUnavailable("no current connection available");
 
-    for ( const auto& i : c->analyzer->GetChildren() )
-        c->analyzer->RemoveChildAnalyzer(i);
+        for ( const auto& i : c->analyzer->GetChildren() )
+            c->analyzer->RemoveChildAnalyzer(i);
+    }
 }
 
 void rt::protocol_handle_close(const ProtocolHandle& handle) {
     auto _ = hilti::rt::profiler::start("zeek/rt/protocol_handle_close");
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
+
+    if ( ! cookie || ! cookie->protocol )
+        throw ValueUnavailable("no current connection available");
 
     auto c = cookie->protocol;
-    if ( ! c )
-        throw ValueUnavailable("no current connection available");
 
     auto child = c->analyzer->FindChild(handle.id());
     if ( ! child )
@@ -720,25 +722,25 @@ static void _data_in(const char* data, uint64_t len, std::optional<uint64_t> off
 
 void rt::terminate_session() {
     auto _ = hilti::rt::profiler::start("zeek/rt/terminate_session");
-    auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
 
-    if ( auto c = cookie->protocol ) {
-        assert(session_mgr);
-        session_mgr->Remove(c->analyzer->Conn());
+    if ( auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie()) ) {
+        if ( auto c = cookie->protocol ) {
+            assert(session_mgr);
+            return session_mgr->Remove(c->analyzer->Conn());
+        }
     }
-    else
-        throw spicy::rt::ValueUnavailable("terminate_session() not available in the current context");
+
+    throw spicy::rt::ValueUnavailable("terminate_session() not available in the current context");
 }
 
 std::string rt::fuid() {
     auto _ = hilti::rt::profiler::start("zeek/rt/fuid");
-    auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
 
-    if ( auto f = cookie->file ) {
-        if ( auto file = f->analyzer->GetFile() )
-            return file->GetID();
+    if ( auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie()) ) {
+        if ( auto f = cookie->file ) {
+            if ( auto file = f->analyzer->GetFile() )
+                return file->GetID();
+        }
     }
 
     throw ValueUnavailable("fuid() not available in current context");
@@ -811,6 +813,9 @@ void rt::file_gap(const hilti::rt::integer::safe<uint64_t>& offset, const hilti:
                   const std::optional<std::string>& fid) {
     auto _ = hilti::rt::profiler::start("zeek/rt/file_gap");
     auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
+    if ( ! cookie )
+        throw spicy::rt::ValueUnavailable("file_gap() not available in the current context");
+
     auto* fstate = _file_state(cookie, fid);
 
     if ( auto c = cookie->protocol ) {
@@ -832,13 +837,15 @@ void rt::file_end(const std::optional<std::string>& fid) {
 
 void rt::forward_packet(const hilti::rt::integer::safe<uint32_t>& identifier) {
     auto _ = hilti::rt::profiler::start("zeek/rt/forward_packet");
-    auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
 
-    if ( auto c = cookie->packet )
-        c->next_analyzer = identifier;
-    else
-        throw ValueUnavailable("no current packet analyzer available");
+    if ( auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie()) ) {
+        if ( auto c = cookie->packet ) {
+            c->next_analyzer = identifier;
+            return;
+        }
+    }
+
+    throw ValueUnavailable("no current packet analyzer available");
 }
 
 hilti::rt::Time rt::network_time() {

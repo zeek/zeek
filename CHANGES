@@ -1,3 +1,25 @@
+6.0.8-5 | 2024-11-14 14:44:21 -0700
+
+  * Fix potential nullptr deref in Spicy plugin runtime (Benjamin Bannier, Corelight)
+
+    If we added a file but the other side of the connection had already run
+    into a protocol violation and shut down we could previously have
+    dereferenced a null cookie. This patch fixes the code so it now throws
+    in such scenarios.
+
+    (cherry picked from commit 2e8d6e86e75bc7b0c7be67ab9c38738a1318f6ff)
+
+  * Assume no Spicy cookie in most places (Benjamin Bannier, Corelight)
+
+    We would previously assert that it was available which could have lead
+    to aborts since when the analyzer for either side of a connection shuts
+    down the connection cookie could get cleared and become nil. This patch
+    reworks the code slightly so we now never assume it is available. We do
+    this by either throwing or by making the whole operation requesting the
+    cookie a noop.
+
+    (cherry picked from commit 2e8d6e86e75bc7b0c7be67ab9c38738a1318f6ff)
+
 6.0.8-4 | 2024-11-14 13:51:17 -0700
 
   * GH-3962: Prevent non-Modbus on port 502 to be reported as Modbus (Emmanuele Zambon)

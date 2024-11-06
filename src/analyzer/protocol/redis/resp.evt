@@ -12,6 +12,7 @@ export Zeek_Redis::ZeekServerData;
 
 on RESP::ClientData if ( Redis::is_set(self) ) -> event Redis::set_command($conn, $is_orig, Redis::make_set(self.command));
 on RESP::ClientData if ( Redis::is_get(self) ) -> event Redis::get_command($conn, $is_orig, Redis::make_get(self.command));
+on RESP::ClientData if ( Redis::is_auth(self) ) -> event Redis::auth_command($conn, $is_orig, Redis::make_auth(self.command));
 
 # All client data is a command
 on RESP::ClientData -> event Redis::command($conn, $is_orig, self.command);

@@ -7,12 +7,14 @@
 # Sometimes commands aren't serialized, like when pipelining. This still works! So we
 # should handle this. This particular example has a few commands, amongst them a SET and
 # a GET.
-event Redis::set_command(c: connection, is_orig: bool, command: Redis::SetCommand)
-    {
-    print fmt("SET: %s %s", command$key, command$value);
-    }
+event Redis::set_command(c: connection, is_orig: bool,
+    command: Redis::SetCommand)
+	{
+	print fmt("SET: %s %s", command$key, command$value);
+	}
 
-event Redis::get_command(c: connection, is_orig: bool, command: Redis::GetCommand)
-    {
-    print fmt("GET: %s", command);
-    }
+event Redis::get_command(c: connection, is_orig: bool,
+    command: Redis::GetCommand)
+	{
+	print fmt("GET: %s", command);
+	}

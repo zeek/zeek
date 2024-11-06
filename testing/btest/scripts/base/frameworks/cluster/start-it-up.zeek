@@ -28,8 +28,6 @@ redef Cluster::nodes = {
 };
 @TEST-END-FILE
 
-global fully_connected: event();
-
 global peer_count = 0;
 
 global fully_connected_nodes = 0;
@@ -49,11 +47,6 @@ event fully_connected()
 		}
 	}
 
-event zeek_init()
-	{
-	Broker::auto_publish(Cluster::manager_topic, fully_connected);
-	}
-
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	{
 	print "Connected to a peer";
@@ -67,7 +60,7 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	else
 		{
 		if ( peer_count == 3 )
-			event fully_connected();
+			Broker::publish(Cluster::manager_topic, fully_connected);
 		}
 	}
 

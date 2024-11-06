@@ -50,9 +50,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	terminate();
 	}
 
-global ready_for_data: event();
-
-event ready_for_data()
+event ready_for_data() &is_used
 	{
 	if ( Cluster::node == "worker-1" )
 		{
@@ -74,8 +72,6 @@ event ready_for_data()
 		SumStats::observe("test", [$host=7.2.1.5], [$num=91]);
 		SumStats::observe("test", [$host=10.10.10.10], [$num=5]);
 		}
-
-	did_data = T;
 	}
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
@@ -91,7 +87,8 @@ event second_test()
 event send_ready_for_data()
 	{
 	print "Sending ready for data";
-	event ready_for_data();
+	Broker::publish(Cluster::worker_topic, ready_for_data);
+	did_data = T;
 	}
 
 
@@ -104,10 +101,4 @@ event Cluster::Experimental::cluster_started()
 	schedule 5secs { send_ready_for_data() };
 	schedule 10secs { second_test() };
 	}
-
-event zeek_init() &priority=100
-	{
-	Broker::auto_publish(Cluster::worker_topic, ready_for_data);
-	}
-
 @endif

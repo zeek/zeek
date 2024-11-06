@@ -34,10 +34,7 @@ event zeek_init()
 	# notify_agent_hello event has arrived. The controller doesn't normally
 	# talk to the supervisor, so connect to it.
 	if ( Management::role == Management::CONTROLLER )
-		{
 		Broker::peer(getenv("ZEEK_DEFAULT_LISTEN_ADDRESS"), Broker::default_port, Broker::default_listen_retry);
-		Broker::auto_publish(SupervisorControl::topic_prefix, SupervisorControl::stop_request);
-		}
 	}
 
 event Management::Agent::API::notify_agent_hello(instance: string, id: string, connecting: bool, api_version: count)
@@ -50,7 +47,7 @@ event Management::Agent::API::notify_agent_hello(instance: string, id: string, c
 		logged = T;
 
 		# This takes down the whole process tree.
-		event SupervisorControl::stop_request();
+		Broker::publish(SupervisorControl::topic_prefix, SupervisorControl::stop_request);
 		}
 	}
 

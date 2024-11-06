@@ -1,3 +1,5 @@
+# Remove in v8.1 when auto_publish() is gone.
+#
 # @TEST-GROUP: broker
 #
 # @TEST-PORT: BROKER_PORT

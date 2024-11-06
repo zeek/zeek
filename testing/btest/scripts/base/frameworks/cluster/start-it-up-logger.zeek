@@ -51,15 +51,6 @@ event fully_connected(n: string)
 			terminate();
 			}
 		}
-	else
-		{
-		print "sent fully_connected event";
-		}
-	}
-
-event zeek_init()
-	{
-	Broker::auto_publish(Cluster::logger_topic, fully_connected);
 	}
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
@@ -74,16 +65,14 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 			print "termination condition met: shutting down";
 			terminate();
 			}
+		return;
 		}
-	else if ( Cluster::node == "manager-1" )
+
+	local expected_nodes = Cluster::node == "manager-1" ? 5 : 4;
+	if ( peer_count == expected_nodes )
 		{
-		if ( peer_count == 5 )
-			event fully_connected(Cluster::node);
-		}
-	else
-		{
-		if ( peer_count == 4 )
-			event fully_connected(Cluster::node);
+		Broker::publish(Cluster::logger_topic, fully_connected, Cluster::node);
+		print "sent fully_connected event";
 		}
 	}
 

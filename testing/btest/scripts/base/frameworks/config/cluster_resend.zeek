@@ -38,10 +38,6 @@ global n = 0;
 
 event ready_for_data()
 	{
-@if ( Cluster::node == "manager-1" )
-	Config::set_value("testcount", 1);
-@endif
-
 @if ( Cluster::node == "worker-1" )
 	Config::set_value("testport", 44/tcp);
 	Config::set_value("teststring", "b", "comment");
@@ -66,7 +62,6 @@ function option_changed(ID: string, new_value: any, location: string): any
 
 event zeek_init() &priority=5
 	{
-	Broker::auto_publish(Cluster::worker_topic, ready_for_data);
 	Option::set_change_handler("testport", option_changed, -100);
 	Option::set_change_handler("teststring", option_changed, -100);
 	Option::set_change_handler("testcount", option_changed, -100);
@@ -79,9 +74,11 @@ event Cluster::node_up(name: string, id: string) &priority=-5
 	{
 	++peer_count;
 	if ( peer_count == 1 )
-		event ready_for_data();
+		{
+		Config::set_value("testcount", 1);
+		Broker::publish(Cluster::worker_topic, ready_for_data);
+		}
 	}
-
 @endif
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)

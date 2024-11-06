@@ -1,3 +1,5 @@
+# Remove in v8.1 when auto_publish() is gone.
+#
 # Not compatible with -O C++ testing since includes two distinct scripts.
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 #

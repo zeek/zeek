@@ -243,6 +243,7 @@ public:
      * @param event a Zeek event value.
      * @return true if automatic event sending is now enabled.
      */
+    [[deprecated("Remove in v8.1, use explicit Publish().")]]
     bool AutoPublishEvent(std::string topic, Val* event);
 
     /**
@@ -251,6 +252,7 @@ public:
      * @param event an event originally given to zeek::Broker::Manager::AutoPublish().
      * @return true if automatic events will no occur for the topic/event pair.
      */
+    [[deprecated("Remove in v8.1.")]]
     bool AutoUnpublishEvent(const std::string& topic, Val* event);
 
     /**
@@ -483,7 +485,7 @@ private:
     telemetry::CounterPtr num_logs_outgoing_metric;
     telemetry::CounterPtr num_ids_incoming_metric;
     telemetry::CounterPtr num_ids_outgoing_metric;
-};
+}; // namespace zeek
 
 } // namespace Broker
 

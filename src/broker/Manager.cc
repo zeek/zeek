@@ -811,7 +811,10 @@ bool Manager::AutoPublishEvent(string topic, Val* event) {
     }
 
     DBG_LOG(DBG_BROKER, "Enabling auto-publishing of event %s to topic %s", handler->Name(), topic.c_str());
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     handler->AutoPublish(std::move(topic));
+#pragma GCC diagnostic pop
 
     return true;
 }
@@ -837,7 +840,10 @@ bool Manager::AutoUnpublishEvent(const string& topic, Val* event) {
     }
 
     DBG_LOG(DBG_BROKER, "Disabling auto-publishing of event %s to topic %s", handler->Name(), topic.c_str());
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     handler->AutoUnpublish(topic);
+#pragma GCC diagnostic pop
 
     return true;
 }

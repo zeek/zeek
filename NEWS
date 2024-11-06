@@ -109,6 +109,10 @@ Removed Functionality
 Deprecated Functionality
 ------------------------
 
+* The ``Broker::auto_publish()`` function has been deprecated and should
+  be replaced with explicit ``Broker::publish()`` invocations that are
+  potentially guarded with appropriate ``@if`` or ``@ifdef`` directives.
+
 Zeek 7.0.0
 ==========
 

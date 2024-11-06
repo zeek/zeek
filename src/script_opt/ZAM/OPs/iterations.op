@@ -77,7 +77,10 @@ op-types U X I I
 eval	NextVectorIterCore($2, $3)
 	$$ = $2.iter;
 	if ( Z_IS_MANAGED )
+		{
+		ZVal::DeleteManagedType($1);
 		$1 = BuildVal(vv[$2.iter]->ToVal(Z_TYPE), Z_TYPE);
+		}
 	else
 		$1 = *vv[$2.iter];
 	$2.IterFinished();
@@ -87,7 +90,10 @@ internal-op Next-Vector-Blank-Iter-Val-Var
 class Vsb
 eval	NextVectorIterCore($1, $2)
 	if ( Z_IS_MANAGED )
+		{
+		ZVal::DeleteManagedType($$);
 		$$ = BuildVal(vv[$1.iter]->ToVal(Z_TYPE), Z_TYPE);
+		}
 	else
 		$$ = *vv[$1.iter];
 	$1.IterFinished();

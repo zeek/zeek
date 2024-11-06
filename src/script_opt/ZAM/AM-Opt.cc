@@ -1020,8 +1020,11 @@ void ZAMCompiler::BackPropagateCFT(int inst_num, ControlFlowType cf_type) {
         if ( insts1[j]->live )
             break;
 
-    // We should never wind up killing an instruction that has no predecessor.
-    ASSERT(j >= 0);
+    // Initializations of unused variables in functions with no arguments can
+    // come at the very beginning of the function, in which case there will
+    // be no predecessor to back-propagate to.
+    if ( j < 0 )
+        return;
 
     // Make sure the CFT entry is created.
     AddCFT(insts1[j], cf_type);

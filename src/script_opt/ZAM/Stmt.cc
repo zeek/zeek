@@ -154,7 +154,11 @@ const ZAMStmt ZAMCompiler::IfElse(const Expr* e, const Stmt* s1, const Stmt* s2)
 
             SetV(cond_stmt, GoToTargetBeyond(branch_after_s1), branch_v);
             SetGoTo(branch_after_s1, GoToTargetBeyond(s2_end));
-            AddCFT(insts1[else_start], CFT_ELSE);
+
+            if ( else_start < insts1.size() )
+                // There was a non-empty else branch.
+                AddCFT(insts1[else_start], CFT_ELSE);
+
             AddCFT(insts1.back(), CFT_BLOCK_END);
 
             return s2_end;
@@ -847,6 +851,11 @@ const ZAMStmt ZAMCompiler::Loop(const Stmt* body) {
 
     auto head = StartingBlock();
     auto b = CompileStmt(body);
+
+    if ( head.stmt_num == static_cast<int>(insts1.size()) ) {
+        reporter->Error("infinite empty loop: %s", obj_desc(body).c_str());
+        return head;
+    }
 
     AddCFT(insts1[head.stmt_num], CFT_LOOP);
     AddCFT(insts1[b.stmt_num], CFT_LOOP_END);

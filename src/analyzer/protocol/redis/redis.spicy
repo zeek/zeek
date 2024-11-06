@@ -6,6 +6,7 @@ import RESP;
 
 public type KnownCommand = enum {
     APPEND,
+    AUTH,
     BITCOUNT,
     BITFIELD,
     BITFIELD_RO,
@@ -234,6 +235,7 @@ function command_from(cmd_bytes: bytes): optional<KnownCommand> {
     switch (cmd_bytes.lower()) {
         case b"set": cmd = KnownCommand::SET;
         case b"append": cmd = KnownCommand::APPEND;
+        case b"auth": cmd = KnownCommand::AUTH;
         case b"bitcount": cmd = KnownCommand::BITCOUNT;
         case b"bitfield": cmd = KnownCommand::BITFIELD;
         case b"bitfield_ro": cmd = KnownCommand::BITFIELD_RO;
@@ -351,4 +353,22 @@ public function make_get(command: Command): Get {
 
 public function is_get(data: RESP::ClientData): bool {
     return data.command.known && *(data.command.known) == KnownCommand::GET && |data.command.raw| >= 2;
+}
+
+type Auth = struct {
+    username: optional<bytes>;
+    password: bytes;
+};
+
+public function make_auth(command: Command): Auth {
+    assert |command.raw| >= 2 : "AUTH must have arguments";
+    if (|command.raw| == 2) {
+        return [$username = Null, $password = command.raw[1]];
+    }
+
+    return [$username = command.raw[1], $password = command.raw[2]];
+}
+
+public function is_auth(data: RESP::ClientData): bool {
+    return data.command.known && *(data.command.known) == KnownCommand::AUTH && |data.command.raw| >= 2;
 }

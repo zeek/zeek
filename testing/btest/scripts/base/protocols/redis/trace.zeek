@@ -4,12 +4,14 @@
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff redis.log
 
-event Redis::set_command(c: connection, is_orig: bool, command: Redis::SetCommand)
-    {
-    print fmt("SET: %s %s", command$key, command$value);
-    }
+event Redis::set_command(c: connection, is_orig: bool,
+    command: Redis::SetCommand)
+	{
+	print fmt("SET: %s %s", command$key, command$value);
+	}
 
-event Redis::get_command(c: connection, is_orig: bool, command: Redis::GetCommand)
-    {
-    print fmt("GET: %s", command);
-    }
+event Redis::get_command(c: connection, is_orig: bool,
+    command: Redis::GetCommand)
+	{
+	print fmt("GET: %s", command);
+	}

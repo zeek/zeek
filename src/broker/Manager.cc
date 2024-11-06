@@ -17,6 +17,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
 #include "zeek/SerializationFormat.h"
+#include "zeek/Type.h"
 #include "zeek/Var.h"
 #include "zeek/broker/Data.h"
 #include "zeek/broker/Store.h"
@@ -890,13 +891,18 @@ zeek::RecordValPtr Manager::MakeEvent(ArgsSpan args) {
             continue;
         }
 
-        const auto& got_type = arg_val->GetType();
+        auto got_type = arg_val->GetType();
         const auto& expected_type = func->GetType()->ParamList()->GetTypes()[index - 1];
+
+        // If called with an unspecified table or set, adopt the expected type.
+        if ( got_type->Tag() == TYPE_TABLE && got_type->AsTableType()->IsUnspecifiedTable() )
+            if ( expected_type->Tag() == TYPE_TABLE && got_type->IsSet() == expected_type->IsSet() )
+                got_type = expected_type;
 
         if ( ! same_type(got_type, expected_type) ) {
             rval->Remove(0);
-            Error("event parameter #%zu type mismatch, got %s, expect %s", index, type_name(got_type->Tag()),
-                  type_name(expected_type->Tag()));
+            Error("event parameter #%zu type mismatch, got %s, expect %s", index,
+                  obj_desc_short(got_type.get()).c_str(), obj_desc_short(expected_type.get()).c_str());
             return rval;
         }
 

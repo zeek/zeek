@@ -414,28 +414,34 @@ function config_assign_metrics_ports(config: Management::Configuration)
 		[Supervisor::WORKER] = 3,
 	};
 
-        local instance_metrics_start_port: table[string] of count;
-        local instance_ports_set: table[string] of set[count];
+	local instance_metrics_start_port: table[addr] of count;
+	local instance_ports_set: table[addr] of set[count];
+	local instance_addr_lookup: table[string] of addr;
 	local node: Management::Node;
+	local node_addr: addr;
 
 	# Pre-populate agents ports, if we have them:
 	for ( inst in config$instances )
 		{
-		instance_metrics_start_port[inst$name] = port_to_count(Management::Controller::auto_assign_metrics_start_port);
-		instance_ports_set[inst$name] = {};
+		# build instance name -> addr lookup table
+		instance_addr_lookup[inst$name] = inst$host;
+
+		instance_metrics_start_port[inst$host] = port_to_count(Management::Controller::auto_assign_metrics_start_port);
+		instance_ports_set[inst$host] = {};
 		if ( inst?$listen_port )
-			add instance_ports_set[inst$name][port_to_count(inst$listen_port)];
+			add instance_ports_set[inst$host][port_to_count(inst$listen_port)];
 		}
 
 	# Pre-populate nodes with pre-defined metrics ports, as well
 	# as their Broker ports:
 	for ( node in config$nodes )
+		node_addr = instance_addr_lookup[node$instance];
 		{
 		if ( node?$p )
-			add instance_ports_set[node$instance][port_to_count(node$p)];
+			add instance_ports_set[node_addr][port_to_count(node$p)];
 		if ( node?$metrics_port )
 			{
-			add instance_ports_set[node$instance][port_to_count(node$metrics_port)];
+			add instance_ports_set[node_addr][port_to_count(node$metrics_port)];
 			add new_nodes[node];
 			}
 		}
@@ -467,17 +473,18 @@ function config_assign_metrics_ports(config: Management::Configuration)
 	for ( i in nodes )
 		{
 		node = nodes[i];
+		node_addr = instance_addr_lookup[node$instance];
 
 		# Find next available port ...
-		while ( instance_metrics_start_port[node$instance] in instance_ports_set[node$instance] )
-			++instance_metrics_start_port[node$instance];
+		while ( instance_metrics_start_port[node_addr] in instance_ports_set[node_addr] )
+			++instance_metrics_start_port[node_addr];
 
-		node$metrics_port = count_to_port(instance_metrics_start_port[node$instance], tcp);
+		node$metrics_port = count_to_port(instance_metrics_start_port[node_addr], tcp);
 		add new_nodes[node];
-		add instance_ports_set[node$instance][instance_metrics_start_port[node$instance]];
+		add instance_ports_set[node_addr][instance_metrics_start_port[node_addr]];
 
 		# ... and consume it.
-		++instance_metrics_start_port[node$instance];
+		++instance_metrics_start_port[node_addr];
 		}
 
 	config$nodes = new_nodes;

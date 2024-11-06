@@ -30,7 +30,7 @@ public type Banner = unit {
 protocol analyzer spicy::SSH over TCP:
     parse originator with SSH::Banner;
 
-on SSH::Banner::%error(msg: string) -> event Banner::error(msg);
-on SSH::Banner::%error() -> event Banner::error("n/a");
+on SSH::Banner::%error(msg: string) -> event Banner::error(msg) &priority=2;
+on SSH::Banner::%error() -> event Banner::error("n/a") &priority=1;
 
 # @TEST-END-FILE

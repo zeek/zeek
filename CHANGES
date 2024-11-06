@@ -1,3 +1,9 @@
+7.1.0-dev.467 | 2024-11-06 11:50:12 +0100
+
+  * Make Spicy hook execution order deterministic in test (Benjamin Bannier, Corelight)
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 7.1.0-dev.464 | 2024-11-05 17:38:41 +0100
 
   * Fix potential nullptr deref in Spicy plugin runtime (Benjamin Bannier, Corelight)

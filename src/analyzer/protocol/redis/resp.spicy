@@ -9,7 +9,7 @@ import spicy;
 const MAX_SIZE = 1024 * 1024;
 
 public type ClientMessages = unit {
-    : (ClientData &synchronize)[];
+    : ClientData[];
 };
 
 public type ServerMessages = unit {
@@ -17,21 +17,22 @@ public type ServerMessages = unit {
 };
 
 public type ClientData = unit {
-    %synchronize-after = b"\x0d\x0a";
+    on %init() { self.start = self.input(); }
+
     # Clients can only be an array or inline
-    ty: uint8 &convert=DataType($$);
+    ty: uint8 &convert=DataType($$) {
+        if (self.ty != DataType::ARRAY) {
+            # This is inline, so we need to reparse `ty`
+            self.set_input(self.start);
+        }
+    }
     if (self.ty == DataType::ARRAY) {
         multibulk: Array;
     } else {
-        # HACK: If the type isn'tan array, this is just some random unserialized
-        # string until \r\n - do this by prepending the type to the remaining bytes.
-        # Formally in Redis code, that's an "inline command."
-        #
-        # As an extra point, this is handled in redis in `processInlineBuffer`,
-        # which has a hardcoded limit of 1024*64. That seems too big. We'll do 1024.
-        inline: RedisBytes &convert=(pack(cast<uint8>(self.ty), spicy::ByteOrder::Network) + $$) &max-size=1024;
+        inline: RedisBytes &max-size=1024;
     };
 
+    var start: iterator<stream>;
     var command: Redis::Command;
 
     on %done {
@@ -152,10 +153,10 @@ type Set = unit {
     elements: Data[self.num_elements];
 };
 
-on Data::%done {
+on ServerData::%done {
     spicy::accept_input();
 }
 
-on Data::%error {
-    spicy::decline_input("error while parsing RESP data");
+on ServerData::%error {
+    spicy::decline_input("error while parsing RESP server data");
 }

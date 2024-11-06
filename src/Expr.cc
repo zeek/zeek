@@ -3181,7 +3181,7 @@ TableConstructorExpr::TableConstructorExpr(ListExprPtr constructor_list,
     }
     else {
         if ( op->AsListExpr()->Exprs().empty() )
-            SetType(make_intrusive<TableType>(make_intrusive<TypeList>(base_type(TYPE_ANY)), nullptr));
+            SetType(make_intrusive<TableType>(make_intrusive<TypeList>(base_type(TYPE_ANY)), base_type(TYPE_ANY)));
         else {
             SetType(init_type(op));
 

@@ -320,10 +320,18 @@ int IndexType::MatchesIndex(detail::ListExpr* const index) const {
 
 void IndexType::DoDescribe(ODesc* d) const {
     Type::DoDescribe(d);
-    if ( ! d->IsBinary() )
-        d->Add("[");
 
     const auto& its = GetIndexTypes();
+
+    // Deal with unspecified table/set.
+    if ( its.empty() ) {
+        if ( ! d->IsBinary() )
+            d->Add("()");
+        return;
+    }
+
+    if ( ! d->IsBinary() )
+        d->Add("[");
 
     for ( auto i = 0u; i < its.size(); ++i ) {
         if ( ! d->IsBinary() && i > 0 )
@@ -1763,6 +1771,11 @@ int VectorType::MatchesIndex(detail::ListExpr* const index) const {
 bool VectorType::IsUnspecifiedVector() const { return yield_type->Tag() == TYPE_VOID; }
 
 void VectorType::DoDescribe(ODesc* d) const {
+    if ( IsUnspecifiedVector() && d->IsReadable() ) {
+        d->Add("vector()");
+        return;
+    }
+
     if ( d->IsReadable() )
         d->AddSP("vector of");
     else

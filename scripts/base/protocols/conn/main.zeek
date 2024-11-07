@@ -158,9 +158,11 @@ export {
 		## *uid* values for any encapsulating parent connections
 		## used over the lifetime of this inner connection.
 		tunnel_parents: set[string] &log &optional;
-		## The numeric identifier for the transport protocol for this
-		## connection.
-		protocol_id:   count      &log &optional;
+		## For IP-based connections, this contains the protocol
+		## identifier passed in the IP header. This is different
+		## from the ``proto`` field in that this value comes
+		## directly from the header.
+		ip_proto:   count      &log &optional;
 	};
 
 	## Event that can be handled to access the :zeek:type:`Conn::Info`
@@ -285,7 +287,7 @@ function set_conn(c: connection, eoc: bool)
 			c$conn$history=c$history;
 		}
 
-	c$conn$protocol_id = c$id$proto;
+	c$conn$ip_proto = c$id$proto;
 	}
 
 event content_gap(c: connection, is_orig: bool, seq: count, length: count) &priority=5

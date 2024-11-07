@@ -14,6 +14,7 @@ connection {
               * resp_h: addr, log=T, optional=F
               * resp_p: port, log=T, optional=F
              }
+        * ip_proto: count, log=T, optional=T
         * local_orig: bool, log=T, optional=T
         * local_resp: bool, log=T, optional=T
         * missed_bytes: count, log=T, optional=T
@@ -21,7 +22,6 @@ connection {
         * orig_ip_bytes: count, log=T, optional=T
         * orig_pkts: count, log=T, optional=T
         * proto: enum transport_proto, log=T, optional=F
-        * protocol_id: count, log=T, optional=T
         * resp_bytes: count, log=T, optional=T
         * resp_ip_bytes: count, log=T, optional=T
         * resp_pkts: count, log=T, optional=T

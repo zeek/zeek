@@ -5,7 +5,7 @@
 #unset_field	-
 #path	conn
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents	protocol_id
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents	ip_proto
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]	count
 XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	2001:470:1f11:81f:c999:d94:aa7c:2e3e	49186	2001:470:4867:99::21	57086	tcp	ftp-data	0.219721	0	342	SF	F	F	0	ShAdfFa	5	372	4	642	-	6
 XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	2001:470:1f11:81f:c999:d94:aa7c:2e3e	49187	2001:470:4867:99::21	57087	tcp	ftp-data	0.217501	0	43	SF	F	F	0	ShAdfFa	5	372	4	343	-	6

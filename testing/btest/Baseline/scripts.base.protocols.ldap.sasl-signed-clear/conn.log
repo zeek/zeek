@@ -5,7 +5,7 @@
 #unset_field	-
 #path	conn
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents	protocol_id
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents	ip_proto
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	count	string	count	count	count	count	set[string]	count
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	10.199.2.121	59327	10.199.2.111	389	tcp	ldap_tcp	63.273503	3963	400107	OTH	0	Dd	12	2595	282	411387	-	6
 XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	10.199.2.121	59355	10.199.2.111	389	tcp	ldap_tcp	0.007979	2630	3327	OTH	0	Dd	6	990	6	3567	-	6

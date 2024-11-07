@@ -1,12 +1,12 @@
-##! This script adds a string version of the protocol_id field
+##! This script adds a string version of the ip_proto field
 
 @load base/protocols/conn
 
 module Conn;
 
 redef record Info += {
-	## A string version of the protocol_id field
-	protocol_name: string &log &optional;
+	## A string version of the ip_proto field
+	ip_proto_name: string &log &optional;
 };
 
 global protocol_names: table[count] of string = {
@@ -159,9 +159,9 @@ global protocol_names: table[count] of string = {
 };
 
 event connection_state_remove(c: connection) {
-	if ( c$conn$protocol_id in protocol_names ) {
-		c$conn$protocol_name = protocol_names[c$conn$protocol_id];
+	if ( c$conn$ip_proto in protocol_names ) {
+		c$conn$ip_proto_name = protocol_names[c$conn$ip_proto];
 	} else {
-		c$conn$protocol_name = "unknown";
+		c$conn$ip_proto_name = "unknown";
 	}
 }

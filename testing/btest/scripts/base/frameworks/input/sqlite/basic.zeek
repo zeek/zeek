@@ -34,7 +34,7 @@ CREATE TABLE conn (
 'resp_pkts' integer,
 'resp_ip_bytes' integer,
 'tunnel_parents' text,
-'protocol_id' integer
+'ip_proto' integer
 );
 INSERT INTO "conn" VALUES(1.30047516709653496744e+09,'dnGM1AdIVyh','141.142.220.202',5353,'224.0.0.251',5353,17,'udp','dns',NULL,NULL,NULL,'S0',NULL,NULL,0,'D',1,73,0,0,'(empty)',17);
 INSERT INTO "conn" VALUES(1.30047516709701204296e+09,'fv9q7WjEgp1','fe80::217:f2ff:fed7:cf65',5353,'ff02::fb',5353,17,'udp',NULL,NULL,NULL,NULL,'S0',NULL,NULL,0,'D',1,199,0,0,'(empty)',17);

@@ -6197,16 +6197,16 @@ XXXXXXXXXX.XXXXXX raw_packet
 
 XXXXXXXXXX.XXXXXX event_queue_flush_point
 XXXXXXXXXX.XXXXXX Conn::log_conn
-                  [0] rec: Conn::Info    = [ts=XXXXXXXXXX.XXXXXX, uid=ClEkJM2Vm5giqnMf4h, id=[orig_h=10.10.1.4, orig_p=1470/tcp, resp_h=74.53.140.153, resp_p=25/tcp, proto=6], proto=tcp, service=smtp, duration=7.0 secs 576.0 msecs 952.934265 usecs, orig_bytes=14705, resp_bytes=538, conn_state=SF, local_orig=T, local_resp=F, missed_bytes=0, history=ShAdDaTFf, orig_pkts=28, orig_ip_bytes=21673, resp_pkts=25, resp_ip_bytes=1546, tunnel_parents=<uninitialized>, protocol_id=6]
+                  [0] rec: Conn::Info    = [ts=XXXXXXXXXX.XXXXXX, uid=ClEkJM2Vm5giqnMf4h, id=[orig_h=10.10.1.4, orig_p=1470/tcp, resp_h=74.53.140.153, resp_p=25/tcp, proto=6], proto=tcp, service=smtp, duration=7.0 secs 576.0 msecs 952.934265 usecs, orig_bytes=14705, resp_bytes=538, conn_state=SF, local_orig=T, local_resp=F, missed_bytes=0, history=ShAdDaTFf, orig_pkts=28, orig_ip_bytes=21673, resp_pkts=25, resp_ip_bytes=1546, tunnel_parents=<uninitialized>, ip_proto=6]
 
 XXXXXXXXXX.XXXXXX Conn::log_conn
-                  [0] rec: Conn::Info    = [ts=XXXXXXXXXX.XXXXXX, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=10.10.1.4, orig_p=56166/udp, resp_h=10.10.1.1, resp_p=53/udp, proto=17], proto=udp, service=<uninitialized>, duration=34.0 msecs 24.953842 usecs, orig_bytes=34, resp_bytes=100, conn_state=SF, local_orig=T, local_resp=T, missed_bytes=0, history=Dd, orig_pkts=1, orig_ip_bytes=62, resp_pkts=1, resp_ip_bytes=128, tunnel_parents=<uninitialized>, protocol_id=17]
+                  [0] rec: Conn::Info    = [ts=XXXXXXXXXX.XXXXXX, uid=CHhAvVGS1DHFjwGM9, id=[orig_h=10.10.1.4, orig_p=56166/udp, resp_h=10.10.1.1, resp_p=53/udp, proto=17], proto=udp, service=<uninitialized>, duration=34.0 msecs 24.953842 usecs, orig_bytes=34, resp_bytes=100, conn_state=SF, local_orig=T, local_resp=T, missed_bytes=0, history=Dd, orig_pkts=1, orig_ip_bytes=62, resp_pkts=1, resp_ip_bytes=128, tunnel_parents=<uninitialized>, ip_proto=17]
 
 XXXXXXXXXX.XXXXXX Conn::log_conn
-                  [0] rec: Conn::Info    = [ts=XXXXXXXXXX.XXXXXX, uid=C4J4Th3PJpwUYZZ6gc, id=[orig_h=192.168.1.1, orig_p=3/icmp, resp_h=10.10.1.4, resp_p=4/icmp, proto=1], proto=icmp, service=<uninitialized>, duration=1.0 msec 518.964767 usecs, orig_bytes=2192, resp_bytes=0, conn_state=OTH, local_orig=T, local_resp=T, missed_bytes=0, history=<uninitialized>, orig_pkts=4, orig_ip_bytes=2304, resp_pkts=0, resp_ip_bytes=0, tunnel_parents=<uninitialized>, protocol_id=1]
+                  [0] rec: Conn::Info    = [ts=XXXXXXXXXX.XXXXXX, uid=C4J4Th3PJpwUYZZ6gc, id=[orig_h=192.168.1.1, orig_p=3/icmp, resp_h=10.10.1.4, resp_p=4/icmp, proto=1], proto=icmp, service=<uninitialized>, duration=1.0 msec 518.964767 usecs, orig_bytes=2192, resp_bytes=0, conn_state=OTH, local_orig=T, local_resp=T, missed_bytes=0, history=<uninitialized>, orig_pkts=4, orig_ip_bytes=2304, resp_pkts=0, resp_ip_bytes=0, tunnel_parents=<uninitialized>, ip_proto=1]
 
 XXXXXXXXXX.XXXXXX Conn::log_conn
-                  [0] rec: Conn::Info    = [ts=XXXXXXXXXX.XXXXXX, uid=CtPZjS20MLrsMUOJi2, id=[orig_h=10.10.1.20, orig_p=138/udp, resp_h=10.10.1.255, resp_p=138/udp, proto=17], proto=udp, service=<uninitialized>, duration=<uninitialized>, orig_bytes=<uninitialized>, resp_bytes=<uninitialized>, conn_state=S0, local_orig=T, local_resp=T, missed_bytes=0, history=D, orig_pkts=1, orig_ip_bytes=229, resp_pkts=0, resp_ip_bytes=0, tunnel_parents=<uninitialized>, protocol_id=17]
+                  [0] rec: Conn::Info    = [ts=XXXXXXXXXX.XXXXXX, uid=CtPZjS20MLrsMUOJi2, id=[orig_h=10.10.1.20, orig_p=138/udp, resp_h=10.10.1.255, resp_p=138/udp, proto=17], proto=udp, service=<uninitialized>, duration=<uninitialized>, orig_bytes=<uninitialized>, resp_bytes=<uninitialized>, conn_state=S0, local_orig=T, local_resp=T, missed_bytes=0, history=D, orig_pkts=1, orig_ip_bytes=229, resp_pkts=0, resp_ip_bytes=0, tunnel_parents=<uninitialized>, ip_proto=17]
 
 XXXXXXXXXX.XXXXXX event_queue_flush_point
 XXXXXXXXXX.XXXXXX new_packet
@@ -8979,19 +8979,19 @@ XXXXXXXXXX.XXXXXX connection_state_remove
 
 XXXXXXXXXX.XXXXXX event_queue_flush_point
 XXXXXXXXXX.XXXXXX Conn::log_conn
-                  [0] rec: Conn::Info    = [ts=XXXXXXXXXX.XXXXXX, uid=C3eiCBGOLw3VtHfOj, id=[orig_h=192.168.133.100, orig_p=49655/tcp, resp_h=17.167.150.73, resp_p=443/tcp, proto=6], proto=tcp, service=<uninitialized>, duration=756.0 msecs 701.946259 usecs, orig_bytes=2249, resp_bytes=3653, conn_state=S1, local_orig=T, local_resp=F, missed_bytes=0, history=ShADda, orig_pkts=15, orig_ip_bytes=2873, resp_pkts=13, resp_ip_bytes=4185, tunnel_parents=<uninitialized>, protocol_id=6]
+                  [0] rec: Conn::Info    = [ts=XXXXXXXXXX.XXXXXX, uid=C3eiCBGOLw3VtHfOj, id=[orig_h=192.168.133.100, orig_p=49655/tcp, resp_h=17.167.150.73, resp_p=443/tcp, proto=6], proto=tcp, service=<uninitialized>, duration=756.0 msecs 701.946259 usecs, orig_bytes=2249, resp_bytes=3653, conn_state=S1, local_orig=T, local_resp=F, missed_bytes=0, history=ShADda, orig_pkts=15, orig_ip_bytes=2873, resp_pkts=13, resp_ip_bytes=4185, tunnel_parents=<uninitialized>, ip_proto=6]
 
 XXXXXXXXXX.XXXXXX Conn::log_conn
-                  [0] rec: Conn::Info    = [ts=XXXXXXXXXX.XXXXXX, uid=C37jN32gN3y3AZzyf6, id=[orig_h=192.168.133.100, orig_p=49153/tcp, resp_h=17.172.238.21, resp_p=5223/tcp, proto=6], proto=tcp, service=<uninitialized>, duration=147.0 msecs 503.137589 usecs, orig_bytes=714, resp_bytes=0, conn_state=OTH, local_orig=T, local_resp=F, missed_bytes=0, history=Da, orig_pkts=1, orig_ip_bytes=766, resp_pkts=1, resp_ip_bytes=52, tunnel_parents=<uninitialized>, protocol_id=6]
+                  [0] rec: Conn::Info    = [ts=XXXXXXXXXX.XXXXXX, uid=C37jN32gN3y3AZzyf6, id=[orig_h=192.168.133.100, orig_p=49153/tcp, resp_h=17.172.238.21, resp_p=5223/tcp, proto=6], proto=tcp, service=<uninitialized>, duration=147.0 msecs 503.137589 usecs, orig_bytes=714, resp_bytes=0, conn_state=OTH, local_orig=T, local_resp=F, missed_bytes=0, history=Da, orig_pkts=1, orig_ip_bytes=766, resp_pkts=1, resp_ip_bytes=52, tunnel_parents=<uninitialized>, ip_proto=6]
 
 XXXXXXXXXX.XXXXXX Conn::log_conn
-                  [0] rec: Conn::Info    = [ts=XXXXXXXXXX.XXXXXX, uid=CUM0KZ3MLUfNB0cl11, id=[orig_h=192.168.133.100, orig_p=49285/tcp, resp_h=66.196.121.26, resp_p=5050/tcp, proto=6], proto=tcp, service=<uninitialized>, duration=343.0 msecs 8.041382 usecs, orig_bytes=41, resp_bytes=0, conn_state=OTH, local_orig=T, local_resp=F, missed_bytes=0, history=Da, orig_pkts=1, orig_ip_bytes=93, resp_pkts=1, resp_ip_bytes=52, tunnel_parents=<uninitialized>, protocol_id=6]
+                  [0] rec: Conn::Info    = [ts=XXXXXXXXXX.XXXXXX, uid=CUM0KZ3MLUfNB0cl11, id=[orig_h=192.168.133.100, orig_p=49285/tcp, resp_h=66.196.121.26, resp_p=5050/tcp, proto=6], proto=tcp, service=<uninitialized>, duration=343.0 msecs 8.041382 usecs, orig_bytes=41, resp_bytes=0, conn_state=OTH, local_orig=T, local_resp=F, missed_bytes=0, history=Da, orig_pkts=1, orig_ip_bytes=93, resp_pkts=1, resp_ip_bytes=52, tunnel_parents=<uninitialized>, ip_proto=6]
 
 XXXXXXXXXX.XXXXXX Conn::log_conn
-                  [0] rec: Conn::Info    = [ts=XXXXXXXXXX.XXXXXX, uid=CP5puj4I8PtEU4qzYg, id=[orig_h=74.125.71.189, orig_p=443/tcp, resp_h=192.168.133.100, resp_p=49336/tcp, proto=6], proto=tcp, service=<uninitialized>, duration=221.014023 usecs, orig_bytes=85, resp_bytes=0, conn_state=OTH, local_orig=F, local_resp=T, missed_bytes=0, history=DTa, orig_pkts=3, orig_ip_bytes=411, resp_pkts=3, resp_ip_bytes=156, tunnel_parents=<uninitialized>, protocol_id=6]
+                  [0] rec: Conn::Info    = [ts=XXXXXXXXXX.XXXXXX, uid=CP5puj4I8PtEU4qzYg, id=[orig_h=74.125.71.189, orig_p=443/tcp, resp_h=192.168.133.100, resp_p=49336/tcp, proto=6], proto=tcp, service=<uninitialized>, duration=221.014023 usecs, orig_bytes=85, resp_bytes=0, conn_state=OTH, local_orig=F, local_resp=T, missed_bytes=0, history=DTa, orig_pkts=3, orig_ip_bytes=411, resp_pkts=3, resp_ip_bytes=156, tunnel_parents=<uninitialized>, ip_proto=6]
 
 XXXXXXXXXX.XXXXXX Conn::log_conn
-                  [0] rec: Conn::Info    = [ts=XXXXXXXXXX.XXXXXX, uid=CmES5u32sYpV7JYN, id=[orig_h=192.168.133.100, orig_p=49648/tcp, resp_h=192.168.133.102, resp_p=25/tcp, proto=6], proto=tcp, service=smtp, duration=57.0 msecs 320.11795 usecs, orig_bytes=969, resp_bytes=162, conn_state=S1, local_orig=T, local_resp=T, missed_bytes=0, history=ShAdDa, orig_pkts=17, orig_ip_bytes=1865, resp_pkts=10, resp_ip_bytes=690, tunnel_parents=<uninitialized>, protocol_id=6]
+                  [0] rec: Conn::Info    = [ts=XXXXXXXXXX.XXXXXX, uid=CmES5u32sYpV7JYN, id=[orig_h=192.168.133.100, orig_p=49648/tcp, resp_h=192.168.133.102, resp_p=25/tcp, proto=6], proto=tcp, service=smtp, duration=57.0 msecs 320.11795 usecs, orig_bytes=969, resp_bytes=162, conn_state=S1, local_orig=T, local_resp=T, missed_bytes=0, history=ShAdDa, orig_pkts=17, orig_ip_bytes=1865, resp_pkts=10, resp_ip_bytes=690, tunnel_parents=<uninitialized>, ip_proto=6]
 
 XXXXXXXXXX.XXXXXX event_queue_flush_point
 XXXXXXXXXX.XXXXXX zeek_done

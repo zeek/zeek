@@ -77,7 +77,7 @@ ConnKey::ConnKey(Val* v) {
         resp_p = vr->FieldOffset("resp_p");
         proto = vr->FieldOffset("proto");
 
-        if ( orig_h < 0 || resp_h < 0 || orig_p < 0 || resp_p < 0 || proto < 0 ) {
+        if ( orig_h < 0 || resp_h < 0 || orig_p < 0 || resp_p < 0 ) {
             valid = false;
             return;
         }

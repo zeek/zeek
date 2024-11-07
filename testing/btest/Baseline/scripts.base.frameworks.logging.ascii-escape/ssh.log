@@ -6,8 +6,8 @@
 #path||ssh
 #fields||t||id.orig_h||id.orig_p||id.resp_h||id.resp_p||status||country
 #types||time||addr||port||addr||port||string||string
-XXXXXXXXXX.XXXXXX||-||-||-||-||success||unknown
-XXXXXXXXXX.XXXXXX||-||-||-||-||failure||US
-XXXXXXXXXX.XXXXXX||-||-||-||-||fa\x7c\x7cure||UK
-XXXXXXXXXX.XXXXXX||-||-||-||-||su\x7c\x7cess||BR
-XXXXXXXXXX.XXXXXX||-||-||-||-||failure||MX
+XXXXXXXXXX.XXXXXX||1.2.3.4||1234||2.3.4.5||80||success||unknown
+XXXXXXXXXX.XXXXXX||1.2.3.4||1234||2.3.4.5||80||failure||US
+XXXXXXXXXX.XXXXXX||1.2.3.4||1234||2.3.4.5||80||fa\x7c\x7cure||UK
+XXXXXXXXXX.XXXXXX||1.2.3.4||1234||2.3.4.5||80||su\x7c\x7cess||BR
+XXXXXXXXXX.XXXXXX||1.2.3.4||1234||2.3.4.5||80||failure||MX

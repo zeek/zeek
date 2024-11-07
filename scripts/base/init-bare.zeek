@@ -217,7 +217,7 @@ type conn_id: record {
 	orig_p: port &log;	##< The originator's port number.
 	resp_h: addr &log;	##< The responder's IP address.
 	resp_p: port &log;	##< The responder's port number.
-	proto: count;
+	proto: count &default=65535;  ##< The transport protocol ID. Defaults to 65535 as an "unknown" value.
 };
 
 ## The identifying 4-tuple of a uni-directional flow.

@@ -46,7 +46,7 @@ public:
           src_port(0),
           dst_port(0),
           proto(TRANSPORT_UNKNOWN),
-          proto_id(255),
+          proto_id(UNKNOWN_IP_PROTO),
           type(t),
           uid(UID(detail::bits_per_uid)) {}
 
@@ -137,7 +137,7 @@ protected:
     uint16_t src_port;
     uint16_t dst_port;
     TransportProto proto;
-    uint8_t proto_id;
+    uint16_t proto_id;
     BifEnum::Tunnel::Type type;
     UID uid;
 };

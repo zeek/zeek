@@ -9,7 +9,7 @@ connection {
             conn_id {
               * orig_h: addr, log=T, optional=F
               * orig_p: port, log=T, optional=F
-              * proto: count, log=F, optional=F
+              * proto: count, log=F, optional=T
               * resp_h: addr, log=T, optional=F
               * resp_p: port, log=T, optional=F
              }

@@ -36,6 +36,8 @@ class FragReassembler;
 #define IPPROTO_MOBILITY 135
 #endif
 
+constexpr uint16_t UNKNOWN_IP_PROTO = 65535;
+
 struct ip6_mobility {
     uint8_t ip6mob_payload;
     uint8_t ip6mob_len;

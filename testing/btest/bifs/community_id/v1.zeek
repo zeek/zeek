@@ -23,7 +23,7 @@ event zeek_init()
 	test_it([$orig_h=[fe80:0001:0203:0405:0607:0809:0A0B:0C0D], $orig_p=128/icmp,
 	         $resp_h=[fe80:1011:1213:1415:1617:1819:1A1B:1C1D], $resp_p=129/icmp, $proto=1], 1, "1:IO27GQzPuCtNnwFvjWALMHu5tJE=");
 
-	test_it([$orig_h=1.2.3.4, $orig_p=0/unknown, $resp_h=5.6.7.8, $resp_p=0/unknown, $proto=255], 0, "");
+	test_it([$orig_h=1.2.3.4, $orig_p=0/unknown, $resp_h=5.6.7.8, $resp_p=0/unknown], 0, "");
 	test_it([$orig_h=[fe80:0001:0203:0405:0607:0809:0A0B:0C0D], $orig_p=0/unknown,
-	         $resp_h=[fe80:1011:1213:1415:1617:1819:1A1B:1C1D], $resp_p=0/unknown, $proto=255], 1, "");
+	         $resp_h=[fe80:1011:1213:1415:1617:1819:1A1B:1C1D], $resp_p=0/unknown], 1, "");
 	}

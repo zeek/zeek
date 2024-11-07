@@ -5,7 +5,6 @@
 #include "zeek/Conn.h"
 #include "zeek/RunState.h"
 #include "zeek/analyzer/Manager.h"
-#include "zeek/analyzer/protocol/conn-size/ConnSize.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/packet_analysis/protocol/udp/UDPSessionAdapter.h"
 #include "zeek/packet_analysis/protocol/udp/events.bif.h"

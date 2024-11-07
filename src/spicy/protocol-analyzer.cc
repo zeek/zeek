@@ -40,10 +40,7 @@ ProtocolAnalyzer::~ProtocolAnalyzer() {}
 
 void ProtocolAnalyzer::Init() {}
 
-void ProtocolAnalyzer::Done() {
-    Finish(true);
-    Finish(false);
-}
+void ProtocolAnalyzer::Done() {}
 
 void ProtocolAnalyzer::Process(bool is_orig, int len, const u_char* data) {
     auto* endp = is_orig ? &_originator : &_responder;
@@ -162,16 +159,7 @@ void TCP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig) {
     Process(is_orig, len, nullptr);
 }
 
-void TCP_Analyzer::EndOfData(bool is_orig) {
-    analyzer::tcp::TCP_ApplicationAnalyzer::EndOfData(is_orig);
-
-    if ( TCP() && TCP()->IsPartial() ) {
-        STATE_DEBUG_MSG(is_orig, "skipping end-of-data delivery on partial TCP connection");
-        return;
-    }
-
-    Finish(is_orig);
-}
+void TCP_Analyzer::EndOfData(bool is_orig) { analyzer::tcp::TCP_ApplicationAnalyzer::EndOfData(is_orig); }
 
 void TCP_Analyzer::FlipRoles() {
     analyzer::tcp::TCP_ApplicationAnalyzer::FlipRoles();
@@ -211,6 +199,9 @@ void UDP_Analyzer::Init() {
 void UDP_Analyzer::Done() {
     analyzer::Analyzer::Done();
     ProtocolAnalyzer::Done();
+
+    Finish(true);
+    Finish(false);
 }
 
 void UDP_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip,

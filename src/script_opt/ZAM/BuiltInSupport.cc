@@ -73,7 +73,7 @@ void FixedCatArg::RenderInto(ZVal* zframe, int slot, char*& res) {
             n = modp_dtoa2(d, res, 6);
             res += n;
 
-            if ( util::approx_equal(d, nearbyint(d), 1e-9) && std::isfinite(d) && ! strchr(tmp, 'e') ) {
+            if ( util::approx_equal(d, nearbyint(d), 1e-9) && std::isfinite(d) ) {
                 // disambiguate from integer
                 *(res++) = '.';
                 *(res++) = '0';

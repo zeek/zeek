@@ -1,3 +1,9 @@
+7.1.0-dev.478 | 2024-11-08 18:36:07 +0100
+
+  * Fixed ZAM memory leak when coercing values to "any" (Vern Paxson, Corelight)
+
+  * ci: Remove -b from test_script lines for zam tasks (Arne Welzel, Corelight)
+
 7.1.0-dev.475 | 2024-11-08 15:35:00 +0100
 
   * fixes for ZAM's propagation of control flow information for some degenerate constructs (Vern Paxson, Corelight)

@@ -128,7 +128,9 @@ eval	if ( $1->Size() > 0 )
 unary-expr-op To-Any-Coerce
 op-type X
 set-type $1
-eval	AssignTarget($$, ZVal($1.ToVal(Z_TYPE), ZAM::any_base_type))
+eval	auto orig_lhs = $$; /* hold in case $$ = $1 */
+	$$ = ZVal($1.ToVal(Z_TYPE), ZAM::any_base_type);
+	ZVal::DeleteManagedType(orig_lhs);
 
 unary-expr-op From-Any-Coerce
 no-const

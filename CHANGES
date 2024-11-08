@@ -1,3 +1,7 @@
+7.1.0-dev.475 | 2024-11-08 15:35:00 +0100
+
+  * fixes for ZAM's propagation of control flow information for some degenerate constructs (Vern Paxson, Corelight)
+
 7.1.0-dev.473 | 2024-11-08 15:31:39 +0100
 
   * fixed ZAM memory leak when looping over vectors of records (Vern Paxson, Corelight)

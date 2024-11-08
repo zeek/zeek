@@ -11,6 +11,7 @@ RUN zypper addrepo https://download.opensuse.org/repositories/openSUSE:Leap:15.6
     ccache \
     cmake \
     curl \
+    dnsmasq \
     flex \
     gcc12 \
     gcc12-c++ \

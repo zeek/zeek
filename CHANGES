@@ -1,3 +1,9 @@
+7.0.3-19 | 2024-11-14 12:15:54 -0700
+
+  * ci: Add asan and ubsan sanitizer tasks for ZAM (Arne Welzel, Corelight)
+
+    (cherry picked from commit 8945b2b186e633f1f7c3a07f9e343da278c037ec)
+
 7.0.3-18 | 2024-11-14 12:13:59 -0700
 
   * policy/community-id: Populate conn$community_id in new_connection() (Arne Welzel, Corelight)

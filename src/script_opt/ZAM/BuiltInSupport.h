@@ -42,7 +42,6 @@ public:
 
 protected:
     TypePtr t;
-    char tmp[256];
 };
 
 class StringCatArg : public CatArg {

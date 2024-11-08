@@ -1,0 +1,38 @@
+# @TEST-REQUIRES: have-spicy
+#
+# @TEST-EXEC-FAIL: spicyz -d -o test.hlto test.spicy %INPUT 2>output
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff output
+#
+# @TEST-DOC: Check that we catch various cases of invalid unit types in event definitions; regression test for #3988.
+
+protocol analyzer spicy::Test over TCP:
+    parse with TestAssertion::Data;
+
+on TestAssertion::Alias -> event Test::my_event(); # works
+on Data -> event Test::my_event(); # failure: can't find unit due to missing namespace
+
+@TEST-START-NEXT
+
+protocol analyzer spicy::Test over TCP:
+    parse with TestAssertion::Data;
+
+on TestAssertion::DoesNotExit -> event Test::my_event(); # failure: no such type
+
+@TEST-START-NEXT
+
+protocol analyzer spicy::Test over TCP:
+    parse with TestAssertion::Data;
+
+on TestAssertion::E -> event Test::my_event(); # failure: exists, but not a unit type
+
+@TEST-START-FILE test.spicy
+module TestAssertion;
+
+public type Data = unit {
+    : uint8;
+};
+
+public type Alias = Data;
+public type E = enum { One };
+@TEST-END-FILE
+

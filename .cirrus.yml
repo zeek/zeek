@@ -67,6 +67,12 @@ skip_task_on_pr: &SKIP_TASK_ON_PR
   skip: >
     ($CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ '.*fullci.*')
 
+zam_skip_task_on_pr: &ZAM_SKIP_TASK_ON_PR
+  # Skip this task on PRs if it does not have the fullci or zamci label,
+  # it continues to run for direct pushes to master/release.
+  skip: >
+    ($CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ '.*fullci.*' && $CIRRUS_PR_LABELS !=~ '.*zamci.*')
+
 benchmark_only_if_template: &BENCHMARK_ONLY_IF_TEMPLATE
   # only_if condition for cron-triggered benchmarking tests.
   # These currently do not run for release/.*
@@ -403,6 +409,21 @@ asan_sanitizer_task:
     # Use absolute paths for coverage files.
     CCACHE_BASEDIR:
 
+# ASAN task executing btests with zam alternative.
+asan_sanitizer_zam_task:
+  container:
+    dockerfile: ci/ubuntu-24.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+
+  << : *CI_TEMPLATE
+  test_script:
+    # Run just the btests with zam as alternative.
+    - cd testing/btest && ../../auxil/btest/btest -a zam -A -d -b -j ${ZEEK_CI_BTEST_JOBS}
+  env:
+    ZEEK_CI_CONFIGURE_FLAGS: *ASAN_SANITIZER_CONFIG
+    ASAN_OPTIONS: detect_leaks=1:detect_odr_violation=0
+  << : *ZAM_SKIP_TASK_ON_PR
+
 ubsan_sanitizer_task:
   container:
     # Just uses a recent/common distro to run undefined behavior checks.
@@ -419,6 +440,23 @@ ubsan_sanitizer_task:
     ZEEK_CI_CONFIGURE_FLAGS: *UBSAN_SANITIZER_CONFIG
     ZEEK_TAILORED_UB_CHECKS: 1
     UBSAN_OPTIONS: print_stacktrace=1
+
+ubsan_sanitizer_zam_task:
+  container:
+    dockerfile: ci/ubuntu-24.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+
+  << : *CI_TEMPLATE
+  test_script:
+    # Run just the btests with zam as alternative.
+    - cd testing/btest && ../../auxil/btest/btest -a zam -A -d -b -j ${ZEEK_CI_BTEST_JOBS}
+  env:
+    CC: clang-18
+    CXX: clang++-18
+    ZEEK_CI_CONFIGURE_FLAGS: *UBSAN_SANITIZER_CONFIG
+    ZEEK_TAILORED_UB_CHECKS: 1
+    UBSAN_OPTIONS: print_stacktrace=1
+  << : *ZAM_SKIP_TASK_ON_PR
 
 tsan_sanitizer_task:
   container:

@@ -1,3 +1,7 @@
+7.1.0-dev.473 | 2024-11-08 15:31:39 +0100
+
+  * fixed ZAM memory leak when looping over vectors of records (Vern Paxson, Corelight)
+
 7.1.0-dev.471 | 2024-11-08 15:22:48 +0100
 
   * fixed access to uninitialized memory in ZAM's "cat" built-in (Vern Paxson, Corelight)

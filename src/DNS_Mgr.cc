@@ -406,6 +406,7 @@ static void query_cb(void* arg, ares_status_t status, size_t timeouts, const are
                 }
                 else {
                     he.h_aliases[idx - 1] = util::copy_string(txt);
+                    he.h_aliases[idx] = nullptr;
                 }
             }
             else if ( type == ARES_REC_TYPE_TXT ) {
@@ -449,7 +450,7 @@ static void query_cb(void* arg, ares_status_t status, size_t timeouts, const are
 
         if ( he.h_aliases ) {
             for ( size_t idx = 0; he.h_aliases[idx] != NULL; idx++ ) {
-                delete[] he.h_aliases;
+                delete[] he.h_aliases[idx];
             }
 
             delete[] he.h_aliases;

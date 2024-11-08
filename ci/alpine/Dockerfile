@@ -12,6 +12,7 @@ RUN apk add --no-cache \
   cmake \
   curl \
   diffutils \
+  dnsmasq \
   flex-dev \
   musl-fts-dev \
   g++ \

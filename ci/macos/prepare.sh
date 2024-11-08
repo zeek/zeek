@@ -7,7 +7,7 @@ set -x
 
 brew update
 brew upgrade cmake
-brew install openssl@3 swig bison flex ccache libmaxminddb
+brew install openssl@3 swig bison flex ccache libmaxminddb dnsmasq
 
 if [ $(sw_vers -productVersion | cut -d '.' -f 1) -lt 14 ]; then
     python3 -m pip install --upgrade pip

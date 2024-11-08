@@ -16,6 +16,7 @@ RUN zypper refresh \
     cmake \
     curl \
     diffutils \
+    dnsmasq \
     findutils \
     flex \
     gcc \

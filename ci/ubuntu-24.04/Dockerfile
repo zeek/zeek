@@ -15,6 +15,7 @@ RUN apt-get update && apt-get -y install \
     clang++-18 \
     cmake \
     curl \
+    dnsmasq \
     flex \
     g++ \
     gcc \

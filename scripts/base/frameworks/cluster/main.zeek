@@ -336,7 +336,7 @@ function nodes_with_type(node_type: NodeType): vector of NamedNode
 		{ return strcmp(n1$name, n2$name); });
 	}
 
-function Cluster::get_node_count(node_type: NodeType): count
+function get_node_count(node_type: NodeType): count
 	{
 	local cnt = 0;
 
@@ -349,7 +349,7 @@ function Cluster::get_node_count(node_type: NodeType): count
 	return cnt;
 	}
 
-function Cluster::get_active_node_count(node_type: NodeType): count
+function get_active_node_count(node_type: NodeType): count
 	{
 	return node_type in active_node_ids ? |active_node_ids[node_type]| : 0;
 	}

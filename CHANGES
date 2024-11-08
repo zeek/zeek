@@ -1,3 +1,9 @@
+7.1.0-dev.471 | 2024-11-08 15:22:48 +0100
+
+  * fixed access to uninitialized memory in ZAM's "cat" built-in (Vern Paxson, Corelight)
+
+  * GH-3906: ci: Add asan and ubsan sanitizer tasks for ZAM (Arne Welzel, Corelight)
+
 7.1.0-dev.467 | 2024-11-06 11:50:12 +0100
 
   * Make Spicy hook execution order deterministic in test (Benjamin Bannier, Corelight)

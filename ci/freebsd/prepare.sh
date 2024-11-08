@@ -17,3 +17,6 @@ python -m pip install websockets junit2html
 # Spicy detects whether it is run from build directory via `/proc`.
 echo "proc /proc procfs rw,noauto 0 0" >>/etc/fstab
 mount /proc
+
+# dnsmasq is in /usr/local/sbin and that's not in the PATH by default
+ln -s /usr/local/sbin/dnsmasq /usr/local/bin/dnsmasq

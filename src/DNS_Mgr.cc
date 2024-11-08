@@ -123,10 +123,7 @@ static const char* request_type_string(int request_type) {
 
 struct ares_deleter {
     void operator()(char* s) const { ares_free_string(s); }
-    void operator()(unsigned char* s) const { ares_free_string(s); }
     void operator()(ares_addrinfo* s) const { ares_freeaddrinfo(s); }
-    void operator()(struct hostent* h) const { ares_free_hostent(h); }
-    void operator()(struct ares_txt_reply* h) const { ares_free_data(h); }
     void operator()(ares_dns_record_t* r) const { ares_dns_record_destroy(r); }
 };
 
@@ -399,15 +396,12 @@ static void query_cb(void* arg, ares_status_t status, size_t timeouts, const are
                     break;
                 }
 
-                if ( idx == 0 ) {
-                    he.h_name = util::copy_string(txt);
-                    he.h_aliases = new char*[rr_cnt];
-                    he.h_aliases[0] = NULL;
-                }
-                else {
-                    he.h_aliases[idx - 1] = util::copy_string(txt);
-                    he.h_aliases[idx] = nullptr;
-                }
+                // TODO: it's possible that a response has multiple aliases. We
+                // don't handle those so we can just break here after setting
+                // h_aliases to null.
+                he.h_name = util::copy_string(txt);
+                he.h_aliases = nullptr;
+                break;
             }
             else if ( type == ARES_REC_TYPE_TXT ) {
                 size_t abin_cnt = ares_dns_rr_get_abin_cnt(rr, ARES_RR_TXT_DATA);
@@ -427,8 +421,7 @@ static void query_cb(void* arg, ares_status_t status, size_t timeouts, const are
                 he.h_name = new char[abin_len + 1];
                 strncpy(he.h_name, reinterpret_cast<const char*>(abin), abin_len);
                 he.h_name[abin_len] = 0;
-                he.h_aliases = new char*[1];
-                he.h_aliases[0] = NULL;
+                he.h_aliases = nullptr;
 
                 // TODO: We only process the first RR for a TXT query, even if there are more of them.
                 break;
@@ -447,14 +440,6 @@ static void query_cb(void* arg, ares_status_t status, size_t timeouts, const are
             mgr->AddResult(req, nullptr, DNS_TIMEOUT);
 
         delete[] he.h_name;
-
-        if ( he.h_aliases ) {
-            for ( size_t idx = 0; he.h_aliases[idx] != NULL; idx++ ) {
-                delete[] he.h_aliases[idx];
-            }
-
-            delete[] he.h_aliases;
-        }
     }
 
     req->ProcessAsyncResult(timeouts > 0, mgr);
@@ -972,7 +957,7 @@ RecordValPtr DNS_Mgr::BuildMappingVal(const DNS_MappingPtr& dm) {
 }
 
 void DNS_Mgr::AddResult(DNS_Request* dr, struct hostent* h, uint32_t ttl, bool merge) {
-    // TODO: the existing code doesn't handle hostname aliases at all. Should we?
+    // TODO: Should we handle hostname aliases here somehow?
 
     DNS_MappingPtr new_mapping = nullptr;
     DNS_MappingPtr prev_mapping = nullptr;

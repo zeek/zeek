@@ -1,4 +1,6 @@
-##! This script adds a string version of the ip_proto field
+##! This script adds a string version of the ip_proto field. It's not recommended
+##! to load this policy and the ip_proto removal policy at the same time, as
+##! conn.log will end up with useless information in the log from this field.
 
 @load base/protocols/conn
 

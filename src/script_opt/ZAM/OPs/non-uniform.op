@@ -241,13 +241,13 @@ eval	auto& vsel = $1->RawVec();
 	auto& v1 = $2->RawVec();
 	auto& v2 = $3->RawVec();
 	auto n = v1.size();
-	auto res = new vector<std::optional<ZVal>>(n);
+	vector<std::optional<ZVal>> res(n);
 	for ( auto i = 0U; i < n; ++i )
 		if ( vsel[i] )
-			(*res)[i] = vsel[i]->AsInt() ? v1[i] : v2[i];
+			res[i] = vsel[i]->AsInt() ? v1[i] : v2[i];
 	auto& full_res = $$;
 	Unref(full_res);
-	full_res = new VectorVal(cast_intrusive<VectorType>(Z_TYPE), res);
+	full_res = new VectorVal(cast_intrusive<VectorType>(Z_TYPE), &res);
 
 # Our instruction format doesn't accommodate two constants, so for
 # the singular case of a V ? C1 : C2 conditional, we split it into

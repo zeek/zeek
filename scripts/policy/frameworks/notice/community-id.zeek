@@ -20,6 +20,12 @@ export {
 
 hook Notice::notice(n: Notice::Info)
 	{
-	if ( CommunityID::Notice::enabled && n?$conn )
-		n$community_id = community_id_v1(n$conn$id, CommunityID::seed, CommunityID::do_base64);
+	if ( CommunityID::Notice::enabled && n?$conn && n$conn?$conn )
+		{
+		local info = n$conn$conn;
+		# This is set during new_connection(), so it should
+		# always be there, but better safe than sorry.
+		if ( info?$community_id )
+			n$community_id = info$community_id;
+		}
 	}

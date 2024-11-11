@@ -3,6 +3,16 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 7.0.4
+==========
+
+This release fixes the following bugs:
+
+- The community-id-logging.zeek policy script was used to set
+  ``c$conn$community_id`` during ``new_connection()`` rather than
+  ``connection_state_remove()``, allowing other scripts to reuse its value
+  early.
+
 Zeek 7.0.3
 ==========
 

@@ -17,7 +17,10 @@ export {
 	};
 }
 
-event connection_state_remove(c: connection)
+module Conn;
+
+event new_connection(c: connection) &priority=5
 	{
+	Conn::set_conn(c, F);  # likely first to access :-/
 	c$conn$community_id = community_id_v1(c$id, CommunityID::seed, CommunityID::do_base64);
 	}

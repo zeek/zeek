@@ -13,6 +13,7 @@
 redef enum Notice::Type += {
 	COMMUNITY_ID_INIT,
 	COMMUNITY_ID_CONN_ESTABLISHED,
+	COMMUNITY_ID_NEW_CONNECTION,
 };
 
 event zeek_init()
@@ -20,6 +21,14 @@ event zeek_init()
 	# A notice without connection context
 	NOTICE([$note=COMMUNITY_ID_INIT,
 	        $msg="Zeek initializing"]);
+	}
+
+event new_connection(c: connection)
+	{
+	# A notice with connection context
+	NOTICE([$note=COMMUNITY_ID_NEW_CONNECTION,
+	        $msg="New connection",
+	        $conn=c]);
 	}
 
 event connection_established(c: connection)

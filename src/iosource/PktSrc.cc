@@ -136,9 +136,6 @@ bool PktSrc::ExtractNextPacketInternal() {
     if ( run_state::is_processing_suspended() && run_state::detail::first_timestamp )
         return false;
 
-    if ( run_state::pseudo_realtime )
-        run_state::detail::current_wallclock = util::current_time(true);
-
     if ( ExtractNextPacket(&current_packet) ) {
         had_packet = true;
 
@@ -146,9 +143,6 @@ bool PktSrc::ExtractNextPacketInternal() {
             Weird("negative_packet_timestamp", &current_packet);
             return false;
         }
-
-        if ( ! run_state::detail::first_timestamp )
-            run_state::detail::first_timestamp = current_packet.time;
 
         have_packet = true;
         return true;

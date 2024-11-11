@@ -1,3 +1,36 @@
+7.1.0-dev.501 | 2024-11-11 21:05:41 +0100
+
+  * GH-4006: Fix nullptr deref in Spicy accept/decline input (Evan Typanski, Corelight)
+
+    Seems like this is a continuation of #4006
+
+  * Spicy: Improve error messages reporting malformed unit names in EVT files. (Robin Sommer, Corelight)
+
+  * GH-3988: Spicy:: Remove unhelpful assertion. (Robin Sommer, Corelight)
+
+    In cases of a malformed event definition, this could fire instead of a
+    more helpful error message coming later.
+
+    Closes #3988.
+
+  * GH-4007: Spicy: Do not raise an analyzer error when a connection is missing a regular tear-down. (Robin Sommer, Corelight)
+
+    So far, when Zeek didn't see a connection's regular tear-down (e.g.,
+    because its state timed-out before we got to the end), we'd still
+    signal a regular end-of-data to Spicy parsers. As a result, they would
+    then typically raise a parse error because they were probably still
+    expecting data and would now declare it missing. That's not very
+    useful because semantically it's not really a protocol issue if the
+    data just doesn't make it over to us; it's a transport-layer issue
+    that Zeek already handles elsewhere. So we now switch to signaling
+    end-of-data to Spicy analyzers only if the connection indeed shuts
+    down regularly. This is also matches how BinPAC handles it.
+
+    This also comes with a test exercising various combinations of
+    end-of-data behavior so that we ensure consistent/desired behavior.
+
+    Closes #4007.
+
 7.1.0-dev.494 | 2024-11-11 10:25:43 +0100
 
   * ci: Run ZAM CI if src/script_opt is modified (Arne Welzel, Corelight)

@@ -1165,7 +1165,7 @@ bool GlueCompiler::PopulateEvents() {
             // to a unit now.
             ev.unit = ev.path.namespace_();
             if ( ! ev.unit ) {
-                hilti::logger().error(hilti::util::fmt("unit type missing in hook '%s'", ev.path));
+                hilti::logger().error(hilti::util::fmt("namespace missing for '%s'", ev.path), ev.location);
                 return false;
             }
 
@@ -1174,7 +1174,7 @@ bool GlueCompiler::PopulateEvents() {
                 ev.hook = ev.path;
             }
             else {
-                hilti::logger().error(hilti::util::fmt("unknown unit type '%s'", ev.unit));
+                hilti::logger().error(hilti::util::fmt("no unit type of name '%s'", ev.path), ev.location);
                 return false;
             }
         }

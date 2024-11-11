@@ -52,9 +52,6 @@ struct VisitorTypes : public spicy::visitor::PreOrder {
              module == hilti::ID("zeek_rt") )
             return;
 
-        assert(! n->type()->type()->typeID() ||
-               n->type()->type()->typeID() == hilti::ID(module, n->id())); // ensure consistent IDs
-
         types.emplace_back(TypeInfo{
             .id = hilti::ID(module, n->id()),
             .type = n->type(),

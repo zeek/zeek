@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -eux
+
+if ! dnsmasq --version; then
+    exit 1
+fi
+
+if [ $# -ne 2 ]; then
+    echo "Usage $0 <listen_addr> <listen_port>" >2
+    exit 1
+fi
+
+listen_addr=$1
+listen_port=$2
+
+exec dnsmasq \
+    --no-resolv \
+    --no-hosts \
+    --no-daemon \
+    --listen-addr="${listen_addr}" \
+    --port="${listen_port}" \
+    --address /example.com/10.0.0.1 \
+    --address /example.com/10.0.0.2 \
+    --address /example.com/10.0.0.3 \
+    --address /example.com/10.0.0.4 \
+    --address /example.com/10.0.0.4 \
+    --address /example.com/fe80::6990:df6e:618:c096 \
+    --address /mx.example.com/10.0.0.99 \
+    --address /dns.example.com/10.0.0.99 \
+    --ptr-record=99.0.0.10.in-addr.arpa,mx.example.com \
+    --ptr-record=99.0.0.10.in-addr.arpa,dns.example.com \
+    --txt-record=example.com,network-monitor,open-source,zeek \
+    --txt-record=example.com,more-network-monitor,bro \
+    --cname=www.example.com,example.com

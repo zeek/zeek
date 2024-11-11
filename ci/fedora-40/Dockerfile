@@ -9,6 +9,7 @@ RUN dnf -y install \
     ccache \
     cmake \
     diffutils \
+    dnsmasq \
     flex \
     gcc \
     gcc-c++ \

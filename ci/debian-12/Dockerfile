@@ -12,6 +12,7 @@ RUN apt-get update && apt-get -y install \
     ccache \
     cmake \
     curl \
+    dnsmasq \
     flex \
     g++ \
     gcc \

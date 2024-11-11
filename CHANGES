@@ -1,3 +1,27 @@
+7.1.0-dev.492 | 2024-11-11 09:52:41 +0100
+
+  * DNS_Mgr: Remove processing of dns aliases in general (Tim Wojtulewicz, Corelight)
+
+  * ci: Add dnsmasq to a few platforms for testing (Arne Welzel, Corelight)
+
+  * DNS_Mgr: Fix aliases memory issues (Arne Welzel, Corelight)
+
+  * btest: Add integration test for DNS_Mgr (Arne Welzel, Corelight)
+
+    This makes use of an ephemeral dnsmasq instance
+
+  * DNS_Mgr: Remove usage of ares_getsock from Lookup (Tim Wojtulewicz, Corelight)
+
+  * DNS_Mgr: Remove usage of ares_getsock from GetNextTimeout (Tim Wojtulewicz, Corelight)
+
+  * DNS_Mgr: Switch to ares_set_servers_csv (Tim Wojtulewicz, Corelight)
+
+  * DNS_Mgr: Use ares_dns_record methods for queries (Tim Wojtulewicz, Corelight)
+
+  * Update vcpkg submodule to pick up c-ares v1.34.2 (Tim Wojtulewicz, Corelight)
+
+  * Update c-ares submodule to v1.34.2 (Tim Wojtulewicz, Corelight)
+
 7.1.0-dev.481 | 2024-11-11 09:34:10 +0100
 
   * policy/community-id: Populate conn$community_id in new_connection() (Arne Welzel, Corelight)

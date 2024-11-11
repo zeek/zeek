@@ -123,15 +123,13 @@ static const char* request_type_string(int request_type) {
 
 struct ares_deleter {
     void operator()(char* s) const { ares_free_string(s); }
-    void operator()(unsigned char* s) const { ares_free_string(s); }
     void operator()(ares_addrinfo* s) const { ares_freeaddrinfo(s); }
-    void operator()(struct hostent* h) const { ares_free_hostent(h); }
-    void operator()(struct ares_txt_reply* h) const { ares_free_data(h); }
+    void operator()(ares_dns_record_t* r) const { ares_dns_record_destroy(r); }
 };
 
 namespace zeek::detail {
 static void addrinfo_cb(void* arg, int status, int timeouts, struct ares_addrinfo* result);
-static void query_cb(void* arg, int status, int timeouts, unsigned char* buf, int len);
+static void query_cb(void* arg, ares_status_t status, size_t timeouts, const ares_dns_record* dnsrec);
 static void sock_cb(void* data, int s, int read, int write);
 
 struct CallbackArgs {
@@ -158,7 +156,7 @@ private:
     IPAddr addr;
     int request_type = 0; // Query type
     bool async = false;
-    std::unique_ptr<unsigned char, ares_deleter> query;
+    std::unique_ptr<ares_dns_record_t, ares_deleter> query_rec;
     static uint16_t request_id;
 };
 
@@ -200,17 +198,23 @@ void DNS_Request::MakeRequest(ares_channel channel, DNS_Mgr* mgr) {
         else
             query_host = host;
 
-        std::unique_ptr<unsigned char, ares_deleter> query_str;
+        std::unique_ptr<ares_dns_record_t, ares_deleter> dnsrec;
         int len = 0;
-        int status = ares_create_query(query_host.c_str(), C_IN, request_type, DNS_Request::request_id, 1,
-                                       out_ptr<unsigned char*>(query_str), &len, MAX_UDP_BUFFER_SIZE);
+        ares_status_t status = ares_dns_record_create(out_ptr<ares_dns_record_t*>(dnsrec), DNS_Request::request_id,
+                                                      ARES_FLAG_RD, ARES_OPCODE_QUERY, ARES_RCODE_NOERROR);
 
-        if ( status != ARES_SUCCESS || query_str == nullptr )
+        if ( status != ARES_SUCCESS || dnsrec == nullptr )
+            return;
+
+        status = ares_dns_record_query_add(dnsrec.get(), query_host.c_str(),
+                                           static_cast<ares_dns_rec_type_t>(request_type), ARES_CLASS_IN);
+
+        if ( status != ARES_SUCCESS )
             return;
 
         // Store this so it can be destroyed when the request is destroyed.
-        this->query = std::move(query_str);
-        ares_send(channel, this->query.get(), len, query_cb, req_data.release());
+        this->query_rec = std::move(dnsrec);
+        ares_send_dnsrec(channel, query_rec.get(), query_cb, req_data.release(), NULL);
     }
 }
 
@@ -347,7 +351,7 @@ static void addrinfo_cb(void* arg, int status, int timeouts, struct ares_addrinf
     delete arg_data;
 }
 
-static void query_cb(void* arg, int status, int timeouts, unsigned char* buf, int len) {
+static void query_cb(void* arg, ares_status_t status, size_t timeouts, const ares_dns_record_t* dnsrec) {
     auto arg_data = reinterpret_cast<CallbackArgs*>(arg);
     const auto [req, mgr] = *arg_data;
 
@@ -365,66 +369,77 @@ static void query_cb(void* arg, int status, int timeouts, unsigned char* buf, in
         }
     }
     else {
-        // We don't really care that we couldn't properly parse the TTL here, since the
-        // later parsing will fail with better error messages. In that case, it's ok
-        // that we throw away the status value.
-        int ttl;
-        get_ttl(buf, len, &ttl);
+        struct hostent he {};
 
-        switch ( req->RequestType() ) {
-            case T_PTR: {
-                std::unique_ptr<struct hostent, ares_deleter> he;
-                if ( req->Addr().GetFamily() == IPv4 ) {
-                    struct in_addr addr;
-                    req->Addr().CopyIPv4(&addr);
-                    status = ares_parse_ptr_reply(buf, len, &addr, sizeof(addr), AF_INET, out_ptr<struct hostent*>(he));
-                }
-                else {
-                    struct in6_addr addr;
-                    req->Addr().CopyIPv6(&addr);
-                    status =
-                        ares_parse_ptr_reply(buf, len, &addr, sizeof(addr), AF_INET6, out_ptr<struct hostent*>(he));
+        uint32_t ttl = 0;
+        size_t rr_cnt = ares_dns_record_rr_cnt(dnsrec, ARES_SECTION_ANSWER);
+        bool error = false;
+
+        for ( size_t idx = 0; idx < rr_cnt; idx++ ) {
+            const ares_dns_rr_t* rr = ares_dns_record_rr_get_const(dnsrec, ARES_SECTION_ANSWER, 0);
+
+            // Use the ttl from the first record, since we don't keep track of the TTLs for each
+            // individually.
+            if ( idx == 0 )
+                ttl = ares_dns_rr_get_ttl(rr);
+
+            ares_dns_rec_type_t type = ares_dns_rr_get_type(rr);
+            if ( req->RequestType() != type )
+                continue;
+
+            if ( type == ARES_REC_TYPE_PTR ) {
+                const char* txt = ares_dns_rr_get_str(rr, ARES_RR_PTR_DNAME);
+                if ( txt == NULL ) {
+                    // According to the c-ares docs, this can happen but only in cases of "misuse". We
+                    // still need to check for it though.
+                    error = true;
+                    break;
                 }
 
-                if ( status == ARES_SUCCESS )
-                    mgr->AddResult(req, he.get(), ttl);
-                else {
-                    // See above for why DNS_TIMEOUT here.
-                    mgr->AddResult(req, nullptr, DNS_TIMEOUT);
-                }
+                // TODO: it's possible that a response has multiple aliases. We
+                // don't handle those so we can just break here after setting
+                // h_aliases to null.
+                he.h_name = util::copy_string(txt);
+                he.h_aliases = nullptr;
                 break;
             }
-            case T_TXT: {
-                std::unique_ptr<struct ares_txt_reply, ares_deleter> reply;
-                int r = ares_parse_txt_reply(buf, len, out_ptr<struct ares_txt_reply*>(reply));
-                if ( r == ARES_SUCCESS ) {
-                    // Use a hostent to send the data into AddResult(). We only care about
-                    // setting the host field, but everything else should be zero just for
-                    // safety.
+            else if ( type == ARES_REC_TYPE_TXT ) {
+                size_t abin_cnt = ares_dns_rr_get_abin_cnt(rr, ARES_RR_TXT_DATA);
+                if ( abin_cnt == 0 )
+                    break;
 
-                    // We don't currently handle more than the first response, and throw the
-                    // rest away. There really isn't a good reason for this, we just haven't
-                    // ever done so. It would likely require some changes to the output from
-                    // Lookup(), since right now it only returns one value.
-                    struct hostent he {};
-                    he.h_name = util::copy_string(reinterpret_cast<const char*>(reply->txt));
-                    mgr->AddResult(req, &he, ttl);
-
-                    delete[] he.h_name;
-                }
-                else {
-                    // See above for why DNS_TIMEOUT here.
-                    mgr->AddResult(req, nullptr, DNS_TIMEOUT);
+                // TODO: We only process the first abin in the response. There might be more.
+                size_t abin_len;
+                const unsigned char* abin = ares_dns_rr_get_abin(rr, ARES_RR_TXT_DATA, 0, &abin_len);
+                if ( abin == NULL ) {
+                    // According to the c-ares docs, this can happen but only in cases of "misuse". We
+                    // still need to check for it though.
+                    error = true;
+                    break;
                 }
 
+                he.h_name = new char[abin_len + 1];
+                strncpy(he.h_name, reinterpret_cast<const char*>(abin), abin_len);
+                he.h_name[abin_len] = 0;
+                he.h_aliases = nullptr;
+
+                // TODO: We only process the first RR for a TXT query, even if there are more of them.
                 break;
             }
-
-            default:
-                reporter->Error("Requests of type %d (%s) are unsupported", req->RequestType(),
-                                request_type_string(req->RequestType()));
+            else {
+                error = true;
+                reporter->Error("Requests of type %d (%s) are unsupported", type, ares_dns_rec_type_tostr(type));
                 break;
+            }
         }
+
+        if ( rr_cnt != 0 && ! error )
+            mgr->AddResult(req, &he, ttl);
+        else
+            // See above for why DNS_TIMEOUT here.
+            mgr->AddResult(req, nullptr, DNS_TIMEOUT);
+
+        delete[] he.h_name;
     }
 
     req->ProcessAsyncResult(timeouts > 0, mgr);
@@ -521,25 +536,7 @@ void DNS_Mgr::InitSource() {
     // the lookup.
     auto dns_resolver = getenv("ZEEK_DNS_RESOLVER");
     if ( dns_resolver ) {
-        ares_addr_node servers;
-        servers.next = NULL;
-
-        auto dns_resolver_addr = IPAddr(dns_resolver);
-
-        if ( dns_resolver_addr.GetFamily() == IPv4 ) {
-            servers.family = AF_INET;
-            dns_resolver_addr.CopyIPv4(&(servers.addr.addr4));
-        }
-        else {
-            struct sockaddr_in6 sa = {0};
-            sa.sin6_family = AF_INET6;
-            dns_resolver_addr.CopyIPv6(&sa.sin6_addr);
-
-            servers.family = AF_INET6;
-            memcpy(&(servers.addr.addr6), &sa.sin6_addr, sizeof(ares_in6_addr));
-        }
-
-        ares_set_servers(channel, &servers);
+        ares_set_servers_csv(channel, dns_resolver);
     }
 
     did_init = true;
@@ -876,30 +873,34 @@ void DNS_Mgr::Lookup(const std::string& name, int request_type, LookupCallback* 
 void DNS_Mgr::Resolve() {
     int nfds = 0;
     struct timeval *tvp, tv;
-    struct pollfd pollfds[ARES_GETSOCK_MAXNUM];
-    ares_socket_t socks[ARES_GETSOCK_MAXNUM];
+    struct pollfd pollfds[1024];
 
     tv.tv_sec = DNS_TIMEOUT;
     tv.tv_usec = 0;
 
     for ( int i = 0; i < MAX_PENDING_REQUESTS; i++ ) {
-        int nfds = 0;
-        int bitmap = ares_getsock(channel, socks, ARES_GETSOCK_MAXNUM);
+        if ( socket_fds.empty() && write_socket_fds.empty() )
+            break;
 
-        for ( int i = 0; i < ARES_GETSOCK_MAXNUM; i++ ) {
-            bool rd = ARES_GETSOCK_READABLE(bitmap, i);
-            bool wr = ARES_GETSOCK_WRITABLE(bitmap, i);
-            if ( rd || wr ) {
-                pollfds[nfds].fd = socks[i];
-                pollfds[nfds].events = rd ? POLLIN : 0;
-                pollfds[nfds].events |= wr ? POLLOUT : 0;
-                ++nfds;
-            }
+        memset(pollfds, 0, sizeof(pollfd) * 1024);
+
+        for ( int fd : socket_fds ) {
+            if ( nfds == 1024 )
+                break;
+
+            pollfds[nfds].fd = fd;
+            pollfds[nfds].events = POLLIN;
+            ++nfds;
         }
 
-        // Do we have any sockets that are read or writable?
-        if ( nfds == 0 )
-            break;
+        for ( int fd : write_socket_fds ) {
+            if ( nfds == 1024 )
+                break;
+
+            pollfds[nfds].fd = fd;
+            pollfds[nfds].events = POLLIN | POLLOUT;
+            ++nfds;
+        }
 
         // poll() timeout is in milliseconds.
         tvp = ares_timeout(channel, &tv, &tv);
@@ -956,7 +957,7 @@ RecordValPtr DNS_Mgr::BuildMappingVal(const DNS_MappingPtr& dm) {
 }
 
 void DNS_Mgr::AddResult(DNS_Request* dr, struct hostent* h, uint32_t ttl, bool merge) {
-    // TODO: the existing code doesn't handle hostname aliases at all. Should we?
+    // TODO: Should we handle hostname aliases here somehow?
 
     DNS_MappingPtr new_mapping = nullptr;
     DNS_MappingPtr prev_mapping = nullptr;
@@ -1304,23 +1305,19 @@ double DNS_Mgr::GetNextTimeout() {
     if ( asyncs_pending == 0 )
         return -1;
 
-    int nfds = 0;
-    ares_socket_t socks[ARES_GETSOCK_MAXNUM];
-    int bitmap = ares_getsock(channel, socks, ARES_GETSOCK_MAXNUM);
-    for ( int i = 0; i < ARES_GETSOCK_MAXNUM; i++ ) {
-        if ( ARES_GETSOCK_READABLE(bitmap, i) || ARES_GETSOCK_WRITABLE(bitmap, i) )
-            ++nfds;
-    }
+    struct timeval tv;
+    struct timeval* tvp = ares_timeout(channel, NULL, &tv);
 
-    // Do we have any sockets that are read or writable?
-    if ( nfds == 0 )
+    // If you pass NULL as the max time argument to ares_timeout, it will return null if there
+    // isn't anything waiting to be processed.
+    if ( ! tvp )
         return -1;
 
-    struct timeval tv;
-    tv.tv_sec = DNS_TIMEOUT;
-    tv.tv_usec = 0;
-
-    struct timeval* tvp = ares_timeout(channel, &tv, &tv);
+    // Clamp the timeout to our desired max, since we passed NULl to ares_timeout.
+    if ( tvp->tv_sec > DNS_TIMEOUT ) {
+        tvp->tv_sec = DNS_TIMEOUT;
+        tvp->tv_usec = 0;
+    }
 
     return static_cast<double>(tvp->tv_sec) + (static_cast<double>(tvp->tv_usec) / 1e6);
 }

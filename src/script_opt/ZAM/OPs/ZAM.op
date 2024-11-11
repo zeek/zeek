@@ -2133,7 +2133,10 @@ type VVVV
 eval	NextVectorIterCore(z.v3, v4)
 	frame[z.v1].uint_val = si.iter;
 	if ( z.is_managed )
+		{
+		ZVal::DeleteManagedType(frame[z.v2]);
 		frame[z.v2] = BuildVal(vv[si.iter]->ToVal(z.t), z.t);
+		}
 	else
 		frame[z.v2] = *vv[si.iter];
 	si.IterFinished();
@@ -2145,7 +2148,10 @@ internal-op Next-Vector-Blank-Iter-Val-Var
 type VVV
 eval	NextVectorIterCore(z.v2, v3)
 	if ( z.is_managed )
+		{
+		ZVal::DeleteManagedType(frame[z.v1]);
 		frame[z.v1] = BuildVal(vv[si.iter]->ToVal(z.t), z.t);
+		}
 	else
 		frame[z.v1] = *vv[si.iter];
 	si.IterFinished();

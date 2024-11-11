@@ -1561,7 +1561,9 @@ eval	if ( frame[z.v2].vector_val->Size() > 0 )
 unary-expr-op To-Any-Coerce
 op-type X
 set-type $1
-eval	AssignV1(ZVal(frame[z.v2].ToVal(z.t), ZAM::any_base_type))
+eval	auto orig_lhs = frame[z.v1]; /* hold in case z.v1 = z.v2 */
+	AssignV1(ZVal(frame[z.v2].ToVal(z.t), ZAM::any_base_type))
+	ZVal::DeleteManagedType(orig_lhs);
 
 unary-expr-op From-Any-Coerce
 op-type X

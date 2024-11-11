@@ -103,6 +103,10 @@ Changed Functionality
   of a node are scraped via the Prometheus HTTP endpoint, or one of the collect
   methods is invoked from Zeek script.
 
+* The community-id-logging.zeek policy script was used to set ``c$conn$community_id``
+  during ``new_connection()`` rather than ``connection_state_remove()``, allowing
+  other scripts to reuse its value early.
+
 Removed Functionality
 ---------------------
 

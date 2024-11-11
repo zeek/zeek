@@ -1,3 +1,12 @@
+7.1.0-dev.481 | 2024-11-11 09:34:10 +0100
+
+  * policy/community-id: Populate conn$community_id in new_connection() (Arne Welzel, Corelight)
+
+    This wasn't possible before #3028 was fixed, but now it's safe to set
+    the value in new_connection() and allow other users access to the
+    field much earlier. We do not have to deal with connection_flipped()
+    because the community-id hash is symmetric.
+
 7.1.0-dev.478 | 2024-11-08 18:36:07 +0100
 
   * Fixed ZAM memory leak when coercing values to "any" (Vern Paxson, Corelight)

@@ -76,6 +76,6 @@
 [submodule "auxil/prometheus-cpp"]
 	path = auxil/prometheus-cpp
 	url = https://github.com/zeek/prometheus-cpp
-[submodule "auxil/cppzmq"]
+[submodule "src/cluster/backend/zeromq/auxil/cppzmq"]
 	path = src/cluster/backend/zeromq/auxil/cppzmq
 	url = https://github.com/zeromq/cppzmq

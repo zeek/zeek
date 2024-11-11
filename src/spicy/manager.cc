@@ -593,25 +593,25 @@ static ::TransportProto transport_protocol(const hilti::rt::Port port) {
 }
 
 static void hook_accept_input() {
-    auto cookie = static_cast<rt::Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
-
-    if ( auto x = cookie->protocol ) {
-        auto tag = spicy_mgr->tagForProtocolAnalyzer(x->analyzer->GetAnalyzerTag());
-        SPICY_DEBUG(hilti::rt::fmt("confirming protocol %s", tag.AsString()));
-        return x->analyzer->AnalyzerConfirmation(tag);
+    if ( auto cookie = static_cast<rt::Cookie*>(hilti::rt::context::cookie()) ) {
+        if ( auto x = cookie->protocol ) {
+            auto tag = spicy_mgr->tagForProtocolAnalyzer(x->analyzer->GetAnalyzerTag());
+            SPICY_DEBUG(hilti::rt::fmt("confirming protocol %s", tag.AsString()));
+            return x->analyzer->AnalyzerConfirmation(tag);
+        }
     }
 }
 
 static void hook_decline_input(const std::string& reason) {
-    auto cookie = static_cast<rt::Cookie*>(hilti::rt::context::cookie());
-    assert(cookie);
-
-    if ( auto x = cookie->protocol ) {
-        auto tag = spicy_mgr->tagForProtocolAnalyzer(x->analyzer->GetAnalyzerTag());
-        SPICY_DEBUG(hilti::rt::fmt("rejecting protocol %s: %s", tag.AsString(), reason));
-        return x->analyzer->AnalyzerViolation(reason.c_str(), nullptr, 0, tag);
+    if ( auto cookie = static_cast<rt::Cookie*>(hilti::rt::context::cookie()) ) {
+        if ( auto x = cookie->protocol ) {
+            auto tag = spicy_mgr->tagForProtocolAnalyzer(x->analyzer->GetAnalyzerTag());
+            SPICY_DEBUG(hilti::rt::fmt("rejecting protocol %s: %s", tag.AsString(), reason));
+            return x->analyzer->AnalyzerViolation(reason.c_str(), nullptr, 0, tag);
+        }
     }
+    else
+        SPICY_DEBUG(hilti::rt::fmt("attempting to reject protocol without cookie: %s", reason));
 }
 
 void Manager::InitPostScript() {

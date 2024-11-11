@@ -1,3 +1,9 @@
+7.0.3-16 | 2024-11-14 11:57:54 -0700
+
+  * GH-4006: Fix nullptr deref in Spicy accept/decline input (Evan Typanski, Corelight)
+
+    (cherry picked from commit 1d38c310719088ca0e9610ec8458fe4cf8e4a318)
+
 7.0.3-15 | 2024-11-14 11:56:06 -0700
 
   * Fix potential nullptr deref in Spicy plugin runtime (Benjamin Bannier, Corelight)

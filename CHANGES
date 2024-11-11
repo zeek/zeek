@@ -1,3 +1,9 @@
+7.1.0-dev.494 | 2024-11-11 10:25:43 +0100
+
+  * ci: Run ZAM CI if src/script_opt is modified (Arne Welzel, Corelight)
+
+    ...and rework && to || conditions.
+
 7.1.0-dev.492 | 2024-11-11 09:52:41 +0100
 
   * DNS_Mgr: Remove processing of dns aliases in general (Tim Wojtulewicz, Corelight)

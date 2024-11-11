@@ -70,6 +70,7 @@ extern void suspend_processing();
 extern void continue_processing();
 bool is_processing_suspended();
 
+[[deprecated("Remove with v8.1. Use run_state::current_pseudo directly, but you probably should not")]]
 extern double current_packet_timestamp();
 extern double current_packet_wallclock();
 

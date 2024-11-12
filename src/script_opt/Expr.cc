@@ -1629,6 +1629,9 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         StmtPtr lhs_stmt;
         StmtPtr rhs_stmt;
 
+        if ( GetType()->Tag() == TYPE_ANY && op2->GetType()->Tag() != TYPE_ANY )
+            op2 = with_location_of(make_intrusive<CoerceToAnyExpr>(op2), op2);
+
         auto lhs_e = field_e->Op()->Reduce(c, lhs_stmt);
         auto rhs_e = op2->ReduceToFieldAssignment(c, rhs_stmt);
 

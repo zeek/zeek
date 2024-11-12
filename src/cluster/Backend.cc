@@ -135,13 +135,9 @@ bool Backend::DoPublishEvent(const std::string& topic, const cluster::detail::Ev
     return DoPublishEvent(topic, event_serializer->Name(), buf);
 }
 
-// Default implementation doing the serialization.
+// Default implementation doing log record serialization.
 bool Backend::DoPublishLogWrites(const zeek::logging::detail::LogWriteHeader& header,
                                  zeek::Span<zeek::logging::detail::LogRecord> records) {
-    // Serialize the record. This isn't doing any buffering yet.
-    //
-    // Not clear where the buffering should happen... maybe in
-    // the frontend? That would maybe be better for re-usability.
     cluster::detail::byte_buffer buf;
 
     if ( ! log_serializer->SerializeLogWriteInto(buf, header, records) )

@@ -1,3 +1,7 @@
+7.1.0-dev.513 | 2024-11-12 16:16:11 +0100
+
+  * Bump Spicy to current `main`. (Robin Sommer, Corelight)
+
 7.1.0-dev.511 | 2024-11-12 16:00:00 +0100
 
   * PktSrc: Remove first_timestamp condition check (Arne Welzel, Corelight)

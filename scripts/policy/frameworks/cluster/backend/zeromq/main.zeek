@@ -9,25 +9,31 @@
 ##! nodes connect via PUSH sockets to all the logger's PULL sockets.
 ##!
 ##! This setup actually allows to run a non-Zeek central proxy (it only needs
-##! to offer XPUB and XSUB sockets, but also allows running non-Zeek logger
+##! to offer XPUB and XSUB sockets) and also allows running non-Zeek logger
 ##! nodes. All a logger node needs to do is open a PULL socket (and understand
-##! the format used by Zeek.
+##! the format used by Zeek nodes to send log).
 module Cluster::Backend::ZeroMQ;
 
 export {
 	## How many milliseconds to stall termination to flush
 	## out messages on sockets.
 	##
-	## The default is 30 seconds (30 000) which is very long in zeek -j
-	## settings when shutting down loggers before workers.
+	## The default of libzmq is 30 seconds (30 000) which is very
+	## long in a zeek -j setting when shutting down loggers before
+	## other nodes have sent all their messages out.
 	const linger_ms: int = 500 &redef;
 
-	## Bitmask to enable fprintf based debug printing.
+	## Bitmask to enable low-level fprintf based debug printing.
 	##
-	##     poll debugging: 1
+	##     poll debugging: 1 (produce verbose zmq::poll() output)
+	##
+	## Or values from the above list together and set debug_flags
+	## to the result. E.g. use 7 to select 4, 2 and 1. Only use this
+	## in development if something seems off. The background thread
+	## used by the cluster backend will produce output on stderr.
 	const debug_flags: count = 0 &redef;
 
-	## Whether to configure ZMQ_XPUB_NODROP on the xpub socket
+	## Whether to configure ZMQ_XPUB_NODROP on the XPUB socket
 	## to detect when sending a message fails due to reaching
 	## the HWM.
 	const xpub_nodrop: bool = T &redef;
@@ -48,10 +54,20 @@ export {
 	# Logging
 
 	## Vector of endpoints to connect to for logging. A local
-	## PUSH socket is opened and connected to each of them.
+	## PUSH socket is opened and connected to PULL sockets
+	## listening on the addresses in this vector.
 	const connect_log_endpoints: vector of string &redef;
 
-	## Queue log writes only to completed connections.
+	## PULL socket address to listen on for log messages. If empty,
+	## don't listen.
+	const listen_log_endpoint = "" &redef;
+
+	## Queue log writes only to completed connections. By default,
+	## log writes are queued to all potential endpoints listen
+	## in ``connect_log_endpoints``. Setting this setting to ``T``
+	## queues only to connected endpoints.
+	##
+	## See ZeroMQ's ZMQ_IMMEDIATE documentation.
 	const log_immediate: bool = F &redef;
 
 	## Send high water mark value for the log PUSH sockets.
@@ -66,15 +82,18 @@ export {
 	## TODO: Make action configurable (block vs drop)
 	const log_rcvhwm: int = 1000 &redef;
 
-	## Kernel send and receive buffer sizes. Use -1 as the default.
+	## Kernel send and receive buffer sizes. Using -1 will use
+	## the kernel's default.
 	const log_sndbuf: int = -1 &redef;
 	const log_rcvbuf: int = -1 &redef;
 
-	## Endpoint to listen on for log messages. If empty,
-	## don't listen.
-	const listen_log_endpoint = "" &redef;
-
-	# Whether to run the zmq_proxy() thread on this node.
+	## If set to **T**, zeek:see:`Cluster::Backend::ZeroMQ::spawn_zmq_proxy_thread`
+	## is called during :zeek:see:`zeek_init`. The node will listen
+	## on :zeek:see:`Cluster::Backend::ZeroMQ::listen_xsub_endpoint` and
+	## :zeek:see:`Cluster::Backend::ZeroMQ::listen_xpub_endpoint` and
+	## start the ZeroMQ proxy thread.
+	##
+	## By default, this is set to **T** on the manager and **F** elsewhere.
 	const run_proxy_thread: bool = F &redef;
 
 	global node_topic_prefix = "zeek.cluster.node" &redef;
@@ -97,6 +116,9 @@ export {
 }
 
 redef Cluster::backend = Cluster::CLUSTER_BACKEND_ZEROMQ;
+
+# By default, let the manager node run the proxy thread.
+redef run_proxy_thread = Cluster::local_node_type() == Cluster::MANAGER;
 
 function zeromq_node_topic(name: string): string {
 	return node_topic_prefix + "." + name;
@@ -176,10 +198,6 @@ event zeek_init() &priority=100
 	if ( |connect_log_endpoints| == 0 && |Cluster::nodes| > 1 )
 		Reporter::error("No ZeroMQ connect_log_endpoints configured");
 	}
-
-# By default, let the manager node run the proxy thread.
-redef run_proxy_thread = Cluster::local_node_type() == Cluster::MANAGER;
-
 
 function nodeid_subscription_expired(nodeids: set[string], nodeid: string): interval
 	{

@@ -160,8 +160,10 @@ global protocol_names: table[count] of string = {
 	[145] = "nsh"
 };
 
-event connection_state_remove(c: connection) {
-	if ( c$conn$ip_proto in protocol_names ) {
+event new_connection(c: connection) &priority=5 {
+	# In case we're the first access
+	Conn::set_conn(c, F);
+	if ( c$conn?$ip_proto && c$conn$ip_proto in protocol_names ) {
 		c$conn$ip_proto_name = protocol_names[c$conn$ip_proto];
 	} else {
 		c$conn$ip_proto_name = "unknown";

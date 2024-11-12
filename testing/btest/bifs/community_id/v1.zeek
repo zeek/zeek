@@ -1,5 +1,6 @@
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: btest-diff .stdout
 
 function test_it(cid: conn_id, seed: count, expected: string)
 	{
@@ -26,4 +27,9 @@ event zeek_init()
 	test_it([$orig_h=1.2.3.4, $orig_p=0/unknown, $resp_h=5.6.7.8, $resp_p=0/unknown], 0, "");
 	test_it([$orig_h=[fe80:0001:0203:0405:0607:0809:0A0B:0C0D], $orig_p=0/unknown,
 	         $resp_h=[fe80:1011:1213:1415:1617:1819:1A1B:1C1D], $resp_p=0/unknown], 1, "");
+
+	# Test with some unknown-but-valid proto values.
+	test_it([$orig_h=1.2.3.4, $orig_p=0/unknown, $resp_h=5.6.7.8, $resp_p=0/unknown, $proto=10], 0, "1:yXTIO8p5F2ZhuXBcNBN8CsgCUTE=");
+	test_it([$orig_h=[fe80:0001:0203:0405:0607:0809:0A0B:0C0D], $orig_p=0/unknown,
+	         $resp_h=[fe80:1011:1213:1415:1617:1819:1A1B:1C1D], $resp_p=0/unknown, $proto=10], 1, "1:OrvlNyNZWyubXHIUHR/w18b5im8=");
 	}

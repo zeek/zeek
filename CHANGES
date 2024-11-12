@@ -1,3 +1,9 @@
+7.1.0-dev.516 | 2024-11-12 12:26:41 -0700
+
+  * diff-remove-abspath: Add separate handling of Windows paths (Tim Wojtulewicz)
+
+  * diff-remove-abspath: Remove capture of windows drive letters from POSIX regex (Tim Wojtulewicz)
+
 7.1.0-dev.513 | 2024-11-12 16:16:11 +0100
 
   * Bump Spicy to current `main`. (Robin Sommer, Corelight)

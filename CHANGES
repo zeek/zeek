@@ -1,3 +1,31 @@
+7.1.0-dev.511 | 2024-11-12 16:00:00 +0100
+
+  * PktSrc: Remove first_timestamp condition check (Arne Welzel, Corelight)
+
+    The comment is stale and first_timestamp is only relevant/available
+    in pseudo_realtime.
+
+  * PktSrc: Fix includes (Arne Welzel, Corelight)
+
+  * PktSrc/RunState: Scale on first_wallclock and move pseudo realtime logic to RunState (Arne Welzel, Corelight)
+
+    check_pseudo_time() used zeek_start_time which skews things sufficiently
+    around being in the past when ZAM compilation takes multiple seconds. Switch
+    to using first_wallclock instead.
+
+    Further, move setting of first_timestamp and first_wallclock from PktSrc
+    into RunState's dispatch_packet(), so it's more centralized now.
+
+    The only pseudo_realtime piece left in PktSrc() is in GetNextTimeout() to
+    determine how long the PktSrc is idle until the next packet is ready.
+
+  * RunState.h: Deprecate misleadingly named current_packet_timestamp() (Arne Welzel, Corelight)
+
+    This returns current_pseudo, naming it current_packet_timestamp()
+    is actively misleading.
+
+  * debug: Add processing suspended/continued to debug.log (Arne Welzel, Corelight)
+
 7.1.0-dev.505 | 2024-11-12 10:26:15 +0100
 
   * ZAM fixes for assignments involving "any" record fields (Vern Paxson, Corelight)

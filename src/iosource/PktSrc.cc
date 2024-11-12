@@ -2,17 +2,13 @@
 
 #include "zeek/iosource/PktSrc.h"
 
-#include "zeek/zeek-config.h"
-
 #include <sys/stat.h>
 
-#include "zeek/Hash.h"
+#include "zeek/DebugLogger.h"
 #include "zeek/RunState.h"
-#include "zeek/broker/Manager.h"
 #include "zeek/iosource/BPF_Program.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/iosource/pcap/pcap.bif.h"
-#include "zeek/packet_analysis/Manager.h"
 #include "zeek/session/Manager.h"
 #include "zeek/util.h"
 
@@ -131,13 +127,9 @@ bool PktSrc::ExtractNextPacketInternal() {
 
     have_packet = false;
 
-    // Don't return any packets if processing is suspended (except for the
-    // very first packet which we need to set up times).
-    if ( run_state::is_processing_suspended() && run_state::detail::first_timestamp )
+    // Don't return any packets if processing is suspended.
+    if ( run_state::is_processing_suspended() )
         return false;
-
-    if ( run_state::pseudo_realtime )
-        run_state::detail::current_wallclock = util::current_time(true);
 
     if ( ExtractNextPacket(&current_packet) ) {
         had_packet = true;
@@ -146,9 +138,6 @@ bool PktSrc::ExtractNextPacketInternal() {
             Weird("negative_packet_timestamp", &current_packet);
             return false;
         }
-
-        if ( ! run_state::detail::first_timestamp )
-            run_state::detail::first_timestamp = current_packet.time;
 
         have_packet = true;
         return true;

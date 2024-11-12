@@ -129,8 +129,6 @@ void update_network_time(double new_network_time) {
 static bool should_forward_network_time() {
     // In pseudo_realtime mode, always update time once
     // we've dispatched and processed the first packet.
-    // run_state::detail::first_timestamp is currently set
-    // in PktSrc::ExtractNextPacketInternal()
     if ( pseudo_realtime != 0.0 && run_state::detail::first_timestamp != 0.0 )
         return true;
 
@@ -221,7 +219,19 @@ void expire_timers() {
 }
 
 void dispatch_packet(Packet* pkt, iosource::PktSrc* pkt_src) {
-    double t = run_state::pseudo_realtime ? check_pseudo_time(pkt) : pkt->time;
+    double t = pkt->time;
+
+    if ( pseudo_realtime != 0.0 ) {
+        current_wallclock = util::current_time(true);
+
+        if ( first_wallclock == 0.0 ) {
+            first_wallclock = util::current_time(true);
+            first_timestamp = pkt->time;
+        }
+
+        // Scale pkt time based on pseudo_realtime
+        t = check_pseudo_time(pkt);
+    }
 
     if ( ! zeek_start_network_time ) {
         zeek_start_network_time = t;
@@ -243,9 +253,6 @@ void dispatch_packet(Packet* pkt, iosource::PktSrc* pkt_src) {
 
     processing_start_time = 0.0; // = "we're not processing now"
     current_dispatched = 0;
-
-    if ( pseudo_realtime && ! first_wallclock )
-        first_wallclock = util::current_time(true);
 
     current_iosrc = nullptr;
     current_pktsrc = nullptr;
@@ -399,10 +406,19 @@ void delete_run() {
 }
 
 double check_pseudo_time(const Packet* pkt) {
+    assert(pkt->time > 0.0);
+    assert(first_wallclock > 0.0);
+    assert(first_timestamp > 0.0);
     double pseudo_time = pkt->time - first_timestamp;
     double ct = (util::current_time(true) - first_wallclock) * pseudo_realtime;
 
-    current_pseudo = pseudo_time <= ct ? zeek_start_time + pseudo_time : 0;
+    current_pseudo = pseudo_time <= ct ? first_wallclock + pseudo_time : 0;
+
+    DBG_LOG(DBG_MAINLOOP,
+            "check_pseudo_time: first_wallclock=%.6f first_timestamp=%.6f pkt->time=%.6f pseudo_time=%.6f ct=%.6f "
+            "current_pseudo=%.6f",
+            first_wallclock, first_timestamp, pkt->time, pseudo_time, ct, current_pseudo);
+
     return current_pseudo;
 }
 
@@ -438,14 +454,17 @@ double current_timestamp = 0.0;
 static int _processing_suspended = 0;
 
 void suspend_processing() {
-    if ( _processing_suspended == 0 )
+    if ( _processing_suspended == 0 ) {
+        DBG_LOG(DBG_MAINLOOP, "processing suspended");
         reporter->Info("processing suspended");
+    }
 
     ++_processing_suspended;
 }
 
 void continue_processing() {
     if ( _processing_suspended == 1 ) {
+        DBG_LOG(DBG_MAINLOOP, "processing continued");
         reporter->Info("processing continued");
         detail::current_wallclock = util::current_time(true);
     }

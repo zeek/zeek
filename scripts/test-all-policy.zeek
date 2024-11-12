@@ -11,9 +11,6 @@
 
 # @load frameworks/control/controllee.zeek
 # @load frameworks/control/controller.zeek
-# @load frameworks/cluster/backend/nats/__load__.zeek
-# @load frameworks/cluster/backend/nats/connect.zeek
-# @load frameworks/cluster/backend/nats/main.zeek
 @load frameworks/cluster/backend/zeromq/__load__.zeek
 # @load frameworks/cluster/backend/zeromq/connect.zeek
 @load frameworks/cluster/backend/zeromq/main.zeek

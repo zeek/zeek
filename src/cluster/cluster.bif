@@ -22,7 +22,7 @@ type Cluster::Pool: record;
 ##      script like "Intel::cluster_rr_key".
 ##
 ## args: Either the event arguments as already made by
-##       :zeek:see:`Broker::make_event` or the argument list to pass along
+##       :zeek:see:`Cluster::make_event` or the argument list to pass along
 ##       to it.
 ##
 ## Returns: true if the message is sent.

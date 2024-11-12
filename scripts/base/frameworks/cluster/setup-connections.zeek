@@ -79,36 +79,9 @@ event zeek_init() &priority=-10
 		break;
 	case LOGGER:
 		Cluster::subscribe(Cluster::logger_topic);
-
-		# As of now, logging and broker are coupled.
-		#
-		# All nodes connect via broker to all loggers and
-		# PublishLogWrite() uses broker directly today. This
-		# isn't exactly pub/sub, but rather load balancing
-		# across available nodes. Seems this could also be
-		# done via ZMQ push/pull sockets more directly, or
-		# AMQP or NATS queues. Maybe that's thought too simple,
-		# however.
-		#
-		# Also, if we were to publish log writes to a generic
-		# pub sub system, why couldn't that system be the "logger".
-		# Keyword zero-logger architecture.
-		#
-		# Long story short, loggers continue to subscribe explicitly
-		# using broker, because the log subsystem relies on that today.
-		Broker::subscribe(node_topic(node));
-		Broker::subscribe(Broker::default_log_topic_prefix);
 		break;
 	case MANAGER:
 		Cluster::subscribe(Cluster::manager_topic);
-
-		if ( Cluster::manager_is_logger )
-			{
-			# See motivation above. This is broker dependent.
-			Broker::subscribe(node_topic(node));
-			Broker::subscribe(Broker::default_log_topic_prefix);
-			}
-
 		break;
 	case PROXY:
 		Cluster::subscribe(Cluster::proxy_topic);
@@ -127,8 +100,22 @@ event zeek_init() &priority=-10
 
 	# Listening and connecting to peers is broker specific, so we
 	# short circuit this here.
+	#
+	# This could also be split out into a policy script, but
+	# for the time being this is easier.
 	if ( Cluster::backend != Cluster::CLUSTER_BACKEND_BROKER )
 		return;
+
+	# Setup subscriptions for Broker based logging.
+	switch ( self$node_type ) {
+	case LOGGER:
+		Broker::subscribe(Broker::default_log_topic_prefix);
+		break;
+	case MANAGER:
+		if ( Cluster::manager_is_logger )
+			Broker::subscribe(Broker::default_log_topic_prefix);
+		break;
+	}
 
 	if ( self$p != 0/unknown )
 		{

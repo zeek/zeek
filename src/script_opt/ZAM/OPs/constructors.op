@@ -77,9 +77,14 @@ macro	AssignFromRec(rhs)
 	for ( size_t i = 0U; i < n; ++i )
 		{
 		auto rhs_i = rhs->RawField(rhs_map[i]);
+		auto& init_i = init_vals[lhs_map[i]];
 		if ( is_managed[i] )
+			{
 			zeek::Ref(rhs_i.ManagedVal());
-		init_vals[lhs_map[i]] = rhs_i;
+			if ( init_i )
+				ZVal::DeleteManagedType(*init_i);
+			}
+		init_i = rhs_i;
 		}
 
 op Construct-Known-Record-From

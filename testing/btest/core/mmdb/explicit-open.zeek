@@ -45,6 +45,9 @@ event new_packet(c: connection, p: pkt_hdr)
 
 event zeek_init()
 	{
-	assert mmdb_open_asn_db(asn_fn);
-	assert mmdb_open_location_db(city_fn);
+	if ( ! mmdb_open_asn_db(asn_fn) )
+		Reporter::fatal("failed to open asn_db " + asn_fn);
+
+	if ( ! mmdb_open_location_db(city_fn) )
+		Reporter::fatal("failed to open location db " + city_fn);
 	}

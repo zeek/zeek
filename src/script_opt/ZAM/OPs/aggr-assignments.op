@@ -20,7 +20,19 @@ op Any-Vector-Elem-Assign
 op1-read
 set-type $1
 classes VVV VVC
-eval	EvalVectorElemAssign($1, $2,, vv->Assign(ind, $3.ToVal(Z_TYPE)))
+eval	auto ind = $2.AsCount();
+	auto vv = $1.AsVector();
+	auto yt = vv->RawYieldTypes();
+	if ( ind < vv->Size() && yt && (*yt)[ind] && ZVal::IsManagedType((*yt)[ind]) )
+		{
+		auto orig_elem = vv->RawVec()[ind];
+		if ( ! vv->Assign(ind, $3.ToVal(Z_TYPE)) )
+			ERROR("value used but not set");
+		if ( orig_elem )
+			ZVal::DeleteManagedType(*orig_elem);
+		}
+	else if ( ! vv->Assign(ind, $3.ToVal(Z_TYPE)) )
+		ERROR("value used but not set");
 
 op Vector-Elem-Assign-Any
 op1-read

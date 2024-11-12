@@ -1,3 +1,9 @@
+7.1.0-dev.505 | 2024-11-12 10:26:15 +0100
+
+  * ZAM fixes for assignments involving "any" record fields (Vern Paxson, Corelight)
+
+  * fixes for (mostly ZAM) vector operation issues found by ASAN (Vern Paxson, Corelight)
+
 7.1.0-dev.501 | 2024-11-11 21:05:41 +0100
 
   * GH-4006: Fix nullptr deref in Spicy accept/decline input (Evan Typanski, Corelight)

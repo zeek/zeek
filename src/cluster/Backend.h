@@ -403,16 +403,6 @@ protected:
 
 private:
     /**
-     * Helper enum to avoid bool parameters.
-     */
-    enum class IOSourceCount { COUNT, DONT_COUNT };
-
-    /**
-     * Register this as IO source with the IO loop;
-     */
-    bool RegisterIOSource(IOSourceCount count);
-
-    /**
      * Process a backend specific message queued as BackendMessage.
      */
     bool ProcessBackendMessage(int tag, detail::byte_buffer_span payload);

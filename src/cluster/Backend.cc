@@ -194,9 +194,31 @@ bool ThreadedBackend::ProcessBackendMessage(int tag, detail::byte_buffer_span pa
     return DoProcessBackendMessage(tag, payload);
 }
 
-bool ThreadedBackend::DoInit() { return RegisterIOSource(IOSourceCount::COUNT); }
+namespace {
 
-void ThreadedBackend::DoInitPostScript() { RegisterIOSource(IOSourceCount::DONT_COUNT); }
+bool register_io_source(zeek::iosource::IOSource* src, int fd, bool dont_count) {
+    constexpr bool manage_lifetime = true;
+
+    zeek::iosource_mgr->Register(src, dont_count, manage_lifetime);
+
+    if ( ! zeek::iosource_mgr->RegisterFd(fd, src) ) {
+        zeek::reporter->Error("Failed to register messages_flare with IO manager");
+        return false;
+    }
+
+    return true;
+}
+} // namespace
+
+bool ThreadedBackend::DoInit() {
+    // Register as counting during DoInit() to avoid Zeek from shutting down.
+    return register_io_source(this, messages_flare.FD(), false);
+}
+
+void ThreadedBackend::DoInitPostScript() {
+    // Register non-counting after parsing scripts.
+    register_io_source(this, messages_flare.FD(), true);
+}
 
 void ThreadedBackend::QueueForProcessing(QueueMessages&& qmessages) {
     bool fire = false;
@@ -244,18 +266,4 @@ void ThreadedBackend::Process() {
             zeek::reporter->FatalError("Unimplemented QueueMessage %zu", msg.index());
         }
     }
-}
-
-bool ThreadedBackend::RegisterIOSource(IOSourceCount counts) {
-    bool dont_count = counts == IOSourceCount::DONT_COUNT;
-    constexpr bool manage_lifetime = true;
-
-    zeek::iosource_mgr->Register(this, dont_count, manage_lifetime);
-
-    if ( ! zeek::iosource_mgr->RegisterFd(messages_flare.FD(), this) ) {
-        zeek::reporter->Error("Failed to register messages_flare with IO manager");
-        return false;
-    }
-
-    return true;
 }

@@ -98,22 +98,6 @@ public:
     ~Manager() override = default;
 
     /**
-     * Initialization of the manager. This is called late during Zeek's
-     * initialization after any scripts are processed.
-     */
-    void DoInitPostScript() override;
-
-    /**
-     * Broker doesn't do anything during Broker::Backend::init().
-     */
-    bool DoInit() override { return true; }
-
-    /**
-     * Shuts Broker down at termination.
-     */
-    void DoTerminate() override;
-
-    /**
      * Returns true if any Broker communication is currently active.
      */
     [[deprecated("Remove with v8.1 - unused")]] bool Active();
@@ -437,6 +421,16 @@ public:
     };
 
 private:
+    // Initialization of the manager. This is called late during Zeek's
+    // initialization after any scripts are processed.
+    void DoInitPostScript() override;
+
+    // Broker doesn't do anything during Broker::Backend::init().
+    bool DoInit() override { return true; }
+
+    // Shuts Broker down at termination.
+    void DoTerminate() override;
+
     // Process events used for Broker store backed zeek tables
     void ProcessStoreEvent(broker::data msg);
     // Common functionality for processing insert and update events.

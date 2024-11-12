@@ -438,14 +438,17 @@ double current_timestamp = 0.0;
 static int _processing_suspended = 0;
 
 void suspend_processing() {
-    if ( _processing_suspended == 0 )
+    if ( _processing_suspended == 0 ) {
+        DBG_LOG(DBG_MAINLOOP, "processing suspended");
         reporter->Info("processing suspended");
+    }
 
     ++_processing_suspended;
 }
 
 void continue_processing() {
     if ( _processing_suspended == 1 ) {
+        DBG_LOG(DBG_MAINLOOP, "processing continued");
         reporter->Info("processing continued");
         detail::current_wallclock = util::current_time(true);
     }

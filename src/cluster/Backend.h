@@ -39,17 +39,18 @@ namespace cluster {
 namespace detail {
 
 /**
- * Event class as received by and serializers.
+ * Cluster event class.
  */
 class Event {
 public:
-    // When an Event is published from script land, the handler is known
-    // as FuncVal. When an Event is deserialized an EventHandler from
-    // the registry is used so the event can be enqueued directly.
+    // When an event is published from script land, the handler is known
+    // as a FuncVal. When an event is deserialized from a message, it's
+    // easier to use an EventHandler from the registry so the event can
+    // be enqueued directly.
     //
     // It seems there's no direct translation between EventHandlerPtr and
     // FuncValPtr without going through the global scope or event registry,
-    // so this is done via a variant.
+    // so this is done via a variant here.
     using FuncValOrEventHandler = std::variant<FuncValPtr, EventHandlerPtr>;
 
     /**
@@ -64,7 +65,7 @@ public:
                       // metadata as a vector? Can delay until metadata is made
                       // accessible in script using a generic mechanism.
                       //
-                      // This is encoded as vector(vector(count, any), ...) on
+                      // Metadata is encoded as vector(vector(count, any), ...) on
                       // the broker side.
 
     std::string_view HandlerName() const;
@@ -80,6 +81,9 @@ public:
  */
 class Backend {
 public:
+    /**
+     * Constructor.
+     */
     Backend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls)
         : event_serializer(std::move(es)), log_serializer(std::move(ls)) {}
 
@@ -91,7 +95,7 @@ public:
     void InitPostScript() { DoInitPostScript(); }
 
     /**
-     * Method invoked from Cluster::Backend::__init() bif.
+     * Method invoked from the Cluster::Backend::__init() bif.
      */
     bool Init() { return DoInit(); }
 
@@ -101,7 +105,7 @@ public:
     void Terminate() { DoTerminate(); }
 
     /**
-     * Create a detail::Event instance given a event handler and the
+     * Create a cluster::detail::Event instance given a event handler and the
      * script function arguments to it.
      *
      * @param handler
@@ -111,10 +115,12 @@ public:
     std::optional<detail::Event> MakeClusterEvent(FuncValPtr handler, ArgsSpan args, double timestamp = 0.0) const;
 
     /**
-     * Publish \a event to topic \a topic.
+     * Publish a cluster::detail::Event instance to a given topic.
      *
      * @param topic
      * @param event
+     *
+     * @return true if the message was sent successfully.
      */
     bool PublishEvent(const std::string& topic, const cluster::detail::Event& event) {
         return DoPublishEvent(topic, event);
@@ -125,10 +131,11 @@ public:
      *
      * This function is invoked from the \a Cluster::make_event() bif.
      *
-     * The returned Val can be ClusterBackend specific. It could be a basic
-     * script level record holding the required information.
+     * The returned RecordVal can be backend specific. It should be a basic
+     * script level record holding all required information.
      *
-     * @param args FuncVal representing the event followed by its argument.
+     * @param args An ArgsSpan starting with a FuncVal instance representing
+     * the event, followed by the event's arguments, if any.
      *
      * @return An opaque RecordValPtr that can be passed to PublishEvent()
      */
@@ -141,7 +148,7 @@ public:
      *
      * @param topic a topic string associated with the message.
      * @param event an event RecordVal as produced by MakeEvent().
-     * @return true if the message is sent successfully.
+     * @return true if the message was sent successfully.
      */
     bool PublishEvent(const std::string& topic, const zeek::RecordValPtr& event) {
         return DoPublishEvent(topic, event);
@@ -242,7 +249,7 @@ private:
      *
      * @param topic a topic string associated with the message.
      * @param event an event RecordVal as produced by MakeEvent().
-     * @return true if the message is sent successfully.
+     * @return true if the message was sent successfully.
      */
     virtual bool DoPublishEvent(const std::string& topic, const zeek::RecordValPtr& event);
 

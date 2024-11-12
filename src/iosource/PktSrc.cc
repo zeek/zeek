@@ -127,9 +127,8 @@ bool PktSrc::ExtractNextPacketInternal() {
 
     have_packet = false;
 
-    // Don't return any packets if processing is suspended (except for the
-    // very first packet which we need to set up times).
-    if ( run_state::is_processing_suspended() && run_state::detail::first_timestamp )
+    // Don't return any packets if processing is suspended.
+    if ( run_state::is_processing_suspended() )
         return false;
 
     if ( ExtractNextPacket(&current_packet) ) {

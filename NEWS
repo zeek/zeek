@@ -103,6 +103,11 @@ Changed Functionality
   of a node are scraped via the Prometheus HTTP endpoint, or one of the collect
   methods is invoked from Zeek script.
 
+* Calling ``Broker::publish()`` now uses the event time of the currently
+  executing event as network time metadata attached to the remote event.
+  Previously, ``network_time()`` was used. This matters if ``Broker::publish()``
+  is called within scheduled events or called within remote events.
+
 Removed Functionality
 ---------------------
 

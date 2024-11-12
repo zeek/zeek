@@ -12,6 +12,7 @@
 
 #include "zeek/DebugLogger.h"
 #include "zeek/Desc.h"
+#include "zeek/Event.h"
 #include "zeek/Func.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Reporter.h"
@@ -580,9 +581,10 @@ bool Manager::PublishEvent(string topic, RecordVal* args) {
     }
 
     // At this point we come from script-land. This means that publishing of the event was
-    // explicitly triggered. Hence, the timestamp is set to the current network time. This also
-    // means that timestamping cannot be manipulated from script-land for now.
-    return PublishEvent(std::move(topic), event_name, std::move(xs), run_state::network_time);
+    // explicitly triggered. Hence, the timestamp is set to the current event's time. This
+    // also means that timestamping cannot be manipulated from script-land for now.
+    auto ts = event_mgr.CurrentEventTime();
+    return PublishEvent(std::move(topic), event_name, std::move(xs), ts);
 }
 
 bool Manager::PublishIdentifier(std::string topic, std::string id) {

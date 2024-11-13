@@ -54,6 +54,7 @@
 #include "zeek/analyzer/Manager.h"
 #include "zeek/binpac_zeek.h"
 #include "zeek/broker/Manager.h"
+#include "zeek/cluster/Manager.h"
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/input.h"
 #include "zeek/input/Manager.h"
@@ -178,6 +179,8 @@ zeek::detail::trigger::Manager* zeek::detail::trigger_mgr = nullptr;
 #ifdef HAVE_SPICY
 zeek::spicy::Manager* zeek::spicy_mgr = nullptr;
 #endif
+
+zeek::cluster::Manager* zeek::cluster::manager = nullptr;
 
 std::vector<std::string> zeek::detail::zeek_script_prefixes;
 zeek::detail::Stmt* zeek::detail::stmts = nullptr;
@@ -391,6 +394,7 @@ static void terminate_zeek() {
     delete packet_mgr;
     delete analyzer_mgr;
     delete file_mgr;
+    delete cluster::manager;
     // broker_mgr, timer_mgr, supervisor, and dns_mgr are deleted via iosource_mgr
     delete iosource_mgr;
     delete event_registry;
@@ -668,6 +672,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     log_mgr = new logging::Manager();
     input_mgr = new input::Manager();
     file_mgr = new file_analysis::Manager();
+    cluster::manager = new cluster::Manager();
     auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;
     broker_mgr = new Broker::Manager(broker_real_time);
     trigger_mgr = new trigger::Manager();

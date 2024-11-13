@@ -5,6 +5,7 @@ zeek_add_subdir_library(
     Manager.cc
     WriterBackend.cc
     WriterFrontend.cc
+    Types.cc
     BIFS
     logging.bif)
 

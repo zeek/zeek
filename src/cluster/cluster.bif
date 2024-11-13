@@ -1,0 +1,71 @@
+%%{
+#include <string>
+
+#include "zeek/cluster/Backend.h"
+#include "zeek/cluster/BifSupport.h"
+
+using namespace zeek::cluster::detail::bif;
+
+%%}
+
+module Cluster;
+
+type Cluster::Event: record;
+
+## Publishes an event to a given topic.
+##
+## topic: a topic associated with the event message.
+##
+## args: Either the event arguments as already made by
+##       :zeek:see:`Cluster::make_event` or the argument list to pass along
+##       to it.
+##
+## Returns: true if the message is sent.
+function Cluster::publish%(topic: string, ...%): bool
+	%{
+	ScriptLocationScope scope{frame};
+
+	auto args = zeek::ArgsSpan{*@ARGS@}.subspan(1);
+	return publish_event({zeek::NewRef{}, topic}, args);
+	%}
+
+## Create a data structure that may be used to send a remote event via
+## :zeek:see:`Broker::publish`.
+##
+## args: an event, followed by a list of argument values that may be used
+##       to call it.
+##
+## Returns: A :zeek:type:`Cluster::Event` instance that can be published via
+##          :zeek:see:`Cluster::publish`, :zeek:see:`Cluster::publish_rr`
+##          or :zeek:see:`Cluster::publish_hrw`.
+function Cluster::make_event%(...%): Cluster::Event
+	%{
+	ScriptLocationScope scope{frame};
+
+	return make_event(zeek::ArgsSpan{*@ARGS@});
+	%}
+
+function Cluster::__subscribe%(topic_prefix: string%): bool
+	%{
+	ScriptLocationScope scope{frame};
+
+	auto rval = zeek::cluster::backend->Subscribe(topic_prefix->CheckString());
+	return zeek::val_mgr->Bool(rval);
+	%}
+
+function Cluster::__unsubscribe%(topic_prefix: string%): bool
+	%{
+	ScriptLocationScope scope{frame};
+
+	auto rval = zeek::cluster::backend->Unsubscribe(topic_prefix->CheckString());
+	return zeek::val_mgr->Bool(rval);
+	%}
+
+## Initialize the global cluster backend.
+##
+## Returns: true on success.
+function Cluster::Backend::__init%(%): bool
+	%{
+	auto rval = zeek::cluster::backend->Init();
+	return zeek::val_mgr->Bool(rval);
+	%}

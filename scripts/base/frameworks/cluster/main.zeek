@@ -281,7 +281,30 @@ export {
 	##          a given cluster node.
 	global nodeid_topic: function(id: string): string;
 
+	## Initialize the cluster backend.
+	##
+	## Cluster backends usually invoke this from a :zeek:see:`zeek_init` handler.
+	##
+	## Returns: T on success, else F.
+	global init: function(): bool;
+
+	## Subscribe to the given topic.
+	##
+	## topic: The topic to subscribe to.
+	##
+	## Returns: T on success, else F.
+	global subscribe: function(topic: string): bool;
+
+	## Unsubscribe from the given topic.
+	##
+	## topic: The topic to unsubscribe from.
+	##
+	## Returns: T on success, else F.
+	global unsubscribe: function(topic: string): bool;
+
 	## An event instance for cluster pub/sub.
+	##
+	## See :zeek:see:`Cluster::publish` and :zeek:see:`Cluster::make_event`.
 	type Event: record {
 		## The event handler to be invoked on the remote node.
 		ev: any;
@@ -289,6 +312,10 @@ export {
 		args: vector of any;
 	};
 }
+
+# Needs declaration of Cluster::Event type.
+@load base/bif/cluster.bif
+
 
 # Track active nodes per type.
 global active_node_ids: table[NodeType] of set[string];
@@ -527,4 +554,19 @@ function create_store(name: string, persistent: bool &default=F): Cluster::Store
 function log(msg: string)
 	{
 	Log::write(Cluster::LOG, [$ts = network_time(), $node = node, $message = msg]);
+	}
+
+function init(): bool
+	{
+	return Cluster::Backend::__init();
+	}
+
+function subscribe(topic: string): bool
+	{
+	return Cluster::__subscribe(topic);
+	}
+
+function unsubscribe(topic: string): bool
+	{
+	return Cluster::__unsubscribe(topic);
 	}

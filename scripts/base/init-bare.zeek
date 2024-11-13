@@ -5753,6 +5753,9 @@ export {
 module Cluster;
 export {
 	type Cluster::Pool: record {};
+
+	## Cluster backend to use. Default is the broker backend.
+	const backend = Cluster::CLUSTER_BACKEND_BROKER &redef;
 }
 
 module Weird;

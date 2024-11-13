@@ -50,6 +50,7 @@
 #include "zeek/analyzer/Manager.h"
 #include "zeek/binpac_zeek.h"
 #include "zeek/broker/Manager.h"
+#include "zeek/cluster/Backend.h"
 #include "zeek/cluster/Manager.h"
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/input.h"
@@ -179,6 +180,7 @@ zeek::spicy::Manager* zeek::spicy_mgr = nullptr;
 #endif
 
 zeek::cluster::Manager* zeek::cluster::manager = nullptr;
+zeek::cluster::Backend* zeek::cluster::backend = nullptr;
 
 std::vector<std::string> zeek::detail::zeek_script_prefixes;
 zeek::detail::Stmt* zeek::detail::stmts = nullptr;
@@ -376,7 +378,11 @@ static void terminate_zeek() {
     log_mgr->Terminate();
     input_mgr->Terminate();
     thread_mgr->Terminate();
+
     broker_mgr->Terminate();
+    if ( cluster::backend != broker_mgr )
+        cluster::backend->Terminate();
+
     telemetry_mgr->Terminate();
 
     event_mgr.Drain();
@@ -814,7 +820,26 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         log_mgr->InitPostScript();
         plugin_mgr->InitPostScript();
         zeekygen_mgr->InitPostScript();
+
+        // If Cluster::backend is set to broker, just set zeek::cluster::backend
+        // to broker_mgr like it has always been. If it's an alternative
+        // implementation, instantiate it.
+        const auto& cluster_backend_val = id::find_val<zeek::EnumVal>("Cluster::backend");
+        const auto& cluster_backend_type = zeek::id::find_type<EnumType>("Cluster::BackendTag");
+        zeek_int_t broker_enum = cluster_backend_type->Lookup("Cluster::CLUSTER_BACKEND_BROKER");
+        if ( broker_enum == cluster_backend_val->AsEnum() ) {
+            cluster::backend = broker_mgr;
+        }
+        else {
+            reporter->Error("Unsupported cluster backend configured: %s",
+                            zeek::obj_desc_short(cluster_backend_val.get()).c_str());
+            exit(1);
+        }
+
         broker_mgr->InitPostScript();
+        if ( cluster::backend != broker_mgr )
+            cluster::backend->InitPostScript();
+
         timer_mgr->InitPostScript();
         event_mgr.InitPostScript();
 

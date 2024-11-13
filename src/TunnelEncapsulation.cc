@@ -14,7 +14,7 @@ EncapsulatingConn::EncapsulatingConn(Connection* c, BifEnum::Tunnel::Type t)
       src_port(c->OrigPort()),
       dst_port(c->RespPort()),
       proto(c->ConnTransport()),
-      proto_id(c->KeyProto()),
+      ip_proto(c->KeyProto()),
       type(t),
       uid(c->GetUID()) {
     if ( ! uid ) {
@@ -31,7 +31,7 @@ RecordValPtr EncapsulatingConn::ToVal() const {
     id_val->Assign(1, val_mgr->Port(ntohs(src_port), proto));
     id_val->Assign(2, make_intrusive<AddrVal>(dst_addr));
     id_val->Assign(3, val_mgr->Port(ntohs(dst_port), proto));
-    id_val->Assign(4, proto_id);
+    id_val->Assign(4, ip_proto);
     rv->Assign(0, std::move(id_val));
     rv->Assign(1, BifType::Enum::Tunnel::Type->GetEnumVal(type));
 

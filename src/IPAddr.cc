@@ -60,7 +60,7 @@ ConnKey::ConnKey(Val* v) {
 
     int orig_h, orig_p; // indices into record's value list
     int resp_h, resp_p;
-    uint8_t proto;
+    int proto;
 
     if ( vr == id::conn_id ) {
         orig_h = 0;
@@ -77,7 +77,7 @@ ConnKey::ConnKey(Val* v) {
         resp_p = vr->FieldOffset("resp_p");
         proto = vr->FieldOffset("proto");
 
-        if ( orig_h < 0 || resp_h < 0 || orig_p < 0 || resp_p < 0 ) {
+        if ( orig_h < 0 || resp_h < 0 || orig_p < 0 || resp_p < 0 || proto < 0 ) {
             valid = false;
             return;
         }

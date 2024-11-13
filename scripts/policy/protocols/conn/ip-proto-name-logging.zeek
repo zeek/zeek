@@ -157,15 +157,13 @@ global protocol_names: table[count] of string = {
 	[142] = "rohc",
 	[143] = "ethernet",
 	[144] = "aggfrag",
-	[145] = "nsh"
+	[145] = "nsh",
+	[146] = "homa"
 };
 
 event new_connection(c: connection) &priority=5 {
 	# In case we're the first access
 	Conn::set_conn(c, F);
-	if ( c$conn?$ip_proto && c$conn$ip_proto in protocol_names ) {
+	if ( c$conn?$ip_proto && c$conn$ip_proto in protocol_names )
 		c$conn$ip_proto_name = protocol_names[c$conn$ip_proto];
-	} else {
-		c$conn$ip_proto_name = "unknown";
-	}
 }

@@ -160,7 +160,7 @@ export {
 		tunnel_parents: set[string] &log &optional;
 		## For IP-based connections, this contains the protocol
 		## identifier passed in the IP header. This is different
-		## from the ``proto`` field in that this value comes
+		## from the *proto* field in that this value comes
 		## directly from the header.
 		ip_proto:   count      &log &optional;
 	};
@@ -287,7 +287,8 @@ function set_conn(c: connection, eoc: bool)
 			c$conn$history=c$history;
 		}
 
-	c$conn$ip_proto = c$id$proto;
+	if ( c$id$proto != 65535 )
+		c$conn$ip_proto = c$id$proto;
 	}
 
 event content_gap(c: connection, is_orig: bool, seq: count, length: count) &priority=5

@@ -174,12 +174,20 @@ env:
 # Linux EOL timelines: https://linuxlifecycle.com/
 # Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
 
+fedora41_task:
+  container:
+    # Fedora 41 EOL: Around Nov 2025
+    dockerfile: ci/fedora-41/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+
 fedora40_task:
   container:
     # Fedora 40 EOL: Around May 2025
     dockerfile: ci/fedora-40/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
 
 fedora39_task:
   container:
@@ -268,6 +276,14 @@ opensuse_tumbleweed_task:
   prepare_script: ./ci/opensuse-tumbleweed/prepare.sh
   << : *CI_TEMPLATE
 #  << : *SKIP_TASK_ON_PR
+
+ubuntu24_10_task:
+  container:
+    # Ubuntu 24.10 EOL: 2025-07-30
+    dockerfile: ci/ubuntu-24.10/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *SKIP_TASK_ON_PR
 
 ubuntu24_task:
   container:

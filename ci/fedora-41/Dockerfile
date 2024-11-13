@@ -28,6 +28,11 @@ RUN dnf -y install \
     swig \
     which \
     zlib-devel \
+    crypto-policies-scripts \
   && dnf clean all && rm -rf /var/cache/dnf
 
 RUN pip3 install websockets junit2html
+
+# Required to allow validation of certificates with SHA1 signatures
+# See: https://fedoraproject.org/wiki/Changes/OpenSSLDistrustSHA1SigVer
+RUN update-crypto-policies --set FEDORA40

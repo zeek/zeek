@@ -1,3 +1,29 @@
+7.1.0-dev.529 | 2024-11-13 14:36:04 -0700
+
+  * Add NEWS entry for ip_proto feature (Tim Wojtulewicz, Corelight)
+
+  * Move IP protocol names table out of policy script to init-bare (Tim Wojtulewicz, Corelight)
+
+  * Minor review nits (Tim Wojtulewicz, Corelight)
+
+  * Fixes for community ID hashing with new proto values (Tim Wojtulewicz, Corelight)
+
+  * Use new_connection instead of connection_state_remove (Tim Wojtulewicz, Corelight)
+
+  * Add policy script to remove ip_proto field, rename protocol naming script (Tim Wojtulewicz, Corelight)
+
+  * Rename protocol_id field to ip_proto and similar renaming for name field (Tim Wojtulewicz, Corelight)
+
+  * Increase size of proto fields to uint16_t, add common default value (Tim Wojtulewicz, Corelight)
+
+  * Disable part of core/dict-iteration-expire5 btest to avoid iteration bug (Tim Wojtulewicz)
+
+    The second set of seeds in this test trip the bug reported in #3538
+
+  * Add conn.log entries for connections with unhandled IP protocols (Tim Wojtulewicz, Corelight)
+
+  * CI: Add Ubuntu 24.10 (Johanna Amann, Corelight)
+
 7.1.0-dev.516 | 2024-11-12 12:26:41 -0700
 
   * diff-remove-abspath: Add separate handling of Windows paths (Tim Wojtulewicz)

@@ -45,7 +45,7 @@ event proceed()
 	# a real pcap tends to make this test timeout on CI under ASan.
 	local c = connection(
 			$id = conn_id($orig_h=1.1.1.1, $orig_p=1/tcp,
-			              $resp_h=2.2.2.2, $resp_p=2/tcp),
+			              $resp_h=2.2.2.2, $resp_p=2/tcp, $proto=6),
 			$orig = endpoint($size=1, $state=4, $flow_label=0),
 			$resp = endpoint($size=1, $state=4, $flow_label=0),
 			$start_time=current_time(),

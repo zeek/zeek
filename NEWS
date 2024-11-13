@@ -30,6 +30,15 @@ Breaking Changes
 New Functionality
 -----------------
 
+* IP-based connections that were previously not logged due to using an unknown
+  IP protocol (e.g. not TCP, UDP, or ICMP) now appear in conn.log. All conn.log
+  entries have a new ``ip_proto`` column that indicates the numeric IP protocol
+  identifier used by the connection. A new policy script at
+  ``policy/protocols/conn/ip-proto-name-logging.zeek`` can be loaded to also add
+  an ``ip_proto_name`` column with a string version of the ``ip_proto`` value.
+  This entire feature can be disabled by loading the new
+  ``policy/protocols/conn/disable-unknown-ip-proto-support.zeek`` policy script.
+
 - Zeek now includes a PostgreSQL protocol analyzer. This analyzer is enabled
   by default. The analyzer's events and its ``postgresql.log`` should be
   considered preliminary and experimental until the arrival of Zeek's next

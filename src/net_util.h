@@ -4,8 +4,10 @@
 
 #include "zeek/zeek-config.h"
 
+#include <cstdint>
+
 // Define first.
-enum TransportProto {
+enum TransportProto : uint8_t {
     TRANSPORT_UNKNOWN,
     TRANSPORT_TCP,
     TRANSPORT_UDP,

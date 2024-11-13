@@ -45,7 +45,8 @@ event DHCP::log_dhcp(rec: DHCP::Info)
 		local id: conn_id = [$orig_h=rec$assigned_addr,
 		                     $orig_p=rec$client_port,
 		                     $resp_h=rec$server_addr,
-		                     $resp_p=rec$server_port];
+		                     $resp_p=rec$server_port,
+				     $proto=17]; # DHCP is typically UDP
 
 		if ( rec?$client_software && rec$assigned_addr != 255.255.255.255 )
 			{

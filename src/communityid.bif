@@ -1,4 +1,5 @@
 %%{ // C segment
+#include "zeek/IP.h"
 #include "zeek/IPAddr.h"
 #include "zeek/Val.h"
 #include "zeek/digest.h"
@@ -48,9 +49,16 @@ function community_id_v1%(cid: conn_id, seed: count &default=0, do_base64: bool 
                 hash_proto = IPPROTO_ICMPV6;
 
             break;
-        case TRANSPORT_UNKNOWN:
-            emit_builtin_error("CommunityID: unknown transport layer", cid);
-            return zeek::make_intrusive<zeek::StringVal>("");
+        case TRANSPORT_UNKNOWN: {
+            uint16_t cid_proto = static_cast<uint16_t>(cid_rec->GetFieldAs<zeek::CountVal>(4));
+            if ( cid_proto == zeek::UNKNOWN_IP_PROTO ) {
+                emit_builtin_error("CommunityID: unknown transport layer", cid);
+                return zeek::make_intrusive<zeek::StringVal>("");
+            }
+
+            hash_proto = static_cast<uint8_t>(cid_proto);
+            break;
+        }
         default:
             emit_builtin_error("CommunityID: unhandled transport layer", cid);
             return zeek::make_intrusive<zeek::StringVal>("");

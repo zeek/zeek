@@ -5,7 +5,6 @@
 #include "zeek/Conn.h"
 #include "zeek/RunState.h"
 #include "zeek/analyzer/Manager.h"
-#include "zeek/analyzer/protocol/conn-size/ConnSize.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/packet_analysis/protocol/udp/UDPSessionAdapter.h"
 #include "zeek/packet_analysis/protocol/udp/events.bif.h"
@@ -66,7 +65,7 @@ bool UDPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet
     tuple.src_port = up->uh_sport;
     tuple.dst_port = up->uh_dport;
     tuple.is_one_way = false;
-    tuple.proto = TRANSPORT_UDP;
+    tuple.proto = packet->proto;
 
     return true;
 }

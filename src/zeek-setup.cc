@@ -831,9 +831,31 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
             cluster::backend = broker_mgr;
         }
         else {
-            reporter->Error("Unsupported cluster backend configured: %s",
-                            zeek::obj_desc_short(cluster_backend_val.get()).c_str());
-            exit(1);
+            const auto& event_serializer_val = id::find_val<zeek::EnumVal>("Cluster::event_serializer");
+            auto event_serializer = cluster::manager->InstantiateEventSerializer(event_serializer_val);
+            if ( ! event_serializer ) {
+                reporter->Error("Failed to instantiate event serializer: %s",
+                                zeek::obj_desc(event_serializer_val.get()).c_str());
+                exit(1);
+            }
+
+            const auto& log_serializer_val = id::find_val<zeek::EnumVal>("Cluster::log_serializer");
+            auto log_serializer = cluster::manager->InstantiateLogSerializer(log_serializer_val);
+            if ( ! log_serializer ) {
+                reporter->Error("Failed to instantiate log serializer: %s",
+                                zeek::obj_desc(log_serializer_val.get()).c_str());
+                exit(1);
+            }
+
+            auto backend = cluster::manager->InstantiateBackend(cluster_backend_val, std::move(event_serializer),
+                                                                std::move(log_serializer));
+            if ( ! backend ) {
+                reporter->Error("Failed to instantiate cluster backend: %s",
+                                zeek::obj_desc_short(cluster_backend_val.get()).c_str());
+                exit(1);
+            }
+
+            cluster::backend = backend.release();
         }
 
         broker_mgr->InitPostScript();

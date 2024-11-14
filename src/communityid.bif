@@ -23,6 +23,7 @@ function community_id_v1%(cid: conn_id, seed: count &default=0, do_base64: bool 
     uint8_t hash_padbyte = 0;
     uint16_t hash_src_port = 0;
     uint16_t hash_dst_port = 0;
+    bool has_ports = true;
 
     const auto& orig_addr = cid_rec->GetFieldAs<zeek::AddrVal>(0);
     const auto& orig_port = cid_rec->GetFieldAs<zeek::PortVal>(1);
@@ -57,6 +58,15 @@ function community_id_v1%(cid: conn_id, seed: count &default=0, do_base64: bool 
             }
 
             hash_proto = static_cast<uint8_t>(cid_proto);
+            has_ports = false;
+
+            // The following isn't right if the conn_id entry comes
+            // from Zeek's core, because there's no native SCTP support.
+            // Assuming someone used 80/unknown for an SCTP conn_id record,
+            // it still somehow works right.
+            if ( hash_proto == IPPROTO_SCTP )
+                has_ports = true;
+
             break;
         }
         default:
@@ -107,8 +117,11 @@ function community_id_v1%(cid: conn_id, seed: count &default=0, do_base64: bool 
     dlen += digest_update(ctx, hash_dst_addr, is_ipv4 ? 4 : 16);
     dlen += digest_update(ctx, &hash_proto, 1);
     dlen += digest_update(ctx, &hash_padbyte, 1);
-    dlen += digest_update(ctx, &hash_src_port, 2);
-    dlen += digest_update(ctx, &hash_dst_port, 2);
+
+    if ( has_ports ) {
+        dlen += digest_update(ctx, &hash_src_port, 2);
+        dlen += digest_update(ctx, &hash_dst_port, 2);
+    }
 
     u_char digest[ZEEK_SHA_DIGEST_LENGTH];
     zeek::detail::hash_final(ctx, digest);

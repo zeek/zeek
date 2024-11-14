@@ -151,12 +151,8 @@ event SumStats::cluster_get_result(uid: string, ss_name: string, key: Key, clean
 		{
 		if ( uid in sending_results && key in sending_results[uid] )
 			{
-			# XXX: Is that comment stale?
-			#
-			# Note: copy is needed to compensate serialization caching issue. This should be
-			# changed to something else later.
 			Broker::publish(Cluster::manager_topic, SumStats::cluster_send_result,
-			                uid, ss_name, key, copy(sending_results[uid][key]), cleanup);
+			                uid, ss_name, key, sending_results[uid][key], cleanup);
 			delete sending_results[uid][key];
 			}
 		else
@@ -171,10 +167,8 @@ event SumStats::cluster_get_result(uid: string, ss_name: string, key: Key, clean
 		{
 		if ( ss_name in result_store && key in result_store[ss_name] )
 			{
-			# Note: copy is needed to compensate serialization caching issue. This should be
-			# changed to something else later.
 			Broker::publish(Cluster::manager_topic, SumStats::cluster_send_result,
-			                uid, ss_name, key, copy(result_store[ss_name][key]), cleanup);
+			                uid, ss_name, key, result_store[ss_name][key], cleanup);
 			}
 		else
 			{

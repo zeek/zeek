@@ -536,11 +536,11 @@ Manager::WriterInfo* Manager::FindWriter(WriterFrontend* writer) {
 }
 
 bool Manager::CompareFields(const Filter* filter, const WriterFrontend* writer) {
-    if ( filter->num_fields != writer->NumFields() )
+    if ( filter->num_fields != static_cast<int>(writer->GetFields().size()) )
         return false;
 
     for ( int i = 0; i < filter->num_fields; ++i )
-        if ( filter->fields[i]->type != writer->Fields()[i]->type )
+        if ( filter->fields[i]->type != writer->GetFields()[i].type )
             return false;
 
     return true;
@@ -1779,8 +1779,13 @@ void Manager::SendAllWritersTo(const broker::endpoint_info& ei) {
         for ( Stream::WriterMap::iterator i = stream->writers.begin(); i != stream->writers.end(); i++ ) {
             WriterFrontend* writer = i->second->writer;
             const auto& writer_val = et->GetEnumVal(i->first.first);
-            broker_mgr->PublishLogCreate((*s)->id, writer_val.get(), *i->second->info, writer->NumFields(),
-                                         writer->Fields(), ei);
+
+            std::vector<const threading::Field*> fields(writer->GetFields().size());
+            for ( size_t i = 0; i < writer->GetFields().size(); i++ )
+                fields[i] = &writer->GetFields()[i];
+
+            broker_mgr->PublishLogCreate((*s)->id, writer_val.get(), *i->second->info, fields.size(), fields.data(),
+                                         ei);
         }
     }
 }

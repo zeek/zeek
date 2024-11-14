@@ -6,6 +6,7 @@
 
 #include "zeek/Span.h"
 #include "zeek/logging/Component.h"
+#include "zeek/logging/Types.h"
 #include "zeek/threading/MsgThread.h"
 
 namespace broker {
@@ -13,12 +14,6 @@ class data;
 }
 
 namespace zeek::logging {
-
-namespace detail {
-
-using LogRecord = std::vector<threading::Value>;
-
-}
 
 class WriterFrontend;
 

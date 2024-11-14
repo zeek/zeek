@@ -29,7 +29,7 @@ event zeek_init()
     Broker::listen_websocket("127.0.0.1", to_port(getenv("BROKER_PORT")));
     }
 
-function send_event()
+event send_event()
     {
     ++event_count;
     local e = Broker::make_event(ping, "my-message", event_count);
@@ -39,7 +39,7 @@ function send_event()
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
     {
     print fmt("sender added peer: endpoint=%s msg=%s", endpoint$network$address, msg);
-    send_event();
+    event send_event();
     }
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
@@ -53,7 +53,11 @@ event pong(msg: string, n: count) &is_used
     print fmt("sender got pong: %s, %s network_time=%s current_event_time=%s",
               msg, n, network_time(), current_event_time());
     set_network_time(network_time() + 10sec);
-    send_event();
+
+    # pong is a remote event and a Broker::publish() would take
+    # current_event_time() as the network time for Broker::publish(),
+    # prevent this by queuing a new send_event().
+    event send_event();
     }
 
 

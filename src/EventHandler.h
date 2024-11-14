@@ -35,9 +35,15 @@ public:
 
     void SetFunc(FuncPtr f);
 
-    void AutoPublish(std::string topic) { auto_publish.insert(std::move(topic)); }
+    [[deprecated("Remove in v8.1, use explicit Publish().")]]
+    void AutoPublish(std::string topic) {
+        auto_publish.insert(std::move(topic));
+    }
 
-    void AutoUnpublish(const std::string& topic) { auto_publish.erase(topic); }
+    [[deprecated("Remove in v8.1.")]]
+    void AutoUnpublish(const std::string& topic) {
+        auto_publish.erase(topic);
+    }
 
     void Call(zeek::Args* vl, bool no_remote = false, double ts = run_state::network_time);
 

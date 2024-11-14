@@ -226,26 +226,6 @@ global blocks: table[addr] of BlockInfo = {}
 	&create_expire=0secs
 	&expire_func=per_block_interval;
 
-
-@if ( Cluster::is_enabled() )
-
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
-event zeek_init()
-	{
-	Broker::auto_publish(Cluster::worker_topic, NetControl::catch_release_block_new);
-	Broker::auto_publish(Cluster::worker_topic, NetControl::catch_release_block_delete);
-	}
-@else
-event zeek_init()
-	{
-	Broker::auto_publish(Cluster::manager_topic, NetControl::catch_release_add);
-	Broker::auto_publish(Cluster::manager_topic, NetControl::catch_release_delete);
-	Broker::auto_publish(Cluster::manager_topic, NetControl::catch_release_encountered);
-	}
-@endif
-
-@endif
-
 function cr_check_rule(r: Rule): bool &is_used
 	{
 	if ( r$ty == DROP && r$entity$ty == ADDRESS )
@@ -397,14 +377,18 @@ function drop_address_catch_release(a: addr, location: string &default=""): Bloc
 		log$message = "Address already blocked outside of catch-and-release. Catch and release will monitor and only actively block if it appears in network traffic.";
 		Log::write(CATCH_RELEASE, log);
 		blocks[a] = bi;
-		event NetControl::catch_release_block_new(a, bi);
+@if ( Cluster::is_enabled() )
+		Broker::publish(Cluster::worker_topic, NetControl::catch_release_block_new, a, bi);
 @endif
+@endif
+
 @if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
-		event NetControl::catch_release_add(a, location);
+		Broker::publish(Cluster::manager_topic, NetControl::catch_release_add, a, location);
 @endif
 		return bi;
 		}
 
+	# No entry in blocks.
 	local block_interval = catch_release_intervals[0];
 
 @if ( ! Cluster::is_enabled() || ( Cluster::is_enabled()  && Cluster::local_node_type() == Cluster::MANAGER ) )
@@ -416,8 +400,9 @@ function drop_address_catch_release(a: addr, location: string &default=""): Bloc
 		if ( location != "" )
 			bi$location = location;
 		blocks[a] = bi;
-		event NetControl::catch_release_block_new(a, bi);
-		blocks[a] = bi;
+@if ( Cluster::is_enabled() )
+		Broker::publish(Cluster::worker_topic, NetControl::catch_release_block_new, a, bi);
+@endif
 		log = populate_log_record(a, bi, DROP_REQUESTED);
 		Log::write(CATCH_RELEASE, log);
 		return bi;
@@ -428,7 +413,7 @@ function drop_address_catch_release(a: addr, location: string &default=""): Bloc
 
 @if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
 	bi = BlockInfo($watch_until=network_time()+catch_release_intervals[1], $block_until=network_time()+block_interval, $current_interval=0, $current_block_id="");
-	event NetControl::catch_release_add(a, location);
+	Broker::publish(Cluster::manager_topic, NetControl::catch_release_add, a, location);
 	return bi;
 @endif
 
@@ -450,10 +435,10 @@ function unblock_address_catch_release(a: addr, reason: string &default=""): boo
 		remove_rule(bi$current_block_id, reason);
 @endif
 @if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
-	event NetControl::catch_release_block_delete(a);
+	Broker::publish(Cluster::worker_topic, NetControl::catch_release_block_delete, a);
 @endif
 @if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
-	event NetControl::catch_release_delete(a, reason);
+	Broker::publish(Cluster::manager_topic, NetControl::catch_release_delete, a, reason);
 @endif
 
 	return T;
@@ -509,14 +494,14 @@ function catch_release_seen(a: addr)
 		Log::write(CATCH_RELEASE, log);
 @endif
 @if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
-	event NetControl::catch_release_block_new(a, bi);
+		Broker::publish(Cluster::worker_topic, NetControl::catch_release_block_new, a, bi);
 @endif
 @if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
-	if ( a in catch_release_recently_notified )
-		return;
+		if ( a in catch_release_recently_notified )
+			return;
 
-	event NetControl::catch_release_encountered(a);
-	add catch_release_recently_notified[a];
+		Broker::publish(Cluster::manager_topic, NetControl::catch_release_encountered, a);
+		add catch_release_recently_notified[a];
 @endif
 
 		return;

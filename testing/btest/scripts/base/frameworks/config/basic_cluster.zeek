@@ -36,13 +36,6 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	terminate();
 	}
 
-global ready_for_data: event();
-
-event zeek_init()
-	{
-	Broker::auto_publish(Cluster::worker_topic, ready_for_data);
-	}
-
 @if ( Cluster::node == "worker-1" )
 event Cluster::Experimental::cluster_started()
 	{

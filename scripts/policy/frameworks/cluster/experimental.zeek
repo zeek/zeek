@@ -48,11 +48,6 @@ global is_cluster_started = F;
 @load ./nodes-experimental/manager
 @endif
 
-event zeek_init() &priority=4
-	{
-	Broker::auto_publish(Cluster::manager_topic, Cluster::Experimental::node_fully_connected);
-	}
-
 hook Cluster::connect_node_hook(connectee: Cluster::NamedNode)
 	{
 	add connectees_pending[connectee$name];
@@ -71,8 +66,11 @@ event Cluster::node_up(name: string, id: string) &priority=-10
 	# pending connectee is left.
 	delete connectees_pending[name];
 	if ( |connectees_pending| == 0 )
-		event Cluster::Experimental::node_fully_connected(Cluster::node, Broker::node_id(),
-			is_cluster_started);
+		{
+		event node_fully_connected(Cluster::node, Broker::node_id(), is_cluster_started);
+		Broker::publish(Cluster::manager_topic, node_fully_connected,
+		                Cluster::node, Broker::node_id(), is_cluster_started);
+		}
 	}
 
 event Cluster::Experimental::node_fully_connected(name: string, id: string, resending: bool)

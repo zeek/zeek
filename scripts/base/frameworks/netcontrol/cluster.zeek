@@ -16,26 +16,6 @@ export {
 	global cluster_netcontrol_delete_rule: event(id: string, reason: string);
 }
 
-@if ( Cluster::local_node_type() == Cluster::MANAGER )
-event zeek_init()
-	{
-	Broker::auto_publish(Cluster::worker_topic, NetControl::rule_added);
-	Broker::auto_publish(Cluster::worker_topic, NetControl::rule_removed);
-	Broker::auto_publish(Cluster::worker_topic, NetControl::rule_timeout);
-	Broker::auto_publish(Cluster::worker_topic, NetControl::rule_error);
-	Broker::auto_publish(Cluster::worker_topic, NetControl::rule_exists);
-	Broker::auto_publish(Cluster::worker_topic, NetControl::rule_new);
-	Broker::auto_publish(Cluster::worker_topic, NetControl::rule_destroyed);
-	}
-@else
-event zeek_init()
-	{
-	Broker::auto_publish(Cluster::manager_topic, NetControl::cluster_netcontrol_add_rule);
-	Broker::auto_publish(Cluster::manager_topic, NetControl::cluster_netcontrol_remove_rule);
-	Broker::auto_publish(Cluster::manager_topic, NetControl::cluster_netcontrol_delete_rule);
-	}
-@endif
-
 function activate(p: PluginState, priority: int)
 	{
 	# We only run the activate function on the manager.
@@ -66,7 +46,7 @@ function add_rule(r: Rule) : string
 		if ( r$id == "" )
 			r$id = cat(Cluster::node, ":", ++local_rule_count);
 
-		event NetControl::cluster_netcontrol_add_rule(r);
+		Broker::publish(Cluster::manager_topic, NetControl::cluster_netcontrol_add_rule, r);
 		return r$id;
 		}
 	}
@@ -77,7 +57,7 @@ function delete_rule(id: string, reason: string &default="") : bool
 		return delete_rule_impl(id, reason);
 	else
 		{
-		event NetControl::cluster_netcontrol_delete_rule(id, reason);
+		Broker::publish(Cluster::manager_topic, NetControl::cluster_netcontrol_delete_rule, id, reason);
 		return T; # well, we can't know here. So - just hope...
 		}
 	}
@@ -88,7 +68,7 @@ function remove_rule(id: string, reason: string &default="") : bool
 		return remove_rule_impl(id, reason);
 	else
 		{
-		event NetControl::cluster_netcontrol_remove_rule(id, reason);
+		Broker::publish(Cluster::manager_topic, NetControl::cluster_netcontrol_remove_rule, id, reason);
 		return T; # well, we can't know here. So - just hope...
 		}
 	}
@@ -120,6 +100,8 @@ event rule_exists(r: Rule, p: PluginState, msg: string) &priority=5
 
 	if ( r?$expire && r$expire > 0secs && ! p$plugin$can_expire )
 		schedule r$expire { rule_expire(r, p) };
+
+	Broker::publish(Cluster::worker_topic, rule_exists, r, p, msg);
 	}
 
 event rule_added(r: Rule, p: PluginState, msg: string) &priority=5
@@ -128,21 +110,39 @@ event rule_added(r: Rule, p: PluginState, msg: string) &priority=5
 
 	if ( r?$expire && r$expire > 0secs && ! p$plugin$can_expire )
 		schedule r$expire { rule_expire(r, p) };
+
+	Broker::publish(Cluster::worker_topic, rule_added, r, p, msg);
 	}
 
 event rule_removed(r: Rule, p: PluginState, msg: string) &priority=-5
 	{
 	rule_removed_impl(r, p, msg);
+
+	Broker::publish(Cluster::worker_topic, rule_removed, r, p, msg);
 	}
 
 event rule_timeout(r: Rule, i: FlowInfo, p: PluginState) &priority=-5
 	{
 	rule_timeout_impl(r, i, p);
+
+	Broker::publish(Cluster::worker_topic, rule_timeout, r, i, p);
 	}
 
 event rule_error(r: Rule, p: PluginState, msg: string) &priority=-5
 	{
 	rule_error_impl(r, p, msg);
+
+	Broker::publish(Cluster::worker_topic, rule_error, r, msg);
+	}
+
+event rule_new(r: Rule)
+	{
+	Broker::publish(Cluster::worker_topic, rule_new, r);
+	}
+
+event rule_destroyed(r: Rule)
+	{
+	Broker::publish(Cluster::worker_topic, rule_destroyed, r);
 	}
 @endif
 

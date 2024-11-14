@@ -134,13 +134,6 @@ event zeek_init() &priority=5
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DHCP, ports);
 	}
 
-@if ( Cluster::is_enabled() )
-event zeek_init()
-	{
-	Broker::auto_publish(Cluster::manager_topic, DHCP::aggregate_msgs);
-	}
-@endif
-
 function join_data_expiration(t: table[count] of Info, idx: count): interval
 	{
 	local info = t[idx];
@@ -307,7 +300,11 @@ event DHCP::aggregate_msgs(ts: time, id: conn_id, uid: string, is_orig: bool, ms
 # Aggregate DHCP messages to the manager.
 event dhcp_message(c: connection, is_orig: bool, msg: DHCP::Msg, options: DHCP::Options) &priority=-5
 	{
-	event DHCP::aggregate_msgs(network_time(), c$id, c$uid, is_orig, msg, options);
+	if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
+		Broker::publish(Cluster::manager_topic, DHCP::aggregate_msgs,
+		                network_time(), c$id, c$uid, is_orig, msg, options);
+	else
+		event DHCP::aggregate_msgs(network_time(), c$id, c$uid, is_orig, msg, options);
 	}
 
 event zeek_done() &priority=-5

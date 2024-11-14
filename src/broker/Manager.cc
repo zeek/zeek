@@ -12,11 +12,13 @@
 
 #include "zeek/DebugLogger.h"
 #include "zeek/Desc.h"
+#include "zeek/Event.h"
 #include "zeek/Func.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
 #include "zeek/SerializationFormat.h"
+#include "zeek/Type.h"
 #include "zeek/Var.h"
 #include "zeek/broker/Data.h"
 #include "zeek/broker/Store.h"
@@ -579,9 +581,10 @@ bool Manager::PublishEvent(string topic, RecordVal* args) {
     }
 
     // At this point we come from script-land. This means that publishing of the event was
-    // explicitly triggered. Hence, the timestamp is set to the current network time. This also
-    // means that timestamping cannot be manipulated from script-land for now.
-    return PublishEvent(std::move(topic), event_name, std::move(xs), run_state::network_time);
+    // explicitly triggered. Hence, the timestamp is set to the current event's time. This
+    // also means that timestamping cannot be manipulated from script-land for now.
+    auto ts = event_mgr.CurrentEventTime();
+    return PublishEvent(std::move(topic), event_name, std::move(xs), ts);
 }
 
 bool Manager::PublishIdentifier(std::string topic, std::string id) {
@@ -810,7 +813,10 @@ bool Manager::AutoPublishEvent(string topic, Val* event) {
     }
 
     DBG_LOG(DBG_BROKER, "Enabling auto-publishing of event %s to topic %s", handler->Name(), topic.c_str());
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     handler->AutoPublish(std::move(topic));
+#pragma GCC diagnostic pop
 
     return true;
 }
@@ -836,7 +842,10 @@ bool Manager::AutoUnpublishEvent(const string& topic, Val* event) {
     }
 
     DBG_LOG(DBG_BROKER, "Disabling auto-publishing of event %s to topic %s", handler->Name(), topic.c_str());
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     handler->AutoUnpublish(topic);
+#pragma GCC diagnostic pop
 
     return true;
 }
@@ -890,13 +899,18 @@ zeek::RecordValPtr Manager::MakeEvent(ArgsSpan args) {
             continue;
         }
 
-        const auto& got_type = arg_val->GetType();
+        auto got_type = arg_val->GetType();
         const auto& expected_type = func->GetType()->ParamList()->GetTypes()[index - 1];
+
+        // If called with an unspecified table or set, adopt the expected type.
+        if ( got_type->Tag() == TYPE_TABLE && got_type->AsTableType()->IsUnspecifiedTable() )
+            if ( expected_type->Tag() == TYPE_TABLE && got_type->IsSet() == expected_type->IsSet() )
+                got_type = expected_type;
 
         if ( ! same_type(got_type, expected_type) ) {
             rval->Remove(0);
-            Error("event parameter #%zu type mismatch, got %s, expect %s", index, type_name(got_type->Tag()),
-                  type_name(expected_type->Tag()));
+            Error("event parameter #%zu type mismatch, got %s, expect %s", index,
+                  obj_desc_short(got_type.get()).c_str(), obj_desc_short(expected_type.get()).c_str());
             return rval;
         }
 

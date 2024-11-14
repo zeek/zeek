@@ -1,5 +1,7 @@
 # @TEST-DOC: Disabling an unrelated event group caused auto-publish to break because the remote event had no bodies and got disabled. This is a regression test it's not being done again.
 #
+# Remove in v8.1 when auto_publish() is removed.
+#
 # @TEST-GROUP: broker
 #
 # @TEST-PORT: BROKER_PORT

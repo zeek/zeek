@@ -1,3 +1,69 @@
+7.1.0-dev.552 | 2024-11-14 14:15:24 +0100
+
+  * sumstats: Remove copy() for Broker::publish() calls (Arne Welzel, Corelight)
+
+    Serialization happens immediately at Broker::publish() time, there
+    should be no caching issues.
+
+  * broker/Publish: Use event time instead of network time (Arne Welzel, Corelight)
+
+    Discussed with @J-Gras, calling Broker::publish() within a scheduled
+    should use the "intended timestamp" implicitly.
+
+    This is subtle, but supposedly more expected when running
+    a pcap replay cluster.
+
+  * GH-3637: broker/Eventhandler: Deprecate Broker::auto_publish() for v8.1 (Arne Welzel, Corelight)
+
+    Relates to #3637
+
+  * btest: Remove Broker::auto_publish() usages (Arne Welzel, Corelight)
+
+    The ones that seemed to test Broker::auto_publish() were annotated
+    for removal.
+
+  * frameworks/control: Remove Broker::auto_publish() (Arne Welzel, Corelight)
+
+  * catch-and-release: Remove Broker::auto_publish() (Arne Welzel, Corelight)
+
+  * ssl/validate-certs: Remove Broker::auto_publish() (Arne Welzel, Corelight)
+
+  * sumstats: Remove Broker::auto_publish() (Arne Welzel, Corelight)
+
+  * cluster_started: No Broker::auto_publish() use (Arne Welzel, Corelight)
+
+  * openflow: Remove Broker::auto_publish() (Arne Welzel, Corelight)
+
+  * dhcp: Remove Broker::auto_publish() (Arne Welzel, Corelight)
+
+    This isn't prettier, but neither worse IMO. A test would be good.
+
+  * frameworks/notice: Remove Broker::auto_publish() (Arne Welzel, Corelight)
+
+  * netcontrol: Replace Broker::auto_publish() (Arne Welzel, Corelight)
+
+    I'd think we could drop the cluster.zeek and non-cluster.zeek and
+    just unconditionally do the publish(), but keeping it for now.
+
+  * intel: Switch to Cluster::publish() (Arne Welzel, Corelight)
+
+    This isn't quite making things a lot nicer, but more explicit.
+
+  * broker: Support publish() of unspecified set() / table() (Arne Welzel, Corelight)
+
+    Calling Broker::make_event(..., table()) or Broker::publish(..., table())
+    caused runtime type errors as same_type() would result in false.
+
+  * types: Fix table() resulting in table_type->IsSet() == true (Arne Welzel, Corelight)
+
+    typename(table()) apparently always resulted in a set[] type
+    being rendered. Make the yield type of an unspecified table
+    ANY so that type->IsSet() ends up false.
+
+    While at it, also render unspecified types as table(), set() and
+    vector() rather than vector of void, set[] or table[] of any which
+    IMO should help to figure out what's going.
+
 7.1.0-dev.535 | 2024-11-13 17:28:09 -0800
 
   * CI: Use FEDORA40 crypto policy in Fedora 41 (Johanna Amann, Corelight)

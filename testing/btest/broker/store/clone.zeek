@@ -30,6 +30,7 @@ function print_index(k: any)
 
 event done()
 	{
+	Broker::publish("zeek/events", done);
 	terminate();
 	}
 
@@ -50,7 +51,6 @@ event inserted()
 
 event zeek_init()
 	{
-	Broker::auto_publish("zeek/events", done);
 	Broker::subscribe("zeek/");
 
 	h = Broker::create_master("test");
@@ -84,7 +84,11 @@ global query_timeout = 1sec;
 global h: opaque of Broker::Store;
 
 
-global inserted: event();
+event inserted()
+	{
+	# Propagate inserted()
+	Broker::publish("zeek/events", inserted);
+	}
 
 function print_index(k: any)
         {
@@ -131,7 +135,6 @@ event lookup(stage: count)
 
 event zeek_init()
 	{
-	Broker::auto_publish("zeek/events", inserted);
 	Broker::subscribe("zeek/");
 	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
 	}

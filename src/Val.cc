@@ -3241,10 +3241,11 @@ bool VectorVal::Assign(unsigned int index, ValPtr element) {
 
     if ( yield_types ) {
         const auto& t = element->GetType();
-        (*yield_types)[index] = t;
+        auto& yt_i = (*yield_types)[index];
         auto& elem = vector_val[index];
         if ( elem )
-            ZVal::DeleteIfManaged(*elem, t);
+            ZVal::DeleteIfManaged(*elem, yt_i);
+        yt_i = t;
         elem = ZVal(std::move(element), t);
     }
     else {

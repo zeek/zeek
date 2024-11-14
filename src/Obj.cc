@@ -130,10 +130,13 @@ bool Obj::SetLocationInfo(const detail::Location* start, const detail::Location*
         // We already have a better location, so don't use this one.
         return true;
 
-    delete location;
-
-    location =
+    auto new_location =
         new detail::Location(start->filename, start->first_line, end->last_line, start->first_column, end->last_column);
+
+    // Don't delete this until we've constructed the new location, in case
+    // "start" or "end" are our own location.
+    delete location;
+    location = new_location;
 
     return true;
 }

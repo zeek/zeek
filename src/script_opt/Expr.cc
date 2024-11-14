@@ -1629,6 +1629,9 @@ ExprPtr AssignExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         StmtPtr lhs_stmt;
         StmtPtr rhs_stmt;
 
+        if ( GetType()->Tag() == TYPE_ANY && op2->GetType()->Tag() != TYPE_ANY )
+            op2 = with_location_of(make_intrusive<CoerceToAnyExpr>(op2), op2);
+
         auto lhs_e = field_e->Op()->Reduce(c, lhs_stmt);
         auto rhs_e = op2->ReduceToFieldAssignment(c, rhs_stmt);
 
@@ -3089,6 +3092,23 @@ void AddRecordFieldsExpr::FoldField(RecordVal* rv1, RecordVal* rv2, size_t i) co
 
 CoerceToAnyExpr::CoerceToAnyExpr(ExprPtr arg_op) : UnaryExpr(EXPR_TO_ANY_COERCE, std::move(arg_op)) {
     type = base_type(TYPE_ANY);
+}
+
+bool CoerceToAnyExpr::IsReduced(Reducer* c) const { return HasReducedOps(c); }
+
+ExprPtr CoerceToAnyExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
+    if ( c->Optimizing() )
+        op = c->UpdateExpr(op);
+
+    red_stmt = nullptr;
+
+    if ( ! op->IsSingleton(c) )
+        op = op->ReduceToSingleton(c, red_stmt);
+
+    if ( c->Optimizing() )
+        return ThisPtr();
+    else
+        return AssignToTemporary(c, red_stmt);
 }
 
 ValPtr CoerceToAnyExpr::Fold(Val* v) const { return {NewRef{}, v}; }

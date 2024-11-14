@@ -934,13 +934,13 @@ eval	auto& vsel = frame[z.v2].vector_val->RawVec();
 	auto& v1 = frame[z.v3].vector_val->RawVec();
 	auto& v2 = frame[z.v4].vector_val->RawVec();
 	auto n = v1.size();
-	auto res = new vector<std::optional<ZVal>>(n);
+	vector<std::optional<ZVal>> res(n);
 	for ( auto i = 0U; i < n; ++i )
 		if ( vsel[i] )
-			(*res)[i] = vsel[i]->int_val ? v1[i] : v2[i];
+			res[i] = vsel[i]->int_val ? v1[i] : v2[i];
 	auto& full_res = frame[z.v1].vector_val;
 	Unref(full_res);
-	full_res = new VectorVal(cast_intrusive<VectorType>(z.t), res);
+	full_res = new VectorVal(cast_intrusive<VectorType>(z.t), &res);
 
 # Our instruction format doesn't accommodate two constants, so for
 # the singular case of a V ? C1 : C2 conditional, we split it into
@@ -1254,9 +1254,14 @@ macro	AssignFromRec()
 	for ( size_t i = 0U; i < n; ++i )
 		{
 		auto rhs_i = rhs->RawField(rhs_map[i]);
+		auto& init_i = init_vals[lhs_map[i]];
 		if ( is_managed[i] )
+			{
 			zeek::Ref(rhs_i.ManagedVal());
-		init_vals[lhs_map[i]] = rhs_i;
+			if ( init_i )
+				ZVal::DeleteManagedType(*init_i);
+			}
+		init_i = rhs_i;
 		}
 
 op Construct-Known-Record-From
@@ -1561,7 +1566,9 @@ eval	if ( frame[z.v2].vector_val->Size() > 0 )
 unary-expr-op To-Any-Coerce
 op-type X
 set-type $1
-eval	AssignV1(ZVal(frame[z.v2].ToVal(z.t), ZAM::any_base_type))
+eval	auto orig_lhs = frame[z.v1]; /* hold in case z.v1 = z.v2 */
+	frame[z.v1] = ZVal($1.ToVal(z.t), ZAM::any_base_type);
+	ZVal::DeleteManagedType(orig_lhs);
 
 unary-expr-op From-Any-Coerce
 op-type X
@@ -1604,7 +1611,19 @@ op Any-Vector-Elem-Assign
 op1-read
 set-type $1
 type VVV
-eval	EvalVectorElemAssign(, vv->Assign(ind, frame[z.v3].ToVal(z.t)))
+eval	auto ind = frame[z.v2].AsCount();
+	auto vv = frame[z.v1].AsVector();
+	auto yt = vv->RawYieldTypes();
+	if ( ind < vv->Size() && yt && (*yt)[ind] && ZVal::IsManagedType((*yt)[ind]) )
+		{
+		auto orig_elem = vv->RawVec()[ind];
+		if ( ! vv->Assign(ind, frame[z.v3].ToVal(z.t)) )
+			ZAM_run_time_error(z.loc, "value used but not set");
+		if ( orig_elem )
+			ZVal::DeleteManagedType(*orig_elem);
+		}
+	else if ( ! vv->Assign(ind, frame[z.v3].ToVal(z.t)) )
+		ZAM_run_time_error(z.loc, "value used but not set");
 
 op Vector-Elem-Assign-Any
 op1-read
@@ -2133,7 +2152,10 @@ type VVVV
 eval	NextVectorIterCore(z.v3, v4)
 	frame[z.v1].uint_val = si.iter;
 	if ( z.is_managed )
+		{
+		ZVal::DeleteManagedType(frame[z.v2]);
 		frame[z.v2] = BuildVal(vv[si.iter]->ToVal(z.t), z.t);
+		}
 	else
 		frame[z.v2] = *vv[si.iter];
 	si.IterFinished();
@@ -2145,7 +2167,10 @@ internal-op Next-Vector-Blank-Iter-Val-Var
 type VVV
 eval	NextVectorIterCore(z.v2, v3)
 	if ( z.is_managed )
+		{
+		ZVal::DeleteManagedType(frame[z.v1]);
 		frame[z.v1] = BuildVal(vv[si.iter]->ToVal(z.t), z.t);
+		}
 	else
 		frame[z.v1] = *vv[si.iter];
 	si.IterFinished();

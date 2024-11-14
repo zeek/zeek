@@ -1,3 +1,20 @@
+7.0.3-9 | 2024-11-14 10:21:55 -0700
+
+  * import of GH-4022 BTest additions (Vern Paxson, Corelight)
+    ZAM baseline update
+
+  * fix for setting object locations to avoid use-after-free situation (Vern Paxson, Corelight)
+
+  * fixes for script optimization of coerce-to-any expressions (Vern Paxson, Corelight)
+
+  * porting of GH-4022 (Vern Paxson, Corelight)
+
+  * porting of GH-4016 (Vern Paxson, Corelight)
+
+  * porting of GH-4013 (Vern Paxson, Corelight)
+
+  * fixed access to uninitialized memory in ZAM's "cat" built-in (Vern Paxson, Corelight)
+
 7.0.3-1 | 2024-10-18 17:15:02 -0700
 
   * Merge remote-tracking branch 'origin/topic/bbannier/fix-docs-ci-again' (Christian Kreibich, Corelight)

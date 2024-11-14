@@ -214,8 +214,9 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, con
                     std::string err = "overflow promoting from ";                                                      \
                     err += ov_err;                                                                                     \
                     err += " arithmetic value";                                                                        \
+                    /* The run-time error will throw an exception, so recover intermediary memory. */                  \
+                    delete res_zv;                                                                                     \
                     ZAM_run_time_error(z.loc, err.c_str());                                                            \
-                    res[i] = std::nullopt;                                                                             \
                 }                                                                                                      \
                 else                                                                                                   \
                     res[i] = ZVal(cast(vi));                                                                           \
@@ -604,8 +605,7 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, con
 
     auto& vec2 = v2->RawVec();
     auto n = vec2.size();
-    auto vec1_ptr = new vector<std::optional<ZVal>>(n);
-    auto& vec1 = *vec1_ptr;
+    vector<std::optional<ZVal>> vec1(n);
 
     for ( auto i = 0U; i < n; ++i ) {
         if ( vec2[i] )
@@ -620,7 +620,7 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, con
 
     auto vt = cast_intrusive<VectorType>(std::move(t));
     auto old_v1 = v1;
-    v1 = new VectorVal(std::move(vt), vec1_ptr);
+    v1 = new VectorVal(std::move(vt), &vec1);
     Unref(old_v1);
 }
 
@@ -631,8 +631,13 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, con
     auto& vec2 = v2->RawVec();
     auto& vec3 = v3->RawVec();
     auto n = vec2.size();
-    auto vec1_ptr = new vector<std::optional<ZVal>>(n);
-    auto& vec1 = *vec1_ptr;
+
+    if ( vec3.size() != n ) {
+        ZAM_run_time_error(util::fmt("vector operands are of different sizes (%d vs. %d)", int(n), int(vec3.size())));
+        return;
+    }
+
+    vector<std::optional<ZVal>> vec1(n);
 
     for ( auto i = 0U; i < vec2.size(); ++i ) {
         if ( vec2[i] && vec3[i] )
@@ -647,7 +652,7 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, con
 
     auto vt = cast_intrusive<VectorType>(std::move(t));
     auto old_v1 = v1;
-    v1 = new VectorVal(std::move(vt), vec1_ptr);
+    v1 = new VectorVal(std::move(vt), &vec1);
     Unref(old_v1);
 }
 

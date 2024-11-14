@@ -10,6 +10,7 @@
 #include "zeek/Tag.h"
 #include "zeek/Val.h"
 #include "zeek/logging/Component.h"
+#include "zeek/logging/Types.h"
 #include "zeek/logging/WriterBackend.h"
 #include "zeek/plugin/ComponentManager.h"
 #include "zeek/telemetry/Manager.h"
@@ -286,6 +287,20 @@ public:
      * @return Returns true if the record was processed successfully.
      */
     bool WriteFromRemote(EnumVal* id, EnumVal* writer, const std::string& path, detail::LogRecord&& rec);
+
+    /**
+     * Writes out a batch of log entries received from remote nodes.
+
+     * The given records have passed through all policy filters and raised events
+     * on the sending node. It's only meant to be written out.
+
+     * @param header The header describing the log records as deserialized from a remote message.
+     *
+     * @param records Records to be written out, the manager takes ownership of these.
+
+     * @return Returns true if the records were processed successfully.
+     */
+    bool WritesFromRemote(const detail::LogWriteHeader& header, std::vector<detail::LogRecord>&& records);
 
     /**
      * Announces all instantiated writers to a given Broker peer.

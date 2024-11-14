@@ -1709,6 +1709,7 @@ WriterFrontend* Manager::CreateWriterForFilter(Filter* filter, const std::string
 
     auto* info = new WriterBackend::WriterInfo;
     info->path = util::copy_string(path.c_str(), path.size());
+    info->filter_name = filter->name;
     info->network_time = run_state::network_time;
 
     auto* filter_config_table = filter->config->AsTable();

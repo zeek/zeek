@@ -239,6 +239,11 @@ public:
     const char* Name() const { return name; }
 
     /**
+     * Returns the name of the filter for which this frontend was instantiated.
+     */
+    const std::string& GetFilterName() const { return info->filter_name; }
+
+    /**
      * Returns the log fields as passed into the constructor.
      */
     const threading::Field* const* Fields() const { return fields; }

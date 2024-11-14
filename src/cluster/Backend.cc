@@ -12,6 +12,7 @@
 #include "zeek/Type.h"
 #include "zeek/cluster/Serializer.h"
 #include "zeek/iosource/Manager.h"
+#include "zeek/logging/Manager.h"
 
 using namespace zeek::cluster;
 
@@ -129,10 +130,7 @@ bool Backend::ProcessLogMessage(const std::string_view& format, detail::byte_buf
         return false;
     }
 
-    // TODO: Send the whole batch to the logging manager.
-    // return zeek::log_mgr->WritesFromRemote(result->header, std::move(result->records));
-    zeek::reporter->FatalError("not implemented");
-    return false;
+    return zeek::log_mgr->WriteBatchFromRemote(result->header, std::move(result->records));
 }
 
 bool ThreadedBackend::ProcessBackendMessage(int tag, detail::byte_buffer_span payload) {

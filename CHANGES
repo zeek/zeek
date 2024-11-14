@@ -1,3 +1,15 @@
+7.1.0-dev.535 | 2024-11-13 17:28:09 -0800
+
+  * CI: Use FEDORA40 crypto policy in Fedora 41 (Johanna Amann, Corelight)
+
+  * Bump zeekjs to 0.13.0 (Arne Welzel, Corelight)
+
+  * CI: bump FreeBSD 13 to 13.4, released in September (Christian Kreibich, Corelight)
+
+  * CI: drop Fedora 39, add 41 (Christian Kreibich, Corelight)
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
 7.1.0-dev.529 | 2024-11-13 14:36:04 -0700
 
   * Add NEWS entry for ip_proto feature (Tim Wojtulewicz, Corelight)

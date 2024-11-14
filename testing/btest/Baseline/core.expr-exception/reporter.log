@@ -7,13 +7,13 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	level	message	location
 #types	time	enum	string	string
-XXXXXXXXXX.XXXXXX	Reporter::ERROR	field value missing (c$ftp)	<...>/expr-exception.zeek, line 10
-XXXXXXXXXX.XXXXXX	Reporter::ERROR	field value missing (c$ftp)	<...>/expr-exception.zeek, line 10
-XXXXXXXXXX.XXXXXX	Reporter::ERROR	field value missing (c$ftp)	<...>/expr-exception.zeek, line 10
-XXXXXXXXXX.XXXXXX	Reporter::ERROR	field value missing (c$ftp)	<...>/expr-exception.zeek, line 10
-XXXXXXXXXX.XXXXXX	Reporter::ERROR	field value missing (c$ftp)	<...>/expr-exception.zeek, line 10
-XXXXXXXXXX.XXXXXX	Reporter::ERROR	field value missing (c$ftp)	<...>/expr-exception.zeek, line 10
-XXXXXXXXXX.XXXXXX	Reporter::ERROR	field value missing (c$ftp)	<...>/expr-exception.zeek, line 10
-XXXXXXXXXX.XXXXXX	Reporter::ERROR	field value missing (c$ftp)	<...>/expr-exception.zeek, line 10
-XXXXXXXXXX.XXXXXX	Reporter::ERROR	field value missing (c$ftp)	<...>/expr-exception.zeek, line 10
+XXXXXXXXXX.XXXXXX	Reporter::ERROR	field value missing (c$ftp)	<...>/expr-exception.zeek, line 15
+XXXXXXXXXX.XXXXXX	Reporter::ERROR	field value missing (c$ftp)	<...>/expr-exception.zeek, line 15
+XXXXXXXXXX.XXXXXX	Reporter::ERROR	field value missing (c$ftp)	<...>/expr-exception.zeek, line 15
+XXXXXXXXXX.XXXXXX	Reporter::ERROR	field value missing (c$ftp)	<...>/expr-exception.zeek, line 15
+XXXXXXXXXX.XXXXXX	Reporter::ERROR	field value missing (c$ftp)	<...>/expr-exception.zeek, line 15
+XXXXXXXXXX.XXXXXX	Reporter::ERROR	field value missing (c$ftp)	<...>/expr-exception.zeek, line 15
+XXXXXXXXXX.XXXXXX	Reporter::ERROR	field value missing (c$ftp)	<...>/expr-exception.zeek, line 15
+XXXXXXXXXX.XXXXXX	Reporter::ERROR	field value missing (c$ftp)	<...>/expr-exception.zeek, line 15
+XXXXXXXXXX.XXXXXX	Reporter::ERROR	field value missing (c$ftp)	<...>/expr-exception.zeek, line 15
 #close XXXX-XX-XX-XX-XX-XX

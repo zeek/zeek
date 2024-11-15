@@ -63,7 +63,7 @@ namespace detail {
 class DebugLogger {
 public:
     // Output goes to stderr per default.
-    DebugLogger();
+    DebugLogger() : file(nullptr), all(false), verbose(false) {};
     ~DebugLogger();
 
     void OpenDebugLog(const char* filename = 0);
@@ -95,6 +95,7 @@ public:
 
 private:
     FILE* file;
+    bool all;
     bool verbose;
 
     struct Stream {

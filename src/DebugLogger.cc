@@ -21,11 +21,6 @@ DebugLogger::Stream DebugLogger::streams[NUM_DBGS] =
      {"plugins", 0, false},   {"zeekygen", 0, false},   {"pktio", 0, false},           {"broker", 0, false},
      {"scripts", 0, false},   {"supervisor", 0, false}, {"hashkey", 0, false},         {"spicy", 0, false}};
 
-DebugLogger::DebugLogger() {
-    verbose = false;
-    file = nullptr;
-}
-
 DebugLogger::~DebugLogger() {
     if ( file && file != stderr )
         fclose(file);
@@ -94,6 +89,7 @@ void DebugLogger::EnableStreams(const char* s) {
                 enabled_streams.insert(streams[i].prefix);
             }
 
+            all = true;
             verbose = true;
             goto next;
         }
@@ -175,10 +171,11 @@ void DebugLogger::Log(DebugStream stream, const char* fmt, ...) {
 }
 
 void DebugLogger::Log(const plugin::Plugin& plugin, const char* fmt, ...) {
-    std::string tok = PluginStreamName(plugin.Name());
-
-    if ( enabled_streams.find(tok) == enabled_streams.end() )
-        return;
+    if ( ! all ) {
+        std::string tok = PluginStreamName(plugin.Name());
+        if ( enabled_streams.find(tok) == enabled_streams.end() )
+            return;
+    }
 
     fprintf(file, "%17.06f/%17.06f [plugin %s] ", run_state::network_time, util::current_time(true),
             plugin.Name().c_str());

@@ -13,7 +13,6 @@
 #include "zeek/Rule.h"
 #include "zeek/ScannedFile.h"
 #include "zeek/ZeekString.h"
-#include "zeek/plugin/Manager.h"
 
 // #define MATCHER_PRINT_STATS
 

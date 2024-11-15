@@ -15,13 +15,14 @@
 #include <string>
 #include <vector>
 
-#include "zeek/3rdparty/doctest.h"
 #include "zeek/Func.h"
 #include "zeek/RunState.h"
 #include "zeek/logging/Manager.h"
 #include "zeek/logging/writers/ascii/ascii.bif.h"
 #include "zeek/threading/SerialTypes.h"
 #include "zeek/util.h"
+
+#include "zeek/3rdparty/doctest.h"
 
 using namespace std;
 using zeek::threading::Field;

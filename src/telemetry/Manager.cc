@@ -15,7 +15,6 @@
 #include <algorithm>
 #include <thread>
 
-#include "zeek/3rdparty/doctest.h"
 #include "zeek/Func.h"
 #include "zeek/ID.h"
 #include "zeek/IPAddr.h"
@@ -25,6 +24,8 @@
 #include "zeek/telemetry/ProcessStats.h"
 #include "zeek/telemetry/Timer.h"
 #include "zeek/threading/formatters/detail/json.h"
+
+#include "zeek/3rdparty/doctest.h"
 
 namespace zeek::telemetry {
 

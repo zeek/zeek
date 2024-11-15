@@ -9,7 +9,6 @@
 #include <syslog.h>
 #include <unistd.h>
 
-#include "zeek/3rdparty/doctest.h"
 #include "zeek/Conn.h"
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
@@ -23,6 +22,8 @@
 #include "zeek/input.h"
 #include "zeek/plugin/Manager.h"
 #include "zeek/plugin/Plugin.h"
+
+#include "zeek/3rdparty/doctest.h"
 
 #ifdef SYSLOG_INT
 extern "C" {

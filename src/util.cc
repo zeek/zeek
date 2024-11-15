@@ -46,7 +46,6 @@
 #include <vector>
 
 #include "zeek/3rdparty/ConvertUTF.h"
-#include "zeek/3rdparty/doctest.h"
 #include "zeek/Desc.h"
 #include "zeek/Hash.h"
 #include "zeek/NetVar.h"
@@ -59,6 +58,8 @@
 #include "zeek/input.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/iosource/PktSrc.h"
+
+#include "zeek/3rdparty/doctest.h"
 
 using namespace std;
 

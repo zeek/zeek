@@ -1,10 +1,11 @@
 #include "zeek/analyzer/protocol/smtp/BDAT.h"
 
-#include "zeek/3rdparty/doctest.h"
 #include "zeek/Conn.h"
 #include "zeek/DebugLogger.h"
 #include "zeek/analyzer/protocol/mime/MIME.h"
 #include "zeek/util.h"
+
+#include "zeek/3rdparty/doctest.h"
 
 namespace zeek::analyzer::smtp::detail {
 

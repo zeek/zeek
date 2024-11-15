@@ -20,9 +20,6 @@
 #include "zeek/3rdparty/sqlite3.h"
 #endif
 
-#define DOCTEST_CONFIG_IMPLEMENT
-
-#include "zeek/3rdparty/doctest.h"
 #include "zeek/Anon.h"
 #include "zeek/DFA.h"
 #include "zeek/DNS_Mgr.h"
@@ -76,6 +73,9 @@
 extern "C" {
 #include "zeek/3rdparty/setsignal.h"
 };
+
+#define DOCTEST_CONFIG_IMPLEMENT
+#include "zeek/3rdparty/doctest.h"
 
 zeek::detail::ScriptCoverageManager zeek::detail::script_coverage_mgr;
 

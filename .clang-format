@@ -71,6 +71,7 @@ IncludeBlocks: Regroup
 # 4: any header that starts with "zeek/"
 # 5: everything else, which should catch any of the auto-generated code from the
 #    build directory as well
+# 6: third party doctest header
 #
 # Sections 0-1 and 2-3 get grouped together in their respective blocks
 IncludeCategories:
@@ -86,6 +87,8 @@ IncludeCategories:
   - Regex: '^<[[:print:]]+>'
     Priority: 2
     SortPriority: 3
+  - Regex: '^"zeek/3rdparty/doctest.h'
+    Priority: 6
   - Regex: '^"zeek/'
     Priority: 4
   - Regex: '.*'

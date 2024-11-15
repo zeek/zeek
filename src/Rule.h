@@ -59,9 +59,6 @@ public:
 
     void PrintDebug();
 
-    bool operator==(const Rule& other) { return strcmp(ID(), other.ID()) == 0; }
-    bool operator<(const Rule& other) { return strcmp(ID(), other.ID()) < 0; }
-
     static const char* TypeToString(Rule::PatternType type);
 
 private:

@@ -2,8 +2,9 @@
 
 #include "zeek/file_analysis/FileReassembler.h"
 
-#include "zeek/3rdparty/doctest.h"
 #include "zeek/file_analysis/File.h"
+
+#include "zeek/3rdparty/doctest.h"
 
 namespace zeek::file_analysis {
 

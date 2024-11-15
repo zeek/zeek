@@ -2,7 +2,6 @@
 
 #include <broker/error.hh>
 
-#include "zeek/3rdparty/doctest.h"
 #include "zeek/Desc.h"
 #include "zeek/File.h"
 #include "zeek/Func.h"
@@ -12,6 +11,8 @@
 #include "zeek/Scope.h"
 #include "zeek/broker/data.bif.h"
 #include "zeek/module_util.h"
+
+#include "zeek/3rdparty/doctest.h"
 
 using namespace std;
 

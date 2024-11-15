@@ -2,9 +2,10 @@
 
 #include <ares_nameser.h>
 
-#include "zeek/3rdparty/doctest.h"
 #include "zeek/DNS_Mgr.h"
 #include "zeek/Reporter.h"
+
+#include "zeek/3rdparty/doctest.h"
 
 namespace zeek::detail {
 

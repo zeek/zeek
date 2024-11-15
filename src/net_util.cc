@@ -10,10 +10,11 @@
 #include <sys/types.h>
 #include <memory>
 
-#include "zeek/3rdparty/doctest.h"
 #include "zeek/IP.h"
 #include "zeek/IPAddr.h"
 #include "zeek/Reporter.h"
+
+#include "zeek/3rdparty/doctest.h"
 
 const char* transport_proto_string(TransportProto proto) {
     switch ( proto ) {

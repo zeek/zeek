@@ -9,11 +9,12 @@
 #include <iostream>
 #include <sstream> // Needed for unit testing
 
-#include "zeek/3rdparty/doctest.h"
 #include "zeek/ID.h"
 #include "zeek/Reporter.h"
 #include "zeek/Val.h"
 #include "zeek/util.h"
+
+#include "zeek/3rdparty/doctest.h"
 
 #ifdef DEBUG
 #define DEBUG_STR(msg) DBG_LOG(zeek::DBG_STRING, msg)

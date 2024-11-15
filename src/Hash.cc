@@ -8,7 +8,6 @@
 #include <highwayhash/instruction_sets.h>
 #include <highwayhash/sip_hash.h>
 
-#include "zeek/3rdparty/doctest.h"
 #include "zeek/DebugLogger.h"
 #include "zeek/Desc.h"
 #include "zeek/Reporter.h"
@@ -17,6 +16,8 @@
 #include "zeek/digest.h"
 
 #include "const.bif.netvar_h"
+
+#include "zeek/3rdparty/doctest.h"
 
 namespace zeek::detail {
 

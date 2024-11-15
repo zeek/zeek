@@ -32,7 +32,6 @@ using ztd::out_ptr::out_ptr;
 #include <ares_dns.h>
 #include <ares_nameser.h>
 
-#include "zeek/3rdparty/doctest.h"
 #include "zeek/DNS_Mapping.h"
 #include "zeek/Event.h"
 #include "zeek/Expr.h"
@@ -46,6 +45,8 @@ using ztd::out_ptr::out_ptr;
 #include "zeek/ZeekString.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/telemetry/Manager.h"
+
+#include "zeek/3rdparty/doctest.h"
 
 // Number of seconds we'll wait for a reply.
 constexpr int DNS_TIMEOUT = 5;

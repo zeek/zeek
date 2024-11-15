@@ -2,8 +2,9 @@
 
 #include "zeek/Dict.h"
 
-#include "zeek/3rdparty/doctest.h"
 #include "zeek/Hash.h"
+
+#include "zeek/3rdparty/doctest.h"
 
 namespace zeek {
 

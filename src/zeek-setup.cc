@@ -14,17 +14,15 @@
 #include <cstdlib>
 #include <cstring>
 #include <list>
+#include <memory>
 #include <optional>
+#include <set>
+#include <string>
 
 #ifdef USE_SQLITE
 #include "zeek/3rdparty/sqlite3.h"
 #endif
 
-#define DOCTEST_CONFIG_IMPLEMENT
-
-#include "zeek/3rdparty/doctest.h"
-#include "zeek/Anon.h"
-#include "zeek/DFA.h"
 #include "zeek/DNS_Mgr.h"
 #include "zeek/Debug.h"
 #include "zeek/Desc.h"
@@ -45,8 +43,6 @@
 #include "zeek/Scope.h"
 #include "zeek/ScriptCoverageManager.h"
 #include "zeek/Stats.h"
-#include "zeek/Stmt.h"
-#include "zeek/Tag.h"
 #include "zeek/Timer.h"
 #include "zeek/Traverse.h"
 #include "zeek/Trigger.h"
@@ -57,7 +53,6 @@
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/input.h"
 #include "zeek/input/Manager.h"
-#include "zeek/input/readers/raw/Raw.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/logging/Manager.h"
 #include "zeek/module_util.h"
@@ -76,6 +71,9 @@
 extern "C" {
 #include "zeek/3rdparty/setsignal.h"
 };
+
+#define DOCTEST_CONFIG_IMPLEMENT
+#include "zeek/3rdparty/doctest.h"
 
 zeek::detail::ScriptCoverageManager zeek::detail::script_coverage_mgr;
 
@@ -191,8 +189,8 @@ extern "C" char version[];
 extern "C" const char zeek_build_info[];
 
 const char* zeek::detail::command_line_policy = nullptr;
-vector<string> zeek::detail::params;
-set<string> requested_plugins;
+std::vector<std::string> zeek::detail::params;
+std::set<std::string> requested_plugins;
 const char* proc_status_file = nullptr;
 
 zeek::OpaqueTypePtr md5_type;
@@ -283,8 +281,8 @@ static bool show_plugins(int level) {
         printf("\nInactive dynamic plugins:\n");
 
         for ( plugin::Manager::inactive_plugin_list::const_iterator i = inactives.begin(); i != inactives.end(); i++ ) {
-            string name = (*i).first;
-            string path = (*i).second;
+            std::string name = (*i).first;
+            std::string path = (*i).second;
             printf("  %s (%s)\n", name.c_str(), path.c_str());
         }
     }
@@ -748,7 +746,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         auto ipbb = make_intrusive<BuiltinFunc>(init_bifs, ipbid->Name(), false);
 
         if ( options.event_trace_file )
-            etm = make_unique<EventTraceMgr>(*options.event_trace_file);
+            etm = std::make_unique<EventTraceMgr>(*options.event_trace_file);
 
         // Parsing involves reading input files, including any input
         // interactively provided by the user at the console. Temporarily
@@ -784,7 +782,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         // Assign the script_args for command line processing in Zeek scripts.
         if ( ! options.script_args.empty() ) {
             auto script_args_val = id::find_val<VectorVal>("zeek_script_args");
-            for ( const string& script_arg : options.script_args ) {
+            for ( const auto& script_arg : options.script_args ) {
                 script_args_val->Assign(script_args_val->Size(), make_intrusive<StringVal>(script_arg));
             }
         }

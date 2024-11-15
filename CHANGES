@@ -1,3 +1,31 @@
+7.1.0-dev.563 | 2024-11-15 17:39:49 +0100
+
+  * zeek-setup: Remove some unused headers (Arne Welzel, Corelight)
+
+    The zeek_binpac.h one isn't used directly, but keeping it over
+    <binpac.h> include. Also do some std prefixing. binpac.h has
+    'using namespace std', so these slip through :-(
+
+  * clang-format: Sort doctest header at the bottom (Arne Welzel, Corelight)
+
+  * RuleMatcher: Move plugin/Manager.h include from .h to .cc (Arne Welzel, Corelight)
+
+  * iosource/Manager: Remove superflous includes (Arne Welzel, Corelight)
+
+  * telemetry/Manager: Remove broker header include, add fnmatch.h (Arne Welzel, Corelight)
+
+  * logging/Manager: Fix using filename from input.h in debug log (Arne Welzel, Corelight)
+
+    ...and remove network_time, it's always included.
+
+  * Update external commit hashes (Arne Welzel, Corelight)
+
+  * communityid: Do not include ports for non TCP, UDP, ICMP (Arne Welzel, Corelight)
+
+    Checked against the result of pycommunityid. The SCTP case
+    isn't quite right, because Zeek's core will not have extracted
+    any ports for SCTP.
+
 7.1.0-dev.552 | 2024-11-14 14:15:24 +0100
 
   * sumstats: Remove copy() for Broker::publish() calls (Arne Welzel, Corelight)

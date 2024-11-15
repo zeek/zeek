@@ -6,6 +6,7 @@
 
 // CivetServer is from the civetweb submodule in prometheus-cpp
 #include <CivetServer.h>
+#include <fnmatch.h>
 #include <prometheus/collectable.h>
 #include <prometheus/exposer.h>
 #include <prometheus/registry.h>
@@ -14,17 +15,17 @@
 #include <algorithm>
 #include <thread>
 
-#include "zeek/3rdparty/doctest.h"
 #include "zeek/Func.h"
 #include "zeek/ID.h"
 #include "zeek/IPAddr.h"
 #include "zeek/RunState.h"
 #include "zeek/ZeekString.h"
-#include "zeek/broker/Manager.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/telemetry/ProcessStats.h"
 #include "zeek/telemetry/Timer.h"
 #include "zeek/threading/formatters/detail/json.h"
+
+#include "zeek/3rdparty/doctest.h"
 
 namespace zeek::telemetry {
 

@@ -5,11 +5,12 @@
 #include <binpac.h>
 #include <algorithm>
 
-#include "zeek/3rdparty/doctest.h"
 #include "zeek/Event.h"
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
+
+#include "zeek/3rdparty/doctest.h"
 
 namespace zeek::analyzer {
 

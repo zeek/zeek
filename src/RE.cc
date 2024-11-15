@@ -7,12 +7,13 @@
 #include <cstdlib>
 #include <utility>
 
-#include "zeek/3rdparty/doctest.h"
 #include "zeek/CCL.h"
 #include "zeek/DFA.h"
 #include "zeek/EquivClass.h"
 #include "zeek/Reporter.h"
 #include "zeek/ZeekString.h"
+
+#include "zeek/3rdparty/doctest.h"
 
 zeek::detail::CCL* zeek::detail::curr_ccl = nullptr;
 zeek::detail::Specific_RE_Matcher* zeek::detail::rem = nullptr;

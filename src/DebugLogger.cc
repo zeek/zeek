@@ -53,21 +53,28 @@ void DebugLogger::OpenDebugLog(const char* filename) {
 }
 
 void DebugLogger::ShowStreamsHelp() {
-    fprintf(stderr, "\n");
     fprintf(stderr, "Enable debug output into debug.log with -B <streams>.\n");
-    fprintf(stderr, "<streams> is a comma-separated list of streams to enable.\n");
+    fprintf(stderr, "<streams> is a case-insensitive, comma-separated list of streams to enable:\n");
     fprintf(stderr, "\n");
-    fprintf(stderr, "Available streams:\n");
 
-    for ( int i = 0; i < NUM_DBGS; ++i )
-        fprintf(stderr, "  %s\n", streams[i].prefix);
+    std::vector<std::string> prefixes;
 
+    for ( const auto& stream : streams )
+        prefixes.emplace_back(stream.prefix);
+    std::sort(prefixes.begin(), prefixes.end());
+
+    for ( const auto& prefix : prefixes )
+        fprintf(stderr, "  %s\n", prefix.c_str());
+
+    fprintf(stderr, "\n");
+    fprintf(stderr, "Every plugin (see -N) also has its own debug stream:\n");
     fprintf(stderr, "\n");
     fprintf(stderr,
             "  plugin-<plugin-name>   (replace '::' in name with '-'; e.g., '-B "
-            "plugin-Zeek-Netmap')\n");
+            "plugin-Zeek-JavaScript')\n");
     fprintf(stderr, "\n");
-    fprintf(stderr, "Pseudo streams\n");
+    fprintf(stderr, "Pseudo streams:\n");
+    fprintf(stderr, "\n");
     fprintf(stderr, "  verbose  Increase verbosity.\n");
     fprintf(stderr, "  all      Enable all streams at maximum verbosity.\n");
     fprintf(stderr, "\n");
@@ -79,6 +86,8 @@ void DebugLogger::EnableStreams(const char* s) {
     char* tok = strtok(tmp, ",");
 
     while ( tok ) {
+        std::string ltok{util::strtolower(tok)};
+
         if ( strcasecmp("all", tok) == 0 ) {
             for ( int i = 0; i < NUM_DBGS; ++i ) {
                 streams[i].enabled = true;
@@ -99,10 +108,10 @@ void DebugLogger::EnableStreams(const char* s) {
             exit(0);
         }
 
-        if ( util::starts_with(tok, "plugin-") ) {
+        if ( util::starts_with(ltok, "plugin-") ) {
             // Cannot verify this at this time, plugins may not
             // have been loaded.
-            enabled_streams.insert(tok);
+            enabled_streams.insert(ltok);
             goto next;
         }
 
@@ -111,7 +120,7 @@ void DebugLogger::EnableStreams(const char* s) {
         for ( i = 0; i < NUM_DBGS; ++i ) {
             if ( strcasecmp(streams[i].prefix, tok) == 0 ) {
                 streams[i].enabled = true;
-                enabled_streams.insert(tok);
+                enabled_streams.insert(ltok);
                 goto next;
             }
         }

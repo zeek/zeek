@@ -108,7 +108,7 @@ private:
     static Stream streams[NUM_DBGS];
 
     const std::string PluginStreamName(const std::string& plugin_name) {
-        return "plugin-" + util::strreplace(plugin_name, "::", "-");
+        return "plugin-" + util::strtolower(util::strreplace(plugin_name, "::", "-"));
     }
 };
 

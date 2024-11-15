@@ -19,7 +19,6 @@
 #include "zeek/Timer.h"
 #include "zeek/Type.h"
 #include "zeek/broker/Manager.h"
-#include "zeek/input.h"
 #include "zeek/logging/WriterBackend.h"
 #include "zeek/logging/WriterFrontend.h"
 #include "zeek/logging/logging.bif.h"
@@ -2027,13 +2026,11 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
     --rotations_pending;
 
     if ( ! success ) {
-        DBG_LOG(DBG_LOGGING, "Non-successful rotating writer '%s', file '%s' at %.6f,", writer->Name(), filename,
-                run_state::network_time);
+        DBG_LOG(DBG_LOGGING, "Non-successful rotating writer '%s', new_name '%s'", writer->Name(), new_name);
         return true;
     }
 
-    DBG_LOG(DBG_LOGGING, "Finished rotating %s at %.6f, new name %s", writer->Name(), run_state::network_time,
-            new_name);
+    DBG_LOG(DBG_LOGGING, "Finished rotating %s, new name %s", writer->Name(), new_name);
 
     WriterInfo* winfo = FindWriter(writer);
     if ( ! winfo )

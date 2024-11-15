@@ -21,13 +21,14 @@ RUN apt-get -q update \
      jq \
      libmaxminddb0 \
      libnode108 \
-     libpython3.11 \
      libpcap0.8 \
+     libpython3.11 \
      libssl3 \
      libuv1 \
      libz1 \
-     python3-minimal \
+     libzmq5 \
      python3-git \
+     python3-minimal \
      python3-semantic-version \
      python3-websocket \
  && apt-get clean \

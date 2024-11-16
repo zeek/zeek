@@ -1,3 +1,19 @@
+7.1.0-dev.572 | 2024-11-16 09:34:27 -0700
+
+  * Make debug stream names use "-", and handle "_" transparently (Christian Kreibich, Corelight)
+
+    This looks consistent, and doesn't break any existing uses with underscores.
+
+  * Make "-B all" apply to plugin streams as well. (Christian Kreibich, Corelight)
+
+  * Sort streams in "-B help" output, and match case-insensitively throughout (Christian Kreibich, Corelight)
+
+    Matching of plugins' debug streams was still case-sensitive. Also contains some
+    minor output tweaks.
+
+    It'd be nice to only list plugin debug streams actually _used_ by plugins. I
+    didn't see a quick way to do that so that's for another time.
+
 7.1.0-dev.568 | 2024-11-15 19:08:02 -0800
 
   * Don't forward out of the unknown IP transport analyzer (Tim Wojtulewicz, Corelight)

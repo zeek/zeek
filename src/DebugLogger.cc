@@ -16,15 +16,10 @@ namespace zeek::detail {
 // Same order here as in DebugStream.
 DebugLogger::Stream DebugLogger::streams[NUM_DBGS] =
     {{"serial", 0, false},    {"rules", 0, false},      {"string", 0, false},          {"notifiers", 0, false},
-     {"main-loop", 0, false}, {"dpd", 0, false},        {"packet_analysis", 0, false}, {"file_analysis", 0, false},
+     {"main-loop", 0, false}, {"dpd", 0, false},        {"packet-analysis", 0, false}, {"file-analysis", 0, false},
      {"tm", 0, false},        {"logging", 0, false},    {"input", 0, false},           {"threading", 0, false},
      {"plugins", 0, false},   {"zeekygen", 0, false},   {"pktio", 0, false},           {"broker", 0, false},
      {"scripts", 0, false},   {"supervisor", 0, false}, {"hashkey", 0, false},         {"spicy", 0, false}};
-
-DebugLogger::DebugLogger() {
-    verbose = false;
-    file = nullptr;
-}
 
 DebugLogger::~DebugLogger() {
     if ( file && file != stderr )
@@ -53,21 +48,28 @@ void DebugLogger::OpenDebugLog(const char* filename) {
 }
 
 void DebugLogger::ShowStreamsHelp() {
-    fprintf(stderr, "\n");
     fprintf(stderr, "Enable debug output into debug.log with -B <streams>.\n");
-    fprintf(stderr, "<streams> is a comma-separated list of streams to enable.\n");
+    fprintf(stderr, "<streams> is a case-insensitive, comma-separated list of streams to enable:\n");
     fprintf(stderr, "\n");
-    fprintf(stderr, "Available streams:\n");
 
-    for ( int i = 0; i < NUM_DBGS; ++i )
-        fprintf(stderr, "  %s\n", streams[i].prefix);
+    std::vector<std::string> prefixes;
 
+    for ( const auto& stream : streams )
+        prefixes.emplace_back(stream.prefix);
+    std::sort(prefixes.begin(), prefixes.end());
+
+    for ( const auto& prefix : prefixes )
+        fprintf(stderr, "  %s\n", prefix.c_str());
+
+    fprintf(stderr, "\n");
+    fprintf(stderr, "Every plugin (see -N) also has its own debug stream:\n");
     fprintf(stderr, "\n");
     fprintf(stderr,
             "  plugin-<plugin-name>   (replace '::' in name with '-'; e.g., '-B "
-            "plugin-Zeek-Netmap')\n");
+            "plugin-Zeek-JavaScript')\n");
     fprintf(stderr, "\n");
-    fprintf(stderr, "Pseudo streams\n");
+    fprintf(stderr, "Pseudo streams:\n");
+    fprintf(stderr, "\n");
     fprintf(stderr, "  verbose  Increase verbosity.\n");
     fprintf(stderr, "  all      Enable all streams at maximum verbosity.\n");
     fprintf(stderr, "\n");
@@ -79,12 +81,18 @@ void DebugLogger::EnableStreams(const char* s) {
     char* tok = strtok(tmp, ",");
 
     while ( tok ) {
+        // This maps "_" to "-" for backward compatibility and ease of use: we
+        // used to have underscores in some stream names, and several plugins
+        // do as well.
+        std::string ltok{util::strreplace(util::strtolower(tok), "_", "-")};
+
         if ( strcasecmp("all", tok) == 0 ) {
             for ( int i = 0; i < NUM_DBGS; ++i ) {
                 streams[i].enabled = true;
                 enabled_streams.insert(streams[i].prefix);
             }
 
+            all = true;
             verbose = true;
             goto next;
         }
@@ -99,19 +107,19 @@ void DebugLogger::EnableStreams(const char* s) {
             exit(0);
         }
 
-        if ( util::starts_with(tok, "plugin-") ) {
+        if ( util::starts_with(ltok, "plugin-") ) {
             // Cannot verify this at this time, plugins may not
             // have been loaded.
-            enabled_streams.insert(tok);
+            enabled_streams.insert(ltok);
             goto next;
         }
 
         int i;
 
         for ( i = 0; i < NUM_DBGS; ++i ) {
-            if ( strcasecmp(streams[i].prefix, tok) == 0 ) {
+            if ( ltok == streams[i].prefix ) {
                 streams[i].enabled = true;
-                enabled_streams.insert(tok);
+                enabled_streams.insert(ltok);
                 goto next;
             }
         }
@@ -166,10 +174,11 @@ void DebugLogger::Log(DebugStream stream, const char* fmt, ...) {
 }
 
 void DebugLogger::Log(const plugin::Plugin& plugin, const char* fmt, ...) {
-    std::string tok = PluginStreamName(plugin.Name());
-
-    if ( enabled_streams.find(tok) == enabled_streams.end() )
-        return;
+    if ( ! all ) {
+        std::string tok = PluginStreamName(plugin.Name());
+        if ( enabled_streams.find(tok) == enabled_streams.end() )
+            return;
+    }
 
     fprintf(file, "%17.06f/%17.06f [plugin %s] ", run_state::network_time, util::current_time(true),
             plugin.Name().c_str());
@@ -181,6 +190,12 @@ void DebugLogger::Log(const plugin::Plugin& plugin, const char* fmt, ...) {
 
     fputc('\n', file);
     fflush(file);
+}
+
+const std::string DebugLogger::PluginStreamName(const std::string& plugin_name) const {
+    std::string res{util::strreplace(plugin_name, "::", "-")};
+    res = util::strreplace(res, "_", "-");
+    return "plugin-" + util::strtolower(res);
 }
 
 } // namespace zeek::detail

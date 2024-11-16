@@ -63,7 +63,7 @@ namespace detail {
 class DebugLogger {
 public:
     // Output goes to stderr per default.
-    DebugLogger();
+    DebugLogger() : file(nullptr), all(false), verbose(false) {};
     ~DebugLogger();
 
     void OpenDebugLog(const char* filename = 0);
@@ -95,6 +95,7 @@ public:
 
 private:
     FILE* file;
+    bool all;
     bool verbose;
 
     struct Stream {
@@ -107,9 +108,9 @@ private:
 
     static Stream streams[NUM_DBGS];
 
-    const std::string PluginStreamName(const std::string& plugin_name) {
-        return "plugin-" + util::strreplace(plugin_name, "::", "-");
-    }
+    // Canonical rendering of a plugin's name. This is lower-cased,
+    // with "::" and "_" both becoming "-".
+    const std::string PluginStreamName(const std::string& plugin_name) const;
 };
 
 extern DebugLogger debug_logger;

@@ -108,9 +108,9 @@ private:
 
     static Stream streams[NUM_DBGS];
 
-    const std::string PluginStreamName(const std::string& plugin_name) {
-        return "plugin-" + util::strtolower(util::strreplace(plugin_name, "::", "-"));
-    }
+    // Canonical rendering of a plugin's name. This is lower-cased,
+    // with "::" and "_" both becoming "-".
+    const std::string PluginStreamName(const std::string& plugin_name) const;
 };
 
 extern DebugLogger debug_logger;

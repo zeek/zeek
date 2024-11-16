@@ -16,7 +16,7 @@ namespace zeek::detail {
 // Same order here as in DebugStream.
 DebugLogger::Stream DebugLogger::streams[NUM_DBGS] =
     {{"serial", 0, false},    {"rules", 0, false},      {"string", 0, false},          {"notifiers", 0, false},
-     {"main-loop", 0, false}, {"dpd", 0, false},        {"packet_analysis", 0, false}, {"file_analysis", 0, false},
+     {"main-loop", 0, false}, {"dpd", 0, false},        {"packet-analysis", 0, false}, {"file-analysis", 0, false},
      {"tm", 0, false},        {"logging", 0, false},    {"input", 0, false},           {"threading", 0, false},
      {"plugins", 0, false},   {"zeekygen", 0, false},   {"pktio", 0, false},           {"broker", 0, false},
      {"scripts", 0, false},   {"supervisor", 0, false}, {"hashkey", 0, false},         {"spicy", 0, false}};
@@ -81,7 +81,10 @@ void DebugLogger::EnableStreams(const char* s) {
     char* tok = strtok(tmp, ",");
 
     while ( tok ) {
-        std::string ltok{util::strtolower(tok)};
+        // This maps "_" to "-" for backward compatibility and ease of use: we
+        // used to have underscores in some stream names, and several plugins
+        // do as well.
+        std::string ltok{util::strreplace(util::strtolower(tok), "_", "-")};
 
         if ( strcasecmp("all", tok) == 0 ) {
             for ( int i = 0; i < NUM_DBGS; ++i ) {
@@ -114,7 +117,7 @@ void DebugLogger::EnableStreams(const char* s) {
         int i;
 
         for ( i = 0; i < NUM_DBGS; ++i ) {
-            if ( strcasecmp(streams[i].prefix, tok) == 0 ) {
+            if ( ltok == streams[i].prefix ) {
                 streams[i].enabled = true;
                 enabled_streams.insert(ltok);
                 goto next;
@@ -187,6 +190,12 @@ void DebugLogger::Log(const plugin::Plugin& plugin, const char* fmt, ...) {
 
     fputc('\n', file);
     fflush(file);
+}
+
+const std::string DebugLogger::PluginStreamName(const std::string& plugin_name) const {
+    std::string res{util::strreplace(plugin_name, "::", "-")};
+    res = util::strreplace(res, "_", "-");
+    return "plugin-" + util::strtolower(res);
 }
 
 } // namespace zeek::detail

@@ -56,8 +56,10 @@ void UnknownIPTransportAnalyzer::DeliverPacket(Connection* c, double t, bool is_
 
     c->SetLastTime(run_state::current_timestamp);
 
-    ForwardPacket(std::min(len, remaining), data, pkt);
-
     const std::shared_ptr<IP_Hdr>& ip = pkt->ip_hdr;
     adapter->ForwardPacket(std::min(len, remaining), data, is_orig, -1, ip.get(), pkt->cap_len);
+
+    // Dnn't forward from here back into the packet_analysis framework. The protocol identifier
+    // that lead analysis to this analyzer should be handled by the IP analyzer if it's valid,
+    // instead of being passed along from this analyzer.
 }

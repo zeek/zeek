@@ -1,3 +1,11 @@
+7.1.0-dev.568 | 2024-11-15 19:08:02 -0800
+
+  * Don't forward out of the unknown IP transport analyzer (Tim Wojtulewicz, Corelight)
+
+  * The cisco-fabric-path pcap used in tests doesn't need the -C argument (Tim Wojtulewicz, Corelight)
+
+  * Add btests for ip_proto policy files (Tim Wojtulewicz, Corelight)
+
 7.1.0-dev.563 | 2024-11-15 17:39:49 +0100
 
   * zeek-setup: Remove some unused headers (Arne Welzel, Corelight)

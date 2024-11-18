@@ -51,7 +51,7 @@ function community_id_v1%(cid: conn_id, seed: count &default=0, do_base64: bool 
 
             break;
         case TRANSPORT_UNKNOWN: {
-            uint16_t cid_proto = static_cast<uint16_t>(cid_rec->GetFieldAs<zeek::CountVal>(4));
+            uint16_t cid_proto = static_cast<uint16_t>(cid_rec->GetField<zeek::CountVal>(4)->AsCount());
             if ( cid_proto == zeek::UNKNOWN_IP_PROTO ) {
                 emit_builtin_error("CommunityID: unknown transport layer", cid);
                 return zeek::make_intrusive<zeek::StringVal>("");

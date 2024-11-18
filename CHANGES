@@ -1,3 +1,15 @@
+7.1.0-dev.575 | 2024-11-18 17:28:18 +0100
+
+  * communityid: Use GetField() over GetFieldAs() (Arne Welzel, Corelight)
+
+    GetFieldAs() does not initialize an optional or default field. Apparently,
+    for ZAM that makes a difference, possibly the [] record construction is
+    optimized, not initializing proto until actually accessed. Not quite
+    sure why that's not happening for classic script interpretation
+    though.
+
+  * btest/Baseline.zam: Updates for proto addition (Arne Welzel, Corelight)
+
 7.1.0-dev.572 | 2024-11-16 09:34:27 -0700
 
   * Make debug stream names use "-", and handle "_" transparently (Christian Kreibich, Corelight)

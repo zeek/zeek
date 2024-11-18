@@ -484,6 +484,14 @@ void Manager::InitPostScript() {
         (*i)->InitPostScript();
 }
 
+void Manager::InitPreExecution() {
+    assert(init);
+
+    for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
+          i != Manager::ActivePluginsInternal()->end(); i++ )
+        (*i)->InitPreExecution();
+}
+
 void Manager::FinishPlugins() {
     assert(init);
 

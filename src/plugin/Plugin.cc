@@ -249,6 +249,8 @@ void Plugin::InitPreScript() {}
 
 void Plugin::InitPostScript() {}
 
+void Plugin::InitPreExecution() {}
+
 Plugin::bif_item_list Plugin::BifItems() const { return bif_items; }
 
 void Plugin::Done() {

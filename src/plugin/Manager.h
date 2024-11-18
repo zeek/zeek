@@ -123,6 +123,13 @@ public:
     void InitPostScript();
 
     /**
+     * Fourth-stage initialization of the manager. This is called just before
+     * enqueuing zeek_init(), after script analysis and optimization completed.
+     * It forwards to the corresponding Plugin methods.
+     */
+    void InitPreExecution();
+
+    /**
      * Finalizes all plugins at termination time. This forwards to the
      * corresponding Plugin \a Done() methods.
      */

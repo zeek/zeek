@@ -1,3 +1,7 @@
+7.1.0-dev.577 | 2024-11-18 09:39:05 -0800
+
+  * Define ordering on Rule instances and use on sets in RuleMatcher (Christian Kreibich, Corelight)
+
 7.1.0-dev.575 | 2024-11-18 17:28:18 +0100
 
   * communityid: Use GetField() over GetFieldAs() (Arne Welzel, Corelight)

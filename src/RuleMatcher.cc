@@ -657,7 +657,8 @@ RuleMatcher::MIME_Matches* RuleMatcher::Match(RuleFileMagicState* state, const u
     }
 
     // Find rules for which patterns have matched.
-    set<Rule*> rule_matches;
+    auto cmp = [](Rule* a, Rule* b) { return *a < *b; };
+    set<Rule*, decltype(cmp)> rule_matches(cmp);
 
     for ( AcceptingMatchSet::const_iterator it = accepted_matches.begin(); it != accepted_matches.end(); ++it ) {
         auto [aidx, mpos] = *it;
@@ -841,7 +842,12 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type, const 
     // matched patterns per connection (which is a plausible assumption).
 
     // Find rules for which patterns have matched.
-    set<pair<Rule*, MatchPos>> rule_matches;
+    auto cmp = [](pair<Rule*, MatchPos> a, pair<Rule*, MatchPos> b) {
+        if ( *a.first == *b.first )
+            return a.second < b.second;
+        return *a.first < *b.first;
+    };
+    set<pair<Rule*, MatchPos>, decltype(cmp)> rule_matches(cmp);
 
     for ( AcceptingMatchSet::const_iterator it = accepted_matches.begin(); it != accepted_matches.end(); ++it ) {
         AcceptIdx aidx = it->first;

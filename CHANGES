@@ -1,3 +1,11 @@
+7.1.0-dev.581 | 2024-11-19 10:52:56 -0700
+
+  * CI: Use test.sh script for running ZAM tests, but disable parts of it (Tim Wojtulewicz, Corelight)
+
+    This ensures that the normal test setup is run, which enables greedy
+    mode on Cirrus allowing us to over-provision the testing. This should
+    help speed up the ZAM builds a bit.
+
 7.1.0-dev.579 | 2024-11-18 10:13:00 -0800
 
   * Order rule traversal in RuleMatcher::Match() operations by Rule index (Christian Kreibich, Corelight)

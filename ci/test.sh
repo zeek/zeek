@@ -40,6 +40,11 @@ function banner {
 }
 
 function run_unit_tests {
+    if [[ ${ZEEK_CI_SKIP_UNIT_TESTS} -eq 1 ]]; then
+        printf "Skipping unit tests as requested by task configureation\n\n"
+        return 0
+    fi
+
     banner "Running unit tests"
 
     pushd build
@@ -60,7 +65,7 @@ function run_btests {
     pushd testing/btest
 
     ZEEK_PROFILER_FILE=$(pwd)/.tmp/script-coverage/XXXXXX \
-        ${BTEST} -z ${ZEEK_CI_BTEST_RETRIES} -d -A -x btest-results.xml -j ${ZEEK_CI_BTEST_JOBS} || result=1
+        ${BTEST} -z ${ZEEK_CI_BTEST_RETRIES} -d -A -x btest-results.xml -j ${ZEEK_CI_BTEST_JOBS} ${ZEEK_CI_BTEST_EXTRA_ARGS} || result=1
     make coverage
     prep_artifacts
     popd
@@ -68,11 +73,16 @@ function run_btests {
 }
 
 function run_external_btests {
+    if [[ ${ZEEK_CI_SKIP_EXTERNAL_BTESTS} -eq 1 ]]; then
+        printf "Skipping external tests as requested by task configuration\n\n"
+        return 0
+    fi
+
     local zeek_testing_pid=""
     local zeek_testing_pid_private=""
     pushd testing/external/zeek-testing
     ZEEK_PROFILER_FILE=$(pwd)/.tmp/script-coverage/XXXXXX \
-        ${BTEST} -d -A -x btest-results.xml -j ${ZEEK_CI_BTEST_JOBS} >btest.out 2>&1 &
+        ${BTEST} -d -A -x btest-results.xml -j ${ZEEK_CI_BTEST_JOBS} ${ZEEK_CI_BTEST_EXTRA_ARGS} >btest.out 2>&1 &
     zeek_testing_pid=$!
     popd
 

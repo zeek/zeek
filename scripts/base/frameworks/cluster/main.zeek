@@ -295,6 +295,15 @@ export {
 	## Returns: a topic string that may used to send a message exclusively to
 	##          a given cluster node.
 	global nodeid_topic: function(id: string): string;
+
+	## Retrieve the cluster-level naming of a node based on its node ID,
+	## a backend-specific identifier.
+	##
+	## id: the node ID of a peer.
+	##
+	## Returns: the :zeek:see:`Cluster::NamedNode` for the requested node, if
+	##          known, otherwise a "null" instance with an empty name field.
+	global nodeid_to_node: function(id: string): NamedNode;
 }
 
 # Track active nodes per type.
@@ -372,6 +381,17 @@ function node_topic(name: string): string
 function nodeid_topic(id: string): string
 	{
 	return nodeid_topic_prefix + id + "/";
+	}
+
+function nodeid_to_node(id: string): NamedNode
+	{
+	for ( name, n in nodes )
+		{
+		if ( n?$id && n$id == id )
+			return NamedNode($name=name, $node=n);
+		}
+
+	return NamedNode($name="", $node=[$node_type=NONE, $ip=0.0.0.0]);
 	}
 
 event Cluster::hello(name: string, id: string) &priority=10

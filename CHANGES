@@ -1,3 +1,7 @@
+7.0.4 | 2024-11-19 12:31:05 -0700
+
+  * Update CHANGES, VERSION, and NEWS for 7.0.4 release (Tim Wojtulewicz, Corelight)
+
 7.0.3-27 | 2024-11-19 11:19:00 -0700
 
   * Bump zeekjs to 0.13.2 (Arne Welzel, Corelight)

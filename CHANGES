@@ -1,3 +1,9 @@
+7.0.3-27 | 2024-11-19 11:19:00 -0700
+
+  * Bump zeekjs to 0.13.2 (Arne Welzel, Corelight)
+
+    (cherry picked from commit 6e916efe8d9470cdca7b4f4933c44b8c1cab66b0)
+
 7.0.3-26 | 2024-11-19 10:56:06 -0700
 
   * Merge remote-tracking branch 'origin/topic/timw/speed-up-zam-ci-testing' (Tim Wojtulewicz, Corelight)

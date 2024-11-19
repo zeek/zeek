@@ -1,3 +1,12 @@
+7.0.3-26 | 2024-11-19 10:56:06 -0700
+
+  * Merge remote-tracking branch 'origin/topic/timw/speed-up-zam-ci-testing' (Tim Wojtulewicz, Corelight)
+
+    * origin/topic/timw/speed-up-zam-ci-testing:
+      CI: Use test.sh script for running ZAM tests, but disable parts of it
+
+    (cherry picked from commit d9a74680e08553b34cb164847f61b0ea00ad1f5f)
+
 7.0.3-24 | 2024-11-19 09:32:54 -0700
 
   * account for spaces encoding to plus signs in sqli regex detection (Cooper Grill)

@@ -401,12 +401,12 @@ asan_sanitizer_zam_task:
     << : *RESOURCES_TEMPLATE
 
   << : *CI_TEMPLATE
-  test_script:
-    # Run just the btests with zam as alternative.
-    - cd testing/btest && ../../auxil/btest/btest -a zam -A -d -b -j ${ZEEK_CI_BTEST_JOBS}
   env:
     ZEEK_CI_CONFIGURE_FLAGS: *ASAN_SANITIZER_CONFIG
     ASAN_OPTIONS: detect_leaks=1:detect_odr_violation=0
+    ZEEK_CI_SKIP_UNIT_TESTS: 1
+    ZEEK_CI_SKIP_EXTERNAL_BTESTS: 1
+    ZEEK_CI_BTEST_EXTRA_ARGS: -a zam
   << : *ZAM_SKIP_TASK_ON_PR
 
 ubsan_sanitizer_task:
@@ -432,15 +432,15 @@ ubsan_sanitizer_zam_task:
     << : *RESOURCES_TEMPLATE
 
   << : *CI_TEMPLATE
-  test_script:
-    # Run just the btests with zam as alternative.
-    - cd testing/btest && ../../auxil/btest/btest -a zam -A -d -b -j ${ZEEK_CI_BTEST_JOBS}
   env:
     CC: clang-18
     CXX: clang++-18
     ZEEK_CI_CONFIGURE_FLAGS: *UBSAN_SANITIZER_CONFIG
     ZEEK_TAILORED_UB_CHECKS: 1
     UBSAN_OPTIONS: print_stacktrace=1
+    ZEEK_CI_SKIP_UNIT_TESTS: 1
+    ZEEK_CI_SKIP_EXTERNAL_BTESTS: 1
+    ZEEK_CI_BTEST_EXTRA_ARGS: -a zam
   << : *ZAM_SKIP_TASK_ON_PR
 
 tsan_sanitizer_task:

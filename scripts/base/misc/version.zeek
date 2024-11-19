@@ -2,9 +2,6 @@
 ##! The most convenient way to access this are the Version::number
 ##! and Version::info constants.
 
-@load base/frameworks/reporter
-@load base/utils/strings
-
 module Version;
 
 export {

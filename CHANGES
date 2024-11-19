@@ -1,3 +1,12 @@
+7.1.0-dev.583 | 2024-11-19 19:16:51 +0100
+
+  * Bump zeekjs to 0.13.2 (Arne Welzel, Corelight)
+
+        41ec748 cmake: Use foreach range
+        2b90a56 tests: Update new-event to run with 7.1+, remove ip_proto elsewhere
+        a596f6f Makefile: Update outdated commands
+        b954661 Enable `cmake/FindNodejs.cmake` to find more libnode versions
+
 7.1.0-dev.581 | 2024-11-19 10:52:56 -0700
 
   * CI: Use test.sh script for running ZAM tests, but disable parts of it (Tim Wojtulewicz, Corelight)

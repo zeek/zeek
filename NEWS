@@ -3,6 +3,17 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 6.0.9
+==========
+
+This release fixes the following bugs:
+
+- The input framework will no longer get stuck and use 100% of the CPU when
+  encountering lines not immediately terminated by a new line.
+
+- The Modbus analyzer added some additional protocol checks and should no longer
+  over-match on traffic that's not specifically on port 502.
+
 Zeek 6.0.8
 ==========
 

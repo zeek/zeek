@@ -20,13 +20,13 @@
 
 namespace zeek {
 
-class Val;
 class FuncVal;
 
-using ValPtr = IntrusivePtr<Val>;
 using FuncValPtr = IntrusivePtr<FuncVal>;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 
+class Val;
+using ValPtr = IntrusivePtr<Val>;
 using ArgsSpan = Span<const ValPtr>;
 
 namespace cluster {
@@ -67,9 +67,9 @@ public:
 } // namespace detail
 
 /**
- * Interface for a cluster backend implementing publish/subscribe based
- * communication. Serialization of events should be done using the serializers
- * injected into the constructor.
+ * Interface for a cluster backend implementing publish/subscribe communication.
+ * Serialization of events should be done using the serializers injected into
+ * the constructor.
  */
 class Backend {
 public:
@@ -91,22 +91,22 @@ public:
     void Terminate() { DoTerminate(); }
 
     /**
-     * Create a cluster::detail::Event instance given a event handler and the
+     * Create a cluster::detail::Event instance given an event handler and the
      * script function arguments to it.
      *
-     * @param handler
-     * @param args
-     * @param timestamp
+     * @param handler A function val representing an event handler.
+     * @param args The arguments for the event handler.
+     * @param timestamp The network time to add to the event as metadata.
      */
     std::optional<detail::Event> MakeClusterEvent(FuncValPtr handler, ArgsSpan args, double timestamp = 0.0) const;
 
     /**
      * Publish a cluster::detail::Event instance to a given topic.
      *
-     * @param topic
-     * @param event
+     * @param topic The topic string to publish the event to.
+     * @param event The event to publish.
      *
-     * @return true if the message was sent successfully.
+     * @return true if the event was successfully published.
      */
     bool PublishEvent(const std::string& topic, const cluster::detail::Event& event) {
         return DoPublishEvent(topic, event);
@@ -157,16 +157,13 @@ public:
     bool Unsubscribe(const std::string& topic_prefix) { return DoUnsubscribe(topic_prefix); }
 
     /**
-     * Publish multiple log writes.
+     * Publish multiple log records.
      *
-     * All log records belong to (the stream, filter, path) pair that is
+     * All log records belong to the (stream, filter, path) tuple that is
      * described by \a header.
      *
-     * @param header fixed information about the stream, writer, filter and the
-     * schema.
-     * @param path Separate from the header. One header may log to multiple paths,
-     * but the header fields are constant.
-     * @param records A span of logging::detail::LogRecords
+     * @param header Fixed information about the stream, writer, filter and schema of the records.
+     * @param records A span of logging::detail::LogRecords to be published.
      */
     bool PublishLogWrites(const zeek::logging::detail::LogWriteHeader& header,
                           zeek::Span<zeek::logging::detail::LogRecord> records) {
@@ -196,7 +193,7 @@ private:
      * Called after all Zeek scripts have been loaded.
      *
      * A cluster backend should initialize itself based on script variables,
-     * register any IO sources. It should not yet start any connections, that
+     * register any IO sources, etc. It should not yet start any connections, that
      * should happen in DoInit() instead.
      */
     virtual void DoInitPostScript() = 0;
@@ -228,7 +225,8 @@ private:
      * but may be overridden by implementations.
      *
      * Note that this method exists primarily for the broker backend. Do not
-     * implement it unless you have a good reason to do so.
+     * implement it unless you have a good reason to do so as it'll most likely
+     * be removed in future versions.
      *
      * @param args FuncVal representing the event followed by its argument.
      *
@@ -243,7 +241,8 @@ private:
      * converts it to a cluster::detail::Event and publishes that.
 
      * Note that this method exists primarily for the broker backend. Do not
-     * implement it unless you have a good reason to do so.
+     * implement it unless you have a good reason to do so as it'll most likely
+     * be removed in future versions.
      *
      * @param topic a topic string associated with the message.
      * @param event an event RecordVal as produced by MakeEvent().
@@ -266,14 +265,15 @@ private:
      * Send a serialized cluster::detail::Event to the given topic.
      *
      * Semantics of this call are "fire-and-forget". An implementation should
-     * ensure the message is enqueued for delivery, but may not have been send out
+     * ensure the message is enqueued for delivery, but may not have been sent out
      * let alone received by any subscribers of the topic when this call returns.
      *
      * If the backend has not established a connection, the published message is
      * allowed to be discarded.
      *
      * @param topic a topic string associated with the message.
-     * @param buf the serialized Event
+     * @param format the format/serializer used for serialization of the message payload.
+     * @param buf the serialized Event.
      * @return true if the message has been published successfully.
      */
     virtual bool DoPublishEvent(const std::string& topic, const std::string& format,
@@ -323,16 +323,17 @@ private:
      * construct a topic to write the logs to.
      *
      * Semantics of this call are "fire-and-forget". An implementation should
-     * ensure the message is enqueue for delivery, but may not have been send out
+     * ensure the message is enqueued for delivery, but may not have been sent out
      * let alone received by the destination when this call returns.
      *
-     * Sharding log writes to multiple receivers (logger nodes) is
-     * backend specific. Broker, for example, involves script layer
-     * cluster pool concepts, but other backends may use native mechanisms
-     * that may be more efficient.
+     * Sharding log writes to multiple receivers (logger nodes) is backend specific.
+     * Broker, for example, involves Zeek script layer cluster pool concepts.
+     * Other backends may use appropriate native mechanisms that may be more
+     * efficient.
      *
-     * @param header The header describing the writer frontend where the records originate from.
-     * @param buf The serialized log batch. This is the message payload.
+     * @param header the header describing the writer frontend where the records originate from.
+     * @param format the format/serializer used for serialization of the message payload.
+     * @param buf the serialized log batch. This is the message payload.
      * @return true if the message has been published successfully.
      */
     virtual bool DoPublishLogWrites(const zeek::logging::detail::LogWriteHeader& header, const std::string& format,
@@ -402,34 +403,38 @@ protected:
     /**
      * To be used by implementations to enqueue messages for processing on the IO loop.
      *
-     * It's safe to call this method from other threads.
+     * It's safe to call this method from any thread.
+     *
+     * @param messages Messages to be enqueued.
      */
-    void QueueForProcessing(QueueMessages&& qmessage);
+    void QueueForProcessing(QueueMessages&& messages);
 
     void Process() override;
 
     double GetNextTimeout() override { return -1; }
 
     /**
-     * The DoInit() implementation of ThreadedBackend
-     * registers itself as a counting IO source that
-     * keeps the IO loop alive.
-     *
-     * Classes deriving from ThreadedBackend should invoke
-     * this method at some point, or register themselves
-     * with the IO loop if needed.
-     */
-    bool DoInit() override;
-
-    /**
      * The DoInitPostScript() implementation of ThreadedBackend
      * registers itself as a non-counting IO source.
      *
-     * Classes deriving from ThreadedBackend should invoke
-     * this method at some point, or register themselves
-     * with the IO loop if needed.
+     * Classes deriving from ThreadedBackend and providing their
+     * own DoInitPostScript() method should invoke the ThreadedBackend's
+     * implementation to register themselves as a non-counting
+     * IO source with the IO loop.
      */
     void DoInitPostScript() override;
+
+    /**
+     * The default DoInit() implementation of ThreadedBackend
+     * registers itself as a counting IO source to keep the IO
+     * loop alive after initialization.
+     *
+     * Classes deriving from ThreadedBackend and providing their
+     * own DoInit() method should invoke the ThreadedBackend's
+     * implementation to register themselves as a counting
+     * IO source with the IO loop.
+     */
+    bool DoInit() override;
 
 private:
     /**

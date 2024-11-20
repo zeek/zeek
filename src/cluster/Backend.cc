@@ -78,7 +78,7 @@ zeek::RecordValPtr Backend::DoMakeEvent(zeek::ArgsSpan args) {
     static const auto& event_record_type = zeek::id::find_type<zeek::RecordType>("Cluster::Event");
     auto rec = zeek::make_intrusive<zeek::RecordVal>(event_record_type);
 
-    if ( args.size() < 1 ) {
+    if ( args.empty() ) {
         zeek::reporter->Error("not enough arguments to Cluster::make_event()");
         return rec;
     }
@@ -135,7 +135,7 @@ bool Backend::DoPublishEvent(const std::string& topic, const zeek::RecordValPtr&
 bool Backend::DoPublishEvent(const std::string& topic, const cluster::detail::Event& event) {
     cluster::detail::byte_buffer buf;
 
-    if ( ! event_serializer->SerializeEventInto(buf, event) )
+    if ( ! event_serializer->SerializeEvent(buf, event) )
         return false;
 
     return DoPublishEvent(topic, event_serializer->Name(), buf);
@@ -146,7 +146,7 @@ bool Backend::DoPublishLogWrites(const zeek::logging::detail::LogWriteHeader& he
                                  zeek::Span<zeek::logging::detail::LogRecord> records) {
     cluster::detail::byte_buffer buf;
 
-    if ( ! log_serializer->SerializeLogWriteInto(buf, header, records) )
+    if ( ! log_serializer->SerializeLogWrite(buf, header, records) )
         return false;
 
     return DoPublishLogWrites(header, log_serializer->Name(), buf);

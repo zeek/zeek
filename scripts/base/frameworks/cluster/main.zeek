@@ -311,9 +311,11 @@ export {
 	## Returns: true on success
 	global unsubscribe: function(topic: string): bool;
 
-	## Untyped remote event.
+	## An event instance for cluster pub/sub.
+	##
+	## See :zeek:see:`Cluster::publish` and :zeek:see:`Cluster::make_event`.
 	type Event: record {
-		## The function to be invoked as an event on the remote side.
+		## The event handler to be invoked on the remote node.
 		ev: any;
 		## The arguments for the event.
 		args: vector of any;

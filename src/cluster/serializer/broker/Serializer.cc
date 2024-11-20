@@ -1,4 +1,4 @@
-#include "Serializer.h"
+#include "zeek/cluster/serializer/broker/Serializer.h"
 
 #include <optional>
 
@@ -102,7 +102,7 @@ std::optional<detail::Event> to_zeek_event(const broker::zeek::Event& ev) {
 
 } // namespace
 
-bool detail::BrokerBinV1_Serializer::SerializeEventInto(detail::byte_buffer& buf, const detail::Event& event) {
+bool detail::BrokerBinV1_Serializer::SerializeEvent(detail::byte_buffer& buf, const detail::Event& event) {
     auto ev = to_broker_event(event);
     if ( ! ev )
         return false;
@@ -143,7 +143,7 @@ struct PushBackAdaptor {
 };
 
 
-bool detail::BrokerJsonV1_Serializer::SerializeEventInto(byte_buffer& buf, const detail::Event& event) {
+bool detail::BrokerJsonV1_Serializer::SerializeEvent(byte_buffer& buf, const detail::Event& event) {
     auto ev = to_broker_event(event);
     if ( ! ev )
         return false;
@@ -181,7 +181,7 @@ TEST_CASE("roundtrip") {
         std::string expected =
             R"({"@data-type":"vector","data":[{"@data-type":"count","data":1},{"@data-type":"count","data":1},{"@data-type":"vector","data":[{"@data-type":"string","data":"Supervisor::node_status"},{"@data-type":"vector","data":[{"@data-type":"string","data":"TEST"},{"@data-type":"count","data":42}]},{"@data-type":"vector","data":[{"@data-type":"vector","data":[{"@data-type":"count","data":1},{"@data-type":"timestamp","data":"1970-01-01T00:00:00.000"}]}]}]}]})";
 
-        serializer.SerializeEventInto(buf, e);
+        serializer.SerializeEvent(buf, e);
 
         CHECK_EQ(expected, std::string{reinterpret_cast<char*>(buf.data()), buf.size()});
 
@@ -204,7 +204,7 @@ TEST_CASE("roundtrip") {
         std::byte* p = reinterpret_cast<std::byte*>(&expected_bytes[0]);
         detail::byte_buffer expected{p, p + sizeof(expected_bytes)};
 
-        serializer.SerializeEventInto(buf, e);
+        serializer.SerializeEvent(buf, e);
 
         CHECK_EQ(expected, buf);
 

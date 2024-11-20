@@ -18,8 +18,9 @@ using namespace zeek::cluster;
     do {                                                                                                               \
     } while ( 0 )
 
-bool detail::BinarySerializationFormatLogSerializer::SerializeLogWriteInto(
-    byte_buffer& buf, const logging::detail::LogWriteHeader& header, zeek::Span<logging::detail::LogRecord> records) {
+bool detail::BinarySerializationFormatLogSerializer::SerializeLogWrite(byte_buffer& buf,
+                                                                       const logging::detail::LogWriteHeader& header,
+                                                                       zeek::Span<logging::detail::LogRecord> records) {
     zeek::detail::BinarySerializationFormat fmt;
 
     SERIALIZER_DEBUG("Serializing stream=%s writer=%s filter=%s path=%s num_fields=%zu num_records=%zu\n", stream_id,
@@ -169,7 +170,7 @@ TEST_CASE("roundtrip") {
     records[0][0].val.double_val = 1.0;
     records[1][0].val.double_val = 2.0;
 
-    REQUIRE(serializer.SerializeLogWriteInto(buf, hdr, records));
+    REQUIRE(serializer.SerializeLogWrite(buf, hdr, records));
     CHECK_EQ(expected, buf);
 
     // for ( auto c : buf )

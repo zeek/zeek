@@ -5304,7 +5304,7 @@ function has_module_events%(group: string%) : bool
 	%}
 
 ## Returns true if Zeek was built with support for using Spicy analyzers (which
-# is the default).
+## is the default).
 function have_spicy%(%) : bool
 	%{
 #ifdef HAVE_SPICY

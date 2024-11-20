@@ -55,6 +55,7 @@ enum DebugStream {
     DBG_HASHKEY,         // HashKey buffers
     DBG_SPICY,           // Spicy functionality
     DBG_CLUSTER,         // Cluster functionality
+    DBG_STORAGE,         // Storage framework
 
     NUM_DBGS // Has to be last
 };

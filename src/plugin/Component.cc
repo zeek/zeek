@@ -45,6 +45,8 @@ void Component::Describe(ODesc* d) const {
 
         case component::LOG_SERIALIZER: d->Add("Log Serializer"); break;
 
+        case component::STORAGE_BACKEND: d->Add("Storage Backend"); break;
+
         default:
             reporter->InternalWarning("unknown component type in plugin::Component::Describe");
             d->Add("<unknown component type>");

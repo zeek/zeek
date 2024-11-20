@@ -18,7 +18,7 @@ public:
     /**
      * Constructor.
      *
-     * @param name The name of cluster backend. An Zeek script level enum
+     * @param name The name of the cluster backend. A Zeek script-level enum
      * with the name Cluster::CLUSTER_BACKEND_<NAME> will be created.
      *
      * @param factory A factory function to instantiate instances of the
@@ -58,11 +58,11 @@ public:
     /**
      * Constructor.
      *
-     * @param name The name of cluster backend. An Zeek script level enum
+     * @param name The name of the event serializer. A Zeek script-level enum
      * with the name Cluster::EVENT_SERIALIZER_<NAME> will be created.
      *
      * @param factory A factory function to instantiate instances of the
-     * cluster backend.
+     * event serializer.
      */
     EventSerializerComponent(const std::string& name, factory_callback factory);
 
@@ -97,11 +97,11 @@ public:
     /**
      * Constructor.
      *
-     * @param name The name of cluster backend. An Zeek script level enum
-     * with the name Cluster::EVENT_SERIALIZER_<NAME> will be created.
+     * @param name The name of the log serializer. A Zeek script-level enum
+     * with the name Cluster::LOG_SERIALIZER_<NAME> will be created.
      *
      * @param factory A factory function to instantiate instances of the
-     * cluster backend.
+     * log serializer.
      */
     LogSerializerComponent(const std::string& name, factory_callback factory);
 

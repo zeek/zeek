@@ -29,10 +29,10 @@ enum Type {
     IOSOURCE,         /// An I/O source, excluding packet sources.
     PKTSRC,           /// A packet source.
     PKTDUMPER,        /// A packet dumper.
+    SESSION_ADAPTER,  /// A session adapter analyzer.
     CLUSTER_BACKEND,  /// A cluster backend.
     EVENT_SERIALIZER, /// A serializer for events, used by cluster backends.
     LOG_SERIALIZER,   /// A serializer for log batches, used by cluster backends.
-    SESSION_ADAPTER,  /// A session adapter analyzer.
 };
 
 } // namespace component

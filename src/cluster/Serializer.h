@@ -11,18 +11,7 @@
 #include "zeek/Span.h"
 #include "zeek/logging/Types.h"
 
-namespace zeek {
-
-template<class T>
-class IntrusivePtr;
-
-class Val;
-using ValPtr = IntrusivePtr<Val>;
-
-class Type;
-using TypePtr = IntrusivePtr<Type>;
-
-namespace cluster {
+namespace zeek::cluster {
 
 namespace detail {
 class Event;
@@ -115,5 +104,4 @@ private:
     std::string name;
 };
 
-} // namespace cluster
-} // namespace zeek
+} // namespace zeek::cluster

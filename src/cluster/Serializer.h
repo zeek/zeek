@@ -40,7 +40,7 @@ public:
      *
      * @returns True on success, false in exceptional cases (e.g. unsupported serialization).
      */
-    virtual bool SerializeEventInto(detail::byte_buffer& buf, const detail::Event& event) = 0;
+    virtual bool SerializeEvent(detail::byte_buffer& buf, const detail::Event& event) = 0;
 
     /**
      * Unserialize an event from a given byte buffer.
@@ -85,8 +85,8 @@ public:
      * @param header The log batch header.
      * @param records The actual log writes.
      */
-    virtual bool SerializeLogWriteInto(detail::byte_buffer& buf, const logging::detail::LogWriteHeader& header,
-                                       zeek::Span<logging::detail::LogRecord> records) = 0;
+    virtual bool SerializeLogWrite(detail::byte_buffer& buf, const logging::detail::LogWriteHeader& header,
+                                   zeek::Span<logging::detail::LogRecord> records) = 0;
 
     /**
      * Unserialize log writes from a given byte buffer.

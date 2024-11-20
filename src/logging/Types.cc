@@ -22,8 +22,6 @@ LogWriteHeader::LogWriteHeader(EnumValPtr arg_stream_id, EnumValPtr arg_writer_i
 
 LogWriteHeader& LogWriteHeader::operator=(const LogWriteHeader& other) = default;
 
-LogWriteHeader::LogWriteHeader(LogWriteHeader&& other) noexcept = default;
-
 LogWriteHeader::~LogWriteHeader() = default;
 
 bool LogWriteHeader::PopulateEnumVals() {

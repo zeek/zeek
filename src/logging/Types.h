@@ -32,6 +32,9 @@ using LogRecord = std::vector<threading::Value>;
  * A struct holding all necessary information that relates to
  * log writes for a given path. These values are constant over
  * the lifetime of a \a WriterFrontend.
+ *
+ * Note that the constructor, destructor and assignment operator are
+ * defaulted in Types.cc. This is to avoid a Val.h include here.
  */
 struct LogWriteHeader {
     /**
@@ -55,10 +58,8 @@ struct LogWriteHeader {
     LogWriteHeader& operator=(const LogWriteHeader& other);
 
     /**
-     * Move constructor.
+     * Destructor.
      */
-    LogWriteHeader(LogWriteHeader&& other) noexcept;
-
     ~LogWriteHeader();
 
     /**

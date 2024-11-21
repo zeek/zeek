@@ -27,6 +27,7 @@ using Args = std::vector<ValPtr>;
  * @return  the converted argument list
  *
  */
+[[deprecated("Remove in v8.1. Convert users to produce zeek::Args directly.")]]
 Args val_list_to_args(const ValPList& vl);
 
 /**

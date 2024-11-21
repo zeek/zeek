@@ -31,7 +31,7 @@ function Cluster::make_event%(...%): any
 	%{
 	ScriptLocationScope scope{frame};
 
-	return zeek::cluster::backend->MakeEvent(zeek::ArgsSpan{*@ARGS@});
+	return make_event(zeek::ArgsSpan{*@ARGS@});
 	%}
 
 function Cluster::__subscribe%(topic_prefix: string%): bool

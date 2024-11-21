@@ -13,10 +13,11 @@ namespace detail {
 class Frame;
 }
 
+class RecordVal;
+using RecordValPtr = IntrusivePtr<RecordVal>;
+
 class Val;
-
 using ValPtr = IntrusivePtr<Val>;
-
 using ArgsSpan = Span<const ValPtr>;
 
 namespace cluster::detail::bif {
@@ -26,6 +27,17 @@ public:
     ScriptLocationScope(const zeek::detail::Frame* frame);
     ~ScriptLocationScope();
 };
+
+/**
+ * Cluster::make_event() implementation.
+ *
+ * @param topic The topic to publish to. Should be a StringVal.
+ * @param args The arguments to the BiF function. May either be a prepared event from make_event(),
+ *  or a FuncValPtr and it's arguments
+ *
+ * @return A BoolValPtr that's true if the event was published, else false.
+ */
+zeek::RecordValPtr make_event(zeek::ArgsSpan args);
 
 /**
  * Publish helper.

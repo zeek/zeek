@@ -22,7 +22,7 @@ Follow us on Twitter at [@zeekurity](https://twitter.com/zeekurity).
 
 [![Slack](https://img.shields.io/badge/slack-@zeek-brightgreen.svg?logo=slack)](https://zeek.org/slack)
 [![Discourse](https://img.shields.io/discourse/status?server=https%3A%2F%2Fcommunity.zeek.org)](https://community.zeek.org)
-[![Gurubase](https://img.shields.io/badge/Gurubase-Ask%20Zeek%20Guru-006BFF)](https://gurubase.io/g/zeek)
+[![Gurubase](https://img.shields.io/badge/Gurubase-Ask%20Zeek%20Guru-4EC428)](https://gurubase.io/g/zeek)
 
 </h4>
 

@@ -262,8 +262,6 @@ public:
 
     using ArgsSpan = Span<const ValPtr>;
 
-    using Backend::MakeEvent;
-
     /**
      * Create an `Event` record value from an event and its arguments.
      * @param args A span pointing at the event arguments.
@@ -374,14 +372,6 @@ public:
 
 private:
     /**
-     * Create an `Event` record value from an event and its arguments.
-     * @param args A span pointing at the event arguments.
-     * @return an `Event` record value.  If an invalid event or arguments
-     * were supplied the optional "name" field will not be set.
-     */
-    zeek::RecordValPtr DoMakeEvent(ArgsSpan args) override;
-
-    /**
      * Register interest in peer event messages that use a certain topic prefix.
      * @param topic_prefix a prefix to match against remote message topics.
      * e.g. an empty prefix will match everything and "a" will match "alice"
@@ -407,11 +397,6 @@ private:
 
     // Shuts Broker down at termination.
     void DoTerminate() override;
-
-    // Implement Backend::DoPulbishEvent() to use Broker::Event, not Cluster::Event
-    bool DoPublishEvent(const std::string& topic, const zeek::RecordValPtr& event) override {
-        return PublishEvent(topic, event->AsRecordVal());
-    }
 
     // Broker overrides this to do its own serialization.
     bool DoPublishEvent(const std::string& topic, const cluster::detail::Event& event) override;

@@ -1965,6 +1965,7 @@ EqExpr::EqExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
             case TYPE_ADDR:
             case TYPE_SUBNET:
             case TYPE_ERROR:
+            case TYPE_PATTERN:
             case TYPE_FUNC: break;
 
             case TYPE_ENUM:
@@ -1996,12 +1997,19 @@ EqExpr::EqExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
 
 ValPtr EqExpr::Fold(Val* v1, Val* v2) const {
     if ( op1->GetType()->Tag() == TYPE_PATTERN ) {
-        auto re = v1->As<PatternVal*>();
-        const String* s = v2->AsString();
-        if ( tag == EXPR_EQ )
-            return val_mgr->Bool(re->MatchExactly(s));
-        else
-            return val_mgr->Bool(! re->MatchExactly(s));
+        if ( op2->GetType()->Tag() == TYPE_PATTERN ) {
+            auto re1 = v1->As<PatternVal*>();
+            auto re2 = v2->As<PatternVal*>();
+            return val_mgr->Bool(strcmp(re1->Get()->PatternText(), re2->Get()->PatternText()) == 0);
+        }
+        else {
+            auto re = v1->As<PatternVal*>();
+            const String* s = v2->AsString();
+            if ( tag == EXPR_EQ )
+                return val_mgr->Bool(re->MatchExactly(s));
+            else
+                return val_mgr->Bool(! re->MatchExactly(s));
+        }
     }
     else if ( op1->GetType()->Tag() == TYPE_FUNC ) {
         auto res = v1->AsFunc() == v2->AsFunc();

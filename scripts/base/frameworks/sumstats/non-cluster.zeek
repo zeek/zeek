@@ -27,42 +27,58 @@ event SumStats::process_epoch_result(ss: SumStat, now: time, data: ResultTable)
 		ss$epoch_finished(now);
 	}
 
-event SumStats::finish_epoch(ss: SumStat)
+
+function do_finish_epoch(ss: SumStat)
 	{
-	if ( ss$name in result_store )
+	if ( ss$name !in result_store || ! ss?$epoch_result )
+		return;
+
+	local data = result_store[ss$name];
+	local now = network_time();
+	if ( zeek_is_terminating() )
 		{
-		if ( ss?$epoch_result )
-			{
-			local data = result_store[ss$name];
-			local now = network_time();
-			if ( zeek_is_terminating() )
-				{
-				for ( key, val in data )
-					ss$epoch_result(now, key, val);
+		for ( key, val in data )
+			ss$epoch_result(now, key, val);
 
-				if ( ss?$epoch_finished )
-					ss$epoch_finished(now);
-				}
-			else
-				{
-				if ( |data| > 0 )
-					event SumStats::process_epoch_result(ss, now, copy(data));
-				else
-					{
-					if ( ss?$epoch_finished )
-						ss$epoch_finished(now);
-					}
-				}
-			}
-
-		# We can reset here because we know that the reference
-		# to the data will be maintained by the process_epoch_result
-		# event.
-		reset(ss);
+		if ( ss?$epoch_finished )
+			ss$epoch_finished(now);
 		}
+	else
+		{
+		if ( |data| > 0 )
+			event SumStats::process_epoch_result(ss, now, copy(data));
+		else
+			{
+			if ( ss?$epoch_finished )
+				ss$epoch_finished(now);
+			}
+		}
+	# We can reset here because we know that the reference to the
+	# data will be maintained by the process_epoch_result event.
+	reset(ss);
 
 	if ( ss$epoch != 0secs )
 		schedule ss$epoch { SumStats::finish_epoch(ss) };
+	}
+
+event SumStats::finish_epoch(ss: SumStat)
+	{
+	if ( zeek_is_terminating() )
+		return;  # runs during zeek_done() instead
+
+	do_finish_epoch(ss);
+	}
+
+# Run non-manual SumStats entries as late as possible, but a bit
+# earlier than a user's zeek_done() handler in case they end up
+# doing something curious in zeek_done().
+event zeek_done() &priority=10
+	{
+	for ( name, ss in stats_store )
+		{
+		if ( ss$epoch != 0sec )  # skip SumStats with manual epochs.
+			do_finish_epoch(ss);
+		}
 	}
 
 function data_added(ss: SumStat, key: Key, result: Result)

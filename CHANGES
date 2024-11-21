@@ -1,3 +1,17 @@
+7.1.0-dev.592 | 2024-11-21 16:38:55 +0100
+
+  * sumstat/non-cluster: Move last epoch processing to zeek_done() (Arne Welzel, Corelight)
+
+    @Sheco reported that standalone epoch processing may exclude scheduled
+    events when the final sumstat epoch runs before. For example, this easily
+    happens when attempting to do sumstat observations within connection_state_remove().
+
+    Delay final epoch processing to zeek_done() instead.
+
+    This doesn't deal with the clustered version - this would need something
+    more elaborate and potentially a mechanism to delay the shutdown of
+    other cluster nodes until/after sumstat processing completed.
+
 7.1.0-dev.590 | 2024-11-21 14:40:53 +0100
 
   * plugin: Add InitPreExecution() (Arne Welzel, Corelight)

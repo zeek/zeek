@@ -16,9 +16,7 @@
 
 using namespace zeek::cluster;
 
-namespace {
-
-std::optional<zeek::Args> check_args(const zeek::FuncValPtr& handler, zeek::ArgsSpan args) {
+std::optional<zeek::Args> detail::check_args(const zeek::FuncValPtr& handler, zeek::ArgsSpan args) {
     const auto& func_type = handler->GetType<zeek::FuncType>();
 
     if ( func_type->Flavor() != zeek::FUNC_FLAVOR_EVENT ) {
@@ -42,7 +40,7 @@ std::optional<zeek::Args> check_args(const zeek::FuncValPtr& handler, zeek::Args
         const auto& expected_type = types[i];
 
         if ( ! same_type(got_type, expected_type) ) {
-            zeek::reporter->Error("event parameter #%zu type mismatch, got %s, expecting %s", i,
+            zeek::reporter->Error("event parameter #%zu type mismatch, got %s, expecting %s", i + 1,
                                   zeek::obj_desc_short(got_type.get()).c_str(),
                                   zeek::obj_desc_short(expected_type.get()).c_str());
             return std::nullopt;
@@ -54,10 +52,8 @@ std::optional<zeek::Args> check_args(const zeek::FuncValPtr& handler, zeek::Args
     return result;
 }
 
-} // namespace
-
 std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsSpan args, double timestamp) const {
-    auto checked_args = check_args(handler, args);
+    auto checked_args = detail::check_args(handler, args);
     if ( ! checked_args )
         return std::nullopt;
 
@@ -71,71 +67,6 @@ std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsS
     }
 
     return zeek::cluster::detail::Event{eh, std::move(*checked_args), timestamp};
-}
-
-zeek::RecordValPtr Backend::DoMakeEvent(zeek::ArgsSpan args) {
-    static const auto& any_vec_type = zeek::id::find_type<zeek::VectorType>("any_vec");
-    static const auto& event_record_type = zeek::id::find_type<zeek::RecordType>("Cluster::Event");
-    auto rec = zeek::make_intrusive<zeek::RecordVal>(event_record_type);
-
-    if ( args.empty() ) {
-        zeek::reporter->Error("not enough arguments to Cluster::make_event()");
-        return rec;
-    }
-
-    const auto& maybe_func_val = args[0];
-
-    if ( maybe_func_val->GetType()->Tag() != zeek::TYPE_FUNC ) {
-        zeek::reporter->Error("attempt to convert non-event into an event type (%s)",
-                              zeek::obj_desc_short(maybe_func_val->GetType().get()).c_str());
-        return rec;
-    }
-
-    const auto func = zeek::FuncValPtr{zeek::NewRef{}, maybe_func_val->AsFuncVal()};
-    auto checked_args = check_args(func, args.subspan(1));
-    if ( ! checked_args )
-        return rec;
-
-    // Making a copy from zeek::Args to a VectorVal and then back again on publish.
-    auto vec = zeek::make_intrusive<zeek::VectorVal>(any_vec_type);
-    vec->Reserve(checked_args->size());
-    rec->Assign(0, maybe_func_val);
-    for ( const auto& arg : *checked_args )
-        vec->Append(arg);
-
-    rec->Assign(1, vec); // Args
-
-    return rec;
-}
-
-bool Backend::DoPublishEvent(const std::string& topic, const zeek::RecordValPtr& event) {
-    static const auto& event_record_type = zeek::id::find_type<zeek::RecordType>("Cluster::Event");
-    if ( event->GetType() != event_record_type ) {
-        zeek::emit_builtin_error(zeek::util::fmt("Wrong event type, expected '%s', got '%s'",
-                                                 obj_desc_short(event->GetType().get()).c_str(),
-                                                 obj_desc_short(event_record_type.get()).c_str()));
-        return false;
-    }
-
-    const auto& rec = cast_intrusive<zeek::RecordVal>(event);
-    const auto& func = rec->GetField<zeek::FuncVal>(0);
-    const auto& vargs = rec->GetField<VectorVal>(1);
-    zeek::Args args(vargs->Size());
-    for ( size_t i = 0; i < vargs->Size(); i++ )
-        args[i] = vargs->ValAt(i);
-
-    // TODO: Support configurable timestamps or custom metadata on the record.
-    auto timestamp = zeek::event_mgr.CurrentEventTime();
-
-    const auto& eh = zeek::event_registry->Lookup(func->AsFuncPtr()->GetName());
-    if ( ! eh ) {
-        zeek::reporter->Error("event registry lookup of '%s' failed", obj_desc(func.get()).c_str());
-        return false;
-    }
-
-    auto ev = cluster::detail::Event(eh, std::move(args), timestamp);
-
-    return PublishEvent(topic, ev);
 }
 
 // Default implementation doing the serialization.

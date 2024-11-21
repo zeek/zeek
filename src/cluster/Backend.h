@@ -23,7 +23,6 @@ namespace zeek {
 class FuncVal;
 
 using FuncValPtr = IntrusivePtr<FuncVal>;
-using RecordValPtr = IntrusivePtr<RecordVal>;
 
 class Val;
 using ValPtr = IntrusivePtr<Val>;
@@ -53,6 +52,16 @@ public:
     std::string_view HandlerName() const { return handler->Name(); }
     const EventHandlerPtr& Handler() const { return handler; }
 };
+
+/**
+ * Validate that the provided args are suitable for handler.
+ *
+ * @param handler An event  handler.
+ * @param args The provide arguments for the handler as a span.
+ *
+ * @return A zeek::Args instance if successful, else std::nullopt.
+ */
+std::optional<zeek::Args> check_args(const zeek::FuncValPtr& handler, zeek::ArgsSpan args);
 } // namespace detail
 
 /**
@@ -98,34 +107,6 @@ public:
      * @return true if the event was successfully published.
      */
     bool PublishEvent(const std::string& topic, const cluster::detail::Event& event) {
-        return DoPublishEvent(topic, event);
-    }
-
-    /**
-     * Prepare a script-level event for publishing.
-     *
-     * This function is invoked from the \a Cluster::make_event() bif.
-     *
-     * The returned RecordVal can be backend specific. It should be a basic
-     * script level record holding all required information.
-     *
-     * @param args An ArgsSpan starting with a FuncVal instance representing
-     * the event, followed by the event's arguments, if any.
-     *
-     * @return An opaque RecordValPtr that can be passed to PublishEvent()
-     */
-    zeek::RecordValPtr MakeEvent(ArgsSpan args) { return DoMakeEvent(args); }
-
-    /**
-     * Send an event as produced by MakeEvent() to the given topic.
-     *
-     * The default implementation expects the \a Cluster::Event script type.
-     *
-     * @param topic a topic string associated with the message.
-     * @param event an event RecordVal as produced by MakeEvent().
-     * @return true if the message was sent successfully.
-     */
-    bool PublishEvent(const std::string& topic, const zeek::RecordValPtr& event) {
         return DoPublishEvent(topic, event);
     }
 
@@ -205,39 +186,6 @@ private:
      * amount of time to flush any last messages out.
      */
     virtual void DoTerminate() = 0;
-
-    /**
-     * Given the arguments for the \a Cluster::make_event() function, create
-     * a script-level record value that represents the event.
-     *
-     * The default implementation produces the \a Cluster::Event script type,
-     * but may be overridden by implementations.
-     *
-     * Note that this method exists primarily for the broker backend. Do not
-     * implement it unless you have a good reason to do so as it'll most likely
-     * be removed in future versions.
-     *
-     * @param args FuncVal representing the event followed by its argument.
-     *
-     * @return An opaque RecordValPtr that can be passed to PublishEvent()
-     */
-    virtual zeek::RecordValPtr DoMakeEvent(ArgsSpan args);
-
-    /**
-     * Send an event as produced by MakeEvent() to the given topic.
-     *
-     * The default implementation expects the \a Cluster::Event script type,
-     * converts it to a cluster::detail::Event and publishes that.
-
-     * Note that this method exists primarily for the broker backend. Do not
-     * implement it unless you have a good reason to do so as it'll most likely
-     * be removed in future versions.
-     *
-     * @param topic a topic string associated with the message.
-     * @param event an event RecordVal as produced by MakeEvent().
-     * @return true if the message was sent successfully.
-     */
-    virtual bool DoPublishEvent(const std::string& topic, const zeek::RecordValPtr& event);
 
     /**
      * Publish a cluster::detail::Event to the given topic.

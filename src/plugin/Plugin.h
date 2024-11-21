@@ -749,6 +749,14 @@ protected:
     virtual void InitPostScript();
 
     /**
+     * Third-stage initialization of the plugin called just before enqueueing
+     * zeek_init(), after script analysis and optimization completed.
+     * This can be overridden by derived classes; they must however call the
+     * parent's implementation.
+     */
+    virtual void InitPreExecution();
+
+    /**
      * Finalizer method that derived classes can override for performing
      * custom tasks at shutdown.  This can be overridden by derived
      * classes; they must however call the parent's implementation.

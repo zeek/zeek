@@ -1,3 +1,23 @@
+7.1.0-dev.590 | 2024-11-21 14:40:53 +0100
+
+  * plugin: Add InitPreExecution() (Arne Welzel, Corelight)
+
+    Currently, plugins do not have a way to further inspect or even mutate
+    script functions after ZAM optimization ran. One use-case here is
+    zeek-perf-support [1]. This plugin wraps Stmt instances of functions,
+    events and hooks hooks with a small assembly stub to support JIT map
+    files [2] and for integration with perf tools.
+
+    This change introduces a new InitPreExecution() hook that runs after
+    ZAM optimization completed, just before the zeek_init() event is enqueued.
+
+    Additionally, remove the existing CPP_activation_hook. It doesn't seem
+    to be used. If it becomes necessary in the future, the new
+    InitPreExecution() hook can be leveraged instead.
+
+    [1] https://github.com/zeek/zeek-perf-support
+    [2] https://github.com/torvalds/linux/blob/master/tools/perf/Documentation/jit-interface.txt
+
 7.1.0-dev.588 | 2024-11-21 10:22:21 +0100
 
   * Bump zeekjs to v0.14.0 (Arne Welzel, Corelight)

@@ -77,6 +77,10 @@ New Functionality
 
 	event signature_match(state: signature_state, msg: string, data: string, end_of_match: count);
 
+* A we plugin hook ``InitPreExecution()`` has been added to allow introspection
+  of Zeek's AST after ZAM optimizations ran. This hook executes right before
+  the ``zeek_init()`` event is enqueued.
+
 Changed Functionality
 ---------------------
 

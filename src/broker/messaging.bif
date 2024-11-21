@@ -99,7 +99,7 @@ function Broker::make_event%(...%): Broker::Event
 	%{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
 
-	auto ev = zeek::broker_mgr->MakeEvent(ArgsSpan{*@ARGS@});
+	auto ev = zeek::broker_mgr->MakeEvent(ArgsSpan{*@ARGS@}, frame);
 	return zeek::cast_intrusive<RecordVal>(ev);
 	%}
 

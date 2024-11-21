@@ -6,6 +6,7 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
+#include "zeek/EventRegistry.h"
 #include "zeek/Func.h"
 #include "zeek/Reporter.h"
 #include "zeek/Type.h"
@@ -14,13 +15,6 @@
 #include "zeek/logging/Manager.h"
 
 using namespace zeek::cluster;
-
-std::string_view detail::Event::HandlerName() const {
-    if ( std::holds_alternative<FuncValPtr>(handler) )
-        return std::get<FuncValPtr>(handler)->AsFunc()->GetName();
-
-    return std::get<EventHandlerPtr>(handler)->Name();
-}
 
 namespace {
 
@@ -70,7 +64,13 @@ std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsS
     if ( timestamp == 0.0 )
         timestamp = zeek::event_mgr.CurrentEventTime();
 
-    return zeek::cluster::detail::Event{handler, std::move(*checked_args), timestamp};
+    const auto& eh = zeek::event_registry->Lookup(handler->AsFuncPtr()->GetName());
+    if ( ! eh ) {
+        zeek::reporter->Error("event registry lookup of '%s' failed", obj_desc(handler.get()).c_str());
+        return std::nullopt;
+    }
+
+    return zeek::cluster::detail::Event{eh, std::move(*checked_args), timestamp};
 }
 
 zeek::RecordValPtr Backend::DoMakeEvent(zeek::ArgsSpan args) {
@@ -126,7 +126,14 @@ bool Backend::DoPublishEvent(const std::string& topic, const zeek::RecordValPtr&
 
     // TODO: Support configurable timestamps or custom metadata on the record.
     auto timestamp = zeek::event_mgr.CurrentEventTime();
-    auto ev = cluster::detail::Event(func, std::move(args), timestamp);
+
+    const auto& eh = zeek::event_registry->Lookup(func->AsFuncPtr()->GetName());
+    if ( ! eh ) {
+        zeek::reporter->Error("event registry lookup of '%s' failed", obj_desc(func.get()).c_str());
+        return false;
+    }
+
+    auto ev = cluster::detail::Event(eh, std::move(args), timestamp);
 
     return PublishEvent(topic, ev);
 }

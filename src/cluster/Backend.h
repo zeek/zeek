@@ -38,31 +38,20 @@ namespace detail {
  */
 class Event {
 public:
-    // When an event is published from script land, the handler is known
-    // as a FuncVal. When an event is deserialized from a message, it's
-    // easier to use an EventHandler from the registry so the event can
-    // be enqueued directly.
-    //
-    // It seems there's no direct translation between EventHandlerPtr and
-    // FuncValPtr without going through the global scope or event registry,
-    // so this is done via a variant here.
-    using FuncValOrEventHandler = std::variant<FuncValPtr, EventHandlerPtr>;
-
     /**
      * Constructor.
      */
-    Event(FuncValOrEventHandler handler, zeek::Args args, double timestamp = 0.0)
-        : handler(std::move(handler)), args(std::move(args)), timestamp(timestamp) {}
+    Event(const EventHandlerPtr& handler, zeek::Args args, double timestamp = 0.0)
+        : handler(handler), args(std::move(args)), timestamp(timestamp) {}
 
-    FuncValOrEventHandler handler;
+    EventHandlerPtr handler;
     zeek::Args args;
     double timestamp; // TODO: This should be more generic, possibly holding a
                       // vector of key/value metadata, rather than just
                       // the timestamp.
 
-    std::string_view HandlerName() const;
-    const EventHandlerPtr& Handler() const { return std::get<EventHandlerPtr>(handler); }
-    const FuncValPtr& FuncVal() const { return std::get<FuncValPtr>(handler); }
+    std::string_view HandlerName() const { return handler->Name(); }
+    const EventHandlerPtr& Handler() const { return handler; }
 };
 } // namespace detail
 

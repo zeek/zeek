@@ -1,3 +1,23 @@
+7.0.4-2 | 2024-12-12 12:44:36 -0700
+
+  * Bump zeekjs to v0.14.0 (Arne Welzel, Corelight)
+        79b0c21 version: 0.14.0
+        b75b384 docker: Use Fedora 41 packages
+        d65cbc8 Minor header cleanup
+        4fd7e8b scripts: Remove __preload__.zeek and types.zeek
+        93a8113 CreateEnvironment: Unset kOwnsProcessState and kOwnsInspector
+        3b1f5d3 Instance::Init(): Replace parameters with Options struct
+
+    (cherry picked from commit aac640ebffdd58b1e25e42eee538b7c8669b1dd4)
+
+  * Fix documentation for `have_spicy` [skip CI] (Benjamin Bannier, Corelight)
+
+    The continued line was incorrectly marked up (as a plain comment instead
+    of a Zeekygen comment) which caused only half of the docstring to be
+    rendered by Zeekygen.
+
+    (cherry picked from commit 4a96d34af6fe68bad6afe12dffff6bd795e6b4b1)
+
 7.0.4 | 2024-11-19 12:31:05 -0700
 
   * Update CHANGES, VERSION, and NEWS for 7.0.4 release (Tim Wojtulewicz, Corelight)

@@ -1,3 +1,7 @@
+7.1.0-dev.611 | 2024-11-22 18:37:37 +0100
+
+  * btest/plugins: Add a plugin testing Init and Done hooks (Arne Welzel, Corelight)
+
 7.1.0-dev.609 | 2024-11-22 15:29:29 +0100
 
   * GH-4052: Disable core.expr-execption btest under ZAM to fix CI builds (Tim Wojtulewicz, Corelight)

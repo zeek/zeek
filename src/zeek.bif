@@ -4429,13 +4429,15 @@ function flush_all%(%): bool
 ##
 ## f: The directory name.
 ##
+## err_on_fail: Emits an error message when true, the default value is false.
+##
 ## Returns: True if the operation succeeds or if *f* already exists,
 ##          and false if the file creation fails.
 ##
 ## .. zeek:see:: active_file open_for_append close write_file
 ##              get_file_name set_buf flush_all enable_raw_output
 ##              rmdir unlink rename
-function mkdir%(f: string%): bool
+function mkdir%(f: string, err_on_fail: bool &default=F%): bool
 	%{
 	const char* filename = f->CheckString();
 
@@ -4448,7 +4450,8 @@ function mkdir%(f: string%): bool
 		     && S_ISDIR(filestat.st_mode) )
 			return zeek::val_mgr->True();
 
-		zeek::emit_builtin_error(zeek::util::fmt("cannot create directory '%s': %s", filename,
+        else if ( err_on_fail )
+		    zeek::emit_builtin_error(zeek::util::fmt("cannot create directory '%s': %s", filename,
 		                                         strerror(error)));
 		return zeek::val_mgr->False();
 		}

@@ -873,7 +873,8 @@ zeek::RecordValPtr Manager::MakeEvent(ArgsSpan args, zeek::detail::Frame* frame)
             // Event val must come first.
 
             if ( arg_val->GetType()->Tag() != TYPE_FUNC ) {
-                Error("attempt to convert non-event into an event type");
+                Error("attempt to convert non-event into an event type (%s)",
+                      zeek::obj_desc_short(arg_val.get()).c_str());
                 return rval;
             }
 
@@ -887,7 +888,7 @@ zeek::RecordValPtr Manager::MakeEvent(ArgsSpan args, zeek::detail::Frame* frame)
             auto num_args = static_cast<size_t>(func->GetType()->Params()->NumFields());
 
             if ( num_args != args.size() - 1 ) {
-                Error("bad # of arguments: got %zu, expect %zu", args.size() - 1, num_args + 1);
+                Error("bad # of arguments: got %zu, expect %zu", args.size() - 1, num_args);
                 return rval;
             }
 

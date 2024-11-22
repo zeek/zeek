@@ -1,3 +1,7 @@
+7.1.0-dev.609 | 2024-11-22 15:29:29 +0100
+
+  * GH-4052: Disable core.expr-execption btest under ZAM to fix CI builds (Tim Wojtulewicz, Corelight)
+
 7.1.0-dev.607 | 2024-11-22 12:32:21 +0100
 
   * btest: Test Broker::make_event() together with Cluster::publish_hrw() (Arne Welzel, Corelight)

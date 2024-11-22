@@ -28,6 +28,7 @@
 #include "zeek/broker/store.bif.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/logging/Manager.h"
+#include "zeek/logging/Types.h"
 #include "zeek/telemetry/Manager.h"
 #include "zeek/util.h"
 
@@ -252,7 +253,7 @@ std::string RenderEvent(const std::string& topic, const std::string& name, const
 } // namespace
 #endif
 
-Manager::Manager(bool arg_use_real_time) {
+Manager::Manager(bool arg_use_real_time) : Backend(nullptr, nullptr) {
     bound_port = 0;
     use_real_time = arg_use_real_time;
     peer_count = 0;
@@ -262,7 +263,7 @@ Manager::Manager(bool arg_use_real_time) {
     writer_id_type = nullptr;
 }
 
-void Manager::InitPostScript() {
+void Manager::DoInitPostScript() {
     DBG_LOG(DBG_BROKER, "Initializing");
 
     log_batch_size = get_option("Broker::log_batch_size")->AsCount();
@@ -404,7 +405,7 @@ void Manager::InitializeBrokerStoreForwarding() {
     }
 }
 
-void Manager::Terminate() {
+void Manager::DoTerminate() {
     FlushLogBuffers();
 
     iosource_mgr->UnregisterFd(bstate->subscriber.fd(), this);
@@ -544,6 +545,22 @@ std::vector<broker::peer_info> Manager::Peers() const {
 }
 
 std::string Manager::NodeID() const { return to_string(bstate->endpoint.node_id()); }
+
+bool Manager::DoPublishEvent(const std::string& topic, const cluster::detail::Event& event) {
+    broker::vector xs;
+    xs.reserve(event.args.size());
+    for ( const auto& a : event.args ) {
+        auto r = detail::val_to_data(a.get());
+        if ( ! r ) {
+            Error("Failed to convert %s to broker::data", zeek::obj_desc(a.get()).c_str());
+            return false;
+        }
+        xs.emplace_back(std::move(r.value()));
+    }
+
+    std::string name(event.HandlerName());
+    return PublishEvent(topic, name, std::move(xs), event.timestamp);
+}
 
 bool Manager::PublishEvent(string topic, std::string name, broker::vector args, double ts) {
     if ( bstate->endpoint.is_shutdown() )
@@ -930,7 +947,7 @@ zeek::RecordValPtr Manager::MakeEvent(ArgsSpan args, zeek::detail::Frame* frame)
     return rval;
 }
 
-bool Manager::Subscribe(const string& topic_prefix) {
+bool Manager::DoSubscribe(const string& topic_prefix) {
     DBG_LOG(DBG_BROKER, "Subscribing to topic prefix %s", topic_prefix.c_str());
     bstate->subscriber.add_topic(topic_prefix, ! run_state::detail::zeek_init_done);
 
@@ -948,7 +965,7 @@ bool Manager::Forward(string topic_prefix) {
     return true;
 }
 
-bool Manager::Unsubscribe(const string& topic_prefix) {
+bool Manager::DoUnsubscribe(const string& topic_prefix) {
     for ( size_t i = 0; i < forwarded_prefixes.size(); ++i )
         if ( forwarded_prefixes[i] == topic_prefix ) {
             DBG_LOG(DBG_BROKER, "Unforwarding topic prefix %s", topic_prefix.c_str());

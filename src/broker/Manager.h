@@ -10,13 +10,16 @@
 #include <broker/peer_info.hh>
 #include <broker/zeek.hh>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Span.h"
 #include "zeek/broker/Data.h"
+#include "zeek/cluster/Backend.h"
 #include "zeek/iosource/IOSource.h"
+#include "zeek/logging/Types.h"
 #include "zeek/logging/WriterBackend.h"
 
 namespace zeek {
@@ -75,7 +78,7 @@ struct Stats {
  * Manages various forms of communication between peer Zeek processes
  * or other external applications via use of the Broker messaging library.
  */
-class Manager : public iosource::IOSource {
+class Manager : public zeek::cluster::Backend, public iosource::IOSource {
 public:
     /** Broker protocol to expect on a listening port. */
     enum class BrokerProtocol {
@@ -94,17 +97,6 @@ public:
      * Destructor.
      */
     ~Manager() override = default;
-
-    /**
-     * Initialization of the manager. This is called late during Zeek's
-     * initialization after any scripts are processed.
-     */
-    void InitPostScript();
-
-    /**
-     * Shuts Broker down at termination.
-     */
-    void Terminate();
 
     /**
      * Returns true if any Broker communication is currently active.
@@ -193,6 +185,8 @@ public:
         return PublishEvent(std::move(topic), std::move(name), std::move(broker::get<broker::vector>(args.value_)), ts);
     }
 
+    using cluster::Backend::PublishEvent;
+
     /**
      * Send an event to any interested peers.
      * @param topic a topic string associated with the message.
@@ -278,15 +272,6 @@ public:
     zeek::RecordValPtr MakeEvent(ArgsSpan args, zeek::detail::Frame* frame);
 
     /**
-     * Register interest in peer event messages that use a certain topic prefix.
-     * @param topic_prefix a prefix to match against remote message topics.
-     * e.g. an empty prefix will match everything and "a" will match "alice"
-     * and "amy" but not "bob".
-     * @return true if it's a new event subscription and it is now registered.
-     */
-    bool Subscribe(const std::string& topic_prefix);
-
-    /**
      * Register interest in peer event messages that use a certain topic prefix,
      * but that should not be raised locally, just forwarded to any subscribing
      * peers.
@@ -296,14 +281,6 @@ public:
      * @return true if it's a new event forward/subscription and it is now registered.
      */
     bool Forward(std::string topic_prefix);
-
-    /**
-     * Unregister interest in peer event messages.
-     * @param topic_prefix a prefix previously supplied to a successful call
-     * to zeek::Broker::Manager::Subscribe() or zeek::Broker::Manager::Forward().
-     * @return true if interest in topic prefix is no longer advertised.
-     */
-    bool Unsubscribe(const std::string& topic_prefix);
 
     /**
      * Create a new *master* data store.
@@ -394,6 +371,48 @@ public:
     };
 
 private:
+    // Register interest in peer event messages that use a certain topic prefix.
+    bool DoSubscribe(const std::string& topic_prefix) override;
+
+    // Unregister interest in peer event messages.
+    bool DoUnsubscribe(const std::string& topic_prefix) override;
+
+    // Initialization of the manager. This is called late during Zeek's
+    // initialization after any scripts are processed.
+    void DoInitPostScript() override;
+
+    // Broker doesn't do anything during Broker::Backend::init().
+    bool DoInit() override { return true; }
+
+    // Shuts Broker down at termination.
+    void DoTerminate() override;
+
+    // Broker overrides this to do its own serialization.
+    bool DoPublishEvent(const std::string& topic, const cluster::detail::Event& event) override;
+
+    // This should never be reached, broker itself doesn't call this and overrides
+    // the generic DoPublishEvent() method that would call this.
+    bool DoPublishEvent(const std::string& topic, const std::string& format,
+                        const cluster::detail::byte_buffer& buf) override {
+        throw std::logic_error("not implemented");
+    }
+
+    // WriterFrontend instances are broker-aware and never call this
+    // method and instead call the existing PublishLogWrite() method.
+    //
+    // TODO: Move log buffering out of broker and implement.
+    bool DoPublishLogWrites(const logging::detail::LogWriteHeader& header,
+                            zeek::Span<logging::detail::LogRecord> records) override {
+        // Not implemented by broker.
+        throw std::logic_error("not implemented");
+    }
+
+    bool DoPublishLogWrites(const logging::detail::LogWriteHeader& header, const std::string& format,
+                            cluster::detail::byte_buffer& buf) override {
+        // Not implemented by broker.
+        throw std::logic_error("not implemented");
+    }
+
     // Process events used for Broker store backed zeek tables
     void ProcessStoreEvent(broker::data msg);
     // Common functionality for processing insert and update events.

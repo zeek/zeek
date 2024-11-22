@@ -280,6 +280,14 @@ export {
 	## Returns: a topic string that may used to send a message exclusively to
 	##          a given cluster node.
 	global nodeid_topic: function(id: string): string;
+
+	## An event instance for cluster pub/sub.
+	type Event: record {
+		## The event handler to be invoked on the remote node.
+		ev: any;
+		## The arguments for the event.
+		args: vector of any;
+	};
 }
 
 # Track active nodes per type.

@@ -1,3 +1,47 @@
+7.1.0-dev.607 | 2024-11-22 12:32:21 +0100
+
+  * btest: Test Broker::make_event() together with Cluster::publish_hrw() (Arne Welzel, Corelight)
+
+  * btest: Add cluster dir, minimal test for enum value (Arne Welzel, Corelight)
+
+  * broker: Add shim plugin adding a backend component (Arne Welzel, Corelight)
+
+    For broker, this isn't really functioning, but at least makes the
+    CLUSTER_BACKEND_BROKER enum available.
+
+  * zeek-setup: Instantiate backend::manager (Arne Welzel, Corelight)
+
+    Required to allow registration of cluster components.
+
+  * cluster: Add to src/CMakeLists.txt (Arne Welzel, Corelight)
+
+  * cluster: Add Components and ComponentManager for new components (Arne Welzel, Corelight)
+
+  * cluster/Backend: Interface for cluster backends (Arne Welzel, Corelight)
+
+  * cluster/Serializer: Interface for event and log serializers (Arne Welzel, Corelight)
+
+  * logging: Introduce logging/Types.h (Arne Welzel, Corelight)
+
+    Header and implementation for types shared between the cluster and
+    logging framework. The logging framework will be adapted later to
+    use these. For now, the new cluster components will simply reference
+    them.
+
+  * SerialTypes/Field: Allow default construction and add move constructor (Arne Welzel, Corelight)
+
+    This is in preparation of using SerialTypes to serialize and
+    unserialize complete log batches which include Field instances
+    and not just Value's.
+
+  * DebugLogger: Add cluster debugging stream (Arne Welzel, Corelight)
+
+  * plugin: Add component enums for pluggable cluster backends (Arne Welzel, Corelight)
+
+  * broker: Pass frame to MakeEvent() (Arne Welzel, Corelight)
+
+    This was lost in a prior change.
+
 7.1.0-dev.592 | 2024-11-21 16:38:55 +0100
 
   * sumstat/non-cluster: Move last epoch processing to zeek_done() (Arne Welzel, Corelight)

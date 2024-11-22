@@ -862,10 +862,6 @@ RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame) {
 
 zeek::RecordValPtr Manager::MakeEvent(ArgsSpan args, zeek::detail::Frame* frame) {
     scoped_reporter_location srl{frame};
-    return MakeEvent(args);
-}
-
-zeek::RecordValPtr Manager::MakeEvent(ArgsSpan args) {
     auto rval = zeek::make_intrusive<RecordVal>(BifType::Record::Broker::Event);
     auto arg_vec = make_intrusive<VectorVal>(vector_of_data_type);
     rval->Assign(1, arg_vec);

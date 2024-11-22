@@ -271,14 +271,6 @@ public:
     /**
      * Create an `Event` record value from an event and its arguments.
      * @param args A span pointing at the event arguments.
-     * @return an `Event` record value.  If an invalid event or arguments
-     * were supplied the optional "name" field will not be set.
-     */
-    zeek::RecordValPtr MakeEvent(ArgsSpan args);
-
-    /**
-     * Create an `Event` record value from an event and its arguments.
-     * @param args A span pointing at the event arguments.
      * @param frame the calling frame, used to report location info upon error
      * @return an `Event` record value.  If an invalid event or arguments
      * were supplied the optional "name" field will not be set.

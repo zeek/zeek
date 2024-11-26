@@ -3833,6 +3833,31 @@ function get_current_packet_header%(%) : raw_pkt_hdr
 	return std::move(hdr);
 	%}
 
+## Returns the currently processed PCAP packet's timestamp.
+##
+## Returns: The currently processed packet's timestamp.
+##
+## .. zeek:see:: get_current_packet get_current_packet_header
+##
+## .. note::
+##
+##      For ``get_current_packet_ts()`` the same limitations as for
+##      :zeek:see:`get_current_packet` apply. In particular, the return value
+##      should be considered undefined when called within event handlers raised
+##      via :zeek:see:`event`, :zeek:see:`schedule` or by recipient of Broker
+##      messages.
+function get_current_packet_ts%(%) : time
+	%{
+	double ts = 0;
+	const Packet* p = nullptr;
+	zeek::iosource::PktSrc* pkt_src = zeek::run_state::detail::current_packet_source();
+
+	if ( pkt_src && pkt_src->GetCurrentPacket(&p) )
+		ts = p->time;
+
+	return zeek::make_intrusive<zeek::TimeVal>(ts);
+	%}
+
 ## Writes a given packet to a file.
 ##
 ## pkt: The PCAP packet.

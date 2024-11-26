@@ -166,6 +166,8 @@ event zeek_init() &priority=5
 	Log::create_stream(Stats::LOG, [$columns=Info, $ev=log_stats, $path="stats", $policy=log_policy]);
 	}
 
+const null_ts = double_to_time(0);
+
 event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: ProcStats, last_es: EventStats, last_rs: ReassemblerStats, last_ts: TimerStats, last_fs: FileAnalysisStats, last_ds: DNSStats)
 	{
 	local nettime = network_time();
@@ -214,7 +216,8 @@ event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: Pr
 
 	if ( reading_live_traffic() )
 		{
-		info$pkt_lag = current_time() - nettime;
+		local pkt_ts = get_current_packet_ts();
+		info$pkt_lag = pkt_ts > null_ts ? current_time() - pkt_ts : 0 sec;
 		info$pkts_dropped = ns$pkts_dropped  - last_ns$pkts_dropped;
 		info$pkts_link = ns$pkts_link  - last_ns$pkts_link;
 

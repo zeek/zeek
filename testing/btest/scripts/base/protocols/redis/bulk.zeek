@@ -1,6 +1,6 @@
 # @TEST-DOC: Test Zeek parsing a trace file made with bulk-created SET commands
 #
-# @TEST-EXEC: zeek -Cr $TRACES/redis/bulk-loading.trace base/protocols/redis %INPUT >output
+# @TEST-EXEC: zeek -Cr $TRACES/redis/bulk-loading.pcap base/protocols/redis %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 # The bulk-loading functionality just sends the serialized form from some ruby

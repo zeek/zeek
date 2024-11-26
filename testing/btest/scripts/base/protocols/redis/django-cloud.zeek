@@ -1,6 +1,6 @@
 # @TEST-DOC: Test Redis traffic from a django app using Redis (in the cloud) as a cache
 #
-# @TEST-EXEC: zeek -Cr $TRACES/redis/django-cloud.trace base/protocols/redis %INPUT >output
+# @TEST-EXEC: zeek -Cr $TRACES/redis/django-cloud.pcap base/protocols/redis %INPUT >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff redis.log
 

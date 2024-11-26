@@ -7,7 +7,7 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd.command	cmd.key	cmd.value	response.err	response.data
 #types	time	string	addr	port	addr	port	string	string	string	bool	string
-XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	127.0.0.1	56162	127.0.0.1	6379	SUBSCRIBE	-	-	F	-
-XXXXXXXXXX.XXXXXX	CUM0KZ3MLUfNB0cl11	127.0.0.1	56163	127.0.0.1	6379	PUBLISH	-	-	F	-
-XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	127.0.0.1	56162	127.0.0.1	6379	-	-	-	F	-
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	56162	127.0.0.1	6379	SUBSCRIBE	-	-	F	-
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	127.0.0.1	56163	127.0.0.1	6379	PUBLISH	-	-	F	-
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	56162	127.0.0.1	6379	-	-	-	F	-
 #close XXXX-XX-XX-XX-XX-XX

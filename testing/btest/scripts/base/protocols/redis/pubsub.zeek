@@ -1,6 +1,6 @@
 # @TEST-DOC: Test Zeek parsing pubsub commands
 #
-# @TEST-EXEC: zeek -Cr $TRACES/redis/pubsub.trace base/protocols/redis %INPUT >output
+# @TEST-EXEC: zeek -Cr $TRACES/redis/pubsub.pcap base/protocols/redis %INPUT >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff redis.log
 

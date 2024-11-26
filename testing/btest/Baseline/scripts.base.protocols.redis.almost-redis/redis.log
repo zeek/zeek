@@ -7,6 +7,6 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd.command	cmd.key	cmd.value	response.err	response.data
 #types	time	string	addr	port	addr	port	string	string	string	bool	string
-XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	127.0.0.1	53099	127.0.0.1	6379	AUTH	-	-	F	OK
-XXXXXXXXXX.XXXXXX	CtPZjS20MLrsMUOJi2	127.0.0.1	53099	127.0.0.1	6379	PING	-	-	F	OK
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	127.0.0.1	53099	127.0.0.1	6379	AUTH	-	-	F	OK
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	127.0.0.1	53099	127.0.0.1	6379	PING	-	-	F	OK
 #close XXXX-XX-XX-XX-XX-XX

@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer	source
 #types	time	string	addr	port	addr	port	string	string	bool	string	string
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	::1	57156	::1	6379	Redis_excessive_pipelining	-	F	zeek	-
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	57156	::1	6379	Redis_excessive_pipelining	-	F	zeek	-
 #close XXXX-XX-XX-XX-XX-XX

@@ -1,7 +1,6 @@
 protocol analyzer spicy::Redis over TCP:
     parse originator with RESP::ClientMessages,
-    parse responder with RESP::ServerMessages,
-    port 6379/tcp;
+    parse responder with RESP::ServerMessages;
 
 import RESP;
 import Redis;

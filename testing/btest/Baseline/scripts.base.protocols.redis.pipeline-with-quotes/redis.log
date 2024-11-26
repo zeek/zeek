@@ -7,12 +7,12 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd.command	cmd.key	cmd.value	response.err	response.data
 #types	time	string	addr	port	addr	port	string	string	string	bool	string
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	::1	63754	::1	6379	SET	key	"my value with spaces"	F	OK
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	::1	63754	::1	6379	SET	key2	'my value with single quotes'	F	OK
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	::1	63754	::1	6379	SET	key3	'my value with "double" inners'	F	OK
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	::1	63754	::1	6379	SET	key4	"my value with 'single' inners"	F	OK
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	::1	63754	::1	6379	SET	key5	"my value with \\"escaped\\" quotes"	F	OK
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	::1	63754	::1	6379	SET	key6	'my value with \\'escaped\\' quotes'	F	OK
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	::1	63754	::1	6379	SET	bad1	"unclosed double quotes	T	ERR Protocol error: unbalanced quotes in request
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	::1	63754	::1	6379	SET	bad2	'unclosed single quotes	-	-
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	63754	::1	6379	SET	key	"my value with spaces"	F	OK
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	63754	::1	6379	SET	key2	'my value with single quotes'	F	OK
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	63754	::1	6379	SET	key3	'my value with "double" inners'	F	OK
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	63754	::1	6379	SET	key4	"my value with 'single' inners"	F	OK
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	63754	::1	6379	SET	key5	"my value with \\"escaped\\" quotes"	F	OK
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	63754	::1	6379	SET	key6	'my value with \\'escaped\\' quotes'	F	OK
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	63754	::1	6379	SET	bad1	"unclosed double quotes	T	ERR Protocol error: unbalanced quotes in request
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	63754	::1	6379	SET	bad2	'unclosed single quotes	-	-
 #close XXXX-XX-XX-XX-XX-XX

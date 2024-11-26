@@ -1,3 +1,9 @@
+7.1.0-dev.618 | 2024-11-26 17:17:00 +0100
+
+  * GH-4052: More robust memory management for ZAM execution - fixes #4052 (Vern Paxson, Corelight)
+
+  * Update SQLite to 3.47.1 (Johanna Amann, Corelight)
+
 7.1.0-dev.614 | 2024-11-26 15:25:09 +0100
 
   * ZeekArgs: Deprecate val_list_to_args() (Arne Welzel, Corelight)

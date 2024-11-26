@@ -327,6 +327,47 @@ std::shared_ptr<ProfVec> ZBody::BuildProfVec() const {
     return pv;
 }
 
+// Helper class for managing ZBody state to ensure that memory is recovered
+// if a ZBody is exited via an exception.
+class ZBodyStateManager {
+public:
+    // If fixed_frame is nil then creates a dynamic frame.
+    ZBodyStateManager(ZVal* _fixed_frame, int frame_size, const std::vector<int>& _managed_slots)
+        : fixed_frame(_fixed_frame), managed_slots(_managed_slots) {
+        if ( fixed_frame )
+            frame = fixed_frame;
+        else {
+            frame = new ZVal[frame_size];
+            for ( auto s : managed_slots )
+                frame[s].ClearManagedVal();
+        }
+    }
+
+    ~ZBodyStateManager() {
+        if ( fixed_frame ) {
+            // Recover memory and reset for use in next call.
+            for ( auto s : managed_slots ) {
+                ZVal::DeleteManagedType(frame[s]);
+                frame[s].ClearManagedVal();
+            }
+        }
+
+        else {
+            // Recover memory, no need to reset.
+            for ( auto s : managed_slots )
+                ZVal::DeleteManagedType(frame[s]);
+            delete[] frame;
+        }
+    }
+
+    auto Frame() { return frame; }
+
+private:
+    ZVal* fixed_frame;
+    ZVal* frame;
+    const std::vector<int>& managed_slots;
+};
+
 ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
     unsigned int pc = 0;
 
@@ -359,17 +400,16 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
     }
 #endif
 
-    ZVal* frame;
+    ZBodyStateManager state_mgr(fixed_frame, frame_size, managed_slots);
     std::unique_ptr<TableIterVec> local_table_iters;
     std::vector<StepIterInfo> step_iters(num_step_iters);
+
+    ZVal* frame;
 
     if ( fixed_frame )
         frame = fixed_frame;
     else {
-        frame = new ZVal[frame_size];
-        // Clear slots for which we do explicit memory management.
-        for ( auto s : managed_slots )
-            frame[s].ClearManagedVal();
+        frame = state_mgr.Frame();
 
         if ( ! table_iters.empty() ) {
             local_table_iters = std::make_unique<TableIterVec>(table_iters.size());
@@ -424,33 +464,6 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
         ++pc;
     }
 
-    auto result = ret_type ? ret_u->ToVal(ret_type) : nullptr;
-
-    if ( fixed_frame ) {
-        // Make sure we don't have any dangling iterators.
-        for ( auto& ti : table_iters )
-            ti.Clear();
-
-        // Free slots for which we do explicit memory management,
-        // preparing them for reuse.
-        for ( auto& ms : managed_slots ) {
-            auto& v = frame[ms];
-            ZVal::DeleteManagedType(v);
-            v.ClearManagedVal();
-        }
-    }
-    else {
-        // Free those slots for which we do explicit memory management.
-        // No need to then clear them, as we're about to throw away
-        // the entire frame.
-        for ( auto& ms : managed_slots ) {
-            auto& v = frame[ms];
-            ZVal::DeleteManagedType(v);
-        }
-
-        delete[] frame;
-    }
-
 #ifdef ENABLE_ZAM_PROFILE
     if ( profiling_active ) {
         tot_CPU_time += util::curr_CPU_time() - start_CPU_time;
@@ -461,7 +474,7 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
     }
 #endif
 
-    return result;
+    return ret_type ? ret_u->ToVal(ret_type) : nullptr;
 }
 
 void ZBody::ReportExecutionProfile(ProfMap& pm) {

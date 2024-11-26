@@ -1,3 +1,9 @@
+7.0.4-3 | 2024-12-12 13:04:44 -0700
+
+  * GH-4052: More robust memory management for ZAM execution - fixes #4052 (Vern Paxson, Corelight)
+
+    (cherry picked from commit c3b30b187e44de593d0ec685dc313e6aa10ff5e5)
+
 7.0.4-2 | 2024-12-12 12:44:36 -0700
 
   * Bump zeekjs to v0.14.0 (Arne Welzel, Corelight)

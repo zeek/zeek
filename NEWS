@@ -81,6 +81,11 @@ New Functionality
   of Zeek's AST after ZAM optimizations ran. This hook executes right before
   the ``zeek_init()`` event is enqueued.
 
+* The SQLite logger now supports setting the value of the SQLite synchronous mode,
+  as well as of the journal mode. For example, WAL mode can be enabled by setting:
+
+  redef LogSQLite::journal_mode=LogSQLite::SQLITE_JOURNAL_MODE_WAL;
+
 Changed Functionality
 ---------------------
 

@@ -131,7 +131,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* con
                                     SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL)) )
         return false;
 
-    char* errorMsg = 0;
+    char* errorMsg = nullptr;
     int res;
     switch ( synchronous ) {
         case SQLITE_SYNCHRONOUS_DEFAULT: res = SQLITE_OK; break;
@@ -145,8 +145,9 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* con
             break;
         default: Error("Invalid LogSQLite::synchronous enum"); return false;
     }
+
     if ( res != SQLITE_OK ) {
-        Error(Fmt("Error setting synchronous pragma %s", errorMsg));
+        Error(Fmt("Error setting synchronous pragma: %s", errorMsg));
         sqlite3_free(errorMsg);
         return false;
     }
@@ -169,12 +170,12 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* con
         case SQLITE_JOURNAL_MODE_OFF: res = sqlite3_exec(db, "PRAGMA journal_mode=OFF;", NULL, NULL, &errorMsg); break;
         default: Error("Invalid LogSQLite::journal_mode enum"); return false;
     }
+
     if ( res != SQLITE_OK ) {
-        Error(Fmt("Error setting journal_mode pragma %s", errorMsg));
+        Error(Fmt("Error setting journal_mode pragma: %s", errorMsg));
         sqlite3_free(errorMsg);
         return false;
     }
-
 
     string create = "CREATE TABLE IF NOT EXISTS " + tablename + " (\n";
     //"id SERIAL UNIQUE NOT NULL"; // SQLite has rowids, we do not need a counter here.
@@ -211,7 +212,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* con
 
     create += "\n);";
 
-    errorMsg = 0;
+    errorMsg = nullptr;
     res = sqlite3_exec(db, create.c_str(), NULL, NULL, &errorMsg);
     if ( res != SQLITE_OK ) {
         Error(Fmt("Error executing table creation statement: %s", errorMsg));

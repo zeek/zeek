@@ -55,6 +55,7 @@ private:
         SQLITE_SYNCHRONOUS_FULL,
         SQLITE_SYNCHRONOUS_EXTRA,
     };
+
     enum SQLiteJournalMode {
         SQLITE_JOURNAL_MODE_DEFAULT,
         SQLITE_JOURNAL_MODE_DELETE,

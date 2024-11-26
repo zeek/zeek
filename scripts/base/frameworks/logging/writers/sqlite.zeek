@@ -21,7 +21,8 @@ export {
 	## String to use for empty fields. This should be different from
 	## *unset_field* to make the output unambiguous.
 	const empty_field = Log::empty_field &redef;
-	
+
+	## Values supported for SQLite's PRAGMA synchronous statement.
 	type SQLiteSynchronous: enum {
 		SQLITE_SYNCHRONOUS_DEFAULT,
 		SQLITE_SYNCHRONOUS_OFF,
@@ -40,22 +41,19 @@ export {
 		SQLITE_JOURNAL_MODE_WAL,
 		SQLITE_JOURNAL_MODE_OFF,
 	};
-	
-	## If changed from SQLITE_SYNCHRONOUS_DEFAULT, runs the PRAGMA synchronous 
+
+	## If changed from SQLITE_SYNCHRONOUS_DEFAULT, runs the PRAGMA synchronous
 	## statement with the provided value after connecting to the SQLite database. See
 	## `SQLite's synchronous documentation <https://www.sqlite.org/pragma.html#pragma_synchronous>`_
 	## for more details around performance and data safety trade offs.
-	
 	const synchronous = SQLITE_SYNCHRONOUS_DEFAULT &redef;
-	
-	## If changed from SQLITE_JOURNAL_MODE_DEFAULT, runs the PRAGMA 
-	## journal_mode statement with the provided value after connecting to 
+
+	## If changed from SQLITE_JOURNAL_MODE_DEFAULT, runs the PRAGMA
+	## journal_mode statement with the provided value after connecting to
 	## the SQLite database.
 	## `SQLite's journal_mode documentation <https://www.sqlite.org/pragma.html#pragma_journal_mode>`_
 	## for more details around performance, data safety trade offs
 	## and interaction with the PRAGMA synchronous statement.
 	const journal_mode = SQLITE_JOURNAL_MODE_DEFAULT &redef;
-
-	
 }
 

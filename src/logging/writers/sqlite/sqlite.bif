@@ -27,5 +27,3 @@ enum SQLiteJournalMode %{
 
 const synchronous: SQLiteSynchronous;
 const journal_mode: SQLiteJournalMode;
-
-

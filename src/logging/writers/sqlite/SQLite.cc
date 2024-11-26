@@ -134,13 +134,17 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* con
     char* errorMsg = nullptr;
     int res;
     switch ( synchronous ) {
-        case SQLITE_SYNCHRONOUS_DEFAULT: res = SQLITE_OK; break;
-        case SQLITE_SYNCHRONOUS_OFF: res = sqlite3_exec(db, "PRAGMA synchronous=OFF;", NULL, NULL, &errorMsg); break;
-        case SQLITE_SYNCHRONOUS_NORMAL:
+        case BifEnum::LogSQLite::SQLiteSynchronous::SQLITE_SYNCHRONOUS_DEFAULT: res = SQLITE_OK; break;
+        case BifEnum::LogSQLite::SQLiteSynchronous::SQLITE_SYNCHRONOUS_OFF:
+            res = sqlite3_exec(db, "PRAGMA synchronous=OFF;", NULL, NULL, &errorMsg);
+            break;
+        case BifEnum::LogSQLite::SQLiteSynchronous::SQLITE_SYNCHRONOUS_NORMAL:
             res = sqlite3_exec(db, "PRAGMA synchronous=NORMAL;", NULL, NULL, &errorMsg);
             break;
-        case SQLITE_SYNCHRONOUS_FULL: res = sqlite3_exec(db, "PRAGMA synchronous=FULL;", NULL, NULL, &errorMsg); break;
-        case SQLITE_SYNCHRONOUS_EXTRA:
+        case BifEnum::LogSQLite::SQLiteSynchronous::SQLITE_SYNCHRONOUS_FULL:
+            res = sqlite3_exec(db, "PRAGMA synchronous=FULL;", NULL, NULL, &errorMsg);
+            break;
+        case BifEnum::LogSQLite::SQLiteSynchronous::SQLITE_SYNCHRONOUS_EXTRA:
             res = sqlite3_exec(db, "PRAGMA synchronous=EXTRA;", NULL, NULL, &errorMsg);
             break;
         default: Error("Invalid LogSQLite::synchronous enum"); return false;
@@ -153,21 +157,25 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* con
     }
 
     switch ( journal_mode ) {
-        case SQLITE_JOURNAL_MODE_DEFAULT: res = SQLITE_OK; break;
-        case SQLITE_JOURNAL_MODE_DELETE:
+        case BifEnum::LogSQLite::SQLiteJournalMode::SQLITE_JOURNAL_MODE_DEFAULT: res = SQLITE_OK; break;
+        case BifEnum::LogSQLite::SQLiteJournalMode::SQLITE_JOURNAL_MODE_DELETE:
             res = sqlite3_exec(db, "PRAGMA journal_mode=DELETE;", NULL, NULL, &errorMsg);
             break;
-        case SQLITE_JOURNAL_MODE_TRUNCATE:
+        case BifEnum::LogSQLite::SQLiteJournalMode::SQLITE_JOURNAL_MODE_TRUNCATE:
             res = sqlite3_exec(db, "PRAGMA journal_mode=TRUNCATE;", NULL, NULL, &errorMsg);
             break;
-        case SQLITE_JOURNAL_MODE_PERSIST:
+        case BifEnum::LogSQLite::SQLiteJournalMode::SQLITE_JOURNAL_MODE_PERSIST:
             res = sqlite3_exec(db, "PRAGMA journal_mode=PERSIST;", NULL, NULL, &errorMsg);
             break;
-        case SQLITE_JOURNAL_MODE_MEMORY:
+        case BifEnum::LogSQLite::SQLiteJournalMode::SQLITE_JOURNAL_MODE_MEMORY:
             res = sqlite3_exec(db, "PRAGMA journal_mode=MEMORY;", NULL, NULL, &errorMsg);
             break;
-        case SQLITE_JOURNAL_MODE_WAL: res = sqlite3_exec(db, "PRAGMA journal_mode=WAL;", NULL, NULL, &errorMsg); break;
-        case SQLITE_JOURNAL_MODE_OFF: res = sqlite3_exec(db, "PRAGMA journal_mode=OFF;", NULL, NULL, &errorMsg); break;
+        case BifEnum::LogSQLite::SQLiteJournalMode::SQLITE_JOURNAL_MODE_WAL:
+            res = sqlite3_exec(db, "PRAGMA journal_mode=WAL;", NULL, NULL, &errorMsg);
+            break;
+        case BifEnum::LogSQLite::SQLiteJournalMode::SQLITE_JOURNAL_MODE_OFF:
+            res = sqlite3_exec(db, "PRAGMA journal_mode=OFF;", NULL, NULL, &errorMsg);
+            break;
         default: Error("Invalid LogSQLite::journal_mode enum"); return false;
     }
 

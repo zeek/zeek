@@ -31,8 +31,9 @@ using StringValPtr = IntrusivePtr<StringVal>;
 namespace detail {
 
 class AssertStmt;
-class Location;
 class Expr;
+class Frame;
+class Location;
 
 } // namespace detail
 
@@ -332,6 +333,20 @@ private:
     double weird_sampling_duration;
 
     bool ignore_deprecations;
+};
+
+/**
+ * Helper class pushing the frame's call location onto
+ * the reporter's location stack, associating the caller's
+ * location with subsequent output.
+ *
+ * The frame's location must remain valid until the object
+ * is destroyed.
+ */
+class ScriptLocationScope {
+public:
+    ScriptLocationScope(const zeek::detail::Frame* frame);
+    ~ScriptLocationScope();
 };
 
 extern Reporter* reporter;

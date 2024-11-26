@@ -1,3 +1,44 @@
+7.1.0-dev.629 | 2024-11-26 17:45:08 +0100
+
+  * ci/test.sh: Run doctest with TZ=UTC (Arne Welzel, Corelight)
+
+    Broker's JSON serialization is TZ dependent (which seems a bug). For now
+    do the same as we do in btest.cfg and run doctests with TZ set to UTC.
+
+    Reported in zeek/broker#434.
+
+  * cluster/setup-connections: Switch to Cluster::subscribe(), short-circuit broker (Arne Welzel, Corelight)
+
+    For the time being, this is easiest, otherwise we'd need to
+    conditionally load a broker-specific policy script based on
+    Cluster::backend being set.
+
+  * cluster/serializer: Add Broker based event serializers (Arne Welzel, Corelight)
+
+    This adds the first event serializers that use
+    broker functionality. Binary and JSON formats.
+
+  * cluster: Add Cluster scoped bifs (Arne Welzel, Corelight)
+
+    ... and a broker based test using Cluster::publish() and
+    Cluster::subscribe().
+
+  * Reporter: Add ScriptLocationScope helper (Arne Welzel, Corelight)
+
+  * init-bare/zeek-setup: Add Cluster::backend const &redef (Arne Welzel, Corelight)
+
+  * broker: Implement cluster::Backend interface (Arne Welzel, Corelight)
+
+  * Broker: Fix some error messages (Arne Welzel, Corelight)
+
+  * broker: Remove MakeEvent(ArgsSpan) (Arne Welzel, Corelight)
+
+    This was added previously in the 7.1 cycle. Now that MakeEvent() was
+    removed from cluster::Backend, there's no need for Broker to provide
+    this version.
+
+  * Update 3dparty submodule (Johanna Amann, Corelight)
+
 7.1.0-dev.618 | 2024-11-26 17:17:00 +0100
 
   * GH-4052: More robust memory management for ZAM execution - fixes #4052 (Vern Paxson, Corelight)

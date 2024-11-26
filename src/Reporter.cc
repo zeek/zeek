@@ -14,6 +14,7 @@
 #include "zeek/Event.h"
 #include "zeek/EventHandler.h"
 #include "zeek/Expr.h"
+#include "zeek/Frame.h"
 #include "zeek/ID.h"
 #include "zeek/NetVar.h"
 #include "zeek/RunState.h"
@@ -648,5 +649,11 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 }
 
 bool Reporter::EmitToStderr(bool flag) { return flag || ! run_state::detail::zeek_init_done; }
+
+ScriptLocationScope::ScriptLocationScope(const zeek::detail::Frame* frame) {
+    zeek::reporter->PushLocation(frame->GetCallLocation());
+}
+
+ScriptLocationScope::~ScriptLocationScope() { zeek::reporter->PopLocation(); }
 
 } // namespace zeek

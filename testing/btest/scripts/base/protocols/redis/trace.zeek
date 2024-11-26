@@ -1,6 +1,6 @@
 # @TEST-DOC: Test Zeek parsing a trace file through the Redis analyzer.
 #
-# @TEST-EXEC: zeek -Cr $TRACES/redis/loop-redis.trace base/protocols/redis %INPUT >output
+# @TEST-EXEC: zeek -Cr $TRACES/redis/loop-redis.pcap base/protocols/redis %INPUT >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff redis.log
 

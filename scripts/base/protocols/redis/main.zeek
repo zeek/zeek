@@ -1,4 +1,5 @@
 @load base/protocols/conn/removal-hooks
+@load base/frameworks/signatures
 
 module Redis;
 

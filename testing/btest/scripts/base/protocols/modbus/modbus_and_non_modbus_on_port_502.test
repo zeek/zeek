@@ -1,4 +1,28 @@
-# @TEST-REQUIRES: ! have-spicy-ssl  # Spicy analyzer causes conn.log baseline difference
+# This test causes a baseline difference when run with the Spicy SSL analyzer.
+# Specifically, running it with the spicy SSL analyzer causes an
+# analyzer-violation to be thrown, which removes the SSL field from conn.log.
+#
+# This is caused by an interesting edge-case. The trace contains an SSL
+# connection, where the client sends a normal client-hello. Instead of replying
+# with a server-hello, the server sends an empty handshake-record, followed by
+# four bytes of data.
+#
+# The minimal length of an TLS header is 5 bytes (2 bytes version, 1 byte
+# content-type, 2 bytes length). The Spicy analyzer tries to read these four
+# bytes, which stop in the middle of an uint16.
+#
+# As there is a normal connection teardown, this causes an analyzer violation -
+# the message is incomplete.
+#
+# Binpac on the other hand happily ignores the fact that a partial message is
+# in flight when the connection ends, and does not raise an error.
+#
+# In this case, the behavior of Spicy seems saner (there is a problem with the
+# connection). However I don't think we can adjust the behavior of binpac to
+# fit the Spicy behavior - nor the other way round.
+#
+# @TEST-REQUIRES: ! have-spicy-ssl
+#
 # @TEST-EXEC: zeek -r $TRACES/modbus/modbus-and-non-modbus-p502.pcap
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff modbus.log

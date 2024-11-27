@@ -1,3 +1,11 @@
+7.1.0-dev.635 | 2024-11-27 08:29:19 +0000
+
+  * Support setting the synchronous flag and the journal_mode for the SQLite log writer.
+
+    These options allow for a significant speed-up of SQLite logging, at the expense
+    of some data security. To change the default settings, redef the LogSQLite::synchronous
+    and LogSQLite::journal_mode consts. (Mymaqn)
+
 7.1.0-dev.629 | 2024-11-26 17:45:08 +0100
 
   * ci/test.sh: Run doctest with TZ=UTC (Arne Welzel, Corelight)

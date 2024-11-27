@@ -45,6 +45,9 @@ private:
     std::string unset_field;
     std::string empty_field;
 
+    int64_t synchronous;
+    int64_t journal_mode;
+
     threading::formatter::Ascii* io;
 };
 

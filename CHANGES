@@ -1,3 +1,11 @@
+7.1.0-dev.639 | 2024-11-27 12:31:40 -0700
+
+  * Add TEST-REQUIRES: which jq to two new tests that are using jq (Johanna Amann, Corelight)
+
+  * Explain why modbus test does not work with the Spicy SSL analyzer (Johanna Amann, Corelight)
+
+    This took a _long_ time to figure out.
+
 7.1.0-dev.635 | 2024-11-27 08:29:19 +0000
 
   * Support setting the synchronous flag and the journal_mode for the SQLite log writer.

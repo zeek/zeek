@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: which jq
 # @TEST-DOC: Test the policy for removing the unknown IP protocol field and connections from conn.log
 # @TEST-EXEC: zeek -r $TRACES/cisco-fabric-path.pcap %INPUT
 # @TEST-EXEC: test $(head -1 conn.log | jq 'has("ip_proto")') = "false"

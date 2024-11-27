@@ -1,3 +1,4 @@
+# @TEST-REQUIRES: which jq
 # @TEST-DOC: Tests the ip-proto-name-logging policy file
 # @TEST-EXEC: zeek -r $TRACES/cisco-fabric-path.pcap %INPUT > out
 

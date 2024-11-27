@@ -2,18 +2,19 @@
 
 #pragma once
 
+#include "zeek/iosource/IOSource.h"
 #include "zeek/storage/Backend.h"
 
+// Forward declare some types from hiredis to avoid including the header
 struct redisContext;
+struct redisAsyncContext;
+struct redisReply;
 
 namespace zeek::storage::backends::redis {
 
-class RedisSync;
-class RedisAsync;
-
-class Redis : public Backend {
+class Redis : public Backend, public iosource::IOSource {
 public:
-    Redis() : Backend(true) {}
+    Redis() : Backend(true), IOSource(true) {}
     ~Redis() override = default;
 
     static Backend* Instantiate();
@@ -38,7 +39,7 @@ public:
     /**
      * Returns whether the backend is opened.
      */
-    bool IsOpen() override;
+    bool IsOpen() override { return connected; }
 
     /**
      * The workhorse method for Retrieve().
@@ -56,14 +57,34 @@ public:
      */
     ErrorResult DoErase(ValPtr key, ErrorResultCallback* cb = nullptr) override;
 
-private:
-    ErrorResult checkError(int code);
+    // IOSource interface
+    double GetNextTimeout() override { return -1; }
+    void Process() override {}
+    void ProcessFd(int fd, int flags) override;
 
-    RedisSync* sync = nullptr;
-    RedisAsync* async = nullptr;
+    // Hiredis async interface
+    void OnConnect(int status);
+    void OnDisconnect(int status);
+
+    void OnAddRead();
+    void OnDelRead();
+    void OnAddWrite();
+    void OnDelWrite();
+
+    void HandlePutResult(redisReply* reply, ErrorResultCallback* callback);
+    void HandleGetResult(redisReply* reply, ValResultCallback* callback);
+    void HandleEraseResult(redisReply* reply, ErrorResultCallback* callback);
+
+private:
+    ValResult ParseGetReply(redisReply* reply) const;
+
+    redisContext* ctx = nullptr;
+    redisAsyncContext* async_ctx = nullptr;
+    bool connected = true;
 
     std::string server_addr;
     std::string key_prefix;
+    bool async_mode = false;
 };
 
 } // namespace zeek::storage::backends::redis

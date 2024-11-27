@@ -13,6 +13,4 @@ zeek_add_plugin(
     ${HIREDIS_LIBRARIES}
     SOURCES
     Plugin.cc
-    Redis.cc
-    RedisAsync.cc
-    RedisSync.cc)
+    Redis.cc)

@@ -119,10 +119,8 @@ Driver::Driver(std::unique_ptr<GlueCompiler> glue, const char* argv0, hilti::rt:
     config.preprocessor_constants["HAVE_ZEEK"] = 1;
     config.preprocessor_constants["ZEEK_VERSION"] = zeek_version;
 
-#if SPICY_VERSION_NUMBER >= 10500
     ::hilti::init();
     ::spicy::init();
-#endif
 }
 
 Driver::~Driver() {}

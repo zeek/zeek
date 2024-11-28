@@ -1011,14 +1011,8 @@ bool GlueCompiler::compile() {
             }
         }
 
-#if SPICY_VERSION_NUMBER >= 10700
-        auto proto = a.protocol.value();
-#else
-        auto proto = a.protocol;
-#endif
-
         hilti::ID protocol;
-        switch ( proto ) {
+        switch ( a.protocol.value() ) {
             case hilti::rt::Protocol::TCP: protocol = hilti::ID("hilti::Protocol::TCP"); break;
             case hilti::rt::Protocol::UDP: protocol = hilti::ID("hilti::Protocol::UDP"); break;
             default: hilti::logger().internalError("unexpected protocol");

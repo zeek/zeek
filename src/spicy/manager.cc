@@ -101,13 +101,7 @@ void Manager::registerProtocolAnalyzer(const std::string& name, hilti::rt::Proto
 
     analyzer::Component::factory_callback factory = nullptr;
 
-#if SPICY_VERSION_NUMBER >= 10700
-    auto proto_ = proto.value();
-#else
-    auto proto_ = proto;
-#endif
-
-    switch ( proto_ ) {
+    switch ( proto.value() ) {
         case hilti::rt::Protocol::TCP: factory = spicy::rt::TCP_Analyzer::InstantiateAnalyzer; break;
         case hilti::rt::Protocol::UDP: factory = spicy::rt::UDP_Analyzer::InstantiateAnalyzer; break;
         default: reporter->Error("unsupported protocol in analyzer"); return;
@@ -564,9 +558,7 @@ plugin::Configuration Manager::Configure() {
 void Manager::InitPreScript() {
     SPICY_DEBUG("Beginning pre-script initialization");
 
-#if SPICY_VERSION_NUMBER >= 10700
     hilti::rt::executeManualPreInits();
-#endif
 
     autoDiscoverModules();
 
@@ -575,13 +567,7 @@ void Manager::InitPreScript() {
 
 // Returns a port's Zeek-side transport protocol.
 static ::TransportProto transport_protocol(const hilti::rt::Port port) {
-#if SPICY_VERSION_NUMBER >= 10700
-    auto proto = port.protocol().value();
-#else
-    auto proto = port.protocol();
-#endif
-
-    switch ( proto ) {
+    switch ( port.protocol().value() ) {
         case hilti::rt::Protocol::TCP: return ::TransportProto::TRANSPORT_TCP;
         case hilti::rt::Protocol::UDP: return ::TransportProto::TRANSPORT_UDP;
         case hilti::rt::Protocol::ICMP: return ::TransportProto::TRANSPORT_ICMP;
@@ -641,24 +627,17 @@ void Manager::InitPostScript() {
         hilti_config.cout.reset();
 
     if ( id::find_const("Spicy::enable_profiling")->AsBool() )
-#if SPICY_VERSION_NUMBER >= 10800
         hilti_config.enable_profiling = true;
-#else
-        std::cerr << "Profiling is not supported with this version of Spicy, ignoring "
-                     "'Spicy::enable_profiling'\n";
-#endif
 
     hilti_config.abort_on_exceptions = id::find_const("Spicy::abort_on_exceptions")->AsBool();
     hilti_config.show_backtraces = id::find_const("Spicy::show_backtraces")->AsBool();
 
     hilti::rt::configuration::set(hilti_config);
 
-#if SPICY_VERSION_NUMBER >= 10700
     auto spicy_config = ::spicy::rt::configuration::get();
     spicy_config.hook_accept_input = hook_accept_input;
     spicy_config.hook_decline_input = hook_decline_input;
     ::spicy::rt::configuration::set(std::move(spicy_config));
-#endif
 
     try {
         ::hilti::rt::init();
@@ -822,11 +801,7 @@ void Manager::loadModule(const hilti::rt::filesystem::path& path) {
         else {
             SPICY_DEBUG(hilti::rt::fmt("Ignoring duplicate loading request for %s", canonical_path.native()));
         }
-#if SPICY_VERSION_NUMBER >= 10700
     } catch ( const ::hilti::rt::UsageError& e ) {
-#else
-    } catch ( const ::hilti::rt::UserException& e ) {
-#endif
         hilti::rt::fatalError(e.what());
     }
 }

@@ -1,0 +1,11 @@
+# Copyright (c) 2024 by the Zeek Project. See LICENSE for details.
+
+%doc-id= Zeek::DHCPv6;
+%doc-description = "DHCPv6 analyzer";
+
+protocol analyzer DHCPv6 over UDP:
+    parse with DHCPv6::Message;
+
+import DHCPv6;
+
+on DHCPv6::Message -> event dhcpv6_message($conn, $is_orig);

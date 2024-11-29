@@ -622,7 +622,8 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, con
     auto n = vec2.size();
 
     if ( vec3.size() != n ) {
-        ZAM_run_time_error(util::fmt("vector operands are of different sizes (%d vs. %d)", int(n), int(vec3.size())));
+        ZAM_run_time_error(z.loc,
+                           util::fmt("vector operands are of different sizes (%d vs. %d)", int(n), int(vec3.size())));
         return;
     }
 

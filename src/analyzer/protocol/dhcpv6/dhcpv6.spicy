@@ -1,0 +1,143 @@
+# Copyright (c) 2024 by the Zeek Project. See LICENSE for details.
+
+# https://datatracker.ietf.org/doc/html/rfc8415
+#
+#  IANA has updated the All_DHCP_Relay_Agents_and_Servers (ff02::1:2)
+#  and All_DHCP_Servers (ff05::1:3) table entries in the "IPv6 Multicast
+#  Address Space Registry" at <https://www.iana.org/assignments/
+#  ipv6-multicast-addresses> to reference this document instead of
+#  [RFC3315].
+
+module DHCPv6;
+
+import spicy;
+
+type MessageType = enum {
+    SOLICIT = 1,
+    ADVERTISE = 2,
+    REQUEST = 3,
+    CONFIRM = 4,
+    RENEW = 5,
+    REBIND = 6,
+    REPLY = 7,
+    RELEASE = 8,
+    DECLINE = 9,
+    RECONFIGURE = 10,
+    INFORMATION_REQUEST = 11,
+};
+
+type DDUIDType = enum {
+    LLT = 1, # Link-Layer Address Plus Time https://datatracker.ietf.org/doc/html/rfc8415#section-11.2
+    EN = 2, # Enterprise Number https://datatracker.ietf.org/doc/html/rfc8415#section-11.3
+    LL = 3, # Link-Layer Address https://datatracker.ietf.org/doc/html/rfc8415#section-11.4
+    UUID = 4, # Universally Unique Identifier https://datatracker.ietf.org/doc/html/rfc8415#section-11.5
+};
+
+type DUIDOption_LLT = unit {
+    hw_type: uint16;
+    time_: uint32;
+    ll_addr: bytes &eod &convert=spicy::bytes_to_mac($$);
+};
+
+type DUIDOption_EN = unit {
+    enterprise_number: uint32; # https://www.iana.org/assignments/enterprise-numbers/, https://www.iana.org/assignments/enterprise-numbers.txt
+    identifier: bytes &eod;
+};
+
+type DUIDOption_LL = unit {
+    hw_type: uint16;
+    ll_addr: bytes &eod &convert=spicy::bytes_to_mac($$);
+};
+
+type DUIDOption_UUID = unit {
+    uuid: bytes &size=16; # 128 bit UUID
+};
+
+type DUIDOption = unit {
+    duid_type: uint16 &convert=DDUIDType($$);
+    switch (self.duid_type) {
+        DDUIDType::LLT -> llt: DUIDOption_LLT;
+        DDUIDType::EN -> en: DUIDOption_EN;
+        DDUIDType::LL -> ll: DUIDOption_LL;
+        DDUIDType::UUID -> uuid: DUIDOption_UUID;
+    };
+};
+
+type StatusCode = enum {
+    Success = 0,
+    UnspecFail = 1,
+    NoAddrsAvail = 2,
+    NoBinding = 3,
+    NotOnLink = 4,
+    UseMulticast = 5,
+    NoPrefixAvail = 6,
+};
+
+type StatusCodeOption = unit {
+    code: uint16 &convert=StatusCode($$);
+    message: bytes &eod;
+};
+
+type IA_NAOption = unit {
+    iaid: uint32;
+    t1: uint32; # seconds
+    t2: uint32; # seconds
+    options: Option[] &eod;
+};
+
+type IAADDROption = unit {
+    addr_: addr &ipv6;
+    preferred_lifetime: uint32;
+    valid_lifetime: uint32;
+    options: Option[] &eod;
+};
+
+type OptionCode = enum {
+    CLIENTID = 1,
+    SERVERID = 2,
+    IA_NA = 3,
+    IA_TA = 4,
+    IAADDR = 5,
+    STATUS_CODE = 13,
+};
+
+type Option = unit {
+    code: uint16 &convert=OptionCode($$);
+    len: uint16;
+
+    switch (self.code) {
+        OptionCode::CLIENTID -> client_id: DUIDOption;
+        OptionCode::SERVERID -> server_id: DUIDOption;
+        OptionCode::IA_NA -> ia_na: IA_NAOption;
+        # IA_TA
+        OptionCode::IAADDR -> iaaddr: IAADDROption;
+        OptionCode::STATUS_CODE -> status_code: StatusCodeOption;
+        * -> unknown: bytes &eod;
+    } &size=self.len;
+};
+
+# XXX: 10.  Representation and Use of Domain Names
+# AS in DHCP, but uncompressed!
+
+public type Message = unit {
+    msg_type: uint8 &convert=MessageType($$);
+
+    # TODO: Handle Relay messages!?
+    # https://datatracker.ietf.org/doc/html/rfc8415#section-9
+
+    transaction_id: uint8[3] &convert=uint32((uint32($$[0]) << 16) + (uint32($$[1]) << 8) + uint32($$[2]));
+
+    options: Option[] &eod;
+
+    # Once the options are parsed, what do we actually want to
+    # send to script land? Maybe  a vector with options that have
+    # a lot of optionals?
+
+    on %done {
+        print self.msg_type, self.transaction_id;
+        for (o in self.options) {
+            print o;
+        }
+        spicy::accept_input();
+    }
+};

@@ -66,6 +66,8 @@ inline p_hash_type merge_p_hashes(p_hash_type h1, p_hash_type h2) {
 using AttrSet = std::unordered_set<const Attr*>;
 using AttrVec = std::vector<const Attr*>;
 
+class ProfileFuncs;
+
 // Class for profiling the components of a single function (or expression).
 class ProfileFunc : public TraversalCallback {
 public:
@@ -101,8 +103,8 @@ public:
     const auto& TableRefs() const { return tbl_refs; }
     const auto& AggrMods() const { return aggr_mods; }
     const IDSet& Inits() const { return inits; }
-    const std::vector<const Stmt*>& Stmts() const { return stmts; }
-    const std::vector<const Expr*>& Exprs() const { return exprs; }
+    const std::vector<StmtPtr>& Stmts() const { return stmts; }
+    const std::vector<ExprPtr>& Exprs() const { return exprs; }
     const std::vector<const LambdaExpr*>& Lambdas() const { return lambdas; }
     const std::vector<const ConstExpr*>& Constants() const { return constants; }
     const IDSet& UnorderedIdentifiers() const { return ids; }
@@ -213,11 +215,11 @@ protected:
 
     // Statements seen in the function.  Does not include indirect
     // statements, such as those in lambda bodies.
-    std::vector<const Stmt*> stmts;
+    std::vector<StmtPtr> stmts;
 
     // Expressions seen in the function.  Does not include indirect
     // expressions (such as those appearing in attributes of types).
-    std::vector<const Expr*> exprs;
+    std::vector<ExprPtr> exprs;
 
     // Lambdas seen in the function.  We don't profile lambda bodies,
     // but rather make them available for separate profiling if

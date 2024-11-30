@@ -263,6 +263,11 @@ extern void clear_script_analysis();
 // Called when Zeek is terminating.
 extern void finish_script_execution();
 
+// Returns true if the given profile indicates the presence of an AST
+// node not known to script optimization. The second argument specifies
+// whether we're doing ZAM optimization; if not, compile-to-C++ is assumed.
+extern bool has_AST_node_unknown_to_script_opt(const ProfileFunc* prof, bool /* is_ZAM */);
+
 // Returns true if the given call has a specialized ZAM equivalent when
 // used in a conditional.
 extern bool IsZAM_BuiltInCond(const CallExpr* c);

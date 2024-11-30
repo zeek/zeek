@@ -657,4 +657,123 @@ void profile_script_execution() {
 
 void finish_script_execution() { profile_script_execution(); }
 
+// For now, we have equivalent concerns between ZAM and compile-to-C++.
+bool has_AST_node_unknown_to_script_opt(const ProfileFunc* prof, bool /* is_ZAM */) {
+    // Note that the following sets are not comprehensive across the
+    // standard tags, because some tags are only generated *by* script
+    // optimization
+    // clang-format off
+    static const std::set<StmtTag> known_stmts = {
+        STMT_PRINT,
+        STMT_EVENT,
+        STMT_EXPR,
+        STMT_IF,
+        STMT_WHEN,
+        STMT_SWITCH,
+        STMT_FOR,
+        STMT_NEXT,
+        STMT_BREAK,
+        STMT_RETURN,
+        STMT_LIST,
+        // STMT_EVENT_BODY_LIST,
+        STMT_INIT,
+        STMT_FALLTHROUGH,
+        STMT_WHILE,
+        // STMT_CATCH_RETURN,
+        // STMT_CHECK_ANY_LEN,
+        // STMT_CPP,
+        // STMT_ZAM,
+        STMT_NULL,
+        STMT_ASSERT,
+        // STMT_EXTERN,
+        // STMT_STD_FUNCTION,
+    };
+    // clang-format on
+
+    for ( auto& s : prof->Stmts() )
+        if ( known_stmts.count(s->Tag()) == 0 )
+            return true;
+
+    // clang-format off
+    static const std::set<ExprTag> known_exprs = {
+        // EXPR_ANY,
+        EXPR_NAME,
+        EXPR_CONST,
+        EXPR_CLONE,
+        EXPR_INCR,
+        EXPR_DECR,
+        EXPR_NOT,
+        EXPR_COMPLEMENT,
+        EXPR_POSITIVE,
+        EXPR_NEGATE,
+        EXPR_ADD, EXPR_SUB,
+        EXPR_AGGR_ADD,
+        EXPR_AGGR_DEL,
+        EXPR_ADD_TO,
+        EXPR_REMOVE_FROM,
+        EXPR_TIMES,
+        EXPR_DIVIDE,
+        EXPR_MASK,
+        EXPR_MOD,
+        EXPR_AND,
+        EXPR_OR,
+        EXPR_XOR,
+        EXPR_LSHIFT,
+        EXPR_RSHIFT,
+        EXPR_AND_AND,
+        EXPR_OR_OR,
+        EXPR_LT,
+        EXPR_LE,
+        EXPR_EQ,
+        EXPR_NE,
+        EXPR_GE,
+        EXPR_GT,
+        EXPR_COND,
+        EXPR_REF,
+        EXPR_ASSIGN,
+        EXPR_INDEX,
+        EXPR_FIELD,
+        EXPR_HAS_FIELD,
+        EXPR_RECORD_CONSTRUCTOR,
+        EXPR_TABLE_CONSTRUCTOR,
+        EXPR_SET_CONSTRUCTOR,
+        EXPR_VECTOR_CONSTRUCTOR,
+        EXPR_FIELD_ASSIGN,
+        EXPR_IN,
+        EXPR_LIST,
+        EXPR_CALL,
+        EXPR_LAMBDA,
+        EXPR_EVENT,
+        EXPR_SCHEDULE,
+        EXPR_ARITH_COERCE,
+        EXPR_RECORD_COERCE,
+        EXPR_TABLE_COERCE,
+        EXPR_VECTOR_COERCE,
+        EXPR_TO_ANY_COERCE,
+        EXPR_FROM_ANY_COERCE,
+        EXPR_SIZE,
+        EXPR_CAST,
+        EXPR_IS,
+        // EXPR_INDEX_SLICE_ASSIGN,
+        EXPR_INLINE,
+        // EXPR_APPEND_TO,
+        // EXPR_INDEX_ASSIGN,
+        // EXPR_FIELD_LHS_ASSIGN,
+        // EXPR_REC_ASSIGN_FIELDS,
+        // EXPR_REC_ADD_FIELDS,
+        // EXPR_REC_CONSTRUCT_WITH_REC,
+        // EXPR_FROM_ANY_VEC_COERCE,
+        // EXPR_ANY_INDEX,
+        // EXPR_SCRIPT_OPT_BUILTIN,
+        // EXPR_NOP,
+    };
+    // clang-format on
+
+    for ( auto& e : prof->Exprs() )
+        if ( known_exprs.count(e->Tag()) == 0 )
+            return true;
+
+    return false;
+}
+
 } // namespace zeek::detail

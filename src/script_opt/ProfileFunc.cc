@@ -101,7 +101,7 @@ ProfileFunc::ProfileFunc(const Expr* e, bool _abs_rec_fields) {
 }
 
 TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
-    stmts.push_back(s);
+    stmts.push_back({NewRef{}, const_cast<Stmt*>(s)});
 
     switch ( s->Tag() ) {
         case STMT_INIT:
@@ -185,7 +185,7 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
 }
 
 TraversalCode ProfileFunc::PreExpr(const Expr* e) {
-    exprs.push_back(e);
+    exprs.push_back({NewRef{}, const_cast<Expr*>(e)});
 
     TrackType(e->GetType());
 
@@ -867,11 +867,11 @@ void ProfileFuncs::ComputeProfileHash(std::shared_ptr<ProfileFunc> pf) {
         h = merge_p_hashes(h, p_hash(ov[i]->Name()));
 
     h = merge_p_hashes(h, p_hash("stmts"));
-    for ( auto i : pf->Stmts() )
+    for ( auto& i : pf->Stmts() )
         h = merge_p_hashes(h, p_hash(i->Tag()));
 
     h = merge_p_hashes(h, p_hash("exprs"));
-    for ( auto i : pf->Exprs() )
+    for ( auto& i : pf->Exprs() )
         h = merge_p_hashes(h, p_hash(i->Tag()));
 
     h = merge_p_hashes(h, p_hash("ids"));

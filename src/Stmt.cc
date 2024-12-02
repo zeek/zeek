@@ -1597,23 +1597,11 @@ ValPtr AssertStmt::Exec(Frame* f, StmtFlowType& flow) {
     if ( ! assert_result || run_result_hook ) {
         zeek::StringValPtr msg_val = zeek::val_mgr->EmptyString();
 
-        if ( msg ) {
-            // Eval() may fail if expression assumes assert
-            // condition is F, but we still try to get it for
-            // the assertion_result hook.
-            try {
-                msg_val = cast_intrusive<zeek::StringVal>(msg->Eval(f));
-            } catch ( InterpreterException& e ) {
-                static ODesc desc;
-                desc.Clear();
-                desc.SetShort(true);
-                desc.SetQuotes(true);
-                desc.Add("<error eval ");
-                msg->Describe(&desc);
-                desc.Add(">");
-                msg_val = zeek::make_intrusive<zeek::StringVal>(desc.Len(), (const char*)desc.Bytes());
-            }
-        }
+        if ( msg )
+            // It's up to the script writing to assure that the expression
+            // works regardless of the state of the condition. If they
+            // fail to do so, they can get an exception at this point.
+            msg_val = cast_intrusive<zeek::StringVal>(msg->Eval(f));
 
         report_assert(assert_result, cond_desc, msg_val, GetLocationInfo());
     }

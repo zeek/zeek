@@ -69,6 +69,8 @@ event zeek_init()
 	{
 	local r: MyRecord = [$a=1234];
 	assert ! r?$b, fmt("Unexpected r$b is set to %s", r$b);
+	# This will generate a run-time error, rather than reporting the
+	# failed assertion.
 	assert r?$b, fmt("r$b is not set trying anyway: %s", r$b);
 	}
 

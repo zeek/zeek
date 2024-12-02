@@ -164,9 +164,11 @@ hook assertion_result(result: bool, cond: string, msg: string, bt: Backtrace)
 
 event zeek_init()
 	{
-	assert 2 + 2 == 4, cat(get_current_packet_header()$ip);
 	assert 2 + 2 == 4, to_json([$msg="true and works"]);
-	assert 2 + 2 == 5, cat(get_current_packet_header()$ip);
+	# This next assert will generate a run-time error, exiting the
+	# event handler.
+	assert 2 + 2 == 4, cat(get_current_packet_header()$ip);
+	assert 2 + 2 == 5, "didn't get to here";
 	}
 
 event zeek_done()

@@ -1,3 +1,9 @@
+7.1.0-dev.649 | 2024-12-02 13:43:26 +0100
+
+  * added new Cluster:: BiFs to script optimization tracking (Vern Paxson, Corelight)
+
+  * added locations to ZAM run-time errors about vector size mismatches (Vern Paxson, Corelight)
+
 7.1.0-dev.645 | 2024-12-02 10:59:04 +0100
 
   * fixed -O dump-final-ZAM to work in conjunction with -O no-ZAM-opt (Vern Paxson, Corelight)

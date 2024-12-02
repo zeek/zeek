@@ -464,6 +464,7 @@ global known_BiFs = set(
 	"skip_further_processing",
 	"skip_http_entity_data",
 	"skip_smtp_data",
+	"sleep",
 	"sort",
 	"split_string",
 	"split_string1",

@@ -1,3 +1,7 @@
+7.1.0-dev.645 | 2024-12-02 10:59:04 +0100
+
+  * fixed -O dump-final-ZAM to work in conjunction with -O no-ZAM-opt (Vern Paxson, Corelight)
+
 7.1.0-dev.643 | 2024-12-02 09:51:10 +0100
 
   * Remove support for building against Spicy versions before 1.8 (Benjamin Bannier, Corelight)

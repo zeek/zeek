@@ -404,16 +404,19 @@ void ZAMCompiler::Dump() {
         }
     }
     else if ( analysis_options.dump_final_ZAM ) {
-        ASSERT(remapped_frame);
-
         printf("\nFrame for %s:\n", func->GetName().c_str());
 
-        for ( auto i = 0U; i < shared_frame_denizens.size(); ++i ) {
-            printf("frame[%d] =", i);
-            for ( auto& id : shared_frame_denizens[i].ids )
-                printf(" %s", id->Name());
-            printf("\n");
+        if ( remapped_frame ) {
+            for ( auto i = 0U; i < shared_frame_denizens.size(); ++i ) {
+                printf("frame[%d] =", i);
+                for ( auto& id : shared_frame_denizens[i].ids )
+                    printf(" %s", id->Name());
+                printf("\n");
+            }
         }
+        else
+            for ( const auto& elem : frame_layout1 )
+                printf("frame[%d] = %s\n", elem.second, elem.first->Name());
     }
 
     if ( ! insts2.empty() )

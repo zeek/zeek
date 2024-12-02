@@ -53,9 +53,7 @@ function Spicy::__resource_usage%(%) : Spicy::ResourceUsage
     r->Assign(n++, ru.memory_heap);
     r->Assign(n++, ru.num_fibers);
     r->Assign(n++, ru.max_fibers);
-#if SPICY_VERSION_NUMBER >= 10800
     r->Assign(n++, ru.max_fiber_stack_size);
-#endif
     r->Assign(n++, ru.cached_fibers);
 
     return r;

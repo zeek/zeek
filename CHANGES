@@ -1,3 +1,13 @@
+7.1.0-dev.643 | 2024-12-02 09:51:10 +0100
+
+  * Remove support for building against Spicy versions before 1.8 (Benjamin Bannier, Corelight)
+
+    zeek-6.0 shipped with spicy-1.8, but we still have dedicated handling
+    for earlier versions of Spicy in the code. This patch cleans them up
+    since these versions are unsupported.
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 7.1.0-dev.639 | 2024-11-27 12:31:40 -0700
 
   * Add TEST-REQUIRES: which jq to two new tests that are using jq (Johanna Amann, Corelight)

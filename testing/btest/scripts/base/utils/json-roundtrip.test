@@ -1,0 +1,102 @@
+# @TEST-DOCS: Test round-trip JSON encoding and decoding using the Zeek methods
+# @TEST-EXEC: zeek -b %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+type Color: enum {
+	Red = 10,
+	White = 20,
+	Blue = 30
+};
+
+type Foo: record {
+	hello: string;
+	t: bool;
+	f: bool;
+	n: count &optional;
+	m: count &optional;  # not in input
+	def: count &default = 123;
+	i: int;
+	pi: double;
+	a: string_vec;
+	c1: Color;
+	p: port;
+	ti: time;
+	it: interval;
+	ad: addr;
+	s: subnet;
+	re: pattern;
+	su: subnet_set;
+	se: set[addr, port];
+	tbl: table[addr, port] of string;
+};
+
+type IntervalOnly: record {
+	it: interval;
+};
+
+event zeek_init()
+	{
+
+	local f: Foo;
+	f$hello = "world";
+	f$t = T;
+	f$f = F;
+	f$n = 0;
+	f$i = 123;
+	f$pi = 3.1416;
+	f$a = ["1", "2", "3", "4"];
+	f$c1 = Blue;
+	f$p = 1500/tcp;
+	f$ti = double_to_time(1681652265.042767);
+	f$it = double_to_interval(2*24*3600 + 2*3600 +  2*60 + 2*1.0 + 2*0.1 + 2*0.0001);
+	f$ad = 127.0.0.1;
+	f$s = 10.0.0.1/24;
+	f$re = /a/;
+	f$su = [[aa:bb::0]/32, 192.168.0.0/16];
+	f$se = [[192.168.0.1, 80/tcp], [[2001:db8::1], 8080/udp]];
+	f$tbl[192.168.100.1, 80/tcp] = "foo";
+
+	local f_json = to_json(f);
+
+	local f2 = from_json(f_json, Foo);
+	print fmt("Valid conversion of Foo: %d", f2$valid);
+	print "";
+
+	local f2_v : Foo = f2$v;
+
+	print "hello", f$hello == f2_v$hello;
+	print "t", f$t == f2_v$t;
+	print "f", f$f == f2_v$f;
+	print "n", f$n == f2_v$n;
+	print "m", (! f?$m);
+	print "def", f$def == f2_v$def;
+	print "i", f$i == f2_v$i;
+	print "pi", f$pi == f2_v$pi;
+	print "a", f$a == f2_v$a;
+	print "c1", f$c1 == f2_v$c1;
+	print "p", f$p == f2_v$p;
+	print "ti", f$ti == f2_v$ti;
+	print "it", f$it == f2_v$it;
+	print "ad", f$ad == f2_v$ad;
+	print "s", f$s == f2_v$s;
+	print "re", f$re == f2_v$re;
+	print "su", f$su == f2_v$su;
+	print "se", f$se == f2_v$se;
+
+# TODO: direct comparisons of tables isn't allowed. This will have to wait.
+#	print f$tbl == f2_v$tbl;
+
+	local io: IntervalOnly;
+	io$it = double_to_interval(2*24*3600 + 2*3600 +  2*60 + 2*1.0 + 2*0.1 + 2*0.0001);
+
+	# Test round-trip conversion of intervals as doubles.
+	local io_json = to_json(io, F, /^_/, T);
+	local io2 = from_json(io_json, IntervalOnly);
+
+	print "";
+	print fmt("Valid conversion of IntervalOnly: %d", f2$valid);
+	print "";
+
+	local io2_v : IntervalOnly = io2$v;
+	print "it", io$it == io2_v$it;
+}

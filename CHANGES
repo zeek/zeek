@@ -1,3 +1,13 @@
+7.1.0-dev.654 | 2024-12-03 10:10:15 -0700
+
+  * Add interval_as_double argument to control how intervals are converted to JSON (Tim Wojtulewicz, Corelight)
+
+  * Add btest for round-trip JSON conversion (Tim Wojtulewicz, Corelight)
+
+  * Allow comparing two PatternVals (Tim Wojtulewicz, Corelight)
+
+  * Handle conversion between data from Val::ToJSON and ValFromJSON better (Tim Wojtulewicz, Corelight)
+
 7.1.0-dev.649 | 2024-12-02 13:43:26 +0100
 
   * added new Cluster:: BiFs to script optimization tracking (Vern Paxson, Corelight)

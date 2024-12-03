@@ -351,7 +351,7 @@ static bool UsesJSONStringType(const TypePtr& t) {
 // This is a static method in this file to avoid including rapidjson's headers
 // in Val.h, because they're huge.
 static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool only_loggable = false,
-                      RE_Matcher* re = nullptr, const string& key = "") {
+                      RE_Matcher* re = nullptr, const string& key = "", bool interval_as_double = false) {
     if ( ! key.empty() )
         writer.Key(key);
 
@@ -387,13 +387,24 @@ static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool onl
         }
 
         case TYPE_PATTERN:
-        case TYPE_INTERVAL:
         case TYPE_ADDR:
         case TYPE_SUBNET: {
             ODesc d;
             d.SetStyle(RAW_STYLE);
             val->Describe(&d);
             writer.String(reinterpret_cast<const char*>(d.Bytes()), d.Len());
+            break;
+        }
+
+        case TYPE_INTERVAL: {
+            if ( interval_as_double )
+                writer.Double(val->AsInterval());
+            else {
+                ODesc d;
+                d.SetStyle(RAW_STYLE);
+                val->Describe(&d);
+                writer.String(reinterpret_cast<const char*>(d.Bytes()), d.Len());
+            }
             break;
         }
 
@@ -433,11 +444,11 @@ static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool onl
                 Val* entry_key = lv->Length() == 1 ? lv->Idx(0).get() : lv.get();
 
                 if ( tval->GetType()->IsSet() )
-                    BuildJSON(writer, entry_key, only_loggable, re);
+                    BuildJSON(writer, entry_key, only_loggable, re, "", interval_as_double);
                 else {
                     rapidjson::StringBuffer buffer;
                     json::detail::NullDoubleWriter key_writer(buffer);
-                    BuildJSON(key_writer, entry_key, only_loggable, re);
+                    BuildJSON(key_writer, entry_key, only_loggable, re, "", interval_as_double);
                     string key_str = buffer.GetString();
 
                     // Strip the quotes for any type we render as a string. This
@@ -446,7 +457,7 @@ static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool onl
                     if ( UsesJSONStringType(entry_key->GetType()) )
                         key_str = key_str.substr(1, key_str.length() - 2);
 
-                    BuildJSON(writer, entry->GetVal().get(), only_loggable, re, key_str);
+                    BuildJSON(writer, entry->GetVal().get(), only_loggable, re, key_str, interval_as_double);
                 }
             }
 
@@ -481,7 +492,7 @@ static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool onl
                     else
                         key_str = field_name;
 
-                    BuildJSON(writer, value.get(), only_loggable, re, key_str);
+                    BuildJSON(writer, value.get(), only_loggable, re, key_str, interval_as_double);
                 }
             }
 
@@ -495,7 +506,7 @@ static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool onl
             auto* lval = val->AsListVal();
             size_t size = lval->Length();
             for ( size_t i = 0; i < size; i++ )
-                BuildJSON(writer, lval->Idx(i).get(), only_loggable, re);
+                BuildJSON(writer, lval->Idx(i).get(), only_loggable, re, "", interval_as_double);
 
             writer.EndArray();
             break;
@@ -507,7 +518,7 @@ static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool onl
             auto* vval = val->AsVectorVal();
             size_t size = vval->SizeVal()->AsCount();
             for ( size_t i = 0; i < size; i++ )
-                BuildJSON(writer, vval->ValAt(i).get(), only_loggable, re);
+                BuildJSON(writer, vval->ValAt(i).get(), only_loggable, re, "", interval_as_double);
 
             writer.EndArray();
             break;
@@ -528,11 +539,11 @@ static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool onl
     }
 }
 
-StringValPtr Val::ToJSON(bool only_loggable, RE_Matcher* re) {
+StringValPtr Val::ToJSON(bool only_loggable, RE_Matcher* re, bool interval_as_double) {
     rapidjson::StringBuffer buffer;
     json::detail::NullDoubleWriter writer(buffer);
 
-    BuildJSON(writer, this, only_loggable, re, "");
+    BuildJSON(writer, this, only_loggable, re, "", interval_as_double);
 
     return make_intrusive<StringVal>(buffer.GetString());
 }
@@ -938,10 +949,44 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
         }
 
         case TYPE_INTERVAL: {
-            if ( ! j.IsNumber() )
-                return mismatch_err();
+            if ( j.IsNumber() )
+                return make_intrusive<IntervalVal>(j.GetDouble());
 
-            return make_intrusive<IntervalVal>(j.GetDouble());
+            if ( j.IsString() ) {
+                auto parts = util::split(j.GetString(), " ");
+
+                // Strip out any empty items. This can happen if there are
+                // strings of spaces in the original string.
+                parts.erase(std::remove_if(parts.begin(), parts.end(), [](auto x) { return x.empty(); }), parts.end());
+
+                if ( (parts.size() % 2) != 0 )
+                    return "wrong interval format, must be pairs of values with units";
+
+                double interval_secs = 0.0;
+                for ( size_t i = 0; i < parts.size(); i += 2 ) {
+                    auto value = std::stod(std::string{parts[i]});
+                    const auto& unit = parts[i + 1];
+
+                    if ( unit == "day" || unit == "days" )
+                        interval_secs += (value * Days);
+                    else if ( unit == "hr" || unit == "hrs" )
+                        interval_secs += (value * Hours);
+                    else if ( unit == "min" || unit == "mins" )
+                        interval_secs += (value * Minutes);
+                    else if ( unit == "sec" || unit == "secs" )
+                        interval_secs += (value * Seconds);
+                    else if ( unit == "msec" || unit == "msecs" )
+                        interval_secs += (value * Milliseconds);
+                    else if ( unit == "usec" || unit == "usecs" )
+                        interval_secs += (value * Microseconds);
+                    else
+                        return util::fmt("wrong interval format, invalid unit type %s", unit.data());
+                }
+
+                return make_intrusive<IntervalVal>(interval_secs, Seconds);
+            }
+
+            return mismatch_err();
         }
 
         case TYPE_PORT: {

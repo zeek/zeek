@@ -5103,13 +5103,17 @@ function anonymize_addr%(a: addr, cl: IPAddrAnonymizationClass%): addr
 ##                       rendered name. The default pattern strips a leading
 ##                       underscore.
 ##
+## interval_as_double: If T, interval values will be logged as doubles
+##                     instead of the broken-out version with units as strings.
+##
 ## returns: a JSON formatted string.
 ##
 ## .. zeek:see:: fmt cat cat_sep string_cat print_raw from_json
-function to_json%(val: any, only_loggable: bool &default=F, field_escape_pattern: pattern &default=/^_/%): string
+function to_json%(val: any, only_loggable: bool &default=F, field_escape_pattern: pattern &default=/^_/, interval_as_double: bool &default=F%): string
 	%{
-	return val->ToJSON(only_loggable, field_escape_pattern);
+	return val->ToJSON(only_loggable, field_escape_pattern, interval_as_double);
 	%}
+
 
 ## A function to convert a JSON string into Zeek values of a given type.
 ##

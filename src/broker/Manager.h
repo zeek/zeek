@@ -2,12 +2,10 @@
 
 #include <broker/backend.hh>
 #include <broker/backend_options.hh>
-#include <broker/data.hh>
 #include <broker/detail/hash.hh>
-#include <broker/endpoint.hh>
 #include <broker/endpoint_info.hh>
-#include <broker/error.hh>
 #include <broker/peer_info.hh>
+#include <broker/store.hh>
 #include <broker/zeek.hh>
 #include <memory>
 #include <stdexcept>
@@ -21,6 +19,14 @@
 #include "zeek/iosource/IOSource.h"
 #include "zeek/logging/Types.h"
 #include "zeek/logging/WriterBackend.h"
+
+namespace broker {
+
+class data;
+class error;
+class endpoint;
+
+} // namespace broker
 
 namespace zeek {
 

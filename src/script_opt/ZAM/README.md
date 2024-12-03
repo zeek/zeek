@@ -70,7 +70,14 @@ variables.
 
 ### Incompatibilities:
 
-* ZAM ignores `assert` statements.
+* By default, ZAM removes `assert` statements (including any side effects
+present in their elements). To keep these, specify `-O keep-asserts`.
+
+* For event handlers with multiple bodies, if one of the bodies encounters
+a run-time error, the later (lower priority) bodies won't run, because ZAM
+inlines all of the bodies together to facilitate cross-body optimization.
+If you need full isolation between event handler bodies, you can specify
+`-O no-event-handler-coalescence` to turning off the inlining.
 
 * The `same_object()` BiF will always deem two non-container values as
 different.

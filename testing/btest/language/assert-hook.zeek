@@ -1,9 +1,6 @@
 # @TEST-DOC: Assert statement testing with assertion_failure and assertion_result implementation.
 #
-# Doesn't make sense for ZAM as it ignores assert's.
-# @TEST-REQUIRES: test "${ZEEK_ZAM}" != "1"
-#
-# @TEST-EXEC: zeek -b %INPUT >out
+# @TEST-EXEC: zeek -b -O no-event-handler-coalescence %INPUT >out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 

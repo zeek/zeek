@@ -94,7 +94,9 @@ issues:
 |`gen-ZAM-code`		|	Generate ZAM without additional optimizations.|
 |`help`		|	Print this list.|
 |`inline`		|	Inline function calls.|
+|`keep-asserts`		|	Don't optimize away `assert` statements.|
 |`no-inline`		|	Suppress inlining even if another option implies it.|
+|`no-event-handler-coalescence`		|	When inlining, do not coalescence event handlers.|
 |`no-ZAM-opt`	|	Turn off low-level ZAM optimization.|
 |`optimize-all`	|	Optimize all scripts, even inlined ones. You need to separately specify which optimizations you want to apply, e.g., `-O inline -O xform`.|
 |`optimize-AST`	|	Optimize the (transform) AST; implies `xform`.|

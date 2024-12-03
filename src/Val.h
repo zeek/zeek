@@ -248,9 +248,12 @@ public:
      * first match on any record field name in the resulting output.  See the
      * to_json() BiF for context.
      *
+     * @param interval_as_double If true, interval values will be written as
+     * doubles instead of the broken-out version with units.
+     *
      * @return  JSON data representing the Val.
      */
-    StringValPtr ToJSON(bool only_loggable = false, RE_Matcher* re = nullptr);
+    StringValPtr ToJSON(bool only_loggable = false, RE_Matcher* re = nullptr, bool interval_as_double = false);
 
     template<typename T>
     T As() {

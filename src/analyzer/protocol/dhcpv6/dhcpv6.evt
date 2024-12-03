@@ -8,4 +8,20 @@ protocol analyzer DHCPv6 over UDP:
 
 import DHCPv6;
 
-on DHCPv6::Message -> event dhcpv6_message($conn, $is_orig);
+on DHCPv6::Message::transaction_id -> event dhcpv6_message($conn, $is_orig, cast<uint32>(self.msg_type), self.transaction_id);
+
+on DHCPv6::Option if (self.top_level) -> event dhcpv6_option($conn, $is_orig, cast<uint32>(self.code));
+on DHCPv6::Option::client_id if (self.top_level) -> event dhcpv6_option_clientid($conn, $is_orig, cast<uint32>(self.client_id.duid_type), self.client_id.data);
+on DHCPv6::Option::server_id if (self.top_level) -> event dhcpv6_option_serverid($conn, $is_orig, cast<uint32>(self.server_id.duid_type), self.server_id.data);
+
+on DHCPv6::Option::status_code if (self.top_level) -> event dhcpv6_option_status_code($conn, $is_orig, cast<uint32>(self.status_code.code), self.status_code.message);
+
+on DHCPv6::Option::request_option if (self.top_level) -> event dhcpv6_option_requested_options($conn, $is_orig, self.request_option.requested_options);
+
+
+on DHCPv6::IA_NAOption -> event dhcpv6_option_ia_na($conn, $is_orig, self.iaid,  interval(self.t1), interval(self.t2));
+on DHCPv6::IAADDROption -> event dhcpv6_option_ipaddr($conn, $is_orig, self.addr6, interval(self.preferred_lifetime), interval(self.valid_lifetime));
+on DHCPv6::ClientFQDNOption -> event dhcpv6_option_client_fqdn($conn, $is_orig, self.flags.n, self.flags.o, self.flags.s, self.domain_name);
+
+
+on DHCPv6::Message::done -> event dhcpv6_message_end($conn, $is_orig, cast<uint32>(self.msg_type), self.transaction_id);

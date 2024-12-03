@@ -71,6 +71,8 @@ have_2nd = "have_2nd"
 ot1 = "ot1"
 ot2 = "ot2"
 uses_seh = "uses_seh"
+S46_CONT_MAPE = "S46_CONT_MAPE"
+MIP6_HAA = "MIP6_HAA"
 
 [default.extend-words]
 caf = "caf"

@@ -26,7 +26,7 @@ type MessageType = enum {
     INFORMATION_REQUEST = 11,
 };
 
-type DDUIDType = enum {
+type DUIDType = enum {
     LLT = 1, # Link-Layer Address Plus Time https://datatracker.ietf.org/doc/html/rfc8415#section-11.2
     EN = 2, # Enterprise Number https://datatracker.ietf.org/doc/html/rfc8415#section-11.3
     LL = 3, # Link-Layer Address https://datatracker.ietf.org/doc/html/rfc8415#section-11.4
@@ -54,13 +54,15 @@ type DUIDOption_UUID = unit {
 };
 
 type DUIDOption = unit {
-    duid_type: uint16 &convert=DDUIDType($$);
+    duid_type: uint16 &convert=DUIDType($$);
+    data: bytes &eod;
+
     switch (self.duid_type) {
-        DDUIDType::LLT -> llt: DUIDOption_LLT;
-        DDUIDType::EN -> en: DUIDOption_EN;
-        DDUIDType::LL -> ll: DUIDOption_LL;
-        DDUIDType::UUID -> uuid: DUIDOption_UUID;
-    };
+        DUIDType::LLT -> llt: DUIDOption_LLT;
+        DUIDType::EN -> en: DUIDOption_EN;
+        DUIDType::LL -> ll: DUIDOption_LL;
+        DUIDType::UUID -> uuid: DUIDOption_UUID;
+    } &parse-from=self.data;
 };
 
 type StatusCode = enum {
@@ -82,14 +84,44 @@ type IA_NAOption = unit {
     iaid: uint32;
     t1: uint32; # seconds
     t2: uint32; # seconds
-    options: Option[] &eod;
+    options: Option(False)[] &eod;
 };
 
 type IAADDROption = unit {
-    addr_: addr &ipv6;
+    addr6: addr &ipv6;
     preferred_lifetime: uint32;
     valid_lifetime: uint32;
-    options: Option[] &eod;
+    options: Option(False)[] &eod;
+};
+
+type RequestOption = unit {
+    requested_options: uint16[] &eod;
+};
+
+# DNS Label without compression.
+# https://datatracker.ietf.org/doc/html/rfc1035#section-3.1
+type Label = unit {
+    len: uint8 &requires=(($$ & 0xC0) == 0);
+    label: bytes &size=self.len;
+} &convert=self.label;
+
+# https://datatracker.ietf.org/doc/html/rfc4704#section-4
+type ClientFQDNOption = unit {
+    var domain_name: bytes;
+    flags: bitfield(8) {
+        mbz: 0..4;
+        n: 5 &convert=($$ == 1);
+        o: 6 &convert=($$ == 1);
+        s: 7 &convert=($$ == 1);
+    } &bit-order=spicy::BitOrder::MSB0;
+
+    labels: Label[] &eod {
+        self.domain_name = b".".join($$);
+    }
+
+    on %done {
+        print "YYYYYYY", self.flags, self.domain_name;
+    }
 };
 
 type OptionCode = enum {
@@ -98,10 +130,13 @@ type OptionCode = enum {
     IA_NA = 3,
     IA_TA = 4,
     IAADDR = 5,
+    REQUEST = 6,
     STATUS_CODE = 13,
+    CLIENT_FQDN = 39,
 };
 
-type Option = unit {
+type Option = unit(top_level: bool) {
+    var top_level: bool = top_level;
     code: uint16 &convert=OptionCode($$);
     len: uint16;
 
@@ -111,7 +146,9 @@ type Option = unit {
         OptionCode::IA_NA -> ia_na: IA_NAOption;
         # IA_TA
         OptionCode::IAADDR -> iaaddr: IAADDROption;
+        OptionCode::REQUEST -> request_option: RequestOption;
         OptionCode::STATUS_CODE -> status_code: StatusCodeOption;
+        OptionCode::CLIENT_FQDN -> client_fqdn: ClientFQDNOption;
         * -> unknown: bytes &eod;
     } &size=self.len;
 };
@@ -127,13 +164,15 @@ public type Message = unit {
 
     transaction_id: uint8[3] &convert=uint32((uint32($$[0]) << 16) + (uint32($$[1]) << 8) + uint32($$[2]));
 
-    options: Option[] &eod;
+    options: Option(True)[] &eod;
 
     # Once the options are parsed, what do we actually want to
     # send to script land? Maybe  a vector with options that have
     # a lot of optionals?
+    done: void;
 
     on %done {
+        return;
         print self.msg_type, self.transaction_id;
         for (o in self.options) {
             print o;

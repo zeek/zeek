@@ -119,7 +119,7 @@ StmtPtr ExprStmt::DoReduce(Reducer* c) {
 
     auto t = e->Tag();
 
-    if ( t == EXPR_NOP )
+    if ( t == EXPR_NOP || t == EXPR_CONST )
         return TransformMe(make_intrusive<NullStmt>(), c);
 
     if ( c->Optimizing() ) {
@@ -138,10 +138,9 @@ StmtPtr ExprStmt::DoReduce(Reducer* c) {
 
     StmtPtr red_e_stmt;
 
-    if ( t == EXPR_CALL )
-        // A bare call.  If we reduce it regularly, if
-        // it has a non-void type it'll generate an
-        // assignment to a temporary.
+    if ( t == EXPR_CALL && ! e->WillTransform(c) )
+        // A bare call.  If we reduce it regularly, if it has a non-void
+        // type it'll generate an assignment to a temporary.
         red_e_stmt = e->ReduceToSingletons(c);
     else {
         e = e->Reduce(c, red_e_stmt);

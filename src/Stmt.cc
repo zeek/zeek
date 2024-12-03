@@ -1570,10 +1570,10 @@ TraversalCode NullStmt::Traverse(TraversalCallback* cb) const {
     HANDLE_TC_STMT_POST(tc);
 }
 
-AssertStmt::AssertStmt(ExprPtr arg_cond, ExprPtr arg_msg)
-    : Stmt(STMT_ASSERT), cond(std::move(arg_cond)), msg(std::move(arg_msg)) {
-    if ( ! IsBool(cond->GetType()->Tag()) )
-        cond->Error("conditional must be boolean");
+AssertStmt::AssertStmt(ExprPtr cond, ExprPtr arg_msg)
+    : ExprStmt(STMT_ASSERT, std::move(cond)), msg(std::move(arg_msg)) {
+    if ( ! IsBool(e->GetType()->Tag()) )
+        e->Error("conditional must be boolean");
 
     if ( msg && ! IsString(msg->GetType()->Tag()) )
         msg->Error("message must be string");
@@ -1581,7 +1581,7 @@ AssertStmt::AssertStmt(ExprPtr arg_cond, ExprPtr arg_msg)
     zeek::ODesc desc;
     desc.SetShort(true);
     desc.SetQuotes(true);
-    cond->Describe(&desc);
+    e->Describe(&desc);
 
     cond_desc = desc.Description();
 }
@@ -1592,7 +1592,7 @@ ValPtr AssertStmt::Exec(Frame* f, StmtFlowType& flow) {
 
     static auto assertion_result_hook = id::find_func("assertion_result");
     bool run_result_hook = assertion_result_hook && assertion_result_hook->HasEnabledBodies();
-    auto assert_result = cond->Eval(f)->AsBool();
+    auto assert_result = e->Eval(f)->AsBool();
 
     if ( ! assert_result || run_result_hook ) {
         zeek::StringValPtr msg_val = zeek::val_mgr->EmptyString();
@@ -1619,7 +1619,13 @@ void AssertStmt::StmtDescribe(ODesc* d) const {
     auto orig_quotes = d->WantQuotes();
     d->SetQuotes(true);
 
-    cond->Describe(d);
+    e->Describe(d);
+
+    if ( msg_setup_stmt ) {
+        d->Add("{ ");
+        msg_setup_stmt->Describe(d);
+        d->Add(" }");
+    }
 
     if ( msg ) {
         d->Add(",");
@@ -1636,9 +1642,14 @@ TraversalCode AssertStmt::Traverse(TraversalCallback* cb) const {
     TraversalCode tc = cb->PreStmt(this);
     HANDLE_TC_STMT_PRE(tc);
 
-    tc = cond->Traverse(cb);
+    tc = e->Traverse(cb);
     HANDLE_TC_STMT_PRE(tc);
     if ( msg ) {
+        if ( msg_setup_stmt ) {
+            tc = msg_setup_stmt->Traverse(cb);
+            HANDLE_TC_STMT_PRE(tc);
+        }
+
         tc = msg->Traverse(cb);
         HANDLE_TC_STMT_PRE(tc);
     }

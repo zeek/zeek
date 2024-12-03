@@ -25,8 +25,8 @@ int FrameSlotIfName(const Expr* e) {
     return n ? FrameSlot(n->Id()) : -1;
 }
 
-int FrameSlot(const NameExpr* id) { return FrameSlot(id->AsNameExpr()->Id()); }
-int Frame1Slot(const NameExpr* id, ZOp op) { return Frame1Slot(id->AsNameExpr()->Id(), op); }
+int FrameSlot(const NameExpr* n) { return FrameSlot(n->Id()); }
+int Frame1Slot(const NameExpr* n, ZOp op) { return Frame1Slot(n->Id(), op); }
 
 int Frame1Slot(const ID* id, ZOp op) { return Frame1Slot(id, op1_flavor[op]); }
 int Frame1Slot(const NameExpr* n, ZAMOp1Flavor fl) { return Frame1Slot(n->Id(), fl); }

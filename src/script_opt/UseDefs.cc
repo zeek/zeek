@@ -287,6 +287,21 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
             return CreateUDs(s, uds);
         }
 
+        case STMT_ASSERT: {
+            auto a = s->AsAssertStmt();
+            auto e = a->StmtExpr();
+
+            if ( auto msg = a->Msg().get() ) {
+                succ_UDs = UD_Union(succ_UDs, ExprUDs(msg));
+                if ( auto msg_setup_stmt = a->MsgSetupStmt().get() ) {
+                    succ_UDs = PropagateUDs(msg_setup_stmt, succ_UDs, succ_stmt, second_pass);
+                    succ_stmt = msg_setup_stmt;
+                }
+            }
+
+            return CreateUDs(s, UD_Union(succ_UDs, ExprUDs(e)));
+        }
+
         case STMT_SWITCH: {
             auto sw_UDs = std::make_shared<UseDefSet>();
 

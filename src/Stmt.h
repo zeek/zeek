@@ -495,15 +495,15 @@ private:
     bool is_directive;
 };
 
-class AssertStmt final : public Stmt {
+class AssertStmt final : public ExprStmt {
 public:
     explicit AssertStmt(ExprPtr cond, ExprPtr msg = nullptr);
 
     ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 
-    const auto& Cond() const { return cond; }
     const auto& CondDesc() const { return cond_desc; }
     const auto& Msg() const { return msg; }
+    const auto& MsgSetupStmt() const { return msg_setup_stmt; }
 
     void StmtDescribe(ODesc* d) const override;
 
@@ -516,9 +516,12 @@ public:
     StmtPtr DoReduce(Reducer* c) override;
 
 private:
-    ExprPtr cond;
     std::string cond_desc;
     ExprPtr msg;
+
+    // Statement to execute before evaluating "msg". Only used for script
+    // optimization.
+    StmtPtr msg_setup_stmt;
 };
 
 // Helper function for reporting on asserts that either failed, or should

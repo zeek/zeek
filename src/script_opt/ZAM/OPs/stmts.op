@@ -337,3 +337,33 @@ macro BuildWhen(zf, timeout)
 			local_aggrs.push_back(v);
 		}
 	(void)make_intrusive<trigger::Trigger>(wi, wi->WhenExprGlobals(), local_aggrs, timeout, Z_FRAME, Z_LOC->Loc());
+
+# Helper instruction that loads into $$ a boolean indicating whether an
+# upcoming assertion should be reported.
+op Should-Report-Assert
+classes VV
+op-types I I
+eval	static auto assertion_result_hook = id::find_func("assertion_result");
+	bool run_result_hook = assertion_result_hook && assertion_result_hook->HasEnabledBodies();
+	$$ = ! $1 || run_result_hook;
+
+op Report-Assert
+# Operands are (1) result from Should-Report-Assert, (2) assertion value,
+# (3) description of the condition (always a constant).
+op1-read
+classes VVC
+op-types I I S
+eval	if ( $$ )
+		{
+		zeek::StringValPtr msg_val = zeek::val_mgr->EmptyString();
+		report_assert($1, $2->ToStdString(), msg_val, Z_LOC->Loc());
+		}
+
+op Report-Assert-With-Message
+# The same, but with an additional operand being the associated message
+# (as a variable, so it comes in $2 rather than $3).
+op1-read
+classes VVVC
+op-types I I S S
+eval	if ( $$ )
+		report_assert($1, $3->ToStdString(), {NewRef{}, $2}, Z_LOC->Loc());

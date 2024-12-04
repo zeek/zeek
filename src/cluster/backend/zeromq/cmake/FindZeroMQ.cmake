@@ -1,5 +1,7 @@
 include(FindPackageHandleStandardArgs)
 
+set(AUXIL_CPPZMQ_DIR ${CMAKE_CURRENT_LIST_DIR}/../auxil/cppzmq)
+
 find_library(ZeroMQ_LIBRARY NAMES zmq HINTS ${ZeroMQ_ROOT_DIR}/lib)
 
 find_path(ZeroMQ_INCLUDE_DIR NAMES zmq.h HINTS ${ZeroMQ_ROOT_DIR}/include)
@@ -31,17 +33,13 @@ endif ()
 
 if (NOT ZeroMQ_CPP_VERSION)
     # Probably no zmq.hpp file, use the version from auxil
-    set(ZeroMQ_CPP_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/auxil/cppzmq"
-        CACHE FILEPATH "Include path for cppzmq" FORCE)
+    set(ZeroMQ_CPP_INCLUDE_DIR ${AUXIL_CPPZMQ_DIR} CACHE FILEPATH "Include path for cppzmq" FORCE)
     set_cppzmq_version()
 elseif (ZeroMQ_CPP_VERSION VERSION_LESS "4.9.0")
     message(STATUS "Found old cppzmq version ${ZeroMQ_CPP_VERSION}, using bundled version")
-    set(ZeroMQ_CPP_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/auxil/cppzmq"
-        CACHE FILEPATH "Include path for cppzmq" FORCE)
+    set(ZeroMQ_CPP_INCLUDE_DIR ${AUXIL_CPPZMQ_DIR} CACHE FILEPATH "Include path for cppzmq" FORCE)
     set_cppzmq_version()
 endif ()
-
-message(STATUS "Using cppzmq ${ZeroMQ_CPP_VERSION} from ${ZeroMQ_CPP_INCLUDE_DIR}")
 
 find_package_handle_standard_args(
     ZeroMQ FOUND_VAR ZeroMQ_FOUND REQUIRED_VARS ZeroMQ_LIBRARY ZeroMQ_INCLUDE_DIR

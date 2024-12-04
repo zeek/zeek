@@ -1,8 +1,9 @@
 #include "zeek/broker/Manager.h"
 
-#include <broker/broker.hh>
 #include <broker/config.hh>
 #include <broker/configuration.hh>
+#include <broker/endpoint.hh>
+#include <broker/variant.hh>
 #include <broker/zeek.hh>
 #include <unistd.h>
 #include <cstdio>
@@ -32,45 +33,13 @@
 #include "zeek/telemetry/Manager.h"
 #include "zeek/util.h"
 
-#ifdef BROKER_HAS_VARIANT
-#include <broker/variant.hh>
-#endif
-
 using namespace std;
 
 namespace {
 
-broker::data&& convert_if_broker_variant(broker::data&& arg) { return std::move(arg); }
-
-broker::data& convert_if_broker_variant(broker::data& arg) { return arg; }
-
-broker::data&& convert_if_broker_variant_or_move(broker::data& arg) { return std::move(arg); }
-
-broker::vector& broker_vector_from(broker::data& arg) { return broker::get<broker::vector>(arg); }
-
-#ifdef BROKER_HAS_VARIANT
-
-broker::data convert_if_broker_variant(const broker::variant& arg) { return arg.to_data(); }
-
-broker::data convert_if_broker_variant_or_move(const broker::variant& arg) { return arg.to_data(); }
-
 broker::vector broker_vector_from(const broker::variant& arg) {
     auto tmp = arg.to_data();
     return std::move(broker::get<broker::vector>(tmp));
-}
-
-#endif
-
-// Converts a string_view into a string to make sure that we can safely call `.c_str()` on the result.
-template<class View>
-std::enable_if_t<std::is_same_v<std::decay_t<View>, std::string_view>, std::string> c_str_safe(View&& arg) {
-    return std::string{arg};
-}
-
-// Passes through a string without copying it (already safe to call `.c_str()` on it).
-template<class String>
-std::enable_if_t<std::is_same_v<std::decay_t<String>, std::string>, const std::string&> c_str_safe(String&& arg) {
-    return arg;
 }
 
 void print_escaped(std::string& buf, std::string_view str) {
@@ -213,23 +182,13 @@ struct scoped_reporter_location {
 #ifdef DEBUG
 namespace {
 
-std::string RenderMessage(const broker::data& d) { return util::json_escape_utf8(broker::to_string(d)); }
-
-#ifdef BROKER_HAS_VARIANT
-
 std::string RenderMessage(const broker::variant& d) { return util::json_escape_utf8(broker::to_string(d)); }
 
 std::string RenderMessage(const broker::variant_list& d) { return util::json_escape_utf8(broker::to_string(d)); }
 
-#endif
-
 std::string RenderMessage(const broker::store::response& x) {
     return util::fmt("%s [id %" PRIu64 "]", (x.answer ? broker::to_string(*x.answer).c_str() : "<no answer>"), x.id);
 }
-
-std::string RenderMessage(const broker::vector* xs) { return broker::to_string(*xs); }
-
-std::string RenderMessage(const broker::vector& xs) { return broker::to_string(xs); }
 
 std::string RenderMessage(const broker::status& s) { return broker::to_string(s.code()); }
 
@@ -240,13 +199,12 @@ std::string RenderMessage(const broker::error& e) {
         return util::fmt("%s (null)", broker::to_string(e.code()).c_str());
 }
 
-template<class DataOrVariant>
-std::string RenderMessage(const std::string& topic, const DataOrVariant& x) {
+std::string RenderMessage(const std::string& topic, const broker::variant& x) {
     return util::fmt("%s -> %s", RenderMessage(x).c_str(), topic.c_str());
 }
 
-template<class DataOrVariant>
-std::string RenderEvent(const std::string& topic, const std::string& name, const DataOrVariant& args) {
+template<class VariantOrList>
+std::string RenderEvent(const std::string& topic, const std::string& name, const VariantOrList& args) {
     return util::fmt("%s(%s) -> %s", name.c_str(), RenderMessage(args).c_str(), topic.c_str());
 }
 
@@ -569,8 +527,8 @@ bool Manager::PublishEvent(string topic, std::string name, broker::vector args, 
     if ( peer_count == 0 )
         return true;
 
-    DBG_LOG(DBG_BROKER, "Publishing event: %s", RenderEvent(topic, name, args).c_str());
     broker::zeek::Event ev(std::move(name), std::move(args), broker::to_timestamp(ts));
+    DBG_LOG(DBG_BROKER, "Publishing event: %s", RenderEvent(topic, name, ev.args()).c_str());
     bstate->endpoint.publish(std::move(topic), ev.move_data());
     num_events_outgoing_metric->Inc();
     return true;
@@ -742,7 +700,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, const string& pa
         reporter->Error(
             "Failed to remotely log: log_topic func did not return"
             " a value for stream %s at path %s",
-            stream_id, c_str_safe(path).c_str());
+            stream_id, std::string{path}.c_str());
         return false;
     }
 
@@ -1009,7 +967,7 @@ void Manager::Process() {
         }
 
         if ( broker::is_prefix(topic, broker::topic::store_events_str) ) {
-            ProcessStoreEvent(convert_if_broker_variant(broker::move_data(message)));
+            ProcessStoreEvent(broker::get_data(message).to_data());
             continue;
         }
 
@@ -1210,7 +1168,7 @@ void Manager::ProcessMessage(std::string_view topic, broker::zeek::Event& ev) {
         // Default to current network time, if the received event did not contain a timestamp.
         ts = run_state::network_time;
 
-    DBG_LOG(DBG_BROKER, "Process event: %s (%.6f) %s", c_str_safe(name).c_str(), ts, RenderMessage(args).c_str());
+    DBG_LOG(DBG_BROKER, "Process event: %s (%.6f) %s", std::string{name}.c_str(), ts, RenderMessage(args).c_str());
     num_events_incoming_metric->Inc();
     auto handler = event_registry->Lookup(name);
 
@@ -1224,7 +1182,7 @@ void Manager::ProcessMessage(std::string_view topic, broker::zeek::Event& ev) {
         if ( strncmp(p.data(), topic.data(), p.size()) != 0 )
             continue;
 
-        DBG_LOG(DBG_BROKER, "Skip processing of forwarded event: %s %s", c_str_safe(name).c_str(),
+        DBG_LOG(DBG_BROKER, "Skip processing of forwarded event: %s %s", std::string{name}.c_str(),
                 RenderMessage(args).c_str());
         return;
     }
@@ -1235,7 +1193,7 @@ void Manager::ProcessMessage(std::string_view topic, broker::zeek::Event& ev) {
         reporter->Warning(
             "got event message '%s' with invalid # of args,"
             " got %zd, expected %zu",
-            c_str_safe(name).c_str(), args.size(), arg_types.size());
+            std::string{name}.c_str(), args.size(), arg_types.size());
         return;
     }
 
@@ -1245,7 +1203,7 @@ void Manager::ProcessMessage(std::string_view topic, broker::zeek::Event& ev) {
     for ( size_t i = 0; i < args.size(); ++i ) {
         auto got_type = args[i].get_type_name();
         const auto& expected_type = arg_types[i];
-        auto arg = convert_if_broker_variant(args[i]);
+        auto arg = args[i].to_data();
         auto val = detail::data_to_val(arg, expected_type.get());
 
         if ( val )
@@ -1270,7 +1228,7 @@ void Manager::ProcessMessage(std::string_view topic, broker::zeek::Event& ev) {
                                      expected_type->GetName().c_str());
             }
 
-            reporter->Warning("failed to convert remote event '%s' arg #%zu, %s", c_str_safe(name).c_str(), i,
+            reporter->Warning("failed to convert remote event '%s' arg #%zu, %s", std::string{name}.c_str(), i,
                               msg_addl.c_str());
 
             // If we got a vector and expected a function this is
@@ -1312,7 +1270,7 @@ bool Manager::ProcessMessage(std::string_view, broker::zeek::LogCreate& lc) {
     }
 
     auto writer_info = std::make_unique<logging::WriterBackend::WriterInfo>();
-    if ( ! writer_info->FromBroker(convert_if_broker_variant_or_move(lc.writer_info())) ) {
+    if ( ! writer_info->FromBroker(lc.writer_info().to_data()) ) {
         reporter->Warning("failed to unpack remote log writer info");
         return false;
     }
@@ -1364,7 +1322,7 @@ bool Manager::ProcessMessage(std::string_view, broker::zeek::LogWrite& lw) {
     auto stream_id = detail::data_to_val(wrapped_stream_id, log_id_type);
 
     if ( ! stream_id ) {
-        reporter->Warning("failed to unpack remote log stream id: %s", c_str_safe(stream_id_name).c_str());
+        reporter->Warning("failed to unpack remote log stream id: %s", std::string{stream_id_name}.c_str());
         return false;
     }
 
@@ -1372,7 +1330,7 @@ bool Manager::ProcessMessage(std::string_view, broker::zeek::LogWrite& lw) {
     auto wrapped_writer_id = broker::data{lw.writer_id()};
     auto writer_id = detail::data_to_val(wrapped_writer_id, writer_id_type);
     if ( ! writer_id ) {
-        reporter->Warning("failed to unpack remote log writer id for stream: %s", c_str_safe(stream_id_name).c_str());
+        reporter->Warning("failed to unpack remote log writer id for stream: %s", std::string{stream_id_name}.c_str());
         return false;
     }
 
@@ -1388,7 +1346,7 @@ bool Manager::ProcessMessage(std::string_view, broker::zeek::LogWrite& lw) {
 
     if ( ! success ) {
         reporter->Warning("failed to unserialize remote log num fields for stream: %s",
-                          c_str_safe(stream_id_name).c_str());
+                          std::string{stream_id_name}.c_str());
         return false;
     }
 
@@ -1397,7 +1355,7 @@ bool Manager::ProcessMessage(std::string_view, broker::zeek::LogWrite& lw) {
     for ( int i = 0; i < num_fields; ++i ) {
         if ( ! rec[i].Read(&fmt) ) {
             reporter->Warning("failed to unserialize remote log field %d for stream: %s", i,
-                              c_str_safe(stream_id_name).c_str());
+                              std::string{stream_id_name}.c_str());
 
             return false;
         }
@@ -1417,8 +1375,8 @@ bool Manager::ProcessMessage(std::string_view, broker::zeek::IdentifierUpdate& i
     }
 
     num_ids_incoming_metric->Inc();
-    auto id_name = c_str_safe(iu.id_name());
-    auto id_value = convert_if_broker_variant_or_move(iu.id_value());
+    auto id_name = std::string{iu.id_name()};
+    auto id_value = iu.id_value().to_data();
     const auto& id = zeek::detail::global_scope()->Find(id_name);
 
     if ( ! id ) {

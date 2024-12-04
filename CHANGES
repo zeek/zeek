@@ -1,3 +1,25 @@
+7.1.0-dev.658 | 2024-12-04 11:07:34 +0100
+
+  * Remove obsolete c_str_safe utility (Dominik Charousset, Corelight)
+
+    The old `c_str_safe` utility function allowed Zeek to operator on
+    `broker::data` and `broker::variant`. The former grants access to actual
+    `std::string` objects while the latter only provides access to fields
+    via `std::string_view`. Since the Zeek formatting functions need null
+    terminated strings, we need to copy the characters into a
+    null-terminated container first.
+
+    After removing support for `broker::data` and `broker::variant` from the
+    same code paths, we can drop `c_str_safe` and always do the copying
+    (since we are always dealing with `broker::variant` now).
+
+  * Remove obsolete Broker compatibility layer (Dominik Charousset, Corelight)
+
+    Since the transition to broker::variant has been long finalized, there
+    is no more need to be able to go back to a pre-variant version of
+    Broker. Hence, we can drop various utilities that allow Zeek to run with
+    older Broker releases.
+
 7.1.0-dev.654 | 2024-12-03 10:10:15 -0700
 
   * Add interval_as_double argument to control how intervals are converted to JSON (Tim Wojtulewicz, Corelight)

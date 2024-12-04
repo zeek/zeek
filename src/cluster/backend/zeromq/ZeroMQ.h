@@ -67,10 +67,11 @@ private:
     std::string listen_xpub_endpoint;
     std::string listen_log_endpoint;
 
+    zeek_uint_t poll_max_messages = 0;
+    zeek_uint_t debug_flags = 0;
+
     EventHandlerPtr event_subscription;
     EventHandlerPtr event_unsubscription;
-
-    zeek_uint_t debug_flags = 0;
 
     zmq::context_t ctx;
     zmq::socket_t xsub;

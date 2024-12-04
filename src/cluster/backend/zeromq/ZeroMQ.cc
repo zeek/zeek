@@ -90,6 +90,7 @@ void ZeroMQBackend::DoInitPostScript() {
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::connect_xsub_endpoint")->ToStdString();
     listen_log_endpoint =
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::listen_log_endpoint")->ToStdString();
+    poll_max_messages = zeek::id::find_val<zeek::CountVal>("Cluster::Backend::ZeroMQ::poll_max_messages")->Get();
     debug_flags = zeek::id::find_val<zeek::CountVal>("Cluster::Backend::ZeroMQ::debug_flags")->Get();
 
     event_unsubscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::unsubscription");
@@ -461,12 +462,20 @@ void ZeroMQBackend::Run() {
 
                 bool consumed_one = false;
 
-                // Read as many messages as possible.
+                // Read messages from the socket.
                 do {
                     zmq::message_t msg;
-                    rcv_messages[i].emplace_back(); // make room for a multiparte message
-
+                    rcv_messages[i].emplace_back(); // make room for a multipart message
                     auto& into = rcv_messages[i].back();
+
+                    // Only receive up to poll_max_messages from an individual
+                    // socket. Move on to the next when exceeded. The last pushed
+                    // message (empty) is popped at the end of the loop.
+                    if ( poll_max_messages > 0 && rcv_messages[i].size() > poll_max_messages ) {
+                        ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::POLL, "poll: %s rcv_messages[%zu] full!\n",
+                                                   sockets[i].name.c_str(), i);
+                        break;
+                    }
 
                     consumed_one = false;
                     bool more = false;

@@ -113,6 +113,11 @@ export {
 	## subscriptions and hello messages from other
 	## nodes.
 	const hello_expiration: interval = 10sec &redef;
+
+	## Exit the receive loop and continue processing
+	## when this many messages have been received
+	## from a socket.
+	const poll_max_messages = 100 &redef;
 }
 
 redef Cluster::backend = Cluster::CLUSTER_BACKEND_ZEROMQ;

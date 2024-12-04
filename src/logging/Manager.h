@@ -10,6 +10,7 @@
 #include "zeek/Tag.h"
 #include "zeek/Val.h"
 #include "zeek/logging/Component.h"
+#include "zeek/logging/Types.h"
 #include "zeek/logging/WriterBackend.h"
 #include "zeek/plugin/ComponentManager.h"
 #include "zeek/telemetry/Manager.h"
@@ -282,10 +283,33 @@ public:
      * @param path The path of the target log stream to write to.
      *
      * @param rec Representation of the log record to write.
-
+     *
      * @return Returns true if the record was processed successfully.
      */
     bool WriteFromRemote(EnumVal* id, EnumVal* writer, const std::string& path, detail::LogRecord&& rec);
+
+    /**
+     * Writes out a batch of log entries received from remote nodes.
+     *
+     * The given records have passed through all policy filters and raised events
+     * on the sending node. They are only meant to be written out.
+     *
+     * In contrast to WriteFromRemote(), this method works on a whole batch of log
+     * records at once. As long as the the receiving node has a matching filter
+     * attached to the stream and the fields within the header match the local
+     * filter's fields, an appropriate writer is created. WriteFromRemote() instead
+     * assumes the writer exists aprior.
+     *
+     * This method acts as a sink for \a records. A rvalue reference is used to
+     * make this explicit and prevent callers from copying all records by mistake.
+     *
+     * @param header The header describing the log records as deserialized from a remote message.
+     *
+     * @param records Records to be written out, the manager takes ownership of these.
+     *
+     * @return Returns true if the records were processed successfully.
+     */
+    bool WriteBatchFromRemote(const detail::LogWriteHeader& header, std::vector<detail::LogRecord>&& records);
 
     /**
      * Announces all instantiated writers to a given Broker peer.

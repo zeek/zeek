@@ -3,6 +3,7 @@
 #include "zeek/RunState.h"
 #include "zeek/Span.h"
 #include "zeek/broker/Manager.h"
+#include "zeek/cluster/Backend.h"
 #include "zeek/logging/Manager.h"
 #include "zeek/logging/WriterBackend.h"
 #include "zeek/threading/SerialTypes.h"
@@ -90,10 +91,11 @@ private:
 WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVal* arg_stream, EnumVal* arg_writer,
                                bool arg_local, bool arg_remote)
     : write_buffer(detail::WriteBuffer(BifConst::Log::write_buffer_size)) {
-    stream = arg_stream;
-    writer = arg_writer;
-    Ref(stream);
-    Ref(writer);
+    // The header's fields are initialized in Init()
+    header = detail::LogWriteHeader{{zeek::NewRef{}, arg_stream},
+                                    {zeek::NewRef{}, arg_writer},
+                                    arg_info.filter_name,
+                                    arg_info.path};
 
     disabled = initialized = false;
     buf = true;
@@ -108,7 +110,7 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVa
     name = util::copy_string(util::fmt("%s/%s", arg_info.path, w));
 
     if ( local ) {
-        backend = log_mgr->CreateBackend(this, writer);
+        backend = log_mgr->CreateBackend(this, header.writer_id.get());
 
         if ( backend )
             backend->Start();
@@ -124,8 +126,6 @@ WriterFrontend::~WriterFrontend() {
 
     delete[] fields;
 
-    Unref(stream);
-    Unref(writer);
     delete info;
     delete[] name;
 }
@@ -166,8 +166,12 @@ void WriterFrontend::Init(int arg_num_fields, const Field* const* arg_fields) {
     }
 
     if ( remote ) {
-        broker_mgr->PublishLogCreate(stream, writer, *info, arg_num_fields, arg_fields);
+        broker_mgr->PublishLogCreate(header.stream_id.get(), header.writer_id.get(), *info, arg_num_fields, arg_fields);
     }
+
+    header.fields.reserve(arg_num_fields);
+    for ( int i = 0; i < arg_num_fields; i++ )
+        header.fields.emplace_back(*arg_fields[i]);
 }
 
 void WriterFrontend::Write(detail::LogRecord&& arg_vals) {
@@ -182,12 +186,30 @@ void WriterFrontend::Write(detail::LogRecord&& arg_vals) {
         return;
     }
 
+    // If remote logging is enabled *and* broker is used as cluster backend,
+    // push the single log record directly to broker_mgr, it uses its own
+    // buffering logic currently.
+    //
+    // Other cluster backends leverage the write buffering logic in the
+    // WriterFrontend. See FlushWriteBuffer().
+    const bool broker_is_cluster_backend = zeek::cluster::backend == zeek::broker_mgr;
+
     if ( remote ) {
-        broker_mgr->PublishLogWrite(stream, writer, info->path, vals);
+        if ( broker_is_cluster_backend ) {
+            zeek::broker_mgr->PublishLogWrite(header.stream_id.get(), header.writer_id.get(), info->path, vals);
+
+            if ( ! backend ) // nothing left do do if we do not log locally
+                return;
+        }
+    }
+    else if ( ! backend ) {
+        assert(! remote);
+        // Not remote and no backend, we're done.
+        return;
     }
 
-    if ( ! backend )
-        return;
+    // Either non-broker remote or local logging.
+    assert(backend || (remote && ! broker_is_cluster_backend));
 
     write_buffer.WriteRecord(std::move(vals));
 
@@ -204,8 +226,16 @@ void WriterFrontend::FlushWriteBuffer() {
         // Nothing to do.
         return;
 
+    auto records = std::move(write_buffer).TakeRecords();
+
+    // We've already pushed to broker during Write(). If another backend
+    // is used, push all the buffered log records to it now.
+    const bool broker_is_cluster_backend = zeek::cluster::backend == zeek::broker_mgr;
+    if ( remote && ! broker_is_cluster_backend )
+        zeek::cluster::backend->PublishLogWrites(header, Span{records});
+
     if ( backend )
-        backend->SendIn(new WriteMessage(backend, num_fields, std::move(write_buffer).TakeRecords()));
+        backend->SendIn(new WriteMessage(backend, num_fields, std::move(records)));
 }
 
 void WriterFrontend::SetBuf(bool enabled) {

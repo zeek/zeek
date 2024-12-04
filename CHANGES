@@ -1,3 +1,36 @@
+7.1.0-dev.668 | 2024-12-04 13:47:10 +0100
+
+  * init-bare/zeek-setup: Groundwork for instantiating cluster backends (Arne Welzel, Corelight)
+
+  * cluster/serializer: Add binary-serialization-format (Arne Welzel, Corelight)
+
+    This is a serializer for log records that is using SerialTypes
+    for serializing and un-serializing rather. Essentially, this is
+    similar to what broker does except for the envelope.
+
+  * logging/WriterFrontend: Add logic for non-broker cluster backends (Arne Welzel, Corelight)
+
+    If cluster::backend isn't broker_mgr, use the WriterFrontend's buffering
+    logic and send a whole batch of log writes during FlushWriteBuffer().
+    This is a different path than broker's own logging logic.
+
+    Preferably we adapt broker to a model where it isn't
+    buffering either.
+
+  * logging/WriterBackend: Include logging/Types.h (Arne Welzel, Corelight)
+
+  * logging/Manager: Implement new WriteBatchFromRemote() (Arne Welzel, Corelight)
+
+  * logging/WriterFrontend: Add LogWriteHeader as member (Arne Welzel, Corelight)
+
+    The header captures the enum values as well as the fields
+
+  * logging: Add filter_name to WriterInfo (Arne Welzel, Corelight)
+
+    ...with this change, it'll be possible to identify WriterFrontend's
+    based on (stream, filter_name, path) pairs in addition to (stream,
+    writer, path) pairs.
+
 7.1.0-dev.660 | 2024-12-04 11:13:58 +0100
 
   * GH-4077: btest/spicy.type-converter: Drop ASAN_OPTIONS from test (Arne Welzel, Corelight)

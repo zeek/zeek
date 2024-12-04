@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "zeek/logging/Types.h"
 #include "zeek/logging/WriterBackend.h"
 
 namespace zeek::logging {
@@ -228,7 +229,10 @@ public:
     /**
      * Returns the number of log fields as passed into the constructor.
      */
-    int NumFields() const { return num_fields; }
+    [[deprecated("Remove in v8.1: Use GetFields() instead")]]
+    int NumFields() const {
+        return num_fields;
+    }
 
     /**
      * Returns a descriptive name for the writer, including the type of
@@ -239,15 +243,25 @@ public:
     const char* Name() const { return name; }
 
     /**
+     * Returns the name of the filter for which this frontend was instantiated.
+     */
+    const std::string& GetFilterName() const { return info->filter_name; }
+
+    /**
      * Returns the log fields as passed into the constructor.
      */
-    const threading::Field* const* Fields() const { return fields; }
+    [[deprecated("Remove in v8.1: Use GetFields() instead")]]
+    const threading::Field* const* Fields() const {
+        return fields;
+    }
+
+    /**
+     * Returns the log fields once Init() was called on the frontend.
+     */
+    const std::vector<threading::Field>& GetFields() const { return header.fields; }
 
 protected:
     friend class Manager;
-
-    EnumVal* stream;
-    EnumVal* writer;
 
     WriterBackend* backend; // The backend we have instantiated.
     bool disabled;          // True if disabled.
@@ -258,9 +272,10 @@ protected:
 
     const char* name;                      // Descriptive name of the
     WriterBackend::WriterInfo* info;       // The writer information.
-    int num_fields;                        // The number of log fields.
-    const threading::Field* const* fields; // The log fields.
+    int num_fields;                        // Remove in v8.1.
+    const threading::Field* const* fields; // Remove in v8.1.
 
+    detail::LogWriteHeader header;    // Collected information about the WriterFrontend.
     detail::WriteBuffer write_buffer; // Buffer for bulk writes.
 };
 

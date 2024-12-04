@@ -5756,6 +5756,16 @@ export {
 
 	## Cluster backend to use. Default is the broker backend.
 	const backend = Cluster::CLUSTER_BACKEND_BROKER &redef;
+
+	## The event serializer to use by the cluster backend.
+	##
+	## This currently has no effect for backend BROKER.
+	const event_serializer = Cluster::EVENT_SERIALIZER_BROKER_BIN_V1 &redef;
+
+	## The log serializer to use by the backend.
+	##
+	## This currently has no effect for backend BROKER.
+	const log_serializer = Cluster::LOG_SERIALIZER_ZEEK_BIN_V1 &redef;
 }
 
 module Weird;

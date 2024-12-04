@@ -851,6 +851,8 @@ protected:
 
 	void BuildInstruction(const OCVec& oc, const string& params,
 	                      const string& suffix, ZAM_InstClass zc) override;
+
+	void GenerateSecondTypeVars(const OCVec& oc, ZAM_InstClass zc);
 	};
 
 // A version of ZAM_BinaryExprOpTemplate for relationals.

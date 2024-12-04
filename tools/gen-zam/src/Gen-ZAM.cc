@@ -1372,9 +1372,6 @@ void ZAM_ExprOpTemplate::Parse(const string& attr, const string& line, const Wor
 		auto et1 = type_names[type_c1];
 		auto et2 = type_names[type_c2];
 
-		if ( eval_set.count(et1) > 0 )
-			g->Gripe("eval-mixed uses type also included in op-type", line);
-
 		auto eval = g->SkipWords(line, 3);
 		eval += GatherEval();
 		AddEvalSet(et1, et2, eval);
@@ -1551,8 +1548,8 @@ void ZAM_ExprOpTemplate::DoVectorCase(const string& m, const string& args)
 void ZAM_ExprOpTemplate::BuildInstructionCore(const string& params, const string& suffix,
                                               ZAM_InstClass zc)
 	{
-	Emit("auto tag = t->Tag();");
-	Emit("auto i_t = t->InternalType();");
+	Emit("auto tag1 = t->Tag();");
+	Emit("auto i_t1 = t->InternalType();");
 
 	int ncases = 0;
 
@@ -1610,14 +1607,24 @@ void ZAM_ExprOpTemplate::GenMethodTest(ZAM_Type et1, ZAM_Type et2, const string&
 		{ZAM_TYPE_VECTOR, {"tag", "TYPE_VECTOR"}},
 	};
 
-	if ( if_tests.count(et1) == 0 )
+	if ( if_tests.count(et1) == 0 || if_tests.count(et2) == 0 )
 		Gripe("bad op-type");
 
-	auto if_test = if_tests[et1];
-	auto if_var = if_test.first;
-	auto if_val = if_test.second;
+	auto if_test1 = if_tests[et1];
+	auto if_var1 = if_test1.first + "1";
+	auto if_val1 = if_test1.second;
 
-	string test = "if ( " + if_var + " == " + if_val + " )";
+	string test = if_var1 + " == " + if_val1;
+
+	if ( Arity() > 1 )
+		{
+		auto if_test2 = if_tests[et2];
+		auto if_var2 = if_test2.first + "2";
+		auto if_val2 = if_test2.second;
+		test = test + " && " + if_var2 + " == " + if_val2;
+		}
+
+	test = "if ( " + test + " )";
 	if ( do_else )
 		test = "else " + test;
 
@@ -2121,10 +2128,44 @@ void ZAM_BinaryExprOpTemplate::BuildInstruction(const OCVec& oc,
 	string type_src = constant_op ? "c" : "n2";
 	auto type_suffix = zc == ZIC_VEC ? "->Yield();" : ";";
 	Emit("auto t = " + type_src + "->GetType()" + type_suffix);
+
+	GenerateSecondTypeVars(oc, zc);
 	BuildInstructionCore(params, suffix, zc);
 
 	if ( zc == ZIC_VEC )
 		Emit("z.SetType(n1->GetType());");
+	}
+
+void ZAM_BinaryExprOpTemplate::GenerateSecondTypeVars(const OCVec& oc,
+							ZAM_InstClass zc)
+	{
+	auto constant_op = oc[1] == ZAM_OC_CONSTANT;
+	auto type_suffix = zc == ZIC_VEC ? "->Yield();" : ";";
+
+	string type_src2;
+
+	if ( zc == ZIC_COND )
+		{
+		if ( oc[0] == ZAM_OC_CONSTANT )
+			type_src2 = "n";
+		else if ( oc[1] == ZAM_OC_CONSTANT )
+			type_src2 = "c";
+		else
+			type_src2 = "n2";
+		}
+	else
+		{
+		if ( oc[1] == ZAM_OC_CONSTANT )
+			type_src2 = "n2";
+		else if ( oc[2] == ZAM_OC_CONSTANT )
+			type_src2 = "c";
+		else
+			type_src2 = "n3";
+		}
+
+	Emit("auto t2 = " + type_src2 + "->GetType()" + type_suffix);
+	Emit("auto tag2 = t2->Tag();");
+	Emit("auto i_t2 = t2->InternalType();");
 	}
 
 void ZAM_RelationalExprOpTemplate::Instantiate()
@@ -2170,6 +2211,7 @@ void ZAM_RelationalExprOpTemplate::BuildInstruction(const OCVec& oc,
 
 	auto type_suffix = zc == ZIC_VEC ? "->Yield();" : ";";
 	Emit("auto t = " + op1 + "->GetType()" + type_suffix);
+	GenerateSecondTypeVars(oc, zc);
 	BuildInstructionCore(params, suffix, zc);
 
 	if ( zc == ZIC_VEC )

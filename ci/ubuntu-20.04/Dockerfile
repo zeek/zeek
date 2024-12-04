@@ -25,8 +25,8 @@ RUN apt-get update && apt-get -y install \
     libssl-dev \
     libzmq3-dev \
     make \
-    python3 \
-    python3-dev \
+    python3.9 \
+    python3.9-dev \
     python3-pip\
     ruby \
     sqlite3 \

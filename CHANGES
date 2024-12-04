@@ -1,3 +1,7 @@
+7.1.0-dev.660 | 2024-12-04 11:13:58 +0100
+
+  * GH-4077: btest/spicy.type-converter: Drop ASAN_OPTIONS from test (Arne Welzel, Corelight)
+
 7.1.0-dev.658 | 2024-12-04 11:07:34 +0100
 
   * Remove obsolete c_str_safe utility (Dominik Charousset, Corelight)

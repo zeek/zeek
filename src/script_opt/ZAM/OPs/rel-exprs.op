@@ -17,7 +17,7 @@ eval-type T	$1->IsSubsetOf(*$2)
 eval-type A	$1->AsAddr() < $2->AsAddr() || $1->AsAddr() == $2->AsAddr()
 
 rel-expr-op EQ
-op-type I U D S T A N F
+op-type I U D S T A N F P
 vector
 eval $1 == $2
 eval-type S	Bstr_cmp($1->AsString(), $2->AsString()) == 0
@@ -25,6 +25,7 @@ eval-type T	$1->EqualTo(*$2)
 eval-type A	$1->AsAddr() == $2->AsAddr()
 eval-type N	$1->AsSubNet() == $2->AsSubNet()
 eval-type F	$1->GetName() == $2->GetName()
+eval-type P	strcmp($1->Get()->PatternText(), $2->Get()->PatternText()) == 0
 eval-mixed P S	$1->MatchExactly($2->AsString())
 
 rel-expr-op NE

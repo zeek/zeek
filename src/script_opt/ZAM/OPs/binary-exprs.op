@@ -37,15 +37,19 @@ binary-expr-op Mask
 # Signal that this expression only has mixed-type evaluation.
 op-type X
 explicit-result-type
-eval-mixed A I	auto mask = static_cast<uint32_t>($2);
-		auto a = $1->AsAddr();
-		if ( a.GetFamily() == IPv4 && mask > 32 )
-			ERROR(util::fmt("bad IPv4 subnet prefix length: %" PRIu32, mask));
-		if ( a.GetFamily() == IPv6 && mask > 128 )
-			ERROR(util::fmt("bad IPv6 subnet prefix length: %" PRIu32, mask));
-		auto v = make_intrusive<SubNetVal>(a, mask);
-		Unref($$.AsSubNet());
-		$$.AsSubNetRef() = v.release();
+eval-mixed A I	DoMask($$, $1, static_cast<uint32_t>($2))
+eval-mixed A U	DoMask($$, $1, $2)
+
+macro DoMask(lhs, op1, op2)
+	auto mask = static_cast<uint32_t>(op2);
+	auto a = op1->AsAddr();
+	if ( a.GetFamily() == IPv4 && mask > 32 )
+		ERROR(util::fmt("bad IPv4 subnet prefix length: %" PRIu32, mask));
+	if ( a.GetFamily() == IPv6 && mask > 128 )
+		ERROR(util::fmt("bad IPv6 subnet prefix length: %" PRIu32, mask));
+	auto v = make_intrusive<SubNetVal>(a, mask);
+	Unref(lhs.AsSubNet());
+	lhs.AsSubNetRef() = v.release();
 
 binary-expr-op Mod
 op-type I U

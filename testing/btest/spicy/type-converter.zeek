@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -o test.hlto conv.spicy ./conv.evt
-# @TEST-EXEC: ASAN_OPTIONS='detect_odr_violation=0 detect_leaks=0' zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT Spicy::enable_print=T >output
+# @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace test.hlto %INPUT Spicy::enable_print=T >output
 # @TEST-EXEC: btest-diff output
 
 event zeek_init() {

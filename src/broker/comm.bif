@@ -7,16 +7,56 @@
 
 module Broker;
 
-## Generated when something changes in the Broker sub-system.
-event Broker::status%(endpoint: EndpointInfo, msg: string%);
-
-## Generated when a new peering has been established.
+## Generated when a new peering has been established. Both sides of the peering
+## receive this event, created independently in each endpoint. For the endpoint
+## establishing the peering, the added endpoint's network information will match
+## the address and port provided to :zeek:see:`Broker::peer`; for the listening
+## endpoint it's the peer's TCP client's address and (likely ephemeral) TCP
+## port.
+##
+## endpoint: the added endpoint's Broker ID and connection information.
+##
+## msg: a message providing additional context.
+##
+## .. zeek:see:: Broker::peer_removed Broker::peer_lost
+##    Broker::endpoint_discovered Broker::endpoint_unreachable
+##    Broker::status Broker::error
 event Broker::peer_added%(endpoint: EndpointInfo, msg: string%);
 
-## Generated when an existing peer has been removed.
+## Generated when the local endpoint has removed its peering with another
+## endpoint. This event can fire for multiple reasons, such as a local call to
+## :zeek:see:`Broker::unpeer`, or because Broker autonomously decides to
+## unpeer. One reason it might do this is message I/O backpressure overflow,
+## meaning that the remote peer cannot keep up with the stream of messages the
+## local endpoint sends it. Regardless of the cause, the remote endpoint will
+## locally trigger a corresponding :zeek:see:`Broker::peer_lost` event once the
+## peering ends. These events are independent of the original directionality of
+## TCP connection establishment and only reflect which endpoint terminates the
+## peering.
+##
+## endpoint: the removed endpoint's Broker ID and connection information.
+##
+## msg: a message providing additional context. If backpressure overflow
+##      caused this unpeering, the message contains the string
+##      *caf::sec::backpressure_overflow*.
+##
+## .. zeek:see:: Broker::peer_added Broker::peer_lost
+##    Broker::endpoint_discovered Broker::endpoint_unreachable
+##    Broker::status Broker::error
 event Broker::peer_removed%(endpoint: EndpointInfo, msg: string%);
 
-## Generated when an existing peering has been lost.
+## Generated when the local endpoint has lost its peering with another
+## endpoint. This event fires when the other endpoint stops or removes the
+## peering for some other reason. This event is independent of the original
+## directionality of connection establishment.
+##
+## endpoint: the lost endpoint's Broker ID and connection information.
+##
+## msg: a message providing additional context.
+##
+## .. zeek:see:: Broker::peer_added Broker::peer_removed
+##    Broker::endpoint_discovered Broker::endpoint_unreachable
+##    Broker::status Broker::error
 event Broker::peer_lost%(endpoint: EndpointInfo, msg: string%);
 
 ## Generated when a new Broker endpoint appeared.
@@ -25,7 +65,29 @@ event Broker::endpoint_discovered%(endpoint: EndpointInfo, msg: string%);
 ## Generated when the last path to a Broker endpoint has been lost.
 event Broker::endpoint_unreachable%(endpoint: EndpointInfo, msg: string%);
 
-## Generated when an error occurs in the Broker sub-system.
+## Generated when an unspecified change occurs in Broker. This event only fires
+## when the status change isn't covered by more specific Broker events. The
+## provided message string may be empty.
+##
+## endpoint: the Broker ID and connection information, if available,
+##           of the endpoint the update relates to.
+##
+## msg: a message providing additional context.
+##
+## .. zeek:see:: Broker::peer_added Broker::peer_removed Broker::peer_lost
+##    Broker::endpoint_discovered Broker::endpoint_unreachable Broker::error
+event Broker::status%(endpoint: EndpointInfo, msg: string%);
+
+## Generated when an error occurs in the Broker sub-system. This event
+## reports local errors in Broker, as indicated by the provided
+## :zeek:type:`Broker::ErrorCode`.
+##
+## code: the type of error that triggered this event.
+##
+## msg: a message providing additional context.
+##
+## .. zeek:see:: Broker::peer_added Broker::peer_removed Broker::peer_lost
+##    Broker::endpoint_discovered Broker::endpoint_unreachable Broker::status
 event Broker::error%(code: ErrorCode, msg: string%);
 
 ## Enumerates the possible error types.

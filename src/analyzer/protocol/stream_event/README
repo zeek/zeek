@@ -1,0 +1,9 @@
+TCP application analyzer for handing raw stream data to script-land.
+
+This analyzer can be added as an upgrade analyzer, registered via the
+well-known ports mechanism, or even DPD. It allows script-layer access
+to the stream data when no more specific analyzer is available.
+
+This is similar to the tcp_contents event, but more flexible in that it
+can be added to an existing connection, or disabled over the lifetime
+of a connection.

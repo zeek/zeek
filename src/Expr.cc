@@ -1860,8 +1860,11 @@ BitExpr::BitExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
         if ( IsIntegral(bt1) && bt2 == TYPE_COUNT ) {
             if ( is_vector(op1) || is_vector(op2) )
                 SetType(make_intrusive<VectorType>(base_type(bt1)));
-            else
+            else {
                 SetType(base_type(bt1));
+                if ( bt1 != bt2 )
+                    op2 = make_intrusive<ArithCoerceExpr>(op2, bt1);
+            }
         }
 
         else if ( IsIntegral(bt1) && bt2 == TYPE_INT )

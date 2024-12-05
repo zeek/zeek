@@ -1,3 +1,13 @@
+7.1.0-dev.676 | 2024-12-05 11:08:55 -0700
+
+  * update of BTest that tracks number of (and validates) ZAM operations (Vern Paxson, Corelight)
+
+  * ZAM support for pattern equality/inequality operations (Vern Paxson, Corelight)
+
+  * expanded ZAM operations for bit-shifting to allow for int/count shift values (Vern Paxson, Corelight)
+
+  * added type coercion for bit-shifting expressions (Vern Paxson, Corelight)
+
 7.1.0-dev.671 | 2024-12-05 14:51:01 +0100
 
   * zeek-testing: Add Experiment-VM-Microsoft-Windows7AD-1 PCAP and baselines (Arne Welzel, Corelight)

@@ -1,5 +1,5 @@
 # A version of uninitialized-local.zeek suitable for ZAM's behavior.
-# @TEST-REQUIRES: test "${ZEEK_ZAM}" == "1"
+# @TEST-REQUIRES: test "${ZEEK_ZAM}" = "1"
 # @TEST-EXEC-FAIL: zeek -b %INPUT >out 2>&1
 
 event testit() &priority=10

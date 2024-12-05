@@ -480,7 +480,7 @@ void CPPCompile::GenForOverString(const ExprPtr& str, const IDPList* loop_vars) 
 }
 
 void CPPCompile::GenAssertStmt(const AssertStmt* a) {
-    auto& cond = a->Cond();
+    auto cond = a->StmtExpr();
     auto& msg = a->Msg();
 
     Emit("{ // begin a new scope for internal \"assert\" variables");

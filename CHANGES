@@ -1,3 +1,25 @@
+7.1.0-dev.687 | 2024-12-05 21:43:49 +0100
+
+  * ZAM documentation updates for asserts and event handler run-time errors (Vern Paxson, Corelight)
+
+  * BTest updates for ZAM support of (optionally) keeping "assert" statements (Vern Paxson, Corelight)
+
+  * command-line options for controlling script optimization: keeping asserts, (Vern Paxson, Corelight)
+    avoiding event handler coalescence
+
+  * ZAM support for option to not coalesce event handlers (Vern Paxson, Corelight)
+
+  * ZAM support for keeping "assert" statements (Vern Paxson, Corelight)
+
+  * internal support for script optimization options for keeping asserts, not (Vern Paxson, Corelight)
+    consolidating event handlers
+
+  * ZAM operations to support asserts (Vern Paxson, Corelight)
+
+  * simplified "assert" by not trying to catch messages that themselves have errors (Vern Paxson, Corelight)
+
+  * ZAM optimization now removes hook calls to hooks without any bodies (Vern Paxson, Corelight)
+
 7.1.0-dev.676 | 2024-12-05 11:08:55 -0700
 
   * update of BTest that tracks number of (and validates) ZAM operations (Vern Paxson, Corelight)

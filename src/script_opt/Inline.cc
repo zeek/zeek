@@ -166,7 +166,8 @@ void Inliner::Analyze() {
         inline_ables[func] = f.Profile();
     }
 
-    CoalesceEventHandlers();
+    if ( ! analysis_options.no_eh_coalescence )
+        CoalesceEventHandlers();
 
     for ( auto& f : funcs )
         if ( f.ShouldAnalyze() )

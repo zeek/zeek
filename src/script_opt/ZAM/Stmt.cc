@@ -48,6 +48,8 @@ const ZAMStmt ZAMCompiler::CompileStmt(const Stmt* s) {
 
         case STMT_WHEN: return CompileWhen(static_cast<const WhenStmt*>(s));
 
+        case STMT_ASSERT: return CompileAssert(static_cast<const AssertStmt*>(s));
+
         case STMT_NULL: return EmptyStmt();
 
         case STMT_CHECK_ANY_LEN: {
@@ -1043,6 +1045,45 @@ const ZAMStmt ZAMCompiler::CompileWhen(const WhenStmt* ws) {
         (void)AddInst(z);
         z = ZInstI(OP_WHEN_RETURN_X);
     }
+
+    return AddInst(z);
+}
+
+const ZAMStmt ZAMCompiler::CompileAssert(const AssertStmt* as) {
+    auto cond = as->StmtExpr();
+
+    int cond_slot;
+    if ( cond->Tag() == EXPR_CONST )
+        cond_slot = TempForConst(cond->AsConstExpr());
+    else
+        cond_slot = FrameSlot(cond->AsNameExpr());
+
+    auto decision_slot = NewSlot(false);
+
+    (void)AddInst(ZInstI(OP_SHOULD_REPORT_ASSERT_VV, decision_slot, cond_slot));
+
+    ZInstI z;
+
+    // We don't have a convenient way of directly introducing a std::string
+    // constant, so we build one to hold it.
+    auto cond_desc = make_intrusive<StringVal>(new String(as->CondDesc()));
+    auto cond_desc_e = make_intrusive<ConstExpr>(cond_desc);
+
+    if ( auto msg = as->Msg() ) {
+        auto& msg_setup_stmt = as->MsgSetupStmt();
+        if ( msg_setup_stmt )
+            (void)CompileStmt(msg_setup_stmt);
+
+        int msg_slot;
+        if ( msg->Tag() == EXPR_CONST )
+            msg_slot = TempForConst(msg->AsConstExpr());
+        else
+            msg_slot = FrameSlot(msg->AsNameExpr());
+
+        z = ZInstI(OP_REPORT_ASSERT_WITH_MESSAGE_VVVC, decision_slot, cond_slot, msg_slot, cond_desc_e.get());
+    }
+    else
+        z = ZInstI(OP_REPORT_ASSERT_VVC, decision_slot, cond_slot, cond_desc_e.get());
 
     return AddInst(z);
 }

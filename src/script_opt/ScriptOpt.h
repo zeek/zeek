@@ -57,6 +57,12 @@ struct AnalyOpt {
     // enabled due to other options.
     bool no_inliner = false;
 
+    // If true, when inlining skip event handler coalescence.
+    bool no_eh_coalescence = false;
+
+    // Whether to keep or elide "assert" statements.
+    bool keep_asserts = false;
+
     // If true, report which functions are directly and indirectly
     // recursive, and exit.  Only germane if running the inliner.
     bool report_recursive = false;

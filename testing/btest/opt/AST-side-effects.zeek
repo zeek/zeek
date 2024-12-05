@@ -1,5 +1,5 @@
 # @TEST-DOC: Stress tests for the AST optimizer dealing with side effects.
-# @TEST-REQUIRES: test "${ZEEK_ZAM}" == "1"
+# @TEST-REQUIRES: test "${ZEEK_ZAM}" = "1"
 #
 # See below for an explanation of this convoluted invocation line.
 # @TEST-EXEC: zeek -b -O ZAM -O dump-xform --optimize-func='AST_opt_test_.*' %INPUT >output

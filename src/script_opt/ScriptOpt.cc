@@ -265,11 +265,13 @@ static void init_options() {
     check_env_opt("ZEEK_DUMP_UDS", analysis_options.dump_uds);
     check_env_opt("ZEEK_INLINE", analysis_options.inliner);
     check_env_opt("ZEEK_NO_INLINE", analysis_options.no_inliner);
+    check_env_opt("ZEEK_NO_EH_COALESCENCE", analysis_options.no_eh_coalescence);
     check_env_opt("ZEEK_OPT", analysis_options.optimize_AST);
     check_env_opt("ZEEK_XFORM", analysis_options.activate);
     check_env_opt("ZEEK_ZAM", analysis_options.gen_ZAM);
     check_env_opt("ZEEK_COMPILE_ALL", analysis_options.compile_all);
     check_env_opt("ZEEK_REPORT_UNCOMPILABLE", analysis_options.report_uncompilable);
+    check_env_opt("ZEEK_ZAM_KEEP_ASSERTS", analysis_options.keep_asserts);
     check_env_opt("ZEEK_ZAM_CODE", analysis_options.gen_ZAM_code);
     check_env_opt("ZEEK_NO_ZAM_OPT", analysis_options.no_ZAM_opt);
     check_env_opt("ZEEK_NO_ZAM_CONTROL_FLOW_OPT", analysis_options.no_ZAM_control_flow_opt);

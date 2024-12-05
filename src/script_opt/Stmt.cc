@@ -1069,11 +1069,36 @@ StmtPtr InitStmt::DoReduce(Reducer* c) {
     return ThisPtr();
 }
 
-StmtPtr AssertStmt::Duplicate() { return SetSucc(new AssertStmt(cond->Duplicate(), msg ? msg->Duplicate() : nullptr)); }
+StmtPtr AssertStmt::Duplicate() { return SetSucc(new AssertStmt(e->Duplicate(), msg ? msg->Duplicate() : nullptr)); }
 
-bool AssertStmt::IsReduced(Reducer* c) const { return false; }
+bool AssertStmt::IsReduced(Reducer* c) const {
+    if ( ! analysis_options.keep_asserts )
+        return false;
 
-StmtPtr AssertStmt::DoReduce(Reducer* c) { return TransformMe(make_intrusive<NullStmt>(), c); }
+    return e->IsSingleton(c) && (! msg || msg->IsSingleton(c));
+}
+
+StmtPtr AssertStmt::DoReduce(Reducer* c) {
+    if ( ! analysis_options.keep_asserts )
+        return TransformMe(make_intrusive<NullStmt>(), c);
+
+    if ( c->Optimizing() ) {
+        e = c->OptExpr(e);
+        if ( msg )
+            msg = c->OptExpr(msg);
+        return ThisPtr();
+    }
+    else if ( IsReduced(c) )
+        return ThisPtr();
+
+    StmtPtr red_stmt;
+    e = e->ReduceToSingleton(c, red_stmt);
+    if ( msg )
+        msg = msg->ReduceToSingleton(c, msg_setup_stmt);
+
+    auto sl = with_location_of(make_intrusive<StmtList>(red_stmt, ThisPtr()), this);
+    return sl->Reduce(c);
+}
 
 bool WhenInfo::HasUnreducedIDs(Reducer* c) const {
     for ( auto& cp : *cl ) {

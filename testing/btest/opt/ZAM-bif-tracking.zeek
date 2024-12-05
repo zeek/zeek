@@ -1,5 +1,5 @@
 # @TEST-DOC: ZAM maintenance script for tracking changes in BiFs.
-# @TEST-REQUIRES: test "${ZEEK_ZAM}" == "1"
+# @TEST-REQUIRES: test "${ZEEK_ZAM}" = "1"
 #
 # @TEST-EXEC: zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output

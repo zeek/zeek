@@ -1,3 +1,14 @@
+7.1.0-dev.671 | 2024-12-05 14:51:01 +0100
+
+  * zeek-testing: Add Experiment-VM-Microsoft-Windows7AD-1 PCAP and baselines (Arne Welzel, Corelight)
+
+    The pcap comes from the following dataset [1]:
+
+        CTU-SME-11: a labeled dataset with real benign and malicious network
+        traffic mimicking a small medium-size enterprise environment
+
+    [1] https://zenodo.org/records/7958259
+
 7.1.0-dev.668 | 2024-12-04 13:47:10 +0100
 
   * init-bare/zeek-setup: Groundwork for instantiating cluster backends (Arne Welzel, Corelight)

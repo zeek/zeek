@@ -1,3 +1,9 @@
+7.1.0-dev.689 | 2024-12-05 13:48:46 -0700
+
+  * init-bare: Deprecate tcp_reassembler_ports (Arne Welzel, Corelight)
+
+    ...and remove from NetVar, seems left-over.
+
 7.1.0-dev.687 | 2024-12-05 21:43:49 +0100
 
   * ZAM documentation updates for asserts and event handler run-time errors (Vern Paxson, Corelight)

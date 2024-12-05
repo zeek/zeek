@@ -1368,13 +1368,13 @@ const tcp_max_old_segments = 0 &redef;
 ## that still trigger reassembly.
 ##
 ## .. zeek:see:: tcp_reassembler_ports_resp
-const tcp_reassembler_ports_orig: set[port] = {} &redef;
+const tcp_reassembler_ports_orig: set[port] = {} &redef &deprecated="Remove in v8.1. Non-functional since v4.1";
 
 ## For services without a handler, these sets define responder-side ports
 ## that still trigger reassembly.
 ##
 ## .. zeek:see:: tcp_reassembler_ports_orig
-const tcp_reassembler_ports_resp: set[port] = {} &redef;
+const tcp_reassembler_ports_resp: set[port] = {} &redef &deprecated="Remove in v8.1. Non-functional since v4.1";
 
 ## Defines destination TCP ports for which the contents of the originator stream
 ## should be delivered via :zeek:see:`tcp_contents`.

@@ -32,9 +32,6 @@ zeek::RecordType* mime_match;
 
 zeek::RecordType* socks_address;
 
-zeek::TableVal* tcp_reassembler_ports_orig;
-zeek::TableVal* tcp_reassembler_ports_resp;
-
 zeek::TableVal* tcp_content_delivery_ports_orig;
 zeek::TableVal* tcp_content_delivery_ports_resp;
 

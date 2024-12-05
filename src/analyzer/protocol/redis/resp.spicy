@@ -7,6 +7,7 @@ import spicy;
 # Maximum size for parsing of certain fields. By restricting this we avoid
 # exhausting main memory.
 const MAX_SIZE = 1024 * 1024;
+const MAX_RECURSION_DEPTH = 20;
 
 public type ClientMessages = unit {
     : ClientData[];
@@ -61,10 +62,11 @@ type BulkStringWithTy = unit {
 
 public type ServerData = unit {
     %synchronize-after = b"\x0d\x0a";
-    data: Data;
+    var depth: uint8& = new uint8;
+    data: Data(self.depth);
 };
 
-public type Data = unit {
+type Data = unit(depth: uint8&) {
     %synchronize-after = b"\x0d\x0a";
     ty: uint8 &convert=DataType($$);
     switch (self.ty) {
@@ -72,7 +74,7 @@ public type Data = unit {
         DataType::SIMPLE_ERROR -> simple_error: SimpleString(True);
         DataType::INTEGER -> integer: Integer;
         DataType::BULK_STRING -> bulk_string: BulkString(False);
-        DataType::ARRAY -> array: Array;
+        DataType::ARRAY -> array: Array(depth);
         DataType::NULL -> null: Null_;
         DataType::BOOLEAN -> boolean: Boolean;
         DataType::DOUBLE -> double: Double;
@@ -82,12 +84,22 @@ public type Data = unit {
         # "Some client libraries may ignore the difference between this type and the string type"
         # It just includes the encoding first in the content
         DataType::VERBATIM_STRING -> verbatim_string: BulkString(False);
-        DataType::MAP -> map_: Map;
-        DataType::SET -> set_: Set;
+        DataType::MAP -> map_: Map(depth);
+        DataType::SET -> set_: Set(depth);
         # "Push events are encoded similarly to arrays, differing only in their
         # first byte" - TODO: can probably make it more obvious, though
-        DataType::PUSH -> push: Array;
+        DataType::PUSH -> push: Array(depth);
     };
+
+    on %init {
+        depth++;
+        if (*depth > MAX_RECURSION_DEPTH)
+            throw "exceeded max recursion depth";
+    }
+
+    on %done {
+        depth--;
+    }
 };
 
 type DataType = enum {
@@ -129,10 +141,10 @@ type BulkString = unit(is_error: bool) {
     : skip RedisBytes;
 };
 
-type Array = unit {
+type Array = unit(depth: uint8&) {
     num_elements: RedisBytes &convert=$$.to_int(10) &requires=self.num_elements <= int64(MAX_SIZE);
     # Null array is an array with elements unset. This is different from an empty array
-    elements: Data[uint64(self.num_elements)];
+    elements: Data(depth)[uint64(self.num_elements)];
 };
 
 type Null_ = unit {
@@ -154,11 +166,11 @@ type BigNum = unit {
     val: RedisBytes;
 };
 
-type Map = unit {
+type Map = unit(depth: uint8&) {
     var key_val_pairs: vector<tuple<Data, Data>>;
     num_elements: RedisBytes &convert=$$.to_uint(10);
     # TODO: How can I make this into a map? Alternatively, how can I do this better?
-    raw_data: Data[self.num_elements * 2] {
+    raw_data: Data(depth)[self.num_elements * 2] {
         while (local i = 0; i < self.num_elements) {
             self.key_val_pairs.push_back(($$[i], $$[i + 1]));
             i += 2;
@@ -166,10 +178,10 @@ type Map = unit {
     }
 };
 
-type Set = unit {
+type Set = unit(depth: uint8&) {
     num_elements: RedisBytes &convert=$$.to_uint(10) &requires=self.num_elements <= MAX_SIZE;
     # TODO: This should be a set but doesn't go in the backed C++ set
-    elements: Data[self.num_elements];
+    elements: Data(depth)[self.num_elements];
 };
 
 on ServerData::%done {

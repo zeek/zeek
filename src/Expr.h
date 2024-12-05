@@ -1458,6 +1458,7 @@ protected:
     bool IsFoldableBiF() const;
     bool AllConstArgs() const;
     bool CheckForBuiltin() const;
+    bool IsEmptyHook() const;
     ExprPtr TransformToBuiltin();
 
     ExprPtr func;

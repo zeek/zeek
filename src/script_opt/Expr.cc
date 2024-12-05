@@ -2249,7 +2249,7 @@ ExprPtr CallExpr::Inline(Inliner* inl) {
 
 bool CallExpr::IsReduced(Reducer* c) const { return func->IsSingleton(c) && args->IsReduced(c) && ! WillTransform(c); }
 
-bool CallExpr::WillTransform(Reducer* c) const { return CheckForBuiltin() || IsFoldableBiF(); }
+bool CallExpr::WillTransform(Reducer* c) const { return CheckForBuiltin() || IsFoldableBiF() || IsEmptyHook(); }
 
 bool CallExpr::HasReducedOps(Reducer* c) const {
     if ( WillTransform(c) )
@@ -2279,6 +2279,12 @@ ExprPtr CallExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     if ( ! func->IsSingleton(c) )
         func = func->ReduceToSingleton(c, red_stmt);
+
+    if ( IsEmptyHook() ) {
+        // Reduce the arguments to pick up any side effects they include.
+        (void)args->Reduce(c, red_stmt);
+        return with_location_of(make_intrusive<ConstExpr>(val_mgr->True()), this);
+    }
 
     StmtPtr red2_stmt = args->ReduceToSingletons(c);
 
@@ -2355,6 +2361,22 @@ ExprPtr CallExpr::TransformToBuiltin() {
     auto kf = known_funcs[func->AsNameExpr()->Id()->Name()];
     CallExprPtr this_ptr = {NewRef{}, this};
     return with_location_of(make_intrusive<ScriptOptBuiltinExpr>(kf, this_ptr), this);
+}
+
+bool CallExpr::IsEmptyHook() const {
+    if ( func->Tag() != EXPR_NAME )
+        return false;
+
+    auto func_id = func->AsNameExpr()->IdPtr();
+    auto func_val = func_id->GetVal();
+
+    if ( ! func_val || ! func_id->IsGlobal() )
+        return false;
+
+    if ( func_id->GetType()->AsFuncType()->Flavor() != FUNC_FLAVOR_HOOK )
+        return false;
+
+    return ! func_val->AsFuncVal()->Get()->HasBodies();
 }
 
 ExprPtr LambdaExpr::Duplicate() { return SetSucc(new LambdaExpr(this)); }

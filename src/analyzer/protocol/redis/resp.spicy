@@ -27,7 +27,7 @@ public type ClientData = unit {
         }
     }
     if (self.ty == DataType::ARRAY) {
-        multibulk: Array;
+        multibulk: BulkStringArray;
     } else {
         inline: RedisBytes &max-size=1024;
     };
@@ -39,6 +39,25 @@ public type ClientData = unit {
         self.command = Redis::make_command(self);
     }
 };
+
+type BulkStringArray = unit {
+    num_elements: RedisBytes &convert=$$.to_int(10) &requires=self.num_elements <= int64(MAX_SIZE);
+    # Null array is an array with elements unset. This is different from an empty array
+    elements: BulkStringWithTy[uint64(self.num_elements)];
+};
+
+type BulkStringWithTy = unit {
+    # Need to consume the type here
+    : uint8 &requires=$$=='$';
+
+    length: RedisBytes &convert=$$.to_int(10) &requires=self.length <= int64(MAX_SIZE);
+    # NullBulkString is a BulkString with content unset
+    content: bytes &size=uint64(self.length) if(self.length >= 0);
+
+    # Consume last CLRF
+    : skip RedisBytes;
+};
+
 
 public type ServerData = unit {
     %synchronize-after = b"\x0d\x0a";

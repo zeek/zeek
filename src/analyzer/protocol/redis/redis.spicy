@@ -67,10 +67,7 @@ public function make_command(command: RESP::ClientData): Command {
 public function bulk_command(command: RESP::ClientData): Command {
     local v: vector<bytes>;
     for (ele in command.multibulk.elements) {
-        # TODO: Stringify the other data too. Apparently commands *can* have other stuff
-        # such as SUBSCRIBE, which will magically put an integer after it.
-        if (ele?.bulk_string)
-            v.push_back(ele.bulk_string.content);
+        v.push_back(ele.content);
     }
     return parse_command(v);
 }

@@ -1062,6 +1062,9 @@ const ZAMStmt ZAMCompiler::CompileAssert(const AssertStmt* as) {
 
     (void)AddInst(ZInstI(OP_SHOULD_REPORT_ASSERT_VV, decision_slot, cond_slot));
 
+    auto cond_stmt = AddInst(ZInstI(OP_IF_Vb, decision_slot, 0));
+    AddCFT(insts1.back(), CFT_IF);
+
     ZInstI z;
 
     // We don't have a convenient way of directly introducing a std::string
@@ -1085,7 +1088,11 @@ const ZAMStmt ZAMCompiler::CompileAssert(const AssertStmt* as) {
     else
         z = ZInstI(OP_REPORT_ASSERT_VVC, decision_slot, cond_slot, cond_desc_e.get());
 
-    return AddInst(z);
+    auto end_inst = AddInst(z);
+    AddCFT(insts1.back(), CFT_BLOCK_END);
+    SetV(cond_stmt, GoToTargetBeyond(end_inst), 2);
+
+    return end_inst;
 }
 
 const ZAMStmt ZAMCompiler::InitRecord(IDPtr id, RecordType* rt) {

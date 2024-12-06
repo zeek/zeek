@@ -632,6 +632,7 @@
 0.000000   MetaHookPost  LoadFile(1, ./libmagic, <...>/libmagic.sig) -> -1
 0.000000   MetaHookPost  LoadFile(1, ./office, <...>/office.sig) -> -1
 0.000000   MetaHookPost  LoadFile(1, ./programming, <...>/programming.sig) -> -1
+0.000000   MetaHookPost  LoadFile(1, ./python, <...>/python.sig) -> -1
 0.000000   MetaHookPost  LoadFile(1, ./video, <...>/video.sig) -> -1
 0.000000   MetaHookPost  LoadFile(1, s2, ./s2.sig) -> -1
 0.000000   MetaHookPost  LoadFileExtended(0, ./CPP-load.bif.zeek, <...>/CPP-load.bif.zeek) -> (-1, <no content>)
@@ -936,6 +937,7 @@
 0.000000   MetaHookPost  LoadFileExtended(1, ./libmagic, <...>/libmagic.sig) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(1, ./office, <...>/office.sig) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(1, ./programming, <...>/programming.sig) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(1, ./python, <...>/python.sig) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(1, ./video, <...>/video.sig) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(1, s2, ./s2.sig) -> (-1, <no content>)
 0.000000   MetaHookPost  QueueEvent(zeek_init()) -> false
@@ -1572,6 +1574,7 @@
 0.000000   MetaHookPre   LoadFile(1, ./libmagic, <...>/libmagic.sig)
 0.000000   MetaHookPre   LoadFile(1, ./office, <...>/office.sig)
 0.000000   MetaHookPre   LoadFile(1, ./programming, <...>/programming.sig)
+0.000000   MetaHookPre   LoadFile(1, ./python, <...>/python.sig)
 0.000000   MetaHookPre   LoadFile(1, ./video, <...>/video.sig)
 0.000000   MetaHookPre   LoadFile(1, s2, ./s2.sig)
 0.000000   MetaHookPre   LoadFileExtended(0, ./CPP-load.bif.zeek, <...>/CPP-load.bif.zeek)
@@ -1876,6 +1879,7 @@
 0.000000   MetaHookPre   LoadFileExtended(1, ./libmagic, <...>/libmagic.sig)
 0.000000   MetaHookPre   LoadFileExtended(1, ./office, <...>/office.sig)
 0.000000   MetaHookPre   LoadFileExtended(1, ./programming, <...>/programming.sig)
+0.000000   MetaHookPre   LoadFileExtended(1, ./python, <...>/python.sig)
 0.000000   MetaHookPre   LoadFileExtended(1, ./video, <...>/video.sig)
 0.000000   MetaHookPre   LoadFileExtended(1, s2, ./s2.sig)
 0.000000   MetaHookPre   QueueEvent(zeek_init())
@@ -2384,6 +2388,7 @@
 0.000000 | HookLoadFile  ./pools <...>/pools.zeek
 0.000000 | HookLoadFile  ./postprocessors <...>/postprocessors
 0.000000 | HookLoadFile  ./programming <...>/programming.sig
+0.000000 | HookLoadFile  ./python <...>/python.sig
 0.000000 | HookLoadFile  ./removal-hooks <...>/removal-hooks.zeek
 0.000000 | HookLoadFile  ./reporter.bif.zeek <...>/reporter.bif.zeek
 0.000000 | HookLoadFile  ./scp <...>/scp.zeek
@@ -2688,6 +2693,7 @@
 0.000000 | HookLoadFileExtended ./pools <...>/pools.zeek
 0.000000 | HookLoadFileExtended ./postprocessors <...>/postprocessors
 0.000000 | HookLoadFileExtended ./programming <...>/programming.sig
+0.000000 | HookLoadFileExtended ./python <...>/python.sig
 0.000000 | HookLoadFileExtended ./removal-hooks <...>/removal-hooks.zeek
 0.000000 | HookLoadFileExtended ./reporter.bif.zeek <...>/reporter.bif.zeek
 0.000000 | HookLoadFileExtended ./scp <...>/scp.zeek

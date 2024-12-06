@@ -86,6 +86,20 @@ New Functionality
 
   redef LogSQLite::journal_mode=LogSQLite::SQLITE_JOURNAL_MODE_WAL;
 
+* A pseudo protocol analyzer StreamEvent has been added. Attaching this analyzer
+  to TCP connections allows processing the connection's stream data in the
+  scripting layer. One example use-case is interactive terminal sessions over
+  HTTP connections upgraded to TCP.
+
+	redef HTTP::upgrade_analyzers += {
+		["tcp"] = Analyzer::ANALYZER_STREAM_EVENT,
+	};
+
+	event stream_deliver(c: connection, is_orig: bool, data: string);
+
+  This comes with performance caveats: For use-cases with high-data rates
+  a native protocol analyzer with dedicated events will be far more efficient.
+
 Changed Functionality
 ---------------------
 

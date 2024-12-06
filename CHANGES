@@ -1,3 +1,15 @@
+7.1.0-dev.695 | 2024-12-06 17:33:19 +0100
+
+  * btest/http: Demo StreamEvent analyzer with HTTP::upgrade_analyzers (Arne Welzel, Corelight)
+
+  * protocol: Add StreamEvent analyzer (Arne Welzel, Corelight)
+
+    This analyzer can be used to transport raw stream data for a given
+    connection to the script layer. For example, adding this analyzer into
+    the HTTP::upgrade_analyzer or using it to configure a child WebSocket
+    analyzer allows to get access to the raw stream data in script land
+    when no more appropriate protocol analyzer is available.
+
 7.1.0-dev.692 | 2024-12-06 10:22:07 +0100
 
   * fix for ZAM "assert" statements potentially evaluating invalid expressions (Vern Paxson, Corelight)

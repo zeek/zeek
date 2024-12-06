@@ -441,6 +441,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SSL.events.bif.zeek, <...>/Zeek_SSL.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SSL.functions.bif.zeek, <...>/Zeek_SSL.functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_SSL.types.bif.zeek, <...>/Zeek_SSL.types.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_StreamEvent.events.bif.zeek, <...>/Zeek_StreamEvent.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_TCP.events.bif.zeek, <...>/Zeek_TCP.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_TCP.types.bif.zeek, <...>/Zeek_TCP.types.bif.zeek) -> -1
@@ -744,6 +745,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SSL.events.bif.zeek, <...>/Zeek_SSL.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SSL.functions.bif.zeek, <...>/Zeek_SSL.functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_SSL.types.bif.zeek, <...>/Zeek_SSL.types.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_StreamEvent.events.bif.zeek, <...>/Zeek_StreamEvent.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_TCP.events.bif.zeek, <...>/Zeek_TCP.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_TCP.types.bif.zeek, <...>/Zeek_TCP.types.bif.zeek) -> (-1, <no content>)
@@ -1379,6 +1381,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SSL.events.bif.zeek, <...>/Zeek_SSL.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SSL.functions.bif.zeek, <...>/Zeek_SSL.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_SSL.types.bif.zeek, <...>/Zeek_SSL.types.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_StreamEvent.events.bif.zeek, <...>/Zeek_StreamEvent.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_TCP.events.bif.zeek, <...>/Zeek_TCP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_TCP.types.bif.zeek, <...>/Zeek_TCP.types.bif.zeek)
@@ -1682,6 +1685,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SSL.events.bif.zeek, <...>/Zeek_SSL.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SSL.functions.bif.zeek, <...>/Zeek_SSL.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_SSL.types.bif.zeek, <...>/Zeek_SSL.types.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_StreamEvent.events.bif.zeek, <...>/Zeek_StreamEvent.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_TCP.events.bif.zeek, <...>/Zeek_TCP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_TCP.functions.bif.zeek, <...>/Zeek_TCP.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_TCP.types.bif.zeek, <...>/Zeek_TCP.types.bif.zeek)
@@ -2316,6 +2320,7 @@
 0.000000 | HookLoadFile  ./Zeek_SSL.events.bif.zeek <...>/Zeek_SSL.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SSL.functions.bif.zeek <...>/Zeek_SSL.functions.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_SSL.types.bif.zeek <...>/Zeek_SSL.types.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_StreamEvent.events.bif.zeek <...>/Zeek_StreamEvent.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_TCP.events.bif.zeek <...>/Zeek_TCP.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_TCP.functions.bif.zeek <...>/Zeek_TCP.functions.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_TCP.types.bif.zeek <...>/Zeek_TCP.types.bif.zeek
@@ -2619,6 +2624,7 @@
 0.000000 | HookLoadFileExtended ./Zeek_SSL.events.bif.zeek <...>/Zeek_SSL.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SSL.functions.bif.zeek <...>/Zeek_SSL.functions.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_SSL.types.bif.zeek <...>/Zeek_SSL.types.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_StreamEvent.events.bif.zeek <...>/Zeek_StreamEvent.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_TCP.events.bif.zeek <...>/Zeek_TCP.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_TCP.functions.bif.zeek <...>/Zeek_TCP.functions.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_TCP.types.bif.zeek <...>/Zeek_TCP.types.bif.zeek

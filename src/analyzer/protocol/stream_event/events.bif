@@ -1,0 +1,33 @@
+## Generated for each chunk of reassembled TCP payload.
+##
+## This is a low-level event to inspect stream data from the originator
+## and responder endpoints. This can be useful for debugging purposes, or
+## for logging of plain-text interactive sessions when no more appropriate
+## analyzer is available.
+##
+## Note that this event is potentially expensive if connections that have
+## the stream event analyzer attached carry significant amounts of data.
+## Generally, a native protocol parser will have much less overhead than
+## passing the complete stream data to the scripting layer.
+##
+## c: The connection.
+##
+## is_orig: T if stream data is from the originator-side, else F.
+##
+## data: The raw payload.
+##
+## .. zeek:see:: stream_undelivered tcp_contents
+event stream_deliver%(c: connection, is_orig: bool, data: string%);
+
+## Generated when Zeek detects a gap in a reassembled TCP payload stream.
+##
+## c: The connection.
+##
+## is_orig: T if the gap is in the originator-side input, else F.
+##
+## seq: The sequence number of the first byte of the gap.
+##
+## len: The length of the gap.
+##
+## .. zeek:see:: stream_deliver content_gap
+event stream_undelivered%(c: connection, is_orig: bool, seq: count, len: count%);

@@ -35,3 +35,6 @@ Trace Index/Sources:
 - http/cooper-grill-dvwa.pcapng
   Provided by cooper-grill on #3995
   https://github.com/zeek/zeek/pull/3995
+- http/docker-http-upgrade.pcap
+  Provided by blightzero on #4068
+  https://github.com/zeek/zeek/issues/4068

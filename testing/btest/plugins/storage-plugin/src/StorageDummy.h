@@ -13,7 +13,7 @@ namespace btest::storage::backend {
  */
 class StorageDummy : public zeek::storage::Backend {
 public:
-    StorageDummy(std::string_view tag) : Backend(tag) {}
+    StorageDummy(std::string_view tag) : Backend(false, tag) {}
     ~StorageDummy() override = default;
 
     static zeek::storage::BackendPtr Instantiate(std::string_view tag);
@@ -37,17 +37,18 @@ public:
      * The workhorse method for Put().
      */
     zeek::storage::ErrorResult DoPut(zeek::ValPtr key, zeek::ValPtr value, bool overwrite = true,
-                                     double expiration_time = 0) override;
+                                     double expiration_time = 0,
+                                     zeek::storage::ErrorResultCallback* cb = nullptr) override;
 
     /**
      * The workhorse method for Get().
      */
-    zeek::storage::ValResult DoGet(zeek::ValPtr key) override;
+    zeek::storage::ValResult DoGet(zeek::ValPtr key, zeek::storage::ValResultCallback* cb = nullptr) override;
 
     /**
      * The workhorse method for Erase().
      */
-    zeek::storage::ErrorResult DoErase(zeek::ValPtr key) override;
+    zeek::storage::ErrorResult DoErase(zeek::ValPtr key, zeek::storage::ErrorResultCallback* cb = nullptr) override;
 
 private:
     std::map<std::string, std::string> data;

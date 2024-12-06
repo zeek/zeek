@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "zeek/analyzer/protocol/syslog/legacy/Syslog.h"
 
 #include "zeek/analyzer/protocol/syslog/legacy/events.bif.h"

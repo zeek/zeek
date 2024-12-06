@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 // Provides some very limited but fast packet filter mechanisms
 
 #pragma once

@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "zeek/packet_analysis/protocol/teredo/Teredo.h"
 
 #include "zeek/Conn.h"

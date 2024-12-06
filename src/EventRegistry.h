@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 // Each event raised/handled by Zeek is registered in the EventRegistry.
 
 #pragma once

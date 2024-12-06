@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 // An IRC analyzer contributed by Roland Gruber.
 
 #pragma once

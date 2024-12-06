@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "zeek/threading/MsgThread.h"
 
 #include <fcntl.h>

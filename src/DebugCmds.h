@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 // Support routines to help deal with Zeek debugging commands and
 // implementation of most commands.
 

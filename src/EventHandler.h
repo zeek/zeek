@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 // Capsulates local and remote event handlers.
 
 #pragma once

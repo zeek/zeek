@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "zeek/analyzer/protocol/modbus/Modbus.h"
 
 #include "zeek/analyzer/protocol/modbus/events.bif.h"

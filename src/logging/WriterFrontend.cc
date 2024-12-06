@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "zeek/logging/WriterFrontend.h"
 
 #include "zeek/RunState.h"

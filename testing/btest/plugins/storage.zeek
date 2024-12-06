@@ -25,7 +25,7 @@ event zeek_init() {
 	# Test basic operation. The second get() should return an error
 	# as the key should have been erased.
 	local b = Storage::open_backend(Storage::STORAGEDUMMY, opts, str, str);
-	local put_res = Storage::put(b, key, value, F);
+	local put_res = Storage::put([$backend=b, $key=key, $value=value, $overwrite=F]);
 	local get_res = Storage::get(b, key);
 	if ( value != (get_res as string) ) {
 		print("Got an invalid value in response!");

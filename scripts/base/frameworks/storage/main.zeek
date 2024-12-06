@@ -26,6 +26,10 @@ export {
 		# An interval of time until the entry is automatically removed from the
 		# backend.
 		expire_time: interval &default=0sec;
+
+		# Indicates whether this operation should happen asynchronously. If this
+		# is true, the call to put must happen as part of a when statement.
+		async_mode: bool &default=T;
 	};
 
 	## Opens a new backend connection based on a configuration object.
@@ -62,10 +66,15 @@ export {
 	##
 	## key: The key to look up.
 	##
+	## async_mode Indicates whether this operation should happen
+	## asynchronously. If this is T, the call to ``get`` must happen as part
+	## of a ``when`` statement.
+	##
 	## Returns: A boolean indicating success or failure of the operation.
 	## Type comparison failures against the types passed to open() for the
 	## backend will cause false to be returned.
-	global get: function(backend: opaque of Storage::BackendHandle, key: any): any;
+	global get: function(backend: opaque of Storage::BackendHandle, key: any,
+			     async_mode: bool &default=T): any;
 
 	## Erases an entry from the backend.
 	##
@@ -73,10 +82,15 @@ export {
 	##
 	## key: The key to erase.
 	##
+	## async_mode Indicates whether this operation should happen
+	## asynchronously. If this is T, the call to ``erase`` must happen as part
+	## of a ``when`` statement.
+	##
 	## Returns: A boolean indicating success or failure of the operation.
 	## Type comparison failures against the types passed to open() for the
 	## backend will cause false to be returned.
-	global erase: function(backend: opaque of Storage::BackendHandle, key: any): bool;
+	global erase: function(backend: opaque of Storage::BackendHandle, key: any,
+			       async_mode: bool &default=T): bool;
 }
 
 function open_backend(btype: Storage::Backend, config: any, key_type: any, val_type: any): opaque of Storage::BackendHandle
@@ -91,15 +105,15 @@ function close_backend(backend: opaque of Storage::BackendHandle): bool
 
 function put(args: Storage::PutArgs): bool
 {
-	return Storage::__put(args$backend, args$key, args$value, args$overwrite, args$expire_time);
+	return Storage::__put(args$backend, args$key, args$value, args$overwrite, args$expire_time, args$async_mode);
 }
 
-function get(backend: opaque of Storage::BackendHandle, key: any): any
+function get(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T): any
 {
-	return Storage::__get(backend, key);
+	return Storage::__get(backend, key, async_mode);
 }
 
-function erase(backend: opaque of Storage::BackendHandle, key: any): bool
+function erase(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T): bool
 {
-	return Storage::__erase(backend, key);
+	return Storage::__erase(backend, key, async_mode);
 }

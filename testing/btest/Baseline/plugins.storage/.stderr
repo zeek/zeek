@@ -23,9 +23,9 @@ CMake Warning:
 
 
 make: [build-it] Error 1 (ignored)
-error in /Users/tim/Desktop/projects/storage-framework/testing/btest/.tmp/plugins.storage/storage.zeek, line 35: Failed to retrieve data: Failed to find key (Storage::get(b, to_any_coerce key))
-error in /Users/tim/Desktop/projects/storage-framework/testing/btest/.tmp/plugins.storage/storage.zeek, line 39: Storage handle is closed (Storage::put(b, to_any_coerce a, to_any_coerce b, F) and )
-error in /Users/tim/Desktop/projects/storage-framework/testing/btest/.tmp/plugins.storage/storage.zeek, line 40: Storage handle is closed (Storage::get(b, to_any_coerce a) and )
-error in /Users/tim/Desktop/projects/storage-framework/testing/btest/.tmp/plugins.storage/storage.zeek, line 41: Storage handle is closed (Storage::erase(b, to_any_coerce a) and )
+error in /Users/tim/Desktop/projects/storage-framework/testing/btest/.tmp/plugins.storage/storage.zeek, line 35: Failed to retrieve data: Failed to find key (Storage::get(b, to_any_coerce key, F))
+error in /Users/tim/Desktop/projects/storage-framework/testing/btest/.tmp/plugins.storage/storage.zeek, line 39: Storage handle is closed (Storage::put((coerce [$backend=b, $key=a, $value=b, $overwrite=F] to Storage::PutArgs)) and )
+error in /Users/tim/Desktop/projects/storage-framework/testing/btest/.tmp/plugins.storage/storage.zeek, line 40: Storage handle is closed (Storage::get(b, to_any_coerce a, T) and )
+error in /Users/tim/Desktop/projects/storage-framework/testing/btest/.tmp/plugins.storage/storage.zeek, line 41: Storage handle is closed (Storage::erase(b, to_any_coerce a, T) and )
 error in /Users/tim/Desktop/projects/storage-framework/testing/btest/.tmp/plugins.storage/storage.zeek, line 45: Failed to open backend: Failed to open backend STORAGEDUMMY: open_fail was set to true, returning error (Storage::open_backend(Storage::STORAGEDUMMY, to_any_coerce opts, to_any_coerce str, to_any_coerce str))
 error in /Users/tim/Desktop/projects/storage-framework/testing/btest/.tmp/plugins.storage/storage.zeek, line 46: Invalid storage handle (Storage::close_backend(b2) and F)

@@ -25,10 +25,14 @@ public:
      * @param type The tag for the type of backend being opened.
      * @param options A record val representing the configuration for this
      * type of backend.
+     * @param key_type The script-side type of the keys stored in the backend. Used for
+     * validation of types.
+     * @param val_type The script-side type of the values stored in the backend. Used for
+     * validation of types and conversion during retrieval.
      * @return A pair containing a pointer to a backend and a string for
      * returning error messages if needed.
      */
-    BackendResult OpenBackend(const Tag& type, RecordValPtr options);
+    BackendResult OpenBackend(const Tag& type, RecordValPtr options, TypePtr key_type, TypePtr val_type);
 
     /**
      * Closes a storage backend.

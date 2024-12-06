@@ -14,14 +14,16 @@ event Storage::backend_opened%(%);
 # Generated when a backend connection is lost
 event Storage::backend_lost%(%);
 
-function Storage::__open_backend%(btype: Storage::Backend, options: any%): opaque of Storage::BackendHandle
+function Storage::__open_backend%(btype: Storage::Backend, options: any, key_type: any, val_type: any%): opaque of Storage::BackendHandle
 	%{
 	auto btype_val = IntrusivePtr<EnumVal>{NewRef{}, btype->AsEnumVal()};
 	Tag tag{btype_val};
 
-	auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
+	auto kt = key_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
+	auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
 
-	auto b = storage_mgr->OpenBackend(tag, options_val);
+	auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
+	auto b = storage_mgr->OpenBackend(tag, options_val, kt, vt);
 
 	if ( ! b.has_value() ) {
 		emit_builtin_error(b.error().c_str());
@@ -70,7 +72,7 @@ function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, va
 	return val_mgr->Bool(true);
 	%}
 
-function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, val_type: any%): any
+function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any%): any
 	%{
 	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
@@ -83,8 +85,7 @@ function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, va
 	// TODO: add support for when statements (see broker/store.bif)
 
 	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
-	auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
-	auto result = b->backend->Get(key_v, vt);
+	auto result = b->backend->Get(key_v);
 	if ( ! result.has_value() ) {
 		emit_builtin_error(util::fmt("Failed to retrieve data: %s", result.error().c_str()));
 		return val_mgr->Bool(false);

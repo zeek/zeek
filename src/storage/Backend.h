@@ -41,13 +41,10 @@ public:
      * Retrieve a value from the backend for a provided key.
      *
      * @param key the key to lookup in the backend.
-     * @param value_type The script-land type to be used when retrieving values
-     * from the backend.
-     * @return A result pair containing a ValPtr with the resulting value or
-     * nullptr retrieval failed, and a string with the error message if the
-     * operation failed.
+     * @return A std::expected containing either a valid ValPtr with the result
+     * of the operation or a string containing an error message for failure.
      */
-    ValResult Get(ValPtr key, TypePtr value_type);
+    ValResult Get(ValPtr key);
 
     /**
      * Erases the value for a key from the backend.
@@ -79,10 +76,14 @@ protected:
      * Called by the manager system to open the backend.
      *
      * @param options A record storing configuration options for the backend.
-     * @return A result pair containing a bool with the success state, and a
-     * possible error string if the operation failed.
+     * @param kt The script-side type of the keys stored in the backend. Used for
+     * validation of types.
+     * @param vt The script-side type of the values stored in the backend. Used for
+     * validation of types and conversion during retrieval.
+     * @return An optional value potentially containing an error string if
+     * needed. Will be unset if the operation succeeded.
      */
-    ErrorResult Open(RecordValPtr options);
+    ErrorResult Open(RecordValPtr options, TypePtr kt, TypePtr vt);
 
     /**
      * Finalizes the backend when it's being closed. Can be overridden by
@@ -103,12 +104,15 @@ protected:
     /**
      * The workhorse method for Get().
      */
-    virtual ValResult DoGet(ValPtr key, TypePtr vt) = 0;
+    virtual ValResult DoGet(ValPtr key) = 0;
 
     /**
      * The workhorse method for Erase().
      */
     virtual ErrorResult DoErase(ValPtr key) = 0;
+
+    TypePtr key_type;
+    TypePtr val_type;
 
     std::string tag;
 };

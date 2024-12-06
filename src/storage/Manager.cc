@@ -10,7 +10,7 @@ Manager::Manager() : plugin::ComponentManager<storage::Component>("Storage", "Ba
 
 void Manager::InitPostScript() { detail::backend_opaque = make_intrusive<OpaqueType>("Storage::Backend"); }
 
-BackendResult Manager::OpenBackend(const Tag& type, RecordValPtr options) {
+BackendResult Manager::OpenBackend(const Tag& type, RecordValPtr options, TypePtr key_type, TypePtr val_type) {
     Component* c = Lookup(type);
     if ( ! c ) {
         return zeek::unexpected<std::string>(
@@ -32,7 +32,7 @@ BackendResult Manager::OpenBackend(const Tag& type, RecordValPtr options) {
             util::fmt("Failed to instantiate backend %s", GetComponentName(type).c_str()));
     }
 
-    if ( auto res = bp->Open(std::move(options)); res.has_value() ) {
+    if ( auto res = bp->Open(std::move(options), std::move(key_type), std::move(val_type)); res.has_value() ) {
         return zeek::unexpected<std::string>(
             util::fmt("Failed to open backend %s: %s", GetComponentName(type).c_str(), res.value().c_str()));
     }

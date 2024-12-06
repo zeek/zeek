@@ -46,13 +46,13 @@ zeek::storage::ErrorResult StorageDummy::DoPut(zeek::ValPtr key, zeek::ValPtr va
 /**
  * The workhorse method for Get(). This must be implemented for plugins.
  */
-zeek::storage::ValResult StorageDummy::DoGet(zeek::ValPtr key, zeek::TypePtr vt) {
+zeek::storage::ValResult StorageDummy::DoGet(zeek::ValPtr key) {
     auto json_key = key->ToJSON();
     auto it = data.find(json_key->ToStdString());
     if ( it == data.end() )
         return zeek::unexpected<std::string>("Failed to find key");
 
-    auto val = zeek::detail::ValFromJSON(it->second.c_str(), vt, zeek::Func::nil);
+    auto val = zeek::detail::ValFromJSON(it->second.c_str(), val_type, zeek::Func::nil);
     if ( std::holds_alternative<zeek::ValPtr>(val) ) {
         zeek::ValPtr val_v = std::get<zeek::ValPtr>(val);
         return val_v;

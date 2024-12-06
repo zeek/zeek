@@ -452,6 +452,15 @@ export {
 
 module HTTP;
 export {
+	## Lookup table for Upgrade analyzers indexed by the value of the
+	## Upgrade header as well as the value of the Content-Type header.
+	## First, a case sensitive lookup of both values is done using the
+	## server's Upgrade and Content-Type header. If no match is found,
+	## the all lower-case values are used. If there's still no match,
+	## Zeek continues the lookup in :zeek:see:`HTTP::upgrade_analyzers`,
+	## considering just the server's Upgrade header.
+	const upgrade_content_type_analyzers: table[string, string] of Analyzer::Tag &redef;
+
 	## Lookup table for Upgrade analyzers. First, a case sensitive lookup
 	## is done using the server's Upgrade header. If no match is found,
 	## the all lower-case value is used. If there's still no match Zeek

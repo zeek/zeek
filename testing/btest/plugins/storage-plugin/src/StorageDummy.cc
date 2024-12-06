@@ -36,7 +36,8 @@ void StorageDummy::Close() { open = false; }
 /**
  * The workhorse method for Put(). This must be implemented by plugins.
  */
-zeek::storage::ErrorResult StorageDummy::DoPut(zeek::ValPtr key, zeek::ValPtr value, bool overwrite) {
+zeek::storage::ErrorResult StorageDummy::DoPut(zeek::ValPtr key, zeek::ValPtr value, bool overwrite,
+                                               double expiration_time) {
     auto json_key = key->ToJSON()->ToStdString();
     auto json_value = value->ToJSON()->ToStdString();
     data[json_key] = json_value;

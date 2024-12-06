@@ -16,6 +16,10 @@ export {
 		# Indicates whether this value should overwrite an existing entry
 		# for the key.
 		overwrite: bool &default=T;
+
+		# An interval of time until the entry is automatically removed from the
+		# backend.
+		expire_time: interval &default=0sec;
 	};
 
 	## Opens a new backend connection based on a configuration object.
@@ -95,7 +99,7 @@ function close_backend(backend: opaque of Storage::BackendHandle): bool
 
 function put(backend: opaque of Storage::BackendHandle, args: Storage::PutArgs): bool
 {
-	return Storage::__put(backend, args$key, args$value, args$overwrite);
+	return Storage::__put(backend, args$key, args$value, args$overwrite, args$expire_time);
 }
 
 function get(backend: opaque of Storage::BackendHandle, key: any): any

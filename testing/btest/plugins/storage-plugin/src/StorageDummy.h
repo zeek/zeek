@@ -36,7 +36,8 @@ public:
     /**
      * The workhorse method for Put().
      */
-    zeek::storage::ErrorResult DoPut(zeek::ValPtr key, zeek::ValPtr value, bool overwrite = true) override;
+    zeek::storage::ErrorResult DoPut(zeek::ValPtr key, zeek::ValPtr value, bool overwrite = true,
+                                     double expiration_time = 0) override;
 
     /**
      * The workhorse method for Get().

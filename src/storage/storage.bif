@@ -49,7 +49,8 @@ function Storage::__close_backend%(backend: opaque of Storage::BackendHandle%) :
 	return val_mgr->Bool(true);
 	%}
 
-function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, value: any, overwrite: bool%): bool
+function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, value: any,
+                         overwrite: bool, expire_time: interval%): bool
 	%{
 	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
@@ -63,7 +64,7 @@ function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, va
 
 	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
 	auto val_v = IntrusivePtr<Val>{NewRef{}, value};
-	auto result = b->backend->Put(key_v, val_v, overwrite);
+	auto result = b->backend->Put(key_v, val_v, overwrite, expire_time);
 	if ( result.has_value() ) {
 		emit_builtin_error(util::fmt("Failed to store data: %s", result.value().c_str()));
 		return val_mgr->Bool(false);

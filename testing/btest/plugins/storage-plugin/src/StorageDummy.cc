@@ -33,7 +33,7 @@ void StorageDummy::Done() {}
  * The workhorse method for Put(). This must be implemented by plugins.
  */
 zeek::storage::ErrorResult StorageDummy::DoPut(zeek::ValPtr key, zeek::ValPtr value, bool overwrite,
-                                               double expiration_time) {
+                                               double expiration_time, zeek::storage::ErrorResultCallback* cb) {
     auto json_key = key->ToJSON()->ToStdString();
     auto json_value = value->ToJSON()->ToStdString();
     data[json_key] = json_value;
@@ -43,7 +43,7 @@ zeek::storage::ErrorResult StorageDummy::DoPut(zeek::ValPtr key, zeek::ValPtr va
 /**
  * The workhorse method for Get(). This must be implemented for plugins.
  */
-zeek::storage::ValResult StorageDummy::DoGet(zeek::ValPtr key) {
+zeek::storage::ValResult StorageDummy::DoGet(zeek::ValPtr key, zeek::storage::ValResultCallback* cb) {
     auto json_key = key->ToJSON();
     auto it = data.find(json_key->ToStdString());
     if ( it == data.end() )
@@ -61,7 +61,7 @@ zeek::storage::ValResult StorageDummy::DoGet(zeek::ValPtr key) {
 /**
  * The workhorse method for Erase(). This must be implemented for plugins.
  */
-zeek::storage::ErrorResult StorageDummy::DoErase(zeek::ValPtr key) {
+zeek::storage::ErrorResult StorageDummy::DoErase(zeek::ValPtr key, zeek::storage::ErrorResultCallback* cb) {
     auto json_key = key->ToJSON();
     auto it = data.find(json_key->ToStdString());
     if ( it == data.end() )

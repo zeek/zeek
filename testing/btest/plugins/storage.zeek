@@ -24,19 +24,19 @@ event zeek_init() {
 
 	# Test basic operation. The second get() should return an error
 	# as the key should have been erased.
-	local b = Storage::open_backend(Storage::STORAGEDUMMY, opts);
+	local b = Storage::open_backend(Storage::STORAGEDUMMY, opts, str, str);
 	local put_res = Storage::put(b, key, value, F);
-	local get_res = Storage::get(b, key, str);
+	local get_res = Storage::get(b, key);
 	if ( value != (get_res as string) ) {
 		print("Got an invalid value in response!");
 	}
 
 	local erase_res = Storage::erase(b, key);
-	get_res = Storage::get(b, key, str);
+	get_res = Storage::get(b, key);
 	Storage::close_backend(b);
 
 	# Test failing to open the handle and test closing an invalid handle.
 	opts$open_fail = T;
-	local b2 = Storage::open_backend(Storage::STORAGEDUMMY, opts);
+	local b2 = Storage::open_backend(Storage::STORAGEDUMMY, opts, str, str);
 	Storage::close_backend(b2);
 }

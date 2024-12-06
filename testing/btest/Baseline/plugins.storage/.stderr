@@ -23,6 +23,6 @@ CMake Warning:
 
 
 make: [build-it] Error 1 (ignored)
-error in /Users/tim/Desktop/projects/storage-framework/testing/btest/.tmp/plugins.storage/storage.zeek, line 35: Failed to retrieve data: Failed to find key (Storage::get(b, to_any_coerce key, to_any_coerce str))
-error in /Users/tim/Desktop/projects/storage-framework/testing/btest/.tmp/plugins.storage/storage.zeek, line 40: Failed to open backend: Failed to open backend STORAGEDUMMY: open_fail was set to true, returning error (Storage::open_backend(Storage::STORAGEDUMMY, to_any_coerce opts))
+error in /Users/tim/Desktop/projects/storage-framework/testing/btest/.tmp/plugins.storage/storage.zeek, line 35: Failed to retrieve data: Failed to find key (Storage::get(b, to_any_coerce key))
+error in /Users/tim/Desktop/projects/storage-framework/testing/btest/.tmp/plugins.storage/storage.zeek, line 40: Failed to open backend: Failed to open backend STORAGEDUMMY: open_fail was set to true, returning error (Storage::open_backend(Storage::STORAGEDUMMY, to_any_coerce opts, to_any_coerce str, to_any_coerce str))
 error in /Users/tim/Desktop/projects/storage-framework/testing/btest/.tmp/plugins.storage/storage.zeek, line 41: Invalid storage handle (Storage::close_backend(b2) and F)

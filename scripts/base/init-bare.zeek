@@ -453,7 +453,7 @@ export {
 module HTTP;
 export {
 	## Lookup table for Upgrade analyzers. First, a case sensitive lookup
-	## is done using the client's Upgrade header. If no match is found,
+	## is done using the server's Upgrade header. If no match is found,
 	## the all lower-case value is used. If there's still no match Zeek
 	## uses dynamic protocol detection for the upgraded to protocol instead.
 	const upgrade_analyzers: table[string] of Analyzer::Tag &redef;

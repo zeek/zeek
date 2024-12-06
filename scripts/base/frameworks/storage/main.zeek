@@ -5,6 +5,19 @@
 module Storage;
 
 export {
+	## Record for passing arguments to :zeek:see:`Storage::put`.
+	type PutArgs: record {
+		# The key to store the value under.
+		key: any;
+
+		# The value to store associated with the key.
+		value: any;
+
+		# Indicates whether this value should overwrite an existing entry
+		# for the key.
+		overwrite: bool &default=T;
+	};
+
 	## Opens a new backend connection based on a configuration object.
 	##
 	## btype: A tag indicating what type of backend should be opened. These are
@@ -33,20 +46,17 @@ export {
 
 	## Inserts a new entry into a backend.
 	##
+	##
 	## backend: A handle to a backend connection.
 	##
-	## key: A key value.
-	##
-	## value: A corresponding value.
-	##
-	## overwrite: A flag indicating whether this value should overwrite an existing
-	##            entry for the key.
+	## args: A :zeek:see:`Storage::PutArgs` record containing the arguments for the
+	## operation.
 	##
 	## Returns: A boolean indicating success or failure of the operation. Type
 	##          comparison failures against the types passed to
 	##          :zeek:see:`Storage::open_backend` for the backend will cause false to
 	##          be returned.
-	global put: function(backend: opaque of Storage::BackendHandle, key: any, value: any, overwrite: bool): bool;
+	global put: function(backend: opaque of Storage::BackendHandle, args: Storage::PutArgs): bool;
 
 	## Gets an entry from the backend.
 	##
@@ -83,9 +93,9 @@ function close_backend(backend: opaque of Storage::BackendHandle): bool
 	return Storage::__close_backend(backend);
 }
 
-function put(backend: opaque of Storage::BackendHandle, key: any, value: any, overwrite: bool): bool
+function put(backend: opaque of Storage::BackendHandle, args: Storage::PutArgs): bool
 {
-	return Storage::__put(backend, key, value, overwrite);
+	return Storage::__put(backend, args$key, args$value, args$overwrite);
 }
 
 function get(backend: opaque of Storage::BackendHandle, key: any): any

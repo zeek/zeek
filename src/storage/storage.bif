@@ -47,7 +47,7 @@ function Storage::__close_backend%(backend: opaque of Storage::BackendHandle%) :
 	%}
 
 function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, value: any,
-                         overwrite: bool, expire_time: interval%): bool
+                         overwrite: bool, expire_time: interval, async_mode: bool &default=T%): bool
 	%{
 	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
@@ -59,11 +59,39 @@ function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, va
 		return zeek::val_mgr->Bool(false);
 	}
 
-	// TODO: add support for when statements (see broker/store.bif)
+	zeek::storage::ErrorResultCallback* cb = nullptr;
+
+	if ( async_mode ) {
+		if ( ! b->backend->SupportsAsync() ) {
+			zeek::emit_builtin_error("Async mode requested but backend does not support async operations");
+			return zeek::val_mgr->Bool(false);
+		}
+
+		auto trigger = frame->GetTrigger();
+
+		if ( ! trigger ) {
+			zeek::emit_builtin_error("Storage queries can only be called inside when-condition");
+			return zeek::val_mgr->Bool(false);
+		}
+
+		if ( auto timeout = trigger->TimeoutValue(); timeout < 0 ) {
+			zeek::emit_builtin_error("Storage queries must specify a timeout block");
+			return zeek::val_mgr->Bool(false);
+		}
+
+		frame->SetDelayed();
+		trigger->Hold();
+
+		cb = new zeek::storage::ErrorResultCallback(trigger, frame->GetTriggerAssoc());
+	}
 
 	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
 	auto val_v = zeek::IntrusivePtr<Val>{NewRef{}, value};
-	auto result = b->backend->Put(key_v, val_v, overwrite, expire_time);
+	auto result = b->backend->Put(key_v, val_v, overwrite, expire_time, cb);
+
+	if ( async_mode )
+		return nullptr;
+
 	if ( result.has_value() ) {
 		zeek::emit_builtin_error(zeek::util::fmt("Failed to store data: %s", result.value().c_str()));
 		return zeek::val_mgr->Bool(false);
@@ -72,7 +100,7 @@ function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, va
 	return zeek::val_mgr->Bool(true);
 	%}
 
-function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any%): any
+function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T%): any
 	%{
 	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
@@ -84,10 +112,38 @@ function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any%): 
 		return zeek::val_mgr->Bool(false);
 	}
 
-	// TODO: add support for when statements (see broker/store.bif)
+	zeek::storage::ValResultCallback* cb = nullptr;
+
+	if ( async_mode ) {
+		if ( ! b->backend->SupportsAsync() ) {
+			zeek::emit_builtin_error("Async mode requested but backend does not support async operations");
+			return zeek::val_mgr->Bool(false);
+		}
+
+		auto trigger = frame->GetTrigger();
+
+		if ( ! trigger ) {
+			zeek::emit_builtin_error("Storage queries can only be called inside when-condition");
+			return zeek::val_mgr->Bool(false);
+		}
+
+		if ( auto timeout = trigger->TimeoutValue(); timeout < 0 ) {
+			zeek::emit_builtin_error("Storage queries must specify a timeout block");
+			return zeek::val_mgr->Bool(false);
+		}
+
+		frame->SetDelayed();
+		trigger->Hold();
+		cb = new zeek::storage::ValResultCallback(trigger, frame->GetTriggerAssoc());
+	}
+
 
 	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
-	auto result = b->backend->Get(key_v);
+	auto result = b->backend->Get(key_v, cb);
+
+	if ( async_mode )
+	   return nullptr;
+
 	if ( ! result.has_value() ) {
 		zeek::emit_builtin_error(zeek::util::fmt("Failed to retrieve data: %s", result.error().c_str()));
 		return zeek::val_mgr->Bool(false);
@@ -96,7 +152,7 @@ function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any%): 
 	return result.value();
 	%}
 
-function Storage::__erase%(backend: opaque of Storage::BackendHandle, key: any%): bool
+function Storage::__erase%(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T%): bool
 	%{
 	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
@@ -108,10 +164,37 @@ function Storage::__erase%(backend: opaque of Storage::BackendHandle, key: any%)
 		return zeek::val_mgr->Bool(false);
 	}
 
-	// TODO: add support for when statements (see broker/store.bif)
+	zeek::storage::ErrorResultCallback* cb = nullptr;
+
+	if ( async_mode ) {
+		if ( ! b->backend->SupportsAsync() ) {
+			zeek::emit_builtin_error("Async mode requested but backend does not support async operations");
+			return zeek::val_mgr->Bool(false);
+		}
+
+		auto trigger = frame->GetTrigger();
+
+		if ( ! trigger ) {
+			zeek::emit_builtin_error("Storage queries can only be called inside when-condition");
+			return zeek::val_mgr->Bool(false);
+		}
+
+		if ( auto timeout = trigger->TimeoutValue(); timeout < 0 ) {
+			zeek::emit_builtin_error("Storage queries must specify a timeout block");
+			return zeek::val_mgr->Bool(false);
+		}
+
+		frame->SetDelayed();
+		trigger->Hold();
+		cb = new zeek::storage::ErrorResultCallback(trigger, frame->GetTriggerAssoc());
+	}
 
 	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
-	auto result = b->backend->Erase(key_v);
+	auto result = b->backend->Erase(key_v, cb);
+
+	if ( async_mode )
+	   return nullptr;
+
 	if ( result.has_value() ) {
 		zeek::emit_builtin_error(zeek::util::fmt("Failed to erase data for key: %s", result.value().c_str()));
 		return zeek::val_mgr->Bool(false);

@@ -6,6 +6,24 @@
 module Storage;
 
 export {
+	## Record for passing arguments to ``put``
+	type PutArgs: record {
+		backend: opaque of Storage::BackendHandle;
+
+		# The script-level type of keys stored in the backend. Used for
+		# validation of keys passed to other framework methods.
+		key: any;
+
+		# The script-level type of keys stored in the backend. Used for
+		# validation of values passed to ``put`` as well for type
+		# conversions for return values from ``get``.
+		value: any;
+
+		# Indicates whether this value should overwrite an existing entry
+		# for the key.
+		overwrite: bool &default=F;
+	};
+
 	## Opens a new backend connection based on a configuration object.
 	##
 	## btype: A tag indicating what type of backend should be opened.
@@ -29,19 +47,10 @@ export {
 
 	## Inserts a new entry into a backend.
 	##
-	## backend: A handle to a backend connection.
-	##
-	## key: A key value.
-	##
-	## value: A corresponding value.
-	##
-	## overwrite: A flag indicating whether this value should overwrite an
-	## existing entry for the key.
-	##
 	## Returns: A boolean indicating success or failure of the
 	## operation. Type comparison failures against the types passed to
 	## open() for the backend will cause false to be returned.
-	global put: function(backend: opaque of Storage::BackendHandle, key: any, value: any, overwrite: bool): bool;
+	global put: function(args: Storage::PutArgs): bool;
 
 	## Gets an entry from the backend.
 	##
@@ -76,9 +85,9 @@ function close_backend(backend: opaque of Storage::BackendHandle): bool
 	return Storage::__close_backend(backend);
 }
 
-function put(backend: opaque of Storage::BackendHandle, key: any, value: any, overwrite: bool): bool
+function put(args: Storage::PutArgs): bool
 {
-	return Storage::__put(backend, key, value, overwrite);
+	return Storage::__put(args$backend, args$key, args$value, args$overwrite);
 }
 
 function get(backend: opaque of Storage::BackendHandle, key: any): any

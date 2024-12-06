@@ -1,9 +1,35 @@
 %%{
 #include "zeek/storage/Backend.h"
 #include "zeek/storage/Manager.h"
+#include "zeek/Trigger.h"
+#include "zeek/Frame.h"
 
 using namespace zeek;
 using namespace zeek::storage;
+
+static zeek::detail::trigger::TriggerPtr init_trigger(zeek::detail::Frame* frame, const BackendPtr& b) {
+	if ( ! b->SupportsAsync() ) {
+		emit_builtin_error("Async mode requested but backend does not support async operations");
+		return nullptr;
+	}
+
+	auto trigger = frame->GetTrigger();
+
+	if ( ! trigger ) {
+		emit_builtin_error("Async storage operations can only be called inside when-conditions");
+		return nullptr;
+	}
+
+	if ( auto timeout = trigger->TimeoutValue(); timeout < 0 ) {
+		emit_builtin_error("Async Storage operations must specify a timeout block");
+		return nullptr;
+	}
+
+	frame->SetDelayed();
+	trigger->Hold();
+
+	return {NewRef{}, trigger};
+}
 %%}
 
 module Storage;
@@ -50,7 +76,7 @@ function Storage::__close_backend%(backend: opaque of Storage::BackendHandle%) :
 	%}
 
 function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, value: any,
-                         overwrite: bool, expire_time: interval%): bool
+                         overwrite: bool, expire_time: interval, async_mode: bool &default=T%): bool
 	%{
 	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
@@ -60,11 +86,23 @@ function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, va
 	else if ( ! b->backend->IsOpen() )
 		return val_mgr->Bool(false);
 
-	// TODO: add support for when statements (see broker/store.bif)
+	ErrorResultCallback* cb = nullptr;
+
+	if ( async_mode ) {
+		auto trigger = init_trigger(frame, b->backend);
+		if ( ! trigger )
+			return val_mgr->Bool(false);
+
+		cb = new ErrorResultCallback(trigger, frame->GetTriggerAssoc());
+	}
 
 	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
 	auto val_v = IntrusivePtr<Val>{NewRef{}, value};
-	auto result = b->backend->Put(key_v, val_v, overwrite, expire_time);
+	auto result = b->backend->Put(key_v, val_v, overwrite, expire_time, cb);
+
+	if ( async_mode )
+		return nullptr;
+
 	if ( result.has_value() ) {
 		emit_builtin_error(util::fmt("Failed to store data: %s", result.value().c_str()));
 		return val_mgr->Bool(false);
@@ -73,7 +111,7 @@ function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, va
 	return val_mgr->Bool(true);
 	%}
 
-function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any%): any
+function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T%): any
 	%{
 	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
@@ -83,10 +121,22 @@ function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any%): 
 	else if ( ! b->backend->IsOpen() )
 		return val_mgr->Bool(false);
 
-	// TODO: add support for when statements (see broker/store.bif)
+	ValResultCallback* cb = nullptr;
+
+	if ( async_mode ) {
+		auto trigger = init_trigger(frame, b->backend);
+		if ( ! trigger )
+			return val_mgr->Bool(false);
+
+		cb = new ValResultCallback(trigger, frame->GetTriggerAssoc());
+	}
 
 	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
-	auto result = b->backend->Get(key_v);
+	auto result = b->backend->Get(key_v, cb);
+
+	if ( async_mode )
+	   return nullptr;
+
 	if ( ! result.has_value() ) {
 		emit_builtin_error(util::fmt("Failed to retrieve data: %s", result.error().c_str()));
 		return val_mgr->Bool(false);
@@ -95,7 +145,7 @@ function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any%): 
 	return result.value();
 	%}
 
-function Storage::__erase%(backend: opaque of Storage::BackendHandle, key: any%): bool
+function Storage::__erase%(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T%): bool
 	%{
 	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
@@ -105,10 +155,22 @@ function Storage::__erase%(backend: opaque of Storage::BackendHandle, key: any%)
 	else if ( ! b->backend->IsOpen() )
 		return val_mgr->Bool(false);
 
-	// TODO: add support for when statements (see broker/store.bif)
+	ErrorResultCallback* cb = nullptr;
+
+	if ( async_mode ) {
+		auto trigger = init_trigger(frame, b->backend);
+		if ( ! trigger )
+			return val_mgr->Bool(false);
+
+		cb = new ErrorResultCallback(trigger, frame->GetTriggerAssoc());
+	}
 
 	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
-	auto result = b->backend->Erase(key_v);
+	auto result = b->backend->Erase(key_v, cb);
+
+	if ( async_mode )
+	   return nullptr;
+
 	if ( result.has_value() ) {
 		emit_builtin_error(util::fmt("Failed to erase data for key: %s", result.value().c_str()));
 		return val_mgr->Bool(false);

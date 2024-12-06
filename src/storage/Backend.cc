@@ -13,7 +13,7 @@ ErrorResult Backend::Open(RecordValPtr config, TypePtr kt, TypePtr vt) {
     return DoOpen(std::move(config));
 }
 
-ErrorResult Backend::Put(ValPtr key, ValPtr value, bool overwrite) {
+ErrorResult Backend::Put(ValPtr key, ValPtr value, bool overwrite, double expiration_time) {
     // The intention for this method is to do some other heavy lifting in regard
     // to backends that need to pass data through the manager instead of directly
     // through the workers. For the first versions of the storage framework it
@@ -25,7 +25,7 @@ ErrorResult Backend::Put(ValPtr key, ValPtr value, bool overwrite) {
         return util::fmt("type of value passed (%s) does not match backend's value type (%s)",
                          value->GetType()->GetName().c_str(), val_type->GetName().c_str());
 
-    return DoPut(std::move(key), std::move(value), overwrite);
+    return DoPut(std::move(key), std::move(value), overwrite, expiration_time);
 }
 
 ValResult Backend::Get(ValPtr key) {

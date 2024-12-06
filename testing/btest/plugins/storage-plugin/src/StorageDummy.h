@@ -48,7 +48,7 @@ public:
     /**
      * The workhorse method for Get().
      */
-    zeek::storage::ValResult DoGet(zeek::ValPtr key, zeek::TypePtr vt) override;
+    zeek::storage::ValResult DoGet(zeek::ValPtr key) override;
 
     /**
      * The workhorse method for Erase().

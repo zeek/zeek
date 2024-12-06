@@ -1,3 +1,7 @@
+7.1.0-dev.692 | 2024-12-06 10:22:07 +0100
+
+  * fix for ZAM "assert" statements potentially evaluating invalid expressions (Vern Paxson, Corelight)
+
 7.1.0-dev.689 | 2024-12-05 13:48:46 -0700
 
   * init-bare: Deprecate tcp_reassembler_ports (Arne Welzel, Corelight)

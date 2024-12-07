@@ -60,6 +60,11 @@ void GenFinishInit();
 // Generate the function that registers compiled script bodies.
 void GenRegisterBodies();
 
+public:
+// Whether we're generating "standalone" code.
+bool TargetingStandalone() const { return standalone; }
+
+private:
 // True if the given function (plus body and profile) is one that should be
 // compiled.  If non-nil, sets reason to the the reason why, if there's a
 // fundamental problem.  If however the function should be skipped for other

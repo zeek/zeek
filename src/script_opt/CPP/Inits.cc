@@ -104,11 +104,18 @@ void CPPCompile::InitializeFieldMappings() {
 
     StartBlock();
 
+    string type_arg, attrs_arg;
+    if ( ! standalone )
+        type_arg = attrs_arg = "DO_NOT_CONSTRUCT_VALUE_MARKER";
+
     for ( const auto& mapping : field_decls ) {
         auto rt_arg = Fmt(mapping.first);
         auto td = mapping.second;
-        auto type_arg = Fmt(TypeOffset(td->type));
-        auto attrs_arg = Fmt(AttributesOffset(td->attrs));
+
+        if ( standalone ) {
+            type_arg = Fmt(TypeOffset(td->type));
+            attrs_arg = Fmt(AttributesOffset(td->attrs));
+        }
 
         Emit("CPP_FieldMapping(%s, \"%s\", %s, %s),", rt_arg, td->id, type_arg, attrs_arg);
     }
@@ -121,8 +128,10 @@ void CPPCompile::InitializeEnumMappings() {
 
     StartBlock();
 
+    auto create_if_missing = standalone ? "true" : "false";
+
     for ( const auto& mapping : enum_names )
-        Emit("CPP_EnumMapping(%s, \"%s\"),", Fmt(mapping.first), mapping.second);
+        Emit("CPP_EnumMapping(%s, \"%s\", %s),", Fmt(mapping.first), mapping.second, create_if_missing);
 
     EndBlock(true);
 }
@@ -178,9 +187,15 @@ void CPPCompile::InitializeGlobals() {
     Emit("Frame* f__CPP = nullptr;");
     NL();
 
+    auto& ofiles = analysis_options.only_files;
+
     for ( const auto& ginit : IDOptInfo::GetGlobalInitExprs() ) {
         auto g = ginit.Id();
-        if ( pfs->Globals().count(g) == 0 )
+
+        if ( ! ofiles.empty() && ! obj_matches_opt_files(g) )
+            continue;
+
+        if ( accessed_globals.count(g) == 0 )
             continue;
 
         auto ic = ginit.IC();

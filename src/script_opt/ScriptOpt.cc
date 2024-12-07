@@ -109,13 +109,25 @@ bool should_analyze(const ScriptFuncPtr& f, const StmtPtr& body) {
     if ( ofiles.empty() && ofuncs.empty() )
         return true;
 
+    if ( obj_matches_opt_files(body.get()) )
+        return true;
+
     const auto& fun = f->GetName();
 
     for ( auto& o : ofuncs )
         if ( std::regex_match(fun, o) )
             return true;
 
-    auto fin = util::detail::normalize_path(body->GetLocationInfo()->filename);
+    return false;
+}
+
+bool obj_matches_opt_files(const Obj* obj) {
+    auto& ofiles = analysis_options.only_files;
+
+    if ( ofiles.empty() )
+        return false;
+
+    auto fin = util::detail::normalize_path(obj->GetLocationInfo()->filename);
 
     for ( auto& o : ofiles )
         if ( std::regex_match(fin, o) )
@@ -285,8 +297,12 @@ static void init_options() {
     check_env_opt("ZEEK_USE_CPP", analysis_options.use_CPP);
     check_env_opt("ZEEK_ALLOW_COND", analysis_options.allow_cond);
 
-    if ( analysis_options.gen_standalone_CPP )
+    if ( analysis_options.gen_standalone_CPP ) {
+        if ( analysis_options.only_files.empty() )
+            reporter->FatalError("-O gen-standalone-C++ requires use of --optimize-files");
+
         analysis_options.gen_CPP = true;
+    }
 
     if ( analysis_options.gen_CPP )
         generating_CPP = true;

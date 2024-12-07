@@ -53,6 +53,19 @@ std::string Canonicalize(const std::string& name) const;
 // be a EXPR_NAME).
 std::string GlobalName(const ExprPtr& e) { return globals[e->AsNameExpr()->Id()->Name()]; }
 
+// Globals that are used (appear in the profiles) of the bodies we're
+// compiling. Includes globals just used as functions to call.
+std::unordered_set<const ID*> all_accessed_globals;
+
+// Same, but just the globals used in contexts beyond function calls.
+std::unordered_set<const ID*> accessed_globals;
+
+// Lambdas that are accessed.
+std::unordered_set<const LambdaExpr*> accessed_lambdas;
+
+// Events that are accessed.
+std::unordered_set<std::string> accessed_events;
+
 // Maps global names (not identifiers) to the names we use for them.
 std::unordered_map<std::string, std::string> globals;
 

@@ -41,6 +41,14 @@ extern std::vector<std::vector<std::vector<int>>> generate_indices_set(int* init
 #define END_OF_VEC_VEC -100
 #define END_OF_VEC_VEC_VEC -200
 
+// A marker value for "named" types (those that are simply looked up by
+// name at initialization time).
+#define NAMED_TYPE_MARKER -300
+
+// A marker value indicating values that should not be constructed if not
+// already present.
+#define DO_NOT_CONSTRUCT_VALUE_MARKER -400
+
 // An abstract helper class used to access elements of an initialization vector.
 // We need the abstraction because InitsManager below needs to be able to refer
 // to any of a range of templated classes.
@@ -369,8 +377,19 @@ public:
     }
 };
 
-// Class for initializing a Zeek global.  These don't go into an initialization
+// Classes for initializing Zeek globals.  These don't go into an initialization
 // vector, so we use void* as the underlying type.
+class CPP_GlobalLookupInit : public CPP_Init<void*> {
+public:
+    CPP_GlobalLookupInit(IDPtr& _global, const char* _name) : CPP_Init<void*>(), global(_global), name(_name) {}
+
+    void Generate(InitsManager* im, std::vector<void*>& /* inits_vec */, int /* offset */) const override;
+
+protected:
+    IDPtr& global;
+    const char* name;
+};
+
 class CPP_GlobalInit : public CPP_Init<void*> {
 public:
     CPP_GlobalInit(IDPtr& _global, const char* _name, int _type, int _attrs, int _val, bool _exported,
@@ -463,8 +482,12 @@ public:
 private:
     int rec;                // index to retrieve the record's type
     std::string field_name; // which field this offset pertains to
-    int field_type;         // the field's type, in case we have to construct it
-    int field_attrs;        // the same for the field's attributes
+
+    // The field's type, in case we have to construct it. If
+    // DO_NOT_CONSTRUCT_VALUE_MARKER then it's instead an error
+    // if missing.
+    int field_type;
+    int field_attrs; // the same for the field's attributes
 };
 
 // Constructs at run-time a mapping between abstract enum values used when
@@ -473,13 +496,15 @@ private:
 // the enum).
 class CPP_EnumMapping {
 public:
-    CPP_EnumMapping(int _e_type, std::string _e_name) : e_type(_e_type), e_name(std::move(_e_name)) {}
+    CPP_EnumMapping(int _e_type, std::string _e_name, bool _construct_if_missing)
+        : e_type(_e_type), e_name(std::move(_e_name)), construct_if_missing(_construct_if_missing) {}
 
     int ComputeOffset(InitsManager* im) const;
 
 private:
-    int e_type;         // index to EnumType
-    std::string e_name; // which enum constant for that type
+    int e_type;                // index to EnumType
+    std::string e_name;        // which enum constant for that type
+    bool construct_if_missing; // if true, construct constant if not present
 };
 
 // Looks up a BiF of the given name, making it available to compiled

@@ -1,4 +1,5 @@
 # @TEST-DOC: Regression test for leak when mixing "any" types (affected both ZAM and non-ZAM)
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-EXEC: zeek -b -O ZAM %INPUT >output
 # @TEST-EXEC: btest-diff output
 

@@ -578,6 +578,8 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred
 
         if ( ! pred || (*pred)(pf.get(), nullptr) )
             MergeInProfile(pf.get());
+        else if ( pred )
+            f.SetSkip(true);
 
         // Track the profile even if we're not compiling the function, since
         // the AST optimizer will still need it to reason about function-call

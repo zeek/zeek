@@ -11,7 +11,7 @@ void CPPCompile::CreateGlobal(const ID* g) {
     auto gn = string(g->Name());
     bool is_bif = pfs->BiFGlobals().count(g) > 0;
 
-    if ( pfs->Globals().count(g) == 0 ) {
+    if ( accessed_globals.count(g) == 0 ) {
         // Only used in the context of calls.  If it's compilable,
         // then we'll call it directly.
         if ( compilable_funcs.count(gn) > 0 ) {
@@ -28,11 +28,16 @@ void CPPCompile::CreateGlobal(const ID* g) {
     if ( AddGlobal(gn, "gl") ) { // We'll be creating this global.
         Emit("IDPtr %s;", globals[gn]);
 
-        if ( pfs->Events().count(gn) > 0 )
+        if ( accessed_events.count(gn) > 0 )
             // This is an event that's also used as a variable.
             Emit("EventHandlerPtr %s_ev;", globals[gn]);
 
-        auto gi = make_shared<GlobalInitInfo>(this, g, globals[gn]);
+        shared_ptr<CPP_InitInfo> gi;
+        if ( standalone )
+            gi = make_shared<GlobalInitInfo>(this, g, globals[gn]);
+        else
+            gi = make_shared<GlobalLookupInitInfo>(this, g, globals[gn]);
+
         global_id_info->AddInstance(gi);
         global_gis[g] = gi;
     }
@@ -64,7 +69,12 @@ std::shared_ptr<CPP_InitInfo> CPPCompile::RegisterGlobal(const ID* g) {
             return gg->second;
     }
 
-    auto gi = make_shared<GlobalInitInfo>(this, g, globals[gn]);
+    shared_ptr<CPP_InitInfo> gi;
+    if ( standalone )
+        gi = make_shared<GlobalInitInfo>(this, g, globals[gn]);
+    else
+        gi = make_shared<GlobalLookupInitInfo>(this, g, globals[gn]);
+
     global_id_info->AddInstance(gi);
     global_gis[g] = gi;
 

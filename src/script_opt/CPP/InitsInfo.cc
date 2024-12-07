@@ -355,10 +355,18 @@ AttrsInfo::AttrsInfo(CPPCompile* _c, const AttributesPtr& _attrs) : CompoundItem
     }
 }
 
-GlobalInitInfo::GlobalInitInfo(CPPCompile* c, const ID* g, string _CPP_name)
+GlobalLookupInitInfo::GlobalLookupInitInfo(CPPCompile* c, const ID* g, string _CPP_name)
     : CPP_InitInfo(g), CPP_name(std::move(_CPP_name)) {
     Zeek_name = g->Name();
+}
 
+void GlobalLookupInitInfo::InitializerVals(std::vector<std::string>& ivs) const {
+    ivs.push_back(CPP_name);
+    ivs.push_back(string("\"") + Zeek_name + "\"");
+}
+
+GlobalInitInfo::GlobalInitInfo(CPPCompile* c, const ID* g, string _CPP_name)
+    : GlobalLookupInitInfo(c, g, std::move(_CPP_name)) {
     auto& gt = g->GetType();
     auto gi = c->RegisterType(gt);
     init_cohort = max(init_cohort, gi->InitCohort() + 1);
@@ -375,7 +383,7 @@ GlobalInitInfo::GlobalInitInfo(CPPCompile* c, const ID* g, string _CPP_name)
     exported = g->IsExport();
     val = ValElem(c, nullptr); // empty because we initialize dynamically
 
-    if ( gt->Tag() == TYPE_FUNC && ! g->GetVal() )
+    if ( gt->Tag() == TYPE_FUNC && (! g->GetVal() || g->GetVal()->AsFunc()->GetKind() == Func::BUILTIN_FUNC) )
         // Remember this peculiarity so we can recreate it for
         // error-behavior-compatibility.
         func_with_no_val = true;
@@ -549,7 +557,7 @@ RecordTypeInfo::RecordTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c
 
         field_types.push_back(r_i->type);
 
-        if ( r_i->attrs ) {
+        if ( c->TargetingStandalone() && r_i->attrs ) {
             gi = c->RegisterAttributes(r_i->attrs);
             final_init_cohort = max(final_init_cohort, gi->InitCohort() + 1);
             field_attrs.push_back(gi->Offset());
@@ -574,6 +582,13 @@ void RecordTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const {
         ivs.emplace_back(Fmt(c->TypeOffset(field_types[i])));
         ivs.emplace_back(Fmt(field_attrs[i]));
     }
+}
+
+NamedTypeInfo::NamedTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, std::move(_t)) {}
+
+void NamedTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const {
+    ivs.emplace_back(Fmt(NAMED_TYPE_MARKER));
+    ivs.emplace_back(Fmt(c->TrackString(t->GetName())));
 }
 
 void IndicesManager::Generate(CPPCompile* c) {

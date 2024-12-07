@@ -478,8 +478,22 @@ public:
     AttrsInfo(CPPCompile* c, const AttributesPtr& attrs);
 };
 
-// Information for initialization a Zeek global.
-class GlobalInitInfo : public CPP_InitInfo {
+// A lightweight initializer for a Zeek global that will look it up at
+// initialization time but not create it if missing.
+class GlobalLookupInitInfo : public CPP_InitInfo {
+public:
+    GlobalLookupInitInfo(CPPCompile* c, const ID* g, std::string CPP_name);
+
+    std::string InitializerType() const override { return "CPP_GlobalLookupInit"; }
+    void InitializerVals(std::vector<std::string>& ivs) const override;
+
+protected:
+    std::string Zeek_name;
+    std::string CPP_name;
+};
+
+// Information for initializing a Zeek global.
+class GlobalInitInfo : public GlobalLookupInitInfo {
 public:
     GlobalInitInfo(CPPCompile* c, const ID* g, std::string CPP_name);
 
@@ -637,6 +651,14 @@ private:
     std::vector<std::string> field_names;
     std::vector<TypePtr> field_types;
     std::vector<int> field_attrs;
+};
+
+// Class for initializing a named Zeek type that should be present at startup.
+class NamedTypeInfo : public AbstractTypeInfo {
+public:
+    NamedTypeInfo(CPPCompile* c, TypePtr _t);
+
+    void AddInitializerVals(std::vector<std::string>& ivs) const override;
 };
 
 // Much of the table-driven initialization is based on vectors of indices,

@@ -308,9 +308,8 @@ string CPPCompile::GenCallExpr(const CallExpr* c, GenType gt, bool top_level) {
         if ( pfs->BiFGlobals().count(f_id) == 0 )
             gen += +"->AsFunc()";
 
-        else if ( pfs->Globals().count(f_id) > 0 )
-            // The BiF version has an extra "_", per
-            // AddBiF(..., true).
+        else if ( accessed_globals.count(f_id) > 0 )
+            // The BiF version has an extra "_", per AddBiF(..., true).
             gen = globals[string(id_name) + "_"];
     }
 

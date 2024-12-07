@@ -397,6 +397,9 @@ static void use_CPP() {
     auto pfs = std::make_unique<ProfileFuncs>(funcs, is_CPP_compilable, true, false);
 
     for ( auto& f : funcs ) {
+        if ( f.ShouldSkip() )
+            continue;
+
         auto hash = f.Profile()->HashVal();
         auto s = compiled_scripts.find(hash);
 

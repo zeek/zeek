@@ -17,6 +17,10 @@
 #include "zeek/analyzer/protocol/mime/MIME.h"
 #include "zeek/file_analysis/Manager.h"
 
+namespace zeek {
+std::string obj_desc_short(const Obj* o);
+}
+
 namespace zeek::analyzer::http {
 
 const bool DEBUG_http = false;
@@ -1365,6 +1369,63 @@ void HTTP_Analyzer::ReplyMade(bool interrupted, const char* msg) {
         reply_state = EXPECT_REPLY_LINE;
 }
 
+// Look for an analyzer tag in the HTTP::upgrade_content_type_analyzers or HTTP::upgrade_analyzer tables.
+static EnumValPtr LookupUpgradeAnalyzer(const std::string& proto, const std::string& content_type) {
+    static const auto& upgrade_analyzers_content_type = id::find_val<TableVal>("HTTP::upgrade_content_type_analyzers");
+    static const auto& lv_type = upgrade_analyzers_content_type->GetType<TableType>()->GetIndices();
+    static const auto& upgrade_analyzers = id::find_val<TableVal>("HTTP::upgrade_analyzers");
+
+    ValPtr proto_val = make_intrusive<StringVal>(proto);
+    ValPtr proto_val_lower;
+    ValPtr result;
+
+    // If we have a content_type header and there's entries in the corresponding
+    // table, lookup the case-sensitive [Upgrade, Content-Type] version first. If
+    // there's no match, use the lower-case version next.
+    if ( ! content_type.empty() && upgrade_analyzers_content_type->Size() > 0 ) {
+        auto make_key = [](const auto& p, const auto c) -> ListValPtr {
+            return zeek::make_intrusive<ListVal>(lv_type, std::vector{p, c});
+        };
+
+        ValPtr content_type_val = make_intrusive<StringVal>(content_type);
+        auto lv_key = make_key(proto_val, content_type_val);
+
+        result = upgrade_analyzers_content_type->Find(lv_key);
+        if ( ! result ) {
+            // No match. Lower the values and try again.
+            proto_val_lower = zeek::make_intrusive<zeek::StringVal>(util::strtolower(proto));
+            ValPtr content_type_val_lower = zeek::make_intrusive<zeek::StringVal>(util::strtolower(content_type));
+            lv_key = make_key(proto_val_lower, content_type_val_lower);
+            result = upgrade_analyzers_content_type->Find(lv_key);
+        }
+
+        if ( result ) {
+            DBG_LOG(DBG_ANALYZER, "Found %s in table HTTP::upgrade_analyzers_content_type for key %s",
+                    zeek::obj_desc_short(result.get()).c_str(), zeek::obj_desc_short(lv_key.get()).c_str());
+
+            return cast_intrusive<EnumVal>(result);
+        }
+    }
+
+    // We would have returned if upgrade_content_type_analyzers had a matching
+    // entry. Continue with the HTTP::upgrade_analyzer table now, using just
+    // the Upgrade protocol.
+    result = upgrade_analyzers->Find(proto_val);
+    if ( ! result ) {
+        // No match, try the lower-case value, possibly re-using the
+        // string done earlier.
+        proto_val = proto_val_lower ? proto_val_lower : zeek::make_intrusive<zeek::StringVal>(util::strtolower(proto));
+        result = upgrade_analyzers->Find(proto_val);
+    }
+
+    if ( result ) {
+        DBG_LOG(DBG_ANALYZER, "Found %s in HTTP::upgrade_analyzers for protocol value %s",
+                zeek::obj_desc_short(result.get()).c_str(), proto_val->AsStringVal()->CheckString());
+    }
+
+    return cast_intrusive<EnumVal>(result);
+}
+
 void HTTP_Analyzer::HTTP_Upgrade() {
     // Upgraded connection that switches immediately - e.g. websocket.
 
@@ -1383,23 +1444,7 @@ void HTTP_Analyzer::HTTP_Upgrade() {
         content_line_resp->SetPlainDelivery(remaining_in_content_line);
     }
 
-    // Lookup an analyzer tag in the HTTP::upgrade_analyzer table.
-    static const auto& upgrade_analyzers = id::find_val<TableVal>("HTTP::upgrade_analyzers");
-
-    auto upgrade_protocol_val = make_intrusive<StringVal>(upgrade_protocol);
-    auto v = upgrade_analyzers->Find(upgrade_protocol_val);
-    if ( ! v ) {
-        // If not found, try the all lower version, too.
-        auto lower_upgrade_protocol = util::strtolower(upgrade_protocol);
-        upgrade_protocol_val = make_intrusive<StringVal>(lower_upgrade_protocol);
-        v = upgrade_analyzers->Find(upgrade_protocol_val);
-    }
-
-    if ( v ) {
-        auto analyzer_tag_val = cast_intrusive<EnumVal>(v);
-        DBG_LOG(DBG_ANALYZER, "Found %s in HTTP::upgrade_analyzers for %s",
-                analyzer_tag_val->GetType<EnumType>()->Lookup(analyzer_tag_val->AsEnum()),
-                upgrade_protocol_val->CheckString());
+    if ( auto analyzer_tag_val = LookupUpgradeAnalyzer(upgrade_protocol, server_content_type) ) {
         auto analyzer_tag = analyzer_mgr->GetComponentTag(analyzer_tag_val.get());
         auto* analyzer = analyzer_mgr->InstantiateAnalyzer(std::move(analyzer_tag), Conn());
         if ( analyzer ) {
@@ -1422,8 +1467,9 @@ void HTTP_Analyzer::HTTP_Upgrade() {
         }
     }
     else {
-        DBG_LOG(DBG_ANALYZER, "No mapping for %s in HTTP::upgrade_analyzers, using PIA instead",
-                upgrade_protocol.c_str());
+        DBG_LOG(DBG_ANALYZER,
+                "No mapping for %s, %s in upgrade_analyzers_content_type or upgrade_analyzers, using PIA instead",
+                upgrade_protocol.c_str(), server_content_type.c_str());
         pia = new analyzer::pia::PIA_TCP(Conn());
         if ( AddChildAnalyzer(pia) ) {
             pia->FirstPacket(true, TransportProto::TRANSPORT_TCP);
@@ -1546,6 +1592,9 @@ void HTTP_Analyzer::HTTP_Header(bool is_orig, analyzer::mime::MIME_Header* h) {
 
     if ( ! is_orig && analyzer::mime::istrequal(h->get_name(), "upgrade") )
         upgrade_protocol.assign(h->get_value_token().data, h->get_value_token().length);
+
+    if ( ! is_orig && analyzer::mime::istrequal(h->get_name(), "content-type") )
+        server_content_type.assign(h->get_value().data, h->get_value().length);
 
     if ( http_header ) {
         zeek::detail::Rule::PatternType rule =

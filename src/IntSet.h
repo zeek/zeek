@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 // A simple but fast data structure for sets of integers.
 // Only supported operations are insert, remove and membership test.
 //

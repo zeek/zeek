@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 //
 // These functions are used by both Zeek and bifcl.
 //

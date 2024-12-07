@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "Utils.h"
 
 #include "zeek/ID.h"

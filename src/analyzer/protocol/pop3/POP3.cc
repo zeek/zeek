@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 // This code contributed to Zeek/Bro by Florian Schimandl, Hugh Dollman and
 // Robin Sommer.
 

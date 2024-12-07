@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "zeek/broker/Data.h"
 
 #include <broker/error.hh>

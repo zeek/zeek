@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 // Not installed - used by Val.cc and formatters/JSON.cc only.
 #pragma once
 

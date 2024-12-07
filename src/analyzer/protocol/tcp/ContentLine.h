@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 // Support-analyzer to split a reassembled stream into lines.
 
 #pragma once

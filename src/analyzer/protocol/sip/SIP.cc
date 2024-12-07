@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "zeek/analyzer/protocol/sip/SIP.h"
 
 #include "zeek/analyzer/protocol/sip/events.bif.h"

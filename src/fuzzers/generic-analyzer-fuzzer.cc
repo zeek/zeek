@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 // Generic protocol analyzer fuzzer.
 //
 // Expects ZEEK_FUZZ_ANALYZER and ZEEK_FUZZ_ANALYZER_TRANSPORT to be set.

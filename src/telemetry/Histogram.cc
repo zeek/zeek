@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "zeek/telemetry/Histogram.h"
 
 using namespace zeek::telemetry;

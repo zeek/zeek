@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 // Structures and methods for implementing breakpoints in the Zeek debugger.
 
 #pragma once

@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "zeek/cluster/serializer/binary-serialization-format/Plugin.h"
 
 #include "zeek/cluster/Component.h"

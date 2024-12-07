@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #pragma once
 
 // Functions for displaying the contents of policy files.

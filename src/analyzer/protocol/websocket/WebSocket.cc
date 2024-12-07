@@ -1,4 +1,4 @@
-// See the file  in the main distribution directory for copyright.
+// See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/analyzer/protocol/websocket/WebSocket.h"
 

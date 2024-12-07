@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "zeek/threading/BasicThread.h"
 
 #include "zeek/zeek-config.h"

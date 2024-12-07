@@ -1,4 +1,5 @@
-//
+// See the file "COPYING" in the main distribution directory for copyright.
+
 // DNP3 was initially used over serial links; it defined its own application
 // layer, transport layer, and data link layer. This hierarchy cannot be
 // mapped to the TCP/IP stack directly. As a result, all three DNP3 layers

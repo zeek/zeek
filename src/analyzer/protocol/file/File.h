@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 // Analyzer for connections that transfer binary data.
 
 #pragma once

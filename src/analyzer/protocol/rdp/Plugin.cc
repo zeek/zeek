@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "zeek/plugin/Plugin.h"
 
 #include "zeek/analyzer/Component.h"

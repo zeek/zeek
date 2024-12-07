@@ -46,3 +46,16 @@ deadlock:zeek::threading::Queue<zeek::threading::BasicInputMessage*>::LocksForAl
 # This only happens at shutdown. It was supposedly fixed in civetweb, but has cropped
 # up again. See https://github.com/civetweb/civetweb/issues/861 for details.
 race:mg_stop
+
+# Uninstrumented library.
+#
+# We'd need to build zmq with TSAN enabled, without it reports data races
+# as it doesn't see the synchronization done [1], but also there's reports
+# that ZeroMQ uses non-standard synchronization that may be difficult for
+# TSAN to see.
+#
+# [1] https://groups.google.com/g/thread-sanitizer/c/7UZqM02yMYg/m/KlHOv2ckr9sJ
+# [2] https://github.com/zeromq/libzmq/issues/3919
+#
+called_from_lib:libzmq.so.5
+called_from_lib:libzmq.so

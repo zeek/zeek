@@ -2357,6 +2357,9 @@ TypeListPtr merge_list_types(const Type* t1, const Type* t2) {
 }
 
 TypePtr merge_types(const TypePtr& arg_t1, const TypePtr& arg_t2) {
+    if ( arg_t1 == arg_t2 )
+        return arg_t1;
+
     auto t1 = arg_t1.get();
     auto t2 = arg_t2.get();
     // t1 = flatten_type(t1);

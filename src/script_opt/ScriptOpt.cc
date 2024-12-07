@@ -366,6 +366,12 @@ static void report_CPP() {
 
     for ( auto& f : funcs ) {
         const auto& name = f.Func()->GetName();
+
+        if ( f.ShouldSkip() ) {
+            printf("script function %s: SKIP\n", name.c_str());
+            continue;
+        }
+
         auto hash = f.Profile()->HashVal();
         bool have = compiled_scripts.count(hash) > 0;
 

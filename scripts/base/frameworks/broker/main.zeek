@@ -86,6 +86,24 @@ export {
 	## ZEEK_BROKER_MAX_THREADS environment variable overrides this setting.
 	const max_threads = 1 &redef;
 
+	## Max number of items we buffer at most per peer. What action to take when
+	## the buffer reaches its maximum size is determined by
+	## `peer_overflow_policy`.
+	const peer_buffer_size = 2048 &redef;
+
+	## Configures how Broker responds to peers that cannot keep up with the
+	## incoming message rate. Available strategies:
+	## - disconnect: drop the connection to the unresponsive peer
+	## - drop_newest: replace the newest message in the buffer
+	## - drop_oldest: removed the olsted message from the buffer, then append
+	const peer_overflow_policy = "disconnect" &redef;
+
+	## Same as `peer_buffer_size` but for WebSocket clients.
+	const web_socket_buffer_size = 512 &redef;
+
+	## Same as `peer_overflow_policy` but for WebSocket clients.
+	const web_socket_overflow_policy = "disconnect" &redef;
+
 	## The CAF scheduling policy to use.  Available options are "sharing" and
 	## "stealing".  The "sharing" policy uses a single, global work queue along
 	## with mutex and condition variable used for accessing it, which may be

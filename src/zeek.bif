@@ -600,6 +600,27 @@ function piped_exec%(program: string, to_write: string%): bool
 	return zeek::val_mgr->True();
 	%}
 
+## Sleeps for the given amount of time.
+##
+## i: The time interval to sleep for.
+##
+## Returns: The :zeek:type:`interval` Zeek actually slept for.
+##
+## .. note::
+##
+##      This is a blocking sleep! Zeek will not run most of its processing
+##      during that time. You almost certainly DO NOT WANT THIS outside
+##      of specific testing/troubleshooting scenarios. To sleep asynchronously,
+##      :zeek:see:`schedule` an event, or consider :zeek:id:`Exec::run`.
+function sleep%(i: interval%): interval
+	%{
+	const auto start = std::chrono::high_resolution_clock::now();
+	std::this_thread::sleep_for(std::chrono::duration<double>(i));
+	const auto end = std::chrono::high_resolution_clock::now();
+	const auto slept = std::chrono::duration<double>(end - start).count();
+	return zeek::make_intrusive<zeek::IntervalVal>(slept);
+        %}
+
 %%{
 #include "zeek/OpaqueVal.h"
 %%}

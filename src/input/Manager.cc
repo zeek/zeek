@@ -1766,7 +1766,7 @@ RecordVal* Manager::ValueToRecordVal(const Stream* stream, const Value* const* v
             // them and has been warned by reporter.
             // Hence -> assign null to the field, done.
 
-            // Better check that it really is optional. Uou never know.
+            // Better check that it really is optional. You never know.
             assert(request_type->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL));
         }
         else if ( ! vals[*position]->present && ! request_type->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL) ) {

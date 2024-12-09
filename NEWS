@@ -3859,7 +3859,7 @@ Removed Functionality
 
 - Functionality for writing/reading binary event streams was
   removed. This functionality relied on the old communication code
-  anc was basically untested. The ``-R`` command-line option (replay)
+  and was basically untested. The ``-R`` command-line option (replay)
   as well as the ``capture_events`` function were removed.
 
 - Removed p0f (passive OS fingerprinting) support. The version of

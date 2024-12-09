@@ -41,7 +41,7 @@ function banner {
 
 function run_unit_tests {
     if [[ ${ZEEK_CI_SKIP_UNIT_TESTS} -eq 1 ]]; then
-        printf "Skipping unit tests as requested by task configureation\n\n"
+        printf "Skipping unit tests as requested by task configuration\n\n"
         return 0
     fi
 

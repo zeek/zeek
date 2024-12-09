@@ -54,6 +54,8 @@ private:
     ErrorResult checkError(int code);
 
     sqlite3* db = nullptr;
+    std::unordered_map<std::string, sqlite3_stmt*> prepared_stmts;
+
     std::string full_path;
     std::string table_name;
 };

@@ -1362,6 +1362,7 @@ void HTTP_Analyzer::ReplyMade(bool interrupted, const char* msg) {
     reply_code = 0;
     upgrade_connection = false;
     upgrade_protocol.clear();
+    server_content_type.clear();
 
     if ( interrupted || upgraded )
         reply_state = EXPECT_REPLY_NOTHING;

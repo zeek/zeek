@@ -1,3 +1,23 @@
+7.1.0-dev.716 | 2024-12-09 12:15:46 -0700
+
+  * BTest baseline updates for compile-to-C++ (Vern Paxson, Corelight)
+
+  * mark ZAM regression BTests as not suitable for compile-to-C++ (Vern Paxson, Corelight)
+
+  * fix for -O gen-C++ maintenance helper to skip BTest intermediary files (Vern Paxson, Corelight)
+
+  * introduced simplified initialization for non-standalone -O gen-C++ code (Vern Paxson, Corelight)
+    tied -O gen-standalone-C++ to use of --optimize-files
+
+  * streamline generated -O C++ code by relying on per-function profiles rather than aggregate profile (Vern Paxson, Corelight)
+
+  * when reporting available/unavailble C++ script bodies, flag those that are skipped (Vern Paxson, Corelight)
+
+  * modified AST profiling to mark (and fully skip) non-optimizable functions (Vern Paxson, Corelight)
+
+  * modified merge_types() to skip work if given identical types, which (Vern Paxson, Corelight)
+    also preserves type names (useful for -O gen-C++)
+
 7.1.0-dev.707 | 2024-12-09 12:08:21 -0700
 
   * Move python signatures to a separate file (Tim Wojtulewicz, Corelight)

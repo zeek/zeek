@@ -253,6 +253,10 @@ extern void add_file_analysis_pattern(AnalyOpt& opts, const char* pat);
 // it should be skipped.
 extern bool should_analyze(const ScriptFuncPtr& f, const StmtPtr& body);
 
+// True if the given object's location matches one specified by
+// --optimize-files=...
+extern bool obj_matches_opt_files(const Obj* obj);
+
 // Analyze all of the parsed scripts collectively for usage issues (unless
 // suppressed by the flag) and optimization.
 extern void analyze_scripts(bool no_unused_warnings);

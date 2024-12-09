@@ -4247,8 +4247,9 @@ type dns_binds_rr: record {
 	algorithm: count;	##< Algorithm for Public Key.
 	key_id: count;		##< key tag.
 	removal_flag: count;	##< rm flag.
-	complte_flag: string;	##< complete flag.
+	complte_flag: string &deprecated="Remove in v8.1: Use complete_flag instead.";	##< complete flag.
 	is_query: count;	##< The RR is a query/Response.
+	complete_flag: count;	##< complete flag.
 };
 
 ## A Private RR type LOC record.

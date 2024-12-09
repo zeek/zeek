@@ -117,6 +117,12 @@ bool file_mgr_set_reassembly_buffer(StringVal* file_id, uint64_t max) {
 bool ZAM_error = false;
 
 bool is_ZAM_compilable(const ProfileFunc* pf, const char** reason) {
+    if ( has_AST_node_unknown_to_script_opt(pf, true) ) {
+        if ( reason )
+            *reason = "unknown AST node type";
+        return false;
+    }
+
     auto b = pf->ProfiledBody();
     auto is_hook = pf->ProfiledFunc()->Flavor() == FUNC_FLAVOR_HOOK;
     if ( b && ! script_is_valid(b, is_hook) ) {

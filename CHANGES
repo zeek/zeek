@@ -1,3 +1,11 @@
+7.1.0-dev.700 | 2024-12-09 14:03:29 +0100
+
+  * ScriptOpt: Fail compilation if known exprs/stmts is outdated (Arne Welzel, Corelight)
+
+  * skip optimization of functions with AST nodes unknown to script optimization (Vern Paxson, Corelight)
+
+  * Disable CTU-SME test under TSAN (Arne Welzel, Corelight)
+
 7.1.0-dev.695 | 2024-12-06 17:33:19 +0100
 
   * btest/http: Demo StreamEvent analyzer with HTTP::upgrade_analyzers (Arne Welzel, Corelight)

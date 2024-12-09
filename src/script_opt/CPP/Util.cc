@@ -39,6 +39,12 @@ string scope_prefix(const string& scope) { return "zeek::detail::CPP_" + scope; 
 string scope_prefix(int scope) { return scope_prefix(to_string(scope)); }
 
 bool is_CPP_compilable(const ProfileFunc* pf, const char** reason) {
+    if ( has_AST_node_unknown_to_script_opt(pf, false) ) {
+        if ( reason )
+            *reason = "unknown AST node type";
+        return false;
+    }
+
     if ( analysis_options.allow_cond )
         return true;
 

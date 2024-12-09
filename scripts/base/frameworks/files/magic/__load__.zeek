@@ -7,6 +7,7 @@
 @load-sigs ./java
 @load-sigs ./office
 @load-sigs ./programming
+@load-sigs ./python
 @load-sigs ./video
 
 @load-sigs ./libmagic

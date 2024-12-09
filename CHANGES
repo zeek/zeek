@@ -1,3 +1,22 @@
+7.1.0-dev.707 | 2024-12-09 12:08:21 -0700
+
+  * Move python signatures to a separate file (Tim Wojtulewicz, Corelight)
+
+  * Add signatures for Python bytecode for 3.8-3.14 (Tim Wojtulewicz, Corelight)
+
+  * Bump pre-commit hooks (Benjamin Bannier, Corelight)
+
+  * Bump typos pre-commit hooks (Benjamin Bannier, Corelight)
+
+    This now picks up additional typical misspellings, but also triggers on
+    more identifiers we use. I opted for fixing the obvious misspellings and
+    updated the allowlist for anything else.
+
+  * Bump clang-format pre-commit hooks (Benjamin Bannier, Corelight)
+
+    This brings in slightly better formatting around uniform initialization,
+    and comments after blocks not surrounded by `{ .. }`.
+
 7.1.0-dev.700 | 2024-12-09 14:03:29 +0100
 
   * ScriptOpt: Fail compilation if known exprs/stmts is outdated (Arne Welzel, Corelight)

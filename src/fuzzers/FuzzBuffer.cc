@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #if ! defined(_GNU_SOURCE)
 #define _GNU_SOURCE
 #endif

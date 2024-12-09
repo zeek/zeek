@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 // The prefix-preserving IP address anonymization code is largely
 // based on (and sometimes directly copied from) Eddie Kohler's
 // ipsumdump-1.20 code, per:

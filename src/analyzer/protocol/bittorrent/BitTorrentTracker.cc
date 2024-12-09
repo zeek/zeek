@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 // This code contributed by Nadi Sarrar.
 
 #include "zeek/analyzer/protocol/bittorrent/BitTorrentTracker.h"

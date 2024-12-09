@@ -1,3 +1,14 @@
+7.1.0-dev.720 | 2024-12-09 12:22:44 -0700
+
+  * Add missing copyright line to headers and cc files (Arne Welzel, Corelight)
+
+  * pre-commit: Add license-header check inspired by Spicy (Arne Welzel, Corelight)
+
+  * Add missing "COPYING" in file comments (Arne Welzel, Corelight)
+
+    This was just done via sed. There's a number of files that don't
+    have a license entry at all.
+
 7.1.0-dev.716 | 2024-12-09 12:15:46 -0700
 
   * BTest baseline updates for compile-to-C++ (Vern Paxson, Corelight)

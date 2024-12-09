@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "zeek/cluster/Manager.h"
 
 #include "zeek/cluster/Serializer.h"

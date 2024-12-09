@@ -664,6 +664,7 @@ bool has_AST_node_unknown_to_script_opt(const ProfileFunc* prof, bool /* is_ZAM 
     // optimization
     // clang-format off
     static const std::set<StmtTag> known_stmts = {
+        // STMT_ALARM
         STMT_PRINT,
         STMT_EVENT,
         STMT_EXPR,
@@ -687,8 +688,14 @@ bool has_AST_node_unknown_to_script_opt(const ProfileFunc* prof, bool /* is_ZAM 
         STMT_ASSERT,
         // STMT_EXTERN,
         // STMT_STD_FUNCTION,
+#define SCRIPT_OPT_NUM_STMTS 24
     };
     // clang-format on
+
+    // Fail compilation if NUM_STMT in StmtEnums.h changes.
+    // Update known_stmts list above appropriately after adding
+    // support and increase SCRIPT_OPT_NUM_STMTS.
+    static_assert(NUM_STMTS == SCRIPT_OPT_NUM_STMTS);
 
     for ( auto& s : prof->Stmts() )
         if ( known_stmts.count(s->Tag()) == 0 )
@@ -766,8 +773,14 @@ bool has_AST_node_unknown_to_script_opt(const ProfileFunc* prof, bool /* is_ZAM 
         // EXPR_ANY_INDEX,
         // EXPR_SCRIPT_OPT_BUILTIN,
         // EXPR_NOP,
+#define SCRIPT_OPT_NUM_EXPRS  70
     };
     // clang-format on
+
+    // Fail compilation if NUM_EXPRS in Expr.h changes.
+    // Update known_exprs list above appropriately after
+    // adding support and increase SCRIPT_OPT_NUM_STMTS.
+    static_assert(NUM_EXPRS == SCRIPT_OPT_NUM_EXPRS);
 
     for ( auto& e : prof->Exprs() )
         if ( known_exprs.count(e->Tag()) == 0 )

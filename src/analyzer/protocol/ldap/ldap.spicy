@@ -935,7 +935,7 @@ type SearchFilter = unit {
   };
 
   # So when you're done with recursively parsing the filters, we can now leverage the tree structure to
-  # recursively get the stringRepresentations for those leafs, which are SearchFilters
+  # recursively get the stringRepresentations for those leaves, which are SearchFilters
 
   on %done {
     self.stringRepresentation = string_representation(self);

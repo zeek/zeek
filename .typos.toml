@@ -48,6 +48,15 @@ extend-ignore-identifiers-re = [
     "ND_ROUTER_.*",
     "ND_NEIGHBOR_.*",
     ".*_ND_option.*",
+    "bck", # Used with same length as `fwd`
+    "pn", # Use for `PoolNode` variables
+    "ffrom_[ip|port|mac]", # Used in netcontrol.
+    "complte_flag", # Existing use in exported record in base.
+    "VidP(n|N)", # In SMB.
+    "iin", # In DNP3.
+    "(ScValidatePnPService|ScSendPnPMessage)", # In DCE-RPC.
+    "snet", # Used as shorthand for subnet in base scripts.
+    "(e|i)it", # Used as name for some iterators.
 ]
 
 [default.extend-identifiers]

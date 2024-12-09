@@ -251,6 +251,8 @@ protected:
     // set to the protocol string when encountering an "upgrade" header
     // in a reply.
     std::string upgrade_protocol;
+    // set to the server's "content type" header
+    std::string server_content_type;
 
     StringValPtr request_method;
 

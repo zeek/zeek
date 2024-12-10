@@ -19,8 +19,13 @@ export {
 		## The string name of the analyzer attempting to forward the protocol.
 		analyzer:     string   &log;
 
-		## The identifier of the protocol being forwarded.
+		## The identifier of the protocol being forwarded in hex notation.
 		protocol_id:  string   &log;
+
+		## The identifier of the protocol being forwarded as count.
+		## Note: The count value is not logged by default. It is provided for
+		## easy access in log policy hooks.
+		protocol_id_num: count;
 
 		## A certain number of bytes at the start of the unknown protocol's
 		## header.
@@ -40,6 +45,7 @@ event unknown_protocol(analyzer_name: string, protocol: count, first_bytes: stri
 	info$ts = network_time();
 	info$analyzer = analyzer_name;
 	info$protocol_id = fmt("0x%x", protocol);
+	info$protocol_id_num = protocol;
 	info$first_bytes = bytestring_to_hexstr(first_bytes);
 	info$analyzer_history = analyzer_history;
 

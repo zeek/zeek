@@ -1,3 +1,12 @@
+7.1.0-dev.745 | 2024-12-10 16:15:57 -0700
+
+  * Add btest for unknown_protocols.log (Jan Grashoefer, Corelight)
+
+  * Add protocol_id count to unknown protocol record (Jan Grashoefer, Corelight)
+
+    The count representation is not logged and added for access to the value
+    in log policy hooks without converting the logged hex representation.
+
 7.1.0-dev.742 | 2024-12-10 14:41:10 -0700
 
   * NEWS tweaks [skip ci] (Christian Kreibich, Corelight)

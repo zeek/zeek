@@ -1,3 +1,15 @@
+7.1.0-dev.738 | 2024-12-10 18:26:31 +0100
+
+  * Introduce get_packet_lag() (Jan Grashoefer, Corelight)
+
+  * Add btest for get_current_packet_ts() (Jan Grashoefer, Corelight)
+
+  * Introduce get_current_packet_ts to fix packet lag (Jan Grashoefer, Corelight)
+
+    Using network_time to calculate packet lag will produce wrong results
+    when there is no packet available but network time does not (yet) fall
+    back to wall clock.
+
 7.1.0-dev.734 | 2024-12-10 09:56:46 +0100
 
   * DNS/dns_binds_rr: Fix complte to complete typo, switch to count (Arne Welzel, Corelight)

@@ -3854,6 +3854,31 @@ function get_current_packet_header%(%) : raw_pkt_hdr
 	return std::move(hdr);
 	%}
 
+## Returns the currently processed PCAP packet's timestamp or a 0 timestamp if
+## there is no packet being processed at the moment.
+##
+## Returns: The currently processed packet's timestamp.
+##
+## .. zeek:see:: get_current_packet get_current_packet_header network_time
+##
+## .. note::
+##
+##      When there is no packet being processed, ``get_current_packet_ts()``
+##      will return a 0 timestamp, while ``network_time()`` will return the
+##      timestamp of the last processed packet until it falls back to tracking
+##      wall clock after ``packet_source_inactivity_timeout``.
+function get_current_packet_ts%(%) : time
+	%{
+	double ts = 0;
+	const Packet* p = nullptr;
+	zeek::iosource::PktSrc* pkt_src = zeek::run_state::detail::current_packet_source();
+
+	if ( pkt_src && pkt_src->GetCurrentPacket(&p) )
+		ts = p->time;
+
+	return zeek::make_intrusive<zeek::TimeVal>(ts);
+	%}
+
 ## Writes a given packet to a file.
 ##
 ## pkt: The PCAP packet.

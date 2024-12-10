@@ -2,6 +2,7 @@
 
 @load base/frameworks/notice
 @load base/frameworks/telemetry
+@load base/utils/time
 
 module Stats;
 
@@ -214,7 +215,7 @@ event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: Pr
 
 	if ( reading_live_traffic() )
 		{
-		info$pkt_lag = current_time() - nettime;
+		info$pkt_lag = get_packet_lag();
 		info$pkts_dropped = ns$pkts_dropped  - last_ns$pkts_dropped;
 		info$pkts_link = ns$pkts_link  - last_ns$pkts_link;
 

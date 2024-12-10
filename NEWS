@@ -119,8 +119,8 @@ New Functionality
   analyzer used for processing the packet when the event is raised. The
   ``unknown_protocol.log`` file was extended to include this information.
 
-- The MySQL analyzer now generates a ``mysql_user_change()`` event when
-  the user changes mid-session via the ``COM_USER_CHANGE`` command.
+- The MySQL analyzer now generates a ``mysql_user_change()`` event when the user
+  changes mid-session via the ``COM_USER_CHANGE`` command.
 
 - The DNS analyzer was extended to support TKEY RRs (RFC 2390). A corresponding
   ``dns_TKEY`` event was added.
@@ -182,6 +182,12 @@ New Functionality
   The analyzer is currently mostly interesting if you want to experiment with
   SSL; we do not yet recommend to enable it in normal Zeek deployments.
 
+- The majority of the metrics reported via stats.log are also now reported via
+  the Telemetry framework, and are visible in the output passed to Prometheus.
+
+- A new weird ``DNS_unknown_opcode`` was added to the DNS analyzer to report
+  when it receives opcodes that it cannot process.
+
 Changed Functionality
 ---------------------
 
@@ -226,8 +232,9 @@ Changed Functionality
   Previously, ``network_time()`` was used. This matters if ``Broker::publish()``
   is called within scheduled events or called within remote events.
 
-Removed Functionality
----------------------
+- The SSL analyzer now reports the correct version when an SSLv2 client hello is
+  used. Zeek previously always reported these as v2, even when the v2 client
+  hello indicated support for a later version of SSL.
 
 Deprecated Functionality
 ------------------------

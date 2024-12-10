@@ -1,0 +1,4 @@
+#!/bin/sh
+
+zeek -N Zeek::Cluster_Backend_ZeroMQ >/dev/null
+exit $?

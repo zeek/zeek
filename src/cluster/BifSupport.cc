@@ -136,4 +136,13 @@ zeek::ValPtr publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args) {
                                              zeek::obj_desc_short(args[0]->GetType().get()).c_str()));
     return zeek::val_mgr->False();
 }
+
+bool is_cluster_pool(const zeek::Val* pool) {
+    static zeek::RecordTypePtr pool_type = nullptr;
+
+    if ( ! pool_type )
+        pool_type = zeek::id::find_type<zeek::RecordType>("Cluster::Pool");
+
+    return pool->GetType() == pool_type;
+}
 } // namespace zeek::cluster::detail::bif

@@ -21,6 +21,7 @@ RUN apt-get -q update \
      bison \
      ccache \
      cmake \
+     cppzmq-dev \
      flex \
      g++ \
      gcc \

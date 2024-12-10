@@ -1,3 +1,11 @@
+7.1.0-dev.734 | 2024-12-10 09:56:46 +0100
+
+  * DNS/dns_binds_rr: Fix complte to complete typo, switch to count (Arne Welzel, Corelight)
+
+    From my reading in the docs the complete_flag should only ever be a
+    single byte, so add a weird for when it is longer, but use count
+    as the new type.
+
 7.1.0-dev.732 | 2024-12-09 23:28:30 -0800
 
   * Support for Broker I/O backpressure overflow policies (Christian Kreibich, Corelight, and Dominik Charousset)

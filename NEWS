@@ -202,6 +202,9 @@ Deprecated Functionality
   be replaced with explicit ``Broker::publish()`` invocations that are
   potentially guarded with appropriate ``@if`` or ``@ifdef`` directives.
 
+- The misspelled ``complte_flag`` in the ``dns_binds_rr`` record has been deprecated.
+  The new ``complete_flag`` uses type ``count`` instead of ``string``.
+
 Zeek 7.0.0
 ==========
 

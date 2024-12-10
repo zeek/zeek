@@ -268,6 +268,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"get_current_conn_packets_threshold", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"get_current_packet", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"get_current_packet_header", ATTR_NO_ZEEK_SIDE_EFFECTS},
+    {"get_current_packet_ts", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"get_dns_stats", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"get_event_handler_stats", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"get_event_stats", ATTR_NO_ZEEK_SIDE_EFFECTS},

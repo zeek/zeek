@@ -1,3 +1,14 @@
+7.1.0-dev.740 | 2024-12-10 20:31:36 +0100
+
+  * Update BiF-tracking, add get_current_packet_ts() (Arne Welzel, Corelight)
+
+    Also, run the ZAM-bif-tracking test in non-ZAM environments so
+    failures are caught immediately. There's nothing overly ZAM specific about
+    running this test.
+
+    I'm not sure I like the fact that any new contributor adding a BiF
+    will need to dig into this... it might be a bit intimidating.
+
 7.1.0-dev.738 | 2024-12-10 18:26:31 +0100
 
   * Introduce get_packet_lag() (Jan Grashoefer, Corelight)

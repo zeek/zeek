@@ -6,28 +6,26 @@ if len(sys.argv) != 2:
     print("Expected one argument containing the file to clean")
     sys.exit(-1)
 
-with open(sys.argv[1], 'r') as f:
-
+with open(sys.argv[1]) as f:
     files = {}
-    cur_file = ''
+    cur_file = ""
     lines = f.readlines()
 
     for line in lines:
-
-        if line == 'end_of_record':
-            cur_file = ''
+        if line == "end_of_record":
+            cur_file = ""
             continue
 
-        parts = line.split(':', 1)
-        if parts[0] == 'SF':
+        parts = line.split(":", 1)
+        if parts[0] == "SF":
             cur_file = parts[1].strip()
-            while cur_file.find('src/zeek/') != -1:
-                cur_file = cur_file.replace('src/zeek/', 'src/', 1)
+            while cur_file.find("src/zeek/") != -1:
+                cur_file = cur_file.replace("src/zeek/", "src/", 1)
 
             if cur_file not in files:
                 files[cur_file] = {}
-        elif parts[0] == 'DA':
-            da_parts = parts[1].split(',')
+        elif parts[0] == "DA":
+            da_parts = parts[1].split(",")
             line = int(da_parts[0])
             count = int(da_parts[1])
 
@@ -35,13 +33,12 @@ with open(sys.argv[1], 'r') as f:
                 files[cur_file][line] = count
 
     for name in files:
-
-        print('TN:')
-        print('SF:{}'.format(name))
+        print("TN:")
+        print(f"SF:{name}")
 
         das = list(files[name].keys())
         das.sort()
 
         for da in das:
-            print('DA:{},{}'.format(da, files[name][da]))
-        print('end_of_record')
+            print(f"DA:{da},{files[name][da]}")
+        print("end_of_record")

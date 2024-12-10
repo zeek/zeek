@@ -55,6 +55,54 @@ New Functionality
   If you observe PostgreSQL traffic in your environment, please provide feedback
   about the analyzer and structure of the new log.
 
+- Broker's message I/O buffering now operates on per-peering granularity at the
+  sender (it was previously global) and provides configurable overflow handling
+  when a fast sender overwhelms a slow receiver, via the following new tunables
+  in the ``Broker`` module:
+
+	const peer_buffer_size = 2048 &redef;
+	const peer_overflow_policy = "disconnect" &redef;
+	const web_socket_buffer_size = 512 &redef;
+	const web_socket_overflow_policy = "disconnect" &redef;
+
+  When a send buffer overflows (i.e., it is full when a node tries to transmit
+  another message), the sender may drop the message and unpeer the slow receiver
+  (policy ``disconnect``, the default), drop the newest message in the buffer
+  (``drop_newest``), or drop the oldest (``drop_oldest``). Buffer sizes are
+  measured in number of messages, not bytes. Note that "sender" and "receiver"
+  are independent of the direction in which Zeek established the peering. After
+  disconnects Zeek automatically tries to re-establish peering with the slow
+  node, in case it recovers.
+
+  Zeek notifies you in two ways of such disconnects:
+
+    * A cluster.log entry for the sending node indicates that a slow peered node
+      has been removed. Here node ``worker01`` has removed a peered ``proxy01`:
+
+	1733468802.626622  worker01  removed due to backpressure overflow: 127.0.0.1:42204/tcp (proxy01)
+
+    * The labeled counter metric ``zeek_broker_backpressure_disconnects_total``
+      in the telemetry framework tracks the number of times such disconnects
+      happen between respective nodes. The following scraped telemetry indicates
+      the same disconnect as above:
+
+	zeek_broker_backpressure_disconnects_total{endpoint="worker01",peer="proxy01"} 1
+
+  To implement custom handling of a backpressure-induced disconnect, add a
+  ``Broker::peer_removed`` event handler, as follows:
+
+	event Broker::peer_removed(endpoint: Broker::EndpointInfo, msg: string)
+		{
+		if ( "caf::sec::backpressure_overflow" !in msg )
+			return;
+
+		# The local node has disconnected the given endpoint,
+		# add your logic here.
+                }
+
+  These new policies fix a problem in which misbehaving nodes could trigger
+  cascading "lockups" of nodes, each ceasing to transmit any messages.
+
 * The LDAP analyzer now supports handling of non-sealed GSS-API WRAP tokens.
 
 * StartTLS support was added to the LDAP analyzer. The SSL analyzer is enabled

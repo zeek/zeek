@@ -1,3 +1,18 @@
+7.1.0-dev.732 | 2024-12-09 23:28:30 -0800
+
+  * Support for Broker I/O backpressure overflow policies (Christian Kreibich, Corelight, and Dominik Charousset)
+
+    - Add sleep() BiF
+    - Add backpressure disconnect notification to cluster.log and via telemetry
+    - Remove unneeded @loads from base/misc/version.zeek
+    - Add Cluster::nodeid_to_node() helper function
+    - Support re-peering with Broker peers that fall behind
+    - Add Zeek-level configurability of Broker slow-peer disconnects
+    - Bump Broker to pull in disconnect feature and infinite-loop fix
+    - No need to namespace Cluster:: functions in their own namespace
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
 7.1.0-dev.720 | 2024-12-09 12:22:44 -0700
 
   * Add missing copyright line to headers and cc files (Arne Welzel, Corelight)

@@ -1,5 +1,6 @@
 # @TEST-DOC: ZAM maintenance script for tracking changes in BiFs.
-# @TEST-REQUIRES: test "${ZEEK_ZAM}" = "1"
+#
+# @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
@@ -299,6 +300,7 @@ global known_BiFs = set(
 	"get_current_conn_packets_threshold",
 	"get_current_packet",
 	"get_current_packet_header",
+	"get_current_packet_ts",
 	"get_dns_stats",
 	"get_event_handler_stats",
 	"get_event_stats",

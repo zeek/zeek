@@ -1,7 +1,7 @@
-# @TEST-DOC: Basic functionality for storage: opening/closing an sqlite backend, storing/retrieving data, using async methods
-# @TEST-EXEC: zeek -b %INPUT > out
-# @TEST-EXEC: btest-diff out
-# @TEST-EXEC: btest-diff .stderr
+# @TEST-DOC: Tests that sqlite async works fine while reading pcaps
+# @TEST-EXEC: zeek -C -r $TRACES/http/get.trace %INPUT > out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 
 @load base/frameworks/storage
 @load policy/frameworks/storage/backend/sqlite

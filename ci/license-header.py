@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
-import sys
 import re
+import sys
 
 exit_code = 0
 
-pat1 = re.compile(r"See the file \"COPYING\" in the main distribution directory for copyright.")
+pat1 = re.compile(
+    r"See the file \"COPYING\" in the main distribution directory for copyright."
+)
 
 # This is the copyright line used within Spicy plugin and popular in
 # Spicy analyzers.

@@ -10,9 +10,9 @@
 # that are not part of the distribution and which should not count towards
 # the coverage calculation.
 
+import glob
 import os
 import sys
-import glob
 
 stats = {}
 inputglob = sys.argv[1]
@@ -20,7 +20,7 @@ outputfile = sys.argv[2]
 scriptdir = os.path.abspath(sys.argv[3])
 
 for filename in glob.glob(inputglob):
-    with open(filename, 'r') as f:
+    with open(filename) as f:
         for line in f.read().splitlines():
             parts = line.split("\t")
             exec_count = int(parts[0])
@@ -34,7 +34,7 @@ for filename in glob.glob(inputglob):
             srclines = srclines.split()[1]
             # For sorting purposes (so that line numbers get sorted correctly),
             # construct a specially-formatted key string.
-            sortkey = filepath + ", line " + ("%6s" % srclines.split("-")[0])
+            sortkey = filepath + ", line " + ("{:<6s}".format(srclines.split("-")[0]))
             location = filepath + ", line " + srclines
             desc = parts[2]
             # Keying by location + desc may result in duplicate data
@@ -46,9 +46,9 @@ for filename in glob.glob(inputglob):
             else:
                 stats[key] = [exec_count, location, desc, sortkey]
 
-with open(outputfile, 'w') as f:
+with open(outputfile, "w") as f:
     for k in sorted(stats, key=lambda i: stats[i][3]):
-        f.write("%s\t%s\t%s\n" % (stats[k][0], stats[k][1], stats[k][2]))
+        f.write(f"{stats[k][0]}\t{stats[k][1]}\t{stats[k][2]}\n")
 
 num_covered = 0
 for k in stats:
@@ -56,5 +56,5 @@ for k in stats:
         num_covered += 1
 
 if len(stats) > 0:
-    print("%s/%s (%.1f%%) Zeek script statements covered." %
-          (num_covered, len(stats), float(num_covered) / len(stats) * 100))
+    pct = float(num_covered) / len(stats) * 100
+    print(f"{num_covered}/{len(stats)} ({pct:.1f}%) Zeek script statements covered.")

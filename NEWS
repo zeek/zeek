@@ -9,14 +9,14 @@ Zeek 7.1.0
 Breaking Changes
 ----------------
 
-* The ``OpaqueVal::DoSerialize`` and ``OpaqueVal::DoUnserialize`` methods were
+- The ``OpaqueVal::DoSerialize`` and ``OpaqueVal::DoUnserialize`` methods were
   marked as deprecated in v7.0 and have now been removed as per the Zeek
   deprecation policy. Plugins that were overriding these methods and were not
   updated will fail to compile. Those plugins should be updated to override the
   new ``OpaqueVal::DoSerializeData`` and ``OpaqueVal::DoUnserializeData``
   methods.
 
-* Certain internal methods on the broker and logging classes have been changed to
+- Certain internal methods on the broker and logging classes have been changed to
   accept std::vector<threading::Value> parameters instead of threading::Value**
   to leverage automatic memory management, reduce the number of allocations
   and use move semantics to express ownership.
@@ -25,12 +25,12 @@ Breaking Changes
   are not affected by this change, so we keep backwards compatibility with
   existing log writers.
 
-* ``Func::Name()`` was deprecated, use ``Func::GetName()`` instead.
+- ``Func::Name()`` was deprecated, use ``Func::GetName()`` instead.
 
 New Functionality
 -----------------
 
-* IP-based connections that were previously not logged due to using an unknown
+- IP-based connections that were previously not logged due to using an unknown
   IP protocol (e.g. not TCP, UDP, or ICMP) now appear in conn.log. All conn.log
   entries have a new ``ip_proto`` column that indicates the numeric IP protocol
   identifier used by the connection. A new policy script at
@@ -103,38 +103,38 @@ New Functionality
   These new policies fix a problem in which misbehaving nodes could trigger
   cascading "lockups" of nodes, each ceasing to transmit any messages.
 
-* The LDAP analyzer now supports handling of non-sealed GSS-API WRAP tokens.
+- The LDAP analyzer now supports handling of non-sealed GSS-API WRAP tokens.
 
-* StartTLS support was added to the LDAP analyzer. The SSL analyzer is enabled
+- StartTLS support was added to the LDAP analyzer. The SSL analyzer is enabled
   for connections where client and server negotiate to TLS through the extended
   request/response mechanism.
 
-* The ``unknown_protocols()`` event now includes the name of all packet
+- The ``unknown_protocols()`` event now includes the name of all packet
   analyzer used for processing the packet when the event is raised. The
   ``unknown_protocol.log`` file was extended to include this information.
 
-* The MySQL analyzer now generates a ``mysql_user_change()`` event when
+- The MySQL analyzer now generates a ``mysql_user_change()`` event when
   the user changes mid-session via the ``COM_USER_CHANGE`` command.
 
-* The DNS analyzer was extended to support TKEY RRs (RFC 2390). A corresponding
+- The DNS analyzer was extended to support TKEY RRs (RFC 2390). A corresponding
   ``dns_TKEY`` event was added.
 
-* The ``signature_match()`` and custom signature events now receive the end of
+- The ``signature_match()`` and custom signature events now receive the end of
   match offset within the ``data`` parameter as an optional parameter named
   ``end_of_match``.
 
 	event signature_match(state: signature_state, msg: string, data: string, end_of_match: count);
 
-* A we plugin hook ``InitPreExecution()`` has been added to allow introspection
+- A new plugin hook ``InitPreExecution()`` has been added to allow introspection
   of Zeek's AST after ZAM optimizations ran. This hook executes right before
   the ``zeek_init()`` event is enqueued.
 
-* The SQLite logger now supports setting the value of the SQLite synchronous mode,
+- The SQLite logger now supports setting the value of the SQLite synchronous mode,
   as well as of the journal mode. For example, WAL mode can be enabled by setting:
 
   redef LogSQLite::journal_mode=LogSQLite::SQLITE_JOURNAL_MODE_WAL;
 
-* A pseudo protocol analyzer StreamEvent has been added. Attaching this analyzer
+- A pseudo protocol analyzer StreamEvent has been added. Attaching this analyzer
   to TCP connections allows processing the connection's stream data in the
   scripting layer. One example use-case is interactive terminal sessions over
   HTTP connections upgraded to TCP.
@@ -151,43 +151,43 @@ New Functionality
 Changed Functionality
 ---------------------
 
-* Heuristics for parsing SASL encrypted and signed LDAP traffic have been
+- Heuristics for parsing SASL encrypted and signed LDAP traffic have been
   made more strict and predictable. Please provide input if this results in
   less visibility in your environment.
 
-* The MySQL analyzer has been improved to better support plugin authentication
+- The MySQL analyzer has been improved to better support plugin authentication
   mechanisms, like caching_sha2_password, as well as recognizing MySQL query
   attributes.
 
-* The ``mysql.log`` for user change commands will contain *just* the username
+- The ``mysql.log`` for user change commands will contain *just* the username
   instead of the remaining parts of the command, including auth plugin data.
 
-* The POP3 parser has been hardened to avoid unbounded state growth in the
+- The POP3 parser has been hardened to avoid unbounded state growth in the
   face of one-sided traffic capture or when enabled for non-POP3 traffic.
   Concretely, the Redis protocol's AUTH mechanism enables the POP3 analyzer
   for such connections through DPD.
 
-* Batching and flushing for local log writers can now be controlled via the
+- Batching and flushing for local log writers can now be controlled via the
   options ``Log::flush_interval`` and ``Log::write_buffer_size``. Previously
   the ``Threading::heartbeat_interval`` was used for flushing and the buffer
   size fixed at 1000.
 
-* Logging of the FTP PASS command in ``ftp.log`` now honors ``FTP::default_capture_password``
+- Logging of the FTP PASS command in ``ftp.log`` now honors ``FTP::default_capture_password``
   and the password is blanked with "<hidden>". Previously, the argument for the PASS
   command would be logged in clear.
 
-* The ASCII input reader now suppresses warnings for consecutive invalid lines,
+- The ASCII input reader now suppresses warnings for consecutive invalid lines,
   producing a summary of total suppressions once a valid line is encountered.
 
-* The `Telemetry::sync()` hook is now invoked on demand. Either when the metrics
+- The `Telemetry::sync()` hook is now invoked on demand. Either when the metrics
   of a node are scraped via the Prometheus HTTP endpoint, or one of the collect
   methods is invoked from Zeek script.
 
-* The community-id-logging.zeek policy script was used to set ``c$conn$community_id``
+- The community-id-logging.zeek policy script was used to set ``c$conn$community_id``
   during ``new_connection()`` rather than ``connection_state_remove()``, allowing
   other scripts to reuse its value early.
 
-* Calling ``Broker::publish()`` now uses the event time of the currently
+- Calling ``Broker::publish()`` now uses the event time of the currently
   executing event as network time metadata attached to the remote event.
   Previously, ``network_time()`` was used. This matters if ``Broker::publish()``
   is called within scheduled events or called within remote events.
@@ -198,7 +198,7 @@ Removed Functionality
 Deprecated Functionality
 ------------------------
 
-* The ``Broker::auto_publish()`` function has been deprecated and should
+- The ``Broker::auto_publish()`` function has been deprecated and should
   be replaced with explicit ``Broker::publish()`` invocations that are
   potentially guarded with appropriate ``@if`` or ``@ifdef`` directives.
 
@@ -4590,14 +4590,14 @@ Bro 2.5.4
 
 Bro 2.5.4 primarily fixes security issues:
 
-* Multiple fixes and improvements to BinPAC generated code related to
+- Multiple fixes and improvements to BinPAC generated code related to
   array parsing, with potential impact to all Bro's BinPAC-generated
   analyzers in the form of buffer over-reads or other invalid memory
   accesses depending on whether a particular analyzer incorrectly
   assumed that the evaluated-array-length expression is actually the
   number of elements that were parsed out from the input.
 
-* The NCP analyzer (not enabled by default and also updated to actually
+- The NCP analyzer (not enabled by default and also updated to actually
   work with newer Bro APIs in the release) performed a memory allocation
   based directly on a field in the input packet and using signed integer
   storage.  This could result in a signed integer overflow and memory
@@ -4607,9 +4607,9 @@ Bro 2.5.4 primarily fixes security issues:
 
 There's also the following bug fixes:
 
-* A memory leak in the SMBv1 analyzer.
+- A memory leak in the SMBv1 analyzer.
 
-* The MySQL analyzer was generally not working as intended, for example,
+- The MySQL analyzer was generally not working as intended, for example,
   it now is able to parse responses that contain multiple results/rows.
 
 Bro 2.5.3

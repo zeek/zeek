@@ -1,3 +1,12 @@
+7.1.0-dev.742 | 2024-12-10 14:41:10 -0700
+
+  * NEWS tweaks [skip ci] (Christian Kreibich, Corelight)
+
+    - Switch list items back to "-" from "*" -- we hadn't used "*" since
+      2.5.4 but started in 7.1, probably by accident? :-)
+
+    - Fix a typo.
+
 7.1.0-dev.740 | 2024-12-10 20:31:36 +0100
 
   * Update BiF-tracking, add get_current_packet_ts() (Arne Welzel, Corelight)

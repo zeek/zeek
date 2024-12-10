@@ -431,6 +431,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"skip_further_processing", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"skip_http_entity_data", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"skip_smtp_data", ATTR_NO_SCRIPT_SIDE_EFFECTS},
+    {"sleep", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"split_string", ATTR_FOLDABLE},
     {"split_string1", ATTR_FOLDABLE},
     {"split_string_all", ATTR_FOLDABLE},

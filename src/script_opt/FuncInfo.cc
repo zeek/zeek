@@ -72,6 +72,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"Analyzer::__register_for_port", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Analyzer::__schedule_analyzer", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Analyzer::__tag", ATTR_FOLDABLE},
+    {"Cluster::Backend::ZeroMQ::spawn_zmq_proxy_thread", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Cluster::Backend::__init", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Cluster::__subscribe", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Cluster::__unsubscribe", ATTR_NO_SCRIPT_SIDE_EFFECTS},

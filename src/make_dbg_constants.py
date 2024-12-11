@@ -12,10 +12,10 @@
 #
 # The input format is:
 #
-#	cmd: [DebugCmd]
-#	names: [space delimited names of cmd]
-#	resume: ['true' or 'false': should execution resume after this command?]
-#	help: [some help text]
+#     cmd: [DebugCmd]
+#     names: [space delimited names of cmd]
+#     resume: ['true' or 'false': should execution resume after this command?]
+#     help: [some help text]
 #
 # Blank lines are skipped.
 # Comments should start with // and should be on a line by themselves.
@@ -24,7 +24,7 @@ import sys
 
 inputfile = sys.argv[1]
 
-init_tmpl = '''
+init_tmpl = """
 \t{
 \t\tDebugCmdInfo* info;
 \t\t%(name_init)s
@@ -32,36 +32,35 @@ init_tmpl = '''
 \t\t                                      %(repeatable)s);
 \t\tg_DebugCmdInfos.push_back(info);
 \t}
-'''
+"""
 
-enum_str = '''
+enum_str = f"""
 //
-// This file was automatically generated from %s
+// This file was automatically generated from {inputfile}
 // DO NOT EDIT.
 //
-enum DebugCmd {
-''' % inputfile
+enum DebugCmd {{
+"""
 
-init_str = '''
+init_str = f"""
 //
-// This file was automatically generated from %s
+// This file was automatically generated from {inputfile}
 // DO NOT EDIT.
 //
 
 #include "zeek/util.h"
-namespace zeek::detail {\n
-void init_global_dbg_constants () {
-''' % inputfile
+namespace zeek::detail {{\n
+void init_global_dbg_constants () {{
+"""
 
 
 def outputrecord():
     global init_str, enum_str
 
     if dbginfo["names"]:
-        dbginfo["name_init"] = "const char * const names[] = {\n"\
-                               "\t\t\t%s\n"\
-                               "\t\t};\n" \
-                               % ",\n\t\t\t".join(dbginfo["names"])
+        dbginfo["name_init"] = (
+            "const char * const names[] = {{\n\t\t\t{}\n\t\t}};\n"
+        ).format(",\n\t\t\t".join(dbginfo["names"]))
     else:
         dbginfo["name_init"] = "const char * const names[] = { };\n"
 
@@ -70,7 +69,7 @@ def outputrecord():
     # substitute into template
     init_str += init_tmpl % dbginfo
 
-    enum_str += "\t%s,\n" % dbginfo["cmd"]
+    enum_str += "\t{},\n".format(dbginfo["cmd"])
 
 
 def initdbginfo():
@@ -81,13 +80,13 @@ def initdbginfo():
         "names": [],
         "resume": "false",
         "help": "",
-        "repeatable": "false"
+        "repeatable": "false",
     }
 
 
 dbginfo = initdbginfo()
 
-inputf = open(inputfile, "r")
+inputf = open(inputfile)
 for line in inputf:
     line = line.strip()
     if not line or line.startswith("//"):  # skip empty lines and comments
@@ -95,7 +94,7 @@ for line in inputf:
 
     fields = line.split(":", 1)
     if len(fields) != 2:
-        raise RuntimeError("Error in debug constant file on line: %s" % line)
+        raise RuntimeError(f"Error in debug constant file on line: {line}")
 
     f1, f2 = fields
     f2 = f2.strip()
@@ -108,13 +107,13 @@ for line in inputf:
         dbginfo[f1] = f2
     elif f1 == "names":
         # put quotes around the strings
-        dbginfo[f1] = ['"%s"' % n for n in f2.split()]
+        dbginfo[f1] = [f'"{n}"' for n in f2.split()]
     elif f1 == "help":
         dbginfo[f1] = f2.replace('"', '\\"')  # escape quotation marks
     elif f1 in ("resume", "repeatable"):
         dbginfo[f1] = f2
     else:
-        raise RuntimeError("Unknown command: %s" % line)
+        raise RuntimeError(f"Unknown command: {line}")
 
 # output the last record
 outputrecord()

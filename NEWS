@@ -172,6 +172,16 @@ New Functionality
   when doing so as Zeek nodes will not listen on Broker ports anymore, nor will
   they establish a peering to other nodes.
 
+- Zeek now ships with an experimental Spicy-based SSL analyzer, which is
+  disabled by default. This analyzer can be enabled using the
+  ``--enable-spicy-ssl`` conifgure-time option. The Spicy-based analyzer has
+  full support for SSL and TLS, just like the current binpac analyzer. It does,
+  however, not support any version of DTLS. Enabling it will disable DTLS
+  parsing in Zeek.
+
+  The analyzer is currently mostly interesting if you want to experiment with
+  SSL; we do not yet recommend to enable it in normal Zeek deployments.
+
 Changed Functionality
 ---------------------
 

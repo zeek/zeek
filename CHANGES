@@ -1,3 +1,20 @@
+7.1.0-dev.766 | 2024-12-11 11:07:53 -0700
+
+  * btest: Avoid loading ZeroMQ if not compiled in (Arne Welzel, Corelight)
+
+    ...at the same time, add some `TEST-REQUIRES: have-zeromq` which
+    unfortunately means that developers will usually want libzmq
+    installed on their system.
+
+  * btest/coverage: Avoid warnings in test-all-policy-cluster (Arne Welzel, Corelight)
+
+  * Broker::publish: Warn on using Broker::publish() when inactive (Arne Welzel, Corelight)
+
+    This is mostly for transitioning base scripts to Cluster::publish() and
+    avoid silent surprises why certain things don't work when using ZeroMQ.
+
+  * Update zeek-testing and zeek-testing-cluster commit hashes (Tim Wojtulewicz, Corelight)
+
 7.1.0-dev.760 | 2024-12-11 09:28:04 +0100
 
   * Update ZAM BiF-tracking (Arne Welzel, Corelight)

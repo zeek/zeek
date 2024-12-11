@@ -1,5 +1,6 @@
 # @TEST-REQUIRES: test "${ZEEK_ZAM}" != "1"
-# @TEST-REQUIRES: ${SCRIPTS}/have-spicy  # This test logs loaded scripts, so disable it if Spicy and the associated plugin are unavailable.
+# @TEST-REQUIRES: have-spicy  # This test logs loaded scripts, so disable it if Spicy and the associated plugin are unavailable.
+# @TEST-REQUIRES: have-zeromq  # This test logs loaded scripts, so disable it if ZeroMQ isn't available.
 # @TEST-REQUIRES: ! have-spicy-ssl  # Enabling Spicy SSL changes baselines and thus changes raised events. Skip in this case.
 # @TEST-EXEC: ${DIST}/auxil/zeek-aux/plugin-support/init-plugin -u . Demo Hooks
 # @TEST-EXEC: cp -r %DIR/hooks-plugin/* .

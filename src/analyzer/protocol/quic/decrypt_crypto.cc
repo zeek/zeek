@@ -152,7 +152,7 @@ Function that calls the AEAD decryption routine, and returns the decrypted data.
 */
 hilti::rt::Bytes decrypt(const std::vector<uint8_t>& client_key, const hilti::rt::Bytes& all_data,
                          uint64_t payload_length, const DecryptionInformation& decryptInfo) {
-    int out, out2, res;
+    int out, out2;
 
     if ( payload_length < decryptInfo.packet_number_length + AEAD_TAG_LENGTH )
         throw hilti::rt::RuntimeError(hilti::rt::fmt("payload too small %ld < %ld", payload_length,
@@ -202,7 +202,8 @@ hilti::rt::Bytes decrypt(const std::vector<uint8_t>& client_key, const hilti::rt
     EVP_CipherUpdate(ctx, decrypt_buffer.data(), &out, encrypted_payload, encrypted_payload_size);
 
     // Validate whether the decryption was successful or not
-    EVP_CipherFinal_ex(ctx, NULL, &out2);
+    if ( EVP_CipherFinal_ex(ctx, NULL, &out2) == 0 )
+        throw hilti::rt::RuntimeError("decryption failed");
 
     // Copy the decrypted data from the decrypted buffer into a Bytes instance.
     return hilti::rt::Bytes(decrypt_buffer.data(), decrypt_buffer.data() + out);

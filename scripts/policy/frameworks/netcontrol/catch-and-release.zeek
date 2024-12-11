@@ -378,12 +378,12 @@ function drop_address_catch_release(a: addr, location: string &default=""): Bloc
 		Log::write(CATCH_RELEASE, log);
 		blocks[a] = bi;
 @if ( Cluster::is_enabled() )
-		Broker::publish(Cluster::worker_topic, NetControl::catch_release_block_new, a, bi);
+		Cluster::publish(Cluster::worker_topic, NetControl::catch_release_block_new, a, bi);
 @endif
 @endif
 
 @if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
-		Broker::publish(Cluster::manager_topic, NetControl::catch_release_add, a, location);
+		Cluster::publish(Cluster::manager_topic, NetControl::catch_release_add, a, location);
 @endif
 		return bi;
 		}
@@ -401,7 +401,7 @@ function drop_address_catch_release(a: addr, location: string &default=""): Bloc
 			bi$location = location;
 		blocks[a] = bi;
 @if ( Cluster::is_enabled() )
-		Broker::publish(Cluster::worker_topic, NetControl::catch_release_block_new, a, bi);
+		Cluster::publish(Cluster::worker_topic, NetControl::catch_release_block_new, a, bi);
 @endif
 		log = populate_log_record(a, bi, DROP_REQUESTED);
 		Log::write(CATCH_RELEASE, log);
@@ -413,7 +413,7 @@ function drop_address_catch_release(a: addr, location: string &default=""): Bloc
 
 @if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
 	bi = BlockInfo($watch_until=network_time()+catch_release_intervals[1], $block_until=network_time()+block_interval, $current_interval=0, $current_block_id="");
-	Broker::publish(Cluster::manager_topic, NetControl::catch_release_add, a, location);
+	Cluster::publish(Cluster::manager_topic, NetControl::catch_release_add, a, location);
 	return bi;
 @endif
 
@@ -435,10 +435,10 @@ function unblock_address_catch_release(a: addr, reason: string &default=""): boo
 		remove_rule(bi$current_block_id, reason);
 @endif
 @if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
-	Broker::publish(Cluster::worker_topic, NetControl::catch_release_block_delete, a);
+	Cluster::publish(Cluster::worker_topic, NetControl::catch_release_block_delete, a);
 @endif
 @if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
-	Broker::publish(Cluster::manager_topic, NetControl::catch_release_delete, a, reason);
+	Cluster::publish(Cluster::manager_topic, NetControl::catch_release_delete, a, reason);
 @endif
 
 	return T;
@@ -494,13 +494,13 @@ function catch_release_seen(a: addr)
 		Log::write(CATCH_RELEASE, log);
 @endif
 @if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
-		Broker::publish(Cluster::worker_topic, NetControl::catch_release_block_new, a, bi);
+		Cluster::publish(Cluster::worker_topic, NetControl::catch_release_block_new, a, bi);
 @endif
 @if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
 		if ( a in catch_release_recently_notified )
 			return;
 
-		Broker::publish(Cluster::manager_topic, NetControl::catch_release_encountered, a);
+		Cluster::publish(Cluster::manager_topic, NetControl::catch_release_encountered, a);
 		add catch_release_recently_notified[a];
 @endif
 

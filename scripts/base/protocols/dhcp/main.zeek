@@ -301,8 +301,8 @@ event DHCP::aggregate_msgs(ts: time, id: conn_id, uid: string, is_orig: bool, ms
 event dhcp_message(c: connection, is_orig: bool, msg: DHCP::Msg, options: DHCP::Options) &priority=-5
 	{
 	if ( Cluster::is_enabled() && Cluster::local_node_type() != Cluster::MANAGER )
-		Broker::publish(Cluster::manager_topic, DHCP::aggregate_msgs,
-		                network_time(), c$id, c$uid, is_orig, msg, options);
+		Cluster::publish(Cluster::manager_topic, DHCP::aggregate_msgs,
+		                 network_time(), c$id, c$uid, is_orig, msg, options);
 	else
 		event DHCP::aggregate_msgs(network_time(), c$id, c$uid, is_orig, msg, options);
 	}

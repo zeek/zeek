@@ -46,7 +46,7 @@ function add_rule(r: Rule) : string
 		if ( r$id == "" )
 			r$id = cat(Cluster::node, ":", ++local_rule_count);
 
-		Broker::publish(Cluster::manager_topic, NetControl::cluster_netcontrol_add_rule, r);
+		Cluster::publish(Cluster::manager_topic, NetControl::cluster_netcontrol_add_rule, r);
 		return r$id;
 		}
 	}
@@ -57,7 +57,7 @@ function delete_rule(id: string, reason: string &default="") : bool
 		return delete_rule_impl(id, reason);
 	else
 		{
-		Broker::publish(Cluster::manager_topic, NetControl::cluster_netcontrol_delete_rule, id, reason);
+		Cluster::publish(Cluster::manager_topic, NetControl::cluster_netcontrol_delete_rule, id, reason);
 		return T; # well, we can't know here. So - just hope...
 		}
 	}
@@ -68,7 +68,7 @@ function remove_rule(id: string, reason: string &default="") : bool
 		return remove_rule_impl(id, reason);
 	else
 		{
-		Broker::publish(Cluster::manager_topic, NetControl::cluster_netcontrol_remove_rule, id, reason);
+		Cluster::publish(Cluster::manager_topic, NetControl::cluster_netcontrol_remove_rule, id, reason);
 		return T; # well, we can't know here. So - just hope...
 		}
 	}
@@ -101,7 +101,7 @@ event rule_exists(r: Rule, p: PluginState, msg: string) &priority=5
 	if ( r?$expire && r$expire > 0secs && ! p$plugin$can_expire )
 		schedule r$expire { rule_expire(r, p) };
 
-	Broker::publish(Cluster::worker_topic, rule_exists, r, p, msg);
+	Cluster::publish(Cluster::worker_topic, rule_exists, r, p, msg);
 	}
 
 event rule_added(r: Rule, p: PluginState, msg: string) &priority=5
@@ -111,38 +111,38 @@ event rule_added(r: Rule, p: PluginState, msg: string) &priority=5
 	if ( r?$expire && r$expire > 0secs && ! p$plugin$can_expire )
 		schedule r$expire { rule_expire(r, p) };
 
-	Broker::publish(Cluster::worker_topic, rule_added, r, p, msg);
+	Cluster::publish(Cluster::worker_topic, rule_added, r, p, msg);
 	}
 
 event rule_removed(r: Rule, p: PluginState, msg: string) &priority=-5
 	{
 	rule_removed_impl(r, p, msg);
 
-	Broker::publish(Cluster::worker_topic, rule_removed, r, p, msg);
+	Cluster::publish(Cluster::worker_topic, rule_removed, r, p, msg);
 	}
 
 event rule_timeout(r: Rule, i: FlowInfo, p: PluginState) &priority=-5
 	{
 	rule_timeout_impl(r, i, p);
 
-	Broker::publish(Cluster::worker_topic, rule_timeout, r, i, p);
+	Cluster::publish(Cluster::worker_topic, rule_timeout, r, i, p);
 	}
 
 event rule_error(r: Rule, p: PluginState, msg: string) &priority=-5
 	{
 	rule_error_impl(r, p, msg);
 
-	Broker::publish(Cluster::worker_topic, rule_error, r, msg);
+	Cluster::publish(Cluster::worker_topic, rule_error, r, msg);
 	}
 
 event rule_new(r: Rule)
 	{
-	Broker::publish(Cluster::worker_topic, rule_new, r);
+	Cluster::publish(Cluster::worker_topic, rule_new, r);
 	}
 
 event rule_destroyed(r: Rule)
 	{
-	Broker::publish(Cluster::worker_topic, rule_destroyed, r);
+	Cluster::publish(Cluster::worker_topic, rule_destroyed, r);
 	}
 @endif
 

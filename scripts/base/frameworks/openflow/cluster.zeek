@@ -22,7 +22,7 @@ function flow_mod(controller: Controller, match: ofp_match, flow_mod: ofp_flow_m
 	if ( Cluster::local_node_type() == Cluster::MANAGER )
 		return controller$flow_mod(controller$state, match, flow_mod);
 	else
-		Broker::publish(Cluster::manager_topic, OpenFlow::cluster_flow_mod, controller$state$_name, match, flow_mod);
+		Cluster::publish(Cluster::manager_topic, OpenFlow::cluster_flow_mod, controller$state$_name, match, flow_mod);
 
 	return T;
 	}
@@ -35,7 +35,7 @@ function flow_clear(controller: Controller): bool
 	if ( Cluster::local_node_type() == Cluster::MANAGER )
 		return controller$flow_clear(controller$state);
 	else
-		Broker::publish(Cluster::manager_topic, OpenFlow::cluster_flow_clear, controller$state$_name);
+		Cluster::publish(Cluster::manager_topic, OpenFlow::cluster_flow_clear, controller$state$_name);
 
 	return T;
 	}

@@ -65,7 +65,7 @@ function add_to_cache(key: string, value: vector of opaque of x509)
 	{
 	intermediate_cache[key] = value;
 @if ( Cluster::is_enabled() )
-	Broker::publish(Cluster::manager_topic, SSL::new_intermediate, key, value);
+	Cluster::publish(Cluster::manager_topic, SSL::new_intermediate, key, value);
 @endif
 	}
 
@@ -80,7 +80,7 @@ event SSL::new_intermediate(key: string, value: vector of opaque of x509)
 		return;
 
 	intermediate_cache[key] = value;
-	Broker::publish(Cluster::worker_topic, SSL::intermediate_add, key, value);
+	Cluster::publish(Cluster::worker_topic, SSL::intermediate_add, key, value);
 	}
 
 function cache_validate(chain: vector of opaque of x509): X509::Result

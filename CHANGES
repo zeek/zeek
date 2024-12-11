@@ -1,3 +1,7 @@
+7.1.0-dev.777 | 2024-12-11 12:38:48 -0700
+
+  * Add Spicy analyzers to Coverity builds (Tim Wojtulewicz, Corelight)
+
 7.1.0-dev.775 | 2024-12-11 11:45:31 -0700
 
   * Swap pre-commit yapf for ruff/ruff-format, fix findings (Tim Wojtulewicz, Corelight)

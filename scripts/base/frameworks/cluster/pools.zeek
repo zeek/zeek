@@ -18,6 +18,8 @@ export {
 		site_id: count;
 		## Whether the node is currently alive and can receive work.
 		alive: bool &default=F;
+		## The pre-computed result from Cluster::node_topic
+		topic: string;
 	};
 
 	## A pool specification.
@@ -172,7 +174,7 @@ function hrw_topic(pool: Pool, key: any): string
 
 	local site = HashHRW::get_site(pool$hrw_pool, key);
 	local pn: PoolNode = site$user_data;
-	return Cluster::node_topic(pn$name);
+	return pn$topic;
 	}
 
 function rr_topic(pool: Pool, key: string): string
@@ -198,7 +200,7 @@ function rr_topic(pool: Pool, key: string): string
 
 		if ( pn$alive )
 			{
-			rval = Cluster::node_topic(pn$name);
+			rval = pn$topic;
 			break;
 			}
 
@@ -276,7 +278,7 @@ function init_pool_node(pool: Pool, name: string): bool
 		else
 			{
 			local pn = PoolNode($name=name, $alias=alias, $site_id=site_id,
-			                    $alive=Cluster::node == name);
+			                    $alive=Cluster::node == name, $topic=Cluster::node_topic(name));
 			pool$nodes[name] = pn;
 			pool$node_list += pn;
 

@@ -94,7 +94,7 @@ event zeek_init() &priority=-10
 		return;
 	}
 
-	Cluster::subscribe(nodeid_topic(Broker::node_id()));
+	Cluster::subscribe(nodeid_topic(Cluster::node_id()));
 	Cluster::subscribe(node_topic(node));
 
 

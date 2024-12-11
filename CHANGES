@@ -1,3 +1,57 @@
+7.1.0-dev.760 | 2024-12-11 09:28:04 +0100
+
+  * Update ZAM BiF-tracking (Arne Welzel, Corelight)
+
+  * configure: Add --disable-cluster-backend-zeromq (Arne Welzel, Corelight)
+
+  * CMakeLists: Cluster backends output (Arne Welzel, Corelight)
+
+  * zeromq: Conditionally enable by default (Arne Welzel, Corelight)
+
+    Instead of having ZeroMQ as a new dependency, enable the ZeroMQ backend only
+    if ZeroMQ is available on the system as suggested by Tim.
+
+  * btest/generic: Add publish_hrw(), publish_rr() and logging tests (Arne Welzel, Corelight)
+
+    They currently use zeromq, but technically they should be valid for
+    any other backend, too, even broker.
+
+  * generate-docs: Run on Ubuntu 24.04, add cppzmq (Arne Welzel, Corelight)
+
+  * docker: Add cppzmq/libzmq dependencies (Arne Welzel, Corelight)
+
+  * tsan_suppressions: Add called_from_lib: libzmq (Arne Welzel, Corelight)
+
+  * ci: Add cppzmq and libzmq to most platforms (Arne Welzel, Corelight)
+
+  * cluster/backend/zeromq: Add ZeroMQ based cluster backend (Arne Welzel, Corelight)
+
+    This is a cluster backend implementation using a central XPUB/XSUB proxy
+    that by default runs on the manager node. Logging is implemented leveraging
+    PUSH/PULL sockets between logger and other nodes, rather than going
+    through XPUB/XSUB.
+
+    The test-all-policy-cluster baseline changed: Previously, Broker::peer()
+    would be called from setup-connections.zeek, causing the IO loop to be
+    alive. With the ZeroMQ backend, the IO loop is only alive when
+    Cluster::init() is called, but that doesn't happen anymore.
+
+  * cluster/backend/zeromq: Add cppzmq submodule (Arne Welzel, Corelight)
+
+    Not all supported platforms provide a recent enough cppzmq version,
+    add a fallback as submodule. cppzmq is a header-only library, so there's
+    no build step involved.
+
+  * cluster: Add Cluster::node_id(), allow redef of node_topic(), nodeid_topic() (Arne Welzel, Corelight)
+
+    This provides a way for non-broker cluster backends to override a
+    node's identifier and its own topics that it listens on by default.
+
+  * cluster: Move publish_hrw() and publish_rr() to cluster.bif (Arne Welzel, Corelight)
+
+    From this point on, Cluster::publish_hrw() and Cluster::publish_rr()
+    go through cluster/Backend.cc code.
+
 7.1.0-dev.745 | 2024-12-10 16:15:57 -0700
 
   * Add btest for unknown_protocols.log (Jan Grashoefer, Corelight)

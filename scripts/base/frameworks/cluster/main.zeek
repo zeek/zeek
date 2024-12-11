@@ -242,6 +242,13 @@ export {
 	## of the cluster that is started up.
 	const node = getenv("CLUSTER_NODE") &redef;
 
+	## Function returning this node's identifier.
+	##
+	## By default this is :zeek:see:`Broker::node_id`, but can be
+	## redefined by other cluster backends. This identifier should be
+	## a short lived identifier that resets when a node is restarted.
+	global node_id: function(): string = Broker::node_id &redef;
+
 	## Interval for retrying failed connections between cluster nodes.
 	## If set, the ZEEK_DEFAULT_CONNECT_RETRY (given in number of seconds)
 	## environment variable overrides this option.
@@ -270,7 +277,7 @@ export {
 	##
 	## Returns: a topic string that may used to send a message exclusively to
 	##          a given cluster node.
-	global node_topic: function(name: string): string;
+	global node_topic: function(name: string): string &redef;
 
 	## Retrieve the topic associated with a specific node in the cluster.
 	##
@@ -279,7 +286,7 @@ export {
 	##
 	## Returns: a topic string that may used to send a message exclusively to
 	##          a given cluster node.
-	global nodeid_topic: function(id: string): string;
+	global nodeid_topic: function(id: string): string &redef;
 
 	## Retrieve the cluster-level naming of a node based on its node ID,
 	## a backend-specific identifier.
@@ -446,7 +453,7 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=
 	if ( ! Cluster::is_enabled() )
 		return;
 
-	local e = Broker::make_event(Cluster::hello, node, Broker::node_id());
+	local e = Broker::make_event(Cluster::hello, node, Cluster::node_id());
 	Broker::publish(nodeid_topic(endpoint$id), e);
 	}
 

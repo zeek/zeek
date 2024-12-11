@@ -44,6 +44,8 @@ zeek::RecordValPtr make_event(zeek::ArgsSpan args);
  */
 zeek::ValPtr publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args);
 
+bool is_cluster_pool(const zeek::Val* pool);
+
 } // namespace cluster::detail::bif
 
 } // namespace zeek

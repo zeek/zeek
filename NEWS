@@ -39,6 +39,12 @@ New Functionality
   This entire feature can be disabled by loading the new
   ``policy/protocols/conn/disable-unknown-ip-proto-support.zeek`` policy script.
 
+- New ``Cluster::publish()``, ``Cluster::subscribe()`` and ``Cluster::unsubscribe()``
+  functions have been added. In contrast to their ``Broker`` counterparts, these
+  will operator on whichever cluster backend is enabled. Going forward, in-tree
+  ``Broker::publish()`` usages will be replaced with ``Cluster::publish()`` and
+  script writers should opt to prefer these over the Broker-specific functions.
+
 - Zeek now includes a PostgreSQL protocol analyzer. This analyzer is enabled
   by default. The analyzer's events and its ``postgresql.log`` should be
   considered preliminary and experimental until the arrival of Zeek's next
@@ -147,6 +153,24 @@ New Functionality
 
   This comes with performance caveats: For use-cases with high-data rates
   a native protocol analyzer with dedicated events will be far more efficient.
+
+- Experimental support for pluggable cluster backends has been added. New plugin
+  components have been introduced to support switching Zeek's Broker-based
+  publish-subscribe and remote logging functionality to alternative implementations.
+
+	redef Cluster::backend = Cluster::CLUSTER_BACKEND_ZEROMQ;
+
+  Besides the backend, the serialization format used for events and log-writes
+  has become pluggable as well.
+
+- The Zeek distribution now includes an experimental ZeroMQ based cluster backend.
+  To experiment with it, load the following script on each cluster node.
+
+	@load frameworks/cluster/backend/zeromq/connect
+
+  Note that Broker-dependent scripts or integrations will become non-functional
+  when doing so as Zeek nodes will not listen on Broker ports anymore, nor will
+  they establish a peering to other nodes.
 
 Changed Functionality
 ---------------------

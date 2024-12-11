@@ -1,6 +1,7 @@
 # @TEST-DOC: ZAM maintenance script for tracking changes in BiFs.
 #
 # @TEST-REQUIRES: have-spicy
+# @TEST-REQUIRES: have-zeromq
 #
 # @TEST-EXEC: zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
@@ -198,6 +199,7 @@ global known_BiFs = set(
 	"Telemetry::__histogram_observe",
 	"Telemetry::__histogram_sum",
 	"WebSocket::__configure_analyzer",
+	"Cluster::Backend::ZeroMQ::spawn_zmq_proxy_thread",
 	"__init_primary_bifs",
 	"__init_secondary_bifs",
 	"active_file",

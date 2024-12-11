@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 // A logger for (selective) debugging output. Only compiled in if DEBUG is
 // defined.
 

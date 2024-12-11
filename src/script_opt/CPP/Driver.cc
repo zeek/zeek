@@ -29,6 +29,7 @@ CPPCompile::CPPCompile(vector<FuncInfo>& _funcs, std::shared_ptr<ProfileFuncs> _
 CPPCompile::~CPPCompile() { fclose(write_file); }
 
 void CPPCompile::Compile(bool report_uncompilable) {
+    unordered_set<const Type*> rep_types;
     unordered_set<string> filenames_reported_as_skipped;
     bool had_to_skip = false;
 
@@ -63,6 +64,24 @@ void CPPCompile::Compile(bool report_uncompilable) {
             continue;
         }
 
+        auto pf = func.Profile();
+        total_hash = merge_p_hashes(total_hash, pf->HashVal());
+
+        for ( auto t : pf->UnorderedTypes() )
+            rep_types.insert(pfs->TypeRep(t));
+
+        auto& pf_all_gl = pf->AllGlobals();
+        all_accessed_globals.insert(pf_all_gl.begin(), pf_all_gl.end());
+
+        auto& pf_gl = pf->Globals();
+        accessed_globals.insert(pf_gl.begin(), pf_gl.end());
+
+        auto& pf_events = pf->Events();
+        accessed_events.insert(pf_events.begin(), pf_events.end());
+
+        auto& pf_lambdas = pf->Lambdas();
+        accessed_lambdas.insert(pf_lambdas.begin(), pf_lambdas.end());
+
         if ( is_lambda(f) || is_when_lambda(f) ) {
             // We deal with these separately.
             func.SetSkip(true);
@@ -85,13 +104,13 @@ void CPPCompile::Compile(bool report_uncompilable) {
         }
     }
 
-    if ( standalone && had_to_skip )
-        reporter->FatalError("aborting standalone compilation to C++ due to having to skip some functions");
-
     // Generate a hash unique for this compilation.
     for ( const auto& func : funcs )
         if ( ! func.ShouldSkip() )
             total_hash = merge_p_hashes(total_hash, func.Profile()->HashVal());
+
+    if ( standalone && had_to_skip )
+        reporter->FatalError("aborting standalone compilation to C++ due to having to skip some functions");
 
     auto t = util::current_time();
     total_hash = merge_p_hashes(total_hash, hash<double>{}(t));
@@ -99,21 +118,21 @@ void CPPCompile::Compile(bool report_uncompilable) {
     GenProlog();
 
     // Track all of the types we'll be using.
-    for ( const auto& t : pfs->RepTypes() ) {
+    for ( const auto& t : rep_types ) {
         TypePtr tp{NewRef{}, (Type*)(t)};
         types.AddKey(tp, pfs->HashType(t));
     }
 
     NL();
 
-    for ( auto& g : pfs->AllGlobals() )
+    for ( auto& g : all_accessed_globals )
         CreateGlobal(g);
 
-    for ( const auto& e : pfs->Events() )
+    for ( const auto& e : accessed_events )
         if ( AddGlobal(e, "gl") )
             Emit("EventHandlerPtr %s_ev;", globals[string(e)]);
 
-    for ( const auto& t : pfs->RepTypes() ) {
+    for ( const auto& t : rep_types ) {
         ASSERT(types.HasKey(t));
         TypePtr tp{NewRef{}, (Type*)(t)};
         RegisterType(tp);
@@ -131,7 +150,7 @@ void CPPCompile::Compile(bool report_uncompilable) {
     // be identical.  In that case, we don't want to generate the lambda
     // twice, but we do want to map the second one to the same body name.
     unordered_map<string, const Stmt*> lambda_ASTs;
-    for ( const auto& l : pfs->Lambdas() ) {
+    for ( const auto& l : accessed_lambdas ) {
         const auto& n = l->Name();
         const auto body = l->Ingredients()->Body().get();
         if ( lambda_ASTs.count(n) > 0 )
@@ -151,7 +170,7 @@ void CPPCompile::Compile(bool report_uncompilable) {
             CompileFunc(func);
 
     lambda_ASTs.clear();
-    for ( const auto& l : pfs->Lambdas() ) {
+    for ( const auto& l : accessed_lambdas ) {
         const auto& n = l->Name();
         if ( lambda_ASTs.count(n) > 0 )
             continue;

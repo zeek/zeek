@@ -242,6 +242,13 @@ export {
 	## of the cluster that is started up.
 	const node = getenv("CLUSTER_NODE") &redef;
 
+	## Function returning this node's identifier.
+	##
+	## By default this is :zeek:see:`Broker::node_id`, but can be
+	## redefined by other cluster backends. This identifier should be
+	## a short lived identifier that resets when a node is restarted.
+	global node_id: function(): string = Broker::node_id &redef;
+
 	## Interval for retrying failed connections between cluster nodes.
 	## If set, the ZEEK_DEFAULT_CONNECT_RETRY (given in number of seconds)
 	## environment variable overrides this option.
@@ -270,7 +277,7 @@ export {
 	##
 	## Returns: a topic string that may used to send a message exclusively to
 	##          a given cluster node.
-	global node_topic: function(name: string): string;
+	global node_topic: function(name: string): string &redef;
 
 	## Retrieve the topic associated with a specific node in the cluster.
 	##
@@ -279,7 +286,16 @@ export {
 	##
 	## Returns: a topic string that may used to send a message exclusively to
 	##          a given cluster node.
-	global nodeid_topic: function(id: string): string;
+	global nodeid_topic: function(id: string): string &redef;
+
+	## Retrieve the cluster-level naming of a node based on its node ID,
+	## a backend-specific identifier.
+	##
+	## id: the node ID of a peer.
+	##
+	## Returns: the :zeek:see:`Cluster::NamedNode` for the requested node, if
+	##          known, otherwise a "null" instance with an empty name field.
+	global nodeid_to_node: function(id: string): NamedNode;
 
 	## Initialize the cluster backend.
 	##
@@ -336,7 +352,7 @@ function nodes_with_type(node_type: NodeType): vector of NamedNode
 		{ return strcmp(n1$name, n2$name); });
 	}
 
-function Cluster::get_node_count(node_type: NodeType): count
+function get_node_count(node_type: NodeType): count
 	{
 	local cnt = 0;
 
@@ -349,7 +365,7 @@ function Cluster::get_node_count(node_type: NodeType): count
 	return cnt;
 	}
 
-function Cluster::get_active_node_count(node_type: NodeType): count
+function get_active_node_count(node_type: NodeType): count
 	{
 	return node_type in active_node_ids ? |active_node_ids[node_type]| : 0;
 	}
@@ -394,6 +410,17 @@ function nodeid_topic(id: string): string
 	return nodeid_topic_prefix + id + "/";
 	}
 
+function nodeid_to_node(id: string): NamedNode
+	{
+	for ( name, n in nodes )
+		{
+		if ( n?$id && n$id == id )
+			return NamedNode($name=name, $node=n);
+		}
+
+	return NamedNode($name="", $node=[$node_type=NONE, $ip=0.0.0.0]);
+	}
+
 event Cluster::hello(name: string, id: string) &priority=10
 	{
 	if ( name !in nodes )
@@ -426,7 +453,7 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=
 	if ( ! Cluster::is_enabled() )
 		return;
 
-	local e = Broker::make_event(Cluster::hello, node, Broker::node_id());
+	local e = Broker::make_event(Cluster::hello, node, Cluster::node_id());
 	Broker::publish(nodeid_topic(endpoint$id), e);
 	}
 

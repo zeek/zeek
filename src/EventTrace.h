@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 // Classes for tracing/dumping Zeek events.
 
 #pragma once

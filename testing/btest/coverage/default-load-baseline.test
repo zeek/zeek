@@ -7,7 +7,8 @@
 # prefix to make the test work everywhere. That's what the sed magic
 # below does. Don't ask. :-)
 
-# @TEST-REQUIRES: ${SCRIPTS}/have-spicy
+# @TEST-REQUIRES: have-spicy
+# @TEST-REQUIRES: have-zeromq
 # @TEST-REQUIRES: ! have-spicy-ssl  # Enabling Spicy SSL changes the loaded scripts, skip in this case
 # @TEST-EXEC: zeek misc/loaded-scripts
 # @TEST-EXEC: test -e loaded_scripts.log

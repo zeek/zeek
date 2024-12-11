@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #pragma once
 
 #include <broker/backend.hh>
@@ -107,7 +109,7 @@ public:
     /**
      * Returns true if any Broker communication is currently active.
      */
-    [[deprecated("Remove with v8.1 - unused")]] bool Active();
+    bool Active();
 
     /**
      * Advances time.  Broker data store expiration is driven by this

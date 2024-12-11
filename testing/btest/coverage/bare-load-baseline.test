@@ -9,6 +9,7 @@
 # below does. Don't ask. :-)
 
 # @TEST-REQUIRES: $SCRIPTS/have-spicy  # This test logs loaded scripts, so disable it if Spicy and it associated plugin is unavailable.
+# @TEST-REQUIRES: have-zeromq  # Require ZeroMQ so that the plugin's bif file is loaded.
 # @TEST-REQUIRES: ! have-spicy-ssl  # Enabling Spicy SSL changes the loaded scripts, skip in this case
 # @TEST-EXEC: zeek -b misc/loaded-scripts
 # @TEST-EXEC: test -e loaded_scripts.log

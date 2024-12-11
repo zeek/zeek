@@ -82,8 +82,7 @@ static VectorTypePtr base_vector_type__CPP(const VectorTypePtr& vt, bool is_bool
 // Instantiates a double_kernel for a given operation.
 #define VEC_OP1_WITH_DOUBLE(name, op)                                                                                  \
     VEC_OP1(                                                                                                           \
-        name, op, case TYPE_INTERNAL_DOUBLE                                                                            \
-        : {                                                                                                            \
+        name, op, case TYPE_INTERNAL_DOUBLE : {                                                                        \
             VEC_OP1_KERNEL(AsDouble, DoubleVal, op)                                                                    \
             break;                                                                                                     \
         })

@@ -12,8 +12,8 @@ import argparse
 import copy
 import json
 import logging
-import pathlib
 import os
+import pathlib
 import subprocess
 import sys
 
@@ -38,14 +38,22 @@ def git_available():
 
 def git_is_repo(d: pathlib.Path):
     try:
-        git("-C", str(d), "rev-parse", "--is-inside-work-tree", stderr=subprocess.DEVNULL)
+        git(
+            "-C",
+            str(d),
+            "rev-parse",
+            "--is-inside-work-tree",
+            stderr=subprocess.DEVNULL,
+        )
         return True
     except subprocess.CalledProcessError:
         return False
 
 
 def git_is_dirty(d: pathlib.Path):
-    return (len(git("-C", str(d), "status", "--untracked=no", "--short").splitlines()) > 0)
+    return (
+        len(git("-C", str(d), "status", "--untracked=no", "--short").splitlines()) > 0
+    )
 
 
 def git_generic_info(d: pathlib.Path):
@@ -111,7 +119,9 @@ def collect_git_info(zeek_dir: pathlib.Path):
     info["name"] = "zeek"
     info["version"] = (zeek_dir / "VERSION").read_text().strip()
     info["submodules"] = collect_submodule_info(zeek_dir)
-    info["branch"] = git("-C", str(zeek_dir), "rev-parse", "--abbrev-ref", "HEAD").strip()
+    info["branch"] = git(
+        "-C", str(zeek_dir), "rev-parse", "--abbrev-ref", "HEAD"
+    ).strip()
     info["source"] = "git"
 
     return info
@@ -156,14 +166,13 @@ def main():
         for p in [p.strip() for p in v.split(";") if p.strip()]:
             yield pathlib.Path(p)
 
-    parser.add_argument("included_plugin_dirs",
-                        default="",
-                        nargs="?",
-                        type=included_plugin_dir_conv)
+    parser.add_argument(
+        "included_plugin_dirs", default="", nargs="?", type=included_plugin_dir_conv
+    )
     parser.add_argument("--dir", default=".")
-    parser.add_argument("--only-git",
-                        action="store_true",
-                        help="Do not try repo-info.json fallback")
+    parser.add_argument(
+        "--only-git", action="store_true", help="Do not try repo-info.json fallback"
+    )
     args = parser.parse_args()
 
     logging.basicConfig(format="%(levelname)s: %(message)s")
@@ -210,7 +219,9 @@ def main():
 
     zkg_provides_info = copy.deepcopy(included_plugins_info)
     # Hardcode the former spicy-plugin so that zkg knows Spicy is available.
-    zkg_provides_info.append({"name": "spicy-plugin", "version": info["version"].split("-")[0]})
+    zkg_provides_info.append(
+        {"name": "spicy-plugin", "version": info["version"].split("-")[0]}
+    )
     info["zkg"] = {"provides": zkg_provides_info}
 
     json_str = json.dumps(info, indent=2, sort_keys=True)

@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #ifdef _MSC_VER
 #include <unistd.h>
 #endif

@@ -6,6 +6,7 @@
 #
 # Require Spicy, otherwise its scripts cannot be loaded.
 # @TEST-REQUIRES: have-spicy
+# @TEST-REQUIRES: have-zeromq
 #
 # @TEST-EXEC: test -d $DIST/scripts
 # @TEST-EXEC: for script in `find $DIST/scripts/ -name \*\.zeek`; do zeek -b --parse-only $script >>errors 2>&1; done

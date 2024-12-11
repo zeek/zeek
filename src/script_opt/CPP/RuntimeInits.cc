@@ -235,7 +235,7 @@ void CPP_TypeInits::PreInit(InitsManager* im, int offset, ValElemVec& init_vals)
     if ( tag == TYPE_LIST )
         inits_vec[offset] = make_intrusive<TypeList>();
 
-    else if ( tag == TYPE_RECORD ) {
+    else if ( tag == TYPE_RECORD && init_vals[1] != NAMED_TYPE_MARKER ) {
         auto name = im->Strings(init_vals[1]);
         if ( name[0] )
             inits_vec[offset] = get_record_type__CPP(name);
@@ -243,7 +243,7 @@ void CPP_TypeInits::PreInit(InitsManager* im, int offset, ValElemVec& init_vals)
             inits_vec[offset] = get_record_type__CPP(nullptr);
     }
 
-    else if ( tag == TYPE_TABLE )
+    else if ( tag == TYPE_TABLE && init_vals[1] != NAMED_TYPE_MARKER )
         inits_vec[offset] = make_intrusive<CPPTableType>();
 
     // else no pre-initialization needed
@@ -251,6 +251,13 @@ void CPP_TypeInits::PreInit(InitsManager* im, int offset, ValElemVec& init_vals)
 
 void CPP_TypeInits::Generate(InitsManager* im, vector<TypePtr>& ivec, int offset, ValElemVec& init_vals) const {
     auto tag = static_cast<TypeTag>(init_vals[0]);
+
+    if ( init_vals.size() > 1 && init_vals[1] == NAMED_TYPE_MARKER ) {
+        auto name = im->Strings(init_vals[2]);
+        ivec[offset] = find_global__CPP(name)->GetType();
+        return;
+    }
+
     TypePtr t;
     switch ( tag ) {
         case TYPE_ADDR:
@@ -406,6 +413,11 @@ int CPP_FieldMapping::ComputeOffset(InitsManager* im) const {
     auto fm_offset = r->FieldOffset(field_name.c_str());
 
     if ( fm_offset < 0 ) { // field does not exist, create it
+        if ( field_type == DO_NOT_CONSTRUCT_VALUE_MARKER ) {
+            reporter->CPPRuntimeError("record field \"%s\" missing in %s", field_name.c_str(), obj_desc(r).c_str());
+            exit(1);
+        }
+
         fm_offset = r->NumFields();
 
         auto id = util::copy_string(field_name.c_str(), field_name.size());
@@ -429,6 +441,11 @@ int CPP_EnumMapping::ComputeOffset(InitsManager* im) const {
 
     auto em_offset = e->Lookup(e_name);
     if ( em_offset < 0 ) { // enum constant does not exist, create it
+        if ( ! construct_if_missing ) {
+            reporter->CPPRuntimeError("enum element \"%s\" missing in %s", e_name.c_str(), obj_desc(e).c_str());
+            exit(1);
+        }
+
         em_offset = e->Names().size();
         if ( e->Lookup(em_offset) )
             reporter->InternalError("enum inconsistency while initializing compiled scripts");
@@ -436,6 +453,10 @@ int CPP_EnumMapping::ComputeOffset(InitsManager* im) const {
     }
 
     return em_offset;
+}
+
+void CPP_GlobalLookupInit::Generate(InitsManager* im, std::vector<void*>& /* inits_vec */, int /* offset */) const {
+    global = find_global__CPP(name);
 }
 
 void CPP_GlobalInit::Generate(InitsManager* im, std::vector<void*>& /* inits_vec */, int /* offset */) const {

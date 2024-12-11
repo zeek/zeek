@@ -6,7 +6,7 @@
 module SSL;
 
 redef record SSL::Info += {
-	## List of cient certificate CAs accepted by the server
+	## List of client certificate CAs accepted by the server
 	requested_client_certificate_authorities: vector of string &optional &log;
 };
 

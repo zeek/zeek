@@ -1262,6 +1262,14 @@ bool DNS_Interpreter::ParseRR_BINDS(detail::DNS_MsgInfo* msg, const u_char*& dat
 
     String* completeflag = ExtractStream(data, len, rdlength - 4);
 
+    // We exposed the complete flag as a string to script land previously,
+    // but there should only ever be a single byte, so raise a weird if
+    // it is longer than that.
+    //
+    // https://bind9.readthedocs.io/en/latest/chapter5.html#monitoring-with-private-type-records
+    if ( completeflag->Len() > 1 )
+        analyzer->Weird("DNS_BINDS_complete_flag_length", util::fmt("%d", completeflag->Len()));
+
     if ( dns_BINDS ) {
         detail::BINDS_DATA binds;
         binds.algorithm = algo;
@@ -1855,8 +1863,9 @@ RecordValPtr DNS_MsgInfo::BuildBINDS_Val(BINDS_DATA* binds) {
     r->Assign(2, binds->algorithm);
     r->Assign(3, binds->key_id);
     r->Assign(4, binds->removal_flag);
-    r->Assign(5, binds->complete_flag);
+    r->Assign(5, binds->complete_flag); // Remove in v8.1: Move field 7 here. Drop String* usage.
     r->Assign(6, is_query);
+    r->Assign(7, binds->complete_flag->Len() > 0 ? binds->complete_flag->Bytes()[0] : 0);
 
     return r;
 }

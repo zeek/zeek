@@ -600,6 +600,27 @@ function piped_exec%(program: string, to_write: string%): bool
 	return zeek::val_mgr->True();
 	%}
 
+## Sleeps for the given amount of time.
+##
+## i: The time interval to sleep for.
+##
+## Returns: The :zeek:type:`interval` Zeek actually slept for.
+##
+## .. note::
+##
+##      This is a blocking sleep! Zeek will not run most of its processing
+##      during that time. You almost certainly DO NOT WANT THIS outside
+##      of specific testing/troubleshooting scenarios. To sleep asynchronously,
+##      :zeek:see:`schedule` an event, or consider :zeek:id:`Exec::run`.
+function sleep%(i: interval%): interval
+	%{
+	const auto start = std::chrono::high_resolution_clock::now();
+	std::this_thread::sleep_for(std::chrono::duration<double>(i));
+	const auto end = std::chrono::high_resolution_clock::now();
+	const auto slept = std::chrono::duration<double>(end - start).count();
+	return zeek::make_intrusive<zeek::IntervalVal>(slept);
+        %}
+
 %%{
 #include "zeek/OpaqueVal.h"
 %%}
@@ -3831,6 +3852,31 @@ function get_current_packet_header%(%) : raw_pkt_hdr
 	static auto raw_pkt_hdr_type = zeek::id::find_type<zeek::RecordType>("raw_pkt_hdr");
 	auto hdr = zeek::make_intrusive<zeek::RecordVal>(raw_pkt_hdr_type);
 	return std::move(hdr);
+	%}
+
+## Returns the currently processed PCAP packet's timestamp or a 0 timestamp if
+## there is no packet being processed at the moment.
+##
+## Returns: The currently processed packet's timestamp.
+##
+## .. zeek:see:: get_current_packet get_current_packet_header network_time
+##
+## .. note::
+##
+##      When there is no packet being processed, ``get_current_packet_ts()``
+##      will return a 0 timestamp, while ``network_time()`` will return the
+##      timestamp of the last processed packet until it falls back to tracking
+##      wall clock after ``packet_source_inactivity_timeout``.
+function get_current_packet_ts%(%) : time
+	%{
+	double ts = 0;
+	const Packet* p = nullptr;
+	zeek::iosource::PktSrc* pkt_src = zeek::run_state::detail::current_packet_source();
+
+	if ( pkt_src && pkt_src->GetCurrentPacket(&p) )
+		ts = p->time;
+
+	return zeek::make_intrusive<zeek::TimeVal>(ts);
 	%}
 
 ## Writes a given packet to a file.

@@ -899,7 +899,7 @@ static bool simplify_chain(const std::vector<StmtPtr>& stmts, unsigned int start
 
     // An add-chain of any size is a win. For an assign-chain to be a win,
     // it needs to have at least two elements, because a single "x$a = y$b"
-    // can be expressed using one ZAM instructino (but "x$a += y$b" cannot).
+    // can be expressed using one ZAM instruction (but "x$a += y$b" cannot).
     if ( add_chains.empty() ) {
         bool have_useful_assign_chain = false;
         for ( auto& ac : assign_chains )

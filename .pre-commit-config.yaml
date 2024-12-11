@@ -2,8 +2,19 @@
 # See https://pre-commit.com/hooks.html for more hooks
 #
 repos:
+- repo: local
+  hooks:
+  - id: license
+    name: Check for license headers
+    entry: ./ci/license-header.py
+    language: python
+    types_or:
+      - "c"
+      - "c++"
+    exclude: '^(testing/btest/plugins/.*|testing/builtin-plugins/.*)$'
+
 - repo: https://github.com/pre-commit/mirrors-clang-format
-  rev: 'v18.1.8'
+  rev: 'v19.1.4'
   hooks:
   - id: clang-format
     types_or:
@@ -17,10 +28,12 @@ repos:
     - id: shfmt
       args: ["-w", "-i", "4", "-ci"]
 
-- repo: https://github.com/google/yapf
-  rev: v0.40.2
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.8.1
   hooks:
-  - id: yapf
+    - id: ruff
+      args: [--fix]
+    - id: ruff-format
 
 - repo: https://github.com/cheshirekow/cmake-format-precommit
   rev: v0.6.13
@@ -28,13 +41,13 @@ repos:
   - id: cmake-format
 
 - repo: https://github.com/crate-ci/typos
-  rev: v1.16.21
+  rev: v1.28.2
   hooks:
     - id: typos
-      exclude: '^(.typos.toml|src/SmithWaterman.cc|testing/.*|auxil/.*|scripts/base/frameworks/files/magic/.*|CHANGES)$'
+      exclude: '^(.typos.toml|src/SmithWaterman.cc|testing/.*|auxil/.*|scripts/base/frameworks/files/magic/.*|CHANGES|scripts/base/protocols/ssl/mozilla-ca-list.zeek)$'
 
 - repo: https://github.com/bbannier/spicy-format
-  rev: v0.20.0
+  rev: v0.22.0
   hooks:
     - id: spicy-format
       # TODO: Reformat existing large analyzers just before 8.0.

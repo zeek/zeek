@@ -772,7 +772,7 @@ if (NOT SED_EXE)
     endif ()
 endif ()
 
-set(ZEEK_PYTHON_MIN 3.5.0)
+set(ZEEK_PYTHON_MIN 3.9.0)
 set(Python_FIND_UNVERSIONED_NAMES FIRST)
 find_package(Python ${ZEEK_PYTHON_MIN} REQUIRED COMPONENTS Interpreter)
 find_package(FLEX REQUIRED)
@@ -1489,6 +1489,10 @@ message(
     "\n  - tcmalloc:      ${USE_PERFTOOLS_TCMALLOC}"
     "\n  - debugging:     ${USE_PERFTOOLS_DEBUG}"
     "\njemalloc:          ${ENABLE_JEMALLOC}"
+    "\n"
+    "\nCluster backends:"
+    "\n  - Broker:        ON"
+    "\n  - ZeroMQ:        ${ENABLE_CLUSTER_BACKEND_ZEROMQ}"
     "\n"
     "\nFuzz Targets:      ${ZEEK_ENABLE_FUZZERS}"
     "\nFuzz Engine:       ${ZEEK_FUZZING_ENGINE}"

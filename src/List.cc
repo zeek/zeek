@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "zeek/List.h"
 
 #include "zeek/3rdparty/doctest.h"

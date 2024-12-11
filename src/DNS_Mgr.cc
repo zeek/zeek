@@ -318,7 +318,7 @@ static void addrinfo_cb(void* arg, int status, int timeouts, struct ares_addrinf
             // Push a null on the end so the addr list has a final point during later parsing.
             addrs.push_back(NULL);
 
-            struct hostent he {};
+            struct hostent he{};
             he.h_name = util::copy_string(result->name);
             he.h_addrtype = AF_INET;
             he.h_length = sizeof(in_addr);
@@ -333,7 +333,7 @@ static void addrinfo_cb(void* arg, int status, int timeouts, struct ares_addrinf
             // Push a null on the end so the addr list has a final point during later parsing.
             addrs6.push_back(NULL);
 
-            struct hostent he {};
+            struct hostent he{};
             he.h_name = util::copy_string(result->name);
             he.h_addrtype = AF_INET6;
             he.h_length = sizeof(in6_addr);
@@ -370,7 +370,7 @@ static void query_cb(void* arg, ares_status_t status, size_t timeouts, const are
         }
     }
     else {
-        struct hostent he {};
+        struct hostent he{};
 
         uint32_t ttl = 0;
         size_t rr_cnt = ares_dns_record_rr_cnt(dnsrec, ARES_SECTION_ANSWER);

@@ -146,7 +146,7 @@ public:
 
     /**
      * Parses options command-line style after Zeek-side scripts have been
-     * fully procssed. Most of the option processing happens here (vs. in
+     * fully processed. Most of the option processing happens here (vs. in
      * `parseOptionsPreScript()`) except for things that must be in place
      * already before script processing.
      *

@@ -11,4 +11,5 @@ zeek_add_subdir_library(
     BIFS
     cluster.bif)
 
+add_subdirectory(backend)
 add_subdirectory(serializer)

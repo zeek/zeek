@@ -75,6 +75,7 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --disable-broker-tests don't try to build Broker unit tests
     --disable-btest        don't install BTest
     --disable-btest-pcaps  don't install Zeek's BTest input pcaps
+    --disable-cluster-backend-zeromq don't build Zeek's ZeroMQ cluster backend
     --disable-cpp-tests    don't build Zeek's C++ unit tests
     --disable-javascript   don't build Zeek's JavaScript support
     --disable-port-prealloc disable pre-allocating the PortVal array in ValManager
@@ -332,6 +333,9 @@ while [ $# -ne 0 ]; do
             ;;
         --disable-btest-pcaps)
             append_cache_entry INSTALL_BTEST_PCAPS BOOL false
+            ;;
+        --disable-cluster-backend-zeromq)
+            append_cache_entry ENABLE_CLUSTER_BACKEND_ZEROMQ BOOL false
             ;;
         --disable-cpp-tests)
             append_cache_entry ENABLE_ZEEK_UNIT_TESTS BOOL false

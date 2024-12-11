@@ -11,6 +11,11 @@
 
 # @load frameworks/control/controllee.zeek
 # @load frameworks/control/controller.zeek
+@ifdef ( Cluster::CLUSTER_BACKEND_ZEROMQ )
+@load frameworks/cluster/backend/zeromq/__load__.zeek
+# @load frameworks/cluster/backend/zeromq/connect.zeek
+@load frameworks/cluster/backend/zeromq/main.zeek
+@endif
 @load frameworks/cluster/experimental.zeek
 # Loaded via the above through test-all-policy-cluster.test
 # when running as a manager, creates cluster.log entries

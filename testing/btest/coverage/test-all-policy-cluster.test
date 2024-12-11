@@ -16,6 +16,10 @@
 
 @load test-all-policy
 
+# Flip this to broker to avoid warnings() due Broker::publish()
+# calls in some scripts.
+redef Cluster::backend = Cluster::CLUSTER_BACKEND_BROKER;
+
 @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
 	["manager"]  = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],

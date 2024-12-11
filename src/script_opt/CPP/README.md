@@ -90,7 +90,7 @@ and also any compiled-to-C++ bodies present in the `zeek` binary that
 The above workflows require the subsequent `zeek` execution to include
 the `target.zeek` script.  You can avoid this by replacing the first step with:
 
-1. `./src/zeek -O gen-standalone-C++ target.zeek >target-stand-in.zeek`
+1. `./src/zeek -O gen-standalone-C++ --optimize-files=target.zeek target.zeek >target-stand-in.zeek`
 
 (and then building as in the 2nd step above).
 This option prints to _stdout_ a 
@@ -100,13 +100,9 @@ without needing to include `target.zeek` in the invocation (nor
 the `-O use-C++` option).  After loading the stand-in script,
 you can still access types and functions declared in `target.zeek`.
 
-Note: the implementation differences between `gen-C++` and `gen-standalone-C++`
-wound up being modest enough that it might make sense to just always provide
-the latter functionality, which it turns out does not introduce any
-additional constraints compared to the current `gen-C++` functionality.
-On the other hand, it's possible (not yet established) that code created
-using `gen-C++` can be made to compile significantly faster than
-standalone code.
+Note: `gen-standalone-C++` _must_ be used with `--optimize-files`, as the
+compiler needs the latter to determine which global declarations the
+standalone code needs to initialize.
 
 There are additional workflows relating to running the test suite: see
 `src/script_opt/CPP/maint/README`.

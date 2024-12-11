@@ -10,6 +10,7 @@
 #include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/StmtOptInfo.h"
+#include "zeek/script_opt/ZAM/Support.h"
 
 namespace zeek::detail {
 
@@ -160,7 +161,7 @@ void Inliner::Analyze() {
         if ( non_recursive_funcs.count(func) == 0 )
             continue;
 
-        if ( body->Tag() == STMT_CPP )
+        if ( ! is_ZAM_compilable(f.Profile()) )
             continue;
 
         inline_ables[func] = f.Profile();

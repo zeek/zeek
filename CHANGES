@@ -1,3 +1,214 @@
+7.1.0-dev.775 | 2024-12-11 11:45:31 -0700
+
+  * Swap pre-commit yapf for ruff/ruff-format, fix findings (Tim Wojtulewicz, Corelight)
+
+  * Upgrade package-manager submodule to get python upgrade (Tim Wojtulewicz, Corelight)
+
+  * Upgrade broker submodule to get python upgrade (Tim Wojtulewicz, Corelight)
+
+  * Upgrade zeekctl submodule to get python upgrade (Tim Wojtulewicz, Corelight)
+
+  * Upgrade zeek-client submodule to get python upgrade (Tim Wojtulewicz, Corelight)
+
+  * Upgrade btest submodule to get python upgrade (Tim Wojtulewicz, Corelight)
+
+  * Require Python 3.9 in CMakeLists.txt (Tim Wojtulewicz, Corelight)
+
+  * CI: Install python 3.9 on ubuntu 20 (Tim Wojtulewicz, Corelight)
+
+7.1.0-dev.766 | 2024-12-11 11:07:53 -0700
+
+  * btest: Avoid loading ZeroMQ if not compiled in (Arne Welzel, Corelight)
+
+    ...at the same time, add some `TEST-REQUIRES: have-zeromq` which
+    unfortunately means that developers will usually want libzmq
+    installed on their system.
+
+  * btest/coverage: Avoid warnings in test-all-policy-cluster (Arne Welzel, Corelight)
+
+  * Broker::publish: Warn on using Broker::publish() when inactive (Arne Welzel, Corelight)
+
+    This is mostly for transitioning base scripts to Cluster::publish() and
+    avoid silent surprises why certain things don't work when using ZeroMQ.
+
+  * Update zeek-testing and zeek-testing-cluster commit hashes (Tim Wojtulewicz, Corelight)
+
+7.1.0-dev.760 | 2024-12-11 09:28:04 +0100
+
+  * Update ZAM BiF-tracking (Arne Welzel, Corelight)
+
+  * configure: Add --disable-cluster-backend-zeromq (Arne Welzel, Corelight)
+
+  * CMakeLists: Cluster backends output (Arne Welzel, Corelight)
+
+  * zeromq: Conditionally enable by default (Arne Welzel, Corelight)
+
+    Instead of having ZeroMQ as a new dependency, enable the ZeroMQ backend only
+    if ZeroMQ is available on the system as suggested by Tim.
+
+  * btest/generic: Add publish_hrw(), publish_rr() and logging tests (Arne Welzel, Corelight)
+
+    They currently use zeromq, but technically they should be valid for
+    any other backend, too, even broker.
+
+  * generate-docs: Run on Ubuntu 24.04, add cppzmq (Arne Welzel, Corelight)
+
+  * docker: Add cppzmq/libzmq dependencies (Arne Welzel, Corelight)
+
+  * tsan_suppressions: Add called_from_lib: libzmq (Arne Welzel, Corelight)
+
+  * ci: Add cppzmq and libzmq to most platforms (Arne Welzel, Corelight)
+
+  * cluster/backend/zeromq: Add ZeroMQ based cluster backend (Arne Welzel, Corelight)
+
+    This is a cluster backend implementation using a central XPUB/XSUB proxy
+    that by default runs on the manager node. Logging is implemented leveraging
+    PUSH/PULL sockets between logger and other nodes, rather than going
+    through XPUB/XSUB.
+
+    The test-all-policy-cluster baseline changed: Previously, Broker::peer()
+    would be called from setup-connections.zeek, causing the IO loop to be
+    alive. With the ZeroMQ backend, the IO loop is only alive when
+    Cluster::init() is called, but that doesn't happen anymore.
+
+  * cluster/backend/zeromq: Add cppzmq submodule (Arne Welzel, Corelight)
+
+    Not all supported platforms provide a recent enough cppzmq version,
+    add a fallback as submodule. cppzmq is a header-only library, so there's
+    no build step involved.
+
+  * cluster: Add Cluster::node_id(), allow redef of node_topic(), nodeid_topic() (Arne Welzel, Corelight)
+
+    This provides a way for non-broker cluster backends to override a
+    node's identifier and its own topics that it listens on by default.
+
+  * cluster: Move publish_hrw() and publish_rr() to cluster.bif (Arne Welzel, Corelight)
+
+    From this point on, Cluster::publish_hrw() and Cluster::publish_rr()
+    go through cluster/Backend.cc code.
+
+7.1.0-dev.745 | 2024-12-10 16:15:57 -0700
+
+  * Add btest for unknown_protocols.log (Jan Grashoefer, Corelight)
+
+  * Add protocol_id count to unknown protocol record (Jan Grashoefer, Corelight)
+
+    The count representation is not logged and added for access to the value
+    in log policy hooks without converting the logged hex representation.
+
+7.1.0-dev.742 | 2024-12-10 14:41:10 -0700
+
+  * NEWS tweaks [skip ci] (Christian Kreibich, Corelight)
+
+    - Switch list items back to "-" from "*" -- we hadn't used "*" since
+      2.5.4 but started in 7.1, probably by accident? :-)
+
+    - Fix a typo.
+
+7.1.0-dev.740 | 2024-12-10 20:31:36 +0100
+
+  * Update BiF-tracking, add get_current_packet_ts() (Arne Welzel, Corelight)
+
+    Also, run the ZAM-bif-tracking test in non-ZAM environments so
+    failures are caught immediately. There's nothing overly ZAM specific about
+    running this test.
+
+    I'm not sure I like the fact that any new contributor adding a BiF
+    will need to dig into this... it might be a bit intimidating.
+
+7.1.0-dev.738 | 2024-12-10 18:26:31 +0100
+
+  * Introduce get_packet_lag() (Jan Grashoefer, Corelight)
+
+  * Add btest for get_current_packet_ts() (Jan Grashoefer, Corelight)
+
+  * Introduce get_current_packet_ts to fix packet lag (Jan Grashoefer, Corelight)
+
+    Using network_time to calculate packet lag will produce wrong results
+    when there is no packet available but network time does not (yet) fall
+    back to wall clock.
+
+7.1.0-dev.734 | 2024-12-10 09:56:46 +0100
+
+  * DNS/dns_binds_rr: Fix complte to complete typo, switch to count (Arne Welzel, Corelight)
+
+    From my reading in the docs the complete_flag should only ever be a
+    single byte, so add a weird for when it is longer, but use count
+    as the new type.
+
+7.1.0-dev.732 | 2024-12-09 23:28:30 -0800
+
+  * Support for Broker I/O backpressure overflow policies (Christian Kreibich, Corelight, and Dominik Charousset)
+
+    - Add sleep() BiF
+    - Add backpressure disconnect notification to cluster.log and via telemetry
+    - Remove unneeded @loads from base/misc/version.zeek
+    - Add Cluster::nodeid_to_node() helper function
+    - Support re-peering with Broker peers that fall behind
+    - Add Zeek-level configurability of Broker slow-peer disconnects
+    - Bump Broker to pull in disconnect feature and infinite-loop fix
+    - No need to namespace Cluster:: functions in their own namespace
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
+7.1.0-dev.720 | 2024-12-09 12:22:44 -0700
+
+  * Add missing copyright line to headers and cc files (Arne Welzel, Corelight)
+
+  * pre-commit: Add license-header check inspired by Spicy (Arne Welzel, Corelight)
+
+  * Add missing "COPYING" in file comments (Arne Welzel, Corelight)
+
+    This was just done via sed. There's a number of files that don't
+    have a license entry at all.
+
+7.1.0-dev.716 | 2024-12-09 12:15:46 -0700
+
+  * BTest baseline updates for compile-to-C++ (Vern Paxson, Corelight)
+
+  * mark ZAM regression BTests as not suitable for compile-to-C++ (Vern Paxson, Corelight)
+
+  * fix for -O gen-C++ maintenance helper to skip BTest intermediary files (Vern Paxson, Corelight)
+
+  * introduced simplified initialization for non-standalone -O gen-C++ code (Vern Paxson, Corelight)
+    tied -O gen-standalone-C++ to use of --optimize-files
+
+  * streamline generated -O C++ code by relying on per-function profiles rather than aggregate profile (Vern Paxson, Corelight)
+
+  * when reporting available/unavailble C++ script bodies, flag those that are skipped (Vern Paxson, Corelight)
+
+  * modified AST profiling to mark (and fully skip) non-optimizable functions (Vern Paxson, Corelight)
+
+  * modified merge_types() to skip work if given identical types, which (Vern Paxson, Corelight)
+    also preserves type names (useful for -O gen-C++)
+
+7.1.0-dev.707 | 2024-12-09 12:08:21 -0700
+
+  * Move python signatures to a separate file (Tim Wojtulewicz, Corelight)
+
+  * Add signatures for Python bytecode for 3.8-3.14 (Tim Wojtulewicz, Corelight)
+
+  * Bump pre-commit hooks (Benjamin Bannier, Corelight)
+
+  * Bump typos pre-commit hooks (Benjamin Bannier, Corelight)
+
+    This now picks up additional typical misspellings, but also triggers on
+    more identifiers we use. I opted for fixing the obvious misspellings and
+    updated the allowlist for anything else.
+
+  * Bump clang-format pre-commit hooks (Benjamin Bannier, Corelight)
+
+    This brings in slightly better formatting around uniform initialization,
+    and comments after blocks not surrounded by `{ .. }`.
+
+7.1.0-dev.700 | 2024-12-09 14:03:29 +0100
+
+  * ScriptOpt: Fail compilation if known exprs/stmts is outdated (Arne Welzel, Corelight)
+
+  * skip optimization of functions with AST nodes unknown to script optimization (Vern Paxson, Corelight)
+
+  * Disable CTU-SME test under TSAN (Arne Welzel, Corelight)
+
 7.1.0-dev.695 | 2024-12-06 17:33:19 +0100
 
   * btest/http: Demo StreamEvent analyzer with HTTP::upgrade_analyzers (Arne Welzel, Corelight)

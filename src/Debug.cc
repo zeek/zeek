@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 // Debugging support for Zeek policy files.
 
 #include "zeek/Debug.h"
@@ -417,7 +419,7 @@ int dbg_init_debugger(const char* cmdfile) {
         // ### Implement this
         debug_msg("Command files not supported. Using interactive mode.\n");
 
-        // ### if ( interactive ) (i.e., not reading cmds from a file)
+    // ### if ( interactive ) (i.e., not reading cmds from a file)
 #ifdef HAVE_READLINE
     init_readline();
 #endif

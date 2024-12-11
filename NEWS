@@ -30,6 +30,18 @@ Breaking Changes
 New Functionality
 -----------------
 
+- The following dependencies have had updates:
+
+  - The bundled version of Spicy was updated to 1.12.0. See
+    https://github.com/zeek/spicy/releases/tag/v1.12.0 for notes on what's new
+    with Spicy.
+
+  - The bundled version of c-ares has been updated to v1.34.2, which required
+    some updates to Zeek's internal DNS resolver due to changes in the c-ares
+    API. At least version v1.28.0 is now required to build Zeek.
+
+  - Python 3.9 is now required for Zeek and all of it's associated subprojects.
+
 - IP-based connections that were previously not logged due to using an unknown
   IP protocol (e.g. not TCP, UDP, or ICMP) now appear in conn.log. All conn.log
   entries have a new ``ip_proto`` column that indicates the numeric IP protocol

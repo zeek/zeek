@@ -1,3 +1,7 @@
+7.1.0-dev.779 | 2024-12-11 12:59:17 -0700
+
+  * Add blurb about Spicy SSL to NEWS (Johanna Amann, Corelight)
+
 7.1.0-dev.777 | 2024-12-11 12:38:48 -0700
 
   * Add Spicy analyzers to Coverity builds (Tim Wojtulewicz, Corelight)

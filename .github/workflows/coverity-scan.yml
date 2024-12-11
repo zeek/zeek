@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: "recursive"
 
@@ -43,7 +43,7 @@ jobs:
             wget
 
       - name: Configure
-        run: ./configure --build-type=debug --disable-broker-tests --disable-spicy
+        run: ./configure --build-type=debug --disable-broker-tests
 
       - name: Fetch Coverity Tools
         env:
@@ -59,8 +59,8 @@ jobs:
 
       - name: Build
         run: |
-          export PATH=`pwd`/coverity-tools/bin:$PATH
-          ( cd build && cov-build --dir cov-int make -j $(nproc) )
+          export PATH="$PWD/coverity-tools/bin":$PATH
+          ( cd build && cov-build --dir cov-int make -j "$(nproc)" )
           cat build/cov-int/build-log.txt
 
       - name: Submit
@@ -70,9 +70,9 @@ jobs:
           cd build
           tar czf myproject.tgz cov-int
           curl \
-            --form token=${COVERITY_TOKEN} \
+            --form token="${COVERITY_TOKEN}" \
             --form email=zeek-commits-internal@zeek.org \
             --form file=@myproject.tgz \
-            --form "version=`cat ../VERSION`" \
-            --form "description=`git rev-parse HEAD`" \
+            --form "version=$(cat ../VERSION)" \
+            --form "description=$(git rev-parse HEAD)" \
             https://scan.coverity.com/builds?project=Bro

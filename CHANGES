@@ -1,3 +1,9 @@
+7.1.0-dev.782 | 2024-12-11 15:33:06 -0700
+
+  * Update zeekctl submodule to remove BroControl dir (Tim Wojtulewicz, Corelight)
+
+  * Run Coverity workflow on ubuntu 22.04 (Tim Wojtulewicz, Corelight)
+
 7.1.0-dev.779 | 2024-12-11 12:59:17 -0700
 
   * Add blurb about Spicy SSL to NEWS (Johanna Amann, Corelight)

@@ -158,6 +158,11 @@ hilti::rt::Bytes decrypt(const std::vector<uint8_t>& client_key, const hilti::rt
         throw hilti::rt::RuntimeError(hilti::rt::fmt("payload too small %ld < %ld", payload_length,
                                                      decryptInfo.packet_number_length + AEAD_TAG_LENGTH));
 
+    // Bail on large payloads, somewhat arbitrarily. 10k allows for Jumbo frames
+    // and sometimes the fuzzer produces packets up to that size as well.
+    if ( payload_length > 10000 )
+        throw hilti::rt::RuntimeError(hilti::rt::fmt("payload_length too large %ld", payload_length));
+
     const uint8_t* encrypted_payload = data_as_uint8(all_data) + decryptInfo.unprotected_header.size();
 
     int encrypted_payload_size = payload_length - decryptInfo.packet_number_length - AEAD_TAG_LENGTH;

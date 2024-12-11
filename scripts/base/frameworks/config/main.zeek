@@ -60,7 +60,7 @@ global Config::cluster_set_option: event(ID: string, val: any, location: string)
 function broadcast_option(ID: string, val: any, location: string) &is_used
 	{
 	for ( topic in Cluster::broadcast_topics )
-		Broker::publish(topic, Config::cluster_set_option, ID, val, location);
+		Cluster::publish(topic, Config::cluster_set_option, ID, val, location);
 	}
 
 event Config::cluster_set_option(ID: string, val: any, location: string)
@@ -89,7 +89,7 @@ function set_value(ID: string, val: any, location: string &default = ""): bool
 	option_cache[ID] = OptionCacheValue($val=val, $location=location);
 	broadcast_option(ID, val, location);
 @else
-	Broker::publish(Cluster::manager_topic, Config::cluster_set_option,
+	Cluster::publish(Cluster::manager_topic, Config::cluster_set_option,
 	                ID, val, location);
 @endif
 
@@ -109,7 +109,7 @@ event Cluster::node_up(name: string, id: string) &priority=-10
 	# When a node connects, send it all current Option values.
 	if ( name in Cluster::nodes )
 		for ( ID in option_cache )
-			Broker::publish(Cluster::node_topic(name), Config::cluster_set_option, ID, option_cache[ID]$val, option_cache[ID]$location);
+			Cluster::publish(Cluster::node_topic(name), Config::cluster_set_option, ID, option_cache[ID]$val, option_cache[ID]$location);
 	}
 @endif
 

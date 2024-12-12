@@ -1,3 +1,32 @@
+7.1.0-dev.796 | 2024-12-12 13:16:57 -0700
+
+  * cluster/Backend: Handle unspecified table/set (Arne Welzel, Corelight)
+
+    Same as what we do in Broker. Use the expected type if publishing
+    a table() or set() parameter.
+
+    This fixes issues when switching sumstats to Cluster::publish()
+
+  * cluster: Fix Cluster::publish() of Broker::Data (Arne Welzel, Corelight)
+
+    The broker serializer leverages the existing data_to_val() function.
+    During unserialization, if the destination type is any, the logic
+    simply wraps the broker::data value into a Broker::Data record.
+    Therefore, events with any parameters are currently exposed to
+    the Broker::Data type.
+
+    There is a bigger issue in that re-publishing such Broker::Data
+    instances would encode them as a normal record. Explicitly prevent
+    this by serializing the contained data value directly instead, similar
+    to what Broker already did when publishing a record.
+
+  * cluster: Be noisy when attempting to connect to an unknown node (Arne Welzel, Corelight)
+
+    Mostly due to spending too much time wondering why nodes didn't connect
+    when there was a mismatch between "manager" and "manager-1" in the
+    cluster layout. Remove manager from test-all-policy-cluster test to
+    avoid connection attempts in this test.
+
 7.1.0-dev.792 | 2024-12-12 11:35:08 -0700
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

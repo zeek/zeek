@@ -36,8 +36,14 @@ std::optional<zeek::Args> detail::check_args(const zeek::FuncValPtr& handler, ze
 
     for ( size_t i = 0; i < args.size(); i++ ) {
         const auto& a = args[i];
-        const auto& got_type = a->GetType();
+        auto got_type = a->GetType();
         const auto& expected_type = types[i];
+
+        // If called with an unspecified table or set, adopt the expected type
+        // as otherwise same_type() fails.
+        if ( got_type->Tag() == TYPE_TABLE && got_type->AsTableType()->IsUnspecifiedTable() )
+            if ( expected_type->Tag() == TYPE_TABLE && got_type->IsSet() == expected_type->IsSet() )
+                got_type = expected_type;
 
         if ( ! same_type(got_type, expected_type) ) {
             zeek::reporter->Error("event parameter #%zu type mismatch, got %s, expecting %s", i + 1,

@@ -26,7 +26,7 @@ event node_fully_connected(name: string, id: string, resending: bool)
 		event cluster_started();
 
 		for ( topic in Cluster::broadcast_topics )
-			Broker::publish(topic, Cluster::Experimental::cluster_started);
+			Cluster::publish(topic, Cluster::Experimental::cluster_started);
 		}
 	}
 

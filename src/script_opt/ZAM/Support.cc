@@ -33,13 +33,13 @@ size_t broker_mgr_flush_log_buffers() { return zeek::broker_mgr->FlushLogBuffers
 zeek::Connection* session_mgr_find_connection(zeek::Val* cid) { return zeek::session_mgr->FindConnection(cid); }
 
 zeek::StringVal* analyzer_name(zeek::EnumVal* val) {
-    plugin::Component* component = zeek::analyzer_mgr->Lookup(val);
+    plugin::Component* component = zeek::analyzer_mgr->Lookup(val, false);
 
     if ( ! component )
-        component = zeek::packet_mgr->Lookup(val);
+        component = zeek::packet_mgr->Lookup(val, false);
 
     if ( ! component )
-        component = zeek::file_mgr->Lookup(val);
+        component = zeek::file_mgr->Lookup(val, false);
 
     if ( component )
         return new StringVal(component->CanonicalName());

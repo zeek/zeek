@@ -225,7 +225,7 @@ event sync_add_expected_data(s: Info, chan: ExpectedDataChannel) &is_used
 	{
 @if ( Cluster::local_node_type() == Cluster::PROXY ||
       Cluster::local_node_type() == Cluster::MANAGER )
-	Broker::publish(Cluster::worker_topic, sync_add_expected_data, minimize_info(s), chan);
+	Cluster::publish(Cluster::worker_topic, sync_add_expected_data, minimize_info(s), chan);
 @else
 	ftp_data_expected[chan$resp_h, chan$resp_p] = s;
 	Analyzer::schedule_analyzer(chan$orig_h, chan$resp_h, chan$resp_p,
@@ -238,7 +238,7 @@ event sync_remove_expected_data(resp_h: addr, resp_p: port) &is_used
 	{
 @if ( Cluster::local_node_type() == Cluster::PROXY ||
       Cluster::local_node_type() == Cluster::MANAGER )
-	Broker::publish(Cluster::worker_topic, sync_remove_expected_data, resp_h, resp_p);
+	Cluster::publish(Cluster::worker_topic, sync_remove_expected_data, resp_h, resp_p);
 @else
 	delete ftp_data_expected[resp_h, resp_p];
 @endif
@@ -253,7 +253,7 @@ function add_expected_data_channel(s: Info, chan: ExpectedDataChannel)
 	                            Analyzer::ANALYZER_FTP_DATA,
 	                            5mins);
 @if ( Cluster::is_enabled() )
-	Broker::publish(ftp_relay_topic(), sync_add_expected_data, minimize_info(s), chan);
+	Cluster::publish(ftp_relay_topic(), sync_add_expected_data, minimize_info(s), chan);
 @endif
 	}
 
@@ -470,7 +470,7 @@ hook finalize_ftp_data(c: connection)
 		{
 		delete ftp_data_expected[c$id$resp_h, c$id$resp_p];
 @if ( Cluster::is_enabled() )
-		Broker::publish(ftp_relay_topic(), sync_remove_expected_data, c$id$resp_h, c$id$resp_p);
+		Cluster::publish(ftp_relay_topic(), sync_remove_expected_data, c$id$resp_h, c$id$resp_p);
 @endif
 		}
 	}

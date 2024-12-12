@@ -28,7 +28,7 @@ redef have_full_data = F;
 # The manager propagates remove_indicator() to workers.
 event remove_indicator(item: Item)
 	{
-	Broker::publish(Cluster::worker_topic, remove_indicator, item);
+	Cluster::publish(Cluster::worker_topic, remove_indicator, item);
 	}
 
 # Handling of new worker nodes.
@@ -39,7 +39,7 @@ event Cluster::node_up(name: string, id: string)
 	# this by the insert_indicator event.
 	if ( send_store_on_node_up && name in Cluster::nodes && Cluster::nodes[name]$node_type == Cluster::WORKER )
 		{
-		Broker::publish(Cluster::node_topic(name), new_min_data_store, min_data_store);
+		Cluster::publish(Cluster::node_topic(name), new_min_data_store, min_data_store);
 		}
 	}
 
@@ -57,7 +57,7 @@ event Intel::new_item(item: Item) &priority=5
 		# relaying via a proxy.
 		pt = Cluster::worker_topic;
 
-	Broker::publish(pt, Intel::insert_indicator, item);
+	Cluster::publish(pt, Intel::insert_indicator, item);
 	}
 
 # Handling of item insertion triggered by remote node.
@@ -84,19 +84,19 @@ event Intel::match_remote(s: Seen) &priority=5
 @if ( Cluster::local_node_type() == Cluster::WORKER )
 event match_remote(s: Seen)
 	{
-	Broker::publish(Cluster::manager_topic, match_remote, s);
+	Cluster::publish(Cluster::manager_topic, match_remote, s);
 	}
 
 event remove_item(item: Item, purge_indicator: bool)
 	{
-	Broker::publish(Cluster::manager_topic, remove_item, item, purge_indicator);
+	Cluster::publish(Cluster::manager_topic, remove_item, item, purge_indicator);
 	}
 
 # On a worker, the new_item event requires to trigger the insertion
 # on the manager to update the back-end data store.
 event Intel::new_item(item: Intel::Item) &priority=5
 	{
-	Broker::publish(Cluster::manager_topic, Intel::insert_item, item);
+	Cluster::publish(Cluster::manager_topic, Intel::insert_item, item);
 	}
 
 # Handling of new indicators published by the manager.
@@ -116,7 +116,7 @@ event new_min_data_store(store: MinDataStore)
 event Intel::insert_indicator(item: Intel::Item) &priority=5
 	{
 	# Just forwarding from manager to workers.
-	Broker::publish(Cluster::worker_topic, Intel::insert_indicator, item);
+	Cluster::publish(Cluster::worker_topic, Intel::insert_indicator, item);
 	}
 @endif
 

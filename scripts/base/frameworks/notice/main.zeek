@@ -529,8 +529,8 @@ hook Notice::notice(n: Notice::Info) &priority=-5
 		# Once we have global pub/sub, we could also unconditionally
 		# send to a notice specific topic for communicating
 		# suppressions directly to all nodes.
-		Broker::publish(Cluster::manager_topic, Notice::begin_suppression,
-		                n$ts, n$suppress_for, n$note, n$identifier);
+		Cluster::publish(Cluster::manager_topic, Notice::begin_suppression,
+		                 n$ts, n$suppress_for, n$note, n$identifier);
 @endif
 		}
 	}
@@ -540,9 +540,9 @@ hook Notice::notice(n: Notice::Info) &priority=-5
 @if ( Cluster::is_enabled() && Cluster::local_node_type() == Cluster::MANAGER )
 event Notice::begin_suppression(ts: time, suppress_for: interval, note: Type, identifier: string)
 	{
-	local e = Broker::make_event(Notice::begin_suppression, ts, suppress_for, note, identifier);
-	Broker::publish(Cluster::worker_topic, e);
-	Broker::publish(Cluster::proxy_topic, e);
+	local e = Cluster::make_event(Notice::begin_suppression, ts, suppress_for, note, identifier);
+	Cluster::publish(Cluster::worker_topic, e);
+	Cluster::publish(Cluster::proxy_topic, e);
 	}
 @endif
 

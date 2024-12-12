@@ -1,3 +1,27 @@
+7.1.0-dev.808 | 2024-12-12 13:17:51 -0700
+
+  * netcontrol: Move to Cluster::publish() (Arne Welzel, Corelight)
+
+  * openflow: Move to Cluster::publish() (Arne Welzel, Corelight)
+
+  * netcontrol/catch-and-release: Move to Cluster::publish() (Arne Welzel, Corelight)
+
+  * config: Move to Cluster::publish() (Arne Welzel, Corelight)
+
+  * ssl/validate-certs: Move to Cluster::publish() (Arne Welzel, Corelight)
+
+  * irc: Move to Cluster::publish() (Arne Welzel, Corelight)
+
+  * ftp: Move to Cluster::publish() (Arne Welzel, Corelight)
+
+  * dhcp: Move to cluster publish (Arne Welzel, Corelight)
+
+  * notice: Move to Cluster::publish() (Arne Welzel, Corelight)
+
+  * intel: Move to Cluster::publish() (Arne Welzel, Corelight)
+
+  * sumstats: Move to Cluster::publish() (Arne Welzel, Corelight)
+
 7.1.0-dev.796 | 2024-12-12 13:16:57 -0700
 
   * cluster/Backend: Handle unspecified table/set (Arne Welzel, Corelight)

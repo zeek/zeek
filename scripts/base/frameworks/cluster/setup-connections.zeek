@@ -36,6 +36,8 @@ function connect_peer(node_type: NodeType, node_name: string)
 		                 status));
 		return;
 		}
+
+	Reporter::warning(fmt("connect_peer: node '%s' (%s) not found", node_name, node_type));
 	}
 
 function connect_peers_with_type(node_type: NodeType)

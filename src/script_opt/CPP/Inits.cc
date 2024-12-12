@@ -104,17 +104,21 @@ void CPPCompile::InitializeFieldMappings() {
 
     StartBlock();
 
-    string type_arg, attrs_arg;
-    if ( ! standalone )
-        type_arg = attrs_arg = "DO_NOT_CONSTRUCT_VALUE_MARKER";
-
     for ( const auto& mapping : field_decls ) {
         auto rt_arg = Fmt(mapping.first);
         auto td = mapping.second;
 
+        string type_arg = "DO_NOT_CONSTRUCT_VALUE_MARKER";
+        string attrs_arg = "DO_NOT_CONSTRUCT_VALUE_MARKER";
+
         if ( standalone ) {
-            type_arg = Fmt(TypeOffset(td->type));
-            attrs_arg = Fmt(AttributesOffset(td->attrs));
+            // We can assess whether this field is one we need to generate
+            // because if it is, it will have an &optional attribute that
+            // is local to one of the cmopiled source files.
+            if ( td->attrs && obj_matches_opt_files(td->attrs) ) {
+                type_arg = Fmt(TypeOffset(td->type));
+                attrs_arg = Fmt(AttributesOffset(td->attrs));
+            }
         }
 
         Emit("CPP_FieldMapping(%s, \"%s\", %s, %s),", rt_arg, td->id, type_arg, attrs_arg);
@@ -128,10 +132,11 @@ void CPPCompile::InitializeEnumMappings() {
 
     StartBlock();
 
-    auto create_if_missing = standalone ? "true" : "false";
-
-    for ( const auto& mapping : enum_names )
-        Emit("CPP_EnumMapping(%s, \"%s\", %s),", Fmt(mapping.first), mapping.second, create_if_missing);
+    for ( const auto& en : enum_names ) {
+        auto create_if_missing = en.create_if_missing ? "true" : "false";
+        string init_args = Fmt(en.enum_type) + ", \"" + en.enum_name + "\", " + create_if_missing;
+        Emit("CPP_EnumMapping(%s),", init_args);
+    }
 
     EndBlock(true);
 }

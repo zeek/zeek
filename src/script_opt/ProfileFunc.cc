@@ -534,6 +534,7 @@ void ProfileFunc::TrackID(const ID* id) {
     if ( id->IsGlobal() ) {
         globals.insert(id);
         all_globals.insert(id);
+        TrackType(id->GetType());
     }
 
     ordered_ids.push_back(id);

@@ -18,6 +18,7 @@ struct Options;
 
 namespace zeek::detail {
 
+using ObjPtr = IntrusivePtr<Obj>;
 using TypeSet = std::unordered_set<const Type*>;
 
 // Flags controlling what sorts of analysis to do.
@@ -256,6 +257,7 @@ extern bool should_analyze(const ScriptFuncPtr& f, const StmtPtr& body);
 // True if the given object's location matches one specified by
 // --optimize-files=...
 extern bool obj_matches_opt_files(const Obj* obj);
+inline bool obj_matches_opt_files(const ObjPtr& obj) { return obj_matches_opt_files(obj.get()); }
 
 // Analyze all of the parsed scripts collectively for usage issues (unless
 // suppressed by the flag) and optimization.

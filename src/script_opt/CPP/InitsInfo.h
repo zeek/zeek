@@ -501,8 +501,6 @@ public:
     void InitializerVals(std::vector<std::string>& ivs) const override;
 
 protected:
-    std::string Zeek_name;
-    std::string CPP_name;
     int type;
     int attrs;
     std::string val;

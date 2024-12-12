@@ -191,7 +191,7 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterType(const TypePtr& tp) {
 
     shared_ptr<CPP_InitInfo> gi;
 
-    if ( standalone || t->GetName().empty() ) {
+    if ( (standalone && obj_matches_opt_files(tp)) || t->GetName().empty() ) {
         switch ( t->Tag() ) {
             case TYPE_ADDR:
             case TYPE_ANY:

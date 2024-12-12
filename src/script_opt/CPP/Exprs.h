@@ -142,6 +142,13 @@ std::unordered_map<const EnumType*, std::unordered_map<int, int>> enum_val_mappi
 // outer map).
 int num_ev_mappings = 0;
 
+// Information captured for generating entries in "enum_mapping".
+struct EnumMappingInfo {
+    int enum_type; // as a global offset
+    std::string enum_name;
+    bool create_if_missing;
+};
+
 // For each entry in "enum_mapping", the EnumType (as a global offset) and
 // name associated with the mapping.
-std::vector<std::pair<int, std::string>> enum_names;
+std::vector<EnumMappingInfo> enum_names;

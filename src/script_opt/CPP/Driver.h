@@ -7,6 +7,14 @@
 // Main driver, invoked by constructor.
 void Compile(bool report_uncompilable);
 
+// For a given function body, assess its compilability and track its elements.
+// Returns true if the body was analyzed, false if it was skipped. If skipped
+// then either generates a warning (if report_uncompilable is true) or
+// updates filenames_reported_as_skipped. Updates rep_types with the type
+// representatives seen in the function.
+bool AnalyzeFuncBody(FuncInfo& fi, std::unordered_set<std::string>& filenames_reported_as_skipped,
+                     std::unordered_set<const Type*>& rep_types, bool report_uncompilable);
+
 // Generate the beginning of the compiled code: run-time functions,
 // namespace, auxiliary globals.
 void GenProlog();

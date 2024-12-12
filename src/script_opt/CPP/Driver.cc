@@ -5,6 +5,7 @@
 #include <cerrno>
 
 #include "zeek/script_opt/CPP/Compile.h"
+#include "zeek/script_opt/IDOptInfo.h"
 
 extern std::unordered_set<std::string> files_with_conditionals;
 
@@ -31,86 +32,48 @@ CPPCompile::~CPPCompile() { fclose(write_file); }
 void CPPCompile::Compile(bool report_uncompilable) {
     unordered_set<const Type*> rep_types;
     unordered_set<string> filenames_reported_as_skipped;
+    unordered_set<const Attr*> attrs;
     bool had_to_skip = false;
 
-    // Determine which functions we can call directly, and reuse
-    // previously compiled instances of those if present.
-    for ( auto& func : funcs ) {
-        const auto& f = func.Func();
-        auto& body = func.Body();
-
-        auto& ofiles = analysis_options.only_files;
-        auto allow_cond = analysis_options.allow_cond;
-
-        string fn = body->GetLocationInfo()->filename;
-
-        if ( ! allow_cond && ! func.ShouldSkip() && ! ofiles.empty() && files_with_conditionals.count(fn) > 0 ) {
-            if ( report_uncompilable )
-                reporter->Warning("%s cannot be compiled to C++ due to source file %s having conditional code",
-                                  f->GetName().c_str(), fn.c_str());
-
-            else if ( filenames_reported_as_skipped.count(fn) == 0 ) {
-                reporter->Warning("skipping compilation of files in %s due to presence of conditional code",
-                                  fn.c_str());
-                filenames_reported_as_skipped.insert(fn);
-            }
-
+    for ( auto& func : funcs )
+        if ( ! AnalyzeFuncBody(func, filenames_reported_as_skipped, rep_types, report_uncompilable) )
             had_to_skip = true;
-            func.SetSkip(true);
-        }
 
-        if ( func.ShouldSkip() ) {
-            not_fully_compilable.insert(f->GetName());
-            continue;
-        }
+    if ( standalone ) {
+        if ( had_to_skip )
+            reporter->FatalError("aborting standalone compilation to C++ due to having to skip some functions");
 
-        auto pf = func.Profile();
-        total_hash = merge_p_hashes(total_hash, pf->HashVal());
+        for ( auto& g : global_scope()->OrderedVars() ) {
+            if ( ! obj_matches_opt_files(g) )
+                continue;
 
-        for ( auto t : pf->UnorderedTypes() )
-            rep_types.insert(pfs->TypeRep(t));
+            // We will need to generate this global's definition, including
+            // its initialization. Make sure we're tracking it and its
+            // associated types, including those required for initializing.
+            auto& t = g->GetType();
+            (void)pfs->HashType(t);
+            rep_types.insert(TypeRep(t));
 
-        auto& pf_all_gl = pf->AllGlobals();
-        all_accessed_globals.insert(pf_all_gl.begin(), pf_all_gl.end());
+            all_accessed_globals.insert(g.get());
+            accessed_globals.insert(g.get());
 
-        auto& pf_gl = pf->Globals();
-        accessed_globals.insert(pf_gl.begin(), pf_gl.end());
-
-        auto& pf_events = pf->Events();
-        accessed_events.insert(pf_events.begin(), pf_events.end());
-
-        auto& pf_lambdas = pf->Lambdas();
-        accessed_lambdas.insert(pf_lambdas.begin(), pf_lambdas.end());
-
-        if ( is_lambda(f) || is_when_lambda(f) ) {
-            // We deal with these separately.
-            func.SetSkip(true);
-            continue;
-        }
-
-        const char* reason;
-        if ( IsCompilable(func, &reason) ) {
-            if ( f->Flavor() == FUNC_FLAVOR_FUNCTION )
-                // Note this as a callable compiled function.
-                compilable_funcs.insert(BodyName(func));
-        }
-        else {
-            if ( reason && report_uncompilable ) {
-                had_to_skip = true;
-                reporter->Warning("%s cannot be compiled to C++ due to %s", f->GetName().c_str(), reason);
+            for ( const auto& i_e : g->GetOptInfo()->GetInitExprs() ) {
+                auto pf = std::make_shared<ProfileFunc>(i_e.get());
+                for ( auto& t : pf->OrderedTypes() ) {
+                    (void)pfs->HashType(t);
+                    rep_types.insert(TypeRep(t));
+                }
             }
-
-            not_fully_compilable.insert(f->GetName());
         }
+
+        for ( auto& ea : pfs->ExprAttrs() )
+            if ( obj_matches_opt_files(ea.first) ) {
+                auto& attr = ea.first;
+                attrs.insert(attr);
+                auto& t = attr->GetExpr()->GetType();
+                rep_types.insert(TypeRep(t));
+            }
     }
-
-    // Generate a hash unique for this compilation.
-    for ( const auto& func : funcs )
-        if ( ! func.ShouldSkip() )
-            total_hash = merge_p_hashes(total_hash, func.Profile()->HashVal());
-
-    if ( standalone && had_to_skip )
-        reporter->FatalError("aborting standalone compilation to C++ due to having to skip some functions");
 
     auto t = util::current_time();
     total_hash = merge_p_hashes(total_hash, hash<double>{}(t));
@@ -134,8 +97,13 @@ void CPPCompile::Compile(bool report_uncompilable) {
 
     for ( const auto& t : rep_types ) {
         ASSERT(types.HasKey(t));
-        TypePtr tp{NewRef{}, (Type*)(t)};
+        TypePtr tp{NewRef{}, const_cast<Type*>(t)};
         RegisterType(tp);
+    }
+
+    for ( const auto& attr : attrs ) {
+        AttrPtr attr_p = {NewRef{}, const_cast<Attr*>(attr)};
+        (void)RegisterAttr(attr_p);
     }
 
     // The scaffolding is now in place to go ahead and generate
@@ -187,7 +155,90 @@ void CPPCompile::Compile(bool report_uncompilable) {
 
     Emit("};");
 
+    if ( standalone )
+        // Now that we've identified all of the record fields we might have
+        // to generate, make sure we track their attributes.
+        for ( const auto& fd : field_decls ) {
+            auto td = fd.second;
+            if ( obj_matches_opt_files(td->type) ) {
+                TypePtr tp = {NewRef{}, const_cast<Type*>(TypeRep(td->type))};
+                RegisterType(tp);
+            }
+            if ( obj_matches_opt_files(td->attrs) )
+                RegisterAttributes(td->attrs);
+        }
+
     GenEpilog();
+}
+
+bool CPPCompile::AnalyzeFuncBody(FuncInfo& fi, unordered_set<string>& filenames_reported_as_skipped,
+                                 unordered_set<const Type*>& rep_types, bool report_uncompilable) {
+    const auto& f = fi.Func();
+    auto& body = fi.Body();
+
+    string fn = body->GetLocationInfo()->filename;
+
+    if ( ! analysis_options.allow_cond && ! fi.ShouldSkip() ) {
+        if ( ! analysis_options.only_files.empty() && files_with_conditionals.count(fn) > 0 ) {
+            if ( report_uncompilable )
+                reporter->Warning("%s cannot be compiled to C++ due to source file %s having conditional code",
+                                  f->GetName().c_str(), fn.c_str());
+
+            else if ( filenames_reported_as_skipped.count(fn) == 0 ) {
+                reporter->Warning("skipping compilation of files in %s due to presence of conditional code",
+                                  fn.c_str());
+                filenames_reported_as_skipped.insert(fn);
+            }
+
+            fi.SetSkip(true);
+        }
+    }
+
+    if ( fi.ShouldSkip() ) {
+        not_fully_compilable.insert(f->GetName());
+        return true;
+    }
+
+    auto pf = fi.Profile();
+    total_hash = merge_p_hashes(total_hash, pf->HashVal());
+
+    for ( auto t : pf->UnorderedTypes() )
+        rep_types.insert(pfs->TypeRep(t));
+
+    auto& pf_all_gl = pf->AllGlobals();
+    all_accessed_globals.insert(pf_all_gl.begin(), pf_all_gl.end());
+
+    auto& pf_gl = pf->Globals();
+    accessed_globals.insert(pf_gl.begin(), pf_gl.end());
+
+    auto& pf_events = pf->Events();
+    accessed_events.insert(pf_events.begin(), pf_events.end());
+
+    auto& pf_lambdas = pf->Lambdas();
+    accessed_lambdas.insert(pf_lambdas.begin(), pf_lambdas.end());
+
+    if ( is_lambda(f) || is_when_lambda(f) ) {
+        // We deal with these separately.
+        fi.SetSkip(true);
+        return true;
+    }
+
+    const char* reason;
+    if ( IsCompilable(fi, &reason) ) {
+        if ( f->Flavor() == FUNC_FLAVOR_FUNCTION )
+            // Note this as a callable compiled function.
+            compilable_funcs.insert(BodyName(fi));
+    }
+    else {
+        if ( reason && (standalone || report_uncompilable) ) {
+            reporter->Warning("%s cannot be compiled to C++ due to %s", f->GetName().c_str(), reason);
+        }
+
+        not_fully_compilable.insert(f->GetName());
+        return false;
+    }
+
+    return true;
 }
 
 void CPPCompile::GenProlog() {

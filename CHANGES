@@ -1,3 +1,9 @@
+7.0.4-4 | 2024-12-12 13:12:30 -0700
+
+  * Fix ZAM's implementation of Analyzer::name() BiF (Christian Kreibich, Corelight)
+
+    (cherry picked from commit e100a8e698d1dba0fc339eae800d13b298e55d46)
+
 7.0.4-3 | 2024-12-12 13:04:44 -0700
 
   * GH-4052: More robust memory management for ZAM execution - fixes #4052 (Vern Paxson, Corelight)

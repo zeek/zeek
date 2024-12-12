@@ -3093,11 +3093,11 @@ macro AnalyzerName(tag)
 	auto atype = tag.ToVal(z.t);
 	auto val = atype->AsEnumVal();
 	Unref(frame[z.v1].string_val);
-	plugin::Component* component = zeek::analyzer_mgr->Lookup(val);
+	plugin::Component* component = zeek::analyzer_mgr->Lookup(val, false);
 	if ( ! component )
-		component = zeek::packet_mgr->Lookup(val);
+		component = zeek::packet_mgr->Lookup(val, false);
 	if ( ! component )
-		component = zeek::file_mgr->Lookup(val);
+		component = zeek::file_mgr->Lookup(val, false);
 	if ( component )
 		frame[z.v1].string_val = new StringVal(component->CanonicalName());
 	else

@@ -1,3 +1,16 @@
+7.1.0-dev.787 | 2024-12-12 14:45:39 +0100
+
+  * Pre-compute the node topics for all pool entries. (Justin Azoff, Corelight)
+
+    A zeek script profile showed a small percentage of time spent in
+    Cluster::node_topic, but this never changes and can be cached.
+
+  * Fix ZAM's implementation of Analyzer::name() BiF (Christian Kreibich, Corelight)
+
+    ZAM's implementation deviates from Zeek's in consideration of remappings, which
+    means that running ZAM produced conn.log service names prefixed with "spicy_"
+    whereas regular Zeek doesn't.
+
 7.1.0-dev.782 | 2024-12-11 15:33:06 -0700
 
   * Update zeekctl submodule to remove BroControl dir (Tim Wojtulewicz, Corelight)

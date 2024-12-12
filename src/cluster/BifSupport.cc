@@ -21,6 +21,9 @@ std::optional<zeek::cluster::detail::Event> to_cluster_event(const zeek::RecordV
     const auto& func = rec->GetField<zeek::FuncVal>(0);
     const auto& vargs = rec->GetField<zeek::VectorVal>(1);
 
+    if ( ! func )
+        return std::nullopt;
+
     const auto& eh = zeek::event_registry->Lookup(func->AsFuncPtr()->GetName());
     if ( ! eh ) {
         zeek::emit_builtin_error(

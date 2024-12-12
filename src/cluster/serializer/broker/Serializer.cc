@@ -10,6 +10,7 @@
 #include "zeek/broker/Data.h"
 #include "zeek/cluster/Backend.h"
 
+#include "broker/data.bif.h"
 #include "broker/data_envelope.hh"
 #include "broker/error.hh"
 #include "broker/format/json.hh"
@@ -30,8 +31,16 @@ namespace {
 std::optional<broker::zeek::Event> to_broker_event(const detail::Event& ev) {
     broker::vector xs;
     xs.reserve(ev.args.size());
+
     for ( const auto& a : ev.args ) {
-        if ( auto res = zeek::Broker::detail::val_to_data(a.get()) ) {
+        if ( a->GetType() == zeek::BifType::Record::Broker::Data ) {
+            // When encountering a Broker::Data instance within args, pick out
+            // the broker::data directly to avoid double encoding, Broker::Data.
+            const auto& val = a->AsRecordVal()->GetField(0);
+            auto* data_val = static_cast<zeek::Broker::detail::DataVal*>(val.get());
+            xs.emplace_back(data_val->data);
+        }
+        else if ( auto res = zeek::Broker::detail::val_to_data(a.get()) ) {
             xs.emplace_back(std::move(res.value()));
         }
         else {
@@ -85,6 +94,11 @@ std::optional<detail::Event> to_zeek_event(const broker::zeek::Event& ev) {
     for ( size_t i = 0; i < args.size(); ++i ) {
         const auto& expected_type = arg_types[i];
         auto arg = args[i].to_data();
+        // XXX: data_to_val() uses Broker::Data for `any` type parameters, exposing
+        //      Broker::Data to the script-layer even if Broker isn't used.
+        //
+        //      This might be part of the API, but seems we could also use the concrete
+        //      Val type if the serializer encodes that information in the message.
         auto val = zeek::Broker::detail::data_to_val(arg, expected_type.get());
         if ( val )
             vl.emplace_back(std::move(val));

@@ -1,3 +1,9 @@
+7.1.0-dev.790 | 2024-12-12 11:33:01 -0700
+
+  * Add note about various dependency updates [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
+  * NEWS additions for v7.1 [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
 7.1.0-dev.787 | 2024-12-12 14:45:39 +0100
 
   * Pre-compute the node topics for all pool entries. (Justin Azoff, Corelight)

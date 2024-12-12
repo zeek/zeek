@@ -1,6 +1,6 @@
 # @TEST-EXEC: zeek -b %INPUT
-# @TEST-EXEC: cp .stderr output
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stdout
 
 redef exit_only_after_terminate = T;
 

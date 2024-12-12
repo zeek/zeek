@@ -7,21 +7,18 @@ event zeek_init()
 	local _ = "1";
 	}
 
-#@TEST-START-NEXT
 event zeek_init()
 	{
 	local _: string = "1";
 	local _: count = 1;
 	}
 
-#@TEST-START-NEXT
 event zeek_init()
 	{
 	local _: string = "1";
 	const _: count = 1;
 	}
 
-#@TEST-START-NEXT
 event zeek_init()
 	{
 	const _: string = "1";

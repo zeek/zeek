@@ -599,7 +599,7 @@ container_image_manifest_docker_builder:
     ( $CIRRUS_CRON == '' ) &&
     ( $CIRRUS_REPO_FULL_NAME == 'zeek/zeek' &&
       ( $CIRRUS_BRANCH == 'master' ||
-        $CIRRUS_TAG =~ 'v[0-9]+\.[0-9]+\.[0-9]+$' ) )
+        $CIRRUS_TAG =~ 'v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$' ) )
   env:
     DOCKER_USERNAME: ENCRYPTED[!505b3dee552a395730a7e79e6aab280ffbe1b84ec62ae7616774dfefe104e34f896d2e20ce3ad701f338987c13c33533!]
     DOCKER_PASSWORD: ENCRYPTED[!6c4b2f6f0e5379ef1091719cc5d2d74c90cfd2665ac786942033d6d924597ffb95dbbc1df45a30cc9ddeec76c07ac620!]
@@ -618,8 +618,12 @@ container_image_manifest_docker_builder:
     # for tags, or zeek/zeek-dev:latest for pushes to master.
     set -x
     if [ -n "${CIRRUS_TAG}" ]; then
-      echo "IMAGE_TAG=$(cat VERSION)" >> $CIRRUS_ENV
       echo "IMAGE_NAME=zeek"  >> $CIRRUS_ENV
+      echo "IMAGE_TAG=$(cat VERSION)" >> $CIRRUS_ENV
+      if [ "${CIRRUS_TAG}" != "v$(cat VERSION)" ]; then
+        echo "CIRRUS_TAG '${CIRRUS_TAG}' and VERSION '$(cat VERSION)' inconsistent!" >&2
+        exit 1
+      fi
     elif [ "${CIRRUS_BRANCH}" = "master" ]; then
       echo "IMAGE_NAME=zeek-dev"  >> $CIRRUS_ENV
       echo "IMAGE_TAG=latest" >> $CIRRUS_ENV

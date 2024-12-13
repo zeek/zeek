@@ -1,3 +1,11 @@
+7.1.0-dev.816 | 2024-12-13 12:59:08 +0100
+
+  * zeekygen: Disable Cluster::Experimental module (Arne Welzel, Corelight)
+
+    The nodes-experimental/manager.zeek file ends up calling Broker::publish()
+    unconditionally, resulting in a warning. Skip running that code when
+    generating documentation.
+
 7.1.0-dev.814 | 2024-12-13 10:57:19 +0100
 
   * BTest updates in support of compiling-scripts-to-C++ (Vern Paxson, Corelight)

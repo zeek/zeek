@@ -6,10 +6,9 @@ extend-ignore-re = [
     # ALLO is a valid FTP command
     "\"ALLO\".*200",
     "des-ede3-cbc-Env-OID",
-    "Remove in v6.1.*SupressWeird",
-    "max_repititions:.*Remove in v6.1",
     "mis-aliasing of",
     "mis-indexing",
+    "compilability",
     # On purpose
     "\"THE NETBIOS NAM\"",
     # NFS stuff.

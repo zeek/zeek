@@ -967,6 +967,10 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         exit(reporter->Errors() != 0);
     }
 
+    if ( stmts && (stmts->Tag() == STMT_NULL || (stmts->Tag() == STMT_LIST && stmts->AsStmtList()->Stmts().empty())) )
+        // There are no actual global statements.
+        stmts = nullptr;
+
     if ( stmts )
         analyze_global_stmts(stmts);
 

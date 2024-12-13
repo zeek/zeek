@@ -38,16 +38,18 @@ extern std::vector<std::vector<std::vector<int>>> generate_indices_set(int* init
 
 // These need to be distinct from any values that can appear, which means
 // they should be negative, and not -1, which is used as a "N/A" value.
-#define END_OF_VEC_VEC -100
-#define END_OF_VEC_VEC_VEC -200
+// clang-format off
+constexpr int END_OF_VEC_VEC = -100;
+constexpr int END_OF_VEC_VEC_VEC = -200;
 
 // A marker value for "named" types (those that are simply looked up by
 // name at initialization time).
-#define NAMED_TYPE_MARKER -300
+constexpr int NAMED_TYPE_MARKER = -300;
 
 // A marker value indicating values that should not be constructed if not
 // already present.
-#define DO_NOT_CONSTRUCT_VALUE_MARKER -400
+constexpr int DO_NOT_CONSTRUCT_VALUE_MARKER = -400;
+// clang-format on
 
 // An abstract helper class used to access elements of an initialization vector.
 // We need the abstraction because InitsManager below needs to be able to refer

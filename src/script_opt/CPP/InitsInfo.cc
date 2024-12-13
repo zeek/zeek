@@ -384,8 +384,9 @@ GlobalInitInfo::GlobalInitInfo(CPPCompile* c, const ID* g, string _CPP_name)
     val = ValElem(c, nullptr); // empty because we initialize dynamically
 
     if ( gt->Tag() == TYPE_FUNC && (! g->GetVal() || g->GetVal()->AsFunc()->GetKind() == Func::BUILTIN_FUNC) )
-        // Remember this peculiarity so we can recreate it for
-        // error-behavior-compatibility.
+        // Be sure not to try to create BiFs. In addition, GetVal() can be
+        // nil in certain error situations, which we'll want to recreate
+        // for behavior compatibility.
         func_with_no_val = true;
 }
 
@@ -557,7 +558,7 @@ RecordTypeInfo::RecordTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c
 
         field_types.push_back(r_i->type);
 
-        if ( c->TargetingStandalone() && r_i->attrs ) {
+        if ( r_i->attrs && c->TargetingStandalone() && obj_matches_opt_files(r_i->attrs) ) {
             gi = c->RegisterAttributes(r_i->attrs);
             final_init_cohort = max(final_init_cohort, gi->InitCohort() + 1);
             field_attrs.push_back(gi->Offset());

@@ -58,6 +58,10 @@ bool is_lambda(const ScriptFunc* f) { return lambdas.count(f) > 0; }
 bool is_when_lambda(const ScriptFunc* f) { return when_lambdas.count(f) > 0; }
 
 void analyze_global_stmts(Stmt* stmts) {
+    if ( analysis_options.gen_standalone_CPP && obj_matches_opt_files(stmts) )
+        reporter->FatalError("cannot include global statements with -O gen-standalone-C++: %s",
+                             obj_desc(stmts).c_str());
+
     // We ignore analysis_options.only_{files,funcs} - if they're in use, later
     // logic will keep this function from being compiled, but it's handy
     // now to enter it into "funcs" so we have a FuncInfo to return.
@@ -571,6 +575,10 @@ void clear_script_analysis() {
         for ( auto& id : f.Scope()->OrderedVars() )
             id->ClearOptInfo();
 
+    // Clear out optimization info for global variables, too.
+    for ( auto& g : global_scope()->OrderedVars() )
+        g->ClearOptInfo();
+
     // Keep the functions around if we're profiling, so we can loop
     // over them to generate the profiles.
     if ( ! analysis_options.profile_ZAM )
@@ -640,22 +648,16 @@ void analyze_scripts(bool no_unused_warnings) {
     if ( analysis_options.use_CPP )
         use_CPP();
 
-    std::shared_ptr<ProfileFuncs> pfs;
-    // Note, in the following it's not clear whether the final argument
-    // for absolute/relative record fields matters any more ...
-    if ( generating_CPP )
-        pfs = std::make_shared<ProfileFuncs>(funcs, is_CPP_compilable, true, false);
-    else
-        pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true, true);
-
     if ( generating_CPP ) {
         if ( analysis_options.gen_ZAM )
             reporter->FatalError("-O ZAM and -O gen-C++ conflict");
 
+        auto pfs = std::make_shared<ProfileFuncs>(funcs, is_CPP_compilable, true, false);
         generate_CPP(pfs);
         exit(0);
     }
 
+    auto pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true, true);
     analyze_scripts_for_ZAM(pfs);
 
     if ( reporter->Errors() > 0 )

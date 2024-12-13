@@ -379,6 +379,7 @@ public:
     const IDSet& BiFGlobals() const { return BiF_globals; }
     const std::unordered_set<const LambdaExpr*>& Lambdas() const { return lambdas; }
     const std::unordered_set<std::string>& Events() const { return events; }
+    const auto& ExprAttrs() const { return expr_attrs; }
 
     const auto& FuncProfs() const { return func_profs; }
 

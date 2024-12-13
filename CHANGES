@@ -1,3 +1,9 @@
+7.1.0-dev.814 | 2024-12-13 10:57:19 +0100
+
+  * BTest updates in support of compiling-scripts-to-C++ (Vern Paxson, Corelight)
+
+  * -O gen-standalone-C++ fixes for recent more aggressive AST profiling (Vern Paxson, Corelight)
+
 7.1.0-dev.811 | 2024-12-12 20:11:39 -0800
 
   * removed a bunch of no-longer used BTest alternatives and their associated baselines (Vern Paxson, Corelight)

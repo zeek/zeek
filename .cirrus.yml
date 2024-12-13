@@ -646,31 +646,7 @@ container_image_manifest_docker_builder:
         '+refs/heads/release/*:refs/remotes/origin/release/*' \
         '+refs/heads/master:refs/remotes/origin/master'
 
-    # Find current versions for lts and feature depending on branches and
-    # tags in the repo. sed for escaping the dot in the version for using
-    # it in the regex below to match against CIRRUS_TAG.
-    lts_ver=$(./ci/find-current-version.sh lts)
-    lts_pat="^v$(echo $lts_ver | sed 's,\.,\\.,g')\.[0-9]+\$"
-    feature_ver=$(./ci/find-current-version.sh feature)
-    feature_pat="^v$(echo $feature_ver | sed 's,\.,\\.,g')\.[0-9]+\$"
-
-    # Construct additional tags for the image. At most this will
-    # be "lts x.0 feature" for an lts branch x.0 that is currently
-    # also the latest feature branch.
-    ADDL_MANIFEST_TAGS=
-    if echo "${CIRRUS_TAG}" | grep -E "${lts_pat}"; then
-        ADDL_MANIFEST_TAGS="${ADDL_MANIFEST_TAGS} lts ${lts_ver}"
-    fi
-
-    if echo "${CIRRUS_TAG}" | grep -E "${feature_pat}"; then
-        ADDL_MANIFEST_TAGS="${ADDL_MANIFEST_TAGS} latest"
-        if [ "${feature_ver}" != "${lts_ver}" ]; then
-          ADDL_MANIFEST_TAGS="${ADDL_MANIFEST_TAGS} ${feature_ver}"
-        fi
-    fi
-
-    # Let downstream know about it.
-    echo "ADDITIONAL_MANIFEST_TAGS=${ADDL_MANIFEST_TAGS}" >> $CIRRUS_ENV
+    ./ci/container-images-addl-tags.sh "${CIRRUS_TAG}" | tee -a $CIRRUS_ENV
 
   # These should've been populated by the previous jobs
   zeek_image_arm64_cache:

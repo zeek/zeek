@@ -332,8 +332,9 @@ std::shared_ptr<ProfVec> ZBody::BuildProfVec() const {
 class ZBodyStateManager {
 public:
     // If fixed_frame is nil then creates a dynamic frame.
-    ZBodyStateManager(ZVal* _fixed_frame, int frame_size, const std::vector<int>& _managed_slots)
-        : fixed_frame(_fixed_frame), managed_slots(_managed_slots) {
+    ZBodyStateManager(ZVal* _fixed_frame, int frame_size, const std::vector<int>& _managed_slots,
+                      TableIterVec* _tiv_ptr)
+        : fixed_frame(_fixed_frame), managed_slots(_managed_slots), tiv_ptr(_tiv_ptr) {
         if ( fixed_frame )
             frame = fixed_frame;
         else {
@@ -343,7 +344,13 @@ public:
         }
     }
 
+    void SetTableIters(TableIterVec* _tiv_ptr) { tiv_ptr = _tiv_ptr; }
+
     ~ZBodyStateManager() {
+        if ( tiv_ptr )
+            for ( auto& ti : *tiv_ptr )
+                ti.Clear();
+
         if ( fixed_frame ) {
             // Recover memory and reset for use in next call.
             for ( auto s : managed_slots ) {
@@ -366,6 +373,7 @@ private:
     ZVal* fixed_frame;
     ZVal* frame;
     const std::vector<int>& managed_slots;
+    TableIterVec* tiv_ptr;
 };
 
 ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
@@ -400,7 +408,7 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
     }
 #endif
 
-    ZBodyStateManager state_mgr(fixed_frame, frame_size, managed_slots);
+    ZBodyStateManager state_mgr(fixed_frame, frame_size, managed_slots, &table_iters);
     std::unique_ptr<TableIterVec> local_table_iters;
     std::vector<StepIterInfo> step_iters(num_step_iters);
 
@@ -415,6 +423,7 @@ ValPtr ZBody::Exec(Frame* f, StmtFlowType& flow) {
             local_table_iters = std::make_unique<TableIterVec>(table_iters.size());
             *local_table_iters = table_iters;
             tiv_ptr = &(*local_table_iters);
+            state_mgr.SetTableIters(nullptr); // unique_ptr will clean it up directly
         }
     }
 

@@ -1,3 +1,7 @@
+7.1.0-dev.818 | 2024-12-13 08:04:17 -0700
+
+  * fix for memory management associated with ZAM table iteration (Vern Paxson, Corelight)
+
 7.1.0-dev.816 | 2024-12-13 12:59:08 +0100
 
   * zeekygen: Disable Cluster::Experimental module (Arne Welzel, Corelight)

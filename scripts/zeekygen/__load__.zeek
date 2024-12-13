@@ -32,6 +32,7 @@ event zeek_init() &priority=1000
 	# probably disable all modules, too.
 	disable_module_events("Control");
 	disable_module_events("Cluster::Backend::ZeroMQ");
+	disable_module_events("Cluster::Experimental");
 	disable_module_events("Management::Agent::Runtime");
 	disable_module_events("Management::Controller::Runtime");
 	disable_module_events("Management::Node");

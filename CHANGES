@@ -1,3 +1,14 @@
+7.1.0-dev.827 | 2024-12-13 12:17:25 -0700
+
+  * btest/supervisor: Bump one timeout to 30 seconds (Arne Welzel, Corelight)
+
+  * btest/cluster: Bump timeouts to 30 seconds (Arne Welzel, Corelight)
+
+    ZAM startup may take a long time, particularly in CI environments, so
+    bump it up from 10 to 30 seconds.
+
+  * btest/validate-ZAM: Update baseline, run always (Arne Welzel, Corelight)
+
 7.1.0-dev.823 | 2024-12-13 12:14:46 -0700
 
   * simplified ZAM instructions for executing "assert" statements (Vern Paxson, Corelight)

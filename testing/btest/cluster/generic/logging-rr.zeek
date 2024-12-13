@@ -20,7 +20,7 @@
 # @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-1 zeek -b ../worker.zeek >out"
 # @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-2 zeek -b ../worker.zeek >out"
 #
-# @TEST-EXEC: btest-bg-wait 10
+# @TEST-EXEC: btest-bg-wait 30
 #
 # @TEST-EXEC: test $(grep -c worker-1 logger-1/rr2.log) -gt 10
 # @TEST-EXEC: test $(grep -c worker-2 logger-1/rr2.log) -gt 10

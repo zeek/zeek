@@ -13,7 +13,7 @@
 # @TEST-EXEC: cp $FILES/zeromq/test-bootstrap.zeek zeromq-test-bootstrap.zeek
 #
 # @TEST-EXEC: btest-bg-run supervisor "ZEEKPATH=$ZEEKPATH:.. && zeek -j ../supervisor.zeek >out"
-# @TEST-EXEC: btest-bg-wait 10
+# @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff supervisor/cluster.log
 
 redef Log::default_rotation_interval = 0secs;

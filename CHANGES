@@ -1,3 +1,9 @@
+7.1.0-dev.811 | 2024-12-12 20:11:39 -0800
+
+  * removed a bunch of no-longer used BTest alternatives and their associated baselines (Vern Paxson, Corelight)
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
 7.1.0-dev.808 | 2024-12-12 13:17:51 -0700
 
   * netcontrol: Move to Cluster::publish() (Arne Welzel, Corelight)

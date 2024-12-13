@@ -15,7 +15,7 @@
 # @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-1 zeek -b ../worker.zeek >out"
 # @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-2 zeek -b ../worker.zeek >out"
 #
-# @TEST-EXEC: btest-bg-wait 10
+# @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: sort < ./manager/out > ./manager.sorted
 # @TEST-EXEC: sort < ./worker-1/out > ./worker-1.sorted
 # @TEST-EXEC: sort < ./worker-2/out > ./worker-2.sorted

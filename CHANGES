@@ -1,3 +1,9 @@
+7.2.0-dev.2 | 2024-12-13 16:46:18 -0700
+
+  * CI: Add missing packages to coverity workflow (Tim Wojtulewicz, Corelight)
+
+  * Start of 7.2.0 development (Tim Wojtulewicz, Corelight)
+
 7.1.0-dev.829 | 2024-12-13 13:15:41 -0700
 
   * Updating submodule(s) [nomail] (Tim Wojtulewicz, Corelight)

@@ -1,3 +1,14 @@
+7.1.0-dev.821 | 2024-12-13 12:14:17 -0700
+
+  * cirrus/container_image_manifest: match RC tags, too (Arne Welzel, Corelight)
+
+    The rest should just work, assuming VERSION files contain an
+    appropriate value. Add a check for that, too.
+
+  * cirrus: Move additional tag "computation" into separate script (Arne Welzel, Corelight)
+
+    This allows for easier testing locally and maybe re-usability.
+
 7.1.0-dev.818 | 2024-12-13 08:04:17 -0700
 
   * fix for memory management associated with ZAM table iteration (Vern Paxson, Corelight)

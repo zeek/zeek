@@ -1083,10 +1083,10 @@ const ZAMStmt ZAMCompiler::CompileAssert(const AssertStmt* as) {
         else
             msg_slot = FrameSlot(msg->AsNameExpr());
 
-        z = ZInstI(OP_REPORT_ASSERT_WITH_MESSAGE_VVVC, decision_slot, cond_slot, msg_slot, cond_desc_e.get());
+        z = ZInstI(OP_REPORT_ASSERT_WITH_MESSAGE_VVC, cond_slot, msg_slot, cond_desc_e.get());
     }
     else
-        z = ZInstI(OP_REPORT_ASSERT_VVC, decision_slot, cond_slot, cond_desc_e.get());
+        z = ZInstI(OP_REPORT_ASSERT_VC, cond_slot, cond_desc_e.get());
 
     auto end_inst = AddInst(z);
     AddCFT(insts1.back(), CFT_BLOCK_END);

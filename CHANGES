@@ -1,3 +1,7 @@
+7.1.0-dev.823 | 2024-12-13 12:14:46 -0700
+
+  * simplified ZAM instructions for executing "assert" statements (Vern Paxson, Corelight)
+
 7.1.0-dev.821 | 2024-12-13 12:14:17 -0700
 
   * cirrus/container_image_manifest: match RC tags, too (Arne Welzel, Corelight)

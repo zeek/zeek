@@ -348,22 +348,20 @@ eval	static auto assertion_result_hook = id::find_func("assertion_result");
 	$$ = ! $1 || run_result_hook;
 
 op Report-Assert
-# Operands are (1) result from Should-Report-Assert, (2) assertion value,
-# (3) description of the condition (always a constant).
+# Operands are (1) assertion value, (2) description of the condition
+# (always a constant).
 op1-read
-classes VVC
-op-types I I S
-eval	if ( $$ )
-		{
-		zeek::StringValPtr msg_val = zeek::val_mgr->EmptyString();
-		report_assert($1, $2->ToStdString(), msg_val, Z_LOC->Loc());
-		}
+classes VC
+op-types I S
+eval	{
+	zeek::StringValPtr msg_val = zeek::val_mgr->EmptyString();
+	report_assert($$, $1->ToStdString(), msg_val, Z_LOC->Loc());
+	}
 
 op Report-Assert-With-Message
 # The same, but with an additional operand being the associated message
-# (as a variable, so it comes in $2 rather than $3).
+# (as a variable, so it comes in $1 rather than $2).
 op1-read
-classes VVVC
-op-types I I S S
-eval	if ( $$ )
-		report_assert($1, $3->ToStdString(), {NewRef{}, $2}, Z_LOC->Loc());
+classes VVC
+op-types I S S
+eval	report_assert($$, $2->ToStdString(), {NewRef{}, $1}, Z_LOC->Loc());

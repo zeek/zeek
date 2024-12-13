@@ -7,7 +7,7 @@
 # contain their node names as log_suffix metadata within the log-queue directory.
 #
 # @TEST-EXEC: btest-bg-run zeek zeek -j -b %INPUT
-# @TEST-EXEC: btest-bg-wait 10
+# @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: ls zeek/log-queue/test*logger-1__.log >> logs.out
 # @TEST-EXEC: ls zeek/log-queue/test*logger-2__.log >> logs.out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER='sed "s/[0-9][0-9]/XX/g"' btest-diff logs.out

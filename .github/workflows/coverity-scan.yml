@@ -21,26 +21,29 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get -y install \
-            git \
-            cmake \
-            make \
-            gcc \
-            g++ \
-            flex \
             bison \
+            bsdmainutils \
+            cmake \
+            cppmzq-dev \
+            curl \
+            flex \
+            g++ \
+            gcc \
+            git \
+            libfl-dev \
+            libfl2 \
+            libkrb5-dev \
+            libmaxminddb-dev \
             libpcap-dev \
             libssl-dev \
+            make \
             python3 \
             python3-dev \
             python3-pip \
-            swig \
-            zlib1g-dev \
-            libmaxminddb-dev \
-            libkrb5-dev \
-            bsdmainutils \
             sqlite3 \
-            curl \
-            wget
+            swig \
+            wget \
+            zlib1g-dev
 
       - name: Configure
         run: ./configure --build-type=debug --disable-broker-tests

@@ -1,3 +1,30 @@
+7.1.0-dev.830 | 2024-12-16 10:20:24 -0700
+
+  * QUIC/decrypt_crypto: Actually check if decryption was successful (Arne Welzel, Corelight)
+
+    ...and bail if it wasn't.
+
+    PCAP was produced using OSS-Fuzz input from issue 383379789.
+
+    (cherry picked from commit f940f2d88f3261f18b65cf7394ca40be16dc6a68)
+
+  * QUIC/decrypt_crypto: Limit payload_length to 10k (Arne Welzel, Corelight)
+
+    Given we dynamically allocate memory for decryption, employ a limit
+    that is unlikely to be hit, but allows for large payloads produced
+    by the fuzzer or jumbo frames.
+
+    (cherry picked from commit f940f2d88f3261f18b65cf7394ca40be16dc6a68)
+
+  * QUIC/decrypt_crypto: Fix decrypting into too small stack buffer (Arne Welzel, Corelight)
+
+    A QUIC initial packet larger than 1500 bytes could lead to crashes
+    due to the usage of a fixed size stack buffer for decryption.
+
+    Allocate the necessary memory dynamically on the heap instead.
+
+    (cherry picked from commit f940f2d88f3261f18b65cf7394ca40be16dc6a68)
+
 7.1.0-dev.829 | 2024-12-13 13:15:41 -0700
 
   * Updating submodule(s) [nomail] (Tim Wojtulewicz, Corelight)

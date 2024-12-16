@@ -1,3 +1,13 @@
+7.2.0-dev.11 | 2024-12-16 12:37:25 -0700
+
+  * ZAM/relexpr-op NE for patterns (Vern Paxson, Corelight)
+
+  * Expr: Fix folding of pattern values to support == and != (Arne Welzel, Corelight)
+
+    The fatal error is actually triggered at runtime, so it's a bit
+    dangerous for users, but not sure there's many use-cases to
+    compare vectors of patterns.
+
 7.2.0-dev.8 | 2024-12-16 10:19:18 -0700
 
   * QUIC/decrypt_crypto: Actually check if decryption was successful (Arne Welzel, Corelight)

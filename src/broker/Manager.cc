@@ -1582,6 +1582,13 @@ void Manager::ProcessStoreResponse(detail::StoreHandleVal* s, broker::store::res
 }
 
 detail::StoreHandleVal* Manager::MakeMaster(const string& name, broker::backend type, broker::backend_options opts) {
+    if ( ! bstate ) {
+        if ( zeek::detail::current_scope() == zeek::detail::global_scope() )
+            reporter->Error("Broker stores cannot be created at the global scope");
+
+        return nullptr;
+    }
+
     if ( bstate->endpoint.is_shutdown() )
         return nullptr;
 

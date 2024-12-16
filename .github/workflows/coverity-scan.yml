@@ -24,7 +24,7 @@ jobs:
             bison \
             bsdmainutils \
             cmake \
-            cppmzq-dev \
+            cppzmq-dev \
             curl \
             flex \
             g++ \

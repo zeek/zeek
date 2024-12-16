@@ -1,3 +1,7 @@
+7.1.0-rc1 | 2024-12-16 11:01:50 -0700
+
+  * Update docs submodule [nomail] [skip ci] (Tim Wojtulewicz)
+
 7.1.0-dev.830 | 2024-12-16 10:20:24 -0700
 
   * QUIC/decrypt_crypto: Actually check if decryption was successful (Arne Welzel, Corelight)

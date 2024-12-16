@@ -1,3 +1,16 @@
+7.1.0-rc1.1 | 2024-12-16 13:02:12 -0700
+
+  * ZAM/relexpr-op NE for patterns (Vern Paxson, Corelight)
+
+    (cherry picked from commit 33eaa5ccda4157a34feb5ffc466f7371dc6d8eff)
+
+  * Expr: Fix folding of pattern values to support == and != (Arne Welzel, Corelight)
+    The fatal error is actually triggered at runtime, so it's a bit
+    dangerous for users, but not sure there's many use-cases to
+    compare vectors of patterns.
+
+    (cherry picked from commit 33eaa5ccda4157a34feb5ffc466f7371dc6d8eff)
+
 7.1.0-rc1 | 2024-12-16 11:01:50 -0700
 
   * Update docs submodule [nomail] [skip ci] (Tim Wojtulewicz)

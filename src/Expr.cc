@@ -925,12 +925,20 @@ ValPtr BinaryExpr::PatternFold(Val* v1, Val* v2) const {
     const RE_Matcher* re1 = v1->AsPattern();
     const RE_Matcher* re2 = v2->AsPattern();
 
-    if ( tag != EXPR_AND && tag != EXPR_OR )
+    ValPtr res;
+    if ( tag == EXPR_AND || tag == EXPR_OR ) {
+        RE_Matcher* matcher = tag == EXPR_AND ? RE_Matcher_conjunction(re1, re2) : RE_Matcher_disjunction(re1, re2);
+        res = make_intrusive<PatternVal>(matcher);
+    }
+    else if ( tag == EXPR_EQ || tag == EXPR_NE ) {
+        bool cmp = strcmp(re1->PatternText(), re2->PatternText());
+        res = val_mgr->Bool(tag == EXPR_EQ ? cmp == 0 : cmp != 0);
+    }
+    else {
         BadTag("BinaryExpr::PatternFold");
+    }
 
-    RE_Matcher* res = tag == EXPR_AND ? RE_Matcher_conjunction(re1, re2) : RE_Matcher_disjunction(re1, re2);
-
-    return make_intrusive<PatternVal>(res);
+    return res;
 }
 
 ValPtr BinaryExpr::SetFold(Val* v1, Val* v2) const {

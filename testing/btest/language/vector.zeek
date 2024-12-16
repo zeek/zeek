@@ -241,4 +241,11 @@ event zeek_init()
 	v26 += vector();
 	test_case( "+= of empty vector", |v26| == 0 );
 
+	# Pattern vectors
+	local pv1 = vector(/a/, /b/);
+	local pv2 = vector(/a/, /c/);
+	local pv_eq = pv1 == pv2;
+	local pv_ne = pv1 != pv2;
+	test_case( fmt("pv1 == pv2 -> %s", pv_eq), (pv_eq[0] == T) && (pv_eq[1] == F) );
+	test_case( fmt("pv1 != pv2 -> %s", pv_ne), (pv_ne[0] == F) && (pv_ne[1] == T) );
 }

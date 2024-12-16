@@ -1,3 +1,28 @@
+7.2.0-dev.8 | 2024-12-16 10:19:18 -0700
+
+  * QUIC/decrypt_crypto: Actually check if decryption was successful (Arne Welzel, Corelight)
+
+    ...and bail if it wasn't.
+
+    PCAP was produced using OSS-Fuzz input from issue 383379789.
+
+  * QUIC/decrypt_crypto: Limit payload_length to 10k (Arne Welzel, Corelight)
+
+    Given we dynamically allocate memory for decryption, employ a limit
+    that is unlikely to be hit, but allows for large payloads produced
+    by the fuzzer or jumbo frames.
+
+  * QUIC/decrypt_crypto: Fix decrypting into too small stack buffer (Arne Welzel, Corelight)
+
+    A QUIC initial packet larger than 1500 bytes could lead to crashes
+    due to the usage of a fixed size stack buffer for decryption.
+
+    Allocate the necessary memory dynamically on the heap instead.
+
+  * Fix naming of zeromq package in Coverity workflow (Tim Wojtulewicz, Corelight)
+
+  * Fix naming of cppzmq-dev package in Coverity workflow (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.2 | 2024-12-13 16:46:18 -0700
 
   * CI: Add missing packages to coverity workflow (Tim Wojtulewicz, Corelight)

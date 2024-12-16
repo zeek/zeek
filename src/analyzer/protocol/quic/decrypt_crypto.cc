@@ -60,7 +60,6 @@ const size_t AEAD_IV_LEN = 12;
 const size_t AEAD_HP_LEN = 16;
 const size_t AEAD_SAMPLE_LENGTH = 16;
 const size_t AEAD_TAG_LENGTH = 16;
-const size_t MAXIMUM_PACKET_LENGTH = 1500;
 const size_t MAXIMUM_PACKET_NUMBER_LENGTH = 4;
 
 EVP_CIPHER_CTX* get_aes_128_ecb() {
@@ -153,11 +152,16 @@ Function that calls the AEAD decryption routine, and returns the decrypted data.
 */
 hilti::rt::Bytes decrypt(const std::vector<uint8_t>& client_key, const hilti::rt::Bytes& all_data,
                          uint64_t payload_length, const DecryptionInformation& decryptInfo) {
-    int out, out2, res;
+    int out, out2;
 
     if ( payload_length < decryptInfo.packet_number_length + AEAD_TAG_LENGTH )
         throw hilti::rt::RuntimeError(hilti::rt::fmt("payload too small %ld < %ld", payload_length,
                                                      decryptInfo.packet_number_length + AEAD_TAG_LENGTH));
+
+    // Bail on large payloads, somewhat arbitrarily. 10k allows for Jumbo frames
+    // and sometimes the fuzzer produces packets up to that size as well.
+    if ( payload_length > 10000 )
+        throw hilti::rt::RuntimeError(hilti::rt::fmt("payload_length too large %ld", payload_length));
 
     const uint8_t* encrypted_payload = data_as_uint8(all_data) + decryptInfo.unprotected_header.size();
 
@@ -173,7 +177,8 @@ hilti::rt::Bytes decrypt(const std::vector<uint8_t>& client_key, const hilti::rt
     const void* tag_to_check = all_data.data() + decryptInfo.unprotected_header.size() + encrypted_payload_size;
     int tag_to_check_length = AEAD_TAG_LENGTH;
 
-    std::array<uint8_t, MAXIMUM_PACKET_LENGTH> decrypt_buffer;
+    // Allocate memory for decryption.
+    std::vector<uint8_t> decrypt_buffer(encrypted_payload_size);
 
     // Setup context
     auto* ctx = get_aes_128_gcm();
@@ -197,7 +202,8 @@ hilti::rt::Bytes decrypt(const std::vector<uint8_t>& client_key, const hilti::rt
     EVP_CipherUpdate(ctx, decrypt_buffer.data(), &out, encrypted_payload, encrypted_payload_size);
 
     // Validate whether the decryption was successful or not
-    EVP_CipherFinal_ex(ctx, NULL, &out2);
+    if ( EVP_CipherFinal_ex(ctx, NULL, &out2) == 0 )
+        throw hilti::rt::RuntimeError("decryption failed");
 
     // Copy the decrypted data from the decrypted buffer into a Bytes instance.
     return hilti::rt::Bytes(decrypt_buffer.data(), decrypt_buffer.data() + out);

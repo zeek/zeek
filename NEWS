@@ -3,6 +3,27 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 7.0.5
+==========
+
+This release fixes the following security issues:
+
+- Large QUIC packets can cause Zeek to overflow memory and potentially
+  crash. Due to the possibility of receiving these packets from remote hosts,
+  this is a DoS risk. The fix included limits the payload length to 10000 bytes
+  and reports an error for those cases, as well as fixing the memory allocation
+  to not use a fixed-size buffer for all packets.
+
+This release fixes the following bugs:
+
+- The ZAM script optimization feature gained some fixes for some minor memory
+  leaks.
+
+- The ZeekJS submodule was updated to v0.14.0. In certain environment, ZeekJS
+  would fail to start a debugging thread due to limited stack size, producing
+  spurious log messages. This was fixed by not starting the debugging thread by
+  default.
+
 Zeek 7.0.4
 ==========
 

@@ -32,6 +32,6 @@ export {
 		# and the backend will be forced into synchronous mode, since
 		# time won't move forward the same as when capturing live
 		# traffic.
-		async_mode: bool &default=F;
+		async_mode: bool &default=T;
 	};
 }

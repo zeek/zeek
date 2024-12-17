@@ -88,7 +88,9 @@ storage::BackendPtr Redis::Instantiate(std::string_view tag) { return make_intru
  * with a corresponding message.
  */
 ErrorResult Redis::DoOpen(RecordValPtr options) {
-    async_mode = options->GetField<BoolVal>("async_mode")->Get();
+    // When reading traces we disable storage async mode globally (see src/storage/Backend.cc) since
+    // time moves forward based on the pcap and not based on real time.
+    async_mode = options->GetField<BoolVal>("async_mode")->Get() && ! zeek::run_state::reading_traces;
     key_prefix = options->GetField<StringVal>("key_prefix")->ToStdString();
 
     redisOptions opt = {0};

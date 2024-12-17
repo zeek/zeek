@@ -1,3 +1,7 @@
+7.2.0-dev.13 | 2024-12-17 12:15:42 -0700
+
+  * Return a warning and fail if creating a store at global scope (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.11 | 2024-12-16 12:37:25 -0700
 
   * ZAM/relexpr-op NE for patterns (Vern Paxson, Corelight)

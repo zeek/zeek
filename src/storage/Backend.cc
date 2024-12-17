@@ -2,6 +2,7 @@
 
 #include "Backend.h"
 
+#include "zeek/RunState.h"
 #include "zeek/Trigger.h"
 #include "zeek/broker/Data.h"
 
@@ -80,7 +81,7 @@ ErrorResult Backend::Put(ValPtr key, ValPtr value, bool overwrite, double expira
 
     auto res = DoPut(std::move(key), std::move(value), overwrite, expiration_time, cb);
 
-    if ( ! native_async && cb )
+    if ( (! native_async || zeek::run_state::reading_traces) && cb )
         cb->Complete(res);
 
     return res;
@@ -95,7 +96,7 @@ ValResult Backend::Get(ValPtr key, ValResultCallback* cb) {
 
     auto res = DoGet(std::move(key), cb);
 
-    if ( ! native_async && cb )
+    if ( (! native_async || zeek::run_state::reading_traces) && cb )
         cb->Complete(res);
 
     return res;
@@ -109,7 +110,7 @@ ErrorResult Backend::Erase(ValPtr key, ErrorResultCallback* cb) {
 
     auto res = DoErase(std::move(key), cb);
 
-    if ( ! native_async && cb )
+    if ( (! native_async || zeek::run_state::reading_traces) && cb )
         cb->Complete(res);
 
     return res;

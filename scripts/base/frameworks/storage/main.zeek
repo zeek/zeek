@@ -27,8 +27,11 @@ export {
 		# backend.
 		expire_time: interval &default=0sec;
 
-		# Indicates whether this operation should happen asynchronously. If this
-		# is true, the call to put must happen as part of a when statement.
+		# Indicates whether this operation should happen
+		# asynchronously. If this is true, the call to put must happen
+		# as part of a when statement. This flag is overridden when
+		# reading pcaps, since time won't move forward the same as when
+		# caputring live traffic.
 		async_mode: bool &default=T;
 	};
 
@@ -71,7 +74,10 @@ export {
 		# connection will be async and will only allow commands via
 		# ``when`` commands. You will still need to set the
 		# ``async_mode`` flags of the put, get, and erase methods to
-		# match this flag.
+		# match this flag. This flag is overridden when reading pcaps
+		# and the backend will be forced into synchronous mode, since
+		# time won't move forward the same as when caputring live
+		# traffic.
 		async_mode: bool &default=F;
 	};
 

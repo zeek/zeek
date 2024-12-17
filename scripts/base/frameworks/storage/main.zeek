@@ -78,7 +78,7 @@ export {
 		# and the backend will be forced into synchronous mode, since
 		# time won't move forward the same as when caputring live
 		# traffic.
-		async_mode: bool &default=F;
+		async_mode: bool &default=T;
 	};
 
 	## Opens a new backend connection based on a configuration object.

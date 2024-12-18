@@ -100,6 +100,10 @@ export {
 
 	## Translates an analyzer's name to a tag enum value.
 	##
+	## The analyzer is assumed to exist; call
+	## :zeek:see:`Analyzer::has_tag` first to verify that name is a
+	## valid analyzer name.
+	##
 	## name: The analyzer name.
 	##
 	## Returns: The analyzer tag corresponding to the name.

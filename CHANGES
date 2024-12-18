@@ -1,3 +1,9 @@
+7.2.0-dev.16 | 2024-12-18 09:28:33 +0100
+
+  * pre-commit: Bump spicy-format to 0.23 (Arne Welzel, Corelight)
+
+  * fix for ZAM optimization of assigning a record field to result of "in" operation (Vern Paxson, Corelight)
+
 7.2.0-dev.13 | 2024-12-17 12:15:42 -0700
 
   * Return a warning and fail if creating a store at global scope (Tim Wojtulewicz, Corelight)

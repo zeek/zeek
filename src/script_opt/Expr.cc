@@ -176,7 +176,6 @@ bool Expr::IsFieldAssignable(const Expr* e) const {
         case EXPR_RSHIFT:
         case EXPR_FIELD:
         case EXPR_HAS_FIELD:
-        case EXPR_IN:
         case EXPR_SIZE:
             return true;
 
@@ -189,6 +188,8 @@ bool Expr::IsFieldAssignable(const Expr* e) const {
             // case EXPR_NE:
             // case EXPR_GE:
             // case EXPR_GT:
+            //
+            // case EXPR_IN:
 
             // These could be added if we subsetted them to versions for
             // which we know it's safe to evaluate both operands.  Again

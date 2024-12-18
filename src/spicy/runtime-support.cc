@@ -206,7 +206,7 @@ void rt::raise_event(const EventHandlerPtr& handler, const hilti::rt::Vector<Val
             throw InvalidValue("null value encountered after conversion");
     }
 
-    event_mgr.Enqueue(handler, std::move(vl));
+    event_mgr.Enqueue(handler, std::move(vl), util::detail::SOURCE_LOCAL, rt::current_analyzer_id());
 }
 
 TypePtr rt::event_arg_type(const EventHandlerPtr& handler, const hilti::rt::integer::safe<uint64_t>& idx) {
@@ -219,6 +219,24 @@ TypePtr rt::event_arg_type(const EventHandlerPtr& handler, const hilti::rt::inte
                                           static_cast<uint64_t>(zeek_args.size())));
 
     return zeek_args[idx];
+}
+
+zeek::analyzer::ID rt::current_analyzer_id() {
+    auto _ = hilti::rt::profiler::start("zeek/rt/current_analyzer_id");
+
+    if ( auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie()) ) {
+        if ( auto x = cookie->protocol ) {
+            return x->analyzer->GetID();
+        }
+        else if ( auto x = cookie->file ) {
+            return 0;
+        }
+        else if ( auto x = cookie->packet ) {
+            return 0;
+        }
+    }
+
+    throw ValueUnavailable("analyzer not available");
 }
 
 ValPtr& rt::current_conn() {

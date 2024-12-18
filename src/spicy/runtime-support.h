@@ -210,6 +210,14 @@ void raise_event(const EventHandlerPtr& handler, const hilti::rt::Vector<ValPtr>
 TypePtr event_arg_type(const EventHandlerPtr& handler, const hilti::rt::integer::safe<uint64_t>& idx);
 
 /**
+ * Retrieves the analyzer ID for the currently processed Zeek connection.
+ * Assumes that the HILTI context's cookie value has been set accordingly.
+ *
+ * @return Pointer to an analyzer instance
+ */
+zeek::analyzer::ID current_analyzer_id();
+
+/**
  * Retrieves the connection ID for the currently processed Zeek connection.
  * Assumes that the HILTI context's cookie value has been set accordingly.
  *

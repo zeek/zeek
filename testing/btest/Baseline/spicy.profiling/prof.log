@@ -16,6 +16,7 @@ spicy/unit/SSH::Banner::magic 2
 spicy/unit/SSH::Banner::software 2
 spicy/unit/SSH::Banner::version 2
 zeek/event/ssh::banner 2
+zeek/rt/current_analyzer_id 2
 zeek/rt/current_conn 2
 zeek/rt/current_is_orig 2
 zeek/rt/event_arg_type 4

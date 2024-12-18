@@ -1,3 +1,7 @@
+7.2.0-dev.18 | 2024-12-18 15:44:40 -0700
+
+  * Add spicy runtime-support current_analyzer_id(), use it to set id in events (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.16 | 2024-12-18 09:28:33 +0100
 
   * pre-commit: Bump spicy-format to 0.23 (Arne Welzel, Corelight)

@@ -1,0 +1,4 @@
+#!/bin/sh
+
+zeek -N Zeek::Storage_Backend_Redis && which redis-server >/dev/null
+exit $?

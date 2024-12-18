@@ -113,6 +113,8 @@ bool Backend::ProcessEventMessage(const std::string_view& topic, const std::stri
         return false;
     }
 
+    // Use a event emitter, so that events can go back to websocket clients, too.
+
     auto& event = *r;
     zeek::event_mgr.Enqueue(event.Handler(), std::move(event.args), util::detail::SOURCE_BROKER, 0, nullptr,
                             event.timestamp);

@@ -2,6 +2,7 @@
 
 #include "zeek/storage/backend/redis/Redis.h"
 
+#include "zeek/DebugLogger.h"
 #include "zeek/Func.h"
 #include "zeek/RunState.h"
 #include "zeek/Val.h"
@@ -92,6 +93,8 @@ ErrorResult Redis::DoOpen(RecordValPtr options) {
     // time moves forward based on the pcap and not based on real time.
     async_mode = options->GetField<BoolVal>("async_mode")->Get() && ! zeek::run_state::reading_traces;
     key_prefix = options->GetField<StringVal>("key_prefix")->ToStdString();
+
+    DBG_LOG(DBG_STORAGE, "Redis backend: running in async mode? %d", async_mode);
 
     redisOptions opt = {0};
 
@@ -341,6 +344,7 @@ void Redis::HandleEraseResult(redisReply* reply, ErrorResultCallback* callback) 
 }
 
 void Redis::OnConnect(int status) {
+    DBG_LOG(DBG_STORAGE, "Redis backend: connection event");
     if ( status == REDIS_OK ) {
         connected = true;
         return;
@@ -350,6 +354,7 @@ void Redis::OnConnect(int status) {
 }
 
 void Redis::OnDisconnect(int status) {
+    DBG_LOG(DBG_STORAGE, "Redis backend: disconnection event");
     if ( status == REDIS_OK ) {
         // TODO: this was an intentional disconnect, nothing to do?
     }

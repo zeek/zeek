@@ -1,3 +1,9 @@
+7.0.5-1 | 2025-03-18 16:12:32 -0700
+
+  * fix for ZAM optimization of assigning a record field to result of "in" operation (Vern Paxson, Corelight)
+
+    (cherry picked from commit 991bc9644dd9b77f09fff992658f10500dce77e1)
+
 7.0.5 | 2024-12-16 11:12:33 -0700
 
   * Update CHANGES, VERSION, and NEWS for 7.0.5 release (Tim Wojtulewicz, Corelight)

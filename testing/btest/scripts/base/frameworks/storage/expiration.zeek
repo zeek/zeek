@@ -1,12 +1,12 @@
 # @TEST-DOC: Automatic expiration of stored data
-# @TEST-EXEC: zcat <$TRACES/echo-connections.pcap.gz | zeek -b %INPUT > out
-# @TEST-EXEC: btest-diff out
-# @TEST-EXEC: btest-diff .stderr
+# @TEST-EXEC: zcat <$TRACES/echo-connections.pcap.gz | zeek -b -Cr - %INPUT > out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 
 @load base/frameworks/storage
 @load policy/frameworks/storage/backend/sqlite
 
-redef Storage::expire_interval = 5 secs;
+redef Storage::expire_interval = 2 secs;
 redef exit_only_after_terminate = T;
 
 # Create a typename here that can be passed down into get().
@@ -24,14 +24,14 @@ event check_removed() {
 	terminate();
 }
 
-event zeek_init() {
+event setup_test() {
 	local opts : Storage::Backend::SQLite::Options;
 	opts$database_path = "storage-test.sqlite";
 	opts$table_name = "testing";
 
 	backend = Storage::open_backend(Storage::SQLITE, opts, str, str);
 
-	local res = Storage::put(backend, [$key=key, $value=value, $overwrite=T, $expire_time=2 secs, $async_mode=F]);
+	local res = Storage::put(backend, [$key=key, $value=value, $expire_time=2 secs, $async_mode=F]);
 	print "put result", res;
 
 	local res2 = Storage::get(backend, key, F);
@@ -39,4 +39,11 @@ event zeek_init() {
 	print "get result same as inserted", value == (res2 as string);
 
 	schedule 5 secs { check_removed() };
+}
+
+event zeek_init() {
+	# We need network time to be set to something other than zero for the
+	# expiration time to be set correctly. Schedule an event on a short
+	# timer so packets start getting read and do the setup there.
+	schedule 100 msecs { setup_test() };
 }

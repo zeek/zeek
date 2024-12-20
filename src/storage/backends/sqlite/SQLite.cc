@@ -155,6 +155,9 @@ ErrorResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite, double expir
         return res;
     }
 
+    if ( expiration_time != 0 )
+        expiration_time += run_state::network_time;
+
     if ( auto res = checkError(sqlite3_bind_double(stmt, 3, expiration_time)); res.has_value() ) {
         sqlite3_reset(stmt);
         return res;
@@ -244,7 +247,7 @@ ErrorResult SQLite::DoErase(ValPtr key, ErrorResultCallback* cb) {
 void SQLite::Expire() {
     auto stmt = prepared_stmts["expire"];
 
-    if ( auto res = checkError(sqlite3_bind_double(stmt, 1, util::current_time())); res.has_value() ) {
+    if ( auto res = checkError(sqlite3_bind_double(stmt, 1, run_state::network_time)); res.has_value() ) {
         sqlite3_reset(stmt);
         // TODO: do something with the error here?
     }

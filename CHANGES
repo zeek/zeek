@@ -1,3 +1,14 @@
+7.2.0-dev.23 | 2024-12-20 15:14:33 -0700
+
+  * Require spicy for spicy.analyzer-id btest (Tim Wojtulewicz, Corelight)
+
+  * Document `get_tag` to ensure that `name` exists (Evan Typanski, Corelight)
+
+    This caused confusion and I don't think it's very intuitive. If called
+    with a name that does not exist, this returns without a value, not even
+    an error value. Changing that seems like it could be more deprecation
+    work.
+
 7.2.0-dev.18 | 2024-12-18 15:44:40 -0700
 
   * Add spicy runtime-support current_analyzer_id(), use it to set id in events (Tim Wojtulewicz, Corelight)

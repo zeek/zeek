@@ -217,7 +217,7 @@ ErrorResult Redis::DoPut(ValPtr key, ValPtr value, bool overwrite, double expira
 
     if ( async_mode ) {
         int status;
-        if ( expiration_time > 0.0 && ! zeek::run_state::reading_traces )
+        if ( expiration_time > 0.0 )
             status = redisAsyncCommand(async_ctx, redisPut, cb, format.c_str(), key_prefix.data(), json_key.data(),
                                        json_value.data(), static_cast<uint64_t>(expire_time * 1e6));
         else
@@ -238,6 +238,22 @@ ErrorResult Redis::DoPut(ValPtr key, ValPtr value, bool overwrite, double expira
 
         if ( ! reply )
             return util::fmt("Put operation failed: %s", ctx->errstr);
+
+        freeReplyObject(reply);
+    }
+
+    // If reading pcaps insert into a secondary set that's ordered by expiration
+    // time that gets checked by Expire().
+    if ( expiration_time > 0.0 && zeek::run_state::reading_traces ) {
+        format = "ZADD %s_expire";
+        if ( ! overwrite )
+            format.append(" NX");
+        format += " %f %s";
+
+        redisReply* reply =
+            (redisReply*)redisCommand(ctx, format.c_str(), key_prefix.data(), expire_time, json_key.data());
+        if ( ! reply )
+            return util::fmt("ZADD operation failed: %s", ctx->errstr);
 
         freeReplyObject(reply);
     }
@@ -301,6 +317,50 @@ ErrorResult Redis::DoErase(ValPtr key, ErrorResultCallback* cb) {
     }
 
     return std::nullopt;
+}
+
+void Redis::Expire() {
+    if ( ! connected || ! zeek::run_state::reading_traces )
+        return;
+
+    redisReply* reply =
+        (redisReply*)redisCommand(ctx, "ZRANGEBYSCORE %s_expire -inf %f", key_prefix.data(), run_state::network_time);
+
+    if ( ! reply ) {
+        // TODO: do something with the error?
+        printf("ZRANGEBYSCORE command failed: %s\n", ctx->errstr);
+        return;
+    }
+
+    if ( reply->elements == 0 ) {
+        freeReplyObject(reply);
+        return;
+    }
+
+    // TODO: it's possible to pass multiple keys to a DEL operation but it requires
+    // building an array of the strings, building up the DEL command with entries,
+    // and passing the array as a block somehow. There's no guarantee it'd be faster
+    // anyways.
+    for ( size_t i = 0; i < reply->elements; i++ ) {
+        auto del_reply = (redisReply*)redisCommand(ctx, "DEL %s:%s", key_prefix.data(), reply->element[i]->str);
+
+        // Don't bother checking the response here. The only error that would matter is if the key
+        // didn't exist, but that would mean it was already removed for some other reason.
+
+        freeReplyObject(del_reply);
+    }
+
+    freeReplyObject(reply);
+    reply = (redisReply*)redisCommand(ctx, "ZREMRANGEBYSCORE %s_expire -inf %f", key_prefix.data(),
+                                      run_state::network_time);
+
+    if ( ! reply ) {
+        // TODO: do something with the error?
+        printf("ZREMRANGEBYSCORE command failed: %s\n", ctx->errstr);
+        return;
+    }
+
+    freeReplyObject(reply);
 }
 
 void Redis::HandlePutResult(redisReply* reply, ErrorResultCallback* callback) {

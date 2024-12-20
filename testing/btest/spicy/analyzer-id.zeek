@@ -1,6 +1,8 @@
-#@TEST-DOC: Test that analyzer ID set for spicy protocol analyzers
-#@TEST-EXEC: zeek -r $TRACES/postgresql/psql-aws-ssl-preferred.pcap %INPUT > out
-#@TEST-EXEC: btest-diff out
+# @TEST-DOC: Test that analyzer ID set for spicy protocol analyzers
+# @TEST-REQUIRES: have-spicy
+#
+# @TEST-EXEC: zeek -r $TRACES/postgresql/psql-aws-ssl-preferred.pcap %INPUT > out
+# @TEST-EXEC: btest-diff out
 
 event PostgreSQL::ssl_request(c: connection) {
         print c$uid, "PostgreSQL::ssl_request", current_analyzer();

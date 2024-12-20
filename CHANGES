@@ -1,3 +1,7 @@
+7.2.0-dev.25 | 2024-12-20 15:31:19 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 7.2.0-dev.23 | 2024-12-20 15:14:33 -0700
 
   * Require spicy for spicy.analyzer-id btest (Tim Wojtulewicz, Corelight)

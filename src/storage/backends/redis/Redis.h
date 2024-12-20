@@ -58,6 +58,12 @@ public:
      */
     ErrorResult DoErase(ValPtr key, ErrorResultCallback* cb = nullptr) override;
 
+    /**
+     * Removes any entries in the backend that have expired. Can be overridden by
+     * derived classes.
+     */
+    void Expire() override;
+
     // IOSource interface
     double GetNextTimeout() override { return -1; }
     void Process() override {}

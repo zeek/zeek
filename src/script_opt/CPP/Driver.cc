@@ -63,6 +63,10 @@ void CPPCompile::Compile(bool report_uncompilable) {
                     (void)pfs->HashType(t);
                     rep_types.insert(TypeRep(t));
                 }
+		for ( auto& g : pf->Globals() )
+			accessed_globals.insert(g);
+		for ( auto& ag : pf->AllGlobals() )
+			all_accessed_globals.insert(ag);
             }
         }
 

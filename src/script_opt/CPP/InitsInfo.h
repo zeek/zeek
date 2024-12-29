@@ -482,7 +482,7 @@ public:
 // initialization time but not create it if missing.
 class GlobalLookupInitInfo : public CPP_InitInfo {
 public:
-    GlobalLookupInitInfo(CPPCompile* c, const ID* g, std::string CPP_name);
+    GlobalLookupInitInfo(CPPCompile* c, const ID* g, std::string CPP_name, bool do_init = false);
 
     std::string InitializerType() const override { return "CPP_GlobalLookupInit"; }
     void InitializerVals(std::vector<std::string>& ivs) const override;
@@ -490,6 +490,7 @@ public:
 protected:
     std::string Zeek_name;
     std::string CPP_name;
+    std::string val;
 };
 
 // Information for initializing a Zeek global.

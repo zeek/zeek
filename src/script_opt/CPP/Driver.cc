@@ -44,7 +44,16 @@ void CPPCompile::Compile(bool report_uncompilable) {
             reporter->FatalError("aborting standalone compilation to C++ due to having to skip some functions");
 
         for ( auto& g : global_scope()->OrderedVars() ) {
-            if ( ! obj_matches_opt_files(g) )
+            bool compiled_global = obj_matches_opt_files(g);
+
+            if ( ! compiled_global )
+                for ( const auto& i_e : g->GetOptInfo()->GetInitExprs() )
+                    if ( obj_matches_opt_files(i_e) ) {
+                        compiled_global = true;
+                        break;
+                    }
+
+            if ( ! compiled_global )
                 continue;
 
             // We will need to generate this global's definition, including
@@ -63,10 +72,10 @@ void CPPCompile::Compile(bool report_uncompilable) {
                     (void)pfs->HashType(t);
                     rep_types.insert(TypeRep(t));
                 }
-		for ( auto& g : pf->Globals() )
-			accessed_globals.insert(g);
-		for ( auto& ag : pf->AllGlobals() )
-			all_accessed_globals.insert(ag);
+                for ( auto& g : pf->Globals() )
+                    accessed_globals.insert(g);
+                for ( auto& ag : pf->AllGlobals() )
+                    all_accessed_globals.insert(ag);
             }
         }
 

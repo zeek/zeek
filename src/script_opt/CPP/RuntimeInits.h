@@ -383,13 +383,15 @@ public:
 // vector, so we use void* as the underlying type.
 class CPP_GlobalLookupInit : public CPP_Init<void*> {
 public:
-    CPP_GlobalLookupInit(IDPtr& _global, const char* _name) : CPP_Init<void*>(), global(_global), name(_name) {}
+    CPP_GlobalLookupInit(IDPtr& _global, const char* _name, int _val)
+        : CPP_Init<void*>(), global(_global), name(_name), val(_val) {}
 
     void Generate(InitsManager* im, std::vector<void*>& /* inits_vec */, int /* offset */) const override;
 
 protected:
     IDPtr& global;
     const char* name;
+    int val;
 };
 
 class CPP_GlobalInit : public CPP_Init<void*> {

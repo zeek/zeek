@@ -14,6 +14,10 @@ private:
 // as a variable (not just as a function being called), track it as such.
 void CreateGlobal(const ID* g);
 
+// Low-level function for generating an initializer for a global. Takes
+// into account differences for standalone-compilation.
+std::shared_ptr<CPP_InitInfo> GenerateGlobalInit(const ID* g);
+
 // Register the given identifier as a BiF.  If is_var is true then the BiF
 // is also used in a non-call context.
 void AddBiF(const ID* b, bool is_var);

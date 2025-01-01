@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include "zeek/script_opt/CPP/Compile.h"
+#include "zeek/script_opt/IDOptInfo.h"
 #include "zeek/script_opt/ProfileFunc.h"
 
 namespace zeek::detail {
@@ -32,12 +33,7 @@ void CPPCompile::CreateGlobal(const ID* g) {
             // This is an event that's also used as a variable.
             Emit("EventHandlerPtr %s_ev;", globals[gn]);
 
-        shared_ptr<CPP_InitInfo> gi;
-        if ( standalone )
-            gi = make_shared<GlobalInitInfo>(this, g, globals[gn]);
-        else
-            gi = make_shared<GlobalLookupInitInfo>(this, g, globals[gn]);
-
+        auto gi = GenerateGlobalInit(g);
         global_id_info->AddInstance(gi);
         global_gis[g] = gi;
     }
@@ -69,16 +65,34 @@ std::shared_ptr<CPP_InitInfo> CPPCompile::RegisterGlobal(const ID* g) {
             return gg->second;
     }
 
-    shared_ptr<CPP_InitInfo> gi;
-    if ( standalone )
-        gi = make_shared<GlobalInitInfo>(this, g, globals[gn]);
-    else
-        gi = make_shared<GlobalLookupInitInfo>(this, g, globals[gn]);
-
+    auto gi = GenerateGlobalInit(g);
     global_id_info->AddInstance(gi);
     global_gis[g] = gi;
 
     return gi;
+}
+
+std::shared_ptr<CPP_InitInfo> CPPCompile::GenerateGlobalInit(const ID* g) {
+    auto gn = string(g->Name());
+    if ( ! standalone )
+        return make_shared<GlobalLookupInitInfo>(this, g, globals[gn]);
+
+    if ( obj_matches_opt_files(g) )
+        return make_shared<GlobalInitInfo>(this, g, globals[gn]);
+
+    // It's not a global that's created by the scripts we're compiling,
+    // but it might have a redef in those scripts, in which case we need
+    // to generate an initializer that will both look it up and then assign
+    // it to that value.
+    bool needs_redef = false;
+
+    for ( const auto& i_e : g->GetOptInfo()->GetInitExprs() )
+        if ( obj_matches_opt_files(i_e) ) {
+            needs_redef = true;
+            break;
+        }
+
+    return make_shared<GlobalLookupInitInfo>(this, g, globals[gn], needs_redef);
 }
 
 void CPPCompile::AddBiF(const ID* b, bool is_var) {

@@ -383,26 +383,29 @@ public:
 // vector, so we use void* as the underlying type.
 class CPP_GlobalLookupInit : public CPP_Init<void*> {
 public:
-    CPP_GlobalLookupInit(IDPtr& _global, const char* _name) : CPP_Init<void*>(), global(_global), name(_name) {}
+    CPP_GlobalLookupInit(IDPtr& _global, const char* _name, int _val)
+        : CPP_Init<void*>(), global(_global), name(_name), val(_val) {}
 
     void Generate(InitsManager* im, std::vector<void*>& /* inits_vec */, int /* offset */) const override;
 
 protected:
     IDPtr& global;
     const char* name;
+    int val;
 };
 
 class CPP_GlobalInit : public CPP_Init<void*> {
 public:
-    CPP_GlobalInit(IDPtr& _global, const char* _name, int _type, int _attrs, int _val, bool _exported,
-                   bool _func_with_no_val)
+    CPP_GlobalInit(IDPtr& _global, const char* _name, int _type, int _attrs, int _val, bool _is_exported,
+                   bool _is_option, bool _func_with_no_val)
         : CPP_Init<void*>(),
           global(_global),
           name(_name),
           type(_type),
           attrs(_attrs),
           val(_val),
-          exported(_exported),
+          is_exported(_is_exported),
+          is_option(_is_option),
           func_with_no_val(_func_with_no_val) {}
 
     void Generate(InitsManager* im, std::vector<void*>& /* inits_vec */, int /* offset */) const override;
@@ -413,7 +416,8 @@ protected:
     int type;
     int attrs;
     int val;
-    bool exported;
+    bool is_exported;
+    bool is_option;
     bool func_with_no_val;
 };
 

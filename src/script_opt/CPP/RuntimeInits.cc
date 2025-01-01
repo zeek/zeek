@@ -457,11 +457,17 @@ int CPP_EnumMapping::ComputeOffset(InitsManager* im) const {
 
 void CPP_GlobalLookupInit::Generate(InitsManager* im, std::vector<void*>& /* inits_vec */, int /* offset */) const {
     global = find_global__CPP(name);
+    if ( val >= 0 )
+        // Have explicit initialization value.
+        global->SetVal(im->ConstVals(val));
 }
 
 void CPP_GlobalInit::Generate(InitsManager* im, std::vector<void*>& /* inits_vec */, int /* offset */) const {
     auto& t = im->Types(type);
-    global = lookup_global__CPP(name, t, exported);
+    global = lookup_global__CPP(name, t, is_exported);
+
+    if ( is_option )
+        global->SetOption();
 
     if ( ! global->HasVal() ) {
         if ( val >= 0 )

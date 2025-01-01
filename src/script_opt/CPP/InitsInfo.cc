@@ -355,14 +355,16 @@ AttrsInfo::AttrsInfo(CPPCompile* _c, const AttributesPtr& _attrs) : CompoundItem
     }
 }
 
-GlobalLookupInitInfo::GlobalLookupInitInfo(CPPCompile* c, const ID* g, string _CPP_name)
+GlobalLookupInitInfo::GlobalLookupInitInfo(CPPCompile* c, const ID* g, string _CPP_name, bool do_init)
     : CPP_InitInfo(g), CPP_name(std::move(_CPP_name)) {
     Zeek_name = g->Name();
+    val = ValElem(c, do_init ? g->GetVal() : nullptr);
 }
 
 void GlobalLookupInitInfo::InitializerVals(std::vector<std::string>& ivs) const {
     ivs.push_back(CPP_name);
     ivs.push_back(string("\"") + Zeek_name + "\"");
+    ivs.push_back(val);
 }
 
 GlobalInitInfo::GlobalInitInfo(CPPCompile* c, const ID* g, string _CPP_name)
@@ -380,7 +382,8 @@ GlobalInitInfo::GlobalInitInfo(CPPCompile* c, const ID* g, string _CPP_name)
     else
         attrs = -1;
 
-    exported = g->IsExport();
+    is_exported = g->IsExport();
+    is_option = g->IsOption();
     val = ValElem(c, nullptr); // empty because we initialize dynamically
 
     if ( gt->Tag() == TYPE_FUNC && (! g->GetVal() || g->GetVal()->AsFunc()->GetKind() == Func::BUILTIN_FUNC) )
@@ -396,7 +399,8 @@ void GlobalInitInfo::InitializerVals(std::vector<std::string>& ivs) const {
     ivs.push_back(Fmt(type));
     ivs.push_back(Fmt(attrs));
     ivs.push_back(val);
-    ivs.push_back(Fmt(exported));
+    ivs.push_back(Fmt(is_exported));
+    ivs.push_back(Fmt(is_option));
     ivs.push_back(Fmt(func_with_no_val));
 }
 

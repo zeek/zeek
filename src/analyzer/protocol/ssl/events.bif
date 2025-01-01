@@ -655,7 +655,7 @@ event ssl_encrypted_data%(c: connection, is_client: bool, record_version: count,
 ## not correct; the client can send more handshake packets before the finished message, e.g.,
 ## when client certificates are used.
 ##
-## Note that :zeek:see::ssl_encrypted_data is also raised for these messages.
+## Note that :zeek:see:`ssl_encrypted_data` is also raised for these messages.
 ##
 ## c: The connection.
 ##

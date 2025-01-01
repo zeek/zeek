@@ -509,8 +509,8 @@ export {
 	##
 	## Returns: The set of filter names associated with the stream.
 	##
-	## ..zeek:see:: Log::remove_filter Log::add_default_filter
-	##   Log::remove_default_filter Log::get_filter
+	## .. zeek:see:: Log::remove_filter Log::add_default_filter
+	##               Log::remove_default_filter Log::get_filter
 	global get_filter_names: function(id: ID) : set[string];
 
 	## Gets a filter associated with an existing logging stream.
@@ -635,7 +635,7 @@ export {
 	## Type of function to invoke when delaying a log write has completed.
 	##
 	## Functions of this type take the same arguments as :zeek:see:`Log::StreamPolicyHook`
-	## and act as a callback passed to zeek:see:`Log::delay`. They execute
+	## and act as a callback passed to :zeek:see:`Log::delay`. They execute
 	## just before the record is forwarded to the individual log filters.
 	##
 	## Returning ``F`` from a post delay callback discards the log write.
@@ -658,7 +658,7 @@ export {
 	## as parameters.
 	##
 	## Conceptually, the delay is inserted between the execution of the
-	## zeek:see:`Log::log_stream_policy` hook and the policy hooks of filters.
+	## :zeek:see:`Log::log_stream_policy` hook and the policy hooks of filters.
 	##
 	## Calling this function increments a reference count that can subsequently
 	## be decremented using :zeek:see:`Log::delay_finish`.
@@ -701,7 +701,7 @@ export {
 	##
 	## Multiple calls to this function will only ever increase the maximum
 	## delay, the delay cannot be lowered. The default maximum delay for a
-	## stream is zeek:see:`Log::default_max_delay_interval`.
+	## stream is :zeek:see:`Log::default_max_delay_interval`.
 	##
 	## When a stream is removed and re-created via :zeek:see:`Log::create_stream`,
 	## the new stream is re-configured with the previously used maximum delay.

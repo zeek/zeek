@@ -382,7 +382,8 @@ GlobalInitInfo::GlobalInitInfo(CPPCompile* c, const ID* g, string _CPP_name)
     else
         attrs = -1;
 
-    exported = g->IsExport();
+    is_exported = g->IsExport();
+    is_option = g->IsOption();
     val = ValElem(c, nullptr); // empty because we initialize dynamically
 
     if ( gt->Tag() == TYPE_FUNC && (! g->GetVal() || g->GetVal()->AsFunc()->GetKind() == Func::BUILTIN_FUNC) )
@@ -398,7 +399,8 @@ void GlobalInitInfo::InitializerVals(std::vector<std::string>& ivs) const {
     ivs.push_back(Fmt(type));
     ivs.push_back(Fmt(attrs));
     ivs.push_back(val);
-    ivs.push_back(Fmt(exported));
+    ivs.push_back(Fmt(is_exported));
+    ivs.push_back(Fmt(is_option));
     ivs.push_back(Fmt(func_with_no_val));
 }
 

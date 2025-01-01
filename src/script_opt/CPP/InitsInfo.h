@@ -479,7 +479,8 @@ public:
 };
 
 // A lightweight initializer for a Zeek global that will look it up at
-// initialization time but not create it if missing.
+// initialization time but not create it if missing. If do_init is true,
+// then the global will be (re-)initialized to its value during compilation.
 class GlobalLookupInitInfo : public CPP_InitInfo {
 public:
     GlobalLookupInitInfo(CPPCompile* c, const ID* g, std::string CPP_name, bool do_init = false);
@@ -505,7 +506,8 @@ protected:
     int type;
     int attrs;
     std::string val;
-    bool exported;
+    bool is_exported;
+    bool is_option;
     bool func_with_no_val = false; // needed to handle some error situations
 };
 

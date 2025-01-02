@@ -16,6 +16,11 @@ global v: vector of count;
 global p: pattern;
 global x = { };
 
+# Issue #3933: For sets that contain a list and another set, expansion should behave
+# a bit more conservatively. That means the inner [] are impactful
+global s4: set[set[count]] = { [ set() ] };
+global s5: set[vector of count] = { [ vector() ] };
+
 function foo()
 	{
 	local subnets = { 1.2.3.4/24, 2.3.4.5/5 };

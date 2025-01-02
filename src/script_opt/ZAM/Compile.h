@@ -9,6 +9,7 @@
 #include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/UseDefs.h"
 #include "zeek/script_opt/ZAM/ZBody.h"
+#include "zeek/script_opt/ZAM/ZInst.h"
 
 namespace zeek {
 class EventHandler;

@@ -13,9 +13,11 @@ using std::string;
 namespace zeek::detail {
 
 std::unordered_map<ZOp, ZAMInstDesc> zam_inst_desc = {
+#include "ZAM-OpDesc.h"
+};
 
-#include "ZAM-Desc.h"
-
+std::vector<std::pair<string, string>> zam_macro_desc = {
+#include "ZAM-MacroDesc.h"
 };
 
 // While the following has commonalities that could be factored out,
@@ -107,7 +109,15 @@ void validate_ZAM_insts() {
     for ( auto& zid : zam_inst_desc )
         analyze_ZAM_inst(ZOP_name(zid.first), zid.second);
 
-    printf("%d valid, %d tested, %d skipped\n", num_valid, num_tested, num_skipped);
+    int num_valid_macros = 0;
+    for ( auto& md : zam_macro_desc ) {
+        if ( std::regex_search(md.second, std::regex("\\$[0-9$]")) )
+            reporter->InternalError("macro %s contains dollar parameter: %s", md.first.c_str(), md.second.c_str());
+        ++num_valid_macros;
+    }
+
+    printf("%d valid ops, %d tested, %d skipped, %d valid macros\n", num_valid, num_tested, num_skipped,
+           num_valid_macros);
 }
 
 } // namespace zeek::detail

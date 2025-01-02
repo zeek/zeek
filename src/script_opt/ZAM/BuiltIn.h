@@ -6,9 +6,11 @@
 #pragma once
 
 #include "zeek/Expr.h"
-#include "zeek/script_opt/ZAM/Compile.h"
+#include "zeek/script_opt/ZAM/ZOp.h"
 
 namespace zeek::detail {
+
+class ZInstAux;
 
 // Base class for analyzing function calls to BiFs to see if they can
 // be replaced with ZBIs.

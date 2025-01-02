@@ -980,7 +980,7 @@ void ZAM_OpTemplate::GenDesc(const string& op_code, const string& oc_str, const 
 
 void ZAM_OpTemplate::StartDesc(const string& op_code, const string& oc_str)
 	{
-	EmitTo(Desc);
+	EmitTo(OpDesc);
 	Emit("{ " + op_code + ",");
 	BeginBlock();
 	Emit("\"" + oc_str + "\",");
@@ -2476,10 +2476,27 @@ void ZAMGen::GenMacros()
 			{
 			auto ms = m[i];
 			if ( i == 0 )
+				{
+				auto name = regex_replace(ms, regex("[( ].*\n"), "");
+				Emit(MacroDesc, "{ \"" + name + "\",");
+
 				ms = "#define " + ms;
+				}
+
+			auto desc = ms;
+			desc.erase(desc.find('\n'));
+			desc = regex_replace(desc, regex("\\\\"), "\\\\");
+			desc = regex_replace(desc, regex("\""), "\\\"");
 
 			if ( i < m.size() - 1 )
+				{
 				ms = regex_replace(ms, regex("\n"), " \\\n");
+				desc.append(" \\\\\\n");
+				}
+
+			Emit(MacroDesc, "  \"" + desc + "\"");
+			if ( i == m.size() - 1 )
+				Emit(MacroDesc, "},");
 
 			Emit(EvalMacros, ms);
 			}
@@ -2580,14 +2597,15 @@ void ZAMGen::InitEmitTargets()
 		{C2FieldDef, "ZAM-GenFieldsDefsC2.h"},
 		{C3Def, "ZAM-GenExprsDefsC3.h"},
 		{Cond, "ZAM-Conds.h"},
-		{Desc, "ZAM-Desc.h"},
 		{DirectDef, "ZAM-DirectDefs.h"},
 		{Eval, "ZAM-EvalDefs.h"},
 		{EvalMacros, "ZAM-EvalMacros.h"},
+		{MacroDesc, "ZAM-MacroDesc.h"},
 		{MethodDecl, "ZAM-MethodDecls.h"},
 		{MethodDef, "ZAM-MethodDefs.h"},
 		{Op1Flavor, "ZAM-Op1FlavorsDefs.h"},
 		{OpDef, "ZAM-OpsDefs.h"},
+		{OpDesc, "ZAM-OpDesc.h"},
 		{OpName, "ZAM-OpsNamesDefs.h"},
 		{OpSideEffects, "ZAM-OpSideEffects.h"},
 		{VDef, "ZAM-GenExprsDefsV.h"},

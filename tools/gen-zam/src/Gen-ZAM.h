@@ -144,7 +144,10 @@ enum EmitTarget
 	Cond,
 
 	// Descriptions of final ZAM operations, used for validation.
-	Desc,
+	OpDesc,
+
+	// The same, for macros.
+	MacroDesc,
 
 	// Switch cases that provide the C++ code for executing specific
 	// individual ZAM instructions.

@@ -43,7 +43,6 @@ jobs:
             python3-pip \
             sqlite3 \
             swig \
-            wget \
             zlib1g-dev
 
       - name: Configure
@@ -53,10 +52,11 @@ jobs:
         env:
           COVERITY_TOKEN: ${{ secrets.COVERITY_TOKEN }}
         run: |
-          wget \
-            -nv https://scan.coverity.com/download/cxx/linux64 \
-            --post-data "token=${COVERITY_TOKEN}&project=Bro" \
-            -O coverity_tool.tgz
+          curl \
+            -o coverity_tool.gz
+            -d token=${COVERITY_TOKEN}
+            -d project=Bro
+            https://scan.coverity.com/download/cxx/linux64
           tar xzf coverity_tool.tgz
           rm coverity_tool.tgz
           mv cov-analysis* coverity-tools

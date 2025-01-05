@@ -185,7 +185,7 @@ export {
 	## The agent sends this event upon peering as a "check-in", informing
 	## the controller that an agent of the given name is now available to
 	## communicate with. It is a controller-level equivalent of
-	## `:zeek:see:`Broker::peer_added` and triggered by it.
+	## :zeek:see:`Broker::peer_added` and triggered by it.
 	##
 	## instance: an instance name, really the agent's name as per
 	##    :zeek:see:`Management::Agent::get_name`.

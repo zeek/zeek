@@ -1,3 +1,15 @@
+7.1.0-rc1.6 | 2025-01-06 16:23:36 -0700
+
+  * Fix incorrect uses of `zeek:see` (Benjamin Bannier)
+
+    This fixes instances where `zeek:see` was used incorrectly so it was not
+    rendered correctly. All these instances have been found by looking for
+    `zeek:see` in the generated HTML where it should not be visible anymore.
+
+    I also removed a doc reference to `paraglob_add` which never existed.
+
+    (cherry picked from commit 6deae2d28d49a25a3498dc3c79e1f5ede59f766f)
+
 7.1.0-rc1.4 | 2025-01-06 08:16:36 -0700
 
   * Bump spicy-format pre-commit hook (Benjamin Bannier, Corelight)

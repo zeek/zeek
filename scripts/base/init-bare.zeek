@@ -3903,6 +3903,7 @@ export {
 	type DHCP::Addrs: vector of addr;
 
 	## A DHCP message.
+	##
 	## .. zeek:see:: dhcp_message
 	type DHCP::Msg: record {
 		op: count;      ##< Message OP code. 1 = BOOTREQUEST, 2 = BOOTREPLY
@@ -3922,6 +3923,7 @@ export {
 	};
 
 	## DHCP Client Identifier (Option 61)
+	##
 	## .. zeek:see:: dhcp_message
 	type DHCP::ClientID: record {
 		hwtype: count;
@@ -3942,6 +3944,7 @@ export {
 	};
 
 	## DHCP Relay Agent Information Option (Option 82)
+	##
 	## .. zeek:see:: dhcp_message
 	type DHCP::SubOpt: record {
 		code: count;

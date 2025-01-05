@@ -1,3 +1,13 @@
+7.2.0-dev.28 | 2025-01-05 14:19:15 -0700
+
+  * Fix incorrect uses of `zeek:see` (Benjamin Bannier)
+
+    This fixes instances where `zeek:see` was used incorrectly so it was not
+    rendered correctly. All these instances have been found by looking for
+    `zeek:see` in the generated HTML where it should not be visible anymore.
+
+    I also removed a doc reference to `paraglob_add` which never existed.
+
 7.2.0-dev.25 | 2024-12-20 15:31:19 -0700
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

@@ -359,6 +359,14 @@ export {
 		[258] = "ffdhe4096",
 		[259] = "ffdhe6144",
 		[260] = "ffdhe8192",
+		# draft-connolly-tls-mlkem-key-agreement-03
+		[512] = "MLKEM512",
+		[513] = "MLKEM768",
+		[514] = "MLKEM1024",
+		# draft-kwiatkowski-tls-ecdhe-mlkem-03]
+		[4587] = "SecP256r1MLKEM768",
+		[4588] = "X25519MLKEM768",
+		[4589] = "SecP384r1MLKEM1024",
 		[25497] = "X25519Kyber768Draft00", # draft-tls-westerbaan-xyber768d00-02
 		[25498] = "SecP256r1Kyber768Draft00", # draft-kwiatkowski-tls-ecdhe-kyber-01
 		[0xFF01] = "arbitrary_explicit_prime_curves",

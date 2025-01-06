@@ -1,3 +1,9 @@
+7.1.0-rc1.8 | 2025-01-07 10:06:11 -0700
+
+  * Update ssl consts with more post-quantum curves (Johanna Amann, Corelight)
+
+    (cherry picked from commit 7f4a620db6d0009aa60deaa8c1031038ad2de7d3)
+
 7.1.0-rc1.6 | 2025-01-06 16:23:36 -0700
 
   * Fix incorrect uses of `zeek:see` (Benjamin Bannier)

@@ -1,3 +1,9 @@
+7.1.0-rc1.4 | 2025-01-06 08:16:36 -0700
+
+  * Bump spicy-format pre-commit hook (Benjamin Bannier, Corelight)
+
+  * Bump auxil/spicy to latest release (Benjamin Bannier, Corelight)
+
 7.1.0-rc1.1 | 2024-12-16 13:02:12 -0700
 
   * ZAM/relexpr-op NE for patterns (Vern Paxson, Corelight)

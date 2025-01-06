@@ -1,3 +1,16 @@
+7.2.0-dev.33 | 2025-01-06 10:37:33 -0700
+
+  * CI: Fix coverity workflow to support large uploads (Tim Wojtulewicz, Corelight)
+
+    The previous setup only allowed uploads of up to 500MB, which we
+    eclipsed a long time ago. They recently started enforcing it, so
+    this switches over to use a call-and-response API for uploading
+    larger files.
+
+  * CI: Remove use of wget from coverity workflow (Tim Wojtulewicz, Corelight)
+
+  * CI: Upgrade coverity workflow to ubuntu24, add jq (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.28 | 2025-01-05 14:19:15 -0700
 
   * Fix incorrect uses of `zeek:see` (Benjamin Bannier)

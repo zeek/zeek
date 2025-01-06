@@ -10,7 +10,7 @@ permissions:
 jobs:
   scan:
     if: github.repository == 'zeek/zeek'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v4
@@ -29,6 +29,7 @@ jobs:
             g++ \
             gcc \
             git \
+            jq \
             libfl-dev \
             libfl2 \
             libkrb5-dev \
@@ -42,7 +43,6 @@ jobs:
             python3-pip \
             sqlite3 \
             swig \
-            wget \
             zlib1g-dev
 
       - name: Configure
@@ -52,17 +52,18 @@ jobs:
         env:
           COVERITY_TOKEN: ${{ secrets.COVERITY_TOKEN }}
         run: |
-          wget \
-            -nv https://scan.coverity.com/download/cxx/linux64 \
-            --post-data "token=${COVERITY_TOKEN}&project=Bro" \
-            -O coverity_tool.tgz
+          curl \
+            -o coverity_tool.gz
+            -d token=${COVERITY_TOKEN}
+            -d project=Bro
+            https://scan.coverity.com/download/cxx/linux64
           tar xzf coverity_tool.tgz
           rm coverity_tool.tgz
           mv cov-analysis* coverity-tools
 
       - name: Build
         run: |
-          export PATH="$PWD/coverity-tools/bin":$PATH
+          export PATH=$(pwd)/coverity-tools/bin:$PATH
           ( cd build && cov-build --dir cov-int make -j "$(nproc)" )
           cat build/cov-int/build-log.txt
 
@@ -70,12 +71,21 @@ jobs:
         env:
           COVERITY_TOKEN: ${{ secrets.COVERITY_TOKEN }}
         run: |
-          cd build
-          tar czf myproject.tgz cov-int
-          curl \
-            --form token="${COVERITY_TOKEN}" \
-            --form email=zeek-commits-internal@zeek.org \
-            --form file=@myproject.tgz \
-            --form "version=$(cat ../VERSION)" \
-            --form "description=$(git rev-parse HEAD)" \
-            https://scan.coverity.com/builds?project=Bro
+          ( cd build && tar czf myproject.tgz cov-int )
+          curl -X POST \
+            -d version=$(cat VERSION) \
+            -d description=$(git rev-parse HEAD) \
+            -d email=zeek-commits-internal@zeek.org \
+            -d token=${COVERITY_TOKEN} \
+            -d file_name=myproject.tgz \
+            -o response \
+            https://scan.coverity.com/projects/641/builds/init
+          upload_url=$(jq -r '.url' response)
+          build_id=$(jq -r '.build_id' response)
+          curl -X PUT \
+            --header 'Content-Type: application/json' \
+            --upload-file build/myproject.tgz \
+            ${upload_url}
+          curl -X PUT \
+            -d token=${COVERITY_TOKEN} \
+            https://scan.coverity.com/projects/641/builds/${build_id}/enqueue

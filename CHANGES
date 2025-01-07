@@ -1,3 +1,9 @@
+7.1.0-rc1.9 | 2025-01-07 10:07:20 -0700
+
+  * More updates to the SSL consts from recent protocol additions (Johanna Amann, Corelight)
+
+    (cherry picked from commit 2ce71a75a7337cd105e0b8b88a885f9241cc499a)
+
 7.1.0-rc1.8 | 2025-01-07 10:06:11 -0700
 
   * Update ssl consts with more post-quantum curves (Johanna Amann, Corelight)

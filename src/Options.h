@@ -94,11 +94,10 @@ struct Options {
 Options parse_cmdline(int argc, char** argv);
 
 /**
- * Print command-line Zeek usage information and exit.
+ * Print command-line Zeek usage information.
  * @param prog  the name/path of the Zeek command-line invocation
- * @code  the exit code to use
  */
-void usage(const char* prog, int code = 1);
+void usage(const char* prog);
 
 /**
  * @return  true if zeek is running a "fake" DNS resolver, else false.

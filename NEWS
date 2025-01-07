@@ -15,6 +15,11 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- Command line options processing will no longer print usage whenever there
+  is an error. Instead, issues in command line processing will print an error,
+  then prompt to use --help. The --help usage will now print to standard output
+  rather than standard error.
+
 Removed Functionality
 ------------------------
 

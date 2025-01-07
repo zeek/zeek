@@ -72,145 +72,144 @@ bool fake_dns() { return getenv("ZEEK_DNS_FAKE"); }
 
 extern const char* zeek_version();
 
-void usage(const char* prog, int code) {
-    fprintf(stderr, "zeek version %s\n", zeek_version());
+void prompt_for_help(const char* prog) { fprintf(stderr, "Try '%s --help' for more information.\n", prog); }
 
-    fprintf(stderr, "usage: %s [options] [file ...]\n", prog);
-    fprintf(stderr, "usage: %s --test [doctest-options] -- [options] [file ...]\n", prog);
-    fprintf(stderr, "    <file>                          | Zeek script file, or read stdin\n");
-    fprintf(stderr, "    -a|--parse-only                 | exit immediately after parsing scripts\n");
-    fprintf(stderr, "    -b|--bare-mode                  | don't load scripts from the base/ directory\n");
-    fprintf(stderr, "    -c|--capture-unprocessed <file> | write unprocessed packets to a tcpdump file\n");
-    fprintf(stderr, "    -d|--debug-script               | activate Zeek script debugging\n");
-    fprintf(stderr, "    -e|--exec <zeek code>           | augment loaded scripts by given code\n");
-    fprintf(stderr, "    -f|--filter <filter>            | tcpdump filter\n");
-    fprintf(stderr, "    -h|--help                       | command line help\n");
-    fprintf(stderr, "    -i|--iface <interface>          | read from given interface (only one allowed)\n");
-    fprintf(stderr, "    -p|--prefix <prefix>            | add given prefix to Zeek script file resolution\n");
-    fprintf(stderr,
-            "    -r|--readfile <readfile>        | read from given tcpdump file (only one "
-            "allowed, pass '-' as the filename to read from stdin)\n");
-    fprintf(stderr, "    -s|--rulefile <rulefile>        | read rules from given file\n");
-    fprintf(stderr, "    -t|--tracefile <tracefile>      | activate execution tracing\n");
-    fprintf(stderr, "    -u|--usage-issues               | find variable usage issues and exit\n");
-    fprintf(stderr,
-            "       --no-unused-warnings         | suppress warnings of unused "
-            "functions/hooks/events\n");
-    fprintf(stderr, "    -v|--version                    | print version and exit\n");
-    fprintf(stderr, "    -V|--build-info                 | print build information and exit\n");
-    fprintf(stderr, "    -w|--writefile <writefile>      | write to given tcpdump file\n");
+void usage(const char* prog) {
+    printf("zeek version %s\n", zeek_version());
+
+    printf("usage: %s [options] [file ...]\n", prog);
+    printf("usage: %s --test [doctest-options] -- [options] [file ...]\n", prog);
+    printf("    <file>                          | Zeek script file, or read stdin\n");
+    printf("    -a|--parse-only                 | exit immediately after parsing scripts\n");
+    printf("    -b|--bare-mode                  | don't load scripts from the base/ directory\n");
+    printf("    -c|--capture-unprocessed <file> | write unprocessed packets to a tcpdump file\n");
+    printf("    -d|--debug-script               | activate Zeek script debugging\n");
+    printf("    -e|--exec <zeek code>           | augment loaded scripts by given code\n");
+    printf("    -f|--filter <filter>            | tcpdump filter\n");
+    printf("    -h|--help                       | command line help\n");
+    printf("    -i|--iface <interface>          | read from given interface (only one allowed)\n");
+    printf("    -p|--prefix <prefix>            | add given prefix to Zeek script file resolution\n");
+    printf(
+        "    -r|--readfile <readfile>        | read from given tcpdump file (only one "
+        "allowed, pass '-' as the filename to read from stdin)\n");
+    printf("    -s|--rulefile <rulefile>        | read rules from given file\n");
+    printf("    -t|--tracefile <tracefile>      | activate execution tracing\n");
+    printf("    -u|--usage-issues               | find variable usage issues and exit\n");
+    printf(
+        "       --no-unused-warnings         | suppress warnings of unused "
+        "functions/hooks/events\n");
+    printf("    -v|--version                    | print version and exit\n");
+    printf("    -V|--build-info                 | print build information and exit\n");
+    printf("    -w|--writefile <writefile>      | write to given tcpdump file\n");
 #ifdef DEBUG
-    fprintf(stderr,
-            "    -B|--debug <dbgstreams>         | Enable debugging output for selected "
-            "streams ('-B help' for help)\n");
+    printf(
+        "    -B|--debug <dbgstreams>         | Enable debugging output for selected "
+        "streams ('-B help' for help)\n");
 #endif
-    fprintf(stderr, "    -C|--no-checksums               | ignore checksums\n");
-    fprintf(stderr, "    -D|--deterministic              | initialize random seeds to zero\n");
-    fprintf(stderr,
-            "    -E|--event-trace <file>         | generate a replayable event trace to "
-            "the given file\n");
-    fprintf(stderr, "    -F|--force-dns                  | force DNS\n");
-    fprintf(stderr, "    -G|--load-seeds <file>          | load seeds from given file\n");
-    fprintf(stderr, "    -H|--save-seeds <file>          | save seeds to given file\n");
-    fprintf(stderr, "    -I|--print-id <ID name>         | print out given ID\n");
-    fprintf(stderr,
-            "    -N|--print-plugins              | print available plugins and exit (-NN "
-            "for verbose)\n");
-    fprintf(stderr,
-            "    -O|--optimize <option>          | enable script optimization (use -O help "
-            "for options)\n");
-    fprintf(stderr,
-            "    -0|--optimize-files=<pat>       | enable script optimization for all "
-            "functions in files with names containing the given pattern\n");
-    fprintf(stderr,
-            "    -o|--optimize-funcs=<pat>       | enable script optimization for "
-            "functions with names fully matching the given pattern\n");
-    fprintf(stderr, "    -P|--prime-dns                  | prime DNS\n");
-    fprintf(stderr, "    -Q|--time                       | print execution time summary to stderr\n");
-    fprintf(stderr, "    -S|--debug-rules                | enable rule debugging\n");
-    fprintf(stderr, "    -T|--re-level <level>           | set 'RE_level' for rules\n");
-    fprintf(stderr, "    -U|--status-file <file>         | Record process status in file\n");
-    fprintf(stderr, "    -W|--watchdog                   | activate watchdog timer\n");
-    fprintf(stderr, "    -X|--zeekygen <cfgfile>         | generate documentation based on config file\n");
+    printf("    -C|--no-checksums               | ignore checksums\n");
+    printf("    -D|--deterministic              | initialize random seeds to zero\n");
+    printf(
+        "    -E|--event-trace <file>         | generate a replayable event trace to "
+        "the given file\n");
+    printf("    -F|--force-dns                  | force DNS\n");
+    printf("    -G|--load-seeds <file>          | load seeds from given file\n");
+    printf("    -H|--save-seeds <file>          | save seeds to given file\n");
+    printf("    -I|--print-id <ID name>         | print out given ID\n");
+    printf(
+        "    -N|--print-plugins              | print available plugins and exit (-NN "
+        "for verbose)\n");
+    printf(
+        "    -O|--optimize <option>          | enable script optimization (use -O help "
+        "for options)\n");
+    printf(
+        "    -0|--optimize-files=<pat>       | enable script optimization for all "
+        "functions in files with names containing the given pattern\n");
+    printf(
+        "    -o|--optimize-funcs=<pat>       | enable script optimization for "
+        "functions with names fully matching the given pattern\n");
+    printf("    -P|--prime-dns                  | prime DNS\n");
+    printf("    -Q|--time                       | print execution time summary to stderr\n");
+    printf("    -S|--debug-rules                | enable rule debugging\n");
+    printf("    -T|--re-level <level>           | set 'RE_level' for rules\n");
+    printf("    -U|--status-file <file>         | Record process status in file\n");
+    printf("    -W|--watchdog                   | activate watchdog timer\n");
+    printf("    -X|--zeekygen <cfgfile>         | generate documentation based on config file\n");
 
 #ifdef USE_PERFTOOLS_DEBUG
-    fprintf(stderr, "    -m|--mem-leaks                  | show leaks  [perftools]\n");
-    fprintf(stderr, "    -M|--mem-profile                | record heap [perftools]\n");
+    printf("    -m|--mem-leaks                  | show leaks  [perftools]\n");
+    printf("    -M|--mem-profile                | record heap [perftools]\n");
 #endif
-    fprintf(stderr, "    --profile-scripts[=file]        | profile scripts to given file (default stdout)\n");
-    fprintf(stderr,
-            "    --profile-script-call-stacks    | add call stacks to profile output (requires "
-            "--profile-scripts)\n");
-    fprintf(stderr,
-            "    --pseudo-realtime[=<speedup>]   | enable pseudo-realtime for performance "
-            "evaluation (default 1)\n");
-    fprintf(stderr, "    -j|--jobs                       | enable supervisor mode\n");
+    printf("    --profile-scripts[=file]        | profile scripts to given file (default stdout)\n");
+    printf(
+        "    --profile-script-call-stacks    | add call stacks to profile output (requires "
+        "--profile-scripts)\n");
+    printf(
+        "    --pseudo-realtime[=<speedup>]   | enable pseudo-realtime for performance "
+        "evaluation (default 1)\n");
+    printf("    -j|--jobs                       | enable supervisor mode\n");
 
-    fprintf(stderr,
-            "    --test                          | run unit tests ('--test -h' for help, "
-            "not available when built without ENABLE_ZEEK_UNIT_TESTS)\n");
-    fprintf(stderr, "    $ZEEKPATH                       | file search path (%s)\n", util::zeek_path().c_str());
-    fprintf(stderr, "    $ZEEK_PLUGIN_PATH               | plugin search path (%s)\n", util::zeek_plugin_path());
-    fprintf(stderr, "    $ZEEK_PLUGIN_ACTIVATE           | plugins to always activate (%s)\n",
-            util::zeek_plugin_activate());
-    fprintf(stderr, "    $ZEEK_PREFIXES                  | prefix list (%s)\n", util::zeek_prefixes().c_str());
-    fprintf(stderr, "    $ZEEK_DNS_FAKE                  | disable DNS lookups (%s)\n", fake_dns() ? "on" : "off");
-    fprintf(stderr, "    $ZEEK_SEED_VALUES               | list of space separated seeds (%s)\n",
-            getenv("ZEEK_SEED_VALUES") ? "set" : "not set");
-    fprintf(stderr, "    $ZEEK_SEED_FILE                 | file to load seeds from (not set)\n");
-    fprintf(stderr, "    $ZEEK_LOG_SUFFIX                | ASCII log file extension (.%s)\n",
-            logging::writer::detail::Ascii::LogExt().c_str());
-    fprintf(stderr,
-            "    $ZEEK_PROFILER_FILE             | Output file for script execution "
-            "statistics (not set)\n");
-    fprintf(stderr, "    $ZEEK_DISABLE_ZEEKYGEN          | Disable Zeekygen documentation support (%s)\n",
-            getenv("ZEEK_DISABLE_ZEEKYGEN") ? "set" : "not set");
-    fprintf(stderr, "    $ZEEK_DNS_RESOLVER              | IPv4/IPv6 address of DNS resolver to use (%s)\n",
-            getenv("ZEEK_DNS_RESOLVER") ? getenv("ZEEK_DNS_RESOLVER") :
-                                          "not set, will use first IPv4 address from /etc/resolv.conf");
-    fprintf(stderr,
-            "    $ZEEK_DEBUG_LOG_STDERR          | Use stderr for debug logs generated via "
-            "the -B flag\n");
-    fprintf(stderr,
-            "    $ZEEK_DEBUG_LOG_STREAMS         | Enable debugging output for selected "
-            "streams (see the -B flag)");
+    printf(
+        "    --test                          | run unit tests ('--test -h' for help, "
+        "not available when built without ENABLE_ZEEK_UNIT_TESTS)\n");
+    printf("    $ZEEKPATH                       | file search path (%s)\n", util::zeek_path().c_str());
+    printf("    $ZEEK_PLUGIN_PATH               | plugin search path (%s)\n", util::zeek_plugin_path());
+    printf("    $ZEEK_PLUGIN_ACTIVATE           | plugins to always activate (%s)\n", util::zeek_plugin_activate());
+    printf("    $ZEEK_PREFIXES                  | prefix list (%s)\n", util::zeek_prefixes().c_str());
+    printf("    $ZEEK_DNS_FAKE                  | disable DNS lookups (%s)\n", fake_dns() ? "on" : "off");
+    printf("    $ZEEK_SEED_VALUES               | list of space separated seeds (%s)\n",
+           getenv("ZEEK_SEED_VALUES") ? "set" : "not set");
+    printf("    $ZEEK_SEED_FILE                 | file to load seeds from (not set)\n");
+    printf("    $ZEEK_LOG_SUFFIX                | ASCII log file extension (.%s)\n",
+           logging::writer::detail::Ascii::LogExt().c_str());
+    printf(
+        "    $ZEEK_PROFILER_FILE             | Output file for script execution "
+        "statistics (not set)\n");
+    printf("    $ZEEK_DISABLE_ZEEKYGEN          | Disable Zeekygen documentation support (%s)\n",
+           getenv("ZEEK_DISABLE_ZEEKYGEN") ? "set" : "not set");
+    printf("    $ZEEK_DNS_RESOLVER              | IPv4/IPv6 address of DNS resolver to use (%s)\n",
+           getenv("ZEEK_DNS_RESOLVER") ? getenv("ZEEK_DNS_RESOLVER") :
+                                         "not set, will use first IPv4 address from /etc/resolv.conf");
+    printf(
+        "    $ZEEK_DEBUG_LOG_STDERR          | Use stderr for debug logs generated via "
+        "the -B flag\n");
+    printf(
+        "    $ZEEK_DEBUG_LOG_STREAMS         | Enable debugging output for selected "
+        "streams (see the -B flag)");
 
-    fprintf(stderr, "\n");
-
-    exit(code);
+    printf("\n");
 }
 
 static void print_analysis_help() {
-    fprintf(stderr, "--optimize options when using ZAM:\n");
-    fprintf(stderr, "    ZAM	execute scripts using ZAM and all optimizations\n");
-    fprintf(stderr, "    help	print this list\n");
-    fprintf(stderr, "    report-uncompilable	print names of functions that can't be compiled\n");
-    fprintf(stderr, "\n  primarily for developers:\n");
-    fprintf(stderr, "    dump-uds	dump use-defs to stdout; implies xform\n");
-    fprintf(stderr, "    dump-xform	dump transformed scripts to stdout; implies xform\n");
-    fprintf(stderr, "    dump-ZAM	dump generated ZAM code, including intermediaries; implies gen-ZAM-code\n");
-    fprintf(stderr, "    dump-final-ZAM	dump final generated ZAM code; implies gen-ZAM-code\n");
-    fprintf(stderr, "    gen-ZAM-code	generate ZAM code (without turning on additional optimizations)\n");
-    fprintf(stderr, "    inline	inline function calls\n");
-    fprintf(stderr, "    keep-asserts	do not optimize away \"assert\" statements\n");
-    fprintf(stderr, "    no-inline	turn off inlining\n");
-    fprintf(stderr, "    no-event-handler-coalescence	when inlining, do not coalescence event handlers\n");
-    fprintf(stderr, "    no-ZAM-opt	omit low-level ZAM optimization\n");
-    fprintf(stderr, "    optimize-all	optimize all scripts, even inlined ones\n");
-    fprintf(stderr, "    optimize-AST	optimize the (transformed) AST; implies xform\n");
-    fprintf(stderr, "    profile-ZAM	generate to zprof.out a ZAM execution profile; implies -O ZAM\n");
-    fprintf(stderr, "    report-recursive	report on recursive functions and exit\n");
-    fprintf(stderr, "    validate-ZAM	perform internal assessment of synthesized ZAM instructions and exit\n");
-    fprintf(stderr, "    xform	transform scripts to \"reduced\" form\n");
+    printf("--optimize options when using ZAM:\n");
+    printf("    ZAM	execute scripts using ZAM and all optimizations\n");
+    printf("    help	print this list\n");
+    printf("    report-uncompilable	print names of functions that can't be compiled\n");
+    printf("\n  primarily for developers:\n");
+    printf("    dump-uds	dump use-defs to stdout; implies xform\n");
+    printf("    dump-xform	dump transformed scripts to stdout; implies xform\n");
+    printf("    dump-ZAM	dump generated ZAM code, including intermediaries; implies gen-ZAM-code\n");
+    printf("    dump-final-ZAM	dump final generated ZAM code; implies gen-ZAM-code\n");
+    printf("    gen-ZAM-code	generate ZAM code (without turning on additional optimizations)\n");
+    printf("    inline	inline function calls\n");
+    printf("    keep-asserts	do not optimize away \"assert\" statements\n");
+    printf("    no-inline	turn off inlining\n");
+    printf("    no-event-handler-coalescence	when inlining, do not coalescence event handlers\n");
+    printf("    no-ZAM-opt	omit low-level ZAM optimization\n");
+    printf("    optimize-all	optimize all scripts, even inlined ones\n");
+    printf("    optimize-AST	optimize the (transformed) AST; implies xform\n");
+    printf("    profile-ZAM	generate to zprof.out a ZAM execution profile; implies -O ZAM\n");
+    printf("    report-recursive	report on recursive functions and exit\n");
+    printf("    validate-ZAM	perform internal assessment of synthesized ZAM instructions and exit\n");
+    printf("    xform	transform scripts to \"reduced\" form\n");
 
-    fprintf(stderr, "\n--optimize options when generating C++:\n");
-    fprintf(stderr, "    allow-cond	allow standalone compilation of functions influenced by conditionals\n");
-    fprintf(stderr, "    gen-C++	generate C++ script bodies\n");
-    fprintf(stderr, "    gen-standalone-C++	generate \"standalone\" C++ script bodies\n");
-    fprintf(stderr, "    help	print this list\n");
-    fprintf(stderr, "    report-C++	report available C++ script bodies and exit\n");
-    fprintf(stderr, "    report-uncompilable	print names of functions that can't be compiled\n");
-    fprintf(stderr, "    use-C++	use available C++ script bodies\n");
+    printf("\n--optimize options when generating C++:\n");
+    printf("    allow-cond	allow standalone compilation of functions influenced by conditionals\n");
+    printf("    gen-C++	generate C++ script bodies\n");
+    printf("    gen-standalone-C++	generate \"standalone\" C++ script bodies\n");
+    printf("    help	print this list\n");
+    printf("    report-C++	report available C++ script bodies and exit\n");
+    printf("    report-uncompilable	print names of functions that can't be compiled\n");
+    printf("    use-C++	use available C++ script bodies\n");
 }
 
 static void set_analysis_option(const char* opt, Options& opts) {
@@ -274,7 +273,7 @@ static void set_analysis_option(const char* opt, Options& opts) {
 
     else {
         fprintf(stderr, "zeek: unrecognized -O/--optimize option: %s\n\n", opt);
-        print_analysis_help();
+        fprintf(stderr, "Try 'zeek -O help' for more information.\n");
         exit(1);
     }
 }
@@ -442,11 +441,13 @@ Options parse_cmdline(int argc, char** argv) {
             case 'i':
                 if ( rval.interface ) {
                     fprintf(stderr, "ERROR: Only a single interface option (-i) is allowed.\n");
+                    prompt_for_help(zargs[0]);
                     exit(1);
                 }
 
                 if ( rval.pcap_file ) {
                     fprintf(stderr, "ERROR: Using -i is not allow when reading a pcap file.\n");
+                    prompt_for_help(zargs[0]);
                     exit(1);
                 }
 
@@ -464,11 +465,13 @@ Options parse_cmdline(int argc, char** argv) {
             case 'r':
                 if ( rval.pcap_file ) {
                     fprintf(stderr, "ERROR: Only a single readfile option (-r) is allowed.\n");
+                    prompt_for_help(zargs[0]);
                     exit(1);
                 }
 
                 if ( rval.interface ) {
                     fprintf(stderr, "Using -r is not allowed when reading a live interface.\n");
+                    prompt_for_help(zargs[0]);
                     exit(1);
                 }
 
@@ -496,8 +499,11 @@ Options parse_cmdline(int argc, char** argv) {
             case 'D': rval.deterministic_mode = true; break;
             case 'E': rval.event_trace_file = optarg; break;
             case 'F':
-                if ( rval.dns_mode != detail::DNS_DEFAULT )
-                    usage(zargs[0], 1);
+                if ( rval.dns_mode != detail::DNS_DEFAULT ) {
+                    fprintf(stderr, "ERROR: can only change DNS manager mode once\n");
+                    prompt_for_help(zargs[0]);
+                    exit(1);
+                }
                 rval.dns_mode = detail::DNS_FORCE;
                 break;
             case 'G': rval.random_seed_input_file = optarg; break;
@@ -508,8 +514,11 @@ Options parse_cmdline(int argc, char** argv) {
             case 'o': add_func_analysis_pattern(rval.analysis_options, optarg); break;
             case '0': add_file_analysis_pattern(rval.analysis_options, optarg); break;
             case 'P':
-                if ( rval.dns_mode != detail::DNS_DEFAULT )
-                    usage(zargs[0], 1);
+                if ( rval.dns_mode != detail::DNS_DEFAULT ) {
+                    fprintf(stderr, "ERROR: can only change DNS manager mode once\n");
+                    prompt_for_help(zargs[0]);
+                    exit(1);
+                }
                 rval.dns_mode = detail::DNS_PRIME;
                 break;
             case 'Q': rval.print_execution_time = true; break;
@@ -532,7 +541,8 @@ Options parse_cmdline(int argc, char** argv) {
 
             case '#':
                 fprintf(stderr, "ERROR: --test only allowed as first argument.\n");
-                usage(zargs[0], 1);
+                prompt_for_help(zargs[0]);
+                exit(1);
                 break;
 
             case 0:
@@ -554,7 +564,16 @@ Options parse_cmdline(int argc, char** argv) {
                 break;
 
             case '?':
-            default: usage(zargs[0], 1); break;
+            default:
+                if ( optopt ) {
+                    fprintf(stderr, "ERROR: Option %s requires an argument.\n", zargs[optind - 1]);
+                }
+                else {
+                    fprintf(stderr, "ERROR: Unrecognized option %s\n", zargs[optind - 1]);
+                }
+                prompt_for_help(zargs[0]);
+                exit(1);
+                break;
         }
 
     if ( ! enable_script_profile && enable_script_profile_call_stacks )

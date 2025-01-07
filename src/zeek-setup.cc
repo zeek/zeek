@@ -698,8 +698,10 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     plugin_mgr->ActivateDynamicPlugins(! options.bare_mode);
 
     // Print usage after plugins load so that any path extensions are properly shown.
-    if ( options.print_usage )
-        usage(argv[0], 0);
+    if ( options.print_usage ) {
+        usage(argv[0]);
+        exit(0);
+    }
 
     init_event_handlers();
 

@@ -24,6 +24,19 @@ Deprecated Functionality
 Zeek 7.1.0
 ==========
 
+We would like to thank Aashish Sharma (@initconf), Andras Gemes (@gemesa),
+Anthony Kasza (@anthonykasza), Benjamin Grap (@blightzero), Chiragdeshlehra27,
+@cooper-grill, Craig Leres (@leres), Eldon Koyle (@ekoyle), Emmanuele Zambon
+(@zambo99), Fox-IT Data Science (@fox-ds), Fupeng Zhao (@AmazingPP), Jan
+Grashöfer (@J-Gras), Jordan Barnartt (@JordanBarnartt), Jürgen Löhel (@jloehel),
+Justin Azoff (@JustinAzoff), Lucas (@Lucasmeteenc), Martin van Hensbergen
+(@martinvanhensbergen), Matti Bispham (@mbispham), Matteo (@skorpion98), Mike
+Dopheide (@dopheide-esnet), Mike Peters (@MP-Corelight), Mohan Dhawan
+(@Mohan-Dhawan), Pierre (@p-l-), @robinkou, Rodrigo Rojo (@r-rojo), @scyllaever,
+Seth Hall (@sethhall), Simeon Miteff (@simeonmiteff), @Sonderino, @superzerosec,
+Sven (@svenvanhal), Theo Buehler (@botovq), @timo-mue, @Zopazz, and
+@zrobinette12 for their contributions to this release.
+
 Breaking Changes
 ----------------
 

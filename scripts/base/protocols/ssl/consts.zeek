@@ -38,6 +38,9 @@ export {
 	const HANDSHAKE = 22;
 	const APPLICATION_DATA = 23;
 	const HEARTBEAT = 24;
+	const TLS12_CID = 25; # RFC 9146
+	const TLS13_ACK = 26; # RFC 9147
+	const RETURN_ROUTABILITY_CHECK = 26; # draft-ietf-tls-dtls-rrc-10
 	const V2_ERROR = 300;
 	const V2_CLIENT_HELLO = 301;
 	const V2_CLIENT_MASTER_KEY = 302;
@@ -49,8 +52,8 @@ export {
 	const SERVER_HELLO        = 2;
 	const HELLO_VERIFY_REQUEST = 3; # RFC 6347
 	const SESSION_TICKET      = 4; # RFC 5077
-	const HELLO_RETRY_REQUEST = 6; # draft-ietf-tls-tls13-16
-	const ENCRYPTED_EXTENSIONS = 8; # draft-ietf-tls-tls13-16
+	const HELLO_RETRY_REQUEST = 6; # draft-ietf-tls-tls13-16 - moved to extension in final RFC
+	const ENCRYPTED_EXTENSIONS = 8; # RFC 8446
 	const CERTIFICATE         = 11;
 	const SERVER_KEY_EXCHANGE = 12;
 	const CERTIFICATE_REQUEST = 13;
@@ -61,7 +64,10 @@ export {
 	const CERTIFICATE_URL     = 21; # RFC 3546
 	const CERTIFICATE_STATUS  = 22; # RFC 3546
 	const SUPPLEMENTAL_DATA   = 23; # RFC 4680
-	const KEY_UPDATE          = 24; # draft-ietf-tls-tls13-16
+	const KEY_UPDATE          = 24; # RFC 8446
+	const COMPRESSED_CERTIFICATE = 25; # RFC 8879
+	const EKT_KEY = 26; # RFC 8870
+
 
 	## Mapping between numeric codes and human readable strings for alert
 	## levels.
@@ -205,6 +211,8 @@ export {
 	const SSL_EXTENSION_TICKET_REQUEST = 58;
 	const SSL_EXTENSION_DNSSEC_CHAIN = 59;
 	const SSL_EXTENSION_SEQUENCE_NUMBER_ENCRYPTION_ALGORITHMS = 60;
+	const SSL_EXTENSION_RRC = 61;
+	const SSL_EXTENSION_TLS_FLAGS = 62;
 	const SSL_EXTENSION_NEXT_PROTOCOL_NEGOTIATION = 13172;
 	const SSL_EXTENSION_ORIGIN_BOUND_CERTIFICATES = 13175;
 	const SSL_EXTENSION_ENCRYPTED_CLIENT_CERTIFICATES = 13180;
@@ -212,6 +220,7 @@ export {
 	const SSL_EXTENSION_CHANNEL_ID = 30031;
 	const SSL_EXTENSION_CHANNEL_ID_NEW = 30032;
 	const SSL_EXTENSION_PADDING_TEMP = 35655;
+	const SSL_EXTENSION_ECH_OUTER_EXTENSION = 64768;
 	const SSL_EXTENSION_ENCRYPTED_CLIENT_HELLO = 65037;
 	const SSL_EXTENSION_RENEGOTIATION_INFO = 65281;
 
@@ -278,9 +287,11 @@ export {
 		[55] = "external_id_hash", # RFC8844
 		[56] = "external_session_id", # RFC8844
 		[57] = "quic_transport_parameters", # RFC9001
-		[58] = "ticket_request", # RFC9149]
+		[58] = "ticket_request", # RFC9149
 		[59] = "dnssec_chain", # RFC9102
 		[60] = "sequence_number_encryption_algorithms", # draft-pismenny-tls-dtls-plaintext-sequence-number-01
+		[61] = "rrc", # draft-ietf-tls-dtls-rrc-10
+		[62] = "tls_flags", # draft-ietf-tls-tlsflags-14
 		[13172] = "next_protocol_negotiation",
 		[13175] = "origin_bound_certificates",
 		[13180] = "encrypted_client_certificates",
@@ -288,7 +299,8 @@ export {
 		[30031] = "channel_id",
 		[30032] = "channel_id_new",
 		[35655] = "padding",
-		[65037] = "encrypted_client_hello", # draft-ietf-tls-esni
+		[64768] = "ech_outer_extensions", # draft-ietf-tls-esni-17
+		[65037] = "encrypted_client_hello", # draft-ietf-tls-esni-17
 		[65281] = "renegotiation_info",
 		# GREASE values - rfc8701
 		[2570] = "grease_0x0A0A",
@@ -363,7 +375,7 @@ export {
 		[512] = "MLKEM512",
 		[513] = "MLKEM768",
 		[514] = "MLKEM1024",
-		# draft-kwiatkowski-tls-ecdhe-mlkem-03]
+		# draft-kwiatkowski-tls-ecdhe-mlkem-03
 		[4587] = "SecP256r1MLKEM768",
 		[4588] = "X25519MLKEM768",
 		[4589] = "SecP384r1MLKEM1024",
@@ -769,12 +781,12 @@ export {
 	const TLS_ECDHE_ECDSA_WITH_AES_256_CCM = 0xC0AD;
 	const TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8 = 0xC0AE;
 	const TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8 = 0xC0AF;
-	# RFC8492]
+	# RFC8492
 	const TLS_ECCPWD_WITH_AES_128_GCM_SHA256 = 0xC0B0;
 	const TLS_ECCPWD_WITH_AES_256_GCM_SHA384 = 0xC0B1;
 	const TLS_ECCPWD_WITH_AES_128_CCM_SHA256 = 0xC0B2;
 	const TLS_ECCPWD_WITH_AES_256_CCM_SHA384 = 0xC0B3;
-	# RFC RFC9150
+	# RFC9150
 	const TLS_SHA256_SHA256 = 0xC0B4;
 	const TLS_SHA384_SHA384 = 0xC0B5;
 	# RFC9189
@@ -1191,12 +1203,12 @@ export {
 		[TLS_ECDHE_ECDSA_WITH_AES_256_CCM] = "TLS_ECDHE_ECDSA_WITH_AES_256_CCM",
 		[TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8] = "TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8",
 		[TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8] = "TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8",
-		# RFC8492]
+		# RFC8492
 		[TLS_ECCPWD_WITH_AES_128_GCM_SHA256] = "TLS_ECCPWD_WITH_AES_128_GCM_SHA256",
 		[TLS_ECCPWD_WITH_AES_256_GCM_SHA384] = "TLS_ECCPWD_WITH_AES_256_GCM_SHA384",
 		[TLS_ECCPWD_WITH_AES_128_CCM_SHA256] = "TLS_ECCPWD_WITH_AES_128_CCM_SHA256",
 		[TLS_ECCPWD_WITH_AES_256_CCM_SHA384] = "TLS_ECCPWD_WITH_AES_256_CCM_SHA384",
-		# RFC RFC9150
+		# RFC9150
 		[TLS_SHA256_SHA256] = "TLS_SHA256_SHA256",
 		[TLS_SHA384_SHA384] = "TLS_SHA384_SHA384",
 		# RFC9189

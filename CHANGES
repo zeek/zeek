@@ -1,3 +1,7 @@
+7.2.0-dev.43 | 2025-01-08 08:38:25 -0700
+
+  * CI: Fix escaping in coverity workflow (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.40 | 2025-01-07 11:41:31 -0700
 
   * Add 7.1 contributors to NEWS file [skip ci] (Christian Kreibich, Corelight)

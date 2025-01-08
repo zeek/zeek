@@ -1,4 +1,4 @@
-// Copyright (c) 2023 by the Zeek Project. See COPYING for details.
+// See the file "COPYING" in the main distribution directory for copyright.
 
 #include <hilti/rt/libhilti.h>
 #include <cassert>

@@ -8,10 +8,9 @@ repos:
     name: Check for license headers
     entry: ./ci/license-header.py
     language: python
-    types_or:
-      - "c"
-      - "c++"
-    exclude: '^(testing/btest/plugins/.*|testing/builtin-plugins/.*)$'
+    files: '\.(h|c|cpp|cc|spicy|evt)$'
+    types: [file]
+    exclude: '^(testing/btest/(Baseline|plugins|spicy|scripts)/.*|testing/builtin-plugins/.*)$'
 
 - repo: https://github.com/pre-commit/mirrors-clang-format
   rev: 'v19.1.4'

@@ -53,9 +53,9 @@ jobs:
           COVERITY_TOKEN: ${{ secrets.COVERITY_TOKEN }}
         run: |
           curl \
-            -o coverity_tool.gz
-            -d token=${COVERITY_TOKEN}
-            -d project=Bro
+            -o coverity_tool.gz \
+            -d token=${COVERITY_TOKEN} \
+            -d project=Bro \
             https://scan.coverity.com/download/cxx/linux64
           tar xzf coverity_tool.tgz
           rm coverity_tool.tgz

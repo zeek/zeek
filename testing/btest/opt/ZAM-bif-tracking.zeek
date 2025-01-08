@@ -357,6 +357,7 @@ global known_BiFs = set(
 	"is_alnum",
 	"is_alpha",
 	"is_ascii",
+	"is_event_handled",
 	"is_file_analyzer",
 	"is_icmp_port",
 	"is_local_interface",

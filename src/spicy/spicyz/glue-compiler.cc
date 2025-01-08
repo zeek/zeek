@@ -1359,7 +1359,10 @@ bool GlueCompiler::CreateSpicyHook(glue::Event* ev) {
 
     body.addCall("zeek_rt::raise_event", {handler_expr, builder()->move(builder()->id("args"))}, meta);
 
-#if SPICY_VERSION_NUMBER >= 11200
+#if SPICY_VERSION_NUMBER >= 11300
+    auto attrs = builder()->attributeSet(
+        {builder()->attribute(hilti::attribute::Kind::Priority, builder()->integer(ev->priority))});
+#elif SPICY_VERSION_NUMBER >= 11200
     auto attrs = builder()->attributeSet(
         {builder()->attribute(hilti::Attribute::Kind::Priority, builder()->integer(ev->priority))});
 #else

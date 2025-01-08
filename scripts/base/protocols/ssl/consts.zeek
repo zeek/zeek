@@ -379,6 +379,7 @@ export {
 		[4587] = "SecP256r1MLKEM768",
 		[4588] = "X25519MLKEM768",
 		[4589] = "SecP384r1MLKEM1024",
+		[16696] = "CECPQ2", # https://boringssl.googlesource.com/boringssl/+/4ae4fb76c809bfc48a5ab100670395ce404244ce%5E%21/#F4
 		[25497] = "X25519Kyber768Draft00", # draft-tls-westerbaan-xyber768d00-02
 		[25498] = "SecP256r1Kyber768Draft00", # draft-kwiatkowski-tls-ecdhe-kyber-01
 		[0xFF01] = "arbitrary_explicit_prime_curves",

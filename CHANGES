@@ -1,3 +1,9 @@
+7.1.0-1 | 2025-03-18 12:01:59 -0700
+
+  * Add CECPQ2 curve number to SSL consts (Johanna Amann, Corelight)
+
+    (cherry picked from commit ac1c55c02aa31c1d9846837b2ecf7c19f78fabcf)
+
 7.1.0 | 2025-01-07 11:43:07 -0700
 
   * Release 7.1.0.

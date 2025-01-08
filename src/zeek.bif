@@ -5019,13 +5019,21 @@ function generate_all_events%(%) : bool
 ## This currently is mainly used to warn when events are defined that will not be used
 ## in certain conditions.
 ##
+## Raises an error if the named event does not exist.
+##
 ## event_name: event name to check
 ##
 ## returns: true if the named event is handled.
 function is_event_handled%(event_name: string%) : bool
 	%{
 	auto *h = event_registry->Lookup(event_name->ToStdStringView());
-	if ( h && *h )
+	if ( ! h )
+		{
+		zeek::emit_builtin_error(zeek::util::fmt("is_event_handled: '%s' is not an event", event_name->CheckString()));
+		return zeek::val_mgr->False();
+		}
+
+	if ( *h )
 		return zeek::val_mgr->True();
 
 	return zeek::val_mgr->False();

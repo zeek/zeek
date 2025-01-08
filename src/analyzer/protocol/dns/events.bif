@@ -498,7 +498,7 @@ event dns_unknown_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
 ##
 ## .. note::
 ##
-##      Note that this event will only be raised if ``dns_skip_all_addl``
+##      Note that this event will only be raised if :zeek:see:`dns_skip_all_addl`
 ##      is set to false.
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply dns_MX_reply
@@ -526,7 +526,7 @@ event dns_EDNS_addl%(c: connection, msg: dns_msg, ans: dns_edns_additional%);
 ##
 ## .. note::
 ##
-##      Note that this event will only be raised if ``dns_skip_all_addl``
+##      Note that this event will only be raised if :zeek:see:`dns_skip_all_addl`
 ##      is set to false.
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply dns_MX_reply
@@ -556,7 +556,7 @@ event dns_EDNS_ecs%(c: connection, msg: dns_msg, opt: dns_edns_ecs%);
 ##
 ## .. note::
 ##
-##      Note that this event will only be raised if ``dns_skip_all_addl``
+##      Note that this event will only be raised if :zeek:see:`dns_skip_all_addl`
 ##      is set to false.
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply dns_MX_reply
@@ -586,7 +586,7 @@ event dns_EDNS_tcp_keepalive%(c: connection, msg: dns_msg, opt: dns_edns_tcp_kee
 ##
 ## .. note::
 ##
-##      Note that this event will only be raised if ``dns_skip_all_addl``
+##      Note that this event will only be raised if :zeek:see:`dns_skip_all_addl`
 ##      is set to false.
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply dns_MX_reply
@@ -614,7 +614,7 @@ event dns_EDNS_cookie%(c: connection, msg: dns_msg, opt: dns_edns_cookie%);
 ##
 ## .. note::
 ##
-##      Note that ``ans`` will only be populated if ``dns_skip_all_addl``
+##      Note that ``ans`` will only be populated if :zeek:see:`dns_skip_all_addl`
 ##      is set to false.
 ##
 ## .. zeek:see:: dns_TSIG_addl
@@ -633,10 +633,10 @@ event dns_TKEY%(c: connection, msg: dns_msg, ans: dns_tkey%);
 ## msg: The parsed DNS message header.
 ##
 ## ans: The parsed TSIG reply.
-#
+##
 ## .. note::
 ##
-##      Note that this event will only be raised if ``dns_skip_all_addl``
+##      Note that this event will only be raised if :zeek:see:`dns_skip_all_addl`
 ##      is set to false.
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl

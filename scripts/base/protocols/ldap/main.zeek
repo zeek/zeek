@@ -1,4 +1,4 @@
-# Copyright (c) 2021 by the Zeek Project. See LICENSE for details.
+# See the file "COPYING" in the main distribution directory for copyright.
 
 @load base/frameworks/reporter
 @load base/protocols/conn/removal-hooks

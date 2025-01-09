@@ -1,3 +1,7 @@
+7.2.0-dev.50 | 2025-01-09 16:26:00 +0100
+
+  * Update COPYING date to now and fix some [skip CI] (Evan Typanski, Corelight)
+
 7.2.0-dev.48 | 2025-01-08 21:44:21 -0800
 
   * Try to be more careful with `--help` printing (Evan Typanski, Corelight)

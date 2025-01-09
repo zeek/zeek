@@ -1,3 +1,5 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+#
 # Set up protocol confirmation/rejection for analyzers, as well as any further
 # Zeek-specific analysis.
 

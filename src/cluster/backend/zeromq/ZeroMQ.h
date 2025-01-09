@@ -67,6 +67,7 @@ private:
     std::string listen_log_endpoint;
     int listen_xpub_nodrop = 1;
 
+    double subscribe_busy_wait = 0.0;
     zeek_uint_t poll_max_messages = 0;
     zeek_uint_t debug_flags = 0;
 
@@ -93,6 +94,9 @@ private:
     std::thread self_thread;
 
     std::unique_ptr<ProxyThread> proxy_thread;
+
+    // Tracking the subscriptions on the local XPUB socket.
+    std::set<std::string> xpub_subscriptions;
 };
 
 } // namespace zeek::cluster::zeromq

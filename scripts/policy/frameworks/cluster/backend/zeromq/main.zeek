@@ -209,6 +209,15 @@ export {
 	## subscriptions and hello messages from other
 	## nodes. These expirations trigger reporter warnings.
 	const hello_expiration: interval = 10sec &redef;
+
+	## How long to block a :zeek:see:`Cluster::subscribe` to be in effect.
+	##
+	## ZeroMQ's subscription behavior is asynchronous. The following
+	## setting configures the maximum interval a :zeek:see`Cluster::subscribe`
+	## call will block waiting for the new subscription to become visible
+	## on the local XPUB socket. This is a heuristic to avoid missed
+	## messages for "just created" subscriptions.
+	const subscribe_busy_wait = 500msec &redef;
 }
 
 redef Cluster::backend = Cluster::CLUSTER_BACKEND_ZEROMQ;

@@ -22,6 +22,7 @@
 #include "zeek/cluster/Serializer.h"
 #include "zeek/cluster/backend/zeromq/Plugin.h"
 #include "zeek/cluster/backend/zeromq/ZeroMQ-Proxy.h"
+#include "zeek/util.h"
 
 namespace zeek {
 
@@ -92,6 +93,8 @@ void ZeroMQBackend::DoInitPostScript() {
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::connect_xsub_endpoint")->ToStdString();
     listen_log_endpoint =
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::listen_log_endpoint")->ToStdString();
+    subscribe_busy_wait =
+        zeek::id::find_val<zeek::IntervalVal>("Cluster::Backend::ZeroMQ::subscribe_busy_wait")->AsDouble();
     poll_max_messages = zeek::id::find_val<zeek::CountVal>("Cluster::Backend::ZeroMQ::poll_max_messages")->Get();
     debug_flags = zeek::id::find_val<zeek::CountVal>("Cluster::Backend::ZeroMQ::debug_flags")->Get();
 
@@ -272,6 +275,26 @@ bool ZeroMQBackend::DoSubscribe(const std::string& topic_prefix) {
         zeek::reporter->Error("Failed to subscribe to topic %s: %s", topic_prefix.c_str(), err.what());
         return false;
     }
+
+    if ( subscribe_busy_wait > 0.0 ) {
+        double start_ts = zeek::util::current_time(true);
+        Process();
+        while ( xpub_subscriptions.count(topic_prefix) == 0 ) {
+            if ( zeek::util::current_time() > start_ts + subscribe_busy_wait )
+                break;
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            Process();
+        }
+
+        if ( xpub_subscriptions.count(topic_prefix) == 0 )
+            zeek::reporter->Warning("Subscription '%s' not visible on XPUB socket after %.3f ms", topic_prefix.c_str(),
+                                    subscribe_busy_wait * 1000);
+
+        ZEROMQ_DEBUG("Subscribe to '%s' completed in %.3f ms", topic_prefix.c_str(),
+                     (zeek::util::current_time() - start_ts) * 1000);
+    }
+
 
     return true;
 }
@@ -550,7 +573,16 @@ void ZeroMQBackend::Run() {
 bool ZeroMQBackend::DoProcessBackendMessage(int tag, detail::byte_buffer_span payload) {
     if ( tag == 0 || tag == 1 ) {
         std::string topic{reinterpret_cast<const char*>(payload.data()), payload.size()};
-        zeek::EventHandlerPtr eh = tag == 1 ? event_subscription : event_unsubscription;
+        zeek::EventHandlerPtr eh;
+
+        if ( tag == 1 ) {
+            eh = event_subscription;
+            xpub_subscriptions.insert(topic);
+        }
+        else if ( tag == 0 ) {
+            eh = event_unsubscription;
+            xpub_subscriptions.erase(topic);
+        }
 
         ZEROMQ_DEBUG("BackendMessage: %s for %s", eh->Name(), topic.c_str());
         return EnqueueEvent(eh, zeek::Args{zeek::make_intrusive<zeek::StringVal>(topic)});

@@ -165,8 +165,8 @@ bool detail::BrokerJsonV1_Serializer::SerializeEvent(byte_buffer& buf, const det
     if ( ! ev )
         return false;
 
-    auto push_back_adaptor = PushBackAdapter(buf);
-    broker::format::json::v1::encode(ev->move_data(), std::back_inserter(push_back_adaptor));
+    auto push_back_adapter = PushBackAdapter(buf);
+    broker::format::json::v1::encode(ev->move_data(), std::back_inserter(push_back_adapter));
     return true;
 }
 

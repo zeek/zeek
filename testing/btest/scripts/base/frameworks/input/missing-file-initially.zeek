@@ -11,7 +11,7 @@
 # @TEST-EXEC: echo "3 streaming still works" >> does-not-exist-again.dat
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff zeek/.stdout
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff zeek/.stderr
+# @TEST-EXEC: TEST_DIFF_CANONIFIER='sed -E "/Suppressed [0-9]+ warning\(s\)$/d" | $SCRIPTS/diff-sort' btest-diff zeek/.stderr
 
 @TEST-START-FILE does-exist.dat
 #separator \x09

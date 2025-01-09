@@ -3139,6 +3139,12 @@ static bool expand_op_elem(ListExprPtr elems, ExprPtr elem, TypePtr t) {
             return false;
         }
 
+        // If this expands to nothing, assume that is important and don't expand.
+        if ( v->AsTableVal()->Size() == 0 ) {
+            elems->Append(elem);
+            return false;
+        }
+
         for ( auto& s_elem : v->AsTableVal()->ToMap() ) {
             auto c_elem = with_location_of(make_intrusive<ConstExpr>(s_elem.first), elem);
             elems->Append(expand_one_elem(index_exprs, yield, c_elem, set_offset));

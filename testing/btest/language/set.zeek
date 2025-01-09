@@ -294,6 +294,16 @@ function complex_index_type_pattern()
 	test_case( "pattern index JSON roundtrip correct", to_json(s) == to_json(fjr$v) );
 }
 
+# Issue 3933: Sets defined with an empty container and {[]} were silently discarding
+# the inner set.
+function with_empty_containers()
+	{
+	local simple_set: set[count, set[count]] = { [ 1, set() ] };
+	test_case("empty set gets added with multiple types", |simple_set| == 1);
+	local simple_vec: set[count, vector of count] = { [ 1, vector() ] };
+	test_case("empty vector gets added with multiple types", |simple_vec| == 1);
+	}
+
 event zeek_init()
 {
 	basic_functionality();
@@ -301,4 +311,5 @@ event zeek_init()
 	complex_index_type_vector();
 	complex_index_type_set();
 	complex_index_type_pattern();
+	with_empty_containers();
 }

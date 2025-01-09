@@ -150,13 +150,12 @@ protected:
     /**
      * Process an incoming event message.
      */
-    bool ProcessEventMessage(const std::string_view& topic, const std::string_view& format,
-                             detail::byte_buffer_span payload);
+    bool ProcessEventMessage(std::string_view topic, std::string_view format, detail::byte_buffer_span payload);
 
     /**
      * Process an incoming log message.
      */
-    bool ProcessLogMessage(const std::string_view& format, detail::byte_buffer_span payload);
+    bool ProcessLogMessage(std::string_view format, detail::byte_buffer_span payload);
 
 private:
     /**

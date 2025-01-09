@@ -213,7 +213,7 @@ std::string RenderEvent(const std::string& topic, const std::string& name, const
 } // namespace
 #endif
 
-Manager::Manager(bool arg_use_real_time) : Backend(nullptr, nullptr) {
+Manager::Manager(bool arg_use_real_time) : Backend(nullptr, nullptr, nullptr) {
     bound_port = 0;
     use_real_time = arg_use_real_time;
     peer_count = 0;

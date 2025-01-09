@@ -13,7 +13,8 @@ namespace zeek::cluster {
 class BackendComponent : public plugin::Component {
 public:
     using factory_callback = std::unique_ptr<Backend> (*)(std::unique_ptr<EventSerializer>,
-                                                          std::unique_ptr<LogSerializer>);
+                                                          std::unique_ptr<LogSerializer>,
+                                                          std::unique_ptr<detail::EventHandlingStrategy>);
 
     /**
      * Constructor.

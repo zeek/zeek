@@ -14,7 +14,6 @@
 #include <zmq.hpp>
 
 #include "zeek/DebugLogger.h"
-#include "zeek/Event.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Reporter.h"
@@ -66,9 +65,9 @@ void self_thread_fun(void* arg) {
 } // namespace
 
 
-// Constructor.
-ZeroMQBackend::ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls)
-    : ThreadedBackend(std::move(es), std::move(ls)) {
+ZeroMQBackend::ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
+                             std::unique_ptr<detail::EventHandlingStrategy> ehs)
+    : ThreadedBackend(std::move(es), std::move(ls), std::move(ehs)) {
     xsub = zmq::socket_t(ctx, zmq::socket_type::xsub);
     xpub = zmq::socket_t(ctx, zmq::socket_type::xpub);
     log_push = zmq::socket_t(ctx, zmq::socket_type::push);
@@ -555,7 +554,7 @@ bool ZeroMQBackend::DoProcessBackendMessage(int tag, detail::byte_buffer_span pa
         zeek::EventHandlerPtr eh = tag == 1 ? event_subscription : event_unsubscription;
 
         ZEROMQ_DEBUG("BackendMessage: %s for %s", eh->Name(), topic.c_str());
-        zeek::event_mgr.Enqueue(eh, zeek::make_intrusive<zeek::StringVal>(topic));
+        EnqueueEvent(eh, zeek::Args{zeek::make_intrusive<zeek::StringVal>(topic)});
         return true;
     }
     else {

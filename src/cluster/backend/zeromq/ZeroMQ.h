@@ -17,7 +17,8 @@ public:
     /**
      * Constructor.
      */
-    ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls);
+    ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
+                  std::unique_ptr<detail::EventHandlingStrategy> ehs);
 
     /**
      * Spawns a thread running zmq_proxy() for the configured XPUB/XSUB listen
@@ -34,8 +35,9 @@ public:
      * Component factory.
      */
     static std::unique_ptr<Backend> Instantiate(std::unique_ptr<EventSerializer> event_serializer,
-                                                std::unique_ptr<LogSerializer> log_serializer) {
-        return std::make_unique<ZeroMQBackend>(std::move(event_serializer), std::move(log_serializer));
+                                                std::unique_ptr<LogSerializer> log_serializer,
+                                                std::unique_ptr<detail::EventHandlingStrategy> ehs) {
+        return std::make_unique<ZeroMQBackend>(std::move(event_serializer), std::move(log_serializer), std::move(ehs));
     }
 
 private:

@@ -13,8 +13,20 @@
 #include "zeek/cluster/Serializer.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/logging/Manager.h"
+#include "zeek/util.h"
 
 using namespace zeek::cluster;
+
+
+bool detail::LocalEventHandlingStrategy::DoHandleRemoteEvent(std::string_view topic, detail::Event e) {
+    zeek::event_mgr.Enqueue(e.Handler(), std::move(e.args), util::detail::SOURCE_BROKER, 0, nullptr, e.timestamp);
+    return true;
+}
+
+bool detail::LocalEventHandlingStrategy::DoEnqueueLocalEvent(EventHandlerPtr h, zeek::Args args) {
+    zeek::event_mgr.Enqueue(h, std::move(args));
+    return true;
+}
 
 std::optional<zeek::Args> detail::check_args(const zeek::FuncValPtr& handler, zeek::ArgsSpan args) {
     const auto& func_type = handler->GetType<zeek::FuncType>();
@@ -58,6 +70,12 @@ std::optional<zeek::Args> detail::check_args(const zeek::FuncValPtr& handler, ze
     return result;
 }
 
+// Constructor
+Backend::Backend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls)
+    : event_serializer(std::move(es)), log_serializer(std::move(ls)) {
+    event_handling_strategy = std::make_unique<detail::LocalEventHandlingStrategy>();
+}
+
 std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsSpan args, double timestamp) const {
     auto checked_args = detail::check_args(handler, args);
     if ( ! checked_args )
@@ -96,6 +114,10 @@ bool Backend::DoPublishLogWrites(const zeek::logging::detail::LogWriteHeader& he
     return DoPublishLogWrites(header, log_serializer->Name(), buf);
 }
 
+bool Backend::EnqueueEvent(EventHandlerPtr h, zeek::Args args) {
+    return event_handling_strategy->EnqueueLocalEvent(h, std::move(args));
+}
+
 bool Backend::ProcessEventMessage(std::string_view topic, std::string_view format,
                                   const detail::byte_buffer_span payload) {
     if ( format != event_serializer->Name() ) {
@@ -113,11 +135,7 @@ bool Backend::ProcessEventMessage(std::string_view topic, std::string_view forma
         return false;
     }
 
-    auto& event = *r;
-    zeek::event_mgr.Enqueue(event.Handler(), std::move(event.args), util::detail::SOURCE_BROKER, 0, nullptr,
-                            event.timestamp);
-
-    return true;
+    return event_handling_strategy->HandleRemoteEvent(topic, std::move(*r));
 }
 
 bool Backend::ProcessLogMessage(std::string_view format, detail::byte_buffer_span payload) {

@@ -54,6 +54,55 @@ public:
 };
 
 /**
+ * Interface for processing cluster::Event instances received
+ * on a given topic.
+ *
+ * This allows injecting different behaviors into Backend
+ * instances. For example, for WebSocket clients, events
+ * should not be raised locally and instead transmitted
+ * to the WebSocket client.
+ */
+class EventHandlingStrategy {
+public:
+    virtual ~EventHandlingStrategy() = default;
+
+    /**
+     * Method for processing a remote event received on the given topic.
+     */
+    bool HandleRemoteEvent(std::string_view topic, Event e) { return DoHandleRemoteEvent(topic, std::move(e)); }
+
+    /**
+     * Method for enquing backend specific events.
+     *
+     * Some backend's may raise events destined for the local
+     * scripting layer. That's usually fine, but in cases where
+     * the backend is instantiated for a WebSocket client, this
+     * isn't usually wanted.
+     */
+    bool EnqueueLocalEvent(EventHandlerPtr h, zeek::Args args) { return DoEnqueueLocalEvent(h, std::move(args)); }
+
+private:
+    /**
+     * Hook method for implementing.
+     */
+    virtual bool DoHandleRemoteEvent(std::string_view topic, Event e) = 0;
+
+    /**
+     * Hook method for implementing EnqueueLocalEvent().
+     */
+    virtual bool DoEnqueueLocalEvent(EventHandlerPtr h, zeek::Args args) = 0;
+};
+
+/**
+ * Strategy enqueueing events into the process's Zeek event loop.
+ */
+class LocalEventHandlingStrategy : public EventHandlingStrategy {
+private:
+    bool DoHandleRemoteEvent(std::string_view topic, Event e) override;
+    bool DoEnqueueLocalEvent(EventHandlerPtr h, zeek::Args args) override;
+};
+
+/**
  * Validate that the provided args are suitable for handler.
  *
  * @param handler An event  handler.
@@ -140,12 +189,31 @@ public:
         return DoPublishLogWrites(header, records);
     }
 
+    /**
+     * Configure the event processor used by this backend.
+     *
+     * @param ep The event processor to use.
+     */
+    void SetEventHandlingStrategy(std::unique_ptr<detail::EventHandlingStrategy> ep) {
+        event_handling_strategy = std::move(ep);
+    }
+
 protected:
     /**
      * Constructor.
      */
-    Backend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls)
-        : event_serializer(std::move(es)), log_serializer(std::move(ls)) {}
+    Backend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls);
+
+    /**
+     * Enqueue an event to be raised to this process Zeek scripting layer.
+     *
+     * When a backend is used for a WebSocket client connection, events
+     * raised through this method are blackholed.
+     *
+     * @param h The event handler.
+     * @param args The event arguments.
+     */
+    bool EnqueueEvent(EventHandlerPtr h, zeek::Args args);
 
     /**
      * Process an incoming event message.
@@ -277,6 +345,7 @@ private:
 
     std::unique_ptr<EventSerializer> event_serializer;
     std::unique_ptr<LogSerializer> log_serializer;
+    std::unique_ptr<detail::EventHandlingStrategy> event_handling_strategy;
 };
 
 /**

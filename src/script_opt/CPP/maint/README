@@ -21,7 +21,11 @@ The maintenance workflow:
 
 	rm CPP-gen.cc
 	ninja
-	src/zeek -b -O gen-standalone-C++ --optimize-files=base/protocols/conn base/protocols/conn >my-test.zeek
+	src/zeek -b -O gen-standalone-C++ \
+		--optimize-files=base/protocols/conn \
+		--optimize-files=base/utils/files \
+		--optimize-files=base/utils/addr \
+		base/protocols/conn >my-test.zeek
 	ninja
 	src/zeek -b -r some.pcap my-test.zeek
 	# Confirm that it generates conn.log

@@ -1,3 +1,7 @@
+7.2.0-dev.52 | 2025-01-09 12:02:45 -0700
+
+  * fixes for initializing globals when using -O gen-standalone-C++ (Vern Paxson, Corelight)
+
 7.2.0-dev.50 | 2025-01-09 16:26:00 +0100
 
   * Update COPYING date to now and fix some [skip CI] (Evan Typanski, Corelight)

@@ -849,8 +849,12 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
                 exit(1);
             }
 
-            auto backend = cluster::manager->InstantiateBackend(cluster_backend_val, std::move(event_serializer),
-                                                                std::move(log_serializer));
+            auto event_handling_strategy = std::make_unique<cluster::detail::LocalEventHandlingStrategy>();
+
+            auto backend =
+                cluster::manager->InstantiateBackend(cluster_backend_val, std::move(event_serializer),
+                                                     std::move(log_serializer), std::move(event_handling_strategy));
+
             if ( ! backend ) {
                 reporter->Error("Failed to instantiate cluster backend: %s",
                                 zeek::obj_desc_short(cluster_backend_val.get()).c_str());

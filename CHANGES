@@ -1,3 +1,9 @@
+7.2.0-dev.48 | 2025-01-08 21:44:21 -0800
+
+  * Try to be more careful with `--help` printing (Evan Typanski, Corelight)
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+  * Add CECPQ2 curve number to SSL consts (Johanna Amann, Corelight)
+
 7.2.0-dev.43 | 2025-01-08 08:38:25 -0700
 
   * CI: Fix escaping in coverity workflow (Tim Wojtulewicz, Corelight)

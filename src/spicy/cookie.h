@@ -245,7 +245,7 @@ private:
     Cookie(const Cookie& other) = delete;
     Cookie& operator=(const Cookie& other) = delete;
 
-    friend inline void swap(Cookie& lhs, Cookie& rhs) {
+    friend inline void swap(Cookie& lhs, Cookie& rhs) noexcept {
         Cookie tmp = std::move(lhs);
         lhs = std::move(rhs);
         rhs = std::move(tmp);

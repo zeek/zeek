@@ -96,7 +96,7 @@ bool Backend::DoPublishLogWrites(const zeek::logging::detail::LogWriteHeader& he
     return DoPublishLogWrites(header, log_serializer->Name(), buf);
 }
 
-bool Backend::ProcessEventMessage(const std::string_view& topic, const std::string_view& format,
+bool Backend::ProcessEventMessage(std::string_view topic, std::string_view format,
                                   const detail::byte_buffer_span payload) {
     if ( format != event_serializer->Name() ) {
         zeek::reporter->Error("ProcessEventMessage: Wrong format: %s vs %s", std::string{format}.c_str(),
@@ -120,7 +120,7 @@ bool Backend::ProcessEventMessage(const std::string_view& topic, const std::stri
     return true;
 }
 
-bool Backend::ProcessLogMessage(const std::string_view& format, detail::byte_buffer_span payload) {
+bool Backend::ProcessLogMessage(std::string_view format, detail::byte_buffer_span payload) {
     // We could also dynamically lookup the right de-serializer, but
     // for now assume we just receive what is configured.
     if ( format != log_serializer->Name() ) {

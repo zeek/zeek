@@ -2,7 +2,6 @@
 
 #include "glue-compiler.h"
 
-#include <algorithm>
 #include <limits>
 #include <stdexcept>
 

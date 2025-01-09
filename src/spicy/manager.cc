@@ -5,7 +5,6 @@
 #include <dlfcn.h>
 #include <glob.h>
 
-#include <exception>
 #include <iterator>
 #include <limits>
 #include <utility>
@@ -29,7 +28,6 @@
 #include <zeek/file_analysis/Manager.h>
 #include <zeek/packet_analysis/Manager.h>
 
-#include "zeek/DebugLogger.h"
 #include "zeek/spicy/file-analyzer.h"
 #include "zeek/spicy/packet-analyzer.h"
 #include "zeek/spicy/protocol-analyzer.h"

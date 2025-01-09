@@ -12,7 +12,6 @@
 #include <optional>
 #include <string>
 #include <utility>
-#include <variant>
 #include <vector>
 
 #include <hilti/rt/backtrace.h>
@@ -20,9 +19,9 @@
 #include "zeek/Reporter.h"
 #include "zeek/Val.h"
 #include "zeek/analyzer/Analyzer.h"
-#include "zeek/analyzer/protocol/tcp/TCP.h"
 #include "zeek/file_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Analyzer.h"
+#include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
 
 namespace zeek::spicy::rt {
 

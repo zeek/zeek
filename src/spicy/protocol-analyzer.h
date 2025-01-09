@@ -11,6 +11,7 @@
 #include <spicy/rt/driver.h>
 #include <spicy/rt/parser.h>
 
+#include "zeek/analyzer/protocol/tcp/TCP.h"
 #include "zeek/spicy/cookie.h"
 
 namespace zeek::spicy::rt {

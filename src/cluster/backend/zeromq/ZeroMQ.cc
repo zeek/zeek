@@ -399,11 +399,14 @@ void ZeroMQBackend::Run() {
                     try {
                         result = xpub.send(part, flags);
                     } catch ( zmq::error_t& err ) {
+                        if ( err.num() == ETERM )
+                            return;
+
                         // XXX: Not sure if the return false is so great here.
                         //
                         // Also, if we fail to publish, should we block rather
                         // than discard?
-                        ZEROMQ_THREAD_PRINTF("xpub: Failed to publish: %s (%d)", err.what(), err.num());
+                        ZEROMQ_THREAD_PRINTF("xpub: Failed to publish: %s (%d)\n", err.what(), err.num());
                         break;
                     }
                     // EAGAIN returns empty result, means try again!

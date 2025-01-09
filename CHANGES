@@ -1,3 +1,9 @@
+7.2.0-dev.57 | 2025-01-09 13:47:29 -0700
+
+  * Add missing include for <vector> (Tim Wojtulewicz, Corelight)
+
+  * Extended ZAM validation to include macros (Vern Paxson, Corelight)
+
 7.2.0-dev.54 | 2025-01-09 12:09:07 -0700
 
   * factoring of some ZAM header files for better modularity (Vern Paxson, Corelight)

@@ -6,6 +6,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace zeek::detail {
 
@@ -71,6 +72,10 @@ struct ZAMInstDesc {
 
 // Provides access to the validation description of each operation.
 extern std::unordered_map<ZOp, ZAMInstDesc> zam_inst_desc;
+
+// Same, for the associated macros. First field is macro name, second is
+// definition (including "#define" etc.).
+extern std::vector<std::pair<std::string, std::string>> zam_macro_desc;
 
 // Maps an operand to its flavor.
 extern ZAMOp1Flavor op1_flavor[];

@@ -705,7 +705,7 @@ inline ValPtr to_val(const hilti::rt::Vector<T>& v, const TypePtr& target) {
     for ( const auto& i : v )
         zv->Assign(zv->Size(), to_val(i, vt->Yield()));
 
-    return zv;
+    return std::move(zv);
 }
 
 /**

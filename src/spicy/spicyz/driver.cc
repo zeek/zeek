@@ -137,7 +137,7 @@ hilti::Result<hilti::Nothing> Driver::loadFile(hilti::rt::filesystem::path file,
                 hilti::util::fmt("error computing path of %s relative to %s: %s", file, relative_to, ec.message()));
 
         if ( exists )
-            file = p;
+            file = std::move(p);
     }
 
     auto exists = hilti::rt::filesystem::exists(file, ec);

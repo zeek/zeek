@@ -76,6 +76,16 @@ export {
 		# 203.0.113.0/24 as a 6to4 address, see :rfc:`5737` and :rfc:`3056`
 		[2002:cb00:7100::]/40,
 
+		# Multicast Local Network Control Block, see :rfc:`5771`
+		224.0.0.0/24,
+		# 224.0.0.0/24 as a 6to4 address, see :rfc:`5771` and :rfc:`3056`
+		[2002:e000::]/40,
+
+		# Administratively Scoped IP Multicast, see :rfc:`2365`
+		239.0.0.0/8,
+		# 239.0.0.0/8 as a 6to4 address, see :rfc:`2365` and :rfc:`3056`
+		[2002:ef00::]/24,
+
 		# Reserved, see :rfc:`1112`
 		240.0.0.0/4,
 		# 240.0.0.0/4 as a 6to4 address, see :rfc:`1112` and :rfc:`3056`
@@ -105,6 +115,8 @@ export {
 		[fc00::]/7,
 		# Link-Local Unicast, see :rfc:`4291`
 		[fe80::]/10,
+		# Deprecated Site Local Addresses, see :rfc:`3879`
+		[fec0::]/10,
 	};
 
 	## Networks that are considered "local".  Note that ZeekControl sets

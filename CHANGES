@@ -1,3 +1,18 @@
+7.2.0-dev.62 | 2025-01-09 22:17:41 -0700
+
+  * Update btests for new local-only subnets (Tim Wojtulewicz, Corelight)
+
+  * Add recommended non-routable subnets (JW-Corelight, Corelight)
+
+    224.0.0.0/24 (and 6to4 conversion 2002:e000::/40) from RFC5771	"Multicast Local Network Control Block" defined as non-routable.
+
+    239.0.0.0/8 (and 6to4 conversion 2002:ef00::/24) from RFC2365 "Administratively Scoped IP Multicast"
+
+    fec0::/10 from RFC3879 "Deprecated Site Local Addresses"
+    (cherry picked from commit 821ab2dbed0bc24c14b35ed22be6ba754646ca24)
+
+  * Fix another typo in the Coverity workflow script (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.57 | 2025-01-09 13:47:29 -0700
 
   * Add missing include for <vector> (Tim Wojtulewicz, Corelight)

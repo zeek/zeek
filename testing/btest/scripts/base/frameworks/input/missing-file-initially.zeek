@@ -10,6 +10,11 @@
 # @TEST-EXEC: mv does-not-exist.dat does-not-exist-again.dat
 # @TEST-EXEC: echo "3 streaming still works" >> does-not-exist-again.dat
 # @TEST-EXEC: btest-bg-wait 10
+#
+# In case we had unexpected delays in the above, Zeek reports that it
+# suppressed additional log messages about does-not-exist.dat. Remove these:
+# @TEST-EXEC: sed -i -n '/Suppressed [0-9]\+ warning/!p' zeek/.stderr
+#
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff zeek/.stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff zeek/.stderr
 

@@ -60,7 +60,6 @@ private:
     bool DoProcessBackendMessage(int tag, detail::byte_buffer_span payload) override;
 
     // Script level variables.
-    std::string my_node_id;
     std::string connect_xsub_endpoint;
     std::string connect_xpub_endpoint;
     std::string listen_xsub_endpoint;

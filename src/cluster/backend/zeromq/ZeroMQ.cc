@@ -81,7 +81,6 @@ ZeroMQBackend::ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_pt
 void ZeroMQBackend::DoInitPostScript() {
     ThreadedBackend::DoInitPostScript();
 
-    my_node_id = zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::my_node_id")->ToStdString();
     listen_xpub_endpoint =
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::listen_xpub_endpoint")->ToStdString();
     listen_xsub_endpoint =
@@ -242,7 +241,7 @@ bool ZeroMQBackend::DoPublishEvent(const std::string& topic, const std::string& 
     // * The serialized event itself.
     std::array<zmq::const_buffer, 4> parts = {
         zmq::const_buffer(topic.data(), topic.size()),
-        zmq::const_buffer(my_node_id.data(), my_node_id.size()),
+        zmq::const_buffer(NodeId().data(), NodeId().size()),
         zmq::const_buffer(format.data(), format.size()),
         zmq::const_buffer(buf.data(), buf.size()),
     };
@@ -306,7 +305,7 @@ bool ZeroMQBackend::DoPublishLogWrites(const logging::detail::LogWriteHeader& he
     // * The serialized log write itself.
     std::array<zmq::const_buffer, 4> parts = {
         zmq::const_buffer{message_type.data(), message_type.size()},
-        zmq::const_buffer(my_node_id.data(), my_node_id.size()),
+        zmq::const_buffer(NodeId().data(), NodeId().size()),
         zmq::const_buffer{format.data(), format.size()},
         zmq::const_buffer{buf.data(), buf.size()},
     };
@@ -439,7 +438,7 @@ void ZeroMQBackend::Run() {
 
             // Filter out messages that are coming from this node.
             std::string sender(msg[1].data<const char>(), msg[1].size());
-            if ( sender == my_node_id )
+            if ( sender == NodeId() )
                 continue;
 
             detail::byte_buffer payload{msg[3].data<std::byte>(), msg[3].data<std::byte>() + msg[3].size()};

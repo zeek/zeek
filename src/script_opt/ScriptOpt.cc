@@ -125,13 +125,13 @@ bool should_analyze(const ScriptFuncPtr& f, const StmtPtr& body) {
     return false;
 }
 
-bool obj_matches_opt_files(const Obj* obj) {
+bool filename_matches_opt_files(const char* filename) {
     auto& ofiles = analysis_options.only_files;
 
     if ( ofiles.empty() )
         return false;
 
-    auto fin = util::detail::normalize_path(obj->GetLocationInfo()->filename);
+    auto fin = util::detail::normalize_path(filename);
 
     for ( auto& o : ofiles )
         if ( std::regex_match(fin, o) )
@@ -139,6 +139,8 @@ bool obj_matches_opt_files(const Obj* obj) {
 
     return false;
 }
+
+bool obj_matches_opt_files(const Obj* obj) { return filename_matches_opt_files(obj->GetLocationInfo()->filename); }
 
 static bool optimize_AST(ScriptFuncPtr f, std::shared_ptr<ProfileFunc>& pf, std::shared_ptr<Reducer>& rc,
                          ScopePtr scope, StmtPtr& body) {

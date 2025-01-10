@@ -618,11 +618,16 @@ public:
 
     const detail::AttrPtr& GetAttr(detail::AttrTag a) const { return attrs ? attrs->Find(a) : detail::Attr::nil; }
 
+    const detail::Location* GetLocationInfo() const { return &loc; }
+
     void DescribeReST(ODesc* d, bool roles_only = false) const;
 
     TypePtr type;
     detail::AttributesPtr attrs;
     const char* id = nullptr;
+
+private:
+    detail::Location loc = detail::GetCurrentLocation();
 };
 
 using type_decl_list = PList<TypeDecl>;

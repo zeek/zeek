@@ -383,11 +383,18 @@ TypePtr CPP_TypeInits::BuildRecordType(InitsManager* im, ValElemVec& init_vals, 
     auto r = cast_intrusive<RecordType>(inits_vec[offset]);
     ASSERT(r);
 
-    if ( r->NumFields() == 0 ) {
+    auto addl_fields = init_vals[2];
+
+    if ( addl_fields > 0 || r->NumFields() == 0 ) {
+        // We shouldn't be adding fields if the record doesn't have any
+        // existing fields - that would reflect an initialization botch.
+        if ( addl_fields > 0 && r->NumFields() == 0 )
+            reporter->InternalError("record unexpectedly empty when adding fields");
+
         type_decl_list tl;
 
         auto n = init_vals.size();
-        auto i = 2U;
+        auto i = 3U + addl_fields * 3;
 
         while ( i < n ) {
             auto s = im->Strings(init_vals[i++]);

@@ -235,7 +235,7 @@ static hilti::Result<Nothing> parseOptions(int argc, char** argv, hilti::driver:
     return Nothing();
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv) try {
     Driver driver(std::make_unique<GlueCompiler>(), "", configuration::LibraryPath(),
                   configuration::ZeekVersionNumber());
 
@@ -271,4 +271,7 @@ int main(int argc, char** argv) {
     }
 
     return 0;
+} catch ( const std::exception& e ) {
+    hilti::logger().fatalError(hilti::util::fmt("terminating with uncaught exception of type %s: %s",
+                                                hilti::util::demangle(typeid(e).name()), e.what()));
 }

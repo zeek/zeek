@@ -2,7 +2,6 @@
 
 #include "glue-compiler.h"
 
-#include <algorithm>
 #include <limits>
 #include <stdexcept>
 
@@ -422,7 +421,7 @@ void GlueCompiler::preprocessEvtFile(hilti::rt::filesystem::path& path, std::ist
             // Output empty line to keep line numbers the same
             out << '\n';
 
-            auto m = hilti::util::split1(trimmed);
+            auto m = hilti::util::split1(std::move(trimmed));
 
             if ( auto rc = pp.processLine(m.first, m.second); ! rc )
                 throw ParseError(rc.error());
@@ -517,7 +516,7 @@ bool GlueCompiler::loadEvtFile(hilti::rt::filesystem::path& path) {
                 else
                     SPICY_DEBUG(hilti::util::fmt("  Got module %s to import", module));
 
-                _imports.emplace_back(hilti::ID(module), std::move(scope));
+                _imports.emplace_back(hilti::ID(std::move(module)), std::move(scope));
             }
 
             else if ( looking_at(*chunk, 0, "export") ) {
@@ -699,7 +698,7 @@ glue::ProtocolAnalyzer GlueCompiler::parseProtocolAnalyzer(const std::string& ch
 
                 case both:
                     a.unit_name_orig = unit;
-                    a.unit_name_resp = unit;
+                    a.unit_name_resp = std::move(unit);
                     break;
             }
         }
@@ -1359,7 +1358,10 @@ bool GlueCompiler::CreateSpicyHook(glue::Event* ev) {
 
     body.addCall("zeek_rt::raise_event", {handler_expr, builder()->move(builder()->id("args"))}, meta);
 
-#if SPICY_VERSION_NUMBER >= 11200
+#if SPICY_VERSION_NUMBER >= 11300
+    auto attrs = builder()->attributeSet(
+        {builder()->attribute(hilti::attribute::Kind::Priority, builder()->integer(ev->priority))});
+#elif SPICY_VERSION_NUMBER >= 11200
     auto attrs = builder()->attributeSet(
         {builder()->attribute(hilti::Attribute::Kind::Priority, builder()->integer(ev->priority))});
 #else
@@ -1367,7 +1369,7 @@ bool GlueCompiler::CreateSpicyHook(glue::Event* ev) {
 #endif
     auto parameters = hilti::util::transform(ev->parameters, [](const auto& p) { return p.get(); });
     auto unit_hook = builder()->declarationHook(parameters, body.block(), attrs, meta);
-    auto hook_decl = builder()->declarationUnitHook(ev->hook, unit_hook, meta);
+    auto hook_decl = builder()->declarationUnitHook(ev->hook, unit_hook, std::move(meta));
     ev->spicy_module->spicy_module->add(context(), hook_decl);
 
     return true;

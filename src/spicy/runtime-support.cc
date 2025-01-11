@@ -120,7 +120,7 @@ TypePtr rt::create_enum_type(
         etype->AddName(ns, name.c_str(), lval, true);
     }
 
-    return etype;
+    return std::move(etype);
 }
 
 TypePtr rt::create_record_type(const std::string& ns, const std::string& id,
@@ -289,7 +289,7 @@ void rt::debug(const Cookie& cookie, const std::string& msg) {
             hilti::rt::fmt("[%s/%" PRIu32 "/%s] %s", name, p->analyzer->GetID(), (p->is_orig ? "orig" : "resp"), msg));
     }
     else if ( const auto f = cookie.file ) {
-        auto name = file_mgr->GetComponentName(f->analyzer->Tag());
+        const auto& name = file_mgr->GetComponentName(f->analyzer->Tag());
         SPICY_DEBUG(hilti::rt::fmt("[%s/%" PRIu32 "] %s", name, f->analyzer->GetID(), msg));
     }
     else if ( const auto f = cookie.packet ) {

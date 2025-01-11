@@ -7,18 +7,21 @@
 
 #pragma once
 
+#include <exception>
 #include <memory>
 #include <optional>
 #include <string>
 #include <utility>
-#include <variant>
 #include <vector>
 
+#include <hilti/rt/backtrace.h>
+
+#include "zeek/Reporter.h"
 #include "zeek/Val.h"
 #include "zeek/analyzer/Analyzer.h"
-#include "zeek/analyzer/protocol/tcp/TCP.h"
 #include "zeek/file_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Analyzer.h"
+#include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
 
 namespace zeek::spicy::rt {
 
@@ -129,10 +132,25 @@ struct Cookie {
     Cookie(cookie::ProtocolAnalyzer&& c) : data(std::move(c)) { protocol = &data.protocol; }
     Cookie(cookie::FileAnalyzer&& c) : data(std::move(c)) { file = &data.file; }
     Cookie(cookie::PacketAnalyzer&& c) : data(std::move(c)) { packet = &data.packet; }
-    Cookie(Cookie&& other) noexcept : data(other.tag(), std::move(other.data)) { _initLike(other); }
+
+    Cookie(Cookie&& other) noexcept
+        : data(
+              [&]() {
+                  try {
+                      return other.tag();
+                  } catch ( const std::exception& e ) {
+                      auto type = hilti::rt::demangle(typeid(e).name());
+                      reporter->FatalError("terminating with uncaught exception of type %s: %s", type.c_str(),
+                                           e.what());
+                  }
+              }(),
+              std::move(other.data)) {
+        _initLike(other);
+    }
+
     ~Cookie() { _delete(); }
 
-    Cookie& operator=(Cookie&& other) noexcept {
+    Cookie& operator=(Cookie&& other) noexcept try {
         if ( this == &other )
             return *this;
 
@@ -141,6 +159,9 @@ struct Cookie {
 
         new (&data) Data(tag(), std::move(other.data));
         return *this;
+    } catch ( const std::exception& e ) {
+        auto type = hilti::rt::demangle(typeid(e).name());
+        reporter->FatalError("terminating with uncaught exception of type %s: %s", type.c_str(), e.what());
     }
 
     // Cache of values that can be expensive to compute.
@@ -224,7 +245,7 @@ private:
     Cookie(const Cookie& other) = delete;
     Cookie& operator=(const Cookie& other) = delete;
 
-    friend inline void swap(Cookie& lhs, Cookie& rhs) {
+    friend inline void swap(Cookie& lhs, Cookie& rhs) noexcept {
         Cookie tmp = std::move(lhs);
         lhs = std::move(rhs);
         rhs = std::move(tmp);

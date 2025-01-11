@@ -1,3 +1,19 @@
+7.2.0-dev.72 | 2025-01-11 17:36:31 +0100
+
+  * Mark `swap` specialization `noexcept` (Benjamin Bannier, Corelight)
+
+  * Clean up some includes (Benjamin Bannier, Corelight)
+
+  * Prevent exception in `noexcept` function. (Benjamin Bannier, Corelight)
+
+  * Prevent exception escape. (Benjamin Bannier, Corelight)
+
+  * Prevent unnecessary copies in Spicy bindings (Benjamin Bannier, Corelight)
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
 7.2.0-dev.64 | 2025-01-10 11:15:24 -0800
 
   * GH-4102: Harden flaky test based on creating a file (Evan Typanski, Corelight)

@@ -56,5 +56,5 @@ function Spicy::__resource_usage%(%) : Spicy::ResourceUsage
     r->Assign(n++, ru.max_fiber_stack_size);
     r->Assign(n++, ru.cached_fibers);
 
-    return r;
+    return std::move(r);
     %}

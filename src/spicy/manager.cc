@@ -5,7 +5,6 @@
 #include <dlfcn.h>
 #include <glob.h>
 
-#include <exception>
 #include <iterator>
 #include <limits>
 #include <utility>
@@ -29,7 +28,6 @@
 #include <zeek/file_analysis/Manager.h>
 #include <zeek/packet_analysis/Manager.h>
 
-#include "zeek/DebugLogger.h"
 #include "zeek/spicy/file-analyzer.h"
 #include "zeek/spicy/packet-analyzer.h"
 #include "zeek/spicy/protocol-analyzer.h"
@@ -244,7 +242,7 @@ void Manager::registerType(const std::string& id, const TypePtr& type) {
     zeek_id->SetType(type);
     zeek_id->MakeType();
 
-    detail::zeekygen_mgr->Identifier(zeek_id);
+    detail::zeekygen_mgr->Identifier(std::move(zeek_id));
 
     if ( _module_info )
         _module_info->AddBifItem(id, ::zeek::plugin::BifItem::TYPE);
@@ -281,7 +279,7 @@ void Manager::registerEvent(const std::string& name) {
     if ( auto id = detail::lookup_ID(name.c_str(), mod.c_str(), false, false, false) ) {
         // Auto-export IDs that already exist.
         id->SetExport();
-        _events[name] = id;
+        _events[name] = std::move(id);
     }
     else
         // This installs & exports the ID, but it doesn't set its type yet.
@@ -632,7 +630,7 @@ void Manager::InitPostScript() {
     hilti_config.abort_on_exceptions = id::find_const("Spicy::abort_on_exceptions")->AsBool();
     hilti_config.show_backtraces = id::find_const("Spicy::show_backtraces")->AsBool();
 
-    hilti::rt::configuration::set(hilti_config);
+    hilti::rt::configuration::set(std::move(hilti_config));
 
     auto spicy_config = ::spicy::rt::configuration::get();
     spicy_config.hook_accept_input = hook_accept_input;
@@ -686,7 +684,7 @@ void Manager::InitPostScript() {
         if ( ! tag )
             reporter->InternalError("cannot get analyzer tag for '%s'", p.name_analyzer.c_str());
 
-        auto register_analyzer_for_port = [&](auto tag, const hilti::rt::Port& port_) {
+        auto register_analyzer_for_port = [&](const auto& tag, const hilti::rt::Port& port_) {
             SPICY_DEBUG(hilti::rt::fmt("  Scheduling analyzer for port %s", port_));
 
             // Well-known ports are registered in scriptland, so we'll raise an
@@ -695,7 +693,7 @@ void Manager::InitPostScript() {
             vals.emplace_back(tag.AsVal());
             vals.emplace_back(zeek::spicy::rt::to_val(port_, base_type(TYPE_PORT)));
             EventHandlerPtr handler = event_registry->Register("spicy_analyzer_for_port");
-            event_mgr.Enqueue(handler, vals);
+            event_mgr.Enqueue(handler, std::move(vals));
         };
 
         for ( const auto& ports : p.ports ) {
@@ -717,7 +715,7 @@ void Manager::InitPostScript() {
         }
 
         if ( p.parser_resp ) {
-            for ( auto port : p.parser_resp->ports ) {
+            for ( const auto& port : p.parser_resp->ports ) {
                 if ( port.direction != ::spicy::rt::Direction::Both &&
                      port.direction != ::spicy::rt::Direction::Responder )
                     continue;
@@ -742,7 +740,7 @@ void Manager::InitPostScript() {
         if ( ! tag )
             reporter->InternalError("cannot get analyzer tag for '%s'", p.name_analyzer.c_str());
 
-        auto register_analyzer_for_mime_type = [&](auto tag, const std::string& mt) {
+        auto register_analyzer_for_mime_type = [&](const auto& tag, const std::string& mt) {
             SPICY_DEBUG(hilti::rt::fmt("  Scheduling analyzer for MIME type %s", mt));
 
             // MIME types are registered in scriptland, so we'll raise an
@@ -751,7 +749,7 @@ void Manager::InitPostScript() {
             vals.emplace_back(tag.AsVal());
             vals.emplace_back(make_intrusive<StringVal>(mt));
             EventHandlerPtr handler = event_registry->Register("spicy_analyzer_for_mime_type");
-            event_mgr.Enqueue(handler, vals);
+            event_mgr.Enqueue(handler, std::move(vals));
         };
 
         for ( const auto& mt : p.mime_types )

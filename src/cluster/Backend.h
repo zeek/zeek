@@ -149,8 +149,14 @@ public:
 
     /**
      * Method invoked from the Cluster::Backend::__init() bif.
+     *
+     * @param nid The node identifier to use.
      */
-    bool Init() { return DoInit(); }
+    bool Init(std::string nid) {
+        node_id = std::move(nid);
+
+        return DoInit();
+    }
 
     /**
      * Hook invoked when Zeek is about to terminate.
@@ -208,6 +214,11 @@ public:
                           zeek::Span<zeek::logging::detail::LogRecord> records) {
         return DoPublishLogWrites(header, records);
     }
+
+    /**
+     * @return This backend's node identifier.
+     */
+    const std::string& NodeId() const { return node_id; }
 
 protected:
     /**
@@ -362,6 +373,11 @@ private:
     std::unique_ptr<EventSerializer> event_serializer;
     std::unique_ptr<LogSerializer> log_serializer;
     std::unique_ptr<detail::EventHandlingStrategy> event_handling_strategy;
+
+    /**
+     * The backend's instance cluster node identifier.
+     */
+    std::string node_id;
 };
 
 /**

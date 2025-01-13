@@ -1,3 +1,10 @@
+7.2.0-dev.79 | 2025-01-13 08:30:54 -0700
+
+  * Fix incomplete includes in Spicy SSL analyer C++ code (Benjamin Bannier, Corelight)
+
+    This appears to have been broken by
+    feec451bcee7c459bc9a93e39ae18dc41515ac17.
+
 7.2.0-dev.77 | 2025-01-13 08:21:51 -0700
 
   * Add SECURITY.md, pointing at the website (Tim Wojtulewicz, Corelight)

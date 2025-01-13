@@ -14,7 +14,6 @@
 #include <zmq.hpp>
 
 #include "zeek/DebugLogger.h"
-#include "zeek/Event.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Reporter.h"
@@ -554,8 +553,7 @@ bool ZeroMQBackend::DoProcessBackendMessage(int tag, detail::byte_buffer_span pa
         zeek::EventHandlerPtr eh = tag == 1 ? event_subscription : event_unsubscription;
 
         ZEROMQ_DEBUG("BackendMessage: %s for %s", eh->Name(), topic.c_str());
-        zeek::event_mgr.Enqueue(eh, zeek::make_intrusive<zeek::StringVal>(topic));
-        return true;
+        return EnqueueEvent(eh, zeek::Args{zeek::make_intrusive<zeek::StringVal>(topic)});
     }
     else {
         zeek::reporter->Error("Ignoring bad BackendMessage tag=%d", tag);

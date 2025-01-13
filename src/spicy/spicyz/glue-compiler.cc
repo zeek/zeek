@@ -479,19 +479,19 @@ bool GlueCompiler::loadEvtFile(hilti::rt::filesystem::path& path) {
             if ( looking_at(*chunk, 0, "protocol") ) {
                 auto a = parseProtocolAnalyzer(*chunk);
                 SPICY_DEBUG(hilti::util::fmt("  Got protocol analyzer definition for %s", a.name));
-                _protocol_analyzers.push_back(a);
+                _protocol_analyzers.push_back(std::move(a));
             }
 
             else if ( looking_at(*chunk, 0, "file") ) {
                 auto a = parseFileAnalyzer(*chunk);
                 SPICY_DEBUG(hilti::util::fmt("  Got file analyzer definition for %s", a.name));
-                _file_analyzers.push_back(a);
+                _file_analyzers.push_back(std::move(a));
             }
 
             else if ( looking_at(*chunk, 0, "packet") ) {
                 auto a = parsePacketAnalyzer(*chunk);
                 SPICY_DEBUG(hilti::util::fmt("  Got packet analyzer definition for %s", a.name));
-                _packet_analyzers.push_back(a);
+                _packet_analyzers.push_back(std::move(a));
             }
 
             else if ( looking_at(*chunk, 0, "on") ) {
@@ -562,7 +562,7 @@ bool GlueCompiler::loadEvtFile(hilti::rt::filesystem::path& path) {
     }
 
     for ( auto&& ev : new_events )
-        _events.push_back(ev);
+        _events.push_back(std::move(ev));
 
     return true;
 }
@@ -879,7 +879,7 @@ glue::Event GlueCompiler::parseEvent(const std::string& chunk) {
             eat_token(chunk, &i, ",");
 
         auto expr = extract_expr(chunk, &i);
-        ev.exprs.push_back(expr);
+        ev.exprs.push_back(std::move(expr));
         first = false;
     }
 
@@ -945,7 +945,7 @@ glue::Export GlueCompiler::parseExport(const std::string& chunk) {
 
             if ( looking_at(chunk, i, "&log") ) {
                 eat_token(chunk, &i, "&log");
-                export_.logs.insert(field);
+                export_.logs.insert(std::move(field));
             }
 
             if ( looking_at(chunk, i, "}") ) {
@@ -1193,7 +1193,7 @@ bool GlueCompiler::PopulateEvents() {
             acc.expression = e;
             acc.location = ev.location;
             // acc.dollar_id = util::startsWith(e, "$");
-            ev.expression_accessors.push_back(acc);
+            ev.expression_accessors.push_back(std::move(acc));
         }
     }
 

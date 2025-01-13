@@ -93,7 +93,7 @@ Driver::Driver(std::unique_ptr<GlueCompiler> glue, const char* argv0, hilti::rt:
 
         // We make our search paths relative to the plugin library, so that the
         // plugin installation can move around.
-        options.library_paths.push_back(lib_path);
+        options.library_paths.push_back(std::move(lib_path));
     } catch ( const hilti::rt::filesystem::filesystem_error& e ) {
         ::hilti::logger().warning(
             hilti::util::fmt("invalid plugin base directory %s: %s", lib_path.native(), e.what()));

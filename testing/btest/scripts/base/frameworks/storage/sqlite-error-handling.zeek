@@ -28,5 +28,6 @@ event zeek_init() {
 
 	# Close the backend and then attempt to use the closed handle
 	Storage::close_backend(b);
-	Storage::put([$backend=b, $key="a", $value="b", $async_mode=F]);
+	local res = Storage::put([$backend=b, $key="a", $value="b", $async_mode=F]);
+	print fmt("Put result on closed handle: %d", res);
 }

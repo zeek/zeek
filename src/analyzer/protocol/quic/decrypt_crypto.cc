@@ -25,7 +25,6 @@ refactors as C++ development is not our main profession.
 #include <cstdint>
 #include <cstdlib>
 #include <memory>
-#include <string>
 #include <vector>
 
 // OpenSSL imports
@@ -366,11 +365,11 @@ public:
                                         0x71, 0x75, 0x69, 0x63, 0x20, 0x68, 0x70, 0x00};
 
         std::vector<HkdfCtxParam> hkdf_ctx_params = {
-            {&hkdf_ctxs.client_in_ctx, CLIENT_INITIAL_INFO},
-            {&hkdf_ctxs.server_in_ctx, SERVER_INITIAL_INFO},
-            {&hkdf_ctxs.key_info_ctx, KEY_INFO},
-            {&hkdf_ctxs.iv_info_ctx, IV_INFO},
-            {&hkdf_ctxs.hp_info_ctx, HP_INFO},
+            {&hkdf_ctxs.client_in_ctx, std::move(CLIENT_INITIAL_INFO)},
+            {&hkdf_ctxs.server_in_ctx, std::move(SERVER_INITIAL_INFO)},
+            {&hkdf_ctxs.key_info_ctx, std::move(KEY_INFO)},
+            {&hkdf_ctxs.iv_info_ctx, std::move(IV_INFO)},
+            {&hkdf_ctxs.hp_info_ctx, std::move(HP_INFO)},
         };
 
         QuicPacketProtection::Initialize(hkdf_ctx_params);
@@ -419,11 +418,11 @@ public:
                                            0x75, 0x69, 0x63, 0x76, 0x32, 0x20, 0x68, 0x70, 0x00};
 
         std::vector<HkdfCtxParam> hkdf_ctx_params = {
-            {&hkdf_ctxs.client_in_ctx, CLIENT_INITIAL_INFO_V2},
-            {&hkdf_ctxs.server_in_ctx, SERVER_INITIAL_INFO_V2},
-            {&hkdf_ctxs.key_info_ctx, KEY_INFO_V2},
-            {&hkdf_ctxs.iv_info_ctx, IV_INFO_V2},
-            {&hkdf_ctxs.hp_info_ctx, HP_INFO_V2},
+            {&hkdf_ctxs.client_in_ctx, std::move(CLIENT_INITIAL_INFO_V2)},
+            {&hkdf_ctxs.server_in_ctx, std::move(SERVER_INITIAL_INFO_V2)},
+            {&hkdf_ctxs.key_info_ctx, std::move(KEY_INFO_V2)},
+            {&hkdf_ctxs.iv_info_ctx, std::move(IV_INFO_V2)},
+            {&hkdf_ctxs.hp_info_ctx, std::move(HP_INFO_V2)},
         };
 
         QuicPacketProtection::Initialize(hkdf_ctx_params);
@@ -483,7 +482,7 @@ hilti::rt::Bytes QUIC_decrypt_crypto_payload(const hilti::rt::integer::safe<uint
     DecryptionInformation decryptInfo = remove_header_protection(hp, encrypted_offset, all_data);
 
     // Calculate the correct nonce for the decryption
-    decryptInfo.nonce = calculate_nonce(iv, decryptInfo.packet_number);
+    decryptInfo.nonce = calculate_nonce(std::move(iv), decryptInfo.packet_number);
 
     return decrypt(key, all_data, payload_length, decryptInfo);
 }

@@ -1,3 +1,9 @@
+7.2.0-dev.91 | 2025-01-14 18:20:04 +0100
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+  * Prevent unneeded copies in QUIC C++ helper code (Benjamin Bannier, Corelight)
+
 7.2.0-dev.88 | 2025-01-14 14:39:14 +0000
 
   * Raise warnings when for DNS events that are not raised due to dns_skip_all_addl (Johanna Amann, Corelight)

@@ -254,8 +254,9 @@ extern void add_file_analysis_pattern(AnalyOpt& opts, const char* pat);
 // it should be skipped.
 extern bool should_analyze(const ScriptFuncPtr& f, const StmtPtr& body);
 
-// True if the given object's location matches one specified by
+// True if the given filename or object location matches one specified by
 // --optimize-files=...
+extern bool filename_matches_opt_files(const char* filename);
 extern bool obj_matches_opt_files(const Obj* obj);
 inline bool obj_matches_opt_files(const ObjPtr& obj) { return obj_matches_opt_files(obj.get()); }
 

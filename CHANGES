@@ -1,3 +1,7 @@
+7.2.0-dev.84 | 2025-01-14 11:12:52 +0100
+
+  * support for record extensions when using -O gen-standalone-C++ (Vern Paxson, Corelight)
+
 7.2.0-dev.82 | 2025-01-14 08:42:27 +0100
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

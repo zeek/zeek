@@ -189,9 +189,43 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterType(const TypePtr& tp) {
 
     processed_types[t] = nullptr;
 
+    // When doing standalone compilation, if the type is a record *and*
+    // (1) it's not one that we're fully generating (i.e., it's not solely
+    // defined in the scripts that we're compiling-to-standalone), and (2) the
+    // scripts we're compiling extend the record using "redef += record ...",
+    // then we need to track the offset where those record extensions start,
+    // so that when initializing the standalone code, we can add in those
+    // record fields.
+    //
+    // If any of those conditions don't hold, then this variable will remain 0.
+    int addl_fields = 0;
+
+    bool type_init_needed = standalone && obj_matches_opt_files(tp);
+
+    if ( standalone && ! type_init_needed ) {
+        if ( tp->Tag() == TYPE_RECORD ) {
+            auto tr = tp->AsRecordType();
+            for ( auto i = tr->NumOrigFields(); i < tr->NumFields(); ++i ) {
+                auto fd = tr->FieldDecl(i);
+                if ( filename_matches_opt_files(fd->GetLocationInfo()->filename) ) {
+                    if ( addl_fields == 0 )
+                        addl_fields = i;
+                }
+                else if ( addl_fields > 0 )
+                    reporter->FatalError(
+                        "can't compile standalone-C++ with field \"%s\" in record \"%s\" added after those introduced "
+                        "by compiled script",
+                        fd->id, t->GetName().c_str());
+            }
+
+            if ( addl_fields > 0 )
+                type_init_needed = true;
+        }
+    }
+
     shared_ptr<CPP_InitInfo> gi;
 
-    if ( (standalone && obj_matches_opt_files(tp)) || t->GetName().empty() ) {
+    if ( type_init_needed || t->GetName().empty() ) {
         switch ( t->Tag() ) {
             case TYPE_ADDR:
             case TYPE_ANY:
@@ -221,7 +255,7 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterType(const TypePtr& tp) {
 
             case TYPE_TABLE: gi = make_shared<TableTypeInfo>(this, tp); break;
 
-            case TYPE_RECORD: gi = make_shared<RecordTypeInfo>(this, tp); break;
+            case TYPE_RECORD: gi = make_shared<RecordTypeInfo>(this, tp, addl_fields); break;
 
             case TYPE_FUNC: gi = make_shared<FuncTypeInfo>(this, tp); break;
 

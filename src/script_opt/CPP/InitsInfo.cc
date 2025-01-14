@@ -544,7 +544,8 @@ void FuncTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const {
     ivs.emplace_back(Fmt(static_cast<int>(expressionless_return_okay)));
 }
 
-RecordTypeInfo::RecordTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c, std::move(_t)) {
+RecordTypeInfo::RecordTypeInfo(CPPCompile* _c, TypePtr _t, int _addl_fields)
+    : AbstractTypeInfo(_c, std::move(_t)), addl_fields(_addl_fields) {
     // Note, we leave init_cohort at 0 because the skeleton of this type
     // is built in the first cohort.
     auto r = t->AsRecordType()->Types();
@@ -574,6 +575,7 @@ RecordTypeInfo::RecordTypeInfo(CPPCompile* _c, TypePtr _t) : AbstractTypeInfo(_c
 
 void RecordTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const {
     ivs.emplace_back(Fmt(c->TrackString(t->GetName())));
+    ivs.emplace_back(Fmt(addl_fields));
 
     auto n = field_names.size();
 

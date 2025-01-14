@@ -644,11 +644,15 @@ private:
 
 class RecordTypeInfo : public AbstractTypeInfo {
 public:
-    RecordTypeInfo(CPPCompile* c, TypePtr _t);
+    RecordTypeInfo(CPPCompile* c, TypePtr _t, int _addl_fields);
 
     void AddInitializerVals(std::vector<std::string>& ivs) const override;
 
 private:
+    // If non-zero, where additional fields begin. Only used for standalone
+    // compilation.
+    int addl_fields;
+
     std::vector<std::string> field_names;
     std::vector<TypePtr> field_types;
     std::vector<int> field_attrs;

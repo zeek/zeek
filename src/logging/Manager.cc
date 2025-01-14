@@ -1737,7 +1737,7 @@ WriterFrontend* Manager::CreateWriterForFilter(Filter* filter, const std::string
 bool Manager::WriteBatchFromRemote(const detail::LogWriteHeader& header, std::vector<detail::LogRecord>&& records) {
     Stream* stream = FindStream(header.stream_id.get());
     if ( ! stream ) {
-        reporter->Error("Failed to find stream for !");
+        reporter->Error("Failed to find stream %s for remote write", header.stream_name.c_str());
         return false;
     }
 

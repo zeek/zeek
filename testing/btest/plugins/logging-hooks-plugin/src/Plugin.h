@@ -17,8 +17,13 @@ protected:
     // Overridden from plugin::Plugin.
     zeek::plugin::Configuration Configure() override;
 
+    // Overridden from plugin::Plugin.
+    void Done() override;
+
 private:
     int round;
+    const zeek::logging::WriterBackend::WriterInfo* info_addr_init = nullptr;
+    const zeek::logging::WriterBackend::WriterInfo* info_addr_write = nullptr;
 };
 
 extern Plugin plugin;

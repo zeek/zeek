@@ -204,6 +204,7 @@ struct Manager::Filter {
     string path;
     Val* path_val = nullptr;
     EnumVal* writer = nullptr;
+    std::string writer_name;
     TableVal* config = nullptr;
     TableVal* field_name_map = nullptr;
     string scope_sep;
@@ -882,6 +883,7 @@ bool Manager::AddFilter(EnumVal* id, RecordVal* fval) {
     filter->policy = policy ? policy->AsFunc() : stream->policy;
     filter->path_func = path_func ? path_func->AsFunc() : nullptr;
     filter->writer = writer->Ref()->AsEnumVal();
+    filter->writer_name = writer->GetType()->AsEnumType()->Lookup(writer->InternalInt());
     filter->local = log_local->AsBool();
     filter->remote = log_remote->AsBool();
     filter->interval = interv->AsInterval();
@@ -1115,19 +1117,20 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
             path = filter->path = filter->path_val->AsString()->CheckString();
         }
 
+        WriterBackend::WriterInfo* info = nullptr;
         WriterFrontend* writer = nullptr;
 
         if ( w != stream->writers.end() ) {
             // We know this writer already.
-            writer = w->second->writer;
+            auto* wi = w->second;
+            writer = wi->writer;
+            info = wi->info;
 
-            if ( ! w->second->hook_initialized ) {
-                auto wi = w->second;
+            if ( ! wi->hook_initialized ) {
                 wi->hook_initialized = true;
-                PLUGIN_HOOK_VOID(HOOK_LOG_INIT, HookLogInit(filter->writer->GetType()->AsEnumType()->Lookup(
-                                                                filter->writer->InternalInt()),
-                                                            wi->instantiating_filter, filter->local, filter->remote,
-                                                            *wi->info, filter->num_fields, filter->fields));
+                PLUGIN_HOOK_VOID(HOOK_LOG_INIT,
+                                 HookLogInit(filter->writer_name, wi->instantiating_filter, filter->local,
+                                             filter->remote, *info, filter->num_fields, filter->fields));
             }
         }
 
@@ -1141,9 +1144,12 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
             // Find the newly inserted WriterInfo record.
             w = stream->writers.find(wpp);
             assert(w != stream->writers.end());
+
+            info = w->second->info;
         }
 
         assert(writer);
+        assert(info);
 
         // Alright, can do the write now.
         auto rec = RecordToLogRecord(stream, filter, columns.get());
@@ -1156,10 +1162,8 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
             for ( auto& v : rec )
                 vals.emplace_back(&v);
 
-            bool res = zeek::plugin_mgr->HookLogWrite(filter->writer->GetType()->AsEnumType()->Lookup(
-                                                          filter->writer->InternalInt()),
-                                                      filter->name, *writer->info, filter->num_fields, filter->fields,
-                                                      &vals[0]);
+            bool res = zeek::plugin_mgr->HookLogWrite(filter->writer_name, filter->name, *info, filter->num_fields,
+                                                      filter->fields, &vals[0]);
             if ( ! res ) {
                 DBG_LOG(DBG_LOGGING, "Hook prevented writing to filter '%s' on stream '%s'", filter->name.c_str(),
                         stream->name.c_str());
@@ -1679,9 +1683,8 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
 
     if ( ! from_remote ) {
         winfo->hook_initialized = true;
-        PLUGIN_HOOK_VOID(HOOK_LOG_INIT,
-                         HookLogInit(writer->GetType()->AsEnumType()->Lookup(writer->InternalInt()),
-                                     instantiating_filter, local, remote, *winfo->info, num_fields, fields));
+        PLUGIN_HOOK_VOID(HOOK_LOG_INIT, HookLogInit(writer_name, instantiating_filter, local, remote, *winfo->info,
+                                                    num_fields, fields));
     }
 
     InstallRotationTimer(winfo);
@@ -1734,7 +1737,7 @@ WriterFrontend* Manager::CreateWriterForFilter(Filter* filter, const std::string
 bool Manager::WriteBatchFromRemote(const detail::LogWriteHeader& header, std::vector<detail::LogRecord>&& records) {
     Stream* stream = FindStream(header.stream_id.get());
     if ( ! stream ) {
-        reporter->Error("Failed to find stream for !");
+        reporter->Error("Failed to find stream %s for remote write", header.stream_name.c_str());
         return false;
     }
 

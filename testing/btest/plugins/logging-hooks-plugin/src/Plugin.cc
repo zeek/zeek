@@ -49,6 +49,8 @@ void Plugin::HookLogInit(const std::string& writer, const std::string& instantia
 
     fprintf(stderr, "%.6f %-15s %s %d/%d %s\n", zeek::run_state::network_time, "| HookLogInit", info.path, local,
             remote, d.Description());
+
+    info_addr_init = &info;
 }
 
 bool Plugin::HookLogWrite(const std::string& writer, const std::string& filter,
@@ -62,5 +64,17 @@ bool Plugin::HookLogWrite(const std::string& writer, const std::string& filter,
     else if ( round == 3 )
         vals[1]->present = false;
 
+    if ( ! info_addr_write )
+        info_addr_write = &info;
+    else if ( info_addr_write != &info )
+        fprintf(stderr, "FAIL: subsequent info addr %p differs from %p\n", &info, info_addr_write);
+
     return true;
+}
+
+void Plugin::Done() {
+    if ( ! info_addr_init || ! info_addr_write || info_addr_init != info_addr_write ) {
+        fprintf(stderr, "FAIL: info_addr_init=%p info_addr_write=%p\n", info_addr_init, info_addr_write);
+        exit(1);
+    }
 }

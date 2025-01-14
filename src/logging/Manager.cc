@@ -1115,19 +1115,21 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
             path = filter->path = filter->path_val->AsString()->CheckString();
         }
 
+        WriterBackend::WriterInfo* info = nullptr;
         WriterFrontend* writer = nullptr;
 
         if ( w != stream->writers.end() ) {
             // We know this writer already.
-            writer = w->second->writer;
+            auto* wi = w->second;
+            writer = wi->writer;
+            info = wi->info;
 
-            if ( ! w->second->hook_initialized ) {
-                auto wi = w->second;
+            if ( ! wi->hook_initialized ) {
                 wi->hook_initialized = true;
                 PLUGIN_HOOK_VOID(HOOK_LOG_INIT, HookLogInit(filter->writer->GetType()->AsEnumType()->Lookup(
                                                                 filter->writer->InternalInt()),
                                                             wi->instantiating_filter, filter->local, filter->remote,
-                                                            *wi->info, filter->num_fields, filter->fields));
+                                                            *info, filter->num_fields, filter->fields));
             }
         }
 
@@ -1141,9 +1143,12 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
             // Find the newly inserted WriterInfo record.
             w = stream->writers.find(wpp);
             assert(w != stream->writers.end());
+
+            info = w->second->info;
         }
 
         assert(writer);
+        assert(info);
 
         // Alright, can do the write now.
         auto rec = RecordToLogRecord(stream, filter, columns.get());
@@ -1156,10 +1161,10 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
             for ( auto& v : rec )
                 vals.emplace_back(&v);
 
-            bool res = zeek::plugin_mgr->HookLogWrite(filter->writer->GetType()->AsEnumType()->Lookup(
-                                                          filter->writer->InternalInt()),
-                                                      filter->name, *writer->info, filter->num_fields, filter->fields,
-                                                      &vals[0]);
+            bool res =
+                zeek::plugin_mgr->HookLogWrite(filter->writer->GetType()->AsEnumType()->Lookup(
+                                                   filter->writer->InternalInt()),
+                                               filter->name, *info, filter->num_fields, filter->fields, &vals[0]);
             if ( ! res ) {
                 DBG_LOG(DBG_LOGGING, "Hook prevented writing to filter '%s' on stream '%s'", filter->name.c_str(),
                         stream->name.c_str());

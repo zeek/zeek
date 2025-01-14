@@ -23,9 +23,10 @@ function Storage::__open_backend%(btype: Storage::Backend, config: any, key_type
 	auto b = storage_mgr->OpenBackend(tag, config_val, kt, vt);
 
 	if ( ! b.has_value() ) {
-		zeek::emit_builtin_error(zeek::util::fmt("Failed to open backend: %s", b.error().c_str()));
+		zeek::emit_builtin_error(b.error().c_str());
 		return zeek::val_mgr->Bool(false);
 	}
+
 	return zeek::make_intrusive<zeek::storage::detail::BackendHandleVal>(b.value());
 	%}
 
@@ -36,10 +37,8 @@ function Storage::__close_backend%(backend: opaque of Storage::BackendHandle%) :
 		zeek::emit_builtin_error("Invalid storage handle", backend);
 		return zeek::val_mgr->Bool(false);
 	}
-	else if ( ! b->backend->IsOpen() ) {
-		zeek::emit_builtin_error("Storage handle is already closed", backend);
-		return zeek::val_mgr->Bool(false);
-	}
+	else if ( ! b->backend->IsOpen() )
+		return zeek::val_mgr->Bool(true);
 
 	storage_mgr->CloseBackend(b->backend);
 
@@ -54,10 +53,8 @@ function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, va
 		zeek::emit_builtin_error("Invalid storage handle", backend);
 		return zeek::val_mgr->Bool(false);
 	}
-	else if ( ! b->backend->IsOpen() ) {
-		zeek::emit_builtin_error("Storage handle is closed", backend);
+	else if ( ! b->backend->IsOpen() )
 		return zeek::val_mgr->Bool(false);
-	}
 
 	zeek::storage::ErrorResultCallback* cb = nullptr;
 
@@ -107,10 +104,8 @@ function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, as
 		zeek::emit_builtin_error("Invalid storage handle", backend);
 		return zeek::val_mgr->Bool(false);
 	}
-	else if ( ! b->backend->IsOpen() ) {
-		zeek::emit_builtin_error("Storage handle is closed", backend);
+	else if ( ! b->backend->IsOpen() )
 		return zeek::val_mgr->Bool(false);
-	}
 
 	zeek::storage::ValResultCallback* cb = nullptr;
 
@@ -159,10 +154,8 @@ function Storage::__erase%(backend: opaque of Storage::BackendHandle, key: any, 
 		zeek::emit_builtin_error("Invalid storage handle", backend);
 		return zeek::val_mgr->Bool(false);
 	}
-	else if ( ! b->backend->IsOpen() ) {
-		zeek::emit_builtin_error("Storage handle is closed", backend);
+	else if ( ! b->backend->IsOpen() )
 		return zeek::val_mgr->Bool(false);
-	}
 
 	zeek::storage::ErrorResultCallback* cb = nullptr;
 

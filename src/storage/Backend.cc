@@ -2,6 +2,7 @@
 
 #include "zeek/storage/Backend.h"
 
+#include "zeek/Desc.h"
 #include "zeek/RunState.h"
 #include "zeek/Trigger.h"
 #include "zeek/broker/Data.h"
@@ -72,12 +73,14 @@ ErrorResult Backend::Put(ValPtr key, ValPtr value, bool overwrite, double expira
     // to backends that need to pass data through the manager instead of directly
     // through the workers. For the first versions of the storage framework it
     // just calls the backend itself directly.
-    if ( ! same_type(key->GetType(), key_type) )
+    if ( ! same_type(key->GetType(), key_type) ) {
         return util::fmt("type of key passed (%s) does not match backend's key type (%s)",
-                         key->GetType()->GetName().c_str(), key_type->GetName().c_str());
-    if ( ! same_type(value->GetType(), val_type) )
+                         obj_desc_short(key->GetType().get()).c_str(), key_type->GetName().c_str());
+    }
+    if ( ! same_type(value->GetType(), val_type) ) {
         return util::fmt("type of value passed (%s) does not match backend's value type (%s)",
-                         value->GetType()->GetName().c_str(), val_type->GetName().c_str());
+                         obj_desc_short(value->GetType().get()).c_str(), val_type->GetName().c_str());
+    }
 
     auto res = DoPut(std::move(key), std::move(value), overwrite, expiration_time, cb);
 

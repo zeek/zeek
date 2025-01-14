@@ -1,3 +1,9 @@
+7.2.0-dev.82 | 2025-01-14 08:42:27 +0100
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+  * Prevent copies in various places (Benjamin Bannier, Corelight)
+
 7.2.0-dev.79 | 2025-01-13 08:30:54 -0700
 
   * Fix incomplete includes in Spicy SSL analyer C++ code (Benjamin Bannier, Corelight)

@@ -324,6 +324,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"is_alnum", ATTR_FOLDABLE},
     {"is_alpha", ATTR_FOLDABLE},
     {"is_ascii", ATTR_FOLDABLE},
+    {"is_event_handled", ATTR_IDEMPOTENT}, // can error
     {"is_file_analyzer", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"is_icmp_port", ATTR_FOLDABLE},
     {"is_local_interface", ATTR_IDEMPOTENT},

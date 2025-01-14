@@ -12,6 +12,10 @@ Breaking Changes
 New Functionality
 -----------------
 
+- Some DNS events are not raised when ``dns_skip_all_addl`` is set to true.
+  Zeek now raises a warning when a script declares these events while this
+  option is set to true.
+
 Changed Functionality
 ---------------------
 
@@ -21,7 +25,7 @@ Changed Functionality
   rather than standard error.
 
 Removed Functionality
-------------------------
+---------------------
 
 Deprecated Functionality
 ------------------------

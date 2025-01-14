@@ -1,3 +1,17 @@
+7.2.0-dev.88 | 2025-01-14 14:39:14 +0000
+
+  * Raise warnings when for DNS events that are not raised due to dns_skip_all_addl (Johanna Amann, Corelight)
+
+    By default, dns_skip_all_addl is set to false. This causes several
+    events to not be raised. This change emits warnings when a user defines
+    event handlers for events that will not be raised.
+
+    Furthermore, it adds notes about this behavior to the documentation. We
+    also introduce a new BIF, `is_event_handled`, which checks if an event
+    is handled.
+
+    Fixes GH-4061
+
 7.2.0-dev.84 | 2025-01-14 11:12:52 +0100
 
   * support for record extensions when using -O gen-standalone-C++ (Vern Paxson, Corelight)

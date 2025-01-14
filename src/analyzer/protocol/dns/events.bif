@@ -496,6 +496,11 @@ event dns_unknown_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
 ##
 ## ans: The parsed EDNS reply.
 ##
+## .. note::
+##
+##      Note that this event will only be raised if :zeek:see:`dns_skip_all_addl`
+##      is set to false.
+##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply dns_MX_reply
 ##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
 ##    dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_mapping_altered
@@ -518,6 +523,11 @@ event dns_EDNS_addl%(c: connection, msg: dns_msg, ans: dns_edns_additional%);
 ## msg: The parsed DNS message header.
 ##
 ## opt: The parsed EDNS option.
+##
+## .. note::
+##
+##      Note that this event will only be raised if :zeek:see:`dns_skip_all_addl`
+##      is set to false.
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply dns_MX_reply
 ##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
@@ -544,6 +554,11 @@ event dns_EDNS_ecs%(c: connection, msg: dns_msg, opt: dns_edns_ecs%);
 ##
 ## opt: The parsed EDNS Keepalive option.
 ##
+## .. note::
+##
+##      Note that this event will only be raised if :zeek:see:`dns_skip_all_addl`
+##      is set to false.
+##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply dns_MX_reply
 ##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
 ##    dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_mapping_altered
@@ -569,6 +584,11 @@ event dns_EDNS_tcp_keepalive%(c: connection, msg: dns_msg, opt: dns_edns_tcp_kee
 ##
 ## opt: The parsed EDNS Cookie option.
 ##
+## .. note::
+##
+##      Note that this event will only be raised if :zeek:see:`dns_skip_all_addl`
+##      is set to false.
+##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply dns_MX_reply
 ##    dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply dns_TSIG_addl
 ##    dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_end dns_mapping_altered
@@ -592,6 +612,11 @@ event dns_EDNS_cookie%(c: connection, msg: dns_msg, opt: dns_edns_cookie%);
 ##
 ## ans: The parsed TKEY reply.
 ##
+## .. note::
+##
+##      Note that ``ans`` will only be populated if :zeek:see:`dns_skip_all_addl`
+##      is set to false.
+##
 ## .. zeek:see:: dns_TSIG_addl
 event dns_TKEY%(c: connection, msg: dns_msg, ans: dns_tkey%);
 
@@ -608,6 +633,11 @@ event dns_TKEY%(c: connection, msg: dns_msg, ans: dns_tkey%);
 ## msg: The parsed DNS message header.
 ##
 ## ans: The parsed TSIG reply.
+##
+## .. note::
+##
+##      Note that this event will only be raised if :zeek:see:`dns_skip_all_addl`
+##      is set to false.
 ##
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply

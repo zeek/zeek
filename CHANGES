@@ -1,3 +1,23 @@
+7.2.0-dev.95 | 2025-01-14 21:39:01 +0100
+
+  * logging: Fix reporter message (Arne Welzel, Corelight)
+
+  * logging: Avoid repeated writer name lookups for plugin hooks (Arne Welzel, Corelight)
+
+    If a plugin provides a write hook, the invocation for HookLogWrite() would
+    redo looking up the writer's name from the enum value and instantiating
+    a new std::string instance for every write. Avoid doing this.
+
+  * logging: Fix HookLogInit() and HookLogWrite() info usage (Arne Welzel, Corelight)
+
+    There's two instances of WriterBackend::WriterInfo for a given
+    writer. One in Manager::WriterInfo that's accessible via
+    stream.writers and a copy within WriterFrontend.
+
+    Commit 78999d147d7a98a064d25854eea38468c1af7c5e switched to use the
+    address of the frontend's info instance for HookLogWrite() invocations,
+    breaking users using the address for identification purposes.
+
 7.2.0-dev.91 | 2025-01-14 18:20:04 +0100
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

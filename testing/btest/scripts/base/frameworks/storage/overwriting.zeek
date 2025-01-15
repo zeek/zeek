@@ -5,12 +5,13 @@
 # @TEST-EXEC: btest-diff .stderr
 
 @load base/frameworks/storage
+@load policy/frameworks/storage/backend/sqlite
 
 # Create a typename here that can be passed down into get().
 type str: string;
 
 event zeek_init() {
-	local opts : Storage::SqliteOptions;
+	local opts : Storage::Backend::SQLite::Options;
 	opts$database_path = "storage-test.sqlite";
 	opts$table_name = "testing";
 

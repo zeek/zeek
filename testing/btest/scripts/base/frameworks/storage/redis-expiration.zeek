@@ -13,6 +13,7 @@
 # @TEST-EXEC: btest-diff out
 
 @load base/frameworks/storage
+@load policy/frameworks/storage/backend/redis
 
 redef Storage::expire_interval = 2 secs;
 redef exit_only_after_terminate = T;
@@ -33,7 +34,7 @@ event check_removed() {
 }
 
 event setup_test() {
-	local opts : Storage::RedisOptions;
+	local opts : Storage::Backend::Redis::Options;
 	opts$server_addr = "127.0.0.1";
 	opts$server_port = to_port(getenv("REDIS_PORT"));
 	opts$key_prefix = "testing";

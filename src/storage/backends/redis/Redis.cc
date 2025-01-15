@@ -407,5 +407,3 @@ ValResult Redis::ParseGetReply(redisReply* reply) const {
 }
 
 } // namespace zeek::storage::backends::redis
-    freeReplyObject(reply);
-    return res;

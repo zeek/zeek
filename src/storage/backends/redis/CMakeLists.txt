@@ -1,6 +1,6 @@
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-find_package(Hiredis REQUIRED)
+find_package(Hiredis)
 
 if (HIREDIS_FOUND)
 

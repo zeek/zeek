@@ -4,6 +4,7 @@
 # @TEST-EXEC: btest-diff .stderr
 
 @load base/frameworks/storage
+@load policy/frameworks/storage/backend/sqlite
 
 type Color: enum {
 	Red = 10,
@@ -36,7 +37,7 @@ type tbl: table[count] of string;
 
 event zeek_init() {
 	# Create a database file in the .tmp directory with a 'testing' table
-	local opts : Storage::SqliteOptions;
+	local opts : Storage::Backend::SQLite::Options;
 	opts$database_path = "types_test.sqlite";
 	opts$table_name = "types_testing";
 

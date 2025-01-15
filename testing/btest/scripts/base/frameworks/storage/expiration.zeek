@@ -4,6 +4,7 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 
 @load base/frameworks/storage
+@load policy/frameworks/storage/backend/sqlite
 
 redef Storage::expire_interval = 2 secs;
 redef exit_only_after_terminate = T;
@@ -24,7 +25,7 @@ event check_removed() {
 }
 
 event setup_test() {
-	local opts : Storage::SqliteOptions;
+	local opts : Storage::Backend::SQLite::Options;
 	opts$database_path = "storage-test.sqlite";
 	opts$table_name = "testing";
 

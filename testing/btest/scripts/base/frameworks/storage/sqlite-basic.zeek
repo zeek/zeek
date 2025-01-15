@@ -4,6 +4,7 @@
 # @TEST-EXEC: btest-diff .stderr
 
 @load base/frameworks/storage
+@load policy/frameworks/storage/backend/sqlite
 
 redef exit_only_after_terminate = T;
 
@@ -12,7 +13,7 @@ type str: string;
 
 event zeek_init() {
 	# Create a database file in the .tmp directory with a 'testing' table
-	local opts : Storage::SqliteOptions;
+	local opts : Storage::Backend::SQLite::Options;
 	opts$database_path = "test.sqlite";
 	opts$table_name = "testing";
 

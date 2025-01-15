@@ -79,6 +79,10 @@ void CPPCompile::Compile(bool report_uncompilable) {
             }
         }
 
+        for ( auto& l : pfs->Lambdas() )
+            if ( obj_matches_opt_files(l) )
+                accessed_lambdas.insert(l);
+
         for ( auto& ea : pfs->ExprAttrs() )
             if ( obj_matches_opt_files(ea.first) ) {
                 auto& attr = ea.first;

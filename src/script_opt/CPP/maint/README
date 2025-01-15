@@ -21,15 +21,14 @@ The maintenance workflow:
 
 	rm CPP-gen.cc
 	ninja
-	src/zeek -b -O gen-standalone-C++ \
-		--optimize-files=base/protocols/conn \
-		--optimize-files=base/utils/files \
-		--optimize-files=base/utils/addr \
-		base/protocols/conn >my-test.zeek
+	src/zeek -O gen-standalone-C++ \
+		--optimize-files=policy \
+		policy/misc/loaded-scripts.zeek >my-test.zeek
+	rm -f loaded_scripts.log
 	ninja
-	src/zeek -b -r some.pcap my-test.zeek
-	# Confirm that it generates conn.log
-	rm CPP-gen.cc
+	src/zeek my-test.zeek
+	# Confirm that it generates loaded_scripts.log
+	rm CPP-gen.cc loaded_scripts.log
 	ninja
 
     Do this first because if it can't, you'll be making changes to the

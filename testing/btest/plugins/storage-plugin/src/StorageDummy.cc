@@ -16,7 +16,7 @@ zeek::storage::Backend* StorageDummy::Instantiate() { return new StorageDummy();
  * implementation must call \a Opened(); if not, it must call Error()
  * with a corresponding message.
  */
-zeek::storage::ErrorResult StorageDummy::DoOpen(zeek::RecordValPtr config) {
+zeek::storage::ErrorResult StorageDummy::DoOpen(zeek::RecordValPtr config, zeek::storage::OpenResultCallback* cb) {
     bool open_fail = config->GetField<zeek::BoolVal>("open_fail")->Get();
     if ( open_fail )
         return "open_fail was set to true, returning error";

@@ -34,19 +34,31 @@ public:
     void InitPostScript();
 
     /**
-     * Opens a new storage backend.
+     * Instantiates a new backend object. The backend will be in a closed state, and OpenBackend()
+     * will need to be called to fully initialize it.
      *
      * @param type The tag for the type of backend being opened.
+     * @return A std::expected containing either a valid BackendPtr with the
+     * result of the operation or a string containing an error message for
+     * failure.
+     */
+    BackendResult Instantiate(const Tag& type);
+
+    /**
+     * Opens a new storage backend.
+     *
+     * @param backend The backend object to open.
      * @param config A record val representing the configuration for this
      * type of backend.
      * @param key_type The script-side type of the keys stored in the backend. Used for
      * validation of types.
      * @param val_type The script-side type of the values stored in the backend. Used for
      * validation of types and conversion during retrieval.
-     * @return A pair containing a pointer to a backend and a string for
-     * returning error messages if needed.
+     * @return An optional value potentially containing an error string if
+     * needed. Will be unset if the operation succeeded.
      */
-    BackendResult OpenBackend(const Tag& type, RecordValPtr configuration, TypePtr key_type, TypePtr val_type);
+    ErrorResult OpenBackend(BackendPtr backend, RecordValPtr configuration, TypePtr key_type, TypePtr val_type,
+                            OpenResultCallback* cb = nullptr);
 
     /**
      * Closes a storage backend.
@@ -57,6 +69,9 @@ protected:
     friend class storage::detail::ExpireTimer;
     void Expire();
     void StartExpireTimer();
+
+    friend class storage::OpenResultCallback;
+    void AddBackendToMap(BackendPtr backend);
 
 private:
     std::vector<BackendPtr> backends;

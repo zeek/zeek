@@ -89,7 +89,7 @@ storage::Backend* Redis::Instantiate() { return new Redis(); }
  * implementation must call \a Opened(); if not, it must call Error()
  * with a corresponding message.
  */
-ErrorResult Redis::DoOpen(RecordValPtr config) {
+ErrorResult Redis::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
     // When reading traces we disable storage async mode globally (see src/storage/Backend.cc) since
     // time moves forward based on the pcap and not based on real time.
     async_mode = config->GetField<BoolVal>("async_mode")->Get() && ! zeek::run_state::reading_traces;

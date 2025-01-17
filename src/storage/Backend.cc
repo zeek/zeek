@@ -6,14 +6,27 @@
 #include "zeek/RunState.h"
 #include "zeek/Trigger.h"
 #include "zeek/broker/Data.h"
+#include "zeek/storage/Manager.h"
 
 namespace zeek::storage {
 
-ErrorResultCallback::ErrorResultCallback(zeek::detail::trigger::Trigger* trigger, const void* assoc) : assoc(assoc) {
+ResultCallback::ResultCallback(zeek::detail::trigger::Trigger* trigger, const void* assoc) : assoc(assoc) {
     Ref(trigger);
     this->trigger = trigger;
 }
-ErrorResultCallback::~ErrorResultCallback() { Unref(trigger); }
+ResultCallback::~ResultCallback() { Unref(trigger); }
+
+void ResultCallback::Timeout() {
+    auto v = new StringVal("Timeout during request");
+    trigger->Cache(assoc, v);
+    Unref(v);
+}
+
+void ResultCallback::ValComplete(Val* result) {
+    trigger->Cache(assoc, result);
+    Unref(result);
+    trigger->Release();
+}
 
 void ErrorResultCallback::Complete(const ErrorResult& res) {
     zeek::Val* result;
@@ -23,22 +36,8 @@ void ErrorResultCallback::Complete(const ErrorResult& res) {
     else
         result = val_mgr->Bool(true).get();
 
-    trigger->Cache(assoc, result);
-    Unref(result);
-    trigger->Release();
+    ValComplete(result);
 }
-
-void ErrorResultCallback::Timeout() {
-    auto v = new StringVal("Timeout during request");
-    trigger->Cache(assoc, v);
-    Unref(v);
-}
-
-ValResultCallback::ValResultCallback(zeek::detail::trigger::Trigger* trigger, const void* assoc) : assoc(assoc) {
-    Ref(trigger);
-    this->trigger = trigger;
-}
-ValResultCallback::~ValResultCallback() { Unref(trigger); }
 
 void ValResultCallback::Complete(const ValResult& res) {
     zeek::Val* result;
@@ -50,22 +49,35 @@ void ValResultCallback::Complete(const ValResult& res) {
     else
         result = new StringVal(res.error());
 
-    trigger->Cache(assoc, result);
-    Unref(result);
-    trigger->Release();
+    ValComplete(result);
 }
 
-void ValResultCallback::Timeout() {
-    auto v = new StringVal("Timeout during request");
-    trigger->Cache(assoc, v);
-    Unref(v);
+void OpenResultCallback::Complete(const ErrorResult& res) {
+    zeek::Val* result;
+
+    if ( res ) {
+        result = new StringVal(res.value());
+    }
+    else {
+        storage_mgr->AddBackendToMap(backend->backend);
+        result = backend;
+    }
+
+    ValComplete(result);
 }
 
-ErrorResult Backend::Open(RecordValPtr config, TypePtr kt, TypePtr vt) {
+ErrorResult Backend::Open(RecordValPtr config, TypePtr kt, TypePtr vt, OpenResultCallback* cb) {
     key_type = std::move(kt);
     val_type = std::move(vt);
 
-    return DoOpen(std::move(config));
+    auto res = DoOpen(std::move(config));
+
+    if ( (! native_async || zeek::run_state::reading_traces) && cb ) {
+        cb->Complete(res);
+        delete cb;
+    }
+
+    return res;
 }
 
 ErrorResult Backend::Put(ValPtr key, ValPtr value, bool overwrite, double expiration_time, ErrorResultCallback* cb) {

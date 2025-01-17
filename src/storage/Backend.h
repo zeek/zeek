@@ -24,31 +24,38 @@ using ErrorResult = std::optional<std::string>;
 // string value will store an error message if the result is null.
 using ValResult = zeek::expected<ValPtr, std::string>;
 
-// A callback result that returns an ErrorResult.
-class ErrorResultCallback {
+
+// Base callback object for async operations. This is just here to allow some
+// code reuse in the other callback methods.
+class ResultCallback {
 public:
-    ErrorResultCallback(zeek::detail::trigger::TriggerPtr trigger, const void* assoc);
-    ~ErrorResultCallback();
-    void Complete(const ErrorResult& res);
+    ResultCallback(IntrusivePtr<zeek::detail::trigger::Trigger> trigger, const void* assoc);
+    virtual ~ResultCallback();
     void Timeout();
 
+protected:
+    void ValComplete(Val* result);
+
 private:
-    zeek::detail::trigger::TriggerPtr trigger;
+    IntrusivePtr<zeek::detail::trigger::Trigger> trigger;
     const void* assoc;
+};
+
+// A callback result that returns an ErrorResult.
+class ErrorResultCallback : public ResultCallback {
+public:
+    ErrorResultCallback(zeek::detail::trigger::TriggerPtr trigger, const void* assoc);
+    virtual void Complete(const ErrorResult& res);
 };
 
 // A callback result that returns a ValResult.
-class ValResultCallback {
+class ValResultCallback : public ResultCallback {
 public:
     ValResultCallback(zeek::detail::trigger::TriggerPtr trigger, const void* assoc);
-    ~ValResultCallback();
     void Complete(const ValResult& res);
-    void Timeout();
-
-private:
-    zeek::detail::trigger::TriggerPtr trigger;
-    const void* assoc;
 };
+
+class OpenResultCallback;
 
 class Backend : public zeek::Obj {
 public:
@@ -89,7 +96,6 @@ public:
      * @param cb An optional callback object if being called via an async context.
      * @return An optional value potentially containing an error string if
      * needed. Will be unset if the operation succeeded.
-     * possible error string if the operation failed.
      */
     ErrorResult Erase(ValPtr key, ErrorResultCallback* cb = nullptr);
 
@@ -128,21 +134,30 @@ protected:
      * validation of types.
      * @param vt The script-side type of the values stored in the backend. Used for
      * validation of types and conversion during retrieval.
+     * @param cb An optional callback object if being called via an async context.
      * @return An optional value potentially containing an error string if
      * needed. Will be unset if the operation succeeded.
      */
-    ErrorResult Open(RecordValPtr options, TypePtr kt, TypePtr vt);
+    ErrorResult Open(RecordValPtr options, TypePtr kt, TypePtr vt, OpenResultCallback* cb = nullptr);
 
     /**
-     * Finalizes the backend when it's being closed. Can be overridden by
-     * derived classes.
+     * Finalizes the backend when it's being closed.
+     *
+     * @param cb An optional callback object if being called via an async context.
+     * @return An optional value potentially containing an error string if
+     * needed. Will be unset if the operation succeeded.
      */
-    virtual void Close() {}
+    ErrorResult Close(ErrorResultCallback* cb = nullptr);
 
     /**
      * The workhorse method for Open().
      */
-    virtual ErrorResult DoOpen(RecordValPtr options) = 0;
+    virtual ErrorResult DoOpen(RecordValPtr options, OpenResultCallback* cb = nullptr) = 0;
+
+    /**
+     * The workhorse method for Close().
+     */
+    virtual ErrorResult DoClose(ErrorResultCallback* cb = nullptr) = 0;
 
     /**
      * The workhorse method for Put().
@@ -196,4 +211,16 @@ protected:
 };
 
 } // namespace detail
+
+// A callback for the Backend::Open() method that returns an error or a backend handle.
+class OpenResultCallback : public ResultCallback {
+public:
+    OpenResultCallback(IntrusivePtr<zeek::detail::trigger::Trigger> trigger, const void* assoc,
+                       detail::BackendHandleVal* backend);
+    void Complete(const ErrorResult& res);
+
+private:
+    detail::BackendHandleVal* backend;
+};
+
 } // namespace zeek::storage

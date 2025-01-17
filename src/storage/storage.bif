@@ -40,26 +40,46 @@ event Storage::backend_opened%(%);
 # Generated when a backend connection is lost
 event Storage::backend_lost%(%);
 
-function Storage::__open_backend%(btype: Storage::Backend, options: any, key_type: any, val_type: any%): opaque of Storage::BackendHandle
+function Storage::__open_backend%(btype: Storage::Backend, options: any, key_type: any, val_type: any, async_mode: bool%): opaque of Storage::BackendHandle
 	%{
 	auto btype_val = IntrusivePtr<EnumVal>{NewRef{}, btype->AsEnumVal()};
 	Tag tag{btype_val};
 
-	auto kt = key_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
-	auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
-
-	auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
-	auto b = storage_mgr->OpenBackend(tag, options_val, kt, vt);
+	auto b = storage_mgr->Instantiate(tag);
 
 	if ( ! b.has_value() ) {
 		emit_builtin_error(b.error().c_str());
 		return val_mgr->Bool(false);
 	}
 
-	return make_intrusive<storage::detail::BackendHandleVal>(b.value());
+	auto bo = make_intrusive<storage::detail::BackendHandleVal>(b.value());
+	OpenResultCallback* cb = nullptr;
+
+	if ( async_mode ) {
+		auto trigger = init_trigger(frame, b.value());
+		if ( ! trigger )
+			return val_mgr->Bool(false);
+
+		cb = new OpenResultCallback(trigger, frame->GetTriggerAssoc(), bo.release());
+	}
+
+	auto kt = key_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
+	auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
+	auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
+	auto open_res = storage_mgr->OpenBackend(b.value(), options_val, kt, vt, cb);
+
+	if ( async_mode )
+		return nullptr;
+
+	if ( open_res.has_value() ) {
+		emit_builtin_error(open_res.value().c_str());
+		return val_mgr->Bool(false);
+	}
+
+	return bo;
 	%}
 
-function Storage::__close_backend%(backend: opaque of Storage::BackendHandle%) : bool
+function Storage::__close_backend%(backend: opaque of Storage::BackendHandle, async_mode: bool%) : bool
 	%{
 	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
@@ -70,7 +90,25 @@ function Storage::__close_backend%(backend: opaque of Storage::BackendHandle%) :
 		// Return true here since the backend is already closed
 		return val_mgr->Bool(true);
 
-	storage_mgr->CloseBackend(b->backend);
+	ErrorResultCallback* cb = nullptr;
+
+	if ( async_mode ) {
+		auto trigger = init_trigger(frame, b->backend);
+		if ( ! trigger )
+			return val_mgr->Bool(false);
+
+		cb = new ErrorResultCallback(trigger, frame->GetTriggerAssoc());
+	}
+
+	auto result = storage_mgr->CloseBackend(b->backend, cb);
+
+	if ( async_mode )
+		return nullptr;
+
+	if ( result.has_value() ) {
+		emit_builtin_error(result.value().c_str());
+		return val_mgr->Bool(false);
+	}
 
 	return val_mgr->Bool(true);
 	%}

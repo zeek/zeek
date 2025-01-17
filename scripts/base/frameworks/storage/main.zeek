@@ -42,17 +42,29 @@ export {
 	##           validation of values passed to :zeek:see:`Storage::put` as well as
 	##           for type conversions for return values from :zeek:see:`Storage::get`.
 	##
+	## async_mode: Indicates whether this operation should happen asynchronously. If
+	##             this is T, the call must happen as part of a :zeek:see:`when`
+	##             statement. This flag is overridden and set to F when reading pcaps,
+	##             since time won't move forward the same as when caputring live
+	##             traffic.
+	##
 	## Returns: A handle to the new backend connection, or ``F`` if the connection
 	##          failed.
 	global open_backend: function(btype: Storage::Backend, options: any, key_type: any,
-	                              val_type: any): opaque of Storage::BackendHandle;
+	                              val_type: any, async_mode: bool &default=F): opaque of Storage::BackendHandle;
 
 	## Closes an existing backend connection.
 	##
 	## backend: A handle to a backend connection.
 	##
+	## async_mode: Indicates whether this operation should happen asynchronously. If
+	##             this is T, the call must happen as part of a :zeek:see:`when`
+	##             statement. This flag is overridden and set to F when reading pcaps,
+	##             since time won't move forward the same as when caputring live
+	##             traffic.
+	##
 	## Returns: A boolean indicating success or failure of the operation.
-	global close_backend: function(backend: opaque of Storage::BackendHandle): bool;
+	global close_backend: function(backend: opaque of Storage::BackendHandle, async_mode: bool &default=F): bool;
 
 	## Inserts a new entry into a backend.
 	##
@@ -107,14 +119,14 @@ export {
 			       async_mode: bool &default=T): bool;
 }
 
-function open_backend(btype: Storage::Backend, options: any, key_type: any, val_type: any): opaque of Storage::BackendHandle
+function open_backend(btype: Storage::Backend, options: any, key_type: any, val_type: any, async_mode: bool &default=F): opaque of Storage::BackendHandle
 {
-	return Storage::__open_backend(btype, options, key_type, val_type);
+	return Storage::__open_backend(btype, options, key_type, val_type, async_mode);
 }
 
-function close_backend(backend: opaque of Storage::BackendHandle): bool
+function close_backend(backend: opaque of Storage::BackendHandle, async_mode: bool &default=F): bool
 {
-	return Storage::__close_backend(backend);
+	return Storage::__close_backend(backend, async_mode);
 }
 
 function put(backend: opaque of Storage::BackendHandle, args: Storage::PutArgs): bool

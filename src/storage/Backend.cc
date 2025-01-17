@@ -6,12 +6,28 @@
 #include "zeek/RunState.h"
 #include "zeek/Trigger.h"
 #include "zeek/broker/Data.h"
+#include "zeek/storage/Manager.h"
 
 namespace zeek::storage {
 
-ErrorResultCallback::ErrorResultCallback(zeek::detail::trigger::TriggerPtr trigger, const void* assoc)
+ResultCallback::ResultCallback(zeek::detail::trigger::TriggerPtr trigger, const void* assoc)
     : trigger(std::move(trigger)), assoc(assoc) {}
-ErrorResultCallback::~ErrorResultCallback() {}
+
+ResultCallback::~ResultCallback() {}
+
+void ResultCallback::Timeout() {
+    auto v = make_intrusive<StringVal>("Timeout during request");
+    trigger->Cache(assoc, v.get());
+}
+
+void ResultCallback::ValComplete(Val* result) {
+    trigger->Cache(assoc, result);
+    Unref(result);
+    trigger->Release();
+}
+
+ErrorResultCallback::ErrorResultCallback(IntrusivePtr<zeek::detail::trigger::Trigger> trigger, const void* assoc)
+    : ResultCallback(std::move(trigger), assoc) {}
 
 void ErrorResultCallback::Complete(const ErrorResult& res) {
     zeek::Val* result;
@@ -21,19 +37,11 @@ void ErrorResultCallback::Complete(const ErrorResult& res) {
     else
         result = val_mgr->Bool(true).get();
 
-    trigger->Cache(assoc, result);
-    Unref(result);
-    trigger->Release();
-}
-
-void ErrorResultCallback::Timeout() {
-    auto v = make_intrusive<StringVal>("Timeout during request");
-    trigger->Cache(assoc, v.get());
+    ValComplete(result);
 }
 
 ValResultCallback::ValResultCallback(zeek::detail::trigger::TriggerPtr trigger, const void* assoc)
-    : trigger(std::move(trigger)), assoc(assoc) {}
-ValResultCallback::~ValResultCallback() {}
+    : ResultCallback(std::move(trigger), assoc) {}
 
 void ValResultCallback::Complete(const ValResult& res) {
     zeek::Val* result;
@@ -45,21 +53,50 @@ void ValResultCallback::Complete(const ValResult& res) {
     else
         result = new StringVal(res.error());
 
-    trigger->Cache(assoc, result);
-    Unref(result);
-    trigger->Release();
+    ValComplete(result);
 }
 
-void ValResultCallback::Timeout() {
-    auto v = make_intrusive<StringVal>("Timeout during request");
-    trigger->Cache(assoc, v.get());
+OpenResultCallback::OpenResultCallback(IntrusivePtr<zeek::detail::trigger::Trigger> trigger, const void* assoc,
+                                       detail::BackendHandleVal* backend)
+    : ResultCallback(std::move(trigger), assoc), backend(backend) {}
+
+void OpenResultCallback::Complete(const ErrorResult& res) {
+    zeek::Val* result;
+
+    if ( res ) {
+        result = new StringVal(res.value());
+    }
+    else {
+        storage_mgr->AddBackendToMap(backend->backend);
+        result = backend;
+    }
+
+    ValComplete(result);
 }
 
-ErrorResult Backend::Open(RecordValPtr options, TypePtr kt, TypePtr vt) {
+ErrorResult Backend::Open(RecordValPtr options, TypePtr kt, TypePtr vt, OpenResultCallback* cb) {
     key_type = std::move(kt);
     val_type = std::move(vt);
 
-    return DoOpen(std::move(options));
+    auto res = DoOpen(std::move(options));
+
+    if ( (! native_async || zeek::run_state::reading_traces) && cb ) {
+        cb->Complete(res);
+        delete cb;
+    }
+
+    return res;
+}
+
+ErrorResult Backend::Close(ErrorResultCallback* cb) {
+    auto res = DoClose(cb);
+
+    if ( (! native_async || zeek::run_state::reading_traces) && cb ) {
+        cb->Complete(res);
+        delete cb;
+    }
+
+    return res;
 }
 
 ErrorResult Backend::Put(ValPtr key, ValPtr value, bool overwrite, double expiration_time, ErrorResultCallback* cb) {

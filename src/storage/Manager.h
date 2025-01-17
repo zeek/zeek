@@ -34,9 +34,20 @@ public:
     void InitPostScript();
 
     /**
-     * Opens a new storage backend.
+     * Instantiates a new backend object. The backend will be in a closed state, and OpenBackend()
+     * will need to be called to fully initialize it.
      *
      * @param type The tag for the type of backend being opened.
+     * @return A std::expected containing either a valid BackendPtr with the
+     * result of the operation or a string containing an error message for
+     * failure.
+     */
+    zeek::expected<BackendPtr, std::string> Instantiate(const Tag& type);
+
+    /**
+     * Opens a new storage backend.
+     *
+     * @param backend The backend object to open.
      * @param options A record val representing the configuration for this type of
      * backend.
      * @param key_type The script-side type of the keys stored in the backend. Used for
@@ -46,18 +57,21 @@ public:
      * @return An optional value potentially containing an error string if needed. Will be
      * unset if the operation succeeded.
      */
-    zeek::expected<BackendPtr, std::string> OpenBackend(const Tag& type, RecordValPtr options, TypePtr key_type,
-                                                        TypePtr val_type);
+    ErrorResult OpenBackend(BackendPtr backend, RecordValPtr options, TypePtr key_type, TypePtr val_type,
+                            OpenResultCallback* cb = nullptr);
 
     /**
      * Closes a storage backend.
      */
-    void CloseBackend(BackendPtr backend);
+    ErrorResult CloseBackend(BackendPtr backend, ErrorResultCallback* cb = nullptr);
 
 protected:
     friend class storage::detail::ExpirationTimer;
     void Expire();
     void StartExpirationTimer();
+
+    friend class storage::OpenResultCallback;
+    void AddBackendToMap(BackendPtr backend);
 
 private:
     std::vector<BackendPtr> backends;

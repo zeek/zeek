@@ -18,7 +18,7 @@ zeek::storage::BackendPtr StorageDummy::Instantiate(std::string_view tag) {
  * implementation must call \a Opened(); if not, it must call Error()
  * with a corresponding message.
  */
-zeek::storage::ErrorResult StorageDummy::DoOpen(zeek::RecordValPtr options) {
+zeek::storage::ErrorResult StorageDummy::DoOpen(zeek::RecordValPtr options, zeek::storage::OpenResultCallback* cb) {
     bool open_fail = options->GetField<zeek::BoolVal>("open_fail")->Get();
     if ( open_fail )
         return "open_fail was set to true, returning error";
@@ -31,7 +31,10 @@ zeek::storage::ErrorResult StorageDummy::DoOpen(zeek::RecordValPtr options) {
 /**
  * Finalizes the backend when it's being closed.
  */
-void StorageDummy::Close() { open = false; }
+zeek::storage::ErrorResult StorageDummy::DoClose(zeek::storage::ErrorResultCallback* cb) {
+    open = false;
+    return std::nullopt;
+}
 
 /**
  * The workhorse method for Put(). This must be implemented by plugins.

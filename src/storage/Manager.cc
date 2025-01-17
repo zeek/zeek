@@ -23,8 +23,7 @@ void Manager::InitPostScript() {
     StartExpirationTimer();
 }
 
-zeek::expected<BackendPtr, std::string> Manager::OpenBackend(const Tag& type, RecordValPtr options, TypePtr key_type,
-                                                             TypePtr val_type) {
+zeek::expected<BackendPtr, std::string> Manager::Instantiate(const Tag& type) {
     Component* c = Lookup(type);
     if ( ! c ) {
         return zeek::unexpected<std::string>(
@@ -46,32 +45,37 @@ zeek::expected<BackendPtr, std::string> Manager::OpenBackend(const Tag& type, Re
             util::fmt("Failed to instantiate backend %s", GetComponentName(type).c_str()));
     }
 
-    if ( auto res = bp->Open(std::move(options), std::move(key_type), std::move(val_type)); res.has_value() ) {
-        return zeek::unexpected<std::string>(
-            util::fmt("Failed to open backend %s: %s", GetComponentName(type).c_str(), res.value().c_str()));
-    }
-
-    // TODO: post Storage::backend_opened event
-
-    {
-        std::unique_lock<std::mutex> lk(backends_mtx);
-        backends.push_back(bp);
-    }
-
     return bp;
 }
 
-void Manager::CloseBackend(BackendPtr backend) {
+ErrorResult Manager::OpenBackend(BackendPtr backend, RecordValPtr options, TypePtr key_type, TypePtr val_type,
+                                 OpenResultCallback* cb) {
+    if ( auto res = backend->Open(std::move(options), std::move(key_type), std::move(val_type), cb); res.has_value() ) {
+        return util::fmt("Failed to open backend %s: %s", backend->Tag(), res.value().c_str());
+    }
+
+    if ( ! cb )
+        AddBackendToMap(std::move(backend));
+
+    // TODO: post Storage::backend_opened event
+
+    return std::nullopt;
+}
+
+ErrorResult Manager::CloseBackend(BackendPtr backend, ErrorResultCallback* cb) {
+    // Remove from the list always, even if the close may fail below and even in an async context.
     {
         std::unique_lock<std::mutex> lk(backends_mtx);
         auto it = std::find(backends.begin(), backends.end(), backend);
-        if ( it == backends.end() )
-            return;
-
-        backends.erase(it);
+        if ( it != backends.end() )
+            backends.erase(it);
     }
 
-    backend->Close();
+    if ( auto res = backend->Close(cb); res.has_value() ) {
+        return util::fmt("Failed to close backend %s: %s", backend->Tag(), res.value().c_str());
+    }
+
+    return std::nullopt;
 
     // TODO: post Storage::backend_lost event
 }
@@ -86,6 +90,11 @@ void Manager::Expire() {
 void Manager::StartExpirationTimer() {
     zeek::detail::timer_mgr->Add(
         new detail::ExpirationTimer(run_state::network_time + zeek::BifConst::Storage::expire_interval));
+}
+
+void Manager::AddBackendToMap(BackendPtr backend) {
+    std::unique_lock<std::mutex> lk(backends_mtx);
+    backends.push_back(std::move(backend));
 }
 
 } // namespace zeek::storage

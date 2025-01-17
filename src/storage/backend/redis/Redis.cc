@@ -88,7 +88,7 @@ storage::BackendPtr Redis::Instantiate(std::string_view tag) { return make_intru
  * implementation must call \a Opened(); if not, it must call Error()
  * with a corresponding message.
  */
-ErrorResult Redis::DoOpen(RecordValPtr options) {
+ErrorResult Redis::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
     // When reading traces we disable storage async mode globally (see src/storage/Backend.cc) since
     // time moves forward based on the pcap and not based on real time.
     async_mode = options->GetField<BoolVal>("async_mode")->Get() && ! zeek::run_state::reading_traces;
@@ -137,6 +137,9 @@ ErrorResult Redis::DoOpen(RecordValPtr options) {
             return errmsg;
         }
 
+        // TODO: Sort out how to pass the zeek callbacks for both open/done to the async
+        // callbacks from hiredis so they can return errors.
+
         // The context is passed to the handler methods. Setting this data object
         // pointer allows us to look up the backend in the handlers.
         async_ctx->data = this;
@@ -175,7 +178,7 @@ ErrorResult Redis::DoOpen(RecordValPtr options) {
 /**
  * Finalizes the backend when it's being closed.
  */
-void Redis::Close() {
+ErrorResult Redis::DoClose(ErrorResultCallback* cb) {
     connected = false;
 
     if ( async_mode ) {
@@ -191,6 +194,8 @@ void Redis::Close() {
         redisFree(ctx);
         ctx = nullptr;
     }
+
+    return std::nullopt;
 }
 
 /**

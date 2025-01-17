@@ -21,12 +21,13 @@ public:
     /**
      * Called by the manager system to open the backend.
      */
-    zeek::storage::ErrorResult DoOpen(zeek::RecordValPtr options) override;
+    zeek::storage::ErrorResult DoOpen(zeek::RecordValPtr options,
+                                      zeek::storage::OpenResultCallback* cb = nullptr) override;
 
     /**
      * Finalizes the backend when it's being closed.
      */
-    void Close() override;
+    zeek::storage::ErrorResult DoClose(zeek::storage::ErrorResultCallback* cb = nullptr) override;
 
     /**
      * Returns whether the backend is opened.

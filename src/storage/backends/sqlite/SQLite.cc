@@ -13,7 +13,7 @@ storage::BackendPtr SQLite::Instantiate(std::string_view tag) { return make_intr
 /**
  * Called by the manager system to open the backend.
  */
-ErrorResult SQLite::DoOpen(RecordValPtr options) {
+ErrorResult SQLite::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
     if ( sqlite3_threadsafe() == 0 ) {
         std::string res =
             "SQLite reports that it is not threadsafe. Zeek needs a threadsafe version of "
@@ -104,7 +104,9 @@ ErrorResult SQLite::DoOpen(RecordValPtr options) {
 /**
  * Finalizes the backend when it's being closed.
  */
-void SQLite::Close() {
+ErrorResult SQLite::DoClose(ErrorResultCallback* cb) {
+    ErrorResult err_res;
+
     if ( db ) {
         for ( const auto& [k, stmt] : prepared_stmts ) {
             sqlite3_finalize(stmt);
@@ -114,15 +116,19 @@ void SQLite::Close() {
 
         char* errmsg;
         if ( int res = sqlite3_exec(db, "pragma optimize", NULL, NULL, &errmsg); res != SQLITE_OK ) {
-            Error(util::fmt("Sqlite failed to optimize at shutdown: %s", errmsg));
+            err_res = util::fmt("Sqlite failed to optimize at shutdown: %s", errmsg);
             sqlite3_free(&errmsg);
         }
 
-        if ( int res = sqlite3_close_v2(db); res != SQLITE_OK )
-            Error("Sqlite could not close connection");
+        if ( int res = sqlite3_close_v2(db); res != SQLITE_OK ) {
+            if ( ! err_res.has_value() )
+                err_res = "Sqlite could not close connection";
+        }
 
         db = nullptr;
     }
+
+    return err_res;
 }
 
 /**

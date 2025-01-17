@@ -9,6 +9,8 @@
 #include <cstdlib>
 
 #include "zeek/Conn.h"
+#include "zeek/Func.h"
+#include "zeek/IP.h"
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/RuleMatcher.h"
@@ -18,6 +20,7 @@
 #include "zeek/packet_analysis/Manager.h"
 #include "zeek/session/Session.h"
 #include "zeek/telemetry/Manager.h"
+#include "zeek/util.h"
 
 zeek::session::Manager* zeek::session_mgr = nullptr;
 
@@ -89,8 +92,15 @@ void Manager::Done() {}
 Connection* Manager::FindConnection(Val* v) {
     zeek::detail::ConnKey conn_key(v);
 
-    if ( ! conn_key.valid )
+    if ( ! conn_key.Valid() ) {
+        // Produce a loud error for invalid script-layer conn_id records.
+        const char* extra = "";
+        if ( conn_key.transport == UNKNOWN_IP_PROTO )
+            extra = ": the proto field has the \"unknown\" 65535 value. Did you forget to set it?";
+
+        zeek::emit_builtin_error(zeek::util::fmt("invalid connection ID record encountered%s", extra));
         return nullptr;
+    }
 
     return FindConnection(conn_key);
 }

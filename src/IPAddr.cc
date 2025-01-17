@@ -83,16 +83,21 @@ ConnKey::ConnKey(Val* v) {
         // types, too.
     }
 
+    if ( ! vl->HasField(orig_h) || ! vl->HasField(resp_h) || ! vl->HasField(orig_p) || ! vl->HasField(resp_p) ) {
+        transport = INVALID_CONN_KEY_IP_PROTO;
+        return;
+    }
+
     const IPAddr& orig_addr = vl->GetFieldAs<AddrVal>(orig_h);
     const IPAddr& resp_addr = vl->GetFieldAs<AddrVal>(resp_h);
 
-    auto orig_portv = vl->GetFieldAs<PortVal>(orig_p);
-    auto resp_portv = vl->GetFieldAs<PortVal>(resp_p);
+    const auto& orig_portv = vl->GetFieldAs<PortVal>(orig_p);
+    const auto& resp_portv = vl->GetFieldAs<PortVal>(resp_p);
 
-    auto protov = vl->GetFieldAs<CountVal>(proto);
+    const auto& protov = vl->GetField<CountVal>(proto);
 
     Init(orig_addr, resp_addr, htons((unsigned short)orig_portv->Port()), htons((unsigned short)resp_portv->Port()),
-         protov, false);
+         protov->AsCount(), false);
 }
 
 void ConnKey::Init(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, uint16_t proto,

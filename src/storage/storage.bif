@@ -77,7 +77,7 @@ function Storage::__open_backend%(btype: Storage::Backend, config: any, key_type
 	return bo;
 	%}
 
-function Storage::__close_backend%(backend: opaque of Storage::BackendHandle%) : bool
+function Storage::__close_backend%(backend: opaque of Storage::BackendHandle, async_mode: bool%) : bool
 	%{
 	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
@@ -87,7 +87,25 @@ function Storage::__close_backend%(backend: opaque of Storage::BackendHandle%) :
 	else if ( ! b->backend->IsOpen() )
 		return zeek::val_mgr->Bool(true);
 
-	storage_mgr->CloseBackend(b->backend);
+	zeek::storage::ErrorResultCallback* cb = nullptr;
+
+	if ( async_mode ) {
+		auto trigger = init_trigger(frame, b->backend);
+		if ( ! trigger )
+			return zeek::val_mgr->Bool(false);
+
+		cb = new zeek::storage::ErrorResultCallback(trigger, frame->GetTriggerAssoc());
+	}
+
+	auto result = storage_mgr->CloseBackend(b->backend, cb);
+
+	if ( async_mode )
+		return nullptr;
+
+	if ( result.has_value() ) {
+		zeek::emit_builtin_error(result.value().c_str());
+		return zeek::val_mgr->Bool(false);
+	}
 
 	return zeek::val_mgr->Bool(true);
 	%}

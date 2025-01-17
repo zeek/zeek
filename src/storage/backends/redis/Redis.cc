@@ -137,6 +137,9 @@ ErrorResult Redis::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
             return errmsg;
         }
 
+        // TODO: Sort out how to pass the zeek callbacks for both open/done to the async
+        // callbacks from hiredis so they can return errors.
+
         // The context is passed to the handler methods. Setting this data object
         // pointer allows us to look up the backend in the handlers.
         async_ctx->data = this;
@@ -175,7 +178,7 @@ ErrorResult Redis::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
 /**
  * Finalizes the backend when it's being closed.
  */
-void Redis::Done() {
+ErrorResult Redis::DoDone(ErrorResultCallback* cb) {
     connected = false;
 
     if ( async_mode ) {
@@ -191,6 +194,8 @@ void Redis::Done() {
         redisFree(ctx);
         ctx = nullptr;
     }
+
+    return std::nullopt;
 }
 
 /**

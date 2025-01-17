@@ -3,3 +3,4 @@ open successful
 put result, T
 get result, value5678
 get result same as inserted, T
+closed succesfully

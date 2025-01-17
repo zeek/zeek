@@ -17,7 +17,7 @@ storage::Backend* SQLite::Instantiate() { return new SQLite(); }
  * implementation must call \a Opened(); if not, it must call Error()
  * with a corresponding message.
  */
-ErrorResult SQLite::DoOpen(RecordValPtr config) {
+ErrorResult SQLite::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
     if ( sqlite3_threadsafe() == 0 ) {
         std::string res =
             "SQLite reports that it is not threadsafe. Zeek needs a threadsafe version of "

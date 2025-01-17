@@ -45,10 +45,14 @@ export {
 	##
 	## val_type: The Val type of the key being stored.
 	##
+	## async_mode: Indicates whether this operation should happen
+	##             asynchronously. If this is T, the call must happen as
+	##             part of a :zeek:see:`when` statement.
+	##
 	## Returns: A handle to the new backend connection, or null if the
 	##          connection failed.
 	global open_backend: function(btype: Storage::Backend, config: any, key_type: any,
-	                              val_type: any): opaque of Storage::BackendHandle;
+	                              val_type: any, async_mode: bool &default=F): opaque of Storage::BackendHandle;
 
 	## Closes an existing backend connection.
 	##
@@ -100,9 +104,9 @@ export {
 			       async_mode: bool &default=T): bool;
 }
 
-function open_backend(btype: Storage::Backend, config: any, key_type: any, val_type: any): opaque of Storage::BackendHandle
+function open_backend(btype: Storage::Backend, config: any, key_type: any, val_type: any, async_mode: bool &default=F): opaque of Storage::BackendHandle
 {
-	return Storage::__open_backend(btype, config, key_type, val_type);
+	return Storage::__open_backend(btype, config, key_type, val_type, async_mode);
 }
 
 function close_backend(backend: opaque of Storage::BackendHandle): bool

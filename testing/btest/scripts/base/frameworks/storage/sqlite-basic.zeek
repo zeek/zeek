@@ -22,26 +22,31 @@ event zeek_init() {
 
 	# Test inserting/retrieving a key/value pair that we know won't be in
 	# the backend yet.
-	local b = Storage::open_backend(Storage::SQLITE, opts, str, str);
+	when [opts, key, value] ( local b = Storage::open_backend(Storage::SQLITE, opts, str, str, T) ) {
+		print "open successful";
 
-	when [b, key, value] ( local res = Storage::put([$backend=b, $key=key, $value=value]) ) {
-		print "put result", res;
+		when [b, key, value] ( local put_res = Storage::put([$backend=b, $key=key, $value=value]) ) {
+			print "put result", put_res;
 
-		when [b, key, value] ( local res2 = Storage::get(b, key) ) {
-			print "get result", res2;
-			print "get result same as inserted", value == (res2 as string);
+			when [b, key, value] ( local get_res = Storage::get(b, key) ) {
+				print "get result", get_res;
+				print "get result same as inserted", value == (get_res as string);
 
-			Storage::close_backend(b);
-
-			terminate();
+				Storage::close_backend(b);
+				terminate();
+			}
+			timeout 5 sec {
+				print "get requeest timed out";
+				terminate();
+			}
 		}
 		timeout 5 sec {
-			print "get requeest timed out";
+			print "put request timed out";
 			terminate();
 		}
 	}
 	timeout 5 sec {
-		print "put request timed out";
+		print "open request timed out";
 		terminate();
 	}
 }

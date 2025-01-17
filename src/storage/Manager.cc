@@ -21,7 +21,7 @@ void Manager::InitPostScript() {
     StartExpirationTimer();
 }
 
-BackendResult Manager::OpenBackend(const Tag& type, RecordValPtr config, TypePtr key_type, TypePtr val_type) {
+BackendResult Manager::Instantiate(const Tag& type) {
     Component* c = Lookup(type);
     if ( ! c ) {
         return nonstd::unexpected<std::string>(
@@ -40,22 +40,22 @@ BackendResult Manager::OpenBackend(const Tag& type, RecordValPtr config, TypePtr
             util::fmt("Failed to instantiate backend %s", GetComponentName(type).c_str()));
     }
 
-    if ( auto res = b->Open(std::move(config), std::move(key_type), std::move(val_type)); res.has_value() ) {
-        delete b;
-        return nonstd::unexpected<std::string>(
-            util::fmt("Failed to open backend %s: %s", GetComponentName(type).c_str(), res.value().c_str()));
+    BackendPtr bp = IntrusivePtr<Backend>{AdoptRef{}, b};
+    return bp;
+}
+
+ErrorResult Manager::OpenBackend(BackendPtr backend, RecordValPtr config, TypePtr key_type, TypePtr val_type,
+                                 OpenResultCallback* cb) {
+    if ( auto res = backend->Open(std::move(config), std::move(key_type), std::move(val_type), cb); res.has_value() ) {
+        return util::fmt("Failed to open backend %s: %s", backend->Tag(), res.value().c_str());
     }
+
+    if ( ! cb )
+        AddBackendToMap(std::move(backend));
 
     // TODO: post storage_connection_established event
 
-    BackendPtr bp = IntrusivePtr<Backend>{AdoptRef{}, b};
-
-    {
-        std::unique_lock<std::mutex> lk(backends_mtx);
-        backends.push_back(bp);
-    }
-
-    return bp;
+    return std::nullopt;
 }
 
 void Manager::CloseBackend(BackendPtr backend) {
@@ -83,6 +83,11 @@ void Manager::Expire() {
 void Manager::StartExpirationTimer() {
     zeek::detail::timer_mgr->Add(
         new detail::ExpirationTimer(run_state::network_time + zeek::BifConst::Storage::expire_interval));
+}
+
+void Manager::AddBackendToMap(BackendPtr backend) {
+    std::unique_lock<std::mutex> lk(backends_mtx);
+    backends.push_back(std::move(backend));
 }
 
 } // namespace zeek::storage

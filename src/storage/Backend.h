@@ -24,29 +24,33 @@ using ErrorResult = std::optional<std::string>;
 // string value will store an error message if the result is null.
 using ValResult = nonstd::expected<ValPtr, std::string>;
 
-class ErrorResultCallback {
+class ResultCallback {
 public:
-    ErrorResultCallback(zeek::detail::trigger::Trigger* trigger, const void* assoc);
-    ~ErrorResultCallback();
-    void Complete(const ErrorResult& res);
+    ResultCallback(zeek::detail::trigger::Trigger* trigger, const void* assoc);
+    virtual ~ResultCallback();
     void Timeout();
+
+protected:
+    void ValComplete(Val* result);
 
 private:
     zeek::detail::trigger::Trigger* trigger;
     const void* assoc;
 };
 
-class ValResultCallback {
+class ErrorResultCallback : public ResultCallback {
 public:
-    ValResultCallback(zeek::detail::trigger::Trigger* trigger, const void* assoc);
-    ~ValResultCallback();
+    ErrorResultCallback(zeek::detail::trigger::Trigger* trigger, const void* assoc) : ResultCallback(trigger, assoc) {}
+    virtual void Complete(const ErrorResult& res);
+};
+
+class ValResultCallback : public ResultCallback {
+public:
+    ValResultCallback(zeek::detail::trigger::Trigger* trigger, const void* assoc) : ResultCallback(trigger, assoc) {}
     void Complete(const ValResult& res);
-    void Timeout();
-
-private:
-    zeek::detail::trigger::Trigger* trigger;
-    const void* assoc;
 };
+
+class OpenResultCallback;
 
 class Backend : public zeek::Obj {
 public:
@@ -95,9 +99,9 @@ public:
     /**
      * Erases the value for a key from the backend.
      *
+     * @param key the key to erase
      * @return An optional value potentially containing an error string if
      * needed. Will be unset if the operation succeeded.
-     * possible error string if the operation failed.
      */
     ErrorResult Erase(ValPtr key, ErrorResultCallback* cb = nullptr);
 
@@ -127,7 +131,7 @@ protected:
      * @return An optional value potentially containing an error string if
      * needed. Will be unset if the operation succeeded.
      */
-    ErrorResult Open(RecordValPtr config, TypePtr kt, TypePtr vt);
+    ErrorResult Open(RecordValPtr config, TypePtr kt, TypePtr vt, OpenResultCallback* cb = nullptr);
 
     /**
      * Finalizes the backend when it's being closed. Can be overridden by
@@ -138,7 +142,7 @@ protected:
     /**
      * The workhorse method for Open().
      */
-    virtual ErrorResult DoOpen(RecordValPtr config) = 0;
+    virtual ErrorResult DoOpen(RecordValPtr config, OpenResultCallback* cb = nullptr) = 0;
 
     /**
      * The workhorse method for Put().
@@ -196,4 +200,15 @@ protected:
 };
 
 } // namespace detail
+
+class OpenResultCallback : public ResultCallback {
+public:
+    OpenResultCallback(zeek::detail::trigger::Trigger* trigger, const void* assoc, detail::BackendHandleVal* backend)
+        : ResultCallback(trigger, assoc), backend(std::move(backend)) {}
+    void Complete(const ErrorResult& res);
+
+private:
+    detail::BackendHandleVal* backend;
+};
+
 } // namespace zeek::storage

@@ -4,14 +4,12 @@
 
 #include <cstdlib>
 #include <string>
-#include <vector>
 
 #include "zeek/3rdparty/zeek_inet_ntop.h"
 #include "zeek/Conn.h"
 #include "zeek/Hash.h"
 #include "zeek/Reporter.h"
 #include "zeek/ZeekString.h"
-#include "zeek/analyzer/Manager.h"
 
 namespace zeek {
 
@@ -20,7 +18,7 @@ const IPAddr IPAddr::v6_unspecified = IPAddr();
 
 namespace detail {
 
-ConnKey::ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, uint8_t proto,
+ConnKey::ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, uint16_t proto,
                  bool one_way) {
     Init(src, dst, src_port, dst_port, proto, one_way);
 }
@@ -43,7 +41,6 @@ ConnKey& ConnKey::operator=(const ConnKey& rhs) {
     port1 = rhs.port1;
     port2 = rhs.port2;
     transport = rhs.transport;
-    valid = rhs.valid;
 
     return *this;
 }
@@ -51,7 +48,7 @@ ConnKey& ConnKey::operator=(const ConnKey& rhs) {
 ConnKey::ConnKey(Val* v) {
     const auto& vt = v->GetType();
     if ( ! IsRecord(vt->Tag()) ) {
-        valid = false;
+        transport = INVALID_CONN_KEY_IP_PROTO;
         return;
     }
 
@@ -78,7 +75,7 @@ ConnKey::ConnKey(Val* v) {
         proto = vr->FieldOffset("proto");
 
         if ( orig_h < 0 || resp_h < 0 || orig_p < 0 || resp_p < 0 || proto < 0 ) {
-            valid = false;
+            transport = INVALID_CONN_KEY_IP_PROTO;
             return;
         }
 
@@ -98,7 +95,7 @@ ConnKey::ConnKey(Val* v) {
          protov, false);
 }
 
-void ConnKey::Init(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, uint8_t proto,
+void ConnKey::Init(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, uint16_t proto,
                    bool one_way) {
     // Because of padding in the object, this needs to memset to clear out
     // the extra memory used by padding. Otherwise, the session key stuff
@@ -122,7 +119,6 @@ void ConnKey::Init(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint
     }
 
     transport = proto;
-    valid = true;
 }
 
 } // namespace detail

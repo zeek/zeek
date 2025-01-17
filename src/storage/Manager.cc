@@ -58,17 +58,20 @@ ErrorResult Manager::OpenBackend(BackendPtr backend, RecordValPtr config, TypePt
     return std::nullopt;
 }
 
-void Manager::CloseBackend(BackendPtr backend) {
+ErrorResult Manager::CloseBackend(BackendPtr backend, ErrorResultCallback* cb) {
+    // Remove from the list always, even if the close may fail below and even in an async context.
     {
         std::unique_lock<std::mutex> lk(backends_mtx);
         auto it = std::find(backends.begin(), backends.end(), backend);
-        if ( it == backends.end() )
-            return;
-
-        backends.erase(it);
+        if ( it != backends.end() )
+            backends.erase(it);
     }
 
-    backend->Done();
+    if ( auto res = backend->Done(cb); res.has_value() ) {
+        return util::fmt("Failed to close backend %s: %s", backend->Tag(), res.value().c_str());
+    }
+
+    return std::nullopt;
 
     // TODO: post storage_connection_lost event
 }

@@ -80,6 +80,17 @@ ErrorResult Backend::Open(RecordValPtr config, TypePtr kt, TypePtr vt, OpenResul
     return res;
 }
 
+ErrorResult Backend::Done(ErrorResultCallback* cb) {
+    auto res = DoDone(cb);
+
+    if ( (! native_async || zeek::run_state::reading_traces) && cb ) {
+        cb->Complete(res);
+        delete cb;
+    }
+
+    return res;
+}
+
 ErrorResult Backend::Put(ValPtr key, ValPtr value, bool overwrite, double expiration_time, ErrorResultCallback* cb) {
     // The intention for this method is to do some other heavy lifting in regard
     // to backends that need to pass data through the manager instead of directly

@@ -58,8 +58,12 @@ export {
 	##
 	## backend: A handle to a backend connection.
 	##
+	## async_mode: Indicates whether this operation should happen
+	##             asynchronously. If this is T, the call must happen as
+	##             part of a :zeek:see:`when` statement.
+	##
 	## Returns: A boolean indicating success or failure of the operation.
-	global close_backend: function(backend: opaque of Storage::BackendHandle): bool;
+	global close_backend: function(backend: opaque of Storage::BackendHandle, async_mode: bool &default=F): bool;
 
 	## Inserts a new entry into a backend.
 	##
@@ -109,9 +113,9 @@ function open_backend(btype: Storage::Backend, config: any, key_type: any, val_t
 	return Storage::__open_backend(btype, config, key_type, val_type, async_mode);
 }
 
-function close_backend(backend: opaque of Storage::BackendHandle): bool
+function close_backend(backend: opaque of Storage::BackendHandle, async_mode: bool &default=F): bool
 {
-	return Storage::__close_backend(backend);
+	return Storage::__close_backend(backend, async_mode);
 }
 
 function put(args: Storage::PutArgs): bool

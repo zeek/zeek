@@ -107,7 +107,9 @@ ErrorResult SQLite::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
 /**
  * Finalizes the backend when it's being closed.
  */
-void SQLite::Done() {
+ErrorResult SQLite::DoDone(ErrorResultCallback* cb) {
+    ErrorResult err_res;
+
     if ( db ) {
         for ( const auto& [k, stmt] : prepared_stmts ) {
             sqlite3_finalize(stmt);
@@ -117,15 +119,19 @@ void SQLite::Done() {
 
         char* errmsg;
         if ( int res = sqlite3_exec(db, "pragma optimize", NULL, NULL, &errmsg); res != SQLITE_OK ) {
-            Error(util::fmt("Sqlite failed to optimize at shutdown: %s", errmsg));
+            err_res = util::fmt("Sqlite failed to optimize at shutdown: %s", errmsg);
             sqlite3_free(&errmsg);
         }
 
-        if ( int res = sqlite3_close_v2(db); res != SQLITE_OK )
-            Error("Sqlite could not close connection");
+        if ( int res = sqlite3_close_v2(db); res != SQLITE_OK ) {
+            if ( ! err_res.has_value() )
+                err_res = "Sqlite could not close connection";
+        }
 
         db = nullptr;
     }
+
+    return err_res;
 }
 
 /**

@@ -134,15 +134,23 @@ protected:
     ErrorResult Open(RecordValPtr config, TypePtr kt, TypePtr vt, OpenResultCallback* cb = nullptr);
 
     /**
-     * Finalizes the backend when it's being closed. Can be overridden by
-     * derived classes.
+     * Finalizes the backend when it's being closed.
+     *
+     * @param cb An optional callback object if being called via an async context.
+     * @return An optional value potentially containing an error string if
+     * needed. Will be unset if the operation succeeded.
      */
-    virtual void Done() {}
+    ErrorResult Done(ErrorResultCallback* cb = nullptr);
 
     /**
      * The workhorse method for Open().
      */
     virtual ErrorResult DoOpen(RecordValPtr config, OpenResultCallback* cb = nullptr) = 0;
+
+    /**
+     * The workhorse method for Done().
+     */
+    virtual ErrorResult DoDone(ErrorResultCallback* cb = nullptr) = 0;
 
     /**
      * The workhorse method for Put().

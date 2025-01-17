@@ -34,7 +34,7 @@ public:
     /**
      * Finalizes the backend when it's being closed.
      */
-    void Done() override;
+    zeek::storage::ErrorResult DoDone(zeek::storage::ErrorResultCallback* cb = nullptr) override;
 
     /**
      * Returns whether the backend is opened.

@@ -63,7 +63,7 @@ public:
     /**
      * Closes a storage backend.
      */
-    void CloseBackend(BackendPtr backend);
+    ErrorResult CloseBackend(BackendPtr backend, ErrorResultCallback* cb = nullptr);
 
 protected:
     friend class storage::detail::ExpireTimer;

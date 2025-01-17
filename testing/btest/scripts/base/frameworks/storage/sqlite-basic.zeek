@@ -32,8 +32,13 @@ event zeek_init() {
 				print "get result", get_res;
 				print "get result same as inserted", value == (get_res as string);
 
-				Storage::close_backend(b);
-				terminate();
+				when [b] ( local close_res = Storage::close_backend(b, T) ) {
+					print "closed succesfully";
+					terminate();
+				} timeout 5 sec {
+					print "close request timed out";
+					terminate();
+				}
 			}
 			timeout 5 sec {
 				print "get requeest timed out";

@@ -29,7 +29,10 @@ zeek::storage::ErrorResult StorageDummy::DoOpen(zeek::RecordValPtr config, zeek:
 /**
  * Finalizes the backend when it's being closed.
  */
-void StorageDummy::Done() { open = false; }
+zeek::storage::ErrorResult StorageDummy::DoDone(zeek::storage::ErrorResultCallback* cb) {
+    open = false;
+    return std::nullopt;
+}
 
 /**
  * The workhorse method for Put(). This must be implemented by plugins.

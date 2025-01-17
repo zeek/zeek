@@ -32,7 +32,7 @@ public:
     /**
      * Finalizes the backend when it's being closed.
      */
-    void Done() override;
+    ErrorResult DoDone(ErrorResultCallback* cb = nullptr) override;
 
     /**
      * Returns whether the backend is opened.

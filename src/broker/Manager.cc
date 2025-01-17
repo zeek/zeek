@@ -558,7 +558,7 @@ bool Manager::DoPublishEvent(const std::string& topic, const cluster::detail::Ev
     }
 
     std::string name(event.HandlerName());
-    return PublishEvent(topic, name, std::move(xs), event.timestamp);
+    return PublishEvent(topic, std::move(name), std::move(xs), event.timestamp);
 }
 
 bool Manager::PublishEvent(string topic, std::string name, broker::vector args, double ts) {

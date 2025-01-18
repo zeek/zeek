@@ -1,6 +1,32 @@
 %%{
 #include "zeek/storage/Backend.h"
 #include "zeek/storage/Manager.h"
+#include "zeek/Trigger.h"
+#include "zeek/Frame.h"
+
+static zeek::detail::trigger::Trigger* init_trigger(zeek::detail::Frame* frame, const zeek::storage::BackendPtr& b) {
+	if ( ! b->SupportsAsync() ) {
+		zeek::emit_builtin_error("Async mode requested but backend does not support async operations");
+		return nullptr;
+	}
+
+	auto trigger = frame->GetTrigger();
+
+	if ( ! trigger ) {
+		zeek::emit_builtin_error("Async storage operations can only be called inside when-conditions");
+		return nullptr;
+	}
+
+	if ( auto timeout = trigger->TimeoutValue(); timeout < 0 ) {
+		zeek::emit_builtin_error("Async Storage operations must specify a timeout block");
+		return nullptr;
+	}
+
+	frame->SetDelayed();
+	trigger->Hold();
+
+	return trigger;
+}
 %%}
 
 module Storage;
@@ -59,25 +85,9 @@ function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, va
 	zeek::storage::ErrorResultCallback* cb = nullptr;
 
 	if ( async_mode ) {
-		if ( ! b->backend->SupportsAsync() ) {
-			zeek::emit_builtin_error("Async mode requested but backend does not support async operations");
+		auto trigger = init_trigger(frame, b->backend);
+		if ( ! trigger )
 			return zeek::val_mgr->Bool(false);
-		}
-
-		auto trigger = frame->GetTrigger();
-
-		if ( ! trigger ) {
-			zeek::emit_builtin_error("Storage queries can only be called inside when-condition");
-			return zeek::val_mgr->Bool(false);
-		}
-
-		if ( auto timeout = trigger->TimeoutValue(); timeout < 0 ) {
-			zeek::emit_builtin_error("Storage queries must specify a timeout block");
-			return zeek::val_mgr->Bool(false);
-		}
-
-		frame->SetDelayed();
-		trigger->Hold();
 
 		cb = new zeek::storage::ErrorResultCallback(trigger, frame->GetTriggerAssoc());
 	}
@@ -110,25 +120,10 @@ function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, as
 	zeek::storage::ValResultCallback* cb = nullptr;
 
 	if ( async_mode ) {
-		if ( ! b->backend->SupportsAsync() ) {
-			zeek::emit_builtin_error("Async mode requested but backend does not support async operations");
+		auto trigger = init_trigger(frame, b->backend);
+		if ( ! trigger )
 			return zeek::val_mgr->Bool(false);
-		}
 
-		auto trigger = frame->GetTrigger();
-
-		if ( ! trigger ) {
-			zeek::emit_builtin_error("Storage queries can only be called inside when-condition");
-			return zeek::val_mgr->Bool(false);
-		}
-
-		if ( auto timeout = trigger->TimeoutValue(); timeout < 0 ) {
-			zeek::emit_builtin_error("Storage queries must specify a timeout block");
-			return zeek::val_mgr->Bool(false);
-		}
-
-		frame->SetDelayed();
-		trigger->Hold();
 		cb = new zeek::storage::ValResultCallback(trigger, frame->GetTriggerAssoc());
 	}
 
@@ -160,25 +155,10 @@ function Storage::__erase%(backend: opaque of Storage::BackendHandle, key: any, 
 	zeek::storage::ErrorResultCallback* cb = nullptr;
 
 	if ( async_mode ) {
-		if ( ! b->backend->SupportsAsync() ) {
-			zeek::emit_builtin_error("Async mode requested but backend does not support async operations");
+		auto trigger = init_trigger(frame, b->backend);
+		if ( ! trigger )
 			return zeek::val_mgr->Bool(false);
-		}
 
-		auto trigger = frame->GetTrigger();
-
-		if ( ! trigger ) {
-			zeek::emit_builtin_error("Storage queries can only be called inside when-condition");
-			return zeek::val_mgr->Bool(false);
-		}
-
-		if ( auto timeout = trigger->TimeoutValue(); timeout < 0 ) {
-			zeek::emit_builtin_error("Storage queries must specify a timeout block");
-			return zeek::val_mgr->Bool(false);
-		}
-
-		frame->SetDelayed();
-		trigger->Hold();
 		cb = new zeek::storage::ErrorResultCallback(trigger, frame->GetTriggerAssoc());
 	}
 

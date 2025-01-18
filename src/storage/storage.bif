@@ -39,6 +39,14 @@ event Storage::storage_connection_lost%(%);
 
 function Storage::__open_backend%(btype: Storage::Backend, config: any, key_type: any, val_type: any, async_mode: bool%): opaque of Storage::BackendHandle
 	%{
+    // TODO: this doesn't feel right. I could probably fix this to just always generate the callback
+    // and have it just automatically return if the operation isn't async, but it might take a little
+    // rework.
+	if ( ! async_mode && frame->GetTrigger() ) {
+		zeek::emit_builtin_error("Synchronous operations must be called outside when-conditions");
+		return zeek::val_mgr->Bool(false);
+	}
+
 	auto btype_val = zeek::IntrusivePtr<zeek::EnumVal>{NewRef{}, btype->AsEnumVal()};
 	zeek::Tag tag{btype_val};
 
@@ -51,7 +59,6 @@ function Storage::__open_backend%(btype: Storage::Backend, config: any, key_type
 		zeek::emit_builtin_error(b.error().c_str());
 		return zeek::val_mgr->Bool(false);
 	}
-
 	auto bo = zeek::make_intrusive<zeek::storage::detail::BackendHandleVal>(b.value());
 	zeek::storage::OpenResultCallback* cb = nullptr;
 
@@ -79,6 +86,11 @@ function Storage::__open_backend%(btype: Storage::Backend, config: any, key_type
 
 function Storage::__close_backend%(backend: opaque of Storage::BackendHandle, async_mode: bool%) : bool
 	%{
+	if ( ! async_mode && frame->GetTrigger() ) {
+		zeek::emit_builtin_error("Synchronous operations must be called outside when-conditions");
+		return zeek::val_mgr->Bool(false);
+	}
+
 	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
 		zeek::emit_builtin_error("Invalid storage handle", backend);
@@ -113,6 +125,11 @@ function Storage::__close_backend%(backend: opaque of Storage::BackendHandle, as
 function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, value: any,
                          overwrite: bool, expire_time: interval, async_mode: bool &default=T%): bool
 	%{
+	if ( ! async_mode && frame->GetTrigger() ) {
+		zeek::emit_builtin_error("Synchronous operations must be called outside when-conditions");
+		return zeek::val_mgr->Bool(false);
+	}
+
 	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
 		zeek::emit_builtin_error("Invalid storage handle", backend);
@@ -148,6 +165,11 @@ function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, va
 
 function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T%): any
 	%{
+	if ( ! async_mode && frame->GetTrigger() ) {
+		zeek::emit_builtin_error("Synchronous operations must be called outside when-conditions");
+		return zeek::val_mgr->Bool(false);
+	}
+
 	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
 		zeek::emit_builtin_error("Invalid storage handle", backend);
@@ -183,6 +205,11 @@ function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, as
 
 function Storage::__erase%(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T%): bool
 	%{
+	if ( ! async_mode && frame->GetTrigger() ) {
+		zeek::emit_builtin_error("Synchronous operations must be called outside when-conditions");
+		return zeek::val_mgr->Bool(false);
+	}
+
 	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
 		zeek::emit_builtin_error("Invalid storage handle", backend);

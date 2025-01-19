@@ -44,6 +44,12 @@ inline void Unref(Frame* f);
 
 class Frame {
 public:
+    ~Frame() {
+        // Unref() all elements.
+        for ( int i = 0; i < size; i++ )
+            frame[i] = nullptr;
+    }
+
     /**
      * Returns the size of the frame.
      *

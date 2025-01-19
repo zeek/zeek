@@ -308,7 +308,7 @@ ScriptFunc::~ScriptFunc() {
                 ZVal::DeleteManagedType(cvec[i]);
     }
 
-    delete captures_frame;
+    Unref(captures_frame);
     delete captures_offset_mapping;
 }
 

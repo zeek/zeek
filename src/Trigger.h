@@ -166,6 +166,8 @@ private:
     ValCache cache;
 };
 
+using TriggerPtr = IntrusivePtr<Trigger>;
+
 class Manager final : public iosource::IOSource {
 public:
     Manager();

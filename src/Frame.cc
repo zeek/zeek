@@ -4,7 +4,6 @@
 
 #include <broker/error.hh>
 
-#include "zeek/Desc.h"
 #include "zeek/Func.h"
 #include "zeek/ID.h"
 #include "zeek/Trigger.h"
@@ -17,7 +16,13 @@ namespace zeek::detail {
 
 Frame::Frame(int arg_size, const ScriptFunc* func, const zeek::Args* fn_args) {
     size = arg_size;
-    frame = std::make_unique<Element[]>(size);
+    frame = reinterpret_cast<Element*>(this + 1);
+
+    // Zero the element array by hand in order to avoid IntrusivePtr
+    // destructors to be called. If we're doing something wrong with
+    // memory, ASAN should catch it at this point.
+    memset(reinterpret_cast<char*>(frame), '\0', size * sizeof(Element));
+
     function = func;
     func_args = fn_args;
 
@@ -71,28 +76,8 @@ void Frame::Reset(int startIdx) {
         frame[i] = nullptr;
 }
 
-void Frame::Describe(ODesc* d) const {
-    if ( ! d->IsBinary() )
-        d->AddSP("frame");
-
-    if ( ! d->IsReadable() ) {
-        d->Add(size);
-
-        for ( int i = 0; i < size; ++i ) {
-            d->Add(frame[i] != nullptr);
-            d->SP();
-        }
-    }
-
-    for ( int i = 0; i < size; ++i )
-        if ( frame[i] )
-            frame[i]->Describe(d);
-        else if ( d->IsReadable() )
-            d->Add("<nil>");
-}
-
 Frame* Frame::Clone() const {
-    Frame* other = new Frame(size, function, func_args);
+    Frame* other = MakeFrame(size, function, func_args).release();
 
     other->call = call;
     other->assoc = assoc;
@@ -109,7 +94,7 @@ Frame* Frame::Clone() const {
 }
 
 Frame* Frame::CloneForTrigger() const {
-    Frame* other = new Frame(0, function, func_args);
+    Frame* other = MakeFrame(0, function, func_args).release();
 
     other->call = call;
     other->assoc = assoc;
@@ -156,7 +141,7 @@ std::pair<bool, FramePtr> Frame::Unserialize(BrokerListView data) {
     auto body = data.Front().ToList();
 
     auto frame_size = body.Size();
-    auto rf = make_intrusive<Frame>(static_cast<int>(frame_size), nullptr, nullptr);
+    auto rf = MakeFrame(static_cast<int>(frame_size), nullptr, nullptr);
 
     for ( size_t index = 0; index < frame_size; ++index ) {
         if ( ! body[index].IsList() )

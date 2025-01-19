@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -10,13 +9,12 @@
 #include <vector>
 
 #include "zeek/IntrusivePtr.h"
-#include "zeek/Obj.h"
-#include "zeek/Type.h"
+#include "zeek/Trigger.h"
 #include "zeek/ZeekArgs.h"
-#include "zeek/ZeekList.h" // for typedef val_list
 
 namespace zeek {
 
+class Val;
 using ValPtr = IntrusivePtr<Val>;
 
 class BrokerListView;
@@ -26,30 +24,26 @@ namespace detail {
 
 class CallExpr;
 class ScriptFunc;
+class ID;
 using IDPtr = IntrusivePtr<ID>;
-
-namespace trigger {
-
-class Trigger;
-using TriggerPtr = IntrusivePtr<Trigger>;
-
-} // namespace trigger
 
 class Frame;
 using FramePtr = IntrusivePtr<Frame>;
 
-class Frame : public Obj {
-public:
-    /**
-     * Constructs a new frame belonging to *func* with *fn_args*
-     * arguments.
-     *
-     * @param the size of the frame
-     * @param func the function that is creating this frame
-     * @param fn_args the arguments being passed to that function.
-     */
-    Frame(int size, const ScriptFunc* func, const zeek::Args* fn_args);
+/**
+ * Factory for Frame instances.
+ *
+ * This allocates a chunk of memory of size sizeof(Frame) + size * sizeof(ValPtr)
+ * at once and uses placement new to instantiate a Frame object. The Frame()
+ * constructor initializes the element array that's "behind" the Frame object
+ * itself. Only ever manage Frame pointers through Ref() and Unref().
+ */
+inline FramePtr MakeFrame(int size, const ScriptFunc* func, const zeek::Args* fn_args);
+inline void Ref(Frame* f);
+inline void Unref(Frame* f);
 
+class Frame {
+public:
     /**
      * Returns the size of the frame.
      *
@@ -109,11 +103,6 @@ public:
      * @param the first index to unref.
      */
     void Reset(int startIdx);
-
-    /**
-     * Describes the frame and all of its values.
-     */
-    void Describe(ODesc* d) const override;
 
     /**
      * @return the function that the frame is associated with.
@@ -212,6 +201,16 @@ private:
     // a ValPtr.
     using Element = ValPtr;
 
+    /**
+     * Constructs a new frame belonging to *func* with *fn_args*
+     * arguments.
+     *
+     * @param the size of the frame
+     * @param func the function that is creating this frame
+     * @param fn_args the arguments being passed to that function.
+     */
+    Frame(int size, const ScriptFunc* func, const zeek::Args* fn_args);
+
     const ValPtr& GetElementByID(const ID* id) const;
 
     /** The number of vals that can be stored in this frame. */
@@ -222,7 +221,7 @@ private:
     bool delayed;
 
     /** Associates ID's offsets with values. */
-    std::unique_ptr<Element[]> frame;
+    Element* frame;
 
     /**
      * The offset we're currently using for references into the frame.
@@ -252,7 +251,37 @@ private:
     trigger::TriggerPtr trigger;
     const CallExpr* call = nullptr;
     const void* assoc = nullptr;
+
+    friend FramePtr MakeFrame(int size, const ScriptFunc* func, const zeek::Args* fn_args);
+    friend inline void Ref(Frame* o);
+    friend inline void Unref(Frame* o);
+
+    int ref_cnt = 1;
 };
+
+inline FramePtr MakeFrame(int size, const ScriptFunc* func, const zeek::Args* fn_args) {
+    const size_t sz = sizeof(Frame) + size * sizeof(Frame::Element);
+    const size_t element_sz = size * sizeof(Frame::Element);
+
+    auto* buf = new char[sz];
+    auto* f = new (buf) Frame(size, func, fn_args);
+    return zeek::IntrusivePtr{zeek::AdoptRef{}, f};
+}
+
+
+inline void Ref(Frame* f) { f->ref_cnt++; }
+
+inline void Unref(Frame* f) {
+    if ( f ) {
+        assert(f->ref_cnt > 0);
+        f->ref_cnt--;
+
+        if ( f->ref_cnt == 0 ) {
+            f->~Frame();
+            delete[] reinterpret_cast<char*>(f);
+        }
+    }
+}
 
 } // namespace detail
 } // namespace zeek

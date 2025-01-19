@@ -77,7 +77,7 @@ DebuggerState::DebuggerState() {
     BreakFromSignal(false);
 
     // ### Don't choose this arbitrary size! Extend Frame.
-    dbg_locals = new Frame(1024, /* func = */ nullptr, /* fn_args = */ nullptr);
+    dbg_locals = detail::MakeFrame(1024, /* func = */ nullptr, /* fn_args = */ nullptr).release();
 }
 
 DebuggerState::~DebuggerState() { Unref(dbg_locals); }

@@ -331,7 +331,7 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
         return Flavor() == FUNC_FLAVOR_HOOK ? val_mgr->True() : nullptr;
     }
 
-    auto f = make_intrusive<Frame>(frame_size, this, args);
+    auto f = detail::MakeFrame(frame_size, this, args);
 
     // Hand down any trigger.
     if ( parent ) {
@@ -468,9 +468,9 @@ void ScriptFunc::CreateCaptures(Frame* f) {
     if ( bodies[0].stmts->Tag() == STMT_ZAM )
         captures_vec = std::make_unique<std::vector<ZVal>>();
     else {
-        delete captures_frame;
+        Unref(captures_frame);
         delete captures_offset_mapping;
-        captures_frame = new Frame(captures->size(), this, nullptr);
+        captures_frame = detail::MakeFrame(captures->size(), this, nullptr).release();
         captures_offset_mapping = new OffsetMap;
     }
 
@@ -528,7 +528,7 @@ void ScriptFunc::SetCaptures(Frame* f) {
     const auto& captures = type->GetCaptures();
     ASSERT(captures);
 
-    delete captures_frame;
+    Unref(captures_frame);
     delete captures_offset_mapping;
     captures_frame = f;
     captures_offset_mapping = new OffsetMap;
@@ -655,7 +655,7 @@ std::optional<BrokerData> ScriptFunc::SerializeCaptures() const {
         auto& cv = *captures_vec;
         auto& captures = *type->GetCaptures();
         int n = captures_vec->size();
-        auto temp_frame = make_intrusive<Frame>(n, this, nullptr);
+        auto temp_frame = detail::MakeFrame(n, this, nullptr);
 
         for ( int i = 0; i < n; ++i ) {
             auto c_i = cv[i].ToVal(captures[i].Id()->GetType());

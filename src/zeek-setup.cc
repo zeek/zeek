@@ -1066,11 +1066,11 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     if ( stmts ) {
         auto [body, scope] = get_global_stmts();
         StmtFlowType flow;
-        Frame f(scope->Length(), nullptr, nullptr);
-        g_frame_stack.push_back(&f);
+        auto f = detail::MakeFrame(scope->Length(), nullptr, nullptr);
+        g_frame_stack.push_back(f.get());
 
         try {
-            body->Exec(&f, flow);
+            body->Exec(f.get(), flow);
         } catch ( InterpreterException& ) {
             reporter->FatalError("failed to execute script statements at top-level scope");
         }

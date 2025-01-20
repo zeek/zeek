@@ -19,7 +19,13 @@ export {
 
 event dns_A_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=-3
 	{
+	local multicast: set[addr] = { 224.0.0.251, [ff02::fb] };
+
 	if ( |Site::local_zones| == 0 )
+		return;
+
+	# Ignore mdns.
+	if ( c$id$resp_h in multicast && c$id$resp_p == 5353/udp )
 		return;
 
 	# Check for responses from remote hosts that point at local hosts

@@ -1,3 +1,7 @@
+7.2.0-dev.99 | 2025-01-20 10:27:32 +0100
+
+  * fixes for -O gen-standalone-C++ generation of lambdas (Vern Paxson, Corelight)
+
 7.2.0-dev.95 | 2025-01-14 21:39:01 +0100
 
   * logging: Fix reporter message (Arne Welzel, Corelight)

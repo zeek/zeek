@@ -30,8 +30,13 @@ void CPPCompile::DeclareLambda(const LambdaExpr* l, const ProfileFunc* pf) {
     auto l_id = l->Ingredients()->GetID();
     auto& ids = l->OuterIDs();
 
-    for ( auto id : ids )
-        lambda_names[id] = CaptureName(id);
+    for ( auto lid : ids ) {
+        if ( lambda_names.count(lid) > 0 ) {
+            ASSERT(lambda_names[lid] == CaptureName(lid));
+        }
+        else
+            lambda_names[lid] = CaptureName(lid);
+    }
 
     CreateFunction(l_id->GetType<FuncType>(), pf, lname, body, 0, l, FUNC_FLAVOR_FUNCTION);
 }

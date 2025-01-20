@@ -177,7 +177,11 @@ FuncValPtr lookup_func__CPP(string name, int num_bodies, vector<p_hash_type> has
 
     for ( auto h : hashes ) {
         auto cs = compiled_scripts.find(h);
-        ASSERT(cs != compiled_scripts.end());
+
+        if ( cs == compiled_scripts.end() ) {
+            cs = compiled_standalone_scripts.find(h);
+            ASSERT(cs != compiled_standalone_scripts.end());
+        }
 
         const auto& f = cs->second;
         bodies.emplace_back(f.body);

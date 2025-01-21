@@ -8,8 +8,9 @@
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
 namespace zeek::analyzer::ssh {
+const char ssh[] = "SSH";
 
-SSH_Analyzer::SSH_Analyzer(Connection* c) : analyzer::tcp::TCP_ApplicationAnalyzer("SSH", c) {
+SSH_Analyzer::SSH_Analyzer(Connection* c) : analyzer::tcp::TCP_ApplicationAnalyzer(AnalyzerTag<ssh>(), c) {
     interp = new binpac::SSH::SSH_Conn(this);
     had_gap = false;
     auth_decision_made = false;

@@ -76,8 +76,6 @@ ZeroMQBackend::ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_pt
 }
 
 void ZeroMQBackend::DoInitPostScript() {
-    ThreadedBackend::DoInitPostScript();
-
     listen_xpub_endpoint =
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::listen_xpub_endpoint")->ToStdString();
     listen_xsub_endpoint =
@@ -97,8 +95,8 @@ void ZeroMQBackend::DoInitPostScript() {
     event_subscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::subscription");
 }
 
-
 void ZeroMQBackend::DoTerminate() {
+    ThreadedBackend::DoTerminate();
     ZEROMQ_DEBUG("Shutting down ctx");
     ctx.shutdown();
     ZEROMQ_DEBUG("Joining self_thread");

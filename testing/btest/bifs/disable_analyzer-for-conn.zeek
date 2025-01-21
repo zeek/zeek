@@ -6,9 +6,9 @@
 # @TEST-EXEC: zeek -b -r ${TRACES}/ssh/ssh-on-port-80.trace %INPUT >output
 # @TEST-EXEC: btest-diff output
 
-# This first test should trigger two analyzer violations since the given pcap
-# has non-HTTP content on port 80, which triggers one violation each for the
-# missing request and response lines.
+# This first test should trigger one analyzer violation, since the given pcap
+# has non-HTTP content on port 80. The analyzer will be disabled after the first
+# violation (missing request line).
 
 @load base/protocols/http
 

@@ -144,10 +144,6 @@ connection {
         * ts: time, log=T, optional=F
         * uid: string, log=T, optional=F
        }
-  * dpd_state: record DPD::State, log=F, optional=T
-      DPD::State {
-        * violations: table[count] of count, log=F, optional=F
-       }
   * duration: interval, log=F, optional=F
   * extract_orig: bool, log=F, optional=T
   * extract_resp: bool, log=F, optional=T

@@ -801,6 +801,13 @@ void SupportAnalyzer::ForwardUndelivered(uint64_t seq, int len, bool is_orig) {
         Parent()->Undelivered(seq, len, is_orig);
 }
 
+zeek::Tag get_analyzer_tag(const char* name) {
+    auto tag = analyzer_mgr->GetComponentTag(name);
+    if ( ! tag )
+        reporter->InternalError("unknown analyzer name %s; mismatch with tag analyzer::Component?", name);
+
+    return tag;
+}
 } // namespace zeek::analyzer
 
 TEST_SUITE("Analyzer management") {

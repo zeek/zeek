@@ -20,6 +20,7 @@ class IPBasedAnalyzer;
 class SessionAdapter : public analyzer::Analyzer {
 public:
     SessionAdapter(const char* name, Connection* conn) : analyzer::Analyzer(name, conn) {}
+    SessionAdapter(const zeek::Tag& tag, Connection* conn) : analyzer::Analyzer(tag, conn) {}
 
     /**
      * Overridden from parent class.

@@ -26,6 +26,7 @@ class TCP_ApplicationAnalyzer;
 class TCP_ApplicationAnalyzer : public analyzer::Analyzer {
 public:
     TCP_ApplicationAnalyzer(const char* name, Connection* conn) : Analyzer(name, conn), tcp(nullptr) {}
+    TCP_ApplicationAnalyzer(const zeek::Tag& tag, Connection* conn) : Analyzer(tag, conn), tcp(nullptr) {}
 
     explicit TCP_ApplicationAnalyzer(Connection* conn) : Analyzer(conn), tcp(nullptr) {}
 
@@ -73,6 +74,9 @@ class TCP_SupportAnalyzer : public analyzer::SupportAnalyzer {
 public:
     TCP_SupportAnalyzer(const char* name, Connection* conn, bool arg_orig)
         : analyzer::SupportAnalyzer(name, conn, arg_orig) {}
+
+    TCP_SupportAnalyzer(const zeek::Tag& tag, Connection* conn, bool arg_orig)
+        : analyzer::SupportAnalyzer(tag, conn, arg_orig) {}
 
     ~TCP_SupportAnalyzer() override {}
 

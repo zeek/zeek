@@ -46,7 +46,9 @@ static byte_buffer fmt_seq(uint32_t num) {
     return out;
 }
 
-SSL_Analyzer::SSL_Analyzer(Connection* c) : analyzer::tcp::TCP_ApplicationAnalyzer("SSL", c) {
+const char ssl[] = "SSL";
+
+SSL_Analyzer::SSL_Analyzer(Connection* c) : analyzer::tcp::TCP_ApplicationAnalyzer(AnalyzerTag<ssl>(), c) {
     interp = new binpac::SSL::SSL_Conn(this);
     handshake_interp = new binpac::TLSHandshake::Handshake_Conn(this);
     had_gap = false;

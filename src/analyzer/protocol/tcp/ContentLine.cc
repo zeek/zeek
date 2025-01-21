@@ -8,8 +8,10 @@
 
 namespace zeek::analyzer::tcp {
 
+const char contentline[] = "CONTENTLINE";
+
 ContentLine_Analyzer::ContentLine_Analyzer(Connection* conn, bool orig, int max_line_length)
-    : TCP_SupportAnalyzer("CONTENTLINE", conn, orig), max_line_length(max_line_length) {
+    : TCP_SupportAnalyzer(AnalyzerTag<contentline>(), conn, orig), max_line_length(max_line_length) {
     InitState();
 }
 

@@ -709,7 +709,9 @@ void HTTP_Message::SkipEntityData() {
 
 void HTTP_Message::Weird(const char* msg) { analyzer->Weird(msg); }
 
-HTTP_Analyzer::HTTP_Analyzer(Connection* conn) : analyzer::tcp::TCP_ApplicationAnalyzer("HTTP", conn) {
+const char http[] = "HTTP";
+
+HTTP_Analyzer::HTTP_Analyzer(Connection* conn) : analyzer::tcp::TCP_ApplicationAnalyzer(AnalyzerTag<http>(), conn) {
     num_requests = num_replies = 0;
     num_request_lines = num_reply_lines = 0;
     keep_alive = 0;

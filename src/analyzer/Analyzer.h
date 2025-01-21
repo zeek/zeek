@@ -10,7 +10,6 @@
 
 #include "zeek/EventHandler.h"
 #include "zeek/IntrusivePtr.h"
-#include "zeek/Obj.h"
 #include "zeek/Tag.h"
 #include "zeek/Timer.h"
 
@@ -773,6 +772,15 @@ private:
     static ID id_counter;
 };
 
+zeek::Tag get_analyzer_tag(const char* name);
+
+template<const char* s>
+const zeek::Tag& AnalyzerTag() {
+    static zeek::Tag tag = get_analyzer_tag(s);
+
+    return tag;
+}
+
 /**
  * Convenience macro to add a new timer.
  */
@@ -822,6 +830,11 @@ public:
      * connection originator side, and otherwise for the responder side.
      */
     SupportAnalyzer(const char* name, Connection* conn, bool arg_orig) : Analyzer(name, conn) {
+        orig = arg_orig;
+        sibling = nullptr;
+    }
+
+    SupportAnalyzer(const Tag& tag, Connection* conn, bool arg_orig) : Analyzer(tag, conn) {
         orig = arg_orig;
         sibling = nullptr;
     }

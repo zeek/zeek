@@ -21,7 +21,10 @@ constexpr int32_t TOO_LARGE_SEQ_DELTA = 1048576;
 using namespace zeek;
 using namespace zeek::packet_analysis::TCP;
 
-TCPSessionAdapter::TCPSessionAdapter(Connection* conn) : packet_analysis::IP::SessionAdapter("TCP", conn) {
+const char tcp[] = "TCP";
+
+TCPSessionAdapter::TCPSessionAdapter(Connection* conn)
+    : packet_analysis::IP::SessionAdapter(analyzer::AnalyzerTag<tcp>(), conn) {
     // Set a timer to eventually time out this connection.
     ADD_ANALYZER_TIMER(&TCPSessionAdapter::ExpireTimer, run_state::network_time + zeek::detail::tcp_SYN_timeout, false,
                        zeek::detail::TIMER_TCP_EXPIRE);

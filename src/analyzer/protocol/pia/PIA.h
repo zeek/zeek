@@ -142,11 +142,14 @@ protected:
     void DeactivateAnalyzer(zeek::Tag tag) override;
 };
 
+const char pia_tcp[] = "PIA_TCP";
+
 // PIA for TCP.  Accepts both packet and stream input (and reassembles
 // packets before passing payload on to children).
 class PIA_TCP : public PIA, public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
-    explicit PIA_TCP(Connection* conn) : PIA(this), analyzer::tcp::TCP_ApplicationAnalyzer("PIA_TCP", conn) {
+    explicit PIA_TCP(Connection* conn)
+        : PIA(this), analyzer::tcp::TCP_ApplicationAnalyzer(AnalyzerTag<pia_tcp>(), conn) {
         stream_mode = false;
         SetConn(conn);
     }

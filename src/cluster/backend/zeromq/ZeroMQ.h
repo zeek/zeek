@@ -62,8 +62,6 @@ private:
     bool DoPublishLogWrites(const logging::detail::LogWriteHeader& header, const std::string& format,
                             cluster::detail::byte_buffer& buf) override;
 
-    const char* Tag() override { return "ZeroMQ"; }
-
     bool DoProcessBackendMessage(int tag, detail::byte_buffer_span payload) override;
 
     // Script level variables.

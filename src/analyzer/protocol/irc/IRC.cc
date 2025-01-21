@@ -26,6 +26,7 @@ IRC_Analyzer::IRC_Analyzer(Connection* conn) : analyzer::tcp::TCP_ApplicationAna
     orig_zip_status = NO_ZIP;
     resp_zip_status = NO_ZIP;
     starttls = false;
+    confirmed = false;
     cl_orig = new analyzer::tcp::ContentLine_Analyzer(conn, true, 1000);
     AddSupportAnalyzer(cl_orig);
     cl_resp = new analyzer::tcp::ContentLine_Analyzer(conn, false, 1000);
@@ -54,7 +55,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
 
     // check line size
     if ( length > 512 ) {
-        Weird("irc_line_size_exceeded");
+        if ( confirmed )
+            Weird("irc_line_size_exceeded");
         return;
     }
 
@@ -62,7 +64,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
     SkipLeadingWhitespace(myline);
 
     if ( myline.length() < 3 ) {
-        Weird("irc_line_too_short");
+        if ( confirmed )
+            Weird("irc_line_too_short");
         return;
     }
 
@@ -71,7 +74,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
     if ( myline[0] == ':' ) { // find end of prefix and extract it
         auto pos = myline.find(' ');
         if ( pos == string::npos ) {
-            Weird("irc_invalid_line");
+            if ( confirmed )
+                Weird("irc_invalid_line");
             return;
         }
 
@@ -80,16 +84,14 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
         SkipLeadingWhitespace(myline);
     }
 
-    if ( orig )
-        AnalyzerConfirmation();
-
     int code = 0;
     string command = "";
 
     // Check if line is long enough to include status code or command.
     // (shortest command with optional params is "WHO")
     if ( myline.length() < 3 ) {
-        Weird("irc_invalid_line");
+        if ( confirmed )
+            Weird("irc_invalid_line");
         AnalyzerViolation("line too short");
         return;
     }
@@ -101,7 +103,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
             myline = myline.substr(4);
         }
         else {
-            Weird("irc_invalid_reply_number");
+            if ( confirmed )
+                Weird("irc_invalid_reply_number");
             AnalyzerViolation("invalid reply number");
             return;
         }
@@ -126,6 +129,18 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
 
     // Extract parameters.
     string params = myline;
+
+    if ( ! confirmed && orig )
+        // confirm if we see a known IRC command
+        if ( command == "ADMIN" || command == "AWAY" || command == "CNOTICE" || command == "CPRIVMSG" ||
+             command == "INFO" || command == "INVITE" || command == "JOIN" || command == "KICK" || command == "LIST" ||
+             command == "MOVE" || command == "NAMES" || command == "NICK" || command == "NOTICE" || command == "PASS" ||
+             command == "PART" || command == "PING" || command == "PRIVMSG" || command == "SERVER" ||
+             command == "SETNAME" || command == "TOPIC" || command == "USER" || command == "WHOIS" ||
+             command == "WHOWAS" || command == "STARTTLS" || command == "PONG" ) {
+            AnalyzerConfirmation();
+            confirmed = true;
+        }
 
     // special case
     if ( command == "STARTTLS" )

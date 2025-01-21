@@ -77,7 +77,8 @@ private:
 
     analyzer::tcp::ContentLine_Analyzer* cl_orig;
     analyzer::tcp::ContentLine_Analyzer* cl_resp;
-    bool starttls; // if true, connection has been upgraded to tls
+    bool starttls;  // if true, connection has been upgraded to tls
+    bool confirmed; // true if we called AnalyzerConfirmation
 };
 
 } // namespace irc

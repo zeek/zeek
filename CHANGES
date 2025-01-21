@@ -1,3 +1,35 @@
+7.1.0-3 | 2025-03-18 12:05:31 -0700
+
+  * session/Manager: Emit explicit errors for FindConnection() with proto=65535 (Arne Welzel, Corelight)
+
+    We silently broke users constructing conn_id records manually and
+    subsequently using them with lookup_connection() or connection_exists().
+
+    This is an attempt to at least report a runtime error about the situation
+    so it doesn't go completely unnoticed.
+
+    (cherry picked from commit 7e5a9c3a820358fcbc94bc3da4914165dce385bd)
+
+  * IPAddr/ConnKey: Protect from uninitialized conn_id (Arne Welzel, Corelight)
+
+    Check if the non-default fields exist using HasField()
+    and use GetField() for proto such that it'll initialize
+    the default value which GetFieldAs<> doesn't do.
+
+    (cherry picked from commit 7e5a9c3a820358fcbc94bc3da4914165dce385bd)
+
+  * IPAddr/ConnKey: Promote transport to uint16_t (Arne Welzel, Corelight)
+
+    Instead of a separate bool field which is also stored in the session
+    table, promote the transport field to uint16_t and encode an invalid
+    ConnKey as transport 2**16-2
+
+    (cherry picked from commit 7e5a9c3a820358fcbc94bc3da4914165dce385bd)
+
+  * session/Manager: Header cleanup (Arne Welzel, Corelight)
+
+    (cherry picked from commit 7e5a9c3a820358fcbc94bc3da4914165dce385bd)
+
 7.1.0-2 | 2025-03-18 12:03:57 -0700
 
   * logging: Fix reporter message (Arne Welzel, Corelight)

@@ -51,7 +51,8 @@ bool Manager::ConnIndex::operator<(const ConnIndex& other) const {
     return false;
 }
 
-Manager::Manager() : plugin::ComponentManager<analyzer::Component>("Analyzer", "Tag", "AllAnalyzers") {}
+Manager::Manager()
+    : plugin::ComponentManager<analyzer::Component>("Analyzer", "Tag", "AllAnalyzers"), tag_cache(2048, nullptr) {}
 
 Manager::~Manager() {
     // Clean up expected-connection table.
@@ -259,7 +260,20 @@ bool Manager::UnregisterAnalyzerForPort(const zeek::Tag& tag, TransportProto pro
 }
 
 Analyzer* Manager::InstantiateAnalyzer(const zeek::Tag& tag, Connection* conn) {
-    Component* c = Lookup(tag);
+    // std::fprintf(stderr, "Instantiate %d %d\n", tag.Type(), tag.Subtype());
+
+    Component* c = nullptr;
+
+    // Check for the tag in the tag cache
+    if ( c = tag_cache[tag.Type()]; c ) {
+        if ( c->Tag().Subtype() != tag.Subtype() )
+            reporter->InternalWarning("tag caching problem");
+    }
+    else {
+        // Slow lookup path
+        c = Lookup(tag);
+        tag_cache[tag.Type()] = c;
+    }
 
     if ( ! c ) {
         reporter->InternalWarning("request to instantiate unknown analyzer");

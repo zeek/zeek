@@ -376,6 +376,8 @@ private:
     conns_map conns;
     conns_queue conns_by_timeout;
     std::vector<uint16_t> vxlan_ports;
+
+    std::vector<Component*> tag_cache;
 };
 
 } // namespace analyzer

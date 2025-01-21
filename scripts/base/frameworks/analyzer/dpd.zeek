@@ -26,14 +26,8 @@ export {
 		failure_reason: string          &log;
 	};
 
-	## Ongoing DPD state tracking information.
-	type State: record {
-		## Current number of protocol violations seen per analyzer instance.
-		violations: table[count] of count;
-	};
-
-	## Number of protocol violations to tolerate before disabling an analyzer.
-	option max_violations: table[Analyzer::Tag] of count = table() &default = 5;
+	## Deprecated, please see https://github.com/zeek/zeek/pull/4200 for details
+	option max_violations: table[Analyzer::Tag] of count = table() &deprecated="Remove in v8.1: This has become non-functional in Zeek 7.2, see PR #4200" &default = 5;
 
 	## Analyzers which you don't want to throw
 	option ignore_violations: set[Analyzer::Tag] = set();
@@ -45,7 +39,6 @@ export {
 
 redef record connection += {
 	dpd: Info &optional;
-	dpd_state: State &optional;
 	## The set of services (analyzers) for which Zeek has observed a
 	## violation after the same service had previously been confirmed.
 	service_violation: set[string] &default=set();
@@ -127,24 +120,7 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 	if ( ignore_violations_after > 0 && size > ignore_violations_after )
 		return;
 
-	if ( ! c?$dpd_state )
-		{
-		local s: State;
-		c$dpd_state = s;
-		}
-
-	if ( aid in c$dpd_state$violations )
-		++c$dpd_state$violations[aid];
-	else
-		c$dpd_state$violations[aid] = 1;
-
-	if ( c?$dpd || c$dpd_state$violations[aid] > max_violations[atype] )
-		{
-		# Disable an analyzer we've previously confirmed, but is now in
-		# violation, or else any analyzer in excess of the max allowed
-		# violations, regardless of whether it was previously confirmed.
-		disable_analyzer(c$id, aid, F);
-		}
+	disable_analyzer(c$id, aid, F);
 	}
 
 event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo ) &priority=-5

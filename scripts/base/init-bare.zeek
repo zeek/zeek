@@ -2513,10 +2513,6 @@ type AnalyzerViolationInfo: record {
 ##
 ## An analyzer generating this many violations is unlikely parsing
 ## the right protocol or potentially buggy.
-##
-## See also :zeek:see:`DPD::max_violations` which controls disabling
-## analyzers through script logic after a certain number of violations
-## was observed.
 const max_analyzer_violations = 1000 &redef;
 
 

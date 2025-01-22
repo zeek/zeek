@@ -99,6 +99,7 @@ private:
 
     std::thread self_thread;
 
+    int proxy_io_threads = 2;
     std::unique_ptr<ProxyThread> proxy_thread;
 
     // Tracking the subscriptions on the local XPUB socket.

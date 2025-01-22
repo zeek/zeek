@@ -161,7 +161,7 @@ bool ThreadedBackend::ProcessBackendMessage(int tag, detail::byte_buffer_span pa
 ThreadedBackend::ThreadedBackend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
                                  std::unique_ptr<detail::EventHandlingStrategy> ehs)
     : Backend(std::move(es), std::move(ls), std::move(ehs)) {
-    onloop = new zeek::detail::OnLoopProcess<ThreadedBackend, QueueMessages>(this, "ThreadedBackend");
+    onloop = new zeek::detail::OnLoopProcess<ThreadedBackend, QueueMessage>(this, "ThreadedBackend");
     onloop->Register(true); // Register as don't count first
 }
 
@@ -171,26 +171,35 @@ bool ThreadedBackend::DoInit() {
     return true;
 }
 
-void ThreadedBackend::QueueForProcessing(QueueMessages&& qmessages) {
-    onloop->QueueForProcessing(std::move(qmessages));
+void ThreadedBackend::DoTerminate() {
+    if ( onloop ) {
+        onloop->Close();
+        onloop = nullptr;
+    }
 }
 
-void ThreadedBackend::Process() { onloop->Process(); }
+void ThreadedBackend::QueueForProcessing(QueueMessage&& qmessages) {
+    if ( onloop )
+        onloop->QueueForProcessing(std::move(qmessages));
+}
 
-void ThreadedBackend::Process(QueueMessages&& to_process) {
-    for ( const auto& msg : to_process ) {
-        // sonarlint wants to use std::visit. not sure...
-        if ( auto* emsg = std::get_if<EventMessage>(&msg) ) {
-            ProcessEventMessage(emsg->topic, emsg->format, emsg->payload_span());
-        }
-        else if ( auto* lmsg = std::get_if<LogMessage>(&msg) ) {
-            ProcessLogMessage(lmsg->format, lmsg->payload_span());
-        }
-        else if ( auto* bmsg = std::get_if<BackendMessage>(&msg) ) {
-            ProcessBackendMessage(bmsg->tag, bmsg->payload_span());
-        }
-        else {
-            zeek::reporter->FatalError("Unimplemented QueueMessage %zu", msg.index());
-        }
+void ThreadedBackend::Process() {
+    if ( onloop )
+        onloop->Process();
+}
+
+void ThreadedBackend::Process(QueueMessage&& msg) {
+    // sonarlint wants to use std::visit. not sure...
+    if ( auto* emsg = std::get_if<EventMessage>(&msg) ) {
+        ProcessEventMessage(emsg->topic, emsg->format, emsg->payload_span());
+    }
+    else if ( auto* lmsg = std::get_if<LogMessage>(&msg) ) {
+        ProcessLogMessage(lmsg->format, lmsg->payload_span());
+    }
+    else if ( auto* bmsg = std::get_if<BackendMessage>(&msg) ) {
+        ProcessBackendMessage(bmsg->tag, bmsg->payload_span());
+    }
+    else {
+        zeek::reporter->FatalError("Unimplemented QueueMessage %zu", msg.index());
     }
 }

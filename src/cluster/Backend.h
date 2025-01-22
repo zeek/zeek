@@ -461,7 +461,6 @@ struct BackendMessage {
 };
 
 using QueueMessage = std::variant<EventMessage, LogMessage, BackendMessage>;
-using QueueMessages = std::vector<QueueMessage>;
 
 /**
  * Support for backends that use background threads or invoke
@@ -482,7 +481,7 @@ protected:
      *
      * @param messages Messages to be enqueued.
      */
-    void QueueForProcessing(QueueMessages&& messages);
+    void QueueForProcessing(QueueMessage&& messages);
 
     /**
      * Delegate to onloop->Process() to trigger processing
@@ -502,6 +501,8 @@ protected:
      */
     bool DoInit() override;
 
+    void DoTerminate() override;
+
 private:
     /**
      * Process a backend specific message queued as BackendMessage.
@@ -517,13 +518,13 @@ private:
     /**
      * Hook method for OnLooProcess.
      */
-    void Process(QueueMessages&& messages);
+    void Process(QueueMessage&& messages);
 
     // Allow access to Process(QueueMessages)
-    friend class zeek::detail::OnLoopProcess<ThreadedBackend, QueueMessages>;
+    friend class zeek::detail::OnLoopProcess<ThreadedBackend, QueueMessage>;
 
     // Members used for communication with the main thread.
-    zeek::detail::OnLoopProcess<ThreadedBackend, QueueMessages>* onloop;
+    zeek::detail::OnLoopProcess<ThreadedBackend, QueueMessage>* onloop = nullptr;
 };
 
 

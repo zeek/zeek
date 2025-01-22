@@ -97,6 +97,8 @@ void ZeroMQBackend::DoInitPostScript() {
     linger_ms = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::linger_ms")->AsInt());
     poll_max_messages = zeek::id::find_val<zeek::CountVal>("Cluster::Backend::ZeroMQ::poll_max_messages")->Get();
     debug_flags = zeek::id::find_val<zeek::CountVal>("Cluster::Backend::ZeroMQ::debug_flags")->Get();
+    proxy_io_threads =
+        static_cast<int>(zeek::id::find_val<zeek::CountVal>("Cluster::Backend::ZeroMQ::proxy_io_threads")->Get());
 
     event_unsubscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::unsubscription");
     event_subscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::subscription");
@@ -240,7 +242,8 @@ bool ZeroMQBackend::DoInit() {
 }
 
 bool ZeroMQBackend::SpawnZmqProxyThread() {
-    proxy_thread = std::make_unique<ProxyThread>(listen_xpub_endpoint, listen_xsub_endpoint, listen_xpub_nodrop);
+    proxy_thread =
+        std::make_unique<ProxyThread>(listen_xpub_endpoint, listen_xsub_endpoint, listen_xpub_nodrop, proxy_io_threads);
     return proxy_thread->Start();
 }
 

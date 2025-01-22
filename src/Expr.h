@@ -94,6 +94,7 @@ enum ExprTag : int {
     EXPR_CAST,
     EXPR_IS,
     EXPR_INDEX_SLICE_ASSIGN,
+    EXPR_TYPE,
 
     // The following types of expressions are only created for ASTs
     // transformed to reduced form; they aren't germane for ASTs produced
@@ -1670,6 +1671,25 @@ protected:
     ValPtr Fold(Val* v) const override;
 
     ExprPtr Duplicate() override;
+};
+
+/**
+ * An expression representing a type without a bound identifier. This is necessary
+ * in order to use many primitives directly as values into BIFs without aliases.
+ */
+class TypeExpr final : public Expr {
+public:
+    TypeExpr(TypePtr t);
+
+    ValPtr Eval(Frame* f) const override;
+    TraversalCode Traverse(TraversalCallback* cb) const override;
+    ExprPtr Duplicate() override;
+
+protected:
+    void ExprDescribe(ODesc* d) const override;
+
+private:
+    TypePtr ty;
 };
 
 // Assigns v1[v2] = v3.  Returns an error message, or nullptr on success.

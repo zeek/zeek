@@ -4764,6 +4764,26 @@ void IsExpr::ExprDescribe(ODesc* d) const {
     t->Describe(d);
 }
 
+TypeExpr::TypeExpr(TypePtr t) : Expr(EXPR_TYPE), ty(std::move(t)) {
+    SetType(make_intrusive<TypeType>(ty));
+    SetLocationInfo(ty->GetLocationInfo());
+}
+
+ValPtr TypeExpr::Eval(Frame* /* f */) const { return make_intrusive<TypeVal>(ty, true); }
+
+TraversalCode TypeExpr::Traverse(TraversalCallback* cb) const {
+    TraversalCode tc = cb->PreExpr(this);
+    HANDLE_TC_EXPR_PRE(tc);
+
+    tc = ty->Traverse(cb);
+    HANDLE_TC_EXPR_PRE(tc);
+
+    tc = cb->PostExpr(this);
+    HANDLE_TC_EXPR_POST(tc);
+}
+
+void TypeExpr::ExprDescribe(ODesc* d) const { ty->Describe(d); }
+
 ExprPtr get_assign_expr(ExprPtr op1, ExprPtr op2, bool is_init) {
     ExprPtr e;
 

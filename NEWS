@@ -16,6 +16,10 @@ New Functionality
   Zeek now raises a warning when a script declares these events while this
   option is set to true.
 
+- Type expressions were added to Zeek script. Within scripts, a type may be
+  assigned to a local or global then later used as a type. The type cannot be
+  redefined. This allows types to be directly passed into BIFs without aliasing.
+
 Changed Functionality
 ---------------------
 

@@ -3393,6 +3393,8 @@ TraversalCode NopExpr::Traverse(TraversalCallback* cb) const {
     HANDLE_TC_EXPR_POST(tc);
 }
 
+ExprPtr TypeExpr::Duplicate() { return SetSucc(new TypeExpr(ty)); }
+
 static bool same_singletons(ExprPtr e1, ExprPtr e2) {
     auto e1t = e1->Tag();
     auto e2t = e2->Tag();

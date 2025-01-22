@@ -448,6 +448,36 @@ export {
 	## this limiting.
 	const max_changes_per_connection: count = 5 &redef;
 
+	## The maximum depth of a tunnel to decapsulate until giving up.
+	## Setting this to zero will disable all types of tunnel decapsulation.
+	const max_depth: count = 4 &redef;
+
+	## With this set, the Teredo analyzer waits until it sees both sides
+	## of a connection using a valid Teredo encapsulation before issuing
+	## a :zeek:see:`analyzer_confirmation_info`.  If it's false, the first
+	## occurrence of a packet with valid Teredo encapsulation causes a
+	## confirmation.
+	const delay_teredo_confirmation = T &redef;
+
+	## With this set, the GTP analyzer waits until the most-recent upflow
+	## and downflow packets are a valid GTPv1 encapsulation before
+	## issuing :zeek:see:`analyzer_confirmation_info`.  If it's false, the
+	## first occurrence of a packet with valid GTPv1 encapsulation causes
+	## confirmation.  Since the same inner connection can be carried
+	## differing outer upflow/downflow connections, setting to false
+	## may work better.
+	const delay_gtp_confirmation = F &redef;
+
+	## How often to cleanup internal state for inactive IP tunnels
+	## (includes GRE tunnels).
+	const ip_tunnel_timeout = 24hrs &redef;
+
+	## Whether to validate the checksum supplied in the outer UDP header
+	## of a VXLAN encapsulation.  The spec says the checksum should be
+	## transmitted as zero, but if not, then the decapsulating destination
+	## may choose whether to perform the validation.
+	const validate_vxlan_checksums = T &redef;
+
 } # end export
 
 module HTTP;
@@ -5365,40 +5395,6 @@ export {
 		TS_ISO8601,
 	};
 }
-
-module Tunnel;
-export {
-	## The maximum depth of a tunnel to decapsulate until giving up.
-	## Setting this to zero will disable all types of tunnel decapsulation.
-	const max_depth: count = 4 &redef;
-
-	## With this set, the Teredo analyzer waits until it sees both sides
-	## of a connection using a valid Teredo encapsulation before issuing
-	## a :zeek:see:`analyzer_confirmation_info`.  If it's false, the first
-	## occurrence of a packet with valid Teredo encapsulation causes a
-	## confirmation.
-	const delay_teredo_confirmation = T &redef;
-
-	## With this set, the GTP analyzer waits until the most-recent upflow
-	## and downflow packets are a valid GTPv1 encapsulation before
-	## issuing :zeek:see:`analyzer_confirmation_info`.  If it's false, the
-	## first occurrence of a packet with valid GTPv1 encapsulation causes
-	## confirmation.  Since the same inner connection can be carried
-	## differing outer upflow/downflow connections, setting to false
-	## may work better.
-	const delay_gtp_confirmation = F &redef;
-
-	## How often to cleanup internal state for inactive IP tunnels
-	## (includes GRE tunnels).
-	const ip_tunnel_timeout = 24hrs &redef;
-
-	## Whether to validate the checksum supplied in the outer UDP header
-	## of a VXLAN encapsulation.  The spec says the checksum should be
-	## transmitted as zero, but if not, then the decapsulating destination
-	## may choose whether to perform the validation.
-	const validate_vxlan_checksums = T &redef;
-
-} # end export
 
 module Reporter;
 export {

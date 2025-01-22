@@ -356,22 +356,6 @@ type ftp_port: record {
 	valid: bool;	##< True if format was right. Only then are *h* and *p* valid.
 };
 
-
-module FTP;
-
-## Limits the size of commands accepted by the FTP analyzer. Longer commands
-## raise a FTP_max_command_length_exceeded weird and are discarded.
-const max_command_length = 100 &redef;
-
-module SMTP;
-
-## The maximum line length within a BDAT chunk before a forceful linebreak
-## is introduced and a weird is raised. Conventionally, MIME messages
-## have a maximum line length of 1000 octets when properly encoded.
-const bdat_max_line_length = 4096 &redef;
-
-module GLOBAL;
-
 ## Statistics about what a TCP endpoint sent.
 ##
 ## .. zeek:see:: conn_stats
@@ -388,6 +372,225 @@ type endpoint_stats: record {
 	## :zeek:see:`ENDIAN_CONFUSED`.
 	endian_type: count;
 };
+
+## Arguments given to Zeek from the command line. In order to use this, Zeek
+## must use a ``--`` command line argument immediately followed by a script
+## file and additional arguments after that. For example::
+##
+##   zeek --bare-mode -- myscript.zeek -a -b -c
+##
+## To use Zeek as an executable interpreter, include a line at the top of a script
+## like the following and make the script executable::
+##
+##   #!/usr/local/zeek/bin/zeek --
+const zeek_script_args: vector of string = vector();
+
+## BPF filter the user has set via the -f command line options. Empty if none.
+const cmd_line_bpf_filter = "" &redef;
+
+## Base time of log rotations in 24-hour time format (``%H:%M``), e.g. "12:00".
+const log_rotate_base_time = "0:00" &redef;
+
+## Whether to attempt to automatically detect SYN/FIN/RST-filtered trace
+## and not report missing segments for such connections.
+## If this is enabled, then missing data at the end of connections may not
+## be reported via :zeek:see:`content_gap`.
+const detect_filtered_trace = F &redef;
+
+## Whether we want :zeek:see:`content_gap` for partial
+## connections. A connection is partial if it is missing a full handshake. Note
+## that gap reports for partial connections might not be reliable.
+##
+## .. zeek:see:: content_gap partial_connection
+const report_gaps_for_partial = F &redef;
+
+## Flag to prevent Zeek from exiting automatically when input is exhausted.
+## Normally Zeek terminates when all packet sources have gone dry
+## and communication isn't enabled. If this flag is set, Zeek's main loop will
+## instead keep idling until :zeek:see:`terminate` is explicitly called.
+##
+## This is mainly for testing purposes when termination behaviour needs to be
+## controlled for reproducing results.
+const exit_only_after_terminate = F &redef;
+
+## Default mode for Zeek's user-space dynamic packet filter. If true, packets
+## that aren't explicitly allowed through, are dropped from any further
+## processing.
+##
+## .. note:: This is not the BPF packet filter but an additional dynamic filter
+##    that Zeek optionally applies just before normal processing starts.
+##
+## .. zeek:see:: install_dst_addr_filter install_dst_net_filter
+##    install_src_addr_filter install_src_net_filter  uninstall_dst_addr_filter
+##    uninstall_dst_net_filter uninstall_src_addr_filter uninstall_src_net_filter
+const packet_filter_default = F &redef;
+
+## Maximum size of regular expression groups for signature matching.
+const sig_max_group_size = 50 &redef;
+
+## Description transmitted to remote communication peers for identification.
+const peer_description = "zeek" &redef;
+
+## Reassemble the beginning of all TCP connections before doing
+## signature matching. Enabling this provides more accurate matching at the
+## expense of CPU cycles.
+##
+## .. zeek:see:: dpd_buffer_size
+##    dpd_match_only_beginning dpd_ignore_ports
+##
+## .. note:: Despite the name, this option affects *all* signature matching, not
+##    only signatures used for dynamic protocol detection.
+const dpd_reassemble_first_packets = T &redef;
+
+## Size of per-connection buffer used for dynamic protocol detection. For each
+## connection, Zeek buffers this initial amount of payload in memory so that
+## complete protocol analysis can start even after the initial packets have
+## already passed through (i.e., when a DPD signature matches only later).
+## However, once the buffer is full, data is deleted and lost to analyzers that
+## are activated afterwards. Then only analyzers that can deal with partial
+## connections will be able to analyze the session.
+##
+## .. zeek:see:: dpd_reassemble_first_packets dpd_match_only_beginning
+##    dpd_ignore_ports dpd_max_packets
+const dpd_buffer_size = 1024 &redef;
+
+## Maximum number of per-connection packets that will be buffered for dynamic
+## protocol detection. For each connection, Zeek buffers up to this amount
+## of packets in memory so that complete protocol analysis can start even after
+## the initial packets have already passed through (i.e., when a DPD signature
+## matches only later). However, once the buffer is full, data is deleted and lost
+## to analyzers that are activated afterwards. Then only analyzers that can deal
+## with partial connections will be able to analyze the session.
+##
+## .. zeek:see:: dpd_reassemble_first_packets dpd_match_only_beginning
+##    dpd_ignore_ports dpd_buffer_size
+const dpd_max_packets = 100 &redef;
+
+## If true, stops signature matching if :zeek:see:`dpd_buffer_size` has been
+## reached.
+##
+## .. zeek:see:: dpd_reassemble_first_packets dpd_buffer_size
+##    dpd_ignore_ports
+##
+## .. note:: Despite the name, this option affects *all* signature matching, not
+##    only signatures used for dynamic protocol detection.
+const dpd_match_only_beginning = T &redef;
+
+## If true, stops signature matching after a late match. A late match may occur
+## in case the DPD buffer is exhausted but a protocol signature matched. To
+## allow late matching, :zeek:see:`dpd_match_only_beginning` must be disabled.
+##
+## .. zeek:see:: dpd_reassemble_first_packets dpd_buffer_size
+##    dpd_match_only_beginning
+##
+## .. note:: Despite the name, this option stops *all* signature matching, not
+##    only signatures used for dynamic protocol detection but is triggered by
+##    DPD signatures only.
+const dpd_late_match_stop = F &redef;
+
+## If true, don't consider any ports for deciding which protocol analyzer to
+## use.
+##
+## .. zeek:see:: dpd_reassemble_first_packets dpd_buffer_size
+##    dpd_match_only_beginning
+const dpd_ignore_ports = F &redef;
+
+## Ports which the core considers being likely used by servers. For ports in
+## this set, it may heuristically decide to flip the direction of the
+## connection if it misses the initial handshake.
+const likely_server_ports: set[port] &redef;
+
+## Holds the filename of the trace file given with ``-w`` (empty if none).
+##
+## .. zeek:see:: record_all_packets
+const trace_output_file = "";
+
+## If a trace file is given with ``-w``, dump *all* packets seen by Zeek into it.
+## By default, Zeek applies (very few) heuristics to reduce the volume. A side
+## effect of setting this to true is that we can write the packets out before we
+## actually process them, which can be helpful for debugging in case the
+## analysis triggers a crash.
+##
+## .. zeek:see:: trace_output_file
+const record_all_packets = F &redef;
+
+## Ignore certain TCP retransmissions for :zeek:see:`conn_stats`.  Some
+## connections (e.g., SSH) retransmit the acknowledged last byte to keep the
+## connection alive. If *ignore_keep_alive_rexmit* is set to true, such
+## retransmissions will be excluded in the rexmit counter in
+## :zeek:see:`conn_stats`.
+##
+## .. zeek:see:: conn_stats
+const ignore_keep_alive_rexmit = F &redef;
+
+
+
+## Seed for hashes computed internally for probabilistic data structures. Using
+## the same value here will make the hashes compatible between independent Zeek
+## instances. If left unset, Zeek will use a temporary local seed.
+const global_hash_seed: string = "" &redef;
+
+## Number of bits in UIDs that are generated to identify connections and
+## files.  The larger the value, the more confidence in UID uniqueness.
+## The maximum is currently 128 bits.
+const bits_per_uid: count = 96 &redef;
+
+## This salt value is used for several message digests in Zeek. We
+## use a salt to help mitigate the possibility of an attacker
+## manipulating source data to, e.g., mount complexity attacks or
+## cause ID collisions.
+## This salt is, for example, used by :zeek:see:`get_file_handle`
+## to generate installation-unique file IDs (the *id* field of :zeek:see:`fa_file`).
+const digest_salt = "Please change this value." &redef;
+
+## Maximum string length allowed for calls to the :zeek:see:`find_all` and
+## :zeek:see:`find_all_ordered` BIFs.
+const max_find_all_string_length: int = 10000 &redef;
+
+## How many rounds to go without checking IO sources with file descriptors
+## for readiness by default. This is used when reading from traces.
+##
+## Very roughly, when reading from a pcap, setting this to 100 results in
+## 100 packets being processed without checking FD based IO sources.
+##
+## .. note:: This should not be changed outside of development or when
+##    debugging problems with the main-loop, or developing features with
+##    tight main-loop interaction.
+##
+## .. zeek:see:: io_poll_interval_live
+const io_poll_interval_default = 100 &redef;
+
+## How often to check IO sources with file descriptors for readiness when
+## monitoring with a live packet source.
+##
+## The poll interval gets defaulted to 100 which is good for cases like reading
+## from pcap files and when there isn't a packet source, but is a little too
+## infrequent for live sources (especially fast live sources). Set it down a
+## little bit for those sources.
+##
+## .. note:: This should not be changed outside of development or when
+##    debugging problems with the main-loop, or developing features with
+##    tight main-loop interaction.
+##
+## .. zeek:see:: io_poll_interval_default
+const io_poll_interval_live = 10 &redef;
+
+## Whether Zeek is being run under test. This can be used to alter functionality
+## while testing, but should be used sparingly.
+const running_under_test: bool = F &redef;
+
+module FTP;
+
+## Limits the size of commands accepted by the FTP analyzer. Longer commands
+## raise a FTP_max_command_length_exceeded weird and are discarded.
+const max_command_length = 100 &redef;
+
+module SMTP;
+
+## The maximum line length within a BDAT chunk before a forceful linebreak
+## is introduced and a weird is raised. Conventionally, MIME messages
+## have a maximum line length of 1000 octets when properly encoded.
+const bdat_max_line_length = 4096 &redef;
 
 module TCP;
 export {
@@ -605,18 +808,6 @@ type connection: record {
 	inner_vlan: int &optional;
 };
 
-## Arguments given to Zeek from the command line. In order to use this, Zeek
-## must use a ``--`` command line argument immediately followed by a script
-## file and additional arguments after that. For example::
-##
-##   zeek --bare-mode -- myscript.zeek -a -b -c
-##
-## To use Zeek as an executable interpreter, include a line at the top of a script
-## like the following and make the script executable::
-##
-##   #!/usr/local/zeek/bin/zeek --
-const zeek_script_args: vector of string = vector();
-
 ## Default amount of time a file can be inactive before the file analysis
 ## gives up and discards any internal state related to the file.
 option default_file_timeout_interval: interval = 2 mins;
@@ -703,28 +894,64 @@ type fa_metadata: record {
 	inferred: bool &default=T;
 };
 
-module Analyzer;
-export {
-	## A hook taking a connection, analyzer tag and analyzer id that can be
-	## used to veto disabling protocol analyzers. Specifically, an analyzer
-	## can be prevented from being disabled by using a :zeek:see:`break`
-	## statement within the hook.
-	## This hook is invoked synchronously during a :zeek:see:`disable_analyzer` call.
-	##
-	## Scripts implementing this hook should have other logic that will eventually
-	## disable the analyzer for the given connection. That is, if a script vetoes
-	## disabling an analyzer, it takes responsibility for a later call to
-	## :zeek:see:`disable_analyzer`, which may be never.
-	##
-	## c: The connection
-	##
-	## atype: The type / tag of the analyzer being disabled.
-	##
-	## aid: The analyzer ID.
-	type disabling_analyzer: hook(c: connection, atype: AllAnalyzers::Tag, aid: count) &redef;
-}
 
-module GLOBAL;
+## Generic analyzer confirmation info record.
+##
+## .. zeek:see:: analyzer_confirmation_info
+type AnalyzerConfirmationInfo: record {
+	## The connection related to this confirmation, if any.
+	## This field may be set if there's any connection related information
+	## available for this confirmation. For protocol analyzers it is guaranteed
+	## to be set, but may also be added by file analyzers as additional
+	## contextual information.
+	c: connection &optional;
+
+	## The file object related to this confirmation, if any.
+	f: fa_file &optional;
+
+	## Specific analyzer instance that can be used to reference the analyzer
+	## when using builtin functions like :zeek:id:`disable_analyzer`.
+	aid: count &optional;
+};
+
+## Generic analyzer violation info record.
+##
+## .. zeek:see:: analyzer_violation_info
+type AnalyzerViolationInfo: record {
+	## The reason for the violation - should be user readable.
+	reason: string;
+
+	## The connection related to this violation, if any.
+	## This field may be set if there's any connection related information
+	## available for this violation. For protocol analyzers it is guaranteed
+	## to be set, but may also be added by file analyzers as additional
+	## contextual information.
+	c: connection &optional;
+
+	## The file object related to this violation, if any.
+	f: fa_file &optional;
+
+	## Specific analyzer instance that can be used to reference the analyzer
+	## when using builtin functions like :zeek:id:`disable_analyzer`.
+	aid: count &optional;
+
+	## Piece of binary data that was parsed and caused the violation.
+	data: string &optional;
+};
+
+## The maximum number of analyzer violations the core generates before
+## suppressing them for a given analyzer instance. A weird providing
+## information about the analyzer and connection is generated once the
+## limit is reached.
+##
+## An analyzer generating this many violations is unlikely parsing
+## the right protocol or potentially buggy.
+##
+## See also :zeek:see:`DPD::max_violations` which controls disabling
+## analyzers through script logic after a certain number of violations
+## was observed.
+const max_analyzer_violations = 1000 &redef;
+
 ## Fields of a SYN packet.
 ##
 ## .. zeek:see:: connection_SYN_packet
@@ -2492,63 +2719,501 @@ const RPC_status = {
 	[RPC_UNKNOWN_ERROR] = "unknown"
 };
 
-## Generic analyzer confirmation info record.
+## Write profiling info into this file in regular intervals. The easiest way to
+## activate profiling is loading :doc:`/scripts/policy/misc/profiling.zeek`.
 ##
-## .. zeek:see:: analyzer_confirmation_info
-type AnalyzerConfirmationInfo: record {
-	## The connection related to this confirmation, if any.
-	## This field may be set if there's any connection related information
-	## available for this confirmation. For protocol analyzers it is guaranteed
-	## to be set, but may also be added by file analyzers as additional
-	## contextual information.
-	c: connection &optional;
+## .. zeek:see:: profiling_interval expensive_profiling_multiple
+global profiling_file: file &redef;
 
-	## The file object related to this confirmation, if any.
-	f: fa_file &optional;
+## Update interval for profiling (0 disables).  The easiest way to activate
+## profiling is loading  :doc:`/scripts/policy/misc/profiling.zeek`.
+##
+## .. zeek:see:: profiling_file expensive_profiling_multiple
+const profiling_interval = 0 secs &redef;
 
-	## Specific analyzer instance that can be used to reference the analyzer
-	## when using builtin functions like :zeek:id:`disable_analyzer`.
-	aid: count &optional;
+## Multiples of :zeek:see:`profiling_interval` at which (more expensive) memory
+## profiling is done (0 disables).
+##
+## .. zeek:see:: profiling_interval profiling_file
+const expensive_profiling_multiple = 0 &redef;
+
+## Output modes for packet profiling information.
+##
+## .. zeek:see:: pkt_profile_mode pkt_profile_freq pkt_profile_file
+type pkt_profile_modes: enum {
+	PKT_PROFILE_MODE_NONE,	##< No output.
+	PKT_PROFILE_MODE_SECS,	##< Output every :zeek:see:`pkt_profile_freq` seconds.
+	PKT_PROFILE_MODE_PKTS,	##< Output every :zeek:see:`pkt_profile_freq` packets.
+	PKT_PROFILE_MODE_BYTES,	##< Output every :zeek:see:`pkt_profile_freq` bytes.
 };
 
-## Generic analyzer violation info record.
+## Output mode for packet profiling information.
 ##
-## .. zeek:see:: analyzer_violation_info
-type AnalyzerViolationInfo: record {
-	## The reason for the violation - should be user readable.
-	reason: string;
+## .. zeek:see:: pkt_profile_modes pkt_profile_freq pkt_profile_file
+const pkt_profile_mode = PKT_PROFILE_MODE_NONE &redef;
 
-	## The connection related to this violation, if any.
-	## This field may be set if there's any connection related information
-	## available for this violation. For protocol analyzers it is guaranteed
-	## to be set, but may also be added by file analyzers as additional
-	## contextual information.
-	c: connection &optional;
+## Frequency associated with packet profiling.
+##
+## .. zeek:see:: pkt_profile_modes pkt_profile_mode pkt_profile_file
+const pkt_profile_freq = 0.0 &redef;
 
-	## The file object related to this violation, if any.
-	f: fa_file &optional;
+## File where packet profiles are logged.
+##
+## .. zeek:see:: pkt_profile_modes pkt_profile_freq pkt_profile_mode
+global pkt_profile_file: file &redef;
 
-	## Specific analyzer instance that can be used to reference the analyzer
-	## when using builtin functions like :zeek:id:`disable_analyzer`.
-	aid: count &optional;
 
-	## Piece of binary data that was parsed and caused the violation.
-	data: string &optional;
+## A DNS message.
+##
+## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
+##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
+##    dns_message dns_query_reply dns_rejected dns_request
+type dns_msg: record {
+	id: count;	##< Transaction ID.
+
+	opcode: count;	##< Operation code.
+	rcode: count;	##< Return code.
+
+	QR: bool;	##< Query response flag.
+	AA: bool;	##< Authoritative answer flag.
+	TC: bool;	##< Truncated packet flag.
+	RD: bool;	##< Recursion desired flag.
+	RA: bool;	##< Recursion available flag.
+	Z: count;	##< 3 bit field (includes AD and CD)
+	AD: bool;	##< authentic data
+	CD: bool;	##< checking disabled
+
+	num_queries: count;	##< Number of query records.
+	num_answers: count;	##< Number of answer records.
+	num_auth: count;	##< Number of authoritative records.
+	num_addl: count;	##< Number of additional records.
 };
 
-## The maximum number of analyzer violations the core generates before
-## suppressing them for a given analyzer instance. A weird providing
-## information about the analyzer and connection is generated once the
-## limit is reached.
+## A DNS SOA record.
 ##
-## An analyzer generating this many violations is unlikely parsing
-## the right protocol or potentially buggy.
-##
-## See also :zeek:see:`DPD::max_violations` which controls disabling
-## analyzers through script logic after a certain number of violations
-## was observed.
-const max_analyzer_violations = 1000 &redef;
+## .. zeek:see:: dns_SOA_reply
+type dns_soa: record {
+	mname: string;	##< Primary source of data for zone.
+	rname: string;	##< Mailbox for responsible person.
+	serial: count;	##< Version number of zone.
+	refresh: interval;	##< Seconds before refreshing.
+	retry: interval;	##< How long before retrying failed refresh.
+	expire: interval;	##< When zone no longer authoritative.
+	minimum: interval;	##< Minimum TTL to use when exporting.
+};
 
+## An additional DNS EDNS record.
+##
+## .. zeek:see:: dns_EDNS_addl
+type dns_edns_additional: record {
+	query: string;	##< Query.
+	qtype: count;	##< Query type.
+	t: count;	##< TODO.
+	payload_size: count;	##< TODO.
+	extended_rcode: count;	##< Extended return code.
+	version: count;	##< Version.
+	z_field: count;	##< TODO.
+	TTL: interval;	##< Time-to-live.
+	is_query: count;	##< TODO.
+};
+
+## An DNS EDNS Client Subnet (ECS) record.
+##
+## .. zeek:see:: dns_EDNS_ecs
+type dns_edns_ecs: record {
+	family: string;	##< IP Family
+	source_prefix_len: count;	##< Source Prefix Length.
+	scope_prefix_len: count;	##< Scope Prefix Length.
+	address: addr;	##< Client Subnet Address.
+};
+
+## An DNS EDNS TCP KEEPALIVE (TCP KEEPALIVE) record.
+##
+## .. zeek:see:: dns_EDNS_tcp_keepalive
+type dns_edns_tcp_keepalive: record {
+	keepalive_timeout_omitted: bool;	##< Whether timeout value is omitted.
+	keepalive_timeout: count;	##< Timeout value, in 100ms.
+};
+
+## An DNS EDNS COOKIE (COOKIE) record.
+##
+## .. zeek:see:: dns_EDNS_cookie
+type dns_edns_cookie: record {
+	client_cookie: string;	##< Cookie from the client (fixed 8 bytes).
+	server_cookie: string &default="";	##< Cookie from the server (0 bytes if missing, or 8 to 32 bytes).
+};
+
+## A DNS TKEY record.
+##
+## .. zeek:see:: dns_TKEY
+type dns_tkey: record {
+	query: string;		##< Query.
+	qtype: count;		##< Query type.
+	alg_name: string;	##< Algorithm name.
+	inception: time;	##< Requested or provided start of validity interval for keying material.
+	expiration: time;	##< Requested or provided end of validity interval for keying material.
+	mode: count;		##< Key agreement or purpose of the message.
+	rr_error: count;	##< Error code.
+	key_data: string;	##< Key exchange data field.
+	is_query: count;	##< The RR is a query/Response.
+};
+
+## An additional DNS TSIG record.
+##
+## .. zeek:see:: dns_TSIG_addl
+type dns_tsig_additional: record {
+	query: string;	##< Query.
+	qtype: count;	##< Query type.
+	alg_name: string;	##< Algorithm name.
+	sig: string;	##< Signature.
+	time_signed: time;	##< Time when signed.
+	fudge: time;	##< TODO.
+	orig_id: count;	##< TODO.
+	rr_error: count;	##< TODO.
+	is_query: count;	##< TODO.
+};
+
+## A DNSSEC RRSIG record.
+##
+## .. zeek:see:: dns_RRSIG
+type dns_rrsig_rr: record {
+	query: string;			##< Query.
+	answer_type: count;		##< Ans type.
+	type_covered: count;	##< qtype covered by RRSIG RR.
+	algorithm: count;		##< Algorithm.
+	labels: count;			##< Labels in the owner's name.
+	orig_ttl: interval;		##< Original TTL.
+	sig_exp: time;			##< Time when signed RR expires.
+	sig_incep: time;		##< Time when signed.
+	key_tag: count;			##< Key tag value.
+	signer_name: string;	##< Signature.
+	signature: string;		##< Hash of the RRDATA.
+	is_query: count;		##< The RR is a query/Response.
+};
+
+## A DNSSEC DNSKEY record.
+##
+## .. zeek:see:: dns_DNSKEY
+type dns_dnskey_rr: record {
+	query: string;		##< Query.
+	answer_type: count;	##< Ans type.
+	flags: count;		##< flags filed.
+	protocol: count;	##< Protocol, should be always 3 for DNSSEC.
+	algorithm: count;	##< Algorithm for Public Key.
+	public_key: string;	##< Public Key
+	is_query: count;	##< The RR is a query/Response.
+};
+
+## A DNSSEC NSEC3 record.
+##
+## .. zeek:see:: dns_NSEC3
+type dns_nsec3_rr: record {
+	query: string;			##< Query.
+	answer_type: count;		##< Ans type.
+	nsec_flags: count;		##< flags field.
+	nsec_hash_algo: count;		##< Hash algorithm.
+	nsec_iter: count;		##< Iterations.
+	nsec_salt_len: count; 		##< Salt length.
+	nsec_salt: string;		##< Salt value
+	nsec_hlen: count;		##< Hash length.
+	nsec_hash: string;		##< Hash value.
+	bitmaps: string_vec;		##< Type Bit Maps.
+	is_query: count;		##< The RR is a query/Response.
+};
+
+## A DNSSEC NSEC3PARAM record.
+##
+## .. zeek:see:: dns_NSEC3PARAM
+type dns_nsec3param_rr: record {
+	query: string;			##< Query.
+	answer_type: count;		##< Ans type.
+	nsec_flags: count;		##< flags field.
+	nsec_hash_algo: count;		##< Hash algorithm.
+	nsec_iter: count;		##< Iterations.
+	nsec_salt_len: count; 		##< Salt length.
+	nsec_salt: string;		##< Salt value
+	is_query: count;		##< The RR is a query/Response.
+};
+
+## A DNSSEC DS record.
+##
+## .. zeek:see:: dns_DS
+type dns_ds_rr: record {
+	query: string;		##< Query.
+	answer_type: count;	##< Ans type.
+	key_tag: count;		##< flags filed.
+	algorithm: count;	##< Algorithm for Public Key.
+	digest_type: count;	##< Digest Type.
+	digest_val: string;	##< Digest Value.
+	is_query: count;	##< The RR is a query/Response.
+};
+
+## A Private RR type BINDS record.
+##
+## .. zeek:see:: dns_BINDS
+type dns_binds_rr: record {
+	query: string;		##< Query.
+	answer_type: count;	##< Ans type.
+	algorithm: count;	##< Algorithm for Public Key.
+	key_id: count;		##< key tag.
+	removal_flag: count;	##< rm flag.
+	complte_flag: string &deprecated="Remove in v8.1: Use complete_flag instead.";	##< complete flag.
+	is_query: count;	##< The RR is a query/Response.
+	complete_flag: count;	##< complete flag.
+};
+
+## A Private RR type LOC record.
+##
+## .. zeek:see:: dns_LOC
+type dns_loc_rr: record {
+	query: string;		##< Query.
+	answer_type: count;	##< Ans type.
+	version: count;		##< version number of the representation.
+	size: count;		##< Diameter of a sphere enclosing the entity.
+	horiz_pre: count;	##< The horizontal precision of the data, in centimeters.
+	vert_pre: count;	##< The vertical precision of the data, in centimeters.
+	latitude: count;	##< The latitude of the center of the sphere.
+	longitude: count;	##< The longitude of the center of the sphere.
+	altitude: count;	##< The altitude of the center of the sphere.
+	is_query: count;	##< The RR is a query/Response.
+};
+
+## DNS SVCB and HTTPS RRs
+##
+## .. zeek:see:: dns_SVCB dns_HTTPS
+type dns_svcb_rr: record {
+	svc_priority: count;	##< Service priority for the current record, 0 indicates that this record is in AliasMode and cannot carry svc_params; otherwise this is in ServiceMode, and may include svc_params
+	target_name: string;	##< Target name, the hostname of the service endpoint.
+};
+
+# DNS answer types.
+#
+# .. zeek:see:: dns_answer
+#
+# todo:: use enum to make them autodoc'able
+const DNS_QUERY = 0;	##< A query. This shouldn't occur, just for completeness.
+const DNS_ANS = 1;	##< An answer record.
+const DNS_AUTH = 2;	##< An authoritative record.
+const DNS_ADDL = 3;	##< An additional record.
+
+## The general part of a DNS reply.
+##
+## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply
+##    dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
+##    dns_TXT_reply dns_WKS_reply
+type dns_answer: record {
+	## Answer type. One of :zeek:see:`DNS_QUERY`, :zeek:see:`DNS_ANS`,
+	## :zeek:see:`DNS_AUTH` and :zeek:see:`DNS_ADDL`.
+	answer_type: count;
+	query: string;	##< Query.
+	qtype: count;	##< Query type.
+	qclass: count;	##< Query class.
+	TTL: interval;	##< Time-to-live.
+};
+
+## For DNS servers in these sets, omit processing the AUTH records they include
+## in their replies.
+##
+## .. zeek:see:: dns_skip_all_auth dns_skip_addl
+global dns_skip_auth: set[addr] &redef;
+
+## For DNS servers in these sets, omit processing the ADDL records they include
+## in their replies.
+##
+## .. zeek:see:: dns_skip_all_addl dns_skip_auth
+global dns_skip_addl: set[addr] &redef;
+
+## If true, all DNS AUTH records are skipped.
+##
+## .. zeek:see:: dns_skip_all_addl dns_skip_auth
+global dns_skip_all_auth = T &redef;
+
+## If true, all DNS ADDL records are skipped.
+##
+## .. zeek:see:: dns_skip_all_auth dns_skip_addl
+global dns_skip_all_addl = T &redef;
+
+## If a DNS request includes more than this many queries, assume it's non-DNS
+## traffic and do not process it.  Set to 0 to turn off this functionality.
+global dns_max_queries = 25 &redef;
+
+## HTTP session statistics.
+##
+## .. zeek:see:: http_stats
+type http_stats_rec: record {
+	num_requests: count;	##< Number of requests.
+	num_replies: count;	##< Number of replies.
+	request_version: double;	##< HTTP version of the requests.
+	reply_version: double;	##< HTTP Version of the replies.
+};
+
+## HTTP message statistics.
+##
+## .. zeek:see:: http_message_done
+type http_message_stat: record {
+	## When the request/reply line was complete.
+	start: time;
+	## Whether the message was interrupted.
+	interrupted: bool;
+	## Reason phrase if interrupted.
+	finish_msg: string;
+	## Length of body processed (before finished/interrupted).
+	body_length: count;
+	## Total length of gaps within *body_length*.
+	content_gap_length: count;
+	## Length of headers (including the req/reply line, but not CR/LF's).
+	header_length: count;
+};
+
+## Maximum number of HTTP entity data delivered to events.
+##
+## .. zeek:see:: http_entity_data skip_http_entity_data skip_http_data
+global http_entity_data_delivery_size = 1500 &redef;
+
+## Skip HTTP data for performance considerations. The skipped
+## portion will not go through TCP reassembly.
+##
+## .. zeek:see:: http_entity_data skip_http_entity_data http_entity_data_delivery_size
+const skip_http_data = F &redef;
+
+## Maximum length of HTTP URIs passed to events. Longer ones will be truncated
+## to prevent over-long URIs (usually sent by worms) from slowing down event
+## processing.  A value of -1 means "do not truncate".
+##
+## .. zeek:see:: http_request
+const truncate_http_URI = -1 &redef;
+
+## IRC join information.
+##
+## .. zeek:see:: irc_join_list
+type irc_join_info: record {
+	nick: string;
+	channel: string;
+	password: string;
+	usermode: string;
+};
+
+## Set of IRC join information.
+##
+## .. zeek:see:: irc_join_message
+type irc_join_list: set[irc_join_info];
+
+## Description of a signature match.
+##
+## .. zeek:see:: signature_match
+type signature_state: record {
+	sig_id:       string;	##< ID of the matching signature.
+	conn:         connection;	##< Matching connection.
+	is_orig:      bool;	##< True if matching endpoint is originator.
+	payload_size: count;	##< Payload size of the first matching packet of current endpoint.
+};
+
+## A BitTorrent peer.
+##
+## .. zeek:see:: bittorrent_peer_set
+type bittorrent_peer: record {
+	h: addr;	##< The peer's address.
+	p: port;	##< The peer's port.
+};
+
+## A set of BitTorrent peers.
+##
+## .. zeek:see:: bt_tracker_response
+type bittorrent_peer_set: set[bittorrent_peer];
+
+## BitTorrent "benc" value. Note that "benc" = Bencode ("Bee-Encode"), per
+## http://en.wikipedia.org/wiki/Bencode.
+##
+## .. zeek:see:: bittorrent_benc_dir
+type bittorrent_benc_value: record {
+	i: int &optional;	##< TODO.
+	s: string &optional;	##< TODO.
+	d: string &optional;	##< TODO.
+	l: string &optional;	##< TODO.
+};
+
+## A table of BitTorrent "benc" values.
+##
+## .. zeek:see:: bt_tracker_response
+type bittorrent_benc_dir: table[string] of bittorrent_benc_value;
+
+## Header table type used by BitTorrent analyzer.
+##
+## .. zeek:see:: bt_tracker_request bt_tracker_response
+##    bt_tracker_response_not_ok
+type bt_tracker_headers: table[string] of string;
+
+## A vector of boolean values that indicate the setting
+## for a range of modbus coils.
+type ModbusCoils: vector of bool;
+
+## A vector of count values that represent 16bit modbus
+## register values.
+type ModbusRegisters: vector of count;
+
+type ModbusHeaders: record {
+	## Transaction identifier
+	tid:           count;
+	## Protocol identifier
+	pid:           count;
+	## Unit identifier (previously 'slave address')
+	uid:           count;
+	## MODBUS function code
+	function_code: count;
+	## Length of the application PDU following the header plus
+	## one byte for the uid field.
+	len:           count;
+};
+
+type ModbusFileRecordRequest: record {
+	ref_type: count;
+	file_num: count;
+	record_num: count;
+	record_len: count;
+};
+
+type ModbusFileRecordRequests: vector of ModbusFileRecordRequest;
+
+type ModbusFileRecordResponse: record {
+	file_len: count;
+	ref_type: count;
+	record_data: string;
+};
+
+type ModbusFileRecordResponses: vector of ModbusFileRecordResponse;
+
+type ModbusFileReference: record {
+	ref_type: count;
+	file_num: count;
+	record_num: count;
+	record_len: count;
+	record_data: string;
+};
+
+type ModbusFileReferences: vector of ModbusFileReference;
+
+module Analyzer;
+
+export {
+	## A hook taking a connection, analyzer tag and analyzer id that can be
+	## used to veto disabling protocol analyzers. Specifically, an analyzer
+	## can be prevented from being disabled by using a :zeek:see:`break`
+	## statement within the hook.
+	## This hook is invoked synchronously during a :zeek:see:`disable_analyzer` call.
+	##
+	## Scripts implementing this hook should have other logic that will eventually
+	## disable the analyzer for the given connection. That is, if a script vetoes
+	## disabling an analyzer, it takes responsibility for a later call to
+	## :zeek:see:`disable_analyzer`, which may be never.
+	##
+	## c: The connection
+	##
+	## atype: The type / tag of the analyzer being disabled.
+	##
+	## aid: The analyzer ID.
+	type disabling_analyzer: hook(c: connection, atype: AllAnalyzers::Tag, aid: count) &redef;
+}
 
 module NFS3;
 
@@ -3921,8 +4586,6 @@ export {
 	};
 }
 
-module GLOBAL;
-
 module DHCP;
 
 export {
@@ -4084,343 +4747,6 @@ export {
 	};
 }
 
-module GLOBAL;
-## A DNS message.
-##
-## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
-##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
-##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
-##    dns_message dns_query_reply dns_rejected dns_request
-type dns_msg: record {
-	id: count;	##< Transaction ID.
-
-	opcode: count;	##< Operation code.
-	rcode: count;	##< Return code.
-
-	QR: bool;	##< Query response flag.
-	AA: bool;	##< Authoritative answer flag.
-	TC: bool;	##< Truncated packet flag.
-	RD: bool;	##< Recursion desired flag.
-	RA: bool;	##< Recursion available flag.
-	Z: count;	##< 3 bit field (includes AD and CD)
-	AD: bool;	##< authentic data
-	CD: bool;	##< checking disabled
-
-	num_queries: count;	##< Number of query records.
-	num_answers: count;	##< Number of answer records.
-	num_auth: count;	##< Number of authoritative records.
-	num_addl: count;	##< Number of additional records.
-};
-
-## A DNS SOA record.
-##
-## .. zeek:see:: dns_SOA_reply
-type dns_soa: record {
-	mname: string;	##< Primary source of data for zone.
-	rname: string;	##< Mailbox for responsible person.
-	serial: count;	##< Version number of zone.
-	refresh: interval;	##< Seconds before refreshing.
-	retry: interval;	##< How long before retrying failed refresh.
-	expire: interval;	##< When zone no longer authoritative.
-	minimum: interval;	##< Minimum TTL to use when exporting.
-};
-
-## An additional DNS EDNS record.
-##
-## .. zeek:see:: dns_EDNS_addl
-type dns_edns_additional: record {
-	query: string;	##< Query.
-	qtype: count;	##< Query type.
-	t: count;	##< TODO.
-	payload_size: count;	##< TODO.
-	extended_rcode: count;	##< Extended return code.
-	version: count;	##< Version.
-	z_field: count;	##< TODO.
-	TTL: interval;	##< Time-to-live.
-	is_query: count;	##< TODO.
-};
-
-## An DNS EDNS Client Subnet (ECS) record.
-##
-## .. zeek:see:: dns_EDNS_ecs
-type dns_edns_ecs: record {
-	family: string;	##< IP Family
-	source_prefix_len: count;	##< Source Prefix Length.
-	scope_prefix_len: count;	##< Scope Prefix Length.
-	address: addr;	##< Client Subnet Address.
-};
-
-## An DNS EDNS TCP KEEPALIVE (TCP KEEPALIVE) record.
-##
-## .. zeek:see:: dns_EDNS_tcp_keepalive
-type dns_edns_tcp_keepalive: record {
-	keepalive_timeout_omitted: bool;	##< Whether timeout value is omitted.
-	keepalive_timeout: count;	##< Timeout value, in 100ms.
-};
-
-## An DNS EDNS COOKIE (COOKIE) record.
-##
-## .. zeek:see:: dns_EDNS_cookie
-type dns_edns_cookie: record {
-	client_cookie: string;	##< Cookie from the client (fixed 8 bytes).
-	server_cookie: string &default="";	##< Cookie from the server (0 bytes if missing, or 8 to 32 bytes).
-};
-
-## A DNS TKEY record.
-##
-## .. zeek:see:: dns_TKEY
-type dns_tkey: record {
-	query: string;		##< Query.
-	qtype: count;		##< Query type.
-	alg_name: string;	##< Algorithm name.
-	inception: time;	##< Requested or provided start of validity interval for keying material.
-	expiration: time;	##< Requested or provided end of validity interval for keying material.
-	mode: count;		##< Key agreement or purpose of the message.
-	rr_error: count;	##< Error code.
-	key_data: string;	##< Key exchange data field.
-	is_query: count;	##< The RR is a query/Response.
-};
-
-## An additional DNS TSIG record.
-##
-## .. zeek:see:: dns_TSIG_addl
-type dns_tsig_additional: record {
-	query: string;	##< Query.
-	qtype: count;	##< Query type.
-	alg_name: string;	##< Algorithm name.
-	sig: string;	##< Signature.
-	time_signed: time;	##< Time when signed.
-	fudge: time;	##< TODO.
-	orig_id: count;	##< TODO.
-	rr_error: count;	##< TODO.
-	is_query: count;	##< TODO.
-};
-
-## A DNSSEC RRSIG record.
-##
-## .. zeek:see:: dns_RRSIG
-type dns_rrsig_rr: record {
-	query: string;			##< Query.
-	answer_type: count;		##< Ans type.
-	type_covered: count;	##< qtype covered by RRSIG RR.
-	algorithm: count;		##< Algorithm.
-	labels: count;			##< Labels in the owner's name.
-	orig_ttl: interval;		##< Original TTL.
-	sig_exp: time;			##< Time when signed RR expires.
-	sig_incep: time;		##< Time when signed.
-	key_tag: count;			##< Key tag value.
-	signer_name: string;	##< Signature.
-	signature: string;		##< Hash of the RRDATA.
-	is_query: count;		##< The RR is a query/Response.
-};
-
-## A DNSSEC DNSKEY record.
-##
-## .. zeek:see:: dns_DNSKEY
-type dns_dnskey_rr: record {
-	query: string;		##< Query.
-	answer_type: count;	##< Ans type.
-	flags: count;		##< flags filed.
-	protocol: count;	##< Protocol, should be always 3 for DNSSEC.
-	algorithm: count;	##< Algorithm for Public Key.
-	public_key: string;	##< Public Key
-	is_query: count;	##< The RR is a query/Response.
-};
-
-## A DNSSEC NSEC3 record.
-##
-## .. zeek:see:: dns_NSEC3
-type dns_nsec3_rr: record {
-	query: string;			##< Query.
-	answer_type: count;		##< Ans type.
-	nsec_flags: count;		##< flags field.
-	nsec_hash_algo: count;		##< Hash algorithm.
-	nsec_iter: count;		##< Iterations.
-	nsec_salt_len: count; 		##< Salt length.
-	nsec_salt: string;		##< Salt value
-	nsec_hlen: count;		##< Hash length.
-	nsec_hash: string;		##< Hash value.
-	bitmaps: string_vec;		##< Type Bit Maps.
-	is_query: count;		##< The RR is a query/Response.
-};
-
-## A DNSSEC NSEC3PARAM record.
-##
-## .. zeek:see:: dns_NSEC3PARAM
-type dns_nsec3param_rr: record {
-	query: string;			##< Query.
-	answer_type: count;		##< Ans type.
-	nsec_flags: count;		##< flags field.
-	nsec_hash_algo: count;		##< Hash algorithm.
-	nsec_iter: count;		##< Iterations.
-	nsec_salt_len: count; 		##< Salt length.
-	nsec_salt: string;		##< Salt value
-	is_query: count;		##< The RR is a query/Response.
-};
-
-## A DNSSEC DS record.
-##
-## .. zeek:see:: dns_DS
-type dns_ds_rr: record {
-	query: string;		##< Query.
-	answer_type: count;	##< Ans type.
-	key_tag: count;		##< flags filed.
-	algorithm: count;	##< Algorithm for Public Key.
-	digest_type: count;	##< Digest Type.
-	digest_val: string;	##< Digest Value.
-	is_query: count;	##< The RR is a query/Response.
-};
-
-## A Private RR type BINDS record.
-##
-## .. zeek:see:: dns_BINDS
-type dns_binds_rr: record {
-	query: string;		##< Query.
-	answer_type: count;	##< Ans type.
-	algorithm: count;	##< Algorithm for Public Key.
-	key_id: count;		##< key tag.
-	removal_flag: count;	##< rm flag.
-	complte_flag: string &deprecated="Remove in v8.1: Use complete_flag instead.";	##< complete flag.
-	is_query: count;	##< The RR is a query/Response.
-	complete_flag: count;	##< complete flag.
-};
-
-## A Private RR type LOC record.
-##
-## .. zeek:see:: dns_LOC
-type dns_loc_rr: record {
-	query: string;		##< Query.
-	answer_type: count;	##< Ans type.
-	version: count;		##< version number of the representation.
-	size: count;		##< Diameter of a sphere enclosing the entity.
-	horiz_pre: count;	##< The horizontal precision of the data, in centimeters.
-	vert_pre: count;	##< The vertical precision of the data, in centimeters.
-	latitude: count;	##< The latitude of the center of the sphere.
-	longitude: count;	##< The longitude of the center of the sphere.
-	altitude: count;	##< The altitude of the center of the sphere.
-	is_query: count;	##< The RR is a query/Response.
-};
-
-## DNS SVCB and HTTPS RRs
-##
-## .. zeek:see:: dns_SVCB dns_HTTPS
-type dns_svcb_rr: record {
-	svc_priority: count;	##< Service priority for the current record, 0 indicates that this record is in AliasMode and cannot carry svc_params; otherwise this is in ServiceMode, and may include svc_params
-	target_name: string;	##< Target name, the hostname of the service endpoint.
-};
-
-# DNS answer types.
-#
-# .. zeek:see:: dns_answer
-#
-# todo:: use enum to make them autodoc'able
-const DNS_QUERY = 0;	##< A query. This shouldn't occur, just for completeness.
-const DNS_ANS = 1;	##< An answer record.
-const DNS_AUTH = 2;	##< An authoritative record.
-const DNS_ADDL = 3;	##< An additional record.
-
-## The general part of a DNS reply.
-##
-## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_HINFO_reply
-##    dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply dns_SRV_reply
-##    dns_TXT_reply dns_WKS_reply
-type dns_answer: record {
-	## Answer type. One of :zeek:see:`DNS_QUERY`, :zeek:see:`DNS_ANS`,
-	## :zeek:see:`DNS_AUTH` and :zeek:see:`DNS_ADDL`.
-	answer_type: count;
-	query: string;	##< Query.
-	qtype: count;	##< Query type.
-	qclass: count;	##< Query class.
-	TTL: interval;	##< Time-to-live.
-};
-
-## For DNS servers in these sets, omit processing the AUTH records they include
-## in their replies.
-##
-## .. zeek:see:: dns_skip_all_auth dns_skip_addl
-global dns_skip_auth: set[addr] &redef;
-
-## For DNS servers in these sets, omit processing the ADDL records they include
-## in their replies.
-##
-## .. zeek:see:: dns_skip_all_addl dns_skip_auth
-global dns_skip_addl: set[addr] &redef;
-
-## If true, all DNS AUTH records are skipped.
-##
-## .. zeek:see:: dns_skip_all_addl dns_skip_auth
-global dns_skip_all_auth = T &redef;
-
-## If true, all DNS ADDL records are skipped.
-##
-## .. zeek:see:: dns_skip_all_auth dns_skip_addl
-global dns_skip_all_addl = T &redef;
-
-## If a DNS request includes more than this many queries, assume it's non-DNS
-## traffic and do not process it.  Set to 0 to turn off this functionality.
-global dns_max_queries = 25 &redef;
-
-## HTTP session statistics.
-##
-## .. zeek:see:: http_stats
-type http_stats_rec: record {
-	num_requests: count;	##< Number of requests.
-	num_replies: count;	##< Number of replies.
-	request_version: double;	##< HTTP version of the requests.
-	reply_version: double;	##< HTTP Version of the replies.
-};
-
-## HTTP message statistics.
-##
-## .. zeek:see:: http_message_done
-type http_message_stat: record {
-	## When the request/reply line was complete.
-	start: time;
-	## Whether the message was interrupted.
-	interrupted: bool;
-	## Reason phrase if interrupted.
-	finish_msg: string;
-	## Length of body processed (before finished/interrupted).
-	body_length: count;
-	## Total length of gaps within *body_length*.
-	content_gap_length: count;
-	## Length of headers (including the req/reply line, but not CR/LF's).
-	header_length: count;
-};
-
-## Maximum number of HTTP entity data delivered to events.
-##
-## .. zeek:see:: http_entity_data skip_http_entity_data skip_http_data
-global http_entity_data_delivery_size = 1500 &redef;
-
-## Skip HTTP data for performance considerations. The skipped
-## portion will not go through TCP reassembly.
-##
-## .. zeek:see:: http_entity_data skip_http_entity_data http_entity_data_delivery_size
-const skip_http_data = F &redef;
-
-## Maximum length of HTTP URIs passed to events. Longer ones will be truncated
-## to prevent over-long URIs (usually sent by worms) from slowing down event
-## processing.  A value of -1 means "do not truncate".
-##
-## .. zeek:see:: http_request
-const truncate_http_URI = -1 &redef;
-
-## IRC join information.
-##
-## .. zeek:see:: irc_join_list
-type irc_join_info: record {
-	nick: string;
-	channel: string;
-	password: string;
-	usermode: string;
-};
-
-## Set of IRC join information.
-##
-## .. zeek:see:: irc_join_message
-type irc_join_list: set[irc_join_info];
-
 module PE;
 export {
 type PE::DOSHeader: record {
@@ -4558,102 +4884,6 @@ type PE::SectionHeader: record {
 	characteristics  : set[count];
 };
 }
-module GLOBAL;
-
-## Description of a signature match.
-##
-## .. zeek:see:: signature_match
-type signature_state: record {
-	sig_id:       string;	##< ID of the matching signature.
-	conn:         connection;	##< Matching connection.
-	is_orig:      bool;	##< True if matching endpoint is originator.
-	payload_size: count;	##< Payload size of the first matching packet of current endpoint.
-};
-
-## A BitTorrent peer.
-##
-## .. zeek:see:: bittorrent_peer_set
-type bittorrent_peer: record {
-	h: addr;	##< The peer's address.
-	p: port;	##< The peer's port.
-};
-
-## A set of BitTorrent peers.
-##
-## .. zeek:see:: bt_tracker_response
-type bittorrent_peer_set: set[bittorrent_peer];
-
-## BitTorrent "benc" value. Note that "benc" = Bencode ("Bee-Encode"), per
-## http://en.wikipedia.org/wiki/Bencode.
-##
-## .. zeek:see:: bittorrent_benc_dir
-type bittorrent_benc_value: record {
-	i: int &optional;	##< TODO.
-	s: string &optional;	##< TODO.
-	d: string &optional;	##< TODO.
-	l: string &optional;	##< TODO.
-};
-
-## A table of BitTorrent "benc" values.
-##
-## .. zeek:see:: bt_tracker_response
-type bittorrent_benc_dir: table[string] of bittorrent_benc_value;
-
-## Header table type used by BitTorrent analyzer.
-##
-## .. zeek:see:: bt_tracker_request bt_tracker_response
-##    bt_tracker_response_not_ok
-type bt_tracker_headers: table[string] of string;
-
-## A vector of boolean values that indicate the setting
-## for a range of modbus coils.
-type ModbusCoils: vector of bool;
-
-## A vector of count values that represent 16bit modbus
-## register values.
-type ModbusRegisters: vector of count;
-
-type ModbusHeaders: record {
-	## Transaction identifier
-	tid:           count;
-	## Protocol identifier
-	pid:           count;
-	## Unit identifier (previously 'slave address')
-	uid:           count;
-	## MODBUS function code
-	function_code: count;
-	## Length of the application PDU following the header plus
-	## one byte for the uid field.
-	len:           count;
-};
-
-type ModbusFileRecordRequest: record {
-	ref_type: count;
-	file_num: count;
-	record_num: count;
-	record_len: count;
-};
-
-type ModbusFileRecordRequests: vector of ModbusFileRecordRequest;
-
-type ModbusFileRecordResponse: record {
-	file_len: count;
-	ref_type: count;
-	record_data: string;
-};
-
-type ModbusFileRecordResponses: vector of ModbusFileRecordResponse;
-
-type ModbusFileReference: record {
-	ref_type: count;
-	file_num: count;
-	record_num: count;
-	record_len: count;
-	record_data: string;
-};
-
-type ModbusFileReferences: vector of ModbusFileReference;
-
 
 module SSL;
 export {
@@ -5192,191 +5422,6 @@ export {
 		ticket			: KRB::Ticket;
 	};
 }
-
-module GLOBAL;
-
-@load base/bif/event.bif
-
-## BPF filter the user has set via the -f command line options. Empty if none.
-const cmd_line_bpf_filter = "" &redef;
-
-## Base time of log rotations in 24-hour time format (``%H:%M``), e.g. "12:00".
-const log_rotate_base_time = "0:00" &redef;
-
-## Write profiling info into this file in regular intervals. The easiest way to
-## activate profiling is loading :doc:`/scripts/policy/misc/profiling.zeek`.
-##
-## .. zeek:see:: profiling_interval expensive_profiling_multiple
-global profiling_file: file &redef;
-
-## Update interval for profiling (0 disables).  The easiest way to activate
-## profiling is loading  :doc:`/scripts/policy/misc/profiling.zeek`.
-##
-## .. zeek:see:: profiling_file expensive_profiling_multiple
-const profiling_interval = 0 secs &redef;
-
-## Multiples of :zeek:see:`profiling_interval` at which (more expensive) memory
-## profiling is done (0 disables).
-##
-## .. zeek:see:: profiling_interval profiling_file
-const expensive_profiling_multiple = 0 &redef;
-
-## Output modes for packet profiling information.
-##
-## .. zeek:see:: pkt_profile_mode pkt_profile_freq pkt_profile_file
-type pkt_profile_modes: enum {
-	PKT_PROFILE_MODE_NONE,	##< No output.
-	PKT_PROFILE_MODE_SECS,	##< Output every :zeek:see:`pkt_profile_freq` seconds.
-	PKT_PROFILE_MODE_PKTS,	##< Output every :zeek:see:`pkt_profile_freq` packets.
-	PKT_PROFILE_MODE_BYTES,	##< Output every :zeek:see:`pkt_profile_freq` bytes.
-};
-
-## Output mode for packet profiling information.
-##
-## .. zeek:see:: pkt_profile_modes pkt_profile_freq pkt_profile_file
-const pkt_profile_mode = PKT_PROFILE_MODE_NONE &redef;
-
-## Frequency associated with packet profiling.
-##
-## .. zeek:see:: pkt_profile_modes pkt_profile_mode pkt_profile_file
-const pkt_profile_freq = 0.0 &redef;
-
-## File where packet profiles are logged.
-##
-## .. zeek:see:: pkt_profile_modes pkt_profile_freq pkt_profile_mode
-global pkt_profile_file: file &redef;
-
-## Whether to attempt to automatically detect SYN/FIN/RST-filtered trace
-## and not report missing segments for such connections.
-## If this is enabled, then missing data at the end of connections may not
-## be reported via :zeek:see:`content_gap`.
-const detect_filtered_trace = F &redef;
-
-## Whether we want :zeek:see:`content_gap` for partial
-## connections. A connection is partial if it is missing a full handshake. Note
-## that gap reports for partial connections might not be reliable.
-##
-## .. zeek:see:: content_gap partial_connection
-const report_gaps_for_partial = F &redef;
-
-## Flag to prevent Zeek from exiting automatically when input is exhausted.
-## Normally Zeek terminates when all packet sources have gone dry
-## and communication isn't enabled. If this flag is set, Zeek's main loop will
-## instead keep idling until :zeek:see:`terminate` is explicitly called.
-##
-## This is mainly for testing purposes when termination behaviour needs to be
-## controlled for reproducing results.
-const exit_only_after_terminate = F &redef;
-
-## Default mode for Zeek's user-space dynamic packet filter. If true, packets
-## that aren't explicitly allowed through, are dropped from any further
-## processing.
-##
-## .. note:: This is not the BPF packet filter but an additional dynamic filter
-##    that Zeek optionally applies just before normal processing starts.
-##
-## .. zeek:see:: install_dst_addr_filter install_dst_net_filter
-##    install_src_addr_filter install_src_net_filter  uninstall_dst_addr_filter
-##    uninstall_dst_net_filter uninstall_src_addr_filter uninstall_src_net_filter
-const packet_filter_default = F &redef;
-
-## Maximum size of regular expression groups for signature matching.
-const sig_max_group_size = 50 &redef;
-
-## Description transmitted to remote communication peers for identification.
-const peer_description = "zeek" &redef;
-
-## Reassemble the beginning of all TCP connections before doing
-## signature matching. Enabling this provides more accurate matching at the
-## expense of CPU cycles.
-##
-## .. zeek:see:: dpd_buffer_size
-##    dpd_match_only_beginning dpd_ignore_ports
-##
-## .. note:: Despite the name, this option affects *all* signature matching, not
-##    only signatures used for dynamic protocol detection.
-const dpd_reassemble_first_packets = T &redef;
-
-## Size of per-connection buffer used for dynamic protocol detection. For each
-## connection, Zeek buffers this initial amount of payload in memory so that
-## complete protocol analysis can start even after the initial packets have
-## already passed through (i.e., when a DPD signature matches only later).
-## However, once the buffer is full, data is deleted and lost to analyzers that
-## are activated afterwards. Then only analyzers that can deal with partial
-## connections will be able to analyze the session.
-##
-## .. zeek:see:: dpd_reassemble_first_packets dpd_match_only_beginning
-##    dpd_ignore_ports dpd_max_packets
-const dpd_buffer_size = 1024 &redef;
-
-## Maximum number of per-connection packets that will be buffered for dynamic
-## protocol detection. For each connection, Zeek buffers up to this amount
-## of packets in memory so that complete protocol analysis can start even after
-## the initial packets have already passed through (i.e., when a DPD signature
-## matches only later). However, once the buffer is full, data is deleted and lost
-## to analyzers that are activated afterwards. Then only analyzers that can deal
-## with partial connections will be able to analyze the session.
-##
-## .. zeek:see:: dpd_reassemble_first_packets dpd_match_only_beginning
-##    dpd_ignore_ports dpd_buffer_size
-const dpd_max_packets = 100 &redef;
-
-## If true, stops signature matching if :zeek:see:`dpd_buffer_size` has been
-## reached.
-##
-## .. zeek:see:: dpd_reassemble_first_packets dpd_buffer_size
-##    dpd_ignore_ports
-##
-## .. note:: Despite the name, this option affects *all* signature matching, not
-##    only signatures used for dynamic protocol detection.
-const dpd_match_only_beginning = T &redef;
-
-## If true, stops signature matching after a late match. A late match may occur
-## in case the DPD buffer is exhausted but a protocol signature matched. To
-## allow late matching, :zeek:see:`dpd_match_only_beginning` must be disabled.
-##
-## .. zeek:see:: dpd_reassemble_first_packets dpd_buffer_size
-##    dpd_match_only_beginning
-##
-## .. note:: Despite the name, this option stops *all* signature matching, not
-##    only signatures used for dynamic protocol detection but is triggered by
-##    DPD signatures only.
-const dpd_late_match_stop = F &redef;
-
-## If true, don't consider any ports for deciding which protocol analyzer to
-## use.
-##
-## .. zeek:see:: dpd_reassemble_first_packets dpd_buffer_size
-##    dpd_match_only_beginning
-const dpd_ignore_ports = F &redef;
-
-## Ports which the core considers being likely used by servers. For ports in
-## this set, it may heuristically decide to flip the direction of the
-## connection if it misses the initial handshake.
-const likely_server_ports: set[port] &redef;
-
-## Holds the filename of the trace file given with ``-w`` (empty if none).
-##
-## .. zeek:see:: record_all_packets
-const trace_output_file = "";
-
-## If a trace file is given with ``-w``, dump *all* packets seen by Zeek into it.
-## By default, Zeek applies (very few) heuristics to reduce the volume. A side
-## effect of setting this to true is that we can write the packets out before we
-## actually process them, which can be helpful for debugging in case the
-## analysis triggers a crash.
-##
-## .. zeek:see:: trace_output_file
-const record_all_packets = F &redef;
-
-## Ignore certain TCP retransmissions for :zeek:see:`conn_stats`.  Some
-## connections (e.g., SSH) retransmit the acknowledged last byte to keep the
-## connection alive. If *ignore_keep_alive_rexmit* is set to true, such
-## retransmissions will be excluded in the rexmit counter in
-## :zeek:see:`conn_stats`.
-##
-## .. zeek:see:: conn_stats
-const ignore_keep_alive_rexmit = F &redef;
 
 module JSON;
 export {
@@ -6134,59 +6179,7 @@ export {
 
 module GLOBAL;
 
-## Seed for hashes computed internally for probabilistic data structures. Using
-## the same value here will make the hashes compatible between independent Zeek
-## instances. If left unset, Zeek will use a temporary local seed.
-const global_hash_seed: string = "" &redef;
-
-## Number of bits in UIDs that are generated to identify connections and
-## files.  The larger the value, the more confidence in UID uniqueness.
-## The maximum is currently 128 bits.
-const bits_per_uid: count = 96 &redef;
-
-## This salt value is used for several message digests in Zeek. We
-## use a salt to help mitigate the possibility of an attacker
-## manipulating source data to, e.g., mount complexity attacks or
-## cause ID collisions.
-## This salt is, for example, used by :zeek:see:`get_file_handle`
-## to generate installation-unique file IDs (the *id* field of :zeek:see:`fa_file`).
-const digest_salt = "Please change this value." &redef;
-
-## Maximum string length allowed for calls to the :zeek:see:`find_all` and
-## :zeek:see:`find_all_ordered` BIFs.
-const max_find_all_string_length: int = 10000 &redef;
-
-## How many rounds to go without checking IO sources with file descriptors
-## for readiness by default. This is used when reading from traces.
-##
-## Very roughly, when reading from a pcap, setting this to 100 results in
-## 100 packets being processed without checking FD based IO sources.
-##
-## .. note:: This should not be changed outside of development or when
-##    debugging problems with the main-loop, or developing features with
-##    tight main-loop interaction.
-##
-## .. zeek:see:: io_poll_interval_live
-const io_poll_interval_default = 100 &redef;
-
-## How often to check IO sources with file descriptors for readiness when
-## monitoring with a live packet source.
-##
-## The poll interval gets defaulted to 100 which is good for cases like reading
-## from pcap files and when there isn't a packet source, but is a little too
-## infrequent for live sources (especially fast live sources). Set it down a
-## little bit for those sources.
-##
-## .. note:: This should not be changed outside of development or when
-##    debugging problems with the main-loop, or developing features with
-##    tight main-loop interaction.
-##
-## .. zeek:see:: io_poll_interval_default
-const io_poll_interval_live = 10 &redef;
-
-## Whether Zeek is being run under test. This can be used to alter functionality
-## while testing, but should be used sparingly.
-const running_under_test: bool = F &redef;
+@load base/bif/event.bif
 
 global done_with_network = F;
 event net_done(t: time)

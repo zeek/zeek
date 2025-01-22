@@ -23,9 +23,9 @@ scripts/base/init-bare.zeek
   build/scripts/base/bif/mmdb.bif.zeek
   build/scripts/base/bif/plugins/Zeek_SNMP.types.bif.zeek
   build/scripts/base/bif/plugins/Zeek_KRB.types.bif.zeek
-  build/scripts/base/bif/event.bif.zeek
   build/scripts/base/bif/telemetry_functions.bif.zeek
   build/scripts/base/bif/telemetry_types.bif.zeek
+  build/scripts/base/bif/event.bif.zeek
   scripts/base/packet-protocols/__load__.zeek
     scripts/base/packet-protocols/main.zeek
       scripts/base/frameworks/analyzer/main.zeek

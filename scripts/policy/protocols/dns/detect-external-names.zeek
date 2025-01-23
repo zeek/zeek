@@ -15,11 +15,17 @@ export {
 		## **must** be set appropriately for this detection.
 		External_Name,
 		};
+
+	## Default is to ignore mDNS broadcasts.
+	option skip_resp_host_port_pairs: set[addr, port] = { [[224.0.0.251, [ff02::fb]], 5353/udp] };
 }
 
 event dns_A_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=-3
 	{
 	if ( |Site::local_zones| == 0 )
+		return;
+
+	if ( [c$id$resp_h, c$id$resp_p] in skip_resp_host_port_pairs )
 		return;
 
 	# Check for responses from remote hosts that point at local hosts

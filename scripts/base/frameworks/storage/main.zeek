@@ -9,47 +9,49 @@ export {
 	type PutArgs: record {
 		backend: opaque of Storage::BackendHandle;
 
-		# The script-level type of keys stored in the backend. Used for
-		# validation of keys passed to other framework methods.
+		# The key to store the value under.
 		key: any;
 
-		# The script-level type of keys stored in the backend. Used for
-		# validation of values passed to :zeek:see:`Storage::put` as
-		# well for type conversions for return values from
-		# :zeek:see:`Storage::get`.
+		# The value to store associated with the key.
 		value: any;
 
-		# Indicates whether this value should overwrite an existing entry
-		# for the key.
+		# Indicates whether this value should overwrite an existing entry for the
+		# key.
 		overwrite: bool &default=F;
 
 		# An interval of time until the entry is automatically removed from the
 		# backend.
 		expire_time: interval &default=0sec;
 
-		# Indicates whether this operation should happen
-		# asynchronously. If this is true, the call to put must happen
-		# as part of a when statement. This flag is overridden when
-		# reading pcaps, since time won't move forward the same as when
-		# caputring live traffic.
+		# Indicates whether this operation should happen asynchronously. If this
+		# is true, the call to put must happen as part of a :zeek:see:`when`
+		# statement. This flag is overridden and set to F when reading pcaps,
+		# since time won't move forward the same as when caputring live traffic.
 		async_mode: bool &default=T;
 	};
 
 	## Opens a new backend connection based on a configuration object.
 	##
-	## btype: A tag indicating what type of backend should be opened.
+	## btype: A tag indicating what type of backend should be opened. These are defined
+	##        by the backend plugins loaded.
 	##
 	## config: A record containing the configuration for the connection.
 	##
-	## key_type: The Val type of the key being stored.
+	## key_type: The script-level type of keys stored in the backend. Used for
+	##           validation of keys passed to other framework methods.
 	##
-	## val_type: The Val type of the key being stored.
+	## val_type: The script-level type of keys stored in the backend. Used for
+	##           validation of values passed to :zeek:see:`Storage::put` as well as
+	##           for type conversions for return values from
+	##           :zeek:see:`Storage::get`.
 	##
-	## async_mode: Indicates whether this operation should happen
-	##             asynchronously. If this is T, the call must happen as
-	##             part of a :zeek:see:`when` statement.
+	## async_mode: Indicates whether this operation should happen asynchronously. If
+	##             this is T, the call must happen as part of a :zeek:see:`when`
+	##             statement. This flag is overridden and set to F when reading pcaps,
+	##             since time won't move forward the same as when caputring live
+	##             traffic.
 	##
-	## Returns: A handle to the new backend connection, or null if the
+	## Returns: A handle to the new backend connection or F if the
 	##          connection failed.
 	global open_backend: function(btype: Storage::Backend, config: any, key_type: any,
 	                              val_type: any, async_mode: bool &default=F): opaque of Storage::BackendHandle;
@@ -58,9 +60,11 @@ export {
 	##
 	## backend: A handle to a backend connection.
 	##
-	## async_mode: Indicates whether this operation should happen
-	##             asynchronously. If this is T, the call must happen as
-	##             part of a :zeek:see:`when` statement.
+	## async_mode: Indicates whether this operation should happen asynchronously. If
+	##             this is T, the call must happen as part of a :zeek:see:`when`
+	##             statement. This flag is overridden and set to F when reading pcaps,
+	##             since time won't move forward the same as when caputring live
+	##             traffic.
 	##
 	## Returns: A boolean indicating success or failure of the operation.
 	global close_backend: function(backend: opaque of Storage::BackendHandle, async_mode: bool &default=F): bool;
@@ -79,14 +83,16 @@ export {
 	##
 	## key: The key to look up.
 	##
-	## async_mode: Indicates whether this operation should happen
-	##             asynchronously. If this is T, the call must happen as
-	##             part of a :zeek:see:`when` statement.
+	## async_mode: Indicates whether this operation should happen asynchronously. If
+	##             this is T, the call must happen as part of a :zeek:see:`when`
+	##             statement. This flag is overridden and set to F when reading pcaps,
+	##             since time won't move forward the same as when caputring live
+	##             traffic.
 	##
-	## Returns: A boolean indicating success or failure of the operation.
-	##          Type comparison failures against the types passed to
-	##          :zeek:see:`Storage::open_backend` for the backend will cause
-	##          false to be returned.
+	## Returns: A record containing the value requested or an error string. The caller
+	##          should check the validity of the value before attempting to use it. If
+	##          the value is unset, an error string may be available to describe the
+	##          failure.
 	global get: function(backend: opaque of Storage::BackendHandle, key: any,
 			     async_mode: bool &default=T): val_result;
 
@@ -96,9 +102,11 @@ export {
 	##
 	## key: The key to erase.
 	##
-	## async_mode: Indicates whether this operation should happen
-	##             asynchronously. If this is T, the call must happen as
-	##             part of a :zeek:see:`when` statement.
+	## async_mode: Indicates whether this operation should happen asynchronously. If
+	##             this is T, the call must happen as part of a :zeek:see:`when`
+	##             statement. This flag is overridden and set to F when reading pcaps,
+	##             since time won't move forward the same as when caputring live
+	##             traffic.
 	##
 	## Returns: A boolean indicating success or failure of the operation.
 	##          Type comparison failures against the types passed to

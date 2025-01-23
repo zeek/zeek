@@ -1,3 +1,17 @@
+7.2.0-dev.113 | 2025-01-23 11:49:23 -0700
+
+  * Fix options parsing segfault (Evan Typanski, Corelight)
+
+    A command like this would segfault:
+
+    zeek -b test.zeek --debug
+
+    The issue was that `getopt_long` was using a null element to determine
+    what the end of the options array is. If it saw a non-null element after
+    `--debug` it would say it's the argument for optarg, even if it's beyond
+    `zeek_args.size()`. Instead, just make sure the array is
+    null-terminated.
+
 7.2.0-dev.111 | 2025-01-23 11:21:21 -0700
 
   * Minor whitespace cleanup in init-bare.zeek (Tim Wojtulewicz, Corelight)

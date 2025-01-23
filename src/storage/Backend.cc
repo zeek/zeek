@@ -40,14 +40,13 @@ void ErrorResultCallback::Complete(const ErrorResult& res) {
 }
 
 void ValResultCallback::Complete(const ValResult& res) {
-    zeek::Val* result;
+    static auto val_result_type = zeek::id::find_type<zeek::RecordType>("val_result");
+    auto* result = new zeek::RecordVal(val_result_type);
 
-    if ( res ) {
-        result = res.value().get();
-        Ref(result);
-    }
+    if ( res )
+        result->Assign(0, {NewRef{}, res.value().get()});
     else
-        result = new StringVal(res.error());
+        result->Assign(1, zeek::make_intrusive<StringVal>(res.error()));
 
     ValComplete(result);
 }

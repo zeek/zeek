@@ -1,0 +1,251 @@
+%%{
+#include "zeek/storage/Backend.h"
+#include "zeek/storage/Manager.h"
+#include "zeek/Trigger.h"
+#include "zeek/Frame.h"
+
+static zeek::detail::trigger::Trigger* init_trigger(zeek::detail::Frame* frame, const zeek::storage::BackendPtr& b) {
+	if ( ! b->SupportsAsync() ) {
+		zeek::emit_builtin_error("Async mode requested but backend does not support async operations");
+		return nullptr;
+	}
+
+	auto trigger = frame->GetTrigger();
+
+	if ( ! trigger ) {
+		zeek::emit_builtin_error("Async storage operations can only be called inside when-conditions");
+		return nullptr;
+	}
+
+	if ( auto timeout = trigger->TimeoutValue(); timeout < 0 ) {
+		zeek::emit_builtin_error("Async Storage operations must specify a timeout block");
+		return nullptr;
+	}
+
+	frame->SetDelayed();
+	trigger->Hold();
+
+	return trigger;
+}
+%%}
+
+module Storage;
+
+# Generated when a new backend connection is opened
+event Storage::storage_connection_established%(%);
+
+# Generated when a backend connection is lost
+event Storage::storage_connection_lost%(%);
+
+function Storage::__open_backend%(btype: Storage::Backend, config: any, key_type: any, val_type: any, async_mode: bool%): opaque of Storage::BackendHandle
+	%{
+    // TODO: this doesn't feel right. I could probably fix this to just always generate the callback
+    // and have it just automatically return if the operation isn't async, but it might take a little
+    // rework.
+	if ( ! async_mode && frame->GetTrigger() ) {
+		zeek::emit_builtin_error("Synchronous operations must be called outside when-conditions");
+		return zeek::val_mgr->Bool(false);
+	}
+
+	auto btype_val = zeek::IntrusivePtr<zeek::EnumVal>{NewRef{}, btype->AsEnumVal()};
+	zeek::Tag tag{btype_val};
+
+	auto kt = key_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
+	auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
+
+	auto b = storage_mgr->Instantiate(tag);
+
+	if ( ! b.has_value() ) {
+		zeek::emit_builtin_error(b.error().c_str());
+		return zeek::val_mgr->Bool(false);
+	}
+	auto bo = zeek::make_intrusive<zeek::storage::detail::BackendHandleVal>(b.value());
+	zeek::storage::OpenResultCallback* cb = nullptr;
+
+	if ( async_mode ) {
+		auto trigger = init_trigger(frame, b.value());
+		if ( ! trigger )
+			return zeek::val_mgr->Bool(false);
+
+		cb = new zeek::storage::OpenResultCallback(trigger, frame->GetTriggerAssoc(), bo.release());
+	}
+
+	auto config_val = zeek::IntrusivePtr<zeek::RecordVal>{NewRef{}, config->AsRecordVal()};
+	auto open_res = storage_mgr->OpenBackend(b.value(), config_val, kt, vt, cb);
+
+	if ( async_mode )
+		return nullptr;
+
+	if ( open_res.has_value() ) {
+		zeek::emit_builtin_error(open_res.value().c_str());
+		return zeek::val_mgr->Bool(false);
+	}
+
+	return bo;
+	%}
+
+function Storage::__close_backend%(backend: opaque of Storage::BackendHandle, async_mode: bool%) : bool
+	%{
+	if ( ! async_mode && frame->GetTrigger() ) {
+		zeek::emit_builtin_error("Synchronous operations must be called outside when-conditions");
+		return zeek::val_mgr->Bool(false);
+	}
+
+	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
+	if ( ! b ) {
+		zeek::emit_builtin_error("Invalid storage handle", backend);
+		return zeek::val_mgr->Bool(false);
+	}
+	else if ( ! b->backend->IsOpen() )
+		return zeek::val_mgr->Bool(true);
+
+	zeek::storage::ErrorResultCallback* cb = nullptr;
+
+	if ( async_mode ) {
+		auto trigger = init_trigger(frame, b->backend);
+		if ( ! trigger )
+			return zeek::val_mgr->Bool(false);
+
+		cb = new zeek::storage::ErrorResultCallback(trigger, frame->GetTriggerAssoc());
+	}
+
+	auto result = storage_mgr->CloseBackend(b->backend, cb);
+
+	if ( async_mode )
+		return nullptr;
+
+	if ( result.has_value() ) {
+		zeek::emit_builtin_error(result.value().c_str());
+		return zeek::val_mgr->Bool(false);
+	}
+
+	return zeek::val_mgr->Bool(true);
+	%}
+
+function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, value: any,
+                         overwrite: bool, expire_time: interval, async_mode: bool &default=T%): bool
+	%{
+	if ( ! async_mode && frame->GetTrigger() ) {
+		zeek::emit_builtin_error("Synchronous operations must be called outside when-conditions");
+		return zeek::val_mgr->Bool(false);
+	}
+
+	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
+	if ( ! b ) {
+		zeek::emit_builtin_error("Invalid storage handle", backend);
+		return zeek::val_mgr->Bool(false);
+	}
+	else if ( ! b->backend->IsOpen() )
+		return zeek::val_mgr->Bool(false);
+
+	zeek::storage::ErrorResultCallback* cb = nullptr;
+
+	if ( async_mode ) {
+		auto trigger = init_trigger(frame, b->backend);
+		if ( ! trigger )
+			return zeek::val_mgr->Bool(false);
+
+		cb = new zeek::storage::ErrorResultCallback(trigger, frame->GetTriggerAssoc());
+	}
+
+	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
+	auto val_v = zeek::IntrusivePtr<Val>{NewRef{}, value};
+	auto result = b->backend->Put(key_v, val_v, overwrite, expire_time, cb);
+
+	if ( async_mode )
+		return nullptr;
+
+	if ( result.has_value() ) {
+		zeek::emit_builtin_error(zeek::util::fmt("Failed to store data: %s", result.value().c_str()));
+		return zeek::val_mgr->Bool(false);
+	}
+
+	return zeek::val_mgr->Bool(true);
+	%}
+
+function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T%): val_result
+	%{
+	static auto val_result_type = zeek::id::find_type<zeek::RecordType>("val_result");
+	auto val_result = zeek::make_intrusive<zeek::RecordVal>(val_result_type);
+
+	if ( ! async_mode && frame->GetTrigger() ) {
+    	val_result->Assign(1, zeek::make_intrusive<StringVal>("Synchronous operations must be called outside when-conditions"));
+        return val_result;
+	}
+
+	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
+	if ( ! b ) {
+    	val_result->Assign(1, zeek::make_intrusive<StringVal>("Invalid storage handlle"));
+        return val_result;
+	}
+	else if ( ! b->backend->IsOpen() ) {
+    	val_result->Assign(1, zeek::make_intrusive<StringVal>("Backend is closed"));
+        return val_result;
+	}
+
+	zeek::storage::ValResultCallback* cb = nullptr;
+
+	if ( async_mode ) {
+		auto trigger = init_trigger(frame, b->backend);
+		if ( ! trigger ) {
+	    	val_result->Assign(1, zeek::make_intrusive<StringVal>("Failed to create trigger"));
+            return val_result;
+        }
+
+		cb = new zeek::storage::ValResultCallback(trigger, frame->GetTriggerAssoc());
+	}
+
+	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
+	auto result = b->backend->Get(key_v, cb);
+
+	if ( async_mode )
+	   return nullptr;
+
+	if ( ! result.has_value() ) {
+    	val_result->Assign(1, zeek::make_intrusive<StringVal>(
+			zeek::util::fmt("Failed to retrieve data: %s", result.error().c_str())));
+        return val_result;
+	}
+
+    val_result->Assign(0, result.value());
+    return val_result;
+	%}
+
+function Storage::__erase%(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T%): bool
+	%{
+	if ( ! async_mode && frame->GetTrigger() ) {
+		zeek::emit_builtin_error("Synchronous operations must be called outside when-conditions");
+		return zeek::val_mgr->Bool(false);
+	}
+
+	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
+	if ( ! b ) {
+		zeek::emit_builtin_error("Invalid storage handle", backend);
+		return zeek::val_mgr->Bool(false);
+	}
+	else if ( ! b->backend->IsOpen() )
+		return zeek::val_mgr->Bool(false);
+
+	zeek::storage::ErrorResultCallback* cb = nullptr;
+
+	if ( async_mode ) {
+		auto trigger = init_trigger(frame, b->backend);
+		if ( ! trigger )
+			return zeek::val_mgr->Bool(false);
+
+		cb = new zeek::storage::ErrorResultCallback(trigger, frame->GetTriggerAssoc());
+	}
+
+	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
+	auto result = b->backend->Erase(key_v, cb);
+
+	if ( async_mode )
+	   return nullptr;
+
+	if ( result.has_value() ) {
+		zeek::emit_builtin_error(zeek::util::fmt("Failed to erase data for key: %s", result.value().c_str()));
+		return zeek::val_mgr->Bool(false);
+	}
+
+	return zeek::val_mgr->Bool(true);
+	%}

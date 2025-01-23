@@ -341,6 +341,7 @@ add_zeek_dynamic_plugin_build_interface_include_directories(
     ${PROJECT_SOURCE_DIR}/auxil/broker/libbroker
     ${PROJECT_SOURCE_DIR}/auxil/paraglob/include
     ${PROJECT_SOURCE_DIR}/auxil/prometheus-cpp/core/include
+    ${PROJECT_SOURCE_DIR}/auxil/expected-lite/include
     ${CMAKE_BINARY_DIR}/src
     ${CMAKE_BINARY_DIR}/src/include
     ${CMAKE_BINARY_DIR}/auxil/binpac/lib
@@ -350,6 +351,10 @@ add_zeek_dynamic_plugin_build_interface_include_directories(
 target_include_directories(
     zeek_dynamic_plugin_base SYSTEM
     INTERFACE $<INSTALL_INTERFACE:include/zeek/3rdparty/prometheus-cpp/include>)
+
+target_include_directories(
+    zeek_dynamic_plugin_base SYSTEM
+    INTERFACE $<INSTALL_INTERFACE:include/zeek/3rdparty/expected-lite/include>)
 
 # Convenience function for adding an OBJECT library that feeds directly into the
 # main target(s).
@@ -1014,6 +1019,9 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/prometheus-cpp/core/include/
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/auxil/prometheus-cpp/core/include/prometheus
         DESTINATION include/zeek/3rdparty/prometheus-cpp/include)
 
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/expected-lite/include
+        DESTINATION include/zeek/3rdparty/expected-lite/include)
+
 # Create 3rdparty/ghc within the build directory so that the include for
 # "zeek/3rdparty/ghc/filesystem.hpp" works within the build tree.
 execute_process(COMMAND "${CMAKE_COMMAND}" -E make_directory
@@ -1127,6 +1135,7 @@ include(FindKqueue)
 
 include(FindPrometheusCpp)
 include_directories(BEFORE "auxil/out_ptr/include")
+include_directories(BEFORE "auxil/expected-lite/include")
 
 if ((OPENSSL_VERSION VERSION_EQUAL "1.1.0") OR (OPENSSL_VERSION VERSION_GREATER "1.1.0"))
     set(ZEEK_HAVE_OPENSSL_1_1 true CACHE INTERNAL "" FORCE)

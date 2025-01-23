@@ -51,6 +51,7 @@ const char* TimerNames[] = {
     "UnknownProtocolExpire",
     "LogDelayExpire",
     "LogFlushWriteBufferTimer",
+    "StorageExpire",
 };
 
 const char* timer_type_to_string(TimerType type) { return TimerNames[type]; }

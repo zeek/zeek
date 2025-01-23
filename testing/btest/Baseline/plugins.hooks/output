@@ -502,6 +502,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./sftp, <...>/sftp.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./spicy.bif.zeek, <...>/spicy.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./stats.bif.zeek, <...>/stats.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./storage.bif.zeek, <...>/storage.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./store, <...>/store.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./store.bif.zeek, <...>/store.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./strings.bif.zeek, <...>/strings.bif.zeek) -> -1
@@ -809,6 +810,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./sftp, <...>/sftp.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./spicy.bif.zeek, <...>/spicy.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./stats.bif.zeek, <...>/stats.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./storage.bif.zeek, <...>/storage.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./store, <...>/store.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./store.bif.zeek, <...>/store.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./strings.bif.zeek, <...>/strings.bif.zeek) -> (-1, <no content>)
@@ -1448,6 +1450,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./sftp, <...>/sftp.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./spicy.bif.zeek, <...>/spicy.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./stats.bif.zeek, <...>/stats.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./storage.bif.zeek, <...>/storage.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./store, <...>/store.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./store.bif.zeek, <...>/store.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./strings.bif.zeek, <...>/strings.bif.zeek)
@@ -1755,6 +1758,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./sftp, <...>/sftp.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./spicy.bif.zeek, <...>/spicy.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./stats.bif.zeek, <...>/stats.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./storage.bif.zeek, <...>/storage.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./store, <...>/store.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./store.bif.zeek, <...>/store.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./strings.bif.zeek, <...>/strings.bif.zeek)
@@ -2405,6 +2409,7 @@
 0.000000 | HookLoadFile  ./sftp <...>/sftp.zeek
 0.000000 | HookLoadFile  ./spicy.bif.zeek <...>/spicy.bif.zeek
 0.000000 | HookLoadFile  ./stats.bif.zeek <...>/stats.bif.zeek
+0.000000 | HookLoadFile  ./storage.bif.zeek <...>/storage.bif.zeek
 0.000000 | HookLoadFile  ./store <...>/store.zeek
 0.000000 | HookLoadFile  ./store.bif.zeek <...>/store.bif.zeek
 0.000000 | HookLoadFile  ./strings.bif.zeek <...>/strings.bif.zeek
@@ -2712,6 +2717,7 @@
 0.000000 | HookLoadFileExtended ./sftp <...>/sftp.zeek
 0.000000 | HookLoadFileExtended ./spicy.bif.zeek <...>/spicy.bif.zeek
 0.000000 | HookLoadFileExtended ./stats.bif.zeek <...>/stats.bif.zeek
+0.000000 | HookLoadFileExtended ./storage.bif.zeek <...>/storage.bif.zeek
 0.000000 | HookLoadFileExtended ./store <...>/store.zeek
 0.000000 | HookLoadFileExtended ./store.bif.zeek <...>/store.bif.zeek
 0.000000 | HookLoadFileExtended ./strings.bif.zeek <...>/strings.bif.zeek

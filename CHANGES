@@ -1,3 +1,22 @@
+7.1.0-14 | 2025-03-18 16:29:36 -0700
+
+  * script_opt: Use emit_builtin_error() for Lookup-Conn (Arne Welzel, Corelight)
+
+    Still create a separate baseline file because ZAM doesn't provide
+    detailed location information.
+
+    Patch for ZBI.op provided by @vpax
+
+    (cherry picked from commit 3b4b379950e119fd2299f71f199b53da5af13c7d)
+
+  * Update zeek-testing commit hash (Tim Wojtulewicz, Corelight)
+
+  * CI: Force rebuild of tumbleweed docker image (Tim Wojtulewicz, Corelight)
+
+  * CI: bump FreeBSD 14 to 14.2, which came out in Dec'24 (Christian Kreibich, Corelight)
+
+    (cherry picked from commit b77ef57dffe0740e4a7eeef2f4780b814d1469b0)
+
 7.1.0-10 | 2025-03-18 13:59:06 -0700
 
   * Fix return types in docs for double_to_count and double_to_int (Tim Wojtulewicz, Corelight)

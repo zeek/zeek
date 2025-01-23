@@ -356,6 +356,14 @@ type ftp_port: record {
 	valid: bool;	##< True if format was right. Only then are *h* and *p* valid.
 };
 
+## A generic type for returning either a value or an error string from a
+## function or a BIF method. This is sort of equivalent to std::expected
+## in C++.
+type val_result: record {
+	val: any &optional;
+	error: string &optional;
+};
+
 ## Statistics about what a TCP endpoint sent.
 ##
 ## .. zeek:see:: conn_stats

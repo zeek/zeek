@@ -88,7 +88,7 @@ export {
 	##          :zeek:see:`Storage::open_backend` for the backend will cause
 	##          false to be returned.
 	global get: function(backend: opaque of Storage::BackendHandle, key: any,
-			     async_mode: bool &default=T): any;
+			     async_mode: bool &default=T): val_result;
 
 	## Erases an entry from the backend.
 	##
@@ -123,7 +123,7 @@ function put(backend: opaque of Storage::BackendHandle, args: Storage::PutArgs):
 	return Storage::__put(backend, args$key, args$value, args$overwrite, args$expire_time, args$async_mode);
 }
 
-function get(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T): any
+function get(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T): val_result
 {
 	return Storage::__get(backend, key, async_mode);
 }

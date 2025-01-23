@@ -282,7 +282,7 @@ ValResult Redis::DoGet(ValPtr key, ValResultCallback* cb) {
             return zeek::unexpected<std::string>(
                 util::fmt("Failed to queue async get operation: %s", async_ctx->errstr));
 
-        // There isn't a result to return here. That happens in HandleGetRequest.
+        // There isn't a result to return here. That happens in HandleGetResult.
         return zeek::unexpected<std::string>("");
     }
     else {
@@ -386,9 +386,8 @@ void Redis::HandleGetResult(redisReply* reply, ValResultCallback* callback) {
     ValResult res;
     if ( ! connected )
         res = zeek::unexpected<std::string>("Connection is not open");
-    else {
+    else
         res = ParseGetReply(reply);
-    }
 
     callback->Complete(res);
     delete callback;

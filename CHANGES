@@ -1,3 +1,13 @@
+7.2.0-dev.111 | 2025-01-23 11:21:21 -0700
+
+  * Minor whitespace cleanup in init-bare.zeek (Tim Wojtulewicz, Corelight)
+
+  * Add missing export blocks to init-bare.zeek (Tim Wojtulewicz, Corelight)
+
+  * Merge some GLOBAL module sections in init-bare (Tim Wojtulewicz, Corelight)
+
+  * Merge Tunnel module sections in init-bare (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.106 | 2025-01-23 16:46:33 +0100
 
   * script_opt: Use emit_builtin_error() for Lookup-Conn (Arne Welzel, Corelight)

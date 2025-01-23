@@ -144,8 +144,8 @@ type string_mapper: function(s: string): string;
 ## :zeek:see:`file_magic`
 type mime_match: record {
 	strength: int;    ##< How strongly the signature matched.  Used for
-	                  ##< prioritization when multiple file magic signatures
-	                  ##< match.
+			  ##< prioritization when multiple file magic signatures
+			  ##< match.
 	mime:     string; ##< The MIME type of the file magic signature match.
 };
 
@@ -197,10 +197,10 @@ const allow_network_time_forward = T &redef;
 ## A connection's transport-layer protocol. Note that Zeek uses the term
 ## "connection" broadly, using flow semantics for ICMP and UDP.
 type transport_proto: enum {
-    unknown_transport,	##< An unknown transport-layer protocol.
-    tcp,	##< TCP.
-    udp,	##< UDP.
-    icmp	##< ICMP.
+	unknown_transport,	##< An unknown transport-layer protocol.
+	tcp,	##< TCP.
+	udp,	##< UDP.
+	icmp	##< ICMP.
 };
 
 ## A connection's identifying 4-tuple of endpoints and ports.
@@ -597,6 +597,7 @@ export {
 }
 
 module TCP;
+
 export {
 	## A TCP Option field parsed from a TCP header.
 	type Option: record {
@@ -633,6 +634,7 @@ export {
 }
 
 module Tunnel;
+
 export {
 	## Records the identity of an encapsulating parent of a tunneled connection.
 	type EncapsulatingConn: record {
@@ -685,9 +687,10 @@ export {
 	## may choose whether to perform the validation.
 	const validate_vxlan_checksums = T &redef;
 
-} # end export
+}
 
 module HTTP;
+
 export {
 	## Lookup table for Upgrade analyzers. First, a case sensitive lookup
 	## is done using the client's Upgrade header. If no match is found,
@@ -697,6 +700,7 @@ export {
 }
 
 module WebSocket;
+
 export {
 	## The WebSocket analyzer consumes and forwards
 	## frame payload in chunks to keep memory usage
@@ -1155,6 +1159,7 @@ type EventNameCounter: record {
 	## Times it was called, as counted by the event handlers.
 	times_called: count &log;
 } &log;
+
 type EventNameStats: vector of EventNameCounter;
 
 ## Table type used to map variable names to their memory allocation.
@@ -2221,12 +2226,12 @@ type raw_pkt_hdr: record {
 type teredo_auth: record {
 	id:      string;  ##< Teredo client identifier.
 	value:   string;  ##< HMAC-SHA1 over shared secret key between client and
-	                  ##< server, nonce, confirmation byte, origin indication
-	                  ##< (if present), and the IPv6 packet.
+			  ##< server, nonce, confirmation byte, origin indication
+			  ##< (if present), and the IPv6 packet.
 	nonce:   count;   ##< Nonce chosen by Teredo client to be repeated by
-	                  ##< Teredo server.
+			  ##< Teredo server.
 	confirm: count;   ##< Confirmation byte to be set to 0 by Teredo client
-	                  ##< and non-zero by server if client needs new key.
+			  ##< and non-zero by server if client needs new key.
 };
 
 ## A Teredo authentication header.  See :rfc:`4380` for more information
@@ -3533,20 +3538,19 @@ export {
 		afiles: double;	##< TODO.
 		invarsec: interval;	##< TODO.
 	};
-} # end export
-
+}
 
 module MIME;
+
 export {
 	## Stop analysis of nested multipart MIME entities if this depth is
 	## reached. Setting this value to 0 removes the limit.
 	const max_depth = 100 &redef;
 
-} # end export
-
-
+}
 
 module MOUNT3;
+
 export {
 
 	## Record summarizing the general results and status of MOUNT3
@@ -3607,7 +3611,7 @@ export {
 		auth_flavors: vector of auth_flavor_t &optional;	##< Returned authentication flavors
 	};
 
-} # end export
+}
 
 module Log;
 
@@ -3634,7 +3638,7 @@ export {
 	## .. :zeek:see:`Log::flush_interval`
 	const write_buffer_size = 1000 &redef;
 
-} # end export
+}
 
 module POP3;
 
@@ -3651,7 +3655,7 @@ export {
 	## Setting this value to 0 removes the limit.
 	const max_unknown_client_commands = 10 &redef;
 
-} # end export
+}
 
 module Threading;
 
@@ -4752,144 +4756,146 @@ export {
 }
 
 module PE;
+
 export {
-type PE::DOSHeader: record {
-	## The magic number of a portable executable file ("MZ").
-	signature                : string;
-	## The number of bytes in the last page that are used.
-	used_bytes_in_last_page  : count;
-	## The number of pages in the file that are part of the PE file itself.
-	file_in_pages            : count;
-	## Number of relocation entries stored after the header.
-	num_reloc_items          : count;
-	## Number of paragraphs in the header.
-	header_in_paragraphs     : count;
-	## Number of paragraphs of additional memory that the program will need.
-	min_extra_paragraphs     : count;
-	## Maximum number of paragraphs of additional memory.
-	max_extra_paragraphs     : count;
-	## Relative value of the stack segment.
-	init_relative_ss         : count;
-	## Initial value of the SP register.
-	init_sp                  : count;
-	## Checksum. The 16-bit sum of all words in the file should be 0. Normally not set.
-	checksum                 : count;
-	## Initial value of the IP register.
-	init_ip                  : count;
-	## Initial value of the CS register (relative to the initial segment).
-	init_relative_cs         : count;
-	## Offset of the first relocation table.
-	addr_of_reloc_table      : count;
-	## Overlays allow you to append data to the end of the file. If this is the main program,
-	## this will be 0.
-	overlay_num              : count;
-	## OEM identifier.
-	oem_id                   : count;
-	## Additional OEM info, specific to oem_id.
-	oem_info                 : count;
-	## Address of the new EXE header.
-	addr_of_new_exe_header   : count;
-};
+	type PE::DOSHeader: record {
+		## The magic number of a portable executable file ("MZ").
+		signature                : string;
+		## The number of bytes in the last page that are used.
+		used_bytes_in_last_page  : count;
+		## The number of pages in the file that are part of the PE file itself.
+		file_in_pages            : count;
+		## Number of relocation entries stored after the header.
+		num_reloc_items          : count;
+		## Number of paragraphs in the header.
+		header_in_paragraphs     : count;
+		## Number of paragraphs of additional memory that the program will need.
+		min_extra_paragraphs     : count;
+		## Maximum number of paragraphs of additional memory.
+		max_extra_paragraphs     : count;
+		## Relative value of the stack segment.
+		init_relative_ss         : count;
+		## Initial value of the SP register.
+		init_sp                  : count;
+		## Checksum. The 16-bit sum of all words in the file should be 0. Normally not set.
+		checksum                 : count;
+		## Initial value of the IP register.
+		init_ip                  : count;
+		## Initial value of the CS register (relative to the initial segment).
+		init_relative_cs         : count;
+		## Offset of the first relocation table.
+		addr_of_reloc_table      : count;
+		## Overlays allow you to append data to the end of the file. If this is the main program,
+		## this will be 0.
+		overlay_num              : count;
+		## OEM identifier.
+		oem_id                   : count;
+		## Additional OEM info, specific to oem_id.
+		oem_info                 : count;
+		## Address of the new EXE header.
+		addr_of_new_exe_header   : count;
+	};
 
-type PE::FileHeader: record {
-	## The target machine that the file was compiled for.
-	machine              : count;
-	## The time that the file was created at.
-	ts                   : time;
-	## Pointer to the symbol table.
-	sym_table_ptr        : count;
-	## Number of symbols.
-	num_syms             : count;
-	## The size of the optional header.
-	optional_header_size : count;
-	## Bit flags that determine if this file is executable, non-relocatable, and/or a DLL.
-	characteristics      : set[count];
-};
+	type PE::FileHeader: record {
+		## The target machine that the file was compiled for.
+		machine              : count;
+		## The time that the file was created at.
+		ts                   : time;
+		## Pointer to the symbol table.
+		sym_table_ptr        : count;
+		## Number of symbols.
+		num_syms             : count;
+		## The size of the optional header.
+		optional_header_size : count;
+		## Bit flags that determine if this file is executable, non-relocatable, and/or a DLL.
+		characteristics      : set[count];
+	};
 
-type PE::OptionalHeader: record {
-	## PE32 or PE32+ indicator.
-	magic                   : count;
-	## The major version of the linker used to create the PE.
-	major_linker_version    : count;
-	## The minor version of the linker used to create the PE.
-	minor_linker_version    : count;
-	## Size of the .text section.
-	size_of_code            : count;
-	## Size of the .data section.
-	size_of_init_data       : count;
-	## Size of the .bss section.
-	size_of_uninit_data     : count;
-	## The relative virtual address (RVA) of the entry point.
-	addr_of_entry_point     : count;
-	## The relative virtual address (RVA) of the .text section.
-	base_of_code            : count;
-	## The relative virtual address (RVA) of the .data section.
-	base_of_data            : count &optional;
-	## Preferred memory location for the image to be based at.
-	image_base              : count;
-	## The alignment (in bytes) of sections when they're loaded in memory.
-	section_alignment       : count;
-	## The alignment (in bytes) of the raw data of sections.
-	file_alignment          : count;
-	## The major version of the required OS.
-	os_version_major        : count;
-	## The minor version of the required OS.
-	os_version_minor        : count;
-	## The major version of this image.
-	major_image_version     : count;
-	## The minor version of this image.
-	minor_image_version     : count;
-	## The major version of the subsystem required to run this file.
-	major_subsys_version    : count;
-	## The minor version of the subsystem required to run this file.
-	minor_subsys_version    : count;
-	## The size (in bytes) of the image as the image is loaded in memory.
-	size_of_image           : count;
-	## The size (in bytes) of the headers, rounded up to file_alignment.
-	size_of_headers         : count;
-	## The image file checksum.
-	checksum                : count;
-	## The subsystem that's required to run this image.
-	subsystem               : count;
-	## Bit flags that determine how to execute or load this file.
-	dll_characteristics     : set[count];
-	## A vector with the sizes of various tables and strings that are
-	## defined in the optional header data directories. Examples include
-	## the import table, the resource table, and debug information.
-	table_sizes             : vector of count;
+	type PE::OptionalHeader: record {
+		## PE32 or PE32+ indicator.
+		magic                   : count;
+		## The major version of the linker used to create the PE.
+		major_linker_version    : count;
+		## The minor version of the linker used to create the PE.
+		minor_linker_version    : count;
+		## Size of the .text section.
+		size_of_code            : count;
+		## Size of the .data section.
+		size_of_init_data       : count;
+		## Size of the .bss section.
+		size_of_uninit_data     : count;
+		## The relative virtual address (RVA) of the entry point.
+		addr_of_entry_point     : count;
+		## The relative virtual address (RVA) of the .text section.
+		base_of_code            : count;
+		## The relative virtual address (RVA) of the .data section.
+		base_of_data            : count &optional;
+		## Preferred memory location for the image to be based at.
+		image_base              : count;
+		## The alignment (in bytes) of sections when they're loaded in memory.
+		section_alignment       : count;
+		## The alignment (in bytes) of the raw data of sections.
+		file_alignment          : count;
+		## The major version of the required OS.
+		os_version_major        : count;
+		## The minor version of the required OS.
+		os_version_minor        : count;
+		## The major version of this image.
+		major_image_version     : count;
+		## The minor version of this image.
+		minor_image_version     : count;
+		## The major version of the subsystem required to run this file.
+		major_subsys_version    : count;
+		## The minor version of the subsystem required to run this file.
+		minor_subsys_version    : count;
+		## The size (in bytes) of the image as the image is loaded in memory.
+		size_of_image           : count;
+		## The size (in bytes) of the headers, rounded up to file_alignment.
+		size_of_headers         : count;
+		## The image file checksum.
+		checksum                : count;
+		## The subsystem that's required to run this image.
+		subsystem               : count;
+		## Bit flags that determine how to execute or load this file.
+		dll_characteristics     : set[count];
+		## A vector with the sizes of various tables and strings that are
+		## defined in the optional header data directories. Examples include
+		## the import table, the resource table, and debug information.
+		table_sizes             : vector of count;
 
-};
+	};
 
-## Record for Portable Executable (PE) section headers.
-type PE::SectionHeader: record {
-	## The name of the section
-	name             : string;
-	## The total size of the section when loaded into memory.
-	virtual_size     : count;
-	## The relative virtual address (RVA) of the section.
-	virtual_addr     : count;
-	## The size of the initialized data for the section, as it is
-	## in the file on disk.
-	size_of_raw_data : count;
-	## The virtual address of the initialized dat for the section,
-	## as it is in the file on disk.
-	ptr_to_raw_data  : count;
-	## The file pointer to the beginning of relocation entries for
-	## the section.
-	ptr_to_relocs    : count;
-	## The file pointer to the beginning of line-number entries for
-	## the section.
-	ptr_to_line_nums : count;
-	## The number of relocation entries for the section.
-	num_of_relocs    : count;
-	## The number of line-number entries for the section.
-	num_of_line_nums : count;
-	## Bit-flags that describe the characteristics of the section.
-	characteristics  : set[count];
-};
+	## Record for Portable Executable (PE) section headers.
+	type PE::SectionHeader: record {
+		## The name of the section
+		name             : string;
+		## The total size of the section when loaded into memory.
+		virtual_size     : count;
+		## The relative virtual address (RVA) of the section.
+		virtual_addr     : count;
+		## The size of the initialized data for the section, as it is
+		## in the file on disk.
+		size_of_raw_data : count;
+		## The virtual address of the initialized dat for the section,
+		## as it is in the file on disk.
+		ptr_to_raw_data  : count;
+		## The file pointer to the beginning of relocation entries for
+		## the section.
+		ptr_to_relocs    : count;
+		## The file pointer to the beginning of line-number entries for
+		## the section.
+		ptr_to_line_nums : count;
+		## The number of relocation entries for the section.
+		num_of_relocs    : count;
+		## The number of line-number entries for the section.
+		num_of_line_nums : count;
+		## Bit-flags that describe the characteristics of the section.
+		characteristics  : set[count];
+	};
 }
 
 module SSL;
+
 export {
 	type SignatureAndHashAlgorithm: record {
 		HashAlgorithm: count; ##< Hash algorithm number
@@ -4901,20 +4907,19 @@ export {
 		obfuscated_ticket_age: count;
 	};
 
-## Number of non-DTLS frames that can occur in a DTLS connection before
-## parsing of the connection is suspended.
-## DTLS does not immediately stop parsing a connection because other protocols
-## might be interleaved in the same UDP "connection".
-const SSL::dtls_max_version_errors = 10 &redef;
+	## Number of non-DTLS frames that can occur in a DTLS connection before
+	## parsing of the connection is suspended.
+	## DTLS does not immediately stop parsing a connection because other protocols
+	## might be interleaved in the same UDP "connection".
+	const SSL::dtls_max_version_errors = 10 &redef;
 
-## Maximum number of invalid version errors to report in one DTLS connection.
-const SSL::dtls_max_reported_version_errors = 1 &redef;
+	## Maximum number of invalid version errors to report in one DTLS connection.
+	const SSL::dtls_max_reported_version_errors = 1 &redef;
 
-## Maximum number of Alert messages parsed from an SSL record with
-## content_type alert (21). The remaining alerts are discarded. For
-## TLS 1.3 connections, this is implicitly 1 as defined by RFC 8446.
-const SSL::max_alerts_per_record = 10 &redef;
-
+	## Maximum number of Alert messages parsed from an SSL record with
+	## content_type alert (21). The remaining alerts are discarded. For
+	## TLS 1.3 connections, this is implicitly 1 as defined by RFC 8446.
+	const SSL::max_alerts_per_record = 10 &redef;
 }
 
 module GLOBAL;
@@ -4929,13 +4934,14 @@ type signature_and_hashalgorithm_vec: vector of SSL::SignatureAndHashAlgorithm;
 type psk_identity_vec: vector of SSL::PSKIdentity;
 
 module X509;
+
 export {
 	type Certificate: record {
 		version: count &log;	##< Version number.
 		serial: string &log;	##< Serial number.
 		subject: string &log;	##< Subject.
 		issuer: string &log;	##< Issuer.
-		cn: string &optional; ##< Last (most specific) common name.
+		cn: string &optional;	##< Last (most specific) common name.
 		not_valid_before: time &log;	##< Timestamp before when certificate is not valid.
 		not_valid_after: time &log;	##< Timestamp after when certificate is not valid.
 		key_alg: string &log;	##< Name of the key algorithm
@@ -4980,6 +4986,7 @@ export {
 }
 
 module SOCKS;
+
 export {
 	## This record is for a SOCKS client or server to provide either a
 	## name or an address to represent a desired or established connection.
@@ -5008,6 +5015,7 @@ export {
 }
 
 module RDP;
+
 export {
 	type RDP::EarlyCapabilityFlags: record {
 		support_err_info_pdu:       bool;
@@ -5122,6 +5130,7 @@ export {
 @load base/bif/plugins/Zeek_SNMP.types.bif
 
 module SNMP;
+
 export {
 	## The top-level message data structure of an SNMPv1 datagram, not
 	## including the PDU data.  See :rfc:`1157`.
@@ -5244,6 +5253,7 @@ export {
 @load base/bif/plugins/Zeek_KRB.types.bif
 
 module KRB;
+
 export {
 	## Kerberos keytab file name. Used to decrypt tickets encountered on the wire.
 	const keytab = "" &redef;
@@ -5428,6 +5438,7 @@ export {
 }
 
 module JSON;
+
 export {
 	type TimestampFormat: enum {
 		## Timestamps will be formatted as UNIX epoch doubles.  This is
@@ -5446,6 +5457,7 @@ export {
 }
 
 module Reporter;
+
 export {
 	## Tunable for sending reporter info messages to STDERR.  The option to
 	## turn it off is presented here in case Zeek is being run by some
@@ -5464,6 +5476,7 @@ export {
 }
 
 module Pcap;
+
 export {
 	## Number of bytes per packet to capture from live interfaces.
 	const snaplen = 9216 &redef;
@@ -5529,9 +5542,10 @@ export {
 		fatal,  # fatal issue, something that would prevent zeek from continuing
 		warning # non-fatal issue that should just be logged
 	};
-} # end export
+}
 
 module DCE_RPC;
+
 export {
 	## The maximum number of simultaneous fragmented commands that
 	## the DCE_RPC analyzer will tolerate before the it will generate
@@ -5545,12 +5559,14 @@ export {
 }
 
 module NCP;
+
 export {
 	## The maximum number of bytes to allocate when parsing NCP frames.
 	const max_frame_size = 65536 &redef;
 }
 
 module NTP;
+
 export {
 	## NTP standard message as defined in :rfc:`5905` for modes 1-5
 	## This record contains the standard fields used by the NTP protocol
@@ -5725,6 +5741,7 @@ export {
 }
 
 module MQTT;
+
 export {
 	type MQTT::ConnectMsg: record {
 		## Protocol name
@@ -5800,6 +5817,7 @@ export {
 }
 
 module Cluster;
+
 export {
 	type Cluster::Pool: record {};
 
@@ -5818,6 +5836,7 @@ export {
 }
 
 module Weird;
+
 export {
 	## Prevents rate-limiting sampling of any weirds named in the table.
 	option sampling_whitelist: set[string] = {};
@@ -5851,6 +5870,7 @@ export {
 }
 
 module UnknownProtocol;
+
 export {
 	## How many reports for an analyzer/protocol pair will be allowed to
 	## raise events before becoming rate-limited.
@@ -5873,6 +5893,7 @@ export {
 }
 
 module BinPAC;
+
 export {
 	## Maximum capacity, in bytes, that the BinPAC flowbuffer is allowed to
 	## grow to for use with incremental parsing of a given connection/analyzer.
@@ -5896,6 +5917,7 @@ export {
 @load base/bif/telemetry_types.bif
 
 module Telemetry;
+
 export {
 	## Type that captures options used to create metrics.
 	type MetricOpts: record {
@@ -6187,7 +6209,9 @@ module GLOBAL;
 
 global done_with_network = F;
 event net_done(t: time)
-	{ done_with_network = T; }
+	{
+	done_with_network = T;
+	}
 
 # This sets up primary BIFs such that they can be used by any
 # further scripts within their global initializations and is intended to be

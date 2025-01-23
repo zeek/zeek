@@ -554,7 +554,7 @@ type connection: record {
 	## principle it is possible that more than one protocol analyzer is able
 	## to parse the same data. If so, all will be recorded. Also note that
 	## the recorded services are independent of any transport-level protocols.
-	service: set[string];
+	service: set[string] &ordered;
 	history: string;	##< State history of connections. See *history* in :zeek:see:`Conn::Info`.
 	## A globally unique connection identifier. For each connection, Zeek
 	## creates an ID that is very likely unique across independent Zeek runs.

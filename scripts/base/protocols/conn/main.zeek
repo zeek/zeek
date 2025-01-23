@@ -27,8 +27,10 @@ export {
 		id:           conn_id         &log;
 		## The transport layer protocol of the connection.
 		proto:        transport_proto &log;
-		## An identification of an application protocol being sent over
-		## the connection.
+		## The identification of the application protocol(s) being sent over
+		## the connection. Can list more than one protocol separated with
+		## colons. Protocols listed are in the order in which they are
+		## confirmed.
 		service:      string          &log &optional;
 		## How long the connection lasted.
 		##

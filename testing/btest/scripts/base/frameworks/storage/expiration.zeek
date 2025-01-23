@@ -17,8 +17,11 @@ global key: string = "key1234";
 global value: string = "value7890";
 
 event check_removed() {
+	# This should return an error from the sqlite backend that there aren't any more
+	# rows available.
 	local res2 = Storage::get(backend, key, F);
-	print "get result", res2;
+	if ( res2?$error )
+		print "get result", res2$error;
 
 	Storage::close_backend(backend);
 	terminate();
@@ -36,7 +39,8 @@ event setup_test() {
 
 	local res2 = Storage::get(backend, key, F);
 	print "get result", res2;
-	print "get result same as inserted", value == (res2 as string);
+	if ( res2?$val )
+		print "get result same as inserted", value == (res2$val as string);
 
 	schedule 5 secs { check_removed() };
 }

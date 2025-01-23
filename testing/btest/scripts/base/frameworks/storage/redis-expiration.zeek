@@ -47,7 +47,8 @@ event setup_test() {
 
 	local res2 = Storage::get(b, key, F);
 	print "get result", res2;
-	print "get result same as inserted", value == (res2 as string);
+	if ( res2?$val )
+		print "get result same as inserted", value == (res2$val as string);
 
 	schedule 5 secs { check_removed() };
 }

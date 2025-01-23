@@ -30,7 +30,8 @@ event zeek_init() {
 
 			when [b, key, value] ( local get_res = Storage::get(b, key) ) {
 				print "get result", get_res;
-				print "get result same as inserted", value == (get_res as string);
+				if ( get_res?$val )
+					print "get result same as inserted", value == (get_res$val as string);
 
 				when [b] ( local close_res = Storage::close_backend(b, T) ) {
 					print "closed succesfully";

@@ -37,13 +37,16 @@ event zeek_init() {
 	get_res = Storage::get(b, key, F);
 	Storage::close_backend(b);
 
+	if ( get_res?$error )
+		Reporter::error(get_res$error);
+
 	# Test attempting to use the closed handle.
 	put_res = Storage::put(b, [$key="a", $value="b", $overwrite=F]);
 	get_res = Storage::get(b, "a");
 	erase_res = Storage::erase(b, "a");
 
 	print(fmt("results of trying to use closed handle: get: %d, put: %d, erase: %d",
-	          get_res, put_res, erase_res));
+	          get_res?$val, put_res, erase_res));
 
 	# Test failing to open the handle and test closing an invalid handle.
 	opts$open_fail = T;

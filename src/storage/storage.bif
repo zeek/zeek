@@ -149,22 +149,29 @@ function Storage::__put%(backend: opaque of Storage::BackendHandle, key: any, va
 	return val_mgr->Bool(true);
 	%}
 
-function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T%): any
+function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T%): val_result
 	%{
+	static auto val_result_type = id::find_type<RecordType>("val_result");
+	auto val_result = make_intrusive<RecordVal>(val_result_type);
+
 	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
-		emit_builtin_error("Invalid storage handle", backend);
-		return val_mgr->Bool(false);
+		val_result->Assign(1, make_intrusive<StringVal>("Invalid storage handlle"));
+		return val_result;
 	}
-	else if ( ! b->backend->IsOpen() )
-		return val_mgr->Bool(false);
+	else if ( ! b->backend->IsOpen() ) {
+		val_result->Assign(1, make_intrusive<StringVal>("Backend is closed"));
+		return val_result;
+	}
 
 	ValResultCallback* cb = nullptr;
 
 	if ( async_mode ) {
 		auto trigger = init_trigger(frame, b->backend);
-		if ( ! trigger )
-			return val_mgr->Bool(false);
+		if ( ! trigger ) {
+			val_result->Assign(1, make_intrusive<StringVal>("Failed to create trigger"));
+			return val_result;
+		}
 
 		cb = new ValResultCallback(trigger, frame->GetTriggerAssoc());
 	}
@@ -176,11 +183,13 @@ function Storage::__get%(backend: opaque of Storage::BackendHandle, key: any, as
 	   return nullptr;
 
 	if ( ! result.has_value() ) {
-		emit_builtin_error(util::fmt("Failed to retrieve data: %s", result.error().c_str()));
-		return val_mgr->Bool(false);
+		val_result->Assign(1, make_intrusive<StringVal>(
+			util::fmt("Failed to retrieve data: %s", result.error().c_str())));
+		return val_result;
 	}
 
-	return result.value();
+	val_result->Assign(0, result.value());
+	return val_result;
 	%}
 
 function Storage::__erase%(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T%): bool

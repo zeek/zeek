@@ -26,9 +26,8 @@ event zeek_init() {
 	print "erase result", res;
 
 	local res2 = Storage::get(b, key, F);
-	if ( ! res2 as bool ) {
-		print "get result, got empty result";
-	}
+	if ( res2?$error )
+		print "get result", res2$error;
 
 	Storage::close_backend(b);
 }

@@ -95,9 +95,11 @@ export {
 	## Returns: A boolean indicating success or failure of the operation.  Type
 	##          comparison failures against the types passed to
 	##          :zeek:see:`Storage::open_backend` for the backend will cause ``F`` to
-	##          be returned.
+	##          be returned. The caller should check the validity of the value before
+	##          attempting to use it. If the value is unset, an error string may be
+	##          available to describe the failure.
 	global get: function(backend: opaque of Storage::BackendHandle, key: any,
-			     async_mode: bool &default=T): any;
+			     async_mode: bool &default=T): val_result;
 
 	## Erases an entry from the backend.
 	##
@@ -134,7 +136,7 @@ function put(backend: opaque of Storage::BackendHandle, args: Storage::PutArgs):
 	return Storage::__put(backend, args$key, args$value, args$overwrite, args$expire_time, args$async_mode);
 }
 
-function get(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T): any
+function get(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T): val_result
 {
 	return Storage::__get(backend, key, async_mode);
 }

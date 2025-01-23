@@ -24,6 +24,8 @@ using ErrorResult = std::optional<std::string>;
 // string value will store an error message if the result is null.
 using ValResult = nonstd::expected<ValPtr, std::string>;
 
+// Base callback object for async operations. This is just here to allow some code reuse
+// in the other callback methods.
 class ResultCallback {
 public:
     ResultCallback(zeek::detail::trigger::Trigger* trigger, const void* assoc);
@@ -38,12 +40,14 @@ private:
     const void* assoc;
 };
 
+// A callback result that returns an ErrorResult.
 class ErrorResultCallback : public ResultCallback {
 public:
     ErrorResultCallback(zeek::detail::trigger::Trigger* trigger, const void* assoc) : ResultCallback(trigger, assoc) {}
     virtual void Complete(const ErrorResult& res);
 };
 
+// A callback result that returns a ValResult.
 class ValResultCallback : public ResultCallback {
 public:
     ValResultCallback(zeek::detail::trigger::Trigger* trigger, const void* assoc) : ResultCallback(trigger, assoc) {}
@@ -58,16 +62,14 @@ public:
      * Constructor
      *
      * @param native_async Denotes whether this backend can handle async request
-     * natively.  If set to false, the Put/Get/Erase methods will call the
-     * callback after their corresponding Do methods return. If set to true, the
-     * backend needs to call the callback itself.
+     * natively. If set to false, the Put()/Get()/Erase() methods will call the callback
+     * after their corresponding Do() methods return. If set to true, the backend needs to
+     * resolve the callback itself by calling either Timeout() or Complete().
      */
     Backend(bool native_async) : native_async(native_async) {}
 
     /**
      * Returns a descriptive tag representing the source for debugging.
-     *
-     * Must be overridden by derived classes.
      *
      * @return The debugging name.
      */
@@ -76,13 +78,14 @@ public:
     /**
      * Store a new key/value pair in the backend.
      *
-     * @param key the key for the pair
-     * @param value the value for the pair
+     * @param key the key for the pair.
+     * @param value the value for the pair.
      * @param overwrite whether an existing value for a key should be overwritten.
      * @param expiration_time the time when this entry should be automatically
      * removed. Set to zero to disable expiration.
-     * @return An optional value potentially containing an error string if
-     * needed. Will be unset if the operation succeeded.
+     * @param cb An optional callback object if being called via an async context.
+     * @return An optional value potentially containing an error string if needed. Will be
+     * unset if the operation succeeded.
      */
     ErrorResult Put(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0,
                     ErrorResultCallback* cb = nullptr);
@@ -91,8 +94,9 @@ public:
      * Retrieve a value from the backend for a provided key.
      *
      * @param key the key to lookup in the backend.
-     * @return A std::expected containing either a valid ValPtr with the result
-     * of the operation or a string containing an error message for failure.
+     * @param cb An optional callback object if being called via an async context.
+     * @return A std::expected containing either a valid ValPtr with the result of the
+     * operation or a string containing an error message for failure.
      */
     ValResult Get(ValPtr key, ValResultCallback* cb = nullptr);
 
@@ -100,8 +104,9 @@ public:
      * Erases the value for a key from the backend.
      *
      * @param key the key to erase
-     * @return An optional value potentially containing an error string if
-     * needed. Will be unset if the operation succeeded.
+     * @param cb An optional callback object if being called via an async context.
+     * @return An optional value potentially containing an error string if needed. Will be
+     * unset if the operation succeeded.
      */
     ErrorResult Erase(ValPtr key, ErrorResultCallback* cb = nullptr);
 
@@ -128,6 +133,7 @@ protected:
      * validation of types.
      * @param vt The script-side type of the values stored in the backend. Used for
      * validation of types and conversion during retrieval.
+     * @param cb An optional callback object if being called via an async context.
      * @return An optional value potentially containing an error string if
      * needed. Will be unset if the operation succeeded.
      */
@@ -209,6 +215,7 @@ protected:
 
 } // namespace detail
 
+// A callback for the Backend::Open() method that returns an error or a backend handle.
 class OpenResultCallback : public ResultCallback {
 public:
     OpenResultCallback(zeek::detail::trigger::Trigger* trigger, const void* assoc, detail::BackendHandleVal* backend)

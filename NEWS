@@ -16,9 +16,6 @@ New Functionality
   Zeek now raises a warning when a script declares these events while this
   option is set to true.
 
-- Types can now be used as constants in Zeek script. This allows types to be
-  directly passed into BIFs without aliasing.
-
 Changed Functionality
 ---------------------
 

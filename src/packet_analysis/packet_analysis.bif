@@ -28,7 +28,7 @@ function register_packet_analyzer%(parent: PacketAnalyzer::Tag, identifier: coun
 	return zeek::val_mgr->True();
 	%}
 
-## Attempts to add an entry to `parent`'s dispatcher that maps a protocol/index to a next-stage `child`
+## Attempts to add an entry to ``parent``'s dispatcher that maps a protocol/index to a next-stage ``child``
 ## analyzer. This may fail if either of the two names does not respond to a known analyzer.
 ##
 ## parent: The parent analyzer being modified
@@ -49,7 +49,7 @@ function try_register_packet_analyzer_by_name%(parent: string, identifier: count
 	return zeek::val_mgr->True();
 	%}
 
-## Internal function that is used to update the core-mirror of the script-level `ignore_checksums_nets` variable.
+## Internal function that is used to update the core-mirror of the script-level ``ignore_checksums_nets`` variable.
 function PacketAnalyzer::__set_ignore_checksums_nets%(v: subnet_set%) : bool
 	%{
 	if ( v->GetType()->Tag() != zeek::TYPE_TABLE )

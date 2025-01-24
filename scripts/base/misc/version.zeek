@@ -1,6 +1,6 @@
-##! Provide information about the currently running Zeek version.
-##! The most convenient way to access this are the Version::number
-##! and Version::info constants.
+##! Provide information about the currently running Zeek version.  The most
+##! convenient way to access this are the :zeek:see:`Version::number` and
+##! :zeek:see:`Version::info` constants.
 
 module Version;
 
@@ -41,11 +41,11 @@ export {
 	##
 	## version_string: Zeek version string.
 	##
-	## Returns: `VersionDescription` record.
+	## Returns: :zeek:see:`Version::VersionDescription` record.
 	global parse: function(version_string: string): VersionDescription;
 
-	## Test if the current running version of Zeek is greater or equal to the given version
-	## string.
+	## Test if the current running version of Zeek is greater or equal to
+	## the given version string.
 	##
 	## version_string: Version to check against the current running version.
 	##
@@ -118,13 +118,15 @@ function parse(version_string: string): VersionDescription
 	}
 
 export {
-	## `VersionDescription` record pertaining to the currently running version of Zeek.
+	## :zeek:see:`Version::VersionDescription` record pertaining to the currently
+	## running version of Zeek.
 	const info = Version::parse(zeek_version());
 
-	## version number of the currently running version of Zeek as a numeric representation.
-	## The format of the number is ABBCC with A being the major version,
-	## bb being the minor version (2 digits) and CC being the patchlevel (2 digits).
-	## As an example, Zeek 2.4.1 results in the number 20401
+	## version number of the currently running version of Zeek as a numeric
+	## representation.  The format of the number is ABBCC with A being the
+	## major version, bb being the minor version (2 digits) and CC being the
+	## patchlevel (2 digits).  As an example, Zeek 2.4.1 results in the
+	## number 20401
 	const number = info$version_number;
 }
 

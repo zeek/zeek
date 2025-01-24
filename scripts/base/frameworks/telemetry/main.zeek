@@ -42,8 +42,8 @@ export {
 	global counter_with: function(cf: CounterFamily,
 	                              label_values: labels_vector &default=vector()): Counter;
 
-	## Increment a :zeek:see:`Telemetry::Counter` by `amount`.
-	## Using a negative `amount` is an error.
+	## Increment a :zeek:see:`Telemetry::Counter` by ``amount``.
+	## Using a negative ``amount`` is an error.
 	##
 	## c: The counter instance.
 	##
@@ -52,7 +52,7 @@ export {
 	## Returns: True if the counter was incremented successfully.
 	global counter_inc: function(c: Counter, amount: double &default=1.0): bool;
 
-	## Helper to set a :zeek:see:`Telemetry::Counter` to the given `value`.
+	## Helper to set a :zeek:see:`Telemetry::Counter` to the given ``value``.
 	## This can be useful for mirroring counter metrics in an
 	## :zeek:see:`Telemetry::sync` hook implementation.
 	## Setting a value that is less than the current value of the
@@ -126,7 +126,7 @@ export {
 	global gauge_with: function(gf: GaugeFamily,
 	                            label_values: labels_vector &default=vector()): Gauge;
 
-	## Increment a :zeek:see:`Telemetry::Gauge` by `amount`.
+	## Increment a :zeek:see:`Telemetry::Gauge` by ``amount``.
 	##
 	## g: The gauge instance.
 	##
@@ -135,7 +135,7 @@ export {
 	## Returns: True if the gauge was incremented successfully.
 	global gauge_inc: function(g: Gauge, amount: double &default=1.0): bool;
 
-	## Decrement a :zeek:see:`Telemetry::Gauge` by `amount`.
+	## Decrement a :zeek:see:`Telemetry::Gauge` by ``amount``.
 	##
 	## g: The gauge instance.
 	##
@@ -144,7 +144,7 @@ export {
 	## Returns: True if the gauge was incremented successfully.
 	global gauge_dec: function(g: Gauge, amount: double &default=1.0): bool;
 
-	## Helper to set a :zeek:see:`Telemetry::Gauge` to the given `value`.
+	## Helper to set a :zeek:see:`Telemetry::Gauge` to the given ``value``.
 	##
 	## g: The gauge instance.
 	##
@@ -153,7 +153,7 @@ export {
 	## Returns: True if the gauge value was set successfully.
 	global gauge_set: function(g: Gauge, value: double): bool;
 
-	## Increment a :zeek:see:`Telemetry::Gauge` by the given `amount` through
+	## Increment a :zeek:see:`Telemetry::Gauge` by the given ``amount`` through
 	## the :zeek:see:`Telemetry::GaugeFamily`.
 	## This is a short-cut for :zeek:see:`Telemetry::gauge_inc`.
 	## Using a negative amount is an error.
@@ -169,7 +169,7 @@ export {
 	                                  label_values: labels_vector &default=vector(),
 	                                  amount: double &default=1.0): bool;
 
-	## Decrement a :zeek:see:`Telemetry::Gauge` by the given `amount` through
+	## Decrement a :zeek:see:`Telemetry::Gauge` by the given ``amount`` through
 	## the :zeek:see:`Telemetry::GaugeFamily`.
 	## This is a short-cut for :zeek:see:`Telemetry::gauge_dec`.
 	##
@@ -184,7 +184,7 @@ export {
 	                                  label_values: labels_vector &default=vector(),
 	                                  amount: double &default=1.0): bool;
 
-	## Set a :zeek:see:`Telemetry::Gauge` to the given `value` through
+	## Set a :zeek:see:`Telemetry::Gauge` to the given ``value`` through
 	## the :zeek:see:`Telemetry::GaugeFamily`.
 	## This is a short-cut for :zeek:see:`Telemetry::gauge_set`.
 	##

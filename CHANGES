@@ -1,3 +1,7 @@
+7.2.0-dev.116 | 2025-01-24 11:42:14 -0700
+
+  * Fix errors from rst linting on the generated docs (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.113 | 2025-01-23 11:49:23 -0700
 
   * Fix options parsing segfault (Evan Typanski, Corelight)

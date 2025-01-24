@@ -8,19 +8,19 @@ export {
 	const max_bpf_shunts = 100 &redef;
 
 	## Call this function to use BPF to shunt a connection (to prevent the
-	## data packets from reaching Zeek).  For TCP connections, control
+	## data packets from reaching Zeek). For TCP connections, control
 	## packets are still allowed through so that Zeek can continue logging
 	## the connection and it can stop shunting once the connection ends.
 	global shunt_conn: function(id: conn_id): bool;
 
 	## This function will use a BPF expression to shunt traffic between
-	## the two hosts given in the `conn_id` so that the traffic is never
+	## the two hosts given in the ``conn_id`` so that the traffic is never
 	## exposed to Zeek's traffic processing.
 	global shunt_host_pair: function(id: conn_id): bool;
 
-	## Remove shunting for a host pair given as a `conn_id`.  The filter
+	## Remove shunting for a host pair given as a ``conn_id``.  The filter
 	## is not immediately removed.  It waits for the occasional filter
-	## update done by the `PacketFilter` framework.
+	## update done by the ``PacketFilter`` framework.
 	global unshunt_host_pair: function(id: conn_id): bool;
 
 	## Performs the same function as the :zeek:id:`PacketFilter::unshunt_host_pair`
@@ -40,7 +40,7 @@ export {
 		No_More_Conn_Shunts_Available,
 
 		## Limitations in BPF make shunting some connections with BPF
-		## impossible.  This notice encompasses those various cases.
+		## impossible. This notice encompasses those various cases.
 		Cannot_BPF_Shunt_Conn,
 	};
 }

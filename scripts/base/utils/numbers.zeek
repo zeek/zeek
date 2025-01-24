@@ -2,9 +2,9 @@
 ##
 ## s: The string to search for a number.
 ##
-## get_first: Provide `F` if you would like the last number found.
+## get_first: Provide ``F`` if you would like the last number found.
 ##
-## Returns: The request integer from the given string or 0 if
+## Returns: The request integer from the given string or ``0`` if
 ##          no integer was found.
 function extract_count(s: string, get_first: bool &default=T): count
 	{

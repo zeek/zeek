@@ -946,9 +946,12 @@ zeek::RecordValPtr Manager::MakeEvent(ArgsSpan args, zeek::detail::Frame* frame)
     return rval;
 }
 
-bool Manager::DoSubscribe(const string& topic_prefix) {
+bool Manager::DoSubscribe(const string& topic_prefix, SubscribeCallback cb) {
     DBG_LOG(DBG_BROKER, "Subscribing to topic prefix %s", topic_prefix.c_str());
     bstate->subscriber.add_topic(topic_prefix, ! run_state::detail::zeek_init_done);
+
+    if ( cb )
+        cb(topic_prefix, {CallbackStatus::NotImplemented});
 
     return true;
 }

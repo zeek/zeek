@@ -37,6 +37,7 @@ void thread_fun(ProxyThread::Args* args) {
 
 bool ProxyThread::Start() {
     zmq::socket_t xpub(ctx, zmq::socket_type::xpub);
+    xpub.set(zmq::sockopt::xpub_verbose, 1);
     zmq::socket_t xsub(ctx, zmq::socket_type::xsub);
 
     xpub.set(zmq::sockopt::xpub_nodrop, xpub_nodrop);

@@ -132,6 +132,17 @@ event zeek_init()
 	print is_valid_ip("6:1:2::3:4:5:6:7");
 	print is_valid_ip("6:1:2::3:4:5:6:7:8");
 
+	print "============ test is_valid_subnet()";
+	print is_valid_subnet("10.0.0.0/0"); # T!
+	print is_valid_subnet("10.0.0.0/8");
+	print is_valid_subnet("10.0.0.0/32");
+	print is_valid_subnet("fe80::/64");
+	print is_valid_subnet("10.0.0.0/64"); # F
+	print is_valid_subnet("256.256.256.256/32"); # F
+	print is_valid_subnet("10.0.0.0"); # F
+	print is_valid_subnet("[fe80::]/64"); # F
+	print is_valid_subnet("10/8"); # F
+
 	print "============ test extract_ip_addresses()";
 	print extract_ip_addresses("this is 1.1.1.1 a test 2.2.2.2 string with ip addresses 3.3.3.3");
 	print extract_ip_addresses("this is 1.1.1.1 a test 0:0:0:0:0:0:0:0 string with ip addresses 3.3.3.3");

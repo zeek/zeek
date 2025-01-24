@@ -27,6 +27,8 @@ New Functionality
 - Geneve tunnel options of the current packet can be extracted from scripts
   using the new PacketAnalyzer::Geneve::get_options() builtin function.
 
+- The new ``is_valid_subnet()`` function mirrors ``is_valid_ip()``, for subnets.
+
 Changed Functionality
 ---------------------
 

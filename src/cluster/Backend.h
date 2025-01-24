@@ -186,12 +186,39 @@ public:
     }
 
     /**
+     * Status codes for callbacks.
+     */
+    enum class CallbackStatus {
+        Success,
+        Error,
+        NotImplemented,
+    };
+
+    /**
+     * Information for subscription callbacks.
+     */
+    struct SubscriptionCallbackInfo {
+        CallbackStatus status;              // The status of the operation.
+        std::optional<std::string> message; // Optional message.
+    };
+
+    using SubscribeCallback =
+        std::function<void(const std::string& topic_prefix, const SubscriptionCallbackInfo& info)>;
+
+    /**
      * Register interest in messages that use a certain topic prefix.
      *
+     * Invoking cb may happen while Subscribe() executes, for example if the
+     * call to Subscribe() is synchronous, or an error is discovered before
+     * submitting any work.
+     *
      * @param topic_prefix a prefix to match against remote message topics.
+     * @param cb callback invoked when the subscription was processed.
      * @return true if it's a new event subscription and it is now registered.
      */
-    bool Subscribe(const std::string& topic_prefix) { return DoSubscribe(topic_prefix); }
+    bool Subscribe(const std::string& topic_prefix, SubscribeCallback cb = SubscribeCallback()) {
+        return DoSubscribe(topic_prefix, std::move(cb));
+    }
 
     /**
      * Unregister interest in messages on a certain topic.
@@ -314,13 +341,19 @@ private:
      * Register interest in messages that use a certain topic prefix.
      *
      * If the backend hasn't yet established a connection, any subscriptions
-     * should be queued until they can be processed.
+     * should be queued until they can be processed. If a callback is given,
+     * it should be called once the subscription can be determined to be
+     * active. The callback has to be invoked from Zeek's main thread. If
+     * the backend does not implement callbacks, it should invoke the callback
+     * with CallbackStatus::NotImplemented, which will act as success, but
+     * provides a way to distinguish behavior.
      *
      * @param topic_prefix a prefix to match against remote message topics.
+     * @param cb callback to invoke when the subscription is active
      *
      * @return true if it's a new event subscription and now registered.
      */
-    virtual bool DoSubscribe(const std::string& topic_prefix) = 0;
+    virtual bool DoSubscribe(const std::string& topic_prefix, SubscribeCallback cb) = 0;
 
     /**
      * Unregister interest in messages on a certain topic.

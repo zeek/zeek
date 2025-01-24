@@ -50,7 +50,7 @@ private:
     bool DoPublishEvent(const std::string& topic, const std::string& format,
                         const cluster::detail::byte_buffer& buf) override;
 
-    bool DoSubscribe(const std::string& topic_prefix) override;
+    bool DoSubscribe(const std::string& topic_prefix, SubscribeCallback cb) override;
 
     bool DoUnsubscribe(const std::string& topic_prefix) override;
 
@@ -95,6 +95,10 @@ private:
     std::thread self_thread;
 
     std::unique_ptr<ProxyThread> proxy_thread;
+
+    // Tracking the subscriptions on the local XPUB socket.
+    std::map<std::string, SubscribeCallback> subscription_callbacks;
+    std::set<std::string> xpub_subscriptions;
 };
 
 } // namespace zeek::cluster::zeromq

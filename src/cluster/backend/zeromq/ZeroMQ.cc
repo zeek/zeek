@@ -14,6 +14,7 @@
 #include <zmq.hpp>
 
 #include "zeek/DebugLogger.h"
+#include "zeek/EventHandler.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Reporter.h"
@@ -133,6 +134,12 @@ bool ZeroMQBackend::DoInit() {
 
     xpub.set(zmq::sockopt::linger, linger_ms);
     xpub.set(zmq::sockopt::xpub_nodrop, xpub_nodrop);
+
+    // Enable XPUB_VERBOSE unconditional to enforce nodes receiving
+    // notifications about any new subscriptions, even if they have
+    // seen them before. This is needed to for the subscribe callback
+    // functionality to work reliably.
+    xpub.set(zmq::sockopt::xpub_verbose, 1);
 
     try {
         xsub.connect(connect_xsub_endpoint);
@@ -263,7 +270,7 @@ bool ZeroMQBackend::DoPublishEvent(const std::string& topic, const std::string& 
     return true;
 }
 
-bool ZeroMQBackend::DoSubscribe(const std::string& topic_prefix) {
+bool ZeroMQBackend::DoSubscribe(const std::string& topic_prefix, SubscribeCallback cb) {
     ZEROMQ_DEBUG("Subscribing to %s", topic_prefix.c_str());
     try {
         // Prepend 0x01 byte to indicate subscription to XSUB socket
@@ -272,8 +279,15 @@ bool ZeroMQBackend::DoSubscribe(const std::string& topic_prefix) {
         main_inproc.send(zmq::const_buffer(msg.data(), msg.size()));
     } catch ( zmq::error_t& err ) {
         zeek::reporter->Error("Failed to subscribe to topic %s: %s", topic_prefix.c_str(), err.what());
+        if ( cb )
+            cb(topic_prefix, {CallbackStatus::Error, err.what()});
+
         return false;
     }
+
+    // Store the callback for later.
+    if ( cb )
+        subscription_callbacks.insert({topic_prefix, cb});
 
     return true;
 }
@@ -597,10 +611,33 @@ void ZeroMQBackend::Run() {
 bool ZeroMQBackend::DoProcessBackendMessage(int tag, detail::byte_buffer_span payload) {
     if ( tag == 0 || tag == 1 ) {
         std::string topic{reinterpret_cast<const char*>(payload.data()), payload.size()};
-        zeek::EventHandlerPtr eh = tag == 1 ? event_subscription : event_unsubscription;
+        zeek::EventHandlerPtr eh;
 
-        ZEROMQ_DEBUG("BackendMessage: %s for %s", eh->Name(), topic.c_str());
-        EnqueueEvent(eh, zeek::Args{zeek::make_intrusive<zeek::StringVal>(topic)});
+        if ( tag == 1 ) {
+            // If this is the first time the subscription was observed, raise
+            // the ZeroMQ internal event.
+            if ( xpub_subscriptions.count(topic) == 0 ) {
+                eh = event_subscription;
+                xpub_subscriptions.insert(topic);
+            }
+
+            if ( const auto& cbit = subscription_callbacks.find(topic); cbit != subscription_callbacks.end() ) {
+                const auto& cb = cbit->second;
+                if ( cb )
+                    cb(topic, {CallbackStatus::Success, "success"});
+
+                subscription_callbacks.erase(cbit);
+            }
+        }
+        else if ( tag == 0 ) {
+            eh = event_unsubscription;
+            xpub_subscriptions.erase(topic);
+        }
+
+        ZEROMQ_DEBUG("BackendMessage: %s for %s", eh != nullptr ? eh->Name() : "<raising no event>", topic.c_str());
+        if ( eh )
+            EnqueueEvent(eh, zeek::Args{zeek::make_intrusive<zeek::StringVal>(topic)});
+
         return true;
     }
     else {

@@ -198,12 +198,12 @@ export {
 
 	## Default separator for log field scopes when logs are unrolled and
 	## flattened.  This will be the string between field name components.
-	## For example, setting this to "_" will cause the typical field
-	## "id.orig_h" to turn into "id_orig_h".
+	## For example, setting this to ``_`` will cause the typical field
+	## ``id.orig_h`` to turn into ``id_orig_h``.
 	const default_scope_sep = "." &redef;
 
 	## A prefix for extension fields which can be optionally prefixed
-	## on all log lines by setting the `ext_func` field in the
+	## on all log lines by setting the ``ext_func`` field in the
 	## log filter.
 	const Log::default_ext_prefix: string = "_" &redef;
 

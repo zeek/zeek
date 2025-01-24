@@ -1,3 +1,17 @@
+7.2.0-dev.122 | 2025-01-24 15:47:15 -0700
+
+  * Make types into constants (Evan Typanski, Corelight)
+
+    This allows types to be used in expressions, but they can't be
+    reassigned. Note that this was meant to be a special "type expression" -
+    but that is unnecessary complexity.
+
+    Type expressions would allow access to the type without going through
+    its constant value, but the constant value is never changed, so it's
+    simply a few more checks if necessary when functionality gets expanded.
+    This way, ZAM and other code will not need updates, so the potential for
+    increased work in the future is probably not worth caring about.
+
 7.2.0-dev.116 | 2025-01-24 11:42:14 -0700
 
   * Fix errors from rst linting on the generated docs (Tim Wojtulewicz, Corelight)

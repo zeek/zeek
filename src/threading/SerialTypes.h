@@ -126,9 +126,8 @@ struct Field {
  * those Vals supported).
  */
 struct Value {
-    TypeTag type;         //! The type of the value.
-    TypeTag subtype;      //! Inner type for sets and vectors.
-    bool present = false; //! False for optional record fields that are not set.
+    TypeTag type;    //! The type of the value.
+    TypeTag subtype; //! Inner type for sets and vectors.
 
     struct set_t {
         zeek_int_t size;
@@ -182,6 +181,8 @@ struct Value {
 
         _val() { memset(this, 0, sizeof(_val)); }
     } val;
+
+    bool present = false; //! False for optional record fields that are not set.
 
     /**
      * Constructor.

@@ -297,7 +297,7 @@ bool ZeroMQBackend::DoUnsubscribe(const std::string& topic_prefix) {
     try {
         // Prepend 0x00 byte to indicate subscription to XSUB socket.
         // This is the XSUB API instead of setsockopt(ZMQ_SUBSCRIBE).
-        std::string msg = "\x00" + topic_prefix;
+        std::string msg = '\0' + topic_prefix;
         main_inproc.send(zmq::const_buffer(msg.data(), msg.size()));
     } catch ( zmq::error_t& err ) {
         zeek::reporter->Error("Failed to unsubscribe from topic %s: %s", topic_prefix.c_str(), err.what());

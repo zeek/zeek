@@ -24,6 +24,7 @@ RUN apt-get update && apt-get -y install \
     jq \
     lcov \
     libkrb5-dev \
+    libhiredis-dev \
     libmaxminddb-dev \
     libpcap-dev \
     libssl-dev \
@@ -32,6 +33,7 @@ RUN apt-get update && apt-get -y install \
     python3-dev \
     python3-pip \
     python3-websockets \
+    redis-server \
     ruby \
     sqlite3 \
     swig \

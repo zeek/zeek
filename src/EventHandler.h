@@ -101,6 +101,8 @@ public:
 
     bool operator==(const EventHandlerPtr& h) const { return handler == h.handler; }
 
+    bool operator!=(const EventHandlerPtr& h) const { return ! (*this == h); }
+
     EventHandler* Ptr() { return handler; }
 
     explicit operator bool() const { return handler && *handler; }

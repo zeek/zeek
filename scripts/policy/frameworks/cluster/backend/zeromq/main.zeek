@@ -134,12 +134,12 @@ export {
 	## Do not silently drop messages if high-water-mark is reached.
 	##
 	## Whether to configure ``ZMQ_XPUB_NODROP`` on the XPUB socket
-	## to detect when sending a message fails due to reaching
-	## the high-water-mark.
+	## connecting to the proxy to detect when sending a message fails
+	## due to reaching the high-water-mark.
 	##
 	## See ZeroMQ's `ZMQ_XPUB_NODROP documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc61>`_
 	## for more details.
-	const xpub_nodrop: bool = T &redef;
+	const connect_xpub_nodrop: bool = T &redef;
 
 	## Do not silently drop messages if high-water-mark is reached.
 	##

@@ -67,11 +67,13 @@ private:
     // Script level variables.
     std::string connect_xsub_endpoint;
     std::string connect_xpub_endpoint;
+    int connect_xpub_nodrop = 1;
     std::string listen_xsub_endpoint;
     std::string listen_xpub_endpoint;
     std::string listen_log_endpoint;
     int listen_xpub_nodrop = 1;
 
+    int linger_ms = 0;
     zeek_uint_t poll_max_messages = 0;
     zeek_uint_t debug_flags = 0;
 

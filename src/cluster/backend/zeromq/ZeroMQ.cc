@@ -89,8 +89,12 @@ void ZeroMQBackend::DoInitPostScript() {
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::connect_xpub_endpoint")->ToStdString();
     connect_xsub_endpoint =
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::connect_xsub_endpoint")->ToStdString();
+    connect_xpub_nodrop =
+        zeek::id::find_val<zeek::BoolVal>("Cluster::Backend::ZeroMQ::connect_xpub_nodrop")->AsBool() ? 1 : 0;
     listen_log_endpoint =
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::listen_log_endpoint")->ToStdString();
+
+    linger_ms = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::linger_ms")->AsInt());
     poll_max_messages = zeek::id::find_val<zeek::CountVal>("Cluster::Backend::ZeroMQ::poll_max_messages")->Get();
     debug_flags = zeek::id::find_val<zeek::CountVal>("Cluster::Backend::ZeroMQ::debug_flags")->Get();
 
@@ -131,16 +135,13 @@ bool ZeroMQBackend::DoInit() {
     log_pull = zmq::socket_t(ctx, zmq::socket_type::pull);
     child_inproc = zmq::socket_t(ctx, zmq::socket_type::pair);
 
-    auto linger_ms = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::linger_ms")->AsInt());
-    int xpub_nodrop = zeek::id::find_val<zeek::BoolVal>("Cluster::Backend::ZeroMQ::xpub_nodrop")->AsBool() ? 1 : 0;
-
     xpub.set(zmq::sockopt::linger, linger_ms);
-    xpub.set(zmq::sockopt::xpub_nodrop, xpub_nodrop);
 
     // Enable XPUB_VERBOSE unconditional to enforce nodes receiving
     // notifications about any new subscriptions, even if they have
     // seen them before. This is needed to for the subscribe callback
     // functionality to work reliably.
+    xpub.set(zmq::sockopt::xpub_nodrop, connect_xpub_nodrop);
     xpub.set(zmq::sockopt::xpub_verbose, 1);
 
     try {

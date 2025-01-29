@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 
 #include "zeek/cluster/Component.h"
@@ -9,6 +10,12 @@
 #include "zeek/plugin/ComponentManager.h"
 
 namespace zeek::cluster {
+
+namespace websocket {
+class WebSocketServer;
+
+struct TLSOptions;
+} // namespace websocket
 
 /**
  * Manager to allow registration of cluster components.
@@ -19,6 +26,12 @@ namespace zeek::cluster {
 class Manager {
 public:
     Manager();
+    ~Manager();
+
+    /**
+     * Executed just before Zeek terminates.
+     */
+    void Terminate();
 
     /**
      * Instantiate a cluster backend with the given enum value and
@@ -69,10 +82,24 @@ public:
      */
     plugin::ComponentManager<LogSerializerComponent>& LogSerializers() { return log_serializers; };
 
+    /**
+     * Start a WebSocket server for the given address and port pair.
+     *
+     * @param addr The address to listen on.
+     * @param port The TCP port to use.
+     * @param tls_options The TLS configuration to use for the server.
+     *
+     * @return True on success, else false.
+     */
+    bool ListenWebSocket(const std::string& addr, int port, const websocket::TLSOptions& tls_options);
+
 private:
     plugin::ComponentManager<BackendComponent> backends;
     plugin::ComponentManager<EventSerializerComponent> event_serializers;
     plugin::ComponentManager<LogSerializerComponent> log_serializers;
+
+    using WebSocketServerKey = std::pair<std::string, int>;
+    std::map<WebSocketServerKey, std::unique_ptr<websocket::WebSocketServer>> websocket_servers;
 };
 
 // This manager instance only exists for plugins to register components,

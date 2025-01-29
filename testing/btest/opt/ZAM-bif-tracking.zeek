@@ -98,6 +98,7 @@ global known_BiFs = set(
 	"Broker::make_event",
 	"Broker::publish",
 	"Cluster::Backend::__init",
+	"Cluster::__listen_websocket",
 	"Cluster::__subscribe",
 	"Cluster::__unsubscribe",
 	"Cluster::make_event",

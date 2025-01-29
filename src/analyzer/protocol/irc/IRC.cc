@@ -5,6 +5,7 @@
 #include "zeek/analyzer/protocol/irc/IRC.h"
 
 #include <iostream>
+#include <unordered_set>
 
 #include "zeek/Event.h"
 #include "zeek/NetVar.h"
@@ -41,6 +42,18 @@ inline void IRC_Analyzer::SkipLeadingWhitespace(string& str) {
         str = "";
     else
         str = str.substr(first_char);
+}
+
+bool IRC_Analyzer::IsValidClientCommand(const std::string& command) {
+    static const std::unordered_set<std::string_view> validCommands =
+        {"ADMIN",   "AWAY",     "CNOTICE", "CPRIVMSG", "CONNECT", "DIE",    "ENCAP",   "ERROR",    "INFO",
+         "INVITE",  "ISON",     "JOIN",    "KICK",     "KILL",    "KNOCK",  "LINKS",   "LIST",     "LUSERS",
+         "MODE",    "MOTD",     "NAMES",   "NICK",     "NOTICE",  "OPER",   "PART",    "PASS",     "PING",
+         "PONG",    "PRIVMSG",  "QUIT",    "REHASH",   "RULES",   "SERVER", "SERVICE", "SERVLIST", "SERVER",
+         "SETNAME", "SILENCE",  "SQUERY",  "SQUIT",    "STATS",   "SUMMON", "TIME",    "TOPIC",    "TRACE",
+         "USER",    "USERHOST", "USERS",   "VERSION",  "WALLOPS", "WHO",    "WHOIS",   "WHOWAS",   "STARTTLS"};
+
+    return validCommands.find(command) != validCommands.end();
 }
 
 void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
@@ -130,17 +143,10 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
     // Extract parameters.
     string params = myline;
 
-    if ( ! confirmed && orig )
-        // confirm if we see a known IRC command
-        if ( command == "ADMIN" || command == "AWAY" || command == "CNOTICE" || command == "CPRIVMSG" ||
-             command == "INFO" || command == "INVITE" || command == "JOIN" || command == "KICK" || command == "LIST" ||
-             command == "MOVE" || command == "NAMES" || command == "NICK" || command == "NOTICE" || command == "PASS" ||
-             command == "PART" || command == "PING" || command == "PRIVMSG" || command == "SERVER" ||
-             command == "SETNAME" || command == "TOPIC" || command == "USER" || command == "WHOIS" ||
-             command == "WHOWAS" || command == "STARTTLS" || command == "PONG" ) {
-            AnalyzerConfirmation();
-            confirmed = true;
-        }
+    if ( ! confirmed && orig && IsValidClientCommand(command) ) {
+        AnalyzerConfirmation();
+        confirmed = true;
+    }
 
     // special case
     if ( command == "STARTTLS" )

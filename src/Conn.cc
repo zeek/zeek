@@ -224,8 +224,10 @@ const RecordValPtr& Connection::GetVal() {
         conn_val->Assign(1, std::move(orig_endp));
         conn_val->Assign(2, std::move(resp_endp));
         // 3 and 4 are set below.
-        conn_val->Assign(5, make_intrusive<TableVal>(id::string_set)); // service
-        conn_val->Assign(6, val_mgr->EmptyString());                   // history
+        // Do not assign to 5 (service). It is a non-optional set, which will be default-initialized
+        // using the script-level settings; this easily applies the &ordered attribute to it.
+        // conn_val->Assign(5, make_intrusive<TableVal>(id::ordered_string_set)); // service
+        conn_val->Assign(6, val_mgr->EmptyString()); // history
 
         if ( ! uid )
             uid.Set(zeek::detail::bits_per_uid);

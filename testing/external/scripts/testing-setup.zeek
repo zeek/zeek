@@ -17,3 +17,5 @@
 # exclude it for now from analyzer.log.
 # https://github.com/zeek/zeek/issues/2659
 redef Analyzer::Logging::ignore_analyzers += { Analyzer::ANALYZER_IMAP };
+
+redef Conn::log_violating_services = T;

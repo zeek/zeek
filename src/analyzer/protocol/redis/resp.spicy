@@ -10,15 +10,29 @@ const MAX_SIZE = 1024 * 1024;
 const MAX_RECURSION_DEPTH = 20;
 
 public type ClientMessages = unit {
+    # The context here refers to whether we saw client data first. It is a one-time switch,
+    # either we have seen client data or not.
+    %context = bool;
+    on %init {
+        *self.context() = True;
+    }
     : ClientData[];
 };
 
 public type ServerMessages = unit {
+    %context = bool;
+    on %init {
+        if (!*self.context()) {
+            throw "Server responses must come after a client request is seen";
+        }
+    }
     : (ServerData &synchronize)[];
 };
 
 public type ClientData = unit {
-    on %init() { self.start = self.input(); }
+    on %init() {
+        self.start = self.input();
+    }
 
     # Clients can only be an array or inline
     ty: uint8 &convert=DataType($$) {
@@ -49,7 +63,7 @@ type BulkStringArray = unit {
 
 type BulkStringWithTy = unit {
     # Need to consume the type here
-    : uint8 &requires=$$=='$';
+    : uint8 &requires=$$ == '$';
 
     length: RedisBytes &convert=$$.to_int(10) &requires=self.length <= int64(MAX_SIZE);
     # NullBulkString is a BulkString with content unset
@@ -58,7 +72,6 @@ type BulkStringWithTy = unit {
     # Consume last CLRF
     : skip RedisBytes;
 };
-
 
 public type ServerData = unit {
     %synchronize-after = b"\x0d\x0a";

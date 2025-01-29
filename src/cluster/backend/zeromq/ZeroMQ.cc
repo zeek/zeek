@@ -528,6 +528,12 @@ void ZeroMQBackend::Run() {
         std::vector<std::vector<MultipartMessage>> rcv_messages(sockets.size());
         try {
             int r = zmq::poll(poll_items, std::chrono::seconds(-1));
+
+            if ( r < 0 ) {
+                ZEROMQ_THREAD_PRINTF("poll: error r=%d errno=%s\n", r, strerror(errno));
+                return;
+            }
+
             ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::POLL, "poll: r=%d", r);
 
             for ( size_t i = 0; i < poll_items.size(); i++ ) {

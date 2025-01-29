@@ -26,6 +26,7 @@ connection {
         * resp_ip_bytes: count, log=T, optional=T
         * resp_pkts: count, log=T, optional=T
         * service: string, log=T, optional=T
+        * service_violation: vector of string, log=T, optional=T
         * ts: time, log=T, optional=F
         * tunnel_parents: set[string], log=T, optional=T
         * uid: string, log=T, optional=F

@@ -7,6 +7,7 @@
 
 @load base/utils/site
 @load base/utils/strings
+@load base/frameworks/analyzer/dpd
 
 module Conn;
 
@@ -16,6 +17,11 @@ export {
 
 	## A default logging policy hook for the stream.
 	global log_policy: Log::PolicyHook;
+
+	## Include a failed_services column in the connection log if true.
+	## This will contain services that were removed because a violation
+	## happened during parsing
+	const log_violating_services = F &redef;
 
 	## The record type which contains column fields of the connection log.
 	type Info: record {
@@ -32,6 +38,11 @@ export {
 		## colons. Protocols listed are in the order in which they are
 		## confirmed.
 		service:      string          &log &optional;
+		## List of protocols in a connection that raised protocol violations
+		## causing the analyzer to be removed.
+		## Protocols are listed in order that they were removed.
+		## Only present if ``log_violating_services`` is true.
+		service_violation: vector of string  &log &optional;
 		## How long the connection lasted.
 		##
 		## .. note:: The duration doesn't cover trailing "non-productive"
@@ -179,6 +190,20 @@ redef record connection += {
 event zeek_init() &priority=5
 	{
 	Log::create_stream(Conn::LOG, [$columns=Info, $ev=log_conn, $path="conn", $policy=log_policy]);
+
+	# exclude service_violation column if not desired.
+	if ( ! log_violating_services )
+		{
+		local conn_filter = Log::get_filter(Conn::LOG, "default");
+		if ( conn_filter$name != "<not found>" )
+			{
+			if ( ! conn_filter?$exclude )
+				conn_filter$exclude = set();
+
+			add conn_filter$exclude["service_violation"];
+			Log::add_filter(Conn::LOG, conn_filter);
+			}
+		}
 	}
 
 function conn_state(c: connection, trans: transport_proto): string
@@ -282,6 +307,14 @@ function set_conn(c: connection, eoc: bool)
 
 		if ( |c$service| > 0 )
 			c$conn$service=to_lower(join_string_set(c$service, ","));
+
+		if ( log_violating_services && |c$service_violation| > 0 )
+			{
+			c$conn$service_violation = {};
+			local sv: string;
+			for ( sv in c$service_violation)
+				c$conn$service_violation += to_lower(sv);
+			}
 
 		c$conn$conn_state=conn_state(c, get_port_transport_proto(c$id$resp_p));
 

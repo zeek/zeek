@@ -25,6 +25,8 @@
 #include "zeek/cluster/backend/zeromq/ZeroMQ-Proxy.h"
 #include "zeek/util.h"
 
+extern int signal_val;
+
 namespace zeek {
 
 namespace plugin::Zeek_Cluster_Backend_ZeroMQ {
@@ -266,7 +268,21 @@ bool ZeroMQBackend::DoPublishEvent(const std::string& topic, const std::string& 
         // This should never fail, it will instead block
         // when HWM is reached. I guess we need to see if
         // and how this can happen :-/
-        main_inproc.send(parts[i], flags);
+        try {
+            main_inproc.send(parts[i], flags);
+        } catch ( zmq::error_t& err ) {
+            // If send() was interrupted and Zeek caught an interrupt or term signal,
+            // fail the publish as we're about to shutdown. There's nothing the user
+            // can do, but it indicates an overload situation as send() was blocking.
+            if ( err.num() == EINTR && (signal_val == SIGINT || signal_val == SIGTERM) ) {
+                zeek::reporter->Error("Failed publish() using ZeroMQ backend at shutdown: %s (signal_val=%d)",
+                                      err.what(), signal_val);
+                return false;
+            }
+
+            zeek::reporter->Error("Unexpected ZeroMQ::DoPublishEvent() error: %s", err.what());
+            return false;
+        }
     }
 
     return true;

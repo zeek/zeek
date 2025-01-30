@@ -51,10 +51,10 @@ event ping(msg: string, n: count) &is_used
 global added = 0;
 global lost = 0;
 
-event Cluster::websocket_client_added(info: Cluster::EndpointInfo)
+event Cluster::websocket_client_added(info: Cluster::EndpointInfo, subscriptions: string_vec)
 	{
 	++added;
-	print "Cluster::websocket_client_added", added;
+	print "Cluster::websocket_client_added", added, subscriptions;
 	}
 
 event Cluster::websocket_client_lost(info: Cluster::EndpointInfo)

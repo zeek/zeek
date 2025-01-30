@@ -10,14 +10,15 @@
 
 #include "zeek/Reporter.h"
 #include "zeek/cluster/Backend.h"
+#include "zeek/cluster/BifSupport.h"
 #include "zeek/cluster/Manager.h"
 #include "zeek/cluster/OnLoop.h"
 #include "zeek/cluster/Serializer.h"
 #include "zeek/cluster/serializer/broker/Serializer.h"
 #include "zeek/cluster/websocket/Plugin.h"
 #include "zeek/cluster/websocket/events.bif.h"
+#include "zeek/net_util.h"
 #include "zeek/threading/MsgThread.h"
-#include "zeek/util.h"
 
 #include "broker/data.bif.h"
 #include "broker/data_envelope.hh"
@@ -160,26 +161,30 @@ WebSocketClient::SendInfo WebSocketClient::SendAck(std::string_view endpoint, st
 
 void WebSocketClient::SetSubscriptions(const std::vector<std::string>& topic_prefixes) {
     for ( const auto& topic_prefix : topic_prefixes )
-        subscriptions[topic_prefix] = false;
+        subscriptions_state[topic_prefix] = false;
+
+    subscriptions = topic_prefixes;
 }
 
 void WebSocketClient::SetSubscriptionActive(std::string& topic_prefix) {
-    if ( subscriptions.count(topic_prefix) == 0 ) {
+    if ( subscriptions_state.count(topic_prefix) == 0 ) {
         zeek::reporter->InternalWarning("Unknown topic_prefix for WebSocket client %s!", topic_prefix.c_str());
         return;
     }
 
-    subscriptions[topic_prefix] = true;
+    subscriptions_state[topic_prefix] = true;
 }
 
 bool WebSocketClient::AllSubscriptionsActive() const {
-    for ( const auto& [topic_prefix, status] : subscriptions ) {
+    for ( const auto& [topic_prefix, status] : subscriptions_state ) {
         if ( ! status )
             return false;
     }
 
     return true;
 }
+
+const std::vector<std::string>& WebSocketClient::GetSubscriptions() const { return subscriptions; }
 
 class zeek::cluster::websocket::ReplyMsgThread : public zeek::threading::MsgThread {
 public:
@@ -298,15 +303,13 @@ void WebSocketEventDispatcher::Process(WebSocketClose& close) {
     WS_DEBUG("Close from client %s (%s:%d) backend=%p", wsc->getId().c_str(), wsc->getRemoteIp().c_str(),
              wsc->getRemotePort(), backend.get());
 
+    auto rec = zeek::cluster::detail::bif::make_endpoint_info(backend->NodeId(), wsc->getRemoteIp(),
+                                                              wsc->getRemotePort(), TRANSPORT_TCP);
+    zeek::event_mgr.Enqueue(Cluster::websocket_client_lost, std::move(rec));
+
     backend->Terminate();
 
     clients.erase(it);
-
-    // TODO: Introduced helper?
-    const auto& ep_info_type = zeek::id::find_type<zeek::RecordType>("Cluster::EndpointInfo");
-    const auto rec = zeek::make_intrusive<zeek::RecordVal>(ep_info_type);
-    rec->Assign(0, zeek::make_intrusive<zeek::StringVal>(wsc->getId()));
-    zeek::event_mgr.Enqueue(Cluster::websocket_client_lost, rec);
 }
 
 // SubscribeFinished is produced internally.
@@ -327,11 +330,10 @@ void WebSocketEventDispatcher::Process(WebSocketSubscribeFinished& fin) {
         return;
     }
 
-    // TODO: Helper for raising this event?
-    const auto& ep_info_type = zeek::id::find_type<zeek::RecordType>("Cluster::EndpointInfo");
-    const auto rec = zeek::make_intrusive<zeek::RecordVal>(ep_info_type);
-    rec->Assign(0, zeek::make_intrusive<zeek::StringVal>(entry.backend->NodeId()));
-    zeek::event_mgr.Enqueue(Cluster::websocket_client_added, rec);
+    auto rec = zeek::cluster::detail::bif::make_endpoint_info(backend->NodeId(), wsc->getRemoteIp(),
+                                                              wsc->getRemotePort(), TRANSPORT_TCP);
+    auto subscriptions_vec = zeek::cluster::detail::bif::make_string_vec(wsc->GetSubscriptions());
+    zeek::event_mgr.Enqueue(Cluster::websocket_client_added, std::move(rec), std::move(subscriptions_vec));
 
     entry.wsc->SendAck(entry.backend->NodeId(), zeek::zeek_version());
 

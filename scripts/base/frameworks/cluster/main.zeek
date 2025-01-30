@@ -346,6 +346,7 @@ export {
 		ciphers: string &default="";
 	};
 
+	## Default value for ``tls_options`` given to :zeek:see:`Cluster::listen_websocket`.
 	const tls_disabled = WebSocketTLSOptions($enable=F);
 
 	## Start listening on a WebSocket address.
@@ -355,20 +356,29 @@ export {
 	## p: The port to use (must be TCP)
 	##
 	## tls_options: The TLS options to use for the WebSocket server.
+	##
+	## Returns: T on success, else F.
 	global listen_websocket: function(a: string, p: port,
 	                                  tls_options: WebSocketTLSOptions &default=tls_disabled): bool;
 
+	## Network information of an endpoint.
+	type NetworkInfo: record {
+		## The IP address or hostname where the endpoint listens.
+		address: string;
+		## The port where the endpoint is bound to.
+		bound_port: port;
+	};
+
 	## Information about a WebSocket endpoint.
-	##
-	## This is the same concept as for Broker.
 	type EndpointInfo: record {
 		id: string;
+		network: NetworkInfo;
 	};
 }
 
 # Needs declaration of Cluster::Event type.
 @load base/bif/cluster.bif
-
+@load base/bif/plugins/Zeek_Cluster_WebSocket.events.bif.zeek
 
 # Track active nodes per type.
 global active_node_ids: table[NodeType] of set[string];
@@ -638,4 +648,18 @@ function unsubscribe(topic: string): bool
 function listen_websocket(a: string, p: port, tls_options: WebSocketTLSOptions): bool
 	{
 	return Cluster::__listen_websocket(a, p, tls_options);
+	}
+
+event websocket_client_added(endpoint: EndpointInfo, subscriptions: string_vec)
+	{
+	local msg = fmt("WebSocket client '%s' (%s:%d) subscribed to %s",
+	                endpoint$id, endpoint$network$address, endpoint$network$bound_port, subscriptions);
+	Cluster::log(msg);
+	}
+
+event websocket_client_lost(endpoint: EndpointInfo)
+	{
+	local msg = fmt("WebSocket client '%s' (%s:%d) gone",
+	                endpoint$id, endpoint$network$address, endpoint$network$bound_port);
+	Cluster::log(msg);
 	}

@@ -45,9 +45,9 @@ event ping(msg: string, n: count) &is_used
 	Cluster::publish("/zeek/event/my_topic", e);
 	}
 
-event Cluster::websocket_client_added(info: Cluster::EndpointInfo)
+event Cluster::websocket_client_added(info: Cluster::EndpointInfo, subscriptions: string_vec)
 	{
-	print "Cluster::websocket_client_added";
+	print "Cluster::websocket_client_added", subscriptions;
 	}
 
 event Cluster::websocket_client_lost(info: Cluster::EndpointInfo)

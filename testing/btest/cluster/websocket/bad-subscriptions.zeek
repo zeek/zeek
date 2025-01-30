@@ -43,17 +43,17 @@ event zeek_init()
 global added = 0;
 global lost = 0;
 
-event Cluster::websocket_client_added(info: Cluster::EndpointInfo)
+event Cluster::websocket_client_added(info: Cluster::EndpointInfo, subscriptions: string_vec)
 	{
 	++added;
-	print "Cluster::websocket_client_added", added;
+	print "Cluster::websocket_client_added", added, subscriptions;
 	}
 
 event Cluster::websocket_client_lost(info: Cluster::EndpointInfo)
 	{
 	++lost;
 	print "Cluster::websocket_client_lost", lost;
-	if ( lost == 3 )
+	if ( lost == 4 )
 		terminate();
 	}
 # @TEST-END-FILE
@@ -82,6 +82,12 @@ def run(ws_url):
         ws.send('[1, "/my_topic"]')
         err = json.loads(ws.recv())
         print("mix error", err)
+
+    # This should work - maybe duplicate isn't great, but good for testing.
+    with connect(ws_url) as ws:
+        ws.send('["/topic/good", "/dupicate", "/duplicate", "/is/okay"]')
+        ack = json.loads(ws.recv())
+        print("ack", ack["type"] == "ack")
 
 def main():
     for _ in range(100):

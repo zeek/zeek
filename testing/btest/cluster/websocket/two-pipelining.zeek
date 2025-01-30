@@ -66,10 +66,10 @@ event ping(msg: string, n: count) &is_used
 	Cluster::publish("/zeek/event/to_client", e);
 	}
 
-event Cluster::websocket_client_added(info: Cluster::EndpointInfo)
+event Cluster::websocket_client_added(info: Cluster::EndpointInfo, subscriptions: string_vec)
 	{
 	++added;
-	print "A Cluster::websocket_client_added";
+	print "A Cluster::websocket_client_added", added, subscriptions;
 
 	if ( added == 2 )
 		{

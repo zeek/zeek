@@ -1,4 +1,4 @@
-# @TEST-DOC: Run a single node cluster (manager) with a websocket server and have a single client connect.
+# @TEST-DOC: Test websocket clients appearing in cluster.log
 #
 # @TEST-REQUIRES: have-zeromq
 # @TEST-REQUIRES: python3 -c 'import websockets.sync'
@@ -22,12 +22,18 @@
 # @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff ./manager/out
 # @TEST-EXEC: btest-diff ./manager/.stderr
+# @TEST-EXEC: zeek-cut node message <  ./manager/cluster.log | sed -r "s/client '.+' /client <nodeid> /g" | sed -r "s/:[0-9]+/:<port>/g" > ./manager/cluster.log.cannonified
+# @TEST-EXEC: btest-diff ./manager/cluster.log.cannonified
 # @TEST-EXEC: btest-diff ./client/out
 # @TEST-EXEC: btest-diff ./client/.stderr
 
 # @TEST-START-FILE manager.zeek
 @load ./zeromq-test-bootstrap
 redef exit_only_after_terminate = T;
+
+# Have the manager create cluster.log
+redef Log::enable_local_logging = T;
+redef Log::default_rotation_interval = 0sec;
 
 global ping_count = 0;
 
@@ -36,27 +42,33 @@ global pong: event(msg: string, c: count) &is_used;
 
 event zeek_init()
 	{
-	Cluster::subscribe("/zeek/event/my_topic");
+	Cluster::subscribe("/test/manager");
 	Cluster::listen_websocket("127.0.0.1", to_port(getenv("WEBSOCKET_PORT")));
 	}
 
 event ping(msg: string, n: count) &is_used
 	{
-	++ping_count;
+        ++ping_count;
 	print fmt("got ping: %s, %s", msg, n);
-	local e = Cluster::make_event(pong, "my-message", ping_count);
-	Cluster::publish("/zeek/event/my_topic", e);
+	local e = Cluster::make_event(pong, fmt("orig_msg=%s", msg), ping_count);
+	Cluster::publish("/test/clients", e);
 	}
+
+global added = 0;
+global lost = 0;
 
 event Cluster::websocket_client_added(info: Cluster::EndpointInfo, subscriptions: string_vec)
 	{
-	print "Cluster::websocket_client_added", subscriptions;
+	++added;
+	print "Cluster::websocket_client_added", added, subscriptions;
 	}
 
 event Cluster::websocket_client_lost(info: Cluster::EndpointInfo)
 	{
-	print "Cluster::websocket_client_lost";
-	terminate();
+	++lost;
+	print "Cluster::websocket_client_lost", lost;
+	if ( lost == 3 )
+		terminate();
 	}
 # @TEST-END-FILE
 
@@ -67,45 +79,24 @@ from websockets.sync.client import connect
 
 ws_port = os.environ['WEBSOCKET_PORT'].split('/')[0]
 ws_url = f'ws://127.0.0.1:{ws_port}/messages/json'
-topic = '/zeek/event/my_topic'
-
-def make_ping(c):
-    return {
-        "type": "data-message",
-        "topic": topic,
-        "@data-type": "vector",
-        "data": [
-            {"@data-type": "count", "data": 1},  # Format
-            {"@data-type": "count", "data": 1},  # Type
-            {"@data-type": "vector", "data": [
-                { "@data-type": "string", "data": "ping"},  # Event name
-                { "@data-type": "vector", "data": [  # event args
-                    {"@data-type": "string", "data": f"python-websocket-client"},
-                    {"@data-type": "count", "data": c},
-                ], },
-            ], },
-        ],
-    }
 
 def run(ws_url):
-    with connect(ws_url) as ws:
-        print("Connected!")
-        # Send subscriptions
-        ws.send(json.dumps([topic]))
-        ack = json.loads(ws.recv())
-        assert "type" in ack
-        assert ack["type"] == "ack"
-        assert "endpoint" in ack
-        assert "version" in ack
+    with connect(ws_url) as ws1:
+        with connect(ws_url) as ws2:
+            with connect(ws_url) as ws3:
+                 clients = [ws1, ws2, ws3]
+                 print("Connected!")
+                 ids = set()
+                 for i, c in enumerate(clients, 1):
+                     c.send(json.dumps([f"/topic/ws/{i}", "/topic/ws/all"]))
+                     ack = json.loads(c.recv())
+                     assert "type" in ack, repr(ack)
+                     assert ack["type"] == "ack"
+                     assert "endpoint" in ack, repr(ack)
+                     assert "version" in ack
+                     ids.add(ack["endpoint"])
 
-        for i in range(5):
-            print("Sending ping", i)
-            ws.send(json.dumps(make_ping(i)))
-            print("Receiving pong", i)
-            pong = json.loads(ws.recv())
-            assert pong["@data-type"] == "vector"
-            ev = pong["data"][2]["data"]
-            print("topic", pong["topic"], "event name", ev[0]["data"], "args", ev[1]["data"])
+                 print("unique ids", len(ids))
 
 def main():
     for _ in range(100):

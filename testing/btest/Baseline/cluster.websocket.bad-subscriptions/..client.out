@@ -2,3 +2,4 @@
 broken array response {'type': 'error', 'code': 'deserialization_failed', 'message': 'subscriptions not an array'}
 non string error {'type': 'error', 'code': 'deserialization_failed', 'message': 'individual subscription not a string'}
 mix error {'type': 'error', 'code': 'deserialization_failed', 'message': 'individual subscription not a string'}
+ack True

@@ -99,6 +99,11 @@ public:
     void SetSubscriptions(const std::vector<std::string>& topic_prefixes);
 
     /**
+     * @return The client's subscriptions.
+     */
+    const std::vector<std::string>& GetSubscriptions() const;
+
+    /**
      * Store the client's subscriptions as "not active".
      */
     void SetSubscriptionActive(std::string& topic_prefix);
@@ -110,7 +115,8 @@ public:
 
 private:
     bool acked = false;
-    std::map<std::string, bool> subscriptions;
+    std::map<std::string, bool> subscriptions_state;
+    std::vector<std::string> subscriptions;
 };
 
 // An new WebSocket client connected. Client is locally identified by `id`.

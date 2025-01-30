@@ -164,8 +164,8 @@ private:
     void UpdateFuncBodies();
 
     EventGroupKind kind;
-    std::string name;
     bool enabled = true;
+    std::string name;
     std::unordered_set<detail::ScriptFuncPtr> funcs;
 };
 

@@ -105,10 +105,10 @@ private:
     bool did_EOF;
     bool skip_deliveries;
 
-    uint64_t seq_to_skip;
-
-    bool in_delivery;
     analyzer::tcp::TCP_Flags flags;
+    bool in_delivery;
+
+    uint64_t seq_to_skip;
 
     FilePtr record_contents_file; // file on which to reassemble contents
 

@@ -1,3 +1,14 @@
+7.2.0-dev.124 | 2025-01-30 10:51:14 -0700
+
+  * Pack some classes for better memory usages (Tim Wojtulewicz, Corelight)
+
+    - Analyzer: Reduce from 208 bytes to 192 bytes, remove one cache line
+    - EventGroup: Reduce from 104 bytes to 96 bytes
+    - Packet: Reduce from 200 bytes to 184 bytes, remove one cache line
+    - threading::Value: Reduce from 48 bytes to 40 bytes
+    - ConnTuple: push hole to the end of struct
+    - TCP_Reassembler: Reduce from 240 bytes to 232 bytes
+
 7.2.0-dev.122 | 2025-01-24 15:47:15 -0700
 
   * Make types into constants (Evan Typanski, Corelight)

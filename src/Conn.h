@@ -59,8 +59,8 @@ struct ConnTuple {
     IPAddr dst_addr;
     uint32_t src_port = 0;
     uint32_t dst_port = 0;
-    bool is_one_way = false; // if true, don't canonicalize order
     uint16_t proto = UNKNOWN_IP_PROTO;
+    bool is_one_way = false; // if true, don't canonicalize order
 };
 
 static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1, const IPAddr& addr2, uint32_t p2) {

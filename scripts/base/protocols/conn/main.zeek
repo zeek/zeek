@@ -31,6 +31,9 @@ export {
 		## the connection. Can list more than one protocol separated with
 		## colons. Protocols listed are in the order in which they are
 		## confirmed.
+		## This field can also contain a list of protocol analyzers that
+		## raise violations prefixed with a "-" if the option
+		## :zeek:see:`DPD::track_removed_services_in_connection` is set.
 		service:      string          &log &optional;
 		## How long the connection lasted.
 		##

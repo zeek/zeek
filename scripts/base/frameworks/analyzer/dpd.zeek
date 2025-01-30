@@ -35,13 +35,16 @@ export {
 	## Ignore violations which go this many bytes into the connection.
 	## Set to 0 to never ignore protocol violations.
 	option ignore_violations_after = 10 * 1024;
+
+	## Add removed services to conn.log, with a - in front of them.
+	option track_removed_services_in_connection = F;
 }
 
 redef record connection += {
 	dpd: Info &optional;
 	## The set of services (analyzers) for which Zeek has observed a
 	## violation after the same service had previously been confirmed.
-	service_violation: set[string] &default=set();
+	service_violation: set[string] &default=set() &ordered;
 };
 
 event zeek_init() &priority=5
@@ -77,9 +80,6 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 	if ( analyzer !in c$service || analyzer in c$service_violation )
 		return;
 
-	# No longer delete a service once it has been confirmed.
-	# FIXME: track failed analyzers somehow - either by changing how they are logged, or by adding a new column
-	# delete c$service[analyzer];
 	add c$service_violation[analyzer];
 
 	local dpd: Info;
@@ -120,7 +120,16 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 	if ( ignore_violations_after > 0 && size > ignore_violations_after )
 		return;
 
-	disable_analyzer(c$id, aid, F);
+	local disabled = disable_analyzer(c$id, aid, F);
+
+	# add "-service" to the list of services on removal due to violation, if analyzer was confirmed before
+	if ( track_removed_services_in_connection && disabled && Analyzer::name(atype) in c$service )
+		{
+		local rname = fmt("-%s", Analyzer::name(atype));
+		if ( rname !in c$service )
+			add c$service[rname];
+		}
+
 	}
 
 event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo ) &priority=-5

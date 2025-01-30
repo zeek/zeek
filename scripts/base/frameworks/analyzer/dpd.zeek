@@ -79,12 +79,14 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 
 	local c = info$c;
 	local analyzer = Analyzer::name(atype);
-	# If the service hasn't been confirmed yet, don't generate a log message
-	# for the protocol violation.
-	if ( analyzer !in c$service )
+	# If the service hasn't been confirmed yet, or already failed,
+	# don't generate a log message for the protocol violation.
+	if ( analyzer !in c$service || analyzer in c$service_violation )
 		return;
 
-	delete c$service[analyzer];
+	# No longer delete a service once it has been confirmed.
+	# FIXME: track failed analyzers somehow - either by changing how they are logged, or by adding a new column
+	# delete c$service[analyzer];
 	add c$service_violation[analyzer];
 
 	local dpd: Info;

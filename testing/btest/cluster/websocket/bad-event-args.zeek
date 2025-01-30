@@ -59,7 +59,7 @@ event Cluster::websocket_client_lost(info: Cluster::EndpointInfo)
 
 
 @TEST-START-FILE client.py
-import json, os
+import json, os, time
 from websockets.sync.client import connect
 
 ws_port = os.environ['WEBSOCKET_PORT'].split('/')[0]

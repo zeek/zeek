@@ -27,7 +27,7 @@ event zeek_init() {
 	# Test basic operation. The second get() should return an error
 	# as the key should have been erased.
 	local b = Storage::open_backend(Storage::STORAGEDUMMY, opts, str, str);
-	local put_res = Storage::put([$backend=b, $key=key, $value=value, $overwrite=F, $async_mode=F]);
+	local put_res = Storage::put(b, [$key=key, $value=value, $overwrite=F, $async_mode=F]);
 	local get_res = Storage::get(b, key, F);
 	if ( get_res is bool ) {
 		print("Got an invalid value in response!");
@@ -41,7 +41,7 @@ event zeek_init() {
 		Reporter::error(get_res$error);
 
 	# Test attempting to use the closed handle.
-	put_res = Storage::put([$backend=b, $key="a", $value="b", $overwrite=F]);
+	put_res = Storage::put(b, [$key="a", $value="b", $overwrite=F]);
 	get_res = Storage::get(b, "a");
 	erase_res = Storage::erase(b, "a");
 

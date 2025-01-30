@@ -66,7 +66,7 @@ event zeek_init() {
 
 	local b = Storage::open_backend(Storage::SQLITE, opts, Rec, tbl);
 
-	local res = Storage::put([$backend=b, $key=key, $value=value, $async_mode=F]);
+	local res = Storage::put(b, [$key=key, $value=value, $async_mode=F]);
 	print "put result", res;
 
 	local res2 = Storage::get(b, key, F);

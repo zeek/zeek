@@ -32,7 +32,7 @@ event zeek_init() {
 
 	local b = Storage::open_backend(Storage::REDIS, opts, str, str);
 
-	when [b, key, value] ( local res = Storage::put([$backend=b, $key=key, $value=value]) ) {
+	when [b, key, value] ( local res = Storage::put(b, [$key=key, $value=value]) ) {
 		print "put result", res;
 
 		when [b, key, value] ( local res2 = Storage::get(b, key) ) {

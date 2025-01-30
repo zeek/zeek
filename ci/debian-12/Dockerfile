@@ -28,7 +28,6 @@ RUN apt-get update && apt-get -y install \
     python3 \
     python3-dev \
     python3-pip\
-    python3-websockets \
     sqlite3 \
     swig \
     wget \
@@ -39,4 +38,4 @@ RUN apt-get update && apt-get -y install \
 
 # Debian bookworm really doesn't like using pip to install system wide stuff, but
 # doesn't seem there's a python3-junit2html package, so not sure what we'd break.
-RUN pip3 install --break-system-packages junit2html
+RUN pip3 install --break-system-packages websockets junit2html

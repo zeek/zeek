@@ -327,11 +327,58 @@ export {
 		## The arguments for the event.
 		args: vector of any;
 	};
+
+	## The TLS options for a WebSocket server.
+	type WebSocketTLSOptions: record {
+		## Whether TLS is enabled at all.
+		enable: bool;
+		## Expect peers to send client certificates.
+		enable_peer_verification: bool &default=F;
+		## The cert file to use.
+		cert_file: string &default="";
+		## The key file to use.
+		key_file: string &default="";
+		## The CA certificate or CA bundle used for peer verification.
+		## Empty will use the implementations's default when
+		## ``enable_peer_verification`` is T.
+		ca_file: string &default="";
+		## The ciphers to use. Empty will use the implementation's defaults.
+		ciphers: string &default="";
+	};
+
+	## Default value for ``tls_options`` given to :zeek:see:`Cluster::listen_websocket`.
+	const tls_disabled = WebSocketTLSOptions($enable=F);
+
+	## Start listening on a WebSocket address.
+	##
+	## a: The address to listen on
+	##
+	## p: The port to use (must be TCP)
+	##
+	## tls_options: The TLS options to use for the WebSocket server.
+	##
+	## Returns: T on success, else F.
+	global listen_websocket: function(a: string, p: port,
+	                                  tls_options: WebSocketTLSOptions &default=tls_disabled): bool;
+
+	## Network information of an endpoint.
+	type NetworkInfo: record {
+		## The IP address or hostname where the endpoint listens.
+		address: string;
+		## The port where the endpoint is bound to.
+		bound_port: port;
+	};
+
+	## Information about a WebSocket endpoint.
+	type EndpointInfo: record {
+		id: string;
+		network: NetworkInfo;
+	};
 }
 
 # Needs declaration of Cluster::Event type.
 @load base/bif/cluster.bif
-
+@load base/bif/plugins/Zeek_Cluster_WebSocket.events.bif.zeek
 
 # Track active nodes per type.
 global active_node_ids: table[NodeType] of set[string];
@@ -596,4 +643,23 @@ function subscribe(topic: string): bool
 function unsubscribe(topic: string): bool
 	{
 	return Cluster::__unsubscribe(topic);
+	}
+
+function listen_websocket(a: string, p: port, tls_options: WebSocketTLSOptions): bool
+	{
+	return Cluster::__listen_websocket(a, p, tls_options);
+	}
+
+event websocket_client_added(endpoint: EndpointInfo, subscriptions: string_vec)
+	{
+	local msg = fmt("WebSocket client '%s' (%s:%d) subscribed to %s",
+	                endpoint$id, endpoint$network$address, endpoint$network$bound_port, subscriptions);
+	Cluster::log(msg);
+	}
+
+event websocket_client_lost(endpoint: EndpointInfo)
+	{
+	local msg = fmt("WebSocket client '%s' (%s:%d) gone",
+	                endpoint$id, endpoint$network$address, endpoint$network$bound_port);
+	Cluster::log(msg);
 	}

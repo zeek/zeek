@@ -25,6 +25,8 @@
 #include "zeek/cluster/backend/zeromq/ZeroMQ-Proxy.h"
 #include "zeek/util.h"
 
+extern int signal_val;
+
 namespace zeek {
 
 namespace plugin::Zeek_Cluster_Backend_ZeroMQ {
@@ -76,8 +78,6 @@ ZeroMQBackend::ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_pt
 }
 
 void ZeroMQBackend::DoInitPostScript() {
-    ThreadedBackend::DoInitPostScript();
-
     listen_xpub_endpoint =
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::listen_xpub_endpoint")->ToStdString();
     listen_xsub_endpoint =
@@ -88,17 +88,22 @@ void ZeroMQBackend::DoInitPostScript() {
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::connect_xpub_endpoint")->ToStdString();
     connect_xsub_endpoint =
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::connect_xsub_endpoint")->ToStdString();
+    connect_xpub_nodrop =
+        zeek::id::find_val<zeek::BoolVal>("Cluster::Backend::ZeroMQ::connect_xpub_nodrop")->AsBool() ? 1 : 0;
     listen_log_endpoint =
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::listen_log_endpoint")->ToStdString();
+
+    linger_ms = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::linger_ms")->AsInt());
     poll_max_messages = zeek::id::find_val<zeek::CountVal>("Cluster::Backend::ZeroMQ::poll_max_messages")->Get();
     debug_flags = zeek::id::find_val<zeek::CountVal>("Cluster::Backend::ZeroMQ::debug_flags")->Get();
+    proxy_io_threads = zeek::id::find_val<zeek::CountVal>("Cluster::Backend::ZeroMQ::proxy_io_threads")->Get();
 
     event_unsubscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::unsubscription");
     event_subscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::subscription");
 }
 
-
 void ZeroMQBackend::DoTerminate() {
+    ThreadedBackend::DoTerminate();
     ZEROMQ_DEBUG("Shutting down ctx");
     ctx.shutdown();
     ZEROMQ_DEBUG("Joining self_thread");
@@ -129,11 +134,8 @@ bool ZeroMQBackend::DoInit() {
     log_pull = zmq::socket_t(ctx, zmq::socket_type::pull);
     child_inproc = zmq::socket_t(ctx, zmq::socket_type::pair);
 
-    auto linger_ms = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::linger_ms")->AsInt());
-    int xpub_nodrop = zeek::id::find_val<zeek::BoolVal>("Cluster::Backend::ZeroMQ::xpub_nodrop")->AsBool() ? 1 : 0;
-
     xpub.set(zmq::sockopt::linger, linger_ms);
-    xpub.set(zmq::sockopt::xpub_nodrop, xpub_nodrop);
+    xpub.set(zmq::sockopt::xpub_nodrop, connect_xpub_nodrop);
     xpub.set(zmq::sockopt::xpub_verbose, 1);
 
     try {
@@ -230,7 +232,8 @@ bool ZeroMQBackend::DoInit() {
 }
 
 bool ZeroMQBackend::SpawnZmqProxyThread() {
-    proxy_thread = std::make_unique<ProxyThread>(listen_xpub_endpoint, listen_xsub_endpoint, listen_xpub_nodrop);
+    proxy_thread =
+        std::make_unique<ProxyThread>(listen_xpub_endpoint, listen_xsub_endpoint, listen_xpub_nodrop, proxy_io_threads);
     return proxy_thread->Start();
 }
 
@@ -259,7 +262,20 @@ bool ZeroMQBackend::DoPublishEvent(const std::string& topic, const std::string& 
         // This should never fail, it will instead block
         // when HWM is reached. I guess we need to see if
         // and how this can happen :-/
-        main_inproc.send(parts[i], flags);
+        try {
+            main_inproc.send(parts[i], flags);
+        } catch ( zmq::error_t& err ) {
+            // If send() was interrupted and Zeek caught an interrupt or term signal,
+            // fail the publish as we'll about to shutdown. There's nothing the user
+            // can do, but it indicates an overload situation as send() was blocking.
+            if ( err.num() == EINTR && (signal_val == SIGINT || signal_val == SIGTERM) ) {
+                zeek::reporter->Error("Failed publish() at shutdown: %s (signal_val=%d)", err.what(), signal_val);
+                return false;
+            }
+
+            zeek::reporter->Error("Unexpected ZeroMQ::DoPublishEvent() error: %s", err.what());
+            return false;
+        }
     }
 
     return true;
@@ -357,9 +373,6 @@ void ZeroMQBackend::Run() {
     using MultipartMessage = std::vector<zmq::message_t>;
 
     auto HandleLogMessages = [this](const std::vector<MultipartMessage>& msgs) {
-        QueueMessages qmsgs;
-        qmsgs.reserve(msgs.size());
-
         for ( const auto& msg : msgs ) {
             // sender, format, type,  payload
             if ( msg.size() != 4 ) {
@@ -368,11 +381,11 @@ void ZeroMQBackend::Run() {
             }
 
             detail::byte_buffer payload{msg[3].data<std::byte>(), msg[3].data<std::byte>() + msg[3].size()};
-            qmsgs.emplace_back(LogMessage{.format = std::string(msg[2].data<const char>(), msg[2].size()),
-                                          .payload = std::move(payload)});
-        }
+            LogMessage lm{.format = std::string(msg[2].data<const char>(), msg[2].size()),
+                          .payload = std::move(payload)};
 
-        QueueForProcessing(std::move(qmsgs));
+            QueueForProcessing(std::move(lm));
+        }
     };
 
     auto HandleInprocMessages = [this](std::vector<MultipartMessage>& msgs) {
@@ -425,9 +438,6 @@ void ZeroMQBackend::Run() {
     };
 
     auto HandleXPubMessages = [this](const std::vector<MultipartMessage>& msgs) {
-        QueueMessages qmsgs;
-        qmsgs.reserve(msgs.size());
-
         for ( const auto& msg : msgs ) {
             if ( msg.size() != 1 ) {
                 ZEROMQ_THREAD_PRINTF("xpub: error: expected 1 part, have %zu!\n", msg.size());
@@ -453,17 +463,12 @@ void ZeroMQBackend::Run() {
                     continue;
                 }
 
-                qmsgs.emplace_back(std::move(qm));
+                QueueForProcessing(std::move(qm));
             }
         }
-
-        QueueForProcessing(std::move(qmsgs));
     };
 
     auto HandleXSubMessages = [this](const std::vector<MultipartMessage>& msgs) {
-        QueueMessages qmsgs;
-        qmsgs.reserve(msgs.size());
-
         for ( const auto& msg : msgs ) {
             if ( msg.size() != 4 ) {
                 ZEROMQ_THREAD_PRINTF("xsub: error: expected 4 parts, have %zu!\n", msg.size());
@@ -476,12 +481,12 @@ void ZeroMQBackend::Run() {
                 continue;
 
             detail::byte_buffer payload{msg[3].data<std::byte>(), msg[3].data<std::byte>() + msg[3].size()};
-            qmsgs.emplace_back(EventMessage{.topic = std::string(msg[0].data<const char>(), msg[0].size()),
-                                            .format = std::string(msg[2].data<const char>(), msg[2].size()),
-                                            .payload = std::move(payload)});
-        }
+            EventMessage em{.topic = std::string(msg[0].data<const char>(), msg[0].size()),
+                            .format = std::string(msg[2].data<const char>(), msg[2].size()),
+                            .payload = std::move(payload)};
 
-        QueueForProcessing(std::move(qmsgs));
+            QueueForProcessing(std::move(em));
+        }
     };
 
     // Helper class running at destruction.
@@ -526,6 +531,12 @@ void ZeroMQBackend::Run() {
         std::vector<std::vector<MultipartMessage>> rcv_messages(sockets.size());
         try {
             int r = zmq::poll(poll_items, std::chrono::seconds(-1));
+
+            if ( r < 0 ) {
+                ZEROMQ_THREAD_PRINTF("poll: error r=%d errno=%s\n", r, strerror(errno));
+                return;
+            }
+
             ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::POLL, "poll: r=%d", r);
 
             for ( size_t i = 0; i < poll_items.size(); i++ ) {

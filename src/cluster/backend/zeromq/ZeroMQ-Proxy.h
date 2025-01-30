@@ -21,8 +21,11 @@ public:
      * @param xsub_endpoint the XSUB socket address to listen on.
      * @param xpub_nodrop the xpub_nodrop option to use on the XPUB socket.
      */
-    ProxyThread(std::string xpub_endpoint, std::string xsub_endpoint, int xpub_nodrop)
-        : xpub_endpoint(std::move(xpub_endpoint)), xsub_endpoint(std::move(xsub_endpoint)), xpub_nodrop(xpub_nodrop) {}
+    ProxyThread(std::string xpub_endpoint, std::string xsub_endpoint, int xpub_nodrop, int io_threads)
+        : xpub_endpoint(std::move(xpub_endpoint)),
+          xsub_endpoint(std::move(xsub_endpoint)),
+          xpub_nodrop(xpub_nodrop),
+          io_threads(io_threads) {}
 
 
     ~ProxyThread() { Shutdown(); }
@@ -52,5 +55,6 @@ private:
     std::string xpub_endpoint;
     std::string xsub_endpoint;
     int xpub_nodrop = 1;
+    int io_threads = 2;
 };
 } // namespace zeek::cluster::zeromq

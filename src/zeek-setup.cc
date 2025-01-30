@@ -377,6 +377,7 @@ static void terminate_zeek() {
     notifier::detail::registry.Terminate();
     log_mgr->Terminate();
     input_mgr->Terminate();
+    cluster::manager->Terminate();
     thread_mgr->Terminate();
 
     broker_mgr->Terminate();

@@ -1,7 +1,7 @@
 # @TEST-DOC: Run a single node cluster (manager) with a websocket server and have a single client connect.
 #
 # @TEST-REQUIRES: have-zeromq
-# @TEST-REQUIRES: python3 -c 'import websockets'
+# @TEST-REQUIRES: python3 -c 'import websockets.sync'
 #
 # @TEST-GROUP: cluster-zeromq
 #
@@ -66,7 +66,7 @@ import json, os
 from websockets.sync.client import connect
 
 ws_port = os.environ['WEBSOCKET_PORT'].split('/')[0]
-ws_url = f'ws://localhost:{ws_port}/messages/json'
+ws_url = f'ws://127.0.0.1:{ws_port}/messages/json'
 topic = '/zeek/event/my_topic'
 
 def make_ping(c):
@@ -87,8 +87,7 @@ def make_ping(c):
         ],
     }
 
-def main():
-    print("Connecting...")
+def run(ws_url):
     with connect(ws_url) as ws:
         print("Connected!")
         # Send subscriptions
@@ -107,6 +106,14 @@ def main():
             assert pong["@data-type"] == "vector"
             ev = pong["data"][2]["data"]
             print("topic", pong["topic"], "event name", ev[0]["data"], "args", ev[1]["data"])
+
+def main():
+    for _ in range(100):
+        try:
+            run(ws_url)
+            break
+        except ConnectionRefusedError:
+            time.sleep(0.1)
 
 if __name__ == "__main__":
     main()

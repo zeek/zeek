@@ -68,7 +68,7 @@ event Cluster::websocket_client_lost(info: Cluster::EndpointInfo)
 
 
 @TEST-START-FILE client.py
-import asyncio, json, os
+import asyncio, json, os, socket, time
 from websockets.asyncio.client import connect
 
 ws_port = os.environ['WEBSOCKET_PORT'].split('/')[0]
@@ -98,8 +98,7 @@ def make_ping(c):
     }
 
 async def run():
-    print("Connecting...")
-    async with connect(ws_url) as ws:
+    async with connect(ws_url, family=socket.AF_INET) as ws:
         print("Connected!")
         # Send subscriptions
         await ws.send(json.dumps([topic]))
@@ -119,7 +118,12 @@ async def run():
             print("topic", pong["topic"], "event name", ev[0]["data"], "args", ev[1]["data"])
 
 def main():
-	asyncio.run(run())
+    for _ in range(100):
+        try:
+            asyncio.run(run())
+            break
+        except ConnectionRefusedError:
+            time.sleep(0.1)
 
 if __name__ == "__main__":
     main()

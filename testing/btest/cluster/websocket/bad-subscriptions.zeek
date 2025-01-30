@@ -1,7 +1,7 @@
 # @TEST-DOC: Clients sends broken subscription arrays
 #
 # @TEST-REQUIRES: have-zeromq
-# @TEST-REQUIRES: python3 -c 'import websockets'
+# @TEST-REQUIRES: python3 -c 'import websockets.sync'
 #
 # @TEST-GROUP: cluster-zeromq
 #
@@ -64,11 +64,10 @@ import json, os
 from websockets.sync.client import connect
 
 ws_port = os.environ['WEBSOCKET_PORT'].split('/')[0]
-ws_url = f'ws://localhost:{ws_port}/messages/json'
+ws_url = f'ws://127.0.0.1:{ws_port}/messages/json'
 topic = '/zeek/event/my_topic'
 
-def main():
-    print("Connecting...")
+def run(ws_url):
     with connect(ws_url) as ws:
         ws.send('["broken", "brrr')
         err = json.loads(ws.recv())
@@ -83,6 +82,14 @@ def main():
         ws.send('[1, "/my_topic"]')
         err = json.loads(ws.recv())
         print("mix error", err)
+
+def main():
+    for _ in range(100):
+        try:
+            run(ws_url)
+            break
+        except ConnectionRefusedError:
+            time.sleep(0.1)
 
 if __name__ == "__main__":
     main()

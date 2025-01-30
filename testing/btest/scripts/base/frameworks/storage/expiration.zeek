@@ -34,7 +34,7 @@ event setup_test() {
 
 	backend = Storage::open_backend(Storage::SQLITE, opts, str, str);
 
-	local res = Storage::put([$backend=backend, $key=key, $value=value, $expire_time=2 secs, $async_mode=F]);
+	local res = Storage::put(backend, [$key=key, $value=value, $expire_time=2 secs, $async_mode=F]);
 	print "put result", res;
 
 	local res2 = Storage::get(backend, key, F);

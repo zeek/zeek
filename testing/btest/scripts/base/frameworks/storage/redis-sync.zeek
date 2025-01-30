@@ -30,7 +30,7 @@ event zeek_init() {
 
 	local b = Storage::open_backend(Storage::REDIS, opts, str, str);
 
-	local res = Storage::put([$backend=b, $key=key, $value=value, $async_mode=F]);
+	local res = Storage::put(b, [$key=key, $value=value, $async_mode=F]);
 	print "put result", res;
 
 	local res2 = Storage::get(b, key, F);
@@ -39,7 +39,7 @@ event zeek_init() {
 		print "get result same as inserted", value == (res2$val as string);
 
 	local value2 = "value5678";
-	res = Storage::put([$backend=b, $key=key, $value=value2, $overwrite=T, $async_mode=F]);
+	res = Storage::put(b, [$key=key, $value=value2, $overwrite=T, $async_mode=F]);
 	print "overwrite put result", res;
 
 	res2 = Storage::get(b, key, F);

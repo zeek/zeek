@@ -42,7 +42,7 @@ event setup_test() {
 
 	b = Storage::open_backend(Storage::REDIS, opts, str, str);
 
-	local res = Storage::put([$backend=b, $key=key, $value=value, $async_mode=F, $expire_time=2 secs]);
+	local res = Storage::put(b, [$key=key, $value=value, $async_mode=F, $expire_time=2 secs]);
 	print "put result", res;
 
 	local res2 = Storage::get(b, key, F);

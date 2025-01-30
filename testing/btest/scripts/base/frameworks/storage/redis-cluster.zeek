@@ -77,7 +77,7 @@ event redis_data_written() {
 @if ( Cluster::node == "worker-1" )
 
 event Cluster::Experimental::cluster_started() {
-	local res = Storage::put([$backend=backend, $key="1234", $value="5678", $async_mode=F]);
+	local res = Storage::put(backend, [$key="1234", $value="5678", $async_mode=F]);
 	print Cluster::node, "put result", res;
 
 	local e = Cluster::make_event(redis_data_written);

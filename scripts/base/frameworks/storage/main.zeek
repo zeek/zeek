@@ -7,8 +7,6 @@ module Storage;
 export {
 	## Record for passing arguments to :zeek:see:`Storage::put`.
 	type PutArgs: record {
-		backend: opaque of Storage::BackendHandle;
-
 		# The key to store the value under.
 		key: any;
 
@@ -71,11 +69,15 @@ export {
 
 	## Inserts a new entry into a backend.
 	##
+	## backend: A handle to a backend connection.
+    ##
+    ## args: A :zeek:see:`Storage::PutArgs` record containing the arguments for the operation.
+	##
 	## Returns: A boolean indicating success or failure of the
 	##          operation. Type comparison failures against the types passed
 	##          to :zeek:see:`Storage::open_backend` for the backend will
 	##          cause false to be returned.
-	global put: function(args: Storage::PutArgs): bool;
+	global put: function(backend: opaque of Storage::BackendHandle, args: Storage::PutArgs): bool;
 
 	## Gets an entry from the backend.
 	##
@@ -126,9 +128,9 @@ function close_backend(backend: opaque of Storage::BackendHandle, async_mode: bo
 	return Storage::__close_backend(backend, async_mode);
 }
 
-function put(args: Storage::PutArgs): bool
+function put(backend: opaque of Storage::BackendHandle, args: Storage::PutArgs): bool
 {
-	return Storage::__put(args$backend, args$key, args$value, args$overwrite, args$expire_time, args$async_mode);
+	return Storage::__put(backend, args$key, args$value, args$overwrite, args$expire_time, args$async_mode);
 }
 
 function get(backend: opaque of Storage::BackendHandle, key: any, async_mode: bool &default=T): val_result

@@ -31,7 +31,6 @@ RUN apt-get update && apt-get -y install \
     python3 \
     python3-dev \
     python3-pip \
-    python3-websockets \
     ruby \
     sqlite3 \
     swig \
@@ -43,7 +42,7 @@ RUN apt-get update && apt-get -y install \
   && apt autoclean \
   && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --break-system-packages junit2html
+RUN pip3 install --break-system-packages websockets junit2html
 RUN gem install coveralls-lcov
 
 # Download a newer pre-built ccache version that recognizes -fprofile-update=atomic

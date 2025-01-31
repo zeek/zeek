@@ -7,7 +7,7 @@
 
 namespace btest::storage::backend {
 
-zeek::storage::Backend* StorageDummy::Instantiate() { return new StorageDummy(); }
+zeek::storage::BackendPtr StorageDummy::Instantiate() { return zeek::make_intrusive<StorageDummy>(); }
 
 /**
  * Called by the manager system to open the backend.

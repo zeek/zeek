@@ -15,7 +15,7 @@ public:
     SQLite() : Backend(false) {}
     ~SQLite() override = default;
 
-    static Backend* Instantiate();
+    static BackendPtr Instantiate();
 
     /**
      * Returns a descriptive tag representing the source for debugging.

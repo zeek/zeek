@@ -16,7 +16,7 @@ public:
     StorageDummy() : Backend(false) {}
     ~StorageDummy() override = default;
 
-    static zeek::storage::Backend* Instantiate();
+    static zeek::storage::BackendPtr Instantiate();
 
     /**
      * Returns a descriptive tag representing the source for debugging.

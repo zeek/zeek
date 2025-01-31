@@ -100,10 +100,8 @@ ErrorResult Backend::Put(ValPtr key, ValPtr value, bool overwrite, double expira
                          obj_desc_short(key->GetType().get()).c_str(), key_type->GetName().c_str());
     }
     if ( ! same_type(value->GetType(), val_type) ) {
-        ODesc d;
-        value->GetType()->Describe(&d);
-        return util::fmt("type of value passed (%s) does not match backend's value type (%s)", d.Description(),
-                         val_type->GetName().c_str());
+        return util::fmt("type of value passed (%s) does not match backend's value type (%s)",
+                         obj_desc_short(value->GetType().get()).c_str(), val_type->GetName().c_str());
     }
 
     auto res = DoPut(std::move(key), std::move(value), overwrite, expiration_time, cb);

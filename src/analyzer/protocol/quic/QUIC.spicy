@@ -560,10 +560,10 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
 ##############
 public type RequestFrame = unit {
   %context = ConnectionIDInfo;
-  : Packet(True, self.context());
+  : Packet(True, self.context())[];
 };
 
 public type ResponseFrame = unit {
   %context = ConnectionIDInfo;
-  : Packet(False, self.context());
+  : Packet(False, self.context())[];
 };

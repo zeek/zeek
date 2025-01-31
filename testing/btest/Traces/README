@@ -38,3 +38,6 @@ Trace Index/Sources:
 - http/docker-http-upgrade.pcap
   Provided by blightzero on #4068
   https://github.com/zeek/zeek/issues/4068
+- quic/merlinc2_Zeek_example.pcapng
+  Provided by Faan Rossouw on #4198
+  https://github.com/zeek/zeek/issues/4198

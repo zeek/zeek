@@ -417,7 +417,7 @@ type CryptoBuffer = unit() {
 ##############
 type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
   var decrypted_data: bytes;
-  var slurp_size: uint64 = 0;
+  var packet_size: uint64 = 0;
   var start: iterator<stream>;
 
   sink crypto_sink;
@@ -466,11 +466,13 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
 
   : void {
       if (self?.long_header && can_decrypt(self.long_header, context, from_client))
-          self.slurp_size = self.offset();
+          # If we have parsed an initial packet that we can decrypt the payload,
+          # determine the size to store into a buffer.
+          self.packet_size = self.offset();
   }
 
-  # Slurp in the whole packet if we determined we have a chance to decrypt.
-  slurp_data: bytes &parse-at=self.start &size=self.slurp_size if ( self.slurp_size > 0 ) {
+  # Buffer the whole packet if we determined we have a chance to decrypt.
+  packet_data: bytes &parse-at=self.start &size=self.packet_size if ( self.packet_size > 0 ) {
     self.crypto_buffer = new CryptoBuffer();
     self.crypto_sink.connect(self.crypto_buffer);
 
@@ -482,7 +484,7 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
       # All data is accessible via the `long_header` unit
       self.decrypted_data = decrypt_crypto_payload(
         self.long_header.version,
-        self.slurp_data,
+        self.packet_data,
         self.long_header.dest_conn_id,
         self.long_header.encrypted_offset,
         self.long_header.payload_length,
@@ -501,7 +503,7 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
 
       self.decrypted_data = decrypt_crypto_payload(
         self.long_header.version,
-        self.slurp_data,
+        self.packet_data,
         context.initial_destination_conn_id,
         self.long_header.encrypted_offset,
         self.long_header.payload_length,
@@ -560,10 +562,10 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
 ##############
 public type RequestFrame = unit {
   %context = ConnectionIDInfo;
-  : Packet(True, self.context());
+  : Packet(True, self.context())[];
 };
 
 public type ResponseFrame = unit {
   %context = ConnectionIDInfo;
-  : Packet(False, self.context());
+  : Packet(False, self.context())[];
 };

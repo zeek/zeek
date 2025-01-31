@@ -9,7 +9,7 @@ import zeek;
 # The interface to the C++ code that handles the decryption of the INITIAL packet payload using well-known keys
 public function decrypt_crypto_payload(
   version: uint32,
-  all_data: bytes,
+  data: bytes,
   connection_id: bytes,
   encrypted_offset: uint64,
   payload_offset: uint64,
@@ -417,7 +417,7 @@ type CryptoBuffer = unit() {
 ##############
 type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
   var decrypted_data: bytes;
-  var full_packet: bytes;
+  var slurp_size: uint64 = 0;
   var start: iterator<stream>;
 
   sink crypto_sink;
@@ -464,8 +464,13 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
      }
   };
 
+  : void {
+      if (self?.long_header && can_decrypt(self.long_header, context, from_client))
+          self.slurp_size = self.offset();
+  }
+
   # Slurp in the whole packet if we determined we have a chance to decrypt.
-  all_data: bytes &parse-at=self.start &eod if ( self?.long_header && can_decrypt(self.long_header, context, from_client) ) {
+  slurp_data: bytes &parse-at=self.start &size=self.slurp_size if ( self.slurp_size > 0 ) {
     self.crypto_buffer = new CryptoBuffer();
     self.crypto_sink.connect(self.crypto_buffer);
 
@@ -477,7 +482,7 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
       # All data is accessible via the `long_header` unit
       self.decrypted_data = decrypt_crypto_payload(
         self.long_header.version,
-        self.all_data,
+        self.slurp_data,
         self.long_header.dest_conn_id,
         self.long_header.encrypted_offset,
         self.long_header.payload_length,
@@ -496,7 +501,7 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
 
       self.decrypted_data = decrypt_crypto_payload(
         self.long_header.version,
-        self.all_data,
+        self.slurp_data,
         context.initial_destination_conn_id,
         self.long_header.encrypted_offset,
         self.long_header.payload_length,

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "zeek/IntrusivePtr.h"
 #include "zeek/OpaqueVal.h"
 #include "zeek/Val.h"
 
@@ -28,7 +29,7 @@ using ValResult = nonstd::expected<ValPtr, std::string>;
 // in the other callback methods.
 class ResultCallback {
 public:
-    ResultCallback(zeek::detail::trigger::Trigger* trigger, const void* assoc);
+    ResultCallback(IntrusivePtr<zeek::detail::trigger::Trigger> trigger, const void* assoc);
     virtual ~ResultCallback();
     void Timeout();
 
@@ -36,21 +37,21 @@ protected:
     void ValComplete(Val* result);
 
 private:
-    zeek::detail::trigger::Trigger* trigger;
+    IntrusivePtr<zeek::detail::trigger::Trigger> trigger;
     const void* assoc;
 };
 
 // A callback result that returns an ErrorResult.
 class ErrorResultCallback : public ResultCallback {
 public:
-    ErrorResultCallback(zeek::detail::trigger::Trigger* trigger, const void* assoc) : ResultCallback(trigger, assoc) {}
+    ErrorResultCallback(IntrusivePtr<zeek::detail::trigger::Trigger> trigger, const void* assoc);
     virtual void Complete(const ErrorResult& res);
 };
 
 // A callback result that returns a ValResult.
 class ValResultCallback : public ResultCallback {
 public:
-    ValResultCallback(zeek::detail::trigger::Trigger* trigger, const void* assoc) : ResultCallback(trigger, assoc) {}
+    ValResultCallback(IntrusivePtr<zeek::detail::trigger::Trigger> trigger, const void* assoc);
     void Complete(const ValResult& res);
 };
 
@@ -218,8 +219,8 @@ protected:
 // A callback for the Backend::Open() method that returns an error or a backend handle.
 class OpenResultCallback : public ResultCallback {
 public:
-    OpenResultCallback(zeek::detail::trigger::Trigger* trigger, const void* assoc, detail::BackendHandleVal* backend)
-        : ResultCallback(trigger, assoc), backend(std::move(backend)) {}
+    OpenResultCallback(IntrusivePtr<zeek::detail::trigger::Trigger> trigger, const void* assoc,
+                       detail::BackendHandleVal* backend);
     void Complete(const ErrorResult& res);
 
 private:

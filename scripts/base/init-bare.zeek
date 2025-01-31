@@ -5310,6 +5310,15 @@ export {
 
 	type KRB::Type_Value_Vector: vector of KRB::Type_Value;
 
+	type KRB::Encrypted_Data: record {
+		## The key version number
+		kvno		: count &optional;
+		## The cipher the data was encrypted with
+		cipher		: count;
+		## The encrypted data
+		ciphertext	: string;
+	};
+
 	## A Kerberos host address See :rfc:`4120`.
 	type KRB::Host_Address: record {
 		## IPv4 or IPv6 address
@@ -5434,6 +5443,8 @@ export {
 
 		## The ticket that was issued
 		ticket			: KRB::Ticket;
+		## The encrypted session key for the client
+		enc_part		: KRB::Encrypted_Data;
 	};
 }
 

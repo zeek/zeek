@@ -516,6 +516,9 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
     # connection.
     if ( |self.decrypted_data| == 0 )
       throw "decryption failed";
+
+    # We were able to decrypt the INITIAL packet. Confirm QUIC!
+    spicy::accept_input();
   }
 
   # Depending on the type of header and whether we were able to decrypt
@@ -550,9 +553,6 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
         context.client_initial_processed = True;
       else
         context.server_initial_processed = True;
-
-      # Take buffered crypto data as confirmation signal.
-      spicy::accept_input();
     }
   }
 };

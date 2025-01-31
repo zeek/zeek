@@ -3,7 +3,8 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 
-@load base/frameworks/storage
+@load base/frameworks/storage/async
+@load base/frameworks/storage/sync
 @load policy/frameworks/storage/backend/sqlite
 
 redef exit_only_after_terminate = T;
@@ -22,17 +23,17 @@ event zeek_init() {
 
 	# Test inserting/retrieving a key/value pair that we know won't be in
 	# the backend yet.
-	local b = Storage::open_backend(Storage::SQLITE, opts, str, str);
+	local b = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
 
-	when [b, key, value] ( local res = Storage::put(b, [$key=key, $value=value]) ) {
+	when [b, key, value] ( local res = Storage::Async::put(b, [$key=key, $value=value]) ) {
 		print "put result", res;
 
-		when [b, key, value] ( local res2 = Storage::get(b, key) ) {
+		when [b, key, value] ( local res2 = Storage::Async::get(b, key) ) {
 			print "get result", res2;
 			if ( res2?$val )
 				print "get result same as inserted", value == (res2$val as string);
 
-			Storage::close_backend(b);
+			Storage::Sync::close_backend(b);
 
 			terminate();
 		}

@@ -1,0 +1,12 @@
+# This test prints the enc_part value from the KRB::KDC_Response
+
+# @TEST-EXEC: zeek -b -r $TRACES/krb/kinit.trace %INPUT > output
+# @TEST-EXEC: btest-diff output
+
+@load base/protocols/krb
+
+event krb_as_response(c: connection, rep: KRB::KDC_Response)
+	{
+	print "as_response", c$uid;
+	print rep$enc_part;
+	}

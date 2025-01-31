@@ -585,7 +585,7 @@ function log(msg: string)
 
 function init(): bool
 	{
-	return Cluster::Backend::__init();
+	return Cluster::Backend::__init(Cluster::node_id());
 	}
 
 function subscribe(topic: string): bool

@@ -76,7 +76,7 @@ std::optional<detail::Event> to_zeek_event(const broker::zeek::Event& ev) {
 
     zeek::Args vl;
     zeek::EventHandlerPtr handler = zeek::event_registry->Lookup(name);
-    if ( ! handler ) {
+    if ( handler == nullptr ) {
         zeek::reporter->Error("Failed to lookup handler for '%s'", std::string(name).c_str());
         return std::nullopt;
     }
@@ -165,8 +165,8 @@ bool detail::BrokerJsonV1_Serializer::SerializeEvent(byte_buffer& buf, const det
     if ( ! ev )
         return false;
 
-    auto push_back_adaptor = PushBackAdapter(buf);
-    broker::format::json::v1::encode(ev->move_data(), std::back_inserter(push_back_adaptor));
+    auto push_back_adapter = PushBackAdapter(buf);
+    broker::format::json::v1::encode(ev->move_data(), std::back_inserter(push_back_adapter));
     return true;
 }
 

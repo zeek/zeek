@@ -10,16 +10,14 @@
 
 namespace zeek::storage {
 
-ResultCallback::ResultCallback(zeek::detail::trigger::Trigger* trigger, const void* assoc) : assoc(assoc) {
-    Ref(trigger);
-    this->trigger = trigger;
-}
-ResultCallback::~ResultCallback() { Unref(trigger); }
+ResultCallback::ResultCallback(IntrusivePtr<zeek::detail::trigger::Trigger> trigger, const void* assoc)
+    : trigger(std::move(trigger)), assoc(assoc) {}
+
+ResultCallback::~ResultCallback() {}
 
 void ResultCallback::Timeout() {
-    auto v = new StringVal("Timeout during request");
-    trigger->Cache(assoc, v);
-    Unref(v);
+    auto v = make_intrusive<StringVal>("Timeout during request");
+    trigger->Cache(assoc, v.get());
 }
 
 void ResultCallback::ValComplete(Val* result) {
@@ -27,6 +25,9 @@ void ResultCallback::ValComplete(Val* result) {
     Unref(result);
     trigger->Release();
 }
+
+ErrorResultCallback::ErrorResultCallback(IntrusivePtr<zeek::detail::trigger::Trigger> trigger, const void* assoc)
+    : ResultCallback(std::move(trigger), assoc) {}
 
 void ErrorResultCallback::Complete(const ErrorResult& res) {
     zeek::Val* result;
@@ -39,17 +40,24 @@ void ErrorResultCallback::Complete(const ErrorResult& res) {
     ValComplete(result);
 }
 
+ValResultCallback::ValResultCallback(IntrusivePtr<zeek::detail::trigger::Trigger> trigger, const void* assoc)
+    : ResultCallback(std::move(trigger), assoc) {}
+
 void ValResultCallback::Complete(const ValResult& res) {
     static auto val_result_type = zeek::id::find_type<zeek::RecordType>("val_result");
     auto* result = new zeek::RecordVal(val_result_type);
 
     if ( res )
-        result->Assign(0, {NewRef{}, res.value().get()});
+        result->Assign(0, res.value());
     else
         result->Assign(1, zeek::make_intrusive<StringVal>(res.error()));
 
     ValComplete(result);
 }
+
+OpenResultCallback::OpenResultCallback(IntrusivePtr<zeek::detail::trigger::Trigger> trigger, const void* assoc,
+                                       detail::BackendHandleVal* backend)
+    : ResultCallback(std::move(trigger), assoc), backend(backend) {}
 
 void OpenResultCallback::Complete(const ErrorResult& res) {
     zeek::Val* result;

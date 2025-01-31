@@ -4,7 +4,7 @@
 #include "zeek/Trigger.h"
 #include "zeek/Frame.h"
 
-static zeek::detail::trigger::Trigger* init_trigger(zeek::detail::Frame* frame, const zeek::storage::BackendPtr& b) {
+static zeek::IntrusivePtr<zeek::detail::trigger::Trigger> init_trigger(zeek::detail::Frame* frame, const zeek::storage::BackendPtr& b) {
 	if ( ! b->SupportsAsync() ) {
 		zeek::emit_builtin_error("Async mode requested but backend does not support async operations");
 		return nullptr;
@@ -25,7 +25,7 @@ static zeek::detail::trigger::Trigger* init_trigger(zeek::detail::Frame* frame, 
 	frame->SetDelayed();
 	trigger->Hold();
 
-	return trigger;
+	return {zeek::NewRef{}, trigger};
 }
 %%}
 
@@ -50,9 +50,6 @@ function Storage::__open_backend%(btype: Storage::Backend, config: any, key_type
 	auto btype_val = zeek::IntrusivePtr<zeek::EnumVal>{NewRef{}, btype->AsEnumVal()};
 	zeek::Tag tag{btype_val};
 
-	auto kt = key_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
-	auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
-
 	auto b = storage_mgr->Instantiate(tag);
 
 	if ( ! b.has_value() ) {
@@ -70,6 +67,8 @@ function Storage::__open_backend%(btype: Storage::Backend, config: any, key_type
 		cb = new zeek::storage::OpenResultCallback(trigger, frame->GetTriggerAssoc(), bo.release());
 	}
 
+	auto kt = key_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
+	auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
 	auto config_val = zeek::IntrusivePtr<zeek::RecordVal>{NewRef{}, config->AsRecordVal()};
 	auto open_res = storage_mgr->OpenBackend(b.value(), config_val, kt, vt, cb);
 

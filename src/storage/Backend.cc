@@ -96,10 +96,8 @@ ErrorResult Backend::Put(ValPtr key, ValPtr value, bool overwrite, double expira
     // through the workers. For the first versions of the storage framework it
     // just calls the backend itself directly.
     if ( ! same_type(key->GetType(), key_type) ) {
-        ODesc d;
-        key->GetType()->Describe(&d);
-        return util::fmt("type of key passed (%s) does not match backend's key type (%s)", d.Description(),
-                         key_type->GetName().c_str());
+        return util::fmt("type of key passed (%s) does not match backend's key type (%s)",
+                         obj_desc_short(key->GetType().get()).c_str(), key_type->GetName().c_str());
     }
     if ( ! same_type(value->GetType(), val_type) ) {
         ODesc d;

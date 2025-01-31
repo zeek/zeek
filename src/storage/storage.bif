@@ -5,11 +5,6 @@
 #include "zeek/Frame.h"
 
 static zeek::IntrusivePtr<zeek::detail::trigger::Trigger> init_trigger(zeek::detail::Frame* frame, const zeek::storage::BackendPtr& b) {
-	if ( ! b->SupportsAsync() ) {
-		zeek::emit_builtin_error("Async mode requested but backend does not support async operations");
-		return nullptr;
-	}
-
 	auto trigger = frame->GetTrigger();
 
 	if ( ! trigger ) {

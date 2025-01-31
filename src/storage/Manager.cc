@@ -33,14 +33,13 @@ BackendResult Manager::Instantiate(const Tag& type) {
             util::fmt("Factory invalid for backend %s", GetComponentName(type).c_str()));
     }
 
-    Backend* b = c->Factory()();
+    BackendPtr bp = c->Factory()();
 
-    if ( ! b ) {
+    if ( ! bp ) {
         return nonstd::unexpected<std::string>(
             util::fmt("Failed to instantiate backend %s", GetComponentName(type).c_str()));
     }
 
-    BackendPtr bp = IntrusivePtr<Backend>{AdoptRef{}, b};
     return bp;
 }
 

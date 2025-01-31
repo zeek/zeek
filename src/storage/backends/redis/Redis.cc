@@ -80,7 +80,7 @@ void redisDelWrite(void* privdata) {
 namespace zeek::storage::backends::redis {
 
 
-storage::Backend* Redis::Instantiate() { return new Redis(); }
+storage::BackendPtr Redis::Instantiate() { return make_intrusive<Redis>(); }
 
 /**
  * Called by the manager system to open the backend.

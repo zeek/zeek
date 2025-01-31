@@ -13,7 +13,7 @@ class Backend;
  */
 class Component : public plugin::Component {
 public:
-    using factory_callback = Backend* (*)();
+    using factory_callback = zeek::IntrusivePtr<Backend> (*)();
 
     /**
      * Constructor.

@@ -17,7 +17,7 @@ public:
     Redis() : Backend(true), IOSource(true) {}
     ~Redis() override = default;
 
-    static Backend* Instantiate();
+    static BackendPtr Instantiate();
 
     /**
      * Returns a descriptive tag representing the source for debugging.

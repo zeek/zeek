@@ -104,12 +104,6 @@ public:
      */
     virtual bool IsOpen() = 0;
 
-    /**
-     * Returns whether the backend's connection supports asynchronous commands.
-     * Defaults to true, but can be overridden by backends.
-     */
-    virtual bool SupportsAsync() { return true; }
-
 protected:
     // Allow the manager to call Open/Close.
     friend class storage::Manager;

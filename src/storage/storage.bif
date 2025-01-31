@@ -8,11 +8,6 @@ using namespace zeek;
 using namespace zeek::storage;
 
 static zeek::detail::trigger::TriggerPtr init_trigger(zeek::detail::Frame* frame, const BackendPtr& b) {
-	if ( ! b->SupportsAsync() ) {
-		emit_builtin_error("Async mode requested but backend does not support async operations");
-		return nullptr;
-	}
-
 	auto trigger = frame->GetTrigger();
 
 	if ( ! trigger ) {

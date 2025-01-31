@@ -1,3 +1,12 @@
+7.2.0-dev.129 | 2025-01-31 15:58:37 -0800
+
+  * Management framework:
+
+    - Bump cluster testsuite to pull in updated Prometheus tests (Christian Kreibich, Corelight)
+    - move up addition of agent IPs into deployable cluster configs (Christian Kreibich, Corelight)
+    - Support multiple instances per host addr in auto metrics generation (Michael Dopheide)
+    - When auto-generating metrics ports for worker nodes, get them more uniform across instances. (Michael Dopheide)
+
 7.2.0-dev.124 | 2025-01-30 10:51:14 -0700
 
   * Pack some classes for better memory usages (Tim Wojtulewicz, Corelight)

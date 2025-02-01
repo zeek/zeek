@@ -719,7 +719,7 @@ cluster_testing_docker_builder:
       path: "testing/external/zeek-testing-cluster/.tmp/**"
   depends_on:
     - amd64_container_image
-  << : *SKIP_TASK_ON_PR
+#  << : *SKIP_TASK_ON_PR
 
 
 # Test zeekctl upon master and release pushes and also when

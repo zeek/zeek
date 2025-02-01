@@ -15,8 +15,9 @@ zeek::plugin::Configuration Plugin::Configure() {
     // instantiated in zeek-setup.cc. Don't even allow to instantiate
     // a second one via the plugin mechanism. In the future, this could
     // be changed so that broker is instantiated on demand only.
-    auto fail_instantiate = [](std::unique_ptr<cluster::EventSerializer>,
-                               std::unique_ptr<cluster::LogSerializer>) -> std::unique_ptr<cluster::Backend> {
+    auto fail_instantiate =
+        [](std::unique_ptr<cluster::EventSerializer>, std::unique_ptr<cluster::LogSerializer>,
+           std::unique_ptr<cluster::detail::EventHandlingStrategy>) -> std::unique_ptr<cluster::Backend> {
         zeek::reporter->FatalError("do not instantiate broker explicitly");
         return nullptr;
     };

@@ -162,7 +162,8 @@ export {
 
 	## Bitmask to enable low-level stderr based debug printing.
 	##
-	##     poll debugging: 1 (produce verbose zmq::poll() output)
+	##     poll:   1 (produce verbose zmq::poll() output)
+	##     thread: 2 (produce thread related output)
 	##
 	## Or values from the above list together and set debug_flags
 	## to the result. E.g. use 7 to select 4, 2 and 1. Only use this

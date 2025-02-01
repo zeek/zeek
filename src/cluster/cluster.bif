@@ -64,9 +64,9 @@ function Cluster::__unsubscribe%(topic_prefix: string%): bool
 ## Initialize the global cluster backend.
 ##
 ## Returns: true on success.
-function Cluster::Backend::__init%(%): bool
+function Cluster::Backend::__init%(nid: string%): bool
 	%{
-	auto rval = zeek::cluster::backend->Init();
+	auto rval = zeek::cluster::backend->Init(nid->ToStdString());
 	return zeek::val_mgr->Bool(rval);
 	%}
 

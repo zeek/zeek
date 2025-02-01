@@ -368,17 +368,6 @@ struct SupervisorStemHandle {
  */
 struct SupervisedNode {
     /**
-     * Initialize the Supervised node within the Zeek Cluster Framework.
-     * This function populates the "Cluster::nodes" script-layer variable
-     * that otherwise is expected to be populated by a
-     * "cluster-layout.zeek" script in other context (e.g. ZeekCtl
-     * generates that cluster layout).
-     * @return  true if the supervised node is using the Cluster Framework
-     * else false.
-     */
-    bool InitCluster() const;
-
-    /**
      * Initialize the Supervised node.
      * @param options  the Zeek options to extend/modify as appropriate
      * for the node's configuration.

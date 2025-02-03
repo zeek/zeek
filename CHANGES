@@ -1,3 +1,26 @@
+7.2.0-dev.135 | 2025-02-03 17:50:31 +0100
+
+  * QUIC/decrypt_crypto: Rename all_data to data (Arne Welzel, Corelight)
+
+    ...for consistency.
+
+  * GH-4201: QUIC: Confirm before forwarding data to SSL (Arne Welzel, Corelight)
+
+    Fixes #4201
+
+  * GH-4198: QUIC: Parse all QUIC packets in a UDP datagram (Arne Welzel, Corelight)
+
+    A UDP datagram may contain multiple QUIC packets, but the parser so far
+    handled only the very first packet, ignoring any subsequent packets.
+
+    Fixes #4198
+
+  * QUIC: Only slurp till packet end, not till &eod (Arne Welzel, Corelight)
+
+    This doesn't change behavior, but avoids slurping in more data than
+    needed. A UDP packet an contain multiple QUIC packets and we'd read
+    all following ones instead just the one we're interested in.
+
 7.2.0-dev.129 | 2025-01-31 15:58:37 -0800
 
   * Management framework:

@@ -9,7 +9,7 @@ import zeek;
 # The interface to the C++ code that handles the decryption of the INITIAL packet payload using well-known keys
 public function decrypt_crypto_payload(
   version: uint32,
-  all_data: bytes,
+  data: bytes,
   connection_id: bytes,
   encrypted_offset: uint64,
   payload_offset: uint64,
@@ -417,7 +417,7 @@ type CryptoBuffer = unit() {
 ##############
 type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
   var decrypted_data: bytes;
-  var full_packet: bytes;
+  var packet_size: uint64 = 0;
   var start: iterator<stream>;
 
   sink crypto_sink;
@@ -464,8 +464,15 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
      }
   };
 
-  # Slurp in the whole packet if we determined we have a chance to decrypt.
-  all_data: bytes &parse-at=self.start &eod if ( self?.long_header && can_decrypt(self.long_header, context, from_client) ) {
+  : void {
+      if (self?.long_header && can_decrypt(self.long_header, context, from_client))
+          # If we have parsed an initial packet that we can decrypt the payload,
+          # determine the size to store into a buffer.
+          self.packet_size = self.offset();
+  }
+
+  # Buffer the whole packet if we determined we have a chance to decrypt.
+  packet_data: bytes &parse-at=self.start &size=self.packet_size if ( self.packet_size > 0 ) {
     self.crypto_buffer = new CryptoBuffer();
     self.crypto_sink.connect(self.crypto_buffer);
 
@@ -477,7 +484,7 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
       # All data is accessible via the `long_header` unit
       self.decrypted_data = decrypt_crypto_payload(
         self.long_header.version,
-        self.all_data,
+        self.packet_data,
         self.long_header.dest_conn_id,
         self.long_header.encrypted_offset,
         self.long_header.payload_length,
@@ -496,7 +503,7 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
 
       self.decrypted_data = decrypt_crypto_payload(
         self.long_header.version,
-        self.all_data,
+        self.packet_data,
         context.initial_destination_conn_id,
         self.long_header.encrypted_offset,
         self.long_header.payload_length,
@@ -509,6 +516,9 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
     # connection.
     if ( |self.decrypted_data| == 0 )
       throw "decryption failed";
+
+    # We were able to decrypt the INITIAL packet. Confirm QUIC!
+    spicy::accept_input();
   }
 
   # Depending on the type of header and whether we were able to decrypt
@@ -543,9 +553,6 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
         context.client_initial_processed = True;
       else
         context.server_initial_processed = True;
-
-      # Take buffered crypto data as confirmation signal.
-      spicy::accept_input();
     }
   }
 };
@@ -555,10 +562,10 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
 ##############
 public type RequestFrame = unit {
   %context = ConnectionIDInfo;
-  : Packet(True, self.context());
+  : Packet(True, self.context())[];
 };
 
 public type ResponseFrame = unit {
   %context = ConnectionIDInfo;
-  : Packet(False, self.context());
+  : Packet(False, self.context())[];
 };

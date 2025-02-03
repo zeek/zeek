@@ -29,3 +29,6 @@ Trace Index/Sources:
 - http/cooper-grill-dvwa.pcapng
   Provided by cooper-grill on #3995
   https://github.com/zeek/zeek/pull/3995
+- quic/merlinc2_Zeek_example.pcapng
+  Provided by Faan Rossouw on #4198
+  https://github.com/zeek/zeek/issues/4198

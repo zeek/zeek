@@ -1,3 +1,28 @@
+7.0.5-2 | 2025-03-18 16:14:21 -0700
+
+  * QUIC/decrypt_crypto: Rename all_data to data (Arne Welzel, Corelight)
+
+    (cherry picked from commit 44304973fb4ea3ffc94f13feb8592952675202f1)
+
+  * GH-4201: QUIC: Confirm before forwarding data to SSL (Arne Welzel, Corelight)
+
+    (cherry picked from commit 44304973fb4ea3ffc94f13feb8592952675202f1)
+
+  * GH-4198: QUIC: Parse all QUIC packets in a UDP datagram (Arne Welzel, Corelight)
+
+    A UDP datagram may contain multiple QUIC packets, but the parser so far
+    handled only the very first packet, ignoring any subsequent packets.
+
+    (cherry picked from commit 44304973fb4ea3ffc94f13feb8592952675202f1)
+
+  * QUIC: Only slurp till packet end, not till &eod (Arne Welzel, Corelight)
+
+    This doesn't change behavior, but avoids slurping in more data than
+    needed. A UDP packet an contain multiple QUIC packets and we'd read
+    all following ones instead just the one we're interested in.
+
+    (cherry picked from commit 44304973fb4ea3ffc94f13feb8592952675202f1)
+
 7.0.5-1 | 2025-03-18 16:12:32 -0700
 
   * fix for ZAM optimization of assigning a record field to result of "in" operation (Vern Paxson, Corelight)

@@ -1,4 +1,6 @@
-# @TEST-EXEC: zeek -b -r $TRACES/tls/tls-expired-cert.trace %INPUT
+# Fedora/RedHat have SHA1 disabled for certificate verification, re-enable it for testing by setting OPENSSL_ENABLE_SHA1_SIGNATURES=1
+#
+# @TEST-EXEC: OPENSSL_ENABLE_SHA1_SIGNATURES=1 zeek -b -r $TRACES/tls/tls-expired-cert.trace %INPUT
 
 # This is a hack: the results of OpenSSL 1.1's vs 1.0's
 # X509_verify_cert() -> X509_STORE_CTX_get1_chain() calls

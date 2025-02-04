@@ -1,3 +1,7 @@
+7.2.0-dev.152 | 2025-02-04 14:50:36 -0800
+
+  * Bump cluster testsuite to pull in resilience to agent connection timing [skip ci] (Christian Kreibich, Corelight)
+
 7.2.0-dev.150 | 2025-02-04 16:50:44 +0100
 
   * GH-4209: util/init_random_seed: write_file implies deterministic (Johanna Amann, Corelight)

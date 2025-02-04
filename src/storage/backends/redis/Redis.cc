@@ -107,6 +107,10 @@ ErrorResult Redis::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
     }
     else {
         StringValPtr unix_sock = config->GetField<StringVal>("server_unix_socket");
+        if ( ! unix_sock )
+            return util::fmt("Either server_addr/server_port or server_unix_socket must be set in Redis config record");
+
+        server_addr = unix_sock->ToStdString();
         REDIS_OPTIONS_SET_UNIX(&opt, unix_sock->ToStdStringView().data());
     }
 

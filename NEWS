@@ -27,6 +27,10 @@ Changed Functionality
   then prompt to use --help. The --help usage will now print to standard output
   rather than standard error.
 
+- Saving seeds with ``--save-seeds`` will now put Zeek into deterministic mode.
+  A subsequent ``--load-seeds`` run with the same scripts and traces will produce
+  identical UID values as the original ``--save-seeds` run.
+
 Removed Functionality
 ---------------------
 

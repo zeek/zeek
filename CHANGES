@@ -1,3 +1,11 @@
+7.2.0-dev.150 | 2025-02-04 16:50:44 +0100
+
+  * GH-4209: util/init_random_seed: write_file implies deterministic (Johanna Amann, Corelight)
+
+    This makes Zeek run in deterministic mode with --save-seeds usage
+    and reworks all the extra indirections used in init_random_seed()
+    to make it easier to follow the control flow.
+
 7.2.0-dev.148 | 2025-02-04 09:52:29 +0100
 
   * external/subdir-btest.cfg: Set OPENSSL_ENABLE_SHA1_SIGNATURES=1 (Arne Welzel, Corelight)

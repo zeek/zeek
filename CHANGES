@@ -1,3 +1,9 @@
+7.2.0-dev.140 | 2025-02-03 18:34:00 -0700
+
+  * Add note to Traces/README about possible malware in pe/pe.trace (Tim Wojtulewicz, Corelight)
+
+  * Fix formatting of Traces/README entry for modbus-eit.trace (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.137 | 2025-02-03 16:53:04 -0800
 
   * Remove unused SupervisedNode::InitCluster declaration (Christian Kreibich, Corelight)

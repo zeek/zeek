@@ -1,3 +1,7 @@
+7.2.0-dev.137 | 2025-02-03 16:53:04 -0800
+
+  * Remove unused SupervisedNode::InitCluster declaration (Christian Kreibich, Corelight)
+
 7.2.0-dev.135 | 2025-02-03 17:50:31 +0100
 
   * QUIC/decrypt_crypto: Rename all_data to data (Arne Welzel, Corelight)

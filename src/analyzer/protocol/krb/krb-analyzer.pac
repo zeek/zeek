@@ -215,6 +215,7 @@ refine connection KRB_Conn += {
 			rv->Assign(4, GetStringFromPrincipalName(${msg.client_name}));
 
 			rv->Assign(5, proc_ticket(${msg.ticket}));
+			rv->Assign(6, proc_encrypted_data(${msg.enc_part.data}));
 			return rv;
 			};
 

@@ -1,3 +1,23 @@
+7.2.0-dev.148 | 2025-02-04 09:52:29 +0100
+
+  * external/subdir-btest.cfg: Set OPENSSL_ENABLE_SHA1_SIGNATURES=1 (Arne Welzel, Corelight)
+
+    We already do something similar for OPENSSL_ENABLE_MD5_VERIFY=1
+
+  * btest/x509_verify: Drop OpenSSL 1.0 hack (Arne Welzel, Corelight)
+
+    We do not have a distro in CI anymore that ships OpenSSL 1.0,
+    drop the hack.
+
+  * GH-4035: testing/btest: Use OPENSSL_ENABLE_SHA1_SIGNATURES (Arne Welzel, Corelight)
+
+    This reverts the call to update-crypto-policies in the Fedora 41 image
+    and instead sets OPENSSL_ENABLE_SHA1_SIGNATURES in the individual tests.
+    This allows RHEL 10 or Fedora 41 users to run the tests in question
+    without needing to fiddle with system settings.
+
+    Fixes #4035
+
 7.2.0-dev.144 | 2025-02-04 09:18:25 +0100
 
   * Add ZAM baseline for new scripts.base.protocols.quic.analyzer-confirmations btest (Tim Wojtulewicz, Corelight)

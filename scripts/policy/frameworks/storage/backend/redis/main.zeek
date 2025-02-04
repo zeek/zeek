@@ -6,14 +6,14 @@ export {
 	## Options record for the built-in Redis backend.
 	type Options: record {
 		# Address to the server
-		server_addr: string;
+		server_addr: string &optional;
 
 		# Port for the server
-		server_port: port;
+		server_port: port &default=6379/tcp;
 
 		# Server unix socket file. This can be used instead of the
 		# address and port above to connect to a local server.
-		server_unix_socket: string;
+		server_unix_socket: string &optional;
 
 		# Prefix used in key values stored to differentiate varying
 		# types of data on the same server. Defaults to an empty string,

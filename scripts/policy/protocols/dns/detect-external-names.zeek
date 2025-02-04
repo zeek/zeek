@@ -20,7 +20,7 @@ export {
 	option skip_resp_host_port_pairs: set[addr, port] = { [[224.0.0.251, [ff02::fb]], 5353/udp] };
 }
 
-event dns_A_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priority=-3
+function detect_external_names(c: connection, msg: dns_msg, ans: dns_answer, a: addr)
 	{
 	if ( |Site::local_zones| == 0 )
 		return;
@@ -38,4 +38,14 @@ event dns_A_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr) &priori
 		        $conn=c,
 		        $identifier=cat(a,ans$query)]);
 		}
+	}
+
+event dns_A_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr)
+	{
+	detect_external_names(c, msg, ans, a);
+	}
+
+event dns_AAAA_reply(c: connection, msg: dns_msg, ans: dns_answer, a: addr)
+	{
+	detect_external_names(c, msg, ans, a);
 	}

@@ -35,8 +35,8 @@ export {
 	## Inserts a new entry into a backend.
 	##
 	## backend: A handle to a backend connection.
-    ##
-    ## args: A :zeek:see:`Storage::PutArgs` record containing the arguments for the operation.
+	##
+	## args: A :zeek:see:`Storage::PutArgs` record containing the arguments for the operation.
 	##
 	## Returns: A boolean indicating success or failure of the
 	##          operation. Type comparison failures against the types passed

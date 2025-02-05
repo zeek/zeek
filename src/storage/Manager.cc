@@ -24,19 +24,19 @@ void Manager::InitPostScript() {
 BackendResult Manager::Instantiate(const Tag& type) {
     Component* c = Lookup(type);
     if ( ! c ) {
-        return nonstd::unexpected<std::string>(
+        return zeek::unexpected<std::string>(
             util::fmt("Request to open unknown backend (%d:%d)", type.Type(), type.Subtype()));
     }
 
     if ( ! c->Factory() ) {
-        return nonstd::unexpected<std::string>(
+        return zeek::unexpected<std::string>(
             util::fmt("Factory invalid for backend %s", GetComponentName(type).c_str()));
     }
 
     BackendPtr bp = c->Factory()();
 
     if ( ! bp ) {
-        return nonstd::unexpected<std::string>(
+        return zeek::unexpected<std::string>(
             util::fmt("Failed to instantiate backend %s", GetComponentName(type).c_str()));
     }
 

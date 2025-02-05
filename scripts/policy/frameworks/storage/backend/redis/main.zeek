@@ -28,7 +28,7 @@ export {
 		# ``async_mode`` flags of the put, get, and erase methods to
 		# match this flag. This flag is overridden when reading pcaps
 		# and the backend will be forced into synchronous mode, since
-		# time won't move forward the same as when caputring live
+		# time won't move forward the same as when capturing live
 		# traffic.
 		async_mode: bool &default=T;
 	};

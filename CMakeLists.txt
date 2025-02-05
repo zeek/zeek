@@ -1019,8 +1019,8 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/prometheus-cpp/core/include/
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/auxil/prometheus-cpp/core/include/prometheus
         DESTINATION include/zeek/3rdparty/prometheus-cpp/include)
 
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/expected-lite/include
-        DESTINATION include/zeek/3rdparty/expected-lite/include)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/expected-lite/include/nonstd
+        DESTINATION include/zeek/3rdparty/)
 
 # Create 3rdparty/ghc within the build directory so that the include for
 # "zeek/3rdparty/ghc/filesystem.hpp" works within the build tree.
@@ -1031,6 +1031,13 @@ execute_process(
         "${CMAKE_COMMAND}" -E create_symlink
         "${CMAKE_CURRENT_SOURCE_DIR}/auxil/filesystem/include/ghc"
         "${CMAKE_CURRENT_BINARY_DIR}/3rdparty/ghc")
+
+# Do the same for nonstd.
+execute_process(
+    COMMAND
+        "${CMAKE_COMMAND}" -E create_symlink
+        "${CMAKE_CURRENT_SOURCE_DIR}/auxil/expected-lite/include/nonstd"
+        "${CMAKE_CURRENT_BINARY_DIR}/3rdparty/nonstd")
 
 # Optional Dependencies
 

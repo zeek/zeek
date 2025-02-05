@@ -125,9 +125,8 @@ ErrorResult Backend::Put(ValPtr key, ValPtr value, bool overwrite, double expira
 ValResult Backend::Get(ValPtr key, ValResultCallback* cb) {
     // See the note in Put().
     if ( ! same_type(key->GetType(), key_type) )
-        return nonstd::unexpected<std::string>(
-            util::fmt("type of key passed (%s) does not match backend's key type (%s)",
-                      key->GetType()->GetName().c_str(), key_type->GetName().c_str()));
+        return zeek::unexpected<std::string>(util::fmt("type of key passed (%s) does not match backend's key type (%s)",
+                                                       key->GetType()->GetName().c_str(), key_type->GetName().c_str()));
 
     auto res = DoGet(std::move(key), cb);
 

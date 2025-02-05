@@ -195,7 +195,7 @@ ErrorResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite, double expir
  */
 ValResult SQLite::DoGet(ValPtr key, ValResultCallback* cb) {
     if ( ! db )
-        return nonstd::unexpected<std::string>("Database was not open");
+        return zeek::unexpected<std::string>("Database was not open");
 
     auto json_key = key->ToJSON();
     auto stmt = prepared_stmts["get"];
@@ -204,7 +204,7 @@ ValResult SQLite::DoGet(ValPtr key, ValResultCallback* cb) {
     if ( auto res = checkError(sqlite3_bind_text(stmt, 1, key_str.data(), key_str.size(), SQLITE_STATIC));
          res.has_value() ) {
         sqlite3_reset(stmt);
-        return nonstd::unexpected<std::string>(res.value());
+        return zeek::unexpected<std::string>(res.value());
     }
 
     int errorcode = sqlite3_step(stmt);
@@ -218,11 +218,11 @@ ValResult SQLite::DoGet(ValPtr key, ValResultCallback* cb) {
             return val_v;
         }
         else {
-            return nonstd::unexpected<std::string>(std::get<std::string>(val));
+            return zeek::unexpected<std::string>(std::get<std::string>(val));
         }
     }
 
-    return nonstd::unexpected<std::string>(util::fmt("Failed to find row for key: %s", sqlite3_errstr(errorcode)));
+    return zeek::unexpected<std::string>(util::fmt("Failed to find row for key: %s", sqlite3_errstr(errorcode)));
 }
 
 /**

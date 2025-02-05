@@ -5,8 +5,7 @@
 #include "zeek/IntrusivePtr.h"
 #include "zeek/OpaqueVal.h"
 #include "zeek/Val.h"
-
-#include "nonstd/expected.hpp"
+#include "zeek/util.h"
 
 namespace zeek::detail::trigger {
 class Trigger;
@@ -23,7 +22,7 @@ using ErrorResult = std::optional<std::string>;
 // Result from storage operations that return Vals. The ValPtr is an
 // IntrusivePtr to some result, and can be null if the operation failed. The
 // string value will store an error message if the result is null.
-using ValResult = nonstd::expected<ValPtr, std::string>;
+using ValResult = zeek::expected<ValPtr, std::string>;
 
 // Base callback object for async operations. This is just here to allow some code reuse
 // in the other callback methods.
@@ -188,7 +187,7 @@ using BackendPtr = zeek::IntrusivePtr<Backend>;
 // operation succeeded, and the string value is an error message if the
 // operation failed. This isn't used by the backends themselves, but by the
 // Manager to return error messages to callers if necessary (notably BIFs).
-using BackendResult = nonstd::expected<BackendPtr, std::string>;
+using BackendResult = zeek::expected<BackendPtr, std::string>;
 
 namespace detail {
 

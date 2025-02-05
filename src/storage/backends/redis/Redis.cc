@@ -272,25 +272,25 @@ ErrorResult Redis::DoPut(ValPtr key, ValPtr value, bool overwrite, double expira
 ValResult Redis::DoGet(ValPtr key, ValResultCallback* cb) {
     // The async context will queue operations until it's connected fully.
     if ( ! connected && ! async_ctx )
-        return nonstd::unexpected<std::string>("Connection is not open");
+        return zeek::unexpected<std::string>("Connection is not open");
 
     if ( async_mode ) {
         int status = redisAsyncCommand(async_ctx, redisGet, cb, "GET %s:%s", key_prefix.data(),
                                        key->ToJSON()->ToStdStringView().data());
 
         if ( connected && status == REDIS_ERR )
-            return nonstd::unexpected<std::string>(
+            return zeek::unexpected<std::string>(
                 util::fmt("Failed to queue async get operation: %s", async_ctx->errstr));
 
         // There isn't a result to return here. That happens in HandleGetResult.
-        return nonstd::unexpected<std::string>("");
+        return zeek::unexpected<std::string>("");
     }
     else {
         auto reply =
             (redisReply*)redisCommand(ctx, "GET %s:%s", key_prefix.data(), key->ToJSON()->ToStdStringView().data());
 
         if ( ! reply )
-            return nonstd::unexpected<std::string>(util::fmt("Get operation failed: %s", ctx->errstr));
+            return zeek::unexpected<std::string>(util::fmt("Get operation failed: %s", ctx->errstr));
 
         return ParseGetReply(reply);
     }
@@ -385,7 +385,7 @@ void Redis::HandlePutResult(redisReply* reply, ErrorResultCallback* callback) {
 void Redis::HandleGetResult(redisReply* reply, ValResultCallback* callback) {
     ValResult res;
     if ( ! connected )
-        res = nonstd::unexpected<std::string>("Connection is not open");
+        res = zeek::unexpected<std::string>("Connection is not open");
     else
         res = ParseGetReply(reply);
 
@@ -466,15 +466,15 @@ ValResult Redis::ParseGetReply(redisReply* reply) const {
     ValResult res;
 
     if ( ! reply )
-        res = nonstd::unexpected<std::string>("GET returned null reply");
+        res = zeek::unexpected<std::string>("GET returned null reply");
     else if ( ! reply->str )
-        res = nonstd::unexpected<std::string>("GET returned key didn't exist");
+        res = zeek::unexpected<std::string>("GET returned key didn't exist");
     else {
         auto val = zeek::detail::ValFromJSON(reply->str, val_type, Func::nil);
         if ( std::holds_alternative<ValPtr>(val) )
             res = std::get<ValPtr>(val);
         else
-            res = nonstd::unexpected<std::string>(std::get<std::string>(val));
+            res = zeek::unexpected<std::string>(std::get<std::string>(val));
     }
 
     freeReplyObject(reply);

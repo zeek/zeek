@@ -1,3 +1,11 @@
+7.2.0-dev.156 | 2025-02-05 09:05:00 +0000
+
+  * IPv6 support for detect-external-names and testcase (Johanna Amann, Corelight)
+
+  * Add  `skip_resp_host_port_pairs` option to policy/protocols/dns/detect-external-names.zeek.
+    This option allows to skip the detection of external names for certain addresses.
+    By default this is set so that mDNS broadcasts no longer are logged as extenal. (jbaggs)
+
 7.2.0-dev.152 | 2025-02-04 14:50:36 -0800
 
   * Bump cluster testsuite to pull in resilience to agent connection timing [skip ci] (Christian Kreibich, Corelight)

@@ -31,6 +31,12 @@ Changed Functionality
   A subsequent ``--load-seeds`` run with the same scripts and traces will produce
   identical UID values as the original ``--save-seeds` run.
 
+- The `policy/protocols/dns/detect-external-names.zeek` script now no longer logs
+  names that were found in mDNS broadcasts by default. This is configurable with
+  the new `DNS::skip_resp_host_port_pairs` option.
+
+  Furthermore, the script now supports and logs IPv6 results.
+
 Removed Functionality
 ---------------------
 

@@ -1564,8 +1564,9 @@ void HTTP_Analyzer::HTTP_Header(bool is_orig, analyzer::mime::MIME_Header* h) {
         auto upper_hn = analyzer::mime::to_string_val(h->get_name());
         upper_hn->ToUpper();
 
-        EnqueueConnEvent(http_header, ConnVal(), val_mgr->Bool(is_orig), analyzer::mime::to_string_val(h->get_name()),
-                         std::move(upper_hn), analyzer::mime::to_string_val(h->get_value()));
+        EnqueueConnEvent(http_header, ConnVal(), val_mgr->Bool(is_orig), 
+            analyzer::mime::to_string_val(h->get_name()),
+            analyzer::mime::to_string_val(h->get_value()));
     }
 }
 

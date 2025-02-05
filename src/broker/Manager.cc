@@ -213,7 +213,7 @@ std::string RenderEvent(const std::string& topic, const std::string& name, const
 } // namespace
 #endif
 
-Manager::Manager(bool arg_use_real_time) : Backend(nullptr, nullptr) {
+Manager::Manager(bool arg_use_real_time) : Backend(nullptr, nullptr, nullptr) {
     bound_port = 0;
     use_real_time = arg_use_real_time;
     peer_count = 0;
@@ -558,7 +558,7 @@ bool Manager::DoPublishEvent(const std::string& topic, const cluster::detail::Ev
     }
 
     std::string name(event.HandlerName());
-    return PublishEvent(topic, name, std::move(xs), event.timestamp);
+    return PublishEvent(topic, std::move(name), std::move(xs), event.timestamp);
 }
 
 bool Manager::PublishEvent(string topic, std::string name, broker::vector args, double ts) {
@@ -946,9 +946,12 @@ zeek::RecordValPtr Manager::MakeEvent(ArgsSpan args, zeek::detail::Frame* frame)
     return rval;
 }
 
-bool Manager::DoSubscribe(const string& topic_prefix) {
+bool Manager::DoSubscribe(const string& topic_prefix, SubscribeCallback cb) {
     DBG_LOG(DBG_BROKER, "Subscribing to topic prefix %s", topic_prefix.c_str());
     bstate->subscriber.add_topic(topic_prefix, ! run_state::detail::zeek_init_done);
+
+    if ( cb )
+        cb(topic_prefix, {CallbackStatus::NotImplemented});
 
     return true;
 }

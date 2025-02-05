@@ -17,7 +17,8 @@ public:
     /**
      * Constructor.
      */
-    ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls);
+    ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
+                  std::unique_ptr<detail::EventHandlingStrategy> ehs);
 
     /**
      * Spawns a thread running zmq_proxy() for the configured XPUB/XSUB listen
@@ -34,8 +35,9 @@ public:
      * Component factory.
      */
     static std::unique_ptr<Backend> Instantiate(std::unique_ptr<EventSerializer> event_serializer,
-                                                std::unique_ptr<LogSerializer> log_serializer) {
-        return std::make_unique<ZeroMQBackend>(std::move(event_serializer), std::move(log_serializer));
+                                                std::unique_ptr<LogSerializer> log_serializer,
+                                                std::unique_ptr<detail::EventHandlingStrategy> ehs) {
+        return std::make_unique<ZeroMQBackend>(std::move(event_serializer), std::move(log_serializer), std::move(ehs));
     }
 
 private:
@@ -48,7 +50,7 @@ private:
     bool DoPublishEvent(const std::string& topic, const std::string& format,
                         const cluster::detail::byte_buffer& buf) override;
 
-    bool DoSubscribe(const std::string& topic_prefix) override;
+    bool DoSubscribe(const std::string& topic_prefix, SubscribeCallback cb) override;
 
     bool DoUnsubscribe(const std::string& topic_prefix) override;
 
@@ -60,7 +62,6 @@ private:
     bool DoProcessBackendMessage(int tag, detail::byte_buffer_span payload) override;
 
     // Script level variables.
-    std::string my_node_id;
     std::string connect_xsub_endpoint;
     std::string connect_xpub_endpoint;
     std::string listen_xsub_endpoint;
@@ -94,6 +95,10 @@ private:
     std::thread self_thread;
 
     std::unique_ptr<ProxyThread> proxy_thread;
+
+    // Tracking the subscriptions on the local XPUB socket.
+    std::map<std::string, SubscribeCallback> subscription_callbacks;
+    std::set<std::string> xpub_subscriptions;
 };
 
 } // namespace zeek::cluster::zeromq

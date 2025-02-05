@@ -380,7 +380,7 @@ public:
 
 private:
     // Register interest in peer event messages that use a certain topic prefix.
-    bool DoSubscribe(const std::string& topic_prefix) override;
+    bool DoSubscribe(const std::string& topic_prefix, SubscribeCallback cb) override;
 
     // Unregister interest in peer event messages.
     bool DoUnsubscribe(const std::string& topic_prefix) override;

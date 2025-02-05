@@ -1,3 +1,61 @@
+7.2.0-dev.169 | 2025-02-05 11:10:21 +0100
+
+  * cluster/zeromq: Fix Unsubscribe() bug caused by \x00 prefix (Arne Welzel, Corelight)
+
+  * cluster: Add SubscribeCallback support (Arne Welzel, Corelight)
+
+    This allows callers of Subscribe() to pass in a callback that will be invoked
+    once the subscription is established or failed to establish. It is the
+    backend's responsibility to execute the callback on the main thread either
+    synchronously, or preferably asynchronously at a later point, by
+    scheduling a task on the IO main loop.
+
+    This turns on ZMQ_XPUB_VERBOSE for ZeroMQ so that notifications about
+    subscriptions are raised even if the subscriptions has previously been
+    observed.
+
+  * cluster/zeromq: Fix XSUB threading issues (Arne Welzel, Corelight)
+
+    It is not safe to use the same socket from different threads, but the
+    current code used the xsub socket directly from the main thread (to setup
+    subscriptions) and from the internal thread for polling and reading.
+
+    Leverage the PAIR socket already in use for forwarding publish operations
+    to the internal thread also for subscribe and unsubscribe.
+
+    The failure mode is/was a bit annoying. Essentially, closing of the
+    context would hang indefinitely in zmq_ctx_term().
+
+  * cluster/zeromq: Use NodeId(), drop my_node_id (Arne Welzel, Corelight)
+
+  * cluster/Backend: Pass node_id via Init() (Arne Welzel, Corelight)
+
+  * cluster/Backend: Make backend event processing customizable (Arne Welzel, Corelight)
+
+    This allows configurability at the code level to decide what to do with
+    a received remote events and events produced by a backend. For now, only
+    enqueue events into the process's script layer, but for the WebSocket
+    interface, the action would be to send out the event on a WebSocket
+    connection instead.
+
+  * cluster/broker/Serializer: Fix adaptor to adapter (Arne Welzel, Corelight)
+
+  * cluster/Backend: Do not use const std::string_view& (Arne Welzel, Corelight)
+
+  * cluster/serializer/broker: Fix handler lookup (Arne Welzel, Corelight)
+
+    Handler overwrites operator bool, so need to explicitly test for nullptr
+    rather than not having any handlers defined.
+
+  * broker/Manager: Move name in PublishEvent() (Arne Welzel, Corelight)
+
+  * btest/zeromq/test-bootstrap: Fix port parsing (Arne Welzel, Corelight)
+
+    to_port() will produce an error on empty strings which extract_count()
+    does not.
+
+  * EventHandler: Support operator!= (Arne Welzel, Corelight)
+
 7.2.0-dev.156 | 2025-02-05 09:05:00 +0000
 
   * IPv6 support for detect-external-names and testcase (Johanna Amann, Corelight)

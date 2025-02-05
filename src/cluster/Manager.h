@@ -27,12 +27,14 @@ public:
      * @param tag The enum value identifying the backend.
      * @param event_serializer The event serializer to inject.
      * @param log_serializer The log serializer to inject.
+     * @param event_handling_strategy The event handling strategy to inject.
      *
      * @return New ClusterBackend instance, or null if there's no such component.
      */
     std::unique_ptr<Backend> InstantiateBackend(const EnumValPtr& tag,
                                                 std::unique_ptr<EventSerializer> event_serializer,
-                                                std::unique_ptr<LogSerializer> log_serializer);
+                                                std::unique_ptr<LogSerializer> log_serializer,
+                                                std::unique_ptr<detail::EventHandlingStrategy> event_handling_strategy);
 
     /**
      * Instantiate a event serializer with the given enum value.

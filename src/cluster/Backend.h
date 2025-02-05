@@ -54,6 +54,75 @@ public:
 };
 
 /**
+ * Interface for processing cluster::Event instances received
+ * on a given topic.
+ *
+ * An instances is injected into Backend instances to allow
+ * modifying the behavior for received events. For instance,
+ * for backends instantiated for WebSocket clients, events
+ * should not be raised as Zeek events locally and instead
+ * transmitted to the WebSocket client.
+ */
+class EventHandlingStrategy {
+public:
+    virtual ~EventHandlingStrategy() = default;
+
+    /**
+     * Method for processing a remote event received on the given topic.
+     *
+     * When handling the remote event fails, this method should return false.
+     *
+     * @param topic The topic on which the event was received.
+     * @param ev The parsed event that was received.
+     *
+     * @return true if the remote event was handled successfully, else false.
+     */
+    bool HandleRemoteEvent(std::string_view topic, Event e) { return DoHandleRemoteEvent(topic, std::move(e)); }
+
+    /**
+     * Method for enquing backend specific events.
+     *
+     * Some backend's may raise events destined for the local
+     * scripting layer. That's usually wanted, but not always.
+     * When the backend is instantiated for a WebSocket client,
+     * local scripting layer should not raise events for the
+     * WebSocket client.
+
+     * @param h The event handler to use.
+     * @param args The event arguments.
+     */
+    void EnqueueLocalEvent(EventHandlerPtr h, zeek::Args args) { DoEnqueueLocalEvent(h, std::move(args)); }
+
+private:
+    /**
+     * Hook method for implementing HandleRemoteEvent().
+     *
+     * @param topic The topic on which the event was received.
+     * @param ev The parsed event that was received.
+     *
+     * @return true if the remote event was handled successfully, else false.
+     */
+    virtual bool DoHandleRemoteEvent(std::string_view topic, Event e) = 0;
+
+    /**
+     * Hook method for implementing EnqueueLocalEvent().
+     *
+     * @param h The event handler to use.
+     * @param args The event arguments.
+     */
+    virtual void DoEnqueueLocalEvent(EventHandlerPtr h, zeek::Args args) = 0;
+};
+
+/**
+ * Strategy enqueueing events into this process's Zeek event loop.
+ */
+class LocalEventHandlingStrategy : public EventHandlingStrategy {
+private:
+    bool DoHandleRemoteEvent(std::string_view topic, Event e) override;
+    void DoEnqueueLocalEvent(EventHandlerPtr h, zeek::Args args) override;
+};
+
+/**
  * Validate that the provided args are suitable for handler.
  *
  * @param handler An event  handler.
@@ -80,8 +149,14 @@ public:
 
     /**
      * Method invoked from the Cluster::Backend::__init() bif.
+     *
+     * @param nid The node identifier to use.
      */
-    bool Init() { return DoInit(); }
+    bool Init(std::string nid) {
+        node_id = std::move(nid);
+
+        return DoInit();
+    }
 
     /**
      * Hook invoked when Zeek is about to terminate.
@@ -111,12 +186,39 @@ public:
     }
 
     /**
+     * Status codes for callbacks.
+     */
+    enum class CallbackStatus {
+        Success,
+        Error,
+        NotImplemented,
+    };
+
+    /**
+     * Information for subscription callbacks.
+     */
+    struct SubscriptionCallbackInfo {
+        CallbackStatus status;              // The status of the operation.
+        std::optional<std::string> message; // Optional message.
+    };
+
+    using SubscribeCallback =
+        std::function<void(const std::string& topic_prefix, const SubscriptionCallbackInfo& info)>;
+
+    /**
      * Register interest in messages that use a certain topic prefix.
      *
+     * Invoking cb may happen while Subscribe() executes, for example if the
+     * call to Subscribe() is synchronous, or an error is discovered before
+     * submitting any work.
+     *
      * @param topic_prefix a prefix to match against remote message topics.
+     * @param cb callback invoked when the subscription was processed.
      * @return true if it's a new event subscription and it is now registered.
      */
-    bool Subscribe(const std::string& topic_prefix) { return DoSubscribe(topic_prefix); }
+    bool Subscribe(const std::string& topic_prefix, SubscribeCallback cb = SubscribeCallback()) {
+        return DoSubscribe(topic_prefix, std::move(cb));
+    }
 
     /**
      * Unregister interest in messages on a certain topic.
@@ -140,23 +242,42 @@ public:
         return DoPublishLogWrites(header, records);
     }
 
+    /**
+     * @return This backend's node identifier.
+     */
+    const std::string& NodeId() const { return node_id; }
+
 protected:
     /**
      * Constructor.
+     *
+     * @param es The event serializer to use.
+     * @param ls The log batch serializer to use.
+     * @param ehs The event handling strategy to use for this backend.
      */
-    Backend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls)
-        : event_serializer(std::move(es)), log_serializer(std::move(ls)) {}
+    Backend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
+            std::unique_ptr<detail::EventHandlingStrategy> ehs);
+
+    /**
+     * Enqueue an event to be raised to this process Zeek scripting layer.
+     *
+     * When a backend is used for a WebSocket client connection, events
+     * raised through this method are blackholed.
+     *
+     * @param h The event handler.
+     * @param args The event arguments.
+     */
+    void EnqueueEvent(EventHandlerPtr h, zeek::Args args);
 
     /**
      * Process an incoming event message.
      */
-    bool ProcessEventMessage(const std::string_view& topic, const std::string_view& format,
-                             detail::byte_buffer_span payload);
+    bool ProcessEventMessage(std::string_view topic, std::string_view format, detail::byte_buffer_span payload);
 
     /**
      * Process an incoming log message.
      */
-    bool ProcessLogMessage(const std::string_view& format, detail::byte_buffer_span payload);
+    bool ProcessLogMessage(std::string_view format, detail::byte_buffer_span payload);
 
 private:
     /**
@@ -220,13 +341,19 @@ private:
      * Register interest in messages that use a certain topic prefix.
      *
      * If the backend hasn't yet established a connection, any subscriptions
-     * should be queued until they can be processed.
+     * should be queued until they can be processed. If a callback is given,
+     * it should be called once the subscription can be determined to be
+     * active. The callback has to be invoked from Zeek's main thread. If
+     * the backend does not implement callbacks, it should invoke the callback
+     * with CallbackStatus::NotImplemented, which will act as success, but
+     * provides a way to distinguish behavior.
      *
      * @param topic_prefix a prefix to match against remote message topics.
+     * @param cb callback to invoke when the subscription is active
      *
      * @return true if it's a new event subscription and now registered.
      */
-    virtual bool DoSubscribe(const std::string& topic_prefix) = 0;
+    virtual bool DoSubscribe(const std::string& topic_prefix, SubscribeCallback cb) = 0;
 
     /**
      * Unregister interest in messages on a certain topic.
@@ -278,6 +405,12 @@ private:
 
     std::unique_ptr<EventSerializer> event_serializer;
     std::unique_ptr<LogSerializer> log_serializer;
+    std::unique_ptr<detail::EventHandlingStrategy> event_handling_strategy;
+
+    /**
+     * The backend's instance cluster node identifier.
+     */
+    std::string node_id;
 };
 
 /**

@@ -39,6 +39,12 @@ bool ProxyThread::Start() {
     zmq::socket_t xpub(ctx, zmq::socket_type::xpub);
     zmq::socket_t xsub(ctx, zmq::socket_type::xsub);
 
+    // Enable XPUB_VERBOSE unconditional to enforce nodes receiving
+    // notifications about any new subscriptions, even if they have
+    // seen them before. This is needed to for the subscribe callback
+    // functionality to work reliably.
+    xpub.set(zmq::sockopt::xpub_verbose, 1);
+
     xpub.set(zmq::sockopt::xpub_nodrop, xpub_nodrop);
 
     try {

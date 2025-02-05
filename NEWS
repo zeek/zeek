@@ -22,6 +22,46 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- The ``service`` field in the connection log is now sorted in the order that
+  protocol analyzers raise their confirmation events.
+  Since the time at which the protocol confirmation is raised depends on the
+  indivivual implementation of each analyzer, there is no specific meaning
+  to the order that the services appear. However, the order should be
+  deterministic between runs. It also will in many cases represent
+  the order in which layered protocols are parsed (e.g. "quic,ssl").
+
+- The way that protocol violations are handled by the dynamic protocol
+  detection (DPD) changed. Now, a violation that is raised by an analyzer
+  before it is confirmed will immediately disable the analyzer. This adjusts
+  the behavior back to the historically desired state, and aligns it with
+  the treatment of confirmed analyzers.
+
+  As a consequence of this, the option ``DPD::max_violations`` is no longer used.
+  It will be retained till Zeek 8.1 to prevent script errors, and raises a
+  deprecation warning.
+
+  The way failed services interact with the ``service`` field in the connection
+  log also changed. In the past, protocol analyzers that were confirmed and
+  later failed were removed from the ``service`` field in some cases. This
+  commonly lead to the case that a protocol log exists, while the service is
+  not listed in the connection.log - so, e.g., an etry in ``http.log`` existing
+  without ``http`` showing up in the connection log.
+
+  Now, protocol analyzers that raised a confirmation event will always be added to
+  the ``service`` field in the connection log, and the entry will be retained
+  even if the analyzer raises a violation later.
+
+  To extend the visibility of protocol violations, a new option
+  ``DPD::track_removed_services_in_connection`` was added. Enabling it causes
+  failed analyzers to be logged to the ``service`` field of the connection log,
+  with a prepended "-". So a connection that attached the ``ssl`` analyzer
+  which later failed due to a protocol error will be logged as ``ssl,-ssl``.
+
+  This change also adds a new policy script,
+  ``protocols/conn/failed-service-logging.zeek``. Loading this script adds the
+  column ``failed_service`` to the connection.log. This column contains the
+  list of protocol analyzers that failed due to a protocol error.
+
 - Command line options processing will no longer print usage whenever there
   is an error. Instead, issues in command line processing will print an error,
   then prompt to use --help. The --help usage will now print to standard output

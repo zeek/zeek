@@ -1,7 +1,8 @@
 # Sets some testing specific options.
 
 @load external-ca-list
-@load protocols/conn/service-violation-logging
+
+@load protocols/conn/failed-service-logging
 
 @ifdef ( SMTP::never_calc_md5 )
 	# MDD5s can depend on libmagic output.

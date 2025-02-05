@@ -747,6 +747,12 @@ private:
     zeek::Tag tag;
     ID id;
 
+    bool skip;
+    bool finished;
+    bool removing;
+    bool timers_canceled;
+    TimerPList timers;
+
     Connection* conn;
     Analyzer* parent;
     const zeek::detail::Rule* signature;
@@ -761,12 +767,6 @@ private:
 
     bool protocol_confirmed;
     bool analyzer_confirmed;
-
-    TimerPList timers;
-    bool timers_canceled;
-    bool skip;
-    bool finished;
-    bool removing;
 
     uint64_t analyzer_violations = 0;
 

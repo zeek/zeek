@@ -64,7 +64,7 @@
 %type <expr> expr opt_expr rhs opt_init anonymous_function lambda_body index_slice opt_deprecated when_condition
 %type <event_expr> event
 %type <stmt> stmt stmt_list func_body for_head
-%type <type> type opt_type enum_body
+%type <type> simple_type type opt_type enum_body
 %type <func_type> func_hdr func_params
 %type <type_l> type_list
 %type <type_decl> type_decl formal_args_decl
@@ -1026,6 +1026,13 @@ expr:
 			$$ = new ConstExpr({AdoptRef{}, $1});
 			}
 
+	|	simple_type
+			{
+			set_location(@1);
+			TypePtr ty{AdoptRef(), $1};
+			$$ = new ConstExpr(make_intrusive<TypeVal>(ty, true));
+			}
+
 	|	'/' { begin_RE(); } TOK_PATTERN_TEXT TOK_PATTERN_END
 			{
 			set_location(@3);
@@ -1153,63 +1160,75 @@ enum_body_elem:
 			}
 	;
 
-type:
-		TOK_BOOL	{
+simple_type:
+		TOK_BOOL
+				{
 				set_location(@1);
 				$$ = base_type(TYPE_BOOL)->Ref();
 				}
 
-	|	TOK_INT		{
+	|	TOK_INT
+				{
 				set_location(@1);
 				$$ = base_type(TYPE_INT)->Ref();
 				}
 
-	|	TOK_COUNT	{
+	|	TOK_COUNT
+				{
 				set_location(@1);
 				$$ = base_type(TYPE_COUNT)->Ref();
 				}
 
-	|	TOK_DOUBLE	{
+	|	TOK_DOUBLE
+				{
 				set_location(@1);
 				$$ = base_type(TYPE_DOUBLE)->Ref();
 				}
 
-	|	TOK_TIME	{
+	|	TOK_TIME
+				{
 				set_location(@1);
 				$$ = base_type(TYPE_TIME)->Ref();
 				}
 
-	|	TOK_INTERVAL	{
+	|	TOK_INTERVAL
+				{
 				set_location(@1);
 				$$ = base_type(TYPE_INTERVAL)->Ref();
 				}
 
-	|	TOK_STRING	{
+	|	TOK_STRING
+				{
 				set_location(@1);
 				$$ = base_type(TYPE_STRING)->Ref();
 				}
 
-	|	TOK_PATTERN	{
+	|	TOK_PATTERN
+				{
 				set_location(@1);
 				$$ = base_type(TYPE_PATTERN)->Ref();
 				}
 
-	|	TOK_PORT	{
+	|	TOK_PORT
+				{
 				set_location(@1);
 				$$ = base_type(TYPE_PORT)->Ref();
 				}
 
-	|	TOK_ADDR	{
+	|	TOK_ADDR
+				{
 				set_location(@1);
 				$$ = base_type(TYPE_ADDR)->Ref();
 				}
 
-	|	TOK_SUBNET	{
+	|	TOK_SUBNET
+				{
 				set_location(@1);
 				$$ = base_type(TYPE_SUBNET)->Ref();
 				}
 
-	|	TOK_ANY		{
+	|	TOK_ANY
+				{
 				set_location(@1);
 				$$ = base_type(TYPE_ANY)->Ref();
 				}
@@ -1265,24 +1284,6 @@ type:
 				$$ = new VectorType({AdoptRef{}, $3});
 				}
 
-	|	TOK_FUNCTION func_params
-				{
-				set_location(@1, @2);
-				$$ = $2;
-				}
-
-	|	TOK_EVENT '(' formal_args ')'
-				{
-				set_location(@1, @3);
-				$$ = new FuncType({AdoptRef{}, $3}, nullptr, FUNC_FLAVOR_EVENT);
-				}
-
-	|	TOK_HOOK '(' formal_args ')'
-				{
-				set_location(@1, @3);
-				$$ = new FuncType({AdoptRef{}, $3}, base_type(TYPE_BOOL), FUNC_FLAVOR_HOOK);
-				}
-
 	|	TOK_FILE TOK_OF type
 				{
 				set_location(@1, @3);
@@ -1299,6 +1300,26 @@ type:
 				{
 				set_location(@1, @3);
 				$$ = new OpaqueType($3);
+				}
+
+type:
+		simple_type
+	|	TOK_FUNCTION func_params
+				{
+				set_location(@1, @2);
+				$$ = $2;
+				}
+
+	|	TOK_HOOK '(' formal_args ')'
+				{
+				set_location(@1, @3);
+				$$ = new FuncType({AdoptRef{}, $3}, base_type(TYPE_BOOL), FUNC_FLAVOR_HOOK);
+				}
+
+	|	TOK_EVENT '(' formal_args ')'
+				{
+				set_location(@1, @3);
+				$$ = new FuncType({AdoptRef{}, $3}, nullptr, FUNC_FLAVOR_EVENT);
 				}
 
 	|	resolve_id

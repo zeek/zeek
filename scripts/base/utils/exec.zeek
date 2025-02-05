@@ -6,7 +6,7 @@ module Exec;
 
 export {
 	type Command: record {
-		## The command line to execute.  Use care to avoid injection
+		## The command line to execute. Use care to avoid injection
 		## attacks (i.e., if the command uses untrusted/variable data,
 		## sanitize it with :zeek:see:`safe_shell_quote`).
 		cmd:         string;
@@ -34,10 +34,10 @@ export {
 	};
 
 	## Function for running command line programs and getting
-	## output.  This is an asynchronous function which is meant
-	## to be run with the `when` statement.
+	## output. This is an asynchronous function which is meant
+	## to be run with the ``when`` statement.
 	##
-	## cmd: The command to run.  Use care to avoid injection attacks!
+	## cmd: The command to run. Use care to avoid injection attacks!
 	##
 	## Returns: A record representing the full results from the
 	##          external program execution.

@@ -135,7 +135,7 @@ export {
 	global node: function(): NodeConfig;
 
 	## Hooks into the stdout stream for all supervisor's child processes.
-	## If a hook terminates with `break`, that will suppress output to the
+	## If a hook terminates with ``break``, that will suppress output to the
 	## associated stream.
 	##
 	## node: the name of a previously created node via
@@ -149,7 +149,7 @@ export {
 	global stdout_hook: hook(node: string, msg: string);
 
 	## Hooks into the stderr stream for all supervisor's child processes.
-	## If a hook terminates with `break`, that will suppress output to the
+	## If a hook terminates with ``break``, that will suppress output to the
 	## associated stream.
 	##
 	## node: the name of a previously created node via

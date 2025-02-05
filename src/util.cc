@@ -363,9 +363,8 @@ static long int zeek_rand_state = 0;
 static bool first_seed_saved = false;
 static unsigned int first_seed = 0;
 
-static void zeek_srandom(unsigned int seed, bool deterministic) {
+static void zeek_srandom(unsigned int seed) {
     zeek_rand_state = seed == 0 ? 1 : seed;
-    zeek_rand_deterministic = deterministic;
 
     srandom(seed);
 }
@@ -380,26 +379,28 @@ void seed_random(unsigned int seed) {
 void init_random_seed(const char* read_file, const char* write_file, bool use_empty_seeds,
                       const std::string& seed_string) {
     std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE> buf = {};
-    size_t pos = 0; // accumulates entropy
-    bool seeds_done = false;
     uint32_t seed = 0;
 
-    if ( read_file ) {
-        if ( ! read_random_seeds(read_file, &seed, buf) )
-            reporter->FatalError("Could not load seeds from file '%s'.", read_file);
-        else
-            seeds_done = true;
-    }
-    else if ( ! seed_string.empty() ) {
-        if ( ! fill_random_seeds(seed_string, &seed, buf) )
-            reporter->FatalError("Could not load seeds from string");
-        else
-            seeds_done = true;
-    }
-    else if ( use_empty_seeds )
-        seeds_done = true;
+    if ( write_file )
+        // run in deterministic mode when we write a file
+        zeek_rand_deterministic = true;
 
-    if ( ! seeds_done ) {
+    if ( read_file || use_empty_seeds || ! seed_string.empty() ) {
+        // if a seed is provided - run Zeek in deterministic mode
+        zeek_rand_deterministic = true;
+
+        if ( read_file ) {
+            if ( ! read_random_seeds(read_file, &seed, buf) )
+                reporter->FatalError("Could not load seeds from file '%s'.", read_file);
+        }
+        else if ( ! seed_string.empty() ) {
+            if ( ! fill_random_seeds(seed_string, &seed, buf) )
+                reporter->FatalError("Could not load seeds from string");
+        }
+    }
+    else {              // no seed provided
+        size_t pos = 0; // accumulates entropy
+
 #ifdef HAVE_GETRANDOM
         // getrandom() guarantees reads up to 256 bytes are always successful,
         assert(sizeof(buf) < 256);
@@ -437,17 +438,13 @@ void init_random_seed(const char* read_file, const char* write_file, bool use_em
             reporter->FatalError("Could not read enough random data. Wanted %d, got %zu",
                                  zeek::detail::KeyedHash::SEED_INIT_SIZE, pos);
 
-        if ( ! seed ) {
-            for ( size_t i = 0; i < pos; ++i ) {
-                seed ^= buf[i];
-                seed = (seed << 1) | (seed >> 31);
-            }
+        for ( size_t i = 0; i < pos; ++i ) {
+            seed ^= buf[i];
+            seed = (seed << 1) | (seed >> 31);
         }
-        else
-            seeds_done = true;
     }
 
-    zeek_srandom(seed, seeds_done);
+    zeek_srandom(seed);
 
     if ( ! first_seed_saved ) {
         first_seed = seed;

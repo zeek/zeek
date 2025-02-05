@@ -186,24 +186,6 @@ global g_configs: table[ConfigState] of Management::Configuration
 
 function config_deploy_to_agents(config: Management::Configuration, req: Management::Request::Request)
 	{
-	# Make any final changes to the configuration we send off.
-
-	# If needed, fill in agent IP address info as learned from their peerings.
-	# XXX this will need revisiting when we support host names.
-	local instances: set[Management::Instance];
-
-	for ( inst in config$instances )
-		{
-		if ( inst$name in g_instances_known
-		    && inst$host == 0.0.0.0
-		    && g_instances_known[inst$name]$host != 0.0.0.0 )
-			inst$host = g_instances_known[inst$name]$host;
-
-		add instances[inst];
-		}
-
-	config$instances = instances;
-
 	for ( name in g_instances )
 		{
 		if ( name !in g_instances_ready )
@@ -414,27 +396,34 @@ function config_assign_metrics_ports(config: Management::Configuration)
 		[Supervisor::WORKER] = 3,
 	};
 
-	local p = port_to_count(Management::Controller::auto_assign_metrics_start_port);
-	local ports_set: set[count];
+	local instance_metrics_start_port: table[addr] of count;
+	local instance_ports_set: table[addr] of set[count];
+	local instance_addr_lookup: table[string] of addr;
 	local node: Management::Node;
+	local node_addr: addr;
 
 	# Pre-populate agents ports, if we have them:
 	for ( inst in config$instances )
 		{
+		# build instance name -> addr lookup table
+		instance_addr_lookup[inst$name] = inst$host;
+
+		instance_metrics_start_port[inst$host] = port_to_count(Management::Controller::auto_assign_metrics_start_port);
+		instance_ports_set[inst$host] = {};
 		if ( inst?$listen_port )
-			add ports_set[port_to_count(inst$listen_port)];
+			add instance_ports_set[inst$host][port_to_count(inst$listen_port)];
 		}
 
 	# Pre-populate nodes with pre-defined metrics ports, as well
 	# as their Broker ports:
 	for ( node in config$nodes )
+		node_addr = instance_addr_lookup[node$instance];
 		{
 		if ( node?$p )
-			add ports_set[port_to_count(node$p)];
-
+			add instance_ports_set[node_addr][port_to_count(node$p)];
 		if ( node?$metrics_port )
 			{
-			add ports_set[port_to_count(node$metrics_port)];
+			add instance_ports_set[node_addr][port_to_count(node$metrics_port)];
 			add new_nodes[node];
 			}
 		}
@@ -466,17 +455,18 @@ function config_assign_metrics_ports(config: Management::Configuration)
 	for ( i in nodes )
 		{
 		node = nodes[i];
+		node_addr = instance_addr_lookup[node$instance];
 
 		# Find next available port ...
-		while ( p in ports_set )
-			++p;
+		while ( instance_metrics_start_port[node_addr] in instance_ports_set[node_addr] )
+			++instance_metrics_start_port[node_addr];
 
-		node$metrics_port = count_to_port(p, tcp);
+		node$metrics_port = count_to_port(instance_metrics_start_port[node_addr], tcp);
 		add new_nodes[node];
-		add ports_set[p];
+		add instance_ports_set[node_addr][instance_metrics_start_port[node_addr]];
 
 		# ... and consume it.
-		++p;
+		++instance_metrics_start_port[node_addr];
 		}
 
 	config$nodes = new_nodes;
@@ -1028,6 +1018,27 @@ event Management::Controller::API::stage_configuration_request(reqid: string, co
 
 	g_configs[STAGED] = config;
 	config_copy = copy(config);
+
+	# The staged config is preserved as the client sent it to us. For the
+	# ready-to-deploy version we fill in additional details here.
+	#
+	# One such bit of information is that we know the IP addresses of
+	# instances that connected to the controller from their Broker peering.
+	#
+	# XXX this will need revisiting when we support host names.
+	local instances: set[Management::Instance];
+
+	for ( inst in config_copy$instances )
+		{
+		if ( inst$name in g_instances_known
+		    && inst$host == 0.0.0.0
+		    && g_instances_known[inst$name]$host != 0.0.0.0 )
+			inst$host = g_instances_known[inst$name]$host;
+
+		add instances[inst];
+		}
+
+	config_copy$instances = instances;
 
 	if ( Management::Controller::auto_assign_broker_ports )
 		config_assign_broker_ports(config_copy);

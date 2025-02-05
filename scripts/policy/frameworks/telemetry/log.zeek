@@ -1,5 +1,5 @@
-##! Implementation of a telemetry.log and telemetry_histogram.log file
-##! using metrics accessible via the Telemetry module.
+##! Implementation of a :file:`telemetry.log` and :file:`telemetry_histogram.log`
+##! file using metrics accessible via the Telemetry module.
 
 @load base/frameworks/telemetry
 
@@ -12,8 +12,9 @@ export {
 	option log_interval = 60sec;
 
 	## Only metrics with prefixes in this set will be included in the
-	## `telemetry.log` and `telemetry_histogram.log` files by default.
-	## Setting this option to an empty set includes all prefixes.
+	## :file:`telemetry.log` and :file:`telemetry_histogram.log` files
+	## by default. Setting this option to an empty set includes all
+	## prefixes.
 	##
 	## For more fine-grained customization, setting this option to an
 	## empty set and implementing the :zeek:see:`Telemetry::log_policy`

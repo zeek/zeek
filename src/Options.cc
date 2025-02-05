@@ -424,10 +424,16 @@ Options parse_cmdline(int argc, char** argv) {
     opterr = 0;
 
     // getopt may permute the array, so need yet another array
-    auto zargs = std::make_unique<char*[]>(zeek_args.size());
+    //
+    // Make sure this array is one greater than zeek_args and ends in nullptr, otherwise
+    // getopt may go beyond the end of the array
+    auto zargs = std::make_unique<char*[]>(zeek_args.size() + 1);
 
     for ( size_t i = 0; i < zeek_args.size(); ++i )
         zargs[i] = zeek_args[i].data();
+
+    // Make sure getopt doesn't go past the end
+    zargs[zeek_args.size()] = nullptr;
 
     while ( (op = getopt_long(zeek_args.size(), zargs.get(), opts, long_opts, &long_optsind)) != EOF )
         switch ( op ) {

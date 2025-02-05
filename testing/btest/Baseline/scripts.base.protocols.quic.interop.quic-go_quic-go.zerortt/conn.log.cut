@@ -2,5 +2,5 @@
 ts	uid	history	service
 0.015059	ClEkJM2Vm5giqnMf4h	-	-
 0.001000	CHhAvVGS1DHFjwGM9	-	-
-0.790739	CtPZjS20MLrsMUOJi2	Dd	ssl,quic
-0.718160	C4J4Th3PJpwUYZZ6gc	Dd	ssl,quic
+0.790739	CtPZjS20MLrsMUOJi2	Dd	quic,ssl
+0.718160	C4J4Th3PJpwUYZZ6gc	Dd	quic,ssl

@@ -203,7 +203,7 @@ export {
 	## on rotation with :zeek:enum:`Notice::ACTION_ALARM`.
 	##
 	## Note that this is overridden by the ZeekControl MailTo option or by
-	## the `email_dest` field in the :zeek:see:`Notice::Info` record.
+	## the ``email_dest`` field in the :zeek:see:`Notice::Info` record.
 	const mail_dest           = ""                   &redef;
 
 	## Address that emails will be from.

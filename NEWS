@@ -16,6 +16,9 @@ New Functionality
   Zeek now raises a warning when a script declares these events while this
   option is set to true.
 
+- Types can now be used as constants in Zeek script. This allows types to be
+  directly passed into BIFs without aliasing.
+
 Changed Functionality
 ---------------------
 
@@ -23,6 +26,16 @@ Changed Functionality
   is an error. Instead, issues in command line processing will print an error,
   then prompt to use --help. The --help usage will now print to standard output
   rather than standard error.
+
+- Saving seeds with ``--save-seeds`` will now put Zeek into deterministic mode.
+  A subsequent ``--load-seeds`` run with the same scripts and traces will produce
+  identical UID values as the original ``--save-seeds` run.
+
+- The `policy/protocols/dns/detect-external-names.zeek` script now no longer logs
+  names that were found in mDNS broadcasts by default. This is configurable with
+  the new `DNS::skip_resp_host_port_pairs` option.
+
+  Furthermore, the script now supports and logs IPv6 results.
 
 Removed Functionality
 ---------------------

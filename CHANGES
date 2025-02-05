@@ -1,3 +1,180 @@
+7.2.0-dev.156 | 2025-02-05 09:05:00 +0000
+
+  * IPv6 support for detect-external-names and testcase (Johanna Amann, Corelight)
+
+  * Add  `skip_resp_host_port_pairs` option to policy/protocols/dns/detect-external-names.zeek.
+    This option allows to skip the detection of external names for certain addresses.
+    By default this is set so that mDNS broadcasts no longer are logged as extenal. (jbaggs)
+
+7.2.0-dev.152 | 2025-02-04 14:50:36 -0800
+
+  * Bump cluster testsuite to pull in resilience to agent connection timing [skip ci] (Christian Kreibich, Corelight)
+
+7.2.0-dev.150 | 2025-02-04 16:50:44 +0100
+
+  * GH-4209: util/init_random_seed: write_file implies deterministic (Johanna Amann, Corelight)
+
+    This makes Zeek run in deterministic mode with --save-seeds usage
+    and reworks all the extra indirections used in init_random_seed()
+    to make it easier to follow the control flow.
+
+7.2.0-dev.148 | 2025-02-04 09:52:29 +0100
+
+  * external/subdir-btest.cfg: Set OPENSSL_ENABLE_SHA1_SIGNATURES=1 (Arne Welzel, Corelight)
+
+    We already do something similar for OPENSSL_ENABLE_MD5_VERIFY=1
+
+  * btest/x509_verify: Drop OpenSSL 1.0 hack (Arne Welzel, Corelight)
+
+    We do not have a distro in CI anymore that ships OpenSSL 1.0,
+    drop the hack.
+
+  * GH-4035: testing/btest: Use OPENSSL_ENABLE_SHA1_SIGNATURES (Arne Welzel, Corelight)
+
+    This reverts the call to update-crypto-policies in the Fedora 41 image
+    and instead sets OPENSSL_ENABLE_SHA1_SIGNATURES in the individual tests.
+    This allows RHEL 10 or Fedora 41 users to run the tests in question
+    without needing to fiddle with system settings.
+
+    Fixes #4035
+
+7.2.0-dev.144 | 2025-02-04 09:18:25 +0100
+
+  * Add ZAM baseline for new scripts.base.protocols.quic.analyzer-confirmations btest (Tim Wojtulewicz, Corelight)
+
+7.2.0-dev.142 | 2025-02-03 18:41:40 -0700
+
+  * Make enc_part value from kerberos response available to scripts (Philipp Tekeser-Glasz)
+
+7.2.0-dev.140 | 2025-02-03 18:34:00 -0700
+
+  * Add note to Traces/README about possible malware in pe/pe.trace (Tim Wojtulewicz, Corelight)
+
+  * Fix formatting of Traces/README entry for modbus-eit.trace (Tim Wojtulewicz, Corelight)
+
+7.2.0-dev.137 | 2025-02-03 16:53:04 -0800
+
+  * Remove unused SupervisedNode::InitCluster declaration (Christian Kreibich, Corelight)
+
+7.2.0-dev.135 | 2025-02-03 17:50:31 +0100
+
+  * QUIC/decrypt_crypto: Rename all_data to data (Arne Welzel, Corelight)
+
+    ...for consistency.
+
+  * GH-4201: QUIC: Confirm before forwarding data to SSL (Arne Welzel, Corelight)
+
+    Fixes #4201
+
+  * GH-4198: QUIC: Parse all QUIC packets in a UDP datagram (Arne Welzel, Corelight)
+
+    A UDP datagram may contain multiple QUIC packets, but the parser so far
+    handled only the very first packet, ignoring any subsequent packets.
+
+    Fixes #4198
+
+  * QUIC: Only slurp till packet end, not till &eod (Arne Welzel, Corelight)
+
+    This doesn't change behavior, but avoids slurping in more data than
+    needed. A UDP packet an contain multiple QUIC packets and we'd read
+    all following ones instead just the one we're interested in.
+
+7.2.0-dev.129 | 2025-01-31 15:58:37 -0800
+
+  * Management framework:
+
+    - Bump cluster testsuite to pull in updated Prometheus tests (Christian Kreibich, Corelight)
+    - move up addition of agent IPs into deployable cluster configs (Christian Kreibich, Corelight)
+    - Support multiple instances per host addr in auto metrics generation (Michael Dopheide)
+    - When auto-generating metrics ports for worker nodes, get them more uniform across instances. (Michael Dopheide)
+
+7.2.0-dev.124 | 2025-01-30 10:51:14 -0700
+
+  * Pack some classes for better memory usages (Tim Wojtulewicz, Corelight)
+
+    - Analyzer: Reduce from 208 bytes to 192 bytes, remove one cache line
+    - EventGroup: Reduce from 104 bytes to 96 bytes
+    - Packet: Reduce from 200 bytes to 184 bytes, remove one cache line
+    - threading::Value: Reduce from 48 bytes to 40 bytes
+    - ConnTuple: push hole to the end of struct
+    - TCP_Reassembler: Reduce from 240 bytes to 232 bytes
+
+7.2.0-dev.122 | 2025-01-24 15:47:15 -0700
+
+  * Make types into constants (Evan Typanski, Corelight)
+
+    This allows types to be used in expressions, but they can't be
+    reassigned. Note that this was meant to be a special "type expression" -
+    but that is unnecessary complexity.
+
+    Type expressions would allow access to the type without going through
+    its constant value, but the constant value is never changed, so it's
+    simply a few more checks if necessary when functionality gets expanded.
+    This way, ZAM and other code will not need updates, so the potential for
+    increased work in the future is probably not worth caring about.
+
+7.2.0-dev.116 | 2025-01-24 11:42:14 -0700
+
+  * Fix errors from rst linting on the generated docs (Tim Wojtulewicz, Corelight)
+
+7.2.0-dev.113 | 2025-01-23 11:49:23 -0700
+
+  * Fix options parsing segfault (Evan Typanski, Corelight)
+
+    A command like this would segfault:
+
+    zeek -b test.zeek --debug
+
+    The issue was that `getopt_long` was using a null element to determine
+    what the end of the options array is. If it saw a non-null element after
+    `--debug` it would say it's the argument for optarg, even if it's beyond
+    `zeek_args.size()`. Instead, just make sure the array is
+    null-terminated.
+
+7.2.0-dev.111 | 2025-01-23 11:21:21 -0700
+
+  * Minor whitespace cleanup in init-bare.zeek (Tim Wojtulewicz, Corelight)
+
+  * Add missing export blocks to init-bare.zeek (Tim Wojtulewicz, Corelight)
+
+  * Merge some GLOBAL module sections in init-bare (Tim Wojtulewicz, Corelight)
+
+  * Merge Tunnel module sections in init-bare (Tim Wojtulewicz, Corelight)
+
+7.2.0-dev.106 | 2025-01-23 16:46:33 +0100
+
+  * script_opt: Use emit_builtin_error() for Lookup-Conn (Arne Welzel, Corelight)
+
+    Still create a separate baseline file because ZAM doesn't provide
+    detailed location information.
+
+    Patch for ZBI.op provided by @vpax
+
+7.2.0-dev.104 | 2025-01-21 16:48:56 -0700
+
+  * session/Manager: Emit explicit errors for FindConnection() with proto=65535 (Arne Welzel, Corelight)
+
+    We silently broke users constructing conn_id records manually and
+    subsequently using them with lookup_connection() or connection_exists().
+
+    This is an attempt to at least report a runtime error about the situation
+    so it doesn't go completely unnoticed.
+
+  * IPAddr/ConnKey: Protect from uninitialized conn_id (Arne Welzel, Corelight)
+
+    Check if the non-default fields exist using HasField()
+    and use GetField() for proto such that it'll initialize
+    the default value which GetFieldAs<> doesn't do.
+    default
+
+  * IPAddr/ConnKey: Promote transport to uint16_t (Arne Welzel, Corelight)
+
+    Instead of a separate bool field which is also stored in the session
+    table, promote the transport field to uint16_t and encode an invalid
+    ConnKey as transport 2**16-2
+
+  * session/Manager: Header cleanup (Arne Welzel, Corelight)
+
 7.2.0-dev.99 | 2025-01-20 10:27:32 +0100
 
   * fixes for -O gen-standalone-C++ generation of lambdas (Vern Paxson, Corelight)

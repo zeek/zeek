@@ -161,16 +161,6 @@ public:
     uint32_t eth_type;
 
     /**
-     * Layer 2 source address.
-     */
-    const u_char* l2_src = nullptr;
-
-    /**
-     * Layer 2 destination address.
-     */
-    const u_char* l2_dst = nullptr;
-
-    /**
      * (Outermost) VLAN tag if any, else 0.
      */
     uint32_t vlan = 0;
@@ -207,6 +197,24 @@ public:
      * by the hardware/kernel before being received by zeek.
      */
     bool l4_checksummed = false;
+
+    /**
+     * Layer 2 source address.
+     */
+    const u_char* l2_src = nullptr;
+
+    /**
+     * Layer 2 destination address.
+     */
+    const u_char* l2_dst = nullptr;
+
+    /**
+     * This flag indicates whether a packet has been processed. This can
+     * mean different things depending on the traffic, but generally it
+     * means that a packet has been logged in some way. We default to
+     * false, and this can be set to true for any number of reasons.
+     */
+    bool processed = false;
 
     /**
      * Indicates whether this packet should be recorded.
@@ -265,14 +273,6 @@ public:
     int gre_link_type = DLT_RAW;
 
     /**
-     * This flag indicates whether a packet has been processed. This can
-     * mean different things depending on the traffic, but generally it
-     * means that a packet has been logged in some way. We default to
-     * false, and this can be set to true for any number of reasons.
-     */
-    bool processed = false;
-
-    /**
      * The session related to this packet, if one exists.
      */
     session::Session* session = nullptr;
@@ -283,7 +283,7 @@ private:
 
     // True if we need to delete associated packet memory upon
     // destruction.
-    bool copy;
+    bool copy = false;
 };
 
 } // namespace zeek

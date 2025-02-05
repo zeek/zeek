@@ -59,15 +59,6 @@ constexpr DebugFlag operator&(zeek_uint_t x, DebugFlag y) {
         }                                                                                                              \
     } while ( 0 )
 
-namespace {
-void self_thread_fun(void* arg) {
-    auto* self = static_cast<ZeroMQBackend*>(arg);
-    self->Run();
-}
-
-} // namespace
-
-
 ZeroMQBackend::ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
                              std::unique_ptr<detail::EventHandlingStrategy> ehs)
     : ThreadedBackend(std::move(es), std::move(ls), std::move(ehs)) {
@@ -227,7 +218,9 @@ bool ZeroMQBackend::DoInit() {
     // Setup connectivity between main and child thread.
     main_inproc.bind("inproc://inproc-bridge");
     child_inproc.connect("inproc://inproc-bridge");
-    self_thread = std::thread(self_thread_fun, this);
+
+    // Thread is joined in backend->DoTerminate(), backend outlives it.
+    self_thread = std::thread([](auto* backend) { backend->Run(); }, this);
 
     // After connecting, call ThreadedBackend::DoInit() to register
     // the IO source with the loop.

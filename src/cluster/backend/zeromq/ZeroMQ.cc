@@ -356,7 +356,9 @@ bool ZeroMQBackend::DoPublishLogWrites(const logging::detail::LogWriteHeader& he
 }
 
 void ZeroMQBackend::Run() {
-    util::detail::set_thread_name(zeek::util::fmt("zmq-%p", this));
+    char name[4 + 2 + 16 + 1]{}; // zmq-0x<8byte pointer in hex><nul>
+    snprintf(name, sizeof(name), "zmq-%p", this);
+    util::detail::set_thread_name(name);
     ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::THREAD, "Thread starting (%p)\n", this);
 
     using MultipartMessage = std::vector<zmq::message_t>;

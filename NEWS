@@ -19,6 +19,11 @@ New Functionality
 - Types can now be used as constants in Zeek script. This allows types to be
   directly passed into BIFs without aliasing.
 
+- A new ``enc_part`` field was added to the Kerberos ``KRB_Response`` record
+  passed as part of the ``krb_as_response`` event. This field contains the
+  encrypted session information from a Kerberos response, including the cipher
+  and encrypted data.
+
 Changed Functionality
 ---------------------
 

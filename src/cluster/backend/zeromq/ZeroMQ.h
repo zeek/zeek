@@ -21,6 +21,11 @@ public:
                   std::unique_ptr<detail::EventHandlingStrategy> ehs);
 
     /**
+     * Destructor.
+     */
+    ~ZeroMQBackend();
+
+    /**
      * Spawns a thread running zmq_proxy() for the configured XPUB/XSUB listen
      * sockets. Only one node in a cluster should do this.
      */

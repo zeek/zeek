@@ -1,3 +1,25 @@
+7.2.0-dev.173 | 2025-02-05 16:40:41 +0100
+
+  * cluster/zeromq: Call DoTerminate() in destructor (Arne Welzel, Corelight)
+
+    Normal life-cycle is that Terminate() / DoTerminate() is called
+    by zeek-setup code. If that doesn't happen, shutdown and join
+    threads during destructor.
+
+    try { } catch (...) suggested by Benjamin.
+
+  * cluster/zeromq: Use lambda for thread trampoline (Arne Welzel, Corelight)
+
+  * cluster/zeromq: Do not call util::fmt() from thread (Arne Welzel, Corelight)
+
+    ...util::fmt() uses a static buffer, so this is problematic.
+
+    I've dabbled a bit replacing std::thread with using threading::BasicThread
+    which would offer Fmt(), but this makes things more complicated. Primarily
+    as BasicThread is registered with the thread manager and the shutdown
+    interactions become entangled. The thread might be terminated before the
+    backend, or vice-versa. Seems nicer for the thread to be owned by the backend.
+
 7.2.0-dev.169 | 2025-02-05 11:10:21 +0100
 
   * cluster/zeromq: Fix Unsubscribe() bug caused by \x00 prefix (Arne Welzel, Corelight)

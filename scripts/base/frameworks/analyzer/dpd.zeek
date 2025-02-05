@@ -125,7 +125,7 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 	# add "-service" to the list of services on removal due to violation, if analyzer was confirmed before
 	if ( track_removed_services_in_connection && disabled && Analyzer::name(atype) in c$service )
 		{
-		local rname = fmt("-%s", Analyzer::name(atype));
+		local rname = cat("-", Analyzer::name(atype));
 		if ( rname !in c$service )
 			add c$service[rname];
 		}

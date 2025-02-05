@@ -27,13 +27,10 @@ export {
 		id:           conn_id         &log;
 		## The transport layer protocol of the connection.
 		proto:        transport_proto &log;
-		## The identification of the application protocol(s) being sent over
-		## the connection. Can list more than one protocol separated with
-		## colons. Protocols listed are in the order in which they are
-		## confirmed.
-		## This field can also contain a list of protocol analyzers that
-		## raise violations prefixed with a "-" if the option
-		## :zeek:see:`DPD::track_removed_services_in_connection` is set.
+		## A comma-separated list of confirmed protocol(s).
+		## With :zeek:see:DPD::track_removed_services_in_connection, the list
+		## includes the same protocols prefixed with "-" to record that Zeek
+		## dropped them due to parsing violations."
 		service:      string          &log &optional;
 		## How long the connection lasted.
 		##

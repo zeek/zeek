@@ -6,6 +6,7 @@
 #include <broker/backend_options.hh>
 #include <broker/detail/hash.hh>
 #include <broker/endpoint_info.hh>
+#include <broker/hub.hh>
 #include <broker/peer_info.hh>
 #include <broker/store.hh>
 #include <broker/zeek.hh>
@@ -56,6 +57,7 @@ class StoreHandleVal;
 class StoreQueryCallback;
 }; // namespace detail
 
+class WebSocketShim;
 class BrokerState;
 
 /**
@@ -379,6 +381,13 @@ public:
     };
 
 private:
+    friend class WebSocketState;
+
+    /**
+     * Create a broker hub for WebSocket clients.
+     */
+    broker::hub MakeHub(broker::filter_type ft) const;
+
     // Register interest in peer event messages that use a certain topic prefix.
     bool DoSubscribe(const std::string& topic_prefix, SubscribeCallback cb) override;
 

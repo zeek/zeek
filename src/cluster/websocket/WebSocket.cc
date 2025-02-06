@@ -304,6 +304,12 @@ void WebSocketEventDispatcher::Process(const WebSocketOpen& open) {
     auto backend = zeek::cluster::manager->InstantiateBackend(cluster_backend_val, std::move(event_serializer), nullptr,
                                                               std::move(event_handling_strategy));
 
+    if ( ! backend ) {
+        reporter->Error("Failed to instantiate backend for client with id %s!", id.c_str());
+        QueueReply(WebSocketCloseReply{wsc, 1001, "Internal error"});
+        return;
+    }
+
     WS_DEBUG("New WebSocket client %s (%s:%d) - using id %s backend=%p", id.c_str(), wsc->getRemoteIp().c_str(),
              wsc->getRemotePort(), ws_id.c_str(), backend.get());
 

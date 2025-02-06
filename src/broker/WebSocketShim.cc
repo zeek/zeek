@@ -31,10 +31,8 @@ namespace zeek::Broker {
 
 class State {
 public:
-    State(broker::endpoint& endpoint, broker::subscriber subscriber)
-        : endpoint(endpoint), subscriber(std::move(subscriber)) {}
+    State(broker::subscriber subscriber) : subscriber(std::move(subscriber)) {}
 
-    broker::endpoint& endpoint; // XXX: This refs the broker_mgr's endpoint!
     broker::subscriber subscriber;
 };
 
@@ -63,7 +61,7 @@ bool WebSocketShim::DoInit() {
 
     zeek::iosource_mgr->RegisterFd(subscriber.fd(), this);
 
-    state = std::make_unique<State>(endpoint, std::move(subscriber));
+    state = std::make_unique<State>(std::move(subscriber));
 
     return true;
 }
@@ -78,7 +76,23 @@ void WebSocketShim::DoTerminate() {
 
 bool WebSocketShim::DoPublishEvent(const std::string& topic, const zeek::cluster::detail::Event& event) {
     // XXX: Does this work? Does this allow other WS clients to see our own messages? No? I doubt it.
-    return zeek::broker_mgr->DoPublishEvent(topic, event);
+
+    auto r = cluster::detail::to_broker_event(event);
+    if ( ! r ) {
+        zeek::reporter->Warning("broker-ws-shim: Unable to convert to broker event '%s'", std::string(topic).c_str());
+    }
+
+    fprintf(stderr, "Publish directly (%s)!\n", std::string(topic).c_str());
+
+    // For Dominik: The following publish should reach all local subscribers except
+    // our own state->subscriber. How could we possibly do this?
+    //
+    // E.g., we want to reach other WebSocket clients as well as also subscriptions
+    // of Zeek script land on zeek::broker_mgr's endpoint/subscriber.
+    //
+    // Would each WebSocket client need a new endpoint? Can we plumb that internally?
+    zeek::broker_mgr->Endpoint().publish(topic, (*r).move_data());
+    return true;
 }
 
 bool WebSocketShim::DoSubscribe(const std::string& topic_prefix, SubscribeCallback cb) {
@@ -99,7 +113,7 @@ bool WebSocketShim::DoUnsubscribe(const std::string& topic_prefix) {
 void WebSocketShim::Process() {
     auto messages = state->subscriber.poll();
 
-    BROKER_WS_DEBUG("Process() got %zu messages (%s)", messages.size(), NodeId().c_str());
+    // BROKER_WS_DEBUG("Process() got %zu messages (%s)", messages.size(), NodeId().c_str());
     for ( auto& message : messages ) {
         auto&& topic = broker::get_topic(message);
 

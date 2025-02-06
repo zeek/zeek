@@ -63,13 +63,16 @@ private:
     void ProcessMessage(std::string_view topic, broker::zeek::Event& ev);
     void ProcessMessage(std::string_view topic, broker::zeek::Invalid& invalid);
     void ProcessMessage(std::string_view topic, broker::zeek::LogCreate& lc) {
-        throw new std::logic_error("not implemented");
+        fprintf(stderr, " XXX LogCreate on topic %s\n", std::string(topic).c_str());
+        // throw new std::logic_error("not implemented");
     }
     void ProcessMessage(std::string_view topic, broker::zeek::LogWrite& lw) {
-        throw new std::logic_error("not implemented");
+        fprintf(stderr, " XXX LogWrite on topic %s\n", std::string(topic).c_str());
+        // throw new std::logic_error("not implemented");
     }
     void ProcessMessage(std::string_view topic, broker::zeek::IdentifierUpdate& iu) {
-        throw new std::logic_error("not implemented");
+        fprintf(stderr, " XXX IdentifierUpdate on topic %s\n", std::string(topic).c_str());
+        // throw new std::logic_error("not implemented");
     }
 
 

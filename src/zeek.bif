@@ -4494,8 +4494,7 @@ function mkdir%(f: string%): bool
 		     && S_ISDIR(filestat.st_mode) )
 			return zeek::val_mgr->True();
 
-		zeek::emit_builtin_error(zeek::util::fmt("cannot create directory '%s': %s", filename,
-		                                         strerror(error)));
+		zeek::reporter->Warning("cannot create directory '%s': %s", filename, strerror(error));
 		return zeek::val_mgr->False();
 		}
 	else
@@ -4519,8 +4518,7 @@ function rmdir%(d: string%): bool
 
 	if ( rmdir(dirname) < 0 )
 		{
-		zeek::emit_builtin_error(zeek::util::fmt("cannot remove directory '%s': %s", dirname,
-		                                         strerror(errno)));
+		zeek::reporter->Warning("cannot remove directory '%s': %s", dirname, strerror(errno));
 		return zeek::val_mgr->False();
 		}
 	else
@@ -4543,8 +4541,7 @@ function unlink%(f: string%): bool
 
 	if ( unlink(filename) < 0 )
 		{
-		zeek::emit_builtin_error(zeek::util::fmt("cannot unlink file '%s': %s", filename,
-		                                         strerror(errno)));
+		zeek::reporter->Warning("cannot unlink file '%s': %s", filename, strerror(errno));
 		return zeek::val_mgr->False();
 		}
 	else
@@ -4569,8 +4566,7 @@ function rename%(src_f: string, dst_f: string%): bool
 
 	if ( rename(src_filename, dst_filename) < 0 )
 		{
-		zeek::emit_builtin_error(zeek::util::fmt("cannot rename file '%s' to '%s': %s", src_filename,
-		                                         dst_filename, strerror(errno)));
+		zeek::reporter->Warning("cannot rename file '%s' to '%s': %s", src_filename, dst_filename, strerror(errno));
 		return zeek::val_mgr->False();
 		}
 	else

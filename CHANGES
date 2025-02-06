@@ -1,3 +1,13 @@
+7.2.0-dev.177 | 2025-02-06 09:44:15 +0100
+
+  * GH-3595: Downgrade internal errors to reporter warnings in file/directory BiFs (Christian Kreibich, Corelight)
+
+    This allows Zeek execution to continue gracefully in the presence of such
+    errors, particularly at zeek_init() time. Includes a tweak to expand the
+    bifs.directory_operations test to check continuation after errors.
+
+  * Add NEWS entry for recent kerberos change [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.173 | 2025-02-05 16:40:41 +0100
 
   * cluster/zeromq: Call DoTerminate() in destructor (Arne Welzel, Corelight)

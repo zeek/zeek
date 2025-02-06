@@ -20,7 +20,7 @@ event zeek_init() {
 
 	local b = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
 
-	local res = Storage::Sync::put(b, [$key=key, $value=value, $overwrite=T]);
+	local res = Storage::Sync::put(b, [$key=key, $value=value]);
 	print "put result", res;
 
 	local res2 = Storage::Sync::get(b, key);

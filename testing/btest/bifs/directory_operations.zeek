@@ -4,7 +4,7 @@
 
 event zeek_init()
 	{
-	# Test succesful operations...
+	# Test successful operations...
 	print mkdir("testdir");
 	print mkdir("testdir");
 	local a = open("testdir/testfile");
@@ -14,11 +14,17 @@ event zeek_init()
 	print unlink("testdir2/testfile2");
 	print rmdir("testdir2");
 
-
+	# ... and failing ones.
 	print unlink("nonexisting");
 	print rename("a", "b");
 	print rmdir("nonexisting");
 	a = open("testfile");
 	close(a);
 	print mkdir("testfile");
+	}
+
+event zeek_done()
+	{
+	# Only reached when above failures don't cause Zeek to exit.
+	print "Shutting down.";
 	}

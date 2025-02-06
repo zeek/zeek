@@ -42,6 +42,10 @@ Changed Functionality
 
   Furthermore, the script now supports and logs IPv6 results.
 
+- The mkdir(), rmdir(), unlink(), and rename() functions now trigger reporter
+  warnings instead of builtin errors when hitting trouble. This allows Zeek to
+  continue gracefully in case of such problems, particularly during zeek_init().
+
 Removed Functionality
 ---------------------
 

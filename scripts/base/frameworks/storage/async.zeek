@@ -1,4 +1,6 @@
-##! Asynchronous operation methods for the storage framework.
+##! Asynchronous operation methods for the storage framework. These methods must
+##! be called as part of a :zeek:see:`when` statement. An error will be returned
+##! otherwise.
 
 @load ./main
 

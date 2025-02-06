@@ -405,11 +405,10 @@ void ZeroMQBackend::Run() {
         // Forward messages from the inprocess bridge to XSUB for subscription
         // subscription handling (1 part) or XPUB for publishing (4 parts).
         for ( auto& msg : msgs ) {
-            assert(msg.size() == 1 || msg.size() == 4);
             if ( msg.size() == 1 ) {
                 xsub.send(msg[0], zmq::send_flags::none);
             }
-            else {
+            else if ( msg.size() == 4 ) {
                 for ( auto& part : msg ) {
                     zmq::send_flags flags = zmq::send_flags::dontwait;
                     if ( part.more() )
@@ -446,6 +445,9 @@ void ZeroMQBackend::Run() {
                         }
                     } while ( ! result );
                 }
+            }
+            else {
+                ZEROMQ_THREAD_PRINTF("inproc: error: expected 1 or 4 parts, have %zu!\n", msg.size());
             }
         }
     };

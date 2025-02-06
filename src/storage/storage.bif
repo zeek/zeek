@@ -111,6 +111,9 @@ function Storage::Async::__put%(backend: opaque of Storage::BackendHandle, key: 
 	else if ( ! b->backend->IsOpen() )
 		return zeek::val_mgr->Bool(false);
 
+	if ( expire_time > 0.0 )
+		expire_time += run_state::network_time;
+
 	auto cb = new zeek::storage::ErrorResultCallback(trigger, frame->GetTriggerAssoc());
 	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
 	auto val_v = zeek::IntrusivePtr<Val>{NewRef{}, value};

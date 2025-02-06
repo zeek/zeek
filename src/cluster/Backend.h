@@ -79,7 +79,7 @@ public:
      *
      * @return true if the remote event was handled successfully, else false.
      */
-    bool HandleRemoteEvent(std::string_view topic, Event e) { return DoHandleRemoteEvent(topic, std::move(e)); }
+    bool ProcessEvent(std::string_view topic, Event e) { return DoProcessEvent(topic, std::move(e)); }
 
     /**
      * Method for enquing backend specific events.
@@ -97,14 +97,14 @@ public:
 
 private:
     /**
-     * Hook method for implementing HandleRemoteEvent().
+     * Hook method for implementing ProcessEvent().
      *
      * @param topic The topic on which the event was received.
      * @param ev The parsed event that was received.
      *
      * @return true if the remote event was handled successfully, else false.
      */
-    virtual bool DoHandleRemoteEvent(std::string_view topic, Event e) = 0;
+    virtual bool DoProcessEvent(std::string_view topic, Event e) = 0;
 
     /**
      * Hook method for implementing EnqueueLocalEvent().
@@ -120,7 +120,7 @@ private:
  */
 class LocalEventHandlingStrategy : public EventHandlingStrategy {
 private:
-    bool DoHandleRemoteEvent(std::string_view topic, Event e) override;
+    bool DoProcessEvent(std::string_view topic, Event e) override;
     void DoEnqueueLocalEvent(EventHandlerPtr h, zeek::Args args) override;
 };
 
@@ -270,6 +270,20 @@ protected:
      * @param args The event arguments.
      */
     void EnqueueEvent(EventHandlerPtr h, zeek::Args args);
+
+    /**
+     * Process a cluster event.
+     *
+     * This method is called by ProcessEventMessage() and delegates
+     * to the event handling strategy. It should only be used by
+     * backends implementing their own serialization format. Other
+     * backends should not have a use for this and call ProcessEventMessage()
+     * directly instead.
+     *
+     * @param topic The topic on which the event was received.
+     * @param e The event as cluster::detail::Event.
+     */
+    bool ProcessEvent(std::string_view topic, detail::Event e);
 
     /**
      * Process an incoming event message.

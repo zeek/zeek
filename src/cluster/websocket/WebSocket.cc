@@ -53,7 +53,7 @@ private:
      * will need some abstractions if client's can opt to use different encodings
      * of events in the future.
      */
-    bool DoHandleRemoteEvent(std::string_view topic, zeek::cluster::detail::Event e) override {
+    bool DoProcessEvent(std::string_view topic, zeek::cluster::detail::Event e) override {
         // If the client has left, no point in sending it any pending event.
         if ( wsc->IsTerminated() )
             return true;

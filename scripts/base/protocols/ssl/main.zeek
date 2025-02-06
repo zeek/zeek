@@ -176,10 +176,10 @@ redef record connection += {
 };
 
 redef record Info += {
-		# Adding a string "token" to this set will cause the SSL script
-		# to delay logging the record until either the token has been removed or
-		# the record has been delayed.
-		delay_tokens: set[string] &optional;
+	# Adding a string "token" to this set will cause the SSL script
+	# to delay logging the record until either the token has been removed or
+	# the record has been delayed.
+	delay_tokens: set[string] &optional;
 };
 
 const ssl_ports = {

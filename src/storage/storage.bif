@@ -114,6 +114,9 @@ function Storage::Async::__put%(backend: opaque of Storage::BackendHandle, key: 
 	else if ( ! b->backend->IsOpen() )
 		return val_mgr->Bool(false);
 
+	if ( expire_time > 0.0 )
+		expire_time += run_state::network_time;
+
 	auto cb = new ErrorResultCallback(trigger, frame->GetTriggerAssoc());
 	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
 	auto val_v = IntrusivePtr<Val>{NewRef{}, value};

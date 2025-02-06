@@ -162,9 +162,6 @@ ErrorResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite, double expir
         return res;
     }
 
-    if ( expiration_time != 0 )
-        expiration_time += run_state::network_time;
-
     if ( auto res = checkError(sqlite3_bind_double(stmt, 3, expiration_time)); res.has_value() ) {
         sqlite3_reset(stmt);
         return res;

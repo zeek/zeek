@@ -209,11 +209,9 @@ ErrorResult Redis::DoPut(ValPtr key, ValPtr value, bool overwrite, double expira
         format.append(" NX");
 
     // Use built-in expiration if reading live data, since time will move
-    // forward consistently.  If reading pcaps, we'll do something else.
+    // forward consistently. If reading pcaps, we'll do something else.
     if ( expiration_time > 0.0 && ! zeek::run_state::reading_traces )
         format.append(" PXAT %d");
-
-    double expire_time = expiration_time + run_state::network_time;
 
     auto json_key = key->ToJSON()->ToStdString();
     auto json_value = value->ToJSON()->ToStdString();
@@ -222,7 +220,7 @@ ErrorResult Redis::DoPut(ValPtr key, ValPtr value, bool overwrite, double expira
         int status;
         if ( expiration_time > 0.0 )
             status = redisAsyncCommand(async_ctx, redisPut, cb, format.c_str(), key_prefix.data(), json_key.data(),
-                                       json_value.data(), static_cast<uint64_t>(expire_time * 1e6));
+                                       json_value.data(), static_cast<uint64_t>(expiration_time * 1e6));
         else
             status = redisAsyncCommand(async_ctx, redisPut, cb, format.c_str(), key_prefix.data(), json_key.data(),
                                        json_value.data());
@@ -234,7 +232,7 @@ ErrorResult Redis::DoPut(ValPtr key, ValPtr value, bool overwrite, double expira
         redisReply* reply;
         if ( expiration_time > 0.0 && ! zeek::run_state::reading_traces )
             reply = (redisReply*)redisCommand(ctx, format.c_str(), key_prefix.data(), json_key.data(),
-                                              json_value.data(), static_cast<uint64_t>(expire_time * 1e6));
+                                              json_value.data(), static_cast<uint64_t>(expiration_time * 1e6));
         else
             reply =
                 (redisReply*)redisCommand(ctx, format.c_str(), key_prefix.data(), json_key.data(), json_value.data());
@@ -254,7 +252,7 @@ ErrorResult Redis::DoPut(ValPtr key, ValPtr value, bool overwrite, double expira
         format += " %f %s";
 
         redisReply* reply =
-            (redisReply*)redisCommand(ctx, format.c_str(), key_prefix.data(), expire_time, json_key.data());
+            (redisReply*)redisCommand(ctx, format.c_str(), key_prefix.data(), expiration_time, json_key.data());
         if ( ! reply )
             return util::fmt("ZADD operation failed: %s", ctx->errstr);
 

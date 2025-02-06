@@ -272,6 +272,19 @@ protected:
     void EnqueueEvent(EventHandlerPtr h, zeek::Args args);
 
     /**
+     * Given a cluster event, handle it.
+     *
+     * This method is called by ProcessEventMessage() and delegates
+     * to the event handling strategy. It should only be used by
+     * backends implementing their own serialization format. Other
+     * backends should not have a use for this.
+     *
+     * @param topic The topic on which the remote event was received.
+     * @param e The remote event as cluster::detail::Event.
+     */
+    bool HandleRemoteEvent(std::string_view topic, detail::Event e);
+
+    /**
      * Process an incoming event message.
      */
     bool ProcessEventMessage(std::string_view topic, std::string_view format, detail::byte_buffer_span payload);

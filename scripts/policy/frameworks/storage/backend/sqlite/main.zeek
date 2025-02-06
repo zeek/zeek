@@ -28,4 +28,8 @@ export {
 			["temp_store"] = "memory"
 		);
 	};
+
+	redef record Storage::BackendOptions += {
+		sqlite: Options &optional;
+	};
 }

@@ -28,9 +28,10 @@ ErrorResult SQLite::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
     sqlite3_enable_shared_cache(1);
 #endif
 
-    StringValPtr path = options->GetField<StringVal>("database_path");
+    RecordValPtr backend_options = options->GetField<RecordVal>("sqlite");
+    StringValPtr path = backend_options->GetField<StringVal>("database_path");
     full_path = zeek::filesystem::path(path->ToStdString()).string();
-    table_name = options->GetField<StringVal>("table_name")->ToStdString();
+    table_name = backend_options->GetField<StringVal>("table_name")->ToStdString();
 
     auto open_res =
         checkError(sqlite3_open_v2(full_path.c_str(), &db,
@@ -61,7 +62,7 @@ ErrorResult SQLite::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
         return err;
     }
 
-    auto tuning_params = options->GetField<TableVal>("tuning_params")->ToMap();
+    auto tuning_params = backend_options->GetField<TableVal>("tuning_params")->ToMap();
     for ( const auto& [k, v] : tuning_params ) {
         auto ks = k->AsListVal()->Idx(0)->AsStringVal();
         auto vs = v->AsStringVal();

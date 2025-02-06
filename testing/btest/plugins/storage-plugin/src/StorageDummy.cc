@@ -19,7 +19,8 @@ zeek::storage::BackendPtr StorageDummy::Instantiate(std::string_view tag) {
  * with a corresponding message.
  */
 zeek::storage::ErrorResult StorageDummy::DoOpen(zeek::RecordValPtr options, zeek::storage::OpenResultCallback* cb) {
-    bool open_fail = options->GetField<zeek::BoolVal>("open_fail")->Get();
+    zeek::RecordValPtr backend_options = options->GetField<zeek::RecordVal>("dummy");
+    bool open_fail = backend_options->GetField<zeek::BoolVal>("open_fail")->Get();
     if ( open_fail )
         return "open_fail was set to true, returning error";
 

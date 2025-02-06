@@ -5,7 +5,12 @@
 module Storage;
 
 export {
-	## Record for passing arguments to :zeek:see:`Storage::put`.
+    ## Base record for backend options. Backend plugins can redef this record to add
+    ## relevant fields to it.
+    type BackendOptions: record {};
+
+	## Record for passing arguments to :zeek:see:`Storage::Async::put` and
+	## :zeek:see:`Storage::Sync::put`.
 	type PutArgs: record {
 		# The key to store the value under.
 		key: any;

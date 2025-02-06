@@ -28,9 +28,8 @@ event check_removed() {
 }
 
 event setup_test() {
-	local opts : Storage::Backend::SQLite::Options;
-	opts$database_path = "storage-test.sqlite";
-	opts$table_name = "testing";
+	local opts : Storage::BackendOptions;
+	opts$sqlite = [$database_path = "storage-test.sqlite", $table_name = "testing"];
 
 	backend = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
 

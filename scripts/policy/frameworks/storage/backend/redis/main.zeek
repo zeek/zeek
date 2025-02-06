@@ -34,4 +34,8 @@ export {
 		# traffic.
 		async_mode: bool &default=T;
 	};
+
+	redef record Storage::BackendOptions += {
+		redis: Options &optional;
+	};
 }

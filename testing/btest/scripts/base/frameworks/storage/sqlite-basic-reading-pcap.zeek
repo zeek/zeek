@@ -14,9 +14,8 @@ type str: string;
 
 event zeek_init() {
 	# Create a database file in the .tmp directory with a 'testing' table
-	local opts : Storage::Backend::SQLite::Options;
-	opts$database_path = "test.sqlite";
-	opts$table_name = "testing";
+	local opts : Storage::BackendOptions;
+	opts$sqlite = [$database_path = "test.sqlite", $table_name = "testing"];
 
 	local key = "key1234";
 	local value = "value5678";

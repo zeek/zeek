@@ -980,6 +980,8 @@ bool Manager::DoUnsubscribe(const string& topic_prefix) {
     return true;
 }
 
+broker::endpoint& Manager::Endpoint() { return bstate->endpoint; }
+
 void Manager::Process() {
     auto messages = bstate->subscriber.poll();
 

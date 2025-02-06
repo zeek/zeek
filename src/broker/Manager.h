@@ -82,6 +82,8 @@ struct Stats {
     size_t num_ids_outgoing = 0;
 };
 
+class WebSocketShim;
+
 /**
  * Manages various forms of communication between peer Zeek processes
  * or other external applications via use of the Broker messaging library.
@@ -470,6 +472,11 @@ private:
             return rval;
         }
     };
+
+    friend class zeek::Broker::WebSocketShim;
+
+    // Private access to the Manager's endpoint for WebSocket clients.
+    broker::endpoint& Endpoint();
 
     std::vector<LogBuffer> log_buffers; // Indexed by stream ID enum.
     std::string default_log_topic_prefix;

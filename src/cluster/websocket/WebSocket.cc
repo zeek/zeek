@@ -351,7 +351,7 @@ void WebSocketEventDispatcher::Process(const WebSocketSubscribeFinished& fin) {
         return;
     }
 
-    auto rec = zeek::cluster::detail::bif::make_endpoint_info(backend->NodeId(), wsc->getRemoteIp(),
+    auto rec = zeek::cluster::detail::bif::make_endpoint_info(entry.backend->NodeId(), wsc->getRemoteIp(),
                                                               wsc->getRemotePort(), TRANSPORT_TCP);
     auto subscriptions_vec = zeek::cluster::detail::bif::make_string_vec(wsc->GetSubscriptions());
     zeek::event_mgr.Enqueue(Cluster::websocket_client_added, std::move(rec), std::move(subscriptions_vec));

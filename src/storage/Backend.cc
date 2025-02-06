@@ -62,13 +62,10 @@ OpenResultCallback::OpenResultCallback(IntrusivePtr<zeek::detail::trigger::Trigg
 void OpenResultCallback::Complete(const ErrorResult& res) {
     zeek::Val* result;
 
-    if ( res ) {
+    if ( res )
         result = new StringVal(res.value());
-    }
-    else {
-        storage_mgr->AddBackendToMap(backend->backend);
+    else
         result = backend;
-    }
 
     ValComplete(result);
 }

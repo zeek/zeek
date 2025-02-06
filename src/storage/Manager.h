@@ -71,7 +71,7 @@ protected:
     void StartExpirationTimer();
 
     friend class storage::OpenResultCallback;
-    void AddBackendToMap(BackendPtr backend);
+    void RegisterBackend(BackendPtr backend);
 
 private:
     std::vector<BackendPtr> backends;

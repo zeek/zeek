@@ -17,9 +17,13 @@ type StorageDummyOpts : record {
 	open_fail: bool;
 };
 
+redef record Storage::BackendOptions += {
+	dummy: StorageDummyOpts &optional;
+};
+
 event zeek_init() {
-	local opts : StorageDummyOpts;
-	opts$open_fail = F;
+	local opts : Storage::BackendOptions;
+	opts$dummy = [$open_fail = F];
 
 	local key = "key1234";
 	local value = "value5678";
@@ -49,7 +53,7 @@ event zeek_init() {
 	          get_res?$val, put_res, erase_res));
 
 	# Test failing to open the handle and test closing an invalid handle.
-	opts$open_fail = T;
+	opts$dummy$open_fail = T;
 	local b2 = Storage::Sync::open_backend(Storage::STORAGEDUMMY, opts, str, str);
 	Storage::Sync::close_backend(b2);
 }

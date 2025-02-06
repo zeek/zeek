@@ -37,9 +37,8 @@ type tbl: table[count] of string;
 
 event zeek_init() {
 	# Create a database file in the .tmp directory with a 'testing' table
-	local opts : Storage::Backend::SQLite::Options;
-	opts$database_path = "types_test.sqlite";
-	opts$table_name = "types_testing";
+	local opts : Storage::BackendOptions;
+	opts$sqlite = [$database_path = "types_test.sqlite", $table_name = "types_testing"];
 
 	local key : Rec;
 	key$hello = "hello";

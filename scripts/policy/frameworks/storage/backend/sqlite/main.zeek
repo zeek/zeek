@@ -1,4 +1,6 @@
-## SQLite storage backend support
+##! SQLite storage backend support
+
+@load base/frameworks/storage/main
 
 module Storage::Backend::SQLite;
 
@@ -20,5 +22,9 @@ export {
 			["synchronous"] = "normal",
 			["temp_store"] = "memory"
 		);
+	};
+
+	redef record Storage::BackendOptions += {
+		sqlite: Options &optional;
 	};
 }

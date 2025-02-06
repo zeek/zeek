@@ -15,7 +15,7 @@ export {
 
 		# Indicates whether this value should overwrite an existing entry for the
 		# key.
-		overwrite: bool &default=F;
+		overwrite: bool &default=T;
 
 		# An interval of time until the entry is automatically removed from the
 		# backend.

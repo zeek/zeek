@@ -13,10 +13,10 @@ namespace zeek::storage {
 
 namespace detail {
 
-class ExpireTimer final : public zeek::detail::Timer {
+class ExpirationTimer final : public zeek::detail::Timer {
 public:
-    ExpireTimer(double t) : zeek::detail::Timer(t, zeek::detail::TIMER_STORAGE_EXPIRE) {}
-    ~ExpireTimer() override {}
+    ExpirationTimer(double t) : zeek::detail::Timer(t, zeek::detail::TIMER_STORAGE_EXPIRE) {}
+    ~ExpirationTimer() override {}
     void Dispatch(double t, bool is_expire) override;
 };
 
@@ -65,9 +65,9 @@ public:
     ErrorResult CloseBackend(BackendPtr backend, ErrorResultCallback* cb = nullptr);
 
 protected:
-    friend class storage::detail::ExpireTimer;
+    friend class storage::detail::ExpirationTimer;
     void Expire();
-    void StartExpireTimer();
+    void StartExpirationTimer();
 
     friend class storage::OpenResultCallback;
     void RegisterBackend(BackendPtr backend);

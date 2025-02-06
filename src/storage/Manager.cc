@@ -6,19 +6,19 @@
 
 namespace zeek::storage {
 
-void detail::ExpireTimer::Dispatch(double t, bool is_expire) {
+void detail::ExpirationTimer::Dispatch(double t, bool is_expire) {
     if ( is_expire )
         return;
 
     storage_mgr->Expire();
-    storage_mgr->StartExpireTimer();
+    storage_mgr->StartExpirationTimer();
 }
 
 Manager::Manager() : plugin::ComponentManager<storage::Component>("Storage", "Backend") {}
 
 void Manager::InitPostScript() {
     detail::backend_opaque = make_intrusive<OpaqueType>("Storage::Backend");
-    StartExpireTimer();
+    StartExpirationTimer();
 }
 
 BackendResult Manager::Instantiate(const Tag& type) {
@@ -83,9 +83,9 @@ void Manager::Expire() {
     }
 }
 
-void Manager::StartExpireTimer() {
+void Manager::StartExpirationTimer() {
     zeek::detail::timer_mgr->Add(
-        new detail::ExpireTimer(run_state::network_time + zeek::BifConst::Storage::expire_interval));
+        new detail::ExpirationTimer(run_state::network_time + zeek::BifConst::Storage::expire_interval));
 }
 
 void Manager::RegisterBackend(BackendPtr backend) {

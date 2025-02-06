@@ -1,4 +1,6 @@
-## Redis storage backend support
+##! Redis storage backend support
+
+@load base/frameworks/storage/main
 
 module Storage::Backend::Redis;
 
@@ -31,5 +33,9 @@ export {
 		# time won't move forward the same as when capturing live
 		# traffic.
 		async_mode: bool &default=T;
+	};
+
+	redef record Storage::BackendOptions += {
+		redis: Options &optional;
 	};
 }

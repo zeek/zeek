@@ -71,7 +71,8 @@ public:
      * @param value the value for the pair.
      * @param overwrite whether an existing value for a key should be overwritten.
      * @param expiration_time the time when this entry should be automatically
-     * removed. Set to zero to disable expiration.
+     * removed. Set to zero to disable expiration. This time is based on the current network
+     * time.
      * @param cb An optional callback object if being called via an async context.
      * @return An optional value potentially containing an error string if
      * needed Will be unset if the operation succeeded.

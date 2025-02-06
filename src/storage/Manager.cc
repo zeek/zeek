@@ -54,8 +54,7 @@ ErrorResult Manager::OpenBackend(BackendPtr backend, RecordValPtr options, TypeP
         return util::fmt("Failed to open backend %s: %s", backend->Tag(), res.value().c_str());
     }
 
-    if ( ! cb )
-        AddBackendToMap(std::move(backend));
+    RegisterBackend(std::move(backend));
 
     // TODO: post Storage::backend_opened event
 
@@ -83,8 +82,10 @@ ErrorResult Manager::CloseBackend(BackendPtr backend, ErrorResultCallback* cb) {
 void Manager::Expire() {
     DBG_LOG(DBG_STORAGE, "Expire running, have %zu backends to check", backends.size());
     std::unique_lock<std::mutex> lk(backends_mtx);
-    for ( const auto& b : backends )
-        b->Expire();
+    for ( const auto& b : backends ) {
+        if ( b->IsOpen() )
+            b->Expire();
+    }
 }
 
 void Manager::StartExpirationTimer() {
@@ -92,7 +93,7 @@ void Manager::StartExpirationTimer() {
         new detail::ExpirationTimer(run_state::network_time + zeek::BifConst::Storage::expire_interval));
 }
 
-void Manager::AddBackendToMap(BackendPtr backend) {
+void Manager::RegisterBackend(BackendPtr backend) {
     std::unique_lock<std::mutex> lk(backends_mtx);
     backends.push_back(std::move(backend));
 }

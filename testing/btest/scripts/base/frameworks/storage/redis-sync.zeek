@@ -20,7 +20,7 @@ type str: string;
 
 event zeek_init() {
 	local opts : Storage::BackendOptions;
-	opts$redis = [$server_addr = "127.0.0.1", $server_port = to_port(getenv("REDIS_PORT")), $key_prefix = "testing", $async_mode = F];
+	opts$redis = [$server_host = "127.0.0.1", $server_port = to_port(getenv("REDIS_PORT")), $key_prefix = "testing", $async_mode = F];
 
 	local key = "key1234";
 	local value = "value1234";

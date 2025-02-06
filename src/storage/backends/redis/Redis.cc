@@ -101,16 +101,17 @@ ErrorResult Redis::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
 
     redisOptions opt = {0};
 
-    StringValPtr address = backend_options->GetField<StringVal>("server_addr");
-    if ( address ) {
+    StringValPtr host = backend_options->GetField<StringVal>("server_host");
+    if ( host ) {
         PortValPtr port = backend_options->GetField<PortVal>("server_port");
-        server_addr = util::fmt("%s:%d", address->ToStdStringView().data(), port->Port());
-        REDIS_OPTIONS_SET_TCP(&opt, address->ToStdStringView().data(), port->Port());
+        server_addr = util::fmt("%s:%d", host->ToStdStringView().data(), port->Port());
+        REDIS_OPTIONS_SET_TCP(&opt, host->ToStdStringView().data(), port->Port());
     }
     else {
         StringValPtr unix_sock = backend_options->GetField<StringVal>("server_unix_socket");
         if ( ! unix_sock )
-            return util::fmt("Either server_addr/server_port or server_unix_socket must be set in Redis config record");
+            return util::fmt(
+                "Either server_host/server_port or server_unix_socket must be set in Redis options record");
 
         server_addr = unix_sock->ToStdString();
         REDIS_OPTIONS_SET_UNIX(&opt, unix_sock->ToStdStringView().data());

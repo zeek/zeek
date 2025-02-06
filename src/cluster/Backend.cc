@@ -19,7 +19,7 @@
 using namespace zeek::cluster;
 
 
-bool detail::LocalEventHandlingStrategy::DoHandleRemoteEvent(std::string_view topic, detail::Event e) {
+bool detail::LocalEventHandlingStrategy::DoProcessEvent(std::string_view topic, detail::Event e) {
     zeek::event_mgr.Enqueue(e.Handler(), std::move(e.Args()), util::detail::SOURCE_BROKER, 0, nullptr, e.Timestamp());
     return true;
 }
@@ -123,7 +123,11 @@ void Backend::EnqueueEvent(EventHandlerPtr h, zeek::Args args) {
     event_handling_strategy->EnqueueLocalEvent(h, std::move(args));
 }
 
-bool Backend::ProcessEventMessage(std::string_view topic, std::string_view format, const byte_buffer_span payload) {
+bool Backend::ProcessEvent(std::string_view topic, detail::Event e) {
+    return event_handling_strategy->ProcessEvent(topic, std::move(e));
+}
+
+bool Backend::ProcessEventMessage(std::string_view topic, std::string_view format, byte_buffer_span payload) {
     if ( format != event_serializer->Name() ) {
         zeek::reporter->Error("ProcessEventMessage: Wrong format: %s vs %s", std::string{format}.c_str(),
                               event_serializer->Name().c_str());
@@ -139,7 +143,7 @@ bool Backend::ProcessEventMessage(std::string_view topic, std::string_view forma
         return false;
     }
 
-    return event_handling_strategy->HandleRemoteEvent(topic, std::move(*r));
+    return ProcessEvent(topic, std::move(*r));
 }
 
 bool Backend::ProcessLogMessage(std::string_view format, byte_buffer_span payload) {

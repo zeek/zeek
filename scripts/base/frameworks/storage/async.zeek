@@ -24,7 +24,7 @@ export {
 	##
 	## Returns: A handle to the new backend connection or F if the
 	##          connection failed.
-	global open_backend: function(btype: Storage::Backend, config: any, key_type: any,
+	global open_backend: function(btype: Storage::Backend, config: Storage::BackendOptions, key_type: any,
 	                              val_type: any): opaque of Storage::BackendHandle;
 
 	## Closes an existing backend connection asynchronously.
@@ -71,7 +71,8 @@ export {
 	global erase: function(backend: opaque of Storage::BackendHandle, key: any): bool;
 }
 
-function open_backend(btype: Storage::Backend, config: any, key_type: any, val_type: any): opaque of Storage::BackendHandle
+function open_backend(btype: Storage::Backend, config: Storage::BackendOptions, key_type: any,
+		      val_type: any): opaque of Storage::BackendHandle
 {
 	return Storage::Async::__open_backend(btype, config, key_type, val_type);
 }

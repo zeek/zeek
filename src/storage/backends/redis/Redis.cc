@@ -83,29 +83,27 @@ storage::BackendPtr Redis::Instantiate(std::string_view tag) { return make_intru
 
 /**
  * Called by the manager system to open the backend.
- *
- * Derived classes must implement this method. If successful, the
- * implementation must call \a Opened(); if not, it must call Error()
- * with a corresponding message.
  */
 ErrorResult Redis::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
+    RecordValPtr backend_options = options->GetField<RecordVal>("redis");
+
     // When reading traces we disable storage async mode globally (see src/storage/Backend.cc) since
     // time moves forward based on the pcap and not based on real time.
-    async_mode = options->GetField<BoolVal>("async_mode")->Get() && ! zeek::run_state::reading_traces;
-    key_prefix = options->GetField<StringVal>("key_prefix")->ToStdString();
+    async_mode = backend_options->GetField<BoolVal>("async_mode")->Get() && ! zeek::run_state::reading_traces;
+    key_prefix = backend_options->GetField<StringVal>("key_prefix")->ToStdString();
 
     DBG_LOG(DBG_STORAGE, "Redis backend: running in async mode? %d", async_mode);
 
     redisOptions opt = {0};
 
-    StringValPtr host = options->GetField<StringVal>("server_host");
+    StringValPtr host = backend_options->GetField<StringVal>("server_host");
     if ( host ) {
-        PortValPtr port = options->GetField<PortVal>("server_port");
+        PortValPtr port = backend_options->GetField<PortVal>("server_port");
         server_addr = util::fmt("%s:%d", host->ToStdStringView().data(), port->Port());
         REDIS_OPTIONS_SET_TCP(&opt, host->ToStdStringView().data(), port->Port());
     }
     else {
-        StringValPtr unix_sock = options->GetField<StringVal>("server_unix_socket");
+        StringValPtr unix_sock = backend_options->GetField<StringVal>("server_unix_socket");
         if ( ! unix_sock )
             return util::fmt(
                 "Either server_host/server_port or server_unix_socket must be set in Redis options record");

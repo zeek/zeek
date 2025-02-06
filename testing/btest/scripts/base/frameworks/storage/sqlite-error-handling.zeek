@@ -12,15 +12,15 @@ type str: string;
 
 event zeek_init() {
 	# Test opening a database with an invalid path
-	local opts : Storage::Backend::SQLite::Options;
-	opts$database_path = "/this/path/should/not/exist/test.sqlite";
-	opts$table_name = "testing";
+	local opts : Storage::BackendOptions;
+	opts$sqlite = [$database_path = "/this/path/should/not/exist/test.sqlite",
+	               $table_name = "testing"];
 
 	# This should report an error in .stderr and reporter.log
 	local b = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
 
 	# Open a valid database file
-	opts$database_path = "test.sqlite";
+	opts$sqlite$database_path = "test.sqlite";
 	b = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
 
 	local bad_key: count = 12345;

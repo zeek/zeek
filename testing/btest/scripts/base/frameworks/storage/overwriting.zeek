@@ -11,9 +11,8 @@
 type str: string;
 
 event zeek_init() {
-	local opts : Storage::Backend::SQLite::Options;
-	opts$database_path = "storage-test.sqlite";
-	opts$table_name = "testing";
+	local opts : Storage::BackendOptions;
+	opts$sqlite = [$database_path = "storage-test.sqlite", $table_name = "testing"];
 
 	local key = "key1234";
 	local value = "value7890";

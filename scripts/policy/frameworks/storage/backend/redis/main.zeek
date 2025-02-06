@@ -7,8 +7,8 @@ module Storage::Backend::Redis;
 export {
 	## Options record for the built-in Redis backend.
 	type Options: record {
-		# Address to the server
-		server_addr: string &optional;
+		# Address or hostname of the server
+		server_host: string &optional;
 
 		# Port for the server
 		server_port: port &default=6379/tcp;

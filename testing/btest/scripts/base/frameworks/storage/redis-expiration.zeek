@@ -35,7 +35,7 @@ event check_removed() {
 
 event setup_test() {
 	local opts : Storage::BackendOptions;
-	opts$redis = [$server_addr = "127.0.0.1", $server_port = to_port(getenv("REDIS_PORT")), $key_prefix = "testing", $async_mode = F];
+	opts$redis = [$server_host = "127.0.0.1", $server_port = to_port(getenv("REDIS_PORT")), $key_prefix = "testing", $async_mode = F];
 
 	b = Storage::Sync::open_backend(Storage::REDIS, opts, str, str);
 

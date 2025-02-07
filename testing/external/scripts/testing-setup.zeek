@@ -2,6 +2,9 @@
 
 @load external-ca-list
 
+@load protocols/conn/failed-service-logging
+redef DPD::track_removed_services_in_connection=T;
+
 @ifdef ( SMTP::never_calc_md5 )
 	# MDD5s can depend on libmagic output.
 	redef SMTP::never_calc_md5 = T;

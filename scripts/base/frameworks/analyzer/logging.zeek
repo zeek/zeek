@@ -214,10 +214,5 @@ hook Analyzer::disabling_analyzer(c: connection, atype: AllAnalyzers::Tag, aid: 
 
 	populate_from_conn(rec, c);
 
-	if ( c?$dpd_state && aid in c$dpd_state$violations )
-		{
-		rec$failure_data = fmt("Disabled after %d violations", c$dpd_state$violations[aid]);
-		}
-
 	Log::write(LOG, rec);
 	}

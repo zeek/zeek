@@ -27,8 +27,10 @@ export {
 		id:           conn_id         &log;
 		## The transport layer protocol of the connection.
 		proto:        transport_proto &log;
-		## An identification of an application protocol being sent over
-		## the connection.
+		## A comma-separated list of confirmed protocol(s).
+		## With :zeek:see:DPD::track_removed_services_in_connection, the list
+		## includes the same protocols prefixed with "-" to record that Zeek
+		## dropped them due to parsing violations."
 		service:      string          &log &optional;
 		## How long the connection lasted.
 		##

@@ -75,6 +75,14 @@ private:
      */
     std::vector<std::string> SplitWords(const std::string& input, char split);
 
+    /**
+     * Checks if a passed string is a valid command for an IRC client.
+     *
+     * \param command command to check
+     * \return true if command is valid
+     */
+    static bool IsValidClientCommand(const std::string& command);
+
     analyzer::tcp::ContentLine_Analyzer* cl_orig;
     analyzer::tcp::ContentLine_Analyzer* cl_resp;
     bool starttls; // if true, connection has been upgraded to tls

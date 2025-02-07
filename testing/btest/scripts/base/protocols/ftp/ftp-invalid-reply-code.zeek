@@ -1,4 +1,4 @@
-# @TEST-DOC: Th server replies with a line that does not contain a numeric code.: violation.
+# @TEST-DOC: The server replies with a line that does not contain a numeric code: violation.
 # @TEST-EXEC: zeek -b -r $TRACES/ftp/ftp-invalid-reply-code.pcap %INPUT
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff ftp.log

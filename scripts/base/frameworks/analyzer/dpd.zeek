@@ -26,14 +26,8 @@ export {
 		failure_reason: string          &log;
 	};
 
-	## Ongoing DPD state tracking information.
-	type State: record {
-		## Current number of protocol violations seen per analyzer instance.
-		violations: table[count] of count;
-	};
-
-	## Number of protocol violations to tolerate before disabling an analyzer.
-	option max_violations: table[Analyzer::Tag] of count = table() &default = 5;
+	## Deprecated, please see https://github.com/zeek/zeek/pull/4200 for details
+	option max_violations: table[Analyzer::Tag] of count = table() &deprecated="Remove in v8.1: This has become non-functional in Zeek 7.2, see PR #4200" &default = 5;
 
 	## Analyzers which you don't want to throw
 	option ignore_violations: set[Analyzer::Tag] = set();
@@ -41,14 +35,16 @@ export {
 	## Ignore violations which go this many bytes into the connection.
 	## Set to 0 to never ignore protocol violations.
 	option ignore_violations_after = 10 * 1024;
+
+	## Add removed services to conn.log, with a - in front of them.
+	option track_removed_services_in_connection = F;
 }
 
 redef record connection += {
 	dpd: Info &optional;
-	dpd_state: State &optional;
 	## The set of services (analyzers) for which Zeek has observed a
 	## violation after the same service had previously been confirmed.
-	service_violation: set[string] &default=set();
+	service_violation: set[string] &default=set() &ordered;
 };
 
 event zeek_init() &priority=5
@@ -79,12 +75,11 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 
 	local c = info$c;
 	local analyzer = Analyzer::name(atype);
-	# If the service hasn't been confirmed yet, don't generate a log message
-	# for the protocol violation.
-	if ( analyzer !in c$service )
+	# If the service hasn't been confirmed yet, or already failed,
+	# don't generate a log message for the protocol violation.
+	if ( analyzer !in c$service || analyzer in c$service_violation )
 		return;
 
-	delete c$service[analyzer];
 	add c$service_violation[analyzer];
 
 	local dpd: Info;
@@ -125,24 +120,16 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 	if ( ignore_violations_after > 0 && size > ignore_violations_after )
 		return;
 
-	if ( ! c?$dpd_state )
+	local disabled = disable_analyzer(c$id, aid, F);
+
+	# add "-service" to the list of services on removal due to violation, if analyzer was confirmed before
+	if ( track_removed_services_in_connection && disabled && Analyzer::name(atype) in c$service )
 		{
-		local s: State;
-		c$dpd_state = s;
+		local rname = cat("-", Analyzer::name(atype));
+		if ( rname !in c$service )
+			add c$service[rname];
 		}
 
-	if ( aid in c$dpd_state$violations )
-		++c$dpd_state$violations[aid];
-	else
-		c$dpd_state$violations[aid] = 1;
-
-	if ( c?$dpd || c$dpd_state$violations[aid] > max_violations[atype] )
-		{
-		# Disable an analyzer we've previously confirmed, but is now in
-		# violation, or else any analyzer in excess of the max allowed
-		# violations, regardless of whether it was previously confirmed.
-		disable_analyzer(c$id, aid, F);
-		}
 	}
 
 event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo ) &priority=-5

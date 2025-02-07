@@ -795,7 +795,7 @@ type connection: record {
 	## principle it is possible that more than one protocol analyzer is able
 	## to parse the same data. If so, all will be recorded. Also note that
 	## the recorded services are independent of any transport-level protocols.
-	service: set[string];
+	service: set[string] &ordered;
 	history: string;	##< State history of connections. See *history* in :zeek:see:`Conn::Info`.
 	## A globally unique connection identifier. For each connection, Zeek
 	## creates an ID that is very likely unique across independent Zeek runs.
@@ -954,10 +954,6 @@ type AnalyzerViolationInfo: record {
 ##
 ## An analyzer generating this many violations is unlikely parsing
 ## the right protocol or potentially buggy.
-##
-## See also :zeek:see:`DPD::max_violations` which controls disabling
-## analyzers through script logic after a certain number of violations
-## was observed.
 const max_analyzer_violations = 1000 &redef;
 
 ## Fields of a SYN packet.

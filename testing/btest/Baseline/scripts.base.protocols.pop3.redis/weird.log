@@ -9,5 +9,4 @@
 #types	time	string	addr	port	addr	port	string	string	bool	string	string
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	59954	127.0.0.1	6379	pop3_client_command_unknown	*2	F	zeek	POP3
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	59954	127.0.0.1	6379	pop3_client_too_many_pending_commands	-	F	zeek	POP3
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	59954	127.0.0.1	6379	pop3_server_command_unknown	+PONG	F	zeek	POP3
 #close XXXX-XX-XX-XX-XX-XX

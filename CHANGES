@@ -1,3 +1,60 @@
+7.2.0-dev.194 | 2025-02-07 07:31:26 +0000
+
+  * Allow to track service violations in conn.log. (Johanna Amann, Corelight)
+
+    This introduces ian options, DPD::track_removed_services_in_connection.
+    It adds failed services to the services column, prefixed with a
+    "-".
+
+    Alternatively, we also introduce the
+    policy/protocols/conn/failed-services-logging.zeek, which provides the same
+    information in a new column in conn.log.
+
+  * Make conn.log service field ordered (Johanna Amann, Corelight)
+
+    This changes service set in the connection record, and thus also the
+    conn.log service field to being ordered. Speficically, the order of the
+    entries in the service field will be the same order in which protocols
+    will be confirmed. This means that it now is possible to see which
+    protocols were layered over each other in which order by looking at the
+    respective conn.log entry.
+
+  * DPD: change handling of pre-confirmation violations, remove max_violations (Johanna Amann, Corelight)
+
+    This commit revamps the handling of analyzer violations that happen
+    before an analyzer confirms the protocol.
+
+    This change reinstates the originally intended behavior of DPD. When an
+    analyzer that has not been confirmed raises a protocol violation, it is
+    immediately removed from the connection. This also makes a lot of sense
+    - this allows the analyzer to be in a "tasting" phase at the beginning
+    of the connection, and to error out quickly once it realizes that it was
+    attached to a connection not containing the desired protocol.
+
+    This change also removes the DPD::max_violations option, as it no longer
+    serves any purpose after this change. (In practice, the option remains
+    with an &deprecated warning, but it is no longer used for anything).
+
+  * DPD: log analyzers that have confirmed (Johanna Amann, Corelight)
+
+    This switches the DPD logic to always log analyzers that raised a
+    protocol confirmation.
+
+    The logic is that, once a protocol has been confirmed - and thus there
+    probably is log output - it does not make sense to later remove it from
+    the log. It does make sense to somehow flag it as failed - but that
+    seems like a secondary step.
+
+  * IRC analyzer - make protocol confirmation more robust. (Johanna Amann, Corelight)
+
+    This commit changes the logic of the IRC analyzer to check for valid
+    commands before confirming. Before that it nearly unconditionally confirmed
+    connections.
+
+  * CI: bump FreeBSD 14 to 14.2, which came out in Dec'24 (Christian Kreibich, Corelight)
+
+  * CI: remove OpenSuSE Leap 15.5, EOL. (Christian Kreibich, Corelight)
+
 7.2.0-dev.177 | 2025-02-06 09:44:15 +0100
 
   * GH-3595: Downgrade internal errors to reporter warnings in file/directory BiFs (Christian Kreibich, Corelight)

@@ -5,6 +5,7 @@
 #include "zeek/analyzer/protocol/irc/IRC.h"
 
 #include <iostream>
+#include <unordered_set>
 
 #include "zeek/Event.h"
 #include "zeek/NetVar.h"
@@ -42,6 +43,18 @@ inline void IRC_Analyzer::SkipLeadingWhitespace(string& str) {
         str = str.substr(first_char);
 }
 
+bool IRC_Analyzer::IsValidClientCommand(const std::string& command) {
+    static const std::unordered_set<std::string_view> validCommands =
+        {"ADMIN",   "AWAY",     "CNOTICE", "CPRIVMSG", "CONNECT", "DIE",    "ENCAP",   "ERROR",    "INFO",
+         "INVITE",  "ISON",     "JOIN",    "KICK",     "KILL",    "KNOCK",  "LINKS",   "LIST",     "LUSERS",
+         "MODE",    "MOTD",     "NAMES",   "NICK",     "NOTICE",  "OPER",   "PART",    "PASS",     "PING",
+         "PONG",    "PRIVMSG",  "QUIT",    "REHASH",   "RULES",   "SERVER", "SERVICE", "SERVLIST", "SERVER",
+         "SETNAME", "SILENCE",  "SQUERY",  "SQUIT",    "STATS",   "SUMMON", "TIME",    "TOPIC",    "TRACE",
+         "USER",    "USERHOST", "USERS",   "VERSION",  "WALLOPS", "WHO",    "WHOIS",   "WHOWAS",   "STARTTLS"};
+
+    return validCommands.find(command) != validCommands.end();
+}
+
 void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
     static auto irc_join_list = id::find_type<TableType>("irc_join_list");
     static auto irc_join_info = id::find_type<RecordType>("irc_join_info");
@@ -54,7 +67,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
 
     // check line size
     if ( length > 512 ) {
-        Weird("irc_line_size_exceeded");
+        if ( AnalyzerConfirmed() )
+            Weird("irc_line_size_exceeded");
         return;
     }
 
@@ -62,7 +76,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
     SkipLeadingWhitespace(myline);
 
     if ( myline.length() < 3 ) {
-        Weird("irc_line_too_short");
+        if ( AnalyzerConfirmed() )
+            Weird("irc_line_too_short");
         return;
     }
 
@@ -71,7 +86,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
     if ( myline[0] == ':' ) { // find end of prefix and extract it
         auto pos = myline.find(' ');
         if ( pos == string::npos ) {
-            Weird("irc_invalid_line");
+            if ( AnalyzerConfirmed() )
+                Weird("irc_invalid_line");
             return;
         }
 
@@ -80,16 +96,14 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
         SkipLeadingWhitespace(myline);
     }
 
-    if ( orig )
-        AnalyzerConfirmation();
-
     int code = 0;
     string command = "";
 
     // Check if line is long enough to include status code or command.
     // (shortest command with optional params is "WHO")
     if ( myline.length() < 3 ) {
-        Weird("irc_invalid_line");
+        if ( AnalyzerConfirmed() )
+            Weird("irc_invalid_line");
         AnalyzerViolation("line too short");
         return;
     }
@@ -101,7 +115,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
             myline = myline.substr(4);
         }
         else {
-            Weird("irc_invalid_reply_number");
+            if ( AnalyzerConfirmed() )
+                Weird("irc_invalid_reply_number");
             AnalyzerViolation("invalid reply number");
             return;
         }
@@ -126,6 +141,10 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
 
     // Extract parameters.
     string params = myline;
+
+    if ( ! AnalyzerConfirmed() && orig && IsValidClientCommand(command) ) {
+        AnalyzerConfirmation();
+    }
 
     // special case
     if ( command == "STARTTLS" )

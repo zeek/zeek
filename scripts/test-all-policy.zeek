@@ -98,6 +98,7 @@
 @load misc/unknown-protocols.zeek
 @load protocols/conn/community-id-logging.zeek
 @load protocols/conn/disable-unknown-ip-proto-support.zeek
+@load protocols/conn/failed-service-logging.zeek
 @load protocols/conn/ip-proto-name-logging.zeek
 @load protocols/conn/known-hosts.zeek
 @load protocols/conn/known-services.zeek

@@ -3,7 +3,9 @@
 #pragma once
 
 #include <mutex>
+#include <thread>
 
+#include "zeek/3rdparty/jthread.hpp"
 #include "zeek/Timer.h"
 #include "zeek/plugin/ComponentManager.h"
 #include "zeek/storage/Backend.h"
@@ -65,10 +67,13 @@ public:
      */
     ErrorResult CloseBackend(BackendPtr backend, ErrorResultCallback* cb = nullptr);
 
+    void Expire();
+
 protected:
     friend class storage::detail::ExpirationTimer;
-    void Expire();
+    void RunExpireThread();
     void StartExpirationTimer();
+    std::jthread expiration_thread;
 
     friend class storage::OpenResultCallback;
     void RegisterBackend(BackendPtr backend);

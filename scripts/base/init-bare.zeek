@@ -6222,8 +6222,9 @@ module Storage;
 
 export {
 	## The interval used by the storage framework for automatic expiration
-	## of elements in all backends that don't support it natively.
-	const expire_interval = 5.0 secs &redef;
+	## of elements in all backends that don't support it natively, or if
+	## using expiration while reading pcap files.
+	const expire_interval = 15.0 secs &redef;
 }
 
 module GLOBAL;

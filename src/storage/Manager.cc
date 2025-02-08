@@ -21,8 +21,7 @@ void detail::ExpirationTimer::Dispatch(double t, bool is_expire) {
     // start another one running. If this causes us to skip a cycle, that's not
     // a big deal as the next cycle will catch anything that should be expired
     // in the interim.
-    if ( ! expire_running.test() ) {
-        expire_running.test_and_set();
+    if ( ! expire_running.test_and_set() ) {
         DBG_LOG(DBG_STORAGE, "Starting new expiration thread");
         storage_mgr->expiration_thread = std::jthread([]() { storage_mgr->Expire(); });
     }

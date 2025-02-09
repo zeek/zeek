@@ -373,6 +373,7 @@ global known_BiFs = set(
 	"is_v6_addr",
 	"is_v6_subnet",
 	"is_valid_ip",
+	"is_valid_subnet",
 	"join_string_set",
 	"join_string_vec",
 	"levenshtein_distance",

@@ -2829,6 +2829,19 @@ function is_valid_ip%(ip: string%): bool
 	return zeek::val_mgr->Bool(rval);
 	%}
 
+## Checks if a string is a valid IPv4 or IPv6 subnet.
+##
+## cidr: the string to check for valid subnet formatting.
+##
+## Returns: T if the string is a valid IPv4 or IPv6 subnet format.
+function is_valid_subnet%(cidr: string%): bool
+	%{
+	char* s = cidr->AsString()->Render();
+	auto rval = zeek::IPPrefix::IsValid(s);
+	delete [] s;
+	return zeek::val_mgr->Bool(rval);
+	%}
+
 ## Converts a :zeek:type:`string` to a :zeek:type:`subnet`.
 ##
 ## sn: The subnet to convert.

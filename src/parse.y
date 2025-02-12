@@ -2212,7 +2212,7 @@ local_id:
 			else
 				{
 				$$ = install_ID($1, current_module.c_str(),
-				                              false, is_export).release();
+				                              false, false).release();
 				}
 			}
 	;

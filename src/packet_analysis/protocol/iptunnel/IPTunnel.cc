@@ -78,7 +78,7 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 /**
  * Handles a packet that contains an IP header directly after the tunnel header.
  */
-bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt, const std::shared_ptr<IP_Hdr>& inner,
+bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, Packet* pkt, const std::shared_ptr<IP_Hdr>& inner,
                                                  std::shared_ptr<EncapsulationStack> prev,
                                                  const EncapsulatingConn& ec) {
     uint32_t caplen, len;
@@ -113,13 +113,18 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt, co
     // Forward the packet back to the IP analyzer.
     bool return_val = ForwardPacket(len, data, &p);
 
+    // Propagate the flags from fake inner packet to outer packet
+    pkt->processed = p.processed;
+    pkt->dump_packet = p.dump_packet;
+    pkt->dump_size = ( p.dump_size > 0 ) ? static_cast<int>(data - pkt->data) + p.dump_size : p.dump_size;
+
     return return_val;
 }
 
 /**
  * Handles a packet that contains a physical-layer header after the tunnel header.
  */
-bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt, uint32_t caplen, uint32_t len,
+bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, Packet* pkt, uint32_t caplen, uint32_t len,
                                                  const u_char* data, int link_type,
                                                  std::shared_ptr<EncapsulationStack> prev,
                                                  const EncapsulatingConn& ec) {
@@ -144,6 +149,11 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, const Packet* pkt, ui
     // Process the packet as if it was a brand new packet by passing it back
     // to the packet manager.
     bool return_val = packet_mgr->ProcessInnerPacket(&p);
+
+    // Propagate the flags from fake inner packet to outer packet
+    pkt->processed = p.processed;
+    pkt->dump_packet = p.dump_packet;
+    pkt->dump_size = ( p.dump_size > 0 ) ? static_cast<int>(data - pkt->data) + p.dump_size : p.dump_size;
 
     return return_val;
 }

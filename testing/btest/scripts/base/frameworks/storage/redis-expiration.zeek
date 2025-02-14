@@ -15,7 +15,7 @@
 @load base/frameworks/storage/sync
 @load policy/frameworks/storage/backend/redis
 
-redef Storage::expire_interval = 2 secs;
+redef Storage::expire_interval = 2secs;
 redef exit_only_after_terminate = T;
 
 # Create a typename here that can be passed down into open_backend()
@@ -25,34 +25,38 @@ global b: opaque of Storage::BackendHandle;
 global key: string = "key1234";
 global value: string = "value7890";
 
-event check_removed() {
+event check_removed()
+	{
 	local res2 = Storage::Sync::get(b, key);
 	print "get result after expiration", res2;
 
 	Storage::Sync::close_backend(b);
 	terminate();
-}
+	}
 
-event setup_test() {
-	local opts : Storage::BackendOptions;
-	opts$redis = [$server_host = "127.0.0.1", $server_port = to_port(getenv("REDIS_PORT")), $key_prefix = "testing", $async_mode = F];
+event setup_test()
+	{
+	local opts: Storage::BackendOptions;
+	opts$redis = [ $server_host="127.0.0.1", $server_port=to_port(getenv(
+	    "REDIS_PORT")), $key_prefix="testing" ];
 
 	b = Storage::Sync::open_backend(Storage::REDIS, opts, str, str);
 
-	local res = Storage::Sync::put(b, [$key=key, $value=value, $expire_time=2 secs]);
+	local res = Storage::Sync::put(b, [ $key=key, $value=value, $expire_time=2secs ]);
 	print "put result", res;
 
 	local res2 = Storage::Sync::get(b, key);
 	print "get result", res2;
 	if ( res2?$val )
-		print "get result same as inserted", value == (res2$val as string);
+		print "get result same as inserted", value == ( res2$val as string );
 
-	schedule 5 secs { check_removed() };
-}
+	schedule 5secs { check_removed() };
+	}
 
-event zeek_init() {
+event zeek_init()
+	{
 	# We need network time to be set to something other than zero for the
 	# expiration time to be set correctly. Schedule an event on a short
 	# timer so packets start getting read and do the setup there.
-	schedule 100 msecs { setup_test() };
-}
+	schedule 100msecs { setup_test() };
+	}

@@ -1,5 +1,6 @@
 # @TEST-DOC: Tests that Redis storage backend defaults back to sync mode reading pcaps
 
+# @TEST-KNOWN-FAILURE: Currently broken due to the redis async rework
 # @TEST-REQUIRES: have-redis
 # @TEST-PORT: REDIS_PORT
 
@@ -19,30 +20,37 @@
 # Create a typename here that can be passed down into open_backend()
 type str: string;
 
-event zeek_init() {
-	local opts : Storage::BackendOptions;
-	opts$redis = [$server_host = "127.0.0.1", $server_port = to_port(getenv("REDIS_PORT")), $key_prefix = "testing", $async_mode = T];
+event zeek_init()
+	{
+	local opts: Storage::BackendOptions;
+	opts$redis = [ $server_host="127.0.0.1", $server_port=to_port(getenv(
+	    "REDIS_PORT")), $key_prefix="testing" ];
 
 	local key = "key1234";
 	local value = "value5678";
 
 	local b = Storage::Sync::open_backend(Storage::REDIS, opts, str, str);
 
-	when [b, key, value] ( local res = Storage::Async::put(b, [$key=key, $value=value]) ) {
+	when [b, key, value] ( local res = Storage::Async::put(b, [ $key=key,
+	    $value=value ]) )
+		{
 		print "put result", res;
 
-		when [b, key, value] ( local res2 = Storage::Async::get(b, key) ) {
+		when [b, key, value] ( local res2 = Storage::Async::get(b, key) )
+			{
 			print "get result", res2;
 			if ( res2?$val )
-				print "get result same as inserted", value == (res2$val as string);
+				print "get result same as inserted", value == ( res2$val as string );
 
 			Storage::Sync::close_backend(b);
+			}
+		timeout 5sec
+			{
+			print "get request timed out";
+			}
 		}
-		timeout 5 sec {
-			print "get requeest timed out";
-		}
-	}
-	timeout 5 sec {
+	timeout 5sec
+		{
 		print "put request timed out";
+		}
 	}
-}

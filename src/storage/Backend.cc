@@ -111,7 +111,7 @@ ErrorResult Backend::Put(ValPtr key, ValPtr value, bool overwrite, double expira
 
     auto res = DoPut(std::move(key), std::move(value), overwrite, expiration_time, cb);
 
-    if ( (! native_async || zeek::run_state::reading_traces) && cb ) {
+    if ( ! native_async && cb ) {
         cb->Complete(res);
         delete cb;
     }
@@ -127,7 +127,7 @@ ValResult Backend::Get(ValPtr key, ValResultCallback* cb) {
 
     auto res = DoGet(std::move(key), cb);
 
-    if ( (! native_async || zeek::run_state::reading_traces) && cb ) {
+    if ( ! native_async && cb ) {
         cb->Complete(res);
         delete cb;
     }
@@ -143,7 +143,7 @@ ErrorResult Backend::Erase(ValPtr key, ErrorResultCallback* cb) {
 
     auto res = DoErase(std::move(key), cb);
 
-    if ( (! native_async || zeek::run_state::reading_traces) && cb ) {
+    if ( ! native_async && cb ) {
         cb->Complete(res);
         delete cb;
     }

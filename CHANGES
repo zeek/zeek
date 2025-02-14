@@ -1,3 +1,9 @@
+7.2.0-dev.199 | 2025-02-14 11:28:48 -0800
+
+  * Do not export locals (Evan Typanski, Corelight)
+
+  * DPD changes - ZAM baseline updates (Johanna Amann, Corelight)
+
 7.2.0-dev.194 | 2025-02-07 07:31:26 +0000
 
   * Allow to track service violations in conn.log. (Johanna Amann, Corelight)

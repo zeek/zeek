@@ -11,47 +11,59 @@ redef exit_only_after_terminate = T;
 # Create a typename here that can be passed down into get().
 type str: string;
 
-event zeek_init() {
+event zeek_init()
+	{
 	# Create a database file in the .tmp directory with a 'testing' table
-	local opts : Storage::BackendOptions;
-	opts$sqlite = [$database_path = "test.sqlite", $table_name="testing"];
+	local opts: Storage::BackendOptions;
+	opts$sqlite = [ $database_path="test.sqlite", $table_name="testing" ];
 
 	local key = "key1234";
 	local value = "value5678";
 
 	# Test inserting/retrieving a key/value pair that we know won't be in
 	# the backend yet.
-	when [opts, key, value] ( local b = Storage::Async::open_backend(Storage::SQLITE, opts, str, str) ) {
+	when [opts, key, value] ( local b = Storage::Async::open_backend(
+	    Storage::SQLITE, opts, str, str) )
+		{
 		print "open successful";
 
-		when [b, key, value] ( local put_res = Storage::Async::put(b, [$key=key, $value=value]) ) {
+		when [b, key, value] ( local put_res = Storage::Async::put(b, [ $key=key,
+		    $value=value ]) )
+			{
 			print "put result", put_res;
 
-			when [b, key, value] ( local get_res = Storage::Async::get(b, key) ) {
+			when [b, key, value] ( local get_res = Storage::Async::get(b, key) )
+				{
 				print "get result", get_res;
 				if ( get_res?$val )
-					print "get result same as inserted", value == (get_res$val as string);
+					print "get result same as inserted", value == ( get_res$val as string );
 
-				when [b] ( local close_res = Storage::Async::close_backend(b) ) {
+				when [b] ( local close_res = Storage::Async::close_backend(b) )
+					{
 					print "closed succesfully";
 					terminate();
-				} timeout 5 sec {
+					}
+				timeout 5sec
+					{
 					print "close request timed out";
 					terminate();
+					}
+				}
+			timeout 5sec
+				{
+				print "get request timed out";
+				terminate();
 				}
 			}
-			timeout 5 sec {
-				print "get requeest timed out";
-				terminate();
-			}
-		}
-		timeout 5 sec {
+		timeout 5sec
+			{
 			print "put request timed out";
 			terminate();
+			}
 		}
-	}
-	timeout 5 sec {
+	timeout 5sec
+		{
 		print "open request timed out";
 		terminate();
+		}
 	}
-}

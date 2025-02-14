@@ -18,31 +18,33 @@
 # Create a typename here that can be passed down into open_backend()
 type str: string;
 
-event zeek_init() {
-	local opts : Storage::BackendOptions;
-	opts$redis = [$server_host = "127.0.0.1", $server_port = to_port(getenv("REDIS_PORT")), $key_prefix = "testing", $async_mode = F];
+event zeek_init()
+	{
+	local opts: Storage::BackendOptions;
+	opts$redis = [ $server_host="127.0.0.1", $server_port=to_port(getenv(
+	    "REDIS_PORT")), $key_prefix="testing" ];
 
 	local key = "key1234";
 	local value = "value1234";
 
 	local b = Storage::Sync::open_backend(Storage::REDIS, opts, str, str);
 
-	local res = Storage::Sync::put(b, [$key=key, $value=value]);
+	local res = Storage::Sync::put(b, [ $key=key, $value=value ]);
 	print "put result", res;
 
 	local res2 = Storage::Sync::get(b, key);
 	print "get result", res2;
 	if ( res2?$val )
-		print "get result same as inserted", value == (res2$val as string);
+		print "get result same as inserted", value == ( res2$val as string );
 
 	local value2 = "value5678";
-	res = Storage::Sync::put(b, [$key=key, $value=value2, $overwrite=T]);
+	res = Storage::Sync::put(b, [ $key=key, $value=value2, $overwrite=T ]);
 	print "overwrite put result", res;
 
 	res2 = Storage::Sync::get(b, key);
 	print "get result", res2;
 	if ( res2?$val )
-		print "get result same as inserted", value2 == (res2$val as string);
+		print "get result same as inserted", value2 == ( res2$val as string );
 
 	Storage::Sync::close_backend(b);
-}
+	}

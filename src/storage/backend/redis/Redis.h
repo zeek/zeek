@@ -6,12 +6,11 @@
 #include "zeek/storage/Backend.h"
 
 // Forward declare some types from hiredis to avoid including the header
-struct redisContext;
 struct redisAsyncContext;
 struct redisReply;
+struct redisPollEvents;
 
 namespace zeek::storage::backend::redis {
-
 class Redis : public Backend, public iosource::IOSource {
 public:
     Redis(std::string_view tag) : Backend(true, tag), IOSource(true) {}
@@ -73,25 +72,30 @@ public:
     void OnConnect(int status);
     void OnDisconnect(int status);
 
-    void OnAddRead();
-    void OnDelRead();
-    void OnAddWrite();
-    void OnDelWrite();
-
     void HandlePutResult(redisReply* reply, ErrorResultCallback* callback);
     void HandleGetResult(redisReply* reply, ValResultCallback* callback);
     void HandleEraseResult(redisReply* reply, ErrorResultCallback* callback);
+    void HandleZRANGEBYSCORE(redisReply* reply);
+
+    // HandleGeneric exists so that async-running-as-sync operations can remove
+    // themselves from the list of active operations.
+    void HandleGeneric() { --active_ops; }
 
 private:
     ValResult ParseGetReply(redisReply* reply) const;
+    void Poll();
 
-    redisContext* ctx = nullptr;
     redisAsyncContext* async_ctx = nullptr;
-    bool connected = true;
+
+    // When running in sync mode, this is used to keep a queue of replies as
+    // responses come in from the remote calls until we run out of data to
+    // poll.
+    std::deque<redisReply*> reply_queue;
 
     std::string server_addr;
     std::string key_prefix;
-    bool async_mode = false;
+    std::atomic<bool> connected = false;
+    int active_ops = 0;
 };
 
 } // namespace zeek::storage::backend::redis

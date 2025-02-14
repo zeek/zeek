@@ -39,46 +39,52 @@ global redis_data_written: event() &is_used;
 global backend: opaque of Storage::BackendHandle;
 type str: string;
 
-event zeek_init() {
-	local opts : Storage::BackendOptions;
-	opts$redis = [$server_host = "127.0.0.1", $server_port = to_port(getenv("REDIS_PORT")), $key_prefix = "testing", $async_mode = F];
+event zeek_init()
+	{
+	local opts: Storage::BackendOptions;
+	opts$redis = [ $server_host="127.0.0.1", $server_port=to_port(getenv(
+	    "REDIS_PORT")), $key_prefix="testing" ];
 
 	backend = Storage::Sync::open_backend(Storage::REDIS, opts, str, str);
-}
+	}
 
-event redis_data_written() {
+event redis_data_written()
+	{
 	print "redis_data_written";
 	local res = Storage::Sync::get(backend, "1234");
 	print Cluster::node, res;
 	Storage::Sync::close_backend(backend);
 	terminate();
-}
+	}
 
 @else
 
 global node_count: count = 0;
 
-event Cluster::node_down(name: string, id: string) {
+event Cluster::node_down(name: string, id: string)
+	{
 	++node_count;
 	if ( node_count == 2 )
 		terminate();
-}
+	}
 
-event redis_data_written() {
+event redis_data_written()
+	{
 	local e = Cluster::make_event(redis_data_written);
 	Cluster::publish(Cluster::worker_topic, e);
-}
+	}
 
 @endif
 
 @if ( Cluster::node == "worker-1" )
 
-event Cluster::Experimental::cluster_started() {
-	local res = Storage::Sync::put(backend, [$key="1234", $value="5678"]);
+event Cluster::Experimental::cluster_started()
+	{
+	local res = Storage::Sync::put(backend, [ $key="1234", $value="5678" ]);
 	print Cluster::node, "put result", res;
 
 	local e = Cluster::make_event(redis_data_written);
 	Cluster::publish(Cluster::manager_topic, e);
-}
+	}
 
 @endif

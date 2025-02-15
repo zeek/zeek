@@ -46,3 +46,5 @@ Trace Index/Sources:
   VirusTotal reports that this file contains malware. The PE analyzer was originally added
   to decode info for malware, so this is expected. See
   https://zeekorg.slack.com/archives/CSZBXF6TH/p1738261449655049
+- tunnels/geneve-tagged-udp-packet.pcap
+  Provided by Eldon Koyle Corelight for testing.

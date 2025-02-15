@@ -7,6 +7,15 @@
 
 module Broker;
 
+## Generated when Broker emits an internal logging event.
+##
+## lvl: the severity of the event as reported by Broker.
+##
+## id: an identifier for the event type.
+##
+## description: a message providing additional context.
+event Broker::internal_log_event%(lvl: LogSeverityLevel, id: string, description: string%);
+
 ## Generated when a new peering has been established. Both sides of the peering
 ## receive this event, created independently in each endpoint. For the endpoint
 ## establishing the peering, the added endpoint's network information will match

@@ -1135,14 +1135,12 @@ EnumValPtr lookup_enum_val(const char* module_name, const char* name) {
 } // namespace
 
 void Manager::ProcessLogEvents() {
-    static auto plval = lookup_enum_val("Broker", "LOG");
-    static auto lpli = id::find_type<RecordType>("Broker::Info");
-    static auto ev_critical = lookup_enum_val("Broker", "CRITICAL_EVENT");
-    static auto ev_error = lookup_enum_val("Broker", "ERROR_EVENT");
-    static auto ev_warning = lookup_enum_val("Broker", "WARNING_EVENT");
-    static auto ev_info = lookup_enum_val("Broker", "INFO_EVENT");
-    static auto ev_verbose = lookup_enum_val("Broker", "VERBOSE_EVENT");
-    static auto ev_debug = lookup_enum_val("Broker", "DEBUG_EVENT");
+    static auto ev_critical = lookup_enum_val("Broker", "LOG_CRITICAL");
+    static auto ev_error = lookup_enum_val("Broker", "LOG_ERROR");
+    static auto ev_warning = lookup_enum_val("Broker", "LOG_WARNING");
+    static auto ev_info = lookup_enum_val("Broker", "LOG_INFO");
+    static auto ev_verbose = lookup_enum_val("Broker", "LOG_VERBOSE");
+    static auto ev_debug = lookup_enum_val("Broker", "LOG_DEBUG");
 
     auto evType = [](BrokerSeverityLevel lvl) {
         switch ( lvl ) {
@@ -1161,14 +1159,12 @@ void Manager::ProcessLogEvents() {
     for ( auto& event : events ) {
         auto severity = event->severity;
         if ( bstate->logSeverity >= severity ) {
-            auto record = make_intrusive<RecordVal>(lpli);
-            record->AssignTime(0, run_state::network_time);
-            record->Assign(1, evType(event->severity));
-            auto ev = make_intrusive<StringVal>(event->identifier);
-            record->Assign(2, ev);
-            auto msg = make_intrusive<StringVal>(event->description);
-            record->Assign(4, msg);
-            log_mgr->Write(plval.get(), record.get());
+            auto args = Args{};
+            args.reserve(3);
+            args.emplace_back(evType(severity));
+            args.emplace_back(make_intrusive<StringVal>(event->identifier));
+            args.emplace_back(make_intrusive<StringVal>(event->description));
+            event_mgr.Enqueue(::Broker::internal_log_event, std::move(args));
         }
         if ( bstate->stderrSeverity >= severity ) {
             fprintf(stderr, "[BROKER/%s] %s\n", severity_names_tbl[static_cast<int>(severity)],

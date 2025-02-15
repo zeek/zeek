@@ -95,3 +95,28 @@ event Broker::error(code: ErrorCode, msg: string)
 	Reporter::error(fmt("Broker error (%s): %s", code, msg));
 	}
 
+event Broker::internal_log_event(lvl: LogSeverityLevel, id: string, description: string)
+	{
+	local severity = Broker::CRITICAL_EVENT;
+	switch lvl {
+		case Broker::LOG_ERROR:
+			severity = Broker::ERROR;
+			break;
+		case Broker::LOG_WARNING:
+			severity = Broker::WARNING_EVENT;
+			break;
+		case Broker::LOG_INFO:
+			severity = Broker::INFO_EVENT;
+			break;
+		case Broker::LOG_VERBOSE:
+			severity = Broker::VERBOSE_EVENT;
+			break;
+		case Broker::LOG_DEBUG:
+			severity = Broker::DEBUG_EVENT;
+			break;
+	}
+	Log::write(Broker::LOG, [$ts = network_time(),
+	           $ty = severity,
+	           $ev = id,
+	           $message = description]);
+	}

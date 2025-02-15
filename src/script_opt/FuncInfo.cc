@@ -112,6 +112,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"Option::any_set_to_any_vec", ATTR_FOLDABLE},
     {"Option::set_change_handler", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"PacketAnalyzer::GTPV1::remove_gtpv1_connection", ATTR_NO_SCRIPT_SIDE_EFFECTS},
+    {"PacketAnalyzer::Geneve::get_options", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"PacketAnalyzer::TEREDO::remove_teredo_connection", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"PacketAnalyzer::__disable_analyzer", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"PacketAnalyzer::__enable_analyzer", ATTR_NO_SCRIPT_SIDE_EFFECTS},

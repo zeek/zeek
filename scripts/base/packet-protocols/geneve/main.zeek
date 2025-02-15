@@ -6,6 +6,18 @@ export {
 	## if you customize this, you may still want to manually ensure that
 	## :zeek:see:`likely_server_ports` also gets populated accordingly.
 	const geneve_ports: set[port] = { 6081/udp } &redef;
+
+	## A Geneve option.
+	type Option: record {
+		## The class of the option.
+		class: count;
+		## The critical bit of the type.
+		critical: bool;
+		## The type field of the option with the critical bit masked.
+		typ: count;
+		## The data field of the option.
+		data: string;
+	};
 }
 
 redef likely_server_ports += { geneve_ports };
@@ -25,3 +37,8 @@ event zeek_init() &priority=20
 	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GENEVE, 0x08DD, PacketAnalyzer::ANALYZER_IP);
 	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_GENEVE, 0x0806, PacketAnalyzer::ANALYZER_ARP);
 	}
+
+module GLOBAL;
+
+type geneve_options_vec: vector of PacketAnalyzer::Geneve::Option;
+type geneve_options_vec_vec: vector of geneve_options_vec;

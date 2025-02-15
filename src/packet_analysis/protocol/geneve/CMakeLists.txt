@@ -5,4 +5,5 @@ zeek_add_plugin(
     Geneve.cc
     Plugin.cc
     BIFS
-    events.bif)
+    events.bif
+    functions.bif)

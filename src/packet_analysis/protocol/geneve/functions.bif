@@ -1,0 +1,44 @@
+module PacketAnalyzer::Geneve;
+
+%%{
+#include "zeek/packet_analysis/Manager.h"
+#include "zeek/packet_analysis/protocol/geneve/Geneve.h"
+%%}
+
+## Returns all Geneve options from all layers of the current packet.
+##
+## The last entry in the outer vector are the options of the most
+## inner Geneve header.
+##
+## Returns a vector of vector of zeek::see:`PacketAnalyzer::Geneve::Option` records.
+function get_options%(%): geneve_options_vec_vec
+    %{
+    static const auto& analyzer = zeek::packet_mgr->GetAnalyzer("Geneve");
+    static const auto& rvtype = zeek::id::find_type<zeek::VectorType>("geneve_options_vec_vec");
+    static const auto& vtype = zeek::id::find_type<zeek::VectorType>("geneve_options_vec");
+    static const auto& rtype = zeek::id::find_type<zeek::RecordType>("PacketAnalyzer::Geneve::Option");
+
+    auto result = zeek::make_intrusive<zeek::VectorVal>(rvtype);
+    auto spans = zeek::packet_mgr->GetAnalyzerData(analyzer);
+    result->Reserve(spans.size());
+
+    for ( const auto& span : spans ) {
+        auto v = zeek::make_intrusive<zeek::VectorVal>(vtype);
+        auto cb = [&v](uint16_t opt_class, bool opt_critical, uint8_t opt_type, zeek::Span<const uint8_t> opt_data) -> void {
+            auto rv = zeek::make_intrusive<zeek::RecordVal>(rtype);
+            rv->Assign(0, zeek::val_mgr->Count(opt_class));
+            rv->Assign(1, zeek::val_mgr->Bool(opt_critical));
+            rv->Assign(2, zeek::val_mgr->Count(opt_type));
+            auto sv = zeek::make_intrusive<zeek::StringVal>(opt_data.size(), reinterpret_cast<const char*>(opt_data.data()));
+            rv->Assign(3, std::move(sv));
+
+            v->Append(std::move(rv));
+        };
+
+        zeek::packet_analysis::Geneve::detail::parse_options(span, cb);
+
+        result->Append(std::move(v));
+    }
+
+    return result;
+    %}

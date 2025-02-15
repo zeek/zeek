@@ -182,8 +182,21 @@ public:
      * call to ProcessPacket() but maintained throughout calls to ProcessInnerPacket().
      *
      * @param analyzer The analyzer to track.
+     * @param len The remaining length of the data in the packet being processed.
+     * @param data A pointer to the data
      */
-    void TrackAnalyzer(Analyzer* analyzer) { analyzer_stack.push_back(analyzer); }
+    void TrackAnalyzer(const Analyzer* analyzer, size_t len, const uint8_t* data) {
+        analyzer_stack.push_back({analyzer, {data, len}});
+    }
+
+    /**
+     * Get all tracked data spans for a given analyzer instance.
+     *
+     * @analyzer The analyzer instance.
+     *
+     * @returns An array of data spans.
+     */
+    std::vector<zeek::Span<const uint8_t>> GetAnalyzerData(const AnalyzerPtr& analyzer);
 
 private:
     /**
@@ -234,7 +247,12 @@ private:
     uint64_t total_not_processed = 0;
     iosource::PktDumper* unprocessed_dumper = nullptr;
 
-    std::vector<Analyzer*> analyzer_stack;
+    struct StackEntry {
+        const Analyzer* analyzer;
+        zeek::Span<const uint8_t> data; // Start of this layer, limited by span's size.
+    };
+
+    std::vector<StackEntry> analyzer_stack;
 };
 
 } // namespace packet_analysis

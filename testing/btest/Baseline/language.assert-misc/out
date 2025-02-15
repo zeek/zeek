@@ -3,9 +3,9 @@ f, lambda_<10820400278317158366>: function() : void
 { 
 assert 0 < getpid(), fmt("my pid is funny: %s", getpid());
 }
-g, lambda_<9730512750166342063>: function() : void
+g, lambda_<16208386833253569415>: function() : void
 { 
-assert to_count("42") == 42;
+assert to_count("42", 10) == 42;
 }
 test_function, test_function: function() : void
 { 

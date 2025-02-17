@@ -51,7 +51,7 @@ Getting Started
 
 The best place to find information about getting started with Zeek is
 our web site [www.zeek.org](https://www.zeek.org), specifically the
-[documentation](https://www.zeek.org/documentation/index.html) section
+[documentation](https://docs.zeek.org/en/stable/index.html) section
 there. On the web site you can also find downloads for stable
 releases, tutorials on getting Zeek set up, and many other useful
 resources.
@@ -104,9 +104,9 @@ you might find
 [these](https://github.com/zeek/zeek/labels/good%20first%20issue)
 to be a good place to get started. More information on Zeek's
 development can be found
-[here](https://www.zeek.org/development/index.html), and information
+[here](https://docs.zeek.org/en/current/devel/index.html), and information
 about its community and mailing lists (which are fairly active) can be
-found [here](https://www.zeek.org/community/index.html).
+found [here](https://www.zeek.org/community/).
 
 License
 -------

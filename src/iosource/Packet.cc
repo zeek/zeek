@@ -46,6 +46,7 @@ void Packet::Init(int arg_link_type, pkt_timeval* arg_ts, uint32_t arg_caplen, u
         data = arg_data;
 
     dump_packet = false;
+    dump_size = 0;
 
     time = ts.tv_sec + double(ts.tv_usec) / 1e6;
     eth_type = 0;

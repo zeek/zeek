@@ -1,3 +1,9 @@
+7.2.0-dev.203 | 2025-02-18 08:51:23 -0700
+
+  * cirrus: Bump FreeBSD 14 task to 14.2 (Arne Welzel, Corelight)
+
+  * Fix dead links in README (Brendan Kapp)
+
 7.2.0-dev.199 | 2025-02-14 11:28:48 -0800
 
   * Do not export locals (Evan Typanski, Corelight)

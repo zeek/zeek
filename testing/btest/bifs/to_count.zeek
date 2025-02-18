@@ -19,6 +19,9 @@ event zeek_init()
 	print to_count("7");
 	print to_count("");
 	print to_count("-5");
+	# We automatically trim leading, but not trailing whitespace.
+	print to_count(" 205"); # Okay.
+	print to_count("206 "); # Error.
 	print to_count("not a count");
 
 	local e: port = 123/tcp;

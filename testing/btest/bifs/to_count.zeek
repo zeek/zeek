@@ -1,6 +1,6 @@
-#
-# @TEST-EXEC: zeek -b %INPUT >out
+# @TEST-EXEC: zeek -b %INPUT 1>out 2>err
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=${SCRIPTS}/diff-remove-abspath btest-diff err
 
 event zeek_init()
 	{
@@ -24,12 +24,12 @@ event zeek_init()
 	local e: port = 123/tcp;
 	print port_to_count(e);
 
-	local origString =        "9223372036854775808";
+	local origString = "9223372036854775808";
 	local directCount: count = 9223372036854775808;
 	local fromStringCount: count = to_count(origString);
 
 	if ( directCount == fromStringCount )
-	   print fmt("%s and %s are the same", directCount, fromStringCount);
+		print fmt("%s and %s are the same", directCount, fromStringCount);
 	else
-	   print fmt("%s and %s are not the same", directCount, fromStringCount);
+		print fmt("%s and %s are not the same", directCount, fromStringCount);
 	}

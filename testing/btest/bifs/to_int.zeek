@@ -1,6 +1,6 @@
-#
-# @TEST-EXEC: zeek -b %INPUT >out
+# @TEST-EXEC: zeek -b %INPUT 1>out 2>err
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=${SCRIPTS}/diff-remove-abspath btest-diff err
 
 event zeek_init()
 	{

@@ -14,6 +14,7 @@
 #include <cmath>
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <ctime>
 #include <vector>
 
@@ -2614,8 +2615,11 @@ function to_int%(str: string%): int
 
 	zeek_int_t i = strtoll(s, &end_s, 10);
 
-	if ( s[0] == '\0' || end_s[0] != '\0' )
+	if ( s[0] == '\0' || std::any_of(static_cast<const char*>(end_s), s + ::strlen(s),
+	                                 [](char c) { return ! (c == '\0' || ::isspace(c)); }) )
+		{
 		zeek::emit_builtin_error("bad conversion to integer", @ARG@[0]);
+		}
 
 	return zeek::val_mgr->Int(i);
 	%}
@@ -2679,11 +2683,12 @@ function to_count%(str: string%): count
 
 	uint64_t u = static_cast<uint64_t>(strtoull(s, &end_s, 10));
 
-	if ( s[0] == '\0' || end_s[0] != '\0' )
-    	{
+	if ( s[0] == '\0' || std::any_of(static_cast<const char*>(end_s), s + ::strlen(s),
+	                                 [](char c) { return ! (c == '\0' || ::isspace(c)); }) )
+		{
 		zeek::emit_builtin_error("bad conversion to count", @ARG@[0]);
-        u = 0;
-        }
+		u = 0;
+		}
 
 	return zeek::val_mgr->Count(u);
 	%}

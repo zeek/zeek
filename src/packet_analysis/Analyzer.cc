@@ -114,7 +114,7 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet, ui
     DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.", GetAnalyzerName(),
             identifier);
 
-    packet_mgr->TrackAnalyzer(inner_analyzer.get());
+    packet_mgr->TrackAnalyzer(inner_analyzer.get(), len, data);
     return inner_analyzer->AnalyzePacket(len, data, packet);
 }
 
@@ -130,7 +130,7 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet) co
         return false;
     }
 
-    packet_mgr->TrackAnalyzer(inner_analyzer.get());
+    packet_mgr->TrackAnalyzer(inner_analyzer.get(), len, data);
     return inner_analyzer->AnalyzePacket(len, data, packet);
 }
 

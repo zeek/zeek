@@ -24,6 +24,9 @@ New Functionality
   encrypted session information from a Kerberos response, including the cipher
   and encrypted data.
 
+- Geneve tunnel options of the current packet can be extracted from scripts
+  using the new PacketAnalyzer::Geneve::get_options() builtin function.
+
 Changed Functionality
 ---------------------
 

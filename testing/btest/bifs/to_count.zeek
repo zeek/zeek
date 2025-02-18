@@ -19,6 +19,9 @@ event zeek_init()
 	print to_count("7");
 	print to_count("");
 	print to_count("-5");
+	print to_int("10101100", 2);
+	print to_int("43", 8);
+	print to_int("C3", 16);
 	print to_count("not a count");
 
 	local e: port = 123/tcp;

@@ -13,7 +13,7 @@ struct redisPollEvents;
 namespace zeek::storage::backend::redis {
 class Redis : public Backend, public iosource::IOSource {
 public:
-    Redis(std::string_view tag) : Backend(true, tag), IOSource(true) {}
+    Redis(std::string_view tag) : Backend(SupportedModes::ASYNC, tag), IOSource(true) {}
     ~Redis() override = default;
 
     static BackendPtr Instantiate(std::string_view tag);
@@ -81,9 +81,11 @@ public:
     // themselves from the list of active operations.
     void HandleGeneric() { --active_ops; }
 
+protected:
+    void Poll() override;
+
 private:
     ValResult ParseGetReply(redisReply* reply) const;
-    void Poll();
 
     redisAsyncContext* async_ctx = nullptr;
 

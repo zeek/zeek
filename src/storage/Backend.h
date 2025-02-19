@@ -29,33 +29,47 @@ using ValResult = zeek::expected<ValPtr, std::string>;
 // code reuse in the other callback methods.
 class ResultCallback {
 public:
+    ResultCallback() = default;
     ResultCallback(IntrusivePtr<zeek::detail::trigger::Trigger> trigger, const void* assoc);
     virtual ~ResultCallback();
     void Timeout();
+    bool IsSyncCallback() const { return ! trigger; }
 
 protected:
     void ValComplete(Val* result);
 
 private:
     IntrusivePtr<zeek::detail::trigger::Trigger> trigger;
-    const void* assoc;
+    const void* assoc = nullptr;
 };
 
 // A callback result that returns an ErrorResult.
 class ErrorResultCallback : public ResultCallback {
 public:
+    ErrorResultCallback() = default;
     ErrorResultCallback(zeek::detail::trigger::TriggerPtr trigger, const void* assoc);
     virtual void Complete(const ErrorResult& res);
+    ErrorResult Result() { return result; }
+
+private:
+    ErrorResult result;
 };
 
 // A callback result that returns a ValResult.
 class ValResultCallback : public ResultCallback {
 public:
+    ValResultCallback() = default;
     ValResultCallback(zeek::detail::trigger::TriggerPtr trigger, const void* assoc);
     void Complete(const ValResult& res);
+    ValResult Result() { return result; }
+
+private:
+    ValResult result;
 };
 
 class OpenResultCallback;
+
+enum SupportedModes : uint8_t { SYNC = 0x01, ASYNC = 0x02 };
 
 class Backend : public zeek::Obj {
 public:
@@ -105,6 +119,15 @@ public:
      */
     virtual bool IsOpen() = 0;
 
+    bool SupportsSync() const { return (modes & SupportedModes::SYNC) == SupportedModes::SYNC; }
+    bool SupportsAsync() const { return (modes & SupportedModes::ASYNC) == SupportedModes::ASYNC; }
+
+    /**
+     * Optional method to allow a backend to poll for data. This can be used to
+     * mimic sync mode even if the backend only supports async.
+     */
+    virtual void Poll() {}
+
 protected:
     // Allow the manager to call Open/Close.
     friend class storage::Manager;
@@ -112,14 +135,12 @@ protected:
     /**
      * Constructor
      *
-     * @param native_async Denotes whether this backend can handle async request
-     * natively.  If set to false, the Put/Get/Erase methods will call the
-     * callback after their corresponding Do methods return. If set to true, the
-     * backend needs to call the callback itself.
+     * @param modes A combination of values from SupportedModes. These modes
+     # define whether a backend only supports sync or async or both.
      * @param tag A string representation of the tag for this backend. This
      * is passed from the Manager through the component factory.
      */
-    Backend(bool native_async, std::string_view tag) : tag(tag), native_async(native_async) {}
+    Backend(uint8_t modes, std::string_view tag) : tag(tag), modes(modes) {}
 
     /**
      * Called by the manager system to open the backend.
@@ -176,13 +197,17 @@ protected:
      */
     virtual void Expire() {}
 
+    void CompleteCallback(ValResultCallback* cb, const ValResult& data) const;
+    void CompleteCallback(ErrorResultCallback* cb, const ErrorResult& data) const;
+    void CompleteCallback(OpenResultCallback* cb, const ErrorResult& data) const;
+
     TypePtr key_type;
     TypePtr val_type;
 
     std::string tag;
 
 private:
-    bool native_async = false;
+    uint8_t modes;
 };
 
 using BackendPtr = zeek::IntrusivePtr<Backend>;
@@ -210,12 +235,15 @@ protected:
 // A callback for the Backend::Open() method that returns an error or a backend handle.
 class OpenResultCallback : public ResultCallback {
 public:
+    OpenResultCallback(detail::BackendHandleVal* backend);
     OpenResultCallback(IntrusivePtr<zeek::detail::trigger::Trigger> trigger, const void* assoc,
                        detail::BackendHandleVal* backend);
     void Complete(const ErrorResult& res);
+    ErrorResult Result() { return result; }
 
 private:
-    detail::BackendHandleVal* backend;
+    ErrorResult result;
+    detail::BackendHandleVal* backend = nullptr;
 };
 
 } // namespace zeek::storage

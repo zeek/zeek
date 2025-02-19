@@ -17,10 +17,8 @@ namespace {
 
 class Tracer {
 public:
-    Tracer(const std::string& where) : where(where) { // printf("%s\n", where.c_str());
-    }
-    ~Tracer() { // printf("%s done\n", where.c_str());
-    }
+    Tracer(const std::string& where) : where(where) {} // DBG_LOG(zeek::DBG_STORAGE, "%s", where.c_str()); }
+    ~Tracer() {}                                       // DBG_LOG(zeek::DBG_STORAGE, "%s done", where.c_str()); }
     std::string where;
 };
 
@@ -58,7 +56,7 @@ void redisErase(redisAsyncContext* ctx, void* reply, void* privdata) {
 }
 
 void redisZRANGEBYSCORE(redisAsyncContext* ctx, void* reply, void* privdata) {
-    auto t = Tracer("erase");
+    auto t = Tracer("zrangebyscore");
     auto backend = static_cast<zeek::storage::backend::redis::Redis*>(ctx->data);
     backend->HandleZRANGEBYSCORE(static_cast<redisReply*>(reply));
 }
@@ -201,11 +199,6 @@ ErrorResult Redis::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
     async_ctx->ev.addWrite = redisAddWrite;
     async_ctx->ev.delWrite = redisDelWrite;
 
-    if ( ! cb )
-        // Polling here will eventually call OnConnect, which will set the flag
-        // that we're connected.
-        Poll();
-
     return std::nullopt;
 }
 
@@ -218,7 +211,7 @@ ErrorResult Redis::DoClose(ErrorResultCallback* cb) {
     redisAsyncDisconnect(async_ctx);
     ++active_ops;
 
-    if ( ! cb && ! zeek::run_state::terminating ) {
+    if ( cb->IsSyncCallback() && ! zeek::run_state::terminating ) {
         Poll();
         // TODO: handle response
     }
@@ -261,25 +254,6 @@ ErrorResult Redis::DoPut(ValPtr key, ValPtr value, bool overwrite, double expira
 
     ++active_ops;
 
-    if ( ! cb ) {
-        Poll();
-
-        redisReply* reply = reply_queue.front();
-        reply_queue.pop_front();
-
-        ErrorResult res;
-        if ( ! connected )
-            res = util::fmt("Connection is not open");
-        else if ( ! reply )
-            res = util::fmt("Async put operation returned null reply");
-        else if ( reply && reply->type == REDIS_REPLY_ERROR )
-            res = util::fmt("Async put operation failed: %s", reply->str);
-
-        freeReplyObject(reply);
-        if ( res.has_value() )
-            return res;
-    }
-
     // If reading pcaps insert into a secondary set that's ordered by expiration
     // time that gets checked by Expire().
     if ( expiration_time > 0.0 && zeek::run_state::reading_traces ) {
@@ -294,12 +268,6 @@ ErrorResult Redis::DoPut(ValPtr key, ValPtr value, bool overwrite, double expira
             return util::fmt("ZADD operation failed: %s", async_ctx->errstr);
 
         ++active_ops;
-    }
-
-    if ( ! cb ) {
-        // We don't care about the result from the ZADD, just that we wait
-        // for it to finish.
-        Poll();
     }
 
     return std::nullopt;
@@ -321,16 +289,6 @@ ValResult Redis::DoGet(ValPtr key, ValResultCallback* cb) {
 
     ++active_ops;
 
-    if ( ! cb ) {
-        Poll();
-        redisReply* reply = reply_queue.front();
-        reply_queue.pop_front();
-
-        auto res = ParseGetReply(reply);
-        freeReplyObject(reply);
-        return res;
-    }
-
     // There isn't a result to return here. That happens in HandleGetResult for
     // async operations.
     return zeek::unexpected<std::string>("");
@@ -351,13 +309,6 @@ ErrorResult Redis::DoErase(ValPtr key, ErrorResultCallback* cb) {
         return util::fmt("Failed to queue erase operation failed: %s", async_ctx->errstr);
 
     ++active_ops;
-
-    if ( ! cb ) {
-        Poll();
-        redisReply* reply = reply_queue.front();
-        reply_queue.pop_front();
-        freeReplyObject(reply);
-    }
 
     return std::nullopt;
 }
@@ -415,46 +366,37 @@ void Redis::Expire() {
 void Redis::HandlePutResult(redisReply* reply, ErrorResultCallback* callback) {
     --active_ops;
 
-    if ( callback ) {
-        ErrorResult res;
-        if ( ! connected )
-            res = util::fmt("Connection is not open");
-        else if ( ! reply )
-            res = util::fmt("Async put operation returned null reply");
-        else if ( reply && reply->type == REDIS_REPLY_ERROR )
-            res = util::fmt("Async put operation failed: %s", reply->str);
+    ErrorResult res;
+    if ( ! connected )
+        res = util::fmt("Connection is not open");
+    else if ( ! reply )
+        res = util::fmt("Async put operation returned null reply");
+    else if ( reply && reply->type == REDIS_REPLY_ERROR )
+        res = util::fmt("Async put operation failed: %s", reply->str);
 
-        freeReplyObject(reply);
-        callback->Complete(res);
-        delete callback;
-    }
-    else
-        reply_queue.push_back(reply);
+    freeReplyObject(reply);
+    CompleteCallback(callback, res);
 }
 
 void Redis::HandleGetResult(redisReply* reply, ValResultCallback* callback) {
     --active_ops;
 
-    if ( callback ) {
-        ValResult res;
-        if ( ! connected )
-            res = zeek::unexpected<std::string>("Connection is not open");
-        else
-            res = ParseGetReply(reply);
+    ValResult res;
+    if ( ! connected )
+        res = zeek::unexpected<std::string>("Connection is not open");
+    else
+        res = ParseGetReply(reply);
 
-        callback->Complete(res);
-        freeReplyObject(reply);
-        delete callback;
-    }
-    else {
-        reply_queue.push_back(reply);
-    }
+    freeReplyObject(reply);
+    CompleteCallback(callback, res);
 }
 
 void Redis::HandleEraseResult(redisReply* reply, ErrorResultCallback* callback) {
     --active_ops;
 
-    if ( callback ) {
+    if ( callback->IsSyncCallback() )
+        reply_queue.push_back(reply);
+    else {
         ErrorResult res;
         if ( ! connected )
             res = "Connection is not open";
@@ -464,11 +406,8 @@ void Redis::HandleEraseResult(redisReply* reply, ErrorResultCallback* callback) 
             res = util::fmt("Async erase operation failed: %s", reply->str);
 
         freeReplyObject(reply);
-        callback->Complete(res);
-        delete callback;
+        CompleteCallback(callback, res);
     }
-    else
-        reply_queue.push_back(reply);
 }
 
 void Redis::HandleZRANGEBYSCORE(redisReply* reply) {

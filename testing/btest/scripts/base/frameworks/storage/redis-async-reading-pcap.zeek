@@ -1,6 +1,5 @@
 # @TEST-DOC: Tests that Redis storage backend defaults back to sync mode reading pcaps
 
-# @TEST-KNOWN-FAILURE: Currently broken due to the redis async rework
 # @TEST-REQUIRES: have-redis
 # @TEST-PORT: REDIS_PORT
 

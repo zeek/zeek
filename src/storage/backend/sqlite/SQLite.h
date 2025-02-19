@@ -12,7 +12,7 @@ namespace zeek::storage::backend::sqlite {
 
 class SQLite : public Backend {
 public:
-    SQLite(std::string_view tag) : Backend(false, tag) {}
+    SQLite(std::string_view tag) : Backend(SupportedModes::SYNC, tag) {}
     ~SQLite() override = default;
 
     static BackendPtr Instantiate(std::string_view tag);

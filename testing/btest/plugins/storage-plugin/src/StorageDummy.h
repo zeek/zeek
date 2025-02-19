@@ -13,7 +13,7 @@ namespace btest::storage::backend {
  */
 class StorageDummy : public zeek::storage::Backend {
 public:
-    StorageDummy() : Backend(false) {}
+    StorageDummy() : Backend(zeek::storage::SupportedModes::SYNC) {}
     ~StorageDummy() override = default;
 
     static zeek::storage::BackendPtr Instantiate();

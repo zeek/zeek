@@ -1,3 +1,38 @@
+7.2.0-dev.210 | 2025-02-20 15:35:21 -0700
+
+  * Also trim trailing spaces in `to_count`/`to_int` inputs (Benjamin Bannier, Corelight)
+
+    Previously we would already trim leading spaces in inputs to `to_count`
+    and `to_int`, effectively by just passing the behavior of the low-level
+    functions used in their implementations to the user. While this was
+    useful it was also inconsistent in that we did not allow trailing
+    spaces which we enable with this patch.
+
+  * Align error handling in `to_int` with existing behavior of `to_count` (Benjamin Bannier, Corelight)
+
+    Previously `to_int` would silently ignore invalid inputs and simply
+    return `0` while `to_count` would return an error; this patch changes
+    `to_int` to behave like `to_count`.
+
+    This introduces a breaking change in that `to_int` now raises an error
+    for trailing spaces (but still accepts leading spaces) where it
+    previously would have silently accepted it. This is consistent with
+    the behavior of `to_count`, but one could also argue that both of
+    these should only accept properly trimmed input; I did not go that route
+    since that would introduce breaking changes for both these functions
+    instead of for just one of them.
+
+  * Baseline handling of leading/trailing spaces in `to_count`/`to_int`. (Benjamin Bannier, Corelight)
+
+    Currently `to_count` reports an error for trailing spaces (but not for
+    leading ones) while `to_int` silently accepts them. This patch adds
+    baselines capture the current behavior.
+
+  * Add error messages to `to_count`/`to_int` baselines (Benjamin Bannier, Corelight)
+
+    This captures error messages produced by `to_count`, but will also
+    baseline future error messages from `to_int` once we introduce them.
+
 7.2.0-dev.203 | 2025-02-18 08:51:23 -0700
 
   * cirrus: Bump FreeBSD 14 task to 14.2 (Arne Welzel, Corelight)

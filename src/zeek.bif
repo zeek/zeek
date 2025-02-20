@@ -7,14 +7,16 @@
 ##! You'll find most of Zeek's built-in functions that aren't protocol-specific
 ##! in this file.
 
-%%{ // C segment
-#include <cmath>
-#include <vector>
+%%{ // C++ segment
+#include <sys/stat.h>
+
 #include <algorithm>
 #include <cmath>
-#include <sys/stat.h>
+#include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <ctime>
+#include <vector>
 
 #include "zeek/digest.h"
 #include "zeek/Reporter.h"
@@ -2613,12 +2615,11 @@ function to_int%(str: string%): int
 
 	zeek_int_t i = strtoll(s, &end_s, 10);
 
-#if 0
-	// Not clear we should complain.  For example, is " 205 "
-	// a legal conversion?
-	if ( s[0] == '\0' || end_s[0] != '\0' )
+	if ( s[0] == '\0' || std::any_of(static_cast<const char*>(end_s), s + ::strlen(s),
+	                                 [](char c) { return ! (c == '\0' || ::isspace(c)); }) )
+		{
 		zeek::emit_builtin_error("bad conversion to integer", @ARG@[0]);
-#endif
+		}
 
 	return zeek::val_mgr->Int(i);
 	%}
@@ -2680,13 +2681,14 @@ function to_count%(str: string%): count
 	const char* s = str->CheckString();
 	char* end_s;
 
-	uint64_t u = (uint64_t) strtoull(s, &end_s, 10);
+	uint64_t u = static_cast<uint64_t>(strtoull(s, &end_s, 10));
 
-	if ( s[0] == '\0' || end_s[0] != '\0' )
-    	{
+	if ( s[0] == '\0' || std::any_of(static_cast<const char*>(end_s), s + ::strlen(s),
+	                                 [](char c) { return ! (c == '\0' || ::isspace(c)); }) )
+		{
 		zeek::emit_builtin_error("bad conversion to count", @ARG@[0]);
-        u = 0;
-        }
+		u = 0;
+		}
 
 	return zeek::val_mgr->Count(u);
 	%}

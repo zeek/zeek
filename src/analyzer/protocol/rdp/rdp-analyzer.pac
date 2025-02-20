@@ -10,9 +10,15 @@ refine flow RDP_Flow += {
 		%{
 		if ( rdp_connect_request )
 			{
+			zeek::StringValPtr cookie_value;
+			if ( ${cr.cookie} )
+				cookie_value = to_stringval(${cr.cookie.cookie_value});
+			else
+				cookie_value = zeek::val_mgr->EmptyString();
+
 			zeek::BifEvent::enqueue_rdp_connect_request(connection()->zeek_analyzer(),
 			                                      connection()->zeek_analyzer()->Conn(),
-			                                      to_stringval(${cr.cookie_value}),
+			                                      cookie_value,
 			                                      ${cr.rdp_neg_req} ? ${cr.rdp_neg_req.flags} : 0);
 			}
 

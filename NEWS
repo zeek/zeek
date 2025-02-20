@@ -86,6 +86,9 @@ Changed Functionality
   warnings instead of builtin errors when hitting trouble. This allows Zeek to
   continue gracefully in case of such problems, particularly during zeek_init().
 
+- The RDP analyzer now also parses connections that do not contain the cookie
+  field, which were previously rejected.
+
 Removed Functionality
 ---------------------
 

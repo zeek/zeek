@@ -1,3 +1,10 @@
+7.2.0-dev.212 | 2025-02-20 16:40:19 -0700
+
+  * Set original/outer packet flags to reflect inner packet results (mnhsrj)
+
+    Propagate inner packet flags such as 'processed', 'dump_packet', 'dump_size'
+    to outer packet for packets involving tunneled data.
+
 7.2.0-dev.210 | 2025-02-20 15:35:21 -0700
 
   * Also trim trailing spaces in `to_count`/`to_int` inputs (Benjamin Bannier, Corelight)

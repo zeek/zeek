@@ -1,3 +1,7 @@
+7.2.0-dev.214 | 2025-02-21 12:24:21 +0100
+
+  * Fix bifs.to_count and bifs.to_int btests under ZAM (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.212 | 2025-02-20 16:40:19 -0700
 
   * Set original/outer packet flags to reflect inner packet results (mnhsrj)

@@ -471,7 +471,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"to_addr", ATTR_IDEMPOTENT},   // can error
     {"to_count", ATTR_IDEMPOTENT},  // can error
     {"to_double", ATTR_IDEMPOTENT}, // can error
-    {"to_int", ATTR_FOLDABLE},
+    {"to_int", ATTR_IDEMPOTENT},    // can error
     {"to_json", ATTR_FOLDABLE},
     {"to_lower", ATTR_FOLDABLE},
     {"to_port", ATTR_IDEMPOTENT}, // can error

@@ -232,7 +232,7 @@ zeek::VectorValPtr Manager::BuildAnalyzerHistory() const {
     auto history = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
 
     for ( unsigned int i = 0; i < analyzer_stack.size(); i++ ) {
-        auto analyzer_name = analyzer_stack[i]->GetAnalyzerName();
+        auto analyzer_name = analyzer_stack[i].analyzer->GetAnalyzerName();
         history->Assign(i, make_intrusive<StringVal>(analyzer_name));
     }
 
@@ -248,4 +248,14 @@ void Manager::ReportUnknownProtocol(const std::string& analyzer, uint32_t protoc
                               make_intrusive<StringVal>(bytes_len, (const char*)data), BuildAnalyzerHistory());
         }
     }
+}
+
+std::vector<zeek::Span<const uint8_t>> Manager::GetAnalyzerData(const AnalyzerPtr& analyzer) {
+    std::vector<zeek::Span<const uint8_t>> result;
+    for ( const auto [sa, span] : analyzer_stack ) {
+        if ( sa == analyzer.get() )
+            result.push_back(span);
+    }
+
+    return result;
 }

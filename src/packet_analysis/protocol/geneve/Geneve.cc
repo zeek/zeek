@@ -2,10 +2,49 @@
 
 #include "zeek/packet_analysis/protocol/geneve/Geneve.h"
 
+#include "zeek/Span.h"
 #include "zeek/packet_analysis/protocol/geneve/events.bif.h"
 #include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
 
 using namespace zeek::packet_analysis::Geneve;
+
+void zeek::packet_analysis::Geneve::detail::parse_options(zeek::Span<const uint8_t> data, detail::Callback cb) {
+    size_t remaining = data.size();
+
+    if ( remaining < 8 )
+        return;
+
+    remaining -= 8;
+
+    uint8_t all_opt_len = (data[0] & 0x3F) * 4;
+
+    if ( remaining < all_opt_len )
+        return;
+
+    const uint8_t* p = &data[8];
+    const uint8_t* const end = &data[8] + all_opt_len;
+
+    while ( p < end ) {
+        auto remaining = end - p;
+        if ( remaining < 4 )
+            break;
+
+        uint16_t opt_class = ntohs(reinterpret_cast<const uint16_t*>(p)[0]);
+        bool opt_critical = (p[2] & 0x80) == 0x80;
+        uint8_t opt_type = p[2] & 0x7F;
+        uint8_t opt_len = (p[3] & 0x1F) * 4;
+
+        remaining -= 4;
+        p += 4;
+
+        if ( remaining < opt_len )
+            break;
+
+        cb(opt_class, opt_critical, opt_type, zeek::Span{p, opt_len});
+
+        p += opt_len;
+    }
+}
 
 GeneveAnalyzer::GeneveAnalyzer() : zeek::packet_analysis::Analyzer("Geneve") {}
 

@@ -2,10 +2,33 @@
 
 #pragma once
 
+#include <functional>
+
+#include "zeek/Span.h"
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 
 namespace zeek::packet_analysis::Geneve {
+
+namespace detail {
+
+/**
+ * Callback for parse_options(), passing the individual option pieces.
+ */
+using Callback =
+    std::function<void(uint16_t opt_class, bool opt_critical, uint8_t opt_type, zeek::Span<const uint8_t> opt_data)>;
+
+/**
+ * Parse Geneve options from the header data.
+ *
+ * For each option, the given callback is invoked.
+ *
+ * @param data The data span to treat as a Geneve header.
+ * @param cb The callback to invoke with each parsed option.
+ */
+void parse_options(zeek::Span<const uint8_t> data, Callback cb);
+
+} // namespace detail
 
 class GeneveAnalyzer : public zeek::packet_analysis::Analyzer {
 public:

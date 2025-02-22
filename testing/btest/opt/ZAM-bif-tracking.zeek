@@ -141,6 +141,7 @@ global known_BiFs = set(
 	"Option::set",
 	"Option::set_change_handler",
 	"PacketAnalyzer::GTPV1::remove_gtpv1_connection",
+	"PacketAnalyzer::Geneve::get_options",
 	"PacketAnalyzer::TEREDO::remove_teredo_connection",
 	"PacketAnalyzer::__disable_analyzer",
 	"PacketAnalyzer::__enable_analyzer",

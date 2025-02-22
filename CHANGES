@@ -1,3 +1,19 @@
+7.2.0-dev.217 | 2025-02-22 12:33:25 -0800
+
+  * PacketAnalyzer::Geneve: Add get_options() (Arne Welzel, Corelight)
+
+    Allow to extract Geneve options on-demand, for example during a
+    new_connection() event.
+
+  * packet_analysis: Track data spans of packet analyzers (Arne Welzel, Corelight)
+
+    Do not just track the analyzer instance in the stack, but also the
+    data span it is given. This allows to extract more information on-demand
+    during event processing.
+
+    TrackAnalyzer() is technically a public API, but no one should use it
+    outside of the Analyzer's Forward methods itself.
+
 7.2.0-dev.214 | 2025-02-21 12:24:21 +0100
 
   * Fix bifs.to_count and bifs.to_int btests under ZAM (Tim Wojtulewicz, Corelight)

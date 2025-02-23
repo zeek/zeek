@@ -9,6 +9,7 @@ event zeek_init()
 	print to_int("10111100", 2);
 	print to_int("47", 8);
 	print to_int("F3", 16);
+	print to_int("0xF3", 16);
 	print to_int("4294967296");
 	print to_int("not an int");
 

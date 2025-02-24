@@ -6,6 +6,7 @@
 
 #include "zeek/Desc.h"
 #include "zeek/RunState.h"
+#include "zeek/storage/ReturnCode.h"
 
 #include "const.bif.netvar_h"
 
@@ -32,7 +33,17 @@ void detail::ExpirationTimer::Dispatch(double t, bool is_expire) {
 
 Manager::Manager() : plugin::ComponentManager<storage::Component>("Storage", "Backend") {}
 
+Manager::~Manager() {
+    // TODO: should we shut down any existing backends? force-poll until all of their existing
+    // operations finish and close them?
+
+    // Don't leave all of these static objects to leak.
+    ReturnCode::Cleanup();
+}
+
 void Manager::InitPostScript() {
+    ReturnCode::Initialize();
+
     detail::backend_opaque = make_intrusive<OpaqueType>("Storage::Backend");
     StartExpirationTimer();
 }
@@ -62,20 +73,22 @@ zeek::expected<BackendPtr, std::string> Manager::Instantiate(const Tag& type) {
     return bp;
 }
 
-ErrorResult Manager::OpenBackend(BackendPtr backend, RecordValPtr options, TypePtr key_type, TypePtr val_type,
-                                 OpenResultCallback* cb) {
-    if ( auto res = backend->Open(std::move(options), std::move(key_type), std::move(val_type), cb); res.has_value() ) {
-        return util::fmt("Failed to open backend %s: %s", backend->Tag(), res.value().c_str());
+OperationResult Manager::OpenBackend(BackendPtr backend, RecordValPtr options, TypePtr key_type, TypePtr val_type,
+                                     OpenResultCallback* cb) {
+    auto res = backend->Open(std::move(options), std::move(key_type), std::move(val_type), cb);
+    if ( res.code != ReturnCode::SUCCESS ) {
+        res.err_str = util::fmt("Failed to open backend %s: %s", backend->Tag(), res.err_str.c_str());
+        return res;
     }
 
     RegisterBackend(std::move(backend));
 
     // TODO: post Storage::backend_opened event
 
-    return std::nullopt;
+    return res;
 }
 
-ErrorResult Manager::CloseBackend(BackendPtr backend, ErrorResultCallback* cb) {
+OperationResult Manager::CloseBackend(BackendPtr backend, OperationResultCallback* cb) {
     // Expiration runs on a separate thread and loops over the vector of backends. The mutex
     // here ensures exclusive access. This one happens in a block because we can remove the
     // backend from the vector before actually closing it.
@@ -86,13 +99,11 @@ ErrorResult Manager::CloseBackend(BackendPtr backend, ErrorResultCallback* cb) {
             backends.erase(it);
     }
 
-    if ( auto res = backend->Close(cb); res.has_value() ) {
-        return util::fmt("Failed to close backend %s: %s", backend->Tag(), res.value().c_str());
-    }
-
-    return std::nullopt;
+    auto res = backend->Close(cb);
 
     // TODO: post Storage::backend_lost event
+
+    return res;
 }
 
 void Manager::Expire() {

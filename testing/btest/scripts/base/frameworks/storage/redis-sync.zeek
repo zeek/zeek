@@ -27,15 +27,18 @@ event zeek_init()
 	local key = "key1234";
 	local value = "value1234";
 
-	local b = Storage::Sync::open_backend(Storage::REDIS, opts, str, str);
+	local open_res = Storage::Sync::open_backend(Storage::REDIS, opts, str, str);
+	print "open_result", open_res;
+
+	local b = open_res$value;
 
 	local res = Storage::Sync::put(b, [ $key=key, $value=value ]);
 	print "put result", res;
 
 	local res2 = Storage::Sync::get(b, key);
 	print "get result", res2;
-	if ( res2?$val )
-		print "get result same as inserted", value == ( res2$val as string );
+	if ( res2$code == Storage::SUCCESS && res2?$value )
+		print "get result same as inserted", value == ( res2$value as string );
 
 	local value2 = "value5678";
 	res = Storage::Sync::put(b, [ $key=key, $value=value2, $overwrite=T ]);
@@ -43,8 +46,8 @@ event zeek_init()
 
 	res2 = Storage::Sync::get(b, key);
 	print "get result", res2;
-	if ( res2?$val )
-		print "get result same as inserted", value2 == ( res2$val as string );
+	if ( res2$code == Storage::SUCCESS && res2?$value )
+		print "get result same as inserted", value2 == ( res2$value as string );
 
 	Storage::Sync::close_backend(b);
 	}

@@ -10,23 +10,26 @@
 # Create a typename here that can be passed down into get().
 type str: string;
 
-event zeek_init() {
+event zeek_init()
+	{
 	# Create a database file in the .tmp directory with a 'testing' table
-	local opts : Storage::BackendOptions;
-	opts$sqlite = [$database_path = "storage-test.sqlite", $table_name = "testing"];
+	local opts: Storage::BackendOptions;
+	opts$sqlite = [ $database_path="storage-test.sqlite", $table_name="testing" ];
 
 	local key = "key1234";
 
 	# Test inserting/retrieving a key/value pair that we know won't be in
 	# the backend yet.
-	local b = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
+	local open_res = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
+	print "open result", open_res;
+	local b = open_res$value;
 
 	local res = Storage::Sync::erase(b, key);
 	print "erase result", res;
 
 	local res2 = Storage::Sync::get(b, key);
-	if ( res2?$error )
-		print "get result", res2$error;
+	if ( res2$code != Storage::SUCCESS )
+		print "get result", res2;
 
 	Storage::Sync::close_backend(b);
-}
+	}

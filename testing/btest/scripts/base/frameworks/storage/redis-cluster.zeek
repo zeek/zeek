@@ -45,7 +45,8 @@ event zeek_init()
 	opts$redis = [ $server_host="127.0.0.1", $server_port=to_port(getenv(
 	    "REDIS_PORT")), $key_prefix="testing" ];
 
-	backend = Storage::Sync::open_backend(Storage::REDIS, opts, str, str);
+	local open_res = Storage::Sync::open_backend(Storage::REDIS, opts, str, str);
+	backend = open_res$value;
 	}
 
 event redis_data_written()

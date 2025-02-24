@@ -356,14 +356,6 @@ type ftp_port: record {
 	valid: bool;	##< True if format was right. Only then are *h* and *p* valid.
 };
 
-## A generic type for returning either a value or an error string from a
-## function or a BIF method. This is sort of equivalent to std::expected
-## in C++.
-type val_result: record {
-	val: any &optional;
-	error: string &optional;
-};
-
 ## Statistics about what a TCP endpoint sent.
 ##
 ## .. zeek:see:: conn_stats
@@ -6224,7 +6216,50 @@ export {
 	## The interval used by the storage framework for automatic expiration
 	## of elements in all backends that don't support it natively, or if
 	## using expiration while reading pcap files.
-	const expire_interval = 15.0 secs &redef;
+	const expire_interval = 15.0secs &redef;
+
+	## Common set of statuses that can be returned by storage operations. Backend plugins
+	## can add to this enum if custom values are needed.
+	type ReturnCode: enum {
+		## Operation succeeded.
+		SUCCESS,
+		## Type of value passed to operation does not match type of
+		## value passed when opening backend.
+		VAL_TYPE_MISMATCH,
+		## Type of key passed to operation does not match type of
+		## key passed when opening backend.
+		KEY_TYPE_MISMATCH,
+		## Backend is not connected.
+		NOT_CONNECTED,
+		## Operation timed out.
+		TIMEOUT,
+		## Connection to backed was lost.
+		CONNECTION_LOST,
+		## Generic operation failed.
+		OPERATION_FAILED,
+		## Key requested was not found in backend.
+		KEY_NOT_FOUND,
+		## Key requested for overwrite already exists.
+		KEY_EXISTS,
+		## Generic connection failure.
+		CONNECTION_FAILED,
+		## Generic disconnection failure.
+		DISCONNECTION_FAILED,
+		## Generic initialization failure.
+		INITIALIZATION_FAILED
+	} &redef;
+
+	## Returned as the result of the various storage operations.
+	type OperationResult: record {
+		## One of a set of backend-redefinable return codes.
+		code: ReturnCode;
+		## An optional error string. This should be set when the
+		## ``code`` field is not set ``SUCCESS``.
+		error_str: string &optional;
+		## An optional value returned by ``get`` operations when a match
+		## was found the key requested.
+		value: any &optional;
+	};
 }
 
 module GLOBAL;

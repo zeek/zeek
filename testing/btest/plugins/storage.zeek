@@ -30,10 +30,12 @@ event zeek_init() {
 
 	# Test basic operation. The second get() should return an error
 	# as the key should have been erased.
-	local b = Storage::Sync::open_backend(Storage::STORAGEDUMMY, opts, str, str);
+	local open_res = Storage::Sync::open_backend(Storage::STORAGEDUMMY, opts, str, str);
+	print "open result", open_res;
+	local b = open_res$value;
 	local put_res = Storage::Sync::put(b, [$key=key, $value=value, $overwrite=F]);
 	local get_res = Storage::Sync::get(b, key);
-	if ( get_res is bool ) {
+	if ( get_res$code != Storage::SUCCESS ) {
 		print("Got an invalid value in response!");
 	}
 
@@ -41,19 +43,21 @@ event zeek_init() {
 	get_res = Storage::Sync::get(b, key);
 	Storage::Sync::close_backend(b);
 
-	if ( get_res?$error )
-		Reporter::error(get_res$error);
+	if ( get_res$code != Storage::SUCCESS && get_res?$error_str )
+		Reporter::error(get_res$error_str);
 
 	# Test attempting to use the closed handle.
 	put_res = Storage::Sync::put(b, [$key="a", $value="b", $overwrite=F]);
 	get_res = Storage::Sync::get(b, "a");
 	erase_res = Storage::Sync::erase(b, "a");
 
-	print(fmt("results of trying to use closed handle: get: %d, put: %d, erase: %d",
-	          get_res?$val, put_res, erase_res));
+	print(fmt("results of trying to use closed handle: get: %s, put: %s, erase: %s",
+	          get_res$code, put_res$code, erase_res$code));
 
 	# Test failing to open the handle and test closing an invalid handle.
 	opts$dummy$open_fail = T;
-	local b2 = Storage::Sync::open_backend(Storage::STORAGEDUMMY, opts, str, str);
-	Storage::Sync::close_backend(b2);
+	open_res = Storage::Sync::open_backend(Storage::STORAGEDUMMY, opts, str, str);
+	print "open result 2", open_res;
+	local close_res = Storage::Sync::close_backend(open_res$value);
+	print "close result of closed handle", close_res;
 }

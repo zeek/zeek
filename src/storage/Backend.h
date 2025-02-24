@@ -4,7 +4,6 @@
 
 #include "zeek/OpaqueVal.h"
 #include "zeek/Val.h"
-#include "zeek/util.h"
 
 namespace zeek::detail::trigger {
 class Trigger;
@@ -15,14 +14,13 @@ namespace zeek::storage {
 
 class Manager;
 
-// Result from storage operations that may return an error message. If the
-// optional value is unset, the operation succeeded.
-using ErrorResult = std::optional<std::string>;
+struct OperationResult {
+    EnumValPtr code;
+    std::string err_str;
+    ValPtr value;
 
-// Result from storage operations that return Vals. The ValPtr is an
-// IntrusivePtr to some result, and can be null if the operation failed. The
-// string value will store an error message if the result is null.
-using ValResult = zeek::expected<ValPtr, std::string>;
+    RecordValPtr BuildVal();
+};
 
 
 // Base callback object for async operations. This is just here to allow some
@@ -30,41 +28,29 @@ using ValResult = zeek::expected<ValPtr, std::string>;
 class ResultCallback {
 public:
     ResultCallback() = default;
-    ResultCallback(IntrusivePtr<zeek::detail::trigger::Trigger> trigger, const void* assoc);
-    virtual ~ResultCallback();
+    ResultCallback(detail::trigger::TriggerPtr trigger, const void* assoc);
+    virtual ~ResultCallback() = default;
     void Timeout();
     bool IsSyncCallback() const { return ! trigger; }
 
-protected:
-    void ValComplete(Val* result);
+    virtual void Complete(OperationResult res) = 0;
 
-private:
+protected:
+    void CompleteWithVal(Val* result);
+
     IntrusivePtr<zeek::detail::trigger::Trigger> trigger;
     const void* assoc = nullptr;
 };
 
-// A callback result that returns an ErrorResult.
-class ErrorResultCallback : public ResultCallback {
+class OperationResultCallback : public ResultCallback {
 public:
-    ErrorResultCallback() = default;
-    ErrorResultCallback(zeek::detail::trigger::TriggerPtr trigger, const void* assoc);
-    virtual void Complete(const ErrorResult& res);
-    ErrorResult Result() { return result; }
+    OperationResultCallback() = default;
+    OperationResultCallback(detail::trigger::TriggerPtr trigger, const void* assoc);
+    void Complete(OperationResult res) override;
+    OperationResult Result() { return result; }
 
 private:
-    ErrorResult result;
-};
-
-// A callback result that returns a ValResult.
-class ValResultCallback : public ResultCallback {
-public:
-    ValResultCallback() = default;
-    ValResultCallback(zeek::detail::trigger::TriggerPtr trigger, const void* assoc);
-    void Complete(const ValResult& res);
-    ValResult Result() { return result; }
-
-private:
-    ValResult result;
+    OperationResult result;
 };
 
 class OpenResultCallback;
@@ -88,31 +74,31 @@ public:
      * removed. Set to zero to disable expiration. This time is based on the current network
      * time.
      * @param cb An optional callback object if being called via an async context.
-     * @return An optional value potentially containing an error string if
-     * needed Will be unset if the operation succeeded.
+     * @return A struct describing the result of the operation, containing a code, an
+     * optional error string, and a ValPtr for operations that return values.
      */
-    ErrorResult Put(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0,
-                    ErrorResultCallback* cb = nullptr);
+    OperationResult Put(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0,
+                        OperationResultCallback* cb = nullptr);
 
     /**
      * Retrieve a value from the backend for a provided key.
      *
      * @param key the key to lookup in the backend.
      * @param cb An optional callback object if being called via an async context.
-     * @return A std::expected containing either a valid ValPtr with the result
-     * of the operation or a string containing an error message for failure.
+     * @return A struct describing the result of the operation, containing a code, an
+     * optional error string, and a ValPtr for operations that return values.
      */
-    ValResult Get(ValPtr key, ValResultCallback* cb = nullptr);
+    OperationResult Get(ValPtr key, OperationResultCallback* cb = nullptr);
 
     /**
      * Erases the value for a key from the backend.
      *
      * @param key the key to erase
      * @param cb An optional callback object if being called via an async context.
-     * @return An optional value potentially containing an error string if
-     * needed. Will be unset if the operation succeeded.
+     * @return A struct describing the result of the operation, containing a code, an
+     * optional error string, and a ValPtr for operations that return values.
      */
-    ErrorResult Erase(ValPtr key, ErrorResultCallback* cb = nullptr);
+    OperationResult Erase(ValPtr key, OperationResultCallback* cb = nullptr);
 
     /**
      * Returns whether the backend is opened.
@@ -151,45 +137,45 @@ protected:
      * @param vt The script-side type of the values stored in the backend. Used for
      * validation of types and conversion during retrieval.
      * @param cb An optional callback object if being called via an async context.
-     * @return An optional value potentially containing an error string if
-     * needed. Will be unset if the operation succeeded.
+     * @return A struct describing the result of the operation, containing a code, an
+     * optional error string, and a ValPtr for operations that return values.
      */
-    ErrorResult Open(RecordValPtr options, TypePtr kt, TypePtr vt, OpenResultCallback* cb = nullptr);
+    OperationResult Open(RecordValPtr options, TypePtr kt, TypePtr vt, OpenResultCallback* cb = nullptr);
 
     /**
      * Finalizes the backend when it's being closed.
      *
      * @param cb An optional callback object if being called via an async context.
-     * @return An optional value potentially containing an error string if
-     * needed. Will be unset if the operation succeeded.
+     * @return A struct describing the result of the operation, containing a code, an
+     * optional error string, and a ValPtr for operations that return values.
      */
-    ErrorResult Close(ErrorResultCallback* cb = nullptr);
+    OperationResult Close(OperationResultCallback* cb = nullptr);
 
     /**
      * The workhorse method for Open().
      */
-    virtual ErrorResult DoOpen(RecordValPtr options, OpenResultCallback* cb = nullptr) = 0;
+    virtual OperationResult DoOpen(RecordValPtr options, OpenResultCallback* cb = nullptr) = 0;
 
     /**
      * The workhorse method for Close().
      */
-    virtual ErrorResult DoClose(ErrorResultCallback* cb = nullptr) = 0;
+    virtual OperationResult DoClose(OperationResultCallback* cb = nullptr) = 0;
 
     /**
      * The workhorse method for Put().
      */
-    virtual ErrorResult DoPut(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0,
-                              ErrorResultCallback* cb = nullptr) = 0;
+    virtual OperationResult DoPut(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0,
+                                  OperationResultCallback* cb = nullptr) = 0;
 
     /**
      * The workhorse method for Get().
      */
-    virtual ValResult DoGet(ValPtr key, ValResultCallback* cb = nullptr) = 0;
+    virtual OperationResult DoGet(ValPtr key, OperationResultCallback* cb = nullptr) = 0;
 
     /**
      * The workhorse method for Erase().
      */
-    virtual ErrorResult DoErase(ValPtr key, ErrorResultCallback* cb = nullptr) = 0;
+    virtual OperationResult DoErase(ValPtr key, OperationResultCallback* cb = nullptr) = 0;
 
     /**
      * Removes any entries in the backend that have expired. Can be overridden by
@@ -197,9 +183,7 @@ protected:
      */
     virtual void Expire() {}
 
-    void CompleteCallback(ValResultCallback* cb, const ValResult& data) const;
-    void CompleteCallback(ErrorResultCallback* cb, const ErrorResult& data) const;
-    void CompleteCallback(OpenResultCallback* cb, const ErrorResult& data) const;
+    void CompleteCallback(ResultCallback* cb, const OperationResult& data) const;
 
     TypePtr key_type;
     TypePtr val_type;
@@ -235,15 +219,17 @@ protected:
 // A callback for the Backend::Open() method that returns an error or a backend handle.
 class OpenResultCallback : public ResultCallback {
 public:
-    OpenResultCallback(detail::BackendHandleVal* backend);
-    OpenResultCallback(IntrusivePtr<zeek::detail::trigger::Trigger> trigger, const void* assoc,
-                       detail::BackendHandleVal* backend);
-    void Complete(const ErrorResult& res);
-    ErrorResult Result() { return result; }
+    OpenResultCallback(IntrusivePtr<detail::BackendHandleVal> backend);
+    OpenResultCallback(zeek::detail::trigger::TriggerPtr trigger, const void* assoc,
+                       IntrusivePtr<detail::BackendHandleVal> backend);
+    void Complete(OperationResult res) override;
+
+    OperationResult Result() const { return result; }
+    IntrusivePtr<detail::BackendHandleVal> Backend() const { return backend; }
 
 private:
-    ErrorResult result;
-    detail::BackendHandleVal* backend = nullptr;
+    OperationResult result{};
+    IntrusivePtr<detail::BackendHandleVal> backend;
 };
 
 } // namespace zeek::storage

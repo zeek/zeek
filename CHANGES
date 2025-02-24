@@ -1,3 +1,21 @@
+7.2.0-dev.228 | 2025-02-24 11:37:42 -0700
+
+  * Fix incorrect syntax for static_cast in to_count that I introduced in a previous merge (Mark Overholser)
+
+  * Update baselines after changes to to_count and to_int (Mark Overholser)
+
+  * fix to_count in zeek.bif to resolve conflict from bbanier's adjustment to static casting of the return from strtoull (Mark Overholser)
+
+  * Fix tests in to_count to reflect appropriate function; add tests for 0x-formatted hex values for to_count and to_int (Mark Overholser)
+
+  * update BIFs to_int() and to_count() to accept optional 'base' argument; allows more more exotic conversions from hex, octal, binary (Mark Overholser)
+
+  * Fixes #4076; update BIFs to_int() and to_count() to accept optional 'base' argument for more easy conversions of strings representing (for example) hexadecimal, octal, or binary numbers (Mark Overholser)
+
+  * geneve/functions.bif: Fix :zeek:see directive, take two (Arne Welzel, Corelight)
+
+  * geneve/functions.bif: Fix :zeek:see directive (Arne Welzel, Corelight)
+
 7.2.0-dev.217 | 2025-02-22 12:33:25 -0800
 
   * PacketAnalyzer::Geneve: Add get_options() (Arne Welzel, Corelight)

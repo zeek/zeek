@@ -2608,12 +2608,12 @@ function enum_to_int%(e: any%): int
 ## Returns: The :zeek:type:`string` *str* as :zeek:type:`int`.
 ##
 ## .. zeek:see:: to_addr to_port to_subnet
-function to_int%(str: string%): int
+function to_int%(str: string, base: count &default=10%): int
 	%{
 	const char* s = str->CheckString();
 	char* end_s;
 
-	zeek_int_t i = strtoll(s, &end_s, 10);
+	zeek_int_t i = strtoll(s, &end_s, base);
 
 	if ( s[0] == '\0' || std::any_of(static_cast<const char*>(end_s), s + ::strlen(s),
 	                                 [](char c) { return ! (c == '\0' || ::isspace(c)); }) )
@@ -2676,12 +2676,12 @@ function double_to_count%(d: double%): count
 ##          an invalid format.
 ##
 ## .. zeek:see:: to_addr to_int to_port to_subnet
-function to_count%(str: string%): count
+function to_count%(str: string, base: count &default=10%): count
 	%{
 	const char* s = str->CheckString();
 	char* end_s;
 
-	uint64_t u = static_cast<uint64_t>(strtoull(s, &end_s, 10));
+	uint64_t u = static_cast<uint64_t>(strtoull(s, &end_s, base));
 
 	if ( s[0] == '\0' || std::any_of(static_cast<const char*>(end_s), s + ::strlen(s),
 	                                 [](char c) { return ! (c == '\0' || ::isspace(c)); }) )

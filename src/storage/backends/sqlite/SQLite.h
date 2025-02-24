@@ -20,12 +20,12 @@ public:
     /**
      * Called by the manager system to open the backend.
      */
-    ErrorResult DoOpen(RecordValPtr options, OpenResultCallback* cb = nullptr) override;
+    OperationResult DoOpen(RecordValPtr options, OpenResultCallback* cb = nullptr) override;
 
     /**
      * Finalizes the backend when it's being closed.
      */
-    ErrorResult DoClose(ErrorResultCallback* cb = nullptr) override;
+    OperationResult DoClose(OperationResultCallback* cb = nullptr) override;
 
     /**
      * Returns whether the backend is opened.
@@ -35,18 +35,18 @@ public:
     /**
      * The workhorse method for Put().
      */
-    ErrorResult DoPut(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0,
-                      ErrorResultCallback* cb = nullptr) override;
+    OperationResult DoPut(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0,
+                          OperationResultCallback* cb = nullptr) override;
 
     /**
      * The workhorse method for Get().
      */
-    ValResult DoGet(ValPtr key, ValResultCallback* cb = nullptr) override;
+    OperationResult DoGet(ValPtr key, OperationResultCallback* cb = nullptr) override;
 
     /**
      * The workhorse method for Erase().
      */
-    ErrorResult DoErase(ValPtr key, ErrorResultCallback* cb = nullptr) override;
+    OperationResult DoErase(ValPtr key, OperationResultCallback* cb = nullptr) override;
 
     /**
      * Removes any entries in the backend that have expired. Can be overridden by
@@ -55,7 +55,7 @@ public:
     void Expire() override;
 
 private:
-    ErrorResult checkError(int code);
+    OperationResult checkError(int code);
 
     sqlite3* db = nullptr;
     std::unordered_map<std::string, sqlite3_stmt*> prepared_stmts;

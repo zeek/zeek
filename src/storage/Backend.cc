@@ -2,151 +2,156 @@
 
 #include "zeek/storage/Backend.h"
 
-#include "zeek/Desc.h"
 #include "zeek/Trigger.h"
 #include "zeek/broker/Data.h"
+#include "zeek/storage/ReturnCode.h"
 
 namespace zeek::storage {
+
+RecordValPtr OperationResult::BuildVal() {
+    static auto op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
+
+    auto rec = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
+    rec->Assign(0, code);
+    if ( ! err_str.empty() )
+        rec->Assign(1, err_str);
+    if ( value )
+        rec->Assign(2, value);
+
+    return rec;
+}
 
 ResultCallback::ResultCallback(zeek::detail::trigger::TriggerPtr trigger, const void* assoc)
     : trigger(std::move(trigger)), assoc(assoc) {}
 
-ResultCallback::~ResultCallback() {}
-
 void ResultCallback::Timeout() {
+    static const auto& op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
+
     if ( ! IsSyncCallback() ) {
-        auto v = make_intrusive<StringVal>("Timeout during request");
-        trigger->Cache(assoc, v.get());
+        auto op_result = make_intrusive<RecordVal>(op_result_type);
+        op_result->Assign(0, ReturnCode::TIMEOUT);
+
+        trigger->Cache(assoc, op_result.release());
     }
 }
 
-void ResultCallback::ValComplete(Val* result) {
-    if ( ! IsSyncCallback() ) {
-        trigger->Cache(assoc, result);
-        trigger->Release();
+OperationResultCallback::OperationResultCallback(zeek::detail::trigger::TriggerPtr trigger, const void* assoc)
+    : ResultCallback(std::move(trigger), assoc) {}
+
+void OperationResultCallback::Complete(OperationResult res) {
+    // If this is a sync callback, there isn't a trigger to process. Store the result and bail.
+    if ( IsSyncCallback() ) {
+        result = std::move(res);
+        return;
     }
 
-    Unref(result);
-}
+    static auto op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
+    auto* op_result = new zeek::RecordVal(op_result_type);
 
-ErrorResultCallback::ErrorResultCallback(IntrusivePtr<zeek::detail::trigger::Trigger> trigger, const void* assoc)
-    : ResultCallback(std::move(trigger), assoc) {}
-
-void ErrorResultCallback::Complete(const ErrorResult& res) {
-    if ( IsSyncCallback() )
-        result = res;
-
-    zeek::Val* val_result;
-
-    if ( res )
-        val_result = new StringVal(res.value());
+    op_result->Assign(0, res.code);
+    if ( res.code->Get() != 0 )
+        op_result->Assign(1, res.err_str);
     else
-        val_result = val_mgr->Bool(true).get();
+        op_result->Assign(2, res.value);
 
-    ValComplete(val_result);
+    trigger->Cache(assoc, op_result);
+    trigger->Release();
+
+    Unref(op_result);
 }
 
-ValResultCallback::ValResultCallback(zeek::detail::trigger::TriggerPtr trigger, const void* assoc)
-    : ResultCallback(std::move(trigger), assoc) {}
+OpenResultCallback::OpenResultCallback(IntrusivePtr<detail::BackendHandleVal> backend)
+    : ResultCallback(), backend(std::move(backend)) {}
 
-void ValResultCallback::Complete(const ValResult& res) {
-    if ( IsSyncCallback() )
-        result = res;
+OpenResultCallback::OpenResultCallback(zeek::detail::trigger::TriggerPtr trigger, const void* assoc,
+                                       IntrusivePtr<detail::BackendHandleVal> backend)
+    : ResultCallback(std::move(trigger), assoc), backend(std::move(backend)) {}
 
-    static auto val_result_type = zeek::id::find_type<zeek::RecordType>("val_result");
-    auto* val_result = new zeek::RecordVal(val_result_type);
+void OpenResultCallback::Complete(OperationResult res) {
+    // If this is a sync callback, there isn't a trigger to process. Store the result and bail. Always
+    // set result's value to the backend pointer so that it comes across in the result. This ensures
+    // the handle is always available in the result even on failures.
+    if ( IsSyncCallback() ) {
+        result = std::move(res);
+        result.value = backend;
+        return;
+    }
 
-    if ( res )
-        val_result->Assign(0, res.value());
-    else
-        val_result->Assign(1, zeek::make_intrusive<StringVal>(res.error()));
+    static auto op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
+    auto* op_result = new zeek::RecordVal(op_result_type);
 
-    ValComplete(val_result);
+    op_result->Assign(0, res.code);
+    if ( res.code != ReturnCode::SUCCESS )
+        op_result->Assign(1, res.err_str);
+    op_result->Assign(2, backend);
+
+    trigger->Cache(assoc, op_result);
+    trigger->Release();
+
+    Unref(op_result);
 }
 
-OpenResultCallback::OpenResultCallback(detail::BackendHandleVal* backend) : ResultCallback(), backend(backend) {}
-
-OpenResultCallback::OpenResultCallback(IntrusivePtr<zeek::detail::trigger::Trigger> trigger, const void* assoc,
-                                       detail::BackendHandleVal* backend)
-    : ResultCallback(std::move(trigger), assoc), backend(backend) {}
-
-void OpenResultCallback::Complete(const ErrorResult& res) {
-    if ( IsSyncCallback() )
-        result = res;
-
-    zeek::Val* val_result;
-
-    if ( res )
-        val_result = new StringVal(res.value());
-    else
-        val_result = backend;
-
-    ValComplete(val_result);
-}
-
-ErrorResult Backend::Open(RecordValPtr options, TypePtr kt, TypePtr vt, OpenResultCallback* cb) {
+OperationResult Backend::Open(RecordValPtr options, TypePtr kt, TypePtr vt, OpenResultCallback* cb) {
     key_type = std::move(kt);
     val_type = std::move(vt);
 
-    return DoOpen(std::move(options));
+    auto ret = DoOpen(std::move(options), cb);
+    if ( ! ret.value )
+        ret.value = cb->Backend();
+
+    return ret;
 }
 
-ErrorResult Backend::Close(ErrorResultCallback* cb) { return DoClose(cb); }
+OperationResult Backend::Close(OperationResultCallback* cb) { return DoClose(cb); }
 
-ErrorResult Backend::Put(ValPtr key, ValPtr value, bool overwrite, double expiration_time, ErrorResultCallback* cb) {
+OperationResult Backend::Put(ValPtr key, ValPtr value, bool overwrite, double expiration_time,
+                             OperationResultCallback* cb) {
     // The intention for this method is to do some other heavy lifting in regard
     // to backends that need to pass data through the manager instead of directly
     // through the workers. For the first versions of the storage framework it
     // just calls the backend itself directly.
-    if ( ! same_type(key->GetType(), key_type) )
-        return util::fmt("type of key passed (%s) does not match backend's key type (%s)",
-                         obj_desc_short(key->GetType().get()).c_str(), key_type->GetName().c_str());
-    if ( ! same_type(value->GetType(), val_type) )
-        return util::fmt("type of value passed (%s) does not match backend's value type (%s)",
-                         obj_desc_short(value->GetType().get()).c_str(), val_type->GetName().c_str());
+    if ( ! same_type(key->GetType(), key_type) ) {
+        auto ret = OperationResult{ReturnCode::KEY_TYPE_MISMATCH};
+        CompleteCallback(cb, ret);
+        return ret;
+    }
+    if ( ! same_type(value->GetType(), val_type) ) {
+        auto ret = OperationResult{ReturnCode::VAL_TYPE_MISMATCH};
+        CompleteCallback(cb, ret);
+        return ret;
+    }
 
     return DoPut(std::move(key), std::move(value), overwrite, expiration_time, cb);
 }
 
-ValResult Backend::Get(ValPtr key, ValResultCallback* cb) {
+OperationResult Backend::Get(ValPtr key, OperationResultCallback* cb) {
     // See the note in Put().
-    if ( ! same_type(key->GetType(), key_type) )
-        return zeek::unexpected<std::string>(util::fmt("type of key passed (%s) does not match backend's key type (%s)",
-                                                       key->GetType()->GetName().c_str(), key_type->GetName().c_str()));
+    if ( ! same_type(key->GetType(), key_type) ) {
+        auto ret = OperationResult{ReturnCode::KEY_TYPE_MISMATCH};
+        CompleteCallback(cb, ret);
+        return ret;
+    }
 
     return DoGet(std::move(key), cb);
 }
 
-ErrorResult Backend::Erase(ValPtr key, ErrorResultCallback* cb) {
+OperationResult Backend::Erase(ValPtr key, OperationResultCallback* cb) {
     // See the note in Put().
-    if ( ! same_type(key->GetType(), key_type) )
-        return util::fmt("type of key passed (%s) does not match backend's key type (%s)",
-                         key->GetType()->GetName().c_str(), key_type->GetName().c_str());
+    if ( ! same_type(key->GetType(), key_type) ) {
+        auto ret = OperationResult{ReturnCode::KEY_TYPE_MISMATCH};
+        CompleteCallback(cb, ret);
+        return ret;
+    }
 
     return DoErase(std::move(key), cb);
 }
 
-void Backend::CompleteCallback(ValResultCallback* cb, const ValResult& data) const {
+void Backend::CompleteCallback(ResultCallback* cb, const OperationResult& data) const {
     cb->Complete(data);
     if ( ! cb->IsSyncCallback() ) {
         delete cb;
     }
 }
-
-void Backend::CompleteCallback(ErrorResultCallback* cb, const ErrorResult& data) const {
-    cb->Complete(data);
-    if ( ! cb->IsSyncCallback() ) {
-        delete cb;
-    }
-}
-
-void Backend::CompleteCallback(OpenResultCallback* cb, const ErrorResult& data) const {
-    cb->Complete(data);
-    if ( ! cb->IsSyncCallback() ) {
-        delete cb;
-    }
-}
-
 
 zeek::OpaqueTypePtr detail::backend_opaque;
 IMPLEMENT_OPAQUE_VALUE(detail::BackendHandleVal)

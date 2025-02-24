@@ -29,12 +29,12 @@ public:
     /**
      * Called by the manager system to open the backend.
      */
-    ErrorResult DoOpen(RecordValPtr options, OpenResultCallback* cb = nullptr) override;
+    OperationResult DoOpen(RecordValPtr options, OpenResultCallback* cb = nullptr) override;
 
     /**
      * Finalizes the backend when it's being closed.
      */
-    ErrorResult DoClose(ErrorResultCallback* cb = nullptr) override;
+    OperationResult DoClose(OperationResultCallback* cb = nullptr) override;
 
     /**
      * Returns whether the backend is opened.
@@ -44,18 +44,18 @@ public:
     /**
      * The workhorse method for Retrieve().
      */
-    ErrorResult DoPut(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0,
-                      ErrorResultCallback* cb = nullptr) override;
+    OperationResult DoPut(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0,
+                          OperationResultCallback* cb = nullptr) override;
 
     /**
      * The workhorse method for Get().
      */
-    ValResult DoGet(ValPtr key, ValResultCallback* cb = nullptr) override;
+    OperationResult DoGet(ValPtr key, OperationResultCallback* cb = nullptr) override;
 
     /**
      * The workhorse method for Erase().
      */
-    ErrorResult DoErase(ValPtr key, ErrorResultCallback* cb = nullptr) override;
+    OperationResult DoErase(ValPtr key, OperationResultCallback* cb = nullptr) override;
 
     /**
      * Removes any entries in the backend that have expired. Can be overridden by
@@ -72,9 +72,9 @@ public:
     void OnConnect(int status);
     void OnDisconnect(int status);
 
-    void HandlePutResult(redisReply* reply, ErrorResultCallback* callback);
-    void HandleGetResult(redisReply* reply, ValResultCallback* callback);
-    void HandleEraseResult(redisReply* reply, ErrorResultCallback* callback);
+    void HandlePutResult(redisReply* reply, OperationResultCallback* callback);
+    void HandleGetResult(redisReply* reply, OperationResultCallback* callback);
+    void HandleEraseResult(redisReply* reply, OperationResultCallback* callback);
     void HandleZRANGEBYSCORE(redisReply* reply);
 
     // HandleGeneric exists so that async-running-as-sync operations can remove
@@ -85,7 +85,7 @@ protected:
     void Poll() override;
 
 private:
-    ValResult ParseGetReply(redisReply* reply) const;
+    OperationResult ParseGetReply(redisReply* reply) const;
 
     redisAsyncContext* async_ctx = nullptr;
 
@@ -93,6 +93,8 @@ private:
     // responses come in from the remote calls until we run out of data to
     // poll.
     std::deque<redisReply*> reply_queue;
+
+    OpenResultCallback* open_cb;
 
     std::string server_addr;
     std::string key_prefix;

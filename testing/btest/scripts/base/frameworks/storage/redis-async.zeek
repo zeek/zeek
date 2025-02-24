@@ -30,32 +30,49 @@ event zeek_init()
 	local key = "key1234";
 	local value = "value5678";
 
-	local b = Storage::Sync::open_backend(Storage::REDIS, opts, str, str);
-
-	when [b, key, value] ( local res = Storage::Async::put(b, [ $key=key,
-	    $value=value ]) )
+	when [opts, key, value] ( local open_res = Storage::Async::open_backend(
+	    Storage::REDIS, opts, str, str) )
 		{
-		print "put result", res;
+		print "open result", open_res;
+		local b = open_res$value;
 
-		when [b, key, value] ( local res2 = Storage::Async::get(b, key) )
+		when [b, key, value] ( local put_res = Storage::Async::put(b, [ $key=key,
+		    $value=value ]) )
 			{
-			print "get result", res2;
-			if ( res2?$val )
-				print "get result same as inserted", value == ( res2$val as string );
+			print "put result", put_res;
 
-			Storage::Sync::close_backend(b);
+			when [b, key, value] ( local get_res = Storage::Async::get(b, key) )
+				{
+				print "get result", get_res;
+				if ( get_res$code == Storage::SUCCESS && get_res?$value )
+					print "get result same as inserted", value == ( get_res$value as string );
 
-			terminate();
+				when [b] ( local close_res = Storage::Async::close_backend(b) )
+					{
+					print "close result", close_res;
+					terminate();
+					}
+				timeout 5sec
+					{
+					print "close request timed out";
+					terminate();
+					}
+				}
+			timeout 5sec
+				{
+				print "get request timed out";
+				terminate();
+				}
 			}
 		timeout 5sec
 			{
-			print "get request timed out";
+			print "put request timed out";
 			terminate();
 			}
 		}
 	timeout 5sec
 		{
-		print "put request timed out";
+		print "open request timed out";
 		terminate();
 		}
 	}

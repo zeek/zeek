@@ -21,13 +21,13 @@ public:
     /**
      * Called by the manager system to open the backend.
      */
-    zeek::storage::ErrorResult DoOpen(zeek::RecordValPtr options,
-                                      zeek::storage::OpenResultCallback* cb = nullptr) override;
+    zeek::storage::OperationResult DoOpen(zeek::RecordValPtr options,
+                                          zeek::storage::OpenResultCallback* cb = nullptr) override;
 
     /**
      * Finalizes the backend when it's being closed.
      */
-    zeek::storage::ErrorResult DoClose(zeek::storage::ErrorResultCallback* cb = nullptr) override;
+    zeek::storage::OperationResult DoClose(zeek::storage::OperationResultCallback* cb = nullptr) override;
 
     /**
      * Returns whether the backend is opened.
@@ -37,19 +37,21 @@ public:
     /**
      * The workhorse method for Put().
      */
-    zeek::storage::ErrorResult DoPut(zeek::ValPtr key, zeek::ValPtr value, bool overwrite = true,
-                                     double expiration_time = 0,
-                                     zeek::storage::ErrorResultCallback* cb = nullptr) override;
+    zeek::storage::OperationResult DoPut(zeek::ValPtr key, zeek::ValPtr value, bool overwrite = true,
+                                         double expiration_time = 0,
+                                         zeek::storage::OperationResultCallback* cb = nullptr) override;
 
     /**
      * The workhorse method for Get().
      */
-    zeek::storage::ValResult DoGet(zeek::ValPtr key, zeek::storage::ValResultCallback* cb = nullptr) override;
+    zeek::storage::OperationResult DoGet(zeek::ValPtr key,
+                                         zeek::storage::OperationResultCallback* cb = nullptr) override;
 
     /**
      * The workhorse method for Erase().
      */
-    zeek::storage::ErrorResult DoErase(zeek::ValPtr key, zeek::storage::ErrorResultCallback* cb = nullptr) override;
+    zeek::storage::OperationResult DoErase(zeek::ValPtr key,
+                                           zeek::storage::OperationResultCallback* cb = nullptr) override;
 
 private:
     std::map<std::string, std::string> data;

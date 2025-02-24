@@ -23,8 +23,8 @@ export {
 		# backend opened.
 		key_prefix: string &default="";
 	};
-
-	redef record Storage::BackendOptions += {
-		redis: Options &optional;
-	};
 }
+
+redef record Storage::BackendOptions += {
+	redis: Storage::Backend::Redis::Options &optional;
+};

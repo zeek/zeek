@@ -22,10 +22,11 @@ event zeek_init()
 
 	# Test inserting/retrieving a key/value pair that we know won't be in
 	# the backend yet.
-	when [opts, key, value] ( local b = Storage::Async::open_backend(
+	when [opts, key, value] ( local open_res = Storage::Async::open_backend(
 	    Storage::SQLITE, opts, str, str) )
 		{
-		print "open successful";
+		print "open result", open_res;
+		local b = open_res$value;
 
 		when [b, key, value] ( local put_res = Storage::Async::put(b, [ $key=key,
 		    $value=value ]) )
@@ -35,8 +36,8 @@ event zeek_init()
 			when [b, key, value] ( local get_res = Storage::Async::get(b, key) )
 				{
 				print "get result", get_res;
-				if ( get_res?$val )
-					print "get result same as inserted", value == ( get_res$val as string );
+				if ( get_res$code == Storage::SUCCESS && get_res?$value )
+					print "get result same as inserted", value == ( get_res$value as string );
 
 				when [b] ( local close_res = Storage::Async::close_backend(b) )
 					{

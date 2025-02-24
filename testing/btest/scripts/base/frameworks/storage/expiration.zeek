@@ -20,8 +20,8 @@ event check_removed() {
 	# This should return an error from the sqlite backend that there aren't any more
 	# rows available.
 	local res2 = Storage::Sync::get(backend, key);
-	if ( res2?$error )
-		print "get result", res2$error;
+	if ( res2$code != Storage::SUCCESS )
+		print "get result", res2;
 
 	Storage::Sync::close_backend(backend);
 	terminate();
@@ -31,15 +31,17 @@ event setup_test() {
 	local opts : Storage::BackendOptions;
 	opts$sqlite = [$database_path = "storage-test.sqlite", $table_name = "testing"];
 
-	backend = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
+	local open_res = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
+	print "open result", open_res;
+	backend = open_res$value;
 
 	local res = Storage::Sync::put(backend, [$key=key, $value=value, $expire_time=2 secs]);
 	print "put result", res;
 
 	local res2 = Storage::Sync::get(backend, key);
 	print "get result", res2;
-	if ( res2?$val )
-		print "get result same as inserted", value == (res2$val as string);
+	if ( res2$code == Storage::SUCCESS && res2?$value )
+		print "get result same as inserted", value == (res2$value as string);
 
 	schedule 5 secs { check_removed() };
 }

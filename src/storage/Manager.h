@@ -27,7 +27,7 @@ public:
 class Manager final : public plugin::ComponentManager<Component> {
 public:
     Manager();
-    ~Manager() = default;
+    ~Manager();
 
     /**
      * Initialization of the manager. This is called late during Zeek's
@@ -55,16 +55,14 @@ public:
      * validation of types.
      * @param val_type The script-side type of the values stored in the backend. Used for
      * validation of types and conversion during retrieval.
-     * @return An optional value potentially containing an error string if needed. Will be
-     * unset if the operation succeeded.
      */
-    ErrorResult OpenBackend(BackendPtr backend, RecordValPtr configuration, TypePtr key_type, TypePtr val_type,
-                            OpenResultCallback* cb = nullptr);
+    OperationResult OpenBackend(BackendPtr backend, RecordValPtr configuration, TypePtr key_type, TypePtr val_type,
+                                OpenResultCallback* cb = nullptr);
 
     /**
      * Closes a storage backend.
      */
-    ErrorResult CloseBackend(BackendPtr backend, ErrorResultCallback* cb = nullptr);
+    OperationResult CloseBackend(BackendPtr backend, OperationResultCallback* cb = nullptr);
 
     void Expire();
 

@@ -161,6 +161,13 @@ public:
 
     explicit operator bool() const noexcept { return ptr_ != nullptr; }
 
+    void reset() noexcept {
+        if ( ptr_ ) {
+            Unref(ptr_);
+            ptr_ = nullptr;
+        }
+    }
+
 private:
     pointer ptr_ = nullptr;
 };

@@ -40,15 +40,18 @@ event setup_test()
 	opts$redis = [ $server_host="127.0.0.1", $server_port=to_port(getenv(
 	    "REDIS_PORT")), $key_prefix="testing" ];
 
-	b = Storage::Sync::open_backend(Storage::REDIS, opts, str, str);
+	local open_res = Storage::Sync::open_backend(Storage::REDIS, opts, str, str);
+	print "open result", open_res;
+
+	b = open_res$value;
 
 	local res = Storage::Sync::put(b, [ $key=key, $value=value, $expire_time=2secs ]);
 	print "put result", res;
 
 	local res2 = Storage::Sync::get(b, key);
 	print "get result", res2;
-	if ( res2?$val )
-		print "get result same as inserted", value == ( res2$val as string );
+	if ( res2$code == Storage::SUCCESS && res2?$value )
+		print "get result same as inserted", value == ( res2$value as string );
 
 	schedule 5secs { check_removed() };
 	}

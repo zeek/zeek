@@ -5,6 +5,7 @@
 #include "zeek/3rdparty/sqlite3.h"
 #include "zeek/Func.h"
 #include "zeek/Val.h"
+#include "zeek/storage/ReturnCodes.h"
 
 namespace zeek::storage::backends::sqlite {
 
@@ -17,13 +18,13 @@ storage::BackendPtr SQLite::Instantiate() { return zeek::make_intrusive<SQLite>(
  * implementation must call \a Opened(); if not, it must call Error()
  * with a corresponding message.
  */
-ErrorResult SQLite::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
+OperationResult SQLite::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
     if ( sqlite3_threadsafe() == 0 ) {
         std::string res =
             "SQLite reports that it is not threadsafe. Zeek needs a threadsafe version of "
             "SQLite. Aborting";
         Error(res.c_str());
-        return res;
+        return {ReturnCodes::FAILED_TO_INITIALIZE, res};
     }
 
     // Allow connections to same DB to use single data/schema cache. Also
@@ -37,9 +38,10 @@ ErrorResult SQLite::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
     full_path = zeek::filesystem::path(path->ToStdString()).string();
     table_name = backend_options->GetField<StringVal>("table_name")->ToStdString();
 
-    auto open_res = checkError(sqlite3_open_v2(full_path.c_str(), &db,
-                                               SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL));
-    if ( open_res.has_value() ) {
+    if ( auto open_res =
+             checkError(sqlite3_open_v2(full_path.c_str(), &db,
+                                        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL));
+         open_res.code != ReturnCodes::SUCCESS ) {
         sqlite3_close_v2(db);
         db = nullptr;
         return open_res;
@@ -54,7 +56,7 @@ ErrorResult SQLite::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
         Error(err.c_str());
         sqlite3_free(errorMsg);
         Done();
-        return err;
+        return {ReturnCodes::FAILED_TO_INITIALIZE, err};
     }
 
     if ( int res = sqlite3_exec(db, "pragma integrity_check", NULL, NULL, &errorMsg); res != SQLITE_OK ) {
@@ -62,7 +64,7 @@ ErrorResult SQLite::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
         Error(err.c_str());
         sqlite3_free(errorMsg);
         Done();
-        return err;
+        return {ReturnCodes::FAILED_TO_INITIALIZE, err};
     }
 
     auto tuning_params = backend_options->GetField<TableVal>("tuning_params")->ToMap();
@@ -76,7 +78,7 @@ ErrorResult SQLite::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
             Error(err.c_str());
             sqlite3_free(errorMsg);
             Done();
-            return err;
+            return {ReturnCodes::FAILED_TO_INITIALIZE, err};
         }
     }
 
@@ -94,7 +96,7 @@ ErrorResult SQLite::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
     for ( const auto& [key, stmt] : statements ) {
         sqlite3_stmt* ps;
         if ( auto prep_res = checkError(sqlite3_prepare_v2(db, stmt.c_str(), stmt.size(), &ps, NULL));
-             prep_res.has_value() ) {
+             prep_res.code != ReturnCodes::SUCCESS ) {
             Done();
             return prep_res;
         }
@@ -102,14 +104,14 @@ ErrorResult SQLite::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
         prepared_stmts.insert({key, ps});
     }
 
-    return std::nullopt;
+    return {ReturnCodes::SUCCESS};
 }
 
 /**
  * Finalizes the backend when it's being closed.
  */
-ErrorResult SQLite::DoDone(ErrorResultCallback* cb) {
-    ErrorResult err_res;
+OperationResult SQLite::DoDone(OperationResultCallback* cb) {
+    OperationResult op_res{ReturnCodes::SUCCESS};
 
     if ( db ) {
         for ( const auto& [k, stmt] : prepared_stmts ) {
@@ -120,27 +122,30 @@ ErrorResult SQLite::DoDone(ErrorResultCallback* cb) {
 
         char* errmsg;
         if ( int res = sqlite3_exec(db, "pragma optimize", NULL, NULL, &errmsg); res != SQLITE_OK ) {
-            err_res = util::fmt("Sqlite failed to optimize at shutdown: %s", errmsg);
+            op_res = {ReturnCodes::FAILED_TO_DISCONNECT,
+                      util::fmt("Sqlite failed to optimize at shutdown: %s", errmsg)};
             sqlite3_free(&errmsg);
+            // TODO: we're shutting down. does this error matter other than being informational?
         }
 
         if ( int res = sqlite3_close_v2(db); res != SQLITE_OK ) {
-            if ( ! err_res.has_value() )
-                err_res = "Sqlite could not close connection";
+            if ( op_res.err_str.empty() )
+                op_res.err_str = "Sqlite could not close connection";
         }
 
         db = nullptr;
     }
 
-    return err_res;
+    return op_res;
 }
 
 /**
  * The workhorse method for Put(). This must be implemented by plugins.
  */
-ErrorResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite, double expiration_time, ErrorResultCallback* cb) {
+OperationResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite, double expiration_time,
+                              OperationResultCallback* cb) {
     if ( ! db )
-        return "Database was not open";
+        return {ReturnCodes::NOT_CONNECTED};
 
     auto json_key = key->ToJSON();
     auto json_value = value->ToJSON();
@@ -153,56 +158,56 @@ ErrorResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite, double expir
 
     auto key_str = json_key->ToStdStringView();
     if ( auto res = checkError(sqlite3_bind_text(stmt, 1, key_str.data(), key_str.size(), SQLITE_STATIC));
-         res.has_value() ) {
+         res.code != ReturnCodes::SUCCESS ) {
         sqlite3_reset(stmt);
         return res;
     }
 
     auto value_str = json_value->ToStdStringView();
     if ( auto res = checkError(sqlite3_bind_text(stmt, 2, value_str.data(), value_str.size(), SQLITE_STATIC));
-         res.has_value() ) {
+         res.code != ReturnCodes::SUCCESS ) {
         sqlite3_reset(stmt);
         return res;
     }
 
-    if ( auto res = checkError(sqlite3_bind_double(stmt, 3, expiration_time)); res.has_value() ) {
+    if ( auto res = checkError(sqlite3_bind_double(stmt, 3, expiration_time)); res.code != ReturnCodes::SUCCESS ) {
         sqlite3_reset(stmt);
         return res;
     }
 
     if ( overwrite ) {
         if ( auto res = checkError(sqlite3_bind_text(stmt, 4, value_str.data(), value_str.size(), SQLITE_STATIC));
-             res.has_value() ) {
+             res.code != ReturnCodes::SUCCESS ) {
             sqlite3_reset(stmt);
             return res;
         }
     }
 
-    if ( auto res = checkError(sqlite3_step(stmt)); res.has_value() ) {
+    if ( auto res = checkError(sqlite3_step(stmt)); res.code != ReturnCodes::SUCCESS ) {
         sqlite3_reset(stmt);
         return res;
     }
 
     sqlite3_reset(stmt);
 
-    return std::nullopt;
+    return {ReturnCodes::SUCCESS};
 }
 
 /**
  * The workhorse method for Get(). This must be implemented for plugins.
  */
-ValResult SQLite::DoGet(ValPtr key, ValResultCallback* cb) {
+OperationResult SQLite::DoGet(ValPtr key, OperationResultCallback* cb) {
     if ( ! db )
-        return zeek::unexpected<std::string>("Database was not open");
+        return {ReturnCodes::NOT_CONNECTED};
 
     auto json_key = key->ToJSON();
     auto stmt = prepared_stmts["get"];
 
     auto key_str = json_key->ToStdStringView();
     if ( auto res = checkError(sqlite3_bind_text(stmt, 1, key_str.data(), key_str.size(), SQLITE_STATIC));
-         res.has_value() ) {
+         res.code != ReturnCodes::SUCCESS ) {
         sqlite3_reset(stmt);
-        return zeek::unexpected<std::string>(res.value());
+        return res;
     }
 
     int errorcode = sqlite3_step(stmt);
@@ -213,38 +218,38 @@ ValResult SQLite::DoGet(ValPtr key, ValResultCallback* cb) {
         sqlite3_reset(stmt);
         if ( std::holds_alternative<ValPtr>(val) ) {
             ValPtr val_v = std::get<ValPtr>(val);
-            return val_v;
+            return {ReturnCodes::SUCCESS, "", val_v};
         }
         else {
-            return zeek::unexpected<std::string>(std::get<std::string>(val));
+            return {ReturnCodes::OPERATION_FAILED, std::get<std::string>(val)};
         }
     }
 
-    return zeek::unexpected<std::string>(util::fmt("Failed to find row for key: %s", sqlite3_errstr(errorcode)));
+    return {ReturnCodes::KEY_NOT_FOUND};
 }
 
 /**
  * The workhorse method for Erase(). This must be implemented for plugins.
  */
-ErrorResult SQLite::DoErase(ValPtr key, ErrorResultCallback* cb) {
+OperationResult SQLite::DoErase(ValPtr key, OperationResultCallback* cb) {
     if ( ! db )
-        return "Database was not open";
+        return {ReturnCodes::NOT_CONNECTED};
 
     auto json_key = key->ToJSON();
     auto stmt = prepared_stmts["erase"];
 
     auto key_str = json_key->ToStdStringView();
     if ( auto res = checkError(sqlite3_bind_text(stmt, 1, key_str.data(), key_str.size(), SQLITE_STATIC));
-         res.has_value() ) {
+         res.code != ReturnCodes::SUCCESS ) {
         sqlite3_reset(stmt);
         return res;
     }
 
-    if ( auto res = checkError(sqlite3_step(stmt)); res.has_value() ) {
+    if ( auto res = checkError(sqlite3_step(stmt)); res.code != ReturnCodes::SUCCESS ) {
         return res;
     }
 
-    return std::nullopt;
+    return {ReturnCodes::SUCCESS};
 }
 
 /**
@@ -254,23 +259,24 @@ ErrorResult SQLite::DoErase(ValPtr key, ErrorResultCallback* cb) {
 void SQLite::Expire() {
     auto stmt = prepared_stmts["expire"];
 
-    if ( auto res = checkError(sqlite3_bind_double(stmt, 1, run_state::network_time)); res.has_value() ) {
+    if ( auto res = checkError(sqlite3_bind_double(stmt, 1, run_state::network_time));
+         res.code != ReturnCodes::SUCCESS ) {
         sqlite3_reset(stmt);
         // TODO: do something with the error here?
     }
 
-    if ( auto res = checkError(sqlite3_step(stmt)); res.has_value() ) {
+    if ( auto res = checkError(sqlite3_step(stmt)); res.code != ReturnCodes::SUCCESS ) {
         // TODO: do something with the error here?
     }
 }
 
 // returns true in case of error
-ErrorResult SQLite::checkError(int code) {
+OperationResult SQLite::checkError(int code) {
     if ( code != SQLITE_OK && code != SQLITE_DONE ) {
-        return util::fmt("SQLite call failed: %s", sqlite3_errmsg(db));
+        return {ReturnCodes::OPERATION_FAILED, util::fmt("SQLite call failed: %s", sqlite3_errmsg(db)), nullptr};
     }
 
-    return std::nullopt;
+    return {ReturnCodes::SUCCESS};
 }
 
 } // namespace zeek::storage::backends::sqlite

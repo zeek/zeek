@@ -5,6 +5,7 @@
 #include <atomic>
 
 #include "zeek/RunState.h"
+#include "zeek/storage/ReturnCodes.h"
 
 #include "const.bif.netvar_h"
 
@@ -31,7 +32,17 @@ void detail::ExpirationTimer::Dispatch(double t, bool is_expire) {
 
 Manager::Manager() : plugin::ComponentManager<storage::Component>("Storage", "Backend") {}
 
+Manager::~Manager() {
+    // TODO: should we shut down any existing backends? force-poll until all of their existing
+    // operations finish and close them?
+
+    // Don't leave all of these static objects to leak.
+    ReturnCodes::Cleanup();
+}
+
 void Manager::InitPostScript() {
+    ReturnCodes::Initialize();
+
     detail::backend_opaque = make_intrusive<OpaqueType>("Storage::Backend");
     StartExpirationTimer();
 }
@@ -58,20 +69,22 @@ BackendResult Manager::Instantiate(const Tag& type) {
     return bp;
 }
 
-ErrorResult Manager::OpenBackend(BackendPtr backend, RecordValPtr config, TypePtr key_type, TypePtr val_type,
-                                 OpenResultCallback* cb) {
-    if ( auto res = backend->Open(std::move(config), std::move(key_type), std::move(val_type), cb); res.has_value() ) {
-        return util::fmt("Failed to open backend %s: %s", backend->Tag(), res.value().c_str());
+OperationResult Manager::OpenBackend(BackendPtr backend, RecordValPtr config, TypePtr key_type, TypePtr val_type,
+                                     OpenResultCallback* cb) {
+    auto res = backend->Open(std::move(config), std::move(key_type), std::move(val_type), cb);
+    if ( res.code != ReturnCodes::SUCCESS ) {
+        res.err_str = util::fmt("Failed to open backend %s: %s", backend->Tag(), res.err_str.c_str());
+        return res;
     }
 
     RegisterBackend(std::move(backend));
 
     // TODO: post storage_connection_established event
 
-    return std::nullopt;
+    return res;
 }
 
-ErrorResult Manager::CloseBackend(BackendPtr backend, ErrorResultCallback* cb) {
+OperationResult Manager::CloseBackend(BackendPtr backend, OperationResultCallback* cb) {
     // Remove from the list always, even if the close may fail below and even in an async context.
     {
         std::unique_lock<std::mutex> lk(backends_mtx);
@@ -80,13 +93,14 @@ ErrorResult Manager::CloseBackend(BackendPtr backend, ErrorResultCallback* cb) {
             backends.erase(it);
     }
 
-    if ( auto res = backend->Done(cb); res.has_value() ) {
-        return util::fmt("Failed to close backend %s: %s", backend->Tag(), res.value().c_str());
+    if ( auto res = backend->Done(cb); res.code->Get() != 0 ) {
+        return {ReturnCodes::FAILED_TO_DISCONNECT,
+                util::fmt("Failed to close backend %s: %s", backend->Tag(), res.err_str.c_str())};
     }
 
-    return std::nullopt;
-
     // TODO: post storage_connection_lost event
+
+    return {ReturnCodes::SUCCESS};
 }
 
 void Manager::Expire() {

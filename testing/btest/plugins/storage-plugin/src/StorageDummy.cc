@@ -4,10 +4,14 @@
 
 #include "zeek/Func.h"
 #include "zeek/Val.h"
+#include "zeek/storage/ReturnCodes.h"
+
+using namespace zeek;
+using namespace zeek::storage;
 
 namespace btest::storage::backend {
 
-zeek::storage::BackendPtr StorageDummy::Instantiate() { return zeek::make_intrusive<StorageDummy>(); }
+BackendPtr StorageDummy::Instantiate() { return make_intrusive<StorageDummy>(); }
 
 /**
  * Called by the manager system to open the backend.
@@ -16,65 +20,65 @@ zeek::storage::BackendPtr StorageDummy::Instantiate() { return zeek::make_intrus
  * implementation must call \a Opened(); if not, it must call Error()
  * with a corresponding message.
  */
-zeek::storage::ErrorResult StorageDummy::DoOpen(zeek::RecordValPtr config, zeek::storage::OpenResultCallback* cb) {
-    zeek::RecordValPtr backend_options = config->GetField<zeek::RecordVal>("dummy");
-    bool open_fail = backend_options->GetField<zeek::BoolVal>("open_fail")->Get();
+OperationResult StorageDummy::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
+    RecordValPtr backend_options = config->GetField<RecordVal>("dummy");
+    bool open_fail = backend_options->GetField<BoolVal>("open_fail")->Get();
     if ( open_fail )
-        return "open_fail was set to true, returning error";
+        return {ReturnCodes::OPERATION_FAILED, "open_fail was set to true, returning error"};
 
     open = true;
 
-    return std::nullopt;
+    return {ReturnCodes::SUCCESS};
 }
 
 /**
  * Finalizes the backend when it's being closed.
  */
-zeek::storage::ErrorResult StorageDummy::DoDone(zeek::storage::ErrorResultCallback* cb) {
+OperationResult StorageDummy::DoDone(OperationResultCallback* cb) {
     open = false;
-    return std::nullopt;
+    return {ReturnCodes::SUCCESS};
 }
 
 /**
  * The workhorse method for Put(). This must be implemented by plugins.
  */
-zeek::storage::ErrorResult StorageDummy::DoPut(zeek::ValPtr key, zeek::ValPtr value, bool overwrite,
-                                               double expiration_time, zeek::storage::ErrorResultCallback* cb) {
+OperationResult StorageDummy::DoPut(ValPtr key, ValPtr value, bool overwrite, double expiration_time,
+                                    OperationResultCallback* cb) {
     auto json_key = key->ToJSON()->ToStdString();
     auto json_value = value->ToJSON()->ToStdString();
     data[json_key] = json_value;
-    return std::nullopt;
+    return {ReturnCodes::SUCCESS};
 }
 
 /**
  * The workhorse method for Get(). This must be implemented for plugins.
  */
-zeek::storage::ValResult StorageDummy::DoGet(zeek::ValPtr key, zeek::storage::ValResultCallback* cb) {
+OperationResult StorageDummy::DoGet(ValPtr key, OperationResultCallback* cb) {
     auto json_key = key->ToJSON();
     auto it = data.find(json_key->ToStdString());
     if ( it == data.end() )
-        return nonstd::unexpected<std::string>("Failed to find key");
+        return {ReturnCodes::KEY_NOT_FOUND};
 
-    auto val = zeek::detail::ValFromJSON(it->second.c_str(), val_type, zeek::Func::nil);
-    if ( std::holds_alternative<zeek::ValPtr>(val) ) {
-        zeek::ValPtr val_v = std::get<zeek::ValPtr>(val);
-        return val_v;
+    auto val = zeek::detail::ValFromJSON(it->second.c_str(), val_type, Func::nil);
+    if ( std::holds_alternative<ValPtr>(val) ) {
+        ValPtr val_v = std::get<ValPtr>(val);
+        return {ReturnCodes::SUCCESS, "", val_v};
     }
 
-    return nonstd::unexpected<std::string>(std::get<std::string>(val));
+    return {ReturnCodes::OPERATION_FAILED, std::get<std::string>(val)};
 }
 
 /**
  * The workhorse method for Erase(). This must be implemented for plugins.
  */
-zeek::storage::ErrorResult StorageDummy::DoErase(zeek::ValPtr key, zeek::storage::ErrorResultCallback* cb) {
+OperationResult StorageDummy::DoErase(ValPtr key, OperationResultCallback* cb) {
     auto json_key = key->ToJSON();
     auto it = data.find(json_key->ToStdString());
     if ( it == data.end() )
-        return "Failed to find key";
+        return {ReturnCodes::KEY_NOT_FOUND};
 
     data.erase(it);
-    return std::nullopt;
+    return {ReturnCodes::SUCCESS};
 }
 
 } // namespace btest::storage::backend

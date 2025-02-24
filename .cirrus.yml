@@ -424,6 +424,8 @@ asan_sanitizer_zam_task:
     ZEEK_CI_SKIP_UNIT_TESTS: 1
     ZEEK_CI_SKIP_EXTERNAL_BTESTS: 1
     ZEEK_CI_BTEST_EXTRA_ARGS: -a zam
+    # Use a lower number of jobs due to OOM issues with ZAM tasks
+    ZEEK_CI_BTEST_JOBS: 3
   << : *ZAM_SKIP_TASK_ON_PR
 
 ubsan_sanitizer_task:
@@ -458,6 +460,8 @@ ubsan_sanitizer_zam_task:
     ZEEK_CI_SKIP_UNIT_TESTS: 1
     ZEEK_CI_SKIP_EXTERNAL_BTESTS: 1
     ZEEK_CI_BTEST_EXTRA_ARGS: -a zam
+    # Use a lower number of jobs due to OOM issues with ZAM tasks
+    ZEEK_CI_BTEST_JOBS: 3
   << : *ZAM_SKIP_TASK_ON_PR
 
 tsan_sanitizer_task:

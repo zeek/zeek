@@ -10,7 +10,7 @@ module PacketAnalyzer::Geneve;
 ## The last entry in the outer vector are the options of the most
 ## inner Geneve header.
 ##
-## Returns a vector of vector of zeek:see:`PacketAnalyzer::Geneve::Option` records.
+## Returns a vector of vector of :zeek:see:`PacketAnalyzer::Geneve::Option` records.
 function get_options%(%): geneve_options_vec_vec
     %{
     static const auto& analyzer = zeek::packet_mgr->GetAnalyzer("Geneve");

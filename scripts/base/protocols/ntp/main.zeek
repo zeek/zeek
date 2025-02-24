@@ -49,14 +49,15 @@ export {
 	## Event that can be handled to access the NTP record as it is sent on
 	## to the logging framework.
 	global log_ntp: event(rec: Info);
+
+	## Well-known ports
+	option ports = { 123/udp };
+	redef likely_server_ports += { ports };
 }
 
 redef record connection += {
 	ntp: Info &optional;
 };
-
-const ports = { 123/udp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

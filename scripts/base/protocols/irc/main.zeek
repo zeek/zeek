@@ -33,15 +33,16 @@ export {
 	## Event that can be handled to access the IRC record as it is sent on
 	## to the logging framework.
 	global irc_log: event(rec: Info);
+
+	## Well-known ports
+	option ports = { 6666/tcp, 6667/tcp, 6668/tcp, 6669/tcp };
+	redef likely_server_ports += { ports };
 }
 
 redef record connection += {
 	## IRC session information.
 	irc:  Info &optional;
 };
-
-const ports = { 6666/tcp, 6667/tcp, 6668/tcp, 6669/tcp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

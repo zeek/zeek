@@ -35,13 +35,15 @@ export {
 
 	## MySQL finalization hook.  Remaining MySQL info may get logged when it's called.
 	global finalize_mysql: Conn::RemovalHook;
+
+	## Well-known ports
+	option ports = { 1434/tcp, 3306/tcp };
+	redef likely_server_ports += { ports };
 }
 
 redef record connection += {
 	mysql: Info &optional;
 };
-
-const ports = { 1434/tcp, 3306/tcp };
 
 event zeek_init() &priority=5
 	{

@@ -107,15 +107,16 @@ export {
 	## Disable the SMTP analyzer when that many invalid transactions
 	## have been observed in an SMTP session.
 	option max_invalid_mail_transactions = 25;
+
+	## Well-known ports
+	option ports = { 25/tcp, 587/tcp };
+	redef likely_server_ports += { ports };
 }
 
 redef record connection += {
 	smtp:       Info  &optional;
 	smtp_state: State &optional;
 };
-
-const ports = { 25/tcp, 587/tcp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

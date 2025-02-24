@@ -27,14 +27,15 @@ export {
 		## The plain text message.
 		message:   string          &log;
 	};
+
+	## Well-known ports
+	option ports = { 514/udp };
+	redef likely_server_ports += { ports };
 }
 
 redef record connection += {
 	syslog: Info &optional;
 };
-
-const ports = { 514/udp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

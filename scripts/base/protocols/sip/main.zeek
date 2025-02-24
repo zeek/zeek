@@ -93,6 +93,10 @@ export {
 
 	## SIP finalization hook.  Remaining SIP info may get logged when it's called.
 	global finalize_sip: Conn::RemovalHook;
+
+	## Well-known ports
+	option ports = { 5060/udp };
+	redef likely_server_ports += { ports };
 }
 
 # Add the sip state tracking fields to the connection record.
@@ -100,9 +104,6 @@ redef record connection += {
 	sip:        Info  &optional;
 	sip_state:  State &optional;
 };
-
-const ports = { 5060/udp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

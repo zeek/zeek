@@ -54,14 +54,15 @@ export {
 
 	## RADIUS finalization hook.  Remaining RADIUS info may get logged when it's called.
 	global finalize_radius: Conn::RemovalHook;
+
+	## Well-known ports
+	option ports = { 1812/udp };
+	redef likely_server_ports += { ports };
 }
 
 redef record connection += {
 	radius: Info &optional;
 };
-
-const ports = { 1812/udp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

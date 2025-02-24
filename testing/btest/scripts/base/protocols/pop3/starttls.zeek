@@ -8,10 +8,12 @@
 
 module POP3;
 
-const ports = {
-	110/tcp
-};
-redef likely_server_ports += { ports };
+export {
+	option ports = {
+		110/tcp
+	};
+	redef likely_server_ports += { ports };
+}
 
 event zeek_init() &priority=5
 	{

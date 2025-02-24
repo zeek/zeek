@@ -1,8 +1,9 @@
 module Foo;
 
-const ports = { 102/tcp };
-
-redef likely_server_ports += { ports };
+export {
+	option ports = { 102/tcp };
+	redef likely_server_ports += { ports };
+}
 
 event zeek_init() &priority=5
 	{

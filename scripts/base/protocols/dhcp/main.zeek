@@ -112,6 +112,11 @@ export {
 	## Event that can be handled to access the DHCP
 	## record as it is sent on to the logging framework.
 	global log_dhcp: event(rec: Info);
+
+	# 67/udp is the server's port, 68/udp the client.
+	# 4011/udp seems to be some proxyDHCP thing.
+	option ports = { 67/udp, 68/udp, 4011/udp };
+	redef likely_server_ports += { 67/udp };
 }
 
 # Add the dhcp info to the connection record.
@@ -122,11 +127,6 @@ redef record connection += {
 redef record Info += {
 	last_message_ts: time &optional;
 };
-
-# 67/udp is the server's port, 68/udp the client.
-# 4011/udp seems to be some proxyDHCP thing.
-const ports = { 67/udp, 68/udp, 4011/udp };
-redef likely_server_ports += { 67/udp };
 
 event zeek_init() &priority=5
 	{

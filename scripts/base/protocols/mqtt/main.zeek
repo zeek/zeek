@@ -126,6 +126,10 @@ export {
 		## logged yet.
 		subscribe: table[count] of SubscribeInfo &optional &write_expire=5secs &expire_func=subscribe_expire;
 	};
+
+	## Well-known ports
+	option ports = { 1883/tcp };
+	redef likely_server_ports += { ports };
 }
 
 function publish_expire(tbl: table[count] of PublishInfo, idx: count): interval
@@ -144,9 +148,6 @@ redef record connection += {
 	mqtt: ConnectInfo &optional;
 	mqtt_state: State &optional;
 };
-
-const ports = { 1883/tcp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

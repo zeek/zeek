@@ -4,7 +4,8 @@
 module Finger;
 
 export {
-	const ports = { 79/tcp };
+	## Well-known ports
+	option ports = { 79/tcp };
 	redef likely_server_ports += { ports };
 }
 

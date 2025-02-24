@@ -2680,7 +2680,7 @@ function to_count%(str: string, base: count &default=10%): count
 	const char* s = str->CheckString();
 	char* end_s;
 
-	uint64_t u = static_cast<uint64_t> strtoull(s, &end_s, base);
+	uint64_t u = static_cast<uint64_t> (strtoull(s, &end_s, base));
 
 	if ( s[0] == '\0' || end_s[0] != '\0' )
     	{

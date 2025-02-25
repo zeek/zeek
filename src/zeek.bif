@@ -2601,9 +2601,12 @@ function enum_to_int%(e: any%): int
 	return zeek::val_mgr->Int(e->AsEnum());
 	%}
 
-## Converts a :zeek:type:`string` to an :zeek:type:`int`.
+## Converts a :zeek:type:`string` to an :zeek:type:`int`. For values where
+## ``base`` is set to 16, a prefix of ``0x`` or ``0X`` will be ignored.
 ##
 ## str: The :zeek:type:`string` to convert.
+##
+## base: The :zeek:type:`count` to use as the numeric base
 ##
 ## Returns: The :zeek:type:`string` *str* as :zeek:type:`int`.
 ##
@@ -2668,9 +2671,12 @@ function double_to_count%(d: double%): count
 	return zeek::val_mgr->Count(zeek_uint_t(rint(d)));
 	%}
 
-## Converts a :zeek:type:`string` to a :zeek:type:`count`.
+## Converts a :zeek:type:`string` to a :zeek:type:`count`. For values where
+## ``base`` is set to 16, a prefix of ``0x`` or ``0X`` will be ignored.
 ##
 ## str: The :zeek:type:`string` to convert.
+##
+## base: The :zeek:type:`count` to use as the numeric base
 ##
 ## Returns: The :zeek:type:`string` *str* as unsigned integer, or 0 if *str* has
 ##          an invalid format.

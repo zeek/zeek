@@ -1,3 +1,9 @@
+7.2.0-dev.232 | 2025-02-25 07:29:43 -0700
+
+  * CI: Use the right variable for the number of test jobs for zeekctl_debian11_task tasks (Tim Wojtulewicz, Corelight)
+
+  * CI: Use fewer btest jobs for ZAM tasks (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.228 | 2025-02-24 11:37:42 -0700
 
   * Fix incorrect syntax for static_cast in to_count that I introduced in a previous merge (Mark Overholser)

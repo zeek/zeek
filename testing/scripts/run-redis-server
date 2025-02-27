@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -eux
+
+if ! redis-server --version; then
+    exit 1
+fi
+
+if [ $# -ne 1 ]; then
+    echo "Usage $0 <listen_port>" >2
+    exit 1
+fi
+
+listen_port=$1
+
+exec redis-server \
+    --bind 127.0.0.1 \
+    --port ${listen_port} \
+    --loglevel verbose \
+    --logfile redis.log \
+    --pidfile redis.pid \
+    --databases 1

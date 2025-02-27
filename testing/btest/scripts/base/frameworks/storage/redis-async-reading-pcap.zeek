@@ -3,10 +3,7 @@
 # @TEST-REQUIRES: have-redis
 # @TEST-PORT: REDIS_PORT
 
-# Generate a redis.conf file with the port defined above, but without the /tcp at the end of
-# it. This also sets some paths in the conf to the testing directory.
-# @TEST-EXEC: cat $FILES/redis.conf | sed "s|%REDIS_PORT%|${REDIS_PORT%/tcp}|g" | sed "s|%RUN_PATH%|$(pwd)|g" > ./redis.conf
-# @TEST-EXEC: btest-bg-run redis redis-server ../redis.conf
+# @TEST-EXEC: btest-bg-run redis-server run-redis-server ${REDIS_PORT%/tcp}
 # @TEST-EXEC: zeek -r $TRACES/http/get.trace -b %INPUT > out
 # @TEST-EXEC: btest-bg-wait -k 0
 

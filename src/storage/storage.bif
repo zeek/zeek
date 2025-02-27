@@ -344,6 +344,9 @@ function Storage::Sync::__put%(backend: opaque of Storage::BackendHandle, key: a
 		return op_result;
 	}
 
+	if ( expire_time > 0.0 )
+		expire_time += run_state::network_time;
+
 	auto cb = new OperationResultCallback();
 	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
 	auto val_v = IntrusivePtr<Val>{NewRef{}, value};

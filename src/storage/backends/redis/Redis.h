@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <mutex>
+
 #include "zeek/iosource/IOSource.h"
 #include "zeek/storage/Backend.h"
 
@@ -74,11 +76,7 @@ public:
     void HandlePutResult(redisReply* reply, OperationResultCallback* callback);
     void HandleGetResult(redisReply* reply, OperationResultCallback* callback);
     void HandleEraseResult(redisReply* reply, OperationResultCallback* callback);
-    void HandleZRANGEBYSCORE(redisReply* reply);
-
-    // HandleGeneric exists so that async-running-as-sync operations can remove
-    // themselves from the list of active operations.
-    void HandleGeneric() { --active_ops; }
+    void HandleGeneric(redisReply* reply);
 
 protected:
     void Poll() override;
@@ -94,6 +92,7 @@ private:
     std::deque<redisReply*> reply_queue;
 
     OpenResultCallback* open_cb;
+    std::mutex expire_mutex;
 
     std::string server_addr;
     std::string key_prefix;

@@ -16,6 +16,8 @@
 // Anonymous callback handler methods for the hiredis async API.
 namespace {
 
+bool during_expire = false;
+
 class Tracer {
 public:
     Tracer(const std::string& where) : where(where) {} // DBG_LOG(zeek::DBG_STORAGE, "%s", where.c_str()); }
@@ -59,14 +61,13 @@ void redisErase(redisAsyncContext* ctx, void* reply, void* privdata) {
 void redisZRANGEBYSCORE(redisAsyncContext* ctx, void* reply, void* privdata) {
     auto t = Tracer("zrangebyscore");
     auto backend = static_cast<zeek::storage::backends::redis::Redis*>(ctx->data);
-    backend->HandleZRANGEBYSCORE(static_cast<redisReply*>(reply));
+    backend->HandleGeneric(static_cast<redisReply*>(reply));
 }
 
 void redisGeneric(redisAsyncContext* ctx, void* reply, void* privdata) {
     auto t = Tracer("generic");
     auto backend = static_cast<zeek::storage::backends::redis::Redis*>(ctx->data);
-    backend->HandleGeneric();
-    freeReplyObject(reply);
+    backend->HandleGeneric(static_cast<redisReply*>(reply));
 }
 
 // Because we called redisPollAttach in DoOpen(), privdata here is a
@@ -74,12 +75,17 @@ void redisGeneric(redisAsyncContext* ctx, void* reply, void* privdata) {
 // data, which contains the backend. Because we overrode these callbacks in
 // DoOpen, we still want to mimic their callbacks to redisPollTick functions
 // correctly.
+//
+// Additionally, if we're in the middle of running a manual Expire() because
+// we're reading a pcap, don't add the file descriptor into iosource_mgr. Manual
+// calls to Poll() during that will handle reading/writing any data, and we
+// don't want the contention with the main loop.
 void redisAddRead(void* privdata) {
     auto t = Tracer("addread");
     auto rpe = static_cast<redisPollEvents*>(privdata);
     auto backend = static_cast<zeek::storage::backends::redis::Redis*>(rpe->context->data);
 
-    if ( rpe->reading == 0 )
+    if ( rpe->reading == 0 && ! during_expire )
         zeek::iosource_mgr->RegisterFd(rpe->fd, backend, zeek::iosource::IOSource::READ);
     rpe->reading = 1;
 }
@@ -89,7 +95,7 @@ void redisDelRead(void* privdata) {
     auto rpe = static_cast<redisPollEvents*>(privdata);
     auto backend = static_cast<zeek::storage::backends::redis::Redis*>(rpe->context->data);
 
-    if ( rpe->reading == 1 )
+    if ( rpe->reading == 1 && ! during_expire )
         zeek::iosource_mgr->UnregisterFd(rpe->fd, backend, zeek::iosource::IOSource::READ);
     rpe->reading = 0;
 }
@@ -99,7 +105,7 @@ void redisAddWrite(void* privdata) {
     auto rpe = static_cast<redisPollEvents*>(privdata);
     auto backend = static_cast<zeek::storage::backends::redis::Redis*>(rpe->context->data);
 
-    if ( rpe->writing == 0 )
+    if ( rpe->writing == 0 && ! during_expire )
         zeek::iosource_mgr->RegisterFd(rpe->fd, backend, zeek::iosource::IOSource::WRITE);
     rpe->writing = 1;
 }
@@ -109,9 +115,19 @@ void redisDelWrite(void* privdata) {
     auto t = Tracer("delwrite");
     auto backend = static_cast<zeek::storage::backends::redis::Redis*>(rpe->context->data);
 
-    if ( rpe->writing == 1 )
+    if ( rpe->writing == 1 && ! during_expire )
         zeek::iosource_mgr->UnregisterFd(rpe->fd, backend, zeek::iosource::IOSource::WRITE);
     rpe->writing = 0;
+}
+
+// Creates a unique_lock based on a condition against a mutex. This is used to
+// conditionally lock the expire_mutex. We only need to do it while reading
+// pcaps. The only thread contention happens during Expire(), which only happens
+// when reading pcaps. It's not worth the cycles to lock the mutex otherwise,
+// and hiredis will deal with other cross-command contention correctly as long
+// as it's in a single thread.
+std::unique_lock<std::mutex> conditionally_lock(bool condition, std::mutex& mutex) {
+    return condition ? std::unique_lock<std::mutex>(mutex) : std::unique_lock<std::mutex>();
 }
 
 } // namespace
@@ -217,6 +233,8 @@ OperationResult Redis::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
  * Finalizes the backend when it's being closed.
  */
 OperationResult Redis::DoDone(OperationResultCallback* cb) {
+    auto locked_scope = conditionally_lock(zeek::run_state::reading_traces, expire_mutex);
+
     connected = false;
 
     redisAsyncDisconnect(async_ctx);
@@ -243,6 +261,8 @@ OperationResult Redis::DoPut(ValPtr key, ValPtr value, bool overwrite, double ex
     // The async context will queue operations until it's connected fully.
     if ( ! connected && ! async_ctx )
         return {ReturnCodes::NOT_CONNECTED};
+
+    auto locked_scope = conditionally_lock(zeek::run_state::reading_traces, expire_mutex);
 
     std::string format = "SET %s:%s %s";
     if ( ! overwrite )
@@ -295,6 +315,8 @@ OperationResult Redis::DoGet(ValPtr key, OperationResultCallback* cb) {
     if ( ! connected && ! async_ctx )
         return {ReturnCodes::NOT_CONNECTED};
 
+    auto locked_scope = conditionally_lock(zeek::run_state::reading_traces, expire_mutex);
+
     int status = redisAsyncCommand(async_ctx, redisGet, cb, "GET %s:%s", key_prefix.data(),
                                    key->ToJSON()->ToStdStringView().data());
 
@@ -316,6 +338,8 @@ OperationResult Redis::DoErase(ValPtr key, OperationResultCallback* cb) {
     if ( ! connected && ! async_ctx )
         return {ReturnCodes::NOT_CONNECTED};
 
+    auto locked_scope = conditionally_lock(zeek::run_state::reading_traces, expire_mutex);
+
     int status = redisAsyncCommand(async_ctx, redisErase, cb, "DEL %s:%s", key_prefix.data(),
                                    key->ToJSON()->ToStdStringView().data());
 
@@ -332,12 +356,17 @@ void Redis::Expire() {
     if ( ! connected || ! zeek::run_state::reading_traces )
         return;
 
+    auto locked_scope = conditionally_lock(zeek::run_state::reading_traces, expire_mutex);
+
+    during_expire = true;
+
     int status = redisAsyncCommand(async_ctx, redisZRANGEBYSCORE, NULL, "ZRANGEBYSCORE %s_expire -inf %f",
                                    key_prefix.data(), run_state::network_time);
 
     if ( status == REDIS_ERR ) {
         // TODO: do something with the error?
         printf("ZRANGEBYSCORE command failed: %s\n", async_ctx->errstr);
+        during_expire = false;
         return;
     }
 
@@ -351,22 +380,29 @@ void Redis::Expire() {
 
     if ( reply->elements == 0 ) {
         freeReplyObject(reply);
+        during_expire = false;
         return;
     }
 
-    // The data from the reply to ZRANGEBYSCORE gets deleted as part of the
-    // commands below so we don't need to free it manually. Doing so results in
-    // a double-free.
+    std::vector<std::string> elements;
+    for ( size_t i = 0; i < reply->elements; i++ )
+        elements.emplace_back(reply->element[i]->str);
+
+    freeReplyObject(reply);
 
     // TODO: it's possible to pass multiple keys to a DEL operation but it requires
     // building an array of the strings, building up the DEL command with entries,
     // and passing the array as a block somehow. There's no guarantee it'd be faster
     // anyways.
-    for ( size_t i = 0; i < reply->elements; i++ ) {
-        status =
-            redisAsyncCommand(async_ctx, redisGeneric, NULL, "DEL %s:%s", key_prefix.data(), reply->element[i]->str);
+    for ( const auto& e : elements ) {
+        status = redisAsyncCommand(async_ctx, redisGeneric, NULL, "DEL %s:%s", key_prefix.data(), e.c_str());
         ++active_ops;
         Poll();
+
+        redisReply* reply = reply_queue.front();
+        reply_queue.pop_front();
+        freeReplyObject(reply);
+        // TODO: do we care if this failed?
     }
 
     // Remove all of the elements from the range-set that match the time range.
@@ -375,6 +411,11 @@ void Redis::Expire() {
 
     ++active_ops;
     Poll();
+
+    reply = reply_queue.front();
+    reply_queue.pop_front();
+    freeReplyObject(reply);
+    // TODO: do we care if this failed?
 }
 
 void Redis::HandlePutResult(redisReply* reply, OperationResultCallback* callback) {
@@ -425,7 +466,7 @@ void Redis::HandleEraseResult(redisReply* reply, OperationResultCallback* callba
     }
 }
 
-void Redis::HandleZRANGEBYSCORE(redisReply* reply) {
+void Redis::HandleGeneric(redisReply* reply) {
     --active_ops;
     reply_queue.push_back(reply);
 }
@@ -463,6 +504,8 @@ void Redis::OnDisconnect(int status) {
 }
 
 void Redis::ProcessFd(int fd, int flags) {
+    auto locked_scope = conditionally_lock(zeek::run_state::reading_traces, expire_mutex);
+
     if ( (flags & IOSource::ProcessFlags::READ) != 0 )
         redisAsyncHandleRead(async_ctx);
     if ( (flags & IOSource::ProcessFlags::WRITE) != 0 )

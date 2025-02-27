@@ -12,6 +12,8 @@ event zeek_init() {
 
 module Conv;
 
+public type Enum = enum { A, B = 2, C };
+
 public type Test = unit {
     a: bytes &size=5;
     b: int16;
@@ -23,6 +25,7 @@ public type Test = unit {
     h: bytes &size=1 &convert="MyString";
     i: bytes &size=1 &convert=time(1295415110.5);
     j: bytes &size=1 &convert=interval(4.0);
+    k: bytes &size=1 &convert=Enum(2);
 
     var r: MyStruct = [$i = 11];
     var s: set<uint64> = set<uint64>(1,2,3);
@@ -30,6 +33,7 @@ public type Test = unit {
     var v: vector<bytes> = vector<bytes>(b"A", b"B", b"C");
     var l: vector<bytes> = vector<bytes>(b"A", b"B", b"C");
     var m: map<int64, string> = map(1: "A", 2: "B", 3: "C");
+    var n: vector<Enum> = [Enum::A, Enum::B];
 
     on %done { print self; }
 };
@@ -59,12 +63,14 @@ on Conv::Test -> event conv::test($conn,
                                   self.h,
                                   self.i,
                                   self.j,
+                                  self.k,
                                   self.r,
                                   self.s,
                                   self.t,
                                   self.v,
                                   self.l,
-                                  self.m
+                                  self.m,
+                                  self.n
                                   );
 
 @TEST-END-FILE
@@ -86,12 +92,14 @@ event conv::test(x: connection,
                  h: string,
                  i: time,
                  j: interval,
+                 k: Conv::Enum,
                  r: MyRecord,
                  s: set[count],
                  t: MyRecord,
                  v: vector of string,
                  l: vector of string,
-                 m: table[int] of string
+                 m: table[int] of string,
+                 n: vector of Conv::Enum
                 )
     {
     print x$id;
@@ -106,10 +114,12 @@ event conv::test(x: connection,
     print h;
     print i;
     print fmt("%f", j), type_name(j); # print as float as interval format differs between versions
+    print k;
     print r;
     print s;
     print t;
     print v;
     print l;
     print m;
+    print n;
     }

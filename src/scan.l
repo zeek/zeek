@@ -222,6 +222,12 @@ static int load_files(const char* file);
 // Update the current parsing and location state for the given file and buffer.
 static int switch_to(const char* file, YY_BUFFER_STATE buffer);
 
+// Be careful to never delete things from this list, as the strings
+// are referred to (in order to save the locations of tokens and statements,
+// for error reporting and debugging).
+static zeek::name_list input_files;
+static zeek::name_list essential_input_files;
+
 // ### TODO: columns too - use yyless with '.' action?
 %}
 
@@ -467,10 +473,74 @@ when	return TOK_WHEN;
 		rc = PLUGIN_HOOK_WITH_RESULT(HOOK_LOAD_FILE_EXT, HookLoadFileExtended(zeek::plugin::Plugin::PLUGIN, plugin, ""), std::make_pair(-1, std::nullopt));
 
 	switch ( rc.first ) {
-	case -1:
-		// No plugin in charge of this file. (We ignore any returned content.)
+	case -1: {
+		// No plugin took charge this @load-plugin directive.
+		auto pre_load_input_files = input_files.size();
 		zeek::plugin_mgr->ActivateDynamicPlugin(plugin);
+
+		// No new input files: Likely the plugin was already loaded
+		// or has failed to load.
+		if ( input_files.size() == pre_load_input_files )
+			break;
+
+		// Lookup the plugin to get the path to the shared object.
+		// We use that for the loaded_scripts.log and name of the
+		// generated file loading the scripts.
+		const zeek::plugin::Plugin *pp = nullptr;
+		for ( const auto* p : zeek::plugin_mgr->ActivePlugins() )
+			{
+			if ( p->DynamicPlugin() && p->Name() == plugin )
+				{
+				pp = p;
+				break;
+				}
+			}
+
+		std::string name;
+		if ( pp )
+			name = pp->PluginPath();
+		else
+			{
+			// This shouldn't happen. If it does, we come up
+			// with an artificial filename rather than using
+			// the shared object name.
+			zeek::reporter->Warning("Did not find %s after loading", plugin);
+			name = std::string("@load-plugin ") + plugin;
+			}
+
+		// Render all needed @load lines into a string
+		std::string buf = "# @load-plugin generated script\n";
+
+		while ( input_files.size() > pre_load_input_files )
+			{
+			// Any relative files found by the plugin manager are
+			// converted to absolute paths relative to Zeek's working
+			// directory. That way it is clear where these are supposed
+			// to be found and find_relative_script_file() won't get
+			// confused by any ZEEKPATH settings. Also, plugin files
+			// containing any relative @loads themselves will work.
+			std::error_code ec;
+			auto canonical = zeek::filesystem::canonical(input_files[0]);
+			if ( ec )
+				zeek::reporter->FatalError("plugin script %s not found: %s",
+				                           input_files[0], ec.message().c_str());
+
+			buf += std::string("@load ") + canonical.string() + "\n";
+
+			delete[] input_files.remove_nth(0);
+			}
+
+		zeek::detail::zeekygen_mgr->Script(name);
+		zeek::detail::ScannedFile sf(file_stack.length(), name, false /*skipped*/,
+		                             true /*prefixes_checked*/, true /*is_canonical*/);
+		zeek::detail::files_scanned.push_back(std::move(sf));
+
+		file_stack.push_back(new FileInfo(zeek::detail::current_module));
+
+		YY_BUFFER_STATE buffer = yy_scan_bytes(buf.data(), buf.size());
+		switch_to(name.c_str(), buffer);
 		break;
+	}
 
 	case 0:
 		if ( ! zeek::reporter->Errors() )
@@ -949,12 +1019,6 @@ void reject_directive(zeek::detail::Stmt* s)
 		if ( s->AsNullStmt()->IsDirective() )
 			zeek::reporter->Error("incorrect use of directive");
 	}
-
-// Be careful to never delete things from this list, as the strings
-// are referred to (in order to save the locations of tokens and statements,
-// for error reporting and debugging).
-static zeek::name_list input_files;
-static zeek::name_list essential_input_files;
 
 void add_essential_input_file(const char* file)
 	{

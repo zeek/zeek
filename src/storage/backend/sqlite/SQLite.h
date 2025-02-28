@@ -55,7 +55,8 @@ public:
     void Expire() override;
 
 private:
-    OperationResult checkError(int code);
+    OperationResult CheckError(int code);
+    OperationResult Step(sqlite3_stmt* stmt, bool parse_value = false);
 
     sqlite3* db = nullptr;
     std::unordered_map<std::string, sqlite3_stmt*> prepared_stmts;

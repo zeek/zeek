@@ -39,7 +39,7 @@ OperationResult SQLite::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
     table_name = backend_options->GetField<StringVal>("table_name")->ToStdString();
 
     if ( auto open_res =
-             checkError(sqlite3_open_v2(full_path.c_str(), &db,
+             CheckError(sqlite3_open_v2(full_path.c_str(), &db,
                                         SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, NULL));
          open_res.code != ReturnCodes::SUCCESS ) {
         sqlite3_close_v2(db);
@@ -95,7 +95,7 @@ OperationResult SQLite::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
 
     for ( const auto& [key, stmt] : statements ) {
         sqlite3_stmt* ps;
-        if ( auto prep_res = checkError(sqlite3_prepare_v2(db, stmt.c_str(), stmt.size(), &ps, NULL));
+        if ( auto prep_res = CheckError(sqlite3_prepare_v2(db, stmt.c_str(), stmt.size(), &ps, NULL));
              prep_res.code != ReturnCodes::SUCCESS ) {
             Done();
             return prep_res;
@@ -103,6 +103,8 @@ OperationResult SQLite::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
 
         prepared_stmts.insert({key, ps});
     }
+
+    sqlite3_busy_timeout(db, 5000);
 
     return {ReturnCodes::SUCCESS};
 }
@@ -157,40 +159,33 @@ OperationResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite, double e
         stmt = prepared_stmts["put_update"];
 
     auto key_str = json_key->ToStdStringView();
-    if ( auto res = checkError(sqlite3_bind_text(stmt, 1, key_str.data(), key_str.size(), SQLITE_STATIC));
+    if ( auto res = CheckError(sqlite3_bind_text(stmt, 1, key_str.data(), key_str.size(), SQLITE_STATIC));
          res.code != ReturnCodes::SUCCESS ) {
         sqlite3_reset(stmt);
         return res;
     }
 
     auto value_str = json_value->ToStdStringView();
-    if ( auto res = checkError(sqlite3_bind_text(stmt, 2, value_str.data(), value_str.size(), SQLITE_STATIC));
+    if ( auto res = CheckError(sqlite3_bind_text(stmt, 2, value_str.data(), value_str.size(), SQLITE_STATIC));
          res.code != ReturnCodes::SUCCESS ) {
         sqlite3_reset(stmt);
         return res;
     }
 
-    if ( auto res = checkError(sqlite3_bind_double(stmt, 3, expiration_time)); res.code != ReturnCodes::SUCCESS ) {
+    if ( auto res = CheckError(sqlite3_bind_double(stmt, 3, expiration_time)); res.code != ReturnCodes::SUCCESS ) {
         sqlite3_reset(stmt);
         return res;
     }
 
     if ( overwrite ) {
-        if ( auto res = checkError(sqlite3_bind_text(stmt, 4, value_str.data(), value_str.size(), SQLITE_STATIC));
+        if ( auto res = CheckError(sqlite3_bind_text(stmt, 4, value_str.data(), value_str.size(), SQLITE_STATIC));
              res.code != ReturnCodes::SUCCESS ) {
             sqlite3_reset(stmt);
             return res;
         }
     }
 
-    if ( auto res = checkError(sqlite3_step(stmt)); res.code != ReturnCodes::SUCCESS ) {
-        sqlite3_reset(stmt);
-        return res;
-    }
-
-    sqlite3_reset(stmt);
-
-    return {ReturnCodes::SUCCESS};
+    return Step(stmt, false);
 }
 
 /**
@@ -204,28 +199,13 @@ OperationResult SQLite::DoGet(ValPtr key, OperationResultCallback* cb) {
     auto stmt = prepared_stmts["get"];
 
     auto key_str = json_key->ToStdStringView();
-    if ( auto res = checkError(sqlite3_bind_text(stmt, 1, key_str.data(), key_str.size(), SQLITE_STATIC));
+    if ( auto res = CheckError(sqlite3_bind_text(stmt, 1, key_str.data(), key_str.size(), SQLITE_STATIC));
          res.code != ReturnCodes::SUCCESS ) {
         sqlite3_reset(stmt);
         return res;
     }
 
-    int errorcode = sqlite3_step(stmt);
-    if ( errorcode == SQLITE_ROW ) {
-        // Column 1 is the value
-        const char* text = (const char*)sqlite3_column_text(stmt, 0);
-        auto val = zeek::detail::ValFromJSON(text, val_type, Func::nil);
-        sqlite3_reset(stmt);
-        if ( std::holds_alternative<ValPtr>(val) ) {
-            ValPtr val_v = std::get<ValPtr>(val);
-            return {ReturnCodes::SUCCESS, "", val_v};
-        }
-        else {
-            return {ReturnCodes::OPERATION_FAILED, std::get<std::string>(val)};
-        }
-    }
-
-    return {ReturnCodes::KEY_NOT_FOUND};
+    return Step(stmt, true);
 }
 
 /**
@@ -239,17 +219,13 @@ OperationResult SQLite::DoErase(ValPtr key, OperationResultCallback* cb) {
     auto stmt = prepared_stmts["erase"];
 
     auto key_str = json_key->ToStdStringView();
-    if ( auto res = checkError(sqlite3_bind_text(stmt, 1, key_str.data(), key_str.size(), SQLITE_STATIC));
+    if ( auto res = CheckError(sqlite3_bind_text(stmt, 1, key_str.data(), key_str.size(), SQLITE_STATIC));
          res.code != ReturnCodes::SUCCESS ) {
         sqlite3_reset(stmt);
         return res;
     }
 
-    if ( auto res = checkError(sqlite3_step(stmt)); res.code != ReturnCodes::SUCCESS ) {
-        return res;
-    }
-
-    return {ReturnCodes::SUCCESS};
+    return Step(stmt, false);
 }
 
 /**
@@ -259,24 +235,61 @@ OperationResult SQLite::DoErase(ValPtr key, OperationResultCallback* cb) {
 void SQLite::Expire() {
     auto stmt = prepared_stmts["expire"];
 
-    if ( auto res = checkError(sqlite3_bind_double(stmt, 1, run_state::network_time));
+    if ( auto res = CheckError(sqlite3_bind_double(stmt, 1, run_state::network_time));
          res.code != ReturnCodes::SUCCESS ) {
         sqlite3_reset(stmt);
         // TODO: do something with the error here?
     }
 
-    if ( auto res = checkError(sqlite3_step(stmt)); res.code != ReturnCodes::SUCCESS ) {
-        // TODO: do something with the error here?
-    }
+    Step(stmt, false);
 }
 
 // returns true in case of error
-OperationResult SQLite::checkError(int code) {
+OperationResult SQLite::CheckError(int code) {
     if ( code != SQLITE_OK && code != SQLITE_DONE ) {
         return {ReturnCodes::OPERATION_FAILED, util::fmt("SQLite call failed: %s", sqlite3_errmsg(db)), nullptr};
     }
 
     return {ReturnCodes::SUCCESS};
+}
+
+OperationResult SQLite::Step(sqlite3_stmt* stmt, bool parse_value) {
+    OperationResult ret;
+
+    int step_status = sqlite3_step(stmt);
+    if ( step_status == SQLITE_ROW ) {
+        if ( parse_value ) {
+            // Column 1 is the value
+            const char* text = (const char*)sqlite3_column_text(stmt, 0);
+            auto val = zeek::detail::ValFromJSON(text, val_type, Func::nil);
+            sqlite3_reset(stmt);
+            if ( std::holds_alternative<ValPtr>(val) ) {
+                ValPtr val_v = std::get<ValPtr>(val);
+                ret = {ReturnCodes::SUCCESS, "", val_v};
+            }
+            else {
+                ret = {ReturnCodes::OPERATION_FAILED, std::get<std::string>(val)};
+            }
+        }
+        else {
+            ret = {ReturnCodes::OPERATION_FAILED, "sqlite3_step should not have returned a value"};
+        }
+    }
+    else if ( step_status == SQLITE_DONE ) {
+        if ( parse_value )
+            ret = {ReturnCodes::KEY_NOT_FOUND};
+        else
+            ret = {ReturnCodes::SUCCESS};
+    }
+    else if ( step_status == SQLITE_BUSY )
+        // TODO: this could retry a number of times instead of just failing
+        ret = {ReturnCodes::TIMEOUT};
+    else
+        ret = {ReturnCodes::OPERATION_FAILED};
+
+    sqlite3_reset(stmt);
+
+    return ret;
 }
 
 } // namespace zeek::storage::backends::sqlite

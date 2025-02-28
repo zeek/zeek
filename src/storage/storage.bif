@@ -177,7 +177,7 @@ function Storage::Async::__put%(backend: opaque of Storage::BackendHandle, key: 
 	}
 
 	if ( expire_time > 0.0 )
-		expire_time += run_state::network_time;
+		expire_time += zeek::run_state::network_time;
 
 	auto cb = new zeek::storage::OperationResultCallback(trigger, frame->GetTriggerAssoc());
 	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
@@ -430,6 +430,9 @@ function Storage::Sync::__put%(backend: opaque of Storage::BackendHandle, key: a
 		op_result->Assign(1, zeek::make_intrusive<StringVal>("Backend is closed"));
 		return op_result;
 	}
+
+	if ( expire_time > 0.0 )
+		expire_time += zeek::run_state::network_time;
 
 	auto cb = new zeek::storage::OperationResultCallback();
 	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};

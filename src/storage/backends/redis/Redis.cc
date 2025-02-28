@@ -58,10 +58,15 @@ void redisErase(redisAsyncContext* ctx, void* reply, void* privdata) {
     backend->HandleEraseResult(static_cast<redisReply*>(reply), callback);
 }
 
-void redisZRANGEBYSCORE(redisAsyncContext* ctx, void* reply, void* privdata) {
-    auto t = Tracer("zrangebyscore");
+void redisZADD(redisAsyncContext* ctx, void* reply, void* privdata) {
+    auto t = Tracer("generic");
     auto backend = static_cast<zeek::storage::backends::redis::Redis*>(ctx->data);
-    backend->HandleGeneric(static_cast<redisReply*>(reply));
+
+    // We don't care about the reply from the ZADD, mostly because blocking to poll
+    // for it adds a bunch of complication to DoPut() with having to handle the
+    // reply from SET first.
+    backend->HandleGeneric(nullptr);
+    freeReplyObject(reply);
 }
 
 void redisGeneric(redisAsyncContext* ctx, void* reply, void* privdata) {
@@ -275,9 +280,9 @@ OperationResult Redis::DoPut(ValPtr key, ValPtr value, bool overwrite, double ex
     // Use built-in expiration if reading live data, since time will move
     // forward consistently. If reading pcaps, we'll do something else.
     if ( expiration_time > 0.0 && ! zeek::run_state::reading_traces ) {
-        format.append(" PXAT %d");
+        format.append(" PXAT %" PRIu64);
         status = redisAsyncCommand(async_ctx, redisPut, cb, format.c_str(), key_prefix.data(), json_key.data(),
-                                   json_value.data(), static_cast<uint64_t>(expiration_time * 1e6));
+                                   json_value.data(), static_cast<uint64_t>(expiration_time * 1e3));
     }
     else
         status = redisAsyncCommand(async_ctx, redisPut, cb, format.c_str(), key_prefix.data(), json_key.data(),
@@ -296,7 +301,7 @@ OperationResult Redis::DoPut(ValPtr key, ValPtr value, bool overwrite, double ex
             format.append(" NX");
         format += " %f %s";
 
-        status = redisAsyncCommand(async_ctx, redisGeneric, NULL, format.c_str(), key_prefix.data(), expiration_time,
+        status = redisAsyncCommand(async_ctx, redisZADD, NULL, format.c_str(), key_prefix.data(), expiration_time,
                                    json_key.data());
         if ( connected && status == REDIS_ERR )
             return {ReturnCodes::OPERATION_FAILED, util::fmt("ZADD operation failed: %s", async_ctx->errstr)};
@@ -360,8 +365,8 @@ void Redis::Expire() {
 
     during_expire = true;
 
-    int status = redisAsyncCommand(async_ctx, redisZRANGEBYSCORE, NULL, "ZRANGEBYSCORE %s_expire -inf %f",
-                                   key_prefix.data(), run_state::network_time);
+    int status = redisAsyncCommand(async_ctx, redisGeneric, NULL, "ZRANGEBYSCORE %s_expire -inf %f", key_prefix.data(),
+                                   run_state::network_time);
 
     if ( status == REDIS_ERR ) {
         // TODO: do something with the error?
@@ -468,7 +473,9 @@ void Redis::HandleEraseResult(redisReply* reply, OperationResultCallback* callba
 
 void Redis::HandleGeneric(redisReply* reply) {
     --active_ops;
-    reply_queue.push_back(reply);
+
+    if ( reply )
+        reply_queue.push_back(reply);
 }
 
 void Redis::OnConnect(int status) {

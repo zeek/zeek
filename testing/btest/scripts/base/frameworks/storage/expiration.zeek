@@ -12,43 +12,60 @@ redef exit_only_after_terminate = T;
 # Create a typename here that can be passed down into get().
 type str: string;
 
-global backend: opaque of Storage::BackendHandle;
-global key: string = "key1234";
-global value: string = "value7890";
+global b: opaque of Storage::BackendHandle;
+global key1: string = "key1234";
+global value1: string = "value1234";
 
-event check_removed() {
-	# This should return an error from the sqlite backend that there aren't any more
-	# rows available.
-	local res2 = Storage::Sync::get(backend, key);
-	if ( res2$code != Storage::SUCCESS )
-		print "get result", res2;
+global key2: string = "key2345";
+global value2: string = "value2345";
 
-	Storage::Sync::close_backend(backend);
+event check_removed()
+	{
+	local res = Storage::Sync::get(b, key1);
+	print "get result 1 after expiration", res;
+
+	res = Storage::Sync::get(b, key2);
+	print "get result 2 after expiration", res;
+
+	Storage::Sync::close_backend(b);
 	terminate();
-}
+	}
 
-event setup_test() {
+event setup_test()
+	{
 	local opts : Storage::BackendOptions;
 	opts$sqlite = [$database_path = "storage-test.sqlite", $table_name = "testing"];
 
 	local open_res = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
 	print "open result", open_res;
-	backend = open_res$value;
 
-	local res = Storage::Sync::put(backend, [$key=key, $value=value, $expire_time=2 secs]);
-	print "put result", res;
+	b = open_res$value;
 
-	local res2 = Storage::Sync::get(backend, key);
-	print "get result", res2;
-	if ( res2$code == Storage::SUCCESS && res2?$value )
-		print "get result same as inserted", value == (res2$value as string);
+	# Insert a key that will expire in the time allotted
+	local res = Storage::Sync::put(b, [ $key=key1, $value=value1, $expire_time=2secs ]);
+	print "put result 1", res;
 
-	schedule 5 secs { check_removed() };
-}
+	# Insert a key that won't expire
+	res = Storage::Sync::put(b, [ $key=key2, $value=value2, $expire_time=20secs ]);
+	print "put result 2", res;
 
-event zeek_init() {
+	res = Storage::Sync::get(b, key1);
+	print "get result", res;
+	if ( res$code == Storage::SUCCESS && res?$value )
+		print "get result same as inserted", value1 == ( res$value as string );
+
+	res = Storage::Sync::get(b, key2);
+	print "get result 2", res;
+	if ( res$code == Storage::SUCCESS && res?$value )
+		print "get result 2 same as inserted", value2 == ( res$value as string );
+
+	schedule 5secs { check_removed() };
+	}
+
+event zeek_init()
+	{
 	# We need network time to be set to something other than zero for the
 	# expiration time to be set correctly. Schedule an event on a short
 	# timer so packets start getting read and do the setup there.
-	schedule 100 msecs { setup_test() };
-}
+	schedule 100msecs { setup_test() };
+	}

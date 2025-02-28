@@ -219,6 +219,9 @@ static zeek::PList<FileInfo> file_stack;
 // Returns true if the file is new, false if it's already been scanned.
 static int load_files(const char* file);
 
+// Update the current parsing and location state for the given file and buffer.
+static int switch_to(const char* file, YY_BUFFER_STATE buffer);
+
 // ### TODO: columns too - use yyless with '.' action?
 %}
 
@@ -702,6 +705,23 @@ void zeek::detail::SetCurrentLocation(YYLTYPE currloc)
 	line_number = currloc.first_line;
 	}
 
+static int switch_to(const char* file, YY_BUFFER_STATE buffer)
+	{
+	yy_switch_to_buffer(buffer);
+	yylloc.first_line = yylloc.last_line = line_number = 1;
+
+	// Don't delete the old filename - it's pointed to by
+	// every Obj created when parsing it.
+	yylloc.filename = filename = zeek::util::copy_string(file);
+
+	current_file_has_conditionals = files_with_conditionals.count(filename) > 0;
+
+	entry_cond_depth.push_back(conditional_depth);
+	entry_pragma_stack_depth.push_back(pragma_stack.size());
+
+	return 1;
+	}
+
 static int load_files(const char* orig_file)
 	{
 	std::string file_path = find_relative_script_file(orig_file);
@@ -800,19 +820,7 @@ static int load_files(const char* orig_file)
 		buffer = yy_create_buffer(f, YY_BUF_SIZE);
 		}
 
-	yy_switch_to_buffer(buffer);
-	yylloc.first_line = yylloc.last_line = line_number = 1;
-
-	// Don't delete the old filename - it's pointed to by
-	// every Obj created when parsing it.
-	yylloc.filename = filename = zeek::util::copy_string(file_path.c_str());
-
-	current_file_has_conditionals = files_with_conditionals.count(filename) > 0;
-
-	entry_cond_depth.push_back(conditional_depth);
-	entry_pragma_stack_depth.push_back(pragma_stack.size());
-
-	return 1;
+	return switch_to(file_path.c_str(), buffer);
 	}
 
 void begin_RE()

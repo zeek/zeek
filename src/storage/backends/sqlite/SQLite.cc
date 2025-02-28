@@ -40,7 +40,7 @@ OperationResult SQLite::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
 
     if ( auto open_res =
              checkError(sqlite3_open_v2(full_path.c_str(), &db,
-                                        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL));
+                                        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, NULL));
          open_res.code != ReturnCodes::SUCCESS ) {
         sqlite3_close_v2(db);
         db = nullptr;

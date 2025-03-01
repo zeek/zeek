@@ -4,7 +4,7 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 
-@load base/frameworks/storage
+@load base/frameworks/storage/sync
 @load policy/frameworks/storage/backend/sqlite
 
 # Create a typename here that can be passed down into get().
@@ -20,14 +20,14 @@ event zeek_init() {
 
 	# Test inserting/retrieving a key/value pair that we know won't be in
 	# the backend yet.
-	local b = Storage::open_backend(Storage::SQLITE, opts, str, str);
+	local b = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
 
-	local res = Storage::erase(b, key, F);
+	local res = Storage::Sync::erase(b, key);
 	print "erase result", res;
 
-	local res2 = Storage::get(b, key, F);
+	local res2 = Storage::Sync::get(b, key);
 	if ( res2?$error )
 		print "get result", res2$error;
 
-	Storage::close_backend(b);
+	Storage::Sync::close_backend(b);
 }

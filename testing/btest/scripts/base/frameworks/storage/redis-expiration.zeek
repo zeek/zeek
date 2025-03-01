@@ -12,7 +12,7 @@
 
 # @TEST-EXEC: btest-diff out
 
-@load base/frameworks/storage
+@load base/frameworks/storage/sync
 @load policy/frameworks/storage/backend/redis
 
 redef Storage::expire_interval = 2 secs;
@@ -26,10 +26,10 @@ global key: string = "key1234";
 global value: string = "value7890";
 
 event check_removed() {
-	local res2 = Storage::get(b, key, F);
+	local res2 = Storage::Sync::get(b, key);
 	print "get result after expiration", res2;
 
-	Storage::close_backend(b);
+	Storage::Sync::close_backend(b);
 	terminate();
 }
 
@@ -40,12 +40,12 @@ event setup_test() {
 	opts$key_prefix = "testing";
 	opts$async_mode = F;
 
-	b = Storage::open_backend(Storage::REDIS, opts, str, str);
+	b = Storage::Sync::open_backend(Storage::REDIS, opts, str, str);
 
-	local res = Storage::put(b, [$key=key, $value=value, $async_mode=F, $expire_time=2 secs]);
+	local res = Storage::Sync::put(b, [$key=key, $value=value, $expire_time=2 secs]);
 	print "put result", res;
 
-	local res2 = Storage::get(b, key, F);
+	local res2 = Storage::Sync::get(b, key);
 	print "get result", res2;
 	if ( res2?$val )
 		print "get result same as inserted", value == (res2$val as string);

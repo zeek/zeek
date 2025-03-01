@@ -369,7 +369,9 @@ scripts/base/init-default.zeek
     scripts/base/frameworks/telemetry/main.zeek
       scripts/base/misc/version.zeek
   scripts/base/frameworks/storage/__load__.zeek
-    scripts/base/frameworks/storage/main.zeek
+    scripts/base/frameworks/storage/async.zeek
+      scripts/base/frameworks/storage/main.zeek
+    scripts/base/frameworks/storage/sync.zeek
   scripts/base/frameworks/spicy/__load__.zeek
     scripts/base/frameworks/spicy/main.zeek
   scripts/base/protocols/conn/__load__.zeek

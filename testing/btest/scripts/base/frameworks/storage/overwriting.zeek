@@ -4,7 +4,7 @@
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff .stderr
 
-@load base/frameworks/storage
+@load base/frameworks/storage/sync
 @load policy/frameworks/storage/backend/sqlite
 
 # Create a typename here that can be passed down into get().
@@ -18,15 +18,15 @@ event zeek_init() {
 	local key = "key1234";
 	local value = "value7890";
 
-	local b = Storage::open_backend(Storage::SQLITE, opts, str, str);
+	local b = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
 
-	local res = Storage::put(b, [$key=key, $value=value, $async_mode=F]);
+	local res = Storage::Sync::put(b, [$key=key, $value=value]);
 	print "put result", res;
 
-	local res2 = Storage::get(b, key, F);
+	local res2 = Storage::Sync::get(b, key);
 	print "get result", res2;
 	if ( res2?$val )
 		print "get result same as inserted", value == (res2$val as string);
 
-	Storage::close_backend(b);
+	Storage::Sync::close_backend(b);
 }

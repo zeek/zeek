@@ -3,7 +3,7 @@
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff .stderr
 
-@load base/frameworks/storage
+@load base/frameworks/storage/async
 @load policy/frameworks/storage/backend/sqlite
 
 redef exit_only_after_terminate = T;
@@ -22,18 +22,18 @@ event zeek_init() {
 
 	# Test inserting/retrieving a key/value pair that we know won't be in
 	# the backend yet.
-	when [opts, key, value] ( local b = Storage::open_backend(Storage::SQLITE, opts, str, str, T) ) {
+	when [opts, key, value] ( local b = Storage::Async::open_backend(Storage::SQLITE, opts, str, str) ) {
 		print "open successful";
 
-		when [b, key, value] ( local put_res = Storage::put(b, [$key=key, $value=value]) ) {
+		when [b, key, value] ( local put_res = Storage::Async::put(b, [$key=key, $value=value]) ) {
 			print "put result", put_res;
 
-			when [b, key, value] ( local get_res = Storage::get(b, key) ) {
+			when [b, key, value] ( local get_res = Storage::Async::get(b, key) ) {
 				print "get result", get_res;
 				if ( get_res?$val )
 					print "get result same as inserted", value == (get_res$val as string);
 
-				when [b] ( local close_res = Storage::close_backend(b, T) ) {
+				when [b] ( local close_res = Storage::Async::close_backend(b) ) {
 					print "closed succesfully";
 					terminate();
 				} timeout 5 sec {

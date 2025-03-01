@@ -3,7 +3,7 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 
-@load base/frameworks/storage
+@load base/frameworks/storage/sync
 @load policy/frameworks/storage/backend/sqlite
 
 redef Storage::expire_interval = 2 secs;
@@ -19,11 +19,11 @@ global value: string = "value7890";
 event check_removed() {
 	# This should return an error from the sqlite backend that there aren't any more
 	# rows available.
-	local res2 = Storage::get(backend, key, F);
+	local res2 = Storage::Sync::get(backend, key);
 	if ( res2?$error )
 		print "get result", res2$error;
 
-	Storage::close_backend(backend);
+	Storage::Sync::close_backend(backend);
 	terminate();
 }
 
@@ -32,12 +32,12 @@ event setup_test() {
 	opts$database_path = "storage-test.sqlite";
 	opts$table_name = "testing";
 
-	backend = Storage::open_backend(Storage::SQLITE, opts, str, str);
+	backend = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
 
-	local res = Storage::put(backend, [$key=key, $value=value, $expire_time=2 secs, $async_mode=F]);
+	local res = Storage::Sync::put(backend, [$key=key, $value=value, $expire_time=2 secs]);
 	print "put result", res;
 
-	local res2 = Storage::get(backend, key, F);
+	local res2 = Storage::Sync::get(backend, key);
 	print "get result", res2;
 	if ( res2?$val )
 		print "get result same as inserted", value == (res2$val as string);

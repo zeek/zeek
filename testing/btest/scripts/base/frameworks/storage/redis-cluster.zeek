@@ -19,7 +19,7 @@
 # @TEST-EXEC: btest-diff worker-2/.stdout
 # @TEST-EXEC:
 
-@load base/frameworks/storage
+@load base/frameworks/storage/sync
 @load base/frameworks/cluster
 @load policy/frameworks/storage/backend/redis
 @load policy/frameworks/cluster/experimental
@@ -46,14 +46,14 @@ event zeek_init() {
 	opts$key_prefix = "testing";
 	opts$async_mode = F;
 
-	backend = Storage::open_backend(Storage::REDIS, opts, str, str);
+	backend = Storage::Sync::open_backend(Storage::REDIS, opts, str, str);
 }
 
 event redis_data_written() {
 	print "redis_data_written";
-	local res = Storage::get(backend, "1234", F);
+	local res = Storage::Sync::get(backend, "1234");
 	print Cluster::node, res;
-	Storage::close_backend(backend);
+	Storage::Sync::close_backend(backend);
 	terminate();
 }
 
@@ -77,7 +77,7 @@ event redis_data_written() {
 @if ( Cluster::node == "worker-1" )
 
 event Cluster::Experimental::cluster_started() {
-	local res = Storage::put(backend, [$key="1234", $value="5678", $async_mode=F]);
+	local res = Storage::Sync::put(backend, [$key="1234", $value="5678"]);
 	print Cluster::node, "put result", res;
 
 	local e = Cluster::make_event(redis_data_written);

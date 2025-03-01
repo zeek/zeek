@@ -3,7 +3,7 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 
-@load base/frameworks/storage
+@load base/frameworks/storage/sync
 @load base/frameworks/reporter
 @load policy/frameworks/storage/backend/sqlite
 
@@ -17,18 +17,18 @@ event zeek_init() {
 	opts$table_name = "testing";
 
 	# This should report an error in .stderr and reporter.log
-	local b = Storage::open_backend(Storage::SQLITE, opts, str, str);
+	local b = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
 
 	# Open a valid database file
 	opts$database_path = "test.sqlite";
-	b = Storage::open_backend(Storage::SQLITE, opts, str, str);
+	b = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
 
 	local bad_key: count = 12345;
 	local value = "abcde";
-	Storage::put(b, [$key=bad_key, $value=value, $async_mode=F]);
+	Storage::Sync::put(b, [$key=bad_key, $value=value]);
 
 	# Close the backend and then attempt to use the closed handle
-	Storage::close_backend(b);
-	local res = Storage::put(b, [$key="a", $value="b", $async_mode=F]);
+	Storage::Sync::close_backend(b);
+	local res = Storage::Sync::put(b, [$key="a", $value="b"]);
 	print fmt("Put result on closed handle: %d", res);
 }

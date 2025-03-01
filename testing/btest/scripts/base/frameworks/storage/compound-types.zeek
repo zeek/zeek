@@ -3,7 +3,7 @@
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff .stderr
 
-@load base/frameworks/storage
+@load base/frameworks/storage/sync
 @load policy/frameworks/storage/backend/sqlite
 
 type Color: enum {
@@ -64,11 +64,11 @@ event zeek_init() {
 	value[2] = "b";
 	value[3] = "c";
 
-	local b = Storage::open_backend(Storage::SQLITE, opts, Rec, tbl);
+	local b = Storage::Sync::open_backend(Storage::SQLITE, opts, Rec, tbl);
 
-	local res = Storage::put(b, [$key=key, $value=value, $async_mode=F]);
+	local res = Storage::Sync::put(b, [$key=key, $value=value]);
 	print "put result", res;
 
-	local res2 = Storage::get(b, key, F);
+	local res2 = Storage::Sync::get(b, key);
 	print "get result", res2;
 }

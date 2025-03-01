@@ -12,7 +12,8 @@
 
 # @TEST-EXEC: btest-diff out
 
-@load base/frameworks/storage
+@load base/frameworks/storage/async
+@load base/frameworks/storage/sync
 @load policy/frameworks/storage/backend/redis
 
 redef exit_only_after_terminate = T;
@@ -30,17 +31,17 @@ event zeek_init() {
 	local key = "key1234";
 	local value = "value5678";
 
-	local b = Storage::open_backend(Storage::REDIS, opts, str, str);
+	local b = Storage::Sync::open_backend(Storage::REDIS, opts, str, str);
 
-	when [b, key, value] ( local res = Storage::put(b, [$key=key, $value=value]) ) {
+	when [b, key, value] ( local res = Storage::Async::put(b, [$key=key, $value=value]) ) {
 		print "put result", res;
 
-		when [b, key, value] ( local res2 = Storage::get(b, key) ) {
+		when [b, key, value] ( local res2 = Storage::Async::get(b, key) ) {
 			print "get result", res2;
 			if ( res2?$val )
 				print "get result same as inserted", value == (res2$val as string);
 
-			Storage::close_backend(b);
+			Storage::Sync::close_backend(b);
 
 			terminate();
 		}

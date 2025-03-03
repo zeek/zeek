@@ -1,1 +1,3 @@
-zeek_add_plugin(PacketAnalyzer Null SOURCES Null.cc Plugin.cc)
+zeek_add_plugin(
+    PacketAnalyzer Null
+    SOURCES Null.cc Plugin.cc)

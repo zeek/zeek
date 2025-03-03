@@ -86,6 +86,7 @@
   },
   "format": {
     "always_wrap": [
+      "spicy_add_analyzer",
       "zeek_add_plugin"
     ],
     "line_width": 100,

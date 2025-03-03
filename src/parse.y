@@ -82,31 +82,30 @@
 %type <expr> opt_assert_msg
 
 %{
+#include <cassert>
 #include <cstdlib>
 #include <cstring>
-#include <cassert>
-
 #include <set>
 #include <string>
 
-#include "zeek/input.h"
-#include "zeek/ZeekList.h"
 #include "zeek/Desc.h"
 #include "zeek/Expr.h"
 #include "zeek/Func.h"
+#include "zeek/IntrusivePtr.h"
+#include "zeek/RE.h"
+#include "zeek/Reporter.h"
+#include "zeek/Scope.h"
+#include "zeek/ScriptCoverageManager.h"
+#include "zeek/ScriptValidation.h"
 #include "zeek/Stmt.h"
 #include "zeek/Val.h"
 #include "zeek/Var.h"
-#include "zeek/RE.h"
-#include "zeek/Scope.h"
-#include "zeek/Reporter.h"
-#include "zeek/ScriptCoverageManager.h"
-#include "zeek/ScriptValidation.h"
-#include "zeek/zeekygen/Manager.h"
+#include "zeek/ZeekList.h"
+#include "zeek/input.h"
 #include "zeek/module_util.h"
-#include "zeek/IntrusivePtr.h"
+#include "zeek/zeekygen/Manager.h"
 
-extern const char* filename;  // Absolute path of file currently being parsed.
+extern const char* filename;      // Absolute path of file currently being parsed.
 extern const char* last_filename; // Absolute path of last file parsed.
 extern const char* last_tok_filename;
 extern const char* last_last_tok_filename;
@@ -120,8 +119,7 @@ extern YYLTYPE GetCurrentLocation();
 extern int yyerror(const char[]);
 extern int zeeklex();
 
-#define YYLLOC_DEFAULT(Current, Rhs, N) \
-	(Current) = (Rhs)[(N)];
+#define YYLLOC_DEFAULT(Current, Rhs, N) (Current) = (Rhs)[(N)];
 
 using namespace zeek;
 using namespace zeek::detail;
@@ -162,199 +160,168 @@ static int func_hdr_cond_epoch = 0;
 EnumType* cur_enum_type = nullptr;
 static ID* cur_decl_type_id = nullptr;
 
-static void parse_new_enum(void)
-	{
-	// Starting a new enum definition.
-	assert(cur_enum_type == nullptr);
+static void parse_new_enum(void) {
+    // Starting a new enum definition.
+    assert(cur_enum_type == nullptr);
 
-	if ( cur_decl_type_id )
-		{
-		auto name = make_full_var_name(current_module.c_str(), cur_decl_type_id->Name());
-		cur_enum_type = new EnumType(name);
-		}
-	else
-		reporter->FatalError("incorrect syntax for enum type declaration");
-	}
+    if ( cur_decl_type_id ) {
+        auto name = make_full_var_name(current_module.c_str(), cur_decl_type_id->Name());
+        cur_enum_type = new EnumType(name);
+    }
+    else
+        reporter->FatalError("incorrect syntax for enum type declaration");
+}
 
-static void parse_redef_enum(ID* id)
-	{
-	// Redef an enum. id points to the enum to be redefined.
-	// Let cur_enum_type point to it.
-	assert(cur_enum_type == nullptr);
+static void parse_redef_enum(ID* id) {
+    // Redef an enum. id points to the enum to be redefined.
+    // Let cur_enum_type point to it.
+    assert(cur_enum_type == nullptr);
 
-	// abort on errors; enums need to be accessible to continue parsing
-	if ( ! id->GetType() )
-		reporter->FatalError("unknown enum identifier \"%s\"", id->Name());
-	else
-		{
-		if ( ! id->GetType() || id->GetType()->Tag() != TYPE_ENUM )
-			reporter->FatalError("identifier \"%s\" is not an enum", id->Name());
-		cur_enum_type = id->GetType()->AsEnumType();
-		}
-	}
+    // abort on errors; enums need to be accessible to continue parsing
+    if ( ! id->GetType() )
+        reporter->FatalError("unknown enum identifier \"%s\"", id->Name());
+    else {
+        if ( ! id->GetType() || id->GetType()->Tag() != TYPE_ENUM )
+            reporter->FatalError("identifier \"%s\" is not an enum", id->Name());
+        cur_enum_type = id->GetType()->AsEnumType();
+    }
+}
 
 static void parse_redef_record_field(ID* id, const char* field, InitClass ic,
-                                     std::unique_ptr<std::vector<AttrPtr>> attrs)
-	{
-	if ( ! id->GetType() )
-		{
-		reporter->FatalError("unknown record identifier \"%s\"", id->Name());
-		return;
-		}
+                                     std::unique_ptr<std::vector<AttrPtr>> attrs) {
+    if ( ! id->GetType() ) {
+        reporter->FatalError("unknown record identifier \"%s\"", id->Name());
+        return;
+    }
 
-	auto t = id->GetType();
-	if ( ! t || t->Tag() != TYPE_RECORD )
-		{
-		reporter->FatalError("identifier \"%s\" has type \"%s\", expected \"record\"",
-		                     id->Name(), type_name(t->Tag()));
-		return;
-		}
+    auto t = id->GetType();
+    if ( ! t || t->Tag() != TYPE_RECORD ) {
+        reporter->FatalError("identifier \"%s\" has type \"%s\", expected \"record\"", id->Name(), type_name(t->Tag()));
+        return;
+    }
 
-	auto rt = t->AsRecordType();
-	auto idx = rt->FieldOffset(field);
-	if ( idx < 0 )
-		{
-		reporter->FatalError("field \"%s\" not in record \"%s\"", field, id->Name());
-		return;
-		}
+    auto rt = t->AsRecordType();
+    auto idx = rt->FieldOffset(field);
+    if ( idx < 0 ) {
+        reporter->FatalError("field \"%s\" not in record \"%s\"", field, id->Name());
+        return;
+    }
 
-	auto decl = rt->FieldDecl(idx);
-	if ( ! decl->attrs )
-		if ( ic == INIT_EXTRA )
-			decl->attrs = make_intrusive<detail::Attributes>(decl->type,
-			                                                 true /* in_record */,
-			                                                 false /* is_global */);
+    auto decl = rt->FieldDecl(idx);
+    if ( ! decl->attrs )
+        if ( ic == INIT_EXTRA )
+            decl->attrs = make_intrusive<detail::Attributes>(decl->type, true /* in_record */, false /* is_global */);
 
-	for ( const auto& attr : *attrs )
-		{
-		// At this point, only support &log redef'ing.
-		if ( attr->Tag() != ATTR_LOG )
-			{
-				reporter->FatalError("Can only redef \"&log\" attributes of record fields");
-				return;
-			}
+    for ( const auto& attr : *attrs ) {
+        // At this point, only support &log redef'ing.
+        if ( attr->Tag() != ATTR_LOG ) {
+            reporter->FatalError("Can only redef \"&log\" attributes of record fields");
+            return;
+        }
 
-		if ( ic == INIT_EXTRA )
-			decl->attrs->AddAttr(attr, true /* is_redef */);
-		else
-			// Removing attributes is a noop if they don't exist.
-			if ( decl->attrs )
-				decl->attrs->RemoveAttr(attr->Tag());
-		}
-	}
+        if ( ic == INIT_EXTRA )
+            decl->attrs->AddAttr(attr, true /* is_redef */);
+        else
+            // Removing attributes is a noop if they don't exist.
+            if ( decl->attrs )
+                decl->attrs->RemoveAttr(attr->Tag());
+    }
+}
 
-static void extend_record(ID* id, std::unique_ptr<type_decl_list> fields,
-                          std::unique_ptr<std::vector<AttrPtr>> attrs)
-	{
-	const auto& types = Type::Aliases(id->Name());
+static void extend_record(ID* id, std::unique_ptr<type_decl_list> fields, std::unique_ptr<std::vector<AttrPtr>> attrs) {
+    const auto& types = Type::Aliases(id->Name());
 
-	if ( types.empty() )
-		{
-		id->Error("failed to redef record: no types found in alias map");
-		return;
-		}
+    if ( types.empty() ) {
+        id->Error("failed to redef record: no types found in alias map");
+        return;
+    }
 
-	bool add_log_attr = false;
+    bool add_log_attr = false;
 
-	if ( attrs )
-		for ( const auto& at : *attrs )
-			if ( at->Tag() == ATTR_LOG )
-				{
-				add_log_attr = true;
-				break;
-				}
+    if ( attrs )
+        for ( const auto& at : *attrs )
+            if ( at->Tag() == ATTR_LOG ) {
+                add_log_attr = true;
+                break;
+            }
 
-	for ( const auto& t : types )
-		{
-		auto error = t->AsRecordType()->AddFields(*fields, add_log_attr);
+    for ( const auto& t : types ) {
+        auto error = t->AsRecordType()->AddFields(*fields, add_log_attr);
 
-		if ( error )
-			{
-			id->Error(error);
-			break;
-			}
-		}
-	}
+        if ( error ) {
+            id->Error(error);
+            break;
+        }
+    }
+}
 
-static AttributesPtr
-make_attributes(std::vector<AttrPtr>* attrs,
-                TypePtr t, bool in_record, bool is_global)
-	{
-	if ( ! attrs )
-		return nullptr;
+static AttributesPtr make_attributes(std::vector<AttrPtr>* attrs, TypePtr t, bool in_record, bool is_global) {
+    if ( ! attrs )
+        return nullptr;
 
-	auto rval = make_intrusive<Attributes>(std::move(*attrs), std::move(t),
-	                                       in_record, is_global);
-	delete attrs;
-	return rval;
-	}
+    auto rval = make_intrusive<Attributes>(std::move(*attrs), std::move(t), in_record, is_global);
+    delete attrs;
+    return rval;
+}
 
-static bool expr_is_table_type_name(const Expr* expr)
-	{
-	if ( expr->Tag() != EXPR_NAME )
-		return false;
+static bool expr_is_table_type_name(const Expr* expr) {
+    if ( expr->Tag() != EXPR_NAME )
+        return false;
 
-	const auto& type = expr->GetType();
+    const auto& type = expr->GetType();
 
-	if ( type->IsTable() )
-		return true;
+    if ( type->IsTable() )
+        return true;
 
-	if ( type->Tag() == TYPE_TYPE )
-		return type->AsTypeType()->GetType()->IsTable();
+    if ( type->Tag() == TYPE_TYPE )
+        return type->AsTypeType()->GetType()->IsTable();
 
-	return false;
-	}
+    return false;
+}
 
-static void check_loop_var(const IDPtr& var)
-	{
-	if ( var->IsGlobal() )
- 		var->Error("global variable used in 'for' loop");
+static void check_loop_var(const IDPtr& var) {
+    if ( var->IsGlobal() )
+        var->Error("global variable used in 'for' loop");
 
- 	if ( var->IsConst() )
- 		var->Error("constant used in 'for' loop");
-	}
+    if ( var->IsConst() )
+        var->Error("constant used in 'for' loop");
+}
 
-static void build_global(ID* id, Type* t, InitClass ic, Expr* e,
-                         std::vector<AttrPtr>* attrs, DeclType dt)
-	{
-	IDPtr id_ptr{AdoptRef{}, id};
-	TypePtr t_ptr{AdoptRef{}, t};
-	ExprPtr e_ptr{AdoptRef{}, e};
+static void build_global(ID* id, Type* t, InitClass ic, Expr* e, std::vector<AttrPtr>* attrs, DeclType dt) {
+    IDPtr id_ptr{AdoptRef{}, id};
+    TypePtr t_ptr{AdoptRef{}, t};
+    ExprPtr e_ptr{AdoptRef{}, e};
 
-	auto attrs_ptr = attrs ? std::make_unique<std::vector<AttrPtr>>(*attrs) : nullptr;
+    auto attrs_ptr = attrs ? std::make_unique<std::vector<AttrPtr>>(*attrs) : nullptr;
 
-	add_global(id_ptr, std::move(t_ptr), ic, e_ptr, std::move(attrs_ptr), dt);
+    add_global(id_ptr, std::move(t_ptr), ic, e_ptr, std::move(attrs_ptr), dt);
 
-	if ( dt == VAR_REDEF )
-		zeekygen_mgr->Redef(id, ::filename, ic, std::move(e_ptr));
-	else
-		zeekygen_mgr->Identifier(std::move(id_ptr));
-	}
+    if ( dt == VAR_REDEF )
+        zeekygen_mgr->Redef(id, ::filename, ic, std::move(e_ptr));
+    else
+        zeekygen_mgr->Identifier(std::move(id_ptr));
+}
 
-static StmtPtr build_local(ID* id, Type* t, InitClass ic, Expr* e,
-                           std::vector<AttrPtr>* attrs, DeclType dt,
-                           bool do_coverage)
-	{
-	IDPtr id_ptr{AdoptRef{}, id};
-	TypePtr t_ptr{AdoptRef{}, t};
-	ExprPtr e_ptr{AdoptRef{}, e};
+static StmtPtr build_local(ID* id, Type* t, InitClass ic, Expr* e, std::vector<AttrPtr>* attrs, DeclType dt,
+                           bool do_coverage) {
+    IDPtr id_ptr{AdoptRef{}, id};
+    TypePtr t_ptr{AdoptRef{}, t};
+    ExprPtr e_ptr{AdoptRef{}, e};
 
-	auto attrs_ptr = attrs ? std::make_unique<std::vector<AttrPtr>>(*attrs) : nullptr;
+    auto attrs_ptr = attrs ? std::make_unique<std::vector<AttrPtr>>(*attrs) : nullptr;
 
-	auto init = add_local(std::move(id_ptr), std::move(t_ptr), ic,
-	                      e_ptr, std::move(attrs_ptr), dt);
+    auto init = add_local(std::move(id_ptr), std::move(t_ptr), ic, e_ptr, std::move(attrs_ptr), dt);
 
-	if ( do_coverage )
-		script_coverage_mgr.AddStmt(init.get());
+    if ( do_coverage )
+        script_coverage_mgr.AddStmt(init.get());
 
-	return init;
-	}
+    return init;
+}
 
-static void refine_location(zeek::detail::ID* id)
-	{
-	if ( *id->GetLocationInfo() == zeek::detail::no_location )
-		id->SetLocationInfo(&detail::start_location, &detail::end_location);
-	}
+static void refine_location(zeek::detail::ID* id) {
+    if ( *id->GetLocationInfo() == zeek::detail::no_location )
+        id->SetLocationInfo(&detail::start_location, &detail::end_location);
+}
 
 %}
 
@@ -384,11 +351,10 @@ static void refine_location(zeek::detail::ID* id)
 	zeek::FuncType::Capture* capture;
 	zeek::FuncType::CaptureList* captures;
 	zeek::detail::WhenInfo* when_clause;
-	struct
-		{
+	struct {
 		bool ignore_case;
 		bool single_line;
-		} re_modes;
+	} re_modes;
 }
 
 %%
@@ -549,35 +515,30 @@ expr:
 			set_location(@1, @2);
 			$$ = new NegExpr({AdoptRef{}, $2});
 
-			if ( ! $$->IsError() && $2->IsConst() )
-				{
+			if ( ! $$->IsError() && $2->IsConst() ) {
 				auto v = $2->ExprVal();
 				auto tag = v->GetType()->Tag();
 
-				if ( tag == TYPE_COUNT )
-					{
+				if ( tag == TYPE_COUNT ) {
 					auto c = v->AsCount();
 					uint64_t int_max = static_cast<uint64_t>(INT64_MAX) + 1;
 
-					if ( c <= int_max )
-						{
+					if ( c <= int_max ) {
 						auto ce = new ConstExpr(val_mgr->Int(-c));
 						Unref($$);
 						$$ = ce;
-						}
-					else
-						{
+					}
+					else {
 						$$->Error("literal is outside range of 'int' values");
 						$$->SetError();
-						}
 					}
-				else
-					{
+				}
+				else {
 					auto ce = new ConstExpr($$->Eval(nullptr));
 					Unref($$);
 					$$ = ce;
-					}
 				}
+			}
 			}
 
 	|	'+' expr	%prec '!'
@@ -600,8 +561,7 @@ expr:
 			ExprPtr rhs = {AdoptRef{}, $3};
 			auto tag1 = $1->GetType()->Tag();
 
-			if ( IsArithmetic($1->GetType()->Tag()) )
-				{
+			if ( IsArithmetic($1->GetType()->Tag()) ) {
 				// Script optimization assumes that each AST
 				// node is distinct, hence the call to
 				// Duplicate() here.
@@ -611,7 +571,7 @@ expr:
 					sum = make_intrusive<ArithCoerceExpr>(sum, tag1);
 
 				$$ = new AssignExpr(lhs, sum, false);
-				}
+			}
 			else
 				$$ = new AddToExpr(lhs, rhs);
 			}
@@ -630,15 +590,14 @@ expr:
 			ExprPtr rhs = {AdoptRef{}, $3};
 			auto tag1 = $1->GetType()->Tag();
 
-			if ( IsArithmetic(tag1) )
-				{
+			if ( IsArithmetic(tag1) ) {
 				ExprPtr sum = make_intrusive<SubExpr>(lhs, rhs);
 
 				if ( sum->GetType()->Tag() != tag1 )
 					sum = make_intrusive<ArithCoerceExpr>(sum, tag1);
 
 				$$ = new AssignExpr(lhs, sum, false);
-				}
+			}
 			else
 				$$ = new RemoveFromExpr(lhs, rhs);
 			}
@@ -773,7 +732,7 @@ expr:
 			{
 			set_location(@2, @4);
 			if ( ! locals_at_this_scope.empty() )
-			       locals_at_this_scope.back().insert($2);
+				locals_at_this_scope.back().insert($2);
 			$$ = add_and_assign_local({AdoptRef{}, $2}, {AdoptRef{}, $4},
 			                                        val_mgr->True()).release();
 			}
@@ -806,7 +765,7 @@ expr:
 			func_hdr_location = @1;
 			$3->SetInferReturnType(true);
 			}
-		 lambda_body
+		lambda_body
 			{
 			$$ = new FieldAssignExpr($2, IntrusivePtr{AdoptRef{}, $6});
 			}
@@ -836,14 +795,12 @@ expr:
 			// used for an initializer. Interpret no expressions
 			// as an empty record constructor.
 
-			for ( int i = 0; i < $2->Exprs().length(); ++i )
-				{
-				if ( $2->Exprs()[i]->Tag() != EXPR_FIELD_ASSIGN )
-					{
+			for ( int i = 0; i < $2->Exprs().length(); ++i ) {
+				if ( $2->Exprs()[i]->Tag() != EXPR_FIELD_ASSIGN ) {
 					is_record_ctor = false;
 					break;
-					}
 				}
+			}
 
 			if ( is_record_ctor )
 				$$ = new RecordConstructorExpr({AdoptRef{}, $2});
@@ -899,12 +856,11 @@ expr:
 				const auto& ctor_type = $1->AsNameExpr()->Id()->GetType();
 
 				switch ( ctor_type->Tag() ) {
-				case TYPE_RECORD:
-					{
+				case TYPE_RECORD: {
 					auto rt = cast_intrusive<RecordType>(ctor_type);
 					$$ = new RecordConstructorExpr(rt, ListExprPtr{AdoptRef{}, $4});
-					}
 					break;
+				}
 
 				case TYPE_TABLE:
 					if ( ctor_type->IsTable() )
@@ -922,7 +878,7 @@ expr:
 					$1->Error("constructor type not implemented");
 					YYERROR;
 				}
-				}
+			}
 
 			else
 				$$ = new CallExpr({AdoptRef{}, $1}, {AdoptRef{}, $4}, in_hook > 0, in_when_cond);
@@ -960,10 +916,8 @@ expr:
 			set_location(@1);
 			auto id = lookup_ID($1, current_module.c_str());
 
-			if ( ! id )
-				{
-				if ( ! in_debug )
-					{
+			if ( ! id ) {
+				if ( ! in_debug ) {
 /*	// CHECK THAT THIS IS NOT GLOBAL.
 					id = install_ID($1, current_module.c_str(),
 							        false, is_export);
@@ -971,53 +925,45 @@ expr:
 
 					yyerror(util::fmt("unknown identifier %s", $1));
 					YYERROR;
-					}
-				else
-					{
+				}
+				else {
 					yyerror(util::fmt("unknown identifier %s", $1));
 					YYERROR;
-					}
 				}
-			else
-				{
+			}
+			else {
 				if ( id->IsDeprecated() )
 					reporter->Deprecation(id->GetDeprecationWarning());
 
-				if ( id->IsBlank() )
-					{
+				if ( id->IsBlank() ) {
 					$$ = new NameExpr(std::move(id));
 					$$->SetError("blank identifier used in expression");
-					}
-				else if ( ! id->GetType() )
-					{
+				}
+				else if ( ! id->GetType() ) {
 					id->Error("undeclared variable");
 					id->SetType(error_type());
 					$$ = new NameExpr(std::move(id));
-					}
-
-				else if ( id->IsEnumConst() )
-					{
-					if ( IsErrorType(id->GetType()->Tag()) )
-						{
+				}
+				else if ( id->IsEnumConst() ) {
+					if ( IsErrorType(id->GetType()->Tag()) ) {
 						// The most-relevant error message should already be reported, so
 						// just bail out.
 						YYERROR;
-						}
+					}
 
 					EnumType* t = id->GetType()->AsEnumType();
 					auto intval = t->Lookup(id->ModuleName(), id->Name());
 					if ( intval < 0 )
 						reporter->InternalError("enum value not found for %s", id->Name());
 					$$ = new ConstExpr(t->GetEnumVal(intval));
-					}
-				else
-					{
+				}
+				else {
 					if ( out_of_scope_locals.count(id.get()) > 0 )
 						id->Error("use of out-of-scope local; move declaration to outer scope");
 
 					$$ = new NameExpr(std::move(id));
-					}
 				}
+			}
 			}
 
 	|	TOK_CONSTANT
@@ -1050,20 +996,20 @@ expr:
 			$$ = new ConstExpr(make_intrusive<PatternVal>(re));
 			}
 
-	|       '|' expr '|'	%prec '('
+	|	'|' expr '|'	%prec '('
 			{
 			set_location(@1, @3);
 			ExprPtr e{AdoptRef{}, $2};
 			$$ = new SizeExpr(std::move(e));
 			}
 
-	|       expr TOK_AS type
+	|	expr TOK_AS type
 			{
 			set_location(@1, @3);
 			$$ = new CastExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
-	|       expr TOK_IS type
+	|	expr TOK_IS type
 			{
 			set_location(@1, @3);
 			$$ = new IsExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
@@ -1162,182 +1108,180 @@ enum_body_elem:
 
 simple_type:
 		TOK_BOOL
-				{
-				set_location(@1);
-				$$ = base_type(TYPE_BOOL)->Ref();
-				}
+			{
+			set_location(@1);
+			$$ = base_type(TYPE_BOOL)->Ref();
+			}
 
 	|	TOK_INT
-				{
-				set_location(@1);
-				$$ = base_type(TYPE_INT)->Ref();
-				}
+			{
+			set_location(@1);
+			$$ = base_type(TYPE_INT)->Ref();
+			}
 
 	|	TOK_COUNT
-				{
-				set_location(@1);
-				$$ = base_type(TYPE_COUNT)->Ref();
-				}
+			{
+			set_location(@1);
+			$$ = base_type(TYPE_COUNT)->Ref();
+			}
 
 	|	TOK_DOUBLE
-				{
-				set_location(@1);
-				$$ = base_type(TYPE_DOUBLE)->Ref();
-				}
+			{
+			set_location(@1);
+			$$ = base_type(TYPE_DOUBLE)->Ref();
+			}
 
 	|	TOK_TIME
-				{
-				set_location(@1);
-				$$ = base_type(TYPE_TIME)->Ref();
-				}
+			{
+			set_location(@1);
+			$$ = base_type(TYPE_TIME)->Ref();
+			}
 
 	|	TOK_INTERVAL
-				{
-				set_location(@1);
-				$$ = base_type(TYPE_INTERVAL)->Ref();
-				}
+			{
+			set_location(@1);
+			$$ = base_type(TYPE_INTERVAL)->Ref();
+			}
 
 	|	TOK_STRING
-				{
-				set_location(@1);
-				$$ = base_type(TYPE_STRING)->Ref();
-				}
+			{
+			set_location(@1);
+			$$ = base_type(TYPE_STRING)->Ref();
+			}
 
 	|	TOK_PATTERN
-				{
-				set_location(@1);
-				$$ = base_type(TYPE_PATTERN)->Ref();
-				}
+			{
+			set_location(@1);
+			$$ = base_type(TYPE_PATTERN)->Ref();
+			}
 
 	|	TOK_PORT
-				{
-				set_location(@1);
-				$$ = base_type(TYPE_PORT)->Ref();
-				}
+			{
+			set_location(@1);
+			$$ = base_type(TYPE_PORT)->Ref();
+			}
 
 	|	TOK_ADDR
-				{
-				set_location(@1);
-				$$ = base_type(TYPE_ADDR)->Ref();
-				}
+			{
+			set_location(@1);
+			$$ = base_type(TYPE_ADDR)->Ref();
+			}
 
 	|	TOK_SUBNET
-				{
-				set_location(@1);
-				$$ = base_type(TYPE_SUBNET)->Ref();
-				}
+			{
+			set_location(@1);
+			$$ = base_type(TYPE_SUBNET)->Ref();
+			}
 
 	|	TOK_ANY
-				{
-				set_location(@1);
-				$$ = base_type(TYPE_ANY)->Ref();
-				}
+			{
+			set_location(@1);
+			$$ = base_type(TYPE_ANY)->Ref();
+			}
 
 	|	TOK_TABLE '[' type_list ']' TOK_OF type
-				{
-				set_location(@1, @6);
-				$$ = new TableType({AdoptRef{}, $3}, {AdoptRef{}, $6});
-				}
+			{
+			set_location(@1, @6);
+			$$ = new TableType({AdoptRef{}, $3}, {AdoptRef{}, $6});
+			}
 
 	|	TOK_SET '[' type_list ']'
-				{
-				set_location(@1, @4);
-				$$ = new SetType({AdoptRef{}, $3}, nullptr);
-				}
+			{
+			set_location(@1, @4);
+			$$ = new SetType({AdoptRef{}, $3}, nullptr);
+			}
 
 	|	TOK_RECORD '{'
 			{ ++in_record; }
 		type_decl_list
 			{ --in_record; }
 		'}'
-				{
-				set_location(@1, @5);
-				$$ = new RecordType($4);
-				}
+			{
+			set_location(@1, @5);
+			$$ = new RecordType($4);
+			}
 
 	|	TOK_ENUM '{' { set_location(@1); parse_new_enum(); } enum_body '}'
-				{
-				set_location(@1, @5);
-				$4->UpdateLocationEndInfo(@5);
-				$$ = $4;
-				}
+			{
+			set_location(@1, @5);
+			$4->UpdateLocationEndInfo(@5);
+			$$ = $4;
+			}
 
 	|	TOK_LIST
-				{
-				set_location(@1);
-				// $$ = new TypeList();
-				reporter->Error("list type not implemented");
-				$$ = 0;
-				}
+			{
+			set_location(@1);
+			// $$ = new TypeList();
+			reporter->Error("list type not implemented");
+			$$ = 0;
+			}
 
 	|	TOK_LIST TOK_OF type
-				{
-				set_location(@1);
-				// $$ = new TypeList($3);
-				reporter->Error("list type not implemented");
-				$$ = 0;
-				}
+			{
+			set_location(@1);
+			// $$ = new TypeList($3);
+			reporter->Error("list type not implemented");
+			$$ = 0;
+			}
 
 	|	TOK_VECTOR TOK_OF type
-				{
-				set_location(@1, @3);
-				$$ = new VectorType({AdoptRef{}, $3});
-				}
+			{
+			set_location(@1, @3);
+			$$ = new VectorType({AdoptRef{}, $3});
+			}
 
 	|	TOK_FILE TOK_OF type
-				{
-				set_location(@1, @3);
-				$$ = new FileType({AdoptRef{}, $3});
-				}
+			{
+			set_location(@1, @3);
+			$$ = new FileType({AdoptRef{}, $3});
+			}
 
 	|	TOK_FILE
-				{
-				set_location(@1);
-				$$ = new FileType(base_type(TYPE_STRING));
-				}
+			{
+			set_location(@1);
+			$$ = new FileType(base_type(TYPE_STRING));
+			}
 
 	|	TOK_OPAQUE TOK_OF TOK_ID
-				{
-				set_location(@1, @3);
-				$$ = new OpaqueType($3);
-				}
+			{
+			set_location(@1, @3);
+			$$ = new OpaqueType($3);
+			}
 
 type:
 		simple_type
 	|	TOK_FUNCTION func_params
-				{
-				set_location(@1, @2);
-				$$ = $2;
-				}
+			{
+			set_location(@1, @2);
+			$$ = $2;
+			}
 
 	|	TOK_HOOK '(' formal_args ')'
-				{
-				set_location(@1, @3);
-				$$ = new FuncType({AdoptRef{}, $3}, base_type(TYPE_BOOL), FUNC_FLAVOR_HOOK);
-				}
+			{
+			set_location(@1, @3);
+			$$ = new FuncType({AdoptRef{}, $3}, base_type(TYPE_BOOL), FUNC_FLAVOR_HOOK);
+			}
 
 	|	TOK_EVENT '(' formal_args ')'
-				{
-				set_location(@1, @3);
-				$$ = new FuncType({AdoptRef{}, $3}, nullptr, FUNC_FLAVOR_EVENT);
-				}
+			{
+			set_location(@1, @3);
+			$$ = new FuncType({AdoptRef{}, $3}, nullptr, FUNC_FLAVOR_EVENT);
+			}
 
 	|	resolve_id
 			{
-			if ( ! $1 || ! ($$ = $1->IsType() ? $1->GetType().get() : nullptr) )
-				{
+			if ( ! $1 || ! ($$ = $1->IsType() ? $1->GetType().get() : nullptr) ) {
 				NullStmt here;
 				if ( $1 )
 					$1->Error("not a Zeek type", &here);
 				$$ = error_type()->Ref();
-				}
-			else
-				{
+			}
+			else {
 				Ref($$);
 
 				if ( $1->IsDeprecated() )
 					reporter->Deprecation($1->GetDeprecationWarning());
-				}
+			}
 			}
 	;
 
@@ -1371,7 +1315,7 @@ type_decl:
 
 			if ( in_record > 0 && cur_decl_type_id )
 				zeekygen_mgr->RecordField(cur_decl_type_id, $$, ::filename,
-				                                        in_record_redef != 0);
+				                          in_record_redef != 0);
 			}
 	;
 
@@ -1432,8 +1376,7 @@ decl:
 			}
 
 	|	TOK_REDEF global_id {
-			if ( $2->IsType() )
-				{
+			if ( $2->IsType() ) {
 				auto tag = $2->GetType()->Tag();
 				auto tstr = type_name(tag);
 				if ( tag == TYPE_RECORD || tag == TYPE_ENUM )
@@ -1495,7 +1438,7 @@ decl:
 			cur_decl_type_id = 0;
 			IntrusivePtr id{AdoptRef{}, $2};
 			add_type(id.get(), {AdoptRef{}, $5},
-			                       std::unique_ptr<std::vector<AttrPtr>>{$6});
+			         std::unique_ptr<std::vector<AttrPtr>>{$6});
 			zeekygen_mgr->Identifier(std::move(id));
 			}
 
@@ -1531,16 +1474,16 @@ func_hdr:
 			{
 			IntrusivePtr id{AdoptRef{}, $2};
 			begin_func(id, current_module.c_str(),
-				                     FUNC_FLAVOR_FUNCTION, false, {NewRef{}, $3},
-			                         std::unique_ptr<std::vector<AttrPtr>>{$4});
+				       FUNC_FLAVOR_FUNCTION, false, {NewRef{}, $3},
+			           std::unique_ptr<std::vector<AttrPtr>>{$4});
 			$$ = $3;
 			zeekygen_mgr->Identifier(std::move(id));
 			}
 	|	TOK_EVENT event_id func_params opt_attr
 			{
 			begin_func({NewRef{}, $2}, current_module.c_str(),
-				                     FUNC_FLAVOR_EVENT, false, {NewRef{}, $3},
-			                         std::unique_ptr<std::vector<AttrPtr>>{$4});
+				       FUNC_FLAVOR_EVENT, false, {NewRef{}, $3},
+			           std::unique_ptr<std::vector<AttrPtr>>{$4});
 			$$ = $3;
 			}
 	|	TOK_HOOK def_global_id func_params opt_attr
@@ -1548,15 +1491,15 @@ func_hdr:
 			$3->ClearYieldType(FUNC_FLAVOR_HOOK);
 			$3->SetYieldType(base_type(TYPE_BOOL));
 			begin_func({NewRef{}, $2}, current_module.c_str(),
-				                     FUNC_FLAVOR_HOOK, false, {NewRef{}, $3},
-			                         std::unique_ptr<std::vector<AttrPtr>>{$4});
+				       FUNC_FLAVOR_HOOK, false, {NewRef{}, $3},
+			           std::unique_ptr<std::vector<AttrPtr>>{$4});
 			$$ = $3;
 			}
 	|	TOK_REDEF TOK_EVENT event_id func_params opt_attr
 			{
 			begin_func({NewRef{}, $3}, current_module.c_str(),
-				                     FUNC_FLAVOR_EVENT, true, {NewRef{}, $4},
-			                         std::unique_ptr<std::vector<AttrPtr>>{$5});
+				       FUNC_FLAVOR_EVENT, true, {NewRef{}, $4},
+			           std::unique_ptr<std::vector<AttrPtr>>{$5});
 			$$ = $4;
 			}
 	;
@@ -1582,8 +1525,7 @@ func_body:
 			set_location(func_hdr_location, @5);
 
 			bool free_of_conditionals = true;
-			if ( current_file_has_conditionals ||
-			     conditional_epoch > func_hdr_cond_epoch )
+			if ( current_file_has_conditionals || conditional_epoch > func_hdr_cond_epoch )
 				free_of_conditionals = false;
 
 			end_func({AdoptRef{}, $3}, current_module.c_str(), free_of_conditionals);
@@ -1652,11 +1594,10 @@ begin_lambda:
 
 			std::optional<FuncType::CaptureList> captures;
 
-			if ( $1 )
-				{
+			if ( $1 ) {
 				captures = *$1;
 				delete $1;
-				}
+			}
 
 			$2->SetCaptures(std::move(captures));
 			$$ = id.release();
@@ -1692,16 +1633,14 @@ capture:
 
 			if ( ! id )
 				reporter->Error("no such local identifier: %s", $2);
-			else if ( id->IsType() )
-				{
+			else if ( id->IsType() ) {
 				reporter->Error("cannot specify type in capture: %s", $2);
 				id = nullptr;
-				}
-			else if ( id->IsGlobal() )
-				{
+			}
+			else if ( id->IsGlobal() ) {
 				reporter->Error("cannot specify global in capture: %s", $2);
 				id = nullptr;
-				}
+			}
 
 			delete [] $2;
 
@@ -1836,13 +1775,12 @@ attr:
 				$$ = new Attr(
 					ATTR_DEPRECATED,
 					make_intrusive<ConstExpr>(IntrusivePtr{AdoptRef{}, $3}));
-			else
-				{
+			else {
 				ODesc d;
 				$3->Describe(&d);
 				Unref($3);
 				reporter->Error("'&deprecated=%s' must use a string literal",
-				                      d.Description());
+				                d.Description());
 				$$ = new Attr(ATTR_DEPRECATED);
 				}
 			}
@@ -1865,7 +1803,7 @@ stmt:
 			set_location(@1, @5);
 			$$ = $4;
 			if ( $3 )
-			    script_coverage_mgr.DecIgnoreDepth();
+				script_coverage_mgr.DecIgnoreDepth();
 			}
 
 	|	TOK_ASSERT expr opt_assert_msg ';'
@@ -1878,7 +1816,7 @@ stmt:
 			set_location(@1, @3);
 			$$ = new PrintStmt(IntrusivePtr{AdoptRef{}, $2});
 			if ( ! $4 )
-			    script_coverage_mgr.AddStmt($$);
+				script_coverage_mgr.AddStmt($$);
 			}
 
 	|	TOK_EVENT event ';' opt_no_test
@@ -1886,7 +1824,7 @@ stmt:
 			set_location(@1, @3);
 			$$ = new EventStmt({AdoptRef{}, $2});
 			if ( ! $4 )
-			    script_coverage_mgr.AddStmt($$);
+				script_coverage_mgr.AddStmt($$);
 			}
 
 	|	TOK_IF '(' expr ')' stmt
@@ -1932,7 +1870,7 @@ stmt:
 			set_location(@1, @2);
 			$$ = new NextStmt;
 			if ( ! $3 )
-			    script_coverage_mgr.AddStmt($$);
+				script_coverage_mgr.AddStmt($$);
 			}
 
 	|	TOK_BREAK ';' opt_no_test
@@ -1940,7 +1878,7 @@ stmt:
 			set_location(@1, @2);
 			$$ = new BreakStmt;
 			if ( ! $3 )
-			    script_coverage_mgr.AddStmt($$);
+				script_coverage_mgr.AddStmt($$);
 			}
 
 	|	TOK_FALLTHROUGH ';' opt_no_test
@@ -1956,7 +1894,7 @@ stmt:
 			set_location(@1, @2);
 			$$ = new ReturnStmt(0);
 			if ( ! $3 )
-			    script_coverage_mgr.AddStmt($$);
+				script_coverage_mgr.AddStmt($$);
 			}
 
 	|	TOK_RETURN expr ';' opt_no_test
@@ -1964,14 +1902,14 @@ stmt:
 			set_location(@1, @2);
 			$$ = new ReturnStmt({AdoptRef{}, $2});
 			if ( ! $4 )
-			    script_coverage_mgr.AddStmt($$);
+				script_coverage_mgr.AddStmt($$);
 			}
 
 	|	TOK_LOCAL local_id opt_type init_class opt_init opt_attr ';' opt_no_test
 			{
 			set_location(@1, @7);
 			if ( ! locals_at_this_scope.empty() )
-			       locals_at_this_scope.back().insert($2);
+				   locals_at_this_scope.back().insert($2);
 			$$ = build_local($2, $3, $4, $5, $6, VAR_REGULAR, ! $8).release();
 			}
 
@@ -2004,7 +1942,7 @@ stmt:
 			set_location(@1, @2);
 			$$ = new ExprStmt({AdoptRef{}, $1});
 			if ( ! $3 )
-			    script_coverage_mgr.AddStmt($$);
+				script_coverage_mgr.AddStmt($$);
 			}
 
 	|	';'
@@ -2035,21 +1973,18 @@ event:
 			set_location(@1, @4);
 			const auto& id = lookup_ID($1, current_module.c_str());
 
-			if ( id )
-				{
-				if ( ! id->IsGlobal() )
-					{
+			if ( id ) {
+				if ( ! id->IsGlobal() ) {
 					yyerror(util::fmt("local identifier \"%s\" cannot be used to reference an event", $1));
 					YYERROR;
-					}
+				}
 
 				if ( id->IsDeprecated() )
 					reporter->Deprecation(id->GetDeprecationWarning());
 
 				$$ = new EventExpr(id->Name(), {AdoptRef{}, $3});
-				}
-			else
-				{
+			}
+			else {
 				$$ = new EventExpr($1, {AdoptRef{}, $3});
 				}
 			}
@@ -2102,8 +2037,7 @@ case_type:
 			else
 				case_var = install_ID(name, current_module.c_str(), false, false);
 
-			add_local(case_var, std::move(type), INIT_NONE, nullptr, nullptr,
-			                        VAR_REGULAR);
+			add_local(case_var, std::move(type), INIT_NONE, nullptr, nullptr, VAR_REGULAR);
 			$$ = case_var.release();
 			}
 
@@ -2120,11 +2054,9 @@ for_head:
 
 			if ( loop_var )
 				check_loop_var(loop_var);
-			else
-				{
-				loop_var = install_ID($3, current_module.c_str(),
-				                                    false, false);
-				}
+			else {
+				loop_var = install_ID($3, current_module.c_str(), false, false);
+			}
 
 			auto* loop_vars = new IDPList;
 			loop_vars->push_back(loop_var.release());
@@ -2198,8 +2130,7 @@ local_id:
 			auto id = lookup_ID($1, current_module.c_str());
 			$$ = id.release();
 
-			if ( $$ )
-				{
+			if ( $$ ) {
 				if ( $$->IsGlobal() && ! $$->IsBlank() )
 					$$->Error("already a global identifier");
 
@@ -2207,12 +2138,9 @@ local_id:
  					$$->Error("already a const identifier");
 
 				delete [] $1;
-				}
-
-			else
-				{
-				$$ = install_ID($1, current_module.c_str(),
-				                              false, false).release();
+			}
+			else {
+				$$ = install_ID($1, current_module.c_str(), false, false).release();
 				}
 			}
 	;
@@ -2240,32 +2168,27 @@ global_or_event_id:
 			                    defining_global_ID);
 			$$ = id.release();
 
-			if ( $$ )
-				{
+			if ( $$ ) {
 				if ( ! $$->IsGlobal() )
 					$$->Error("already a local identifier");
 
-				if ( $$->IsDeprecated() )
-					{
+				if ( $$->IsDeprecated() ) {
 					const auto& t = $$->GetType();
 
 					if ( t->Tag() != TYPE_FUNC ||
 					     t->AsFuncType()->Flavor() != FUNC_FLAVOR_FUNCTION )
 						reporter->Deprecation($$->GetDeprecationWarning());
-					}
+				}
 
 				refine_location($$);
 				delete [] $1;
-				}
-
-			else
-				{
+			}
+			else {
 				const char* module_name =
 					resolving_global_ID ?
-						current_module.c_str() : 0;
+						current_module.c_str() : nullptr;
 
-				$$ = install_ID($1, module_name,
-				                              true, is_export).release();
+				$$ = install_ID($1, module_name, true, is_export).release();
 				}
 			}
 	;
@@ -2290,11 +2213,10 @@ lookup_identifier:
 	|
 		TOK_GLOBAL_ID
 			{
-			if ( is_export )
-				{
+			if ( is_export ) {
 				reporter->Error("cannot use :: prefix in export section: %s", $1);
 				YYERROR;
-				}
+			}
 			}
 
 	;
@@ -2328,12 +2250,11 @@ opt_deprecated:
 			{
 			if ( IsString($3->GetType()->Tag()) )
 				$$ = new ConstExpr({AdoptRef{}, $3});
-			else
-				{
+			else {
 				ODesc d;
 				$3->Describe(&d);
 				reporter->Error("'&deprecated=%s' must use a string literal",
-				                      d.Description());
+				                d.Description());
 				$$ = new ConstExpr(make_intrusive<StringVal>(""));
 				}
 			}
@@ -2347,29 +2268,24 @@ expr_list_opt_comma: ',' { expr_list_has_opt_comma = 1; }
 
 %%
 
-int yyerror(const char msg[])
-	{
-	if ( in_debug )
-		g_curr_debug_error = util::copy_string(msg);
+int yyerror(const char msg[]) {
+    if ( in_debug )
+        g_curr_debug_error = util::copy_string(msg);
 
-	if ( last_tok[0] == '\n' )
-		reporter->Error("%s, on previous line", msg);
-	else if ( last_tok[0] == '\0' )
-		{
-		if ( last_filename )
-			reporter->Error("%s, at end of file %s", msg, last_filename);
-		else
-			reporter->Error("%s, at end of file", msg);
-		}
-	else
-		{
-		if ( last_last_tok_filename && last_tok_filename &&
-		     ! util::streq(last_last_tok_filename, last_tok_filename) )
-			reporter->Error("%s, at or near \"%s\" or end of file %s",
-			                      msg, last_tok, last_last_tok_filename);
-		else
-			reporter->Error("%s, at or near \"%s\"", msg, last_tok);
-		}
+    if ( last_tok[0] == '\n' )
+        reporter->Error("%s, on previous line", msg);
+    else if ( last_tok[0] == '\0' ) {
+        if ( last_filename )
+            reporter->Error("%s, at end of file %s", msg, last_filename);
+        else
+            reporter->Error("%s, at end of file", msg);
+    }
+    else {
+        if ( last_last_tok_filename && last_tok_filename && ! util::streq(last_last_tok_filename, last_tok_filename) )
+            reporter->Error("%s, at or near \"%s\" or end of file %s", msg, last_tok, last_last_tok_filename);
+        else
+            reporter->Error("%s, at or near \"%s\"", msg, last_tok);
+    }
 
-	return 0;
-	}
+    return 0;
+}

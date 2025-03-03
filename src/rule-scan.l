@@ -204,17 +204,15 @@ finger	{ rules_lval.val = zeek::detail::Rule::FINGER; return TOK_PATTERN_TYPE; }
 {RE}	{
 	auto len = strlen(yytext);
 
-	if ( yytext[len - 1] == 'i' )
-		{
+	if ( yytext[len - 1] == 'i' ) {
 		*(yytext + len - 2) = '\0';
 		const char fmt[] = "(?i:%s)";
 		int n = len + strlen(fmt);
 		char* s = new char[n + 5 /* slop */];
 		snprintf(s, n + 5, fmt, yytext + 1);
 		rules_lval.str = s;
-		}
-	else
-		{
+	}
+	else {
 		*(yytext + len - 1) = '\0';
 		rules_lval.str = zeek::util::copy_string(yytext + 1);
 		}
@@ -227,31 +225,26 @@ finger	{ rules_lval.val = zeek::detail::Rule::FINGER; return TOK_PATTERN_TYPE; }
 %%
 
 // We're about to parse a Zeek policy-layer symbol.
-void begin_PS()
-	{
-	BEGIN(PS);
-	}
+void begin_PS() {
+    BEGIN(PS);
+}
 
-void end_PS()
-	{
-	BEGIN(INITIAL);
-	}
+void end_PS() {
+    BEGIN(INITIAL);
+}
 
 static YY_BUFFER_STATE rules_buffer;
 
-void rules_set_input_from_buffer(const char* data, size_t size)
-	{
-	rules_buffer = yy_scan_bytes(data, size); // this copies the data
-	}
+void rules_set_input_from_buffer(const char* data, size_t size) {
+    rules_buffer = yy_scan_bytes(data, size); // this copies the data
+}
 
-void rules_set_input_from_file(FILE* f)
-	{
-	rules_buffer = yy_create_buffer(f, YY_BUF_SIZE);
-	}
+void rules_set_input_from_file(FILE* f) {
+    rules_buffer = yy_create_buffer(f, YY_BUF_SIZE);
+}
 
-void rules_parse_input()
-	{
-	yy_switch_to_buffer(rules_buffer);
-	rules_parse();
-	yy_delete_buffer(rules_buffer);
-	}
+void rules_parse_input() {
+    yy_switch_to_buffer(rules_buffer);
+    rules_parse();
+    yy_delete_buffer(rules_buffer);
+}

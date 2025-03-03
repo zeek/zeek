@@ -69,15 +69,13 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 
 	"["({FIRST_CCL_CHAR}|{CCL_EXPR})({CCL_CHAR}|{CCL_EXPR})*	{
 			zeek::detail::curr_ccl = zeek::detail::rem->LookupCCL(yytext);
-			if ( zeek::detail::curr_ccl )
-				{
+			if ( zeek::detail::curr_ccl ) {
 				if ( yyinput() != ']' )
 					zeek::detail::synerr("bad character class");
 				yylval.ccl_val = zeek::detail::curr_ccl;
 				return TOK_CCL;
-				}
-			else
-				{
+			}
+			else {
 				zeek::detail::curr_ccl = new zeek::detail::CCL();
 				zeek::detail::rem->InsertCCL(yytext, zeek::detail::curr_ccl);
 
@@ -87,7 +85,7 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 
 				BEGIN(SC_FIRST_CCL);
 				return '[';
-				}
+			}
 			}
 
 	"{"{NAME}"}"	{
@@ -99,48 +97,43 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 
 			if ( namedef.empty() )
 				zeek::detail::synerr("undefined definition");
-			else
-				{ // push back name surrounded by ()'s
+			else {
+				 // push back name surrounded by ()'s
 				int len = namedef.size();
 
-				if ( namedef[0] == '^' ||
-				     (len > 0 && namedef[len - 1] == '$') )
-					{ // don't use ()'s after all
+				if ( namedef[0] == '^' || (len > 0 && namedef[len - 1] == '$') ) {
+					// don't use ()'s after all
 					for ( int i = len - 1; i >= 0; --i )
 						unput(namedef[i]);
 
 					if ( namedef[0] == '^' )
 						yy_set_bol(1);
-					}
-
-				else
-					{
+				}
+				else {
 					unput(')');
 					for ( int i = len - 1; i >= 0; --i )
 						unput(namedef[i]);
 					unput('(');
-					}
 				}
+			}
 			}
 
 	"(?i:"		zeek::detail::case_insensitive = true; return TOK_CASE_INSENSITIVE;
 	"(?s:"		zeek::detail::re_single_line = true; return TOK_SINGLE_LINE;
 
 	[a-zA-Z]	{
-			if ( zeek::detail::case_insensitive )
-				{
+			if ( zeek::detail::case_insensitive ) {
 				char c = yytext[0];	// unput trashes yytext!
 				// Push back the character inside a CCL,
 				// so the parser can then expand it.
 				unput(']');
 				unput(c);
 				unput('[');
-				}
-			else
-				{
+			}
+			else {
 				yylval.int_val = yytext[0];
 				return TOK_CHAR;
-				}
+			}
 			}
 
 	[|*+?.(){}]	return yytext[0];
@@ -238,13 +231,11 @@ CCL_EXPR	("[:"[[:alpha:]]+":]")
 
 YY_BUFFER_STATE RE_buf;
 
-void RE_set_input(const char* str)
-	{
+void RE_set_input(const char* str) {
 	zeek::detail::RE_parse_input = str;
 	RE_buf = yy_scan_string(str);
-	}
+}
 
-void RE_done_with_scan()
-	{
+void RE_done_with_scan() {
 	yy_delete_buffer(RE_buf);
-	}
+}

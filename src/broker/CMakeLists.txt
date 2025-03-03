@@ -14,4 +14,6 @@ zeek_add_subdir_library(
     store.bif)
 
 # Small plugin shim to make the CLUSTER_BACKEND_BROKER enum value available.
-zeek_add_plugin(Zeek Cluster_Backend_Broker SOURCES Plugin.cc)
+zeek_add_plugin(
+    Zeek Cluster_Backend_Broker
+    SOURCES Plugin.cc)

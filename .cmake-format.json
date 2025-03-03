@@ -72,10 +72,22 @@
           "SOURCES": "*",
           "MODULES": "*"
         }
+      },
+      "zeek_add_plugin": {
+        "kwargs": {
+          "INCLUDE_DIRS": "*",
+          "DEPENDENCIES": "*",
+          "SOURCES": "*",
+          "BIFS": "*",
+          "PAC": "*"
+        }
       }
     }
   },
   "format": {
+    "always_wrap": [
+      "zeek_add_plugin"
+    ],
     "line_width": 100,
     "tab_size": 4,
     "separate_ctrl_name_with_space": true,

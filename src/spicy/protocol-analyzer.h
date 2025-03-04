@@ -53,7 +53,7 @@ private:
     Cookie _cookie;
 };
 
-/** Base clase for Spicy protocol analyzers. */
+/** Base class for Spicy protocol analyzers. */
 class ProtocolAnalyzer {
 public:
     ProtocolAnalyzer(analyzer::Analyzer* analyzer, ::spicy::rt::driver::ParsingType type);

@@ -86,7 +86,7 @@ export {
 	## for more details.
 	const linger_ms: int = 500 &redef;
 
-	## Configure ZeroMQ's immedidate setting on PUSH sockets
+	## Configure ZeroMQ's immediate setting on PUSH sockets
 	##
 	## Setting this to ``T`` will queue log writes only to completed
 	## connections. By default, log writes are queued to all potential

@@ -1,3 +1,7 @@
+7.2.0-dev.257 | 2025-03-04 09:33:54 -0700
+
+  * Reformat embedded C++ code in bison/flex files (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.255 | 2025-03-04 08:52:13 -0700
 
   * Fix Coverity findings from recent IPTunnel dumping changes (Tim Wojtulewicz, Corelight)

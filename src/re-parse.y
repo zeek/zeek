@@ -9,7 +9,6 @@
 #include "zeek/EquivClass.h"
 #include "zeek/Reporter.h"
 
-
 namespace zeek::detail {
 	constexpr int csize = 256;
 	bool re_syntax_error = 0;
@@ -69,24 +68,20 @@ singleton	:  singleton '*'
 			{
 			if ( $3 > $5 || $3 < 0 )
 				zeek::detail::synerr("bad iteration values");
-			else
-				{
-				if ( $3 == 0 )
-					{
-					if ( $5 == 0 )
-						{
+			else {
+				if ( $3 == 0 ) {
+					if ( $5 == 0 ) {
 						$$ = new zeek::detail::NFA_Machine(new zeek::detail::EpsilonState());
 						Unref($1);
-						}
-					else
-						{
+					}
+					else {
 						$1->MakeRepl(1, $5);
 						$1->MakeOptional();
-						}
 					}
+				}
 				else
 					$1->MakeRepl($3, $5);
-				}
+			}
 			}
 
 		|  singleton '{' TOK_NUMBER ',' '}'
@@ -105,11 +100,10 @@ singleton	:  singleton '*'
 			{
 			if ( $3 < 0 )
 				zeek::detail::synerr("iteration value must be positive");
-			else if ( $3 == 0 )
-				{
+			else if ( $3 == 0 ) {
 				Unref($1);
 				$$ = new zeek::detail::NFA_Machine(new zeek::detail::EpsilonState());
-				}
+			}
 			else
 				$1->LinkCopies($3-1);
 			}
@@ -117,7 +111,7 @@ singleton	:  singleton '*'
 		|  '.'
 			{
 			$$ = new zeek::detail::NFA_Machine(new zeek::detail::NFA_State(
-                zeek::detail::rem->AnyCCL(zeek::detail::re_single_line)));
+				zeek::detail::rem->AnyCCL(zeek::detail::re_single_line)));
 			}
 
 		|  full_ccl
@@ -146,12 +140,11 @@ singleton	:  singleton '*'
 			{
 			auto sym = $1;
 
-			if ( sym < 0 || ( sym >= NUM_SYM && sym != SYM_EPSILON ) )
-				{
+			if ( sym < 0 || ( sym >= NUM_SYM && sym != SYM_EPSILON ) ) {
 				zeek::reporter->Error("bad symbol %d (compiling pattern /%s/)", sym,
 				                      zeek::detail::RE_parse_input);
 				return 1;
-				}
+			}
 
 			$$ = new zeek::detail::NFA_Machine(new zeek::detail::NFA_State(sym, zeek::detail::rem->EC()));
 			}
@@ -184,40 +177,33 @@ ccl		:  ccl TOK_CHAR '-' TOK_CHAR
 			if ( $2 > $4 )
 				zeek::detail::synerr("negative range in character class");
 
-			else if ( zeek::detail::case_insensitive &&
-				  (isalpha($2) || isalpha($4)) )
-				{
-				if ( isalpha($2) && isalpha($4) &&
-				     isupper($2) == isupper($4) )
-					{ // Compatible range, do both versions
+			else if ( zeek::detail::case_insensitive && (isalpha($2) || isalpha($4)) ) {
+				if ( isalpha($2) && isalpha($4) && isupper($2) == isupper($4) ) {
+					 // Compatible range, do both versions
 					int l2 = tolower($2);
 					int l4 = tolower($4);
 
-					for ( int i = l2; i<= l4; ++i )
-						{
+					for ( int i = l2; i<= l4; ++i ) {
 						$1->Add(i);
 						$1->Add(toupper(i));
-						}
 					}
-
+				}
 				else
 					zeek::detail::synerr("ambiguous case-insensitive character class");
-				}
+			}
 
-			else
-				{
+			else {
 				for ( int i = $2; i <= $4; ++i )
 					$1->Add(i);
-				}
+			}
 			}
 
 		|  ccl TOK_CHAR
 			{
-			if ( zeek::detail::case_insensitive && isalpha($2) )
-				{
+			if ( zeek::detail::case_insensitive && isalpha($2) ) {
 				$1->Add(zeek::detail::clower($2));
 				$1->Add(zeek::detail::cupper($2));
-				}
+			}
 			else
 				$1->Add($2);
 			}
@@ -255,12 +241,12 @@ namespace zeek::detail {
 
 int cupper(int sym)
 	{
-	return (isascii(sym) && islower(sym)) ?  toupper(sym) : sym;
+	return (isascii(sym) && islower(sym)) ? toupper(sym) : sym;
 	}
 
 int clower(int sym)
 	{
-	return (isascii(sym) && isupper(sym)) ?  tolower(sym) : sym;
+	return (isascii(sym) && isupper(sym)) ? tolower(sym) : sym;
 	}
 
 void synerr(const char str[])

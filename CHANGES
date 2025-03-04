@@ -1,3 +1,25 @@
+7.2.0-dev.244 | 2025-03-04 09:40:41 +0100
+
+  * GH-2311: scan.l: Fix @load-plugin scripts loading (Arne Welzel, Corelight)
+
+    For a plugin loaded via @load-plugin, create a YY_BUFFER_STATE holding
+    the required loads for the implicitly loaded files. In loaded scripts,
+    this generated file will show up with a path of the shared object file
+    of the plugin with the __preload__.zeek and __load__.zeek files loaded
+    by it.
+
+    Closes #2311
+
+  * scan.l: Extract switch_to() from load_files() (Arne Welzel, Corelight)
+
+  * ScannedFile: Allow skipping canonicalization (Arne Welzel, Corelight)
+
+  * Bump pre-commit hooks (Benjamin Bannier, Corelight)
+
+  * Always break lines when formatting `spicy_add_analyzer` (Benjamin Bannier, Corelight)
+
+  * Fix formatting of `zeek_add_plugin` (Benjamin Bannier, Corelight)
+
 7.2.0-dev.232 | 2025-02-25 07:29:43 -0700
 
   * CI: Use the right variable for the number of test jobs for zeekctl_debian11_task tasks (Tim Wojtulewicz, Corelight)

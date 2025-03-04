@@ -274,7 +274,7 @@ bool ZeroMQBackend::DoPublishEvent(const std::string& topic, const std::string& 
         // and how this can happen :-/
         try {
             main_inproc.send(parts[i], flags);
-        } catch ( zmq::error_t& err ) {
+        } catch ( const zmq::error_t& err ) {
             // If send() was interrupted and Zeek caught an interrupt or term signal,
             // fail the publish as we're about to shutdown. There's nothing the user
             // can do, but it indicates an overload situation as send() was blocking.
@@ -299,7 +299,7 @@ bool ZeroMQBackend::DoSubscribe(const std::string& topic_prefix, SubscribeCallba
         // This is the XSUB API instead of setsockopt(ZMQ_SUBSCRIBE).
         std::string msg = "\x01" + topic_prefix;
         main_inproc.send(zmq::const_buffer(msg.data(), msg.size()));
-    } catch ( zmq::error_t& err ) {
+    } catch ( const zmq::error_t& err ) {
         zeek::reporter->Error("Failed to subscribe to topic %s: %s", topic_prefix.c_str(), err.what());
         if ( cb )
             cb(topic_prefix, {CallbackStatus::Error, err.what()});
@@ -321,7 +321,7 @@ bool ZeroMQBackend::DoUnsubscribe(const std::string& topic_prefix) {
         // This is the XSUB API instead of setsockopt(ZMQ_SUBSCRIBE).
         std::string msg = '\0' + topic_prefix;
         main_inproc.send(zmq::const_buffer(msg.data(), msg.size()));
-    } catch ( zmq::error_t& err ) {
+    } catch ( const zmq::error_t& err ) {
         zeek::reporter->Error("Failed to unsubscribe from topic %s: %s", topic_prefix.c_str(), err.what());
         return false;
     }

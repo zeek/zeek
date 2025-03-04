@@ -12,10 +12,13 @@ namespace zeek::detail {
 
 // Script file we have already scanned (or are in the process of scanning).
 // They are identified by normalized canonical path.
+//
+// If arg_is_canonical is set to true, assume arg_name is canonicalized and
+// skip resolving the canonical name.
 class ScannedFile {
 public:
     ScannedFile(int arg_include_level, std::string arg_name, bool arg_skipped = false,
-                bool arg_prefixes_checked = false);
+                bool arg_prefixes_checked = false, bool arg_is_canonical = false);
 
     /**
      * Compares the canonical path of this file against every canonical path

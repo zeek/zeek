@@ -11,20 +11,24 @@ namespace zeek::detail {
 std::list<ScannedFile> files_scanned;
 std::vector<SignatureFile> sig_files;
 
-ScannedFile::ScannedFile(int arg_include_level, std::string arg_name, bool arg_skipped, bool arg_prefixes_checked)
+ScannedFile::ScannedFile(int arg_include_level, std::string arg_name, bool arg_skipped, bool arg_prefixes_checked,
+                         bool arg_is_canonical)
     : include_level(arg_include_level),
       skipped(arg_skipped),
       prefixes_checked(arg_prefixes_checked),
       name(std::move(arg_name)) {
     if ( name == canonical_stdin_path )
         canonical_path = canonical_stdin_path;
-    else {
+    else if ( ! arg_is_canonical ) {
         std::error_code ec;
         auto canon = filesystem::canonical(name, ec);
         if ( ec )
             zeek::reporter->FatalError("failed to get canonical path of %s: %s", name.data(), ec.message().c_str());
 
         canonical_path = canon.string();
+    }
+    else {
+        canonical_path = name;
     }
 }
 

@@ -1,3 +1,7 @@
+7.2.0-dev.258 | 2025-03-04 12:52:38 -0800
+
+  * Update zeekctl submodule to pull in testsuite fix for metrics port (Christian Kreibich, Corelight)
+
 7.2.0-dev.257 | 2025-03-04 09:33:54 -0700
 
   * Reformat embedded C++ code in bison/flex files (Tim Wojtulewicz, Corelight)

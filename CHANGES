@@ -1,3 +1,23 @@
+7.1.0-4 | 2025-03-18 12:06:45 -0700
+
+  * GH-2311: scan.l: Fix @load-plugin scripts loading (Arne Welzel, Corelight)
+
+    For a plugin loaded via @load-plugin, create a YY_BUFFER_STATE holding
+    the required loads for the implicitly loaded files. In loaded scripts,
+    this generated file will show up with a path of the shared object file
+    of the plugin with the __preload__.zeek and __load__.zeek files loaded
+    by it.
+
+    (cherry picked from commit a3a08fa0f3d78144d21176111457ab8bdd3c9a74)
+
+  * scan.l: Extract switch_to() from load_files() (Arne Welzel, Corelight)
+
+    (cherry picked from commit a3a08fa0f3d78144d21176111457ab8bdd3c9a74)
+
+  * ScannedFile: Allow skipping canonicalization (Arne Welzel, Corelight)
+
+    (cherry picked from commit a3a08fa0f3d78144d21176111457ab8bdd3c9a74)
+
 7.1.0-3 | 2025-03-18 12:05:31 -0700
 
   * session/Manager: Emit explicit errors for FindConnection() with proto=65535 (Arne Welzel, Corelight)

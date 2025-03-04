@@ -70,6 +70,10 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --enable-werror        build with -Werror
     --enable-ZAM-profiling build with ZAM profiling enabled (--enable-debug implies this)
     --enable-spicy-ssl     build with spicy SSL/TLS analyzer (conflicts with --disable-spicy)
+    --enable-iwyu          build with include-what-you-use enabled for the main Zeek target.
+                           Requires include-what-you-use binary to be in the PATH.
+    --enable-clang-tidy    build with clang-tidy enabled for the main Zeek target.
+                           Requires clang-tidy binary to be in the PATH.
     --disable-af-packet    don't include native AF_PACKET support (Linux only)
     --disable-auxtools     don't build or install auxiliary tools
     --disable-broker-tests don't try to build Broker unit tests
@@ -314,6 +318,12 @@ while [ $# -ne 0 ]; do
             ;;
         --enable-spicy-ssl)
             append_cache_entry ENABLE_SPICY_SSL BOOL true
+            ;;
+        --enable-iwyu)
+            append_cache_entry ENABLE_IWYU BOOL true
+            ;;
+        --enable-clang-tidy)
+            append_cache_entry ENABLE_CLANG_TIDY BOOL true
             ;;
         --disable-af-packet)
             append_cache_entry DISABLE_AF_PACKET BOOL true

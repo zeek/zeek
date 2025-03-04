@@ -564,6 +564,24 @@ target_compile_definitions(zeek_objs PRIVATE ZEEK_CONFIG_SKIP_VERSION_H)
 add_dependencies(zeek_objs zeek_autogen_files)
 zeek_target_link_libraries(zeek_objs)
 
+if (ENABLE_IWYU)
+    find_program(IWYU_PATH NAMES include-what-you-use iwyu)
+    if (NOT IWYU_PATH)
+        message(FATAL_ERROR "Could not find the program include-what-you-use")
+    endif ()
+
+    set_target_properties(zeek_objs PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${IWYU_PATH})
+endif ()
+
+if (ENABLE_CLANG_TIDY)
+    find_program(CLANG_TIDY_PATH NAMES clang-tidy)
+    if (NOT CLANG_TIDY_PATH)
+        message(FATAL_ERROR "Could not find the program clang-tidy")
+    endif ()
+
+    set_target_properties(zeek_objs PROPERTIES CXX_CLANG_TIDY ${CLANG_TIDY_PATH})
+endif ()
+
 if (HAVE_SPICY)
     target_link_libraries(zeek_objs PRIVATE hilti spicy)
     prefer_configured_spicy_include_dirs(zeek_objs)

@@ -1,3 +1,13 @@
+7.2.0-dev.250 | 2025-03-04 12:07:01 +0100
+
+  * Update zeek.bif documentation for to_count and to_int (Mark Overholser)
+
+  * CI: Add release-build ZAM task for baseline checks during PRs (Tim Wojtulewicz, Corelight)
+
+  * Fix language/assert btest baselines for to_count/to_int changes (Tim Wojtulewicz, Corelight)
+
+  * Update the bifs.to_count baseline for ZAM (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.244 | 2025-03-04 09:40:41 +0100
 
   * GH-2311: scan.l: Fix @load-plugin scripts loading (Arne Welzel, Corelight)

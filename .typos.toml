@@ -55,6 +55,7 @@ extend-ignore-identifiers-re = [
     "iin", # In DNP3.
     "(ScValidatePnPService|ScSendPnPMessage)", # In DCE-RPC.
     "snet", # Used as shorthand for subnet in base scripts.
+    "typ",
     "(e|i)it", # Used as name for some iterators.
 ]
 

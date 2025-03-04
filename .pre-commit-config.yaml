@@ -13,7 +13,7 @@ repos:
     exclude: '^(testing/btest/(Baseline|plugins|spicy|scripts)/.*|testing/builtin-plugins/.*)$'
 
 - repo: https://github.com/pre-commit/mirrors-clang-format
-  rev: 'v19.1.4'
+  rev: v19.1.7
   hooks:
   - id: clang-format
     types_or:
@@ -28,7 +28,7 @@ repos:
       args: ["-w", "-i", "4", "-ci"]
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.8.1
+  rev: v0.9.9
   hooks:
     - id: ruff
       args: [--fix]
@@ -40,13 +40,13 @@ repos:
   - id: cmake-format
 
 - repo: https://github.com/crate-ci/typos
-  rev: v1.28.2
+  rev: v1.30.1
   hooks:
     - id: typos
       exclude: '^(.typos.toml|src/SmithWaterman.cc|testing/.*|auxil/.*|scripts/base/frameworks/files/magic/.*|CHANGES|scripts/base/protocols/ssl/mozilla-ca-list.zeek)$'
 
 - repo: https://github.com/bbannier/spicy-format
-  rev: v0.23.0
+  rev: v0.24.2
   hooks:
     - id: spicy-format
       # TODO: Reformat existing large analyzers just before 8.0.

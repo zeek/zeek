@@ -101,22 +101,24 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, Packet* pkt, const st
     else
         data = (const u_char*)inner->IP6_Hdr();
 
-    auto outer = prev ? prev : std::make_shared<EncapsulationStack>();
+    auto outer = prev ? std::move(prev) : std::make_shared<EncapsulationStack>();
     outer->Add(ec);
 
     // Construct fake packet containing the inner packet so it can be processed
     // like a normal one.
     Packet p;
     p.Init(DLT_RAW, &ts, caplen, len, data, false, "");
-    p.encap = outer;
+    p.encap = std::move(outer);
 
     // Forward the packet back to the IP analyzer.
     bool return_val = ForwardPacket(len, data, &p);
 
     // Propagate the flags from fake inner packet to outer packet
-    pkt->processed = p.processed;
-    pkt->dump_packet = p.dump_packet;
-    pkt->dump_size = (p.dump_size > 0) ? static_cast<int>(data - pkt->data) + p.dump_size : p.dump_size;
+    if ( pkt ) {
+        pkt->processed = p.processed;
+        pkt->dump_packet = p.dump_packet;
+        pkt->dump_size = (p.dump_size > 0) ? static_cast<int>(data - pkt->data) + p.dump_size : p.dump_size;
+    }
 
     return return_val;
 }
@@ -137,23 +139,25 @@ bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, Packet* pkt, uint32_t
         ts.tv_usec = (suseconds_t)((run_state::network_time - (double)ts.tv_sec) * 1000000);
     }
 
-    auto outer = prev ? prev : std::make_shared<EncapsulationStack>();
+    auto outer = prev ? std::move(prev) : std::make_shared<EncapsulationStack>();
     outer->Add(ec);
 
     // Construct fake packet containing the inner packet so it can be processed
     // like a normal one.
     Packet p;
     p.Init(link_type, &ts, caplen, len, data, false, "");
-    p.encap = outer;
+    p.encap = std::move(outer);
 
     // Process the packet as if it was a brand new packet by passing it back
     // to the packet manager.
     bool return_val = packet_mgr->ProcessInnerPacket(&p);
 
     // Propagate the flags from fake inner packet to outer packet
-    pkt->processed = p.processed;
-    pkt->dump_packet = p.dump_packet;
-    pkt->dump_size = (p.dump_size > 0) ? static_cast<int>(data - pkt->data) + p.dump_size : p.dump_size;
+    if ( pkt ) {
+        pkt->processed = p.processed;
+        pkt->dump_packet = p.dump_packet;
+        pkt->dump_size = (p.dump_size > 0) ? static_cast<int>(data - pkt->data) + p.dump_size : p.dump_size;
+    }
 
     return return_val;
 }

@@ -114,9 +114,14 @@ public:
      */
     virtual void Poll() {}
 
+    const RecordValPtr& Options() const { return backend_options; }
+
 protected:
     // Allow the manager to call Open/Close.
     friend class storage::Manager;
+
+    // Allow OpenResultCallback to call EnqueueConnectionEstablished.
+    friend class storage::OpenResultCallback;
 
     /**
      * Constructor
@@ -183,10 +188,24 @@ protected:
      */
     virtual void Expire() {}
 
+    /**
+     * Enqueues the Storage::backend_opened event. This is called automatically
+     * when an OpenResultCallback is completed successfully.
+     */
+    void EnqueueBackendOpened();
+
+    /**
+     * Enqueues the Storage::backend_lost event with an optional reason
+     * string. This should be called by the backends whenever they lose their
+     * connection.
+     */
+    void EnqueueBackendLost(std::string_view reason);
+
     void CompleteCallback(ResultCallback* cb, const OperationResult& data) const;
 
     TypePtr key_type;
     TypePtr val_type;
+    RecordValPtr backend_options;
 
     std::string tag;
 

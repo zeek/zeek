@@ -347,13 +347,19 @@ bool ZeroMQBackend::DoPublishLogWrites(const logging::detail::LogWriteHeader& he
         zmq::const_buffer{buf.data(), buf.size()},
     };
 
-    zmq::send_result_t result;
     for ( size_t i = 0; i < parts.size(); i++ ) {
         zmq::send_flags flags = zmq::send_flags::dontwait;
         if ( i < parts.size() - 1 )
             flags = flags | zmq::send_flags::sndmore;
 
-        result = log_push.send(parts[i], flags);
+        zmq::send_result_t result;
+        try {
+            result = log_push.send(parts[i], flags);
+        } catch ( const zmq::error_t& err ) {
+            zeek::reporter->Error("Failed to send log write part %zu: %s", i, err.what());
+            return false;
+        }
+
         if ( ! result ) {
             // XXX: Not  exactly clear what we should do if we reach HWM.
             //      we could block and hope a logger comes along that empties

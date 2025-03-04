@@ -276,6 +276,20 @@ ubuntu24_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
 
+# Same as above, but running the ZAM tests instead of the regular tests.
+ubuntu24_zam_task:
+  container:
+    # Ubuntu 24.04 EOL: Jun 2029
+    dockerfile: ci/ubuntu-24.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  env:
+    ZEEK_CI_SKIP_UNIT_TESTS: 1
+    ZEEK_CI_SKIP_EXTERNAL_BTESTS: 1
+    ZEEK_CI_BTEST_EXTRA_ARGS: -a zam
+    # Use a lower number of jobs due to OOM issues with ZAM tasks
+    ZEEK_CI_BTEST_JOBS: 3
+
 # Same as above, but using Clang and libc++
 ubuntu24_clang_libcpp_task:
   container:

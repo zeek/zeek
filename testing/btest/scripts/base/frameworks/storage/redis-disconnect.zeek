@@ -12,6 +12,8 @@
 @load base/frameworks/storage/sync
 @load policy/frameworks/storage/backend/redis
 
+redef exit_only_after_terminate = T;
+
 # Create a typename here that can be passed down into open_backend()
 type str: string;
 
@@ -36,24 +38,7 @@ event zeek_init()
 	local open_res = Storage::Sync::open_backend(Storage::REDIS, opts, str, str);
 	print "open_result", open_res;
 
-	local b = open_res$value;
-
-	local res = Storage::Sync::put(b, [ $key=key, $value=value ]);
-	print "put result", res;
-
-	local res2 = Storage::Sync::get(b, key);
-	print "get result", res2;
-	if ( res2$code == Storage::SUCCESS && res2?$value )
-		print "get result same as inserted", value == ( res2$value as string );
-
-	local value2 = "value5678";
-	res = Storage::Sync::put(b, [ $key=key, $value=value2, $overwrite=T ]);
-	print "overwrite put result", res;
-
-	res2 = Storage::Sync::get(b, key);
-	print "get result", res2;
-	if ( res2$code == Storage::SUCCESS && res2?$value )
-		print "get result same as inserted", value2 == ( res2$value as string );
-
-	Storage::Sync::close_backend(b);
+	# Kill the redis server so the backend will disconnect and fire the backend_lost event.
+	system("cat redis-server/redis.pid");
+	system("kill $(cat redis-server/redis.pid)");
 	}

@@ -45,11 +45,13 @@ static IntrusivePtr<storage::detail::BackendHandleVal> make_backend_handle(Val* 
 
 module Storage;
 
-# Generated when a new backend connection is opened
-event Storage::backend_opened%(%);
+## Generated automatically when a new backend connection is opened successfully.
+event Storage::backend_opened%(tag: string, options: any%);
 
-# Generated when a backend connection is lost
-event Storage::backend_lost%(%);
+## May be generated when a backend connection is lost, both normally and
+## unexpectedly. This event depends on the backends implementing handling for
+## it, and is not generated automatically by the storage framework.
+event Storage::backend_lost%(tag: string, options: any, reason: string%);
 
 module Storage::Async;
 

@@ -8,6 +8,7 @@
 #include "zeek/Val.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/storage/ReturnCode.h"
+#include "zeek/storage/storage.bif.h"
 
 #include "hiredis/adapters/poll.h"
 #include "hiredis/async.h"
@@ -481,7 +482,7 @@ void Redis::OnConnect(int status) {
     if ( status == REDIS_OK ) {
         connected = true;
         CompleteCallback(open_cb, {ReturnCode::SUCCESS});
-        // TODO: post connect event
+        // The connection_established event is sent via the open callback handler.
         return;
     }
 
@@ -493,17 +494,14 @@ void Redis::OnConnect(int status) {
 
 void Redis::OnDisconnect(int status) {
     DBG_LOG(DBG_STORAGE, "Redis backend: disconnection event");
+
     --active_ops;
-
-    if ( status == REDIS_OK ) {
-        // TODO: this was an intentional disconnect, nothing to do?
-    }
-    else {
-        // TODO: this was unintentional, should we reconnect?
-        // TODO: post disconnect event
-    }
-
     connected = false;
+
+    if ( status == REDIS_ERR )
+        EnqueueBackendLost(async_ctx->errstr);
+    else
+        EnqueueBackendLost("Client disconnected");
 }
 
 void Redis::ProcessFd(int fd, int flags) {

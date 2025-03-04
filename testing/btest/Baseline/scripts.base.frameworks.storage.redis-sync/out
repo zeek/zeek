@@ -6,3 +6,5 @@ get result same as inserted, T
 overwrite put result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<uninitialized>]
 get result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=value5678]
 get result same as inserted, T
+Storage::backend_opened, Storage::REDIS, [redis=[server_host=127.0.0.1, server_port=xxxx/tcp, server_unix_socket=<uninitialized>, key_prefix=testing]]
+Storage::backend_lost, Storage::REDIS, [redis=[server_host=127.0.0.1, server_port=xxxx/tcp, server_unix_socket=<uninitialized>, key_prefix=testing]], Client disconnected

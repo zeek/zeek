@@ -5,6 +5,7 @@
 #include "zeek/Trigger.h"
 #include "zeek/broker/Data.h"
 #include "zeek/storage/ReturnCode.h"
+#include "zeek/storage/storage.bif.h"
 
 namespace zeek::storage {
 
@@ -68,6 +69,10 @@ OpenResultCallback::OpenResultCallback(zeek::detail::trigger::TriggerPtr trigger
     : ResultCallback(std::move(trigger), assoc), backend(std::move(backend)) {}
 
 void OpenResultCallback::Complete(OperationResult res) {
+    if ( res.code == ReturnCode::SUCCESS ) {
+        backend->backend->EnqueueBackendOpened();
+    }
+
     // If this is a sync callback, there isn't a trigger to process. Store the result and bail. Always
     // set result's value to the backend pointer so that it comes across in the result. This ensures
     // the handle is always available in the result even on failures.
@@ -94,6 +99,7 @@ void OpenResultCallback::Complete(OperationResult res) {
 OperationResult Backend::Open(RecordValPtr options, TypePtr kt, TypePtr vt, OpenResultCallback* cb) {
     key_type = std::move(kt);
     val_type = std::move(vt);
+    backend_options = options;
 
     auto ret = DoOpen(std::move(options), cb);
     if ( ! ret.value )
@@ -151,6 +157,15 @@ void Backend::CompleteCallback(ResultCallback* cb, const OperationResult& data) 
     if ( ! cb->IsSyncCallback() ) {
         delete cb;
     }
+}
+
+void Backend::EnqueueBackendOpened() {
+    event_mgr.Enqueue(Storage::backend_opened, make_intrusive<StringVal>(Tag()), backend_options);
+}
+
+void Backend::EnqueueBackendLost(std::string_view reason) {
+    event_mgr.Enqueue(Storage::backend_lost, make_intrusive<StringVal>(Tag()), backend_options,
+                      make_intrusive<StringVal>(reason));
 }
 
 zeek::OpaqueTypePtr detail::backend_opaque;

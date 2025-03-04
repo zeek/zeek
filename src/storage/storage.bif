@@ -41,11 +41,13 @@ static zeek::IntrusivePtr<zeek::storage::detail::BackendHandleVal> make_backend_
 
 module Storage;
 
-# Generated when a new backend connection is opened
-event Storage::storage_connection_established%(%);
+## Generated automatically when a new backend connection is opened successfully.
+event Storage::connection_established%(tag: string, config: any%);
 
-# Generated when a backend connection is lost
-event Storage::storage_connection_lost%(%);
+## May be generated when a backend connection is lost, both normally and
+## unexpectedly. This event depends on the backends implementing handling for
+## it, and is not generated automatically by the storage framework.
+event Storage::connection_lost%(tag: string, config: any, reason: string%);
 
 module Storage::Async;
 

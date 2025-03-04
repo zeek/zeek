@@ -5,6 +5,7 @@
 #include "zeek/Trigger.h"
 #include "zeek/broker/Data.h"
 #include "zeek/storage/ReturnCodes.h"
+#include "zeek/storage/storage.bif.h"
 
 namespace zeek::storage {
 
@@ -65,6 +66,11 @@ OpenResultCallback::OpenResultCallback(zeek::detail::trigger::TriggerPtr trigger
     : ResultCallback(std::move(trigger), assoc), backend(std::move(backend)) {}
 
 void OpenResultCallback::Complete(const OperationResult& res) {
+    if ( res.code == ReturnCodes::SUCCESS ) {
+        event_mgr.Enqueue(Storage::connection_established, make_intrusive<StringVal>(backend->backend->Tag()),
+                          backend->backend->Config());
+    }
+
     // If this is a sync callback, there isn't a trigger to process. Store the result and bail. Always
     // set result's value to the backend pointer so that it comes across in the result. This ensures
     // the handle is always available in the result even on failures.
@@ -78,7 +84,7 @@ void OpenResultCallback::Complete(const OperationResult& res) {
     auto* op_result = new zeek::RecordVal(op_result_type);
 
     op_result->Assign(0, res.code);
-    if ( res.code->Get() != 0 )
+    if ( res.code != ReturnCodes::SUCCESS )
         op_result->Assign(1, res.err_str);
     op_result->Assign(2, backend);
 
@@ -91,6 +97,7 @@ void OpenResultCallback::Complete(const OperationResult& res) {
 OperationResult Backend::Open(RecordValPtr config, TypePtr kt, TypePtr vt, OpenResultCallback* cb) {
     key_type = std::move(kt);
     val_type = std::move(vt);
+    backend_config = config;
 
     auto ret = DoOpen(std::move(config), cb);
     if ( ! ret.value )
@@ -155,6 +162,15 @@ void Backend::CompleteCallback(OperationResultCallback* cb, const OperationResul
     if ( ! cb->SyncCallback() ) {
         delete cb;
     }
+}
+
+void Backend::PostConnectionEstablished() {
+    event_mgr.Enqueue(Storage::connection_established, make_intrusive<StringVal>(Tag()), backend_config);
+}
+
+void Backend::PostConnectionLost(std::string_view reason) {
+    event_mgr.Enqueue(Storage::connection_lost, make_intrusive<StringVal>(Tag()), Config(),
+                      make_intrusive<StringVal>(reason));
 }
 
 zeek::OpaqueTypePtr detail::backend_opaque;

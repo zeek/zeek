@@ -11,6 +11,10 @@ redef exit_only_after_terminate = T;
 # Create a typename here that can be passed down into get().
 type str: string;
 
+event Storage::connection_established(tag: string, config: any) {
+	print "Storage::connection_established", tag, config;
+}
+
 event zeek_init()
 	{
 	# Create a database file in the .tmp directory with a 'testing' table

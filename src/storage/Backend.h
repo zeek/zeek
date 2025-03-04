@@ -109,9 +109,14 @@ public:
      */
     virtual void Poll() {}
 
+    const RecordValPtr& Config() const { return backend_config; }
+
 protected:
     // Allow the manager to call Open/Done.
     friend class storage::Manager;
+
+    // Allow OpenResultCallback to call PostConnectionEstablished.
+    friend class storage::OpenResultCallback;
 
     /**
      * Constructor
@@ -172,8 +177,22 @@ protected:
      */
     virtual void Expire() {}
 
+    /**
+     * Posts the Storage::connection_established event. This is called
+     * automatically when an OpenResultCallback is completed successfully.
+     */
+    void PostConnectionEstablished();
+
+    /**
+     * Posts the Storage::connection_lost event with an optional reason string.
+     * string. This should be called by the backends whenever they lose their
+     * connection.
+     */
+    void PostConnectionLost(std::string_view reason);
+
     TypePtr key_type;
     TypePtr val_type;
+    RecordValPtr backend_config;
 
 protected:
     void CompleteCallback(OpenResultCallback* cb, const OperationResult& data) const;

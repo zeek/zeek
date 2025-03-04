@@ -546,9 +546,6 @@ set(zeek_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
     ${CMAKE_CURRENT_BINARY_DIR}/ZAM-MethodDecls.h)
 
-# Add the above files to the list of clang tidy sources before adding the third party and HH
-# sources. Also, the main_SRCS will get added to that list separately.
-add_clang_tidy_files(${zeek_SRCS})
 list(APPEND zeek_SRCS ${THIRD_PARTY_SRCS})
 list(APPEND zeek_SRCS ${HH_SRCS})
 list(APPEND zeek_SRCS ${MAIN_SRCS})
@@ -702,16 +699,6 @@ install(
           $<$<BOOL:USE_SQLITE>:${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sqlite3.h>
           ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/doctest.h
     DESTINATION include/zeek/3rdparty)
-
-# ##############################################################################
-# Clang-tidy target now that we have all of the sources
-
-add_clang_tidy_files(${MAIN_SRCS})
-
-# At this point we have included all of the cc files in src, all of the BinPAC
-# (*.pac.cc) files, and most of the generated code for BIFs (not including
-# *.bif.register.cc)
-create_clang_tidy_target()
 
 # ##############################################################################
 # CTest setup.

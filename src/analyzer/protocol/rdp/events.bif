@@ -39,7 +39,7 @@ event rdp_native_encrypted_data%(c: connection, orig: bool, len: count%);
 ##
 ## c: The connection record for the underlying transport-layer session/flow.
 ##
-## cookie: The cookie included in the request.
+## cookie: The cookie included in the request; empty if no cookie was provided.
 ##
 ## flags: The flags set by the client.
 event rdp_connect_request%(c: connection, cookie: string, flags: count%);

@@ -74,18 +74,27 @@ type Data_Block = record {
 # Client X.224
 ######################################################################
 
+type RDP_Connect_Request_cookie = record {
+	cookie_value:          RE/[^\x0d]*/;
+	cookie_terminator:     RE/\x0d\x0a/;
+} &byteorder=littleendian;
+
 type Connect_Request(cotp: COTP) = record {
 	destination_reference: uint16;
 	source_reference:      uint16;
 	flow_control:          uint8;
-	cookie_mstshash:       RE/Cookie: mstshash\=/;
-	cookie_value:          RE/[^\x0d]*/;
-	cookie_terminator:     RE/\x0d\x0a/;
+	cookie_mstshash:       RE/(Cookie: mstshash\=)?/;
+	# Cookie is optional as per
+	# https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-rdpbcgr/18a27ef9-6f9a-4501-b000-94b1fe3c2c10
+	switch1: case (sizeof(cookie_mstshash) > 0 ) of {
+		0       -> none1:          empty;
+		default -> cookie:         RDP_Connect_Request_cookie;
+	};
 	# Terrifying little case statement to figure out if there
 	# is any data left in the COTP structure.
-	switch1:   case (offsetof(switch1) + 2 - cotp.cotp_len - 1) of {
-		0       -> none:        empty;
-		default -> rdp_neg_req: RDP_Negotiation_Request;
+	switch2:   case (offsetof(switch2) + 2 - cotp.cotp_len - 1) of {
+		0       -> none2:          empty;
+		default -> rdp_neg_req:    RDP_Negotiation_Request;
 	};
 } &byteorder=littleendian;
 

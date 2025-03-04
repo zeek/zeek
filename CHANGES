@@ -1,3 +1,12 @@
+7.2.0-dev.253 | 2025-03-04 13:38:32 +0000
+
+  * RDP: cookie is optional (Johanna Amann, Corelight)
+
+    RDP connections are now parsed even if the optional cookie value
+    is not present.
+
+    Fixes GH-4237
+
 7.2.0-dev.250 | 2025-03-04 12:07:01 +0100
 
   * Update zeek.bif documentation for to_count and to_int (Mark Overholser)

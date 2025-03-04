@@ -48,22 +48,14 @@ Changed Functionality
   It will be retained till Zeek 8.1 to prevent script errors, and raises a
   deprecation warning.
 
-  The way failed services interact with the ``service`` field in the connection
-  log also changed. In the past, protocol analyzers that were confirmed and
-  later failed were removed from the ``service`` field in some cases. This
-  commonly lead to the case that a protocol log exists, while the service is
-  not listed in the connection.log - so, e.g., an etry in ``http.log`` existing
-  without ``http`` showing up in the connection log.
-
-  Now, protocol analyzers that raised a confirmation event will always be added to
-  the ``service`` field in the connection log, and the entry will be retained
-  even if the analyzer raises a violation later.
-
   To extend the visibility of protocol violations, a new option
   ``DPD::track_removed_services_in_connection`` was added. Enabling it causes
-  failed analyzers to be logged to the ``service`` field of the connection log,
-  with a prepended "-". So a connection that attached the ``ssl`` analyzer
-  which later failed due to a protocol error will be logged as ``ssl,-ssl``.
+  failed analyzers to no longer be removed from the ``service`` field of the
+  connection log. Instead, analyzers are never removed after they are
+  confirmed.  Instead, failed analyzers are logged by additionally adding an
+  entry with a prepended "-". So a connection that attached the ``ssl``
+  analyzer which later failed due to a protocol error will be logged as
+  ``ssl,-ssl``.
 
   This change also adds a new policy script,
   ``protocols/conn/failed-service-logging.zeek``. Loading this script adds the

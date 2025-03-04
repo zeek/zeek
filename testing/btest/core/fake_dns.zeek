@@ -1,5 +1,6 @@
-# @TEST-EXEC: ZEEK_DNS_FAKE=1 zeek -D -b %INPUT >out
+# @TEST-EXEC: ZEEK_DNS_FAKE=1 zeek -D -b %INPUT >out 2>err
 # @TEST-EXEC: btest-diff out
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff err
 
 redef exit_only_after_terminate = T;
 

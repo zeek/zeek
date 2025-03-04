@@ -662,7 +662,17 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 
 "0x"{HEX}+	RET_CONST(zeek::val_mgr->Count(static_cast<zeek_uint_t>(strtoull(yytext, 0, 16))).release())
 
-({H}".")+{HTLD}		RET_CONST(zeek::detail::dns_mgr->LookupHost(yytext).release())
+({H}".")+{HTLD} {
+	zeek::TableValPtr result;
+	std::string msg = zeek::util::fmt("Remove in v8.1: DNS lookup of host literal '%s' is deprecated. "
+	                                  "Replace with blocking_lookup_hostname().", yytext);
+	zeek::reporter->Deprecation(msg.c_str());
+	if ( ! zeek::detail::parse_only )
+		result = zeek::detail::dns_mgr->LookupHost(yytext);
+	else
+		result = zeek::detail::dns_mgr->empty_addr_set();
+	RET_CONST(result.release());
+}
 
 \"([^\\\r\\\n\"]|{ESCSEQ})*\"	{
 	const char* text = yytext;

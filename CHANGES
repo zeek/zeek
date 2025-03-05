@@ -1,3 +1,26 @@
+7.2.0-dev.265 | 2025-03-05 19:23:53 +0100
+
+  * ZAM: bif-tracking updates for blocking_lookup_hostname() (Arne Welzel, Corelight)
+
+  * GH-4216 GH-4219: scan.l: Deprecate DNS resolutions of hostname literals (Arne Welzel, Corelight)
+
+    This also skips DNS lookups when running with zeek --parse-only.
+
+  * input/zeek-setup: Track parse_only globally (Arne Welzel, Corelight)
+
+    For easier access in scan.l
+
+  * zeek.bif: Introduce blocking_lookup_hostname() (Arne Welzel, Corelight)
+
+    As a replacement for host literal DNS resolutions.
+
+  * btest/dns_mgr: Update run-dnsmasq, use --host-record (Arne Welzel, Corelight)
+
+    Using dnsmasq --address covers an entire domain, so dns.example.com
+    AAAA queries would also return IPv6 addresses for example.com
+
+    Instead, this was always meant to use host entries.
+
 7.2.0-dev.258 | 2025-03-04 12:52:38 -0800
 
   * Update zeekctl submodule to pull in testsuite fix for metrics port (Christian Kreibich, Corelight)

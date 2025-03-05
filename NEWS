@@ -98,6 +98,11 @@ Removed Functionality
 Deprecated Functionality
 ------------------------
 
+- Support for DNS resolution of hostname literals in Zeek scripts has been
+  deprecated. If you've used this feature, use the new ``blocking_lookup_hostname()``
+  builtin function to populate sets or tables in a ``zeek_init()`` handler,
+  or with top-level statements.
+
 Zeek 7.1.0
 ==========
 

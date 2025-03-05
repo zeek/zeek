@@ -42,6 +42,7 @@ class Stmt;
 extern int zeek_argc;
 extern char** zeek_argv;
 extern const char* prog;
+extern bool parse_only;
 
 extern std::vector<std::string> zeek_script_prefixes; // -p flag
 extern const char* command_line_policy;               // -e flag

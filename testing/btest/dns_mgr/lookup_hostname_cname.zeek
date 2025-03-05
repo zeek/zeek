@@ -13,8 +13,8 @@ redef exit_only_after_terminate = T;
 
 event zeek_init()
 	{
-	# www.example.com is a CNAME for example.com and this
-	# results in nothing :-/
+	# www.example.com is a CNAME for example.com, we get all
+	# addresses of example.com
 	when ( local addrs = lookup_hostname("www.example.com") )
 		{
 		print "lookup_hostname addrs", |addrs|;

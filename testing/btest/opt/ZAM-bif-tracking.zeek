@@ -212,6 +212,7 @@ global known_BiFs = set(
 	"any_set",
 	"backtrace",
 	"bare_mode",
+	"blocking_lookup_hostname",
 	"bloomfilter_add",
 	"bloomfilter_basic_init",
 	"bloomfilter_basic_init2",

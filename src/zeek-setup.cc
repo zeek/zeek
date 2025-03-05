@@ -218,6 +218,7 @@ zeek::OpaqueTypePtr histogram_metric_family_type;
 // Keep copy of command line
 int zeek::detail::zeek_argc;
 char** zeek::detail::zeek_argv;
+bool zeek::detail::parse_only = false;
 
 namespace zeek {
 
@@ -483,6 +484,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     auto options = zopts ? *zopts : parse_cmdline(argc, argv);
 
     run_state::detail::bare_mode = options.bare_mode;
+    detail::parse_only = options.parse_only;
 
     // Set up the global that facilitates access to analysis/optimization
     // options from deep within some modules.

@@ -182,6 +182,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"any_set", ATTR_FOLDABLE},
     {"backtrace", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"bare_mode", ATTR_FOLDABLE},
+    {"blocking_lookup_hostname", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"bloomfilter_add", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"bloomfilter_basic_init", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"bloomfilter_basic_init2", ATTR_NO_SCRIPT_SIDE_EFFECTS},

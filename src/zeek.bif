@@ -4059,7 +4059,7 @@ function lookup_hostname_txt%(host: string%) : string
 ##
 ## Returns: A set of DNS A and AAAA records associated with *host*.
 ##
-## .. zeek:see:: lookup_addr
+## .. zeek:see:: lookup_addr blocking_lookup_hostname
 function lookup_hostname%(host: string%) : addr_set
 	%{
 	// FIXME: Is should be easy to adapt the function to synchronous
@@ -4078,6 +4078,25 @@ function lookup_hostname%(host: string%) : addr_set
 	zeek::detail::dns_mgr->LookupHost(host->CheckString(),
 			new LookupHostCallback(trigger, frame->GetTriggerAssoc(), false));
 	return nullptr;
+	%}
+
+## Issues a synchronous DNS lookup.
+##
+## host: The hostname to lookup.
+##
+## Returns: A set addresses, either IPv4 or IPv6, associated with *host*.
+##
+## .. zeek:see:: lookup_addr
+##
+## .. note::
+##
+##      This is a blocking call. You should use :zeek:see:`lookup_hostname`
+##      unless for initialization or testing purposes.
+##
+## .. zeek:see:: lookup_addr lookup_hostname
+function blocking_lookup_hostname%(host: string%) : addr_set
+	%{
+	return zeek::detail::dns_mgr->LookupHost(host->CheckString());
 	%}
 
 ## Calculates distance between two geographic locations using the haversine

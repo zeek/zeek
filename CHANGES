@@ -1,3 +1,9 @@
+7.2.0-dev.273 | 2025-03-06 16:41:43 -0700
+
+  * Set ip_proto when creating new tunnel encapsulations (Tim Wojtulewicz, Corelight)
+
+  * Add code of conduct and contributing to repo. (Johanna Amann, Corelight)
+
 7.2.0-dev.269 | 2025-03-06 13:12:31 +0000
 
   * Remove violating analyzer from services field again (Johanna Amann, Corelight)

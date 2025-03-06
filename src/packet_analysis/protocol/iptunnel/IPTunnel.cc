@@ -60,7 +60,8 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
     IPTunnelMap::iterator tunnel_it = ip_tunnels.find(tunnel_idx);
 
     if ( tunnel_it == ip_tunnels.end() ) {
-        EncapsulatingConn ec(packet->ip_hdr->SrcAddr(), packet->ip_hdr->DstAddr(), tunnel_type);
+        EncapsulatingConn ec(packet->ip_hdr->SrcAddr(), packet->ip_hdr->DstAddr(), tunnel_type,
+                             packet->ip_hdr->NextProto());
         ip_tunnels[tunnel_idx] = TunnelActivity(ec, run_state::network_time);
         zeek::detail::timer_mgr->Add(new detail::IPTunnelTimer(run_state::network_time, tunnel_idx, this));
     }

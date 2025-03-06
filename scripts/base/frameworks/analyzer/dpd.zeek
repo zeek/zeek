@@ -36,7 +36,11 @@ export {
 	## Set to 0 to never ignore protocol violations.
 	option ignore_violations_after = 10 * 1024;
 
-	## Add removed services to conn.log, with a - in front of them.
+	## Change behavior of service field in conn.log:
+	## Failed services are no longer removed. Instead, for a failed
+	## service, a second entry with a "-" in front of it is added.
+	## E.g. a http connection with a violation would be logged as
+	## "http,-http".
 	option track_removed_services_in_connection = F;
 }
 
@@ -77,7 +81,16 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 	local analyzer = Analyzer::name(atype);
 	# If the service hasn't been confirmed yet, or already failed,
 	# don't generate a log message for the protocol violation.
-	if ( analyzer !in c$service || analyzer in c$service_violation )
+	if ( analyzer !in c$service )
+		return;
+
+	# If removed service tracking is active, don't delete the service here.
+	if ( ! track_removed_services_in_connection )
+		delete c$service[analyzer];
+
+	# if statement is separate, to allow repeated removal of service, in case there are several
+	# confirmation and violation events
+	if ( analyzer in c$service_violation )
 		return;
 
 	add c$service_violation[analyzer];

@@ -1,3 +1,12 @@
+7.2.0-dev.269 | 2025-03-06 13:12:31 +0000
+
+  * Remove violating analyzer from services field again (Johanna Amann, Corelight)
+
+    This reverts some of the recent DPD changes; specifically violations
+    trigger removal from the services field, again, by default.
+
+    Discussion in GH-4521
+
 7.2.0-dev.265 | 2025-03-05 19:23:53 +0100
 
   * ZAM: bif-tracking updates for blocking_lookup_hostname() (Arne Welzel, Corelight)

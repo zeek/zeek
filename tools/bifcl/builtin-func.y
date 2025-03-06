@@ -96,20 +96,17 @@ void set_decl_name(const char *name)
 
 	switch ( definition_type ) {
 	case TYPE_DEF:
-		decl.c_namespace_start = "namespace BifType { namespace " + type_name + "{ ";
-		decl.c_namespace_end = " } }";
+		decl.c_namespace_start = "BifType::" + type_name + "";
 		decl.c_fullname = "BifType::" + type_name + "::";
 		break;
 
 	case CONST_DEF:
-		decl.c_namespace_start = "namespace BifConst { ";
-		decl.c_namespace_end = " } ";
+		decl.c_namespace_start = "BifConst";
 		decl.c_fullname = "BifConst::";
 		break;
 
 	case FUNC_DEF:
-		decl.c_namespace_start = "namespace BifFunc { ";
-		decl.c_namespace_end = " } ";
+		decl.c_namespace_start = "BifFunc";
 		decl.c_fullname = "BifFunc::";
 		break;
 
@@ -117,8 +114,7 @@ void set_decl_name(const char *name)
 		decl.c_namespace_start = "";
 		decl.c_namespace_end = "";
 		decl.c_fullname = "::";  // need this for namespace qualified events due do event_c_body
-		decl.enqueue_c_namespace_start = "namespace BifEvent { ";
-		decl.enqueue_c_namespace_end = " } ";
+		decl.enqueue_c_namespace_start = "BifEvent";
 		decl.enqueue_c_fullname = "zeek::BifEvent::";
 		break;
 
@@ -128,13 +124,25 @@ void set_decl_name(const char *name)
 
 	if ( decl.module_name != GLOBAL_MODULE_NAME )
 		{
-		decl.c_namespace_start += "namespace " + decl.module_name + " { ";
-		decl.c_namespace_end += string(" }");
+		if ( decl.c_namespace_start.empty() ) {
+			decl.c_namespace_start += "namespace " + decl.module_name + " { ";
+			decl.c_namespace_end += " }";
+		}
+		else {
+			decl.c_namespace_start += "::" + decl.module_name;
+			decl.c_namespace_end = "";
+		}
 		decl.c_fullname += decl.module_name + "::";
 		decl.zeek_fullname += decl.module_name + "::";
 
-		decl.enqueue_c_namespace_start  += "namespace " + decl.module_name + " { ";
-		decl.enqueue_c_namespace_end += " } ";
+		if ( decl.enqueue_c_namespace_start.empty() ) {
+			decl.enqueue_c_namespace_start  += "namespace " + decl.module_name + " { ";
+			decl.enqueue_c_namespace_end += " } ";
+		}
+		else {
+			decl.enqueue_c_namespace_start  += "::" + decl.module_name;
+			decl.enqueue_c_namespace_end = "";
+		}
 		decl.enqueue_c_fullname += decl.module_name + "::";
 		}
 
@@ -212,7 +220,7 @@ static void print_event_c_prototype_args(FILE* fp)
 
 static void print_event_c_prototype_header(FILE* fp)
 	{
-	fprintf(fp, "namespace zeek { %s void %s(zeek::analyzer::Analyzer* analyzer%s",
+	fprintf(fp, "namespace zeek::%s { void %s(zeek::analyzer::Analyzer* analyzer%s",
 	        decl.enqueue_c_namespace_start.c_str(),
 	        decl.enqueue_c_barename.c_str(),
 	        args.size() ? ", " : "" );
@@ -359,16 +367,13 @@ type_def:	TOK_TYPE opt_ws TOK_ID opt_ws ':' opt_ws type_def_types opt_ws ';'
 			{
 			set_decl_name($3);
 
-			fprintf(fp_netvar_h, "namespace zeek { %s extern zeek::IntrusivePtr<zeek::%sType> %s; %s}\n",
-				decl.c_namespace_start.c_str(), type_name.c_str(),
-				decl.bare_name.c_str(), decl.c_namespace_end.c_str());
+			fprintf(fp_netvar_h, "namespace zeek::%s { extern zeek::IntrusivePtr<zeek::%sType> %s; }\n",
+				decl.c_namespace_start.c_str(), type_name.c_str(), decl.bare_name.c_str());
 
-			fprintf(fp_netvar_def, "namespace zeek { %s zeek::IntrusivePtr<zeek::%sType> %s; %s}\n",
-				decl.c_namespace_start.c_str(), type_name.c_str(),
-				decl.bare_name.c_str(), decl.c_namespace_end.c_str());
-			fprintf(fp_netvar_def, "%s zeek::%sType * %s; %s\n",
-				decl.c_namespace_start.c_str(), type_name.c_str(),
-				decl.bare_name.c_str(), decl.c_namespace_end.c_str());
+			fprintf(fp_netvar_def, "namespace zeek::%s { zeek::IntrusivePtr<zeek::%sType> %s; }\n",
+				decl.c_namespace_start.c_str(), type_name.c_str(), decl.bare_name.c_str());
+			fprintf(fp_netvar_def, "namespace %s { zeek::%sType * %s; }\n",
+				decl.c_namespace_start.c_str(), type_name.c_str(), decl.bare_name.c_str());
 
 			fprintf(fp_netvar_init,
 				"\tzeek::%s = zeek::id::find_type<zeek::%sType>(\"%s\");\n",
@@ -417,17 +422,14 @@ enum_def:	enum_def_1 enum_list TOK_RPB opt_attr_list
 			fprintf(fp_zeek_init, "} ");
 			fprintf(fp_zeek_init, "%s", $4);
 			fprintf(fp_zeek_init, ";\n");
-			if ( decl.module_name != GLOBAL_MODULE_NAME )
-				fprintf(fp_netvar_h, "}; } }\n");
-			else
-				fprintf(fp_netvar_h, "}; }\n");
+            fprintf(fp_netvar_h, "}; }\n");
 
 			// Now generate the netvar's.
-			fprintf(fp_netvar_h, "namespace zeek { %s extern zeek::IntrusivePtr<zeek::EnumType> %s; %s}\n",
+			fprintf(fp_netvar_h, "namespace zeek::%s { extern zeek::IntrusivePtr<zeek::EnumType> %s; %s}\n",
 				decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
-			fprintf(fp_netvar_def, "namespace zeek { %s zeek::IntrusivePtr<zeek::EnumType> %s; %s}\n",
+			fprintf(fp_netvar_def, "namespace zeek::%s { zeek::IntrusivePtr<zeek::EnumType> %s; %s}\n",
 				decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
-			fprintf(fp_netvar_def, "%s zeek::EnumType * %s; %s\n",
+			fprintf(fp_netvar_def, "namespace %s { zeek::EnumType * %s; %s }\n",
 				decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 
 			fprintf(fp_netvar_init,
@@ -447,9 +449,10 @@ enum_def_1:	TOK_ENUM opt_ws TOK_ID opt_ws TOK_LPB opt_ws
 			// this is the namespace were the enumerators are defined, not where
 			// the type is defined.
 			// We don't support fully qualified names as enumerators. Use a module name
-			fprintf(fp_netvar_h, "namespace BifEnum { ");
 			if ( decl.module_name != GLOBAL_MODULE_NAME )
-				fprintf(fp_netvar_h, "namespace %s { ", decl.module_name.c_str());
+				fprintf(fp_netvar_h, "namespace BifEnum::%s { ", decl.module_name.c_str());
+            else
+                fprintf(fp_netvar_h, "namespace BifEnum { ");
 			fprintf(fp_netvar_h, "enum %s {\n", $3);
 			}
 	;
@@ -480,19 +483,16 @@ const_def:	TOK_CONST opt_ws TOK_ID opt_ws ':' opt_ws TOK_ID opt_ws ';'
 			snprintf(accessor_smart, sizeof(accessor_smart), builtin_types[typeidx].accessor_smart, "");
 
 
-			fprintf(fp_netvar_h, "namespace zeek { %s extern %s %s; %s }\n",
+			fprintf(fp_netvar_h, "namespace zeek::%s { extern %s %s; }\n",
 					decl.c_namespace_start.c_str(),
-					builtin_types[typeidx].c_type_smart, decl.bare_name.c_str(),
-					decl.c_namespace_end.c_str());
+					builtin_types[typeidx].c_type_smart, decl.bare_name.c_str());
 
-			fprintf(fp_netvar_def, "namespace zeek { %s %s %s; %s }\n",
+			fprintf(fp_netvar_def, "namespace zeek::%s { %s %s; }\n",
 					decl.c_namespace_start.c_str(),
-					builtin_types[typeidx].c_type_smart, decl.bare_name.c_str(),
-					decl.c_namespace_end.c_str());
-			fprintf(fp_netvar_def, "%s %s %s; %s\n",
+					builtin_types[typeidx].c_type_smart, decl.bare_name.c_str());
+			fprintf(fp_netvar_def, "namespace %s { %s %s; } \n",
 					decl.c_namespace_start.c_str(),
-					builtin_types[typeidx].c_type, decl.bare_name.c_str(),
-					decl.c_namespace_end.c_str());
+					builtin_types[typeidx].c_type, decl.bare_name.c_str());
 
 			if ( alternative_mode && ! plugin )
 				fprintf(fp_netvar_init, "\tzeek::detail::bif_initializers.emplace_back([]()\n");
@@ -594,7 +594,7 @@ head_1:		TOK_ID opt_ws arg_begin
 				// (e.g. ones at global scope that may be used to implement
 				// the BIF itself).
 				fprintf(fp_func_h,
-					"namespace zeek { %sextern zeek::ValPtr %s_bif(zeek::detail::Frame* frame, const zeek::Args*);%s }\n",
+					"namespace zeek::%s { extern zeek::ValPtr %s_bif(zeek::detail::Frame* frame, const zeek::Args*);%s }\n",
 					decl.c_namespace_start.c_str(), decl.bare_name.c_str(), decl.c_namespace_end.c_str());
 
 				fprintf(fp_func_def,

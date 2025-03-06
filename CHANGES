@@ -1,3 +1,9 @@
+7.1.0-5 | 2025-03-18 12:08:31 -0700
+
+  * Set ip_proto when creating new tunnel encapsulations (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 81f7e7780182f28a37c5847c76ea19e161fb327c)
+
 7.1.0-4 | 2025-03-18 12:06:45 -0700
 
   * GH-2311: scan.l: Fix @load-plugin scripts loading (Arne Welzel, Corelight)

@@ -40,15 +40,22 @@ public:
      * @param d The tunnel destination address, likely taken from an IP header.
      * @param t The type of IP tunnel.
      */
-    EncapsulatingConn(const IPAddr& s, const IPAddr& d, BifEnum::Tunnel::Type t = BifEnum::Tunnel::IP)
+    EncapsulatingConn(const IPAddr& s, const IPAddr& d, BifEnum::Tunnel::Type t = BifEnum::Tunnel::IP,
+                      uint16_t ip_proto = UNKNOWN_IP_PROTO)
         : src_addr(s),
           dst_addr(d),
           src_port(0),
           dst_port(0),
-          proto(TRANSPORT_UNKNOWN),
-          ip_proto(UNKNOWN_IP_PROTO),
+          ip_proto(ip_proto),
           type(t),
-          uid(UID(detail::bits_per_uid)) {}
+          uid(UID(detail::bits_per_uid)) {
+        switch ( ip_proto ) {
+            case IPPROTO_ICMP: proto = TRANSPORT_ICMP; break;
+            case IPPROTO_UDP: proto = TRANSPORT_UDP; break;
+            case IPPROTO_TCP: proto = TRANSPORT_TCP; break;
+            default: proto = TRANSPORT_UNKNOWN; break;
+        }
+    }
 
     /**
      * Construct a tunnel connection using information from an already existing

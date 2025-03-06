@@ -5,6 +5,12 @@
 
 module Conn;
 
+export {
+	## Enable logging of speculative services in conn.log's service field.
+	## The speculative service is added prefixed by "~".
+	option track_speculative_services_in_connection = F;
+}
+
 redef record Info += {
 	## Protocol that was determined by a matching signature after the beginning
 	## of a connection. In this situation no analyzer can be attached and hence
@@ -34,4 +40,7 @@ event protocol_late_match(c: connection, atype: Analyzer::Tag)
 	local analyzer = Analyzer::name(atype);
 	add c$speculative_service[analyzer];
 	Conn::register_removal_hook(c, finalize_speculative_service);
+
+	if ( track_speculative_services_in_connection )
+		add c$service[cat("~", analyzer)];
 	}

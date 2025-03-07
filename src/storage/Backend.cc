@@ -9,15 +9,17 @@
 
 namespace zeek::storage {
 
-RecordValPtr OperationResult::BuildVal() {
+RecordValPtr OperationResult::BuildVal() { return MakeVal(code, err_str, value); }
+
+RecordValPtr OperationResult::MakeVal(EnumValPtr code, std::string_view err_str, ValPtr value) {
     static auto op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
 
     auto rec = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
-    rec->Assign(0, code);
+    rec->Assign(0, std::move(code));
     if ( ! err_str.empty() )
-        rec->Assign(1, err_str);
+        rec->Assign(1, std::string{err_str});
     if ( value )
-        rec->Assign(2, value);
+        rec->Assign(2, std::move(value));
 
     return rec;
 }
@@ -28,12 +30,8 @@ ResultCallback::ResultCallback(zeek::detail::trigger::TriggerPtr trigger, const 
 void ResultCallback::Timeout() {
     static const auto& op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
 
-    if ( ! IsSyncCallback() ) {
-        auto op_result = make_intrusive<RecordVal>(op_result_type);
-        op_result->Assign(0, ReturnCode::TIMEOUT);
-
-        trigger->Cache(assoc, op_result.release());
-    }
+    if ( ! IsSyncCallback() )
+        trigger->Cache(assoc, OperationResult::MakeVal(ReturnCode::TIMEOUT).release());
 }
 
 OperationResultCallback::OperationResultCallback(zeek::detail::trigger::TriggerPtr trigger, const void* assoc)
@@ -46,19 +44,9 @@ void OperationResultCallback::Complete(OperationResult res) {
         return;
     }
 
-    static auto op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
-    auto* op_result = new zeek::RecordVal(op_result_type);
-
-    op_result->Assign(0, res.code);
-    if ( res.code->Get() != 0 )
-        op_result->Assign(1, res.err_str);
-    else
-        op_result->Assign(2, res.value);
-
-    trigger->Cache(assoc, op_result);
+    auto res_val = res.BuildVal();
+    trigger->Cache(assoc, res_val.get());
     trigger->Release();
-
-    Unref(op_result);
 }
 
 OpenResultCallback::OpenResultCallback(IntrusivePtr<detail::BackendHandleVal> backend)
@@ -73,27 +61,19 @@ void OpenResultCallback::Complete(OperationResult res) {
         backend->backend->EnqueueBackendOpened();
     }
 
-    // If this is a sync callback, there isn't a trigger to process. Store the result and bail. Always
-    // set result's value to the backend pointer so that it comes across in the result. This ensures
-    // the handle is always available in the result even on failures.
+    // Set the result's value to the backend so that it ends up in the result getting either
+    // passed back to the trigger or the one stored for sync backends.
+    res.value = backend;
+
+    // If this is a sync callback, there isn't a trigger to process. Store the result and bail.
     if ( IsSyncCallback() ) {
         result = std::move(res);
-        result.value = backend;
         return;
     }
 
-    static auto op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
-    auto* op_result = new zeek::RecordVal(op_result_type);
-
-    op_result->Assign(0, res.code);
-    if ( res.code != ReturnCode::SUCCESS )
-        op_result->Assign(1, res.err_str);
-    op_result->Assign(2, backend);
-
-    trigger->Cache(assoc, op_result);
+    auto res_val = res.BuildVal();
+    trigger->Cache(assoc, res_val.get());
     trigger->Release();
-
-    Unref(op_result);
 }
 
 OperationResult Backend::Open(RecordValPtr options, TypePtr kt, TypePtr vt, OpenResultCallback* cb) {

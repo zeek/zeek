@@ -96,24 +96,15 @@ function Storage::Async::__open_backend%(btype: Storage::Backend, options: any, 
 
 function Storage::Async::__close_backend%(backend: opaque of Storage::BackendHandle%) : Storage::OperationResult
 	%{
-	static auto op_result_type = id::find_type<RecordType>("Storage::OperationResult");
-	auto op_result = make_intrusive<RecordVal>(op_result_type);
-
 	auto trigger = init_trigger(frame);
 	if ( ! trigger )
 		return nullptr;
 
 	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
-	if ( ! b ) {
-		op_result->Assign(0, ReturnCode::OPERATION_FAILED);
-		op_result->Assign(1, make_intrusive<StringVal>("Invalid storage handlle"));
-		return op_result;
-	}
-	else if ( ! b->backend->IsOpen() ) {
-		op_result->Assign(0, ReturnCode::NOT_CONNECTED);
-		op_result->Assign(1, make_intrusive<StringVal>("Backend is closed"));
-		return op_result;
-	}
+	if ( ! b )
+		return OperationResult::MakeVal(ReturnCode::OPERATION_FAILED, "Invalid storage handlle");
+	else if ( ! b->backend->IsOpen() )
+		return OperationResult::MakeVal(ReturnCode::NOT_CONNECTED, "Backend is closed");
 
 	auto cb = new OperationResultCallback(trigger, frame->GetTriggerAssoc());
 	auto close_res = storage_mgr->CloseBackend(b->backend, cb);
@@ -136,24 +127,15 @@ function Storage::Async::__close_backend%(backend: opaque of Storage::BackendHan
 function Storage::Async::__put%(backend: opaque of Storage::BackendHandle, key: any, value: any,
 			 overwrite: bool, expire_time: interval%): Storage::OperationResult
 	%{
-	static auto op_result_type = id::find_type<RecordType>("Storage::OperationResult");
-	auto op_result = make_intrusive<RecordVal>(op_result_type);
-
 	auto trigger = init_trigger(frame);
 	if ( ! trigger )
 		return nullptr;
 
 	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
-	if ( ! b ) {
-		op_result->Assign(0, ReturnCode::OPERATION_FAILED);
-		op_result->Assign(1, make_intrusive<StringVal>("Invalid storage handlle"));
-		return op_result;
-	}
-	else if ( ! b->backend->IsOpen() ) {
-		op_result->Assign(0, ReturnCode::NOT_CONNECTED);
-		op_result->Assign(1, make_intrusive<StringVal>("Backend is closed"));
-		return op_result;
-	}
+	if ( ! b )
+		return OperationResult::MakeVal(ReturnCode::OPERATION_FAILED, "Invalid storage handlle");
+	else if ( ! b->backend->IsOpen() )
+		return OperationResult::MakeVal(ReturnCode::NOT_CONNECTED, "Backend is closed");
 
 	if ( expire_time > 0.0 )
 		expire_time += run_state::network_time;
@@ -180,24 +162,15 @@ function Storage::Async::__put%(backend: opaque of Storage::BackendHandle, key: 
 
 function Storage::Async::__get%(backend: opaque of Storage::BackendHandle, key: any%): Storage::OperationResult
 	%{
-	static auto op_result_type = id::find_type<RecordType>("Storage::OperationResult");
-	auto op_result = make_intrusive<RecordVal>(op_result_type);
-
 	auto trigger = init_trigger(frame);
 	if ( ! trigger )
 		return nullptr;
 
 	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
-	if ( ! b ) {
-		op_result->Assign(0, ReturnCode::OPERATION_FAILED);
-		op_result->Assign(1, make_intrusive<StringVal>("Invalid storage handlle"));
-		return op_result;
-	}
-	else if ( ! b->backend->IsOpen() ) {
-		op_result->Assign(0, ReturnCode::NOT_CONNECTED);
-		op_result->Assign(1, make_intrusive<StringVal>("Backend is closed"));
-		return op_result;
-	}
+	if ( ! b )
+		return OperationResult::MakeVal(ReturnCode::OPERATION_FAILED, "Invalid storage handlle");
+	else if ( ! b->backend->IsOpen() )
+		return OperationResult::MakeVal(ReturnCode::NOT_CONNECTED, "Backend is closed");
 
 	auto cb = new OperationResultCallback(trigger, frame->GetTriggerAssoc());
 	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
@@ -220,24 +193,15 @@ function Storage::Async::__get%(backend: opaque of Storage::BackendHandle, key: 
 
 function Storage::Async::__erase%(backend: opaque of Storage::BackendHandle, key: any%): Storage::OperationResult
 	%{
-	static auto op_result_type = id::find_type<RecordType>("Storage::OperationResult");
-	auto op_result = make_intrusive<RecordVal>(op_result_type);
-
 	auto trigger = init_trigger(frame);
 	if ( ! trigger )
 		return nullptr;
 
 	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
-	if ( ! b ) {
-		op_result->Assign(0, ReturnCode::OPERATION_FAILED);
-		op_result->Assign(1, make_intrusive<StringVal>("Invalid storage handlle"));
-		return op_result;
-	}
-	else if ( ! b->backend->IsOpen() ) {
-		op_result->Assign(0, ReturnCode::NOT_CONNECTED);
-		op_result->Assign(1, make_intrusive<StringVal>("Backend is closed"));
-		return op_result;
-	}
+	if ( ! b )
+		return OperationResult::MakeVal(ReturnCode::OPERATION_FAILED, "Invalid storage handlle");
+	else if ( ! b->backend->IsOpen() )
+		return OperationResult::MakeVal(ReturnCode::NOT_CONNECTED, "Backend is closed");
 
 	auto cb = new OperationResultCallback(trigger, frame->GetTriggerAssoc());
 	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
@@ -262,8 +226,6 @@ module Storage::Sync;
 
 function Storage::Sync::__open_backend%(btype: Storage::Backend, options: any, key_type: any, val_type: any%): Storage::OperationResult
 	%{
-	static auto op_result_type = id::find_type<RecordType>("Storage::OperationResult");
-
 	auto btype_val = IntrusivePtr<EnumVal>{NewRef{}, btype->AsEnumVal()};
 	Tag tag{btype_val};
 
@@ -296,21 +258,11 @@ function Storage::Sync::__open_backend%(btype: Storage::Backend, options: any, k
 
 function Storage::Sync::__close_backend%(backend: opaque of Storage::BackendHandle%) : Storage::OperationResult
 	%{
-	static auto op_result_type = id::find_type<RecordType>("Storage::OperationResult");
-
 	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
-	if ( ! b ) {
-		auto op_result = make_intrusive<RecordVal>(op_result_type);
-		op_result->Assign(0, ReturnCode::OPERATION_FAILED);
-		op_result->Assign(1, make_intrusive<StringVal>("Invalid storage handlle"));
-		return op_result;
-	}
-	else if ( ! b->backend->IsOpen() ) {
-		auto op_result = make_intrusive<RecordVal>(op_result_type);
-		op_result->Assign(0, ReturnCode::NOT_CONNECTED);
-		op_result->Assign(1, make_intrusive<StringVal>("Backend is closed"));
-		return op_result;
-	}
+	if ( ! b )
+		return OperationResult::MakeVal(ReturnCode::OPERATION_FAILED, "Invalid storage handlle");
+	else if ( ! b->backend->IsOpen() )
+		return OperationResult::MakeVal(ReturnCode::NOT_CONNECTED, "Backend is closed");
 
 	auto cb = new OperationResultCallback();
 	auto close_res = storage_mgr->CloseBackend(b->backend, cb);
@@ -330,21 +282,11 @@ function Storage::Sync::__close_backend%(backend: opaque of Storage::BackendHand
 function Storage::Sync::__put%(backend: opaque of Storage::BackendHandle, key: any, value: any,
 			 overwrite: bool, expire_time: interval%): Storage::OperationResult
 	%{
-	static auto op_result_type = id::find_type<RecordType>("Storage::OperationResult");
-
 	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
-	if ( ! b ) {
-		auto op_result = make_intrusive<RecordVal>(op_result_type);
-		op_result->Assign(0, ReturnCode::OPERATION_FAILED);
-		op_result->Assign(1, make_intrusive<StringVal>("Invalid storage handlle"));
-		return op_result;
-	}
-	else if ( ! b->backend->IsOpen() ) {
-		auto op_result = make_intrusive<RecordVal>(op_result_type);
-		op_result->Assign(0, ReturnCode::NOT_CONNECTED);
-		op_result->Assign(1, make_intrusive<StringVal>("Backend is closed"));
-		return op_result;
-	}
+	if ( ! b )
+		return OperationResult::MakeVal(ReturnCode::OPERATION_FAILED, "Invalid storage handlle");
+	else if ( ! b->backend->IsOpen() )
+		return OperationResult::MakeVal(ReturnCode::NOT_CONNECTED, "Backend is closed");
 
 	if ( expire_time > 0.0 )
 		expire_time += run_state::network_time;
@@ -368,21 +310,11 @@ function Storage::Sync::__put%(backend: opaque of Storage::BackendHandle, key: a
 
 function Storage::Sync::__get%(backend: opaque of Storage::BackendHandle, key: any%): Storage::OperationResult
 	%{
-	static auto op_result_type = id::find_type<RecordType>("Storage::OperationResult");
-
 	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
-	if ( ! b ) {
-		auto op_result = make_intrusive<RecordVal>(op_result_type);
-		op_result->Assign(0, ReturnCode::OPERATION_FAILED);
-		op_result->Assign(1, make_intrusive<StringVal>("Invalid storage handlle"));
-		return op_result;
-	}
-	else if ( ! b->backend->IsOpen() ) {
-		auto op_result = make_intrusive<RecordVal>(op_result_type);
-		op_result->Assign(0, ReturnCode::NOT_CONNECTED);
-		op_result->Assign(1, make_intrusive<StringVal>("Backend is closed"));
-		return op_result;
-	}
+	if ( ! b )
+		return OperationResult::MakeVal(ReturnCode::OPERATION_FAILED, "Invalid storage handlle");
+	else if ( ! b->backend->IsOpen() )
+		return OperationResult::MakeVal(ReturnCode::NOT_CONNECTED, "Backend is closed");
 
 	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
 	auto cb = new OperationResultCallback();
@@ -402,21 +334,11 @@ function Storage::Sync::__get%(backend: opaque of Storage::BackendHandle, key: a
 
 function Storage::Sync::__erase%(backend: opaque of Storage::BackendHandle, key: any%): Storage::OperationResult
 	%{
-	static auto op_result_type = id::find_type<RecordType>("Storage::OperationResult");
-
 	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
-	if ( ! b ) {
-		auto op_result = make_intrusive<RecordVal>(op_result_type);
-		op_result->Assign(0, ReturnCode::OPERATION_FAILED);
-		op_result->Assign(1, make_intrusive<StringVal>("Invalid storage handlle"));
-		return op_result;
-	}
-	else if ( ! b->backend->IsOpen() ) {
-		auto op_result = make_intrusive<RecordVal>(op_result_type);
-		op_result->Assign(0, ReturnCode::NOT_CONNECTED);
-		op_result->Assign(1, make_intrusive<StringVal>("Backend is closed"));
-		return op_result;
-	}
+	if ( ! b )
+		return OperationResult::MakeVal(ReturnCode::OPERATION_FAILED, "Invalid storage handlle");
+	else if ( ! b->backend->IsOpen() )
+		return OperationResult::MakeVal(ReturnCode::NOT_CONNECTED, "Backend is closed");
 
 	auto cb = new OperationResultCallback();
 	auto key_v = IntrusivePtr<Val>{NewRef{}, key};

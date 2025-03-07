@@ -276,10 +276,11 @@ bool ZeroMQBackend::DoPublishEvent(const std::string& topic, const std::string& 
             main_inproc.send(parts[i], flags);
         } catch ( const zmq::error_t& err ) {
             // If send() was interrupted and Zeek caught an interrupt or term signal,
-            // fail the publish as we'll about to shutdown. There's nothing the user
+            // fail the publish as we're about to shutdown. There's nothing the user
             // can do, but it indicates an overload situation as send() was blocking.
             if ( err.num() == EINTR && (signal_val == SIGINT || signal_val == SIGTERM) ) {
-                zeek::reporter->Error("Failed publish() at shutdown: %s (signal_val=%d)", err.what(), signal_val);
+                zeek::reporter->Error("Failed publish() using ZeroMQ backend at shutdown: %s (signal_val=%d)",
+                                      err.what(), signal_val);
                 return false;
             }
 

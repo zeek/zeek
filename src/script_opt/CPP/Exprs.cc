@@ -998,10 +998,23 @@ string CPPCompile::GenEQ(const Expr* e, GenType gt, const char* op, const char* 
     auto tag = op1->GetType()->Tag();
     string negated(e->Tag() == EXPR_EQ ? "" : "! ");
 
-    if ( tag == TYPE_PATTERN )
-        return NativeToGT(negated + GenExpr(op1, GEN_DONT_CARE) + "->MatchExactly(" + GenExpr(op2, GEN_DONT_CARE) +
-                              "->AsString())",
-                          e->GetType(), gt);
+    if ( tag == TYPE_PATTERN ) {
+        auto gen1 = GenExpr(op1, GEN_DONT_CARE);
+        auto gen2 = GenExpr(op2, GEN_DONT_CARE);
+        string gen;
+
+        if ( op2->GetType()->Tag() == TYPE_PATTERN ) {
+            gen1 += "->AsPattern()->PatternText()";
+            gen2 += "->AsPattern()->PatternText()";
+
+            gen = "(strcmp(" + gen1 + ", " + gen2 + ") == 0)";
+        }
+
+        else
+            gen = gen1 + "->MatchExactly(" + gen2 + "->AsString())";
+
+        return NativeToGT(negated + gen, e->GetType(), gt);
+    }
 
     if ( tag == TYPE_FUNC ) {
         auto gen_f1 = GenExpr(op1, GEN_DONT_CARE);

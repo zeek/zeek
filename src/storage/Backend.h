@@ -20,6 +20,7 @@ struct OperationResult {
     ValPtr value;
 
     RecordValPtr BuildVal();
+    static RecordValPtr MakeVal(EnumValPtr code, std::string_view err_str = "", ValPtr value = nullptr);
 };
 
 
@@ -38,7 +39,7 @@ public:
 protected:
     void CompleteWithVal(Val* result);
 
-    IntrusivePtr<zeek::detail::trigger::Trigger> trigger;
+    zeek::detail::trigger::TriggerPtr trigger;
     const void* assoc = nullptr;
 };
 

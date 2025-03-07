@@ -8,7 +8,7 @@
 #include "zeek/RunState.h"
 #include "zeek/Val.h"
 #include "zeek/iosource/Manager.h"
-#include "zeek/storage/ReturnCodes.h"
+#include "zeek/storage/ReturnCode.h"
 #include "zeek/storage/storage.bif.h"
 
 #include "hiredis/adapters/poll.h"
@@ -166,7 +166,7 @@ OperationResult Redis::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
     else {
         StringValPtr unix_sock = backend_options->GetField<StringVal>("server_unix_socket");
         if ( ! unix_sock ) {
-            return {ReturnCodes::FAILED_TO_CONNECT,
+            return {ReturnCode::CONNECTION_FAILED,
                     "Either server_host/server_port or server_unix_socket must be set in Redis options record"};
         }
 
@@ -193,7 +193,7 @@ OperationResult Redis::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
 
         redisAsyncFree(async_ctx);
         async_ctx = nullptr;
-        return {ReturnCodes::FAILED_TO_CONNECT, errmsg};
+        return {ReturnCode::CONNECTION_FAILED, errmsg};
     }
 
     ++active_ops;
@@ -233,7 +233,7 @@ OperationResult Redis::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
     async_ctx->ev.addWrite = redisAddWrite;
     async_ctx->ev.delWrite = redisDelWrite;
 
-    return {ReturnCodes::SUCCESS};
+    return {ReturnCode::SUCCESS};
 }
 
 /**
@@ -252,12 +252,12 @@ OperationResult Redis::DoDone(OperationResultCallback* cb) {
         // TODO: handle response
     }
 
-    CompleteCallback(cb, {ReturnCodes::SUCCESS});
+    CompleteCallback(cb, {ReturnCode::SUCCESS});
 
     redisAsyncFree(async_ctx);
     async_ctx = nullptr;
 
-    return {ReturnCodes::SUCCESS};
+    return {ReturnCode::SUCCESS};
 }
 
 /**
@@ -267,7 +267,7 @@ OperationResult Redis::DoPut(ValPtr key, ValPtr value, bool overwrite, double ex
                              OperationResultCallback* cb) {
     // The async context will queue operations until it's connected fully.
     if ( ! connected && ! async_ctx )
-        return {ReturnCodes::NOT_CONNECTED};
+        return {ReturnCode::NOT_CONNECTED};
 
     auto locked_scope = conditionally_lock(zeek::run_state::reading_traces, expire_mutex);
 
@@ -291,7 +291,7 @@ OperationResult Redis::DoPut(ValPtr key, ValPtr value, bool overwrite, double ex
                                    json_value.data());
 
     if ( connected && status == REDIS_ERR )
-        return {ReturnCodes::OPERATION_FAILED, util::fmt("Failed to queue put operation: %s", async_ctx->errstr)};
+        return {ReturnCode::OPERATION_FAILED, util::fmt("Failed to queue put operation: %s", async_ctx->errstr)};
 
     ++active_ops;
 
@@ -306,12 +306,12 @@ OperationResult Redis::DoPut(ValPtr key, ValPtr value, bool overwrite, double ex
         status = redisAsyncCommand(async_ctx, redisZADD, NULL, format.c_str(), key_prefix.data(), expiration_time,
                                    json_key.data());
         if ( connected && status == REDIS_ERR )
-            return {ReturnCodes::OPERATION_FAILED, util::fmt("ZADD operation failed: %s", async_ctx->errstr)};
+            return {ReturnCode::OPERATION_FAILED, util::fmt("ZADD operation failed: %s", async_ctx->errstr)};
 
         ++active_ops;
     }
 
-    return {ReturnCodes::SUCCESS};
+    return {ReturnCode::SUCCESS};
 }
 
 /**
@@ -320,7 +320,7 @@ OperationResult Redis::DoPut(ValPtr key, ValPtr value, bool overwrite, double ex
 OperationResult Redis::DoGet(ValPtr key, OperationResultCallback* cb) {
     // The async context will queue operations until it's connected fully.
     if ( ! connected && ! async_ctx )
-        return {ReturnCodes::NOT_CONNECTED};
+        return {ReturnCode::NOT_CONNECTED};
 
     auto locked_scope = conditionally_lock(zeek::run_state::reading_traces, expire_mutex);
 
@@ -328,13 +328,13 @@ OperationResult Redis::DoGet(ValPtr key, OperationResultCallback* cb) {
                                    key->ToJSON()->ToStdStringView().data());
 
     if ( connected && status == REDIS_ERR )
-        return {ReturnCodes::OPERATION_FAILED, util::fmt("Failed to queue get operation: %s", async_ctx->errstr)};
+        return {ReturnCode::OPERATION_FAILED, util::fmt("Failed to queue get operation: %s", async_ctx->errstr)};
 
     ++active_ops;
 
     // There isn't a result to return here. That happens in HandleGetResult for
     // async operations.
-    return {ReturnCodes::SUCCESS};
+    return {ReturnCode::SUCCESS};
 }
 
 /**
@@ -343,7 +343,7 @@ OperationResult Redis::DoGet(ValPtr key, OperationResultCallback* cb) {
 OperationResult Redis::DoErase(ValPtr key, OperationResultCallback* cb) {
     // The async context will queue operations until it's connected fully.
     if ( ! connected && ! async_ctx )
-        return {ReturnCodes::NOT_CONNECTED};
+        return {ReturnCode::NOT_CONNECTED};
 
     auto locked_scope = conditionally_lock(zeek::run_state::reading_traces, expire_mutex);
 
@@ -351,11 +351,11 @@ OperationResult Redis::DoErase(ValPtr key, OperationResultCallback* cb) {
                                    key->ToJSON()->ToStdStringView().data());
 
     if ( connected && status == REDIS_ERR )
-        return {ReturnCodes::OPERATION_FAILED, async_ctx->errstr};
+        return {ReturnCode::OPERATION_FAILED, async_ctx->errstr};
 
     ++active_ops;
 
-    return {ReturnCodes::SUCCESS};
+    return {ReturnCode::SUCCESS};
 }
 
 void Redis::Expire() {
@@ -428,13 +428,13 @@ void Redis::Expire() {
 void Redis::HandlePutResult(redisReply* reply, OperationResultCallback* callback) {
     --active_ops;
 
-    OperationResult res{ReturnCodes::SUCCESS};
+    OperationResult res{ReturnCode::SUCCESS};
     if ( ! connected )
-        res = {ReturnCodes::NOT_CONNECTED};
+        res = {ReturnCode::NOT_CONNECTED};
     else if ( ! reply )
-        res = {ReturnCodes::OPERATION_FAILED, "Async put operation returned null reply"};
+        res = {ReturnCode::OPERATION_FAILED, "Async put operation returned null reply"};
     else if ( reply && reply->type == REDIS_REPLY_ERROR )
-        res = {ReturnCodes::OPERATION_FAILED, util::fmt("Async put operation failed: %s", reply->str)};
+        res = {ReturnCode::OPERATION_FAILED, util::fmt("Async put operation failed: %s", reply->str)};
 
     freeReplyObject(reply);
     CompleteCallback(callback, res);
@@ -445,7 +445,7 @@ void Redis::HandleGetResult(redisReply* reply, OperationResultCallback* callback
 
     OperationResult res;
     if ( ! connected )
-        res = {ReturnCodes::NOT_CONNECTED};
+        res = {ReturnCode::NOT_CONNECTED};
     else
         res = ParseGetReply(reply);
 
@@ -459,14 +459,14 @@ void Redis::HandleEraseResult(redisReply* reply, OperationResultCallback* callba
     if ( callback->SyncCallback() )
         reply_queue.push_back(reply);
     else {
-        OperationResult res{ReturnCodes::SUCCESS};
+        OperationResult res{ReturnCode::SUCCESS};
 
         if ( ! connected )
-            res = {ReturnCodes::NOT_CONNECTED};
+            res = {ReturnCode::NOT_CONNECTED};
         else if ( ! reply )
-            res = {ReturnCodes::OPERATION_FAILED, "Async erase operation returned null reply"};
+            res = {ReturnCode::OPERATION_FAILED, "Async erase operation returned null reply"};
         else if ( reply && reply->type == REDIS_REPLY_ERROR )
-            res = {ReturnCodes::OPERATION_FAILED, util::fmt("Async erase operation failed: %s", reply->str)};
+            res = {ReturnCode::OPERATION_FAILED, util::fmt("Async erase operation failed: %s", reply->str)};
 
         freeReplyObject(reply);
         CompleteCallback(callback, res);
@@ -486,13 +486,13 @@ void Redis::OnConnect(int status) {
 
     if ( status == REDIS_OK ) {
         connected = true;
-        CompleteCallback(open_cb, {ReturnCodes::SUCCESS});
+        CompleteCallback(open_cb, {ReturnCode::SUCCESS});
         // The connection_established event is sent via the open callback handler.
         return;
     }
 
     connected = false;
-    CompleteCallback(open_cb, {ReturnCodes::FAILED_TO_CONNECT});
+    CompleteCallback(open_cb, {ReturnCode::CONNECTION_FAILED});
 
     // TODO: we could attempt to reconnect here
 }
@@ -522,15 +522,15 @@ OperationResult Redis::ParseGetReply(redisReply* reply) const {
     OperationResult res;
 
     if ( ! reply )
-        res = {ReturnCodes::OPERATION_FAILED, "GET returned null reply"};
+        res = {ReturnCode::OPERATION_FAILED, "GET returned null reply"};
     else if ( ! reply->str )
-        res = {ReturnCodes::KEY_NOT_FOUND};
+        res = {ReturnCode::KEY_NOT_FOUND};
     else {
         auto val = zeek::detail::ValFromJSON(reply->str, val_type, Func::nil);
         if ( std::holds_alternative<ValPtr>(val) )
-            res = {ReturnCodes::SUCCESS, "", std::get<ValPtr>(val)};
+            res = {ReturnCode::SUCCESS, "", std::get<ValPtr>(val)};
         else
-            res = {ReturnCodes::OPERATION_FAILED, std::get<std::string>(val)};
+            res = {ReturnCode::OPERATION_FAILED, std::get<std::string>(val)};
     }
 
     return res;

@@ -4,7 +4,7 @@ zeek_add_subdir_library(
     Manager.cc
     Backend.cc
     Component.cc
-    ReturnCodes.cc
+    ReturnCode.cc
     BIFS
     storage.bif)
 

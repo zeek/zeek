@@ -356,14 +356,6 @@ type ftp_port: record {
 	valid: bool;	##< True if format was right. Only then are *h* and *p* valid.
 };
 
-## A generic type for returning either a value or an error string from a
-## function or a BIF method. This is sort of equivalent to std::expected
-## in C++.
-type val_result: record {
-	val: any &optional;
-	error: string &optional;
-};
-
 ## Statistics about what a TCP endpoint sent.
 ##
 ## .. zeek:see:: conn_stats
@@ -6228,7 +6220,7 @@ export {
 
 	## Common set of statuses that can be returned by storage operations. Backend plugins
 	## can add to this enum if custom values are needed.
-	type ReturnCodes: enum {
+	type ReturnCode: enum {
 		## Operation succeeded.
 		SUCCESS,
 		## Type of value passed to operation does not match type of
@@ -6250,15 +6242,15 @@ export {
 		## Key requested for overwrite already exists.
 		KEY_EXISTS,
 		## Generic connection failure.
-		FAILED_TO_CONNECT,
+		CONNECTION_FAILED,
 		## Generic disconnection failure.
-		FAILED_TO_DISCONNECT,
+		DISCONNECTION_FAILED,
 		## Generic initialization failure.
-		FAILED_TO_INITIALIZE
+		INITIALIZATION_FAILED
 	} &redef;
 
 	type OperationResult: record {
-		code: ReturnCodes;
+		code: ReturnCode;
 		error_str: string &optional;
 		value: any &optional;
 	};

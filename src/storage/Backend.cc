@@ -4,30 +4,33 @@
 
 #include "zeek/Trigger.h"
 #include "zeek/broker/Data.h"
-#include "zeek/storage/ReturnCodes.h"
+#include "zeek/storage/ReturnCode.h"
 #include "zeek/storage/storage.bif.h"
 
 namespace zeek::storage {
 
-void OperationResult::FillRecordVal(const RecordValPtr& rec) {
+RecordValPtr OperationResult::BuildVal() {
+    static auto op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
+
+    auto rec = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
     rec->Assign(0, code);
     if ( ! err_str.empty() )
-        rec->Assign(1, zeek::make_intrusive<StringVal>(err_str));
+        rec->Assign(1, err_str);
     if ( value )
         rec->Assign(2, value);
+
+    return rec;
 }
 
 ResultCallback::ResultCallback(zeek::detail::trigger::TriggerPtr trigger, const void* assoc)
     : trigger(std::move(trigger)), assoc(assoc) {}
-
-// ResultCallback::~ResultCallback() {}
 
 void ResultCallback::Timeout() {
     static const auto& op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
 
     if ( ! SyncCallback() ) {
         auto op_result = make_intrusive<RecordVal>(op_result_type);
-        op_result->Assign(0, ReturnCodes::TIMEOUT);
+        op_result->Assign(0, ReturnCode::TIMEOUT);
 
         trigger->Cache(assoc, op_result.release());
     }
@@ -48,7 +51,7 @@ void OperationResultCallback::Complete(const OperationResult& res) {
 
     op_result->Assign(0, res.code);
     if ( res.code->Get() != 0 )
-        op_result->Assign(1, zeek::make_intrusive<StringVal>(res.err_str));
+        op_result->Assign(1, res.err_str);
     else
         op_result->Assign(2, res.value);
 
@@ -66,7 +69,7 @@ OpenResultCallback::OpenResultCallback(zeek::detail::trigger::TriggerPtr trigger
     : ResultCallback(std::move(trigger), assoc), backend(std::move(backend)) {}
 
 void OpenResultCallback::Complete(const OperationResult& res) {
-    if ( res.code == ReturnCodes::SUCCESS ) {
+    if ( res.code == ReturnCode::SUCCESS ) {
         event_mgr.Enqueue(Storage::connection_established, make_intrusive<StringVal>(backend->backend->Tag()),
                           backend->backend->Options());
     }
@@ -84,7 +87,7 @@ void OpenResultCallback::Complete(const OperationResult& res) {
     auto* op_result = new zeek::RecordVal(op_result_type);
 
     op_result->Assign(0, res.code);
-    if ( res.code != ReturnCodes::SUCCESS )
+    if ( res.code != ReturnCode::SUCCESS )
         op_result->Assign(1, res.err_str);
     op_result->Assign(2, backend);
 
@@ -115,12 +118,12 @@ OperationResult Backend::Put(ValPtr key, ValPtr value, bool overwrite, double ex
     // through the workers. For the first versions of the storage framework it
     // just calls the backend itself directly.
     if ( ! same_type(key->GetType(), key_type) ) {
-        auto ret = OperationResult{ReturnCodes::KEY_TYPE_MISMATCH};
+        auto ret = OperationResult{ReturnCode::KEY_TYPE_MISMATCH};
         CompleteCallback(cb, ret);
         return ret;
     }
     if ( ! same_type(value->GetType(), val_type) ) {
-        auto ret = OperationResult{ReturnCodes::VAL_TYPE_MISMATCH};
+        auto ret = OperationResult{ReturnCode::VAL_TYPE_MISMATCH};
         CompleteCallback(cb, ret);
         return ret;
     }
@@ -131,7 +134,7 @@ OperationResult Backend::Put(ValPtr key, ValPtr value, bool overwrite, double ex
 OperationResult Backend::Get(ValPtr key, OperationResultCallback* cb) {
     // See the note in Put().
     if ( ! same_type(key->GetType(), key_type) ) {
-        auto ret = OperationResult{ReturnCodes::KEY_TYPE_MISMATCH};
+        auto ret = OperationResult{ReturnCode::KEY_TYPE_MISMATCH};
         CompleteCallback(cb, ret);
         return ret;
     }
@@ -142,7 +145,7 @@ OperationResult Backend::Get(ValPtr key, OperationResultCallback* cb) {
 OperationResult Backend::Erase(ValPtr key, OperationResultCallback* cb) {
     // See the note in Put().
     if ( ! same_type(key->GetType(), key_type) ) {
-        auto ret = OperationResult{ReturnCodes::KEY_TYPE_MISMATCH};
+        auto ret = OperationResult{ReturnCode::KEY_TYPE_MISMATCH};
         CompleteCallback(cb, ret);
         return ret;
     }

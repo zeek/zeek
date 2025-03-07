@@ -5,7 +5,7 @@
 #include "zeek/3rdparty/sqlite3.h"
 #include "zeek/Func.h"
 #include "zeek/Val.h"
-#include "zeek/storage/ReturnCodes.h"
+#include "zeek/storage/ReturnCode.h"
 
 namespace zeek::storage::backends::sqlite {
 
@@ -24,7 +24,7 @@ OperationResult SQLite::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
             "SQLite reports that it is not threadsafe. Zeek needs a threadsafe version of "
             "SQLite. Aborting";
         Error(res.c_str());
-        return {ReturnCodes::FAILED_TO_INITIALIZE, res};
+        return {ReturnCode::INITIALIZATION_FAILED, res};
     }
 
     // Allow connections to same DB to use single data/schema cache. Also
@@ -41,7 +41,7 @@ OperationResult SQLite::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
     if ( auto open_res =
              CheckError(sqlite3_open_v2(full_path.c_str(), &db,
                                         SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, NULL));
-         open_res.code != ReturnCodes::SUCCESS ) {
+         open_res.code != ReturnCode::SUCCESS ) {
         sqlite3_close_v2(db);
         db = nullptr;
         return open_res;
@@ -56,7 +56,7 @@ OperationResult SQLite::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
         Error(err.c_str());
         sqlite3_free(errorMsg);
         Done();
-        return {ReturnCodes::FAILED_TO_INITIALIZE, err};
+        return {ReturnCode::INITIALIZATION_FAILED, err};
     }
 
     if ( int res = sqlite3_exec(db, "pragma integrity_check", NULL, NULL, &errorMsg); res != SQLITE_OK ) {
@@ -64,7 +64,7 @@ OperationResult SQLite::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
         Error(err.c_str());
         sqlite3_free(errorMsg);
         Done();
-        return {ReturnCodes::FAILED_TO_INITIALIZE, err};
+        return {ReturnCode::INITIALIZATION_FAILED, err};
     }
 
     auto tuning_params = backend_options->GetField<TableVal>("tuning_params")->ToMap();
@@ -78,7 +78,7 @@ OperationResult SQLite::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
             Error(err.c_str());
             sqlite3_free(errorMsg);
             Done();
-            return {ReturnCodes::FAILED_TO_INITIALIZE, err};
+            return {ReturnCode::INITIALIZATION_FAILED, err};
         }
     }
 
@@ -96,7 +96,7 @@ OperationResult SQLite::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
     for ( const auto& [key, stmt] : statements ) {
         sqlite3_stmt* ps;
         if ( auto prep_res = CheckError(sqlite3_prepare_v2(db, stmt.c_str(), stmt.size(), &ps, NULL));
-             prep_res.code != ReturnCodes::SUCCESS ) {
+             prep_res.code != ReturnCode::SUCCESS ) {
             Done();
             return prep_res;
         }
@@ -106,14 +106,14 @@ OperationResult SQLite::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
 
     sqlite3_busy_timeout(db, 5000);
 
-    return {ReturnCodes::SUCCESS};
+    return {ReturnCode::SUCCESS};
 }
 
 /**
  * Finalizes the backend when it's being closed.
  */
 OperationResult SQLite::DoDone(OperationResultCallback* cb) {
-    OperationResult op_res{ReturnCodes::SUCCESS};
+    OperationResult op_res{ReturnCode::SUCCESS};
 
     if ( db ) {
         for ( const auto& [k, stmt] : prepared_stmts ) {
@@ -124,8 +124,7 @@ OperationResult SQLite::DoDone(OperationResultCallback* cb) {
 
         char* errmsg;
         if ( int res = sqlite3_exec(db, "pragma optimize", NULL, NULL, &errmsg); res != SQLITE_OK ) {
-            op_res = {ReturnCodes::FAILED_TO_DISCONNECT,
-                      util::fmt("Sqlite failed to optimize at shutdown: %s", errmsg)};
+            op_res = {ReturnCode::DISCONNECTION_FAILED, util::fmt("Sqlite failed to optimize at shutdown: %s", errmsg)};
             sqlite3_free(&errmsg);
             // TODO: we're shutting down. does this error matter other than being informational?
         }
@@ -147,7 +146,7 @@ OperationResult SQLite::DoDone(OperationResultCallback* cb) {
 OperationResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite, double expiration_time,
                               OperationResultCallback* cb) {
     if ( ! db )
-        return {ReturnCodes::NOT_CONNECTED};
+        return {ReturnCode::NOT_CONNECTED};
 
     auto json_key = key->ToJSON();
     auto json_value = value->ToJSON();
@@ -160,26 +159,26 @@ OperationResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite, double e
 
     auto key_str = json_key->ToStdStringView();
     if ( auto res = CheckError(sqlite3_bind_text(stmt, 1, key_str.data(), key_str.size(), SQLITE_STATIC));
-         res.code != ReturnCodes::SUCCESS ) {
+         res.code != ReturnCode::SUCCESS ) {
         sqlite3_reset(stmt);
         return res;
     }
 
     auto value_str = json_value->ToStdStringView();
     if ( auto res = CheckError(sqlite3_bind_text(stmt, 2, value_str.data(), value_str.size(), SQLITE_STATIC));
-         res.code != ReturnCodes::SUCCESS ) {
+         res.code != ReturnCode::SUCCESS ) {
         sqlite3_reset(stmt);
         return res;
     }
 
-    if ( auto res = CheckError(sqlite3_bind_double(stmt, 3, expiration_time)); res.code != ReturnCodes::SUCCESS ) {
+    if ( auto res = CheckError(sqlite3_bind_double(stmt, 3, expiration_time)); res.code != ReturnCode::SUCCESS ) {
         sqlite3_reset(stmt);
         return res;
     }
 
     if ( overwrite ) {
         if ( auto res = CheckError(sqlite3_bind_text(stmt, 4, value_str.data(), value_str.size(), SQLITE_STATIC));
-             res.code != ReturnCodes::SUCCESS ) {
+             res.code != ReturnCode::SUCCESS ) {
             sqlite3_reset(stmt);
             return res;
         }
@@ -193,14 +192,14 @@ OperationResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite, double e
  */
 OperationResult SQLite::DoGet(ValPtr key, OperationResultCallback* cb) {
     if ( ! db )
-        return {ReturnCodes::NOT_CONNECTED};
+        return {ReturnCode::NOT_CONNECTED};
 
     auto json_key = key->ToJSON();
     auto stmt = prepared_stmts["get"];
 
     auto key_str = json_key->ToStdStringView();
     if ( auto res = CheckError(sqlite3_bind_text(stmt, 1, key_str.data(), key_str.size(), SQLITE_STATIC));
-         res.code != ReturnCodes::SUCCESS ) {
+         res.code != ReturnCode::SUCCESS ) {
         sqlite3_reset(stmt);
         return res;
     }
@@ -213,14 +212,14 @@ OperationResult SQLite::DoGet(ValPtr key, OperationResultCallback* cb) {
  */
 OperationResult SQLite::DoErase(ValPtr key, OperationResultCallback* cb) {
     if ( ! db )
-        return {ReturnCodes::NOT_CONNECTED};
+        return {ReturnCode::NOT_CONNECTED};
 
     auto json_key = key->ToJSON();
     auto stmt = prepared_stmts["erase"];
 
     auto key_str = json_key->ToStdStringView();
     if ( auto res = CheckError(sqlite3_bind_text(stmt, 1, key_str.data(), key_str.size(), SQLITE_STATIC));
-         res.code != ReturnCodes::SUCCESS ) {
+         res.code != ReturnCode::SUCCESS ) {
         sqlite3_reset(stmt);
         return res;
     }
@@ -236,7 +235,7 @@ void SQLite::Expire() {
     auto stmt = prepared_stmts["expire"];
 
     if ( auto res = CheckError(sqlite3_bind_double(stmt, 1, run_state::network_time));
-         res.code != ReturnCodes::SUCCESS ) {
+         res.code != ReturnCode::SUCCESS ) {
         sqlite3_reset(stmt);
         // TODO: do something with the error here?
     }
@@ -247,10 +246,10 @@ void SQLite::Expire() {
 // returns true in case of error
 OperationResult SQLite::CheckError(int code) {
     if ( code != SQLITE_OK && code != SQLITE_DONE ) {
-        return {ReturnCodes::OPERATION_FAILED, util::fmt("SQLite call failed: %s", sqlite3_errmsg(db)), nullptr};
+        return {ReturnCode::OPERATION_FAILED, util::fmt("SQLite call failed: %s", sqlite3_errmsg(db)), nullptr};
     }
 
-    return {ReturnCodes::SUCCESS};
+    return {ReturnCode::SUCCESS};
 }
 
 OperationResult SQLite::Step(sqlite3_stmt* stmt, bool parse_value) {
@@ -265,27 +264,27 @@ OperationResult SQLite::Step(sqlite3_stmt* stmt, bool parse_value) {
             sqlite3_reset(stmt);
             if ( std::holds_alternative<ValPtr>(val) ) {
                 ValPtr val_v = std::get<ValPtr>(val);
-                ret = {ReturnCodes::SUCCESS, "", val_v};
+                ret = {ReturnCode::SUCCESS, "", val_v};
             }
             else {
-                ret = {ReturnCodes::OPERATION_FAILED, std::get<std::string>(val)};
+                ret = {ReturnCode::OPERATION_FAILED, std::get<std::string>(val)};
             }
         }
         else {
-            ret = {ReturnCodes::OPERATION_FAILED, "sqlite3_step should not have returned a value"};
+            ret = {ReturnCode::OPERATION_FAILED, "sqlite3_step should not have returned a value"};
         }
     }
     else if ( step_status == SQLITE_DONE ) {
         if ( parse_value )
-            ret = {ReturnCodes::KEY_NOT_FOUND};
+            ret = {ReturnCode::KEY_NOT_FOUND};
         else
-            ret = {ReturnCodes::SUCCESS};
+            ret = {ReturnCode::SUCCESS};
     }
     else if ( step_status == SQLITE_BUSY )
         // TODO: this could retry a number of times instead of just failing
-        ret = {ReturnCodes::TIMEOUT};
+        ret = {ReturnCode::TIMEOUT};
     else
-        ret = {ReturnCodes::OPERATION_FAILED};
+        ret = {ReturnCode::OPERATION_FAILED};
 
     sqlite3_reset(stmt);
 

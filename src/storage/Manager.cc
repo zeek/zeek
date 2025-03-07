@@ -5,7 +5,7 @@
 #include <atomic>
 
 #include "zeek/RunState.h"
-#include "zeek/storage/ReturnCodes.h"
+#include "zeek/storage/ReturnCode.h"
 
 #include "const.bif.netvar_h"
 
@@ -37,11 +37,11 @@ Manager::~Manager() {
     // operations finish and close them?
 
     // Don't leave all of these static objects to leak.
-    ReturnCodes::Cleanup();
+    ReturnCode::Cleanup();
 }
 
 void Manager::InitPostScript() {
-    ReturnCodes::Initialize();
+    ReturnCode::Initialize();
 
     detail::backend_opaque = make_intrusive<OpaqueType>("Storage::Backend");
     StartExpirationTimer();
@@ -72,7 +72,7 @@ BackendResult Manager::Instantiate(const Tag& type) {
 OperationResult Manager::OpenBackend(BackendPtr backend, RecordValPtr options, TypePtr key_type, TypePtr val_type,
                                      OpenResultCallback* cb) {
     auto res = backend->Open(std::move(options), std::move(key_type), std::move(val_type), cb);
-    if ( res.code != ReturnCodes::SUCCESS ) {
+    if ( res.code != ReturnCode::SUCCESS ) {
         res.err_str = util::fmt("Failed to open backend %s: %s", backend->Tag(), res.err_str.c_str());
         return res;
     }
@@ -95,14 +95,11 @@ OperationResult Manager::CloseBackend(BackendPtr backend, OperationResultCallbac
             backends.erase(it);
     }
 
-    if ( auto res = backend->Done(cb); res.code->Get() != 0 ) {
-        return {ReturnCodes::FAILED_TO_DISCONNECT,
-                util::fmt("Failed to close backend %s: %s", backend->Tag(), res.err_str.c_str())};
-    }
+    auto res = backend->Done(cb);
 
     // TODO: post storage_connection_lost event
 
-    return {ReturnCodes::SUCCESS};
+    return res;
 }
 
 void Manager::Expire() {

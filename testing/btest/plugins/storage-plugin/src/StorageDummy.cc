@@ -4,7 +4,7 @@
 
 #include "zeek/Func.h"
 #include "zeek/Val.h"
-#include "zeek/storage/ReturnCodes.h"
+#include "zeek/storage/ReturnCode.h"
 
 using namespace zeek;
 using namespace zeek::storage;
@@ -24,11 +24,11 @@ OperationResult StorageDummy::DoOpen(RecordValPtr options, OpenResultCallback* c
     RecordValPtr backend_options = options->GetField<RecordVal>("dummy");
     bool open_fail = backend_options->GetField<BoolVal>("open_fail")->Get();
     if ( open_fail )
-        return {ReturnCodes::OPERATION_FAILED, "open_fail was set to true, returning error"};
+        return {ReturnCode::OPERATION_FAILED, "open_fail was set to true, returning error"};
 
     open = true;
 
-    return {ReturnCodes::SUCCESS};
+    return {ReturnCode::SUCCESS};
 }
 
 /**
@@ -36,7 +36,7 @@ OperationResult StorageDummy::DoOpen(RecordValPtr options, OpenResultCallback* c
  */
 OperationResult StorageDummy::DoDone(OperationResultCallback* cb) {
     open = false;
-    return {ReturnCodes::SUCCESS};
+    return {ReturnCode::SUCCESS};
 }
 
 /**
@@ -47,7 +47,7 @@ OperationResult StorageDummy::DoPut(ValPtr key, ValPtr value, bool overwrite, do
     auto json_key = key->ToJSON()->ToStdString();
     auto json_value = value->ToJSON()->ToStdString();
     data[json_key] = json_value;
-    return {ReturnCodes::SUCCESS};
+    return {ReturnCode::SUCCESS};
 }
 
 /**
@@ -57,15 +57,15 @@ OperationResult StorageDummy::DoGet(ValPtr key, OperationResultCallback* cb) {
     auto json_key = key->ToJSON();
     auto it = data.find(json_key->ToStdString());
     if ( it == data.end() )
-        return {ReturnCodes::KEY_NOT_FOUND};
+        return {ReturnCode::KEY_NOT_FOUND};
 
     auto val = zeek::detail::ValFromJSON(it->second.c_str(), val_type, Func::nil);
     if ( std::holds_alternative<ValPtr>(val) ) {
         ValPtr val_v = std::get<ValPtr>(val);
-        return {ReturnCodes::SUCCESS, "", val_v};
+        return {ReturnCode::SUCCESS, "", val_v};
     }
 
-    return {ReturnCodes::OPERATION_FAILED, std::get<std::string>(val)};
+    return {ReturnCode::OPERATION_FAILED, std::get<std::string>(val)};
 }
 
 /**
@@ -75,10 +75,10 @@ OperationResult StorageDummy::DoErase(ValPtr key, OperationResultCallback* cb) {
     auto json_key = key->ToJSON();
     auto it = data.find(json_key->ToStdString());
     if ( it == data.end() )
-        return {ReturnCodes::KEY_NOT_FOUND};
+        return {ReturnCode::KEY_NOT_FOUND};
 
     data.erase(it);
-    return {ReturnCodes::SUCCESS};
+    return {ReturnCode::SUCCESS};
 }
 
 } // namespace btest::storage::backend

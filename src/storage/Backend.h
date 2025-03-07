@@ -38,7 +38,7 @@ struct OperationResult {
     std::string err_str;
     ValPtr value;
 
-    void FillRecordVal(const RecordValPtr& rec);
+    RecordValPtr BuildVal();
 };
 
 class OperationResultCallback : public ResultCallback {

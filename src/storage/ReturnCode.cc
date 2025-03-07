@@ -1,26 +1,26 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/storage/ReturnCodes.h"
+#include "zeek/storage/ReturnCode.h"
 
 #include "zeek/Val.h"
 
 namespace zeek::storage {
 
-EnumValPtr ReturnCodes::SUCCESS;
-EnumValPtr ReturnCodes::VAL_TYPE_MISMATCH;
-EnumValPtr ReturnCodes::KEY_TYPE_MISMATCH;
-EnumValPtr ReturnCodes::NOT_CONNECTED;
-EnumValPtr ReturnCodes::TIMEOUT;
-EnumValPtr ReturnCodes::CONNECTION_LOST;
-EnumValPtr ReturnCodes::OPERATION_FAILED;
-EnumValPtr ReturnCodes::KEY_NOT_FOUND;
-EnumValPtr ReturnCodes::KEY_EXISTS;
-EnumValPtr ReturnCodes::FAILED_TO_CONNECT;
-EnumValPtr ReturnCodes::FAILED_TO_DISCONNECT;
-EnumValPtr ReturnCodes::FAILED_TO_INITIALIZE;
+EnumValPtr ReturnCode::SUCCESS;
+EnumValPtr ReturnCode::VAL_TYPE_MISMATCH;
+EnumValPtr ReturnCode::KEY_TYPE_MISMATCH;
+EnumValPtr ReturnCode::NOT_CONNECTED;
+EnumValPtr ReturnCode::TIMEOUT;
+EnumValPtr ReturnCode::CONNECTION_LOST;
+EnumValPtr ReturnCode::OPERATION_FAILED;
+EnumValPtr ReturnCode::KEY_NOT_FOUND;
+EnumValPtr ReturnCode::KEY_EXISTS;
+EnumValPtr ReturnCode::CONNECTION_FAILED;
+EnumValPtr ReturnCode::DISCONNECTION_FAILED;
+EnumValPtr ReturnCode::INITIALIZATION_FAILED;
 
-void ReturnCodes::Initialize() {
-    static const auto& return_code_type = zeek::id::find_type<zeek::EnumType>("Storage::ReturnCodes");
+void ReturnCode::Initialize() {
+    static const auto& return_code_type = zeek::id::find_type<zeek::EnumType>("Storage::ReturnCode");
 
     auto tmp = return_code_type->Lookup("Storage::SUCCESS");
     SUCCESS = return_code_type->GetEnumVal(tmp);
@@ -49,17 +49,17 @@ void ReturnCodes::Initialize() {
     tmp = return_code_type->Lookup("Storage::KEY_EXISTS");
     KEY_EXISTS = return_code_type->GetEnumVal(tmp);
 
-    tmp = return_code_type->Lookup("Storage::FAILED_TO_CONNECT");
-    FAILED_TO_CONNECT = return_code_type->GetEnumVal(tmp);
+    tmp = return_code_type->Lookup("Storage::CONNECTION_FAILED");
+    CONNECTION_FAILED = return_code_type->GetEnumVal(tmp);
 
-    tmp = return_code_type->Lookup("Storage::FAILED_TO_DISCONNECT");
-    FAILED_TO_DISCONNECT = return_code_type->GetEnumVal(tmp);
+    tmp = return_code_type->Lookup("Storage::DISCONNECTION_FAILED");
+    DISCONNECTION_FAILED = return_code_type->GetEnumVal(tmp);
 
-    tmp = return_code_type->Lookup("Storage::FAILED_TO_INITIALIZE");
-    FAILED_TO_INITIALIZE = return_code_type->GetEnumVal(tmp);
+    tmp = return_code_type->Lookup("Storage::INITIALIZATION_FAILED");
+    INITIALIZATION_FAILED = return_code_type->GetEnumVal(tmp);
 }
 
-void ReturnCodes::Cleanup() {
+void ReturnCode::Cleanup() {
     SUCCESS.reset();
     VAL_TYPE_MISMATCH.reset();
     KEY_TYPE_MISMATCH.reset();
@@ -69,9 +69,9 @@ void ReturnCodes::Cleanup() {
     OPERATION_FAILED.reset();
     KEY_NOT_FOUND.reset();
     KEY_EXISTS.reset();
-    FAILED_TO_CONNECT.reset();
-    FAILED_TO_DISCONNECT.reset();
-    FAILED_TO_INITIALIZE.reset();
+    CONNECTION_FAILED.reset();
+    DISCONNECTION_FAILED.reset();
+    INITIALIZATION_FAILED.reset();
 }
 
 } // namespace zeek::storage

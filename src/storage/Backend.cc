@@ -167,11 +167,11 @@ void Backend::CompleteCallback(OperationResultCallback* cb, const OperationResul
     }
 }
 
-void Backend::PostConnectionEstablished() {
+void Backend::EnqueueConnectionEstablished() {
     event_mgr.Enqueue(Storage::connection_established, make_intrusive<StringVal>(Tag()), backend_options);
 }
 
-void Backend::PostConnectionLost(std::string_view reason) {
+void Backend::EnqueueConnectionLost(std::string_view reason) {
     event_mgr.Enqueue(Storage::connection_lost, make_intrusive<StringVal>(Tag()), backend_options,
                       make_intrusive<StringVal>(reason));
 }

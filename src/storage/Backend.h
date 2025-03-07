@@ -115,7 +115,7 @@ protected:
     // Allow the manager to call Open/Done.
     friend class storage::Manager;
 
-    // Allow OpenResultCallback to call PostConnectionEstablished.
+    // Allow OpenResultCallback to call EnqueueConnectionEstablished.
     friend class storage::OpenResultCallback;
 
     /**
@@ -178,17 +178,17 @@ protected:
     virtual void Expire() {}
 
     /**
-     * Posts the Storage::connection_established event. This is called
+     * Enqueues the Storage::connection_established event. This is called
      * automatically when an OpenResultCallback is completed successfully.
      */
-    void PostConnectionEstablished();
+    void EnqueueConnectionEstablished();
 
     /**
-     * Posts the Storage::connection_lost event with an optional reason string.
+     * Enqueues the Storage::connection_lost event with an optional reason string.
      * string. This should be called by the backends whenever they lose their
      * connection.
      */
-    void PostConnectionLost(std::string_view reason);
+    void EnqueueConnectionLost(std::string_view reason);
 
     TypePtr key_type;
     TypePtr val_type;

@@ -504,9 +504,9 @@ void Redis::OnDisconnect(int status) {
     connected = false;
 
     if ( status == REDIS_ERR )
-        PostConnectionLost(async_ctx->errstr);
+        EnqueueConnectionLost(async_ctx->errstr);
     else
-        PostConnectionLost("Client disconnected");
+        EnqueueConnectionLost("Client disconnected");
 }
 
 void Redis::ProcessFd(int fd, int flags) {

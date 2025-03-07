@@ -85,7 +85,9 @@ OperationResult Manager::OpenBackend(BackendPtr backend, RecordValPtr config, Ty
 }
 
 OperationResult Manager::CloseBackend(BackendPtr backend, OperationResultCallback* cb) {
-    // Remove from the list always, even if the close may fail below and even in an async context.
+    // Expiration runs on a separate thread and loops over the vector of backends. The mutex
+    // here ensures exclusive access. This one happens in a block because we can remove the
+    // backend from the vector before actually closing it.
     {
         std::unique_lock<std::mutex> lk(backends_mtx);
         auto it = std::find(backends.begin(), backends.end(), backend);
@@ -104,8 +106,12 @@ OperationResult Manager::CloseBackend(BackendPtr backend, OperationResultCallbac
 }
 
 void Manager::Expire() {
-    DBG_LOG(DBG_STORAGE, "Expiratioon running, have %zu backends to check", backends.size());
+    // Expiration runs on a separate thread and loops over the vector of backends. The mutex
+    // here ensures exclusive access.
     std::unique_lock<std::mutex> lk(backends_mtx);
+
+    DBG_LOG(DBG_STORAGE, "Expiration running, have %zu backends to check", backends.size());
+
     for ( auto it = backends.begin(); it != backends.end() && ! run_state::terminating; ++it ) {
         if ( (*it)->IsOpen() )
             (*it)->Expire();
@@ -122,7 +128,10 @@ void Manager::StartExpirationTimer() {
 }
 
 void Manager::RegisterBackend(BackendPtr backend) {
+    // Expiration runs on a separate thread and loops over the vector of backends. The mutex
+    // here ensures exclusive access.
     std::unique_lock<std::mutex> lk(backends_mtx);
+
     backends.push_back(std::move(backend));
     DBG_LOG(DBG_STORAGE, "Registered backends: %zu", backends.size());
 }

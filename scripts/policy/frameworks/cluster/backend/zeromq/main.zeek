@@ -59,7 +59,8 @@ export {
 	## acts as a central broker.
 
 	## See ZeroMQ's `ZMQ_IO_THREADS documentation <http://api.zeromq.org/4-2:zmq-ctx-set#toc4>`_
-	## for more details.
+	## and the `I/O threads <https://zguide.zeromq.org/docs/chapter2/#I-O-Threads>`
+	## section in the ZeroMQ guide for details.
 	const proxy_io_threads = 2 &redef;
 
 	## XSUB listen endpoint for the central broker.

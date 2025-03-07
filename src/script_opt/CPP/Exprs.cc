@@ -1156,8 +1156,12 @@ string CPPCompile::GenVectorOp(const Expr* e, string op1, string op2, const char
 
     auto invoke = string(vec_op) + "__CPP(" + op1 + ", " + op2 + ")";
 
-    if ( op2_t->Yield()->Tag() == TYPE_STRING )
+    auto tag2 = op2_t->Yield()->Tag();
+
+    if ( tag2 == TYPE_STRING )
         return string("str_vec_op_") + invoke;
+    if ( tag2 == TYPE_PATTERN )
+        return string("pat_vec_op_") + invoke;
 
     auto gen = string("vec_op_") + invoke;
 

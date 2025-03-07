@@ -3,6 +3,7 @@
 #include "zeek/script_opt/CPP/RuntimeVec.h"
 
 #include "zeek/Overflow.h"
+#include "zeek/RE.h"
 #include "zeek/ZeekString.h"
 
 namespace zeek::detail {
@@ -320,6 +321,29 @@ static VectorValPtr str_vec_op_kernel__CPP(const VectorValPtr& v1, const VectorV
     return v_result;
 }
 
+// Kernel for element-by-element pattern relationals.  "is_eq" governs
+// whether the operation is equality (true) or inequality (false).
+static VectorValPtr pat_vec_op_kernel__CPP(const VectorValPtr& v1, const VectorValPtr& v2, bool is_eq) {
+    auto res_type = make_intrusive<VectorType>(base_type(TYPE_BOOL));
+    auto v_result = make_intrusive<VectorVal>(res_type);
+    auto n = v1->Size();
+
+    for ( unsigned int i = 0; i < n; ++i ) {
+        auto v1_i = v1->ValAt(i);
+        auto v2_i = v2->ValAt(i);
+        if ( ! v1_i || ! v2_i )
+            continue;
+
+        auto p1 = v1_i->AsPattern();
+        auto p2 = v2_i->AsPattern();
+
+        bool elem_eq = strcmp(p1->PatternText(), p2->PatternText()) == 0;
+        v_result->Assign(i, val_mgr->Bool(elem_eq == is_eq));
+    }
+
+    return v_result;
+}
+
 VectorValPtr str_vec_op_lt__CPP(const VectorValPtr& v1, const VectorValPtr& v2) {
     return str_vec_op_kernel__CPP(v1, v2, -1, -1);
 }
@@ -337,6 +361,13 @@ VectorValPtr str_vec_op_gt__CPP(const VectorValPtr& v1, const VectorValPtr& v2) 
 }
 VectorValPtr str_vec_op_ge__CPP(const VectorValPtr& v1, const VectorValPtr& v2) {
     return str_vec_op_kernel__CPP(v1, v2, 0, 1);
+}
+
+VectorValPtr pat_vec_op_eq__CPP(const VectorValPtr& v1, const VectorValPtr& v2) {
+    return pat_vec_op_kernel__CPP(v1, v2, true);
+}
+VectorValPtr pat_vec_op_ne__CPP(const VectorValPtr& v1, const VectorValPtr& v2) {
+    return pat_vec_op_kernel__CPP(v1, v2, false);
 }
 
 VectorValPtr vector_select__CPP(const VectorValPtr& v1, VectorValPtr v2, VectorValPtr v3) {

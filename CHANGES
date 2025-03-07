@@ -1,3 +1,11 @@
+7.2.0-dev.278 | 2025-03-07 11:02:12 -0700
+
+  * Fix indentation in .clang-tidy (Tim Wojtulewicz, Corelight)
+
+  * Remove existing hand-written clang-tidy setup (Tim Wojtulewicz, Corelight)
+
+  * Add ability to enable iwyu and clang-tidy at configure time (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.273 | 2025-03-06 16:41:43 -0700
 
   * Set ip_proto when creating new tunnel encapsulations (Tim Wojtulewicz, Corelight)

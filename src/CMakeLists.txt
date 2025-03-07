@@ -546,9 +546,6 @@ set(zeek_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
     ${CMAKE_CURRENT_BINARY_DIR}/ZAM-MethodDecls.h)
 
-# Add the above files to the list of clang tidy sources before adding the third party and HH
-# sources. Also, the main_SRCS will get added to that list separately.
-add_clang_tidy_files(${zeek_SRCS})
 list(APPEND zeek_SRCS ${THIRD_PARTY_SRCS})
 list(APPEND zeek_SRCS ${HH_SRCS})
 list(APPEND zeek_SRCS ${MAIN_SRCS})
@@ -563,6 +560,24 @@ target_link_libraries(zeek_objs PRIVATE $<BUILD_INTERFACE:zeek_internal>)
 target_compile_definitions(zeek_objs PRIVATE ZEEK_CONFIG_SKIP_VERSION_H)
 add_dependencies(zeek_objs zeek_autogen_files)
 zeek_target_link_libraries(zeek_objs)
+
+if (ENABLE_IWYU)
+    find_program(IWYU_PATH NAMES include-what-you-use iwyu)
+    if (NOT IWYU_PATH)
+        message(FATAL_ERROR "Could not find the program include-what-you-use")
+    endif ()
+
+    set_target_properties(zeek_objs PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${IWYU_PATH})
+endif ()
+
+if (ENABLE_CLANG_TIDY)
+    find_program(CLANG_TIDY_PATH NAMES clang-tidy)
+    if (NOT CLANG_TIDY_PATH)
+        message(FATAL_ERROR "Could not find the program clang-tidy")
+    endif ()
+
+    set_target_properties(zeek_objs PROPERTIES CXX_CLANG_TIDY ${CLANG_TIDY_PATH})
+endif ()
 
 if (HAVE_SPICY)
     target_link_libraries(zeek_objs PRIVATE hilti spicy)
@@ -684,16 +699,6 @@ install(
           $<$<BOOL:USE_SQLITE>:${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sqlite3.h>
           ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/doctest.h
     DESTINATION include/zeek/3rdparty)
-
-# ##############################################################################
-# Clang-tidy target now that we have all of the sources
-
-add_clang_tidy_files(${MAIN_SRCS})
-
-# At this point we have included all of the cc files in src, all of the BinPAC
-# (*.pac.cc) files, and most of the generated code for BIFs (not including
-# *.bif.register.cc)
-create_clang_tidy_target()
 
 # ##############################################################################
 # CTest setup.

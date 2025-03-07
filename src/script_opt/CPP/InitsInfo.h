@@ -467,6 +467,16 @@ private:
     FuncVal* fv;
 };
 
+class TypeConstInfo : public CompoundItemInfo {
+public:
+    TypeConstInfo(CPPCompile* _c, ValPtr v) : CompoundItemInfo(_c, v), tv(v->AsTypeVal()) {}
+
+    void InitializerVals(std::vector<std::string>& ivs) const override;
+
+private:
+    TypeVal* tv;
+};
+
 // Initialization information for single attributes and sets of attributes.
 class AttrInfo : public CompoundItemInfo {
 public:

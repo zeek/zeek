@@ -12,7 +12,7 @@ export {
 	## btype: A tag indicating what type of backend should be opened. These are defined
 	##        by the backend plugins loaded.
 	##
-	## config: A record containing the configuration for the connection.
+	## options: A record containing the configuration for the connection.
 	##
 	## key_type: The script-level type of keys stored in the backend. Used for
 	##           validation of keys passed to other framework methods.
@@ -25,7 +25,7 @@ export {
 	## Returns: A record containing the status of the operation, and either
 	##          an error string on failure or a value on success. The value
 	##          returned here will be an ``opaque of BackendHandle``.
-	global open_backend: function(btype: Storage::Backend, config: Storage::BackendOptions, key_type: any,
+	global open_backend: function(btype: Storage::Backend, options: Storage::BackendOptions, key_type: any,
 	                              val_type: any): Storage::OperationResult;
 
 	## Closes an existing backend connection asynchronously.
@@ -69,10 +69,10 @@ export {
 	global erase: function(backend: opaque of Storage::BackendHandle, key: any): Storage::OperationResult;
 }
 
-function open_backend(btype: Storage::Backend, config: Storage::BackendOptions, key_type: any,
+function open_backend(btype: Storage::Backend, options: Storage::BackendOptions, key_type: any,
 		      val_type: any): Storage::OperationResult
 {
-	return Storage::Async::__open_backend(btype, config, key_type, val_type);
+	return Storage::Async::__open_backend(btype, options, key_type, val_type);
 }
 
 function close_backend(backend: opaque of Storage::BackendHandle): Storage::OperationResult

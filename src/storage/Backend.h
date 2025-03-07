@@ -109,7 +109,7 @@ public:
      */
     virtual void Poll() {}
 
-    const RecordValPtr& Config() const { return backend_config; }
+    const RecordValPtr& Options() const { return backend_options; }
 
 protected:
     // Allow the manager to call Open/Done.
@@ -129,14 +129,14 @@ protected:
     /**
      * Called by the manager system to open the backend.
      *
-     * @param config A record type storing configuration options for the backend.
+     * @param options A record storing configuration options for the backend.
      * @param kt The script-side type of the keys stored in the backend. Used for
      * validation of types.
      * @param vt The script-side type of the values stored in the backend. Used for
      * validation of types and conversion during retrieval.
      * @param cb An optional callback object if being called via an async context.
      */
-    OperationResult Open(RecordValPtr config, TypePtr kt, TypePtr vt, OpenResultCallback* cb = nullptr);
+    OperationResult Open(RecordValPtr options, TypePtr kt, TypePtr vt, OpenResultCallback* cb = nullptr);
 
     /**
      * Finalizes the backend when it's being closed.
@@ -148,7 +148,7 @@ protected:
     /**
      * The workhorse method for Open().
      */
-    virtual OperationResult DoOpen(RecordValPtr config, OpenResultCallback* cb = nullptr) = 0;
+    virtual OperationResult DoOpen(RecordValPtr options, OpenResultCallback* cb = nullptr) = 0;
 
     /**
      * The workhorse method for Done().
@@ -192,7 +192,7 @@ protected:
 
     TypePtr key_type;
     TypePtr val_type;
-    RecordValPtr backend_config;
+    RecordValPtr backend_options;
 
 protected:
     void CompleteCallback(OpenResultCallback* cb, const OperationResult& data) const;

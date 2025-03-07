@@ -30,7 +30,7 @@ public:
     /**
      * Called by the manager system to open the backend.
      */
-    OperationResult DoOpen(RecordValPtr config, OpenResultCallback* cb = nullptr) override;
+    OperationResult DoOpen(RecordValPtr options, OpenResultCallback* cb = nullptr) override;
 
     /**
      * Finalizes the backend when it's being closed.

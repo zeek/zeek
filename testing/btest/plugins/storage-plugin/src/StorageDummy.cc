@@ -20,8 +20,8 @@ BackendPtr StorageDummy::Instantiate() { return make_intrusive<StorageDummy>(); 
  * implementation must call \a Opened(); if not, it must call Error()
  * with a corresponding message.
  */
-OperationResult StorageDummy::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
-    RecordValPtr backend_options = config->GetField<RecordVal>("dummy");
+OperationResult StorageDummy::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
+    RecordValPtr backend_options = options->GetField<RecordVal>("dummy");
     bool open_fail = backend_options->GetField<BoolVal>("open_fail")->Get();
     if ( open_fail )
         return {ReturnCodes::OPERATION_FAILED, "open_fail was set to true, returning error"};

@@ -68,7 +68,7 @@ OpenResultCallback::OpenResultCallback(zeek::detail::trigger::TriggerPtr trigger
 void OpenResultCallback::Complete(const OperationResult& res) {
     if ( res.code == ReturnCodes::SUCCESS ) {
         event_mgr.Enqueue(Storage::connection_established, make_intrusive<StringVal>(backend->backend->Tag()),
-                          backend->backend->Config());
+                          backend->backend->Options());
     }
 
     // If this is a sync callback, there isn't a trigger to process. Store the result and bail. Always
@@ -94,12 +94,12 @@ void OpenResultCallback::Complete(const OperationResult& res) {
     Unref(op_result);
 }
 
-OperationResult Backend::Open(RecordValPtr config, TypePtr kt, TypePtr vt, OpenResultCallback* cb) {
+OperationResult Backend::Open(RecordValPtr options, TypePtr kt, TypePtr vt, OpenResultCallback* cb) {
     key_type = std::move(kt);
     val_type = std::move(vt);
-    backend_config = config;
+    backend_options = options;
 
-    auto ret = DoOpen(std::move(config), cb);
+    auto ret = DoOpen(std::move(options), cb);
     if ( ! ret.value )
         ret.value = cb->Backend();
 
@@ -165,11 +165,11 @@ void Backend::CompleteCallback(OperationResultCallback* cb, const OperationResul
 }
 
 void Backend::PostConnectionEstablished() {
-    event_mgr.Enqueue(Storage::connection_established, make_intrusive<StringVal>(Tag()), backend_config);
+    event_mgr.Enqueue(Storage::connection_established, make_intrusive<StringVal>(Tag()), backend_options);
 }
 
 void Backend::PostConnectionLost(std::string_view reason) {
-    event_mgr.Enqueue(Storage::connection_lost, make_intrusive<StringVal>(Tag()), Config(),
+    event_mgr.Enqueue(Storage::connection_lost, make_intrusive<StringVal>(Tag()), backend_options,
                       make_intrusive<StringVal>(reason));
 }
 

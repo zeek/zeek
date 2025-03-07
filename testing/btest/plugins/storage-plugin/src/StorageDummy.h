@@ -28,7 +28,7 @@ public:
     /**
      * Called by the manager system to open the backend.
      */
-    zeek::storage::OperationResult DoOpen(zeek::RecordValPtr config,
+    zeek::storage::OperationResult DoOpen(zeek::RecordValPtr options,
                                           zeek::storage::OpenResultCallback* cb = nullptr) override;
 
     /**

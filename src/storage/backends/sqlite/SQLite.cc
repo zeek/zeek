@@ -18,7 +18,7 @@ storage::BackendPtr SQLite::Instantiate() { return zeek::make_intrusive<SQLite>(
  * implementation must call \a Opened(); if not, it must call Error()
  * with a corresponding message.
  */
-OperationResult SQLite::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
+OperationResult SQLite::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
     if ( sqlite3_threadsafe() == 0 ) {
         std::string res =
             "SQLite reports that it is not threadsafe. Zeek needs a threadsafe version of "
@@ -33,7 +33,7 @@ OperationResult SQLite::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
     sqlite3_enable_shared_cache(1);
 #endif
 
-    RecordValPtr backend_options = config->GetField<RecordVal>("sqlite");
+    RecordValPtr backend_options = options->GetField<RecordVal>("sqlite");
     StringValPtr path = backend_options->GetField<StringVal>("database_path");
     full_path = zeek::filesystem::path(path->ToStdString()).string();
     table_name = backend_options->GetField<StringVal>("table_name")->ToStdString();

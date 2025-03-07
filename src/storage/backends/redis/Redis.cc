@@ -150,8 +150,8 @@ storage::BackendPtr Redis::Instantiate() { return make_intrusive<Redis>(); }
  * implementation must call \a Opened(); if not, it must call Error()
  * with a corresponding message.
  */
-OperationResult Redis::DoOpen(RecordValPtr config, OpenResultCallback* cb) {
-    RecordValPtr backend_options = config->GetField<RecordVal>("redis");
+OperationResult Redis::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
+    RecordValPtr backend_options = options->GetField<RecordVal>("redis");
 
     key_prefix = backend_options->GetField<StringVal>("key_prefix")->ToStdString();
 

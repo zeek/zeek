@@ -50,13 +50,13 @@ public:
      * Opens a new storage backend.
      *
      * @param backend The backend object to open.
-     * @param config A RecordVal representing the configuration for this type of backend.
+     * @param options A RecordVal representing the optionsuration for this type of backend.
      * @param key_type The script-side type of the keys stored in the backend. Used for
      * validation of types.
      * @param val_type The script-side type of the values stored in the backend. Used for
      * validation of types and conversion during retrieval.
      */
-    OperationResult OpenBackend(BackendPtr backend, RecordValPtr configuration, TypePtr key_type, TypePtr val_type,
+    OperationResult OpenBackend(BackendPtr backend, RecordValPtr options, TypePtr key_type, TypePtr val_type,
                                 OpenResultCallback* cb = nullptr);
 
     /**

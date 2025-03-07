@@ -42,16 +42,16 @@ static zeek::IntrusivePtr<zeek::storage::detail::BackendHandleVal> make_backend_
 module Storage;
 
 ## Generated automatically when a new backend connection is opened successfully.
-event Storage::connection_established%(tag: string, config: any%);
+event Storage::connection_established%(tag: string, options: any%);
 
 ## May be generated when a backend connection is lost, both normally and
 ## unexpectedly. This event depends on the backends implementing handling for
 ## it, and is not generated automatically by the storage framework.
-event Storage::connection_lost%(tag: string, config: any, reason: string%);
+event Storage::connection_lost%(tag: string, options: any, reason: string%);
 
 module Storage::Async;
 
-function Storage::Async::__open_backend%(btype: Storage::Backend, config: any, key_type: any, val_type: any%): Storage::OperationResult
+function Storage::Async::__open_backend%(btype: Storage::Backend, options: any, key_type: any, val_type: any%): Storage::OperationResult
 	%{
 	static auto op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
 	auto op_result = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
@@ -81,8 +81,8 @@ function Storage::Async::__open_backend%(btype: Storage::Backend, config: any, k
 	auto cb = new zeek::storage::OpenResultCallback(trigger, frame->GetTriggerAssoc(), bh);
 	auto kt = key_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
 	auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
-	auto config_val = zeek::IntrusivePtr<zeek::RecordVal>{NewRef{}, config->AsRecordVal()};
-	auto open_res = storage_mgr->OpenBackend(b.value(), config_val, kt, vt, cb);
+	auto options_val = zeek::IntrusivePtr<zeek::RecordVal>{NewRef{}, options->AsRecordVal()};
+	auto open_res = storage_mgr->OpenBackend(b.value(), options_val, kt, vt, cb);
 
 	if ( ! b.value()->SupportsAsync() ) {
 		// If the backend doesn't support async, we blocked in order to get here already. Handle the
@@ -301,7 +301,7 @@ function Storage::Async::__erase%(backend: opaque of Storage::BackendHandle, key
 
 module Storage::Sync;
 
-function Storage::Sync::__open_backend%(btype: Storage::Backend, config: any, key_type: any, val_type: any%): Storage::OperationResult
+function Storage::Sync::__open_backend%(btype: Storage::Backend, options: any, key_type: any, val_type: any%): Storage::OperationResult
 	%{
 	static auto op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
 	auto op_result = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
@@ -334,8 +334,8 @@ function Storage::Sync::__open_backend%(btype: Storage::Backend, config: any, ke
 	auto cb = new zeek::storage::OpenResultCallback(bh);
 	auto kt = key_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
 	auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
-	auto config_val = zeek::IntrusivePtr<zeek::RecordVal>{NewRef{}, config->AsRecordVal()};
-	auto open_res = storage_mgr->OpenBackend(b.value(), config_val, kt, vt, cb);
+	auto options_val = zeek::IntrusivePtr<zeek::RecordVal>{NewRef{}, options->AsRecordVal()};
+	auto open_res = storage_mgr->OpenBackend(b.value(), options_val, kt, vt, cb);
 
 	// If the backend only supports async, block until it's ready and then pull the result out of
 	// the callback.

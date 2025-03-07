@@ -486,7 +486,7 @@ void WebSocketEventDispatcher::Process(const WebSocketMessage& msg) {
     WS_DEBUG("Message %" PRIu64 " size=%zu from %s (%s:%d) backend=%p", entry.msg_count, msg.msg.size(),
              wsc->getId().c_str(), wsc->getRemoteIp().c_str(), wsc->getRemotePort(), entry.backend.get());
 
-    // Firs message is the subscription message.
+    // First message is the subscription message.
     if ( entry.msg_count == 1 ) {
         WS_DEBUG("Subscriptions from client: %s: (%s:%d)\n", id.c_str(), wsc->getRemoteIp().c_str(),
                  wsc->getRemotePort());
@@ -495,7 +495,7 @@ void WebSocketEventDispatcher::Process(const WebSocketMessage& msg) {
     else {
         if ( ! wsc->IsAcked() ) {
             WS_DEBUG("Client sending messages before receiving ack!");
-            entry.queue.push_back(std::move(msg));
+            entry.queue.push_back(msg);
             return;
         }
 

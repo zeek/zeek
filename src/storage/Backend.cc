@@ -30,7 +30,7 @@ ResultCallback::ResultCallback(zeek::detail::trigger::TriggerPtr trigger, const 
 void ResultCallback::Timeout() {
     static const auto& op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
 
-    if ( ! SyncCallback() )
+    if ( ! IsSyncCallback() )
         trigger->Cache(assoc, OperationResult::MakeVal(ReturnCode::TIMEOUT).release());
 }
 
@@ -67,7 +67,7 @@ void OpenResultCallback::Complete(OperationResult res) {
     res.value = backend;
 
     // If this is a sync callback, there isn't a trigger to process. Store the result and bail.
-    if ( SyncCallback() ) {
+    if ( IsSyncCallback() ) {
         result = std::move(res);
         return;
     }
@@ -135,14 +135,14 @@ OperationResult Backend::Erase(ValPtr key, OperationResultCallback* cb) {
 
 void Backend::CompleteCallback(OpenResultCallback* cb, const OperationResult& data) const {
     cb->Complete(data);
-    if ( ! cb->SyncCallback() ) {
+    if ( ! cb->IsSyncCallback() ) {
         delete cb;
     }
 }
 
 void Backend::CompleteCallback(OperationResultCallback* cb, const OperationResult& data) const {
     cb->Complete(data);
-    if ( ! cb->SyncCallback() ) {
+    if ( ! cb->IsSyncCallback() ) {
         delete cb;
     }
 }

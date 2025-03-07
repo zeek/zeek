@@ -247,7 +247,7 @@ OperationResult Redis::DoDone(OperationResultCallback* cb) {
     redisAsyncDisconnect(async_ctx);
     ++active_ops;
 
-    if ( cb->SyncCallback() && ! zeek::run_state::terminating ) {
+    if ( cb->IsSyncCallback() && ! zeek::run_state::terminating ) {
         Poll();
         // TODO: handle response
     }
@@ -456,7 +456,7 @@ void Redis::HandleGetResult(redisReply* reply, OperationResultCallback* callback
 void Redis::HandleEraseResult(redisReply* reply, OperationResultCallback* callback) {
     --active_ops;
 
-    if ( callback->SyncCallback() )
+    if ( callback->IsSyncCallback() )
         reply_queue.push_back(reply);
     else {
         OperationResult res{ReturnCode::SUCCESS};

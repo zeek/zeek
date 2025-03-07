@@ -24,7 +24,7 @@ public:
     ResultCallback(detail::trigger::TriggerPtr trigger, const void* assoc);
     virtual ~ResultCallback() = default;
     void Timeout();
-    bool SyncCallback() const { return ! trigger; }
+    bool IsSyncCallback() const { return ! trigger; }
 
 protected:
     void CompleteWithVal(Val* result);

@@ -39,13 +39,14 @@ struct OperationResult {
     ValPtr value;
 
     RecordValPtr BuildVal();
+    static RecordValPtr MakeVal(EnumValPtr code, std::string_view err_str = "", ValPtr value = nullptr);
 };
 
 class OperationResultCallback : public ResultCallback {
 public:
     OperationResultCallback() = default;
     OperationResultCallback(detail::trigger::TriggerPtr trigger, const void* assoc);
-    void Complete(const OperationResult& res);
+    void Complete(OperationResult res);
     OperationResult Result() { return result; }
 
 private:
@@ -222,7 +223,7 @@ public:
     OpenResultCallback(IntrusivePtr<detail::BackendHandleVal> backend);
     OpenResultCallback(zeek::detail::trigger::TriggerPtr trigger, const void* assoc,
                        IntrusivePtr<detail::BackendHandleVal> backend);
-    void Complete(const OperationResult& res);
+    void Complete(OperationResult res);
 
     OperationResult Result() const { return result; }
     IntrusivePtr<detail::BackendHandleVal> Backend() const { return backend; }

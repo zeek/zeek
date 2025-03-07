@@ -28,43 +28,6 @@ public:
      */
     const char* Tag() override { return tag.c_str(); }
 
-    /**
-     * Called by the manager system to open the backend.
-     */
-    OperationResult DoOpen(RecordValPtr options, OpenResultCallback* cb = nullptr) override;
-
-    /**
-     * Finalizes the backend when it's being closed.
-     */
-    OperationResult DoClose(OperationResultCallback* cb = nullptr) override;
-
-    /**
-     * Returns whether the backend is opened.
-     */
-    bool IsOpen() override { return connected; }
-
-    /**
-     * The workhorse method for Retrieve().
-     */
-    OperationResult DoPut(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0,
-                          OperationResultCallback* cb = nullptr) override;
-
-    /**
-     * The workhorse method for Get().
-     */
-    OperationResult DoGet(ValPtr key, OperationResultCallback* cb = nullptr) override;
-
-    /**
-     * The workhorse method for Erase().
-     */
-    OperationResult DoErase(ValPtr key, OperationResultCallback* cb = nullptr) override;
-
-    /**
-     * Removes any entries in the backend that have expired. Can be overridden by
-     * derived classes.
-     */
-    void Expire() override;
-
     // IOSource interface
     double GetNextTimeout() override { return -1; }
     void Process() override {}
@@ -79,10 +42,21 @@ public:
     void HandleEraseResult(redisReply* reply, OperationResultCallback* callback);
     void HandleGeneric(redisReply* reply);
 
-protected:
-    void Poll() override;
+    /**
+     * Returns whether the backend is opened.
+     */
+    bool IsOpen() override { return connected; }
 
 private:
+    OperationResult DoOpen(RecordValPtr options, OpenResultCallback* cb = nullptr) override;
+    OperationResult DoClose(OperationResultCallback* cb = nullptr) override;
+    OperationResult DoPut(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0,
+                          OperationResultCallback* cb = nullptr) override;
+    OperationResult DoGet(ValPtr key, OperationResultCallback* cb = nullptr) override;
+    OperationResult DoErase(ValPtr key, OperationResultCallback* cb = nullptr) override;
+    void DoExpire() override;
+    void DoPoll() override;
+
     OperationResult ParseGetReply(redisReply* reply) const;
 
     redisAsyncContext* async_ctx = nullptr;

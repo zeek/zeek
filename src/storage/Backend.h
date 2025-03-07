@@ -74,6 +74,8 @@ public:
      * removed. Set to zero to disable expiration. This time is based on the current network
      * time.
      * @param cb An optional callback object if being called via an async context.
+     * @return A struct describing the result of the operation, containing a code, an
+     * optional error string, and a ValPtr for operations that return values.
      */
     OperationResult Put(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0,
                         OperationResultCallback* cb = nullptr);
@@ -83,6 +85,8 @@ public:
      *
      * @param key the key to lookup in the backend.
      * @param cb An optional callback object if being called via an async context.
+     * @return A struct describing the result of the operation, containing a code, an
+     * optional error string, and a ValPtr for operations that return values.
      */
     OperationResult Get(ValPtr key, OperationResultCallback* cb = nullptr);
 
@@ -91,6 +95,8 @@ public:
      *
      * @param key the key to erase
      * @param cb An optional callback object if being called via an async context.
+     * @return A struct describing the result of the operation, containing a code, an
+     * optional error string, and a ValPtr for operations that return values.
      */
     OperationResult Erase(ValPtr key, OperationResultCallback* cb = nullptr);
 
@@ -106,7 +112,7 @@ public:
      * Optional method to allow a backend to poll for data. This can be used to
      * mimic sync mode even if the backend only supports async.
      */
-    virtual void Poll() {}
+    void Poll() { DoPoll(); }
 
     const RecordValPtr& Options() const { return backend_options; }
 
@@ -136,6 +142,8 @@ protected:
      * @param vt The script-side type of the values stored in the backend. Used for
      * validation of types and conversion during retrieval.
      * @param cb An optional callback object if being called via an async context.
+     * @return A struct describing the result of the operation, containing a code, an
+     * optional error string, and a ValPtr for operations that return values.
      */
     OperationResult Open(RecordValPtr options, TypePtr kt, TypePtr vt, OpenResultCallback* cb = nullptr);
 
@@ -143,40 +151,16 @@ protected:
      * Finalizes the backend when it's being closed.
      *
      * @param cb An optional callback object if being called via an async context.
+     * @return A struct describing the result of the operation, containing a code, an
+     * optional error string, and a ValPtr for operations that return values.
      */
     OperationResult Close(OperationResultCallback* cb = nullptr);
-
-    /**
-     * The workhorse method for Open().
-     */
-    virtual OperationResult DoOpen(RecordValPtr options, OpenResultCallback* cb = nullptr) = 0;
-
-    /**
-     * The workhorse method for Close().
-     */
-    virtual OperationResult DoClose(OperationResultCallback* cb = nullptr) = 0;
-
-    /**
-     * The workhorse method for Put().
-     */
-    virtual OperationResult DoPut(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0,
-                                  OperationResultCallback* cb = nullptr) = 0;
-
-    /**
-     * The workhorse method for Get().
-     */
-    virtual OperationResult DoGet(ValPtr key, OperationResultCallback* cb = nullptr) = 0;
-
-    /**
-     * The workhorse method for Erase().
-     */
-    virtual OperationResult DoErase(ValPtr key, OperationResultCallback* cb = nullptr) = 0;
 
     /**
      * Removes any entries in the backend that have expired. Can be overridden by
      * derived classes.
      */
-    virtual void Expire() {}
+    void Expire() { DoExpire(); }
 
     /**
      * Enqueues the Storage::backend_opened event. This is called automatically
@@ -200,6 +184,15 @@ protected:
     std::string tag;
 
 private:
+    virtual OperationResult DoOpen(RecordValPtr options, OpenResultCallback* cb = nullptr) = 0;
+    virtual OperationResult DoClose(OperationResultCallback* cb = nullptr) = 0;
+    virtual OperationResult DoPut(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0,
+                                  OperationResultCallback* cb = nullptr) = 0;
+    virtual OperationResult DoGet(ValPtr key, OperationResultCallback* cb = nullptr) = 0;
+    virtual OperationResult DoErase(ValPtr key, OperationResultCallback* cb = nullptr) = 0;
+    virtual void DoPoll() {}
+    virtual void DoExpire() {}
+
     uint8_t modes;
 };
 

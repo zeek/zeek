@@ -294,6 +294,7 @@ void CPPCompile::GenProlog() {
     const_info[TYPE_TABLE] = CreateCompoundInitInfo("Table", "ValPtr");
     const_info[TYPE_FUNC] = CreateCompoundInitInfo("Func", "ValPtr");
     const_info[TYPE_FILE] = CreateCompoundInitInfo("File", "ValPtr");
+    const_info[TYPE_TYPE] = CreateCompoundInitInfo("TypeVal", "Ptr");
 
     type_info = CreateCompoundInitInfo("Type", "Ptr");
     attr_info = CreateCompoundInitInfo("Attr", "Ptr");

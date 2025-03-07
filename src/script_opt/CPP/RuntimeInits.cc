@@ -150,6 +150,14 @@ void CPP_IndexedInits<T>::Generate(InitsManager* im, std::vector<FuncValPtr>& iv
 }
 
 template<class T>
+void CPP_IndexedInits<T>::Generate(InitsManager* im, std::vector<TypeValPtr>& ivec, int offset,
+                                   ValElemVec& init_vals) const {
+    auto bt = base_type(static_cast<TypeTag>(init_vals[0]));
+    auto t = make_intrusive<TypeType>(bt);
+    ivec[offset] = make_intrusive<TypeVal>(t);
+}
+
+template<class T>
 void CPP_IndexedInits<T>::Generate(InitsManager* im, std::vector<AttrPtr>& ivec, int offset,
                                    ValElemVec& init_vals) const {
     auto tag = static_cast<AttrTag>(init_vals[0]);
@@ -216,6 +224,7 @@ template class CPP_IndexedInits<RecordValPtr>;
 template class CPP_IndexedInits<TableValPtr>;
 template class CPP_IndexedInits<FileValPtr>;
 template class CPP_IndexedInits<FuncValPtr>;
+template class CPP_IndexedInits<TypeValPtr>;
 template class CPP_IndexedInits<AttrPtr>;
 template class CPP_IndexedInits<AttributesPtr>;
 template class CPP_IndexedInits<TypePtr>;

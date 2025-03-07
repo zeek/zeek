@@ -299,6 +299,11 @@ void FuncConstInfo::InitializerVals(std::vector<std::string>& ivs) const {
     }
 }
 
+void TypeConstInfo::InitializerVals(std::vector<std::string>& ivs) const {
+    auto& t = tv->GetType()->AsTypeType()->GetType();
+    ivs.emplace_back(Fmt(t->Tag()));
+}
+
 AttrInfo::AttrInfo(CPPCompile* _c, const AttrPtr& attr) : CompoundItemInfo(_c) {
     vals.emplace_back(Fmt(static_cast<int>(attr->Tag())));
     auto a_e = attr->GetExpr();

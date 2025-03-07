@@ -4,6 +4,7 @@
 
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Span.h"
+#include "zeek/net_util.h"
 
 // Helpers for cluster.bif
 
@@ -15,6 +16,8 @@ class Frame;
 
 class RecordVal;
 using RecordValPtr = IntrusivePtr<RecordVal>;
+class VectorVal;
+using VectorValPtr = IntrusivePtr<VectorVal>;
 
 class Val;
 using ValPtr = IntrusivePtr<Val>;
@@ -45,6 +48,28 @@ zeek::RecordValPtr make_event(zeek::ArgsSpan args);
 zeek::ValPtr publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args);
 
 bool is_cluster_pool(const zeek::Val* pool);
+
+/**
+ * Create a Cluster::EndpointInfo record with a nested Cluster::NetworkInfo record.
+ *
+ * @param id The string to use as id in the record.
+ * @param address The string to use as address in the network record.
+ * @param port The port to use in the network record.
+ * @param proto The proto for the given port value.
+ *
+ * @returns A record value of type Cluster::EndpointInfo filled with the provided info.
+ */
+zeek::RecordValPtr make_endpoint_info(const std::string& id, const std::string& address, uint32_t port,
+                                      TransportProto proto);
+
+/**
+ * Helper to go from a vector or array of std::strings to a zeek::VectorVal.
+ *
+ * @param strings The std::string instances.
+ *
+ * @return a VectorVal instance of type string_vec filled with strings.
+ */
+zeek::VectorValPtr make_string_vec(zeek::Span<const std::string> strings);
 
 } // namespace cluster::detail::bif
 

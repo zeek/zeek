@@ -339,6 +339,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_BinaryReader.binary.bif.zeek, <...>/Zeek_BinaryReader.binary.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_BitTorrent.events.bif.zeek, <...>/Zeek_BitTorrent.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek, <...>/Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_Cluster_WebSocket.events.bif.zeek, <...>/Zeek_Cluster_WebSocket.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_ConfigReader.config.bif.zeek, <...>/Zeek_ConfigReader.config.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_ConnSize.events.bif.zeek, <...>/Zeek_ConnSize.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_ConnSize.functions.bif.zeek, <...>/Zeek_ConnSize.functions.bif.zeek) -> -1
@@ -533,6 +534,7 @@
 0.000000   MetaHookPost  LoadFile(0, base/init-frameworks-and-bifs.zeek, <...>/init-frameworks-and-bifs.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base/packet-protocols, <...>/packet-protocols) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/CPP-load.bif, <...>/CPP-load.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, base<...>/Zeek_Cluster_WebSocket.events.bif.zeek, <...>/Zeek_Cluster_WebSocket.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/Zeek_GTPv1.events.bif, <...>/Zeek_GTPv1.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/Zeek_GTPv1.functions.bif, <...>/Zeek_GTPv1.functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, base<...>/Zeek_KRB.types.bif, <...>/Zeek_KRB.types.bif.zeek) -> -1
@@ -647,6 +649,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_BinaryReader.binary.bif.zeek, <...>/Zeek_BinaryReader.binary.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_BitTorrent.events.bif.zeek, <...>/Zeek_BitTorrent.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek, <...>/Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_Cluster_WebSocket.events.bif.zeek, <...>/Zeek_Cluster_WebSocket.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_ConfigReader.config.bif.zeek, <...>/Zeek_ConfigReader.config.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_ConnSize.events.bif.zeek, <...>/Zeek_ConnSize.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_ConnSize.functions.bif.zeek, <...>/Zeek_ConnSize.functions.bif.zeek) -> (-1, <no content>)
@@ -841,6 +844,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, base/init-frameworks-and-bifs.zeek, <...>/init-frameworks-and-bifs.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base/packet-protocols, <...>/packet-protocols) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/CPP-load.bif, <...>/CPP-load.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, base<...>/Zeek_Cluster_WebSocket.events.bif.zeek, <...>/Zeek_Cluster_WebSocket.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/Zeek_GTPv1.events.bif, <...>/Zeek_GTPv1.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/Zeek_GTPv1.functions.bif, <...>/Zeek_GTPv1.functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, base<...>/Zeek_KRB.types.bif, <...>/Zeek_KRB.types.bif.zeek) -> (-1, <no content>)
@@ -1288,6 +1292,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_BinaryReader.binary.bif.zeek, <...>/Zeek_BinaryReader.binary.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_BitTorrent.events.bif.zeek, <...>/Zeek_BitTorrent.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek, <...>/Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_Cluster_WebSocket.events.bif.zeek, <...>/Zeek_Cluster_WebSocket.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_ConfigReader.config.bif.zeek, <...>/Zeek_ConfigReader.config.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_ConnSize.events.bif.zeek, <...>/Zeek_ConnSize.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_ConnSize.functions.bif.zeek, <...>/Zeek_ConnSize.functions.bif.zeek)
@@ -1482,6 +1487,7 @@
 0.000000   MetaHookPre   LoadFile(0, base/init-frameworks-and-bifs.zeek, <...>/init-frameworks-and-bifs.zeek)
 0.000000   MetaHookPre   LoadFile(0, base/packet-protocols, <...>/packet-protocols)
 0.000000   MetaHookPre   LoadFile(0, base<...>/CPP-load.bif, <...>/CPP-load.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, base<...>/Zeek_Cluster_WebSocket.events.bif.zeek, <...>/Zeek_Cluster_WebSocket.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/Zeek_GTPv1.events.bif, <...>/Zeek_GTPv1.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/Zeek_GTPv1.functions.bif, <...>/Zeek_GTPv1.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, base<...>/Zeek_KRB.types.bif, <...>/Zeek_KRB.types.bif.zeek)
@@ -1596,6 +1602,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_BinaryReader.binary.bif.zeek, <...>/Zeek_BinaryReader.binary.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_BitTorrent.events.bif.zeek, <...>/Zeek_BitTorrent.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek, <...>/Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_Cluster_WebSocket.events.bif.zeek, <...>/Zeek_Cluster_WebSocket.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_ConfigReader.config.bif.zeek, <...>/Zeek_ConfigReader.config.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_ConnSize.events.bif.zeek, <...>/Zeek_ConnSize.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_ConnSize.functions.bif.zeek, <...>/Zeek_ConnSize.functions.bif.zeek)
@@ -1790,6 +1797,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, base/init-frameworks-and-bifs.zeek, <...>/init-frameworks-and-bifs.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base/packet-protocols, <...>/packet-protocols)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/CPP-load.bif, <...>/CPP-load.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, base<...>/Zeek_Cluster_WebSocket.events.bif.zeek, <...>/Zeek_Cluster_WebSocket.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/Zeek_GTPv1.events.bif, <...>/Zeek_GTPv1.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/Zeek_GTPv1.functions.bif, <...>/Zeek_GTPv1.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, base<...>/Zeek_KRB.types.bif, <...>/Zeek_KRB.types.bif.zeek)
@@ -2236,6 +2244,7 @@
 0.000000 | HookLoadFile  ./Zeek_BinaryReader.binary.bif.zeek <...>/Zeek_BinaryReader.binary.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_BitTorrent.events.bif.zeek <...>/Zeek_BitTorrent.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek <...>/Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_Cluster_WebSocket.events.bif.zeek <...>/Zeek_Cluster_WebSocket.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_ConfigReader.config.bif.zeek <...>/Zeek_ConfigReader.config.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_ConnSize.events.bif.zeek <...>/Zeek_ConnSize.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_ConnSize.functions.bif.zeek <...>/Zeek_ConnSize.functions.bif.zeek
@@ -2443,6 +2452,7 @@
 0.000000 | HookLoadFile  base/init-frameworks-and-bifs.zeek <...>/init-frameworks-and-bifs.zeek
 0.000000 | HookLoadFile  base/packet-protocols <...>/packet-protocols
 0.000000 | HookLoadFile  base<...>/CPP-load.bif <...>/CPP-load.bif.zeek
+0.000000 | HookLoadFile  base<...>/Zeek_Cluster_WebSocket.events.bif.zeek <...>/Zeek_Cluster_WebSocket.events.bif.zeek
 0.000000 | HookLoadFile  base<...>/Zeek_GTPv1.events.bif <...>/Zeek_GTPv1.events.bif.zeek
 0.000000 | HookLoadFile  base<...>/Zeek_GTPv1.functions.bif <...>/Zeek_GTPv1.functions.bif.zeek
 0.000000 | HookLoadFile  base<...>/Zeek_KRB.types.bif <...>/Zeek_KRB.types.bif.zeek
@@ -2544,6 +2554,7 @@
 0.000000 | HookLoadFileExtended ./Zeek_BinaryReader.binary.bif.zeek <...>/Zeek_BinaryReader.binary.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_BitTorrent.events.bif.zeek <...>/Zeek_BitTorrent.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek <...>/Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_Cluster_WebSocket.events.bif.zeek <...>/Zeek_Cluster_WebSocket.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_ConfigReader.config.bif.zeek <...>/Zeek_ConfigReader.config.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_ConnSize.events.bif.zeek <...>/Zeek_ConnSize.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_ConnSize.functions.bif.zeek <...>/Zeek_ConnSize.functions.bif.zeek
@@ -2751,6 +2762,7 @@
 0.000000 | HookLoadFileExtended base/init-frameworks-and-bifs.zeek <...>/init-frameworks-and-bifs.zeek
 0.000000 | HookLoadFileExtended base/packet-protocols <...>/packet-protocols
 0.000000 | HookLoadFileExtended base<...>/CPP-load.bif <...>/CPP-load.bif.zeek
+0.000000 | HookLoadFileExtended base<...>/Zeek_Cluster_WebSocket.events.bif.zeek <...>/Zeek_Cluster_WebSocket.events.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/Zeek_GTPv1.events.bif <...>/Zeek_GTPv1.events.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/Zeek_GTPv1.functions.bif <...>/Zeek_GTPv1.functions.bif.zeek
 0.000000 | HookLoadFileExtended base<...>/Zeek_KRB.types.bif <...>/Zeek_KRB.types.bif.zeek

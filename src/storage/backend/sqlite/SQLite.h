@@ -18,44 +18,31 @@ public:
     static BackendPtr Instantiate(std::string_view tag);
 
     /**
-     * Called by the manager system to open the backend.
-     */
-    OperationResult DoOpen(RecordValPtr options, OpenResultCallback* cb = nullptr) override;
-
-    /**
-     * Finalizes the backend when it's being closed.
-     */
-    OperationResult DoClose(OperationResultCallback* cb = nullptr) override;
-
-    /**
      * Returns whether the backend is opened.
      */
     bool IsOpen() override { return db != nullptr; }
 
-    /**
-     * The workhorse method for Put().
-     */
+private:
+    OperationResult DoOpen(RecordValPtr options, OpenResultCallback* cb = nullptr) override;
+    OperationResult DoClose(OperationResultCallback* cb = nullptr) override;
     OperationResult DoPut(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0,
                           OperationResultCallback* cb = nullptr) override;
-
-    /**
-     * The workhorse method for Get().
-     */
     OperationResult DoGet(ValPtr key, OperationResultCallback* cb = nullptr) override;
-
-    /**
-     * The workhorse method for Erase().
-     */
     OperationResult DoErase(ValPtr key, OperationResultCallback* cb = nullptr) override;
+    void DoExpire() override;
 
     /**
-     * Removes any entries in the backend that have expired. Can be overridden by
-     * derived classes.
+     * Checks whether a status code returned by an sqlite call is a success.
+     *
+     * @return A result structure containing a result code and an optional error
+     * string based on the status code.
      */
-    void Expire() override;
-
-private:
     OperationResult CheckError(int code);
+
+    /**
+     * Abstracts calls to sqlite3_step to properly create an OperationResult
+     * structure based on the result.
+     */
     OperationResult Step(sqlite3_stmt* stmt, bool parse_value = false);
 
     sqlite3* db = nullptr;

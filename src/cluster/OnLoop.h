@@ -40,14 +40,19 @@ public:
      * @param tag The tag to use as the IOSource's tag.
      */
     OnLoopProcess(Proc* proc, std::string tag, size_t max_queue_size = 10,
-                  std::chrono::microseconds block_duration = std::chrono::microseconds(100))
-        : max_queue_size(max_queue_size), block_duration(block_duration), proc(proc), tag(std::move(tag)) {}
+                  std::chrono::microseconds block_duration = std::chrono::microseconds(100),
+                  std::thread::id main_thread_id = std::this_thread::get_id())
+        : max_queue_size(max_queue_size),
+          block_duration(block_duration),
+          proc(proc),
+          tag(std::move(tag)),
+          main_thread_id(main_thread_id) {}
 
     /**
      * Register this instance with the IO loop.
      *
-     * The IO loop will manage the lifetime of this IO loop
-     * instance.
+     * The IO loop will manage the lifetime of this
+     * IO source instance.
      *
      * @param dont_count If false, prevents Zeek from terminating as long as the IO source is open.
      */
@@ -120,11 +125,16 @@ public:
      * std::this_thread::sleep() for the *block_duration* passed to the
      * constructor.
      *
-     * Don't call this from the main thread, you might end-up deadlocking!
+     * Calling this method from the main thread will result in an abort().
      */
     void QueueForProcessing(Work&& work) {
         ++queuers;
         std::list<Work> to_queue{std::move(work)};
+
+        if ( std::this_thread::get_id() == main_thread_id ) {
+            fprintf(stderr, "OnLoopProcess::QueueForProcessing() called by main thread!");
+            abort();
+        }
 
         bool fire = false;
         size_t qs = 0;
@@ -164,11 +174,12 @@ private:
     zeek::detail::Flare flare;
     std::mutex mtx;
     std::list<Work> queue;
-    size_t max_queue_size = 10;
-    std::chrono::microseconds block_duration = std::chrono::microseconds(100);
+    size_t max_queue_size;
+    std::chrono::microseconds block_duration;
     Proc* proc;
     std::string tag;
     std::atomic<int> queuers = 0;
+    std::thread::id main_thread_id;
 };
 
 

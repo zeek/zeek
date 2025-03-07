@@ -122,6 +122,8 @@ private:
 // An new WebSocket client connected. Client is locally identified by `id`.
 struct WebSocketOpen {
     std::string id;
+    std::string uri;
+    std::string protocol;
     std::shared_ptr<WebSocketClient> wsc;
 };
 

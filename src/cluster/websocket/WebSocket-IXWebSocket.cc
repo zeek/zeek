@@ -127,7 +127,8 @@ std::unique_ptr<WebSocketServer> StartServer(std::unique_ptr<WebSocketEventDispa
         ix::OnMessageCallback message_callback = [dispatcher, id, remotePort, remoteIp,
                                                   ixws](const ix::WebSocketMessagePtr& msg) mutable {
             if ( msg->type == ix::WebSocketMessageType::Open ) {
-                dispatcher->QueueForProcessing(WebSocketOpen{id, std::move(ixws)});
+                dispatcher->QueueForProcessing(
+                    WebSocketOpen{id, msg->openInfo.uri, msg->openInfo.protocol, std::move(ixws)});
             }
             else if ( msg->type == ix::WebSocketMessageType::Message ) {
                 dispatcher->QueueForProcessing(WebSocketMessage{id, msg->str});

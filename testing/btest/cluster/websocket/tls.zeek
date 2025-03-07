@@ -80,7 +80,7 @@ import asyncio, json, os, socket, time
 from websockets.asyncio.client import connect
 
 ws_port = os.environ['WEBSOCKET_PORT'].split('/')[0]
-ws_url = f'wss://localhost:{ws_port}/messages/json'
+ws_url = f'wss://localhost:{ws_port}/v1/messages/json'
 topic = '/zeek/event/my_topic'
 
 # Make the websockets library use the custom server cert.

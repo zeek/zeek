@@ -274,6 +274,16 @@ void WebSocketEventDispatcher::Process(const WebSocketOpen& open) {
         return;
     }
 
+    // As of now, terminate clients coming to anything other than /v1/messages/json.
+    if ( open.uri != "/v1/messages/json" ) {
+        open.wsc->SendError("invalid_uri", "Invalid URI - use /v1/messages/json");
+        open.wsc->Close(1008, "Invalid URI - use /v1/messages/json");
+
+        // Still create an entry as we might see messages and close events coming in.
+        clients[id] = WebSocketClientEntry{id, wsc, nullptr};
+        return;
+    }
+
     // Generate an ID for this client.
     auto ws_id = cluster::backend->NodeId() + "-websocket-" + id;
 
@@ -303,17 +313,20 @@ void WebSocketEventDispatcher::Process(const WebSocketClose& close) {
         return;
     }
 
-    auto wsc = it->second.wsc;
+    auto& wsc = it->second.wsc;
     auto& backend = it->second.backend;
 
     WS_DEBUG("Close from client %s (%s:%d) backend=%p", wsc->getId().c_str(), wsc->getRemoteIp().c_str(),
              wsc->getRemotePort(), backend.get());
 
-    auto rec = zeek::cluster::detail::bif::make_endpoint_info(backend->NodeId(), wsc->getRemoteIp(),
-                                                              wsc->getRemotePort(), TRANSPORT_TCP);
-    zeek::event_mgr.Enqueue(Cluster::websocket_client_lost, std::move(rec));
+    // If the client doesn't have a backend, it wasn't ever properly instantiated.
+    if ( backend ) {
+        auto rec = zeek::cluster::detail::bif::make_endpoint_info(backend->NodeId(), wsc->getRemoteIp(),
+                                                                  wsc->getRemotePort(), TRANSPORT_TCP);
+        zeek::event_mgr.Enqueue(Cluster::websocket_client_lost, std::move(rec));
 
-    backend->Terminate();
+        backend->Terminate();
+    }
 
     clients.erase(it);
 }
@@ -461,6 +474,10 @@ void WebSocketEventDispatcher::Process(const WebSocketMessage& msg) {
         reporter->Error("WebSocket message from non-existing WebSocket client %s", id.c_str());
         return;
     }
+
+    // Client without backend wasn't accepted, just discard its message.
+    if ( ! it->second.backend )
+        return;
 
     auto& entry = it->second;
     const auto& wsc = entry.wsc;

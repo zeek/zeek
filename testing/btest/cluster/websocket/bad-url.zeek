@@ -1,4 +1,4 @@
-# @TEST-DOC: A WebSocket client sending invalid data for an event.
+# @TEST-DOC: Run a single node cluster (manager) with a websocket server and have a single client connect.
 #
 # @TEST-REQUIRES: have-zeromq
 # @TEST-REQUIRES: python3 -c 'import websockets.sync'
@@ -19,7 +19,7 @@
 # @TEST-EXEC: btest-bg-run manager "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=manager zeek -b ../manager.zeek >out"
 # @TEST-EXEC: btest-bg-run client "python3 ../client.py >out"
 #
-# @TEST-EXEC: btest-bg-wait 30
+# @TEST-EXEC: btest-bg-wait 5
 # @TEST-EXEC: btest-diff ./manager/out
 # @TEST-EXEC: btest-diff ./manager/.stderr
 # @TEST-EXEC: btest-diff ./client/out
@@ -28,6 +28,8 @@
 # @TEST-START-FILE manager.zeek
 @load ./zeromq-test-bootstrap
 redef exit_only_after_terminate = T;
+
+global ping_count = 0;
 
 global ping: event(msg: string, c: count) &is_used;
 global pong: event(msg: string, c: count) &is_used;
@@ -40,8 +42,9 @@ event zeek_init()
 
 event ping(msg: string, n: count) &is_used
 	{
+	++ping_count;
 	print fmt("got ping: %s, %s", msg, n);
-	local e = Cluster::make_event(pong, msg, n);
+	local e = Cluster::make_event(pong, "my-message", ping_count);
 	Cluster::publish("/zeek/event/my_topic", e);
 	}
 
@@ -60,67 +63,39 @@ event Cluster::websocket_client_lost(info: Cluster::EndpointInfo)
 
 @TEST-START-FILE client.py
 import json, os, time
+import websockets.exceptions
 from websockets.sync.client import connect
 
 ws_port = os.environ['WEBSOCKET_PORT'].split('/')[0]
-ws_url = f'ws://127.0.0.1:{ws_port}/v1/messages/json'
+ws_prefix = f'ws://127.0.0.1:{ws_port}'
 topic = '/zeek/event/my_topic'
 
-def make_ping(event_args):
-    return {
-        "type": "data-message",
-        "topic": topic,
-        "@data-type": "vector",
-        "data": [
-            {"@data-type": "count", "data": 1},  # Format
-            {"@data-type": "count", "data": 1},  # Type
-            {"@data-type": "vector", "data": [
-                { "@data-type": "string", "data": "ping"},  # Event name
-                { "@data-type": "vector", "data": event_args },
-            ], },
-        ],
-    }
 
-def run(ws_url):
-    with connect(ws_url) as ws:
-        print("Connected!")
-        # Send subscriptions
-        ws.send(json.dumps([topic]))
-        ack = json.loads(ws.recv())
-        assert "type" in ack
-        assert ack["type"] == "ack"
-        assert "endpoint" in ack
-        assert "version" in ack
+def run(ws_prefix):
+    with connect(ws_prefix + '/v1/messages/json') as ws_good:
+        print('Connected ws_good!')
+        with connect(ws_prefix + '/v0/messages/json') as ws_bad:
+            print('Connected ws_bad!')
+            try:
+                err = json.loads(ws_bad.recv())
+            except websockets.exceptions.ConnectionClosedError as e:
+                pass
 
-        ws.send(json.dumps(make_ping(42)))
-        err1 = json.loads(ws.recv())
-        print("err1", err1)
-        ws.send(json.dumps(make_ping([{"@data-type": "string", "data": "Hello"}])))
-        err2 = json.loads(ws.recv())
-        print("err2", err2)
-        ws.send(json.dumps(make_ping([{"@data-type": "count", "data": 42}, {"@data-type": "string", "data": "Hello"}])))
-        err3 = json.loads(ws.recv())
-        print("err3", err3)
+            print('Error for ws_bad', err)
 
-        # This should be good ping(string, count)
-        ws.send(json.dumps(make_ping([{"@data-type": "string", "data": "Hello"}, {"@data-type": "count", "data": 42}])))
-        pong = json.loads(ws.recv())
-        name, args, _ = pong["data"][2]["data"]
-        print("pong", name, args)
-
-        # This one fails again
-        ws.send(json.dumps(make_ping([{"@data-type": "money", "data": 0}])))
-        err4 = json.loads(ws.recv())
-        print("err4", err4)
+        ws_good.send(json.dumps(['hello-good']))
+        ack = json.loads(ws_good.recv())
+        assert 'type' in ack
+        assert ack['type'] == 'ack'
 
 def main():
     for _ in range(100):
         try:
-            run(ws_url)
+            run(ws_prefix)
             break
         except ConnectionRefusedError:
             time.sleep(0.1)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
 @TEST-END-FILE

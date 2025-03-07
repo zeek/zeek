@@ -72,7 +72,7 @@ import json, os, time
 from websockets.sync.client import connect
 
 ws_port = os.environ['WEBSOCKET_PORT'].split('/')[0]
-ws_url = f'ws://127.0.0.1:{ws_port}/messages/json'
+ws_url = f'ws://127.0.0.1:{ws_port}/v1/messages/json'
 topic = '/test/clients'
 
 def make_ping(c, who):

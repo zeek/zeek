@@ -358,7 +358,7 @@ OperationResult Redis::DoErase(ValPtr key, OperationResultCallback* cb) {
     return {ReturnCode::SUCCESS};
 }
 
-void Redis::Expire() {
+void Redis::DoExpire() {
     // Expiration is handled natively by Redis if not reading traces.
     if ( ! connected || ! zeek::run_state::reading_traces )
         return;
@@ -536,7 +536,7 @@ OperationResult Redis::ParseGetReply(redisReply* reply) const {
     return res;
 }
 
-void Redis::Poll() {
+void Redis::DoPoll() {
     while ( active_ops > 0 )
         int status = redisPollTick(async_ctx, 0.5);
 }

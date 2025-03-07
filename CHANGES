@@ -1,3 +1,9 @@
+7.2.0-dev.280 | 2025-03-07 13:13:39 -0500
+
+  * GH-4268: Fix printing type constants like `double` (Evan Typanski, Corelight)
+
+    Fixes #4268
+
 7.2.0-dev.278 | 2025-03-07 11:02:12 -0700
 
   * Fix indentation in .clang-tidy (Tim Wojtulewicz, Corelight)

@@ -5,37 +5,40 @@
 #include "zeek/storage/Manager.h"
 #include "zeek/storage/ReturnCode.h"
 
-static zeek::IntrusivePtr<zeek::detail::trigger::Trigger> init_trigger(zeek::detail::Frame* frame) {
+using namespace zeek;
+using namespace zeek::storage;
+
+static IntrusivePtr<zeek::detail::trigger::Trigger> init_trigger(zeek::detail::Frame* frame) {
 	auto trigger = frame->GetTrigger();
 
 	if ( ! trigger ) {
-		zeek::emit_builtin_error("Asynchronous storage operations must be called via a when-condition");
+		emit_builtin_error("Asynchronous storage operations must be called via a when-condition");
 		return nullptr;
 	}
 
 	if ( auto timeout = trigger->TimeoutValue(); timeout < 0 ) {
-		zeek::emit_builtin_error("Async Storage operations must specify a timeout block");
+		emit_builtin_error("Async Storage operations must specify a timeout block");
 		return nullptr;
 	}
 
 	frame->SetDelayed();
 	trigger->Hold();
 
-	return {zeek::NewRef{}, trigger};
+	return {NewRef{}, trigger};
 }
 
-static zeek::IntrusivePtr<zeek::storage::detail::BackendHandleVal> make_backend_handle(zeek::Val* btype) {
-	auto btype_val = zeek::IntrusivePtr<zeek::EnumVal>{zeek::NewRef{}, btype->AsEnumVal()};
-	zeek::Tag tag{btype_val};
+static IntrusivePtr<storage::detail::BackendHandleVal> make_backend_handle(Val* btype) {
+	auto btype_val = IntrusivePtr<EnumVal>{NewRef{}, btype->AsEnumVal()};
+	Tag tag{btype_val};
 
-	auto b = zeek::storage_mgr->Instantiate(tag);
+	auto b = storage_mgr->Instantiate(tag);
 
 	if ( ! b.has_value() ) {
-		zeek::emit_builtin_error(b.error().c_str());
+		emit_builtin_error(b.error().c_str());
 		return nullptr;
 	}
 
-	return zeek::make_intrusive<zeek::storage::detail::BackendHandleVal>(b.value());
+	return make_intrusive<storage::detail::BackendHandleVal>(b.value());
 }
 
 %%}
@@ -56,26 +59,25 @@ function Storage::Async::__open_backend%(btype: Storage::Backend, options: any, 
 	%{
 	auto trigger = init_trigger(frame);
 	if ( ! trigger ) {
-		zeek::emit_builtin_error("Failed to create trigger");
 		return nullptr;
 	}
 
-	auto btype_val = zeek::IntrusivePtr<zeek::EnumVal>{zeek::NewRef{}, btype->AsEnumVal()};
-	zeek::Tag tag{btype_val};
+	auto btype_val = IntrusivePtr<EnumVal>{NewRef{}, btype->AsEnumVal()};
+	Tag tag{btype_val};
 
-	auto b = zeek::storage_mgr->Instantiate(tag);
+	auto b = storage_mgr->Instantiate(tag);
 
 	if ( ! b.has_value() ) {
-		zeek::emit_builtin_error(util::fmt("Failed to instantiate backend: %s", b.error().c_str()));
+		emit_builtin_error(util::fmt("Failed to instantiate backend: %s", b.error().c_str()));
 		return nullptr;
 	}
 
-	auto bh = zeek::make_intrusive<zeek::storage::detail::BackendHandleVal>(b.value());
+	auto bh = make_intrusive<storage::detail::BackendHandleVal>(b.value());
 
-	auto cb = new zeek::storage::OpenResultCallback(trigger, frame->GetTriggerAssoc(), bh);
+	auto cb = new OpenResultCallback(trigger, frame->GetTriggerAssoc(), bh);
 	auto kt = key_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
 	auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
-	auto options_val = zeek::IntrusivePtr<zeek::RecordVal>{NewRef{}, options->AsRecordVal()};
+	auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
 	auto open_res = storage_mgr->OpenBackend(b.value(), options_val, kt, vt, cb);
 
 	if ( ! b.value()->SupportsAsync() ) {
@@ -84,7 +86,7 @@ function Storage::Async::__open_backend%(btype: Storage::Backend, options: any, 
 		cb->Complete(open_res);
 		delete cb;
 	}
-	else if ( zeek::run_state::reading_traces ) {
+	else if ( run_state::reading_traces ) {
 		// If the backend is truly async and we're reading traces, we need to fake being in sync mode
 		// because otherwise time doesn't move forward correctly.
 		b.value()->Poll();
@@ -95,28 +97,27 @@ function Storage::Async::__open_backend%(btype: Storage::Backend, options: any, 
 
 function Storage::Async::__close_backend%(backend: opaque of Storage::BackendHandle%) : Storage::OperationResult
 	%{
-	static auto op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
-	auto op_result = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
+	static auto op_result_type = id::find_type<RecordType>("Storage::OperationResult");
+	auto op_result = make_intrusive<RecordVal>(op_result_type);
 
 	auto trigger = init_trigger(frame);
 	if ( ! trigger ) {
-		zeek::emit_builtin_error("Failed to create trigger");
 		return nullptr;
 	}
 
-	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
+	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
-		op_result->Assign(0, zeek::storage::ReturnCode::OPERATION_FAILED);
-		op_result->Assign(1, zeek::make_intrusive<StringVal>("Invalid storage handlle"));
+		op_result->Assign(0, ReturnCode::OPERATION_FAILED);
+		op_result->Assign(1, make_intrusive<StringVal>("Invalid storage handlle"));
 		return op_result;
 	}
 	else if ( ! b->backend->IsOpen() ) {
-		op_result->Assign(0, zeek::storage::ReturnCode::NOT_CONNECTED);
-		op_result->Assign(1, zeek::make_intrusive<StringVal>("Backend is closed"));
+		op_result->Assign(0, ReturnCode::NOT_CONNECTED);
+		op_result->Assign(1, make_intrusive<StringVal>("Backend is closed"));
 		return op_result;
 	}
 
-	auto cb = new zeek::storage::OperationResultCallback(trigger, frame->GetTriggerAssoc());
+	auto cb = new OperationResultCallback(trigger, frame->GetTriggerAssoc());
 	auto close_res = storage_mgr->CloseBackend(b->backend, cb);
 
 	if ( ! b->backend->SupportsAsync() ) {
@@ -125,7 +126,7 @@ function Storage::Async::__close_backend%(backend: opaque of Storage::BackendHan
 		cb->Complete(close_res);
 		delete cb;
 	}
-	else if ( zeek::run_state::reading_traces ) {
+	else if ( run_state::reading_traces ) {
 		// If the backend is truly async and we're reading traces, we need to fake being in sync mode
 		// because otherwise time doesn't move forward correctly.
 		b->backend->Poll();
@@ -137,33 +138,32 @@ function Storage::Async::__close_backend%(backend: opaque of Storage::BackendHan
 function Storage::Async::__put%(backend: opaque of Storage::BackendHandle, key: any, value: any,
 			 overwrite: bool, expire_time: interval%): Storage::OperationResult
 	%{
-	static auto op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
-	auto op_result = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
+	static auto op_result_type = id::find_type<RecordType>("Storage::OperationResult");
+	auto op_result = make_intrusive<RecordVal>(op_result_type);
 
 	auto trigger = init_trigger(frame);
 	if ( ! trigger ) {
-		zeek::emit_builtin_error("Failed to create trigger");
 		return nullptr;
  	}
 
-	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
+	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
-		op_result->Assign(0, zeek::storage::ReturnCode::OPERATION_FAILED);
-		op_result->Assign(1, zeek::make_intrusive<StringVal>("Invalid storage handlle"));
+		op_result->Assign(0, ReturnCode::OPERATION_FAILED);
+		op_result->Assign(1, make_intrusive<StringVal>("Invalid storage handlle"));
 		return op_result;
 	}
 	else if ( ! b->backend->IsOpen() ) {
-		op_result->Assign(0, zeek::storage::ReturnCode::NOT_CONNECTED);
-		op_result->Assign(1, zeek::make_intrusive<StringVal>("Backend is closed"));
+		op_result->Assign(0, ReturnCode::NOT_CONNECTED);
+		op_result->Assign(1, make_intrusive<StringVal>("Backend is closed"));
 		return op_result;
 	}
 
 	if ( expire_time > 0.0 )
-		expire_time += zeek::run_state::network_time;
+		expire_time += run_state::network_time;
 
-	auto cb = new zeek::storage::OperationResultCallback(trigger, frame->GetTriggerAssoc());
-	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
-	auto val_v = zeek::IntrusivePtr<Val>{NewRef{}, value};
+	auto cb = new OperationResultCallback(trigger, frame->GetTriggerAssoc());
+	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
+	auto val_v = IntrusivePtr<Val>{NewRef{}, value};
 	auto put_res = b->backend->Put(key_v, val_v, overwrite, expire_time, cb);
 
 	if ( ! b->backend->SupportsAsync() ) {
@@ -172,7 +172,7 @@ function Storage::Async::__put%(backend: opaque of Storage::BackendHandle, key: 
 		cb->Complete(put_res);
 		delete cb;
 	}
-	else if ( zeek::run_state::reading_traces ) {
+	else if ( run_state::reading_traces ) {
 		// If the backend is truly async and we're reading traces, we need to fake being in sync mode
 		// because otherwise time doesn't move forward correctly.
 		b->backend->Poll();
@@ -183,29 +183,28 @@ function Storage::Async::__put%(backend: opaque of Storage::BackendHandle, key: 
 
 function Storage::Async::__get%(backend: opaque of Storage::BackendHandle, key: any%): Storage::OperationResult
 	%{
-	static auto op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
-	auto op_result = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
+	static auto op_result_type = id::find_type<RecordType>("Storage::OperationResult");
+	auto op_result = make_intrusive<RecordVal>(op_result_type);
 
 	auto trigger = init_trigger(frame);
 	if ( ! trigger ) {
-		zeek::emit_builtin_error("Failed to create trigger");
 		return nullptr;
 	}
 
-	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
+	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
-		op_result->Assign(0, zeek::storage::ReturnCode::OPERATION_FAILED);
-		op_result->Assign(1, zeek::make_intrusive<StringVal>("Invalid storage handlle"));
+		op_result->Assign(0, ReturnCode::OPERATION_FAILED);
+		op_result->Assign(1, make_intrusive<StringVal>("Invalid storage handlle"));
 		return op_result;
 	}
 	else if ( ! b->backend->IsOpen() ) {
-		op_result->Assign(0, zeek::storage::ReturnCode::NOT_CONNECTED);
-		op_result->Assign(1, zeek::make_intrusive<StringVal>("Backend is closed"));
+		op_result->Assign(0, ReturnCode::NOT_CONNECTED);
+		op_result->Assign(1, make_intrusive<StringVal>("Backend is closed"));
 		return op_result;
 	}
 
-	auto cb = new zeek::storage::OperationResultCallback(trigger, frame->GetTriggerAssoc());
-	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
+	auto cb = new OperationResultCallback(trigger, frame->GetTriggerAssoc());
+	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
 	auto get_res = b->backend->Get(key_v, cb);
 
 	if ( ! b->backend->SupportsAsync() ) {
@@ -214,7 +213,7 @@ function Storage::Async::__get%(backend: opaque of Storage::BackendHandle, key: 
 		cb->Complete(get_res);
 		delete cb;
 	}
-	else if ( zeek::run_state::reading_traces ) {
+	else if ( run_state::reading_traces ) {
 		// If the backend is truly async and we're reading traces, we need to fake being in sync mode
 		// because otherwise time doesn't move forward correctly.
 		b->backend->Poll();
@@ -225,29 +224,28 @@ function Storage::Async::__get%(backend: opaque of Storage::BackendHandle, key: 
 
 function Storage::Async::__erase%(backend: opaque of Storage::BackendHandle, key: any%): Storage::OperationResult
 	%{
-	static auto op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
-	auto op_result = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
+	static auto op_result_type = id::find_type<RecordType>("Storage::OperationResult");
+	auto op_result = make_intrusive<RecordVal>(op_result_type);
 
 	auto trigger = init_trigger(frame);
 	if ( ! trigger ) {
-		zeek::emit_builtin_error("Failed to create trigger");
 		return nullptr;
 	}
 
-	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
+	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
-		op_result->Assign(0, zeek::storage::ReturnCode::OPERATION_FAILED);
-		op_result->Assign(1, zeek::make_intrusive<StringVal>("Invalid storage handlle"));
+		op_result->Assign(0, ReturnCode::OPERATION_FAILED);
+		op_result->Assign(1, make_intrusive<StringVal>("Invalid storage handlle"));
 		return op_result;
 	}
 	else if ( ! b->backend->IsOpen() ) {
-		op_result->Assign(0, zeek::storage::ReturnCode::NOT_CONNECTED);
-		op_result->Assign(1, zeek::make_intrusive<StringVal>("Backend is closed"));
+		op_result->Assign(0, ReturnCode::NOT_CONNECTED);
+		op_result->Assign(1, make_intrusive<StringVal>("Backend is closed"));
 		return op_result;
 	}
 
-	auto cb = new zeek::storage::OperationResultCallback(trigger, frame->GetTriggerAssoc());
-	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
+	auto cb = new OperationResultCallback(trigger, frame->GetTriggerAssoc());
+	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
 	auto erase_res = b->backend->Erase(key_v, cb);
 
 	if ( ! b->backend->SupportsAsync() ) {
@@ -256,7 +254,7 @@ function Storage::Async::__erase%(backend: opaque of Storage::BackendHandle, key
 		cb->Complete(erase_res);
 		delete cb;
 	}
-	else if ( zeek::run_state::reading_traces ) {
+	else if ( run_state::reading_traces ) {
 		// If the backend is truly async and we're reading traces, we need to fake being in sync mode
 		// because otherwise time doesn't move forward correctly.
 		b->backend->Poll();
@@ -269,34 +267,34 @@ module Storage::Sync;
 
 function Storage::Sync::__open_backend%(btype: Storage::Backend, options: any, key_type: any, val_type: any%): Storage::OperationResult
 	%{
-	static auto op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
+	static auto op_result_type = id::find_type<RecordType>("Storage::OperationResult");
 
 	if ( frame->GetTrigger() ){
 		std::string err = "Synchronous storage operations must be called outside when-conditions";
-		zeek::emit_builtin_error(err.c_str());
+		emit_builtin_error(err.c_str());
 
-		auto op_result = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
-		op_result->Assign(0, zeek::storage::ReturnCode::OPERATION_FAILED);
-		op_result->Assign(1, zeek::make_intrusive<StringVal>(err));
+		auto op_result = make_intrusive<RecordVal>(op_result_type);
+		op_result->Assign(0, ReturnCode::OPERATION_FAILED);
+		op_result->Assign(1, make_intrusive<StringVal>(err));
 		return op_result;
 	}
 
-	auto btype_val = zeek::IntrusivePtr<zeek::EnumVal>{NewRef{}, btype->AsEnumVal()};
-	zeek::Tag tag{btype_val};
+	auto btype_val = IntrusivePtr<EnumVal>{NewRef{}, btype->AsEnumVal()};
+	Tag tag{btype_val};
 
 	auto b = storage_mgr->Instantiate(tag);
 
 	if ( ! b.has_value() ) {
-		zeek::emit_builtin_error(b.error().c_str());
-		return zeek::val_mgr->Bool(false);
+		emit_builtin_error(b.error().c_str());
+		return val_mgr->Bool(false);
 	}
 
-	auto bh = zeek::make_intrusive<zeek::storage::detail::BackendHandleVal>(b.value());
+	auto bh = make_intrusive<storage::detail::BackendHandleVal>(b.value());
 
-	auto cb = new zeek::storage::OpenResultCallback(bh);
+	auto cb = new OpenResultCallback(bh);
 	auto kt = key_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
 	auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
-	auto options_val = zeek::IntrusivePtr<zeek::RecordVal>{NewRef{}, options->AsRecordVal()};
+	auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
 	auto open_res = storage_mgr->OpenBackend(b.value(), options_val, kt, vt, cb);
 
 	// If the backend only supports async, block until it's ready and then pull the result out of
@@ -313,33 +311,33 @@ function Storage::Sync::__open_backend%(btype: Storage::Backend, options: any, k
 
 function Storage::Sync::__close_backend%(backend: opaque of Storage::BackendHandle%) : Storage::OperationResult
 	%{
-	static auto op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
+	static auto op_result_type = id::find_type<RecordType>("Storage::OperationResult");
 
 	if ( frame->GetTrigger() ){
 		std::string err = "Synchronous storage operations must be called outside when-conditions";
-		zeek::emit_builtin_error(err.c_str());
+		emit_builtin_error(err.c_str());
 
-		auto op_result = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
-		op_result->Assign(0, zeek::storage::ReturnCode::OPERATION_FAILED);
-		op_result->Assign(1, zeek::make_intrusive<StringVal>(err));
+		auto op_result = make_intrusive<RecordVal>(op_result_type);
+		op_result->Assign(0, ReturnCode::OPERATION_FAILED);
+		op_result->Assign(1, make_intrusive<StringVal>(err));
 		return op_result;
 	}
 
-	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
+	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
-		auto op_result = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
-		op_result->Assign(0, zeek::storage::ReturnCode::OPERATION_FAILED);
-		op_result->Assign(1, zeek::make_intrusive<StringVal>("Invalid storage handlle"));
+		auto op_result = make_intrusive<RecordVal>(op_result_type);
+		op_result->Assign(0, ReturnCode::OPERATION_FAILED);
+		op_result->Assign(1, make_intrusive<StringVal>("Invalid storage handlle"));
 		return op_result;
 	}
 	else if ( ! b->backend->IsOpen() ) {
-		auto op_result = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
-		op_result->Assign(0, zeek::storage::ReturnCode::NOT_CONNECTED);
-		op_result->Assign(1, zeek::make_intrusive<StringVal>("Backend is closed"));
+		auto op_result = make_intrusive<RecordVal>(op_result_type);
+		op_result->Assign(0, ReturnCode::NOT_CONNECTED);
+		op_result->Assign(1, make_intrusive<StringVal>("Backend is closed"));
 		return op_result;
 	}
 
-	auto cb = new zeek::storage::OperationResultCallback();
+	auto cb = new OperationResultCallback();
 	auto close_res = storage_mgr->CloseBackend(b->backend, cb);
 
 	// If the backend only supports async, block until it's ready and then pull the result out of
@@ -357,38 +355,38 @@ function Storage::Sync::__close_backend%(backend: opaque of Storage::BackendHand
 function Storage::Sync::__put%(backend: opaque of Storage::BackendHandle, key: any, value: any,
 			 overwrite: bool, expire_time: interval%): Storage::OperationResult
 	%{
-	static auto op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
+	static auto op_result_type = id::find_type<RecordType>("Storage::OperationResult");
 
 	if ( frame->GetTrigger() ){
 		std::string err = "Synchronous storage operations must be called outside when-conditions";
-		zeek::emit_builtin_error(err.c_str());
+		emit_builtin_error(err.c_str());
 
-		auto op_result = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
-		op_result->Assign(0, zeek::storage::ReturnCode::OPERATION_FAILED);
-		op_result->Assign(1, zeek::make_intrusive<StringVal>(err));
+		auto op_result = make_intrusive<RecordVal>(op_result_type);
+		op_result->Assign(0, ReturnCode::OPERATION_FAILED);
+		op_result->Assign(1, make_intrusive<StringVal>(err));
 		return op_result;
 	}
 
-	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
+	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
-		auto op_result = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
-		op_result->Assign(0, zeek::storage::ReturnCode::OPERATION_FAILED);
-		op_result->Assign(1, zeek::make_intrusive<StringVal>("Invalid storage handlle"));
+		auto op_result = make_intrusive<RecordVal>(op_result_type);
+		op_result->Assign(0, ReturnCode::OPERATION_FAILED);
+		op_result->Assign(1, make_intrusive<StringVal>("Invalid storage handlle"));
 		return op_result;
 	}
 	else if ( ! b->backend->IsOpen() ) {
-		auto op_result = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
-		op_result->Assign(0, zeek::storage::ReturnCode::NOT_CONNECTED);
-		op_result->Assign(1, zeek::make_intrusive<StringVal>("Backend is closed"));
+		auto op_result = make_intrusive<RecordVal>(op_result_type);
+		op_result->Assign(0, ReturnCode::NOT_CONNECTED);
+		op_result->Assign(1, make_intrusive<StringVal>("Backend is closed"));
 		return op_result;
 	}
 
 	if ( expire_time > 0.0 )
-		expire_time += zeek::run_state::network_time;
+		expire_time += run_state::network_time;
 
-	auto cb = new zeek::storage::OperationResultCallback();
-	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
-	auto val_v = zeek::IntrusivePtr<Val>{NewRef{}, value};
+	auto cb = new OperationResultCallback();
+	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
+	auto val_v = IntrusivePtr<Val>{NewRef{}, value};
 	auto put_res = b->backend->Put(key_v, val_v, overwrite, expire_time, cb);
 
 	// If the backend only supports async, block until it's ready and then pull the result out of
@@ -405,34 +403,34 @@ function Storage::Sync::__put%(backend: opaque of Storage::BackendHandle, key: a
 
 function Storage::Sync::__get%(backend: opaque of Storage::BackendHandle, key: any%): Storage::OperationResult
 	%{
-	static auto op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
+	static auto op_result_type = id::find_type<RecordType>("Storage::OperationResult");
 
 	if ( frame->GetTrigger() ) {
 		std::string err = "Synchronous storage operations must be called outside when-conditions";
-		zeek::emit_builtin_error(err.c_str());
+		emit_builtin_error(err.c_str());
 
-		auto op_result = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
-		op_result->Assign(0, zeek::storage::ReturnCode::OPERATION_FAILED);
-		op_result->Assign(1, zeek::make_intrusive<StringVal>(err));
+		auto op_result = make_intrusive<RecordVal>(op_result_type);
+		op_result->Assign(0, ReturnCode::OPERATION_FAILED);
+		op_result->Assign(1, make_intrusive<StringVal>(err));
 		return op_result;
 	}
 
-	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
+	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
-		auto op_result = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
-		op_result->Assign(0, zeek::storage::ReturnCode::OPERATION_FAILED);
-		op_result->Assign(1, zeek::make_intrusive<StringVal>("Invalid storage handlle"));
+		auto op_result = make_intrusive<RecordVal>(op_result_type);
+		op_result->Assign(0, ReturnCode::OPERATION_FAILED);
+		op_result->Assign(1, make_intrusive<StringVal>("Invalid storage handlle"));
 		return op_result;
 	}
 	else if ( ! b->backend->IsOpen() ) {
-		auto op_result = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
-		op_result->Assign(0, zeek::storage::ReturnCode::NOT_CONNECTED);
-		op_result->Assign(1, zeek::make_intrusive<StringVal>("Backend is closed"));
+		auto op_result = make_intrusive<RecordVal>(op_result_type);
+		op_result->Assign(0, ReturnCode::NOT_CONNECTED);
+		op_result->Assign(1, make_intrusive<StringVal>("Backend is closed"));
 		return op_result;
 	}
 
-	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
-	auto cb = new zeek::storage::OperationResultCallback();
+	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
+	auto cb = new OperationResultCallback();
 	auto get_res = b->backend->Get(key_v, cb);
 
 	// If the backend only supports async, block until it's ready and then pull the result out of
@@ -449,34 +447,34 @@ function Storage::Sync::__get%(backend: opaque of Storage::BackendHandle, key: a
 
 function Storage::Sync::__erase%(backend: opaque of Storage::BackendHandle, key: any%): Storage::OperationResult
 	%{
-	static auto op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
+	static auto op_result_type = id::find_type<RecordType>("Storage::OperationResult");
 
 	if ( frame->GetTrigger() ){
 		std::string err = "Synchronous storage operations must be called outside when-conditions";
-		zeek::emit_builtin_error(err.c_str());
+		emit_builtin_error(err.c_str());
 
-		auto op_result = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
-		op_result->Assign(0, zeek::storage::ReturnCode::OPERATION_FAILED);
-		op_result->Assign(1, zeek::make_intrusive<StringVal>(err));
+		auto op_result = make_intrusive<RecordVal>(op_result_type);
+		op_result->Assign(0, ReturnCode::OPERATION_FAILED);
+		op_result->Assign(1, make_intrusive<StringVal>(err));
 		return op_result;
 	}
 
-	auto b = dynamic_cast<zeek::storage::detail::BackendHandleVal*>(backend);
+	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
 	if ( ! b ) {
-		auto op_result = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
-		op_result->Assign(0, zeek::storage::ReturnCode::OPERATION_FAILED);
-		op_result->Assign(1, zeek::make_intrusive<StringVal>("Invalid storage handlle"));
+		auto op_result = make_intrusive<RecordVal>(op_result_type);
+		op_result->Assign(0, ReturnCode::OPERATION_FAILED);
+		op_result->Assign(1, make_intrusive<StringVal>("Invalid storage handlle"));
 		return op_result;
 	}
 	else if ( ! b->backend->IsOpen() ) {
-		auto op_result = zeek::make_intrusive<zeek::RecordVal>(op_result_type);
-		op_result->Assign(0, zeek::storage::ReturnCode::NOT_CONNECTED);
-		op_result->Assign(1, zeek::make_intrusive<StringVal>("Backend is closed"));
+		auto op_result = make_intrusive<RecordVal>(op_result_type);
+		op_result->Assign(0, ReturnCode::NOT_CONNECTED);
+		op_result->Assign(1, make_intrusive<StringVal>("Backend is closed"));
 		return op_result;
 	}
 
-	auto cb = new zeek::storage::OperationResultCallback();
-	auto key_v = zeek::IntrusivePtr<Val>{NewRef{}, key};
+	auto cb = new OperationResultCallback();
+	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
 	auto erase_res = b->backend->Erase(key_v, cb);
 
 	// If the backend only supports async, block until it's ready and then pull the result out of

@@ -36,15 +36,15 @@ public:
     void InitPostScript();
 
     /**
-     * Instantiates a new backend object. The backend will be in a closed state, and OpenBackend()
-     * will need to be called to fully initialize it.
+     * Instantiates a new backend object. The backend will be in a closed state,
+     * and OpenBackend() will need to be called to fully initialize it.
      *
      * @param type The tag for the type of backend being opened.
      * @return A std::expected containing either a valid BackendPtr with the
      * result of the operation or a string containing an error message for
      * failure.
      */
-    BackendResult Instantiate(const Tag& type);
+    zeek::expected<BackendPtr, std::string> Instantiate(const Tag& type);
 
     /**
      * Opens a new storage backend.
@@ -55,12 +55,20 @@ public:
      * validation of types.
      * @param val_type The script-side type of the values stored in the backend. Used for
      * validation of types and conversion during retrieval.
+     * @param cb An optional callback object if being called via an async context.
+     * @return A struct describing the result of the operation, containing a code, an
+     * optional error string, and a ValPtr for operations that return values.
      */
     OperationResult OpenBackend(BackendPtr backend, RecordValPtr options, TypePtr key_type, TypePtr val_type,
                                 OpenResultCallback* cb = nullptr);
 
     /**
      * Closes a storage backend.
+     *
+     * @param backend A pointer to the backend being closed.
+     * @param cb An optional callback object if being called via an async context.
+     * @return A struct describing the result of the operation, containing a code, an
+     * optional error string, and a ValPtr for operations that return values.
      */
     OperationResult CloseBackend(BackendPtr backend, OperationResultCallback* cb = nullptr);
 

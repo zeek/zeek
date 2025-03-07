@@ -47,7 +47,7 @@ void Manager::InitPostScript() {
     StartExpirationTimer();
 }
 
-BackendResult Manager::Instantiate(const Tag& type) {
+zeek::expected<BackendPtr, std::string> Manager::Instantiate(const Tag& type) {
     Component* c = Lookup(type);
     if ( ! c ) {
         return zeek::unexpected<std::string>(

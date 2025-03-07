@@ -3202,7 +3202,7 @@ ValPtr EnumVal::DoClone(CloneState* state) {
     return {NewRef{}, this};
 }
 
-void TypeVal::ValDescribe(ODesc* d) const { d->Add(type->AsTypeType()->GetType()->GetName()); }
+void TypeVal::ValDescribe(ODesc* d) const { type->AsTypeType()->GetType()->Describe(d); }
 
 ValPtr TypeVal::DoClone(CloneState* state) {
     // Immutable.

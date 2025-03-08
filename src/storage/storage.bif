@@ -41,6 +41,32 @@ static IntrusivePtr<storage::detail::BackendHandleVal> make_backend_handle(Val* 
 	return make_intrusive<storage::detail::BackendHandleVal>(b.value());
 }
 
+static zeek::expected<storage::detail::BackendHandleVal*, OperationResult> cast_handle(Val* handle) {
+	auto b = static_cast<storage::detail::BackendHandleVal*>(handle);
+
+	if ( ! b )
+		return zeek::unexpected<OperationResult>(OperationResult{ReturnCode::OPERATION_FAILED, "Invalid storage handlle"});
+	else if ( ! b->backend->IsOpen() )
+		return zeek::unexpected<OperationResult>(OperationResult{ReturnCode::NOT_CONNECTED, "Backend is closed"});
+
+	return b;
+}
+
+static void handle_async_result(const IntrusivePtr<Backend>& backend, ResultCallback* cb,
+                                const OperationResult& op_result) {
+	if ( ! backend->SupportsAsync() ) {
+		// If the backend doesn't support async, we blocked in order to get here already. Handle the
+		// callback manually.
+		cb->Complete(op_result);
+		delete cb;
+	}
+	else if ( run_state::reading_traces ) {
+		// If the backend is truly async and we're reading traces, we need to fake being in sync mode
+		// because otherwise time doesn't move forward correctly.
+		backend->Poll();
+	}
+}
+
 %%}
 
 module Storage;
@@ -67,7 +93,10 @@ function Storage::Async::__open_backend%(btype: Storage::Backend, options: any, 
 	auto b = storage_mgr->Instantiate(tag);
 
 	if ( ! b.has_value() ) {
-		emit_builtin_error(util::fmt("Failed to instantiate backend: %s", b.error().c_str()));
+		trigger->Cache(
+			frame->GetTriggerAssoc(),
+			new StringVal(util::fmt("Failed to instantiate backend: %s", b.error().c_str())));
+		trigger->Release();
 		return nullptr;
 	}
 
@@ -77,19 +106,9 @@ function Storage::Async::__open_backend%(btype: Storage::Backend, options: any, 
 	auto kt = key_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
 	auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
 	auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
-	auto open_res = storage_mgr->OpenBackend(b.value(), options_val, kt, vt, cb);
+	auto op_result = storage_mgr->OpenBackend(b.value(), options_val, kt, vt, cb);
 
-	if ( ! b.value()->SupportsAsync() ) {
-		// If the backend doesn't support async, we blocked in order to get here already. Handle the
-		// callback manually.
-		cb->Complete(open_res);
-		delete cb;
-	}
-	else if ( run_state::reading_traces ) {
-		// If the backend is truly async and we're reading traces, we need to fake being in sync mode
-		// because otherwise time doesn't move forward correctly.
-		b.value()->Poll();
-	}
+	handle_async_result(b.value(), cb, op_result);
 
 	return nullptr;
 	%}
@@ -100,26 +119,16 @@ function Storage::Async::__close_backend%(backend: opaque of Storage::BackendHan
 	if ( ! trigger )
 		return nullptr;
 
-	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
-	if ( ! b )
-		return OperationResult::MakeVal(ReturnCode::OPERATION_FAILED, "Invalid storage handlle");
-	else if ( ! b->backend->IsOpen() )
-		return OperationResult::MakeVal(ReturnCode::NOT_CONNECTED, "Backend is closed");
-
 	auto cb = new OperationResultCallback(trigger, frame->GetTriggerAssoc());
-	auto close_res = storage_mgr->CloseBackend(b->backend, cb);
-
-	if ( ! b->backend->SupportsAsync() ) {
-		// If the backend doesn't support async, we blocked in order to get here already. Handle the
-		// callback manually.
-		cb->Complete(close_res);
+	auto b = cast_handle(backend);
+	if ( ! b ) {
+		cb->Complete(b.error());
 		delete cb;
+		return nullptr;
 	}
-	else if ( run_state::reading_traces ) {
-		// If the backend is truly async and we're reading traces, we need to fake being in sync mode
-		// because otherwise time doesn't move forward correctly.
-		b->backend->Poll();
-	}
+
+	auto op_result = storage_mgr->CloseBackend((*b)->backend, cb);
+	handle_async_result((*b)->backend, cb, op_result);
 
 	return nullptr;
 	%}
@@ -131,31 +140,21 @@ function Storage::Async::__put%(backend: opaque of Storage::BackendHandle, key: 
 	if ( ! trigger )
 		return nullptr;
 
-	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
-	if ( ! b )
-		return OperationResult::MakeVal(ReturnCode::OPERATION_FAILED, "Invalid storage handlle");
-	else if ( ! b->backend->IsOpen() )
-		return OperationResult::MakeVal(ReturnCode::NOT_CONNECTED, "Backend is closed");
+	auto cb = new OperationResultCallback(trigger, frame->GetTriggerAssoc());
+	auto b = cast_handle(backend);
+	if ( ! b ) {
+		cb->Complete(b.error());
+		delete cb;
+		return nullptr;
+	}
 
 	if ( expire_time > 0.0 )
 		expire_time += run_state::network_time;
 
-	auto cb = new OperationResultCallback(trigger, frame->GetTriggerAssoc());
 	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
 	auto val_v = IntrusivePtr<Val>{NewRef{}, value};
-	auto put_res = b->backend->Put(key_v, val_v, overwrite, expire_time, cb);
-
-	if ( ! b->backend->SupportsAsync() ) {
-		// If the backend doesn't support async, we blocked in order to get here already. Handle the
-		// callback manually.
-		cb->Complete(put_res);
-		delete cb;
-	}
-	else if ( run_state::reading_traces ) {
-		// If the backend is truly async and we're reading traces, we need to fake being in sync mode
-		// because otherwise time doesn't move forward correctly.
-		b->backend->Poll();
-	}
+	auto op_result = (*b)->backend->Put(key_v, val_v, overwrite, expire_time, cb);
+	handle_async_result((*b)->backend, cb, op_result);
 
 	return nullptr;
 	%}
@@ -166,27 +165,17 @@ function Storage::Async::__get%(backend: opaque of Storage::BackendHandle, key: 
 	if ( ! trigger )
 		return nullptr;
 
-	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
-	if ( ! b )
-		return OperationResult::MakeVal(ReturnCode::OPERATION_FAILED, "Invalid storage handlle");
-	else if ( ! b->backend->IsOpen() )
-		return OperationResult::MakeVal(ReturnCode::NOT_CONNECTED, "Backend is closed");
-
 	auto cb = new OperationResultCallback(trigger, frame->GetTriggerAssoc());
-	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
-	auto get_res = b->backend->Get(key_v, cb);
-
-	if ( ! b->backend->SupportsAsync() ) {
-		// If the backend doesn't support async, we blocked in order to get here already. Handle the
-		// callback manually.
-		cb->Complete(get_res);
+	auto b = cast_handle(backend);
+	if ( ! b ) {
+		cb->Complete(b.error());
 		delete cb;
+		return nullptr;
 	}
-	else if ( run_state::reading_traces ) {
-		// If the backend is truly async and we're reading traces, we need to fake being in sync mode
-		// because otherwise time doesn't move forward correctly.
-		b->backend->Poll();
-	}
+
+	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
+	auto op_result = (*b)->backend->Get(key_v, cb);
+	handle_async_result((*b)->backend, cb, op_result);
 
 	return nullptr;
 	%}
@@ -197,27 +186,17 @@ function Storage::Async::__erase%(backend: opaque of Storage::BackendHandle, key
 	if ( ! trigger )
 		return nullptr;
 
-	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
-	if ( ! b )
-		return OperationResult::MakeVal(ReturnCode::OPERATION_FAILED, "Invalid storage handlle");
-	else if ( ! b->backend->IsOpen() )
-		return OperationResult::MakeVal(ReturnCode::NOT_CONNECTED, "Backend is closed");
-
 	auto cb = new OperationResultCallback(trigger, frame->GetTriggerAssoc());
-	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
-	auto erase_res = b->backend->Erase(key_v, cb);
-
-	if ( ! b->backend->SupportsAsync() ) {
-		// If the backend doesn't support async, we blocked in order to get here already. Handle the
-		// callback manually.
-		cb->Complete(erase_res);
+	auto b = cast_handle(backend);
+	if ( ! b ) {
+		cb->Complete(b.error());
 		delete cb;
+		return nullptr;
 	}
-	else if ( run_state::reading_traces ) {
-		// If the backend is truly async and we're reading traces, we need to fake being in sync mode
-		// because otherwise time doesn't move forward correctly.
-		b->backend->Poll();
-	}
+
+	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
+	auto op_result = (*b)->backend->Erase(key_v, cb);
+	handle_async_result((*b)->backend, cb, op_result);
 
 	return nullptr;
 	%}
@@ -242,116 +221,120 @@ function Storage::Sync::__open_backend%(btype: Storage::Backend, options: any, k
 	auto kt = key_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
 	auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
 	auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
-	auto open_res = storage_mgr->OpenBackend(b.value(), options_val, kt, vt, cb);
+	auto op_result = storage_mgr->OpenBackend(b.value(), options_val, kt, vt, cb);
 
 	// If the backend only supports async, block until it's ready and then pull the result out of
 	// the callback.
 	if ( ! b.value()->SupportsSync() ) {
 		b.value()->Poll();
-		open_res = cb->Result();
+		op_result = cb->Result();
 	}
 
 	delete cb;
 
-	return open_res.BuildVal();
+	return op_result.BuildVal();
 	%}
 
 function Storage::Sync::__close_backend%(backend: opaque of Storage::BackendHandle%) : Storage::OperationResult
 	%{
-	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
+	OperationResult op_result;
+
+	auto b = cast_handle(backend);
 	if ( ! b )
-		return OperationResult::MakeVal(ReturnCode::OPERATION_FAILED, "Invalid storage handlle");
-	else if ( ! b->backend->IsOpen() )
-		return OperationResult::MakeVal(ReturnCode::NOT_CONNECTED, "Backend is closed");
+		op_result = b.error();
+	else {
+		auto cb = new OperationResultCallback();
+		op_result = storage_mgr->CloseBackend((*b)->backend, cb);
 
-	auto cb = new OperationResultCallback();
-	auto close_res = storage_mgr->CloseBackend(b->backend, cb);
+		// If the backend only supports async, block until it's ready and then pull the result out of
+		// the callback.
+		if ( ! (*b)->backend->SupportsSync() ) {
+		   (*b)->backend->Poll();
+		   op_result = cb->Result();
+		}
 
-	// If the backend only supports async, block until it's ready and then pull the result out of
-	// the callback.
-	if ( ! b->backend->SupportsSync() ) {
-		b->backend->Poll();
-		close_res = cb->Result();
+		delete cb;
 	}
 
-	delete cb;
-
-	return close_res.BuildVal();
+	return op_result.BuildVal();
 	%}
 
 function Storage::Sync::__put%(backend: opaque of Storage::BackendHandle, key: any, value: any,
 			 overwrite: bool, expire_time: interval%): Storage::OperationResult
 	%{
-	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
+	OperationResult op_result;
+
+	auto b = cast_handle(backend);
 	if ( ! b )
-		return OperationResult::MakeVal(ReturnCode::OPERATION_FAILED, "Invalid storage handlle");
-	else if ( ! b->backend->IsOpen() )
-		return OperationResult::MakeVal(ReturnCode::NOT_CONNECTED, "Backend is closed");
+		op_result = b.error();
+	else {
+		if ( expire_time > 0.0 )
+			expire_time += run_state::network_time;
 
-	if ( expire_time > 0.0 )
-		expire_time += run_state::network_time;
+		auto cb = new OperationResultCallback();
+		auto key_v = IntrusivePtr<Val>{NewRef{}, key};
+		auto val_v = IntrusivePtr<Val>{NewRef{}, value};
+		op_result = (*b)->backend->Put(key_v, val_v, overwrite, expire_time, cb);
 
-	auto cb = new OperationResultCallback();
-	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
-	auto val_v = IntrusivePtr<Val>{NewRef{}, value};
-	auto put_res = b->backend->Put(key_v, val_v, overwrite, expire_time, cb);
+		// If the backend only supports async, block until it's ready and then pull the result out of
+		// the callback.
+		if ( ! (*b)->backend->SupportsSync() ) {
+			(*b)->backend->Poll();
+			op_result = cb->Result();
+		}
 
-	// If the backend only supports async, block until it's ready and then pull the result out of
-	// the callback.
-	if ( ! b->backend->SupportsSync() ) {
-		b->backend->Poll();
-		put_res = cb->Result();
+		delete cb;
 	}
 
-	delete cb;
-
-	return put_res.BuildVal();
+	return op_result.BuildVal();
 	%}
 
 function Storage::Sync::__get%(backend: opaque of Storage::BackendHandle, key: any%): Storage::OperationResult
 	%{
-	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
+	OperationResult op_result;
+
+	auto b = cast_handle(backend);
 	if ( ! b )
-		return OperationResult::MakeVal(ReturnCode::OPERATION_FAILED, "Invalid storage handlle");
-	else if ( ! b->backend->IsOpen() )
-		return OperationResult::MakeVal(ReturnCode::NOT_CONNECTED, "Backend is closed");
+		op_result = b.error();
+	else {
+		auto cb = new OperationResultCallback();
+		auto key_v = IntrusivePtr<Val>{NewRef{}, key};
+		op_result = (*b)->backend->Get(key_v, cb);
 
-	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
-	auto cb = new OperationResultCallback();
-	auto get_res = b->backend->Get(key_v, cb);
+		// If the backend only supports async, block until it's ready and then pull the result out of
+		// the callback.
+		if ( ! (*b)->backend->SupportsSync() ) {
+			(*b)->backend->Poll();
+			op_result = cb->Result();
+		}
 
-	// If the backend only supports async, block until it's ready and then pull the result out of
-	// the callback.
-	if ( ! b->backend->SupportsSync() ) {
-		b->backend->Poll();
-		get_res = cb->Result();
+		delete cb;
 	}
 
-	delete cb;
-
-	return get_res.BuildVal();
+	return op_result.BuildVal();
 	%}
 
 function Storage::Sync::__erase%(backend: opaque of Storage::BackendHandle, key: any%): Storage::OperationResult
 	%{
-	auto b = dynamic_cast<storage::detail::BackendHandleVal*>(backend);
+	OperationResult op_result;
+
+	auto b = cast_handle(backend);
 	if ( ! b )
-		return OperationResult::MakeVal(ReturnCode::OPERATION_FAILED, "Invalid storage handlle");
-	else if ( ! b->backend->IsOpen() )
-		return OperationResult::MakeVal(ReturnCode::NOT_CONNECTED, "Backend is closed");
+		op_result = b.error();
+	else {
+		auto cb = new OperationResultCallback();
+		auto key_v = IntrusivePtr<Val>{NewRef{}, key};
+		op_result = (*b)->backend->Erase(key_v, cb);
 
-	auto cb = new OperationResultCallback();
-	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
-	auto erase_res = b->backend->Erase(key_v, cb);
+		// If the backend only supports async, block until it's ready and then pull the result out of
+		// the callback.
+		if ( ! (*b)->backend->SupportsSync() ) {
+			(*b)->backend->Poll();
+			op_result = cb->Result();
+		}
 
-	// If the backend only supports async, block until it's ready and then pull the result out of
-	// the callback.
-	if ( ! b->backend->SupportsSync() ) {
-		b->backend->Poll();
-		erase_res = cb->Result();
+		delete cb;
 	}
 
-	delete cb;
-
-	return erase_res.BuildVal();
+	return op_result.BuildVal();
 	%}

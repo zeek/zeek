@@ -4,6 +4,7 @@
 
 #include <atomic>
 
+#include "zeek/Desc.h"
 #include "zeek/RunState.h"
 #include "zeek/storage/ReturnCode.h"
 
@@ -59,7 +60,10 @@ zeek::expected<BackendPtr, std::string> Manager::Instantiate(const Tag& type) {
             util::fmt("Factory invalid for backend %s", GetComponentName(type).c_str()));
     }
 
-    BackendPtr bp = c->Factory()();
+    ODesc d;
+    type.AsVal()->Describe(&d);
+
+    BackendPtr bp = c->Factory()(d.Description());
 
     if ( ! bp ) {
         return zeek::unexpected<std::string>(

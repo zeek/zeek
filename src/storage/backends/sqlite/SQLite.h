@@ -12,17 +12,10 @@ namespace zeek::storage::backends::sqlite {
 
 class SQLite : public Backend {
 public:
-    SQLite() : Backend(SupportedModes::SYNC) {}
+    SQLite(std::string_view tag) : Backend(SupportedModes::SYNC, tag) {}
     ~SQLite() override = default;
 
-    static BackendPtr Instantiate();
-
-    /**
-     * Returns a descriptive tag representing the source for debugging.
-     *
-     * @return The debugging name.
-     */
-    const char* Tag() override { return "SQLiteStorage"; }
+    static BackendPtr Instantiate(std::string_view tag);
 
     /**
      * Returns whether the backend is opened.

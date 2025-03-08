@@ -66,7 +66,7 @@ public:
      *
      * @return The debugging name.
      */
-    virtual const char* Tag() = 0;
+    const char* Tag() { return tag.c_str(); }
 
     /**
      * Store a new key/value pair in the backend.
@@ -133,7 +133,7 @@ protected:
      * @param modes A combination of values from SupportedModes. These modes
      # define whether a backend only supports sync or async or both.
      */
-    Backend(uint8_t modes) : modes(modes) {}
+    Backend(uint8_t modes, std::string_view tag) : tag(tag), modes(modes) {}
 
     /**
      * Called by the manager system to open the backend.
@@ -182,6 +182,8 @@ protected:
     TypePtr key_type;
     TypePtr val_type;
     RecordValPtr backend_options;
+
+    std::string tag;
 
 private:
     virtual OperationResult DoOpen(RecordValPtr options, OpenResultCallback* cb = nullptr) = 0;

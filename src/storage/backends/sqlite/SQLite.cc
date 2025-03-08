@@ -9,7 +9,7 @@
 
 namespace zeek::storage::backends::sqlite {
 
-storage::BackendPtr SQLite::Instantiate() { return zeek::make_intrusive<SQLite>(); }
+storage::BackendPtr SQLite::Instantiate(std::string_view tag) { return zeek::make_intrusive<SQLite>(tag); }
 
 /**
  * Called by the manager system to open the backend.

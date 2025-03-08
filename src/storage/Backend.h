@@ -16,6 +16,15 @@ namespace zeek::storage {
 
 class Manager;
 
+struct OperationResult {
+    EnumValPtr code;
+    std::string err_str;
+    ValPtr value;
+
+    RecordValPtr BuildVal();
+    static RecordValPtr MakeVal(EnumValPtr code, std::string_view err_str = "", ValPtr value = nullptr);
+};
+
 // Base callback object for async operations. This is just here to allow some code reuse
 // in the other callback methods.
 class ResultCallback {
@@ -26,20 +35,13 @@ public:
     void Timeout();
     bool IsSyncCallback() const { return ! trigger; }
 
+    virtual void Complete(OperationResult res) = 0;
+
 protected:
     void CompleteWithVal(Val* result);
 
     IntrusivePtr<zeek::detail::trigger::Trigger> trigger;
     const void* assoc = nullptr;
-};
-
-struct OperationResult {
-    EnumValPtr code;
-    std::string err_str;
-    ValPtr value;
-
-    RecordValPtr BuildVal();
-    static RecordValPtr MakeVal(EnumValPtr code, std::string_view err_str = "", ValPtr value = nullptr);
 };
 
 class OperationResultCallback : public ResultCallback {
@@ -175,8 +177,7 @@ protected:
      */
     void EnqueueConnectionLost(std::string_view reason);
 
-    void CompleteCallback(OpenResultCallback* cb, const OperationResult& data) const;
-    void CompleteCallback(OperationResultCallback* cb, const OperationResult& data) const;
+    void CompleteCallback(ResultCallback* cb, const OperationResult& data) const;
 
     TypePtr key_type;
     TypePtr val_type;

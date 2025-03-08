@@ -133,14 +133,7 @@ OperationResult Backend::Erase(ValPtr key, OperationResultCallback* cb) {
     return DoErase(std::move(key), cb);
 }
 
-void Backend::CompleteCallback(OpenResultCallback* cb, const OperationResult& data) const {
-    cb->Complete(data);
-    if ( ! cb->IsSyncCallback() ) {
-        delete cb;
-    }
-}
-
-void Backend::CompleteCallback(OperationResultCallback* cb, const OperationResult& data) const {
+void Backend::CompleteCallback(ResultCallback* cb, const OperationResult& data) const {
     cb->Complete(data);
     if ( ! cb->IsSyncCallback() ) {
         delete cb;

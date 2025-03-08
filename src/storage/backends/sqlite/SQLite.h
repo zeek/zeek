@@ -46,7 +46,14 @@ private:
     OperationResult Step(sqlite3_stmt* stmt, bool parse_value = false);
 
     sqlite3* db = nullptr;
-    std::unordered_map<std::string, sqlite3_stmt*> prepared_stmts;
+
+    using stmt_deleter = std::function<void(sqlite3_stmt*)>;
+    using unique_stmt_ptr = std::unique_ptr<sqlite3_stmt, stmt_deleter>;
+    unique_stmt_ptr put_stmt;
+    unique_stmt_ptr put_update_stmt;
+    unique_stmt_ptr get_stmt;
+    unique_stmt_ptr erase_stmt;
+    unique_stmt_ptr expire_stmt;
 
     std::string full_path;
     std::string table_name;

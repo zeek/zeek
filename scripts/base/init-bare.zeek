@@ -6246,7 +6246,10 @@ export {
 		## Generic disconnection failure.
 		DISCONNECTION_FAILED,
 		## Generic initialization failure.
-		INITIALIZATION_FAILED
+		INITIALIZATION_FAILED,
+		## Returned from async operations when the backend is waiting
+		## for a result.
+		IN_PROGRESS,
 	} &redef;
 
 	## Returned as the result of the various storage operations.

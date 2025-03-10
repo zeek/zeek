@@ -54,9 +54,12 @@ static zeek::expected<storage::detail::BackendHandleVal*, OperationResult> cast_
 
 static void handle_async_result(const IntrusivePtr<Backend>& backend, ResultCallback* cb,
                                 const OperationResult& op_result) {
-	if ( ! backend->SupportsAsync() ) {
-		// If the backend doesn't support async, we blocked in order to get here already. Handle the
-		// callback manually.
+	if ( op_result.code != ReturnCode::IN_PROGRESS || ! backend->SupportsAsync() ) {
+		// We need to complete the callback early if:
+		// 1. The operation didn't start up successfully. For async operations, this means
+		// it didn't report back IN_PROGRESS.
+		// 2. The backend doesn't support async. This means we already blocked in order
+		// to get here already.
 		cb->Complete(op_result);
 		delete cb;
 	}

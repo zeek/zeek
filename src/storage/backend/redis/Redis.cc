@@ -143,7 +143,7 @@ storage::BackendPtr Redis::Instantiate(std::string_view tag) { return make_intru
 /**
  * Called by the manager system to open the backend.
  */
-OperationResult Redis::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
+OperationResult Redis::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     RecordValPtr backend_options = options->GetField<RecordVal>("redis");
 
     key_prefix = backend_options->GetField<StringVal>("key_prefix")->ToStdString();
@@ -254,8 +254,8 @@ OperationResult Redis::DoClose(OperationResultCallback* cb) {
 /**
  * The workhorse method for Put(). This must be implemented by plugins.
  */
-OperationResult Redis::DoPut(ValPtr key, ValPtr value, bool overwrite, double expiration_time,
-                             OperationResultCallback* cb) {
+OperationResult Redis::DoPut(OperationResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
+                             double expiration_time) {
     // The async context will queue operations until it's connected fully.
     if ( ! connected && ! async_ctx )
         return {ReturnCode::NOT_CONNECTED};
@@ -308,7 +308,7 @@ OperationResult Redis::DoPut(ValPtr key, ValPtr value, bool overwrite, double ex
 /**
  * The workhorse method for Get(). This must be implemented for plugins.
  */
-OperationResult Redis::DoGet(ValPtr key, OperationResultCallback* cb) {
+OperationResult Redis::DoGet(OperationResultCallback* cb, ValPtr key) {
     // The async context will queue operations until it's connected fully.
     if ( ! connected && ! async_ctx )
         return {ReturnCode::NOT_CONNECTED};
@@ -331,7 +331,7 @@ OperationResult Redis::DoGet(ValPtr key, OperationResultCallback* cb) {
 /**
  * The workhorse method for Erase(). This must be implemented for plugins.
  */
-OperationResult Redis::DoErase(ValPtr key, OperationResultCallback* cb) {
+OperationResult Redis::DoErase(OperationResultCallback* cb, ValPtr key) {
     // The async context will queue operations until it's connected fully.
     if ( ! connected && ! async_ctx )
         return {ReturnCode::NOT_CONNECTED};

@@ -14,7 +14,7 @@ storage::BackendPtr SQLite::Instantiate(std::string_view tag) { return make_intr
 /**
  * Called by the manager system to open the backend.
  */
-OperationResult SQLite::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
+OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     if ( sqlite3_threadsafe() == 0 ) {
         std::string res =
             "SQLite reports that it is not threadsafe. Zeek needs a threadsafe version of "
@@ -51,7 +51,7 @@ OperationResult SQLite::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
         std::string err = util::fmt("Error executing table creation statement: %s", errorMsg);
         Error(err.c_str());
         sqlite3_free(errorMsg);
-        Close();
+        Close(nullptr);
         return {ReturnCode::INITIALIZATION_FAILED, err};
     }
 
@@ -59,7 +59,7 @@ OperationResult SQLite::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
         std::string err = util::fmt("Error executing integrity check: %s", errorMsg);
         Error(err.c_str());
         sqlite3_free(errorMsg);
-        Close();
+        Close(nullptr);
         return {ReturnCode::INITIALIZATION_FAILED, err};
     }
 
@@ -73,7 +73,7 @@ OperationResult SQLite::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
             std::string err = util::fmt("Error executing tuning pragma statement: %s", errorMsg);
             Error(err.c_str());
             sqlite3_free(errorMsg);
-            Close();
+            Close(nullptr);
             return {ReturnCode::INITIALIZATION_FAILED, err};
         }
     }
@@ -94,7 +94,7 @@ OperationResult SQLite::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
         sqlite3_stmt* ps;
         if ( auto prep_res = CheckError(sqlite3_prepare_v2(db, stmt.c_str(), stmt.size(), &ps, NULL));
              prep_res.code != ReturnCode::SUCCESS ) {
-            Close();
+            Close(nullptr);
             return prep_res;
         }
 
@@ -146,8 +146,8 @@ OperationResult SQLite::DoClose(OperationResultCallback* cb) {
 /**
  * The workhorse method for Put(). This must be implemented by plugins.
  */
-OperationResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite, double expiration_time,
-                              OperationResultCallback* cb) {
+OperationResult SQLite::DoPut(OperationResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
+                              double expiration_time) {
     if ( ! db )
         return {ReturnCode::NOT_CONNECTED};
 
@@ -193,7 +193,7 @@ OperationResult SQLite::DoPut(ValPtr key, ValPtr value, bool overwrite, double e
 /**
  * The workhorse method for Get(). This must be implemented for plugins.
  */
-OperationResult SQLite::DoGet(ValPtr key, OperationResultCallback* cb) {
+OperationResult SQLite::DoGet(OperationResultCallback* cb, ValPtr key) {
     if ( ! db )
         return {ReturnCode::NOT_CONNECTED};
 
@@ -213,7 +213,7 @@ OperationResult SQLite::DoGet(ValPtr key, OperationResultCallback* cb) {
 /**
  * The workhorse method for Erase(). This must be implemented for plugins.
  */
-OperationResult SQLite::DoErase(ValPtr key, OperationResultCallback* cb) {
+OperationResult SQLite::DoErase(OperationResultCallback* cb, ValPtr key) {
     if ( ! db )
         return {ReturnCode::NOT_CONNECTED};
 

@@ -78,8 +78,8 @@ public:
      * @return A struct describing the result of the operation, containing a code, an
      * optional error string, and a ValPtr for operations that return values.
      */
-    OperationResult Put(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0,
-                        OperationResultCallback* cb = nullptr);
+    OperationResult Put(OperationResultCallback* cb, ValPtr key, ValPtr value, bool overwrite = true,
+                        double expiration_time = 0);
 
     /**
      * Retrieve a value from the backend for a provided key.
@@ -89,7 +89,7 @@ public:
      * @return A struct describing the result of the operation, containing a code, an
      * optional error string, and a ValPtr for operations that return values.
      */
-    OperationResult Get(ValPtr key, OperationResultCallback* cb = nullptr);
+    OperationResult Get(OperationResultCallback* cb, ValPtr key);
 
     /**
      * Erases the value for a key from the backend.
@@ -99,7 +99,7 @@ public:
      * @return A struct describing the result of the operation, containing a code, an
      * optional error string, and a ValPtr for operations that return values.
      */
-    OperationResult Erase(ValPtr key, OperationResultCallback* cb = nullptr);
+    OperationResult Erase(OperationResultCallback* cb, ValPtr key);
 
     /**
      * Returns whether the backend is opened.
@@ -146,7 +146,7 @@ protected:
      * @return A struct describing the result of the operation, containing a code, an
      * optional error string, and a ValPtr for operations that return values.
      */
-    OperationResult Open(RecordValPtr options, TypePtr kt, TypePtr vt, OpenResultCallback* cb = nullptr);
+    OperationResult Open(OpenResultCallback* cb, RecordValPtr options, TypePtr kt, TypePtr vt);
 
     /**
      * Finalizes the backend when it's being closed.
@@ -155,7 +155,7 @@ protected:
      * @return A struct describing the result of the operation, containing a code, an
      * optional error string, and a ValPtr for operations that return values.
      */
-    OperationResult Close(OperationResultCallback* cb = nullptr);
+    OperationResult Close(OperationResultCallback* cb);
 
     /**
      * Removes any entries in the backend that have expired. Can be overridden by
@@ -188,12 +188,12 @@ protected:
     std::string tag;
 
 private:
-    virtual OperationResult DoOpen(RecordValPtr options, OpenResultCallback* cb = nullptr) = 0;
-    virtual OperationResult DoClose(OperationResultCallback* cb = nullptr) = 0;
-    virtual OperationResult DoPut(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0,
-                                  OperationResultCallback* cb = nullptr) = 0;
-    virtual OperationResult DoGet(ValPtr key, OperationResultCallback* cb = nullptr) = 0;
-    virtual OperationResult DoErase(ValPtr key, OperationResultCallback* cb = nullptr) = 0;
+    virtual OperationResult DoOpen(OpenResultCallback* cb, RecordValPtr options) = 0;
+    virtual OperationResult DoClose(OperationResultCallback* cb) = 0;
+    virtual OperationResult DoPut(OperationResultCallback* cb, ValPtr key, ValPtr value, bool overwrite = true,
+                                  double expiration_time = 0) = 0;
+    virtual OperationResult DoGet(OperationResultCallback* cb, ValPtr key) = 0;
+    virtual OperationResult DoErase(OperationResultCallback* cb, ValPtr key) = 0;
     virtual void DoPoll() {}
     virtual void DoExpire(double current_network_time) {}
 

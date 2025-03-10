@@ -60,8 +60,8 @@ public:
      * @return A struct describing the result of the operation, containing a code, an
      * optional error string, and a ValPtr for operations that return values.
      */
-    OperationResult OpenBackend(BackendPtr backend, RecordValPtr options, TypePtr key_type, TypePtr val_type,
-                                OpenResultCallback* cb = nullptr);
+    OperationResult OpenBackend(BackendPtr backend, OpenResultCallback* cb, RecordValPtr options, TypePtr key_type,
+                                TypePtr val_type);
 
     /**
      * Closes a storage backend.
@@ -71,7 +71,7 @@ public:
      * @return A struct describing the result of the operation, containing a code, an
      * optional error string, and a ValPtr for operations that return values.
      */
-    OperationResult CloseBackend(BackendPtr backend, OperationResultCallback* cb = nullptr);
+    OperationResult CloseBackend(BackendPtr backend, OperationResultCallback* cb);
 
     void Expire();
 

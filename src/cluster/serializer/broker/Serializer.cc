@@ -20,15 +20,7 @@
 
 using namespace zeek::cluster;
 
-namespace {
-
-/**
- * Convert a cluster::detail::Event to a broker::zeek::Event.
- *
- * @param ev The cluster::detail::Event
- * @return A broker::zeek::Event to be serialized, or nullopt in case of errors.
- */
-std::optional<broker::zeek::Event> to_broker_event(const detail::Event& ev) {
+std::optional<broker::zeek::Event> detail::to_broker_event(const detail::Event& ev) {
     broker::vector xs;
     xs.reserve(ev.args.size());
 
@@ -51,15 +43,7 @@ std::optional<broker::zeek::Event> to_broker_event(const detail::Event& ev) {
     return broker::zeek::Event(ev.HandlerName(), xs, broker::to_timestamp(ev.timestamp));
 }
 
-/**
- * Convert a broker::zeek::Event to cluster::detail::Event by looking
- * it up in Zeek's event handler registry and converting event arguments
- * to the appropriate Val instances.
- *
- * @param broker_ev The broker side event.
- * @returns A zeek::cluster::detail::Event instance, or std::nullopt if the conversion failed.
- */
-std::optional<detail::Event> to_zeek_event(const broker::zeek::Event& ev) {
+std::optional<detail::Event> detail::to_zeek_event(const broker::zeek::Event& ev) {
     auto&& name = ev.name();
     auto&& args = ev.args();
 
@@ -116,8 +100,6 @@ std::optional<detail::Event> to_zeek_event(const broker::zeek::Event& ev) {
 
     return detail::Event{handler, std::move(vl), ts};
 }
-
-} // namespace
 
 bool detail::BrokerBinV1_Serializer::SerializeEvent(detail::byte_buffer& buf, const detail::Event& event) {
     auto ev = to_broker_event(event);

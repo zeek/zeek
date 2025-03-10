@@ -62,18 +62,18 @@ private:
     bool DoPublishLogWrites(const logging::detail::LogWriteHeader& header, const std::string& format,
                             cluster::detail::byte_buffer& buf) override;
 
-    const char* Tag() override { return "ZeroMQ"; }
-
     bool DoProcessBackendMessage(int tag, detail::byte_buffer_span payload) override;
 
     // Script level variables.
     std::string connect_xsub_endpoint;
     std::string connect_xpub_endpoint;
+    int connect_xpub_nodrop = 1;
     std::string listen_xsub_endpoint;
     std::string listen_xpub_endpoint;
     std::string listen_log_endpoint;
     int listen_xpub_nodrop = 1;
 
+    int linger_ms = 0;
     zeek_uint_t poll_max_messages = 0;
     zeek_uint_t debug_flags = 0;
 
@@ -99,6 +99,7 @@ private:
 
     std::thread self_thread;
 
+    int proxy_io_threads = 2;
     std::unique_ptr<ProxyThread> proxy_thread;
 
     // Tracking the subscriptions on the local XPUB socket.

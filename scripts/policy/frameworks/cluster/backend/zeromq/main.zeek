@@ -55,6 +55,14 @@ export {
 	## By default, this is set to ``T`` on the manager and ``F`` elsewhere.
 	const run_proxy_thread: bool = F &redef;
 
+	## How many IO threads to configure for the ZeroMQ context that
+	## acts as a central broker.
+
+	## See ZeroMQ's `ZMQ_IO_THREADS documentation <http://api.zeromq.org/4-2:zmq-ctx-set#toc4>`_
+	## and the `I/O threads <https://zguide.zeromq.org/docs/chapter2/#I-O-Threads>`
+	## section in the ZeroMQ guide for details.
+	const proxy_io_threads = 2 &redef;
+
 	## XSUB listen endpoint for the central broker.
 	##
 	## This setting is used for the XSUB socket of the central broker started
@@ -134,12 +142,12 @@ export {
 	## Do not silently drop messages if high-water-mark is reached.
 	##
 	## Whether to configure ``ZMQ_XPUB_NODROP`` on the XPUB socket
-	## to detect when sending a message fails due to reaching
-	## the high-water-mark.
+	## connecting to the proxy to detect when sending a message fails
+	## due to reaching the high-water-mark.
 	##
 	## See ZeroMQ's `ZMQ_XPUB_NODROP documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc61>`_
 	## for more details.
-	const xpub_nodrop: bool = T &redef;
+	const connect_xpub_nodrop: bool = T &redef;
 
 	## Do not silently drop messages if high-water-mark is reached.
 	##

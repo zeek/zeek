@@ -79,3 +79,6 @@
 [submodule "src/cluster/backend/zeromq/auxil/cppzmq"]
 	path = src/cluster/backend/zeromq/auxil/cppzmq
 	url = https://github.com/zeromq/cppzmq
+[submodule "src/cluster/websocket/auxil/IXWebSocket"]
+	path = src/cluster/websocket/auxil/IXWebSocket
+	url = https://github.com/zeek/IXWebSocket.git

@@ -327,11 +327,62 @@ export {
 		## The arguments for the event.
 		args: vector of any;
 	};
+
+	## The TLS options for a WebSocket server.
+	##
+	## If cert_file and key_file are set, TLS is enabled. If both
+	## are unset, TLS is disabled. Any other combination is an error.
+	type WebSocketTLSOptions: record {
+		## The cert file to use.
+		cert_file: string &optional;
+		## The key file to use.
+		key_file: string &optional;
+		## Expect peers to send client certificates.
+		enable_peer_verification: bool &default=F;
+		## The CA certificate or CA bundle used for peer verification.
+		## Empty will use the implementations's default when
+		## ``enable_peer_verification`` is T.
+		ca_file: string &default="";
+		## The ciphers to use. Empty will use the implementation's defaults.
+		ciphers: string &default="";
+	};
+
+	## WebSocket server options to pass to :zeek:see:`Cluster::listen_websocket`.
+	type WebSocketServerOptions: record {
+		## The host address to listen on.
+		listen_host: string;
+		## The port the WebSocket server is supposed to listen on.
+		listen_port: port;
+		## The TLS options used for this WebSocket server. By default,
+		## TLS is disabled. See also :zeek:see:`Cluster::WebSocketTLSOptions`.
+		tls_options: WebSocketTLSOptions &default=WebSocketTLSOptions();
+	};
+
+	## Start listening on a WebSocket address.
+	##
+	## options: The server :zeek:see:`Cluster::WebSocketServerOptions` to use.
+	##
+	## Returns: T on success, else F.
+	global listen_websocket: function(options: WebSocketServerOptions): bool;
+
+	## Network information of an endpoint.
+	type NetworkInfo: record {
+		## The IP address or hostname where the endpoint listens.
+		address: string;
+		## The port where the endpoint is bound to.
+		bound_port: port;
+	};
+
+	## Information about a WebSocket endpoint.
+	type EndpointInfo: record {
+		id: string;
+		network: NetworkInfo;
+	};
 }
 
 # Needs declaration of Cluster::Event type.
 @load base/bif/cluster.bif
-
+@load base/bif/plugins/Zeek_Cluster_WebSocket.events.bif.zeek
 
 # Track active nodes per type.
 global active_node_ids: table[NodeType] of set[string];
@@ -596,4 +647,23 @@ function subscribe(topic: string): bool
 function unsubscribe(topic: string): bool
 	{
 	return Cluster::__unsubscribe(topic);
+	}
+
+function listen_websocket(options: WebSocketServerOptions): bool
+	{
+	return Cluster::__listen_websocket(options);
+	}
+
+event websocket_client_added(endpoint: EndpointInfo, subscriptions: string_vec)
+	{
+	local msg = fmt("WebSocket client '%s' (%s:%d) subscribed to %s",
+	                endpoint$id, endpoint$network$address, endpoint$network$bound_port, subscriptions);
+	Cluster::log(msg);
+	}
+
+event websocket_client_lost(endpoint: EndpointInfo)
+	{
+	local msg = fmt("WebSocket client '%s' (%s:%d) gone",
+	                endpoint$id, endpoint$network$address, endpoint$network$bound_port);
+	Cluster::log(msg);
 	}

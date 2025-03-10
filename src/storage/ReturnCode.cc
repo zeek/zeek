@@ -18,6 +18,7 @@ EnumValPtr ReturnCode::KEY_EXISTS;
 EnumValPtr ReturnCode::CONNECTION_FAILED;
 EnumValPtr ReturnCode::DISCONNECTION_FAILED;
 EnumValPtr ReturnCode::INITIALIZATION_FAILED;
+EnumValPtr ReturnCode::IN_PROGRESS;
 
 void ReturnCode::Initialize() {
     static const auto& return_code_type = zeek::id::find_type<zeek::EnumType>("Storage::ReturnCode");
@@ -57,6 +58,9 @@ void ReturnCode::Initialize() {
 
     tmp = return_code_type->Lookup("Storage::INITIALIZATION_FAILED");
     INITIALIZATION_FAILED = return_code_type->GetEnumVal(tmp);
+
+    tmp = return_code_type->Lookup("Storage::IN_PROGRESS");
+    IN_PROGRESS = return_code_type->GetEnumVal(tmp);
 }
 
 void ReturnCode::Cleanup() {
@@ -72,6 +76,7 @@ void ReturnCode::Cleanup() {
     CONNECTION_FAILED.reset();
     DISCONNECTION_FAILED.reset();
     INITIALIZATION_FAILED.reset();
+    IN_PROGRESS.reset();
 }
 
 } // namespace zeek::storage

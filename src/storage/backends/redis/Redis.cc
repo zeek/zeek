@@ -233,7 +233,7 @@ OperationResult Redis::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
     async_ctx->ev.addWrite = redisAddWrite;
     async_ctx->ev.delWrite = redisDelWrite;
 
-    return {ReturnCode::SUCCESS};
+    return {ReturnCode::IN_PROGRESS};
 }
 
 /**
@@ -251,8 +251,6 @@ OperationResult Redis::DoDone(OperationResultCallback* cb) {
         Poll();
         // TODO: handle response
     }
-
-    CompleteCallback(cb, {ReturnCode::SUCCESS});
 
     redisAsyncFree(async_ctx);
     async_ctx = nullptr;
@@ -311,7 +309,7 @@ OperationResult Redis::DoPut(ValPtr key, ValPtr value, bool overwrite, double ex
         ++active_ops;
     }
 
-    return {ReturnCode::SUCCESS};
+    return {ReturnCode::IN_PROGRESS};
 }
 
 /**
@@ -334,7 +332,7 @@ OperationResult Redis::DoGet(ValPtr key, OperationResultCallback* cb) {
 
     // There isn't a result to return here. That happens in HandleGetResult for
     // async operations.
-    return {ReturnCode::SUCCESS};
+    return {ReturnCode::IN_PROGRESS};
 }
 
 /**
@@ -355,7 +353,7 @@ OperationResult Redis::DoErase(ValPtr key, OperationResultCallback* cb) {
 
     ++active_ops;
 
-    return {ReturnCode::SUCCESS};
+    return {ReturnCode::IN_PROGRESS};
 }
 
 void Redis::DoExpire() {

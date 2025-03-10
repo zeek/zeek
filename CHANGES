@@ -1,3 +1,25 @@
+7.2.0-dev.288 | 2025-03-10 19:16:57 +0100
+
+  * btest/javascript: Add file_sniff() and file_state_remove() test (Arne Welzel, Corelight)
+
+    Using file_state_remove() or file_sniff() would previously crash with the
+    spicy-zip file analyzer. We don't have spicy-zip here, so it's not a
+    proper reproducer, but still makes sense to test these events.
+
+  * GH-4239: Bump zeekjs to v0.15.0 (Arne Welzel, Corelight)
+
+        f5ff7c4 version: 0.15.0
+        2a48143 docker/fedora: Bust cache and ensure sqlite-libs is updated
+        05e5f57 Executor: Unblock SIGTERM in thread
+        46496b9 Instance: Remove unsued variable
+        c3b3c86 Instance: Offload JavaScript invocations to executor thread
+        09e311f Introduce Executor helper
+
+    Mainly, run JavaScript on a separate thread for interoperability with
+    Spicy fiber stacks.
+
+    Closes #4239
+
 7.2.0-dev.285 | 2025-03-10 08:28:54 -0700
 
   * CI: Unconditionally upgrade pip on macOS (Tim Wojtulewicz, Corelight)

@@ -173,6 +173,9 @@ OperationResult Redis::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     struct timeval timeout = {5, 0};
     opt.connect_timeout = &timeout;
 
+    // The connection request below should be operation #1.
+    active_ops = 1;
+
     async_ctx = redisAsyncConnectWithOptions(&opt);
     if ( async_ctx == nullptr || async_ctx->err ) {
         // This block doesn't necessarily mean the connection failed. It means
@@ -188,8 +191,6 @@ OperationResult Redis::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         async_ctx = nullptr;
         return {ReturnCode::CONNECTION_FAILED, errmsg};
     }
-
-    ++active_ops;
 
     // There's no way to pass privdata down to the connect handler like there is for
     // the other callbacks. Store the open callback so that it can be dealt with from
@@ -236,19 +237,12 @@ OperationResult Redis::DoClose(OperationResultCallback* cb) {
     auto locked_scope = conditionally_lock(zeek::run_state::reading_traces, expire_mutex);
 
     connected = false;
+    close_cb = cb;
 
     redisAsyncDisconnect(async_ctx);
     ++active_ops;
 
-    if ( cb->IsSyncCallback() && ! zeek::run_state::terminating ) {
-        Poll();
-        // TODO: handle response
-    }
-
-    redisAsyncFree(async_ctx);
-    async_ctx = nullptr;
-
-    return {ReturnCode::SUCCESS};
+    return {ReturnCode::IN_PROGRESS};
 }
 
 /**
@@ -487,13 +481,21 @@ void Redis::OnConnect(int status) {
 void Redis::OnDisconnect(int status) {
     DBG_LOG(DBG_STORAGE, "Redis backend: disconnection event");
 
-    --active_ops;
     connected = false;
-
-    if ( status == REDIS_ERR )
+    if ( status == REDIS_ERR ) {
+        // An error status indicates that the connection was lost unexpectedly and not
+        // via a request from backend.
         EnqueueBackendLost(async_ctx->errstr);
-    else
+    }
+    else {
+        --active_ops;
+
         EnqueueBackendLost("Client disconnected");
+        CompleteCallback(close_cb, {ReturnCode::SUCCESS});
+    }
+
+    redisAsyncFree(async_ctx);
+    async_ctx = nullptr;
 }
 
 void Redis::ProcessFd(int fd, int flags) {

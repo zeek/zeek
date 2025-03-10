@@ -1,3 +1,9 @@
+7.1.0-10 | 2025-03-18 13:59:06 -0700
+
+  * Fix return types in docs for double_to_count and double_to_int (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 8ed503314d6b61fa2945b9e39a234184ef94f95a)
+
 7.1.0-9 | 2025-03-18 13:57:55 -0700
 
   * CI: Unconditionally upgrade pip on macOS (Tim Wojtulewicz, Corelight)

@@ -69,6 +69,7 @@ private:
     std::deque<redisReply*> reply_queue;
 
     OpenResultCallback* open_cb;
+    OperationResultCallback* close_cb;
     std::mutex expire_mutex;
 
     std::string server_addr;

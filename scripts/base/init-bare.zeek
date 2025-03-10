@@ -6233,7 +6233,7 @@ export {
 		NOT_CONNECTED,
 		## Operation timed out.
 		TIMEOUT,
-		## Connection to backed was lost.
+		## Connection to backed was lost unexpectedly.
 		CONNECTION_LOST,
 		## Generic operation failed.
 		OPERATION_FAILED,
@@ -6241,7 +6241,8 @@ export {
 		KEY_NOT_FOUND,
 		## Key requested for overwrite already exists.
 		KEY_EXISTS,
-		## Generic connection failure.
+		## Generic connection-setup failure. This is not if the connection
+		## was lost, but if it failed to be setup in the first place.
 		CONNECTION_FAILED,
 		## Generic disconnection failure.
 		DISCONNECTION_FAILED,

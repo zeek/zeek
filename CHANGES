@@ -1,3 +1,9 @@
+7.1.0-9 | 2025-03-18 13:57:55 -0700
+
+  * CI: Unconditionally upgrade pip on macOS (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit e8d91c8227f95eda002a3cb2675cb64863871ebc)
+
 7.1.0-8 | 2025-03-18 13:56:13 -0700
 
   * ci/init-external-repo.sh: Use regex to match macos cirrus task (Arne Welzel, Corelight)

@@ -171,7 +171,7 @@ OperationResult Redis::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
         }
 
         server_addr = unix_sock->ToStdString();
-        REDIS_OPTIONS_SET_UNIX(&opt, unix_sock->ToStdStringView().data());
+        REDIS_OPTIONS_SET_UNIX(&opt, server_addr.c_str());
     }
 
     opt.options |= REDIS_OPT_PREFER_IPV4;

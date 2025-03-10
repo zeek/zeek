@@ -54,7 +54,7 @@ private:
                           OperationResultCallback* cb = nullptr) override;
     OperationResult DoGet(ValPtr key, OperationResultCallback* cb = nullptr) override;
     OperationResult DoErase(ValPtr key, OperationResultCallback* cb = nullptr) override;
-    void DoExpire() override;
+    void DoExpire(double current_network_time) override;
     void DoPoll() override;
 
     OperationResult ParseGetReply(redisReply* reply) const;

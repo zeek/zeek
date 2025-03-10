@@ -234,11 +234,10 @@ OperationResult SQLite::DoErase(ValPtr key, OperationResultCallback* cb) {
  * Removes any entries in the backend that have expired. Can be overridden by
  * derived classes.
  */
-void SQLite::DoExpire() {
+void SQLite::DoExpire(double current_network_time) {
     auto stmt = expire_stmt.get();
 
-    if ( auto res = CheckError(sqlite3_bind_double(stmt, 1, run_state::network_time));
-         res.code != ReturnCode::SUCCESS ) {
+    if ( auto res = CheckError(sqlite3_bind_double(stmt, 1, current_network_time)); res.code != ReturnCode::SUCCESS ) {
         sqlite3_reset(stmt);
         // TODO: do something with the error here?
     }

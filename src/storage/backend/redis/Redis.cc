@@ -447,21 +447,17 @@ void Redis::HandleGetResult(redisReply* reply, OperationResultCallback* callback
 void Redis::HandleEraseResult(redisReply* reply, OperationResultCallback* callback) {
     --active_ops;
 
-    if ( callback->IsSyncCallback() )
-        reply_queue.push_back(reply);
-    else {
-        OperationResult res{ReturnCode::SUCCESS};
+    OperationResult res{ReturnCode::SUCCESS};
 
-        if ( ! connected )
-            res = {ReturnCode::NOT_CONNECTED};
-        else if ( ! reply )
-            res = {ReturnCode::OPERATION_FAILED, "Async erase operation returned null reply"};
-        else if ( reply && reply->type == REDIS_REPLY_ERROR )
-            res = {ReturnCode::OPERATION_FAILED, util::fmt("Async erase operation failed: %s", reply->str)};
+    if ( ! connected )
+        res = {ReturnCode::NOT_CONNECTED};
+    else if ( ! reply )
+        res = {ReturnCode::OPERATION_FAILED, "Async erase operation returned null reply"};
+    else if ( reply && reply->type == REDIS_REPLY_ERROR )
+        res = {ReturnCode::OPERATION_FAILED, util::fmt("Async erase operation failed: %s", reply->str)};
 
-        freeReplyObject(reply);
-        CompleteCallback(callback, res);
-    }
+    freeReplyObject(reply);
+    CompleteCallback(callback, res);
 }
 
 void Redis::HandleGeneric(redisReply* reply) {

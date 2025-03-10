@@ -47,6 +47,8 @@ public:
      */
     bool IsOpen() override { return connected; }
 
+    bool ExpireRunning() const { return expire_running.load(); }
+
 private:
     OperationResult DoOpen(RecordValPtr options, OpenResultCallback* cb = nullptr) override;
     OperationResult DoClose(OperationResultCallback* cb = nullptr) override;
@@ -71,8 +73,10 @@ private:
 
     std::string server_addr;
     std::string key_prefix;
+
     std::atomic<bool> connected = false;
-    int active_ops = 0;
+    std::atomic<bool> expire_running = false;
+    std::atomic<int> active_ops = 0;
 };
 
 } // namespace zeek::storage::backend::redis

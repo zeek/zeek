@@ -17,8 +17,6 @@
 // Anonymous callback handler methods for the hiredis async API.
 namespace {
 
-bool during_expire = false;
-
 class Tracer {
 public:
     Tracer(const std::string& where) : where(where) {} // DBG_LOG(zeek::DBG_STORAGE, "%s", where.c_str()); }
@@ -91,7 +89,7 @@ void redisAddRead(void* privdata) {
     auto rpe = static_cast<redisPollEvents*>(privdata);
     auto backend = static_cast<zeek::storage::backend::redis::Redis*>(rpe->context->data);
 
-    if ( rpe->reading == 0 && ! during_expire )
+    if ( rpe->reading == 0 && ! backend->ExpireRunning() )
         zeek::iosource_mgr->RegisterFd(rpe->fd, backend, zeek::iosource::IOSource::READ);
     rpe->reading = 1;
 }
@@ -101,7 +99,7 @@ void redisDelRead(void* privdata) {
     auto rpe = static_cast<redisPollEvents*>(privdata);
     auto backend = static_cast<zeek::storage::backend::redis::Redis*>(rpe->context->data);
 
-    if ( rpe->reading == 1 && ! during_expire )
+    if ( rpe->reading == 1 && ! backend->ExpireRunning() )
         zeek::iosource_mgr->UnregisterFd(rpe->fd, backend, zeek::iosource::IOSource::READ);
     rpe->reading = 0;
 }
@@ -111,7 +109,7 @@ void redisAddWrite(void* privdata) {
     auto rpe = static_cast<redisPollEvents*>(privdata);
     auto backend = static_cast<zeek::storage::backend::redis::Redis*>(rpe->context->data);
 
-    if ( rpe->writing == 0 && ! during_expire )
+    if ( rpe->writing == 0 && ! backend->ExpireRunning() )
         zeek::iosource_mgr->RegisterFd(rpe->fd, backend, zeek::iosource::IOSource::WRITE);
     rpe->writing = 1;
 }
@@ -121,7 +119,7 @@ void redisDelWrite(void* privdata) {
     auto t = Tracer("delwrite");
     auto backend = static_cast<zeek::storage::backend::redis::Redis*>(rpe->context->data);
 
-    if ( rpe->writing == 1 && ! during_expire )
+    if ( rpe->writing == 1 && ! backend->ExpireRunning() )
         zeek::iosource_mgr->UnregisterFd(rpe->fd, backend, zeek::iosource::IOSource::WRITE);
     rpe->writing = 0;
 }
@@ -358,7 +356,7 @@ void Redis::DoExpire(double current_network_time) {
 
     auto locked_scope = conditionally_lock(zeek::run_state::reading_traces, expire_mutex);
 
-    during_expire = true;
+    expire_running = true;
 
     int status = redisAsyncCommand(async_ctx, redisGeneric, NULL, "ZRANGEBYSCORE %s_expire -inf %f", key_prefix.data(),
                                    current_network_time);
@@ -366,7 +364,7 @@ void Redis::DoExpire(double current_network_time) {
     if ( status == REDIS_ERR ) {
         // TODO: do something with the error?
         printf("ZRANGEBYSCORE command failed: %s\n", async_ctx->errstr);
-        during_expire = false;
+        expire_running = false;
         return;
     }
 
@@ -380,7 +378,7 @@ void Redis::DoExpire(double current_network_time) {
 
     if ( reply->elements == 0 ) {
         freeReplyObject(reply);
-        during_expire = false;
+        expire_running = false;
         return;
     }
 

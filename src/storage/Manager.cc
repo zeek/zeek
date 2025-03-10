@@ -113,9 +113,10 @@ void Manager::Expire() {
 
     DBG_LOG(DBG_STORAGE, "Expiration running, have %zu backends to check", backends.size());
 
+    double current_network_time = run_state::network_time;
     for ( auto it = backends.begin(); it != backends.end() && ! run_state::terminating; ++it ) {
         if ( (*it)->IsOpen() )
-            (*it)->Expire();
+            (*it)->Expire(current_network_time);
     }
 
     expire_running.clear();

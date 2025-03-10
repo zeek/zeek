@@ -161,8 +161,11 @@ protected:
     /**
      * Removes any entries in the backend that have expired. Can be overridden by
      * derived classes.
+     *
+     * @param current_network_time The network time as of the start of the
+     * expiration operation.
      */
-    void Expire() { DoExpire(); }
+    void Expire(double current_network_time) { DoExpire(current_network_time); }
 
     /**
      * Enqueues the Storage::connection_established event. This is called
@@ -193,7 +196,7 @@ private:
     virtual OperationResult DoGet(ValPtr key, OperationResultCallback* cb = nullptr) = 0;
     virtual OperationResult DoErase(ValPtr key, OperationResultCallback* cb = nullptr) = 0;
     virtual void DoPoll() {}
-    virtual void DoExpire() {}
+    virtual void DoExpire(double current_network_time) {}
 
     uint8_t modes;
 };

@@ -3,7 +3,6 @@
 #include "zeek/storage/backends/redis/Redis.h"
 
 #include "zeek/DebugLogger.h"
-#include "zeek/Event.h"
 #include "zeek/Func.h"
 #include "zeek/RunState.h"
 #include "zeek/Val.h"

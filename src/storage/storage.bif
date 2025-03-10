@@ -109,7 +109,7 @@ function Storage::Async::__open_backend%(btype: Storage::Backend, options: any, 
 	auto kt = key_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
 	auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
 	auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
-	auto op_result = storage_mgr->OpenBackend(b.value(), options_val, kt, vt, cb);
+	auto op_result = storage_mgr->OpenBackend(b.value(), cb, options_val, kt, vt);
 
 	handle_async_result(b.value(), cb, op_result);
 
@@ -156,7 +156,7 @@ function Storage::Async::__put%(backend: opaque of Storage::BackendHandle, key: 
 
 	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
 	auto val_v = IntrusivePtr<Val>{NewRef{}, value};
-	auto op_result = (*b)->backend->Put(key_v, val_v, overwrite, expire_time, cb);
+	auto op_result = (*b)->backend->Put(cb, key_v, val_v, overwrite, expire_time);
 	handle_async_result((*b)->backend, cb, op_result);
 
 	return nullptr;
@@ -177,7 +177,7 @@ function Storage::Async::__get%(backend: opaque of Storage::BackendHandle, key: 
 	}
 
 	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
-	auto op_result = (*b)->backend->Get(key_v, cb);
+	auto op_result = (*b)->backend->Get(cb, key_v);
 	handle_async_result((*b)->backend, cb, op_result);
 
 	return nullptr;
@@ -198,7 +198,7 @@ function Storage::Async::__erase%(backend: opaque of Storage::BackendHandle, key
 	}
 
 	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
-	auto op_result = (*b)->backend->Erase(key_v, cb);
+	auto op_result = (*b)->backend->Erase(cb, key_v);
 	handle_async_result((*b)->backend, cb, op_result);
 
 	return nullptr;
@@ -224,7 +224,7 @@ function Storage::Sync::__open_backend%(btype: Storage::Backend, options: any, k
 	auto kt = key_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
 	auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
 	auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
-	auto op_result = storage_mgr->OpenBackend(b.value(), options_val, kt, vt, cb);
+	auto op_result = storage_mgr->OpenBackend(b.value(), cb, options_val, kt, vt);
 
 	// If the backend only supports async, block until it's ready and then pull the result out of
 	// the callback.
@@ -277,7 +277,7 @@ function Storage::Sync::__put%(backend: opaque of Storage::BackendHandle, key: a
 		auto cb = new OperationResultCallback();
 		auto key_v = IntrusivePtr<Val>{NewRef{}, key};
 		auto val_v = IntrusivePtr<Val>{NewRef{}, value};
-		op_result = (*b)->backend->Put(key_v, val_v, overwrite, expire_time, cb);
+		op_result = (*b)->backend->Put(cb, key_v, val_v, overwrite, expire_time);
 
 		// If the backend only supports async, block until it's ready and then pull the result out of
 		// the callback.
@@ -302,7 +302,7 @@ function Storage::Sync::__get%(backend: opaque of Storage::BackendHandle, key: a
 	else {
 		auto cb = new OperationResultCallback();
 		auto key_v = IntrusivePtr<Val>{NewRef{}, key};
-		op_result = (*b)->backend->Get(key_v, cb);
+		op_result = (*b)->backend->Get(cb, key_v);
 
 		// If the backend only supports async, block until it's ready and then pull the result out of
 		// the callback.
@@ -327,7 +327,7 @@ function Storage::Sync::__erase%(backend: opaque of Storage::BackendHandle, key:
 	else {
 		auto cb = new OperationResultCallback();
 		auto key_v = IntrusivePtr<Val>{NewRef{}, key};
-		op_result = (*b)->backend->Erase(key_v, cb);
+		op_result = (*b)->backend->Erase(cb, key_v);
 
 		// If the backend only supports async, block until it's ready and then pull the result out of
 		// the callback.

@@ -76,12 +76,12 @@ void OpenResultCallback::Complete(OperationResult res) {
     trigger->Release();
 }
 
-OperationResult Backend::Open(RecordValPtr options, TypePtr kt, TypePtr vt, OpenResultCallback* cb) {
+OperationResult Backend::Open(OpenResultCallback* cb, RecordValPtr options, TypePtr kt, TypePtr vt) {
     key_type = std::move(kt);
     val_type = std::move(vt);
     backend_options = options;
 
-    auto ret = DoOpen(std::move(options), cb);
+    auto ret = DoOpen(cb, std::move(options));
     if ( ! ret.value )
         ret.value = cb->Backend();
 
@@ -90,8 +90,8 @@ OperationResult Backend::Open(RecordValPtr options, TypePtr kt, TypePtr vt, Open
 
 OperationResult Backend::Close(OperationResultCallback* cb) { return DoClose(cb); }
 
-OperationResult Backend::Put(ValPtr key, ValPtr value, bool overwrite, double expiration_time,
-                             OperationResultCallback* cb) {
+OperationResult Backend::Put(OperationResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
+                             double expiration_time) {
     // The intention for this method is to do some other heavy lifting in regard
     // to backends that need to pass data through the manager instead of directly
     // through the workers. For the first versions of the storage framework it
@@ -107,10 +107,10 @@ OperationResult Backend::Put(ValPtr key, ValPtr value, bool overwrite, double ex
         return ret;
     }
 
-    return DoPut(std::move(key), std::move(value), overwrite, expiration_time, cb);
+    return DoPut(cb, std::move(key), std::move(value), overwrite, expiration_time);
 }
 
-OperationResult Backend::Get(ValPtr key, OperationResultCallback* cb) {
+OperationResult Backend::Get(OperationResultCallback* cb, ValPtr key) {
     // See the note in Put().
     if ( ! same_type(key->GetType(), key_type) ) {
         auto ret = OperationResult{ReturnCode::KEY_TYPE_MISMATCH};
@@ -118,10 +118,10 @@ OperationResult Backend::Get(ValPtr key, OperationResultCallback* cb) {
         return ret;
     }
 
-    return DoGet(std::move(key), cb);
+    return DoGet(cb, std::move(key));
 }
 
-OperationResult Backend::Erase(ValPtr key, OperationResultCallback* cb) {
+OperationResult Backend::Erase(OperationResultCallback* cb, ValPtr key) {
     // See the note in Put().
     if ( ! same_type(key->GetType(), key_type) ) {
         auto ret = OperationResult{ReturnCode::KEY_TYPE_MISMATCH};
@@ -129,7 +129,7 @@ OperationResult Backend::Erase(ValPtr key, OperationResultCallback* cb) {
         return ret;
     }
 
-    return DoErase(std::move(key), cb);
+    return DoErase(cb, std::move(key));
 }
 
 void Backend::CompleteCallback(ResultCallback* cb, const OperationResult& data) const {

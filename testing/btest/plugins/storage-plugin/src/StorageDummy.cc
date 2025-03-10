@@ -20,7 +20,7 @@ BackendPtr StorageDummy::Instantiate(std::string_view tag) { return make_intrusi
  * implementation must call \a Opened(); if not, it must call Error()
  * with a corresponding message.
  */
-OperationResult StorageDummy::DoOpen(RecordValPtr options, OpenResultCallback* cb) {
+OperationResult StorageDummy::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     RecordValPtr backend_options = options->GetField<RecordVal>("dummy");
     bool open_fail = backend_options->GetField<BoolVal>("open_fail")->Get();
     if ( open_fail )
@@ -42,8 +42,8 @@ OperationResult StorageDummy::DoClose(OperationResultCallback* cb) {
 /**
  * The workhorse method for Put(). This must be implemented by plugins.
  */
-OperationResult StorageDummy::DoPut(ValPtr key, ValPtr value, bool overwrite, double expiration_time,
-                                    OperationResultCallback* cb) {
+OperationResult StorageDummy::DoPut(OperationResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
+                                    double expiration_time) {
     auto json_key = key->ToJSON()->ToStdString();
     auto json_value = value->ToJSON()->ToStdString();
     data[json_key] = json_value;
@@ -53,7 +53,7 @@ OperationResult StorageDummy::DoPut(ValPtr key, ValPtr value, bool overwrite, do
 /**
  * The workhorse method for Get(). This must be implemented for plugins.
  */
-OperationResult StorageDummy::DoGet(ValPtr key, OperationResultCallback* cb) {
+OperationResult StorageDummy::DoGet(OperationResultCallback* cb, ValPtr key) {
     auto json_key = key->ToJSON();
     auto it = data.find(json_key->ToStdString());
     if ( it == data.end() )
@@ -71,7 +71,7 @@ OperationResult StorageDummy::DoGet(ValPtr key, OperationResultCallback* cb) {
 /**
  * The workhorse method for Erase(). This must be implemented for plugins.
  */
-OperationResult StorageDummy::DoErase(ValPtr key, OperationResultCallback* cb) {
+OperationResult StorageDummy::DoErase(OperationResultCallback* cb, ValPtr key) {
     auto json_key = key->ToJSON();
     auto it = data.find(json_key->ToStdString());
     if ( it == data.end() )

@@ -50,12 +50,12 @@ public:
     bool ExpireRunning() const { return expire_running.load(); }
 
 private:
-    OperationResult DoOpen(RecordValPtr options, OpenResultCallback* cb = nullptr) override;
-    OperationResult DoClose(OperationResultCallback* cb = nullptr) override;
-    OperationResult DoPut(ValPtr key, ValPtr value, bool overwrite = true, double expiration_time = 0,
-                          OperationResultCallback* cb = nullptr) override;
-    OperationResult DoGet(ValPtr key, OperationResultCallback* cb = nullptr) override;
-    OperationResult DoErase(ValPtr key, OperationResultCallback* cb = nullptr) override;
+    OperationResult DoOpen(OpenResultCallback* cb, RecordValPtr options) override;
+    OperationResult DoClose(OperationResultCallback* cb) override;
+    OperationResult DoPut(OperationResultCallback* cb, ValPtr key, ValPtr value, bool overwrite = true,
+                          double expiration_time = 0) override;
+    OperationResult DoGet(OperationResultCallback* cb, ValPtr key) override;
+    OperationResult DoErase(OperationResultCallback* cb, ValPtr key) override;
     void DoExpire(double current_network_time) override;
     void DoPoll() override;
 

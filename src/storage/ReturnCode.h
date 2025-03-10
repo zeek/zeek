@@ -31,6 +31,7 @@ public:
     static EnumValPtr CONNECTION_FAILED;
     static EnumValPtr DISCONNECTION_FAILED;
     static EnumValPtr INITIALIZATION_FAILED;
+    static EnumValPtr IN_PROGRESS;
 };
 
 } // namespace storage

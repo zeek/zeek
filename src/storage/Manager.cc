@@ -76,7 +76,7 @@ zeek::expected<BackendPtr, std::string> Manager::Instantiate(const Tag& type) {
 OperationResult Manager::OpenBackend(BackendPtr backend, RecordValPtr options, TypePtr key_type, TypePtr val_type,
                                      OpenResultCallback* cb) {
     auto res = backend->Open(std::move(options), std::move(key_type), std::move(val_type), cb);
-    if ( res.code != ReturnCode::SUCCESS ) {
+    if ( res.code != ReturnCode::SUCCESS && res.code != ReturnCode::IN_PROGRESS ) {
         res.err_str = util::fmt("Failed to open backend %s: %s", backend->Tag(), res.err_str.c_str());
         return res;
     }

@@ -71,7 +71,7 @@ private:
 
     std::string server_addr;
     std::string key_prefix;
-    bool connected = false;
+    std::atomic<bool> connected = false;
     int active_ops = 0;
 };
 

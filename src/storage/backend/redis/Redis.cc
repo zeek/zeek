@@ -351,7 +351,7 @@ OperationResult Redis::DoErase(ValPtr key, OperationResultCallback* cb) {
     return {ReturnCode::IN_PROGRESS};
 }
 
-void Redis::DoExpire() {
+void Redis::DoExpire(double current_network_time) {
     // Expiration is handled natively by Redis if not reading traces.
     if ( ! connected || ! zeek::run_state::reading_traces )
         return;
@@ -361,7 +361,7 @@ void Redis::DoExpire() {
     during_expire = true;
 
     int status = redisAsyncCommand(async_ctx, redisGeneric, NULL, "ZRANGEBYSCORE %s_expire -inf %f", key_prefix.data(),
-                                   run_state::network_time);
+                                   current_network_time);
 
     if ( status == REDIS_ERR ) {
         // TODO: do something with the error?
@@ -407,7 +407,7 @@ void Redis::DoExpire() {
 
     // Remove all of the elements from the range-set that match the time range.
     redisAsyncCommand(async_ctx, redisGeneric, NULL, "ZREMRANGEBYSCORE %s_expire -inf %f", key_prefix.data(),
-                      run_state::network_time);
+                      current_network_time);
 
     ++active_ops;
     Poll();

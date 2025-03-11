@@ -10,8 +10,8 @@
 #include "zeek/Func.h"
 #include "zeek/Reporter.h"
 #include "zeek/Type.h"
+#include "zeek/cluster/OnLoop.h"
 #include "zeek/cluster/Serializer.h"
-#include "zeek/iosource/Manager.h"
 #include "zeek/logging/Manager.h"
 #include "zeek/util.h"
 
@@ -158,76 +158,48 @@ bool ThreadedBackend::ProcessBackendMessage(int tag, detail::byte_buffer_span pa
     return DoProcessBackendMessage(tag, payload);
 }
 
-namespace {
-
-bool register_io_source(zeek::iosource::IOSource* src, int fd, bool dont_count) {
-    constexpr bool manage_lifetime = true;
-
-    zeek::iosource_mgr->Register(src, dont_count, manage_lifetime);
-
-    if ( ! zeek::iosource_mgr->RegisterFd(fd, src) ) {
-        zeek::reporter->Error("Failed to register messages_flare with IO manager");
-        return false;
-    }
-
-    return true;
+ThreadedBackend::ThreadedBackend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
+                                 std::unique_ptr<detail::EventHandlingStrategy> ehs)
+    : Backend(std::move(es), std::move(ls), std::move(ehs)) {
+    onloop = new zeek::detail::OnLoopProcess<ThreadedBackend, QueueMessage>(this, "ThreadedBackend");
+    onloop->Register(true); // Register as don't count first
 }
-} // namespace
 
 bool ThreadedBackend::DoInit() {
-    // Register as counting during DoInit() to avoid Zeek from shutting down.
-    return register_io_source(this, messages_flare.FD(), false);
+    // Have the backend count so Zeek does not terminate.
+    onloop->Register(/*dont_count=*/false);
+    return true;
 }
 
-void ThreadedBackend::DoInitPostScript() {
-    // Register non-counting after parsing scripts.
-    register_io_source(this, messages_flare.FD(), true);
-}
-
-void ThreadedBackend::QueueForProcessing(QueueMessages&& qmessages) {
-    bool fire = false;
-
-    // Enqueue under lock.
-    {
-        std::scoped_lock lock(messages_mtx);
-        fire = messages.empty();
-
-        if ( messages.empty() ) {
-            messages = std::move(qmessages);
-        }
-        else {
-            messages.reserve(messages.size() + qmessages.size());
-            for ( auto& qmsg : qmessages )
-                messages.emplace_back(std::move(qmsg));
-        }
+void ThreadedBackend::DoTerminate() {
+    if ( onloop ) {
+        onloop->Close();
+        onloop = nullptr;
     }
+}
 
-    if ( fire )
-        messages_flare.Fire();
+void ThreadedBackend::QueueForProcessing(QueueMessage&& qmessages) {
+    if ( onloop )
+        onloop->QueueForProcessing(std::move(qmessages));
 }
 
 void ThreadedBackend::Process() {
-    QueueMessages to_process;
-    {
-        std::scoped_lock lock(messages_mtx);
-        to_process = std::move(messages);
-        messages_flare.Extinguish();
-        messages.clear();
-    }
+    if ( onloop )
+        onloop->Process();
+}
 
-    for ( const auto& msg : to_process ) {
-        // sonarlint wants to use std::visit. not sure...
-        if ( auto* emsg = std::get_if<EventMessage>(&msg) ) {
-            ProcessEventMessage(emsg->topic, emsg->format, emsg->payload_span());
-        }
-        else if ( auto* lmsg = std::get_if<LogMessage>(&msg) ) {
-            ProcessLogMessage(lmsg->format, lmsg->payload_span());
-        }
-        else if ( auto* bmsg = std::get_if<BackendMessage>(&msg) ) {
-            ProcessBackendMessage(bmsg->tag, bmsg->payload_span());
-        }
-        else {
-            zeek::reporter->FatalError("Unimplemented QueueMessage %zu", msg.index());
-        }
+void ThreadedBackend::Process(QueueMessage&& msg) {
+    // sonarlint wants to use std::visit. not sure...
+    if ( auto* emsg = std::get_if<EventMessage>(&msg) ) {
+        ProcessEventMessage(emsg->topic, emsg->format, emsg->payload_span());
+    }
+    else if ( auto* lmsg = std::get_if<LogMessage>(&msg) ) {
+        ProcessLogMessage(lmsg->format, lmsg->payload_span());
+    }
+    else if ( auto* bmsg = std::get_if<BackendMessage>(&msg) ) {
+        ProcessBackendMessage(bmsg->tag, bmsg->payload_span());
+    }
+    else {
+        zeek::reporter->FatalError("Unimplemented QueueMessage %zu", msg.index());
     }
 }

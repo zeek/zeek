@@ -25,6 +25,8 @@
 #include "zeek/cluster/backend/zeromq/ZeroMQ-Proxy.h"
 #include "zeek/util.h"
 
+extern int signal_val;
+
 namespace zeek {
 
 namespace plugin::Zeek_Cluster_Backend_ZeroMQ {
@@ -77,8 +79,6 @@ ZeroMQBackend::~ZeroMQBackend() {
 }
 
 void ZeroMQBackend::DoInitPostScript() {
-    ThreadedBackend::DoInitPostScript();
-
     listen_xpub_endpoint =
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::listen_xpub_endpoint")->ToStdString();
     listen_xsub_endpoint =
@@ -89,17 +89,23 @@ void ZeroMQBackend::DoInitPostScript() {
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::connect_xpub_endpoint")->ToStdString();
     connect_xsub_endpoint =
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::connect_xsub_endpoint")->ToStdString();
+    connect_xpub_nodrop =
+        zeek::id::find_val<zeek::BoolVal>("Cluster::Backend::ZeroMQ::connect_xpub_nodrop")->AsBool() ? 1 : 0;
     listen_log_endpoint =
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::listen_log_endpoint")->ToStdString();
+
+    linger_ms = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::linger_ms")->AsInt());
     poll_max_messages = zeek::id::find_val<zeek::CountVal>("Cluster::Backend::ZeroMQ::poll_max_messages")->Get();
     debug_flags = zeek::id::find_val<zeek::CountVal>("Cluster::Backend::ZeroMQ::debug_flags")->Get();
+    proxy_io_threads =
+        static_cast<int>(zeek::id::find_val<zeek::CountVal>("Cluster::Backend::ZeroMQ::proxy_io_threads")->Get());
 
     event_unsubscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::unsubscription");
     event_subscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::subscription");
 }
 
-
 void ZeroMQBackend::DoTerminate() {
+    ThreadedBackend::DoTerminate();
     ZEROMQ_DEBUG("Shutting down ctx");
     ctx.shutdown();
     ZEROMQ_DEBUG("Joining self_thread");
@@ -131,16 +137,13 @@ bool ZeroMQBackend::DoInit() {
     log_pull = zmq::socket_t(ctx, zmq::socket_type::pull);
     child_inproc = zmq::socket_t(ctx, zmq::socket_type::pair);
 
-    auto linger_ms = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::linger_ms")->AsInt());
-    int xpub_nodrop = zeek::id::find_val<zeek::BoolVal>("Cluster::Backend::ZeroMQ::xpub_nodrop")->AsBool() ? 1 : 0;
-
     xpub.set(zmq::sockopt::linger, linger_ms);
-    xpub.set(zmq::sockopt::xpub_nodrop, xpub_nodrop);
 
     // Enable XPUB_VERBOSE unconditional to enforce nodes receiving
     // notifications about any new subscriptions, even if they have
     // seen them before. This is needed to for the subscribe callback
     // functionality to work reliably.
+    xpub.set(zmq::sockopt::xpub_nodrop, connect_xpub_nodrop);
     xpub.set(zmq::sockopt::xpub_verbose, 1);
 
     try {
@@ -239,7 +242,8 @@ bool ZeroMQBackend::DoInit() {
 }
 
 bool ZeroMQBackend::SpawnZmqProxyThread() {
-    proxy_thread = std::make_unique<ProxyThread>(listen_xpub_endpoint, listen_xsub_endpoint, listen_xpub_nodrop);
+    proxy_thread =
+        std::make_unique<ProxyThread>(listen_xpub_endpoint, listen_xsub_endpoint, listen_xpub_nodrop, proxy_io_threads);
     return proxy_thread->Start();
 }
 
@@ -268,7 +272,21 @@ bool ZeroMQBackend::DoPublishEvent(const std::string& topic, const std::string& 
         // This should never fail, it will instead block
         // when HWM is reached. I guess we need to see if
         // and how this can happen :-/
-        main_inproc.send(parts[i], flags);
+        try {
+            main_inproc.send(parts[i], flags);
+        } catch ( const zmq::error_t& err ) {
+            // If send() was interrupted and Zeek caught an interrupt or term signal,
+            // fail the publish as we're about to shutdown. There's nothing the user
+            // can do, but it indicates an overload situation as send() was blocking.
+            if ( err.num() == EINTR && (signal_val == SIGINT || signal_val == SIGTERM) ) {
+                zeek::reporter->Error("Failed publish() using ZeroMQ backend at shutdown: %s (signal_val=%d)",
+                                      err.what(), signal_val);
+                return false;
+            }
+
+            zeek::reporter->Error("Unexpected ZeroMQ::DoPublishEvent() error: %s", err.what());
+            return false;
+        }
     }
 
     return true;
@@ -281,7 +299,7 @@ bool ZeroMQBackend::DoSubscribe(const std::string& topic_prefix, SubscribeCallba
         // This is the XSUB API instead of setsockopt(ZMQ_SUBSCRIBE).
         std::string msg = "\x01" + topic_prefix;
         main_inproc.send(zmq::const_buffer(msg.data(), msg.size()));
-    } catch ( zmq::error_t& err ) {
+    } catch ( const zmq::error_t& err ) {
         zeek::reporter->Error("Failed to subscribe to topic %s: %s", topic_prefix.c_str(), err.what());
         if ( cb )
             cb(topic_prefix, {CallbackStatus::Error, err.what()});
@@ -303,7 +321,7 @@ bool ZeroMQBackend::DoUnsubscribe(const std::string& topic_prefix) {
         // This is the XSUB API instead of setsockopt(ZMQ_SUBSCRIBE).
         std::string msg = '\0' + topic_prefix;
         main_inproc.send(zmq::const_buffer(msg.data(), msg.size()));
-    } catch ( zmq::error_t& err ) {
+    } catch ( const zmq::error_t& err ) {
         zeek::reporter->Error("Failed to unsubscribe from topic %s: %s", topic_prefix.c_str(), err.what());
         return false;
     }
@@ -329,13 +347,19 @@ bool ZeroMQBackend::DoPublishLogWrites(const logging::detail::LogWriteHeader& he
         zmq::const_buffer{buf.data(), buf.size()},
     };
 
-    zmq::send_result_t result;
     for ( size_t i = 0; i < parts.size(); i++ ) {
         zmq::send_flags flags = zmq::send_flags::dontwait;
         if ( i < parts.size() - 1 )
             flags = flags | zmq::send_flags::sndmore;
 
-        result = log_push.send(parts[i], flags);
+        zmq::send_result_t result;
+        try {
+            result = log_push.send(parts[i], flags);
+        } catch ( const zmq::error_t& err ) {
+            zeek::reporter->Error("Failed to send log write part %zu: %s", i, err.what());
+            return false;
+        }
+
         if ( ! result ) {
             // XXX: Not  exactly clear what we should do if we reach HWM.
             //      we could block and hope a logger comes along that empties
@@ -368,9 +392,6 @@ void ZeroMQBackend::Run() {
     using MultipartMessage = std::vector<zmq::message_t>;
 
     auto HandleLogMessages = [this](const std::vector<MultipartMessage>& msgs) {
-        QueueMessages qmsgs;
-        qmsgs.reserve(msgs.size());
-
         for ( const auto& msg : msgs ) {
             // sender, format, type,  payload
             if ( msg.size() != 4 ) {
@@ -379,22 +400,21 @@ void ZeroMQBackend::Run() {
             }
 
             detail::byte_buffer payload{msg[3].data<std::byte>(), msg[3].data<std::byte>() + msg[3].size()};
-            qmsgs.emplace_back(LogMessage{.format = std::string(msg[2].data<const char>(), msg[2].size()),
-                                          .payload = std::move(payload)});
-        }
+            LogMessage lm{.format = std::string(msg[2].data<const char>(), msg[2].size()),
+                          .payload = std::move(payload)};
 
-        QueueForProcessing(std::move(qmsgs));
+            QueueForProcessing(std::move(lm));
+        }
     };
 
     auto HandleInprocMessages = [this](std::vector<MultipartMessage>& msgs) {
         // Forward messages from the inprocess bridge to XSUB for subscription
         // subscription handling (1 part) or XPUB for publishing (4 parts).
         for ( auto& msg : msgs ) {
-            assert(msg.size() == 1 || msg.size() == 4);
             if ( msg.size() == 1 ) {
                 xsub.send(msg[0], zmq::send_flags::none);
             }
-            else {
+            else if ( msg.size() == 4 ) {
                 for ( auto& part : msg ) {
                     zmq::send_flags flags = zmq::send_flags::dontwait;
                     if ( part.more() )
@@ -432,13 +452,13 @@ void ZeroMQBackend::Run() {
                     } while ( ! result );
                 }
             }
+            else {
+                ZEROMQ_THREAD_PRINTF("inproc: error: expected 1 or 4 parts, have %zu!\n", msg.size());
+            }
         }
     };
 
     auto HandleXPubMessages = [this](const std::vector<MultipartMessage>& msgs) {
-        QueueMessages qmsgs;
-        qmsgs.reserve(msgs.size());
-
         for ( const auto& msg : msgs ) {
             if ( msg.size() != 1 ) {
                 ZEROMQ_THREAD_PRINTF("xpub: error: expected 1 part, have %zu!\n", msg.size());
@@ -464,17 +484,12 @@ void ZeroMQBackend::Run() {
                     continue;
                 }
 
-                qmsgs.emplace_back(std::move(qm));
+                QueueForProcessing(std::move(qm));
             }
         }
-
-        QueueForProcessing(std::move(qmsgs));
     };
 
     auto HandleXSubMessages = [this](const std::vector<MultipartMessage>& msgs) {
-        QueueMessages qmsgs;
-        qmsgs.reserve(msgs.size());
-
         for ( const auto& msg : msgs ) {
             if ( msg.size() != 4 ) {
                 ZEROMQ_THREAD_PRINTF("xsub: error: expected 4 parts, have %zu!\n", msg.size());
@@ -487,12 +502,12 @@ void ZeroMQBackend::Run() {
                 continue;
 
             detail::byte_buffer payload{msg[3].data<std::byte>(), msg[3].data<std::byte>() + msg[3].size()};
-            qmsgs.emplace_back(EventMessage{.topic = std::string(msg[0].data<const char>(), msg[0].size()),
-                                            .format = std::string(msg[2].data<const char>(), msg[2].size()),
-                                            .payload = std::move(payload)});
-        }
+            EventMessage em{.topic = std::string(msg[0].data<const char>(), msg[0].size()),
+                            .format = std::string(msg[2].data<const char>(), msg[2].size()),
+                            .payload = std::move(payload)};
 
-        QueueForProcessing(std::move(qmsgs));
+            QueueForProcessing(std::move(em));
+        }
     };
 
     // Helper class running at destruction.

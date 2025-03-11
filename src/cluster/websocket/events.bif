@@ -1,0 +1,13 @@
+module Cluster;
+
+## Generated when a new WebSocket client has connected.
+##
+## endpoint: Various information about the WebSocket client.
+##
+## subscriptions: The WebSocket client's subscriptions as provided in the handshake.
+event websocket_client_added%(endpoint: EndpointInfo, subscriptions: string_vec%);
+
+## Generated when a WebSocket client was lost.
+##
+## endpoint: Various information about the WebSocket client.
+event websocket_client_lost%(endpoint: EndpointInfo%);

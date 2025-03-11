@@ -5,17 +5,14 @@
 #pragma once
 
 #include <memory>
-#include <mutex>
 #include <optional>
 #include <string_view>
 #include <variant>
 
 #include "zeek/EventHandler.h"
-#include "zeek/Flare.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Span.h"
 #include "zeek/cluster/Serializer.h"
-#include "zeek/iosource/IOSource.h"
 #include "zeek/logging/Types.h"
 
 namespace zeek {
@@ -27,6 +24,11 @@ using FuncValPtr = IntrusivePtr<FuncVal>;
 class Val;
 using ValPtr = IntrusivePtr<Val>;
 using ArgsSpan = Span<const ValPtr>;
+
+namespace detail {
+template<class Proc, class Work>
+class OnLoopProcess;
+}
 
 namespace cluster {
 
@@ -459,17 +461,19 @@ struct BackendMessage {
 };
 
 using QueueMessage = std::variant<EventMessage, LogMessage, BackendMessage>;
-using QueueMessages = std::vector<QueueMessage>;
 
 /**
  * Support for backends that use background threads or invoke
  * callbacks on non-main threads.
  */
-class ThreadedBackend : public Backend, public zeek::iosource::IOSource {
-public:
-    using Backend::Backend;
-
+class ThreadedBackend : public Backend {
 protected:
+    /**
+     * Constructor.
+     */
+    ThreadedBackend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
+                    std::unique_ptr<detail::EventHandlingStrategy> ehs);
+
     /**
      * To be used by implementations to enqueue messages for processing on the IO loop.
      *
@@ -477,22 +481,13 @@ protected:
      *
      * @param messages Messages to be enqueued.
      */
-    void QueueForProcessing(QueueMessages&& messages);
-
-    void Process() override;
-
-    double GetNextTimeout() override { return -1; }
+    void QueueForProcessing(QueueMessage&& messages);
 
     /**
-     * The DoInitPostScript() implementation of ThreadedBackend
-     * registers itself as a non-counting IO source.
-     *
-     * Classes deriving from ThreadedBackend and providing their
-     * own DoInitPostScript() method should invoke the ThreadedBackend's
-     * implementation to register themselves as a non-counting
-     * IO source with the IO loop.
+     * Delegate to onloop->Process() to trigger processing
+     * of outstanding queued messages explicitly, if any.
      */
-    void DoInitPostScript() override;
+    void Process();
 
     /**
      * The default DoInit() implementation of ThreadedBackend
@@ -506,6 +501,8 @@ protected:
      */
     bool DoInit() override;
 
+    void DoTerminate() override;
+
 private:
     /**
      * Process a backend specific message queued as BackendMessage.
@@ -518,10 +515,16 @@ private:
      */
     virtual bool DoProcessBackendMessage(int tag, detail::byte_buffer_span payload) { return false; };
 
+    /**
+     * Hook method for OnLooProcess.
+     */
+    void Process(QueueMessage&& messages);
+
+    // Allow access to Process(QueueMessages)
+    friend class zeek::detail::OnLoopProcess<ThreadedBackend, QueueMessage>;
+
     // Members used for communication with the main thread.
-    std::mutex messages_mtx;
-    std::vector<QueueMessage> messages;
-    zeek::detail::Flare messages_flare;
+    zeek::detail::OnLoopProcess<ThreadedBackend, QueueMessage>* onloop = nullptr;
 };
 
 

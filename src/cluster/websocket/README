@@ -1,0 +1,5 @@
+A Zeek Cluster's WebSocket interface
+====================================
+
+This directory contains code that allows external applications
+to connect to Zeek using WebSocket connections.

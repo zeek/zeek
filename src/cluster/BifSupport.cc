@@ -65,7 +65,7 @@ zeek::RecordValPtr make_event(zeek::ArgsSpan args) {
     }
 
     const auto func = zeek::FuncValPtr{zeek::NewRef{}, maybe_func_val->AsFuncVal()};
-    auto checked_args = cluster::detail::check_args(func, args.subspan(1));
+    auto checked_args = zeek::cluster::detail::check_args(func, args.subspan(1));
     if ( ! checked_args )
         return rec;
 
@@ -109,7 +109,7 @@ zeek::ValPtr publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args) {
     }
     else if ( args[0]->GetType()->Tag() == zeek::TYPE_RECORD ) {
         if ( args[0]->GetType() == cluster_event_type ) { // Handling Cluster::Event record type
-            auto ev = to_cluster_event(cast_intrusive<zeek::RecordVal>(args[0]));
+            auto ev = to_cluster_event(zeek::cast_intrusive<zeek::RecordVal>(args[0]));
             if ( ! ev )
                 return zeek::val_mgr->False();
 
@@ -148,4 +148,32 @@ bool is_cluster_pool(const zeek::Val* pool) {
 
     return pool->GetType() == pool_type;
 }
+
+zeek::RecordValPtr make_endpoint_info(const std::string& id, const std::string& address, uint32_t port,
+                                      TransportProto proto) {
+    static const auto ep_info_type = zeek::id::find_type<zeek::RecordType>("Cluster::EndpointInfo");
+    static const auto net_info_type = zeek::id::find_type<zeek::RecordType>("Cluster::NetworkInfo");
+
+    auto net_rec = zeek::make_intrusive<zeek::RecordVal>(net_info_type);
+    net_rec->Assign(0, address);
+    net_rec->Assign(1, zeek::val_mgr->Port(port, proto));
+
+    auto ep_rec = zeek::make_intrusive<zeek::RecordVal>(ep_info_type);
+    ep_rec->Assign(0, id);
+    ep_rec->Assign(1, net_rec);
+
+    return ep_rec;
+}
+
+zeek::VectorValPtr make_string_vec(zeek::Span<const std::string> strings) {
+    static const auto string_vec_type = zeek::id::find_type<zeek::VectorType>("string_vec");
+    auto vec = zeek::make_intrusive<zeek::VectorVal>(string_vec_type);
+    vec->Reserve(strings.size());
+
+    for ( const auto& s : strings )
+        vec->Append(zeek::make_intrusive<zeek::StringVal>(s));
+
+    return vec;
+}
+
 } // namespace zeek::cluster::detail::bif

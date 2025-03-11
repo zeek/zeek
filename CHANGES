@@ -1,3 +1,81 @@
+7.2.0-dev.310 | 2025-03-11 10:50:49 +0100
+
+  * ci/opensuse-tumpleweed: Bust cache (Arne Welzel, Corelight)
+
+    Got a build failure because the old container images had python3-devel
+    for Python3.11 or something older, but then prepare.sh would install
+    Python 3.13 and Zeek's configure failing due to trying to find the
+    devel headers from python313-devel which wasn't installed by prepare.sh
+
+  * ci/macos/prepare: Install python@3 explicitly (Arne Welzel, Corelight)
+
+    It seems Homebrew's Python 3.12 doesn't install default symlinks or
+    python3 symlinks[1]. I believe this results in prepare.sh using the
+    system's Python rather than Homebrew's. Install python@3 explicitly
+    to put the symlinks in place.
+
+    [1] https://stackoverflow.com/a/77655631
+
+  * cluster/websocket: Implement WebSocket server (Arne Welzel, Corelight)
+
+  * cluster/websocket: Add IXWebsocket submodule (Arne Welzel, Corelight)
+
+  * ci/alpine: Install openssl package for testing (Arne Welzel, Corelight)
+
+  * ci: Install websockets from pip for all distros (Arne Welzel, Corelight)
+
+    The cluster/websocket tests were developed against websockets 14.2,
+    but Ubuntu and Alpine ship too old versions. Switch to installing
+    the latest version from pip instead, so we don't need to bother making
+    tests compatible with very old Python packages shipped by distributions.
+
+  * auxil/libunistd: Bump for ssize_t typedef (Arne Welzel, Corelight)
+
+  * auxil/broker: Bump to latest master version (Arne Welzel, Corelight)
+
+  * cluster/zeromq: Catch log_push.send() exception (Arne Welzel, Corelight)
+
+  * cluster/zeromq: Catch exceptions as const zmq::error_t& (Arne Welzel, Corelight)
+
+  * cluster/zeromq: No assert on inproc handling (Arne Welzel, Corelight)
+
+    This might happen if we didn't succeed in completely sending a multipart
+    message and stop early.
+
+  * cluster/zeromq: Support configuring IO threads for proxy thread (Arne Welzel, Corelight)
+
+  * cluster/zeromq: Move variable lookups from DoInit() to DoInitPostScript() (Arne Welzel, Corelight)
+
+  * cluster/zeromq: Handle EINTR at shutdown (Arne Welzel, Corelight)
+
+    Read ::signal_val and early exit a DoPublish() in case termination
+    happened while blocked in inproc.send()
+
+  * cluster/zeromq: Queue one message at a time (Arne Welzel, Corelight)
+
+    Queueing multiple messages can easily overload the IO loop without
+    creating any backpressure.
+
+  * cluster/Backend: Queue a single message only (Arne Welzel, Corelight)
+
+    The ZeroMQ backend would accumulate multiple messages and enqueue them
+    all at once. However, as this could potentially result in huge batches
+    of events being queued into the event loop at once, switch to a one
+    message at a time model. If there's too many messages queued already,
+    OnLoop::QueueForProcessing() will block the ZeroMQ thread until
+    there's room available again.
+
+  * cluster/zeromq: Adapt for OnLoopProcess changes (Arne Welzel, Corelight)
+
+  * cluster/ThreadedBackend: Switch to OnLoopProcess (Arne Welzel, Corelight)
+
+  * cluster/OnLoop: Introduce helper template class (Arne Welzel, Corelight)
+
+  * serializer/broker: Expose to_broker_event() and to_zeek_event() (Arne Welzel, Corelight)
+
+    This is useful for reuse by WebSocket clients that use
+    the JSON v1 encoding.
+
 7.2.0-dev.288 | 2025-03-10 19:16:57 +0100
 
   * btest/javascript: Add file_sniff() and file_state_remove() test (Arne Welzel, Corelight)

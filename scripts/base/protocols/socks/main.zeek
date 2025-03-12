@@ -48,10 +48,11 @@ export {
 
 	## SOCKS finalization hook.  Remaining SOCKS info may get logged when it's called.
 	global finalize_socks: Conn::RemovalHook;
-}
 
-const ports = { 1080/tcp };
-redef likely_server_ports += { ports };
+	## Well-known ports
+	option ports = { 1080/tcp };
+	redef likely_server_ports += { ports };
+}
 
 event zeek_init() &priority=5
 	{

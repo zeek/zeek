@@ -51,6 +51,10 @@ export {
 
 	## DCE_RPC finalization hook.  Remaining DCE_RPC info may get logged when it's called.
 	global finalize_dce_rpc: Conn::RemovalHook;
+
+	## Well-known ports
+	option ports = { 135/tcp };
+	redef likely_server_ports += { ports };
 }
 
 redef DPD::ignore_violations += { Analyzer::ANALYZER_DCE_RPC };
@@ -60,9 +64,6 @@ redef record connection += {
 	dce_rpc_state: State &optional;
 	dce_rpc_backing: table[count] of BackingState &optional;
 };
-
-const ports = { 135/tcp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

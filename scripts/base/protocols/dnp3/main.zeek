@@ -31,14 +31,15 @@ export {
 
 	## DNP3 finalization hook.  Remaining DNP3 info may get logged when it's called.
 	global finalize_dnp3: Conn::RemovalHook;
+
+	## Well-known ports
+	option ports = { 20000/tcp , 20000/udp };
+	redef likely_server_ports += { ports };
 }
 
 redef record connection += {
 	dnp3: Info &optional;
 };
-
-const ports = { 20000/tcp , 20000/udp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

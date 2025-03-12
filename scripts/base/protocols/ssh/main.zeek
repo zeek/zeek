@@ -71,6 +71,10 @@ export {
 
 	## SSH finalization hook.  Remaining SSH info may get logged when it's called.
 	global finalize_ssh: Conn::RemovalHook;
+
+	## Well-known ports
+	option ports = { 22/tcp };
+	redef likely_server_ports += { ports };
 }
 
 module GLOBAL;
@@ -132,9 +136,6 @@ redef record Info += {
 redef record connection += {
 	ssh: Info &optional;
 };
-
-const ports = { 22/tcp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

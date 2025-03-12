@@ -20,16 +20,28 @@ proc: bool = $context.connection.inc_encrypted_byte_count_in_current_segment();
 };
 
 type SSH_PDU(is_orig: bool) = case $context.connection.get_state(is_orig) of {
-	VERSION_EXCHANGE -> version   : SSH_Version(is_orig);
+	VERSION_EXCHANGE -> version   : SSH_Version_Switch(is_orig);
 	ENCRYPTED        -> encrypted : EncryptedByte(is_orig);
 	default          -> kex       : SSH_Key_Exchange(is_orig);
 } &byteorder=bigendian;
 
-type SSH_Version(is_orig: bool) = record {
+type SSH_Version_Switch(is_orig: bool) = case is_orig of {
+	true -> client_version : SSH_Version_Client;
+	false -> server_version: SSH_Version_Server;
+};
+
+type SSH_Version_Server = record {
 	version : bytestring &oneline;
 } &let {
-	update_state   : bool = $context.connection.update_state(KEX_INIT, is_orig);
-	update_version : bool = $context.connection.update_version(version, is_orig);
+	update_state   : bool = $context.connection.update_state(KEX_INIT, false);
+	update_version : bool = $context.connection.update_version(version, false);
+};
+
+type SSH_Version_Client = record {
+	version : bytestring &oneline;
+} &let {
+	update_state   : bool = $context.connection.update_state(KEX_INIT, true);
+	update_version : bool = $context.connection.update_version(version, true);
 };
 
 type SSH_Key_Exchange(is_orig: bool) = record {

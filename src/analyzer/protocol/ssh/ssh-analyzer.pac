@@ -58,20 +58,19 @@ const char* fingerprint_md5(const unsigned char* d)
 %}
 
 refine flow SSH_Flow += {
-	function proc_ssh_version(msg: SSH_Version): bool
+	function proc_ssh_version_client(msg: SSH_Version_Client): bool
 		%{
-		if ( ssh_client_version && ${msg.is_orig } )
-			{
-			zeek::BifEvent::enqueue_ssh_client_version(connection()->zeek_analyzer(),
-				connection()->zeek_analyzer()->Conn(),
-				to_stringval(${msg.version}));
-			}
-		else if ( ssh_server_version )
-			{
-			zeek::BifEvent::enqueue_ssh_server_version(connection()->zeek_analyzer(),
-				connection()->zeek_analyzer()->Conn(),
-				to_stringval(${msg.version}));
-			}
+		zeek::BifEvent::enqueue_ssh_client_version(connection()->zeek_analyzer(),
+			connection()->zeek_analyzer()->Conn(),
+			to_stringval(${msg.version}));
+		return true;
+		%}
+
+	function proc_ssh_version_server(msg: SSH_Version_Server): bool
+		%{
+		zeek::BifEvent::enqueue_ssh_server_version(connection()->zeek_analyzer(),
+			connection()->zeek_analyzer()->Conn(),
+			to_stringval(${msg.version}));
 		return true;
 		%}
 
@@ -267,8 +266,12 @@ refine flow SSH_Flow += {
 		%}
 };
 
-refine typeattr SSH_Version += &let {
-	proc: bool = $context.flow.proc_ssh_version(this);
+refine typeattr SSH_Version_Client += &let {
+	proc: bool = $context.flow.proc_ssh_version_client(this);
+};
+
+refine typeattr SSH_Version_Server += &let {
+	proc: bool = $context.flow.proc_ssh_version_server(this);
 };
 
 refine typeattr SSH2_KEXINIT += &let {

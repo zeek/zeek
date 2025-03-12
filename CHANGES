@@ -1,3 +1,12 @@
+7.2.0-dev.314 | 2025-03-12 13:10:58 +0100
+
+  * github/generate-docs: Run pre-commit (Arne Welzel, Corelight)
+
+    ...it's a bit unfortunate that we cannot use the action for this. It's
+    because ./doc is a submodule and not the main repo.
+
+  * cluster/backends/zeromq: Fix rst link in docs (Arne Welzel, Corelight)
+
 7.2.0-dev.310 | 2025-03-11 10:50:49 +0100
 
   * ci/opensuse-tumpleweed: Bust cache (Arne Welzel, Corelight)

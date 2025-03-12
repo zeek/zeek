@@ -73,6 +73,7 @@ jobs:
           # support and explicitly use `python3` for all invocations.
           sudo ln -sf /usr/bin/python3 /usr/local/bin/python
           sudo pip3 install --break-system-packages -r doc/requirements.txt
+          sudo pip3 install --break-system-packages pre-commit
 
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
@@ -89,6 +90,12 @@ jobs:
       - name: Check Spicy docs
         run: cd doc && make check-spicy-docs
 
+      # Cache pre-commit environment for reuse.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: doc-pre-commit-3|${{ env.pythonLocation }}|${{ hashFiles('doc/.pre-commit-config.yaml') }}
+
       - name: Generate Docs
         run: |
           git config --global user.name zeek-bot
@@ -97,8 +104,12 @@ jobs:
           echo "*** Generating Zeekygen Docs ***"
           ./ci/update-zeekygen-docs.sh || exit 1
 
-          echo "*** Generating Sphinx Docs ***"
           cd doc
+
+          echo "*** Running pre-commit ***"
+          pre-commit run -a --show-diff-on-failure --color=always
+
+          echo "*** Generating Sphinx Docs ***"
           make > make.out 2>&1
           make_status=$?
           echo "*** Sphinx Build Output ***"

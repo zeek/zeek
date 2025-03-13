@@ -26,7 +26,7 @@ event node_fully_connected(name: string, id: string, resending: bool)
 		event cluster_started();
 
 		for ( topic in Cluster::broadcast_topics )
-			Broker::publish(topic, Cluster::Experimental::cluster_started);
+			Cluster::publish(topic, Cluster::Experimental::cluster_started);
 		}
 	}
 
@@ -42,7 +42,7 @@ event zeek_init() &priority=-15
 	# Make sure the manager recognizes itself as ready if no
 	# connections have to be initiated.
 	if ( |connectees_pending| == 0 )
-		event node_fully_connected(Cluster::node, Broker::node_id(), F);
+		event node_fully_connected(Cluster::node, Cluster::node_id(), F);
 	}
 
 event Cluster::node_up(name: string, id: string)

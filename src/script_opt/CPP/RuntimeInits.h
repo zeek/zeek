@@ -16,6 +16,7 @@ namespace zeek::detail {
 
 using FileValPtr = IntrusivePtr<FileVal>;
 using FuncValPtr = IntrusivePtr<FuncVal>;
+using TypeValPtr = IntrusivePtr<TypeVal>;
 
 class InitsManager;
 
@@ -274,6 +275,7 @@ protected:
     void Generate(InitsManager* im, std::vector<TableValPtr>& ivec, int offset, ValElemVec& init_vals) const;
     void Generate(InitsManager* im, std::vector<FileValPtr>& ivec, int offset, ValElemVec& init_vals) const;
     void Generate(InitsManager* im, std::vector<FuncValPtr>& ivec, int offset, ValElemVec& init_vals) const;
+    void Generate(InitsManager* im, std::vector<TypeValPtr>& ivec, int offset, ValElemVec& init_vals) const;
     void Generate(InitsManager* im, std::vector<AttrPtr>& ivec, int offset, ValElemVec& init_vals) const;
     void Generate(InitsManager* im, std::vector<AttributesPtr>& ivec, int offset, ValElemVec& init_vals) const;
 

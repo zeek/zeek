@@ -72,6 +72,10 @@ extern VectorValPtr str_vec_op_ne__CPP(const VectorValPtr& v1, const VectorValPt
 extern VectorValPtr str_vec_op_gt__CPP(const VectorValPtr& v1, const VectorValPtr& v2);
 extern VectorValPtr str_vec_op_ge__CPP(const VectorValPtr& v1, const VectorValPtr& v2);
 
+// Pattern vector relationals.
+extern VectorValPtr pat_vec_op_eq__CPP(const VectorValPtr& v1, const VectorValPtr& v2);
+extern VectorValPtr pat_vec_op_ne__CPP(const VectorValPtr& v1, const VectorValPtr& v2);
+
 // Support for vector conditional ('?:') expressions.  Using the boolean
 // vector v1 as a selector, returns a new vector populated with the
 // elements selected out of v2 and v3.

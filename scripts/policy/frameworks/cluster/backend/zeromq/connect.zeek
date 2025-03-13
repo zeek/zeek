@@ -1,9 +1,11 @@
 ##! Establish ZeroMQ connectivity with the broker.
 
 @load ./main
+@load base/frameworks/cluster
 
 module Cluster::Backend::ZeroMQ;
 
+redef Cluster::enable_global_pub_sub = T;
 
 event zeek_init() &priority=10
 	{

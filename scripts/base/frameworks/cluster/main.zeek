@@ -24,6 +24,18 @@ export {
 	## Whether to distribute log messages among available logging nodes.
 	const enable_round_robin_logging = T &redef;
 
+	## Enable global publish/subscribe functionality.
+	##
+	## With the Broker cluster backend, by default, nodes of the same
+	## type do not peer with each other, resulting in limited publish
+	## subscribe functionality. Setting this value to *T* changes the
+	## behavior to enable global publish subscribe visibility, where all
+	## nodes observe all messages published by other cluster nodes.
+	##
+	## Non-Broker backends should provide global publish subscribe behavior
+	## by default and can redef this to *T* in their policy scripts.
+	const enable_global_pub_sub = F &redef;
+
 	## The topic name used for exchanging messages that are relevant to
 	## logger nodes in a cluster.  Used with broker-enabled cluster communication.
 	const logger_topic = "zeek/cluster/logger" &redef;
@@ -44,12 +56,10 @@ export {
 	## relevant to all nodes in a cluster. Currently, there is not a common
 	## topic to broadcast to, because enabling implicit Broker forwarding would
 	## cause a routing loop for this topic.
-	const broadcast_topics = {
-		logger_topic,
-		manager_topic,
-		proxy_topic,
-		worker_topic,
-	};
+	##
+	## Note that with :zeek:see:`Cluster::enable_global_pub_sub` and non-Broker
+	## backends a single broadcast topic has become an option.
+	const broadcast_topics: set[string] = set() &ordered;
 
 	## The topic prefix used for exchanging messages that are relevant to
 	## a named node in a cluster.  Used with broker-enabled cluster communication.
@@ -538,6 +548,13 @@ event node_down(name: string, id: string) &priority=10
 	if ( ! found )
 		Reporter::error(fmt("No node found in Cluster::node_down() node:%s id:%s",
 		                    name, id));
+	}
+
+event zeek_init() &priority=1000
+	{
+	# Populate broadcast_topics based on redef'ble consts.
+	for ( _, topic in vector(manager_topic, logger_topic, worker_topic, proxy_topic) )
+		add broadcast_topics[topic];
 	}
 
 event zeek_init() &priority=5

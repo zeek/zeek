@@ -53,6 +53,19 @@ hook Cluster::connect_node_hook(connectee: Cluster::NamedNode)
 	add connectees_pending[connectee$name];
 	}
 
+event zeek_init()
+	{
+	## If global publish subscribe is enabled, every cluster node
+	## can expect a Cluster::node_up() from other nodes.
+	if ( Cluster::enable_global_pub_sub )
+		{
+		for ( name, _ in Cluster::nodes )
+			if ( name != Cluster::node )
+				add connectees_pending[name];
+
+		}
+	}
+
 event Cluster::node_up(name: string, id: string) &priority=-10
 	{
 	# Track pending connectees to trigger node_fully_connected, which will be
@@ -67,9 +80,9 @@ event Cluster::node_up(name: string, id: string) &priority=-10
 	delete connectees_pending[name];
 	if ( |connectees_pending| == 0 )
 		{
-		event node_fully_connected(Cluster::node, Broker::node_id(), is_cluster_started);
-		Broker::publish(Cluster::manager_topic, node_fully_connected,
-		                Cluster::node, Broker::node_id(), is_cluster_started);
+		event node_fully_connected(Cluster::node, Cluster::node_id(), is_cluster_started);
+		Cluster::publish(Cluster::manager_topic, node_fully_connected,
+		                 Cluster::node, Cluster::node_id(), is_cluster_started);
 		}
 	}
 

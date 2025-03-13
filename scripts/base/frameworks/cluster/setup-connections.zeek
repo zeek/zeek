@@ -59,6 +59,36 @@ function connect_peers_with_type(node_type: NodeType)
 		}
 	}
 
+# Connect to all nodes that have the same type.
+#
+# To limit the number of connections within a cluster, the logic is to
+# connect to all nodes of the same type with a name sorted higher than
+# this nodes name itself.
+#
+# With 3 workers, worker-1 connects to worker-2 and worker-3, worker-2
+# connects to worker-3 and worker-3 establishes no extra connections.
+function connect_peers_same_type(self_name: string, self_type: Cluster::NodeType)
+	{
+	# nnodes is already sorted by name.
+	local nnodes = nodes_with_type(self_type);
+
+	local idx = -1;
+	# nnodes.indexOf(self_name)
+	for ( i, nn in nnodes )
+		if ( nn$name == self_name )
+			idx = i;
+
+	assert idx >= 0, fmt("%s not in %s", self_name, nnodes);
+
+	# Establish a connection to all nodes at higher indices.
+	idx += 1;
+	while ( idx < |nnodes| )
+		{
+		connect_peer(self_type, nnodes[idx]$name);
+		idx += 1;
+		}
+	}
+
 event zeek_init() &priority=-10
 	{
 	if ( getenv("ZEEKCTL_CHECK_CONFIG") != "" )
@@ -153,4 +183,7 @@ event zeek_init() &priority=-10
 
 		break;
 	}
+
+	if ( Cluster::enable_global_pub_sub )
+		connect_peers_same_type(node, self$node_type);
 	}

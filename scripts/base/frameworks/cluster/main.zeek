@@ -24,6 +24,18 @@ export {
 	## Whether to distribute log messages among available logging nodes.
 	const enable_round_robin_logging = T &redef;
 
+	## Enable global publish/subscribe functionality.
+	##
+	## With the Broker cluster backend, by default, nodes of the same
+	## type do not peer with each other, resulting in limited publish
+	## subscribe functionality. Setting this value to *T* changes the
+	## behavior to enable global publish subscribe visibility, where all
+	## nodes observe all messages published by other cluster nodes.
+	##
+	## Non-Broker backends should provide global publish subscribe behavior
+	## by default and can redef this to *T* in their policy scripts.
+	const enable_global_pub_sub = F &redef;
+
 	## The topic name used for exchanging messages that are relevant to
 	## logger nodes in a cluster.  Used with broker-enabled cluster communication.
 	const logger_topic = "zeek/cluster/logger" &redef;

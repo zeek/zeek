@@ -30,15 +30,19 @@ type SSH_Version_Switch(is_orig: bool) = case is_orig of {
 	false -> server_version: SSH_Version_Server;
 };
 
+# SSH servers can have banners before their SSH version. Which... fun.
 type SSH_Version_Server = record {
-	version : bytestring &oneline;
+	version: RE/(SSH-.*)?/;
+	# only UTF-8 data. This doesn't catch all bad cases, but some
+	nonversiondata: RE/([^[\xC0-\xC1]|[\xF5-\xFF]])*/;
 } &let {
-	update_state   : bool = $context.connection.update_state(KEX_INIT, false);
-	update_version : bool = $context.connection.update_version(version, false);
-};
+	update_state   : bool = $context.connection.update_state(KEX_INIT, false) &if(sizeof(version) > 0);
+	update_version : bool = $context.connection.update_version(version, false) &if(sizeof(version) > 0);
+} &oneline;
 
+# SSH clients _always_ have to send a line starting with SSH- first.
 type SSH_Version_Client = record {
-	version : bytestring &oneline;
+	version : RE/SSH-.*/ &oneline;
 } &let {
 	update_state   : bool = $context.connection.update_state(KEX_INIT, true);
 	update_version : bool = $context.connection.update_version(version, true);

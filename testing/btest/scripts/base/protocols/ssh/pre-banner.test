@@ -1,0 +1,11 @@
+# This tests a trace that has data before the banner.
+
+# @TEST-EXEC: zeek -r $TRACES/ssh/server-pre-banner-data.pcap %INPUT
+# @TEST-EXEC: btest-diff ssh.log
+# @TEST-EXEC: btest-diff conn.log
+# @TEST-EXEC: btest-diff .stdout
+
+event ssh_server_pre_banner_data(c: connection, data: string)
+	{
+	print data;
+	}

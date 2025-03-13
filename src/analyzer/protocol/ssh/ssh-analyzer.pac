@@ -68,9 +68,17 @@ refine flow SSH_Flow += {
 
 	function proc_ssh_version_server(msg: SSH_Version_Server): bool
 		%{
-		zeek::BifEvent::enqueue_ssh_server_version(connection()->zeek_analyzer(),
-			connection()->zeek_analyzer()->Conn(),
-			to_stringval(${msg.version}));
+		if ( ${msg.version}.length() > 0 )
+			{
+			zeek::BifEvent::enqueue_ssh_server_version(connection()->zeek_analyzer(),
+				connection()->zeek_analyzer()->Conn(),
+				to_stringval(${msg.version}));
+			}
+		else if ( ssh_server_pre_banner_data )
+			{
+				zeek::BifEvent::enqueue_ssh_server_pre_banner_data(connection()->zeek_analyzer(),
+				connection()->zeek_analyzer()->Conn(), to_stringval(${msg.nonversiondata}));
+			}
 		return true;
 		%}
 

@@ -1326,4 +1326,7 @@ inline std::string to_string(const zeek::spicy::rt::ValTablePtr& v, detail::adl:
 inline std::string to_string(const zeek::spicy::rt::ValVectorPtr& v, detail::adl::tag /* unused */) {
     return "<Zeek vector>";
 }
+
+extern std::string to_string(const zeek::spicy::rt::ZeekTypeTag& v, detail::adl::tag /* unused */);
+
 } // namespace hilti::rt::detail::adl

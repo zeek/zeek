@@ -66,38 +66,44 @@ static TypePtr findType(TypeTag tag, const std::string& ns, const std::string& i
     return type;
 }
 
-TypePtr rt::create_base_type(ZeekTypeTag tag) {
-    auto _ = hilti::rt::profiler::start("zeek/rt/create_base_type");
-    TypeTag ztag;
+static TypeTag zeekTypeForTag(rt::ZeekTypeTag tag) {
+    using namespace ::zeek::spicy::rt;
 
     switch ( tag ) {
-        case ZeekTypeTag::Addr: ztag = TYPE_ADDR; break;
-        case ZeekTypeTag::Any: ztag = TYPE_ANY; break;
-        case ZeekTypeTag::Bool: ztag = TYPE_BOOL; break;
-        case ZeekTypeTag::Count: ztag = TYPE_COUNT; break;
-        case ZeekTypeTag::Double: ztag = TYPE_DOUBLE; break;
-        case ZeekTypeTag::Enum: ztag = TYPE_ENUM; break;
-        case ZeekTypeTag::Error: ztag = TYPE_ERROR; break;
-        case ZeekTypeTag::File: ztag = TYPE_FILE; break;
-        case ZeekTypeTag::Func: ztag = TYPE_FUNC; break;
-        case ZeekTypeTag::List: ztag = TYPE_LIST; break;
-        case ZeekTypeTag::Int: ztag = TYPE_INT; break;
-        case ZeekTypeTag::Interval: ztag = TYPE_INTERVAL; break;
-        case ZeekTypeTag::Opaque: ztag = TYPE_OPAQUE; break;
-        case ZeekTypeTag::Pattern: ztag = TYPE_PATTERN; break;
-        case ZeekTypeTag::Port: ztag = TYPE_PORT; break;
-        case ZeekTypeTag::Record: ztag = TYPE_RECORD; break;
-        case ZeekTypeTag::String: ztag = TYPE_STRING; break;
-        case ZeekTypeTag::Subnet: ztag = TYPE_SUBNET; break;
-        case ZeekTypeTag::Table: ztag = TYPE_TABLE; break;
-        case ZeekTypeTag::Time: ztag = TYPE_TIME; break;
-        case ZeekTypeTag::Type: ztag = TYPE_TYPE; break;
-        case ZeekTypeTag::Vector: ztag = TYPE_VECTOR; break;
-        case ZeekTypeTag::Void: ztag = TYPE_VOID; break;
+        case ZeekTypeTag::Addr: return TYPE_ADDR;
+        case ZeekTypeTag::Any: return TYPE_ANY;
+        case ZeekTypeTag::Bool: return TYPE_BOOL;
+        case ZeekTypeTag::Count: return TYPE_COUNT;
+        case ZeekTypeTag::Double: return TYPE_DOUBLE;
+        case ZeekTypeTag::Enum: return TYPE_ENUM;
+        case ZeekTypeTag::Error: return TYPE_ERROR;
+        case ZeekTypeTag::File: return TYPE_FILE;
+        case ZeekTypeTag::Func: return TYPE_FUNC;
+        case ZeekTypeTag::List: return TYPE_LIST;
+        case ZeekTypeTag::Int: return TYPE_INT;
+        case ZeekTypeTag::Interval: return TYPE_INTERVAL;
+        case ZeekTypeTag::Opaque: return TYPE_OPAQUE;
+        case ZeekTypeTag::Pattern: return TYPE_PATTERN;
+        case ZeekTypeTag::Port: return TYPE_PORT;
+        case ZeekTypeTag::Record: return TYPE_RECORD;
+        case ZeekTypeTag::String: return TYPE_STRING;
+        case ZeekTypeTag::Subnet: return TYPE_SUBNET;
+        case ZeekTypeTag::Table: return TYPE_TABLE;
+        case ZeekTypeTag::Time: return TYPE_TIME;
+        case ZeekTypeTag::Type: return TYPE_TYPE;
+        case ZeekTypeTag::Vector: return TYPE_VECTOR;
+        case ZeekTypeTag::Void: return TYPE_VOID;
         default: hilti::rt::cannot_be_reached();
     }
+}
 
-    return base_type(ztag);
+TypePtr rt::create_base_type(ZeekTypeTag tag) {
+    auto _ = hilti::rt::profiler::start("zeek/rt/create_base_type");
+    return base_type(zeekTypeForTag(tag));
+}
+
+std::string hilti::rt::detail::adl::to_string(const zeek::spicy::rt::ZeekTypeTag& v, detail::adl::tag /* unused */) {
+    return type_name(zeekTypeForTag(v));
 }
 
 TypePtr rt::create_enum_type(

@@ -502,8 +502,8 @@ template<typename K, typename V>
 ValPtr to_val(const hilti::rt::Map<K, V>& s, const TypePtr& target);
 template<typename T>
 ValPtr to_val(const hilti::rt::Set<T>& s, const TypePtr& target);
-template<typename T>
-ValPtr to_val(const hilti::rt::Vector<T>& v, const TypePtr& target);
+template<typename T, typename Allocator>
+ValPtr to_val(const hilti::rt::Vector<T, Allocator>& v, const TypePtr& target);
 template<typename T>
 ValPtr to_val(const std::optional<T>& t, const TypePtr& target);
 template<typename T, typename E>
@@ -695,8 +695,8 @@ inline ValPtr to_val(const hilti::rt::Time& t, const TypePtr& target) {
  * Converts a Spicy-side vector to a Zeek value. The result is returned with
  * ref count +1.
  */
-template<typename T>
-inline ValPtr to_val(const hilti::rt::Vector<T>& v, const TypePtr& target) {
+template<typename T, typename Allocator>
+inline ValPtr to_val(const hilti::rt::Vector<T, Allocator>& v, const TypePtr& target) {
     if ( target->Tag() != TYPE_VECTOR && target->Tag() != TYPE_LIST )
         throw ParameterMismatch("expected vector or list", target);
 

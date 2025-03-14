@@ -35,12 +35,6 @@ global ping_count = 0;
 global ping: event(msg: string, c: count) &is_used;
 global pong: event(msg: string, c: count) &is_used;
 
-event zeek_init()
-	{
-	Cluster::subscribe("/zeek/event/to_manager");
-	Cluster::listen_websocket([$listen_host="127.0.0.1", $listen_port=to_port(getenv("WEBSOCKET_PORT"))]);
-	}
-
 global added = 0;
 global lost = 0;
 
@@ -51,10 +45,26 @@ type Item: record {
 
 global queue: vector of Item;
 
+function is_ready(): bool
+	{
+	return added == 2;
+	}
+
+function drain_if_ready()
+	{
+	if ( is_ready() && |queue| > 0 )
+		{
+		for ( _, item in queue )
+			event ping(item$msg, item$n);
+
+		delete queue;
+		}
+	}
+
 event ping(msg: string, n: count) &is_used
 	{
 	# Queue the pings if we haven't seen both clients yet.
-	if ( added < 2 )
+	if ( ! is_ready() )
 		{
 		queue += Item($msg=msg, $n=n);
 		return;
@@ -63,20 +73,15 @@ event ping(msg: string, n: count) &is_used
 	++ping_count;
 	print fmt("B got ping: %s, %s", msg, n);
 	local e = Cluster::make_event(pong, "my-message", ping_count);
-	Cluster::publish("/zeek/event/to_client", e);
+	Cluster::publish("/test/clients", e);
 	}
 
 event Cluster::websocket_client_added(info: Cluster::EndpointInfo, subscriptions: string_vec)
 	{
 	++added;
-	print "A Cluster::websocket_client_added", added, subscriptions;
+	print "A Cluster::websocket_client_added", subscriptions;
 
-	if ( added == 2 )
-		{
-		# Anything in the queue?
-		for ( _, item in queue )
-			event ping(item$msg, item$n);
-		}
+	drain_if_ready();
 	}
 
 event Cluster::websocket_client_lost(info: Cluster::EndpointInfo)
@@ -85,6 +90,21 @@ event Cluster::websocket_client_lost(info: Cluster::EndpointInfo)
 	print "C Cluster::websocket_client_lost";
 	if ( lost == 2 )
 		terminate();
+	}
+
+# Extra testing output.
+event Cluster::Backend::ZeroMQ::subscription(topic: string)
+	{
+	if ( ! starts_with(topic, "/test") )
+		return;
+
+	print "A subscription", topic;
+	}
+
+event zeek_init()
+	{
+	Cluster::listen_websocket([$listen_host="127.0.0.1", $listen_port=to_port(getenv("WEBSOCKET_PORT"))]);
+	Cluster::subscribe("/test/manager");
 	}
 # @TEST-END-FILE
 
@@ -95,12 +115,12 @@ from websockets.sync.client import connect
 
 ws_port = os.environ['WEBSOCKET_PORT'].split('/')[0]
 ws_url = f'ws://127.0.0.1:{ws_port}/v1/messages/json'
-topic = '/zeek/event/to_client'
+topic = '/test/clients'
 
 def make_ping(c, who):
     return {
         "type": "data-message",
-        "topic": "/zeek/event/to_manager",
+        "topic": "/test/manager",
         "@data-type": "vector",
         "data": [
             {"@data-type": "count", "data": 1},  # Format
@@ -121,8 +141,9 @@ def run(ws_url):
             clients = [ws1, ws2]
             print("Connected!")
             # Send subscriptions
-            for ws in clients:
-                ws.send(json.dumps([topic]))
+            for c, ws in enumerate(clients, 1):
+                client_topic = f"/test/client-{c}"
+                ws.send(json.dumps([topic, client_topic]))
 
             for i in range(5):
                 for c, ws in enumerate(clients, 1):
@@ -138,7 +159,7 @@ def run(ws_url):
                 assert "version" in ack
 
             for i in range(10):
-                for c, ws in enumerate(clients):
+                for c, ws in enumerate(clients, 1):
                     print(f"Receiving pong {i} - ws{c}")
                     pong = json.loads(ws.recv())
                     assert pong["@data-type"] == "vector"

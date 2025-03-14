@@ -20,7 +20,8 @@
 # @TEST-EXEC: btest-bg-run client "python3 ../client.py >out"
 #
 # @TEST-EXEC: btest-bg-wait 30
-# @TEST-EXEC: btest-diff ./manager/out
+# @TEST-EXEC: sort ./manager/out > ./manager/out.sorted
+# @TEST-EXEC: btest-diff ./manager/out.sorted
 # @TEST-EXEC: btest-diff ./manager/.stderr
 # @TEST-EXEC: btest-diff ./client/out
 # @TEST-EXEC: btest-diff ./client/.stderr
@@ -34,35 +35,44 @@ global ping_count = 0;
 global ping: event(msg: string, c: count) &is_used;
 global pong: event(msg: string, c: count) &is_used;
 
-event zeek_init()
-	{
-	Cluster::subscribe("/test/manager");
-	Cluster::listen_websocket([$listen_host="127.0.0.1", $listen_port=to_port(getenv("WEBSOCKET_PORT"))]);
-	}
+global added = 0;
+global lost = 0;
 
 event ping(msg: string, n: count) &is_used
 	{
         ++ping_count;
-	print fmt("got ping: %s, %s", msg, n);
+	print fmt("C got ping: %s, %s", msg, n);
 	local e = Cluster::make_event(pong, fmt("orig_msg=%s", msg), ping_count);
 	Cluster::publish("/test/clients", e);
 	}
 
-global added = 0;
-global lost = 0;
-
 event Cluster::websocket_client_added(info: Cluster::EndpointInfo, subscriptions: string_vec)
 	{
 	++added;
-	print "Cluster::websocket_client_added", added, subscriptions;
+	print "B Cluster::websocket_client_added", subscriptions;
 	}
 
 event Cluster::websocket_client_lost(info: Cluster::EndpointInfo)
 	{
 	++lost;
-	print "Cluster::websocket_client_lost", lost;
+	print "D Cluster::websocket_client_lost", lost;
 	if ( lost == 3 )
 		terminate();
+}
+
+# Extra testing output.
+event Cluster::Backend::ZeroMQ::subscription(topic: string)
+	{
+	if ( ! starts_with(topic, "/test") )
+		return;
+
+	print "A subscription", topic;
+	}
+
+event zeek_init()
+	{
+	Cluster::listen_websocket([$listen_host="127.0.0.1", $listen_port=to_port(getenv("WEBSOCKET_PORT"))]);
+	Cluster::subscribe("/test/manager");
 	}
 # @TEST-END-FILE
 
@@ -100,8 +110,10 @@ def run(ws_url):
                  clients = [ws1, ws2, ws3]
                  print("Connected!")
                  ids = set()
-                 for c in clients:
-                     c.send(json.dumps([topic]))
+                 for i, c in enumerate(clients):
+                     client_topic = f"/test/client-{i}"
+                     c.send(json.dumps([topic, client_topic]))
+
                  for c in clients:
                      ack = json.loads(c.recv())
                      assert "type" in ack, repr(ack)

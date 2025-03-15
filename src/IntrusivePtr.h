@@ -144,10 +144,7 @@ public:
     }
 
     IntrusivePtr& operator=(std::nullptr_t) noexcept {
-        if ( ptr_ ) {
-            Unref(ptr_);
-            ptr_ = nullptr;
-        }
+        reset();
         return *this;
     }
 
@@ -160,6 +157,23 @@ public:
     bool operator!() const noexcept { return ! ptr_; }
 
     explicit operator bool() const noexcept { return ptr_ != nullptr; }
+
+    void reset() noexcept {
+        if ( ptr_ ) {
+            Unref(ptr_);
+            ptr_ = nullptr;
+        }
+    }
+
+    void reset(T* ptr) {
+        if ( ptr_ )
+            Unref(ptr_);
+
+        if ( ptr )
+            Ref(ptr);
+
+        ptr_ = ptr;
+    }
 
 private:
     pointer ptr_ = nullptr;

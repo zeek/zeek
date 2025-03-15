@@ -82,3 +82,6 @@
 [submodule "src/cluster/websocket/auxil/IXWebSocket"]
 	path = src/cluster/websocket/auxil/IXWebSocket
 	url = https://github.com/zeek/IXWebSocket.git
+[submodule "auxil/expected-lite"]
+	path = auxil/expected-lite
+	url = https://github.com/martinmoene/expected-lite.git

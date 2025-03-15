@@ -377,12 +377,12 @@ alpine_task:
 # Cirrus only supports the following macos runner currently, selecting
 # anything else automatically upgrades to this one.
 #
-#    ghcr.io/cirruslabs/macos-runner:sonoma
+#    ghcr.io/cirruslabs/macos-runner:sequoia
 #
 # See also: https://cirrus-ci.org/guide/macOS/
-macos_sonoma_task:
+macos_sequoia_task:
   macos_instance:
-    image: ghcr.io/cirruslabs/macos-runner:sonoma
+    image: ghcr.io/cirruslabs/macos-runner:sequoia
   prepare_script: ./ci/macos/prepare.sh
   << : *CI_TEMPLATE
   << : *MACOS_ENVIRONMENT

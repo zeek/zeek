@@ -226,11 +226,11 @@ redef Cluster::backend = Cluster::CLUSTER_BACKEND_ZEROMQ;
 redef run_proxy_thread = Cluster::local_node_type() == Cluster::MANAGER;
 
 function zeromq_node_topic(name: string): string {
-	return node_topic_prefix + "." + name;
+	return node_topic_prefix + "." + name + ".";
 }
 
 function zeromq_nodeid_topic(id: string): string {
-	return nodeid_topic_prefix + "." + id;
+	return nodeid_topic_prefix + "." + id + ".";
 }
 
 # Unique identifier for this node with some debug information.
@@ -345,7 +345,7 @@ event Cluster::Backend::ZeroMQ::subscription(topic: string)
 	if ( ! starts_with(topic, prefix) )
 		return;
 
-	local nodeid = topic[|prefix|:];
+	local nodeid = topic[|prefix|:][:-1];
 
 	# Do not say hello to ourselves - we won't see it anyhow.
 	if ( nodeid  == Cluster::node_id() )
@@ -417,7 +417,7 @@ event Cluster::Backend::ZeroMQ::unsubscription(topic: string)
 	if ( ! starts_with(topic, prefix) )
 		return;
 
-	local gone_node_id = topic[|prefix|:];
+	local gone_node_id = topic[|prefix|:][:-1];
 	local name = "";
 	for ( node_name, n in Cluster::nodes ) {
 		if ( n?$id && n$id == gone_node_id ) {

@@ -1,3 +1,9 @@
+7.2.0-dev.318 | 2025-03-17 11:55:11 -0700
+
+  * ci/init-external-repo.sh: Use regex to match macos cirrus task (Arne Welzel, Corelight)
+
+  * CI: Change macOS runner to Sequoia (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.314 | 2025-03-12 13:10:58 +0100
 
   * github/generate-docs: Run pre-commit (Arne Welzel, Corelight)

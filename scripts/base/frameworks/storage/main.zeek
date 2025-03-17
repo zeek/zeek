@@ -5,8 +5,10 @@
 module Storage;
 
 export {
-	## Base record for backend options. Backend plugins can redef this record to add
-	## relevant fields to it.
+	## Base record for backend options that can be passed to
+	## :zeek:see:`Storage::Async::open_backend` and
+	## :zeek:see:`Storage::Sync::open_backend`. Backend plugins can redef this record
+	## to add relevant fields to it.
 	type BackendOptions: record { };
 
 	## Record for passing arguments to :zeek:see:`Storage::Async::put` and

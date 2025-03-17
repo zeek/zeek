@@ -8,8 +8,6 @@
 #include "zeek/RunState.h"
 #include "zeek/storage/ReturnCode.h"
 
-#include "const.bif.netvar_h"
-
 std::atomic_flag expire_running;
 
 namespace zeek::storage {
@@ -39,6 +37,9 @@ Manager::~Manager() {
 
     // Don't leave all of these static objects to leak.
     ReturnCode::Cleanup();
+
+    // NOTE: The expiration_thread object is a jthread and will be automatically joined
+    // here as the object is destroyed.
 }
 
 void Manager::InitPostScript() {

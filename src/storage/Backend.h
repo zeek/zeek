@@ -14,35 +14,79 @@ namespace zeek::storage {
 
 class Manager;
 
+/**
+ * A structure mapped to the script-level Storage::OperationResult type for returning
+ * status from storage operations.
+ */
 struct OperationResult {
+    /**
+     * One of a set of return values used to return a code-based status. The default set
+     * of these values is automatically looked up by the `ReturnCode` class, but
+     * additional codes may be added by backends. See the script-level
+     * `Storage::ReturnCode` enum for documentation for the default available statuses.
+     */
     EnumValPtr code;
+
+    /**
+     * An optional error string that can be passed in the result in the case of failure.
+     */
     std::string err_str;
+
+    /**
+     * A generic value pointer for operations that can return values, such as `Open()` and
+     * `Get()`.
+     */
     ValPtr value;
 
+    /**
+     * Returns a RecordVal of the script-level type `Storage::OperationResult` from the
+     * values stored.
+     */
     RecordValPtr BuildVal();
+
+    /**
+     * Static version of `BuildVal()` that returns a RecordVal of the script-level type
+     * `Storage::OperationResult` from the values provided.
+     */
     static RecordValPtr MakeVal(EnumValPtr code, std::string_view err_str = "", ValPtr value = nullptr);
 };
 
-
-// Base callback object for async operations. This is just here to allow some
-// code reuse in the other callback methods.
+/**
+ * Base callback object for asynchronous operations.
+ */
 class ResultCallback {
 public:
     ResultCallback() = default;
     ResultCallback(detail::trigger::TriggerPtr trigger, const void* assoc);
     virtual ~ResultCallback() = default;
+
+    /**
+     * Called on the callback when an operation times out. Sets the resulting status to
+     * TIMEOUT and times out the trigger.
+     */
     void Timeout();
+
+    /**
+     * Returns whether the callback was created in an async context. This can be used to
+     * determine whether an operation was called synchronously or asynchronously.
+     */
     bool IsSyncCallback() const { return ! trigger; }
 
+    /**
+     * Completes a callback, releasing the trigger if it was valid or storing the result
+     * for later usage if needed.
+     */
     virtual void Complete(OperationResult res) = 0;
 
 protected:
-    void CompleteWithVal(Val* result);
-
     zeek::detail::trigger::TriggerPtr trigger;
     const void* assoc = nullptr;
 };
 
+/**
+ * A callback that returns an `OperationResult` when it is complete. This is used by most
+ * of the storage operations for returning status.
+ */
 class OperationResultCallback : public ResultCallback {
 public:
     OperationResultCallback() = default;
@@ -56,6 +100,10 @@ private:
 
 class OpenResultCallback;
 
+/**
+ * A list of available modes that backends can support. A combination of these is passed
+ * to `Backend::Backend` during plugin initialization.
+ */
 enum SupportedModes : uint8_t { SYNC = 0x01, ASYNC = 0x02 };
 
 class Backend : public zeek::Obj {
@@ -68,13 +116,14 @@ public:
     /**
      * Store a new key/value pair in the backend.
      *
-     * @param key the key for the pair.
-     * @param value the value for the pair.
+     * @param cb A callback object for returning status if being called via an async
+     * context.
+     * @param key the key for the data being inserted.
+     * @param value the value for the data being inserted.
      * @param overwrite whether an existing value for a key should be overwritten.
      * @param expiration_time the time when this entry should be automatically
      * removed. Set to zero to disable expiration. This time is based on the current network
      * time.
-     * @param cb An optional callback object if being called via an async context.
      * @return A struct describing the result of the operation, containing a code, an
      * optional error string, and a ValPtr for operations that return values.
      */
@@ -84,8 +133,9 @@ public:
     /**
      * Retrieve a value from the backend for a provided key.
      *
+     * @param cb A callback object for returning status if being called via an async
+     * context.
      * @param key the key to lookup in the backend.
-     * @param cb An optional callback object if being called via an async context.
      * @return A struct describing the result of the operation, containing a code, an
      * optional error string, and a ValPtr for operations that return values.
      */
@@ -94,8 +144,9 @@ public:
     /**
      * Erases the value for a key from the backend.
      *
+     * @param cb A callback object for returning status if being called via an async
+     * context.
      * @param key the key to erase
-     * @param cb An optional callback object if being called via an async context.
      * @return A struct describing the result of the operation, containing a code, an
      * optional error string, and a ValPtr for operations that return values.
      */
@@ -115,6 +166,10 @@ public:
      */
     void Poll() { DoPoll(); }
 
+    /**
+     * Returns the options record that was passed to `Manager::OpenBackend` when the
+     * backend was opened.
+     */
     const RecordValPtr& Options() const { return backend_options; }
 
 protected:
@@ -137,12 +192,13 @@ protected:
     /**
      * Called by the manager system to open the backend.
      *
+     * @param cb A callback object for returning status if being called via an async
+     * context.
      * @param options A record storing configuration options for the backend.
      * @param kt The script-side type of the keys stored in the backend. Used for
      * validation of types.
      * @param vt The script-side type of the values stored in the backend. Used for
      * validation of types and conversion during retrieval.
-     * @param cb An optional callback object if being called via an async context.
      * @return A struct describing the result of the operation, containing a code, an
      * optional error string, and a ValPtr for operations that return values.
      */
@@ -151,7 +207,8 @@ protected:
     /**
      * Finalizes the backend when it's being closed.
      *
-     * @param cb An optional callback object if being called via an async context.
+     * @param cb A callback object for returning status if being called via an async
+     * context.
      * @return A struct describing the result of the operation, containing a code, an
      * optional error string, and a ValPtr for operations that return values.
      */
@@ -179,6 +236,11 @@ protected:
      */
     void EnqueueBackendLost(std::string_view reason);
 
+    /**
+     * Completes a callback and cleans up the memory if the callback was from a sync
+     * context. This should be called by backends instead of calling the callback's
+     * \a`Complete` method directly.
+     */
     void CompleteCallback(ResultCallback* cb, const OperationResult& data) const;
 
     TypePtr key_type;
@@ -188,13 +250,52 @@ protected:
     std::string tag;
 
 private:
+    /**
+     * Workhorse method for calls to `Manager::OpenBackend()`. See that method for
+     * documentation of the arguments. This must be overridden by all backends.
+     */
     virtual OperationResult DoOpen(OpenResultCallback* cb, RecordValPtr options) = 0;
+
+    /**
+     * Workhorse method for calls to `Manager::CloseBackend()`. See that method for
+     * documentation of the arguments. This must be overridden by all backends.
+     */
     virtual OperationResult DoClose(OperationResultCallback* cb) = 0;
-    virtual OperationResult DoPut(OperationResultCallback* cb, ValPtr key, ValPtr value, bool overwrite = true,
-                                  double expiration_time = 0) = 0;
+
+    /**
+     * Workhorse method for calls to `Backend::Put()`. See that method for
+     * documentation of the arguments. This must be overridden by all backends.
+     */
+    virtual OperationResult DoPut(OperationResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
+                                  double expiration_time) = 0;
+
+    /**
+     * Workhorse method for calls to `Backend::Get()`. See that method for
+     * documentation of the arguments. This must be overridden by all backends.
+     */
     virtual OperationResult DoGet(OperationResultCallback* cb, ValPtr key) = 0;
+
+    /**
+     * Workhorse method for calls to `Backend::Erase()`. See that method for
+     * documentation of the arguments. This must be overridden by all backends.
+     */
     virtual OperationResult DoErase(OperationResultCallback* cb, ValPtr key) = 0;
+
+    /**
+     * Optional method for backends to override to provide direct polling. This should be
+     * implemented to support synchronous operations on backends that only provide
+     * asynchronous communication. See the built-in Redis backend for an example.
+     */
     virtual void DoPoll() {}
+
+    /**
+     * Optional method for backends to override to provide non-native expiration of
+     * items. This is called by the manager on a timer. This can also be used to implement
+     * expiration when reading packet captures.
+     *
+     * @param current_network_time The current network time at which expiration is
+     * happening.
+     */
     virtual void DoExpire(double current_network_time) {}
 
     uint8_t modes;
@@ -206,6 +307,9 @@ namespace detail {
 
 extern OpaqueTypePtr backend_opaque;
 
+/**
+ * OpaqueVal interface for returning BackendHandle objects to script-land.
+ */
 class BackendHandleVal : public OpaqueVal {
 public:
     BackendHandleVal() : OpaqueVal(detail::backend_opaque) {}
@@ -222,7 +326,10 @@ protected:
 
 } // namespace detail
 
-// A callback for the Backend::Open() method that returns an error or a backend handle.
+/**
+ * A specialized version of callback for returning from `open` operations. This returns a
+ * `BackendHandleVal` in the `value` field of the result when successful.
+ */
 class OpenResultCallback : public ResultCallback {
 public:
     OpenResultCallback(IntrusivePtr<detail::BackendHandleVal> backend);

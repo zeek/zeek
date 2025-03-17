@@ -30,19 +30,18 @@ public:
     ~Manager();
 
     /**
-     * Initialization of the manager. This is called late during Zeek's
-     * initialization after any scripts are processed.
+     * Initialization of the manager. This is called late during Zeek's initialization
+     * after any scripts are processed.
      */
     void InitPostScript();
 
     /**
-     * Instantiates a new backend object. The backend will be in a closed state,
-     * and OpenBackend() will need to be called to fully initialize it.
+     * Instantiates a new backend object. The backend will be in a closed state, and
+     * OpenBackend() will need to be called to fully initialize it.
      *
      * @param type The tag for the type of backend being opened.
-     * @return A std::expected containing either a valid BackendPtr with the
-     * result of the operation or a string containing an error message for
-     * failure.
+     * @return A std::expected containing either a valid BackendPtr with the result of the
+     * operation or a string containing an error message for failure.
      */
     zeek::expected<BackendPtr, std::string> Instantiate(const Tag& type);
 
@@ -50,13 +49,13 @@ public:
      * Opens a new storage backend.
      *
      * @param backend The backend object to open.
-     * @param options A record val representing the configuration for this type of
-     * backend.
+     * @param cb A callback object for returning status if being called via an async
+     * context.
      * @param key_type The script-side type of the keys stored in the backend. Used for
-     * validation of types.
+     * validation of types for `key` arguments during all operations.
      * @param val_type The script-side type of the values stored in the backend. Used for
-     * validation of types and conversion during retrieval.
-     * @param cb An optional callback object if being called via an async context.
+     * validation of types for `put` operations and type conversion during `get`
+     * operations.
      * @return A struct describing the result of the operation, containing a code, an
      * optional error string, and a ValPtr for operations that return values.
      */
@@ -67,12 +66,18 @@ public:
      * Closes a storage backend.
      *
      * @param backend A pointer to the backend being closed.
-     * @param cb An optional callback object if being called via an async context.
+     * @param cb A callback object for returning status if being called via an async
+     * context.
      * @return A struct describing the result of the operation, containing a code, an
      * optional error string, and a ValPtr for operations that return values.
      */
     OperationResult CloseBackend(BackendPtr backend, OperationResultCallback* cb);
 
+    /**
+     * Runs an expire operation on all open backends. This is called by the expiration
+     * timer and shouldn't be called directly otherwise, since it should only happen on a
+     * separate thread.
+     */
     void Expire();
 
 protected:

@@ -52,8 +52,8 @@ public:
 private:
     OperationResult DoOpen(OpenResultCallback* cb, RecordValPtr options) override;
     OperationResult DoClose(OperationResultCallback* cb) override;
-    OperationResult DoPut(OperationResultCallback* cb, ValPtr key, ValPtr value, bool overwrite = true,
-                          double expiration_time = 0) override;
+    OperationResult DoPut(OperationResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
+                          double expiration_time) override;
     OperationResult DoGet(OperationResultCallback* cb, ValPtr key) override;
     OperationResult DoErase(OperationResultCallback* cb, ValPtr key) override;
     void DoExpire(double current_network_time) override;

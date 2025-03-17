@@ -5,7 +5,7 @@
 #include "zeek/Trigger.h"
 #include "zeek/broker/Data.h"
 #include "zeek/storage/ReturnCode.h"
-#include "zeek/storage/storage.bif.h"
+#include "zeek/storage/storage-events.bif.h"
 
 namespace zeek::storage {
 

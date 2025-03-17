@@ -6,6 +6,8 @@ zeek_add_subdir_library(
     Component.cc
     ReturnCode.cc
     BIFS
-    storage.bif)
+    storage-async.bif
+    storage-events.bif
+    storage-sync.bif)
 
 add_subdirectory(backend)

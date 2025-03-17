@@ -1,7 +1,5 @@
 ##! The storage framework provides a way to store long-term data to disk.
 
-@load base/bif/storage.bif
-
 module Storage;
 
 export {

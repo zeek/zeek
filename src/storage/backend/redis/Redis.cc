@@ -8,7 +8,6 @@
 #include "zeek/Val.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/storage/ReturnCode.h"
-#include "zeek/storage/storage.bif.h"
 
 #include "hiredis/adapters/poll.h"
 #include "hiredis/async.h"

@@ -1,3 +1,15 @@
+7.1.0-8 | 2025-03-18 13:56:13 -0700
+
+  * ci/init-external-repo.sh: Use regex to match macos cirrus task (Arne Welzel, Corelight)
+
+    (cherry picked from commit 43f108bb71bca8cec7faeb8d1aeae5c5920fcee6)
+
+  * CI: Change macOS runner to Sequoia (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 43f108bb71bca8cec7faeb8d1aeae5c5920fcee6)
+
+  * Update mozilla-ca-list.zeek and ct-list.zeek to NSS 3.109 (Tim Wojtulewicz, Corelight)
+
 7.1.0-6 | 2025-03-18 12:09:29 -0700
 
   * Add analyzer registration from VLAN to VNTAG (Tim Wojtulewicz, Corelight)

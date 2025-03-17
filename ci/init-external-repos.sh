@@ -51,9 +51,9 @@ if [[ -n "${CIRRUS_CI}" ]] && [[ "${CIRRUS_REPO_OWNER}" == "zeek" ]] && [[ ! -d 
 
     banner "Trying to clone zeek-testing-private git repo"
     echo "${ZEEK_TESTING_PRIVATE_SSH_KEY}" >cirrus_key.b64
-    if [ "${CIRRUS_TASK_NAME}" == "macos_ventura" -o "${CIRRUS_TASK_NAME}" == "macos_sonoma" ]; then
-        # The base64 command provided with macOS Ventura/Sonoma requires an argument
-        # to pass the input filename
+    if [[ "${CIRRUS_TASK_NAME}" =~ ^macos_ ]]; then
+        # The base64 command provided with macOS requires an argument
+        # to pass the input filename, while -i elsewhere is "ignore garbage".
         base64 -d -i cirrus_key.b64 >cirrus_key
     else
         base64 -d cirrus_key.b64 >cirrus_key

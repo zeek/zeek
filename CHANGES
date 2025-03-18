@@ -1,3 +1,9 @@
+7.0.5-4 | 2025-03-18 16:17:54 -0700
+
+  * Add analyzer registration from VLAN to VNTAG (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit cb5e3d0054ac9acdc13606de35b79f0da06d6a21)
+
 7.0.5-3 | 2025-03-18 16:16:08 -0700
 
   * GH-2311: scan.l: Fix @load-plugin scripts loading (Arne Welzel, Corelight)

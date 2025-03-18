@@ -19,6 +19,7 @@ event zeek_init() &priority=20
 	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_VLAN, 0x8035, PacketAnalyzer::ANALYZER_ARP);
 	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_VLAN, 0x8100, PacketAnalyzer::ANALYZER_VLAN);
 	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_VLAN, 0x8864, PacketAnalyzer::ANALYZER_PPPOE);
+	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_VLAN, 0x8926, PacketAnalyzer::ANALYZER_VNTAG);
 
 	PacketAnalyzer::register_packet_analyzer(PacketAnalyzer::ANALYZER_VLAN, SNAP_FORWARDING_KEY,
 	                                         PacketAnalyzer::ANALYZER_SNAP);

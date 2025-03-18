@@ -1,3 +1,7 @@
+7.2.0-dev.382 | 2025-03-18 11:52:03 -0700
+
+  * Add analyzer registration from VLAN to VNTAG (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.380 | 2025-03-18 11:46:08 -0700
 
   * Update src/3rdparty submodule [nomail] (Tim Wojtulewicz, Corelight)

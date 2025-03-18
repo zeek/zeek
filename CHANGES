@@ -1,3 +1,9 @@
+7.1.0-6 | 2025-03-18 12:09:29 -0700
+
+  * Add analyzer registration from VLAN to VNTAG (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit cb5e3d0054ac9acdc13606de35b79f0da06d6a21)
+
 7.1.0-5 | 2025-03-18 12:08:31 -0700
 
   * Set ip_proto when creating new tunnel encapsulations (Tim Wojtulewicz, Corelight)

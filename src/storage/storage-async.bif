@@ -1,0 +1,190 @@
+##! Functions related to asynchronous storage operations.
+
+%%{
+#include "zeek/Frame.h"
+#include "zeek/Trigger.h"
+#include "zeek/storage/Backend.h"
+#include "zeek/storage/Manager.h"
+#include "zeek/storage/ReturnCode.h"
+
+using namespace zeek;
+using namespace zeek::storage;
+
+// Utility method for initializing a trigger from a Frame passed into a BIF. This is
+// used by the asynchronous methods to make sure the trigger is setup before starting
+// the operations. It also does some sanity checking to ensure the trigger is valid.
+
+static zeek::detail::trigger::TriggerPtr init_trigger(zeek::detail::Frame* frame) {
+    auto trigger = frame->GetTrigger();
+
+    if ( ! trigger ) {
+        emit_builtin_error("Asynchronous storage operations must be called via a when-condition");
+        return nullptr;
+    }
+
+    if ( auto timeout = trigger->TimeoutValue(); timeout < 0 ) {
+        emit_builtin_error("Asynchronous storage operations must specify a timeout block");
+        return nullptr;
+    }
+
+    frame->SetDelayed();
+    trigger->Hold();
+
+    return {NewRef{}, trigger};
+}
+
+// Utility method to cast the handle val passed into BIF methods into a form that can
+// be used to start storage operations. The method is also used by the BIFs in sync.bif.
+static zeek::expected<storage::detail::BackendHandleVal*, OperationResult> cast_handle(Val* handle) {
+    auto b = static_cast<storage::detail::BackendHandleVal*>(handle);
+
+    if ( ! b )
+        return zeek::unexpected<OperationResult>(
+            OperationResult{ReturnCode::OPERATION_FAILED, "Invalid storage handlle"});
+    else if ( ! b->backend->IsOpen() )
+        return zeek::unexpected<OperationResult>(OperationResult{ReturnCode::NOT_CONNECTED, "Backend is closed"});
+
+    return b;
+}
+
+static void handle_async_result(const IntrusivePtr<Backend>& backend, ResultCallback* cb,
+                                const OperationResult& op_result) {
+    if ( op_result.code != ReturnCode::IN_PROGRESS || ! backend->SupportsAsync() ) {
+        // We need to complete the callback early if:
+        // 1. The operation didn't start up successfully. For async operations, this means
+        // it didn't report back IN_PROGRESS.
+        // 2. The backend doesn't support async. This means we already blocked in order
+        // to get here already.
+        cb->Complete(op_result);
+        delete cb;
+    }
+    else if ( run_state::reading_traces ) {
+        // If the backend is truly async and we're reading traces, we need to fake being
+        // in sync mode because otherwise time doesn't move forward correctly.
+        backend->Poll();
+    }
+}
+
+%%}
+
+module Storage::Async;
+
+function Storage::Async::__open_backend%(btype: Storage::Backend, options: any, key_type: any, val_type: any%): Storage::OperationResult
+	%{
+	auto trigger = init_trigger(frame);
+	if ( ! trigger )
+		return nullptr;
+
+	auto btype_val = IntrusivePtr<EnumVal>{NewRef{}, btype->AsEnumVal()};
+	Tag tag{btype_val};
+
+	auto b = storage_mgr->Instantiate(tag);
+
+	if ( ! b.has_value() ) {
+		trigger->Cache(
+			frame->GetTriggerAssoc(),
+			new StringVal(util::fmt("Failed to instantiate backend: %s", b.error().c_str())));
+		trigger->Release();
+		return nullptr;
+	}
+
+	auto bh = make_intrusive<storage::detail::BackendHandleVal>(b.value());
+
+	auto cb = new OpenResultCallback(trigger, frame->GetTriggerAssoc(), bh);
+	auto kt = key_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
+	auto vt = val_type->AsTypeVal()->GetType()->AsTypeType()->GetType();
+	auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
+	auto op_result = storage_mgr->OpenBackend(b.value(), cb, options_val, kt, vt);
+
+	handle_async_result(b.value(), cb, op_result);
+
+	return nullptr;
+	%}
+
+function Storage::Async::__close_backend%(backend: opaque of Storage::BackendHandle%) : Storage::OperationResult
+	%{
+	auto trigger = init_trigger(frame);
+	if ( ! trigger )
+		return nullptr;
+
+	auto cb = new OperationResultCallback(trigger, frame->GetTriggerAssoc());
+	auto b = cast_handle(backend);
+	if ( ! b ) {
+		cb->Complete(b.error());
+		delete cb;
+		return nullptr;
+	}
+
+	auto op_result = storage_mgr->CloseBackend((*b)->backend, cb);
+	handle_async_result((*b)->backend, cb, op_result);
+
+	return nullptr;
+	%}
+
+function Storage::Async::__put%(backend: opaque of Storage::BackendHandle, key: any, value: any,
+			 overwrite: bool, expire_time: interval%): Storage::OperationResult
+	%{
+	auto trigger = init_trigger(frame);
+	if ( ! trigger )
+		return nullptr;
+
+	auto cb = new OperationResultCallback(trigger, frame->GetTriggerAssoc());
+	auto b = cast_handle(backend);
+	if ( ! b ) {
+		cb->Complete(b.error());
+		delete cb;
+		return nullptr;
+	}
+
+	if ( expire_time > 0.0 )
+		expire_time += run_state::network_time;
+
+	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
+	auto val_v = IntrusivePtr<Val>{NewRef{}, value};
+	auto op_result = (*b)->backend->Put(cb, key_v, val_v, overwrite, expire_time);
+	handle_async_result((*b)->backend, cb, op_result);
+
+	return nullptr;
+	%}
+
+function Storage::Async::__get%(backend: opaque of Storage::BackendHandle, key: any%): Storage::OperationResult
+	%{
+	auto trigger = init_trigger(frame);
+	if ( ! trigger )
+		return nullptr;
+
+	auto cb = new OperationResultCallback(trigger, frame->GetTriggerAssoc());
+	auto b = cast_handle(backend);
+	if ( ! b ) {
+		cb->Complete(b.error());
+		delete cb;
+		return nullptr;
+	}
+
+	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
+	auto op_result = (*b)->backend->Get(cb, key_v);
+	handle_async_result((*b)->backend, cb, op_result);
+
+	return nullptr;
+	%}
+
+function Storage::Async::__erase%(backend: opaque of Storage::BackendHandle, key: any%): Storage::OperationResult
+	%{
+	auto trigger = init_trigger(frame);
+	if ( ! trigger )
+		return nullptr;
+
+	auto cb = new OperationResultCallback(trigger, frame->GetTriggerAssoc());
+	auto b = cast_handle(backend);
+	if ( ! b ) {
+		cb->Complete(b.error());
+		delete cb;
+		return nullptr;
+	}
+
+	auto key_v = IntrusivePtr<Val>{NewRef{}, key};
+	auto op_result = (*b)->backend->Erase(cb, key_v);
+	handle_async_result((*b)->backend, cb, op_result);
+
+	return nullptr;
+	%}

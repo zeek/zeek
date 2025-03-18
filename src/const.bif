@@ -32,3 +32,5 @@ const Threading::heartbeat_interval: interval;
 
 const Log::flush_interval: interval;
 const Log::write_buffer_size: count;
+
+const Storage::expire_interval: interval;

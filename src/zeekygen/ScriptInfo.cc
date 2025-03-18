@@ -321,6 +321,10 @@ void ScriptInfo::DoInitPostScript() {
         const auto& log_serializer_id = zeek::detail::global_scope()->Find("Cluster::LogSerializerTag");
         types.push_back(new IdentifierInfo(log_serializer_id, this));
     }
+    else if ( name == "base/frameworks/storage/main.zeek" ) {
+        const auto& backend_id = zeek::detail::global_scope()->Find("Storage::Backend");
+        types.push_back(new IdentifierInfo(backend_id, this));
+    }
 }
 
 vector<string> ScriptInfo::GetComments() const { return comments; }

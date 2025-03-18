@@ -1,3 +1,18 @@
+7.2.0-dev.325 | 2025-03-18 09:07:40 +0100
+
+  * GH-4250: Spicy: Fix passing vectors to Zeek. (Robin Sommer, Corelight)
+
+    We missed the allocator argument for the C++-side conversion
+    template, which let vector's of certain types not compile.
+
+  * [Spicy] Add missing `to_string` overload. (Robin Sommer, Corelight)
+
+  * Bump Spicy. (Robin Sommer, Corelight)
+
+    This includes a fix to adapt to Spicy-side changes.
+
+  * Bump `cmake` submodule. (Robin Sommer, Corelight)
+
 7.2.0-dev.318 | 2025-03-17 11:55:11 -0700
 
   * ci/init-external-repo.sh: Use regex to match macos cirrus task (Arne Welzel, Corelight)

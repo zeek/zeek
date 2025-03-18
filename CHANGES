@@ -1,6 +1,8 @@
-7.2.0-dev.378 | 2025-03-18 11:43:48 -0700
+7.2.0-dev.380 | 2025-03-18 11:46:08 -0700
 
-  * Update docs submodule [nomail] (Tim Wojtulewicz, Corelight)
+  * Update src/3rdparty submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+7.2.0-dev.378 | 2025-03-18 11:43:48 -0700
 
   * Cleanup/update comments across the storage C++ files (Tim Wojtulewicz, Corelight)
 

@@ -1,3 +1,123 @@
+7.2.0-dev.378 | 2025-03-18 11:43:48 -0700
+
+  * Update docs submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Cleanup/update comments across the storage C++ files (Tim Wojtulewicz, Corelight)
+
+  * Split storage.bif file into events/sync/async, add more comments (Tim Wojtulewicz, Corelight)
+
+  * Update comments in script files, run zeek-format on all of them (Tim Wojtulewicz, Corelight)
+
+  * Allow sync methods to be called from when conditions, add related btest (Tim Wojtulewicz, Corelight)
+
+  * Redis: Handle disconnection correctly via callback (Tim Wojtulewicz, Corelight)
+
+  * Redis: Fix sync erase, add btest for it (Tim Wojtulewicz, Corelight)
+
+  * Remove default argument for callbacks, reorder function arguments (Tim Wojtulewicz, Corelight)
+
+  * Remove file-local expire_running variable (Tim Wojtulewicz, Corelight)
+
+  * Pass network time down to Expire() (Tim Wojtulewicz, Corelight)
+
+  * Add IN_PROGRESS return code, handle for async backends (Tim Wojtulewicz, Corelight)
+
+  * Store sqlite3_stmts directly instead of looking up from a map (Tim Wojtulewicz, Corelight)
+
+  * Reduce code duplication in storage.bif (Tim Wojtulewicz, Corelight)
+
+  * Add OperationResult::MakeVal, use it to reduce some code duplication (Tim Wojtulewicz, Corelight)
+
+  * Rearrange visibility of Backend methods, add DoPoll/DoExpire, add return comments (Tim Wojtulewicz, Corelight)
+
+  * Implement Storage::backend_opened and Storage::backend_lost events (Tim Wojtulewicz, Corelight)
+
+  * SQLite: expand expiration test (Tim Wojtulewicz, Corelight)
+
+  * SQLite: Handle other return values from sqlite3_step (Tim Wojtulewicz, Corelight)
+
+  * Redis: Fix thread-contention issues with Expire(), add more tests (Tim Wojtulewicz, Corelight)
+
+  * Change how redis-server is run during btests, removing redis.conf (Tim Wojtulewicz, Corelight)
+
+  * Completely rework return values from storage operations (Tim Wojtulewicz, Corelight)
+
+  * Update some btests due to timing changes (Tim Wojtulewicz, Corelight)
+
+  * Split sync/async handling into the BIF methods (Tim Wojtulewicz, Corelight)
+
+  * Redis: Rework everything to only use async mode (Tim Wojtulewicz, Corelight)
+
+  * Run expiration on a separate thread (Tim Wojtulewicz, Corelight)
+
+  * Pass network-time-based expiration time to backends instead of an interval (Tim Wojtulewicz, Corelight)
+
+  * Make backend options a record, move actual options to be sub-records (Tim Wojtulewicz, Corelight)
+
+  * Always register backend for expiration, check for open during loop (Tim Wojtulewicz, Corelight)
+
+  * Split sync and async into separate script-land namespaces (Tim Wojtulewicz, Corelight)
+
+  * Remove Backend::SupportsAsync (Tim Wojtulewicz, Corelight)
+
+  * Add btest that uses a Redis backend in a cluster (Tim Wojtulewicz, Corelight)
+
+  * Return generic result for get operations that includes error messages (Tim Wojtulewicz, Corelight)
+
+  * Allow opening and closing backends to be async (Tim Wojtulewicz, Corelight)
+
+  * Redis: Support non-native expiration when reading traces (Tim Wojtulewicz, Corelight)
+
+  * Redis: Add btests for the redis backend (Tim Wojtulewicz, Corelight)
+
+  * Redis: Force storage sync mode when reading pcaps, default to async mode (Tim Wojtulewicz, Corelight)
+
+  * Redis: Add new backend (Tim Wojtulewicz, Corelight)
+
+  * SQLite: Fix some issues with expiration, including in the btest (Tim Wojtulewicz, Corelight)
+
+  * SQLite: Add additional btests, which also cover general storage functionality (Tim Wojtulewicz, Corelight)
+
+    - New erase/overwrite tests
+    - Change existing sqlite-basic test to use async
+    - Test passing bad keys to validate backend type checking
+    - New test for compound keys and values
+
+  * SQLite: Add pragma integrity_check (Tim Wojtulewicz, Corelight)
+
+  * SQLite: Add tuning options to configuration (Tim Wojtulewicz, Corelight)
+
+  * SQLite: Handle automated expiration (Tim Wojtulewicz, Corelight)
+
+  * SQLite: Store/lookup prepared statements instead of recreating (Tim Wojtulewicz, Corelight)
+
+  * Add basic SQLite storage backend (Tim Wojtulewicz, Corelight)
+
+  * Add infrastructure for asynchronous storage operations (Tim Wojtulewicz, Corelight)
+
+  * Add infrastructure for automated expiration of storage entries (Tim Wojtulewicz, Corelight)
+
+    This is used for backends that don't support expiration natively.
+
+  * Change args to Storage::put to be a record (Tim Wojtulewicz, Corelight)
+
+    The number of args being passed to the put() methods was getting to be
+    fairly long, with more on the horizon. Changing to a record means simplifying
+    things a little bit.
+
+  * Pass key/value types for validation when opening backends (Tim Wojtulewicz, Corelight)
+
+  * Lay out initial parts for the Storage framework (Tim Wojtulewicz, Corelight)
+
+    This includes a manager, component manager, BIF and script code, and
+    parts to support new storage backend plugins.
+
+  * DebugLogger: add stream for storage (Tim Wojtulewicz, Corelight)
+
+  * plugin: Add component enum for storage backends (Tim Wojtulewicz, Corelight)
+
+  * Add martinmoene/expected-lite as a submodule (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.325 | 2025-03-18 09:07:40 +0100
 
   * GH-4250: Spicy: Fix passing vectors to Zeek. (Robin Sommer, Corelight)

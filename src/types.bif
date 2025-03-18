@@ -1,6 +1,6 @@
 ##! Declaration of various types that the Zeek core uses internally.
 
-enum rpc_status %{
+enum_u8 rpc_status %{
 	RPC_SUCCESS,
 	RPC_PROG_UNAVAIL,
 	RPC_PROG_MISMATCH,
@@ -15,7 +15,7 @@ enum rpc_status %{
 
 module MOUNT3;
 
-enum proc_t %{ # MOUNT3 procedures
+enum_u8 proc_t %{ # MOUNT3 procedures
 	PROC_NULL         = 0,  # done
 	PROC_MNT          = 1,  # done
 	PROC_DUMP         = 2,  # not implemented
@@ -39,7 +39,7 @@ enum status_t %{ # MOUNT3 return status
 	MOUNT3ERR_UNKNOWN   = 0xffffffff,
 %}
 
-enum auth_flavor_t %{ # MOUNT3 auth flavors
+enum_i8 auth_flavor_t %{ # MOUNT3 auth flavors
 	AUTH_NULL   = 0,
 	AUTH_UNIX   = 1,
 	AUTH_SHORT  = 2,
@@ -52,7 +52,7 @@ type dirmntargs_t: record;
 
 module NFS3;
 
-enum proc_t %{	# NFSv3 procedures
+enum_u8 proc_t %{	# NFSv3 procedures
 	PROC_NULL     = 0,	# done
 	PROC_GETATTR  = 1,	# done
 	PROC_SETATTR  = 2,	# done
@@ -111,13 +111,13 @@ enum status_t %{	# NFSv3 return status
 	NFS3ERR_UNKNOWN     = 0xffffffff,
 %}
 
-enum time_how_t %{
+enum_u8 time_how_t %{
 	DONT_CHANGE = 0,
 	SET_TO_SERVER_TIME = 1,
 	SET_TO_CLIENT_TIME = 2,
 %}
 
-enum file_type_t %{
+enum_u8 file_type_t %{
 	FTYPE_REG   = 1,
 	FTYPE_DIR   = 2,
 	FTYPE_BLK   = 3,
@@ -128,13 +128,13 @@ enum file_type_t %{
 %}
 
 
-enum stable_how_t %{
+enum_u8 stable_how_t %{
 	UNSTABLE = 0,
 	DATA_SYNC = 1,
 	FILE_SYNC = 2,
 %}
 
-enum createmode_t %{
+enum_u8 createmode_t %{
 	UNCHECKED = 0,
 	GUARDED = 1,
 	EXCLUSIVE = 2,
@@ -189,7 +189,7 @@ type PE::OptionalHeader: record;
 type PE::SectionHeader: record;
 
 module Tunnel;
-enum Type %{
+enum_u8 Type %{
 	NONE,
 	IP,
 	AYIYA,
@@ -206,12 +206,12 @@ type EncapsulatingConn: record;
 
 module GLOBAL;
 
-enum link_encap %{
+enum_u8 link_encap %{
 	LINK_ETHERNET,
 	LINK_UNKNOWN,
 %}
 
-enum layer3_proto %{
+enum_u8 layer3_proto %{
 	L3_IPV4,
 	L3_IPV6,
 	L3_ARP,
@@ -232,7 +232,7 @@ type gtp_qos_profile: record;
 type gtp_private_extension: record;
 type gtp_gsn_addr: record;
 
-enum TableChange %{
+enum_u8 TableChange %{
 	TABLE_ELEMENT_NEW,
 	TABLE_ELEMENT_CHANGED,
 	TABLE_ELEMENT_REMOVED,
@@ -241,7 +241,7 @@ enum TableChange %{
 
 module Reporter;
 
-enum Level %{
+enum_u8 Level %{
 	INFO = 0,
 	WARNING = 1,
 	ERROR = 2,

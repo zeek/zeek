@@ -26,7 +26,7 @@ public:
     /**
      * Finalizes the backend when it's being closed.
      */
-    zeek::storage::OperationResult DoClose(zeek::storage::OperationResultCallback* cb = nullptr) override;
+    zeek::storage::OperationResult DoClose(zeek::storage::ResultCallback* cb = nullptr) override;
 
     /**
      * Returns whether the backend is opened.
@@ -36,19 +36,18 @@ public:
     /**
      * The workhorse method for Put().
      */
-    zeek::storage::OperationResult DoPut(zeek::storage::OperationResultCallback* cb, zeek::ValPtr key,
-                                         zeek::ValPtr value, bool overwrite = true,
-                                         double expiration_time = 0) override;
+    zeek::storage::OperationResult DoPut(zeek::storage::ResultCallback* cb, zeek::ValPtr key, zeek::ValPtr value,
+                                         bool overwrite = true, double expiration_time = 0) override;
 
     /**
      * The workhorse method for Get().
      */
-    zeek::storage::OperationResult DoGet(zeek::storage::OperationResultCallback* cb, zeek::ValPtr key) override;
+    zeek::storage::OperationResult DoGet(zeek::storage::ResultCallback* cb, zeek::ValPtr key) override;
 
     /**
      * The workhorse method for Erase().
      */
-    zeek::storage::OperationResult DoErase(zeek::storage::OperationResultCallback* cb, zeek::ValPtr key) override;
+    zeek::storage::OperationResult DoErase(zeek::storage::ResultCallback* cb, zeek::ValPtr key) override;
 
 private:
     std::map<std::string, std::string> data;

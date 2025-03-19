@@ -37,9 +37,9 @@ public:
     void OnConnect(int status);
     void OnDisconnect(int status);
 
-    void HandlePutResult(redisReply* reply, OperationResultCallback* callback);
-    void HandleGetResult(redisReply* reply, OperationResultCallback* callback);
-    void HandleEraseResult(redisReply* reply, OperationResultCallback* callback);
+    void HandlePutResult(redisReply* reply, ResultCallback* callback);
+    void HandleGetResult(redisReply* reply, ResultCallback* callback);
+    void HandleEraseResult(redisReply* reply, ResultCallback* callback);
     void HandleGeneric(redisReply* reply);
 
     /**
@@ -51,11 +51,11 @@ public:
 
 private:
     OperationResult DoOpen(OpenResultCallback* cb, RecordValPtr options) override;
-    OperationResult DoClose(OperationResultCallback* cb) override;
-    OperationResult DoPut(OperationResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
+    OperationResult DoClose(ResultCallback* cb) override;
+    OperationResult DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
                           double expiration_time) override;
-    OperationResult DoGet(OperationResultCallback* cb, ValPtr key) override;
-    OperationResult DoErase(OperationResultCallback* cb, ValPtr key) override;
+    OperationResult DoGet(ResultCallback* cb, ValPtr key) override;
+    OperationResult DoErase(ResultCallback* cb, ValPtr key) override;
     void DoExpire(double current_network_time) override;
     void DoPoll() override;
 
@@ -69,7 +69,7 @@ private:
     std::deque<redisReply*> reply_queue;
 
     OpenResultCallback* open_cb;
-    OperationResultCallback* close_cb;
+    ResultCallback* close_cb;
     std::mutex expire_mutex;
 
     std::string server_addr;

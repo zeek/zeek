@@ -107,7 +107,7 @@ function Storage::Async::__close_backend%(backend: opaque of Storage::BackendHan
 	if ( ! trigger )
 		return nullptr;
 
-	auto cb = new OperationResultCallback(trigger, frame->GetTriggerAssoc());
+	auto cb = new ResultCallback(trigger, frame->GetTriggerAssoc());
 	auto b = cast_handle(backend);
 	if ( ! b ) {
 		cb->Complete(b.error());
@@ -128,7 +128,7 @@ function Storage::Async::__put%(backend: opaque of Storage::BackendHandle, key: 
 	if ( ! trigger )
 		return nullptr;
 
-	auto cb = new OperationResultCallback(trigger, frame->GetTriggerAssoc());
+	auto cb = new ResultCallback(trigger, frame->GetTriggerAssoc());
 	auto b = cast_handle(backend);
 	if ( ! b ) {
 		cb->Complete(b.error());
@@ -153,7 +153,7 @@ function Storage::Async::__get%(backend: opaque of Storage::BackendHandle, key: 
 	if ( ! trigger )
 		return nullptr;
 
-	auto cb = new OperationResultCallback(trigger, frame->GetTriggerAssoc());
+	auto cb = new ResultCallback(trigger, frame->GetTriggerAssoc());
 	auto b = cast_handle(backend);
 	if ( ! b ) {
 		cb->Complete(b.error());
@@ -174,7 +174,7 @@ function Storage::Async::__erase%(backend: opaque of Storage::BackendHandle, key
 	if ( ! trigger )
 		return nullptr;
 
-	auto cb = new OperationResultCallback(trigger, frame->GetTriggerAssoc());
+	auto cb = new ResultCallback(trigger, frame->GetTriggerAssoc());
 	auto b = cast_handle(backend);
 	if ( ! b ) {
 		cb->Complete(b.error());

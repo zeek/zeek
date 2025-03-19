@@ -115,7 +115,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
 /**
  * Finalizes the backend when it's being closed.
  */
-OperationResult SQLite::DoClose(OperationResultCallback* cb) {
+OperationResult SQLite::DoClose(ResultCallback* cb) {
     OperationResult op_res{ReturnCode::SUCCESS};
 
     if ( db ) {
@@ -146,8 +146,7 @@ OperationResult SQLite::DoClose(OperationResultCallback* cb) {
 /**
  * The workhorse method for Put(). This must be implemented by plugins.
  */
-OperationResult SQLite::DoPut(OperationResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
-                              double expiration_time) {
+OperationResult SQLite::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool overwrite, double expiration_time) {
     if ( ! db )
         return {ReturnCode::NOT_CONNECTED};
 
@@ -193,7 +192,7 @@ OperationResult SQLite::DoPut(OperationResultCallback* cb, ValPtr key, ValPtr va
 /**
  * The workhorse method for Get(). This must be implemented for plugins.
  */
-OperationResult SQLite::DoGet(OperationResultCallback* cb, ValPtr key) {
+OperationResult SQLite::DoGet(ResultCallback* cb, ValPtr key) {
     if ( ! db )
         return {ReturnCode::NOT_CONNECTED};
 
@@ -213,7 +212,7 @@ OperationResult SQLite::DoGet(OperationResultCallback* cb, ValPtr key) {
 /**
  * The workhorse method for Erase(). This must be implemented for plugins.
  */
-OperationResult SQLite::DoErase(OperationResultCallback* cb, ValPtr key) {
+OperationResult SQLite::DoErase(ResultCallback* cb, ValPtr key) {
     if ( ! db )
         return {ReturnCode::NOT_CONNECTED};
 

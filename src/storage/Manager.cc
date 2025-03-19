@@ -89,7 +89,7 @@ OperationResult Manager::OpenBackend(BackendPtr backend, OpenResultCallback* cb,
     return res;
 }
 
-OperationResult Manager::CloseBackend(BackendPtr backend, OperationResultCallback* cb) {
+OperationResult Manager::CloseBackend(BackendPtr backend, ResultCallback* cb) {
     // Expiration runs on a separate thread and loops over the vector of backends. The mutex
     // here ensures exclusive access. This one happens in a block because we can remove the
     // backend from the vector before actually closing it.

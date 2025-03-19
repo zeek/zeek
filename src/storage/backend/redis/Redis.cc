@@ -38,21 +38,21 @@ void redisOnDisconnect(const redisAsyncContext* ctx, int status) {
 void redisPut(redisAsyncContext* ctx, void* reply, void* privdata) {
     auto t = Tracer("put");
     auto backend = static_cast<zeek::storage::backend::redis::Redis*>(ctx->data);
-    auto callback = static_cast<zeek::storage::OperationResultCallback*>(privdata);
+    auto callback = static_cast<zeek::storage::ResultCallback*>(privdata);
     backend->HandlePutResult(static_cast<redisReply*>(reply), callback);
 }
 
 void redisGet(redisAsyncContext* ctx, void* reply, void* privdata) {
     auto t = Tracer("get");
     auto backend = static_cast<zeek::storage::backend::redis::Redis*>(ctx->data);
-    auto callback = static_cast<zeek::storage::OperationResultCallback*>(privdata);
+    auto callback = static_cast<zeek::storage::ResultCallback*>(privdata);
     backend->HandleGetResult(static_cast<redisReply*>(reply), callback);
 }
 
 void redisErase(redisAsyncContext* ctx, void* reply, void* privdata) {
     auto t = Tracer("erase");
     auto backend = static_cast<zeek::storage::backend::redis::Redis*>(ctx->data);
-    auto callback = static_cast<zeek::storage::OperationResultCallback*>(privdata);
+    auto callback = static_cast<zeek::storage::ResultCallback*>(privdata);
     backend->HandleEraseResult(static_cast<redisReply*>(reply), callback);
 }
 
@@ -232,7 +232,7 @@ OperationResult Redis::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
 /**
  * Finalizes the backend when it's being closed.
  */
-OperationResult Redis::DoClose(OperationResultCallback* cb) {
+OperationResult Redis::DoClose(ResultCallback* cb) {
     auto locked_scope = conditionally_lock(zeek::run_state::reading_traces, expire_mutex);
 
     connected = false;
@@ -247,8 +247,7 @@ OperationResult Redis::DoClose(OperationResultCallback* cb) {
 /**
  * The workhorse method for Put(). This must be implemented by plugins.
  */
-OperationResult Redis::DoPut(OperationResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
-                             double expiration_time) {
+OperationResult Redis::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool overwrite, double expiration_time) {
     // The async context will queue operations until it's connected fully.
     if ( ! connected && ! async_ctx )
         return {ReturnCode::NOT_CONNECTED};
@@ -301,7 +300,7 @@ OperationResult Redis::DoPut(OperationResultCallback* cb, ValPtr key, ValPtr val
 /**
  * The workhorse method for Get(). This must be implemented for plugins.
  */
-OperationResult Redis::DoGet(OperationResultCallback* cb, ValPtr key) {
+OperationResult Redis::DoGet(ResultCallback* cb, ValPtr key) {
     // The async context will queue operations until it's connected fully.
     if ( ! connected && ! async_ctx )
         return {ReturnCode::NOT_CONNECTED};
@@ -324,7 +323,7 @@ OperationResult Redis::DoGet(OperationResultCallback* cb, ValPtr key) {
 /**
  * The workhorse method for Erase(). This must be implemented for plugins.
  */
-OperationResult Redis::DoErase(OperationResultCallback* cb, ValPtr key) {
+OperationResult Redis::DoErase(ResultCallback* cb, ValPtr key) {
     // The async context will queue operations until it's connected fully.
     if ( ! connected && ! async_ctx )
         return {ReturnCode::NOT_CONNECTED};
@@ -409,7 +408,7 @@ void Redis::DoExpire(double current_network_time) {
     // TODO: do we care if this failed?
 }
 
-void Redis::HandlePutResult(redisReply* reply, OperationResultCallback* callback) {
+void Redis::HandlePutResult(redisReply* reply, ResultCallback* callback) {
     --active_ops;
 
     OperationResult res{ReturnCode::SUCCESS};
@@ -424,7 +423,7 @@ void Redis::HandlePutResult(redisReply* reply, OperationResultCallback* callback
     CompleteCallback(callback, res);
 }
 
-void Redis::HandleGetResult(redisReply* reply, OperationResultCallback* callback) {
+void Redis::HandleGetResult(redisReply* reply, ResultCallback* callback) {
     --active_ops;
 
     OperationResult res;
@@ -437,7 +436,7 @@ void Redis::HandleGetResult(redisReply* reply, OperationResultCallback* callback
     CompleteCallback(callback, res);
 }
 
-void Redis::HandleEraseResult(redisReply* reply, OperationResultCallback* callback) {
+void Redis::HandleEraseResult(redisReply* reply, ResultCallback* callback) {
     --active_ops;
 
     OperationResult res{ReturnCode::SUCCESS};

@@ -34,7 +34,7 @@ OperationResult StorageDummy::DoOpen(OpenResultCallback* cb, RecordValPtr option
 /**
  * Finalizes the backend when it's being closed.
  */
-OperationResult StorageDummy::DoClose(OperationResultCallback* cb) {
+OperationResult StorageDummy::DoClose(ResultCallback* cb) {
     open = false;
     return {ReturnCode::SUCCESS};
 }
@@ -42,7 +42,7 @@ OperationResult StorageDummy::DoClose(OperationResultCallback* cb) {
 /**
  * The workhorse method for Put(). This must be implemented by plugins.
  */
-OperationResult StorageDummy::DoPut(OperationResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
+OperationResult StorageDummy::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
                                     double expiration_time) {
     auto json_key = key->ToJSON()->ToStdString();
     auto json_value = value->ToJSON()->ToStdString();
@@ -53,7 +53,7 @@ OperationResult StorageDummy::DoPut(OperationResultCallback* cb, ValPtr key, Val
 /**
  * The workhorse method for Get(). This must be implemented for plugins.
  */
-OperationResult StorageDummy::DoGet(OperationResultCallback* cb, ValPtr key) {
+OperationResult StorageDummy::DoGet(ResultCallback* cb, ValPtr key) {
     auto json_key = key->ToJSON();
     auto it = data.find(json_key->ToStdString());
     if ( it == data.end() )
@@ -71,7 +71,7 @@ OperationResult StorageDummy::DoGet(OperationResultCallback* cb, ValPtr key) {
 /**
  * The workhorse method for Erase(). This must be implemented for plugins.
  */
-OperationResult StorageDummy::DoErase(OperationResultCallback* cb, ValPtr key) {
+OperationResult StorageDummy::DoErase(ResultCallback* cb, ValPtr key) {
     auto json_key = key->ToJSON();
     auto it = data.find(json_key->ToStdString());
     if ( it == data.end() )

@@ -76,25 +76,13 @@ public:
      * Completes a callback, releasing the trigger if it was valid or storing the result
      * for later usage if needed.
      */
-    virtual void Complete(OperationResult res) = 0;
+    virtual void Complete(OperationResult res);
+
+    OperationResult Result() const { return result; }
 
 protected:
     zeek::detail::trigger::TriggerPtr trigger;
     const void* assoc = nullptr;
-};
-
-/**
- * A callback that returns an `OperationResult` when it is complete. This is used by most
- * of the storage operations for returning status.
- */
-class OperationResultCallback : public ResultCallback {
-public:
-    OperationResultCallback() = default;
-    OperationResultCallback(detail::trigger::TriggerPtr trigger, const void* assoc);
-    void Complete(OperationResult res) override;
-    OperationResult Result() { return result; }
-
-private:
     OperationResult result;
 };
 
@@ -127,7 +115,7 @@ public:
      * @return A struct describing the result of the operation, containing a code, an
      * optional error string, and a ValPtr for operations that return values.
      */
-    OperationResult Put(OperationResultCallback* cb, ValPtr key, ValPtr value, bool overwrite = true,
+    OperationResult Put(ResultCallback* cb, ValPtr key, ValPtr value, bool overwrite = true,
                         double expiration_time = 0);
 
     /**
@@ -139,7 +127,7 @@ public:
      * @return A struct describing the result of the operation, containing a code, an
      * optional error string, and a ValPtr for operations that return values.
      */
-    OperationResult Get(OperationResultCallback* cb, ValPtr key);
+    OperationResult Get(ResultCallback* cb, ValPtr key);
 
     /**
      * Erases the value for a key from the backend.
@@ -150,7 +138,7 @@ public:
      * @return A struct describing the result of the operation, containing a code, an
      * optional error string, and a ValPtr for operations that return values.
      */
-    OperationResult Erase(OperationResultCallback* cb, ValPtr key);
+    OperationResult Erase(ResultCallback* cb, ValPtr key);
 
     /**
      * Returns whether the backend is opened.
@@ -212,7 +200,7 @@ protected:
      * @return A struct describing the result of the operation, containing a code, an
      * optional error string, and a ValPtr for operations that return values.
      */
-    OperationResult Close(OperationResultCallback* cb);
+    OperationResult Close(ResultCallback* cb);
 
     /**
      * Removes any entries in the backend that have expired. Can be overridden by
@@ -260,26 +248,26 @@ private:
      * Workhorse method for calls to `Manager::CloseBackend()`. See that method for
      * documentation of the arguments. This must be overridden by all backends.
      */
-    virtual OperationResult DoClose(OperationResultCallback* cb) = 0;
+    virtual OperationResult DoClose(ResultCallback* cb) = 0;
 
     /**
      * Workhorse method for calls to `Backend::Put()`. See that method for
      * documentation of the arguments. This must be overridden by all backends.
      */
-    virtual OperationResult DoPut(OperationResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
+    virtual OperationResult DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
                                   double expiration_time) = 0;
 
     /**
      * Workhorse method for calls to `Backend::Get()`. See that method for
      * documentation of the arguments. This must be overridden by all backends.
      */
-    virtual OperationResult DoGet(OperationResultCallback* cb, ValPtr key) = 0;
+    virtual OperationResult DoGet(ResultCallback* cb, ValPtr key) = 0;
 
     /**
      * Workhorse method for calls to `Backend::Erase()`. See that method for
      * documentation of the arguments. This must be overridden by all backends.
      */
-    virtual OperationResult DoErase(OperationResultCallback* cb, ValPtr key) = 0;
+    virtual OperationResult DoErase(ResultCallback* cb, ValPtr key) = 0;
 
     /**
      * Optional method for backends to override to provide direct polling. This should be
@@ -337,11 +325,9 @@ public:
                        IntrusivePtr<detail::BackendHandleVal> backend);
     void Complete(OperationResult res) override;
 
-    OperationResult Result() const { return result; }
     IntrusivePtr<detail::BackendHandleVal> Backend() const { return backend; }
 
 private:
-    OperationResult result{};
     IntrusivePtr<detail::BackendHandleVal> backend;
 };
 

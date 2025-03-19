@@ -34,10 +34,7 @@ void ResultCallback::Timeout() {
         trigger->Cache(assoc, OperationResult::MakeVal(ReturnCode::TIMEOUT).release());
 }
 
-OperationResultCallback::OperationResultCallback(zeek::detail::trigger::TriggerPtr trigger, const void* assoc)
-    : ResultCallback(std::move(trigger), assoc) {}
-
-void OperationResultCallback::Complete(OperationResult res) {
+void ResultCallback::Complete(OperationResult res) {
     // If this is a sync callback, there isn't a trigger to process. Store the result and bail.
     if ( IsSyncCallback() ) {
         result = std::move(res);
@@ -65,15 +62,7 @@ void OpenResultCallback::Complete(OperationResult res) {
     // passed back to the trigger or the one stored for sync backends.
     res.value = backend;
 
-    // If this is a sync callback, there isn't a trigger to process. Store the result and bail.
-    if ( IsSyncCallback() ) {
-        result = std::move(res);
-        return;
-    }
-
-    auto res_val = res.BuildVal();
-    trigger->Cache(assoc, res_val.get());
-    trigger->Release();
+    ResultCallback::Complete(std::move(res));
 }
 
 OperationResult Backend::Open(OpenResultCallback* cb, RecordValPtr options, TypePtr kt, TypePtr vt) {
@@ -88,10 +77,9 @@ OperationResult Backend::Open(OpenResultCallback* cb, RecordValPtr options, Type
     return ret;
 }
 
-OperationResult Backend::Close(OperationResultCallback* cb) { return DoClose(cb); }
+OperationResult Backend::Close(ResultCallback* cb) { return DoClose(cb); }
 
-OperationResult Backend::Put(OperationResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
-                             double expiration_time) {
+OperationResult Backend::Put(ResultCallback* cb, ValPtr key, ValPtr value, bool overwrite, double expiration_time) {
     // The intention for this method is to do some other heavy lifting in regard
     // to backends that need to pass data through the manager instead of directly
     // through the workers. For the first versions of the storage framework it
@@ -110,7 +98,7 @@ OperationResult Backend::Put(OperationResultCallback* cb, ValPtr key, ValPtr val
     return DoPut(cb, std::move(key), std::move(value), overwrite, expiration_time);
 }
 
-OperationResult Backend::Get(OperationResultCallback* cb, ValPtr key) {
+OperationResult Backend::Get(ResultCallback* cb, ValPtr key) {
     // See the note in Put().
     if ( ! same_type(key->GetType(), key_type) ) {
         auto ret = OperationResult{ReturnCode::KEY_TYPE_MISMATCH};
@@ -121,7 +109,7 @@ OperationResult Backend::Get(OperationResultCallback* cb, ValPtr key) {
     return DoGet(cb, std::move(key));
 }
 
-OperationResult Backend::Erase(OperationResultCallback* cb, ValPtr key) {
+OperationResult Backend::Erase(ResultCallback* cb, ValPtr key) {
     // See the note in Put().
     if ( ! same_type(key->GetType(), key_type) ) {
         auto ret = OperationResult{ReturnCode::KEY_TYPE_MISMATCH};

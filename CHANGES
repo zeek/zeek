@@ -1,3 +1,9 @@
+7.2.0-dev.391 | 2025-03-19 10:10:32 -0700
+
+  * Add is_valid_subnet BiF (Yacin Nadji, Corelight)
+
+  * Add btests for has_valid_octets() and normalize_mac() (Christian Kreibich, Corelight)
+
 7.2.0-dev.387 | 2025-03-19 15:28:08 +0000
 
   * SSH: make banner parsing more robust (Johanna Amann, Corelight)

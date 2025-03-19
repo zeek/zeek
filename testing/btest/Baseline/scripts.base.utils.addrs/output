@@ -48,6 +48,16 @@ F
 F
 F
 F
+============ test is_valid_subnet()
+T
+T
+T
+T
+F
+F
+F
+F
+F
 ============ test extract_ip_addresses()
 [1.1.1.1, 2.2.2.2, 3.3.3.3]
 [1.1.1.1, 0:0:0:0:0:0:0:0, 3.3.3.3]
@@ -61,3 +71,15 @@ F
 [1.1.1.1]
 [1.1.1.1]
 [6:1:2::3:4:5:6]
+============ test has_valid_octets()
+T
+T
+T
+F
+F
+============ test normalize_mac()
+aa:bb:cc:dd:ee:ff
+aa:bb:cc:dd:ee:ff
+aa:bb:cc:dd:ee:ff
+00:11:aa:bb:cc:dd:ee:ff
+

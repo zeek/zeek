@@ -27,13 +27,15 @@ New Functionality
 - Geneve tunnel options of the current packet can be extracted from scripts
   using the new PacketAnalyzer::Geneve::get_options() builtin function.
 
+- The new ``is_valid_subnet()`` function mirrors ``is_valid_ip()``, for subnets.
+
 Changed Functionality
 ---------------------
 
 - The ``service`` field in the connection log is now sorted in the order that
   protocol analyzers raise their confirmation events.
   Since the time at which the protocol confirmation is raised depends on the
-  indivivual implementation of each analyzer, there is no specific meaning
+  individual implementation of each analyzer, there is no specific meaning
   to the order that the services appear. However, the order should be
   deterministic between runs. It also will in many cases represent
   the order in which layered protocols are parsed (e.g. "quic,ssl").
@@ -77,9 +79,10 @@ Changed Functionality
 
   Furthermore, the script now supports and logs IPv6 results.
 
-- The mkdir(), rmdir(), unlink(), and rename() functions now trigger reporter
-  warnings instead of builtin errors when hitting trouble. This allows Zeek to
-  continue gracefully in case of such problems, particularly during zeek_init().
+- The ``mkdir()``, ``rmdir()``, ``unlink()``, and ``rename()`` functions now
+  trigger reporter warnings instead of builtin errors when hitting trouble. This
+  allows Zeek to continue gracefully in case of such problems, particularly
+  during ``zeek_init()``.
 
 - The RDP analyzer now also parses connections that do not contain the cookie
   field, which were previously rejected.

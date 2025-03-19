@@ -2831,10 +2831,17 @@ function to_addr%(ip: string%): addr
 ## Returns: T if the string is a valid IPv4 or IPv6 address format.
 function is_valid_ip%(ip: string%): bool
 	%{
-	char* s = ip->AsString()->Render();
-	auto rval = zeek::IPAddr::IsValid(s);
-	delete [] s;
-	return zeek::val_mgr->Bool(rval);
+	return zeek::val_mgr->Bool(zeek::IPAddr::IsValid(ip->ToStdString().c_str()));
+	%}
+
+## Checks if a string is a valid IPv4 or IPv6 subnet.
+##
+## cidr: the string to check for valid subnet formatting.
+##
+## Returns: T if the string is a valid IPv4 or IPv6 subnet format.
+function is_valid_subnet%(cidr: string%): bool
+	%{
+	return zeek::val_mgr->Bool(zeek::IPPrefix::IsValid(cidr->ToStdString().c_str()));
 	%}
 
 ## Converts a :zeek:type:`string` to a :zeek:type:`subnet`.

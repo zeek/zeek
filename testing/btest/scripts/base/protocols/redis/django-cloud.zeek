@@ -1,8 +1,11 @@
 # @TEST-DOC: Test Redis traffic from a django app using Redis (in the cloud) as a cache
+# @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: zeek -Cr $TRACES/redis/django-cloud.pcap base/protocols/redis %INPUT >output
+# @TEST-EXEC: zeek -b -Cr $TRACES/redis/django-cloud.pcap %INPUT >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff redis.log
+
+@load base/protocols/redis
 
 redef Redis::ports += { 10625/tcp,  };
 

@@ -1,7 +1,10 @@
 # @TEST-DOC: Test Zeek parsing SET commands
+# @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: zeek -Cr $TRACES/redis/set.pcap base/protocols/redis %INPUT >output
+# @TEST-EXEC: zeek -b -Cr $TRACES/redis/set.pcap %INPUT >output
 # @TEST-EXEC: btest-diff output
+
+@load base/protocols/redis
 
 event Redis::set_command(c: connection, is_orig: bool,
     command: Redis::SetCommand)

@@ -1,8 +1,11 @@
 # @TEST-DOC: Test Redis traffic from a django app using Redis as a cache
+# @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: zeek -Cr $TRACES/redis/django-cache.pcap base/protocols/redis %INPUT >output
+# @TEST-EXEC: zeek -b -Cr $TRACES/redis/django-cache.pcap %INPUT >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff redis.log
+
+@load base/protocols/redis
 
 event Redis::set_command(c: connection, is_orig: bool,
     command: Redis::SetCommand)

@@ -20,7 +20,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
             "SQLite reports that it is not threadsafe. Zeek needs a threadsafe version of "
             "SQLite. Aborting";
         Error(res.c_str());
-        return {ReturnCode::INITIALIZATION_FAILED, res};
+        return {ReturnCode::INITIALIZATION_FAILED, std::move(res)};
     }
 
     // Allow connections to same DB to use single data/schema cache. Also
@@ -52,7 +52,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         Error(err.c_str());
         sqlite3_free(errorMsg);
         Close(nullptr);
-        return {ReturnCode::INITIALIZATION_FAILED, err};
+        return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
     }
 
     if ( int res = sqlite3_exec(db, "pragma integrity_check", NULL, NULL, &errorMsg); res != SQLITE_OK ) {
@@ -60,7 +60,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         Error(err.c_str());
         sqlite3_free(errorMsg);
         Close(nullptr);
-        return {ReturnCode::INITIALIZATION_FAILED, err};
+        return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
     }
 
     auto tuning_params = backend_options->GetField<TableVal>("tuning_params")->ToMap();
@@ -74,7 +74,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
             Error(err.c_str());
             sqlite3_free(errorMsg);
             Close(nullptr);
-            return {ReturnCode::INITIALIZATION_FAILED, err};
+            return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
         }
     }
 
@@ -127,9 +127,10 @@ OperationResult SQLite::DoClose(ResultCallback* cb) {
 
         char* errmsg;
         if ( int res = sqlite3_exec(db, "pragma optimize", NULL, NULL, &errmsg); res != SQLITE_OK ) {
+            // We're shutting down so capture the error message here for informational
+            // reasons, but don't do anything else with it.
             op_res = {ReturnCode::DISCONNECTION_FAILED, util::fmt("Sqlite failed to optimize at shutdown: %s", errmsg)};
-            sqlite3_free(&errmsg);
-            // TODO: we're shutting down. does this error matter other than being informational?
+            sqlite3_free(errmsg);
         }
 
         if ( int res = sqlite3_close_v2(db); res != SQLITE_OK ) {

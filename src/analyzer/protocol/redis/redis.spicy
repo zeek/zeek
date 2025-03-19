@@ -1,3 +1,5 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+#
 # Handle any Redis-specific "parsing"
 
 module Redis;
@@ -52,7 +54,7 @@ type Command = struct {
     raw: vector<bytes>;
     command: bytes;
     key: optional<bytes>;
-    value:optional<bytes>;
+    value: optional<bytes>;
     known: optional<KnownCommand>;
 };
 
@@ -126,16 +128,12 @@ public function inline_command(command: RESP::ClientData): Command {
                     }
                 }
 
-                if (it == end(command.inline)) {
+                if (it == end(command.inline))
                     done = True;
-                    # If we're still in quotes, that's weird, but not really too bad.
-                    #if (double_quotes || single_quotes)
-                    #    zeek::weird("unbalanced_quotes", "unbalanced quotes in inline buffer: '" + command.inline.sub(start, it).decode() + "'");
-                }
             }
-        } else {
+        } else
             break;
-        }
+
         tokenized.push_back(command.inline.sub(start, it));
     }
     return parse_command(tokenized);

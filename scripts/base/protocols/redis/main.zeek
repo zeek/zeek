@@ -1,6 +1,8 @@
 @load base/protocols/conn/removal-hooks
 @load base/frameworks/signatures
 
+@load ./spicy-decls
+
 module Redis;
 
 export {
@@ -10,49 +12,6 @@ export {
 	## The ports to register Redis for.
 	const ports = { 6379/tcp } &redef;
 
-	type SetCommand: record {
-		key: string &log;
-		value: string &log;
-		nx: bool;
-		xx: bool;
-		get: bool;
-		ex: count &optional;
-		px: count &optional;
-		exat: count &optional;
-		pxat: count &optional;
-		keep_ttl: bool;
-	};
-
-	type GetCommand: record {
-		key: string &log;
-	};
-
-	type AuthCommand: record {
-		username: string &optional;
-		password: string;
-	};
-
-	type Command: record {
-		## The raw command, exactly as parsed
-		raw: vector of string;
-		## The first element of the command. Some commands are two strings, meaning this
-		## is inaccurate for those cases.
-		command: string &log;
-		## The key, if this command is known to have a key
-		key: string &log &optional;
-		## The value, if this command is known to have a value
-		value: string &log &optional;
-		## The command in an enum if it was known
-		known: Redis::KnownCommand &optional;
-	};
-
-	type ServerData: record {
-		## Was this an error?
-		err: bool &log;
-		## The string response, if it was a simple string or error
-		data: string &log &optional;
-	};
-
 	## Record type containing the column fields of the Redis log.
 	type Info: record {
 		## Timestamp for when the activity happened.
@@ -61,17 +20,14 @@ export {
 		uid: string &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id: conn_id &log;
-		## The Redis command
-		cmd: Command &log &optional;
-		## The response for the command
+		## The Redis command.
+		cmd: Command &log;
+		## The response for the command.
 		response: ServerData &log &optional;
 	};
 
 	## A default logging policy hook for the stream.
 	global log_policy: Log::PolicyHook;
-
-	## Default hook into Redis logging.
-	global log_resp: event(rec: Info);
 
 	global finalize_redis: Conn::RemovalHook;
 
@@ -82,7 +38,7 @@ export {
 		current_request: count &default=0;
 		## Current response in the pending queue.
 		current_response: count &default=0;
-		## Ranges where we do not expect a response
+		## Ranges where we do not expect a response.
 		## Each range is one or two elements, one meaning it's unbounded, two meaning
 		## it begins at one and ends at the second.
 		no_response_ranges: vector of vector of count;
@@ -105,7 +61,7 @@ redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Redis::LOG, [ $columns=Info, $ev=log_resp, $path="redis",
+	Log::create_stream(Redis::LOG, [ $columns=Info, $path="redis",
 	    $policy=log_policy ]);
 
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SPICY_REDIS, ports);
@@ -155,14 +111,14 @@ function set_state(c: connection, is_orig: bool)
 	c$redis = c$redis_state$pending[current];
 	}
 
-# Returns true if the last interval exists and is closed
+## Returns whether the last "no response" interval is not still open.
 function is_last_interval_closed(c: connection): bool
 	{
 	return |c$redis_state$no_response_ranges| == 0
 	    || |c$redis_state$no_response_ranges[|c$redis_state$no_response_ranges| - 1]| != 1;
 	}
 
-event Redis::command(c: connection, is_orig: bool, command: Command)
+event Redis::client_command(c: connection, command: Command)
 	{
 	if ( ! c?$redis_state )
 		make_new_state(c);
@@ -179,6 +135,9 @@ event Redis::command(c: connection, is_orig: bool, command: Command)
 		}
 
 	++c$redis_state$current_request;
+	# CLIENT commands can skip a number of responses and may be used with
+	# pipelining. We need special logic in order to track the request/response
+	# pairs.
 	if ( command?$known && command$known == KnownCommand_CLIENT )
 		{
 		# All 3 CLIENT commands we care about have 3 elements
@@ -227,7 +186,7 @@ function response_num(c: connection): count
 	for ( i in c$redis_state$no_response_ranges )
 		{
 		local range = c$redis_state$no_response_ranges[i];
-		assert | range |  >= 1;
+		assert |range| >= 1;
 		if ( |range| == 1 && resp_num > range[0] )
 			{ } # TODO: This is necessary if not using pipelining
 		if ( |range| == 2 && resp_num >= range[0] && resp_num < range[1] )
@@ -238,7 +197,7 @@ function response_num(c: connection): count
 	return resp_num;
 	}
 
-event Redis::server_data(c: connection, is_orig: bool, data: ServerData)
+event Redis::server_data(c: connection, data: Redis::ServerData)
 	{
 	if ( ! c?$redis_state )
 		make_new_state(c);

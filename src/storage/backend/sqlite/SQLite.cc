@@ -237,12 +237,18 @@ OperationResult SQLite::DoErase(ResultCallback* cb, ValPtr key) {
 void SQLite::DoExpire(double current_network_time) {
     auto stmt = expire_stmt.get();
 
-    if ( auto res = CheckError(sqlite3_bind_double(stmt, 1, current_network_time)); res.code != ReturnCode::SUCCESS ) {
-        sqlite3_reset(stmt);
-        // TODO: do something with the error here?
+    int status = sqlite3_bind_double(stmt, 1, current_network_time);
+    if ( status != SQLITE_OK ) {
+        // TODO: do something with the error?
+    }
+    else {
+        status = sqlite3_step(stmt);
+        if ( status != SQLITE_ROW ) {
+            // TODO: should this return an error somehow? Reporter warning?
+        }
     }
 
-    Step(stmt, false);
+    sqlite3_reset(stmt);
 }
 
 // returns true in case of error

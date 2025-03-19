@@ -1,3 +1,7 @@
+7.1.0-17 | 2025-03-19 10:42:02 -0700
+
+  * Update zeekjs to v0.16.0 (Tim Wojtulewicz, Corelight)
+
 7.1.0-15 | 2025-03-18 17:07:58 -0700
 
   * Harden flaky test based on creating a file (Evan Typanski, Corelight)

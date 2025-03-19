@@ -29,6 +29,27 @@ New Functionality
 
 - The new ``is_valid_subnet()`` function mirrors ``is_valid_ip()``, for subnets.
 
+- A new Storage framework was merged into the Zeek tree. The intention with this framework
+  is to eventually replace the storage functionality that Broker provides, including
+  direct storage via calls such as ``Cluster::create_store`` and ``Broker::put_unique`` as
+  well as storage-backed tables via the ``&backend`` attribute. This is an initial version
+  for testing, and will be expanded upon in the future. The current state of the framework
+  is as follows:
+
+  - A new API was added for storage backend plugins.
+
+  - Script-level functions for opening and closing backends, and insertion, retrieval, and
+    erasure of elements are available.
+
+  - Backends can support both asynchronous mode (using ``when`` statements) and
+    synchronous mode (blocking until the operation copmletes). BIF methods were added
+    under new ``Storage::Async`` and ``Storage::Sync`` modules for these two modes. The
+    modes can be used interchangeably with the same backend handle.
+
+  - SQLite and Redis backends exist in the Zeek tree by default. We are working on a
+    backend for NATS that will be available as an external plugin, but it is not quite
+    ready yet. Both of the existing backends support usage in a cluster environment.
+
 Changed Functionality
 ---------------------
 

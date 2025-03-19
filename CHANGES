@@ -1,3 +1,9 @@
+7.0.5-10 | 2025-03-18 17:59:01 -0700
+
+  * Update mozilla-ca-list.zeek and ct-list.zeek to NSS 3.109 (Tim Wojtulewicz, Corelight)
+
+  * Update core/vntag-in-vlan baseline to remove ip_proto field for 7.0 (Tim Wojtulewicz, Corelight)
+
 7.0.5-7 | 2025-03-18 16:21:31 -0700
 
   * CI: Unconditionally upgrade pip on macOS (Tim Wojtulewicz, Corelight)

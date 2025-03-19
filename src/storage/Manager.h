@@ -77,8 +77,10 @@ public:
      * Runs an expire operation on all open backends. This is called by the expiration
      * timer and shouldn't be called directly otherwise, since it should only happen on a
      * separate thread.
+     *
+     * @param t The network time that the expiration started.
      */
-    void Expire();
+    void Expire(double t);
 
 protected:
     friend class storage::detail::ExpirationTimer;

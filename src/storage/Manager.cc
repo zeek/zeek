@@ -112,8 +112,6 @@ void Manager::Expire(double t) {
     // here ensures exclusive access.
     std::unique_lock<std::mutex> lk(backends_mtx);
 
-    DBG_LOG(DBG_STORAGE, "Expiration running, have %zu backends to check", backends.size());
-
     for ( auto it = backends.begin(); it != backends.end() && ! run_state::terminating; ++it ) {
         if ( (*it)->IsOpen() )
             (*it)->Expire(t);

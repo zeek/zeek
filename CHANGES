@@ -1,3 +1,7 @@
+7.2.0-dev.393 | 2025-03-19 19:56:42 +0100
+
+  * Bump zeekjs to v0.16.0 (Arne Welzel, Corelight)
+
 7.2.0-dev.391 | 2025-03-19 10:10:32 -0700
 
   * Add is_valid_subnet BiF (Yacin Nadji, Corelight)

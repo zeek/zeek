@@ -149,4 +149,18 @@ event zeek_init()
 	# by a person trying to parse such a string, but that's just what's going
 	# to happen; it's on them to deal).
 	print extract_ip_addresses("IPv6:1:2::3:4:5:6:7");
+
+	print "============ test has_valid_octets()";
+	print has_valid_octets(vector("1", "1", "1", "1"));
+	print has_valid_octets(vector("0", "0", "0", "0"));
+	print has_valid_octets(vector("255", "255", "255", "255"));
+	print has_valid_octets(vector("256", "255", "255", "255")); # F
+	print has_valid_octets(vector("65535", "255", "255", "255")); # F
+
+	print "============ test normalize_mac()";
+	print normalize_mac("aabbccddeeff");
+	print normalize_mac("this is aa:bb:cc:dd:ee:ff");
+	print normalize_mac("this is aa bb cc dd ee ff");
+	print normalize_mac("this is 00:11:aa:bb:cc:dd:ee:ff");
+	print normalize_mac("this is nothing mac-related");
 	}

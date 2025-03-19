@@ -60,15 +60,16 @@ const char* fingerprint_md5(const unsigned char* d)
 refine flow SSH_Flow += {
 	function proc_ssh_version_client(msg: SSH_Version_Client): bool
 		%{
-		zeek::BifEvent::enqueue_ssh_client_version(connection()->zeek_analyzer(),
-			connection()->zeek_analyzer()->Conn(),
-			to_stringval(${msg.version}));
+		if ( ssh_client_version )
+			zeek::BifEvent::enqueue_ssh_client_version(connection()->zeek_analyzer(),
+				connection()->zeek_analyzer()->Conn(),
+				to_stringval(${msg.version}));
 		return true;
 		%}
 
 	function proc_ssh_version_server(msg: SSH_Version_Server): bool
 		%{
-		if ( ${msg.version}.length() > 0 )
+		if ( ssh_server_version && ${msg.version}.length() > 0 )
 			{
 			zeek::BifEvent::enqueue_ssh_server_version(connection()->zeek_analyzer(),
 				connection()->zeek_analyzer()->Conn(),

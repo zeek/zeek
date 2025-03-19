@@ -345,5 +345,9 @@ event ssh2_rsa_secret%(c: connection, is_orig: bool%);
 ## possible that it contains data from different protocols; e.g. if
 ## an SSH client connects to a non-SSH-server.
 ##
+## c: The connection.
+##
+## data: The pre-banner data.
+##
 ## .. zeek:see:: ssh_server_version
 event ssh_server_pre_banner_data%(c: connection, data: string%);

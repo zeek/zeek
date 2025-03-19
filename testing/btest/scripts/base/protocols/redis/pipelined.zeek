@@ -1,6 +1,7 @@
 # @TEST-DOC: Test Zeek parsing "pipelined" data responses
+# @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: zeek -Cr $TRACES/redis/pipelining-example.pcap base/protocols/redis %INPUT >output
+# @TEST-EXEC: zeek -b -Cr $TRACES/redis/pipelining-example.pcap %INPUT >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff redis.log
 
@@ -10,3 +11,5 @@
 # be able to skip it and get the responses, which are properly encoded.
 #
 # Also, you can send serialized data this way - that's kinda what the bulk test does.
+
+@load base/protocols/redis

@@ -103,6 +103,8 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterConstant(const ValPtr& vp, int& con
 
         case TYPE_FUNC: gi = make_shared<FuncConstInfo>(this, vp); break;
 
+        case TYPE_TYPE: gi = make_shared<TypeConstInfo>(this, vp); break;
+
         default: reporter->InternalError("bad constant type in CPPCompile::AddConstant"); break;
     }
 

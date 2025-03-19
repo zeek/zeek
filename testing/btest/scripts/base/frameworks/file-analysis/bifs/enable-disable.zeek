@@ -26,5 +26,5 @@ event zeek_init()
 event pe_dos_header(f: fa_file, h: PE::DOSHeader)
 	{
 	print "got pe_dos_header event";
-	exit(0);
+	terminate();
 	}

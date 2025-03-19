@@ -1,3 +1,7 @@
+7.2.0-dev.395 | 2025-03-19 11:58:41 -0700
+
+  * CI: Run btests on macOS under sudo (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.393 | 2025-03-19 19:56:42 +0100
 
   * Bump zeekjs to v0.16.0 (Arne Welzel, Corelight)

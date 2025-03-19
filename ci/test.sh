@@ -7,6 +7,13 @@
 result=0
 BTEST=$(pwd)/auxil/btest/btest
 
+# Due to issues with DNS lookups on macOS, one of the Cirrus support people recommended we
+# run our tests as root. See https://github.com/cirruslabs/cirrus-ci-docs/issues/1302 for
+# more details.
+if [[ "${CIRRUS_OS}" == "darwin" ]]; then
+    BTEST="sudo ${BTEST}"
+fi
+
 if [[ -z "${CIRRUS_CI}" ]]; then
     # Set default values to use in place of env. variables set by Cirrus CI.
     ZEEK_CI_CPUS=1

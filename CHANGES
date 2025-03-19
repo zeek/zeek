@@ -1,3 +1,15 @@
+7.2.0-dev.402 | 2025-03-19 12:47:37 -0700
+
+  * util: Fix terminate_processing() called from non-main thread (Arne Welzel, Corelight)
+
+    The current raise(SIGTERM) sends a signal to the calling thread. If
+    terminate_processing() is called from a non-main thread and that thread
+    was created at InitPostScript() time when SIGTERM is blocked, or has
+    blocked SIGTERM manually, terminate_processing() has no effect.
+
+    Switching to kill(getpid(), SIGTERM) guarantees that a thread that doesn't
+    block the signal (minimally the main thread) will run the handler.
+
 7.2.0-dev.400 | 2025-03-19 12:46:41 -0700
 
   * -O gen-C++ support for pattern-to-pattern comparison (Vern Paxson, Corelight)

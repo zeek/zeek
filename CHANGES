@@ -1,3 +1,9 @@
+7.1.0-15 | 2025-03-18 17:07:58 -0700
+
+  * Harden flaky test based on creating a file (Evan Typanski, Corelight)
+
+    (cherry picked from commit 34f13e7291c6bf468a653b55a4aa0b538ece6343)
+
 7.1.0-14 | 2025-03-18 16:29:36 -0700
 
   * script_opt: Use emit_builtin_error() for Lookup-Conn (Arne Welzel, Corelight)

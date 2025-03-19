@@ -1,3 +1,13 @@
+7.0.6 | 2025-03-20 12:24:03 -0700
+
+  * Release 7.0.6.
+
+7.0.5-14 | 2025-03-19 13:04:31 -0700
+
+  * Update CHANGES, VERSION, and NEWS for 7.0.6 release (Tim Wojtulewicz, Corelight)
+
+  * Update zeekctl submodule to fix a couple btests (Tim Wojtulewicz, Corelight)
+
 7.0.5-12 | 2025-03-19 10:43:12 -0700
 
   * Update zeekjs to v0.16.0 (Tim Wojtulewicz, Corelight)

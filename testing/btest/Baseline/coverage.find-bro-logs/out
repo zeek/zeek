@@ -46,6 +46,7 @@ print_log_path
 quic
 radius
 rdp
+redis
 reporter
 rfb
 signatures

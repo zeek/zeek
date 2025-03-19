@@ -1,3 +1,5 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
 protocol analyzer spicy::Redis over TCP:
     parse originator with RESP::ClientMessages,
     parse responder with RESP::ServerMessages;
@@ -9,11 +11,11 @@ import Zeek_Redis;
 export Redis::KnownCommand;
 export Zeek_Redis::ZeekServerData;
 
-on RESP::ClientData if ( Redis::is_set(self) ) -> event Redis::set_command($conn, $is_orig, Redis::make_set(self.command));
-on RESP::ClientData if ( Redis::is_get(self) ) -> event Redis::get_command($conn, $is_orig, Redis::make_get(self.command));
-on RESP::ClientData if ( Redis::is_auth(self) ) -> event Redis::auth_command($conn, $is_orig, Redis::make_auth(self.command));
+on RESP::ClientData if ( Redis::is_set(self) ) -> event Redis::set_command($conn, Redis::make_set(self.command));
+on RESP::ClientData if ( Redis::is_get(self) ) -> event Redis::get_command($conn, Redis::make_get(self.command).key);
+on RESP::ClientData if ( Redis::is_auth(self) ) -> event Redis::auth_command($conn, Redis::make_auth(self.command));
 
 # All client data is a command
-on RESP::ClientData -> event Redis::command($conn, $is_orig, self.command);
+on RESP::ClientData -> event Redis::client_command($conn, self.command);
 # Server data needs an event to attach request/responses
-on RESP::ServerData -> event Redis::server_data($conn, $is_orig, Zeek_Redis::make_server_data(self));
+on RESP::ServerData -> event Redis::server_data($conn, Zeek_Redis::make_server_data(self));

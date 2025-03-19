@@ -1,7 +1,10 @@
 # @TEST-DOC: Test Zeek parsing pubsub commands
+# @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: zeek -Cr $TRACES/redis/stream.pcap base/protocols/redis %INPUT >output
+# @TEST-EXEC: zeek -b -Cr $TRACES/redis/stream.pcap %INPUT >output
 # @TEST-EXEC: btest-diff redis.log
 
 # Streams like with XRANGE return arrays of bulk strings. We shouldn't count the
 # response as commands.
+
+@load base/protocols/redis

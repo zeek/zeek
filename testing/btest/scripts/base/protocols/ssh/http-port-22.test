@@ -1,0 +1,7 @@
+# Validate that a text-based protocol pn port 22 does not generate a ssh logfile.
+
+# @TEST-EXEC: zeek -r $TRACES/http/http-single-conn-22.pcap %INPUT
+# @TEST-EXEC: test ! -f ssh.log
+# @TEST-EXEC: btest-diff http.log
+# @TEST-EXEC: btest-diff conn.log
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-timestamps" btest-diff analyzer.log

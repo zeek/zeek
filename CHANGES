@@ -1,3 +1,20 @@
+7.2.0-dev.387 | 2025-03-19 15:28:08 +0000
+
+  * SSH: make banner parsing more robust (Johanna Amann, Corelight)
+
+    This change revamps SSH banner parsing.  The previous behavior was both
+    a bit too strict in some regards, and too permissive in other.
+
+    Specifically, clients are now required to send a line starting with
+    "SSH-" as the first line.  This is in line with the RFC, as well with
+    observed behavior. This also prevents the creation of `ssh.log` for
+    non-SSH traffic on port 22.
+
+    For the server side, we now accept text before the SSH banner. This
+    previously led to a protocol violation but is allowed by the spec.
+
+    New tests are added to cover these cases.
+
 7.2.0-dev.382 | 2025-03-18 11:52:03 -0700
 
   * Add analyzer registration from VLAN to VNTAG (Tim Wojtulewicz, Corelight)

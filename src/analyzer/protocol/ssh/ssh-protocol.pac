@@ -20,16 +20,32 @@ proc: bool = $context.connection.inc_encrypted_byte_count_in_current_segment();
 };
 
 type SSH_PDU(is_orig: bool) = case $context.connection.get_state(is_orig) of {
-	VERSION_EXCHANGE -> version   : SSH_Version(is_orig);
+	VERSION_EXCHANGE -> version   : SSH_Version_Switch(is_orig);
 	ENCRYPTED        -> encrypted : EncryptedByte(is_orig);
 	default          -> kex       : SSH_Key_Exchange(is_orig);
 } &byteorder=bigendian;
 
-type SSH_Version(is_orig: bool) = record {
-	version : bytestring &oneline;
+type SSH_Version_Switch(is_orig: bool) = case is_orig of {
+	true -> client_version : SSH_Version_Client;
+	false -> server_version: SSH_Version_Server;
+};
+
+# SSH servers can have banners before their SSH version. Which... fun.
+type SSH_Version_Server = record {
+	version: RE/(SSH-.*)?/;
+	# only UTF-8 data. This doesn't catch all bad cases, but some
+	nonversiondata: RE/([^[\xC0-\xC1]|[\xF5-\xFF]])*/;
 } &let {
-	update_state   : bool = $context.connection.update_state(KEX_INIT, is_orig);
-	update_version : bool = $context.connection.update_version(version, is_orig);
+	update_state   : bool = $context.connection.update_state(KEX_INIT, false) &if(sizeof(version) > 0);
+	update_version : bool = $context.connection.update_version(version, false) &if(sizeof(version) > 0);
+} &oneline;
+
+# SSH clients _always_ have to send a line starting with SSH- first.
+type SSH_Version_Client = record {
+	version : RE/SSH-.*/ &oneline;
+} &let {
+	update_state   : bool = $context.connection.update_state(KEX_INIT, true);
+	update_version : bool = $context.connection.update_version(version, true);
 };
 
 type SSH_Key_Exchange(is_orig: bool) = record {

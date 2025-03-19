@@ -12,7 +12,7 @@
 ##    ssh_capabilities ssh2_server_host_key ssh1_server_host_key
 ##    ssh_server_host_key ssh_encrypted_packet ssh2_dh_server_params
 ##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
-##    ssh2_gss_init ssh2_rsa_secret
+##    ssh2_gss_init ssh2_rsa_secret ssh_server_pre_banner_data
 event ssh_server_version%(c: connection, version: string%);
 
 ## An :abbr:`SSH (Secure Shell)` Protocol Version Exchange message
@@ -336,3 +336,18 @@ event ssh2_gss_init%(c: connection, is_orig: bool%);
 ##    ssh2_gss_error ssh2_ecc_key ssh2_ecc_init ssh2_dh_gex_init
 ##    ssh2_gss_init ssh2_rsa_secret
 event ssh2_rsa_secret%(c: connection, is_orig: bool%);
+
+## SSH servers can send textual data to the client before sending
+## a banner. The primary use case of this are error messages of TCP
+## wrappers.
+##
+## As this event happens before the SSH banner is exchanged, it is
+## possible that it contains data from different protocols; e.g. if
+## an SSH client connects to a non-SSH-server.
+##
+## c: The connection.
+##
+## data: The pre-banner data.
+##
+## .. zeek:see:: ssh_server_version
+event ssh_server_pre_banner_data%(c: connection, data: string%);

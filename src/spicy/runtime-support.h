@@ -14,10 +14,11 @@
 #include <tuple>
 #include <utility>
 
-#include <hilti/rt/deferred-expression.h>
 #include <hilti/rt/exception.h>
 #include <hilti/rt/extension-points.h>
 #include <hilti/rt/fmt.h>
+#include <hilti/rt/profiler.h>
+#include <hilti/rt/type-info.h>
 #include <hilti/rt/types/all.h>
 #include <hilti/rt/util.h>
 
@@ -78,6 +79,8 @@ public:
         : TypeMismatch(hilti::rt::fmt("Event parameter mismatch, %s", msg)) {}
     ParameterMismatch(std::string_view have, const TypePtr& want, std::string_view location = "")
         : ParameterMismatch(_fmt(have, want)) {}
+    ParameterMismatch(const hilti::rt::TypeInfo& have, const TypePtr& want, std::string_view location = "")
+        : ParameterMismatch(_fmt(have.display, want)) {}
 
 private:
     static std::string _fmt(const std::string_view& have, const TypePtr& want) {
@@ -169,7 +172,8 @@ extern TypePtr create_base_type(ZeekTypeTag tag);
 
 extern TypePtr create_enum_type(
     const std::string& ns, const std::string& id,
-    const hilti::rt::Vector<std::tuple<std::string, hilti::rt::integer::safe<int64_t>>>& labels);
+    const hilti::rt::Set<std::tuple<std::optional<std::string>, std::optional<hilti::rt::integer::safe<int64_t>>>>&
+        labels);
 
 struct RecordField {
     std::string id;   /**< name of record field */
@@ -279,7 +283,7 @@ std::string uid();
 /**
  * Returns the current connection's ID tuple.
  */
-std::tuple<hilti::rt::Address, hilti::rt::Port, hilti::rt::Address, hilti::rt::Port> conn_id();
+hilti::rt::Tuple<hilti::rt::Address, hilti::rt::Port, hilti::rt::Address, hilti::rt::Port> conn_id();
 
 /** Instructs to Zeek to flip the directionality of the current connecction. */
 void flip_roles();
@@ -488,39 +492,37 @@ void forward_packet(const hilti::rt::integer::safe<uint32_t>& identifier);
 hilti::rt::Time network_time();
 
 // Forward-declare to_val() functions.
-template<typename T, typename std::enable_if_t<hilti::rt::is_tuple<T>::value>* = nullptr>
-ValPtr to_val(const T& t, const TypePtr& target);
 template<typename... Ts>
-inline ValPtr to_val(const hilti::rt::Bitfield<Ts...>& v, const TypePtr& target);
+ValPtr to_val(const hilti::rt::Tuple<Ts...>& t, const hilti::rt::TypeInfo* ti, const TypePtr& target);
+template<typename... Ts>
+inline ValPtr to_val(const hilti::rt::Bitfield<Ts...>& v, const hilti::rt::TypeInfo* ti, const TypePtr& target);
 template<typename T, typename std::enable_if_t<std::is_base_of<::hilti::rt::trait::isStruct, T>::value>* = nullptr>
-ValPtr to_val(const T& t, const TypePtr& target);
+ValPtr to_val(const T& t, const hilti::rt::TypeInfo* ti, const TypePtr& target);
 template<typename T, typename std::enable_if_t<std::is_enum<typename T::Value>::value>* = nullptr>
-ValPtr to_val(const T& t, const TypePtr& target);
+ValPtr to_val(const T& t, const hilti::rt::TypeInfo* ti, const TypePtr& target);
 template<typename T, typename std::enable_if_t<std::is_enum<T>::value>* = nullptr>
-ValPtr to_val(const T& t, const TypePtr& target);
+ValPtr to_val(const T& t, const hilti::rt::TypeInfo* ti, const TypePtr& target);
 template<typename K, typename V>
-ValPtr to_val(const hilti::rt::Map<K, V>& s, const TypePtr& target);
+ValPtr to_val(const hilti::rt::Map<K, V>& s, const hilti::rt::TypeInfo* ti, const TypePtr& target);
 template<typename T>
-ValPtr to_val(const hilti::rt::Set<T>& s, const TypePtr& target);
+ValPtr to_val(const hilti::rt::Set<T>& s, const hilti::rt::TypeInfo* ti, const TypePtr& target);
 template<typename T, typename Allocator>
-ValPtr to_val(const hilti::rt::Vector<T, Allocator>& v, const TypePtr& target);
+ValPtr to_val(const hilti::rt::Vector<T, Allocator>& v, const hilti::rt::TypeInfo* ti, const TypePtr& target);
 template<typename T>
-ValPtr to_val(const std::optional<T>& t, const TypePtr& target);
-template<typename T, typename E>
-ValPtr to_val(const hilti::rt::DeferredExpression<T, E>& t, const TypePtr& target);
+ValPtr to_val(const std::optional<T>& t, const hilti::rt::TypeInfo* ti, const TypePtr& target);
 template<typename T>
-ValPtr to_val(hilti::rt::integer::safe<T> i, const TypePtr& target);
+ValPtr to_val(hilti::rt::integer::safe<T> i, const hilti::rt::TypeInfo* ti, const TypePtr& target);
 template<typename T>
-ValPtr to_val(const hilti::rt::ValueReference<T>& t, const TypePtr& target);
+ValPtr to_val(const hilti::rt::ValueReference<T>& t, const hilti::rt::TypeInfo* ti, const TypePtr& target);
 
-inline ValPtr to_val(const hilti::rt::Bool& b, const TypePtr& target);
-inline ValPtr to_val(const hilti::rt::Address& d, const TypePtr& target);
-inline ValPtr to_val(const hilti::rt::Bytes& b, const TypePtr& target);
-inline ValPtr to_val(const hilti::rt::Interval& t, const TypePtr& target);
-inline ValPtr to_val(const hilti::rt::Port& d, const TypePtr& target);
-inline ValPtr to_val(const hilti::rt::Time& t, const TypePtr& target);
-inline ValPtr to_val(const std::string& s, const TypePtr& target);
-inline ValPtr to_val(double r, const TypePtr& target);
+inline ValPtr to_val(const hilti::rt::Bool& b, const hilti::rt::TypeInfo* ti, const TypePtr& target);
+inline ValPtr to_val(const hilti::rt::Address& d, const hilti::rt::TypeInfo* ti, const TypePtr& target);
+inline ValPtr to_val(const hilti::rt::Bytes& b, const hilti::rt::TypeInfo* ti, const TypePtr& target);
+inline ValPtr to_val(const hilti::rt::Interval& t, const hilti::rt::TypeInfo* ti, const TypePtr& target);
+inline ValPtr to_val(const hilti::rt::Port& d, const hilti::rt::TypeInfo* ti, const TypePtr& target);
+inline ValPtr to_val(const hilti::rt::Time& t, const hilti::rt::TypeInfo* ti, const TypePtr& target);
+inline ValPtr to_val(const std::string& s, const hilti::rt::TypeInfo* ti, const TypePtr& target);
+inline ValPtr to_val(double r, const hilti::rt::TypeInfo* ti, const TypePtr& target);
 
 /**
  * Converts a Spicy-side optional value to a Zeek value. This assumes the
@@ -528,33 +530,18 @@ inline ValPtr to_val(double r, const TypePtr& target);
  * returned with ref count +1.
  */
 template<typename T>
-inline ValPtr to_val(const std::optional<T>& t, const TypePtr& target) {
+inline ValPtr to_val(const std::optional<T>& t, const hilti::rt::TypeInfo* ti, const TypePtr& target) {
     if ( t.has_value() )
-        return to_val(hilti::rt::optional::value(t), target);
+        return to_val(hilti::rt::optional::value(t), nullptr, target);
 
     return nullptr;
-}
-
-/**
- * Converts a Spicy-side DeferredExpression<T,E> value to a Zeek value. Such
- * result values are returned by the ``.?`` operator. If the result is not
- * set, this will convert into nullptr (which the tuple-to-record to_val()
- * picks up on).
- */
-template<typename T, typename E>
-inline ValPtr to_val(const hilti::rt::DeferredExpression<T, E>& t, const TypePtr& target) {
-    try {
-        return to_val(t(), target);
-    } catch ( const hilti::rt::AttributeNotSet& ) {
-        return nullptr;
-    }
 }
 
 /**
  * Converts a Spicy-side string to a Zeek value. The result is returned with
  * ref count +1.
  */
-inline ValPtr to_val(const std::string& s, const TypePtr& target) {
+inline ValPtr to_val(const std::string& s, const hilti::rt::TypeInfo* ti, const TypePtr& target) {
     if ( target->Tag() != TYPE_STRING )
         throw ParameterMismatch("string", target);
 
@@ -565,7 +552,7 @@ inline ValPtr to_val(const std::string& s, const TypePtr& target) {
  * Converts a Spicy-side bytes instance to a Zeek value. The result is returned with
  * ref count +1.
  */
-inline ValPtr to_val(const hilti::rt::Bytes& b, const TypePtr& target) {
+inline ValPtr to_val(const hilti::rt::Bytes& b, const hilti::rt::TypeInfo* ti, const TypePtr& target) {
     if ( target->Tag() != TYPE_STRING )
         throw ParameterMismatch("string", target);
 
@@ -577,7 +564,7 @@ inline ValPtr to_val(const hilti::rt::Bytes& b, const TypePtr& target) {
  * returned with ref count +1.
  */
 template<typename T>
-inline ValPtr to_val(hilti::rt::integer::safe<T> i, const TypePtr& target) {
+inline ValPtr to_val(hilti::rt::integer::safe<T> i, const hilti::rt::TypeInfo* ti, const TypePtr& target) {
     ValPtr v = nullptr;
     if constexpr ( std::is_unsigned<T>::value ) {
         if ( target->Tag() == TYPE_COUNT )
@@ -604,9 +591,9 @@ inline ValPtr to_val(hilti::rt::integer::safe<T> i, const TypePtr& target) {
 }
 
 template<typename T>
-ValPtr to_val(const hilti::rt::ValueReference<T>& t, const TypePtr& target) {
+ValPtr to_val(const hilti::rt::ValueReference<T>& t, const hilti::rt::TypeInfo* ti, const TypePtr& target) {
     if ( auto* x = t.get() )
-        return to_val(*x, target);
+        return to_val(*x, nullptr, target);
 
     return nullptr;
 }
@@ -615,7 +602,7 @@ ValPtr to_val(const hilti::rt::ValueReference<T>& t, const TypePtr& target) {
  * Converts a Spicy-side signed bool to a Zeek value. The result is
  * returned with ref count +1.
  */
-inline ValPtr to_val(const hilti::rt::Bool& b, const TypePtr& target) {
+inline ValPtr to_val(const hilti::rt::Bool& b, const hilti::rt::TypeInfo* ti, const TypePtr& target) {
     if ( target->Tag() != TYPE_BOOL )
         throw ParameterMismatch("bool", target);
 
@@ -626,7 +613,7 @@ inline ValPtr to_val(const hilti::rt::Bool& b, const TypePtr& target) {
  * Converts a Spicy-side real to a Zeek value. The result is returned with
  * ref count +1.
  */
-inline ValPtr to_val(double r, const TypePtr& target) {
+inline ValPtr to_val(double r, const hilti::rt::TypeInfo* ti, const TypePtr& target) {
     if ( target->Tag() != TYPE_DOUBLE )
         throw ParameterMismatch("double", target);
 
@@ -637,7 +624,7 @@ inline ValPtr to_val(double r, const TypePtr& target) {
  * Converts a Spicy-side address to a Zeek value. The result is returned with
  * ref count +1.
  */
-inline ValPtr to_val(const hilti::rt::Address& d, const TypePtr& target) {
+inline ValPtr to_val(const hilti::rt::Address& d, const hilti::rt::TypeInfo* ti, const TypePtr& target) {
     if ( target->Tag() != TYPE_ADDR )
         throw ParameterMismatch("addr", target);
 
@@ -654,7 +641,7 @@ inline ValPtr to_val(const hilti::rt::Address& d, const TypePtr& target) {
  * Converts a Spicy-side address to a Zeek value. The result is returned with
  * ref count +1.
  */
-inline ValPtr to_val(const hilti::rt::Port& p, const TypePtr& target) {
+inline ValPtr to_val(const hilti::rt::Port& p, const hilti::rt::TypeInfo* ti, const TypePtr& target) {
     if ( target->Tag() != TYPE_PORT )
         throw ParameterMismatch("port", target);
 
@@ -673,7 +660,7 @@ inline ValPtr to_val(const hilti::rt::Port& p, const TypePtr& target) {
  * Converts a Spicy-side time to a Zeek value. The result is returned with
  * ref count +1.
  */
-inline ValPtr to_val(const hilti::rt::Interval& i, const TypePtr& target) {
+inline ValPtr to_val(const hilti::rt::Interval& i, const hilti::rt::TypeInfo* ti, const TypePtr& target) {
     if ( target->Tag() != TYPE_INTERVAL )
         throw ParameterMismatch("interval", target);
 
@@ -684,7 +671,7 @@ inline ValPtr to_val(const hilti::rt::Interval& i, const TypePtr& target) {
  * Converts a Spicy-side time to a Zeek value. The result is returned with
  * ref count +1.
  */
-inline ValPtr to_val(const hilti::rt::Time& t, const TypePtr& target) {
+inline ValPtr to_val(const hilti::rt::Time& t, const hilti::rt::TypeInfo* ti, const TypePtr& target) {
     if ( target->Tag() != TYPE_TIME )
         throw ParameterMismatch("time", target);
 
@@ -696,14 +683,14 @@ inline ValPtr to_val(const hilti::rt::Time& t, const TypePtr& target) {
  * ref count +1.
  */
 template<typename T, typename Allocator>
-inline ValPtr to_val(const hilti::rt::Vector<T, Allocator>& v, const TypePtr& target) {
+inline ValPtr to_val(const hilti::rt::Vector<T, Allocator>& v, const hilti::rt::TypeInfo* ti, const TypePtr& target) {
     if ( target->Tag() != TYPE_VECTOR && target->Tag() != TYPE_LIST )
         throw ParameterMismatch("expected vector or list", target);
 
     auto vt = cast_intrusive<VectorType>(target);
     auto zv = make_intrusive<VectorVal>(vt);
     for ( const auto& i : v )
-        zv->Assign(zv->Size(), to_val(i, vt->Yield()));
+        zv->Assign(zv->Size(), to_val(i, nullptr, vt->Yield()));
 
     return std::move(zv);
 }
@@ -713,10 +700,7 @@ inline ValPtr to_val(const hilti::rt::Vector<T, Allocator>& v, const TypePtr& ta
  * ref count +1.
  */
 template<typename K, typename V>
-inline ValPtr to_val(const hilti::rt::Map<K, V>& m, const TypePtr& target) {
-    if constexpr ( hilti::rt::is_tuple<K>::value )
-        throw ParameterMismatch("internal error: sets with tuples not yet supported in to_val()");
-
+inline ValPtr to_val(const hilti::rt::Map<K, V>& m, const hilti::rt::TypeInfo* ti, const TypePtr& target) {
     if ( target->Tag() != TYPE_TABLE )
         throw ParameterMismatch("map", target);
 
@@ -730,8 +714,8 @@ inline ValPtr to_val(const hilti::rt::Map<K, V>& m, const TypePtr& target) {
     auto zv = make_intrusive<TableVal>(tt);
 
     for ( const auto& i : m ) {
-        auto k = to_val(i.first, tt->GetIndexTypes()[0]);
-        auto v = to_val(i.second, tt->Yield());
+        auto k = to_val(i.first, nullptr, tt->GetIndexTypes()[0]);
+        auto v = to_val(i.second, nullptr, tt->Yield());
         zv->Assign(std::move(k), std::move(v));
     }
 
@@ -743,7 +727,7 @@ inline ValPtr to_val(const hilti::rt::Map<K, V>& m, const TypePtr& target) {
  * ref count +1.
  */
 template<typename T>
-inline ValPtr to_val(const hilti::rt::Set<T>& s, const TypePtr& target) {
+inline ValPtr to_val(const hilti::rt::Set<T>& s, const hilti::rt::TypeInfo* ti, const TypePtr& target) {
     if ( target->Tag() != TYPE_TABLE )
         throw ParameterMismatch("set", target);
 
@@ -754,15 +738,11 @@ inline ValPtr to_val(const hilti::rt::Set<T>& s, const TypePtr& target) {
     auto zv = make_intrusive<TableVal>(tt);
 
     for ( const auto& i : s ) {
-        if constexpr ( hilti::rt::is_tuple<T>::value )
-            throw ParameterMismatch("internal error: sets with tuples not yet supported in to_val()");
-        else {
-            if ( tt->GetIndexTypes().size() != 1 )
-                throw ParameterMismatch("set with non-tuple elements", target);
+        if ( tt->GetIndexTypes().size() != 1 )
+            throw ParameterMismatch("set with non-tuple elements", target);
 
-            auto idx = to_val(i, tt->GetIndexTypes()[0]);
-            zv->Assign(std::move(idx), nullptr);
-        }
+        auto idx = to_val(i, nullptr, tt->GetIndexTypes()[0]);
+        zv->Assign(std::move(idx), nullptr);
     }
 
     return zv;
@@ -820,18 +800,11 @@ inline void set_record_field(RecordVal* rval, const IntrusivePtr<RecordType>& rt
         if ( x.has_value() )
             set_record_field(rval, rtype, idx, *x);
     }
-    else if constexpr ( is_instance<T, hilti::rt::DeferredExpression>::value ) {
-        try {
-            set_record_field(rval, rtype, idx, x());
-        } catch ( const hilti::rt::AttributeNotSet& ) {
-            // leave unset
-        }
-    }
     else {
         ValPtr v = nullptr;
 
         // This may return a nullptr in cases where the field is to be left unset.
-        v = to_val(x, rtype->GetFieldType(idx));
+        v = to_val(x, nullptr, rtype->GetFieldType(idx));
 
         if ( v )
             rval->Assign(idx, v);
@@ -848,14 +821,14 @@ inline void set_record_field(RecordVal* rval, const IntrusivePtr<RecordType>& rt
  * Converts a Spicy-side tuple to a Zeek record value. The result is returned
  * with ref count +1.
  */
-template<typename T, typename std::enable_if_t<hilti::rt::is_tuple<T>::value>*>
-inline ValPtr to_val(const T& t, const TypePtr& target) {
+template<typename... Ts>
+ValPtr to_val(const hilti::rt::Tuple<Ts...>& t, const hilti::rt::TypeInfo* ti, const TypePtr& target) {
     if ( target->Tag() != TYPE_RECORD )
         throw ParameterMismatch("tuple", target);
 
     auto rtype = cast_intrusive<RecordType>(target);
 
-    if ( std::tuple_size<T>::value != rtype->NumFields() )
+    if ( sizeof...(Ts) != rtype->NumFields() )
         throw ParameterMismatch("tuple", target);
 
     auto rval = make_intrusive<RecordVal>(rtype);
@@ -870,7 +843,7 @@ inline ValPtr to_val(const T& t, const TypePtr& target) {
  * with ref count +1.
  */
 template<typename... Ts>
-inline ValPtr to_val(const hilti::rt::Bitfield<Ts...>& v, const TypePtr& target) {
+inline ValPtr to_val(const hilti::rt::Bitfield<Ts...>& v, const hilti::rt::TypeInfo* ti, const TypePtr& target) {
     using Bitfield = hilti::rt::Bitfield<Ts...>;
 
     if ( target->Tag() != TYPE_RECORD )
@@ -903,7 +876,7 @@ constexpr bool is_optional = is_optional_impl<std::remove_cv_t<std::remove_refer
  * with a ref count +1.
  */
 template<typename T, typename std::enable_if_t<std::is_base_of<::hilti::rt::trait::isStruct, T>::value>*>
-inline ValPtr to_val(const T& t, const TypePtr& target) {
+inline ValPtr to_val(const T& t, const hilti::rt::TypeInfo* ti, const TypePtr& target) {
     if ( target->Tag() != TYPE_RECORD )
         throw ParameterMismatch("struct", target);
 
@@ -958,7 +931,7 @@ inline ValPtr to_val(const T& t, const TypePtr& target) {
 }
 
 /** Maps HILTI's `Protocol` enum to Zeek's `transport_proto` enum. */
-inline ValPtr to_val_for_transport_proto(int64_t val, const TypePtr& target) {
+inline ValPtr to_val_for_transport_proto(int64_t val, const hilti::rt::TypeInfo* ti, const TypePtr& target) {
     switch ( val ) {
         case hilti::rt::Protocol::TCP: return id::transport_proto->GetEnumVal(::TransportProto::TRANSPORT_TCP);
         case hilti::rt::Protocol::UDP: return id::transport_proto->GetEnumVal(::TransportProto::TRANSPORT_UDP);
@@ -975,7 +948,7 @@ inline ValPtr to_val_for_transport_proto(int64_t val, const TypePtr& target) {
  * with ref count +1.
  */
 template<typename T, typename std::enable_if_t<std::is_enum<typename T::Value>::value>*>
-inline ValPtr to_val(const T& t, const TypePtr& target) {
+inline ValPtr to_val(const T& t, const hilti::rt::TypeInfo* ti, const TypePtr& target) {
     if ( target->Tag() != TYPE_ENUM )
         throw ParameterMismatch("enum", target);
 
@@ -989,7 +962,7 @@ inline ValPtr to_val(const T& t, const TypePtr& target) {
         if ( ! std::is_same_v<T, hilti::rt::Protocol> )
             throw ParameterMismatch(hilti::rt::demangle(typeid(t).name()), target);
 
-        return to_val_for_transport_proto(it, target);
+        return to_val_for_transport_proto(it, nullptr, target);
     }
 
     // Zeek's enum can't be negative, so we swap in max_int for our Undef (-1).
@@ -1243,28 +1216,28 @@ inline hilti::rt::Bool record_has_field(const std::string& name, const std::stri
 
 /** Checks if a Zeek set contains a given element. Throws on errors. */
 template<typename T>
-::hilti::rt::Bool set_contains(const ValSetPtr& v, const T& key) {
+::hilti::rt::Bool set_contains(const ValSetPtr& v, const T& key, const hilti::rt::TypeInfo* ktype) {
     auto index = v->GetType()->AsTableType()->GetIndexTypes()[0];
-    return (v->Find(to_val(key, index)) != nullptr);
+    return (v->Find(to_val(key, ktype, index)) != nullptr);
 }
 
 /** Checks if a Zeek set contains a given element. Throws on errors. */
 template<typename T>
-::hilti::rt::Bool set_contains(const std::string& name, const T& key) {
-    return set_contains(get_set(name), key);
+::hilti::rt::Bool set_contains(const std::string& name, const T& key, const hilti::rt::TypeInfo* ktype) {
+    return set_contains(get_set(name), key, ktype);
 }
 
 /** Checks if a Zeek table contains a given element. Throws on errors. */
 template<typename T>
-::hilti::rt::Bool table_contains(const ValTablePtr& v, const T& key) {
+::hilti::rt::Bool table_contains(const ValTablePtr& v, const T& key, const hilti::rt::TypeInfo* ktype) {
     auto index = v->GetType()->AsTableType()->GetIndexTypes()[0];
-    return (v->Find(to_val(key, index)) != nullptr);
+    return (v->Find(to_val(key, ktype, index)) != nullptr);
 }
 
 /** Check if a Zeek table contains a given element. Throws on errors. */
 template<typename T>
-::hilti::rt::Bool table_contains(const std::string& name, const T& key) {
-    return table_contains(get_table(name), key);
+::hilti::rt::Bool table_contains(const std::string& name, const T& key, const hilti::rt::TypeInfo* ktype) {
+    return table_contains(get_table(name), key, ktype);
 }
 
 /**
@@ -1272,9 +1245,10 @@ template<typename T>
  * not exist. Throws on other errors.
  */
 template<typename T>
-std::optional<::zeek::ValPtr> table_lookup(const zeek::spicy::rt::ValTablePtr& v, const T& key) {
+std::optional<::zeek::ValPtr> table_lookup(const zeek::spicy::rt::ValTablePtr& v, const T& key,
+                                           const hilti::rt::TypeInfo* ktype) {
     auto index = v->GetType()->AsTableType()->GetIndexTypes()[0];
-    if ( auto x = v->FindOrDefault(to_val(key, index)) )
+    if ( auto x = v->FindOrDefault(to_val(key, ktype, index)) )
         return x;
     else
         return {};
@@ -1285,8 +1259,8 @@ std::optional<::zeek::ValPtr> table_lookup(const zeek::spicy::rt::ValTablePtr& v
  * not exist. Throws on other errors.
  */
 template<typename T>
-std::optional<::zeek::ValPtr> table_lookup(const std::string& name, const T& key) {
-    return table_lookup(get_table(name), key);
+std::optional<::zeek::ValPtr> table_lookup(const std::string& name, const T& key, const hilti::rt::TypeInfo* ktype) {
+    return table_lookup(get_table(name), key, ktype);
 }
 
 /** Returns a Zeek vector element. Throws on errors. */

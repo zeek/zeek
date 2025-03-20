@@ -5,5 +5,5 @@
 [i=4, s=<uninitialized>]
 [zeek] [SPICY_SSH/3/orig] -> event ssh::banner((1, b"OpenSSH_3.8.1p1"))
 [zeek] [SPICY_SSH/3/orig] -> event ssh::banner((2, b"OpenSSH_3.8.1p1"))
-[zeek] [SPICY_SSH/3/orig] -> event ssh::banner((3, b""))
+[zeek] [SPICY_SSH/3/orig] -> event ssh::banner((3, (not set)))
 [zeek] [SPICY_SSH/3/orig] -> event ssh::banner((4, Null))

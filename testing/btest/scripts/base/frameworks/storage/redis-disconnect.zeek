@@ -14,9 +14,6 @@
 
 redef exit_only_after_terminate = T;
 
-# Create a typename here that can be passed down into open_backend()
-type str: string;
-
 event Storage::backend_opened(tag: string, config: any) {
 	print "Storage::backend_opened", tag, config;
 }
@@ -35,7 +32,7 @@ event zeek_init()
 	local key = "key1234";
 	local value = "value1234";
 
-	local open_res = Storage::Sync::open_backend(Storage::REDIS, opts, str, str);
+	local open_res = Storage::Sync::open_backend(Storage::REDIS, opts, string, string);
 	print "open_result", open_res;
 
 	# Kill the redis server so the backend will disconnect and fire the backend_lost event.

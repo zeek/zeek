@@ -9,9 +9,6 @@
 redef Storage::expire_interval = 2 secs;
 redef exit_only_after_terminate = T;
 
-# Create a typename here that can be passed down into get().
-type str: string;
-
 global b: opaque of Storage::BackendHandle;
 global key1: string = "key1234";
 global value1: string = "value1234";
@@ -36,7 +33,7 @@ event setup_test()
 	local opts : Storage::BackendOptions;
 	opts$sqlite = [$database_path = "storage-test.sqlite", $table_name = "testing"];
 
-	local open_res = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
+	local open_res = Storage::Sync::open_backend(Storage::SQLITE, opts, string, string);
 	print "open result", open_res;
 
 	b = open_res$value;

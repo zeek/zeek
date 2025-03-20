@@ -15,9 +15,6 @@
 
 redef exit_only_after_terminate = T;
 
-# Create a typename here that can be passed down into open_backend()
-type str: string;
-
 event zeek_init()
 	{
 	local opts: Storage::BackendOptions;
@@ -28,7 +25,7 @@ event zeek_init()
 	local value = "value5678";
 
 	when [opts, key, value] ( local open_res = Storage::Async::open_backend(
-	    Storage::REDIS, opts, str, str) )
+	    Storage::REDIS, opts, string, string) )
 		{
 		print "open result", open_res;
 		local b = open_res$value;

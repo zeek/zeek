@@ -7,9 +7,6 @@
 @load base/frameworks/storage/sync
 @load policy/frameworks/storage/backend/sqlite
 
-# Create a typename here that can be passed down into get().
-type str: string;
-
 event zeek_init() {
 	local opts : Storage::BackendOptions;
 	opts$sqlite = [$database_path = "storage-test.sqlite", $table_name = "testing"];
@@ -17,7 +14,7 @@ event zeek_init() {
 	local key = "key1234";
 	local value = "value7890";
 
-	local open_res = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
+	local open_res = Storage::Sync::open_backend(Storage::SQLITE, opts, string, string);
 	print "open result", open_res;
 	local b = open_res$value;
 

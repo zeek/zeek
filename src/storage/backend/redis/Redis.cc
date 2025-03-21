@@ -60,7 +60,7 @@ void redisZADD(redisAsyncContext* ctx, void* reply, void* privdata) {
     auto t = Tracer("generic");
     auto backend = static_cast<zeek::storage::backend::redis::Redis*>(ctx->data);
 
-    // We don't care about the reply from the ZADD, m1ostly because blocking to poll
+    // We don't care about the reply from the ZADD, mostly because blocking to poll
     // for it adds a bunch of complication to DoPut() with having to handle the
     // reply from SET first.
     backend->HandleGeneric(nullptr);
@@ -415,9 +415,12 @@ void Redis::HandlePutResult(redisReply* reply, ResultCallback* callback) {
     if ( ! connected )
         res = {ReturnCode::NOT_CONNECTED};
     else if ( ! reply )
-        res = {ReturnCode::OPERATION_FAILED, "Async put operation returned null reply"};
-    else if ( reply && reply->type == REDIS_REPLY_ERROR )
-        res = {ReturnCode::OPERATION_FAILED, util::fmt("Async put operation failed: %s", reply->str)};
+        res = {ReturnCode::OPERATION_FAILED, "put operation returned null reply"};
+    else if ( reply->type == REDIS_REPLY_NIL )
+        // For a SET operation, a NIL reply indicates a conflict with the NX flag.
+        res = {ReturnCode::KEY_EXISTS};
+    else if ( reply->type == REDIS_REPLY_ERROR )
+        res = ParseReplyError("put", reply->str);
 
     freeReplyObject(reply);
     CompleteCallback(callback, res);
@@ -429,8 +432,19 @@ void Redis::HandleGetResult(redisReply* reply, ResultCallback* callback) {
     OperationResult res;
     if ( ! connected )
         res = {ReturnCode::NOT_CONNECTED};
-    else
-        res = ParseGetReply(reply);
+    if ( ! reply )
+        res = {ReturnCode::OPERATION_FAILED, "get operation returned null reply"};
+    else if ( reply->type == REDIS_REPLY_NIL )
+        res = {ReturnCode::KEY_NOT_FOUND};
+    else if ( reply->type == REDIS_REPLY_ERROR )
+        res = ParseReplyError("get", reply->str);
+    else {
+        auto val = zeek::detail::ValFromJSON(reply->str, val_type, Func::nil);
+        if ( std::holds_alternative<ValPtr>(val) )
+            res = {ReturnCode::SUCCESS, "", std::get<ValPtr>(val)};
+        else
+            res = {ReturnCode::OPERATION_FAILED, std::get<std::string>(val)};
+    }
 
     freeReplyObject(reply);
     CompleteCallback(callback, res);
@@ -444,9 +458,9 @@ void Redis::HandleEraseResult(redisReply* reply, ResultCallback* callback) {
     if ( ! connected )
         res = {ReturnCode::NOT_CONNECTED};
     else if ( ! reply )
-        res = {ReturnCode::OPERATION_FAILED, "Async erase operation returned null reply"};
-    else if ( reply && reply->type == REDIS_REPLY_ERROR )
-        res = {ReturnCode::OPERATION_FAILED, util::fmt("Async erase operation failed: %s", reply->str)};
+        res = {ReturnCode::OPERATION_FAILED, "erase operation returned null reply"};
+    else if ( reply->type == REDIS_REPLY_ERROR )
+        res = ParseReplyError("erase", reply->str);
 
     freeReplyObject(reply);
     CompleteCallback(callback, res);
@@ -505,22 +519,14 @@ void Redis::ProcessFd(int fd, int flags) {
         redisAsyncHandleWrite(async_ctx);
 }
 
-OperationResult Redis::ParseGetReply(redisReply* reply) const {
-    OperationResult res;
-
-    if ( ! reply )
-        res = {ReturnCode::OPERATION_FAILED, "GET returned null reply"};
-    else if ( ! reply->str )
-        res = {ReturnCode::KEY_NOT_FOUND};
-    else {
-        auto val = zeek::detail::ValFromJSON(reply->str, val_type, Func::nil);
-        if ( std::holds_alternative<ValPtr>(val) )
-            res = {ReturnCode::SUCCESS, "", std::get<ValPtr>(val)};
-        else
-            res = {ReturnCode::OPERATION_FAILED, std::get<std::string>(val)};
-    }
-
-    return res;
+OperationResult Redis::ParseReplyError(std::string_view op_str, std::string_view reply_err_str) const {
+    if ( async_ctx->err == REDIS_ERR_TIMEOUT )
+        return {ReturnCode::TIMEOUT};
+    else if ( async_ctx->err == REDIS_ERR_IO )
+        return {ReturnCode::OPERATION_FAILED, util::fmt("%s operation IO error: %s", op_str.data(), strerror(errno))};
+    else
+        return {ReturnCode::OPERATION_FAILED,
+                util::fmt("%s operation failed: %s", op_str.data(), reply_err_str.data())};
 }
 
 void Redis::DoPoll() {

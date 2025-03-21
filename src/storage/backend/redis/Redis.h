@@ -59,7 +59,7 @@ private:
     void DoExpire(double current_network_time) override;
     void DoPoll() override;
 
-    OperationResult ParseGetReply(redisReply* reply) const;
+    OperationResult ParseReplyError(std::string_view op_str, std::string_view reply_err_str) const;
 
     redisAsyncContext* async_ctx = nullptr;
 

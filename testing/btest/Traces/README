@@ -48,3 +48,5 @@ Trace Index/Sources:
   https://zeekorg.slack.com/archives/CSZBXF6TH/p1738261449655049
 - tunnels/geneve-tagged-udp-packet.pcap
   Provided by Eldon Koyle Corelight for testing.
+- cdp-v1.pcap
+  From the Wireshark library of captures at https://wiki.wireshark.org/samplecaptures.

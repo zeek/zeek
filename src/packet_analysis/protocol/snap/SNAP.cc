@@ -30,17 +30,10 @@ bool SNAPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet
     data += llc_header_len;
     len -= llc_header_len;
 
-    int oui = (data[0] << 16) | (data[1] << 8) | data[2];
     int protocol = (data[3] << 8) | data[4];
 
     data += 5;
     len -= 5;
 
-    if ( oui == 0 ) {
-        // If the OUI is zero, the protocol is a standard ethertype and can be
-        // forwarded as such.
-        return ForwardPacket(len, data, packet, protocol);
-    }
-
-    return true;
+    return ForwardPacket(len, data, packet, protocol);
 }

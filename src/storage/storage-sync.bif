@@ -68,7 +68,7 @@ function Storage::Sync::__close_backend%(backend: opaque of Storage::BackendHand
 	if ( ! b )
 		op_result = b.error();
 	else {
-		auto cb = new OperationResultCallback();
+		auto cb = new ResultCallback();
 		op_result = storage_mgr->CloseBackend((*b)->backend, cb);
 
 		// If the backend only supports async, block until it's ready and then pull the result out of
@@ -96,7 +96,7 @@ function Storage::Sync::__put%(backend: opaque of Storage::BackendHandle, key: a
 		if ( expire_time > 0.0 )
 			expire_time += run_state::network_time;
 
-		auto cb = new OperationResultCallback();
+		auto cb = new ResultCallback();
 		auto key_v = IntrusivePtr<Val>{NewRef{}, key};
 		auto val_v = IntrusivePtr<Val>{NewRef{}, value};
 		op_result = (*b)->backend->Put(cb, key_v, val_v, overwrite, expire_time);
@@ -122,7 +122,7 @@ function Storage::Sync::__get%(backend: opaque of Storage::BackendHandle, key: a
 	if ( ! b )
 		op_result = b.error();
 	else {
-		auto cb = new OperationResultCallback();
+		auto cb = new ResultCallback();
 		auto key_v = IntrusivePtr<Val>{NewRef{}, key};
 		op_result = (*b)->backend->Get(cb, key_v);
 
@@ -147,7 +147,7 @@ function Storage::Sync::__erase%(backend: opaque of Storage::BackendHandle, key:
 	if ( ! b )
 		op_result = b.error();
 	else {
-		auto cb = new OperationResultCallback();
+		auto cb = new ResultCallback();
 		auto key_v = IntrusivePtr<Val>{NewRef{}, key};
 		op_result = (*b)->backend->Erase(cb, key_v);
 

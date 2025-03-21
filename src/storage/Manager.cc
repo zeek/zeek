@@ -23,7 +23,7 @@ void detail::ExpirationTimer::Dispatch(double t, bool is_expire) {
     // in the interim.
     if ( ! expire_running.test_and_set() ) {
         DBG_LOG(DBG_STORAGE, "Starting new expiration thread");
-        storage_mgr->expiration_thread = std::jthread([]() { storage_mgr->Expire(); });
+        storage_mgr->expiration_thread = std::jthread([t]() { storage_mgr->Expire(t); });
     }
 
     storage_mgr->StartExpirationTimer();
@@ -89,7 +89,7 @@ OperationResult Manager::OpenBackend(BackendPtr backend, OpenResultCallback* cb,
     return res;
 }
 
-OperationResult Manager::CloseBackend(BackendPtr backend, OperationResultCallback* cb) {
+OperationResult Manager::CloseBackend(BackendPtr backend, ResultCallback* cb) {
     // Expiration runs on a separate thread and loops over the vector of backends. The mutex
     // here ensures exclusive access. This one happens in a block because we can remove the
     // backend from the vector before actually closing it.
@@ -107,17 +107,14 @@ OperationResult Manager::CloseBackend(BackendPtr backend, OperationResultCallbac
     return res;
 }
 
-void Manager::Expire() {
+void Manager::Expire(double t) {
     // Expiration runs on a separate thread and loops over the vector of backends. The mutex
     // here ensures exclusive access.
     std::unique_lock<std::mutex> lk(backends_mtx);
 
-    DBG_LOG(DBG_STORAGE, "Expiration running, have %zu backends to check", backends.size());
-
-    double current_network_time = run_state::network_time;
     for ( auto it = backends.begin(); it != backends.end() && ! run_state::terminating; ++it ) {
         if ( (*it)->IsOpen() )
-            (*it)->Expire(current_network_time);
+            (*it)->Expire(t);
     }
 
     expire_running.clear();

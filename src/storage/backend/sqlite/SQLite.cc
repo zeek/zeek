@@ -20,7 +20,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
             "SQLite reports that it is not threadsafe. Zeek needs a threadsafe version of "
             "SQLite. Aborting";
         Error(res.c_str());
-        return {ReturnCode::INITIALIZATION_FAILED, res};
+        return {ReturnCode::INITIALIZATION_FAILED, std::move(res)};
     }
 
     // Allow connections to same DB to use single data/schema cache. Also
@@ -52,7 +52,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         Error(err.c_str());
         sqlite3_free(errorMsg);
         Close(nullptr);
-        return {ReturnCode::INITIALIZATION_FAILED, err};
+        return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
     }
 
     if ( int res = sqlite3_exec(db, "pragma integrity_check", NULL, NULL, &errorMsg); res != SQLITE_OK ) {
@@ -60,7 +60,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         Error(err.c_str());
         sqlite3_free(errorMsg);
         Close(nullptr);
-        return {ReturnCode::INITIALIZATION_FAILED, err};
+        return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
     }
 
     auto tuning_params = backend_options->GetField<TableVal>("tuning_params")->ToMap();
@@ -74,7 +74,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
             Error(err.c_str());
             sqlite3_free(errorMsg);
             Close(nullptr);
-            return {ReturnCode::INITIALIZATION_FAILED, err};
+            return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
         }
     }
 
@@ -115,7 +115,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
 /**
  * Finalizes the backend when it's being closed.
  */
-OperationResult SQLite::DoClose(OperationResultCallback* cb) {
+OperationResult SQLite::DoClose(ResultCallback* cb) {
     OperationResult op_res{ReturnCode::SUCCESS};
 
     if ( db ) {
@@ -127,9 +127,10 @@ OperationResult SQLite::DoClose(OperationResultCallback* cb) {
 
         char* errmsg;
         if ( int res = sqlite3_exec(db, "pragma optimize", NULL, NULL, &errmsg); res != SQLITE_OK ) {
+            // We're shutting down so capture the error message here for informational
+            // reasons, but don't do anything else with it.
             op_res = {ReturnCode::DISCONNECTION_FAILED, util::fmt("Sqlite failed to optimize at shutdown: %s", errmsg)};
-            sqlite3_free(&errmsg);
-            // TODO: we're shutting down. does this error matter other than being informational?
+            sqlite3_free(errmsg);
         }
 
         if ( int res = sqlite3_close_v2(db); res != SQLITE_OK ) {
@@ -146,8 +147,7 @@ OperationResult SQLite::DoClose(OperationResultCallback* cb) {
 /**
  * The workhorse method for Put(). This must be implemented by plugins.
  */
-OperationResult SQLite::DoPut(OperationResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
-                              double expiration_time) {
+OperationResult SQLite::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool overwrite, double expiration_time) {
     if ( ! db )
         return {ReturnCode::NOT_CONNECTED};
 
@@ -193,7 +193,7 @@ OperationResult SQLite::DoPut(OperationResultCallback* cb, ValPtr key, ValPtr va
 /**
  * The workhorse method for Get(). This must be implemented for plugins.
  */
-OperationResult SQLite::DoGet(OperationResultCallback* cb, ValPtr key) {
+OperationResult SQLite::DoGet(ResultCallback* cb, ValPtr key) {
     if ( ! db )
         return {ReturnCode::NOT_CONNECTED};
 
@@ -213,7 +213,7 @@ OperationResult SQLite::DoGet(OperationResultCallback* cb, ValPtr key) {
 /**
  * The workhorse method for Erase(). This must be implemented for plugins.
  */
-OperationResult SQLite::DoErase(OperationResultCallback* cb, ValPtr key) {
+OperationResult SQLite::DoErase(ResultCallback* cb, ValPtr key) {
     if ( ! db )
         return {ReturnCode::NOT_CONNECTED};
 
@@ -237,12 +237,18 @@ OperationResult SQLite::DoErase(OperationResultCallback* cb, ValPtr key) {
 void SQLite::DoExpire(double current_network_time) {
     auto stmt = expire_stmt.get();
 
-    if ( auto res = CheckError(sqlite3_bind_double(stmt, 1, current_network_time)); res.code != ReturnCode::SUCCESS ) {
-        sqlite3_reset(stmt);
-        // TODO: do something with the error here?
+    int status = sqlite3_bind_double(stmt, 1, current_network_time);
+    if ( status != SQLITE_OK ) {
+        // TODO: do something with the error?
+    }
+    else {
+        status = sqlite3_step(stmt);
+        if ( status != SQLITE_ROW ) {
+            // TODO: should this return an error somehow? Reporter warning?
+        }
     }
 
-    Step(stmt, false);
+    sqlite3_reset(stmt);
 }
 
 // returns true in case of error
@@ -285,6 +291,8 @@ OperationResult SQLite::Step(sqlite3_stmt* stmt, bool parse_value) {
     else if ( step_status == SQLITE_BUSY )
         // TODO: this could retry a number of times instead of just failing
         ret = {ReturnCode::TIMEOUT};
+    else if ( step_status == SQLITE_CONSTRAINT )
+        ret = {ReturnCode::KEY_EXISTS};
     else
         ret = {ReturnCode::OPERATION_FAILED};
 

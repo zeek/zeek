@@ -71,14 +71,16 @@ public:
      * @return A struct describing the result of the operation, containing a code, an
      * optional error string, and a ValPtr for operations that return values.
      */
-    OperationResult CloseBackend(BackendPtr backend, OperationResultCallback* cb);
+    OperationResult CloseBackend(BackendPtr backend, ResultCallback* cb);
 
     /**
      * Runs an expire operation on all open backends. This is called by the expiration
      * timer and shouldn't be called directly otherwise, since it should only happen on a
      * separate thread.
+     *
+     * @param t The network time that the expiration started.
      */
-    void Expire();
+    void Expire(double t);
 
 protected:
     friend class storage::detail::ExpirationTimer;

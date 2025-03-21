@@ -7,9 +7,6 @@
 @load base/frameworks/reporter
 @load policy/frameworks/storage/backend/sqlite
 
-# Create a typename here that can be passed down into open_backend.
-type str: string;
-
 event zeek_init() {
 	# Test opening a database with an invalid path
 	local opts : Storage::BackendOptions;
@@ -17,12 +14,12 @@ event zeek_init() {
 	               $table_name = "testing"];
 
 	# This should report an error in .stderr and reporter.log
-	local open_res = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
+	local open_res = Storage::Sync::open_backend(Storage::SQLITE, opts, string, string);
 	print "Open result", open_res;
 
 	# Open a valid database file
 	opts$sqlite$database_path = "test.sqlite";
-	open_res = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
+	open_res = Storage::Sync::open_backend(Storage::SQLITE, opts, string, string);
 	print "Open result 2", open_res;
 
 	local b = open_res$value;

@@ -15,9 +15,6 @@
 redef Storage::expire_interval = 2secs;
 redef exit_only_after_terminate = T;
 
-# Create a typename here that can be passed down into open_backend()
-type str: string;
-
 global b: opaque of Storage::BackendHandle;
 global key1: string = "key1234";
 global value1: string = "value1234";
@@ -43,7 +40,7 @@ event setup_test()
 	opts$redis = [ $server_host="127.0.0.1", $server_port=to_port(getenv(
 	    "REDIS_PORT")), $key_prefix="testing" ];
 
-	local open_res = Storage::Sync::open_backend(Storage::REDIS, opts, str, str);
+	local open_res = Storage::Sync::open_backend(Storage::REDIS, opts, string, string);
 	print "open result", open_res;
 
 	b = open_res$value;

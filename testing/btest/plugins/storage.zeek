@@ -10,9 +10,6 @@
 
 @load base/frameworks/storage/sync
 
-# Create a typename here that can be passed down into get().
-type str: string;
-
 type StorageDummyOpts : record {
 	open_fail: bool;
 };
@@ -30,7 +27,7 @@ event zeek_init() {
 
 	# Test basic operation. The second get() should return an error
 	# as the key should have been erased.
-	local open_res = Storage::Sync::open_backend(Storage::STORAGEDUMMY, opts, str, str);
+	local open_res = Storage::Sync::open_backend(Storage::STORAGEDUMMY, opts, string, string);
 	print "open result", open_res;
 	local b = open_res$value;
 	local put_res = Storage::Sync::put(b, [$key=key, $value=value, $overwrite=F]);
@@ -56,7 +53,7 @@ event zeek_init() {
 
 	# Test failing to open the handle and test closing an invalid handle.
 	opts$dummy$open_fail = T;
-	open_res = Storage::Sync::open_backend(Storage::STORAGEDUMMY, opts, str, str);
+	open_res = Storage::Sync::open_backend(Storage::STORAGEDUMMY, opts, string, string);
 	print "open result 2", open_res;
 	local close_res = Storage::Sync::close_backend(open_res$value);
 	print "close result of closed handle", close_res;

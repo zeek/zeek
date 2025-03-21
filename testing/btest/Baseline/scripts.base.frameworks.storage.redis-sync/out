@@ -3,8 +3,11 @@ open_result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<opaque of
 put result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<uninitialized>]
 get result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=value1234]
 get result same as inserted, T
-overwrite put result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<uninitialized>]
-get result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=value5678]
-get result same as inserted, T
+put result, [code=Storage::KEY_EXISTS, error_str=<uninitialized>, value=<uninitialized>]
+get result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=value1234]
+get result same as originally inserted, T
+put result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<uninitialized>]
+get result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=value2345]
+get result same as overwritten, T
 Storage::backend_opened, Storage::REDIS, [redis=[server_host=127.0.0.1, server_port=xxxx/tcp, server_unix_socket=<uninitialized>, key_prefix=testing]]
 Storage::backend_lost, Storage::REDIS, [redis=[server_host=127.0.0.1, server_port=xxxx/tcp, server_unix_socket=<uninitialized>, key_prefix=testing]], Client disconnected

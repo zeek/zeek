@@ -354,10 +354,6 @@ target_include_directories(
     zeek_dynamic_plugin_base SYSTEM
     INTERFACE $<INSTALL_INTERFACE:include/zeek/3rdparty/prometheus-cpp/include>)
 
-target_include_directories(
-    zeek_dynamic_plugin_base SYSTEM
-    INTERFACE $<INSTALL_INTERFACE:include/zeek/3rdparty/expected-lite/include>)
-
 # Convenience function for adding an OBJECT library that feeds directly into the
 # main target(s).
 #

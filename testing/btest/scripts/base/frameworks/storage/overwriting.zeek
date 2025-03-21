@@ -12,22 +12,45 @@ type str: string;
 
 event zeek_init() {
 	local opts : Storage::BackendOptions;
-	opts$sqlite = [$database_path = "storage-test.sqlite", $table_name = "testing"];
+	opts$sqlite = [$database_path = "testing.sqlite", $table_name = "testing"];
 
-	local key = "key1234";
+	local key = "key1111";
 	local value = "value7890";
+	local value2 = "value2345";
 
-	local open_res = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
-	print "open result", open_res;
-	local b = open_res$value;
+	local res = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
+	print "open result", res;
+	local b = res$value;
 
-	local res = Storage::Sync::put(b, [$key=key, $value=value]);
+	# Put a first value. This should return Storage::SUCCESS.
+	res = Storage::Sync::put(b, [$key=key, $value=value]);
 	print "put result", res;
 
-	local res2 = Storage::Sync::get(b, key);
-	print "get result", res2;
-	if ( res2$code == Storage::SUCCESS && res2?$value )
-		print "get result same as inserted", value == (res2$value as string);
+	# Get the first value, validate that it's what we inserted.
+	res = Storage::Sync::get(b, key);
+	print "get result", res;
+	if ( res$code == Storage::SUCCESS && res?$value )
+		print "get result same as inserted", value == (res$value as string);
+
+	# This will return a Storage::KEY_EXISTS since we don't want overwriting.
+	res = Storage::Sync::put(b, [$key=key, $value=value2, $overwrite=F]);
+	print "put result", res;
+
+	# Verify that the overwrite didn't actually happen.
+	res = Storage::Sync::get(b, key);
+	print "get result", res;
+	if ( res$code == Storage::SUCCESS && res?$value )
+		print "get result same as originally inserted", value == (res$value as string);
+
+	# This will return a Storage::SUCESSS since we're asking for an overwrite.
+	res = Storage::Sync::put(b, [$key=key, $value=value2, $overwrite=T]);
+	print "put result", res;
+
+	# Verify that the overwrite happened.
+	res = Storage::Sync::get(b, key);
+	print "get result", res;
+	if ( res$code == Storage::SUCCESS && res?$value )
+		print "get result same as overwritten", value2 == (res$value as string);
 
 	Storage::Sync::close_backend(b);
 }

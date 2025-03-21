@@ -13,9 +13,6 @@
 @load base/frameworks/storage/async
 @load policy/frameworks/storage/backend/redis
 
-# Create a typename here that can be passed down into open_backend()
-type str: string;
-
 event zeek_init()
 	{
 	local opts: Storage::BackendOptions;
@@ -25,7 +22,7 @@ event zeek_init()
 	local key = "key1234";
 	local value = "value5678";
 
-	local open_res = Storage::Sync::open_backend(Storage::REDIS, opts, str, str);
+	local open_res = Storage::Sync::open_backend(Storage::REDIS, opts, string, string);
 	print "open result", open_res;
 	local b = open_res$value;
 

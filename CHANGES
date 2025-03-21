@@ -1,3 +1,11 @@
+7.2.0-dev.405 | 2025-03-21 09:43:18 +0100
+
+  * testing/btest: Remove btest-bg-run sleep 1 (Arne Welzel, Corelight)
+
+    Bump to the latest btest master version and set BTEST_BG_RUN_SLEEP
+    environment variable to 0. This makes btest-bg-run return
+    immediately instead of delaying by 1 second.
+
 7.2.0-dev.402 | 2025-03-19 12:47:37 -0700
 
   * util: Fix terminate_processing() called from non-main thread (Arne Welzel, Corelight)

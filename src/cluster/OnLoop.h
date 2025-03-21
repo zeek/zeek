@@ -82,6 +82,9 @@ public:
             std::scoped_lock lock(mtx);
             SetClosed(true);
 
+            // Wake a process stuck in queueing.
+            cond.notify_one();
+
             // Don't attempt to Process anymore.
             proc = nullptr;
         }

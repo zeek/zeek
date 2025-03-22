@@ -47,10 +47,11 @@ enum AttrTag {
     ATTR_BROKER_STORE_ALLOW_COMPLEX, // for Broker store backed tables
     ATTR_BACKEND,                    // for Broker store backed tables
     ATTR_DEPRECATED,
-    ATTR_IS_ASSIGNED, // to suppress usage warnings
-    ATTR_IS_USED,     // to suppress usage warnings
-    ATTR_ORDERED,     // used to store tables in ordered mode
-    NUM_ATTRS         // this item should always be last
+    ATTR_IS_ASSIGNED,     // to suppress usage warnings
+    ATTR_IS_USED,         // to suppress usage warnings
+    ATTR_ORDERED,         // used to store tables in ordered mode
+    ATTR_DOCS_OMIT_VALUE, // zeekygen will omit the value when generating docs
+    NUM_ATTRS             // this item should always be last
 };
 
 class Attr;

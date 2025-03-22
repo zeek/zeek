@@ -42,6 +42,7 @@ const char* attr_name(AttrTag t) {
 		"&is_assigned",
 		"&is_used",
 		"&ordered",
+		"&docs_omit_value",
 	};
     // clang-format on
 
@@ -283,6 +284,9 @@ void Attributes::Describe(ODesc* d) const {
 
 void Attributes::DescribeReST(ODesc* d, bool shorten) const {
     for ( size_t i = 0; i < attrs.size(); ++i ) {
+        if ( attrs[i]->Tag() == ATTR_DOCS_OMIT_VALUE )
+            continue;
+
         if ( i > 0 )
             d->Add(" ");
 
@@ -538,6 +542,8 @@ bool Attributes::CheckAttr(Attr* a) {
             if ( type->Tag() != TYPE_TABLE )
                 return AttrError("&ordered only applicable to tables");
             break;
+
+        case ATTR_DOCS_OMIT_VALUE: break;
 
         default: BadTag("Attributes::CheckAttr", attr_name(a->Tag()));
     }

@@ -116,7 +116,7 @@ export {
 
 	## The default root CA bundle.  By default, the mozilla-ca-list.zeek
 	## script sets this to Mozilla's root CA list.
-	const root_certs: table[string] of string &redef;
+	const root_certs: table[string] of string &redef &docs_omit_value;
 
 	## The record type which contains the field for the Certificate
 	## Transparency log bundle.
@@ -136,7 +136,7 @@ export {
 	## The Certificate Transparency log bundle. By default, the ct-list.zeek
 	## script sets this to the current list of known logs. Entries
 	## are indexed by (binary) log-id.
-	option ct_logs: table[string] of CTInfo = {};
+	option ct_logs: table[string] of CTInfo &docs_omit_value;
 
 	## If true, detach the SSL analyzer from the connection to prevent
 	## continuing to process encrypted traffic. Helps with performance

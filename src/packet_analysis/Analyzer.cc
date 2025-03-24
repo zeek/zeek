@@ -53,12 +53,12 @@ bool Analyzer::IsAnalyzer(const char* name) {
     return packet_mgr->GetComponentName(tag) == name;
 }
 
-const AnalyzerPtr& Analyzer::Lookup(uint32_t identifier) const { return dispatcher.Lookup(identifier); }
+const AnalyzerPtr& Analyzer::Lookup(uint64_t identifier) const { return dispatcher.Lookup(identifier); }
 
 // Find the next inner analyzer using identifier or via DetectProtocol(),
 // otherwise return the default analyzer.
 const AnalyzerPtr& Analyzer::FindInnerAnalyzer(size_t len, const uint8_t* data, Packet* packet,
-                                               uint32_t identifier) const {
+                                               uint64_t identifier) const {
     const auto& identifier_based_analyzer = Lookup(identifier);
     if ( identifier_based_analyzer )
         return identifier_based_analyzer;
@@ -92,11 +92,11 @@ const AnalyzerPtr& Analyzer::DetectInnerAnalyzer(size_t len, const uint8_t* data
     return nil;
 }
 
-bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet, uint32_t identifier) const {
+bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet, uint64_t identifier) const {
     const auto& inner_analyzer = FindInnerAnalyzer(len, data, packet, identifier);
 
     if ( ! inner_analyzer ) {
-        DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s failed, could not find analyzer for identifier %#x.",
+        DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s failed, could not find analyzer for identifier %#" PRIx64 ".",
                 GetAnalyzerName(), identifier);
 
         if ( report_unknown_protocols )
@@ -106,12 +106,12 @@ bool Analyzer::ForwardPacket(size_t len, const uint8_t* data, Packet* packet, ui
     }
 
     if ( ! inner_analyzer->IsEnabled() ) {
-        DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s found disabled next layer analyzer %s for identifier %#x",
+        DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s found disabled next layer analyzer %s for identifier %#" PRIx64,
                 GetAnalyzerName(), inner_analyzer->GetAnalyzerName(), identifier);
         return false;
     }
 
-    DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#x.", GetAnalyzerName(),
+    DBG_LOG(DBG_PACKET_ANALYSIS, "Analysis in %s succeeded, next layer identifier is %#" PRIx64 ".", GetAnalyzerName(),
             identifier);
 
     packet_mgr->TrackAnalyzer(inner_analyzer.get(), len, data);
@@ -141,7 +141,7 @@ void Analyzer::DumpDebug() const {
 #endif
 }
 
-void Analyzer::RegisterProtocol(uint32_t identifier, AnalyzerPtr child) {
+void Analyzer::RegisterProtocol(uint64_t identifier, AnalyzerPtr child) {
     if ( run_state::detail::zeek_init_done )
         reporter->FatalError("Packet protocols cannot be registered after zeek_init has finished.");
 

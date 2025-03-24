@@ -101,6 +101,11 @@ public:
     Tag(const Tag& other);
 
     /**
+     * Move constructor.
+     */
+    Tag(Tag&& other) noexcept;
+
+    /**
      * Destructor.
      */
     ~Tag();

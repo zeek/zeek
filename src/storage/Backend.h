@@ -3,6 +3,7 @@
 #pragma once
 
 #include "zeek/OpaqueVal.h"
+#include "zeek/Tag.h"
 #include "zeek/Val.h"
 
 namespace zeek::detail::trigger {
@@ -99,7 +100,7 @@ public:
     /**
      * Returns a descriptive tag representing the source for debugging.
      */
-    const char* Tag() { return tag.c_str(); }
+    const char* Tag() { return tag_str.c_str(); }
 
     /**
      * Store a new key/value pair in the backend.
@@ -172,10 +173,11 @@ protected:
      *
      * @param modes A combination of values from SupportedModes. These modes
      # define whether a backend only supports sync or async or both.
-     * @param tag A string representation of the tag for this backend. This
-     * is passed from the Manager through the component factory.
+     * @param tag The name of the plugin that this backend is part of. It
+     * should match the string sent in the ``Plugin`` code for the backend
+     * plugin.
      */
-    Backend(uint8_t modes, std::string_view tag) : tag(tag), modes(modes) {}
+    Backend(uint8_t modes, std::string_view tag_name);
 
     /**
      * Called by the manager system to open the backend.
@@ -235,7 +237,8 @@ protected:
     TypePtr val_type;
     RecordValPtr backend_options;
 
-    std::string tag;
+    zeek::Tag tag;
+    std::string tag_str;
 
 private:
     /**

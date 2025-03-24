@@ -15,10 +15,10 @@ struct redisPollEvents;
 namespace zeek::storage::backend::redis {
 class Redis : public Backend, public iosource::IOSource {
 public:
-    Redis(std::string_view tag) : Backend(SupportedModes::ASYNC, tag), IOSource(true) {}
+    Redis() : Backend(SupportedModes::ASYNC, "REDIS"), IOSource(true) {}
     ~Redis() override = default;
 
-    static BackendPtr Instantiate(std::string_view tag);
+    static BackendPtr Instantiate();
 
     /**
      * Returns a descriptive tag representing the source for debugging.
@@ -26,7 +26,7 @@ public:
      *
      * @return The debugging name.
      */
-    const char* Tag() override { return tag.c_str(); }
+    const char* Tag() override { return tag_str.c_str(); }
 
     // IOSource interface
     double GetNextTimeout() override { return -1; }

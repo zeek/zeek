@@ -12,11 +12,11 @@
 @load base/frameworks/storage/sync
 @load policy/frameworks/storage/backend/redis
 
-event Storage::backend_opened(tag: string, config: any) {
+event Storage::backend_opened(tag: Storage::Backend, config: any) {
 	print "Storage::backend_opened", tag, config;
 }
 
-event Storage::backend_lost(tag: string, config: any, reason: string) {
+event Storage::backend_lost(tag: Storage::Backend, config: any, reason: string) {
 	print "Storage::backend_lost", tag, config, reason;
 	terminate();
 }

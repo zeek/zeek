@@ -137,7 +137,7 @@ std::unique_lock<std::mutex> conditionally_lock(bool condition, std::mutex& mute
 
 namespace zeek::storage::backend::redis {
 
-storage::BackendPtr Redis::Instantiate(std::string_view tag) { return make_intrusive<Redis>(tag); }
+storage::BackendPtr Redis::Instantiate() { return make_intrusive<Redis>(); }
 
 /**
  * Called by the manager system to open the backend.

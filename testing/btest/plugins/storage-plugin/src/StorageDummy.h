@@ -13,10 +13,10 @@ namespace btest::storage::backend {
  */
 class StorageDummy : public zeek::storage::Backend {
 public:
-    StorageDummy(std::string_view tag) : Backend(zeek::storage::SupportedModes::SYNC, tag) {}
+    StorageDummy() : Backend(zeek::storage::SupportedModes::SYNC, "StorageDummy") {}
     ~StorageDummy() override = default;
 
-    static zeek::storage::BackendPtr Instantiate(std::string_view tag);
+    static zeek::storage::BackendPtr Instantiate();
 
     /**
      * Called by the manager system to open the backend.

@@ -2,8 +2,10 @@
 
 #include "zeek/storage/Backend.h"
 
+#include "zeek/Desc.h"
 #include "zeek/Trigger.h"
 #include "zeek/broker/Data.h"
+#include "zeek/storage/Manager.h"
 #include "zeek/storage/ReturnCode.h"
 #include "zeek/storage/storage-events.bif.h"
 
@@ -61,6 +63,11 @@ void OpenResultCallback::Complete(OperationResult res) {
     res.value = backend;
 
     ResultCallback::Complete(std::move(res));
+}
+
+Backend::Backend(uint8_t modes, std::string_view tag_name) : modes(modes) {
+    tag = storage_mgr->GetComponentTag(std::string{tag_name});
+    tag_str = zeek::obj_desc_short(tag.AsVal().get());
 }
 
 OperationResult Backend::Open(OpenResultCallback* cb, RecordValPtr options, TypePtr kt, TypePtr vt) {
@@ -129,13 +136,10 @@ void Backend::CompleteCallback(ResultCallback* cb, const OperationResult& data) 
     }
 }
 
-void Backend::EnqueueBackendOpened() {
-    event_mgr.Enqueue(Storage::backend_opened, make_intrusive<StringVal>(Tag()), backend_options);
-}
+void Backend::EnqueueBackendOpened() { event_mgr.Enqueue(Storage::backend_opened, tag.AsVal(), backend_options); }
 
 void Backend::EnqueueBackendLost(std::string_view reason) {
-    event_mgr.Enqueue(Storage::backend_lost, make_intrusive<StringVal>(Tag()), backend_options,
-                      make_intrusive<StringVal>(reason));
+    event_mgr.Enqueue(Storage::backend_lost, tag.AsVal(), backend_options, make_intrusive<StringVal>(reason));
 }
 
 zeek::OpaqueTypePtr detail::backend_opaque;

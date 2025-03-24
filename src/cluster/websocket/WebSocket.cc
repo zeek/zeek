@@ -231,7 +231,9 @@ void WebSocketEventDispatcher::Terminate() {
                  wsc->getRemotePort());
 
         QueueReply(WebSocketCloseReply{wsc, 1001, "Terminating"});
-        backend->Terminate();
+
+        if ( backend )
+            backend->Terminate();
     }
 
     clients.clear();

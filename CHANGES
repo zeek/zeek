@@ -1,3 +1,32 @@
+7.2.0-dev.427 | 2025-03-24 19:45:24 +0100
+
+  * cluster/OnLoop: Add metric for queue stalling instead of fprintf (Arne Welzel, Corelight)
+
+  * btest/cluster/websocket: ZeroMQ backend test (Arne Welzel, Corelight)
+
+  * cluster/OnLoop: Switch to condition variable (Arne Welzel, Corelight)
+
+    The busy polling wasn't clever and usually resulted in delays. For now,
+    switch to mutex/condition variable and log an error if the timeouts are
+    immense.
+
+  * cluster/zeromq: Fix node_topic() and nodeid_topic() (Arne Welzel, Corelight)
+
+    Due to prefix matching, worker-1's node_topic() also matched worker-10,
+    worker-11, etc. Suffix the node topic with a `.`. The original implementation
+    came from NATS, where subjects are separated by `.`.
+
+  * cluster/websocket: Fix null deref at WebSocket server shutdown (Arne Welzel, Corelight)
+
+  * btest/cluster/websocket: Harden multi-client tests (Arne Welzel, Corelight)
+
+  * cluster/zeromq: Fix unsubscription visibility (Arne Welzel, Corelight)
+
+    When two workers connect to zeek.cluster.worker, the central ZeroMQ
+    proxy would not propagate unsubscription information to other nodes
+    once they both left. Set ZMQ_XPUB_VERBOSER on the proxies XPUB socket
+    for visibility.
+
 7.2.0-dev.418 | 2025-03-21 11:56:40 -0700
 
   * Redis: Handle other errors from requests, fix KEY_EXISTS for put operations (Tim Wojtulewicz, Corelight)

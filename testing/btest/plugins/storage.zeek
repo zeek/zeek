@@ -8,10 +8,12 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff zeek-stderr
 
+@load base/frameworks/storage/async
 @load base/frameworks/storage/sync
 
 type StorageDummyOpts : record {
 	open_fail: bool;
+	timeout_put: bool;
 };
 
 redef record Storage::BackendOptions += {
@@ -20,7 +22,7 @@ redef record Storage::BackendOptions += {
 
 event zeek_init() {
 	local opts : Storage::BackendOptions;
-	opts$dummy = [$open_fail = F];
+	opts$dummy = [$open_fail = F, $timeout_put = F];
 
 	local key = "key1234";
 	local value = "value5678";
@@ -60,9 +62,26 @@ event zeek_init() {
 	print "";
 
 	# Test failing to open the handle and test closing an invalid handle.
-	opts$dummy = [$open_fail = T];
+	opts$dummy = [$open_fail = T, $timeout_put = F];
 	res = Storage::Sync::open_backend(Storage::STORAGEDUMMY, opts, string, string);
 	print "open result 2", res;
 	res = Storage::Sync::close_backend(res$value);
 	print "close result on closed handle", res;
+	print "";
+
+	# Test timing out an async put request.
+	opts$dummy = [$open_fail = F, $timeout_put = T];
+	res = Storage::Sync::open_backend(Storage::STORAGEDUMMY, opts, string, string);
+	print "open result 3", res;
+	b = res$value;
+
+	when [b, key, value] ( local res2 = Storage::Async::put(b, [$key=key, $value=value]) ) {
+		local when_res = Storage::Sync::close_backend(b);
+		print "FAIL: should not happen: close result", when_res;
+	}
+	timeout 5sec {
+		print "put timed out";
+		local to_res = Storage::Sync::close_backend(b);
+		print "close result", to_res;
+	}
 }

@@ -28,10 +28,8 @@ ResultCallback::ResultCallback(zeek::detail::trigger::TriggerPtr trigger, const 
     : trigger(std::move(trigger)), assoc(assoc) {}
 
 void ResultCallback::Timeout() {
-    static const auto& op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
-
     if ( ! IsSyncCallback() )
-        trigger->Cache(assoc, OperationResult::MakeVal(ReturnCode::TIMEOUT).release());
+        trigger->Cache(assoc, OperationResult::MakeVal(ReturnCode::TIMEOUT).get());
 }
 
 void ResultCallback::Complete(OperationResult res) {
@@ -121,7 +119,11 @@ OperationResult Backend::Erase(ResultCallback* cb, ValPtr key) {
 }
 
 void Backend::CompleteCallback(ResultCallback* cb, const OperationResult& data) const {
-    cb->Complete(data);
+    if ( data.code == ReturnCode::TIMEOUT )
+        cb->Timeout();
+    else
+        cb->Complete(data);
+
     if ( ! cb->IsSyncCallback() ) {
         delete cb;
     }

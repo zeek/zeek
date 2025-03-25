@@ -55,7 +55,11 @@ static void handle_async_result(const IntrusivePtr<Backend>& backend, ResultCall
         // it didn't report back IN_PROGRESS.
         // 2. The backend doesn't support async. This means we already blocked in order
         // to get here already.
-        cb->Complete(op_result);
+        // Also check for timeout conditions.
+        if ( op_result.code == ReturnCode::TIMEOUT )
+            cb->Timeout();
+        else
+            cb->Complete(op_result);
         delete cb;
     }
     else if ( run_state::reading_traces ) {

@@ -21,8 +21,8 @@ BackendPtr StorageDummy::Instantiate(std::string_view tag) { return make_intrusi
  * with a corresponding message.
  */
 OperationResult StorageDummy::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
-    RecordValPtr backend_options = options->GetField<RecordVal>("dummy");
-    bool open_fail = backend_options->GetField<BoolVal>("open_fail")->Get();
+    RecordValPtr dummy_options = options->GetField<RecordVal>("dummy");
+    bool open_fail = dummy_options->GetField<BoolVal>("open_fail")->Get();
     if ( open_fail )
         return {ReturnCode::OPERATION_FAILED, "open_fail was set to true, returning error"};
 
@@ -44,6 +44,11 @@ OperationResult StorageDummy::DoClose(ResultCallback* cb) {
  */
 OperationResult StorageDummy::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
                                     double expiration_time) {
+    RecordValPtr dummy_options = backend_options->GetField<RecordVal>("dummy");
+    bool timeout_put = dummy_options->GetField<BoolVal>("timeout_put")->Get();
+    if ( timeout_put )
+        return {ReturnCode::TIMEOUT};
+
     auto json_key = key->ToJSON()->ToStdString();
     auto json_value = value->ToJSON()->ToStdString();
     data[json_key] = json_value;

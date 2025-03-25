@@ -12,3 +12,7 @@ results of trying to use closed handle: get: Storage::NOT_CONNECTED, put: Storag
 
 open result 2, [code=Storage::OPERATION_FAILED, error_str=Failed to open backend Storage::STORAGEDUMMY: open_fail was set to true, returning error, value=<opaque of BackendHandleVal>]
 close result on closed handle, [code=Storage::NOT_CONNECTED, error_str=Backend is closed, value=<uninitialized>]
+
+open result 3, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<opaque of BackendHandleVal>]
+put timed out
+close result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<uninitialized>]

@@ -52,7 +52,14 @@ void Event::Dispatch(bool no_remote) {
         reporter->BeginErrorHandler();
 
     try {
-        handler->Call(&args, no_remote, ts);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+        // Call with ts = 0.0 so that CurrentEventTime() is used for
+        // events that need to be auto published.
+        //
+        // Replace in v8.1 with handler->Call(&args).
+        handler->Call(&args, no_remote, 0.0);
+#pragma GCC diagnostic pop
     }
 
     catch ( InterpreterException& e ) {

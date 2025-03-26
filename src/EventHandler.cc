@@ -78,6 +78,13 @@ void EventHandler::Call(Args* vl, bool no_remote, double ts) {
             if ( valid_args ) {
                 auto ev_args = std::move(xs).Build();
 
+                // If ts is provided as 0.0, use the current event time
+                // or else use network_time.
+                if ( ts == 0.0 )
+                    ts = zeek::event_mgr.CurrentEventTime();
+                if ( ts == 0.0 )
+                    ts = zeek::run_state::network_time;
+
                 for ( auto it = auto_publish.begin();; ) {
                     const auto& topic = *it;
                     ++it;
@@ -96,6 +103,13 @@ void EventHandler::Call(Args* vl, bool no_remote, double ts) {
     if ( local )
         // No try/catch here; we pass exceptions upstream.
         local->Invoke(vl);
+}
+
+void EventHandler::Call(Args* vl) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    Call(vl, true, 0.0);
+#pragma GCC diagnostic pop
 }
 
 void EventHandler::NewEvent(Args* vl) {

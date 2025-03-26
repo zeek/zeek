@@ -47,7 +47,14 @@ public:
         auto_publish.erase(topic);
     }
 
+    [[deprecated(
+        "Remove in v8.1, the no_remote and ts parameters are AutoPublish() specific and won't have an effect "
+        "in the future.")]]
     void Call(zeek::Args* vl, bool no_remote = false, double ts = run_state::network_time);
+
+    // Call the function associated with this handler. This for now just
+    // invokes Call with no_remote=false and ts=0.0.
+    void Call(zeek::Args* vl);
 
     // Returns true if there is at least one local or remote handler.
     explicit operator bool() const;

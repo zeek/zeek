@@ -13,22 +13,60 @@
 #include "zeek/iosource/PktSrc.h"
 #include "zeek/plugin/Manager.h"
 
+namespace {
+
+// Find NetworkTimestamp metadata in the given vector.
+//
+// Returns the value as double, 0.0 if not found or meta is null, or -1.0 if
+// the type of entry wasn't a TimeVal.
+double get_network_timestamp_meta(const zeek::MetadataVector* vec) {
+    if ( ! vec )
+        return 0.0;
+
+    for ( const auto& [type, val] : *vec ) {
+        if ( type == static_cast<zeek_uint_t>(zeek::detail::MetadataType::NetworkTimestamp) ) {
+            if ( val->GetType()->Tag() == zeek::TYPE_TIME )
+                return val->AsTime();
+
+            // This is bad: Someone sent a NetworkTimestamp (1)
+            // with the wrong type around.
+            return -1.0;
+        }
+    }
+
+    return 0.0;
+}
+
+} // namespace
+
 zeek::EventMgr zeek::event_mgr;
 
 namespace zeek {
 
-Event::Event(const EventHandlerPtr& arg_handler, zeek::Args arg_args, util::detail::SourceID arg_src,
-             analyzer::ID arg_aid, Obj* arg_obj, double arg_ts)
+Event::Event(MetadataVector arg_meta, const EventHandlerPtr& arg_handler, zeek::Args arg_args,
+             util::detail::SourceID arg_src, analyzer::ID arg_aid, Obj* arg_obj)
     : handler(arg_handler),
       args(std::move(arg_args)),
       src(arg_src),
       aid(arg_aid),
-      ts(arg_ts),
       obj(arg_obj),
-      next_event(nullptr) {
+      next_event(nullptr),
+      meta(std::move(arg_meta)) {
     if ( obj )
         Ref(obj);
 }
+
+Event::Event(const EventHandlerPtr& arg_handler, zeek::Args arg_args, util::detail::SourceID arg_src,
+             analyzer::ID arg_aid, Obj* arg_obj, double ts)
+
+    // Convert ts metadata into generic vector.
+    //
+    // XXX: Worried about overhead?
+    : Event(MetadataVector{{static_cast<zeek_uint_t>(detail::MetadataType::NetworkTimestamp),
+                            zeek::make_intrusive<TimeVal>(ts)}},
+            arg_handler, std::move(arg_args), arg_src, arg_aid, arg_obj) {}
+
+double Event::Time() const { return get_network_timestamp_meta(&meta); }
 
 void Event::Describe(ODesc* d) const {
     if ( d->IsReadable() )
@@ -78,7 +116,7 @@ EventMgr::EventMgr() {
     head = tail = nullptr;
     current_src = util::detail::SOURCE_LOCAL;
     current_aid = 0;
-    current_ts = 0;
+    current_meta = nullptr;
     src_val = nullptr;
     draining = false;
 }
@@ -118,9 +156,11 @@ void EventMgr::QueueEvent(Event* event) {
 void EventMgr::Dispatch(Event* event, bool no_remote) {
     current_src = event->Source();
     current_aid = event->Analyzer();
-    current_ts = event->Time();
+    current_meta = &event->meta;
     event->Dispatch(no_remote);
     Unref(event);
+
+    current_meta = nullptr;
 }
 
 void EventMgr::Drain() {
@@ -148,9 +188,12 @@ void EventMgr::Drain() {
 
             current_src = current->Source();
             current_aid = current->Analyzer();
-            current_ts = current->Time();
+            current_meta = &current->meta;
+
             current->Dispatch();
             Unref(current);
+
+            current_meta = nullptr;
 
             ++event_mgr.num_events_dispatched;
             current = next;
@@ -165,6 +208,9 @@ void EventMgr::Drain() {
     // drain.
     detail::trigger_mgr->Process();
 }
+
+double EventMgr::CurrentEventTime() const { return get_network_timestamp_meta(current_meta); }
+
 
 void EventMgr::Describe(ODesc* d) const {
     int n = 0;

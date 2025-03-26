@@ -4,6 +4,7 @@
 
 #include <tuple>
 #include <type_traits>
+#include <vector>
 
 #include "zeek/Flare.h"
 #include "zeek/IntrusivePtr.h"
@@ -20,8 +21,26 @@ extern double network_time;
 
 class EventMgr;
 
+namespace detail {
+
+enum class MetadataType : uint8_t {
+    NetworkTimestamp = 1,
+};
+
+struct MetadataEntry {
+    zeek_uint_t type;
+    zeek::ValPtr val;
+};
+
+} // namespace detail
+
+using MetadataVector = std::vector<detail::MetadataEntry>;
+
 class Event final : public Obj {
 public:
+    Event(MetadataVector meta, const EventHandlerPtr& handler, zeek::Args args,
+          util::detail::SourceID src = util::detail::SOURCE_LOCAL, analyzer::ID aid = 0, Obj* obj = nullptr);
+
     Event(const EventHandlerPtr& handler, zeek::Args args, util::detail::SourceID src = util::detail::SOURCE_LOCAL,
           analyzer::ID aid = 0, Obj* obj = nullptr, double ts = run_state::network_time);
 
@@ -32,7 +51,7 @@ public:
     analyzer::ID Analyzer() const { return aid; }
     EventHandlerPtr Handler() const { return handler; }
     const zeek::Args& Args() const { return args; }
-    double Time() const { return ts; }
+    double Time() const;
 
     void Describe(ODesc* d) const override;
 
@@ -47,9 +66,9 @@ protected:
     zeek::Args args;
     util::detail::SourceID src;
     analyzer::ID aid;
-    double ts;
     Obj* obj;
     Event* next_event;
+    MetadataVector meta;
 };
 
 class EventMgr final : public Obj, public iosource::IOSource {
@@ -100,7 +119,7 @@ public:
     // Returns the timestamp of the last raised event. The timestamp reflects the network time
     // the event was intended to be executed. For scheduled events, this is the time the event
     // was scheduled to. For any other event, this is the time when the event was created.
-    double CurrentEventTime() const { return current_ts; }
+    double CurrentEventTime() const;
 
     int Size() const { return num_events_queued - num_events_dispatched; }
 
@@ -124,7 +143,7 @@ protected:
     Event* tail;
     util::detail::SourceID current_src;
     analyzer::ID current_aid;
-    double current_ts;
+    MetadataVector* current_meta;
     RecordVal* src_val;
     bool draining;
 };

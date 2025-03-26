@@ -10,7 +10,15 @@
 #include "zeek/cluster/Serializer.h"
 #include "zeek/cluster/backend/zeromq/ZeroMQ-Proxy.h"
 
-namespace zeek::cluster::zeromq {
+
+namespace zeek {
+
+namespace telemetry {
+class Counter;
+using CounterPtr = std::shared_ptr<Counter>;
+} // namespace telemetry
+
+namespace cluster::zeromq {
 
 class ZeroMQBackend : public cluster::ThreadedBackend {
 public:
@@ -105,6 +113,9 @@ private:
     // Tracking the subscriptions on the local XPUB socket.
     std::map<std::string, SubscribeCallback> subscription_callbacks;
     std::set<std::string> xpub_subscriptions;
+
+    zeek::telemetry::CounterPtr total_xpub_stalls;
 };
 
-} // namespace zeek::cluster::zeromq
+} // namespace cluster::zeromq
+} // namespace zeek

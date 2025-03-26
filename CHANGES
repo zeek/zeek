@@ -1,3 +1,10 @@
+7.2.0-dev.431 | 2025-03-26 14:23:51 +0100
+
+  * cluster/zeromq: Improve XPUB stall behavior, add a metric (Arne Welzel, Corelight)
+
+    Instead of fprintf, track the number of occurrences via a metric and
+    change the sleep loop to a blocking send instead.
+
 7.2.0-dev.429 | 2025-03-26 13:59:23 +0100
 
   * GH-4309: telemetry: Run callbacks at collect time (Arne Welzel, Corelight)

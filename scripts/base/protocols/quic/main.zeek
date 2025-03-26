@@ -43,7 +43,7 @@ export {
 		## packet if available.
 		client_protocol: string &log &optional;
 
-		## Experimental QUIC history.
+		## QUIC history.
 		##
 		## Letters have the following meaning with client-sent
 		## letters being capitalized:

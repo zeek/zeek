@@ -264,6 +264,11 @@ private:
      */
     void InvokeTelemetrySyncHook();
 
+    /**
+     * Runs the telemetry sync hooks and metric callbacks.
+     */
+    void UpdateMetrics();
+
     bool in_sync_hook = false;
 
     std::map<std::string, std::shared_ptr<MetricFamily>> families;

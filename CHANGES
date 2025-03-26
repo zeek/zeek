@@ -1,3 +1,11 @@
+7.2.0-dev.429 | 2025-03-26 13:59:23 +0100
+
+  * GH-4309: telemetry: Run callbacks at collect time (Arne Welzel, Corelight)
+
+    Calling collect_metrics() from a script would not invoke metric
+    callbacks, resulting in most of the process metrics to be zero
+    when a Zeek process isn't scraped via Prometheus.
+
 7.2.0-dev.427 | 2025-03-24 19:45:24 +0100
 
   * cluster/OnLoop: Add metric for queue stalling instead of fprintf (Arne Welzel, Corelight)

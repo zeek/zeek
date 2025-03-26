@@ -278,6 +278,14 @@ void Manager::InvokeTelemetrySyncHook() {
     in_sync_hook = false;
 }
 
+
+void Manager::UpdateMetrics() {
+    InvokeTelemetrySyncHook();
+
+    for ( const auto& [name, f] : families )
+        f->RunCallbacks();
+}
+
 ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view name_pattern) {
     static auto metrics_vector_type = zeek::id::find_type<VectorType>("Telemetry::MetricVector");
     static auto string_vec_type = zeek::id::find_type<zeek::VectorType>("string_vec");
@@ -290,7 +298,7 @@ ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view
     static auto metric_opts_type = zeek::id::find_type<zeek::RecordType>("Telemetry::MetricOpts");
     static auto metric_type_idx = metric_opts_type->FieldOffset("metric_type");
 
-    InvokeTelemetrySyncHook();
+    UpdateMetrics();
 
     VectorValPtr ret_val = make_intrusive<VectorVal>(metrics_vector_type);
 
@@ -369,7 +377,7 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
     static auto metric_opts_type = zeek::id::find_type<zeek::RecordType>("Telemetry::MetricOpts");
     static auto metric_type_idx = metric_opts_type->FieldOffset("metric_type");
 
-    InvokeTelemetrySyncHook();
+    UpdateMetrics();
 
     VectorValPtr ret_val = make_intrusive<VectorVal>(metrics_vector_type);
 
@@ -597,10 +605,7 @@ void Manager::ProcessFd(int fd, int flags) {
 
     collector_flare.Extinguish();
 
-    for ( const auto& [name, f] : families )
-        f->RunCallbacks();
-
-    InvokeTelemetrySyncHook();
+    UpdateMetrics();
 
     collector_response_idx = collector_request_idx;
 

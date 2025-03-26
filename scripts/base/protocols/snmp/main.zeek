@@ -61,14 +61,15 @@ export {
 
 	## SNMP finalization hook.  Remaining SNMP info may get logged when it's called.
 	global finalize_snmp: Conn::RemovalHook;
+
+	## Well-known ports
+	option ports = { 161/udp, 162/udp };
+	redef likely_server_ports += { ports };
 }
 
 redef record connection += {
 	snmp: SNMP::Info &optional;
 };
-
-const ports = { 161/udp, 162/udp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

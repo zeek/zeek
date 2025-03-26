@@ -151,6 +151,10 @@ export {
 
 	## DNS finalization hook.  Remaining DNS info may get logged when it's called.
 	global finalize_dns: Conn::RemovalHook;
+
+	## Well-known ports
+	option ports = { 53/udp, 53/tcp, 137/udp, 5353/udp, 5355/udp };
+	redef likely_server_ports += { ports };
 }
 
 
@@ -158,9 +162,6 @@ redef record connection += {
 	dns:       Info  &optional;
 	dns_state: State &optional;
 };
-
-const ports = { 53/udp, 53/tcp, 137/udp, 5353/udp, 5355/udp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

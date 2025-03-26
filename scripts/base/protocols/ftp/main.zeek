@@ -75,6 +75,10 @@ export {
 	## Truncate the reply_msg field in the log to that many bytes to avoid
 	## excessive logging volume.
 	option max_reply_msg_length = 4096;
+
+	## Well-known ports
+	option ports = { 21/tcp, 2811/tcp };
+	redef likely_server_ports += { ports };
 }
 
 # Add the state tracking information variable to the connection record
@@ -82,9 +86,6 @@ redef record connection += {
 	ftp: Info &optional;
 	ftp_data_reuse: bool &default=F;
 };
-
-const ports = { 21/tcp, 2811/tcp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

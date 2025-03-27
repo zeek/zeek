@@ -34,7 +34,7 @@ public:
 
     void Describe(ODesc* d) const override;
 
-protected:
+private:
     friend class EventMgr;
 
     // This method is protected to make sure that everybody goes through
@@ -116,7 +116,7 @@ public:
     uint64_t num_events_queued = 0;
     uint64_t num_events_dispatched = 0;
 
-protected:
+private:
     void QueueEvent(Event* event);
 
     Event* current = nullptr;

@@ -17,8 +17,9 @@ extern double network_time;
 } // namespace run_state
 
 class EventMgr;
+class Event;
 
-class Event final : public Obj {
+class Event final {
 public:
     Event(const EventHandlerPtr& handler, zeek::Args args, util::detail::SourceID src = util::detail::SOURCE_LOCAL,
           analyzer::ID aid = 0, Obj* obj = nullptr, double ts = run_state::network_time);
@@ -32,15 +33,16 @@ public:
     const zeek::Args& Args() const { return args; }
     double Time() const { return ts; }
 
-    void Describe(ODesc* d) const override;
-
 private:
     friend class EventMgr;
+    friend void inline Ref(Event*);
+    friend inline void Unref(Event*);
 
     // This method is protected to make sure that everybody goes through
     // EventMgr::Dispatch().
     void Dispatch(bool no_remote = false);
 
+    int ref_cnt;
     EventHandlerPtr handler;
     zeek::Args args;
     util::detail::SourceID src;
@@ -49,6 +51,13 @@ private:
     Obj* obj;
     Event* next_event;
 };
+
+inline void Unref(Event* e) {
+    if ( e && --e->ref_cnt <= 0 )
+        delete e;
+}
+
+inline void Ref(Event* e) { ++(e->ref_cnt); }
 
 class EventMgr final : public iosource::IOSource {
 public:

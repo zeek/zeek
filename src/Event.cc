@@ -4,7 +4,6 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Trigger.h"
-#include "zeek/Val.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/plugin/Manager.h"
 
@@ -16,7 +15,8 @@ namespace zeek {
 
 Event::Event(const EventHandlerPtr& arg_handler, zeek::Args arg_args, util::detail::SourceID arg_src,
              analyzer::ID arg_aid, Obj* arg_obj, double arg_ts)
-    : handler(arg_handler),
+    : ref_cnt(1),
+      handler(arg_handler),
       args(std::move(arg_args)),
       src(arg_src),
       aid(arg_aid),
@@ -25,20 +25,6 @@ Event::Event(const EventHandlerPtr& arg_handler, zeek::Args arg_args, util::deta
       next_event(nullptr) {
     if ( obj )
         Ref(obj);
-}
-
-void Event::Describe(ODesc* d) const {
-    if ( d->IsReadable() )
-        d->AddSP("event");
-
-    bool s = d->IsShort();
-    d->SetShort(s);
-
-    if ( ! d->IsBinary() )
-        d->Add("(");
-    describe_vals(args, d);
-    if ( ! d->IsBinary() )
-        d->Add("(");
 }
 
 void Event::Dispatch(bool no_remote) {

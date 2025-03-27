@@ -9,6 +9,11 @@ Zeek 7.2.0
 Breaking Changes
 ----------------
 
+- The ``is_remote_event()``, ``current_analyzer()`` and ``current_event_time()``
+  builtin functions do not return the previous event's values anymore when event
+  draining has completed. The same applies to the corresponding C++ accessors on
+  the ``EventMgr`` class. The functions now return false, 0 or the zero time instead.
+
 New Functionality
 -----------------
 

@@ -1,4 +1,5 @@
-##! Disables analyzers if protocol violations occur.
+##! Disables analyzers if protocol violations occur, and add service information
+##! to connection log.
 
 module DPD;
 
@@ -27,6 +28,7 @@ redef record connection += {
 	service_violation: set[string] &default=set() &ordered;
 };
 
+## add confirmed protocol analyzers to conn.log service field
 event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &priority=10
 	{
 	if ( ! is_protocol_analyzer(atype) && ! is_packet_analyzer(atype) )
@@ -40,6 +42,7 @@ event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirm
 	add c$service[analyzer];
 	}
 
+## Remove failed analyzers from service field and add them to c$service_violation
 event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=10
 	{
 	if ( ! is_protocol_analyzer(atype) && ! is_packet_analyzer(atype) )

@@ -69,7 +69,6 @@ EventMgr::EventMgr() {
     current_src = util::detail::SOURCE_LOCAL;
     current_aid = 0;
     current_ts = 0;
-    src_val = nullptr;
     draining = false;
 }
 
@@ -79,8 +78,6 @@ EventMgr::~EventMgr() {
         Unref(head);
         head = n;
     }
-
-    Unref(src_val);
 }
 
 void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl, util::detail::SourceID src, analyzer::ID aid, Obj* obj,

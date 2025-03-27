@@ -123,7 +123,6 @@ protected:
     util::detail::SourceID current_src;
     analyzer::ID current_aid;
     double current_ts;
-    RecordVal* src_val;
     bool draining;
 };
 

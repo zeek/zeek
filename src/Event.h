@@ -5,12 +5,10 @@
 #include <tuple>
 #include <type_traits>
 
-#include "zeek/Flare.h"
-#include "zeek/IntrusivePtr.h"
 #include "zeek/ZeekArgs.h"
-#include "zeek/ZeekList.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/iosource/IOSource.h"
+#include "zeek/util.h"
 
 namespace zeek {
 

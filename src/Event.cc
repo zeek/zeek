@@ -2,16 +2,13 @@
 
 #include "zeek/Event.h"
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/Desc.h"
-#include "zeek/Func.h"
-#include "zeek/NetVar.h"
 #include "zeek/Trigger.h"
 #include "zeek/Val.h"
 #include "zeek/iosource/Manager.h"
-#include "zeek/iosource/PktSrc.h"
 #include "zeek/plugin/Manager.h"
+
+#include "event.bif.netvar_h"
 
 zeek::EventMgr zeek::event_mgr;
 

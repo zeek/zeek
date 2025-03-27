@@ -145,20 +145,6 @@ void EventMgr::Drain() {
     detail::trigger_mgr->Process();
 }
 
-void EventMgr::Describe(ODesc* d) const {
-    int n = 0;
-    Event* e;
-    for ( e = head; e; e = e->NextEvent() )
-        ++n;
-
-    d->AddCount(n);
-
-    for ( e = head; e; e = e->NextEvent() ) {
-        e->Describe(d);
-        d->NL();
-    }
-}
-
 void EventMgr::Process() {
     // While it semes like the most logical thing to do, we dont want
     // to call Drain() as part of this method. It will get called at

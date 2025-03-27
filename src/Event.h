@@ -50,7 +50,7 @@ private:
     Event* next_event;
 };
 
-class EventMgr final : public Obj, public iosource::IOSource {
+class EventMgr final : public iosource::IOSource {
 public:
     ~EventMgr() override;
 
@@ -102,8 +102,6 @@ public:
     double CurrentEventTime() const { return current ? current->Time() : 0.0; }
 
     int Size() const { return num_events_queued - num_events_dispatched; }
-
-    void Describe(ODesc* d) const override;
 
     // Let the IO loop know when there's more events to process
     // by returning a zero-timeout.

@@ -13,7 +13,7 @@ class Backend;
  */
 class Component : public plugin::Component {
 public:
-    using factory_callback = IntrusivePtr<Backend> (*)(std::string_view);
+    using factory_callback = IntrusivePtr<Backend> (*)();
 
     /**
      * Constructor.

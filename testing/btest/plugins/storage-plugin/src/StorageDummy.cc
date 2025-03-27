@@ -11,7 +11,7 @@ using namespace zeek::storage;
 
 namespace btest::storage::backend {
 
-BackendPtr StorageDummy::Instantiate(std::string_view tag) { return make_intrusive<StorageDummy>(tag); }
+BackendPtr StorageDummy::Instantiate() { return make_intrusive<StorageDummy>(); }
 
 /**
  * Called by the manager system to open the backend.

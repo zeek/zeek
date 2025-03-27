@@ -8,7 +8,7 @@
 
 redef exit_only_after_terminate = T;
 
-event Storage::backend_opened(tag: string, config: any) {
+event Storage::backend_opened(tag: Storage::Backend, config: any) {
 	print "Storage::backend_opened", tag, config;
 }
 

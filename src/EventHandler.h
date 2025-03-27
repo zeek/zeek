@@ -4,13 +4,11 @@
 
 #pragma once
 
-#include <optional>
 #include <string>
 #include <unordered_set>
 
 #include "zeek/Type.h"
 #include "zeek/ZeekArgs.h"
-#include "zeek/ZeekList.h"
 
 namespace zeek {
 

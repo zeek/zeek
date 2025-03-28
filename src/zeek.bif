@@ -4973,9 +4973,9 @@ function uninstall_dst_net_filter%(snet: subnet%) : bool
 	return zeek::val_mgr->Bool(packet_mgr->GetPacketFilter()->RemoveDst(snet));
 	%}
 
-## Checks whether the last raised event came from a remote peer.
+## Checks whether the current event came from a remote peer.
 ##
-## Returns: True if the last raised event came from a remote peer.
+## Returns: True if the current event came from a remote peer.
 function is_remote_event%(%) : bool
 	%{
 	return zeek::val_mgr->Bool(zeek::event_mgr.CurrentSource() != zeek::util::detail::SOURCE_LOCAL);

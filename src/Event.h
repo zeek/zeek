@@ -5,12 +5,10 @@
 #include <tuple>
 #include <type_traits>
 
-#include "zeek/Flare.h"
-#include "zeek/IntrusivePtr.h"
 #include "zeek/ZeekArgs.h"
-#include "zeek/ZeekList.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/iosource/IOSource.h"
+#include "zeek/util.h"
 
 namespace zeek {
 
@@ -36,7 +34,7 @@ public:
 
     void Describe(ODesc* d) const override;
 
-protected:
+private:
     friend class EventMgr;
 
     // This method is protected to make sure that everybody goes through
@@ -54,7 +52,6 @@ protected:
 
 class EventMgr final : public Obj, public iosource::IOSource {
 public:
-    EventMgr();
     ~EventMgr() override;
 
     /**
@@ -86,21 +83,23 @@ public:
     void Dispatch(Event* event, bool no_remote = false);
 
     void Drain();
-    bool IsDraining() const { return draining; }
+    bool IsDraining() const { return current != nullptr; }
 
     bool HasEvents() const { return head != nullptr; }
 
-    // Returns the source ID of last raised event.
-    util::detail::SourceID CurrentSource() const { return current_src; }
+    // Returns the source ID of the current event.
+    util::detail::SourceID CurrentSource() const { return current ? current->Source() : util::detail::SOURCE_LOCAL; }
 
-    // Returns the ID of the analyzer which raised the last event, or 0 if
+    // Returns the ID of the analyzer which raised the current event, or 0 if
     // non-analyzer event.
-    analyzer::ID CurrentAnalyzer() const { return current_aid; }
+    analyzer::ID CurrentAnalyzer() const { return current ? current->Analyzer() : 0; }
 
-    // Returns the timestamp of the last raised event. The timestamp reflects the network time
+    // Returns the timestamp of the current event. The timestamp reflects the network time
     // the event was intended to be executed. For scheduled events, this is the time the event
     // was scheduled to. For any other event, this is the time when the event was created.
-    double CurrentEventTime() const { return current_ts; }
+    //
+    // If no event is being processed, returns 0.0.
+    double CurrentEventTime() const { return current ? current->Time() : 0.0; }
 
     int Size() const { return num_events_queued - num_events_dispatched; }
 
@@ -117,16 +116,12 @@ public:
     uint64_t num_events_queued = 0;
     uint64_t num_events_dispatched = 0;
 
-protected:
+private:
     void QueueEvent(Event* event);
 
-    Event* head;
-    Event* tail;
-    util::detail::SourceID current_src;
-    analyzer::ID current_aid;
-    double current_ts;
-    RecordVal* src_val;
-    bool draining;
+    Event* current = nullptr;
+    Event* head = nullptr;
+    Event* tail = nullptr;
 };
 
 extern EventMgr event_mgr;

@@ -35,7 +35,6 @@
 %token TOK_DEBUG
 
 %token TOK_NO_TEST
-%token TOK_DOCS_OMIT_VALUE
 
 %left ','
 %right '=' TOK_ADD_TO TOK_REMOVE_FROM TOK_ADD TOK_DELETE
@@ -56,7 +55,7 @@
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
 %nonassoc TOK_AS TOK_IS
 
-%type <b> opt_no_test opt_no_test_block opt_deep when_flavor opt_docs_omit_value
+%type <b> opt_no_test opt_no_test_block opt_deep when_flavor
 %type <str> TOK_ID TOK_PATTERN_TEXT TOK_GLOBAL_ID lookup_identifier
 %type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_lambda case_type
 %type <id_l> local_id_list case_type_list
@@ -1391,7 +1390,7 @@ decl:
 
 				YYERROR;  // bail
 				}
-		} opt_type init_class opt_init opt_attr ';' opt_docs_omit_value
+		} opt_type init_class opt_init opt_attr ';'
 			{
 			build_global($2, $4, $5, $6, $7, VAR_REDEF);
 			}
@@ -2242,13 +2241,6 @@ opt_no_test:
 opt_no_test_block:
 		TOK_NO_TEST
 			{ $$ = true; script_coverage_mgr.IncIgnoreDepth(); }
-	|
-			{ $$ = false; }
-	;
-
-opt_docs_omit_value:
-		TOK_DOCS_OMIT_VALUE
-			{ $$ = true; }
 	|
 			{ $$ = false; }
 	;

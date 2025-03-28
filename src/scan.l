@@ -264,7 +264,6 @@ ESCSEQ	(\\([^\r\n]|[0-7]+|x[[:xdigit:]]+))
 }
 
 #{OWS}@no-test.* return TOK_NO_TEST;
-#{OWS}@docs-omit-value.* return TOK_DOCS_OMIT_VALUE;
 
 #.*	/* eat comments */
 

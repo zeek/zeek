@@ -73,7 +73,7 @@ public:
      * @param comments Comments associated with the redef statement.
      */
     void AddRedef(const std::string& from_script, zeek::detail::InitClass ic, zeek::detail::ExprPtr init_expr,
-                  const std::vector<std::string>& comments);
+                  std::vector<std::string> comments);
 
     /**
      * Register a record field associated with the identifier
@@ -141,9 +141,10 @@ public:
         zeek::detail::InitClass ic;
         zeek::detail::ExprPtr init_expr;
         std::vector<std::string> comments; /**< Zeekygen comments on redef. */
+        bool omit_value = false;
 
         Redefinition(std::string arg_script, zeek::detail::InitClass arg_ic, zeek::detail::ExprPtr arg_expr,
-                     std::vector<std::string> arg_comments);
+                     std::vector<std::string> arg_comments, bool arg_omit_value);
 
         ~Redefinition();
     };

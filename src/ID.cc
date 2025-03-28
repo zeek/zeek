@@ -536,21 +536,27 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const {
             d->NL();
             d->PushIndent();
 
-            if ( ir->ic == INIT_FULL )
-                d->Add("``=``");
-            else if ( ir->ic == INIT_EXTRA )
-                d->Add("``+=``");
-            else if ( ir->ic == INIT_REMOVE )
-                d->Add("``-=``");
-            else
-                assert(false);
+            if ( attrs->Find(ATTR_DOCS_OMIT_VALUE) ) {
+                d->Add("<< Value omitted due to ``&docs_omit_value`` attribute >>");
+                d->NL();
+            }
+            else {
+                if ( ir->ic == INIT_FULL )
+                    d->Add("``=``");
+                else if ( ir->ic == INIT_EXTRA )
+                    d->Add("``+=``");
+                else if ( ir->ic == INIT_REMOVE )
+                    d->Add("``-=``");
+                else
+                    assert(false);
 
-            d->Add("::");
-            d->NL();
-            d->PushIndent();
-            d->Add(redef_str.data());
-            d->PopIndent();
-            d->PopIndent();
+                d->Add("::");
+                d->NL();
+                d->PushIndent();
+                d->Add(redef_str.data());
+                d->PopIndent();
+                d->PopIndent();
+            }
         }
     }
 }

@@ -1,6 +1,9 @@
 module QUIC;
 
 export {
+	## A mapping from QUIC's raw version numbers to readable strings.
+	## Unexpected versions become "unknown-<hex>", with a hexadecimal
+	## rendering of the version number.
 	const version_strings: table[count] of string = {
 		[0x00000001] = "1",
 		[0x6b3343cf] = "quicv2",

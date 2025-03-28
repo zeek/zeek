@@ -1,4 +1,4 @@
-##! Initial idea for a quic.log.
+##! Implements base functionality for QUIC analysis. Generates quic.log.
 
 @load base/frameworks/notice/weird
 @load base/protocols/conn/removal-hooks
@@ -19,7 +19,8 @@ export {
 		id:          conn_id &log;
 
 		## QUIC version as found in the first INITIAL packet from
-		## the client.
+		## the client. This will often be "1" or "quicv2", but see
+		## the :zeek:see:`QUIC::version_strings` table for details.
 		version:     string  &log;
 
 		## First Destination Connection ID used by client. This is
@@ -57,6 +58,7 @@ export {
 		## R       RETRY packet
 		## C       CONNECTION_CLOSE packet
 		## S       SSL Client/Server Hello
+		## U       Unfamiliar QUIC version
 		## ======  ====================================================
 		history: string &log &default="";
 

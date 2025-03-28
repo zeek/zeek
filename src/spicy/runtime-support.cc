@@ -108,7 +108,8 @@ std::string hilti::rt::detail::adl::to_string(const zeek::spicy::rt::ZeekTypeTag
 
 TypePtr rt::create_enum_type(
     const std::string& ns, const std::string& id,
-    const hilti::rt::Vector<std::tuple<std::string, hilti::rt::integer::safe<int64_t>>>& labels) {
+    const hilti::rt::Set<std::tuple<std::optional<std::string>, std::optional<hilti::rt::integer::safe<int64_t>>>>&
+        labels) {
     auto _ = hilti::rt::profiler::start("zeek/rt/create_enum_type");
 
     if ( auto t = findType(TYPE_ENUM, ns, id) )
@@ -117,13 +118,14 @@ TypePtr rt::create_enum_type(
     auto etype = make_intrusive<EnumType>(ns + "::" + id);
 
     for ( auto [lid, lval] : labels ) {
-        auto name = ::hilti::rt::fmt("%s_%s", id, lid);
+        assert(lid && lval);
+        auto name = ::hilti::rt::fmt("%s_%s", id, *lid);
 
-        if ( lval == -1 )
+        if ( *lval == -1 )
             // Zeek's enum can't be negative, so swap in max_int for our Undef.
             lval = std::numeric_limits<::zeek_int_t>::max();
 
-        etype->AddName(ns, name.c_str(), lval, true);
+        etype->AddName(ns, name.c_str(), *lval, true);
     }
 
     return std::move(etype);
@@ -393,7 +395,7 @@ std::string rt::uid() {
     throw ValueUnavailable("uid() not available in current context");
 }
 
-std::tuple<hilti::rt::Address, hilti::rt::Port, hilti::rt::Address, hilti::rt::Port> rt::conn_id() {
+hilti::rt::Tuple<hilti::rt::Address, hilti::rt::Port, hilti::rt::Address, hilti::rt::Port> rt::conn_id() {
     auto _ = hilti::rt::profiler::start("zeek/rt/conn_id");
 
     static auto convert_address = [](const IPAddr& zaddr) -> hilti::rt::Address {
@@ -424,10 +426,10 @@ std::tuple<hilti::rt::Address, hilti::rt::Port, hilti::rt::Address, hilti::rt::P
     if ( auto cookie = static_cast<Cookie*>(hilti::rt::context::cookie()) ) {
         if ( auto c = cookie->protocol ) {
             const auto* conn = c->analyzer->Conn();
-            return std::make_tuple(convert_address(conn->OrigAddr()),
-                                   convert_port(conn->OrigPort(), conn->ConnTransport()),
-                                   convert_address(conn->RespAddr()),
-                                   convert_port(conn->RespPort(), conn->ConnTransport()));
+            return hilti::rt::tuple::make(convert_address(conn->OrigAddr()),
+                                          convert_port(conn->OrigPort(), conn->ConnTransport()),
+                                          convert_address(conn->RespAddr()),
+                                          convert_port(conn->RespPort(), conn->ConnTransport()));
         }
     }
 

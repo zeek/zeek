@@ -35,6 +35,7 @@
 %token TOK_DEBUG
 
 %token TOK_NO_TEST
+%token TOK_DOCS_OMIT_VALUE
 
 %left ','
 %right '=' TOK_ADD_TO TOK_REMOVE_FROM TOK_ADD TOK_DELETE
@@ -55,7 +56,7 @@
 %left '$' '[' ']' '(' ')' TOK_HAS_FIELD TOK_HAS_ATTR
 %nonassoc TOK_AS TOK_IS
 
-%type <b> opt_no_test opt_no_test_block opt_deep when_flavor
+%type <b> opt_no_test opt_no_test_block opt_deep when_flavor opt_docs_omit_value
 %type <str> TOK_ID TOK_PATTERN_TEXT TOK_GLOBAL_ID lookup_identifier
 %type <id> local_id global_id def_global_id event_id global_or_event_id resolve_id begin_lambda case_type
 %type <id_l> local_id_list case_type_list
@@ -104,6 +105,7 @@
 #include "zeek/input.h"
 #include "zeek/module_util.h"
 #include "zeek/zeekygen/Manager.h"
+#include "zeek/DebugLogger.h"
 
 extern const char* filename;      // Absolute path of file currently being parsed.
 extern const char* last_filename; // Absolute path of last file parsed.
@@ -296,8 +298,10 @@ static void build_global(ID* id, Type* t, InitClass ic, Expr* e, std::vector<Att
 
     add_global(id_ptr, std::move(t_ptr), ic, e_ptr, std::move(attrs_ptr), dt);
 
-    if ( dt == VAR_REDEF )
+    if ( dt == VAR_REDEF ) {
+        DBG_LOG(DBG_ZEEKYGEN, "redef of %s in %s", id->Name(), ::filename);
         zeekygen_mgr->Redef(id, ::filename, ic, std::move(e_ptr));
+    }
     else
         zeekygen_mgr->Identifier(std::move(id_ptr));
 }
@@ -1387,7 +1391,7 @@ decl:
 
 				YYERROR;  // bail
 				}
-		} opt_type init_class opt_init opt_attr ';'
+		} opt_type init_class opt_init opt_attr ';' opt_docs_omit_value
 			{
 			build_global($2, $4, $5, $6, $7, VAR_REDEF);
 			}
@@ -2238,6 +2242,13 @@ opt_no_test:
 opt_no_test_block:
 		TOK_NO_TEST
 			{ $$ = true; script_coverage_mgr.IncIgnoreDepth(); }
+	|
+			{ $$ = false; }
+	;
+
+opt_docs_omit_value:
+		TOK_DOCS_OMIT_VALUE
+			{ $$ = true; }
 	|
 			{ $$ = false; }
 	;

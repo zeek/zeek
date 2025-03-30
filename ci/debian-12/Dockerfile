@@ -20,8 +20,10 @@ RUN apt-get update && apt-get -y install \
     git \
     jq \
     libkrb5-dev \
+    libnats-dev \
     libnode-dev \
     libpcap-dev \
+    librdkafka-dev \
     libssl-dev \
     libuv1-dev \
     make \

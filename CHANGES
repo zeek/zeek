@@ -1,3 +1,12 @@
+7.2.0-dev.458 | 2025-03-31 18:59:11 +0200
+
+  * CI: Upgrade zeekctl task to Debian 12 (Arne Welzel, Corelight)
+
+  * GH-3535: CI: Add external plugins to builtin plugins task (Arne Welzel, Corelight)
+
+    This clones a few external plugins to include them in a build. Except
+    for zeek-kafka, the others are maintained by the Zeek project.
+
 7.2.0-dev.454 | 2025-03-31 18:44:59 +0200
 
   * Hook into Broker logs via its new API (Dominik Charousset)

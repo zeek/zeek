@@ -737,7 +737,7 @@ cluster_testing_docker_builder:
 #
 # Also triggers on CIRRUS_CRON == 'zeekctl-nightly' if that is configured
 # through the Cirrus Web UI.
-zeekctl_debian11_task:
+zeekctl_debian12_task:
   cpu: *CPUS
   memory: *MEMORY
   only_if: >
@@ -748,8 +748,8 @@ zeekctl_debian11_task:
         $CIRRUS_BRANCH =~ 'release/.*' )
     )
   container:
-    # Debian 11 EOL: June 2026
-    dockerfile: ci/debian-11/Dockerfile
+    # Debian 12 (bookworm) EOL: TBD
+    dockerfile: ci/debian-12/Dockerfile
     << : *RESOURCES_TEMPLATE
   sync_submodules_script: git submodule update --recursive --init
   always:

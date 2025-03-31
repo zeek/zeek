@@ -1,3 +1,17 @@
+7.2.0-dev.454 | 2025-03-31 18:44:59 +0200
+
+  * Hook into Broker logs via its new API (Dominik Charousset)
+
+    The new Broker API allows us to provide a custom logger to Broker that
+    pulls previously unattainable context information out of Broker to put
+    them into broker.log for users of Zeek.
+
+    Since Broker log events happen asynchronously, we cache them in a queue
+    and use a flare to notify Zeek of activity. Furthermore, the Broker
+    manager now implements the `ProcessFd` function to avoid unnecessary
+    polling of the new log queue. As a side effect, data stores are polled
+    less as well.
+
 7.2.0-dev.451 | 2025-03-31 09:37:02 -0700
 
   * GH-3526: Add "U" to QUIC history docstrings and expand version string docs (Christian Kreibich, Corelight)

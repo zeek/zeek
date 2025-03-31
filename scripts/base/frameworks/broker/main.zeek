@@ -176,6 +176,28 @@ export {
 	##          will be sent.
 	const log_topic: function(id: Log::ID, path: string): string = default_log_topic &redef;
 
+	## The possible log event severity levels for Broker.
+	type LogSeverityLevel: enum {
+		## Fatal event, normal operation has most likely broken down.
+		LOG_CRITICAL,
+		## Unrecoverable event that imparts at least part of the system.
+		LOG_ERROR,
+		## Unexpected or conspicuous event that may still be recoverable.
+		LOG_WARNING,
+		## Noteworthy event during normal operation.
+		LOG_INFO,
+		## Information that might be relevant for a user to understand system behavior.
+		LOG_VERBOSE,
+		## An event that is relevant only for troubleshooting and debugging.
+		LOG_DEBUG,
+	};
+
+	## The log event severity level for the Broker log output.
+	const log_severity_level = LOG_WARNING &redef;
+
+	## Event severity level for also printing the Broker log output to stderr.
+	const log_stderr_severity_level = LOG_CRITICAL &redef;
+
 	type ErrorCode: enum {
 		## The unspecified default error code.
 		UNSPECIFIED = 1,

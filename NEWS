@@ -55,6 +55,13 @@ New Functionality
     backend for NATS that will be available as an external plugin, but it is not quite
     ready yet. Both of the existing backends support usage in a cluster environment.
 
+- Broker now exposes more information through ``broker.log``. Broker generated
+  log messages are now propagated as events to Zeek. This allows exposing more
+  information for debugging and operational behavior of Broker via Zeek logs.
+  Two new script-level options ``Broker::log_severity_level`` and
+  ``Broker::log_stderr_severity_level`` have been introduced to control
+  the which events to expose by default.
+
 Changed Functionality
 ---------------------
 

@@ -14,7 +14,19 @@ export {
 		## An informational status update.
 		STATUS,
 		## An error situation.
-		ERROR
+		ERROR,
+		## Fatal event, normal operation has most likely broken down.
+		CRITICAL_EVENT,
+		## Unrecoverable event that imparts at least part of the system.
+		ERROR_EVENT,
+		## Unexpected or conspicuous event that may still be recoverable.
+		WARNING_EVENT,
+		## Noteworthy event during normal operation.
+		INFO_EVENT,
+		## Information that might be relevant for a user to understand system behavior.
+		VERBOSE_EVENT,
+		## An event that is relevant only for troubleshooting and debugging.
+		DEBUG_EVENT,
 	};
 
 	## A record type containing the column fields of the Broker log.
@@ -83,3 +95,28 @@ event Broker::error(code: ErrorCode, msg: string)
 	Reporter::error(fmt("Broker error (%s): %s", code, msg));
 	}
 
+event Broker::internal_log_event(lvl: LogSeverityLevel, id: string, description: string)
+	{
+	local severity = Broker::CRITICAL_EVENT;
+	switch lvl {
+		case Broker::LOG_ERROR:
+			severity = Broker::ERROR_EVENT;
+			break;
+		case Broker::LOG_WARNING:
+			severity = Broker::WARNING_EVENT;
+			break;
+		case Broker::LOG_INFO:
+			severity = Broker::INFO_EVENT;
+			break;
+		case Broker::LOG_VERBOSE:
+			severity = Broker::VERBOSE_EVENT;
+			break;
+		case Broker::LOG_DEBUG:
+			severity = Broker::DEBUG_EVENT;
+			break;
+	}
+	Log::write(Broker::LOG, [$ts = network_time(),
+	           $ty = severity,
+	           $ev = id,
+	           $message = description]);
+	}

@@ -1,3 +1,9 @@
+7.2.0-dev.449 | 2025-03-31 15:08:05 +0200
+
+  * Use one-based index in warning message (Benjamin Bannier, Corelight)
+
+    This was surfacing a zero-based counter to users which was confusing.
+
 7.2.0-dev.447 | 2025-03-31 14:21:51 +0200
 
   * Event/EventMgr: protected to private (Arne Welzel, Corelight)

@@ -4,13 +4,11 @@
 
 #pragma once
 
-#include <optional>
 #include <string>
 #include <unordered_set>
 
 #include "zeek/Type.h"
 #include "zeek/ZeekArgs.h"
-#include "zeek/ZeekList.h"
 
 namespace zeek {
 
@@ -47,7 +45,18 @@ public:
         auto_publish.erase(topic);
     }
 
+    [[deprecated(
+        "Remove in v8.1. The no_remote and ts parameters are AutoPublish() specific and won't have an effect "
+        "in the future. Use Call(args)")]]
     void Call(zeek::Args* vl, bool no_remote = false, double ts = run_state::network_time);
+
+    // Call the function associated with this handler.
+    void Call(zeek::Args* vl) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+        Call(vl, false, run_state::network_time);
+#pragma GCC diagnostic pop
+    }
 
     // Returns true if there is at least one local or remote handler.
     explicit operator bool() const;

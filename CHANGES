@@ -1,3 +1,37 @@
+7.2.0-dev.447 | 2025-03-31 14:21:51 +0200
+
+  * Event/EventMgr: protected to private (Arne Welzel, Corelight)
+
+    These classes are final, so deriving isn't possible. No reason to have
+    protected members.
+
+  * EventHandler: Deprecate Call(args, no_remote, ts), add Call(args) (Arne Welzel, Corelight)
+
+    The ts parameter was only added to Call() for the Broker::auto_publish()
+    functionality and propagating the network timestamp. By now, the auto-publish
+    functionality is deprecated, so it'd be good to cleanup that signature. There
+    won't be any need for no_remote in the future either.
+
+    Allow users to just use Call() instead.
+
+  * EventHandler: Header cleanup (Arne Welzel, Corelight)
+
+  * EventMgr: Do not cache current event attributes (Arne Welzel, Corelight)
+
+    Avoid proliferation of various members on EventMgr by storing the
+    pointer of the current event instead.
+
+    This subtly changes the behavior of some builtin functions as they would
+    have returned the prior event's data when executed outside of event
+    draining (e.g. C++ level hook invocations), but I think that's actually
+    for the better.
+
+  * EventMgr: Drop src_val (Arne Welzel, Corelight)
+
+    This is a left over and hasn't been used since a while.
+
+  * Event: Header cleanup (Arne Welzel, Corelight)
+
 7.2.0-dev.439 | 2025-03-27 16:12:44 -0700
 
   * Make storage events take a tag for the backend instead of a string (Tim Wojtulewicz, Corelight)

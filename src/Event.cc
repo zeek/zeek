@@ -2,16 +2,13 @@
 
 #include "zeek/Event.h"
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/Desc.h"
-#include "zeek/Func.h"
-#include "zeek/NetVar.h"
 #include "zeek/Trigger.h"
 #include "zeek/Val.h"
 #include "zeek/iosource/Manager.h"
-#include "zeek/iosource/PktSrc.h"
 #include "zeek/plugin/Manager.h"
+
+#include "event.bif.netvar_h"
 
 zeek::EventMgr zeek::event_mgr;
 
@@ -52,7 +49,11 @@ void Event::Dispatch(bool no_remote) {
         reporter->BeginErrorHandler();
 
     try {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+        // Replace in v8.1 with handler->Call(&args).
         handler->Call(&args, no_remote, ts);
+#pragma GCC diagnostic pop
     }
 
     catch ( InterpreterException& e ) {
@@ -67,23 +68,12 @@ void Event::Dispatch(bool no_remote) {
         reporter->EndErrorHandler();
 }
 
-EventMgr::EventMgr() {
-    head = tail = nullptr;
-    current_src = util::detail::SOURCE_LOCAL;
-    current_aid = 0;
-    current_ts = 0;
-    src_val = nullptr;
-    draining = false;
-}
-
 EventMgr::~EventMgr() {
     while ( head ) {
         Event* n = head->NextEvent();
         Unref(head);
         head = n;
     }
-
-    Unref(src_val);
 }
 
 void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl, util::detail::SourceID src, analyzer::ID aid, Obj* obj,
@@ -109,10 +99,10 @@ void EventMgr::QueueEvent(Event* event) {
 }
 
 void EventMgr::Dispatch(Event* event, bool no_remote) {
-    current_src = event->Source();
-    current_aid = event->Analyzer();
-    current_ts = event->Time();
+    Event* old_current = current;
+    current = event;
     event->Dispatch(no_remote);
+    current = old_current;
     Unref(event);
 }
 
@@ -122,8 +112,6 @@ void EventMgr::Drain() {
 
     PLUGIN_HOOK_VOID(HOOK_DRAIN_EVENTS, HookDrainEvents());
 
-    draining = true;
-
     // Past Zeek versions drained as long as there events, including when
     // a handler queued new events during its execution. This could lead
     // to endless loops in case a handler kept triggering its own event.
@@ -132,27 +120,25 @@ void EventMgr::Drain() {
     // that expect the old behavior to trigger something quickly.
 
     for ( int round = 0; head && round < 2; round++ ) {
-        Event* current = head;
+        Event* event = head;
         head = nullptr;
         tail = nullptr;
 
-        while ( current ) {
-            Event* next = current->NextEvent();
+        while ( event ) {
+            Event* next = event->NextEvent();
 
-            current_src = current->Source();
-            current_aid = current->Analyzer();
-            current_ts = current->Time();
-            current->Dispatch();
-            Unref(current);
+            current = event;
+            event->Dispatch();
+            Unref(event);
 
             ++event_mgr.num_events_dispatched;
-            current = next;
+            event = next;
         }
     }
 
     // Note: we might eventually need a general way to specify things to
     // do after draining events.
-    draining = false;
+    current = nullptr;
 
     // Make sure all of the triggers get processed every time the events
     // drain.

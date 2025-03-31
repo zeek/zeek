@@ -15,14 +15,15 @@ zeek::EventMgr zeek::event_mgr;
 namespace zeek {
 
 Event::Event(const EventHandlerPtr& arg_handler, zeek::Args arg_args, util::detail::SourceID arg_src,
-             analyzer::ID arg_aid, Obj* arg_obj, double arg_ts)
+             analyzer::ID arg_aid, Obj* arg_obj, double arg_ts, std::unique_ptr<MetadataVector> arg_meta)
     : handler(arg_handler),
       args(std::move(arg_args)),
       src(arg_src),
       aid(arg_aid),
       ts(arg_ts),
       obj(arg_obj),
-      next_event(nullptr) {
+      next_event(nullptr),
+      meta(std::move(arg_meta)) {
     if ( obj )
         Ref(obj);
 }

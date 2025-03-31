@@ -4,6 +4,7 @@
 
 #include <tuple>
 #include <type_traits>
+#include <vector>
 
 #include "zeek/ZeekArgs.h"
 #include "zeek/analyzer/Analyzer.h"
@@ -18,10 +19,27 @@ extern double network_time;
 
 class EventMgr;
 
+namespace detail {
+
+enum class MetadataType : uint8_t {
+    NetworkTimestamp = 1,
+};
+
+struct MetadataEntry {
+    zeek_uint_t type;
+    zeek::ValPtr val;
+};
+
+} // namespace detail
+
+using MetadataVector = std::vector<detail::MetadataEntry>;
+using MetadataVectorPtr = std::unique_ptr<MetadataVector>;
+
 class Event final : public Obj {
 public:
     Event(const EventHandlerPtr& handler, zeek::Args args, util::detail::SourceID src = util::detail::SOURCE_LOCAL,
-          analyzer::ID aid = 0, Obj* obj = nullptr, double ts = run_state::network_time);
+          analyzer::ID aid = 0, Obj* obj = nullptr, double ts = run_state::network_time,
+          std::unique_ptr<MetadataVector> meta = nullptr);
 
     void SetNext(Event* n) { next_event = n; }
     Event* NextEvent() const { return next_event; }
@@ -31,6 +49,7 @@ public:
     EventHandlerPtr Handler() const { return handler; }
     const zeek::Args& Args() const { return args; }
     double Time() const { return ts; }
+    const MetadataVectorPtr& Metadata() const { return meta; }
 
     void Describe(ODesc* d) const override;
 
@@ -48,6 +67,7 @@ private:
     double ts;
     Obj* obj;
     Event* next_event;
+    std::unique_ptr<MetadataVector> meta;
 };
 
 class EventMgr final : public Obj, public iosource::IOSource {

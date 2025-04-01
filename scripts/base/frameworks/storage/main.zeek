@@ -7,7 +7,16 @@ export {
 	## :zeek:see:`Storage::Async::open_backend` and
 	## :zeek:see:`Storage::Sync::open_backend`. Backend plugins can redef this record
 	## to add relevant fields to it.
-	type BackendOptions: record { };
+	type BackendOptions: record {
+		# Indicates whether this node in a cluster handles expiration for a
+		# backend that only supports non-native expiration. Having a single node
+		# handle expiration avoids race conditions where multiple nodes may be
+		# attempting to expire elements at the same time. In a cluster environment
+		# this defaults to ``F``, and one node that opens the backend will need to
+		# set it to ``T`` for expiration to function. This value is ignored in
+		# standalone/non-cluster environments.
+		expiration_master : bool &default=F;
+	};
 
 	## Record for passing arguments to :zeek:see:`Storage::Async::put` and
 	## :zeek:see:`Storage::Sync::put`.

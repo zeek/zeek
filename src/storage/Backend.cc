@@ -84,6 +84,13 @@ OperationResult Backend::Open(OpenResultCallback* cb, RecordValPtr options, Type
 
     serializer = std::move(s.value());
 
+    // Check whether we're in cluster mode for whether expiration should be enabled.
+    auto local_node_name = id::find_val("Cluster::node")->AsStringVal();
+    if ( local_node_name->Len() > 0 )
+        expiration_master = backend_options->GetField<BoolVal>("expiration_master")->AsBool();
+    else
+        expiration_master = true;
+
     auto ret = DoOpen(cb, std::move(options));
     if ( ! ret.value )
         ret.value = cb->Backend();
@@ -132,6 +139,13 @@ OperationResult Backend::Erase(ResultCallback* cb, ValPtr key) {
     }
 
     return DoErase(cb, std::move(key));
+}
+
+void Backend::Expire(double current_network_time) {
+    if ( ! expiration_master )
+        return;
+
+    DoExpire(current_network_time);
 }
 
 void Backend::CompleteCallback(ResultCallback* cb, const OperationResult& data) const {

@@ -10,6 +10,15 @@ export {
 	type BackendOptions: record {
 		## The serializer used for converting Zeek data.
 		serializer: Storage::Serializer &default=Storage::STORAGE_SERIALIZER_JSON;
+
+		## Indicates whether this node in a cluster handles expiration for a
+		## backend that only supports non-native expiration. Having a single node
+		## handle expiration avoids race conditions where multiple nodes may be
+		## attempting to expire elements at the same time. In a cluster
+		## environment this defaults to ``F``, and one node that opens the backend
+		## will need to set it to ``T`` for expiration to function. This value is
+		## ignored in standalone/non-cluster environments.
+		expiration_master : bool &default=F;
 	};
 
 	## Record for passing arguments to :zeek:see:`Storage::Async::put` and
@@ -29,4 +38,8 @@ export {
 		## backend.
 		expire_time: interval &default=0sec;
 	};
+
+	## This is the name of a node that should handle expiration master duties for all
+	## opened backends. This can be overridden by setting the
+	const global_expiration_master: string &redef;
 }

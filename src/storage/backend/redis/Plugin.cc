@@ -10,7 +10,7 @@ namespace zeek::storage::backend::redis {
 class Plugin : public plugin::Plugin {
 public:
     plugin::Configuration Configure() override {
-        AddComponent(new storage::Component("REDIS", backend::redis::Redis::Instantiate));
+        AddComponent(new storage::BackendComponent("REDIS", backend::redis::Redis::Instantiate));
 
         plugin::Configuration config;
         config.name = "Zeek::Storage_Backend_Redis";

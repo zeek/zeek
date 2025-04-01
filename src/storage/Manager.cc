@@ -28,7 +28,9 @@ void detail::ExpirationTimer::Dispatch(double t, bool is_expire) {
     storage_mgr->StartExpirationTimer();
 }
 
-Manager::Manager() : plugin::ComponentManager<storage::Component>("Storage", "Backend") {}
+Manager::Manager()
+    : backend_mgr(plugin::ComponentManager<storage::BackendComponent>("Storage", "Backend")),
+      serializer_mgr(plugin::ComponentManager<storage::SerializerComponent>("Storage", "Serializer")) {}
 
 Manager::~Manager() {
     // TODO: should we shut down any existing backends? force-poll until all of their existing
@@ -48,24 +50,40 @@ void Manager::InitPostScript() {
     StartExpirationTimer();
 }
 
-zeek::expected<BackendPtr, std::string> Manager::Instantiate(const Tag& type) {
-    Component* c = Lookup(type);
-    if ( ! c ) {
+zeek::expected<BackendPtr, std::string> Manager::InstantiateBackend(const Tag& type) {
+    BackendComponent* c = backend_mgr.Lookup(type);
+    if ( ! c )
         return zeek::unexpected<std::string>(
-            util::fmt("Request to open unknown backend (%d:%d)", type.Type(), type.Subtype()));
-    }
+            util::fmt("Request to instantiate unknown backend type (%d:%d)", type.Type(), type.Subtype()));
 
-    if ( ! c->Factory() ) {
+    if ( ! c->Factory() )
         return zeek::unexpected<std::string>(
-            util::fmt("Factory invalid for backend %s", GetComponentName(type).c_str()));
-    }
+            util::fmt("Factory invalid for backend %s", backend_mgr.GetComponentName(type).c_str()));
 
-    BackendPtr bp = c->Factory()();
+    auto bp = c->Factory()();
 
-    if ( ! bp ) {
+    if ( ! bp )
         return zeek::unexpected<std::string>(
-            util::fmt("Failed to instantiate backend %s", GetComponentName(type).c_str()));
-    }
+            util::fmt("Failed to instantiate backend %s", backend_mgr.GetComponentName(type).c_str()));
+
+    return bp;
+}
+
+zeek::expected<std::unique_ptr<Serializer>, std::string> Manager::InstantiateSerializer(const Tag& type) {
+    SerializerComponent* c = serializer_mgr.Lookup(type);
+    if ( ! c )
+        return zeek::unexpected<std::string>(
+            util::fmt("Request to instantiate unknown serializer type (%d:%d)", type.Type(), type.Subtype()));
+
+    if ( ! c->Factory() )
+        return zeek::unexpected<std::string>(
+            util::fmt("Factory invalid for serializer %s", serializer_mgr.GetComponentName(type).c_str()));
+
+    auto bp = c->Factory()();
+
+    if ( ! bp )
+        return zeek::unexpected<std::string>(
+            util::fmt("Failed to instantiate serializer %s", serializer_mgr.GetComponentName(type).c_str()));
 
     return bp;
 }

@@ -80,9 +80,9 @@ function Storage::Async::__open_backend%(btype: Storage::Backend, options: any, 
 		return nullptr;
 
 	auto btype_val = IntrusivePtr<EnumVal>{NewRef{}, btype->AsEnumVal()};
-	Tag tag{btype_val};
+	Tag btag{btype_val};
 
-	auto b = storage_mgr->Instantiate(tag);
+	auto b = storage_mgr->InstantiateBackend(btag);
 
 	if ( ! b.has_value() ) {
 		trigger->Cache(

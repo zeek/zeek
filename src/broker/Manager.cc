@@ -37,8 +37,11 @@
 #include "zeek/iosource/Manager.h"
 #include "zeek/logging/Manager.h"
 #include "zeek/logging/Types.h"
+#include "zeek/plugin/Manager.h"
 #include "zeek/telemetry/Manager.h"
 #include "zeek/util.h"
+
+#include "cluster/serializer/broker/Serializer.h"
 
 using namespace std;
 
@@ -624,6 +627,10 @@ std::vector<broker::peer_info> Manager::Peers() const {
 std::string Manager::NodeID() const { return to_string(bstate->endpoint.node_id()); }
 
 bool Manager::DoPublishEvent(const std::string& topic, cluster::detail::Event& event) {
+    bool done = PLUGIN_HOOK_WITH_RESULT(HOOK_PUBLISH_EVENT, HookPublishEvent(topic, event), false);
+    if ( done )
+        return true;
+
     broker::vector xs;
     xs.reserve(event.args.size());
 
@@ -644,8 +651,31 @@ bool Manager::DoPublishEvent(const std::string& topic, cluster::detail::Event& e
         }
     }
 
+    broker::vector meta;
+    if ( event.Metadata() ) {
+        meta.reserve(event.Metadata()->size());
+        for ( const auto& md : (*event.Metadata()) ) {
+            broker::vector part(2);
+            part[0] = md.id;
+            if ( auto r = detail::val_to_data(md.val.get()) ) {
+                part[1] = std::move(r.value());
+            }
+            else {
+                Error("Failed to convert metadata");
+                return false;
+            }
+
+            meta.push_back(std::move(part));
+        }
+    }
+
     std::string name(event.HandlerName());
-    return PublishEvent(topic, std::move(name), std::move(xs), event.timestamp);
+    broker::zeek::Event ev(std::move(name), xs, meta);
+
+    DBG_LOG(DBG_BROKER, "Publishing event: %s", RenderEvent(topic, name, ev.args()).c_str());
+    bstate->endpoint.publish(topic, ev.move_data());
+    num_events_outgoing_metric->Inc();
+    return true;
 }
 
 bool Manager::PublishEvent(string topic, std::string name, broker::vector args, double ts) {
@@ -1374,12 +1404,11 @@ void Manager::ProcessMessage(std::string_view topic, broker::zeek::Event& ev) {
 
     auto&& name = ev.name();
     auto&& args = ev.args();
-    double ts;
+    double ts = 0.0;
 
-    if ( auto ev_ts = ev.ts() )
-        broker::convert(*ev_ts, ts);
-    else
-        // Default to current network time, if the received event did not contain a timestamp.
+    MetadataVectorPtr mdv = cluster::detail::metadata_vector_from_broker_event(ev, &ts);
+
+    if ( ts == 0.0 ) // XXX: Should this be 0.0 instead?
         ts = run_state::network_time;
 
     DBG_LOG(DBG_BROKER, "Process event: %s (%.6f) %s", std::string{name}.c_str(), ts, RenderMessage(args).c_str());
@@ -1459,7 +1488,7 @@ void Manager::ProcessMessage(std::string_view topic, broker::zeek::Event& ev) {
     }
 
     if ( vl.size() == args.size() )
-        event_mgr.Enqueue(handler, std::move(vl), util::detail::SOURCE_BROKER, 0, nullptr, ts);
+        event_mgr.Enqueue(handler, std::move(vl), util::detail::SOURCE_BROKER, 0, nullptr, ts, std::move(mdv));
 }
 
 bool Manager::ProcessMessage(std::string_view, broker::zeek::LogCreate& lc) {

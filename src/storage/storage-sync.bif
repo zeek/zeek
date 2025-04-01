@@ -28,12 +28,15 @@ static zeek::expected<storage::detail::BackendHandleVal*, OperationResult> cast_
 
 module Storage::Sync;
 
-function Storage::Sync::__open_backend%(btype: Storage::Backend, options: any, key_type: any, val_type: any%): Storage::OperationResult
+function Storage::Sync::__open_backend%(btype: Storage::Backend, stype: Storage::Serializer, options: any, key_type: any, val_type: any%): Storage::OperationResult
 	%{
 	auto btype_val = IntrusivePtr<EnumVal>{NewRef{}, btype->AsEnumVal()};
-	Tag tag{btype_val};
+	Tag btag{btype_val};
 
-	auto b = storage_mgr->Instantiate(tag);
+	auto stype_val = IntrusivePtr<EnumVal>{NewRef{}, stype->AsEnumVal()};
+	Tag stag{stype_val};
+
+	auto b = storage_mgr->Instantiate(btag, stag);
 
 	if ( ! b.has_value() ) {
 		emit_builtin_error(b.error().c_str());

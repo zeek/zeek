@@ -23,7 +23,7 @@ export {
 	## Returns: A record containing the status of the operation, and either an error
 	##          string on failure or a value on success. The value returned here will
 	##          be an ``opaque of BackendHandle``.
-	global open_backend: function(btype: Storage::Backend,
+	global open_backend: function(btype: Storage::Backend, stype: Storage::Serializer,
 	    options: Storage::BackendOptions, key_type: any, val_type: any)
 	    : Storage::OperationResult;
 
@@ -73,10 +73,10 @@ export {
 	    : Storage::OperationResult;
 }
 
-function open_backend(btype: Storage::Backend, options: Storage::BackendOptions,
+function open_backend(btype: Storage::Backend, stype: Storage::Serializer, options: Storage::BackendOptions,
     key_type: any, val_type: any): Storage::OperationResult
 	{
-	return Storage::Sync::__open_backend(btype, options, key_type, val_type);
+	return Storage::Sync::__open_backend(btype, stype, options, key_type, val_type);
 	}
 
 function close_backend(backend: opaque of Storage::BackendHandle)

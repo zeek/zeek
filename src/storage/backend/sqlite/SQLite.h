@@ -12,10 +12,10 @@ namespace zeek::storage::backend::sqlite {
 
 class SQLite : public Backend {
 public:
-    SQLite() : Backend(SupportedModes::SYNC, "SQLITE") {}
+    SQLite(std::unique_ptr<Serializer> s) : Backend(SupportedModes::SYNC, "SQLITE", std::move(s)) {}
     ~SQLite() override = default;
 
-    static BackendPtr Instantiate();
+    static BackendPtr Instantiate(std::unique_ptr<Serializer> s);
 
     /**
      * Returns whether the backend is opened.

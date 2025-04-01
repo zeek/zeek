@@ -28,7 +28,9 @@ void detail::ExpirationTimer::Dispatch(double t, bool is_expire) {
     storage_mgr->StartExpirationTimer();
 }
 
-Manager::Manager() : plugin::ComponentManager<storage::Component>("Storage", "Backend") {}
+Manager::Manager()
+    : backend_mgr(plugin::ComponentManager<storage::BackendComponent>("Storage", "Backend")),
+      serializer_mgr(plugin::ComponentManager<storage::SerializerComponent>("Storage", "Serializer")) {}
 
 Manager::~Manager() {
     // TODO: should we shut down any existing backends? force-poll until all of their existing
@@ -48,24 +50,36 @@ void Manager::InitPostScript() {
     StartExpirationTimer();
 }
 
-zeek::expected<BackendPtr, std::string> Manager::Instantiate(const Tag& type) {
-    Component* c = Lookup(type);
-    if ( ! c ) {
+zeek::expected<BackendPtr, std::string> Manager::Instantiate(const Tag& btype, const Tag& stype) {
+    SerializerComponent* sc = serializer_mgr.Lookup(stype);
+    if ( ! sc )
         return zeek::unexpected<std::string>(
-            util::fmt("Request to open unknown backend (%d:%d)", type.Type(), type.Subtype()));
-    }
+            util::fmt("Request to instantiate unknown storage serializer (%d:%d)", stype.Type(), stype.Subtype()));
 
-    if ( ! c->Factory() ) {
+    if ( ! sc->Factory() )
         return zeek::unexpected<std::string>(
-            util::fmt("Factory invalid for backend %s", GetComponentName(type).c_str()));
-    }
+            util::fmt("Factory invalid for storage serializer %s", serializer_mgr.GetComponentName(stype).c_str()));
 
-    BackendPtr bp = c->Factory()();
+    auto s = sc->Factory()();
 
-    if ( ! bp ) {
+    if ( ! s )
         return zeek::unexpected<std::string>(
-            util::fmt("Failed to instantiate backend %s", GetComponentName(type).c_str()));
-    }
+            util::fmt("Failed to instantiate storage serializer %s", serializer_mgr.GetComponentName(stype).c_str()));
+
+    BackendComponent* bc = backend_mgr.Lookup(btype);
+    if ( ! bc )
+        return zeek::unexpected<std::string>(
+            util::fmt("Request to open unknown backend (%d:%d)", btype.Type(), btype.Subtype()));
+
+    if ( ! bc->Factory() )
+        return zeek::unexpected<std::string>(
+            util::fmt("Factory invalid for backend %s", backend_mgr.GetComponentName(btype).c_str()));
+
+    auto bp = bc->Factory()(std::move(s));
+
+    if ( ! bp )
+        return zeek::unexpected<std::string>(
+            util::fmt("Failed to instantiate backend %s", backend_mgr.GetComponentName(btype).c_str()));
 
     return bp;
 }

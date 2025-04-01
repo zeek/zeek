@@ -10,7 +10,7 @@ namespace zeek::storage::backend::sqlite {
 class Plugin : public plugin::Plugin {
 public:
     plugin::Configuration Configure() override {
-        AddComponent(new storage::Component("SQLITE", backend::sqlite::SQLite::Instantiate));
+        AddComponent(new storage::BackendComponent("SQLITE", backend::sqlite::SQLite::Instantiate));
 
         plugin::Configuration config;
         config.name = "Zeek::Storage_Backend_SQLite";

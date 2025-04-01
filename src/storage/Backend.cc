@@ -65,8 +65,9 @@ void OpenResultCallback::Complete(OperationResult res) {
     ResultCallback::Complete(std::move(res));
 }
 
-Backend::Backend(uint8_t modes, std::string_view tag_name) : modes(modes) {
-    tag = storage_mgr->GetComponentTag(std::string{tag_name});
+Backend::Backend(uint8_t modes, std::string_view tag_name, std::unique_ptr<Serializer> serializer)
+    : serializer(std::move(serializer)), modes(modes) {
+    tag = storage_mgr->BackendMgr().GetComponentTag(std::string{tag_name});
     tag_str = zeek::obj_desc_short(tag.AsVal().get());
 }
 

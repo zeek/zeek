@@ -10,6 +10,7 @@
 #include "zeek/plugin/ComponentManager.h"
 #include "zeek/storage/Backend.h"
 #include "zeek/storage/Component.h"
+#include "zeek/storage/Serializer.h"
 
 namespace zeek::storage {
 
@@ -24,7 +25,7 @@ public:
 
 } // namespace detail
 
-class Manager final : public plugin::ComponentManager<Component> {
+class Manager final {
 public:
     Manager();
     ~Manager();
@@ -39,11 +40,12 @@ public:
      * Instantiates a new backend object. The backend will be in a closed state, and
      * OpenBackend() will need to be called to fully initialize it.
      *
-     * @param type The tag for the type of backend being opened.
+     * @param btype The tag for the type of backend being opened.
+     * @param stype The tag for the type of serializer being used with this backend.
      * @return A std::expected containing either a valid BackendPtr with the result of the
      * operation or a string containing an error message for failure.
      */
-    zeek::expected<BackendPtr, std::string> Instantiate(const Tag& type);
+    zeek::expected<BackendPtr, std::string> Instantiate(const Tag& btype, const Tag& stype);
 
     /**
      * Opens a new storage backend.
@@ -82,6 +84,9 @@ public:
      */
     void Expire(double t);
 
+    plugin::ComponentManager<BackendComponent>& BackendMgr() { return backend_mgr; }
+    plugin::ComponentManager<SerializerComponent>& SerializerMgr() { return serializer_mgr; }
+
 protected:
     friend class storage::detail::ExpirationTimer;
     void RunExpireThread();
@@ -94,6 +99,9 @@ protected:
 private:
     std::vector<BackendPtr> backends;
     std::mutex backends_mtx;
+
+    plugin::ComponentManager<BackendComponent> backend_mgr;
+    plugin::ComponentManager<SerializerComponent> serializer_mgr;
 };
 
 } // namespace zeek::storage

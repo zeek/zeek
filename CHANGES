@@ -1,3 +1,7 @@
+7.2.0-dev.461 | 2025-04-01 12:58:19 -0700
+
+  * Add comment annotation to disable copying redef value into docs (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.458 | 2025-03-31 18:59:11 +0200
 
   * CI: Upgrade zeekctl task to Debian 12 (Arne Welzel, Corelight)

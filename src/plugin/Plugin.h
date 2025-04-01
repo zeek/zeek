@@ -52,6 +52,10 @@ namespace detail {
 class Frame;
 }
 
+namespace cluster::detail {
+class Event;
+}
+
 namespace plugin {
 
 class Manager;
@@ -76,6 +80,7 @@ enum HookType {
     HOOK_REPORTER,            //< Activates Plugin::HookReporter().
     HOOK_UNPROCESSED_PACKET,  //<Activates Plugin::HookUnprocessedPacket().
     HOOK_OBJ_DTOR,            //< Activates Plugin::HookObjDtor().
+    HOOK_PUBLISH_EVENT,       //< Activates Plugin::HookPublishEvent().
 
     // Meta hooks.
     META_HOOK_PRE,  //< Activates Plugin::MetaHookPre().
@@ -1076,6 +1081,20 @@ protected:
      * @param packet The data for an unprocessed packet
      */
     virtual void HookUnprocessedPacket(const Packet* packet);
+
+    /**
+     * Hook for intercepting remote event publish operations.
+     *
+     * This hook can be used for metrics collection, metadata
+     * modifications and more.
+     *
+     * @param topic
+     * @param event
+     *
+     * @return true if event should be published, false if the publish
+     *         operation should be canceled.
+     */
+    virtual bool HookPublishEvent(const std::string& topic, zeek::cluster::detail::Event& event);
 
     // Meta hooks.
     virtual void MetaHookPre(HookType hook, const HookArgumentList& args);

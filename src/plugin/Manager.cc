@@ -961,6 +961,39 @@ void Manager::HookUnprocessedPacket(const Packet* packet) const {
         MetaHookPost(HOOK_UNPROCESSED_PACKET, args, HookArgument());
 }
 
+bool Manager::HookPublishEvent(const std::string& topic, zeek::cluster::detail::Event& event) const {
+    /**
+     HookArgumentList args;
+
+    if ( HavePluginForHook(META_HOOK_PRE) ) {
+        args.emplace_back(event);
+        MetaHookPre(HOOK_PUBLISH_EVENT, args);
+    }
+    */
+    std::fprintf(stderr, "manager hook publish event\n");
+
+    hook_list* l = hooks[HOOK_PUBLISH_EVENT];
+
+    bool result = false;
+
+    if ( l )
+        for ( hook_list::iterator i = l->begin(); i != l->end(); ++i ) {
+            Plugin* p = (*i).second;
+
+            if ( p->HookPublishEvent(topic, event) ) {
+                result = true;
+                break;
+            }
+        }
+
+    /**
+    if ( HavePluginForHook(META_HOOK_POST) )
+        MetaHookPost(HOOK_QUEUE_EVENT, args, HookArgument(result));
+    */
+
+    return result;
+}
+
 void Manager::MetaHookPre(HookType hook, const HookArgumentList& args) const {
     if ( hook_list* l = hooks[HOOK_CALL_FUNCTION] )
         for ( const auto& [hook_type, plugin] : *l )

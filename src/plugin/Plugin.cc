@@ -31,6 +31,7 @@ const char* hook_name(HookType h) {
         "Reporter",
         "UnprocessedPacket",
         "ObjDtor",
+        "PublishEvent",
         // MetaHooks
         "MetaHookPre",
         "MetaHookPost",
@@ -330,6 +331,8 @@ bool Plugin::HookReporter(const std::string& prefix, const EventHandlerPtr event
 }
 
 void Plugin::HookUnprocessedPacket(const Packet* packet) {}
+
+bool Plugin::HookPublishEvent(const std::string& topic, zeek::cluster::detail::Event& event) { return false; }
 
 void Plugin::MetaHookPre(HookType hook, const HookArgumentList& args) {}
 

@@ -428,6 +428,14 @@ public:
     void HookUnprocessedPacket(const Packet* packet) const;
 
     /**
+     * Hook for intercepting remote event publish operations.
+     *
+     * This hook can be used for metrics collection, metadata
+     * modifications and more.
+     */
+    bool HookPublishEvent(const std::string& topic, zeek::cluster::detail::Event& event) const;
+
+    /**
      * Internal method that registers a freshly instantiated plugin with
      * the manager.
      *

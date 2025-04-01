@@ -5,6 +5,7 @@
 #include "zeek/OpaqueVal.h"
 #include "zeek/Tag.h"
 #include "zeek/Val.h"
+#include "zeek/storage/Serializer.h"
 
 namespace zeek::detail::trigger {
 class Trigger;
@@ -58,7 +59,7 @@ struct OperationResult {
 class ResultCallback {
 public:
     ResultCallback() = default;
-    ResultCallback(detail::trigger::TriggerPtr trigger, const void* assoc);
+    ResultCallback(zeek::detail::trigger::TriggerPtr trigger, const void* assoc);
     virtual ~ResultCallback() = default;
 
     /**
@@ -239,6 +240,7 @@ protected:
 
     zeek::Tag tag;
     std::string tag_str;
+    std::unique_ptr<Serializer> serializer;
 
 private:
     /**

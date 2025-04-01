@@ -212,7 +212,7 @@ protected:
      * @param current_network_time The network time as of the start of the
      * expiration operation.
      */
-    void Expire(double current_network_time) { DoExpire(current_network_time); }
+    void Expire(double current_network_time);
 
     /**
      * Enqueues the Storage::backend_opened event. This is called automatically
@@ -292,6 +292,7 @@ private:
     virtual void DoExpire(double current_network_time) {}
 
     uint8_t modes;
+    bool expiration_master = false;
 };
 
 using BackendPtr = zeek::IntrusivePtr<Backend>;

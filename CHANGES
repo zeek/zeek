@@ -1,3 +1,9 @@
+7.2.0-dev.469 | 2025-04-02 16:36:00 -0700
+
+  * Some minor c++ modernization in EnumType methods (Tim Wojtulewicz, Corelight)
+
+  * Avoid O(n) search in EnumType::Lookup (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.466 | 2025-04-02 18:49:50 +0200
 
   * Spicy: Rework code for converting Spicy values to Zeek values. (Robin Sommer, Corelight)

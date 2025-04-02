@@ -1498,7 +1498,7 @@ EnumType::EnumType(const string& name) : Type(TYPE_ENUM) {
     SetName(name);
 }
 
-EnumType::EnumType(const EnumType* e) : Type(TYPE_ENUM), names(e->names), vals(e->vals) {
+EnumType::EnumType(const EnumType* e) : Type(TYPE_ENUM), names(e->names), rev_names(e->rev_names), vals(e->vals) {
     counter = e->counter;
     SetName(e->GetName());
 }
@@ -1601,10 +1601,12 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name, zeek
 void EnumType::AddNameInternal(const string& module_name, const char* name, zeek_int_t val, bool is_export) {
     string fullname = detail::make_full_var_name(module_name.c_str(), name);
     names[fullname] = val;
+    rev_names[val] = fullname;
 }
 
 void EnumType::AddNameInternal(const string& full_name, zeek_int_t val) {
     names[full_name] = val;
+    rev_names[val] = full_name;
 
     if ( vals.find(val) == vals.end() )
         vals[val] = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, val);
@@ -1615,39 +1617,33 @@ zeek_int_t EnumType::Lookup(const string& module_name, const char* name) const {
 }
 
 zeek_int_t EnumType::Lookup(const string& full_name) const {
-    NameMap::const_iterator pos = names.find(full_name.c_str());
-
-    if ( pos == names.end() )
-        return -1;
-    else
+    if ( auto pos = names.find(full_name.c_str()); pos != names.end() )
         return pos->second;
+
+    return -1;
 }
 
 const char* EnumType::Lookup(zeek_int_t value) const {
-    for ( NameMap::const_iterator iter = names.begin(); iter != names.end(); ++iter )
-        if ( iter->second == value )
-            return iter->first.c_str();
+    if ( auto it = rev_names.find(value); it != rev_names.end() )
+        return it->second.c_str();
 
     return nullptr;
 }
 
 EnumType::enum_name_list EnumType::Names() const {
     enum_name_list n;
-    for ( NameMap::const_iterator iter = names.begin(); iter != names.end(); ++iter )
+    for ( auto iter = names.begin(); iter != names.end(); ++iter )
         n.emplace_back(iter->first, iter->second);
 
     return n;
 }
 
 const EnumValPtr& EnumType::GetEnumVal(zeek_int_t i) {
-    auto it = vals.find(i);
+    if ( auto it = vals.find(i); it != vals.end() )
+        return it->second;
 
-    if ( it == vals.end() ) {
-        auto ev = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, i);
-        return vals.emplace(i, std::move(ev)).first->second;
-    }
-
-    return it->second;
+    auto ev = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, i);
+    return vals.emplace(i, std::move(ev)).first->second;
 }
 
 void EnumType::DoDescribe(ODesc* d) const {
@@ -1670,27 +1666,19 @@ void EnumType::DoDescribe(ODesc* d) const {
 void EnumType::DescribeReST(ODesc* d, bool roles_only) const {
     d->Add(":zeek:type:`enum`");
 
-    // Create temporary, reverse name map so that enums can be documented
-    // in ascending order of their actual integral value instead of by name.
-    using RevNameMap = std::map<zeek_int_t, std::string>;
-    RevNameMap rev;
-
-    for ( NameMap::const_iterator it = names.begin(); it != names.end(); ++it )
-        rev[it->second] = it->first;
-
-    for ( RevNameMap::const_iterator it = rev.begin(); it != rev.end(); ++it ) {
+    for ( const auto& [_, enum_name] : rev_names ) {
         d->NL();
         d->PushIndent();
 
         if ( roles_only )
-            d->Add(util::fmt(":zeek:enum:`%s`", it->second.c_str()));
+            d->Add(util::fmt(":zeek:enum:`%s`", enum_name.c_str()));
         else
-            d->Add(util::fmt(".. zeek:enum:: %s %s", it->second.c_str(), GetName().c_str()));
+            d->Add(util::fmt(".. zeek:enum:: %s %s", enum_name.c_str(), GetName().c_str()));
 
-        zeekygen::detail::IdentifierInfo* doc = detail::zeekygen_mgr->GetIdentifierInfo(it->second);
+        zeekygen::detail::IdentifierInfo* doc = detail::zeekygen_mgr->GetIdentifierInfo(enum_name);
 
         if ( ! doc ) {
-            reporter->InternalWarning("Enum %s documentation lookup failure", it->second.c_str());
+            reporter->InternalWarning("Enum %s documentation lookup failure", enum_name.c_str());
             continue;
         }
 

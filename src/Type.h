@@ -863,8 +863,8 @@ protected:
 
     void DoDescribe(ODesc* d) const override;
 
-    using NameMap = std::map<std::string, zeek_int_t>;
-    NameMap names;
+    std::map<std::string, zeek_int_t> names;
+    std::map<zeek_int_t, std::string> rev_names;
 
     // Whether any of the elements of the enum were added via redef's.
     bool has_redefs = false;

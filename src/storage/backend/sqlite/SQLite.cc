@@ -270,13 +270,11 @@ OperationResult SQLite::Step(sqlite3_stmt* stmt, bool parse_value) {
             const char* text = (const char*)sqlite3_column_text(stmt, 0);
             auto val = zeek::detail::ValFromJSON(text, val_type, Func::nil);
             sqlite3_reset(stmt);
-            if ( std::holds_alternative<ValPtr>(val) ) {
-                ValPtr val_v = std::get<ValPtr>(val);
-                ret = {ReturnCode::SUCCESS, "", val_v};
-            }
-            else {
-                ret = {ReturnCode::OPERATION_FAILED, std::get<std::string>(val)};
-            }
+
+            if ( val )
+                ret = {ReturnCode::SUCCESS, "", val.value()};
+            else
+                ret = {ReturnCode::OPERATION_FAILED, val.error()};
         }
         else {
             ret = {ReturnCode::OPERATION_FAILED, "sqlite3_step should not have returned a value"};

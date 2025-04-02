@@ -5268,15 +5268,15 @@ function from_json%(s: string, t: any, key_func: string_mapper &default=from_jso
 	auto res = zeek::detail::ValFromJSON(s->ToStdStringView(), t->AsType()->AsTypeType()->GetType(),
 	                                     key_func_ptr);
 
-	if ( auto val = std::get_if<zeek::ValPtr>(&res) )
+	if ( res )
 		{
-		rval->Assign(v_idx, *val);
+		rval->Assign(v_idx, res.value());
 		rval->Assign(valid_idx, true);
 		}
 	else
 		{
 		rval->Assign(valid_idx, false);
-		zeek::emit_builtin_error(std::get<std::string>(res).c_str());
+		zeek::emit_builtin_error(res.error().c_str());
 		}
 
 	return std::move(rval);

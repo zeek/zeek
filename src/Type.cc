@@ -1617,12 +1617,10 @@ zeek_int_t EnumType::Lookup(const string& module_name, const char* name) const {
 }
 
 zeek_int_t EnumType::Lookup(const string& full_name) const {
-    auto pos = names.find(full_name.c_str());
-
-    if ( pos == names.end() )
-        return -1;
-    else
+    if ( auto pos = names.find(full_name.c_str()); pos != names.end() )
         return pos->second;
+
+    return -1;
 }
 
 const char* EnumType::Lookup(zeek_int_t value) const {
@@ -1641,14 +1639,11 @@ EnumType::enum_name_list EnumType::Names() const {
 }
 
 const EnumValPtr& EnumType::GetEnumVal(zeek_int_t i) {
-    auto it = vals.find(i);
+    if ( auto it = vals.find(i); it != vals.end() )
+        return it->second;
 
-    if ( it == vals.end() ) {
-        auto ev = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, i);
-        return vals.emplace(i, std::move(ev)).first->second;
-    }
-
-    return it->second;
+    auto ev = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, i);
+    return vals.emplace(i, std::move(ev)).first->second;
 }
 
 void EnumType::DoDescribe(ODesc* d) const {

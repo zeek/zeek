@@ -869,8 +869,7 @@ protected:
     // Whether any of the elements of the enum were added via redef's.
     bool has_redefs = false;
 
-    using ValMap = std::unordered_map<zeek_int_t, EnumValPtr>;
-    ValMap vals;
+    std::unordered_map<zeek_int_t, EnumValPtr> vals;
 
     // The counter is initialized to 0 and incremented on every implicit
     // auto-increment name that gets added (thus its > 0 if

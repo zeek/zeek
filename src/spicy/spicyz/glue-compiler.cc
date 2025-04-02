@@ -1204,32 +1204,11 @@ bool GlueCompiler::PopulateEvents() {
 
 #include <spicy/ast/visitor.h>
 
-// Helper visitor to wrap expressions using the TryMember operator into a
-// "deferred" expression.
-class WrapTryMemberVisitor : public spicy::visitor::MutatingPostOrder {
-public:
-    WrapTryMemberVisitor(Builder* builder, bool catch_exception)
-        : spicy::visitor::MutatingPostOrder(builder, logging::debug::GlueCompiler), _catch_exception(catch_exception) {}
-
-    void operator()(hilti::expression::UnresolvedOperator* n) final {
-        if ( n->kind() == hilti::operator_::Kind::TryMember )
-            replaceNode(n, builder()->expressionDeferred(n->as<hilti::Expression>(), _catch_exception), "wrap .?");
-    }
-
-private:
-    bool _catch_exception;
-};
-
 static hilti::Result<hilti::Expression*> parseArgument(Builder* builder, const std::string& expression,
                                                        bool catch_exception, const hilti::Meta& meta) {
     auto expr = ::spicy::builder::parseExpression(builder, expression, meta);
     if ( ! expr )
         return hilti::result::Error(hilti::util::fmt("error parsing event argument expression '%s'", expression));
-
-    // If the expression uses the ".?" operator, we need to defer evaluation
-    // so that we can handle potential exceptions at runtime.
-    auto v = WrapTryMemberVisitor(builder, catch_exception);
-    spicy::visitor::visit(v, *expr);
 
     return expr;
 }
@@ -1538,7 +1517,7 @@ struct VisitorZeekType : spicy::visitor::PreOrder {
         });
 
         auto tmp = builder->addTmp(tmpName("labels", id()),
-                                   builder->typeVector(
+                                   builder->typeSet(
                                        builder->qualifiedType(builder->typeTuple(hilti::QualifiedTypes{
                                                                   builder->qualifiedType(builder->typeString(),
                                                                                          hilti::Constness::Const),
@@ -1547,9 +1526,8 @@ struct VisitorZeekType : spicy::visitor::PreOrder {
                                                               hilti::Constness::Const)));
 
         for ( const auto& l : t->labels() )
-            builder->addMemberCall(tmp, "push_back",
-                                   {builder->tuple(
-                                       {builder->stringLiteral(l->id().str()), builder->integer(l->value())})});
+            builder->addExpression(builder->add(tmp, builder->tuple({builder->stringMutable(l->id().str()),
+                                                                     builder->integer(l->value())})));
 
         result(builder->call("zeek_rt::create_enum_type", {builder->stringMutable(id().namespace_().str()),
                                                            builder->stringMutable(id().local().str()), tmp}));

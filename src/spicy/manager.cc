@@ -691,7 +691,7 @@ void Manager::InitPostScript() {
             // event that will do it for us through a predefined handler.
             zeek::Args vals = Args();
             vals.emplace_back(tag.AsVal());
-            vals.emplace_back(zeek::spicy::rt::to_val(port_, base_type(TYPE_PORT)));
+            vals.emplace_back(zeek::spicy::rt::to_val(port_, &hilti::rt::type_info::port, base_type(TYPE_PORT)));
             EventHandlerPtr handler = event_registry->Register("spicy_analyzer_for_port");
             event_mgr.Enqueue(handler, std::move(vals));
         };

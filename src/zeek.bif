@@ -401,6 +401,21 @@ function current_event_time%(%): time
 	return zeek::make_intrusive<zeek::TimeVal>(zeek::event_mgr.CurrentEventTime());
 	%}
 
+function current_event_metadata%(%): count_any_table
+	%{
+	static auto tt = zeek::id::find_type<zeek::TableType>("count_any_table");
+	auto result = zeek::make_intrusive<zeek::TableVal>(tt);
+
+	const auto& mdv = zeek::event_mgr.CurrentEvent()->Metadata();
+	if ( mdv ) {
+		for ( const auto& entry : *mdv )
+			result->Assign(zeek::val_mgr->Count(entry.type), entry.val);
+
+	}
+
+	return result;
+	%}
+
 ## Returns a system environment variable.
 ##
 ## var: The name of the variable whose value to request.

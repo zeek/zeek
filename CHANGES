@@ -1,3 +1,18 @@
+7.2.0-dev.466 | 2025-04-02 18:49:50 +0200
+
+  * Spicy: Rework code for converting Spicy values to Zeek values. (Robin Sommer, Corelight)
+
+    The logic was template-based so far, which wasn't great because: (1)
+    conceptually, it models the Spicy types at the wrong layer (C++ rather
+    than HILTI types), and (2) stopped working with some recent Spicy
+    updates (which we have temporarily reverted in the meantime to keep
+    Zeek working).
+
+    The new code is based on HILTI's runtime type information and the
+    corresponding introspection API, pretty much like `spicy-dump` works
+    as well. This is the recommended approach for working with HILTI
+    values, and generally much cleaner.
+
 7.2.0-dev.464 | 2025-04-02 14:52:44 +0200
 
   * Spicy: Port over to Spicy's new tuple representation. (Robin Sommer, Corelight)

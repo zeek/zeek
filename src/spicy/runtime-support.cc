@@ -1071,3 +1071,422 @@ hilti::rt::Time rt::network_time() {
     auto _ = hilti::rt::profiler::start("zeek/rt/network_time");
     return hilti::rt::Time(run_state::network_time, hilti::rt::Time::SecondTag());
 }
+
+static ValPtr convertSignedInteger(int64_t i, std::string_view have_type, const TypePtr& target) {
+    if ( target->Tag() == TYPE_INT )
+        return val_mgr->Int(i);
+
+    if ( target->Tag() == TYPE_COUNT ) {
+        if ( i >= 0 )
+            return val_mgr->Count(i);
+        else
+            throw rt::ParameterMismatch(hilti::rt::fmt("negative %s", have_type), target);
+    }
+
+    throw rt::ParameterMismatch(have_type, target);
+}
+
+static ValPtr convertUnsignedInteger(uint64_t i, std::string_view have_type, const TypePtr& target) {
+    if ( target->Tag() == TYPE_COUNT )
+        return val_mgr->Count(i);
+
+    if ( target->Tag() == TYPE_INT ) {
+        if ( i < static_cast<uint64_t>(std::numeric_limits<int64_t>::max()) )
+            return val_mgr->Int(static_cast<int64_t>(i));
+        else
+            throw rt::ParameterMismatch(hilti::rt::fmt("%s too large", have_type), target);
+    }
+
+    throw rt::ParameterMismatch(have_type, target);
+}
+
+inline void setRecordField(RecordVal* rval, const IntrusivePtr<RecordType>& rtype, int idx,
+                           const hilti::rt::type_info::Value& v) {
+    using namespace hilti::rt;
+
+    const auto& type = v.type();
+
+    switch ( type.tag ) {
+        case TypeInfo::Bool: rval->Assign(idx, type.bool_->get(v)); return;
+        case TypeInfo::Bytes: rval->Assign(idx, type.bytes->get(v).str()); return;
+        case TypeInfo::Interval: rval->AssignInterval(idx, type.interval->get(v).seconds()); return;
+        case TypeInfo::Optional:
+            if ( const auto& x = type.optional->value(v) )
+                setRecordField(rval, rtype, idx, x);
+            return;
+
+        case TypeInfo::Null: return;
+        case TypeInfo::Real: rval->Assign(idx, type.real->get(v)); return;
+        case TypeInfo::SignedInteger_int8: rval->Assign(idx, type.signed_integer_int8->get(v)); return;
+        case TypeInfo::SignedInteger_int16: rval->Assign(idx, type.signed_integer_int16->get(v)); return;
+        case TypeInfo::SignedInteger_int32: rval->Assign(idx, type.signed_integer_int32->get(v)); return;
+        case TypeInfo::SignedInteger_int64: rval->Assign(idx, type.signed_integer_int64->get(v)); return;
+        case TypeInfo::String: rval->Assign(idx, type.string->get(v)); return;
+        case TypeInfo::Time: rval->AssignTime(idx, type.time->get(v).seconds()); return;
+        case TypeInfo::UnsignedInteger_uint8: rval->Assign(idx, type.unsigned_integer_uint8->get(v)); return;
+        case TypeInfo::UnsignedInteger_uint16: rval->Assign(idx, type.unsigned_integer_uint16->get(v)); return;
+        case TypeInfo::UnsignedInteger_uint32: rval->Assign(idx, type.unsigned_integer_uint32->get(v)); return;
+        case TypeInfo::UnsignedInteger_uint64: rval->Assign(idx, type.unsigned_integer_uint64->get(v)); return;
+        case TypeInfo::StrongReference:
+            if ( const auto& x = type.strong_reference->value(v) )
+                setRecordField(rval, rtype, idx, x);
+            return;
+
+        case TypeInfo::ValueReference:
+            if ( const auto& x = type.value_reference->value(v) )
+                setRecordField(rval, rtype, idx, x);
+            return;
+
+        case TypeInfo::WeakReference:
+            if ( const auto& x = type.weak_reference->value(v) )
+                setRecordField(rval, rtype, idx, x);
+            return;
+
+        case TypeInfo::Address:
+        case TypeInfo::Bitfield:
+        case TypeInfo::Enum:
+        case TypeInfo::Map:
+        case TypeInfo::Port:
+        case TypeInfo::Set:
+        case TypeInfo::Struct:
+        case TypeInfo::Tuple:
+        case TypeInfo::Vector: {
+            // This may return a nullptr in cases where the field is to be left unset.
+            ValPtr zval = rt::detail::to_val(v, rtype->GetFieldType(idx));
+
+            if ( v )
+                rval->Assign(idx, zval);
+            else {
+                // Field must be &optional or &default.
+                if ( auto attrs = rtype->FieldDecl(idx)->attrs;
+                     ! attrs ||
+                     ! (attrs->Find(zeek::detail::ATTR_DEFAULT) || attrs->Find(zeek::detail::ATTR_OPTIONAL)) )
+                    throw rt::ParameterMismatch(
+                        hilti::rt::fmt("missing initialization for field '%s'", rtype->FieldName(idx)));
+            }
+
+            return;
+        }
+
+        default: throw zeek::spicy::rt::InvalidValue("unsupported type for record field");
+    }
+
+    hilti::rt::cannot_be_reached();
+}
+
+ValPtr rt::detail::to_val(const hilti::rt::type_info::Value& value, const TypePtr& target) {
+    using namespace hilti::rt;
+
+    const auto& type = value.type();
+
+    switch ( type.tag ) {
+        case TypeInfo::Address: {
+            if ( target->Tag() != TYPE_ADDR )
+                throw ParameterMismatch(type, target);
+
+            auto in_addr = type.address->get(value).asInAddr();
+            if ( auto v4 = std::get_if<struct in_addr>(&in_addr) )
+                return make_intrusive<AddrVal>(IPAddr(*v4));
+            else {
+                auto v6 = std::get<struct in6_addr>(in_addr);
+                return make_intrusive<AddrVal>(IPAddr(v6));
+            }
+        }
+
+        case TypeInfo::Bitfield: {
+            if ( target->Tag() != TYPE_RECORD )
+                throw ParameterMismatch(type, target);
+
+            auto rtype = cast_intrusive<RecordType>(target);
+
+            if ( type.bitfield->bits().size() != static_cast<size_t>(rtype->NumFields()) )
+                throw ParameterMismatch(type, target);
+
+            auto rval = make_intrusive<RecordVal>(rtype);
+
+            int idx = 0;
+            for ( const auto& [bits, bvalue] : type.bitfield->iterate(value) )
+                setRecordField(rval.get(), rtype, idx++, bvalue);
+
+            return std::move(rval);
+        }
+
+        case TypeInfo::Bool: {
+            if ( target->Tag() != TYPE_BOOL )
+                throw ParameterMismatch(type, target);
+
+            return val_mgr->Bool(type.bool_->get(value));
+        }
+
+        case TypeInfo::Bytes: {
+            if ( target->Tag() != TYPE_STRING )
+                throw ParameterMismatch(type, target);
+
+            const auto& b = type.bytes->get(value);
+            return make_intrusive<StringVal>(b.str());
+        }
+
+        case TypeInfo::Enum: {
+            if ( target->Tag() != TYPE_ENUM )
+                throw ParameterMismatch(type, target);
+
+            auto i = type.enum_->get(value);
+
+            if ( target->GetName() == "transport_proto" ) {
+                // Special case: map Spicy's `Protocol` to Zeek's `transport_proto`.
+                if ( auto ty = std::string_view(type.display); ty != "hilti::Protocol" && ty != "spicy::Protocol" )
+                    throw ParameterMismatch(type.display, target);
+
+                switch ( i.value ) {
+                    case hilti::rt::Protocol::TCP:
+                        return id::transport_proto->GetEnumVal(::TransportProto::TRANSPORT_TCP);
+
+                    case hilti::rt::Protocol::UDP:
+                        return id::transport_proto->GetEnumVal(::TransportProto::TRANSPORT_UDP);
+
+                    case hilti::rt::Protocol::ICMP:
+                        return id::transport_proto->GetEnumVal(::TransportProto::TRANSPORT_ICMP);
+
+                    case hilti::rt::Protocol::Undef: [[fallthrough]]; // just for readability, make Undef explicit
+                    default: return id::transport_proto->GetEnumVal(::TransportProto::TRANSPORT_UNKNOWN);
+                }
+
+                hilti::rt::cannot_be_reached();
+            }
+
+            // Zeek's enum can't be negative, so we swap in max_int for our Undef (-1).
+            if ( i.value == std::numeric_limits<int64_t>::max() )
+                // Can't allow this ...
+                throw InvalidValue("enum values with value max_int not supported by Zeek integration");
+
+            zeek_int_t zi = (i.value >= 0 ? i.value : std::numeric_limits<::zeek_int_t>::max());
+            return target->AsEnumType()->GetEnumVal(zi);
+        }
+
+        case TypeInfo::Interval: {
+            if ( target->Tag() != TYPE_INTERVAL )
+                throw ParameterMismatch(type, target);
+
+            return make_intrusive<IntervalVal>(type.interval->get(value).seconds());
+        }
+
+        case TypeInfo::Map: {
+            if ( target->Tag() != TYPE_TABLE )
+                throw ParameterMismatch(type, target);
+
+            if ( type.map->keyType()->tag == TypeInfo::Tuple )
+                throw ParameterMismatch("internal error: maps with tuples not yet supported in to_val()");
+
+            auto tt = cast_intrusive<TableType>(target);
+            if ( tt->IsSet() )
+                throw ParameterMismatch(type, target);
+
+            if ( tt->GetIndexTypes().size() != 1 )
+                throw ParameterMismatch(type, target);
+
+            auto zv = make_intrusive<TableVal>(tt);
+
+            for ( const auto& i : type.map->iterate(value) ) {
+                auto k = to_val(i.first, tt->GetIndexTypes()[0]);
+                auto v = to_val(i.second, tt->Yield());
+                zv->Assign(std::move(k), std::move(v));
+            }
+
+            return std::move(zv);
+        }
+
+        case TypeInfo::Optional: {
+            const auto& x = type.optional->value(value);
+            return x ? detail::to_val(x, target) : nullptr;
+        }
+
+        case TypeInfo::Port: {
+            if ( target->Tag() != TYPE_PORT )
+                throw ParameterMismatch(type, target);
+
+            auto p = type.port->get(value);
+            switch ( p.protocol().value() ) {
+                case hilti::rt::Protocol::TCP: return val_mgr->Port(p.port(), ::TransportProto::TRANSPORT_TCP);
+                case hilti::rt::Protocol::UDP: return val_mgr->Port(p.port(), ::TransportProto::TRANSPORT_UDP);
+                case hilti::rt::Protocol::ICMP: return val_mgr->Port(p.port(), ::TransportProto::TRANSPORT_ICMP);
+                default: throw InvalidValue("port value with undefined protocol");
+            }
+        }
+
+        case TypeInfo::SignedInteger_int8:
+            return convertSignedInteger(type.signed_integer_int8->get(value), "int8", target);
+
+        case TypeInfo::SignedInteger_int16:
+            return convertSignedInteger(type.signed_integer_int16->get(value), "int16", target);
+
+        case TypeInfo::SignedInteger_int32:
+            return convertSignedInteger(type.signed_integer_int32->get(value), "int32", target);
+
+        case TypeInfo::SignedInteger_int64:
+            return convertSignedInteger(type.signed_integer_int64->get(value), "int64", target);
+
+        case TypeInfo::Time: {
+            if ( target->Tag() != TYPE_TIME )
+                throw ParameterMismatch(type, target);
+
+            return make_intrusive<TimeVal>(type.time->get(value).seconds());
+        }
+
+        case TypeInfo::Real: {
+            if ( target->Tag() != TYPE_DOUBLE )
+                throw ParameterMismatch(type, target);
+
+            return make_intrusive<DoubleVal>(type.real->get(value));
+        }
+
+        case TypeInfo::Set: {
+            if ( target->Tag() != TYPE_TABLE )
+                throw ParameterMismatch(type, target);
+
+            if ( type.set->dereferencedType()->tag == TypeInfo::Tuple )
+                throw ParameterMismatch("internal error: sets with tuples not yet supported in to_val()");
+
+            auto tt = cast_intrusive<TableType>(target);
+            if ( ! tt->IsSet() )
+                throw ParameterMismatch(type, target);
+
+            auto zv = make_intrusive<TableVal>(tt);
+
+            for ( const auto& i : type.set->iterate(value) ) {
+                if ( tt->GetIndexTypes().size() != 1 )
+                    throw ParameterMismatch(type, target);
+
+                auto idx = to_val(i, tt->GetIndexTypes()[0]);
+                zv->Assign(std::move(idx), nullptr);
+            }
+
+            return std::move(zv);
+        }
+
+        case TypeInfo::String: {
+            if ( target->Tag() != TYPE_STRING )
+                throw ParameterMismatch(type, target);
+
+            const auto& s = type.string->get(value);
+            return make_intrusive<StringVal>(s);
+        }
+
+        case TypeInfo::StrongReference: {
+            const auto& x = type.strong_reference->value(value);
+            return x ? detail::to_val(x, target) : nullptr;
+        }
+
+        case TypeInfo::Struct: {
+            if ( target->Tag() != TYPE_RECORD )
+                throw ParameterMismatch(type, target);
+
+            auto rtype = cast_intrusive<RecordType>(target);
+
+            auto rval = make_intrusive<RecordVal>(rtype);
+            auto num_fields = rtype->NumFields();
+
+            int idx = 0;
+            for ( const auto& [field, fvalue] : type.struct_->iterate(value) ) {
+                if ( idx >= num_fields )
+                    throw ParameterMismatch(hilti::rt::fmt("no matching record field for field '%s'", field.name));
+
+                // Special-case: Lift up anonymous bitfields.
+                if ( field.name == "_anon" ) {
+                    if ( field.type->tag == TypeInfo::Bitfield ) {
+                        size_t j = 0;
+                        for ( const auto& x : field.type->bitfield->iterate(fvalue) )
+                            setRecordField(rval.get(), rtype, idx++, x.second);
+
+                        continue;
+                    }
+
+                    // There can't be any other anonymous fields.
+                    auto msg = hilti::rt::fmt("unexpected anonymous field: %s", field.name);
+                    reporter->InternalError("%s", msg.c_str());
+                }
+                else {
+                    auto* field_name = rtype->FieldName(idx);
+
+                    if ( field_name != field.name )
+                        throw ParameterMismatch(hilti::rt::fmt("mismatch in field name: expected '%s', found '%s'",
+                                                               field.name, field_name));
+
+                    if ( fvalue )
+                        setRecordField(rval.get(), rtype, idx, fvalue);
+
+                    idx++;
+                }
+            }
+
+            // We already check above that all Spicy-side fields are mapped so we
+            // can only hit this if there are uninitialized Zeek-side fields left.
+            if ( idx != num_fields )
+                throw ParameterMismatch(hilti::rt::fmt("missing initialization for field '%s'", rtype->FieldName(idx)));
+
+            return std::move(rval);
+        }
+
+        case TypeInfo::Tuple: {
+            if ( target->Tag() != TYPE_RECORD )
+                throw ParameterMismatch(type, target);
+
+            auto rtype = cast_intrusive<RecordType>(target);
+
+            if ( type.tuple->elements().size() != static_cast<size_t>(rtype->NumFields()) )
+                throw ParameterMismatch(type, target);
+
+            auto rval = make_intrusive<RecordVal>(rtype);
+
+            int idx = 0;
+            for ( const auto& x : type.tuple->iterate(value) ) {
+                if ( auto fval = x.second.type().optional->value(x.second) ) {
+                    if ( fval )
+                        setRecordField(rval.get(), rtype, idx, fval);
+                }
+
+                idx++;
+            }
+
+            return rval;
+        }
+
+        case TypeInfo::ValueReference: {
+            const auto& x = type.value_reference->value(value);
+            return x ? detail::to_val(x, target) : nullptr;
+        }
+
+        case TypeInfo::Vector: {
+            if ( target->Tag() != TYPE_VECTOR && target->Tag() != TYPE_LIST )
+                throw ParameterMismatch(type, target);
+
+            auto vt = cast_intrusive<VectorType>(target);
+            auto zv = make_intrusive<VectorVal>(vt);
+
+            for ( const auto& i : type.vector->iterate(value) )
+                zv->Assign(zv->Size(), to_val(i, vt->Yield()));
+
+            return std::move(zv);
+        }
+
+        case TypeInfo::UnsignedInteger_uint8:
+            return convertUnsignedInteger(type.unsigned_integer_uint8->get(value), "uint8", target);
+
+        case TypeInfo::UnsignedInteger_uint16:
+            return convertUnsignedInteger(type.unsigned_integer_uint16->get(value), "uint16", target);
+
+        case TypeInfo::UnsignedInteger_uint32:
+            return convertUnsignedInteger(type.unsigned_integer_uint32->get(value), "uint32", target);
+
+        case TypeInfo::UnsignedInteger_uint64:
+            return convertUnsignedInteger(type.unsigned_integer_uint64->get(value), "uint64", target);
+
+        case TypeInfo::WeakReference: {
+            const auto& x = type.weak_reference->value(value);
+            return x ? detail::to_val(x, target) : nullptr;
+        }
+
+        default: throw InvalidValue(fmt("unexpected type for conversion to Zeek (%s)", type.display));
+    }
+
+    hilti::rt::cannot_be_reached();
+}

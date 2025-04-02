@@ -440,10 +440,10 @@ void Redis::HandleGetResult(redisReply* reply, ResultCallback* callback) {
         res = ParseReplyError("get", reply->str);
     else {
         auto val = zeek::detail::ValFromJSON(reply->str, val_type, Func::nil);
-        if ( std::holds_alternative<ValPtr>(val) )
-            res = {ReturnCode::SUCCESS, "", std::get<ValPtr>(val)};
+        if ( val )
+            res = {ReturnCode::SUCCESS, "", val.value()};
         else
-            res = {ReturnCode::OPERATION_FAILED, std::get<std::string>(val)};
+            res = {ReturnCode::OPERATION_FAILED, val.error()};
     }
 
     freeReplyObject(reply);

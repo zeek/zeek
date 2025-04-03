@@ -1,3 +1,12 @@
+7.0.7-4 | 2025-05-19 09:17:52 -0700
+
+  * Remove unnecessary check for bind library. (Johanna Amann, Corelight)
+
+    This has not been required since we switched to c-ares and breaks builds
+    on Fedora Rawhide.
+
+    (cherry picked from commit 37be65dfd04906270111c44533b3aadc5f421784)
+
 7.0.7-3 | 2025-05-19 09:15:54 -0700
 
   * fix for ZAM optimization when an aggregate is modified inside of a loop (Vern Paxson, Corelight)

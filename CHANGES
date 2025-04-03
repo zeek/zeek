@@ -1,3 +1,12 @@
+7.2.0-dev.473 | 2025-04-03 13:10:43 +0200
+
+  * GH-4323: Traverse: Do not short-circuit traverse_all() if stmts is nullptr (Arne Welzel, Corelight)
+
+    Since commit 0a813a53c7a5326d91fc5aa979429d04972d664b,
+    zeek::detail::stmts is set to a nullptr when before it was usually
+    an empty list of statements. This caused traverse_all() to be
+    short-circuited unless global statements were available.
+
 7.2.0-dev.471 | 2025-04-03 10:53:00 +0100
 
   * Remove unnecessary check for bind library. (Johanna Amann, Corelight)

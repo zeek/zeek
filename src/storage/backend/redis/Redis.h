@@ -13,7 +13,7 @@ struct redisReply;
 struct redisPollEvents;
 
 namespace zeek::storage::backend::redis {
-class Redis : public Backend, public iosource::IOSource {
+class Redis final : public Backend, public iosource::IOSource {
 public:
     Redis(std::unique_ptr<Serializer> s) : Backend(SupportedModes::ASYNC, "REDIS", std::move(s)), IOSource(true) {}
     ~Redis() override = default;

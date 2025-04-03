@@ -369,9 +369,18 @@ void add_type(ID* id, TypePtr t, std::unique_ptr<std::vector<AttrPtr>> attr) {
 
     TypePtr tnew;
 
-    if ( (t->Tag() == TYPE_RECORD || t->Tag() == TYPE_ENUM) && old_type_name.empty() )
+    if ( (t->Tag() == TYPE_RECORD || t->Tag() == TYPE_ENUM) &&
+         (old_type_name.empty() || old_type_name == new_type_name) ) {
         // An extensible type (record/enum) being declared for first time.
+        //
+        // Enum types are initialized with the same name as their identifier
+        // when declared for the first time, double check that here.
+        if ( t->Tag() == TYPE_ENUM && new_type_name != old_type_name )
+            reporter->InternalError("enum type has unexpected names: '%s' and '%s'", old_type_name.c_str(),
+                                    new_type_name.c_str());
+
         tnew = std::move(t);
+    }
     else {
         // If the old type is an error or the old type doesn't exist, then return
         // an error instead of trying to clone it.

@@ -44,7 +44,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     }
 
     std::string create = "create table if not exists " + table_name + " (";
-    create.append("key_str text primary key, value_str text not null, expire_time real);");
+    create.append("key_str blob primary key, value_str blob not null, expire_time real);");
 
     char* errorMsg = nullptr;
     if ( int res = sqlite3_exec(db, create.c_str(), NULL, NULL, &errorMsg); res != SQLITE_OK ) {
@@ -151,8 +151,9 @@ OperationResult SQLite::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool
     if ( ! db )
         return {ReturnCode::NOT_CONNECTED};
 
-    auto json_key = key->ToJSON();
-    auto json_value = value->ToJSON();
+    auto key_data = serializer->Serialize(key);
+    if ( ! key_data )
+        return {ReturnCode::SERIALIZATION_FAILED, "Failed to serialize key"};
 
     sqlite3_stmt* stmt;
     if ( ! overwrite )
@@ -160,15 +161,17 @@ OperationResult SQLite::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool
     else
         stmt = put_update_stmt.get();
 
-    auto key_str = json_key->ToStdStringView();
-    if ( auto res = CheckError(sqlite3_bind_text(stmt, 1, key_str.data(), key_str.size(), SQLITE_STATIC));
+    if ( auto res = CheckError(sqlite3_bind_blob(stmt, 1, key_data->data(), key_data->size(), SQLITE_STATIC));
          res.code != ReturnCode::SUCCESS ) {
         sqlite3_reset(stmt);
         return res;
     }
 
-    auto value_str = json_value->ToStdStringView();
-    if ( auto res = CheckError(sqlite3_bind_text(stmt, 2, value_str.data(), value_str.size(), SQLITE_STATIC));
+    auto val_data = serializer->Serialize(value);
+    if ( ! val_data )
+        return {ReturnCode::SERIALIZATION_FAILED, "Failed to serialize value"};
+
+    if ( auto res = CheckError(sqlite3_bind_blob(stmt, 2, val_data->data(), val_data->size(), SQLITE_STATIC));
          res.code != ReturnCode::SUCCESS ) {
         sqlite3_reset(stmt);
         return res;
@@ -180,7 +183,7 @@ OperationResult SQLite::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool
     }
 
     if ( overwrite ) {
-        if ( auto res = CheckError(sqlite3_bind_text(stmt, 4, value_str.data(), value_str.size(), SQLITE_STATIC));
+        if ( auto res = CheckError(sqlite3_bind_blob(stmt, 4, val_data->data(), val_data->size(), SQLITE_STATIC));
              res.code != ReturnCode::SUCCESS ) {
             sqlite3_reset(stmt);
             return res;
@@ -197,11 +200,13 @@ OperationResult SQLite::DoGet(ResultCallback* cb, ValPtr key) {
     if ( ! db )
         return {ReturnCode::NOT_CONNECTED};
 
-    auto json_key = key->ToJSON();
+    auto key_data = serializer->Serialize(key);
+    if ( ! key_data )
+        return {ReturnCode::SERIALIZATION_FAILED, "Failed to serialize key"};
+
     auto stmt = get_stmt.get();
 
-    auto key_str = json_key->ToStdStringView();
-    if ( auto res = CheckError(sqlite3_bind_text(stmt, 1, key_str.data(), key_str.size(), SQLITE_STATIC));
+    if ( auto res = CheckError(sqlite3_bind_blob(stmt, 1, key_data->data(), key_data->size(), SQLITE_STATIC));
          res.code != ReturnCode::SUCCESS ) {
         sqlite3_reset(stmt);
         return res;
@@ -217,11 +222,13 @@ OperationResult SQLite::DoErase(ResultCallback* cb, ValPtr key) {
     if ( ! db )
         return {ReturnCode::NOT_CONNECTED};
 
-    auto json_key = key->ToJSON();
+    auto key_data = serializer->Serialize(key);
+    if ( ! key_data )
+        return {ReturnCode::SERIALIZATION_FAILED, "Failed to serialize key"};
+
     auto stmt = erase_stmt.get();
 
-    auto key_str = json_key->ToStdStringView();
-    if ( auto res = CheckError(sqlite3_bind_text(stmt, 1, key_str.data(), key_str.size(), SQLITE_STATIC));
+    if ( auto res = CheckError(sqlite3_bind_blob(stmt, 1, key_data->data(), key_data->size(), SQLITE_STATIC));
          res.code != ReturnCode::SUCCESS ) {
         sqlite3_reset(stmt);
         return res;
@@ -266,9 +273,10 @@ OperationResult SQLite::Step(sqlite3_stmt* stmt, bool parse_value) {
     int step_status = sqlite3_step(stmt);
     if ( step_status == SQLITE_ROW ) {
         if ( parse_value ) {
-            // Column 1 is the value
-            const char* text = (const char*)sqlite3_column_text(stmt, 0);
-            auto val = zeek::detail::ValFromJSON(text, val_type, Func::nil);
+            auto blob = static_cast<const std::byte*>(sqlite3_column_blob(stmt, 0));
+            size_t blob_size = sqlite3_column_bytes(stmt, 0);
+
+            auto val = serializer->Unserialize({blob, blob_size}, val_type);
             sqlite3_reset(stmt);
 
             if ( val )

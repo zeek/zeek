@@ -16,6 +16,7 @@ event zeek_init()
 	{
 	# Create a database file in the .tmp directory with a 'testing' table
 	local opts: Storage::BackendOptions;
+	opts$serializer = Storage::JSON;
 	opts$sqlite = [ $database_path="test.sqlite", $table_name="testing" ];
 
 	local key = "key1234";

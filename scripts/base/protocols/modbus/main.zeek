@@ -31,14 +31,15 @@ export {
 	## Event that can be handled to access the Modbus record as it is sent
 	## on to the logging framework.
 	global log_modbus: event(rec: Info);
+
+	## Well-known ports
+	option ports = { 502/tcp };
+	redef likely_server_ports += { ports };
 }
 
 redef record connection += {
 	modbus: Info &optional;
 };
-
-const ports = { 502/tcp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

@@ -1,3 +1,12 @@
+7.0.6-3 | 2025-05-05 12:54:30 -0700
+
+  * broker/main: Adapt enum values to agree with comm.bif (Arne Welzel, Corelight)
+
+    Logic to detect this error already existed, but due to enum identifiers
+    not having a value set, it never triggered before.
+
+    (cherry picked from commit 6bc36e8cf87593200c121caab8eccdaf94e2f841)
+
 7.0.6 | 2025-03-20 12:24:03 -0700
 
   * Release 7.0.6.

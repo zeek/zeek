@@ -13,10 +13,11 @@ namespace btest::storage::backend {
  */
 class StorageDummy : public zeek::storage::Backend {
 public:
-    StorageDummy() : Backend(zeek::storage::SupportedModes::SYNC, "StorageDummy") {}
+    StorageDummy(std::unique_ptr<zeek::storage::Serializer> s)
+        : Backend(zeek::storage::SupportedModes::SYNC, "StorageDummy", std::move(s)) {}
     ~StorageDummy() override = default;
 
-    static zeek::storage::BackendPtr Instantiate();
+    static zeek::storage::BackendPtr Instantiate(std::unique_ptr<zeek::storage::Serializer> s);
 
     /**
      * Called by the manager system to open the backend.
@@ -50,7 +51,7 @@ public:
     zeek::storage::OperationResult DoErase(zeek::storage::ResultCallback* cb, zeek::ValPtr key) override;
 
 private:
-    std::map<std::string, std::string> data;
+    std::map<zeek::storage::detail::byte_buffer, zeek::storage::detail::byte_buffer> data;
     bool open = false;
 };
 

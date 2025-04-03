@@ -40,7 +40,7 @@ event setup_test()
 	opts$redis = [ $server_host="127.0.0.1", $server_port=to_port(getenv(
 	    "REDIS_PORT")), $key_prefix="testing" ];
 
-	local open_res = Storage::Sync::open_backend(Storage::REDIS, opts, string, string);
+	local open_res = Storage::Sync::open_backend(Storage::REDIS, Storage::JSON, opts, string, string);
 	print "open result", open_res;
 
 	b = open_res$value;

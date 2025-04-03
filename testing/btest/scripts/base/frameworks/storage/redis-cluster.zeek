@@ -40,7 +40,7 @@ event zeek_init()
 	opts$redis = [ $server_host="127.0.0.1", $server_port=to_port(getenv(
 	    "REDIS_PORT")), $key_prefix="testing" ];
 
-	local open_res = Storage::Sync::open_backend(Storage::REDIS, opts, string, string);
+	local open_res = Storage::Sync::open_backend(Storage::REDIS, Storage::JSON, opts, string, string);
 	backend = open_res$value;
 	}
 

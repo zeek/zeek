@@ -1,3 +1,10 @@
+7.2.0-dev.471 | 2025-04-03 10:53:00 +0100
+
+  * Remove unnecessary check for bind library. (Johanna Amann, Corelight)
+
+    This has not been required since we switched to c-ares and breaks builds
+    on Fedora Rawhide.
+
 7.2.0-dev.469 | 2025-04-02 16:36:00 -0700
 
   * Some minor c++ modernization in EnumType methods (Tim Wojtulewicz, Corelight)

@@ -8,25 +8,83 @@
 #include "zeek/iosource/Manager.h"
 #include "zeek/plugin/Manager.h"
 
+#include "IntrusivePtr.h"
+#include "Type.h"
+#include "const.bif.netvar_h"
 #include "event.bif.netvar_h"
+#include "util.h"
 
 zeek::EventMgr zeek::event_mgr;
 
+namespace {
+zeek::IntrusivePtr<zeek::TimeVal> make_timeval(double t) { return zeek::make_intrusive<zeek::TimeVal>(t); }
+
+} // namespace
+
 namespace zeek {
 
+detail::MetadataVectorPtr detail::MakeMetadataVector(double t) {
+    auto mdv = std::make_unique<zeek::detail::MetadataVector>(1);
+    (*mdv)[0] = {1, zeek::make_intrusive<zeek::TimeVal>(t)};
+    return mdv;
+}
+
+detail::MetadataVectorPtr detail::MakeMetadataVector() { return std::make_unique<zeek::detail::MetadataVector>(); }
+
 Event::Event(const EventHandlerPtr& arg_handler, zeek::Args arg_args, util::detail::SourceID arg_src,
-             analyzer::ID arg_aid, Obj* arg_obj, double arg_ts, std::unique_ptr<MetadataVector> arg_meta)
+             analyzer::ID arg_aid, Obj* arg_obj, double arg_ts)
     : handler(arg_handler),
       args(std::move(arg_args)),
       src(arg_src),
       aid(arg_aid),
       ts(arg_ts),
       obj(arg_obj),
+      next_event(nullptr) {
+    if ( obj )
+        Ref(obj);
+
+    if ( zeek::BifConst::EventMetadata::add_network_time ) {
+        meta = detail::MakeMetadataVector(arg_ts);
+    }
+}
+
+Event::Event(detail::MetadataVectorPtr arg_meta, const EventHandlerPtr& arg_handler, zeek::Args arg_args,
+             util::detail::SourceID arg_src, analyzer::ID arg_aid, Obj* arg_obj)
+    : handler(arg_handler),
+      args(std::move(arg_args)),
+      src(arg_src),
+      aid(arg_aid),
+      ts(0.0),
+      obj(arg_obj),
       next_event(nullptr),
       meta(std::move(arg_meta)) {
     if ( obj )
         Ref(obj);
+
+    // If all events are supposed to have network time attached, ensure
+    // that the meta vector is set and contains network time.
+    bool has_time = false;
+    if ( meta ) {
+        for ( const auto& [id, v] : *meta ) {
+            if ( id == static_cast<zeek_uint_t>(detail::MetadataType::NetworkTimestamp) && v &&
+                 v->GetType()->Tag() == TYPE_TIME ) {
+                has_time = true;
+                ts = v->AsTime();
+            }
+        }
+    }
+
+    if ( ! has_time && zeek::BifConst::EventMetadata::add_network_time ) {
+        double t = run_state::network_time;
+        if ( ! meta )
+            meta = detail::MakeMetadataVector(t);
+        else
+            meta->push_back({1, make_timeval(t)});
+
+        ts = t;
+    }
 }
+
 
 void Event::Describe(ODesc* d) const {
     if ( d->IsReadable() )
@@ -78,8 +136,16 @@ EventMgr::~EventMgr() {
 }
 
 void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl, util::detail::SourceID src, analyzer::ID aid, Obj* obj,
-                       double ts) {
-    QueueEvent(new Event(h, std::move(vl), src, aid, obj, ts));
+                       double ts, detail::MetadataVectorPtr meta) {
+    /*    if ( opt_in ) {
+            if ! meta
+                meta = alloc()
+            if "timestamp" not in meta:
+                ...
+        }
+                */
+
+    QueueEvent(new Event(std::move(meta), h, std::move(vl), src, aid, obj));
 }
 
 void EventMgr::QueueEvent(Event* event) {
@@ -167,6 +233,67 @@ void EventMgr::Process() {
     // and had the opportunity to spawn new events.
 }
 
-void EventMgr::InitPostScript() { iosource_mgr->Register(this, true, false); }
+void EventMgr::InitPostScript() {
+    // Network timestamp metadata is always known, register it here.
+    //
+    // This also ensures that enough script infrastructure is available.
+    auto idp = zeek::id::find("Conn::LOG");
+    if ( idp ) {
+        std::fprintf(stderr, "conn_log=%p has_val=%d\n", idp.get(), idp->HasVal());
+        auto val = idp->GetType<zeek::EnumType>()->Lookup("Conn::LOG");
+
+        auto t = zeek::id::find_type<EnumType>("Log::ID");
+        auto v = t->Lookup("Conn::LOG");
+        auto evp = t->GetEnumVal(v);
+        fprintf(stderr, "t=%p, v=%d, evp=%p (%s)\n", t.get(), v, evp.get(), obj_desc(evp.get()).c_str());
+    }
+
+
+    if ( ! idp ||
+         // network_time_id->Get() != static_cast<zeek_int_t>(detail::MetadataType::NetworkTimestamp) )
+         true ) {
+        zeek::reporter->FatalError("Error getting EventMetadata::NETWORK_TIMESTAMP %p", idp.get());
+    }
+
+    // RegisterMetadata(network_time_id, zeek::base_type(TYPE_TIME));
+
+    iosource_mgr->Register(this, true, false);
+}
+
+bool EventMgr::RegisterMetadata(EnumValPtr id, zeek::TypePtr type) {
+    static const auto& metadata_id_type = zeek::id::find_type<zeek::EnumType>("EventMetadata::ID");
+    if ( id->GetType() != metadata_id_type ) // Make very sure id is of the right type.
+        return false;
+
+    auto id_int = id->Get();
+    if ( id_int < 0 ) {
+        zeek::reporter->InternalError("Negative enum value %s: %" PRId64, obj_desc_short(id.get()).c_str(), id_int);
+        return false; // unreached
+    }
+
+    zeek_uint_t id_uint = static_cast<zeek_uint_t>(id_int);
+
+    auto it = event_metadata_types.find(id_uint);
+
+    // If type contains anything with any, like table[count] of any, we should reject it.
+    //
+    //     cb = AnyTypeChecker()
+    //     type->Traverse(cb)
+
+    if ( it != event_metadata_types.end() )
+        return same_type(it->second.type, type);
+
+    event_metadata_types.insert({id_uint, detail::MetadataDescriptor{id_uint, id, type}});
+
+    return true;
+}
+
+const detail::MetadataDescriptor* EventMgr::LookupMetadata(zeek_uint_t id) const {
+    const auto it = event_metadata_types.find(id);
+    if ( it == event_metadata_types.end() )
+        return nullptr;
+
+    return &(it->second);
+}
 
 } // namespace zeek

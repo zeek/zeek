@@ -22,7 +22,6 @@
 
 using namespace zeek::cluster;
 
-// TODO: Fix Reporter::error() to use expected instead?
 zeek::MetadataVectorPtr detail::metadata_vector_from_broker_event(const broker::zeek::Event& ev, double* ts) {
     auto&& md = ev.metadata();
     if ( md.size() == 0 )
@@ -32,17 +31,18 @@ zeek::MetadataVectorPtr detail::metadata_vector_from_broker_event(const broker::
     result->reserve(md.size());
 
     for ( const auto& [id, v] : md ) {
-        TypePtr expected_type = zeek::event_mgr.LookupMetadata(id);
-        if ( ! expected_type ) {
+        const auto* desc = zeek::event_mgr.LookupMetadata(id);
+        if ( ! desc ) {
+            // We just ignore unregistered metadata.
             fprintf(stderr, "unregistered metadata %zu\n", id);
             continue;
         }
 
         auto d = v.to_data();
-        auto val = zeek::Broker::detail::data_to_val(d, expected_type.get());
+        auto val = zeek::Broker::detail::data_to_val(d, desc->type.get());
         if ( ! val ) {
             reporter->Error("Failure converting metadata '%s' to type %s", broker::to_string(d).c_str(),
-                            obj_desc(expected_type.get()).c_str());
+                            obj_desc(desc->type.get()).c_str());
             continue;
         }
 

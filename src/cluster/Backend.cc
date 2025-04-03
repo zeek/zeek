@@ -2,6 +2,7 @@
 
 #include "zeek/cluster/Backend.h"
 
+#include <memory>
 #include <optional>
 
 #include "zeek/Desc.h"
@@ -10,16 +11,60 @@
 #include "zeek/Func.h"
 #include "zeek/Reporter.h"
 #include "zeek/Type.h"
+#include "zeek/Val.h"
 #include "zeek/cluster/OnLoop.h"
 #include "zeek/cluster/Serializer.h"
 #include "zeek/logging/Manager.h"
+#include "zeek/plugin/Manager.h"
+#include "zeek/plugin/Plugin.h"
 #include "zeek/util.h"
+
+#include "IntrusivePtr.h"
+#include "const.bif.netvar_h"
 
 using namespace zeek::cluster;
 
+detail::EventMetadata::EventMetadata(zeek::detail::MetadataVectorPtr vec) : mdv(std::move(vec)) {
+    if ( mdv ) {
+        for ( const auto& [id, v] : *mdv ) {
+            if ( id == static_cast<zeek_uint_t>(zeek::detail::MetadataType::NetworkTimestamp) && v &&
+                 v->GetType()->Tag() == TYPE_TIME ) {
+                timestamp = v->AsTime();
+            }
+        }
+    }
+}
+
+bool detail::Event::AddMetadata(const EnumValPtr& id, zeek::ValPtr val) {
+    const auto* desc = event_mgr.LookupMetadata(id->Get());
+    if ( ! desc )
+        return false;
+
+    if ( desc->id != id->Get() ) {
+        zeek::reporter->InternalError("metadata descriptor with wrong id %" PRIu64 " vs %" PRId64, desc->id, id->Get());
+        return false; // unreached
+    }
+
+    if ( ! val || ! same_type(val->GetType(), desc->type) )
+        return false;
+
+    if ( ! meta.mdv )
+        meta.mdv = zeek::detail::MakeMetadataVector();
+
+    // Internally stored as zeek_uint_t for serializers.
+    meta.mdv->push_back({desc->id, std::move(val)});
+}
+
+zeek::detail::MetadataVectorPtr detail::Event::TakeMetadata() && {
+    auto tmp = std::move(meta.mdv);
+    meta.mdv.reset();
+    return tmp;
+}
 
 bool detail::LocalEventHandlingStrategy::DoHandleRemoteEvent(std::string_view topic, detail::Event e) {
-    zeek::event_mgr.Enqueue(e.Handler(), std::move(e.args), util::detail::SOURCE_BROKER, 0, nullptr, e.timestamp);
+    auto md = std::move(e).TakeMetadata();
+    zeek::event_mgr.Enqueue(e.Handler(), std::move(e.args), util::detail::SOURCE_BROKER, 0, nullptr, 0.0,
+                            std::move(md));
     return true;
 }
 
@@ -73,13 +118,11 @@ Backend::Backend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSeriali
                  std::unique_ptr<detail::EventHandlingStrategy> ehs)
     : event_serializer(std::move(es)), log_serializer(std::move(ls)), event_handling_strategy(std::move(ehs)) {}
 
-std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsSpan args, double timestamp) const {
+std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsSpan args) const {
     auto checked_args = detail::check_args(handler, args);
     if ( ! checked_args )
         return std::nullopt;
 
-    if ( timestamp == 0.0 )
-        timestamp = zeek::event_mgr.CurrentEventTime();
 
     const auto& eh = zeek::event_registry->Lookup(handler->AsFuncPtr()->GetName());
     if ( ! eh ) {
@@ -87,12 +130,24 @@ std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsS
         return std::nullopt;
     }
 
-    return zeek::cluster::detail::Event{eh, std::move(*checked_args), timestamp};
+    zeek::detail::MetadataVectorPtr mdv;
+    if ( zeek::BifConst::EventMetadata::add_network_time ) {
+        double t = zeek::event_mgr.CurrentEventTime();
+        std::fprintf(stderr, "t=%.6f\n", t);
+        mdv = zeek::detail::MakeMetadataVector(t);
+    }
+
+    return zeek::cluster::detail::Event{eh, std::move(*checked_args), std::move(mdv)};
 }
 
 // Default implementation doing the serialization.
-bool Backend::DoPublishEvent(const std::string& topic, const cluster::detail::Event& event) {
+bool Backend::DoPublishEvent(const std::string& topic, cluster::detail::Event& event) {
     cluster::detail::byte_buffer buf;
+
+    // Hook to attached event metadata.
+    bool done = PLUGIN_HOOK_WITH_RESULT(HOOK_PUBLISH_EVENT, HookPublishEvent(topic, event), false);
+    if ( done )
+        return true;
 
     if ( ! event_serializer->SerializeEvent(buf, event) )
         return false;

@@ -579,6 +579,31 @@ const io_poll_interval_live = 10 &redef;
 ## while testing, but should be used sparingly.
 const running_under_test: bool = F &redef;
 
+module EventMetadata;
+
+export {
+	type EventMetadata::ID: enum {
+		NETWORK_TIMESTAMP = 1,
+	};
+	## Add network metadata to all events.
+	##
+	## This contains local and remote events.
+	## Events scheduled have a network time
+	## of when there timer was supposed to
+	## expire, which might be before network_time()
+	const add_network_time: bool = F &redef;
+
+	## A event metadata entry.
+	type Entry: record {
+		id: EventMetadata::ID;
+		val: any;
+	};
+
+	global register_type: function(id: ID, t: any): bool;
+}
+
+type ::event_metadata_vec: vector of Entry;
+
 module FTP;
 
 export {
@@ -6291,3 +6316,8 @@ event net_done(t: time)
 @if ( have_spicy() )
 @load base/frameworks/spicy/init-bare
 @endif
+
+function EventMetadata::register_type(id: EventMetadata::ID, t: any): bool
+	{
+	return EventMetadata::__register_type(id, t);
+	}

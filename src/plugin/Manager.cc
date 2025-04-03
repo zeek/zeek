@@ -970,7 +970,6 @@ bool Manager::HookPublishEvent(const std::string& topic, zeek::cluster::detail::
         MetaHookPre(HOOK_PUBLISH_EVENT, args);
     }
     */
-    std::fprintf(stderr, "manager hook publish event\n");
 
     hook_list* l = hooks[HOOK_PUBLISH_EVENT];
 

@@ -19,6 +19,15 @@ extern double network_time;
 
 class EventMgr;
 
+class Val;
+using ValPtr = IntrusivePtr<Val>;
+
+class EnumVal;
+using EnumValPtr = IntrusivePtr<EnumVal>;
+
+class Type;
+using TypePtr = IntrusivePtr<Type>;
+
 namespace detail {
 
 enum class MetadataType : uint8_t {
@@ -26,20 +35,47 @@ enum class MetadataType : uint8_t {
 };
 
 struct MetadataEntry {
-    zeek_uint_t type;
+    zeek_uint_t id;
     zeek::ValPtr val;
 };
 
-} // namespace detail
+/**
+ * Descriptor for event metadata.
+ *
+ * Event metadata has an identifying *id*. In Zeek scripts, this represents the integer
+ * value of an enum of type EventMetadata::ID. Further, even metadata has a static type
+ * associated.
+ */
+struct MetadataDescriptor {
+    zeek_uint_t id;
+    EnumValPtr enum_val;
+    TypePtr type;
+};
+
 
 using MetadataVector = std::vector<detail::MetadataEntry>;
 using MetadataVectorPtr = std::unique_ptr<MetadataVector>;
 
+/**
+ * Create a metadata vector with NetworkTimestamp set to t;
+ */
+MetadataVectorPtr MakeMetadataVector(double t);
+
+/**
+ * Create an empty metadata vector.
+ */
+MetadataVectorPtr MakeMetadataVector();
+
+} // namespace detail
+
 class Event final : public Obj {
 public:
+    [[deprecated("Use constructor with metadata")]]
     Event(const EventHandlerPtr& handler, zeek::Args args, util::detail::SourceID src = util::detail::SOURCE_LOCAL,
-          analyzer::ID aid = 0, Obj* obj = nullptr, double ts = run_state::network_time,
-          std::unique_ptr<MetadataVector> meta = nullptr);
+          analyzer::ID aid = 0, Obj* obj = nullptr, double ts = run_state::network_time);
+
+    Event(detail::MetadataVectorPtr arg_meta, const EventHandlerPtr& arg_handler, zeek::Args arg_args,
+          util::detail::SourceID arg_src, analyzer::ID arg_aid, Obj* arg_obj);
 
     void SetNext(Event* n) { next_event = n; }
     Event* NextEvent() const { return next_event; }
@@ -49,7 +85,7 @@ public:
     EventHandlerPtr Handler() const { return handler; }
     const zeek::Args& Args() const { return args; }
     double Time() const { return ts; }
-    const MetadataVectorPtr& Metadata() const { return meta; }
+    const detail::MetadataVectorPtr& Metadata() const { return meta; }
 
     void Describe(ODesc* d) const override;
 
@@ -67,7 +103,7 @@ private:
     double ts;
     Obj* obj;
     Event* next_event;
-    std::unique_ptr<MetadataVector> meta;
+    detail::MetadataVectorPtr meta;
 };
 
 class EventMgr final : public Obj, public iosource::IOSource {
@@ -89,7 +125,8 @@ public:
      * (defaults to current network time).
      */
     void Enqueue(const EventHandlerPtr& h, zeek::Args vl, util::detail::SourceID src = util::detail::SOURCE_LOCAL,
-                 analyzer::ID aid = 0, Obj* obj = nullptr, double ts = run_state::network_time);
+                 analyzer::ID aid = 0, Obj* obj = nullptr, double ts = run_state::network_time,
+                 detail::MetadataVectorPtr meta = nullptr);
 
     /**
      * A version of Enqueue() taking a variable number of arguments.
@@ -132,6 +169,12 @@ public:
     // Access the currently dispatched event.
     const Event* CurrentEvent() { return current; }
 
+    // Register a EventMetadata::ID with a Zeek type.
+    bool RegisterMetadata(EnumValPtr id, zeek::TypePtr type);
+
+    // Lookup the descriptor for the given metadata identifier, or nullptr if unknown.
+    const detail::MetadataDescriptor* LookupMetadata(zeek_uint_t id) const;
+
     void Process() override;
     const char* Tag() override { return "EventManager"; }
     void InitPostScript();
@@ -145,6 +188,8 @@ private:
     Event* current = nullptr;
     Event* head = nullptr;
     Event* tail = nullptr;
+
+    std::map<zeek_uint_t, detail::MetadataDescriptor> event_metadata_types;
 };
 
 extern EventMgr event_mgr;

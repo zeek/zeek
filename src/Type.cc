@@ -1567,7 +1567,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name, zeek
         if ( deprecation )
             id->MakeDeprecated({NewRef{}, deprecation});
 
-        detail::zeekygen_mgr->Identifier(std::move(id), from_redef);
+        detail::zeekygen_mgr->Identifier(id, from_redef);
     }
     else {
         // We allow double-definitions if matching exactly. This is so that
@@ -1590,6 +1590,12 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name, zeek
 
     if ( vals.find(val) == vals.end() )
         vals[val] = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, val);
+
+    if ( ! id->HasVal() )
+        id->SetVal(vals[val]);
+    else if ( id->GetVal()->AsEnum() != val )
+        reporter->InternalError("inconsistent enum integer value for '%s' (old %" PRId64 " new %" PRId64 ")",
+                                fullname.c_str(), id->GetVal()->AsEnum(), val);
 
     const auto& types = Type::Aliases(GetName());
 

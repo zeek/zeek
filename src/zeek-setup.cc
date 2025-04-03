@@ -641,6 +641,10 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     auto zeekygen_cfg = options.zeekygen_config_file.value_or("");
     zeekygen_mgr = new zeekygen::detail::Manager(zeekygen_cfg, zeek_argv[0]);
 
+    // Zeekygen documentation generation (via -X) implies we only parse:
+    if ( ! zeekygen_cfg.empty() )
+        detail::parse_only = true;
+
     add_essential_input_file("base/init-bare.zeek");
     add_essential_input_file("builtin-plugins/__preload__.zeek");
     add_essential_input_file("base/init-frameworks-and-bifs.zeek");
@@ -985,7 +989,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         }
     }
 
-    if ( options.parse_only ) {
+    if ( detail::parse_only ) {
         if ( analysis_options.usage_issues > 0 )
             analyze_scripts(options.no_unused_warnings);
 

@@ -481,6 +481,10 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const {
     }
 
     if ( val && type && type->Tag() != TYPE_FUNC && type->InternalType() != TYPE_INTERNAL_VOID &&
+         // Do not include a default value for enum const identifiers,
+         // as their value can't be changed.
+         ! IsEnumConst() &&
+
          // Values within Version module are likely to include a
          // constantly-changing version number and be a frequent
          // source of error/desynchronization, so don't include them.

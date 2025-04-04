@@ -655,7 +655,7 @@ bool Manager::PublishEvent(string topic, std::string name, broker::vector args, 
     if ( peer_count == 0 )
         return true;
 
-    broker::zeek::Event ev(std::move(name), std::move(args), broker::to_timestamp(ts));
+    broker::zeek::Event ev(name, args, broker::to_timestamp(ts));
     DBG_LOG(DBG_BROKER, "Publishing event: %s", RenderEvent(topic, name, ev.args()).c_str());
     bstate->endpoint.publish(std::move(topic), ev.move_data());
     num_events_outgoing_metric->Inc();

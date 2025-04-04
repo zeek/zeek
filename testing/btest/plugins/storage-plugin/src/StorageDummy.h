@@ -13,11 +13,10 @@ namespace btest::storage::backend {
  */
 class StorageDummy : public zeek::storage::Backend {
 public:
-    StorageDummy(std::unique_ptr<zeek::storage::Serializer> s)
-        : Backend(zeek::storage::SupportedModes::SYNC, "StorageDummy", std::move(s)) {}
+    StorageDummy() : Backend(zeek::storage::SupportedModes::SYNC, "StorageDummy") {}
     ~StorageDummy() override = default;
 
-    static zeek::storage::BackendPtr Instantiate(std::unique_ptr<zeek::storage::Serializer> s);
+    static zeek::storage::BackendPtr Instantiate();
 
     /**
      * Called by the manager system to open the backend.

@@ -18,6 +18,7 @@ redef exit_only_after_terminate = T;
 event zeek_init()
 	{
 	local opts: Storage::BackendOptions;
+	opts$serializer = Storage::JSON;
 	opts$redis = [ $server_host="127.0.0.1", $server_port=to_port(getenv(
 	    "REDIS_PORT")), $key_prefix="testing" ];
 
@@ -25,7 +26,7 @@ event zeek_init()
 	local value = "value5678";
 
 	when [opts, key, value] ( local open_res = Storage::Async::open_backend(
-	    Storage::REDIS, Storage::JSON, opts, string, string) )
+	    Storage::REDIS, opts, string, string) )
 		{
 		print "open result", open_res;
 		local b = open_res$value;

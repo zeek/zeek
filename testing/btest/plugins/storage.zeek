@@ -22,13 +22,14 @@ redef record Storage::BackendOptions += {
 
 event zeek_init() {
 	local opts : Storage::BackendOptions;
+	opts$serializer = Storage::JSON;
 	opts$dummy = [$open_fail = F, $timeout_put = F];
 
 	local key = "key1234";
 	local value = "value5678";
 
 	# Basic operation. Open, put, and get the value back.
-	local res = Storage::Sync::open_backend(Storage::STORAGEDUMMY, Storage::JSON, opts, string, string);
+	local res = Storage::Sync::open_backend(Storage::STORAGEDUMMY, opts, string, string);
 	print "open result", res;
 	local b = res$value;
 
@@ -63,7 +64,7 @@ event zeek_init() {
 
 	# Test failing to open the handle and test closing an invalid handle.
 	opts$dummy = [$open_fail = T, $timeout_put = F];
-	res = Storage::Sync::open_backend(Storage::STORAGEDUMMY, Storage::JSON, opts, string, string);
+	res = Storage::Sync::open_backend(Storage::STORAGEDUMMY, opts, string, string);
 	print "open result 2", res;
 	res = Storage::Sync::close_backend(res$value);
 	print "close result on closed handle", res;
@@ -71,7 +72,7 @@ event zeek_init() {
 
 	# Test timing out an async put request.
 	opts$dummy = [$open_fail = F, $timeout_put = T];
-	res = Storage::Sync::open_backend(Storage::STORAGEDUMMY, Storage::JSON, opts, string, string);
+	res = Storage::Sync::open_backend(Storage::STORAGEDUMMY, opts, string, string);
 	print "open result 3", res;
 	b = res$value;
 

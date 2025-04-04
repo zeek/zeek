@@ -38,6 +38,7 @@ type tbl: table[count] of string;
 event zeek_init() {
 	# Create a database file in the .tmp directory with a 'testing' table
 	local opts : Storage::BackendOptions;
+	opts$serializer = Storage::JSON;
 	opts$sqlite = [$database_path = "types_test.sqlite", $table_name = "types_testing"];
 
 	local key : Rec;
@@ -63,7 +64,7 @@ event zeek_init() {
 	value[2] = "b";
 	value[3] = "c";
 
-	local open_res = Storage::Sync::open_backend(Storage::SQLITE, Storage::JSON, opts, Rec, tbl);
+	local open_res = Storage::Sync::open_backend(Storage::SQLITE, opts, Rec, tbl);
 	print "open result", open_res;
 	local b = open_res$value;
 

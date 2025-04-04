@@ -11,9 +11,7 @@ using namespace zeek::storage;
 
 namespace btest::storage::backend {
 
-BackendPtr StorageDummy::Instantiate(std::unique_ptr<Serializer> s) {
-    return make_intrusive<StorageDummy>(std::move(s));
-}
+BackendPtr StorageDummy::Instantiate() { return make_intrusive<StorageDummy>(); }
 
 /**
  * Called by the manager system to open the backend.

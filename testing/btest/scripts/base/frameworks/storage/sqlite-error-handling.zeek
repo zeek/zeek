@@ -10,16 +10,17 @@
 event zeek_init() {
 	# Test opening a database with an invalid path
 	local opts : Storage::BackendOptions;
+	opts$serializer = Storage::JSON;
 	opts$sqlite = [$database_path = "/this/path/should/not/exist/test.sqlite",
 	               $table_name = "testing"];
 
 	# This should report an error in .stderr and reporter.log
-	local open_res = Storage::Sync::open_backend(Storage::SQLITE, Storage::JSON, opts, string, string);
+	local open_res = Storage::Sync::open_backend(Storage::SQLITE, opts, string, string);
 	print "Open result", open_res;
 
 	# Open a valid database file
 	opts$sqlite$database_path = "test.sqlite";
-	open_res = Storage::Sync::open_backend(Storage::SQLITE, Storage::JSON, opts, string, string);
+	open_res = Storage::Sync::open_backend(Storage::SQLITE, opts, string, string);
 	print "Open result 2", open_res;
 
 	local b = open_res$value;

@@ -13,8 +13,8 @@ public:
     JSON();
     ~JSON() override = default;
 
-    std::optional<detail::byte_buffer> Serialize(ValPtr val) override;
-    zeek::expected<ValPtr, std::string> Unserialize(detail::byte_buffer_span buf, TypePtr type) override;
+    std::optional<byte_buffer> Serialize(ValPtr val) override;
+    zeek::expected<ValPtr, std::string> Unserialize(byte_buffer_span buf, TypePtr type) override;
 };
 
 } // namespace zeek::storage::serializer::json

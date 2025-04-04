@@ -10,8 +10,8 @@ std::unique_ptr<Serializer> JSON::Instantiate() { return std::make_unique<JSON>(
 
 JSON::JSON() : Serializer("JSON") {}
 
-std::optional<detail::byte_buffer> JSON::Serialize(ValPtr val) {
-    detail::byte_buffer buf;
+std::optional<byte_buffer> JSON::Serialize(ValPtr val) {
+    byte_buffer buf;
     auto json = val->ToJSON();
     buf.reserve(json->Len());
 
@@ -21,7 +21,7 @@ std::optional<detail::byte_buffer> JSON::Serialize(ValPtr val) {
     return buf;
 }
 
-zeek::expected<ValPtr, std::string> JSON::Unserialize(detail::byte_buffer_span buf, TypePtr type) {
+zeek::expected<ValPtr, std::string> JSON::Unserialize(byte_buffer_span buf, TypePtr type) {
     std::string_view text{reinterpret_cast<std::string::const_pointer>(buf.data()), buf.size()};
     return zeek::detail::ValFromJSON(text, type, Func::nil);
 }

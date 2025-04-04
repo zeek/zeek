@@ -311,12 +311,12 @@ protected:
     /**
      * Process an incoming event message.
      */
-    bool ProcessEventMessage(std::string_view topic, std::string_view format, detail::byte_buffer_span payload);
+    bool ProcessEventMessage(std::string_view topic, std::string_view format, byte_buffer_span payload);
 
     /**
      * Process an incoming log message.
      */
-    bool ProcessLogMessage(std::string_view format, detail::byte_buffer_span payload);
+    bool ProcessLogMessage(std::string_view format, byte_buffer_span payload);
 
 private:
     /**
@@ -350,7 +350,7 @@ private:
     /**
      * Publish a cluster::detail::Event to the given topic.
      *
-     * The default implementation serializes to a detail::byte_buffer and
+     * The default implementation serializes to a byte_buffer and
      * calls DoPublishEvent() with the resulting buffer.
      *
      * This hook method only exists for the existing Broker implementation that
@@ -373,8 +373,7 @@ private:
      * @param buf the serialized Event.
      * @return true if the message has been published successfully.
      */
-    virtual bool DoPublishEvent(const std::string& topic, const std::string& format,
-                                const detail::byte_buffer& buf) = 0;
+    virtual bool DoPublishEvent(const std::string& topic, const std::string& format, const byte_buffer& buf) = 0;
 
     /**
      * Register interest in messages that use a certain topic prefix.
@@ -405,7 +404,7 @@ private:
     /**
      * Serialize a log batch, then forward it to DoPublishLogWrites() below.
 
-     * The default implementation serializes to a detail::byte_buffer and
+     * The default implementation serializes to a byte_buffer and
      * calls DoPublishLogWrites() with the resulting buffer.
      *
      * This hook method only exists for the existing Broker implementation that
@@ -440,7 +439,7 @@ private:
      * @return true if the message has been published successfully.
      */
     virtual bool DoPublishLogWrites(const zeek::logging::detail::LogWriteHeader& header, const std::string& format,
-                                    detail::byte_buffer& buf) = 0;
+                                    byte_buffer& buf) = 0;
 
     std::string name;
     zeek::Tag tag;
@@ -471,7 +470,7 @@ private:
 struct EventMessage {
     std::string topic;
     std::string format;
-    detail::byte_buffer payload;
+    byte_buffer payload;
 
     auto payload_span() const { return Span(payload.data(), payload.size()); };
 };
@@ -481,7 +480,7 @@ struct EventMessage {
  */
 struct LogMessage {
     std::string format;
-    detail::byte_buffer payload;
+    byte_buffer payload;
 
     auto payload_span() const { return Span(payload.data(), payload.size()); };
 };
@@ -494,7 +493,7 @@ struct LogMessage {
  */
 struct BackendMessage {
     int tag;
-    detail::byte_buffer payload;
+    byte_buffer payload;
 
     auto payload_span() const { return Span(payload.data(), payload.size()); };
 };
@@ -546,13 +545,13 @@ private:
     /**
      * Process a backend specific message queued as BackendMessage.
      */
-    bool ProcessBackendMessage(int tag, detail::byte_buffer_span payload);
+    bool ProcessBackendMessage(int tag, byte_buffer_span payload);
 
     /**
      * If a cluster backend produces messages of type BackendMessage,
      * this method will be invoked by the main thread to process it.
      */
-    virtual bool DoProcessBackendMessage(int tag, detail::byte_buffer_span payload) { return false; };
+    virtual bool DoProcessBackendMessage(int tag, byte_buffer_span payload) { return false; };
 
     /**
      * Hook method for OnLooProcess.

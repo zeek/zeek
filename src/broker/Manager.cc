@@ -1488,7 +1488,7 @@ void Manager::ProcessMessage(std::string_view topic, broker::zeek::Event& ev) {
     }
 
     if ( vl.size() == args.size() )
-        event_mgr.Enqueue(handler, std::move(vl), util::detail::SOURCE_BROKER, 0, nullptr, ts, std::move(mdv));
+        event_mgr.Enqueue(WithMeta{}, handler, std::move(vl), util::detail::SOURCE_BROKER, 0, nullptr, std::move(mdv));
 }
 
 bool Manager::ProcessMessage(std::string_view, broker::zeek::LogCreate& lc) {

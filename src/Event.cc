@@ -4,15 +4,14 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Trigger.h"
+#include "zeek/Type.h"
 #include "zeek/Val.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/plugin/Manager.h"
+#include "zeek/util.h"
 
-#include "IntrusivePtr.h"
-#include "Type.h"
 #include "const.bif.netvar_h"
 #include "event.bif.netvar_h"
-#include "util.h"
 
 zeek::EventMgr zeek::event_mgr;
 
@@ -25,7 +24,7 @@ namespace zeek {
 
 detail::MetadataVectorPtr detail::MakeMetadataVector(double t) {
     auto mdv = std::make_unique<zeek::detail::MetadataVector>(1);
-    (*mdv)[0] = {1, zeek::make_intrusive<zeek::TimeVal>(t)};
+    (*mdv)[0] = {1, make_timeval(t)};
     return mdv;
 }
 
@@ -45,13 +44,7 @@ RecordValPtr detail::MetadataEntry::BuildVal() const {
 
 Event::Event(const EventHandlerPtr& arg_handler, zeek::Args arg_args, util::detail::SourceID arg_src,
              analyzer::ID arg_aid, Obj* arg_obj, double arg_ts)
-    : handler(arg_handler),
-      args(std::move(arg_args)),
-      src(arg_src),
-      aid(arg_aid),
-      ts(arg_ts),
-      obj(arg_obj),
-      next_event(nullptr) {
+    : handler(arg_handler), args(std::move(arg_args)), src(arg_src), aid(arg_aid), obj(arg_obj), next_event(nullptr) {
     if ( obj )
         Ref(obj);
 
@@ -66,35 +59,11 @@ Event::Event(detail::MetadataVectorPtr arg_meta, const EventHandlerPtr& arg_hand
       args(std::move(arg_args)),
       src(arg_src),
       aid(arg_aid),
-      ts(0.0),
       obj(arg_obj),
       next_event(nullptr),
       meta(std::move(arg_meta)) {
     if ( obj )
         Ref(obj);
-
-    // If all events are supposed to have network time attached, ensure
-    // that the meta vector is set and contains network time.
-    bool has_time = false;
-    if ( meta ) {
-        for ( const auto& [id, v] : *meta ) {
-            if ( id == static_cast<zeek_uint_t>(detail::MetadataType::NetworkTimestamp) && v &&
-                 v->GetType()->Tag() == TYPE_TIME ) {
-                has_time = true;
-                ts = v->AsTime();
-            }
-        }
-    }
-
-    if ( ! has_time && zeek::BifConst::EventMetadata::add_network_time ) {
-        double t = run_state::network_time;
-        if ( ! meta )
-            meta = detail::MakeMetadataVector(t);
-        else
-            meta->push_back({1, make_timeval(t)});
-
-        ts = t;
-    }
 }
 
 zeek::VectorValPtr Event::MetadataValues(const EnumValPtr& id) const {
@@ -126,6 +95,17 @@ zeek::VectorValPtr Event::MetadataValues(const EnumValPtr& id) const {
     return result;
 }
 
+double Event::Time() const {
+    if ( ! meta )
+        return 0.0;
+
+    for ( const auto& m : *meta )
+        if ( m.id == 1 && m.val->GetType()->Tag() == TYPE_TIME )
+            return m.val->AsTime();
+
+    return 0.0;
+}
+
 void Event::Describe(ODesc* d) const {
     if ( d->IsReadable() )
         d->AddSP("event");
@@ -151,7 +131,7 @@ void Event::Dispatch(bool no_remote) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         // Replace in v8.1 with handler->Call(&args).
-        handler->Call(&args, no_remote, ts);
+        handler->Call(&args, no_remote, Time());
 #pragma GCC diagnostic pop
     }
 
@@ -176,14 +156,32 @@ EventMgr::~EventMgr() {
 }
 
 void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl, util::detail::SourceID src, analyzer::ID aid, Obj* obj,
-                       double ts, detail::MetadataVectorPtr meta) {
-    /*    if ( opt_in ) {
-            if ! meta
-                meta = alloc()
-            if "timestamp" not in meta:
-                ...
+                       double ts) {
+    QueueEvent(new Event(h, std::move(vl), src, aid, obj, ts));
+}
+
+void EventMgr::Enqueue(WithMeta, const EventHandlerPtr& h, Args vl, util::detail::SourceID src, analyzer::ID aid,
+                       Obj* obj, detail::MetadataVectorPtr meta) {
+    if ( zeek::BifConst::EventMetadata::add_network_time ) {
+        // If all events are supposed to have a network time attached, ensure
+        // that the meta vector exists *and* contains a network timestamp.
+        bool has_time = false;
+        if ( meta ) {
+            for ( const auto& [id, v] : *meta ) {
+                if ( id == static_cast<zeek_uint_t>(detail::MetadataType::NetworkTimestamp) && v &&
+                     v->GetType()->Tag() == TYPE_TIME ) {
+                    has_time = true;
+                    break;
+                }
+            }
+
+            if ( ! has_time )
+                meta->push_back({1, make_timeval(run_state::network_time)});
         }
-                */
+        else {
+            meta = detail::MakeMetadataVector(run_state::network_time);
+        }
+    }
 
     QueueEvent(new Event(std::move(meta), h, std::move(vl), src, aid, obj));
 }

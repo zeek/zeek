@@ -3836,7 +3836,7 @@ void ScheduleTimer::Dispatch(double /* t */, bool /* is_expire */) {
         if ( zeek::BifConst::EventMetadata::add_network_time )
             mdv = detail::MakeMetadataVector(Time());
 
-        event_mgr.Enqueue(event, std::move(args), util::detail::SOURCE_LOCAL, 0, nullptr, this->Time(), std::move(mdv));
+        event_mgr.Enqueue(WithMeta{}, event, std::move(args), util::detail::SOURCE_LOCAL, 0, nullptr, std::move(mdv));
     }
 }
 

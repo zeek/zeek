@@ -65,7 +65,7 @@ zeek::detail::MetadataVectorPtr detail::Event::TakeMetadata() && {
 
 bool detail::LocalEventHandlingStrategy::DoHandleRemoteEvent(std::string_view topic, detail::Event e) {
     auto md = std::move(e).TakeMetadata();
-    zeek::event_mgr.Enqueue(e.Handler(), std::move(e.args), util::detail::SOURCE_BROKER, 0, nullptr, 0.0,
+    zeek::event_mgr.Enqueue(WithMeta{}, e.Handler(), std::move(e.args), util::detail::SOURCE_BROKER, 0, nullptr,
                             std::move(md));
     return true;
 }

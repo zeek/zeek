@@ -86,7 +86,7 @@ public:
     analyzer::ID Analyzer() const { return aid; }
     EventHandlerPtr Handler() const { return handler; }
     const zeek::Args& Args() const { return args; }
-    double Time() const { return ts; }
+    double Time() const;
 
     /**
      * @return a pointer to the MetadataVector of this event or a nullptr.
@@ -111,11 +111,13 @@ private:
     zeek::Args args;
     util::detail::SourceID src;
     analyzer::ID aid;
-    double ts;
     Obj* obj;
     Event* next_event;
     detail::MetadataVectorPtr meta;
 };
+
+struct WithMeta {};
+
 
 class EventMgr final : public Obj, public iosource::IOSource {
 public:
@@ -136,7 +138,10 @@ public:
      * (defaults to current network time).
      */
     void Enqueue(const EventHandlerPtr& h, zeek::Args vl, util::detail::SourceID src = util::detail::SOURCE_LOCAL,
-                 analyzer::ID aid = 0, Obj* obj = nullptr, double ts = run_state::network_time,
+                 analyzer::ID aid = 0, Obj* obj = nullptr, [[deprecated]] double ts = run_state::network_time);
+
+    void Enqueue(WithMeta, const EventHandlerPtr& h, zeek::Args vl,
+                 util::detail::SourceID src = util::detail::SOURCE_LOCAL, analyzer::ID aid = 0, Obj* obj = nullptr,
                  detail::MetadataVectorPtr meta = nullptr);
 
     /**

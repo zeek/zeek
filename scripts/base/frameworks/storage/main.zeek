@@ -9,7 +9,7 @@ export {
 	## to add relevant fields to it.
 	type BackendOptions: record {
 		# The serializer used for converting Zeek data.
-		serializer: Storage::Serializer &default=Storage::Serializer::JSON;
+		serializer: Storage::Serializer &default=Storage::JSON;
 	};
 
 	## Record for passing arguments to :zeek:see:`Storage::Async::put` and

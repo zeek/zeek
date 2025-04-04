@@ -468,7 +468,7 @@ TEST_CASE("construction") {
     zeek::String s5{std::string("abcdef")};
     CHECK_EQ(s5.Len(), 6);
 
-    zeek::String s6{s5};
+    zeek::String s6{std::move(s5)};
     CHECK_EQ(s6.Len(), 6);
 
     zeek::String s7{true, text2, 6};

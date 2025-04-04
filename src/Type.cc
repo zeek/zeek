@@ -1607,7 +1607,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name, zeek
 void EnumType::AddNameInternal(const string& module_name, const char* name, zeek_int_t val, bool is_export) {
     string fullname = detail::make_full_var_name(module_name.c_str(), name);
     names[fullname] = val;
-    rev_names[val] = fullname;
+    rev_names[val] = std::move(fullname);
 }
 
 void EnumType::AddNameInternal(const string& full_name, zeek_int_t val) {

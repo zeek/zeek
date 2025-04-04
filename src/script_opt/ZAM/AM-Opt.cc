@@ -722,7 +722,7 @@ void ZAMCompiler::ReMapVar(const ID* id, int slot, zeek_uint_t inst) {
 
         FrameSharingInfo info;
         info.is_managed = is_managed;
-        shared_frame_denizens.push_back(info);
+        shared_frame_denizens.push_back(std::move(info));
 
         if ( is_managed )
             managed_slotsI.push_back(apt_slot);

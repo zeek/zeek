@@ -815,7 +815,7 @@ std::vector<std::string> POP3_Analyzer::TokenizeLine(const std::string& input, c
             tokens.push_back(token);
 
         token = input.substr(splitPos + 1, input.size() - splitPos);
-        tokens.push_back(token);
+        tokens.push_back(std::move(token));
     }
 
     return tokens;

@@ -471,7 +471,7 @@ static void generate_CPP(std::shared_ptr<ProfileFuncs> pfs) {
     const bool standalone = analysis_options.gen_standalone_CPP;
     const bool report = analysis_options.report_uncompilable;
 
-    CPPCompile cpp(funcs, pfs, gen_name, standalone, report);
+    CPPCompile cpp(funcs, std::move(pfs), gen_name, standalone, report);
 }
 
 static void analyze_scripts_for_ZAM(std::shared_ptr<ProfileFuncs> pfs) {
@@ -655,7 +655,7 @@ void analyze_scripts(bool no_unused_warnings) {
             reporter->FatalError("-O ZAM and -O gen-C++ conflict");
 
         auto pfs = std::make_shared<ProfileFuncs>(funcs, is_CPP_compilable, true, false);
-        generate_CPP(pfs);
+        generate_CPP(std::move(pfs));
         exit(0);
     }
 

@@ -35,7 +35,7 @@ void CPPCompile::CreateGlobal(const ID* g) {
 
         auto gi = GenerateGlobalInit(g);
         global_id_info->AddInstance(gi);
-        global_gis[g] = gi;
+        global_gis[g] = std::move(gi);
     }
 
     if ( is_bif )

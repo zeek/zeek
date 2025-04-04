@@ -468,6 +468,8 @@ TEST_CASE("construction") {
     zeek::String s5{std::string("abcdef")};
     CHECK_EQ(s5.Len(), 6);
 
+    // Test the copy constructor.
+    // coverity[copy_instead_of_move]
     zeek::String s6{s5};
     CHECK_EQ(s6.Len(), 6);
 

@@ -599,11 +599,11 @@ template<typename T>
 std::vector<T> split(T s, const T& delim) {
     // If there's no delimiter, return a copy of the existing string.
     if ( delim.empty() )
-        return {T(s)};
+        return {std::move(s)};
 
     // If the delimiter won't fit in the string, just return a copy as well.
     if ( s.size() < delim.size() )
-        return {T(s)};
+        return {std::move(s)};
 
     std::vector<T> l;
 

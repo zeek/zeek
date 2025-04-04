@@ -197,16 +197,16 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
                 succ_UDs = PropagateUDs(s_i, succ_UDs, succ, second_pass);
             }
 
-            return UseUDs(s, succ_UDs);
+            return UseUDs(s, std::move(succ_UDs));
         }
 
         case STMT_CATCH_RETURN: {
             auto cr = s->AsCatchReturnStmt();
             auto block = cr->Block();
 
-            auto uds = PropagateUDs(block.get(), succ_UDs, succ_stmt, second_pass);
+            auto uds = PropagateUDs(block.get(), std::move(succ_UDs), succ_stmt, second_pass);
 
-            return UseUDs(s, uds);
+            return UseUDs(s, std::move(uds));
         }
 
         case STMT_NULL:
@@ -217,7 +217,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
             // actually succ_stmt (other than for STMT_NULL).  However,
             // in the contexts in which these can occur, it doesn't
             // actually do any harm to use the successor anyway.
-            return UseUDs(s, succ_UDs);
+            return UseUDs(s, std::move(succ_UDs));
 
         case STMT_PRINT: return CreateExprUDs(s, s->AsPrintStmt()->ExprList(), succ_UDs);
 
@@ -229,7 +229,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
             if ( e )
                 return CreateExprUDs(s, e, succ_UDs);
             else
-                return UseUDs(s, succ_UDs);
+                return UseUDs(s, std::move(succ_UDs));
         }
 
         case STMT_EXPR: {
@@ -255,7 +255,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
             if ( ! second_pass )
                 successor[s] = succ_stmt;
 
-            return CreateUDs(s, uds);
+            return CreateUDs(s, std::move(uds));
         }
 
         case STMT_IF: {
@@ -264,7 +264,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 
             auto cond_UDs = ExprUDs(cond);
             auto true_UDs = PropagateUDs(i->TrueBranch(), succ_UDs, succ_stmt, second_pass);
-            auto false_UDs = PropagateUDs(i->FalseBranch(), succ_UDs, succ_stmt, second_pass);
+            auto false_UDs = PropagateUDs(i->FalseBranch(), std::move(succ_UDs), succ_stmt, second_pass);
 
             return CreateUDs(s, UD_Union(cond_UDs, true_UDs, false_UDs));
         }
@@ -273,7 +273,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
             if ( ! second_pass )
                 successor[s] = succ_stmt;
 
-            return UseUDs(s, succ_UDs);
+            return UseUDs(s, std::move(succ_UDs));
 
         case STMT_WHEN: {
             auto w = s->AsWhenStmt();
@@ -284,7 +284,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
             if ( timeout )
                 uds = UD_Union(uds, ExprUDs(timeout.get()));
 
-            return CreateUDs(s, uds);
+            return CreateUDs(s, std::move(uds));
         }
 
         case STMT_ASSERT: {
@@ -334,7 +334,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
                 // keep successor definitions in the mix
                 FoldInUDs(sw_UDs, succ_UDs, e_UDs);
 
-            return CreateUDs(s, sw_UDs);
+            return CreateUDs(s, std::move(sw_UDs));
         }
 
         case STMT_FOR: {
@@ -353,7 +353,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 
             // Confluence: loop the top UDs back around to the bottom.
             auto bottom_UDs = UD_Union(f_UDs, succ_UDs);
-            (void)PropagateUDs(body, bottom_UDs, body, true);
+            (void)PropagateUDs(body, std::move(bottom_UDs), body, true);
 
             auto ids = f->LoopVars();
             for ( const auto& id : *ids )
@@ -366,7 +366,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
             // The loop might not execute at all.
             FoldInUDs(f_UDs, succ_UDs);
 
-            return CreateUDs(s, f_UDs);
+            return CreateUDs(s, std::move(f_UDs));
         }
 
         case STMT_WHILE: {
@@ -390,19 +390,19 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
                 // that has the correct UDs associated with it.
                 const auto& c_as_s = w->ConditionAsStmt();
                 auto c_as_s_UDs = std::make_shared<UseDefSet>(w_UDs);
-                CreateUDs(c_as_s.get(), c_as_s_UDs);
+                CreateUDs(c_as_s.get(), std::move(c_as_s_UDs));
 
                 w_UDs = PropagateUDs(cond_stmt, w_UDs, c_as_s, second_pass);
             }
 
             // Confluence: loop the top UDs back around to the bottom.
             auto bottom_UDs = UD_Union(w_UDs, succ_UDs);
-            (void)PropagateUDs(body, bottom_UDs, succ, true);
+            (void)PropagateUDs(body, std::move(bottom_UDs), succ, true);
 
             // The loop might not execute at all.
             FoldInUDs(w_UDs, succ_UDs);
 
-            return CreateUDs(s, w_UDs);
+            return CreateUDs(s, std::move(w_UDs));
         }
 
         default: reporter->InternalError("non-reduced statement in use-def analysis");

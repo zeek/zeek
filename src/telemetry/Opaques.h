@@ -31,7 +31,7 @@ class TelemetryValImpl : public TelemetryVal {
 public:
     using HandleType = std::shared_ptr<Handle>;
 
-    explicit TelemetryValImpl(HandleType hdl) : TelemetryVal(hdl), hdl(hdl) {}
+    explicit TelemetryValImpl(HandleType hdl) : TelemetryVal(hdl), hdl(std::move(hdl)) {}
 
     HandleType GetHandle() const noexcept { return hdl; }
 

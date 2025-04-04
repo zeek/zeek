@@ -324,6 +324,8 @@ void ScriptInfo::DoInitPostScript() {
     else if ( name == "base/frameworks/storage/main.zeek" ) {
         const auto& backend_id = zeek::detail::global_scope()->Find("Storage::Backend");
         types.push_back(new IdentifierInfo(backend_id, this));
+        const auto& serializer_id = zeek::detail::global_scope()->Find("Storage::Serializer");
+        types.push_back(new IdentifierInfo(serializer_id, this));
     }
 }
 

@@ -120,6 +120,10 @@ Changed Functionality
 - The RDP analyzer now also parses connections that do not contain the cookie
   field, which were previously rejected.
 
+- An enum's zeek::detail::ID instance now holds its ``EnumVal``. For example,
+  looking up the "Conn::LOG" identifier allows to directly query the ``EnumVal``
+  using ``ID::GetVal()``.
+
 Removed Functionality
 ---------------------
 

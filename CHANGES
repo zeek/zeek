@@ -1,3 +1,31 @@
+7.2.0-dev.478 | 2025-04-04 18:36:37 +0200
+
+  * broker/main: Adapt enum values to agree with comm.bif (Arne Welzel, Corelight)
+
+    Logic to detect this error already existed, but due to enum identifiers
+    not having a value set, it never triggered before.
+
+  * btest/plugin: Add plugin testing enum identifiers (Arne Welzel, Corelight)
+
+    This plugin has a generic name, but for now just tests the API around
+    enum types and enum vals at InitPostScript() time.
+
+  * Var/add_type: Do not clone EnumType when declared for the first time (Arne Welzel, Corelight)
+
+    EnumType receives the name into its constructor. Even for the  first declaration
+    the name is not empty and instead the same as the identifier's name. Due to that,
+    add_type() previously took the else path and created a shallow clone of the
+    initial type instead of using it. This lead to buggy behavior where enum value
+    identifiers declared within an enum's first body have a different TypePtr
+    associated than the one that is found via `zeek::id::find_type()`. It also
+    means that enum identifiers added via redef later would have a different
+    TypePtr than those in the initial pointer.
+
+  * type/id/zeekygen: Add EnumVal to enum identifiers (Arne Welzel, Corelight)
+
+    Provide a direct way to go from a zeek:id::ID value to EnumVal without
+    needing to go through the type.
+
 7.2.0-dev.473 | 2025-04-03 13:10:43 +0200
 
   * GH-4323: Traverse: Do not short-circuit traverse_all() if stmts is nullptr (Arne Welzel, Corelight)

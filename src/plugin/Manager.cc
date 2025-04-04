@@ -979,8 +979,8 @@ bool Manager::HookPublishEvent(const std::string& topic, zeek::cluster::detail::
         for ( hook_list::iterator i = l->begin(); i != l->end(); ++i ) {
             Plugin* p = (*i).second;
 
-            if ( p->HookPublishEvent(topic, event) ) {
-                result = true;
+            if ( ! p->HookPublishEvent(topic, event) ) {
+                result = false;
                 break;
             }
         }

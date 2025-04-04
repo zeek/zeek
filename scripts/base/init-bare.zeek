@@ -582,7 +582,7 @@ const running_under_test: bool = F &redef;
 module EventMetadata;
 
 export {
-	type EventMetadata::ID: enum {
+	type ID: enum {
 		NETWORK_TIMESTAMP = 1,
 	};
 	## Add network metadata to all events.

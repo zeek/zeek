@@ -16,14 +16,12 @@
 
 #include <libgen.h>
 #include <unistd.h>
-#include <array>
 #include <cinttypes>
 #include <cstdarg>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <memory> // std::unique_ptr
 #include <string>
 #include <string_view>
 #include <vector>

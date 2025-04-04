@@ -1,8 +1,12 @@
 # @TEST-PORT: BROKER_PORT
 
 # @TEST-EXEC: zeek -b %DIR/sort-stuff.zeek common.zeek one.zeek > output1
-# @TEST-EXEC: btest-bg-run master "cp ../*.sqlite . && zeek -b %DIR/sort-stuff.zeek ../common.zeek ../two.zeek >../output2"
-# @TEST-EXEC: btest-bg-run clone "zeek -b %DIR/sort-stuff.zeek ../common.zeek ../three.zeek >../output3"
+#
+# This test becomes flaky when not sleeping for a second after starting the
+# test. Due to that, we set BTEST_BG_RUN_SLEEP=1 explicitly. See #4312 and
+# #4295 for background.
+# @TEST-EXEC: BTEST_BG_RUN_SLEEP=1 btest-bg-run master "cp ../*.sqlite . && zeek -b %DIR/sort-stuff.zeek ../common.zeek ../two.zeek >../output2"
+# @TEST-EXEC: BTEST_BG_RUN_SLEEP=1 btest-bg-run clone "zeek -b %DIR/sort-stuff.zeek ../common.zeek ../three.zeek >../output3"
 # @TEST-EXEC: btest-bg-wait 20
 
 # @TEST-EXEC: btest-diff output1

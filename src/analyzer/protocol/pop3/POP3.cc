@@ -24,7 +24,7 @@ static const char* pop3_cmd_word[] = {
 #include "POP3_cmd.def"
 };
 
-#define POP3_CMD_WORD(code) ((code >= 0) ? pop3_cmd_word[code] : "(UNKNOWN)")
+#define POP3_CMD_WORD(code) (((code) >= 0) ? pop3_cmd_word[code] : "(UNKNOWN)")
 
 POP3_Analyzer::POP3_Analyzer(Connection* conn) : analyzer::tcp::TCP_ApplicationAnalyzer("POP3", conn) {
     masterState = detail::POP3_START;
@@ -78,7 +78,7 @@ void POP3_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
 }
 
 static std::string trim_whitespace(const char* in) {
-    int n = strlen(in);
+    size_t n = strlen(in);
     char* out = new char[n + 1];
     char* out_p = out;
 
@@ -673,6 +673,7 @@ void POP3_Analyzer::ProcessReply(int length, const char* line) {
                         masterState = detail::POP3_UPDATE;
 
                     break;
+                default: util::unreachable();
             }
 
             POP3Event(pop3_reply, false, cmd, message);
@@ -727,6 +728,7 @@ void POP3_Analyzer::ProcessReply(int length, const char* line) {
                          masterState == detail::POP3_START )
                         masterState = detail::POP3_FINISHED;
                     break;
+                default: util::unreachable();
             }
 
             POP3Event(pop3_reply, false, cmd, message);
@@ -809,7 +811,7 @@ std::vector<std::string> POP3_Analyzer::TokenizeLine(const std::string& input, c
         return tokens;
     }
 
-    if ( (splitPos = input.find(split, 0)) < input.size() ) {
+    if ( splitPos = input.find(split, 0); splitPos < input.size() ) {
         token = input.substr(start, splitPos);
         if ( token.size() > 0 && token[0] != split )
             tokens.push_back(token);
@@ -821,7 +823,7 @@ std::vector<std::string> POP3_Analyzer::TokenizeLine(const std::string& input, c
     return tokens;
 }
 
-void POP3_Analyzer::POP3Event(EventHandlerPtr event, bool is_orig, const char* arg1, const char* arg2) {
+void POP3_Analyzer::POP3Event(const EventHandlerPtr& event, bool is_orig, const char* arg1, const char* arg2) {
     if ( ! event )
         return;
 

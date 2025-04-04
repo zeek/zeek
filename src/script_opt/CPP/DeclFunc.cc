@@ -130,9 +130,16 @@ void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf, c
         for ( auto& id : *lambda_ids ) {
             const auto& name = lambda_names[id];
             auto tn = FullTypeName(id->GetType());
-            addl_args = addl_args + ", " + tn + " _" + name;
+            addl_args += ", ";
+            addl_args += tn;
+            addl_args += " _";
+            addl_args += name;
 
-            inits = inits + ", " + name + "(std::move(_" + name + "))";
+            inits += ", ";
+            inits += name;
+            inits += "(std::move(_";
+            inits += name;
+            inits += "))";
         }
     }
 

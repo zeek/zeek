@@ -37,7 +37,6 @@ event check_removed()
 event setup_test()
 	{
 	local opts: Storage::BackendOptions;
-	opts$serializer = Storage::JSON;
 	opts$redis = [ $server_host="127.0.0.1", $server_port=to_port(getenv(
 	    "REDIS_PORT")), $key_prefix="testing" ];
 

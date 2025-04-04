@@ -31,7 +31,6 @@ event check_removed()
 event setup_test()
 	{
 	local opts : Storage::BackendOptions;
-	opts$serializer = Storage::JSON;
 	opts$sqlite = [$database_path = "storage-test.sqlite", $table_name = "testing"];
 
 	local open_res = Storage::Sync::open_backend(Storage::SQLITE, opts, string, string);

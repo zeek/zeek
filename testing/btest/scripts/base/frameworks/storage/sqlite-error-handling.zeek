@@ -10,7 +10,6 @@
 event zeek_init() {
 	# Test opening a database with an invalid path
 	local opts : Storage::BackendOptions;
-	opts$serializer = Storage::JSON;
 	opts$sqlite = [$database_path = "/this/path/should/not/exist/test.sqlite",
 	               $table_name = "testing"];
 

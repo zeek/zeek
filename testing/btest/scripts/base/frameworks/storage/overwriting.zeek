@@ -12,7 +12,6 @@ type str: string;
 
 event zeek_init() {
 	local opts : Storage::BackendOptions;
-	opts$serializer = Storage::JSON;
 	opts$sqlite = [$database_path = "testing.sqlite", $table_name = "testing"];
 
 	local key = "key1111";

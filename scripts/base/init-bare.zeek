@@ -585,6 +585,7 @@ export {
 	type ID: enum {
 		NETWORK_TIMESTAMP = 1,
 	};
+
 	## Add network metadata to all events.
 	##
 	## This contains local and remote events.

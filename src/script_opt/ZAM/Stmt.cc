@@ -941,8 +941,8 @@ const ZAMStmt ZAMCompiler::CompileReturn(const ReturnStmt* r) {
 const ZAMStmt ZAMCompiler::CompileCatchReturn(const CatchReturnStmt* cr) {
     retvars.push_back(cr->RetVar());
 
-    auto hold_func = ZAM::curr_func;
-    auto hold_loc = ZAM::curr_loc;
+    const auto& hold_func = ZAM::curr_func;
+    const auto& hold_loc = ZAM::curr_loc;
 
     ZAM::curr_func = cr->Func()->GetName();
 

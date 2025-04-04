@@ -31,6 +31,18 @@ detail::MetadataVectorPtr detail::MakeMetadataVector(double t) {
 
 detail::MetadataVectorPtr detail::MakeMetadataVector() { return std::make_unique<zeek::detail::MetadataVector>(); }
 
+RecordValPtr detail::MetadataEntry::BuildVal() const {
+    const auto& rt = id::find_type<zeek::RecordType>("EventMetadata::Entry");
+
+    auto rv = zeek::make_intrusive<zeek::RecordVal>(rt);
+    const auto* desc = event_mgr.LookupMetadata(id);
+
+    rv->Assign(0, desc->enum_val);
+    rv->Assign(1, val);
+
+    return rv;
+}
+
 Event::Event(const EventHandlerPtr& arg_handler, zeek::Args arg_args, util::detail::SourceID arg_src,
              analyzer::ID arg_aid, Obj* arg_obj, double arg_ts)
     : handler(arg_handler),
@@ -85,6 +97,34 @@ Event::Event(detail::MetadataVectorPtr arg_meta, const EventHandlerPtr& arg_hand
     }
 }
 
+zeek::VectorValPtr Event::MetadataValues(const EnumValPtr& id) const {
+    static const auto& any_vec_t = zeek::id::find_type<zeek::VectorType>("any_vec");
+    static const auto& result = zeek::make_intrusive<zeek::VectorVal>(any_vec_t);
+
+    const auto* desc = event_mgr.LookupMetadata(id->Get());
+    if ( ! desc )
+        return result;
+
+
+    if ( meta ) {
+        for ( const auto& me : *meta ) {
+            if ( me.id != static_cast<zeek_uint_t>(id->Get()) )
+                continue;
+
+            // Sanity check the type.
+            if ( ! same_type(desc->type, me.val->GetType()) ) {
+                zeek::reporter->InternalWarning("metadata has unexpected type %s, wanted %s",
+                                                obj_desc_short(me.val->GetType().get()).c_str(),
+                                                obj_desc_short(desc->type.get()).c_str());
+                continue;
+            }
+
+            result->Append(me.val);
+        }
+    }
+
+    return result;
+}
 
 void Event::Describe(ODesc* d) const {
     if ( d->IsReadable() )
@@ -234,35 +274,25 @@ void EventMgr::Process() {
 }
 
 void EventMgr::InitPostScript() {
-    // Network timestamp metadata is always known, register it here.
-    //
-    // This also ensures that enough script infrastructure is available.
-    auto idp = zeek::id::find("Conn::LOG");
-    if ( idp ) {
-        std::fprintf(stderr, "conn_log=%p has_val=%d\n", idp.get(), idp->HasVal());
-        auto val = idp->GetType<zeek::EnumType>()->Lookup("Conn::LOG");
+    // Network timestamp metadata is always known, register it during InitPostScript().
+    auto et = zeek::id::find_type<zeek::EnumType>("EventMetadata::ID");
+    if ( ! et )
+        zeek::reporter->FatalError("Failed to find EventMetadata::ID");
 
-        auto t = zeek::id::find_type<EnumType>("Log::ID");
-        auto v = t->Lookup("Conn::LOG");
-        auto evp = t->GetEnumVal(v);
-        fprintf(stderr, "t=%p, v=%d, evp=%p (%s)\n", t.get(), v, evp.get(), obj_desc(evp.get()).c_str());
-    }
+    auto net_ts_val = et->GetEnumVal(et->Lookup("EventMetadata::NETWORK_TIMESTAMP"));
+    if ( ! net_ts_val )
+        zeek::reporter->FatalError("Failed to lookup EventMetadata::NETWORK_TIMESTAMP");
 
-
-    if ( ! idp ||
-         // network_time_id->Get() != static_cast<zeek_int_t>(detail::MetadataType::NetworkTimestamp) )
-         true ) {
-        zeek::reporter->FatalError("Error getting EventMetadata::NETWORK_TIMESTAMP %p", idp.get());
-    }
-
-    // RegisterMetadata(network_time_id, zeek::base_type(TYPE_TIME));
+    if ( ! RegisterMetadata(net_ts_val, zeek::base_type(TYPE_TIME)) )
+        zeek::reporter->FatalError("Failed to register NETWORK_TIMESTAMP metadata");
 
     iosource_mgr->Register(this, true, false);
 }
 
 bool EventMgr::RegisterMetadata(EnumValPtr id, zeek::TypePtr type) {
     static const auto& metadata_id_type = zeek::id::find_type<zeek::EnumType>("EventMetadata::ID");
-    if ( id->GetType() != metadata_id_type ) // Make very sure id is of the right type.
+
+    if ( metadata_id_type != id->GetType() )
         return false;
 
     auto id_int = id->Get();
@@ -279,11 +309,10 @@ bool EventMgr::RegisterMetadata(EnumValPtr id, zeek::TypePtr type) {
     //
     //     cb = AnyTypeChecker()
     //     type->Traverse(cb)
-
     if ( it != event_metadata_types.end() )
         return same_type(it->second.type, type);
 
-    event_metadata_types.insert({id_uint, detail::MetadataDescriptor{id_uint, id, type}});
+    event_metadata_types.insert({id_uint, detail::MetadataDescriptor{id_uint, std::move(id), std::move(type)}});
 
     return true;
 }

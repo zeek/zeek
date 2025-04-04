@@ -401,19 +401,48 @@ function current_event_time%(%): time
 	return zeek::make_intrusive<zeek::TimeVal>(zeek::event_mgr.CurrentEventTime());
 	%}
 
-function current_event_metadata%(%): count_any_table
-	%{
-	static auto tt = zeek::id::find_type<zeek::TableType>("count_any_table");
-	auto result = zeek::make_intrusive<zeek::TableVal>(tt);
+## Register the Zeek type for a given event metadata id.
+##
+## id: The EventMetadata::ID enum value.
+##
+## t: The expected metadata type.
+##
+function EventMetadata::__register_type%(id: EventMetadata::ID, t: any%): bool
+       %{
+       const auto& tty = t->GetType();
 
+       if ( tty->Tag() != zeek::TYPE_TYPE )
+               {
+               zeek::emit_builtin_error("register_event_metadata() expects type");
+               return zeek::val_mgr->False();
+               }
+
+       EnumValPtr idvp = {zeek::NewRef{}, id->AsEnumVal()};
+
+       bool r = zeek::event_mgr.RegisterMetadata(idvp, tty->AsTypeType()->GetType());
+       return zeek::val_mgr->Bool(r);
+       %}
+
+function EventMetadata::current%(%): event_metadata_vec
+	%{
+	static const auto& vt = zeek::id::find_type<zeek::VectorType>("event_metadata_vec");
+
+	auto result = zeek::make_intrusive<zeek::VectorVal>(vt);
 	const auto& mdv = zeek::event_mgr.CurrentEvent()->Metadata();
+
 	if ( mdv ) {
 		for ( const auto& entry : *mdv )
-			result->Assign(zeek::val_mgr->Count(entry.type), entry.val);
+			result->Append(entry.BuildVal());
 
 	}
 
 	return result;
+	%}
+
+function EventMetadata::current_values%(id: EventMetadata::ID%): any_vec
+	%{
+	static const auto& vt = zeek::id::find_type<zeek::VectorType>("any_vec");
+	return zeek::event_mgr.CurrentEvent()->MetadataValues({zeek::NewRef{}, id->AsEnumVal()});
 	%}
 
 ## Returns a system environment variable.

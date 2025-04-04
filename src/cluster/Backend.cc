@@ -40,7 +40,7 @@ bool detail::Event::AddMetadata(const EnumValPtr& id, zeek::ValPtr val) {
     if ( ! desc )
         return false;
 
-    if ( desc->id != id->Get() ) {
+    if ( desc->id != static_cast<zeek_uint_t>(id->Get()) ) {
         zeek::reporter->InternalError("metadata descriptor with wrong id %" PRIu64 " vs %" PRId64, desc->id, id->Get());
         return false; // unreached
     }
@@ -53,6 +53,8 @@ bool detail::Event::AddMetadata(const EnumValPtr& id, zeek::ValPtr val) {
 
     // Internally stored as zeek_uint_t for serializers.
     meta.mdv->push_back({desc->id, std::move(val)});
+
+    return true;
 }
 
 zeek::detail::MetadataVectorPtr detail::Event::TakeMetadata() && {

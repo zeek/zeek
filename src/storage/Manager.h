@@ -40,12 +40,20 @@ public:
      * Instantiates a new backend object. The backend will be in a closed state, and
      * OpenBackend() will need to be called to fully initialize it.
      *
-     * @param btype The tag for the type of backend being opened.
-     * @param stype The tag for the type of serializer being used with this backend.
+     * @param type The tag for the type of backend being opened.
      * @return A std::expected containing either a valid BackendPtr with the result of the
      * operation or a string containing an error message for failure.
      */
-    zeek::expected<BackendPtr, std::string> Instantiate(const Tag& btype, const Tag& stype);
+    zeek::expected<BackendPtr, std::string> InstantiateBackend(const Tag& type);
+
+    /**
+     * Instantiates a new serializer object.
+     *
+     * @param type The tag for the type of backend being opened.
+     * @return A std::expected containing either a valid BackendPtr with the result of the
+     * operation or a string containing an error message for failure.
+     */
+    zeek::expected<std::unique_ptr<Serializer>, std::string> InstantiateSerializer(const Tag& type);
 
     /**
      * Opens a new storage backend.

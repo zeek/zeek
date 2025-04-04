@@ -15,10 +15,10 @@ struct redisPollEvents;
 namespace zeek::storage::backend::redis {
 class Redis final : public Backend, public iosource::IOSource {
 public:
-    Redis(std::unique_ptr<Serializer> s) : Backend(SupportedModes::ASYNC, "REDIS", std::move(s)), IOSource(true) {}
+    Redis() : Backend(SupportedModes::ASYNC, "REDIS"), IOSource(true) {}
     ~Redis() override = default;
 
-    static BackendPtr Instantiate(std::unique_ptr<Serializer> s);
+    static BackendPtr Instantiate();
 
     /**
      * Returns a descriptive tag representing the source for debugging.

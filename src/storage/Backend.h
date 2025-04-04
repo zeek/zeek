@@ -178,7 +178,7 @@ protected:
      * should match the string sent in the ``Plugin`` code for the backend
      * plugin.
      */
-    Backend(uint8_t modes, std::string_view tag_name, std::unique_ptr<Serializer> serializer);
+    Backend(uint8_t modes, std::string_view tag_name);
 
     /**
      * Called by the manager system to open the backend.

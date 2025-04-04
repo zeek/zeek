@@ -50,36 +50,40 @@ void Manager::InitPostScript() {
     StartExpirationTimer();
 }
 
-zeek::expected<BackendPtr, std::string> Manager::Instantiate(const Tag& btype, const Tag& stype) {
-    SerializerComponent* sc = serializer_mgr.Lookup(stype);
-    if ( ! sc )
+zeek::expected<BackendPtr, std::string> Manager::InstantiateBackend(const Tag& type) {
+    BackendComponent* c = backend_mgr.Lookup(type);
+    if ( ! c )
         return zeek::unexpected<std::string>(
-            util::fmt("Request to instantiate unknown storage serializer (%d:%d)", stype.Type(), stype.Subtype()));
+            util::fmt("Request to instantiate unknown backend type (%d:%d)", type.Type(), type.Subtype()));
 
-    if ( ! sc->Factory() )
+    if ( ! c->Factory() )
         return zeek::unexpected<std::string>(
-            util::fmt("Factory invalid for storage serializer %s", serializer_mgr.GetComponentName(stype).c_str()));
+            util::fmt("Factory invalid for backend %s", backend_mgr.GetComponentName(type).c_str()));
 
-    auto s = sc->Factory()();
-
-    if ( ! s )
-        return zeek::unexpected<std::string>(
-            util::fmt("Failed to instantiate storage serializer %s", serializer_mgr.GetComponentName(stype).c_str()));
-
-    BackendComponent* bc = backend_mgr.Lookup(btype);
-    if ( ! bc )
-        return zeek::unexpected<std::string>(
-            util::fmt("Request to open unknown backend (%d:%d)", btype.Type(), btype.Subtype()));
-
-    if ( ! bc->Factory() )
-        return zeek::unexpected<std::string>(
-            util::fmt("Factory invalid for backend %s", backend_mgr.GetComponentName(btype).c_str()));
-
-    auto bp = bc->Factory()(std::move(s));
+    auto bp = c->Factory()();
 
     if ( ! bp )
         return zeek::unexpected<std::string>(
-            util::fmt("Failed to instantiate backend %s", backend_mgr.GetComponentName(btype).c_str()));
+            util::fmt("Failed to instantiate backend %s", backend_mgr.GetComponentName(type).c_str()));
+
+    return bp;
+}
+
+zeek::expected<std::unique_ptr<Serializer>, std::string> Manager::InstantiateSerializer(const Tag& type) {
+    SerializerComponent* c = serializer_mgr.Lookup(type);
+    if ( ! c )
+        return zeek::unexpected<std::string>(
+            util::fmt("Request to instantiate unknown serializer type (%d:%d)", type.Type(), type.Subtype()));
+
+    if ( ! c->Factory() )
+        return zeek::unexpected<std::string>(
+            util::fmt("Factory invalid for serializer %s", serializer_mgr.GetComponentName(type).c_str()));
+
+    auto bp = c->Factory()();
+
+    if ( ! bp )
+        return zeek::unexpected<std::string>(
+            util::fmt("Failed to instantiate serializer %s", serializer_mgr.GetComponentName(type).c_str()));
 
     return bp;
 }

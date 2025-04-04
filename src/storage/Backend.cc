@@ -65,8 +65,7 @@ void OpenResultCallback::Complete(OperationResult res) {
     ResultCallback::Complete(std::move(res));
 }
 
-Backend::Backend(uint8_t modes, std::string_view tag_name, std::unique_ptr<Serializer> serializer)
-    : serializer(std::move(serializer)), modes(modes) {
+Backend::Backend(uint8_t modes, std::string_view tag_name) : modes(modes) {
     tag = storage_mgr->BackendMgr().GetComponentTag(std::string{tag_name});
     tag_str = zeek::obj_desc_short(tag.AsVal().get());
 }
@@ -75,6 +74,15 @@ OperationResult Backend::Open(OpenResultCallback* cb, RecordValPtr options, Type
     key_type = std::move(kt);
     val_type = std::move(vt);
     backend_options = options;
+
+    auto stype = options->GetField<EnumVal>("serializer");
+    zeek::Tag stag{stype};
+
+    auto s = storage_mgr->InstantiateSerializer(stag);
+    if ( ! s )
+        return {ReturnCode::CONNECTION_FAILED, s.error()};
+
+    serializer = std::move(s.value());
 
     auto ret = DoOpen(cb, std::move(options));
     if ( ! ret.value )

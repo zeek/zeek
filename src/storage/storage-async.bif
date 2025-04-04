@@ -73,7 +73,7 @@ static void handle_async_result(const IntrusivePtr<Backend>& backend, ResultCall
 
 module Storage::Async;
 
-function Storage::Async::__open_backend%(btype: Storage::Backend, stype: Storage::Serializer, options: any, key_type: any, val_type: any%): Storage::OperationResult
+function Storage::Async::__open_backend%(btype: Storage::Backend, options: any, key_type: any, val_type: any%): Storage::OperationResult
 	%{
 	auto trigger = init_trigger(frame);
 	if ( ! trigger )
@@ -82,10 +82,7 @@ function Storage::Async::__open_backend%(btype: Storage::Backend, stype: Storage
 	auto btype_val = IntrusivePtr<EnumVal>{NewRef{}, btype->AsEnumVal()};
 	Tag btag{btype_val};
 
-	auto stype_val = IntrusivePtr<EnumVal>{NewRef{}, stype->AsEnumVal()};
-	Tag stag{stype_val};
-
-	auto b = storage_mgr->Instantiate(btag, stag);
+	auto b = storage_mgr->InstantiateBackend(btag);
 
 	if ( ! b.has_value() ) {
 		trigger->Cache(

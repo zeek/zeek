@@ -14,7 +14,7 @@ class Serializer;
  */
 class BackendComponent : public plugin::Component {
 public:
-    using factory_callback = IntrusivePtr<Backend> (*)(std::unique_ptr<Serializer>);
+    using factory_callback = IntrusivePtr<Backend> (*)();
 
     /**
      * Constructor.

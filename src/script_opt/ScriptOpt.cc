@@ -519,7 +519,7 @@ static void analyze_scripts_for_ZAM(std::shared_ptr<ProfileFuncs> pfs) {
             if ( g->GetType()->Tag() != TYPE_FUNC )
                 continue;
 
-            auto v = g->GetVal();
+            const auto& v = g->GetVal();
             if ( v )
                 func_used_indirectly.insert(v->AsFunc());
         }

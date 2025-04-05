@@ -158,9 +158,10 @@ int TraceState::LogTrace(const char* fmt, ...) {
         }
     }
 
+    char* loc_filename = nullptr;
     if ( ! loc.filename ) {
         static constexpr const char str[] = "<no filename>";
-        loc.filename = util::copy_string(str, std::size(str) - 1);
+        loc.filename = loc_filename = util::copy_string(str, std::size(str) - 1);
         loc.last_line = 0;
     }
 
@@ -174,6 +175,8 @@ int TraceState::LogTrace(const char* fmt, ...) {
 
     fflush(trace_file);
     va_end(args);
+
+    delete[] loc_filename;
 
     return retval;
 }
@@ -674,12 +677,13 @@ string get_context_description(const Stmt* stmt, const Frame* frame) {
     else
         d.Add("<unknown function>", 0);
 
+    char* location_filename = nullptr;
     Location loc;
     if ( stmt )
         loc = *stmt->GetLocationInfo();
     else {
         static constexpr const char str[] = "<no filename>";
-        loc.filename = util::copy_string(str, std::size(str) - 1);
+        loc.filename = location_filename = util::copy_string(str, std::size(str) - 1);
         loc.last_line = 0;
     }
 
@@ -689,6 +693,7 @@ string get_context_description(const Stmt* stmt, const Frame* frame) {
 
     string retval(buf);
     delete[] buf;
+    delete[] location_filename;
     return retval;
 }
 

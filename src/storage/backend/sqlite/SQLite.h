@@ -10,7 +10,7 @@ struct sqlite3_stmt;
 
 namespace zeek::storage::backend::sqlite {
 
-class SQLite : public Backend {
+class SQLite final : public Backend {
 public:
     SQLite() : Backend(SupportedModes::SYNC, "SQLITE") {}
     ~SQLite() override = default;

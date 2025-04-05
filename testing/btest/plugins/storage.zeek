@@ -22,6 +22,7 @@ redef record Storage::BackendOptions += {
 
 event zeek_init() {
 	local opts : Storage::BackendOptions;
+	opts$serializer = Storage::JSON;
 	opts$dummy = [$open_fail = F, $timeout_put = F];
 
 	local key = "key1234";

@@ -52,6 +52,10 @@ namespace detail {
 class Frame;
 }
 
+namespace cluster::detail {
+class Event;
+}
+
 namespace plugin {
 
 class Manager;
@@ -76,6 +80,7 @@ enum HookType {
     HOOK_REPORTER,            //< Activates Plugin::HookReporter().
     HOOK_UNPROCESSED_PACKET,  //<Activates Plugin::HookUnprocessedPacket().
     HOOK_OBJ_DTOR,            //< Activates Plugin::HookObjDtor().
+    HOOK_PUBLISH_EVENT,       //< Activates Plugin::HookPublishEvent().
 
     // Meta hooks.
     META_HOOK_PRE,  //< Activates Plugin::MetaHookPre().
@@ -252,7 +257,8 @@ public:
         LOCATION,
         ARG_LIST,
         INPUT_FILE,
-        PACKET
+        PACKET,
+        CLUSTER_EVENT,
     };
 
     /**
@@ -406,6 +412,14 @@ public:
     }
 
     /**
+     * Constructor with cluster event argument.
+     */
+    explicit HookArgument(zeek::cluster::detail::Event* event) {
+        type = CLUSTER_EVENT;
+        arg.cluster_event = event;
+    }
+
+    /**
      * Returns the value for a boolean argument. The argument's type must
      * match accordingly.
      */
@@ -549,6 +563,14 @@ public:
     }
 
     /**
+     * Returns the value for a cluster event argument.
+     */
+    const zeek::cluster::detail::Event* AsClusterEvent() const {
+        assert(type == CLUSTER_EVENT);
+        return arg.cluster_event;
+    }
+
+    /**
      * Returns the argument's type.
      */
     Type GetType() const { return type; }
@@ -577,6 +599,7 @@ private:
         const logging::WriterBackend::WriterInfo* winfo;
         const zeek::detail::Location* loc;
         const Packet* packet;
+        const cluster::detail::Event* cluster_event;
     } arg;
 
     // Outside union because these have dtors.
@@ -1076,6 +1099,20 @@ protected:
      * @param packet The data for an unprocessed packet
      */
     virtual void HookUnprocessedPacket(const Packet* packet);
+
+    /**
+     * Hook for intercepting remote event publish operations.
+     *
+     * This hook can be used for metrics collection, metadata
+     * modifications and more.
+     *
+     * @param topic
+     * @param event
+     *
+     * @return true if event should be published, false if the publish
+     *         operation should be canceled.
+     */
+    virtual bool HookPublishEvent(const std::string& topic, zeek::cluster::detail::Event& event);
 
     // Meta hooks.
     virtual void MetaHookPre(HookType hook, const HookArgumentList& args);

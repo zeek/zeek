@@ -1572,15 +1572,11 @@ void Manager::ProcessMessage(std::string_view topic, broker::zeek::Event& ev) {
 
     auto&& name = ev.name();
     auto&& args = ev.args();
-    double ts;
 
-    if ( auto ev_ts = ev.ts() )
-        broker::convert(*ev_ts, ts);
-    else
-        // Default to current network time, if the received event did not contain a timestamp.
-        ts = run_state::network_time;
+    MetadataVectorPtr mdv = cluster::detail::metadata_vector_from_broker_event(ev);
 
-    DBG_LOG(DBG_BROKER, "Process event: %s (%.6f) %s", std::string{name}.c_str(), ts, RenderMessage(args).c_str());
+    DBG_LOG(DBG_BROKER, "Process event: %s (with %zu metadata entries) %s", std::string{name}.c_str(),
+            mdv ? mdv->size() : 0, RenderMessage(args).c_str());
     num_events_incoming_metric->Inc();
     auto handler = event_registry->Lookup(name);
 
@@ -1657,7 +1653,7 @@ void Manager::ProcessMessage(std::string_view topic, broker::zeek::Event& ev) {
     }
 
     if ( vl.size() == args.size() )
-        event_mgr.Enqueue(handler, std::move(vl), util::detail::SOURCE_BROKER, 0, nullptr, ts);
+        event_mgr.Enqueue(WithMeta{}, handler, std::move(vl), util::detail::SOURCE_BROKER, 0, nullptr, std::move(mdv));
 }
 
 bool Manager::ProcessMessage(std::string_view, broker::zeek::LogCreate& lc) {

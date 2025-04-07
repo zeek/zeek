@@ -116,6 +116,11 @@ public:
     // by returning a zero-timeout.
     double GetNextTimeout() override { return head ? 0.0 : -1.0; }
 
+    /**
+     * @return A pointer to the currently dispatched event or nullptr.
+     */
+    const Event* CurrentEvent() const { return current; }
+
     void Process() override;
     const char* Tag() override { return "EventManager"; }
     void InitPostScript();

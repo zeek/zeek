@@ -307,7 +307,7 @@ static void done_with_network() {
     if ( net_done ) {
         event_mgr.Drain();
         // Don't propagate this event to remote clients.
-        event_mgr.Dispatch(new Event(net_done, {make_intrusive<TimeVal>(timer_mgr->Time())}), true);
+        event_mgr.Dispatch(net_done, {make_intrusive<TimeVal>(timer_mgr->Time())});
     }
 
     if ( profiling_logger )

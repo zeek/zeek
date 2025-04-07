@@ -3,6 +3,7 @@
 #include "zeek/Event.h"
 
 #include "zeek/Desc.h"
+#include "zeek/EventRegistry.h"
 #include "zeek/Trigger.h"
 #include "zeek/Val.h"
 #include "zeek/iosource/Manager.h"
@@ -182,6 +183,19 @@ void EventMgr::Process() {
     // and had the opportunity to spawn new events.
 }
 
-void EventMgr::InitPostScript() { iosource_mgr->Register(this, true, false); }
+void EventMgr::InitPostScript() {
+    // Check if expected types and identifiers are available.
+    const auto& et = zeek::id::find_type<zeek::EnumType>("EventMetadata::ID");
+    if ( ! et )
+        zeek::reporter->FatalError("Failed to find EventMetadata::ID");
 
+    const auto& net_ts_val = et->GetEnumVal(et->Lookup("EventMetadata::NETWORK_TIMESTAMP"));
+    if ( ! net_ts_val )
+        zeek::reporter->FatalError("Failed to lookup EventMetadata::NETWORK_TIMESTAMP");
+
+    if ( ! zeek::event_registry->RegisterMetadata(net_ts_val, zeek::base_type(zeek::TYPE_TIME)) )
+        zeek::reporter->FatalError("Failed to register NETWORK_TIMESTAMP metadata");
+
+    iosource_mgr->Register(this, true, false);
+}
 } // namespace zeek

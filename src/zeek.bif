@@ -401,6 +401,33 @@ function current_event_time%(%): time
 	return zeek::make_intrusive<zeek::TimeVal>(zeek::event_mgr.CurrentEventTime());
 	%}
 
+## Register the expected Zeek type for event metadata.
+##
+## id: The event metadata identifier.
+##
+## t: A type expression or type alias. The type cannot be ``any``, ``func``,
+##    ``file``, ``opaque`` or a composite type containing one of these types.
+##
+## Returns: true if the registration was successful, false if *id* is
+##          registered with a different type already, or type is invalid.
+##
+## .. zeek:see:: EventMetadata::current EventMetadata::current_all
+function EventMetadata::register%(id: EventMetadata::ID, t: any%): bool
+       %{
+       const auto& tty = t->GetType();
+
+       if ( tty->Tag() != zeek::TYPE_TYPE )
+               {
+               zeek::emit_builtin_error("register_event_metadata() expects type");
+               return zeek::val_mgr->False();
+               }
+
+       EnumValPtr idvp = {zeek::NewRef{}, id->AsEnumVal()};
+
+       bool r = zeek::event_registry->RegisterMetadata(idvp, tty->AsTypeType()->GetType());
+       return zeek::val_mgr->Bool(r);
+       %}
+
 ## Returns a system environment variable.
 ##
 ## var: The name of the variable whose value to request.

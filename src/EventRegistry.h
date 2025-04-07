@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -22,17 +23,54 @@ enum class EventGroupKind {
     Module,
 };
 
+class EnumVal;
 class EventGroup;
 class EventHandler;
 class EventHandlerPtr;
 class RE_Matcher;
+class RecordVal;
+class Type;
 
+using EnumValPtr = IntrusivePtr<EnumVal>;
 using EventGroupPtr = std::shared_ptr<EventGroup>;
+using RecordValPtr = IntrusivePtr<RecordVal>;
+using TypePtr = IntrusivePtr<Type>;
 
 namespace detail {
 class ScriptFunc;
 using ScriptFuncPtr = zeek::IntrusivePtr<ScriptFunc>;
+
+/**
+ * Well-known event metadata identifiers.
+ */
+enum class MetadataType : uint8_t {
+    NetworkTimestamp = 1,
+};
+
 } // namespace detail
+
+/**
+ * Descriptor for event metadata.
+ *
+ * Event metadata is registered via @ref EventRegistry::RegisterMetadata. The descriptor
+ * holds the metadata identifier and registered type. For the identifier,
+ * *id* is the unsigned int representation, while *id_val* holds the
+ * script-layer zeek::EnumVal.
+ */
+class EventMetadataDescriptor {
+public:
+    EventMetadataDescriptor(zeek_uint_t id, EnumValPtr id_val, TypePtr type)
+        : id(id), id_val(std::move(id_val)), type(std::move(type)) {}
+
+    zeek_uint_t Id() const { return id; }
+    const EnumValPtr& IdVal() const { return id_val; }
+    const TypePtr& Type() const { return type; }
+
+private:
+    zeek_uint_t id;
+    EnumValPtr id_val;
+    TypePtr type;
+};
 
 // The registry keeps track of all events that we provide or handle.
 class EventRegistry final {
@@ -98,6 +136,23 @@ public:
      */
     EventGroupPtr LookupGroup(EventGroupKind kind, std::string_view name);
 
+    /**
+     * Register a script-layer metadata identifier *id* with type *type*.
+     *
+     * @param id The script-level ``EventMetadata::ID`` enum value.
+     * @param type The type to expect for the given metadata identifier.
+     */
+    bool RegisterMetadata(EnumValPtr id, TypePtr type);
+
+    /**
+     * Lookup the MetadataDescriptor for metadata identifier *id*
+     *
+     * @param id The metadata identifier as unsigned int.
+     * @return A pointer to a MetadataDescriptor or nullptr.
+     */
+    const EventMetadataDescriptor* LookupMetadata(zeek_uint_t id) const;
+
+
 private:
     std::map<std::string, std::unique_ptr<EventHandler>, std::less<>> handlers;
     // Tracks whether a given event handler was registered in a
@@ -106,6 +161,9 @@ private:
 
     // Map event groups identified by kind and name to their instances.
     std::map<std::pair<EventGroupKind, std::string>, std::shared_ptr<EventGroup>, std::less<>> event_groups;
+
+    // Map for event metadata identifier to their descriptors types.
+    std::unordered_map<zeek_uint_t, EventMetadataDescriptor> event_metadata_types;
 };
 
 /**

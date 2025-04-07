@@ -579,6 +579,21 @@ const io_poll_interval_live = 10 &redef;
 ## while testing, but should be used sparingly.
 const running_under_test: bool = F &redef;
 
+module EventMetadata;
+
+export {
+	## Enum type for metadata identifiers.
+	type ID: enum {
+		NETWORK_TIMESTAMP = 1,
+	};
+
+	## A event metadata entry.
+	type Entry: record {
+		id: EventMetadata::ID; ##< The registered :zeek:see:`EventMetadata::ID` value.
+		val: any;              ##< The value. Its type matches what was passed to :zeek:see:`EventMetadata::register`.
+	};
+}
+
 module FTP;
 
 export {
@@ -750,6 +765,9 @@ module GLOBAL;
 ##    via ``bifcl``. We should extend ``bifcl`` to understand composite types
 ##    directly and then remove this alias.
 type EncapsulatingConnVector: vector of Tunnel::EncapsulatingConn;
+
+## A type alias for event metadata.
+type event_metadata_vec: vector of EventMetadata::Entry;
 
 ## Statistics about a :zeek:type:`connection` endpoint.
 ##

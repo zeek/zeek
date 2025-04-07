@@ -18,6 +18,29 @@ extern double network_time;
 
 class EventMgr;
 
+class EnumVal;
+using EnumValPtr = IntrusivePtr<EnumVal>;
+
+class Type;
+using TypePtr = IntrusivePtr<Type>;
+
+namespace detail {
+
+/**
+ * Descriptor for event metadata.
+ *
+ * Event metadata has an identifying *id* and a static *type*. The descriptor
+ * structure holds both and the script-layer enum value in addition.
+ */
+struct MetadataDescriptor {
+    zeek_uint_t id;
+    EnumValPtr enum_val;
+    TypePtr type;
+};
+
+
+} // namespace detail
+
 class Event final : public Obj {
 public:
     Event(const EventHandlerPtr& handler, zeek::Args args, util::detail::SourceID src = util::detail::SOURCE_LOCAL,
@@ -119,6 +142,12 @@ public:
     // Access the currently dispatched event.
     const Event* CurrentEvent() { return current; }
 
+    // Register a EventMetadata::ID with a Zeek type.
+    bool RegisterMetadata(EnumValPtr id, zeek::TypePtr type);
+
+    // Lookup the descriptor for the given metadata identifier, or nullptr if unknown.
+    const detail::MetadataDescriptor* LookupMetadata(zeek_uint_t id) const;
+
     void Process() override;
     const char* Tag() override { return "EventManager"; }
     void InitPostScript();
@@ -132,6 +161,8 @@ private:
     Event* current = nullptr;
     Event* head = nullptr;
     Event* tail = nullptr;
+
+    std::map<zeek_uint_t, detail::MetadataDescriptor> event_metadata_types;
 };
 
 extern EventMgr event_mgr;

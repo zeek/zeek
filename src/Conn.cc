@@ -2,13 +2,10 @@
 
 #include "zeek/Conn.h"
 
-#include "zeek/zeek-config.h"
-
 #include <binpac.h>
 #include <cctype>
 
 #include "zeek/Desc.h"
-#include "zeek/Event.h"
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
@@ -17,7 +14,6 @@
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
-#include "zeek/iosource/IOSource.h"
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 #include "zeek/packet_analysis/protocol/tcp/TCP.h"
 #include "zeek/session/Manager.h"

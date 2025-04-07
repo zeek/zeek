@@ -10,9 +10,6 @@
 #include "zeek/file_analysis/Analyzer.h"
 #include "zeek/iosource/Packet.h"
 #include "zeek/packet_analysis/Analyzer.h"
-#include "zeek/util.h"
-
-#include "event.bif.func_h"
 
 namespace binpac {
 

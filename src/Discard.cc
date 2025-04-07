@@ -2,14 +2,11 @@
 
 #include "zeek/Discard.h"
 
-#include "zeek/zeek-config.h"
-
 #include <algorithm>
 
 #include "zeek/Func.h"
 #include "zeek/IP.h"
 #include "zeek/Reporter.h" // for InterpreterException
-#include "zeek/RunState.h"
 #include "zeek/Val.h"
 #include "zeek/Var.h"
 #include "zeek/ZeekString.h"

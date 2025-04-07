@@ -2,8 +2,6 @@
 
 #include "zeek/Rule.h"
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/RuleAction.h"
 #include "zeek/RuleCondition.h"
 #include "zeek/RuleMatcher.h"

@@ -18,18 +18,15 @@
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <algorithm>
 #include <cerrno>
 
 #include "zeek/Attr.h"
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
-#include "zeek/Expr.h"
-#include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
 #include "zeek/Type.h"
-#include "zeek/Var.h"
+#include "zeek/event.bif.netvar_h"
 
 namespace zeek {
 

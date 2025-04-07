@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
+#include "zeek/IntrusivePtr.h"
 
 namespace zeek {
 
@@ -19,6 +19,7 @@ class RecordVal;
 class StringVal;
 class SubNetVal;
 class TableVal;
+class Type;
 class TypeVal;
 class Val;
 class VectorVal;
@@ -32,6 +33,7 @@ using RecordValPtr = IntrusivePtr<RecordVal>;
 using StringValPtr = IntrusivePtr<StringVal>;
 using SubNetValPtr = IntrusivePtr<SubNetVal>;
 using TableValPtr = IntrusivePtr<TableVal>;
+using TypePtr = IntrusivePtr<Type>;
 using TypeValPtr = IntrusivePtr<TypeVal>;
 using ValPtr = IntrusivePtr<Val>;
 using VectorValPtr = IntrusivePtr<VectorVal>;

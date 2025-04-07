@@ -66,6 +66,36 @@ Event::Event(detail::MetadataVectorPtr arg_meta, const EventHandlerPtr& arg_hand
         Ref(obj);
 }
 
+zeek::VectorValPtr Event::MetadataValues(const EnumValPtr& id) const {
+    static const auto& any_vec_t = zeek::id::find_type<zeek::VectorType>("any_vec");
+    static const auto& result = zeek::make_intrusive<zeek::VectorVal>(any_vec_t);
+
+    if ( ! meta )
+        return result;
+
+    zeek_uint_t uintid = id->Get();
+    const auto* desc = event_mgr.LookupMetadata(uintid);
+    if ( ! desc )
+        return result;
+
+    for ( const auto& entry : *meta ) {
+        if ( entry.id != uintid )
+            continue;
+
+        // Sanity check the type.
+        if ( ! same_type(desc->type, entry.val->GetType()) ) {
+            zeek::reporter->InternalWarning("metadata has unexpected type %s, wanted %s",
+                                            obj_desc_short(entry.val->GetType().get()).c_str(),
+                                            obj_desc_short(desc->type.get()).c_str());
+            continue;
+        }
+
+        result->Append(entry.val);
+    }
+
+    return result;
+}
+
 double Event::Time() const {
     if ( ! meta )
         return 0.0;

@@ -4,8 +4,6 @@
 
 #include "zeek/Debug.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cctype>
 #include <csignal>
 #include <cstdarg>

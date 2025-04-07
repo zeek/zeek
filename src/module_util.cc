@@ -4,7 +4,6 @@
 #include "zeek/module_util.h"
 
 #include <cstring>
-#include <iostream>
 #include <string>
 
 #include "zeek/3rdparty/doctest.h"

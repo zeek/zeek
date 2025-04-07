@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
-
 namespace zeek::detail {
 
 class TraversalCallback;

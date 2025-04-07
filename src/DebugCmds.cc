@@ -5,8 +5,6 @@
 
 #include "zeek/DebugCmds.h"
 
-#include "zeek/zeek-config.h"
-
 #include <regex.h>
 #include <sys/types.h>
 #include <cassert>
@@ -22,7 +20,6 @@
 #include "zeek/PolicyFile.h"
 #include "zeek/Reporter.h"
 #include "zeek/Scope.h"
-#include "zeek/Stmt.h"
 #include "zeek/Val.h"
 #include "zeek/util.h"
 

@@ -2,13 +2,9 @@
 
 #include "zeek/PriorityQueue.h"
 
-#include "zeek/zeek-config.h"
-
-#include <cstdio>
 #include <cstdlib>
 
 #include "zeek/Reporter.h"
-#include "zeek/util.h"
 
 namespace zeek::detail {
 

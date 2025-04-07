@@ -2,13 +2,10 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
-
 #include <cstdint>
 #include <string>
 
 #include "zeek/IntrusivePtr.h"
-#include "zeek/util.h"
 
 namespace zeek {
 

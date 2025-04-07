@@ -5,8 +5,10 @@
 #include <optional>
 
 #include "zeek/Desc.h"
+#include "zeek/Event.h"
 #include "zeek/Func.h"
 #include "zeek/Reporter.h"
+#include "zeek/Type.h"
 #include "zeek/broker/Data.h"
 #include "zeek/cluster/Backend.h"
 
@@ -19,6 +21,33 @@
 #include "zeek/3rdparty/doctest.h"
 
 using namespace zeek::cluster;
+
+zeek::MetadataVectorPtr detail::metadata_vector_from_broker_event(const broker::zeek::Event& ev) {
+    auto&& md = ev.metadata();
+    if ( md.size() == 0 )
+        return nullptr;
+
+    auto result = zeek::detail::MakeMetadataVector();
+    result->reserve(md.size());
+
+    for ( const auto& [id, v] : md ) {
+        const auto* desc = zeek::event_mgr.LookupMetadata(id);
+        if ( ! desc )
+            continue;
+
+        auto d = v.to_data();
+        auto val = zeek::Broker::detail::data_to_val(d, desc->type.get());
+        if ( ! val ) {
+            reporter->Error("Failure converting metadata '%s' to type %s", broker::to_string(d).c_str(),
+                            obj_desc(desc->type.get()).c_str());
+            continue;
+        }
+
+        result->push_back(zeek::detail::MetadataEntry{id, val});
+    }
+
+    return result;
+}
 
 std::optional<broker::zeek::Event> detail::to_broker_event(const detail::Event& ev) {
     broker::vector xs;
@@ -40,23 +69,29 @@ std::optional<broker::zeek::Event> detail::to_broker_event(const detail::Event& 
         }
     }
 
-    return broker::zeek::Event(ev.HandlerName(), xs, broker::to_timestamp(ev.timestamp));
+    // Metadata for the broker event.
+    broker::vector meta;
+    if ( ev.Metadata() ) {
+        meta.reserve(ev.Metadata()->size());
+
+        for ( const auto& [type, val] : *(ev.Metadata()) ) {
+            broker::vector entry(2);
+            auto res = zeek::Broker::detail::val_to_data(val.get());
+            if ( ! res )
+                continue;
+
+            entry[0] = static_cast<broker::count>(type);
+            entry[1] = res.value();
+            meta.push_back(std::move(entry));
+        }
+    }
+
+    return broker::zeek::Event(ev.HandlerName(), xs, meta);
 }
 
 std::optional<detail::Event> detail::to_zeek_event(const broker::zeek::Event& ev) {
     auto&& name = ev.name();
     auto&& args = ev.args();
-
-    // Meh, technically need to convert ev.metadata() and
-    // expose it to script land as `table[count] of any`
-    // where consumers then know what to do with it.
-    //
-    // For now, handle the timestamp explicitly.
-    double ts;
-    if ( auto ev_ts = ev.ts() )
-        broker::convert(*ev_ts, ts);
-    else
-        ts = zeek::run_state::network_time;
 
     zeek::Args vl;
     zeek::EventHandlerPtr handler = zeek::event_registry->Lookup(name);
@@ -98,7 +133,8 @@ std::optional<detail::Event> detail::to_zeek_event(const broker::zeek::Event& ev
         }
     }
 
-    return detail::Event{handler, std::move(vl), ts};
+    MetadataVectorPtr mdv = cluster::detail::metadata_vector_from_broker_event(ev);
+    return cluster::detail::Event{handler, std::move(vl), std::move(mdv)};
 }
 
 bool detail::BrokerBinV1_Serializer::SerializeEvent(detail::byte_buffer& buf, const detail::Event& event) {
@@ -172,7 +208,16 @@ TEST_SUITE_BEGIN("cluster serializer broker");
 
 TEST_CASE("roundtrip") {
     auto* handler = zeek::event_registry->Lookup("Supervisor::node_status");
-    detail::Event e{handler, zeek::Args{zeek::make_intrusive<zeek::StringVal>("TEST"), zeek::val_mgr->Count(42)}};
+    detail::Event e{handler, zeek::Args{zeek::make_intrusive<zeek::StringVal>("TEST"), zeek::val_mgr->Count(42)},
+                    nullptr};
+
+    // Ensure the network timestamp metadata is available.
+    auto nts = zeek::id::find_val<zeek::EnumVal>("EventMetadata::NETWORK_TIMESTAMP");
+    REQUIRE(nts);
+    bool registered = zeek::event_mgr.RegisterMetadata(nts, zeek::base_type(zeek::TYPE_TIME));
+    REQUIRE(registered);
+    bool added = e.AddMetadata(nts, zeek::make_intrusive<zeek::TimeVal>(0.0));
+    REQUIRE(added);
     detail::byte_buffer buf;
 
     SUBCASE("json") {

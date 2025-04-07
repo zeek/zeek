@@ -1,7 +1,7 @@
 
 #include "Plugin.h"
 
-#include <zeek/3rdparty/doctest.h>
+#include "zeek/3rdparty/doctest.h"
 
 namespace btest::plugin::Demo_Doctest {
 Plugin plugin;

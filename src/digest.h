@@ -7,9 +7,10 @@
 #pragma once
 
 #include <sys/types.h> // for u_char
-#include <zeek/util.h>
 #include <cstdint>
 #include <cstdio>
+
+#include "zeek/util.h"
 
 // Required buffer size for an MD5 digest.
 #define ZEEK_MD5_DIGEST_LENGTH 16

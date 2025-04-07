@@ -9,9 +9,11 @@
 #include <string_view>
 #include <variant>
 
+#include "zeek/Event.h" // for generic metadata
 #include "zeek/EventHandler.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Span.h"
+#include "zeek/ZeekArgs.h"
 #include "zeek/cluster/Serializer.h"
 #include "zeek/logging/Types.h"
 
@@ -42,17 +44,43 @@ public:
     /**
      * Constructor.
      */
-    Event(const EventHandlerPtr& handler, zeek::Args args, double timestamp = 0.0)
-        : handler(handler), args(std::move(args)), timestamp(timestamp) {}
-
-    EventHandlerPtr handler;
-    zeek::Args args;
-    double timestamp; // TODO: This should be more generic, possibly holding a
-                      // vector of key/value metadata, rather than just
-                      // the timestamp.
+    Event(const EventHandlerPtr& handler, zeek::Args args, zeek::detail::MetadataVectorPtr mdv)
+        : handler(handler), args(std::move(args)), mdv(std::move(mdv)) {}
 
     std::string_view HandlerName() const { return handler->Name(); }
     const EventHandlerPtr& Handler() const { return handler; }
+    const zeek::Args& Args() const { return args; }
+
+    /**
+     * Add metadata to this cluster event.
+     *
+     * The used metadata \a id has to be registered via the Zeek script-layer
+     * function EventMetadata::register_type(), or via the C++ API
+     * EventMgr::RegisterMetadata() during an InitPostScript() hook.
+     *
+     * Non-registered metadata will silently be ignored.
+     *
+     * @param id The enum value identifying the event metadata.
+     * @param val The value to use.
+
+     * @return true if \a val was was added, else false.
+     */
+    bool AddMetadata(const EnumValPtr& id, ValPtr val);
+
+    /**
+     * @return A pointer to the metadata vector, or nullptr if no Metadata has been added yet.
+     */
+    const zeek::detail::MetadataVector* Metadata() const { return mdv.get(); }
+
+    /**
+     * Allow moving out args and metadata to be used in a zeek::Event.
+     */
+    std::tuple<zeek::Args, zeek::detail::MetadataVectorPtr> Take() &&;
+
+private:
+    EventHandlerPtr handler;
+    zeek::Args args;
+    zeek::detail::MetadataVectorPtr mdv;
 };
 
 /**
@@ -171,9 +199,8 @@ public:
      *
      * @param handler A function val representing an event handler.
      * @param args The arguments for the event handler.
-     * @param timestamp The network time to add to the event as metadata.
      */
-    std::optional<detail::Event> MakeClusterEvent(FuncValPtr handler, ArgsSpan args, double timestamp = 0.0) const;
+    std::optional<detail::Event> MakeClusterEvent(FuncValPtr handler, ArgsSpan args) const;
 
     /**
      * Publish a cluster::detail::Event instance to a given topic.

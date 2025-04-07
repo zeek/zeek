@@ -51,9 +51,9 @@ zeek::MetadataVectorPtr detail::metadata_vector_from_broker_event(const broker::
 
 std::optional<broker::zeek::Event> detail::to_broker_event(const detail::Event& ev) {
     broker::vector xs;
-    xs.reserve(ev.args.size());
+    xs.reserve(ev.Args().size());
 
-    for ( const auto& a : ev.args ) {
+    for ( const auto& a : ev.Args() ) {
         if ( a->GetType() == zeek::BifType::Record::Broker::Data ) {
             // When encountering a Broker::Data instance within args, pick out
             // the broker::data directly to avoid double encoding, Broker::Data.
@@ -233,7 +233,7 @@ TEST_CASE("roundtrip") {
         REQUIRE(result);
         CHECK_EQ(result->Handler(), handler);
         CHECK_EQ(result->HandlerName(), "Supervisor::node_status");
-        CHECK_EQ(result->args.size(), 2);
+        CHECK_EQ(result->Args().size(), 2);
     }
 
     SUBCASE("binary") {
@@ -256,7 +256,7 @@ TEST_CASE("roundtrip") {
         REQUIRE(result);
         CHECK_EQ(result->Handler(), handler);
         CHECK_EQ(result->HandlerName(), "Supervisor::node_status");
-        CHECK_EQ(result->args.size(), 2);
+        CHECK_EQ(result->Args().size(), 2);
     }
 }
 TEST_SUITE_END();

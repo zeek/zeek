@@ -52,6 +52,14 @@ namespace detail {
 class Frame;
 }
 
+namespace cluster {
+class Backend;
+
+namespace detail {
+class Event;
+}
+} // namespace cluster
+
 namespace plugin {
 
 class Manager;
@@ -76,6 +84,7 @@ enum HookType {
     HOOK_REPORTER,            //< Activates Plugin::HookReporter().
     HOOK_UNPROCESSED_PACKET,  //<Activates Plugin::HookUnprocessedPacket().
     HOOK_OBJ_DTOR,            //< Activates Plugin::HookObjDtor().
+    HOOK_PUBLISH_EVENT,       //< Activates Plugin::HookPublishEvent().
 
     // Meta hooks.
     META_HOOK_PRE,  //< Activates Plugin::MetaHookPre().
@@ -252,7 +261,9 @@ public:
         LOCATION,
         ARG_LIST,
         INPUT_FILE,
-        PACKET
+        PACKET,
+        CLUSTER_BACKEND,
+        CLUSTER_EVENT,
     };
 
     /**
@@ -406,6 +417,22 @@ public:
     }
 
     /**
+     * Constructor with cluster backend argument.
+     */
+    explicit HookArgument(zeek::cluster::Backend* backend) {
+        type = CLUSTER_BACKEND;
+        arg.cluster_backend = backend;
+    }
+
+    /**
+     * Constructor with cluster event argument.
+     */
+    explicit HookArgument(zeek::cluster::detail::Event* event) {
+        type = CLUSTER_EVENT;
+        arg.cluster_event = event;
+    }
+
+    /**
      * Returns the value for a boolean argument. The argument's type must
      * match accordingly.
      */
@@ -549,6 +576,22 @@ public:
     }
 
     /**
+     * Returns the value for a cluster backend argument.
+     */
+    const zeek::cluster::Backend* AsClusterBackend() const {
+        assert(type == CLUSTER_EVENT);
+        return arg.cluster_backend;
+    }
+
+    /**
+     * Returns the value for a cluster event argument.
+     */
+    const zeek::cluster::detail::Event* AsClusterEvent() const {
+        assert(type == CLUSTER_EVENT);
+        return arg.cluster_event;
+    }
+
+    /**
      * Returns the argument's type.
      */
     Type GetType() const { return type; }
@@ -577,6 +620,8 @@ private:
         const logging::WriterBackend::WriterInfo* winfo;
         const zeek::detail::Location* loc;
         const Packet* packet;
+        const cluster::Backend* cluster_backend;
+        const cluster::detail::Event* cluster_event;
     } arg;
 
     // Outside union because these have dtors.
@@ -1076,6 +1121,28 @@ protected:
      * @param packet The data for an unprocessed packet
      */
     virtual void HookUnprocessedPacket(const Packet* packet);
+
+    /**
+     * Hook for intercepting remote event publish operations.
+     *
+     * This hook is invoked when Cluster::publish(), Cluster::publish_hrw() or
+     * Cluster::publish_rr() is used in the scripting layer to publish a remote
+     * event to a topic. It is also invoked when calling PublishEvent() on the
+     * active cluster backend directly from C++ plugins. This hook can be used
+     * for metrics collection, modifying or redirecting events to a different
+     * topic. It's event possible to translate an event to another one. A plugin
+     * should return false if it took responsibility of publishing the event, or
+     * the verdict is to skip the publish operation.
+     *
+     * @param backend The backend publishing this event
+     * @param topic The topic to which to publish this event
+     * @param event The event itself
+     *
+     * @return true if event should be published, false if the publish
+     *         operation should be skipped.
+     */
+    virtual bool HookPublishEvent(zeek::cluster::Backend& backend, const std::string& topic,
+                                  zeek::cluster::detail::Event& event);
 
     // Meta hooks.
     virtual void MetaHookPre(HookType hook, const HookArgumentList& args);

@@ -9,6 +9,7 @@
 #include "zeek/Event.h"
 #include "zeek/Func.h"
 #include "zeek/Val.h"
+#include "zeek/cluster/Backend.h"
 #include "zeek/input.h"
 #include "zeek/plugin/Component.h"
 #include "zeek/plugin/Manager.h"
@@ -31,6 +32,7 @@ const char* hook_name(HookType h) {
         "Reporter",
         "UnprocessedPacket",
         "ObjDtor",
+        "PublishEvent",
         // MetaHooks
         "MetaHookPre",
         "MetaHookPost",
@@ -214,6 +216,23 @@ void HookArgument::Describe(ODesc* d) const {
         }
 
         case PACKET: d->Add("<packet>"); break;
+
+        case CLUSTER_BACKEND: {
+            d->Add("<cluster backend ");
+            d->Add(arg.cluster_backend->Name());
+            d->Add(">");
+            break;
+        }
+
+        case CLUSTER_EVENT: {
+            auto* ce = arg.cluster_event;
+            d->Add("<cluster event ");
+            d->AddN(ce->HandlerName().data(), static_cast<int>(ce->HandlerName().size()));
+            d->Add(", ");
+            d->Add(static_cast<uint64_t>(ce->Args().size()));
+            d->Add(util::fmt(" argument%s>", ce->Args().size() != 1 ? "s" : ""));
+            break;
+        }
     }
 }
 
@@ -330,6 +349,11 @@ bool Plugin::HookReporter(const std::string& prefix, const EventHandlerPtr event
 }
 
 void Plugin::HookUnprocessedPacket(const Packet* packet) {}
+
+bool Plugin::HookPublishEvent(zeek::cluster::Backend& backend, const std::string& topic,
+                              zeek::cluster::detail::Event& event) {
+    return true;
+}
 
 void Plugin::MetaHookPre(HookType hook, const HookArgumentList& args) {}
 

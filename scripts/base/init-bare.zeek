@@ -592,6 +592,15 @@ export {
 		id: EventMetadata::ID; ##< The registered :zeek:see:`EventMetadata::ID` value.
 		val: any;              ##< The value. Its type aligns to what was passed to :zeek:see:`EventMetadata::register_type`.
 	};
+
+	## Add network timestamp metadata to all events.
+	##
+	## Adding network timestamp metadata affects local and
+	## remote events. Events scheduled have a network timestamp
+	## of when the schedule timer was supposed to expire, which
+	## might be a value before the network_time() when the event
+	## was actually dispatched.
+	const add_network_timestamp: bool = F &redef;
 }
 
 type ::event_metadata_vec: vector of Entry;

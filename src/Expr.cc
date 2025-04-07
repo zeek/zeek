@@ -27,6 +27,8 @@
 #include "zeek/script_opt/Expr.h"
 #include "zeek/script_opt/ScriptOpt.h"
 
+#include "const.bif.netvar_h"
+
 namespace zeek::detail {
 
 const char* expr_name(ExprTag t) {
@@ -3829,8 +3831,13 @@ ScheduleTimer::ScheduleTimer(const EventHandlerPtr& arg_event, Args arg_args, do
     : Timer(t, TIMER_SCHEDULE), event(arg_event), args(std::move(arg_args)) {}
 
 void ScheduleTimer::Dispatch(double /* t */, bool /* is_expire */) {
-    if ( event )
-        event_mgr.Enqueue(event, std::move(args), util::detail::SOURCE_LOCAL, 0, nullptr, this->Time());
+    if ( event ) {
+        zeek::detail::MetadataVectorPtr mdv;
+        if ( zeek::BifConst::EventMetadata::add_network_timestamp )
+            mdv = detail::MakeMetadataVector(Time());
+
+        event_mgr.Enqueue(WithMeta{}, event, std::move(args), util::detail::SOURCE_LOCAL, 0, nullptr, std::move(mdv));
+    }
 }
 
 ScheduleExpr::ScheduleExpr(ExprPtr arg_when, EventExprPtr arg_event)

@@ -4,9 +4,11 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Trigger.h"
+#include "zeek/Type.h"
 #include "zeek/Val.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/plugin/Manager.h"
+#include "zeek/util.h"
 
 #include "const.bif.netvar_h"
 #include "event.bif.netvar_h"
@@ -15,17 +17,70 @@ zeek::EventMgr zeek::event_mgr;
 
 namespace zeek {
 
+detail::MetadataVectorPtr detail::MakeMetadataVector(double t) {
+    auto mdv = std::make_unique<zeek::detail::MetadataVector>(1);
+    auto tv = zeek::make_intrusive<zeek::TimeVal>(t);
+    (*mdv)[0] = detail::MetadataEntry{static_cast<zeek_uint_t>(detail::MetadataType::NetworkTimestamp), std::move(tv)};
+    return mdv;
+}
+
+detail::MetadataVectorPtr detail::MakeMetadataVector() { return std::make_unique<zeek::detail::MetadataVector>(); }
+
+RecordValPtr detail::MetadataEntry::BuildVal() const {
+    const auto& rt = id::find_type<zeek::RecordType>("EventMetadata::Entry");
+
+    auto rv = zeek::make_intrusive<zeek::RecordVal>(rt);
+    const auto* desc = event_mgr.LookupMetadata(id);
+    if ( ! desc ) {
+        zeek::reporter->InternalWarning("unable to find metadata descriptor for id %" PRIu64, id);
+        return rv;
+    }
+
+    rv->Assign(0, desc->enum_val);
+    rv->Assign(1, val);
+
+    return rv;
+}
+
 Event::Event(const EventHandlerPtr& arg_handler, zeek::Args arg_args, util::detail::SourceID arg_src,
              analyzer::ID arg_aid, Obj* arg_obj, double arg_ts)
+    : handler(arg_handler), args(std::move(arg_args)), src(arg_src), aid(arg_aid), obj(arg_obj), next_event(nullptr) {
+    if ( obj )
+        Ref(obj);
+
+    if ( zeek::BifConst::EventMetadata::add_network_timestamp ) {
+        meta = detail::MakeMetadataVector(arg_ts);
+    }
+}
+
+Event::Event(detail::MetadataVectorPtr arg_meta, const EventHandlerPtr& arg_handler, zeek::Args arg_args,
+             util::detail::SourceID arg_src, analyzer::ID arg_aid, Obj* arg_obj)
     : handler(arg_handler),
       args(std::move(arg_args)),
       src(arg_src),
       aid(arg_aid),
-      ts(arg_ts),
       obj(arg_obj),
-      next_event(nullptr) {
+      next_event(nullptr),
+      meta(std::move(arg_meta)) {
     if ( obj )
         Ref(obj);
+}
+
+double Event::Time() const {
+    if ( ! meta )
+        return 0.0;
+
+    for ( const auto& m : *meta )
+        if ( m.id == static_cast<zeek_uint_t>(detail::MetadataType::NetworkTimestamp) ) {
+#ifdef DEBUG
+            if ( m.val->GetType()->Tag() != TYPE_TIME )
+                zeek::reporter->InternalWarning("event metadata timestamp has wrong type: %s",
+                                                obj_desc_short(m.val->GetType().get()).c_str());
+#endif
+            return m.val->AsTime();
+        }
+
+    return 0.0;
 }
 
 void Event::Describe(ODesc* d) const {
@@ -53,7 +108,7 @@ void Event::Dispatch(bool no_remote) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         // Replace in v8.1 with handler->Call(&args).
-        handler->Call(&args, no_remote, ts);
+        handler->Call(&args, no_remote, Time());
 #pragma GCC diagnostic pop
     }
 
@@ -79,7 +134,39 @@ EventMgr::~EventMgr() {
 
 void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl, util::detail::SourceID src, analyzer::ID aid, Obj* obj,
                        double ts) {
-    QueueEvent(new Event(h, std::move(vl), src, aid, obj, ts));
+    detail::MetadataVectorPtr meta;
+    if ( zeek::BifConst::EventMetadata::add_network_timestamp )
+        meta = detail::MakeMetadataVector(ts);
+
+    QueueEvent(new Event(std::move(meta), h, std::move(vl), src, aid, obj));
+}
+
+void EventMgr::Enqueue(WithMeta, const EventHandlerPtr& h, Args vl, util::detail::SourceID src, analyzer::ID aid,
+                       Obj* obj, detail::MetadataVectorPtr meta) {
+    if ( zeek::BifConst::EventMetadata::add_network_timestamp ) {
+        // If all events are supposed to have a network time attached, ensure
+        // that the meta vector exists *and* contains a network timestamp.
+        bool has_time = false;
+        if ( meta ) {
+            for ( const auto& [id, v] : *meta ) {
+                if ( id == static_cast<zeek_uint_t>(detail::MetadataType::NetworkTimestamp) && v &&
+                     v->GetType()->Tag() == TYPE_TIME ) {
+                    has_time = true;
+                    break;
+                }
+            }
+
+            if ( ! has_time ) {
+                auto tv = zeek::make_intrusive<zeek::TimeVal>(run_state::network_time);
+                meta->push_back({static_cast<zeek_uint_t>(detail::MetadataType::NetworkTimestamp), std::move(tv)});
+            }
+        }
+        else {
+            meta = detail::MakeMetadataVector(run_state::network_time);
+        }
+    }
+
+    QueueEvent(new Event(std::move(meta), h, std::move(vl), src, aid, obj));
 }
 
 void EventMgr::QueueEvent(Event* event) {
@@ -108,7 +195,11 @@ void EventMgr::Dispatch(Event* event, bool no_remote) {
 }
 
 void EventMgr::Dispatch(const EventHandlerPtr& h, zeek::Args vl) {
-    auto* ev = new Event(h, std::move(vl));
+    detail::MetadataVectorPtr meta;
+    if ( zeek::BifConst::EventMetadata::add_network_timestamp )
+        meta = detail::MakeMetadataVector(run_state::network_time);
+
+    auto* ev = new Event(std::move(meta), h, std::move(vl), util::detail::SOURCE_LOCAL, 0, nullptr);
 
     // Technically this isn't queued, but still give plugins a chance to
     // intercept the event and cancel or modify it if really wanted.
@@ -192,6 +283,13 @@ void EventMgr::InitPostScript() {
     auto net_ts_val = et->GetEnumVal(et->Lookup("EventMetadata::NETWORK_TIMESTAMP"));
     if ( ! net_ts_val )
         zeek::reporter->FatalError("Failed to lookup EventMetadata::NETWORK_TIMESTAMP");
+
+    // Only register network timestamp metadata if user opted into add_networktimestamp.
+    // Could be done in zeek_init(), but doing it here ensures its done first.
+    if ( zeek::BifConst::EventMetadata::add_network_timestamp ) {
+        if ( ! RegisterMetadata(net_ts_val, zeek::base_type(TYPE_TIME)) )
+            zeek::reporter->FatalError("Failed to register NETWORK_TIMESTAMP metadata");
+    }
 
     iosource_mgr->Register(this, true, false);
 }

@@ -36,8 +36,6 @@ public:
 
 protected:
     Serializer(std::string name) : name(std::move(name)) {}
-
-private:
     std::string name;
 };
 

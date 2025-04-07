@@ -15,6 +15,9 @@ public:
 
     std::optional<byte_buffer> Serialize(ValPtr val) override;
     zeek::expected<ValPtr, std::string> Unserialize(byte_buffer_span buf, TypePtr type) override;
+
+private:
+    static std::string versioned_name;
 };
 
 } // namespace zeek::storage::serializer::json

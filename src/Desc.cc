@@ -2,14 +2,11 @@
 
 #include "zeek/Desc.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cerrno>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
 
-#include "zeek/3rdparty/ConvertUTF.h"
 #include "zeek/File.h"
 #include "zeek/IPAddr.h"
 #include "zeek/Reporter.h"

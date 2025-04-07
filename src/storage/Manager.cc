@@ -7,6 +7,8 @@
 #include "zeek/RunState.h"
 #include "zeek/storage/ReturnCode.h"
 
+#include "const.bif.netvar_h"
+
 std::atomic_flag expire_running;
 
 namespace zeek::storage {

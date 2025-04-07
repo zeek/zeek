@@ -3,8 +3,6 @@
 #include "zeek/ScriptValidation.h"
 
 #include "zeek/Func.h"
-#include "zeek/Reporter.h"
-#include "zeek/Stmt.h"
 #include "zeek/Traverse.h"
 
 namespace zeek::detail {

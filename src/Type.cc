@@ -2,9 +2,6 @@
 
 #include "zeek/Type.h"
 
-#include "zeek/zeek-config.h"
-
-#include <list>
 #include <map>
 #include <string>
 #include <unordered_set>

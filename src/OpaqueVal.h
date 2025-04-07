@@ -15,9 +15,6 @@
 #include "zeek/RandTest.h"
 #include "zeek/Val.h"
 #include "zeek/digest.h"
-#include "zeek/telemetry/Counter.h"
-#include "zeek/telemetry/Gauge.h"
-#include "zeek/telemetry/Histogram.h"
 
 namespace broker {
 class data;

@@ -2,8 +2,6 @@
 
 #include "zeek/PolicyFile.h"
 
-#include "zeek/zeek-config.h"
-
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <cassert>

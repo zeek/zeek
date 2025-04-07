@@ -2,8 +2,6 @@
 
 #include "zeek/Obj.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cstdlib>
 
 #include "zeek/Desc.h"

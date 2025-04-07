@@ -2,8 +2,6 @@
 
 #include "zeek/CompHash.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cstring>
 #include <map>
 #include <vector>

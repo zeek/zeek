@@ -36,10 +36,11 @@ std::optional<zeek::cluster::detail::Event> to_cluster_event(const zeek::RecordV
     for ( size_t i = 0; i < vargs->Size(); i++ )
         args[i] = vargs->ValAt(i);
 
-    // TODO: Support configurable timestamps or custom metadata on the record.
-    auto timestamp = zeek::event_mgr.CurrentEventTime();
+    zeek::detail::MetadataVectorPtr mdv;
+    if ( zeek::BifConst::EventMetadata::add_network_timestamp )
+        mdv = zeek::detail::MakeMetadataVector(zeek::event_mgr.CurrentEventTime());
 
-    return zeek::cluster::detail::Event(eh, std::move(args), timestamp);
+    return zeek::cluster::detail::Event(eh, std::move(args), std::move(mdv));
 }
 } // namespace
 
@@ -100,8 +101,7 @@ zeek::ValPtr publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args) {
     auto timestamp = zeek::event_mgr.CurrentEventTime();
 
     if ( args[0]->GetType()->Tag() == zeek::TYPE_FUNC ) {
-        auto event = zeek::cluster::backend->MakeClusterEvent({zeek::NewRef{}, args[0]->AsFuncVal()}, args.subspan(1),
-                                                              timestamp);
+        auto event = zeek::cluster::backend->MakeClusterEvent({zeek::NewRef{}, args[0]->AsFuncVal()}, args.subspan(1));
         if ( event )
             return zeek::val_mgr->Bool(zeek::cluster::backend->PublishEvent(topic_str, *event));
 

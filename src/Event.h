@@ -21,6 +21,9 @@ class EventMgr;
 class EnumVal;
 using EnumValPtr = IntrusivePtr<EnumVal>;
 
+class RecordVal;
+using RecordValPtr = IntrusivePtr<RecordVal>;
+
 class Type;
 using TypePtr = IntrusivePtr<Type>;
 
@@ -38,11 +41,44 @@ struct MetadataDescriptor {
     TypePtr type;
 };
 
+/**
+ * A event metadata entry as stored in Event or cluster::detail::Event.
+ */
+struct MetadataEntry {
+    zeek_uint_t id;
+    zeek::ValPtr val;
+
+    /**
+     * @return an EventMetadata::Entry record val representing this entry.
+     */
+    RecordValPtr BuildVal() const;
+};
+
+using MetadataVector = std::vector<detail::MetadataEntry>;
+using MetadataVectorPtr = std::unique_ptr<MetadataVector>;
+
+/**
+ * Well known metadata identifiers.
+ */
+enum class MetadataType : uint8_t {
+    NetworkTimestamp = 1,
+};
+
+/**
+ * Make a new event metadata vector containing network timestamp value set to \a t;
+ */
+MetadataVectorPtr MakeMetadataVector(double t);
+
+/**
+ * Make a new empty event metadata vector.
+ */
+MetadataVectorPtr MakeMetadataVector();
 
 } // namespace detail
 
 class Event final : public Obj {
 public:
+    [[deprecated("Remove in v8.1: Do not instantiate raw events. Use Dispatch() or Enqueue().")]]
     Event(const EventHandlerPtr& handler, zeek::Args args, util::detail::SourceID src = util::detail::SOURCE_LOCAL,
           analyzer::ID aid = 0, Obj* obj = nullptr, double ts = run_state::network_time);
 
@@ -53,12 +89,15 @@ public:
     analyzer::ID Analyzer() const { return aid; }
     EventHandlerPtr Handler() const { return handler; }
     const zeek::Args& Args() const { return args; }
-    double Time() const { return ts; }
+    double Time() const;
 
     void Describe(ODesc* d) const override;
 
 private:
     friend class EventMgr;
+
+    Event(detail::MetadataVectorPtr arg_meta, const EventHandlerPtr& arg_handler, zeek::Args arg_args,
+          util::detail::SourceID arg_src, analyzer::ID arg_aid, Obj* arg_obj);
 
     // This method is protected to make sure that everybody goes through
     // EventMgr::Dispatch().
@@ -68,10 +107,16 @@ private:
     zeek::Args args;
     util::detail::SourceID src;
     analyzer::ID aid;
-    double ts;
     Obj* obj;
     Event* next_event;
+    detail::MetadataVectorPtr meta;
 };
+
+/**
+ * Tag for EventMgr::Enqueue().
+ */
+struct WithMeta {};
+
 
 class EventMgr final : public Obj, public iosource::IOSource {
 public:
@@ -92,7 +137,14 @@ public:
      * (defaults to current network time).
      */
     void Enqueue(const EventHandlerPtr& h, zeek::Args vl, util::detail::SourceID src = util::detail::SOURCE_LOCAL,
-                 analyzer::ID aid = 0, Obj* obj = nullptr, double ts = run_state::network_time);
+                 analyzer::ID aid = 0, Obj* obj = nullptr, [[deprecated]] double ts = run_state::network_time);
+
+    /**
+     * Prefer this Enqueue() method when passing metadata.
+     */
+    void Enqueue(WithMeta, const EventHandlerPtr& h, zeek::Args vl,
+                 util::detail::SourceID src = util::detail::SOURCE_LOCAL, analyzer::ID aid = 0, Obj* obj = nullptr,
+                 detail::MetadataVectorPtr meta = nullptr);
 
     /**
      * A version of Enqueue() taking a variable number of arguments.

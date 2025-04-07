@@ -579,6 +579,23 @@ const io_poll_interval_live = 10 &redef;
 ## while testing, but should be used sparingly.
 const running_under_test: bool = F &redef;
 
+module EventMetadata;
+
+export {
+	## Enum type for metadata identifiers.
+	type ID: enum {
+		NETWORK_TIMESTAMP = 1,
+	};
+
+	## A event metadata entry.
+	type Entry: record {
+		id: EventMetadata::ID; ##< The registered :zeek:see:`EventMetadata::ID` value.
+		val: any;              ##< The value. Its type aligns to what was passed to :zeek:see:`EventMetadata::register_type`.
+	};
+}
+
+type ::event_metadata_vec: vector of Entry;
+
 module FTP;
 
 export {

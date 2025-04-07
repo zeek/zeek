@@ -109,6 +109,9 @@ public:
     // by returning a zero-timeout.
     double GetNextTimeout() override { return head ? 0.0 : -1.0; }
 
+    // Access the currently dispatched event.
+    const Event* CurrentEvent() { return current; }
+
     void Process() override;
     const char* Tag() override { return "EventManager"; }
     void InitPostScript();

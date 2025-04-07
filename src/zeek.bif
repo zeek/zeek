@@ -426,6 +426,28 @@ function EventMetadata::register_type%(id: EventMetadata::ID, t: any%): bool
        return zeek::val_mgr->Bool(r);
        %}
 
+function EventMetadata::current%(%): event_metadata_vec
+	%{
+	static const auto& vt = zeek::id::find_type<zeek::VectorType>("event_metadata_vec");
+
+	auto result = zeek::make_intrusive<zeek::VectorVal>(vt);
+	const auto& mdv = zeek::event_mgr.CurrentEvent()->Metadata();
+
+	if ( mdv ) {
+		for ( const auto& entry : *mdv )
+			result->Append(entry.BuildVal());
+
+	}
+
+	return result;
+	%}
+
+function EventMetadata::current_values%(id: EventMetadata::ID%): any_vec
+	%{
+	static const auto& vt = zeek::id::find_type<zeek::VectorType>("any_vec");
+	return zeek::event_mgr.CurrentEvent()->MetadataValues({zeek::NewRef{}, id->AsEnumVal()});
+	%}
+
 ## Returns a system environment variable.
 ##
 ## var: The name of the variable whose value to request.

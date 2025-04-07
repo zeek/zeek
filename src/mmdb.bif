@@ -1,5 +1,5 @@
 %%{
-#include <zeek/MMDB.h>
+#include "zeek/MMDB.h"
 %%}
 
 ## Initializes MMDB for later use of lookup_location.

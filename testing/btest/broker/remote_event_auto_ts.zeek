@@ -17,6 +17,7 @@
 # @TEST-START-FILE send.zeek
 
 redef exit_only_after_terminate = T;
+redef EventMetadata::add_network_timestamp = T;
 
 global runs = 0;
 global ping: event(msg: string, intended_ts: time);
@@ -58,6 +59,7 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 # @TEST-START-FILE recv.zeek
 
 redef exit_only_after_terminate = T;
+redef EventMetadata::add_network_timestamp = T;
 
 global msg_count = 0;
 

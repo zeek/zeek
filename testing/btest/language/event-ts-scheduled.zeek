@@ -1,6 +1,8 @@
 # @TEST-EXEC: zeek -b -r $TRACES/ticks-dns-1hr.pcap %INPUT > out
 # @TEST-EXEC: btest-diff out
 
+redef EventMetadata::add_network_timestamp = T;
+
 global runs = 0;
 
 event test(schedule_time: time)

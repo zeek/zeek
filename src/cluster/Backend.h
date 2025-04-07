@@ -178,14 +178,17 @@ public:
     /**
      * Publish a cluster::detail::Event instance to a given topic.
      *
+     * The event is allowed to be modified by plugins, e.g. to add additional
+     * metadata, modify the arguments, or rewrite it in other ways, too. The
+     * caller will observe these changes on the event as it is passed by
+     * reference.
+     *
      * @param topic The topic string to publish the event to.
      * @param event The event to publish.
      *
      * @return true if the event was successfully published.
      */
-    bool PublishEvent(const std::string& topic, const cluster::detail::Event& event) {
-        return DoPublishEvent(topic, event);
-    }
+    bool PublishEvent(const std::string& topic, cluster::detail::Event& event) { return DoPublishEvent(topic, event); }
 
     /**
      * Status codes for callbacks.
@@ -319,7 +322,7 @@ private:
      * This hook method only exists for the existing Broker implementation that
      * short-circuits serialization. Other backends should not override this.
      */
-    virtual bool DoPublishEvent(const std::string& topic, const cluster::detail::Event& event);
+    virtual bool DoPublishEvent(const std::string& topic, cluster::detail::Event& event);
 
     /**
      * Send a serialized cluster::detail::Event to the given topic.

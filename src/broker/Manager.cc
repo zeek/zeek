@@ -624,7 +624,7 @@ std::vector<broker::peer_info> Manager::Peers() const {
 
 std::string Manager::NodeID() const { return to_string(bstate->endpoint.node_id()); }
 
-bool Manager::DoPublishEvent(const std::string& topic, const cluster::detail::Event& event) {
+bool Manager::DoPublishEvent(const std::string& topic, cluster::detail::Event& event) {
     auto maybe_ev = zeek::cluster::detail::to_broker_event(event);
     if ( ! maybe_ev )
         return false;

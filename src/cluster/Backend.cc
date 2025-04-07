@@ -91,7 +91,7 @@ std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsS
 }
 
 // Default implementation doing the serialization.
-bool Backend::DoPublishEvent(const std::string& topic, const cluster::detail::Event& event) {
+bool Backend::DoPublishEvent(const std::string& topic, cluster::detail::Event& event) {
     cluster::detail::byte_buffer buf;
 
     if ( ! event_serializer->SerializeEvent(buf, event) )

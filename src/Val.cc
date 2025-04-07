@@ -352,6 +352,8 @@ static bool UsesJSONStringType(const TypePtr& t) {
 // in Val.h, because they're huge.
 static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool only_loggable = false,
                       RE_Matcher* re = nullptr, const string& key = "", bool interval_as_double = false) {
+    // Note: If this code changes, the Val::JSON_VERSION constant should be increased.
+
     if ( ! key.empty() )
         writer.Key(key);
 
@@ -540,6 +542,8 @@ static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool onl
 }
 
 StringValPtr Val::ToJSON(bool only_loggable, RE_Matcher* re, bool interval_as_double) {
+    // Note: If this code changes, the Val::JSON_VERSION constant should be increased.
+
     rapidjson::StringBuffer buffer;
     json::detail::NullDoubleWriter writer(buffer);
 
@@ -893,6 +897,8 @@ unsigned int StringVal::ComputeFootprint(std::unordered_set<const Val*>* analyze
 
 static zeek::expected<ValPtr, std::string> BuildVal(const rapidjson::Value& j, const TypePtr& t,
                                                     const FuncPtr& key_func) {
+    // Note: If this code changes, the Val::JSON_VERSION constant should be increased.
+
     auto mismatch_err = [t, &j]() {
         std::string json_type;
         switch ( j.GetType() ) {
@@ -1295,6 +1301,8 @@ static zeek::expected<ValPtr, std::string> BuildVal(const rapidjson::Value& j, c
 
 zeek::expected<ValPtr, std::string> detail::ValFromJSON(std::string_view json_str, const TypePtr& t,
                                                         const FuncPtr& key_func) {
+    // Note: If this code changes, the Val::JSON_VERSION constant should be increased.
+
     rapidjson::Document doc;
     rapidjson::ParseResult ok = doc.Parse(json_str.data(), json_str.length());
 

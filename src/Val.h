@@ -4,9 +4,7 @@
 
 #include <sys/types.h> // for u_char
 #include <array>
-#include <list>
 #include <unordered_map>
-#include <variant>
 #include <vector>
 
 #include "zeek/IntrusivePtr.h"

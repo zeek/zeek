@@ -5,18 +5,9 @@
 #include "zeek/zeek-config.h"
 
 #include <cstdint>
-
-// Define first.
-enum TransportProto : uint8_t {
-    TRANSPORT_UNKNOWN,
-    TRANSPORT_TCP,
-    TRANSPORT_UDP,
-    TRANSPORT_ICMP,
-};
-
-extern const char* transport_proto_string(TransportProto proto);
-
-enum IPFamily { IPv4, IPv6 };
+#include <memory>
+#include <string>
+#include <utility>
 
 // Force these files to stay in this order. Normally, clang-format
 // wants to move sys/types.h to the end of this block, but that
@@ -35,8 +26,6 @@ enum IPFamily { IPv4, IPv6 };
 #include <netinet/ip_icmp.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
-
-#include "zeek/util.h"
 
 #ifdef HAVE_NETINET_IP6_H
 #include <netinet/ip6.h>
@@ -125,6 +114,18 @@ struct ip6_rthdr {
 #if ! defined(TCPOPT_TIMESTAMP) && defined(TCPOPT_TSTAMP)
 #define TCPOPT_TIMESTAMP TCPOPT_TSTAMP
 #endif
+
+// Define first.
+enum TransportProto : uint8_t {
+    TRANSPORT_UNKNOWN,
+    TRANSPORT_TCP,
+    TRANSPORT_UDP,
+    TRANSPORT_ICMP,
+};
+
+extern const char* transport_proto_string(TransportProto proto);
+
+enum IPFamily { IPv4, IPv6 };
 
 namespace zeek {
 

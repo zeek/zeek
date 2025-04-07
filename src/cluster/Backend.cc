@@ -2,6 +2,7 @@
 
 #include "zeek/cluster/Backend.h"
 
+#include <memory>
 #include <optional>
 
 #include "zeek/Desc.h"
@@ -10,6 +11,7 @@
 #include "zeek/Func.h"
 #include "zeek/Reporter.h"
 #include "zeek/Type.h"
+#include "zeek/Val.h"
 #include "zeek/cluster/Manager.h"
 #include "zeek/cluster/OnLoop.h"
 #include "zeek/cluster/Serializer.h"
@@ -21,6 +23,26 @@
 
 using namespace zeek::cluster;
 
+bool detail::Event::AddMetadata(const EnumValPtr& id, zeek::ValPtr val) {
+    const auto* desc = event_mgr.LookupMetadata(id->Get());
+    if ( ! desc )
+        return false;
+
+    if ( ! val || ! same_type(val->GetType(), desc->type) )
+        return false;
+
+    if ( ! mdv )
+        mdv = zeek::detail::MakeMetadataVector();
+
+    // Internally stored as zeek_uint_t for serializers.
+    mdv->push_back({desc->id, std::move(val)});
+
+    return true;
+}
+
+std::tuple<zeek::Args, zeek::detail::MetadataVectorPtr> detail::Event::Take() && {
+    return std::tuple<zeek::Args, zeek::detail::MetadataVectorPtr>{std::move(args), std::move(mdv)};
+}
 
 bool detail::LocalEventHandlingStrategy::DoProcessEvent(std::string_view topic, detail::Event e) {
     zeek::event_mgr.Enqueue(e.Handler(), std::move(e.Args()), util::detail::SOURCE_BROKER, 0, nullptr, e.Timestamp());
@@ -96,13 +118,11 @@ bool Backend::Init(std::string nid) {
     return DoInit();
 }
 
-std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsSpan args, double timestamp) const {
+std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsSpan args) const {
     auto checked_args = detail::check_args(handler, args);
     if ( ! checked_args )
         return std::nullopt;
 
-    if ( timestamp == 0.0 )
-        timestamp = zeek::event_mgr.CurrentEventTime();
 
     const auto& eh = zeek::event_registry->Lookup(handler->AsFuncPtr()->GetName());
     if ( ! eh ) {
@@ -110,7 +130,11 @@ std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsS
         return std::nullopt;
     }
 
-    return zeek::cluster::detail::Event{eh, std::move(*checked_args), timestamp};
+    zeek::detail::MetadataVectorPtr mdv;
+    if ( zeek::BifConst::EventMetadata::add_network_timestamp )
+        mdv = zeek::detail::MakeMetadataVector(zeek::event_mgr.CurrentEventTime());
+
+    return zeek::cluster::detail::Event{eh, std::move(*checked_args), std::move(mdv)};
 }
 
 void Backend::DoReadyToPublishCallback(Backend::ReadyCallback cb) {

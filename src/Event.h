@@ -4,6 +4,7 @@
 
 #include <tuple>
 #include <type_traits>
+#include <vector>
 
 #include "zeek/ZeekArgs.h"
 #include "zeek/analyzer/Analyzer.h"
@@ -90,6 +91,18 @@ public:
     EventHandlerPtr Handler() const { return handler; }
     const zeek::Args& Args() const { return args; }
     double Time() const;
+
+    /**
+     * @return a pointer to the MetadataVector of this event or a nullptr.
+     */
+    const detail::MetadataVector* Metadata() const { return meta.get(); }
+
+    /**
+     * @return a vector of values for metadata matching identifier \a id.
+     *
+     * @param id The metadata identifier as an enum value.
+     */
+    VectorValPtr MetadataValues(const EnumValPtr& id) const;
 
     void Describe(ODesc* d) const override;
 

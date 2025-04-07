@@ -15,6 +15,8 @@
 #include "zeek/cluster/OnLoop.h"
 #include "zeek/cluster/Serializer.h"
 #include "zeek/logging/Manager.h"
+#include "zeek/plugin/Manager.h"
+#include "zeek/plugin/Plugin.h"
 #include "zeek/util.h"
 
 #include "const.bif.netvar_h"
@@ -121,6 +123,10 @@ std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsS
 // Default implementation doing the serialization.
 bool Backend::DoPublishEvent(const std::string& topic, cluster::detail::Event& event) {
     cluster::detail::byte_buffer buf;
+
+    bool do_publish = PLUGIN_HOOK_WITH_RESULT(HOOK_PUBLISH_EVENT, HookPublishEvent(topic, event), true);
+    if ( ! do_publish )
+        return true;
 
     if ( ! event_serializer->SerializeEvent(buf, event) )
         return false;

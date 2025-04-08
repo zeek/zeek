@@ -60,6 +60,7 @@ jobs:
             libfl-dev \
             libfl2 \
             libkrb5-dev \
+            libnode-dev \
             libpcap-dev \
             libssl-dev \
             make \

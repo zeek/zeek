@@ -3,7 +3,6 @@
 #pragma once
 
 #include "zeek/analyzer/protocol/pia/PIA.h"
-#include "zeek/analyzer/protocol/ssl/events.bif.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace binpac {

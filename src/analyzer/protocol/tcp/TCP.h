@@ -3,10 +3,8 @@
 #pragma once
 
 #include "zeek/Conn.h"
-#include "zeek/IPAddr.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Endpoint.h"
-#include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
 #include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
 
 namespace zeek::analyzer::pia {

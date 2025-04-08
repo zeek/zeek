@@ -5,8 +5,6 @@
 #include "zeek/Tag.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Endpoint.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
-#include "zeek/packet_analysis/Analyzer.h"
-#include "zeek/packet_analysis/Component.h"
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 #include "zeek/session/Manager.h"
 

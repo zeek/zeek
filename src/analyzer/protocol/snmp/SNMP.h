@@ -2,7 +2,8 @@
 
 #pragma once
 
-#include "analyzer/protocol/snmp/snmp_pac.h"
+#include "zeek/analyzer/Analyzer.h"
+#include "zeek/analyzer/protocol/snmp/snmp_pac.h"
 
 namespace zeek::analyzer::snmp {
 

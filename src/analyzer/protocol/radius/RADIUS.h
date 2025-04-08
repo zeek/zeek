@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "zeek/analyzer/protocol/radius/events.bif.h"
 #include "zeek/analyzer/protocol/radius/radius_pac.h"
 
 namespace zeek::analyzer::radius {

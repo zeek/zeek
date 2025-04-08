@@ -24,6 +24,7 @@
 
 #include <hilti/autogen/config.h>
 
+#include "zeek/Event.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/packet_analysis/Manager.h"

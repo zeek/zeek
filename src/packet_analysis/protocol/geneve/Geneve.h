@@ -2,11 +2,12 @@
 
 #pragma once
 
+#include <cstdint>
 #include <functional>
 
 #include "zeek/Span.h"
+#include "zeek/iosource/Packet.h"
 #include "zeek/packet_analysis/Analyzer.h"
-#include "zeek/packet_analysis/Component.h"
 
 namespace zeek::packet_analysis::Geneve {
 

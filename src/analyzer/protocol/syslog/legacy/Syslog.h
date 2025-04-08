@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/analyzer/Analyzer.h"
 
 #include "analyzer/protocol/syslog/legacy/syslog_pac.h"
 

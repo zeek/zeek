@@ -2,13 +2,8 @@
 
 #include "zeek/analyzer/protocol/rpc/MOUNT.h"
 
-#include "zeek/zeek-config.h"
-
-#include <algorithm>
 #include <vector>
 
-#include "zeek/Event.h"
-#include "zeek/NetVar.h"
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/protocol/rpc/XDR.h"
 #include "zeek/analyzer/protocol/rpc/events.bif.h"

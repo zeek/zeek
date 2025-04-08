@@ -2,8 +2,6 @@
 
 #include "zeek/plugin/Plugin.h"
 
-#include "zeek/zeek-config.h"
-
 #ifndef ENABLE_SPICY_SSL
 #include "zeek/analyzer/Component.h"
 #include "zeek/analyzer/protocol/ssl/DTLS.h"

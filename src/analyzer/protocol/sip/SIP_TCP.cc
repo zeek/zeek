@@ -5,7 +5,6 @@
 
 #include "zeek/analyzer/protocol/sip/SIP_TCP.h"
 
-#include "zeek/analyzer/protocol/sip/events.bif.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
 namespace zeek::analyzer::sip_tcp {

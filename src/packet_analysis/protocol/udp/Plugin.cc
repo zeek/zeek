@@ -5,7 +5,6 @@
 #include "zeek/analyzer/Component.h"
 #include "zeek/packet_analysis/Component.h"
 #include "zeek/packet_analysis/protocol/udp/UDP.h"
-#include "zeek/packet_analysis/protocol/udp/UDPSessionAdapter.h"
 
 namespace zeek::plugin::Zeek_UDP {
 

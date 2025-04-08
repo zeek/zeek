@@ -4,7 +4,6 @@
 
 #include "zeek/Reporter.h"
 #include "zeek/analyzer/protocol/ssl/dtls_pac.h"
-#include "zeek/analyzer/protocol/ssl/events.bif.h"
 #include "zeek/analyzer/protocol/ssl/tls-handshake_pac.h"
 #include "zeek/util.h"
 

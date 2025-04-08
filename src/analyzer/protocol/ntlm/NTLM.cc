@@ -3,7 +3,6 @@
 #include "zeek/analyzer/protocol/ntlm/NTLM.h"
 
 #include "zeek/Reporter.h"
-#include "zeek/analyzer/protocol/ntlm/events.bif.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
 namespace zeek::analyzer::ntlm {

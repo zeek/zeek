@@ -11,7 +11,6 @@
 #include "zeek/Val.h"
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/Manager.h"
-#include "zeek/analyzer/protocol/conn-size/ConnSize.h"
 #include "zeek/packet_analysis/protocol/icmp/ICMPSessionAdapter.h"
 #include "zeek/packet_analysis/protocol/icmp/events.bif.h"
 #include "zeek/session/Manager.h"

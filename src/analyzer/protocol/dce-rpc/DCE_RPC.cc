@@ -2,11 +2,7 @@
 
 #include "zeek/analyzer/protocol/dce-rpc/DCE_RPC.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cstdlib>
-#include <map>
-#include <string>
 
 using namespace std;
 

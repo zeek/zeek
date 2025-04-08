@@ -4,7 +4,6 @@
 
 #include "zeek/analyzer/Component.h"
 #include "zeek/analyzer/protocol/sip/SIP.h"
-#include "zeek/analyzer/protocol/sip/SIP_TCP.h"
 
 namespace zeek::plugin::detail::Zeek_SIP {
 

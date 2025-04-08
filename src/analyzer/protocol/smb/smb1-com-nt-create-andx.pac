@@ -1,3 +1,7 @@
+%extern{
+#include "zeek/Dict.h"
+%}
+
 refine connection SMB_Conn += {
 	function proc_smb1_nt_create_andx_request(header: SMB_Header, val: SMB1_nt_create_andx_request): bool
 		%{

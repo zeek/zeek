@@ -526,6 +526,9 @@ void ScriptFunc::CreateCaptures(std::unique_ptr<std::vector<ZVal>> cvec) {
     }
 }
 
+void ScriptFunc::SetCapturesVec(std::unique_ptr<std::vector<ZVal>> cv) { captures_vec = std::move(cv); }
+
+
 void ScriptFunc::SetCaptures(Frame* f) {
     const auto& captures = type->GetCaptures();
     ASSERT(captures);

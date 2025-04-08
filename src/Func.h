@@ -11,9 +11,16 @@
 
 #include "zeek/Obj.h"
 #include "zeek/Scope.h"
-#include "zeek/Stmt.h"
+#include "zeek/StmtBase.h"
+#include "zeek/StmtEnums.h"
 #include "zeek/TraverseTypes.h"
-#include "zeek/Type.h" /* for function_flavor */
+#include "zeek/Type.h" /* for FunctionFlavor */
+
+// This is needed in order to chain-include ZVal.h, which is what's
+// actually needed by Func.h. If you don't include Val.h along with
+// ZVal.h, Windows fails to build because of the forward declarations
+// in ZVal.h.
+#include "zeek/Val.h"
 #include "zeek/ZeekArgs.h"
 #include "zeek/ZeekList.h"
 
@@ -223,7 +230,7 @@ public:
      *
      * @param cv The value used for captures_vec.
      */
-    void SetCapturesVec(std::unique_ptr<std::vector<ZVal>> cv) { captures_vec = std::move(cv); }
+    void SetCapturesVec(std::unique_ptr<std::vector<ZVal>> cv);
 
     // Same definition as in Frame.h.
     using OffsetMap = std::unordered_map<std::string, int>;

@@ -8,7 +8,6 @@
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
 #include "zeek/analyzer/protocol/conn-size/events.bif.h"
-#include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::analyzer::conn_size {
 

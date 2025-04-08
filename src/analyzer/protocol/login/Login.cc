@@ -2,13 +2,9 @@
 
 #include "zeek/analyzer/protocol/login/Login.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cctype>
 #include <cstdlib>
 
-#include "zeek/Event.h"
-#include "zeek/NetVar.h"
 #include "zeek/RE.h"
 #include "zeek/Reporter.h"
 #include "zeek/Var.h"

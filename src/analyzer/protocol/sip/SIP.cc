@@ -2,8 +2,6 @@
 
 #include "zeek/analyzer/protocol/sip/SIP.h"
 
-#include "zeek/analyzer/protocol/sip/events.bif.h"
-
 namespace zeek::analyzer::sip {
 
 SIP_Analyzer::SIP_Analyzer(Connection* c) : analyzer::Analyzer("SIP", c) { interp = new binpac::SIP::SIP_Conn(this); }

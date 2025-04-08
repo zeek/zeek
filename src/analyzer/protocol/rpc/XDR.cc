@@ -2,12 +2,10 @@
 
 #include "zeek/analyzer/protocol/rpc/XDR.h"
 
-#include "zeek/zeek-config.h"
-
+// Needed for ntohl()
+#include <arpa/inet.h>
 #include <algorithm>
 #include <cstring>
-
-#include "zeek/analyzer/protocol/rpc/events.bif.h"
 
 uint32_t zeek::analyzer::rpc::extract_XDR_uint32(const u_char*& buf, int& len) {
     if ( ! buf )

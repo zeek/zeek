@@ -2,11 +2,8 @@
 
 #include "zeek/analyzer/protocol/http/HTTP.h"
 
-#include "zeek/zeek-config.h"
-
 #include <algorithm>
 #include <cctype>
-#include <cmath>
 #include <cstdlib>
 #include <string>
 
@@ -346,9 +343,9 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
     else if ( analyzer::mime::istrequal(h->get_name(), "content-range") &&
               http_message->MyHTTP_Analyzer()->HTTP_ReplyCode() == 206 ) {
         data_chunk_t vt = h->get_value_token();
-        string byte_unit(vt.data, vt.length);
+        std::string byte_unit(vt.data, vt.length);
         vt = h->get_value_after_token();
-        string byte_range(vt.data, vt.length);
+        std::string byte_range(vt.data, vt.length);
         byte_range.erase(remove(byte_range.begin(), byte_range.end(), ' '), byte_range.end());
 
         if ( byte_unit != "bytes" ) {
@@ -357,22 +354,22 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
         }
 
         size_t p = byte_range.find('/');
-        if ( p == string::npos ) {
+        if ( p == std::string::npos ) {
             http_message->Weird("HTTP_content_range_cannot_parse");
             return;
         }
 
-        string byte_range_resp_spec = byte_range.substr(0, p);
-        string instance_length_str = byte_range.substr(p + 1);
+        std::string byte_range_resp_spec = byte_range.substr(0, p);
+        std::string instance_length_str = byte_range.substr(p + 1);
 
         p = byte_range_resp_spec.find('-');
-        if ( p == string::npos ) {
+        if ( p == std::string::npos ) {
             http_message->Weird("HTTP_content_range_cannot_parse");
             return;
         }
 
-        string first_byte_pos = byte_range_resp_spec.substr(0, p);
-        string last_byte_pos = byte_range_resp_spec.substr(p + 1);
+        std::string first_byte_pos = byte_range_resp_spec.substr(0, p);
+        std::string last_byte_pos = byte_range_resp_spec.substr(p + 1);
 
         if ( DEBUG_http )
             DEBUG_MSG("Parsed Content-Range: %s %s-%s/%s\n", byte_unit.c_str(), first_byte_pos.c_str(),

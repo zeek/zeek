@@ -962,13 +962,13 @@ void Manager::HookUnprocessedPacket(const Packet* packet) const {
 }
 
 void Manager::MetaHookPre(HookType hook, const HookArgumentList& args) const {
-    if ( hook_list* l = hooks[HOOK_CALL_FUNCTION] )
+    if ( hook_list* l = hooks[META_HOOK_PRE] )
         for ( const auto& [hook_type, plugin] : *l )
             plugin->MetaHookPre(hook, args);
 }
 
 void Manager::MetaHookPost(HookType hook, const HookArgumentList& args, const HookArgument& result) const {
-    if ( hook_list* l = hooks[HOOK_CALL_FUNCTION] )
+    if ( hook_list* l = hooks[META_HOOK_POST] )
         for ( const auto& [hook_type, plugin] : *l )
             plugin->MetaHookPost(hook, args, result);
 }

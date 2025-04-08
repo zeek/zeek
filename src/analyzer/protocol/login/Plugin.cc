@@ -3,7 +3,6 @@
 #include "zeek/plugin/Plugin.h"
 
 #include "zeek/analyzer/Component.h"
-#include "zeek/analyzer/protocol/login/Login.h"
 #include "zeek/analyzer/protocol/login/RSH.h"
 #include "zeek/analyzer/protocol/login/Rlogin.h"
 #include "zeek/analyzer/protocol/login/Telnet.h"

@@ -2,8 +2,6 @@
 
 #include "zeek/analyzer/protocol/mime/MIME.h"
 
-#include "zeek/zeek-config.h"
-
 #include <openssl/evp.h>
 
 #include "zeek/Base64.h"

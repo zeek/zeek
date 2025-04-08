@@ -2,12 +2,8 @@
 
 #include "zeek/analyzer/protocol/login/NVT.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cstdlib>
 
-#include "zeek/Event.h"
-#include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/protocol/login/events.bif.h"

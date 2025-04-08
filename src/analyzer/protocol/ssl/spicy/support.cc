@@ -3,7 +3,6 @@
 #include <hilti/rt/libhilti.h>
 #include <cassert>
 
-#include "zeek/Conn.h"
 #include "zeek/Desc.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 #include "zeek/file_analysis/Manager.h"

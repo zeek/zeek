@@ -2,13 +2,9 @@
 
 #include "zeek/analyzer/protocol/smtp/SMTP.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cstdlib>
 #include <limits>
 
-#include "zeek/Event.h"
-#include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/smtp/BDAT.h"

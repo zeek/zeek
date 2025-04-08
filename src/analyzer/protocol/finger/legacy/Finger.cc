@@ -2,12 +2,8 @@
 
 #include "zeek/analyzer/protocol/finger/legacy/Finger.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cctype>
 
-#include "zeek/Event.h"
-#include "zeek/NetVar.h"
 #include "zeek/analyzer/protocol/finger/legacy/events.bif.h"
 #include "zeek/analyzer/protocol/tcp/ContentLine.h"
 

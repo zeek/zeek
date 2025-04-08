@@ -8,11 +8,9 @@
 #include "zeek/Event.h"
 #include "zeek/UID.h"
 #include "zeek/analyzer/Manager.h"
-#include "zeek/digest.h"
 #include "zeek/file_analysis/Analyzer.h"
 #include "zeek/file_analysis/File.h"
 #include "zeek/file_analysis/file_analysis.bif.h"
-#include "zeek/plugin/Manager.h"
 
 using namespace std;
 

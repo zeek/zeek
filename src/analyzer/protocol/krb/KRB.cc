@@ -4,9 +4,6 @@
 
 #include <unistd.h>
 
-#include "zeek/analyzer/protocol/krb/events.bif.h"
-#include "zeek/analyzer/protocol/krb/types.bif.h"
-
 namespace zeek::analyzer::krb {
 
 bool KRB_Analyzer::krb_available = false;

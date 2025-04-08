@@ -108,7 +108,7 @@ public:
      * @param child The analyzer that will be called for the new protocol during
      * forwarding.
      */
-    void RegisterProtocol(uint32_t identifier, AnalyzerPtr child);
+    void RegisterProtocol(uint64_t identifier, AnalyzerPtr child);
 
     /**
      * Registers an analyzer to use for protocol detection if identifier
@@ -202,7 +202,7 @@ protected:
      * @return The analyzer registered for the given identifier. Returns a
      * nullptr if no analyzer is registered.
      */
-    const AnalyzerPtr& Lookup(uint32_t identifier) const;
+    const AnalyzerPtr& Lookup(uint64_t identifier) const;
 
     /**
      * Returns an analyzer based on a script-land definition.
@@ -238,7 +238,7 @@ protected:
      *
      * @return false if the analysis failed, else true.
      */
-    bool ForwardPacket(size_t len, const uint8_t* data, Packet* packet, uint32_t identifier) const;
+    bool ForwardPacket(size_t len, const uint8_t* data, Packet* packet, uint64_t identifier) const;
 
     /**
      * Triggers default analysis of the encapsulated packet if the default analyzer
@@ -266,7 +266,7 @@ private:
                                       const zeek::Tag& arg_tag);
 
     // Internal helpers to find an appropriate next inner analyzer.
-    const AnalyzerPtr& FindInnerAnalyzer(size_t len, const uint8_t* data, Packet* packet, uint32_t identifier) const;
+    const AnalyzerPtr& FindInnerAnalyzer(size_t len, const uint8_t* data, Packet* packet, uint64_t identifier) const;
     const AnalyzerPtr& FindInnerAnalyzer(size_t len, const uint8_t* data, Packet* packet) const;
     const AnalyzerPtr& DetectInnerAnalyzer(size_t len, const uint8_t* data, Packet* packet) const;
 

@@ -28,7 +28,7 @@ public:
      * @param identifier The identifier.
      * @param analyzer The analyzer to register.
      */
-    void Register(uint32_t identifier, AnalyzerPtr analyzer);
+    void Register(uint64_t identifier, AnalyzerPtr analyzer);
 
     /**
      * Looks up the analyzer for an identifier.
@@ -37,7 +37,7 @@ public:
      * @return The analyzer registered for the given identifier. Returns a
      * nullptr if no analyzer is registered.
      */
-    const AnalyzerPtr& Lookup(uint32_t identifier) const;
+    const AnalyzerPtr& Lookup(uint64_t identifier) const;
 
     /**
      * Returns the number of registered analyzers.
@@ -56,12 +56,12 @@ public:
     void DumpDebug() const;
 
 private:
-    uint32_t lowest_identifier = 0;
+    uint64_t lowest_identifier = 0;
     std::vector<AnalyzerPtr> table;
 
     void FreeValues();
 
-    inline uint32_t GetHighestIdentifier() const { return lowest_identifier + table.size() - 1; }
+    inline uint64_t GetHighestIdentifier() const { return lowest_identifier + table.size() - 1; }
 };
 
 } // namespace detail

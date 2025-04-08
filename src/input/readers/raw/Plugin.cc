@@ -2,6 +2,9 @@
 
 #include "zeek/input/readers/raw/Plugin.h"
 
+#include "zeek/input/Component.h"
+#include "zeek/input/readers/raw/Raw.h"
+
 namespace zeek::plugin::detail::Zeek_RawReader {
 
 Plugin plugin;

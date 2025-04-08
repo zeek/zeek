@@ -43,6 +43,7 @@
 #include "zeek/Scope.h"
 #include "zeek/ScriptCoverageManager.h"
 #include "zeek/Stats.h"
+#include "zeek/Stmt.h"
 #include "zeek/Timer.h"
 #include "zeek/Traverse.h"
 #include "zeek/Trigger.h"

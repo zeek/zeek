@@ -8,6 +8,7 @@
 
 #include "zeek/Conn.h"
 #include "zeek/DNS_Mgr.h"
+#include "zeek/Dict.h"
 #include "zeek/Event.h"
 #include "zeek/File.h"
 #include "zeek/Func.h"

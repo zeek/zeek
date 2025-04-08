@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "zeek/analyzer/protocol/mysql/events.bif.h"
 #include "zeek/analyzer/protocol/mysql/mysql_pac.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 

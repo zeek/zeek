@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "zeek/analyzer/protocol/gssapi/events.bif.h"
 #include "zeek/analyzer/protocol/gssapi/gssapi_pac.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 

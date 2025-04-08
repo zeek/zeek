@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "zeek/Tag.h"
 #include "zeek/plugin/Component.h"
 
 namespace zeek::logging {

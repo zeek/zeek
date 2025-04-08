@@ -77,6 +77,11 @@ Breaking Changes
   ``to_count()``. Previously, ``to_int()`` would silently ignore invalid inputs and return a
   ``0``. It now returns an error instead.
 
+- Events do not carry network time metadata by default anymore. Users can
+  re-enable this functionality via `redef EventMetadata::add_network_timestamp = T`.
+  The primary reason for the reversal is to aid streamlining of the generic event
+  metadata implementation.
+
 New Functionality
 -----------------
 
@@ -215,6 +220,15 @@ New Functionality
 - The HTTP analyzer now checks for the HTTP-name field to be case-insensitive, even though
   the spec specifies that field must be uppercase. If a non-uppercase string is
   encountered, a new ``lowercase_HTTP_keyword`` weird is emitted.
+
+- Generic event metadata support. A new ``EventMetadata`` module was added, allowing
+  to register generic event metadata types and accessing the current event's metadata
+  using the builtin functions ``current()`` and ``current_values()`` within this module.
+
+  Additionally, a new plugin hook, HookPublishEvent(), has been added. This hook
+  receives the topic and a mutable cluster event instance. Besides operational
+  monitoring and gathering statistics about publish activity, this hook allows
+  adding metadata to cluster events.
 
 Changed Functionality
 ---------------------

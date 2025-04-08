@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "zeek/analyzer/protocol/ssh/events.bif.h"
 #include "zeek/analyzer/protocol/ssh/ssh_pac.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 

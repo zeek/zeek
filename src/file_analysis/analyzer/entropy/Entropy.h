@@ -2,13 +2,10 @@
 
 #pragma once
 
-#include <string>
-
 #include "zeek/OpaqueVal.h"
 #include "zeek/Val.h"
 #include "zeek/file_analysis/Analyzer.h"
 #include "zeek/file_analysis/File.h"
-#include "zeek/file_analysis/analyzer/entropy/events.bif.h"
 
 namespace zeek::file_analysis::detail {
 

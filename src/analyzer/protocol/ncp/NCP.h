@@ -17,7 +17,6 @@
 //
 //	http://faydoc.tripod.com/structures/21/2149.htm
 
-#include "zeek/NetVar.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 #include "analyzer/protocol/ncp/ncp_pac.h"

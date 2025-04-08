@@ -2,9 +2,6 @@
 
 #pragma once
 
-// for std::transform
-#include <algorithm>
-
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 #include "analyzer/protocol/imap/imap_pac.h"

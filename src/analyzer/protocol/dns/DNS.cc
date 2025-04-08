@@ -792,7 +792,7 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
 
 void DNS_Interpreter::ExtractOctets(const u_char*& data, int& len, String** p) {
     uint16_t dlen = ExtractShort(data, len);
-    dlen = min(len, static_cast<int>(dlen));
+    dlen = std::min(len, static_cast<int>(dlen));
 
     if ( p )
         *p = new String(data, dlen, false);
@@ -802,8 +802,8 @@ void DNS_Interpreter::ExtractOctets(const u_char*& data, int& len, String** p) {
 }
 
 String* DNS_Interpreter::ExtractStream(const u_char*& data, int& len, int l) {
-    l = max(l, 0);
-    int dlen = min(len, l); // Len in bytes of the algorithm use
+    l = std::max(l, 0);
+    int dlen = std::min(len, l); // Len in bytes of the algorithm use
     auto rval = new String(data, dlen, false);
 
     data += dlen;

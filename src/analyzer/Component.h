@@ -24,7 +24,7 @@ class Analyzer;
  */
 class Component : public plugin::Component {
 public:
-    using factory_callback = Analyzer* (*)(Connection* conn);
+    using factory_callback = Analyzer* (*)(Connection * conn);
 
     /**
      * Constructor.

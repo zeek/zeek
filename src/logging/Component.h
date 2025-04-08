@@ -15,7 +15,7 @@ class WriterBackend;
  */
 class Component : public plugin::Component {
 public:
-    using factory_callback = WriterBackend* (*)(WriterFrontend* frontend);
+    using factory_callback = WriterBackend* (*)(WriterFrontend * frontend);
 
     /**
      * Constructor.

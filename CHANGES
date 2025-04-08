@@ -1,3 +1,9 @@
+7.2.0-dev.486 | 2025-04-08 11:00:46 -0700
+
+  * Bump pre-commit hooks (Benjamin Bannier, Corelight)
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 7.2.0-dev.482 | 2025-04-08 10:59:15 -0700
 
   * Make SNAP analyzer use both OUI and protocol for forwarding (Tim Wojtulewicz, Corelight)

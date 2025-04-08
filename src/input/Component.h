@@ -15,7 +15,7 @@ class ReaderBackend;
  */
 class Component : public plugin::Component {
 public:
-    using factory_callback = ReaderBackend* (*)(ReaderFrontend* frontend);
+    using factory_callback = ReaderBackend* (*)(ReaderFrontend * frontend);
 
     /**
      * Constructor.

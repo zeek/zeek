@@ -11,9 +11,11 @@
 
 #include "zeek/Obj.h"
 #include "zeek/Scope.h"
-#include "zeek/Stmt.h"
+#include "zeek/StmtBase.h"
+#include "zeek/StmtEnums.h"
 #include "zeek/TraverseTypes.h"
 #include "zeek/Type.h" /* for function_flavor */
+#include "zeek/ZVal.h"
 #include "zeek/ZeekArgs.h"
 #include "zeek/ZeekList.h"
 
@@ -45,6 +47,9 @@ using EventGroupPtr = std::shared_ptr<EventGroup>;
 
 class Func;
 using FuncPtr = IntrusivePtr<Func>;
+
+class RecordVal;
+using RecordValPtr = IntrusivePtr<RecordVal>;
 
 class Func : public Obj {
 public:
@@ -223,7 +228,7 @@ public:
      *
      * @param cv The value used for captures_vec.
      */
-    void SetCapturesVec(std::unique_ptr<std::vector<ZVal>> cv) { captures_vec = std::move(cv); }
+    void SetCapturesVec(std::unique_ptr<std::vector<ZVal>> cv);
 
     // Same definition as in Frame.h.
     using OffsetMap = std::unordered_map<std::string, int>;

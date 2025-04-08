@@ -7,6 +7,7 @@
 
 #include "zeek/CompHash.h"
 #include "zeek/Desc.h"
+#include "zeek/Dict.h"
 #include "zeek/Event.h"
 #include "zeek/EventHandler.h"
 #include "zeek/Expr.h"

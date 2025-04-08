@@ -14,6 +14,11 @@ Breaking Changes
   draining has completed. The same applies to the corresponding C++ accessors on
   the ``EventMgr`` class. The functions now return false, 0 or the zero time instead.
 
+- Events do not carry network time metadata by default anymore. Users can
+  re-enable this functionality via `redef EventMetadata::add_network_timestamp = T`.
+  The primary reason for the reversal is to aid streamlining of the generic event
+  metadata implementation.
+
 New Functionality
 -----------------
 
@@ -61,6 +66,15 @@ New Functionality
   Two new script-level options ``Broker::log_severity_level`` and
   ``Broker::log_stderr_severity_level`` have been introduced to control
   the which events to expose by default.
+
+- Generic event metadata support. A new ``EventMetadata`` module was added, allowing
+  to register generic event metadata types and accessing the current event's metadata
+  using the builtin functions ``current()`` and ``current_values()`` within this module.
+
+  Additionally, a new plugin hook, HookPublishEvent(), has been added. This hook
+  receives the topic and a mutable cluster event instance. Besides operational
+  monitoring and gathering statistics about publish activity, this hook allows
+  adding metadata to cluster events.
 
 Changed Functionality
 ---------------------

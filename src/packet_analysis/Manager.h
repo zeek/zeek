@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "zeek/Func.h"
 #include "zeek/PacketFilter.h"
 #include "zeek/Tag.h"
 #include "zeek/iosource/Packet.h"

@@ -85,6 +85,18 @@ const String& String::operator=(const String& bs) {
     return *this;
 }
 
+String& String::operator=(String&& other) noexcept {
+    b = other.b;
+    n = other.n;
+    final_NUL = other.final_NUL;
+    use_free_to_delete = other.use_free_to_delete;
+
+    other.b = nullptr;
+    other.Reset();
+
+    return *this;
+}
+
 bool String::operator==(const String& bs) const { return Bstr_eq(this, &bs); }
 
 bool String::operator<(const String& bs) const { return Bstr_cmp(this, &bs) < 0; }
@@ -493,6 +505,10 @@ TEST_CASE("construction") {
     zeek::String s10{true, text5, 6};
     s10.SetUseFreeToDelete(1);
     CHECK_EQ(s10.Bytes(), text5);
+
+    // Test the move constructor.
+    zeek::String s11{std::move(s5)};
+    CHECK_EQ(s11.Len(), 6);
 }
 
 TEST_CASE("set/assignment/comparison") {
@@ -534,6 +550,9 @@ TEST_CASE("set/assignment/comparison") {
     zeek::String s5{};
     CHECK_LT(s5, s);
     CHECK_FALSE(s < s5);
+
+    zeek::String s6 = std::move(s3);
+    CHECK_EQ(s6, "def");
 }
 
 TEST_CASE("searching/modification") {

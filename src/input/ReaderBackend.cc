@@ -2,7 +2,6 @@
 
 #include "zeek/input/ReaderBackend.h"
 
-#include "zeek/Desc.h"
 #include "zeek/input/Manager.h"
 #include "zeek/input/ReaderFrontend.h"
 

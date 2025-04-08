@@ -2,8 +2,6 @@
 
 #include "zeek/threading/Formatter.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cerrno>
 
 #include "zeek/3rdparty/zeek_inet_ntop.h"

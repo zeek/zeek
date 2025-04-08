@@ -20,6 +20,8 @@
 #include "zeek/logging/Manager.h"
 #include "zeek/logging/writers/ascii/ascii.bif.h"
 #include "zeek/threading/SerialTypes.h"
+#include "zeek/threading/formatters/Ascii.h"
+#include "zeek/threading/formatters/JSON.h"
 #include "zeek/util.h"
 
 #include "zeek/3rdparty/doctest.h"

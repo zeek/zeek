@@ -9,6 +9,7 @@
 
 #include "zeek/input/readers/ascii/ascii.bif.h"
 #include "zeek/threading/SerialTypes.h"
+#include "zeek/threading/formatters/Ascii.h"
 
 using namespace std;
 using zeek::threading::Field;

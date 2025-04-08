@@ -2,8 +2,6 @@
 
 #include "zeek/threading/formatters/JSON.h"
 
-#include "zeek/zeek-config.h"
-
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
 #endif
@@ -14,7 +12,6 @@
 #include <cerrno>
 #include <cmath>
 #include <cstdint>
-#include <sstream>
 
 #include "zeek/Desc.h"
 #include "zeek/threading/MsgThread.h"

@@ -2,13 +2,9 @@
 
 #include "zeek/input/readers/sqlite/SQLite.h"
 
-#include "zeek/zeek-config.h"
-
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <fstream>
-#include <sstream>
 
 #include "zeek/input/readers/sqlite/sqlite.bif.h"
 #include "zeek/logging/writers/ascii/ascii.bif.h"

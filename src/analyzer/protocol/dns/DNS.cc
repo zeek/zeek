@@ -2,8 +2,6 @@
 
 #include "zeek/analyzer/protocol/dns/DNS.h"
 
-#include "zeek/zeek-config.h"
-
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>

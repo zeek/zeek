@@ -15,7 +15,6 @@
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/file_analysis/analyzer/x509/X509.h"
 #include "zeek/file_analysis/analyzer/x509/ocsp_events.bif.h"
-#include "zeek/file_analysis/analyzer/x509/types.bif.h"
 
 // helper function of sk_X509_value to avoid namespace problem
 // sk_X509_value(X,Y) = > SKM_sk_value(X509,X,Y)

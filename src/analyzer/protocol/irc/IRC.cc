@@ -4,11 +4,8 @@
 
 #include "zeek/analyzer/protocol/irc/IRC.h"
 
-#include <iostream>
 #include <unordered_set>
 
-#include "zeek/Event.h"
-#include "zeek/NetVar.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/irc/events.bif.h"
 #include "zeek/analyzer/protocol/zip/ZIP.h"

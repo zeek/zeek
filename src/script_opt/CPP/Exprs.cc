@@ -1053,13 +1053,13 @@ string CPPCompile::GenDirectAssign(const ExprPtr& lhs, const string& rhs_native,
     if ( n->IsBlank() )
         return rhs_native;
 
-    auto name = IDNameStr(n);
+    const auto& name = IDNameStr(n);
 
     string gen;
 
     if ( n->IsGlobal() ) {
         const auto& t = n->GetType();
-        auto gn = globals[n->Name()];
+        const auto& gn = globals[n->Name()];
 
         if ( t->Tag() == TYPE_FUNC && t->AsFuncType()->Flavor() == FUNC_FLAVOR_EVENT ) {
             gen = string("set_event__CPP(") + gn + ", " + rhs_val_ptr + ", " + gn + "_ev)";

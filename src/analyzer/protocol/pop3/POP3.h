@@ -102,7 +102,7 @@ protected:
     std::vector<std::string> TokenizeLine(const std::string& input, char split);
     int ParseCmd(std::string cmd);
     void AuthSuccessful();
-    void POP3Event(EventHandlerPtr event, bool is_orig, const char* arg1 = nullptr, const char* arg2 = nullptr);
+    void POP3Event(const EventHandlerPtr& event, bool is_orig, const char* arg1 = nullptr, const char* arg2 = nullptr);
 
     analyzer::mime::MIME_Mail* mail;
     std::list<std::string> cmds;

@@ -831,7 +831,7 @@ void ValTraceMgr::AssessChange(const ValTrace* vt, const ValTrace* prev_vt) {
         if ( previous_deltas.count(full_delta) > 0 )
             continue;
 
-        previous_deltas.insert(full_delta);
+        previous_deltas.insert(std::move(full_delta));
 
         ValUsed(vp);
         curr_ev->AddDelta(vp, rhs, needs_lhs, is_first_def);

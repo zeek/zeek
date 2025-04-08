@@ -75,7 +75,8 @@ public:
      * Get the current estimated number of elements in the data
      * structure
      *
-     * @return Estimated number of elements
+     * @return Estimated number of elements. Returns -1.0 if there are
+     * zero buckets.
      **/
     double Size() const;
 

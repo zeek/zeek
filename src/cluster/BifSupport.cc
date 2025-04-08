@@ -95,7 +95,7 @@ zeek::ValPtr publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args) {
         return zeek::val_mgr->False();
     }
 
-    const auto topic_str = topic->AsStringVal()->ToStdString();
+    auto topic_str = topic->AsStringVal()->ToStdString();
 
     auto timestamp = zeek::event_mgr.CurrentEventTime();
 
@@ -126,7 +126,7 @@ zeek::ValPtr publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args) {
                 return zeek::val_mgr->False();
             }
 
-            return zeek::val_mgr->Bool(zeek::broker_mgr->PublishEvent(topic_str, args[0]->AsRecordVal()));
+            return zeek::val_mgr->Bool(zeek::broker_mgr->PublishEvent(std::move(topic_str), args[0]->AsRecordVal()));
         }
         else {
             zeek::emit_builtin_error(zeek::util::fmt("Publish of unknown record type '%s'",

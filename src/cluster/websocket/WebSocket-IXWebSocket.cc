@@ -124,8 +124,9 @@ std::unique_ptr<WebSocketServer> StartServer(std::unique_ptr<WebSocketEventDispa
 
         // These callbacks run in per client threads. The actual processing happens
         // on the main thread via a single WebSocketDemux instance.
-        ix::OnMessageCallback message_callback = [dispatcher, id, remotePort, remoteIp,
-                                                  ixws](const ix::WebSocketMessagePtr& msg) mutable {
+        ix::OnMessageCallback message_callback = [dispatcher, id = std::move(id), remotePort,
+                                                  remoteIp = std::move(remoteIp),
+                                                  ixws = std::move(ixws)](const ix::WebSocketMessagePtr& msg) mutable {
             if ( msg->type == ix::WebSocketMessageType::Open ) {
                 dispatcher->QueueForProcessing(
                     WebSocketOpen{id, msg->openInfo.uri, msg->openInfo.protocol, std::move(ixws)});

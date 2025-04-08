@@ -55,7 +55,7 @@ void Manager::InitPostScript() {
     if ( metrics_port->Port() != 0 )
         prometheus_url = util::fmt("%s:%u", metrics_address.data(), metrics_port->Port());
 
-    if ( ! prometheus_url.empty() ) {
+    if ( ! prometheus_url.empty() && ! getenv("ZEEKCTL_CHECK_CONFIG") ) {
         CivetCallbacks* callbacks = nullptr;
         auto local_node_name = id::find_val("Cluster::node")->AsStringVal();
         if ( local_node_name->Len() > 0 ) {
@@ -87,28 +87,25 @@ void Manager::InitPostScript() {
             }
         }
 
-        if ( ! getenv("ZEEKCTL_CHECK_CONFIG") ) {
-            try {
-                prometheus_exposer =
-                    std::make_unique<prometheus::Exposer>(prometheus_url, BifConst::Telemetry::civetweb_threads,
-                                                          callbacks);
+        try {
+            prometheus_exposer =
+                std::make_unique<prometheus::Exposer>(prometheus_url, BifConst::Telemetry::civetweb_threads, callbacks);
 
-                // CivetWeb stores a copy of the callbacks, so we're safe to delete the pointer here
-                delete callbacks;
-            } catch ( const CivetException& exc ) {
-                reporter->FatalError("Failed to setup Prometheus endpoint: %s. Attempted to bind to %s.", exc.what(),
-                                     prometheus_url.c_str());
-            }
-
-            // This has to be inserted before the registry below. The exposer
-            // processes the collectors in order of insertion. We want to make
-            // sure that the callbacks get called and the values in the metrics
-            // are updated before prometheus-cpp scrapes them.
-            zeek_collectable = std::make_shared<ZeekCollectable>();
-            prometheus_exposer->RegisterCollectable(zeek_collectable);
-
-            prometheus_exposer->RegisterCollectable(prometheus_registry);
+            // CivetWeb stores a copy of the callbacks, so we're safe to delete the pointer here
+            delete callbacks;
+        } catch ( const CivetException& exc ) {
+            reporter->FatalError("Failed to setup Prometheus endpoint: %s. Attempted to bind to %s.", exc.what(),
+                                 prometheus_url.c_str());
         }
+
+        // This has to be inserted before the registry below. The exposer
+        // processes the collectors in order of insertion. We want to make
+        // sure that the callbacks get called and the values in the metrics
+        // are updated before prometheus-cpp scrapes them.
+        zeek_collectable = std::make_shared<ZeekCollectable>();
+        prometheus_exposer->RegisterCollectable(zeek_collectable);
+
+        prometheus_exposer->RegisterCollectable(prometheus_registry);
     }
 
 #ifdef HAVE_PROCESS_STAT_METRICS

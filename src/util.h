@@ -599,11 +599,11 @@ template<typename T>
 std::vector<T> split(T s, const T& delim) {
     // If there's no delimiter, return a copy of the existing string.
     if ( delim.empty() )
-        return {T(s)};
+        return {std::move(s)};
 
     // If the delimiter won't fit in the string, just return a copy as well.
     if ( s.size() < delim.size() )
-        return {T(s)};
+        return {std::move(s)};
 
     std::vector<T> l;
 
@@ -659,6 +659,21 @@ inline std::vector<std::string_view> split(const char* s, const char* delim) {
  */
 inline std::vector<std::wstring_view> split(const wchar_t* s, const wchar_t* delim) {
     return split(std::wstring_view(s), std::wstring_view(delim));
+}
+
+/**
+ * Implementation of std::unreachable. Once C++23 is supported this can be replaced with
+ * an alias. This implementation is taken from cppreference.
+ */
+[[noreturn]] inline void unreachable() {
+    // Uses compiler specific extensions if possible.  Even if no extension is used,
+    // undefined behavior is still raised by an empty function body and the noreturn
+    // attribute.
+#if defined(_MSC_VER) && ! defined(__clang__) // MSVC
+    __assume(false);
+#else // GCC, Clang
+    __builtin_unreachable();
+#endif
 }
 
 } // namespace util

@@ -1,3 +1,28 @@
+7.2.0-dev.497 | 2025-04-08 11:30:53 -0700
+
+  * Add move assignment operator to ZeekString, which already had a move constructor (Tim Wojtulewicz, Corelight)
+
+  * Don't initialize telemetry listener at all if ZEEKCTL_CHECK_CONFIG is set (Tim Wojtulewicz, Corelight)
+
+  * Avoid extra temporary strings in concatenation (Tim Wojtulewicz, Corelight)
+
+  * Use const auto references to avoid some copies (Tim Wojtulewicz, Corelight)
+
+  * Clean up initialization of TunnelEncapsulation to use default member values (Tim Wojtulewicz, Corelight)
+
+  * Remove some unnecessary std::move calls in broker::Manager (Tim Wojtulewicz, Corelight)
+
+  * Avoid divide-by-zero in CardinalityCounter::Size (Tim Wojtulewicz, Corelight)
+
+  * Minor fixes in POP3 analyzer based on flycheck warnings (Tim Wojtulewicz, Corelight)
+
+    This also adds an implementation of unreachable() to use for default
+    cases where it shouldn't ever actually cause the default.
+
+  * More std::move changes based on Coverity findings (Tim Wojtulewicz, Corelight)
+
+  * Fix a potential memory leak in Debug function (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.486 | 2025-04-08 11:00:46 -0700
 
   * Bump pre-commit hooks (Benjamin Bannier, Corelight)

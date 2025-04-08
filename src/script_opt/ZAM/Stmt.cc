@@ -542,24 +542,24 @@ const ZAMStmt ZAMCompiler::GenSwitch(const SwitchStmt* sw, int slot, InternalTyp
     switch ( it ) {
         case TYPE_INTERNAL_INT:
             tbl = int_casesI.size();
-            int_casesI.push_back(new_int_cases);
+            int_casesI.push_back(std::move(new_int_cases));
             break;
 
         case TYPE_INTERNAL_UNSIGNED:
             tbl = uint_casesI.size();
-            uint_casesI.push_back(new_uint_cases);
+            uint_casesI.push_back(std::move(new_uint_cases));
             break;
 
         case TYPE_INTERNAL_DOUBLE:
             tbl = double_casesI.size();
-            double_casesI.push_back(new_double_cases);
+            double_casesI.push_back(std::move(new_double_cases));
             break;
 
         case TYPE_INTERNAL_STRING:
         case TYPE_INTERNAL_ADDR:
         case TYPE_INTERNAL_SUBNET:
             tbl = str_casesI.size();
-            str_casesI.push_back(new_str_cases);
+            str_casesI.push_back(std::move(new_str_cases));
             break;
 
         default: reporter->InternalError("bad switch type");
@@ -941,8 +941,8 @@ const ZAMStmt ZAMCompiler::CompileReturn(const ReturnStmt* r) {
 const ZAMStmt ZAMCompiler::CompileCatchReturn(const CatchReturnStmt* cr) {
     retvars.push_back(cr->RetVar());
 
-    auto hold_func = ZAM::curr_func;
-    auto hold_loc = ZAM::curr_loc;
+    const auto& hold_func = ZAM::curr_func;
+    const auto& hold_loc = ZAM::curr_loc;
 
     ZAM::curr_func = cr->Func()->GetName();
 

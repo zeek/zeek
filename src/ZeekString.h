@@ -54,6 +54,7 @@ public:
     ~String() { Reset(); }
 
     const String& operator=(const String& bs);
+    String& operator=(String&& bs) noexcept;
     bool operator==(const String& bs) const;
     bool operator<(const String& bs) const;
     bool operator==(std::string_view s) const;

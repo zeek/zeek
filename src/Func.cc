@@ -288,7 +288,7 @@ ScriptFunc::ScriptFunc(std::string _name, FuncTypePtr ft, std::vector<StmtPtr> b
         Body b;
         b.stmts = std::move(bs[i]);
         b.priority = priorities[i];
-        bodies.push_back(b);
+        bodies.push_back(std::move(b));
     }
 
     std::stable_sort(bodies.begin(), bodies.end());
@@ -564,7 +564,7 @@ void ScriptFunc::AddBody(StmtPtr new_body, const std::vector<IDPtr>& new_inits, 
     current_body = new_body;
     current_priority = b.priority = priority;
 
-    bodies.push_back(b);
+    bodies.push_back(std::move(b));
     std::stable_sort(bodies.begin(), bodies.end());
 }
 
@@ -898,7 +898,7 @@ FunctionIngredients::FunctionIngredients(ScopePtr _scope, StmtPtr _body, const s
     auto flavor = id->GetType<zeek::FuncType>()->Flavor();
     if ( flavor == FUNC_FLAVOR_EVENT || flavor == FUNC_FLAVOR_HOOK ) {
         auto module_group = event_registry->RegisterGroup(EventGroupKind::Module, module_name);
-        groups.insert(module_group);
+        groups.insert(std::move(module_group));
     }
 }
 
@@ -912,7 +912,7 @@ zeek::RecordValPtr make_backtrace_element(std::string_view name, const VectorVal
 
     auto elem = make_intrusive<RecordVal>(elem_type);
     elem->Assign(function_name_idx, name.data());
-    elem->Assign(function_args_idx, std::move(args));
+    elem->Assign(function_args_idx, args);
 
     if ( loc ) {
         elem->Assign(file_location_idx, loc->filename);

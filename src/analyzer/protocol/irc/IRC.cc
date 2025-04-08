@@ -998,7 +998,7 @@ vector<string> IRC_Analyzer::SplitWords(const string& input, char split) {
     // Add line end if needed.
     if ( start < input.size() ) {
         word = input.substr(start, input.size() - start);
-        words.push_back(word);
+        words.push_back(std::move(word));
     }
 
     return words;

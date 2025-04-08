@@ -329,7 +329,7 @@ void ZAMCompiler::CreateSharedFrameDenizens() {
         // execution.
         info.is_managed = false;
 
-        shared_frame_denizens_final.push_back(info);
+        shared_frame_denizens_final.push_back(std::move(info));
     }
 }
 

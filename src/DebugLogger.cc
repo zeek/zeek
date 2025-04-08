@@ -122,7 +122,7 @@ void DebugLogger::EnableStreams(const char* s) {
         for ( i = 0; i < NUM_DBGS; ++i ) {
             if ( ltok == streams[i].prefix ) {
                 streams[i].enabled = true;
-                enabled_streams.insert(ltok);
+                enabled_streams.insert(std::move(ltok));
                 goto next;
             }
         }

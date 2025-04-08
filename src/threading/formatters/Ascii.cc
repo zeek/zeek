@@ -2,8 +2,6 @@
 
 #include "zeek/threading/formatters/Ascii.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cerrno>
 #include <sstream>
 

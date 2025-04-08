@@ -8,7 +8,6 @@
 #include <cerrno>
 
 #include "zeek/input/readers/benchmark/benchmark.bif.h"
-#include "zeek/threading/Manager.h"
 #include "zeek/threading/SerialTypes.h"
 
 using zeek::threading::Field;

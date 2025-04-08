@@ -12,8 +12,6 @@
 #include "zeek/EventHandler.h"
 #include "zeek/Expr.h"
 #include "zeek/Func.h"
-#include "zeek/NetVar.h"
-#include "zeek/RunState.h"
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/input/ReaderBackend.h"
 #include "zeek/input/ReaderFrontend.h"

@@ -8,7 +8,6 @@
 #include "zeek/RuleMatcher.h"
 #include "zeek/analyzer/protocol/file/events.bif.h"
 #include "zeek/file_analysis/Manager.h"
-#include "zeek/util.h"
 
 namespace zeek::analyzer::file {
 

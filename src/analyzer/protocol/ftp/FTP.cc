@@ -2,13 +2,9 @@
 
 #include "zeek/analyzer/protocol/ftp/FTP.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cstdlib>
 
 #include "zeek/Base64.h"
-#include "zeek/Event.h"
-#include "zeek/NetVar.h"
 #include "zeek/RuleMatcher.h"
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/Manager.h"

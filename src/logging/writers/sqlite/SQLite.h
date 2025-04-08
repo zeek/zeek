@@ -4,10 +4,7 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/3rdparty/sqlite3.h"
-#include "zeek/Desc.h"
 #include "zeek/logging/WriterBackend.h"
 #include "zeek/threading/formatters/Ascii.h"
 

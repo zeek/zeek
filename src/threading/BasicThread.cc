@@ -2,8 +2,6 @@
 
 #include "zeek/threading/BasicThread.h"
 
-#include "zeek/zeek-config.h"
-
 #include <pthread.h>
 #include <csignal>
 

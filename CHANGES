@@ -1,3 +1,9 @@
+7.2.0-dev.482 | 2025-04-08 10:59:15 -0700
+
+  * Make SNAP analyzer use both OUI and protocol for forwarding (Tim Wojtulewicz, Corelight)
+
+  * Change packet analyzer identifiers to be 64-bit (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.478 | 2025-04-04 18:36:37 +0200
 
   * broker/main: Adapt enum values to agree with comm.bif (Arne Welzel, Corelight)

@@ -2,10 +2,7 @@
 
 #include "zeek/analyzer/protocol/snmp/SNMP.h"
 
-#include "zeek/Func.h"
 #include "zeek/Reporter.h"
-#include "zeek/analyzer/protocol/snmp/events.bif.h"
-#include "zeek/analyzer/protocol/snmp/types.bif.h"
 
 namespace zeek::analyzer::snmp {
 

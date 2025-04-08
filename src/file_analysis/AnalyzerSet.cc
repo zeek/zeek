@@ -7,7 +7,6 @@
 #include "zeek/file_analysis/Analyzer.h"
 #include "zeek/file_analysis/File.h"
 #include "zeek/file_analysis/Manager.h"
-#include "zeek/file_analysis/file_analysis.bif.h"
 
 namespace zeek::file_analysis::detail {
 

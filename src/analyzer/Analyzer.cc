@@ -5,10 +5,10 @@
 #include <binpac.h>
 #include <algorithm>
 
+#include "zeek/Conn.h"
 #include "zeek/Event.h"
-#include "zeek/ZeekString.h"
 #include "zeek/analyzer/Manager.h"
-#include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
 
 #include "zeek/3rdparty/doctest.h"
 

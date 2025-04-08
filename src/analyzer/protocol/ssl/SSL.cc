@@ -8,7 +8,6 @@
 #include <vector>
 
 #include "zeek/Reporter.h"
-#include "zeek/analyzer/protocol/ssl/events.bif.h"
 #include "zeek/analyzer/protocol/ssl/ssl_pac.h"
 #include "zeek/analyzer/protocol/ssl/tls-handshake_pac.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"

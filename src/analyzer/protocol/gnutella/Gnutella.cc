@@ -2,13 +2,9 @@
 
 #include "zeek/analyzer/protocol/gnutella/Gnutella.h"
 
-#include "zeek/zeek-config.h"
-
 #include <algorithm>
 #include <cctype>
 
-#include "zeek/Event.h"
-#include "zeek/NetVar.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/gnutella/events.bif.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"

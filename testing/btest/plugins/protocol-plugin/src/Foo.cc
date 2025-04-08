@@ -2,6 +2,7 @@
 #include "Foo.h"
 
 #include "zeek/EventRegistry.h"
+#include "zeek/Func.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
 #include "events.bif.h"

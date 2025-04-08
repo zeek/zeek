@@ -5,8 +5,8 @@
 #include <fcntl.h>
 #include <string>
 
-#include "zeek/Event.h"
 #include "zeek/file_analysis/Manager.h"
+#include "zeek/file_analysis/analyzer/extract/events.bif.h"
 #include "zeek/util.h"
 
 namespace zeek::file_analysis::detail {

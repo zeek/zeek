@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "zeek/NetVar.h"
 #include "zeek/analyzer/Analyzer.h"
 
 namespace zeek::analyzer::conn_size {

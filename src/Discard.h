@@ -19,7 +19,7 @@ namespace detail {
 class Discarder final {
 public:
     Discarder();
-    ~Discarder() = default;
+    ~Discarder();
 
     bool IsActive();
 

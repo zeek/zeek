@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/Tag.h"
 #include "zeek/plugin/Component.h"
 #include "zeek/util.h"

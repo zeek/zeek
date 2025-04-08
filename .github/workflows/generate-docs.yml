@@ -60,6 +60,7 @@ jobs:
             libfl-dev \
             libfl2 \
             libkrb5-dev \
+            libnode-dev \
             libpcap-dev \
             libssl-dev \
             make \
@@ -82,11 +83,23 @@ jobs:
           key: 'docs-gen-${{ github.job }}'
           max-size: '2000M'
 
+      # Github runners have node installed on them by default in /usr/local. This
+      # causes problems with configure finding the version from the apt package,
+      # plus gcc using it by default if we pass the right cmake variables to
+      # configure. The easiest solution is to move the directory away prior to
+      # running our build. It's moved back after just in case some workflow action
+      # expects it to exist.
+      - name: Move default node install to backup
+        run: sudo mv /usr/local/include/node /usr/local/include/node.bak
+
       - name: Configure
         run: ./configure --disable-broker-tests --disable-cpp-tests --ccache
 
       - name: Build
         run: cd build && make -j $(nproc)
+
+      - name: Move default node install to original location
+        run: sudo mv /usr/local/include/node.bak /usr/local/include/node
 
       - name: Check Spicy docs
         run: cd doc && make check-spicy-docs

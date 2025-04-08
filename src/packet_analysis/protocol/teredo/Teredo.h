@@ -5,7 +5,6 @@
 #include <map>
 
 #include "zeek/Conn.h"
-#include "zeek/NetVar.h"
 #include "zeek/RE.h"
 #include "zeek/Reporter.h"
 #include "zeek/packet_analysis/Analyzer.h"

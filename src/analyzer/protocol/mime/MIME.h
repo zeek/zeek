@@ -4,7 +4,6 @@
 
 #include <cassert>
 #include <cstdio>
-#include <queue>
 #include <vector>
 
 #include "zeek/Reporter.h"

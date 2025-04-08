@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "zeek/Dict.h"
 #include "zeek/Val.h"
 #include "zeek/ZeekString.h"
 #include "zeek/script_opt/ZAM/ZInstAux.h"

@@ -31,6 +31,7 @@
 #include "zeek/RunState.h"
 #include "zeek/Scope.h"
 #include "zeek/ScriptProfile.h"
+#include "zeek/Stats.h"
 #include "zeek/Stmt.h"
 #include "zeek/Traverse.h"
 #include "zeek/Var.h"

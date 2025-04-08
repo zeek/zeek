@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "zeek/Desc.h"
+#include "zeek/Dict.h"
 #include "zeek/Event.h"
 #include "zeek/EventHandler.h"
 #include "zeek/File.h"

@@ -1,3 +1,11 @@
+7.2.0-dev.501 | 2025-04-09 11:11:57 -0700
+
+  * Revert addition of std::unreachable (Tim Wojtulewicz, Corelight)
+
+    After further testing with the fuzzer corpus, std::unreachable isn't
+    necessary here. It's fine to just let the default case break to fix
+    the Coverity warning.
+
 7.2.0-dev.499 | 2025-04-09 18:11:08 +0200
 
   * btest/brokerstore-attr-persistence-clone: Add BTEST_BG_RUN_SLEEP=1 (Arne Welzel, Corelight)

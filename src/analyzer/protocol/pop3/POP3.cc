@@ -673,7 +673,7 @@ void POP3_Analyzer::ProcessReply(int length, const char* line) {
                         masterState = detail::POP3_UPDATE;
 
                     break;
-                default: util::unreachable();
+                default: break;
             }
 
             POP3Event(pop3_reply, false, cmd, message);
@@ -728,7 +728,7 @@ void POP3_Analyzer::ProcessReply(int length, const char* line) {
                          masterState == detail::POP3_START )
                         masterState = detail::POP3_FINISHED;
                     break;
-                default: util::unreachable();
+                default: break;
             }
 
             POP3Event(pop3_reply, false, cmd, message);

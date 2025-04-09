@@ -661,20 +661,5 @@ inline std::vector<std::wstring_view> split(const wchar_t* s, const wchar_t* del
     return split(std::wstring_view(s), std::wstring_view(delim));
 }
 
-/**
- * Implementation of std::unreachable. Once C++23 is supported this can be replaced with
- * an alias. This implementation is taken from cppreference.
- */
-[[noreturn]] inline void unreachable() {
-    // Uses compiler specific extensions if possible.  Even if no extension is used,
-    // undefined behavior is still raised by an empty function body and the noreturn
-    // attribute.
-#if defined(_MSC_VER) && ! defined(__clang__) // MSVC
-    __assume(false);
-#else // GCC, Clang
-    __builtin_unreachable();
-#endif
-}
-
 } // namespace util
 } // namespace zeek

@@ -22,7 +22,7 @@ export {
 		cause:          string            &log;
 		## The kind of analyzer involved. Currently "packet", "file"
 		## or "protocol".
-		analyzer_kind:  string            &log;
+		Analyzer::kind:  string            &log;
 		## The name of the analyzer as produced by :zeek:see:`Analyzer::name`
 		## for the analyzer's tag.
 		analyzer_name:  string            &log;
@@ -117,19 +117,6 @@ event zeek_init() &priority=5
 
 	}
 
-function analyzer_kind(atype: AllAnalyzers::Tag): string
-	{
-	if ( is_protocol_analyzer(atype) )
-		return "protocol";
-	else if ( is_packet_analyzer(atype) )
-		return "packet";
-	else if ( is_file_analyzer(atype) )
-		return "file";
-
-	Reporter::warning(fmt("Unknown kind of analyzer %s", atype));
-	return "unknown";
-	}
-
 function populate_from_conn(rec: Info, c: connection)
 	{
 	rec$id = c$id;
@@ -159,7 +146,7 @@ event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirm
 	local rec = Info(
 		$ts=network_time(),
 		$cause="confirmation",
-		$analyzer_kind=analyzer_kind(atype),
+		$Analyzer::kind=Analyzer::kind(atype),
 		$analyzer_name=Analyzer::name(atype),
 	);
 
@@ -180,7 +167,7 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 	local rec = Info(
 		$ts=network_time(),
 		$cause="violation",
-		$analyzer_kind=analyzer_kind(atype),
+		$Analyzer::kind=Analyzer::kind(atype),
 		$analyzer_name=Analyzer::name(atype),
 		$failure_reason=info$reason,
 	);
@@ -210,7 +197,7 @@ hook Analyzer::disabling_analyzer(c: connection, atype: AllAnalyzers::Tag, aid: 
 	local rec = Info(
 		$ts=network_time(),
 		$cause="disabled",
-		$analyzer_kind=analyzer_kind(atype),
+		$Analyzer::kind=Analyzer::kind(atype),
 		$analyzer_name=Analyzer::name(atype),
 	);
 

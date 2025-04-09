@@ -299,10 +299,29 @@ void WebSocketEventDispatcher::Process(const WebSocketOpen& open) {
 
     const auto& event_serializer_val = id::find_val<zeek::EnumVal>("Cluster::event_serializer");
     auto event_serializer = cluster::manager->InstantiateEventSerializer(event_serializer_val);
-    const auto& cluster_backend_val = id::find_val<zeek::EnumVal>("Cluster::backend");
+    auto cluster_backend_val = id::find_val<zeek::EnumVal>("Cluster::backend");
+
+    static const auto& cluster_backend_type = zeek::id::find_type<EnumType>("Cluster::BackendTag");
+    zeek_int_t broker_enum = cluster_backend_type->Lookup("Cluster::CLUSTER_BACKEND_BROKER");
+    zeek_int_t broker_ws_shim_enum = cluster_backend_type->Lookup("Cluster::CLUSTER_BACKEND_BROKER_WEBSOCKET_SHIM");
+
+    // If the configured backend is CLUSTER_BACKEND_BROKER, then switch
+    // the WebSocket client's backend to CLUSTER_BACKEND_BROKER_WEBSOCKET_SHIM
+    // so that pub/sub is using the local broker endpoint via hub functionality.
+    if ( cluster_backend_val->Get() == broker_enum ) {
+        WS_DEBUG("Using broker websocket shim");
+        cluster_backend_val = cluster_backend_type->GetEnumVal(broker_ws_shim_enum);
+    }
+
     auto event_handling_strategy = std::make_unique<WebSocketEventHandlingStrategy>(wsc, this);
     auto backend = zeek::cluster::manager->InstantiateBackend(cluster_backend_val, std::move(event_serializer), nullptr,
                                                               std::move(event_handling_strategy));
+
+    if ( ! backend ) {
+        reporter->Error("Failed to instantiate backend for client with id %s!", id.c_str());
+        QueueReply(WebSocketCloseReply{wsc, 1001, "Internal error"});
+        return;
+    }
 
     WS_DEBUG("New WebSocket client %s (%s:%d) - using id %s backend=%p", id.c_str(), wsc->getRemoteIp().c_str(),
              wsc->getRemotePort(), ws_id.c_str(), backend.get());

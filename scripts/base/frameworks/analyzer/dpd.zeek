@@ -1,13 +1,15 @@
 ##! Disables analyzers if protocol violations occur, and add service information
 ##! to connection log.
 
+@load ./main
+
 module DPD;
 
 export {
 	## Deprecated, please see https://github.com/zeek/zeek/pull/4200 for details
 	option max_violations: table[Analyzer::Tag] of count = table() &deprecated="Remove in v8.1: This has become non-functional in Zeek 7.2, see PR #4200" &default = 5;
 
-	## Analyzers which you don't want to throw
+	## Analyzers which you don't want to remove on violations.
 	option ignore_violations: set[Analyzer::Tag] = set();
 
 	## Ignore violations which go this many bytes into the connection.
@@ -43,7 +45,7 @@ event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirm
 	}
 
 ## Remove failed analyzers from service field and add them to c$service_violation
-event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=10
+event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo)
 	{
 	if ( ! is_protocol_analyzer(atype) && ! is_packet_analyzer(atype) )
 		return;
@@ -64,12 +66,17 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 
 	# if statement is separate, to allow repeated removal of service, in case there are several
 	# confirmation and violation events
-	if ( analyzer in c$service_violation )
-		return;
+	if ( analyzer !in c$service_violation )
+		add c$service_violation[analyzer];
 
-	add c$service_violation[analyzer];
+	# add "-service" to the list of services on removal due to violation, if analyzer was confirmed before
+	if ( track_removed_services_in_connection && Analyzer::name(atype) in c$service )
+		{
+		local rname = cat("-", Analyzer::name(atype));
+		if ( rname !in c$service )
+			add c$service[rname];
+		}
 	}
-
 
 event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo ) &priority=5
 	{
@@ -90,13 +97,7 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 
 	local disabled = disable_analyzer(c$id, aid, F);
 
-	# add "-service" to the list of services on removal due to violation, if analyzer was confirmed before
-	if ( track_removed_services_in_connection && disabled && Analyzer::name(atype) in c$service )
-		{
-		local rname = cat("-", Analyzer::name(atype));
-		if ( rname !in c$service )
-			add c$service[rname];
-		}
-
+	# If no one objected to the removal, send failed event
+	event analyzer_failed(network_time(), atype, info);
 	}
 

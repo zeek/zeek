@@ -10,17 +10,28 @@ std::unique_ptr<Serializer> JSON::Instantiate() { return std::make_unique<JSON>(
 
 JSON::JSON() : Serializer("JSON") { versioned_name = util::fmt("%sv%d", name.c_str(), Val::JSON_VERSION); }
 
-std::optional<util::byte_buffer> JSON::Serialize(ValPtr val) {
+std::optional<util::byte_buffer> JSON::Serialize(ValPtr val, string_transform xform) {
     static auto byte_converter = [](u_char c) { return std::byte(c); };
 
     std::string version = versioned_name + ";";
 
-    util::byte_buffer buf;
     auto json = val->ToJSON();
-    buf.reserve(json->Len() + version.size());
+    std::string_view json_str;
 
-    std::transform(version.begin(), version.end(), std::back_inserter(buf), byte_converter);
-    std::transform(json->Bytes(), json->Bytes() + json->Len(), std::back_inserter(buf), byte_converter);
+    util::byte_buffer buf;
+
+    if ( ! xform ) {
+        json_str = json->ToStdStringView();
+        buf.reserve(json_str.size() + version.size());
+
+        std::transform(version.begin(), version.end(), std::back_inserter(buf), byte_converter);
+        std::transform(json_str.begin(), json_str.end(), std::back_inserter(buf), byte_converter);
+    }
+    else {
+        std::string xformed;
+        xformed = xform(version) + xform(json->ToStdStringView());
+        std::transform(xformed.begin(), xformed.end(), std::back_inserter(buf), byte_converter);
+    }
 
     return buf;
 }

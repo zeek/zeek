@@ -6,6 +6,7 @@
 #include <broker/backend_options.hh>
 #include <broker/detail/hash.hh>
 #include <broker/endpoint_info.hh>
+#include <broker/hub.hh>
 #include <broker/peer_info.hh>
 #include <broker/store.hh>
 #include <broker/zeek.hh>
@@ -464,6 +465,16 @@ private:
     const char* Tag() override { return "Broker::Manager"; }
     double GetNextTimeout() override { return -1; }
 
+
+    // Allow WebSocketShim access to MakeHub() and ReleaseHub()
+    friend class WebSocketState;
+
+    // Create a broker hub for WebSocket clients.
+    broker::hub MakeHub(broker::filter_type ft);
+
+    // The broker hub is about to be removed.
+    void ReleaseHub(broker::hub& hub);
+
     struct LogBuffer {
         // Indexed by topic string.
         std::unordered_map<std::string, broker::zeek::BatchBuilder> msgs;
@@ -497,6 +508,7 @@ private:
     uint16_t bound_port;
     bool use_real_time;
     int peer_count;
+    int hub_count;
 
     size_t log_batch_size;
     Func* log_topic_func;

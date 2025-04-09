@@ -88,6 +88,15 @@ export {
 	## Returns: The analyzer name corresponding to the tag.
 	global name: function(tag: Analyzer::Tag) : string;
 
+	## Translates an analyzer type to a string with the analyzer's type.
+	##
+	## Possible values are "protocol", "packet", "file", or "unknown".
+	##
+	## tag: The analyzer tag.
+	##
+	## Returns: The analyzer kind corresponding to the tag.
+	global kind: function(tag: Analyzer::Tag) : string;
+
 	## Check whether the given analyzer name exists.
 	##
 	## This can be used before calling :zeek:see:`Analyzer::get_tag` to
@@ -244,6 +253,19 @@ function all_registered_ports(): table[AllAnalyzers::Tag] of set[port]
 function name(atype: AllAnalyzers::Tag) : string
 	{
 	return __name(atype);
+	}
+
+function kind(atype: AllAnalyzers::Tag): string
+	{
+	if ( is_protocol_analyzer(atype) )
+		return "protocol";
+	else if ( is_packet_analyzer(atype) )
+		return "packet";
+	else if ( is_file_analyzer(atype) )
+		return "file";
+
+	Reporter::warning(fmt("Unknown kind of analyzer %s", atype));
+	return "unknown";
 	}
 
 function has_tag(name: string): bool

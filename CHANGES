@@ -1,3 +1,7 @@
+7.2.0-dev.499 | 2025-04-09 18:11:08 +0200
+
+  * btest/brokerstore-attr-persistence-clone: Add BTEST_BG_RUN_SLEEP=1 (Arne Welzel, Corelight)
+
 7.2.0-dev.497 | 2025-04-08 11:30:53 -0700
 
   * Add move assignment operator to ZeekString, which already had a move constructor (Tim Wojtulewicz, Corelight)

@@ -282,6 +282,7 @@ Manager::Manager(bool arg_use_real_time) : Backend("Broker", nullptr, nullptr, n
     bound_port = 0;
     use_real_time = arg_use_real_time;
     peer_count = 0;
+    hub_count = 0;
     log_batch_size = 0;
     log_topic_func = nullptr;
     log_id_type = nullptr;
@@ -509,7 +510,7 @@ bool Manager::Active() {
     if ( bound_port > 0 )
         return true;
 
-    return peer_count > 0;
+    return peer_count > 0 || hub_count > 0;
 }
 
 void Manager::AdvanceTime(double seconds_since_unix_epoch) {
@@ -652,7 +653,7 @@ bool Manager::PublishEvent(string topic, std::string name, broker::vector args, 
     if ( bstate->endpoint.is_shutdown() )
         return true;
 
-    if ( peer_count == 0 )
+    if ( peer_count == 0 && hub_count == 0 )
         return true;
 
     broker::zeek::Event ev(name, args, broker::to_timestamp(ts));
@@ -666,7 +667,7 @@ bool Manager::PublishEvent(string topic, RecordVal* args) {
     if ( bstate->endpoint.is_shutdown() )
         return true;
 
-    if ( peer_count == 0 )
+    if ( peer_count == 0 && hub_count == 0 )
         return true;
 
     if ( ! args->HasField(0) )
@@ -1986,5 +1987,12 @@ void Manager::PrepareForwarding(const std::string& name) {
     handle->forward_to = forwarded_stores.at(name);
     DBG_LOG(DBG_BROKER, "Resolved table forward for data store %s", name.c_str());
 }
+
+broker::hub Manager::MakeHub(broker::filter_type ft) {
+    ++hub_count;
+    return bstate->endpoint.make_hub(std::move(ft));
+}
+
+void Manager::DestroyHub(broker::hub&& hub) { --hub_count; }
 
 } // namespace zeek::Broker

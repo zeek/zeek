@@ -30,6 +30,8 @@ extend-ignore-re = [
     "ot->Yield\\(\\)->InternalType\\(\\)",
     "switch \\( ot \\)",
     "\\(ZAMOpType ot\\)",
+    "exat", # Redis expire at
+    "EXAT",
 
     # News stuff
     "SupressWeirds.*deprecated",

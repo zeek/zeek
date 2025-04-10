@@ -9,7 +9,6 @@
 #endif
 #include <sys/stat.h>
 #include <cerrno>
-#include <climits> // for PATH_MAX
 #include <cstdlib>
 #include <fstream>
 #include <optional>

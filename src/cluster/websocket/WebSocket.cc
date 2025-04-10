@@ -85,7 +85,7 @@ private:
      * Events from backends aren't enqueued into the event loop when
      * running for WebSocket clients.
      */
-    void DoEnqueueLocalEvent(zeek::EventHandlerPtr h, zeek::Args args) override {}
+    void DoProcessLocalEvent(zeek::EventHandlerPtr h, zeek::Args args) override {}
 
     std::string buffer;
     std::shared_ptr<WebSocketClient> wsc;

@@ -12,7 +12,7 @@
 # @TEST-EXEC: echo "message-too-big-status.pcap" >>out.spicy
 # @TEST-EXEC: zeek -b -r $TRACES//websocket/message-too-big-status.pcap %INPUT WebSocket::use_spicy_analyzer=T >>out.spicy
 # @TEST-EXEC: diff -u out.spicy out >&2
-# @TEST-EXEC: test ! -f analyzer.log
+# @TEST-EXEC: test ! -f analyzer_failed.log
 # @TEST-EXEC: test ! -f weird.log
 
 @load base/protocols/websocket

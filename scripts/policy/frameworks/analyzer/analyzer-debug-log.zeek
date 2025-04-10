@@ -69,7 +69,7 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(LOG, [$columns=Info, $path="analyzer-debug", $policy=log_policy,
+	Log::create_stream(LOG, [$columns=Info, $path="analyzer_debug", $policy=log_policy,
 	                         $event_groups=set("Analyzer::DebugLogging")]);
 
 	local enable_handler = function(id: string, new_value: bool): bool {

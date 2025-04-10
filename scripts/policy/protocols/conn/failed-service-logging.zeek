@@ -15,21 +15,13 @@ redef record Conn::Info += {
 	failed_service: set[string] &log &optional &ordered;
 };
 
-hook Analyzer::disabling_analyzer(c: connection, atype: AllAnalyzers::Tag, aid: count) &priority=-1000
+event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo)
 	{
 	if ( ! is_protocol_analyzer(atype) && ! is_packet_analyzer(atype) )
 		return;
 
 	# Only add if previously confirmed
 	if ( Analyzer::name(atype) !in c$service && Analyzer::name(atype) !in c$service_violation )
-		return;
-
-	# Only log if dpd.zeek will disable
-	if ( atype in DPD::ignore_violations )
-		return;
-
-	local size = c$orig$size + c$resp$size;
-	if ( DPD::ignore_violations_after > 0 && size > DPD::ignore_violations_after )
 		return;
 
 	set_conn(c, F);

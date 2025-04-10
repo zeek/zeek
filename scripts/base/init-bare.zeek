@@ -617,6 +617,19 @@ export {
 	const add_missing_remote_network_timestamp: bool = F &redef;
 }
 
+module ConnTuple;
+
+export {
+	## The connection tuple factory to use for Zeek's internal flow
+	## tracking. This is a ``ConnTuple::Tag`` plugin component enum value,
+	## and the default is Zeek's traditional 5-tuple-tracking based on
+	## IP/port endpoint pairs, plus transport protocol. Plugins can provide
+	## their own implementation. You'll usually not adjust this value in
+	## isolation, but with a corresponding redef of the :zeek:type:`conn_id`
+	## record to represent additional flow tuple members.
+	const factory = ConnTuple::CONNTUPLE_FIVETUPLE &redef;
+}
+
 module FTP;
 
 export {

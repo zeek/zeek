@@ -1,0 +1,9 @@
+zeek_add_subdir_library(
+    conntuple
+    INCLUDE_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
+    SOURCES
+    Factory.h
+    Component.cc
+    Manager.cc)

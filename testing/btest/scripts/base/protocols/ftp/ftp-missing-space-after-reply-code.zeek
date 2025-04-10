@@ -2,7 +2,7 @@
 # @TEST-EXEC: zeek -b -r $TRACES/ftp/ftp-missing-space-after-reply-code.pcap %INPUT
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff ftp.log
-# @TEST-EXEC: btest-diff dpd.log
+# @TEST-EXEC: btest-diff analyzer_failed.log
 # @TEST-EXEC: test ! -f reporter.log
 
 @load base/protocols/conn

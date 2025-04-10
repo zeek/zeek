@@ -1,8 +1,8 @@
 ##! Disables analyzers if protocol violations occur and add service information
 ##! to connection log.
 
-## Historically, this file also handled the port-independent protocol detection.
-## This is now handled by the analyzer framework.
+# Historically, this file also handled the port-independent protocol detection.
+# This is now handled by the analyzer framework.
 
 @load ./main
 
@@ -33,7 +33,7 @@ redef record connection += {
 	service_violation: set[string] &default=set() &ordered;
 };
 
-## add confirmed protocol analyzers to conn.log service field
+# Add confirmed protocol analyzers to conn.log service field
 event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &priority=10
 	{
 	if ( ! is_protocol_analyzer(atype) && ! is_packet_analyzer(atype) )
@@ -48,8 +48,8 @@ event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirm
 	}
 
 
-## Remove failed analyzers from service field and add them to c$service_violation
-event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo)
+# Remove failed analyzers from service field and add them to c$service_violation
+event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=10
 	{
 	if ( ! is_protocol_analyzer(atype) && ! is_packet_analyzer(atype) )
 		return;

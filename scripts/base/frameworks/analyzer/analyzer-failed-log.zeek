@@ -1,4 +1,4 @@
-##! Logging analyzer  violations into analyzer-failed.log
+##! Logging analyzer  violations into analyzer_failed.log
 
 @load base/frameworks/logging
 @load ./main
@@ -46,7 +46,7 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(LOG, [$columns=Info, $path="analyzer-failed", $ev=log_analyzer_failed, $policy=log_policy]);
+	Log::create_stream(LOG, [$columns=Info, $path="analyzer_failed", $ev=log_analyzer_failed, $policy=log_policy]);
 	}
 
 event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo)
@@ -80,7 +80,12 @@ event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolatio
 		}
 
 	if ( info?$data )
-		rec$failure_data = info$data;
+		{
+		if ( failure_data_max_size > 0 )
+			rec$failure_data = info$data[0:failure_data_max_size];
+		else
+			rec$failure_data = info$data;
+		}
 
 	Log::write(LOG, rec);
 	}

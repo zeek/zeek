@@ -9,6 +9,7 @@
 
 # The base/ scripts are all loaded by default and not included here.
 
+@load frameworks/analyzer/analyzer-debug-log.zeek
 # @load frameworks/control/controllee.zeek
 # @load frameworks/control/controller.zeek
 @ifdef ( Cluster::CLUSTER_BACKEND_ZEROMQ )

@@ -1,6 +1,6 @@
-# @TEST-DOC: IPv6 connection from external ipv6.pcap triggering FTP analyzer violation. Check dpd.log contains the right packet_segment
+# @TEST-DOC: IPv6 connection from external ipv6.pcap triggering FTP analyzer violation. Check analyzer_failed.log contains the right packet_segment
 # @TEST-EXEC: zeek -r $TRACES/ftp/ipv6-violation.trace %INPUT
-# @TEST-EXEC: btest-diff dpd.log
+# @TEST-EXEC: btest-diff analyzer_failed.log
 
 @load frameworks/dpd/packet-segment-logging
 

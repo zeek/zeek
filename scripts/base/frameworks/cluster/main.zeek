@@ -667,3 +667,10 @@ event websocket_client_lost(endpoint: EndpointInfo)
 	                endpoint$id, endpoint$network$address, endpoint$network$bound_port);
 	Cluster::log(msg);
 	}
+
+# If a backend reports an error, propagate it via a reporter error message.
+event Cluster::Backend::error(tag: string, message: string)
+	{
+	local msg = fmt("Cluster::Backend::error: %s (%s)", tag, message);
+	Reporter::error(msg);
+	}

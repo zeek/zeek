@@ -13,6 +13,7 @@
 #include "zeek/cluster/Manager.h"
 #include "zeek/cluster/OnLoop.h"
 #include "zeek/cluster/Serializer.h"
+#include "zeek/cluster/cluster.bif.h"
 #include "zeek/logging/Manager.h"
 #include "zeek/util.h"
 
@@ -26,6 +27,13 @@ bool detail::LocalEventHandlingStrategy::DoProcessEvent(std::string_view topic, 
 
 void detail::LocalEventHandlingStrategy::DoProcessLocalEvent(EventHandlerPtr h, zeek::Args args) {
     zeek::event_mgr.Enqueue(h, std::move(args));
+}
+
+// Backend errors are raised via a generic Cluster::Backend::error(tag, message) event.
+void detail::LocalEventHandlingStrategy::DoProcessError(std::string_view tag, std::string_view message) {
+    if ( Cluster::Backend::error )
+        zeek::event_mgr.Enqueue(Cluster::Backend::error, zeek::make_intrusive<zeek::StringVal>(tag),
+                                zeek::make_intrusive<zeek::StringVal>(message));
 }
 
 std::optional<zeek::Args> detail::check_args(const zeek::FuncValPtr& handler, zeek::ArgsSpan args) {
@@ -125,6 +133,10 @@ void Backend::EnqueueEvent(EventHandlerPtr h, zeek::Args args) {
 
 bool Backend::ProcessEvent(std::string_view topic, detail::Event e) {
     return event_handling_strategy->ProcessEvent(topic, std::move(e));
+}
+
+void Backend::ProcessError(std::string_view tag, std::string_view message) {
+    return event_handling_strategy->ProcessError(tag, message);
 }
 
 bool Backend::ProcessEventMessage(std::string_view topic, std::string_view format, byte_buffer_span payload) {

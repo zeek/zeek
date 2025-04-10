@@ -112,11 +112,19 @@ public:
      * When the backend is instantiated for a WebSocket client,
      * local scripting layer should not raise events for the
      * WebSocket client.
-
+     *
      * @param h The event handler to use.
      * @param args The event arguments.
      */
     void ProcessLocalEvent(EventHandlerPtr h, zeek::Args args) { DoProcessLocalEvent(h, std::move(args)); }
+
+    /**
+     * Process an error.
+     *
+     * @param tag A stringified structured error tag not further specified.
+     * @param message A free form message with more context.
+     */
+    void ProcessError(std::string_view tag, std::string_view message) { return DoProcessError(tag, message); };
 
 private:
     /**
@@ -136,6 +144,14 @@ private:
      * @param args The event arguments.
      */
     virtual void DoProcessLocalEvent(EventHandlerPtr h, zeek::Args args) = 0;
+
+    /**
+     * Hook method for implementing ProcessError().
+     *
+     * @param tag A stringified structured error tag not further specified.
+     * @param message A free form message with more context.
+     */
+    virtual void DoProcessError(std::string_view tag, std::string_view message) = 0;
 };
 
 /**
@@ -145,6 +161,7 @@ class LocalEventHandlingStrategy : public EventHandlingStrategy {
 private:
     bool DoProcessEvent(std::string_view topic, Event e) override;
     void DoProcessLocalEvent(EventHandlerPtr h, zeek::Args args) override;
+    void DoProcessError(std::string_view tag, std::string_view message) override;
 };
 
 /**
@@ -321,6 +338,18 @@ protected:
      * @param e The event as cluster::detail::Event.
      */
     bool ProcessEvent(std::string_view topic, detail::Event e);
+
+    /**
+     * An error happened, pass it to the event handling strategy.
+     *
+     * Errors are not necessarily in response to a publish operation, but
+     * can also be raised when receiving messages. E.g. if received data
+     * couldn't be properly parsed.
+     *
+     * @param tag A stringified structured error tag not further specified.
+     * @param message A free form message with more context.
+     */
+    void ProcessError(std::string_view tag, std::string_view message);
 
     /**
      * Process an incoming event message.

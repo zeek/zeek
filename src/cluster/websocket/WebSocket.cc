@@ -87,6 +87,14 @@ private:
      */
     void DoProcessLocalEvent(zeek::EventHandlerPtr h, zeek::Args args) override {}
 
+    /**
+     * Send errors directly to the client.
+     */
+    void DoProcessError(std::string_view tag, std::string_view message) override {
+        // Just send out the error.
+        wsc->SendError(tag, message);
+    }
+
     std::string buffer;
     std::shared_ptr<WebSocketClient> wsc;
     WebSocketEventDispatcher* dispatcher;
@@ -128,14 +136,14 @@ private:
 
 
 // Inspired by broker/internal/json_client.cc
-WebSocketClient::SendInfo WebSocketClient::SendError(std::string_view code, std::string_view message) {
+WebSocketClient::SendInfo WebSocketClient::SendError(std::string_view tag, std::string_view message) {
     std::string buf;
-    buf.reserve(code.size() + message.size() + 32);
+    buf.reserve(tag.size() + message.size() + 32);
     auto out = std::back_inserter(buf);
     *out++ = '{';
     broker::format::json::v1::append_field("type", "error", out);
     *out++ = ',';
-    broker::format::json::v1::append_field("code", code, out);
+    broker::format::json::v1::append_field("code", tag, out);
     *out++ = ',';
     broker::format::json::v1::append_field("message", message, out);
     *out++ = '}';

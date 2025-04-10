@@ -201,3 +201,12 @@ function Cluster::__listen_websocket%(options: WebSocketServerOptions%): bool
 	auto result = zeek::cluster::manager->ListenWebSocket(server_options);
 	return zeek::val_mgr->Bool(result);
 	%}
+
+module Cluster::Backend;
+
+## Generated on cluster backend error.
+##
+## tag: A structured tag, not further specified.
+##
+## message: A free form message with more details about the error.
+event error%(tag: string, message: string%);

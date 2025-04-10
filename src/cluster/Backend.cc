@@ -19,7 +19,7 @@ using namespace zeek::cluster;
 
 
 bool detail::LocalEventHandlingStrategy::DoHandleRemoteEvent(std::string_view topic, detail::Event e) {
-    zeek::event_mgr.Enqueue(e.Handler(), std::move(e.args), util::detail::SOURCE_BROKER, 0, nullptr, e.timestamp);
+    zeek::event_mgr.Enqueue(e.Handler(), std::move(e.Args()), util::detail::SOURCE_BROKER, 0, nullptr, e.Timestamp());
     return true;
 }
 

@@ -45,14 +45,36 @@ public:
     Event(const EventHandlerPtr& handler, zeek::Args args, double timestamp = 0.0)
         : handler(handler), args(std::move(args)), timestamp(timestamp) {}
 
+    /**
+     * @return The name of the event.
+     */
+    std::string_view HandlerName() const { return handler->Name(); }
+
+    /**
+     * @return The event's handler.
+     */
+    const EventHandlerPtr& Handler() const { return handler; }
+
+    /**
+     * @return The event's arguments.
+     */
+    const zeek::Args& Args() const { return args; }
+    /**
+     * @return The event's arguments.
+     */
+    zeek::Args& Args() { return args; }
+
+    /**
+     * @return The network timestamp metadata of this event or 0.0.
+     */
+    double Timestamp() const { return timestamp; }
+
+private:
     EventHandlerPtr handler;
     zeek::Args args;
     double timestamp; // TODO: This should be more generic, possibly holding a
                       // vector of key/value metadata, rather than just
                       // the timestamp.
-
-    std::string_view HandlerName() const { return handler->Name(); }
-    const EventHandlerPtr& Handler() const { return handler; }
 };
 
 /**

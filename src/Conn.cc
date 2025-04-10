@@ -23,7 +23,7 @@ namespace zeek {
 uint64_t Connection::total_connections = 0;
 uint64_t Connection::current_connections = 0;
 
-Connection::Connection(const detail::ConnKey& k, double t, const ConnTuple* id, uint32_t flow, const Packet* pkt)
+Connection::Connection(const detail::ConnKeyPtr k, double t, const ConnTuple* id, uint32_t flow, const Packet* pkt)
     : Session(t, connection_timeout, connection_status_update, detail::connection_status_update_interval), key(k) {
     orig_addr = id->src_addr;
     resp_addr = id->dst_addr;
@@ -71,6 +71,9 @@ Connection::Connection(const detail::ConnKey& k, double t, const ConnTuple* id, 
     encapsulation = pkt->encap;
 }
 
+Connection::Connection(const detail::ConnKey& k, double t, const ConnTuple* id, uint32_t flow, const Packet* pkt)
+    : Connection(std::make_shared<zeek::detail::ConnKey>(k), t, id, flow, pkt) {}
+
 Connection::~Connection() {
     if ( ! finished )
         reporter->InternalError("Done() not called before destruction of Connection");
@@ -84,6 +87,8 @@ Connection::~Connection() {
 
     --current_connections;
 }
+
+session::detail::Key Connection::SessionKey(bool copy) const { return key->SessionKey(); }
 
 void Connection::CheckEncapsulation(const std::shared_ptr<EncapsulationStack>& arg_encap) {
     if ( encapsulation && arg_encap ) {

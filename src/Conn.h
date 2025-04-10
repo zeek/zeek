@@ -71,6 +71,7 @@ static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1, const IPA
 
 class Connection final : public session::Session {
 public:
+    Connection(const detail::ConnKeyPtr k, double t, const ConnTuple* id, uint32_t flow, const Packet* pkt);
     Connection(const detail::ConnKey& k, double t, const ConnTuple* id, uint32_t flow, const Packet* pkt);
     ~Connection() override;
 
@@ -108,10 +109,8 @@ public:
     // Keys are only considered valid for a connection when a
     // connection is in the session map. If it is removed, the key
     // should be marked invalid.
-    const detail::ConnKey& Key() const { return key; }
-    session::detail::Key SessionKey(bool copy) const override {
-        return session::detail::Key{&key, sizeof(key), session::detail::Key::CONNECTION_KEY_TYPE, copy};
-    }
+    const detail::ConnKey& Key() const { return *key; }
+    session::detail::Key SessionKey(bool copy) const override;
 
     const IPAddr& OrigAddr() const { return orig_addr; }
     const IPAddr& RespAddr() const { return resp_addr; }
@@ -137,7 +136,7 @@ public:
             return "unknown";
     }
 
-    uint8_t KeyProto() const { return key.transport; }
+    uint8_t KeyProto() const { return key->transport; }
 
     // Returns true if the packet reflects a reuse of this
     // connection (i.e., not a continuation but the beginning of
@@ -218,7 +217,7 @@ private:
     std::shared_ptr<EncapsulationStack> encapsulation; // tunnels
     uint8_t tunnel_changes = 0;
 
-    detail::ConnKey key;
+    detail::ConnKeyPtr key;
 
     unsigned int weird : 1;
     unsigned int finished : 1;

@@ -14,6 +14,8 @@
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/conntuple/Manager.h"
+#include "zeek/iosource/IOSource.h"
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 #include "zeek/packet_analysis/protocol/tcp/TCP.h"
 #include "zeek/session/Manager.h"
@@ -197,6 +199,9 @@ const RecordValPtr& Connection::GetVal() {
         id_val->Assign(2, make_intrusive<AddrVal>(resp_addr));
         id_val->Assign(3, val_mgr->Port(ntohs(resp_port), prot_type));
         id_val->Assign(4, KeyProto());
+
+        // Allow the connection tuple builder to augment the conn_id.
+        zeek::conntuple_mgr->GetBuilder().FillConnIdVal(key, id_val);
 
         auto orig_endp = make_intrusive<RecordVal>(id::endpoint);
         orig_endp->Assign(0, 0);

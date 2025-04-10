@@ -95,17 +95,7 @@ namespace filesystem = ghc::filesystem;
 inline constexpr std::string_view path_list_separator = ":";
 #endif
 
-#include "zeek/3rdparty/nonstd/expected.hpp"
-namespace zeek {
-template<typename T, typename E>
-using expected = nonstd::expected<T, E>;
-
-template<typename E>
-using unexpected = nonstd::unexpected<E>;
-} // namespace zeek
-
-using zeek_int_t = int64_t;
-using zeek_uint_t = uint64_t;
+#include "zeek/util-types.h"
 
 #ifndef HAVE_STRCASESTR
 extern char* strcasestr(const char* s, const char* find);

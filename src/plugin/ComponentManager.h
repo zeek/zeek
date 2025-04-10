@@ -267,7 +267,8 @@ const std::string& ComponentManager<C>::GetComponentName(EnumValPtr val) const {
     if ( C* c = Lookup(val.get()) )
         return c->CanonicalName();
 
-    reporter->InternalWarning("requested name of unknown component tag %s", val->AsString()->CheckString());
+    reporter->InternalWarning("requested name of unknown component tag %s",
+                              val->GetType()->AsEnumType()->Lookup(val->Get()));
     return error;
 }
 
@@ -295,7 +296,8 @@ StringValPtr ComponentManager<C>::GetComponentNameVal(EnumValPtr val) const {
     if ( C* c = Lookup(val.get()) )
         return c->CanonicalNameVal();
 
-    reporter->InternalWarning("requested name of unknown component tag %s", val->AsString()->CheckString());
+    reporter->InternalWarning("requested name of unknown component tag %s",
+                              val->GetType()->AsEnumType()->Lookup(val->Get()));
     return error;
 }
 

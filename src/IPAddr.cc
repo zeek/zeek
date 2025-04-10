@@ -27,24 +27,6 @@ ConnKey::ConnKey(const ConnTuple& id) {
     Init(id.src_addr, id.dst_addr, id.src_port, id.dst_port, id.proto, id.is_one_way);
 }
 
-ConnKey& ConnKey::operator=(const ConnKey& rhs) {
-    if ( this == &rhs )
-        return *this;
-
-    // Because of padding in the object, this needs to memset to clear out
-    // the extra memory used by padding. Otherwise, the session key stuff
-    // doesn't work quite right.
-    memset(this, 0, sizeof(ConnKey));
-
-    memcpy(&ip1, &rhs.ip1, sizeof(in6_addr));
-    memcpy(&ip2, &rhs.ip2, sizeof(in6_addr));
-    port1 = rhs.port1;
-    port2 = rhs.port2;
-    transport = rhs.transport;
-
-    return *this;
-}
-
 ConnKey::ConnKey(Val* v) {
     const auto& vt = v->GetType();
     if ( ! IsRecord(vt->Tag()) ) {
@@ -102,11 +84,6 @@ ConnKey::ConnKey(Val* v) {
 
 void ConnKey::Init(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, uint16_t proto,
                    bool one_way) {
-    // Because of padding in the object, this needs to memset to clear out
-    // the extra memory used by padding. Otherwise, the session key stuff
-    // doesn't work quite right.
-    memset(this, 0, sizeof(ConnKey));
-
     // Lookup up connection based on canonical ordering, which is
     // the smaller of <src addr, src port> and <dst addr, dst port>
     // followed by the other.
@@ -124,6 +101,37 @@ void ConnKey::Init(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint
     }
 
     transport = proto;
+}
+
+session::detail::Key ConnKey::SessionKey() const {
+    uint8_t* temp = new uint8_t[PackedSize()];
+    size_t used = Pack(temp, PackedSize());
+    assert(used == PackedSize());
+    return session::detail::Key{temp, used, session::detail::Key::CONNECTION_KEY_TYPE, false, true};
+}
+
+size_t ConnKey::PackedSize() const {
+    return sizeof(ip1) + sizeof(ip2) + sizeof(port1) + sizeof(port2) + sizeof(transport);
+}
+
+size_t ConnKey::Pack(uint8_t* data, size_t size) const {
+    if ( size < PackedSize() )
+        return 0;
+
+    uint8_t* ptr = data;
+
+    memcpy(ptr, &ip1, sizeof(ip1));
+    ptr += sizeof(ip1);
+    memcpy(ptr, &ip2, sizeof(ip2));
+    ptr += sizeof(ip2);
+    memcpy(ptr, &port1, sizeof(port1));
+    ptr += sizeof(port1);
+    memcpy(ptr, &port2, sizeof(port2));
+    ptr += sizeof(port2);
+    memcpy(ptr, &transport, sizeof(transport));
+    ptr += sizeof(transport);
+
+    return ptr - data;
 }
 
 } // namespace detail

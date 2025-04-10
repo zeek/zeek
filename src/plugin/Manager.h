@@ -9,7 +9,6 @@
 
 #include "zeek/Reporter.h"
 #include "zeek/ZeekArgs.h"
-#include "zeek/plugin/Component.h"
 #include "zeek/plugin/Plugin.h"
 
 namespace zeek {

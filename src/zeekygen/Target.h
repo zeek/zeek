@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
-
 #include <cstdio>
 #include <map>
 #include <string>

@@ -1,5 +1,5 @@
 # @TEST-EXEC: zeek -C -r $TRACES/tunnels/gtp/gtp9_unknown_or_too_short_payload.pcap %INPUT
-# @TEST-EXEC: btest-diff analyzer_debug.log
+# @TEST-EXEC: btest-diff analyzer_failed.log
 # @TEST-EXEC: btest-diff tunnel.log
 
 # Packet 11, epoch time 1333458853.075889 is malformed. Only 222 byte are
@@ -11,5 +11,3 @@
 # tunnel. The user plane packet may got corrupt and then put into 2 tunnel
 # packets, here packet 11 and 12, and in packet 12 the user plane data is
 # part of the remainder of the broken user plane packet of packet 11.
-
-@load frameworks/analyzer/analyzer-debug-log.zeek

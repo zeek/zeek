@@ -20,6 +20,11 @@ event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolatio
 	if ( ! is_protocol_analyzer(atype) && ! is_packet_analyzer(atype) )
 		return;
 
+	if ( ! info?$c )
+			return;
+
+	local c = info$c;
+
 	# Only add if previously confirmed
 	if ( Analyzer::name(atype) !in c$service || Analyzer::name(atype) !in c$service_violation )
 		return;

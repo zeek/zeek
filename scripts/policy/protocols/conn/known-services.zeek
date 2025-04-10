@@ -8,8 +8,21 @@
 
 @load base/utils/directions-and-hosts
 @load base/frameworks/cluster
+@load base/frameworks/storage/async
+@load base/frameworks/storage/sync
 
 module Known;
+
+## This uses the storage framework. You'll need something like the following
+## block in local.zeek to define the backend connection. This example uses the
+## Redis backend, but the SQLite backend configuration is similar.
+##
+## @load policy/frameworks/storage/backend/redis
+## redef Known::use_service_store = T;
+## redef Known::service_store_backend_type = Storage::STORAGE_BACKEND_REDIS;
+## redef Known::service_store_backend_options = [ $redis = [
+##    $server_host="127.0.0.1", $server_port=6379/tcp,
+##    $key_prefix=Known::service_store_name] ];
 
 export {
 	## The known-services logging stream identifier.
@@ -33,10 +46,9 @@ export {
 		service:        set[string]     &log;
 	};
 
-	## Toggles between different implementations of this script.
-	## When true, use a Broker data store, else use a regular Zeek set
-	## with keys uniformly distributed over proxy nodes in cluster
-	## operation.
+	## Toggles between different implementations of this script.  When ``T``, use the
+	## storage framework, else use a regular Zeek set with keys uniformly distributed
+	## over proxy nodes in cluster operation.
 	const use_service_store = F &redef;
 
 	## Require UDP server to respond before considering it an "active service".
@@ -52,20 +64,29 @@ export {
 		serv: string;
 	};
 
-	## Holds the set of all known services.  Keys in the store are
-	## :zeek:type:`Known::AddrPortServTriplet` and their associated value is
-	## always the boolean value of "true".
-	global service_store: Cluster::StoreInfo;
+	## Holds the set of all known services. Used if ``use_service_store`` is set to
+	## ``T``. Keys in the store are :zeek:type:`Known::AddrPortServTriplet` and their
+	## associated value is always the boolean value of "true".
+	global service_store_backend: opaque of Storage::BackendHandle;
 
-	## The Broker topic name to use for :zeek:see:`Known::service_store`.
-	const service_store_name = "zeek/known/services" &redef;
+	## The name to use for :zeek:see:`Known::service_store_backend`. This will be used by the
+	## backends to differentiate tables/keys. For most storage backends, this needs to
+	## be alphanumeric only.
+	const service_store_name = "zeekknownservices" &redef;
 
-	## The expiry interval of new entries in :zeek:see:`Known::service_store`.
+	## The type of storage backend to open.
+	const service_store_backend_type : Storage::Backend &redef;
+
+	## The options for the service store. This should be redef'd in local.zeek to set
+	## connection information for the backend. The options default to a memory store.
+	const service_store_backend_options : Storage::BackendOptions &redef;
+
+	## The expiry interval of new entries in :zeek:see:`Known::service_store_backend`.
 	## This also changes the interval at which services get logged.
 	const service_store_expiry = 1day &redef;
 
 	## The timeout interval to use for operations against
-	## :zeek:see:`Known::service_store`.
+	## :zeek:see:`Known::service_store_backend`.
 	option service_store_timeout = 15sec;
 
 	## Tracks the set of daily-detected services for preventing the logging
@@ -109,7 +130,10 @@ event zeek_init()
 	if ( ! Known::use_service_store )
 		return;
 
-	Known::service_store = Cluster::create_store(Known::service_store_name);
+	local res = Storage::Sync::open_backend(Known::service_store_backend_type, Known::service_store_backend_options,
+	                                        Known::AddrPortServTriplet, bool);
+	if ( res$code == Storage::SUCCESS )
+		Known::service_store_backend = res$value;
 	}
 
 event service_info_commit(info: ServicesInfo)
@@ -123,19 +147,17 @@ event service_info_commit(info: ServicesInfo)
 		{
 		local key = AddrPortServTriplet($host = info$host, $p = info$port_num, $serv = s);
 
-		when [info, s, key] ( local r = Broker::put_unique(Known::service_store$store, key,
-		                                    T, Known::service_store_expiry) )
+		when [info, s, key] ( local r = Storage::Async::put(Known::service_store_backend, [$key=key, $value=T, $overwrite=F,
+		                                                    $expire_time=Known::service_store_expiry]) )
 			{
-			if ( r$status == Broker::SUCCESS )
+			if ( r$code == Storage::SUCCESS )
 				{
-				if ( r$result as bool ) {
-					info$service = set(s);	# log one service at the time if multiservice
-					Log::write(Known::SERVICES_LOG, info);
-					}
+				info$service = set(s);	# log one service at the time if multiservice
+				Log::write(Known::SERVICES_LOG, info);
 				}
-			else
-				Reporter::error(fmt("%s: data store put_unique failure",
-				                    Known::service_store_name));
+			else if ( r$code != Storage::KEY_EXISTS )
+				Reporter::error(fmt("%s: service store put failure: %s",
+				                    Known::service_store_name, r$error_str));
 			}
 		timeout Known::service_store_timeout
 			{
@@ -155,7 +177,7 @@ event known_service_add(info: ServicesInfo)
 	if ( [info$host, info$port_num] !in Known::services )
 		Known::services[info$host, info$port_num] = set();
 
-	 # service to log can be a subset of info$service if some were already seen
+	# service to log can be a subset of info$service if some were already seen
 	local info_to_log: ServicesInfo;
 	info_to_log$ts = info$ts;
 	info_to_log$host = info$host;

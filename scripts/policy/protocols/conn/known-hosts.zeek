@@ -5,8 +5,21 @@
 
 @load base/utils/directions-and-hosts
 @load base/frameworks/cluster
+@load base/frameworks/storage/async
+@load base/frameworks/storage/sync
 
 module Known;
+
+## This uses the storage framework. You'll need something like the following
+## block in local.zeek to define the backend connection. This example uses the
+## Redis backend, but the SQLite backend configuration is similar.
+##
+## @load policy/frameworks/storage/backend/redis
+## redef Known::use_host_store = T;
+## redef Known::host_store_backend_type = Storage::STORAGE_BACKEND_REDIS;
+## redef Known::host_store_backend_options = [ $redis = [
+##    $server_host="127.0.0.1", $server_port=6379/tcp,
+##    $key_prefix=Known::host_store_name] ];
 
 export {
 	## The known-hosts logging stream identifier.
@@ -34,19 +47,22 @@ export {
 	## See :zeek:type:`Host` for possible choices.
 	option host_tracking = LOCAL_HOSTS;
 
-	## Holds the set of all known hosts.  Keys in the store are addresses
-	## and their associated value will always be the "true" boolean.
-	global host_store: Cluster::StoreInfo;
+	## Holds the set of all known hosts. Used if ``use_host_store`` is set to
+	## ``T``. Keys in the store are addresses and their associated value will always
+	## be the "true" boolean.
+	global host_store_backend: opaque of Storage::BackendHandle;
 
-	## The Broker topic name to use for :zeek:see:`Known::host_store`.
+	## The name to use for :zeek:see:`Known::host_store_backend`. This will be used
+	## by the backends to differentiate tables/keys. For most storage backends, this
+	## needs to be alphanumeric only.
 	const host_store_name = "zeek/known/hosts" &redef;
 
-	## The expiry interval of new entries in :zeek:see:`Known::host_store`.
+	## The expiry interval of new entries in :zeek:see:`Known::host_store_backend`.
 	## This also changes the interval at which hosts get logged.
 	const host_store_expiry = 1day &redef;
 
 	## The timeout interval to use for operations against
-	## :zeek:see:`Known::host_store`.
+	## :zeek:see:`Known::host_store_backend`.
 	option host_store_timeout = 15sec;
 
 	## The set of all known addresses to store for preventing duplicate
@@ -69,7 +85,10 @@ event zeek_init()
 	if ( ! Known::use_host_store )
 		return;
 
-	Known::host_store = Cluster::create_store(Known::host_store_name);
+	local res = Storage::Sync::open_backend(Known::host_store_backend_type, Known::host_store_backend_options,
+	                                        addr, bool);
+	if ( res$code == Storage::SUCCESS )
+		Known::host_store_backend = res$value;
 	}
 
 event Known::host_found(info: HostsInfo)
@@ -77,24 +96,21 @@ event Known::host_found(info: HostsInfo)
 	if ( ! Known::use_host_store )
 		return;
 
-	when [info] ( local r = Broker::put_unique(Known::host_store$store, info$host,
-	                                    T, Known::host_store_expiry) )
+	when [info, s, key] ( local r = Storage::Async::put(Known::host_store_backend, [$key=info$host, $value=T, $overwrite=F,
+	                                                    $expire_time=Known::host_store_expiry]) )
 		{
-		if ( r$status == Broker::SUCCESS )
+		if ( r$code == Storage::SUCCESS )
 			{
-			if ( r$result as bool )
-				Log::write(Known::HOSTS_LOG, info);
+			Log::write(Known::HOST_LOG, info);
 			}
-		else
-			Reporter::error(fmt("%s: data store put_unique failure",
-			                    Known::host_store_name));
+		else if ( r$code != Storage::KEY_EXISTS )
+			Reporter::error(fmt("%s: host store put failure: %s",
+			                    Known::host_store_name, r$error_str));
 		}
 	timeout Known::host_store_timeout
 		{
-		# Can't really tell if master store ended up inserting a key.
-		Log::write(Known::HOSTS_LOG, info);
+		Log::write(Known::HOST_LOG, info);
 		}
-	}
 
 event known_host_add(info: HostsInfo)
 	{

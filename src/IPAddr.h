@@ -53,6 +53,8 @@ private:
     void Init(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, uint16_t proto, bool one_way);
 };
 
+using ConnKeyPtr = std::shared_ptr<ConnKey>;
+
 } // namespace detail
 
 /**

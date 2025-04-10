@@ -61,6 +61,8 @@ struct ConnTuple {
     bool is_one_way = false; // if true, don't canonicalize order
 };
 
+using ConnTuplePtr = std::shared_ptr<ConnTuple>;
+
 static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1, const IPAddr& addr2, uint32_t p2) {
     return addr1 < addr2 || (addr1 == addr2 && p1 < p2);
 }

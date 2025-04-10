@@ -3,7 +3,7 @@
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: test ! -f weird.log
-# @TEST-EXEC: test ! -f analyzer.log
+# @TEST-EXEC: test ! -f analyzer_failed.log
 
 @load base/frameworks/notice/weird
 @load base/protocols/conn

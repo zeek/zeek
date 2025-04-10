@@ -3,8 +3,9 @@
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff weird.log
-# @TEST-EXEC: btest-diff analyzer.log
+# @TEST-EXEC: btest-diff analyzer_debug.log
 
+@load frameworks/analyzer/analyzer-debug-log.zeek
 @load base/frameworks/notice/weird
 @load base/protocols/conn
 @load base/protocols/pop3

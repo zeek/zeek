@@ -4,4 +4,7 @@
 # @TEST-EXEC: test ! -f ssh.log
 # @TEST-EXEC: btest-diff http.log
 # @TEST-EXEC: btest-diff conn.log
-# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-timestamps" btest-diff analyzer.log
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-remove-timestamps" btest-diff analyzer_debug.log
+
+@load frameworks/analyzer/analyzer-debug-log.zeek
+

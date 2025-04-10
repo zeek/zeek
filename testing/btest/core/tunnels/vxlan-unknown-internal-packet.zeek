@@ -4,7 +4,7 @@
 
 # @TEST-EXEC: zeek -r $TRACES/tunnels/vxlan-encapsulated-igmp-v2.pcap %INPUT
 # @TEST-EXEC: btest-diff conn.log
-# @TEST-EXEC: ! test -f analyzer.log
+# @TEST-EXEC: ! test -f analyzer_failed.log
 
 @load base/frameworks/tunnels
 @load base/protocols/conn

@@ -14,7 +14,7 @@
 # @TEST-EXEC: diff -u ssh.log.cut.spicy  ssh.log.cut >&2
 # @TEST-EXEC: btest-diff conn.log.cut.spicy
 # @TEST-EXEC: btest-diff ssh.log.cut.spicy
-# @TEST-EXEC: test ! -f analyzer.log
+# @TEST-EXEC: test ! -f analyzer_failed.log
 # @TEST-EXEC: test ! -f weird.log
 
 @load base/protocols/conn

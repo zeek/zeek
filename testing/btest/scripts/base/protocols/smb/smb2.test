@@ -2,7 +2,7 @@
 # @TEST-EXEC: btest-diff smb_files.log
 # @TEST-EXEC: btest-diff smb_mapping.log
 # @TEST-EXEC: btest-diff files.log
-# @TEST-EXEC: test ! -f dpd.log
+# @TEST-EXEC: test ! -f analyzer_failed.log
 # @TEST-EXEC: test ! -f weird.log
 # @TEST-EXEC: btest-diff .stdout
 

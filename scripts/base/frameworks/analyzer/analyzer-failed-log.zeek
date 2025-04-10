@@ -1,4 +1,4 @@
-##! Logging analyzer  violations into analyzer-failed.log
+##! Logging analyzer  violations into analyzer_failed.log
 
 @load base/frameworks/logging
 @load ./main
@@ -25,10 +25,8 @@ export {
 		fuid:           string            &log &optional;
 		## Connection identifier if available
 		id:             conn_id           &log &optional;
-
 		## Failure or violation reason, if available.
 		failure_reason: string            &log;
-
 		## Data causing failure or violation if available. Truncated
 		## to :zeek:see:`Analyzer::Logging::failure_data_max_size`.
 		failure_data:   string            &log &optional;
@@ -48,10 +46,10 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(LOG, [$columns=Info, $path="analyzer-failed", $ev=log_analyzer_failed, $policy=log_policy]);
+	Log::create_stream(LOG, [$columns=Info, $path="analyzer_failed", $ev=log_analyzer_failed, $policy=log_policy]);
 	}
 
-event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo)
+function log_analyzer_failure(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo)
 	{
 	local rec = Info(
 		$ts=ts,
@@ -82,7 +80,39 @@ event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolatio
 		}
 
 	if ( info?$data )
-		rec$failure_data = info$data;
+		{
+		if ( failure_data_max_size > 0 )
+			rec$failure_data = info$data[0:failure_data_max_size];
+		else
+			rec$failure_data = info$data;
+		}
 
 	Log::write(LOG, rec);
 	}
+
+# event currently is only raised for protocol analyzers; we do not fail packet and file analyzers
+event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo)
+	{
+	if ( ! is_protocol_analyzer(atype) )
+		return;
+
+	if ( ! info?$c )
+		return;
+
+	# log only for previously confirmed service that did not already log violation
+	local analyzer_name = Analyzer::name(atype);
+	if ( analyzer_name !in info$c$service || analyzer_name in info$c$service_violation )
+		return;
+
+	log_analyzer_failure(ts, atype, info);
+	}
+
+# log packet and file analyzers here separately
+event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo )
+	{
+	if ( is_protocol_analyzer(atype) )
+		return;
+
+	log_analyzer_failure(network_time(), atype, info);
+	}
+

@@ -87,6 +87,14 @@ private:
      */
     void DoProcessLocalEvent(zeek::EventHandlerPtr h, zeek::Args args) override {}
 
+    /**
+     * Send errors directly to the client.
+     */
+    void DoProcessError(std::string_view code, std::string_view message) override {
+        // Just send out the error.
+        wsc->SendError(code, message);
+    }
+
     std::string buffer;
     std::shared_ptr<WebSocketClient> wsc;
     WebSocketEventDispatcher* dispatcher;

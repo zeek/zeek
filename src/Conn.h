@@ -53,6 +53,8 @@ enum ConnEventToFlag {
 };
 
 struct ConnTuple {
+    virtual ~ConnTuple() {}
+
     IPAddr src_addr;
     IPAddr dst_addr;
     uint32_t src_port = 0;

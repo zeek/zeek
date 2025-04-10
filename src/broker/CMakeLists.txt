@@ -6,6 +6,7 @@ zeek_add_subdir_library(
     SOURCES
     Data.cc
     Manager.cc
+    WebSocketShim.cc
     Store.cc
     BIFS
     comm.bif

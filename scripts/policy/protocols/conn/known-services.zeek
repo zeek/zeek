@@ -7,7 +7,9 @@
 ##! but services whose names can't be determined are also still logged.
 
 @load base/utils/directions-and-hosts
+@load base/frameworks/storage/sync
 @load base/frameworks/cluster
+@load policy/frameworks/storage/backend/sqlite
 
 module Known;
 
@@ -52,13 +54,10 @@ export {
 		serv: string;
 	};
 
-	## Holds the set of all known services.  Keys in the store are
-	## :zeek:type:`Known::AddrPortServTriplet` and their associated value is
-	## always the boolean value of "true".
-	global service_store: Cluster::StoreInfo;
+	global store_backend: opaque of Storage::BackendHandle;
 
 	## The Broker topic name to use for :zeek:see:`Known::service_store`.
-	const service_store_name = "zeek/known/services" &redef;
+	const service_store_name = "zeekknownservices" &redef;
 
 	## The expiry interval of new entries in :zeek:see:`Known::service_store`.
 	## This also changes the interval at which services get logged.
@@ -109,7 +108,11 @@ event zeek_init()
 	if ( ! Known::use_service_store )
 		return;
 
-	Known::service_store = Cluster::create_store(Known::service_store_name);
+	local backend_opts : Storage::BackendOptions;
+	backend_opts$sqlite = [ $database_path=":memory:", $table_name=Known::service_store_name ];
+	local res = Storage::Sync::open_backend(Storage::SQLITE, backend_opts, Known::AddrPortServTriplet, bool);
+	if ( res$code == Storage::SUCCESS )
+		Known::store_backend = res$value;
 	}
 
 event service_info_commit(info: ServicesInfo)
@@ -123,19 +126,17 @@ event service_info_commit(info: ServicesInfo)
 		{
 		local key = AddrPortServTriplet($host = info$host, $p = info$port_num, $serv = s);
 
-		when [info, s, key] ( local r = Broker::put_unique(Known::service_store$store, key,
-		                                    T, Known::service_store_expiry) )
+		when [info, s, key] ( local r = Storage::Async::put(Known::store_backend, [$key=key, $value=T, $overwrite=F,
+		                                                    $expire_time=Known::service_store_expiry]) )
 			{
-			if ( r$status == Broker::SUCCESS )
+			if ( r$code == Storage::SUCCESS )
 				{
-				if ( r$result as bool ) {
-					info$service = set(s);	# log one service at the time if multiservice
-					Log::write(Known::SERVICES_LOG, info);
-					}
+				info$service = set(s);	# log one service at the time if multiservice
+				Log::write(Known::SERVICES_LOG, info);
 				}
-			else
-				Reporter::error(fmt("%s: data store put_unique failure",
-				                    Known::service_store_name));
+			else if ( r$code != Storage::KEY_EXISTS )
+				Reporter::error(fmt("%s: data store put_unique failure: %s",
+				                    Known::service_store_name, r$error_str));
 			}
 		timeout Known::service_store_timeout
 			{
@@ -155,7 +156,7 @@ event known_service_add(info: ServicesInfo)
 	if ( [info$host, info$port_num] !in Known::services )
 		Known::services[info$host, info$port_num] = set();
 
-	 # service to log can be a subset of info$service if some were already seen
+	# service to log can be a subset of info$service if some were already seen
 	local info_to_log: ServicesInfo;
 	info_to_log$ts = info$ts;
 	info_to_log$host = info$host;

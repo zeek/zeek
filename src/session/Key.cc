@@ -6,51 +6,51 @@
 
 namespace zeek::session::detail {
 
-Key::Key(const void* session, size_t size, size_t type, bool copy) : size(size), type(type) {
+Key::Key(const void* session, size_t size, size_t type, bool copy, bool adopt) : size(size), type(type) {
     data = reinterpret_cast<const uint8_t*>(session);
 
     if ( copy )
         CopyData();
 
-    copied = copy;
+    owns_data = copy || adopt;
 }
 
 Key::Key(Key&& rhs) noexcept {
     data = rhs.data;
     size = rhs.size;
-    copied = rhs.copied;
     type = rhs.type;
+    owns_data = rhs.owns_data;
 
     rhs.data = nullptr;
     rhs.size = 0;
-    rhs.copied = false;
+    rhs.owns_data = false;
 }
 
 Key& Key::operator=(Key&& rhs) noexcept {
     if ( this != &rhs ) {
         data = rhs.data;
         size = rhs.size;
-        copied = rhs.copied;
         type = rhs.type;
+        owns_data = rhs.owns_data;
 
         rhs.data = nullptr;
         rhs.size = 0;
-        rhs.copied = false;
+        rhs.owns_data = false;
     }
 
     return *this;
 }
 
 Key::~Key() {
-    if ( copied )
+    if ( owns_data )
         delete[] data;
 }
 
 void Key::CopyData() {
-    if ( copied )
+    if ( owns_data )
         return;
 
-    copied = true;
+    owns_data = true;
 
     uint8_t* temp = new uint8_t[size];
     memcpy(temp, data, size);

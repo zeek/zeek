@@ -37,6 +37,7 @@ public:
     ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, uint16_t proto, bool one_way);
     ConnKey(const ConnTuple& conn);
     ConnKey(Val* v);
+    virtual ~ConnKey() {};
 
     session::detail::Key SessionKey() const;
     virtual size_t PackedSize() const;

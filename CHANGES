@@ -1,3 +1,7 @@
+7.2.0-dev.503 | 2025-04-10 15:47:27 +0200
+
+  * btest/files/x509/files: Sort analyzers in baseline (Arne Welzel, Corelight)
+
 7.2.0-dev.501 | 2025-04-09 11:11:57 -0700
 
   * Revert addition of std::unreachable (Tim Wojtulewicz, Corelight)

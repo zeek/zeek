@@ -683,8 +683,6 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     input_mgr = new input::Manager();
     file_mgr = new file_analysis::Manager();
     cluster::manager = new cluster::Manager();
-    auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;
-    broker_mgr = new Broker::Manager(broker_real_time);
     trigger_mgr = new trigger::Manager();
 #ifdef HAVE_SPICY
     spicy_mgr = new spicy::Manager(); // registers as plugin with the plugin manager
@@ -694,6 +692,11 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     plugin_mgr->InitPreScript();
     file_mgr->InitPreScript();
     zeekygen_mgr->InitPreScript();
+
+    // Needs the "broker plugin" loaded during plugin_mgr->InitPreScript()
+    // before Broker::Manager can be instantiated.
+    auto broker_real_time = ! options.pcap_file && ! options.deterministic_mode;
+    broker_mgr = new Broker::Manager(broker_real_time);
 
     // This has to happen before ActivateDynamicPlugin() below or the list of plugins in the
     // manager will be missing the plugins we want to try to add to the path.

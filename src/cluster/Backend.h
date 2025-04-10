@@ -12,6 +12,7 @@
 #include "zeek/EventHandler.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Span.h"
+#include "zeek/Tag.h"
 #include "zeek/cluster/Serializer.h"
 #include "zeek/logging/Types.h"
 
@@ -270,6 +271,16 @@ public:
     }
 
     /**
+     * @return This backend's implementation name.
+     */
+    const std::string& Name() const { return name; }
+
+    /**
+     * @return This backend's implementation component tag.
+     */
+    const zeek::Tag& Tag() const { return tag; }
+
+    /**
      * @return This backend's node identifier.
      */
     const std::string& NodeId() const { return node_id; }
@@ -278,11 +289,12 @@ protected:
     /**
      * Constructor.
      *
+     * @param name The name corresponding to the component tag.
      * @param es The event serializer to use.
      * @param ls The log batch serializer to use.
      * @param ehs The event handling strategy to use for this backend.
      */
-    Backend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
+    Backend(std::string_view name, std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
             std::unique_ptr<detail::EventHandlingStrategy> ehs);
 
     /**
@@ -430,6 +442,8 @@ private:
     virtual bool DoPublishLogWrites(const zeek::logging::detail::LogWriteHeader& header, const std::string& format,
                                     detail::byte_buffer& buf) = 0;
 
+    std::string name;
+    zeek::Tag tag;
     std::unique_ptr<EventSerializer> event_serializer;
     std::unique_ptr<LogSerializer> log_serializer;
     std::unique_ptr<detail::EventHandlingStrategy> event_handling_strategy;
@@ -496,7 +510,7 @@ protected:
     /**
      * Constructor.
      */
-    ThreadedBackend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
+    ThreadedBackend(std::string_view name, std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
                     std::unique_ptr<detail::EventHandlingStrategy> ehs);
 
     /**

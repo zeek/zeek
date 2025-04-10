@@ -7,6 +7,7 @@
 #include "zeek/Val.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/conntuple/Manager.h"
 #include "zeek/plugin/Manager.h"
 #include "zeek/session/Manager.h"
 
@@ -22,17 +23,17 @@ IPBasedAnalyzer::~IPBasedAnalyzer() {
 }
 
 bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt) {
-    ConnTuple tuple;
-    if ( ! BuildConnTuple(len, data, pkt, tuple) )
+    ConnTuplePtr tuple = zeek::conntuple_mgr->GetBuilder().GetTuple(pkt);
+    if ( ! BuildConnTuple(len, data, pkt, *tuple) )
         return false;
 
     const std::shared_ptr<IP_Hdr>& ip_hdr = pkt->ip_hdr;
-    zeek::detail::ConnKey key(tuple);
+    zeek::detail::ConnKeyPtr key = zeek::conntuple_mgr->GetBuilder().GetKey(*tuple);
 
-    Connection* conn = session_mgr->FindConnection(key);
+    Connection* conn = session_mgr->FindConnection(*key);
 
     if ( ! conn ) {
-        conn = NewConn(&tuple, key, pkt);
+        conn = NewConn(tuple.get(), key, pkt);
         if ( conn )
             session_mgr->Insert(conn, false);
     }
@@ -41,7 +42,7 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
             conn->Event(connection_reused, nullptr);
 
             session_mgr->Remove(conn);
-            conn = NewConn(&tuple, key, pkt);
+            conn = NewConn(tuple.get(), key, pkt);
             if ( conn )
                 session_mgr->Insert(conn, false);
         }
@@ -57,7 +58,7 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
     // get logged, which means we can mark this packet as having been processed.
     pkt->processed = true;
 
-    bool is_orig = (tuple.src_addr == conn->OrigAddr()) && (tuple.src_port == conn->OrigPort());
+    bool is_orig = (tuple->src_addr == conn->OrigAddr()) && (tuple->src_port == conn->OrigPort());
     pkt->is_orig = is_orig;
 
     conn->CheckFlowLabel(is_orig, ip_hdr->FlowLabel());
@@ -140,7 +141,7 @@ bool IPBasedAnalyzer::IsLikelyServerPort(uint32_t port) const {
     return port_cache.find(port) != port_cache.end();
 }
 
-zeek::Connection* IPBasedAnalyzer::NewConn(const ConnTuple* id, const zeek::detail::ConnKey& key, const Packet* pkt) {
+zeek::Connection* IPBasedAnalyzer::NewConn(const ConnTuple* id, const zeek::detail::ConnKeyPtr key, const Packet* pkt) {
     int src_h = ntohs(id->src_port);
     int dst_h = ntohs(id->dst_port);
     bool flip = false;

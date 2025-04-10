@@ -116,7 +116,7 @@ public:
      * @param h The event handler to use.
      * @param args The event arguments.
      */
-    void EnqueueLocalEvent(EventHandlerPtr h, zeek::Args args) { DoEnqueueLocalEvent(h, std::move(args)); }
+    void ProcessLocalEvent(EventHandlerPtr h, zeek::Args args) { DoProcessLocalEvent(h, std::move(args)); }
 
 private:
     /**
@@ -130,12 +130,12 @@ private:
     virtual bool DoProcessEvent(std::string_view topic, Event e) = 0;
 
     /**
-     * Hook method for implementing EnqueueLocalEvent().
+     * Hook method for implementing ProcessLocalEvent().
      *
      * @param h The event handler to use.
      * @param args The event arguments.
      */
-    virtual void DoEnqueueLocalEvent(EventHandlerPtr h, zeek::Args args) = 0;
+    virtual void DoProcessLocalEvent(EventHandlerPtr h, zeek::Args args) = 0;
 };
 
 /**
@@ -144,7 +144,7 @@ private:
 class LocalEventHandlingStrategy : public EventHandlingStrategy {
 private:
     bool DoProcessEvent(std::string_view topic, Event e) override;
-    void DoEnqueueLocalEvent(EventHandlerPtr h, zeek::Args args) override;
+    void DoProcessLocalEvent(EventHandlerPtr h, zeek::Args args) override;
 };
 
 /**

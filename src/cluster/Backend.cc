@@ -24,7 +24,7 @@ bool detail::LocalEventHandlingStrategy::DoProcessEvent(std::string_view topic, 
     return true;
 }
 
-void detail::LocalEventHandlingStrategy::DoEnqueueLocalEvent(EventHandlerPtr h, zeek::Args args) {
+void detail::LocalEventHandlingStrategy::DoProcessLocalEvent(EventHandlerPtr h, zeek::Args args) {
     zeek::event_mgr.Enqueue(h, std::move(args));
 }
 
@@ -120,7 +120,7 @@ bool Backend::DoPublishLogWrites(const zeek::logging::detail::LogWriteHeader& he
 }
 
 void Backend::EnqueueEvent(EventHandlerPtr h, zeek::Args args) {
-    event_handling_strategy->EnqueueLocalEvent(h, std::move(args));
+    event_handling_strategy->ProcessLocalEvent(h, std::move(args));
 }
 
 bool Backend::ProcessEvent(std::string_view topic, detail::Event e) {

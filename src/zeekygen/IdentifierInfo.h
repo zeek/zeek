@@ -9,8 +9,6 @@
 #include <vector>
 
 #include "zeek/ID.h"
-#include "zeek/IntrusivePtr.h"
-#include "zeek/util.h"
 #include "zeek/zeekygen/Info.h"
 
 namespace zeek {

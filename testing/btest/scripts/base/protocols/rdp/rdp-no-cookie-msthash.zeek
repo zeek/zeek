@@ -3,8 +3,7 @@
 # @TEST-EXEC: zeek -b -r $TRACES/rdp/rdp-no-cookie-mstshash.pcap %INPUT
 # @TEST-EXEC: btest-diff rdp.log
 # @TEST-EXEC: btest-diff ssl.log
-# @TEST-EXEC: test ! -f analyzer.log
-# @TEST-EXEC: test ! -f dpd.log
+# @TEST-EXEC: test ! -f analyzer_failed.log
 
 @load base/protocols/rdp
 @load base/protocols/ssl

@@ -1,6 +1,6 @@
 # @TEST-DOC: Tests handling of PDUs containing error ioctls with byte lengths of zero
 # @TEST-EXEC: zeek -b -r $TRACES/smb/smb2-zero-byte-error-ioctl.pcap %INPUT 2>&1 >out
-# @TEST-EXEC: ! test -f analyzer.log
+# @TEST-EXEC: ! test -f analyzer_failed.log
 # @TEST-EXEC: btest-diff out
 
 @load base/protocols/smb

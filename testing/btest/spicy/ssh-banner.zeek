@@ -8,7 +8,7 @@
 # Note: The following removes the payload data from the violation log, as that's a recent addition that breaks older version. Can remove later.
 # @TEST-EXEC: zeek -r ${TRACES}/http/post.trace -s ./ssh.sig Zeek::Spicy ssh.hlto  ./extern.zeek %INPUT | sed 's/ \[POST.*//g' | sort >>output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-remove-abspath btest-diff output
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-canonifier-spicy btest-diff analyzer.log
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-canonifier-spicy btest-diff analyzer_failed.log
 # @TEST-EXEC: test '!' -f reporter.log
 
 

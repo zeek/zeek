@@ -5,7 +5,6 @@
 # @TEST-EXEC: cat conn.log | zeek-cut -Cn local_orig local_resp > conn.log2 && mv conn.log2 conn.log
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff ldap.log
-# @TEST-EXEC: ! test -f dpd.log
-# @TEST-EXEC: ! test -f analyzer.log
+# @TEST-EXEC: ! test -f analyzer_failed.log
 #
 # @TEST-DOC: SASL authentication using SRP (Secure Remote Password)

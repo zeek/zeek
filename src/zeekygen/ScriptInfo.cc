@@ -309,6 +309,10 @@ void ScriptInfo::DoInitPostScript() {
         const auto& id = zeek::detail::global_scope()->Find("Input::Reader");
         types.push_back(new IdentifierInfo(id, this));
     }
+    else if ( name == "base/init-bare.zeek" ) {
+        const auto& id = zeek::detail::global_scope()->Find("ConnKey::Tag");
+        types.push_back(new IdentifierInfo(id, this));
+    }
     else if ( name == "base/frameworks/logging/main.zeek" ) {
         const auto& id = zeek::detail::global_scope()->Find("Log::Writer");
         types.push_back(new IdentifierInfo(id, this));

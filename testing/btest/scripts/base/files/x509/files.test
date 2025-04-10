@@ -7,3 +7,18 @@
 @load base/protocols/ssl
 
 redef X509::log_x509_in_files_log = T;
+
+event file_state_remove(f: fa_file)
+	{
+	local analyzers_vec: vector of string = vector();
+	for ( a in f$info$analyzers )
+		analyzers_vec += a;
+
+	sort(analyzers_vec, strcmp);
+
+	local analyzers_ordered: set[string] = set() &ordered;
+	for ( _, a in analyzers_vec )
+		add analyzers_ordered[a];
+
+	f$info$analyzers = analyzers_ordered;
+	}

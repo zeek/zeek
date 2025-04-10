@@ -14,8 +14,13 @@
 #include "zeek/StmtBase.h"
 #include "zeek/StmtEnums.h"
 #include "zeek/TraverseTypes.h"
-#include "zeek/Type.h" /* for function_flavor */
-#include "zeek/ZVal.h"
+#include "zeek/Type.h" /* for FunctionFlavor */
+
+// This is needed in order to chain-include ZVal.h, which is what's
+// actually needed by Func.h. If you don't include Val.h along with
+// ZVal.h, Windows fails to build because of the forward declarations
+// in ZVal.h.
+#include "zeek/Val.h"
 #include "zeek/ZeekArgs.h"
 #include "zeek/ZeekList.h"
 
@@ -47,9 +52,6 @@ using EventGroupPtr = std::shared_ptr<EventGroup>;
 
 class Func;
 using FuncPtr = IntrusivePtr<Func>;
-
-class RecordVal;
-using RecordValPtr = IntrusivePtr<RecordVal>;
 
 class Func : public Obj {
 public:

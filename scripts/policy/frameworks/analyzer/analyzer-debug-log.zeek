@@ -22,7 +22,7 @@ export {
 		cause:          string            &log;
 		## The kind of analyzer involved. Currently "packet", "file"
 		## or "protocol".
-		Analyzer::kind:  string            &log;
+		analyzer_kind:  string            &log;
 		## The name of the analyzer as produced by :zeek:see:`Analyzer::name`
 		## for the analyzer's tag.
 		analyzer_name:  string            &log;
@@ -146,7 +146,7 @@ event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirm
 	local rec = Info(
 		$ts=network_time(),
 		$cause="confirmation",
-		$Analyzer::kind=Analyzer::kind(atype),
+		$analyzer_kind=Analyzer::kind(atype),
 		$analyzer_name=Analyzer::name(atype),
 	);
 
@@ -167,7 +167,7 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 	local rec = Info(
 		$ts=network_time(),
 		$cause="violation",
-		$Analyzer::kind=Analyzer::kind(atype),
+		$analyzer_kind=Analyzer::kind(atype),
 		$analyzer_name=Analyzer::name(atype),
 		$failure_reason=info$reason,
 	);
@@ -197,7 +197,7 @@ hook Analyzer::disabling_analyzer(c: connection, atype: AllAnalyzers::Tag, aid: 
 	local rec = Info(
 		$ts=network_time(),
 		$cause="disabled",
-		$Analyzer::kind=Analyzer::kind(atype),
+		$analyzer_kind=Analyzer::kind(atype),
 		$analyzer_name=Analyzer::name(atype),
 	);
 

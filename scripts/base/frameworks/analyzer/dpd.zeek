@@ -51,7 +51,7 @@ event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirm
 # Remove failed analyzers from service field and add them to c$service_violation
 event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=10
 	{
-	if ( ! is_protocol_analyzer(atype) && ! is_packet_analyzer(atype) )
+	if ( ! is_protocol_analyzer(atype) )
 		return;
 
 	if ( ! info?$c )
@@ -85,7 +85,7 @@ event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolatio
 
 event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo ) &priority=5
 	{
-	if ( ! is_protocol_analyzer(atype) && ! is_packet_analyzer(atype) )
+	if ( ! is_protocol_analyzer(atype) )
 		return;
 
 	if ( ! info?$c || ! info?$aid )

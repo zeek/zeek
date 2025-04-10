@@ -8,7 +8,7 @@
 #include "zeek/IPAddr.h"
 #include "zeek/Reassem.h"
 #include "zeek/Timer.h"
-#include "zeek/util.h" // for zeek_uint_t
+#include "zeek/util-types.h" // for zeek_uint_t
 
 namespace zeek {
 

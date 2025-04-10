@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <string>
 
-#include "zeek/util.h"
+#include "zeek/util-types.h"
 
 extern "C" {
 #include <pcap.h>

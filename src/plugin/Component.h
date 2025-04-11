@@ -2,17 +2,20 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
-
 #include <string>
 
+#include "zeek/IntrusivePtr.h"
 #include "zeek/Tag.h"
-#include "zeek/Type.h"
-#include "zeek/Val.h"
 
 namespace zeek {
 
 class ODesc;
+class EnumType;
+using EnumTypePtr = IntrusivePtr<EnumType>;
+class EnumVal;
+using EnumValPtr = IntrusivePtr<EnumVal>;
+class StringVal;
+using StringValPtr = IntrusivePtr<StringVal>;
 
 namespace plugin {
 namespace component {
@@ -69,7 +72,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~Component() = default;
+    virtual ~Component();
 
     // Disable.
     Component(const Component& other) = delete;
@@ -99,7 +102,7 @@ public:
      * ID.
      */
     const std::string& CanonicalName() const { return canon_name; }
-    StringValPtr CanonicalNameVal() const { return canon_name_val; }
+    StringValPtr CanonicalNameVal() const;
 
     /**
      * Returns a textual representation of the component. This goes into

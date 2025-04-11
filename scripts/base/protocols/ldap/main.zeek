@@ -380,6 +380,10 @@ event LDAP::bind_request(c: connection,
     m$opcode = BIND_SIMPLE;
   } else if (authType == LDAP::BindAuthType_BIND_AUTH_SASL) {
     m$opcode = BIND_SASL;
+  } else if (authType == LDAP::BindAuthType_SICILY_NEGOTIATE ) {
+    m$opcode = "sicily_negotiate";
+  } else if (authType == LDAP::BindAuthType_SICILY_RESPONSE ) {
+    m$opcode = "sicily_response";
   } else {
     Reporter::conn_weird("LDAP_unknown_auth_type", c, cat(authType), "LDAP");
     m$opcode = cat(authType);

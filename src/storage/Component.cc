@@ -14,7 +14,7 @@ BackendComponent::BackendComponent(const std::string& name, factory_callback arg
 
 void BackendComponent::Initialize() {
     InitializeTag();
-    storage_mgr->BackendMgr().RegisterComponent(this);
+    storage_mgr->BackendMgr().RegisterComponent(this, "STORAGE_BACKEND_");
 }
 
 void BackendComponent::DoDescribe(ODesc* d) const {
@@ -29,7 +29,7 @@ SerializerComponent::SerializerComponent(const std::string& name, factory_callba
 
 void SerializerComponent::Initialize() {
     InitializeTag();
-    storage_mgr->SerializerMgr().RegisterComponent(this);
+    storage_mgr->SerializerMgr().RegisterComponent(this, "STORAGE_SERIALIZER_");
 }
 
 void SerializerComponent::DoDescribe(ODesc* d) const {

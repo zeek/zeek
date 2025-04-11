@@ -14,12 +14,12 @@ event zeek_init() {
 	               $table_name = "testing"];
 
 	# This should report an error in .stderr and reporter.log
-	local open_res = Storage::Sync::open_backend(Storage::SQLITE, opts, string, string);
+	local open_res = Storage::Sync::open_backend(Storage::STORAGE_BACKEND_SQLITE, opts, string, string);
 	print "Open result", open_res;
 
 	# Open a valid database file
 	opts$sqlite$database_path = "test.sqlite";
-	open_res = Storage::Sync::open_backend(Storage::SQLITE, opts, string, string);
+	open_res = Storage::Sync::open_backend(Storage::STORAGE_BACKEND_SQLITE, opts, string, string);
 	print "Open result 2", open_res;
 
 	local b = open_res$value;

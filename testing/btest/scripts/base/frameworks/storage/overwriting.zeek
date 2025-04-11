@@ -18,7 +18,7 @@ event zeek_init() {
 	local value = "value7890";
 	local value2 = "value2345";
 
-	local res = Storage::Sync::open_backend(Storage::SQLITE, opts, str, str);
+	local res = Storage::Sync::open_backend(Storage::STORAGE_BACKEND_SQLITE, opts, str, str);
 	print "open result", res;
 	local b = res$value;
 

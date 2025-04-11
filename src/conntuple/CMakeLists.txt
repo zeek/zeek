@@ -9,3 +9,4 @@ zeek_add_subdir_library(
     Manager.cc)
 
 add_subdirectory(fivetuple)
+add_subdirectory(vlan)

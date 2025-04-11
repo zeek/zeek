@@ -16,6 +16,7 @@
 @load frameworks/signatures/iso-9660.zeek
 @load policy/misc/dump-events.zeek
 @load policy/protocols/conn/speculative-service.zeek
+@load policy/protocols/conntuple/vlan.zeek
 
 # Remove in v8.1: This script is deprecated and conflicts with detect-sql-injection.zeek
 # @load policy/protocols/http/detect-sqli.zeek

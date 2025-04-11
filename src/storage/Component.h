@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include <memory>
+
+#include "zeek/IntrusivePtr.h"
 #include "zeek/plugin/Component.h"
 
 namespace zeek::storage {

@@ -4,6 +4,8 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Reporter.h"
+#include "zeek/Type.h"
+#include "zeek/Val.h"
 
 namespace zeek::plugin {
 
@@ -15,6 +17,8 @@ Component::Component(component::Type arg_type, const std::string& arg_name, Tag:
     canon_name = util::canonify_name(name);
     canon_name_val = make_intrusive<StringVal>(canon_name);
 }
+
+Component::~Component() {}
 
 void Component::Describe(ODesc* d) const {
     d->Add("    ");
@@ -95,4 +99,7 @@ void Component::SetEnabled(bool arg_enabled) {
             break;
     }
 }
+
+StringValPtr Component::CanonicalNameVal() const { return canon_name_val; }
+
 } // namespace zeek::plugin

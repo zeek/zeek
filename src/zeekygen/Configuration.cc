@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "zeek/Reporter.h"
+#include "zeek/Type.h"
 #include "zeek/zeekygen/utils.h"
 
 using namespace std;

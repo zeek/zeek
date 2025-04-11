@@ -423,6 +423,7 @@ type GSS_SPNEGO_Subsequent = unit {
 type GSS_SPNEGO_negTokenResp = unit {
   var accepted: bool;
   var supportedMech: ASN1::ASN1Message;
+  var responseToken: optional<bytes>;
 
   # Parse the contained Sequence.
   seq: ASN1::ASN1Message(True) {
@@ -433,7 +434,7 @@ type GSS_SPNEGO_negTokenResp = unit {
       } else if ( msg.application_id == 1 ) {
         self.supportedMech = msg;
       } else if ( msg.application_id == 2 ) {
-        # ignore responseToken
+        self.responseToken = msg.application_data;
       } else if ( msg.application_id == 3 ) {
         # ignore mechListMec
       } else {
@@ -523,7 +524,7 @@ type BindResponse = unit(inout message: Message, ctx: Ctx&) {
     if ( $$?.negTokenResp ) {
       local token = $$.negTokenResp;
       if ( token.accepted && token?.supportedMechOid ) {
-        if ( token.supportedMechOid == GSSAPI_MECH_MS_KRB5 ) {
+        if ( token.supportedMechOid == GSSAPI_MECH_MS_KRB5 && token.responseToken ) {
           ctx.messageMode = MessageMode::MS_KRB5;
         }
       }

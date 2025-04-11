@@ -12,19 +12,27 @@
 #include "zeek/Type.h"
 #include "zeek/cluster/OnLoop.h"
 #include "zeek/cluster/Serializer.h"
+#include "zeek/cluster/cluster.bif.h"
 #include "zeek/logging/Manager.h"
 #include "zeek/util.h"
 
 using namespace zeek::cluster;
 
 
-bool detail::LocalEventHandlingStrategy::DoHandleRemoteEvent(std::string_view topic, detail::Event e) {
+bool detail::LocalEventHandlingStrategy::DoProcessEvent(std::string_view topic, detail::Event e) {
     zeek::event_mgr.Enqueue(e.Handler(), std::move(e.args), util::detail::SOURCE_BROKER, 0, nullptr, e.timestamp);
     return true;
 }
 
-void detail::LocalEventHandlingStrategy::DoEnqueueLocalEvent(EventHandlerPtr h, zeek::Args args) {
+void detail::LocalEventHandlingStrategy::DoProcessLocalEvent(EventHandlerPtr h, zeek::Args args) {
     zeek::event_mgr.Enqueue(h, std::move(args));
+}
+
+// Backend errors are raised via a generic Cluster::Backend::error(code, message) event.
+void detail::LocalEventHandlingStrategy::DoProcessError(std::string_view code, std::string_view message) {
+    if ( Cluster::Backend::error )
+        zeek::event_mgr.Enqueue(Cluster::Backend::error, zeek::make_intrusive<zeek::StringVal>(code),
+                                zeek::make_intrusive<zeek::StringVal>(message));
 }
 
 std::optional<zeek::Args> detail::check_args(const zeek::FuncValPtr& handler, zeek::ArgsSpan args) {
@@ -112,7 +120,15 @@ bool Backend::DoPublishLogWrites(const zeek::logging::detail::LogWriteHeader& he
 }
 
 void Backend::EnqueueEvent(EventHandlerPtr h, zeek::Args args) {
-    event_handling_strategy->EnqueueLocalEvent(h, std::move(args));
+    event_handling_strategy->ProcessLocalEvent(h, std::move(args));
+}
+
+bool Backend::ProcessEvent(std::string_view topic, detail::Event e) {
+    return event_handling_strategy->ProcessEvent(topic, std::move(e));
+}
+
+void Backend::ProcessError(std::string_view code, std::string_view message) {
+    return event_handling_strategy->ProcessError(code, message);
 }
 
 bool Backend::ProcessEventMessage(std::string_view topic, std::string_view format,
@@ -132,7 +148,7 @@ bool Backend::ProcessEventMessage(std::string_view topic, std::string_view forma
         return false;
     }
 
-    return event_handling_strategy->HandleRemoteEvent(topic, std::move(*r));
+    return ProcessEvent(topic, std::move(*r));
 }
 
 bool Backend::ProcessLogMessage(std::string_view format, detail::byte_buffer_span payload) {

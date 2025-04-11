@@ -3829,8 +3829,13 @@ ScheduleTimer::ScheduleTimer(const EventHandlerPtr& arg_event, Args arg_args, do
     : Timer(t, TIMER_SCHEDULE), event(arg_event), args(std::move(arg_args)) {}
 
 void ScheduleTimer::Dispatch(double /* t */, bool /* is_expire */) {
-    if ( event )
-        event_mgr.Enqueue(event, std::move(args), util::detail::SOURCE_LOCAL, 0, nullptr, this->Time());
+    if ( event ) {
+        // An event's intended timestamp might be in the past as timer expiration is driven by
+        // network time. Guarantee that the intended timestamp is never in the future (e.g.,
+        // when all timers are expired on shutdown).
+        auto ts = std::min(this->Time(), run_state::network_time);
+        event_mgr.Enqueue(event, std::move(args), util::detail::SOURCE_LOCAL, 0, nullptr, ts);
+    }
 }
 
 ScheduleExpr::ScheduleExpr(ExprPtr arg_when, EventExprPtr arg_event)

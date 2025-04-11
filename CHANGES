@@ -1,3 +1,12 @@
+7.2.0-dev.510 | 2025-04-11 15:16:53 +0200
+
+  * Prevent event timestamps set to future (Jan Grashoefer, Corelight)
+
+    For scheduled events, the event timestamp is the intended timestamp. If
+    we force timer expiration, the timestamp might be in the future. Today,
+    this happens on shutdown. This change guarantees that event timestamps
+    are never set beyond network time.
+
 7.2.0-dev.508 | 2025-04-11 12:59:53 +0200
 
   * GH-4301: Fix `--with-spicy`. (Robin Sommer, Corelight)

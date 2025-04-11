@@ -106,12 +106,8 @@ void EventHandler::NewEvent(Args* vl) {
         return;
 
     auto vargs = MakeCallArgumentVector(*vl, GetType()->Params());
-
-    auto ev = new Event(new_event, {
-                                       make_intrusive<StringVal>(name),
-                                       std::move(vargs),
-                                   });
-    event_mgr.Dispatch(ev);
+    auto args = zeek::Args{make_intrusive<StringVal>(name), std::move(vargs)};
+    event_mgr.Dispatch(new_event, std::move(args));
 }
 
 uint64_t EventHandler::CallCount() const { return call_count ? call_count->Value() : 0; }

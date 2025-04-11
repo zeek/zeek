@@ -80,7 +80,14 @@ public:
         return Enqueue(h, zeek::Args{std::forward<Args>(args)...});
     }
 
+    [[deprecated("Remove in v8.1: Use Dispatch(handler, args) instead.")]]
     void Dispatch(Event* event, bool no_remote = false);
+
+    // Dispatch an event with the given handler and arguments immediately.
+    //
+    // While the event is technically not queued, HookQueueEvent() is
+    // invoked on the Event instance regardless.
+    void Dispatch(const EventHandlerPtr& h, zeek::Args vl);
 
     void Drain();
     bool IsDraining() const { return current != nullptr; }

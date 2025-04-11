@@ -10,6 +10,7 @@
 #include "zeek/Func.h"
 #include "zeek/Reporter.h"
 #include "zeek/Type.h"
+#include "zeek/cluster/Manager.h"
 #include "zeek/cluster/OnLoop.h"
 #include "zeek/cluster/Serializer.h"
 #include "zeek/logging/Manager.h"
@@ -19,7 +20,7 @@ using namespace zeek::cluster;
 
 
 bool detail::LocalEventHandlingStrategy::DoHandleRemoteEvent(std::string_view topic, detail::Event e) {
-    zeek::event_mgr.Enqueue(e.Handler(), std::move(e.args), util::detail::SOURCE_BROKER, 0, nullptr, e.timestamp);
+    zeek::event_mgr.Enqueue(e.Handler(), std::move(e.Args()), util::detail::SOURCE_BROKER, 0, nullptr, e.Timestamp());
     return true;
 }
 
@@ -69,9 +70,16 @@ std::optional<zeek::Args> detail::check_args(const zeek::FuncValPtr& handler, ze
     return result;
 }
 
-Backend::Backend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
+Backend::Backend(std::string_view arg_name, std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
                  std::unique_ptr<detail::EventHandlingStrategy> ehs)
-    : event_serializer(std::move(es)), log_serializer(std::move(ls)), event_handling_strategy(std::move(ehs)) {}
+    : name(arg_name),
+      event_serializer(std::move(es)),
+      log_serializer(std::move(ls)),
+      event_handling_strategy(std::move(ehs)) {
+    tag = zeek::cluster::manager->Backends().GetComponentTag(name);
+    if ( ! tag )
+        reporter->InternalError("unknown cluster backend name '%s'; mismatch with tag component?", name.c_str());
+}
 
 std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsSpan args, double timestamp) const {
     auto checked_args = detail::check_args(handler, args);
@@ -91,7 +99,7 @@ std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsS
 }
 
 // Default implementation doing the serialization.
-bool Backend::DoPublishEvent(const std::string& topic, const cluster::detail::Event& event) {
+bool Backend::DoPublishEvent(const std::string& topic, cluster::detail::Event& event) {
     cluster::detail::byte_buffer buf;
 
     if ( ! event_serializer->SerializeEvent(buf, event) )
@@ -158,10 +166,10 @@ bool ThreadedBackend::ProcessBackendMessage(int tag, detail::byte_buffer_span pa
     return DoProcessBackendMessage(tag, payload);
 }
 
-ThreadedBackend::ThreadedBackend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
-                                 std::unique_ptr<detail::EventHandlingStrategy> ehs)
-    : Backend(std::move(es), std::move(ls), std::move(ehs)) {
-    onloop = new zeek::detail::OnLoopProcess<ThreadedBackend, QueueMessage>(this, "ThreadedBackend");
+ThreadedBackend::ThreadedBackend(std::string_view name, std::unique_ptr<EventSerializer> es,
+                                 std::unique_ptr<LogSerializer> ls, std::unique_ptr<detail::EventHandlingStrategy> ehs)
+    : Backend(name, std::move(es), std::move(ls), std::move(ehs)) {
+    onloop = new zeek::detail::OnLoopProcess<ThreadedBackend, QueueMessage>(this, Name());
     onloop->Register(true); // Register as don't count first
 }
 

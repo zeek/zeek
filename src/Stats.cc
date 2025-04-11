@@ -259,12 +259,11 @@ void ProfileLogger::Log() {
     }
 
     // Create an event so that scripts can log their information, too.
-    // (and for consistency we dispatch it *now*)
+    // (and for consistency we dispatch it *now*). Don't propagate this
+    // event to remote clients.
     if ( profiling_update ) {
-        event_mgr.Dispatch(new Event(profiling_update, {
-                                                           make_intrusive<FileVal>(IntrusivePtr{NewRef{}, file}),
-                                                           val_mgr->Bool(expensive),
-                                                       }));
+        zeek::Args args{make_intrusive<FileVal>(IntrusivePtr{NewRef{}, file}), val_mgr->Bool(expensive)};
+        event_mgr.Dispatch(profiling_update, std::move(args));
     }
 }
 

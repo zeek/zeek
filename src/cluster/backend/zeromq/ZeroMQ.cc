@@ -64,7 +64,7 @@ constexpr DebugFlag operator&(zeek_uint_t x, DebugFlag y) {
 
 ZeroMQBackend::ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
                              std::unique_ptr<detail::EventHandlingStrategy> ehs)
-    : ThreadedBackend(std::move(es), std::move(ls), std::move(ehs)) {
+    : ThreadedBackend("ZeroMQ", std::move(es), std::move(ls), std::move(ehs)) {
     log_push = zmq::socket_t(ctx, zmq::socket_type::push);
     main_inproc = zmq::socket_t(ctx, zmq::socket_type::pair);
 }

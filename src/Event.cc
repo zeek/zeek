@@ -106,6 +106,22 @@ void EventMgr::Dispatch(Event* event, bool no_remote) {
     Unref(event);
 }
 
+void EventMgr::Dispatch(const EventHandlerPtr& h, zeek::Args vl) {
+    auto* ev = new Event(h, std::move(vl));
+
+    // Technically this isn't queued, but still give plugins a chance to
+    // intercept the event and cancel or modify it if really wanted.
+    bool done = PLUGIN_HOOK_WITH_RESULT(HOOK_QUEUE_EVENT, HookQueueEvent(ev), false);
+    if ( done )
+        return;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    // TODO: Open-code the old Dispatch() implementation here in v8.1.
+    Dispatch(ev);
+#pragma GCC diagnostic pop
+}
+
 void EventMgr::Drain() {
     if ( event_queue_flush_point )
         Enqueue(event_queue_flush_point, Args{});

@@ -9,7 +9,7 @@
 // MSVC will include this header later, after the definitions of
 // the integral type macros. MSVC then complains that about the
 // redefinition of the types. Including stdint.h early avoids this.
-#include <stdint.h>
+#include <cstdint>
 }
 
 %{

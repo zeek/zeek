@@ -1,3 +1,11 @@
+7.2.0-dev.508 | 2025-04-11 12:59:53 +0200
+
+  * GH-4301: Fix `--with-spicy`. (Robin Sommer, Corelight)
+
+  * GH-3522: Spicy: Document lifetime semantics of Zeek analyzers created from Spicy. (Robin Sommer, Corelight)
+
+  * Bump Spicy. (Robin Sommer, Corelight)
+
 7.2.0-dev.503 | 2025-04-10 15:47:27 +0200
 
   * btest/files/x509/files: Sort analyzers in baseline (Arne Welzel, Corelight)

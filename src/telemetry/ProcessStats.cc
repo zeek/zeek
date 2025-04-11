@@ -9,10 +9,10 @@
 #include <libproc.h>
 #include <mach/mach.h>
 #include <mach/task.h>
-#include <math.h>
-#include <stdlib.h>
 #include <sys/resource.h>
 #include <unistd.h>
+#include <cmath>
+#include <cstdlib>
 
 namespace zeek::telemetry::detail {
 

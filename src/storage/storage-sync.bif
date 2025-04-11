@@ -33,7 +33,7 @@ function Storage::Sync::__open_backend%(btype: Storage::Backend, options: any, k
 	auto btype_val = IntrusivePtr<EnumVal>{NewRef{}, btype->AsEnumVal()};
 	Tag tag{btype_val};
 
-	auto b = storage_mgr->Instantiate(tag);
+	auto b = storage_mgr->InstantiateBackend(tag);
 
 	if ( ! b.has_value() ) {
 		emit_builtin_error(b.error().c_str());

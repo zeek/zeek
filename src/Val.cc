@@ -352,6 +352,8 @@ static bool UsesJSONStringType(const TypePtr& t) {
 // in Val.h, because they're huge.
 static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool only_loggable = false,
                       RE_Matcher* re = nullptr, const string& key = "", bool interval_as_double = false) {
+    // Note: If this code changes, the Val::JSON_VERSION constant should be increased.
+
     if ( ! key.empty() )
         writer.Key(key);
 
@@ -540,6 +542,8 @@ static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool onl
 }
 
 StringValPtr Val::ToJSON(bool only_loggable, RE_Matcher* re, bool interval_as_double) {
+    // Note: If this code changes, the Val::JSON_VERSION constant should be increased.
+
     rapidjson::StringBuffer buffer;
     json::detail::NullDoubleWriter writer(buffer);
 
@@ -891,8 +895,10 @@ unsigned int StringVal::ComputeFootprint(std::unordered_set<const Val*>* analyze
     return 1 /* this object */ + static_cast<unsigned int>(Len()) / sizeof(Val);
 }
 
-static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, const TypePtr& t,
-                                                  const FuncPtr& key_func) {
+static zeek::expected<ValPtr, std::string> BuildVal(const rapidjson::Value& j, const TypePtr& t,
+                                                    const FuncPtr& key_func) {
+    // Note: If this code changes, the Val::JSON_VERSION constant should be increased.
+
     auto mismatch_err = [t, &j]() {
         std::string json_type;
         switch ( j.GetType() ) {
@@ -906,7 +912,8 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
             default: json_type = "unknown";
         }
 
-        return util::fmt("cannot convert JSON type '%s' to Zeek type '%s'", json_type.c_str(), type_name(t->Tag()));
+        return zeek::unexpected<std::string>(
+            util::fmt("cannot convert JSON type '%s' to Zeek type '%s'", json_type.c_str(), type_name(t->Tag())));
     };
 
     if ( j.IsNull() )
@@ -960,7 +967,7 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
                 parts.erase(std::remove_if(parts.begin(), parts.end(), [](auto x) { return x.empty(); }), parts.end());
 
                 if ( (parts.size() % 2) != 0 )
-                    return "wrong interval format, must be pairs of values with units";
+                    return zeek::unexpected<std::string>("wrong interval format, must be pairs of values with units");
 
                 double interval_secs = 0.0;
                 for ( size_t i = 0; i < parts.size(); i += 2 ) {
@@ -980,7 +987,8 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
                     else if ( unit == "usec" || unit == "usecs" )
                         interval_secs += (value * Microseconds);
                     else
-                        return util::fmt("wrong interval format, invalid unit type %s", unit.data());
+                        return zeek::unexpected<std::string>(
+                            util::fmt("wrong interval format, invalid unit type %s", unit.data()));
                 }
 
                 return make_intrusive<IntervalVal>(interval_secs, Seconds);
@@ -991,11 +999,10 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
 
         case TYPE_PORT: {
             if ( j.IsString() ) {
-                int port = 0;
                 if ( j.GetStringLength() > 0 && j.GetStringLength() < 10 ) {
                     char* slash;
                     errno = 0;
-                    port = strtol(j.GetString(), &slash, 10);
+                    auto port = strtol(j.GetString(), &slash, 10);
                     if ( ! errno ) {
                         ++slash;
                         if ( util::streq(slash, "tcp") )
@@ -1009,15 +1016,17 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
                     }
                 }
 
-                return "wrong port format, string must be /[0-9]{1,5}\\/(tcp|udp|icmp|unknown)/";
+                return zeek::unexpected<std::string>(
+                    "wrong port format, string must be /[0-9]{1,5}\\/(tcp|udp|icmp|unknown)/");
             }
             else if ( j.IsObject() ) {
                 if ( ! j.HasMember("port") || ! j.HasMember("proto") )
-                    return "wrong port format, object must have 'port' and 'proto' members";
+                    return zeek::unexpected<std::string>(
+                        "wrong port format, object must have 'port' and 'proto' members");
                 if ( ! j["port"].IsNumber() )
-                    return "wrong port format, port must be a number";
+                    return zeek::unexpected<std::string>("wrong port format, port must be a number");
                 if ( ! j["proto"].IsString() )
-                    return "wrong port format, protocol must be a string";
+                    return zeek::unexpected<std::string>("wrong port format, protocol must be a string");
 
                 std::string proto{j["proto"].GetString()};
 
@@ -1030,10 +1039,10 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
                 if ( proto == "unknown" )
                     return val_mgr->Port(j["port"].GetInt(), TRANSPORT_UNKNOWN);
 
-                return "wrong port format, invalid protocol string";
+                return zeek::unexpected<std::string>("wrong port format, invalid protocol string");
             }
             else
-                return "wrong port format, must be string or object";
+                return zeek::unexpected<std::string>("wrong port format, must be string or object");
         }
 
         case TYPE_PATTERN: {
@@ -1055,7 +1064,7 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
 
             auto re = std::make_unique<RE_Matcher>(candidate.c_str());
             if ( ! re->Compile() )
-                return "error compiling pattern";
+                return zeek::unexpected<std::string>("error compiling pattern");
 
             return make_intrusive<PatternVal>(re.release());
         }
@@ -1074,7 +1083,7 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
                 std::string_view subnet_sv(j.GetString(), j.GetStringLength());
                 auto pos = subnet_sv.find('/');
                 if ( pos == subnet_sv.npos )
-                    return util::fmt("invalid value for subnet: '%s'", j.GetString());
+                    return zeek::unexpected<std::string>(util::fmt("invalid value for subnet: '%s'", j.GetString()));
 
                 candidate = std::string(j.GetString(), pos);
 
@@ -1082,7 +1091,7 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
                 char* end;
                 width = strtol(subnet_sv.data() + pos + 1, &end, 10);
                 if ( subnet_sv.data() + pos + 1 == end || errno )
-                    return util::fmt("invalid value for subnet: '%s'", j.GetString());
+                    return zeek::unexpected<std::string>(util::fmt("invalid value for subnet: '%s'", j.GetString()));
             }
 
             if ( candidate.front() == '[' )
@@ -1104,7 +1113,8 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
             auto intval = et->Lookup({j.GetString(), j.GetStringLength()});
 
             if ( intval < 0 )
-                return util::fmt("'%s' is not a valid enum for '%s'.", j.GetString(), et->GetName().c_str());
+                return zeek::unexpected<std::string>(
+                    util::fmt("'%s' is not a valid enum for '%s'.", j.GetString(), et->GetName().c_str()));
 
             return et->GetEnumVal(intval);
         }
@@ -1126,19 +1136,19 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
                     return mismatch_err();
 
                 for ( const auto& item : j.GetArray() ) {
-                    std::variant<ValPtr, std::string> v;
+                    zeek::expected<ValPtr, std::string> v;
 
                     if ( tl->GetTypes().size() == 1 )
                         v = BuildVal(item, tl->GetPureType(), key_func);
                     else
                         v = BuildVal(item, tl, key_func);
 
-                    if ( ! get_if<ValPtr>(&v) )
+                    if ( ! v )
                         return v;
-                    if ( ! std::get<ValPtr>(v) )
+                    if ( v.value() == nullptr )
                         continue;
 
-                    tv->Assign(std::move(std::get<ValPtr>(v)), nullptr);
+                    tv->Assign(v.value(), nullptr);
                 }
 
                 return tv;
@@ -1151,7 +1161,7 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
                     rapidjson::Document idxstr;
                     idxstr.Parse(it->name.GetString(), it->name.GetStringLength());
 
-                    std::variant<ValPtr, std::string> idx;
+                    zeek::expected<ValPtr, std::string> idx;
 
                     if ( tl->GetTypes().size() > 1 )
                         idx = BuildVal(idxstr, tl, key_func);
@@ -1163,19 +1173,19 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
                         // Parse the string's content, not the full JSON string.
                         idx = BuildVal(idxstr, tl->GetPureType(), key_func);
 
-                    if ( ! get_if<ValPtr>(&idx) )
+                    if ( ! idx )
                         return idx;
-                    if ( ! std::get<ValPtr>(idx) )
+                    if ( idx.value() == nullptr )
                         continue;
 
                     auto v = BuildVal(it->value, tt->Yield(), key_func);
 
-                    if ( ! get_if<ValPtr>(&v) )
+                    if ( ! v )
                         return v;
-                    if ( ! std::get<ValPtr>(v) )
+                    if ( v.value() == nullptr )
                         continue;
 
-                    tv->Assign(std::move(std::get<ValPtr>(idx)), std::move(std::get<ValPtr>(v)));
+                    tv->Assign(idx.value(), v.value());
                 }
 
                 return tv;
@@ -1202,7 +1212,7 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
                     }
 
                     if ( ! result )
-                        return "key function error";
+                        return zeek::unexpected<std::string>("key function error");
 
                     normalized_keys[result->AsStringVal()->CheckString()] = &it->value;
                 }
@@ -1226,17 +1236,18 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
                     if ( ! td_i->GetAttr(detail::ATTR_OPTIONAL) && ! td_i->GetAttr(detail::ATTR_DEFAULT) )
                         // jval being set means it is a null JSON value else
                         // it wasn't even there.
-                        return util::fmt("required field %s$%s is %s in JSON", t->GetName().c_str(), td_i->id,
-                                         jval ? "null" : "missing");
+                        return zeek::unexpected<std::string>(util::fmt("required field %s$%s is %s in JSON",
+                                                                       t->GetName().c_str(), td_i->id,
+                                                                       jval ? "null" : "missing"));
 
                     continue;
                 }
 
                 auto v = BuildVal(*jval, td_i->type, key_func);
-                if ( ! get_if<ValPtr>(&v) )
+                if ( ! v )
                     return v;
 
-                rv->Assign(i, std::move(std::get<ValPtr>(v)));
+                rv->Assign(i, v.value());
             }
 
             return rv;
@@ -1249,16 +1260,16 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
             auto lt = t->AsTypeList();
 
             if ( j.GetArray().Size() < lt->GetTypes().size() )
-                return "index type doesn't match";
+                return zeek::unexpected<std::string>("index type doesn't match");
 
             auto lv = make_intrusive<ListVal>(TYPE_ANY);
 
             for ( size_t i = 0; i < lt->GetTypes().size(); i++ ) {
                 auto v = BuildVal(j.GetArray()[i], lt->GetTypes()[i], key_func);
-                if ( ! get_if<ValPtr>(&v) )
+                if ( ! v )
                     return v;
 
-                lv->Append(std::move(std::get<ValPtr>(v)));
+                lv->Append(v.value());
             }
 
             return lv;
@@ -1272,29 +1283,32 @@ static std::variant<ValPtr, std::string> BuildVal(const rapidjson::Value& j, con
             auto vv = make_intrusive<VectorVal>(IntrusivePtr{NewRef{}, vt});
             for ( const auto& item : j.GetArray() ) {
                 auto v = BuildVal(item, vt->Yield(), key_func);
-                if ( ! get_if<ValPtr>(&v) )
+                if ( ! v )
                     return v;
 
-                if ( ! std::get<ValPtr>(v) )
+                if ( v.value() == nullptr )
                     continue;
 
-                vv->Assign(vv->Size(), std::move(std::get<ValPtr>(v)));
+                vv->Assign(vv->Size(), v.value());
             }
 
             return vv;
         }
 
-        default: return util::fmt("type '%s' unsupported", type_name(t->Tag()));
+        default: return zeek::unexpected<std::string>(util::fmt("type '%s' unsupported", type_name(t->Tag())));
     }
 }
 
-std::variant<ValPtr, std::string> detail::ValFromJSON(std::string_view json_str, const TypePtr& t,
-                                                      const FuncPtr& key_func) {
+zeek::expected<ValPtr, std::string> detail::ValFromJSON(std::string_view json_str, const TypePtr& t,
+                                                        const FuncPtr& key_func) {
+    // Note: If this code changes, the Val::JSON_VERSION constant should be increased.
+
     rapidjson::Document doc;
     rapidjson::ParseResult ok = doc.Parse(json_str.data(), json_str.length());
 
     if ( ! ok )
-        return util::fmt("JSON parse error: %s Offset: %lu", rapidjson::GetParseError_En(ok.Code()), ok.Offset());
+        return zeek::unexpected<std::string>(
+            util::fmt("JSON parse error: %s Offset: %lu", rapidjson::GetParseError_En(ok.Code()), ok.Offset()));
 
     return BuildVal(doc, t, key_func);
 }

@@ -16,14 +16,12 @@
 
 #include <libgen.h>
 #include <unistd.h>
-#include <array>
 #include <cinttypes>
 #include <cstdarg>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <memory> // std::unique_ptr
 #include <string>
 #include <string_view>
 #include <vector>
@@ -105,6 +103,8 @@ using expected = nonstd::expected<T, E>;
 template<typename E>
 using unexpected = nonstd::unexpected<E>;
 } // namespace zeek
+
+#include "zeek/Span.h"
 
 using zeek_int_t = int64_t;
 using zeek_uint_t = uint64_t;
@@ -311,6 +311,10 @@ double calc_next_rotate(double current, double rotate_interval, double base);
 int setvbuf(FILE* stream, char* buf, int type, size_t size);
 
 } // namespace detail
+
+// Byte buffer types used by serialization code in storage and cluster.
+using byte_buffer = std::vector<std::byte>;
+using byte_buffer_span = Span<const std::byte>;
 
 template<class T>
 void delete_each(T* t) {

@@ -50,3 +50,6 @@ Trace Index/Sources:
   Provided by Eldon Koyle Corelight for testing.
 - cdp-v1.pcap
   From the Wireshark library of captures at https://wiki.wireshark.org/samplecaptures.
+- ldap/adduser1.pcap ldap/adduser1-ntlm.pcap
+  Provided by Mohan-Dhawan on #4275
+  https://github.com/zeek/zeek/issues/4275

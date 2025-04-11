@@ -365,6 +365,12 @@ public type Message = unit(ctx: Ctx&) {
 public type BindAuthType = enum {
   BIND_AUTH_SIMPLE = 0,
   BIND_AUTH_SASL = 3,
+
+  # https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/8b9dbfb2-5b6a-497a-a533-7e709cb9a982
+  # 5.1.1.1.3 Sicily Authentication
+  SICILY_PACKAGE_DISCOVERY = 9,
+  SICILY_NEGOTIATE = 10,
+  SICILY_RESPONSE = 11,
 };
 
 type GSS_SPNEGO_negTokenInit = unit {
@@ -408,6 +414,12 @@ type SaslCredentials = unit() {
     "GSS-SPNEGO" -> gss_spnego: GSS_SPNEGO_Init;
     * -> : skip bytes &eod;
   };
+};
+
+type SicilyMessage = unit(bat: BindAuthType) {
+    # Just ensure the signature matches. We could do more,
+    # but it'd be better to forward to an NTLM analyzer.
+    signature: b"NTLMSSP";
 };
 
 type GSS_SPNEGO_Subsequent = unit {
@@ -481,6 +493,14 @@ type BindRequest = unit(inout message: Message, ctx: Ctx&) {
     message.arg = self.saslCreds.mechanism;
     ctx.saslMechanism = self.saslCreds.mechanism;
   }
+
+
+  sicilyMessage: SicilyMessage(self.authType) &parse-from=self.authData if ((self.authType == BindAuthType::SICILY_NEGOTIATE
+                                                                             || self.authType == BindAuthType::SICILY_RESPONSE)
+                                                                            && (|self.authData| > 0)) {
+    message.arg = self.sicilyMessage.signature.decode();
+  }
+
 } &requires=(self?.authType && (self.authType != BindAuthType::Undef));
 
 type ServerSaslCreds = unit {

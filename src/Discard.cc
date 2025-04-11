@@ -2,14 +2,11 @@
 
 #include "zeek/Discard.h"
 
-#include "zeek/zeek-config.h"
-
 #include <algorithm>
 
 #include "zeek/Func.h"
 #include "zeek/IP.h"
 #include "zeek/Reporter.h" // for InterpreterException
-#include "zeek/RunState.h"
 #include "zeek/Val.h"
 #include "zeek/Var.h"
 #include "zeek/ZeekString.h"
@@ -24,6 +21,8 @@ Discarder::Discarder() {
 
     discarder_maxlen = static_cast<int>(id::find_val("discarder_maxlen")->AsCount());
 }
+
+Discarder::~Discarder() {}
 
 bool Discarder::IsActive() { return check_ip || check_tcp || check_udp || check_icmp; }
 

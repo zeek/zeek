@@ -24,10 +24,10 @@
 #include <vector>
 
 #include "zeek/IP.h"
+#include "zeek/IPAddr.h"
 #include "zeek/Tag.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Component.h"
-#include "zeek/analyzer/analyzer.bif.h"
 #include "zeek/net_util.h"
 #include "zeek/plugin/ComponentManager.h"
 

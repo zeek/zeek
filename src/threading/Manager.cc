@@ -9,7 +9,6 @@
 
 #include "zeek/Event.h"
 #include "zeek/IPAddr.h"
-#include "zeek/NetVar.h"
 #include "zeek/RunState.h"
 #include "zeek/telemetry/Manager.h"
 

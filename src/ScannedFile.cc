@@ -3,7 +3,6 @@
 #include "zeek/ScannedFile.h"
 
 #include <cerrno>
-#include <climits> // for PATH_MAX
 
 #include "zeek/DebugLogger.h"
 #include "zeek/Reporter.h"

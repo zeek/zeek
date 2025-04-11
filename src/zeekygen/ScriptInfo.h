@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
-
 #include <time.h> // for time_t
 #include <list>
 #include <map>

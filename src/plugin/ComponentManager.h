@@ -6,7 +6,6 @@
 #include <map>
 #include <string>
 
-#include "zeek/Attr.h"
 #include "zeek/DebugLogger.h"
 #include "zeek/Expr.h"
 #include "zeek/Reporter.h"
@@ -16,7 +15,6 @@
 #include "zeek/Val.h"
 #include "zeek/Var.h" // for add_type()
 #include "zeek/ZeekString.h"
-#include "zeek/module_util.h"
 #include "zeek/zeekygen/Manager.h"
 
 namespace zeek::plugin {

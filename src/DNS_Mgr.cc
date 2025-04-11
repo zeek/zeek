@@ -38,7 +38,6 @@ using ztd::out_ptr::out_ptr;
 #include "zeek/Hash.h"
 #include "zeek/ID.h"
 #include "zeek/IntrusivePtr.h"
-#include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
 #include "zeek/Val.h"

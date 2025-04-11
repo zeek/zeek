@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "zeek/ID.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace binpac {

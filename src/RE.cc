@@ -2,8 +2,6 @@
 
 #include "zeek/RE.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cstdlib>
 #include <utility>
 

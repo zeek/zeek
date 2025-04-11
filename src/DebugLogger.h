@@ -7,13 +7,13 @@
 
 #ifdef DEBUG
 
-#include "zeek/zeek-config.h"
-
-#include <stdio.h>
+#include <cstdio>
 #include <set>
 #include <string>
 
-#include "zeek/util.h"
+#ifdef _MSC_VER
+#include <unistd.h> // Needed to ignore __attribute__((format(printf))) on MSVC
+#endif
 
 #define DBG_LOG(stream, ...)                                                                                           \
     if ( ::zeek::detail::debug_logger.IsEnabled(stream) )                                                              \

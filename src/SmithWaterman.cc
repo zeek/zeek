@@ -2,8 +2,6 @@
 
 #include "zeek/SmithWaterman.h"
 
-#include "zeek/zeek-config.h"
-
 #include <algorithm>
 #include <cctype>
 

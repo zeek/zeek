@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "zeek/util.h"
-
 namespace zeek {
 class Obj;
 }

@@ -2,6 +2,7 @@
 
 #include "zeek/packet_analysis/protocol/icmp/ICMPSessionAdapter.h"
 
+#include "zeek/Conn.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/conn-size/ConnSize.h"
 

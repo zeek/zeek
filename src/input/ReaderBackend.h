@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "zeek/ZeekString.h"
 #include "zeek/input/Component.h"
 #include "zeek/threading/MsgThread.h"
 #include "zeek/threading/SerialTypes.h"

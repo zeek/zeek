@@ -4,16 +4,13 @@
 
 #include <cerrno>
 
-#include "zeek/Event.h"
 #include "zeek/File.h"
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
-#include "zeek/RunState.h"
 #include "zeek/Val.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "zeek/analyzer/protocol/tcp/events.bif.h"
-#include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/protocol/tcp/TCP.h"
 #include "zeek/session/Manager.h"
 

@@ -16,6 +16,7 @@
 #include <csignal>
 #include <cstdlib>
 
+// Most of these includes are needed for code included from bif files.
 #include "zeek/Base64.h"
 #include "zeek/Debug.h"
 #include "zeek/Desc.h"
@@ -30,6 +31,7 @@
 #include "zeek/RunState.h"
 #include "zeek/Scope.h"
 #include "zeek/ScriptProfile.h"
+#include "zeek/Stats.h"
 #include "zeek/Stmt.h"
 #include "zeek/Traverse.h"
 #include "zeek/Var.h"
@@ -523,6 +525,9 @@ void ScriptFunc::CreateCaptures(std::unique_ptr<std::vector<ZVal>> cvec) {
         }
     }
 }
+
+void ScriptFunc::SetCapturesVec(std::unique_ptr<std::vector<ZVal>> cv) { captures_vec = std::move(cv); }
+
 
 void ScriptFunc::SetCaptures(Frame* f) {
     const auto& captures = type->GetCaptures();

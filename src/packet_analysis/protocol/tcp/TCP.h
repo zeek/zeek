@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "zeek/analyzer/protocol/tcp/TCP_Flags.h"
 #include "zeek/packet_analysis/Analyzer.h"
 #include "zeek/packet_analysis/Component.h"
 #include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"

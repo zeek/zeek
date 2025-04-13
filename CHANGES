@@ -1,3 +1,32 @@
+7.2.0-dev.517 | 2025-04-13 17:11:40 +0200
+
+  * cluster/Backend: Add name and lookup component tag (Arne Welzel, Corelight)
+
+    This adds two new accessors on Backend, Name() and Tag() that can
+    be used for introspection of a Backend instance.
+
+  * cluster/Event: Hide members behind accessors (Arne Welzel, Corelight)
+
+  * cluster/PublishEvent:: Make event non-const (Arne Welzel, Corelight)
+
+    We want to introduce a hook that can modify the cluster event instances, so
+    need to pass around a non-const version of it.
+
+  * broker/Manager: Re-use broker serializer for conversion (Arne Welzel, Corelight)
+
+  * EventMgr: Add Dispatch() with handler and args (Arne Welzel, Corelight)
+
+    Allow users to call event_mgr.Dispatch(handler, args) instead of
+    constructing the Event instance themselves. Deprecate the old API
+    and replace users.
+
+    There's a subtle change that net_done() may be propagated via
+    auto_publish() now, but that still needs opt-in from script land
+    and likely no one did that, or else they'd expected to have it
+    work anyhow.
+
+  * plugin/Manager: Fix MetaHookPre and MetaHookPost using HOOK_CALL_FUNCTION (Arne Welzel, Corelight)
+
 7.2.0-dev.510 | 2025-04-11 15:16:53 +0200
 
   * Prevent event timestamps set to future (Jan Grashoefer, Corelight)

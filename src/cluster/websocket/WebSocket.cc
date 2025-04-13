@@ -454,7 +454,7 @@ void WebSocketEventDispatcher::HandleEvent(WebSocketClientEntry& entry, std::str
     //
     // Switching to a JSON v2 format that ensures all Zeek types are represented
     // explicitly would help.
-    const auto& zeek_ev = cluster::detail::to_zeek_event(broker_ev);
+    auto zeek_ev = cluster::detail::to_zeek_event(broker_ev);
     if ( ! zeek_ev ) {
         entry.wsc->SendError(broker::enum_str(broker::ec::deserialization_failed), "failed to create Zeek event");
         return;

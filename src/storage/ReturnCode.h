@@ -14,7 +14,7 @@ namespace storage {
  * A collection of EnumValPtrs for the default set of result codes in the storage framework.
  * should be kept up-to-date with the Storage::ReturnCodes script-level enum.
  */
-class ReturnCode {
+class ReturnCode final {
 public:
     static void Initialize();
     static void Cleanup();
@@ -32,6 +32,8 @@ public:
     static EnumValPtr DISCONNECTION_FAILED;
     static EnumValPtr INITIALIZATION_FAILED;
     static EnumValPtr IN_PROGRESS;
+    static EnumValPtr SERIALIZATION_FAILED;
+    static EnumValPtr UNSERIALIZATION_FAILED;
 };
 
 } // namespace storage

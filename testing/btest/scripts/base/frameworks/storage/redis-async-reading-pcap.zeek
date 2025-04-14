@@ -22,7 +22,7 @@ event zeek_init()
 	local key = "key1234";
 	local value = "value5678";
 
-	local open_res = Storage::Sync::open_backend(Storage::REDIS, opts, string, string);
+	local open_res = Storage::Sync::open_backend(Storage::STORAGE_BACKEND_REDIS, opts, string, string);
 	print "open result", open_res;
 	local b = open_res$value;
 

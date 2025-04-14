@@ -253,8 +253,7 @@ bool ZeroMQBackend::SpawnZmqProxyThread() {
     return proxy_thread->Start();
 }
 
-bool ZeroMQBackend::DoPublishEvent(const std::string& topic, const std::string& format,
-                                   const cluster::detail::byte_buffer& buf) {
+bool ZeroMQBackend::DoPublishEvent(const std::string& topic, const std::string& format, const byte_buffer& buf) {
     // Publishing an event happens as a multipart message with 4 parts:
     //
     // * The topic to publish to - this is required by XPUB/XSUB
@@ -336,7 +335,7 @@ bool ZeroMQBackend::DoUnsubscribe(const std::string& topic_prefix) {
 }
 
 bool ZeroMQBackend::DoPublishLogWrites(const logging::detail::LogWriteHeader& header, const std::string& format,
-                                       cluster::detail::byte_buffer& buf) {
+                                       byte_buffer& buf) {
     ZEROMQ_DEBUG("Publishing %zu bytes of log writes (path %s)", buf.size(), header.path.c_str());
     static std::string message_type = "log-write";
 
@@ -405,7 +404,7 @@ void ZeroMQBackend::Run() {
                 continue;
             }
 
-            detail::byte_buffer payload{msg[3].data<std::byte>(), msg[3].data<std::byte>() + msg[3].size()};
+            byte_buffer payload{msg[3].data<std::byte>(), msg[3].data<std::byte>() + msg[3].size()};
             LogMessage lm{.format = std::string(msg[2].data<const char>(), msg[2].size()),
                           .payload = std::move(payload)};
 
@@ -487,7 +486,7 @@ void ZeroMQBackend::Run() {
                 QueueMessage qm;
                 auto* start = msg[0].data<std::byte>() + 1;
                 auto* end = msg[0].data<std::byte>() + msg[0].size();
-                detail::byte_buffer topic(start, end);
+                byte_buffer topic(start, end);
                 if ( first == 1 ) {
                     qm = BackendMessage{1, std::move(topic)};
                 }
@@ -516,7 +515,7 @@ void ZeroMQBackend::Run() {
             if ( sender == NodeId() )
                 continue;
 
-            detail::byte_buffer payload{msg[3].data<std::byte>(), msg[3].data<std::byte>() + msg[3].size()};
+            byte_buffer payload{msg[3].data<std::byte>(), msg[3].data<std::byte>() + msg[3].size()};
             EventMessage em{.topic = std::string(msg[0].data<const char>(), msg[0].size()),
                             .format = std::string(msg[2].data<const char>(), msg[2].size()),
                             .payload = std::move(payload)};
@@ -644,7 +643,7 @@ void ZeroMQBackend::Run() {
     }
 }
 
-bool ZeroMQBackend::DoProcessBackendMessage(int tag, detail::byte_buffer_span payload) {
+bool ZeroMQBackend::DoProcessBackendMessage(int tag, byte_buffer_span payload) {
     if ( tag == 0 || tag == 1 ) {
         std::string topic{reinterpret_cast<const char*>(payload.data()), payload.size()};
         zeek::EventHandlerPtr eh;

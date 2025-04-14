@@ -1363,8 +1363,8 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const {
 
     auto tt = rt->GetFieldType<TableType>("cluster");
     auto json_res = detail::ValFromJSON(cluster, tt, Func::nil);
-    if ( auto val = std::get_if<ValPtr>(&json_res) ) {
-        rval->AssignField("cluster", *val);
+    if ( json_res ) {
+        rval->AssignField("cluster", json_res.value());
     }
     else {
         // This should never happen: the JSON data comes from a table[string] of
@@ -1372,7 +1372,7 @@ RecordValPtr Supervisor::NodeConfig::ToRecord() const {
         // here can be hard to debug. Other JSON code (see FromJSON()) fails
         // silently when the JSON is misformatted. We just warn:
         fprintf(stderr, "Could not parse %s's cluster table from '%s': %s\n", name.c_str(), cluster.c_str(),
-                std::get<std::string>(json_res).c_str());
+                json_res.error().c_str());
         rval->AssignField("cluster", make_intrusive<TableVal>(std::move(tt)));
     }
 

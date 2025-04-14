@@ -24,6 +24,7 @@ event Storage::backend_lost(tag: Storage::Backend, config: any, reason: string) 
 event zeek_init()
 	{
 	local opts: Storage::BackendOptions;
+	opts$serializer = Storage::STORAGE_SERIALIZER_JSON;
 	opts$redis = [ $server_host="127.0.0.1", $server_port=to_port(getenv(
 	    "REDIS_PORT")), $key_prefix="testing" ];
 
@@ -31,7 +32,7 @@ event zeek_init()
 	local value = "value1234";
 	local value2 = "value2345";
 
-	local res = Storage::Sync::open_backend(Storage::REDIS, opts, string, string);
+	local res = Storage::Sync::open_backend(Storage::STORAGE_BACKEND_REDIS, opts, string, string);
 	print "open_result", res;
 
 	local b = res$value;

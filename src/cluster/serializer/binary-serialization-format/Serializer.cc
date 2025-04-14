@@ -77,7 +77,7 @@ bool detail::BinarySerializationFormatLogSerializer::SerializeLogWrite(byte_buff
 }
 
 std::optional<zeek::logging::detail::LogWriteBatch> detail::BinarySerializationFormatLogSerializer::UnserializeLogWrite(
-    detail::byte_buffer_span buf) {
+    byte_buffer_span buf) {
     zeek::detail::BinarySerializationFormat fmt;
     fmt.StartRead(reinterpret_cast<const char*>(buf.data()), buf.size());
 
@@ -145,7 +145,7 @@ std::optional<zeek::logging::detail::LogWriteBatch> detail::BinarySerializationF
 TEST_SUITE_BEGIN("cluster serializer binary-serialization-format");
 
 TEST_CASE("roundtrip") {
-    detail::byte_buffer buf;
+    zeek::byte_buffer buf;
     detail::BinarySerializationFormatLogSerializer serializer;
 
     static const auto& stream_id_type = zeek::id::find_type<zeek::EnumType>("Log::ID");
@@ -161,7 +161,7 @@ TEST_CASE("roundtrip") {
                                       0x3f, 0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x00,
                                       0x00, 0x00, 0x16, 0x01, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
     std::byte* p = reinterpret_cast<std::byte*>(&expected_bytes[0]);
-    detail::byte_buffer expected{p, p + sizeof(expected_bytes)};
+    zeek::byte_buffer expected{p, p + sizeof(expected_bytes)};
 
     auto s = stream_id_type->Lookup("Log::UNKNOWN");
     REQUIRE_GE(s, 0);

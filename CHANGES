@@ -1,3 +1,23 @@
+7.2.0-dev.530 | 2025-04-14 10:11:59 -0700
+
+  * Add STORAGE_ prefixes for backends and serializers (Tim Wojtulewicz, Corelight)
+
+  * Add versioning to JSON serializer (Tim Wojtulewicz, Corelight)
+
+  * Remove unnecessary includes in Val.h (Tim Wojtulewicz, Corelight)
+
+  * Move byte_buffer types from cluster and storage into util (Tim Wojtulewicz, Corelight)
+
+  * Remove unnecessary <array> and <memory> includes from util.h (Tim Wojtulewicz, Corelight)
+
+  * Mark storage classes as final where appropriate (Tim Wojtulewicz, Corelight)
+
+  * Add JSON storage serializer, use with existing backends/tests (Tim Wojtulewicz, Corelight)
+
+  * Make ValFromJSON return zeek::expected instead of a variant (Tim Wojtulewicz, Corelight)
+
+  * Ground work for pluggable storage serializers (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.520 | 2025-04-14 18:58:55 +0200
 
   * Bump zeekjs to v0.17.0 (Arne Welzel, Corelight)

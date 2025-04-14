@@ -25,9 +25,8 @@ export {
 	## Returns: A record containing the status of the operation, and either an error
 	##          string on failure or a value on success. The value returned here will
 	##          be an ``opaque of BackendHandle``.
-	global open_backend: function(btype: Storage::Backend,
-	    options: Storage::BackendOptions, key_type: any, val_type: any)
-	    : Storage::OperationResult;
+	global open_backend: function(btype: Storage::Backend, options: Storage::BackendOptions,
+	    key_type: any, val_type: any): Storage::OperationResult;
 
 	## Closes an existing backend connection asynchronously. This method must be
 	## called via a :zeek:see:`when` condition or an error will be returned.

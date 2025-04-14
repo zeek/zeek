@@ -11,7 +11,8 @@ Plugin plugin;
 using namespace btest::plugin::Testing_StorageDummy;
 
 zeek::plugin::Configuration Plugin::Configure() {
-    AddComponent(new zeek::storage::Component("StorageDummy", btest::storage::backend::StorageDummy::Instantiate));
+    AddComponent(
+        new zeek::storage::BackendComponent("StorageDummy", btest::storage::backend::StorageDummy::Instantiate));
 
     zeek::plugin::Configuration config;
     config.name = "Testing::StorageDummy";

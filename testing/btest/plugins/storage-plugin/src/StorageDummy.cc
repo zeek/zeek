@@ -49,9 +49,10 @@ OperationResult StorageDummy::DoPut(ResultCallback* cb, ValPtr key, ValPtr value
     if ( timeout_put )
         return {ReturnCode::TIMEOUT};
 
-    auto json_key = key->ToJSON()->ToStdString();
-    auto json_value = value->ToJSON()->ToStdString();
-    data[json_key] = json_value;
+    auto key_data = serializer->Serialize(key);
+    auto val_data = serializer->Serialize(value);
+
+    data[*key_data] = *val_data;
     return {ReturnCode::SUCCESS};
 }
 
@@ -59,31 +60,31 @@ OperationResult StorageDummy::DoPut(ResultCallback* cb, ValPtr key, ValPtr value
  * The workhorse method for Get(). This must be implemented for plugins.
  */
 OperationResult StorageDummy::DoGet(ResultCallback* cb, ValPtr key) {
-    auto json_key = key->ToJSON();
-    auto it = data.find(json_key->ToStdString());
+    auto key_data = serializer->Serialize(key);
+
+    auto it = data.find(*key_data);
     if ( it == data.end() )
         return {ReturnCode::KEY_NOT_FOUND};
 
-    auto val = zeek::detail::ValFromJSON(it->second.c_str(), val_type, Func::nil);
-    if ( std::holds_alternative<ValPtr>(val) ) {
-        ValPtr val_v = std::get<ValPtr>(val);
-        return {ReturnCode::SUCCESS, "", val_v};
-    }
+    auto val = serializer->Unserialize(it->second, val_type);
+    if ( val )
+        return {ReturnCode::SUCCESS, "", val.value()};
 
-    return {ReturnCode::OPERATION_FAILED, std::get<std::string>(val)};
+    return {ReturnCode::UNSERIALIZATION_FAILED, val.error()};
 }
 
 /**
  * The workhorse method for Erase(). This must be implemented for plugins.
  */
 OperationResult StorageDummy::DoErase(ResultCallback* cb, ValPtr key) {
-    auto json_key = key->ToJSON();
-    auto it = data.find(json_key->ToStdString());
-    if ( it == data.end() )
-        return {ReturnCode::KEY_NOT_FOUND};
+    auto key_data = serializer->Serialize(key);
 
-    data.erase(it);
-    return {ReturnCode::SUCCESS};
+    if ( auto it = data.find(*key_data); it != data.end() ) {
+        data.erase(it);
+        return {ReturnCode::SUCCESS};
+    }
+
+    return {ReturnCode::KEY_NOT_FOUND};
 }
 
 } // namespace btest::storage::backend

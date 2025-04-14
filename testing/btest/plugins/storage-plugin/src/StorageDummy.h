@@ -50,7 +50,7 @@ public:
     zeek::storage::OperationResult DoErase(zeek::storage::ResultCallback* cb, zeek::ValPtr key) override;
 
 private:
-    std::map<std::string, std::string> data;
+    std::map<zeek::byte_buffer, zeek::byte_buffer> data;
     bool open = false;
 };
 

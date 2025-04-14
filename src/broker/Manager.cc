@@ -1156,8 +1156,10 @@ void Manager::ProcessLogEvents() {
             event_mgr.Enqueue(::Broker::internal_log_event, std::move(args));
         }
         if ( bstate->stderrSeverity >= severity ) {
-            fprintf(stderr, "[BROKER/%s] %s\n", severity_names_tbl[static_cast<int>(severity)],
-                    event->description.c_str());
+            // Formatting string_view with %.*s: Explicit precision specified as int argument for following char*
+            // as the string_view is not guaranteed to be null terminated (though it's probably here).
+            fprintf(stderr, "[BROKER/%s] %.*s: %s\n", severity_names_tbl[static_cast<int>(severity)],
+                    static_cast<int>(event->identifier.size()), event->identifier.data(), event->description.c_str());
         }
     }
 }

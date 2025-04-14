@@ -226,10 +226,12 @@ public:
         : endpoint(std::move(config), telemetry_mgr->GetRegistry()),
           subscriber(
               endpoint.make_subscriber({broker::topic::statuses(), broker::topic::errors()}, congestion_queue_size)),
+          hub(endpoint.make_hub({})),
           loggerQueue(std::move(queue)) {}
 
     broker::endpoint endpoint;
     broker::subscriber subscriber;
+    broker::hub hub;
     LoggerQueuePtr loggerQueue;
     SeverityLevel logSeverity = SeverityLevel::critical;
     SeverityLevel stderrSeverity = SeverityLevel::critical;
@@ -412,6 +414,9 @@ void Manager::DoInitPostScript() {
     if ( ! iosource_mgr->RegisterFd(bstate->subscriber.fd(), this) )
         reporter->FatalError("Failed to register broker subscriber with iosource_mgr");
 
+    if ( ! iosource_mgr->RegisterFd(bstate->hub.read_fd(), this) )
+        reporter->FatalError("Failed to register broker hub.read_fd() with iosource_mgr");
+
     if ( ! iosource_mgr->RegisterFd(queue->FlareFd(), this) )
         reporter->FatalError("Failed to register broker logger with iosource_mgr");
 
@@ -484,6 +489,8 @@ void Manager::DoTerminate() {
     FlushLogBuffers();
 
     iosource_mgr->UnregisterFd(bstate->subscriber.fd(), this);
+
+    iosource_mgr->UnregisterFd(bstate->hub.read_fd(), this);
 
     iosource_mgr->UnregisterFd(bstate->loggerQueue->FlareFd(), this);
 
@@ -633,7 +640,8 @@ bool Manager::DoPublishEvent(const std::string& topic, cluster::detail::Event& e
     auto& ev = maybe_ev.value();
 
     DBG_LOG(DBG_BROKER, "Publishing event: %s", RenderEvent(topic, std::string(ev.name()), ev.args()).c_str());
-    bstate->endpoint.publish(topic, ev.move_data());
+    auto msg = broker::data_envelope::make(broker::topic(topic), ev.as_data());
+    bstate->hub.publish(std::move(msg));
     num_events_outgoing_metric->Inc();
     return true;
 }
@@ -647,7 +655,8 @@ bool Manager::PublishEvent(string topic, std::string name, broker::vector args, 
 
     broker::zeek::Event ev(name, args, broker::to_timestamp(ts));
     DBG_LOG(DBG_BROKER, "Publishing event: %s", RenderEvent(topic, name, ev.args()).c_str());
-    bstate->endpoint.publish(std::move(topic), ev.move_data());
+    auto msg = broker::data_envelope::make(broker::topic(topic), ev.as_data());
+    bstate->hub.publish(std::move(msg));
     num_events_outgoing_metric->Inc();
     return true;
 }
@@ -1025,7 +1034,7 @@ zeek::RecordValPtr Manager::MakeEvent(ArgsSpan args, zeek::detail::Frame* frame)
 
 bool Manager::DoSubscribe(const string& topic_prefix, SubscribeCallback cb) {
     DBG_LOG(DBG_BROKER, "Subscribing to topic prefix %s", topic_prefix.c_str());
-    bstate->subscriber.add_topic(topic_prefix, ! run_state::detail::zeek_init_done);
+    bstate->hub.subscribe(topic_prefix, ! run_state::detail::zeek_init_done);
 
     if ( cb )
         cb(topic_prefix, {CallbackStatus::NotImplemented});
@@ -1053,7 +1062,7 @@ bool Manager::DoUnsubscribe(const string& topic_prefix) {
         }
 
     DBG_LOG(DBG_BROKER, "Unsubscribing from topic prefix %s", topic_prefix.c_str());
-    bstate->subscriber.remove_topic(topic_prefix, ! run_state::detail::zeek_init_done);
+    bstate->hub.unsubscribe(topic_prefix, ! run_state::detail::zeek_init_done);
     return true;
 }
 
@@ -1183,6 +1192,9 @@ void Manager::ProcessDataStores() {
 void Manager::ProcessFd(int fd, int flags) {
     if ( fd == bstate->subscriber.fd() ) {
         ProcessMessages(bstate->subscriber.poll());
+    }
+    else if ( fd == bstate->hub.read_fd() ) {
+        ProcessMessages(bstate->hub.poll());
     }
     else if ( fd == bstate->loggerQueue->FlareFd() ) {
         ProcessLogEvents();

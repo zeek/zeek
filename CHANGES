@@ -1,3 +1,9 @@
+7.2.0-dev.520 | 2025-04-14 18:58:55 +0200
+
+  * Bump zeekjs to v0.17.0 (Arne Welzel, Corelight)
+
+  * Update bifcl submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.517 | 2025-04-13 17:11:40 +0200
 
   * cluster/Backend: Add name and lookup component tag (Arne Welzel, Corelight)

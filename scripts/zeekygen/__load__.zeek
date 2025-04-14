@@ -16,6 +16,7 @@
 @load frameworks/signatures/iso-9660.zeek
 @load policy/misc/dump-events.zeek
 @load policy/protocols/conn/speculative-service.zeek
+@load policy/protocols/conntuple/vlan.zeek
 
 @if ( have_spicy() )
 # Loading this messes up documentation of some elements defined elsewhere.

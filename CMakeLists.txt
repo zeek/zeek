@@ -1060,7 +1060,7 @@ if (LIBMMDB_FOUND)
 endif ()
 
 set(USE_KRB5 false)
-if (${CMAKE_SYSTEM_NAME} MATCHES Linux)
+if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     find_package(LibKrb5)
     if (LIBKRB5_FOUND)
         set(USE_KRB5 true)

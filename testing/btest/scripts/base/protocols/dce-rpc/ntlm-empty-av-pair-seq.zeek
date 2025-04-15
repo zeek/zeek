@@ -4,6 +4,7 @@
 # @TEST-EXEC: btest-diff ntlm.log
 # @TEST-EXEC: btest-diff analyzer_failed.log
 
+@load frameworks/analyzer/analyzer-debug-log.zeek
 @load base/protocols/dce-rpc
 @load base/protocols/ntlm
 

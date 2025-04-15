@@ -49,7 +49,8 @@ event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirm
 
 
 # Remove failed analyzers from service field and add them to c$service_violation
-event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=10
+# Low priority to allow other handlers to check if the analyzer was confirmed
+event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=-5
 	{
 	if ( ! is_protocol_analyzer(atype) )
 		return;
@@ -100,9 +101,18 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 	if ( ignore_violations_after > 0 && size > ignore_violations_after )
 		return;
 
+	# analyzer already was removed or connection finished
+	# let's still log this.
+	if ( lookup_connection_analyzer_id(c$id, atype) == 0 )
+		{
+		event analyzer_failed(network_time(), atype, info);
+		return;
+		}
+
 	local disabled = disable_analyzer(c$id, aid, F);
 
-	# If no one objected to the removal, send failed event
-	event analyzer_failed(network_time(), atype, info);
+	# If analyzer was disabled, send failed event
+	if ( disabled )
+		event analyzer_failed(network_time(), atype, info);
 	}
 

@@ -17,7 +17,5 @@ redef DPD::track_removed_services_in_connection=T;
 	redef LogAscii::use_json = F;
 @endif
 
-# The IMAP analyzer includes absolute filenames in its error messages,
-# exclude it for now from analyzer.log.
-# https://github.com/zeek/zeek/issues/2659
-redef Analyzer::Logging::ignore_analyzers += { Analyzer::ANALYZER_IMAP };
+redef Analyzer::DebugLogging::include_confirmations = F;
+redef Analyzer::DebugLogging::include_disabling = F;

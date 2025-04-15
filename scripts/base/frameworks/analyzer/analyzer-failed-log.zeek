@@ -91,6 +91,17 @@ function log_analyzer_failure(ts: time, atype: AllAnalyzers::Tag, info: Analyzer
 # event currently is only raised for protocol analyzers; we do not fail packet and file analyzers
 event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo)
 	{
+	if ( ! is_protocol_analyzer(atype) )
+		return;
+
+	if ( ! info?$c )
+		return;
+
+	# log only for previously confirmed service that did not already log violation
+	local analyzer_name = Analyzer::name(atype);
+	if ( analyzer_name !in info$c$service || analyzer_name in info$c$service_violation )
+		return;
+
 	log_analyzer_failure(ts, atype, info);
 	}
 

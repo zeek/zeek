@@ -452,7 +452,7 @@ export {
 	## ev: a Zeek event value.
 	##
 	## Returns: true if automatic event sending is now enabled.
-	global auto_publish: function(topic: string, ev: any): bool &deprecated="Remove in v8.1. Switch to explicit Broker::publish() calls. Auto-publish won't work with all cluster backends.";
+	global auto_publish: function(topic: string, ev: any): bool &deprecated="Remove in v8.1. Switch to explicit Cluster::publish() calls. Auto-publish won't work with all cluster backends.";
 
 	## Stop automatically sending an event to peers upon local dispatch.
 	##

@@ -257,18 +257,7 @@ void WebSocketEventDispatcher::QueueReply(WebSocketReply&& reply) {
     reply_msg_thread->SendIn(new ReplyInputMessage(std::move(reply)));
 }
 
-// WebSocketDemux::Process() runs in the main thread.
-//
-// XXX: How is this going to work with class broker? With
-// ZeroMQ, each WebSocket client has its own XPUB/XSUB
-// connectivity to a central broker and similarly with NATS.
-// But with broker we need to do something different.
-// Maybe connect to the local endpoint.
-//
-// We cannot actually instantiate a Broker backend :-(
-//
-// We could also have InitPostScript() recognize Broker
-// and start its internal server instead.
+// Process a WebSocketEvent message on the Zeek IO loop.
 void WebSocketEventDispatcher::Process(const WebSocketEvent& event) {
     std::visit([this](auto&& arg) { Process(arg); }, event);
 }

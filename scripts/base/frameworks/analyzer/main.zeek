@@ -172,6 +172,23 @@ export {
 	##
 	## This set can be added to via :zeek:see:`redef`.
 	global requested_analyzers: set[AllAnalyzers::Tag] = {} &redef;
+
+	## Event that is raised when an analyzer raised a service violation and was
+	## removed.
+	##
+	## The event is also raised if the analyzer already was no longer active by
+	## the time that the violation was handled - so if it happens at the very
+	## end of a connection.
+	##
+	## Currently this event is only raised for protocol analyzers, as packet
+	## and file analyzers are never actively removed/disabled.
+	##
+	## ts: time at which the violation occurred
+	##
+	## atype: atype: The analyzer tag, such as ``Analyzer::ANALYZER_HTTP``.
+	##
+	##info: Details about the violation. This record should include a :zeek:type:`connection`
+	global analyzer_failed: event(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo);
 }
 
 @load base/bif/analyzer.bif

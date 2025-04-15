@@ -3,6 +3,7 @@
 # analyzer_failed.log. The pcap used is a snippet of a pcap from OSS-Fuzz #57109.
 
 # @TEST-EXEC: zeek -C -b -r $TRACES/rdp/rdp-invalid-length.pcap %INPUT
-# @TEST-EXEC: btest-diff analyzer_failed.log
+# @TEST-EXEC: btest-diff analyzer_debug.log
 
+@load frameworks/analyzer/analyzer-debug-log.zeek
 @load base/protocols/rdp

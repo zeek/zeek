@@ -82,9 +82,10 @@ Manager::Manager() {
     });
 }
 
-Manager::~Manager() { delete stats; }
-
-void Manager::Done() { Clear(); }
+Manager::~Manager() {
+    Clear();
+    delete stats;
+}
 
 Connection* Manager::FindConnection(Val* v) {
     zeek::detail::ConnKey conn_key(v);

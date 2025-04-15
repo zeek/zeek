@@ -385,7 +385,7 @@ void finish_run(int drain_events) {
         event_mgr.Drain();
 
         if ( session_mgr )
-            session_mgr->Done();
+            session_mgr->Clear();
     }
 
 #ifdef DEBUG

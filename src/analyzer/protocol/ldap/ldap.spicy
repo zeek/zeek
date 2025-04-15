@@ -416,10 +416,11 @@ type SaslCredentials = unit() {
   };
 };
 
-type SicilyMessage = unit(bat: BindAuthType) {
-    # Just ensure the signature matches. We could do more,
-    # but it'd be better to forward to an NTLM analyzer.
-    signature: b"NTLMSSP";
+type SicilyMessage = unit() {
+  # Just ensure the signature matches. We could do more,
+  # but it'd be better to forward to an NTLM analyzer.
+  signature: skip b"NTLMSSP";
+  var signature_decoded: string = "NTLMSSP";
 };
 
 type GSS_SPNEGO_Subsequent = unit {
@@ -481,26 +482,30 @@ type BindRequest = unit(inout message: Message, ctx: Ctx&) {
       self.authType = cast<BindAuthType>(cast<uint8>($$.application_id));
       self.authData = $$.application_data;
     }
-    if ((self.authType == BindAuthType::BIND_AUTH_SIMPLE) && (|self.authData| > 0)) {
-      self.simpleCreds = self.authData.decode();
-      if (|self.simpleCreds| > 0) {
-        message.arg = self.simpleCreds;
-      }
-    }
-  }
-  saslCreds: SaslCredentials() &parse-from=self.authData if ((self.authType == BindAuthType::BIND_AUTH_SASL) &&
-                                                             (|self.authData| > 0)) {
-    message.arg = self.saslCreds.mechanism;
-    ctx.saslMechanism = self.saslCreds.mechanism;
   }
 
+  if ( |self.authData| > 0 ) {
+    switch ( self.authType ) {
+      BindAuthType::BIND_AUTH_SIMPLE ->
+        : void {
+          self.simpleCreds = self.authData.decode();
+          message.arg = self.simpleCreds;
+        }
 
-  sicilyMessage: SicilyMessage(self.authType) &parse-from=self.authData if ((self.authType == BindAuthType::SICILY_NEGOTIATE
-                                                                             || self.authType == BindAuthType::SICILY_RESPONSE)
-                                                                            && (|self.authData| > 0)) {
-    message.arg = self.sicilyMessage.signature.decode();
-  }
+      BindAuthType::BIND_AUTH_SASL ->
+        saslCreds: SaslCredentials {
+          message.arg = self.saslCreds.mechanism;
+          ctx.saslMechanism = self.saslCreds.mechanism;
+        }
 
+      BindAuthType::SICILY_NEGOTIATE, BindAuthType::SICILY_RESPONSE ->
+        sicilyMessage: SicilyMessage {
+          message.arg = self.sicilyMessage.signature_decoded;
+        }
+
+      * -> : void;
+    } &parse-from=self.authData;
+  };
 } &requires=(self?.authType && (self.authType != BindAuthType::Undef));
 
 type ServerSaslCreds = unit {

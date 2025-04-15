@@ -1,8 +1,6 @@
 ##! Creates the now deprecated dpd.logfile.
 # Remove in v8.1
 
-@deprecated("dpd.log is deprecated; remove in 8.1")
-
 module DPD;
 
 export {
@@ -38,7 +36,7 @@ event zeek_init() &priority=5
 	Log::create_stream(DPD::LOG, [$columns=Info, $path="dpd", $policy=log_policy]);
 	}
 
-# Runs before the same event handler in base/frameworks/analyzer/dpd.zeek
+# before the same event in dpd.zeek
 event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=15
 	{
 	if ( ! is_protocol_analyzer(atype) && ! is_packet_analyzer(atype) )

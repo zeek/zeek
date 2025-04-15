@@ -6,7 +6,7 @@
 ##! A caveat to logging packet data is that in some cases, the packet may
 ##! not be the packet that actually caused the protocol violation.
 
-@load frameworks/analyzer/dpd-log
+@load frameworks/analyzer/deprecated-dpd-log
 
 module DPD;
 

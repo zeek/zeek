@@ -100,6 +100,8 @@ event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolatio
 		return;
 
 	# log only for previously confirmed service that did not already log violation
+	# note that analyzers can fail repeatedly in some circumstances - e.g. when they
+	# are re-attached by the dynamic protocol detection due to later data.
 	local analyzer_name = Analyzer::name(atype);
 	if ( analyzer_name !in info$c$service || analyzer_name in info$c$service_violation )
 		return;

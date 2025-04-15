@@ -1,4 +1,4 @@
-#! Logging analyzer confirmations and violations into analyzer-debug.log
+##! Logging analyzer confirmations and violations into analyzer-debug.log
 
 @load base/frameworks/config
 @load base/frameworks/logging
@@ -18,7 +18,7 @@ export {
 		## Timestamp of confirmation or violation.
 		ts:             time              &log;
 		## What caused this log entry to be produced. This can
-		## currently be "violation" or "confirmation".
+		## currently be "violation", "confirmation", or "disabled".
 		cause:          string            &log;
 		## The kind of analyzer involved. Currently "packet", "file"
 		## or "protocol".

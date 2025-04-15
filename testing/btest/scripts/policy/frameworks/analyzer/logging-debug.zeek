@@ -14,7 +14,7 @@
 @load base/protocols/dns
 @load base/protocols/socks
 
-@load frameworks/analyzer/analyzer-debug-log
+@load frameworks/analyzer/debug-logging
 
 # DCE RPC violations are ignored by default. Consider violations for this
 # test so that the analyzer will be disabled eventually.

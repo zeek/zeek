@@ -9,8 +9,8 @@
 
 # The base/ scripts are all loaded by default and not included here.
 
-@load frameworks/analyzer/analyzer-debug-log.zeek
-# @load frameworks/analyzer/dpd-log.zeek
+@load frameworks/analyzer/debug-logging.zeek
+# @load frameworks/analyzer/deprecated-dpd-log.zeek
 @load frameworks/analyzer/packet-segment-logging.zeek
 # @load frameworks/control/controllee.zeek
 # @load frameworks/control/controller.zeek

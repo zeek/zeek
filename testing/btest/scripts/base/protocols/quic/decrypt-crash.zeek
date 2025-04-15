@@ -7,4 +7,4 @@
 # @TEST-EXEC: btest-diff conn.log.cut
 # @TEST-EXEC: TEST_DIFF_CANONIFIER='sed -E "s/\((.+)\.spicy:[0-9]+:[0-9]+(-[0-9]+:[0-9]+)?\)/(\1.spicy:<location>)/g" | $SCRIPTS/diff-remove-abspath' btest-diff analyzer_debug.log.cut
 
-@load frameworks/analyzer/analyzer-debug-log.zeek
+@load frameworks/analyzer/debug-logging.zeek

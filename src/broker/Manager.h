@@ -396,12 +396,11 @@ private:
     void DoTerminate() override;
 
     // Broker overrides this to do its own serialization.
-    bool DoPublishEvent(const std::string& topic, const cluster::detail::Event& event) override;
+    bool DoPublishEvent(const std::string& topic, cluster::detail::Event& event) override;
 
     // This should never be reached, broker itself doesn't call this and overrides
     // the generic DoPublishEvent() method that would call this.
-    bool DoPublishEvent(const std::string& topic, const std::string& format,
-                        const cluster::detail::byte_buffer& buf) override {
+    bool DoPublishEvent(const std::string& topic, const std::string& format, const byte_buffer& buf) override {
         throw std::logic_error("not implemented");
     }
 
@@ -416,7 +415,7 @@ private:
     }
 
     bool DoPublishLogWrites(const logging::detail::LogWriteHeader& header, const std::string& format,
-                            cluster::detail::byte_buffer& buf) override {
+                            byte_buffer& buf) override {
         // Not implemented by broker.
         throw std::logic_error("not implemented");
     }
@@ -446,7 +445,20 @@ private:
 
     void Error(const char* format, ...) __attribute__((format(printf, 2, 3)));
 
+    // Processes events from the Broker message queue.
+    void ProcessMessages();
+
+    // Process events from Broker logger.
+    void ProcessLogEvents();
+
+    // Process events from @p store.
+    void ProcessDataStore(detail::StoreHandleVal* store);
+
+    // Process events from all Broker data stores.
+    void ProcessDataStores();
+
     // IOSource interface overrides:
+    void ProcessFd(int fd, int flags) override;
     void Process() override;
     const char* Tag() override { return "Broker::Manager"; }
     double GetNextTimeout() override { return -1; }

@@ -13,13 +13,13 @@
 
 #include <hilti/ast/declarations/type.h>
 #include <hilti/compiler/init.h>
+#include <hilti/compiler/plugin.h>
 
 #include <spicy/ast/types/unit.h>
 #include <spicy/ast/visitor.h>
 #include <spicy/autogen/config.h>
 #include <spicy/compiler/init.h>
 
-#include "compiler/plugin.h"
 #include "config.h"
 #include "glue-compiler.h"
 

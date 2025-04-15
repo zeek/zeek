@@ -55,7 +55,11 @@ static void handle_async_result(const IntrusivePtr<Backend>& backend, ResultCall
         // it didn't report back IN_PROGRESS.
         // 2. The backend doesn't support async. This means we already blocked in order
         // to get here already.
-        cb->Complete(op_result);
+        // Also check for timeout conditions.
+        if ( op_result.code == ReturnCode::TIMEOUT )
+            cb->Timeout();
+        else
+            cb->Complete(op_result);
         delete cb;
     }
     else if ( run_state::reading_traces ) {
@@ -78,7 +82,7 @@ function Storage::Async::__open_backend%(btype: Storage::Backend, options: any, 
 	auto btype_val = IntrusivePtr<EnumVal>{NewRef{}, btype->AsEnumVal()};
 	Tag tag{btype_val};
 
-	auto b = storage_mgr->Instantiate(tag);
+	auto b = storage_mgr->InstantiateBackend(tag);
 
 	if ( ! b.has_value() ) {
 		trigger->Cache(

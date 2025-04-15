@@ -12,7 +12,7 @@ namespace zeek::packet_analysis::detail {
 
 Dispatcher::~Dispatcher() { FreeValues(); }
 
-void Dispatcher::Register(uint32_t identifier, AnalyzerPtr analyzer) {
+void Dispatcher::Register(uint64_t identifier, AnalyzerPtr analyzer) {
     // If the table has size 1 and the entry is nullptr, there was nothing added yet. Just add it.
     if ( table.size() == 1 && table[0] == nullptr ) {
         table[0] = std::move(analyzer);
@@ -27,7 +27,7 @@ void Dispatcher::Register(uint32_t identifier, AnalyzerPtr analyzer) {
     }
     else if ( identifier < lowest_identifier ) {
         // Lower than the lowest registered identifier. Shift up by lowerBound - identifier
-        uint32_t distance = lowest_identifier - identifier;
+        uint64_t distance = lowest_identifier - identifier;
         table.resize(table.size() + distance, nullptr);
 
         // Shift values
@@ -48,7 +48,7 @@ void Dispatcher::Register(uint32_t identifier, AnalyzerPtr analyzer) {
     table[index] = std::move(analyzer);
 }
 
-const AnalyzerPtr& Dispatcher::Lookup(uint32_t identifier) const {
+const AnalyzerPtr& Dispatcher::Lookup(uint64_t identifier) const {
     int64_t index = identifier - lowest_identifier;
     if ( index >= 0 && index < static_cast<int64_t>(table.size()) )
         return table[index];
@@ -75,7 +75,7 @@ void Dispatcher::DumpDebug() const {
     DBG_LOG(DBG_PACKET_ANALYSIS, "Dispatcher elements (used/total): %lu/%lu", Count(), table.size());
     for ( size_t i = 0; i < table.size(); i++ ) {
         if ( table[i] != nullptr )
-            DBG_LOG(DBG_PACKET_ANALYSIS, "%#8lx => %s", i + lowest_identifier, table[i]->GetAnalyzerName());
+            DBG_LOG(DBG_PACKET_ANALYSIS, "%#8" PRIx64 " => %s", i + lowest_identifier, table[i]->GetAnalyzerName());
     }
 #endif
 }

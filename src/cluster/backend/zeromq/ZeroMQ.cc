@@ -23,6 +23,7 @@
 #include "zeek/cluster/Serializer.h"
 #include "zeek/cluster/backend/zeromq/Plugin.h"
 #include "zeek/cluster/backend/zeromq/ZeroMQ-Proxy.h"
+#include "zeek/telemetry/Manager.h"
 #include "zeek/util.h"
 
 extern int signal_val;
@@ -63,7 +64,7 @@ constexpr DebugFlag operator&(zeek_uint_t x, DebugFlag y) {
 
 ZeroMQBackend::ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
                              std::unique_ptr<detail::EventHandlingStrategy> ehs)
-    : ThreadedBackend(std::move(es), std::move(ls), std::move(ehs)) {
+    : ThreadedBackend("ZeroMQ", std::move(es), std::move(ls), std::move(ehs)) {
     log_push = zmq::socket_t(ctx, zmq::socket_type::push);
     main_inproc = zmq::socket_t(ctx, zmq::socket_type::pair);
 }
@@ -102,6 +103,11 @@ void ZeroMQBackend::DoInitPostScript() {
 
     event_unsubscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::unsubscription");
     event_subscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::subscription");
+
+    total_xpub_stalls =
+        zeek::telemetry_mgr
+            ->CounterInstance("zeek", "cluster_zeromq_xpub_stalls", {},
+                              "Counter for how many times sending on the XPUB socket stalled due to EAGAIN.");
 }
 
 void ZeroMQBackend::DoTerminate() {
@@ -247,8 +253,7 @@ bool ZeroMQBackend::SpawnZmqProxyThread() {
     return proxy_thread->Start();
 }
 
-bool ZeroMQBackend::DoPublishEvent(const std::string& topic, const std::string& format,
-                                   const cluster::detail::byte_buffer& buf) {
+bool ZeroMQBackend::DoPublishEvent(const std::string& topic, const std::string& format, const byte_buffer& buf) {
     // Publishing an event happens as a multipart message with 4 parts:
     //
     // * The topic to publish to - this is required by XPUB/XSUB
@@ -330,7 +335,7 @@ bool ZeroMQBackend::DoUnsubscribe(const std::string& topic_prefix) {
 }
 
 bool ZeroMQBackend::DoPublishLogWrites(const logging::detail::LogWriteHeader& header, const std::string& format,
-                                       cluster::detail::byte_buffer& buf) {
+                                       byte_buffer& buf) {
     ZEROMQ_DEBUG("Publishing %zu bytes of log writes (path %s)", buf.size(), header.path.c_str());
     static std::string message_type = "log-write";
 
@@ -399,7 +404,7 @@ void ZeroMQBackend::Run() {
                 continue;
             }
 
-            detail::byte_buffer payload{msg[3].data<std::byte>(), msg[3].data<std::byte>() + msg[3].size()};
+            byte_buffer payload{msg[3].data<std::byte>(), msg[3].data<std::byte>() + msg[3].size()};
             LogMessage lm{.format = std::string(msg[2].data<const char>(), msg[2].size()),
                           .payload = std::move(payload)};
 
@@ -434,20 +439,29 @@ void ZeroMQBackend::Run() {
                             break;
                         }
 
-                        // Empty result means xpub.send() returned EAGAIN. The
-                        // socket reached its high water mark and we should
-                        // relax / backoff a bit. Otherwise we'll be spinning
-                        // unproductively very fast here. Note that this is going
-                        // to build up backpressure and eventually inproc.send()
-                        // will block from the main thread.
+                        // Empty result means xpub.send() returned EAGAIN. The socket reached
+                        // its high-water-mark and we cannot send right now. We simply attempt
+                        // to re-send the message without the dontwait flag after increasing
+                        // the xpub stall metric. This way, ZeroMQ will block in xpub.send() until
+                        // there's enough room available.
                         if ( ! result ) {
-                            ++tries;
-                            auto sleep_for = std::min(tries * 10, 500);
-                            ZEROMQ_THREAD_PRINTF(
-                                "xpub: Failed forward inproc to xpub! Overloaded? (tries=%d sleeping %d ms)\n", tries,
-                                sleep_for);
+                            total_xpub_stalls->Inc();
 
-                            std::this_thread::sleep_for(std::chrono::milliseconds(sleep_for));
+                            try {
+                                // We sent non-blocking above so we are able to observe and report stalls
+                                // in a metric. Now that we have done that switch to blocking send.
+                                zmq::send_flags block_flags =
+                                    zmq::send_flags::none | (flags & zmq::send_flags::sndmore);
+                                result = xpub.send(part, block_flags);
+                            } catch ( zmq::error_t& err ) {
+                                if ( err.num() == ETERM )
+                                    return;
+
+                                // XXX: What other error can happen here? How should we react?
+                                ZEROMQ_THREAD_PRINTF("xpub: Failed blocking publish with error %s (%d)\n", err.what(),
+                                                     err.num());
+                                break;
+                            }
                         }
                     } while ( ! result );
                 }
@@ -472,7 +486,7 @@ void ZeroMQBackend::Run() {
                 QueueMessage qm;
                 auto* start = msg[0].data<std::byte>() + 1;
                 auto* end = msg[0].data<std::byte>() + msg[0].size();
-                detail::byte_buffer topic(start, end);
+                byte_buffer topic(start, end);
                 if ( first == 1 ) {
                     qm = BackendMessage{1, std::move(topic)};
                 }
@@ -501,7 +515,7 @@ void ZeroMQBackend::Run() {
             if ( sender == NodeId() )
                 continue;
 
-            detail::byte_buffer payload{msg[3].data<std::byte>(), msg[3].data<std::byte>() + msg[3].size()};
+            byte_buffer payload{msg[3].data<std::byte>(), msg[3].data<std::byte>() + msg[3].size()};
             EventMessage em{.topic = std::string(msg[0].data<const char>(), msg[0].size()),
                             .format = std::string(msg[2].data<const char>(), msg[2].size()),
                             .payload = std::move(payload)};
@@ -629,7 +643,7 @@ void ZeroMQBackend::Run() {
     }
 }
 
-bool ZeroMQBackend::DoProcessBackendMessage(int tag, detail::byte_buffer_span payload) {
+bool ZeroMQBackend::DoProcessBackendMessage(int tag, byte_buffer_span payload) {
     if ( tag == 0 || tag == 1 ) {
         std::string topic{reinterpret_cast<const char*>(payload.data()), payload.size()};
         zeek::EventHandlerPtr eh;

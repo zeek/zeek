@@ -134,6 +134,10 @@ void CardinalityCounter::AddElement(uint64_t hash) {
  **/
 double CardinalityCounter::Size() const {
     double answer = 0;
+
+    if ( m == 0 )
+        return -1.0;
+
     for ( unsigned int i = 0; i < m; i++ )
         answer += pow(2, -((int)buckets[i]));
 

@@ -9,6 +9,11 @@ Zeek 7.2.0
 Breaking Changes
 ----------------
 
+- The ``is_remote_event()``, ``current_analyzer()`` and ``current_event_time()``
+  builtin functions do not return the previous event's values anymore when event
+  draining has completed. The same applies to the corresponding C++ accessors on
+  the ``EventMgr`` class. The functions now return false, 0 or the zero time instead.
+
 New Functionality
 -----------------
 
@@ -49,6 +54,13 @@ New Functionality
   - SQLite and Redis backends exist in the Zeek tree by default. We are working on a
     backend for NATS that will be available as an external plugin, but it is not quite
     ready yet. Both of the existing backends support usage in a cluster environment.
+
+- Broker now exposes more information through ``broker.log``. Broker generated
+  log messages are now propagated as events to Zeek. This allows exposing more
+  information for debugging and operational behavior of Broker via Zeek logs.
+  Two new script-level options ``Broker::log_severity_level`` and
+  ``Broker::log_stderr_severity_level`` have been introduced to control
+  the which events to expose by default.
 
 Changed Functionality
 ---------------------
@@ -107,6 +119,10 @@ Changed Functionality
 
 - The RDP analyzer now also parses connections that do not contain the cookie
   field, which were previously rejected.
+
+- An enum's zeek::detail::ID instance now holds its ``EnumVal``. For example,
+  looking up the "Conn::LOG" identifier allows to directly query the ``EnumVal``
+  using ``ID::GetVal()``.
 
 Removed Functionality
 ---------------------

@@ -2,8 +2,10 @@
 
 #include "zeek/storage/Backend.h"
 
+#include "zeek/Desc.h"
 #include "zeek/Trigger.h"
 #include "zeek/broker/Data.h"
+#include "zeek/storage/Manager.h"
 #include "zeek/storage/ReturnCode.h"
 #include "zeek/storage/storage-events.bif.h"
 
@@ -28,10 +30,8 @@ ResultCallback::ResultCallback(zeek::detail::trigger::TriggerPtr trigger, const 
     : trigger(std::move(trigger)), assoc(assoc) {}
 
 void ResultCallback::Timeout() {
-    static const auto& op_result_type = zeek::id::find_type<zeek::RecordType>("Storage::OperationResult");
-
     if ( ! IsSyncCallback() )
-        trigger->Cache(assoc, OperationResult::MakeVal(ReturnCode::TIMEOUT).release());
+        trigger->Cache(assoc, OperationResult::MakeVal(ReturnCode::TIMEOUT).get());
 }
 
 void ResultCallback::Complete(OperationResult res) {
@@ -65,10 +65,24 @@ void OpenResultCallback::Complete(OperationResult res) {
     ResultCallback::Complete(std::move(res));
 }
 
+Backend::Backend(uint8_t modes, std::string_view tag_name) : modes(modes) {
+    tag = storage_mgr->BackendMgr().GetComponentTag(std::string{tag_name});
+    tag_str = zeek::obj_desc_short(tag.AsVal().get());
+}
+
 OperationResult Backend::Open(OpenResultCallback* cb, RecordValPtr options, TypePtr kt, TypePtr vt) {
     key_type = std::move(kt);
     val_type = std::move(vt);
     backend_options = options;
+
+    auto stype = options->GetField<EnumVal>("serializer");
+    zeek::Tag stag{stype};
+
+    auto s = storage_mgr->InstantiateSerializer(stag);
+    if ( ! s )
+        return {ReturnCode::INITIALIZATION_FAILED, s.error()};
+
+    serializer = std::move(s.value());
 
     auto ret = DoOpen(cb, std::move(options));
     if ( ! ret.value )
@@ -121,19 +135,20 @@ OperationResult Backend::Erase(ResultCallback* cb, ValPtr key) {
 }
 
 void Backend::CompleteCallback(ResultCallback* cb, const OperationResult& data) const {
-    cb->Complete(data);
+    if ( data.code == ReturnCode::TIMEOUT )
+        cb->Timeout();
+    else
+        cb->Complete(data);
+
     if ( ! cb->IsSyncCallback() ) {
         delete cb;
     }
 }
 
-void Backend::EnqueueBackendOpened() {
-    event_mgr.Enqueue(Storage::backend_opened, make_intrusive<StringVal>(Tag()), backend_options);
-}
+void Backend::EnqueueBackendOpened() { event_mgr.Enqueue(Storage::backend_opened, tag.AsVal(), backend_options); }
 
 void Backend::EnqueueBackendLost(std::string_view reason) {
-    event_mgr.Enqueue(Storage::backend_lost, make_intrusive<StringVal>(Tag()), backend_options,
-                      make_intrusive<StringVal>(reason));
+    event_mgr.Enqueue(Storage::backend_lost, tag.AsVal(), backend_options, make_intrusive<StringVal>(reason));
 }
 
 zeek::OpaqueTypePtr detail::backend_opaque;

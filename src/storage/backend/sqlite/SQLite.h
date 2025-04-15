@@ -10,12 +10,12 @@ struct sqlite3_stmt;
 
 namespace zeek::storage::backend::sqlite {
 
-class SQLite : public Backend {
+class SQLite final : public Backend {
 public:
-    SQLite(std::string_view tag) : Backend(SupportedModes::SYNC, tag) {}
+    SQLite() : Backend(SupportedModes::SYNC, "SQLITE") {}
     ~SQLite() override = default;
 
-    static BackendPtr Instantiate(std::string_view tag);
+    static BackendPtr Instantiate();
 
     /**
      * Returns whether the backend is opened.

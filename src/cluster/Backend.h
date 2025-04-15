@@ -12,6 +12,7 @@
 #include "zeek/EventHandler.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Span.h"
+#include "zeek/Tag.h"
 #include "zeek/cluster/Serializer.h"
 #include "zeek/logging/Types.h"
 
@@ -45,14 +46,36 @@ public:
     Event(const EventHandlerPtr& handler, zeek::Args args, double timestamp = 0.0)
         : handler(handler), args(std::move(args)), timestamp(timestamp) {}
 
+    /**
+     * @return The name of the event.
+     */
+    std::string_view HandlerName() const { return handler->Name(); }
+
+    /**
+     * @return The event's handler.
+     */
+    const EventHandlerPtr& Handler() const { return handler; }
+
+    /**
+     * @return The event's arguments.
+     */
+    const zeek::Args& Args() const { return args; }
+    /**
+     * @return The event's arguments.
+     */
+    zeek::Args& Args() { return args; }
+
+    /**
+     * @return The network timestamp metadata of this event or 0.0.
+     */
+    double Timestamp() const { return timestamp; }
+
+private:
     EventHandlerPtr handler;
     zeek::Args args;
     double timestamp; // TODO: This should be more generic, possibly holding a
                       // vector of key/value metadata, rather than just
                       // the timestamp.
-
-    std::string_view HandlerName() const { return handler->Name(); }
-    const EventHandlerPtr& Handler() const { return handler; }
 };
 
 /**
@@ -178,14 +201,17 @@ public:
     /**
      * Publish a cluster::detail::Event instance to a given topic.
      *
+     * The event is allowed to be modified by plugins, e.g. to add additional
+     * metadata, modify the arguments, or rewrite it in other ways, too. The
+     * caller will observe these changes on the event as it is passed by
+     * reference.
+     *
      * @param topic The topic string to publish the event to.
      * @param event The event to publish.
      *
      * @return true if the event was successfully published.
      */
-    bool PublishEvent(const std::string& topic, const cluster::detail::Event& event) {
-        return DoPublishEvent(topic, event);
-    }
+    bool PublishEvent(const std::string& topic, cluster::detail::Event& event) { return DoPublishEvent(topic, event); }
 
     /**
      * Status codes for callbacks.
@@ -245,6 +271,16 @@ public:
     }
 
     /**
+     * @return This backend's implementation name.
+     */
+    const std::string& Name() const { return name; }
+
+    /**
+     * @return This backend's implementation component tag.
+     */
+    const zeek::Tag& Tag() const { return tag; }
+
+    /**
      * @return This backend's node identifier.
      */
     const std::string& NodeId() const { return node_id; }
@@ -253,11 +289,12 @@ protected:
     /**
      * Constructor.
      *
+     * @param name The name corresponding to the component tag.
      * @param es The event serializer to use.
      * @param ls The log batch serializer to use.
      * @param ehs The event handling strategy to use for this backend.
      */
-    Backend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
+    Backend(std::string_view name, std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
             std::unique_ptr<detail::EventHandlingStrategy> ehs);
 
     /**
@@ -274,12 +311,12 @@ protected:
     /**
      * Process an incoming event message.
      */
-    bool ProcessEventMessage(std::string_view topic, std::string_view format, detail::byte_buffer_span payload);
+    bool ProcessEventMessage(std::string_view topic, std::string_view format, byte_buffer_span payload);
 
     /**
      * Process an incoming log message.
      */
-    bool ProcessLogMessage(std::string_view format, detail::byte_buffer_span payload);
+    bool ProcessLogMessage(std::string_view format, byte_buffer_span payload);
 
 private:
     /**
@@ -313,13 +350,13 @@ private:
     /**
      * Publish a cluster::detail::Event to the given topic.
      *
-     * The default implementation serializes to a detail::byte_buffer and
+     * The default implementation serializes to a byte_buffer and
      * calls DoPublishEvent() with the resulting buffer.
      *
      * This hook method only exists for the existing Broker implementation that
      * short-circuits serialization. Other backends should not override this.
      */
-    virtual bool DoPublishEvent(const std::string& topic, const cluster::detail::Event& event);
+    virtual bool DoPublishEvent(const std::string& topic, cluster::detail::Event& event);
 
     /**
      * Send a serialized cluster::detail::Event to the given topic.
@@ -336,8 +373,7 @@ private:
      * @param buf the serialized Event.
      * @return true if the message has been published successfully.
      */
-    virtual bool DoPublishEvent(const std::string& topic, const std::string& format,
-                                const detail::byte_buffer& buf) = 0;
+    virtual bool DoPublishEvent(const std::string& topic, const std::string& format, const byte_buffer& buf) = 0;
 
     /**
      * Register interest in messages that use a certain topic prefix.
@@ -368,7 +404,7 @@ private:
     /**
      * Serialize a log batch, then forward it to DoPublishLogWrites() below.
 
-     * The default implementation serializes to a detail::byte_buffer and
+     * The default implementation serializes to a byte_buffer and
      * calls DoPublishLogWrites() with the resulting buffer.
      *
      * This hook method only exists for the existing Broker implementation that
@@ -403,8 +439,10 @@ private:
      * @return true if the message has been published successfully.
      */
     virtual bool DoPublishLogWrites(const zeek::logging::detail::LogWriteHeader& header, const std::string& format,
-                                    detail::byte_buffer& buf) = 0;
+                                    byte_buffer& buf) = 0;
 
+    std::string name;
+    zeek::Tag tag;
     std::unique_ptr<EventSerializer> event_serializer;
     std::unique_ptr<LogSerializer> log_serializer;
     std::unique_ptr<detail::EventHandlingStrategy> event_handling_strategy;
@@ -432,7 +470,7 @@ private:
 struct EventMessage {
     std::string topic;
     std::string format;
-    detail::byte_buffer payload;
+    byte_buffer payload;
 
     auto payload_span() const { return Span(payload.data(), payload.size()); };
 };
@@ -442,7 +480,7 @@ struct EventMessage {
  */
 struct LogMessage {
     std::string format;
-    detail::byte_buffer payload;
+    byte_buffer payload;
 
     auto payload_span() const { return Span(payload.data(), payload.size()); };
 };
@@ -455,7 +493,7 @@ struct LogMessage {
  */
 struct BackendMessage {
     int tag;
-    detail::byte_buffer payload;
+    byte_buffer payload;
 
     auto payload_span() const { return Span(payload.data(), payload.size()); };
 };
@@ -471,7 +509,7 @@ protected:
     /**
      * Constructor.
      */
-    ThreadedBackend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
+    ThreadedBackend(std::string_view name, std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
                     std::unique_ptr<detail::EventHandlingStrategy> ehs);
 
     /**
@@ -507,13 +545,13 @@ private:
     /**
      * Process a backend specific message queued as BackendMessage.
      */
-    bool ProcessBackendMessage(int tag, detail::byte_buffer_span payload);
+    bool ProcessBackendMessage(int tag, byte_buffer_span payload);
 
     /**
      * If a cluster backend produces messages of type BackendMessage,
      * this method will be invoked by the main thread to process it.
      */
-    virtual bool DoProcessBackendMessage(int tag, detail::byte_buffer_span payload) { return false; };
+    virtual bool DoProcessBackendMessage(int tag, byte_buffer_span payload) { return false; };
 
     /**
      * Hook method for OnLooProcess.

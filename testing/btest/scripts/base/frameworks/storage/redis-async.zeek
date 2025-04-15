@@ -25,7 +25,7 @@ event zeek_init()
 	local value = "value5678";
 
 	when [opts, key, value] ( local open_res = Storage::Async::open_backend(
-	    Storage::REDIS, opts, string, string) )
+	    Storage::STORAGE_BACKEND_REDIS, opts, string, string) )
 		{
 		print "open result", open_res;
 		local b = open_res$value;

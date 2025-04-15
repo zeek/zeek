@@ -13,10 +13,10 @@ class BinarySerializationFormatLogSerializer : public cluster::LogSerializer {
 public:
     BinarySerializationFormatLogSerializer() : LogSerializer("zeek-bin-serializer") {}
 
-    bool SerializeLogWrite(cluster::detail::byte_buffer& buf, const logging::detail::LogWriteHeader& header,
+    bool SerializeLogWrite(byte_buffer& buf, const logging::detail::LogWriteHeader& header,
                            zeek::Span<logging::detail::LogRecord> records) override;
 
-    std::optional<logging::detail::LogWriteBatch> UnserializeLogWrite(detail::byte_buffer_span buf) override;
+    std::optional<logging::detail::LogWriteBatch> UnserializeLogWrite(byte_buffer_span buf) override;
 };
 
 } // namespace zeek::cluster::detail

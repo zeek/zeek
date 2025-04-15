@@ -39,5 +39,5 @@ sender added peer: endpoint=127.0.0.1 msg=handshake successful
 >> Run 10 (1989-12-13-07:00:00)
 >>> Publish my-message-a intended for 1989-12-13-07:00:00 (current_event_time=1989-12-13-07:00:00, network_time=1989-12-13-07:00:00)
 sender lost peer: endpoint=127.0.0.1 msg=lost connection to remote peer
->>> Publish my-message-b intended for 1989-12-13-07:15:00 (current_event_time=1989-12-13-07:15:00, network_time=1989-12-13-07:00:00)
->>> Publish my-message-c intended for 1989-12-13-07:30:00 (current_event_time=1989-12-13-07:30:00, network_time=1989-12-13-07:00:00)
+>>> Publish my-message-b intended for 1989-12-13-07:15:00 (current_event_time=1989-12-13-07:00:00, network_time=1989-12-13-07:00:00)
+>>> Publish my-message-c intended for 1989-12-13-07:30:00 (current_event_time=1989-12-13-07:00:00, network_time=1989-12-13-07:00:00)

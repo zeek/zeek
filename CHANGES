@@ -1,3 +1,293 @@
+7.2.0-dev.530 | 2025-04-14 10:11:59 -0700
+
+  * Add STORAGE_ prefixes for backends and serializers (Tim Wojtulewicz, Corelight)
+
+  * Add versioning to JSON serializer (Tim Wojtulewicz, Corelight)
+
+  * Remove unnecessary includes in Val.h (Tim Wojtulewicz, Corelight)
+
+  * Move byte_buffer types from cluster and storage into util (Tim Wojtulewicz, Corelight)
+
+  * Remove unnecessary <array> and <memory> includes from util.h (Tim Wojtulewicz, Corelight)
+
+  * Mark storage classes as final where appropriate (Tim Wojtulewicz, Corelight)
+
+  * Add JSON storage serializer, use with existing backends/tests (Tim Wojtulewicz, Corelight)
+
+  * Make ValFromJSON return zeek::expected instead of a variant (Tim Wojtulewicz, Corelight)
+
+  * Ground work for pluggable storage serializers (Tim Wojtulewicz, Corelight)
+
+7.2.0-dev.520 | 2025-04-14 18:58:55 +0200
+
+  * Bump zeekjs to v0.17.0 (Arne Welzel, Corelight)
+
+  * Update bifcl submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+7.2.0-dev.517 | 2025-04-13 17:11:40 +0200
+
+  * cluster/Backend: Add name and lookup component tag (Arne Welzel, Corelight)
+
+    This adds two new accessors on Backend, Name() and Tag() that can
+    be used for introspection of a Backend instance.
+
+  * cluster/Event: Hide members behind accessors (Arne Welzel, Corelight)
+
+  * cluster/PublishEvent:: Make event non-const (Arne Welzel, Corelight)
+
+    We want to introduce a hook that can modify the cluster event instances, so
+    need to pass around a non-const version of it.
+
+  * broker/Manager: Re-use broker serializer for conversion (Arne Welzel, Corelight)
+
+  * EventMgr: Add Dispatch() with handler and args (Arne Welzel, Corelight)
+
+    Allow users to call event_mgr.Dispatch(handler, args) instead of
+    constructing the Event instance themselves. Deprecate the old API
+    and replace users.
+
+    There's a subtle change that net_done() may be propagated via
+    auto_publish() now, but that still needs opt-in from script land
+    and likely no one did that, or else they'd expected to have it
+    work anyhow.
+
+  * plugin/Manager: Fix MetaHookPre and MetaHookPost using HOOK_CALL_FUNCTION (Arne Welzel, Corelight)
+
+7.2.0-dev.510 | 2025-04-11 15:16:53 +0200
+
+  * Prevent event timestamps set to future (Jan Grashoefer, Corelight)
+
+    For scheduled events, the event timestamp is the intended timestamp. If
+    we force timer expiration, the timestamp might be in the future. Today,
+    this happens on shutdown. This change guarantees that event timestamps
+    are never set beyond network time.
+
+7.2.0-dev.508 | 2025-04-11 12:59:53 +0200
+
+  * GH-4301: Fix `--with-spicy`. (Robin Sommer, Corelight)
+
+  * GH-3522: Spicy: Document lifetime semantics of Zeek analyzers created from Spicy. (Robin Sommer, Corelight)
+
+  * Bump Spicy. (Robin Sommer, Corelight)
+
+7.2.0-dev.503 | 2025-04-10 15:47:27 +0200
+
+  * btest/files/x509/files: Sort analyzers in baseline (Arne Welzel, Corelight)
+
+7.2.0-dev.501 | 2025-04-09 11:11:57 -0700
+
+  * Revert addition of std::unreachable (Tim Wojtulewicz, Corelight)
+
+    After further testing with the fuzzer corpus, std::unreachable isn't
+    necessary here. It's fine to just let the default case break to fix
+    the Coverity warning.
+
+7.2.0-dev.499 | 2025-04-09 18:11:08 +0200
+
+  * btest/brokerstore-attr-persistence-clone: Add BTEST_BG_RUN_SLEEP=1 (Arne Welzel, Corelight)
+
+7.2.0-dev.497 | 2025-04-08 11:30:53 -0700
+
+  * Add move assignment operator to ZeekString, which already had a move constructor (Tim Wojtulewicz, Corelight)
+
+  * Don't initialize telemetry listener at all if ZEEKCTL_CHECK_CONFIG is set (Tim Wojtulewicz, Corelight)
+
+  * Avoid extra temporary strings in concatenation (Tim Wojtulewicz, Corelight)
+
+  * Use const auto references to avoid some copies (Tim Wojtulewicz, Corelight)
+
+  * Clean up initialization of TunnelEncapsulation to use default member values (Tim Wojtulewicz, Corelight)
+
+  * Remove some unnecessary std::move calls in broker::Manager (Tim Wojtulewicz, Corelight)
+
+  * Avoid divide-by-zero in CardinalityCounter::Size (Tim Wojtulewicz, Corelight)
+
+  * Minor fixes in POP3 analyzer based on flycheck warnings (Tim Wojtulewicz, Corelight)
+
+    This also adds an implementation of unreachable() to use for default
+    cases where it shouldn't ever actually cause the default.
+
+  * More std::move changes based on Coverity findings (Tim Wojtulewicz, Corelight)
+
+  * Fix a potential memory leak in Debug function (Tim Wojtulewicz, Corelight)
+
+7.2.0-dev.486 | 2025-04-08 11:00:46 -0700
+
+  * Bump pre-commit hooks (Benjamin Bannier, Corelight)
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+7.2.0-dev.482 | 2025-04-08 10:59:15 -0700
+
+  * Make SNAP analyzer use both OUI and protocol for forwarding (Tim Wojtulewicz, Corelight)
+
+  * Change packet analyzer identifiers to be 64-bit (Tim Wojtulewicz, Corelight)
+
+7.2.0-dev.478 | 2025-04-04 18:36:37 +0200
+
+  * broker/main: Adapt enum values to agree with comm.bif (Arne Welzel, Corelight)
+
+    Logic to detect this error already existed, but due to enum identifiers
+    not having a value set, it never triggered before.
+
+  * btest/plugin: Add plugin testing enum identifiers (Arne Welzel, Corelight)
+
+    This plugin has a generic name, but for now just tests the API around
+    enum types and enum vals at InitPostScript() time.
+
+  * Var/add_type: Do not clone EnumType when declared for the first time (Arne Welzel, Corelight)
+
+    EnumType receives the name into its constructor. Even for the  first declaration
+    the name is not empty and instead the same as the identifier's name. Due to that,
+    add_type() previously took the else path and created a shallow clone of the
+    initial type instead of using it. This lead to buggy behavior where enum value
+    identifiers declared within an enum's first body have a different TypePtr
+    associated than the one that is found via `zeek::id::find_type()`. It also
+    means that enum identifiers added via redef later would have a different
+    TypePtr than those in the initial pointer.
+
+  * type/id/zeekygen: Add EnumVal to enum identifiers (Arne Welzel, Corelight)
+
+    Provide a direct way to go from a zeek:id::ID value to EnumVal without
+    needing to go through the type.
+
+7.2.0-dev.473 | 2025-04-03 13:10:43 +0200
+
+  * GH-4323: Traverse: Do not short-circuit traverse_all() if stmts is nullptr (Arne Welzel, Corelight)
+
+    Since commit 0a813a53c7a5326d91fc5aa979429d04972d664b,
+    zeek::detail::stmts is set to a nullptr when before it was usually
+    an empty list of statements. This caused traverse_all() to be
+    short-circuited unless global statements were available.
+
+7.2.0-dev.471 | 2025-04-03 10:53:00 +0100
+
+  * Remove unnecessary check for bind library. (Johanna Amann, Corelight)
+
+    This has not been required since we switched to c-ares and breaks builds
+    on Fedora Rawhide.
+
+7.2.0-dev.469 | 2025-04-02 16:36:00 -0700
+
+  * Some minor c++ modernization in EnumType methods (Tim Wojtulewicz, Corelight)
+
+  * Avoid O(n) search in EnumType::Lookup (Tim Wojtulewicz, Corelight)
+
+7.2.0-dev.466 | 2025-04-02 18:49:50 +0200
+
+  * Spicy: Rework code for converting Spicy values to Zeek values. (Robin Sommer, Corelight)
+
+    The logic was template-based so far, which wasn't great because: (1)
+    conceptually, it models the Spicy types at the wrong layer (C++ rather
+    than HILTI types), and (2) stopped working with some recent Spicy
+    updates (which we have temporarily reverted in the meantime to keep
+    Zeek working).
+
+    The new code is based on HILTI's runtime type information and the
+    corresponding introspection API, pretty much like `spicy-dump` works
+    as well. This is the recommended approach for working with HILTI
+    values, and generally much cleaner.
+
+7.2.0-dev.464 | 2025-04-02 14:52:44 +0200
+
+  * Spicy: Port over to Spicy's new tuple representation. (Robin Sommer, Corelight)
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
+7.2.0-dev.461 | 2025-04-01 12:58:19 -0700
+
+  * Add comment annotation to disable copying redef value into docs (Tim Wojtulewicz, Corelight)
+
+7.2.0-dev.458 | 2025-03-31 18:59:11 +0200
+
+  * CI: Upgrade zeekctl task to Debian 12 (Arne Welzel, Corelight)
+
+  * GH-3535: CI: Add external plugins to builtin plugins task (Arne Welzel, Corelight)
+
+    This clones a few external plugins to include them in a build. Except
+    for zeek-kafka, the others are maintained by the Zeek project.
+
+7.2.0-dev.454 | 2025-03-31 18:44:59 +0200
+
+  * Hook into Broker logs via its new API (Dominik Charousset)
+
+    The new Broker API allows us to provide a custom logger to Broker that
+    pulls previously unattainable context information out of Broker to put
+    them into broker.log for users of Zeek.
+
+    Since Broker log events happen asynchronously, we cache them in a queue
+    and use a flare to notify Zeek of activity. Furthermore, the Broker
+    manager now implements the `ProcessFd` function to avoid unnecessary
+    polling of the new log queue. As a side effect, data stores are polled
+    less as well.
+
+7.2.0-dev.451 | 2025-03-31 09:37:02 -0700
+
+  * GH-3526: Add "U" to QUIC history docstrings and expand version string docs (Christian Kreibich, Corelight)
+
+7.2.0-dev.449 | 2025-03-31 15:08:05 +0200
+
+  * Use one-based index in warning message (Benjamin Bannier, Corelight)
+
+    This was surfacing a zero-based counter to users which was confusing.
+
+7.2.0-dev.447 | 2025-03-31 14:21:51 +0200
+
+  * Event/EventMgr: protected to private (Arne Welzel, Corelight)
+
+    These classes are final, so deriving isn't possible. No reason to have
+    protected members.
+
+  * EventHandler: Deprecate Call(args, no_remote, ts), add Call(args) (Arne Welzel, Corelight)
+
+    The ts parameter was only added to Call() for the Broker::auto_publish()
+    functionality and propagating the network timestamp. By now, the auto-publish
+    functionality is deprecated, so it'd be good to cleanup that signature. There
+    won't be any need for no_remote in the future either.
+
+    Allow users to just use Call() instead.
+
+  * EventHandler: Header cleanup (Arne Welzel, Corelight)
+
+  * EventMgr: Do not cache current event attributes (Arne Welzel, Corelight)
+
+    Avoid proliferation of various members on EventMgr by storing the
+    pointer of the current event instead.
+
+    This subtly changes the behavior of some builtin functions as they would
+    have returned the prior event's data when executed outside of event
+    draining (e.g. C++ level hook invocations), but I think that's actually
+    for the better.
+
+  * EventMgr: Drop src_val (Arne Welzel, Corelight)
+
+    This is a left over and hasn't been used since a while.
+
+  * Event: Header cleanup (Arne Welzel, Corelight)
+
+7.2.0-dev.439 | 2025-03-27 16:12:44 -0700
+
+  * Make storage events take a tag for the backend instead of a string (Tim Wojtulewicz, Corelight)
+
+  * Add move constructor to Tag class (Tim Wojtulewicz, Corelight)
+
+7.2.0-dev.436 | 2025-03-27 14:07:11 -0700
+
+  * Fix handling of timeout conditions from storage backends (Tim Wojtulewicz, Corelight)
+
+  * Reformat plugin.storage btest to be more consistent with other storage tests (Tim Wojtulewicz, Corelight)
+
+7.2.0-dev.433 | 2025-03-27 12:40:40 -0700
+
+  * Remove "experimental" from the QUIC history field's comment string (Christian Kreibich, Corelight)
+
+7.2.0-dev.431 | 2025-03-26 14:23:51 +0100
+
+  * cluster/zeromq: Improve XPUB stall behavior, add a metric (Arne Welzel, Corelight)
+
+    Instead of fprintf, track the number of occurrences via a metric and
+    change the sleep loop to a blocking send instead.
+
 7.2.0-dev.429 | 2025-03-26 13:59:23 +0100
 
   * GH-4309: telemetry: Run callbacks at collect time (Arne Welzel, Corelight)

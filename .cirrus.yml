@@ -737,7 +737,7 @@ cluster_testing_docker_builder:
 #
 # Also triggers on CIRRUS_CRON == 'zeekctl-nightly' if that is configured
 # through the Cirrus Web UI.
-zeekctl_debian11_task:
+zeekctl_debian12_task:
   cpu: *CPUS
   memory: *MEMORY
   only_if: >
@@ -748,8 +748,8 @@ zeekctl_debian11_task:
         $CIRRUS_BRANCH =~ 'release/.*' )
     )
   container:
-    # Debian 11 EOL: June 2026
-    dockerfile: ci/debian-11/Dockerfile
+    # Debian 12 (bookworm) EOL: TBD
+    dockerfile: ci/debian-12/Dockerfile
     << : *RESOURCES_TEMPLATE
   sync_submodules_script: git submodule update --recursive --init
   always:
@@ -768,24 +768,35 @@ zeekctl_debian11_task:
     upload_zeekctl_testing_artifacts:
       path: "auxil/zeekctl/testing/.tmp/**"
 
-# Test building Zeek with builtin plugins available in
-# testing/builtin-plugins/Files/
-include_plugins_debian11_task:
+include_plugins_debian12_task:
   cpu: *CPUS
   memory: *MEMORY
   container:
-    # Debian 11 EOL: June 2026
-    dockerfile: ci/debian-11/Dockerfile
+    # Debian 12 (bookworm) EOL: TBD
+    dockerfile: ci/debian-12/Dockerfile
     << : *RESOURCES_TEMPLATE
   sync_submodules_script: git submodule update --recursive --init
+  fetch_external_plugins_script:
+    - cd /zeek/testing/builtin-plugins/external && git clone https://github.com/zeek/zeek-perf-support.git
+    - cd /zeek/testing/builtin-plugins/external && git clone https://github.com/zeek/zeek-more-hashes.git
+    - cd /zeek/testing/builtin-plugins/external && git clone https://github.com/zeek/zeek-cluster-backend-nats.git
+    - cd /zeek/testing/builtin-plugins/external && git clone https://github.com/SeisoLLC/zeek-kafka.git
   always:
     ccache_cache:
       folder: /tmp/ccache
       fingerprint_script: echo builtin-plugins-ccache-$ZEEK_CCACHE_EPOCH-$CIRRUS_TASK_NAME-$CIRRUS_OS
       reupload_on_changes: true
-  build_script: ZEEK_CI_CONFIGURE_FLAGS="${ZEEK_CI_CONFIGURE_FLAGS} --include-plugins='/zeek/testing/builtin-plugins/Files/protocol-plugin;/zeek/testing/builtin-plugins/Files/py-lib-plugin;/zeek/testing/builtin-plugins/Files/zeek-version-plugin'" ./ci/build.sh
+  build_script: ZEEK_CI_CONFIGURE_FLAGS="${ZEEK_CI_CONFIGURE_FLAGS} --include-plugins='/zeek/testing/builtin-plugins/Files/protocol-plugin;/zeek/testing/builtin-plugins/Files/py-lib-plugin;/zeek/testing/builtin-plugins/Files/zeek-version-plugin;/zeek/testing/builtin-plugins/external/zeek-perf-support;/zeek/testing/builtin-plugins/external/zeek-more-hashes;/zeek/testing/builtin-plugins/external/zeek-cluster-backend-nats;/zeek/testing/builtin-plugins/external/zeek-kafka'" ./ci/build.sh
   test_script:
     - cd testing/builtin-plugins && ../../auxil/btest/btest -d -b -j ${ZEEK_CI_BTEST_JOBS}
+  test_external_plugins_script: |
+    . /zeek/build/zeek-path-dev.sh
+    set -ex
+    # For now, just check if the external plugins are available.
+    zeek -N Zeek::PerfSupport
+    zeek -N Zeek::MoreHashes
+    zeek -N Zeek::Cluster_Backend_NATS
+    zeek -N Seiso::Kafka
   on_failure:
     upload_include_plugins_testing_artifacts:
       path: "testing/builtin-plugins/.tmp/**"

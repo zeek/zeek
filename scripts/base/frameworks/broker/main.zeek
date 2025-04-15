@@ -176,6 +176,28 @@ export {
 	##          will be sent.
 	const log_topic: function(id: Log::ID, path: string): string = default_log_topic &redef;
 
+	## The possible log event severity levels for Broker.
+	type LogSeverityLevel: enum {
+		## Fatal event, normal operation has most likely broken down.
+		LOG_CRITICAL,
+		## Unrecoverable event that imparts at least part of the system.
+		LOG_ERROR,
+		## Unexpected or conspicuous event that may still be recoverable.
+		LOG_WARNING,
+		## Noteworthy event during normal operation.
+		LOG_INFO,
+		## Information that might be relevant for a user to understand system behavior.
+		LOG_VERBOSE,
+		## An event that is relevant only for troubleshooting and debugging.
+		LOG_DEBUG,
+	};
+
+	## The log event severity level for the Broker log output.
+	const log_severity_level = LOG_WARNING &redef;
+
+	## Event severity level for also printing the Broker log output to stderr.
+	const log_stderr_severity_level = LOG_CRITICAL &redef;
+
 	type ErrorCode: enum {
 		## The unspecified default error code.
 		UNSPECIFIED = 1,
@@ -185,24 +207,26 @@ export {
 		PEER_INVALID = 3,
 		## Remote peer not listening.
 		PEER_UNAVAILABLE = 4,
+		## Remote peer disconnected during the handshake.
+		PEER_DISCONNECT_DURING_HANDSHAKE = 5,
 		## A peering request timed out.
-		PEER_TIMEOUT = 5,
+		PEER_TIMEOUT = 6,
 		## Master with given name already exists.
-		MASTER_EXISTS = 6,
+		MASTER_EXISTS = 7,
 		## Master with given name does not exist.
-		NO_SUCH_MASTER = 7,
+		NO_SUCH_MASTER = 8,
 		## The given data store key does not exist.
-		NO_SUCH_KEY = 8,
+		NO_SUCH_KEY = 9,
 		## The store operation timed out.
-		REQUEST_TIMEOUT = 9,
+		REQUEST_TIMEOUT = 10,
 		## The operation expected a different type than provided.
-		TYPE_CLASH = 10,
+		TYPE_CLASH = 11,
 		## The data value cannot be used to carry out the desired operation.
-		INVALID_DATA = 11,
+		INVALID_DATA = 12,
 		## The storage backend failed to execute the operation.
-		BACKEND_FAILURE = 12,
+		BACKEND_FAILURE = 13,
 		## The storage backend failed to execute the operation.
-		STALE_DATA = 13,
+		STALE_DATA = 14,
 		## Catch-all for a CAF-level problem.
 		CAF_ERROR = 100
 	};

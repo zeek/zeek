@@ -320,7 +320,7 @@ void CPPCompile::GenWhenStmt(const WhenInfo* wi, const std::string& when_lambda,
                              vector<string> local_aggrs) {
     auto is_return = wi->IsReturn() ? "true" : "false";
     auto timeout = wi->TimeoutExpr();
-    auto timeout_val = timeout ? GenExpr(timeout, GEN_NATIVE) : "-1.0";
+    const auto& timeout_val = timeout ? GenExpr(timeout, GEN_NATIVE) : "-1.0";
 
     Emit("{ // begin a new scope for internal variables");
 

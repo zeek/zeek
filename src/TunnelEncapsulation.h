@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
-
 #include <vector>
 
 #include "zeek/ID.h"
@@ -28,7 +26,7 @@ public:
     /**
      * Default tunnel connection constructor.
      */
-    EncapsulatingConn() : src_port(0), dst_port(0), proto(TRANSPORT_UNKNOWN), type(BifEnum::Tunnel::NONE), uid() {}
+    EncapsulatingConn() = default;
 
     /**
      * Construct an IP tunnel "connection" with its own UID.
@@ -42,13 +40,7 @@ public:
      */
     EncapsulatingConn(const IPAddr& s, const IPAddr& d, BifEnum::Tunnel::Type t = BifEnum::Tunnel::IP,
                       uint16_t ip_proto = UNKNOWN_IP_PROTO)
-        : src_addr(s),
-          dst_addr(d),
-          src_port(0),
-          dst_port(0),
-          ip_proto(ip_proto),
-          type(t),
-          uid(UID(detail::bits_per_uid)) {
+        : src_addr(s), dst_addr(d), ip_proto(ip_proto), type(t), uid(UID(detail::bits_per_uid)) {
         switch ( ip_proto ) {
             case IPPROTO_ICMP: proto = TRANSPORT_ICMP; break;
             case IPPROTO_UDP: proto = TRANSPORT_UDP; break;
@@ -141,11 +133,11 @@ public:
 protected:
     IPAddr src_addr;
     IPAddr dst_addr;
-    uint16_t src_port;
-    uint16_t dst_port;
-    TransportProto proto;
-    uint16_t ip_proto;
-    BifEnum::Tunnel::Type type;
+    uint16_t src_port = 0;
+    uint16_t dst_port = 0;
+    TransportProto proto = TRANSPORT_UNKNOWN;
+    uint16_t ip_proto = UNKNOWN_IP_PROTO;
+    BifEnum::Tunnel::Type type = BifEnum::Tunnel::NONE;
     UID uid;
 };
 

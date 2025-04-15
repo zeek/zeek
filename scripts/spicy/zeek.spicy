@@ -54,7 +54,7 @@ public type ProtocolHandle = __library_type("zeek::spicy::rt::ProtocolHandle");
 ## `protocol_begin` with same argument, and not closed with `protocol_handle_close`
 ## or `protocol_end`, no new analyzer will be added.
 ##
-## See `protocol_handle_get_or_create` for the error semantics of this function.
+## See `protocol_handle_get_or_create` for lifetime and error semantics.
 ##
 ## analyzer: type of analyzer to instantiate, specified through its Zeek-side
 ## name (similar to what Zeek's signature action `enable` takes)
@@ -74,7 +74,7 @@ public function protocol_begin(analyzer: optional<string>, protocol: spicy::Prot
 ## `protocol_begin` with same argument, and not closed with `protocol_handle_close`
 ## or `protocol_end`, no new analyzer will be added.
 ##
-## See `protocol_handle_get_or_create` for the error semantics of this function.
+## See `protocol_handle_get_or_create` for lifetime and error semantics.
 ##
 ## protocol: the transport-layer protocol on which to perform protocol detection;
 ## only TCP is currently supported here
@@ -91,6 +91,11 @@ public function protocol_begin(protocol: spicy::Protocol = spicy::Protocol::TCP)
 ## - the requested child protocol analyzer is of unknown type or not support by the requested transport protocol, or
 ## - creation of a child analyzer of the requested type was prevented by a
 ##   previous call of `disable_analyzer` with `prevent=T`
+##
+## By default, any newly created child protocol analyzer will remain alive
+## until Zeek expires the current connection's state. Alternatively, one
+## can call `protocol_handle_close` or `protocol_end` to delete the analyzer
+## earlier.
 ##
 ## analyzer: type of analyzer to get or instantiate, specified through its Zeek-side
 ## name (similar to what Zeek's signature action `enable` takes).
@@ -147,6 +152,11 @@ public function protocol_handle_close(handle: ProtocolHandle): void &cxxname="ze
 ## Optionally, a mime type can be provided. It will be passed on to Zeek's file analysis framework.
 ## Optionally, a file ID can be provided. It will be passed on to Zeek's file analysis framework.
 ## Returns the Zeek-side file ID of the new file.
+##
+## This function creates a new Zeek file analyzer that will remain alive until
+## either `file_end` gets called, or Zeek eventually expires the analyzer
+## through a timeout. (As Zeek does not tie a file analyzer's lifetime to any
+## connection, it may survive the termination of the current connection.)
 public function file_begin(mime_type: optional<string> = Null, fuid: optional<string> = Null): string &cxxname="zeek::spicy::rt::file_begin";
 
 ## Returns the current file's FUID.

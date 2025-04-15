@@ -12,11 +12,11 @@
 @load base/frameworks/storage/sync
 @load policy/frameworks/storage/backend/redis
 
-event Storage::backend_opened(tag: string, config: any) {
+event Storage::backend_opened(tag: Storage::Backend, config: any) {
 	print "Storage::backend_opened", tag, config;
 }
 
-event Storage::backend_lost(tag: string, config: any, reason: string) {
+event Storage::backend_lost(tag: Storage::Backend, config: any, reason: string) {
 	print "Storage::backend_lost", tag, config, reason;
 	terminate();
 }
@@ -24,6 +24,7 @@ event Storage::backend_lost(tag: string, config: any, reason: string) {
 event zeek_init()
 	{
 	local opts: Storage::BackendOptions;
+	opts$serializer = Storage::STORAGE_SERIALIZER_JSON;
 	opts$redis = [ $server_host="127.0.0.1", $server_port=to_port(getenv(
 	    "REDIS_PORT")), $key_prefix="testing" ];
 
@@ -31,7 +32,7 @@ event zeek_init()
 	local value = "value1234";
 	local value2 = "value2345";
 
-	local res = Storage::Sync::open_backend(Storage::REDIS, opts, string, string);
+	local res = Storage::Sync::open_backend(Storage::STORAGE_BACKEND_REDIS, opts, string, string);
 	print "open_result", res;
 
 	local b = res$value;

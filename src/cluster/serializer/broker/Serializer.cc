@@ -22,9 +22,9 @@ using namespace zeek::cluster;
 
 std::optional<broker::zeek::Event> detail::to_broker_event(const detail::Event& ev) {
     broker::vector xs;
-    xs.reserve(ev.args.size());
+    xs.reserve(ev.Args().size());
 
-    for ( const auto& a : ev.args ) {
+    for ( const auto& a : ev.Args() ) {
         if ( a->GetType() == zeek::BifType::Record::Broker::Data ) {
             // When encountering a Broker::Data instance within args, pick out
             // the broker::data directly to avoid double encoding, Broker::Data.
@@ -40,7 +40,7 @@ std::optional<broker::zeek::Event> detail::to_broker_event(const detail::Event& 
         }
     }
 
-    return broker::zeek::Event(ev.HandlerName(), xs, broker::to_timestamp(ev.timestamp));
+    return broker::zeek::Event(ev.HandlerName(), xs, broker::to_timestamp(ev.Timestamp()));
 }
 
 std::optional<detail::Event> detail::to_zeek_event(const broker::zeek::Event& ev) {
@@ -101,7 +101,7 @@ std::optional<detail::Event> detail::to_zeek_event(const broker::zeek::Event& ev
     return detail::Event{handler, std::move(vl), ts};
 }
 
-bool detail::BrokerBinV1_Serializer::SerializeEvent(detail::byte_buffer& buf, const detail::Event& event) {
+bool detail::BrokerBinV1_Serializer::SerializeEvent(byte_buffer& buf, const detail::Event& event) {
     auto ev = to_broker_event(event);
     if ( ! ev )
         return false;
@@ -117,7 +117,7 @@ bool detail::BrokerBinV1_Serializer::SerializeEvent(detail::byte_buffer& buf, co
     return true;
 }
 
-std::optional<detail::Event> detail::BrokerBinV1_Serializer::UnserializeEvent(detail::byte_buffer_span buf) {
+std::optional<detail::Event> detail::BrokerBinV1_Serializer::UnserializeEvent(byte_buffer_span buf) {
     auto r = broker::data_envelope::deserialize(broker::endpoint_id::nil(), broker::endpoint_id::nil(), 0, "",
                                                 buf.data(), buf.size());
     if ( ! r )
@@ -152,7 +152,7 @@ bool detail::BrokerJsonV1_Serializer::SerializeEvent(byte_buffer& buf, const det
     return true;
 }
 
-std::optional<detail::Event> detail::BrokerJsonV1_Serializer::UnserializeEvent(detail::byte_buffer_span buf) {
+std::optional<detail::Event> detail::BrokerJsonV1_Serializer::UnserializeEvent(byte_buffer_span buf) {
     broker::variant res;
     auto err =
         broker::format::json::v1::decode(std::string_view{reinterpret_cast<const char*>(buf.data()), buf.size()}, res);
@@ -173,7 +173,7 @@ TEST_SUITE_BEGIN("cluster serializer broker");
 TEST_CASE("roundtrip") {
     auto* handler = zeek::event_registry->Lookup("Supervisor::node_status");
     detail::Event e{handler, zeek::Args{zeek::make_intrusive<zeek::StringVal>("TEST"), zeek::val_mgr->Count(42)}};
-    detail::byte_buffer buf;
+    zeek::byte_buffer buf;
 
     SUBCASE("json") {
         detail::BrokerJsonV1_Serializer serializer;
@@ -188,7 +188,7 @@ TEST_CASE("roundtrip") {
         REQUIRE(result);
         CHECK_EQ(result->Handler(), handler);
         CHECK_EQ(result->HandlerName(), "Supervisor::node_status");
-        CHECK_EQ(result->args.size(), 2);
+        CHECK_EQ(result->Args().size(), 2);
     }
 
     SUBCASE("binary") {
@@ -201,7 +201,7 @@ TEST_CASE("roundtrip") {
                                           0x01, 0x0e, 0x02, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x09,
                                           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
         std::byte* p = reinterpret_cast<std::byte*>(&expected_bytes[0]);
-        detail::byte_buffer expected{p, p + sizeof(expected_bytes)};
+        zeek::byte_buffer expected{p, p + sizeof(expected_bytes)};
 
         serializer.SerializeEvent(buf, e);
 
@@ -211,7 +211,7 @@ TEST_CASE("roundtrip") {
         REQUIRE(result);
         CHECK_EQ(result->Handler(), handler);
         CHECK_EQ(result->HandlerName(), "Supervisor::node_status");
-        CHECK_EQ(result->args.size(), 2);
+        CHECK_EQ(result->Args().size(), 2);
     }
 }
 TEST_SUITE_END();

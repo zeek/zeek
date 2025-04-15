@@ -104,6 +104,7 @@
 #include "zeek/input.h"
 #include "zeek/module_util.h"
 #include "zeek/zeekygen/Manager.h"
+#include "zeek/DebugLogger.h"
 
 extern const char* filename;      // Absolute path of file currently being parsed.
 extern const char* last_filename; // Absolute path of last file parsed.

@@ -35,8 +35,17 @@ IdentifierInfo::~IdentifierInfo() {
 }
 
 void IdentifierInfo::AddRedef(const string& script, zeek::detail::InitClass ic, zeek::detail::ExprPtr init_expr,
-                              const vector<string>& comments) {
-    Redefinition* redef = new Redefinition(script, ic, std::move(init_expr), comments);
+                              vector<string> comments) {
+    bool omit_value = false;
+    for ( auto it = comments.begin(); it != comments.end(); ++it ) {
+        if ( it->find("@docs-omit-value") == 0 ) {
+            comments.erase(it);
+            omit_value = true;
+            break;
+        }
+    }
+
+    Redefinition* redef = new Redefinition(script, ic, std::move(init_expr), std::move(comments), omit_value);
     redefs.push_back(redef);
 }
 
@@ -139,11 +148,13 @@ time_t IdentifierInfo::DoGetModificationTime() const {
 }
 
 IdentifierInfo::Redefinition::Redefinition(std::string arg_script, zeek::detail::InitClass arg_ic,
-                                           zeek::detail::ExprPtr arg_expr, std::vector<std::string> arg_comments)
+                                           zeek::detail::ExprPtr arg_expr, std::vector<std::string> arg_comments,
+                                           bool arg_omit_value)
     : from_script(std::move(arg_script)),
       ic(arg_ic),
       init_expr(std::move(arg_expr)),
-      comments(std::move(arg_comments)) {}
+      comments(std::move(arg_comments)),
+      omit_value(arg_omit_value) {}
 
 IdentifierInfo::Redefinition::~Redefinition() = default;
 

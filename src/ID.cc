@@ -481,6 +481,10 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const {
     }
 
     if ( val && type && type->Tag() != TYPE_FUNC && type->InternalType() != TYPE_INTERNAL_VOID &&
+         // Do not include a default value for enum const identifiers,
+         // as their value can't be changed.
+         ! IsEnumConst() &&
+
          // Values within Version module are likely to include a
          // constantly-changing version number and be a frequent
          // source of error/desynchronization, so don't include them.
@@ -536,21 +540,27 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const {
             d->NL();
             d->PushIndent();
 
-            if ( ir->ic == INIT_FULL )
-                d->Add("``=``");
-            else if ( ir->ic == INIT_EXTRA )
-                d->Add("``+=``");
-            else if ( ir->ic == INIT_REMOVE )
-                d->Add("``-=``");
-            else
-                assert(false);
+            if ( ir->omit_value ) {
+                d->Add("<< Value omitted due to ``@docs_omit_value`` annotation >>");
+                d->NL();
+            }
+            else {
+                if ( ir->ic == INIT_FULL )
+                    d->Add("``=``");
+                else if ( ir->ic == INIT_EXTRA )
+                    d->Add("``+=``");
+                else if ( ir->ic == INIT_REMOVE )
+                    d->Add("``-=``");
+                else
+                    assert(false);
 
-            d->Add("::");
-            d->NL();
-            d->PushIndent();
-            d->Add(redef_str.data());
-            d->PopIndent();
-            d->PopIndent();
+                d->Add("::");
+                d->NL();
+                d->PushIndent();
+                d->Add(redef_str.data());
+                d->PopIndent();
+                d->PopIndent();
+            }
         }
     }
 }

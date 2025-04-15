@@ -33,7 +33,7 @@ declare public BroType event_arg_type(EventHandlerPtr handler, uint<64> idx) &cx
 declare public Val to_val(any x, BroType target) &cxxname="zeek::spicy::rt::to_val" &have_prototype;
 
 declare public BroType create_base_type(ZeekTypeTag tag) &cxxname="zeek::spicy::rt::create_base_type" &have_prototype;
-declare public BroType create_enum_type(string ns, string id, vector<tuple<string, int<64>>> labels) &cxxname="zeek::spicy::rt::create_enum_type" &have_prototype;
+declare public BroType create_enum_type(string ns, string id, set<tuple<string, int<64>>> labels) &cxxname="zeek::spicy::rt::create_enum_type" &have_prototype;
 declare public BroType create_record_type(string ns, string id, vector<RecordField> fields) &cxxname="zeek::spicy::rt::create_record_type" &have_prototype;
 declare public RecordField create_record_field(string id, BroType type_, bool is_optional, bool is_log) &cxxname="zeek::spicy::rt::create_record_field" &have_prototype;
 declare public BroType create_table_type(BroType key, optional<BroType> value = Null) &cxxname="zeek::spicy::rt::create_table_type" &have_prototype;

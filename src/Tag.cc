@@ -37,6 +37,13 @@ Tag::Tag(const Tag& other) {
     etype = other.etype;
 }
 
+Tag::Tag(Tag&& other) noexcept {
+    type = other.type;
+    subtype = other.subtype;
+    val = std::move(other.val);
+    etype = std::move(other.etype);
+}
+
 Tag::Tag() {
     val = nullptr;
     etype = nullptr;

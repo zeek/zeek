@@ -36,11 +36,11 @@ bool SNAPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet
     data += 5;
     len -= 5;
 
-    if ( oui == 0 ) {
-        // If the OUI is zero, the protocol is a standard ethertype and can be
-        // forwarded as such.
-        return ForwardPacket(len, data, packet, protocol);
-    }
+    // Protocol values for SNAP can differ based what OUI publishes them, so use a
+    // combination of them for the identifier used to forward.
+    int64_t identifier = oui;
+    identifier <<= 16;
+    identifier |= protocol;
 
-    return true;
+    return ForwardPacket(len, data, packet, identifier);
 }

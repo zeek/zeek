@@ -38,7 +38,7 @@ void EventRegistry::Register(EventHandlerPtr handler, bool is_from_script) {
     handlers[name] = std::unique_ptr<EventHandler>(handler.Ptr());
 
     if ( ! is_from_script )
-        not_only_from_script.insert(name);
+        not_only_from_script.insert(std::move(name));
 }
 
 EventHandler* EventRegistry::Lookup(std::string_view name) {

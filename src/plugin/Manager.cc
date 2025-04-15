@@ -287,7 +287,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
     if ( util::is_file(init) ) {
         DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
-        scripts_to_load.push_back(init);
+        scripts_to_load.push_back(std::move(init));
     }
 
     // Load {bif,scripts}/__load__.zeek automatically.
@@ -295,14 +295,14 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
     if ( util::is_file(init) ) {
         DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
-        scripts_to_load.push_back(init);
+        scripts_to_load.push_back(std::move(init));
     }
 
     init = dir + "scripts/__load__.zeek";
 
     if ( util::is_file(init) ) {
         DBG_LOG(DBG_PLUGINS, "  Loading %s", init.c_str());
-        scripts_to_load.push_back(init);
+        scripts_to_load.push_back(std::move(init));
     }
 
     // Mark this plugin as activated by clearing the path.
@@ -426,7 +426,7 @@ void Manager::ExtendZeekPathForPlugins() {
                 continue;
 
             DBG_LOG(DBG_PLUGINS, "  Adding %s to ZEEKPATH", script_dir.c_str());
-            path_additions.push_back(script_dir);
+            path_additions.push_back(std::move(script_dir));
         } catch ( const std::regex_error& e ) {
             // This really shouldn't ever happen, but we do need to catch the exception.
             // Report a fatal error because something is wrong if this occurs.
@@ -962,13 +962,13 @@ void Manager::HookUnprocessedPacket(const Packet* packet) const {
 }
 
 void Manager::MetaHookPre(HookType hook, const HookArgumentList& args) const {
-    if ( hook_list* l = hooks[HOOK_CALL_FUNCTION] )
+    if ( hook_list* l = hooks[META_HOOK_PRE] )
         for ( const auto& [hook_type, plugin] : *l )
             plugin->MetaHookPre(hook, args);
 }
 
 void Manager::MetaHookPost(HookType hook, const HookArgumentList& args, const HookArgument& result) const {
-    if ( hook_list* l = hooks[HOOK_CALL_FUNCTION] )
+    if ( hook_list* l = hooks[META_HOOK_POST] )
         for ( const auto& [hook_type, plugin] : *l )
             plugin->MetaHookPost(hook, args, result);
 }

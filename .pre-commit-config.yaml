@@ -13,7 +13,7 @@ repos:
     exclude: '^(testing/btest/(Baseline|plugins|spicy|scripts)/.*|testing/builtin-plugins/.*)$'
 
 - repo: https://github.com/pre-commit/mirrors-clang-format
-  rev: v19.1.7
+  rev: v20.1.0
   hooks:
   - id: clang-format
     types_or:
@@ -22,13 +22,13 @@ repos:
       - "json"
 
 - repo: https://github.com/maxwinterstein/shfmt-py
-  rev: v3.7.0.1
+  rev: v3.11.0.2
   hooks:
     - id: shfmt
       args: ["-w", "-i", "4", "-ci"]
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.9.9
+  rev: v0.11.4
   hooks:
     - id: ruff
       args: [--fix]

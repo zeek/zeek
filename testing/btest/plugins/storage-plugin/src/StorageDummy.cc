@@ -11,7 +11,7 @@ using namespace zeek::storage;
 
 namespace btest::storage::backend {
 
-BackendPtr StorageDummy::Instantiate(std::string_view tag) { return make_intrusive<StorageDummy>(tag); }
+BackendPtr StorageDummy::Instantiate() { return make_intrusive<StorageDummy>(); }
 
 /**
  * Called by the manager system to open the backend.
@@ -21,8 +21,8 @@ BackendPtr StorageDummy::Instantiate(std::string_view tag) { return make_intrusi
  * with a corresponding message.
  */
 OperationResult StorageDummy::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
-    RecordValPtr backend_options = options->GetField<RecordVal>("dummy");
-    bool open_fail = backend_options->GetField<BoolVal>("open_fail")->Get();
+    RecordValPtr dummy_options = options->GetField<RecordVal>("dummy");
+    bool open_fail = dummy_options->GetField<BoolVal>("open_fail")->Get();
     if ( open_fail )
         return {ReturnCode::OPERATION_FAILED, "open_fail was set to true, returning error"};
 
@@ -44,9 +44,15 @@ OperationResult StorageDummy::DoClose(ResultCallback* cb) {
  */
 OperationResult StorageDummy::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
                                     double expiration_time) {
-    auto json_key = key->ToJSON()->ToStdString();
-    auto json_value = value->ToJSON()->ToStdString();
-    data[json_key] = json_value;
+    RecordValPtr dummy_options = backend_options->GetField<RecordVal>("dummy");
+    bool timeout_put = dummy_options->GetField<BoolVal>("timeout_put")->Get();
+    if ( timeout_put )
+        return {ReturnCode::TIMEOUT};
+
+    auto key_data = serializer->Serialize(key);
+    auto val_data = serializer->Serialize(value);
+
+    data[*key_data] = *val_data;
     return {ReturnCode::SUCCESS};
 }
 
@@ -54,31 +60,31 @@ OperationResult StorageDummy::DoPut(ResultCallback* cb, ValPtr key, ValPtr value
  * The workhorse method for Get(). This must be implemented for plugins.
  */
 OperationResult StorageDummy::DoGet(ResultCallback* cb, ValPtr key) {
-    auto json_key = key->ToJSON();
-    auto it = data.find(json_key->ToStdString());
+    auto key_data = serializer->Serialize(key);
+
+    auto it = data.find(*key_data);
     if ( it == data.end() )
         return {ReturnCode::KEY_NOT_FOUND};
 
-    auto val = zeek::detail::ValFromJSON(it->second.c_str(), val_type, Func::nil);
-    if ( std::holds_alternative<ValPtr>(val) ) {
-        ValPtr val_v = std::get<ValPtr>(val);
-        return {ReturnCode::SUCCESS, "", val_v};
-    }
+    auto val = serializer->Unserialize(it->second, val_type);
+    if ( val )
+        return {ReturnCode::SUCCESS, "", val.value()};
 
-    return {ReturnCode::OPERATION_FAILED, std::get<std::string>(val)};
+    return {ReturnCode::UNSERIALIZATION_FAILED, val.error()};
 }
 
 /**
  * The workhorse method for Erase(). This must be implemented for plugins.
  */
 OperationResult StorageDummy::DoErase(ResultCallback* cb, ValPtr key) {
-    auto json_key = key->ToJSON();
-    auto it = data.find(json_key->ToStdString());
-    if ( it == data.end() )
-        return {ReturnCode::KEY_NOT_FOUND};
+    auto key_data = serializer->Serialize(key);
 
-    data.erase(it);
-    return {ReturnCode::SUCCESS};
+    if ( auto it = data.find(*key_data); it != data.end() ) {
+        data.erase(it);
+        return {ReturnCode::SUCCESS};
+    }
+
+    return {ReturnCode::KEY_NOT_FOUND};
 }
 
 } // namespace btest::storage::backend

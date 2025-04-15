@@ -4,9 +4,7 @@
 
 #include <sys/types.h> // for u_char
 #include <array>
-#include <list>
 #include <unordered_map>
-#include <variant>
 #include <vector>
 
 #include "zeek/IntrusivePtr.h"
@@ -1774,8 +1772,8 @@ namespace detail {
 //
 // The *key_func* parameter is a Zeek script function called for every JSON key
 // for normalization. If Func::nil is passed, no normalization happens.
-extern std::variant<ValPtr, std::string> ValFromJSON(std::string_view json_str, const TypePtr& t,
-                                                     const FuncPtr& key_func);
+extern zeek::expected<ValPtr, std::string> ValFromJSON(std::string_view json_str, const TypePtr& t,
+                                                       const FuncPtr& key_func);
 
 // If the given vector is an empty vector-of-any ("unspecified"),
 // concretizes it to the given type. *v* gives the vector and *t* the

@@ -1,3 +1,10 @@
+7.2.0-dev.536 | 2025-04-15 18:31:28 +0200
+
+  * IXWebSocket: Bump to latest upstream master (Arne Welzel, Corelight)
+
+    The PR for the threading issue was merged. Still keeping the submodule
+    to point at our own fork as I have a hunch there might be more.
+
 7.2.0-dev.534 | 2025-04-15 08:57:48 -0700
 
   * CI: Add krb5 to FreeBSD (Tim Wojtulewicz, Corelight)

@@ -333,7 +333,8 @@ export {
 	## .. zeek:see:: Broker::status
 	global listen_websocket: function(a: string &default = default_listen_address_websocket,
 	                                  p: port &default = default_port_websocket,
-	                                  retry: interval &default = default_listen_retry): port;
+	                                  retry: interval &default = default_listen_retry): port
+		&deprecated="Remove in v8.1. Switch to Cluster::listen_websocket() instead.";
 
 	## Initiate a remote connection.
 	##
@@ -505,7 +506,9 @@ function listen(a: string, p: port, retry: interval): port
 
 event retry_listen_websocket(a: string, p: port, retry: interval)
 	{
+@pragma push ignore-deprecations
 	listen_websocket(a, p, retry);
+@pragma pop ignore-deprecations
 	}
 
 function listen_websocket(a: string, p: port, retry: interval): port

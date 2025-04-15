@@ -1,3 +1,9 @@
+7.2.0-dev.534 | 2025-04-15 08:57:48 -0700
+
+  * CI: Add krb5 to FreeBSD (Tim Wojtulewicz, Corelight)
+
+  * Switch libkrb5 check to exclude only Darwin (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.530 | 2025-04-14 10:11:59 -0700
 
   * Add STORAGE_ prefixes for backends and serializers (Tim Wojtulewicz, Corelight)

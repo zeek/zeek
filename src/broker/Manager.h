@@ -447,7 +447,7 @@ private:
     void Error(const char* format, ...) __attribute__((format(printf, 2, 3)));
 
     // Processes events from the Broker message queue.
-    void ProcessMessages();
+    void ProcessMessages(std::vector<broker::data_message> messages);
 
     // Process events from Broker logger.
     void ProcessLogEvents();

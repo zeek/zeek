@@ -1057,9 +1057,7 @@ bool Manager::DoUnsubscribe(const string& topic_prefix) {
     return true;
 }
 
-void Manager::ProcessMessages() {
-    auto messages = bstate->subscriber.poll();
-
+void Manager::ProcessMessages(std::vector<broker::data_message> messages) {
     for ( auto& message : messages ) {
         auto&& topic = broker::get_topic(message);
 
@@ -1184,7 +1182,7 @@ void Manager::ProcessDataStores() {
 
 void Manager::ProcessFd(int fd, int flags) {
     if ( fd == bstate->subscriber.fd() ) {
-        ProcessMessages();
+        ProcessMessages(bstate->subscriber.poll());
     }
     else if ( fd == bstate->loggerQueue->FlareFd() ) {
         ProcessLogEvents();
@@ -1200,7 +1198,11 @@ void Manager::ProcessFd(int fd, int flags) {
 }
 
 void Manager::Process() {
-    ProcessMessages();
+    if ( ! bstate )
+        return;
+
+    ProcessMessages(bstate->subscriber.poll());
+    ProcessMessages(bstate->hub.poll());
     ProcessLogEvents();
     ProcessDataStores();
 }

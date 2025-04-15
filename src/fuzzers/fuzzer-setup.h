@@ -88,7 +88,7 @@ void fuzzer_cleanup_one_input() {
     zeek::event_mgr.Drain();
     zeek::session_mgr->Drain();
     zeek::event_mgr.Drain();
-    zeek::session_mgr->Clear();
+    zeek::session_mgr->Done();
     run_state::terminating = false;
 }
 

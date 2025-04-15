@@ -391,7 +391,6 @@ static void terminate_zeek() {
 
     event_mgr.Drain();
 
-    session_mgr->Clear();
     plugin_mgr->FinishPlugins();
 
     finish_script_execution();

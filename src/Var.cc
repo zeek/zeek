@@ -203,6 +203,7 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init, std:
     }
 
     if ( id->GetType() && id->GetType()->Tag() != TYPE_ERROR && ! id->IsBlank() ) {
+        // NOLINTNEXTLINE(bugprone-assignment-in-if-condition)
         if ( dt != VAR_REDEF && (! init || ! do_init || (! t && ! (t = init_type(init)))) ) {
             id->Error("already defined", init.get());
             return;

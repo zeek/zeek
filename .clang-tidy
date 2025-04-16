@@ -5,4 +5,5 @@ Checks: [-*,
          bugprone-incorrect-division,
          bugprone-incorrect-roundings,
          bugprone-macro-parentheses,
+         bugprone-multi-level-implicit-pointer-conversion,
 ]

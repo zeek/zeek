@@ -1763,7 +1763,7 @@ vector<string>* tokenize_string(std::string_view input, std::string_view delim, 
     return rval;
 }
 
-vector<std::string_view> tokenize_string(std::string_view input, const char delim) noexcept {
+vector<std::string_view> tokenize_string(std::string_view input, const char delim) {
     vector<std::string_view> rval;
 
     size_t pos = 0;

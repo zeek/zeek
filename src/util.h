@@ -338,7 +338,7 @@ inline std::string get_escaped_string(const std::string& str, bool escape_all) {
 std::vector<std::string>* tokenize_string(std::string_view input, std::string_view delim,
                                           std::vector<std::string>* rval = nullptr, int limit = 0);
 
-std::vector<std::string_view> tokenize_string(std::string_view input, const char delim) noexcept;
+std::vector<std::string_view> tokenize_string(std::string_view input, const char delim);
 
 extern char* copy_string(const char* str, size_t len);
 extern char* copy_string(const char* s);

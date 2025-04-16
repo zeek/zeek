@@ -217,7 +217,7 @@ private:
     const String* _s1;
     const String* _s2;
 
-    int _rows, _cols;
+    size_t _rows, _cols;
     SWNode* _nodes;
 };
 

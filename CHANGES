@@ -1,3 +1,12 @@
+7.2.0-dev.544 | 2025-04-16 15:40:52 -0700
+
+  * Suppress warnings from compilation of external ixwebsocket dependency (Benjamin Bannier, Corelight)
+
+    Clang warns about declared but unused parameters somewhere in the guts of
+    IXWebSocket (internal code, not its headers). We are not interested in
+    this or similar warnings since we do not control this code, so suppress
+    all warnings for this target.
+
 7.2.0-dev.541 | 2025-04-16 09:34:09 +0200
 
   * ldap: Clean up from code review (Arne Welzel, Corelight)

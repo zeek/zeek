@@ -20,7 +20,7 @@ static const char* smtp_cmd_word[] = {
 
 static const char* unknown_cmd = "(UNKNOWN)";
 
-#define SMTP_CMD_WORD(code) ((code >= 0) ? smtp_cmd_word[code] : unknown_cmd)
+#define SMTP_CMD_WORD(code) (((code) >= 0) ? smtp_cmd_word[code] : unknown_cmd)
 
 namespace zeek::analyzer::smtp {
 

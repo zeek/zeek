@@ -13,11 +13,11 @@
 constexpr double netbios_ssn_session_timeout = 15.0;
 
 #define MAKE_INT16(dest, src)                                                                                          \
-    dest = *src;                                                                                                       \
-    dest <<= 8;                                                                                                        \
-    src++;                                                                                                             \
-    dest |= *src;                                                                                                      \
-    src++;
+    (dest) = *(src);                                                                                                   \
+    (dest) <<= 8;                                                                                                      \
+    (src)++;                                                                                                           \
+    (dest) |= *(src);                                                                                                  \
+    (src)++;
 
 namespace zeek::analyzer::netbios_ssn {
 namespace detail {

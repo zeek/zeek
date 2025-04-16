@@ -1135,6 +1135,20 @@ type BrokerStats: record {
 	num_ids_outgoing: count;
 };
 
+## Broker statistics for an individual peering.
+##
+type BrokerPeeringStats: record {
+	## The number of messages currently queued locally for transmission.
+	num_queued: count;
+	## The maximum number of messages queued in the recent
+	## :zeek:see:`Broker::buffer_stats_reset_interval` time interval.
+	max_queued_recently: count;
+	## The number of times the send buffer has overflowed.
+	num_overflows: count;
+};
+
+type BrokerPeeringStatsTable: table[string] of BrokerPeeringStats;
+
 ## Statistics about reporter messages and weirds.
 ##
 ## .. zeek:see:: get_reporter_stats

@@ -104,6 +104,10 @@ export {
 	## Same as :zeek:see:`Broker::peer_overflow_policy` but for WebSocket clients.
 	const web_socket_overflow_policy = "disconnect" &redef;
 
+	## How frequently Zeek resets some peering/client buffer statistics,
+	## such as ``max_queued_recently`` in :zeek:see:`BrokerPeeringStats`.
+	const buffer_stats_reset_interval = 1min &redef;
+
 	## The CAF scheduling policy to use.  Available options are "sharing" and
 	## "stealing".  The "sharing" policy uses a single, global work queue along
 	## with mutex and condition variable used for accessing it, which may be
@@ -392,6 +396,12 @@ export {
 	## Returns: a unique identifier for the local broker endpoint.
 	global node_id: function(): string;
 
+	## Obtain each peering's send-buffer statistics. The keys are Broker
+	## endpoint IDs.
+	##
+	## Returns: per-peering statistics.
+	global peering_stats: function(): table[string] of BrokerPeeringStats;
+
 	## Sends all pending log messages to remote peers.  This normally
 	## doesn't need to be used except for test cases that are time-sensitive.
 	global flush_logs: function(): count;
@@ -552,6 +562,11 @@ function peers(): vector of PeerInfo
 function node_id(): string
 	{
 	return __node_id();
+	}
+
+function peering_stats(): table[string] of BrokerPeeringStats
+	{
+	return __peering_stats();
 	}
 
 function flush_logs(): count

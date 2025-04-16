@@ -56,6 +56,7 @@ static VectorTypePtr base_vector_type__CPP(const VectorTypePtr& vt, bool is_bool
 // is an optional kernel to use for vectors whose underlying type
 // is "double".  It needs to be optional because C++ will (rightfully)
 // complain about applying certain C++ unary operations to doubles.
+// NOLINTBEGIN(bugprone-macro-parentheses)
 #define VEC_OP1(name, op, double_kernel)                                                                               \
     VectorValPtr vec_op_##name##__CPP(const VectorValPtr& v, const TypePtr& t) {                                       \
         auto vt = base_vector_type__CPP(cast_intrusive<VectorType>(t));                                                \
@@ -79,6 +80,7 @@ static VectorTypePtr base_vector_type__CPP(const VectorTypePtr& vt, bool is_bool
                                                                                                                        \
         return v_result;                                                                                               \
     }
+// NOLINTEND(bugprone-macro-parentheses)
 
 // Instantiates a double_kernel for a given operation.
 #define VEC_OP1_WITH_DOUBLE(name, op)                                                                                  \
@@ -96,6 +98,7 @@ VEC_OP1(comp, ~, )
 
 // A kernel for applying a binary operation element-by-element to two
 // vectors of a given low-level type.
+// NOLINTBEGIN(bugprone-macro-parentheses)
 #define VEC_OP2_KERNEL(accessor, type, op, zero_check)                                                                 \
     for ( unsigned int i = 0; i < v1->Size(); ++i ) {                                                                  \
         auto v1_i = v1->ValAt(i);                                                                                      \
@@ -107,6 +110,7 @@ VEC_OP1(comp, ~, )
                 v_result->Assign(i, make_intrusive<type>(v1_i->accessor() op v2_i->accessor()));                       \
         }                                                                                                              \
     }
+// NOLINTEND(bugprone-macro-parentheses)
 
 // Analogous to VEC_OP1, instantiates a function for a given binary operation,
 // with customizable kernels for "int" and "double" operations.

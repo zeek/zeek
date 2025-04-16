@@ -309,25 +309,21 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
 
                 break;
 
+            // Server isn't going to accept named security mechanism.
+            // Client has to restart back at the AUTH.
             case 421:
             case 431:
             case 500:
             case 501:
             case 503:
             case 535:
-                // Server isn't going to accept named security mechanism.
-                // Client has to restart back at the AUTH.
-                done = true;
-                break;
 
+            // If the server is sending protected replies, the security
+            // data exchange must have already succeeded.  It does have
+            // encoded data in the reply, but 632 and 633 are also encrypted.
             case 631:
             case 632:
-            case 633:
-                // If the server is sending protected replies, the security
-                // data exchange must have already succeeded.  It does have
-                // encoded data in the reply, but 632 and 633 are also encrypted.
-                done = true;
-                break;
+            case 633: done = true; break;
 
             default: break;
         }

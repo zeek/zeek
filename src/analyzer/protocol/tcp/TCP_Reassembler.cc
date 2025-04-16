@@ -375,7 +375,7 @@ void TCP_Reassembler::BlockInserted(DataBlockMap::const_iterator it) {
         // Our endpoint's peer doesn't do reassembly and so
         // (presumably) isn't processing acks.  So don't hold
         // the now-delivered data.
-        TrimToSeq(last_reassem_seq);
+        TrimToSeq(last_reassem_seq); // NOLINT(bugprone-branch-clone)
 
     else if ( e->NoDataAcked() && zeek::detail::tcp_max_initial_window &&
               e->Size() > static_cast<uint64_t>(zeek::detail::tcp_max_initial_window) )

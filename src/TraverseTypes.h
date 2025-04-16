@@ -14,20 +14,22 @@ enum TraversalCode {
 
 #define HANDLE_TC_STMT_PRE(code)                                                                                       \
     {                                                                                                                  \
-        if ( (code) == zeek::detail::TC_ABORTALL )                                                                     \
-            return (code);                                                                                             \
-        else if ( (code) == zeek::detail::TC_ABORTSTMT )                                                               \
-            return zeek::detail::TC_CONTINUE;                                                                          \
+        switch ( code ) {                                                                                              \
+            case zeek::detail::TC_ABORTALL: return (code);                                                             \
+            case zeek::detail::TC_ABORTSTMT: return zeek::detail::TC_CONTINUE;                                         \
+            case zeek::detail::TC_CONTINUE:                                                                            \
+            default: break;                                                                                            \
+        }                                                                                                              \
     }
 
 #define HANDLE_TC_STMT_POST(code)                                                                                      \
     {                                                                                                                  \
-        if ( (code) == zeek::detail::TC_ABORTALL )                                                                     \
-            return (code);                                                                                             \
-        else if ( (code) == zeek::detail::TC_ABORTSTMT )                                                               \
-            return zeek::detail::TC_CONTINUE;                                                                          \
-        else                                                                                                           \
-            return (code);                                                                                             \
+        switch ( code ) {                                                                                              \
+            case zeek::detail::TC_ABORTSTMT: return zeek::detail::TC_CONTINUE;                                         \
+            case zeek::detail::TC_ABORTALL:                                                                            \
+            case zeek::detail::TC_CONTINUE:                                                                            \
+            default: return (code);                                                                                    \
+        }                                                                                                              \
     }
 
 #define HANDLE_TC_EXPR_PRE(code) HANDLE_TC_STMT_PRE(code)

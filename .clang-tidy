@@ -1,3 +1,4 @@
 Checks: [-*,
          bugprone-assignment-in-if-condition,
+         bugprone-branch-clone,
 ]

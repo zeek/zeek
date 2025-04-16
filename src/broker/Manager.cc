@@ -1937,7 +1937,7 @@ void Manager::ProcessStoreResponse(detail::StoreHandleVal* s, broker::store::res
         BrokerData tmp{std::move(*response.answer)};
         request->second->Result(detail::query_result(std::move(tmp).ToRecordVal()));
     }
-    else if ( response.answer.error() == broker::ec::request_timeout ) {
+    else if ( response.answer.error() == broker::ec::request_timeout ) { // NOLINT(bugprone-branch-clone)
         // Fine, trigger's timeout takes care of things.
     }
     else if ( response.answer.error() == broker::ec::stale_data ) {

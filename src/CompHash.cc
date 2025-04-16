@@ -232,16 +232,8 @@ bool CompositeHash::RecoverOneVal(const HashKey& hk, Type* t, ValPtr* pval, bool
                     if ( ! pvt )
                         reporter->InternalError("bad aggregate Val in CompositeHash::RecoverOneVal()");
 
-                    else if ( t->Tag() != TYPE_FUNC && ! same_type(pvt, t) )
-                    // ### Maybe fix later, but may be fundamentally un-checkable --US
-                    {
-                        reporter->InternalError("inconsistent aggregate Val in CompositeHash::RecoverOneVal()");
-                        *pval = nullptr;
-                        return false;
-                    }
-
-                    // ### A crude approximation for now.
-                    else if ( t->Tag() == TYPE_FUNC && pvt->Tag() != TYPE_FUNC ) {
+                    else if ( (t->Tag() != TYPE_FUNC && ! same_type(pvt, t)) ||
+                              (t->Tag() == TYPE_FUNC && pvt->Tag() != TYPE_FUNC) ) {
                         reporter->InternalError("inconsistent aggregate Val in CompositeHash::RecoverOneVal()");
                         *pval = nullptr;
                         return false;

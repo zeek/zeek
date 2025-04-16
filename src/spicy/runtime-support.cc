@@ -236,7 +236,7 @@ zeek::analyzer::ID rt::current_analyzer_id() {
         if ( auto x = cookie->protocol ) {
             return x->analyzer->GetID();
         }
-        else if ( auto x = cookie->file ) {
+        else if ( auto x = cookie->file ) { // NOLINT(bugprone-branch-clone)
             return 0;
         }
         else if ( auto x = cookie->packet ) {

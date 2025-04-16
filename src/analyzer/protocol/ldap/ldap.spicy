@@ -365,6 +365,12 @@ public type Message = unit(ctx: Ctx&) {
 public type BindAuthType = enum {
   BIND_AUTH_SIMPLE = 0,
   BIND_AUTH_SASL = 3,
+
+  # https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/8b9dbfb2-5b6a-497a-a533-7e709cb9a982
+  # 5.1.1.1.3 Sicily Authentication
+  SICILY_PACKAGE_DISCOVERY = 9,
+  SICILY_NEGOTIATE = 10,
+  SICILY_RESPONSE = 11,
 };
 
 type GSS_SPNEGO_negTokenInit = unit {
@@ -410,6 +416,13 @@ type SaslCredentials = unit() {
   };
 };
 
+type SicilyMessage = unit() {
+  # Just ensure the signature matches. We could do more,
+  # but it'd be better to forward to an NTLM analyzer.
+  signature: skip b"NTLMSSP";
+  var signature_decoded: string = "NTLMSSP";
+};
+
 type GSS_SPNEGO_Subsequent = unit {
   switch {
     -> spnegoChoiceByte: uint8(0xa1);
@@ -423,6 +436,7 @@ type GSS_SPNEGO_Subsequent = unit {
 type GSS_SPNEGO_negTokenResp = unit {
   var accepted: bool;
   var supportedMech: ASN1::ASN1Message;
+  var responseToken: optional<bytes>;
 
   # Parse the contained Sequence.
   seq: ASN1::ASN1Message(True) {
@@ -433,7 +447,7 @@ type GSS_SPNEGO_negTokenResp = unit {
       } else if ( msg.application_id == 1 ) {
         self.supportedMech = msg;
       } else if ( msg.application_id == 2 ) {
-        # ignore responseToken
+        self.responseToken = msg.application_data;
       } else if ( msg.application_id == 3 ) {
         # ignore mechListMec
       } else {
@@ -468,18 +482,30 @@ type BindRequest = unit(inout message: Message, ctx: Ctx&) {
       self.authType = cast<BindAuthType>(cast<uint8>($$.application_id));
       self.authData = $$.application_data;
     }
-    if ((self.authType == BindAuthType::BIND_AUTH_SIMPLE) && (|self.authData| > 0)) {
-      self.simpleCreds = self.authData.decode();
-      if (|self.simpleCreds| > 0) {
-        message.arg = self.simpleCreds;
-      }
-    }
   }
-  saslCreds: SaslCredentials() &parse-from=self.authData if ((self.authType == BindAuthType::BIND_AUTH_SASL) &&
-                                                             (|self.authData| > 0)) {
-    message.arg = self.saslCreds.mechanism;
-    ctx.saslMechanism = self.saslCreds.mechanism;
-  }
+
+  if ( |self.authData| > 0 ) {
+    switch ( self.authType ) {
+      BindAuthType::BIND_AUTH_SIMPLE ->
+        : void {
+          self.simpleCreds = self.authData.decode();
+          message.arg = self.simpleCreds;
+        }
+
+      BindAuthType::BIND_AUTH_SASL ->
+        saslCreds: SaslCredentials {
+          message.arg = self.saslCreds.mechanism;
+          ctx.saslMechanism = self.saslCreds.mechanism;
+        }
+
+      BindAuthType::SICILY_NEGOTIATE, BindAuthType::SICILY_RESPONSE ->
+        sicilyMessage: SicilyMessage {
+          message.arg = self.sicilyMessage.signature_decoded;
+        }
+
+      * -> : void;
+    } &parse-from=self.authData;
+  };
 } &requires=(self?.authType && (self.authType != BindAuthType::Undef));
 
 type ServerSaslCreds = unit {
@@ -523,7 +549,7 @@ type BindResponse = unit(inout message: Message, ctx: Ctx&) {
     if ( $$?.negTokenResp ) {
       local token = $$.negTokenResp;
       if ( token.accepted && token?.supportedMechOid ) {
-        if ( token.supportedMechOid == GSSAPI_MECH_MS_KRB5 ) {
+        if ( token.supportedMechOid == GSSAPI_MECH_MS_KRB5 && token.responseToken ) {
           ctx.messageMode = MessageMode::MS_KRB5;
         }
       }

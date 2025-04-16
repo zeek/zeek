@@ -376,13 +376,23 @@ event LDAP::bind_request(c: connection,
   if ( m?$opcode )
     Reporter::conn_weird("LDAP_bind_opcode_already_set", c, m$opcode, "LDAP");
 
-  if (authType == LDAP::BindAuthType_BIND_AUTH_SIMPLE) {
+  switch ( authType ) {
+  case LDAP::BindAuthType_BIND_AUTH_SIMPLE:
     m$opcode = BIND_SIMPLE;
-  } else if (authType == LDAP::BindAuthType_BIND_AUTH_SASL) {
+    break;
+  case LDAP::BindAuthType_BIND_AUTH_SASL:
     m$opcode = BIND_SASL;
-  } else {
+    break;
+  case LDAP::BindAuthType_SICILY_NEGOTIATE:
+    m$opcode = BIND_SICILY_NEGOTIATE;
+    break;
+  case LDAP::BindAuthType_SICILY_RESPONSE:
+    m$opcode = BIND_SICILY_RESPONSE;
+    break;
+  default:
     Reporter::conn_weird("LDAP_unknown_auth_type", c, cat(authType), "LDAP");
     m$opcode = cat(authType);
+    break;
   }
 }
 

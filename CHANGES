@@ -1,3 +1,11 @@
+7.2.0-dev.541 | 2025-04-16 09:34:09 +0200
+
+  * ldap: Clean up from code review (Arne Welzel, Corelight)
+
+  * ldap: Add Sicily Authentication constants (Arne Welzel, Corelight)
+
+  * GH-4275: ldap: Only switch into MS_KRB5 mode if responseToken exists (Arne Welzel, Corelight)
+
 7.2.0-dev.536 | 2025-04-15 18:31:28 +0200
 
   * IXWebSocket: Bump to latest upstream master (Arne Welzel, Corelight)

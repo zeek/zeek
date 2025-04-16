@@ -26,6 +26,8 @@ export {
 
 	const BIND_SIMPLE = "bind simple";
 	const BIND_SASL = "bind SASL";
+	const BIND_SICILY_NEGOTIATE = "sicily_negotiate";
+	const BIND_SICILY_RESPONSE= "sicily_response";
 
 	const RESULT_CODES = { [ LDAP::ResultCode_SUCCESS ] = "success", [
 	    LDAP::ResultCode_OPERATIONS_ERROR ] = "operations error", [

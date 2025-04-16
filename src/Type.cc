@@ -2155,10 +2155,6 @@ bool is_assignable(TypeTag t) {
     return false;
 }
 
-#define CHECK_TYPE(t)                                                                                                  \
-    if ( t1 == t || t2 == t )                                                                                          \
-        return t;
-
 TypeTag max_type(TypeTag t1, TypeTag t2) {
     if ( t1 == TYPE_INTERVAL || t1 == TYPE_TIME )
         t1 = TYPE_DOUBLE;
@@ -2166,9 +2162,12 @@ TypeTag max_type(TypeTag t1, TypeTag t2) {
         t2 = TYPE_DOUBLE;
 
     if ( BothArithmetic(t1, t2) ) {
-        CHECK_TYPE(TYPE_DOUBLE);
-        CHECK_TYPE(TYPE_INT);
-        CHECK_TYPE(TYPE_COUNT);
+        if ( t1 == TYPE_DOUBLE || t2 == TYPE_DOUBLE )
+            return TYPE_DOUBLE;
+        else if ( t1 == TYPE_INT || t2 == TYPE_INT )
+            return TYPE_INT;
+        else if ( t1 == TYPE_COUNT || t2 == TYPE_COUNT )
+            return TYPE_COUNT;
 
         return TYPE_COUNT;
     }

@@ -892,11 +892,13 @@ ValPtr BinaryExpr::StringFold(Val* v1, Val* v2) const {
 
     switch ( tag ) {
 #undef DO_FOLD
+// NOLINTBEGIN(bugprone-macro-parentheses)
 #define DO_FOLD(sense)                                                                                                 \
     {                                                                                                                  \
         result = Bstr_cmp(s1, s2) sense 0;                                                                             \
         break;                                                                                                         \
     }
+            // NOLINTEND(bugprone-macro-parentheses)
 
         case EXPR_LT: DO_FOLD(<)
         case EXPR_LE: DO_FOLD(<=)

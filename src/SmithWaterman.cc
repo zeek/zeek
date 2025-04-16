@@ -187,9 +187,9 @@ public:
 
     SWNode* operator()(int row, int col) {
         // Make sure access is in allowed range.
-        if ( row < 0 || row >= _rows )
+        if ( row < 0 || static_cast<size_t>(row) >= _rows )
             return nullptr;
-        if ( col < 0 || col >= _cols )
+        if ( col < 0 || static_cast<size_t>(col) >= _cols )
             return nullptr;
 
         return &(_nodes[row * _cols + col]);
@@ -215,7 +215,7 @@ private:
     const String* _s1;
     const String* _s2;
 
-    int _rows, _cols;
+    size_t _rows, _cols;
     SWNode* _nodes;
 };
 

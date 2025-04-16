@@ -66,8 +66,8 @@ TEST_CASE("module_util normalized_module_name") {
 }
 
 string normalized_module_name(const char* module_name) {
-    int mod_len;
-    if ( (mod_len = strlen(module_name)) >= 2 && streq(module_name + mod_len - 2, "::") )
+    int mod_len = strlen(module_name);
+    if ( (mod_len >= 2) && streq(module_name + mod_len - 2, "::") != 0 )
         mod_len -= 2;
 
     return {module_name, static_cast<size_t>(mod_len)};

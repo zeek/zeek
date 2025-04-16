@@ -406,6 +406,7 @@ refine connection SSH_Conn += {
 				version_ = version_server_;
 			}
 		// SSH1 vs SSH2 -> Undefined
+		// NOLINTBEGIN(bugprone-branch-clone)
 		else if ( version_client_ == SSH1 && version_server_ == SSH2 )
 			version_ = UNK;
 		// SSH2 vs SSH1 -> Undefined
@@ -423,7 +424,7 @@ refine connection SSH_Conn += {
 		// SSH199 vs SSH1 -> 1
 		else if ( version_client_ == SSH199 && version_server_ == SSH1 )
 			version_ = version_server_;
-
+		// NOLINTEND(bugprone-branch-clone)
 		return true;
 		%}
 

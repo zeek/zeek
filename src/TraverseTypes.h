@@ -22,9 +22,7 @@ enum TraversalCode {
 
 #define HANDLE_TC_STMT_POST(code)                                                                                      \
     {                                                                                                                  \
-        if ( (code) == zeek::detail::TC_ABORTALL )                                                                     \
-            return (code);                                                                                             \
-        else if ( (code) == zeek::detail::TC_ABORTSTMT )                                                               \
+        if ( (code) == zeek::detail::TC_ABORTSTMT )                                                                    \
             return zeek::detail::TC_CONTINUE;                                                                          \
         else                                                                                                           \
             return (code);                                                                                             \

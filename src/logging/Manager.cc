@@ -777,19 +777,8 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, Tab
                 continue;
             }
 
-            else if ( t->Tag() == TYPE_TABLE && t->AsTableType()->IsSet() ) {
-                // That's ok, we handle it below.
-            }
-
-            else if ( t->Tag() == TYPE_VECTOR ) {
-                // That's ok, we handle it below.
-            }
-
-            else if ( t->Tag() == TYPE_FILE ) {
-                // That's ok, we handle it below.
-            }
-
-            else if ( t->Tag() == TYPE_FUNC ) {
+            else if ( (t->Tag() == TYPE_TABLE && t->AsTableType()->IsSet()) || t->Tag() == TYPE_VECTOR ||
+                      t->Tag() == TYPE_FILE || t->Tag() == TYPE_FUNC ) {
                 // That's ok, we handle it below.
             }
 

@@ -481,10 +481,8 @@ bool Reducer::ExprValid(const ID* id, const Expr* e1, const Expr* e2) const {
             auto aggr = e1->GetOp1();
             auto aggr_t = aggr->GetType();
 
-            if ( pfs->HasSideEffects(SideEffectsOp::READ, aggr_t) )
-                has_side_effects = true;
-
-            else if ( aggr_t->Tag() == TYPE_TABLE && pfs->IsTableWithDefaultAggr(aggr_t.get()) )
+            if ( (pfs->HasSideEffects(SideEffectsOp::READ, aggr_t)) ||
+                 (aggr_t->Tag() == TYPE_TABLE && pfs->IsTableWithDefaultAggr(aggr_t.get())) )
                 has_side_effects = true;
         }
 

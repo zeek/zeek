@@ -68,12 +68,12 @@ string SQLite::GetTableType(int arg_type, int arg_subtype) {
         case TYPE_ENUM:
         case TYPE_STRING:
         case TYPE_FILE:
-        case TYPE_FUNC: type = "text"; break;
-
+        case TYPE_FUNC:
         case TYPE_TABLE:
         case TYPE_VECTOR:
-            type = "text"; // dirty - but sqlite does not directly support arrays. so - we just roll
-                           // it into a ","-separated string.
+            // For TYPE_TABLE and TYPE_VECTOR, this is sort of dirty, but sqlite does not
+            // directly support arrays. so we just roll it all into a comma-separated string.
+            type = "text";
             break;
 
         default:

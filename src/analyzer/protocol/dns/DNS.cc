@@ -924,18 +924,18 @@ bool DNS_Interpreter::ParseRR_RRSIG(detail::DNS_MsgInfo* msg, const u_char*& dat
 
     switch ( dsa ) {
         case detail::RSA_MD5: analyzer->Weird("DNSSEC_RRSIG_NotRecommended_ZoneSignAlgo", util::fmt("%d", algo)); break;
-        case detail::Diffie_Hellman: break;
-        case detail::DSA_SHA1: break;
-        case detail::Elliptic_Curve: break;
-        case detail::RSA_SHA1: break;
-        case detail::DSA_NSEC3_SHA1: break;
-        case detail::RSA_SHA1_NSEC3_SHA1: break;
-        case detail::RSA_SHA256: break;
-        case detail::RSA_SHA512: break;
-        case detail::GOST_R_34_10_2001: break;
-        case detail::ECDSA_curveP256withSHA256: break;
-        case detail::ECDSA_curveP384withSHA384: break;
-        case detail::Ed25519: break;
+        case detail::Diffie_Hellman:
+        case detail::DSA_SHA1:
+        case detail::Elliptic_Curve:
+        case detail::RSA_SHA1:
+        case detail::DSA_NSEC3_SHA1:
+        case detail::RSA_SHA1_NSEC3_SHA1:
+        case detail::RSA_SHA256:
+        case detail::RSA_SHA512:
+        case detail::GOST_R_34_10_2001:
+        case detail::ECDSA_curveP256withSHA256:
+        case detail::ECDSA_curveP384withSHA384:
+        case detail::Ed25519:
         case detail::Ed448: break;
         case detail::Indirect: analyzer->Weird("DNSSEC_RRSIG_Indirect_ZoneSignAlgo", util::fmt("%d", algo)); break;
         case detail::PrivateDNS: analyzer->Weird("DNSSEC_RRSIG_PrivateDNS_ZoneSignAlgo", util::fmt("%d", algo)); break;
@@ -999,18 +999,18 @@ bool DNS_Interpreter::ParseRR_DNSKEY(detail::DNS_MsgInfo* msg, const u_char*& da
         case detail::RSA_MD5:
             analyzer->Weird("DNSSEC_DNSKEY_NotRecommended_ZoneSignAlgo", util::fmt("%d", dalgorithm));
             break;
-        case detail::Diffie_Hellman: break;
-        case detail::DSA_SHA1: break;
-        case detail::Elliptic_Curve: break;
-        case detail::RSA_SHA1: break;
-        case detail::DSA_NSEC3_SHA1: break;
-        case detail::RSA_SHA1_NSEC3_SHA1: break;
-        case detail::RSA_SHA256: break;
-        case detail::RSA_SHA512: break;
-        case detail::GOST_R_34_10_2001: break;
-        case detail::ECDSA_curveP256withSHA256: break;
-        case detail::ECDSA_curveP384withSHA384: break;
-        case detail::Ed25519: break;
+        case detail::Diffie_Hellman:
+        case detail::DSA_SHA1:
+        case detail::Elliptic_Curve:
+        case detail::RSA_SHA1:
+        case detail::DSA_NSEC3_SHA1:
+        case detail::RSA_SHA1_NSEC3_SHA1:
+        case detail::RSA_SHA256:
+        case detail::RSA_SHA512:
+        case detail::GOST_R_34_10_2001:
+        case detail::ECDSA_curveP256withSHA256:
+        case detail::ECDSA_curveP384withSHA384:
+        case detail::Ed25519:
         case detail::Ed448: break;
         case detail::Indirect:
             analyzer->Weird("DNSSEC_DNSKEY_Indirect_ZoneSignAlgo", util::fmt("%d", dalgorithm));
@@ -1216,9 +1216,9 @@ bool DNS_Interpreter::ParseRR_DS(detail::DNS_MsgInfo* msg, const u_char*& data, 
     String* ds_digest = ExtractStream(data, len, rdlength - 4);
 
     switch ( ds_digest_type ) {
-        case detail::SHA1: break;
-        case detail::SHA256: break;
-        case detail::GOST_R_34_11_94: break;
+        case detail::SHA1:
+        case detail::SHA256:
+        case detail::GOST_R_34_11_94:
         case detail::SHA384: break;
         case detail::reserved: analyzer->Weird("DNSSEC_DS_ReservedDigestType", util::fmt("%d", ds_dtype)); break;
         default: analyzer->Weird("DNSSEC_DS_unknown_DigestType", util::fmt("%d", ds_dtype)); break;

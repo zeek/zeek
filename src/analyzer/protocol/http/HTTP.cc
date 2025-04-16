@@ -1111,7 +1111,7 @@ const char* HTTP_Analyzer::PrefixMatch(const char* line, const char* end_of_line
 
 const char* HTTP_Analyzer::PrefixWordMatch(const char* line, const char* end_of_line, const char* prefix,
                                            bool ignore_case) {
-    if ( (line = PrefixMatch(line, end_of_line, prefix, ignore_case)) == nullptr )
+    if ( line = PrefixMatch(line, end_of_line, prefix, ignore_case); line == nullptr )
         return nullptr;
 
     const char* orig_line = line;

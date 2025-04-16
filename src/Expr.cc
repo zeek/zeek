@@ -4082,10 +4082,13 @@ CallExpr::CallExpr(ExprPtr arg_func, ListExprPtr arg_args, bool in_hook, bool _i
              util::streq(((NameExpr*)func.get())->Id()->Name(), "fmt") &&
              // The following is needed because fmt might not yet
              // be bound as a name.
-             did_builtin_init && (func_val = func->Eval(nullptr)) ) {
-            zeek::Func* f = func_val->AsFunc();
-            if ( f->GetKind() == Func::BUILTIN_FUNC && ! check_built_in_call((BuiltinFunc*)f, this) )
-                SetError();
+             did_builtin_init ) {
+            func_val = func->Eval(nullptr);
+            if ( func_val ) {
+                zeek::Func* f = func_val->AsFunc();
+                if ( f->GetKind() == Func::BUILTIN_FUNC && ! check_built_in_call((BuiltinFunc*)f, this) )
+                    SetError();
+            }
         }
     }
 }

@@ -1111,7 +1111,7 @@ const char* HTTP_Analyzer::PrefixMatch(const char* line, const char* end_of_line
 }
 
 const char* HTTP_Analyzer::PrefixWordMatch(const char* line, const char* end_of_line, const char* prefix) {
-    if ( (line = PrefixMatch(line, end_of_line, prefix)) == nullptr )
+    if ( line = PrefixMatch(line, end_of_line, prefix); line == nullptr )
         return nullptr;
 
     const char* orig_line = line;
@@ -1453,7 +1453,7 @@ const String* HTTP_Analyzer::UnansweredRequestMethod() {
 int HTTP_Analyzer::HTTP_ReplyLine(const char* line, const char* end_of_line) {
     const char* rest;
 
-    if ( ! (rest = PrefixMatch(line, end_of_line, "HTTP/")) ) {
+    if ( rest = PrefixMatch(line, end_of_line, "HTTP/"); rest == nullptr ) {
         // ##TODO: some server replies with an HTML document
         // without a status line and a MIME header, when the
         // request is malformed.

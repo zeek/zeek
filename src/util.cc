@@ -1876,8 +1876,8 @@ struct timeval double_to_timeval(double t) {
     struct timeval tv;
 
     double t1 = floor(t);
-    tv.tv_sec = int(t1);
-    tv.tv_usec = int((t - t1) * 1e6 + 0.5);
+    tv.tv_sec = static_cast<int>(t1);
+    tv.tv_usec = std::lround((t - t1) * 1e6);
 
     return tv;
 }

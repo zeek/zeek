@@ -214,9 +214,11 @@ public:
     bool OnFinish(double network_time) override { return true; }
 };
 
-WebSocketEventDispatcher::WebSocketEventDispatcher() {
+WebSocketEventDispatcher::WebSocketEventDispatcher(std::string ident, size_t queue_size) {
     onloop =
-        new zeek::detail::OnLoopProcess<WebSocketEventDispatcher, WebSocketEvent>(this, "WebSocketEventDispatcher");
+        new zeek::detail::OnLoopProcess<WebSocketEventDispatcher, WebSocketEvent>(this,
+                                                                                  "WebSocketEventDispatcher:" + ident,
+                                                                                  queue_size);
     // Register the onloop instance the IO loop. Lifetime will be managed by the loop.
     onloop->Register(false);
 

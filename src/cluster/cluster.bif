@@ -196,6 +196,8 @@ function Cluster::__listen_websocket%(options: WebSocketServerOptions%): bool
 		options_rec->GetField<zeek::StringVal>("listen_host")->ToStdString(),
 		static_cast<uint16_t>(options_rec->GetField<zeek::PortVal>("listen_port")->Port()),
 	};
+
+	server_options.max_event_queue_size = options_rec->GetField<zeek::PortVal>("max_event_queue_size")->AsCount();
 	server_options.tls_options = std::move(tls_options);
 
 	auto result = zeek::cluster::manager->ListenWebSocket(server_options);

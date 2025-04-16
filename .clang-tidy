@@ -1,4 +1,5 @@
 Checks: [-*,
          bugprone-assignment-in-if-condition,
          bugprone-branch-clone,
+         bugprone-implicit-widening-of-multiplication-result,
 ]

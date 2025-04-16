@@ -299,7 +299,7 @@ static zeek::RecordValPtr build_syn_packet_val(bool is_orig, const zeek::IP_Hdr*
 
     // Parse TCP options.
     u_char* options = (u_char*)tcp + sizeof(struct tcphdr);
-    u_char* opt_end = (u_char*)tcp + tcp->th_off * 4;
+    u_char* opt_end = (u_char*)tcp + static_cast<ptrdiff_t>(tcp->th_off * 4);
 
     while ( options < opt_end ) {
         unsigned int opt = options[0];
@@ -1462,7 +1462,7 @@ void TCPSessionAdapter::SynWeirds(analyzer::tcp::TCP_Flags flags, analyzer::tcp:
 int TCPSessionAdapter::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig) {
     // Parse TCP options.
     const u_char* options = (const u_char*)tcp + sizeof(struct tcphdr);
-    const u_char* opt_end = (const u_char*)tcp + tcp->th_off * 4;
+    const u_char* opt_end = (const u_char*)tcp + static_cast<ptrdiff_t>(tcp->th_off * 4);
     std::vector<const u_char*> opts;
 
     while ( options < opt_end ) {

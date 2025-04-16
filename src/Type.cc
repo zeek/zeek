@@ -2155,7 +2155,7 @@ bool is_assignable(TypeTag t) {
 }
 
 #define CHECK_TYPE(t)                                                                                                  \
-    if ( t1 == t || t2 == t )                                                                                          \
+    if ( t1 == (t) || t2 == (t) )                                                                                      \
         return t;
 
 TypeTag max_type(TypeTag t1, TypeTag t2) {

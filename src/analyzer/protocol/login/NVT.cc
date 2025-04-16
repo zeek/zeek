@@ -9,7 +9,7 @@
 #include "zeek/analyzer/protocol/login/events.bif.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#define IS_3_BYTE_OPTION(c) (c >= 251 && c <= 254)
+#define IS_3_BYTE_OPTION(c) ((c) >= 251 && (c) <= 254)
 
 #define TELNET_OPT_SB 250
 #define TELNET_OPT_SE 240

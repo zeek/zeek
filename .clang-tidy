@@ -4,4 +4,5 @@ Checks: [-*,
          bugprone-implicit-widening-of-multiplication-result,
          bugprone-incorrect-division,
          bugprone-incorrect-roundings,
+         bugprone-macro-parentheses,
 ]

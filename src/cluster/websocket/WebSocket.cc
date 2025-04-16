@@ -358,7 +358,8 @@ void WebSocketEventDispatcher::Process(const WebSocketSubscribeFinished& fin) {
 
     entry.wsc->SendAck(entry.backend->NodeId(), zeek::zeek_version());
 
-    WS_DEBUG("Sent Ack to %s %s\n", fin.id.c_str(), entry.backend->NodeId().c_str());
+    WS_DEBUG("Sent Ack to client %s (%s:%d) %s\n", fin.id.c_str(), wsc->getRemoteIp().c_str(), wsc->getRemotePort(),
+             entry.backend->NodeId().c_str());
 
     // Process any queued messages now.
     for ( auto& msg : entry.queue ) {
@@ -485,13 +486,12 @@ void WebSocketEventDispatcher::Process(const WebSocketMessage& msg) {
     const auto& wsc = entry.wsc;
     entry.msg_count++;
 
-    WS_DEBUG("Message %" PRIu64 " size=%zu from %s (%s:%d) backend=%p", entry.msg_count, msg.msg.size(),
+    WS_DEBUG("Message %" PRIu64 " size=%zu from client %s (%s:%d) backend=%p", entry.msg_count, msg.msg.size(),
              wsc->getId().c_str(), wsc->getRemoteIp().c_str(), wsc->getRemotePort(), entry.backend.get());
 
     // First message is the subscription message.
     if ( entry.msg_count == 1 ) {
-        WS_DEBUG("Subscriptions from client: %s: (%s:%d)\n", id.c_str(), wsc->getRemoteIp().c_str(),
-                 wsc->getRemotePort());
+        WS_DEBUG("Subscriptions from client %s: (%s:%d)", id.c_str(), wsc->getRemoteIp().c_str(), wsc->getRemotePort());
         HandleSubscriptions(entry, msg.msg);
     }
     else {

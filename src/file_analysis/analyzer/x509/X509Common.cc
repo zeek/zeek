@@ -128,8 +128,8 @@ double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, file_analysis::File* 
             return 0;
         }
 
-        lSecondsFromUTC = ((pString[1] - '0') * 10 + (pString[2] - '0')) * 60;
-        lSecondsFromUTC += (pString[3] - '0') * 10 + (pString[4] - '0');
+        lSecondsFromUTC = static_cast<time_t>((pString[1] - '0') * 10) + static_cast<time_t>((pString[2] - '0') * 60);
+        lSecondsFromUTC += static_cast<time_t>((pString[3] - '0') * 10) + (pString[4] - '0');
 
         if ( *pString == '-' )
             lSecondsFromUTC = -lSecondsFromUTC;

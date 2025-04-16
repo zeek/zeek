@@ -60,7 +60,7 @@ ARPAnalyzer::ARPAnalyzer() : zeek::packet_analysis::Analyzer("ARP") {}
 #endif
 
 #ifndef ar_tpa
-#define ar_tpa(ap) ((caddr_t((ap) + 1)) + 2 * (ap)->ar_hln + (ap)->ar_pln)
+#define ar_tpa(ap) ((caddr_t((ap) + 1)) + 2 * static_cast<size_t>((ap)->ar_hln) + (ap)->ar_pln)
 #endif
 
 #ifndef ARPOP_REVREQUEST

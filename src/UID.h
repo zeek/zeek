@@ -9,7 +9,7 @@
 
 namespace zeek {
 
-constexpr int UID_LEN = 2;
+constexpr size_t UID_LEN = 2;
 
 /**
  * A class for creating/managing UIDs of arbitrary bit-length and converting

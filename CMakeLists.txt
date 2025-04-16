@@ -208,6 +208,20 @@ include(cmake/CheckCompilerArch.cmake)
 
 string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
 
+if (ENABLE_IWYU)
+    find_program(ZEEK_IWYU_PATH NAMES include-what-you-use iwyu)
+    if (NOT ZEEK_IWYU_PATH)
+        message(FATAL_ERROR "Could not find the program include-what-you-use")
+    endif ()
+endif ()
+
+if (ENABLE_CLANG_TIDY)
+    find_program(ZEEK_CLANG_TIDY_PATH NAMES clang-tidy)
+    if (NOT ZEEK_CLANG_TIDY_PATH)
+        message(FATAL_ERROR "Could not find the program clang-tidy")
+    endif ()
+endif ()
+
 # ##############################################################################
 # Main targets and utilities.
 
@@ -305,6 +319,16 @@ function (zeek_target_link_libraries lib_target)
             target_link_libraries(${name} ${${name}_access} ${lib_target})
         endif ()
     endforeach ()
+endfunction ()
+
+function (zeek_target_add_linters lib_target)
+    if (ZEEK_IWYU_PATH)
+        set_target_properties(${lib_target} PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${ZEEK_IWYU_PATH})
+    endif ()
+
+    if (ZEEK_CLANG_TIDY_PATH)
+        set_target_properties(${lib_target} PROPERTIES CXX_CLANG_TIDY ${ZEEK_CLANG_TIDY_PATH})
+    endif ()
 endfunction ()
 
 function (zeek_include_directories)
@@ -414,6 +438,9 @@ function (zeek_add_subdir_library name)
 
     # Feed into the main Zeek target(s).
     zeek_target_link_libraries(${target_name})
+
+    # Add IWYU and clang-tidy to the target if enabled.
+    zeek_target_add_linters(${target_name})
 endfunction ()
 
 # ##############################################################################

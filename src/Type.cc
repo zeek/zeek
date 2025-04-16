@@ -422,8 +422,7 @@ static bool is_supported_index_type(const TypePtr& t, const char** tname, std::u
 
     switch ( tag ) {
         // Allow functions, since they can be compared for Func* pointer equality.
-        case TYPE_FUNC: return true;
-
+        case TYPE_FUNC:
         case TYPE_PATTERN: return true;
 
         case TYPE_RECORD: {
@@ -1856,8 +1855,7 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
         case TYPE_ADDR:
         case TYPE_SUBNET:
         case TYPE_ANY:
-        case TYPE_ERROR: return true;
-
+        case TYPE_ERROR:
         case TYPE_ENUM:
             // We should probably check to see whether all of the
             // enumerations are present and in the same location.
@@ -2143,8 +2141,7 @@ bool is_assignable(TypeTag t) {
         case TYPE_FUNC:
         case TYPE_ANY:
         case TYPE_ERROR:
-        case TYPE_LIST: return true;
-
+        case TYPE_LIST:
         case TYPE_VECTOR:
         case TYPE_FILE:
         case TYPE_OPAQUE:

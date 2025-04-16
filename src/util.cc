@@ -2402,14 +2402,10 @@ static bool check_ok_utf8(const unsigned char* start, const unsigned char* end) 
     if ( result != conversionOK )
         return false;
 
-    if ( (output[0] <= 0x001F) || (output[0] == 0x007F) || (output[0] >= 0x0080 && output[0] <= 0x009F) )
-        // Control characters
-        return false;
-    else if ( output[0] >= 0xE000 && output[0] <= 0xF8FF )
-        // Private Use Area
-        return false;
-    else if ( output[0] >= 0xFFF0 && output[0] <= 0xFFFF )
-        // Specials Characters
+    if ( ((output[0] <= 0x001F) || (output[0] == 0x007F) ||
+          (output[0] >= 0x0080 && output[0] <= 0x009F)) || // Control characters
+         (output[0] >= 0xE000 && output[0] <= 0xF8FF) ||   // Private Use Area
+         (output[0] >= 0xFFF0 && output[0] <= 0xFFFF) )    // Special characters
         return false;
 
     return true;

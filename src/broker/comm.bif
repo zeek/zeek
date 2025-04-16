@@ -249,3 +249,13 @@ function Broker::__node_id%(%): string
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
 	return zeek::make_intrusive<zeek::StringVal>(broker_mgr->NodeID());
 	%}
+
+function Broker::__peer_buffer_levels%(%): table_string_of_count
+	%{
+	return broker_mgr->GetPeerBufferLevelsTable();
+	%}
+
+function Broker::__peer_buffer_overflows%(%): table_string_of_count
+	%{
+	return broker_mgr->GetPeerBufferOverflowsTable();
+	%}

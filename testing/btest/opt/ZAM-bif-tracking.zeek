@@ -7,7 +7,7 @@
 # @TEST-EXEC: btest-diff output
 
 # This set tracks the BiFs that have been characterized for ZAM analysis.
-# As new ones are added or old ones removed, attend to updating FuncInfo.cc
+# As new ones are added or old ones removed, update src/script_opt/FuncInfo.cc
 # for ZAM, and then update the list here.
 global known_BiFs = set(
 	"Analyzer::__disable_all_analyzers",
@@ -43,6 +43,8 @@ global known_BiFs = set(
 	"Broker::__node_id",
 	"Broker::__opaque_clone_through_serialization",
 	"Broker::__peer",
+	"Broker::__peer_buffer_levels",
+	"Broker::__peer_buffer_overflows",
 	"Broker::__peer_no_retry",
 	"Broker::__peers",
 	"Broker::__pop",

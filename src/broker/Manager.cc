@@ -92,6 +92,96 @@ void print_escaped(std::string& buf, std::string_view str) {
     buf.push_back('"');
 }
 
+// Track basic metrics for a given peering's send buffer.
+class PeerBufferState {
+public:
+    struct Stats {
+        // Number of messages queued locally in the send buffer.
+        uint32_t level = 0;
+
+        // Number of times the buffer overflowed at send time.  For the
+        // "disconnect" overflow policy (via Broker::peer_overflow_policy), this
+        // count will often be short-lived, since Broker will remove the
+        // affected peering upon overflow. The existing Zeek-level metric for
+        // tracking disconnects (see frameworks/broker/broker-backpressure.zeek)
+        // covers this one more permanently. For the "drop_newest" and
+        // "drop_oldest" policies it equals a count of the number of messages
+        // lost, since the peering itself continues.
+        uint64_t overflows = 0;
+    };
+
+    // For per-peering tracking, map endpoint IDs to the above state.
+    using EndpointMetricMap = std::unordered_map<broker::endpoint_id, Stats>;
+
+    PeerBufferState(size_t peer_buffer_size) : peer_buffer_size_(peer_buffer_size) {}
+
+    // Update the peering's stats. This gets called from Broker's execution
+    // context, via an event_observer. Broker does not expose send-buffer state
+    // explicitly, so we track by doing our own counting of arrivals (a push,
+    // push_or_pull is true) and departures (pull, push_or_pull is false).
+    void Observe(const broker::endpoint_id& peer, bool push_or_pull) {
+        std::lock_guard<std::mutex> lock(mutex_);
+
+        if ( peer_buffer_stats_.find(peer) == peer_buffer_stats_.end() )
+            peer_buffer_stats_.emplace(peer, Stats());
+
+        auto& stats = peer_buffer_stats_[peer];
+
+        if ( stats.level == 0 ) {
+            // Watch for underflows, which indicate a bug. We could report
+            // somehow. Note that this runs in the context of Broker's threads.
+            assert(push_or_pull);
+        }
+
+        // Are we about to overflow the buffer? This tracks overflows regardless
+        // of buffer management policy.
+        if ( push_or_pull && stats.level == peer_buffer_size_ )
+            stats.overflows += 1;
+        else
+            stats.level += push_or_pull ? 1 : -1;
+    }
+
+    // Creates a table[string] of count for the peerings' send buffer fill
+    // levels. The cluster frameworks uses this table to map Broker IDs to
+    // cluster node names, and produce proper telemetry.
+    void FillPeerBufferLevelsTable(zeek::TableValPtr table) const {
+        std::lock_guard<std::mutex> lock(mutex_);
+
+        for ( const auto& [peer, stats] : peer_buffer_stats_ ) {
+            std::string peer_s;
+            broker::convert(peer, peer_s);
+            auto peer_v = zeek::make_intrusive<zeek::StringVal>(peer_s);
+            table->Assign(std::move(peer_v), zeek::val_mgr->Count(stats.level));
+        }
+    }
+
+    // As above, but for overflow counts.
+    void FillPeerBufferOverflowsTable(zeek::TableValPtr table) const {
+        std::lock_guard<std::mutex> lock(mutex_);
+
+        for ( const auto& [peer, stats] : peer_buffer_stats_ ) {
+            std::string peer_s;
+            broker::convert(peer, peer_s);
+            auto peer_v = zeek::make_intrusive<zeek::StringVal>(peer_s);
+            table->Assign(std::move(peer_v), zeek::val_mgr->Count(stats.overflows));
+        }
+    }
+
+    void RemovePeer(const broker::endpoint_id& peer) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        peer_buffer_stats_.erase(peer);
+    }
+
+private:
+    size_t peer_buffer_size_;
+
+    mutable std::mutex mutex_;
+
+    EndpointMetricMap peer_buffer_stats_;
+};
+
+using PeerBufferStatePtr = std::shared_ptr<PeerBufferState>;
+
 class LoggerQueue {
 public:
     void Push(broker::event_ptr event) {
@@ -132,8 +222,20 @@ class LoggerAdapter : public broker::event_observer {
 public:
     using SeverityLevel = broker::event::severity_level;
 
-    explicit LoggerAdapter(SeverityLevel severity, LoggerQueuePtr queue)
-        : severity_(severity), queue_(std::move(queue)) {}
+    explicit LoggerAdapter(SeverityLevel severity, LoggerQueuePtr queue, PeerBufferStatePtr pbstate)
+        : severity_(severity), queue_(std::move(queue)), pbstate_(std::move(pbstate)) {}
+
+    void on_peer_buffer_push(const broker::endpoint_id& peer, const broker::node_message&) override {
+        pbstate_->Observe(peer, true);
+    }
+
+    void on_peer_buffer_pull(const broker::endpoint_id& peer, const broker::node_message&) override {
+        pbstate_->Observe(peer, false);
+    }
+
+    void on_peer_disconnect(const broker::endpoint_id& peer, const broker::error&) override {
+        pbstate_->RemovePeer(peer);
+    }
 
     void observe(broker::event_ptr what) override { queue_->Push(std::move(what)); }
 
@@ -142,6 +244,7 @@ public:
 private:
     SeverityLevel severity_;
     LoggerQueuePtr queue_;
+    PeerBufferStatePtr pbstate_;
 };
 
 } // namespace
@@ -222,15 +325,19 @@ class BrokerState {
 public:
     using SeverityLevel = LoggerAdapter::SeverityLevel;
 
-    BrokerState(broker::configuration config, size_t congestion_queue_size, LoggerQueuePtr queue)
+    BrokerState(broker::configuration config, size_t congestion_queue_size, LoggerQueuePtr queue,
+                PeerBufferStatePtr pbstate)
         : endpoint(std::move(config), telemetry_mgr->GetRegistry()),
           subscriber(
               endpoint.make_subscriber({broker::topic::statuses(), broker::topic::errors()}, congestion_queue_size)),
-          loggerQueue(std::move(queue)) {}
+          loggerQueue(std::move(queue)),
+          peerBufferState(std::move(pbstate)) {}
 
     broker::endpoint endpoint;
     broker::subscriber subscriber;
     LoggerQueuePtr loggerQueue;
+    PeerBufferStatePtr peerBufferState;
+
     SeverityLevel logSeverity = SeverityLevel::critical;
     SeverityLevel stderrSeverity = SeverityLevel::critical;
 };
@@ -400,11 +507,12 @@ void Manager::DoInitPostScript() {
     checkLogSeverity(stderrSeverityVal);
     auto adapterVerbosity = static_cast<BrokerSeverityLevel>(std::max(logSeverityVal, stderrSeverityVal));
     auto queue = std::make_shared<LoggerQueue>();
-    auto adapter = std::make_shared<LoggerAdapter>(adapterVerbosity, queue);
+    auto pbstate = std::make_shared<PeerBufferState>(options.peer_buffer_size);
+    auto adapter = std::make_shared<LoggerAdapter>(adapterVerbosity, queue, pbstate);
     broker::logger(adapter); // *must* be called before creating the BrokerState
 
     auto cqs = get_option("Broker::congestion_queue_size")->AsCount();
-    bstate = std::make_shared<BrokerState>(std::move(config), cqs, queue);
+    bstate = std::make_shared<BrokerState>(std::move(config), cqs, queue, pbstate);
     bstate->logSeverity = static_cast<BrokerSeverityLevel>(logSeverityVal);
     bstate->stderrSeverity = static_cast<BrokerSeverityLevel>(stderrSeverityVal);
 
@@ -1971,6 +2079,18 @@ void Manager::PrepareForwarding(const std::string& name) {
 
     handle->forward_to = forwarded_stores.at(name);
     DBG_LOG(DBG_BROKER, "Resolved table forward for data store %s", name.c_str());
+}
+
+TableValPtr Manager::GetPeerBufferLevelsTable() const {
+    auto res = zeek::make_intrusive<zeek::TableVal>(zeek::id::find_type<TableType>("table_string_of_count"));
+    bstate->peerBufferState->FillPeerBufferLevelsTable(res);
+    return res;
+}
+
+TableValPtr Manager::GetPeerBufferOverflowsTable() const {
+    auto res = zeek::make_intrusive<zeek::TableVal>(zeek::id::find_type<TableType>("table_string_of_count"));
+    bstate->peerBufferState->FillPeerBufferOverflowsTable(res);
+    return res;
 }
 
 } // namespace zeek::Broker

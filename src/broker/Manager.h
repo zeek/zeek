@@ -369,6 +369,21 @@ public:
     const Stats& GetStatistics();
 
     /**
+     * Returns a table[string] of count with each peering's send-buffer fill
+     * level. The keys are Broker node IDs identifying each peer.
+     * @return Each peering's send-buffer fill level.
+     */
+    TableValPtr GetPeerBufferLevelsTable() const;
+
+    /**
+     * Returns a table[string] of count with the number of times each peering's
+     * send-buffer has overflowed upon message send-time. The keys are Broker
+     * node IDs identifying each peer.
+     * @return Each peering's send-buffer message overflow count.
+     */
+    TableValPtr GetPeerBufferOverflowsTable() const;
+
+    /**
      * Creating an instance of this struct simply helps the manager
      * keep track of whether calls into its API are coming from script
      * layer BIFs so that error messages can emit useful call site info.

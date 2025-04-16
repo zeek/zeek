@@ -377,6 +377,9 @@ export {
 	## Returns: a unique identifier for the local broker endpoint.
 	global node_id: function(): string;
 
+	global peer_buffer_levels: function(): table[string] of count;
+	global peer_buffer_overflows: function(): table[string] of count;
+
 	## Sends all pending log messages to remote peers.  This normally
 	## doesn't need to be used except for test cases that are time-sensitive.
 	global flush_logs: function(): count;
@@ -530,6 +533,16 @@ function peers(): vector of PeerInfo
 function node_id(): string
 	{
 	return __node_id();
+	}
+
+function peer_buffer_levels(): table[string] of count
+	{
+	return __peer_buffer_levels();
+	}
+
+function peer_buffer_overflows(): table[string] of count
+	{
+	return __peer_buffer_overflows();
 	}
 
 function flush_logs(): count

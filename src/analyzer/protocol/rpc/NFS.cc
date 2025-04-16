@@ -27,7 +27,9 @@ bool NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) {
 
         case BifEnum::NFS3::PROC_SETATTR: callarg = nfs3_sattrargs(buf, n); break;
 
-        case BifEnum::NFS3::PROC_LOOKUP: callarg = nfs3_diropargs(buf, n); break;
+        case BifEnum::NFS3::PROC_LOOKUP:
+        case BifEnum::NFS3::PROC_REMOVE:
+        case BifEnum::NFS3::PROC_RMDIR: callarg = nfs3_diropargs(buf, n); break;
 
         case BifEnum::NFS3::PROC_READ: callarg = nfs3_readargs(buf, n); break;
 
@@ -40,22 +42,12 @@ bool NFS_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) {
         case BifEnum::NFS3::PROC_WRITE: callarg = nfs3_writeargs(buf, n); break;
 
         case BifEnum::NFS3::PROC_CREATE:
-            callarg = nfs3_diropargs(buf, n);
-            // TODO: implement create attributes. For now we just skip
-            // over them.
-            n = 0;
-            break;
-
         case BifEnum::NFS3::PROC_MKDIR:
             callarg = nfs3_diropargs(buf, n);
-            // TODO: implement mkdir attributes. For now we just skip
+            // TODO: implement create and mkdir attributes. For now we just skip
             // over them.
             n = 0;
             break;
-
-        case BifEnum::NFS3::PROC_REMOVE: callarg = nfs3_diropargs(buf, n); break;
-
-        case BifEnum::NFS3::PROC_RMDIR: callarg = nfs3_diropargs(buf, n); break;
 
         case BifEnum::NFS3::PROC_RENAME: callarg = nfs3_renameopargs(buf, n); break;
 

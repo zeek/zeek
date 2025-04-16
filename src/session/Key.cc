@@ -65,9 +65,7 @@ bool Key::operator<(const Key& rhs) const {
 }
 
 bool Key::operator==(const Key& rhs) const {
-    if ( size != rhs.size )
-        return false;
-    else if ( type != rhs.type )
+    if ( size != rhs.size || type != rhs.type )
         return false;
 
     return memcmp(data, rhs.data, size) == 0;

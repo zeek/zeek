@@ -458,7 +458,7 @@ struct type_checker {
 
     result_type operator()(const std::string& a) {
         switch ( type->Tag() ) {
-            case TYPE_STRING: return true;
+            case TYPE_STRING:
             case TYPE_FILE: return true;
             default: return false;
         }

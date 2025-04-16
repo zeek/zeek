@@ -460,23 +460,27 @@ static int32_t update_last_seq(analyzer::tcp::TCP_Endpoint* endpoint, uint32_t l
         // ### perhaps trust RST seq #'s if initial and not too
         // outlandish, but not if they're coming after the other
         // side has sent a FIN - trust the FIN ack instead
-        ;
+        ; // NOLINT(bugprone-branch-clone)
+
 
     else if ( flags.FIN() && endpoint->LastSeq() == endpoint->StartSeq() + 1 )
         // Update last_seq based on the FIN even if delta_last < 0.
         // This is to accommodate > 2 GB connections for which
         // we've only seen the SYN and the FIN (hence the check
         // for last_seq == start_seq + 1).
-        endpoint->UpdateLastSeq(last_seq);
+        endpoint->UpdateLastSeq(last_seq); // NOLINT(bugprone-branch-clone)
+
 
     else if ( endpoint->state == analyzer::tcp::TCP_ENDPOINT_RESET )
         // don't trust any subsequent sequence numbers
-        ;
+        ; // NOLINT(bugprone-branch-clone)
+
 
     else if ( delta_last > 0 )
         // ### check for large jumps here.
         // ## endpoint->last_seq = last_seq;
-        endpoint->UpdateLastSeq(last_seq);
+        endpoint->UpdateLastSeq(last_seq); // NOLINT(bugprone-branch-clone)
+
 
     else if ( delta_last <= 0 && len > 0 )
         endpoint->DidRxmit();

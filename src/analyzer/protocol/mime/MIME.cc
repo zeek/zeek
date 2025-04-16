@@ -952,10 +952,7 @@ void MIME_Entity::DecodeQuotedPrintable(int len, const char* data) {
 
         else if ( (data[i] >= 33 && data[i] <= 60) ||
                   // except controls, whitespace and '='
-                  (data[i] >= 62 && data[i] <= 126) )
-            DataOctet(data[i]);
-
-        else if ( data[i] == HT || data[i] == SP )
+                  (data[i] >= 62 && data[i] <= 126) || (data[i] == HT || data[i] == SP) )
             DataOctet(data[i]);
 
         else {

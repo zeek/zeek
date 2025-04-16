@@ -103,7 +103,7 @@ void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF) {
     // Entity body.
     if ( content_type == analyzer::mime::CONTENT_TYPE_MULTIPART ||
          content_type == analyzer::mime::CONTENT_TYPE_MESSAGE )
-        DeliverBody(len, data, trailing_CRLF);
+        DeliverBody(len, data, trailing_CRLF); // NOLINT(bugprone-branch-clone)
 
     else if ( chunked_transfer_state != NON_CHUNKED_TRANSFER ) {
         switch ( chunked_transfer_state ) {

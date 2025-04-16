@@ -16,6 +16,7 @@
 #include "zeek/cluster/Serializer.h"
 #include "zeek/cluster/serializer/broker/Serializer.h"
 #include "zeek/cluster/websocket/Plugin.h"
+#include "zeek/cluster/websocket/const.bif.h"
 #include "zeek/cluster/websocket/events.bif.h"
 #include "zeek/net_util.h"
 #include "zeek/threading/MsgThread.h"
@@ -215,8 +216,9 @@ public:
 };
 
 WebSocketEventDispatcher::WebSocketEventDispatcher() {
-    onloop =
-        new zeek::detail::OnLoopProcess<WebSocketEventDispatcher, WebSocketEvent>(this, "WebSocketEventDispatcher");
+    onloop = new zeek::detail::OnLoopProcess<WebSocketEventDispatcher,
+                                             WebSocketEvent>(this, "WebSocketEventDispatcher",
+                                                             BifConst::Cluster::websocket_dispatcher_queue_size);
     // Register the onloop instance the IO loop. Lifetime will be managed by the loop.
     onloop->Register(false);
 

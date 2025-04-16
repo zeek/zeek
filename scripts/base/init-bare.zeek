@@ -5840,6 +5840,11 @@ export {
 	##
 	## This currently has no effect for backend BROKER.
 	const log_serializer = Cluster::LOG_SERIALIZER_ZEEK_BIN_V1 &redef;
+
+	## Size of the WebSocket event queue for external clients.
+	##
+	## Only change this if you know what you're doing.
+	const websocket_dispatcher_queue_size = 32 &redef;
 }
 
 module Weird;

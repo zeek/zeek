@@ -1,0 +1,2 @@
+##! C++ access for consts from the websocket subsystem.
+const Cluster::websocket_dispatcher_queue_size: count;

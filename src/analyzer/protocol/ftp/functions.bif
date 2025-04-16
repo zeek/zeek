@@ -160,9 +160,9 @@ function parse_ftp_pasv%(str: string%): ftp_port
 	const char* line = strchr(s, '(');
 	if ( line )
 		++line;	// move past '('
-	else if ( (line = strstr(s, "PORT")) )
+	else if ( line = strstr(s, "PORT"); line != nullptr )
 		line += 5;	// Skip over
-	else if ( (line = strchr(s, ',')) )
+	else if ( line = strchr(s, ','); line != nullptr )
 		{ // Look for comma-separated list.
 		while ( --line >= s && isdigit(*line) )
 			;	// Back up over preceding digits.

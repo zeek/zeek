@@ -1018,7 +1018,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     }
 
     // Cooperate with nohup(1).
-    if ( (oldhandler = setsignal(SIGHUP, sig_handler)) != SIG_DFL )
+    if ( oldhandler = setsignal(SIGHUP, sig_handler); oldhandler != SIG_DFL )
         (void)setsignal(SIGHUP, oldhandler);
 
     // If we were priming the DNS cache (i.e. -P was passed as an argument), flush anything

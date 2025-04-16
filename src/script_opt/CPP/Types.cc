@@ -32,11 +32,9 @@ bool CPPCompile::IsNativeType(const TypePtr& t) const {
         case TYPE_SUBNET:
         case TYPE_TABLE:
         case TYPE_TYPE:
-        case TYPE_VECTOR: return false;
-
-        case TYPE_LIST:
-            // These occur when initializing tables.
-            return false;
+        case TYPE_VECTOR:
+        // These occur when initializing tables.
+        case TYPE_LIST: return false;
 
         default: reporter->InternalError("bad type in CPPCompile::IsNativeType"); return false;
     }
@@ -114,7 +112,7 @@ const char* CPPCompile::TypeName(const TypePtr& t) {
         case TYPE_BOOL: return "bool";
         case TYPE_COUNT: return "zeek_uint_t";
         case TYPE_DOUBLE: return "double";
-        case TYPE_ENUM: return "zeek_int_t";
+        case TYPE_ENUM:
         case TYPE_INT: return "zeek_int_t";
         case TYPE_INTERVAL: return "double";
         case TYPE_PORT: return "zeek_uint_t";

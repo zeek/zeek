@@ -861,101 +861,47 @@ refine connection MySQL_Conn += {
 		%{
 		switch ( cmd ) {
 		case COM_SLEEP:
-			expected_ = EXPECT_STATUS;
-			break;
 		case COM_QUIT:
-			expected_ = EXPECT_STATUS;
-			break;
 		case COM_INIT_DB:
+		case COM_CREATE_DB:
+		case COM_DROP_DB:
+		case COM_REFRESH:
+		case COM_SHUTDOWN:
+		case COM_CONNECT:
+		case COM_PROCESS_KILL:
+		case COM_DEBUG:
+		case COM_PING:
+		case COM_TIME:
+		case COM_DELAYED_INSERT:
+		case COM_DAEMON:
+		case COM_RESET_CONNECTION:
 			expected_ = EXPECT_STATUS;
 			break;
 		case COM_QUERY:
+		case COM_PROCESS_INFO:
 			expected_ = EXPECT_COLUMN_COUNT;
 			break;
 		case COM_FIELD_LIST:
 			expected_ = EXPECT_COLUMN_DEFINITION_OR_EOF;
 			break;
-		case COM_CREATE_DB:
-			expected_ = EXPECT_STATUS;
-			break;
-		case COM_DROP_DB:
-			expected_ = EXPECT_STATUS;
-			break;
-		case COM_REFRESH:
-			expected_ = EXPECT_STATUS;
-			break;
-		case COM_SHUTDOWN:
-			expected_ = EXPECT_STATUS;
-			break;
 		case COM_STATISTICS:
 			expected_ = EXPECT_REST_OF_PACKET;
-			break;
-		case COM_PROCESS_INFO:
-			expected_ = EXPECT_COLUMN_COUNT;
-			break;
-		case COM_CONNECT:
-			expected_ = EXPECT_STATUS;
-			break;
-		case COM_PROCESS_KILL:
-			expected_ = EXPECT_STATUS;
-			break;
-		case COM_DEBUG:
-			expected_ = EXPECT_STATUS;
-			break;
-		case COM_PING:
-			expected_ = EXPECT_STATUS;
-			break;
-		case COM_TIME:
-			expected_ = EXPECT_STATUS;
-			break;
-		case COM_DELAYED_INSERT:
-			expected_ = EXPECT_STATUS;
 			break;
 		case COM_CHANGE_USER:
 			update_state(CONNECTION_PHASE);
 			break;
 		case COM_BINLOG_DUMP:
-			expected_ = NO_EXPECTATION;
-			break;
 		case COM_TABLE_DUMP:
-			expected_ = NO_EXPECTATION;
-			break;
 		case COM_CONNECT_OUT:
-			expected_ = NO_EXPECTATION;
-			break;
 		case COM_REGISTER_SLAVE:
-			expected_ = NO_EXPECTATION;
-			break;
 		case COM_STMT_PREPARE:
-			expected_ = NO_EXPECTATION;
-			break;
 		case COM_STMT_EXECUTE:
-			expected_ = NO_EXPECTATION;
-			break;
 		case COM_STMT_SEND_LONG_DATA:
-			expected_ = NO_EXPECTATION;
-			break;
 		case COM_STMT_CLOSE:
-			expected_ = NO_EXPECTATION;
-			break;
 		case COM_STMT_RESET:
-			expected_ = NO_EXPECTATION;
-			break;
 		case COM_SET_OPTION:
-			expected_ = NO_EXPECTATION;
-			break;
 		case COM_STMT_FETCH:
-			expected_ = NO_EXPECTATION;
-			break;
-		case COM_DAEMON:
-			expected_ = EXPECT_STATUS;
-			break;
 		case COM_BINLOG_DUMP_GTID:
-			expected_ = NO_EXPECTATION;
-			break;
-		case COM_RESET_CONNECTION:
-			expected_ = EXPECT_STATUS;
-			break;
 		default:
 			expected_ = NO_EXPECTATION;
 			break;

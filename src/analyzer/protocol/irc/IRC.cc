@@ -280,9 +280,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
                 int servers = 0;
 
                 for ( size_t i = 1; i < parts.size(); ++i ) {
-                    if ( parts[i] == "users," )
-                        users = atoi(parts[i - 1].c_str());
-                    else if ( parts[i] == "clients" )
+                    if ( parts[i] == "users," || parts[i] == "clients" )
                         users = atoi(parts[i - 1].c_str());
                     else if ( parts[i] == "services" )
                         services = atoi(parts[i - 1].c_str());

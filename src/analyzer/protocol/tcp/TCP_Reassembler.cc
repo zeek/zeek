@@ -371,19 +371,16 @@ void TCP_Reassembler::BlockInserted(DataBlockMap::const_iterator it) {
 
     TCP_Endpoint* e = endp;
 
-    if ( ! e->peer->HasContents() )
-        // Our endpoint's peer doesn't do reassembly and so
-        // (presumably) isn't processing acks.  So don't hold
-        // the now-delivered data.
-        TrimToSeq(last_reassem_seq);
+    // Our endpoint's peer doesn't do reassembly and so (presumably) isn't processing
+    // acks. So don't hold the now-delivered data.
+    // or
+    // We've sent quite a bit of data, yet none of it has been acked.  Presume that we're
+    // not seeing the peer's acks (perhaps due to filtering or split routing) and don't
+    // hang onto the data further, as we may wind up carrying it all the way until this
+    // connection ends.
 
-    else if ( e->NoDataAcked() && zeek::detail::tcp_max_initial_window &&
-              e->Size() > static_cast<uint64_t>(zeek::detail::tcp_max_initial_window) )
-        // We've sent quite a bit of data, yet none of it has
-        // been acked.  Presume that we're not seeing the peer's
-        // acks (perhaps due to filtering or split routing) and
-        // don't hang onto the data further, as we may wind up
-        // carrying it all the way until this connection ends.
+    if ( (! e->peer->HasContents()) || (e->NoDataAcked() && zeek::detail::tcp_max_initial_window &&
+                                        e->Size() > static_cast<uint64_t>(zeek::detail::tcp_max_initial_window)) )
         TrimToSeq(last_reassem_seq);
 
     // Note: don't make an EOF check here, because then we'd miss it

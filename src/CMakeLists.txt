@@ -92,17 +92,20 @@ replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/p.cc ${CMAKE_CURRENT_BINARY
 flex_target(Scanner scan.l ${CMAKE_CURRENT_BINARY_DIR}/scan.cc COMPILE_FLAGS "-Pzeek")
 set_property(SOURCE scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_COMPARE_FLAG}")
 
+set(zeek_bison_generated_files
+    ${CMAKE_CURRENT_BINARY_DIR}/parse.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/re-parse.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/re-parse.h
+    ${CMAKE_CURRENT_BINARY_DIR}/re-scan.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.h
+    ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/scan.cc)
+
+set_source_files_properties(${zeek_bison_generated_files} PROPERTIES SKIP_LINTING ON)
+
 # Add a dependency for the generated files to zeek_autogen_files.
-add_custom_target(
-    zeek_bison_outputs
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/parse.cc
-            ${CMAKE_CURRENT_BINARY_DIR}/re-parse.cc
-            ${CMAKE_CURRENT_BINARY_DIR}/re-parse.h
-            ${CMAKE_CURRENT_BINARY_DIR}/re-scan.cc
-            ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.cc
-            ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.h
-            ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc
-            ${CMAKE_CURRENT_BINARY_DIR}/scan.cc)
+add_custom_target(zeek_bison_outputs DEPENDS ${zeek_bison_generated_files})
 add_dependencies(zeek_autogen_files zeek_bison_outputs)
 
 # ##############################################################################

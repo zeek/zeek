@@ -93,8 +93,7 @@ std::string extract_ip(const std::string& i) {
     if ( s.size() > 1 && s.substr(0, 2) == "0x" )
         s.erase(0, 2);
 
-    size_t pos = 0;
-    if ( (pos = s.find(']')) != std::string::npos )
+    if ( size_t pos = s.find(']'); pos != std::string::npos )
         s = s.substr(0, pos);
 
     return s;
@@ -298,9 +297,9 @@ void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 
 static bool read_random_seeds(const char* read_file, uint32_t* seed,
                               std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE>& buf) {
-    FILE* f = nullptr;
+    FILE* f = fopen(read_file, "r");
 
-    if ( ! (f = fopen(read_file, "r")) ) {
+    if ( ! f ) {
         reporter->Warning("Could not open seed file '%s': %s", read_file, strerror(errno));
         return false;
     }
@@ -328,9 +327,9 @@ static bool read_random_seeds(const char* read_file, uint32_t* seed,
 
 static bool write_random_seeds(const char* write_file, uint32_t seed,
                                std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE>& buf) {
-    FILE* f = nullptr;
+    FILE* f = fopen(write_file, "w+");
 
-    if ( ! (f = fopen(write_file, "w+")) ) {
+    if ( ! f ) {
         reporter->Warning("Could not create seed file '%s': %s", write_file, strerror(errno));
         return false;
     }

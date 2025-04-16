@@ -240,3 +240,8 @@ function Broker::__node_id%(%): string
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
 	return zeek::make_intrusive<zeek::StringVal>(broker_mgr->NodeID());
 	%}
+
+function Broker::__peering_stats%(%): BrokerPeeringStatsTable
+	%{
+	return broker_mgr->GetPeeringStatsTable();
+	%}

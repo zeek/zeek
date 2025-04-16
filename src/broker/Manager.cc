@@ -114,15 +114,197 @@ void print_escaped(std::string& buf, std::string_view str) {
     buf.push_back('"');
 }
 
+// Track metrics for a given peering's send buffer.
+class PeerBufferState {
+public:
+    struct Stats {
+        // The rendered peer ID. Storing this here helps reuse.
+        // Note that we only ever touch this from Zeek's main thread, not
+        // any of Broker's.
+        zeek::StringValPtr peer_id;
+
+        // Whether Broker has removed the peer, and this instance still
+        // needs to be removed.
+        bool is_zombie = false;
+
+        // Number of messages queued locally in the send buffer.
+        uint32_t queued = 0;
+
+        // Maximum number queued in the last Broker::buffer_stats_reset_interval.
+        // This improces visibility into message bursts since instantaneous
+        // queueing (captured above) can be short-lived.
+        uint32_t max_queued_recently = 0;
+
+        // Number of times the buffer overflowed at send time.  For the
+        // "disconnect" overflow policy (via Broker::peer_overflow_policy), this
+        // count will at most be 1 since Broker will remove the peering upon
+        // overflow. The existing Zeek-level metric for tracking disconnects
+        // (see frameworks/broker/broker-backpressure.zeek) covers this one more
+        // permanently. For the "drop_newest" and "drop_oldest" policies it
+        // equals a count of the number of messages lost, since the peering
+        // continues.
+        uint64_t overflows = 0;
+
+        // When we last started a stats-tracking interval for this peering.
+        double last_interval = 0;
+    };
+
+    // For per-peering tracking, map endpoint IDs to the above state.
+    using EndpointMetricMap = std::unordered_map<broker::endpoint_id, Stats>;
+
+    PeerBufferState(size_t a_buffer_size, double a_stats_reset_interval)
+        : buffer_size(a_buffer_size), stats_reset_interval(a_stats_reset_interval) {
+        stats_table =
+            zeek::make_intrusive<zeek::TableVal>(zeek::id::find_type<zeek::TableType>("BrokerPeeringStatsTable"));
+        stats_record_type = zeek::id::find_type<zeek::RecordType>("BrokerPeeringStats");
+    }
+
+    void SetEndpoint(const broker::endpoint* a_endpoint) { endpoint = a_endpoint; }
+
+    // Update the peering's stats. This runs in Broker's execution context.
+    // Broker does not expose send-buffer/queue state explicitly, so track
+    // arrivals (a push, is_push == true) and departures (a pull, is_push ==
+    // false) as they happen. Note that this must not touch Zeek-side Vals.
+    void Observe(const broker::endpoint_id& peer, bool is_push) {
+        std::lock_guard<std::mutex> lock(mutex);
+        auto it = stats_map.find(peer);
+
+        if ( it == stats_map.end() ) {
+            stats_map.emplace(peer, Stats());
+            it = stats_map.find(peer);
+        }
+
+        auto& stats = it->second;
+
+        // Stick to Broker's notion of time here.
+        double now{0};
+        if ( endpoint != nullptr )
+            broker::convert(endpoint->now(), now);
+
+        if ( now - stats.last_interval > stats_reset_interval ) {
+            stats.last_interval = now;
+            stats.max_queued_recently = stats.queued;
+        }
+
+        if ( stats.queued == 0 ) {
+            // Watch for underflows. We could report somehow. Note that this
+            // runs in the context of Broker's threads.
+            assert(is_push);
+        }
+
+        if ( is_push && stats.queued == buffer_size )
+            stats.overflows += 1;
+        else {
+            stats.queued += is_push ? 1 : -1;
+            if ( stats.queued > stats.max_queued_recently )
+                stats.max_queued_recently = stats.queued;
+        }
+    }
+
+    // Updates the internal table[string] of BrokerPeeringStats and returns it.
+    const zeek::TableValPtr& GetPeeringStatsTable() {
+        std::lock_guard<std::mutex> lock(mutex);
+
+        for ( auto it = stats_map.begin(); it != stats_map.end(); ) {
+            auto& peer = it->first;
+            auto& stats = it->second;
+
+            if ( stats.peer_id == nullptr )
+                stats.peer_id = PeerIdToStringVal(peer);
+
+            // Broker told us the peer is gone, in RemovePeer() below. Remove it
+            // now from both tables. We add/remove from stats_table only here,
+            // not in Observer() and/or RemovePeer(), to ensure we only touch
+            // the Zeek-side Table from Zeek's main thread.
+            if ( stats.is_zombie ) {
+                stats_table->Remove(*stats.peer_id);
+                it = stats_map.erase(it);
+                continue;
+            }
+
+            auto stats_v = stats_table->Find(stats.peer_id);
+
+            if ( stats_v == nullptr ) {
+                stats_v = zeek::make_intrusive<zeek::RecordVal>(stats_record_type);
+                stats_table->Assign(stats.peer_id, stats_v);
+            }
+
+            // We may get here more than stats_reset_interval after the last
+            // Observe(), in which case the max_queued_recently value is now
+            // stale. Update if so.
+            double now{0};
+            if ( endpoint != nullptr )
+                broker::convert(endpoint->now(), now);
+
+            if ( now - stats.last_interval > stats_reset_interval ) {
+                stats.last_interval = now;
+                stats.max_queued_recently = stats.queued;
+            }
+
+            int n = 0;
+            stats_v->AsRecordVal()->Assign(n++, zeek::val_mgr->Count(stats.queued));
+            stats_v->AsRecordVal()->Assign(n++, zeek::val_mgr->Count(stats.max_queued_recently));
+            stats_v->AsRecordVal()->Assign(n++, zeek::val_mgr->Count(stats.overflows));
+
+            ++it;
+        }
+
+        return stats_table;
+    }
+
+    void RemovePeer(const broker::endpoint_id& peer) {
+        std::lock_guard<std::mutex> lock(mutex);
+        if ( auto it = stats_map.find(peer); it != stats_map.end() )
+            it->second.is_zombie = true;
+    }
+
+private:
+    zeek::StringValPtr PeerIdToStringVal(const broker::endpoint_id& peer) const {
+        std::string peer_s;
+        broker::convert(peer, peer_s);
+        return zeek::make_intrusive<zeek::StringVal>(peer_s);
+    }
+
+    // The maximum number of messages queueable for transmission to a peer,
+    // see Broker::peer_buffer_size and Broker::web_socket_buffer_size.
+    size_t buffer_size;
+
+    // Seconds after which we reset stats tracked per time window.
+    double stats_reset_interval;
+
+    EndpointMetricMap stats_map;
+    zeek::TableValPtr stats_table;
+    zeek::RecordTypePtr stats_record_type;
+
+    mutable std::mutex mutex;
+    const broker::endpoint* endpoint = nullptr;
+};
+
+using PeerBufferStatePtr = std::shared_ptr<PeerBufferState>;
+
 class Observer : public broker::event_observer {
 public:
-    explicit Observer() {}
+    explicit Observer(PeerBufferStatePtr pbstate) : pbstate_(std::move(pbstate)) {}
+
+    void on_peer_buffer_push(const broker::endpoint_id& peer, const broker::node_message&) override {
+        pbstate_->Observe(peer, true);
+    }
+
+    void on_peer_buffer_pull(const broker::endpoint_id& peer, const broker::node_message&) override {
+        pbstate_->Observe(peer, false);
+    }
+
+    void on_peer_disconnect(const broker::endpoint_id& peer, const broker::error&) override {
+        pbstate_->RemovePeer(peer);
+    }
+
+private:
+    PeerBufferStatePtr pbstate_;
 };
 
 } // namespace
 
 namespace zeek::Broker {
-
 static inline Val* get_option(const char* option) {
     const auto& id = zeek::detail::global_scope()->Find(option);
 
@@ -195,13 +377,17 @@ struct opt_mapping {
 
 class BrokerState {
 public:
-    BrokerState(broker::configuration config, size_t congestion_queue_size)
+    BrokerState(broker::configuration config, size_t congestion_queue_size, PeerBufferStatePtr pbstate)
         : endpoint(std::move(config), telemetry_mgr->GetRegistry()),
           subscriber(
-              endpoint.make_subscriber({broker::topic::statuses(), broker::topic::errors()}, congestion_queue_size)) {}
+              endpoint.make_subscriber({broker::topic::statuses(), broker::topic::errors()}, congestion_queue_size)),
+          peerBufferState(std::move(pbstate)) {
+        peerBufferState->SetEndpoint(&endpoint);
+    }
 
     broker::endpoint endpoint;
     broker::subscriber subscriber;
+    PeerBufferStatePtr peerBufferState;
 };
 
 const broker::endpoint_info Manager::NoPeer{{}, {}};
@@ -368,11 +554,13 @@ void Manager::InitPostScript() {
     config.set("caf.work-stealing.moderate-steal-interval", get_option("Broker::moderate_interval")->AsCount());
     config.set("caf.work-stealing.relaxed-steal-interval", get_option("Broker::relaxed_interval")->AsCount());
 
-    auto observer = std::make_shared<Observer>();
+    auto pbstate = std::make_shared<PeerBufferState>(options.peer_buffer_size,
+                                                     get_option("Broker::buffer_stats_reset_interval")->AsDouble());
+    auto observer = std::make_shared<Observer>(pbstate);
     broker::logger(observer); // *must* be called before creating the BrokerState
 
     auto cqs = get_option("Broker::congestion_queue_size")->AsCount();
-    bstate = std::make_shared<BrokerState>(std::move(config), cqs);
+    bstate = std::make_shared<BrokerState>(std::move(config), cqs, pbstate);
 
     if ( ! iosource_mgr->RegisterFd(bstate->subscriber.fd(), this) )
         reporter->FatalError("Failed to register broker subscriber with iosource_mgr");
@@ -1750,6 +1938,8 @@ const Stats& Manager::GetStatistics() {
 
     return statistics;
 }
+
+TableValPtr Manager::GetPeeringStatsTable() { return bstate->peerBufferState->GetPeeringStatsTable(); }
 
 bool Manager::AddForwardedStore(const std::string& name, TableValPtr table) {
     if ( forwarded_stores.find(name) != forwarded_stores.end() ) {

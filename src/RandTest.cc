@@ -60,7 +60,7 @@ void RandTest::add(const void* buf, int bufl) {
             montey = 0;
             for ( int mj = 0; mj < RT_MONTEN / 2; mj++ ) {
                 montex = (montex * 256.0) + monte[mj];
-                montey = (montey * 256.0) + monte[(RT_MONTEN / 2) + mj];
+                montey = (montey * 256.0) + monte[static_cast<size_t>((RT_MONTEN / 2) + mj)];
             }
             if ( montex * montex + montey * montey <= RT_INCIRC ) {
                 inmont++;

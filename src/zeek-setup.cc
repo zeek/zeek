@@ -322,7 +322,9 @@ static void done_with_network() {
     event_mgr.Drain();
     event_mgr.Drain();
 
-    run_state::detail::finish_run(1);
+    session_mgr->Drain();
+    event_mgr.Drain();
+    session_mgr->Clear();
 
 #ifdef USE_PERFTOOLS_DEBUG
 

@@ -2336,6 +2336,7 @@ TEST_CASE("util json_escape_utf8") {
 
     // Valid ASCII and valid ASCII control characters
     CHECK(json_escape_utf8("a") == "a");
+    // NOLINTNEXTLINE(bugprone-string-literal-with-embedded-nul)
     CHECK(json_escape_utf8("\b\f\n\r\t\x00\x15") == "\b\f\n\r\t\x00\x15");
 
     // Table 3-7 in https://www.unicode.org/versions/Unicode12.0.0/ch03.pdf describes what is

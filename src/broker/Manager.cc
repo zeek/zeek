@@ -849,15 +849,15 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, const string& pa
     lb.msgs[topic].add(std::move(msg));
 
     if ( lb.message_count >= log_batch_size ) {
-        auto outgoing_logs = static_cast<double>(lb.Flush(bstate->endpoint, log_batch_size));
+        auto outgoing_logs = static_cast<double>(lb.Flush(*bstate));
         num_logs_outgoing_metric->Inc(outgoing_logs);
     }
 
     return true;
 }
 
-size_t Manager::LogBuffer::Flush(broker::endpoint& endpoint, size_t log_batch_size) {
-    if ( endpoint.is_shutdown() )
+size_t Manager::LogBuffer::Flush(BrokerState& bstate) {
+    if ( bstate.endpoint.is_shutdown() )
         return 0;
 
     if ( ! message_count )
@@ -865,8 +865,10 @@ size_t Manager::LogBuffer::Flush(broker::endpoint& endpoint, size_t log_batch_si
         return 0;
 
     for ( auto& [topic, pending_batch] : msgs ) {
-        if ( ! pending_batch.empty() )
-            endpoint.publish(topic, pending_batch.build());
+        if ( ! pending_batch.empty() ) {
+            auto msg = broker::data_envelope::make(broker::topic(topic), pending_batch.build().as_data());
+            bstate.hub.publish(std::move(msg));
+        }
     }
 
     auto rval = message_count;
@@ -879,7 +881,7 @@ size_t Manager::FlushLogBuffers() {
     auto rval = 0u;
 
     for ( auto& lb : log_buffers )
-        rval += lb.Flush(bstate->endpoint, log_batch_size);
+        rval += lb.Flush(*bstate);
 
     num_logs_outgoing_metric->Inc(rval);
 

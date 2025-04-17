@@ -480,7 +480,7 @@ private:
         std::unordered_map<std::string, broker::zeek::BatchBuilder> msgs;
         size_t message_count;
 
-        size_t Flush(broker::endpoint& endpoint, size_t batch_size);
+        size_t Flush(BrokerState& bstate);
     };
 
     // Data stores

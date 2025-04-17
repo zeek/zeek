@@ -142,7 +142,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
 
             const char* sys_end = (comma && comma < colon) ? comma : colon;
 
-            while ( --sys_end > sys_type && isspace(*sys_end) )
+            for ( ; sys_end > sys_type && isspace(*sys_end); --sys_end )
                 ;
 
             String* sys_type_s = new String((const u_char*)sys_type, sys_end - sys_type + 1, true);

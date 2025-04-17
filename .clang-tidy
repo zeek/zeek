@@ -6,4 +6,5 @@ Checks: [-*,
          bugprone-incorrect-roundings,
          bugprone-macro-parentheses,
          bugprone-multi-level-implicit-pointer-conversion,
+         bugprone-inc-dec-in-conditions,
 ]

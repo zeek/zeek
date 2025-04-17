@@ -16,6 +16,7 @@ redef Broker::log_topic = Cluster::rr_log_topic;
 
 # This should soon condition on loading only when Broker is in use.
 @load ./broker-backpressure
+@load ./broker-telemetry
 
 @if ( Supervisor::is_supervised() )
 # When running a supervised cluster, populate Cluster::nodes from the node table

@@ -165,9 +165,13 @@ function parse_ftp_pasv%(str: string%): ftp_port
 		line += 5;	// Skip over
 	else if ( line = strchr(s, ','); line != nullptr )
 		{ // Look for comma-separated list.
-		while ( --line >= s && isdigit(*line) )
-			;	// Back up over preceding digits.
-		++line;	// now points to first digit, or beginning of s
+		do
+			{
+			// Back up over preceding digits. We'll end on the
+			// first digit or the beginning of s.
+			--line; // Back up over precedi
+			}
+		while ( line >= s && isdigit(*line) );
 		}
 
 	return parse_port(line);

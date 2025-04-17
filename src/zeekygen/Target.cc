@@ -346,7 +346,7 @@ void PackageTarget::DoFindDependencies(const vector<Info*>& infos) {
             continue;
 
         for ( size_t j = 0; j < pkg_deps.size(); ++j ) {
-            if ( strncmp(script->Name().c_str(), pkg_deps[j]->Name().c_str(), pkg_deps[j]->Name().size()) )
+            if ( strncmp(script->Name().c_str(), pkg_deps[j]->Name().c_str(), pkg_deps[j]->Name().size()) != 0 )
                 continue;
 
             DBG_LOG(DBG_ZEEKYGEN, "Script %s associated with package %s", script->Name().c_str(),

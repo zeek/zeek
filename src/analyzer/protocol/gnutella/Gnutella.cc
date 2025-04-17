@@ -117,11 +117,11 @@ bool Gnutella_Analyzer::IsHTTP(std::string header) {
 }
 
 bool Gnutella_Analyzer::GnutellaOK(std::string header) {
-    if ( strncmp("GNUTELLA", header.data(), 8) )
+    if ( strncmp("GNUTELLA", header.data(), 8) != 0 )
         return false;
 
     int codepos = header.find(' ') + 1;
-    if ( ! strncmp("200", header.data() + codepos, 3) )
+    if ( strncmp("200", header.data() + codepos, 3) == 0 )
         return true;
 
     return false;

@@ -38,7 +38,7 @@ flow BitTorrent_Flow(is_orig: bool) {
 	function validate_handshake(pstrlen: uint8, pstr: const_bytestring): bool
 		%{
 		if ( pstrlen != 19 ||
-		     memcmp("BitTorrent protocol", pstr.begin(), 19) )
+		     memcmp("BitTorrent protocol", pstr.begin(), 19) != 0 )
 			{
 			throw Exception("invalid handshake");
 			}

@@ -158,7 +158,7 @@ void FragReassembler::Weird(const char* name) const {
 }
 
 void FragReassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n) {
-    if ( memcmp((const void*)b1, (const void*)b2, n) )
+    if ( memcmp((const void*)b1, (const void*)b2, n) != 0 )
         Weird("fragment_inconsistency");
     else
         Weird("fragment_overlap");

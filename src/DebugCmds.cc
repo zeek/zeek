@@ -147,7 +147,7 @@ int find_all_matching_cmds(const string& prefix, const char* array_of_matches[])
 
         for ( int j = 0; j < g_DebugCmdInfos[i]->NumNames(); ++j ) {
             const char* curr_name = g_DebugCmdInfos[i]->Names()[j];
-            if ( strncmp(curr_name, prefix.c_str(), arglen) )
+            if ( strncmp(curr_name, prefix.c_str(), arglen) != 0 )
                 continue;
 
             // If exact match, then only return that one.

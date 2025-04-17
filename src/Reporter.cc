@@ -537,10 +537,12 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 
         // Enlarge buffer;
         size *= 2;
-        buffer = allocated = (char*)realloc(allocated, size);
+        buffer = (char*)realloc(allocated, size);
 
         if ( ! buffer )
             FatalError("out of memory in Reporter");
+        else
+            allocated = buffer;
     }
 
     if ( postfix && *postfix )

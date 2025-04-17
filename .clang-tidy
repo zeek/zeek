@@ -13,4 +13,5 @@ Checks: [-*,
          bugprone-suspicious-stringview-data-usage,
          bugprone-suspicious-string-compare,
          bugprone-suspicious-include,
+         bugprone-suspicious-realloc-usage,
 ]

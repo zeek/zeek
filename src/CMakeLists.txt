@@ -92,17 +92,20 @@ replace_yy_prefix_target(${CMAKE_CURRENT_BINARY_DIR}/p.cc ${CMAKE_CURRENT_BINARY
 flex_target(Scanner scan.l ${CMAKE_CURRENT_BINARY_DIR}/scan.cc COMPILE_FLAGS "-Pzeek")
 set_property(SOURCE scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "${SIGN_COMPARE_FLAG}")
 
+set(zeek_bison_generated_files
+    ${CMAKE_CURRENT_BINARY_DIR}/parse.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/re-parse.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/re-parse.h
+    ${CMAKE_CURRENT_BINARY_DIR}/re-scan.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.h
+    ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc
+    ${CMAKE_CURRENT_BINARY_DIR}/scan.cc)
+
+set_source_files_properties(${zeek_bison_generated_files} PROPERTIES SKIP_LINTING ON)
+
 # Add a dependency for the generated files to zeek_autogen_files.
-add_custom_target(
-    zeek_bison_outputs
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/parse.cc
-            ${CMAKE_CURRENT_BINARY_DIR}/re-parse.cc
-            ${CMAKE_CURRENT_BINARY_DIR}/re-parse.h
-            ${CMAKE_CURRENT_BINARY_DIR}/re-scan.cc
-            ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.cc
-            ${CMAKE_CURRENT_BINARY_DIR}/rule-parse.h
-            ${CMAKE_CURRENT_BINARY_DIR}/rule-scan.cc
-            ${CMAKE_CURRENT_BINARY_DIR}/scan.cc)
+add_custom_target(zeek_bison_outputs DEPENDS ${zeek_bison_generated_files})
 add_dependencies(zeek_autogen_files zeek_bison_outputs)
 
 # ##############################################################################
@@ -562,23 +565,8 @@ target_compile_definitions(zeek_objs PRIVATE ZEEK_CONFIG_SKIP_VERSION_H)
 add_dependencies(zeek_objs zeek_autogen_files)
 zeek_target_link_libraries(zeek_objs)
 
-if (ENABLE_IWYU)
-    find_program(IWYU_PATH NAMES include-what-you-use iwyu)
-    if (NOT IWYU_PATH)
-        message(FATAL_ERROR "Could not find the program include-what-you-use")
-    endif ()
-
-    set_target_properties(zeek_objs PROPERTIES CXX_INCLUDE_WHAT_YOU_USE ${IWYU_PATH})
-endif ()
-
-if (ENABLE_CLANG_TIDY)
-    find_program(CLANG_TIDY_PATH NAMES clang-tidy)
-    if (NOT CLANG_TIDY_PATH)
-        message(FATAL_ERROR "Could not find the program clang-tidy")
-    endif ()
-
-    set_target_properties(zeek_objs PROPERTIES CXX_CLANG_TIDY ${CLANG_TIDY_PATH})
-endif ()
+# Add IWYU and clang-tidy to the target if enabled.
+zeek_target_add_linters(zeek_objs)
 
 if (HAVE_SPICY)
     target_link_libraries(zeek_objs PRIVATE hilti spicy)

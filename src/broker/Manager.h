@@ -178,7 +178,7 @@ public:
     /**
      * @return a unique identifier for this broker endpoint.
      */
-    std::string NodeID() const;
+    [[deprecated("Remove in v8.1: Use Backend::NodeId() instead.")]] std::string NodeID() const;
 
     /**
      * Send an identifier's value to interested peers.

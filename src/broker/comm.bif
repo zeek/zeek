@@ -262,5 +262,5 @@ function Broker::__peers%(%): PeerInfos
 function Broker::__node_id%(%): string
 	%{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
-	return zeek::make_intrusive<zeek::StringVal>(broker_mgr->NodeID());
+	return zeek::make_intrusive<zeek::StringVal>(broker_mgr->NodeId());
 	%}

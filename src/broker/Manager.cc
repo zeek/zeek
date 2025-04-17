@@ -418,6 +418,8 @@ void Manager::DoInitPostScript() {
 
     bstate->subscriber.add_topic(broker::topic::store_events(), true);
 
+    SetNodeId(broker::to_string(bstate->endpoint.node_id()));
+
     InitializeBrokerStoreForwarding();
 
     num_peers_metric =

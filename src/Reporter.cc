@@ -485,7 +485,6 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
     std::string loc_str;
 
     if ( location ) {
-        std::string loc_file = "";
         int loc_line = 0;
 
         if ( locations.size() ) {

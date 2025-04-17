@@ -6,7 +6,7 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff invalid.stderr
 # @TEST-EXEC: btest-diff invalid.stdout
 
-@TEST-START-FILE valid.zeek
+# @TEST-START-FILE valid.zeek
 # First some simple code that should be valid and error-free.
 
 function f(c: count)
@@ -38,9 +38,9 @@ event zeek_init()
 	print "baz", baz;
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE invalid.zeek
+# @TEST-START-FILE invalid.zeek
 # Now some const assignments that should generate errors at parse-time.
 
 const foo = 0 &redef;
@@ -76,4 +76,4 @@ event zeek_init()
 	print "foo=foo", foo = foo;
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE

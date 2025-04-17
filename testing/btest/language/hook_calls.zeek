@@ -5,7 +5,7 @@
 
 # hook functions must be called using the "hook" keyword as an operator...
 
-@TEST-START-FILE valid.zeek
+# @TEST-START-FILE valid.zeek
 hook myhook(i: count)
     {
     print "myhook()", i;
@@ -57,9 +57,9 @@ event zeek_init()
 	print hook t[0](3);
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE invalid.zeek
+# @TEST-START-FILE invalid.zeek
 hook myhook(i: count)
 	{
 	print "myhook()", i;
@@ -85,4 +85,4 @@ event zeek_init()
 	print "done";
 	hook foo();
 	}
-@TEST-END-FILE
+# @TEST-END-FILE

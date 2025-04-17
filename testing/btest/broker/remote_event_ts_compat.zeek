@@ -43,7 +43,7 @@ event my_event(msg: string) &is_used
 	}
 
 
-@TEST-START-FILE client.py
+# @TEST-START-FILE client.py
 """
 Python script sending timestamped and non-timestamped event to TOPIC
 """
@@ -91,4 +91,4 @@ with broker.Endpoint() as ep, \
 
 	ep.shutdown()
 
-@TEST-END-FILE
+# @TEST-END-FILE

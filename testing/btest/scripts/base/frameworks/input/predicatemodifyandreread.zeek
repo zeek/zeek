@@ -12,48 +12,48 @@
 # @TEST-EXEC: btest-diff out
 #
 
-@TEST-START-FILE input1.log
+# @TEST-START-FILE input1.log
 #separator \x09
 #path	ssh
 #fields	i	b	s	ss
 #types	int	bool	string	string
 1	T	test1	idx1
 2	T	test2	idx2
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE input2.log
+# @TEST-START-FILE input2.log
 #separator \x09
 #path	ssh
 #fields	i	b	s	ss
 #types	int	bool	string	string
 1	F	test1	idx1
 2	T	test2	idx2
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE input3.log
+# @TEST-START-FILE input3.log
 #separator \x09
 #path	ssh
 #fields	i	b	s	ss
 #types	int	bool	string	string
 1	F	test1	idx1
 2	F	test2	idx2
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE input4.log
+# @TEST-START-FILE input4.log
 #separator \x09
 #path	ssh
 #fields	i	b	s	ss
 #types	int	bool	string	string
 2	F	test2	idx2
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE input5.log
+# @TEST-START-FILE input5.log
 #separator \x09
 #path	ssh
 #fields	i	b	s	ss
 #types	int	bool	string	string
 1	T	test1	idx1
-@TEST-END-FILE
+# @TEST-END-FILE
 
 redef exit_only_after_terminate = T;
 

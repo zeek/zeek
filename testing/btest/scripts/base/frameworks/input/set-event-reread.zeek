@@ -7,23 +7,23 @@
 # @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff out
 
-@TEST-START-FILE entries.set1
+# @TEST-START-FILE entries.set1
 #fields	s
 one
 two
 three
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE entries.set2
+# @TEST-START-FILE entries.set2
 #fields	s
 one
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE entries.set3
+# @TEST-START-FILE entries.set3
 #fields	s
 one
 four
-@TEST-END-FILE
+# @TEST-END-FILE
 
 redef exit_only_after_terminate=T;
 

@@ -39,124 +39,124 @@
 # @TEST-EXEC: btest-diff dst-port-gte2.out
 # @TEST-EXEC: btest-diff dst-port-gte-nomatch.out
 
-@TEST-START-FILE dst-port-eq.sig
+# @TEST-START-FILE dst-port-eq.sig
 signature id {
   dst-port == 13000
   event "dst-port-eq"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE dst-port-eq-nomatch.sig
+# @TEST-START-FILE dst-port-eq-nomatch.sig
 signature id {
   dst-port == 22
   event "dst-port-eq-nomatch"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE dst-port-eq-list.sig
+# @TEST-START-FILE dst-port-eq-list.sig
 signature id {
   dst-port == 22,23,24,13000
   event "dst-port-eq-list"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE dst-port-ne.sig
+# @TEST-START-FILE dst-port-ne.sig
 signature id {
   dst-port != 22
   event "dst-port-ne"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE dst-port-ne-nomatch.sig
+# @TEST-START-FILE dst-port-ne-nomatch.sig
 signature id {
   dst-port != 13000
   event "dst-port-ne-nomatch"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE dst-port-ne-list.sig
+# @TEST-START-FILE dst-port-ne-list.sig
 signature id {
   dst-port != 22,23,24,25
   event "dst-port-ne-list"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE dst-port-ne-list-nomatch.sig
+# @TEST-START-FILE dst-port-ne-list-nomatch.sig
 signature id {
   dst-port != 22,23,24,25,13000
   event "dst-port-ne-list-nomatch"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE dst-port-lt.sig
+# @TEST-START-FILE dst-port-lt.sig
 signature id {
   dst-port < 13001
   event "dst-port-lt"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE dst-port-lt-nomatch.sig
+# @TEST-START-FILE dst-port-lt-nomatch.sig
 signature id {
   dst-port < 13000
   event "dst-port-lt-nomatch"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE dst-port-lte1.sig
+# @TEST-START-FILE dst-port-lte1.sig
 signature id {
   dst-port <= 13000
   event "dst-port-lte1"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE dst-port-lte2.sig
+# @TEST-START-FILE dst-port-lte2.sig
 signature id {
   dst-port <= 13001
   event "dst-port-lte2"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE dst-port-lte-nomatch.sig
+# @TEST-START-FILE dst-port-lte-nomatch.sig
 signature id {
   dst-port <= 12999
   event "dst-port-lte-nomatch"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE dst-port-gt.sig
+# @TEST-START-FILE dst-port-gt.sig
 signature id {
   dst-port > 12999
   event "dst-port-gt"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE dst-port-gt-nomatch.sig
+# @TEST-START-FILE dst-port-gt-nomatch.sig
 signature id {
   dst-port > 13000
   event "dst-port-gt-nomatch"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE dst-port-gte1.sig
+# @TEST-START-FILE dst-port-gte1.sig
 signature id {
   dst-port >= 13000
   event "dst-port-gte1"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE dst-port-gte2.sig
+# @TEST-START-FILE dst-port-gte2.sig
 signature id {
   dst-port >= 12999
   event "dst-port-gte2"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE dst-port-gte-nomatch.sig
+# @TEST-START-FILE dst-port-gte-nomatch.sig
 signature id {
   dst-port >= 13001
   event "dst-port-gte-nomatch"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
 event signature_match(state: signature_state, msg: string, data: string)
 	{

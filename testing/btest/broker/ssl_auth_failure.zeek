@@ -16,7 +16,7 @@
 # @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff send/send.out
 
-@TEST-START-FILE ca.pem
+# @TEST-START-FILE ca.pem
 -----BEGIN CERTIFICATE-----
 MIIDmzCCAoOgAwIBAgIJAPLZ3e3WR0LLMA0GCSqGSIb3DQEBCwUAMGQxCzAJBgNV
 BAYTAlVTMQswCQYDVQQIDAJDQTERMA8GA1UEBwwIQmVya2VsZXkxIzAhBgNVBAoM
@@ -39,10 +39,10 @@ WmElijr1Tzuzd59rWPqC/tVIsh42vQ+P6g8Y1PDmo8eTUFveZ+wcr/eEPW6IOMrg
 OW7tATcrgzNuXZ1umiuGgAPuIVqPfr9ssZHBqi9UOK9L/8MQrnOxecNUpPohcTFR
 vq+Zqu15QV9T4BVWKHv0
 -----END CERTIFICATE-----
-@TEST-END-FILE
+# @TEST-END-FILE
 
 
-@TEST-START-FILE cert.1.pem
+# @TEST-START-FILE cert.1.pem
 -----BEGIN CERTIFICATE-----
 MIIDOjCCAiICCQDz7oMOR7Wm7jANBgkqhkiG9w0BAQsFADBkMQswCQYDVQQGEwJV
 UzELMAkGA1UECAwCQ0ExETAPBgNVBAcMCEJlcmtlbGV5MSMwIQYDVQQKDBpBQ01F
@@ -63,9 +63,9 @@ NosoTmGCV0HecWN4l38ojnXd44aSktQIND9iCLus3S6++nFnX5DHGZiv6/SnSO/6
 +Op7nV0A6zKVcMOYQ0SGZPD8UQs5wDJgrR9LY29Ox5QBwu/5NqyvNSrMQaTop5vb
 wkMInaq5lLxEYQDSLBc=
 -----END CERTIFICATE-----
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE key.1.pem
+# @TEST-START-FILE key.1.pem
 -----BEGIN RSA PRIVATE KEY-----
 MIIEogIBAAKCAQEAx6G3HAEEKm2QDXTncfOdlv51MxnMKbqzovM24fcgsTMJxTKI
 FvQLKihJ3bMqVegIf3CM+OTwIAnRIPtaXNgxu/hNPkJVeAoTcAg7pPhUlgeqajEw
@@ -93,9 +93,9 @@ Dwd/AoGAILn8pVC9dIFac2BDOFU5y9ZvMmZAvwRxh9vEWewNvkzg27vdYc+rCHNm
 I7H0S/RqfqVeo0ApE5PQ8Sll6RvxN/mbSQo9YeCDGQ1r1rNe4Vs12GAYXAbE4ipf
 BTdqMbieumB/zL97iK5baHUFEJ4VRtLQhh/SOXgew/BF8ccpilI=
 -----END RSA PRIVATE KEY-----
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE send-check.zeek
+# @TEST-START-FILE send-check.zeek
 # This script just confirms the process running recv.zeek has listen()'d
 
 event zeek_init()
@@ -108,9 +108,9 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	terminate();
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE send.zeek
+# @TEST-START-FILE send.zeek
 
 # This is expected to generate the error condition and be unable to connect
 # do to SSL authentication failure.
@@ -143,9 +143,9 @@ event Broker::error(code: Broker::ErrorCode, msg: string)
 	terminate();
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE recv.zeek
+# @TEST-START-FILE recv.zeek
 
 # No cert here.
 #
@@ -178,4 +178,4 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	print fmt("receiver lost peer: endpoint=%s msg=%s", endpoint$network$address, msg);
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE

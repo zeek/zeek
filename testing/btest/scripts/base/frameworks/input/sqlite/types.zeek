@@ -8,7 +8,7 @@
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
 
-@TEST-START-FILE ssh.sql
+# @TEST-START-FILE ssh.sql
 PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;
 CREATE TABLE ssh (
@@ -32,7 +32,7 @@ CREATE TABLE ssh (
 );
 INSERT INTO "ssh" VALUES(1,-42,'SSH::LOG',21,123,'10.0.0.0/24','1.2.3.4',3.14,1.35837684939385390286e+09,100.0,'hurz','2,4,1,3','CC,AA,BB','(empty)','10,20,30','', null);
 COMMIT;
-@TEST-END-FILE
+# @TEST-END-FILE
 
 redef exit_only_after_terminate = T;
 

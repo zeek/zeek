@@ -5,7 +5,7 @@
 # @TEST-EXEC: if test -f other.log; then btest-diff other.log; fi
 # @TEST-EXEC: if test -f output; then btest-diff output; fi
 
-@TEST-START-FILE test.zeek
+# @TEST-START-FILE test.zeek
 # This provides a simple test module harness, used by all of the individual tests below.
 module Test;
 
@@ -28,7 +28,7 @@ event zeek_init() &priority=2
 	Log::create_stream(Test::LOG, [$columns=Info, $path="test", $policy=log_policy]);
 	Log::create_stream(Test::LOG_OTHER, [$columns=Info, $path="test_other"]);
 	}
-@TEST-END-FILE test.zeek
+# @TEST-END-FILE test.zeek
 
 # Verify basic argument passing -- id and filter should be accessible
 # and have expected values. The hook should not catch.
@@ -44,7 +44,7 @@ event zeek_init()
 	Log::write(Test::LOG, [$t=network_time(), $status="foo"]);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 # Verify that a policy hook can veto select log records.
 
@@ -60,7 +60,7 @@ event zeek_init()
 	Log::write(Test::LOG, [$t=network_time(), $status="bar"]);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 # Verify that a policy hook can alter the log entry.
 #
@@ -79,7 +79,7 @@ event zeek_init()
 	Log::write(Test::LOG, [$t=network_time(), $status="foo"]);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 # Verify that multiple hook handlers can get registered and their
 # priorities work as expected. (More of a generic hook test than
@@ -104,7 +104,7 @@ event zeek_init()
 	Log::write(Test::LOG, [$t=network_time(), $status="foo"]);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 # Verify that the stream-level policy gets inherited into additional
 # filters.  The single hook handler should get invoked for both of the
@@ -124,7 +124,7 @@ event zeek_init()
 	Log::write(Test::LOG, [$t=network_time(), $status="foo"]);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 # Verify that filters can override the stream-level policy. The
 # stream-level policy rejects select records; the overriding one is
@@ -147,7 +147,7 @@ event zeek_init()
 	Log::write(Test::LOG, [$t=network_time(), $status="bar"]);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 # Verify that filters can define their own policy hooks when the
 # stream doesn't provide any. The Test::LOG_OTHER stream does not.
@@ -169,7 +169,7 @@ event zeek_init()
 	Log::write(Test::LOG_OTHER, [$t=network_time(), $status="bar"]);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 # Verify that the global policy hook is effective. We have no
 # filter-specific hook handlers, only the global one is vetoing
@@ -192,7 +192,7 @@ event zeek_init()
 	Log::write(Test::LOG, [$t=network_time(), $status="bar"]);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 # Verify the combination of global and filter-specific policy hooks.
 # The former get invoked first.
@@ -226,7 +226,7 @@ event zeek_init()
 	Log::write(Test::LOG, [$t=network_time(), $status="bar"]);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 # Verify that per write, the global hook gets invoked once and the
 # filter-level hooks once per filter, that filter hooks get
@@ -263,7 +263,7 @@ event zeek_init()
 	Log::write(Test::LOG, [$t=network_time(), $status="bar"]);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 # Verify the global policy works on streams with no per-filter hooks, since
 # their logic is a bit intertwined.

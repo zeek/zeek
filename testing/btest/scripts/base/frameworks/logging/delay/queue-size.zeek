@@ -7,7 +7,7 @@
 # @TEST-EXEC: zeek-cut -m -F'|' < test.log > test.cut
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff test.cut
 
-@TEST-START-FILE test.zeek
+# @TEST-START-FILE test.zeek
 # Used by all tests below.
 
 # Debug printing
@@ -45,7 +45,7 @@ event Pcap::file_done(p: string)
 	print network_time(), "Pcap::file_done", p;
 	}
 
-@TEST-END-FILE test.zeek
+# @TEST-END-FILE test.zeek
 
 event zeek_init()
 	{

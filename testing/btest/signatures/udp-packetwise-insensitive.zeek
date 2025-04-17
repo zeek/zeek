@@ -3,7 +3,7 @@
 
 @load-sigs test.sig
 
-@TEST-START-FILE test.sig
+# @TEST-START-FILE test.sig
 signature xxxx {
  ip-proto = udp
  payload /xXxX/i
@@ -45,7 +45,7 @@ signature nope {
  payload /.*nope/i
  event "Found .*nope"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
 event signature_match(state: signature_state, msg: string, data: string)
 	{

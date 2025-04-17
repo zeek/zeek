@@ -7,21 +7,21 @@ event zeek_init()
 	print "enable non existing event group", r;
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 event zeek_init()
 	{
 	local r = disable_event_group("my-group");
 	print "disable non existing event group", r;
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 event zeek_init()
 	{
 	local r = enable_module_events("MyModule");
 	print "enabling non existing module event group", r;
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 event zeek_init()
 	{
 	local r = disable_module_events("MyModule");

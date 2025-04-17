@@ -5,14 +5,14 @@
 # @TEST-EXEC: btest-diff payload-synack.out
 # @TEST-EXEC: btest-diff tcp-fast-open.out
 
-@TEST-START-FILE payload-http.sig
+# @TEST-START-FILE payload-http.sig
 signature test-signature {
 	ip-proto == tcp
 	dst-port = 80
 	payload /.*passwd/
 	event "payload of dst-port=80/tcp contains 'passwd'"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
 event signature_match(state: signature_state, msg: string, data: string)
 	{

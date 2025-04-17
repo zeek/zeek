@@ -14,7 +14,7 @@
 redef exit_only_after_terminate = T;
 redef Config::config_files += {"../configfile"};
 
-@TEST-START-FILE configfile
+# @TEST-START-FILE configfile
 testbool F
 testcount    1
 testcount 2
@@ -28,9 +28,9 @@ testinterval 60
 testtime 1507321987
 test_set a,b,c,d,erdbeerschnitzel
 test_vector 1,2,3,4,5,6
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE configfile2
+# @TEST-START-FILE configfile2
 testbool F
 testcount    1
 testcount 2
@@ -44,9 +44,9 @@ testinterval 60
 testtime 1507321987
 test_set a,b,c,d,erdbeerschnitzel
 test_vector 1,2,3,4,5,9
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE configfile3
+# @TEST-START-FILE configfile3
 testbool F
 testcount    2
 testcount 2
@@ -57,9 +57,9 @@ testport 45
 testinterval 60
 testtime 1507321987
 test_set a,b,c,d,erdbeerschnitzel
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE configfile4
+# @TEST-START-FILE configfile4
 testbool F
 testcount    2
 testcount 2
@@ -71,7 +71,7 @@ testinterval 60
 testtime 1507321987
 test_set a,b,c,d,erdbeerschnitzel
 test_vector 1,2,3,4,5,9
-@TEST-END-FILE
+# @TEST-END-FILE
 
 @load base/protocols/ssh
 @load base/protocols/conn

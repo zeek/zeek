@@ -1,7 +1,7 @@
 # @TEST-EXEC: zeek -b -s id -r $TRACES/chksums/ip4-udp-good-chksum.pcap %INPUT >id.out
 # @TEST-EXEC: btest-diff id.out
 
-@TEST-START-FILE id.sig
+# @TEST-START-FILE id.sig
 signature id {
   ip-proto == udp_proto_number
   event "id"
@@ -11,7 +11,7 @@ signature idtable {
   dst-ip == mynets
   event "idtable"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
 const udp_proto_number = 17;
 

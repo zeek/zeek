@@ -23,7 +23,7 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff vectors.out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff vectors.err
 
-@TEST-START-FILE first_set.zeek
+# @TEST-START-FILE first_set.zeek
 type myrecord : record {
 	ii: int &optional;
 	cc: count &optional;
@@ -79,9 +79,9 @@ event zeek_init()
 	# throws an error
 	local overflow = myrecord($ii = 9223372036854775808);
 	}
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE double_convert_failure1.zeek
+# @TEST-START-FILE double_convert_failure1.zeek
 type myrecord : record {
 	cc: count &optional;
 };
@@ -90,9 +90,9 @@ event zeek_init()
 	{
 	local convert = myrecord($cc = 5.0);
 	}
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE double_convert_failure2.zeek
+# @TEST-START-FILE double_convert_failure2.zeek
 type myrecord : record {
 	cc: count &optional;
 };
@@ -101,9 +101,9 @@ event zeek_init()
 	{
 	local convert = myrecord($cc = -5.0);
 	}
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE int_convert_failure.zeek
+# @TEST-START-FILE int_convert_failure.zeek
 type myrecord : record {
 	cc: count &optional;
 };
@@ -112,9 +112,9 @@ event zeek_init()
 	{
 	local convert = myrecord($cc = -5);
 	}
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE vectors.zeek
+# @TEST-START-FILE vectors.zeek
 event zeek_init()
 	{
 	local c1 : vector of count = { 1 , 2 };
@@ -147,4 +147,4 @@ event zeek_init()
 	print d2;
 	print d3;
 	}
-@TEST-END-FILE
+# @TEST-END-FILE

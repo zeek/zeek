@@ -7,12 +7,12 @@
 # where the predicate accepts the first one and refuses the second one.
 # Desired result -> first entry stays.
 
-@TEST-START-FILE input.log
+# @TEST-START-FILE input.log
 #fields	restriction	guid	severity	confidence	detecttime	address	protocol	portlist	asn	prefix	rir	cc	impact	description	alternativeid_restriction	alternativeid
 need-to-know	8c864306-d21a-37b1-8705-746a786719bf	medium	65	1342656000	1.0.17.227	-	-	2519 VECTANT VECTANT Ltd.	1.0.16.0/23	apnic	JP	spam infrastructure	spamming	public	http://reputation.alienvault.com/reputation.generic
 need-to-know	8c864306-d21a-37b1-8705-746a786719bf	medium	95	1342569600	1.228.83.33	6	25	9318 HANARO-AS Hanaro Telecom Inc.	1.224.0.0/13	apnic	KR	spam infrastructure	direct ube sources, spam operations & spam services	public	http://www.spamhaus.org/query/bl?ip=1.228.83.33
 need-to-know	8c864306-d21a-37b1-8705-746a786719bf	medium	65	1342656000	1.228.83.33	-	-	9318 HANARO-AS Hanaro Telecom Inc.	1.224.0.0/13	apnic	KR	spam infrastructure	spamming;malware domain	public	http://reputation.alienvault.com/reputation.generic
-@TEST-END-FILE
+# @TEST-END-FILE
 
 redef exit_only_after_terminate = T;
 

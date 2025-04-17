@@ -26,7 +26,7 @@ event zeek_init() &priority=-10
 	}
 
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Do not allow to call variadic through a script-level variable.
 global f: function(x: any);
 

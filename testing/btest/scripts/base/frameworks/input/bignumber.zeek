@@ -4,13 +4,13 @@
 
 redef exit_only_after_terminate = T; 
 
-@TEST-START-FILE input.log
+# @TEST-START-FILE input.log
 #separator \x09
 #fields	i	c
 #types	int	count
 9223372036854775800	18446744073709551612
 -9223372036854775800	18446744073709551612
-@TEST-END-FILE
+# @TEST-END-FILE
 
 global outfile: file;
 

@@ -9,7 +9,7 @@
 
 redef Log::default_max_delay_interval = 50msec;
 
-@TEST-START-FILE test.zeek
+# @TEST-START-FILE test.zeek
 
 global packet_count = 0;
 event new_packet(c: connection, p: pkt_hdr)
@@ -51,7 +51,7 @@ event new_connection(c: connection)
 	local info = Info($ts=network_time(), $uid=c$uid, $msg="inital-value");
 	Log::write(LOG, info);
 	}
-@TEST-END-FILE test.zeek
+# @TEST-END-FILE test.zeek
 
 # Delay the given record twice using a nested lambda.
 hook Log::log_stream_policy(rec: Info, id: Log::ID)
@@ -86,7 +86,7 @@ hook Log::log_stream_policy(rec: Info, id: Log::ID)
 		}
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Delay the given record twice using a nested lambda, but also immediate release.
 hook Log::log_stream_policy(rec: Info, id: Log::ID)
 	{

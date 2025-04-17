@@ -3,13 +3,13 @@
 # @TEST-EXEC: btest-diff zeek/.stderr
 # @TEST-EXEC: btest-diff zeek/.stdout
 
-@TEST-START-FILE configfile
+# @TEST-START-FILE configfile
 mycolors Red,asdf,Blue
 nocolors 
 color_vec Green
 bad_color_vec Green,1234,Blue
 no_color_vec 
-@TEST-END-FILE
+# @TEST-END-FILE
 
 @load base/frameworks/config
 

@@ -8,11 +8,11 @@
 # @TEST-EXEC: rm foo/__load__.zeek
 # @TEST-EXEC-FAIL: zeek -b foo
 
-@TEST-START-FILE foo/__load__.zeek
+# @TEST-START-FILE foo/__load__.zeek
 @load ./test
 print "__load__.zeek loaded";
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE foo/test.zeek
+# @TEST-START-FILE foo/test.zeek
 print "test.zeek loaded";
-@TEST-END-FILE
+# @TEST-END-FILE

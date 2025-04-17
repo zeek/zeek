@@ -9,7 +9,7 @@ function f()
 
 event zeek_init() { f(); };
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 function f()
 	{
 	break;
@@ -17,26 +17,26 @@ function f()
 
 event zeek_init() { f(); };
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 event zeek_init()
 	{
 	next;
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 event zeek_init()
 	{
 	break;
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 event zeek_init()
 	{
 	if ( T )
 		break;
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 event zeek_init()
 	{
 	local history = "Sr";
@@ -48,7 +48,7 @@ event zeek_init()
 	}
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 global the_hook: hook(c: count);
 
 hook the_hook(c: count)
@@ -56,7 +56,7 @@ hook the_hook(c: count)
 	next;
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 global the_hook: hook(c: count);
 
 hook the_hook(c: count)
@@ -65,7 +65,7 @@ hook the_hook(c: count)
 		next;
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Should report 3 errors.
 global the_hook: hook(c: count);
 

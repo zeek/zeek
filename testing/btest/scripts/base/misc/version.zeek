@@ -50,7 +50,7 @@ print Version::parse("JustARandomString");
 # check that current running version of Zeek parses without error
 Version::parse(zeek_version());
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 @if ( Version::number >= 20500 )
 print "yup";

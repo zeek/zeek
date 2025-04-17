@@ -16,54 +16,54 @@
 # @TEST-EXEC: btest-diff src-ip-ne-list.out
 # @TEST-EXEC: btest-diff src-ip-ne-list-nomatch.out
 
-@TEST-START-FILE src-ip-eq.sig
+# @TEST-START-FILE src-ip-eq.sig
 signature id {
   src-ip == 192.168.1.0/24
   event "src-ip-eq"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-ip-eq-nomatch.sig
+# @TEST-START-FILE src-ip-eq-nomatch.sig
 signature id {
   src-ip == 10.0.0.0/8
   event "src-ip-eq-nomatch"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-ip-eq-list.sig
+# @TEST-START-FILE src-ip-eq-list.sig
 signature id {
   src-ip == 10.0.0.0/8,[fe80::0]/16,192.168.1.0/24
   event "src-ip-eq-list"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-ip-ne.sig
+# @TEST-START-FILE src-ip-ne.sig
 signature id {
   src-ip != 10.0.0.0/8
   event "src-ip-ne"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-ip-ne-nomatch.sig
+# @TEST-START-FILE src-ip-ne-nomatch.sig
 signature id {
   src-ip != 192.168.1.0/24
   event "src-ip-ne-nomatch"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-ip-ne-list.sig
+# @TEST-START-FILE src-ip-ne-list.sig
 signature id {
   src-ip != 10.0.0.0/8,[fe80::0]/16
   event "src-ip-ne-list"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-ip-ne-list-nomatch.sig
+# @TEST-START-FILE src-ip-ne-list-nomatch.sig
 signature id {
   src-ip != 10.0.0.0/8,[fe80::0]/16,192.168.1.0/24
   event "src-ip-ne-list-nomatch"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
 event signature_match(state: signature_state, msg: string, data: string)
 	{

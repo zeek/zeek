@@ -6,7 +6,7 @@
 # @TEST-EXEC: btest-diff recv/recv.out
 # @TEST-EXEC: btest-diff send/send.out
 
-@TEST-START-FILE send.zeek
+# @TEST-START-FILE send.zeek
 
 @load base/protocols/conn
 @load base/frameworks/openflow
@@ -78,9 +78,9 @@ event OpenFlow::flow_mod_failure(name: string, match: OpenFlow::ofp_match, flow_
 	got_message();
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE recv.zeek
+# @TEST-START-FILE recv.zeek
 
 @load base/protocols/conn
 @load base/frameworks/openflow
@@ -115,5 +115,5 @@ event OpenFlow::broker_flow_clear(name: string, dpid: count)
 	print "flow_clear", dpid;
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 

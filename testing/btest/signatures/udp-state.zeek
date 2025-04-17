@@ -3,7 +3,7 @@
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff reject
 
-@TEST-START-FILE udp-states.sig
+# @TEST-START-FILE udp-states.sig
 signature my_sig_udp_orig {
 	ip-proto == udp
 	payload /.+/
@@ -17,16 +17,16 @@ signature my_sig_udp_resp {
 	udp-state responder
 	event "my_sig_udp_resp"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE udp-established.sig
+# @TEST-START-FILE udp-established.sig
 signature my_sig_udp_est {
   ip-proto == udp
   payload /.+/
   udp-state established
   event "my_sig_udp_est"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
 event signature_match(state: signature_state, msg: string, data: string)
 	{

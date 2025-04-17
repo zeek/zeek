@@ -11,7 +11,7 @@
 # @TEST-EXEC: btest-diff send/send.out
 # @TEST-EXEC: btest-diff send/test.log
 
-@TEST-START-FILE common.zeek
+# @TEST-START-FILE common.zeek
 
 redef exit_only_after_terminate = T;
 
@@ -37,9 +37,9 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
     terminate();
     }
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE recv.zeek
+# @TEST-START-FILE recv.zeek
 
 
 @load ./common
@@ -55,9 +55,9 @@ event Broker::peer_removed(endpoint: Broker::EndpointInfo, msg: string)
 	terminate();
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE send.zeek
+# @TEST-START-FILE send.zeek
 
 
 
@@ -104,4 +104,4 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
     }
 
 
-@TEST-END-FILE
+# @TEST-END-FILE

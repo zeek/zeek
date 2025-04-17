@@ -10,7 +10,7 @@
 
 redef Site::local_zones +=  {"example.inalid"};
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 ##! second test - should output log due to changed config
 

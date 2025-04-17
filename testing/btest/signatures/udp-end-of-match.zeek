@@ -12,11 +12,11 @@ event signature_match(state: signature_state, msg: string, data: string, data_en
 	for ( i in s ) print s[i];
 	}
 
-@TEST-START-FILE test.sig
+# @TEST-START-FILE test.sig
 signature my_sig_udp_orig {
 	ip-proto == udp
 	payload /.+google/
 	udp-state originator
 	event "my_sig_udp_orig"
 }
-@TEST-END-FILE
+# @TEST-END-FILE

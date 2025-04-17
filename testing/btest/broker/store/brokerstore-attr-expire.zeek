@@ -14,7 +14,7 @@
 #
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff clone.out
 
-@TEST-START-FILE common.zeek
+# @TEST-START-FILE common.zeek
 redef exit_only_after_terminate = T;
 redef table_expire_interval = 0.5sec;
 
@@ -49,9 +49,9 @@ function change_r(tbl: any, tpe: TableChange, idx: string, idxb: testrec)
 global t: table[string] of count &broker_store="table" &create_expire=4sec &on_change=change_t;
 global s: table[string] of count &broker_store="set" &write_expire=3sec &on_change=change_s;
 global r: table[string] of testrec &broker_allow_complex_type &broker_store="rec" &write_expire=5sec &on_change=change_r;
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE master.zeek
+# @TEST-START-FILE master.zeek
 event zeek_init()
 	{
 	Broker::listen("127.0.0.1", to_port(getenv("BROKER_PORT")));
@@ -97,9 +97,9 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	print "Terminating";
 	terminate();
 	}
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE clone.zeek
+# @TEST-START-FILE clone.zeek
 
 event zeek_init()
 	{
@@ -139,4 +139,4 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	recordstore = Broker::create_clone("rec");
 	schedule 0.1sec { check_all_set() };
 	}
-@TEST-END-FILE
+# @TEST-END-FILE

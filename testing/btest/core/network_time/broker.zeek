@@ -7,7 +7,7 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff worker/.stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff manager/.stdout
 
-@TEST-START-FILE worker.zeek
+# @TEST-START-FILE worker.zeek
 
 redef allow_network_time_forward = F;
 
@@ -65,10 +65,10 @@ event zeek_done()
 	{
 	print network_time(), "zeek_done";
 	}
-@TEST-END-FILE
+# @TEST-END-FILE
 
 
-@TEST-START-FILE manager.zeek
+# @TEST-START-FILE manager.zeek
 # The manager waits for a peer to appear, then starts sending timer
 # ticks until the peer is gone again.
 global timer_tick: event(ts: time);
@@ -100,4 +100,4 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	print "manager: peer lost, terminating";
 	terminate();
 	}
-@TEST-END-FILE
+# @TEST-END-FILE

@@ -8,12 +8,12 @@
 # @TEST-EXEC: grep qux manager-1/reporter-2.log | sed 's#line ..*#line XX#g' >> manager-reporter.log
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-canonifier | $SCRIPTS/diff-remove-abspath | grep -v ^# | $SCRIPTS/diff-sort" btest-diff manager-reporter.log
 
-@TEST-START-FILE cluster-layout.zeek
+# @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
 	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
 	["worker-1"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1"],
 };
-@TEST-END-FILE
+# @TEST-END-FILE
 
 @load base/frameworks/cluster
 @load base/frameworks/logging

@@ -33,6 +33,6 @@ event zeek_init()
 
 # This file triggers a binpac exception for PE that is reported through
 # analyzer_violation_info
-@TEST-START-FILE ./myfile.exe
+# @TEST-START-FILE ./myfile.exe
 MZ0000000000000000000000000000000000000000000000000000000000000
-@TEST-END-FILE
+# @TEST-END-FILE

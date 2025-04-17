@@ -3,14 +3,14 @@
 # @TEST-EXEC: btest-diff zeek/.stdout
 # @TEST-EXEC: btest-diff zeek/.stderr
 
-@TEST-START-FILE input.log
+# @TEST-START-FILE input.log
 #fields	i	p
 1.2.3.4	80/tcp
 1.2.3.5	52/udp
 1.2.3.6	30/unknown
 1.2.3.7	50/trash
 1.2.3.8	-1/tcp
-@TEST-END-FILE
+# @TEST-END-FILE
 
 redef exit_only_after_terminate = T;
 

@@ -7,7 +7,7 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff test.cut
 
 
-@TEST-START-FILE test.zeek
+# @TEST-START-FILE test.zeek
 # Used by all tests below.
 
 # Debug printing
@@ -51,7 +51,7 @@ event new_connection(c: connection)
 	local info = Info($ts=network_time(), $uid=c$uid, $msg="inital-value");
 	Log::write(LOG, info);
 	}
-@TEST-END-FILE test.zeek
+# @TEST-END-FILE test.zeek
 
 
 # Delay and immediately release.
@@ -66,7 +66,7 @@ hook Log::log_stream_policy(rec: Info, id: Log::ID)
 	Log::delay_finish(id, rec, token);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Delay and immediately release, twice.
 hook Log::log_stream_policy(rec: Info, id: Log::ID)
 	{
@@ -82,7 +82,7 @@ hook Log::log_stream_policy(rec: Info, id: Log::ID)
 	Log::delay_finish(id, rec, token2);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Delay once, never release.
 hook Log::log_stream_policy(rec: Info, id: Log::ID)
 	{
@@ -94,7 +94,7 @@ hook Log::log_stream_policy(rec: Info, id: Log::ID)
 	Log::delay(id, rec);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Delay twice, never release.
 hook Log::log_stream_policy(rec: Info, id: Log::ID)
 	{
@@ -107,7 +107,7 @@ hook Log::log_stream_policy(rec: Info, id: Log::ID)
 	Log::delay(id, rec);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Delay twice, never release, print the token value and its JSON representation.
 hook Log::log_stream_policy(rec: Info, id: Log::ID)
 	{

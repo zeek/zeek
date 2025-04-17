@@ -1,6 +1,6 @@
 # @TEST-EXEC: test `zeek -b -G random.seed %INPUT` = "pass"
 
-@TEST-START-FILE random.seed
+# @TEST-START-FILE random.seed
 0
 0
 0
@@ -22,7 +22,7 @@
 0
 0
 0
-@TEST-END-FILE
+# @TEST-END-FILE
 
 type r: record {
 	b: set[count];

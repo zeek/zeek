@@ -7,7 +7,7 @@
 # @TEST-EXEC: touch test.log && zeek-cut -m -F'|' < test.log > test.cut
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff test.cut
 
-@TEST-START-FILE test.zeek
+# @TEST-START-FILE test.zeek
 
 global packet_count = 0;
 event new_packet(c: connection, p: pkt_hdr)
@@ -42,7 +42,7 @@ event zeek_init()
 	{
 	Log::create_stream(LOG, [$columns=Info, $path="test", $policy=log_policy]);
 	}
-@TEST-END-FILE test.zeek
+# @TEST-END-FILE test.zeek
 
 event new_connection(c: connection)
 	{

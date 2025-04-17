@@ -9,7 +9,7 @@
 redef exit_only_after_terminate = T;
 redef Config::config_files += {"../configfile"};
 
-@TEST-START-FILE configfile
+# @TEST-START-FILE configfile
 testbool F
 testcount    1
 testcount 2
@@ -31,7 +31,7 @@ test_set a,b,c,
 test_vector 1,2,3,4,5,6
 test_set 
 test_set -
-@TEST-END-FILE
+# @TEST-END-FILE
 
 @load base/protocols/ssh
 @load base/protocols/conn

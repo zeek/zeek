@@ -12,15 +12,15 @@
 # @TEST-EXEC: diff master.out clone.out
 # @TEST-EXEC: diff master.out clone2.out
 
-@TEST-START-FILE cluster-layout.zeek
+# @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
 	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
 	["worker-1"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1"],
 	["worker-2"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT3")), $manager="manager-1"],
 };
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE common.zeek
+# @TEST-START-FILE common.zeek
 @load base/frameworks/cluster
 
 redef exit_only_after_terminate = T;
@@ -47,9 +47,9 @@ function all_stores_set(): bool
 	{
 	return "whatever" in t && "hi" in s && "b" in r;
 	}
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE master.zeek
+# @TEST-START-FILE master.zeek
 
 event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=1
 	{
@@ -66,9 +66,9 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	terminate();
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE clone.zeek
+# @TEST-START-FILE clone.zeek
 
 global has_node_up: bool = F;
 global has_announce_masters: bool = F;
@@ -115,9 +115,9 @@ event Broker::announce_masters(masters: set[string])
 	if ( has_node_up )
 		event dump_tables();
 	}
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE clone2.zeek
+# @TEST-START-FILE clone2.zeek
 event dump_tables()
 	{
 	print sort_table(t);
@@ -145,5 +145,5 @@ event Cluster::node_up(name: string, id: string)
 	Reporter::info(fmt("Node Up: %s", name));
 	schedule 0.1sec { check_all_set() };
 	}
-@TEST-END-FILE
+# @TEST-END-FILE
 

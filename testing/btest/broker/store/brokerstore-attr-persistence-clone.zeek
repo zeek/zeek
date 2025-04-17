@@ -15,7 +15,7 @@
 # @TEST-EXEC: diff output1 output2
 # @TEST-EXEC: diff output2 output3
 
-@TEST-START-FILE common.zeek
+# @TEST-START-FILE common.zeek
 global tablestore: opaque of Broker::Store;
 global setstore: opaque of Broker::Store;
 global recordstore: opaque of Broker::Store;
@@ -29,11 +29,11 @@ type testrec: record {
 global t: table[string] of count &broker_store="table";
 global s: set[string] &broker_store="set";
 global r: table[string] of testrec &broker_allow_complex_type &broker_store="rec";
-@TEST-END-FILE
+# @TEST-END-FILE
 
 # the first test writes out the sqlite files...
 
-@TEST-START-FILE one.zeek
+# @TEST-START-FILE one.zeek
 redef exit_only_after_terminate = T;
 
 event zeek_init()
@@ -58,8 +58,8 @@ event zeek_init()
 	terminate();
 	}
 
-@TEST-END-FILE
-@TEST-START-FILE two.zeek
+# @TEST-END-FILE
+# @TEST-START-FILE two.zeek
 redef exit_only_after_terminate = T;
 
 # read in again - and serve to clones
@@ -80,9 +80,9 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	terminate();
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE three.zeek
+# @TEST-START-FILE three.zeek
 redef exit_only_after_terminate = T;
 
 # get copy from master
@@ -117,4 +117,4 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	}
 
 
-@TEST-END-FILE
+# @TEST-END-FILE

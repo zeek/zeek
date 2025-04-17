@@ -17,7 +17,7 @@
 
 @load policy/frameworks/cluster/experimental
 
-@TEST-START-FILE cluster-layout.zeek
+# @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
 	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
 	["logger-1"] = [$node_type=Cluster::LOGGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2"))],
@@ -26,7 +26,7 @@ redef Cluster::nodes = {
 	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT5")), $manager="manager-1"],
 	["worker-2"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT6")), $manager="manager-1"],
 };
-@TEST-END-FILE
+# @TEST-END-FILE
 
 redef Log::default_rotation_interval = 0secs;
 

@@ -27,7 +27,7 @@ event zeek_init()
 	print type_name(make_epoch_result), type_name(f), type_name(result), result;
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Place braces differently
 
 @load base/misc/version
@@ -52,7 +52,7 @@ event zeek_init()
 	print type_name(make_epoch_result), type_name(f), type_name(result), result;
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # This example doesn't make a whole lot of sense, but adding more @ifdef'ery
 # around lambdas.
 
@@ -81,7 +81,7 @@ event zeek_init()
 	}
 
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Same as above, but toggle T
 @load base/utils/numbers
 

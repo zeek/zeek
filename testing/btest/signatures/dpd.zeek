@@ -10,7 +10,7 @@
 # DPD based on 'ip-proto' and 'payload' signatures should be independent
 # of IP protocol.
 
-@TEST-START-FILE myftp.sig
+# @TEST-START-FILE myftp.sig
 signature my_ftp_client {
   ip-proto == tcp
   payload /(|.*[\n\r]) *[uU][sS][eE][rR] /
@@ -26,7 +26,7 @@ signature my_ftp_server {
   enable "ftp"
   event "matched my_ftp_server"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
 @load base/utils/addrs
 

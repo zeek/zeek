@@ -3,13 +3,13 @@
 # @TEST-EXEC: zeek -b %INPUT > out
 # @TEST-EXEC: btest-diff out
 
-@TEST-START-FILE input.log
+# @TEST-START-FILE input.log
 First
 Second
 Third
 
 Fourth
-@TEST-END-FILE
+# @TEST-END-FILE
 
 @load base/frameworks/input
 

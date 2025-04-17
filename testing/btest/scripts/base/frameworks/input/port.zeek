@@ -2,12 +2,12 @@
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
 
-@TEST-START-FILE input.log
+# @TEST-START-FILE input.log
 #fields	i	p	t
 1.2.3.4	80	tcp
 1.2.3.5	52	udp
 1.2.3.6	30	unknown
-@TEST-END-FILE
+# @TEST-END-FILE
 
 redef exit_only_after_terminate = T;
 

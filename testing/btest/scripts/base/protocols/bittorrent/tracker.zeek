@@ -10,7 +10,7 @@ event bt_tracker_request(c: connection, uri: string, headers: bt_tracker_headers
     print c$id, uri, headers;
 }
 
-@TEST-START-FILE bittorrent.sig
+# @TEST-START-FILE bittorrent.sig
 
 # Reusing the old Bro 1.5 signatures here.
 
@@ -42,4 +42,4 @@ signature dpd_bittorrent_peer2 {
   enable "bittorrent"
 }
 
-@TEST-END-FILE
+# @TEST-END-FILE

@@ -48,7 +48,7 @@ event portability_match_with_msg(state: signature_state, msg: string, data: stri
 	print "portability_match_with_msg", msg, |data|;
 	}
 
-@TEST-START-FILE test.sig
+# @TEST-START-FILE test.sig
 signature with-msg {
 	ip-proto == tcp
 	payload /.*portability.*/  # this is in the second packet.
@@ -66,4 +66,4 @@ signature my-custom-event2 {
 	payload /.*portability.*/  # this is in the second packet.
 	event DataEndOffset::portability_match_with_msg "custom message"
 }
-@TEST-END-FILE
+# @TEST-END-FILE

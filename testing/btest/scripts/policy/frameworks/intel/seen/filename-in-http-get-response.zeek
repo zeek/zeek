@@ -7,10 +7,10 @@
 
 redef Intel::read_files = { "./intel.dat" };
 
-@TEST-START-FILE intel.dat
+# @TEST-START-FILE intel.dat
 #fields	indicator	indicator_type	meta.source	meta.desc	meta.url
 test.json	Intel::FILE_NAME	source1	A JSON file	https://www.json.org/json-en.html
-@TEST-END-FILE
+# @TEST-END-FILE
 
 event zeek_init()
 	{

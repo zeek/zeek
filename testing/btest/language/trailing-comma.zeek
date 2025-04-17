@@ -107,7 +107,7 @@ event zeek_init()
 	print "tab9", type_name(tab9), tab9;
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Function calls can have trailing commas.
 function f(x: count, y: count) { print fmt("f() x=%s y=%s", x, y); }
 f(1, 2,);

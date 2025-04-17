@@ -3,7 +3,7 @@
 
 @load-sigs blah.sig
 
-@TEST-START-FILE blah.sig
+# @TEST-START-FILE blah.sig
 signature blah
 	{
 	ip-proto == tcp
@@ -11,7 +11,7 @@ signature blah
 	payload /.*/
 	eval mark_conn
 	}
-@TEST-END-FILE
+# @TEST-END-FILE
 
 # wrong function signature for use with signature 'eval' conditions
 # needs to be reported

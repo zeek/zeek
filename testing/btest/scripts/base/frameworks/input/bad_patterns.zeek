@@ -2,7 +2,7 @@
 # @TEST-EXEC: grep -v "already queued for removal" .stderr > out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out
 
-@TEST-START-FILE input.log
+# @TEST-START-FILE input.log
 #separator \x09
 #fields	i	p
 #types	count	pattern
@@ -11,7 +11,7 @@
 3	/foo|bar
 4	this is not a pattern
 5	/5
-@TEST-END-FILE
+# @TEST-END-FILE
 
 module A;
 

@@ -4,7 +4,7 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 # @TEST-EXEC: btest-diff out
 
-@TEST-START-FILE id.sig
+# @TEST-START-FILE id.sig
 signature udp-proto {
   ip-proto == 17
   event my_signature_match3 "message"
@@ -25,7 +25,7 @@ signature udp-stuff {
   event my_signature_match2
 }
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
 const mynets: set[subnet] = {
 	192.168.1.0/24,

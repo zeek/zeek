@@ -31,7 +31,7 @@ event NetControl::rule_added(r: NetControl::Rule, p: NetControl::PluginState, ms
 	NetControl::catch_release_seen(subnet_to_addr(r$entity$ip));
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 @load base/frameworks/netcontrol
 @load policy/frameworks/netcontrol/catch-and-release

@@ -18,7 +18,7 @@ function signature_cond(state: signature_state, data: string): bool
         }
 
 
-@TEST-START-FILE test.sig
+# @TEST-START-FILE test.sig
 signature my-first-sig {
         ip-proto == tcp
         dst-port == 80
@@ -33,4 +33,4 @@ signature my-second-sig {
         event "STATUS"
         eval SignatureEvalTest::signature_cond
 }
-@TEST-END-FILE
+# @TEST-END-FILE

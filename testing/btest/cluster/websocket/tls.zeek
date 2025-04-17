@@ -27,7 +27,7 @@
 # @TEST-EXEC: btest-diff ./client/out
 # @TEST-EXEC: btest-diff ./client/.stderr
 
-# @TEST-START-FILE manager.zeek
+# # @TEST-START-FILE manager.zeek
 @load ./zeromq-test-bootstrap
 redef exit_only_after_terminate = T;
 
@@ -72,10 +72,10 @@ event Cluster::websocket_client_lost(info: Cluster::EndpointInfo)
 	print "Cluster::websocket_client_lost";
 	terminate();
 	}
-# @TEST-END-FILE
+# # @TEST-END-FILE
 
 
-@TEST-START-FILE client.py
+# @TEST-START-FILE client.py
 import asyncio, json, os, socket, time
 from websockets.asyncio.client import connect
 
@@ -135,17 +135,17 @@ def main():
 
 if __name__ == "__main__":
     main()
-@TEST-END-FILE
+# @TEST-END-FILE
 
 # The cert and key were generated with OpenSSL using the following command,
 # taken from https://letsencrypt.org/docs/certificates-for-localhost/
 #
 # The test will generate the script, but the certificate is valid
 # for 10 years.
-@TEST-START-FILE gen-localhost-certs.sh
+# @TEST-START-FILE gen-localhost-certs.sh
 #!/usr/bin/env bash
 openssl req -x509 -out localhost.crt -keyout localhost.key \
     -newkey rsa:2048 -nodes -sha256 -days 3650 \
     -subj '/CN=localhost' -extensions EXT -config <( \
     printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nbasicConstraints=CA:TRUE")
-@TEST-END-FILE
+# @TEST-END-FILE

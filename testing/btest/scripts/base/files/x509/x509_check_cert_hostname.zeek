@@ -5,7 +5,7 @@
 # @TEST-EXEC: zeek -b -r $TRACES/rdp/rdp-to-ssl.pcap common.zeek rdp.zeek
 # @TEST-EXEC: btest-diff .stdout
 
-@TEST-START-FILE common.zeek
+# @TEST-START-FILE common.zeek
 
 @load base/protocols/ssl
 
@@ -14,9 +14,9 @@ function test_it(cert_ref: opaque of x509, name: string, subject: string)
 	print subject, name, x509_check_cert_hostname(cert_ref, name);
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE google-duplicate.zeek
+# @TEST-START-FILE google-duplicate.zeek
 
 event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certificate)
 	{
@@ -27,9 +27,9 @@ event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certifi
 	test_it(cert_ref, "Google Internet Authority G2", cert$subject);
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE fragmented.zeek
+# @TEST-START-FILE fragmented.zeek
 
 event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certificate)
 	{
@@ -39,9 +39,9 @@ event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certifi
 	test_it(cert_ref, "9566.alt.helloIamADomain.example", cert$subject);
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE rdp.zeek
+# @TEST-START-FILE rdp.zeek
 
 @load base/protocols/rdp
 
@@ -52,4 +52,4 @@ event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certifi
 	test_it(cert_ref, "www.zeek.org", cert$subject);
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE

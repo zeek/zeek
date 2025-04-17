@@ -6,7 +6,7 @@
 # the reason is, that the code-paths are quite different, because then the
 # ascii reader uses the put and not the sendevent interface
 
-@TEST-START-FILE input.log
+# @TEST-START-FILE input.log
 #separator \x09
 #path	ssh
 #fields	i	b	
@@ -18,7 +18,7 @@
 5	F
 6	F
 7	T
-@TEST-END-FILE
+# @TEST-END-FILE
 
 redef exit_only_after_terminate = T;
 

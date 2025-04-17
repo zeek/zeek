@@ -23,17 +23,17 @@
 
 redef exit_only_after_terminate = T;
 
-@TEST-START-FILE input1.log
+# @TEST-START-FILE input1.log
 sdfkh:KH;fdkncv;ISEUp34:Fkdj;YVpIODhfDF
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE input2.log
+# @TEST-START-FILE input2.log
 DSF"DFKJ"SDFKLh304yrsdkfj@#(*U$34jfDJup3UF
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE input3.log
+# @TEST-START-FILE input3.log
 3rw43wRRERLlL#RWERERERE.
-@TEST-END-FILE
+# @TEST-END-FILE
 
 module A;
 

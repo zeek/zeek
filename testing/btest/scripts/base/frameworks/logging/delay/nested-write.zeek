@@ -10,7 +10,7 @@
 # @TEST-EXEC: touch test-other.log && zeek-cut -m -F'|' < test-other.log > test-other.cut
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff test-other.cut
 
-@TEST-START-FILE test.zeek
+# @TEST-START-FILE test.zeek
 
 # Debug printing
 global packet_count = 0;
@@ -55,7 +55,7 @@ event new_connection(c: connection)
 	local info = Info($ts=network_time(), $uid=c$uid, $msg="inital-value");
 	Log::write(LOG, info);
 	}
-@TEST-END-FILE test.zeek
+# @TEST-END-FILE test.zeek
 
 hook Log::log_stream_policy(rec: Info, id: Log::ID)
 	{
@@ -84,7 +84,7 @@ hook Log::log_stream_policy(rec: Info, id: Log::ID)
 		}
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 hook Log::log_stream_policy(rec: Info, id: Log::ID)
 	{
 	local now = network_time();

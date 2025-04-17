@@ -14,7 +14,7 @@
 # @TEST-EXEC: btest-diff recv/broker.filtered.log
 # @TEST-EXEC: btest-diff send/broker.filtered.log
 
-@TEST-START-FILE send.zeek
+# @TEST-START-FILE send.zeek
 
 redef exit_only_after_terminate = T;
 
@@ -51,10 +51,10 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
     }
 
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
 
-@TEST-START-FILE recv.zeek
+# @TEST-START-FILE recv.zeek
 
 redef exit_only_after_terminate = T;
 
@@ -76,4 +76,4 @@ event zeek_init()
     }
 
 
-@TEST-END-FILE
+# @TEST-END-FILE

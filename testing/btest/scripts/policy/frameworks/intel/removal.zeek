@@ -3,11 +3,11 @@
 # @TEST-EXEC: btest-bg-wait 20
 # @TEST-EXEC: btest-diff zeekproc/intel.log
 
-@TEST-START-FILE intel.dat
+# @TEST-START-FILE intel.dat
 #fields	indicator	indicator_type	meta.source	meta.remove
 10.0.0.1	Intel::ADDR	source1	T
 10.0.0.2	Intel::ADDR	source1	F
-@TEST-END-FILE
+# @TEST-END-FILE
 
 @load frameworks/intel/removal
 

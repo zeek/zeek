@@ -7,7 +7,7 @@
 
 # the first test writes out the sqlite files...
 
-@TEST-START-FILE one.zeek
+# @TEST-START-FILE one.zeek
 
 module TestModule;
 
@@ -21,8 +21,8 @@ event zeek_init()
 	print t;
 	}
 
-@TEST-END-FILE
-@TEST-START-FILE two.zeek
+# @TEST-END-FILE
+# @TEST-START-FILE two.zeek
 
 # the second one reads them in again. Or not because the types are incompatible.
 
@@ -35,4 +35,4 @@ event zeek_init()
 	{
 	print t;
 	}
-@TEST-END-FILE
+# @TEST-END-FILE

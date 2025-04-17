@@ -17,7 +17,7 @@ event connection_established(c: connection)
 	NetControl::drop_address(id$orig_h, 1sec);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 @load base/frameworks/netcontrol
 

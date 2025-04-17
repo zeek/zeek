@@ -4,7 +4,7 @@
 
 @load-sigs blah.sig
 
-@TEST-START-FILE blah.sig
+# @TEST-START-FILE blah.sig
 signature blah
 	{
 	ip-proto == tcp
@@ -12,7 +12,7 @@ signature blah
 	payload /.*/
 	eval mark_conn
 	}
-@TEST-END-FILE
+# @TEST-END-FILE
 
 function mark_conn(state: signature_state, data: string): bool
 	{

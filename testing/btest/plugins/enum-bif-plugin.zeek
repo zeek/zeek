@@ -32,14 +32,14 @@ event zeek_init()
 
 @load ./enum-after-load-plugin-end
 
-@TEST-START-FILE enum-before-load-plugin.zeek
+# @TEST-START-FILE enum-before-load-plugin.zeek
 # empty
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE enum-after-load-plugin.zeek
+# @TEST-START-FILE enum-after-load-plugin.zeek
 # empty
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE enum-after-load-plugin-end.zeek
+# @TEST-START-FILE enum-after-load-plugin-end.zeek
 # empty
-@TEST-END-FILE
+# @TEST-END-FILE

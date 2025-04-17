@@ -6,10 +6,10 @@
 # @TEST-EXEC-FAIL: zeek -b -a test.zeek >invalid-sig-file 2>&1
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff invalid-sig-file
 
-@TEST-START-FILE test.zeek
+# @TEST-START-FILE test.zeek
 @load-sigs test.sig
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE test.sig
+# @TEST-START-FILE test.sig
 invalid
-@TEST-END-FILE
+# @TEST-END-FILE

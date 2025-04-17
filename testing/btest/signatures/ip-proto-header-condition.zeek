@@ -14,33 +14,33 @@
 # @TEST-EXEC: btest-diff icmp6_in_ip6.out
 # @TEST-EXEC: btest-diff nomatch.out
 
-@TEST-START-FILE tcp.sig
+# @TEST-START-FILE tcp.sig
 signature tcp_transport {
   ip-proto == tcp
   event "tcp"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE udp.sig
+# @TEST-START-FILE udp.sig
 signature udp_transport {
   ip-proto == udp
   event "udp"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE icmp.sig
+# @TEST-START-FILE icmp.sig
 signature icmp_transport {
   ip-proto == icmp
   event "icmp"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE icmp6.sig
+# @TEST-START-FILE icmp6.sig
 signature icmp6_transport {
   ip-proto == icmp6
   event "icmp6"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
 event signature_match(state: signature_state, msg: string, data: string)
 	{

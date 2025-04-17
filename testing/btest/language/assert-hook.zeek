@@ -16,7 +16,7 @@ event zeek_init()
 	print "not reached";
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Test the backtrace location, also calling break to suppress reporter log.
 hook assertion_failure(cond: string, msg: string, bt: Backtrace)
 	{
@@ -50,7 +50,7 @@ event zeek_init()
 	print "not reached";
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Calling terminate() from the assertion hook.
 redef exit_only_after_terminate = T;
 
@@ -72,7 +72,7 @@ event zeek_done()
 	assert zeek_is_terminating(), "zeek_done() should have zeek terminating";
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Calling exit() from the assertion hook.
 redef exit_only_after_terminate = T;
 
@@ -93,7 +93,7 @@ event zeek_done()
 	assert F, "zeek_done() not executed with exit()";
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 global assertion_failures = 0;
 global assertions_total = 0;
 
@@ -146,7 +146,7 @@ event zeek_done()
 	print fmt("%d of %d assertions failed", assertion_failures, assertions_total);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Evaluating the msg expression can cause errors, see if we deal
 # with that gracefully.
 hook assertion_failure(cond: string, msg: string, bt: Backtrace)
@@ -174,7 +174,7 @@ event zeek_done()
 	assert 2 + 2 == 5, cat(get_current_packet_header()$ip);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Breaking in assertion_result() also suppresses the reporter errors.
 hook assertion_result(result: bool, cond: string, msg: string, bt: Backtrace)
 	{
@@ -196,7 +196,7 @@ event zeek_done()
 	print "not reached";
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Ensure cond is only evaluated once.
 hook assertion_result(result: bool, cond: string, msg: string, bt: Backtrace)
 	{

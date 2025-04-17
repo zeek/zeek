@@ -1,9 +1,9 @@
 # @TEST-EXEC: unset ZEEK_DISABLE_ZEEKYGEN; zeek -b -X zeekygen.config %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff autogen-reST-func-params.rst
 
-@TEST-START-FILE zeekygen.config
+# @TEST-START-FILE zeekygen.config
 identifier	test_func_params*	autogen-reST-func-params.rst
-@TEST-END-FILE
+# @TEST-END-FILE
 
 ## This is a global function declaration.
 ##

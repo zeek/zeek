@@ -13,8 +13,8 @@ print aaa, type_name(aaa);
 print 1 + (aa as double);
 print 1 + aaa;
 
-@TEST-START-FILE lacks-type-cast.zeek
+# @TEST-START-FILE lacks-type-cast.zeek
 local a: any = double_to_time(13.0);
 local aa = |a|;
 print 1 + aa;
-@TEST-END-FILE
+# @TEST-END-FILE

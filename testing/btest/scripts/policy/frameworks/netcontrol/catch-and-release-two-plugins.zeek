@@ -37,7 +37,7 @@ event NetControl::rule_added(r: NetControl::Rule, p: NetControl::PluginState, ms
 	}
 
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 @load base/frameworks/netcontrol
 @load policy/frameworks/netcontrol/catch-and-release

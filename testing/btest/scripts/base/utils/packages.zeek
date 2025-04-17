@@ -17,16 +17,16 @@
 print "no pkg3";
 @endif
 
-@TEST-START-FILE pkg1.zeek
+# @TEST-START-FILE pkg1.zeek
 event zeek_init()
 	{
 	print "pkg1!";
 	}
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE pkg2/__load__.zeek
+# @TEST-START-FILE pkg2/__load__.zeek
 event zeek_init()
 	{
 	print "pkg2!";
 	}
-@TEST-END-FILE
+# @TEST-END-FILE

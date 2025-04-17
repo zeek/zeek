@@ -12,22 +12,22 @@
 # @TEST-EXEC: btest-diff ./manager/.stdout
 # @TEST-EXEC: btest-diff ./worker-1/.stdout
 
-@TEST-START-FILE cluster-layout.zeek
+# @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
 	["manager"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
 	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager"],
 };
-@TEST-END-FILE
+# @TEST-END-FILE
 
-# @TEST-START-FILE common.zeek
+# # @TEST-START-FILE common.zeek
 redef Log::default_rotation_interval = 0sec;
 
 global finish: event() &is_used;
 global ping: event(c: count, what: string, val: any) &is_used;
 global pong: event(c: count, what: string, val: any) &is_used;
-# @TEST-END-FILE
+# # @TEST-END-FILE
 
-# @TEST-START-FILE manager.zeek
+# # @TEST-START-FILE manager.zeek
 @load ./common.zeek
 
 global i = 0;
@@ -81,10 +81,10 @@ event Cluster::node_down(name: string, id: string)
 	{
 	terminate();
 	}
-# @TEST-END-FILE
+# # @TEST-END-FILE
 
 
-# @TEST-START-FILE worker.zeek
+# # @TEST-START-FILE worker.zeek
 @load ./common.zeek
 
 event ping(c: count, what: string, val: any)
@@ -104,4 +104,4 @@ event finish()
 	print "got finish!";
 	terminate();
 	}
-# @TEST-END-FILE
+# # @TEST-END-FILE

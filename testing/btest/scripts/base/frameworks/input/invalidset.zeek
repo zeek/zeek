@@ -4,12 +4,12 @@
 # @TEST-EXEC: sed 1d .stderr > .stderrwithoutfirstline
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderrwithoutfirstline
 
-@TEST-START-FILE input.log
+# @TEST-START-FILE input.log
 #separator \x09
 #fields	i	s
 name	-
 name	127.0.0.1
-@TEST-END-FILE
+# @TEST-END-FILE
 
 redef exit_only_after_terminate = T;
 redef InputAscii::fail_on_invalid_lines = T;

@@ -18,7 +18,7 @@ event new_connection(c: connection) {
   recent_conns[c$id] = c$uid;
 }
 
-@TEST-START-FILE 1.seeds
+# @TEST-START-FILE 1.seeds
 3569182667
 3864322632
 2737717875
@@ -40,9 +40,9 @@ event new_connection(c: connection) {
 3834222442
 2355333979
 113403102
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE 2.seeds
+# @TEST-START-FILE 2.seeds
 4013930712
 1835775324
 3393047106
@@ -64,4 +64,4 @@ event new_connection(c: connection) {
 348858887
 14638654
 4267481449
-@TEST-END-FILE
+# @TEST-END-FILE

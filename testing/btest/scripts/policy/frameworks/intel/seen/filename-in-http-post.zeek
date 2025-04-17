@@ -7,11 +7,11 @@
 
 redef Intel::read_files = { "./intel.dat" };
 
-@TEST-START-FILE intel.dat
+# @TEST-START-FILE intel.dat
 #fields	indicator	indicator_type	meta.source	meta.desc	meta.url
 putty.exe	Intel::FILE_NAME	source1	SSH utility	https://www.putty.org
 zeek.exe	Intel::FILE_NAME	source1	A network monitor	https://zeek.org
-@TEST-END-FILE
+# @TEST-END-FILE
 
 event zeek_init()
 	{

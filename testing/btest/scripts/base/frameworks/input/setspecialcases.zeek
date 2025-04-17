@@ -2,7 +2,7 @@
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out
 
-@TEST-START-FILE input.log
+# @TEST-START-FILE input.log
 #separator \x09
 #fields	i	s	ss
 1	testing\x2ctesting\x2ctesting\x2c	testing\x2ctesting\x2ctesting\x2c
@@ -11,7 +11,7 @@
 4	testing,	testing,
 5	,,,	,,,
 6		
-@TEST-END-FILE
+# @TEST-END-FILE
 
 
 redef exit_only_after_terminate = T;

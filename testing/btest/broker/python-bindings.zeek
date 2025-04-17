@@ -14,7 +14,7 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff recv/.stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff send/.stdout
 
-@TEST-START-FILE send.zeek
+# @TEST-START-FILE send.zeek
 
 global new_conn_added: event(c: connection) &is_used;
 global conn_removed: event(c: connection) &is_used;
@@ -81,10 +81,10 @@ event echo_from_python(what: string, c: connection) &is_used
 	++events_from_python;
 	print network_time(), "from_python", events_from_python, what, c$uid, c$id;
 	}
-@TEST-END-FILE
+# @TEST-END-FILE
 
 
-@TEST-START-FILE recv.py
+# @TEST-START-FILE recv.py
 """
 Python script subscribing to TOPIC
 """
@@ -134,4 +134,4 @@ with ( broker.Endpoint() as ep,
 
         other_event = broker.zeek.Event("echo_from_python", my_event.name(), conn)
         ep.publish(broker_topic, other_event)
-@TEST-END-FILE
+# @TEST-END-FILE

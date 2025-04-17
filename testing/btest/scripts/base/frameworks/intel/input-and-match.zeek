@@ -3,12 +3,12 @@
 # @TEST-EXEC: btest-bg-wait 15
 # @TEST-EXEC: btest-diff zeekproc/intel.log
 
-@TEST-START-FILE intel.dat
+# @TEST-START-FILE intel.dat
 #fields	indicator	indicator_type	meta.source	meta.desc	meta.url
 1.2.3.4	Intel::ADDR	source1	this host is just plain baaad	http://some-data-distributor.com/1234
 1.2.3.4	Intel::ADDR	source1	this host is just plain baaad	http://some-data-distributor.com/1234
 e@mail.com	Intel::EMAIL	source1	Phishing email source	http://some-data-distributor.com/100000
-@TEST-END-FILE
+# @TEST-END-FILE
 
 @load base/frameworks/intel
 

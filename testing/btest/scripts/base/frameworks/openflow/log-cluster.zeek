@@ -6,12 +6,12 @@
 # @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff manager-1/openflow.log
 
-@TEST-START-FILE cluster-layout.zeek
+# @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
 	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
 	["worker-1"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1"],
 };
-@TEST-END-FILE
+# @TEST-END-FILE
 
 redef Log::default_rotation_interval = 0secs;
 #redef exit_only_after_terminate = T;

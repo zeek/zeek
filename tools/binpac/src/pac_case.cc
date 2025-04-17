@@ -117,6 +117,7 @@ void CaseType::GenCleanUpCode(Output* out_cc, Env* env) {
     Type::GenCleanUpCode(out_cc, env);
 
     env->set_in_branch(true);
+    out_cc->println("// NOLINTBEGIN(bugprone-branch-clone)");
     out_cc->println("switch ( %s ) {", env->RValue(index_var_));
     out_cc->inc_indent();
     foreach (i, CaseFieldList, cases_) {
@@ -125,6 +126,7 @@ void CaseType::GenCleanUpCode(Output* out_cc, Env* env) {
     }
     out_cc->dec_indent();
     out_cc->println("}");
+    out_cc->println("// NOLINTEND(bugprone-branch-clone)");
     env->set_in_branch(false);
 }
 
@@ -141,6 +143,7 @@ void CaseType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, int
     env->SetEvaluated(index_var_);
 
     env->set_in_branch(true);
+    out_cc->println("// NOLINTBEGIN(bugprone-branch-clone)");
     out_cc->println("switch ( %s ) {", env->RValue(index_var_));
     out_cc->inc_indent();
     bool has_default_case = false;
@@ -161,6 +164,7 @@ void CaseType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, int
     }
     out_cc->dec_indent();
     out_cc->println("}");
+    out_cc->println("// NOLINTEND(bugprone-branch-clone)");
     env->set_in_branch(false);
 
     if ( compute_size_var )
@@ -307,6 +311,7 @@ void CaseField::GenPubDecls(Output* out_h, Env* env) {
     if ( ! index_ )
         out_h->println("return %s;", lvalue());
     else {
+        out_h->println("// NOLINTBEGIN(bugprone-branch-clone)");
         out_h->println("switch ( %s ) {", env->RValue(index_var_));
         out_h->inc_indent();
         GenCaseStr(index_, out_h, env, case_type()->IndexExpr()->DataType(env));
@@ -323,6 +328,7 @@ void CaseField::GenPubDecls(Output* out_h, Env* env) {
 
         out_h->dec_indent();
         out_h->println("}");
+        out_h->println("// NOLINTEND(bugprone-branch-clone)");
 
         out_h->println("return %s;", lvalue());
     }

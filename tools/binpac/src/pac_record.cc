@@ -100,6 +100,7 @@ void RecordType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, i
         GenBoundaryCheck(out_cc, env, data);
 
     if ( incremental_parsing() ) {
+        out_cc->println("// NOLINTBEGIN(bugprone-branch-clone)");
         out_cc->println("switch ( %s ) {", env->LValue(parsing_state_id));
 
         out_cc->println("case 0:");
@@ -113,6 +114,7 @@ void RecordType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, i
         out_cc->println("%s = true;", env->LValue(parsing_complete_var()));
         out_cc->dec_indent();
         out_cc->println("}");
+        out_cc->println("// NOLINTEND(bugprone-branch-clone)");
     }
     else {
         ASSERT(data.id() == begin_of_data && data.offset() == 0);

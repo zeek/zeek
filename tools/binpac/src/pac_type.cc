@@ -487,6 +487,7 @@ void Type::GenParseBuffer(Output* out_cc, Env* env, int flags) {
 
     if ( attr_length_expr() ) {
         ASSERT(buffer_mode() == BUFFER_BY_LENGTH);
+        out_cc->println("// NOLINTBEGIN(bugprone-branch-clone)");
         out_cc->println("switch ( %s ) {", env->LValue(buffering_state_id));
         out_cc->inc_indent();
         out_cc->println("case 0:");
@@ -537,6 +538,7 @@ void Type::GenParseBuffer(Output* out_cc, Env* env, int flags) {
         out_cc->dec_indent();
         out_cc->dec_indent();
         out_cc->println("}");
+        out_cc->println("// NOLINTEND(bugprone-branch-clone)");
     }
     else if ( attr_restofflow_ ) {
         out_cc->println("BINPAC_ASSERT(%s->eof());", env->RValue(flow_buffer_id));

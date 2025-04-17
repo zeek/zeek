@@ -12,6 +12,12 @@ repos:
     types: [file]
     exclude: '^(testing/btest/(Baseline|plugins|spicy|scripts)/.*|testing/builtin-plugins/.*)$'
 
+  - id: btest-command-commented
+    name: Check that all BTest command lines are commented out
+    entry: '^\s*@TEST-'
+    language: pygrep
+    files: '^testing/btest/.*$'
+
 - repo: https://github.com/pre-commit/mirrors-clang-format
   rev: v20.1.0
   hooks:

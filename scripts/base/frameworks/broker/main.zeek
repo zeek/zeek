@@ -377,7 +377,18 @@ export {
 	## Returns: a unique identifier for the local broker endpoint.
 	global node_id: function(): string;
 
+	## Obtain each peering's send-buffer fill level. The keys are Broker
+	## endpoint IDs.
+	##
+	## Returns: number of messages queued for sending, for each peering.
 	global peer_buffer_levels: function(): table[string] of count;
+
+	## Obtain each peering's number of send-buffer overflows. The keys are
+	## Broker endpoint IDs. Note that for buffer policy "disconnect", these
+	## overflows are short-lived, since Broker will remove those peerings
+	## upon overflow.
+	##
+	## Returns: number of send-buffer overflows, for each peering.
 	global peer_buffer_overflows: function(): table[string] of count;
 
 	## Sends all pending log messages to remote peers.  This normally

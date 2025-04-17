@@ -14,8 +14,11 @@ redef Broker::log_topic = Cluster::rr_log_topic;
 # Add a cluster prefix.
 @prefixes += cluster
 
-# This should soon condition on loading only when Broker is in use.
+# Broker-specific additions:
+@if ( Cluster::backend == Cluster::CLUSTER_BACKEND_BROKER )
 @load ./broker-backpressure
+@load ./broker-telemetry
+@endif
 
 @if ( Supervisor::is_supervised() )
 # When running a supervised cluster, populate Cluster::nodes from the node table

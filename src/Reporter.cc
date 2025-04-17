@@ -475,7 +475,8 @@ void Reporter::Deprecation(std::string_view msg, const detail::Location* loc1, c
 
 void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Connection* conn, ValPList* addl,
                      bool location, bool time, const char* postfix, const char* fmt, va_list ap) {
-    static char tmp[512];
+    constexpr size_t DEFAULT_BUFFER_SIZE = 512;
+    static char tmp[DEFAULT_BUFFER_SIZE];
 
     int size = sizeof(tmp);
     char* buffer = tmp;
@@ -522,26 +523,37 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
         }
     }
 
-    while ( true ) {
-        va_list aq;
-        va_copy(aq, ap);
-        int n = vsnprintf(buffer, size, fmt, aq);
-        va_end(aq);
+    // Figure out how big of a buffer is needed here.
+    va_list ap_copy;
+    va_copy(ap_copy, ap);
+    size_t req_buffer_size = vsnprintf(nullptr, 0, fmt, ap_copy);
 
-        if ( postfix )
-            n += strlen(postfix) + 10; // Add a bit of slack.
-
-        if ( n > -1 && n < size )
-            // We had enough space;
-            break;
-
-        // Enlarge buffer;
-        size *= 2;
-        buffer = allocated = (char*)realloc(allocated, size);
-
-        if ( ! buffer )
-            FatalError("out of memory in Reporter");
+    if ( req_buffer_size < 0 ) {
+        va_end(ap_copy);
+        FatalError("out of memory in Reporter");
     }
+
+    if ( postfix && *postfix )
+        req_buffer_size += strlen(postfix) + 10;
+
+    // Add one byte for a null terminator.
+    req_buffer_size++;
+
+    if ( req_buffer_size > DEFAULT_BUFFER_SIZE ) {
+        buffer = (char*)malloc(req_buffer_size);
+        if ( ! buffer ) {
+            va_end(ap_copy);
+            FatalError("out of memory in Reporter");
+        }
+
+        allocated = buffer;
+    }
+
+    va_end(ap_copy);
+
+    req_buffer_size = vsnprintf(buffer, req_buffer_size, fmt, ap);
+    if ( req_buffer_size < 0 )
+        FatalError("out of memory in Reporter");
 
     if ( postfix && *postfix )
         // Note, if you change this fmt string, adjust the additional
@@ -641,6 +653,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 #endif
     }
 
+    // If the buffer got reallocated because it was too small, free the reallocated one.
     if ( allocated )
         free(allocated);
 }

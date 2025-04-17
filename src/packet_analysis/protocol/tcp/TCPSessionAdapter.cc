@@ -57,7 +57,7 @@ void TCPSessionAdapter::Init() {
 }
 
 void TCPSessionAdapter::Done() {
-    Analyzer::Done();
+    IP::SessionAdapter::Done();
 
     if ( run_state::terminating && connection_pending && is_active && ! BothClosed() )
         Event(connection_pending);

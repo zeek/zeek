@@ -1229,7 +1229,7 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) {
 bool ForStmt::IsPure() const { return e->IsPure() && body->IsPure(); }
 
 void ForStmt::StmtDescribe(ODesc* d) const {
-    Stmt::StmtDescribe(d);
+    Stmt::StmtDescribe(d); // NOLINT(bugprone-parent-virtual-call)
 
     if ( d->IsReadable() )
         d->Add("(");
@@ -1401,7 +1401,7 @@ ValPtr ReturnStmt::Exec(Frame* f, StmtFlowType& flow) {
 }
 
 void ReturnStmt::StmtDescribe(ODesc* d) const {
-    Stmt::StmtDescribe(d);
+    Stmt::StmtDescribe(d); // NOLINT(bugprone-parent-virtual-call)
     if ( ! d->IsReadable() )
         d->Add(e != nullptr);
 
@@ -1610,7 +1610,7 @@ ValPtr AssertStmt::Exec(Frame* f, StmtFlowType& flow) {
 }
 
 void AssertStmt::StmtDescribe(ODesc* d) const {
-    Stmt::StmtDescribe(d);
+    Stmt::StmtDescribe(d); // NOLINT(bugprone-parent-virtual-call)
 
     // Quoting strings looks better when describing assert
     // statements. So turn it on explicitly.

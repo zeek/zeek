@@ -14,6 +14,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Span.h"
@@ -446,7 +447,7 @@ private:
 
     void Error(const char* format, ...) __attribute__((format(printf, 2, 3)));
 
-    // Processes events from the Broker message queue.
+    // Processes messages gathered via poll().
     void ProcessMessages(std::vector<broker::data_message> messages);
 
     // Process events from Broker logger.

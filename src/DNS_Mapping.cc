@@ -300,17 +300,17 @@ TEST_CASE("dns_mapping save reload") {
     // Try loading from the file at EOF. This should cause a mapping failure.
     DNS_Mapping mapping(tmpfile);
     CHECK(mapping.NoMapping());
-    rewind(tmpfile);
+    fseek(tmpfile, 0, SEEK_SET);
 
     // Try reading from the empty file. This should cause an init failure.
     DNS_Mapping mapping2(tmpfile);
     CHECK(mapping2.InitFailed());
-    rewind(tmpfile);
+    fseek(tmpfile, 0, SEEK_SET);
 
     // Save a valid mapping into the file and rewind to the start.
     DNS_Mapping mapping3(addr, &he, 123);
     mapping3.Save(tmpfile);
-    rewind(tmpfile);
+    fseek(tmpfile, 0, SEEK_SET);
 
     // Test loading the mapping back out of the file
     DNS_Mapping mapping4(tmpfile);

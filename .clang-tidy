@@ -9,4 +9,5 @@ Checks: [-*,
          bugprone-inc-dec-in-conditions,
          bugprone-misplaced-widening-cast,
          bugprone-parent-virtual-call,
+         bugprone-string-literal-with-embedded-nul,
 ]

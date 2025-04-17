@@ -396,7 +396,7 @@ void TCP_Reassembler::Overlap(const u_char* b1, const u_char* b2, uint64_t n) {
     if ( DEBUG_tcp_contents )
         DEBUG_MSG("%.6f TCP contents overlap: %" PRIu64 " IsOrig()=%d\n", run_state::network_time, n, IsOrig());
 
-    if ( rexmit_inconsistency && memcmp((const void*)b1, (const void*)b2, n) &&
+    if ( rexmit_inconsistency && (memcmp((const void*)b1, (const void*)b2, n) != 0) &&
          // The following weeds out keep-alives for which that's all
          // we've ever seen for the connection.
          (n > 1 || endp->peer->HasDoneSomething()) ) {

@@ -16,4 +16,5 @@ Checks: [-*,
          bugprone-suspicious-realloc-usage,
          bugprone-throw-keyword-missing,
          bugprone-unused-local-non-trivial-variable,
+         bugprone-unsafe-functions,
 ]

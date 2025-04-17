@@ -71,6 +71,8 @@ std::unique_ptr<Hasher> Hasher::Unserialize(BrokerDataView data) {
         case Default: hasher.reset(new DefaultHasher(k, {h1, h2})); break;
 
         case Double: hasher.reset(new DoubleHasher(k, {h1, h2})); break;
+
+        default: break;
     }
 
     // Note that the derived classed don't hold any further state of

@@ -12,4 +12,5 @@ Checks: [-*,
          bugprone-string-literal-with-embedded-nul,
          bugprone-suspicious-stringview-data-usage,
          bugprone-suspicious-string-compare,
+         bugprone-suspicious-include,
 ]

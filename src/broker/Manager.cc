@@ -719,7 +719,7 @@ bool Manager::PublishIdentifier(std::string topic, std::string id) {
 
     broker::zeek::IdentifierUpdate msg(std::move(id), std::move(data.value_));
     DBG_LOG(DBG_BROKER, "Publishing id-update: %s", RenderMessage(topic, msg.as_data()).c_str());
-    bstate->endpoint.publish(std::move(topic), msg.move_data());
+    bstate->hub.publish(broker::data_envelope::make(broker::topic(std::move(topic)), msg.move_data()));
     num_ids_outgoing_metric->Inc();
     return true;
 }
@@ -768,9 +768,10 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer, const logging::
     if ( peer.node != NoPeer.node )
         // Direct message.
         bstate->endpoint.publish(peer, std::move(topic), msg.move_data());
-    else
+    else {
         // Broadcast.
-        bstate->endpoint.publish(std::move(topic), msg.move_data());
+        bstate->hub.publish(broker::data_envelope::make(broker::topic(std::move(topic)), msg.move_data()));
+    }
 
     return true;
 }

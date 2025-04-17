@@ -361,6 +361,16 @@ protected:
      */
     bool ProcessLogMessage(std::string_view format, byte_buffer_span payload);
 
+    /**
+     * Set this backend's identifier to the given value.
+     *
+     * This may be called by backend implementations during DoInitPostScript() if
+     * their node identifier is generated internally.
+     *
+     * @param nid
+     */
+    void SetNodeId(std::string nid);
+
 private:
     /**
      * Called after all Zeek scripts have been loaded.

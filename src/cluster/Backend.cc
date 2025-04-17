@@ -177,6 +177,8 @@ bool Backend::ProcessLogMessage(std::string_view format, byte_buffer_span payloa
     return zeek::log_mgr->WriteBatchFromRemote(result->header, std::move(result->records));
 }
 
+void Backend::SetNodeId(std::string nid) { node_id = std::move(nid); }
+
 bool ThreadedBackend::ProcessBackendMessage(int tag, byte_buffer_span payload) {
     return DoProcessBackendMessage(tag, payload);
 }

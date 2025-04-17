@@ -106,7 +106,7 @@ RETSIGTYPE watchdog(int /* signo */) {
             }
 
             get_final_stats();
-            finish_run(0);
+            util::detail::set_processing_status("TERMINATING", "watchdog");
 
             reporter->FatalErrorWithCore("**watchdog timer expired, t = %d.%06d, start = %d.%06d, dispatched = %d",
                                          int_ct, frac_ct, int_pst, frac_pst, current_dispatched);
@@ -340,9 +340,7 @@ void run_loop() {
         }
     }
 
-    // Get the final statistics now, and not when finish_run() is
-    // called, since that might happen quite a bit in the future
-    // due to expiring pending timers, and we don't want to ding
+    // Get the final statistics now, as we don't want to ding
     // for any packets dropped beyond this point.
     get_final_stats();
 }
@@ -373,29 +371,6 @@ void get_final_stats() {
                        s.received, ps->Path().c_str(), s.dropped, dropped_pct, not_processed, unprocessed_pct,
                        filtered.c_str());
     }
-}
-
-void finish_run(int drain_events) {
-    util::detail::set_processing_status("TERMINATING", "finish_run");
-
-    if ( drain_events ) {
-        if ( session_mgr )
-            session_mgr->Drain();
-
-        event_mgr.Drain();
-
-        if ( session_mgr )
-            session_mgr->Done();
-    }
-
-#ifdef DEBUG
-    extern int reassem_seen_bytes, reassem_copied_bytes;
-    // DEBUG_MSG("Reassembly (TCP and IP/Frag): %d bytes seen, %d bytes copied\n",
-    // 	reassem_seen_bytes, reassem_copied_bytes);
-
-    extern int num_packets_held, num_packets_cleaned;
-    // DEBUG_MSG("packets clean up: %d/%d\n", num_packets_cleaned, num_packets_held);
-#endif
 }
 
 void delete_run() {

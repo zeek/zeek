@@ -26,7 +26,6 @@ extern void init_run(const std::optional<std::string>& interfaces, const std::op
                      const std::optional<std::string>& pcap_output_file, bool do_watchdog);
 extern void run_loop();
 extern void get_final_stats();
-extern void finish_run(int drain_events);
 extern void delete_run(); // Reclaim all memory, etc.
 extern void update_network_time(double new_network_time);
 extern void dispatch_packet(zeek::Packet* pkt, zeek::iosource::PktSrc* pkt_src);

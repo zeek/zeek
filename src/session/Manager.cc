@@ -87,8 +87,6 @@ Manager::~Manager() {
     delete stats;
 }
 
-void Manager::Done() {}
-
 Connection* Manager::FindConnection(Val* v) {
     zeek::detail::ConnKey conn_key(v);
 

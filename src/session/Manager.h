@@ -59,7 +59,8 @@ public:
     Manager();
     ~Manager();
 
-    void Done(); // call to drain events before destructing
+    [[deprecated("Remove in v8.1 - no functionality. Use Drain() and Clear().")]]
+    void Done() {};
 
     // Looks up the connection referred to by the given Val,
     // which should be a conn_id record.  Returns nil if there's

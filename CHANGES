@@ -1,3 +1,15 @@
+7.2.0-dev.548 | 2025-04-17 15:20:27 +0200
+
+  * Remove finish_run() (Jan Grashoefer, Corelight)
+
+  * Deprecate session manager's Done() (Jan Grashoefer, Corelight)
+
+  * Clear sessions when session manager is done (Jan Grashoefer, Corelight)
+
+    It looks like there is no reason to keep sessions in the map beyond the
+    point where the session manager is considered done. This hopefully
+    simplifies the shutdown control flow a tiny bit.
+
 7.2.0-dev.544 | 2025-04-16 15:40:52 -0700
 
   * Suppress warnings from compilation of external ixwebsocket dependency (Benjamin Bannier, Corelight)

@@ -63,7 +63,6 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterConstant(const ValPtr& vp, int& con
     }
 
     auto tag = t->Tag();
-    auto const_name = const_info[tag]->NextName();
     shared_ptr<CPP_InitInfo> gi;
 
     switch ( tag ) {

@@ -27,7 +27,7 @@
 # @TEST-EXEC: btest-diff ./client/out
 # @TEST-EXEC: btest-diff ./client/.stderr
 
-@TEST-START-FILE common.zeek
+# @TEST-START-FILE common.zeek
 redef Log::enable_local_logging = T;
 redef Log::default_rotation_interval = 0sec;
 
@@ -63,7 +63,7 @@ event ping(msg: string, n: count) &is_used
 		Cluster::publish("/test/pings/", pong, reply_msg, ping_count);
 		}
 	}
-@TEST-END-FILE
+# @TEST-END-FILE
 
 # @TEST-START-FILE manager.zeek
 @load ./common.zeek
@@ -118,33 +118,36 @@ event Cluster::node_down(name: string, id: string)
 # @TEST-END-FILE
 
 
-@TEST-START-FILE client.py
+# @TEST-START-FILE client.py
 import wstest
 
 def run(ws_url):
-    with wstest.connect("ws1", ws_url) as tc1:
-        with wstest.connect("ws2", ws_url) as tc2:
-            with wstest.connect("ws3", ws_url) as tc3:
-                clients = [tc1, tc2, tc3]
-                print("Connected!")
-                ids = set()
-                for tc in clients:
-                    ack = tc.hello_v1(["/test/pings/"])
-                    ids.add(ack["endpoint"])
+    with (
+        wstest.connect("ws1", ws_url) as tc1,
+        wstest.connect("ws2", ws_url) as tc2,
+        wstest.connect("ws3", ws_url) as tc3,
+    ):
+        clients = [tc1, tc2, tc3]
+        print("Connected!")
+        ids = set()
+        for tc in clients:
+            ack = tc.hello_v1(["/test/pings/"])
+            ids.add(ack["endpoint"])
 
-                print("unique ids", len(ids))
+        print("unique ids", len(ids))
 
-                for i in range(1, 4):
-                    msg = "to-manager" if i % 2 == 0 else "to-worker"
-                    tc1.send_json(wstest.build_event_v1("/test/pings/", "ping", [msg, 100 + i]))
-                    wstest.recv_until_timeout(clients, desc=f"tc1 - ping {i}")
+        for i in range(1, 4):
+            msg = "to-manager" if i % 2 == 0 else "to-worker"
+            tc1.send_json(wstest.build_event_v1("/test/pings/", "ping", [msg, 100 + i]))
+            wstest.recv_until_timeout(clients, desc=f"tc1 - ping {i}")
 
-                    tc2.send_json(wstest.build_event_v1("/test/pings/", "ping", [msg, 200 + i]))
-                    wstest.recv_until_timeout(clients, desc=f"tc2 - ping {i}")
+            tc2.send_json(wstest.build_event_v1("/test/pings/", "ping", [msg, 200 + i]))
+            wstest.recv_until_timeout(clients, desc=f"tc2 - ping {i}")
 
-                    tc3.send_json(wstest.build_event_v1("/test/pings/", "ping", [msg, 300 + i]))
-                    wstest.recv_until_timeout(clients, desc=f"tc3 - ping {i}")
+            tc3.send_json(wstest.build_event_v1("/test/pings/", "ping", [msg, 300 + i]))
+            wstest.recv_until_timeout(clients, desc=f"tc3 - ping {i}")
+
 
 if __name__ == "__main__":
     wstest.main(run, wstest.WS4_URL_V1)
-@TEST-END-FILE
+# @TEST-END-FILE

@@ -17,4 +17,5 @@ Checks: [-*,
          bugprone-throw-keyword-missing,
          bugprone-unused-local-non-trivial-variable,
          bugprone-unsafe-functions,
+         bugprone-unused-return-value,
 ]

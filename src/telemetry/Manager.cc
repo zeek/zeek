@@ -301,7 +301,8 @@ ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view
 
     // Due to the name containing the full information about a metric including a potential unit add an
     // asterisk to the end of the full pattern so matches work correctly.
-    std::string full_pattern = util::fmt("%s_%s", prefix_pattern.data(), name_pattern.data());
+    std::string full_pattern = util::fmt("%.*s_%.*s", static_cast<int>(prefix_pattern.size()), prefix_pattern.data(),
+                                         static_cast<int>(name_pattern.size()), name_pattern.data());
     if ( full_pattern[full_pattern.size() - 1] != '*' )
         full_pattern.append("*");
 
@@ -380,7 +381,8 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
 
     // Due to the name containing the full information about a metric including a potential unit add an
     // asterisk to the end of the full pattern so matches work correctly.
-    std::string full_pattern = util::fmt("%s_%s", prefix_pattern.data(), name_pattern.data());
+    std::string full_pattern = util::fmt("%.*s_%.*s", static_cast<int>(prefix_pattern.size()), prefix_pattern.data(),
+                                         static_cast<int>(name_pattern.size()), name_pattern.data());
     if ( full_pattern[full_pattern.size() - 1] != '*' )
         full_pattern.append("*");
 

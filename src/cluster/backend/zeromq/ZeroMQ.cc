@@ -45,15 +45,9 @@ enum class DebugFlag : zeek_uint_t {
 };
 
 enum class InprocTag : uint8_t {
-    XSUB,
-    Shutdown,
+    XsubUpdate,
+    Terminate,
 };
-
-namespace {
-
-zeek::cluster::zeromq::InprocTag inproc_tag_shutdown[] = {InprocTag::Shutdown};
-zeek::cluster::zeromq::InprocTag inproc_tag_xsub[] = {InprocTag::XSUB};
-} // namespace
 
 constexpr DebugFlag operator&(zeek_uint_t x, DebugFlag y) {
     return static_cast<DebugFlag>(x & static_cast<zeek_uint_t>(y));
@@ -127,8 +121,9 @@ void ZeroMQBackend::DoTerminate() {
     // If self_thread is running, notify it to shutdown via the inproc
     // socket, then wait for it to terminate.
     if ( self_thread.joinable() && ! self_thread_shutdown_requested ) {
-        ZEROMQ_DEBUG("Sending shutdown request via inproc socket");
-        main_inproc.send(zmq::const_buffer(inproc_tag_shutdown, sizeof(inproc_tag_shutdown)), zmq::send_flags::sndmore);
+        ZEROMQ_DEBUG("Sending terminate request via inproc socket");
+        auto tag = InprocTag::Terminate;
+        main_inproc.send(zmq::const_buffer(&tag, 1), zmq::send_flags::sndmore);
         main_inproc.send(zmq::const_buffer("", 0));
         self_thread_shutdown_requested = true;
 
@@ -327,9 +322,10 @@ bool ZeroMQBackend::DoSubscribe(const std::string& topic_prefix, SubscribeCallba
         // This is the XSUB API instead of setsockopt(ZMQ_SUBSCRIBE).
         std::string msg = "\x01" + topic_prefix;
 
-        // Send a two message parts. The first part is a single byte tagging the
-        // message as a XSUB command. The second part the message for the XSUB socket.
-        main_inproc.send(zmq::const_buffer(inproc_tag_xsub, sizeof(inproc_tag_xsub)), zmq::send_flags::sndmore);
+        // Send two message parts. The first part is a single byte tagging the
+        // message as a XSUB update. The second part the payload for the XSUB socket.
+        auto tag = InprocTag::XsubUpdate;
+        main_inproc.send(zmq::const_buffer(&tag, 1), zmq::send_flags::sndmore);
         main_inproc.send(zmq::const_buffer(msg.data(), msg.size()));
     } catch ( const zmq::error_t& err ) {
         zeek::reporter->Error("Failed to subscribe to topic %s: %s", topic_prefix.c_str(), err.what());
@@ -349,13 +345,14 @@ bool ZeroMQBackend::DoSubscribe(const std::string& topic_prefix, SubscribeCallba
 bool ZeroMQBackend::DoUnsubscribe(const std::string& topic_prefix) {
     ZEROMQ_DEBUG("Unsubscribing %s", topic_prefix.c_str());
     try {
-        // Prepend 0x00 byte to indicate subscription to XSUB socket.
+        // Prepend 0x00 byte to indicate unsubscription to XSUB socket.
         // This is the XSUB API instead of setsockopt(ZMQ_SUBSCRIBE).
         std::string msg = '\0' + topic_prefix;
 
-        // Send a two message parts. The first part is a single byte tagging the
-        // message as a XSUB command. The second part the message for the XSUB socket.
-        main_inproc.send(zmq::const_buffer(inproc_tag_xsub, sizeof(inproc_tag_xsub)), zmq::send_flags::sndmore);
+        // Send two message parts. The first part is a single byte tagging the
+        // message as a XSUB update. The second part the payload for the XSUB socket.
+        auto tag = InprocTag::XsubUpdate;
+        main_inproc.send(zmq::const_buffer(&tag, 1), zmq::send_flags::sndmore);
         main_inproc.send(zmq::const_buffer(msg.data(), msg.size()));
     } catch ( const zmq::error_t& err ) {
         zeek::reporter->Error("Failed to unsubscribe from topic %s: %s", topic_prefix.c_str(), err.what());
@@ -446,23 +443,22 @@ void ZeroMQBackend::Run() {
     auto HandleInprocMessages = [this](std::vector<MultipartMessage>& msgs) {
         // Forward messages from the inprocess bridge.
         //
-        // Either it's two parts (tag, payload) for controlling subscriptions
-        // or initiating a shutdown, or it is 4 parts in which case messages
-        // are directly forwarded to the XPUB socket.
+        // Either it's 2 parts (tag and payload) for controlling subscriptions
+        // or terminating the thread, or it is 4 parts in which case all the parts
+        // are forwarded to the XPUB socket directly for publishing.
         for ( auto& msg : msgs ) {
             if ( msg.size() == 2 ) {
                 InprocTag tag = msg[0].data<InprocTag>()[0];
-                if ( tag == InprocTag::XSUB ) {
-                    xsub.send(msg[1], zmq::send_flags::none);
-                }
-                else if ( tag == InprocTag::Shutdown ) {
-                    if ( self_thread_stop )
-                        ZEROMQ_THREAD_PRINTF("inproc: error: duplicate shutdown message");
-
-                    self_thread_stop = true;
-                }
-                else {
-                    ZEROMQ_THREAD_PRINTF("inproc: error: unknown tag %x", static_cast<uint8_t>(tag));
+                switch ( tag ) {
+                    case InprocTag::XsubUpdate: {
+                        xsub.send(msg[1], zmq::send_flags::none);
+                        break;
+                    }
+                    case InprocTag::Terminate: {
+                        if ( self_thread_stop )
+                            ZEROMQ_THREAD_PRINTF("inproc: error: duplicate shutdown message");
+                        self_thread_stop = true;
+                    }
                 }
             }
             else if ( msg.size() == 4 ) {

@@ -19,13 +19,13 @@
 # @TEST-EXEC: btest-diff ./client/.stdout
 # @TEST-EXEC: btest-diff ./client/.stderr
 
-@TEST-START-FILE cluster-layout.zeek
+# @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
 	["manager"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
 };
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE manager.zeek
+# @TEST-START-FILE manager.zeek
 redef exit_only_after_terminate = T;
 
 redef Log::enable_local_logging = T;

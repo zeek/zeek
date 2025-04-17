@@ -6,6 +6,7 @@
 #include <broker/backend_options.hh>
 #include <broker/detail/hash.hh>
 #include <broker/endpoint_info.hh>
+#include <broker/hub.hh>
 #include <broker/peer_info.hh>
 #include <broker/store.hh>
 #include <broker/zeek.hh>
@@ -13,6 +14,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Span.h"
@@ -162,7 +164,7 @@ public:
     /**
      * @return a unique identifier for this broker endpoint.
      */
-    std::string NodeID() const;
+    [[deprecated("Remove in v8.1: Use Backend::NodeId() instead.")]] std::string NodeID() const;
 
     /**
      * Send an identifier's value to interested peers.
@@ -445,8 +447,8 @@ private:
 
     void Error(const char* format, ...) __attribute__((format(printf, 2, 3)));
 
-    // Processes events from the Broker message queue.
-    void ProcessMessages();
+    // Processes messages gathered via poll().
+    void ProcessMessages(std::vector<broker::data_message> messages);
 
     // Process events from Broker logger.
     void ProcessLogEvents();
@@ -462,6 +464,16 @@ private:
     void Process() override;
     const char* Tag() override { return "Broker::Manager"; }
     double GetNextTimeout() override { return -1; }
+
+
+    // Allow WebSocketShim access to MakeHub() and ReleaseHub()
+    friend class WebSocketState;
+
+    // Create a hub for WebSocket clients.
+    broker::hub MakeHub(broker::filter_type ft);
+
+    // This hub is about to be destroyed.
+    void ReleaseHub(const broker::hub&& hub);
 
     struct LogBuffer {
         // Indexed by topic string.
@@ -496,6 +508,7 @@ private:
     uint16_t bound_port;
     bool use_real_time;
     int peer_count;
+    int hub_count;
 
     size_t log_batch_size;
     Func* log_topic_func;

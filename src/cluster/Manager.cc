@@ -55,8 +55,12 @@ bool Manager::ListenWebSocket(const websocket::detail::ServerOptions& options) {
         return false;
     }
 
-    auto server =
-        websocket::detail::StartServer(std::make_unique<websocket::detail::WebSocketEventDispatcher>(), options);
+    std::string ident = util::fmt("%s:%d", options.host.c_str(), options.port);
+
+    auto dispatcher =
+        std::make_unique<websocket::detail::WebSocketEventDispatcher>(std::move(ident),
+                                                                      options.event_dispatcher_queue_size);
+    auto server = websocket::detail::StartServer(std::move(dispatcher), options);
 
     if ( ! server )
         return false;

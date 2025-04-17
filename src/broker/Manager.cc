@@ -226,10 +226,12 @@ public:
         : endpoint(std::move(config), telemetry_mgr->GetRegistry()),
           subscriber(
               endpoint.make_subscriber({broker::topic::statuses(), broker::topic::errors()}, congestion_queue_size)),
+          hub(endpoint.make_hub({})),
           loggerQueue(std::move(queue)) {}
 
     broker::endpoint endpoint;
     broker::subscriber subscriber;
+    broker::hub hub;
     LoggerQueuePtr loggerQueue;
     SeverityLevel logSeverity = SeverityLevel::critical;
     SeverityLevel stderrSeverity = SeverityLevel::critical;
@@ -281,6 +283,7 @@ Manager::Manager(bool arg_use_real_time) : Backend("Broker", nullptr, nullptr, n
     bound_port = 0;
     use_real_time = arg_use_real_time;
     peer_count = 0;
+    hub_count = 0;
     log_batch_size = 0;
     log_topic_func = nullptr;
     log_id_type = nullptr;
@@ -411,10 +414,15 @@ void Manager::DoInitPostScript() {
     if ( ! iosource_mgr->RegisterFd(bstate->subscriber.fd(), this) )
         reporter->FatalError("Failed to register broker subscriber with iosource_mgr");
 
+    if ( ! iosource_mgr->RegisterFd(bstate->hub.read_fd(), this) )
+        reporter->FatalError("Failed to register broker hub.read_fd() with iosource_mgr");
+
     if ( ! iosource_mgr->RegisterFd(queue->FlareFd(), this) )
         reporter->FatalError("Failed to register broker logger with iosource_mgr");
 
     bstate->subscriber.add_topic(broker::topic::store_events(), true);
+
+    SetNodeId(broker::to_string(bstate->endpoint.node_id()));
 
     InitializeBrokerStoreForwarding();
 
@@ -484,6 +492,8 @@ void Manager::DoTerminate() {
 
     iosource_mgr->UnregisterFd(bstate->subscriber.fd(), this);
 
+    iosource_mgr->UnregisterFd(bstate->hub.read_fd(), this);
+
     iosource_mgr->UnregisterFd(bstate->loggerQueue->FlareFd(), this);
 
     vector<string> stores_to_close;
@@ -508,7 +518,7 @@ bool Manager::Active() {
     if ( bound_port > 0 )
         return true;
 
-    return peer_count > 0;
+    return peer_count > 0 || hub_count > 0;
 }
 
 void Manager::AdvanceTime(double seconds_since_unix_epoch) {
@@ -632,7 +642,8 @@ bool Manager::DoPublishEvent(const std::string& topic, cluster::detail::Event& e
     auto& ev = maybe_ev.value();
 
     DBG_LOG(DBG_BROKER, "Publishing event: %s", RenderEvent(topic, std::string(ev.name()), ev.args()).c_str());
-    bstate->endpoint.publish(topic, ev.move_data());
+    auto msg = broker::data_envelope::make(broker::topic(topic), ev.as_data());
+    bstate->hub.publish(std::move(msg));
     num_events_outgoing_metric->Inc();
     return true;
 }
@@ -641,12 +652,13 @@ bool Manager::PublishEvent(string topic, std::string name, broker::vector args, 
     if ( bstate->endpoint.is_shutdown() )
         return true;
 
-    if ( peer_count == 0 )
+    if ( peer_count == 0 && hub_count == 0 )
         return true;
 
     broker::zeek::Event ev(name, args, broker::to_timestamp(ts));
     DBG_LOG(DBG_BROKER, "Publishing event: %s", RenderEvent(topic, name, ev.args()).c_str());
-    bstate->endpoint.publish(std::move(topic), ev.move_data());
+    auto msg = broker::data_envelope::make(broker::topic(topic), ev.as_data());
+    bstate->hub.publish(std::move(msg));
     num_events_outgoing_metric->Inc();
     return true;
 }
@@ -655,7 +667,7 @@ bool Manager::PublishEvent(string topic, RecordVal* args) {
     if ( bstate->endpoint.is_shutdown() )
         return true;
 
-    if ( peer_count == 0 )
+    if ( peer_count == 0 && hub_count == 0 )
         return true;
 
     if ( ! args->HasField(0) )
@@ -1024,7 +1036,7 @@ zeek::RecordValPtr Manager::MakeEvent(ArgsSpan args, zeek::detail::Frame* frame)
 
 bool Manager::DoSubscribe(const string& topic_prefix, SubscribeCallback cb) {
     DBG_LOG(DBG_BROKER, "Subscribing to topic prefix %s", topic_prefix.c_str());
-    bstate->subscriber.add_topic(topic_prefix, ! run_state::detail::zeek_init_done);
+    bstate->hub.subscribe(topic_prefix, ! run_state::detail::zeek_init_done);
 
     if ( cb )
         cb(topic_prefix, {CallbackStatus::NotImplemented});
@@ -1052,13 +1064,11 @@ bool Manager::DoUnsubscribe(const string& topic_prefix) {
         }
 
     DBG_LOG(DBG_BROKER, "Unsubscribing from topic prefix %s", topic_prefix.c_str());
-    bstate->subscriber.remove_topic(topic_prefix, ! run_state::detail::zeek_init_done);
+    bstate->hub.unsubscribe(topic_prefix, ! run_state::detail::zeek_init_done);
     return true;
 }
 
-void Manager::ProcessMessages() {
-    auto messages = bstate->subscriber.poll();
-
+void Manager::ProcessMessages(std::vector<broker::data_message> messages) {
     for ( auto& message : messages ) {
         auto&& topic = broker::get_topic(message);
 
@@ -1156,8 +1166,10 @@ void Manager::ProcessLogEvents() {
             event_mgr.Enqueue(::Broker::internal_log_event, std::move(args));
         }
         if ( bstate->stderrSeverity >= severity ) {
-            fprintf(stderr, "[BROKER/%s] %s\n", severity_names_tbl[static_cast<int>(severity)],
-                    event->description.c_str());
+            // Formatting string_view with %.*s: Explicit precision specified as int argument for following char*
+            // as the string_view is not guaranteed to be null terminated (though it's probably here).
+            fprintf(stderr, "[BROKER/%s] %.*s: %s\n", severity_names_tbl[static_cast<int>(severity)],
+                    static_cast<int>(event->identifier.size()), event->identifier.data(), event->description.c_str());
         }
     }
 }
@@ -1181,7 +1193,10 @@ void Manager::ProcessDataStores() {
 
 void Manager::ProcessFd(int fd, int flags) {
     if ( fd == bstate->subscriber.fd() ) {
-        ProcessMessages();
+        ProcessMessages(bstate->subscriber.poll());
+    }
+    else if ( fd == bstate->hub.read_fd() ) {
+        ProcessMessages(bstate->hub.poll());
     }
     else if ( fd == bstate->loggerQueue->FlareFd() ) {
         ProcessLogEvents();
@@ -1197,7 +1212,11 @@ void Manager::ProcessFd(int fd, int flags) {
 }
 
 void Manager::Process() {
-    ProcessMessages();
+    if ( ! bstate )
+        return;
+
+    ProcessMessages(bstate->subscriber.poll());
+    ProcessMessages(bstate->hub.poll());
     ProcessLogEvents();
     ProcessDataStores();
 }
@@ -1972,5 +1991,12 @@ void Manager::PrepareForwarding(const std::string& name) {
     handle->forward_to = forwarded_stores.at(name);
     DBG_LOG(DBG_BROKER, "Resolved table forward for data store %s", name.c_str());
 }
+
+broker::hub Manager::MakeHub(broker::filter_type ft) {
+    ++hub_count;
+    return bstate->endpoint.make_hub(std::move(ft));
+}
+
+void Manager::ReleaseHub(const broker::hub&& hub) { --hub_count; }
 
 } // namespace zeek::Broker

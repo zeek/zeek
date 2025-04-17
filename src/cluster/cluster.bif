@@ -196,8 +196,19 @@ function Cluster::__listen_websocket%(options: WebSocketServerOptions%): bool
 		options_rec->GetField<zeek::StringVal>("listen_host")->ToStdString(),
 		static_cast<uint16_t>(options_rec->GetField<zeek::PortVal>("listen_port")->Port()),
 	};
+
+	server_options.event_dispatcher_queue_size = options_rec->GetField<zeek::PortVal>("event_dispatcher_queue_size")->AsCount();
 	server_options.tls_options = std::move(tls_options);
 
 	auto result = zeek::cluster::manager->ListenWebSocket(server_options);
 	return zeek::val_mgr->Bool(result);
 	%}
+
+module Cluster::Backend;
+
+## Generated on cluster backend error.
+##
+## code: A structured error code, not further specified.
+##
+## message: A free form message with more details about the error.
+event error%(code: string, message: string%);

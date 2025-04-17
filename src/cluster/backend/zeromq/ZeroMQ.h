@@ -105,6 +105,8 @@ private:
     zmq::socket_t log_pull;
 
     std::thread self_thread;
+    bool self_thread_shutdown_requested = false;
+    bool self_thread_stop = false;
 
     int proxy_io_threads = 2;
     std::unique_ptr<ProxyThread> proxy_thread;

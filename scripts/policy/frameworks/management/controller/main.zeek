@@ -1644,7 +1644,9 @@ event zeek_init()
 
 	if ( cni$bound_port != 0/unknown )
 		{
+@pragma push ignore-deprecations
 		Broker::listen_websocket(cat(cni$address), cni$bound_port);
+@pragma pop ignore-deprecations
 		websocket_info = fmt("websocket port %s:%s", cni$address, cni$bound_port);
 		}
 

@@ -118,7 +118,8 @@ bool MMDB::EnsureLoaded() {
 
     if ( ! res && ! reported_error ) {
         reported_error = true;
-        zeek::emit_builtin_error(zeek::util::fmt("Failed to open %s", Description().data()));
+        zeek::emit_builtin_error(
+            zeek::util::fmt("Failed to open %.*s", static_cast<int>(Description().size()), Description().data()));
     }
 
     return res;

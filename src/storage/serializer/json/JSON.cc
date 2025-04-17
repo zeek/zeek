@@ -35,8 +35,9 @@ zeek::expected<ValPtr, std::string> JSON::Unserialize(byte_buffer_span buf, Type
 
     std::string_view version = std::string_view(text).substr(0, semicolon);
     if ( version != versioned_name )
-        return zeek::unexpected<std::string>(
-            util::fmt("Version doesn't match: %s vs %s", version.data(), versioned_name.c_str()));
+        return zeek::unexpected<std::string>(util::fmt("Version doesn't match: %.*s vs %s",
+                                                       static_cast<int>(version.size()), version.data(),
+                                                       versioned_name.c_str()));
 
     return zeek::detail::ValFromJSON(text.substr(semicolon + 1), type, Func::nil);
 }

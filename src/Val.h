@@ -1186,6 +1186,7 @@ public:
     }
     void Assign(int field, const char* new_val) { Assign(field, new StringVal(new_val)); }
     void Assign(int field, const std::string& new_val) { Assign(field, new StringVal(new_val)); }
+    void Assign(int field, std::string_view new_val) { Assign(field, new StringVal(new_val)); }
     void Assign(int field, String* new_val) { Assign(field, new StringVal(new_val)); }
 
     /**

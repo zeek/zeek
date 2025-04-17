@@ -7,4 +7,5 @@ Checks: [-*,
          bugprone-macro-parentheses,
          bugprone-multi-level-implicit-pointer-conversion,
          bugprone-inc-dec-in-conditions,
+         bugprone-misplaced-widening-cast,
 ]

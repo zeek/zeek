@@ -167,6 +167,7 @@ TEST_CASE("fmt_mac") {
     CHECK(my_fmt_mac("", 0) == "");
     CHECK(my_fmt_mac("\x01\x02\x03\x04\x05\x06", 4) == "");
     CHECK(my_fmt_mac("\x01\x02\x03\x04\x05\x06", 6) == "01:02:03:04:05:06");
+    // NOLINTNEXTLINE(bugprone-string-literal-with-embedded-nul)
     CHECK(my_fmt_mac("\x01\x02\x03\x04\x05\x06\x00\x00", 8) == "01:02:03:04:05:06");
     CHECK(my_fmt_mac("\x01\x02\x03\x04\x05\x06\x07\x08", 8) == "01:02:03:04:05:06:07:08");
     CHECK(my_fmt_mac("\x08\x07\x06\x05\x04\x03\x02\x01", 8) == "08:07:06:05:04:03:02:01");
@@ -191,6 +192,7 @@ TEST_CASE("fmt_mac_bytes") {
     CHECK(len2 == 2 * 6 + 5);
     CHECK(memcmp(buf2.get(), "01:02:03:04:05:06", len2 + 1) == 0);
 
+    // NOLINTNEXTLINE(bugprone-string-literal-with-embedded-nul)
     auto [buf3, len3] = my_fmt_mac_bytes("\x01\x02\x03\x04\x05\x06\x00\x00", 8);
     CHECK(len3 == 2 * 6 + 5);
     CHECK(memcmp(buf3.get(), "01:02:03:04:05:06", len3 + 1) == 0);

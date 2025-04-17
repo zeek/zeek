@@ -467,7 +467,7 @@ void Reporter::Deprecation(std::string_view msg, const detail::Location* loc1, c
     if ( loc1 || loc2 )
         PushLocation(loc1, loc2);
 
-    Warning("%s", msg.data());
+    Warning("%.*s", static_cast<int>(msg.size()), msg.data());
 
     if ( loc1 || loc2 )
         PopLocation();

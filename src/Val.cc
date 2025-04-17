@@ -981,8 +981,8 @@ static zeek::expected<ValPtr, std::string> BuildVal(const rapidjson::Value& j, c
                     else if ( unit == "usec" || unit == "usecs" )
                         interval_secs += (value * Microseconds);
                     else
-                        return zeek::unexpected<std::string>(
-                            util::fmt("wrong interval format, invalid unit type %s", unit.data()));
+                        return zeek::unexpected<std::string>(util::fmt("wrong interval format, invalid unit type %.*s",
+                                                                       static_cast<int>(unit.size()), unit.data()));
                 }
 
                 return make_intrusive<IntervalVal>(interval_secs, Seconds);

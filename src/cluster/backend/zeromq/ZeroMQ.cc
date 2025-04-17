@@ -123,25 +123,27 @@ void ZeroMQBackend::DoInitPostScript() {
 
 void ZeroMQBackend::DoTerminate() {
     ThreadedBackend::DoTerminate();
-    ZEROMQ_DEBUG("Sending shutdown request via inproc");
 
-    // Notify self_thread to shutdown, then join it.
-    if ( ! self_thread_shutdown_requested ) {
+    // If self_thread is running, notify it to shutdown via the inproc
+    // socket, then wait for it to terminate.
+    if ( self_thread.joinable() && ! self_thread_shutdown_requested ) {
+        ZEROMQ_DEBUG("Sending shutdown request via inproc socket");
         main_inproc.send(zmq::const_buffer(inproc_tag_shutdown, sizeof(inproc_tag_shutdown)), zmq::send_flags::sndmore);
         main_inproc.send(zmq::const_buffer("", 0));
         self_thread_shutdown_requested = true;
-    }
 
-    ZEROMQ_DEBUG("Joining self_thread");
-    if ( self_thread.joinable() )
-        self_thread.join();
-    ZEROMQ_DEBUG("Joined self_thread");
+        ZEROMQ_DEBUG("Joining self_thread");
+        if ( self_thread.joinable() )
+            self_thread.join();
+        ZEROMQ_DEBUG("Joined self_thread");
+    }
 
     ZEROMQ_DEBUG("Shutting down ctx");
     ctx.shutdown();
 
     // Close the sockets that are used from the main thread,
-    // the remaining sockets are closed by self_thread.
+    // the remaining sockets were closed by self_thread during
+    // shutdown already.
     log_push.close();
     main_inproc.close();
 
@@ -325,8 +327,8 @@ bool ZeroMQBackend::DoSubscribe(const std::string& topic_prefix, SubscribeCallba
         // This is the XSUB API instead of setsockopt(ZMQ_SUBSCRIBE).
         std::string msg = "\x01" + topic_prefix;
 
-        // Send a two parts: "1" to indicate this is about subscriptions
-        // and the actual subscription message.
+        // Send a two message parts. The first part is a single byte tagging the
+        // message as a XSUB command. The second part the message for the XSUB socket.
         main_inproc.send(zmq::const_buffer(inproc_tag_xsub, sizeof(inproc_tag_xsub)), zmq::send_flags::sndmore);
         main_inproc.send(zmq::const_buffer(msg.data(), msg.size()));
     } catch ( const zmq::error_t& err ) {
@@ -351,8 +353,8 @@ bool ZeroMQBackend::DoUnsubscribe(const std::string& topic_prefix) {
         // This is the XSUB API instead of setsockopt(ZMQ_SUBSCRIBE).
         std::string msg = '\0' + topic_prefix;
 
-        // Send a two parts: "1" to indicate this is about subscriptions
-        // and the actual subscription message.
+        // Send a two message parts. The first part is a single byte tagging the
+        // message as a XSUB command. The second part the message for the XSUB socket.
         main_inproc.send(zmq::const_buffer(inproc_tag_xsub, sizeof(inproc_tag_xsub)), zmq::send_flags::sndmore);
         main_inproc.send(zmq::const_buffer(msg.data(), msg.size()));
     } catch ( const zmq::error_t& err ) {
@@ -455,7 +457,8 @@ void ZeroMQBackend::Run() {
                 }
                 else if ( tag == InprocTag::Shutdown ) {
                     if ( self_thread_stop )
-                        ZEROMQ_THREAD_PRINTF("inproc: error: duplicate shutdown");
+                        ZEROMQ_THREAD_PRINTF("inproc: error: duplicate shutdown message");
+
                     self_thread_stop = true;
                 }
                 else {

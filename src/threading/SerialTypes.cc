@@ -245,8 +245,8 @@ bool Value::Read(detail::SerializationFormat* fmt) {
 
             switch ( family ) {
                 case 4: val.addr_val.family = IPv4; return fmt->Read(&val.addr_val.in.in4, "addr-in4");
-
                 case 6: val.addr_val.family = IPv6; return fmt->Read(&val.addr_val.in.in6, "addr-in6");
+                default: reporter->Warning("Unknown family type %d when reading addr\n", family); break;
             }
 
             // Can't be reached.
@@ -270,6 +270,7 @@ bool Value::Read(detail::SerializationFormat* fmt) {
                     val.subnet_val.length = (uint8_t)length;
                     val.subnet_val.prefix.family = IPv6;
                     return fmt->Read(&val.subnet_val.prefix.in.in6, "subnet-in6");
+                default: reporter->Warning("Unknown family type %d when reading subnet\n", family); break;
             }
 
             // Can't be reached.

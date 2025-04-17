@@ -12,7 +12,7 @@
 
 #include "zeek/DbgBreakpoint.h"
 #include "zeek/Debug.h"
-#include "zeek/DebugCmdInfoConstants.cc"
+#include "zeek/DebugCmdInfoConstants.cc" // NOLINT(bugprone-suspicious-include)
 #include "zeek/Desc.h"
 #include "zeek/Frame.h"
 #include "zeek/Func.h"

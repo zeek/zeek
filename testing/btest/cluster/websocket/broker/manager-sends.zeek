@@ -1,12 +1,7 @@
 # @TEST-DOC: Test visibility of endpoint messages at websocket clients.
 #
-# Manager opens a websocket port, waits for three clients, sends 3 ping messages.
-#
-# Expectations:
-#
-# * clients see the messages
-#
-# * Current state: Clients see nothing.
+# Manager opens a websocket port, waits for three clients, sends 3 ping messages,
+# the clients observe the manager's messages.
 #
 # @TEST-REQUIRES: python3 -c 'import websockets.sync'
 #

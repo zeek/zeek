@@ -7,9 +7,6 @@
 # * ping events from one websocket client are received by manager, worker, and the other websocket clients
 # * pong events from manager and worker are received by all websocket clients and worker or manager
 #
-# * Current state: manager does not see events from websocket clients and does
-#                  not send pongs.
-#
 # @TEST-REQUIRES: python3 -c 'import websockets.sync'
 #
 # @TEST-PORT: BROKER_PORT1

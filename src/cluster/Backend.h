@@ -194,11 +194,7 @@ public:
      *
      * @param nid The node identifier to use.
      */
-    bool Init(std::string nid) {
-        node_id = std::move(nid);
-
-        return DoInit();
-    }
+    bool Init(std::string nid);
 
     /**
      * Hook invoked when Zeek is about to terminate.

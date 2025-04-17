@@ -89,6 +89,11 @@ Backend::Backend(std::string_view arg_name, std::unique_ptr<EventSerializer> es,
         reporter->InternalError("unknown cluster backend name '%s'; mismatch with tag component?", name.c_str());
 }
 
+bool Backend::Init(std::string nid) {
+    SetNodeId(std::move(nid));
+    return DoInit();
+}
+
 std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsSpan args, double timestamp) const {
     auto checked_args = detail::check_args(handler, args);
     if ( ! checked_args )

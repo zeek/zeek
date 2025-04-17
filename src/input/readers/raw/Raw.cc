@@ -606,7 +606,6 @@ bool Raw::DoUpdate() {
         }
     }
 
-    std::string line;
     assert((NumFields() == 1 && ! use_stderr) || (NumFields() == 2 && use_stderr));
     for ( ;; ) {
         if ( stdin_towrite > 0 )

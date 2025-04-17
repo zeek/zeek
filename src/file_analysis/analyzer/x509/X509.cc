@@ -377,6 +377,8 @@ void X509::ParseSAN(X509_EXTENSION* ext) {
 
                     emails->Assign(emails->Size(), std::move(bs));
                     break;
+
+                default: break;
             }
         }
 

@@ -28,13 +28,13 @@
 # @TEST-EXEC: btest-diff ./client/.stdout
 # @TEST-EXEC: btest-diff ./client/.stderr
 
-@TEST-START-FILE cluster-layout.zeek
+# @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
 	["manager"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
 };
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE manager.zeek
+# @TEST-START-FILE manager.zeek
 redef Log::enable_local_logging = T;
 redef Log::default_rotation_interval = 0sec;
 
@@ -82,30 +82,33 @@ event Cluster::websocket_client_lost(info: Cluster::EndpointInfo)
 # @TEST-END-FILE
 
 
-@TEST-START-FILE client.py
+# @TEST-START-FILE client.py
 import wstest
 
 def run(ws_url):
-    with wstest.connect("ws1", ws_url) as tc1:
-        with wstest.connect("ws2", ws_url) as tc2:
-            with wstest.connect("ws3", ws_url) as tc3:
-                clients = [tc1, tc2, tc3]
-                print("Connected!")
-                ids = set()
-                for tc in clients:
-                    ack = tc.hello_v1(["/test/pings/"])
-                    ids.add(ack["endpoint"])
+    with (
+        wstest.connect("ws1", ws_url) as tc1,
+        wstest.connect("ws2", ws_url) as tc2,
+        wstest.connect("ws3", ws_url) as tc3,
+    ):
+        clients = [tc1, tc2, tc3]
+        print("Connected!")
+        ids = set()
+        for tc in clients:
+            ack = tc.hello_v1(["/test/pings/"])
+            ids.add(ack["endpoint"])
 
-                # Send 3x3 pings to the manager and consume the messages
-                # to the clients as well.
-                for i in range(1, 4):
-                        tc1.send_json(wstest.build_event_v1("/test/pings/", "ping", [f"ws1-{i}", 100 + i]))
-                        wstest.recv_until_timeout(clients)
-                        tc2.send_json(wstest.build_event_v1("/test/pings/", "ping", [f"ws2-{i}", 200 + i]))
-                        wstest.recv_until_timeout(clients)
-                        tc3.send_json(wstest.build_event_v1("/test/pings/", "ping", [f"ws3-{i}", 300 + i]))
-                        wstest.recv_until_timeout(clients)
+            # Send 3x3 pings to the manager and consume the messages
+            # to the clients as well.
+        for i in range(1, 4):
+           tc1.send_json(wstest.build_event_v1("/test/pings/", "ping", [f"ws1-{i}", 100 + i]))
+           wstest.recv_until_timeout(clients)
+           tc2.send_json(wstest.build_event_v1("/test/pings/", "ping", [f"ws2-{i}", 200 + i]))
+           wstest.recv_until_timeout(clients)
+           tc3.send_json(wstest.build_event_v1("/test/pings/", "ping", [f"ws3-{i}", 300 + i]))
+           wstest.recv_until_timeout(clients)
+
 
 if __name__ == "__main__":
     wstest.main(run, wstest.WS4_URL_V1)
-@TEST-END-FILE
+# @TEST-END-FILE

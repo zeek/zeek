@@ -27,13 +27,13 @@
 # @TEST-EXEC: btest-diff ./client/.stdout
 # @TEST-EXEC: btest-diff ./client/.stderr
 
-@TEST-START-FILE cluster-layout.zeek
+# @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
 	["manager"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
 };
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE manager.zeek
+# @TEST-START-FILE manager.zeek
 redef Log::enable_local_logging = T;
 redef Log::default_rotation_interval = 0sec;
 
@@ -85,24 +85,26 @@ event Cluster::websocket_client_lost(info: Cluster::EndpointInfo)
 # @TEST-END-FILE
 
 
-@TEST-START-FILE client.py
+# @TEST-START-FILE client.py
 import wstest
 
 def run(ws_url):
-    with wstest.connect("ws1", ws_url) as tc1:
-        with wstest.connect("ws2", ws_url) as tc2:
-            with wstest.connect("ws3", ws_url) as tc3:
-                clients = [tc1, tc2, tc3]
-                print("Connected!")
-                ids = set()
-                for tc in clients:
-                    ack = tc.hello_v1(["/test/pings/"])
-                    ids.add(ack["endpoint"])
+    with (
+        wstest.connect("ws1", ws_url) as tc1,
+        wstest.connect("ws2", ws_url) as tc2,
+        wstest.connect("ws3", ws_url) as tc3,
+    ):
+        clients = [tc1, tc2, tc3]
+        print("Connected!")
+        ids = set()
+        for tc in clients:
+            ack = tc.hello_v1(["/test/pings/"])
+            ids.add(ack["endpoint"])
 
-		        # The manager should send 3 pings in a row, receive them all.
-                wstest.recv_until_timeout(clients, timeout=0.5)
+        # The manager should send 3 pings in a row, receive them all.
+        wstest.recv_until_timeout(clients, timeout=0.5)
 
 
 if __name__ == "__main__":
     wstest.main(run, wstest.WS4_URL_V1)
-@TEST-END-FILE
+# @TEST-END-FILE

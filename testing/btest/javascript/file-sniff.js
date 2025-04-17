@@ -15,8 +15,8 @@ zeek.on('file_state_remove', (f) => {
   f.info.from_js = "Hello from JavaScript";
 });
 
-@TEST-START-FILE ext.zeek
+// @TEST-START-FILE ext.zeek
 redef record Files::Info += {
   from_js: string &log &optional;
 };
-@TEST-END-FILE
+// @TEST-END-FILE

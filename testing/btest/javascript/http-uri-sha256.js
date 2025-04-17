@@ -3,7 +3,7 @@
  * @TEST-EXEC: zeek -b -Cr $TRACES/http/get.trace main.zeek LogAscii::use_json=T
  * @TEST-EXEC: btest-diff http.log
  */
-@TEST-START-FILE main.zeek
+// @TEST-START-FILE main.zeek
 @load base/protocols/http
 
 # Extending log records only works in Zeek script.
@@ -14,9 +14,9 @@ redef record HTTP::Info += {
 
 # Load the JavaScript pieces
 @load ./main.js
-@TEST-END-FILE
+// @TEST-END-FILE
 
-@TEST-START-FILE main.js
+// @TEST-START-FILE main.js
 const crypto = require('crypto');
 
 /*
@@ -27,4 +27,4 @@ const crypto = require('crypto');
 zeek.on('http_request', { priority: -10 }, (c, method, orig_URI, escaped_URI, version) => {
   c.http.uri_sha256 = crypto.createHash('sha256').update(orig_URI).digest().toString('hex');
 });
-@TEST-END-FILE
+// @TEST-END-FILE

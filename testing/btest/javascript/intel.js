@@ -5,12 +5,13 @@
  * @TEST-EXEC: zeek-cut < intel.log > intel.log.noheader
  * @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff intel.log.noheader
  *
- * Following the intel file that we load via Intel::insert().
-@TEST-START-FILE intel.json_lines
+ */
+
+// Following the intel file that we load via Intel::insert().
+// @TEST-START-FILE intel.json_lines
 {"indicator": "141.142.228.5", "indicator_type": "Intel::ADDR", "meta": {"source": "json1"}}
 {"indicator": "bro.org", "indicator_type": "Intel::DOMAIN", "meta": {"source": "json2"}}
-@TEST-END-FILE
-*/
+// @TEST-END-FILE
 const fs = require('fs');
 
 zeek.on('zeek_init', () => {

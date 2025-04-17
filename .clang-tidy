@@ -8,4 +8,5 @@ Checks: [-*,
          bugprone-multi-level-implicit-pointer-conversion,
          bugprone-inc-dec-in-conditions,
          bugprone-misplaced-widening-cast,
+         bugprone-parent-virtual-call,
 ]

@@ -43,131 +43,131 @@
 
 # @TEST-EXEC: btest-diff src-port-range.out
 
-@TEST-START-FILE src-port-eq.sig
+# @TEST-START-FILE src-port-eq.sig
 signature id {
   src-port == 30000
   event "src-port-eq"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-port-eq-nomatch.sig
+# @TEST-START-FILE src-port-eq-nomatch.sig
 signature id {
   src-port == 22
   event "src-port-eq-nomatch"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-port-eq-list.sig
+# @TEST-START-FILE src-port-eq-list.sig
 signature id {
   src-port == 22,23,24,30000
   event "src-port-eq-list"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-port-ne.sig
+# @TEST-START-FILE src-port-ne.sig
 signature id {
   src-port != 22
   event "src-port-ne"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-port-ne-nomatch.sig
+# @TEST-START-FILE src-port-ne-nomatch.sig
 signature id {
   src-port != 30000
   event "src-port-ne-nomatch"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-port-ne-list.sig
+# @TEST-START-FILE src-port-ne-list.sig
 signature id {
   src-port != 22,23,24,25
   event "src-port-ne-list"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-port-ne-list-nomatch.sig
+# @TEST-START-FILE src-port-ne-list-nomatch.sig
 signature id {
   src-port != 22,23,24,25,30000
   event "src-port-ne-list-nomatch"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-port-lt.sig
+# @TEST-START-FILE src-port-lt.sig
 signature id {
   src-port < 30001
   event "src-port-lt"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-port-lt-nomatch.sig
+# @TEST-START-FILE src-port-lt-nomatch.sig
 signature id {
   src-port < 30000
   event "src-port-lt-nomatch"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-port-lte1.sig
+# @TEST-START-FILE src-port-lte1.sig
 signature id {
   src-port <= 30000
   event "src-port-lte1"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-port-lte2.sig
+# @TEST-START-FILE src-port-lte2.sig
 signature id {
   src-port <= 30001
   event "src-port-lte2"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-port-lte-nomatch.sig
+# @TEST-START-FILE src-port-lte-nomatch.sig
 signature id {
   src-port <= 29999
   event "src-port-lte-nomatch"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-port-gt.sig
+# @TEST-START-FILE src-port-gt.sig
 signature id {
   src-port > 29999
   event "src-port-gt"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-port-gt-nomatch.sig
+# @TEST-START-FILE src-port-gt-nomatch.sig
 signature id {
   src-port > 30000
   event "src-port-gt-nomatch"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-port-gte1.sig
+# @TEST-START-FILE src-port-gte1.sig
 signature id {
   src-port >= 30000
   event "src-port-gte1"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-port-gte2.sig
+# @TEST-START-FILE src-port-gte2.sig
 signature id {
   src-port >= 29999
   event "src-port-gte2"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-port-gte-nomatch.sig
+# @TEST-START-FILE src-port-gte-nomatch.sig
 signature id {
   src-port >= 30001
   event "src-port-gte-nomatch"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE src-port-range.sig
+# @TEST-START-FILE src-port-range.sig
 signature id {
   src-port == 29997-29999,30001-30002,30003
   event "src-port-range"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
 event signature_match(state: signature_state, msg: string, data: string)
 	{

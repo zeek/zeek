@@ -7,7 +7,7 @@
 # @TEST-EXEC: btest-diff recv/recv.out
 # @TEST-EXEC: btest-diff send/send.out
 
-@TEST-START-FILE send.zeek
+# @TEST-START-FILE send.zeek
 
 @load base/frameworks/netcontrol
 
@@ -76,9 +76,9 @@ event NetControl::rule_timeout(r: NetControl::Rule, i: NetControl::FlowInfo, p: 
 	print "rule timeout", r$entity, r$ty, i;
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE recv.zeek
+# @TEST-START-FILE recv.zeek
 
 @load base/frameworks/netcontrol
 @load base/frameworks/broker
@@ -126,5 +126,5 @@ event NetControl::broker_remove_rule(id: count, r: NetControl::Rule, reason: str
 		}
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 

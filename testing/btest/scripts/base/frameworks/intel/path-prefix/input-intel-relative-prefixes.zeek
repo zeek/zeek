@@ -6,12 +6,12 @@
 # @TEST-EXEC: ZEEKPATH=$ZEEKPATH:$TEST_BASE/scripts/base/frameworks/intel/path-prefix zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
-@TEST-START-FILE input/intel/test.data
+# @TEST-START-FILE input/intel/test.data
 #fields	indicator	indicator_type	meta.source
 127.0.1.1	Intel::ADDR	this btest
 127.0.1.2	Intel::ADDR	this btest
 127.0.1.3	Intel::ADDR	this btest 
-@TEST-END-FILE
+# @TEST-END-FILE
 
 @load path-prefix-common.zeek
 

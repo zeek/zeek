@@ -7,7 +7,7 @@
 redef exit_only_after_terminate = T;
 redef InputAscii::fail_on_invalid_lines = F;
 
-@TEST-START-FILE input.log
+# @TEST-START-FILE input.log
 #separator \x09
 #path	ssh
 #fields	b	i	e	c	p	pt	sn	a	d	t	iv	s	sc	ss	se	vc	ve	ns
@@ -19,7 +19,7 @@ T	-44	SSH::LOG	21	123	udp	10.0.0.0/24	342.2.3.4	3.14	1315801931.273616	100.00000
 T	-41
 T	-41	EMPTY	21	123	tcp	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY	4242
 T	-41		21	123	tcp	10.0.0.0/24	1.2.3.4	3.14	1315801931.273616	100.000000	hurz	2,4,1,3	CC,AA,BB	EMPTY	10,20,30	EMPTY	4242
-@TEST-END-FILE
+# @TEST-END-FILE
 
 @load base/protocols/ssh
 

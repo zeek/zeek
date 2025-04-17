@@ -18,7 +18,7 @@ event zeek_init()
 	Log::delay_finish(LOG, rec, token);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 @load base/protocols/conn
 
 hook Log::log_stream_policy(rec: Conn::Info, id: Log::ID)
@@ -27,7 +27,7 @@ hook Log::log_stream_policy(rec: Conn::Info, id: Log::ID)
 	Log::delay(id, copy(rec));
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 @load base/protocols/conn
 @load base/protocols/dns
 
@@ -37,7 +37,7 @@ hook Log::log_stream_policy(rec: Conn::Info, id: Log::ID)
 	Log::delay(DNS::LOG, rec);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 @load base/protocols/conn
 
 hook Log::log_stream_policy(rec: Conn::Info, id: Log::ID)
@@ -47,7 +47,7 @@ hook Log::log_stream_policy(rec: Conn::Info, id: Log::ID)
 	Log::delay_finish(id, copy(rec), token);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 @load base/protocols/conn
 
 hook Log::log_stream_policy(rec: Conn::Info, id: Log::ID)
@@ -58,7 +58,7 @@ hook Log::log_stream_policy(rec: Conn::Info, id: Log::ID)
 	Log::delay_finish(id, rec, token);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 @load base/protocols/conn
 
 hook Conn::log_policy(rec: Conn::Info, id: Log::ID, filter: Log::Filter)

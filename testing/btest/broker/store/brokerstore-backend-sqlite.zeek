@@ -13,23 +13,23 @@
 # @TEST-EXEC: diff master.out clone.out
 # @TEST-EXEC: diff master.out clone2.out
 
-@TEST-START-FILE cluster-layout.zeek
+# @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
 	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
 	["worker-1"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1"],
 	["worker-2"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT3")), $manager="manager-1"],
 };
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE common.zeek
+# @TEST-START-FILE common.zeek
 type testrec: record {
 	a: count;
 	b: string;
 	c: set[string];
 };
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE preseed-sqlite.zeek
+# @TEST-START-FILE preseed-sqlite.zeek
 global t: table[string] of count &backend=Broker::SQLITE;
 global s: set[string] &backend=Broker::SQLITE;
 global r: table[string] of testrec &broker_allow_complex_type &backend=Broker::SQLITE;
@@ -59,9 +59,9 @@ event zeek_init()
 	print rt;
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE master.zeek
+# @TEST-START-FILE master.zeek
 @load base/frameworks/cluster
 
 redef exit_only_after_terminate = T;
@@ -98,9 +98,9 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 		terminate();
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE clone.zeek
+# @TEST-START-FILE clone.zeek
 @load base/frameworks/cluster
 
 redef exit_only_after_terminate = T;
@@ -140,4 +140,4 @@ event Cluster::node_up(name: string, id: string)
 	{
 	schedule 0.1sec { check_all_set() };
 	}
-@TEST-END-FILE
+# @TEST-END-FILE

@@ -32,7 +32,7 @@
 # @TEST-EXEC: sort -n rr2.log > rr2.log.sorted
 # @TEST-EXEC: btest-diff rr2.log.sorted
 
-# @TEST-START-FILE common.zeek
+# # @TEST-START-FILE common.zeek
 @load ./zeromq-test-bootstrap.zeek
 
 redef Log::default_rotation_interval = 0sec;
@@ -62,9 +62,9 @@ event finish()
 	{
 	terminate();
 	}
-# @TEST-END-FILE
+# # @TEST-END-FILE
 
-# @TEST-START-FILE manager.zeek
+# # @TEST-START-FILE manager.zeek
 @load ./common.zeek
 
 event check_ready()
@@ -103,10 +103,10 @@ event Cluster::node_down(name: string, id: string)
 	if ( |nodes_down| == 4 )  # both loggers down
 		terminate();
 	}
-# @TEST-END-FILE
+# # @TEST-END-FILE
 
 
-# @TEST-START-FILE worker.zeek
+# # @TEST-START-FILE worker.zeek
 @load ./common.zeek
 
 global do_write2 = F;
@@ -147,9 +147,9 @@ event zeek_init()
 	event write_log1(0);
 	}
 
-# @TEST-END-FILE
+# # @TEST-END-FILE
 
-@TEST-START-FILE check-log.sh
+# @TEST-START-FILE check-log.sh
 #!/usr/bin/env bash
 #
 # This script regularly checks for the loggers rr1.log file until
@@ -174,4 +174,4 @@ done
 echo "DONE"
 echo "DONE" > DONE
 exit 0
-@TEST-END-FILE
+# @TEST-END-FILE

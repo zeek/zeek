@@ -10,7 +10,7 @@
 # @TEST-EXEC: touch test.log && zeek-cut -m -F'|' < test.log > test.cut
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff test.cut
 
-@TEST-START-FILE test.zeek
+# @TEST-START-FILE test.zeek
 
 global packet_count = 0;
 event new_packet(c: connection, p: pkt_hdr)
@@ -52,7 +52,7 @@ event new_connection(c: connection)
 	local info = Info($ts=network_time(), $uid=c$uid, $msg="inital-value");
 	Log::write(LOG, info);
 	}
-@TEST-END-FILE test.zeek
+# @TEST-END-FILE test.zeek
 
 # Basic delay() test, no delay_finish()
 hook Log::log_stream_policy(rec: Info, id: Log::ID)
@@ -80,7 +80,7 @@ hook Log::log_stream_policy(rec: Info, id: Log::ID)
 		}
 	}
 
-# @TEST-START-NEXT
+# # @TEST-START-NEXT
 # Basic delay() test with delay_finish(), expect callback to be invoked
 # right at Log::delay_finish()
 hook Log::log_stream_policy(rec: Info, id: Log::ID)
@@ -109,7 +109,7 @@ hook Log::log_stream_policy(rec: Info, id: Log::ID)
 		}
 	}
 
-# @TEST-START-NEXT
+# # @TEST-START-NEXT
 # Basic delay() test with two callbacks but just one Log::delay_finish() call.
 hook Log::log_stream_policy(rec: Info, id: Log::ID)
 	{
@@ -142,7 +142,7 @@ hook Log::log_stream_policy(rec: Info, id: Log::ID)
 		}
 	}
 
-# @TEST-START-NEXT
+# # @TEST-START-NEXT
 # Basic delay() test two callbacks and two Log::delay_finish() calls.
 hook Log::log_stream_policy(rec: Info, id: Log::ID)
 	{
@@ -176,7 +176,7 @@ hook Log::log_stream_policy(rec: Info, id: Log::ID)
 		}
 	}
 
-# @TEST-START-NEXT
+# # @TEST-START-NEXT
 # The delay callback suppresses the log by return F.
 hook Log::log_stream_policy(rec: Info, id: Log::ID)
 	{
@@ -203,7 +203,7 @@ hook Log::log_stream_policy(rec: Info, id: Log::ID)
 		}
 	}
 
-# @TEST-START-NEXT
+# # @TEST-START-NEXT
 # Do a delay and immediate release with a callback.
 hook Log::log_stream_policy(rec: Info, id: Log::ID)
 	{

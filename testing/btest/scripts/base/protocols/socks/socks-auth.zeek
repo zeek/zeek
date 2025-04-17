@@ -6,6 +6,6 @@
 
 redef SOCKS::default_capture_password = T;
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 @load base/protocols/socks

@@ -7,12 +7,12 @@ event zeek_init()
 	local ::a = 1;
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 # Do not allow :: prefix for an identifier containing a module.
 hook ::Analyzer::disabling_analyzer(c: connection, atype: AllAnalyzers::Tag, aid: count) { }
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Do not allow exporting names with ::
 module MyModule;
 
@@ -21,18 +21,18 @@ export {
 	global ::h: hook();
 }
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Do not allow :: prefix on parameter names.
 function f(::a: string) { }
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Non-existing global identifier.
 event zeek_init()
 	{
 	print ::missing;
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 module MyModule;
 

@@ -14,7 +14,7 @@
 # @TEST-EXEC: btest-diff recv/recv.out
 # @TEST-EXEC: btest-diff recv2/recv2.out
 
-@TEST-START-FILE send.zeek
+# @TEST-START-FILE send.zeek
 
 redef exit_only_after_terminate = T;
 
@@ -58,10 +58,10 @@ event Broker::endpoint_unreachable(endpoint: Broker::EndpointInfo, msg: string)
 		terminate();
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
 
-@TEST-START-FILE recv.zeek
+# @TEST-START-FILE recv.zeek
 
 redef exit_only_after_terminate = T;
 
@@ -99,4 +99,4 @@ event Broker::endpoint_unreachable(endpoint: Broker::EndpointInfo, msg: string)
 	print "endpoint unreachable", msg;
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE

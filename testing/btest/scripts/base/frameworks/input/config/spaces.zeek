@@ -5,7 +5,7 @@
 redef exit_only_after_terminate = T;
 redef InputConfig::empty_field = "EMPTY";
 
-@TEST-START-FILE configfile
+# @TEST-START-FILE configfile
 testbool F    
 testcount    1   
 testint		-1   
@@ -13,7 +13,7 @@ testportandproto  45/udp
 testaddr 127.0.0.3 
 test_set 127.0.0.1,    127.0.0.2,  127.0.0.3 
 test_vector 10.0.0.1/32,  10.0.0.1/16,  10.0.0.1/8
-@TEST-END-FILE
+# @TEST-END-FILE
 
 @load base/protocols/ssh
 @load base/protocols/conn

@@ -16,6 +16,6 @@
 #
 # @TEST-EXEC: btest-diff output
 
-@TEST-START-FILE test.zeek
+# @TEST-START-FILE test.zeek
 event idontexist() { }
-@TEST-END-FILE
+# @TEST-END-FILE

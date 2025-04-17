@@ -11,7 +11,7 @@
 # @TEST-EXEC: btest-diff recv/recv.out
 # @TEST-EXEC: btest-diff send/send.out
 
-@TEST-START-FILE common.zeek
+# @TEST-START-FILE common.zeek
 type ResultTable: table[string] of count;
 type ResultSet : set[count];
 
@@ -20,9 +20,9 @@ global pong: event(msg: string, t: ResultTable) &is_used;
 
 global ping_set: event(msg: string, s: ResultSet) &is_used;
 global pong_set: event(msg: string, s: ResultSet) &is_used;
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE send.zeek
+# @TEST-START-FILE send.zeek
 @load ./common.zeek
 
 redef exit_only_after_terminate = T;
@@ -72,10 +72,10 @@ event pong_set(msg: string, s: ResultSet)
     if ( event_count % 4 == 0 )
 	send_events();
     }
-@TEST-END-FILE
+# @TEST-END-FILE
 
 
-@TEST-START-FILE recv.zeek
+# @TEST-START-FILE recv.zeek
 @load ./common.zeek
 
 redef exit_only_after_terminate = T;
@@ -118,4 +118,4 @@ event ping_set(msg: string, s: ResultSet)
 	print "ping_set", msg, |s|;
 	Broker::publish("zeek/event/my_topic", pong_set, msg, s);
 	}
-@TEST-END-FILE
+# @TEST-END-FILE

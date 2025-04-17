@@ -10,7 +10,7 @@ event zeek_init()
 	Input::add_analysis([$source=source, $name=source]);
 	}
 
-@TEST-START-FILE ./myfile
+# @TEST-START-FILE ./myfile
 %PDF-1.5
 This isn't an actual pdf, but it shows in files.log as such :-)
-@TEST-END-FILE
+# @TEST-END-FILE

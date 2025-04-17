@@ -6,7 +6,7 @@
 #
 # @TEST-EXEC: btest-diff clone.out
 
-@TEST-START-FILE common.zeek
+# @TEST-START-FILE common.zeek
 redef exit_only_after_terminate = T;
 
 global tablestore: opaque of Broker::Store;
@@ -22,9 +22,9 @@ type testrec: record {
 global t: table[string] of count &broker_store="table";
 global s: set[string, string] &broker_store="set";
 global r: table[string] of testrec &broker_allow_complex_type &broker_store="rec";
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE master.zeek
+# @TEST-START-FILE master.zeek
 event zeek_init()
 	{
 	tablestore = Broker::create_master("table");
@@ -64,9 +64,9 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	terminate();
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE clone.zeek
+# @TEST-START-FILE clone.zeek
 event zeek_init()
 	{
 	Broker::peer("127.0.0.1", to_port(getenv("BROKER_PORT")));
@@ -96,4 +96,4 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	recordstore = Broker::create_clone("rec");
 	schedule 0.1sec { check_all_set() };
 	}
-@TEST-END-FILE
+# @TEST-END-FILE

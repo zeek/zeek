@@ -7,7 +7,7 @@
 # @TEST-EXEC: btest-diff clone/clone.out
 # @TEST-EXEC: btest-diff master/master.out
 
-@TEST-START-FILE master-main.zeek
+# @TEST-START-FILE master-main.zeek
 
 redef exit_only_after_terminate = T;
 global query_timeout = 1sec;
@@ -72,10 +72,10 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
     schedule 4secs { insert_more() };
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
 
-@TEST-START-FILE clone-main.zeek
+# @TEST-START-FILE clone-main.zeek
 
 redef exit_only_after_terminate = T;
 
@@ -145,4 +145,4 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	schedule 2secs { lookup(1) };
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE

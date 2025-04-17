@@ -6,7 +6,7 @@
 
 # the first test writes out the sqlite files...
 
-@TEST-START-FILE common.zeek
+# @TEST-START-FILE common.zeek
 global tablestore: opaque of Broker::Store;
 global setstore: opaque of Broker::Store;
 global recordstore: opaque of Broker::Store;
@@ -20,9 +20,9 @@ type testrec: record {
 global t: table[string] of count &broker_store="table";
 global s: set[string] &broker_store="set";
 global r: table[string] of testrec &broker_allow_complex_type &broker_store="rec";
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE one.zeek
+# @TEST-START-FILE one.zeek
 
 event zeek_init()
 	{
@@ -45,8 +45,8 @@ event zeek_init()
 	print sort_table(r);
 	}
 
-@TEST-END-FILE
-@TEST-START-FILE two.zeek
+# @TEST-END-FILE
+# @TEST-START-FILE two.zeek
 
 # the second one reads them in again
 
@@ -59,4 +59,4 @@ event zeek_init()
 	print sort_set(s);
 	print sort_table(r);
 	}
-@TEST-END-FILE
+# @TEST-END-FILE

@@ -13,13 +13,13 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff zeek/.stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER='sed -E "/Suppressed [0-9]+ warning\(s\)$/d" | $SCRIPTS/diff-sort' btest-diff zeek/.stderr
 
-@TEST-START-FILE does-exist.dat
+# @TEST-START-FILE does-exist.dat
 #separator \x09
 #fields	line
 #types	string
 1 now it does
 2 and more!
-@TEST-END-FILE
+# @TEST-END-FILE
 
 redef exit_only_after_terminate = T;
 

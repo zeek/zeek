@@ -7,7 +7,7 @@
 # @TEST-EXEC: btest-diff events.out
 # @TEST-EXEC: btest-diff preds.out
 
-@TEST-START-FILE input1.log
+# @TEST-START-FILE input1.log
 #separator \x09
 #fields	i	s	ss
 #types	int	sting	string
@@ -15,15 +15,15 @@
 2	-	TEST
 3	TEST	-
 4	TEST	TEST
-@TEST-END-FILE
-@TEST-START-FILE input2.log
+# @TEST-END-FILE
+# @TEST-START-FILE input2.log
 #separator \x09
 #fields	i	s	ss
 #types	int	sting	string
 1	TEST2	-
 4	TEST2	TEST2
 5	-	TEST2
-@TEST-END-FILE
+# @TEST-END-FILE
 
 redef exit_only_after_terminate = T;
 

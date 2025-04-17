@@ -14,7 +14,7 @@ event zeek_init()
 		print "That's the right branch";
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 event zeek_init()
 	{
 	if ( F )
@@ -25,7 +25,7 @@ event zeek_init()
 		@endif
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 event zeek_init()
 	{
 	local vec = vector(1, 2, 3);
@@ -35,7 +35,7 @@ event zeek_init()
 		@endif
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 event zeek_init()
 	{
 	local i = 10;
@@ -45,7 +45,7 @@ event zeek_init()
 		@endif
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 global cond = T;
 event zeek_init()
 	{

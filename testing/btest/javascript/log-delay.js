@@ -6,7 +6,7 @@
  * @TEST-EXEC: zeek-cut -m ts uid id.orig_h id.resp_h new_field < http.log > http.log.cut
  * @TEST-EXEC: btest-diff http.log.cut
  */
-@TEST-START-FILE main.zeek
+// @TEST-START-FILE main.zeek
 @load base/protocols/http
 
 redef record HTTP::Info += {
@@ -15,9 +15,9 @@ redef record HTTP::Info += {
 
 # Load the JavaScript pieces
 @load ./main.js
-@TEST-END-FILE
+// @TEST-END-FILE
 
-@TEST-START-FILE main.js
+// @TEST-START-FILE main.js
 zeek.hook('Log::log_stream_policy', (rec, id) => {
   if ( id != "HTTP::LOG" )
     return;
@@ -50,4 +50,4 @@ setTimeout(() => {
   console.error('force exit');
   process.exit(1);
 }, 5000);
-@TEST-END-FILE
+// @TEST-END-FILE

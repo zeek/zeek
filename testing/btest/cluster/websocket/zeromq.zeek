@@ -25,15 +25,15 @@
 # @TEST-EXEC: btest-diff ./client/out
 # @TEST-EXEC: btest-diff ./client/.stderr
 
-@TEST-START-FILE common.zeek
+# @TEST-START-FILE common.zeek
 @load ./zeromq-test-bootstrap
 
 global ping: event(msg: string, c: count) &is_used;
 global pong: event(msg: string, c: count) &is_used;
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-# @TEST-START-FILE manager.zeek
+# # @TEST-START-FILE manager.zeek
 @load ./common.zeek
 
 redef Log::enable_local_logging = T;
@@ -84,9 +84,9 @@ event Cluster::websocket_client_lost(info: Cluster::EndpointInfo)
 	if ( lost == 3 )
 		terminate();
 	}
-# @TEST-END-FILE
+# # @TEST-END-FILE
 
-# @TEST-START-FILE worker.zeek
+# # @TEST-START-FILE worker.zeek
 @load ./common.zeek
 
 event zeek_init()
@@ -109,10 +109,10 @@ event ping(msg: string, n: count)
 	{
 	print fmt("got ping: %s, %s", msg, n);
 	}
-# @TEST-END-FILE
+# # @TEST-END-FILE
 
 
-@TEST-START-FILE client.py
+# @TEST-START-FILE client.py
 import json, os, time
 from websockets.sync.client import connect
 
@@ -175,4 +175,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-@TEST-END-FILE
+# @TEST-END-FILE

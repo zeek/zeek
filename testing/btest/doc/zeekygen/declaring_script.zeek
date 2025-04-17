@@ -32,7 +32,7 @@ event zeek_init()
 	}
 
 
-@TEST-START-FILE my-module.zeek
+# @TEST-START-FILE my-module.zeek
 module MyModule;
 
 export {
@@ -42,10 +42,10 @@ export {
 	};
 }
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
 
-@TEST-START-FILE redef-it.zeek
+# @TEST-START-FILE redef-it.zeek
 module RedefIt;
 
 export {
@@ -53,14 +53,14 @@ export {
 		addl: string &log &default="dfl";
 	};
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE pkg1/__load__.zeek
+# @TEST-START-FILE pkg1/__load__.zeek
 @load ./redef-more.zeek
-@TEST-END-FILE
+# @TEST-END-FILE
 
 
-@TEST-START-FILE pkg1/redef-more.zeek
+# @TEST-START-FILE pkg1/redef-more.zeek
 module RedefMore;
 
 export {
@@ -68,4 +68,4 @@ export {
 		more: string &log &default="more";
 	};
 }
-@TEST-END-FILE
+# @TEST-END-FILE

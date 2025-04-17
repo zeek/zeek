@@ -7,7 +7,7 @@
 # @TEST-EXEC: zeek-cut -m -F'|' < test.log > test.cut
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff test.cut
 
-@TEST-START-FILE test.zeek
+# @TEST-START-FILE test.zeek
 # Used by all tests below.
 
 # Debug printing
@@ -44,7 +44,7 @@ event Pcap::file_done(p: string)
 	print network_time(), "Pcap::file_done", p;
 	}
 
-@TEST-END-FILE test.zeek
+# @TEST-END-FILE test.zeek
 
 # Delay every record by 1msec.
 event zeek_init()
@@ -75,7 +75,7 @@ hook Log::log_stream_policy(rec: Info, id: Log::ID)
 
 	}
 
-# @TEST-START-NEXT
+# # @TEST-START-NEXT
 #
 # Delay every record, but call Log::delay_finish() immediately afterwards
 # through an event.
@@ -114,7 +114,7 @@ hook Log::log_stream_policy(rec: Info, id: Log::ID)
 	event release_delay(rec, token);
 	}
 
-# @TEST-START-NEXT
+# # @TEST-START-NEXT
 #
 # Delay every record, and for every other record call Log::delay_finish()
 # immediately afterwards via an event.
@@ -159,7 +159,7 @@ hook Log::log_stream_policy(rec: Info, id: Log::ID)
 
 	}
 
-# @TEST-START-NEXT
+# # @TEST-START-NEXT
 
 # Delay every entry by 10 seconds, but set queue size to 5 such that
 # entries are evicted when the queue size is reached.
@@ -193,7 +193,7 @@ hook Log::log_stream_policy(rec: Info, id: Log::ID)
 	}
 
 
-# @TEST-START-NEXT
+# # @TEST-START-NEXT
 
 # Re-delaying works even if that results in more forceful expiration.
 redef record Info += {
@@ -239,7 +239,7 @@ hook Log::log_stream_policy(rec: Info, id: Log::ID)
 	Log::delay(id, rec, post_delay_cb);
 	}
 
-# @TEST-START-NEXT
+# # @TEST-START-NEXT
 
 # Re-delay once after the delay expired.
 redef record Info += {
@@ -284,7 +284,7 @@ hook Log::log_stream_policy(rec: Info, id: Log::ID)
 	Log::delay(id, rec, post_delay_cb);
 	}
 
-# @TEST-START-NEXT
+# # @TEST-START-NEXT
 
 # Re-delay once after Log::delay_finish()
 redef record Info += {

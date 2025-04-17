@@ -9,14 +9,14 @@ event zeek_init()
 		print _;
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 event zeek_init()
 	{
 	local _ = vector( "1", "2", "3" );
 	print _;
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Ensure it does not work in a module, either.
 module MyModule;
 event zeek_init()
@@ -25,7 +25,7 @@ event zeek_init()
 	print _;
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Ensure _ can not referenced when it's a const in an export section.
 # Adding the const _ isn't an error though.
 module MyModule;
@@ -39,7 +39,7 @@ event zeek_init()
 	print MyModule::_;
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Ensure it does not work in a function.
 module MyModule;
 function helper()

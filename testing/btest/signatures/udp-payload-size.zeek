@@ -1,7 +1,7 @@
 # @TEST-EXEC: zeek -b -r $TRACES/ntp.pcap %INPUT >output
 # @TEST-EXEC: btest-diff output
 
-@TEST-START-FILE a.sig
+# @TEST-START-FILE a.sig
 signature foo1 {
     ip-proto == udp
     payload-size < 1
@@ -13,7 +13,7 @@ signature foo2 {
     payload-size > 0
     event "match"
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
 event signature_match(state: signature_state, msg: string, data: string)
 	{

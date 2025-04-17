@@ -7,7 +7,7 @@
 # @TEST-EXEC: btest-diff recv/recv.out
 # @TEST-EXEC: btest-diff send/send.out
 
-@TEST-START-FILE send.zeek
+# @TEST-START-FILE send.zeek
 
 redef exit_only_after_terminate = T;
 type myfunctype: function(c: count) : function(d: count) : count;
@@ -87,9 +87,9 @@ event pong(msg: string, f: myfunctype)
     send_event();
     }
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE recv.zeek
+# @TEST-START-FILE recv.zeek
 
 redef exit_only_after_terminate = T;
 const events_to_recv = 7;
@@ -164,4 +164,4 @@ event ping(msg: string, f: myfunctype)
         }
     }
 
-@TEST-END-FILE
+# @TEST-END-FILE

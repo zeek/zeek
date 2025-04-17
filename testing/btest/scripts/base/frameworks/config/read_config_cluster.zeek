@@ -23,15 +23,15 @@
 @load base/protocols/conn
 
 
-@TEST-START-FILE cluster-layout.zeek
+# @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
 	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
 	["worker-1"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1"],
 	["worker-2"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT3")), $manager="manager-1"],
 };
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE configfile
+# @TEST-START-FILE configfile
 testbool F
 testcount    1
 testcount 2
@@ -48,7 +48,7 @@ test_vector 1,2,3,4,5,6
 test_set (empty)
 test_set -
 test_set_full 1,3,4,5,6,7
-@TEST-END-FILE
+# @TEST-END-FILE
 
 redef Log::default_rotation_interval = 0secs;
 

@@ -8,7 +8,7 @@
 redef exit_only_after_terminate = T;
 redef InputConfig::empty_field = "(empty)";
 
-@TEST-START-FILE configfile
+# @TEST-START-FILE configfile
 testbool F
 testcount    1
 testcount 2
@@ -25,7 +25,7 @@ test_set a,b,c,d,erdbeerschnitzel
 test_vector 1,2,3,4,5,6
 test_set (empty)
 test_set -
-@TEST-END-FILE
+# @TEST-END-FILE
 
 @load base/protocols/ssh
 @load base/protocols/conn

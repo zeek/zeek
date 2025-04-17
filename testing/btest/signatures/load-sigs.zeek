@@ -12,10 +12,10 @@ event signature_match(state: signature_state, msg: string, data: string)
 	print data;
 	}
 
-@TEST-START-FILE subdir/mysigs.sig
+# @TEST-START-FILE subdir/mysigs.sig
 signature my-sig {
 ip-proto == tcp
 payload /GET \/images/
 event "works"
 }
-@TEST-END-FILE
+# @TEST-END-FILE

@@ -2,13 +2,13 @@
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out
 
-@TEST-START-FILE input.log
+# @TEST-START-FILE input.log
 #separator \x09
 #path	ssh
 #fields	i	b	
 #types	int	bool
 1	T
-@TEST-END-FILE
+# @TEST-END-FILE
 
 redef exit_only_after_terminate = T;
 

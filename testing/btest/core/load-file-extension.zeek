@@ -28,31 +28,31 @@
 # @TEST-EXEC-FAIL: zeek -b load_foo
 # @TEST-EXEC: rm foo.xyz
 
-@TEST-START-FILE load_foo
+# @TEST-START-FILE load_foo
 @load foo
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE load_foo_xyz
+# @TEST-START-FILE load_foo_xyz
 @load foo.xyz
-@TEST-END-FILE
+# @TEST-END-FILE
 
 
-@TEST-START-FILE x/foo.zeek
+# @TEST-START-FILE x/foo.zeek
 print "Zeek script loaded";
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE x/foo.xyz
+# @TEST-START-FILE x/foo.xyz
 print "Non-standard file extension script loaded";
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE x/foo/__load__.zeek
+# @TEST-START-FILE x/foo/__load__.zeek
 @load ./main
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE x/foo/main.zeek
+# @TEST-START-FILE x/foo/main.zeek
 print "Script package loaded";
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE x2/foo
+# @TEST-START-FILE x2/foo
 print "No file extension script loaded";
-@TEST-END-FILE
+# @TEST-END-FILE

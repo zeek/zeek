@@ -8,7 +8,7 @@ event zeek_init() {
     Analyzer::register_for_port(Analyzer::ANALYZER_LISTCONV, 22/tcp);
 }
 
-@TEST-START-FILE listconv.spicy
+# @TEST-START-FILE listconv.spicy
 
 module listconv;
 
@@ -22,9 +22,9 @@ public type Test = unit {
     c: uint16;
 };
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE listconv.evt
+# @TEST-START-FILE listconv.evt
 
 protocol analyzer listconv over TCP:
     parse originator with listconv::Test;
@@ -36,7 +36,7 @@ on listconv::Test -> event listconv::test($conn,
                                   self.c
                                   );
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
 type int_tuple: record {
   a: count;

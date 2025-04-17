@@ -3,10 +3,10 @@
 # @TEST-EXEC: btest-diff zeek/.stderr
 # @TEST-EXEC: btest-diff zeek/.stdout
 
-@TEST-START-FILE input.log
+# @TEST-START-FILE input.log
 #fields	e	i
 IdoNot::Exist	1
-@TEST-END-FILE
+# @TEST-END-FILE
 
 redef exit_only_after_terminate = T;
 

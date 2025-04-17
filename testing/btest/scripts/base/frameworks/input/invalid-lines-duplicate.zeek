@@ -6,7 +6,7 @@
 redef exit_only_after_terminate = T;
 redef InputAscii::fail_on_invalid_lines = F;
 
-@TEST-START-FILE input.log
+# @TEST-START-FILE input.log
 #fields	a	b	c
 #types	string	bool	bool
 hello
@@ -23,7 +23,7 @@ hello
 hello
 hello
 hello
-@TEST-END-FILE
+# @TEST-END-FILE
 
 type Key: record {
     a: string;

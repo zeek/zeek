@@ -8,7 +8,7 @@ redef exit_only_after_terminate = T;
 
 redef Threading::heartbeat_interval = 0.01sec;
 
-@TEST-START-FILE run.sh
+# @TEST-START-FILE run.sh
 #!/usr/bin/env bash
 echo -e -n "aaa\nb"
 sleep 0.1
@@ -17,7 +17,7 @@ sleep 0.1
 echo "nal"
 
 sleep infinity
-@TEST-END-FILE
+# @TEST-END-FILE
 
 module A;
 

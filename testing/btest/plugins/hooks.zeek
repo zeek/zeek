@@ -13,21 +13,21 @@
 
 @load-sigs s2
 
-@TEST-START-FILE s1.sig
+# @TEST-START-FILE s1.sig
 # Just empty.
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE s2.sig
+# @TEST-START-FILE s2.sig
 # Just empty.
-@TEST-END-FILE
+# @TEST-END-FILE
 
 # The built-in JavaScript plugin's __load__.zeek file uses cat() in its
 # __load__.zeek file, causing subtle baseline diffs as it is not enabled
 # on all platforms. Provide a mock file that is picked up before the
 # plugin's file due to `.` being first in ZEEKPATH. Sorry.
-@TEST-START-FILE Zeek_JavaScript/__load__.zeek
+# @TEST-START-FILE Zeek_JavaScript/__load__.zeek
 module JavaScript;
 export {
 	global files: vector of string;
 }
-@TEST-END-FILE
+# @TEST-END-FILE

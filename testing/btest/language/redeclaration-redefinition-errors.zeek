@@ -6,17 +6,17 @@
 global x = 1;
 global x = 2;
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 global f: function() = function() { };
 global f: function() = function() { };
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 global f: function();
 global f: function();
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 event zeek_init()
 	{
@@ -24,38 +24,38 @@ event zeek_init()
 	local f = function() { };
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 event zeek_init()
 	{
 	local f: function();
 	local f: function();
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 event zeek_init()
 	{
 	local x = 1;
 	local x = 2;
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 global ev: event();
 global ev: event();
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 global ev: event(x: bool, y: count);
 global ev: event(x: bool, y: count);
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 global ev: event(x: bool);
 global ev: event(xx: bool);
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 global f: event();
 global f: hook();
 global f: function();
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 global f = function() { };
 global f: hook();
 global f: event();

@@ -69,7 +69,7 @@ event zeek_done()
 		print supervisor_output_file, "supervisor zeek_done()";
 	}
 
-@TEST-START-FILE addl_base_script.zeek
+# @TEST-START-FILE addl_base_script.zeek
 
 module Pre;
 
@@ -77,9 +77,9 @@ export {
 	global counter = 0;
 }
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE addl_user_script.zeek
+# @TEST-START-FILE addl_user_script.zeek
 
 event zeek_init() &priority=-10
 	{
@@ -87,9 +87,9 @@ event zeek_init() &priority=-10
 	print node_output_file, fmt("supervised node loaded addl_user_script.zeek, counter at %s", Pre::counter);
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE script.zeek
+# @TEST-START-FILE script.zeek
 
 event zeek_init() &priority=-20
 	{
@@ -97,4 +97,4 @@ event zeek_init() &priority=-20
 	print node_output_file, fmt("supervised node loaded script.zeek, counter at %s", Pre::counter);
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE

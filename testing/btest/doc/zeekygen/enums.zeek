@@ -1,9 +1,9 @@
 # @TEST-EXEC: unset ZEEK_DISABLE_ZEEKYGEN; zeek -b -X zeekygen.config %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff autogen-reST-enums.rst
 
-@TEST-START-FILE zeekygen.config
+# @TEST-START-FILE zeekygen.config
 identifier	TestEnum*	autogen-reST-enums.rst
-@TEST-END-FILE
+# @TEST-END-FILE
 
 ## There's tons of ways an enum can look...
 type TestEnum1: enum {

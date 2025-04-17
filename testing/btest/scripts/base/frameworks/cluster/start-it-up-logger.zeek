@@ -21,7 +21,7 @@
 
 @load base/frameworks/cluster
 
-@TEST-START-FILE cluster-layout.zeek
+# @TEST-START-FILE cluster-layout.zeek
 redef Cluster::manager_is_logger = F;
 redef Cluster::nodes = {
 	["logger-1"] = [$node_type=Cluster::LOGGER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
@@ -31,7 +31,7 @@ redef Cluster::nodes = {
 	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT5")), $manager="manager-1"],
 	["worker-2"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT6")), $manager="manager-1"],
 };
-@TEST-END-FILE
+# @TEST-END-FILE
 
 global peer_count = 0;
 

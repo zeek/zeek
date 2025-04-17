@@ -2,7 +2,7 @@
 # @TEST-EXEC: btest-bg-wait 15
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff zeek/.stdout
 
-@TEST-START-FILE exectest.zeek
+# @TEST-START-FILE exectest.zeek
 
 @load base/utils/exec
 redef exit_only_after_terminate = T;
@@ -59,9 +59,9 @@ event zeek_init()
 	                   $read_files=set("out3", "out4")]);
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE somescript.sh
+# @TEST-START-FILE somescript.sh
 #! /usr/bin/env bash
 echo "insert text here" > out1
 echo "and here" >> out1
@@ -70,9 +70,9 @@ echo "and there" >> out2
 echo "done"
 echo "exit"
 echo "stop"
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE nofiles.sh
+# @TEST-START-FILE nofiles.sh
 #! /usr/bin/env bash
 echo "here's something on stdout"
 echo "some more stdout"
@@ -81,23 +81,23 @@ echo "and some stderr" 1>&2
 echo "more stderr" 1>&2
 echo "last stderr" 1>&2
 exit 1
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE suicide.sh
+# @TEST-START-FILE suicide.sh
 #! /usr/bin/env bash
 echo "FML"
 kill -9 $$
 echo "nope"
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE stdin.sh
+# @TEST-START-FILE stdin.sh
 #! /usr/bin/env bash
 read -r line
 echo "$line"
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE empty_file.sh
+# @TEST-START-FILE empty_file.sh
 #! /usr/bin/env bash
 touch out3
 echo "test" > out4
-@TEST-END-FILE
+# @TEST-END-FILE

@@ -18,7 +18,7 @@ fi
 
 python3 find_logs.py "${BROSCRIPTS}" | sort > out
 
-@TEST-START-FILE find_logs.py
+# @TEST-START-FILE find_logs.py
 import os, sys
 import re
 
@@ -70,4 +70,4 @@ for fname in find_scripts():
         if idx > 0:
             m = re.match('.*\$path\s*=\s*"?(\w+)"?.*', line[idx:])
             print(m.group(1))
-@TEST-END-FILE
+# @TEST-END-FILE

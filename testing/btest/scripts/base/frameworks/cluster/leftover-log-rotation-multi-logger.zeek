@@ -25,12 +25,12 @@
 
 # @TEST-EXEC: TEST_DIFF_CANONIFIER='sed -r "s/[0-9]{2}/XX/g"'  btest-diff out
 
-@TEST-START-FILE cluster-layout.zeek
+# @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
         ["logger-1"] = [$node_type=Cluster::LOGGER,  $ip=127.0.0.1, $p=1234/tcp],
         ["logger-2"] = [$node_type=Cluster::LOGGER,  $ip=127.0.0.1, $p=1235/tcp],
 };
-@TEST-END-FILE
+# @TEST-END-FILE
 
 # Switch settings into a supervisor/non-zeekctl setup
 redef Log::default_rotation_dir = "log-queue";

@@ -3,11 +3,11 @@
 
 option testbool;
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 option testbool : bool;
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 option testopt = 5;
 testopt = 6;

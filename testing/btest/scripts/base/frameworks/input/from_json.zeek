@@ -2,14 +2,14 @@
 # @TEST-EXEC: zeek -b %INPUT >out
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff out
 
-@TEST-START-FILE denylist.jsonl
+# @TEST-START-FILE denylist.jsonl
 {"ip": "192.168.0.1", "source": "local", "timestamp": "1990-09-22T12:13:14"}
 {"ip": "192.168.0.1", "source": "local", "timestamp": "1990-09-23T13:14:15"}
 {"ip": "192.168.0.2", "source": "local"}
 {"source": "local"}
 {... ]
 {"ip": "8.8.4.4", "source": "remote"}
-@TEST-END-FILE
+# @TEST-END-FILE
 
 redef exit_only_after_terminate = T;
 

@@ -5,7 +5,7 @@
 
 redef exit_only_after_terminate = T;
 
-@TEST-START-FILE configfile
+# @TEST-START-FILE configfile
 testbool A
 testtesttesttesttesttest
 testbool A B
@@ -14,7 +14,7 @@ testenum unknown
 testbooool T
 test_any F
 test_table whatever
-@TEST-END-FILE
+# @TEST-END-FILE
 
 @load base/protocols/ssh
 @load base/protocols/conn

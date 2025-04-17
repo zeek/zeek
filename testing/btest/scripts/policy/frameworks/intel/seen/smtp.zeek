@@ -1,7 +1,7 @@
 # @TEST-EXEC: zeek -b -r $TRACES/smtp-multi-addr.pcap %INPUT
 # @TEST-EXEC: btest-diff intel.log
 
-@TEST-START-FILE intel.dat
+# @TEST-START-FILE intel.dat
 #fields	indicator	indicator_type	meta.source	meta.desc	meta.url
 jan.grashoefer@gmail.com	Intel::EMAIL	source1	test entry	http://some-data-distributor.com/100000
 jan.grashoefer@cern.ch	Intel::EMAIL	source1	test entry	http://some-data-distributor.com/100000
@@ -9,7 +9,7 @@ jan.grashofer@cern.ch	Intel::EMAIL	source1	test entry	http://some-data-distribut
 addr-spec@example.com	Intel::EMAIL	source1	test entry	http://some-data-distributor.com/100000
 angle-addr@example.com	Intel::EMAIL	source1	test entry	http://some-data-distributor.com/100000
 name-addr@example.com	Intel::EMAIL	source1	test entry	http://some-data-distributor.com/100000
-@TEST-END-FILE
+# @TEST-END-FILE
 
 @load base/protocols/smtp
 @load base/frameworks/intel

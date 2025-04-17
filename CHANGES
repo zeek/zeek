@@ -1,3 +1,15 @@
+7.2.0-dev.554 | 2025-04-17 16:56:34 +0200
+
+  * pre-commit: Ensure testing files have @TEST lines commented (Arne Welzel, Corelight)
+
+  * testing/btest/*js: Comment all @TEST lines (Arne Welzel, Corelight)
+
+  * testing/btest/*test: Comment all @TEST lines (Arne Welzel, Corelight)
+
+  * testing/btest/*evt: Comment all @TEST lines (Arne Welzel, Corelight)
+
+  * testing/btest/*zeek: Comment all @TEST lines (Arne Welzel, Corelight)
+
 7.2.0-dev.548 | 2025-04-17 15:20:27 +0200
 
   * Remove finish_run() (Jan Grashoefer, Corelight)

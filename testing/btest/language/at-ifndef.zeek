@@ -2,7 +2,7 @@
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff .stderr
 
-@TEST-START-FILE main.zeek
+# @TEST-START-FILE main.zeek
 
 function test_case(msg: string, expect: bool)
         {
@@ -70,9 +70,9 @@ event zeek_init()
 
 }
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE bar.zeek
+# @TEST-START-FILE bar.zeek
 
 module Bar;
 
@@ -80,4 +80,4 @@ export {
   option exists = T;
 }
 
-@TEST-END-FILE
+# @TEST-END-FILE

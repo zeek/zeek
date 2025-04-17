@@ -4,7 +4,7 @@
 
 redef exit_only_after_terminate = T;
 
-@TEST-START-FILE input.log
+# @TEST-START-FILE input.log
 #separator \x09
 #fields	i	p
 #types	count	pattern
@@ -12,7 +12,7 @@ redef exit_only_after_terminate = T;
 2	/cat/
 3	/foo|bar/
 4	/^oob/
-@TEST-END-FILE
+# @TEST-END-FILE
 
 global outfile: file;
 

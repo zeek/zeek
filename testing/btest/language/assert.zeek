@@ -9,21 +9,21 @@ event zeek_init()
 	print "not reached";
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 event zeek_init()
 	{
 	assert fmt("%s", 1) == "2", fmt("\"%s\" != \"2\"", 1);
 	print "not reached";
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 event zeek_init()
 	{
 	assert to_count("42") == 42.5, "always failing";
 	print "not reached";
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 event zeek_init()
 	{
 	local x = 2;
@@ -31,7 +31,7 @@ event zeek_init()
 	print "not reached";
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 event zeek_init()
 	{
 	local tbl: table[string] of string = [
@@ -43,7 +43,7 @@ event zeek_init()
 	assert "ghi" in tbl, cat(tbl);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 type MyRecord: record {
 	a: count;
 	b: count &optional;
@@ -56,7 +56,7 @@ event zeek_init()
 	assert r?$b, fmt("r$b is not set in %s", r);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 type MyRecord: record {
 	a: count;
 	b: count &optional;
@@ -71,7 +71,7 @@ event zeek_init()
 	assert r?$b, fmt("r$b is not set trying anyway: %s", r$b);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 assert 1 == 1, "always true";
 assert 1 == 2, "always false";
 print "not reached";

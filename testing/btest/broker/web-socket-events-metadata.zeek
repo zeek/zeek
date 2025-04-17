@@ -61,7 +61,7 @@ event pong(msg: string, n: count) &is_used
     }
 
 
-@TEST-START-FILE client.py
+# @TEST-START-FILE client.py
 import asyncio, datetime, websockets, os, time, json, sys
 
 ws_port = os.environ['BROKER_PORT'].split('/')[0]
@@ -149,4 +149,4 @@ async def do_run():
 loop = asyncio.get_event_loop()
 loop.run_until_complete(do_run())
 
-@TEST-END-FILE
+# @TEST-END-FILE

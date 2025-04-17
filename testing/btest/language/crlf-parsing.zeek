@@ -4,7 +4,7 @@
 # Note the test file itself uses CRLFs and .gitattributes has an entry
 # to ensure preservation of the CRLFs.
 
-@TEST-START-FILE test.sig
+# @TEST-START-FILE test.sig
 signature blah
 	{
 	ip-proto == tcp
@@ -12,14 +12,14 @@ signature blah
 	payload /.*/
 	event "matched"
 	}
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE test.zeek
+# @TEST-START-FILE test.zeek
 event zeek_init()
 	{
 	print "zeek_init";
 	}
-@TEST-END-FILE
+# @TEST-END-FILE
 
 @load test.zeek
 @load-sigs test.sig

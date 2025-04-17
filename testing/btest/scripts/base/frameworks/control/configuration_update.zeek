@@ -9,9 +9,9 @@
 
 const test_var = "ORIGINAL VALUE (this should be printed out first)" &redef;
 
-@TEST-START-FILE test-redef.zeek
+# @TEST-START-FILE test-redef.zeek
 redef test_var = "NEW VALUE (this should be printed out second)";
-@TEST-END-FILE
+# @TEST-END-FILE
 
 event zeek_init()
 	{

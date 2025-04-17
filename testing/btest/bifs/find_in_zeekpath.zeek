@@ -38,22 +38,22 @@ print "find_in_zeekpath pkg1.zeek", find_in_zeekpath("pkg1.zeek");
 print "find_in_zeekpath pkg2", find_in_zeekpath("pkg2");
 print "find_in_zeekpath pkg3", find_in_zeekpath("pkg3");
 
-@TEST-START-FILE pkg1.zeek
+# @TEST-START-FILE pkg1.zeek
 event zeek_init()
 	{
 	print "pkg1!";
 	}
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE pkg2/__load__.zeek
+# @TEST-START-FILE pkg2/__load__.zeek
 event zeek_init()
 	{
 	print "pkg2!";
 	}
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE errors.zeek
+# @TEST-START-FILE errors.zeek
 # Using relative and absolute paths is an error (empty string)
 print "relative", find_in_zeekpath("./pkg1.zeek");
 print "absolute", find_in_zeekpath("/pkg1");
-@TEST-END-FILE
+# @TEST-END-FILE

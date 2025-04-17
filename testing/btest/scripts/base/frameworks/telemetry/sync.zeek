@@ -21,7 +21,7 @@
 # @TEST-EXEC: btest-diff metrics2.txt
 # @TEST-EXEC: btest-diff metrics3.txt
 
-@TEST-START-FILE fetch-metrics.sh
+# @TEST-START-FILE fetch-metrics.sh
 #! /usr/bin/env bash
 set -ux
 trace_file=$1
@@ -33,7 +33,7 @@ URL=http://localhost:${PORT}/metrics
 curl -m 5 --trace $trace_file $URL | grep ^btest > $output_file
 
 exit 0
-@TEST-END-FILE
+# @TEST-END-FILE
 
 @load base/frameworks/telemetry
 

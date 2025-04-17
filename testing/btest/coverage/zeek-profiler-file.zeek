@@ -12,12 +12,12 @@
 # @TEST-EXEC: grep profiling-test cov.txt > step3.out
 # @TEST-EXEC: btest-diff step3.out
 
-@TEST-START-FILE profiling-test1.zeek
+# @TEST-START-FILE profiling-test1.zeek
 event new_connection(c: connection)
 	{ print "new conn"; }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE profiling-test2.zeek
+# @TEST-START-FILE profiling-test2.zeek
 event new_connection(c: connection)
 	{ print "new conn"; }
-@TEST-END-FILE
+# @TEST-END-FILE

@@ -4,12 +4,12 @@
 # @TEST-EXEC: cat intel.log >> intel-all.log
 # @TEST-EXEC: btest-diff intel-all.log
 
-@TEST-START-FILE intel.dat
+# @TEST-START-FILE intel.dat
 #fields	indicator	indicator_type	meta.source	meta.desc	meta.url
 www.pantz.org	Intel::DOMAIN	source1	test entry	http://some-data-distributor.com/100000
 www.dresdner-privat.de	Intel::DOMAIN	source1	test entry	http://some-data-distributor.com/100000
 2c322ae2b7fe91391345e070b63668978bb1c9da	Intel::CERT_HASH	source1	test entry	http://some-data-distributor.com/100000
-@TEST-END-FILE
+# @TEST-END-FILE
 
 @load base/frameworks/intel
 @load base/protocols/ssl

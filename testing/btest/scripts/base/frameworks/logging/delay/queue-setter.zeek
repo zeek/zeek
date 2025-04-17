@@ -7,7 +7,7 @@
 # @TEST-EXEC: zeek-cut -m -F'|' < test.log > test.cut
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff test.cut
 
-@TEST-START-FILE test.zeek
+# @TEST-START-FILE test.zeek
 # Used by all tests below.
 
 # Debug printing
@@ -44,7 +44,7 @@ event Pcap::file_done(p: string)
 	print network_time(), "Pcap::file_done", p;
 	}
 
-@TEST-END-FILE test.zeek
+# @TEST-END-FILE test.zeek
 # Delay records for a long time, reduce queue size after 10 packets to 3.
 
 event zeek_init()
@@ -84,7 +84,7 @@ hook Log::log_stream_policy(rec: Info, id: Log::ID)
 
 	}
 
-# @TEST-START-NEXT
+# # @TEST-START-NEXT
 #
 # Delay records for a long time, reduce queue size after 10 packets to 3,
 # re-delay all records once, provoking failure to free any space in the

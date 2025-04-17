@@ -6,7 +6,7 @@
 # @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff recv/recv.out
 
-@TEST-START-FILE common.zeek
+# @TEST-START-FILE common.zeek
 redef exit_only_after_terminate = T;
 
 type MyRecord: record {
@@ -52,9 +52,9 @@ global tablefunction: event(x: TableFunction);
 global tablepattern: event(x: TablePattern);
 
 global done: event();
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE send.zeek
+# @TEST-START-FILE send.zeek
 @load ./common.zeek
 
 event zeek_init()
@@ -81,9 +81,9 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{ terminate(); }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE recv.zeek
+# @TEST-START-FILE recv.zeek
 @load ./common.zeek
 
 event set1(x: Set1)
@@ -123,4 +123,4 @@ event done()
 
 event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	{ terminate(); }
-@TEST-END-FILE
+# @TEST-END-FILE

@@ -6,7 +6,7 @@ redef exit_only_after_terminate = T;
 redef InputConfig::empty_field = "EMPTY";
 redef InputConfig::set_separator = "\t";
 
-@TEST-START-FILE configfile
+# @TEST-START-FILE configfile
 testbool F
 testcount    1
 testcount 2
@@ -25,7 +25,7 @@ test_set (empty)
 test_set EMPTY
 test_set -
 teststring      abc   
-@TEST-END-FILE
+# @TEST-END-FILE
 
 @load base/protocols/ssh
 @load base/protocols/conn

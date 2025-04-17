@@ -8,7 +8,7 @@ event zeek_init() {
     Analyzer::register_for_port(Analyzer::ANALYZER_CONV, 22/tcp);
 }
 
-@TEST-START-FILE conv.spicy
+# @TEST-START-FILE conv.spicy
 
 module Conv;
 
@@ -43,10 +43,10 @@ type MyStruct = struct {
     s: string &optional;
 };
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
 
-@TEST-START-FILE conv.evt
+# @TEST-START-FILE conv.evt
 
 protocol analyzer Conv over TCP:
     parse originator with Conv::Test;
@@ -73,7 +73,7 @@ on Conv::Test -> event conv::test($conn,
                                   self.n
                                   );
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
 type MyRecord: record {
     i: int;

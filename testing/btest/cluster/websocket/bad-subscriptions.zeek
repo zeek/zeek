@@ -25,7 +25,7 @@
 # @TEST-EXEC: btest-diff ./client/out
 # @TEST-EXEC: btest-diff ./client/.stderr
 
-# @TEST-START-FILE manager.zeek
+# # @TEST-START-FILE manager.zeek
 @load ./zeromq-test-bootstrap
 redef exit_only_after_terminate = T;
 
@@ -56,10 +56,10 @@ event Cluster::websocket_client_lost(info: Cluster::EndpointInfo)
 	if ( lost == 4 )
 		terminate();
 	}
-# @TEST-END-FILE
+# # @TEST-END-FILE
 
 
-@TEST-START-FILE client.py
+# @TEST-START-FILE client.py
 import json, os, time
 from websockets.sync.client import connect
 
@@ -99,4 +99,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-@TEST-END-FILE
+# @TEST-END-FILE

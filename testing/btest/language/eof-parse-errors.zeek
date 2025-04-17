@@ -3,19 +3,19 @@
 # @TEST-EXEC: btest-diff output1
 # @TEST-EXEC: btest-diff output2
 
-@TEST-START-FILE a.zeek
+# @TEST-START-FILE a.zeek
 module A;
 
 event zeek_init()
 	{
 	print "a";
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE b.zeek
+# @TEST-START-FILE b.zeek
 module B;
 
 event zeek_init()
 	{
 	print "b";
 	}
-@TEST-END-FILE
+# @TEST-END-FILE

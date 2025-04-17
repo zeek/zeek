@@ -22,16 +22,16 @@
 # @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff manager-1/services.out
 
-@TEST-START-FILE cluster-layout.zeek
+# @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
 	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1")), $metrics_port=to_port(getenv("METRICS_PORT1"))],
 	["logger-1"] = [$node_type=Cluster::LOGGER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1", $metrics_port=to_port(getenv("METRICS_PORT2"))],
 	["proxy-1"] = [$node_type=Cluster::PROXY,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT3")), $manager="manager-1", $metrics_port=to_port(getenv("METRICS_PORT3"))],
 	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT4")), $manager="manager-1", $metrics_port=to_port(getenv("METRICS_PORT4"))],
 };
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE request-services.sh
+# @TEST-START-FILE request-services.sh
 #! /usr/bin/env bash
 
 # This script makes repeat curl requests to find all of the metrics data from the
@@ -52,7 +52,7 @@ for host in $(echo ${services_data} | jq -r '.[0].targets[]' | sort); do
 		echo "Failed to request data from ${host}" >> ${output_file}
 	fi
 done
-@TEST-END-FILE
+# @TEST-END-FILE
 
 @load policy/frameworks/cluster/experimental
 @load base/frameworks/telemetry

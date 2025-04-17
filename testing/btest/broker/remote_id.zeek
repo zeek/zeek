@@ -8,7 +8,7 @@
 # @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff recv/recv.out
 
-@TEST-START-FILE send.zeek
+# @TEST-START-FILE send.zeek
 
 const test_var = "init" &redef;
 
@@ -29,9 +29,9 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	Broker::publish_id("zeek/ids/test", "test_var");
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE recv.zeek
+# @TEST-START-FILE recv.zeek
 
 const test_var = "init" &redef;
 
@@ -65,4 +65,4 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	terminate();
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE

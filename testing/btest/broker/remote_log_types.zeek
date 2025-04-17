@@ -14,7 +14,7 @@
 # @TEST-EXEC: cat recv/test.log | grep -v '#close' | grep -v '#open' >recv/test.log.filtered
 # @TEST-EXEC: diff -u send/test.log.filtered recv/test.log.filtered
 
-@TEST-START-FILE common.zeek
+# @TEST-START-FILE common.zeek
 
 redef exit_only_after_terminate = T;
 
@@ -57,9 +57,9 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	terminate();
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE recv.zeek
+# @TEST-START-FILE recv.zeek
 
 @load ./common
 
@@ -74,9 +74,9 @@ event quit_receiver()
 	terminate();
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE send.zeek
+# @TEST-START-FILE send.zeek
 
 @load ./common
 
@@ -133,4 +133,4 @@ event Broker::log_flush()
 		Broker::publish("zeek/", quit_receiver);
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE

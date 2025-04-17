@@ -15,8 +15,8 @@ for pcap in $(cd $TRACES/communityid && ls *.pcap); do
     btest-diff $pcap.out
 done
 
-@TEST-START-FILE test-community-id-v1.zeek
+# @TEST-START-FILE test-community-id-v1.zeek
 event connection_state_remove(c: connection) {
 	print c$id, community_id_v1(c$id);
 }
-@TEST-END-FILE
+# @TEST-END-FILE

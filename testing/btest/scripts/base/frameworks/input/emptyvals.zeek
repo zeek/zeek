@@ -8,7 +8,7 @@
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
 
-@TEST-START-FILE input1.log
+# @TEST-START-FILE input1.log
 #separator \x09
 #path	ssh
 #fields	b	i
@@ -16,9 +16,9 @@
 T	1
 -	2
 F	-
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE input2.log
+# @TEST-START-FILE input2.log
 #separator \x09
 #path	ssh
 #fields	b	i	j
@@ -26,7 +26,7 @@ F	-
 T	1	1
 -	2	2
 F	-	3
-@TEST-END-FILE
+# @TEST-END-FILE
 
 redef exit_only_after_terminate = T;
 

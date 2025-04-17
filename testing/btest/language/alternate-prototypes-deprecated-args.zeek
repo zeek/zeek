@@ -37,11 +37,11 @@ event zeek_init()
 	event myev("one", "two", "three");
 	}
 
-@TEST-START-FILE hide.zeek
+# @TEST-START-FILE hide.zeek
 event myev(a: string, c: string) &priority = 7
 	{
 	local ddd = vector(1,2,3);
 	print "myev (new)", a, c, ddd;
 	print b;
 	}
-@TEST-END-FILE
+# @TEST-END-FILE

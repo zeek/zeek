@@ -10,7 +10,7 @@
 # @TEST-EXEC: btest-diff 2.out
 # @TEST-EXEC: btest-diff 2.err
 
-@TEST-START-FILE 1.zeek
+# @TEST-START-FILE 1.zeek
 type myrec: record {
 	f: string &optional;
 };
@@ -44,9 +44,9 @@ event zeek_init() &priority=-10
 	# Reachable
 	print "other zeek_init";
 	}
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE 2.zeek
+# @TEST-START-FILE 2.zeek
 function foo()
 	{
 	print "in foo";
@@ -71,4 +71,4 @@ event zeek_init()
 	print "zeek_init done";
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE

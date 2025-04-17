@@ -10,7 +10,7 @@
 # @TEST-EXEC: btest-diff master.out
 # @TEST-EXEC: btest-diff clonetwo.out
 
-@TEST-START-FILE common.zeek
+# @TEST-START-FILE common.zeek
 redef exit_only_after_terminate = T;
 
 global tablestore: opaque of Broker::Store;
@@ -36,9 +36,9 @@ event dump_tables()
 
 event do_terminate()
 	{ terminate(); }
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE master.zeek
+# @TEST-START-FILE master.zeek
 
 event zeek_init()
 	{
@@ -84,9 +84,9 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 	if ( peers == 0 )
 		terminate();
 	}
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE cloneone.zeek
+# @TEST-START-FILE cloneone.zeek
 event zeek_init()
 	{
 	Broker::subscribe("cloneone");
@@ -120,9 +120,9 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	setstore = Broker::create_clone("set");
 	recordstore = Broker::create_clone("rec");
 	}
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE clonetwo.zeek
+# @TEST-START-FILE clonetwo.zeek
 event zeek_init()
 	{
 	Broker::subscribe("clonetwo");
@@ -147,4 +147,4 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	setstore = Broker::create_clone("set");
 	recordstore = Broker::create_clone("rec");
 	}
-@TEST-END-FILE
+# @TEST-END-FILE

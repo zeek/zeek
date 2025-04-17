@@ -44,7 +44,7 @@ event zeek_init()
 	event foo("A", "B");
 	}
 
-@TEST-START-FILE bad.zeek
+# @TEST-START-FILE bad.zeek
 global foo: event(a: string, b: string, c: string &default="C");
 global foo: event(c: string, b: string, a: string &default="A");
-@TEST-END-FILE bad.zeek
+# @TEST-END-FILE bad.zeek

@@ -8,19 +8,19 @@ event zeek_init()
 	assert 1;
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 event zeek_init()
 	{
 	assert T, 1234;
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 event zeek_init()
 	{
 	assert;
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 event zeek_init()
 	{
 	assert T, "extra", "something";

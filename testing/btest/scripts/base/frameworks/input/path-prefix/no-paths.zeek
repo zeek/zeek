@@ -4,12 +4,12 @@
 # @TEST-EXEC: ZEEKPATH=$ZEEKPATH:$TEST_BASE/scripts/base/frameworks/input/path-prefix zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 
-@TEST-START-FILE input.data
+# @TEST-START-FILE input.data
 #fields	ip	tag
 127.0.0.1	just
 127.0.0.2	some
 127.0.0.3	value
-@TEST-END-FILE
+# @TEST-END-FILE
 
 @load path-prefix-common-table.zeek
 
@@ -19,7 +19,7 @@ event zeek_init()
 			  $destination=destination, $want_record=F]);
 	}
 
-# @TEST-START-NEXT
+# # @TEST-START-NEXT
 #
 # The same test, but using event streams for input.
 
@@ -31,7 +31,7 @@ event zeek_init()
                           $fields=Val, $ev=inputev]);
 	}
 
-# @TEST-START-NEXT
+# # @TEST-START-NEXT
 #
 # The same test again, but using file analysis w/ binary readers.
 

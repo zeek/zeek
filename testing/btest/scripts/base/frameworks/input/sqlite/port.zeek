@@ -8,7 +8,7 @@
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff out
 
-@TEST-START-FILE port.sql
+# @TEST-START-FILE port.sql
 PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;
 CREATE TABLE port (
@@ -18,7 +18,7 @@ CREATE TABLE port (
 INSERT INTO "port" VALUES(5353,'udp');
 INSERT INTO "port" VALUES(6162,'tcp');
 COMMIT;
-@TEST-END-FILE
+# @TEST-END-FILE
 
 redef exit_only_after_terminate = T;
 

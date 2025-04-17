@@ -5,6 +5,6 @@
 
 print @DIR;
 
-@TEST-START-FILE pathtest.zeek
+# @TEST-START-FILE pathtest.zeek
 print @DIR;
-@TEST-END-FILE
+# @TEST-END-FILE

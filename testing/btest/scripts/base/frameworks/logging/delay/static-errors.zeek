@@ -17,7 +17,7 @@ hook Log::log_stream_policy(rec: Conn::Info, id: Log::ID)
 	}
 
 
-# @TEST-START-NEXT
+# # @TEST-START-NEXT
 @load base/protocols/conn
 
 # PostDelayCallback needs to return a bool
@@ -32,7 +32,7 @@ hook Log::log_stream_policy(rec: Conn::Info, id: Log::ID)
 	Log::delay(id, rec, post_delay_cb);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Bad token type 1
 @load base/protocols/conn
 
@@ -43,7 +43,7 @@ hook Log::log_stream_policy(rec: Conn::Info, id: Log::ID)
 	Log::delay_finish(id, rec, "42");
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # Bad token type 2
 @load base/protocols/conn
 

@@ -38,21 +38,21 @@ event zeek_init()
 	print from_json(json, Foo);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # argument type mismatch
 event zeek_init()
 	{
 	print from_json("[]", 10);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # JSON parse error
 event zeek_init()
 	{
 	print from_json("{\"hel", string_vec);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 type bool_t: bool;
 type Foo: record {
 	a: bool;
@@ -65,14 +65,14 @@ event zeek_init()
 	print from_json("{\"a\": \"hello\"}", Foo);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # type unsupport error
 event zeek_init()
 	{
 	print from_json("[]", table_string_of_string);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 type port_t: port;
 # additional & incorrect port formats
 event zeek_init()
@@ -84,7 +84,7 @@ event zeek_init()
 	print from_json("{}", port_t);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 type set_t: set[int, bool];
 # index type doesn't match
 event zeek_init()
@@ -93,7 +93,7 @@ event zeek_init()
 	print from_json("[[1, false], [2, 1]]", set_t);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 type pattern_t: pattern;
 # pattern compile error
 event zeek_init()
@@ -101,7 +101,7 @@ event zeek_init()
 	print from_json("\"/([[:print:]]{-}[[:alnum:]]foo)/\"", pattern_t);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 type Color: enum {
 	Red = 10
 };
@@ -111,7 +111,7 @@ event zeek_init()
 	print from_json("\"Yellow\"", Color);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # container null
 event zeek_init()
 	{
@@ -119,7 +119,7 @@ event zeek_init()
 	print from_json("[\"1\",null,\"3\",\"4\"]", string_vec);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 type Foo: record {
 	hello: string;
 	t: bool;
@@ -131,7 +131,7 @@ event zeek_init()
 	print from_json("{\"hello\": null, \"t\": true}", Foo);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 type Foo: record {
 	hello: string;
 };
@@ -141,7 +141,7 @@ event zeek_init()
 	print from_json("{\"hello\": \"Hello!\", \"t\": true}", Foo);
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 type Foo: record {
 	id_field: string;
 };
@@ -154,7 +154,7 @@ event zeek_init()
 	});
 	}
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 # From: https://www.rfc-editor.org/rfc/rfc8520#section-9
 global input:string = "{\"ietf-mud:mud\":{\"mud-version\":1,\"mud-url\":\"https://lighting.example.com/lightbulb2000\",\"last-update\":\"2019-01-28T11:20:51+01:00\",\"cache-validity\":48,\"is-supported\":true,\"systeminfo\":\"The BMS Example Light Bulb\",\"from-device-policy\":{\"access-lists\":{\"access-list\":[{\"name\":\"mud-76100-v6fr\"}]}},\"to-device-policy\":{\"access-lists\":{\"access-list\":[{\"name\":\"mud-76100-v6to\"}]}}},\"ietf-access-control-list:acls\":{\"acl\":[{\"name\":\"mud-76100-v6to\",\"type\":\"ipv6-acl-type\",\"aces\":{\"ace\":[{\"name\":\"cl0-todev\",\"matches\":{\"ipv6\":{\"ietf-acldns:src-dnsname\":\"test.example.com\",\"protocol\":6},\"tcp\":{\"ietf-mud:direction-initiated\":\"from-device\",\"source-port\":{\"operator\":\"eq\",\"port\":443}}},\"actions\":{\"forwarding\":\"accept\"}}]}},{\"name\":\"mud-76100-v6fr\",\"type\":\"ipv6-acl-type\",\"aces\":{\"ace\":[{\"name\":\"cl0-frdev\",\"matches\":{\"ipv6\":{\"ietf-acldns:dst-dnsname\":\"test.example.com\",\"protocol\":6},\"tcp\":{\"ietf-mud:direction-initiated\":\"from-device\",\"destination-port\":{\"operator\":\"eq\",\"port\":443}}},\"actions\":{\"forwarding\":\"accept\"}}]}}]}}";
 

@@ -8,21 +8,21 @@
 redef exit_only_after_terminate = T;
 redef Config::config_files += {"../configfile1", "../configfile2"};
 
-@TEST-START-FILE configfile1
+# @TEST-START-FILE configfile1
 testbool F
 testcount 2
 testint		-1
 testenum Conn::LOG
 test_set a,b,c,d,erdbeerschnitzel
 test_vector 1,2,3,4,5,6
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE configfile2
+# @TEST-START-FILE configfile2
 testport 45
 testaddr 127.0.0.1
 testinterval 60
 testtime 1507321987
-@TEST-END-FILE
+# @TEST-END-FILE
 
 @load base/protocols/ssh
 @load base/protocols/conn

@@ -4,7 +4,7 @@
 # @TEST-EXEC: btest-diff send.out
 #
 
-@TEST-START-FILE send.zeek
+# @TEST-START-FILE send.zeek
 
 redef exit_only_after_terminate = T;
 
@@ -38,5 +38,5 @@ event zeek_init()
     }
 
 
-@TEST-END-FILE
+# @TEST-END-FILE
 

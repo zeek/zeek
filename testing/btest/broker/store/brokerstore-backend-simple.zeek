@@ -12,15 +12,15 @@
 # @TEST-EXEC: diff master.out clone.out
 # @TEST-EXEC: diff master.out clone2.out
 
-@TEST-START-FILE cluster-layout.zeek
+# @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
 	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
 	["worker-1"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1"],
 	["worker-2"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT3")), $manager="manager-1"],
 };
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE common.zeek
+# @TEST-START-FILE common.zeek
 @load base/frameworks/cluster
 @load base/frameworks/broker
 
@@ -38,9 +38,9 @@ global t: table[string] of count &backend=Broker::MEMORY;
 global s: set[string] &backend=Broker::MEMORY;
 global r: table[string] of testrec &broker_allow_complex_type &backend=Broker::MEMORY;
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE master.zeek
+# @TEST-START-FILE master.zeek
 event zeek_init()
 	{
 	t["a"] = 5;
@@ -69,9 +69,9 @@ event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string)
 		terminate();
 	}
 
-@TEST-END-FILE
+# @TEST-END-FILE
 
-@TEST-START-FILE clone.zeek
+# @TEST-START-FILE clone.zeek
 
 event dump_tables()
 	{
@@ -94,4 +94,4 @@ event Cluster::node_up(name: string, id: string)
 	{
 	schedule 0.1sec { check_all_set() };
 	}
-@TEST-END-FILE
+# @TEST-END-FILE

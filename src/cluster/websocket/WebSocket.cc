@@ -16,7 +16,6 @@
 #include "zeek/cluster/Serializer.h"
 #include "zeek/cluster/serializer/broker/Serializer.h"
 #include "zeek/cluster/websocket/Plugin.h"
-#include "zeek/cluster/websocket/const.bif.h"
 #include "zeek/cluster/websocket/events.bif.h"
 #include "zeek/net_util.h"
 #include "zeek/threading/MsgThread.h"

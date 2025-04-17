@@ -66,8 +66,11 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     auto tuning_params = backend_options->GetField<TableVal>("tuning_params")->ToMap();
     for ( const auto& [k, v] : tuning_params ) {
         auto ks = k->AsListVal()->Idx(0)->AsStringVal();
+        auto ks_sv = ks->ToStdStringView();
         auto vs = v->AsStringVal();
-        std::string cmd = util::fmt("pragma %s = %s", ks->ToStdStringView().data(), vs->ToStdStringView().data());
+        auto vs_sv = vs->ToStdStringView();
+        std::string cmd = util::fmt("pragma %.*s = %.*s", static_cast<int>(ks_sv.size()), ks_sv.data(),
+                                    static_cast<int>(vs_sv.size()), vs_sv.data());
 
         if ( int res = sqlite3_exec(db, cmd.c_str(), NULL, NULL, &errorMsg); res != SQLITE_OK ) {
             std::string err = util::fmt("Error executing tuning pragma statement: %s", errorMsg);

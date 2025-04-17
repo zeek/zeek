@@ -1590,7 +1590,7 @@ void Manager::ProcessMessage(std::string_view topic, broker::zeek::Event& ev) {
         if ( p.size() > topic.size() )
             continue;
 
-        if ( strncmp(p.data(), topic.data(), p.size()) != 0 )
+        if ( strncmp(p.data(), topic.data(), p.size()) != 0 ) // NOLINT(bugprone-suspicious-stringview-data-usage)
             continue;
 
         DBG_LOG(DBG_BROKER, "Skip processing of forwarded event: %s %s", std::string{name}.c_str(),

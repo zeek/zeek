@@ -24,7 +24,7 @@ public:
     WebSocketState() : hub(broker_mgr->MakeHub({broker::topic::errors()})) {}
     ~WebSocketState() {
         // Let the manager know we're done with this hook.
-        broker_mgr->ReleaseHub(hub);
+        broker_mgr->ReleaseHub(std::move(hub));
     }
 
     broker::hub hub;

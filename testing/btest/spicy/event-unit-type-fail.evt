@@ -11,21 +11,21 @@ protocol analyzer spicy::Test over TCP:
 on TestAssertion::Alias -> event Test::my_event(); # works
 on Data -> event Test::my_event(); # failure: can't find unit due to missing namespace
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 protocol analyzer spicy::Test over TCP:
     parse with TestAssertion::Data;
 
 on TestAssertion::DoesNotExit -> event Test::my_event(); # failure: no such type
 
-@TEST-START-NEXT
+# @TEST-START-NEXT
 
 protocol analyzer spicy::Test over TCP:
     parse with TestAssertion::Data;
 
 on TestAssertion::E -> event Test::my_event(); # failure: exists, but not a unit type
 
-@TEST-START-FILE test.spicy
+# @TEST-START-FILE test.spicy
 module TestAssertion;
 
 public type Data = unit {
@@ -34,5 +34,5 @@ public type Data = unit {
 
 public type Alias = Data;
 public type E = enum { One };
-@TEST-END-FILE
+# @TEST-END-FILE
 

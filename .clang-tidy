@@ -10,4 +10,5 @@ Checks: [-*,
          bugprone-misplaced-widening-cast,
          bugprone-parent-virtual-call,
          bugprone-string-literal-with-embedded-nul,
+         bugprone-suspicious-stringview-data-usage,
 ]

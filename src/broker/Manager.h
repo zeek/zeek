@@ -473,7 +473,7 @@ private:
     broker::hub MakeHub(broker::filter_type ft);
 
     // This hub is about to be destroyed.
-    void ReleaseHub(const broker::hub& hub);
+    void ReleaseHub(const broker::hub&& hub);
 
     struct LogBuffer {
         // Indexed by topic string.

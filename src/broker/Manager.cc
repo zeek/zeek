@@ -1997,6 +1997,6 @@ broker::hub Manager::MakeHub(broker::filter_type ft) {
     return bstate->endpoint.make_hub(std::move(ft));
 }
 
-void Manager::ReleaseHub(const broker::hub& hub) { --hub_count; }
+void Manager::ReleaseHub(const broker::hub&& hub) { --hub_count; }
 
 } // namespace zeek::Broker

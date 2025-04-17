@@ -288,25 +288,26 @@ void WebSocketEventDispatcher::Process(const WebSocketOpen& open) {
     // Generate an ID for this client.
     auto ws_id = cluster::backend->NodeId() + "-websocket-" + id;
 
-    const auto& event_serializer_val = id::find_val<zeek::EnumVal>("Cluster::event_serializer");
-    auto event_serializer = cluster::manager->InstantiateEventSerializer(event_serializer_val);
-    auto cluster_backend_val = id::find_val<zeek::EnumVal>("Cluster::backend");
-
-    static const auto& cluster_backend_type = zeek::id::find_type<EnumType>("Cluster::BackendTag");
-    zeek_int_t broker_enum = cluster_backend_type->Lookup("Cluster::CLUSTER_BACKEND_BROKER");
-    zeek_int_t broker_ws_shim_enum = cluster_backend_type->Lookup("Cluster::CLUSTER_BACKEND_BROKER_WEBSOCKET_SHIM");
-
-    // If the configured backend is CLUSTER_BACKEND_BROKER, then switch
+    // If the globally configured backend is CLUSTER_BACKEND_BROKER, then switch
     // the WebSocket client's backend to CLUSTER_BACKEND_BROKER_WEBSOCKET_SHIM
-    // so that pub/sub is using the local broker endpoint via hub functionality.
-    if ( cluster_backend_val->Get() == broker_enum ) {
+    // so that pub/sub is using the local broker endpoint via its hub functionality
+    // instead of instantiating a new Broker manager.
+    static const auto& event_serializer_val = id::find_val<zeek::EnumVal>("Cluster::event_serializer");
+    auto event_serializer = cluster::manager->InstantiateEventSerializer(event_serializer_val);
+    static const auto& cluster_backend_val = id::find_val<zeek::EnumVal>("Cluster::backend");
+    auto effective_backend_val = cluster_backend_val;
+
+    static const auto& broker_enum_val = zeek::id::find_val<EnumVal>("Cluster::CLUSTER_BACKEND_BROKER");
+    static const auto& broker_ws_shim_enum_val =
+        zeek::id::find_val<EnumVal>("Cluster::CLUSTER_BACKEND_BROKER_WEBSOCKET_SHIM");
+    if ( effective_backend_val == broker_enum_val ) {
         WS_DEBUG("Using broker websocket shim");
-        cluster_backend_val = cluster_backend_type->GetEnumVal(broker_ws_shim_enum);
+        effective_backend_val = broker_ws_shim_enum_val;
     }
 
     auto event_handling_strategy = std::make_unique<WebSocketEventHandlingStrategy>(wsc, this);
-    auto backend = zeek::cluster::manager->InstantiateBackend(cluster_backend_val, std::move(event_serializer), nullptr,
-                                                              std::move(event_handling_strategy));
+    auto backend = zeek::cluster::manager->InstantiateBackend(effective_backend_val, std::move(event_serializer),
+                                                              nullptr, std::move(event_handling_strategy));
 
     if ( ! backend ) {
         reporter->Error("Failed to instantiate backend for client with id %s!", id.c_str());

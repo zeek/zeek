@@ -6,7 +6,6 @@
 #include "zeek/analyzer/protocol/rpc/MOUNT.h"
 #include "zeek/analyzer/protocol/rpc/NFS.h"
 #include "zeek/analyzer/protocol/rpc/Portmap.h"
-#include "zeek/analyzer/protocol/rpc/RPC.h"
 
 namespace zeek::plugin::detail::Zeek_RPC {
 

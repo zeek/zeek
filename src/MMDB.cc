@@ -6,7 +6,6 @@
 #include <netinet/ip.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
-#include <chrono>
 
 #include "zeek/Func.h"
 #include "zeek/IPAddr.h"

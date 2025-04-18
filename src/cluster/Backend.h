@@ -10,21 +10,15 @@
 #include <variant>
 
 #include "zeek/EventHandler.h"
-#include "zeek/IntrusivePtr.h"
 #include "zeek/Span.h"
 #include "zeek/Tag.h"
+#include "zeek/Val.h"
+#include "zeek/ZeekArgs.h"
+#include "zeek/cluster/BifSupport.h"
 #include "zeek/cluster/Serializer.h"
 #include "zeek/logging/Types.h"
 
 namespace zeek {
-
-class FuncVal;
-
-using FuncValPtr = IntrusivePtr<FuncVal>;
-
-class Val;
-using ValPtr = IntrusivePtr<Val>;
-using ArgsSpan = Span<const ValPtr>;
 
 namespace detail {
 template<class Proc, class Work>

@@ -6,6 +6,7 @@
 #include "zeek/Event.h"
 #include "zeek/IP.h"
 #include "zeek/Reporter.h"
+#include "zeek/Stats.h"
 #include "zeek/Val.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/session/Manager.h"

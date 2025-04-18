@@ -2,11 +2,9 @@
 
 #include "zeek/CCL.h"
 
-#include "zeek/zeek-config.h"
-
 #include <algorithm>
 
-#include "zeek/DFA.h"
+#include "zeek/NFA.h" // for SYM_BOL and SYM_EOL
 #include "zeek/RE.h"
 
 namespace zeek::detail {

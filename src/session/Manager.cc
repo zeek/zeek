@@ -15,6 +15,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/RuleMatcher.h"
 #include "zeek/RunState.h"
+#include "zeek/Stats.h"
 #include "zeek/Timer.h"
 #include "zeek/TunnelEncapsulation.h"
 #include "zeek/packet_analysis/Manager.h"

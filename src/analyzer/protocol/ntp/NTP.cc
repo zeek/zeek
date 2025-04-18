@@ -3,7 +3,6 @@
 #include "zeek/analyzer/protocol/ntp/NTP.h"
 
 #include "zeek/Reporter.h"
-#include "zeek/analyzer/protocol/ntp/events.bif.h"
 
 namespace zeek::analyzer::ntp {
 

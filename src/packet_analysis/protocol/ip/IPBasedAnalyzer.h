@@ -5,7 +5,6 @@
 #include <map>
 #include <set>
 
-#include "zeek/ID.h"
 #include "zeek/Tag.h"
 #include "zeek/packet_analysis/Analyzer.h"
 

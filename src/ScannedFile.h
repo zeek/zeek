@@ -2,11 +2,12 @@
 
 #pragma once
 
-#include <zeek/Obj.h>
 #include <list>
 #include <optional>
 #include <string>
 #include <vector>
+
+#include "zeek/Obj.h"
 
 namespace zeek::detail {
 

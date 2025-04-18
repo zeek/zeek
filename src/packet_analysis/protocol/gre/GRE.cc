@@ -4,7 +4,6 @@
 
 #include <pcap.h> // For DLT_ constants
 
-#include "zeek/IP.h"
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
 #include "zeek/session/Manager.h"

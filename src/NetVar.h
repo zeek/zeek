@@ -3,7 +3,6 @@
 #pragma once
 
 #include "zeek/EventRegistry.h"
-#include "zeek/Stats.h"
 #include "zeek/Val.h"
 
 namespace zeek::detail {

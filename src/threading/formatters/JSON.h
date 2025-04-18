@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <memory>
+#include <string>
 
 #include "zeek/threading/Formatter.h"
 

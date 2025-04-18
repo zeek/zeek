@@ -2,10 +2,9 @@
 
 #pragma once
 
-#include <time.h> // for time_t
+#include <ctime> // for time_t
 #include <list>
 #include <string>
-#include <vector>
 
 #include "zeek/plugin/Plugin.h"
 #include "zeek/zeekygen/Info.h"

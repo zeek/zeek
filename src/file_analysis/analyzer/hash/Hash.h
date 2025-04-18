@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include <string>
-
 #include "zeek/OpaqueVal.h"
 #include "zeek/Val.h"
 #include "zeek/file_analysis/Analyzer.h"

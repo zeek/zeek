@@ -1,6 +1,6 @@
 %{
 #include "zeek/zeek-config.h"
-#include <stdio.h>
+#include <cstdio>
 #include <netinet/in.h>
 #include <vector>
 

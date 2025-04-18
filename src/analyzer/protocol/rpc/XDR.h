@@ -5,8 +5,6 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 
-#include "zeek/util.h"
-
 namespace zeek::analyzer::rpc {
 
 extern uint32_t extract_XDR_uint32(const u_char*& buf, int& len);

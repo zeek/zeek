@@ -2,15 +2,13 @@
 
 #pragma once
 
-#include <time.h> // for time_t
+#include <ctime> // for time_t
 #include <list>
 #include <map>
 #include <string>
 #include <vector>
 
 #include "zeek/ID.h"
-#include "zeek/IntrusivePtr.h"
-#include "zeek/util.h"
 #include "zeek/zeekygen/Info.h"
 
 namespace zeek {

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <stdio.h>
+#include <cstdio>
 
 namespace zeek::detail {
 

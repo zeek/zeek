@@ -2,11 +2,7 @@
 
 #include "zeek/analyzer/protocol/ncp/NCP.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cstdlib>
-#include <map>
-#include <string>
 
 #include "zeek/analyzer/protocol/ncp/consts.bif.h"
 #include "zeek/analyzer/protocol/ncp/events.bif.h"

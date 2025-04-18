@@ -2,6 +2,7 @@
 
 #pragma once
 
+// This is needed for USE_KRB5 below.
 #include "zeek/zeek-config.h"
 
 #include <mutex>
@@ -10,7 +11,8 @@
 #include <krb5/krb5.h>
 #endif
 
-#include "analyzer/protocol/krb/krb_pac.h"
+#include "zeek/analyzer/Analyzer.h"
+#include "zeek/analyzer/protocol/krb/krb_pac.h"
 
 namespace zeek::analyzer::krb {
 

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "zeek/analyzer/protocol/ssl/events.bif.h"
+#include "zeek/analyzer/Analyzer.h"
 
 namespace binpac {
 namespace DTLS {

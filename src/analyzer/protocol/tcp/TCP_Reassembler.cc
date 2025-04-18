@@ -2,11 +2,10 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
-#include <algorithm>
-
 #include "zeek/File.h"
 #include "zeek/Reporter.h"
 #include "zeek/RuleMatcher.h"
+#include "zeek/Stats.h"
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"

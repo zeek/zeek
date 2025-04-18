@@ -2,8 +2,6 @@
 
 #include "zeek/analyzer/protocol/krb/KRB_TCP.h"
 
-#include "zeek/analyzer/protocol/krb/events.bif.h"
-#include "zeek/analyzer/protocol/krb/types.bif.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
 namespace zeek::analyzer::krb_tcp {

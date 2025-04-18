@@ -2,19 +2,14 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#include <vector>
-
 #include "zeek/DebugLogger.h"
 #include "zeek/Event.h"
 #include "zeek/File.h"
 #include "zeek/IP.h"
-#include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
-#include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 #include "zeek/analyzer/protocol/tcp/events.bif.h"
-#include "zeek/analyzer/protocol/tcp/types.bif.h"
 #include "zeek/session/Manager.h"
 
 namespace zeek::analyzer::tcp {

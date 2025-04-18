@@ -1,3 +1,7 @@
+7.2.0-dev.562 | 2025-04-17 17:48:45 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 7.2.0-dev.560 | 2025-04-17 09:28:50 -0700
 
   * Update src/3rdparty submodule to disable clang-format (Tim Wojtulewicz, Corelight)

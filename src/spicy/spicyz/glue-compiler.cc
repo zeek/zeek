@@ -1339,7 +1339,7 @@ bool GlueCompiler::CreateSpicyHook(glue::Event* ev) {
 
 #if SPICY_VERSION_NUMBER >= 11300
     auto attrs = builder()->attributeSet(
-        {builder()->attribute(hilti::attribute::Kind::Priority, builder()->integer(ev->priority))});
+        {builder()->attribute(hilti::attribute::kind::Priority, builder()->integer(ev->priority))});
 #elif SPICY_VERSION_NUMBER >= 11200
     auto attrs = builder()->attributeSet(
         {builder()->attribute(hilti::Attribute::Kind::Priority, builder()->integer(ev->priority))});

@@ -64,7 +64,7 @@ uint16_t in_cksum(const struct checksum_block *vec, int veclen)
 	for (; veclen != 0; vec++, veclen--) {
 		if (vec->len == 0)
 			continue;
-		w = (const uint16_t *)(const void *)vec->block;
+		w = reinterpret_cast<const uint16_t *>(vec->block);
 		if (mlen == -1) {
 			/*
 			 * The first byte of this chunk is the continuation
@@ -76,7 +76,7 @@ uint16_t in_cksum(const struct checksum_block *vec, int veclen)
 			 */
 			s_util.c[1] = *(const uint8_t *)w;
 			sum += s_util.s;
-			w = (const uint16_t *)(const void *)((const uint8_t *)w + 1);
+			w = reinterpret_cast<const uint16_t *>((const uint8_t *)w + 1);
 			mlen = vec->len - 1;
 		} else
 			mlen = vec->len;
@@ -87,7 +87,7 @@ uint16_t in_cksum(const struct checksum_block *vec, int veclen)
 			REDUCE;
 			sum <<= 8;
 			s_util.c[0] = *(const uint8_t *)w;
-			w = (const uint16_t *)(const void *)((const uint8_t *)w + 1);
+			w = reinterpret_cast<const uint16_t *>((const uint8_t *)w + 1);
 			mlen--;
 			byte_swapped = 1;
 		}

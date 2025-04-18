@@ -155,6 +155,21 @@ public:
     void Unpeer(const std::string& addr, uint16_t port);
 
     /**
+     * Whether the local node originally initiated the peering with the
+     * given endpoint.
+     * @param addr the address used in zeek::Broker::Manager::Peer().
+     * @param port the port used in zeek::Broker::Manager::Peer().
+     */
+    bool IsOutboundPeering(const std::string& addr, uint16_t port) const;
+
+    /**
+     * Whether the local node originally initiated the peering with the
+     * given endpoint.
+     * @param ni the address and port used in zeek::Broker::Manager::Peer().
+     */
+    bool IsOutboundPeering(const broker::network_info ni) const;
+
+    /**
      * @return a list of peer endpoints.
      */
     std::vector<broker::peer_info> Peers() const;

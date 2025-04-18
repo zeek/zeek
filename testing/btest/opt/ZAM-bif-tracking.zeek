@@ -38,6 +38,7 @@ global known_BiFs = set(
 	"Broker::__insert_into_set",
 	"Broker::__insert_into_table",
 	"Broker::__is_closed",
+	"Broker::__is_outbound_peering",
 	"Broker::__keys",
 	"Broker::__listen",
 	"Broker::__node_id",

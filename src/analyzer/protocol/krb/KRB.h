@@ -7,7 +7,7 @@
 #include <mutex>
 
 #ifdef USE_KRB5
-#include <krb5.h>
+#include <krb5/krb5.h>
 #endif
 
 #include "analyzer/protocol/krb/krb_pac.h"

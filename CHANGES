@@ -1,3 +1,9 @@
+7.2.0-dev.565 | 2025-04-18 11:36:17 -0700
+
+  * Use longer path when including krb5.h to match the cmake lookup (Tim Wojtulewicz, Corelight)
+
+  * Update cmake submodule for krb5 fixes [nomail] (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.562 | 2025-04-17 17:48:45 -0700
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

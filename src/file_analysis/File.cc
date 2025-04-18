@@ -86,6 +86,9 @@ File::File(const std::string& file_id, const std::string& source_name, Connectio
       reassembly_enabled(false),
       postpone_timeout(false),
       done(false),
+      seen_bytes(0),
+      missing_bytes(0),
+      overflow_bytes(0),
       analyzers(this) {
     StaticInit();
 
@@ -147,6 +150,9 @@ void File::RaiseFileOverNewConnection(Connection* conn, bool is_orig) {
 }
 
 uint64_t File::LookupFieldDefaultCount(int idx) const {
+    if ( val->HasRawField(idx) )
+        return val->GetFieldAs<zeek::CountVal>(idx);
+
     auto v = val->GetFieldOrDefault(idx);
     return v->AsCount();
 }
@@ -192,23 +198,19 @@ bool File::SetExtractionLimit(RecordValPtr args, uint64_t bytes) {
     return true;
 }
 
-void File::IncrementByteCount(uint64_t size, int field_idx) {
-    uint64_t old = LookupFieldDefaultCount(field_idx);
-    val->Assign(field_idx, old + size);
-}
-
 void File::SetTotalBytes(uint64_t size) {
     DBG_LOG(DBG_FILE_ANALYSIS, "[%s] Total bytes %" PRIu64, id.c_str(), size);
     val->Assign(total_bytes_idx, size);
 }
 
 bool File::IsComplete() const {
-    const auto& total = val->GetField(total_bytes_idx);
-
-    if ( ! total )
+    // If total_bytes hasn't been initialized yet, file is certainly not complete.
+    if ( ! val->HasRawField(total_bytes_idx) )
         return false;
 
-    if ( stream_offset >= total->AsCount() )
+    auto total = val->GetFieldAs<zeek::CountVal>(total_bytes_idx);
+
+    if ( stream_offset >= total )
         return true;
 
     return false;
@@ -372,7 +374,7 @@ void File::DeliverStream(const u_char* data, uint64_t len) {
     }
 
     stream_offset += len;
-    IncrementByteCount(len, seen_bytes_idx);
+    seen_bytes += len;
 }
 
 void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset) {
@@ -388,7 +390,7 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset) {
         if ( reassembly_max_buffer > 0 && reassembly_max_buffer < file_reassembler->TotalSize() ) {
             uint64_t current_offset = stream_offset;
             uint64_t gap_bytes = file_reassembler->Flush();
-            IncrementByteCount(gap_bytes, overflow_bytes_idx);
+            overflow_bytes += gap_bytes;
 
             if ( FileEventAvailable(file_reassembly_overflow) ) {
                 FileEvent(file_reassembly_overflow, {val, val_mgr->Count(current_offset), val_mgr->Count(gap_bytes)});
@@ -411,7 +413,7 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset) {
     }
     else {
         // We can't reassemble so we throw out the data for streaming.
-        IncrementByteCount(len, overflow_bytes_idx);
+        overflow_bytes += len;
     }
 
     DBG_LOG(DBG_FILE_ANALYSIS, "[%s] %" PRIu64 " chunk bytes in at offset %" PRIu64 "; %s [%s%s]", id.c_str(), len,
@@ -513,7 +515,7 @@ void File::Gap(uint64_t offset, uint64_t len) {
     analyzers.DrainModifications();
 
     stream_offset += len;
-    IncrementByteCount(len, missing_bytes_idx);
+    missing_bytes += len;
 }
 
 bool File::FileEventAvailable(EventHandlerPtr h) { return h && ! file_mgr->IsIgnored(id); }
@@ -526,6 +528,9 @@ void File::FileEvent(EventHandlerPtr h) {
 }
 
 void File::FileEvent(EventHandlerPtr h, Args args) {
+    val->Assign(seen_bytes_idx, seen_bytes);
+    val->Assign(missing_bytes_idx, missing_bytes);
+    val->Assign(overflow_bytes_idx, overflow_bytes);
     event_mgr.Enqueue(h, std::move(args));
 
     if ( h == file_new || h == file_over_new_connection || h == file_sniff || h == file_timeout ||

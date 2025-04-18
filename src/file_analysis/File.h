@@ -325,6 +325,9 @@ protected:
     bool reassembly_enabled;             /**< Whether file stream reassembly is needed. */
     bool postpone_timeout;               /**< Whether postponing timeout is requested. */
     bool done;                           /**< If this object is about to be deleted. */
+    uint64_t seen_bytes;                 /**< Number of bytes processed for this file. */
+    uint64_t missing_bytes;              /**< Number of bytes missed for this file. */
+    uint64_t overflow_bytes;             /**< Number of bytes not delivered. */
     detail::AnalyzerSet analyzers;       /**< A set of attached file analyzers. */
     std::list<Analyzer*> done_analyzers; /**< Analyzers we're done with, remembered here until they
                                             can be safely deleted. */

@@ -203,6 +203,12 @@ function Broker::__unpeer%(a: string, p: port%): bool
 	return zeek::val_mgr->True();
 	%}
 
+function Broker::__is_outbound_peering%(a: string, p: port%): bool
+	%{
+	zeek::Broker::Manager::ScriptScopeGuard ssg;
+	return zeek::val_mgr->Bool(broker_mgr->IsOutboundPeering(a->CheckString(), p->Port()));
+	%}
+
 function Broker::__peers%(%): PeerInfos
 	%{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;
@@ -236,6 +242,15 @@ function Broker::__peers%(%): PeerInfos
 		auto ps = (BifEnum::Broker::PeerStatus)p.status;
 		peer_info->Assign(0, std::move(endpoint_info));
 		peer_info->Assign(1, zeek::BifType::Enum::Broker::PeerStatus->GetEnumVal(ps));
+
+		// Broker has an existing concept of peer flags, see the broker::peer_info
+		// and broker::peer_flags structs. They currently aren't currently, but
+		// we can update the following logic once they are.
+
+		if ( p.peer.network.has_value() )
+			peer_info->Assign(2, zeek::val_mgr->Bool(broker_mgr->IsOutboundPeering(p.peer.network.value())));
+		else
+			peer_info->Assign(2, zeek::val_mgr->False());
 
 		rval->Assign(i, std::move(peer_info));
 		++i;

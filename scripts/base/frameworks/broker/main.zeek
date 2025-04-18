@@ -264,6 +264,10 @@ export {
 	type PeerInfo: record {
 		peer: EndpointInfo;
 		status: PeerStatus;
+
+		## Whether the local node created the peering, as opposed to a
+		## remote establishing it by connecting to us.
+		is_outbound: bool;
 	};
 
 	type PeerInfos: vector of PeerInfo;
@@ -366,6 +370,16 @@ export {
 	##
 	## TODO: We do not have a function yet to terminate a connection.
 	global unpeer: function(a: string, p: port): bool;
+
+	## Whether the local node originally initiated the peering with the
+	## given endpoint.
+	##
+	## a: the address used in previous successful call to :zeek:see:`Broker::peer`.
+	##
+	## p: the port used in previous successful call to :zeek:see:`Broker::peer`.
+	##
+	## Returns:: True if this node initiated the peering.
+	global is_outbound_peering: function(a: string, p: port): bool;
 
 	## Get a list of all peer connections.
 	##
@@ -520,6 +534,11 @@ function peer(a: string, p: port, retry: interval): bool
 function unpeer(a: string, p: port): bool
 	{
 	return __unpeer(a, p);
+	}
+
+function is_outbound_peering(a: string, p: port): bool
+	{
+	return __is_outbound_peering(a, p);
 	}
 
 function peers(): vector of PeerInfo

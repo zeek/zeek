@@ -233,6 +233,7 @@ public:
     LoggerQueuePtr loggerQueue;
     SeverityLevel logSeverity = SeverityLevel::critical;
     SeverityLevel stderrSeverity = SeverityLevel::critical;
+    std::unordered_set<broker::network_info> outbound_peerings;
 };
 
 const broker::endpoint_info Manager::NoPeer{{}, {}};
@@ -582,6 +583,7 @@ void Manager::Peer(const string& addr, uint16_t port, double retry) {
 
     auto secs = broker::timeout::seconds(static_cast<uint64_t>(retry));
     bstate->endpoint.peer_nosync(addr, port, secs);
+    bstate->outbound_peerings.emplace(broker::network_info(addr, port));
 
     auto counts_as_iosource = get_option("Broker::peer_counts_as_iosource")->AsBool();
 
@@ -613,6 +615,15 @@ void Manager::Unpeer(const string& addr, uint16_t port) {
 
     FlushLogBuffers();
     bstate->endpoint.unpeer_nosync(addr, port);
+    bstate->outbound_peerings.erase(broker::network_info(addr, port));
+}
+
+bool Manager::IsOutboundPeering(const string& addr, uint16_t port) const {
+    return bstate->outbound_peerings.find(broker::network_info(addr, port)) != bstate->outbound_peerings.end();
+}
+
+bool Manager::IsOutboundPeering(const broker::network_info ni) const {
+    return bstate->outbound_peerings.find(ni) != bstate->outbound_peerings.end();
 }
 
 std::vector<broker::peer_info> Manager::Peers() const {

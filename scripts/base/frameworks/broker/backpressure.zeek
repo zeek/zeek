@@ -10,26 +10,22 @@
 ##! - In cluster.log, with a higher-level message indicating the node names involved.
 ##! - Via telemetry, using a labeled counter.
 
-event Broker::peer_removed(endpoint: Broker::EndpointInfo, msg: string)
+event Broker::peer_removed(ep: Broker::EndpointInfo, msg: string)
 	{
 	if ( "caf::sec::backpressure_overflow" !in msg ) {
 		return;
 	}
 
-	if ( ! endpoint?$network ) {
-		Reporter::error(fmt("Missing network info to re-peer with %s", endpoint$id));
+	if ( ! ep?$network ) {
+		Reporter::error(fmt("Missing network info to re-peer with %s", ep$id));
 		return;
 	}
 
-	# Re-establish the peering so Broker's reconnect behavior kicks in once
-	# the other endpoint catches up. Broker will periodically re-try
-	# connecting as necessary. If the other endpoint originally connected to
-	# us, our attempt will fail (since we attempt to connect to the peer's
-	# ephemeral port), but in that case the peer will reconnect with us once
-	# it recovers.
-	#
-	# We could do this more cleanly by leveraging information from the
-	# cluster framework (since it knows who connects to whom), but that
-	# would further entangle Broker into it.
-	Broker::peer(endpoint$network$address, endpoint$network$bound_port);
+	# Re-establish the peering. Broker will periodically re-try connecting
+	# as necessary. Do this only if the local node originally established
+	# the peering, otherwise we would connect to an ephemeral client-side
+	# TCP port that doesn't listen. If we didn't originally establish the
+	# peering, the other side will retry anyway.
+	if ( Broker::is_outbound_peering(ep$network$address, ep$network$bound_port) )
+		Broker::peer(ep$network$address, ep$network$bound_port);
 }

@@ -478,12 +478,12 @@ if (USE_SQLITE AND WNOERROR_FLAG)
     set_source_files_properties(3rdparty/sqlite3.c PROPERTIES COMPILE_FLAGS ${WNOERROR_FLAG})
 endif ()
 
+set_source_files_properties(${THIRD_PARTY_SRCS} PROPERTIES SKIP_LINTING ON)
+
 # Highwayhash. Highwayhash is a bit special since it has architecture dependent
 # code...
 set(hhash_dir ${PROJECT_SOURCE_DIR}/auxil/highwayhash/highwayhash)
-zeek_add_subdir_library(
-    hhash
-    SOURCES
+set(hhash_sources
     ${hhash_dir}/sip_hash.cc
     ${hhash_dir}/sip_tree_hash.cc
     ${hhash_dir}/scalar_sip_tree_hash.cc
@@ -492,6 +492,8 @@ zeek_add_subdir_library(
     ${hhash_dir}/nanobenchmark.cc
     ${hhash_dir}/os_specific.cc
     ${hhash_dir}/hh_portable.cc)
+
+zeek_add_subdir_library(hhash SOURCES ${hhash_sources})
 
 if (${COMPILER_ARCHITECTURE} STREQUAL "arm")
     check_c_source_compiles(
@@ -506,14 +508,17 @@ if (${COMPILER_ARCHITECTURE} STREQUAL "arm")
 
     if (test_arm_neon)
         target_sources(zeek_hhash_obj PRIVATE ${hhash_dir}/hh_neon.cc)
+        list(APPEND hhash_sources ${hhash_dir}/hh_neon.cc)
     endif ()
 
     target_compile_options(zeek_hhash_obj PRIVATE -mfloat-abi=hard -march=armv7-a -mfpu=neon)
 elseif (${COMPILER_ARCHITECTURE} STREQUAL "aarch64")
     target_sources(zeek_hhash_obj PRIVATE ${hhash_dir}/hh_neon.cc)
+    list(APPEND hhash_sources ${hhash_dir}/hh_neon.cc)
 elseif (${COMPILER_ARCHITECTURE} STREQUAL "power")
     target_sources(zeek_hhash_obj PRIVATE ${hhash_dir}/hh_vsx.cc)
     set_source_files_properties(${hhash_dir}/hh_vsx.cc PROPERTIES COMPILE_FLAGS -mvsx)
+    list(APPEND hhash_sources ${hhash_dir}/hh_vsx.cc)
 elseif (${COMPILER_ARCHITECTURE} STREQUAL "x86_64")
     target_sources(zeek_hhash_obj PRIVATE ${hhash_dir}/hh_avx2.cc ${hhash_dir}/hh_sse41.cc)
     if (MSVC)
@@ -528,7 +533,10 @@ elseif (${COMPILER_ARCHITECTURE} STREQUAL "x86_64")
 
     set_source_files_properties(${hhash_dir}/hh_avx2.cc PROPERTIES COMPILE_FLAGS ${_avx_flag})
     set_source_files_properties(${hhash_dir}/hh_sse41.cc PROPERTIES COMPILE_FLAGS ${_sse_flag})
+    list(APPEND hhash_sources ${hhash_dir}/hh_avx2.cc ${hhash_dir}/hh_sse41.cc)
 endif ()
+
+set_source_files_properties(${hhash_sources} PROPERTIES SKIP_LINTING ON)
 
 set(zeek_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/version.c

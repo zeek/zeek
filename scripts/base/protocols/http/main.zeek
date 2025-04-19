@@ -139,6 +139,13 @@ export {
 	## out and request/response tracking reset to prevent unbounded
 	## state growth.
 	option max_pending_requests = 100;
+
+	## Well-known ports
+	option ports = {
+		80/tcp, 81/tcp, 631/tcp, 1080/tcp, 3128/tcp,
+		8000/tcp, 8080/tcp, 8888/tcp,
+	};
+	redef likely_server_ports += { ports };
 }
 
 # Add the http state tracking fields to the connection record.
@@ -146,12 +153,6 @@ redef record connection += {
 	http:        Info  &optional;
 	http_state:  State &optional;
 };
-
-const ports = {
-	80/tcp, 81/tcp, 631/tcp, 1080/tcp, 3128/tcp,
-	8000/tcp, 8080/tcp, 8888/tcp,
-};
-redef likely_server_ports += { ports };
 
 # Initialize the HTTP logging stream and ports.
 event zeek_init() &priority=5

@@ -1,3 +1,3 @@
 @load ./main
 @load ./dpd
-@load ./logging
+@load ./analyzer-failed-log

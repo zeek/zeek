@@ -2,11 +2,11 @@
 #
 # @TEST-EXEC: spicyz -d -o test.hlto test.evt test.spicy
 # @TEST-EXEC: HILTI_DEBUG=zeek zeek -r ${TRACES}/ssh/single-conn.trace misc/dump-events test.hlto %INPUT
-# Zeek versions differ in their quoting of the newline character in dpd.log (two slashes vs one).
-# @TEST-EXEC: cat dpd.log | sed 's#\\\\#\\#g' >dpd.log.tmp && mv dpd.log.tmp dpd.log
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-canonifier-spicy btest-diff dpd.log
+# Zeek versions differ in their quoting of the newline character in analyzer_failed.log (two slashes vs one).
+# @TEST-EXEC: cat analyzer_failed.log | sed 's#\\\\#\\#g' >analyzer_failed.log.tmp && mv analyzer_failed.log.tmp analyzer_failed.log.log
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-canonifier-spicy btest-diff analyzer_failed.log
 #
-# @TEST-DOC: Trigger parse error after confirmation, should be recorded in dpd.log
+# @TEST-DOC: Trigger parse error after confirmation, should be recorded in analyzer_failed.log
 
 event zeek_init() {
     Analyzer::register_for_port(Analyzer::ANALYZER_SPICY_SSH, 22/tcp);

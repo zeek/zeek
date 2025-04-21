@@ -3,9 +3,10 @@
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
-#path	analyzer
+#path	analyzer_debug
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	cause	analyzer_kind	analyzer_name	uid	fuid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	failure_reason	failure_data
 #types	time	string	string	string	string	string	addr	port	addr	port	string	string
-XXXXXXXXXX.XXXXXX	violation	protocol	POP3	CHhAvVGS1DHFjwGM9	-	127.0.0.1	58854	127.0.0.1	110	unknown server command (GARBAGE)	GARBAGE (and LIST response missing .)
+XXXXXXXXXX.XXXXXX	violation	protocol	POP3	CHhAvVGS1DHFjwGM9	-	127.0.0.1	59954	127.0.0.1	6379	too many unknown client commands	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	POP3	CHhAvVGS1DHFjwGM9	-	127.0.0.1	59954	127.0.0.1	6379	-	-
 #close XXXX-XX-XX-XX-XX-XX

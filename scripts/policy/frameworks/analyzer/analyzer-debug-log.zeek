@@ -1,11 +1,10 @@
-##! Logging analyzer confirmations and violations into analyzer.log
+##! Logging analyzer confirmations and violations into analyzer-debug.log
 
 @load base/frameworks/config
 @load base/frameworks/logging
+@load base/frameworks/analyzer
 
-@load ./main
-
-module Analyzer::Logging;
+module Analyzer::DebugLogging;
 
 export {
 	## Add the analyzer logging stream identifier.
@@ -38,12 +37,12 @@ export {
 		failure_reason: string            &log &optional;
 
 		## Data causing failure or violation if available. Truncated
-		## to :zeek:see:`Analyzer::Logging::failure_data_max_size`.
+		## to :zeek:see:`Analyzer::DebugLogging::failure_data_max_size`.
 		failure_data:   string            &log &optional;
 	};
 
 	## Enable logging of analyzer violations and optionally confirmations
-	## when :zeek:see:`Analyzer::Logging::include_confirmations` is set.
+	## when :zeek:see:`Analyzer::DebugLogging::include_confirmations` is set.
 	option enable = T;
 
 	## Enable analyzer_confirmation. They are usually less interesting
@@ -51,13 +50,13 @@ export {
 	## Setting this option may also generated multiple log entries per
 	## connection, minimally one for each conn.log entry with a populated
 	## service field.
-	option include_confirmations = F;
+	option include_confirmations = T;
 
 	## Enable tracking of analyzers getting disabled. This is mostly
 	## interesting for troubleshooting of analyzers in DPD scenarios.
 	## Setting this option may also generated multiple log entries per
 	## connection.
-	option include_disabling = F;
+	option include_disabling = T;
 
 	## If a violation contains information about the data causing it,
 	## include at most this many bytes of it in the log.
@@ -70,62 +69,52 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(LOG, [$columns=Info, $path="analyzer", $policy=log_policy,
-	                         $event_groups=set("Analyzer::Logging")]);
+	Log::create_stream(LOG, [$columns=Info, $path="analyzer_debug", $policy=log_policy,
+	                         $event_groups=set("Analyzer::DebugLogging")]);
 
 	local enable_handler = function(id: string, new_value: bool): bool {
-		if ( new_value )
-		    Log::enable_stream(LOG);
-		else
-		    Log::disable_stream(LOG);
+	if ( new_value )
+		Log::enable_stream(LOG);
+	else
+		Log::disable_stream(LOG);
 
-		return new_value;
+	return new_value;
 	};
-	Option::set_change_handler("Analyzer::Logging::enable", enable_handler);
+
+	Option::set_change_handler("Analyzer::DebugLogging::enable", enable_handler);
 
 	local include_confirmations_handler = function(id: string, new_value: bool): bool {
-		if ( new_value )
-		    enable_event_group("Analyzer::Logging::include_confirmations");
-		else
-		    disable_event_group("Analyzer::Logging::include_confirmations");
+	if ( new_value )
+		enable_event_group("Analyzer::DebugLogging::include_confirmations");
+	else
+		disable_event_group("Analyzer::DebugLogging::include_confirmations");
 
-		return new_value;
+	return new_value;
 	};
-	Option::set_change_handler("Analyzer::Logging::include_confirmations",
+
+	Option::set_change_handler("Analyzer::DebugLogging::include_confirmations",
 	                           include_confirmations_handler);
 
 	local include_disabling_handler = function(id: string, new_value: bool): bool {
-		if ( new_value )
-		    enable_event_group("Analyzer::Logging::include_disabling");
-		else
-		    disable_event_group("Analyzer::Logging::include_disabling");
+	if ( new_value )
+		enable_event_group("Analyzer::DebugLogging::include_disabling");
+	else
+		disable_event_group("Analyzer::DebugLogging::include_disabling");
 
-		return new_value;
+	return new_value;
 	};
-	Option::set_change_handler("Analyzer::Logging::include_disabling",
+
+	Option::set_change_handler("Analyzer::DebugLogging::include_disabling",
 	                           include_disabling_handler);
 
 	# Call the handlers directly with the current values to avoid config
 	# framework interactions like creating entries in config.log.
-	enable_handler("Analyzer::Logging::enable", Analyzer::Logging::enable);
-	include_confirmations_handler("Analyzer::Logging::include_confirmations",
-	                              Analyzer::Logging::include_confirmations);
-	include_disabling_handler("Analyzer::Logging::include_disabling",
-	                          Analyzer::Logging::include_disabling);
+	enable_handler("Analyzer::DebugLogging::enable", Analyzer::DebugLogging::enable);
+	include_confirmations_handler("Analyzer::DebugLogging::include_confirmations",
+	                              Analyzer::DebugLogging::include_confirmations);
+	include_disabling_handler("Analyzer::DebugLogging::include_disabling",
+	                          Analyzer::DebugLogging::include_disabling);
 
-	}
-
-function analyzer_kind(atype: AllAnalyzers::Tag): string
-	{
-	if ( is_protocol_analyzer(atype) )
-		return "protocol";
-	else if ( is_packet_analyzer(atype) )
-		return "packet";
-	else if ( is_file_analyzer(atype) )
-		return "file";
-
-	Reporter::warning(fmt("Unknown kind of analyzer %s", atype));
-	return "unknown";
 	}
 
 function populate_from_conn(rec: Info, c: connection)
@@ -149,7 +138,7 @@ function populate_from_file(rec: Info, f: fa_file)
 		}
 	}
 
-event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &group="Analyzer::Logging::include_confirmations"
+event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &group="Analyzer::DebugLogging::include_confirmations"
 	{
 	if ( atype in ignore_analyzers )
 		return;
@@ -157,7 +146,7 @@ event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirm
 	local rec = Info(
 		$ts=network_time(),
 		$cause="confirmation",
-		$analyzer_kind=analyzer_kind(atype),
+		$analyzer_kind=Analyzer::kind(atype),
 		$analyzer_name=Analyzer::name(atype),
 	);
 
@@ -178,7 +167,7 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 	local rec = Info(
 		$ts=network_time(),
 		$cause="violation",
-		$analyzer_kind=analyzer_kind(atype),
+		$analyzer_kind=Analyzer::kind(atype),
 		$analyzer_name=Analyzer::name(atype),
 		$failure_reason=info$reason,
 	);
@@ -200,7 +189,7 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 	Log::write(LOG, rec);
 	}
 
-hook Analyzer::disabling_analyzer(c: connection, atype: AllAnalyzers::Tag, aid: count) &priority=-1000 &group="Analyzer::Logging::include_disabling"
+hook Analyzer::disabling_analyzer(c: connection, atype: AllAnalyzers::Tag, aid: count) &priority=-1000 &group="Analyzer::DebugLogging::include_disabling"
 	{
 	if ( atype in ignore_analyzers )
 		return;
@@ -208,7 +197,7 @@ hook Analyzer::disabling_analyzer(c: connection, atype: AllAnalyzers::Tag, aid: 
 	local rec = Info(
 		$ts=network_time(),
 		$cause="disabled",
-		$analyzer_kind=analyzer_kind(atype),
+		$analyzer_kind=Analyzer::kind(atype),
 		$analyzer_name=Analyzer::name(atype),
 	);
 

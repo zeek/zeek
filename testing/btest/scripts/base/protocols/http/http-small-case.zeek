@@ -1,4 +1,4 @@
-# This tests that the HTTP analyzer handles filenames over HTTP correctly.
+# This tests whether the HTTP analyzer handles HTTP keyword in small case correctly or not.
 #
 # @TEST-EXEC: zeek -C -r $TRACES/http/http_small_case.pcap
 # @TEST-EXEC: ! grep -q "not a http reply line" analyzer.log dpd.log

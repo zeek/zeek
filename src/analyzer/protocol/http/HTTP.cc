@@ -1097,8 +1097,10 @@ void HTTP_Analyzer::GenStats() {
     }
 }
 
-const char* HTTP_Analyzer::PrefixMatch(const char* line, const char* end_of_line, const char* prefix) {
-    while ( *prefix && line < end_of_line && *prefix == *line ) {
+const char* HTTP_Analyzer::PrefixMatch(const char* line, const char* end_of_line, const char* prefix,
+                                       bool ignore_case) {
+    while ( *prefix && line < end_of_line &&
+            (*prefix == *line || (ignore_case && tolower((unsigned char)*prefix) == tolower((unsigned char)*line))) ) {
         ++prefix;
         ++line;
     }
@@ -1110,8 +1112,9 @@ const char* HTTP_Analyzer::PrefixMatch(const char* line, const char* end_of_line
     return line;
 }
 
-const char* HTTP_Analyzer::PrefixWordMatch(const char* line, const char* end_of_line, const char* prefix) {
-    if ( (line = PrefixMatch(line, end_of_line, prefix)) == nullptr )
+const char* HTTP_Analyzer::PrefixWordMatch(const char* line, const char* end_of_line, const char* prefix,
+                                           bool ignore_case) {
+    if ( (line = PrefixMatch(line, end_of_line, prefix, ignore_case)) == nullptr )
         return nullptr;
 
     const char* orig_line = line;
@@ -1199,7 +1202,8 @@ bool HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line) {
             break;
     }
 
-    if ( end_of_uri >= end_of_line && PrefixMatch(line, end_of_line, "HTTP/") ) {
+    // HTTP name is case-insensitive https://www.rfc-editor.org/rfc/rfc7230#section-2.6
+    if ( end_of_uri >= end_of_line && PrefixMatch(line, end_of_line, "HTTP/", true) ) {
         Weird("missing_HTTP_uri");
         end_of_uri = line; // Leave URI empty.
     }
@@ -1207,7 +1211,8 @@ bool HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line) {
     for ( version_start = end_of_uri; version_start < end_of_line; ++version_start ) {
         end_of_uri = version_start;
         version_start = util::skip_whitespace(version_start, end_of_line);
-        if ( PrefixMatch(version_start, end_of_line, "HTTP/") )
+        // HTTP name is case-insensitive https://www.rfc-editor.org/rfc/rfc7230#section-2.6
+        if ( PrefixMatch(version_start, end_of_line, "HTTP/", true) )
             break;
     }
 
@@ -1452,8 +1457,8 @@ const String* HTTP_Analyzer::UnansweredRequestMethod() {
 
 int HTTP_Analyzer::HTTP_ReplyLine(const char* line, const char* end_of_line) {
     const char* rest;
-
-    if ( ! (rest = PrefixMatch(line, end_of_line, "HTTP/")) ) {
+    // HTTP name is case-insensitive https://www.rfc-editor.org/rfc/rfc7230#section-2.6
+    if ( ! (rest = PrefixMatch(line, end_of_line, "HTTP/", true)) ) {
         // ##TODO: some server replies with an HTML document
         // without a status line and a MIME header, when the
         // request is malformed.

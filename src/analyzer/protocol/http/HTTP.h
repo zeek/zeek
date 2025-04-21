@@ -209,8 +209,9 @@ protected:
     void InitHTTPMessage(analyzer::tcp::ContentLine_Analyzer* cl, HTTP_Message*& message, bool is_orig, int expect_body,
                          int64_t init_header_length);
 
-    const char* PrefixMatch(const char* line, const char* end_of_line, const char* prefix);
-    const char* PrefixWordMatch(const char* line, const char* end_of_line, const char* prefix);
+    const char* PrefixMatch(const char* line, const char* end_of_line, const char* prefix, bool ignore_case = false);
+    const char* PrefixWordMatch(const char* line, const char* end_of_line, const char* prefix,
+                                bool ignore_case = false);
 
     bool ParseRequest(const char* line, const char* end_of_line);
     HTTP_VersionNumber HTTP_Version(int len, const char* data);

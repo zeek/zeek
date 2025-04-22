@@ -62,6 +62,24 @@ New Functionality
   ``Broker::log_stderr_severity_level`` have been introduced to control
   the which events to expose by default.
 
+- New WebSocket functionality was added to Zeek's cluster component.
+
+  Users of Broker's WebSocket interface should replace their ``Broker::listen_websocket()``
+  usage with ``Cluster::listen_websocket()``. The latter will support any cluster
+  backends, while ``Broker::listen_websocket()`` is specific to Broker.
+
+  A crucial difference between these two methods is that ``Cluster::listen_websocket()``
+  will have TLS disabled by default, while Broker usually defaults to TLS enabled.
+  If you require a TLS configuration for your WebSocket deployment, pass an appropriate
+  ``WebSocketTLSOptions`` record or setup a TLS reverse proxy in front of Zeek.
+
+  For WebSocket clients, there should not be an observable difference in behavior
+  regarding the handshake and publishing of events. However, the implementation uses
+  a different code path and supporting library (machinezone/IXWebSocket). If you
+  observe any differences in behavior, please report these as regressions.
+  Note that the new ``Cluster::listen_websocket()`` API will only become stable
+  with Zeek 8.0.
+
 Changed Functionality
 ---------------------
 
@@ -141,6 +159,8 @@ Deprecated Functionality
   deprecated. If you've used this feature, use the new ``blocking_lookup_hostname()``
   builtin function to populate sets or tables in a ``zeek_init()`` handler,
   or with top-level statements.
+
+- ``Broker::listen_websocket()`` was deprecated in favor of ``Cluster::listen_websocket()`.
 
 Zeek 7.1.0
 ==========

@@ -1100,7 +1100,7 @@ void HTTP_Analyzer::GenStats() {
 const char* HTTP_Analyzer::PrefixMatch(const char* line, const char* end_of_line, const char* prefix,
                                        bool ignore_case) {
     while ( *prefix && line < end_of_line &&
-            (*prefix == *line || (ignore_case && tolower((unsigned char)*prefix) == tolower((unsigned char)*line))) ) {
+            ((ignore_case && tolower((unsigned char)*prefix) == tolower((unsigned char)*line)) || *prefix == *line) ) {
         ++prefix;
         ++line;
     }

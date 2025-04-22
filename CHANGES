@@ -1,3 +1,9 @@
+7.2.0-dev.569 | 2025-04-21 17:14:44 -0700
+
+  * Use Broker peering directionality when re-peering after backpressure overflows (Christian Kreibich, Corelight)
+
+  * Expand Broker APIs to allow tracking directionality of peering establishment (Christian Kreibich, Corelight)
+
 7.2.0-dev.565 | 2025-04-18 11:36:17 -0700
 
   * Use longer path when including krb5.h to match the cmake lookup (Tim Wojtulewicz, Corelight)

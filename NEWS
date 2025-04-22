@@ -124,6 +124,13 @@ Changed Functionality
   looking up the "Conn::LOG" identifier allows to directly query the ``EnumVal``
   using ``ID::GetVal()``.
 
+- When the send buffer to a Broker peer overflows and the "disconnect" overflow
+  policy is in use, Zeek now only attempts to re-establish peerings when the
+  node observing the overflow originally established the peering. That is,
+  re-peering is now only attempted in consistency with the underlying Broker
+  peering topology. This avoids pointless connection attempts to ephemeral TCP
+  client-side ports, which clould clutter the Broker logs.
+
 Removed Functionality
 ---------------------
 

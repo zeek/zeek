@@ -1196,24 +1196,34 @@ bool HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line) {
     const char* end_of_uri;
     const char* version_start;
     const char* version_end;
+    const char* match;
 
     for ( end_of_uri = line; end_of_uri < end_of_line; ++end_of_uri ) {
         if ( ! is_reserved_URI_char(*end_of_uri) && ! is_unreserved_URI_char(*end_of_uri) && *end_of_uri != '%' )
             break;
     }
 
-    // HTTP name is case-insensitive https://www.rfc-editor.org/rfc/rfc7230#section-2.6
-    if ( end_of_uri >= end_of_line && PrefixMatch(line, end_of_line, "HTTP/", true) ) {
+    match = PrefixMatch(line, end_of_line, "HTTP/", false);
+
+    if ( end_of_uri >= end_of_line && match ) {
         Weird("missing_HTTP_uri");
+        end_of_uri = line; // Leave URI empty.
+    }
+    else if ( end_of_uri >= end_of_line && ! match && PrefixMatch(line, end_of_line, "HTTP/", true) ) {
+        Weird("missing_HTTP_uri");
+        Weird("smallcase_HTTP_keyword");
         end_of_uri = line; // Leave URI empty.
     }
 
     for ( version_start = end_of_uri; version_start < end_of_line; ++version_start ) {
         end_of_uri = version_start;
         version_start = util::skip_whitespace(version_start, end_of_line);
-        // HTTP name is case-insensitive https://www.rfc-editor.org/rfc/rfc7230#section-2.6
-        if ( PrefixMatch(version_start, end_of_line, "HTTP/", true) )
+        if ( PrefixMatch(version_start, end_of_line, "HTTP/", false) )
             break;
+        if ( PrefixMatch(version_start, end_of_line, "HTTP/", true) ) {
+            Weird("smallcase_HTTP_keyword");
+            break;
+        }
     }
 
     if ( version_start >= end_of_line ) {
@@ -1457,13 +1467,21 @@ const String* HTTP_Analyzer::UnansweredRequestMethod() {
 
 int HTTP_Analyzer::HTTP_ReplyLine(const char* line, const char* end_of_line) {
     const char* rest;
-    // HTTP name is case-insensitive https://www.rfc-editor.org/rfc/rfc7230#section-2.6
-    if ( ! (rest = PrefixMatch(line, end_of_line, "HTTP/", true)) ) {
-        // ##TODO: some server replies with an HTML document
-        // without a status line and a MIME header, when the
-        // request is malformed.
-        HTTP_Event("bad_HTTP_reply", analyzer::mime::to_string_val(line, end_of_line));
-        return 0;
+
+    rest = PrefixMatch(line, end_of_line, "HTTP/", false);
+
+    if ( ! rest ) {
+        rest = PrefixMatch(line, end_of_line, "HTTP/", true);
+        if ( ! rest ) {
+            // ##TODO: some server replies with an HTML document
+            // without a status line and a MIME header, when the
+            // request is malformed.
+            HTTP_Event("bad_HTTP_reply", analyzer::mime::to_string_val(line, end_of_line));
+            return 0;
+        }
+        else {
+            Weird("smallcase_HTTP_keyword");
+        }
     }
 
     SetVersion(&reply_version, HTTP_Version(end_of_line - rest, rest));

@@ -1,3 +1,9 @@
+7.2.0-dev.608 | 2025-04-23 17:18:20 +0200
+
+  * COPYING-3rdparty: Add some missing submodules [skip ci] (Arne Welzel, Corelight)
+
+  * Bump Spicy. (Robin Sommer, Corelight)
+
 7.2.0-dev.604 | 2025-04-23 08:08:00 -0700
 
   * Fix crash related to Broker stores (Dominik Charousset, Corelight)

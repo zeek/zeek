@@ -66,6 +66,26 @@ New Functionality
     backend for NATS that will be available as an external plugin, but it is not quite
     ready yet. Both of the existing backends support usage in a cluster environment.
 
+- Improved alternative cluster backend support.
+
+  The ZeroMQ cluster backend added in Zeek 7.1 has received various correctness,
+  performance and robustness fixes, particularly concerning shutdown and high-load
+  scenarios.
+
+  Initial performance testing indicates less CPU time used on a large single node
+  instance with high logging and eventing rates.
+
+  We're evaluating switching the default cluster backend from Broker to ZeroMQ With
+  Zeek 8.1. Therefore, we welcome early adopters and testers to validate ZeroMQ as an
+  alternative to Broker. If you're not using Broker specific integrations (e.g. Broker's
+  Python or C++ bindings) and run a single-node Zeek cluster, switching to ZeroMQ
+  should be as simple as loading the following script on each of cluster node.
+
+	@load frameworks/cluster/backend/zeromq/connect
+
+  A proof-of-concept plugin for the open-source NATS messaging system is available at
+  https://github.com/zeek/zeek-cluster-backend-nats for testing and experimentation.
+
 - Broker now exposes more information through ``broker.log``. Broker generated log
   messages are now propagated as events to Zeek. This allows exposing more information for
   debugging and operational behavior of Broker via Zeek logs.  Two new script-level

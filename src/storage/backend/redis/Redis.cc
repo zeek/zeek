@@ -2,8 +2,9 @@
 
 #include "zeek/storage/backend/redis/Redis.h"
 
+#include <cinttypes>
+
 #include "zeek/DebugLogger.h"
-#include "zeek/Func.h"
 #include "zeek/RunState.h"
 #include "zeek/Val.h"
 #include "zeek/iosource/Manager.h"

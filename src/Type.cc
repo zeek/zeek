@@ -2,6 +2,7 @@
 
 #include "zeek/Type.h"
 
+#include <cinttypes>
 #include <map>
 #include <string>
 #include <unordered_set>

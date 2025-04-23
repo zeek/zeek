@@ -1,6 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <unistd.h>
+#include <cinttypes>
 
 #include "zeek/RunState.h"
 #include "zeek/Stats.h"

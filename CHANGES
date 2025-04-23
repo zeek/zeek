@@ -1,3 +1,9 @@
+7.2.0-dev.602 | 2025-04-23 15:55:46 +0200
+
+  * cluster/cluster.bif: Fix CountVal casted to PortVal (Arne Welzel, Corelight)
+
+    Thanks UBSAN!
+
 7.2.0-dev.600 | 2025-04-23 15:07:47 +0200
 
   * CI: No more Ubuntu 20.04 [skip ci] (Arne Welzel, Corelight)

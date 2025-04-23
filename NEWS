@@ -62,7 +62,7 @@ New Functionality
     erasure of elements are available.
 
   - Backends can support both asynchronous mode (using ``when`` statements) and
-    synchronous mode (blocking until the operation copmletes). BIF methods were added
+    synchronous mode (blocking until the operation completes). BIF methods were added
     under new ``Storage::Async`` and ``Storage::Sync`` modules for these two modes. The
     modes can be used interchangeably with the same backend handle.
 
@@ -202,7 +202,7 @@ Changed Functionality
   in use, Zeek now only attempts to re-establish peerings when the node observing the
   overflow originally established the peering. That is, re-peering is now only attempted
   in consistency with the underlying Broker peering topology. This avoids pointless
-  connection attempts to ephemeral TCP client-side ports, which clould clutter the Broker
+  connection attempts to ephemeral TCP client-side ports, which could clutter the Broker
   logs.
 
 - The protocol confirmation for IRC was made more robust. It now checks for valid commands
@@ -432,7 +432,7 @@ New Functionality
 
 - Zeek now ships with an experimental Spicy-based SSL analyzer, which is
   disabled by default. This analyzer can be enabled using the
-  ``--enable-spicy-ssl`` conifgure-time option. The Spicy-based analyzer has
+  ``--enable-spicy-ssl`` configure-time option. The Spicy-based analyzer has
   full support for SSL and TLS, just like the current binpac analyzer. It does,
   however, not support any version of DTLS. Enabling it will disable DTLS
   parsing in Zeek.

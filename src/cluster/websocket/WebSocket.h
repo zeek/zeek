@@ -228,6 +228,10 @@ private:
 
 
     void HandleSubscriptions(WebSocketClientEntry& entry, std::string_view buf);
+
+    // Raise the websocket_client_added event and send the ack to the client contained in entry.
+    void HandleSubscriptionsActive(const WebSocketClientEntry& entry);
+
     void HandleEvent(WebSocketClientEntry& entry, std::string_view buf);
 
     // Allow access to Process(WebSocketEvent)

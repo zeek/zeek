@@ -6,10 +6,14 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 7.2.0
 ==========
 
-We would like to thank Anthony Kasza (@anthonykasza), Fupeng Zhao (@AmazingPP), Jan
-Grashöfer (@J-Gras), Mike Dopheide (@dopheide-esnet), @philipp-tg, @jbaggs, @mnhsrj, Mark
-Overholser (@markoverholser), BrendanKapp (@brendankapp), Chris Hinshaw (@MMChrisHinshaw),
-and Carlos Lopez for their contributions to this release.
+We would like to thank Aashish Sharma (@initconf), Anthony Verez (@netantho),
+Anthony Kasza (@anthonykasza), @biswajitutil, Brendan Kapp (@BrendanKapp),
+Carlos Lopez, Chris Hinshaw (@MMChrisHinshaw), Faan Rossouw (@faanross),
+@FishyFluffer, Fupeng Zhao (@AmazingPP), Herbert (@Herbert-Karl), @jbaggs, Jan
+Grashöfer (@J-Gras), Julian Krieger (@juliankrieger), Justin Azoff
+(@JustinAzoff), @Laotree, Mark Overholser (@markoverholser), Mike Dopheide
+(@dopheide-esnet), @mnhsrj, Mohan Dhawan (@Mohan-Dhawan), @philipp-tg, Seth Hall
+(@sethhall), and @timo-mue for their contributions to this release.
 
 Breaking Changes
 ----------------

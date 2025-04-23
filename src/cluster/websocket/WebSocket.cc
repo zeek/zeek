@@ -394,6 +394,14 @@ void WebSocketEventDispatcher::HandleSubscriptions(WebSocketClientEntry& entry, 
 
     entry.wsc->SetSubscriptions(subscriptions);
 
+    // Short-circuit setting up subscriptions and directly reply with
+    // an ack if the client didn't request any topic subscriptions.
+    if ( subscriptions.empty() ) {
+        assert(entry.wsc->AllSubscriptionsActive());
+        HandleSubscriptionsActive(entry);
+        return;
+    }
+
     auto cb = [this, id = entry.id, wsc = entry.wsc](const std::string& topic,
                                                      const Backend::SubscriptionCallbackInfo& info) {
         if ( info.status == Backend::CallbackStatus::Error ) {

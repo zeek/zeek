@@ -1,3 +1,10 @@
+7.2.0-dev.600 | 2025-04-23 15:07:47 +0200
+
+  * CI: No more Ubuntu 20.04 [skip ci] (Arne Welzel, Corelight)
+
+    Ubuntu 20.04's default Python doesn't deal well with the type annotations
+    used in btest/Files/wstest.py. Given that it's about to be EOL, just remove it.
+
 7.2.0-dev.598 | 2025-04-23 14:28:15 +0200
 
   * Add NEWS entry for WebSocket functionality (Arne Welzel, Corelight)

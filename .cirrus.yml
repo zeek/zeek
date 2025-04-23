@@ -357,14 +357,6 @@ ubuntu22_spicy_head_task:
   skip: $CIRRUS_BRANCH =~ 'release/.*'
   << : *BENCHMARK_ONLY_IF_TEMPLATE
 
-ubuntu20_task:
-  container:
-    # Ubuntu 20.04 EOL: April 2025
-    dockerfile: ci/ubuntu-20.04/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-  << : *SKIP_TASK_ON_PR
-
 alpine_task:
   container:
     # Alpine releases typically happen every 6 months w/ support for 2 years.

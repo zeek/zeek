@@ -23,19 +23,21 @@ void UDPSessionAdapter::AddExtraAnalyzers(Connection* conn) {
 }
 
 void UDPSessionAdapter::UpdateConnVal(RecordVal* conn_val) {
-    auto orig_endp = conn_val->GetField("orig");
-    auto resp_endp = conn_val->GetField("resp");
+    static const auto& conn_type = zeek::id::find_type<zeek::RecordType>("connection");
+    static const int origidx = conn_type->FieldOffset("orig");
+    static const int respidx = conn_type->FieldOffset("resp");
+    auto* orig_endp_val = conn_val->GetFieldAs<RecordVal>(origidx);
+    auto* resp_endp_val = conn_val->GetFieldAs<RecordVal>(respidx);
 
-    UpdateEndpointVal(orig_endp, true);
-    UpdateEndpointVal(resp_endp, false);
+    UpdateEndpointVal(orig_endp_val, true);
+    UpdateEndpointVal(resp_endp_val, false);
 
     // Call children's UpdateConnVal
     Analyzer::UpdateConnVal(conn_val);
 }
 
-void UDPSessionAdapter::UpdateEndpointVal(const ValPtr& endp_arg, bool is_orig) {
+void UDPSessionAdapter::UpdateEndpointVal(RecordVal* endp, bool is_orig) {
     zeek_int_t size = is_orig ? request_len : reply_len;
-    auto endp = endp_arg->AsRecordVal();
 
     if ( size < 0 ) {
         endp->Assign(0, val_mgr->Count(0));

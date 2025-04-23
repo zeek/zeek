@@ -24,7 +24,7 @@ public:
     uint32_t rep_chk_thresh = 1;
 
 private:
-    void UpdateEndpointVal(const ValPtr& endp_arg, bool is_orig);
+    void UpdateEndpointVal(RecordVal* endp_arg, bool is_orig);
     void ChecksumEvent(bool is_orig, uint32_t threshold);
 
     zeek_int_t request_len = -1;

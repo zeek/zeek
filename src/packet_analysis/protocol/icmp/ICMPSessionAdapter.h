@@ -13,7 +13,6 @@ public:
 
     void AddExtraAnalyzers(Connection* conn) override;
     void UpdateConnVal(RecordVal* conn_val) override;
-    void UpdateEndpointVal(const ValPtr& endp, bool is_orig);
 
     void UpdateLength(bool is_orig, int len);
     void Done() override;
@@ -22,6 +21,8 @@ public:
     void MatchEndpoint(const u_char* data, int len, bool is_orig);
 
 private:
+    void UpdateEndpointVal(RecordVal* endp, bool is_orig);
+
     zeek::detail::RuleMatcherState matcher_state;
     int request_len = -1;
     int reply_len = -1;

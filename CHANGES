@@ -1,3 +1,9 @@
+7.2.0-dev.613 | 2025-04-23 12:14:48 -0700
+
+  * Statically lookup field offsets for connection values in UDP and ICMP analyzers (Tim Wojtulewicz, Corelight)
+
+  * Skip calling islower before toupper (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.608 | 2025-04-23 17:18:20 +0200
 
   * COPYING-3rdparty: Add some missing submodules [skip ci] (Arne Welzel, Corelight)

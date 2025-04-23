@@ -265,8 +265,7 @@ std::istream& String::Read(std::istream& is, int format) {
 
 void String::ToUpper() {
     for ( int i = 0; i < n; ++i )
-        if ( islower(b[i]) )
-            b[i] = toupper(b[i]);
+        b[i] = std::toupper(b[i]);
 }
 
 String* String::GetSubstring(int start, int len) const {

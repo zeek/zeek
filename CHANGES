@@ -1,3 +1,7 @@
+7.2.0-dev.604 | 2025-04-23 08:08:00 -0700
+
+  * Fix crash related to Broker stores (Dominik Charousset, Corelight)
+
 7.2.0-dev.602 | 2025-04-23 15:55:46 +0200
 
   * cluster/cluster.bif: Fix CountVal casted to PortVal (Arne Welzel, Corelight)

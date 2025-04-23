@@ -1,3 +1,112 @@
+7.2.0-dev.598 | 2025-04-23 14:28:15 +0200
+
+  * Add NEWS entry for WebSocket functionality (Arne Welzel, Corelight)
+
+  * btest/cluster: Add broker logging test for sanity (Arne Welzel, Corelight)
+
+    Not very related to the PR, but created to help provoke an issue
+    with the broker changes.
+
+  * broker/WebSocketShim: Add tests for endpoint, hubs and subscribers (Arne Welzel, Corelight)
+
+    These are really testing broker functionality, mostly added to ensure
+    the behavior is as expected by the WebSocketShim functionality.
+
+  * broker: Deprecate NodeID(), use SetNodeId() (Arne Welzel, Corelight)
+
+  * cluster/Backend: Do not inline Init() (Arne Welzel, Corelight)
+
+  * cluster: Add Backend::SetNodeId() (Arne Welzel, Corelight)
+
+  * cluster/websocket: Make websocket dispatcher queue size configurable (Arne Welzel, Corelight)
+
+    Limit the number WebSocket events queued from external clients to
+    dispatcher instances to produce back pressure to the clients if
+    Zeek's IO loop is overloaded.
+
+  * cluster/zeromq: Attempt publish during termination (Arne Welzel, Corelight)
+
+    Explicitly notify the internal thread about the shutdown via the
+    inproc socket pair. This ensures that the internal thread processes
+    all previous messages on the inproc socket before terminating.
+
+    This fixes the scenario where a backend is created, a few messages published
+    and then immediately terminated as can be done with WebSocket clients.
+    Previously, some of the messages published might have still been in the
+    inproc socket's queue and were simply discarded.
+
+    Adds the same test for Broker and ZeroMQ backends.
+
+  * broker/main: Reference Cluster::publish() for auto_publish() deprecation (Arne Welzel, Corelight)
+
+    In hindsight, this is the better thing to do and with Zeek 7.2 we should
+    be confident enough that it'll work.
+
+  * broker/main: Deprecate Broker::listen_websocket() (Arne Welzel, Corelight)
+
+    Optimistically deprecate Broker::listen_websocket() and promote
+    Cluster::listen_websocket() instead.
+
+  * cluster/websocket: Remove comment about broker (Arne Welzel, Corelight)
+
+  * btest/cluster/websocket: Add tests using broker (Arne Welzel, Corelight)
+
+    Add tests to verify Cluster::listen_websocket() with the Broker backend
+    is functional.
+
+  * btest/cluster/websocket: Move ZeroMQ test and use wstest.py (Arne Welzel, Corelight)
+
+    Adapt the test to be the same as Broker, to have "expected" behavior.
+
+  * btest/files: Introduce wstest.py (Arne Welzel, Corelight)
+
+    This adds a minimal helper library for reusing some of the code to
+    test WebSocket client access to Zeek using Python.
+
+  * cluster/websocket: Special case broker backend for shim usage (Arne Welzel, Corelight)
+
+    When Cluster::backend is configured with CLUSTER_BACKEND_BROKER, switch
+    WebSocketClients to CLUSTER_BACKEND_BROKER_WEBSOCKET_SHIM instead.
+
+    Instead of the special case, we could also add something to Backend
+    called NewWebSocketBackend(), but if it only affects broker, I think
+    the special case is okay for now.
+
+  * broker: Add WebSocketShim backend (Arne Welzel, Corelight)
+
+    This adds a cluster backend implementation using broker's hub primitive
+    to connect WebSocket clients with the local broker endpoint for pub/sub
+    functionality.
+
+  * broker/Manager: Add MakeHub() and ReleaseHub() (Arne Welzel, Corelight)
+
+    These are used by WebSocket clients to create broker::hub instances
+
+  * Bump broker submodule (Arne Welzel, Corelight)
+
+  * cluster/Backend: Add ProcessError() (Arne Welzel, Corelight)
+
+    Allow backends to pass errors to a strategy. Locally, these raise
+    Cluster::Backend::error() events that are logged to the reporter
+    as errors.
+
+  * cluster/Backend: Rename EnqueueLocalEvent() to ProcessLocalEvent() (Arne Welzel, Corelight)
+
+  * cluster/Backend: Rename HandleRemoteEvent() to ProcessEvent() (Arne Welzel, Corelight)
+
+    ...also add Backend::ProcessEvent() for backends to trigger event
+    processing without needing to use ProcessEventMessage().
+
+  * cluster/websocket: Fix websocket_client_added id value (Arne Welzel, Corelight)
+
+  * broker: Include log event identifier in stderr output (Arne Welzel, Corelight)
+
+  * cluster/websocket: Debug output fixes (Arne Welzel, Corelight)
+
+  * Update zeek-aux submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
 7.2.0-dev.571 | 2025-04-22 08:44:28 -0700
 
   * Update c-ares to v1.34.5 and vcpkg to a version that includes it (Tim Wojtulewicz, Corelight)

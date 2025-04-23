@@ -53,7 +53,7 @@ private:
      * will need some abstractions if client's can opt to use different encodings
      * of events in the future.
      */
-    bool DoHandleRemoteEvent(std::string_view topic, zeek::cluster::detail::Event e) override {
+    bool DoProcessEvent(std::string_view topic, zeek::cluster::detail::Event e) override {
         // If the client has left, no point in sending it any pending event.
         if ( wsc->IsTerminated() )
             return true;
@@ -85,7 +85,15 @@ private:
      * Events from backends aren't enqueued into the event loop when
      * running for WebSocket clients.
      */
-    void DoEnqueueLocalEvent(zeek::EventHandlerPtr h, zeek::Args args) override {}
+    void DoProcessLocalEvent(zeek::EventHandlerPtr h, zeek::Args args) override {}
+
+    /**
+     * Send errors directly to the client.
+     */
+    void DoProcessError(std::string_view tag, std::string_view message) override {
+        // Just send out the error.
+        wsc->SendError(tag, message);
+    }
 
     std::string buffer;
     std::shared_ptr<WebSocketClient> wsc;
@@ -128,14 +136,14 @@ private:
 
 
 // Inspired by broker/internal/json_client.cc
-WebSocketClient::SendInfo WebSocketClient::SendError(std::string_view code, std::string_view message) {
+WebSocketClient::SendInfo WebSocketClient::SendError(std::string_view tag, std::string_view message) {
     std::string buf;
-    buf.reserve(code.size() + message.size() + 32);
+    buf.reserve(tag.size() + message.size() + 32);
     auto out = std::back_inserter(buf);
     *out++ = '{';
     broker::format::json::v1::append_field("type", "error", out);
     *out++ = ',';
-    broker::format::json::v1::append_field("code", code, out);
+    broker::format::json::v1::append_field("code", tag, out);
     *out++ = ',';
     broker::format::json::v1::append_field("message", message, out);
     *out++ = '}';
@@ -206,9 +214,11 @@ public:
     bool OnFinish(double network_time) override { return true; }
 };
 
-WebSocketEventDispatcher::WebSocketEventDispatcher() {
+WebSocketEventDispatcher::WebSocketEventDispatcher(std::string ident, size_t queue_size) {
     onloop =
-        new zeek::detail::OnLoopProcess<WebSocketEventDispatcher, WebSocketEvent>(this, "WebSocketEventDispatcher");
+        new zeek::detail::OnLoopProcess<WebSocketEventDispatcher, WebSocketEvent>(this,
+                                                                                  "WebSocketEventDispatcher:" + ident,
+                                                                                  queue_size);
     // Register the onloop instance the IO loop. Lifetime will be managed by the loop.
     onloop->Register(false);
 
@@ -249,18 +259,7 @@ void WebSocketEventDispatcher::QueueReply(WebSocketReply&& reply) {
     reply_msg_thread->SendIn(new ReplyInputMessage(std::move(reply)));
 }
 
-// WebSocketDemux::Process() runs in the main thread.
-//
-// XXX: How is this going to work with class broker? With
-// ZeroMQ, each WebSocket client has its own XPUB/XSUB
-// connectivity to a central broker and similarly with NATS.
-// But with broker we need to do something different.
-// Maybe connect to the local endpoint.
-//
-// We cannot actually instantiate a Broker backend :-(
-//
-// We could also have InitPostScript() recognize Broker
-// and start its internal server instead.
+// Process a WebSocketEvent message on the Zeek IO loop.
 void WebSocketEventDispatcher::Process(const WebSocketEvent& event) {
     std::visit([this](auto&& arg) { Process(arg); }, event);
 }
@@ -289,12 +288,32 @@ void WebSocketEventDispatcher::Process(const WebSocketOpen& open) {
     // Generate an ID for this client.
     auto ws_id = cluster::backend->NodeId() + "-websocket-" + id;
 
-    const auto& event_serializer_val = id::find_val<zeek::EnumVal>("Cluster::event_serializer");
+    // If the globally configured backend is CLUSTER_BACKEND_BROKER, then switch
+    // the WebSocket client's backend to CLUSTER_BACKEND_BROKER_WEBSOCKET_SHIM
+    // so that pub/sub is using the local broker endpoint via its hub functionality
+    // instead of instantiating a new Broker manager.
+    static const auto& event_serializer_val = id::find_val<zeek::EnumVal>("Cluster::event_serializer");
     auto event_serializer = cluster::manager->InstantiateEventSerializer(event_serializer_val);
-    const auto& cluster_backend_val = id::find_val<zeek::EnumVal>("Cluster::backend");
+    static const auto& cluster_backend_val = id::find_val<zeek::EnumVal>("Cluster::backend");
+    auto effective_backend_val = cluster_backend_val;
+
+    static const auto& broker_enum_val = zeek::id::find_val<EnumVal>("Cluster::CLUSTER_BACKEND_BROKER");
+    static const auto& broker_ws_shim_enum_val =
+        zeek::id::find_val<EnumVal>("Cluster::CLUSTER_BACKEND_BROKER_WEBSOCKET_SHIM");
+    if ( effective_backend_val == broker_enum_val ) {
+        WS_DEBUG("Using broker websocket shim");
+        effective_backend_val = broker_ws_shim_enum_val;
+    }
+
     auto event_handling_strategy = std::make_unique<WebSocketEventHandlingStrategy>(wsc, this);
-    auto backend = zeek::cluster::manager->InstantiateBackend(cluster_backend_val, std::move(event_serializer), nullptr,
-                                                              std::move(event_handling_strategy));
+    auto backend = zeek::cluster::manager->InstantiateBackend(effective_backend_val, std::move(event_serializer),
+                                                              nullptr, std::move(event_handling_strategy));
+
+    if ( ! backend ) {
+        reporter->Error("Failed to instantiate backend for client with id %s!", id.c_str());
+        QueueReply(WebSocketCloseReply{wsc, 1001, "Internal error"});
+        return;
+    }
 
     WS_DEBUG("New WebSocket client %s (%s:%d) - using id %s backend=%p", id.c_str(), wsc->getRemoteIp().c_str(),
              wsc->getRemotePort(), ws_id.c_str(), backend.get());
@@ -351,14 +370,15 @@ void WebSocketEventDispatcher::Process(const WebSocketSubscribeFinished& fin) {
         return;
     }
 
-    auto rec = zeek::cluster::detail::bif::make_endpoint_info(backend->NodeId(), wsc->getRemoteIp(),
+    auto rec = zeek::cluster::detail::bif::make_endpoint_info(entry.backend->NodeId(), wsc->getRemoteIp(),
                                                               wsc->getRemotePort(), TRANSPORT_TCP);
     auto subscriptions_vec = zeek::cluster::detail::bif::make_string_vec(wsc->GetSubscriptions());
     zeek::event_mgr.Enqueue(Cluster::websocket_client_added, std::move(rec), std::move(subscriptions_vec));
 
     entry.wsc->SendAck(entry.backend->NodeId(), zeek::zeek_version());
 
-    WS_DEBUG("Sent Ack to %s %s\n", fin.id.c_str(), entry.backend->NodeId().c_str());
+    WS_DEBUG("Sent Ack to client %s (%s:%d) %s\n", fin.id.c_str(), wsc->getRemoteIp().c_str(), wsc->getRemotePort(),
+             entry.backend->NodeId().c_str());
 
     // Process any queued messages now.
     for ( auto& msg : entry.queue ) {
@@ -485,13 +505,12 @@ void WebSocketEventDispatcher::Process(const WebSocketMessage& msg) {
     const auto& wsc = entry.wsc;
     entry.msg_count++;
 
-    WS_DEBUG("Message %" PRIu64 " size=%zu from %s (%s:%d) backend=%p", entry.msg_count, msg.msg.size(),
+    WS_DEBUG("Message %" PRIu64 " size=%zu from client %s (%s:%d) backend=%p", entry.msg_count, msg.msg.size(),
              wsc->getId().c_str(), wsc->getRemoteIp().c_str(), wsc->getRemotePort(), entry.backend.get());
 
     // First message is the subscription message.
     if ( entry.msg_count == 1 ) {
-        WS_DEBUG("Subscriptions from client: %s: (%s:%d)\n", id.c_str(), wsc->getRemoteIp().c_str(),
-                 wsc->getRemotePort());
+        WS_DEBUG("Subscriptions from client %s: (%s:%d)", id.c_str(), wsc->getRemoteIp().c_str(), wsc->getRemotePort());
         HandleSubscriptions(entry, msg.msg);
     }
     else {

@@ -171,7 +171,13 @@ class ReplyMsgThread;
  */
 class WebSocketEventDispatcher {
 public:
-    WebSocketEventDispatcher();
+    /**
+     * Constructor.
+     *
+     * @param ident A string identifying this dispatcher instance. Used in metrics.
+     * @param queue_size Maximum queue size before events are stalled.
+     */
+    WebSocketEventDispatcher(std::string ident, size_t queue_size);
 
     ~WebSocketEventDispatcher();
 
@@ -295,12 +301,13 @@ struct ServerOptions {
     int ping_interval_seconds = 5;
     int max_connections = 100;
     bool per_message_deflate = false;
+    size_t max_event_queue_size = 32;
     struct TLSOptions tls_options;
 
     bool operator==(const ServerOptions& o) const {
         return host == o.host && port == o.port && ping_interval_seconds == o.ping_interval_seconds &&
                max_connections == o.max_connections && per_message_deflate == o.per_message_deflate &&
-               tls_options == o.tls_options;
+               max_event_queue_size == o.max_event_queue_size && tls_options == o.tls_options;
     }
 };
 

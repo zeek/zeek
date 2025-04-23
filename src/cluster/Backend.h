@@ -102,7 +102,7 @@ public:
      *
      * @return true if the remote event was handled successfully, else false.
      */
-    bool HandleRemoteEvent(std::string_view topic, Event e) { return DoHandleRemoteEvent(topic, std::move(e)); }
+    bool ProcessEvent(std::string_view topic, Event e) { return DoProcessEvent(topic, std::move(e)); }
 
     /**
      * Method for enquing backend specific events.
@@ -112,30 +112,46 @@ public:
      * When the backend is instantiated for a WebSocket client,
      * local scripting layer should not raise events for the
      * WebSocket client.
-
+     *
      * @param h The event handler to use.
      * @param args The event arguments.
      */
-    void EnqueueLocalEvent(EventHandlerPtr h, zeek::Args args) { DoEnqueueLocalEvent(h, std::move(args)); }
+    void ProcessLocalEvent(EventHandlerPtr h, zeek::Args args) { DoProcessLocalEvent(h, std::move(args)); }
+
+    /**
+     * Process an error.
+     *
+     * @param tag A stringified structured error tag not further specified.
+     * @param message A free form message with more context.
+     */
+    void ProcessError(std::string_view tag, std::string_view message) { return DoProcessError(tag, message); };
 
 private:
     /**
-     * Hook method for implementing HandleRemoteEvent().
+     * Hook method for implementing ProcessEvent().
      *
      * @param topic The topic on which the event was received.
      * @param ev The parsed event that was received.
      *
      * @return true if the remote event was handled successfully, else false.
      */
-    virtual bool DoHandleRemoteEvent(std::string_view topic, Event e) = 0;
+    virtual bool DoProcessEvent(std::string_view topic, Event e) = 0;
 
     /**
-     * Hook method for implementing EnqueueLocalEvent().
+     * Hook method for implementing ProcessLocalEvent().
      *
      * @param h The event handler to use.
      * @param args The event arguments.
      */
-    virtual void DoEnqueueLocalEvent(EventHandlerPtr h, zeek::Args args) = 0;
+    virtual void DoProcessLocalEvent(EventHandlerPtr h, zeek::Args args) = 0;
+
+    /**
+     * Hook method for implementing ProcessError().
+     *
+     * @param tag A stringified structured error tag not further specified.
+     * @param message A free form message with more context.
+     */
+    virtual void DoProcessError(std::string_view tag, std::string_view message) = 0;
 };
 
 /**
@@ -143,8 +159,9 @@ private:
  */
 class LocalEventHandlingStrategy : public EventHandlingStrategy {
 private:
-    bool DoHandleRemoteEvent(std::string_view topic, Event e) override;
-    void DoEnqueueLocalEvent(EventHandlerPtr h, zeek::Args args) override;
+    bool DoProcessEvent(std::string_view topic, Event e) override;
+    void DoProcessLocalEvent(EventHandlerPtr h, zeek::Args args) override;
+    void DoProcessError(std::string_view tag, std::string_view message) override;
 };
 
 /**
@@ -177,11 +194,7 @@ public:
      *
      * @param nid The node identifier to use.
      */
-    bool Init(std::string nid) {
-        node_id = std::move(nid);
-
-        return DoInit();
-    }
+    bool Init(std::string nid);
 
     /**
      * Hook invoked when Zeek is about to terminate.
@@ -309,6 +322,32 @@ protected:
     void EnqueueEvent(EventHandlerPtr h, zeek::Args args);
 
     /**
+     * Process a cluster event.
+     *
+     * This method is called by ProcessEventMessage() and delegates
+     * to the event handling strategy. It should only be used by
+     * backends implementing their own serialization format. Other
+     * backends should not have a use for this and call ProcessEventMessage()
+     * directly instead.
+     *
+     * @param topic The topic on which the event was received.
+     * @param e The event as cluster::detail::Event.
+     */
+    bool ProcessEvent(std::string_view topic, detail::Event e);
+
+    /**
+     * An error happened, pass it to the event handling strategy.
+     *
+     * Errors are not necessarily in response to a publish operation, but
+     * can also be raised when receiving messages. E.g. if received data
+     * couldn't be properly parsed.
+     *
+     * @param tag A stringified structured error tag not further specified.
+     * @param message A free form message with more context.
+     */
+    void ProcessError(std::string_view tag, std::string_view message);
+
+    /**
      * Process an incoming event message.
      */
     bool ProcessEventMessage(std::string_view topic, std::string_view format, byte_buffer_span payload);
@@ -317,6 +356,16 @@ protected:
      * Process an incoming log message.
      */
     bool ProcessLogMessage(std::string_view format, byte_buffer_span payload);
+
+    /**
+     * Set this backend's identifier to the given value.
+     *
+     * This may be called by backend implementations during DoInitPostScript() if
+     * their node identifier is generated internally.
+     *
+     * @param nid
+     */
+    void SetNodeId(std::string nid);
 
 private:
     /**

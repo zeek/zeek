@@ -75,6 +75,16 @@ export {
 	## :zeek:see:`Cluster::create_store` with the *persistent* argument set true.
 	const default_persistent_backend = Broker::SQLITE &redef;
 
+	## The default maximum queue size for WebSocket event dispatcher instances.
+	##
+	## If the maximum queue size is reached, events from external WebSocket
+	## clients will be stalled and processed once the queue has been drained.
+	##
+	## An internal metric named ``cluster_onloop_queue_stalls`` and
+	## labeled with a ``WebSocketEventDispatcher:<host>:<port>`` tag
+	## is incremented when the maximum queue size is reached.
+	const default_websocket_max_event_queue_size = 32 &redef;
+
 	## Setting a default dir will, for persistent backends that have not
 	## been given an explicit file path via :zeek:see:`Cluster::stores`,
 	## automatically create a path within this dir that is based on the name of
@@ -353,6 +363,8 @@ export {
 		listen_host: string;
 		## The port the WebSocket server is supposed to listen on.
 		listen_port: port;
+		## The maximum event queue size for this server.
+		max_event_queue_size: count &default=default_websocket_max_event_queue_size;
 		## The TLS options used for this WebSocket server. By default,
 		## TLS is disabled. See also :zeek:see:`Cluster::WebSocketTLSOptions`.
 		tls_options: WebSocketTLSOptions &default=WebSocketTLSOptions();
@@ -666,4 +678,11 @@ event websocket_client_lost(endpoint: EndpointInfo)
 	local msg = fmt("WebSocket client '%s' (%s:%d) gone",
 	                endpoint$id, endpoint$network$address, endpoint$network$bound_port);
 	Cluster::log(msg);
+	}
+
+# If a backend reports an error, propagate it via a reporter error message.
+event Cluster::Backend::error(tag: string, message: string)
+	{
+	local msg = fmt("Cluster::Backend::error: %s (%s)", tag, message);
+	Reporter::error(msg);
 	}

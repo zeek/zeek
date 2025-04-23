@@ -46,5 +46,12 @@ event zeek_init()
 	assert Cluster::listen_websocket(ws_tls_opts_copy);
 	assert ! Cluster::listen_websocket(ws_opts_wss_port);
 
+	# Using a different max_event_queue_size fails, but using the default should work.
+	local ws_opts_qs = copy(ws_opts);
+	ws_opts_qs$max_event_queue_size = 42;
+	assert ! Cluster::listen_websocket(ws_opts_qs);
+	ws_opts_qs$max_event_queue_size = Cluster::default_websocket_max_event_queue_size;
+	assert Cluster::listen_websocket(ws_opts_qs);
+
 	terminate();
 	}

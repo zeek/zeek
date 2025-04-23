@@ -13,19 +13,27 @@
 #include "zeek/cluster/Manager.h"
 #include "zeek/cluster/OnLoop.h"
 #include "zeek/cluster/Serializer.h"
+#include "zeek/cluster/cluster.bif.h"
 #include "zeek/logging/Manager.h"
 #include "zeek/util.h"
 
 using namespace zeek::cluster;
 
 
-bool detail::LocalEventHandlingStrategy::DoHandleRemoteEvent(std::string_view topic, detail::Event e) {
+bool detail::LocalEventHandlingStrategy::DoProcessEvent(std::string_view topic, detail::Event e) {
     zeek::event_mgr.Enqueue(e.Handler(), std::move(e.Args()), util::detail::SOURCE_BROKER, 0, nullptr, e.Timestamp());
     return true;
 }
 
-void detail::LocalEventHandlingStrategy::DoEnqueueLocalEvent(EventHandlerPtr h, zeek::Args args) {
+void detail::LocalEventHandlingStrategy::DoProcessLocalEvent(EventHandlerPtr h, zeek::Args args) {
     zeek::event_mgr.Enqueue(h, std::move(args));
+}
+
+// Backend errors are raised via a generic Cluster::Backend::error(tag, message) event.
+void detail::LocalEventHandlingStrategy::DoProcessError(std::string_view tag, std::string_view message) {
+    if ( Cluster::Backend::error )
+        zeek::event_mgr.Enqueue(Cluster::Backend::error, zeek::make_intrusive<zeek::StringVal>(tag),
+                                zeek::make_intrusive<zeek::StringVal>(message));
 }
 
 std::optional<zeek::Args> detail::check_args(const zeek::FuncValPtr& handler, zeek::ArgsSpan args) {
@@ -81,6 +89,11 @@ Backend::Backend(std::string_view arg_name, std::unique_ptr<EventSerializer> es,
         reporter->InternalError("unknown cluster backend name '%s'; mismatch with tag component?", name.c_str());
 }
 
+bool Backend::Init(std::string nid) {
+    SetNodeId(std::move(nid));
+    return DoInit();
+}
+
 std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsSpan args, double timestamp) const {
     auto checked_args = detail::check_args(handler, args);
     if ( ! checked_args )
@@ -120,10 +133,18 @@ bool Backend::DoPublishLogWrites(const zeek::logging::detail::LogWriteHeader& he
 }
 
 void Backend::EnqueueEvent(EventHandlerPtr h, zeek::Args args) {
-    event_handling_strategy->EnqueueLocalEvent(h, std::move(args));
+    event_handling_strategy->ProcessLocalEvent(h, std::move(args));
 }
 
-bool Backend::ProcessEventMessage(std::string_view topic, std::string_view format, const byte_buffer_span payload) {
+bool Backend::ProcessEvent(std::string_view topic, detail::Event e) {
+    return event_handling_strategy->ProcessEvent(topic, std::move(e));
+}
+
+void Backend::ProcessError(std::string_view tag, std::string_view message) {
+    return event_handling_strategy->ProcessError(tag, message);
+}
+
+bool Backend::ProcessEventMessage(std::string_view topic, std::string_view format, byte_buffer_span payload) {
     if ( format != event_serializer->Name() ) {
         zeek::reporter->Error("ProcessEventMessage: Wrong format: %s vs %s", std::string{format}.c_str(),
                               event_serializer->Name().c_str());
@@ -139,7 +160,7 @@ bool Backend::ProcessEventMessage(std::string_view topic, std::string_view forma
         return false;
     }
 
-    return event_handling_strategy->HandleRemoteEvent(topic, std::move(*r));
+    return ProcessEvent(topic, std::move(*r));
 }
 
 bool Backend::ProcessLogMessage(std::string_view format, byte_buffer_span payload) {
@@ -160,6 +181,8 @@ bool Backend::ProcessLogMessage(std::string_view format, byte_buffer_span payloa
 
     return zeek::log_mgr->WriteBatchFromRemote(result->header, std::move(result->records));
 }
+
+void Backend::SetNodeId(std::string nid) { node_id = std::move(nid); }
 
 bool ThreadedBackend::ProcessBackendMessage(int tag, byte_buffer_span payload) {
     return DoProcessBackendMessage(tag, payload);

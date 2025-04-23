@@ -6,6 +6,11 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 7.2.0
 ==========
 
+We would like to thank Anthony Kasza (@anthonykasza), Fupeng Zhao (@AmazingPP), Jan
+Grashöfer (@J-Gras), Mike Dopheide (@dopheide-esnet), @philipp-tg, @jbaggs, @mnhsrj, Mark
+Overholser (@markoverholser), BrendanKapp (@brendankapp), Chris Hinshaw (@MMChrisHinshaw),
+and Carlos Lopez for their contributions to this release.
+
 Breaking Changes
 ----------------
 
@@ -14,8 +19,16 @@ Breaking Changes
   completed. The same applies to the corresponding C++ accessors on the ``EventMgr``
   class. The functions now return false, 0 or the zero time instead.
 
+- The ``to_int()`` built-in function was changed to match the return behavior of
+  ``to_count()``. Previously, ``to_int()`` would silently ignore invalid inputs and return a
+  ``0``. It now returns an error instead.
+
 New Functionality
 -----------------
+
+- The following dependencies have had updates:
+
+  ##### TODO #####
 
 - Some DNS events are not raised when ``dns_skip_all_addl`` is set to true.  Zeek now
   raises a warning when a script declares these events while this option is set to true.
@@ -28,7 +41,7 @@ New Functionality
   information from a Kerberos response, including the cipher and encrypted data.
 
 - Geneve tunnel options of the current packet can be extracted from scripts using the new
-  PacketAnalyzer::Geneve::get_options() builtin function.
+  ``PacketAnalyzer::Geneve::get_options()`` builtin function.
 
 - The new ``is_valid_subnet()`` function mirrors ``is_valid_ip()``, for subnets.
 
@@ -82,6 +95,26 @@ New Functionality
   currently, even after ``Cluster::websocket_client_lost()`` ran, events sent from
   that client may still be in transit and later executed, even on the node running
   the WebSocket server.
+
+- Vectors containing ``pattern`` values can now be compared using ``==`` and ``!=`` in
+  scripts. This previously resulted in a fatal error.
+
+- The set of non-routable subnets defined in ``Site::private_address_space`` was expanded
+  to include ``239.0.0.0/8``, ``224.0.0.0/24`, ``[2002:e000::]/40``, ``[2002:ef00::]/24``,
+  and ``[fec0::]/10`. These addresses come from RFCs 2365, 3058, 3879, and 5771. This may
+  result in traffic being considered as local traffic that wasn't previously.
+
+- The ``to_count()`` and ``to_int()`` built-in functions now trim trailing spaces passed
+  in the argument. They were already trimming leading spaces.
+
+- The ``ip_proto`` field is now populated for a connection encapsulated in a tunnel.
+
+- The documentation for ZeekJS is now included in the main Zeek documentation (as seen on
+  https://docs.zeek.org) by default.
+
+- Searching for the headers for libkrb5 was made more robust. Additionally, the
+  restrictions on using libkrb5 only on Linux platforms was removed. CMake will now search
+  for it on all platforms as expected.
 
 Changed Functionality
 ---------------------
@@ -148,8 +181,27 @@ Changed Functionality
   connection attempts to ephemeral TCP client-side ports, which clould clutter the Broker
   logs.
 
-Removed Functionality
----------------------
+- The protocol confirmation for IRC was made more robust. It now checks for valid commands
+  before confirming a connection as IRC.
+
+- Packet dumping now properly handles both the inner and outer packets of a tunneled
+  connection, ensuring that the outer packets are always dumped correctly alongside the
+  inner packets.
+
+- SSH banner parsing was previously a bit too strict in some ways and too permissive in
+  others. This has been changed to be more robust, now accepting text before the SSH
+  banner starts. This was previously a protocol violation but is actually allowed by the
+  spec. This should help prevent non-ssh traffic on port 22 from causing an ssh.log to be
+  created. A new event called ``ssh_server_pre_banner_data`` was added, and is set When
+  this kind of text data is encountered.
+
+- The SNAP analyzer now uses both the OUI and protocol identifier in forwarding
+  decisions. Previously it only used the identifier, which lead to some packets not being
+  handled at all and also not being logged in ``unknown_protocols.log``.
+
+- The BIND library is no longer required for building Zeek. It hasn't been required since
+  our switch to use the C-Ares library back in the 5.0 release, but we never removed the
+  requirement from CMake.
 
 Deprecated Functionality
 ------------------------

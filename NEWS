@@ -32,7 +32,9 @@ New Functionality
 
 - The following dependencies have had updates:
 
-  ##### TODO #####
+  - The bundled version of c-ares has been updated to v1.34.5.
+
+  - The bundled version of ZeekJS has been updated to v0.17.0.
 
 - Some DNS events are not raised when ``dns_skip_all_addl`` is set to true.  Zeek now
   raises a warning when a script declares these events while this option is set to true.

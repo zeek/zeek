@@ -1477,6 +1477,7 @@ function from_json_default_key_mapper(s: string): string
 type from_json_result: record {
 	v: any &optional;	##< Parsed value.
 	valid: bool;	##< True if parsing was successful.
+	err: string &optional;	## Error string if unsuccessful.
 };
 
 # TCP values for :zeek:see:`endpoint` *state* field.

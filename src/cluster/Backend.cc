@@ -203,6 +203,7 @@ bool ThreadedBackend::DoInit() {
 
 void ThreadedBackend::DoTerminate() {
     if ( onloop ) {
+        onloop->Process();
         onloop->Close();
         onloop = nullptr;
     }

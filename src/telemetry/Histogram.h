@@ -4,7 +4,6 @@
 
 #include <prometheus/family.h>
 #include <prometheus/histogram.h>
-#include <cstdint>
 #include <initializer_list>
 #include <memory>
 

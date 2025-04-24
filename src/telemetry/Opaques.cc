@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Opaques.h"
+#include "zeek/telemetry/Opaques.h"
 
 #include "zeek/telemetry/Counter.h"
 #include "zeek/telemetry/Gauge.h"

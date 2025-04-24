@@ -2,7 +2,7 @@
 @load base/protocols/http/utils
 @load ./where-locations
 
-event http_message_done(c: connection, is_orig: bool, stat: http_message_stat)
+event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &group="Intel::URL"
 	{
 	if ( is_orig && c?$http )
 		Intel::seen([$indicator=HTTP::build_url(c$http),

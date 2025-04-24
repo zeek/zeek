@@ -3,7 +3,7 @@
 @load base/utils/urls
 @load ./where-locations
 
-event intel_mime_data(f: fa_file, data: string)
+event intel_mime_data(f: fa_file, data: string) &group="Intel::URL"
 	{
 	if ( ! f?$conns )
 		return;
@@ -21,7 +21,7 @@ event intel_mime_data(f: fa_file, data: string)
 		}
 	}
 
-event file_new(f: fa_file)
+event file_new(f: fa_file) &group="Intel::URL"
 	{
 	if ( f$source == "SMTP" )
 		Files::add_analyzer(f, Files::ANALYZER_DATA_EVENT, [$stream_event=intel_mime_data]);

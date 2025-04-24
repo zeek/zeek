@@ -71,6 +71,8 @@ private:
 
     bool DoProcessBackendMessage(int tag, byte_buffer_span payload) override;
 
+    void DoReadyToPublishCallback(ReadyCallback cb) override;
+
     // Script level variables.
     std::string connect_xsub_endpoint;
     std::string connect_xpub_endpoint;
@@ -83,6 +85,8 @@ private:
     int linger_ms = 0;
     zeek_uint_t poll_max_messages = 0;
     zeek_uint_t debug_flags = 0;
+
+    std::string internal_topic_prefix;
 
     EventHandlerPtr event_subscription;
     EventHandlerPtr event_unsubscription;

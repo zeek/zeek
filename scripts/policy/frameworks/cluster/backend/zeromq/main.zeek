@@ -218,6 +218,18 @@ export {
 	## subscriptions and hello messages from other
 	## nodes. These expirations trigger reporter warnings.
 	const hello_expiration: interval = 10sec &redef;
+
+	## The topic prefix used for internal ZeroMQ specific communication.
+	##
+	## This is used for the "ready to publish callback" topics.
+	##
+	## Zeek creates a short-lived subscription for a auto-generated
+	## topic name with this prefix and waits for it to be confirmed
+	## on its XPUB socket. Once this happens, the XPUB socket should've
+	## also received all other active subscriptions of other nodes in a
+	## cluster from the central XPUB/XSUB proxy and therefore can be
+	## deemed ready for publish operations.
+	const internal_topic_prefix = "zeek.zeromq.internal." &redef;
 }
 
 redef Cluster::backend = Cluster::CLUSTER_BACKEND_ZEROMQ;

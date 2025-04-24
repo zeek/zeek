@@ -16,6 +16,7 @@
 #include "zeek/DebugLogger.h"
 #include "zeek/EventHandler.h"
 #include "zeek/EventRegistry.h"
+#include "zeek/ID.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Reporter.h"
 #include "zeek/Val.h"
@@ -103,6 +104,8 @@ void ZeroMQBackend::DoInitPostScript() {
     linger_ms = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::linger_ms")->AsInt());
     poll_max_messages = zeek::id::find_val<zeek::CountVal>("Cluster::Backend::ZeroMQ::poll_max_messages")->Get();
     debug_flags = zeek::id::find_val<zeek::CountVal>("Cluster::Backend::ZeroMQ::debug_flags")->Get();
+    internal_topic_prefix =
+        zeek::id::find_const<zeek::StringVal>("Cluster::Backend::ZeroMQ::internal_topic_prefix")->ToStdString();
     proxy_io_threads =
         static_cast<int>(zeek::id::find_val<zeek::CountVal>("Cluster::Backend::ZeroMQ::proxy_io_threads")->Get());
 
@@ -723,6 +726,34 @@ bool ZeroMQBackend::DoProcessBackendMessage(int tag, byte_buffer_span payload) {
     }
 }
 
+void ZeroMQBackend::DoReadyToPublishCallback(ReadyCallback cb) {
+    // Setup an ephemeral subscription for a topic produced with the internal
+    // topic prefix, this backend's node identifier and an incrementing counter.
+    // When the SubscribeCallback for the subscription is invoked, meaning it
+    // has become visible on the XPUB socket, call the provided ready callback
+    // and cancel the subscription by unsubscribing from the topic again.
+    //
+    // The heuristic here is that seeing a subscription created by the node itself
+    // also leads to the XPUB/XSUB proxy having sent all subscriptions from other
+    // nodes in the cluster.
+    //
+    // Without this heuristic, short-lived WebSocket clients may fail to publish
+    // messages as ZeroMQ implements sender-side subscription filtering and simply
+    // discards messages to topics for which it hasn't seen any subscriptions yet.
+    static int ready_topic_counter = 0;
+    ++ready_topic_counter;
+
+    auto scb = [this, cb = std::move(cb)](const std::string& topic_prefix, const SubscriptionCallbackInfo& sinfo) {
+        Backend::ReadyCallbackInfo info{sinfo.status, sinfo.message};
+        cb(info);
+
+        // Unsubscribe again, we're not actually interested in this topic.
+        Unsubscribe(topic_prefix);
+    };
+
+    std::string topic = util::fmt("%s%s.%d.", internal_topic_prefix.c_str(), NodeId().c_str(), ready_topic_counter);
+    Subscribe(topic, std::move(scb));
+}
 
 } // namespace cluster::zeromq
 } // namespace zeek

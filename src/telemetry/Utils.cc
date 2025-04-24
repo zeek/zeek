@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "Utils.h"
+#include "zeek/telemetry/Utils.h"
 
 #include "zeek/ID.h"
 #include "zeek/Reporter.h"

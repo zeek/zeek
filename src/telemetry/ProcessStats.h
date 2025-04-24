@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
+#include "zeek/zeek-config.h" // Needed for HAVE_LINUX
 
 #include <cstdint>
 

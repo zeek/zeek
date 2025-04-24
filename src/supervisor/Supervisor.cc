@@ -29,6 +29,7 @@ extern "C" {
 #include "zeek/Dict.h"
 #include "zeek/Event.h"
 #include "zeek/EventHandler.h"
+#include "zeek/EventRegistry.h"
 #include "zeek/ID.h"
 #include "zeek/NetVar.h"
 #include "zeek/RE.h"

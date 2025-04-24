@@ -1,3 +1,26 @@
+7.2.0-dev.624 | 2025-04-24 14:03:52 +0200
+
+  * cluster/websocket: Raise websocket_client_lost() after terminate (Arne Welzel, Corelight)
+
+    Just in case events are created during backend->Terminate(). These
+    should come before the Cluster::websocket_client_lost() event.
+
+  * cluster/ThreadedBackend: Invoke onloop->Process() during DoTerminate() (Arne Welzel, Corelight)
+
+    Also, document how to use ThreadedBackend's DoTerminate()
+
+  * cluster/ThreadedBackend: Remove Process() (Arne Welzel, Corelight)
+
+    This must have been left-over from before OnLoopProcess existed. It
+    wasn't called or used anymore.
+
+  * zeromq: Call super class DoTerminate() after stopping thread (Arne Welzel, Corelight)
+
+    The internal ZeroMQ thread would call QueueForProcessing() thereby
+    accessing the onloop member. As ThreadedBackend::DoTerminate() unsets it,
+    this was a) reported as a data race by TSAN and b) potentially caused
+    missed events that were still to be queued.
+
 7.2.0-dev.617 | 2025-04-24 08:17:08 +0200
 
   * cluster/websocket: Short-circuit clients without subscriptions (Arne Welzel, Corelight)

@@ -342,11 +342,14 @@ void WebSocketEventDispatcher::Process(const WebSocketClose& close) {
 
     // If the client doesn't have a backend, it wasn't ever properly instantiated.
     if ( backend ) {
+        backend->Terminate();
+
+        // Raise Cluster::websocket_client_lost() after the backend has terminated.
+        // In case any messages/events were still pending, Cluster::websocket_client_lost()
+        // should be the last event related to this WebSocket client.
         auto rec = zeek::cluster::detail::bif::make_endpoint_info(backend->NodeId(), wsc->getRemoteIp(),
                                                                   wsc->getRemotePort(), TRANSPORT_TCP);
         zeek::event_mgr.Enqueue(Cluster::websocket_client_lost, std::move(rec));
-
-        backend->Terminate();
     }
 
     clients.erase(it);

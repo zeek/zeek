@@ -203,6 +203,7 @@ bool ThreadedBackend::DoInit() {
 
 void ThreadedBackend::DoTerminate() {
     if ( onloop ) {
+        onloop->Process();
         onloop->Close();
         onloop = nullptr;
     }
@@ -211,11 +212,6 @@ void ThreadedBackend::DoTerminate() {
 void ThreadedBackend::QueueForProcessing(QueueMessage&& qmessages) {
     if ( onloop )
         onloop->QueueForProcessing(std::move(qmessages));
-}
-
-void ThreadedBackend::Process() {
-    if ( onloop )
-        onloop->Process();
 }
 
 void ThreadedBackend::Process(QueueMessage&& msg) {

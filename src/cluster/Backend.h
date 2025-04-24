@@ -564,17 +564,12 @@ protected:
     /**
      * To be used by implementations to enqueue messages for processing on the IO loop.
      *
-     * It's safe to call this method from any thread.
+     * It's safe to call this method from any thread before ThreadedBackend's
+     * DoTerminate() implementation is invoked.
      *
      * @param messages Messages to be enqueued.
      */
     void QueueForProcessing(QueueMessage&& messages);
-
-    /**
-     * Delegate to onloop->Process() to trigger processing
-     * of outstanding queued messages explicitly, if any.
-     */
-    void Process();
 
     /**
      * The default DoInit() implementation of ThreadedBackend
@@ -588,6 +583,17 @@ protected:
      */
     bool DoInit() override;
 
+    /**
+     * Common DoTerminate() functionality for threaded backends.
+     *
+     * The default DoTerminate() implementation of ThreadedBackend
+     * runs OnLoop's Process() once to drain any pending messages, then
+     * closes and unsets it.
+     *
+     * Classes deriving from ThreadedBackend need to ensure that all threads
+     * calling QeueuForProcessing() have terminated before invoking the
+     * ThreadedBackend's DoTerminate() implementation.
+     */
     void DoTerminate() override;
 
 private:

@@ -80,6 +80,12 @@ New Functionality
   Note that the new ``Cluster::listen_websocket()`` API will only become stable
   with Zeek 8.0.
 
+  Two new events, ``Cluster::websocket_client_added()`` and ``Cluster::websocket_client_lost()``,
+  have been added for WebSocket clients connecting and disconnecting. Note that
+  currently, even after ``Cluster::websocket_client_lost()`` ran, events sent from
+  that client may still be in transit and later executed, even on the node running
+  the WebSocket server.
+
 Changed Functionality
 ---------------------
 

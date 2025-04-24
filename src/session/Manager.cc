@@ -11,7 +11,6 @@
 #include "zeek/Conn.h"
 #include "zeek/Func.h"
 #include "zeek/IP.h"
-#include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/RuleMatcher.h"
 #include "zeek/RunState.h"

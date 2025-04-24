@@ -11,7 +11,6 @@
 #include "zeek/OpaqueVal.h"
 #include "zeek/Reporter.h"
 
-#include "broker/config.hh"
 #include "broker/data.hh"
 
 namespace zeek {

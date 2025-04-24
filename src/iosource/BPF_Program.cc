@@ -2,8 +2,6 @@
 
 #include "zeek/iosource/BPF_Program.h"
 
-#include "zeek/zeek-config.h"
-
 // clang-format off
 // Include order is required here for a working build on Windows.
 #include <unistd.h>

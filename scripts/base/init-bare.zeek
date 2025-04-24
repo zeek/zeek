@@ -6235,7 +6235,7 @@ export {
 		TIMEOUT,
 		## Connection to backed was lost unexpectedly.
 		CONNECTION_LOST,
-		## Generic operation failed.
+		## Generic operation failure.
 		OPERATION_FAILED,
 		## Key requested was not found in backend.
 		KEY_NOT_FOUND,
@@ -6258,10 +6258,12 @@ export {
 		## One of a set of backend-redefinable return codes.
 		code: ReturnCode;
 		## An optional error string. This should be set when the
-		## ``code`` field is not set ``SUCCESS``.
+		## ``code`` field is not set to ``SUCCESS``.
 		error_str: string &optional;
-		## An optional value returned by ``get`` operations when a match
-		## was found the key requested.
+		## An optional value for operations that can return data. ``get``
+		## operations uses this to return the value when a match was found
+		## for the key requested. ``open_backend`` uses this to return the
+		## backend handle on successful connections.
 		value: any &optional;
 	};
 }

@@ -86,6 +86,11 @@ New Functionality
   that client may still be in transit and later executed, even on the node running
   the WebSocket server.
 
+  WebSocket clients connecting to a server started using ``Cluster::listen_websocket()``
+  are automatically subscribed to a client specific topic produced by a new function
+  ``Cluster::websocket_client_topic()`` in the ``Cluster`` module, even if they did
+  not provide any subscriptions themselves.
+
 Changed Functionality
 ---------------------
 

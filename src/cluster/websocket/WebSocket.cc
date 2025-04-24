@@ -8,7 +8,10 @@
 #include <string_view>
 #include <variant>
 
+#include "zeek/Func.h"
+#include "zeek/ID.h"
 #include "zeek/Reporter.h"
+#include "zeek/Type.h"
 #include "zeek/cluster/Backend.h"
 #include "zeek/cluster/BifSupport.h"
 #include "zeek/cluster/Manager.h"
@@ -194,8 +197,10 @@ const std::vector<std::string> WebSocketClient::GetSubscriptions() const {
     std::vector<std::string> subs;
     subs.reserve(subscriptions_state.size());
 
-    for ( const auto& [topic, _] : subscriptions_state )
-        subs.emplace_back(topic);
+    for ( const auto& [topic, _] : subscriptions_state ) {
+        if ( topic != auto_topic )
+            subs.emplace_back(topic);
+    }
 
     return subs;
 }
@@ -375,6 +380,17 @@ void WebSocketEventDispatcher::Process(const WebSocketSubscribeFinished& fin) {
     HandleSubscriptionsActive(entry);
 }
 
+// Invokes Cluster::websocket_client_topic() and returns the result as std::string, empty on error.
+std::string WebSocketEventDispatcher::GetAutoTopic(const std::string& nid) const {
+    static const auto& func = zeek::id::find_func("Cluster::websocket_client_topic");
+    auto result = func->Invoke(zeek::make_intrusive<zeek::StringVal>(nid));
+
+    if ( ! result || ! IsString(result->GetType()->Tag()) )
+        return std::string{};
+
+    return result->AsStringVal()->ToStdString();
+}
+
 void WebSocketEventDispatcher::HandleSubscriptions(WebSocketClientEntry& entry, std::string_view buf) {
     rapidjson::Document doc;
     doc.Parse(buf.data(), buf.size());
@@ -395,15 +411,16 @@ void WebSocketEventDispatcher::HandleSubscriptions(WebSocketClientEntry& entry, 
         subscriptions.emplace_back(doc[i].GetString());
     }
 
-    entry.wsc->SetSubscriptions(subscriptions);
-
-    // Short-circuit setting up subscriptions and directly reply with
-    // an ack if the client didn't request any topic subscriptions.
-    if ( subscriptions.empty() ) {
-        assert(entry.wsc->AllSubscriptionsActive());
-        HandleSubscriptionsActive(entry);
-        return;
+    // Add the auto topic to this WebSocket client.
+    auto auto_topic = GetAutoTopic(entry.backend->NodeId());
+    if ( ! auto_topic.empty() ) {
+        subscriptions.emplace_back(auto_topic);
+        entry.wsc->SetAutoTopic(auto_topic);
     }
+    else
+        zeek::reporter->InternalWarning("Failed to get auto topic for WebSocket client %s!", entry.id.c_str());
+
+    entry.wsc->SetSubscriptions(subscriptions);
 
     auto cb = [this, id = entry.id, wsc = entry.wsc](const std::string& topic,
                                                      const Backend::SubscriptionCallbackInfo& info) {

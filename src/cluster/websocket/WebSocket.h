@@ -100,7 +100,7 @@ public:
     void SetSubscriptions(const std::vector<std::string>& topic_prefixes);
 
     /**
-     * @return The client's subscriptions.
+     * @return The client's subscriptions, excluding the auto topic.
      */
     const std::vector<std::string> GetSubscriptions() const;
 
@@ -114,9 +114,22 @@ public:
      */
     bool AllSubscriptionsActive() const;
 
+    /**
+     * Set the WebSocket client's automatically created subscription topic.
+     *
+     * @param topic The auto topic.
+     */
+    void SetAutoTopic(const std::string& topic) { auto_topic = topic; }
+
+    /**
+     * @return the WebSocket client's auto topic.
+     */
+    const std::string& GetAutoTopic() const { return auto_topic; }
+
 private:
     bool acked = false;
     std::map<std::string, bool> subscriptions_state;
+    std::string auto_topic; // Internally generated topic for this websocket client.
 };
 
 // An new WebSocket client connected. Client is locally identified by `id`.
@@ -226,6 +239,9 @@ private:
         std::list<WebSocketMessage> queue;
     };
 
+    // Invoke Zeek script function Cluster::websocket_client_topic()
+    // with a WebSocket client's identifier to produce the auto topic.
+    std::string GetAutoTopic(const std::string& nid) const;
 
     void HandleSubscriptions(WebSocketClientEntry& entry, std::string_view buf);
 

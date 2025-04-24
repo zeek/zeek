@@ -59,6 +59,18 @@ export {
 	## a unique node in a cluster.  Used with broker-enabled cluster communication.
 	const nodeid_topic_prefix = "zeek/cluster/nodeid/" &redef;
 
+	## Parts used for automatic WebSocket client topic subscription.
+	##
+	## Every WebSocket client is automatically subscribed to a topic
+	## produced by joining and suffixing this vector and the WebSocket
+	## client's identifier with :zeek:see:`Cluster::websocket_topic_sep`.
+	const websocket_topic_prefix_parts = vector("zeek", "cluster", "websocket", "client") &redef;
+
+	## Separator used for creating automatic WebSocket client topic subscriptions.
+	##
+	## See also :zeek:see:`Cluster::websocket_topic_prefix_parts`.
+	const websocket_topic_sep = "/" &redef;
+
 	## Name of the node on which master data stores will be created if no other
 	## has already been specified by the user in :zeek:see:`Cluster::stores`.
 	## An empty value means "use whatever name corresponds to the manager
@@ -298,6 +310,14 @@ export {
 	##          a given cluster node.
 	global nodeid_topic: function(id: string): string &redef;
 
+	## Retrieve the topic associated with a WebSocket client in the cluster.
+	##
+	## id: the id for the WebSocket client (:zeek:see:`Cluster::websocket_client_added`)
+	##
+	## Returns: a topic string that may used to send a message exclusively to
+	##          a given WebSocket client.
+	global websocket_client_topic: function(id: string): string;
+
 	## Retrieve the cluster-level naming of a node based on its node ID,
 	## a backend-specific identifier.
 	##
@@ -471,6 +491,14 @@ function node_topic(name: string): string
 function nodeid_topic(id: string): string
 	{
 	return nodeid_topic_prefix + id + "/";
+	}
+
+function websocket_client_topic(id: string): string
+	{
+	local v = copy(websocket_topic_prefix_parts);
+	v += id;
+	v += "";
+	return join_string_vec(v, websocket_topic_sep);
 	}
 
 function nodeid_to_node(id: string): NamedNode

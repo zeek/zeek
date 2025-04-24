@@ -116,8 +116,6 @@ void ZeroMQBackend::DoInitPostScript() {
 }
 
 void ZeroMQBackend::DoTerminate() {
-    ThreadedBackend::DoTerminate();
-
     // If self_thread is running, notify it to shutdown via the inproc
     // socket, then wait for it to terminate.
     if ( self_thread.joinable() && ! self_thread_shutdown_requested ) {
@@ -152,6 +150,8 @@ void ZeroMQBackend::DoTerminate() {
         proxy_thread.reset();
     }
 
+    // ThreadedBackend::DoTerminate() cleans up the onloop instance.
+    ThreadedBackend::DoTerminate();
     ZEROMQ_DEBUG("Terminated");
 }
 

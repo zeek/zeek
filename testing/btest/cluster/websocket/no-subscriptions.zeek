@@ -30,9 +30,6 @@
 @load ./zeromq-test-bootstrap
 redef exit_only_after_terminate = T;
 
-global expected_ping_count = 100;
-global ping_count = 0;
-
 event zeek_init()
 	{
 	Cluster::subscribe("/test/pings");

@@ -29,8 +29,6 @@
 @load ./zeromq-test-bootstrap
 redef exit_only_after_terminate = T;
 
-global event_count = 0;
-
 global ping: event(msg: string, c: count) &is_used;
 global pong: event(msg: string, c: count) &is_used;
 

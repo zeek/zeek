@@ -76,8 +76,7 @@ def run(ws_url):
         tc.send_json(wstest.build_event_v1("/test/pings/", "ping", [42]))
         pong = tc.recv_json(timeout=3)
         topic, event = pong["topic"], pong["data"][2]["data"][0:2]
-        topic_parts = topic.split(".")
-        print("ack[endpoint] in topic_parts", ack["endpoint"] in topic_parts)
+        print("ack[endpoint] in topic", ack["endpoint"] in topic)
         print("event", event)
 
 

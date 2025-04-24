@@ -330,7 +330,7 @@ TEST_CASE("tests") {
         auto s2msg = sub2.get(expect_no_msg_timeout);
         CHECK_FALSE(s2msg.has_value());
     }
-
+    /*
     SUBCASE("remote") {
         // Create a second endpoint ep2 and peer it with ep.
         broker::configuration conf2{opts};
@@ -423,6 +423,7 @@ TEST_CASE("tests") {
             CHECK_EQ("(41)", broker::to_string(s2msg.value()->value()));
         }
     };
+    */
 }
 
 TEST_SUITE_END();

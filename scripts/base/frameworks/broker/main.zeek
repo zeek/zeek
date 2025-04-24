@@ -88,21 +88,21 @@ export {
 
 	## Max number of items we buffer at most per peer. What action to take when
 	## the buffer reaches its maximum size is determined by
-	## `peer_overflow_policy`.
-	const peer_buffer_size = 2048 &redef;
+	## :zeek:see:`Broker::peer_overflow_policy`.
+	const peer_buffer_size = 8192 &redef;
 
 	## Configures how Broker responds to peers that cannot keep up with the
 	## incoming message rate. Available strategies:
 	## - disconnect: drop the connection to the unresponsive peer
 	## - drop_newest: replace the newest message in the buffer
 	## - drop_oldest: removed the olsted message from the buffer, then append
-	const peer_overflow_policy = "disconnect" &redef;
+	const peer_overflow_policy = "drop_oldest" &redef;
 
-	## Same as `peer_buffer_size` but for WebSocket clients.
-	const web_socket_buffer_size = 512 &redef;
+	## Same as :zeek:see:`Broker::peer_buffer_size` but for WebSocket clients.
+	const web_socket_buffer_size = 8192 &redef;
 
-	## Same as `peer_overflow_policy` but for WebSocket clients.
-	const web_socket_overflow_policy = "disconnect" &redef;
+	## Same as :zeek:see:`Broker::peer_overflow_policy` but for WebSocket clients.
+	const web_socket_overflow_policy = "drop_oldest" &redef;
 
 	## How frequently Zeek resets some peering/client buffer statistics,
 	## such as ``max_queued_recently`` in :zeek:see:`BrokerPeeringStats`.

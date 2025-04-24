@@ -6,7 +6,6 @@
 #include <openssl/evp.h>
 #include <typeinfo>
 
-#include "zeek/NetVar.h"
 #include "zeek/Var.h"
 #include "zeek/broker/Data.h"
 #include "zeek/digest.h"

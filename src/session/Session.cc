@@ -4,7 +4,6 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
-#include "zeek/IP.h"
 #include "zeek/Reporter.h"
 #include "zeek/Stats.h"
 #include "zeek/Val.h"

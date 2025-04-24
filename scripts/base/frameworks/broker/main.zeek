@@ -72,7 +72,7 @@ export {
 	## The number of buffered messages at the Broker/CAF layer after which
 	## a subscriber considers themselves congested (i.e. tune the congestion
 	## control mechanisms).
-	const congestion_queue_size = 200 &redef;
+	const congestion_queue_size = 200 &redef &deprecated="Remove in v8.1. Non-functional since v5.0";
 
 	## The max number of log entries per log stream to batch together when
 	## sending log messages to a remote logger.

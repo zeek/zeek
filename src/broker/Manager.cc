@@ -404,11 +404,9 @@ class BrokerState {
 public:
     using LogSeverityLevel = Observer::LogSeverityLevel;
 
-    BrokerState(broker::configuration config, size_t congestion_queue_size, LoggerQueuePtr queue,
-                PeerBufferStatePtr pbstate)
+    BrokerState(broker::configuration config, LoggerQueuePtr queue, PeerBufferStatePtr pbstate)
         : endpoint(std::move(config), telemetry_mgr->GetRegistry()),
-          subscriber(
-              endpoint.make_subscriber({broker::topic::statuses(), broker::topic::errors()}, congestion_queue_size)),
+          subscriber(endpoint.make_subscriber({broker::topic::statuses(), broker::topic::errors()})),
           loggerQueue(std::move(queue)),
           peerBufferState(std::move(pbstate)) {
         peerBufferState->SetEndpoint(&endpoint);
@@ -594,8 +592,7 @@ void Manager::DoInitPostScript() {
     auto observer = std::make_shared<Observer>(adapterVerbosity, queue, pbstate);
     broker::logger(observer); // *must* be called before creating the BrokerState
 
-    auto cqs = get_option("Broker::congestion_queue_size")->AsCount();
-    bstate = std::make_shared<BrokerState>(std::move(config), cqs, queue, pbstate);
+    bstate = std::make_shared<BrokerState>(std::move(config), queue, pbstate);
     bstate->logSeverity = static_cast<BrokerSeverityLevel>(logSeverityVal);
     bstate->stderrSeverity = static_cast<BrokerSeverityLevel>(stderrSeverityVal);
 

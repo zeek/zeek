@@ -128,19 +128,21 @@ using LoggerQueuePtr = std::shared_ptr<LoggerQueue>;
 
 using BrokerSeverityLevel = broker::event::severity_level;
 
-class LoggerAdapter : public broker::event_observer {
+class Observer : public broker::event_observer {
 public:
-    using SeverityLevel = broker::event::severity_level;
+    using LogSeverityLevel = broker::event::severity_level;
 
-    explicit LoggerAdapter(SeverityLevel severity, LoggerQueuePtr queue)
+    explicit Observer(LogSeverityLevel severity, LoggerQueuePtr queue)
         : severity_(severity), queue_(std::move(queue)) {}
 
     void observe(broker::event_ptr what) override { queue_->Push(std::move(what)); }
 
-    bool accepts(SeverityLevel severity, broker::event::component_type) const override { return severity <= severity_; }
+    bool accepts(LogSeverityLevel severity, broker::event::component_type) const override {
+        return severity <= severity_;
+    }
 
 private:
-    SeverityLevel severity_;
+    LogSeverityLevel severity_;
     LoggerQueuePtr queue_;
 };
 
@@ -220,7 +222,7 @@ struct opt_mapping {
 
 class BrokerState {
 public:
-    using SeverityLevel = LoggerAdapter::SeverityLevel;
+    using LogSeverityLevel = Observer::LogSeverityLevel;
 
     BrokerState(broker::configuration config, size_t congestion_queue_size, LoggerQueuePtr queue)
         : endpoint(std::move(config), telemetry_mgr->GetRegistry()),
@@ -231,8 +233,8 @@ public:
     broker::endpoint endpoint;
     broker::subscriber subscriber;
     LoggerQueuePtr loggerQueue;
-    SeverityLevel logSeverity = SeverityLevel::critical;
-    SeverityLevel stderrSeverity = SeverityLevel::critical;
+    LogSeverityLevel logSeverity = LogSeverityLevel::critical;
+    LogSeverityLevel stderrSeverity = LogSeverityLevel::critical;
     std::unordered_set<broker::network_info> outbound_peerings;
 };
 
@@ -402,8 +404,8 @@ void Manager::DoInitPostScript() {
     checkLogSeverity(stderrSeverityVal);
     auto adapterVerbosity = static_cast<BrokerSeverityLevel>(std::max(logSeverityVal, stderrSeverityVal));
     auto queue = std::make_shared<LoggerQueue>();
-    auto adapter = std::make_shared<LoggerAdapter>(adapterVerbosity, queue);
-    broker::logger(adapter); // *must* be called before creating the BrokerState
+    auto observer = std::make_shared<Observer>(adapterVerbosity, queue);
+    broker::logger(observer); // *must* be called before creating the BrokerState
 
     auto cqs = get_option("Broker::congestion_queue_size")->AsCount();
     bstate = std::make_shared<BrokerState>(std::move(config), cqs, queue);

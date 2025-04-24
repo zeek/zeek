@@ -114,9 +114,9 @@ void print_escaped(std::string& buf, std::string_view str) {
     buf.push_back('"');
 }
 
-class LoggerAdapter : public broker::event_observer {
+class Observer : public broker::event_observer {
 public:
-    explicit LoggerAdapter() {}
+    explicit Observer() {}
 };
 
 } // namespace
@@ -368,8 +368,8 @@ void Manager::InitPostScript() {
     config.set("caf.work-stealing.moderate-steal-interval", get_option("Broker::moderate_interval")->AsCount());
     config.set("caf.work-stealing.relaxed-steal-interval", get_option("Broker::relaxed_interval")->AsCount());
 
-    auto adapter = std::make_shared<LoggerAdapter>();
-    broker::logger(adapter); // *must* be called before creating the BrokerState
+    auto observer = std::make_shared<Observer>();
+    broker::logger(observer); // *must* be called before creating the BrokerState
 
     auto cqs = get_option("Broker::congestion_queue_size")->AsCount();
     bstate = std::make_shared<BrokerState>(std::move(config), cqs);

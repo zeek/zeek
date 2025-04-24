@@ -571,12 +571,6 @@ protected:
     void QueueForProcessing(QueueMessage&& messages);
 
     /**
-     * Delegate to onloop->Process() to trigger processing
-     * of outstanding queued messages explicitly, if any.
-     */
-    void Process();
-
-    /**
      * The default DoInit() implementation of ThreadedBackend
      * registers itself as a counting IO source to keep the IO
      * loop alive after initialization.

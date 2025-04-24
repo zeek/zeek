@@ -1,3 +1,9 @@
+7.2.0-dev.617 | 2025-04-24 08:17:08 +0200
+
+  * cluster/websocket: Short-circuit clients without subscriptions (Arne Welzel, Corelight)
+
+  * cluster/websocket: Factor out active subscription handling (Arne Welzel, Corelight)
+
 7.2.0-dev.613 | 2025-04-23 12:14:48 -0700
 
   * Statically lookup field offsets for connection values in UDP and ICMP analyzers (Tim Wojtulewicz, Corelight)

@@ -361,7 +361,6 @@ void WebSocketEventDispatcher::Process(const WebSocketSubscribeFinished& fin) {
     }
 
     auto& entry = it->second;
-    auto& wsc = entry.wsc;
 
     entry.wsc->SetSubscriptionActive(fin.topic_prefix);
 
@@ -370,21 +369,7 @@ void WebSocketEventDispatcher::Process(const WebSocketSubscribeFinished& fin) {
         return;
     }
 
-    auto rec = zeek::cluster::detail::bif::make_endpoint_info(entry.backend->NodeId(), wsc->getRemoteIp(),
-                                                              wsc->getRemotePort(), TRANSPORT_TCP);
-    auto subscriptions_vec = zeek::cluster::detail::bif::make_string_vec(wsc->GetSubscriptions());
-    zeek::event_mgr.Enqueue(Cluster::websocket_client_added, std::move(rec), std::move(subscriptions_vec));
-
-    entry.wsc->SendAck(entry.backend->NodeId(), zeek::zeek_version());
-
-    WS_DEBUG("Sent Ack to client %s (%s:%d) %s\n", fin.id.c_str(), wsc->getRemoteIp().c_str(), wsc->getRemotePort(),
-             entry.backend->NodeId().c_str());
-
-    // Process any queued messages now.
-    for ( auto& msg : entry.queue ) {
-        assert(entry.msg_count > 1);
-        Process(msg);
-    }
+    HandleSubscriptionsActive(entry);
 }
 
 void WebSocketEventDispatcher::HandleSubscriptions(WebSocketClientEntry& entry, std::string_view buf) {
@@ -409,6 +394,14 @@ void WebSocketEventDispatcher::HandleSubscriptions(WebSocketClientEntry& entry, 
 
     entry.wsc->SetSubscriptions(subscriptions);
 
+    // Short-circuit setting up subscriptions and directly reply with
+    // an ack if the client didn't request any topic subscriptions.
+    if ( subscriptions.empty() ) {
+        assert(entry.wsc->AllSubscriptionsActive());
+        HandleSubscriptionsActive(entry);
+        return;
+    }
+
     auto cb = [this, id = entry.id, wsc = entry.wsc](const std::string& topic,
                                                      const Backend::SubscriptionCallbackInfo& info) {
         if ( info.status == Backend::CallbackStatus::Error ) {
@@ -427,6 +420,26 @@ void WebSocketEventDispatcher::HandleSubscriptions(WebSocketClientEntry& entry, 
             zeek::reporter->Error("Subscribe for WebSocket client failed!");
             QueueReply(WebSocketCloseReply{entry.wsc, 1011, "Could not subscribe. Something bad happened!"});
         }
+    }
+}
+
+void WebSocketEventDispatcher::HandleSubscriptionsActive(const WebSocketClientEntry& entry) {
+    auto& wsc = entry.wsc;
+
+    auto rec = zeek::cluster::detail::bif::make_endpoint_info(entry.backend->NodeId(), wsc->getRemoteIp(),
+                                                              wsc->getRemotePort(), TRANSPORT_TCP);
+    auto subscriptions_vec = zeek::cluster::detail::bif::make_string_vec(wsc->GetSubscriptions());
+    zeek::event_mgr.Enqueue(Cluster::websocket_client_added, std::move(rec), std::move(subscriptions_vec));
+
+    entry.wsc->SendAck(entry.backend->NodeId(), zeek::zeek_version());
+
+    WS_DEBUG("Sent Ack to client %s (%s:%d) %s\n", entry.id.c_str(), wsc->getRemoteIp().c_str(), wsc->getRemotePort(),
+             entry.backend->NodeId().c_str());
+
+    // Process any queued messages now.
+    for ( auto& msg : entry.queue ) {
+        assert(entry.msg_count > 1);
+        Process(msg);
     }
 }
 

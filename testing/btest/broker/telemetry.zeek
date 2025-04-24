@@ -23,7 +23,6 @@ redef Cluster::nodes = {
 redef exit_only_after_terminate = T;
 redef Log::enable_local_logging = T;
 redef Log::default_rotation_interval = 0secs;
-redef Cluster::retry_interval = 1sec;
 
 function print_metrics(metrics: vector of Telemetry::Metric)
 	{

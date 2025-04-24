@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <cinttypes>
 
+#include "zeek/NetVar.h"
 #include "zeek/RunState.h"
 #include "zeek/Stats.h"
 #include "zeek/iosource/Manager.h"

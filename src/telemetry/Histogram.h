@@ -4,11 +4,10 @@
 
 #include <prometheus/family.h>
 #include <prometheus/histogram.h>
-#include <cstdint>
 #include <initializer_list>
 #include <memory>
 
-#include "zeek/NetVar.h"
+#include "zeek/NetVar.h" // For BifEnum::Telemetry values
 #include "zeek/Span.h"
 #include "zeek/telemetry/MetricFamily.h"
 #include "zeek/telemetry/Utils.h"

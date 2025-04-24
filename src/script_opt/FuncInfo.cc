@@ -2,7 +2,7 @@
 
 #include "zeek/script_opt/FuncInfo.h"
 
-#include <unordered_set>
+#include <unordered_map>
 
 namespace zeek::detail {
 

@@ -4,7 +4,6 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Expr.h"
-#include "zeek/Stmt.h"
 #include "zeek/script_opt/StmtOptInfo.h"
 
 namespace zeek::detail {

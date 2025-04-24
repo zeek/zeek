@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "zeek/Event.h"
 #include "zeek/script_opt/Expr.h"
 #include "zeek/script_opt/ProfileFunc.h"
 #include "zeek/script_opt/UseDefs.h"

@@ -2,7 +2,6 @@
 
 #include "zeek/script_opt/CPP/Compile.h"
 #include "zeek/script_opt/IDOptInfo.h"
-#include "zeek/script_opt/ProfileFunc.h"
 
 namespace zeek::detail {
 

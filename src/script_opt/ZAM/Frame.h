@@ -4,6 +4,12 @@
 
 #pragma once
 
+#include <vector>
+
+#include "zeek/Attr.h"
+#include "zeek/ID.h"
+#include "zeek/util.h"
+
 namespace zeek::detail {
 
 using AttributesPtr = IntrusivePtr<Attributes>;

@@ -3,7 +3,6 @@
 #include "zeek/script_opt/UsageAnalyzer.h"
 
 #include "zeek/EventRegistry.h"
-#include "zeek/module_util.h"
 #include "zeek/script_opt/IDOptInfo.h"
 
 namespace zeek::detail {

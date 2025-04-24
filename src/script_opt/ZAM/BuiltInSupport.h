@@ -2,8 +2,12 @@
 
 #pragma once
 
+#include <optional>
+#include <string>
+
 #include "zeek/Desc.h"
-#include "zeek/Expr.h"
+#include "zeek/Val.h"
+#include "zeek/ZVal.h"
 
 namespace zeek::detail {
 

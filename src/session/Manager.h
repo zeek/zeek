@@ -4,11 +4,8 @@
 
 #include <sys/types.h> // for u_char
 #include <unordered_map>
-#include <utility>
 
 #include "zeek/Frag.h"
-#include "zeek/Hash.h"
-#include "zeek/NetVar.h"
 #include "zeek/session/Session.h"
 
 namespace zeek {

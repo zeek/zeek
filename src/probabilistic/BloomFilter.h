@@ -2,11 +2,8 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
-
 #include <memory>
 #include <string>
-#include <vector>
 
 #include "zeek/probabilistic/BitVector.h"
 #include "zeek/probabilistic/Hasher.h"

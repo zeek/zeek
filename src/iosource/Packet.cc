@@ -16,12 +16,8 @@ extern "C" {
 #endif
 }
 
-#include "zeek/Desc.h"
 #include "zeek/IP.h"
-#include "zeek/TunnelEncapsulation.h"
 #include "zeek/Var.h"
-#include "zeek/iosource/Manager.h"
-#include "zeek/packet_analysis/Manager.h"
 
 namespace zeek {
 

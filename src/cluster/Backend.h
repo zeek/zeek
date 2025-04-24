@@ -270,6 +270,31 @@ public:
     bool Unsubscribe(const std::string& topic_prefix) { return DoUnsubscribe(topic_prefix); }
 
     /**
+     * Information passed to a ready callback.
+     */
+    using ReadyCallbackInfo = SubscriptionCallbackInfo;
+
+    using ReadyCallback = std::function<void(const ReadyCallbackInfo& info)>;
+
+    /**
+     * Register a "ready to publish" callback.
+     *
+     * Some cluster backend implementations may not be immediately ready for
+     * publish operations. For example, ZeroMQ has sender-side subscription
+     * filtering and discards messages until the XPUB socket learns about
+     * subscriptions in a cluster.
+     *
+     * The callback mechanism allows backends to notify the caller that it
+     * has now determined readiness for publish operations.
+     *
+     * Callers should be prepared that \a cb is invoked immediately as that
+     * is the default implementation for DoReadyToPublishCallback().
+     *
+     * @param cb The callback to invoke when the backend is ready for publish operations.
+     */
+    void ReadyToPublishCallback(ReadyCallback cb) { DoReadyToPublishCallback(std::move(cb)); }
+
+    /**
      * Publish multiple log records.
      *
      * All log records belong to the (stream, filter, path) tuple that is
@@ -449,6 +474,13 @@ private:
      * @return true if interest in topic prefix is no longer advertised.
      */
     virtual bool DoUnsubscribe(const std::string& topic_prefix) = 0;
+
+    /**
+     * Register a "ready to publish" callback.
+     *
+     * @param cb The callback to invoke when the backend is ready for publish operations.
+     */
+    virtual void DoReadyToPublishCallback(ReadyCallback cb);
 
     /**
      * Serialize a log batch, then forward it to DoPublishLogWrites() below.

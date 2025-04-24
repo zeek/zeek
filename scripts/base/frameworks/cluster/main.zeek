@@ -260,7 +260,7 @@ export {
 	## Interval for retrying failed connections between cluster nodes.
 	## If set, the ZEEK_DEFAULT_CONNECT_RETRY (given in number of seconds)
 	## environment variable overrides this option.
-	const retry_interval = 1min &redef;
+	const retry_interval = 1sec &redef;
 
 	## When using broker-enabled cluster framework, nodes broadcast this event
 	## to exchange their user-defined name along with a string that uniquely

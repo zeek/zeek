@@ -220,22 +220,25 @@ TEST_CASE("tests") {
         return broker::make_data_message(broker::topic{topic}, msg);
     };
 
+    auto expect_msg_timeout = 1000ms;
+    auto expect_no_msg_timeout = 150ms;
+
     SUBCASE("endpoint-publish") {
         // Publishing through the endpoint is visible to hubs, but not subscribers.
         auto dmsg = make_data_message("/abc", 1);
         ep.publish(dmsg->topic(), dmsg->value().to_data());
 
-        auto h1msg = hub1.get(1000ms);
+        auto h1msg = hub1.get(expect_msg_timeout);
         REQUIRE(h1msg != nullptr);
         CHECK_EQ("(1)", broker::to_string(h1msg->value()));
 
-        auto h2msg = hub2.get(1000ms);
+        auto h2msg = hub2.get(expect_msg_timeout);
         REQUIRE(h2msg != nullptr);
         CHECK_EQ("(1)", broker::to_string(h2msg->value()));
 
-        auto s1msg = sub1.get(150ms);
+        auto s1msg = sub1.get(expect_no_msg_timeout);
         CHECK_FALSE(s1msg.has_value());
-        auto s2msg = sub2.get(150ms);
+        auto s2msg = sub2.get(expect_no_msg_timeout);
         CHECK_FALSE(s2msg.has_value());
     }
 
@@ -244,18 +247,18 @@ TEST_CASE("tests") {
         auto dmsg = make_data_message("/abc", 2);
         pub1.publish(dmsg->value().to_data());
 
-        auto h1msg = hub1.get(1000ms);
+        auto h1msg = hub1.get(expect_msg_timeout);
         REQUIRE(h1msg != nullptr);
         CHECK_EQ("(2)", broker::to_string(h1msg->value()));
 
-        auto h2msg = hub2.get(1000ms);
+        auto h2msg = hub2.get(expect_msg_timeout);
         REQUIRE(h2msg != nullptr);
         CHECK_EQ("(2)", broker::to_string(h2msg->value()));
 
-        auto s1msg = sub1.get(150ms);
+        auto s1msg = sub1.get(expect_no_msg_timeout);
         CHECK_FALSE(s1msg.has_value());
 
-        auto s2msg = sub2.get(150ms);
+        auto s2msg = sub2.get(expect_no_msg_timeout);
         CHECK_FALSE(s2msg.has_value());
     }
 
@@ -264,18 +267,18 @@ TEST_CASE("tests") {
         auto dmsg = make_data_message("/abc", 3);
         hub1.publish(dmsg);
 
-        auto h1msg = hub1.get(150ms);
-        REQUIRE(h1msg == nullptr);
+        auto h1msg = hub1.get(expect_no_msg_timeout);
+        CHECK_EQ(h1msg, nullptr);
 
-        auto h2msg = hub2.get(1000ms);
+        auto h2msg = hub2.get(expect_msg_timeout);
         REQUIRE(h2msg != nullptr);
         CHECK_EQ("(3)", broker::to_string(h2msg->value()));
 
-        auto s1msg = sub1.get(1000ms);
+        auto s1msg = sub1.get(expect_msg_timeout);
         REQUIRE(s1msg.has_value());
         CHECK_EQ("(3)", broker::to_string(s1msg.value()->value()));
 
-        auto s2msg = sub2.get(1000ms);
+        auto s2msg = sub2.get(expect_msg_timeout);
         REQUIRE(s2msg.has_value());
         CHECK_EQ("(3)", broker::to_string(s2msg.value()->value()));
     }
@@ -285,18 +288,18 @@ TEST_CASE("tests") {
         auto dmsg = make_data_message("/cde", 3);
         hub1.publish(dmsg);
 
-        auto h1msg = hub1.get(150ms);
-        REQUIRE(h1msg == nullptr);
+        auto h1msg = hub1.get(expect_no_msg_timeout);
+        CHECK_EQ(h1msg, nullptr);
 
-        auto h2msg = hub2.get(1000ms);
+        auto h2msg = hub2.get(expect_msg_timeout);
         REQUIRE(h2msg != nullptr);
         CHECK_EQ("(3)", broker::to_string(h2msg->value()));
 
         // sub1 is not subscribed to /cde, doesn't see the message.
-        auto s1msg = sub1.get(150ms);
+        auto s1msg = sub1.get(expect_no_msg_timeout);
         CHECK_FALSE(s1msg.has_value());
 
-        auto s2msg = sub2.get(1000ms);
+        auto s2msg = sub2.get(expect_msg_timeout);
         REQUIRE(s2msg.has_value());
         CHECK_EQ("(3)", broker::to_string(s2msg.value()->value()));
     }
@@ -312,19 +315,19 @@ TEST_CASE("tests") {
         // Publish through hub2, so hub1, sub1 and sub2 could see the message.
         hub2.publish(dmsg);
 
-        auto h1msg = hub1.get(1000ms);
+        auto h1msg = hub1.get(expect_msg_timeout);
         REQUIRE(h1msg != nullptr);
         CHECK_EQ("(5)", broker::to_string(h1msg->value()));
 
-        auto h2msg = hub2.get(150ms);
-        CHECK(h2msg == nullptr);
+        auto h2msg = hub2.get(expect_no_msg_timeout);
+        CHECK_EQ(h2msg, nullptr);
 
-        auto s1msg = sub1.get(1000ms);
+        auto s1msg = sub1.get(expect_msg_timeout);
         REQUIRE(s1msg.has_value());
         CHECK_EQ("(5)", broker::to_string(s1msg.value()->value()));
 
         // s2 does not have a /efg subscription.
-        auto s2msg = sub2.get(150ms);
+        auto s2msg = sub2.get(expect_no_msg_timeout);
         CHECK_FALSE(s2msg.has_value());
     }
 
@@ -350,35 +353,35 @@ TEST_CASE("tests") {
             auto dmsg = make_data_message("/abc", 40);
             ep2.publish(dmsg->topic(), dmsg->value().to_data());
 
-            auto h1msg = hub1.get(1000ms);
+            auto h1msg = hub1.get(expect_msg_timeout);
             REQUIRE(h1msg != nullptr);
             CHECK_EQ("(40)", broker::to_string(h1msg->value()));
 
-            auto h2msg = hub2.get(1000ms);
+            auto h2msg = hub2.get(expect_msg_timeout);
             REQUIRE(h2msg != nullptr);
             CHECK_EQ("(40)", broker::to_string(h2msg->value()));
 
-            auto s1msg = sub1.get(1000ms);
+            auto s1msg = sub1.get(expect_msg_timeout);
             REQUIRE(s1msg.has_value());
             CHECK_EQ("(40)", broker::to_string(s1msg.value()->value()));
 
-            auto s2msg = sub2.get(1000ms);
+            auto s2msg = sub2.get(expect_msg_timeout);
             REQUIRE(s2msg.has_value());
             CHECK_EQ("(40)", broker::to_string(s2msg.value()->value()));
 
             // Ensure  the local hubs see it, too, and the local subscribers don't
-            auto ep2h1msg = ep2hub1.get(1000ms);
+            auto ep2h1msg = ep2hub1.get(expect_msg_timeout);
             REQUIRE(h1msg != nullptr);
             CHECK_EQ("(40)", broker::to_string(h1msg->value()));
 
-            auto ep2h2msg = ep2hub2.get(1000ms);
+            auto ep2h2msg = ep2hub2.get(expect_msg_timeout);
             REQUIRE(h2msg != nullptr);
             CHECK_EQ("(40)", broker::to_string(h2msg->value()));
 
-            auto ep2s1msg = ep2sub1.get(150ms);
+            auto ep2s1msg = ep2sub1.get(expect_no_msg_timeout);
             CHECK_FALSE(ep2s1msg.has_value());
 
-            auto ep2s2msg = ep2sub2.get(150ms);
+            auto ep2s2msg = ep2sub2.get(expect_no_msg_timeout);
             CHECK_FALSE(ep2s2msg.has_value());
         }
 
@@ -387,35 +390,35 @@ TEST_CASE("tests") {
             auto dmsg = make_data_message("/abc", 41);
             ep2hub1.publish(dmsg);
 
-            auto h1msg = hub1.get(1000ms);
+            auto h1msg = hub1.get(expect_msg_timeout);
             REQUIRE(h1msg != nullptr);
             CHECK_EQ("(41)", broker::to_string(h1msg->value()));
 
-            auto h2msg = hub2.get(1000ms);
+            auto h2msg = hub2.get(expect_msg_timeout);
             REQUIRE(h2msg != nullptr);
             CHECK_EQ("(41)", broker::to_string(h2msg->value()));
 
-            auto s1msg = sub1.get(1000ms);
+            auto s1msg = sub1.get(expect_msg_timeout);
             REQUIRE(s1msg.has_value());
             CHECK_EQ("(41)", broker::to_string(s1msg.value()->value()));
 
-            auto s2msg = sub2.get(1000ms);
+            auto s2msg = sub2.get(expect_msg_timeout);
             REQUIRE(s2msg.has_value());
             CHECK_EQ("(41)", broker::to_string(s2msg.value()->value()));
 
             // And all hubs and subscribers on ep2, too, but not the sending one.
-            auto ep2h1msg = ep2hub1.get(150ms);
+            auto ep2h1msg = ep2hub1.get(expect_no_msg_timeout);
             CHECK(ep2h1msg == nullptr);
 
-            auto ep2h2msg = ep2hub2.get(1000ms);
+            auto ep2h2msg = ep2hub2.get(expect_no_msg_timeout);
             REQUIRE(ep2h2msg != nullptr);
             CHECK_EQ("(41)", broker::to_string(h2msg->value()));
 
-            auto ep2s1msg = ep2sub1.get(1000ms);
+            auto ep2s1msg = ep2sub1.get(expect_no_msg_timeout);
             REQUIRE(ep2s1msg.has_value());
             CHECK_EQ("(41)", broker::to_string(ep2s1msg.value()->value()));
 
-            auto ep2s2msg = ep2sub2.get(1000ms);
+            auto ep2s2msg = ep2sub2.get(expect_no_msg_timeout);
             REQUIRE(ep2s2msg.has_value());
             CHECK_EQ("(41)", broker::to_string(s2msg.value()->value()));
         }

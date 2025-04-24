@@ -10,7 +10,6 @@
 #include "zeek/SerializationFormat.h"
 #include "zeek/Type.h"
 #include "zeek/Val.h"
-#include "zeek/cluster/Serializer.h"
 #include "zeek/cluster/serializer/binary-serialization-format/Plugin.h"
 #include "zeek/logging/Types.h"
 #include "zeek/threading/SerialTypes.h"

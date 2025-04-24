@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "zeek/Func.h"
+#include <string>
 
 namespace zeek::detail {
 

@@ -1,8 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/RE.h"
 #include "zeek/script_opt/CPP/Compile.h"
-#include "zeek/script_opt/ProfileFunc.h"
 
 namespace zeek::detail {
 

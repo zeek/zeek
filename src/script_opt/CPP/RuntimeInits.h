@@ -7,7 +7,6 @@
 // associated strategies for dealing with them.
 
 #include "zeek/Expr.h"
-#include "zeek/module_util.h"
 #include "zeek/script_opt/CPP/RuntimeInitSupport.h"
 
 #pragma once

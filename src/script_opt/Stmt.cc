@@ -1104,7 +1104,7 @@ StmtPtr AssertStmt::DoReduce(Reducer* c) {
 
 bool WhenInfo::HasUnreducedIDs(Reducer* c) const {
     for ( auto& cp : *cl ) {
-        auto cid = cp.Id();
+        const auto& cid = cp.Id();
 
         if ( when_new_locals.count(cid.get()) == 0 && ! c->ID_IsReduced(cp.Id()) )
             return true;

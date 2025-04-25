@@ -6,6 +6,7 @@ Checks: [-*,
          performance-for-range-copy,
          performance-inefficient-vector-operation,
          performance-move-const-argument,
+         performance-unnecessary-copy-initialization,
 
          # Skipping these temporarily because they are very noisy
          -bugprone-narrowing-conversions,

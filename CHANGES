@@ -1,3 +1,12 @@
+7.2.0-dev.627 | 2025-04-25 09:03:01 +0200
+
+  * broker/WebSocketShim/tests: Comment out two endpoint tests (Arne Welzel, Corelight)
+
+    Running the remote tests on a loaded system results in timeouts, even
+    after bumping the tiemouts to 10 seconds. Comment them out for now.
+
+  * broker/WebSocketShim/tests: Replace hard-coded timeout values with vars (Arne Welzel, Corelight)
+
 7.2.0-dev.624 | 2025-04-24 14:03:52 +0200
 
   * cluster/websocket: Raise websocket_client_lost() after terminate (Arne Welzel, Corelight)

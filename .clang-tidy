@@ -1,5 +1,6 @@
 Checks: [-*,
          bugprone-*,
+         performance-avoid-endl,
 
          # Skipping these temporarily because they are very noisy
          -bugprone-narrowing-conversions,

@@ -7,6 +7,7 @@ Checks: [-*,
          performance-inefficient-vector-operation,
          performance-move-const-argument,
          performance-unnecessary-copy-initialization,
+         performance-inefficient-string-concatenation,
 
          # Skipping these temporarily because they are very noisy
          -bugprone-narrowing-conversions,

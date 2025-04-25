@@ -1,3 +1,7 @@
+7.2.0-dev.638 | 2025-04-25 06:41:06 -0700
+
+  * Skip linting on highwayhash and src/3rdparty files (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.636 | 2025-04-25 06:40:46 -0700
 
   * Minor changes to storage framework script docs (Tim Wojtulewicz, Corelight)

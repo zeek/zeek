@@ -385,6 +385,14 @@ public:
     const Stats& GetStatistics();
 
     /**
+     * Returns a table[string] of BrokerPeeringStats, with each peering's
+     * send-buffer stats filled in. The keys are Broker node IDs identifying the
+     * current peers.
+     * @return Each peering's send-buffer statistics.
+     */
+    TableValPtr GetPeeringStatsTable();
+
+    /**
      * Creating an instance of this struct simply helps the manager
      * keep track of whether calls into its API are coming from script
      * layer BIFs so that error messages can emit useful call site info.

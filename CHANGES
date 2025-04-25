@@ -1,3 +1,17 @@
+7.2.0-dev.644 | 2025-04-25 10:02:58 -0700
+
+  * Add basic btest to verify that Broker peering telemetry is available. (Christian Kreibich, Corelight)
+
+  * Add cluster framework telemetry for Broker's send-buffer use (Christian Kreibich, Corelight)
+
+    See NEWS or scripts/base/frameworks/cluster/broker-telemetry.zeek for details.
+
+  * Add peer buffer update tracking to the Broker manager's event_observer (Christian Kreibich, Corelight)
+
+  * Rename the Broker manager's LoggerAdapter (Christian Kreibich, Corelight)
+
+  * Avoid race in the cluster/broker/publish-any btest (Christian Kreibich, Corelight)
+
 7.2.0-dev.638 | 2025-04-25 06:41:06 -0700
 
   * Skip linting on highwayhash and src/3rdparty files (Tim Wojtulewicz, Corelight)

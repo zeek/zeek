@@ -2,6 +2,7 @@ Checks: [-*,
          bugprone-*,
          performance-avoid-endl,
          performance-enum-size,
+         performance-faster-string-find,
 
          # Skipping these temporarily because they are very noisy
          -bugprone-narrowing-conversions,

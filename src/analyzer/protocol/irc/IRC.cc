@@ -357,8 +357,10 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
                 parts.erase(parts.begin(), parts.begin() + 4);
 
                 string real_name = parts[0];
-                for ( size_t i = 1; i < parts.size(); ++i )
-                    real_name = real_name + " " + parts[i];
+                for ( size_t i = 1; i < parts.size(); ++i ) {
+                    real_name += " ";
+                    real_name += parts[i];
+                }
 
                 if ( real_name[0] == ':' )
                     real_name = real_name.substr(1);

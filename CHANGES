@@ -1,3 +1,13 @@
+7.2.0-dev.649 | 2025-04-25 10:23:30 -0700
+
+  * Lower listen/connect retry intervals in Broker and the cluster framework to 1sec (Christian Kreibich, Corelight)
+
+  * Bump cluster testsuite (Christian Kreibich, Corelight)
+
+  * Switch Broker's default backpressure policy to drop_oldest, bump buffer sizes (Christian Kreibich, Corelight)
+
+  * Deprecate Broker::congestion_queue_size and stop using it internally (Christian Kreibich, Corelight)
+
 7.2.0-dev.644 | 2025-04-25 10:02:58 -0700
 
   * Add basic btest to verify that Broker peering telemetry is available. (Christian Kreibich, Corelight)

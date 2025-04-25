@@ -19,7 +19,7 @@ export {
 	## use already.  Use of the ZEEK_DEFAULT_LISTEN_RETRY environment variable
 	## (set as a number of seconds) will override this option and also
 	## any values given to :zeek:see:`Broker::listen`.
-	const default_listen_retry = 30sec &redef;
+	const default_listen_retry = 1sec &redef;
 
 	## Default address on which to listen.
 	##
@@ -36,7 +36,7 @@ export {
 	## ZEEK_DEFAULT_CONNECT_RETRY environment variable (set as number of
 	## seconds) will override this option and also any values given to
 	## :zeek:see:`Broker::peer`.
-	const default_connect_retry = 30sec &redef;
+	const default_connect_retry = 1sec &redef;
 
 	## If true, do not use SSL for network connections. By default, SSL will
 	## even be used if no certificates / CAs have been configured. In that case
@@ -72,7 +72,7 @@ export {
 	## The number of buffered messages at the Broker/CAF layer after which
 	## a subscriber considers themselves congested (i.e. tune the congestion
 	## control mechanisms).
-	const congestion_queue_size = 200 &redef;
+	const congestion_queue_size = 200 &redef &deprecated="Remove in v8.1. Non-functional since v5.0";
 
 	## The max number of log entries per log stream to batch together when
 	## sending log messages to a remote logger.
@@ -89,20 +89,20 @@ export {
 	## Max number of items we buffer at most per peer. What action to take when
 	## the buffer reaches its maximum size is determined by
 	## :zeek:see:`Broker::peer_overflow_policy`.
-	const peer_buffer_size = 2048 &redef;
+	const peer_buffer_size = 8192 &redef;
 
 	## Configures how Broker responds to peers that cannot keep up with the
 	## incoming message rate. Available strategies:
 	## - disconnect: drop the connection to the unresponsive peer
 	## - drop_newest: replace the newest message in the buffer
 	## - drop_oldest: removed the olsted message from the buffer, then append
-	const peer_overflow_policy = "disconnect" &redef;
+	const peer_overflow_policy = "drop_oldest" &redef;
 
 	## Same as :zeek:see:`Broker::peer_buffer_size` but for WebSocket clients.
-	const web_socket_buffer_size = 512 &redef;
+	const web_socket_buffer_size = 8192 &redef;
 
 	## Same as :zeek:see:`Broker::peer_overflow_policy` but for WebSocket clients.
-	const web_socket_overflow_policy = "disconnect" &redef;
+	const web_socket_overflow_policy = "drop_oldest" &redef;
 
 	## How frequently Zeek resets some peering/client buffer statistics,
 	## such as ``max_queued_recently`` in :zeek:see:`BrokerPeeringStats`.

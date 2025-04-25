@@ -1,3 +1,7 @@
+7.2.0-dev.634 | 2025-04-25 08:40:29 -0400
+
+  * Bump Spicy (Evan Typanski, Corelight)
+
 7.2.0-dev.632 | 2025-04-25 12:03:44 +0200
 
   * btest/cluster/websocket: Move no-subscriptions test (Arne Welzel, Corelight)

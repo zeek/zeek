@@ -158,7 +158,7 @@ string CPPCompile::CaptureName(const ID* c) const {
     // We want to strip both the module and any inlining appendage.
     auto tn = trim_name(c);
 
-    auto appendage = tn.find(".");
+    auto appendage = tn.find('.');
     if ( appendage != string::npos )
         tn.erase(tn.begin() + appendage, tn.end());
 

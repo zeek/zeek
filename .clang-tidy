@@ -1,21 +1,26 @@
 Checks: [-*,
-         bugprone-assignment-in-if-condition,
-         bugprone-branch-clone,
-         bugprone-implicit-widening-of-multiplication-result,
-         bugprone-incorrect-division,
-         bugprone-incorrect-roundings,
-         bugprone-macro-parentheses,
-         bugprone-multi-level-implicit-pointer-conversion,
-         bugprone-inc-dec-in-conditions,
-         bugprone-misplaced-widening-cast,
-         bugprone-parent-virtual-call,
-         bugprone-string-literal-with-embedded-nul,
-         bugprone-suspicious-stringview-data-usage,
-         bugprone-suspicious-string-compare,
-         bugprone-suspicious-include,
-         bugprone-suspicious-realloc-usage,
-         bugprone-throw-keyword-missing,
-         bugprone-unused-local-non-trivial-variable,
-         bugprone-unsafe-functions,
-         bugprone-unused-return-value,
+         bugprone-*,
+
+         # Skipping these temporarily because they are very noisy
+         -bugprone-narrowing-conversions,
+         -bugprone-unchecked-optional-access,
+
+         # The following cause either lots of pointless or advisory warnings
+         -bugprone-easily-swappable-parameters,
+         -bugprone-nondeterministic-pointer-iteration-order,
+
+         # bifcl generates a lot of code with double underscores in their name.
+         # ZAM uses a few identifiers that start with underscores or have
+         # double-underscores in the name.
+         -bugprone-reserved-identifier,
+
+         # bifcl generates almost every switch statement without a default case
+         # and so this one generates a lot of warnings.
+         -bugprone-switch-missing-default-case,
+
+         # These report warnings that are rather difficult to fix.
+         -bugprone-undefined-memory-manipulation,
+         -bugprone-pointer-arithmetic-on-polymorphic-object,
+         -bugprone-empty-catch,
+         -bugprone-exception-escape
 ]

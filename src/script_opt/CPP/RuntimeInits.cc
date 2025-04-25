@@ -190,7 +190,7 @@ void CPP_IndexedInits<T>::Generate(InitsManager* im, std::vector<AttrPtr>& ivec,
         }
 
         case AE_RECORD: {
-            auto t = im->Types(e_arg);
+            const auto& t = im->Types(e_arg);
             auto rt = cast_intrusive<RecordType>(t);
             auto empty_vals = make_intrusive<ListExpr>();
             auto construct = make_intrusive<RecordConstructorExpr>(empty_vals);
@@ -410,7 +410,7 @@ TypePtr CPP_TypeInits::BuildRecordType(InitsManager* im, ValElemVec& init_vals, 
         while ( i < n ) {
             auto s = im->Strings(init_vals[i++]);
             auto id = util::copy_string(s);
-            auto type = im->Types(init_vals[i++]);
+            const auto& type = im->Types(init_vals[i++]);
             auto attrs_i = init_vals[i++];
 
             AttributesPtr attrs;
@@ -439,7 +439,7 @@ int CPP_FieldMapping::ComputeOffset(InitsManager* im) const {
         fm_offset = r->NumFields();
 
         auto id = util::copy_string(field_name.c_str(), field_name.size());
-        auto type = im->Types(field_type);
+        const auto& type = im->Types(field_type);
 
         AttributesPtr attrs;
         if ( field_attrs >= 0 )

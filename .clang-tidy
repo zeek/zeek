@@ -5,6 +5,7 @@ Checks: [-*,
          performance-faster-string-find,
          performance-for-range-copy,
          performance-inefficient-vector-operation,
+         performance-move-const-argument,
 
          # Skipping these temporarily because they are very noisy
          -bugprone-narrowing-conversions,

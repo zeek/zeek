@@ -2348,7 +2348,7 @@ TypePtr merge_record_types(const Type* t1, const Type* t2) {
                 attrs3->AddAttrs(td2->attrs);
 
             attrs3->AddAttr(make_intrusive<detail::Attr>(detail::ATTR_OPTIONAL));
-            auto td_merge = new TypeDecl(util::copy_string(td2->id), std::move(td2->type), attrs3);
+            auto td_merge = new TypeDecl(util::copy_string(td2->id), td2->type, attrs3);
             tdl3->push_back(td_merge);
         }
     }

@@ -942,6 +942,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     }
 
     std::vector<SignatureFile> all_signature_files;
+    all_signature_files.reserve(options.signature_files.size() + zeek::detail::sig_files.size());
 
     // Append signature files given on the command line
     for ( const auto& sf : options.signature_files )

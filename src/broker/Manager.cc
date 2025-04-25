@@ -587,7 +587,7 @@ void Manager::DoInitPostScript() {
     checkLogSeverity(stderrSeverityVal);
     auto adapterVerbosity = static_cast<BrokerSeverityLevel>(std::max(logSeverityVal, stderrSeverityVal));
     auto queue = std::make_shared<LoggerQueue>();
-    auto pbstate = std::make_shared<PeerBufferState>(options.peer_buffer_size,
+    auto pbstate = std::make_shared<PeerBufferState>(get_option("Broker::peer_buffer_size")->AsCount(),
                                                      get_option("Broker::buffer_stats_reset_interval")->AsDouble());
     auto observer = std::make_shared<Observer>(adapterVerbosity, queue, pbstate);
     broker::logger(observer); // *must* be called before creating the BrokerState

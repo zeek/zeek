@@ -1,3 +1,9 @@
+8.0.0-dev.2 | 2025-04-25 16:11:36 -0700
+
+  * Fix use-after-move in recent broker changes (Tim Wojtulewicz, Corelight)
+
+  * Start of 8.0.0 development (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.659 | 2025-04-25 10:33:32 -0700
 
   * Ignore case when matching prefix in http analyzer (Kshitiz Bartariya)

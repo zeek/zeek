@@ -39,7 +39,7 @@ extern zeek::plugin::Zeek_Cluster_Backend_ZeroMQ::Plugin plugin;
 
 namespace cluster::zeromq {
 
-enum class DebugFlag : zeek_uint_t {
+enum class DebugFlag : zeek_uint_t { // NOLINT(performance-enum-size)
     NONE = 0,
     POLL = 1,
     THREAD = 2,

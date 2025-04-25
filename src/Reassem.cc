@@ -52,7 +52,7 @@ void DataBlockList::Delete(DataBlockMap::const_iterator it) {
 }
 
 DataBlock DataBlockList::Remove(DataBlockMap::const_iterator it) {
-    auto b = std::move(it->second);
+    auto b = it->second;
     auto size = b.Size();
 
     block_map.erase(it);

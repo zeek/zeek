@@ -711,7 +711,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     plugin_mgr->ExtendZeekPathForPlugins();
 
     for ( const auto& x : requested_plugins )
-        plugin_mgr->ActivateDynamicPlugin(std::move(x));
+        plugin_mgr->ActivateDynamicPlugin(x);
 
     plugin_mgr->ActivateDynamicPlugins(! options.bare_mode);
 

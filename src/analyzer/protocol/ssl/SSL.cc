@@ -131,7 +131,7 @@ void SSL_Analyzer::SetKeys(const zeek::StringVal& nkeys) {
     std::copy(nkeys.Bytes(), nkeys.Bytes() + nkeys.Len(), std::back_inserter(keys));
 }
 
-void SSL_Analyzer::SetKeys(const std::vector<u_char> newkeys) { keys = std::move(newkeys); }
+void SSL_Analyzer::SetKeys(std::vector<u_char> newkeys) { keys = std::move(newkeys); }
 
 std::optional<std::vector<u_char>> SSL_Analyzer::TLS12_PRF(const std::string& secret, const std::string& label,
                                                            const std::string& rnd1, const std::string& rnd2,

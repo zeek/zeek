@@ -36,28 +36,28 @@ event zeek_init()
 	Cluster::listen_websocket([$listen_host="127.0.0.1", $listen_port=to_port(getenv("WEBSOCKET_PORT"))]);
 	}
 
+global ping_count = 0;
+const ping_count_expected = 32;
+
 event ping(c: count) &is_used
 	{
-	print "got ping", c;
-	terminate();
-	}
-
-event Cluster::websocket_client_added(info: Cluster::EndpointInfo, subscriptions: string_vec)
-	{
-	print "Cluster::websocket_client_added", subscriptions;
+	++ping_count;
+	print "got ping", c, ping_count;
+	if ( ping_count == ping_count_expected )
+	    terminate();
 	}
 # @TEST-END-FILE
-
 
 # @TEST-START-FILE client.py
 import wstest
 
 def run(ws_url):
-    with wstest.connect("ws1", ws_url) as tc:
-        tc.send_json([])  # Send no subscriptions
-        ack = tc.recv_json()
-        assert ack.get("type") == "ack", f"{ack}"
-        tc.send_json(wstest.build_event_v1("/test/pings/", "ping", [42]))
+    for i in range(32):
+        with wstest.connect("ws1", ws_url) as tc:
+            tc.send_json([])  # Send no subscriptions
+            ack = tc.recv_json()
+            assert ack.get("type") == "ack", f"{ack}"
+            tc.send_json(wstest.build_event_v1("/test/pings/", "ping", [i + 1]))
 
 if __name__ == "__main__":
     wstest.main(run, wstest.WS4_URL_V1)

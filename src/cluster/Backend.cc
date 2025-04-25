@@ -111,6 +111,11 @@ std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsS
     return zeek::cluster::detail::Event{eh, std::move(*checked_args), timestamp};
 }
 
+void Backend::DoReadyToPublishCallback(Backend::ReadyCallback cb) {
+    Backend::ReadyCallbackInfo info{Backend::CallbackStatus::Success};
+    cb(info);
+}
+
 // Default implementation doing the serialization.
 bool Backend::DoPublishEvent(const std::string& topic, cluster::detail::Event& event) {
     byte_buffer buf;

@@ -145,7 +145,13 @@ struct WebSocketSubscribeFinished {
     std::string topic_prefix;
 };
 
-using WebSocketEvent = std::variant<WebSocketOpen, WebSocketSubscribeFinished, WebSocketClose, WebSocketMessage>;
+// Internally created when the backend of a Websocket client is ready.
+struct WebSocketBackendReadyToPublish {
+    std::string id;
+};
+
+using WebSocketEvent = std::variant<WebSocketOpen, WebSocketSubscribeFinished, WebSocketClose, WebSocketMessage,
+                                    WebSocketBackendReadyToPublish>;
 
 struct WebSocketSendReply {
     std::shared_ptr<WebSocketClient> wsc;
@@ -211,6 +217,7 @@ private:
 
     void Process(const WebSocketOpen& open);
     void Process(const WebSocketSubscribeFinished& fin);
+    void Process(const WebSocketBackendReadyToPublish& ready);
     void Process(const WebSocketMessage& msg);
     void Process(const WebSocketClose& close);
 
@@ -222,6 +229,7 @@ private:
         std::string id;
         std::shared_ptr<WebSocketClient> wsc;
         std::shared_ptr<zeek::cluster::Backend> backend;
+        bool ready_to_publish = false;
         uint64_t msg_count = 0;
         std::list<WebSocketMessage> queue;
     };

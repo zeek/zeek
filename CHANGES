@@ -1,3 +1,28 @@
+7.2.0-dev.632 | 2025-04-25 12:03:44 +0200
+
+  * btest/cluster/websocket: Move no-subscriptions test (Arne Welzel, Corelight)
+
+    ...and also add one for broker.
+
+  * cluster/websocket: Leverage ReadyToPublishCallback() (Arne Welzel, Corelight)
+
+    Change WebSocket client handling to return only when the ready to
+    publish callback has been invoked.
+
+  * cluster/zeromq: Implement DoReadyToPublishCallback() (Arne Welzel, Corelight)
+
+    The ZeroMQ heuristic for "ready to publish" is to create an unique and
+    ephemeral subscription using the XSUB socket and observe it arrive on the
+    XPUB socket. At this point, visibility into other node's subscriptions
+    is provided.
+
+  * cluster/Backend: Add ReadyToPublishCallback() API (Arne Welzel, Corelight)
+
+    Provide a mechanism to allow a cluster backend report when it is ready
+    for publish operations. This is primarily useful for ZeroMQ which has
+    sender-side filtering and is only really ready for publishing when it
+    has learned about subscriptions from other nodes.
+
 7.2.0-dev.627 | 2025-04-25 09:03:01 +0200
 
   * broker/WebSocketShim/tests: Comment out two endpoint tests (Arne Welzel, Corelight)

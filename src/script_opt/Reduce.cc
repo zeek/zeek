@@ -471,7 +471,7 @@ bool Reducer::ExprValid(const ID* id, const Expr* e1, const Expr* e2) const {
     std::optional<ExprSideEffects>& e1_se = e1->GetOptInfo()->SideEffects();
     if ( ! e1_se ) {
         bool has_side_effects = false;
-        auto e1_t = e1->GetType();
+        const auto& e1_t = e1->GetType();
 
         if ( e1_t->Tag() == TYPE_OPAQUE || e1_t->Tag() == TYPE_ANY )
             // These have difficult-to-analyze semantics.

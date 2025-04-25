@@ -44,7 +44,7 @@ std::unique_ptr<OpaqueVals> ZAMCompiler::BuildVals(const ListExprPtr& l) {
 }
 
 ZInstAux* ZAMCompiler::InternalBuildVals(const ListExpr* l, int stride) {
-    auto exprs = l->Exprs();
+    const auto& exprs = l->Exprs();
     int n = exprs.length();
 
     auto aux = new ZInstAux(n * stride);

@@ -357,7 +357,7 @@ bool MultiZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args)
                 break;
 
             case 2: {
-                auto c2 = consts[1];
+                const auto& c2 = consts[1];
                 auto c2_t = c2->GetType()->Tag();
 
                 ASSERT(c2_t == TYPE_BOOL || c2_t == TYPE_INT || c2_t == TYPE_COUNT);

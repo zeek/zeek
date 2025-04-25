@@ -1026,8 +1026,8 @@ ValPtr BinaryExpr::TableFold(Val* v1, Val* v2) const {
 }
 
 ValPtr BinaryExpr::AddrFold(Val* v1, Val* v2) const {
-    IPAddr a1 = v1->AsAddr();
-    IPAddr a2 = v2->AsAddr();
+    const IPAddr& a1 = v1->AsAddr();
+    const IPAddr& a2 = v2->AsAddr();
     bool result = false;
 
     switch ( tag ) {

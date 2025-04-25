@@ -44,8 +44,8 @@ public:
 
     // Implement move semantics for Key, since they're used as keys
     // in a map.
-    Key(Key&& rhs);
-    Key& operator=(Key&& rhs);
+    Key(Key&& rhs) noexcept;
+    Key& operator=(Key&& rhs) noexcept;
 
     // Explicitly delete the copy constructor and operator since copying
     // may cause issues with double-freeing pointers.

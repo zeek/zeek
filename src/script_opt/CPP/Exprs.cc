@@ -1144,7 +1144,7 @@ string CPPCompile::GenListAssign(const ExprPtr& lhs, const ExprPtr& rhs) {
 }
 
 string CPPCompile::GenVectorOp(const Expr* e, string op, const char* vec_op) {
-    auto t = e->GetType();
+    const auto& t = e->GetType();
     auto gen_t = GenTypeName(t);
     auto gen = string("vec_op_") + vec_op + "__CPP(" + op + ", " + gen_t + ")";
 

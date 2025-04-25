@@ -15,7 +15,7 @@ Key::Key(const void* session, size_t size, size_t type, bool copy) : size(size),
     copied = copy;
 }
 
-Key::Key(Key&& rhs) {
+Key::Key(Key&& rhs) noexcept {
     data = rhs.data;
     size = rhs.size;
     copied = rhs.copied;
@@ -25,7 +25,7 @@ Key::Key(Key&& rhs) {
     rhs.copied = false;
 }
 
-Key& Key::operator=(Key&& rhs) {
+Key& Key::operator=(Key&& rhs) noexcept {
     if ( this != &rhs ) {
         data = rhs.data;
         size = rhs.size;

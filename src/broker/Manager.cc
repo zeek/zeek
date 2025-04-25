@@ -554,7 +554,7 @@ void Manager::InitPostScript() {
     config.set("caf.work-stealing.moderate-steal-interval", get_option("Broker::moderate_interval")->AsCount());
     config.set("caf.work-stealing.relaxed-steal-interval", get_option("Broker::relaxed_interval")->AsCount());
 
-    auto pbstate = std::make_shared<PeerBufferState>(options.peer_buffer_size,
+    auto pbstate = std::make_shared<PeerBufferState>(get_option("Broker::peer_buffer_size")->AsCount(),
                                                      get_option("Broker::buffer_stats_reset_interval")->AsDouble());
     auto observer = std::make_shared<Observer>(pbstate);
     broker::logger(observer); // *must* be called before creating the BrokerState

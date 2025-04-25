@@ -926,7 +926,7 @@ static bool simplify_chain(const std::vector<StmtPtr>& stmts, unsigned int start
     // At this point, chain_stmts has only the remainders that weren't removed.
     for ( auto s : stmts )
         if ( chain_stmts.count(s.get()) > 0 )
-            f_stmts.push_back(s);
+            f_stmts.push_back(std::move(s));
 
     return true;
 }

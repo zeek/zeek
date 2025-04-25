@@ -134,7 +134,7 @@ std::optional<zeek::logging::detail::LogWriteBatch> detail::BinarySerializationF
 
     fmt.EndRead();
 
-    return logging::detail::LogWriteBatch{std::move(header), std::move(records)};
+    return logging::detail::LogWriteBatch{header, std::move(records)};
 }
 
 #include "zeek/ID.h"

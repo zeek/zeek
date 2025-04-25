@@ -1,3 +1,9 @@
+7.2.0-rc1.1 | 2025-04-25 16:12:46 -0700
+
+  * Fix use-after-move in recent broker changes (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit b9b268bd866b117f097413db9e80f80858cce0e0)
+
 7.2.0-rc1 | 2025-04-25 11:10:16 -0700
 
   * Update docs submodule [nomail] [skip ci] (Tim Wojtulewicz, Corelight)

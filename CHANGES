@@ -1,3 +1,45 @@
+7.2.0-dev.657 | 2025-04-25 10:25:01 -0700
+
+  * Updates for the various Broker changes (Christian Kreibich, Corelight)
+
+  * Add versions of bundled dependencies (Tim Wojtulewicz, Corelight)
+
+  * Lower listen/connect retry intervals in Broker and the cluster framework to 1sec (Christian Kreibich, Corelight)
+
+    The former defaults (30sec, 1min) can slow down cluster startup and recovery
+    considerably, and other systems have more aggressive intervals still.
+
+  * Bump cluster testsuite (Christian Kreibich, Corelight)
+
+    This pulls in an update for the backpressure disconnect tests, which now need to
+    set the policy explicitly.
+
+  * Switch Broker's default backpressure policy to drop_oldest, bump buffer sizes (Christian Kreibich, Corelight)
+
+    At every site where we've dug into backpressure disconnect findings, it has been
+    the case that the default values were too small. 8192, so 4x the old default,
+    suffices at every site to drown out premature disconnects.
+
+    With metrics now available for the send buffers regardless of backpressure
+    overflow policy, this also switches the default from "disconnect" to
+    "drop_oldest" (for both peers and websockets), meaning that peerings remain
+    untouched but the oldest queued message simply gets dropped when a new message
+    is enqueued. With this policy, the number of backpressure overflows is then
+    simply the count of discarded messages, something that users can tune to see
+    drop to zero in everyday use.  Another benefit is that marginal overflows cause
+    less message loss than when an entire buffer's worth (plus potentially more
+    in-flight messages) gets thrown out with a disconnect.
+
+  * Deprecate Broker::congestion_queue_size and stop using it internally (Christian Kreibich, Corelight)
+
+    Since a reorg in the Broker library (commit b04195183) that revamped flow
+    control and that we pulled in with Zeek 5.0, this setting hasn't done
+    anything. Broker's endpoint::make_subscriber() and
+    endpoint::make_status_subscriber() take a queue size argument (with a default
+    value) that simply gets dropped in the eventual subscriber::make() call. See:
+
+    https://github.com/zeek/broker/commit/b04195183515a1db8eb493011a744ba787239e98#diff-5c0d2baa7981caeb6a4080708ddca6ad929746d10c73d66598e46d7c2c03c8deL34-R178
+
 7.2.0-dev.649 | 2025-04-25 10:23:30 -0700
 
   * Lower listen/connect retry intervals in Broker and the cluster framework to 1sec (Christian Kreibich, Corelight)

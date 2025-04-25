@@ -6,31 +6,48 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 7.2.0
 ==========
 
+We would like to thank Aashish Sharma (@initconf), Anthony Verez (@netantho),
+Anthony Kasza (@anthonykasza), @biswajitutil, Brendan Kapp (@BrendanKapp),
+Carlos Lopez, Chris Hinshaw (@MMChrisHinshaw), Faan Rossouw (@faanross),
+@FishyFluffer, Fupeng Zhao (@AmazingPP), Herbert (@Herbert-Karl), @jbaggs, Jan
+Grashöfer (@J-Gras), Julian Krieger (@juliankrieger), Justin Azoff
+(@JustinAzoff), @Laotree, Mark Overholser (@markoverholser), Mike Dopheide
+(@dopheide-esnet), @mnhsrj, Mohan Dhawan (@Mohan-Dhawan), @philipp-tg, Seth Hall
+(@sethhall), and @timo-mue for their contributions to this release.
+
 Breaking Changes
 ----------------
 
-- The ``is_remote_event()``, ``current_analyzer()`` and ``current_event_time()``
-  builtin functions do not return the previous event's values anymore when event
-  draining has completed. The same applies to the corresponding C++ accessors on
-  the ``EventMgr`` class. The functions now return false, 0 or the zero time instead.
+- The ``is_remote_event()``, ``current_analyzer()`` and ``current_event_time()`` builtin
+  functions do not return the previous event's values anymore when event draining has
+  completed. The same applies to the corresponding C++ accessors on the ``EventMgr``
+  class. The functions now return false, 0 or the zero time instead.
+
+- The ``to_int()`` built-in function was changed to match the return behavior of
+  ``to_count()``. Previously, ``to_int()`` would silently ignore invalid inputs and return a
+  ``0``. It now returns an error instead.
 
 New Functionality
 -----------------
 
-- Some DNS events are not raised when ``dns_skip_all_addl`` is set to true.
-  Zeek now raises a warning when a script declares these events while this
-  option is set to true.
+- The following dependencies have had updates:
 
-- Types can now be used as constants in Zeek script. This allows types to be
-  directly passed into BIFs without aliasing.
+  - The bundled version of c-ares has been updated to v1.34.5.
 
-- A new ``enc_part`` field was added to the Kerberos ``KRB_Response`` record
-  passed as part of the ``krb_as_response`` event. This field contains the
-  encrypted session information from a Kerberos response, including the cipher
-  and encrypted data.
+  - The bundled version of ZeekJS has been updated to v0.17.0.
 
-- Geneve tunnel options of the current packet can be extracted from scripts
-  using the new PacketAnalyzer::Geneve::get_options() builtin function.
+- Some DNS events are not raised when ``dns_skip_all_addl`` is set to true.  Zeek now
+  raises a warning when a script declares these events while this option is set to true.
+
+- Types can now be used as constants in Zeek script. This allows types to be directly
+  passed into BIFs without aliasing.
+
+- A new ``enc_part`` field was added to the Kerberos ``KRB_Response`` record passed as
+  part of the ``krb_as_response`` event. This field contains the encrypted session
+  information from a Kerberos response, including the cipher and encrypted data.
+
+- Geneve tunnel options of the current packet can be extracted from scripts using the new
+  ``PacketAnalyzer::Geneve::get_options()`` builtin function.
 
 - The new ``is_valid_subnet()`` function mirrors ``is_valid_ip()``, for subnets.
 
@@ -47,7 +64,7 @@ New Functionality
     erasure of elements are available.
 
   - Backends can support both asynchronous mode (using ``when`` statements) and
-    synchronous mode (blocking until the operation copmletes). BIF methods were added
+    synchronous mode (blocking until the operation completes). BIF methods were added
     under new ``Storage::Async`` and ``Storage::Sync`` modules for these two modes. The
     modes can be used interchangeably with the same backend handle.
 
@@ -55,12 +72,51 @@ New Functionality
     backend for NATS that will be available as an external plugin, but it is not quite
     ready yet. Both of the existing backends support usage in a cluster environment.
 
-- Broker now exposes more information through ``broker.log``. Broker generated
-  log messages are now propagated as events to Zeek. This allows exposing more
-  information for debugging and operational behavior of Broker via Zeek logs.
-  Two new script-level options ``Broker::log_severity_level`` and
-  ``Broker::log_stderr_severity_level`` have been introduced to control
-  the which events to expose by default.
+- Improved alternative cluster backend support.
+
+  The ZeroMQ cluster backend added in Zeek 7.1 has received various correctness,
+  performance and robustness fixes, particularly concerning shutdown and high-load
+  scenarios.
+
+  Initial performance testing indicates less CPU time used on a large single node
+  instance with high logging and eventing rates.
+
+  We're evaluating switching the default cluster backend from Broker to ZeroMQ With
+  Zeek 8.1. Therefore, we welcome early adopters and testers to validate ZeroMQ as an
+  alternative to Broker. If you're not using Broker specific integrations (e.g. Broker's
+  Python or C++ bindings) and run a single-node Zeek cluster, switching to ZeroMQ
+  should be as simple as loading the following script on each of cluster node.
+
+	@load frameworks/cluster/backend/zeromq/connect
+
+  A proof-of-concept plugin for the open-source NATS messaging system is available at
+  https://github.com/zeek/zeek-cluster-backend-nats for testing and experimentation.
+
+- Broker now exposes more information through ``broker.log``. Broker generated log
+  messages are now propagated as events to Zeek. This allows exposing more information for
+  debugging and operational behavior of Broker via Zeek logs.  Two new script-level
+  options ``Broker::log_severity_level`` and ``Broker::log_stderr_severity_level`` have
+  been introduced to control the which events to expose by default.
+
+- Broker's new per-peer send buffer backpressure handling, introduced in 7.1,
+  has received several updates. We've increased the default buffer sizes to 8192
+  messages for both peers and websockets, and switched the default overflow
+  handling policy to "drop_oldest", meaning that in a full buffer the oldest
+  message enqueued gets dropped to allow enqueuing a new one. Three additional
+  metrics are available to understand the health of each peering's buffer,
+  regardless of the overflow policy active. These are:
+
+  - zeek_broker_peer_buffer_levels: a gauge of the current buffer fill level,
+
+  - zeek_broker_peer_buffer_recent_max_levels: a gauge that tracks the maximum
+    buffer fill level seen over the last ``Broker::buffer_stats_reset_interval`.
+
+  - zeek_broker_peer_buffer_overflows_total: a counter that tracks the number
+    of times a given peering's send buffer has overflowed. For the "drop_oldest"
+    and "drop_newest" policies, this is the count of messages dropped.
+
+  Each of these is labeled with the current endpoint and the peer's, as provided
+  by the cluster topology.
 
 - New WebSocket functionality was added to Zeek's cluster component.
 
@@ -86,87 +142,134 @@ New Functionality
   that client may still be in transit and later executed, even on the node running
   the WebSocket server.
 
+- Vectors containing ``pattern`` values can now be compared using ``==`` and ``!=`` in
+  scripts. This previously resulted in a fatal error.
+
+- The set of non-routable subnets defined in ``Site::private_address_space`` was expanded
+  to include ``239.0.0.0/8``, ``224.0.0.0/24`, ``[2002:e000::]/40``, ``[2002:ef00::]/24``,
+  and ``[fec0::]/10`. These addresses come from RFCs 2365, 3058, 3879, and 5771. This may
+  result in traffic being considered as local traffic that wasn't previously.
+
+- The ``to_count()`` and ``to_int()`` built-in functions now trim trailing spaces passed
+  in the argument. They were already trimming leading spaces.
+
+- The ``ip_proto`` field is now populated for a connection encapsulated in a tunnel.
+
+- The documentation for ZeekJS is now included in the main Zeek documentation (as seen on
+  https://docs.zeek.org) by default.
+
+- Searching for the headers for libkrb5 was made more robust. Additionally, the
+  restrictions on using libkrb5 only on Linux platforms was removed. CMake will now search
+  for it on all platforms as expected.
+
 Changed Functionality
 ---------------------
 
-- The ``service`` field in the connection log is now sorted in the order that
-  protocol analyzers raise their confirmation events.
-  Since the time at which the protocol confirmation is raised depends on the
-  individual implementation of each analyzer, there is no specific meaning
-  to the order that the services appear. However, the order should be
-  deterministic between runs. It also will in many cases represent
-  the order in which layered protocols are parsed (e.g. "quic,ssl").
+- The ``service`` field in the connection log is now sorted in the order that protocol
+  analyzers raise their confirmation events.  Since the time at which the protocol
+  confirmation is raised depends on the individual implementation of each analyzer, there
+  is no specific meaning to the order that the services appear. However, the order should
+  be deterministic between runs. It also will in many cases represent the order in which
+  layered protocols are parsed (e.g. "quic,ssl").
 
-- The way that protocol violations are handled by the dynamic protocol
-  detection (DPD) changed. Now, a violation that is raised by an analyzer
-  before it is confirmed will immediately disable the analyzer. This adjusts
-  the behavior back to the historically desired state, and aligns it with
-  the treatment of confirmed analyzers.
+- The way that protocol violations are handled by the dynamic protocol detection (DPD)
+  changed. Now, a violation that is raised by an analyzer before it is confirmed will
+  immediately disable the analyzer. This adjusts the behavior back to the historically
+  desired state, and aligns it with the treatment of confirmed analyzers.
 
   As a consequence of this, the option ``DPD::max_violations`` is no longer used.
   It will be retained till Zeek 8.1 to prevent script errors, and raises a
   deprecation warning.
 
   To extend the visibility of protocol violations, a new option
-  ``DPD::track_removed_services_in_connection`` was added. Enabling it causes
-  failed analyzers to no longer be removed from the ``service`` field of the
-  connection log. Instead, analyzers are never removed after they are
-  confirmed.  Instead, failed analyzers are logged by additionally adding an
-  entry with a prepended "-". So a connection that attached the ``ssl``
-  analyzer which later failed due to a protocol error will be logged as
-  ``ssl,-ssl``.
+  ``DPD::track_removed_services_in_connection`` was added. Enabling it causes failed
+  analyzers to no longer be removed from the ``service`` field of the connection
+  log. Instead, analyzers are never removed after they are confirmed.  Instead, failed
+  analyzers are logged by additionally adding an entry with a prepended "-". So a
+  connection that attached the ``ssl`` analyzer which later failed due to a protocol error
+  will be logged as ``ssl,-ssl``.
 
   This change also adds a new policy script,
-  ``protocols/conn/failed-service-logging.zeek``. Loading this script adds the
-  column ``failed_service`` to the connection.log. This column contains the
-  list of protocol analyzers that failed due to a protocol error.
+  ``protocols/conn/failed-service-logging.zeek``. Loading this script adds the column
+  ``failed_service`` to the connection.log. This column contains the list of protocol
+  analyzers that failed due to a protocol error.
 
-- Command line options processing will no longer print usage whenever there
-  is an error. Instead, issues in command line processing will print an error,
-  then prompt to use --help. The --help usage will now print to standard output
-  rather than standard error.
+- Command line options processing will no longer print usage whenever there is an
+  error. Instead, issues in command line processing will print an error, then prompt to
+  use --help. The --help usage will now print to standard output rather than standard
+  error.
 
-- Saving seeds with ``--save-seeds`` will now put Zeek into deterministic mode.
-  A subsequent ``--load-seeds`` run with the same scripts and traces will produce
-  identical UID values as the original ``--save-seeds` run.
+- Saving seeds with ``--save-seeds`` will now put Zeek into deterministic mode.  A
+  subsequent ``--load-seeds`` run with the same scripts and traces will produce identical
+  UID values as the original ``--save-seeds` run.
 
-- The `policy/protocols/dns/detect-external-names.zeek` script now no longer logs
-  names that were found in mDNS broadcasts by default. This is configurable with
-  the new `DNS::skip_resp_host_port_pairs` option.
+- The `policy/protocols/dns/detect-external-names.zeek` script now no longer logs names
+  that were found in mDNS broadcasts by default. This is configurable with the new
+  `DNS::skip_resp_host_port_pairs` option.
 
   Furthermore, the script now supports and logs IPv6 results.
 
-- The ``mkdir()``, ``rmdir()``, ``unlink()``, and ``rename()`` functions now
-  trigger reporter warnings instead of builtin errors when hitting trouble. This
-  allows Zeek to continue gracefully in case of such problems, particularly
-  during ``zeek_init()``.
+- The ``mkdir()``, ``rmdir()``, ``unlink()``, and ``rename()`` functions now trigger
+  reporter warnings instead of builtin errors when hitting trouble. This allows Zeek to
+  continue gracefully in case of such problems, particularly during ``zeek_init()``.
 
-- The RDP analyzer now also parses connections that do not contain the cookie
-  field, which were previously rejected.
+- The RDP analyzer now also parses connections that do not contain the cookie field, which
+  were previously rejected.
 
-- An enum's zeek::detail::ID instance now holds its ``EnumVal``. For example,
-  looking up the "Conn::LOG" identifier allows to directly query the ``EnumVal``
-  using ``ID::GetVal()``.
+- An enum's zeek::detail::ID instance now holds its ``EnumVal``. For example, looking up
+  the "Conn::LOG" identifier allows to directly query the ``EnumVal`` using
+  ``ID::GetVal()``.
 
-- When the send buffer to a Broker peer overflows and the "disconnect" overflow
-  policy is in use, Zeek now only attempts to re-establish peerings when the
-  node observing the overflow originally established the peering. That is,
-  re-peering is now only attempted in consistency with the underlying Broker
-  peering topology. This avoids pointless connection attempts to ephemeral TCP
-  client-side ports, which clould clutter the Broker logs.
+- When the send buffer to a Broker peer overflows and the "disconnect" overflow policy is
+  in use, Zeek now only attempts to re-establish peerings when the node observing the
+  overflow originally established the peering. That is, re-peering is now only attempted
+  in consistency with the underlying Broker peering topology. This avoids pointless
+  connection attempts to ephemeral TCP client-side ports, which could clutter the Broker
+  logs.
+
+- The connect and listen retry intervals of Broker and the Cluster framework
+  have all been reduced to one second, from previously 30s/60s.
+
+- The protocol confirmation for IRC was made more robust. It now checks for valid commands
+  before confirming a connection as IRC.
+
+- Packet dumping now properly handles both the inner and outer packets of a tunneled
+  connection, ensuring that the outer packets are always dumped correctly alongside the
+  inner packets.
+
+- SSH banner parsing was previously a bit too strict in some ways and too permissive in
+  others. This has been changed to be more robust, now accepting text before the SSH
+  banner starts. This was previously a protocol violation but is actually allowed by the
+  spec. This should help prevent non-ssh traffic on port 22 from causing an ssh.log to be
+  created. A new event called ``ssh_server_pre_banner_data`` was added, and is set When
+  this kind of text data is encountered.
+
+- The SNAP analyzer now uses both the OUI and protocol identifier in forwarding
+  decisions. Previously it only used the identifier, which lead to some packets not being
+  handled at all and also not being logged in ``unknown_protocols.log``.
+
+- The BIND library is no longer required for building Zeek. It hasn't been required since
+  our switch to use the C-Ares library back in the 5.0 release, but we never removed the
+  requirement from CMake.
 
 Removed Functionality
 ---------------------
 
+- Broker's broker_buffered_messages metric has been removed, since the
+  backpressure handling introduced in 7.1 rendered it obsolete. Use the new
+  per-peering metrics described above instead.
+
 Deprecated Functionality
 ------------------------
 
-- Support for DNS resolution of hostname literals in Zeek scripts has been
-  deprecated. If you've used this feature, use the new ``blocking_lookup_hostname()``
-  builtin function to populate sets or tables in a ``zeek_init()`` handler,
-  or with top-level statements.
+- Support for DNS resolution of hostname literals in Zeek scripts has been deprecated. If
+  you've used this feature, use the new ``blocking_lookup_hostname()`` builtin function to
+  populate sets or tables in a ``zeek_init()`` handler, or with top-level statements.
 
 - ``Broker::listen_websocket()`` was deprecated in favor of ``Cluster::listen_websocket()`.
+
+- The ``Broker::congestion_queue_size`` tunable has had no effect since Zeek 5.0
+  and is slated for removal without replacement.
 
 Zeek 7.1.0
 ==========
@@ -364,7 +467,7 @@ New Functionality
 
 - Zeek now ships with an experimental Spicy-based SSL analyzer, which is
   disabled by default. This analyzer can be enabled using the
-  ``--enable-spicy-ssl`` conifgure-time option. The Spicy-based analyzer has
+  ``--enable-spicy-ssl`` configure-time option. The Spicy-based analyzer has
   full support for SSL and TLS, just like the current binpac analyzer. It does,
   however, not support any version of DTLS. Enabling it will disable DTLS
   parsing in Zeek.

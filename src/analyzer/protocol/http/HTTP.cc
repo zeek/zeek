@@ -20,14 +20,14 @@ const bool DEBUG_http = false;
 
 // The EXPECT_*_NOTHING states are used to prevent further parsing. Used if a
 // message was interrupted.
-enum HTTP_ExpectRequest {
+enum HTTP_ExpectRequest : uint8_t {
     EXPECT_REQUEST_LINE,
     EXPECT_REQUEST_MESSAGE,
     EXPECT_REQUEST_TRAILER,
     EXPECT_REQUEST_NOTHING,
 };
 
-enum HTTP_ExpectReply {
+enum HTTP_ExpectReply : uint8_t {
     EXPECT_REPLY_LINE,
     EXPECT_REPLY_MESSAGE,
     EXPECT_REPLY_TRAILER,

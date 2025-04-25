@@ -39,7 +39,7 @@ extern zeek::plugin::Zeek_Cluster_Backend_ZeroMQ::Plugin plugin;
 
 namespace cluster::zeromq {
 
-enum class DebugFlag : zeek_uint_t {
+enum class DebugFlag : uint8_t {
     NONE = 0,
     POLL = 1,
     THREAD = 2,
@@ -50,9 +50,7 @@ enum class InprocTag : uint8_t {
     Terminate,
 };
 
-constexpr DebugFlag operator&(zeek_uint_t x, DebugFlag y) {
-    return static_cast<DebugFlag>(x & static_cast<zeek_uint_t>(y));
-}
+constexpr DebugFlag operator&(uint8_t x, DebugFlag y) { return static_cast<DebugFlag>(x & static_cast<uint8_t>(y)); }
 
 #define ZEROMQ_DEBUG(...) PLUGIN_DBG_LOG(zeek::plugin::Zeek_Cluster_Backend_ZeroMQ::plugin, __VA_ARGS__)
 

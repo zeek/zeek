@@ -1,6 +1,7 @@
 Checks: [-*,
          bugprone-*,
          performance-avoid-endl,
+         performance-enum-size,
 
          # Skipping these temporarily because they are very noisy
          -bugprone-narrowing-conversions,

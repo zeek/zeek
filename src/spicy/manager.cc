@@ -636,7 +636,7 @@ void Manager::InitPostScript() {
     auto spicy_config = ::spicy::rt::configuration::get();
     spicy_config.hook_accept_input = hook_accept_input;
     spicy_config.hook_decline_input = hook_decline_input;
-    ::spicy::rt::configuration::set(std::move(spicy_config));
+    ::spicy::rt::configuration::set(spicy_config);
 
     try {
         ::hilti::rt::init();

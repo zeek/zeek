@@ -539,7 +539,7 @@ void Manager::DoInitPostScript() {
         reporter->FatalError("Invalid Broker::web_socket_overflow_policy: %s", web_socket_overflow_policy);
     }
 
-    broker::configuration config{std::move(options)};
+    broker::configuration config{options};
 
     config.openssl_cafile(get_option("Broker::ssl_cafile")->AsString()->CheckString());
     config.openssl_capath(get_option("Broker::ssl_capath")->AsString()->CheckString());
@@ -911,7 +911,7 @@ bool Manager::PublishIdentifier(std::string topic, std::string id) {
         return false;
     }
 
-    broker::zeek::IdentifierUpdate msg(std::move(id), std::move(data.value_));
+    broker::zeek::IdentifierUpdate msg(std::move(id), data.value_);
     DBG_LOG(DBG_BROKER, "Publishing id-update: %s", RenderMessage(topic, msg.as_data()).c_str());
     bstate->endpoint.publish(std::move(topic), msg.move_data());
     num_ids_outgoing_metric->Inc();
@@ -952,8 +952,8 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer, const logging::
     }
 
     std::string topic = default_log_topic_prefix + stream_id;
-    auto bstream_id = broker::enum_value(std::move(stream_id));
-    auto bwriter_id = broker::enum_value(std::move(writer_id));
+    auto bstream_id = broker::enum_value(stream_id);
+    auto bwriter_id = broker::enum_value(writer_id);
     broker::zeek::LogCreate msg(std::move(bstream_id), std::move(bwriter_id), std::move(writer_info),
                                 std::move(fields_data));
 
@@ -1029,8 +1029,8 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, const string& pa
 
     std::string topic = v->AsString()->CheckString();
 
-    auto bstream_id = broker::enum_value(std::move(stream_id));
-    auto bwriter_id = broker::enum_value(std::move(writer_id));
+    auto bstream_id = broker::enum_value(stream_id);
+    auto bwriter_id = broker::enum_value(writer_id);
     broker::zeek::LogWrite msg(std::move(bstream_id), std::move(bwriter_id), std::move(path), std::move(serial_data));
 
     DBG_LOG(DBG_BROKER, "Buffering log record: %s", RenderMessage(topic, msg.as_data()).c_str());

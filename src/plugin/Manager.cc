@@ -317,7 +317,7 @@ void Manager::ActivateDynamicPlugin(const std::string& name) {
         UpdateInputFiles();
     else
         // Reschedule for another attempt later.
-        requested_plugins.insert(std::move(name));
+        requested_plugins.insert(name);
 }
 
 void Manager::ActivateDynamicPlugins(bool all) {

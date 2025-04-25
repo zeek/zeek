@@ -198,13 +198,13 @@ struct val_converter {
 
                     if ( disambiguate ) {
                         // Disambiguate from composite key w/ multiple vals.
-                        composite_key.emplace_back(std::move(item));
+                        composite_key.emplace_back(item);
                         indices = &composite_key;
                     }
                 }
             }
             else {
-                composite_key.emplace_back(std::move(item));
+                composite_key.emplace_back(item);
                 indices = &composite_key;
             }
 
@@ -247,13 +247,13 @@ struct val_converter {
 
                     if ( disambiguate ) {
                         // Disambiguate from composite key w/ multiple vals.
-                        composite_key.emplace_back(std::move(item.first));
+                        composite_key.emplace_back(item.first);
                         indices = &composite_key;
                     }
                 }
             }
             else {
-                composite_key.emplace_back(std::move(item.first));
+                composite_key.emplace_back(item.first);
                 indices = &composite_key;
             }
 
@@ -1036,7 +1036,7 @@ IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::DataVal)
 std::optional<BrokerData> DataVal::DoSerializeData() const { return BrokerData{data}; }
 
 bool DataVal::DoUnserializeData(BrokerDataView dv) {
-    data = std::move(*dv.value_);
+    data = *dv.value_;
     return true;
 }
 

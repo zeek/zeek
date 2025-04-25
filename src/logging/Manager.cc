@@ -768,7 +768,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, Tab
 
         // Add the ext prefix if this is an ext field.
         if ( j < num_ext_fields )
-            new_path = filter->ext_prefix + new_path;
+            new_path = string{filter->ext_prefix}.append(new_path);
 
         if ( t->InternalType() == TYPE_INTERNAL_OTHER ) {
             if ( t->Tag() == TYPE_RECORD ) {

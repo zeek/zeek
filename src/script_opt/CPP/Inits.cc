@@ -299,7 +299,7 @@ void CPPCompile::GenStandaloneActivation() {
             hashes += Fmt(h);
         }
 
-        hashes = "{" + hashes + "}";
+        hashes = std::string{"{"}.append(hashes).append("}");
 
         auto f = fb.first;
         const auto& fn = f->GetName();

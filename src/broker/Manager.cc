@@ -954,8 +954,7 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer, const logging::
     std::string topic = default_log_topic_prefix + stream_id;
     auto bstream_id = broker::enum_value(stream_id);
     auto bwriter_id = broker::enum_value(writer_id);
-    broker::zeek::LogCreate msg(std::move(bstream_id), std::move(bwriter_id), std::move(writer_info),
-                                std::move(fields_data));
+    broker::zeek::LogCreate msg(bstream_id, bwriter_id, writer_info, fields_data);
 
     DBG_LOG(DBG_BROKER, "Publishing log creation: %s", RenderMessage(topic, msg.as_data()).c_str());
 
@@ -1031,7 +1030,7 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, const string& pa
 
     auto bstream_id = broker::enum_value(stream_id);
     auto bwriter_id = broker::enum_value(writer_id);
-    broker::zeek::LogWrite msg(std::move(bstream_id), std::move(bwriter_id), std::move(path), std::move(serial_data));
+    broker::zeek::LogWrite msg(bstream_id, bwriter_id, std::move(path), std::move(serial_data));
 
     DBG_LOG(DBG_BROKER, "Buffering log record: %s", RenderMessage(topic, msg.as_data()).c_str());
 
@@ -1302,8 +1301,7 @@ void Manager::ProcessMessages() {
             // message. Since `topic` still points into the original memory
             // region, we may no longer access it after this point.
             auto topic_str = broker::get_topic_str(message);
-            broker::zeek::visit_as_message([this, topic_str](auto& msg) { ProcessMessage(topic_str, msg); },
-                                           std::move(message));
+            broker::zeek::visit_as_message([this, topic_str](auto& msg) { ProcessMessage(topic_str, msg); }, message);
         } catch ( std::runtime_error& e ) {
             reporter->Warning("ignoring invalid Broker message: %s", +e.what());
             continue;

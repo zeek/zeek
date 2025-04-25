@@ -1417,7 +1417,7 @@ void HTTP_Analyzer::HTTP_Upgrade() {
                 analyzer_tag_val->GetType<EnumType>()->Lookup(analyzer_tag_val->AsEnum()),
                 upgrade_protocol_val->CheckString());
         auto analyzer_tag = analyzer_mgr->GetComponentTag(analyzer_tag_val.get());
-        auto* analyzer = analyzer_mgr->InstantiateAnalyzer(std::move(analyzer_tag), Conn());
+        auto* analyzer = analyzer_mgr->InstantiateAnalyzer(analyzer_tag, Conn());
         if ( analyzer ) {
             AddChildAnalyzer(analyzer);
 

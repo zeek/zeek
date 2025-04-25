@@ -15,11 +15,6 @@
 #include "zeek/packet_analysis/protocol/icmp/events.bif.h"
 #include "zeek/session/Manager.h"
 
-enum ICMP_EndpointState {
-    ICMP_INACTIVE, // no packet seen
-    ICMP_ACTIVE,   // packets seen
-};
-
 using namespace zeek::packet_analysis::ICMP;
 using namespace zeek::packet_analysis::IP;
 

@@ -678,6 +678,7 @@ void Manager::DoTerminate() {
     iosource_mgr->UnregisterFd(bstate->loggerQueue->FlareFd(), this);
 
     vector<string> stores_to_close;
+    stores_to_close.reserve(data_stores.size());
 
     for ( auto& x : data_stores )
         stores_to_close.push_back(x.first);

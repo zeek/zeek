@@ -1,3 +1,7 @@
+7.2.0-rc1 | 2025-04-25 11:10:16 -0700
+
+  * Update docs submodule [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.659 | 2025-04-25 10:33:32 -0700
 
   * Ignore case when matching prefix in http analyzer (Kshitiz Bartariya)

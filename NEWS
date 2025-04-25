@@ -6,14 +6,14 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 7.2.0
 ==========
 
-We would like to thank Aashish Sharma (@initconf), Anthony Verez (@netantho),
-Anthony Kasza (@anthonykasza), @biswajitutil, Brendan Kapp (@BrendanKapp),
-Carlos Lopez, Chris Hinshaw (@MMChrisHinshaw), Faan Rossouw (@faanross),
-@FishyFluffer, Fupeng Zhao (@AmazingPP), Herbert (@Herbert-Karl), @jbaggs, Jan
-Grashöfer (@J-Gras), Julian Krieger (@juliankrieger), Justin Azoff
-(@JustinAzoff), @Laotree, Mark Overholser (@markoverholser), Mike Dopheide
-(@dopheide-esnet), @mnhsrj, Mohan Dhawan (@Mohan-Dhawan), @philipp-tg, Seth Hall
-(@sethhall), and @timo-mue for their contributions to this release.
+We would like to thank Aashish Sharma (@initconf), Anthony Verez (@netantho), Anthony
+Kasza (@anthonykasza), @biswajitutil, Brendan Kapp (@BrendanKapp), Carlos Lopez, Chris
+Hinshaw (@MMChrisHinshaw), Faan Rossouw (@faanross), @FishyFluffer, Fupeng Zhao
+(@AmazingPP), Herbert (@Herbert-Karl), @jbaggs, Jan Grashöfer (@J-Gras), Julian Krieger
+(@juliankrieger), Justin Azoff (@JustinAzoff), Kshitiz Bartariya (@kshitiz56), @Laotree,
+Mark Overholser (@markoverholser), Mike Dopheide (@dopheide-esnet), @mnhsrj, Mohan Dhawan
+(@Mohan-Dhawan), @philipp-tg, Seth Hall (@sethhall), and @timo-mue for their contributions
+to this release.
 
 Breaking Changes
 ----------------
@@ -161,6 +161,10 @@ New Functionality
 - Searching for the headers for libkrb5 was made more robust. Additionally, the
   restrictions on using libkrb5 only on Linux platforms was removed. CMake will now search
   for it on all platforms as expected.
+
+- The HTTP analyzer now checks for the HTTP-name field to be case-insensitive, even though
+  the spec specifies that field must be uppercase. If a non-uppercase string is
+  encountered, a new ``lowercase_HTTP_keyword`` weird is emitted.
 
 Changed Functionality
 ---------------------

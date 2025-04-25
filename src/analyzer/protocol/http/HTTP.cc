@@ -1097,8 +1097,10 @@ void HTTP_Analyzer::GenStats() {
     }
 }
 
-const char* HTTP_Analyzer::PrefixMatch(const char* line, const char* end_of_line, const char* prefix) {
-    while ( *prefix && line < end_of_line && *prefix == *line ) {
+const char* HTTP_Analyzer::PrefixMatch(const char* line, const char* end_of_line, const char* prefix,
+                                       bool ignore_case) {
+    while ( *prefix && line < end_of_line &&
+            ((ignore_case && tolower((unsigned char)*prefix) == tolower((unsigned char)*line)) || *prefix == *line) ) {
         ++prefix;
         ++line;
     }
@@ -1110,8 +1112,9 @@ const char* HTTP_Analyzer::PrefixMatch(const char* line, const char* end_of_line
     return line;
 }
 
-const char* HTTP_Analyzer::PrefixWordMatch(const char* line, const char* end_of_line, const char* prefix) {
-    if ( (line = PrefixMatch(line, end_of_line, prefix)) == nullptr )
+const char* HTTP_Analyzer::PrefixWordMatch(const char* line, const char* end_of_line, const char* prefix,
+                                           bool ignore_case) {
+    if ( (line = PrefixMatch(line, end_of_line, prefix, ignore_case)) == nullptr )
         return nullptr;
 
     const char* orig_line = line;
@@ -1193,13 +1196,23 @@ bool HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line) {
     const char* end_of_uri;
     const char* version_start;
     const char* version_end;
+    const char* match;
 
     for ( end_of_uri = line; end_of_uri < end_of_line; ++end_of_uri ) {
         if ( ! is_reserved_URI_char(*end_of_uri) && ! is_unreserved_URI_char(*end_of_uri) && *end_of_uri != '%' )
             break;
     }
 
-    if ( end_of_uri >= end_of_line && PrefixMatch(line, end_of_line, "HTTP/") ) {
+    match = PrefixMatch(line, end_of_line, "HTTP/", false);
+    if ( ! match ) {
+        // If the uppercase version didn't match, try a case-insensitive version, but
+        // send a weird if it matches.
+        match = PrefixMatch(line, end_of_line, "HTTP/", true);
+        if ( match )
+            Weird("lowercase_HTTP_keyword");
+    }
+
+    if ( end_of_uri >= end_of_line && match ) {
         Weird("missing_HTTP_uri");
         end_of_uri = line; // Leave URI empty.
     }
@@ -1207,8 +1220,14 @@ bool HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line) {
     for ( version_start = end_of_uri; version_start < end_of_line; ++version_start ) {
         end_of_uri = version_start;
         version_start = util::skip_whitespace(version_start, end_of_line);
-        if ( PrefixMatch(version_start, end_of_line, "HTTP/") )
+        if ( PrefixMatch(version_start, end_of_line, "HTTP/", false) )
             break;
+        // If the uppercase version didn't match, try a case-insensitive version, but
+        // send a weird if it matches.
+        if ( PrefixMatch(version_start, end_of_line, "HTTP/", true) ) {
+            Weird("lowercase_HTTP_keyword");
+            break;
+        }
     }
 
     if ( version_start >= end_of_line ) {
@@ -1453,7 +1472,16 @@ const String* HTTP_Analyzer::UnansweredRequestMethod() {
 int HTTP_Analyzer::HTTP_ReplyLine(const char* line, const char* end_of_line) {
     const char* rest;
 
-    if ( ! (rest = PrefixMatch(line, end_of_line, "HTTP/")) ) {
+    rest = PrefixMatch(line, end_of_line, "HTTP/", false);
+    if ( ! rest ) {
+        // If the uppercase version didn't match, try a case-insensitive version, but
+        // send a weird if it matches.
+        rest = PrefixMatch(line, end_of_line, "HTTP/", true);
+        if ( rest )
+            Weird("lowercase_HTTP_keyword");
+    }
+
+    if ( ! rest ) {
         // ##TODO: some server replies with an HTML document
         // without a status line and a MIME header, when the
         // request is malformed.

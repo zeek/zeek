@@ -14,7 +14,7 @@ signature dpd_http_client {
 
 signature dpd_http_server {
   ip-proto == tcp
-  payload /^HTTP\/[0-9]/
+  payload /^[hH][tT][tT][pP]\/[0-9]/
   tcp-state responder
   enable "http"
 }

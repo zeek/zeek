@@ -1526,7 +1526,7 @@ ASTBlockAnalyzer::ASTBlockAnalyzer(std::vector<FuncInfo>& funcs) {
 
         auto func = f.Func();
         auto fn = func->GetName();
-        auto body = f.Body();
+        const auto& body = f.Body();
 
         // First get the line numbers all sorted out.
         SetBlockLineNumbers sbln;

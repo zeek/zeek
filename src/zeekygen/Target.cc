@@ -491,9 +491,7 @@ void ScriptTarget::DoGenerate() const {
             pkg_deps[i]->Generate();
         }
 
-        for ( size_t i = 0; i < dir_contents.size(); ++i ) {
-            string f = dir_contents[i];
-
+        for ( const auto& f : dir_contents ) {
             if ( targets.find(f) != targets.end() )
                 continue;
 

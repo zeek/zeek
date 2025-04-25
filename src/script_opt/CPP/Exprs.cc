@@ -28,7 +28,7 @@ string CPPCompile::GenListExpr(const Expr* e, GenType gt, bool nested) {
 
         if ( nested && e_i->Tag() == EXPR_LIST )
             // These are table or set indices.
-            gen_i = string("index_val__CPP({") + gen_i + "})";
+            gen_i = string("index_val__CPP({").append(gen_i).append("})");
 
         gen += gen_i;
 
@@ -1196,7 +1196,8 @@ string CPPCompile::GenLambdaClone(const LambdaExpr* l, bool all_deep) {
         if ( captures && ! IsNativeType(id_t) ) {
             for ( const auto& c : *captures )
                 if ( id == c.Id() && (c.IsDeepCopy() || all_deep) )
-                    arg = string("cast_intrusive<") + TypeName(id_t) + ">(" + arg + "->Clone())";
+                    arg =
+                        string("cast_intrusive<").append(TypeName(id_t)).append(">(").append(arg).append("->Clone())");
         }
 
         cl_args += ", " + arg;

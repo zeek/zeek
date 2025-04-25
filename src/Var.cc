@@ -467,7 +467,7 @@ static std::optional<FuncType::Prototype> func_type_check(const FuncType* decl, 
                 auto msg = ad->DeprecationMessage();
 
                 if ( ! msg.empty() )
-                    msg = ": " + msg;
+                    msg = std::string{": "}.append(msg);
 
                 reporter->Deprecation(util::fmt("use of deprecated parameter '%s'%s (%s)", rval->args->FieldName(i),
                                                 msg.data(), obj_desc_short(impl).c_str()),

@@ -18,9 +18,9 @@ export {
 		# ``server_host`` field must be unset.
 		server_unix_socket: string &optional;
 
-		# Prefix used in key values stored to differentiate varying types of data
-		# on the same server. Defaults to an empty string, but preferably should
-		# be set to a unique value per Redis backend opened.
+		# Prefix used in keys stored to differentiate varying types of data on the
+		# same server. Defaults to an empty string, but preferably should be set
+		# to a unique value per Redis backend opened.
 		key_prefix: string &default="";
 	};
 }

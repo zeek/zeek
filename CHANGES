@@ -1,3 +1,7 @@
+7.2.0-dev.636 | 2025-04-25 06:40:46 -0700
+
+  * Minor changes to storage framework script docs (Tim Wojtulewicz, Corelight)
+
 7.2.0-dev.634 | 2025-04-25 08:40:29 -0400
 
   * Bump Spicy (Evan Typanski, Corelight)

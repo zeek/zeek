@@ -741,7 +741,7 @@ std::optional<broker::data> val_to_data(const Val* v) {
             s.Prefix().CopyIPv6(&tmp);
             auto a = broker::address(reinterpret_cast<const uint32_t*>(&tmp), broker::address::family::ipv6,
                                      broker::address::byte_order::network);
-            return {broker::subnet(std::move(a), s.Length())};
+            return {broker::subnet(a, s.Length())};
         } break;
         case TYPE_DOUBLE: return {v->AsDouble()};
         case TYPE_TIME: {

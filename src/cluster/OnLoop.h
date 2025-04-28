@@ -81,7 +81,15 @@ public:
      * Close the IO source.
      */
     void Close() {
+        if ( std::this_thread::get_id() != main_thread_id ) {
+            fprintf(stderr, "OnLoopProcess::Close() not called by main thread!");
+            abort();
+        }
+
         zeek::iosource_mgr->UnregisterFd(flare.FD(), this);
+
+        // Ensure Process() is short-circuited from now on.
+        proc = nullptr;
 
         {
             // Close under lock to guarantee visibility for
@@ -91,9 +99,6 @@ public:
 
             // Wake a process stuck in queueing.
             cond.notify_one();
-
-            // Don't attempt to Process anymore.
-            proc = nullptr;
         }
 
         // Wait for any active queuers to vanish, should be quick.

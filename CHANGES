@@ -1,17 +1,24 @@
 7.2.0-rc1.3 | 2025-04-28 19:48:58 +0200
 
-  * Merge remote-tracking branch 'origin/topic/awelzel/cluster-coverity-fixes' (Arne Welzel, Corelight)
-
-    * origin/topic/awelzel/cluster-coverity-fixes:
-      broker/WebSocketShim: Check RegisterFd() return
-      cluster/OnLoop: Fix coverity report about proc accessed without lock
+  * broker/WebSocketShim: Check RegisterFd() return (Arne Welzel, Corelight)
 
     (cherry picked from commit 5bf660a9ce6599581033e80b829d1103388b91cb)
 
-  * Merge remote-tracking branch 'origin/topic/awelzel/3045-no-holes-in-vectors' (Arne Welzel, Corelight)
+  * cluster/OnLoop: Fix coverity report about proc accessed without lock (Arne Welzel, Corelight)
 
-    * origin/topic/awelzel/3045-no-holes-in-vectors:
-      broker/Data/data_to_val: Fail on vectors/lists with holes
+    (cherry picked from commit 5bf660a9ce6599581033e80b829d1103388b91cb)
+
+  * GH-3045: broker/Data/data_to_val: Fail on vectors/lists with holes (Arne Welzel, Corelight)
+
+    Instead of simply removing holes from vectors or lists when converting
+    from Val to Broker format, error out as the receiver has no chance to
+    reconstruct where the hole might have been.
+
+    We could encode holes with broker::none, but this will put unnecessary
+    burden on language bindings and users due to the potential optionality.
+    Think a std::vector<uint64_t> that technically needs to be a
+    std::vector<std::optional<uint64_t>> to represent optional elements
+    properly.
 
     (cherry picked from commit 540baa89afc68038a2af1f0ff09bc57e361970ab)
 

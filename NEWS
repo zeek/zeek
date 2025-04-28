@@ -14,6 +14,21 @@ Breaking Changes
 New Functionality
 -----------------
 
+- A new plugin hook, ``HookPublishEvent()``, has been added for intercepting
+  publishing of Zeek events. This hook may be used for monitoring purposes,
+  modifying or rerouting remote events.
+
+  Plugins can implement and enable this hook by calling the following method
+  within their Configure() implementation.
+
+	EnableHook(HOOK_PUBLISH_EVENT)
+
+  The signature of ``HookPublishEvent()`` is as follows.
+
+	bool HookPublishEvent(zeek::cluster::Backend& backend,
+	                      const std::string& topic,
+	                      zeek::cluster::detail::Event& event);
+
 Changed Functionality
 ---------------------
 

@@ -2,6 +2,8 @@ Checks: [-*,
          bugprone-*,
          performance-*,
 
+         cppcoreguidelines-virtual-class-destructor,
+
          # Skipping these temporarily because they are very noisy
          -bugprone-narrowing-conversions,
          -bugprone-unchecked-optional-access,

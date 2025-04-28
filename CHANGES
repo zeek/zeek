@@ -1,3 +1,20 @@
+7.2.0-rc1.3 | 2025-04-28 19:48:58 +0200
+
+  * Merge remote-tracking branch 'origin/topic/awelzel/cluster-coverity-fixes' (Arne Welzel, Corelight)
+
+    * origin/topic/awelzel/cluster-coverity-fixes:
+      broker/WebSocketShim: Check RegisterFd() return
+      cluster/OnLoop: Fix coverity report about proc accessed without lock
+
+    (cherry picked from commit 5bf660a9ce6599581033e80b829d1103388b91cb)
+
+  * Merge remote-tracking branch 'origin/topic/awelzel/3045-no-holes-in-vectors' (Arne Welzel, Corelight)
+
+    * origin/topic/awelzel/3045-no-holes-in-vectors:
+      broker/Data/data_to_val: Fail on vectors/lists with holes
+
+    (cherry picked from commit 540baa89afc68038a2af1f0ff09bc57e361970ab)
+
 7.2.0-rc1.1 | 2025-04-25 16:12:46 -0700
 
   * Fix use-after-move in recent broker changes (Tim Wojtulewicz, Corelight)

@@ -88,7 +88,10 @@ bool WebSocketShim::DoInit() {
     state = std::make_unique<WebSocketState>();
 
     zeek::iosource_mgr->Register(iosrc, false);
-    zeek::iosource_mgr->RegisterFd(state->hub.read_fd(), iosrc);
+    if ( ! zeek::iosource_mgr->RegisterFd(state->hub.read_fd(), iosrc) ) {
+        zeek::reporter->Error("Failed to register hub.read_fd() with iosource_mgr");
+        return false;
+    }
 
     return true;
 }

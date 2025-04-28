@@ -1,6 +1,7 @@
 # Sets some testing specific options.
 
 @load external-ca-list
+@load external-ct-list
 
 @load protocols/conn/failed-service-logging
 redef DPD::track_removed_services_in_connection=T;

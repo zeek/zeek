@@ -1,3 +1,13 @@
+8.0.0-dev.7 | 2025-04-28 19:41:01 +0200
+
+  * broker/WebSocketShim: Check RegisterFd() return (Arne Welzel, Corelight)
+
+  * cluster/OnLoop: Fix coverity report about proc accessed without lock (Arne Welzel, Corelight)
+
+    Coverity complains proc is set under a lock, but accessed in Process()
+    without a lock. Fix this by setting it in Close() also without locking.
+    The proc member should only ever be accessed my the main thread.
+
 8.0.0-dev.4 | 2025-04-28 18:24:09 +0200
 
   * GH-3045: broker/Data/data_to_val: Fail on vectors/lists with holes (Arne Welzel, Corelight)

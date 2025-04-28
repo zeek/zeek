@@ -1,3 +1,19 @@
+8.0.0-dev.4 | 2025-04-28 18:24:09 +0200
+
+  * GH-3045: broker/Data/data_to_val: Fail on vectors/lists with holes (Arne Welzel, Corelight)
+
+    Instead of simply removing holes from vectors or lists when converting
+    from Val to Broker format, error out as the receiver has no chance to
+    reconstruct where the hole might have been.
+
+    We could encode holes with broker::none, but this will put unnecessary
+    burden on language bindings and users due to the potential optionality.
+    Think a std::vector<uint64_t> that technically needs to be a
+    std::vector<std::optional<uint64_t>> to represent optional elements
+    properly.
+
+    Closes #3045
+
 8.0.0-dev.2 | 2025-04-25 16:11:36 -0700
 
   * Fix use-after-move in recent broker changes (Tim Wojtulewicz, Corelight)

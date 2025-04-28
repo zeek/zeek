@@ -841,8 +841,10 @@ std::optional<broker::data> val_to_data(const Val* v) {
             for ( auto i = 0u; i < vec->Size(); ++i ) {
                 auto item_val = vec->ValAt(i);
 
-                if ( ! item_val )
-                    continue;
+                if ( ! item_val ) {
+                    reporter->Error("serialization of vectors with holes is unsupported");
+                    return std::nullopt;
+                }
 
                 auto item = val_to_data(item_val.get());
 
@@ -864,8 +866,10 @@ std::optional<broker::data> val_to_data(const Val* v) {
             for ( auto i = 0; i < list->Length(); ++i ) {
                 const auto& item_val = list->Idx(i);
 
-                if ( ! item_val )
-                    continue;
+                if ( ! item_val ) {
+                    reporter->Error("serialization of lists with holes is unsupported");
+                    return std::nullopt;
+                }
 
                 auto item = val_to_data(item_val.get());
 

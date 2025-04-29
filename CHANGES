@@ -1,3 +1,9 @@
+8.0.0-dev.10 | 2025-04-29 15:00:44 +0200
+
+  * coalesce smtp handlers for ADDR (Mohan Dhawan, Corelight)
+
+  * Add fine-grained groups for Intel events (Mohan Dhawan, Corelight)
+
 8.0.0-dev.7 | 2025-04-28 19:41:01 +0200
 
   * broker/WebSocketShim: Check RegisterFd() return (Arne Welzel, Corelight)

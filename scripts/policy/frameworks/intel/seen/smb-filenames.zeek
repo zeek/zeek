@@ -2,7 +2,7 @@
 @load base/frameworks/intel
 @load ./where-locations
 
-event file_new(f: fa_file)
+event file_new(f: fa_file) &group="Intel::FILE_NAME"
     {
     if ( f$source != "SMB" )
         return;

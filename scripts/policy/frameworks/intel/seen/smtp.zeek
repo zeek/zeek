@@ -3,7 +3,7 @@
 @load base/protocols/smtp
 @load ./where-locations
 
-event mime_end_entity(c: connection)
+event mime_end_entity(c: connection) &group="Intel::ADDR"
 	{
 	if ( c?$smtp )
 		{
@@ -18,17 +18,29 @@ event mime_end_entity(c: connection)
 				}
 			}
 
+		if ( c$smtp?$x_originating_ip )
+			Intel::seen([$host=c$smtp$x_originating_ip,
+			             $conn=c,
+			             $where=SMTP::IN_X_ORIGINATING_IP_HEADER]);
+		}
+	}
+
+event mime_end_entity(c: connection) &group="Intel::SOFTWARE"
+	{
+	if ( c?$smtp )
+		{
 		if ( c$smtp?$user_agent )
 			Intel::seen([$indicator=c$smtp$user_agent,
 			             $indicator_type=Intel::SOFTWARE,
 			             $conn=c,
 			             $where=SMTP::IN_HEADER]);
+		}
+	}
 
-		if ( c$smtp?$x_originating_ip )
-			Intel::seen([$host=c$smtp$x_originating_ip,
-			             $conn=c,
-			             $where=SMTP::IN_X_ORIGINATING_IP_HEADER]);
-
+event mime_end_entity(c: connection) &group="Intel::EMAIL"
+	{
+	if ( c?$smtp )
+		{
 		if ( c$smtp?$mailfrom )
 			{
 			Intel::seen([$indicator=c$smtp$mailfrom,

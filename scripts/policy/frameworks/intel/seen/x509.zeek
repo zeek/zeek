@@ -9,7 +9,7 @@ export {
         option enable_x509_ext_subject_alternative_name = T;
 }
 
-event x509_ext_subject_alternative_name(f: fa_file, ext: X509::SubjectAlternativeName)
+event x509_ext_subject_alternative_name(f: fa_file, ext: X509::SubjectAlternativeName) &group="Intel::DOMAIN"
 	{
 	if ( enable_x509_ext_subject_alternative_name && ext?$dns )
 		{
@@ -21,7 +21,7 @@ event x509_ext_subject_alternative_name(f: fa_file, ext: X509::SubjectAlternativ
 		}
 	}
 
-event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certificate)
+event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certificate) &group="Intel::EMAIL"
 	{
 	if ( /emailAddress=/ in cert$subject )
 		{
@@ -32,7 +32,10 @@ event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certifi
 			     $f=f,
 			     $where=X509::IN_CERT]);
 		}
+	}
 
+event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certificate) &group="Intel::CERT_HASH"
+	{
 	if ( f$info?$sha1 ) # if the file_hash event was raised before the x509 event...
 		{
 		Intel::seen([$indicator=f$info$sha1,
@@ -42,7 +45,7 @@ event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certifi
 		}
 	}
 
-event file_hash(f: fa_file, kind: string, hash: string)
+event file_hash(f: fa_file, kind: string, hash: string) &group="Intel::CERT_HASH"
 	{
 	if ( ! f?$info || ! f$info?$x509 || kind != "sha1" )
 		return;

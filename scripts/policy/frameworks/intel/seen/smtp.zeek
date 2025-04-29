@@ -3,7 +3,7 @@
 @load base/protocols/smtp
 @load ./where-locations
 
-event mime_end_entity(c: connection)
+event mime_end_entity(c: connection) &group="Intel::ADDR"
 	{
 	if ( c?$smtp )
 		{
@@ -17,13 +17,7 @@ event mime_end_entity(c: connection)
 				             $where=SMTP::IN_RECEIVED_HEADER]);
 				}
 			}
-		}
-	}
 
-event mime_end_entity(c: connection) &group="Intel::ADDR"
-	{
-	if ( c?$smtp )
-		{
 		if ( c$smtp?$x_originating_ip )
 			Intel::seen([$host=c$smtp$x_originating_ip,
 			             $conn=c,

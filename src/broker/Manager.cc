@@ -3,6 +3,8 @@
 #include <broker/broker.hh>
 #include <broker/config.hh>
 #include <broker/configuration.hh>
+#include <broker/event_observer.hh>
+#include <broker/logger.hh>
 #include <broker/zeek.hh>
 #include <unistd.h>
 #include <cstdio>
@@ -111,6 +113,11 @@ void print_escaped(std::string& buf, std::string_view str) {
     }
     buf.push_back('"');
 }
+
+class LoggerAdapter : public broker::event_observer {
+public:
+    explicit LoggerAdapter() {}
+};
 
 } // namespace
 
@@ -360,6 +367,9 @@ void Manager::InitPostScript() {
     config.set("caf.work-stealing.aggressive-steal-interval", get_option("Broker::aggressive_interval")->AsCount());
     config.set("caf.work-stealing.moderate-steal-interval", get_option("Broker::moderate_interval")->AsCount());
     config.set("caf.work-stealing.relaxed-steal-interval", get_option("Broker::relaxed_interval")->AsCount());
+
+    auto adapter = std::make_shared<LoggerAdapter>();
+    broker::logger(adapter); // *must* be called before creating the BrokerState
 
     auto cqs = get_option("Broker::congestion_queue_size")->AsCount();
     bstate = std::make_shared<BrokerState>(std::move(config), cqs);

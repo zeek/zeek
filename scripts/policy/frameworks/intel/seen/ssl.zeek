@@ -2,7 +2,7 @@
 @load base/protocols/ssl
 @load ./where-locations
 
-event ssl_extension_server_name(c: connection, is_orig: bool, names: string_vec)
+event ssl_extension_server_name(c: connection, is_orig: bool, names: string_vec) &group="Intel::DOMAIN"
 	{
 	if ( is_orig && c?$ssl && c$ssl?$server_name )
 		Intel::seen([$indicator=c$ssl$server_name,
@@ -11,7 +11,7 @@ event ssl_extension_server_name(c: connection, is_orig: bool, names: string_vec)
 		             $where=SSL::IN_SERVER_NAME]);
 	}
 
-event ssl_established(c: connection)
+event ssl_established(c: connection) &group="Intel::DOMAIN"
 	{
 	if ( ! c$ssl?$cert_chain || |c$ssl$cert_chain| == 0 ||
 	     ! c$ssl$cert_chain[0]?$x509 )

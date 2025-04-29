@@ -277,8 +277,8 @@ public type Frame = unit(header: LongHeaderPacket, from_client: bool, crypto_sin
 
   # TODO: add other FrameTypes as well
   switch ( self.frame_type ) {
-    FrameType::ACK1 -> a: ACKPayload;
-    FrameType::ACK2 -> b: ACKPayload;
+    FrameType::ACK1 -> a: ACKPayload(FrameType::ACK1);
+    FrameType::ACK2 -> b: ACKPayload(FrameType::ACK2);
     FrameType::CRYPTO -> c: CRYPTOPayload(from_client) {
       # Have the sink re-assemble potentially out-of-order cryptodata
       crypto_sink.write(self.c.cryptodata, self.c.offset.result_);
@@ -298,11 +298,26 @@ type CRYPTOPayload = unit(from_client: bool) {
   cryptodata: bytes &size=self.length.result_;
 };
 
-type ACKPayload = unit {
+# https://datatracker.ietf.org/doc/html/rfc9000#ack-ranges
+type ACKRange = unit {
+  gap: VariableLengthInteger;
+  ack_range_length: VariableLengthInteger;
+};
+
+type ACKECNCounts = unit {
+  ect0: VariableLengthInteger;
+  ect1: VariableLengthInteger;
+  ecn_ce: VariableLengthInteger;
+};
+
+# https://datatracker.ietf.org/doc/html/rfc9000#name-ack-frames
+type ACKPayload = unit(frame_type: FrameType) {
   latest_ack: VariableLengthInteger;
   ack_delay: VariableLengthInteger;
   ack_range_count: VariableLengthInteger;
   first_ack_range: VariableLengthInteger;
+  ack_ranges: ACKRange[self.ack_range_count.result_];
+  ecn_counts: ACKECNCounts if(frame_type == FrameType::ACK2);
 };
 
 type ConnectionClosePayload = unit(header: LongHeaderPacket) {

@@ -1,3 +1,9 @@
+8.0.0-dev.13 | 2025-04-29 08:52:55 -0700
+
+  * External tests: add removed logs to CT list to prevent baseline changes (Johanna Amann, Corelight)
+
+  * Update Mozilla CA list and CT list to NSS 3.110 (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.10 | 2025-04-29 15:00:44 +0200
 
   * coalesce smtp handlers for ADDR (Mohan Dhawan, Corelight)

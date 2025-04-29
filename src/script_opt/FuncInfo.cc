@@ -265,6 +265,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"find_entropy", ATTR_FOLDABLE},
     {"find_in_zeekpath", ATTR_IDEMPOTENT}, // can error
     {"find_last", ATTR_FOLDABLE},
+    {"find_first", ATTR_FOLDABLE},
     {"find_str", ATTR_FOLDABLE},
     {"floor", ATTR_FOLDABLE},
     {"flush_all", ATTR_NO_SCRIPT_SIDE_EFFECTS},

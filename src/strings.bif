@@ -1107,6 +1107,30 @@ function find_last%(str: string, re: pattern%) : string
 	return zeek::val_mgr->EmptyString();
 	%}
 
+## Finds the first occurrence of a pattern in a string.
+##
+## str: The string to inspect.
+##
+## re: The pattern to look for in *str*.
+##
+## Returns: The first string in *str* that matches *re*, or the empty string.
+##
+## .. zeek:see:: find_all find_all_ordered find_last strstr
+function find_first%(str: string, re: pattern%) : string
+	%{
+	const u_char* s = str->Bytes();
+	const u_char* e = s + str->Len();
+
+	for ( const u_char* t = s; t < e; ++t )
+		{
+		int n = re->MatchPrefix(t, e - t);
+		if ( n >= 0 )
+			return zeek::make_intrusive<zeek::StringVal>(n, (const char*) t);
+		}
+
+	return zeek::val_mgr->EmptyString();
+	%}
+
 ## Returns a hex dump for given input data. The hex dump renders 16 bytes per
 ## line, with hex on the left and ASCII (where printable)
 ## on the right.

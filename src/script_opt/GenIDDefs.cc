@@ -92,11 +92,18 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s) {
                     st->Traverse(this);
                 }
             }
-            else
-                // If there's just a single statement then there are no
-                // expressions computed subsequent to it that we need to
-                // worry about, so just do ordinary traversal.
+            else {
+                // If there's just a single statement then there are two
+                // possibilities. If the statement is atomic (no sub-statements)
+                // then given that it's in reduced form, it's not going to have
+                // any expressions that we can leverage. OTOH, if it's compound
+                // (if/for/while/switch) then there's no safe re-using of
+                // expressions within it since they may-or-may-not wind up
+                // being computed. So we should always start a new block.
+                StartConfluenceBlock(s);
+                did_confluence = true;
                 block->Traverse(this);
+            }
 
             if ( did_confluence )
                 EndConfluenceBlock();

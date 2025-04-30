@@ -1,7 +1,6 @@
 # @TEST-DOC: ZAM maintenance script for tracking changes in BiFs.
 #
 # @TEST-REQUIRES: have-spicy
-# @TEST-REQUIRES: have-zeromq
 #
 # @TEST-EXEC: zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
@@ -213,7 +212,6 @@ global known_BiFs = set(
 	"Telemetry::__histogram_observe",
 	"Telemetry::__histogram_sum",
 	"WebSocket::__configure_analyzer",
-	"Cluster::Backend::ZeroMQ::spawn_zmq_proxy_thread",
 	"__init_primary_bifs",
 	"__init_secondary_bifs",
 	"active_file",
@@ -585,6 +583,13 @@ function fmt_str_set(s: set[string]): string
 	return set_str;
 	}
 
+
+const ignored_module_patterns: table[pattern] of bool = {
+	# ZeroMQ is only an optional dependency and the BiFs it
+	# provides aren't performance critical, ignore it.
+	[/^Cluster::Backend::ZeroMQ.*/] = T,
+};
+
 event zeek_init()
 	{
 	local unseen_bifs = known_BiFs;
@@ -597,6 +602,9 @@ event zeek_init()
 		     # format to that plus their body.
 		     fmt("%s", gi$value) == gn )
 			{
+			if ( |ignored_module_patterns[gn]| > 0 )
+				next;
+
 			if ( gn in unseen_bifs )
 				{
 				add seen_bifs[gn];

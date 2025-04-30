@@ -300,8 +300,8 @@ ubuntu24_clang_libcpp_task:
   << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR
   env:
-    CC: clang-18
-    CXX: clang++-18
+    CC: clang-19
+    CXX: clang++-19
     CXXFLAGS: -stdlib=libc++
 
 ubuntu22_task:
@@ -445,8 +445,8 @@ ubsan_sanitizer_task:
   << : *SKIP_TASK_ON_PR
   test_fuzzers_script: ./ci/test-fuzzers.sh
   env:
-    CC: clang-18
-    CXX: clang++-18
+    CC: clang-19
+    CXX: clang++-19
     CXXFLAGS: -DZEEK_DICT_DEBUG
     ZEEK_CI_CONFIGURE_FLAGS: *UBSAN_SANITIZER_CONFIG
     ZEEK_TAILORED_UB_CHECKS: 1
@@ -459,8 +459,8 @@ ubsan_sanitizer_zam_task:
 
   << : *CI_TEMPLATE
   env:
-    CC: clang-18
-    CXX: clang++-18
+    CC: clang-19
+    CXX: clang++-19
     ZEEK_CI_CONFIGURE_FLAGS: *UBSAN_SANITIZER_CONFIG
     ZEEK_TAILORED_UB_CHECKS: 1
     UBSAN_OPTIONS: print_stacktrace=1
@@ -480,8 +480,8 @@ tsan_sanitizer_task:
   << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR
   env:
-    CC: clang-18
-    CXX: clang++-18
+    CC: clang-19
+    CXX: clang++-19
     ZEEK_CI_CONFIGURE_FLAGS: *TSAN_SANITIZER_CONFIG
     ZEEK_CI_DISABLE_SCRIPT_PROFILING: 1
     # If this is defined directly in the environment, configure fails to find

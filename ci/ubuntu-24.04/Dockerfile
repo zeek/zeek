@@ -11,8 +11,9 @@ RUN apt-get update && apt-get -y install \
     bison \
     bsdmainutils \
     ccache \
-    clang-18 \
-    clang++-18 \
+    clang-19 \
+    clang++-19 \
+    clang-tidy-19 \
     cmake \
     cppzmq-dev \
     curl \
@@ -46,6 +47,12 @@ RUN apt-get update && apt-get -y install \
 
 RUN pip3 install --break-system-packages websockets junit2html
 RUN gem install coveralls-lcov
+
+# Ubuntu installs clang versions with the binaries having the version number
+# appended. Create a symlink for clang-tidy so cmake finds it correctly.
+if [ ! -f /usr/bin/clang-tidy ]; then
+   ln -s /usr/bin/clang-tidy-19 /usr/bin/clang-tidy
+fi
 
 # Download a newer pre-built ccache version that recognizes -fprofile-update=atomic
 # which is used when building with --coverage.

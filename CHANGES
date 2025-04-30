@@ -1,3 +1,9 @@
+7.2.0-rc1.6 | 2025-04-29 17:51:10 -0700
+
+  * fixed incorrect ZAM optimization of expressions seen in single-statement inlined functions (Vern Paxson, Corelight)
+
+    (cherry picked from commit e56de061f9f59272d83b9ffa0540e965d47e4399)
+
 7.2.0-rc1.5 | 2025-04-29 08:53:37 -0700
 
   * External tests: add removed logs to CT list to prevent baseline changes (Johanna Amann, Corelight)

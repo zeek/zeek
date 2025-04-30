@@ -7,23 +7,6 @@
 
 using namespace zeek;
 using namespace zeek::storage;
-
-// Utility method to cast the handle val passed into BIF methods into a form that can
-// be used to start storage operations. This is a duplicate of the method in sync.bif
-// due to how utility methods are built by bifcl.
-/*
-static zeek::expected<storage::detail::BackendHandleVal*, OperationResult> cast_handle(Val* handle) {
-    auto b = static_cast<storage::detail::BackendHandleVal*>(handle);
-
-    if ( ! b )
-        return zeek::unexpected<OperationResult>(
-            OperationResult{ReturnCode::OPERATION_FAILED, "Invalid storage handlle"});
-    else if ( ! b->backend->IsOpen() )
-        return zeek::unexpected<OperationResult>(OperationResult{ReturnCode::NOT_CONNECTED, "Backend is closed"});
-
-    return b;
-}
-*/
 %%}
 
 module Storage::Sync;
@@ -64,7 +47,7 @@ function Storage::Sync::__close_backend%(backend: opaque of Storage::BackendHand
 	%{
 	OperationResult op_result;
 
-	auto b = cast_handle(backend);
+	auto b = storage::detail::BackendHandleVal::CastFromAny(backend);
 	if ( ! b )
 		op_result = b.error();
 	else {
@@ -89,7 +72,7 @@ function Storage::Sync::__put%(backend: opaque of Storage::BackendHandle, key: a
 	%{
 	OperationResult op_result;
 
-	auto b = cast_handle(backend);
+	auto b = storage::detail::BackendHandleVal::CastFromAny(backend);
 	if ( ! b )
 		op_result = b.error();
 	else {
@@ -118,7 +101,7 @@ function Storage::Sync::__get%(backend: opaque of Storage::BackendHandle, key: a
 	%{
 	OperationResult op_result;
 
-	auto b = cast_handle(backend);
+	auto b = storage::detail::BackendHandleVal::CastFromAny(backend);
 	if ( ! b )
 		op_result = b.error();
 	else {
@@ -143,7 +126,7 @@ function Storage::Sync::__erase%(backend: opaque of Storage::BackendHandle, key:
 	%{
 	OperationResult op_result;
 
-	auto b = cast_handle(backend);
+	auto b = storage::detail::BackendHandleVal::CastFromAny(backend);
 	if ( ! b )
 		op_result = b.error();
 	else {

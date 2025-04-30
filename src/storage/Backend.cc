@@ -164,4 +164,26 @@ bool detail::BackendHandleVal::DoUnserializeData(BrokerDataView) {
     return false;
 }
 
+namespace detail {
+
+zeek::expected<storage::detail::BackendHandleVal*, OperationResult> BackendHandleVal::CastFromAny(Val* handle) {
+    // Quick exit by checking the type tag. This should be faster than doing the dynamic
+    // cast below.
+    if ( handle->GetType() != detail::backend_opaque )
+        return zeek::unexpected<OperationResult>(
+            OperationResult{ReturnCode::OPERATION_FAILED, "Invalid storage handle type"});
+
+    auto b = dynamic_cast<storage::detail::BackendHandleVal*>(handle);
+
+    if ( ! b )
+        return zeek::unexpected<OperationResult>(
+            OperationResult{ReturnCode::OPERATION_FAILED, "Invalid storage handle type"});
+    else if ( ! b->backend->IsOpen() )
+        return zeek::unexpected<OperationResult>(OperationResult{ReturnCode::NOT_CONNECTED, "Backend is closed"});
+
+    return b;
+}
+
+} // namespace detail
+
 } // namespace zeek::storage

@@ -24,6 +24,8 @@ event zeek_init() {
 
 	local b = open_res$value;
 
+	print "Opened handle is open", Storage::is_open(b);
+
 	local bad_key: count = 12345;
 	local value = "abcde";
 	local res = Storage::Sync::put(b, [$key=bad_key, $value=value]);
@@ -31,6 +33,10 @@ event zeek_init() {
 
 	# Close the backend and then attempt to use the closed handle
 	Storage::Sync::close_backend(b);
+
+	# Test if the now-closed backend is open.
+	print "Closed backend is open", Storage::is_open(b);
+
 	local res2 = Storage::Sync::put(b, [$key="a", $value="b"]);
 	print "Put result on closed handle", res2;
 }

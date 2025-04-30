@@ -1,0 +1,24 @@
+##! Functions related to general storage operations. These are not specific to async or sync.
+
+%%{
+
+#include "zeek/storage/Backend.h"
+
+using namespace zeek;
+using namespace zeek::storage;
+
+%%}
+
+module Storage;
+
+## Checks whether a storage backend is open.
+##
+## backend: A handle to the backed to check.
+##
+## Returns: T if the backend is open, F if the backend is not open or if the handle
+##          is invalid.
+function Storage::is_open%(backend: opaque of Storage::BackendHandle%) : bool
+	%{
+	auto b = storage::detail::BackendHandleVal::CastFromAny(backend);
+	return zeek::val_mgr->Bool(b.has_value());
+	%}

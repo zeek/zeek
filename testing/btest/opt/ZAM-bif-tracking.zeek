@@ -178,6 +178,7 @@ global known_BiFs = set(
 	"Reporter::warning",
 	"Spicy::__resource_usage",
 	"Spicy::__toggle_analyzer",
+	"Storage::is_open",
 	"Storage::Async::__close_backend",
 	"Storage::Async::__erase",
 	"Storage::Async::__get",

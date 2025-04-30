@@ -567,22 +567,23 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
       context.server_cid_len = self.long_header.dest_conn_id_len;
       context.client_cid_len = self.long_header.src_conn_id_len;
 
+      # This is the first INITIAL packet we attempt to decrypt and it is
+      # coming from the client. Use its destination connection ID for
+      # decryption purposes.
+      if ( |context.initial_destination_conn_id| == 0 ) {
+        context.initial_destination_conn_id = self.long_header.dest_conn_id;
+      }
+
       # This means that here, we can try to decrypt the initial packet!
       # All data is accessible via the `long_header` unit
       self.decrypted_data = decrypt_crypto_payload(
         self.long_header.version,
         self.packet_data,
-        self.long_header.dest_conn_id,
+        context.initial_destination_conn_id,
         self.long_header.encrypted_offset,
         self.long_header.payload_length,
         from_client
       );
-
-      # Assuming that the client set up the connection, this can be considered the first
-      # received Initial from the client. So disable change of ConnectionID's afterwards
-      if ( |context.initial_destination_conn_id| == 0 ) {
-        context.initial_destination_conn_id = self.long_header.dest_conn_id;
-      }
 
     } else {
       context.server_cid_len = self.long_header.src_conn_id_len;

@@ -4,15 +4,16 @@ ENV DEBIAN_FRONTEND="noninteractive" TZ="America/Los_Angeles"
 
 # A version field to invalidate Cirrus's build cache when needed, as suggested in
 # https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION 20241024
+ENV DOCKERFILE_VERSION 20250522
 
 RUN apt-get update && apt-get -y install \
     bc \
     bison \
     bsdmainutils \
     ccache \
-    clang-18 \
-    clang++-18 \
+    clang-19 \
+    clang++-19 \
+    clang-tidy-19 \
     cmake \
     cppzmq-dev \
     curl \
@@ -46,6 +47,10 @@ RUN apt-get update && apt-get -y install \
 
 RUN pip3 install --break-system-packages websockets junit2html
 RUN gem install coveralls-lcov
+
+# Ubuntu installs clang versions with the binaries having the version number
+# appended. Create a symlink for clang-tidy so cmake finds it correctly.
+RUN update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-19 1000
 
 # Download a newer pre-built ccache version that recognizes -fprofile-update=atomic
 # which is used when building with --coverage.

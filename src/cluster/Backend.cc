@@ -15,6 +15,8 @@
 #include "zeek/cluster/Serializer.h"
 #include "zeek/cluster/cluster.bif.h"
 #include "zeek/logging/Manager.h"
+#include "zeek/plugin/Manager.h"
+#include "zeek/plugin/Plugin.h"
 #include "zeek/util.h"
 
 using namespace zeek::cluster;
@@ -119,6 +121,10 @@ void Backend::DoReadyToPublishCallback(Backend::ReadyCallback cb) {
 // Default implementation doing the serialization.
 bool Backend::DoPublishEvent(const std::string& topic, cluster::detail::Event& event) {
     byte_buffer buf;
+
+    bool do_publish = PLUGIN_HOOK_WITH_RESULT(HOOK_PUBLISH_EVENT, HookPublishEvent(*this, topic, event), true);
+    if ( ! do_publish )
+        return true;
 
     if ( ! event_serializer->SerializeEvent(buf, event) )
         return false;

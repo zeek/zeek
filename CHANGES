@@ -1,3 +1,10 @@
+8.0.0-dev.22 | 2025-04-30 17:56:03 +0200
+
+  * Add a new HookPublishEvent() plugin hook (Arne Welzel, Corelight)
+
+    This hook can be implemented and enabled by plugins in order to
+    intercept Cluster::publish() calls.
+
 8.0.0-dev.17 | 2025-04-30 17:23:06 +0200
 
   * ZAM-bif-tracking: Remove ZeroMQ dependency (Arne Welzel, Corelight)

@@ -408,11 +408,6 @@ public type ShortPacketPayload = unit {
   payload: skip bytes &eod;
 };
 
-# TODO: investigate whether we can do something useful with this
-public type EncryptedLongPacketPayload = unit {
-  payload: skip bytes &eod;
-};
-
 # Buffer all crypto messages (which might be fragmented and unordered)
 # into the following unit.
 type CryptoBuffer = unit() {
@@ -536,10 +531,9 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
     spicy::accept_input();
   }
 
-  # Depending on the type of header and whether we were able to decrypt
-  # some of it, parse the remaining payload.
+  # If this packet has a SHORT header, consume until &eod, there's nothing
+  # we can do with it anyhow.
   : ShortPacketPayload if (self.first_byte.header_form == HeaderForm::SHORT);
-  : EncryptedLongPacketPayload if (self.first_byte.header_form == HeaderForm::LONG && |self.decrypted_data| == 0);
 
   # If this was packet with a long header and decrypted data exists, attempt
   # to parse the plain QUIC frames from it.

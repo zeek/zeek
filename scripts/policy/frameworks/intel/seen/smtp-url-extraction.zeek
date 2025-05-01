@@ -21,7 +21,7 @@ event intel_mime_data(f: fa_file, data: string) &group="Intel::URL"
 		}
 	}
 
-event file_new(f: fa_file) &group="Intel::URL"
+event file_new(f: fa_file)
 	{
 	if ( f$source == "SMTP" )
 		Files::add_analyzer(f, Files::ANALYZER_DATA_EVENT, [$stream_event=intel_mime_data]);

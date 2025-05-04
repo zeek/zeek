@@ -31,7 +31,7 @@ function can_decrypt(long_header: LongHeaderPacket, context: ConnectionIDInfo, c
     return False;
 
   # Can only decrypt the responder if we've seen the initial destination conn id.
-  if ( ! crypto.is_orig && |context.initial_destination_conn_id| == 0 )
+  if ( ! crypto.is_orig && ! context.initial_destination_conn_id )
     return False;
 
   # Only attempt decryption if we haven't flushed some SSL data yet.
@@ -113,7 +113,7 @@ type ConnectionIDInfo = struct {
   # will make life miserable.
   #
   # https://quicwg.org/base-drafts/rfc9001.html#appendix-A
-  initial_destination_conn_id: bytes;
+  initial_destination_conn_id: optional<bytes>;
 
   # Track crypto state.
   client_crypto: CryptoSinkUnit&;
@@ -548,7 +548,7 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
           self.crypto_sink = Null;
 
           # Reset crypto state!
-          context.initial_destination_conn_id = b"";
+          context.initial_destination_conn_id = Null;
         }
      }
   };
@@ -570,7 +570,7 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
       # This is the first INITIAL packet we attempt to decrypt and it is
       # coming from the client. Use its destination connection ID for
       # decryption purposes.
-      if ( |context.initial_destination_conn_id| == 0 ) {
+      if ( ! context.initial_destination_conn_id ) {
         context.initial_destination_conn_id = self.long_header.dest_conn_id;
       }
 
@@ -579,7 +579,7 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
       self.decrypted_data = decrypt_crypto_payload(
         self.long_header.version,
         self.packet_data,
-        context.initial_destination_conn_id,
+        *context.initial_destination_conn_id,
         self.long_header.encrypted_offset,
         self.long_header.payload_length,
         from_client
@@ -592,7 +592,7 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
       self.decrypted_data = decrypt_crypto_payload(
         self.long_header.version,
         self.packet_data,
-        context.initial_destination_conn_id,
+        *context.initial_destination_conn_id,
         self.long_header.encrypted_offset,
         self.long_header.payload_length,
         from_client

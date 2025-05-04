@@ -17,12 +17,8 @@ public function decrypt_crypto_payload(
 ): bytes &cxxname="QUIC_decrypt_crypto_payload";
 
 
-##############
-## Context - tracked in one connection
-##############
-
 # Can we decrypt?
-function can_decrypt(long_header: LongHeaderPacket, context: ConnectionIDInfo, crypto: CryptoSinkUnit&): bool {
+function can_decrypt(long_header: LongHeaderPacket, context: Context, crypto: CryptoSinkUnit&): bool {
 
   if ( ! long_header.is_initial )
     return False;
@@ -40,7 +36,7 @@ function can_decrypt(long_header: LongHeaderPacket, context: ConnectionIDInfo, c
 
 # This unit is connected with the server and client sinks receiving
 # CRYPTO frames and forwards data to the SSL handle in the context.
-type CryptoSinkUnit = unit(is_orig: bool, context: ConnectionIDInfo&) {
+type CryptoSinkUnit = unit(is_orig: bool, context: Context&) {
   var buffered: bytes;
   var length: uint32 = 0;
   var is_orig: bool = is_orig;
@@ -104,7 +100,10 @@ type CryptoSinkUnit = unit(is_orig: bool, context: ConnectionIDInfo&) {
   }
 };
 
-type ConnectionIDInfo = struct {
+##############
+## Context
+##############
+type Context = struct {
   client_cid_len: uint8;
   server_cid_len: uint8;
 
@@ -479,7 +478,7 @@ public type ShortPacketPayload = unit {
 #
 # A UDP datagram contains one or more QUIC packets.
 ##############
-type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
+type Packet = unit(from_client: bool, context: Context&) {
   var decrypted_data: bytes;
   var packet_size: uint64 = 0;
   var start: iterator<stream>;
@@ -622,11 +621,11 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
 # Entrypoints
 ##############
 public type RequestFrame = unit {
-  %context = ConnectionIDInfo;
+  %context = Context;
   : Packet(True, self.context())[];
 };
 
 public type ResponseFrame = unit {
-  %context = ConnectionIDInfo;
+  %context = Context;
   : Packet(False, self.context())[];
 };

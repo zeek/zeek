@@ -1,3 +1,9 @@
+8.0.0-dev.37 | 2025-05-05 11:11:57 -0700
+
+  * Add commands to the static methods for the Redis implementation (Tim Wojtulewicz, Corelight)
+
+  * Redis: Check server version when connecting (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.34 | 2025-05-05 10:44:27 -0700
 
   * Use std::string_view in Redis::DoExpire to avoid copies (Tim Wojtulewicz, Corelight)

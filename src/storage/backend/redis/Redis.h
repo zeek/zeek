@@ -41,6 +41,7 @@ public:
     void HandleGetResult(redisReply* reply, ResultCallback* callback);
     void HandleEraseResult(redisReply* reply, ResultCallback* callback);
     void HandleGeneric(redisReply* reply);
+    void HandleInfoResult(redisReply* reply);
 
     /**
      * Returns whether the backend is opened.
@@ -60,6 +61,7 @@ private:
     void DoPoll() override;
 
     OperationResult ParseReplyError(std::string_view op_str, std::string_view reply_err_str) const;
+    OperationResult CheckServerVersion();
 
     redisAsyncContext* async_ctx = nullptr;
 

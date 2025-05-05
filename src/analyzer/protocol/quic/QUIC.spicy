@@ -17,27 +17,104 @@ public function decrypt_crypto_payload(
 ): bytes &cxxname="QUIC_decrypt_crypto_payload";
 
 
-##############
-## Context - tracked in one connection
-##############
-
 # Can we decrypt?
-function can_decrypt(long_header: LongHeaderPacket, context: ConnectionIDInfo, is_client: bool): bool {
+function can_decrypt(long_header: LongHeaderPacket, context: Context, crypto: CryptoSinkUnit&): bool {
 
   if ( ! long_header.is_initial )
     return False;
 
-  if ( is_client )
-    return ! context.client_initial_processed;
+  if ( crypto == Null )
+    return False;
 
-  # This is the responder, can only decrypt if we have an initial
-  # destination_id from the client
-  return context.client_initial_processed
-          && |context.initial_destination_conn_id| > 0
-          && ! context.server_initial_processed;
+  # Can only decrypt the responder if we've seen the initial destination conn id.
+  if ( ! crypto.is_orig && ! context.initial_destination_conn_id )
+    return False;
+
+  # Only attempt decryption if we haven't flushed some SSL data yet.
+  return ! crypto.finished;
 }
 
-type ConnectionIDInfo = struct {
+function reset_crypto(context: Context&) {
+  # Recreate all the crypto state on the next %init of Packet.
+  zeek::protocol_handle_close(context.ssl_handle);
+  unset context.ssl_handle;
+  context.client_crypto = Null;
+  context.server_crypto = Null;
+  context.client_sink = Null;
+  context.server_sink = Null;
+  context.initial_destination_conn_id = Null;
+}
+
+# This unit is connected with the server and client sinks receiving
+# CRYPTO frames and forwards data to the SSL handle in the context.
+type CryptoSinkUnit = unit(is_orig: bool, context: Context&) {
+  var buffered: bytes;
+  var length: uint32 = 0;
+  var is_orig: bool = is_orig;
+  var finished: bool;
+
+  # The first 4 bytes of crypto data contain the expected tag and a
+  # 24bit length from the TLS HandshakeMessage. Extract the length
+  # so we can determine when all CRYPTO frames have arrived.
+  #
+  # https://datatracker.ietf.org/doc/html/rfc8446#section-4
+  #
+  #  struct {
+  #    HandshakeType msg_type;    /* handshake type */
+  #    uint24 length;             /* remaining bytes in message */
+  #    ...
+  #
+  : uint8 {
+    self.buffered += $$;
+  }
+
+  len: uint8[3] {
+    self.length = (cast<uint32>($$[0]) << 16) + (cast<uint32>($$[1]) << 8) + cast<uint32>($$[2]) + 4;
+
+    self.buffered += $$[0];
+    self.buffered += $$[1];
+    self.buffered += $$[2];
+  }
+
+  : void &requires=(self.length <= 2**14 + 256) {  # The length MUST NOT exceed 2^14 + 256 bytes (RFC 8446)
+
+    # The client or server hello data is forwarded to the SSL analyzer as a
+    # TLSPlaintext record with legacy_record_version set to \x03\x03 (1.3).
+    #
+    # enum {
+    #     invalid(0),
+    #     change_cipher_spec(20),
+    #     alert(21),
+    #     handshake(22),
+    #     application_data(23),
+    #     (255)
+    # } ContentType;
+    #
+    # struct {
+    #     ContentType type;
+    #     ProtocolVersion legacy_record_version;
+    #     uint16 length;
+    #     opaque fragment[TLSPlaintext.length];
+    # } TLSPlaintext;
+    #
+    # https://datatracker.ietf.org/doc/html/rfc8446#section-5.1
+    local length_bytes = pack(cast<uint16>(self.length), spicy::ByteOrder::Big);
+    zeek::protocol_data_in(is_orig, b"\x16\x03\x03" + length_bytes + self.buffered, context.ssl_handle);
+  }
+
+  : bytes &chunked &size=(self.length - 4) {
+    zeek::protocol_data_in(is_orig, $$, context.ssl_handle);
+  }
+
+  : void {
+    self.finished = True;
+  }
+};
+
+##############
+## Context
+##############
+type Context = struct {
   client_cid_len: uint8;
   server_cid_len: uint8;
 
@@ -46,26 +123,13 @@ type ConnectionIDInfo = struct {
   # will make life miserable.
   #
   # https://quicwg.org/base-drafts/rfc9001.html#appendix-A
-  initial_destination_conn_id: bytes;
+  initial_destination_conn_id: optional<bytes>;
 
-  # Currently, this analyzer assumes that ClientHello
-  # and ServerHello fit into the first INITIAL packet (and
-  # that there is only one that we're interested in.
-  #
-  # But minimally the following section sounds like this might not
-  # hold in general and the Wireshark has samples showing
-  # the handshake spanning across more than two INITIAL packets.
-  # (quic-fragmented-handshakes.pcapng.gz)
-  #
-  # https://datatracker.ietf.org/doc/html/rfc9001#section-4.3
-  #
-  # Possible fix is to buffer up all CRYPTO frames across multiple
-  # INITIAL packets until we see a non-INITIAL frame.
-  #
-  # We also rely heavily on getting originator and responder right.
-  #
-  client_initial_processed: bool;
-  server_initial_processed: bool;
+  # Track crypto state.
+  client_crypto: CryptoSinkUnit&;
+  client_sink: sink&;
+  server_crypto: CryptoSinkUnit&;
+  server_sink: sink&;
 
   ssl_handle: zeek::ProtocolHandle &optional;
 };
@@ -272,16 +336,28 @@ public type LongHeaderPacket = unit {
 };
 
 # A QUIC Frame.
-public type Frame = unit(header: LongHeaderPacket, from_client: bool, crypto_sink: sink&) {
+public type Frame = unit(header: LongHeaderPacket, from_client: bool, crypto: CryptoSinkUnit, crypto_sink: sink&) {
   frame_type : uint8 &convert=cast<FrameType>($$);
 
   # TODO: add other FrameTypes as well
   switch ( self.frame_type ) {
-    FrameType::ACK1 -> a: ACKPayload;
-    FrameType::ACK2 -> b: ACKPayload;
+    FrameType::ACK1 -> a: ACKPayload(FrameType::ACK1);
+    FrameType::ACK2 -> b: ACKPayload(FrameType::ACK2);
     FrameType::CRYPTO -> c: CRYPTOPayload(from_client) {
       # Have the sink re-assemble potentially out-of-order cryptodata
       crypto_sink.write(self.c.cryptodata, self.c.offset.result_);
+
+      # If the crypto unit has determined a valid length, ensure we
+      # don't attempt to write more bytes into the sink. If it doesn't,
+      # use 2000 bytes as an arbitrary limit required to observe the
+      # length of the contained Client Hello or Server Hello.
+      if ( crypto.length > 0 ) {
+        if ( |crypto_sink| > crypto.length )
+          throw "too much crypto data received %s > %s" % ( |crypto_sink|, crypto.length);
+      } else {
+        if ( |crypto_sink| > 2000 )
+          throw "too much crypto data without length received %s" % |crypto_sink|;
+      }
     }
     FrameType::CONNECTION_CLOSE1 -> : ConnectionClosePayload(header);
     FrameType::PADDING -> : skip /\x00*/;  # eat the padding
@@ -298,11 +374,26 @@ type CRYPTOPayload = unit(from_client: bool) {
   cryptodata: bytes &size=self.length.result_;
 };
 
-type ACKPayload = unit {
+# https://datatracker.ietf.org/doc/html/rfc9000#ack-ranges
+type ACKRange = unit {
+  gap: VariableLengthInteger;
+  ack_range_length: VariableLengthInteger;
+};
+
+type ACKECNCounts = unit {
+  ect0: VariableLengthInteger;
+  ect1: VariableLengthInteger;
+  ecn_ce: VariableLengthInteger;
+};
+
+# https://datatracker.ietf.org/doc/html/rfc9000#name-ack-frames
+type ACKPayload = unit(frame_type: FrameType) {
   latest_ack: VariableLengthInteger;
   ack_delay: VariableLengthInteger;
   ack_range_count: VariableLengthInteger;
   first_ack_range: VariableLengthInteger;
+  ack_ranges: ACKRange[self.ack_range_count.result_];
+  ecn_counts: ACKECNCounts if(frame_type == FrameType::ACK2);
 };
 
 type ConnectionClosePayload = unit(header: LongHeaderPacket) {
@@ -393,35 +484,18 @@ public type ShortPacketPayload = unit {
   payload: skip bytes &eod;
 };
 
-# TODO: investigate whether we can do something useful with this
-public type EncryptedLongPacketPayload = unit {
-  payload: skip bytes &eod;
-};
-
-# Buffer all crypto messages (which might be fragmented and unordered)
-# into the following unit.
-type CryptoBuffer = unit() {
-
-  var buffered: bytes;
-
-  : bytes &chunked &eod {
-    self.buffered += $$;
-    # print "crypto_buffer got data", |$$|, |self.buffered|;
-  }
-};
-
 ##############
 # QUIC packet parsing
 #
 # A UDP datagram contains one or more QUIC packets.
 ##############
-type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
+type Packet = unit(from_client: bool, context: Context&) {
   var decrypted_data: bytes;
   var packet_size: uint64 = 0;
   var start: iterator<stream>;
 
-  sink crypto_sink;
-  var crypto_buffer: CryptoBuffer&;
+  var crypto: CryptoSinkUnit&;
+  var crypto_sink: sink&;
 
   # Attach an SSL analyzer to this connection once.
   on %init {
@@ -430,6 +504,26 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
     }
 
     self.start = self.input();
+
+    # Initialize crypto state in context for both sides if not already done.
+    if ( context.client_crypto == Null ) {
+      assert ! context.server_crypto;
+      context.client_crypto = new CryptoSinkUnit(True, context);
+      context.client_sink = new sink;
+      context.client_sink.connect(context.client_crypto);
+
+      context.server_crypto = new CryptoSinkUnit(False, context);
+      context.server_sink = new sink;
+      context.server_sink.connect(context.server_crypto);
+    }
+
+    if ( from_client ) {
+      self.crypto = context.client_crypto;
+      self.crypto_sink = context.client_sink;
+    } else {
+      self.crypto = context.server_crypto;
+      self.crypto_sink = context.server_sink;
+    }
   }
 
   # Peek into the first byte and determine the header type.
@@ -443,7 +537,6 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
     self.set_input(self.start);  # rewind
   }
 
-
   # Depending on the header, parse it and update the src/dest ConnectionID's
   switch ( self.first_byte.header_form ) {
     HeaderForm::SHORT -> short_header: ShortHeader(context.client_cid_len);
@@ -453,19 +546,16 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
         # If we see a retry packet from the responder, reset the decryption
         # context such that the next DCID from the client is used for decryption.
         if ( self.long_header.is_retry ) {
-          context.client_initial_processed = False;
-          context.server_initial_processed = False;
-          context.initial_destination_conn_id = b"";
+          reset_crypto(context);
 
-          # Allow re-opening the SSL analyzer the next time around.
-          zeek::protocol_handle_close(context.ssl_handle);
-          unset context.ssl_handle;
+          self.crypto = Null;
+          self.crypto_sink = Null;
         }
      }
   };
 
   : void {
-      if (self?.long_header && can_decrypt(self.long_header, context, from_client))
+      if ( self?.long_header && can_decrypt(self.long_header, context, self.crypto ) )
           # If we have parsed an initial packet that we can decrypt the payload,
           # determine the size to store into a buffer.
           self.packet_size = self.offset();
@@ -473,29 +563,28 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
 
   # Buffer the whole packet if we determined we have a chance to decrypt.
   packet_data: bytes &parse-at=self.start &size=self.packet_size if ( self.packet_size > 0 ) {
-    self.crypto_buffer = new CryptoBuffer();
-    self.crypto_sink.connect(self.crypto_buffer);
 
     if ( from_client ) {
       context.server_cid_len = self.long_header.dest_conn_id_len;
       context.client_cid_len = self.long_header.src_conn_id_len;
+
+      # This is the first INITIAL packet we attempt to decrypt and it is
+      # coming from the client. Use its destination connection ID for
+      # decryption purposes.
+      if ( ! context.initial_destination_conn_id ) {
+        context.initial_destination_conn_id = self.long_header.dest_conn_id;
+      }
 
       # This means that here, we can try to decrypt the initial packet!
       # All data is accessible via the `long_header` unit
       self.decrypted_data = decrypt_crypto_payload(
         self.long_header.version,
         self.packet_data,
-        self.long_header.dest_conn_id,
+        *context.initial_destination_conn_id,
         self.long_header.encrypted_offset,
         self.long_header.payload_length,
         from_client
       );
-
-      # Assuming that the client set up the connection, this can be considered the first
-      # received Initial from the client. So disable change of ConnectionID's afterwards
-      if ( |context.initial_destination_conn_id| == 0 ) {
-        context.initial_destination_conn_id = self.long_header.dest_conn_id;
-      }
 
     } else {
       context.server_cid_len = self.long_header.src_conn_id_len;
@@ -504,7 +593,7 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
       self.decrypted_data = decrypt_crypto_payload(
         self.long_header.version,
         self.packet_data,
-        context.initial_destination_conn_id,
+        *context.initial_destination_conn_id,
         self.long_header.encrypted_offset,
         self.long_header.payload_length,
         from_client
@@ -521,51 +610,24 @@ type Packet = unit(from_client: bool, context: ConnectionIDInfo&) {
     spicy::accept_input();
   }
 
-  # Depending on the type of header and whether we were able to decrypt
-  # some of it, parse the remaining payload.
+  # If this packet has a SHORT header, consume until &eod, there's nothing
+  # we can do with it anyhow.
   : ShortPacketPayload if (self.first_byte.header_form == HeaderForm::SHORT);
-  : EncryptedLongPacketPayload if (self.first_byte.header_form == HeaderForm::LONG && |self.decrypted_data| == 0);
 
   # If this was packet with a long header and decrypted data exists, attempt
   # to parse the plain QUIC frames from it.
-  frames: Frame(self.long_header, from_client, self.crypto_sink)[] &parse-from=self.decrypted_data if (self.first_byte.header_form == HeaderForm::LONG && |self.decrypted_data| > 0);
-
-  # Once the Packet is fully parsed, pass the accumulated CRYPTO frames
-  # to the SSL analyzer as handshake data.
-  on %done {
-    # print "packet done", zeek::is_orig(), self.first_byte.header_form, |self.decrypted_data|;
-
-    if ( self.crypto_buffer != Null && |self.crypto_buffer.buffered| > 0 ) {
-      local handshake_data = self.crypto_buffer.buffered;
-
-      # The data is passed to the SSL analyzer as part of a HANDSHAKE (0x16) message with TLS1.3 (\x03\x03).
-      # The 2 length bytes are also passed, followed by the actual CRYPTO blob which contains a CLIENT HELLO or SERVER HELLO
-      local length_bytes = pack(cast<uint16>(|handshake_data|), spicy::ByteOrder::Big);
-      zeek::protocol_data_in(
-        from_client
-        , b"\x16\x03\x03" + length_bytes + handshake_data
-        , context.ssl_handle
-      );
-
-      # Stop decryption attempts after processing the very first INITIAL
-      # INITIAL packet for which we forwarded data to the SSL analyzer.
-      if ( from_client )
-        context.client_initial_processed = True;
-      else
-        context.server_initial_processed = True;
-    }
-  }
+  frames: Frame(self.long_header, from_client, self.crypto, self.crypto_sink)[] &parse-from=self.decrypted_data if (self.first_byte.header_form == HeaderForm::LONG && |self.decrypted_data| > 0);
 };
 
 ##############
 # Entrypoints
 ##############
 public type RequestFrame = unit {
-  %context = ConnectionIDInfo;
+  %context = Context;
   : Packet(True, self.context())[];
 };
 
 public type ResponseFrame = unit {
-  %context = ConnectionIDInfo;
+  %context = Context;
   : Packet(False, self.context())[];
 };

@@ -65,6 +65,8 @@ have_2nd = "have_2nd"
 ot1 = "ot1"
 ot2 = "ot2"
 uses_seh = "uses_seh"
+ect0 = "ect0"
+ect1 = "ect1"
 
 [default.extend-words]
 caf = "caf"

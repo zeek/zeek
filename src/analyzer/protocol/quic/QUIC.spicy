@@ -34,6 +34,17 @@ function can_decrypt(long_header: LongHeaderPacket, context: Context, crypto: Cr
   return ! crypto.finished;
 }
 
+function reset_crypto(context: Context&) {
+  # Recreate all the crypto state on the next %init of Packet.
+  zeek::protocol_handle_close(context.ssl_handle);
+  unset context.ssl_handle;
+  context.client_crypto = Null;
+  context.server_crypto = Null;
+  context.client_sink = Null;
+  context.server_sink = Null;
+  context.initial_destination_conn_id = Null;
+}
+
 # This unit is connected with the server and client sinks receiving
 # CRYPTO frames and forwards data to the SSL handle in the context.
 type CryptoSinkUnit = unit(is_orig: bool, context: Context&) {
@@ -535,19 +546,10 @@ type Packet = unit(from_client: bool, context: Context&) {
         # If we see a retry packet from the responder, reset the decryption
         # context such that the next DCID from the client is used for decryption.
         if ( self.long_header.is_retry ) {
+          reset_crypto(context);
 
-          # Recreate all the crypto state on the next %init of Packet.
-          zeek::protocol_handle_close(context.ssl_handle);
-          unset context.ssl_handle;
-          context.client_crypto = Null;
-          context.server_crypto = Null;
-          context.client_sink = Null;
-          context.server_sink = Null;
           self.crypto = Null;
           self.crypto_sink = Null;
-
-          # Reset crypto state!
-          context.initial_destination_conn_id = Null;
         }
      }
   };

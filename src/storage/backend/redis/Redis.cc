@@ -25,18 +25,37 @@ public:
     std::string where;
 };
 
+/**
+ * Callback handler for OnConnect events from hiredis.
+ *
+ * @param ctx The async context that called this callback.
+ * @param status The status of the connection attempt.
+ */
 void redisOnConnect(const redisAsyncContext* ctx, int status) {
     auto t = Tracer("connect");
     auto backend = static_cast<zeek::storage::backend::redis::Redis*>(ctx->data);
     backend->OnConnect(status);
 }
 
+/**
+ * Callback handler for OnDisconnect events from hiredis.
+ *
+ * @param ctx The async context that called this callback.
+ * @param status The status of the disconnection attempt.
+ */
 void redisOnDisconnect(const redisAsyncContext* ctx, int status) {
     auto t = Tracer("disconnect");
     auto backend = static_cast<zeek::storage::backend::redis::Redis*>(ctx->data);
     backend->OnDisconnect(status);
 }
 
+/**
+ * Callback handler for SET commands.
+ *
+ * @param ctx The async context that called this callback.
+ * @param reply The reply from the server for the command.
+ * @param privdata A pointer to private data passed in the command.
+ */
 void redisPut(redisAsyncContext* ctx, void* reply, void* privdata) {
     auto t = Tracer("put");
     auto backend = static_cast<zeek::storage::backend::redis::Redis*>(ctx->data);
@@ -44,6 +63,13 @@ void redisPut(redisAsyncContext* ctx, void* reply, void* privdata) {
     backend->HandlePutResult(static_cast<redisReply*>(reply), callback);
 }
 
+/**
+ * Callback handler for GET commands.
+ *
+ * @param ctx The async context that called this callback.
+ * @param reply The reply from the server for the command.
+ * @param privdata A pointer to private data passed in the command.
+ */
 void redisGet(redisAsyncContext* ctx, void* reply, void* privdata) {
     auto t = Tracer("get");
     auto backend = static_cast<zeek::storage::backend::redis::Redis*>(ctx->data);
@@ -51,6 +77,13 @@ void redisGet(redisAsyncContext* ctx, void* reply, void* privdata) {
     backend->HandleGetResult(static_cast<redisReply*>(reply), callback);
 }
 
+/**
+ * Callback handler for DEL commands.
+ *
+ * @param ctx The async context that called this callback.
+ * @param reply The reply from the server for the command.
+ * @param privdata A pointer to private data passed in the command.
+ */
 void redisErase(redisAsyncContext* ctx, void* reply, void* privdata) {
     auto t = Tracer("erase");
     auto backend = static_cast<zeek::storage::backend::redis::Redis*>(ctx->data);
@@ -58,6 +91,13 @@ void redisErase(redisAsyncContext* ctx, void* reply, void* privdata) {
     backend->HandleEraseResult(static_cast<redisReply*>(reply), callback);
 }
 
+/**
+ * Callback handler for ZADD commands.
+ *
+ * @param ctx The async context that called this callback.
+ * @param reply The reply from the server for the command.
+ * @param privdata A pointer to private data passed in the command.
+ */
 void redisZADD(redisAsyncContext* ctx, void* reply, void* privdata) {
     auto t = Tracer("zadd");
     auto backend = static_cast<zeek::storage::backend::redis::Redis*>(ctx->data);
@@ -69,12 +109,26 @@ void redisZADD(redisAsyncContext* ctx, void* reply, void* privdata) {
     freeReplyObject(reply);
 }
 
+/**
+ * Callback handler for commands where there isn't a specific handler in the Redis class.
+ *
+ * @param ctx The async context that called this callback.
+ * @param reply The reply from the server for the command.
+ * @param privdata A pointer to private data passed in the command.
+ */
 void redisGeneric(redisAsyncContext* ctx, void* reply, void* privdata) {
     auto t = Tracer("generic");
     auto backend = static_cast<zeek::storage::backend::redis::Redis*>(ctx->data);
     backend->HandleGeneric(static_cast<redisReply*>(reply));
 }
 
+/**
+ * Callback handler for ZADD commands.
+ *
+ * @param ctx The async context that called this callback.
+ * @param reply The reply from the server for the command.
+ * @param privdata A pointer to private data passed in the command.
+ */
 void redisINFO(redisAsyncContext* ctx, void* reply, void* privdata) {
     auto t = Tracer("generic");
     auto backend = static_cast<zeek::storage::backend::redis::Redis*>(ctx->data);
@@ -91,6 +145,14 @@ void redisINFO(redisAsyncContext* ctx, void* reply, void* privdata) {
 // we're reading a pcap, don't add the file descriptor into iosource_mgr. Manual
 // calls to Poll() during that will handle reading/writing any data, and we
 // don't want the contention with the main loop.
+
+/**
+ * Callback from hiredis when a new reader is added to the context. This is called when
+ * data is ready to be read from the context for a command.
+ *
+ * @param privdata Private data passed back to the callback when it fires. We use this to
+ * get access to the redis backend object.
+ */
 void redisAddRead(void* privdata) {
     auto t = Tracer("addread");
     auto rpe = static_cast<redisPollEvents*>(privdata);
@@ -101,6 +163,13 @@ void redisAddRead(void* privdata) {
     rpe->reading = 1;
 }
 
+/**
+ * Callback from hiredis when a new reader is added to the context. This is called when no
+ * more data is ready to be read from the context for a command.
+ *
+ * @param privdata Private data passed back to the callback when it fires. We use this to
+ * get access to the redis backend object.
+ */
 void redisDelRead(void* privdata) {
     auto t = Tracer("delread");
     auto rpe = static_cast<redisPollEvents*>(privdata);
@@ -111,6 +180,13 @@ void redisDelRead(void* privdata) {
     rpe->reading = 0;
 }
 
+/**
+ * Callback from hiredis when a new writer is added to the context. This is called when
+ * data is ready to be written to the context for a command.
+ *
+ * @param privdata Private data passed back to the callback when it fires. We use this to
+ * get access to the redis backend object.
+ */
 void redisAddWrite(void* privdata) {
     auto t = Tracer("addwrite");
     auto rpe = static_cast<redisPollEvents*>(privdata);
@@ -121,6 +197,13 @@ void redisAddWrite(void* privdata) {
     rpe->writing = 1;
 }
 
+/**
+ * Callback from hiredis when a writer is removed from the context. This is called when no
+ * more data is ready to be written to the context for a command.
+ *
+ * @param privdata Private data passed back to the callback when it fires. We use this to
+ * get access to the redis backend object.
+ */
 void redisDelWrite(void* privdata) {
     auto rpe = static_cast<redisPollEvents*>(privdata);
     auto t = Tracer("delwrite");

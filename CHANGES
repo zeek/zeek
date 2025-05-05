@@ -1,3 +1,9 @@
+8.0.0-dev.40 | 2025-05-05 13:40:20 -0700
+
+  * Add baseline for find_first test, update comments, and reorder function imports (yexiaochuan)
+
+  * Add find_first string function (yexiaochuan)
+
 8.0.0-dev.37 | 2025-05-05 11:11:57 -0700
 
   * Add commands to the static methods for the Redis implementation (Tim Wojtulewicz, Corelight)

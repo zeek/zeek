@@ -531,7 +531,7 @@ function strcmp%(s1: string, s2: string%): int
 ## Returns: The location of *little* in *big*, or 0 if *little* is not found in
 ##          *big*.
 ##
-## .. zeek:see:: find_all find_last
+## .. zeek:see:: find_all find_first find_last
 function strstr%(big: string, little: string%): count
 	%{
 	return zeek::val_mgr->Count(
@@ -1015,7 +1015,7 @@ static bool exceeds_max_string_length(int str_len, int max_size, zeek::detail::F
 ##
 ## Returns: The set of strings in *str* that match *re*, or the empty set.
 ##
-## .. zeek:see: find_all_ordered find_last strstr
+## .. zeek:see: find_all_ordered find_first find_last strstr
 function find_all%(str: string, re: pattern, max_str_size: int &default=-1%) : string_set
 	%{
 	auto a = zeek::make_intrusive<zeek::TableVal>(zeek::id::string_set);
@@ -1055,7 +1055,7 @@ function find_all%(str: string, re: pattern, max_str_size: int &default=-1%) : s
 ##
 ## Returns: All strings in *str* that match *re*, or an empty vector.
 ##
-## .. zeek:see: find_all find_last strstr
+## .. zeek:see: find_all find_first find_last strstr
 function find_all_ordered%(str: string, re: pattern, max_str_size: int &default=-1%) : string_vec
 	%{
 	auto a = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
@@ -1091,13 +1091,37 @@ function find_all_ordered%(str: string, re: pattern, max_str_size: int &default=
 ##
 ## Returns: The last string in *str* that matches *re*, or the empty string.
 ##
-## .. zeek:see: find_all find_all_ordered strstr
+## .. zeek:see: find_all find_all_ordered strstr find_first
 function find_last%(str: string, re: pattern%) : string
 	%{
 	const u_char* s = str->Bytes();
 	const u_char* e = s + str->Len();
 
 	for ( const u_char* t = e - 1; t >= s; --t )
+		{
+		int n = re->MatchPrefix(t, e - t);
+		if ( n >= 0 )
+			return zeek::make_intrusive<zeek::StringVal>(n, (const char*) t);
+		}
+
+	return zeek::val_mgr->EmptyString();
+	%}
+
+## Finds the first occurrence of a pattern in a string.
+##
+## str: The string to inspect.
+##
+## re: The pattern to look for in *str*.
+##
+## Returns: The first string in *str* that matches *re*, or the empty string.
+##
+## .. zeek:see:: find_all find_all_ordered find_last strstr
+function find_first%(str: string, re: pattern%) : string
+	%{
+	const u_char* s = str->Bytes();
+	const u_char* e = s + str->Len();
+
+	for ( const u_char* t = s; t < e; ++t )
 		{
 		int n = re->MatchPrefix(t, e - t);
 		if ( n >= 0 )

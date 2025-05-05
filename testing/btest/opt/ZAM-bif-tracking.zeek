@@ -295,6 +295,7 @@ global known_BiFs = set(
 	"find_all",
 	"find_all_ordered",
 	"find_entropy",
+	"find_first",
 	"find_in_zeekpath",
 	"find_last",
 	"find_str",

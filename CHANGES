@@ -1,3 +1,9 @@
+7.2.0-rc1.8 | 2025-05-05 11:21:13 -0700
+
+  * Use std::string_view in Redis::DoExpire to avoid copies (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 58d71d2fa35007695cd0f6ea3ec975df67c91bab)
+
 7.2.0-rc1.7 | 2025-05-05 11:17:50 -0700
 
   * QUIC: Extract reset_crypto() function (Arne Welzel, Corelight)

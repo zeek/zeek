@@ -388,26 +388,32 @@ void Redis::DoExpire(double current_network_time) {
         return;
     }
 
-    std::vector<std::string> elements;
-    for ( size_t i = 0; i < reply->elements; i++ )
-        elements.emplace_back(reply->element[i]->str);
+    std::vector<std::string_view> elements;
+    elements.reserve(reply->elements);
 
-    freeReplyObject(reply);
+    for ( size_t i = 0; i < reply->elements; i++ )
+        elements.emplace_back(reply->element[i]->str, reply->element[i]->len);
 
     // TODO: it's possible to pass multiple keys to a DEL operation but it requires
     // building an array of the strings, building up the DEL command with entries,
     // and passing the array as a block somehow. There's no guarantee it'd be faster
     // anyways.
     for ( const auto& e : elements ) {
-        status = redisAsyncCommand(async_ctx, redisGeneric, NULL, "DEL %s:%s", key_prefix.data(), e.c_str());
+        // redisAsyncCommand usually takes a printf-style string, except the parser used by
+        // hiredis doesn't handle lengths passed with strings correctly (it hangs indefinitely).
+        // Use util::fmt here instead it handles it.
+        status = redisAsyncCommand(async_ctx, redisGeneric, NULL,
+                                   util::fmt("DEL %s:%.*s", key_prefix.data(), static_cast<int>(e.size()), e.data()));
         ++active_ops;
         Poll();
 
-        redisReply* reply = reply_queue.front();
+        redisReply* del_reply = reply_queue.front();
         reply_queue.pop_front();
-        freeReplyObject(reply);
+        freeReplyObject(del_reply);
         // TODO: do we care if this failed?
     }
+
+    freeReplyObject(reply);
 
     // Remove all of the elements from the range-set that match the time range.
     redisAsyncCommand(async_ctx, redisGeneric, NULL, "ZREMRANGEBYSCORE %s_expire -inf %f", key_prefix.data(),
@@ -416,9 +422,9 @@ void Redis::DoExpire(double current_network_time) {
     ++active_ops;
     Poll();
 
-    reply = reply_queue.front();
+    redisReply* rem_range_reply = reply_queue.front();
     reply_queue.pop_front();
-    freeReplyObject(reply);
+    freeReplyObject(rem_range_reply);
     // TODO: do we care if this failed?
 }
 

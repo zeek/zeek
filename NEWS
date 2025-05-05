@@ -72,6 +72,9 @@ New Functionality
     backend for NATS that will be available as an external plugin, but it is not quite
     ready yet. Both of the existing backends support usage in a cluster environment.
 
+  - The Redis backend requires at least redis-server version 6.2.0 or an equivalent
+    implementation.
+
 - Improved alternative cluster backend support.
 
   The ZeroMQ cluster backend added in Zeek 7.1 has received various correctness,

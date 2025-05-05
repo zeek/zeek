@@ -1,3 +1,39 @@
+8.0.0-dev.32 | 2025-05-05 14:40:11 +0200
+
+  * QUIC: Extract reset_crypto() function (Arne Welzel, Corelight)
+
+  * QUIC: Rename ConnectionIDInfo to Context (Arne Welzel, Corelight)
+
+    Lets just call it what it is given that it contains more than just
+    connection IDs.
+
+  * QUIC: Switch initial_destination_conn_id to optional (Arne Welzel, Corelight)
+
+  * QUIC: Use initial destination conn_id for decryption (Arne Welzel, Corelight)
+
+    Ensure the client side also uses the initial destination connection ID
+    for decryption purposes instead of the one from the current long header
+    packet. PCAP from local WiFi hotspot.
+
+  * QUIC: Handle CRYPTO frames across multiple INITIAL packets (Arne Welzel, Corelight)
+
+    Instead of sending the accumulated CRYPTO frames after processing an
+    INITIAL packet, add logic to determine the total length of the TLS
+    Client or Server Hello (by peeking into the first 4 byte). Once all
+    CRYPTO frames have arrived, flush the reassembled data to the TLS
+    analyzer at once.
+
+  * QUIC: Do not consume EncryptedLongPacketPayload (Arne Welzel, Corelight)
+
+    The payload is already consumed within the InitialPacket unit. Consuming
+    it again resulted in UDP datagrams with multiple packets to ignore
+    the remaining packets in the same UDP datagram. The baseline changes
+    showing I being followed by a new H indicates that the INITIAL packet
+    was followed by a HANDSHAKE packet, but previously Zeek discarded
+    these.
+
+  * QUIC: Fix ACK frame parsing (Arne Welzel, Corelight)
+
 8.0.0-dev.22 | 2025-04-30 17:56:03 +0200
 
   * Add a new HookPublishEvent() plugin hook (Arne Welzel, Corelight)

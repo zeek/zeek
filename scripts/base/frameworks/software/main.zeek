@@ -527,7 +527,7 @@ function found(id: conn_id, info: Info): bool
 		return F;
 
 	# This assumes that callers do not fill in info$ts, none of the current callers do.
-	if (info in found_cache)
+	if ( info in found_cache )
 		return T;
 	add found_cache[info];
 

@@ -1,3 +1,50 @@
+7.2.0-rc1.7 | 2025-05-05 11:17:50 -0700
+
+  * QUIC: Extract reset_crypto() function (Arne Welzel, Corelight)
+
+    (cherry picked from commit 50ac8d1468603c710e109f1c050b3966dd91deda)
+
+  * QUIC: Rename ConnectionIDInfo to Context (Arne Welzel, Corelight)
+
+    (cherry picked from commit 50ac8d1468603c710e109f1c050b3966dd91deda)
+
+  * QUIC: Switch initial_destination_conn_id to optional (Arne Welzel, Corelight)
+
+    (cherry picked from commit 50ac8d1468603c710e109f1c050b3966dd91deda)
+
+  * QUIC: Use initial destination conn_id for decryption (Arne Welzel, Corelight)
+
+    Ensure the client side also uses the initial destination connection ID
+    for decryption purposes instead of the one from the current long header
+    packet. PCAP from local WiFi hotspot.
+
+    (cherry picked from commit 50ac8d1468603c710e109f1c050b3966dd91deda)
+
+  * QUIC: Handle CRYPTO frames across multiple INITIAL packets (Arne Welzel, Corelight)
+
+    Instead of sending the accumulated CRYPTO frames after processing an
+    INITIAL packet, add logic to determine the total length of the TLS
+    Client or Server Hello (by peeking into the first 4 byte). Once all
+    CRYPTO frames have arrived, flush the reassembled data to the TLS
+    analyzer at once.
+
+    (cherry picked from commit 50ac8d1468603c710e109f1c050b3966dd91deda)
+
+  * QUIC: Do not consume EncryptedLongPacketPayload (Arne Welzel, Corelight)
+
+    The payload is already consumed within the InitialPacket unit. Consuming
+    it again resulted in UDP datagrams with multiple packets to ignore
+    the remaining packets in the same UDP datagram. The baseline changes
+    showing I being followed by a new H indicates that the INITIAL packet
+    was followed by a HANDSHAKE packet, but previously Zeek discarded
+    these.
+
+    (cherry picked from commit 50ac8d1468603c710e109f1c050b3966dd91deda)
+
+  * QUIC: Fix ACK frame parsing (Arne Welzel, Corelight)
+
+    (cherry picked from commit 50ac8d1468603c710e109f1c050b3966dd91deda)
+
 7.2.0-rc1.6 | 2025-04-29 17:51:10 -0700
 
   * fixed incorrect ZAM optimization of expressions seen in single-statement inlined functions (Vern Paxson, Corelight)

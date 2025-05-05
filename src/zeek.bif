@@ -5240,7 +5240,7 @@ function to_json%(val: any, only_loggable: bool &default=F, field_escape_pattern
 ##           when keys are not valid field identifiers, or represent reserved
 ##           keywords like **port** or **type**.
 ##
-## returns: A record either contining a value of type t as field v with valid=T or valid=F and err contains the error.
+## returns: A record with the result of the conversion, containing either a value or an error message.
 ##
 ## .. zeek:see:: to_json
 function from_json%(s: string, t: any, key_func: string_mapper &default=from_json_default_key_mapper%): from_json_result

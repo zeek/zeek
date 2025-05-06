@@ -45,7 +45,7 @@ redef record M::Info$no_such_field -= { &log };
 # This isn't reported very nicely: It's a syntax error rather than an unknown attribute
 redef record M::Info$ts += { &unknown };
 
-# # @TEST-START-FILE setup.zeek
+# @TEST-START-FILE setup.zeek
 module M;
 export {
 	type ErrCode: enum {

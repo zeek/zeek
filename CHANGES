@@ -1,3 +1,9 @@
+8.0.0-dev.46 | 2025-05-06 14:20:54 +0200
+
+  * testing/btest: Fix double commented @TEST- lines (Arne Welzel, Corelight)
+
+        sed -i 's/^# # @/# @/g'
+
 8.0.0-dev.44 | 2025-05-06 14:20:22 +0200
 
   * GH-4420: Websocket: Close onloop during Terminate() (Arne Welzel, Corelight)

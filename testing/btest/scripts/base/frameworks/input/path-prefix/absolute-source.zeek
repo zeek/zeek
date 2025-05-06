@@ -22,7 +22,7 @@ event zeek_init()
 			  $destination=destination, $want_record=F]);
 	}
 
-# # @TEST-START-NEXT
+# @TEST-START-NEXT
 #
 # The same test, but using event streams for input.
 
@@ -35,7 +35,7 @@ event zeek_init()
 			  $fields=Val, $ev=inputev]);
 	}
 
-# # @TEST-START-NEXT
+# @TEST-START-NEXT
 #
 # The same test again, but using file analysis w/ binary readers.
 

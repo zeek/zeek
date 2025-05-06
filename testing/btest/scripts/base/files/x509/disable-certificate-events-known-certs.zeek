@@ -27,7 +27,7 @@ hook X509::x509_certificate_cache_replay(f: fa_file, e: X509::Info, sha256: stri
 
 # First: Plain, no changes - certificate event caching won't even engage.
 
-# # @TEST-START-NEXT
+# @TEST-START-NEXT
 
 # Second - engage certificate caching.
 # Log files and events are unchanged - but the replay hook engages
@@ -35,7 +35,7 @@ hook X509::x509_certificate_cache_replay(f: fa_file, e: X509::Info, sha256: stri
 redef X509::caching_required_encounters = 1;
 redef X509::certificate_cache_minimum_eviction_interval = 11min;
 
-# # @TEST-START-NEXT
+# @TEST-START-NEXT
 
 # Third - load policy script to not raise events
 # Log files are unchanged; events are not raised from the third time.

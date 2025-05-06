@@ -3,6 +3,27 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 7.0.7
+==========
+
+This release fixes the following bugs:
+
+- The LDAP analyzer now handles GSSAPI-signed traffic correctly if the response token is
+  missing. This fixes some cases of handling of traffic authenticated by GSS-SPNEGO.
+
+- The QUIC analyzer gained the following fixes:
+
+  - Traffic where ClientHello/ServerHello messages are fragmented over multiple packets
+    should now be parsed correctly.
+
+  - The wrong connection ID could be used for decryption if the client started using a
+    different one later in the INITIAL packet.
+
+  - ACK ranges should now be parsed correctly.
+
+  - Parsing of INITIAL packets could consume the remainder of a UDP datagram, even if
+    there were possibly other PACKET types in that datagram.
+
 Zeek 7.0.6
 ==========
 

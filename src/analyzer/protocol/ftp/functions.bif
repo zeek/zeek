@@ -49,7 +49,7 @@ static zeek::RecordValPtr parse_eftp(const char* line)
 	int net_proto = 0;	// currently not used
 	zeek::IPAddr addr;	// unspecified IPv6 address (all 128 bits zero)
 	int port = 0;
-	int good = 0;
+	bool good = false;
 
 	if ( line )
 		{
@@ -61,12 +61,12 @@ static zeek::RecordValPtr parse_eftp(const char* line)
 
 		if ( *line )
 			{
-			good = 1;
+			good = true;
 			++line;	// skip delimiter
 
 			net_proto = strtol(line, &next_delim, 10);
 			if ( *next_delim != delimiter )
-				good = 0;
+				good = false;
 
 			line = next_delim;
 			if ( *line )
@@ -78,7 +78,7 @@ static zeek::RecordValPtr parse_eftp(const char* line)
 				if ( nptr == NULL )
 					{
 					nptr = line + strlen(line);
-					good = 0;
+					good = false;
 					}
 
 				std::string s(line, nptr-line); // extract IP address
@@ -95,12 +95,12 @@ static zeek::RecordValPtr parse_eftp(const char* line)
 				++line;	// now the port
 				port = strtol(line, &next_delim, 10);
 				if ( *next_delim != delimiter )
-					good = 0;
+					good = false;
 
 				if ( port < 0 || port > 65535 )
 					{
 					port = 0;
-					good = 0;
+					good = false;
 					}
 				}
 			}

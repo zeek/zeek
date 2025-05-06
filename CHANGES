@@ -1,3 +1,13 @@
+7.2.0-rc1.10 | 2025-05-07 11:10:09 +0200
+
+  * Websocket: Close onloop during Terminate() (Arne Welzel, Corelight)
+
+    (cherry picked from commit 4afb0ffeebd000211feb1e30891a3439235977bf)
+
+  * OnLoop: notify_all() instead of notify_one() (Arne Welzel, Corelight)
+
+    (cherry picked from commit 4afb0ffeebd000211feb1e30891a3439235977bf)
+
 7.2.0-rc1.9 | 2025-05-06 11:42:23 -0700
 
   * Add comments to the static methods for the Redis implementation (Tim Wojtulewicz, Corelight)

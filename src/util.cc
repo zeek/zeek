@@ -41,23 +41,24 @@
 #include <algorithm>
 #include <array>
 #include <iostream>
-#include <random>
 #include <string>
 #include <vector>
 
 #include "zeek/3rdparty/ConvertUTF.h"
 #include "zeek/Desc.h"
 #include "zeek/Hash.h"
-#include "zeek/NetVar.h"
 #include "zeek/Obj.h"
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
-#include "zeek/ScannedFile.h"
 #include "zeek/Val.h"
 #include "zeek/digest.h"
 #include "zeek/input.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/iosource/PktSrc.h"
+
+#ifdef _MSC_VER
+#include "zeek/ScannedFile.h"
+#endif
 
 #include "zeek/3rdparty/doctest.h"
 

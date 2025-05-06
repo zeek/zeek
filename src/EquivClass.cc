@@ -2,8 +2,6 @@
 
 #include "zeek/EquivClass.h"
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/CCL.h"
 #include "zeek/util.h"
 

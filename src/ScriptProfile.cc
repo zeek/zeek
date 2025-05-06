@@ -2,6 +2,8 @@
 
 #include "zeek/ScriptProfile.h"
 
+#include <cinttypes>
+
 namespace zeek {
 
 namespace detail {

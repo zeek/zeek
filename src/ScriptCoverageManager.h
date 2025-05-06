@@ -9,7 +9,6 @@
 
 #include "zeek/ID.h"
 #include "zeek/StmtBase.h"
-#include "zeek/util.h"
 
 namespace zeek::detail {
 

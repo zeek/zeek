@@ -2,8 +2,6 @@
 
 #include "zeek/Stmt.h"
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/CompHash.h"
 #include "zeek/Debug.h"
 #include "zeek/Desc.h"
@@ -13,7 +11,6 @@
 #include "zeek/File.h"
 #include "zeek/Frame.h"
 #include "zeek/IntrusivePtr.h"
-#include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/Scope.h"
 #include "zeek/Traverse.h"

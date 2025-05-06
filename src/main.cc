@@ -1,7 +1,5 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
-
 #include <unistd.h>
 #include <cinttypes>
 
@@ -10,6 +8,8 @@
 #include "zeek/iosource/Manager.h"
 #include "zeek/supervisor/Supervisor.h"
 #include "zeek/zeek-setup.h"
+
+#include "const.bif.netvar_h"
 
 #ifdef _MSC_VER
 #include <fcntl.h> // For _O_BINARY.

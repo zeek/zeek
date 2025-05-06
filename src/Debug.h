@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <deque>
 #include <map>
 #include <string>
@@ -11,7 +12,10 @@
 
 #include "zeek/Obj.h"
 #include "zeek/StmtEnums.h"
-#include "zeek/util.h"
+
+#ifdef _MSC_VER
+#include <unistd.h> // Needed to ignore __attribute__((format(printf))) on MSVC
+#endif
 
 namespace zeek {
 

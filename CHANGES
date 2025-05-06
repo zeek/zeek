@@ -1,3 +1,23 @@
+8.0.0-dev.44 | 2025-05-06 14:20:22 +0200
+
+  * GH-4420: Websocket: Close onloop during Terminate() (Arne Welzel, Corelight)
+
+    Terminate() is called when Zeek shuts down. If WebSocket client threads
+    were blocked in QueueForProcessing() due to reaching queue limits, these
+    previously would not exit QueueForProcessing() and instead block
+    indefinitely, resulting in the ixwebsocket library blocking and its
+    garbage collection thread running at 100%. Not great.
+
+    Closing the onloop instance will unblock the WebSocket client threads
+    for a timely shutdown.
+
+    Closes #4420
+
+  * OnLoop: notify_all() instead of notify_one() (Arne Welzel, Corelight)
+
+    There might be more than one thread blocked waiting for room in the
+    queue, ensure they all wake up when shutting down.
+
 8.0.0-dev.40 | 2025-05-05 13:40:20 -0700
 
   * Add baseline for find_first test, update comments, and reorder function imports (yexiaochuan)

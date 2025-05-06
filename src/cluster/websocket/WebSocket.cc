@@ -247,6 +247,8 @@ void WebSocketEventDispatcher::Terminate() {
     }
 
     clients.clear();
+
+    onloop->Close();
 }
 
 void WebSocketEventDispatcher::QueueForProcessing(WebSocketEvent&& event) {

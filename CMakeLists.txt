@@ -18,6 +18,22 @@ if (WIN32)
     set(CMAKE_TOOLCHAIN_FILE ${_toolchain} CACHE STRING "Vcpkg toolchain file")
 endif ()
 
+if (APPLE AND CMAKE_VERSION VERSION_GREATER_EQUAL 4.0.0 AND NOT CMAKE_OSX_SYSROOT)
+    # Spicy needs having CMAKE_OSX_SYSROOT point to the macOS SDK
+    # path, but starting with CMake 4.0 CMAKE_OSX_SYSROOT is not set
+    # automatically anymore. So we follow the guidance from the CMake 4.0
+    # release notes here:
+    #
+    #    Builds targeting macOS no longer choose any SDK or pass an "-isysroot"
+    #    flag to the compiler by default. [...] users must now specify
+    #    "-DCMAKE_OSX_SYSROOT=macosx" when configuring their build.
+    #
+    # Note that this needs to happen before the project() call below, meaning
+    # we cannot rely on the corresponding code inside the Spicy CMake
+    # configuration.
+    set(CMAKE_OSX_SYSROOT "macosx")
+endif ()
+
 project(Zeek C CXX)
 
 # We want to set ENABLE_DEBUG to ON by default if the build type is Debug.

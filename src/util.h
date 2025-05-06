@@ -63,8 +63,6 @@
 extern HeapLeakChecker* heap_checker;
 #endif
 
-#include <stdint.h>
-
 extern "C" {
 #include "zeek/3rdparty/modp_numtoa.h"
 }

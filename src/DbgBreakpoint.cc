@@ -4,8 +4,6 @@
 
 #include "zeek/DbgBreakpoint.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cassert>
 
 #include "zeek/Debug.h"
@@ -15,7 +13,6 @@
 #include "zeek/ID.h"
 #include "zeek/Reporter.h"
 #include "zeek/Scope.h"
-#include "zeek/Stmt.h"
 #include "zeek/Timer.h"
 #include "zeek/Val.h"
 #include "zeek/module_util.h"

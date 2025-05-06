@@ -4,8 +4,6 @@
 
 #include "zeek/Reporter.h"
 
-#include "zeek/zeek-config.h"
-
 #include <syslog.h>
 #include <unistd.h>
 
@@ -16,7 +14,6 @@
 #include "zeek/Expr.h"
 #include "zeek/Frame.h"
 #include "zeek/ID.h"
-#include "zeek/NetVar.h"
 #include "zeek/RunState.h"
 #include "zeek/Timer.h"
 #include "zeek/file_analysis/File.h"

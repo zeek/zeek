@@ -2,8 +2,6 @@
 
 #include "zeek/Reassem.h"
 
-#include "zeek/zeek-config.h"
-
 #include <algorithm>
 #include <cinttypes>
 #include <limits>

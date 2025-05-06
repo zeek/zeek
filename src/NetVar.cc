@@ -2,8 +2,7 @@
 
 #include "zeek/NetVar.h"
 
-#include "zeek/zeek-config.h"
-
+// EventHandler.h is needed for event.bif.netvar_init later.
 #include "zeek/EventHandler.h"
 #include "zeek/ID.h"
 #include "zeek/Val.h"

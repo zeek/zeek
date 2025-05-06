@@ -97,8 +97,8 @@ public:
             std::scoped_lock lock(mtx);
             SetClosed(true);
 
-            // Wake a process stuck in queueing.
-            cond.notify_one();
+            // Wake other threads stuck in queueing, if any.
+            cond.notify_all();
         }
 
         // Wait for any active queuers to vanish, should be quick.

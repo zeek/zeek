@@ -7,8 +7,9 @@ set -x
 
 brew update
 brew upgrade cmake
-brew install openssl@3 swig bison flex ccache libmaxminddb
+brew install openssl@3 python@3 swig bison flex ccache libmaxminddb
 
-# Upgrade pip so we have the --break-system-packages option.
-python3 -m pip install --upgrade pip
+which python3
+python3 --version
+
 python3 -m pip install --user --break-system-packages websockets

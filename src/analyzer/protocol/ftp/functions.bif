@@ -4,14 +4,15 @@ type ftp_port: record;
 %%{
 #include "zeek/Reporter.h"
 
-static zeek::RecordValPtr parse_port(const char* line)
+static zeek::RecordValPtr parse_port(std::string_view line)
 	{
 	auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::ftp_port);
 
-	int bytes[6];
-	if ( line && sscanf(line, "%d,%d,%d,%d,%d,%d",
-			&bytes[0], &bytes[1], &bytes[2],
-			&bytes[3], &bytes[4], &bytes[5]) == 6 )
+	int32_t bytes[6];
+	if ( line.size() >= 11 && sscanf(line.data(),
+                                     "%" SCNd32 ",%" SCNd32 ",%" SCNd32 ",%" SCNd32 ",%" SCNd32 ",%" SCNd32,
+	                                 &bytes[0], &bytes[1], &bytes[2],
+	                                 &bytes[3], &bytes[4], &bytes[5]) == 6 )
 		{
 		int good = 1;
 
@@ -130,7 +131,7 @@ static zeek::RecordValPtr parse_eftp(const char* line)
 ## .. zeek:see:: parse_eftp_port parse_ftp_pasv parse_ftp_epsv fmt_ftp_port
 function parse_ftp_port%(s: string%): ftp_port
 	%{
-	return parse_port(s->CheckString());
+	return parse_port(s->ToStdStringView());
 	%}
 
 ## Converts a string representation of the FTP EPRT command (see :rfc:`2428`)
@@ -158,6 +159,10 @@ function parse_eftp_port%(s: string%): ftp_port
 function parse_ftp_pasv%(str: string%): ftp_port
 	%{
 	const char* s = str->CheckString();
+
+	if ( str->Len() == 0 )
+	   return parse_port("");
+
 	const char* line = strchr(s, '(');
 	if ( line )
 		++line;	// move past '('
@@ -170,7 +175,11 @@ function parse_ftp_pasv%(str: string%): ftp_port
 		++line;	// now points to first digit, or beginning of s
 		}
 
-	return parse_port(line);
+	// Make sure we didn't step past the end of the string.
+	if ( ! line || ( line - s ) > str->Len() )
+		return parse_port("");
+	else
+		return parse_port(std::string_view{line});
 	%}
 
 ## Converts the result of the FTP EPSV command (see :rfc:`2428`) to an

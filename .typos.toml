@@ -53,6 +53,7 @@ extend-ignore-identifiers-re = [
     "complte_flag", # Existing use in exported record in base.
     "VidP(n|N)", # In SMB.
     "iin", # In DNP3.
+    "SCN[dioux]", # sccanf fixed-width identifiers
     "(ScValidatePnPService|ScSendPnPMessage)", # In DCE-RPC.
     "snet", # Used as shorthand for subnet in base scripts.
     "typ",

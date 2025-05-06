@@ -84,7 +84,7 @@ hook Log::log_stream_policy(rec: Info, id: Log::ID)
 
 	}
 
-# # @TEST-START-NEXT
+# @TEST-START-NEXT
 #
 # Delay records for a long time, reduce queue size after 10 packets to 3,
 # re-delay all records once, provoking failure to free any space in the

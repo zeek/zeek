@@ -17,7 +17,7 @@ hook Log::log_stream_policy(rec: Conn::Info, id: Log::ID)
 	}
 
 
-# # @TEST-START-NEXT
+# @TEST-START-NEXT
 @load base/protocols/conn
 
 # PostDelayCallback needs to return a bool

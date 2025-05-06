@@ -19,15 +19,15 @@ redef Cluster::nodes = {
 };
 # @TEST-END-FILE
 
-# # @TEST-START-FILE common.zeek
+# @TEST-START-FILE common.zeek
 redef Log::default_rotation_interval = 0sec;
 
 global finish: event() &is_used;
 global ping: event(c: count, what: string, val: any) &is_used;
 global pong: event(c: count, what: string, val: any) &is_used;
-# # @TEST-END-FILE
+# @TEST-END-FILE
 
-# # @TEST-START-FILE manager.zeek
+# @TEST-START-FILE manager.zeek
 @load ./common.zeek
 
 global i = 0;
@@ -86,10 +86,10 @@ event Cluster::node_down(name: string, id: string)
 	{
 	terminate();
 	}
-# # @TEST-END-FILE
+# @TEST-END-FILE
 
 
-# # @TEST-START-FILE worker.zeek
+# @TEST-START-FILE worker.zeek
 @load ./common.zeek
 
 event ping(c: count, what: string, val: any)
@@ -109,4 +109,4 @@ event finish()
 	print "got finish!";
 	terminate();
 	}
-# # @TEST-END-FILE
+# @TEST-END-FILE

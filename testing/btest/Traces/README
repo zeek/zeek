@@ -32,3 +32,6 @@ Trace Index/Sources:
 - quic/merlinc2_Zeek_example.pcapng
   Provided by Faan Rossouw on #4198
   https://github.com/zeek/zeek/issues/4198
+- ldap/adduser1.pcap ldap/adduser1-ntlm.pcap
+  Provided by Mohan-Dhawan on #4275
+  https://github.com/zeek/zeek/issues/4275

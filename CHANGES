@@ -1,3 +1,23 @@
+7.0.6-7 | 2025-05-06 09:54:32 -0700
+
+  * GH-1841: ldap: Replace if with switch on bool (Arne Welzel, Corelight)
+
+    The change from a2a535d0c91da67c7389a4aedec6a0c8a6da6613 used
+    zeek/spicy#1841, but Zeek 7.0 does not have that functionality
+    yet. Replace with switch ( bool ).
+
+  * ldap: Clean up from code review (Arne Welzel, Corelight)
+
+    (cherry picked from commit a2a535d0c91da67c7389a4aedec6a0c8a6da6613)
+
+  * ldap: Add Sicily Authentication constants (Arne Welzel, Corelight)
+
+    (cherry picked from commit a2a535d0c91da67c7389a4aedec6a0c8a6da6613)
+
+  * GH-4275: ldap: Only switch into MS_KRB5 mode if responseToken exists (Arne Welzel, Corelight)
+
+    (cherry picked from commit a2a535d0c91da67c7389a4aedec6a0c8a6da6613)
+
 7.0.6-4 | 2025-05-05 12:56:17 -0700
 
   * QUIC: Extract reset_crypto() function (Arne Welzel, Corelight)

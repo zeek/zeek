@@ -10,17 +10,6 @@ export {
 	type BackendOptions: record {
 		## The serializer used for converting Zeek data.
 		serializer: Storage::Serializer &default=Storage::STORAGE_SERIALIZER_JSON;
-
-		## Timeout for connection attempts to the backend. Connection attempts
-		## that exceed this time should return
-		## :zeek:see:`Storage::CONNECTION_FAILED`. Not all backends will support
-		## setting timeouts.
-		connect_timeout: interval &default=5 sec;
-
-		## Timeout for operation requests sent to the backend. Operations that
-		## exceed this time should return :zeek:see:`Storage::TIMEOUT`. Not all
-		## backends will support setting timeouts.
-		operation_timeout: interval &default=5 sec;
 	};
 
 	## Record for passing arguments to :zeek:see:`Storage::Async::put` and

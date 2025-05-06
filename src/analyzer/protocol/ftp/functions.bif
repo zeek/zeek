@@ -8,42 +8,36 @@ static zeek::RecordValPtr parse_port(std::string_view line)
 	{
 	auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::ftp_port);
 
+	bool good = false;
+	uint32_t port = 0;
+	uint32_t addr = 0;
+
 	int32_t bytes[6];
 	if ( line.size() >= 11 && sscanf(line.data(),
                                      "%" SCNd32 ",%" SCNd32 ",%" SCNd32 ",%" SCNd32 ",%" SCNd32 ",%" SCNd32,
 	                                 &bytes[0], &bytes[1], &bytes[2],
 	                                 &bytes[3], &bytes[4], &bytes[5]) == 6 )
 		{
-		int good = 1;
+		good = true;
 
 		for ( int i = 0; i < 6; ++i )
 			if ( bytes[i] < 0 || bytes[i] > 255 )
 				{
-				good = 0;
+				good = false;
 				break;
 				}
 
-		uint32_t addr = (bytes[0] << 24) | (bytes[1] << 16) |
-				(bytes[2] << 8) | bytes[3];
-		uint32_t port = (bytes[4] << 8) | bytes[5];
-
-		// Since port is unsigned, no need to check for < 0.
-		if ( port > 65535 )
+		if ( good )
 			{
-			port = 0;
-			good = 0;
+			addr = (bytes[0] << 24) | (bytes[1] << 16) |
+					(bytes[2] << 8) | bytes[3];
+			port = (bytes[4] << 8) | bytes[5];
 			}
+		}
 
-		r->Assign(0, zeek::make_intrusive<zeek::AddrVal>(htonl(addr)));
-		r->Assign(1, zeek::val_mgr->Port(port, TRANSPORT_TCP));
-		r->Assign(2, good);
-		}
-	else
-		{
-		r->Assign(0, zeek::make_intrusive<zeek::AddrVal>(uint32_t(0)));
-		r->Assign(1, zeek::val_mgr->Port(0, TRANSPORT_TCP));
-		r->Assign(2, false);
-		}
+	r->Assign(0, zeek::make_intrusive<zeek::AddrVal>(htonl(addr)));
+	r->Assign(1, zeek::val_mgr->Port(port, TRANSPORT_TCP));
+	r->Assign(2, good);
 
 	return r;
 	}

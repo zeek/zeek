@@ -2,8 +2,6 @@
 
 #include "zeek/IntSet.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cstring>
 
 namespace zeek::detail {

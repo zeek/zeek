@@ -4,9 +4,8 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
-
-#include "zeek/util.h"
 
 namespace zeek::detail {
 

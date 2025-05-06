@@ -2,8 +2,6 @@
 
 #include "zeek/Attr.h"
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/Desc.h"
 #include "zeek/Expr.h"
 #include "zeek/IntrusivePtr.h"

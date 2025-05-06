@@ -2,8 +2,6 @@
 
 #include "zeek/net_util.h"
 
-#include "zeek/zeek-config.h"
-
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>

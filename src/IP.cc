@@ -10,7 +10,6 @@
 #include "zeek/Reporter.h"
 #include "zeek/Type.h"
 #include "zeek/Val.h"
-#include "zeek/Var.h"
 #include "zeek/ZeekString.h"
 
 namespace zeek {

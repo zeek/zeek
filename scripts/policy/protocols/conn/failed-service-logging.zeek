@@ -21,7 +21,7 @@ hook Analyzer::disabling_analyzer(c: connection, atype: AllAnalyzers::Tag, aid: 
 		return;
 
 	# Only add if previously confirmed
-	if ( Analyzer::name(atype) !in c$service || Analyzer::name(atype) !in c$service_violation )
+	if ( Analyzer::name(atype) !in c$service && Analyzer::name(atype) !in c$service_violation )
 		return;
 
 	# Only log if dpd.zeek will disable

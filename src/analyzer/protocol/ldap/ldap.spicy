@@ -484,8 +484,8 @@ type BindRequest = unit(inout message: Message, ctx: Ctx&) {
     }
   }
 
-  if ( |self.authData| > 0 ) {
-    switch ( self.authType ) {
+  switch ( |self.authData| > 0 ) {
+    True -> switch ( self.authType ) {
       BindAuthType::BIND_AUTH_SIMPLE ->
         : void {
           self.simpleCreds = self.authData.decode();
@@ -502,10 +502,10 @@ type BindRequest = unit(inout message: Message, ctx: Ctx&) {
         sicilyMessage: SicilyMessage {
           message.arg = self.sicilyMessage.signature_decoded;
         }
-
       * -> : void;
-    } &parse-from=self.authData;
-  };
+    };
+    * -> : void;
+  } &parse-from=self.authData;
 } &requires=(self?.authType && (self.authType != BindAuthType::Undef));
 
 type ServerSaslCreds = unit {

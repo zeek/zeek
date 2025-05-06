@@ -1,3 +1,7 @@
+7.0.6-8 | 2025-05-06 10:09:01 -0700
+
+  * Update quic baselines due to service ordering (Tim Wojtulewicz, Corelight)
+
 7.0.6-7 | 2025-05-06 09:54:32 -0700
 
   * GH-1841: ldap: Replace if with switch on bool (Arne Welzel, Corelight)

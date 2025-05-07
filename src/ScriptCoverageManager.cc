@@ -4,6 +4,7 @@
 
 #include <sys/stat.h>
 #include <algorithm>
+#include <cinttypes>
 #include <cstdio>
 #include <cstring>
 #include <fstream>

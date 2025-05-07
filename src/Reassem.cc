@@ -5,6 +5,7 @@
 #include "zeek/zeek-config.h"
 
 #include <algorithm>
+#include <cinttypes>
 #include <limits>
 
 #include "zeek/Desc.h"

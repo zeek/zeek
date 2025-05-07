@@ -2,11 +2,10 @@
 
 #include "zeek/Hash.h"
 
-#include "zeek/zeek-config.h"
-
 #include <highwayhash/highwayhash_target.h>
 #include <highwayhash/instruction_sets.h>
 #include <highwayhash/sip_hash.h>
+#include <cinttypes>
 
 #include "zeek/DebugLogger.h"
 #include "zeek/Desc.h"

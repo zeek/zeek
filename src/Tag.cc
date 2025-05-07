@@ -2,6 +2,8 @@
 
 #include "zeek/Tag.h"
 
+#include <cinttypes>
+
 #include "zeek/Val.h"
 
 namespace zeek {

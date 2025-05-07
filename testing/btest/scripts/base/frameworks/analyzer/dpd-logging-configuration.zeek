@@ -5,3 +5,7 @@
 @load policy/protocols/conn/failed-service-logging
 
 redef DPD::track_removed_services_in_connection = T;
+
+# @TEST-START-NEXT
+
+@load policy/protocols/conn/failed-service-logging

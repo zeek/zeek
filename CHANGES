@@ -1,3 +1,17 @@
+7.2.0-rc1.13 | 2025-05-07 10:32:36 -0700
+
+  * Fix policy/protocols/conn/failed-service-logging.zeek (Johanna Amann, Corelight)
+
+    In GH-4422 it was pointed out that the protocols/conn/failed-service-logging.zeek
+    policy script only works when
+    `DPD::track_removed_services_in_connection=T` is set.
+
+    This was caused by a logic error in the script. This commit fixes this
+    logic error and introduces an additional test that checks that
+    failed-service-logging works even when the option is not set to true.
+
+    (cherry picked from commit 6f8924596fb86ee0c25fe26c810f3a8e3f9068a9)
+
 7.2.0-rc1.12 | 2025-05-07 17:25:07 +0200
 
   * btest/cluster/generic/publish-any: Apply Christian's fix from broker/publish-any (Arne Welzel, Corelight)

@@ -1,3 +1,13 @@
+7.2.0-rc1.12 | 2025-05-07 17:25:07 +0200
+
+  * btest/cluster/generic/publish-any: Apply Christian's fix from broker/publish-any (Arne Welzel, Corelight)
+
+    (cherry picked from commit 8089f5bed422e0da38dde631f88d6371c3d66c2f)
+
+  * wstest/terminate-while-queueing: Patch close_socket() (Arne Welzel, Corelight)
+
+    (cherry picked from commit 8089f5bed422e0da38dde631f88d6371c3d66c2f)
+
 7.2.0-rc1.11 | 2025-05-07 14:06:06 +0200
 
   * cluster/websocket: Stop and wait for reply thread during Terminate() (Arne Welzel, Corelight)

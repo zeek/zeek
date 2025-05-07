@@ -1,3 +1,9 @@
+7.2.0-rc1.14 | 2025-05-07 14:11:04 -0700
+
+  * Fix Broker metrics naming bugs that snuck in w/ last-minute renaming [skip ci] (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 507974a1d80442f5d5b2e7c5f4d3c45d44752d76)
+
 7.2.0-rc1.13 | 2025-05-07 10:32:36 -0700
 
   * Fix policy/protocols/conn/failed-service-logging.zeek (Johanna Amann, Corelight)

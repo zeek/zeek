@@ -466,6 +466,9 @@ scripts/base/init-default.zeek
   scripts/base/protocols/rdp/__load__.zeek
     scripts/base/protocols/rdp/consts.zeek
     scripts/base/protocols/rdp/main.zeek
+  scripts/base/protocols/redis/__load__.zeek
+    scripts/base/protocols/redis/spicy-decls.zeek
+    scripts/base/protocols/redis/main.zeek
   scripts/base/protocols/rfb/__load__.zeek
     scripts/base/protocols/rfb/main.zeek
   scripts/base/protocols/sip/__load__.zeek

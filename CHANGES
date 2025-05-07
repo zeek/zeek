@@ -1,3 +1,9 @@
+8.0.0-dev.53 | 2025-05-07 08:16:46 -0700
+
+  * Add Storage::is_connected BIF (Tim Wojtulewicz, Corelight)
+
+  * Move cast_handle from storage-async.bif to BackendHandleVal static method (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.50 | 2025-05-07 13:21:39 +0200
 
   * cluster/websocket: Stop and wait for reply thread during Terminate() (Arne Welzel, Corelight)

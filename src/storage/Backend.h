@@ -309,6 +309,16 @@ public:
     BackendHandleVal(BackendPtr backend) : OpaqueVal(detail::backend_opaque), backend(std::move(backend)) {}
     ~BackendHandleVal() override = default;
 
+    /**
+     * Attempts to cast a handle passed from script-land into a BackendHandleVal. Used by
+     * various BIF methods.
+     *
+     * @param handle The handle passed from script-land.
+     * @return A zeek::expected with either the correctly-casted handle, or an OperationResult
+     * containing error information.
+     */
+    static zeek::expected<storage::detail::BackendHandleVal*, OperationResult> CastFromAny(Val*);
+
     BackendPtr backend;
 
 protected:

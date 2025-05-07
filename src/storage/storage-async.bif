@@ -33,20 +33,6 @@ static zeek::detail::trigger::TriggerPtr init_trigger(zeek::detail::Frame* frame
     return {NewRef{}, trigger};
 }
 
-// Utility method to cast the handle val passed into BIF methods into a form that can
-// be used to start storage operations. The method is also used by the BIFs in sync.bif.
-static zeek::expected<storage::detail::BackendHandleVal*, OperationResult> cast_handle(Val* handle) {
-    auto b = static_cast<storage::detail::BackendHandleVal*>(handle);
-
-    if ( ! b )
-        return zeek::unexpected<OperationResult>(
-            OperationResult{ReturnCode::OPERATION_FAILED, "Invalid storage handlle"});
-    else if ( ! b->backend->IsOpen() )
-        return zeek::unexpected<OperationResult>(OperationResult{ReturnCode::NOT_CONNECTED, "Backend is closed"});
-
-    return b;
-}
-
 static void handle_async_result(const IntrusivePtr<Backend>& backend, ResultCallback* cb,
                                 const OperationResult& op_result) {
     if ( op_result.code != ReturnCode::IN_PROGRESS || ! backend->SupportsAsync() ) {
@@ -112,7 +98,7 @@ function Storage::Async::__close_backend%(backend: opaque of Storage::BackendHan
 		return nullptr;
 
 	auto cb = new ResultCallback(trigger, frame->GetTriggerAssoc());
-	auto b = cast_handle(backend);
+	auto b = storage::detail::BackendHandleVal::CastFromAny(backend);
 	if ( ! b ) {
 		cb->Complete(b.error());
 		delete cb;
@@ -133,7 +119,7 @@ function Storage::Async::__put%(backend: opaque of Storage::BackendHandle, key: 
 		return nullptr;
 
 	auto cb = new ResultCallback(trigger, frame->GetTriggerAssoc());
-	auto b = cast_handle(backend);
+	auto b = storage::detail::BackendHandleVal::CastFromAny(backend);
 	if ( ! b ) {
 		cb->Complete(b.error());
 		delete cb;
@@ -158,7 +144,7 @@ function Storage::Async::__get%(backend: opaque of Storage::BackendHandle, key: 
 		return nullptr;
 
 	auto cb = new ResultCallback(trigger, frame->GetTriggerAssoc());
-	auto b = cast_handle(backend);
+	auto b = storage::detail::BackendHandleVal::CastFromAny(backend);
 	if ( ! b ) {
 		cb->Complete(b.error());
 		delete cb;
@@ -179,7 +165,7 @@ function Storage::Async::__erase%(backend: opaque of Storage::BackendHandle, key
 		return nullptr;
 
 	auto cb = new ResultCallback(trigger, frame->GetTriggerAssoc());
-	auto b = cast_handle(backend);
+	auto b = storage::detail::BackendHandleVal::CastFromAny(backend);
 	if ( ! b ) {
 		cb->Complete(b.error());
 		delete cb;

@@ -160,6 +160,7 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/bloom-filter.bif.zeek
     build/scripts/base/bif/cardinality-counter.bif.zeek
     build/scripts/base/bif/top-k.bif.zeek
+    build/scripts/base/bif/storage.bif.zeek
     build/scripts/base/bif/storage-async.bif.zeek
     build/scripts/base/bif/storage-events.bif.zeek
     build/scripts/base/bif/storage-sync.bif.zeek

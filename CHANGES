@@ -1,3 +1,16 @@
+8.0.0-dev.56 | 2025-05-07 17:23:54 +0200
+
+  * btest/cluster/generic/publish-any: Apply Christian's fix from broker/publish-any (Arne Welzel, Corelight)
+
+  * wstest/terminate-while-queueing: Patch close_socket() (Arne Welzel, Corelight)
+
+    I believe there's a bug/usage issue in the websockets library
+    where during send(), EOF is detected and stored, but the receiving
+    thread is then discarding the last received frame. Avoid the bug
+    by replacing the close_socket() implementation of the websockets
+    library just for that test and leave detecting the EOF condition
+    to the receiving thread.
+
 8.0.0-dev.53 | 2025-05-07 08:16:46 -0700
 
   * Add Storage::is_connected BIF (Tim Wojtulewicz, Corelight)

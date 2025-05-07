@@ -262,7 +262,8 @@ OperationResult Redis::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     opt.options |= REDIS_OPT_PREFER_IPV4;
     opt.options |= REDIS_OPT_NOAUTOFREEREPLIES;
 
-    struct timeval timeout = {5, 0};
+    auto connect_timeout_opt = backend_options->GetField<IntervalVal>("connect_timeout")->Get();
+    struct timeval timeout = util::double_to_timeval(connect_timeout_opt);
     opt.connect_timeout = &timeout;
 
     // The connection request below should be operation #1.
@@ -299,6 +300,10 @@ OperationResult Redis::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     redisPollAttach(async_ctx);
     redisAsyncSetConnectCallback(async_ctx, redisOnConnect);
     redisAsyncSetDisconnectCallback(async_ctx, redisOnDisconnect);
+
+    auto op_timeout_opt = backend_options->GetField<IntervalVal>("operation_timeout")->Get();
+    struct timeval op_timeout = util::double_to_timeval(op_timeout_opt);
+    redisAsyncSetTimeout(async_ctx, op_timeout);
 
     // redisAsyncSetConnectCallback sets the flag in the redisPollEvent for writing
     // so we can add this to our loop as well.

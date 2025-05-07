@@ -5,6 +5,14 @@
 module Storage::Backend::Redis;
 
 export {
+	## Default value for connection attempt timeouts. This can be overridden
+	## per-connection with the ``connect_timeout`` backend option.
+	const default_connect_timeout: interval = 5 secs &redef;
+
+	## Default value for operation timeouts. This can be overridden per-connection
+	## with the ``operation_timeout`` backend option.
+	const default_operation_timeout: interval = 5 secs &redef;
+
 	## Options record for the built-in Redis backend.
 	type Options: record {
 		# Address or hostname of the server.
@@ -22,6 +30,15 @@ export {
 		# same server. Defaults to an empty string, but preferably should be set
 		# to a unique value per Redis backend opened.
 		key_prefix: string &default="";
+
+		## Timeout for connection attempts to the backend. Connection attempts
+		## that exceed this time will return
+		## :zeek:see:`Storage::CONNECTION_FAILED`.
+		connect_timeout: interval &default=default_connect_timeout;
+
+		## Timeout for operation requests sent to the backend. Operations that
+		## exceed this time will return :zeek:see:`Storage::TIMEOUT`.
+		operation_timeout: interval &default=default_operation_timeout;
 	};
 }
 

@@ -1,3 +1,9 @@
+8.0.0-dev.64 | 2025-05-07 15:39:17 -0700
+
+  * Move options to redis backend options instead of module-level options (Tim Wojtulewicz, Corelight)
+
+  * Add operation_timeout and command_timeout storage backend options (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.61 | 2025-05-07 14:09:42 -0700
 
   * Fix Broker metrics naming bugs that snuck in w/ last-minute renaming [skip ci] (Christian Kreibich, Corelight)

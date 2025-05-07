@@ -249,6 +249,11 @@ void WebSocketEventDispatcher::Terminate() {
     clients.clear();
 
     onloop->Close();
+
+    // Wait for the reply_msg_thread to process any outstanding
+    // WebSocketReply messages before returning.
+    reply_msg_thread->SignalStop();
+    reply_msg_thread->WaitForStop();
 }
 
 void WebSocketEventDispatcher::QueueForProcessing(WebSocketEvent&& event) {

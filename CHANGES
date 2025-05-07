@@ -1,3 +1,9 @@
+7.2.0-rc1.11 | 2025-05-07 14:06:06 +0200
+
+  * cluster/websocket: Stop and wait for reply thread during Terminate() (Arne Welzel, Corelight)
+
+    (cherry picked from commit 135acc7c6d2cd150b9090ca7563519ffadc2148e)
+
 7.2.0-rc1.10 | 2025-05-07 11:10:09 +0200
 
   * Websocket: Close onloop during Terminate() (Arne Welzel, Corelight)

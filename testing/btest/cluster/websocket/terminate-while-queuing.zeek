@@ -89,7 +89,7 @@ def run(ws_url):
                     tc.send_json(wstest.build_event_v1("/test/pings/", "ping", [f"tc{idx}", i]))
                 except websockets.exceptions.ConnectionClosedOK as e:
                     print("connection closed ok")
-                    assert e.code == 1001  # Remote going away
+                    assert e.code == 1001, f"expected code 1001, got {e.code} - {e}"  # Remote going away
                     i -= 1
                     saw_closed_ok.add(idx)
 

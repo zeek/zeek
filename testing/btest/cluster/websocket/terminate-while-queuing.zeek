@@ -64,6 +64,8 @@ import websockets.exceptions
 
 import wstest
 
+wstest.monkey_patch_close_socket()
+
 def run(ws_url):
     with (
         wstest.connect("ws1", ws_url) as tc1,

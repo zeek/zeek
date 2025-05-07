@@ -2,6 +2,7 @@
 
 #include "zeek/probabilistic/CardinalityCounter.h"
 
+#include <cinttypes>
 #include <cmath>
 #include <cstdint>
 #include <utility>

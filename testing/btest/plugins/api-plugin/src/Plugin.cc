@@ -1,6 +1,7 @@
 
 #include "Plugin.h"
 
+#include <cinttypes>
 #include <iostream>
 
 #include "zeek/ID.h"

@@ -4,6 +4,7 @@
 
 #include "zeek/zeek-config.h"
 
+#include <cinttypes>
 #include <list>
 #include <map>
 #include <string>

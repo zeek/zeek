@@ -1,3 +1,15 @@
+8.0.0-dev.50 | 2025-05-07 13:21:39 +0200
+
+  * cluster/websocket: Stop and wait for reply thread during Terminate() (Arne Welzel, Corelight)
+
+    The terminate-while-queueing test added for #4428 failed spuriously
+    indicating that sometimes WebSocket clients receive code 1000 instead of 1001.
+    This happens if the ixwebsocket server is shutdown before the reply thread had a
+    chance to process queued close messages.
+
+    Fix by signaling and waiting for the dispatcher's reply thread to terminate
+    before returning from Terminate().
+
 8.0.0-dev.46 | 2025-05-06 14:20:54 +0200
 
   * testing/btest: Fix double commented @TEST- lines (Arne Welzel, Corelight)

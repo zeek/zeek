@@ -147,9 +147,9 @@ New Functionality
   metrics are available to understand the health of each peering's buffer,
   regardless of the overflow policy active. These are:
 
-  - zeek_broker_peer_buffer_levels: a gauge of the current buffer fill level,
+  - zeek_broker_peer_buffer_messages: a gauge of the current buffer fill level,
 
-  - zeek_broker_peer_buffer_recent_max_levels: a gauge that tracks the maximum
+  - zeek_broker_peer_buffer_recent_max_messages: a gauge that tracks the maximum
     buffer fill level seen over the last ``Broker::buffer_stats_reset_interval`.
 
   - zeek_broker_peer_buffer_overflows_total: a counter that tracks the number

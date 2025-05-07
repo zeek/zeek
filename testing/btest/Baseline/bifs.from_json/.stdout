@@ -7,4 +7,4 @@ aa:bb::/32,
 [2001:db8::1, 8080/udp] 
 }, tbl={
 [192.168.0.1, 80/tcp] = foo
-}], valid=T]
+}], valid=T, err=<uninitialized>]

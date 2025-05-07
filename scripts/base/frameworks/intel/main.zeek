@@ -208,10 +208,6 @@ export {
 	global filter_item: hook(item: Intel::Item);
 
 	global log_intel: event(rec: Info);
-
-	global enable_event_group_helper: function(item: Item);
-
-	global disable_event_group_helper: function(item: Item);
 }
 
 # Internal handler for matches with no metadata available.
@@ -252,61 +248,6 @@ type MinDataStore: record {
 };
 global min_data_store: MinDataStore &redef;
 
-global intel_type_file_map: table[Type] of set[string];
-
-event zeek_init()
-	{
-	intel_type_file_map = table();
-
-	local types = enum_names(Type);
-
-	for ( t in types )
-		{
-		if ( has_event_group(t) )
-			disable_event_group(t);
-		}
-	}
-
-function enable_event_group_helper(item: Item)
-	{
-	local t = item$indicator_type;
-	local t_str = fmt("%s", t);
-
-	if ( ! has_event_group(t_str) )
-		return;
-
-	if ( t !in intel_type_file_map )
-		intel_type_file_map[t] = set();
-
-	local f = item$meta$source;
-
-	if ( f in intel_type_file_map[t] )
-		return;
-
-	add intel_type_file_map[t][f];
-	enable_event_group(t_str);
-	}
-
-function disable_event_group_helper(item: Item)
-	{
-	local t = item$indicator_type;
-	local t_str = fmt("%s", t);
-
-	if ( ! has_event_group(t_str) )
-		return;
-
-	local f = item$meta$source;
-
-	if ( f !in intel_type_file_map[t] )
-		return;
-
-	delete intel_type_file_map[t][f];
-	if ( |intel_type_file_map[t]| > 0 )
-		return;
-
-	delete intel_type_file_map[t];
-	disable_event_group(t_str);
-	}
 
 event zeek_init() &priority=5
 	{
@@ -556,8 +497,6 @@ function insert_meta_data(item: Item): bool
 # indicates whether the item might be new for other nodes.
 function _insert(item: Item, first_dispatch: bool &default = T)
 	{
-	enable_event_group_helper(item);
-
 	# Assume that the item is new by default.  The &is_used attribute
 	# is because if have_full_data isn't redef'd to F, then constant
 	# propagation will cause the definition here to be shadowed by
@@ -658,8 +597,6 @@ function remove(item: Item, purge_indicator: bool)
 			item$indicator, item$indicator_type));
 		return;
 		}
-
-	disable_event_group_helper(item);
 
 	# Delegate removal if we are on a worker
 	if ( !have_full_data )

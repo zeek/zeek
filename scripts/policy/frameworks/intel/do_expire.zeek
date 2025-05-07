@@ -1,6 +1,7 @@
 ##! This script enables expiration for intelligence items.
 
 @load base/frameworks/intel
+@load policy/frameworks/intel/manage_groups
 
 module Intel;
 

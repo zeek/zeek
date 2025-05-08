@@ -36,6 +36,8 @@ New Functionality
 
   - The bundled version of ZeekJS has been updated to v0.17.0.
 
+  - The bundled version of Spicy has been updated to v1.13.0.
+
 - Some DNS events are not raised when ``dns_skip_all_addl`` is set to true.  Zeek now
   raises a warning when a script declares these events while this option is set to true.
 

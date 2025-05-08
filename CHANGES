@@ -1,3 +1,7 @@
+7.2.0-rc1.18 | 2025-05-08 14:47:17 -0700
+
+  * Bump auxil/spicy to latest release (Benjamin Bannier, Corelight)
+
 7.2.0-rc1.16 | 2025-05-08 13:47:36 -0700
 
   * Downgrade broker clone FatalError to an Error (Tim Wojtulewicz, Corelight)

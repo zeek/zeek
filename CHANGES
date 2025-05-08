@@ -1,3 +1,9 @@
+7.2.0-rc1.19 | 2025-05-08 15:14:29 -0700
+
+  * Bugfix: accurately track Broker buffer overflows w/ multiple peerings (Christian Kreibich, Corelight)
+
+    (cherry picked from commit 8d7942955573673a1eedd98d027a1efcaec485c8)
+
 7.2.0-rc1.18 | 2025-05-08 14:47:17 -0700
 
   * Bump auxil/spicy to latest release (Benjamin Bannier, Corelight)

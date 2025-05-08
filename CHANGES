@@ -1,3 +1,7 @@
+8.0.0-dev.67 | 2025-05-08 09:25:19 +0200
+
+  * Include cstdint header to support uint8_t/uint64_t in GCC 15+ (i2z1)
+
 8.0.0-dev.64 | 2025-05-07 15:39:17 -0700
 
   * Move options to redis backend options instead of module-level options (Tim Wojtulewicz, Corelight)

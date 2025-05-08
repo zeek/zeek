@@ -1,3 +1,9 @@
+7.2.0-rc1.16 | 2025-05-08 13:47:36 -0700
+
+  * Downgrade broker clone FatalError to an Error (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 2c17c85f557245b6163ced014fc1d8089e1fcdf2)
+
 7.2.0-rc1.14 | 2025-05-07 14:11:04 -0700
 
   * Fix Broker metrics naming bugs that snuck in w/ last-minute renaming [skip ci] (Christian Kreibich, Corelight)

@@ -2086,8 +2086,10 @@ detail::StoreHandleVal* Manager::MakeClone(const string& name, double resync_int
     auto handle = new detail::StoreHandleVal{*result};
     Ref(handle);
 
-    if ( ! handle->proxy.valid() )
-        reporter->FatalError("Failed to create clone for data store %s", name.c_str());
+    if ( ! handle->proxy.valid() ) {
+        reporter->Error("Failed to create clone for data store %s", name.c_str());
+        return nullptr;
+    }
 
     data_stores.emplace(name, handle);
     if ( ! iosource_mgr->RegisterFd(handle->proxy.mailbox().descriptor(), this) )

@@ -1,3 +1,9 @@
+7.2.0-3 | 2025-05-19 09:26:16 -0700
+
+  * Include cstdint header to support uint8_t/uint64_t in GCC 15+ (i2z1)
+
+    (cherry picked from commit 60efc7741dda72766123dd4a1aef9d9487f05fc2)
+
 7.2.0-2 | 2025-05-19 09:23:58 -0700
 
   * fix for ZAM optimization when an aggregate is modified inside of a loop (Vern Paxson, Corelight)

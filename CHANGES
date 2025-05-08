@@ -1,3 +1,7 @@
+8.0.0-dev.78 | 2025-05-08 15:14:25 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 8.0.0-dev.76 | 2025-05-08 15:07:09 -0700
 
   * Bugfix: accurately track Broker buffer overflows w/ multiple peerings (Christian Kreibich, Corelight)

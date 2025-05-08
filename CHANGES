@@ -1,3 +1,13 @@
+8.0.0-dev.72 | 2025-05-08 13:18:52 +0200
+
+  * probabilistic/BitVector: Add include <cstdint> (Arne Welzel, Corelight)
+
+  * Bump spicy to fix build with GCC 15.1 (Arne Welzel, Corelight)
+
+  * CI: Drop fedora-40 (Arne Welzel, Corelight)
+
+  * CI: Add fedora-42 (Arne Welzel, Corelight)
+
 8.0.0-dev.67 | 2025-05-08 09:25:19 +0200
 
   * Include cstdint header to support uint8_t/uint64_t in GCC 15+ (i2z1)

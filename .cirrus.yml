@@ -18,6 +18,7 @@ spicy_ssl_config: &SPICY_SSL_CONFIG --build-type=release --disable-broker-tests 
 asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --ccache --enable-werror
 ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --ccache --enable-werror
 tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --ccache --enable-werror
+macos_config: &MACOS_CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror --with-krb5=/opt/homebrew/opt/krb5
 
 resources_template: &RESOURCES_TEMPLATE
   cpu: *CPUS
@@ -33,6 +34,7 @@ macos_environment: &MACOS_ENVIRONMENT
     ZEEK_CI_BTEST_JOBS: 12
     # No permission to write to default location of /zeek
     CIRRUS_WORKING_DIR: /tmp/zeek
+    ZEEK_CI_CONFIGURE_FLAGS: *MACOS_CONFIG
 
 freebsd_resources_template: &FREEBSD_RESOURCES_TEMPLATE
   cpu: 8

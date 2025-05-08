@@ -1,3 +1,7 @@
+8.0.0-dev.76 | 2025-05-08 15:07:09 -0700
+
+  * Bugfix: accurately track Broker buffer overflows w/ multiple peerings (Christian Kreibich, Corelight)
+
 8.0.0-dev.74 | 2025-05-08 13:46:54 -0700
 
   * Downgrade broker clone FatalError to an Error (Tim Wojtulewicz, Corelight)

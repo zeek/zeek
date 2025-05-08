@@ -1,3 +1,7 @@
+8.0.0-dev.74 | 2025-05-08 13:46:54 -0700
+
+  * Downgrade broker clone FatalError to an Error (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.72 | 2025-05-08 13:18:52 +0200
 
   * probabilistic/BitVector: Add include <cstdint> (Arne Welzel, Corelight)

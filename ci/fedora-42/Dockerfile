@@ -1,8 +1,8 @@
-FROM fedora:39
+FROM fedora:42
 
 # A version field to invalidate Cirrus's build cache when needed, as suggested in
 # https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION 20231208
+ENV DOCKERFILE_VERSION 20250508
 
 RUN dnf -y install \
     bison \
@@ -11,6 +11,7 @@ RUN dnf -y install \
     diffutils \
     findutils \
     flex \
+    gawk \
     gcc \
     gcc-c++ \
     git \
@@ -28,6 +29,7 @@ RUN dnf -y install \
     swig \
     which \
     zlib-devel \
+    crypto-policies-scripts \
   && dnf clean all && rm -rf /var/cache/dnf
 
 RUN pip3 install websockets junit2html

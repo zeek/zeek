@@ -1,3 +1,17 @@
+7.0.7-5 | 2025-05-19 09:20:24 -0700
+
+  * probabilistic/BitVector: Add include <cstdint> (Arne Welzel, Corelight)
+
+    (cherry picked from commit 7583651bec7b4a87d77d756bb3ae963f7b69b1cd)
+
+  * CI: Drop fedora-39 and fedora-40 (Arne Welzel, Corelight)
+
+    (cherry picked from commit 7583651bec7b4a87d77d756bb3ae963f7b69b1cd)
+
+  * CI: Add fedora-41 and fedora-42 (Arne Welzel, Corelight)
+
+    (cherry picked from commit 7583651bec7b4a87d77d756bb3ae963f7b69b1cd)
+
 7.0.7-4 | 2025-05-19 09:17:52 -0700
 
   * Remove unnecessary check for bind library. (Johanna Amann, Corelight)

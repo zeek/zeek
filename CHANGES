@@ -1,3 +1,11 @@
+7.0.6-14 | 2025-05-08 14:46:21 -0700
+
+  * Bump auxil/spicy to spicy-1.11.4 (Benjamin Bannier, Corelight)
+
+  * Add fix to support CMake 4.0, plus update Spicy to version that supports it (Tim Wojtulewicz, Corelight)
+
+  * CI: Use brew version of python3 on macOS (Tim Wojtulewicz, Corelight)
+
 7.0.6-8 | 2025-05-06 10:09:01 -0700
 
   * Update quic baselines due to service ordering (Tim Wojtulewicz, Corelight)

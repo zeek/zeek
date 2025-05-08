@@ -1,3 +1,17 @@
+7.2.0-4 | 2025-05-19 09:29:01 -0700
+
+  * probabilistic/BitVector: Add include <cstdint> (Arne Welzel, Corelight)
+
+    (cherry picked from commit 7583651bec7b4a87d77d756bb3ae963f7b69b1cd)
+
+  * CI: Drop fedora-40 (Arne Welzel, Corelight)
+
+    (cherry picked from commit 7583651bec7b4a87d77d756bb3ae963f7b69b1cd)
+
+  * CI: Add fedora-42 (Arne Welzel, Corelight)
+
+    (cherry picked from commit 7583651bec7b4a87d77d756bb3ae963f7b69b1cd)
+
 7.2.0-3 | 2025-05-19 09:26:16 -0700
 
   * Include cstdint header to support uint8_t/uint64_t in GCC 15+ (i2z1)

@@ -19,7 +19,7 @@ const bool DEBUG_rpc_resync = false;
 // TODO: Should we add start_time and last_time to the rpc_* events??
 
 // TODO: make this configurable
-#define MAX_RPC_LEN 65536
+constexpr uint32_t MAX_RPC_LEN = 65536;
 
 namespace zeek::analyzer::rpc {
 namespace detail {

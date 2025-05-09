@@ -133,10 +133,11 @@ void Login_Analyzer::NewLine(bool orig, char* line) {
     }
 }
 
+constexpr char VMS_REPEAT_SEQ[] = "\x1b[A";
+
 void Login_Analyzer::AuthenticationDialog(bool orig, char* line) {
     if ( orig ) {
         if ( is_VMS ) {
-#define VMS_REPEAT_SEQ "\x1b[A"
             char* repeat_prev_line = strstr(line, VMS_REPEAT_SEQ);
             if ( repeat_prev_line ) {
                 if ( repeat_prev_line[strlen(VMS_REPEAT_SEQ)] ) {

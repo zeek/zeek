@@ -19,7 +19,7 @@
 #include "zeek/iosource/PktSrc.h"
 #include "zeek/plugin/Manager.h"
 
-#define DEFAULT_PREFIX "pcap"
+static constexpr char DEFAULT_PREFIX[] = "pcap";
 
 extern int signal_val;
 

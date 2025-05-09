@@ -343,7 +343,7 @@ hilti::Result<std::string> GlueCompiler::getNextEvtBlock(std::istream& in, int* 
     std::string chunk;
 
     // Parser need to track whether we are inside a string or a comment.
-    enum State { Default, InComment, InString } state = Default;
+    enum State : char { Default, InComment, InString } state = Default;
     char prev = '\0';
 
     while ( true ) {
@@ -666,7 +666,7 @@ glue::ProtocolAnalyzer GlueCompiler::parseProtocolAnalyzer(const std::string& ch
 
     eat_token(chunk, &i, ":");
 
-    enum { orig, resp, both } dir;
+    enum Dir : char { orig, resp, both } dir;
 
     while ( true ) {
         if ( looking_at(chunk, i, "parse") ) {

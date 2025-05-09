@@ -1,7 +1,8 @@
 #pragma once
 
-#include <zeek/plugin/Plugin.h>
 #include <string>
+
+#include "zeek/plugin/Plugin.h"
 
 namespace btest::plugin::Demo_PublishEvent {
 

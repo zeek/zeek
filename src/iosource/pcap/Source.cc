@@ -10,7 +10,7 @@
 #include <pcap-int.h>
 #endif
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "zeek/Event.h"
 #include "zeek/iosource/BPF_Program.h"

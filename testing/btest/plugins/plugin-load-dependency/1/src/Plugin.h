@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <zeek/plugin/Plugin.h>
+#include "zeek/plugin/Plugin.h"
 
 namespace btest::plugin::Testing_Plugin1 {
 

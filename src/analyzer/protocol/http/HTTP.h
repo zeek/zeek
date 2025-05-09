@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include <queue>
+#include <string>
+
 #include "zeek/IPAddr.h"
 #include "zeek/analyzer/protocol/http/events.bif.h"
 #include "zeek/analyzer/protocol/mime/MIME.h"
@@ -9,7 +12,6 @@
 #include "zeek/analyzer/protocol/tcp/ContentLine.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 #include "zeek/analyzer/protocol/zip/ZIP.h"
-#include "zeek/binpac_zeek.h"
 
 namespace zeek::analyzer::http {
 
@@ -43,7 +45,7 @@ public:
     int64_t BodyLength() const { return body_length; }
     int64_t HeaderLength() const { return header_length; }
     void SkipBody() { deliver_body = 0; }
-    const string& FileID() const { return precomputed_file_id; }
+    const std::string& FileID() const { return precomputed_file_id; }
 
 protected:
     class UncompressedOutput;

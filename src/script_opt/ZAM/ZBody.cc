@@ -4,6 +4,7 @@
 
 #include "zeek/Conn.h"
 #include "zeek/Desc.h"
+#include "zeek/Dict.h"
 #include "zeek/EventHandler.h"
 #include "zeek/File.h"
 #include "zeek/Frame.h"

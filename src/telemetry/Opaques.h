@@ -10,6 +10,17 @@
 
 namespace zeek {
 
+namespace telemetry {
+
+class Counter;
+class CounterFamily;
+class Gauge;
+class GaugeFamily;
+class Histogram;
+class HistogramFamily;
+
+} // namespace telemetry
+
 /**
  * Base class for metric handles. Handle types are not serializable.
  */
@@ -43,7 +54,7 @@ public:
 protected:
     ValPtr DoClone(CloneState*) override { return make_intrusive<TelemetryValImpl>(hdl); }
 
-    const char* OpaqueName() const override { return Handle::OpaqueName; }
+    const char* OpaqueName() const override;
 
 private:
     HandleType hdl;

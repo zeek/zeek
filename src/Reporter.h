@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <stdarg.h>
+#include <cstdarg>
 #include <list>
 #include <map>
 #include <string>

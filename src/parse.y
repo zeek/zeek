@@ -83,6 +83,7 @@
 
 %{
 #include <cassert>
+#include <cinttypes>
 #include <cstdlib>
 #include <cstring>
 #include <set>

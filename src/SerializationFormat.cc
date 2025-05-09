@@ -3,6 +3,7 @@
 #include "zeek/SerializationFormat.h"
 
 #include <cctype>
+#include <cinttypes>
 
 #include "zeek/DebugLogger.h"
 #include "zeek/IPAddr.h"

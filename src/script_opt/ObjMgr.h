@@ -15,10 +15,10 @@
 
 #pragma once
 
-#include <zeek/Obj.h>
 #include <unordered_map>
 
 #include "zeek/IntrusivePtr.h"
+#include "zeek/Obj.h"
 
 namespace zeek::detail {
 

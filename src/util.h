@@ -16,7 +16,6 @@
 
 #include <libgen.h>
 #include <unistd.h>
-#include <cinttypes>
 #include <cstdarg>
 #include <cstdint>
 #include <cstdio>
@@ -62,8 +61,6 @@
 #include <gperftools/heap-profiler.h>
 extern HeapLeakChecker* heap_checker;
 #endif
-
-#include <stdint.h>
 
 extern "C" {
 #include "zeek/3rdparty/modp_numtoa.h"

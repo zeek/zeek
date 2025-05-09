@@ -2,6 +2,7 @@
 
 #include "zeek/probabilistic/BloomFilter.h"
 
+#include <cinttypes>
 #include <cmath>
 #include <limits>
 

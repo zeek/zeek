@@ -3,6 +3,7 @@
 #include "zeek/storage/backend/redis/Redis.h"
 
 #include <algorithm>
+#include <cinttypes>
 
 #include "zeek/DebugLogger.h"
 #include "zeek/Func.h"

@@ -9,7 +9,7 @@
 
 #include "zeek/zeek-config.h"
 
-#include <stdio.h>
+#include <cstdio>
 #include <set>
 #include <string>
 

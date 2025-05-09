@@ -4,6 +4,7 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Reporter.h"
+#include "zeek/Type.h"
 
 namespace zeek::iosource {
 

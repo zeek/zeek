@@ -5,6 +5,7 @@
 #include <broker/error.hh>
 
 #include "zeek/Desc.h"
+#include "zeek/Dict.h"
 #include "zeek/File.h"
 #include "zeek/Func.h"
 #include "zeek/ID.h"

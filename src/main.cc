@@ -3,8 +3,10 @@
 #include "zeek/zeek-config.h"
 
 #include <unistd.h>
+#include <cinttypes>
 
 #include "zeek/RunState.h"
+#include "zeek/Stats.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/supervisor/Supervisor.h"
 #include "zeek/zeek-setup.h"

@@ -1,8 +1,9 @@
 #include "Foo.h"
 
-#include <zeek/file_analysis/File.h>
-#include <zeek/file_analysis/Manager.h>
 #include <algorithm>
+
+#include "zeek/file_analysis/File.h"
+#include "zeek/file_analysis/Manager.h"
 
 #include "events.bif.h"
 

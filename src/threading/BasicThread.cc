@@ -5,6 +5,7 @@
 #include "zeek/zeek-config.h"
 
 #include <pthread.h>
+#include <cinttypes>
 #include <csignal>
 
 #include "zeek/threading/Manager.h"

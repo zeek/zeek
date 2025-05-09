@@ -1,9 +1,10 @@
 #pragma once
-#include <zeek/plugin/Plugin.h>
+
 #include <cstdio>
 
-namespace btest::plugin::Demo_InitHooks {
+#include "zeek/plugin/Plugin.h"
 
+namespace btest::plugin::Demo_InitHooks {
 
 class Plugin : public zeek::plugin::Plugin {
 protected:

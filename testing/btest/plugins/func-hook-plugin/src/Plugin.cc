@@ -1,12 +1,12 @@
 
 #include "Plugin.h"
 
-#include <zeek/Conn.h>
-#include <zeek/Desc.h>
-#include <zeek/Event.h>
-#include <zeek/Func.h>
-#include <zeek/Val.h>
-#include <zeek/threading/Formatter.h>
+#include "zeek/Conn.h"
+#include "zeek/Desc.h"
+#include "zeek/Event.h"
+#include "zeek/Func.h"
+#include "zeek/Val.h"
+#include "zeek/threading/Formatter.h"
 
 namespace btest::plugin::Demo_Hooks {
 Plugin plugin;

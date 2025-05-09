@@ -718,8 +718,12 @@ bool has_AST_node_unknown_to_script_opt(const ProfileFunc* prof, bool /* is_ZAM 
         STMT_ASSERT,
         // STMT_EXTERN,
         // STMT_STD_FUNCTION,
-#define SCRIPT_OPT_NUM_STMTS 24
     };
+
+    // This should be the total number of entries in the set above, including
+    // the commented values.
+    constexpr int SCRIPT_OPT_NUM_STMTS = 24;
+
     // clang-format on
 
     // Fail compilation if NUM_STMT in StmtEnums.h changes.
@@ -803,8 +807,12 @@ bool has_AST_node_unknown_to_script_opt(const ProfileFunc* prof, bool /* is_ZAM 
         // EXPR_ANY_INDEX,
         // EXPR_SCRIPT_OPT_BUILTIN,
         // EXPR_NOP,
-#define SCRIPT_OPT_NUM_EXPRS  70
     };
+
+    // This should be the total number of entries in the set above, including
+    // the commented values.
+    constexpr int SCRIPT_OPT_NUM_EXPRS = 70;
+
     // clang-format on
 
     // Fail compilation if NUM_EXPRS in Expr.h changes.

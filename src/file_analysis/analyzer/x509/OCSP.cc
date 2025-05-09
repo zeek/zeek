@@ -23,7 +23,7 @@ X509* helper_sk_X509_value(const STACK_OF(X509) * certs, int i) { return sk_X509
 
 namespace zeek::file_analysis::detail {
 
-#define OCSP_STRING_BUF_SIZE 2048
+static constexpr size_t OCSP_STRING_BUF_SIZE = 2048;
 
 static bool OCSP_RESPID_bio(OCSP_BASICRESP* basic_resp, BIO* bio) {
 #if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)

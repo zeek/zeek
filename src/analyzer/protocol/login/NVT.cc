@@ -11,27 +11,22 @@
 
 #define IS_3_BYTE_OPTION(c) ((c) >= 251 && (c) <= 254)
 
-#define TELNET_OPT_SB 250
-#define TELNET_OPT_SE 240
+static constexpr uint8_t TELNET_OPT_SB = 250;
+static constexpr uint8_t TELNET_OPT_SE = 240;
 
-#define TELNET_OPT_IS 0
-#define TELNET_OPT_SEND 1
+static constexpr uint8_t TELNET_OPT_IS = 0;
+static constexpr uint8_t TELNET_OPT_SEND = 1;
 
-#define TELNET_OPT_WILL 251
-#define TELNET_OPT_WONT 252
-#define TELNET_OPT_DO 253
-#define TELNET_OPT_DONT 254
+static constexpr uint8_t TELNET_OPT_WILL = 251;
+static constexpr uint8_t TELNET_OPT_WONT = 252;
+static constexpr uint8_t TELNET_OPT_DO = 253;
+static constexpr uint8_t TELNET_OPT_DONT = 254;
 
-#define TELNET_IAC 255
+static constexpr uint8_t TELNET_IAC = 255;
 
 namespace zeek::analyzer::login {
 
-TelnetOption::TelnetOption(NVT_Analyzer* arg_endp, unsigned int arg_code) {
-    endp = arg_endp;
-    code = arg_code;
-    flags = 0;
-    active = 0;
-}
+TelnetOption::TelnetOption(NVT_Analyzer* arg_endp, unsigned int arg_code) : endp(arg_endp), code(arg_code) {}
 
 void TelnetOption::RecvOption(unsigned int type) {
     TelnetOption* peer = endp->FindPeerOption(code);
@@ -114,15 +109,17 @@ void TelnetTerminalOption::RecvSubOption(u_char* data, int len) {
     endp->SetTerminal(data + 1, len - 1);
 }
 
-#define ENCRYPT_SET_ALGORITHM 0
-#define ENCRYPT_SUPPORT_ALGORITHM 1
-#define ENCRYPT_REPLY 2
-#define ENCRYPT_STARTING_TO_ENCRYPT 3
-#define ENCRYPT_NO_LONGER_ENCRYPTING 4
-#define ENCRYPT_REQUEST_START_TO_ENCRYPT 5
-#define ENCRYPT_REQUEST_NO_LONGER_ENCRYPT 6
-#define ENCRYPT_ENCRYPT_KEY 7
-#define ENCRYPT_DECRYPT_KEY 8
+enum EncryptOptions : uint8_t {
+    ENCRYPT_SET_ALGORITHM = 0,
+    ENCRYPT_SUPPORT_ALGORITHM = 1,
+    ENCRYPT_REPLY = 2,
+    ENCRYPT_STARTING_TO_ENCRYPT = 3,
+    ENCRYPT_NO_LONGER_ENCRYPTING = 4,
+    ENCRYPT_REQUEST_START_TO_ENCRYPT = 5,
+    ENCRYPT_REQUEST_NO_LONGER_ENCRYPT = 6,
+    ENCRYPT_ENCRYPT_KEY = 7,
+    ENCRYPT_DECRYPT_KEY = 8,
+};
 
 void TelnetEncryptOption::RecvSubOption(u_char* data, int len) {
     if ( ! active ) {
@@ -157,13 +154,15 @@ void TelnetEncryptOption::RecvSubOption(u_char* data, int len) {
     }
 }
 
-#define HERE_IS_AUTHENTICATION 0
-#define SEND_ME_AUTHENTICATION 1
-#define AUTHENTICATION_STATUS 2
-#define AUTHENTICATION_NAME 3
+enum AuthOptions : uint8_t {
+    HERE_IS_AUTHENTICATION = 0,
+    SEND_ME_AUTHENTICATION = 1,
+    AUTHENTICATION_STATUS = 2,
+    AUTHENTICATION_NAME = 3,
+};
 
-#define AUTH_REJECT 1
-#define AUTH_ACCEPT 2
+constexpr int AUTH_REJECT = 1;
+constexpr int AUTH_ACCEPT = 2;
 
 void TelnetAuthenticateOption::RecvSubOption(u_char* data, int len) {
     if ( len <= 0 ) {
@@ -212,14 +211,14 @@ void TelnetAuthenticateOption::RecvSubOption(u_char* data, int len) {
     }
 }
 
-#define ENVIRON_IS 0
-#define ENVIRON_SEND 1
-#define ENVIRON_INFO 2
+constexpr uint8_t ENVIRON_IS = 0;
+constexpr uint8_t ENVIRON_SEND = 1;
+constexpr uint8_t ENVIRON_INFO = 2;
 
-#define ENVIRON_VAR 0
-#define ENVIRON_VAL 1
-#define ENVIRON_ESC 2
-#define ENVIRON_USERVAR 3
+constexpr uint8_t ENVIRON_VAR = 0;
+constexpr uint8_t ENVIRON_VAL = 1;
+constexpr uint8_t ENVIRON_ESC = 2;
+constexpr uint8_t ENVIRON_USERVAR = 3;
 
 void TelnetEnvironmentOption::RecvSubOption(u_char* data, int len) {
     if ( len <= 0 ) {
@@ -386,7 +385,7 @@ void NVT_Analyzer::SetEncrypting(int mode) {
         Event(activating_encryption);
 }
 
-#define MAX_DELIVER_UNIT 128
+constexpr int MAX_DELIVER_UNIT = 128;
 
 void NVT_Analyzer::DoDeliver(int len, const u_char* data) {
     while ( len > 0 ) {

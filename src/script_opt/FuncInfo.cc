@@ -20,29 +20,29 @@ namespace zeek::detail {
 // to the event engine.
 
 // Does not change script-level state (though may change internal state).
-#define ATTR_NO_SCRIPT_SIDE_EFFECTS 0x1
+constexpr unsigned int ATTR_NO_SCRIPT_SIDE_EFFECTS = 0x1;
 
 // Does not change any Zeek state, internal or external. (May change
 // state outside of Zeek, such as file system elements.) Implies
 // ATTR_NO_SCRIPT_SIDE_EFFECTS.
-#define ATTR_NO_ZEEK_SIDE_EFFECTS 0x2
+constexpr unsigned int ATTR_NO_ZEEK_SIDE_EFFECTS = 0x2;
 
 // Calls made with the same arguments yield the same results, if made
 // after full Zeek initialization. Implies ATTR_NO_ZEEK_SIDE_EFFECTS.
-#define ATTR_IDEMPOTENT 0x4
+constexpr unsigned int ATTR_IDEMPOTENT = 0x4;
 
 // Calls with constant arguments can always be folded, even prior to
 // full Zeek initialization. Such functions must not have the potential
 // to generate errors. Implies ATTR_IDEMPOTENT.
-#define ATTR_FOLDABLE 0x8
+constexpr unsigned int ATTR_FOLDABLE = 0x8;
 
 // The event engine knows about this script function and may call it
 // during its processing.
-#define ATTR_SPECIAL_SCRIPT_FUNC 0x10
+constexpr unsigned int ATTR_SPECIAL_SCRIPT_FUNC = 0x10;
 
 // ZAM knows about this script function and will replace it with specialized
 // instructions.
-#define ATTR_ZAM_REPLACEABLE_SCRIPT_FUNC 0x20
+constexpr unsigned int ATTR_ZAM_REPLACEABLE_SCRIPT_FUNC = 0x20;
 
 static std::unordered_map<std::string, unsigned int> func_attrs = {
     // Script functions.

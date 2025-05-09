@@ -6,6 +6,7 @@
 
 #include <netdb.h>
 #include <netinet/in.h>
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define RAPIDJSON_HAS_STDSTRING 1
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>

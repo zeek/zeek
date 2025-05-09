@@ -11,8 +11,8 @@
 #include "zeek/IPAddr.h"
 #include "zeek/Reporter.h"
 
-#define DEFAULT_SIZE 128
-#define SLOP 10
+constexpr unsigned int DEFAULT_SIZE = 128;
+constexpr int SLOP = 10;
 
 namespace zeek {
 

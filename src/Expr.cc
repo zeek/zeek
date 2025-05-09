@@ -740,6 +740,8 @@ ValPtr BinaryExpr::Fold(Val* v1, Val* v2) const {
         RuntimeErrorWithCallStack("bad type in BinaryExpr::Fold");
 
     switch ( tag ) {
+        // Once we have C++20, these macros can become templated lambdas.
+        // NOLINTBEGIN(cppcoreguidelines-macro-usage)
 #define DO_INT_FOLD(op)                                                                                                \
     if ( is_integral )                                                                                                 \
         i3 = i1 op i2;                                                                                                 \
@@ -769,6 +771,7 @@ ValPtr BinaryExpr::Fold(Val* v1, Val* v2) const {
         i3 = u1 op u2;                                                                                                 \
     else                                                                                                               \
         i3 = d1 op d2;
+            // NOLINTEND(cppcoreguidelines-macro-usage)
 
         case EXPR_ADD:
         case EXPR_ADD_TO: DO_FOLD(+); break;
@@ -890,13 +893,13 @@ ValPtr BinaryExpr::StringFold(Val* v1, Val* v2) const {
 
     switch ( tag ) {
 #undef DO_FOLD
-// NOLINTBEGIN(bugprone-macro-parentheses)
+// NOLINTBEGIN(bugprone-macro-parentheses, cppcoreguidelines-macro-usage)
 #define DO_FOLD(sense)                                                                                                 \
     {                                                                                                                  \
         result = Bstr_cmp(s1, s2) sense 0;                                                                             \
         break;                                                                                                         \
     }
-            // NOLINTEND(bugprone-macro-parentheses)
+            // NOLINTEND(bugprone-macro-parentheses, cppcoreguidelines-macro-usage)
 
         case EXPR_LT: DO_FOLD(<)
         case EXPR_LE: DO_FOLD(<=)

@@ -54,6 +54,8 @@ constexpr DebugFlag operator&(zeek_uint_t x, DebugFlag y) {
     return static_cast<DebugFlag>(x & static_cast<zeek_uint_t>(y));
 }
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+
 #define ZEROMQ_DEBUG(...) PLUGIN_DBG_LOG(zeek::plugin::Zeek_Cluster_Backend_ZeroMQ::plugin, __VA_ARGS__)
 
 #define ZEROMQ_THREAD_PRINTF(...)                                                                                      \
@@ -67,6 +69,8 @@ constexpr DebugFlag operator&(zeek_uint_t x, DebugFlag y) {
             ZEROMQ_THREAD_PRINTF(__VA_ARGS__);                                                                         \
         }                                                                                                              \
     } while ( 0 )
+
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 ZeroMQBackend::ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
                              std::unique_ptr<detail::EventHandlingStrategy> ehs)

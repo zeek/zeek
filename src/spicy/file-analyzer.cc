@@ -13,11 +13,13 @@ using namespace zeek;
 using namespace zeek::spicy;
 using namespace zeek::spicy::rt;
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
 #ifdef DEBUG
 #define STATE_DEBUG_MSG(...) DebugMsg(__VA_ARGS__)
 #else
 #define STATE_DEBUG_MSG(...)
 #endif
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 void FileState::debug(const std::string& msg) { spicy::rt::debug(_cookie, msg); }
 

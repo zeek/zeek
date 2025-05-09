@@ -135,7 +135,8 @@ std::unique_ptr<WebSocketServer> StartServer(std::unique_ptr<WebSocketEventDispa
                 dispatcher->QueueForProcessing(WebSocketMessage{id, msg->str});
             }
             else if ( msg->type == ix::WebSocketMessageType::Close ) {
-                dispatcher->QueueForProcessing(WebSocketClose{id});
+                auto& ci = msg->closeInfo;
+                dispatcher->QueueForProcessing(WebSocketClose{id, ci.code, std::move(ci.reason)});
             }
             else if ( msg->type == ix::WebSocketMessageType::Error ) {
                 dispatcher->QueueForProcessing(WebSocketClose{id});

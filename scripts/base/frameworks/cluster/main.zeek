@@ -85,6 +85,9 @@ export {
 	## is incremented when the maximum queue size is reached.
 	const default_websocket_max_event_queue_size = 32 &redef;
 
+	## The default ping interval for WebSocket clients.
+	const default_websocket_ping_interval = 5 sec &redef;
+
 	## Setting a default dir will, for persistent backends that have not
 	## been given an explicit file path via :zeek:see:`Cluster::stores`,
 	## automatically create a path within this dir that is based on the name of
@@ -365,6 +368,10 @@ export {
 		listen_port: port;
 		## The maximum event queue size for this server.
 		max_event_queue_size: count &default=default_websocket_max_event_queue_size;
+		## Ping interval to use. A WebSocket client not responding to
+		## the pings will be disconnected. Set to a negative value to
+		## disable pings. Subsecond intervals are currently not supported.
+		ping_interval: interval &default=default_websocket_ping_interval;
 		## The TLS options used for this WebSocket server. By default,
 		## TLS is disabled. See also :zeek:see:`Cluster::WebSocketTLSOptions`.
 		tls_options: WebSocketTLSOptions &default=WebSocketTLSOptions();
@@ -673,10 +680,11 @@ event websocket_client_added(endpoint: EndpointInfo, subscriptions: string_vec)
 	Cluster::log(msg);
 	}
 
-event websocket_client_lost(endpoint: EndpointInfo)
+event websocket_client_lost(endpoint: EndpointInfo, code: count, reason: string)
 	{
-	local msg = fmt("WebSocket client '%s' (%s:%d) gone",
-	                endpoint$id, endpoint$network$address, endpoint$network$bound_port);
+	local msg = fmt("WebSocket client '%s' (%s:%d) gone with code %d%s",
+	                endpoint$id, endpoint$network$address, endpoint$network$bound_port, code,
+	                |reason| > 0 ? fmt(" and reason '%s'", reason) : "");
 	Cluster::log(msg);
 	}
 

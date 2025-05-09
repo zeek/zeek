@@ -356,7 +356,8 @@ void WebSocketEventDispatcher::Process(const WebSocketClose& close) {
         // should be the last event related to this WebSocket client.
         auto rec = zeek::cluster::detail::bif::make_endpoint_info(backend->NodeId(), wsc->getRemoteIp(),
                                                                   wsc->getRemotePort(), TRANSPORT_TCP);
-        zeek::event_mgr.Enqueue(Cluster::websocket_client_lost, std::move(rec));
+        zeek::event_mgr.Enqueue(Cluster::websocket_client_lost, std::move(rec), zeek::val_mgr->Count(close.code),
+                                zeek::make_intrusive<zeek::StringVal>(close.reason));
     }
 
     clients.erase(it);

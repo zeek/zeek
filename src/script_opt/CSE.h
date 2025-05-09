@@ -21,6 +21,7 @@ public:
                         const Expr* end_e);
 
     TraversalCode PreStmt(const Stmt*) override;
+    TraversalCode PostStmt(const Stmt*) override;
     TraversalCode PreExpr(const Expr*) override;
     TraversalCode PostExpr(const Expr*) override;
 
@@ -88,8 +89,12 @@ protected:
     // assignment expression.
     const Expr* start_e;
 
-    // Where in the AST to end our analysis.
+    // Expression in the AST where we should end our analysis. See discussion
+    // in the constructor for the interplay between this and end_s.
     const Expr* end_e;
+
+    // Statement in the AST where we should end our analysis.
+    const Stmt* end_s;
 
     // If what we're analyzing is a record element, then its offset.
     // -1 if not.

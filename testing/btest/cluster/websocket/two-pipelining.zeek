@@ -84,7 +84,7 @@ event Cluster::websocket_client_added(info: Cluster::EndpointInfo, subscriptions
 	drain_if_ready();
 	}
 
-event Cluster::websocket_client_lost(info: Cluster::EndpointInfo)
+event Cluster::websocket_client_lost(info: Cluster::EndpointInfo, code: count, reason: string)
 	{
 	++lost;
 	print "C Cluster::websocket_client_lost";

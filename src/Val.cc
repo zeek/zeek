@@ -53,6 +53,8 @@ Val::~Val() {
 #endif
 }
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+
 #define CONVERTER(tag, ctype, name)                                                                                    \
     ctype name() {                                                                                                     \
         CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", type_name)                                                       \
@@ -68,6 +70,8 @@ Val::~Val() {
 #define CONVERTERS(tag, ctype, name)                                                                                   \
     CONVERTER(tag, ctype, name)                                                                                        \
     CONST_CONVERTER(tag, ctype, name)
+
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 CONVERTERS(TYPE_FUNC, FuncVal*, Val::AsFuncVal)
 CONVERTERS(TYPE_FILE, FileVal*, Val::AsFileVal)

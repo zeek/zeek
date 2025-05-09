@@ -22,6 +22,7 @@ extern Plugin plugin;
 
 }
 
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define SERIALIZER_DEBUG(...) PLUGIN_DBG_LOG(zeek::plugin::Zeek_Binary_Serializer::plugin, __VA_ARGS__)
 
 bool detail::BinarySerializationFormatLogSerializer::SerializeLogWrite(byte_buffer& buf,

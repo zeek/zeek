@@ -9,11 +9,6 @@
 
 using namespace std;
 
-#define xbyte(b, n) (((const u_char*)(b))[n])
-#define extract_uint16(little_endian, bytes)                                                                           \
-    ((little_endian) ? uint16(xbyte(bytes, 0)) | ((uint16(xbyte(bytes, 1))) << 8) :                                    \
-                       uint16(xbyte(bytes, 1)) | ((uint16(xbyte(bytes, 0))) << 8))
-
 namespace zeek::analyzer::ncp {
 namespace detail {
 

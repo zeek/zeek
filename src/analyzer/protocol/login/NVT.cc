@@ -9,7 +9,7 @@
 #include "zeek/analyzer/protocol/login/events.bif.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#define IS_3_BYTE_OPTION(c) ((c) >= 251 && (c) <= 254)
+constexpr bool IS_3_BYTE_OPTION(unsigned int code) { return code >= 251 && code <= 254; }
 
 static constexpr uint8_t TELNET_OPT_SB = 250;
 static constexpr uint8_t TELNET_OPT_SE = 240;
@@ -411,17 +411,13 @@ void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data) {
         if ( binary_mode && c != TELNET_IAC )
             c &= 0x7f;
 
-#define EMIT_LINE                                                                                                      \
-    {                                                                                                                  \
-        buf[offset] = '\0';                                                                                            \
-        ForwardStream(offset, buf, IsOrig());                                                                          \
-        offset = 0;                                                                                                    \
-    }
-
         switch ( c ) {
             case '\r':
-                if ( CRLFAsEOL() & CR_as_EOL )
-                    EMIT_LINE
+                if ( CRLFAsEOL() & CR_as_EOL ) {
+                    buf[offset] = '\0';
+                    ForwardStream(offset, buf, IsOrig());
+                    offset = 0;
+                }
                 else
                     buf[offset++] = c;
                 break;
@@ -433,12 +429,17 @@ void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data) {
                         ;
                     else {
                         --offset; // remove '\r'
-                        EMIT_LINE
+                        buf[offset] = '\0';
+                        ForwardStream(offset, buf, IsOrig());
+                        offset = 0;
                     }
                 }
 
-                else if ( CRLFAsEOL() & LF_as_EOL )
-                    EMIT_LINE
+                else if ( CRLFAsEOL() & LF_as_EOL ) {
+                    buf[offset] = '\0';
+                    ForwardStream(offset, buf, IsOrig());
+                    offset = 0;
+                }
 
                 else {
                     if ( Conn()->FlagEvent(SINGULAR_LF) )

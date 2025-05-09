@@ -24,8 +24,6 @@ static const char* pop3_cmd_word[] = {
 #include "POP3_cmd.def"
 };
 
-#define POP3_CMD_WORD(code) (((code) >= 0) ? pop3_cmd_word[code] : "(UNKNOWN)")
-
 POP3_Analyzer::POP3_Analyzer(Connection* conn) : analyzer::tcp::TCP_ApplicationAnalyzer("POP3", conn) {
     masterState = detail::POP3_START;
     subState = detail::POP3_WOK;

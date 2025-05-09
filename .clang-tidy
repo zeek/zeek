@@ -2,6 +2,8 @@ Checks: [-*,
          bugprone-*,
          performance-*,
 
+         cppcoreguidelines-macro-usage,
+         cppcoreguidelines-misleading-capture-default-by-value,
          cppcoreguidelines-virtual-class-destructor,
 
          # Skipping these temporarily because they are very noisy

@@ -12,6 +12,7 @@
 #include "zeek/iosource/IOSource.h"
 #include "zeek/iosource/Manager.h"
 
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define BROKER_WS_DEBUG(...)                                                                                           \
     do {                                                                                                               \
         DBG_LOG(DBG_BROKER, __VA_ARGS__);                                                                              \

@@ -277,17 +277,17 @@ void init_alternative_mode()
 		fprintf(fp_func_init, "#include \"zeek/Func.h\"\n");
 		fprintf(fp_func_init, "#include \"%s.h\"\n", input_filename);
 		fprintf(fp_func_init, "\n");
-		fprintf(fp_func_init, "namespace plugin { namespace %s {\n", plugin_canon);
+		fprintf(fp_func_init, "namespace plugin::%s {\n", plugin_canon);
 		fprintf(fp_func_init, "\n");
 		fprintf(fp_func_init, "void __bif_%s_init(zeek::plugin::Plugin* plugin)\n", name);
 		fprintf(fp_func_init, "\t{\n");
 
 		fprintf(fp_func_register, "#include \"zeek/plugin/Manager.h\"\n");
 		fprintf(fp_func_register, "\n");
-		fprintf(fp_func_register, "namespace plugin { namespace %s {\n", plugin_canon);
+		fprintf(fp_func_register, "namespace plugin::%s {\n", plugin_canon);
 		fprintf(fp_func_register, "void __bif_%s_init(zeek::plugin::Plugin* plugin);\n", name);
 		fprintf(fp_func_register, "zeek::plugin::detail::__RegisterBif __register_bifs_%s_%s(\"%s\", __bif_%s_init);\n", plugin_canon, name, plugin, name);
-		fprintf(fp_func_register, "} }\n");
+		fprintf(fp_func_register, "}\n");
         }
 	}
 
@@ -300,7 +300,7 @@ void finish_alternative_mode()
 		{
 		fprintf(fp_func_init, "\n");
 		fprintf(fp_func_init, "\t}\n");
-		fprintf(fp_func_init, "} }\n");
+		fprintf(fp_func_init, "}\n");
 		fprintf(fp_func_init, "\n");
 		fprintf(fp_func_init, "\n");
 		}

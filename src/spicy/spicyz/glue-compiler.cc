@@ -1120,11 +1120,15 @@ bool GlueCompiler::compile() {
         preinit_body.addCall("zeek_rt::register_spicy_module_end", {});
 
     if ( ! preinit_body.empty() ) {
+#if SPICY_VERSION_NUMBER >= 11400
+        constexpr auto zeek_preinit_flavor = hilti::type::function::Flavor::Function;
+#else
+        constexpr auto zeek_preinit_flavor = hilti::type::function::Flavor::Standard;
+#endif
         auto preinit_function =
             builder()->function(hilti::ID("zeek_preinit"),
                                 builder()->qualifiedType(builder()->typeVoid(), hilti::Constness::Const), {},
-                                preinit_body.block(), hilti::type::function::Flavor::Standard,
-                                hilti::declaration::Linkage::PreInit);
+                                preinit_body.block(), zeek_preinit_flavor, hilti::declaration::Linkage::PreInit);
         init_module->add(context(), preinit_function);
     }
 

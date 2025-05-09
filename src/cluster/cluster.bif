@@ -198,6 +198,13 @@ function Cluster::__listen_websocket%(options: WebSocketServerOptions%): bool
 	};
 
 	server_options.max_event_queue_size = options_rec->GetField<zeek::CountVal>("max_event_queue_size")->Get();
+
+	double ping_interval = options_rec->GetField<zeek::IntervalVal>("ping_interval")->Get();
+	if ( ping_interval < 0.0 )
+		server_options.ping_interval_seconds = -1;
+	else
+		server_options.ping_interval_seconds = static_cast<int>(ping_interval);
+
 	server_options.tls_options = std::move(tls_options);
 
 	auto result = zeek::cluster::manager->ListenWebSocket(server_options);

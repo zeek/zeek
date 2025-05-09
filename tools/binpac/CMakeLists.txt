@@ -14,10 +14,10 @@ set(BINPAC_SOVERSION 0)
 
 set(ENABLE_SHARED true)
 
-if(ENABLE_STATIC_ONLY)
-  set(ENABLE_STATIC true)
-  set(ENABLE_SHARED false)
-endif()
+if (ENABLE_STATIC_ONLY)
+    set(ENABLE_STATIC true)
+    set(ENABLE_SHARED false)
+endif ()
 
 # Set default install paths
 include(GNUInstallDirs)
@@ -28,9 +28,9 @@ include(GNUInstallDirs)
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 
-if(MSVC)
-  add_compile_options(/J) # Similar to -funsigned-char on other platforms
-endif()
+if (MSVC)
+    add_compile_options(/J) # Similar to -funsigned-char on other platforms
+endif ()
 
 # ##############################################################################
 # System Introspection
@@ -48,38 +48,38 @@ add_subdirectory(src)
 # ##############################################################################
 # Build Summary
 
-if(CMAKE_BUILD_TYPE)
-  string(TOUPPER ${CMAKE_BUILD_TYPE} BuildType)
-endif()
+if (CMAKE_BUILD_TYPE)
+    string(TOUPPER ${CMAKE_BUILD_TYPE} BuildType)
+endif ()
 
-macro(display test desc summary)
-  if(${test})
-    set(${summary} ${desc})
-  else()
-    set(${summary} no)
-  endif()
-endmacro()
+macro (display test desc summary)
+    if (${test})
+        set(${summary} ${desc})
+    else ()
+        set(${summary} no)
+    endif ()
+endmacro ()
 
 display(ENABLE_SHARED yes shared_summary)
 display(ENABLE_STATIC yes static_summary)
 
 message(
-  "\n==================|  BinPAC Build Summary  |===================="
-  "\nVersion:           ${BINPAC_VERSION}"
-  "\nSO version:        ${BINPAC_SOVERSION}"
-  "\n"
-  "\nBuild Type:        ${CMAKE_BUILD_TYPE}"
-  "\nDebug mode:        ${ENABLE_DEBUG}"
-  "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
-  "\nShared libs:       ${shared_summary}"
-  "\nStatic libs:       ${static_summary}"
-  "\n"
-  "\nCC:                ${CMAKE_C_COMPILER}"
-  "\nCFLAGS:            ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BuildType}}"
-  "\nCXX:               ${CMAKE_CXX_COMPILER}"
-  "\nCXXFLAGS:          ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}"
-  "\nCPP:               ${CMAKE_CXX_COMPILER}"
-  "\n"
-  "\n================================================================\n")
+    "\n==================|  BinPAC Build Summary  |===================="
+    "\nVersion:           ${BINPAC_VERSION}"
+    "\nSO version:        ${BINPAC_SOVERSION}"
+    "\n"
+    "\nBuild Type:        ${CMAKE_BUILD_TYPE}"
+    "\nDebug mode:        ${ENABLE_DEBUG}"
+    "\nInstall prefix:    ${CMAKE_INSTALL_PREFIX}"
+    "\nShared libs:       ${shared_summary}"
+    "\nStatic libs:       ${static_summary}"
+    "\n"
+    "\nCC:                ${CMAKE_C_COMPILER}"
+    "\nCFLAGS:            ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BuildType}}"
+    "\nCXX:               ${CMAKE_CXX_COMPILER}"
+    "\nCXXFLAGS:          ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}"
+    "\nCPP:               ${CMAKE_CXX_COMPILER}"
+    "\n"
+    "\n================================================================\n")
 
 include(UserChangedWarning)

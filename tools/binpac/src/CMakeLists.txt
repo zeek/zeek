@@ -1,20 +1,12 @@
-bison_target(
-  PACParser pac_parse.yy ${BinPAC_BINARY_DIR}/src/pac_parse.cc
-  DEFINES_FILE ${BinPAC_BINARY_DIR}/src/pac_parse.h
-  COMPILE_FLAGS "--debug")
+bison_target(PACParser pac_parse.yy ${BinPAC_BINARY_DIR}/src/pac_parse.cc
+             DEFINES_FILE ${BinPAC_BINARY_DIR}/src/pac_parse.h COMPILE_FLAGS "--debug")
 flex_target(PACScanner pac_scan.ll ${BinPAC_BINARY_DIR}/pac_scan.cc)
 add_flex_bison_dependency(PACScanner PACParser)
-if(MSVC)
-  set_property(
-    SOURCE pac_scan.cc
-    APPEND_STRING
-    PROPERTY COMPILE_FLAGS "/wd4018")
-else()
-  set_property(
-    SOURCE pac_scan.cc
-    APPEND_STRING
-    PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
-endif()
+if (MSVC)
+    set_property(SOURCE pac_scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "/wd4018")
+else ()
+    set_property(SOURCE pac_scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
+endif ()
 
 include_directories(${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src)
 
@@ -110,19 +102,17 @@ add_executable(binpac ${binpac_SRCS})
 target_compile_features(binpac PRIVATE cxx_std_17)
 set_target_properties(binpac PROPERTIES CXX_EXTENSIONS OFF)
 
-if(MSVC)
-  # If building separately from zeek, we need to add the libunistd subdirectory
-  # so that linking doesn't fail.
-  if("${CMAKE_PROJECT_NAME}" STREQUAL "BinPAC")
-    add_subdirectory(auxil/libunistd EXCLUDE_FROM_ALL)
-  endif()
-  target_link_libraries(binpac PRIVATE libunistd)
-endif()
+if (MSVC)
+    # If building separately from zeek, we need to add the libunistd subdirectory
+    # so that linking doesn't fail.
+    if ("${CMAKE_PROJECT_NAME}" STREQUAL "BinPAC")
+        add_subdirectory(auxil/libunistd EXCLUDE_FROM_ALL)
+    endif ()
+    target_link_libraries(binpac PRIVATE libunistd)
+endif ()
 
 install(TARGETS binpac DESTINATION bin)
 
 # This is set to assist superprojects that want to build BinPac from source and
 # rely on it as a target
-set(BinPAC_EXE
-    binpac
-    CACHE STRING "BinPAC executable" FORCE)
+set(BinPAC_EXE binpac CACHE STRING "BinPAC executable" FORCE)

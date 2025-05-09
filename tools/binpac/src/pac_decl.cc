@@ -138,8 +138,8 @@ void HelperDecl::GenCode(Output* out_h, Output* out_cc) {
 		Decl *decl = Decl::LookUpDecl(context_id_);
 		if ( ! decl )
 			{
-			throw Exception(context_id_, 
-			                fmt("cannot find declaration for %s", 
+			throw Exception(context_id_,
+			                fmt("cannot find declaration for %s",
 			                    context_id_->Name()));
 			}
 		env = decl->env();

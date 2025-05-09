@@ -1046,7 +1046,7 @@ bool GlueCompiler::compile() {
         preinit_body.addCall("zeek_rt::register_file_analyzer",
                              {builder()->stringMutable(a.name.str()),
                               builder()->vector(hilti::util::transform(a.mime_types,
-                                                                       [&](auto m) {
+                                                                       [&](const auto& m) {
                                                                            return builder()
                                                                                ->stringMutable(m)
                                                                                ->template as<hilti::Expression>();
@@ -1100,7 +1100,7 @@ bool GlueCompiler::compile() {
         m->spicy_module->add(context(), import_);
 
         // Create a vector of unique parent paths from all EVTs files going into this module.
-        auto search_dirs = hilti::util::transform(m->evts, [](auto p) { return p.parent_path(); });
+        auto search_dirs = hilti::util::transform(m->evts, [](const auto& p) { return p.parent_path(); });
         auto search_dirs_vec = std::vector<hilti::rt::filesystem::path>(search_dirs.begin(), search_dirs.end());
 
         // Import any dependencies.

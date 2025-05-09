@@ -1,3 +1,10 @@
+8.0.0-dev.82 | 2025-05-09 17:25:38 +0200
+
+  * speed up file analysis, remove IncrementByteCount (Justin Azoff)
+
+    Avoid creating and recreating count objects for each chunk of file
+    analyzed.  This replaces counts inside of records with c++ uint64_ts.
+
 8.0.0-dev.80 | 2025-05-09 09:51:48 +0200
 
   * Updating submodules binpac, broker and zeek-aux [nomail] (Arne Welzel, Corelight)

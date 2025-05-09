@@ -1310,11 +1310,15 @@ public:
         return cast_intrusive<T>(GetField(field));
     }
 
+    // Returns true if the slot for the given field is initialized.
+    // This helper can be used to guard GetFieldAs() accesses.
+    bool HasRawField(int field) const { return record_val[field].has_value(); }
+
     // The following return the given field converted to a particular
     // underlying value.  We provide these to enable efficient
     // access to record fields (without requiring an intermediary Val).
     // It is up to the caller to ensure that the field exists in the
-    // record (using HasField(), if necessary).
+    // record (using HasRawField(), if necessary).
     template<typename T, typename std::enable_if_t<is_zeek_val_v<T>, bool> = true>
     auto GetFieldAs(int field) const -> std::invoke_result_t<decltype(&T::Get), T> {
         if constexpr ( std::is_same_v<T, BoolVal> || std::is_same_v<T, IntVal> || std::is_same_v<T, EnumVal> )

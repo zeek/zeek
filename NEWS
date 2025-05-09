@@ -151,8 +151,8 @@ New Functionality
   scripts. This previously resulted in a fatal error.
 
 - The set of non-routable subnets defined in ``Site::private_address_space`` was expanded
-  to include ``239.0.0.0/8``, ``224.0.0.0/24`, ``[2002:e000::]/40``, ``[2002:ef00::]/24``,
-  and ``[fec0::]/10`. These addresses come from RFCs 2365, 3058, 3879, and 5771. This may
+  to include ``239.0.0.0/8``, ``224.0.0.0/24``, ``[2002:e000::]/40``, ``[2002:ef00::]/24``,
+  and ``[fec0::]/10``. These addresses come from RFCs 2365, 3058, 3879, and 5771. This may
   result in traffic being considered as local traffic that wasn't previously.
 
 - The ``to_count()`` and ``to_int()`` built-in functions now trim trailing spaces passed

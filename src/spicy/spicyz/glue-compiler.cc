@@ -38,12 +38,8 @@ static std::string::size_type looking_at(const std::string& chunk, std::string::
                                          const std::string_view& token) {
     eat_spaces(chunk, &i);
 
-    for ( char j : token ) {
-        if ( i >= chunk.size() || chunk[i++] != j )
-            return 0;
-    }
-
-    return i;
+    bool token_at_position = i < chunk.size() && token == std::string_view(chunk).substr(i, token.size());
+    return token_at_position ? i + token.size() : 0;
 }
 
 static void eat_token(const std::string& chunk, std::string::size_type* i, const std::string_view& token) {

@@ -3,8 +3,10 @@
 
 #include "module_util.h"
 
-#include <string.h>
+#include <cstring>
 #include <string>
+
+using namespace std;
 
 static int streq(const char* s1, const char* s2) { return ! strcmp(s1, s2); }
 
@@ -36,7 +38,7 @@ string extract_var_name(const char* name) {
 
 string normalized_module_name(const char* module_name) {
     int mod_len;
-    if ( (mod_len = strlen(module_name)) >= 2 && streq(module_name + mod_len - 2, "::") )
+    if ( mod_len = strlen(module_name); mod_len >= 2 && streq(module_name + mod_len - 2, "::") )
         mod_len -= 2;
 
     return string(module_name, mod_len);

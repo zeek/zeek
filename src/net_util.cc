@@ -129,8 +129,8 @@ constexpr uint32_t CLASS_C = 0xc0000000;
 constexpr uint32_t CLASS_D = 0xe0000000;
 constexpr uint32_t CLASS_E = 0xf0000000;
 
-#define CHECK_CLASS(addr, class) (((addr) & (class)) == (class))
 char addr_to_class(uint32_t addr) {
+    auto CHECK_CLASS = [](uint32_t addr, uint32_t cls) { return (addr & cls) == cls; };
     if ( CHECK_CLASS(addr, CLASS_E) )
         return 'E';
     else if ( CHECK_CLASS(addr, CLASS_D) )

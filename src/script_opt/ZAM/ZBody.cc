@@ -188,6 +188,8 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, con
 
 static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, const VectorVal* v3, const ZInst& z);
 
+auto false_func = [](double x) { return false; };
+
 // Vector coercion.
 #define VEC_COERCE(tag, lhs_type, cast, rhs_accessor, ov_check, ov_err)                                                \
     VectorVal* vec_coerce_##tag(VectorVal* vec, std::shared_ptr<ZAMLocInfo> z_loc) {                                   \
@@ -215,8 +217,6 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, con
                 res[i] = std::nullopt;                                                                                 \
         return res_zv;                                                                                                 \
     }
-
-#define false_func(x) false
 
 VEC_COERCE(DI, TYPE_DOUBLE, double, AsInt(), false_func, "")
 VEC_COERCE(DU, TYPE_DOUBLE, double, AsCount(), false_func, "")

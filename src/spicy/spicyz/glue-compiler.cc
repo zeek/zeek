@@ -38,12 +38,8 @@ static std::string::size_type looking_at(const std::string& chunk, std::string::
                                          const std::string_view& token) {
     eat_spaces(chunk, &i);
 
-    for ( char j : token ) {
-        if ( i >= chunk.size() || chunk[i++] != j )
-            return 0;
-    }
-
-    return i;
+    bool token_at_position = i < chunk.size() && token == std::string_view(chunk).substr(i, token.size());
+    return token_at_position ? i + token.size() : 0;
 }
 
 static void eat_token(const std::string& chunk, std::string::size_type* i, const std::string_view& token) {
@@ -343,7 +339,7 @@ hilti::Result<std::string> GlueCompiler::getNextEvtBlock(std::istream& in, int* 
     std::string chunk;
 
     // Parser need to track whether we are inside a string or a comment.
-    enum State { Default, InComment, InString } state = Default;
+    enum State : char { Default, InComment, InString } state = Default;
     char prev = '\0';
 
     while ( true ) {
@@ -666,7 +662,7 @@ glue::ProtocolAnalyzer GlueCompiler::parseProtocolAnalyzer(const std::string& ch
 
     eat_token(chunk, &i, ":");
 
-    enum { orig, resp, both } dir;
+    enum Dir : char { orig, resp, both } dir;
 
     while ( true ) {
         if ( looking_at(chunk, i, "parse") ) {
@@ -1046,7 +1042,7 @@ bool GlueCompiler::compile() {
         preinit_body.addCall("zeek_rt::register_file_analyzer",
                              {builder()->stringMutable(a.name.str()),
                               builder()->vector(hilti::util::transform(a.mime_types,
-                                                                       [&](auto m) {
+                                                                       [&](const auto& m) {
                                                                            return builder()
                                                                                ->stringMutable(m)
                                                                                ->template as<hilti::Expression>();
@@ -1100,7 +1096,7 @@ bool GlueCompiler::compile() {
         m->spicy_module->add(context(), import_);
 
         // Create a vector of unique parent paths from all EVTs files going into this module.
-        auto search_dirs = hilti::util::transform(m->evts, [](auto p) { return p.parent_path(); });
+        auto search_dirs = hilti::util::transform(m->evts, [](const auto& p) { return p.parent_path(); });
         auto search_dirs_vec = std::vector<hilti::rt::filesystem::path>(search_dirs.begin(), search_dirs.end());
 
         // Import any dependencies.
@@ -1120,11 +1116,15 @@ bool GlueCompiler::compile() {
         preinit_body.addCall("zeek_rt::register_spicy_module_end", {});
 
     if ( ! preinit_body.empty() ) {
+#if SPICY_VERSION_NUMBER >= 11400
+        constexpr auto zeek_preinit_flavor = hilti::type::function::Flavor::Function;
+#else
+        constexpr auto zeek_preinit_flavor = hilti::type::function::Flavor::Standard;
+#endif
         auto preinit_function =
             builder()->function(hilti::ID("zeek_preinit"),
                                 builder()->qualifiedType(builder()->typeVoid(), hilti::Constness::Const), {},
-                                preinit_body.block(), hilti::type::function::Flavor::Standard,
-                                hilti::declaration::Linkage::PreInit);
+                                preinit_body.block(), zeek_preinit_flavor, hilti::declaration::Linkage::PreInit);
         init_module->add(context(), preinit_function);
     }
 

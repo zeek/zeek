@@ -10,6 +10,7 @@
 #include "zeek/Hash.h"
 #include "zeek/Reporter.h"
 #include "zeek/ZeekString.h"
+#include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
 
 namespace zeek {
 
@@ -18,121 +19,114 @@ const IPAddr IPAddr::v6_unspecified = IPAddr();
 
 namespace detail {
 
-ConnKey::ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, uint16_t proto,
-                 bool one_way) {
-    Init(src, dst, src_port, dst_port, proto, one_way);
+/*
+OLD_ConnKey::OLD_ConnKey(Val* v) {
+const auto& vt = v->GetType();
+if ( ! IsRecord(vt->Tag()) ) {
+    transport = INVALID_CONN_KEY_IP_PROTO;
+    return;
 }
 
-ConnKey::ConnKey(const ConnTuple& id) {
-    Init(id.src_addr, id.dst_addr, id.src_port, id.dst_port, id.proto, id.is_one_way);
-}
+RecordType* vr = vt->AsRecordType();
+auto vl = v->As<RecordVal*>();
 
-ConnKey::ConnKey(Val* v) {
-    const auto& vt = v->GetType();
-    if ( ! IsRecord(vt->Tag()) ) {
+int orig_h, orig_p; // indices into record's value list
+int resp_h, resp_p;
+int proto;
+
+if ( vr == id::conn_id ) {
+    orig_h = 0;
+    orig_p = 1;
+    resp_h = 2;
+    resp_p = 3;
+    proto = 4;
+}
+else {
+    // While it's not a conn_id, it may have equivalent fields.
+    orig_h = vr->FieldOffset("orig_h");
+    resp_h = vr->FieldOffset("resp_h");
+    orig_p = vr->FieldOffset("orig_p");
+    resp_p = vr->FieldOffset("resp_p");
+    proto = vr->FieldOffset("proto");
+
+    if ( orig_h < 0 || resp_h < 0 || orig_p < 0 || resp_p < 0 || proto < 0 ) {
         transport = INVALID_CONN_KEY_IP_PROTO;
         return;
     }
 
-    RecordType* vr = vt->AsRecordType();
-    auto vl = v->As<RecordVal*>();
-
-    int orig_h, orig_p; // indices into record's value list
-    int resp_h, resp_p;
-    int proto;
-
-    if ( vr == id::conn_id ) {
-        orig_h = 0;
-        orig_p = 1;
-        resp_h = 2;
-        resp_p = 3;
-        proto = 4;
-    }
-    else {
-        // While it's not a conn_id, it may have equivalent fields.
-        orig_h = vr->FieldOffset("orig_h");
-        resp_h = vr->FieldOffset("resp_h");
-        orig_p = vr->FieldOffset("orig_p");
-        resp_p = vr->FieldOffset("resp_p");
-        proto = vr->FieldOffset("proto");
-
-        if ( orig_h < 0 || resp_h < 0 || orig_p < 0 || resp_p < 0 || proto < 0 ) {
-            transport = INVALID_CONN_KEY_IP_PROTO;
-            return;
-        }
-
-        // TODO we ought to check that the fields have the right
-        // types, too.
-    }
-
-    if ( ! vl->HasField(orig_h) || ! vl->HasField(resp_h) || ! vl->HasField(orig_p) || ! vl->HasField(resp_p) ) {
-        transport = INVALID_CONN_KEY_IP_PROTO;
-        return;
-    }
-
-    const IPAddr& orig_addr = vl->GetFieldAs<AddrVal>(orig_h);
-    const IPAddr& resp_addr = vl->GetFieldAs<AddrVal>(resp_h);
-
-    const auto& orig_portv = vl->GetFieldAs<PortVal>(orig_p);
-    const auto& resp_portv = vl->GetFieldAs<PortVal>(resp_p);
-
-    const auto& protov = vl->GetField<CountVal>(proto);
-
-    Init(orig_addr, resp_addr, htons((unsigned short)orig_portv->Port()), htons((unsigned short)resp_portv->Port()),
-         protov->AsCount(), false);
+    // TODO we ought to check that the fields have the right
+    // types, too.
 }
 
-void ConnKey::Init(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, uint16_t proto,
+if ( ! vl->HasField(orig_h) || ! vl->HasField(resp_h) || ! vl->HasField(orig_p) || ! vl->HasField(resp_p) ) {
+    transport = INVALID_CONN_KEY_IP_PROTO;
+    return;
+}
+
+const IPAddr& orig_addr = vl->GetFieldAs<AddrVal>(orig_h);
+const IPAddr& resp_addr = vl->GetFieldAs<AddrVal>(resp_h);
+
+const auto& orig_portv = vl->GetFieldAs<PortVal>(orig_p);
+const auto& resp_portv = vl->GetFieldAs<PortVal>(resp_p);
+
+const auto& protov = vl->GetField<CountVal>(proto);
+
+Init(orig_addr, resp_addr, htons((unsigned short)orig_portv->Port()), htons((unsigned short)resp_portv->Port()),
+     protov->AsCount(), false);
+}
+
+void OLD_ConnKey::Init(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, uint16_t proto,
                    bool one_way) {
-    // Lookup up connection based on canonical ordering, which is
-    // the smaller of <src addr, src port> and <dst addr, dst port>
-    // followed by the other.
-    if ( one_way || addr_port_canon_lt(src, src_port, dst, dst_port) ) {
-        ip1 = src.in6;
-        ip2 = dst.in6;
-        port1 = src_port;
-        port2 = dst_port;
-    }
-    else {
-        ip1 = dst.in6;
-        ip2 = src.in6;
-        port1 = dst_port;
-        port2 = src_port;
-    }
-
-    transport = proto;
+// Lookup up connection based on canonical ordering, which is
+// the smaller of <src addr, src port> and <dst addr, dst port>
+// followed by the other.
+if ( one_way || addr_port_canon_lt(src, src_port, dst, dst_port) ) {
+    ip1 = src.in6;
+    ip2 = dst.in6;
+    port1 = src_port;
+    port2 = dst_port;
+}
+else {
+    ip1 = dst.in6;
+    ip2 = src.in6;
+    port1 = dst_port;
+    port2 = src_port;
 }
 
-session::detail::Key ConnKey::SessionKey() const {
-    uint8_t* temp = new uint8_t[PackedSize()];
-    size_t used = Pack(temp, PackedSize());
-    assert(used == PackedSize());
-    return session::detail::Key{temp, used, session::detail::Key::CONNECTION_KEY_TYPE, false, true};
+transport = proto;
 }
 
-size_t ConnKey::PackedSize() const {
-    return sizeof(ip1) + sizeof(ip2) + sizeof(port1) + sizeof(port2) + sizeof(transport);
+session::detail::Key OLD_ConnKey::SessionKey() const {
+uint8_t* temp = new uint8_t[PackedSize()];
+size_t used = Pack(temp, PackedSize());
+assert(used == PackedSize());
+return session::detail::Key{temp, used, session::detail::Key::CONNECTION_KEY_TYPE, false, true};
 }
 
-size_t ConnKey::Pack(uint8_t* data, size_t size) const {
-    if ( size < PackedSize() )
-        return 0;
-
-    uint8_t* ptr = data;
-
-    memcpy(ptr, &ip1, sizeof(ip1));
-    ptr += sizeof(ip1);
-    memcpy(ptr, &ip2, sizeof(ip2));
-    ptr += sizeof(ip2);
-    memcpy(ptr, &port1, sizeof(port1));
-    ptr += sizeof(port1);
-    memcpy(ptr, &port2, sizeof(port2));
-    ptr += sizeof(port2);
-    memcpy(ptr, &transport, sizeof(transport));
-    ptr += sizeof(transport);
-
-    return ptr - data;
+size_t OLD_ConnKey::PackedSize() const {
+return sizeof(ip1) + sizeof(ip2) + sizeof(port1) + sizeof(port2) + sizeof(transport);
 }
+
+size_t OLD_ConnKey::Pack(uint8_t* data, size_t size) const {
+if ( size < PackedSize() )
+    return 0;
+
+uint8_t* ptr = data;
+
+memcpy(ptr, &ip1, sizeof(ip1));
+ptr += sizeof(ip1);
+memcpy(ptr, &ip2, sizeof(ip2));
+ptr += sizeof(ip2);
+memcpy(ptr, &port1, sizeof(port1));
+ptr += sizeof(port1);
+memcpy(ptr, &port2, sizeof(port2));
+ptr += sizeof(port2);
+memcpy(ptr, &transport, sizeof(transport));
+ptr += sizeof(transport);
+
+return ptr - data;
+}
+*/
 
 } // namespace detail
 

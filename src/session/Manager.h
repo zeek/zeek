@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <utility>
 
+#include "zeek/Conn.h"
 #include "zeek/Frag.h"
 #include "zeek/Hash.h"
 #include "zeek/NetVar.h"
@@ -72,7 +73,7 @@ public:
      * @param conn_key The key for the connection to search for.
      * @return The connection, or nullptr if one doesn't exist.
      */
-    Connection* FindConnection(const zeek::detail::ConnKey& conn_key);
+    Connection* FindConnection(const zeek::ConnKey& conn_key);
 
     void Remove(Session* s);
     void Insert(Session* c, bool remove_existing = true);
@@ -92,7 +93,7 @@ public:
     size_t CurrentSessions() { return session_map.size(); }
 
 private:
-    using SessionMap = std::unordered_map<detail::Key, Session*, detail::KeyHash>;
+    using SessionMap = std::unordered_map<zeek::session::detail::Key, Session*, detail::KeyHash>;
 
     // Inserts a new connection into the sessions map. If a connection with
     // the same key already exists in the map, it will be overwritten by

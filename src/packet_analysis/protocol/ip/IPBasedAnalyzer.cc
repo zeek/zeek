@@ -14,6 +14,65 @@
 using namespace zeek;
 using namespace zeek::packet_analysis::IP;
 
+// Populate a ConnKey from a conn_id record instance.
+bool IPBasedConnKey::FromConnIdVal(const zeek::RecordValPtr& rv) {
+    auto& t = RawTuple();
+    const auto& vt = rv->GetType();
+    if ( ! IsRecord(vt->Tag()) ) {
+        t.transport = detail::INVALID_CONN_KEY_IP_PROTO;
+        return false;
+    }
+
+    RecordType* vr = vt->AsRecordType();
+    auto vl = rv->As<RecordVal*>();
+
+    int orig_h, orig_p; // indices into record's value list
+    int resp_h, resp_p;
+    int proto;
+
+    if ( vr == id::conn_id ) {
+        orig_h = 0;
+        orig_p = 1;
+        resp_h = 2;
+        resp_p = 3;
+        proto = 4;
+    }
+    else {
+        // While it's not a conn_id, it may have equivalent fields.
+        orig_h = vr->FieldOffset("orig_h");
+        resp_h = vr->FieldOffset("resp_h");
+        orig_p = vr->FieldOffset("orig_p");
+        resp_p = vr->FieldOffset("resp_p");
+        proto = vr->FieldOffset("proto");
+
+        if ( orig_h < 0 || resp_h < 0 || orig_p < 0 || resp_p < 0 || proto < 0 ) {
+            t.transport = detail::INVALID_CONN_KEY_IP_PROTO;
+            return false;
+        }
+
+        // TODO we ought to check that the fields have the right
+        // types, too.
+    }
+
+    if ( ! vl->HasField(orig_h) || ! vl->HasField(resp_h) || ! vl->HasField(orig_p) || ! vl->HasField(resp_p) ) {
+        t.transport = detail::INVALID_CONN_KEY_IP_PROTO;
+        return false;
+    }
+
+    const IPAddr& orig_addr = vl->GetFieldAs<AddrVal>(orig_h);
+    const IPAddr& resp_addr = vl->GetFieldAs<AddrVal>(resp_h);
+
+    const auto& orig_portv = vl->GetFieldAs<PortVal>(orig_p);
+    const auto& resp_portv = vl->GetFieldAs<PortVal>(resp_p);
+
+    const auto& protov = vl->GetField<CountVal>(proto);
+
+    auto ct = ConnTuple{orig_addr, resp_addr, orig_portv->Port(), resp_portv->Port(),
+                        static_cast<uint16_t>(protov->AsCount())};
+    InitRawConnTuple(ct);
+    return true;
+}
+
 IPBasedAnalyzer::IPBasedAnalyzer(const char* name, TransportProto proto, uint32_t mask, bool report_unknown_protocols)
     : zeek::packet_analysis::Analyzer(name, report_unknown_protocols), transport(proto), server_port_mask(mask) {}
 
@@ -23,17 +82,30 @@ IPBasedAnalyzer::~IPBasedAnalyzer() {
 }
 
 bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt) {
-    ConnTuplePtr tuple = zeek::conntuple_mgr->GetBuilder().GetTuple(pkt);
-    if ( ! BuildConnTuple(len, data, pkt, *tuple) )
+    ConnTuple tuple;
+
+    if ( ! BuildConnTuple(len, data, pkt, tuple) )
         return false;
 
+    // The IPBasedAnalyzer requires a builder that produces IPConnKey instances.
+    // We could check with dynamic_cast, but that's probably slow, so assume
+    // plugin providers know what they're doing here and anyhow, we don't really
+    // have analyzers that instantiate non-IP connections today and definitely
+    // not here!
+    auto key = cast_intrusive<IPConnKey>(zeek::conntuple_mgr->GetBuilder().NewConnKey());
+
+    // Initialize the key with the IP conn tuple and the packet as additional context.
+    //
+    // Custom IPConnKey implementations can fiddle with the Key through
+    // the DoInit(const Packet& pkt) hook at this point.
+    key->Init(tuple, *pkt);
+
     const std::shared_ptr<IP_Hdr>& ip_hdr = pkt->ip_hdr;
-    zeek::detail::ConnKeyPtr key = zeek::conntuple_mgr->GetBuilder().GetKey(*tuple);
 
     Connection* conn = session_mgr->FindConnection(*key);
 
     if ( ! conn ) {
-        conn = NewConn(tuple.get(), key, pkt);
+        conn = NewConn(std::move(key), tuple, pkt);
         if ( conn )
             session_mgr->Insert(conn, false);
     }
@@ -42,12 +114,19 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
             conn->Event(connection_reused, nullptr);
 
             session_mgr->Remove(conn);
-            conn = NewConn(tuple.get(), key, pkt);
+            conn = NewConn(std::move(key), tuple, pkt);
             if ( conn )
                 session_mgr->Insert(conn, false);
         }
         else {
             conn->CheckEncapsulation(pkt->encap);
+
+            // We could give back the ConnKey for re-use to avoid the malloc/memset()
+            // overhead if we already knew about the session and don't had a use for
+            // the key other than facilitating the lookup of the session. Not sure
+            // that's worth it.
+            //
+            // GetBuilder().ReturnKey(std::move(key));
         }
     }
 
@@ -58,7 +137,7 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
     // get logged, which means we can mark this packet as having been processed.
     pkt->processed = true;
 
-    bool is_orig = (tuple->src_addr == conn->OrigAddr()) && (tuple->src_port == conn->OrigPort());
+    bool is_orig = (tuple.src_addr == conn->OrigAddr()) && (tuple.src_port == conn->OrigPort());
     pkt->is_orig = is_orig;
 
     conn->CheckFlowLabel(is_orig, ip_hdr->FlowLabel());
@@ -141,18 +220,19 @@ bool IPBasedAnalyzer::IsLikelyServerPort(uint32_t port) const {
     return port_cache.find(port) != port_cache.end();
 }
 
-zeek::Connection* IPBasedAnalyzer::NewConn(const ConnTuple* id, const zeek::detail::ConnKeyPtr key, const Packet* pkt) {
-    int src_h = ntohs(id->src_port);
-    int dst_h = ntohs(id->dst_port);
+zeek::Connection* IPBasedAnalyzer::NewConn(zeek::IPBasedConnKeyPtr key, ConnTuple& ct, const Packet* pkt) {
+    int src_h = ntohs(ct.src_port);
+    int dst_h = ntohs(ct.dst_port);
     bool flip = false;
 
     if ( ! WantConnection(src_h, dst_h, pkt->ip_hdr->Payload(), flip) )
         return nullptr;
 
-    Connection* conn = new Connection(key, run_state::processing_start_time, id, pkt->ip_hdr->FlowLabel(), pkt);
+    Connection* conn =
+        new Connection(std::move(key), ct, run_state::processing_start_time, pkt->ip_hdr->FlowLabel(), pkt);
     conn->SetTransport(transport);
 
-    if ( flip && ! id->dst_addr.IsBroadcast() )
+    if ( flip && ! ct.dst_addr.IsBroadcast() )
         conn->FlipRoles();
 
     BuildSessionAnalyzerTree(conn);

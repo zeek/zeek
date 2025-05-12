@@ -91,7 +91,13 @@ Manager::~Manager() {
 void Manager::Done() {}
 
 Connection* Manager::FindConnection(Val* v) {
-    zeek::detail::ConnKeyPtr conn_key = conntuple_mgr->GetBuilder().GetKey(v);
+    // zeek::detail::OLD_ConnKeyPtr conn_key = conntuple_mgr->GetBuilder().GetKey(v);
+
+    auto conn_key = conntuple_mgr->GetBuilder().NewConnKey();
+    /**
+    // conn_key->LoadConnIdVal(v);
+
+    This is IP specific stuff!
 
     if ( ! conn_key->Valid() ) {
         // Produce a loud error for invalid script-layer conn_id records.
@@ -103,10 +109,12 @@ Connection* Manager::FindConnection(Val* v) {
         return nullptr;
     }
 
+    */
+
     return FindConnection(*conn_key);
 }
 
-Connection* Manager::FindConnection(const zeek::detail::ConnKey& conn_key) {
+Connection* Manager::FindConnection(const zeek::ConnKey& conn_key) {
     detail::Key key{conn_key.SessionKey()};
 
     auto it = session_map.find(key);

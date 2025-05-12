@@ -2,22 +2,13 @@
 
 #include "zeek/conntuple/Builder.h"
 
-#include "zeek/Conn.h"
-#include "zeek/ID.h"
-#include "zeek/IPAddr.h"
-#include "zeek/session/Session.h"
+#include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
 
 namespace zeek::conntuple {
 
 Builder::Builder() {}
 Builder::~Builder() {}
 
-ConnTuplePtr Builder::GetTuple(const Packet* pkt) { return std::make_shared<ConnTuple>(); }
-
-zeek::detail::ConnKeyPtr Builder::GetKey(const ConnTuple& tuple) {
-    return std::make_shared<zeek::detail::ConnKey>(tuple);
-}
-
-zeek::detail::ConnKeyPtr Builder::GetKey(Val* v) { return std::make_shared<zeek::detail::ConnKey>(v); }
+zeek::ConnKeyPtr Builder::NewConnKey() { return zeek::make_intrusive<zeek::IPConnKey>(); }
 
 } // namespace zeek::conntuple

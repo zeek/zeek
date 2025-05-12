@@ -185,15 +185,20 @@ bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
         return false;
     }
 
-    zeek::detail::ConnKey conn_key = conn->Key();
-    OrigRespMap::iterator or_it = orig_resp_map.find(conn_key);
+    auto& k = conn->Key();
+    auto sk = k.SessionKey();
+
+    // zeek::detail::OLD_ConnKey conn_key = conn->Key();
+    OrigRespMap::iterator or_it = orig_resp_map.find(sk);
 
     // The first time a teredo packet is parsed successfully, insert
     // state into orig_resp_map so we can confirm when both sides
     // see valid Teredo packets. Further, raise an event so that script
     // layer can install a connection removal hooks to cleanup later.
     if ( or_it == orig_resp_map.end() ) {
-        or_it = orig_resp_map.insert(or_it, {conn_key, {}});
+        sk.CopyData();
+        // OrigRespMap::value_type p{std::move(sk), OrigResp{}};
+        auto [it, inserted] = orig_resp_map.insert_or_assign(std::move(sk), OrigResp{});
 
         packet->session->EnqueueEvent(new_teredo_state, nullptr, packet->session->GetVal());
     }

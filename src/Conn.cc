@@ -28,14 +28,14 @@ namespace zeek {
 uint64_t Connection::total_connections = 0;
 uint64_t Connection::current_connections = 0;
 
-Connection::Connection(const detail::ConnKeyPtr k, double t, const ConnTuple* id, uint32_t flow, const Packet* pkt)
+Connection::Connection(IPBasedConnKeyPtr k, zeek::ConnTuple& ct, double t, uint32_t flow, const Packet* pkt)
     : Session(t, connection_timeout, connection_status_update, detail::connection_status_update_interval), key(k) {
-    orig_addr = id->src_addr;
-    resp_addr = id->dst_addr;
-    orig_port = id->src_port;
-    resp_port = id->dst_port;
+    orig_addr = ct.src_addr;
+    resp_addr = ct.dst_addr;
+    orig_port = ct.src_port;
+    resp_port = ct.dst_port;
 
-    switch ( id->proto ) {
+    switch ( ct.proto ) {
         case IPPROTO_TCP: proto = TRANSPORT_TCP; break;
         case IPPROTO_UDP: proto = TRANSPORT_UDP; break;
         case IPPROTO_ICMP:
@@ -76,8 +76,8 @@ Connection::Connection(const detail::ConnKeyPtr k, double t, const ConnTuple* id
     encapsulation = pkt->encap;
 }
 
-Connection::Connection(const detail::ConnKey& k, double t, const ConnTuple* id, uint32_t flow, const Packet* pkt)
-    : Connection(std::make_shared<zeek::detail::ConnKey>(k), t, id, flow, pkt) {}
+// Connection::Connection(const detail::OLD_ConnKey& k, double t, const ConnTuple* id, uint32_t flow, const Packet* pkt)
+//     : Connection(std::make_shared<zeek::detail::OLD_ConnKey>(k), t, id, flow, pkt) {}
 
 Connection::~Connection() {
     if ( ! finished )
@@ -93,7 +93,9 @@ Connection::~Connection() {
     --current_connections;
 }
 
+const ConnKey& Connection::Key() const { return *key; }
 session::detail::Key Connection::SessionKey(bool copy) const { return key->SessionKey(); }
+uint8_t Connection::KeyProto() const { return key->RawTuple().transport; }
 
 void Connection::CheckEncapsulation(const std::shared_ptr<EncapsulationStack>& arg_encap) {
     if ( encapsulation && arg_encap ) {
@@ -204,7 +206,8 @@ const RecordValPtr& Connection::GetVal() {
         id_val->Assign(4, KeyProto());
 
         // Allow the connection tuple builder to augment the conn_id.
-        zeek::conntuple_mgr->GetBuilder().FillConnIdVal(key, id_val);
+        // zeek::conntuple_mgr->GetBuilder().FillConnIdVal(key, id_val);
+        key->FillConnIdVal(id_val);
 
         auto orig_endp = make_intrusive<RecordVal>(id::endpoint);
         orig_endp->Assign(0, 0);

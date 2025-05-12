@@ -2,12 +2,124 @@
 
 #pragma once
 
+#include <netinet/in.h>
 #include <map>
 #include <set>
 
-#include "zeek/ID.h"
+#include "zeek/Conn.h"
 #include "zeek/Tag.h"
 #include "zeek/packet_analysis/Analyzer.h"
+
+namespace zeek {
+class Connection;
+
+/**
+ * IP specific ConnTuple.
+ */
+struct ConnTuple {
+    IPAddr src_addr;
+    IPAddr dst_addr;
+    uint32_t src_port = 0;
+    uint32_t dst_port = 0;
+    uint16_t proto = UNKNOWN_IP_PROTO;
+    bool is_one_way = false; // Can we ditch this fro from here?
+};
+
+namespace detail {
+
+// UNKNOWN_IP_PROTO is 65535
+constexpr uint16_t INVALID_CONN_KEY_IP_PROTO = 65534;
+
+struct RawConnTuple {
+    in6_addr ip1;
+    in6_addr ip2;
+    uint16_t port1 = 0;
+    uint16_t port2 = 0;
+    uint16_t transport = detail::INVALID_CONN_KEY_IP_PROTO;
+};
+
+} // namespace detail
+
+/**
+ * Abstract key class for IP based connections.
+ *
+ * ConnKey instances for IP always hold a ConnTuple instance which is provided
+ * by the IPBasedAnalyzer. The InitConnTuple() method stored a normalized version
+ * in the tuple, loosing the information about orig and responder.
+ */
+class IPBasedConnKey : public zeek::ConnKey {
+public:
+    /**
+     * Initialization function.
+     *
+     * ConnKey::Init() will invoke ConnKey::DoInit(), allowing
+     * subclasses to hook into the initialization of the key.
+     */
+    void Init(const ConnTuple& ct, const Packet& pkt) {
+        InitRawConnTuple(ct);
+        ConnKey::Init(pkt);
+    }
+
+    bool FromConnIdVal(const zeek::RecordValPtr& conn_id) override;
+
+    /**
+     * Return a modifiable version of the raw Conn Tuple.
+     *
+     * This is virtual such that subclasses can control where
+     * their own ConnTuple instance to allow.
+     */
+    virtual detail::RawConnTuple& RawTuple() = 0;
+
+protected:
+    /**
+     * Helper for subclasses that override Init() to initialize this key's tuple in normalized form.
+     */
+    void InitRawConnTuple(const ConnTuple& ct) {
+        auto& t = RawTuple();
+        if ( ct.is_one_way || addr_port_canon_lt(ct.src_addr, ct.src_port, ct.dst_addr, ct.dst_port) ) {
+            ct.src_addr.CopyIPv6(&t.ip1);
+            ct.dst_addr.CopyIPv6(&t.ip2);
+            t.port1 = ct.src_port;
+            t.port2 = ct.dst_port;
+        }
+        else {
+            ct.dst_addr.CopyIPv6(&t.ip1);
+            ct.src_addr.CopyIPv6(&t.ip2);
+            t.port1 = ct.dst_port;
+            t.port2 = ct.src_port;
+        }
+
+        t.transport = ct.proto;
+    }
+};
+
+using IPBasedConnKeyPtr = zeek::IntrusivePtr<IPBasedConnKey>;
+
+
+/**
+ * A usual 5 tuple conn key.
+ */
+class IPConnKey : public IPBasedConnKey {
+public:
+    IPConnKey() {
+        // Fill holes as we use the full tuple as a Key!
+        // Could we h
+        memset(static_cast<void*>(&key), '\0', sizeof(key));
+    }
+
+    zeek::Span<const std::byte> Key() const override {
+        return {reinterpret_cast<const std::byte*>(&key), reinterpret_cast<const std::byte*>(&key) + sizeof(key)};
+    }
+
+    detail::RawConnTuple& RawTuple() override { return key.tuple; }
+
+private:
+    struct {
+        struct detail::RawConnTuple tuple;
+    } key;
+};
+
+} // namespace zeek
 
 namespace zeek::analyzer::pia {
 class PIA;
@@ -185,7 +297,7 @@ private:
      * @param key A connection ID key generated from the ID.
      * @param pkt The packet associated with the new connection.
      */
-    zeek::Connection* NewConn(const ConnTuple* id, const zeek::detail::ConnKeyPtr key, const Packet* pkt);
+    zeek::Connection* NewConn(IPBasedConnKeyPtr key, ConnTuple& ct, const Packet* pkt);
 
     void BuildSessionAnalyzerTree(Connection* conn);
 

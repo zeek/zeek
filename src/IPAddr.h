@@ -8,7 +8,6 @@
 #include <memory>
 #include <string>
 
-#include "zeek/session/Key.h"
 #include "zeek/threading/SerialTypes.h"
 
 using in4_addr = in_addr;
@@ -21,40 +20,7 @@ class Val;
 
 namespace detail {
 
-// UNKNOWN_IP_PROTO is 65535
-constexpr uint16_t INVALID_CONN_KEY_IP_PROTO = 65534;
-
 class HashKey;
-
-class ConnKey {
-public:
-    in6_addr ip1;
-    in6_addr ip2;
-    uint16_t port1 = 0;
-    uint16_t port2 = 0;
-    uint16_t transport = INVALID_CONN_KEY_IP_PROTO;
-
-    ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, uint16_t proto, bool one_way);
-    ConnKey(const ConnTuple& conn);
-    ConnKey(Val* v);
-    virtual ~ConnKey() {};
-
-    session::detail::Key SessionKey() const;
-    virtual size_t PackedSize() const;
-    virtual size_t Pack(uint8_t* data, size_t size) const;
-
-    bool operator<(const ConnKey& rhs) const { return SessionKey() < rhs.SessionKey(); }
-    bool operator==(const ConnKey& rhs) const { return SessionKey() == rhs.SessionKey(); }
-
-    ConnKey& operator=(const ConnKey& rhs);
-
-    bool Valid() const { return transport <= 0xFF; };
-
-private:
-    void Init(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, uint16_t proto, bool one_way);
-};
-
-using ConnKeyPtr = std::shared_ptr<ConnKey>;
 
 } // namespace detail
 
@@ -402,7 +368,7 @@ public:
     static const IPAddr v6_unspecified;
 
 private:
-    friend class detail::ConnKey;
+    // friend class detail::OLD_ConnKey;
     friend class IPPrefix;
 
     /**

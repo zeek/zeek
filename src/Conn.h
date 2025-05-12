@@ -4,8 +4,6 @@
 
 #include <sys/types.h>
 #include <string>
-#include <tuple>
-#include <type_traits>
 
 #include "zeek/IPAddr.h"
 #include "zeek/IntrusivePtr.h"
@@ -17,6 +15,7 @@
 #include "zeek/ZeekArgs.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/iosource/Packet.h"
+#include "zeek/session/Key.h"
 #include "zeek/session/Session.h"
 
 namespace zeek {
@@ -54,27 +53,18 @@ enum ConnEventToFlag {
     NUM_EVENTS_TO_FLAG,
 };
 
-struct ConnTuple {
-    virtual ~ConnTuple() {}
-
-    IPAddr src_addr;
-    IPAddr dst_addr;
-    uint32_t src_port = 0;
-    uint32_t dst_port = 0;
-    uint16_t proto = UNKNOWN_IP_PROTO;
-    bool is_one_way = false; // if true, don't canonicalize order
-};
-
-using ConnTuplePtr = std::shared_ptr<ConnTuple>;
+class IPBasedConnKey;
+using IPBasedConnKeyPtr = zeek::IntrusivePtr<IPBasedConnKey>;
 
 static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1, const IPAddr& addr2, uint32_t p2) {
     return addr1 < addr2 || (addr1 == addr2 && p1 < p2);
 }
 
+// IP specific Connection identified by a IPBasedConnKey
 class Connection final : public session::Session {
 public:
-    Connection(const detail::ConnKeyPtr k, double t, const ConnTuple* id, uint32_t flow, const Packet* pkt);
-    Connection(const detail::ConnKey& k, double t, const ConnTuple* id, uint32_t flow, const Packet* pkt);
+    Connection(zeek::IPBasedConnKeyPtr k, zeek::ConnTuple& ct, double t, uint32_t flow, const Packet* pkt);
+    // Connection(const detail::ConnKey& k, double t, const ConnTuple* id, uint32_t flow, const Packet* pkt);
     ~Connection() override;
 
     /**
@@ -111,7 +101,7 @@ public:
     // Keys are only considered valid for a connection when a
     // connection is in the session map. If it is removed, the key
     // should be marked invalid.
-    const detail::ConnKey& Key() const { return *key; }
+    const ConnKey& Key() const;
     session::detail::Key SessionKey(bool copy) const override;
 
     const IPAddr& OrigAddr() const { return orig_addr; }
@@ -138,7 +128,7 @@ public:
             return "unknown";
     }
 
-    uint8_t KeyProto() const { return key->transport; }
+    uint8_t KeyProto() const;
 
     // Returns true if the packet reflects a reuse of this
     // connection (i.e., not a continuation but the beginning of
@@ -219,7 +209,7 @@ private:
     std::shared_ptr<EncapsulationStack> encapsulation; // tunnels
     uint8_t tunnel_changes = 0;
 
-    detail::ConnKeyPtr key;
+    IPBasedConnKeyPtr key;
 
     unsigned int weird : 1;
     unsigned int finished : 1;

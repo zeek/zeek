@@ -1,3 +1,17 @@
+8.0.0-dev.87 | 2025-05-12 11:33:38 -0700
+
+  * Fix clang-tidy `bugprone-inc-dec-in-conditions` report in Spicy plugins glue compiler (Benjamin Bannier, Corelight)
+
+  * Fix clang-tidy `performance-enum-size` reports in Spicy plugin's glue compiler (Benjamin Bannier, Corelight)
+
+  * Remove unneeded copies in Spicy plugin glue compiler (Benjamin Bannier, Corelight)
+
+  * Adjust for renamed function flavor in Spicy development version (Benjamin Bannier, Corelight)
+
+    With zeek/spicy#2048 the flavor for functions was renamed from
+    `Standard` to `Function`. This patch adapts the code for that while
+    still allowing using earlier Spicy versions.
+
 8.0.0-dev.82 | 2025-05-09 17:25:38 +0200
 
   * speed up file analysis, remove IncrementByteCount (Justin Azoff)

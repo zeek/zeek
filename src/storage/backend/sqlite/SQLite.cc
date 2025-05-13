@@ -295,7 +295,7 @@ OperationResult SQLite::Step(sqlite3_stmt* stmt, bool parse_value) {
         else
             ret = {ReturnCode::SUCCESS};
     }
-    else if ( step_status == SQLITE_BUSY )
+    else if ( step_status == SQLITE_BUSY || step_status == SQLITE_LOCKED )
         // TODO: this could retry a number of times instead of just failing
         ret = {ReturnCode::TIMEOUT};
     else if ( step_status == SQLITE_CONSTRAINT )

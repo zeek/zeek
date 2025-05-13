@@ -207,6 +207,22 @@ export {
 	## item: The intel item that should be inserted.
 	global filter_item: hook(item: Intel::Item);
 
+	## This hook can be used to inspect intelligence items that are about to be
+	## inserted into the internal data store. In case the hook execution is
+	## terminated using break, the item will not be inserted to the internal
+	## data store.
+	##
+	## item: The intel item that should be inserted.
+	global insert_item: hook(item: Intel::Item);
+
+	## This hook can be used to inspect intelligence items that are about to be
+	## purged from the internal data store. In case the hook execution is
+	## terminated using break, the item will not be purged from the internal
+	## data store.
+	##
+	## item: The intel item that should be purged.
+	global purge_item: hook(item: Intel::Item);
+
 	global log_intel: event(rec: Info);
 }
 
@@ -497,6 +513,9 @@ function insert_meta_data(item: Item): bool
 # indicates whether the item might be new for other nodes.
 function _insert(item: Item, first_dispatch: bool &default = T)
 	{
+	if ( ! hook insert_item(item) )
+		return;
+
 	# Assume that the item is new by default.  The &is_used attribute
 	# is because if have_full_data isn't redef'd to F, then constant
 	# propagation will cause the definition here to be shadowed by
@@ -597,6 +616,9 @@ function remove(item: Item, purge_indicator: bool)
 			item$indicator, item$indicator_type));
 		return;
 		}
+
+	if ( ! hook purge_item(item) )
+		return;
 
 	# Delegate removal if we are on a worker
 	if ( !have_full_data )

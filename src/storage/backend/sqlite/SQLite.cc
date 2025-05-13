@@ -2,6 +2,8 @@
 
 #include "zeek/storage/backend/sqlite/SQLite.h"
 
+#include <thread>
+
 #include "zeek/3rdparty/sqlite3.h"
 #include "zeek/Func.h"
 #include "zeek/Val.h"
@@ -44,27 +46,73 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     }
 
     char* errorMsg = nullptr;
-    if ( int res = sqlite3_exec(db, "pragma integrity_check", NULL, NULL, &errorMsg); res != SQLITE_OK ) {
-        std::string err = util::fmt("Error executing integrity check: %s", errorMsg);
+
+    int attempts = 0;
+    while ( attempts < 5 ) {
+        int res = sqlite3_exec(db, "pragma integrity_check", NULL, NULL, &errorMsg);
+        if ( res == SQLITE_OK ) {
+            break;
+        }
+        else if ( res == SQLITE_BUSY ) {
+            // If we got back that the database is busy, it likely means that another process is trying to
+            // do their pragmas at startup too. Sleep for a little bit and try again.
+            sqlite3_free(errorMsg);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            ++attempts;
+        }
+        else {
+            std::string err = util::fmt("Error executing integrity check (%d): %s", res, errorMsg);
+            Error(err.c_str());
+            sqlite3_free(errorMsg);
+            Close(nullptr);
+            return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
+        }
+    }
+
+    if ( attempts == 5 ) {
+        std::string err = util::fmt("Database was busy while attempting integrity checks");
         Error(err.c_str());
-        sqlite3_free(errorMsg);
         Close(nullptr);
         return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
     }
 
     auto tuning_params = backend_options->GetField<TableVal>("tuning_params")->ToMap();
     for ( const auto& [k, v] : tuning_params ) {
+        attempts = 0;
         auto ks = k->AsListVal()->Idx(0)->AsStringVal();
         auto ks_sv = ks->ToStdStringView();
         auto vs = v->AsStringVal();
         auto vs_sv = vs->ToStdStringView();
-        std::string cmd = util::fmt("pragma %.*s = %.*s", static_cast<int>(ks_sv.size()), ks_sv.data(),
-                                    static_cast<int>(vs_sv.size()), vs_sv.data());
 
-        if ( int res = sqlite3_exec(db, cmd.c_str(), NULL, NULL, &errorMsg); res != SQLITE_OK ) {
-            std::string err = util::fmt("Error executing tuning pragma statement: %s", errorMsg);
+        while ( attempts < 5 ) {
+            std::string cmd = util::fmt("pragma %.*s = %.*s", static_cast<int>(ks_sv.size()), ks_sv.data(),
+                                        static_cast<int>(vs_sv.size()), vs_sv.data());
+
+            int res = sqlite3_exec(db, cmd.c_str(), NULL, NULL, &errorMsg);
+            if ( res == SQLITE_OK ) {
+                break;
+            }
+            else if ( res == SQLITE_BUSY ) {
+                // If we got back that the database is busy, it likely means that another process is trying to
+                // do their pragmas at startup too. Sleep for a little bit and try again.
+                sqlite3_free(errorMsg);
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                ++attempts;
+            }
+            else {
+                std::string err = util::fmt("Error executing %.*s pragma statement for (%d): %s",
+                                            static_cast<int>(ks_sv.size()), ks_sv.data(), res, errorMsg);
+                Error(err.c_str());
+                sqlite3_free(errorMsg);
+                Close(nullptr);
+                return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
+            }
+        }
+
+        if ( attempts == 5 ) {
+            std::string err = util::fmt("Database was busy while executing %.*s pragma", static_cast<int>(ks_sv.size()),
+                                        ks_sv.data());
             Error(err.c_str());
-            sqlite3_free(errorMsg);
             Close(nullptr);
             return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
         }

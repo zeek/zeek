@@ -12,17 +12,17 @@ refine flow RADIUS_Flow += {
 		result->Assign(1, ${msg.trans_id});
 		result->Assign(2, to_stringval(${msg.authenticator}));
 
-		if ( ${msg.attributes}->size() )
+		if ( ! ${msg.attributes}->empty() )
 			{
 			auto attributes = zeek::make_intrusive<zeek::TableVal>(zeek::BifType::Table::RADIUS::Attributes);
 
-			for ( uint i = 0; i < ${msg.attributes}->size(); ++i )
+			for ( const auto& attr : *(${msg.attributes}) )
 				{
-				auto index = zeek::val_mgr->Count(${msg.attributes[i].code});
+				auto index = zeek::val_mgr->Count(${attr.code});
 
 				// Do we already have a vector of attributes for this type?
 				auto current = attributes->FindOrDefault(index);
-				zeek::ValPtr val = to_stringval(${msg.attributes[i].value});
+				zeek::ValPtr val = to_stringval(${attr.value});
 
 				if ( current )
 					{

@@ -738,8 +738,8 @@ IPAddr SubNetVal::Mask() const {
         // We need to special-case a mask width of zero, since
         // the compiler doesn't guarantee that 1 << 32 yields 0.
         uint32_t m[4];
-        for ( unsigned int i = 0; i < 4; ++i )
-            m[i] = 0;
+        for ( uint32_t& digit : m )
+            digit = 0;
         IPAddr rval(IPv6, m, IPAddr::Host);
         return rval;
     }

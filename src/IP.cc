@@ -457,8 +457,8 @@ static inline bool isIPv6ExtHeader(uint8_t type) {
 }
 
 IPv6_Hdr_Chain::~IPv6_Hdr_Chain() {
-    for ( size_t i = 0; i < chain.size(); ++i )
-        delete chain[i];
+    for ( auto& c : chain )
+        delete c;
     delete homeAddr;
     delete finalDst;
 }
@@ -702,9 +702,9 @@ IPv6_Hdr_Chain* IPv6_Hdr_Chain::Copy(const ip6_hdr* new_hdr) const {
     const u_char* new_data = (const u_char*)new_hdr;
     const u_char* old_data = chain[0]->Data();
 
-    for ( size_t i = 0; i < chain.size(); ++i ) {
-        int off = chain[i]->Data() - old_data;
-        rval->chain.push_back(new IPv6_Hdr(chain[i]->Type(), new_data + off));
+    for ( const auto& c : chain ) {
+        int off = c->Data() - old_data;
+        rval->chain.push_back(new IPv6_Hdr(c->Type(), new_data + off));
     }
 
     return rval;

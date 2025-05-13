@@ -121,8 +121,8 @@ bool LoadPolicyFileText(const char* policy_filename, const std::optional<std::st
         }
     }
 
-    for ( int i = 0; i < int(pf->lines.size()); ++i )
-        assert(pf->lines[i][0] != '\n');
+    for ( const auto& l : pf->lines )
+        assert(l[0] != '\n');
 
     return true;
 }

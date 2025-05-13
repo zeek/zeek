@@ -30,8 +30,8 @@ zeek::ValPtr GetStringFromPrincipalName(const KRB_Principal_Name* pname)
 zeek::VectorValPtr proc_cipher_list(const Array* list)
 {
 	auto ciphers = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
-	for ( uint i = 0; i < list->data()->size(); ++i )
-		ciphers->Assign(ciphers->Size(), asn1_integer_to_val((*list->data())[i], zeek::TYPE_COUNT));
+	for ( const auto& data : *(list->data()) )
+		ciphers->Assign(ciphers->Size(), asn1_integer_to_val(data, zeek::TYPE_COUNT));
 	return ciphers;
 }
 
@@ -39,10 +39,8 @@ zeek::VectorValPtr proc_host_address_list(const ZeekAnalyzer a, const KRB_Host_A
 {
 	auto addrs = zeek::make_intrusive<zeek::VectorVal>(zeek::id::find_type<zeek::VectorType>("KRB::Host_Address_Vector"));
 
-	for ( uint i = 0; i < list->addresses()->size(); ++i )
-		{
-		addrs->Assign(addrs->Size(), proc_host_address(a, (*list->addresses())[i]));
-		}
+	for ( const auto& addr : *(list->addresses()) )
+		addrs->Assign(addrs->Size(), proc_host_address(a, addr));
 
 	return addrs;
 }
@@ -98,11 +96,8 @@ zeek::VectorValPtr proc_tickets(const KRB_Ticket_Sequence* list)
 	{
 	auto tickets = zeek::make_intrusive<zeek::VectorVal>(zeek::id::find_type<zeek::VectorType>("KRB::Ticket_Vector"));
 
-	for ( uint i = 0; i < list->tickets()->size(); ++i )
-		{
-		KRB_Ticket* element = (*list->tickets())[i];
+	for ( KRB_Ticket* element : *(list->tickets()) )
 		tickets->Assign(tickets->Size(), proc_ticket(element));
-		}
 
 	return tickets;
 	}

@@ -784,8 +784,7 @@ int POP3_Analyzer::ParseCmd(std::string cmd) {
         if ( c == '+' || c == '-' )
             cmd = cmd.substr(1);
 
-        for ( size_t i = 0; i < cmd.size(); ++i )
-            cmd[i] = toupper(cmd[i]);
+        cmd = util::to_upper(cmd);
 
         if ( ! cmd.compare(pop3_cmd_word[code]) )
             return code;

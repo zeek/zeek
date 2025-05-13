@@ -7,7 +7,7 @@
 namespace zeek::packet_analysis::TCP {
 
 TCPStateStats::TCPStateStats() {
-    for ( int i = 0; i < analyzer::tcp::TCP_ENDPOINT_RESET + 1; ++i )
+    for ( int i = 0; i < analyzer::tcp::TCP_ENDPOINT_RESET + 1; ++i ) // NOLINT
         for ( int j = 0; j < analyzer::tcp::TCP_ENDPOINT_RESET + 1; ++j )
             state_cnt[i][j] = 0;
 }

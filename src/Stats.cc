@@ -194,12 +194,12 @@ void ProfileLogger::Log() {
     file->Write(util::fmt("%0.6f Threads: current=%zu\n", run_state::network_time, thread_mgr->NumThreads()));
 
     const threading::Manager::msg_stats_list& thread_stats = thread_mgr->GetMsgThreadStats();
-    for ( threading::Manager::msg_stats_list::const_iterator i = thread_stats.begin(); i != thread_stats.end(); ++i ) {
-        threading::MsgThread::Stats s = i->second;
+    for ( const auto& ts : thread_stats ) {
+        threading::MsgThread::Stats s = ts.second;
         file->Write(util::fmt("%0.6f   %-25s in=%" PRIu64 " out=%" PRIu64 " pending=%" PRIu64 "/%" PRIu64
                               " (#queue r/w: in=%" PRIu64 "/%" PRIu64 " out=%" PRIu64 "/%" PRIu64 ")"
                               "\n",
-                              run_state::network_time, i->first.c_str(), s.sent_in, s.sent_out, s.pending_in,
+                              run_state::network_time, ts.first.c_str(), s.sent_in, s.sent_out, s.pending_in,
                               s.pending_out, s.queue_in_stats.num_reads, s.queue_in_stats.num_writes,
                               s.queue_out_stats.num_reads, s.queue_out_stats.num_writes));
     }

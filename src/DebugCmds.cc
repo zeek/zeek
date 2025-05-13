@@ -336,19 +336,19 @@ int dbg_cmd_break(DebugCmd cmd, const vector<string>& args) {
         if ( string_is_regex(args[0]) ) {
             vector<ID*> choices;
             choose_global_symbols_regex(args[0], choices, true);
-            for ( unsigned int i = 0; i < choices.size(); ++i )
-                locstrings.emplace_back(choices[i]->Name());
+            for ( const auto& choice : choices )
+                locstrings.emplace_back(choice->Name());
         }
         else
             locstrings.push_back(args[0]);
 
-        for ( unsigned int strindex = 0; strindex < locstrings.size(); ++strindex ) {
-            debug_msg("Setting breakpoint on %s:\n", locstrings[strindex].c_str());
-            vector<ParseLocationRec> plrs = parse_location_string(locstrings[strindex]);
+        for ( const auto& loc_str : locstrings ) {
+            debug_msg("Setting breakpoint on %s:\n", loc_str.c_str());
+            vector<ParseLocationRec> plrs = parse_location_string(loc_str);
             for ( const auto& plr : plrs ) {
                 DbgBreakpoint* bp = new DbgBreakpoint();
                 bp->SetID(g_debugger_state.NextBPID());
-                if ( ! bp->SetLocation(plr, locstrings[strindex]) ) {
+                if ( ! bp->SetLocation(plr, loc_str) ) {
                     debug_msg("Breakpoint not set.\n");
                     delete bp;
                 }

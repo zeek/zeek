@@ -20,13 +20,13 @@ bool None::DoInit(const WriterInfo& info, int num_fields, const threading::Field
 
         std::vector<std::pair<std::string, std::string>> keys;
 
-        for ( WriterInfo::config_map::const_iterator i = info.config.begin(); i != info.config.end(); i++ )
-            keys.emplace_back(i->first, i->second);
+        for ( const auto& [key, value] : info.config )
+            keys.emplace_back(key, value);
 
         std::sort(keys.begin(), keys.end());
 
-        for ( std::vector<std::pair<std::string, std::string>>::const_iterator i = keys.begin(); i != keys.end(); i++ )
-            std::cout << "  config[" << (*i).first << "] = " << (*i).second << "\n";
+        for ( const auto& [key, value] : keys )
+            std::cout << "  config[" << key << "] = " << value << "\n";
 
         for ( int i = 0; i < num_fields; i++ ) {
             const threading::Field* field = fields[i];

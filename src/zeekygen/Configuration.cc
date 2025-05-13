@@ -72,18 +72,18 @@ Config::Config(const string& arg_file, const string& delim)
 }
 
 Config::~Config() {
-    for ( size_t i = 0; i < targets.size(); ++i )
-        delete targets[i];
+    for ( auto* t : targets )
+        delete t;
 }
 
 void Config::FindDependencies(const vector<Info*>& infos) {
-    for ( size_t i = 0; i < targets.size(); ++i )
-        targets[i]->FindDependencies(infos);
+    for ( auto* t : targets )
+        t->FindDependencies(infos);
 }
 
 void Config::GenerateDocs() const {
-    for ( size_t i = 0; i < targets.size(); ++i )
-        targets[i]->Generate();
+    for ( auto* t : targets )
+        t->Generate();
 }
 
 time_t Config::GetModificationTime() const {

@@ -90,9 +90,9 @@ void DebugLogger::EnableStreams(const char* s) {
         std::string ltok{util::strreplace(util::strtolower(tok), "_", "-")};
 
         if ( strcasecmp("all", tok) == 0 ) {
-            for ( int i = 0; i < NUM_DBGS; ++i ) {
-                streams[i].enabled = true;
-                enabled_streams.insert(streams[i].prefix);
+            for ( auto& strm : streams ) {
+                strm.enabled = true;
+                enabled_streams.insert(strm.prefix);
             }
 
             all = true;

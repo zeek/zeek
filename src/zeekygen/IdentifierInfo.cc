@@ -81,9 +81,9 @@ vector<string> IdentifierInfo::GetFieldComments(const string& field) const {
 list<IdentifierInfo::Redefinition> IdentifierInfo::GetRedefs(const string& from_script) const {
     list<Redefinition> rval;
 
-    for ( redef_list::const_iterator it = redefs.begin(); it != redefs.end(); ++it ) {
-        if ( from_script == (*it)->from_script )
-            rval.push_back(*(*it));
+    for ( Redefinition* redef : redefs ) {
+        if ( from_script == redef->from_script )
+            rval.push_back(*redef);
     }
 
     return rval;

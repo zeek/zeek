@@ -64,9 +64,9 @@ Manager::~Manager() {
 
     sources.clear();
 
-    for ( PktDumperList::iterator i = pkt_dumpers.begin(); i != pkt_dumpers.end(); ++i ) {
-        (*i)->Done();
-        delete *i;
+    for ( PktDumper* dumper : pkt_dumpers ) {
+        dumper->Done();
+        delete dumper;
     }
 
     pkt_dumpers.clear();

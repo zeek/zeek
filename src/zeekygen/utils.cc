@@ -3,6 +3,7 @@
 #include "zeek/zeekygen/utils.h"
 
 #include <sys/stat.h>
+#include <algorithm>
 #include <cerrno>
 
 #include "zeek/Func.h"
@@ -112,11 +113,8 @@ size_t end_of_first_sentence(const string& s) {
 }
 
 bool is_all_whitespace(const string& s) {
-    for ( size_t i = 0; i < s.size(); ++i )
-        if ( ! isspace(s[i]) )
-            return false;
-
-    return true;
+    auto it = std::find_if(s.begin(), s.end(), [](char c) { return ! isspace(c); });
+    return it == s.end();
 }
 
 string redef_indication(const string& from_script) {

@@ -699,8 +699,8 @@ bool DNS_Interpreter::ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data
                         bits_left -= 8;
                     }
 
-                    for ( uint8_t i = 0; i < 4; i++ ) {
-                        addr[i] = htonl(addr[i]);
+                    for ( uint32_t& a : addr ) {
+                        a = htonl(a);
                     }
                     opt.ecs_addr = make_intrusive<AddrVal>(addr);
                 }
@@ -1372,7 +1372,9 @@ bool DNS_Interpreter::ParseRR_A(detail::DNS_MsgInfo* msg, const u_char*& data, i
 bool DNS_Interpreter::ParseRR_AAAA(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength) {
     uint32_t addr[4];
 
-    for ( int i = 0; i < 4; ++i ) {
+    // Intentionally leaving this as a normal loop because it's more descriptive.
+    // NOLINTNEXTLINE(modernize-loop-convert)
+    for ( size_t i = 0; i < 4; i++ ) {
         addr[i] = htonl(ExtractLong(data, len));
 
         if ( len < 0 ) {

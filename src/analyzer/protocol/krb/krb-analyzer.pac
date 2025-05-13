@@ -37,9 +37,8 @@ zeek::RecordValPtr proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const ZeekAnalyz
 	if ( msg->padata()->has_padata() )
 		rv->Assign(2, proc_padata(msg->padata()->padata()->padata(), zeek_analyzer, false));
 
-	for ( uint i = 0; i < msg->body_args()->size(); ++i )
+	for ( KRB_REQ_Arg* element : *(msg->body_args()) )
 		{
-		KRB_REQ_Arg* element = (*msg->body_args())[i];
 		switch ( element->seq_meta()->index() )
 			{
 			case 0:
@@ -127,35 +126,35 @@ bool proc_error_arguments(zeek::RecordVal* rv, const std::vector<KRB_ERROR_Arg*>
 	if ( stime_i )
 		rv->Assign(3, GetTimeFromAsn1((*args)[stime_i]->args()->stime(), stime_usecs));
 
-	for ( uint i = 0; i < args->size(); ++i )
+	for ( KRB_ERROR_Arg* arg : *args )
 		{
-		switch ( (*args)[i]->seq_meta()->index() )
+		switch ( arg->seq_meta()->index() )
 			{
 			case 0:
-				rv->Assign(0, asn1_integer_to_val((*args)[i]->args()->pvno(), zeek::TYPE_COUNT));
+				rv->Assign(0, asn1_integer_to_val(arg->args()->pvno(), zeek::TYPE_COUNT));
 				break;
 			case 1:
-				rv->Assign(1, asn1_integer_to_val((*args)[i]->args()->msg_type(), zeek::TYPE_COUNT));
+				rv->Assign(1, asn1_integer_to_val(arg->args()->msg_type(), zeek::TYPE_COUNT));
 				break;
 			// ctime/stime handled above
 			case 7:
-				rv->Assign(5, to_stringval((*args)[i]->args()->crealm()->encoding()->content()));
+				rv->Assign(5, to_stringval(arg->args()->crealm()->encoding()->content()));
 				break;
 			case 8:
-				rv->Assign(6, GetStringFromPrincipalName((*args)[i]->args()->cname()));
+				rv->Assign(6, GetStringFromPrincipalName(arg->args()->cname()));
 				break;
 			case 9:
-				rv->Assign(7, to_stringval((*args)[i]->args()->realm()->encoding()->content()));
+				rv->Assign(7, to_stringval(arg->args()->realm()->encoding()->content()));
 				break;
 			case 10:
-				rv->Assign(8, GetStringFromPrincipalName((*args)[i]->args()->sname()));
+				rv->Assign(8, GetStringFromPrincipalName(arg->args()->sname()));
 				break;
 			case 11:
-				rv->Assign(9, to_stringval((*args)[i]->args()->e_text()->encoding()->content()));
+				rv->Assign(9, to_stringval(arg->args()->e_text()->encoding()->content()));
 				break;
 			case 12:
 				if ( error_code == KDC_ERR_PREAUTH_REQUIRED )
-					rv->Assign(10, proc_padata((*args)[i]->args()->e_data()->padata(), NULL, true));
+					rv->Assign(10, proc_padata(arg->args()->e_data()->padata(), NULL, true));
 				break;
 			default:
 				break;
@@ -307,26 +306,14 @@ refine connection KRB_Conn += {
 				{
 				switch ( ${msg.safe_body.args[i].seq_meta.index} )
 					{
+					case 0:
+						rv->Assign(3, to_stringval(${msg.safe_body.args[i].args.user_data.encoding.content}));
+						break;
 					case 1:
 						timestamp_i = i;
 						break;
 					case 2:
 						timestamp_usecs = binary_to_int64(${msg.safe_body.args[i].args.usec.encoding.content});
-						break;
-					default:
-						break;
-					}
-				}
-
-			if ( timestamp_i )
-				rv->Assign(4, GetTimeFromAsn1(${msg.safe_body.args[timestamp_i].args.timestamp}, timestamp_usecs));
-
-			for ( uint i = 0; i < ${msg.safe_body.args}->size(); ++i )
-				{
-				switch ( ${msg.safe_body.args[i].seq_meta.index} )
-					{
-					case 0:
-						rv->Assign(3, to_stringval(${msg.safe_body.args[i].args.user_data.encoding.content}));
 						break;
 					case 3:
 						rv->Assign(5, asn1_integer_to_val(${msg.safe_body.args[i].args.seq_number}, zeek::TYPE_COUNT));
@@ -341,6 +328,10 @@ refine connection KRB_Conn += {
 						break;
 					}
 				}
+
+			if ( timestamp_i )
+				rv->Assign(4, GetTimeFromAsn1(${msg.safe_body.args[timestamp_i].args.timestamp}, timestamp_usecs));
+
 			zeek::BifEvent::enqueue_krb_safe(zeek_analyzer(), zeek_analyzer()->Conn(), ${msg.is_orig}, std::move(rv));
 			}
 		return true;

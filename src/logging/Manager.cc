@@ -351,9 +351,7 @@ Manager::Filter::~Filter() {
 Manager::Stream::~Stream() {
     Unref(columns);
 
-    for ( WriterMap::iterator i = writers.begin(); i != writers.end(); i++ ) {
-        WriterInfo* winfo = i->second;
-
+    for ( auto& [_, winfo] : writers ) {
         if ( winfo->rotation_timer )
             zeek::detail::timer_mgr->Cancel(winfo->rotation_timer);
 
@@ -363,8 +361,8 @@ Manager::Stream::~Stream() {
         delete winfo;
     }
 
-    for ( list<Filter*>::iterator f = filters.begin(); f != filters.end(); ++f )
-        delete *f;
+    for ( Filter* f : filters )
+        delete f;
 
     if ( delay_timer )
         zeek::detail::timer_mgr->Cancel(delay_timer);
@@ -491,8 +489,8 @@ Manager::Manager()
 }
 
 Manager::~Manager() {
-    for ( vector<Stream*>::iterator s = streams.begin(); s != streams.end(); ++s )
-        delete *s;
+    for ( Stream* s : streams )
+        delete s;
 }
 
 void Manager::InitPostScript() {
@@ -524,13 +522,11 @@ Manager::Stream* Manager::FindStream(EnumVal* id) {
 }
 
 Manager::WriterInfo* Manager::FindWriter(WriterFrontend* writer) {
-    for ( vector<Stream*>::iterator s = streams.begin(); s != streams.end(); ++s ) {
-        if ( ! *s )
+    for ( Stream* s : streams ) {
+        if ( ! s )
             continue;
 
-        for ( Stream::WriterMap::iterator i = (*s)->writers.begin(); i != (*s)->writers.end(); i++ ) {
-            WriterInfo* winfo = i->second;
-
+        for ( const auto& [_, winfo] : s->writers ) {
             if ( winfo->writer == writer )
                 return winfo;
         }
@@ -563,16 +559,16 @@ bool Manager::CheckFilterWriterConflict(const WriterInfo* winfo, const Filter* f
 void Manager::RemoveDisabledWriters(Stream* stream) {
     list<Stream::WriterPathPair> disabled;
 
-    for ( Stream::WriterMap::iterator j = stream->writers.begin(); j != stream->writers.end(); j++ ) {
-        if ( j->second->writer->Disabled() ) {
-            j->second->writer->Stop();
-            delete j->second;
-            disabled.push_back(j->first);
+    for ( const auto& [index, winfo] : stream->writers ) {
+        if ( winfo->writer->Disabled() ) {
+            winfo->writer->Stop();
+            delete winfo;
+            disabled.push_back(index);
         }
     }
 
-    for ( list<Stream::WriterPathPair>::iterator j = disabled.begin(); j != disabled.end(); j++ )
-        stream->writers.erase(*j);
+    for ( const auto& index : disabled )
+        stream->writers.erase(index);
 }
 
 bool Manager::CreateStream(EnumVal* id, RecordVal* sval) {
@@ -681,9 +677,7 @@ bool Manager::RemoveStream(unsigned int idx) {
     if ( ! stream )
         return false;
 
-    for ( Stream::WriterMap::iterator i = stream->writers.begin(); i != stream->writers.end(); i++ ) {
-        WriterInfo* winfo = i->second;
-
+    for ( const auto& [_, winfo] : stream->writers ) {
         DBG_LOG(DBG_LOGGING, "Removed writer '%s' from stream '%s'", winfo->writer->Name(), stream->name.c_str());
 
         winfo->writer->Stop();
@@ -1550,9 +1544,9 @@ detail::LogRecord Manager::RecordToLogRecord(const Stream* stream, Filter* filte
         // potentially be nested inside other records.
         list<int>& indices = filter->indices[i];
 
-        for ( list<int>::iterator j = indices.begin(); j != indices.end(); ++j ) {
+        for ( int index : indices ) {
             auto vr = val->AsRecord();
-            val = vr->RawOptField(*j);
+            val = vr->RawOptField(index);
 
             if ( ! val ) {
                 // Value, or any of its parents, is not set.
@@ -1560,7 +1554,7 @@ detail::LogRecord Manager::RecordToLogRecord(const Stream* stream, Filter* filte
                 break;
             }
 
-            vt = cast_intrusive<RecordType>(vr->GetType())->GetFieldType(*j).get();
+            vt = cast_intrusive<RecordType>(vr->GetType())->GetFieldType(index).get();
         }
 
         if ( val )
@@ -1856,21 +1850,19 @@ bool Manager::WriteFromRemote(EnumVal* id, EnumVal* writer, const string& path, 
 void Manager::SendAllWritersTo(const broker::endpoint_info& ei) {
     auto et = id::find_type("Log::Writer")->AsEnumType();
 
-    for ( vector<Stream*>::iterator s = streams.begin(); s != streams.end(); ++s ) {
-        Stream* stream = (*s);
-
+    for ( Stream* stream : streams ) {
         if ( ! (stream && stream->enable_remote) )
             continue;
 
-        for ( Stream::WriterMap::iterator i = stream->writers.begin(); i != stream->writers.end(); i++ ) {
-            WriterFrontend* writer = i->second->writer;
-            const auto& writer_val = et->GetEnumVal(i->first.first);
+        for ( const auto& [index, winfo] : stream->writers ) {
+            WriterFrontend* writer = winfo->writer;
+            const auto& writer_val = et->GetEnumVal(index.first);
 
             std::vector<const threading::Field*> fields(writer->GetFields().size());
             for ( size_t i = 0; i < writer->GetFields().size(); i++ )
                 fields[i] = &writer->GetFields()[i];
 
-            broker_mgr->PublishLogCreate((*s)->id, writer_val.get(), *i->second->info, fields.size(), fields.data(),
+            broker_mgr->PublishLogCreate(stream->id, writer_val.get(), *(winfo->info), fields.size(), fields.data(),
                                          ei);
         }
     }
@@ -1881,8 +1873,8 @@ bool Manager::SetBuf(EnumVal* id, bool enabled) {
     if ( ! stream )
         return false;
 
-    for ( Stream::WriterMap::iterator i = stream->writers.begin(); i != stream->writers.end(); i++ )
-        i->second->writer->SetBuf(enabled);
+    for ( const auto& [_, winfo] : stream->writers )
+        winfo->writer->SetBuf(enabled);
 
     RemoveDisabledWriters(stream);
 
@@ -1897,8 +1889,8 @@ bool Manager::Flush(EnumVal* id) {
     if ( ! stream->enabled )
         return true;
 
-    for ( Stream::WriterMap::iterator i = stream->writers.begin(); i != stream->writers.end(); i++ )
-        i->second->writer->Flush(run_state::network_time);
+    for ( const auto& [_, winfo] : stream->writers )
+        winfo->writer->Flush(run_state::network_time);
 
     RemoveDisabledWriters(stream);
 
@@ -1906,12 +1898,12 @@ bool Manager::Flush(EnumVal* id) {
 }
 
 void Manager::Terminate() {
-    for ( vector<Stream*>::iterator s = streams.begin(); s != streams.end(); ++s ) {
-        if ( ! *s )
+    for ( Stream* s : streams ) {
+        if ( ! s )
             continue;
 
-        for ( Stream::WriterMap::iterator i = (*s)->writers.begin(); i != (*s)->writers.end(); i++ )
-            i->second->writer->Stop();
+        for ( const auto& [_, winfo] : s->writers )
+            winfo->writer->Stop();
     }
 }
 

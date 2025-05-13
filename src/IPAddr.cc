@@ -205,8 +205,8 @@ bool IPAddr::ConvertString(const char* s, in6_addr* result) {
     if ( s[n] != '\0' )
         return false;
 
-    for ( auto i = 0; i < 4; ++i )
-        if ( a[i] < 0 || a[i] > 255 )
+    for ( int num : a )
+        if ( num < 0 || num > 255 )
             return false;
 
     uint32_t addr = (a[0] << 24) | (a[1] << 16) | (a[2] << 8) | a[3];

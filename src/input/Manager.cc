@@ -169,9 +169,9 @@ Manager::Manager() : plugin::ComponentManager<input::Component>("Input", "Reader
 }
 
 Manager::~Manager() {
-    for ( map<ReaderFrontend*, Stream*>::iterator s = readers.begin(); s != readers.end(); ++s ) {
-        delete s->second;
-        delete s->first;
+    for ( auto& [frontend, stream] : readers ) {
+        delete stream;
+        delete frontend;
     }
 }
 
@@ -1439,8 +1439,8 @@ int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const* 
 
     if ( convert_error ) {
         // we have an error somewhere in our out_vals. Just delete all of them.
-        for ( list<Val*>::const_iterator it = out_vals.begin(), end = out_vals.end(); it != end; ++it )
-            Unref(*it);
+        for ( auto* val : out_vals )
+            Unref(val);
     }
     else
         SendEvent(stream->event, out_vals);
@@ -1712,8 +1712,8 @@ void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events) const {
     DBG_LOG(DBG_INPUT, "SendEvent with %" PRIuPTR " vals (list)", events.size());
 #endif
 
-    for ( list<Val*>::iterator i = events.begin(); i != events.end(); i++ )
-        vl.emplace_back(AdoptRef{}, *i);
+    for ( auto* val : events )
+        vl.emplace_back(AdoptRef{}, val);
 
     if ( ev )
         event_mgr.Enqueue(ev, std::move(vl), util::detail::SOURCE_LOCAL);
@@ -2167,9 +2167,9 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, Type* request_type, 
 }
 
 Manager::Stream* Manager::FindStream(const string& name) const {
-    for ( auto s = readers.begin(); s != readers.end(); ++s ) {
-        if ( (*s).second->name == name )
-            return (*s).second;
+    for ( const auto& [_, stream] : readers ) {
+        if ( stream->name == name )
+            return stream;
     }
 
     return nullptr;
@@ -2186,12 +2186,12 @@ Manager::Stream* Manager::FindStream(ReaderFrontend* reader) const {
 // Function is called on Zeek shutdown.
 // Signal all frontends that they will cease operation.
 void Manager::Terminate() {
-    for ( map<ReaderFrontend*, Stream*>::iterator i = readers.begin(); i != readers.end(); ++i ) {
-        if ( i->second->removed )
+    for ( const auto& [_, stream] : readers ) {
+        if ( stream->removed )
             continue;
 
-        i->second->removed = true;
-        i->second->reader->Stop();
+        stream->removed = true;
+        stream->reader->Stop();
     }
 }
 

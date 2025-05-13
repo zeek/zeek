@@ -438,9 +438,9 @@ static Attr* find_attr(const std::vector<AttrPtr>* al, AttrTag tag) {
     if ( ! al )
         return nullptr;
 
-    for ( size_t i = 0; i < al->size(); ++i )
-        if ( (*al)[i]->Tag() == tag )
-            return (*al)[i].get();
+    for ( const auto& attr : *al )
+        if ( attr->Tag() == tag )
+            return attr.get();
 
     return nullptr;
 }

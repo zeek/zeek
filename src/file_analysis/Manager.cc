@@ -24,8 +24,8 @@ Manager::Manager()
       max_files(0) {}
 
 Manager::~Manager() {
-    for ( MIMEMap::iterator i = mime_types.begin(); i != mime_types.end(); i++ )
-        delete i->second;
+    for ( const auto& [_, tag] : mime_types )
+        delete tag;
 
     // Have to assume that too much of Zeek has been shutdown by this point
     // to do anything more than reclaim memory.
@@ -473,12 +473,12 @@ VectorValPtr GenMIMEMatchesVal(const zeek::detail::RuleMatcher::MIME_Matches& m)
     static auto mime_match = id::find_type<RecordType>("mime_match");
     auto rval = make_intrusive<VectorVal>(mime_matches);
 
-    for ( zeek::detail::RuleMatcher::MIME_Matches::const_iterator it = m.begin(); it != m.end(); ++it ) {
+    for ( const auto& [index, match] : m ) {
         auto element = make_intrusive<RecordVal>(mime_match);
 
-        for ( set<string>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ) {
-            element->Assign(0, it->first);
-            element->Assign(1, *it2);
+        for ( const string& match_str : match ) {
+            element->Assign(0, index);
+            element->Assign(1, match_str);
         }
 
         rval->Assign(rval->Size(), std::move(element));

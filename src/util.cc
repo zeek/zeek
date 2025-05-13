@@ -664,8 +664,8 @@ string normalize_path(std::string_view path) {
         }
     }
 
-    for ( auto it = final_components.begin(); it != final_components.end(); ++it ) {
-        new_path.append(*it);
+    for ( const auto& comp : final_components ) {
+        new_path.append(comp);
         new_path.append("/");
     }
 
@@ -681,8 +681,8 @@ string without_zeekpath_component(std::string_view path) {
 
     const auto paths = tokenize_string(zeek_path(), path_list_separator[0]);
 
-    for ( size_t i = 0; i < paths.size(); ++i ) {
-        string common = normalize_path(paths[i]);
+    for ( const auto& p : paths ) {
+        string common = normalize_path(p);
 
         if ( rval.find(common) != 0 )
             continue;
@@ -1817,8 +1817,8 @@ string find_file(const string& filename, const string& path_set, const string& o
     if ( ! opt_ext.empty() )
         ext.push_back(opt_ext);
 
-    for ( size_t n = 0; n < paths.size(); ++n ) {
-        string f = find_file_in_path(filename, paths[n], ext);
+    for ( const auto& p : paths ) {
+        string f = find_file_in_path(filename, p, ext);
 
         if ( ! f.empty() )
             return f;
@@ -1833,8 +1833,8 @@ string find_script_file(const string& filename, const string& path_set) {
 
     vector<string> ext = {".zeek"};
 
-    for ( size_t n = 0; n < paths.size(); ++n ) {
-        string f = find_file_in_path(filename, paths[n], ext);
+    for ( const auto& p : paths ) {
+        string f = find_file_in_path(filename, p, ext);
 
         if ( ! f.empty() )
             return f;

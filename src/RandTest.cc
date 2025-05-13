@@ -17,6 +17,7 @@
 #include "zeek/RandTest.h"
 
 #include <cmath>
+#include <cstring>
 
 constexpr double log2of10 = 3.32192809488736234787;
 
@@ -35,9 +36,7 @@ RandTest::RandTest() {
     inmont = mcount = 0;
     cexp = montex = montey = montepi = sccu0 = scclast = scct1 = scct2 = scct3 = 0.0;
 
-    for ( int i = 0; i < 256; i++ ) {
-        ccount[i] = 0;
-    }
+    memset(ccount, 0, sizeof(ccount));
 }
 
 void RandTest::add(const void* buf, int bufl) {

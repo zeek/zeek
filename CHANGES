@@ -1,3 +1,9 @@
+7.0.7-3 | 2025-05-19 09:15:54 -0700
+
+  * fix for ZAM optimization when an aggregate is modified inside of a loop (Vern Paxson, Corelight)
+
+    (cherry picked from commit 2255fa23b8a3f7bde1345f2847764412c90487c8)
+
 7.0.7-2 | 2025-05-19 09:09:07 -0700
 
   * Bump `auxil/spicy` to v1.11.5 (Benjamin Bannier, Corelight)

@@ -24,6 +24,7 @@ export {
 		## database.  These must be pairs that can be passed to the ``pragma``
 		## command in sqlite.
 		tuning_params: table[string] of string &default=table(
+			["busy_timeout"] = "5000",
 			["journal_mode"] = "WAL",
 			["synchronous"] = "normal",
 			["temp_store"] = "memory"

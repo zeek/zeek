@@ -107,8 +107,6 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     erase_stmt = std::move(stmt_ptrs[3]);
     expire_stmt = std::move(stmt_ptrs[4]);
 
-    sqlite3_busy_timeout(db, 5000);
-
     return {ReturnCode::SUCCESS};
 }
 

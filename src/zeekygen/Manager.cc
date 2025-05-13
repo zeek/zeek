@@ -93,8 +93,7 @@ Manager::Manager(const string& arg_config, const string& command)
 }
 
 Manager::~Manager() {
-    for ( size_t i = 0; i < all_info.size(); ++i )
-        delete all_info[i];
+    std::for_each(all_info.begin(), all_info.end(), [](auto& info) { delete info; });
 }
 
 void Manager::InitPreScript() {
@@ -106,8 +105,7 @@ void Manager::InitPostScript() {
     if ( disabled )
         return;
 
-    for ( size_t i = 0; i < all_info.size(); ++i )
-        all_info[i]->InitPostScript();
+    std::for_each(all_info.begin(), all_info.end(), [](auto& info) { info->InitPostScript(); });
 
     config.FindDependencies(all_info);
 }
@@ -179,8 +177,8 @@ void Manager::ScriptDependency(const string& path, const string& dep) {
     script_info->AddDependency(depname);
     DBG_LOG(DBG_ZEEKYGEN, "Added script dependency %s for %s", depname.c_str(), name.c_str());
 
-    for ( size_t i = 0; i < comment_buffer.size(); ++i )
-        DbgAndWarn(util::fmt("Discarded extraneous Zeekygen comment: %s", comment_buffer[i].c_str()));
+    for ( const auto& cmnt : comment_buffer )
+        DbgAndWarn(util::fmt("Discarded extraneous Zeekygen comment: %s", cmnt.c_str()));
 }
 
 void Manager::ModuleUsage(const string& path, const string& module) {

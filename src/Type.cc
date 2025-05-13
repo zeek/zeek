@@ -756,9 +756,7 @@ void FuncType::DescribeReST(ODesc* d, bool roles_only) const {
 void FuncType::AddPrototype(Prototype p) { prototypes.emplace_back(std::move(p)); }
 
 std::optional<FuncType::Prototype> FuncType::FindPrototype(const RecordType& args) const {
-    for ( auto i = 0u; i < prototypes.size(); ++i ) {
-        const auto& p = prototypes[i];
-
+    for ( const auto& p : prototypes ) {
         if ( args.NumFields() != p.args->NumFields() )
             continue;
 
@@ -1661,8 +1659,8 @@ const char* EnumType::Lookup(zeek_int_t value) const {
 
 EnumType::enum_name_list EnumType::Names() const {
     enum_name_list n;
-    for ( auto iter = names.begin(); iter != names.end(); ++iter )
-        n.emplace_back(iter->first, iter->second);
+    for ( const auto& [name, value] : names )
+        n.emplace_back(name, value);
 
     return n;
 }

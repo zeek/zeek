@@ -388,8 +388,8 @@ bool Manager::ApplyScheduledAnalyzers(Connection* conn, bool init, packet_analys
 
     tag_set expected = GetScheduled(conn);
 
-    for ( tag_set::iterator it = expected.begin(); it != expected.end(); ++it ) {
-        Analyzer* analyzer = analyzer_mgr->InstantiateAnalyzer(*it, conn);
+    for ( const auto& tag : expected ) {
+        Analyzer* analyzer = analyzer_mgr->InstantiateAnalyzer(tag, conn);
 
         if ( ! analyzer )
             continue;
@@ -397,9 +397,9 @@ bool Manager::ApplyScheduledAnalyzers(Connection* conn, bool init, packet_analys
         parent->AddChildAnalyzer(analyzer, init);
 
         if ( scheduled_analyzer_applied )
-            conn->EnqueueEvent(scheduled_analyzer_applied, nullptr, conn->GetVal(), it->AsVal());
+            conn->EnqueueEvent(scheduled_analyzer_applied, nullptr, conn->GetVal(), tag.AsVal());
 
-        DBG_ANALYZER_ARGS(conn, "activated %s analyzer as scheduled", analyzer_mgr->GetComponentName(*it).c_str());
+        DBG_ANALYZER_ARGS(conn, "activated %s analyzer as scheduled", analyzer_mgr->GetComponentName(tag).c_str());
     }
 
     return expected.size();

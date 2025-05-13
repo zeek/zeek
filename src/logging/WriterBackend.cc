@@ -61,8 +61,8 @@ public:
 broker::data WriterBackend::WriterInfo::ToBroker() const {
     auto t = broker::table();
 
-    for ( config_map::const_iterator i = config.begin(); i != config.end(); ++i ) {
-        t.emplace(std::string{i->first}, std::string{i->second});
+    for ( const auto& [key, value] : config ) {
+        t.emplace(std::string{key}, std::string{value});
     }
 
     auto bppf = post_proc_func ? post_proc_func : "";
@@ -185,12 +185,12 @@ bool WriterBackend::Write(int arg_num_fields, zeek::Span<detail::LogRecord> reco
     }
 
     // Double-check all the types match.
-    for ( size_t j = 0; j < records.size(); j++ ) {
+    for ( const auto& record : records ) {
         for ( int i = 0; i < num_fields; ++i ) {
-            if ( records[j][i].type != fields[i]->type ) {
+            if ( record[i].type != fields[i]->type ) {
 #ifdef DEBUG
                 const char* msg = Fmt("Field #%d type doesn't match in WriterBackend::Write() (%d vs. %d)", i,
-                                      records[j][i].type, fields[i]->type);
+                                      record[i].type, fields[i]->type);
                 Debug(DBG_LOGGING, msg);
 #endif
                 DisableFrontend();
@@ -212,10 +212,9 @@ bool WriterBackend::Write(int arg_num_fields, zeek::Span<detail::LogRecord> reco
         std::vector<Value*> valps;
         valps.reserve(num_fields);
 
-        for ( size_t j = 0; j < records.size(); j++ ) {
-            auto& write_vals = records[j];
+        for ( auto& record : records ) {
             for ( int f = 0; f < num_fields; f++ )
-                valps.emplace_back(&write_vals[f]);
+                valps.emplace_back(&record[f]);
 
             success = DoWrite(num_fields, fields, &valps[0]);
 

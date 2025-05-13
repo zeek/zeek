@@ -255,11 +255,11 @@ bool Ascii::InitFilterOptions() {
     const WriterInfo& info = Info();
 
     // Set per-filter configuration options.
-    for ( WriterInfo::config_map::const_iterator i = info.config.begin(); i != info.config.end(); ++i ) {
-        if ( strcmp(i->first, "tsv") == 0 ) {
-            if ( strcmp(i->second, "T") == 0 )
+    for ( const auto& [key, value] : info.config ) {
+        if ( strcmp(key, "tsv") == 0 ) {
+            if ( strcmp(value, "T") == 0 )
                 tsv = true;
-            else if ( strcmp(i->second, "F") == 0 )
+            else if ( strcmp(value, "F") == 0 )
                 tsv = false;
             else {
                 Error("invalid value for 'tsv', must be a string and either \"T\" or \"F\"");
@@ -267,18 +267,18 @@ bool Ascii::InitFilterOptions() {
             }
         }
 
-        else if ( strcmp(i->first, "gzip_level") == 0 ) {
-            gzip_level = atoi(i->second);
+        else if ( strcmp(key, "gzip_level") == 0 ) {
+            gzip_level = atoi(value);
 
             if ( gzip_level < 0 || gzip_level > 9 ) {
                 Error("invalid value for 'gzip_level', must be a number between 0 and 9.");
                 return false;
             }
         }
-        else if ( strcmp(i->first, "use_json") == 0 ) {
-            if ( strcmp(i->second, "T") == 0 )
+        else if ( strcmp(key, "use_json") == 0 ) {
+            if ( strcmp(value, "T") == 0 )
                 use_json = true;
-            else if ( strcmp(i->second, "F") == 0 )
+            else if ( strcmp(value, "F") == 0 )
                 use_json = false;
             else {
                 Error("invalid value for 'use_json', must be a string and either \"T\" or \"F\"");
@@ -286,10 +286,10 @@ bool Ascii::InitFilterOptions() {
             }
         }
 
-        else if ( strcmp(i->first, "enable_utf_8") == 0 ) {
-            if ( strcmp(i->second, "T") == 0 )
+        else if ( strcmp(key, "enable_utf_8") == 0 ) {
+            if ( strcmp(value, "T") == 0 )
                 enable_utf_8 = true;
-            else if ( strcmp(i->second, "F") == 0 )
+            else if ( strcmp(value, "F") == 0 )
                 enable_utf_8 = false;
             else {
                 Error("invalid value for 'enable_utf_8', must be a string and either \"T\" or \"F\"");
@@ -297,10 +297,10 @@ bool Ascii::InitFilterOptions() {
             }
         }
 
-        else if ( strcmp(i->first, "output_to_stdout") == 0 ) {
-            if ( strcmp(i->second, "T") == 0 )
+        else if ( strcmp(key, "output_to_stdout") == 0 ) {
+            if ( strcmp(value, "T") == 0 )
                 output_to_stdout = true;
-            else if ( strcmp(i->second, "F") == 0 )
+            else if ( strcmp(value, "F") == 0 )
                 output_to_stdout = false;
             else {
                 Error(
@@ -310,28 +310,28 @@ bool Ascii::InitFilterOptions() {
             }
         }
 
-        else if ( strcmp(i->first, "separator") == 0 )
-            separator.assign(i->second);
+        else if ( strcmp(key, "separator") == 0 )
+            separator.assign(value);
 
-        else if ( strcmp(i->first, "set_separator") == 0 )
-            set_separator.assign(i->second);
+        else if ( strcmp(key, "set_separator") == 0 )
+            set_separator.assign(value);
 
-        else if ( strcmp(i->first, "empty_field") == 0 )
-            empty_field.assign(i->second);
+        else if ( strcmp(key, "empty_field") == 0 )
+            empty_field.assign(value);
 
-        else if ( strcmp(i->first, "unset_field") == 0 )
-            unset_field.assign(i->second);
+        else if ( strcmp(key, "unset_field") == 0 )
+            unset_field.assign(value);
 
-        else if ( strcmp(i->first, "meta_prefix") == 0 )
-            meta_prefix.assign(i->second);
+        else if ( strcmp(key, "meta_prefix") == 0 )
+            meta_prefix.assign(value);
 
-        else if ( strcmp(i->first, "json_timestamps") == 0 )
-            json_timestamps.assign(i->second);
+        else if ( strcmp(key, "json_timestamps") == 0 )
+            json_timestamps.assign(value);
 
-        else if ( strcmp(i->first, "json_include_unset_fields") == 0 ) {
-            if ( strcmp(i->second, "T") == 0 )
+        else if ( strcmp(key, "json_include_unset_fields") == 0 ) {
+            if ( strcmp(value, "T") == 0 )
                 json_include_unset_fields = true;
-            else if ( strcmp(i->second, "F") == 0 )
+            else if ( strcmp(value, "F") == 0 )
                 json_include_unset_fields = false;
             else {
                 Error(
@@ -341,8 +341,8 @@ bool Ascii::InitFilterOptions() {
             }
         }
 
-        else if ( strcmp(i->first, "gzip_file_extension") == 0 )
-            gzip_file_extension.assign(i->second);
+        else if ( strcmp(key, "gzip_file_extension") == 0 )
+            gzip_file_extension.assign(value);
     }
 
     if ( ! InitFormatter() )

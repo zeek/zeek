@@ -530,15 +530,15 @@ struct type_checker {
                     else {
                         indices_to_check.reserve(indices->size());
 
-                        for ( size_t i = 0; i < indices->size(); ++i )
-                            indices_to_check.emplace_back(&(*indices)[i]);
+                        for ( const auto& idx : *indices )
+                            indices_to_check.emplace_back(&idx);
                     }
                 }
                 else {
                     indices_to_check.reserve(indices->size());
 
-                    for ( size_t i = 0; i < indices->size(); ++i )
-                        indices_to_check.emplace_back(&(*indices)[i]);
+                    for ( const auto& idx : *indices )
+                        indices_to_check.emplace_back(&idx);
                 }
             }
             else
@@ -580,15 +580,15 @@ struct type_checker {
                     else {
                         indices_to_check.reserve(indices->size());
 
-                        for ( size_t i = 0; i < indices->size(); ++i )
-                            indices_to_check.emplace_back(&(*indices)[i]);
+                        for ( const auto& idx : *indices )
+                            indices_to_check.emplace_back(&idx);
                     }
                 }
                 else {
                     indices_to_check.reserve(indices->size());
 
-                    for ( size_t i = 0; i < indices->size(); ++i )
-                        indices_to_check.emplace_back(&(*indices)[i]);
+                    for ( const auto& idx : *indices )
+                        indices_to_check.emplace_back(&idx);
                 }
             }
             else

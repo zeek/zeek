@@ -348,8 +348,8 @@ String::Vec* String::VecFromPolicy(VectorVal* vec) {
 char* String::VecToString(const Vec* vec) {
     std::string result("[");
 
-    for ( String::VecCIt it = vec->begin(); it != vec->end(); ++it ) {
-        result += (*it)->CheckString();
+    for ( const auto& str : *vec ) {
+        result += str->CheckString();
         result += ",";
     }
 
@@ -438,10 +438,7 @@ String* concatenate(String::CVec& v) {
 
 String* concatenate(String::Vec& v) {
     String::CVec cv;
-
-    for ( String::VecIt it = v.begin(); it != v.end(); ++it )
-        cv.push_back(*it);
-
+    std::copy(v.begin(), v.end(), std::back_inserter<String::CVec>(cv));
     return concatenate(cv);
 }
 

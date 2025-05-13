@@ -20,8 +20,8 @@ static zeek::RecordValPtr parse_port(const std::string& line)
 		{
 		good = true;
 
-		for ( int i = 0; i < 6; ++i )
-			if ( bytes[i] < 0 || bytes[i] > 255 )
+		for ( int b : bytes )
+			if ( b < 0 || b > 255 )
 				{
 				good = false;
 				break;

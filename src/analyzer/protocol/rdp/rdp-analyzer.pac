@@ -132,28 +132,28 @@ refine flow RDP_Flow += {
 		if ( ! rdp_client_network_data )
 			return false;
 
-		if ( ${cnetwork.channel_def_array}->size() )
+		if ( ! ${cnetwork.channel_def_array}->empty() )
 			{
 			auto channels = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::RDP::ClientChannelList);
 
-			for ( uint i = 0; i < ${cnetwork.channel_def_array}->size(); ++i )
+            for ( const auto& cdef : *${cnetwork.channel_def_array} )
 				{
 				auto channel_def = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::RDP::ClientChannelDef);
 
-				channel_def->Assign(0, to_stringval(${cnetwork.channel_def_array[i].name}));
-				channel_def->Assign(1, ${cnetwork.channel_def_array[i].options});
+				channel_def->Assign(0, to_stringval(${cdef.name}));
+				channel_def->Assign(1, ${cdef.options});
 
-				channel_def->Assign(2, ${cnetwork.channel_def_array[i].CHANNEL_OPTION_INITIALIZED});
-				channel_def->Assign(3, ${cnetwork.channel_def_array[i].CHANNEL_OPTION_ENCRYPT_RDP});
-				channel_def->Assign(4, ${cnetwork.channel_def_array[i].CHANNEL_OPTION_ENCRYPT_SC});
-				channel_def->Assign(5, ${cnetwork.channel_def_array[i].CHANNEL_OPTION_ENCRYPT_CS});
-				channel_def->Assign(6, ${cnetwork.channel_def_array[i].CHANNEL_OPTION_PRI_HIGH});
-				channel_def->Assign(7, ${cnetwork.channel_def_array[i].CHANNEL_OPTION_PRI_MED});
-				channel_def->Assign(8, ${cnetwork.channel_def_array[i].CHANNEL_OPTION_PRI_LOW});
-				channel_def->Assign(9, ${cnetwork.channel_def_array[i].CHANNEL_OPTION_COMPRESS_RDP});
-				channel_def->Assign(10, ${cnetwork.channel_def_array[i].CHANNEL_OPTION_COMPRESS});
-				channel_def->Assign(11, ${cnetwork.channel_def_array[i].CHANNEL_OPTION_SHOW_PROTOCOL});
-				channel_def->Assign(12, ${cnetwork.channel_def_array[i].REMOTE_CONTROL_PERSISTENT});
+				channel_def->Assign(2, ${cdef.CHANNEL_OPTION_INITIALIZED});
+				channel_def->Assign(3, ${cdef.CHANNEL_OPTION_ENCRYPT_RDP});
+				channel_def->Assign(4, ${cdef.CHANNEL_OPTION_ENCRYPT_SC});
+				channel_def->Assign(5, ${cdef.CHANNEL_OPTION_ENCRYPT_CS});
+				channel_def->Assign(6, ${cdef.CHANNEL_OPTION_PRI_HIGH});
+				channel_def->Assign(7, ${cdef.CHANNEL_OPTION_PRI_MED});
+				channel_def->Assign(8, ${cdef.CHANNEL_OPTION_PRI_LOW});
+				channel_def->Assign(9, ${cdef.CHANNEL_OPTION_COMPRESS_RDP});
+				channel_def->Assign(10, ${cdef.CHANNEL_OPTION_COMPRESS});
+				channel_def->Assign(11, ${cdef.CHANNEL_OPTION_SHOW_PROTOCOL});
+				channel_def->Assign(12, ${cdef.REMOTE_CONTROL_PERSISTENT});
 
 				channels->Assign(channels->Size(), std::move(channel_def));
 				}

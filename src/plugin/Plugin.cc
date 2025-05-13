@@ -396,17 +396,17 @@ void Plugin::Describe(ODesc* d) const {
     if ( d->IsShort() )
         return;
 
-    for ( component_list::const_iterator i = components.begin(); i != components.end(); i++ ) {
-        (*i)->Describe(d);
+    for ( Component* component : components ) {
+        component->Describe(d);
         d->Add("\n");
     }
 
     bif_item_list items = BifItems();
 
-    for ( bif_item_list::const_iterator i = items.begin(); i != items.end(); i++ ) {
+    for ( const auto& item : items ) {
         const char* type = nullptr;
 
-        switch ( (*i).GetType() ) {
+        switch ( item.GetType() ) {
             case BifItem::FUNCTION: type = "Function"; break;
 
             case BifItem::EVENT: type = "Event"; break;
@@ -424,16 +424,13 @@ void Plugin::Describe(ODesc* d) const {
         d->Add("[");
         d->Add(type);
         d->Add("] ");
-        d->Add((*i).GetID());
+        d->Add(item.GetID());
         d->Add("\n");
     }
 
     hook_list hooks = EnabledHooks();
 
-    for ( hook_list::iterator i = hooks.begin(); i != hooks.end(); i++ ) {
-        HookType hook = (*i).first;
-        int prio = (*i).second;
-
+    for ( const auto& [hook, prio] : hooks ) {
         d->Add("    Implements ");
         d->Add(hook_name(hook));
         d->Add(" (priority ");

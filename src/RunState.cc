@@ -376,8 +376,8 @@ void get_final_stats() {
 void delete_run() {
     util::detail::set_processing_status("TERMINATING", "delete_run");
 
-    for ( int i = 0; i < zeek::detail::NUM_ADDR_ANONYMIZATION_METHODS; ++i )
-        delete zeek::detail::ip_anonymizer[i];
+    for ( auto& anon : zeek::detail::ip_anonymizer )
+        delete anon;
 }
 
 double check_pseudo_time(const Packet* pkt) {

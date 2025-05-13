@@ -244,10 +244,8 @@ void CreatePDP_Request(const ZeekPacketAnalyzer& a, zeek::Connection* c, const G
 	bool second_nsapi = false;
 	bool second_gsn_addr = false;
 
-	for ( size_t i = 0; i < v->size(); ++i )
+	for ( InformationElement* ie : *v )
 		{
-		const InformationElement* ie = (*v)[i];
-
 		switch ( ie->type() ) {
 		case GTPv1::TYPE_IMSI:
 			rv->Assign(0, BuildIMSI(ie));
@@ -322,7 +320,7 @@ void CreatePDP_Request(const ZeekPacketAnalyzer& a, zeek::Connection* c, const G
 			rv->Assign(21, BuildPrivateExt(ie));
 			break;
 		default:
-			a->Weird("gtp_invalid_info_element", nullptr, zeek::util::fmt("%d", (*v)[i]->type()));
+			a->Weird("gtp_invalid_info_element", nullptr, zeek::util::fmt("%d", ie->type()));
 			break;
 		}
 		}
@@ -342,10 +340,8 @@ void CreatePDP_Response(const ZeekPacketAnalyzer& a, zeek::Connection* c, const 
 
 	bool second_gsn_addr = false;
 
-	for ( size_t i = 0; i < v->size(); ++i )
+	for ( InformationElement* ie : *v )
 		{
-		const InformationElement* ie = (*v)[i];
-
 		switch ( ie->type() ) {
 		case GTPv1::TYPE_CAUSE:
 			rv->Assign(0, BuildCause(ie));
@@ -390,7 +386,7 @@ void CreatePDP_Response(const ZeekPacketAnalyzer& a, zeek::Connection* c, const 
 			rv->Assign(12, BuildPrivateExt(ie));
 			break;
 		default:
-			a->Weird("gtp_invalid_info_element", nullptr, zeek::util::fmt("%d", (*v)[i]->type()));
+			a->Weird("gtp_invalid_info_element", nullptr, zeek::util::fmt("%d", ie->type()));
 			break;
 		}
 		}
@@ -410,10 +406,8 @@ void UpdatePDP_Request(const ZeekPacketAnalyzer& a, zeek::Connection* c, const G
 
 	bool second_gsn_addr = false;
 
-	for ( size_t i = 0; i < v->size(); ++i )
+	for ( InformationElement* ie : *v )
 		{
-		const InformationElement* ie = (*v)[i];
-
 		switch ( ie->type() ) {
 		case GTPv1::TYPE_IMSI:
 			rv->Assign(0, BuildIMSI(ie));
@@ -467,7 +461,7 @@ void UpdatePDP_Request(const ZeekPacketAnalyzer& a, zeek::Connection* c, const G
 			rv->Assign(15, BuildEndUserAddr(ie));
 			break;
 		default:
-			a->Weird("gtp_invalid_info_element", nullptr, zeek::util::fmt("%d", (*v)[i]->type()));
+			a->Weird("gtp_invalid_info_element", nullptr, zeek::util::fmt("%d", ie->type()));
 			break;
 		}
 		}
@@ -487,10 +481,8 @@ void UpdatePDP_Response(const ZeekPacketAnalyzer& a, zeek::Connection* c, const 
 
 	bool second_gsn_addr = false;
 
-	for ( size_t i = 0; i < v->size(); ++i )
+	for ( InformationElement* ie : *v )
 		{
-		const InformationElement* ie = (*v)[i];
-
 		switch ( ie->type() ) {
 		case GTPv1::TYPE_CAUSE:
 			rv->Assign(0, BuildCause(ie));
@@ -526,7 +518,7 @@ void UpdatePDP_Response(const ZeekPacketAnalyzer& a, zeek::Connection* c, const 
 			rv->Assign(9, BuildPrivateExt(ie));
 			break;
 		default:
-			a->Weird("gtp_invalid_info_element", nullptr, zeek::util::fmt("%d", (*v)[i]->type()));
+			a->Weird("gtp_invalid_info_element", nullptr, zeek::util::fmt("%d", ie->type()));
 			break;
 		}
 		}
@@ -537,17 +529,15 @@ void UpdatePDP_Response(const ZeekPacketAnalyzer& a, zeek::Connection* c, const 
 void DeletePDP_Request(const ZeekPacketAnalyzer& a, zeek::Connection* c, const GTPv1_Header* pdu)
 	{
 	if ( ! ::gtpv1_delete_pdp_ctx_request )
-	    return;
+		return;
 
 	auto rv = zeek::make_intrusive<zeek::RecordVal>(
 	  zeek::BifType::Record::gtp_delete_pdp_ctx_request_elements);
 
 	const vector<InformationElement *> * v = pdu->delete_pdp_ctx_request();
 
-	for ( size_t i = 0; i < v->size(); ++i )
+	for ( InformationElement* ie : *v )
 		{
-		const InformationElement* ie = (*v)[i];
-
 		switch ( ie->type() ) {
 		case GTPv1::TYPE_TEARDOWN_IND:
 			rv->Assign(0, BuildTeardownInd(ie));
@@ -559,7 +549,7 @@ void DeletePDP_Request(const ZeekPacketAnalyzer& a, zeek::Connection* c, const G
 			rv->Assign(2, BuildPrivateExt(ie));
 			break;
 		default:
-			a->Weird("gtp_invalid_info_element", nullptr, zeek::util::fmt("%d", (*v)[i]->type()));
+			a->Weird("gtp_invalid_info_element", nullptr, zeek::util::fmt("%d", ie->type()));
 			break;
 		}
 		}
@@ -570,17 +560,15 @@ void DeletePDP_Request(const ZeekPacketAnalyzer& a, zeek::Connection* c, const G
 void DeletePDP_Response(const ZeekPacketAnalyzer& a, zeek::Connection* c, const GTPv1_Header* pdu)
 	{
 	if ( ! ::gtpv1_delete_pdp_ctx_response )
-	    return;
+		return;
 
 	auto rv = zeek::make_intrusive<zeek::RecordVal>(
 	  zeek::BifType::Record::gtp_delete_pdp_ctx_response_elements);
 
 	const vector<InformationElement *> * v = pdu->delete_pdp_ctx_response();
 
-	for ( size_t i = 0; i < v->size(); ++i )
+	for ( InformationElement* ie : *v )
 		{
-		const InformationElement* ie = (*v)[i];
-
 		switch ( ie->type() ) {
 		case GTPv1::TYPE_CAUSE:
 			rv->Assign(0, BuildCause(ie));
@@ -589,7 +577,7 @@ void DeletePDP_Response(const ZeekPacketAnalyzer& a, zeek::Connection* c, const 
 			rv->Assign(1, BuildPrivateExt(ie));
 			break;
 		default:
-			a->Weird("gtp_invalid_info_element", nullptr, zeek::util::fmt("%d", (*v)[i]->type()));
+			a->Weird("gtp_invalid_info_element", nullptr, zeek::util::fmt("%d", ie->type()));
 			break;
 		}
 		}

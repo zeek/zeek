@@ -91,31 +91,21 @@ Manager::~Manager() {
 void Manager::Done() {}
 
 Connection* Manager::FindConnection(Val* v) {
-    // zeek::detail::OLD_ConnKeyPtr conn_key = conntuple_mgr->GetBuilder().GetKey(v);
+    // XXX: Technically we should probably dispatch between different builders for different kinds of Val instances.
+    // conn_id is IP specific, so if ``v`` is something else, maybe we'd like to use a different builder.
+    auto conn_key = conntuple_mgr->GetBuilder().FromVal({zeek::NewRef{}, v});
 
-    auto conn_key = conntuple_mgr->GetBuilder().NewConnKey();
-    /**
-    // conn_key->LoadConnIdVal(v);
-
-    This is IP specific stuff!
-
-    if ( ! conn_key->Valid() ) {
+    if ( conn_key->Error() ) {
         // Produce a loud error for invalid script-layer conn_id records.
-        const char* extra = "";
-        if ( conn_key->transport == UNKNOWN_IP_PROTO )
-            extra = ": the proto field has the \"unknown\" 65535 value. Did you forget to set it?";
-
-        zeek::emit_builtin_error(zeek::util::fmt("invalid connection ID record encountered%s", extra));
+        zeek::emit_builtin_error(conn_key->Error()->c_str());
         return nullptr;
     }
-
-    */
 
     return FindConnection(*conn_key);
 }
 
 Connection* Manager::FindConnection(const zeek::ConnKey& conn_key) {
-    detail::Key key{conn_key.SessionKey()};
+    auto key = conn_key.SessionKey();
 
     auto it = session_map.find(key);
     if ( it != session_map.end() )

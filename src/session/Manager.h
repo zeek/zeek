@@ -93,7 +93,7 @@ public:
     size_t CurrentSessions() { return session_map.size(); }
 
 private:
-    using SessionMap = std::unordered_map<zeek::session::detail::Key, Session*, detail::KeyHash>;
+    using SessionMap = std::unordered_map<detail::Key, Session*, detail::KeyHash>;
 
     // Inserts a new connection into the sessions map. If a connection with
     // the same key already exists in the map, it will be overwritten by

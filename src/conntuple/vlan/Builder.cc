@@ -2,7 +2,10 @@
 
 #include "zeek/conntuple/vlan/Builder.h"
 
+#include <memory>
+
 #include "zeek/ID.h"
+#include "zeek/conntuple/Builder.h"
 #include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
 #include "zeek/session/Session.h"
 
@@ -20,18 +23,11 @@ public:
         key.inner_vlan = pkt.inner_vlan;
     }
 
-    bool FromConnIdVal(const zeek::RecordValPtr& rv) override {
-        if ( ! zeek::IPBasedConnKey::FromConnIdVal(rv) )
-            return false;
-
-        // TODO: Also load vlan and inner_vlan from the record!
-    }
-
     zeek::Span<const std::byte> Key() const override {
         return {reinterpret_cast<const std::byte*>(&key), reinterpret_cast<const std::byte*>(&key) + sizeof(key)};
     }
 
-    detail::RawConnTuple& RawTuple() override { return key.tuple; }
+    detail::RawConnTuple& RawTuple() const override { return key.tuple; }
 
     virtual void FillConnIdVal(RecordValPtr& conn_id) override {
         if ( conn_id->NumFields() <= 5 )
@@ -47,14 +43,41 @@ public:
     };
 
 private:
+    friend class Builder;
+
     // Key bytes.
     struct {
-        struct detail::RawConnTuple tuple;
+        // mutable for non-const RawTuple() return value.
+        mutable struct detail::RawConnTuple tuple;
         // Add 802.1Q vlan tags to connection tuples. The tag representation here is as
         // in the Packet class, since that's where we learn the tag values from.
         uint32_t vlan;
         uint32_t inner_vlan;
-    } key;
+    } __attribute__((packed, aligned)) key;
 };
+
+zeek::ConnKeyPtr Builder::NewConnKey() { return std::make_unique<IPVlanConnKey>(); }
+
+zeek::ConnKeyPtr Builder::FromVal(const zeek::ValPtr& v) {
+    auto ck = NewConnKey();
+    auto* k = static_cast<IPVlanConnKey*>(ck.get());
+    if ( ! zeek::conntuple::fill_from_val(k, v) ) {
+        assert(ck->Error().has_value());
+        return ck;
+    }
+
+    auto rt = v->GetType()->AsRecordType();
+    auto vl = v->As<RecordVal*>();
+
+    // XXX: Use static field offsets
+    if ( rt->GetFieldType(5)->Tag() == TYPE_INT && vl->HasField(5) )
+        k->key.vlan = vl->GetFieldAs<zeek::IntVal>(5);
+
+    if ( rt->GetFieldType(6)->Tag() == TYPE_INT && vl->HasField(6) )
+        k->key.inner_vlan = vl->GetFieldAs<zeek::IntVal>(6);
+
+
+    return ck;
+}
 
 } // namespace zeek::plugin::Zeek_Conntuple_VLAN

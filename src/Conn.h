@@ -54,7 +54,7 @@ enum ConnEventToFlag {
 };
 
 class IPBasedConnKey;
-using IPBasedConnKeyPtr = zeek::IntrusivePtr<IPBasedConnKey>;
+using IPBasedConnKeyPtr = std::unique_ptr<IPBasedConnKey>;
 
 static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1, const IPAddr& addr2, uint32_t p2) {
     return addr1 < addr2 || (addr1 == addr2 && p1 < p2);
@@ -64,7 +64,6 @@ static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1, const IPA
 class Connection final : public session::Session {
 public:
     Connection(zeek::IPBasedConnKeyPtr k, zeek::ConnTuple& ct, double t, uint32_t flow, const Packet* pkt);
-    // Connection(const detail::ConnKey& k, double t, const ConnTuple* id, uint32_t flow, const Packet* pkt);
     ~Connection() override;
 
     /**

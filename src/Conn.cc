@@ -29,7 +29,8 @@ uint64_t Connection::total_connections = 0;
 uint64_t Connection::current_connections = 0;
 
 Connection::Connection(IPBasedConnKeyPtr k, zeek::ConnTuple& ct, double t, uint32_t flow, const Packet* pkt)
-    : Session(t, connection_timeout, connection_status_update, detail::connection_status_update_interval), key(k) {
+    : Session(t, connection_timeout, connection_status_update, detail::connection_status_update_interval),
+      key(std::move(k)) {
     orig_addr = ct.src_addr;
     resp_addr = ct.dst_addr;
     orig_port = ct.src_port;

@@ -54,7 +54,7 @@ protected:
         bool valid_resp = false;
         bool confirmed = false;
     };
-    using OrigRespMap = std::unordered_map<zeek::session::detail::Key, OrigResp, zeek::session::detail::KeyHash>;
+    using OrigRespMap = std::map<zeek::session::detail::Key, OrigResp>;
     OrigRespMap orig_resp_map;
 
     std::unique_ptr<zeek::detail::Specific_RE_Matcher> pattern_re;

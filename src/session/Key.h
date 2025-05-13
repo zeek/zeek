@@ -4,6 +4,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 
 #include "zeek/Hash.h"
 #include "zeek/IntrusivePtr.h"
@@ -100,7 +101,14 @@ class ConnKey {
 public:
     virtual ~ConnKey() {}
 
-    // Init function called by analyzers or subclassed.
+    /**
+     * ConnKeys created from Vals may be invalid, Error() can be used to determine validity.
+     */
+    virtual std::optional<std::string> Error() const = 0;
+
+    /**
+     * Initialization of this key with the current packet.
+     */
     void Init(const Packet& pkt) { DoInit(pkt); }
 
     /**
@@ -118,11 +126,6 @@ public:
     virtual void FillConnIdVal(RecordValPtr& conn_id) {};
 
     /**
-     * Populate a ConnKey instance from a script layer record value.
-     */
-    virtual bool FromConnIdVal(const RecordValPtr& conn_id) = 0;
-
-    /**
      * They Key over which to compute a hash or use for comparison with other keys.
      *
      * The returned Span is only valid as long as this ConnKey instance is valid.
@@ -130,28 +133,16 @@ public:
     virtual zeek::Span<const std::byte> Key() const = 0;
 
     /**
-     * View over the key data as a SessionKey.
+     * View over key data as returned by Key() as session::detail::Key instance.
      *
-     * Not sure this makes much sense, it might also be possible to switch
-     * the session_map to hold ConnKeyPtr instead with specialized hash and
-     * equals functions instead.
+     * Mostly for plumbing the session/Manager.h code.
      */
     zeek::session::detail::Key SessionKey() const {
         auto span = Key();
         return zeek::session::detail::Key(span.data(), span.size(), session::detail::Key::CONNECTION_KEY_TYPE);
     }
-
-    // Support usage as IntrusivePtr.
-    int ref_cnt = 1;
 };
 
-inline void Ref(ConnKey* k) { ++k->ref_cnt; }
-
-inline void Unref(ConnKey* k) {
-    if ( --k->ref_cnt == 0 )
-        delete k;
-}
-
-using ConnKeyPtr = zeek::IntrusivePtr<ConnKey>;
+using ConnKeyPtr = std::unique_ptr<ConnKey>;
 
 } // namespace zeek

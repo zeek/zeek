@@ -13,8 +13,8 @@ function remove_teredo_connection%(cid: conn_id%) : bool
 	zeek::packet_analysis::AnalyzerPtr teredo = zeek::packet_mgr->GetAnalyzer("Teredo");
 	if ( teredo )
 		{
-		auto ck = zeek::conntuple_mgr->GetBuilder().NewConnKey();
-		// ck->LoadConnIdVal(v);
+		// XXX: Should be IP specific builder!
+		auto ck = zeek::conntuple_mgr->GetBuilder().FromVal({zeek::NewRef{}, cid});
 		auto sk = ck->SessionKey();
 		static_cast<zeek::packet_analysis::teredo::TeredoAnalyzer*>(teredo.get())->RemoveConnection(sk);
 		}

@@ -4,6 +4,7 @@
 
 #include <netinet/in.h>
 #include <map>
+#include <optional>
 #include <set>
 
 #include "zeek/Conn.h"
@@ -30,13 +31,36 @@ namespace detail {
 // UNKNOWN_IP_PROTO is 65535
 constexpr uint16_t INVALID_CONN_KEY_IP_PROTO = 65534;
 
+/**
+ * Struct for embedding into a IPBasedConnKey.
+ */
 struct RawConnTuple {
     in6_addr ip1;
     in6_addr ip2;
     uint16_t port1 = 0;
     uint16_t port2 = 0;
     uint16_t transport = detail::INVALID_CONN_KEY_IP_PROTO;
-};
+} __attribute__((packed, aligned));
+
+/**
+ * Initialize a raw conn tuple from a conn tuple in canonicalized form.
+ */
+inline void init_raw_tuple(RawConnTuple& t, const ConnTuple& ct) {
+    if ( ct.is_one_way || addr_port_canon_lt(ct.src_addr, ct.src_port, ct.dst_addr, ct.dst_port) ) {
+        ct.src_addr.CopyIPv6(&t.ip1);
+        ct.dst_addr.CopyIPv6(&t.ip2);
+        t.port1 = ct.src_port;
+        t.port2 = ct.dst_port;
+    }
+    else {
+        ct.dst_addr.CopyIPv6(&t.ip1);
+        ct.src_addr.CopyIPv6(&t.ip2);
+        t.port1 = ct.dst_port;
+        t.port2 = ct.src_port;
+    }
+
+    t.transport = ct.proto;
+}
 
 } // namespace detail
 
@@ -56,44 +80,31 @@ public:
      * subclasses to hook into the initialization of the key.
      */
     void Init(const ConnTuple& ct, const Packet& pkt) {
-        InitRawConnTuple(ct);
+        init_raw_tuple(RawTuple(), ct);
         ConnKey::Init(pkt);
     }
 
-    bool FromConnIdVal(const zeek::RecordValPtr& conn_id) override;
+    std::optional<std::string> Error() const override {
+        auto& rt = RawTuple();
+        if ( rt.transport == detail::INVALID_CONN_KEY_IP_PROTO )
+            return "invalid connection ID record";
+        if ( rt.transport == UNKNOWN_IP_PROTO )
+            return "invalid connection ID record: the proto field has the \"unknown\" 65535 value. Did you forget to "
+                   "set it?";
+
+        return std::nullopt;
+    }
 
     /**
-     * Return a modifiable version of the raw Conn Tuple.
+     * Return a modifiable version of the embedded RawConnTuple.
      *
      * This is virtual such that subclasses can control where
-     * their own ConnTuple instance to allow.
+     * they'd like to place the RawConnTuple within the key.
      */
-    virtual detail::RawConnTuple& RawTuple() = 0;
-
-protected:
-    /**
-     * Helper for subclasses that override Init() to initialize this key's tuple in normalized form.
-     */
-    void InitRawConnTuple(const ConnTuple& ct) {
-        auto& t = RawTuple();
-        if ( ct.is_one_way || addr_port_canon_lt(ct.src_addr, ct.src_port, ct.dst_addr, ct.dst_port) ) {
-            ct.src_addr.CopyIPv6(&t.ip1);
-            ct.dst_addr.CopyIPv6(&t.ip2);
-            t.port1 = ct.src_port;
-            t.port2 = ct.dst_port;
-        }
-        else {
-            ct.dst_addr.CopyIPv6(&t.ip1);
-            ct.src_addr.CopyIPv6(&t.ip2);
-            t.port1 = ct.dst_port;
-            t.port2 = ct.src_port;
-        }
-
-        t.transport = ct.proto;
-    }
+    virtual detail::RawConnTuple& RawTuple() const = 0;
 };
 
-using IPBasedConnKeyPtr = zeek::IntrusivePtr<IPBasedConnKey>;
+using IPBasedConnKeyPtr = std::unique_ptr<IPBasedConnKey>;
 
 
 /**
@@ -103,7 +114,6 @@ class IPConnKey : public IPBasedConnKey {
 public:
     IPConnKey() {
         // Fill holes as we use the full tuple as a Key!
-        // Could we h
         memset(static_cast<void*>(&key), '\0', sizeof(key));
     }
 
@@ -111,11 +121,12 @@ public:
         return {reinterpret_cast<const std::byte*>(&key), reinterpret_cast<const std::byte*>(&key) + sizeof(key)};
     }
 
-    detail::RawConnTuple& RawTuple() override { return key.tuple; }
+    detail::RawConnTuple& RawTuple() const override { return key.tuple; }
 
 private:
     struct {
-        struct detail::RawConnTuple tuple;
+        // mutable for non-const RawTuple() return value.
+        mutable struct detail::RawConnTuple tuple;
     } key;
 };
 

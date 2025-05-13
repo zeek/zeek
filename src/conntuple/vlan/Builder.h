@@ -8,6 +8,7 @@ namespace zeek::plugin::Zeek_Conntuple_VLAN {
 class Builder : public conntuple::Builder {
 public:
     virtual zeek::ConnKeyPtr NewConnKey() override;
+    virtual zeek::ConnKeyPtr FromVal(const zeek::ValPtr& v) override;
 };
 
 } // namespace zeek::plugin::Zeek_Conntuple_VLAN

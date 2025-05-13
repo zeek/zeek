@@ -46,7 +46,7 @@ event Cluster::websocket_client_added(info: Cluster::EndpointInfo, subscriptions
 	print "B Cluster::websocket_client_added", subscriptions;
 	}
 
-event Cluster::websocket_client_lost(info: Cluster::EndpointInfo)
+event Cluster::websocket_client_lost(info: Cluster::EndpointInfo, code: count, reason: string)
 	{
 	print "E Cluster::websocket_client_lost";
 	}

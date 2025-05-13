@@ -1,3 +1,20 @@
+8.0.0-dev.92 | 2025-05-13 18:26:22 +0200
+
+  * btest/cluster/websocket: Update tests for new event signature (Arne Welzel, Corelight)
+
+  * GH-4440: cluster/websocket: Propagate code and reason to websocket_client_lost() (Arne Welzel, Corelight)
+
+    This allows to get visibility into the reason why ixwebsocket or the
+    client decided to disconnect.
+
+  * cluster/websocket: Support configurable ping interval (Arne Welzel, Corelight)
+
+    Primarily for testing purposes and maybe the hard-coded 5 seconds is too
+    aggressive for some deployments, so makes sense for it to be
+    configurable.
+
+  * GH-4440: IXWebSocket: Bump to improve O^2 rxbuf erase() (Arne Welzel, Corelight)
+
 8.0.0-dev.87 | 2025-05-12 11:33:38 -0700
 
   * Fix clang-tidy `bugprone-inc-dec-in-conditions` report in Spicy plugins glue compiler (Benjamin Bannier, Corelight)

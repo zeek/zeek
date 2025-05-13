@@ -2,6 +2,6 @@
 manager	WebSocket client <nodeid> (127.0.0.1:<port>) subscribed to [/topic/ws/1, /topic/ws/all]
 manager	WebSocket client <nodeid> (127.0.0.1:<port>) subscribed to [/topic/ws/2, /topic/ws/all]
 manager	WebSocket client <nodeid> (127.0.0.1:<port>) subscribed to [/topic/ws/3, /topic/ws/all]
-manager	WebSocket client <nodeid> (127.0.0.1:<port>) gone
-manager	WebSocket client <nodeid> (127.0.0.1:<port>) gone
-manager	WebSocket client <nodeid> (127.0.0.1:<port>) gone
+manager	WebSocket client <nodeid> (127.0.0.1:<port>) gone with code 1000
+manager	WebSocket client <nodeid> (127.0.0.1:<port>) gone with code 1000
+manager	WebSocket client <nodeid> (127.0.0.1:<port>) gone with code 1000

@@ -93,7 +93,7 @@ event Cluster::websocket_client_added(info: Cluster::EndpointInfo, subscriptions
 	print fmt("%s: Cluster::websocket_client_added %s %s", current_time(), added, subscriptions);
 	}
 
-event Cluster::websocket_client_lost(info: Cluster::EndpointInfo)
+event Cluster::websocket_client_lost(info: Cluster::EndpointInfo, code: count, reason: string)
 	{
 	++lost;
 	print fmt("%s: Cluster::websocket_client_lost %s", current_time(), lost);

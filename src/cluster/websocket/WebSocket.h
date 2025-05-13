@@ -131,6 +131,8 @@ struct WebSocketOpen {
 // A WebSocket client disconnected.
 struct WebSocketClose {
     std::string id;
+    uint16_t code;
+    std::string reason;
 };
 
 // A WebSocket client send a message.

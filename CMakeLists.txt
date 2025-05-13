@@ -1087,11 +1087,15 @@ if (LIBMMDB_FOUND)
 endif ()
 
 set(USE_KRB5 false)
-find_package(LibKrb5)
-if (LIBKRB5_FOUND)
-    set(USE_KRB5 true)
-    include_directories(BEFORE ${LibKrb5_INCLUDE_DIR})
-    list(APPEND OPTLIBS ${LibKrb5_LIBRARY})
+# The default path that gets found on macOS for libkrb5 is the system version
+# that's disallowed by FindLibKrb5.cmake. Force passing --with-krb5 on macOS.
+if ((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin") OR LibKrb5_ROOT_DIR)
+    find_package(LibKrb5)
+    if (LIBKRB5_FOUND)
+        set(USE_KRB5 true)
+        include_directories(BEFORE ${LibKrb5_INCLUDE_DIR})
+        list(APPEND OPTLIBS ${LibKrb5_LIBRARY})
+    endif ()
 endif ()
 
 set(HAVE_PERFTOOLS false)

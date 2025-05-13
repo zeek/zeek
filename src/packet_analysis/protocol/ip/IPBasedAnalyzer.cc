@@ -16,6 +16,18 @@
 using namespace zeek;
 using namespace zeek::packet_analysis::IP;
 
+std::optional<std::string> IPBasedConnKey::Error() const {
+    auto& rt = RawTuple();
+    if ( rt.transport == detail::INVALID_CONN_KEY_IP_PROTO )
+        return "invalid connection ID record encountered";
+    if ( rt.transport == UNKNOWN_IP_PROTO )
+        return "invalid connection ID record encountered: the proto field has the \"unknown\" 65535 value. Did you "
+               "forget to set it?";
+
+    return std::nullopt;
+}
+
+
 IPBasedAnalyzer::IPBasedAnalyzer(const char* name, TransportProto proto, uint32_t mask, bool report_unknown_protocols)
     : zeek::packet_analysis::Analyzer(name, report_unknown_protocols), transport(proto), server_port_mask(mask) {}
 

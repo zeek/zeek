@@ -18,13 +18,11 @@ public:
         memset(static_cast<void*>(&key), '\0', sizeof(key));
     }
 
-    void DoInit(const Packet& pkt) override {
-        key.vlan = pkt.vlan;
-        key.inner_vlan = pkt.inner_vlan;
-    }
-
-    zeek::Span<const std::byte> Key() const override {
-        return {reinterpret_cast<const std::byte*>(&key), reinterpret_cast<const std::byte*>(&key) + sizeof(key)};
+    zeek::session::detail::Key SessionKey() const override {
+        return zeek::session::detail::Key(reinterpret_cast<const void*>(&key), sizeof(key),
+                                          // XXX: Not sure we need CONNECTION_KEY_TYPE and it adds an extra comparison
+                                          // that's anyhow true.
+                                          session::detail::Key::CONNECTION_KEY_TYPE);
     }
 
     detail::RawConnTuple& RawTuple() const override { return key.tuple; }
@@ -41,6 +39,13 @@ public:
         if ( key.inner_vlan > 0 && conn_id->NumFields() >= 6 && rt->GetFieldType(6)->Tag() == TYPE_INT )
             conn_id->Assign(6, key.inner_vlan);
     };
+
+protected:
+    void DoInit(const Packet& pkt) override {
+        key.vlan = pkt.vlan;
+        key.inner_vlan = pkt.inner_vlan;
+    }
+
 
 private:
     friend class Builder;

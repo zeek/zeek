@@ -84,16 +84,7 @@ public:
         ConnKey::Init(pkt);
     }
 
-    std::optional<std::string> Error() const override {
-        auto& rt = RawTuple();
-        if ( rt.transport == detail::INVALID_CONN_KEY_IP_PROTO )
-            return "invalid connection ID record";
-        if ( rt.transport == UNKNOWN_IP_PROTO )
-            return "invalid connection ID record: the proto field has the \"unknown\" 65535 value. Did you forget to "
-                   "set it?";
-
-        return std::nullopt;
-    }
+    std::optional<std::string> Error() const override;
 
     /**
      * Return a modifiable version of the embedded RawConnTuple.
@@ -113,12 +104,15 @@ using IPBasedConnKeyPtr = std::unique_ptr<IPBasedConnKey>;
 class IPConnKey : public IPBasedConnKey {
 public:
     IPConnKey() {
-        // Fill holes as we use the full tuple as a Key!
+        // Fill holes as we use the full tuple for the Key!
         memset(static_cast<void*>(&key), '\0', sizeof(key));
     }
 
-    zeek::Span<const std::byte> Key() const override {
-        return {reinterpret_cast<const std::byte*>(&key), reinterpret_cast<const std::byte*>(&key) + sizeof(key)};
+    zeek::session::detail::Key SessionKey() const override {
+        return zeek::session::detail::Key(reinterpret_cast<const void*>(&key), sizeof(key),
+                                          // XXX: Not sure we need CONNECTION_KEY_TYPE and it adds an extra comparison
+                                          // that's anyhow true.
+                                          session::detail::Key::CONNECTION_KEY_TYPE);
     }
 
     detail::RawConnTuple& RawTuple() const override { return key.tuple; }

@@ -8,7 +8,6 @@
 
 #include "zeek/Hash.h"
 #include "zeek/IntrusivePtr.h"
-#include "zeek/Span.h"
 
 namespace zeek::session::detail {
 
@@ -93,18 +92,10 @@ using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
 
 /**
  * Abstract ConnKey - not IP specific.
- *
- * Should move this elsewhere to avoid circular dependencies. Conn really is IP specific,
- * while ConnKey is not.
  */
 class ConnKey {
 public:
     virtual ~ConnKey() {}
-
-    /**
-     * ConnKeys created from Vals may be invalid, Error() can be used to determine validity.
-     */
-    virtual std::optional<std::string> Error() const = 0;
 
     /**
      * Initialization of this key with the current packet.
@@ -112,35 +103,45 @@ public:
     void Init(const Packet& pkt) { DoInit(pkt); }
 
     /**
-     * Hook method for further initialization.
+     * Given the ConnKey, fill a script layer record with
+     * its custom information. E.g. VLAN.
      *
-     * This may also take information from the context.
-     *
-     * @param p The current packet
-     */
-    virtual void DoInit(const Packet& pkt) {};
-
-    /**
-     * Using this ConnKey and its contents, populate a conn_id or other script layer record.
+     * Empty implementation by default.
      */
     virtual void FillConnIdVal(RecordValPtr& conn_id) {};
 
     /**
-     * They Key over which to compute a hash or use for comparison with other keys.
+     * Return a non-owning session::detail::Key instance.
      *
-     * The returned Span is only valid as long as this ConnKey instance is valid.
+     * Callers that need more than a View should copy
+     * the data. Callers are not supposed to hold on
+     * to the Key for longer than the ConnKey instance
+     * exists. Think string_view or span!
+     *
+     * @return A zeek::session::detail::Key
      */
-    virtual zeek::Span<const std::byte> Key() const = 0;
+    virtual zeek::session::detail::Key SessionKey() const = 0;
 
     /**
-     * View over key data as returned by Key() as session::detail::Key instance.
+     * Get the error state of a ConnKey, if any.
      *
-     * Mostly for plumbing the session/Manager.h code.
+     * Instances of a ConnKey created from zeek::Val instances
+     * via Builder::FromVal() may not be valid. Calling Error()
+     * can be used to gather a description of the encountered
+     * error.
      */
-    zeek::session::detail::Key SessionKey() const {
-        auto span = Key();
-        return zeek::session::detail::Key(span.data(), span.size(), session::detail::Key::CONNECTION_KEY_TYPE);
-    }
+    virtual std::optional<std::string> Error() const = 0;
+
+protected:
+    /**
+     * Hook method for custom initialization.
+     *
+     * This may also take information from the global context rather
+     * than just the packet.
+     *
+     * @param p The current packet
+     */
+    virtual void DoInit(const Packet& pkt) {};
 };
 
 using ConnKeyPtr = std::unique_ptr<ConnKey>;

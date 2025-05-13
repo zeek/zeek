@@ -1,3 +1,7 @@
+8.0.0-dev.96 | 2025-05-13 19:50:47 +0200
+
+  * fix for ZAM optimization when an aggregate is modified inside of a loop (Vern Paxson, Corelight)
+
 8.0.0-dev.94 | 2025-05-13 10:03:46 -0700
 
   * Allow macOS to search for libkrb5, but disallow system version of library (Tim Wojtulewicz, Corelight)

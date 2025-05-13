@@ -12,6 +12,19 @@ CSE_ValidityChecker::CSE_ValidityChecker(std::shared_ptr<ProfileFuncs> _pfs, con
     start_e = _start_e;
     end_e = _end_e;
 
+    // For validity checking, if end_e is inside a loop and start_e is
+    // outside that loop, then we need to extend the checking beyond end_e
+    // to the end of the loop, to account for correctness after iterating
+    // through the loop. We do that as follows. Upon entering an outer
+    // loop, we set end_s to that loop. (We can tell it's an outer loop if,
+    // upon entering, end_s is nil.) (1) If we encounter end_e while inside
+    // that loop (which we can tell because end_s is non-nil), then we clear
+    // end_e to signal that we're now using end_s to terminate the traversal.
+    // (2) If we complete the loop without encountering end_e (which we can
+    // tell because after traversal end_e is non-nil), then we clear end_s
+    // to mark that the traversal is now not inside a loop.
+    end_s = nullptr;
+
     // Track whether this is a record assignment, in which case
     // we're attuned to assignments to the same field for the
     // same type of record.
@@ -38,6 +51,23 @@ TraversalCode CSE_ValidityChecker::PreStmt(const Stmt* s) {
         return TC_ABORTALL;
     }
 
+    if ( (t == STMT_WHILE || t == STMT_FOR) && have_start_e && ! end_s )
+        // We've started the traversal and are entering an outer loop.
+        end_s = s;
+
+    return TC_CONTINUE;
+}
+
+TraversalCode CSE_ValidityChecker::PostStmt(const Stmt* s) {
+    if ( end_s == s ) {
+        if ( ! end_e )
+            // We've done the outer loop containing the end expression.
+            return TC_ABORTALL;
+
+        // We're no longer doing an outer loop.
+        end_s = nullptr;
+    }
+
     return TC_CONTINUE;
 }
 
@@ -60,8 +90,13 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
         ASSERT(! have_end_e);
         have_end_e = true;
 
-        // ... and we're now done.
-        return TC_ABORTALL;
+        if ( ! end_s )
+            // We're now done.
+            return TC_ABORTALL;
+
+        // Need to finish the loop before we mark things as done.
+        // Signal to the statement traversal that we're in that state.
+        end_e = nullptr;
     }
 
     if ( ! have_start_e )

@@ -1,3 +1,11 @@
+7.2.0-2 | 2025-05-19 09:23:58 -0700
+
+  * fix for ZAM optimization when an aggregate is modified inside of a loop (Vern Paxson, Corelight)
+
+    (cherry picked from commit 2255fa23b8a3f7bde1345f2847764412c90487c8)
+
+  * Fix 7.2.0 NEWS formatting [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
 7.2.0 | 2025-05-08 15:15:25 -0700
 
   * Release 7.2.0.

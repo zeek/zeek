@@ -43,18 +43,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         return open_res;
     }
 
-    std::string create = "create table if not exists " + table_name + " (";
-    create.append("key_str blob primary key, value_str blob not null, expire_time real);");
-
     char* errorMsg = nullptr;
-    if ( int res = sqlite3_exec(db, create.c_str(), NULL, NULL, &errorMsg); res != SQLITE_OK ) {
-        std::string err = util::fmt("Error executing table creation statement: %s", errorMsg);
-        Error(err.c_str());
-        sqlite3_free(errorMsg);
-        Close(nullptr);
-        return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
-    }
-
     if ( int res = sqlite3_exec(db, "pragma integrity_check", NULL, NULL, &errorMsg); res != SQLITE_OK ) {
         std::string err = util::fmt("Error executing integrity check: %s", errorMsg);
         Error(err.c_str());
@@ -76,6 +65,17 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
             Close(nullptr);
             return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
         }
+    }
+
+    std::string create = "create table if not exists " + table_name + " (";
+    create.append("key_str blob primary key, value_str blob not null, expire_time real);");
+
+    if ( int res = sqlite3_exec(db, create.c_str(), NULL, NULL, &errorMsg); res != SQLITE_OK ) {
+        std::string err = util::fmt("Error executing table creation statement: (%d) %s", res, errorMsg);
+        Error(err.c_str());
+        sqlite3_free(errorMsg);
+        Close(nullptr);
+        return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
     }
 
     static std::array<std::string, 5> statements =

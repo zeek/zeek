@@ -38,6 +38,10 @@ Changed Functionality
   published vectors with holes. A reporter error is produced at runtime when
   serialization of vectors with holes is attempted.
 
+- Using libkrb5 for Kerberos support is now allowed on macOS. Due to very old age and
+  brokenness, the system version of the library is unsupported and will fail to
+  configure. Use the version from Homebrew or another newer installation.
+
 Removed Functionality
 ---------------------
 

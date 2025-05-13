@@ -1,3 +1,7 @@
+8.0.0-dev.94 | 2025-05-13 10:03:46 -0700
+
+  * Allow macOS to search for libkrb5, but disallow system version of library (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.92 | 2025-05-13 18:26:22 +0200
 
   * btest/cluster/websocket: Update tests for new event signature (Arne Welzel, Corelight)

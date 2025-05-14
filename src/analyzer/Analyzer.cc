@@ -116,8 +116,8 @@ Analyzer::~Analyzer() {
     assert(finished);
     assert(new_children.empty());
 
-    LOOP_OVER_CHILDREN(i)
-    delete *i;
+    for ( Analyzer* a : children )
+        delete a;
 
     SupportAnalyzer* next = nullptr;
 
@@ -139,9 +139,9 @@ void Analyzer::Init() {}
 void Analyzer::InitChildren() {
     AppendNewChildren();
 
-    LOOP_OVER_CHILDREN(i) {
-        (*i)->Init();
-        (*i)->InitChildren();
+    for ( Analyzer* a : children ) {
+        a->Init();
+        a->InitChildren();
     }
 }
 
@@ -157,9 +157,9 @@ void Analyzer::Done() {
 
     AppendNewChildren();
 
-    LOOP_OVER_CHILDREN(i)
-    if ( ! (*i)->finished )
-        (*i)->Done();
+    for ( Analyzer* a : children )
+        if ( ! a->finished )
+            a->Done();
 
     for ( SupportAnalyzer* a = orig_supporters; a; a = a->sibling )
         if ( ! a->finished )
@@ -424,25 +424,25 @@ bool Analyzer::IsPreventedChildAnalyzer(const zeek::Tag& tag) const {
 bool Analyzer::HasChildAnalyzer(const zeek::Tag& tag) const { return GetChildAnalyzer(tag) != nullptr; }
 
 Analyzer* Analyzer::GetChildAnalyzer(const zeek::Tag& tag) const {
-    LOOP_OVER_CHILDREN(i)
-    if ( (*i)->tag == tag && ! ((*i)->removing || (*i)->finished) )
-        return *i;
+    for ( Analyzer* a : children )
+        if ( a->tag == tag && ! (a->removing || a->finished) )
+            return a;
 
-    LOOP_OVER_GIVEN_CHILDREN(i, new_children)
-    if ( (*i)->tag == tag && ! ((*i)->removing || (*i)->finished) )
-        return *i;
+    for ( Analyzer* a : new_children )
+        if ( a->tag == tag && ! (a->removing || a->finished) )
+            return a;
 
     return nullptr;
 }
 
 Analyzer* Analyzer::GetChildAnalyzer(const std::string& name) const {
-    LOOP_OVER_CHILDREN(i)
-    if ( (*i)->GetAnalyzerName() == name && ! ((*i)->removing || (*i)->finished) )
-        return *i;
+    for ( Analyzer* a : children )
+        if ( a->GetAnalyzerName() == name && ! (a->removing || a->finished) )
+            return a;
 
-    LOOP_OVER_GIVEN_CHILDREN(i, new_children)
-    if ( (*i)->GetAnalyzerName() == name && ! ((*i)->removing || (*i)->finished) )
-        return *i;
+    for ( Analyzer* a : new_children )
+        if ( a->GetAnalyzerName() == name && ! (a->removing || a->finished) )
+            return a;
 
     return nullptr;
 }
@@ -451,15 +451,13 @@ Analyzer* Analyzer::FindChild(ID arg_id) {
     if ( id == arg_id && ! (removing || finished) )
         return this;
 
-    LOOP_OVER_CHILDREN(i) {
-        Analyzer* child = (*i)->FindChild(arg_id);
-        if ( child )
+    for ( Analyzer* a : children ) {
+        if ( Analyzer* child = a->FindChild(arg_id) )
             return child;
     }
 
-    LOOP_OVER_GIVEN_CHILDREN(i, new_children) {
-        Analyzer* child = (*i)->FindChild(arg_id);
-        if ( child )
+    for ( Analyzer* a : new_children ) {
+        if ( Analyzer* child = a->FindChild(arg_id) )
             return child;
     }
 
@@ -470,15 +468,13 @@ Analyzer* Analyzer::FindChild(zeek::Tag arg_tag) {
     if ( tag == arg_tag && ! (removing || finished) )
         return this;
 
-    LOOP_OVER_CHILDREN(i) {
-        Analyzer* child = (*i)->FindChild(arg_tag);
-        if ( child )
+    for ( Analyzer* a : children ) {
+        if ( Analyzer* child = a->FindChild(arg_tag) )
             return child;
     }
 
-    LOOP_OVER_GIVEN_CHILDREN(i, new_children) {
-        Analyzer* child = (*i)->FindChild(arg_tag);
-        if ( child )
+    for ( Analyzer* a : new_children ) {
+        if ( Analyzer* child = a->FindChild(arg_tag) )
             return child;
     }
 
@@ -607,11 +603,11 @@ void Analyzer::EndOfData(bool is_orig) {
 void Analyzer::FlipRoles() {
     DBG_LOG(DBG_ANALYZER, "%s FlipRoles()", fmt_analyzer(this).c_str());
 
-    LOOP_OVER_CHILDREN(i)
-    (*i)->FlipRoles();
+    for ( Analyzer* a : children )
+        a->FlipRoles();
 
-    LOOP_OVER_GIVEN_CHILDREN(i, new_children)
-    (*i)->FlipRoles();
+    for ( Analyzer* a : new_children )
+        a->FlipRoles();
 
     for ( SupportAnalyzer* a = orig_supporters; a; a = a->sibling )
         a->FlipRoles();
@@ -707,14 +703,14 @@ void Analyzer::CancelTimers() {
 }
 
 void Analyzer::AppendNewChildren() {
-    LOOP_OVER_GIVEN_CHILDREN(i, new_children)
-    children.push_back(*i);
+    for ( Analyzer* a : new_children )
+        children.push_back(a);
     new_children.clear();
 }
 
 void Analyzer::UpdateConnVal(RecordVal* conn_val) {
-    LOOP_OVER_CHILDREN(i)
-    (*i)->UpdateConnVal(conn_val);
+    for ( Analyzer* a : children )
+        a->UpdateConnVal(conn_val);
 }
 
 const RecordValPtr& Analyzer::ConnVal() { return conn->GetVal(); }

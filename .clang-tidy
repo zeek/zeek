@@ -2,6 +2,8 @@ Checks: [-*,
          bugprone-*,
          performance-*,
 
+         modernize-loop-convert,
+
          # Enable a very limited number of the cppcoreguidelines checkers.
          # See the notes for some of the rest of them below.
          cppcoreguidelines-macro-usage,

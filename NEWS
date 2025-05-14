@@ -66,6 +66,16 @@ New Functionality
 
 - The FTP analyzer now supports explicit TLS via AUTH TLS.
 
+- Two new script-level hooks in the Intel framework have been added.
+
+	hook indicator_inserted(indicator_value: string, indicator_type: Intel::Type)
+
+	hook indicator_removed(indicator_value: string, indicator_type: Intel::Type)
+
+  These are reliably invoked on worker and manager nodes the first time an
+  indicator value is inserted into the store and once it has been completely
+  removed from the store.
+
 Changed Functionality
 ---------------------
 

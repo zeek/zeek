@@ -1,3 +1,7 @@
+8.0.0-dev.104 | 2025-05-15 12:15:42 -0700
+
+  * Require non-system version of libkrb5 on macOS (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.102 | 2025-05-15 16:44:16 +0200
 
   * IXWebSocket: Point at upstream, bump to v11.4.6 (Arne Welzel, Corelight)

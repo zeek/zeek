@@ -399,6 +399,9 @@ static void terminate_zeek() {
 
     script_coverage_mgr.WriteStats();
 
+    if ( etm )
+        etm->Generate();
+
     delete zeekygen_mgr;
     delete packet_mgr;
     delete analyzer_mgr;

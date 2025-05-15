@@ -81,7 +81,7 @@
 	url = https://github.com/zeromq/cppzmq
 [submodule "src/cluster/websocket/auxil/IXWebSocket"]
 	path = src/cluster/websocket/auxil/IXWebSocket
-	url = https://github.com/zeek/IXWebSocket.git
+	url = https://github.com/machinezone/IXWebSocket
 [submodule "auxil/expected-lite"]
 	path = auxil/expected-lite
 	url = https://github.com/martinmoene/expected-lite.git

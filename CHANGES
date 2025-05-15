@@ -1,3 +1,9 @@
+7.2.0-7 | 2025-05-19 09:31:58 -0700
+
+  * IXWebSocket: Point at upstream, bump to v11.4.6 (Arne Welzel, Corelight)
+
+    (cherry picked from commit e40aac30f47b90d93c33f7ff98bdde7b00c5be97)
+
 7.2.0-6 | 2025-05-19 09:30:50 -0700
 
   * btest/cluster/websocket: Update tests for new event signature (Arne Welzel, Corelight)

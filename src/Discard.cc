@@ -134,7 +134,7 @@ Val* Discarder::BuildData(const u_char* data, int hdrlen, int len, int caplen) {
     caplen -= hdrlen;
     data += hdrlen;
 
-    len = std::max(std::min(std::min(len, caplen), discarder_maxlen), 0);
+    len = std::max(std::min({len, caplen, discarder_maxlen}), 0);
 
     return new StringVal(new String(data, len, true));
 }

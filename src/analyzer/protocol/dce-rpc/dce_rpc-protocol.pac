@@ -204,7 +204,7 @@ flow DCE_RPC_Flow(is_orig: bool) {
 				{
 				// first frag, but not last so we start a flowbuffer
 				auto it = fb.emplace(${header.call_id},
-				                     std::unique_ptr<FlowBuffer>(new FlowBuffer()));
+				                     std::make_unique<FlowBuffer>());
 				auto& flowbuf = it.first->second;
 				flowbuf->NewFrame(0, true);
 				flowbuf->BufferData(frag.begin(), frag.end());

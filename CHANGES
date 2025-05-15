@@ -1,3 +1,10 @@
+8.0.0-dev.100 | 2025-05-15 10:21:53 +0100
+
+  * Add STLS command to POP3 DPD signature.
+
+    Pop3 connections that use StartTLS now should be detected on non-default ports.
+	  (Jan Grashoefer, Corelight)
+
 8.0.0-dev.96 | 2025-05-13 19:50:47 +0200
 
   * fix for ZAM optimization when an aggregate is modified inside of a loop (Vern Paxson, Corelight)

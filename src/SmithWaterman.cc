@@ -425,7 +425,7 @@ Substring::Vec* smith_waterman(const String* s1, const String* s2, SWParams& par
             if ( current->swn_byte_assigned )
                 current->swn_score = score_tl;
             else
-                current->swn_score = std::max(std::max(score_t, score_l), score_tl);
+                current->swn_score = std::max({score_t, score_l, score_tl});
 
             // Establish predecessor chain according to neighbor
             // with best score.

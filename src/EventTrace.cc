@@ -958,7 +958,7 @@ EventTraceMgr::EventTraceMgr(const std::string& trace_file) {
         reporter->FatalError("can't open event trace file %s", trace_file.c_str());
 }
 
-EventTraceMgr::~EventTraceMgr() {
+void EventTraceMgr::Generate() {
     if ( events.empty() )
         return;
 

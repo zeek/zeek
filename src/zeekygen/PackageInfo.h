@@ -20,7 +20,7 @@ public:
      * @param name The name of the Zeek script package (relative path from a
      * component within ZEEKPATH).
      */
-    explicit PackageInfo(const std::string& name);
+    explicit PackageInfo(std::string name);
 
     /**
      * @return The content of the package's README file, each line being

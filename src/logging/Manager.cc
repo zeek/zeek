@@ -108,8 +108,8 @@ class DelayInfo {
 public:
     static const DelayInfoPtr nil;
 
-    explicit DelayInfo(const WriteContext& ctx, const zeek::ValPtr token_val, double expire_time)
-        : ctx(ctx), token_val(token_val), expire_time(expire_time) {}
+    explicit DelayInfo(WriteContext ctx, const zeek::ValPtr token_val, double expire_time)
+        : ctx(std::move(ctx)), token_val(token_val), expire_time(expire_time) {}
 
     // No copy or assignment of DelayInfo itself, should
     // always be managed through a shared pointer.

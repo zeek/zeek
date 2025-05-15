@@ -17,17 +17,14 @@ using zeek::threading::Value;
 
 namespace zeek::input::reader::detail {
 
-FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type, int arg_position)
-    : name(arg_name), type(arg_type), subtype(TYPE_ERROR) {
-    position = arg_position;
+FieldMapping::FieldMapping(string arg_name, const TypeTag& arg_type, int arg_position)
+    : name(std::move(arg_name)), type(arg_type), subtype(TYPE_ERROR), position(arg_position) {
     secondary_position = -1;
     present = true;
 }
 
-FieldMapping::FieldMapping(const string& arg_name, const TypeTag& arg_type, const TypeTag& arg_subtype,
-                           int arg_position)
-    : name(arg_name), type(arg_type), subtype(arg_subtype) {
-    position = arg_position;
+FieldMapping::FieldMapping(string arg_name, const TypeTag& arg_type, const TypeTag& arg_subtype, int arg_position)
+    : name(std::move(arg_name)), type(arg_type), subtype(arg_subtype), position(arg_position) {
     secondary_position = -1;
     present = true;
 }

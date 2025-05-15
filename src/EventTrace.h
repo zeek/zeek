@@ -45,7 +45,7 @@ using DeltaVector = std::vector<std::unique_ptr<ValDelta>>;
 // be readily compared against future instances.
 class ValTrace {
 public:
-    ValTrace(const ValPtr& v);
+    ValTrace(ValPtr v);
     ~ValTrace() = default;
 
     const ValPtr& GetVal() const { return v; }

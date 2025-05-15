@@ -29,8 +29,8 @@ static TargetFactory create_target_factory() {
     return rval;
 }
 
-Config::Config(const string& arg_file, const string& delim)
-    : file(arg_file), targets(), target_factory(create_target_factory()) {
+Config::Config(string arg_file, const string& delim)
+    : file(std::move(arg_file)), targets(), target_factory(create_target_factory()) {
     if ( file.empty() )
         return;
 

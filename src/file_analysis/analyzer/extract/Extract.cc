@@ -11,10 +11,10 @@
 
 namespace zeek::file_analysis::detail {
 
-Extract::Extract(RecordValPtr args, file_analysis::File* file, const std::string& arg_filename, uint64_t arg_limit,
+Extract::Extract(RecordValPtr args, file_analysis::File* file, std::string arg_filename, uint64_t arg_limit,
                  bool arg_limit_includes_missing)
     : file_analysis::Analyzer(file_mgr->GetComponentTag("EXTRACT"), std::move(args), file),
-      filename(arg_filename),
+      filename(std::move(arg_filename)),
       limit(arg_limit),
       written(0),
       limit_includes_missing(arg_limit_includes_missing) {

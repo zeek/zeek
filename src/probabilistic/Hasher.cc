@@ -68,10 +68,8 @@ std::unique_ptr<Hasher> Hasher::Unserialize(BrokerDataView data) {
     std::unique_ptr<Hasher> hasher;
 
     switch ( type ) {
-        case Default: hasher.reset(new DefaultHasher(k, {h1, h2})); break;
-
-        case Double: hasher.reset(new DoubleHasher(k, {h1, h2})); break;
-
+        case Default: hasher = std::make_unique<DefaultHasher>(k, Hasher::seed_t{h1, h2}); break;
+        case Double: hasher = std::make_unique<DoubleHasher>(k, Hasher::seed_t{h1, h2}); break;
         default: break;
     }
 

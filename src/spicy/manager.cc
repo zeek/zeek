@@ -861,7 +861,7 @@ void Manager::searchModules(const std::string& paths) {
 
 detail::Location Manager::makeLocation(const std::string& fname) {
     auto x = _locations.insert(fname);
-    return detail::Location(x.first->c_str(), 0, 0, 0, 0);
+    return {x.first->c_str(), 0, 0, 0, 0};
 }
 
 void Manager::autoDiscoverModules() {

@@ -76,6 +76,24 @@ New Functionality
   indicator value is inserted into the store and once it has been completely
   removed from the store.
 
+- The ``frameworks/intel/seen`` scripts have been annotated with event groups
+  and a new ``frameworks/intel/seen/manage-event-groups`` policy script added.
+
+  The motivation is to allow Zeek distributors to load the ``intel/seen`` scripts
+  by default without incurring their event overhead when no Intel indicators are
+  loaded. Corresponding event handlers are enabled once the first Intel indicator
+  of a given ``Intel::Type`` is added. Event handlers are disabled when the last
+  indicator is removed, again.
+
+  Note that the ``manage-event-groups`` script interacts with the ``Intel::seen_policy``
+  hook: If no indicators for a given ``Intel::Type`` are loaded, the ``Intel::seen_policy``
+  will not be invoked as the event handlers extracting indicators aren't executed.
+
+  If you rely on the ``Intel::seen_policy`` hook to be invoked regardless of the
+  contents of the Intel store, do not load the ``manage-event-groups`` or set:
+
+	redef Intel::manage_seen_event_groups = F;
+
 Changed Functionality
 ---------------------
 

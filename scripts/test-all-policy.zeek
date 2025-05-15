@@ -59,6 +59,7 @@
 @load frameworks/intel/seen/file-names.zeek
 @load frameworks/intel/seen/http-headers.zeek
 @load frameworks/intel/seen/http-url.zeek
+@load frameworks/intel/seen/manage-event-groups.zeek
 @load frameworks/intel/seen/pubkey-hashes.zeek
 @load frameworks/intel/seen/smb-filenames.zeek
 @load frameworks/intel/seen/smtp-url-extraction.zeek

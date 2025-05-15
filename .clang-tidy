@@ -6,6 +6,7 @@ Checks: [-*,
          modernize-make-unique,
          modernize-min-max-use-initializer-list,
          modernize-pass-by-value,
+         modernize-redundant-void-arg,
 
          # Enable a very limited number of the cppcoreguidelines checkers.
          # See the notes for some of the rest of them below.

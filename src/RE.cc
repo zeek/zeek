@@ -19,7 +19,7 @@ zeek::detail::NFA_Machine* zeek::detail::nfa = nullptr;
 bool zeek::detail::case_insensitive = false;
 bool zeek::detail::re_single_line = false;
 
-extern int RE_parse(void);
+extern int RE_parse();
 extern void RE_set_input(const char* str);
 extern void RE_done_with_scan();
 

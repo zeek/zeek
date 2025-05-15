@@ -8,11 +8,24 @@ Zeek 8.0.0
 
 We would like to thank ... for their contributions to this release.
 
+Mohan Dhawan and Justin Azoff for pushing for the ``intel/seen`` event group additions!
+
 Breaking Changes
 ----------------
 
 New Functionality
 -----------------
+
+- The ``frameworks/intel/seen`` scripts have been annotated with event groups
+  and event group control logic added. This allows to load the ``intel/seen``
+  scripts by default without incurring overhead when no Intel indicators are
+  loaded. Even handlers are enabled once the first indicator of a given ``Intel::Type``
+  is loaded, and disabled when the last one is removed.
+
+  This feature is considered stable. In case of buggy or unforeseen behavior
+  it can be disabled via with:
+
+	redef Intel::manage_seen_event_groups = F;
 
 - A new plugin hook, ``HookPublishEvent()``, has been added for intercepting
   publishing of Zeek events. This hook may be used for monitoring purposes,

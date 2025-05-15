@@ -10,3 +10,5 @@
 @load ./smtp
 @load ./smtp-url-extraction
 @load ./x509
+
+@load ./manage-event-groups

@@ -1,0 +1,66 @@
+@load frameworks/intel/seen
+@load base/frameworks/reporter
+
+module Intel;
+
+export {
+	## Whether Intel event groups for the seen scripts are managed.
+	##
+	## By default, :zeek:see:`Intel::Type` event groups are disabld
+	## at startup and only enabled when indicators of the corresponding
+	## type loaded into the min_data_store. This allows to load the
+	## ``frameworks/intel/seen`` scripts by default, but incurring
+	## minimal overhead when no indicators are loaded into Zeek.
+	const manage_seen_event_groups = T &redef;
+}
+
+
+global intel_type_counts: table[Intel::Type] of count &default=0;
+
+event zeek_init()
+	{
+	# If the feature is disabled, don't act.
+	if ( ! manage_seen_event_groups )
+		return;
+
+	# Disable all Intel related event groups at startup. These
+	# are enabled again as soon as at least one indicator of the
+	# type is inserted.
+	for ( name in enum_names(Intel::Type) )
+		{
+		if ( has_event_group(name) )
+			disable_event_group(name);
+		}
+	}
+
+hook Intel::indicator_inserted(v: string, t: Intel::Type)
+	{
+	++intel_type_counts[t];
+
+	if ( ! manage_seen_event_groups )
+		return;
+
+	local name = cat(t);
+
+	if ( intel_type_counts[t] == 1 )
+		{
+		if ( has_event_group(name) )
+			enable_event_group(name);
+		}
+	}
+
+hook Intel::indicator_removed(v: string, t: Intel::Type)
+	{
+	--intel_type_counts[t];
+
+	if ( ! manage_seen_event_groups )
+		return;
+
+	local name = cat(t);
+
+	if ( intel_type_counts[t] == 0 )
+		{
+		if ( has_event_group(name) )
+			disable_module_events(name);
+		}
+	}

@@ -22,6 +22,6 @@ void Plugin::InitPreScript() {}
 
 void Plugin::Done() {}
 
-std::unique_lock<std::mutex> Plugin::ForkMutex() { return std::unique_lock<std::mutex>(fork_mutex, std::defer_lock); }
+std::unique_lock<std::mutex> Plugin::ForkMutex() { return {fork_mutex, std::defer_lock}; }
 
 } // namespace zeek::plugin::detail::Zeek_RawReader

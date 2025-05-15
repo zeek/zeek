@@ -6,9 +6,9 @@
 
 namespace zeek::detail {
 
-ZInstI ZAMCompiler::GenInst(ZOp op) { return ZInstI(op); }
+ZInstI ZAMCompiler::GenInst(ZOp op) { return {op}; }
 
-ZInstI ZAMCompiler::GenInst(ZOp op, const NameExpr* v1) { return ZInstI(op, Frame1Slot(v1, op)); }
+ZInstI ZAMCompiler::GenInst(ZOp op, const NameExpr* v1) { return {op, Frame1Slot(v1, op)}; }
 
 ZInstI ZAMCompiler::GenInst(ZOp op, const NameExpr* v1, int i) {
     auto z = ZInstI(op, Frame1Slot(v1, op), i);
@@ -24,46 +24,42 @@ ZInstI ZAMCompiler::GenInst(ZOp op, const ConstExpr* c, const NameExpr* v1, int 
 
 ZInstI ZAMCompiler::GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2) {
     int nv2 = FrameSlot(v2);
-    return ZInstI(op, Frame1Slot(v1, op), nv2);
+    return {op, Frame1Slot(v1, op), nv2};
 }
 
 ZInstI ZAMCompiler::GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2, const NameExpr* v3) {
     int nv2 = FrameSlot(v2);
     int nv3 = FrameSlot(v3);
-    return ZInstI(op, Frame1Slot(v1, op), nv2, nv3);
+    return {op, Frame1Slot(v1, op), nv2, nv3};
 }
 
 ZInstI ZAMCompiler::GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2, const NameExpr* v3, const NameExpr* v4) {
     int nv2 = FrameSlot(v2);
     int nv3 = FrameSlot(v3);
     int nv4 = FrameSlot(v4);
-    return ZInstI(op, Frame1Slot(v1, op), nv2, nv3, nv4);
+    return {op, Frame1Slot(v1, op), nv2, nv3, nv4};
 }
 
-ZInstI ZAMCompiler::GenInst(ZOp op, const ConstExpr* ce) { return ZInstI(op, ce); }
+ZInstI ZAMCompiler::GenInst(ZOp op, const ConstExpr* ce) { return {op, ce}; }
 
-ZInstI ZAMCompiler::GenInst(ZOp op, const NameExpr* v1, const ConstExpr* ce) {
-    return ZInstI(op, Frame1Slot(v1, op), ce);
-}
+ZInstI ZAMCompiler::GenInst(ZOp op, const NameExpr* v1, const ConstExpr* ce) { return {op, Frame1Slot(v1, op), ce}; }
 
-ZInstI ZAMCompiler::GenInst(ZOp op, const ConstExpr* ce, const NameExpr* v1) {
-    return ZInstI(op, Frame1Slot(v1, op), ce);
-}
+ZInstI ZAMCompiler::GenInst(ZOp op, const ConstExpr* ce, const NameExpr* v1) { return {op, Frame1Slot(v1, op), ce}; }
 
 ZInstI ZAMCompiler::GenInst(ZOp op, const NameExpr* v1, const ConstExpr* ce, const NameExpr* v2) {
     int nv2 = FrameSlot(v2);
-    return ZInstI(op, Frame1Slot(v1, op), nv2, ce);
+    return {op, Frame1Slot(v1, op), nv2, ce};
 }
 
 ZInstI ZAMCompiler::GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2, const ConstExpr* ce) {
     int nv2 = FrameSlot(v2);
-    return ZInstI(op, Frame1Slot(v1, op), nv2, ce);
+    return {op, Frame1Slot(v1, op), nv2, ce};
 }
 
 ZInstI ZAMCompiler::GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2, const NameExpr* v3, const ConstExpr* ce) {
     int nv2 = FrameSlot(v2);
     int nv3 = FrameSlot(v3);
-    return ZInstI(op, Frame1Slot(v1, op), nv2, nv3, ce);
+    return {op, Frame1Slot(v1, op), nv2, nv3, ce};
 }
 
 ZInstI ZAMCompiler::GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2, const ConstExpr* ce, const NameExpr* v3) {
@@ -71,7 +67,7 @@ ZInstI ZAMCompiler::GenInst(ZOp op, const NameExpr* v1, const NameExpr* v2, cons
     // us from needing to implement a redundant constructor.
     int nv2 = FrameSlot(v2);
     int nv3 = FrameSlot(v3);
-    return ZInstI(op, Frame1Slot(v1, op), nv2, nv3, ce);
+    return {op, Frame1Slot(v1, op), nv2, nv3, ce};
 }
 
 ZInstI ZAMCompiler::GenInst(ZOp op, const NameExpr* v1, const ConstExpr* c, int i) {

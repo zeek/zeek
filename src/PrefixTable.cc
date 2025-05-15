@@ -19,8 +19,8 @@ prefix_t* PrefixTable::MakePrefix(const IPAddr& addr, int width) {
 }
 
 IPPrefix PrefixTable::PrefixToIPPrefix(prefix_t* prefix) {
-    return IPPrefix(IPAddr(IPv6, reinterpret_cast<const uint32_t*>(&prefix->add.sin6), IPAddr::Network), prefix->bitlen,
-                    true);
+    return {IPAddr(IPv6, reinterpret_cast<const uint32_t*>(&prefix->add.sin6), IPAddr::Network),
+            static_cast<uint8_t>(prefix->bitlen), true};
 }
 
 void* PrefixTable::Insert(const IPAddr& addr, int width, void* data) {

@@ -12,7 +12,7 @@ using namespace std;
 
 namespace zeek::zeekygen::detail {
 
-PackageInfo::PackageInfo(const string& arg_name) : Info(), pkg_name(arg_name), readme() {
+PackageInfo::PackageInfo(string arg_name) : Info(), pkg_name(std::move(arg_name)), readme() {
     string readme_file = util::find_file(pkg_name + "/README", util::zeek_path());
 
     if ( readme_file.empty() )

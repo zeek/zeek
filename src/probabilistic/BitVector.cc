@@ -350,7 +350,7 @@ bool BitVector::operator[](size_type i) const {
 
 BitVector::Reference BitVector::operator[](size_type i) {
     assert(i < num_bits);
-    return Reference(bits[block_index(i)], bit_index(i));
+    return {bits[block_index(i)], bit_index(i)};
 }
 
 BitVector::size_type BitVector::Count() const {

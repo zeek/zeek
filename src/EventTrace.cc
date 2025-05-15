@@ -51,7 +51,7 @@ static std::string escape_string(const u_char* b, int len) {
     return res + "\"";
 }
 
-ValTrace::ValTrace(const ValPtr& _v) : v(_v) {
+ValTrace::ValTrace(ValPtr _v) : v(std::move(_v)) {
     t = v->GetType();
 
     switch ( t->Tag() ) {

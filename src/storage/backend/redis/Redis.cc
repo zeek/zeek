@@ -21,8 +21,8 @@ namespace {
 
 class Tracer {
 public:
-    Tracer(const std::string& where) : where(where) {} // DBG_LOG(zeek::DBG_STORAGE, "%s", where.c_str()); }
-    ~Tracer() {}                                       // DBG_LOG(zeek::DBG_STORAGE, "%s done", where.c_str()); }
+    Tracer(std::string where) : where(std::move(where)) {} // DBG_LOG(zeek::DBG_STORAGE, "%s", where.c_str()); }
+    ~Tracer() {}                                           // DBG_LOG(zeek::DBG_STORAGE, "%s done", where.c_str()); }
     std::string where;
 };
 

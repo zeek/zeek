@@ -7,8 +7,8 @@
 
 namespace zeek::file_analysis::detail {
 
-FileTimer::FileTimer(double t, const std::string& id, double interval)
-    : zeek::detail::Timer(t + interval, zeek::detail::TIMER_FILE_ANALYSIS_INACTIVITY), file_id(id) {
+FileTimer::FileTimer(double t, std::string id, double interval)
+    : zeek::detail::Timer(t + interval, zeek::detail::TIMER_FILE_ANALYSIS_INACTIVITY), file_id(std::move(id)) {
     DBG_LOG(DBG_FILE_ANALYSIS, "New %f second timeout timer for %s", interval, file_id.c_str());
 }
 

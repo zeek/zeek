@@ -171,6 +171,10 @@ export {
 
 	## This is an internally used function.
 	const write_file_log: function(state: State) &redef;
+
+	## Well-known ports
+	option ports = { 139/tcp, 445/tcp };
+	redef likely_server_ports += { ports };
 }
 
 redef record FileInfo += {
@@ -180,9 +184,6 @@ redef record FileInfo += {
 	## UUID referencing this file if DCE/RPC.
 	uuid : string &optional;
 };
-
-const ports = { 139/tcp, 445/tcp };
-redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{

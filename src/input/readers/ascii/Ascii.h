@@ -23,8 +23,8 @@ struct FieldMapping {
     int secondary_position = -1; // for ports: pos of the second field
     bool present = false;
 
-    FieldMapping(const std::string& arg_name, const TypeTag& arg_type, int arg_position);
-    FieldMapping(const std::string& arg_name, const TypeTag& arg_type, const TypeTag& arg_subtype, int arg_position);
+    FieldMapping(std::string arg_name, const TypeTag& arg_type, int arg_position);
+    FieldMapping(std::string arg_name, const TypeTag& arg_type, const TypeTag& arg_subtype, int arg_position);
 
     FieldMapping(const FieldMapping& arg);
     FieldMapping() = default;

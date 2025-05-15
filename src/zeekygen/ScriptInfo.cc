@@ -221,10 +221,10 @@ static string make_redef_details(const string& heading, char underline, const id
     return rval;
 }
 
-ScriptInfo::ScriptInfo(const string& arg_name, const string& arg_path)
+ScriptInfo::ScriptInfo(string arg_name, string arg_path)
     : Info(),
-      name(arg_name),
-      path(arg_path),
+      name(std::move(arg_name)),
+      path(std::move(arg_path)),
       is_pkg_loader(util::detail::is_package_loader(name)),
       dependencies(),
       module_usages(),

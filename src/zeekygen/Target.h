@@ -28,7 +28,7 @@ struct TargetFile {
      * directories that don't already exist.
      *
      */
-    explicit TargetFile(const std::string& arg_name);
+    explicit TargetFile(std::string arg_name);
 
     /**
      * Close the file.
@@ -53,7 +53,7 @@ public:
      * @param arg_pattern pattern of info objects the target depends upon.  Only
      * exact string and simple prefix matching is currently allowed.
      */
-    Target(const std::string& arg_name, const std::string& arg_pattern);
+    Target(std::string arg_name, std::string arg_pattern);
 
     /**
      * Dtor.

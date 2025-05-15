@@ -189,7 +189,7 @@ static vector<T*> filter_matches(const vector<Info*>& from, Target* t) {
     return rval;
 }
 
-TargetFile::TargetFile(const string& arg_name) : name(arg_name), f() {
+TargetFile::TargetFile(string arg_name) : name(std::move(arg_name)), f() {
     if ( name.find('/') != string::npos ) {
         string dir = util::SafeDirname(name).result;
 
@@ -210,7 +210,8 @@ TargetFile::~TargetFile() {
     DBG_LOG(DBG_ZEEKYGEN, "Wrote out-of-date target '%s'", name.c_str());
 }
 
-Target::Target(const string& arg_name, const string& arg_pattern) : name(arg_name), pattern(arg_pattern), prefix() {
+Target::Target(string arg_name, string arg_pattern)
+    : name(std::move(arg_name)), pattern(std::move(arg_pattern)), prefix() {
     size_t pos = pattern.find('*');
 
     if ( pos == 0 || pos == string::npos )

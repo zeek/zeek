@@ -66,8 +66,7 @@ public:
      * @param etype An enum type that describes the type for the tag in
      * script-land.
      */
-    Component(component::Type type, const std::string& name, Tag::subtype_t tag_subtype = 0,
-              EnumTypePtr etype = nullptr);
+    Component(component::Type type, std::string name, Tag::subtype_t tag_subtype = 0, EnumTypePtr etype = nullptr);
 
     /**
      * Destructor.

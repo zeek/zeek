@@ -32,7 +32,7 @@ public:
      * @param name Name of script: a path relative to a component in ZEEKPATH.
      * @param path Absolute path to the script.
      */
-    ScriptInfo(const std::string& name, const std::string& path);
+    ScriptInfo(std::string name, std::string path);
 
     /**
      * Associate a Zeekygen summary comment ("##!") with the script.

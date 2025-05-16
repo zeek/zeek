@@ -1172,6 +1172,11 @@ MIME_Mail::MIME_Mail(analyzer::Analyzer* mail_analyzer, bool orig, int buf_size)
     if ( mime_begin_mail )
         analyzer->EnqueueConnEvent(mime_begin_mail, analyzer->ConnVal());
 
+    if ( zeek::BifConst::MIME::mime_mail_as_file ) {
+        /* Attempt to write 0 bytes to force file creation so that scripts may initialize their state. */
+        mime_mail_id = MailDataIn(0, nullptr, mime_mail_id);
+    }
+
     top_level = new MIME_Entity(this, nullptr); // to be changed to MIME_Mail
     BeginEntity(top_level);
 }
@@ -1195,6 +1200,8 @@ void MIME_Mail::Done() {
 
     MIME_Message::Done();
 
+    if ( ! mime_mail_id.empty() )
+        file_mgr->EndOfFile(mime_mail_id);
     file_mgr->EndOfFile(analyzer->GetAnalyzerTag(), analyzer->Conn());
 }
 
@@ -1205,6 +1212,18 @@ MIME_Mail::~MIME_Mail() {
     delete_strings(all_content);
     delete data_buffer;
     delete top_level;
+}
+
+void MIME_Mail::Deliver(int len, const char* data, bool trailing_CRLF)
+{
+    if ( ! mime_mail_id.empty() ) {
+        MailDataIn(len, data, mime_mail_id);
+        if ( trailing_CRLF ) {
+            MailDataIn(2, "\r\n", mime_mail_id);
+        }
+    }
+
+    MIME_Message::Deliver(len, data, trailing_CRLF);
 }
 
 void MIME_Mail::BeginEntity(MIME_Entity* /* entity */) {
@@ -1333,6 +1352,12 @@ void MIME_Mail::SubmitEvent(int event_type, const char* detail) {
     if ( mime_event )
         analyzer->EnqueueConnEvent(mime_event, analyzer->ConnVal(), make_intrusive<StringVal>(category),
                                    make_intrusive<StringVal>(detail));
+}
+
+std::string MIME_Mail::MailDataIn(int len, const char* data, const std::string& precomputed_id) const {
+    return file_mgr->DataIn(reinterpret_cast<const u_char*>(data), len,
+        analyzer->GetAnalyzerTag(), analyzer->Conn(), is_orig,
+        precomputed_id, "message/rfc822");
 }
 
 } // namespace zeek::analyzer::mime

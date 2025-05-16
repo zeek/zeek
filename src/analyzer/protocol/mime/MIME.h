@@ -239,6 +239,8 @@ public:
     ~MIME_Mail() override;
     void Done() override;
 
+    void Deliver(int len, const char* data, bool trailing_CRLF) override;
+
     void BeginEntity(MIME_Entity* entity) override;
     void EndEntity(MIME_Entity* entity) override;
     void SubmitHeader(MIME_Header* h) override;
@@ -248,6 +250,9 @@ public:
     void SubmitAllData();
     void SubmitEvent(int event_type, const char* detail) override;
     void Undelivered(int len);
+
+private:
+    std::string MailDataIn(int len, const char* data, const std::string& precomputed_id) const;
 
 protected:
     int min_overlap_length;
@@ -265,6 +270,7 @@ protected:
 
     uint64_t cur_entity_len;
     std::string cur_entity_id;
+    std::string mime_mail_id;
 };
 
 extern bool is_null_data_chunk(data_chunk_t b);

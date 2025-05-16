@@ -21,11 +21,10 @@
 //	Entries must be either a pointer to the data or nonzero data with
 //	sizeof(data) <= sizeof(void*).
 
-#include <stdarg.h>
 #include <cassert>
+#include <cstdarg>
 #include <initializer_list>
 #include <iterator>
-#include <utility>
 
 #include "zeek/util.h"
 

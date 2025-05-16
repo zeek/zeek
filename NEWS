@@ -11,6 +11,10 @@ We would like to thank ... for their contributions to this release.
 Breaking Changes
 ----------------
 
+- The code base underwent a big cleanup of #include usage, across almost all of the
+  files. We tested builds of all of the existing third-party packages and only noticed one
+  or two failures, but there is a possibility for breakage related to this cleanup.
+
 New Functionality
 -----------------
 

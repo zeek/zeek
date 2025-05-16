@@ -26,6 +26,7 @@ extern "C" {
 }
 
 #include "zeek/DebugLogger.h"
+#include "zeek/Dict.h"
 #include "zeek/Event.h"
 #include "zeek/EventHandler.h"
 #include "zeek/ID.h"

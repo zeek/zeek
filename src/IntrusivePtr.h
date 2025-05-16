@@ -6,7 +6,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "Obj.h"
+#include "zeek/Obj.h"
 
 namespace zeek {
 

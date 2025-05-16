@@ -1,3 +1,30 @@
+8.0.0-dev.118 | 2025-05-16 10:27:27 -0700
+
+  * Remove including <cinttypes> from util.h (Tim Wojtulewicz, Corelight)
+
+  * Remove telemetry #includes from OpaqueVal.h (Tim Wojtulewicz, Corelight)
+
+  * Reduce includes in plugin/Component.h (Tim Wojtulewicz, Corelight)
+
+  * Remove zeek/Stats.h include from NetVar.h (Tim Wojtulewicz, Corelight)
+
+  * Include StmtBase/StmtEnums in Func.h instead of Stmt.h (Tim Wojtulewicz, Corelight)
+
+    This requires changes in lots of other files that were depending on Func.h
+    to provide that include for them.
+
+  * Use modern names for standard headers (Tim Wojtulewicz, Corelight)
+
+  * Remove fix for CentOS 7 from TCP_Flags.h (Tim Wojtulewicz, Corelight)
+
+  * Fix usage of std::string in http analyzer (Tim Wojtulewicz, Corelight)
+
+  * Reorder top section of net_util.h to batch includes together (Tim Wojtulewicz, Corelight)
+
+  * Use quotes instead of <> for zeek includes (Tim Wojtulewicz, Corelight)
+
+  * Fix Obj.h include in IntrusivePtr.h to have full path (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.106 | 2025-05-16 13:39:56 +0200
 
   * Generate --event-trace output explicitly rather than in EventTraceMgr destructor (Vern Paxson, Corelight)

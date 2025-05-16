@@ -6,8 +6,8 @@ refine connection SMB_Conn += {
 	%}
 
 	%init{
-		gssapi = 0;
-		ntlm = 0;
+		gssapi = nullptr;
+		ntlm = nullptr;
 	%}
 
 	%cleanup{

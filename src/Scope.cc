@@ -182,6 +182,6 @@ ScopePtr pop_scope() {
 
 ScopePtr current_scope() { return top_scope; }
 
-ScopePtr global_scope() { return scopes.empty() ? 0 : scopes.front(); }
+ScopePtr global_scope() { return scopes.empty() ? nullptr : scopes.front(); }
 
 } // namespace zeek::detail

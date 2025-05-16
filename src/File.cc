@@ -180,7 +180,7 @@ void File::SetBuf(bool arg_buffered) {
     if ( ! f )
         return;
 
-    if ( util::detail::setvbuf(f, NULL, arg_buffered ? _IOFBF : _IOLBF, 0) != 0 )
+    if ( util::detail::setvbuf(f, nullptr, arg_buffered ? _IOFBF : _IOLBF, 0) != 0 )
         reporter->Error("setvbuf failed");
 
     buffered = arg_buffered;

@@ -139,13 +139,13 @@ std::optional<std::vector<u_char>> SSL_Analyzer::TLS12_PRF(const std::string& se
 #ifdef OPENSSL_HAVE_KDF_H
 #if defined(OPENSSL_VERSION_MAJOR) && (OPENSSL_VERSION_MAJOR >= 3)
     // alloc context + params
-    EVP_KDF* kdf = EVP_KDF_fetch(NULL, "TLS1-PRF", NULL);
+    EVP_KDF* kdf = EVP_KDF_fetch(nullptr, "TLS1-PRF", nullptr);
     EVP_KDF_CTX* kctx = EVP_KDF_CTX_new(kdf);
     OSSL_PARAM params[4], *p = params;
     EVP_KDF_free(kdf);
 #else  /* OSSL 3 */
     // alloc buffers
-    EVP_PKEY_CTX* pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_TLS1_PRF, NULL);
+    EVP_PKEY_CTX* pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_TLS1_PRF, nullptr);
 #endif /* OSSL 3 */
 
     // prepare seed: seed = label + rnd1 + rnd2
@@ -297,7 +297,7 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
 
         EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
         EVP_CIPHER_CTX_init(ctx);
-        EVP_CipherInit(ctx, EVP_aes_256_gcm(), NULL, NULL, 0);
+        EVP_CipherInit(ctx, EVP_aes_256_gcm(), nullptr, nullptr, 0);
 
         encrypted += 8;
         // FIXME: is this because of nonce and aead tag?
@@ -335,13 +335,13 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
                                              16); // see OpenSSL manpage - 16 is the block size for the supported cipher
         int decrypted_len = 0;
 
-        EVP_DecryptUpdate(ctx, NULL, &decrypted_len, s_aead_tag.data(), s_aead_tag.size());
+        EVP_DecryptUpdate(ctx, nullptr, &decrypted_len, s_aead_tag.data(), s_aead_tag.size());
         EVP_DecryptUpdate(ctx, decrypted.data(), &decrypted_len, encrypted, encrypted_len);
         assert(static_cast<decltype(decrypted.size())>(decrypted_len) <= decrypted.size());
         decrypted.resize(decrypted_len);
 
         int res = 0;
-        if ( res = EVP_DecryptFinal(ctx, NULL, &res); res == 0 ) {
+        if ( res = EVP_DecryptFinal(ctx, nullptr, &res); res == 0 ) {
             DBG_LOG(DBG_ANALYZER, "Decryption failed with return code: %d. Invalid key?\n", res);
             EVP_CIPHER_CTX_free(ctx);
             return false;

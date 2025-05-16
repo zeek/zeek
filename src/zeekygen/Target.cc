@@ -441,7 +441,7 @@ vector<string> dir_contents_recursive(string dir) {
 
     char* scan_path[2] = {dir.data(), nullptr};
 
-    FTS* fts = fts_open(scan_path, FTS_NOCHDIR, 0);
+    FTS* fts = fts_open(scan_path, FTS_NOCHDIR, nullptr);
 
     if ( ! fts ) {
         reporter->Error("fts_open failure: %s", strerror(errno));

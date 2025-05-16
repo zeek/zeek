@@ -189,7 +189,7 @@ void DNS_Request::MakeRequest(ares_channel channel, DNS_Mgr* mgr) {
         // back in the same request if use ares_getaddrinfo() so we can store them both
         // in the same mapping.
         ares_addrinfo_hints hints = {ARES_AI_CANONNAME, AF_UNSPEC, 0, 0};
-        ares_getaddrinfo(channel, host.c_str(), NULL, &hints, addrinfo_cb, req_data.release());
+        ares_getaddrinfo(channel, host.c_str(), nullptr, &hints, addrinfo_cb, req_data.release());
     }
     else {
         std::string query_host;
@@ -214,7 +214,7 @@ void DNS_Request::MakeRequest(ares_channel channel, DNS_Mgr* mgr) {
 
         // Store this so it can be destroyed when the request is destroyed.
         this->query_rec = std::move(dnsrec);
-        ares_send_dnsrec(channel, query_rec.get(), query_cb, req_data.release(), NULL);
+        ares_send_dnsrec(channel, query_rec.get(), query_cb, req_data.release(), nullptr);
     }
 }
 
@@ -302,7 +302,7 @@ static void addrinfo_cb(void* arg, int status, int timeouts, struct ares_addrinf
     else {
         std::vector<in_addr*> addrs;
         std::vector<in6_addr*> addrs6;
-        for ( ares_addrinfo_node* entry = result->nodes; entry != NULL; entry = entry->ai_next ) {
+        for ( ares_addrinfo_node* entry = result->nodes; entry != nullptr; entry = entry->ai_next ) {
             if ( entry->ai_family == AF_INET ) {
                 struct sockaddr_in* addr = reinterpret_cast<sockaddr_in*>(entry->ai_addr);
                 addrs.push_back(&addr->sin_addr);
@@ -315,7 +315,7 @@ static void addrinfo_cb(void* arg, int status, int timeouts, struct ares_addrinf
 
         if ( ! addrs.empty() ) {
             // Push a null on the end so the addr list has a final point during later parsing.
-            addrs.push_back(NULL);
+            addrs.push_back(nullptr);
 
             struct hostent he{};
             he.h_name = util::copy_string(result->name);
@@ -330,7 +330,7 @@ static void addrinfo_cb(void* arg, int status, int timeouts, struct ares_addrinf
 
         if ( ! addrs6.empty() ) {
             // Push a null on the end so the addr list has a final point during later parsing.
-            addrs6.push_back(NULL);
+            addrs6.push_back(nullptr);
 
             struct hostent he{};
             he.h_name = util::copy_string(result->name);
@@ -389,7 +389,7 @@ static void query_cb(void* arg, ares_status_t status, size_t timeouts, const are
 
             if ( type == ARES_REC_TYPE_PTR ) {
                 const char* txt = ares_dns_rr_get_str(rr, ARES_RR_PTR_DNAME);
-                if ( txt == NULL ) {
+                if ( txt == nullptr ) {
                     // According to the c-ares docs, this can happen but only in cases of "misuse". We
                     // still need to check for it though.
                     error = true;
@@ -411,7 +411,7 @@ static void query_cb(void* arg, ares_status_t status, size_t timeouts, const are
                 // TODO: We only process the first abin in the response. There might be more.
                 size_t abin_len;
                 const unsigned char* abin = ares_dns_rr_get_abin(rr, ARES_RR_TXT_DATA, 0, &abin_len);
-                if ( abin == NULL ) {
+                if ( abin == nullptr ) {
                     // According to the c-ares docs, this can happen but only in cases of "misuse". We
                     // still need to check for it though.
                     error = true;
@@ -1306,9 +1306,9 @@ double DNS_Mgr::GetNextTimeout() {
         return -1;
 
     struct timeval tv;
-    struct timeval* tvp = ares_timeout(channel, NULL, &tv);
+    struct timeval* tvp = ares_timeout(channel, nullptr, &tv);
 
-    // If you pass NULL as the max time argument to ares_timeout, it will return null if there
+    // If you pass nullptr as the max time argument to ares_timeout, it will return null if there
     // isn't anything waiting to be processed.
     if ( ! tvp )
         return -1;

@@ -125,7 +125,7 @@ bool OCSP::EndOfFile() {
     const unsigned char* ocsp_char = reinterpret_cast<const unsigned char*>(ocsp_data.data());
 
     if ( request ) {
-        OCSP_REQUEST* req = d2i_OCSP_REQUEST(NULL, &ocsp_char, ocsp_data.size());
+        OCSP_REQUEST* req = d2i_OCSP_REQUEST(nullptr, &ocsp_char, ocsp_data.size());
 
         if ( ! req ) {
             reporter->Weird(GetFile(), "openssl_ocsp_request_parse_error");
@@ -136,7 +136,7 @@ bool OCSP::EndOfFile() {
         OCSP_REQUEST_free(req);
     }
     else {
-        OCSP_RESPONSE* resp = d2i_OCSP_RESPONSE(NULL, &ocsp_char, ocsp_data.size());
+        OCSP_RESPONSE* resp = d2i_OCSP_RESPONSE(nullptr, &ocsp_char, ocsp_data.size());
 
         if ( ! resp ) {
             reporter->Weird(GetFile(), "openssl_ocsp_response_parse_error");

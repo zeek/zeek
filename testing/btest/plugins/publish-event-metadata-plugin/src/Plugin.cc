@@ -65,6 +65,19 @@ bool Plugin::HookPublishEvent(zeek::cluster::Backend& backend, const std::string
         if ( ! event.AddMetadata(table_md, tv) ) {
             zeek::reporter->FatalError("Failed to add table metadata");
         }
+
+        if ( ! event.AddMetadata(count_md, zeek::val_mgr->Count(41414242)) ) {
+            zeek::reporter->FatalError("Failed to add string metadata");
+        }
+
+        if ( ! event.AddMetadata(string_md, zeek::make_intrusive<zeek::StringVal>("testing string metadata")) ) {
+            zeek::reporter->FatalError("Failed to add string metadata");
+        }
+
+        // metadata is just a vector, so can have duplicate entries.
+        if ( ! event.AddMetadata(string_md, zeek::make_intrusive<zeek::StringVal>("more string metadata")) ) {
+            zeek::reporter->FatalError("Failed to add string metadata");
+        }
     }
     else {
         zeek::reporter->FatalError("Unhandled topic %s", topic.c_str());

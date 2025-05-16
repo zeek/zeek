@@ -3840,6 +3840,8 @@ void ScheduleTimer::Dispatch(double /* t */, bool /* is_expire */) {
             auto ts = std::min(this->Time(), run_state::network_time);
             mdv = detail::MakeMetadataVector(ts);
         }
+
+        event_mgr.Enqueue(WithMeta{}, event, std::move(args), util::detail::SOURCE_LOCAL, 0, nullptr, std::move(mdv));
     }
 }
 

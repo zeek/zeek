@@ -696,8 +696,8 @@ StmtPtr ScriptFunc::AddInits(StmtPtr body, const std::vector<IDPtr>& inits) {
     auto stmt_series = with_location_of(make_intrusive<StmtList>(), body);
     auto init = with_location_of(make_intrusive<InitStmt>(inits), body);
 
-    stmt_series->Stmts().push_back(std::move(init));
-    stmt_series->Stmts().push_back(std::move(body));
+    stmt_series->Stmts().emplace_back(std::move(init));
+    stmt_series->Stmts().emplace_back(std::move(body));
 
     return stmt_series;
 }

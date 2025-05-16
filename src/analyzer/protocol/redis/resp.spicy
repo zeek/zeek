@@ -152,8 +152,8 @@ type BulkString = unit(is_error: bool) {
     # NullBulkString is a BulkString with content unset
     content: bytes &size=uint64(self.length) if(self.length >= 0);
 
-    # Consume last CLRF
-    : skip RedisBytes;
+    # Consume last CLRF if not a null bulk string
+    : skip RedisBytes if(self.length >= 0);
 };
 
 type Array = unit(depth: uint8&) {
@@ -182,15 +182,18 @@ type BigNum = unit {
 };
 
 type Map = unit(depth: uint8&) {
-    var key_val_pairs: vector<tuple<Data, Data>>;
     num_elements: RedisBytes &convert=$$.to_uint(10);
     # TODO: How can I make this into a map? Alternatively, how can I do this better?
-    raw_data: Data(depth)[self.num_elements * 2] {
-        while (local i = 0; i < self.num_elements) {
-            self.key_val_pairs.push_back(($$[i], $$[i + 1]));
-            i += 2;
-        }
-    }
+    raw_data: Data(depth)[self.num_elements * 2];
+
+    # TODO: This is broken. See https://github.com/zeek/spicy/issues/2061
+    #    var key_val_pairs: vector<tuple<Data, Data>>;
+    #    on raw_data {
+    #        while (local i = 0; i < self.num_elements) {
+    #            self.key_val_pairs.push_back(($$[i], $$[i + 1]));
+    #            i += 2;
+    #        }
+    #    }
 };
 
 type Set = unit(depth: uint8&) {

@@ -1,7 +1,7 @@
 # @TEST-DOC: Test Zeek with AUTH commands
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: zeek -b -Cr $TRACES/redis/auth.pcap %INPUT >output
+# @TEST-EXEC: zeek -b -r $TRACES/redis/auth.pcap %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 @load base/protocols/redis

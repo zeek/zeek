@@ -5,14 +5,14 @@
 #unset_field	-
 #path	redis
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd.command	cmd.key	cmd.value	response.err	response.data
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd.name	cmd.key	cmd.value	reply.success	reply.data
 #types	time	string	addr	port	addr	port	string	string	string	bool	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	60761	::1	6379	PING	-	-	F	PONG
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	60761	::1	6379	PING	-	-	T	PONG
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	60761	::1	6379	CLIENT	-	-	-	-
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	60761	::1	6379	PING	-	-	-	-
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	60761	::1	6379	CLIENT	-	-	F	OK
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	60761	::1	6379	PING	-	-	F	PONG
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	60761	::1	6379	CLIENT	-	-	T	OK
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	60761	::1	6379	PING	-	-	T	PONG
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	60761	::1	6379	CLIENT	-	-	-	-
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	60761	::1	6379	PING	-	-	-	-
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	60761	::1	6379	PING	-	-	F	PONG
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	::1	60761	::1	6379	PING	-	-	T	PONG
 #close XXXX-XX-XX-XX-XX-XX

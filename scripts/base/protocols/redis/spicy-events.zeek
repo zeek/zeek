@@ -43,7 +43,7 @@ export {
 		raw: vector of string;
 		## The first element of the command. Some commands are two strings, meaning
 		## this is inaccurate for those cases.
-		command: string &log;
+		name: string &log;
 		## The key, if this command is known to have a key
 		key: string &log &optional;
 		## The value, if this command is known to have a value
@@ -54,8 +54,8 @@ export {
 
 	## Generic server data returned from the server.
 	type ServerData: record {
-		## Was this an error?
-		err: bool &log;
+		## Did the server reply without erroring?
+		success: bool &log;
 		## The string response, if it was a simple string or error
 		data: string &log &optional;
 	};
@@ -86,12 +86,12 @@ global auth_command: event(c: connection, command: AuthCommand);
 ##
 ## c: The connection.
 ##
-## command: The command sent to the server.
-global client_command: event(c: connection, command: Command);
+## cmd: The command sent to the server.
+global command: event(c: connection, cmd: Command);
 
 ## Generated for every response sent by the Redis server to the client.
 ##
 ## c: The connection.
 ##
 ## data: The server data sent to the client.
-global server_data: event(c: connection, data: ServerData);
+global reply: event(c: connection, data: ServerData);

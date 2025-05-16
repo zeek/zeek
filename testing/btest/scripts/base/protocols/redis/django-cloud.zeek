@@ -1,13 +1,15 @@
 # @TEST-DOC: Test Redis traffic from a django app using Redis (in the cloud) as a cache
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: zeek -b -Cr $TRACES/redis/django-cloud.pcap %INPUT >output
+# @TEST-EXEC: zeek -b -r $TRACES/redis/django-cloud.pcap %INPUT >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff redis.log
+# @TEST-EXEC: btest-diff conn.log
 
 # This test has a bunch of factorial commands, try to test for the correct
 # factorial without exploding the baseline
 
+@load base/protocols/conn
 @load base/protocols/redis
 
 redef Redis::ports += {

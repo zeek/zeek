@@ -4,7 +4,7 @@ username: notauser
 password: notapassword
 AUTH
 username: default
-password: defaultpasswordinvalid
+password: defaultpassword
 AUTH
 username: noone
 password: password

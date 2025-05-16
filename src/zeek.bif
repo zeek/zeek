@@ -426,7 +426,14 @@ function EventMetadata::register_type%(id: EventMetadata::ID, t: any%): bool
        return zeek::val_mgr->Bool(r);
        %}
 
-function EventMetadata::current%(%): event_metadata_vec
+
+function EventMetadata::current%(id: EventMetadata::ID%): any_vec
+	%{
+	static const auto& vt = zeek::id::find_type<zeek::VectorType>("any_vec");
+	return zeek::event_mgr.CurrentEvent()->MetadataValues({zeek::NewRef{}, id->AsEnumVal()});
+	%}
+
+function EventMetadata::current_all%(%): event_metadata_vec
 	%{
 	static const auto& vt = zeek::id::find_type<zeek::VectorType>("event_metadata_vec");
 

@@ -1,7 +1,7 @@
 # @TEST-DOC: Test Zeek parsing pubsub commands
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: zeek -b -Cr $TRACES/redis/pubsub.pcap %INPUT >output
+# @TEST-EXEC: zeek -b -r $TRACES/redis/pubsub.pcap %INPUT >output
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff redis.log
 

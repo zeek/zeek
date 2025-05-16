@@ -52,7 +52,7 @@ public type KnownCommand = enum {
 
 type Command = struct {
     raw: vector<bytes>;
-    command: bytes;
+    name: bytes;
     key: optional<bytes>;
     value: optional<bytes>;
     known: optional<KnownCommand>;
@@ -143,7 +143,7 @@ public function inline_command(command: RESP::ClientData): Command {
 function parse_command(raw: vector<bytes>): Command {
     assert |raw| >= 1;
     local cmd = command_from(raw[0]);
-    local parsed: Command = [$raw = raw, $command = raw[0], $key = Null, $value = Null, $known = cmd];
+    local parsed: Command = [$raw = raw, $name = raw[0], $key = Null, $value = Null, $known = cmd];
     if (!cmd)
         return parsed;
 

@@ -1,7 +1,7 @@
 @load base/protocols/conn/removal-hooks
 @load base/frameworks/signatures
 
-@load ./spicy-decls
+@load ./spicy-events
 
 module Redis;
 
@@ -10,7 +10,7 @@ export {
 	redef enum Log::ID += { LOG };
 
 	## The ports to register Redis for.
-	const ports = { 6379/tcp } &redef;
+	const ports = {6379/tcp} &redef;
 
 	## Record type containing the column fields of the Redis log.
 	type Info: record {
@@ -22,8 +22,8 @@ export {
 		id: conn_id &log;
 		## The Redis command.
 		cmd: Command &log;
-		## The response for the command.
-		response: ServerData &log &optional;
+		## The reply for the command.
+		reply: ServerData &log &optional;
 	};
 
 	## A default logging policy hook for the stream.
@@ -31,17 +31,25 @@ export {
 
 	global finalize_redis: Conn::RemovalHook;
 
+	## Which numbered commands should not expect a reply due to CLIENT REPLY commands.
+	## These commands may simply skip one, or they may turn off replies then later
+	## reenable them. Thus, the end of the interval is optional.
+	type NoReplyRange: record {
+		begin: count;
+		end: count &optional;
+	};
+
 	type State: record {
-		## Pending requests.
+		## Pending commands.
 		pending: table[count] of Info;
-		## Current request in the pending queue.
-		current_request: count &default=0;
-		## Current response in the pending queue.
-		current_response: count &default=0;
-		## Ranges where we do not expect a response.
+		## Current command in the pending queue.
+		current_command: count &default=0;
+		## Current reply in the pending queue.
+		current_reply: count &default=0;
+		## Ranges where we do not expect a reply due to CLIENT REPLY commands.
 		## Each range is one or two elements, one meaning it's unbounded, two meaning
 		## it begins at one and ends at the second.
-		no_response_ranges: vector of vector of count;
+		no_reply_ranges: vector of NoReplyRange;
 		## We store if this analyzer had a violation to avoid logging if so.
 		## This should not be super necessary, but worth a shot.
 		violation: bool &default=F;
@@ -49,7 +57,7 @@ export {
 
 	# Redis specifically mentions 10k commands as a good pipelining threshold, so
 	# we'll piggyback on that.
-	option max_pending_requests = 10000;
+	option max_pending_commands = 10000;
 }
 
 redef record connection += {
@@ -57,32 +65,26 @@ redef record connection += {
 	redis_state: State &optional;
 };
 
-redef likely_server_ports += { ports };
+redef likely_server_ports += {ports};
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Redis::LOG, [ $columns=Info, $path="redis",
-	    $policy=log_policy ]);
+	Log::create_stream(Redis::LOG, [$columns=Info, $path="redis",
+	    $policy=log_policy]);
 
-	Analyzer::register_for_ports(Analyzer::ANALYZER_SPICY_REDIS, ports);
+	Analyzer::register_for_ports(Analyzer::ANALYZER_REDIS, ports);
 	}
 
 event analyzer_violation_info(atype: AllAnalyzers::Tag,
     info: AnalyzerViolationInfo)
 	{
-	if ( atype == Analyzer::ANALYZER_SPICY_REDIS )
+	if ( atype == Analyzer::ANALYZER_REDIS && info?$c && info$c?$redis_state )
 		{
-		if ( info?$c )
-			{
-			if ( info$c?$redis_state )
-				{
-				info$c$redis_state$violation = T;
-				}
-			}
+		info$c$redis_state$violation = T;
 		}
 	}
 
-function new_redis_session(c: connection): Info
+function new_redis_info(c: connection): Info
 	{
 	return Info($ts=network_time(), $uid=c$uid, $id=c$id);
 	}
@@ -101,30 +103,30 @@ function set_state(c: connection, is_orig: bool)
 
 	local current: count;
 	if ( is_orig )
-		current = c$redis_state$current_request;
+		current = c$redis_state$current_command;
 	else
-		current = c$redis_state$current_response;
+		current = c$redis_state$current_reply;
 
 	if ( current !in c$redis_state$pending )
-		c$redis_state$pending[current] = new_redis_session(c);
+		c$redis_state$pending[current] = new_redis_info(c);
 
 	c$redis = c$redis_state$pending[current];
 	}
 
-## Returns whether the last "no response" interval is not still open.
+## Returns whether the last "no reply" interval is not still open.
 function is_last_interval_closed(c: connection): bool
 	{
-	return |c$redis_state$no_response_ranges| == 0
-	    || |c$redis_state$no_response_ranges[|c$redis_state$no_response_ranges| - 1]| != 1;
+	return |c$redis_state$no_reply_ranges| == 0 ||
+	    c$redis_state$no_reply_ranges[-1]?$end;
 	}
 
-event Redis::client_command(c: connection, command: Command)
+event Redis::command(c: connection, cmd: Command)
 	{
 	if ( ! c?$redis_state )
 		make_new_state(c);
 
-	if ( max_pending_requests > 0
-	    && |c$redis_state$pending| > max_pending_requests )
+	if ( max_pending_commands > 0
+	    && |c$redis_state$pending| > max_pending_commands )
 		{
 		Reporter::conn_weird("Redis_excessive_pipelining", c);
 		# Delete the current state and restart later. We'll be in a weird state, but
@@ -134,102 +136,101 @@ event Redis::client_command(c: connection, command: Command)
 		return;
 		}
 
-	++c$redis_state$current_request;
-	# CLIENT commands can skip a number of responses and may be used with
-	# pipelining. We need special logic in order to track the request/response
+	++c$redis_state$current_command;
+	# CLIENT commands can skip a number of replies and may be used with
+	# pipelining. We need special logic in order to track the command/reply
 	# pairs.
-	if ( command?$known && command$known == KnownCommand_CLIENT )
+	if ( cmd?$known && cmd$known == KnownCommand_CLIENT )
 		{
 		# All 3 CLIENT commands we care about have 3 elements
-		if ( |command$raw| == 3 )
+		if ( |cmd$raw| == 3 )
 			{
-			if ( to_lower(command$raw[2]) == "on" )
+			if ( to_lower(cmd$raw[2]) == "on" )
 				{
 				# If the last range is open, close it here. Otherwise, noop
-				if ( |c$redis_state$no_response_ranges| > 0 )
+				if ( |c$redis_state$no_reply_ranges| > 0 )
 					{
-					local range = c$redis_state$no_response_ranges[|c$redis_state$no_response_ranges|
-					    - 1];
-					if ( |range| == 1 )
+					local range = c$redis_state$no_reply_ranges[-1];
+					if ( ! range?$end )
 						{
-						range += c$redis_state$current_request;
+						range$end = c$redis_state$current_command;
 						}
 					}
 				}
-			if ( to_lower(command$raw[2]) == "off" )
+			if ( to_lower(cmd$raw[2]) == "off" )
 				{
 				# Only add a new interval if the last one is closed
 				if ( is_last_interval_closed(c) )
 					{
-					c$redis_state$no_response_ranges += vector(c$redis_state$current_request);
+					c$redis_state$no_reply_ranges += NoReplyRange(
+					    $begin=c$redis_state$current_command);
 					}
 				}
-			if ( to_lower(command$raw[2]) == "skip" )
+			if ( to_lower(cmd$raw[2]) == "skip" )
 				{
 				if ( is_last_interval_closed(c) )
 					# It skips this one and the next one
-					c$redis_state$no_response_ranges += vector(c$redis_state$current_request,
-					    c$redis_state$current_request + 2);
+					c$redis_state$no_reply_ranges += NoReplyRange(
+					    $begin=c$redis_state$current_command, $end=c$redis_state$current_command + 2);
 				}
 			}
 		}
 	set_state(c, T);
 
-	c$redis$cmd = command;
+	c$redis$cmd = cmd;
 	}
 
-## Gets the next response number based on a connection. This is necessary since
-## some responses may have been skipped.
-function response_num(c: connection): count
+## Gets the next reply number based on a connection. This is necessary since
+## some replies may have been skipped.
+function reply_num(c: connection): count
 	{
-	local resp_num = c$redis_state$current_response + 1;
-	for ( i in c$redis_state$no_response_ranges )
+	local resp_num = c$redis_state$current_reply + 1;
+	for ( i in c$redis_state$no_reply_ranges )
 		{
-		local range = c$redis_state$no_response_ranges[i];
-		assert |range| >= 1;
-		if ( |range| == 1 && resp_num > range[0] )
+		local range = c$redis_state$no_reply_ranges[i];
+		if ( ! range?$end && resp_num > range$begin )
 			{ } # TODO: This is necessary if not using pipelining
-		if ( |range| == 2 && resp_num >= range[0] && resp_num < range[1] )
-			return range[1];
+		if ( range?$end && resp_num >= range$begin && resp_num < range$end )
+			return range$end;
 		}
 
 	# Default: no disable/enable shenanigans
 	return resp_num;
 	}
 
-event Redis::server_data(c: connection, data: Redis::ServerData)
+event Redis::reply(c: connection, data: Redis::ServerData)
 	{
 	if ( ! c?$redis_state )
 		make_new_state(c);
 
-	local previous_response_num = c$redis_state$current_response;
-	c$redis_state$current_response = response_num(c);
+	local previous_reply_num = c$redis_state$current_reply;
+	c$redis_state$current_reply = reply_num(c);
 	set_state(c, F);
 
-	c$redis$response = data;
-	# Log each of the pending responses to this point - we will not go
+	c$redis$reply = data;
+	# Log each of the pending replies to this point - we will not go
 	# back.
-	while ( previous_response_num < c$redis_state$current_response )
+	while ( previous_reply_num < c$redis_state$current_reply )
 		{
-		if ( previous_response_num == 0 )
+		if ( previous_reply_num == 0 )
 			{
-			++previous_response_num;
+			++previous_reply_num;
 			next;
 			}
 
-		if ( previous_response_num in c$redis_state$pending &&
-		    c$redis_state$pending[previous_response_num]?$cmd )
+		if ( previous_reply_num in c$redis_state$pending &&
+		    c$redis_state$pending[previous_reply_num]?$cmd )
 			{
-			Log::write(Redis::LOG, c$redis_state$pending[previous_response_num]);
-			delete c$redis_state$pending[previous_response_num];
+			Log::write(Redis::LOG, c$redis_state$pending[previous_reply_num]);
+			delete c$redis_state$pending[previous_reply_num];
 			}
-		previous_response_num += 1;
+		previous_reply_num += 1;
 		}
-	# Log this one if we have the request and response
+	# Log this one if we have the command and reply
 	if ( c$redis?$cmd )
 		{
 		Log::write(Redis::LOG, c$redis);
-		delete c$redis_state$pending[c$redis_state$current_response];
+		delete c$redis_state$pending[c$redis_state$current_reply];
 		}
 	}
 
@@ -237,11 +238,11 @@ hook finalize_redis(c: connection)
 	{
 	if ( c$redis_state$violation )
 		{
-		# If there's a violation, make sure everything gets deleted
-		delete c$redis_state;
+		# If there's a violation, don't log the remaining parts, just return.
+		return;
 		}
-	# Flush all pending but incomplete request/response pairs.
-	if ( c?$redis_state && c$redis_state$current_response != 0 )
+	# Flush all pending but incomplete command/reply pairs.
+	if ( c?$redis_state && c$redis_state$current_reply != 0 )
 		{
 		for ( r, info in c$redis_state$pending )
 			{

@@ -1,7 +1,7 @@
 # @TEST-DOC: Test 2 commands that look like RESP, then server responses don't
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: zeek -b -Cr $TRACES/redis/almost-resp.pcap %INPUT >output
+# @TEST-EXEC: zeek -b -r $TRACES/redis/almost-resp.pcap %INPUT >output
 # @TEST-EXEC: btest-diff redis.log
 #
 # Really, the first 2 ARE Redis. The later ones should not be logged because we

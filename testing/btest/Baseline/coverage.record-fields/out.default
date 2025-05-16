@@ -597,27 +597,31 @@ connection {
       Redis::Info {
         * cmd: record Redis::Command, log=T, optional=F
             Redis::Command {
-              * command: string, log=T, optional=F
               * key: string, log=T, optional=T
               * known: enum Redis::KnownCommand, log=F, optional=T
+              * name: string, log=T, optional=F
               * raw: vector of string, log=F, optional=F
               * value: string, log=T, optional=T
              }
         * id: record conn_id, log=T, optional=F
             conn_id { ... }
-        * response: record Redis::ServerData, log=T, optional=T
+        * reply: record Redis::ServerData, log=T, optional=T
             Redis::ServerData {
               * data: string, log=T, optional=T
-              * err: bool, log=T, optional=F
+              * success: bool, log=T, optional=F
              }
         * ts: time, log=T, optional=F
         * uid: string, log=T, optional=F
        }
   * redis_state: record Redis::State, log=F, optional=T
       Redis::State {
-        * current_request: count, log=F, optional=T
-        * current_response: count, log=F, optional=T
-        * no_response_ranges: vector of vector of count, log=F, optional=F
+        * current_command: count, log=F, optional=T
+        * current_reply: count, log=F, optional=T
+        * no_reply_ranges: vector of record Redis::NoReplyRange, log=F, optional=F
+            Redis::NoReplyRange {
+              * begin: count, log=F, optional=F
+              * end: count, log=F, optional=T
+             }
         * pending: table[count] of record Redis::Info, log=F, optional=F
             Redis::Info { ... }
         * violation: bool, log=F, optional=T

@@ -1,6 +1,6 @@
 # See the file "COPYING" in the main distribution directory for copyright.
 
-protocol analyzer spicy::Redis over TCP:
+protocol analyzer Redis over TCP:
     parse originator with RESP::ClientMessages,
     parse responder with RESP::ServerMessages;
 
@@ -16,6 +16,6 @@ on RESP::ClientData if ( Redis::is_get(self) ) -> event Redis::get_command($conn
 on RESP::ClientData if ( Redis::is_auth(self) ) -> event Redis::auth_command($conn, Redis::make_auth(self.command));
 
 # All client data is a command
-on RESP::ClientData -> event Redis::client_command($conn, self.command);
+on RESP::ClientData -> event Redis::command($conn, self.command);
 # Server data needs an event to attach request/responses
-on RESP::ServerData -> event Redis::server_data($conn, Zeek_Redis::make_server_data(self));
+on RESP::ServerData -> event Redis::reply($conn, Zeek_Redis::make_server_data(self));

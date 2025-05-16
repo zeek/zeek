@@ -68,7 +68,7 @@ Event::Event(detail::MetadataVectorPtr arg_meta, const EventHandlerPtr& arg_hand
 
 zeek::VectorValPtr Event::MetadataValues(const EnumValPtr& id) const {
     static const auto& any_vec_t = zeek::id::find_type<zeek::VectorType>("any_vec");
-    static const auto& result = zeek::make_intrusive<zeek::VectorVal>(any_vec_t);
+    auto result = zeek::make_intrusive<zeek::VectorVal>(any_vec_t);
 
     if ( ! meta )
         return result;

@@ -18,6 +18,7 @@ public:
 
     Expr(ID* id);
     Expr(Number* num);
+    Expr(Nullptr* nullp);
     Expr(ConstString* s);
     Expr(RegEx* regex);
     Expr(ExprList* args); // for EXPR_CALLARGS
@@ -101,6 +102,7 @@ private:
     RegEx* regex_;        // EXPR_REGEX
     ExprList* args_;      // EXPR_CALLARGS
     CaseExprList* cases_; // EXPR_CASE
+    Nullptr* nullp_;      // EXPR_NULLPTR
 
     string str_;  // value string
     string orig_; // original string for debugging info

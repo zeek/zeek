@@ -65,6 +65,7 @@ class InputBuffer;
 class LetDef;
 class LetField;
 class ID;
+class Nullptr;
 class Number;
 class Output;
 class PacPrimitive;

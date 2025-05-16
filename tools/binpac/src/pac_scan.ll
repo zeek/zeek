@@ -21,6 +21,7 @@
 #include "pac_expr.h"
 #include "pac_flow.h"
 #include "pac_id.h"
+#include "pac_nullptr.h"
 #include "pac_number.h"
 #include "pac_output.h"
 #include "pac_param.h"
@@ -199,6 +200,10 @@ ESCSEQ	(\\([^\n]|[0-7]{3}|x[[:xdigit:]]{2}))
 <INITIAL>flowunit		{
 				yylval.val = AnalyzerDataUnit::FLOWUNIT;
 				return TOK_DATAUNIT;
+				}
+<INITIAL>nullptr		{
+				yylval.nullp = new Nullptr();
+				return TOK_NULLPTR;
 				}
 <INITIAL>of			return TOK_OF;
 <INITIAL>offsetof 		return TOK_OFFSETOF;

@@ -25,7 +25,7 @@
 %token TOK_EMBEDDED_ATOM TOK_EMBEDDED_STRING
 %token TOK_PAC_VAL TOK_PAC_SET TOK_PAC_TYPE TOK_PAC_TYPEOF TOK_PAC_CONST_DEF 
 %token TOK_END_PAC
-%token TOK_EXTERN
+%token TOK_EXTERN TOK_NULLPTR
 
 %nonassoc '=' TOK_PLUSEQ
 %left ';'
@@ -66,6 +66,7 @@
 %type <function> funcproto function
 %type <id> TOK_ID tok_id optfieldid 
 %type <input> input
+%type <nullp> TOK_NULLPTR
 %type <num> TOK_NUMBER
 %type <pacprimitive> embedded_pac_primitive
 %type <param> param
@@ -105,6 +106,7 @@
 #include "pac_id.h"
 #include "pac_inputbuf.h"
 #include "pac_let.h"
+#include "pac_nullptr.h"
 #include "pac_output.h"
 #include "pac_param.h"
 #include "pac_paramtype.h"
@@ -160,6 +162,7 @@ extern Output* source_output;
 	InputBuffer		*input;
 	LetFieldList		*letfieldlist;
 	LetField		*letfield;
+	Nullptr			*nullp;
 	Number			*num;
 	PacPrimitive		*pacprimitive;
 	Param 			*param;
@@ -573,6 +576,10 @@ expr		:	tok_id
 				$$ = new Expr($1);
 				}
 		|	TOK_NUMBER
+				{
+				$$ = new Expr($1);
+				}
+		|	TOK_NULLPTR
 				{
 				$$ = new Expr($1);
 				}

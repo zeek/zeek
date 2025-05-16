@@ -1,5 +1,6 @@
 EXPR_DEF(EXPR_ID, 		0, "%s")
 EXPR_DEF(EXPR_NUM,		0, "%s")
+EXPR_DEF(EXPR_NULLPTR,		0, "%s")
 EXPR_DEF(EXPR_CSTR,		0, "%s")
 EXPR_DEF(EXPR_REGEX,		0, "REGEX(%s)")
 EXPR_DEF(EXPR_SUBSCRIPT,	2, "@element@(%s[%s])") 

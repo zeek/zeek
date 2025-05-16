@@ -82,6 +82,7 @@ set(binpac_SRCS
     pac_id.h
     pac_inputbuf.h
     pac_let.h
+    pac_nullptr.h
     pac_number.h
     pac_output.h
     pac_param.h

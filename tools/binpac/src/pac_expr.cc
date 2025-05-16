@@ -5,6 +5,7 @@
 #include "pac_exception.h"
 #include "pac_exttype.h"
 #include "pac_id.h"
+#include "pac_nullptr.h"
 #include "pac_number.h"
 #include "pac_output.h"
 #include "pac_record.h"
@@ -64,7 +65,6 @@ Expr::Expr(ID* arg_id) : DataDepElement(EXPR) {
     init();
     expr_type_ = EXPR_ID;
     id_ = arg_id;
-    num_operands_ = 0;
     orig_ = strfmt("%s", id_->Name());
 }
 
@@ -72,15 +72,20 @@ Expr::Expr(Number* arg_num) : DataDepElement(EXPR) {
     init();
     expr_type_ = EXPR_NUM;
     num_ = arg_num;
-    num_operands_ = 0;
     orig_ = strfmt("((int) %s)", num_->Str());
+}
+
+Expr::Expr(Nullptr* arg_nullp) : DataDepElement(EXPR) {
+    init();
+    expr_type_ = EXPR_NULLPTR;
+    nullp_ = arg_nullp;
+    orig_ = strfmt("%s", nullp_->Str());
 }
 
 Expr::Expr(ConstString* cstr) : DataDepElement(EXPR) {
     init();
     expr_type_ = EXPR_CSTR;
     cstr_ = cstr;
-    num_operands_ = 0;
     orig_ = cstr_->str();
 }
 
@@ -88,7 +93,6 @@ Expr::Expr(RegEx* regex) : DataDepElement(EXPR) {
     init();
     expr_type_ = EXPR_REGEX;
     regex_ = regex;
-    num_operands_ = 0;
     orig_ = strfmt("/%s/", regex_->str().c_str());
 }
 
@@ -257,6 +261,7 @@ void Expr::GenCaseEval(Output* out_cc, Env* env) {
 void Expr::GenEval(Output* out_cc, Env* env) {
     switch ( expr_type_ ) {
         case EXPR_NUM: str_ = num_->Str(); break;
+        case EXPR_NULLPTR: str_ = nullp_->Str(); break;
 
         case EXPR_ID:
             if ( ! env->Evaluated(id_) )

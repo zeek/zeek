@@ -15,8 +15,7 @@ export {
 	## One caveat is that the :zeek:see:`Intel::seen_policy` hook will not
 	## be invoked for indicator types that are not at all in the Intel
 	## framework's store. You should not load this script, set this variable
-	## to ``F``, or insert dummy values of the types using
-	## :zeek:see:`Intel::insert`.
+	## to ``F``, or insert dummy values of the types using :zeek:see:`Intel::insert`.
 	const manage_seen_event_groups = T &redef;
 }
 

@@ -101,7 +101,7 @@ ProfileFunc::ProfileFunc(const Expr* e, bool _abs_rec_fields) {
 }
 
 TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
-    stmts.push_back({NewRef{}, const_cast<Stmt*>(s)});
+    stmts.emplace_back(NewRef{}, const_cast<Stmt*>(s));
 
     switch ( s->Tag() ) {
         case STMT_INIT:
@@ -185,7 +185,7 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
 }
 
 TraversalCode ProfileFunc::PreExpr(const Expr* e) {
-    exprs.push_back({NewRef{}, const_cast<Expr*>(e)});
+    exprs.emplace_back(NewRef{}, const_cast<Expr*>(e));
 
     TrackType(e->GetType());
 
@@ -1476,7 +1476,7 @@ std::string func_name_at_loc(std::string fname, const Location* loc) {
 TraversalCode SetBlockLineNumbers::PreStmt(const Stmt* s) {
     auto loc = const_cast<Location*>(s->GetLocationInfo());
     UpdateLocInfo(loc);
-    block_line_range.emplace_back(std::pair<int, int>{loc->first_line, loc->last_line});
+    block_line_range.emplace_back(loc->first_line, loc->last_line);
     return TC_CONTINUE;
 }
 
@@ -1535,7 +1535,7 @@ ASTBlockAnalyzer::ASTBlockAnalyzer(std::vector<FuncInfo>& funcs) {
         auto body_loc = body->GetLocationInfo();
         fn = func_name_at_loc(fn, body_loc);
 
-        parents.emplace_back(std::pair<std::string, std::string>{fn, fn});
+        parents.emplace_back(fn, fn);
         func_name_prefix = fn + ":";
         body->Traverse(this);
         parents.pop_back();
@@ -1555,7 +1555,7 @@ TraversalCode ASTBlockAnalyzer::PreStmt(const Stmt* s) {
     auto ls = BuildExpandedDescription(loc);
 
     if ( is_compound_stmt(s) )
-        parents.push_back(std::pair<std::string, std::string>{LocWithFunc(loc), std::move(ls)});
+        parents.emplace_back(LocWithFunc(loc), std::move(ls));
 
     return TC_CONTINUE;
 }

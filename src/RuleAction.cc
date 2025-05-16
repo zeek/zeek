@@ -92,15 +92,15 @@ void RuleActionEvent::DoAction(const Rule* parent, RuleEndpointState* state, con
     if ( handler ) {
         zeek::Args args;
         args.reserve(msg ? 3 : 2);
-        args.push_back({AdoptRef{}, rule_matcher->BuildRuleStateValue(parent, state)});
+        args.emplace_back(AdoptRef{}, rule_matcher->BuildRuleStateValue(parent, state));
 
         if ( msg )
-            args.push_back(msg);
+            args.emplace_back(msg);
 
         if ( data )
-            args.push_back(make_intrusive<StringVal>(len, reinterpret_cast<const char*>(data)));
+            args.emplace_back(make_intrusive<StringVal>(len, reinterpret_cast<const char*>(data)));
         else
-            args.push_back(zeek::val_mgr->EmptyString());
+            args.emplace_back(zeek::val_mgr->EmptyString());
 
         if ( want_end_of_match ) {
             auto* match = state->FindRulePatternMatch(parent);

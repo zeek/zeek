@@ -1638,7 +1638,7 @@ bool detail::TablePatternMatcher::MatchAll(const StringValPtr& s) {
 
 void detail::TablePatternMatcher::Build() {
     matcher_yields.clear();
-    matcher_yields.push_back(nullptr);
+    matcher_yields.emplace_back(nullptr);
 
     auto& tbl_dict = *tbl->Get();
     auto& tbl_hash = *tbl->GetTableHash();

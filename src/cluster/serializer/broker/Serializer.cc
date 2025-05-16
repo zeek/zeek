@@ -82,10 +82,8 @@ std::optional<broker::zeek::Event> detail::to_broker_event(const detail::Event& 
 
         for ( const auto& m : *meta ) {
             if ( auto res = zeek::Broker::detail::val_to_data(m.Val().get()); res.has_value() ) {
-                broker::vector entry(2);
-                entry[0] = static_cast<broker::count>(m.Id());
-                entry[1] = res.value();
-                broker_meta.push_back(std::move(entry));
+                broker::vector entry{static_cast<broker::count>(m.Id()), res.value()};
+                broker_meta.emplace_back(std::move(entry));
             }
             else {
                 // Just for sanity - we should never get here.

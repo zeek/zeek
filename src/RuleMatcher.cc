@@ -549,17 +549,17 @@ static inline bool match_not_and(const vector<IPPrefix>& prefixes, const IPAddr&
 
 static inline bool compare(const maskedvalue_list& mvals, uint32_t v, RuleHdrTest::Comp comp) {
     switch ( comp ) {
-        case RuleHdrTest::EQ: return match_or(mvals, v, std::equal_to<uint32_t>()); break;
+        case RuleHdrTest::EQ: return match_or(mvals, v, std::equal_to<>()); break;
 
-        case RuleHdrTest::NE: return match_not_and(mvals, v, std::equal_to<uint32_t>()); break;
+        case RuleHdrTest::NE: return match_not_and(mvals, v, std::equal_to<>()); break;
 
-        case RuleHdrTest::LT: return match_or(mvals, v, std::less<uint32_t>()); break;
+        case RuleHdrTest::LT: return match_or(mvals, v, std::less<>()); break;
 
-        case RuleHdrTest::GT: return match_or(mvals, v, std::greater<uint32_t>()); break;
+        case RuleHdrTest::GT: return match_or(mvals, v, std::greater<>()); break;
 
-        case RuleHdrTest::LE: return match_or(mvals, v, std::less_equal<uint32_t>()); break;
+        case RuleHdrTest::LE: return match_or(mvals, v, std::less_equal<>()); break;
 
-        case RuleHdrTest::GE: return match_or(mvals, v, std::greater_equal<uint32_t>()); break;
+        case RuleHdrTest::GE: return match_or(mvals, v, std::greater_equal<>()); break;
 
         default: reporter->InternalError("unknown RuleHdrTest comparison type"); break;
     }
@@ -568,17 +568,17 @@ static inline bool compare(const maskedvalue_list& mvals, uint32_t v, RuleHdrTes
 
 static inline bool compare(const vector<IPPrefix>& prefixes, const IPAddr& a, RuleHdrTest::Comp comp) {
     switch ( comp ) {
-        case RuleHdrTest::EQ: return match_or(prefixes, a, std::equal_to<IPAddr>()); break;
+        case RuleHdrTest::EQ: return match_or(prefixes, a, std::equal_to<>()); break;
 
-        case RuleHdrTest::NE: return match_not_and(prefixes, a, std::equal_to<IPAddr>()); break;
+        case RuleHdrTest::NE: return match_not_and(prefixes, a, std::equal_to<>()); break;
 
-        case RuleHdrTest::LT: return match_or(prefixes, a, std::less<IPAddr>()); break;
+        case RuleHdrTest::LT: return match_or(prefixes, a, std::less<>()); break;
 
-        case RuleHdrTest::GT: return match_or(prefixes, a, std::greater<IPAddr>()); break;
+        case RuleHdrTest::GT: return match_or(prefixes, a, std::greater<>()); break;
 
-        case RuleHdrTest::LE: return match_or(prefixes, a, std::less_equal<IPAddr>()); break;
+        case RuleHdrTest::LE: return match_or(prefixes, a, std::less_equal<>()); break;
 
-        case RuleHdrTest::GE: return match_or(prefixes, a, std::greater_equal<IPAddr>()); break;
+        case RuleHdrTest::GE: return match_or(prefixes, a, std::greater_equal<>()); break;
 
         default: reporter->InternalError("unknown RuleHdrTest comparison type"); break;
     }

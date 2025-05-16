@@ -13,6 +13,7 @@ Checks: [-*,
          modernize-use-emplace,
          modernize-use-nullptr,
          modernize-use-override,
+         modernize-use-transparent-functors,
 
          # Enable a very limited number of the cppcoreguidelines checkers.
          # See the notes for some of the rest of them below.

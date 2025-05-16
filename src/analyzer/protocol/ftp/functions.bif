@@ -80,7 +80,7 @@ static zeek::RecordValPtr parse_eftp(const char* line)
 
 				std::string s(line, nptr-line); // extract IP address
 				struct in6_addr result;
-				good = zeek::IPAddr::ConvertString(s.c_str(), &result) ? 1 : 0;
+				good = zeek::IPAddr::ConvertString(s.c_str(), &result);
 				if ( good )
 					addr = zeek::IPAddr(result);
 				}

@@ -584,7 +584,7 @@ head_1:		TOK_ID opt_ws arg_begin
 			if ( definition_type == FUNC_DEF )
 				{
 				fprintf(fp_func_init,
-					"\t(void) new zeek::detail::BuiltinFunc(zeek::%s_bif, \"%s\", 0);\n",
+					"\t(void) new zeek::detail::BuiltinFunc(zeek::%s_bif, \"%s\", false);\n",
 					decl.c_fullname.c_str(), decl.zeek_fullname.c_str());
 
 				// This is the "canonical" version, with argument type and order

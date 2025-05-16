@@ -887,8 +887,8 @@ bool Type::CompatibleTypes(Type* type1, Type* type2) {
 Type* Type::LookUpByID(ID* id) {
     // 1. Is it a pre-defined type?
     string name = id->Name();
-    if ( type_map_.find(name) != type_map_.end() ) {
-        return type_map_[name]->Clone();
+    if ( auto it = type_map_.find(name); it != type_map_.end() ) {
+        return it->second->Clone();
     }
 
     // 2. Is it a simple declared type?

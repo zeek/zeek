@@ -284,7 +284,10 @@ void GenCaseStr(ExprList* index_list, Output* out_cc, Env* env, Type* switch_typ
             // We're always using "int" for storage, so ok to just
             // cast into the type used by the switch statement since
             // some unsafe stuff is already checked above.
-            out_cc->println("case ((%s)%d):", switch_type->DataTypeStr().c_str(), index_const);
+            if ( ! switch_type->IsBooleanType() )
+                out_cc->println("case ((%s)%d):", switch_type->DataTypeStr().c_str(), index_const);
+            else
+                out_cc->println("case %s:", index_const == 0 ? "false" : "true");
         }
     }
     else {

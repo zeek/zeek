@@ -110,7 +110,7 @@ public:
     // is numeric or pointer)
     string DataTypeConstRefStr() const {
         string data_type = DataTypeStr();
-        if ( ! IsPointerType() && ! IsNumericType() )
+        if ( ! IsPointerType() && ! IsNumericType() && ! IsBooleanType() )
             data_type += " const&";
         return data_type;
     }
@@ -138,6 +138,7 @@ public:
 
     virtual bool IsPointerType() const = 0;
     virtual bool IsNumericType() const { return false; }
+    virtual bool IsBooleanType() const { return false; }
     bool IsEmptyType() const;
 
     ////////////////////////////////////////

@@ -1,4 +1,4 @@
-EXTERNTYPE(bool, bool, NUMBER)
+EXTERNTYPE(bool, bool, BOOLEAN)
 EXTERNTYPE(int, int, NUMBER)
 EXTERNTYPE(double, double, NUMBER)
 EXTERNTYPE(string, string, PLAIN)

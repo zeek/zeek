@@ -9,7 +9,8 @@ bool ExternType::DefineValueVar() const { return true; }
 string ExternType::DataTypeStr() const {
     switch ( ext_type_ ) {
         case PLAIN:
-        case NUMBER: return id_->Name();
+        case NUMBER:
+        case BOOLEAN: return id_->Name();
         case POINTER: return string(id_->Name()) + " *";
         default: ASSERT(0); return "";
     }
@@ -31,6 +32,8 @@ void ExternType::GenInitCode(Output* out_cc, Env* env) {
         out_cc->println("%s = 0;", env->LValue(value_var()));
     else if ( IsPointerType() )
         out_cc->println("%s = nullptr;", env->LValue(value_var()));
+    else if ( IsBooleanType() )
+        out_cc->println("%s = false;", env->LValue(value_var()));
 
     Type::GenInitCode(out_cc, env);
 }

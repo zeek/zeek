@@ -11,6 +11,9 @@ module Intel;
 global insert_item: event(item: Item) &is_used;
 global insert_indicator: event(item: Item) &is_used;
 
+# Event to transfer the min_data_store to connecting nodes.
+global new_min_data_store: event(store: MinDataStore) &is_used;
+
 # By default the manager sends its current min_data_store to connecting workers.
 # During testing it's handy to suppress this, since receipt of the store
 # introduces nondeterminism when mixed with explicit data insertions.
@@ -35,7 +38,7 @@ event Cluster::node_up(name: string, id: string)
 	# this by the insert_indicator event.
 	if ( send_store_on_node_up && name in Cluster::nodes && Cluster::nodes[name]$node_type == Cluster::WORKER )
 		{
-		Broker::publish_id(Cluster::node_topic(name), "Intel::min_data_store");
+		Broker::publish(Cluster::node_topic(name), new_min_data_store, min_data_store);
 		}
 	}
 
@@ -91,6 +94,12 @@ event Intel::new_item(item: Intel::Item) &priority=5
 event Intel::insert_indicator(item: Intel::Item) &priority=5
 	{
 	Intel::_insert(item, F);
+	}
+
+# Handling of a complete MinDataStore snapshot
+event new_min_data_store(store: MinDataStore)
+	{
+	min_data_store = store;
 	}
 @endif
 

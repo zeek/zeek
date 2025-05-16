@@ -45,7 +45,10 @@ std::tuple<zeek::Args, zeek::detail::MetadataVectorPtr> detail::Event::Take() &&
 }
 
 bool detail::LocalEventHandlingStrategy::DoProcessEvent(std::string_view topic, detail::Event e) {
-    zeek::event_mgr.Enqueue(e.Handler(), std::move(e.Args()), util::detail::SOURCE_BROKER, 0, nullptr, e.Timestamp());
+    auto h = e.Handler();
+    auto [args, metadata] = std::move(e).Take();
+    zeek::event_mgr.Enqueue(WithMeta{}, h, std::move(args), util::detail::SOURCE_BROKER, 0, nullptr,
+                            std::move(metadata));
     return true;
 }
 

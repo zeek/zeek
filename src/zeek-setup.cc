@@ -472,7 +472,7 @@ static void set_signal_mask(bool do_block) {
     sigaddset(&mask_set, SIGTERM);
     sigaddset(&mask_set, SIGINT);
 
-    int res = pthread_sigmask(do_block ? SIG_BLOCK : SIG_UNBLOCK, &mask_set, 0);
+    int res = pthread_sigmask(do_block ? SIG_BLOCK : SIG_UNBLOCK, &mask_set, nullptr);
     assert(res == 0);
 }
 

@@ -132,14 +132,14 @@ refine typeattr V2Error += &let {
 
 refine typeattr V2ClientHello += &let {
 	proc : bool = $context.connection.proc_client_hello(client_version, 0,
-				challenge, session_id, 0, ciphers, 0);
+				challenge, session_id, nullptr, ciphers, nullptr);
 };
 
 refine typeattr V2ServerHello += &let {
 	check_v2 : bool = $context.connection.proc_check_v2_server_hello_version(server_version);
 
 	proc : bool = $context.connection.proc_server_hello(server_version, true,
-				conn_id_data, 0, 0, ciphers, 0) &requires(check_v2) &if(check_v2 == true);
+				conn_id_data, nullptr, nullptr, ciphers, 0) &requires(check_v2) &if(check_v2 == true);
 
 	cert : bool = $context.connection.proc_v2_certificate(rec.is_orig, cert_data)
 		&requires(proc) &requires(check_v2) &if(check_v2 == true);

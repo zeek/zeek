@@ -59,7 +59,7 @@ refine connection SSL_Conn += {
 			return true;
 			}
 
-		if ( i->message_handshake_sequence != ${rec.message_seq} || i->message_length != length || i->buffer == 0 )
+		if ( i->message_handshake_sequence != ${rec.message_seq} || i->message_length != length || i->buffer == nullptr )
 			{
 			// cannot resume reassembling. Let's abandon the current data and try anew...
 			delete [] i->buffer;

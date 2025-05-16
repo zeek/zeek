@@ -239,35 +239,35 @@ enum SMB_Status {
 
 function determine_transaction_type(header: SMB_Header, name: SMB_string): TransactionType
 	%{
-	if ( name == NULL )
+	if ( name == nullptr )
 		{
 		return SMB_UNKNOWN;
 		}
 
-	if ( (${header.unicode} && ${name.u.s}->size() > 10 && ${name.u.s[0]} == '\\' && 
-	                                                       ${name.u.s[2]} == 'P' && 
-	                                                       ${name.u.s[4]} == 'I' && 
-	                                                       ${name.u.s[6]} == 'P' && 
-	                                                       ${name.u.s[8]} == 'E' && 
+	if ( (${header.unicode} && ${name.u.s}->size() > 10 && ${name.u.s[0]} == '\\' &&
+	                                                       ${name.u.s[2]} == 'P' &&
+	                                                       ${name.u.s[4]} == 'I' &&
+	                                                       ${name.u.s[6]} == 'P' &&
+	                                                       ${name.u.s[8]} == 'E' &&
 	                                                       ${name.u.s[10]} == '\\') ||
-	     (!${header.unicode} && ${name.a}->size() > 5 && ${name.a}->val()->at(0) == '\\' && 
-	                                                     ${name.a}->val()->at(1) == 'P' && 
+	     (!${header.unicode} && ${name.a}->size() > 5 && ${name.a}->val()->at(0) == '\\' &&
+	                                                     ${name.a}->val()->at(1) == 'P' &&
 	                                                     ${name.a}->val()->at(2) == 'I' &&
-	                                                     ${name.a}->val()->at(3) == 'P' && 
-	                                                     ${name.a}->val()->at(4) == 'E' && 
+	                                                     ${name.a}->val()->at(3) == 'P' &&
+	                                                     ${name.a}->val()->at(4) == 'E' &&
 	                                                     ${name.a}->val()->at(5) == '\\') )
 		{
-		if ( (${header.unicode} && ${name.u.s}->size() > 22 && ${name.u.s[12]} == 'L' && 
-		                                                       ${name.u.s[14]} == 'A' && 
-		                                                       ${name.u.s[16]} == 'N' && 
-		                                                       ${name.u.s[18]} == 'M' && 
-		                                                       ${name.u.s[20]} == 'A' && 
+		if ( (${header.unicode} && ${name.u.s}->size() > 22 && ${name.u.s[12]} == 'L' &&
+		                                                       ${name.u.s[14]} == 'A' &&
+		                                                       ${name.u.s[16]} == 'N' &&
+		                                                       ${name.u.s[18]} == 'M' &&
+		                                                       ${name.u.s[20]} == 'A' &&
 		                                                       ${name.u.s[22]} == 'N') ||
-	         (!${header.unicode} && ${name.a}->size() > 11 && ${name.a}->val()->at(6) == 'L' && 
-	                                                          ${name.a}->val()->at(7) == 'A' && 
-	                                                          ${name.a}->val()->at(8) == 'N' && 
-	                                                          ${name.a}->val()->at(9) == 'M' && 
-	                                                          ${name.a}->val()->at(10) == 'A' && 
+	         (!${header.unicode} && ${name.a}->size() > 11 && ${name.a}->val()->at(6) == 'L' &&
+	                                                          ${name.a}->val()->at(7) == 'A' &&
+	                                                          ${name.a}->val()->at(8) == 'N' &&
+	                                                          ${name.a}->val()->at(9) == 'M' &&
+	                                                          ${name.a}->val()->at(10) == 'A' &&
 	                                                          ${name.a}->val()->at(11) == 'N') )
 			{
 			return SMB_RAP;

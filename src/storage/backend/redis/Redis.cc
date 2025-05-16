@@ -391,7 +391,7 @@ OperationResult Redis::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool 
             format.append(" NX");
         format += " %f %b";
 
-        status = redisAsyncCommand(async_ctx, redisZADD, NULL, format.c_str(), key_prefix.data(), expiration_time,
+        status = redisAsyncCommand(async_ctx, redisZADD, nullptr, format.c_str(), key_prefix.data(), expiration_time,
                                    key_data->data(), key_data->size());
         if ( connected && status == REDIS_ERR )
             return {ReturnCode::OPERATION_FAILED, util::fmt("ZADD operation failed: %s", async_ctx->errstr)};
@@ -463,8 +463,8 @@ void Redis::DoExpire(double current_network_time) {
 
     expire_running = true;
 
-    int status = redisAsyncCommand(async_ctx, redisGeneric, NULL, "ZRANGEBYSCORE %s_expire -inf %f", key_prefix.data(),
-                                   current_network_time);
+    int status = redisAsyncCommand(async_ctx, redisGeneric, nullptr, "ZRANGEBYSCORE %s_expire -inf %f",
+                                   key_prefix.data(), current_network_time);
 
     if ( status == REDIS_ERR ) {
         // TODO: do something with the error?
@@ -501,7 +501,7 @@ void Redis::DoExpire(double current_network_time) {
         // redisAsyncCommand usually takes a printf-style string, except the parser used by
         // hiredis doesn't handle lengths passed with strings correctly (it hangs indefinitely).
         // Use util::fmt here instead it handles it.
-        status = redisAsyncCommand(async_ctx, redisGeneric, NULL,
+        status = redisAsyncCommand(async_ctx, redisGeneric, nullptr,
                                    util::fmt("DEL %s:%.*s", key_prefix.data(), static_cast<int>(e.size()), e.data()));
         ++active_ops;
         Poll();
@@ -515,7 +515,7 @@ void Redis::DoExpire(double current_network_time) {
     freeReplyObject(reply);
 
     // Remove all of the elements from the range-set that match the time range.
-    redisAsyncCommand(async_ctx, redisGeneric, NULL, "ZREMRANGEBYSCORE %s_expire -inf %f", key_prefix.data(),
+    redisAsyncCommand(async_ctx, redisGeneric, nullptr, "ZREMRANGEBYSCORE %s_expire -inf %f", key_prefix.data(),
                       current_network_time);
 
     ++active_ops;
@@ -640,7 +640,7 @@ void Redis::OnConnect(int status) {
     connected = false;
     if ( status == REDIS_OK ) {
         // Request the INFO block from the server that should contain the version information.
-        status = redisAsyncCommand(async_ctx, redisINFO, NULL, "INFO server");
+        status = redisAsyncCommand(async_ctx, redisINFO, nullptr, "INFO server");
 
         if ( status == REDIS_ERR ) {
             // TODO: do something with the error?

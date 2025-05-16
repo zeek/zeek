@@ -31,7 +31,7 @@ zeek::TableValPtr characteristics_to_zeek(uint32_t c, uint8_t len)
 		if ( ((c >> i) & 0x1) == 1 )
 			{
 			auto ch = zeek::val_mgr->Count((1<<i)&mask);
-			char_set->Assign(std::move(ch), 0);
+			char_set->Assign(std::move(ch), nullptr);
 			}
 		}
 
@@ -172,7 +172,7 @@ refine flow File += {
 			// Strip null characters from the end of the section name.
 			u_char* first_null = (u_char*) memchr(${h.name}.data(), 0, ${h.name}.length());
 			uint16 name_len;
-			if ( first_null == NULL )
+			if ( first_null == nullptr )
 				name_len = ${h.name}.length();
 			else
 				name_len = first_null - ${h.name}.data();

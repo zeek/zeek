@@ -409,7 +409,7 @@ void init_random_seed(const char* read_file, const char* write_file, bool use_em
         pos += nbytes / sizeof(uint32_t);
 #else
         // Gather up some entropy.
-        gettimeofday((struct timeval*)(buf.data() + pos), 0);
+        gettimeofday((struct timeval*)(buf.data() + pos), nullptr);
         pos += sizeof(struct timeval) / sizeof(uint32_t);
 
         // use urandom. For reasons see e.g. http://www.2uo.de/myths-about-urandom/
@@ -1853,7 +1853,7 @@ double current_time(bool real) {
     tv.tv_sec = ms.count() / 1000;
     tv.tv_usec = (ms.count() % 1000) * 1000;
 #else
-    if ( gettimeofday(&tv, 0) < 0 )
+    if ( gettimeofday(&tv, nullptr) < 0 )
         reporter->InternalError("gettimeofday failed in current_time()");
 #endif
     double t = double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
@@ -1942,7 +1942,7 @@ uint64_t calculate_unique_id(size_t pool) {
             memset(&unique, 0, sizeof(unique)); // Make valgrind happy.
             gethostname(unique.hostname, 120);
             unique.hostname[sizeof(unique.hostname) - 1] = '\0';
-            gettimeofday(&unique.time, 0);
+            gettimeofday(&unique.time, nullptr);
             unique.pool = (uint64_t)pool;
             unique.pid = getpid();
             unique.rnd = static_cast<int>(detail::random_number());

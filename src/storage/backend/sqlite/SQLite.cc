@@ -27,7 +27,7 @@ OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::stri
     DBG_LOG(DBG_STORAGE, "Executing '%s' on %s", cmd.c_str(), full_path.c_str());
 
     while ( pragma_timeout == 0ms || time_spent < pragma_timeout ) {
-        int res = sqlite3_exec(db, cmd.c_str(), NULL, NULL, &errorMsg);
+        int res = sqlite3_exec(db, cmd.c_str(), nullptr, nullptr, &errorMsg);
         if ( res == SQLITE_OK ) {
             break;
         }
@@ -90,7 +90,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
 
     if ( auto open_res =
              CheckError(sqlite3_open_v2(full_path.c_str(), &db,
-                                        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, NULL));
+                                        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr));
          open_res.code != ReturnCode::SUCCESS ) {
         sqlite3_close_v2(db);
         db = nullptr;
@@ -124,12 +124,38 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     create.append("key_str blob primary key, value_str blob not null, expire_time real);");
 
     char* errorMsg = nullptr;
-    if ( int res = sqlite3_exec(db, create.c_str(), NULL, NULL, &errorMsg); res != SQLITE_OK ) {
+    if ( int res = sqlite3_exec(db, create.c_str(), nullptr, nullptr, &errorMsg); res != SQLITE_OK ) {
         std::string err = util::fmt("Error executing table creation statement: (%d) %s", res, errorMsg);
         Error(err.c_str());
         sqlite3_free(errorMsg);
         Close(nullptr);
         return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
+    }
+
+    if ( int res = sqlite3_exec(db, "pragma integrity_check", nullptr, nullptr, &errorMsg); res != SQLITE_OK ) {
+        std::string err = util::fmt("Error executing integrity check: %s", errorMsg);
+        Error(err.c_str());
+        sqlite3_free(errorMsg);
+        Close(nullptr);
+        return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
+    }
+
+    auto tuning_params = backend_options->GetField<TableVal>("tuning_params")->ToMap();
+    for ( const auto& [k, v] : tuning_params ) {
+        auto ks = k->AsListVal()->Idx(0)->AsStringVal();
+        auto ks_sv = ks->ToStdStringView();
+        auto vs = v->AsStringVal();
+        auto vs_sv = vs->ToStdStringView();
+        std::string cmd = util::fmt("pragma %.*s = %.*s", static_cast<int>(ks_sv.size()), ks_sv.data(),
+                                    static_cast<int>(vs_sv.size()), vs_sv.data());
+
+        if ( int res = sqlite3_exec(db, cmd.c_str(), nullptr, nullptr, &errorMsg); res != SQLITE_OK ) {
+            std::string err = util::fmt("Error executing tuning pragma statement: %s", errorMsg);
+            Error(err.c_str());
+            sqlite3_free(errorMsg);
+            Close(nullptr);
+            return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
+        }
     }
 
     static std::array<std::string, 5> statements =
@@ -146,7 +172,8 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     int i = 0;
     for ( const auto& stmt : statements ) {
         sqlite3_stmt* ps;
-        if ( auto prep_res = CheckError(sqlite3_prepare_v2(db, stmt.c_str(), static_cast<int>(stmt.size()), &ps, NULL));
+        if ( auto prep_res =
+                 CheckError(sqlite3_prepare_v2(db, stmt.c_str(), static_cast<int>(stmt.size()), &ps, nullptr));
              prep_res.code != ReturnCode::SUCCESS ) {
             Close(nullptr);
             return prep_res;
@@ -178,7 +205,7 @@ OperationResult SQLite::DoClose(ResultCallback* cb) {
         expire_stmt.reset();
 
         char* errmsg;
-        if ( int res = sqlite3_exec(db, "pragma optimize", NULL, NULL, &errmsg);
+        if ( int res = sqlite3_exec(db, "pragma optimize", nullptr, nullptr, &errmsg);
              res != SQLITE_OK && res != SQLITE_BUSY ) {
             // We're shutting down so capture the error message here for informational
             // reasons, but don't do anything else with it.

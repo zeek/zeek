@@ -686,19 +686,18 @@ refine connection Handshake_Conn += {
 refine typeattr ClientHello += &let {
 	proc : bool = $context.connection.proc_client_hello(client_version,
 				gmt_unix_time, random_bytes,
-				session_id, csuits, 0, cmeths);
+				session_id, csuits, nullptr, cmeths);
 };
 
 refine typeattr ServerHello += &let {
 	proc : bool = $context.connection.proc_server_hello(server_version,
-			false, random_bytes, session_id, cipher_suite, 0,
+			false, random_bytes, session_id, cipher_suite, nullptr,
 			compression_method);
 };
 
 refine typeattr ServerHello13 += &let {
 	proc : bool = $context.connection.proc_server_hello(server_version,
-			false, random, 0, cipher_suite, 0,
-			0);
+			false, random, nullptr, cipher_suite, nullptr, 0);
 };
 
 

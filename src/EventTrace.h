@@ -440,7 +440,9 @@ private:
 class EventTraceMgr {
 public:
     EventTraceMgr(const std::string& trace_file);
-    ~EventTraceMgr();
+
+    // Generates the trace upon exit.
+    void Generate();
 
     // Called at the beginning of invoking an event's handlers.
     void StartEvent(const ScriptFunc* ev, const zeek::Args* args);

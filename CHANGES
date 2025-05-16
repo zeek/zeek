@@ -1,3 +1,7 @@
+8.0.0-dev.106 | 2025-05-16 13:39:56 +0200
+
+  * Generate --event-trace output explicitly rather than in EventTraceMgr destructor (Vern Paxson, Corelight)
+
 8.0.0-dev.104 | 2025-05-15 12:15:42 -0700
 
   * Require non-system version of libkrb5 on macOS (Tim Wojtulewicz, Corelight)

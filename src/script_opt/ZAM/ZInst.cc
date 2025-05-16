@@ -26,7 +26,7 @@ void ZInst::Dump(FILE* f, const string& prefix, const string& id1, const string&
                  const string& id4) const {
     fprintf(f, "%s ", ZOP_name(op));
     // fprintf(f, "(%s) ", op_type_name(op_type));
-    if ( t && 0 )
+    if ( t && false )
         fprintf(f, "(%s) ", type_name(t->Tag()));
 
     switch ( op_type ) {

@@ -532,7 +532,7 @@ void Manager::analyzerError(file_analysis::Analyzer* a, const std::string& msg, 
     reporter->PopLocation();
 
     if ( a )
-        a->SetSkip(1); // Imitate what AnalyzerError() does for protocol analyzers.
+        a->SetSkip(true); // Imitate what AnalyzerError() does for protocol analyzers.
 }
 
 void Manager::analyzerError(packet_analysis::Analyzer* a, const std::string& msg, const std::string& location) {

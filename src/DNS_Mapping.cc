@@ -128,7 +128,7 @@ void DNS_Mapping::Init(struct hostent* h) {
         names.emplace_back(h->h_name);
 
     if ( h->h_addr_list ) {
-        for ( int i = 0; h->h_addr_list[i] != NULL; ++i ) {
+        for ( int i = 0; h->h_addr_list[i] != nullptr; ++i ) {
             if ( h->h_addrtype == AF_INET )
                 addrs.emplace_back(IPv4, (uint32_t*)h->h_addr_list[i], IPAddr::Network);
             else if ( h->h_addrtype == AF_INET6 )
@@ -203,11 +203,11 @@ TEST_CASE("dns_mapping init host") {
 
     struct hostent he;
     he.h_name = util::copy_string("testing.home");
-    he.h_aliases = NULL;
+    he.h_aliases = nullptr;
     he.h_addrtype = AF_INET;
     he.h_length = sizeof(in_addr);
 
-    std::vector<in_addr*> addrs = {&in4, NULL};
+    std::vector<in_addr*> addrs = {&in4, nullptr};
     he.h_addr_list = reinterpret_cast<char**>(addrs.data());
 
     DNS_Mapping mapping("testing.home", &he, 123, T_A);
@@ -241,11 +241,11 @@ TEST_CASE("dns_mapping init addr") {
 
     struct hostent he;
     he.h_name = util::copy_string("testing.home");
-    he.h_aliases = NULL;
+    he.h_aliases = nullptr;
     he.h_addrtype = AF_INET;
     he.h_length = sizeof(in_addr);
 
-    std::vector<in_addr*> addrs = {&in4, NULL};
+    std::vector<in_addr*> addrs = {&in4, nullptr};
     he.h_addr_list = reinterpret_cast<char**>(addrs.data());
 
     DNS_Mapping mapping(addr, &he, 123);
@@ -282,11 +282,11 @@ TEST_CASE("dns_mapping save reload") {
 
     struct hostent he;
     he.h_name = util::copy_string("testing.home");
-    he.h_aliases = NULL;
+    he.h_aliases = nullptr;
     he.h_addrtype = AF_INET;
     he.h_length = sizeof(in_addr);
 
-    std::vector<in_addr*> addrs = {&in4, NULL};
+    std::vector<in_addr*> addrs = {&in4, nullptr};
     he.h_addr_list = reinterpret_cast<char**>(addrs.data());
 
     // Create a temporary file in memory and fseek to the end of it so we're at
@@ -350,11 +350,11 @@ TEST_CASE("dns_mapping multiple addresses") {
 
     struct hostent he;
     he.h_name = util::copy_string("testing.home");
-    he.h_aliases = NULL;
+    he.h_aliases = nullptr;
     he.h_addrtype = AF_INET;
     he.h_length = sizeof(in_addr);
 
-    std::vector<in_addr*> addrs = {&in4_1, &in4_2, NULL};
+    std::vector<in_addr*> addrs = {&in4_1, &in4_2, nullptr};
     he.h_addr_list = reinterpret_cast<char**>(addrs.data());
 
     DNS_Mapping mapping("testing.home", &he, 123, T_A);
@@ -382,11 +382,11 @@ TEST_CASE("dns_mapping ipv6") {
 
     struct hostent he;
     he.h_name = util::copy_string("testing.home");
-    he.h_aliases = NULL;
+    he.h_aliases = nullptr;
     he.h_addrtype = AF_INET6;
     he.h_length = sizeof(in6_addr);
 
-    std::vector<in6_addr*> addrs = {&in6, NULL};
+    std::vector<in6_addr*> addrs = {&in6, nullptr};
     he.h_addr_list = reinterpret_cast<char**>(addrs.data());
 
     DNS_Mapping mapping(addr, &he, 123);

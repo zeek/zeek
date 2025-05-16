@@ -168,7 +168,7 @@ void* BasicThread::launcher(void* arg) {
     sigdelset(&mask_set, SIGILL);
     sigdelset(&mask_set, SIGSEGV);
     sigdelset(&mask_set, SIGBUS);
-    int res = pthread_sigmask(SIG_BLOCK, &mask_set, 0);
+    int res = pthread_sigmask(SIG_BLOCK, &mask_set, nullptr);
     assert(res == 0);
 #endif
 

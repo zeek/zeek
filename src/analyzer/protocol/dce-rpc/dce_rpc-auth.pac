@@ -10,9 +10,9 @@ refine connection DCE_RPC_Conn += {
 	%}
 
 	%init{
-		ntlm = 0;
-		gssapi = 0;
-		krb = 0;
+		ntlm = nullptr;
+		gssapi = nullptr;
+		krb = nullptr;
 	%}
 
 	%cleanup{

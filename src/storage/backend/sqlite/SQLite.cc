@@ -36,7 +36,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
 
     if ( auto open_res =
              CheckError(sqlite3_open_v2(full_path.c_str(), &db,
-                                        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, NULL));
+                                        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, nullptr));
          open_res.code != ReturnCode::SUCCESS ) {
         sqlite3_close_v2(db);
         db = nullptr;
@@ -47,7 +47,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     create.append("key_str blob primary key, value_str blob not null, expire_time real);");
 
     char* errorMsg = nullptr;
-    if ( int res = sqlite3_exec(db, create.c_str(), NULL, NULL, &errorMsg); res != SQLITE_OK ) {
+    if ( int res = sqlite3_exec(db, create.c_str(), nullptr, nullptr, &errorMsg); res != SQLITE_OK ) {
         std::string err = util::fmt("Error executing table creation statement: %s", errorMsg);
         Error(err.c_str());
         sqlite3_free(errorMsg);
@@ -55,7 +55,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
     }
 
-    if ( int res = sqlite3_exec(db, "pragma integrity_check", NULL, NULL, &errorMsg); res != SQLITE_OK ) {
+    if ( int res = sqlite3_exec(db, "pragma integrity_check", nullptr, nullptr, &errorMsg); res != SQLITE_OK ) {
         std::string err = util::fmt("Error executing integrity check: %s", errorMsg);
         Error(err.c_str());
         sqlite3_free(errorMsg);
@@ -72,7 +72,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         std::string cmd = util::fmt("pragma %.*s = %.*s", static_cast<int>(ks_sv.size()), ks_sv.data(),
                                     static_cast<int>(vs_sv.size()), vs_sv.data());
 
-        if ( int res = sqlite3_exec(db, cmd.c_str(), NULL, NULL, &errorMsg); res != SQLITE_OK ) {
+        if ( int res = sqlite3_exec(db, cmd.c_str(), nullptr, nullptr, &errorMsg); res != SQLITE_OK ) {
             std::string err = util::fmt("Error executing tuning pragma statement: %s", errorMsg);
             Error(err.c_str());
             sqlite3_free(errorMsg);
@@ -95,7 +95,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     int i = 0;
     for ( const auto& stmt : statements ) {
         sqlite3_stmt* ps;
-        if ( auto prep_res = CheckError(sqlite3_prepare_v2(db, stmt.c_str(), stmt.size(), &ps, NULL));
+        if ( auto prep_res = CheckError(sqlite3_prepare_v2(db, stmt.c_str(), stmt.size(), &ps, nullptr));
              prep_res.code != ReturnCode::SUCCESS ) {
             Close(nullptr);
             return prep_res;
@@ -129,7 +129,7 @@ OperationResult SQLite::DoClose(ResultCallback* cb) {
         expire_stmt.reset();
 
         char* errmsg;
-        if ( int res = sqlite3_exec(db, "pragma optimize", NULL, NULL, &errmsg); res != SQLITE_OK ) {
+        if ( int res = sqlite3_exec(db, "pragma optimize", nullptr, nullptr, &errmsg); res != SQLITE_OK ) {
             // We're shutting down so capture the error message here for informational
             // reasons, but don't do anything else with it.
             op_res = {ReturnCode::DISCONNECTION_FAILED, util::fmt("Sqlite failed to optimize at shutdown: %s", errmsg)};

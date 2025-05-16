@@ -807,19 +807,19 @@ type SSLExtension(rec: HandshakeRecord) = record {
 	# Pretty code ahead. Deal with the fact that perhaps extensions are
 	# not really present and we do not want to fail because of that.
 	ext: case type of {
-		EXT_APPLICATION_LAYER_PROTOCOL_NEGOTIATION -> apnl: ApplicationLayerProtocolNegotiationExtension(rec)[] &until($element == 0 || $element != 0);
-		EXT_ELLIPTIC_CURVES -> elliptic_curves: EllipticCurves(rec)[] &until($element == 0 || $element != 0);
-		EXT_EC_POINT_FORMATS -> ec_point_formats: EcPointFormats(rec)[] &until($element == 0 || $element != 0);
-#		EXT_STATUS_REQUEST -> status_request: StatusRequest(rec)[] &until($element == 0 || $element != 0);
-		EXT_SERVER_NAME -> server_name: ServerNameExt(rec)[] &until($element == 0 || $element != 0);
-		EXT_SIGNATURE_ALGORITHMS -> signature_algorithm: SignatureAlgorithm(rec)[] &until($element == 0 || $element != 0);
-		EXT_SIGNED_CERTIFICATE_TIMESTAMP -> certificate_timestamp: SignedCertificateTimestampList(rec)[] &until($element == 0 || $element != 0);
-		EXT_KEY_SHARE -> key_share: KeyShare(rec, this)[] &until($element == 0 || $element != 0);
-		EXT_KEY_SHARE_OLD -> key_share_old: KeyShare(rec, this)[] &until($element == 0 || $element != 0);
-		EXT_SUPPORTED_VERSIONS -> supported_versions_selector: SupportedVersionsSelector(rec, data_len)[] &until($element == 0 || $element != 0);
-		EXT_PSK_KEY_EXCHANGE_MODES -> psk_key_exchange_modes: PSKKeyExchangeModes(rec)[] &until($element == 0 || $element != 0);
-		EXT_PRE_SHARED_KEY -> pre_shared_key: PreSharedKey(rec)[] &until($element == 0 || $element != 0);
-		EXT_CONNECTION_ID -> connection_id: ConnectionId(rec)[] &until($element == 0 || $element != 0);
+		EXT_APPLICATION_LAYER_PROTOCOL_NEGOTIATION -> apnl: ApplicationLayerProtocolNegotiationExtension(rec)[] &until($element == nullptr || $element != nullptr);
+		EXT_ELLIPTIC_CURVES -> elliptic_curves: EllipticCurves(rec)[] &until($element == nullptr || $element != nullptr);
+		EXT_EC_POINT_FORMATS -> ec_point_formats: EcPointFormats(rec)[] &until($element == nullptr || $element != nullptr);
+#		EXT_STATUS_REQUEST -> status_request: StatusRequest(rec)[] &until($element == nullptr || $element != nullptr);
+		EXT_SERVER_NAME -> server_name: ServerNameExt(rec)[] &until($element == nullptr || $element != nullptr);
+		EXT_SIGNATURE_ALGORITHMS -> signature_algorithm: SignatureAlgorithm(rec)[] &until($element == nullptr || $element != nullptr);
+		EXT_SIGNED_CERTIFICATE_TIMESTAMP -> certificate_timestamp: SignedCertificateTimestampList(rec)[] &until($element == nullptr || $element != nullptr);
+		EXT_KEY_SHARE -> key_share: KeyShare(rec, this)[] &until($element == nullptr || $element != nullptr);
+		EXT_KEY_SHARE_OLD -> key_share_old: KeyShare(rec, this)[] &until($element == nullptr || $element != nullptr);
+		EXT_SUPPORTED_VERSIONS -> supported_versions_selector: SupportedVersionsSelector(rec, data_len)[] &until($element == nullptr || $element != nullptr);
+		EXT_PSK_KEY_EXCHANGE_MODES -> psk_key_exchange_modes: PSKKeyExchangeModes(rec)[] &until($element == nullptr || $element != nullptr);
+		EXT_PRE_SHARED_KEY -> pre_shared_key: PreSharedKey(rec)[] &until($element == nullptr || $element != nullptr);
+		EXT_CONNECTION_ID -> connection_id: ConnectionId(rec)[] &until($element == nullptr || $element != nullptr);
 		default -> data: bytestring &restofdata;
 	};
 } &length=data_len+4 &exportsourcedata;
@@ -1102,4 +1102,3 @@ refine connection Handshake_Conn += {
 		return true;
 		%}
 };
-

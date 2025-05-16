@@ -40,9 +40,9 @@ void SQLite::DoClose() {
     sqlite3_finalize(st);
     st = nullptr;
 
-    if ( db != 0 ) {
+    if ( db != nullptr ) {
         sqlite3_close(db);
-        db = 0;
+        db = nullptr;
     }
 }
 
@@ -88,14 +88,14 @@ bool SQLite::DoInit(const ReaderInfo& info, int arg_num_fields, const threading:
     else
         query = it->second;
 
-    if ( checkError(sqlite3_open_v2(fullpath.c_str(), &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_NOMUTEX, NULL)) )
+    if ( checkError(sqlite3_open_v2(fullpath.c_str(), &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_NOMUTEX, nullptr)) )
         return false;
 
     num_fields = arg_num_fields;
     fields = arg_fields;
 
     // create the prepared select statement that we will re-use forever...
-    if ( checkError(sqlite3_prepare_v2(db, query.c_str(), query.size() + 1, &st, NULL)) ) {
+    if ( checkError(sqlite3_prepare_v2(db, query.c_str(), query.size() + 1, &st, nullptr)) ) {
         return false;
     }
 
@@ -159,7 +159,7 @@ Value* SQLite::EntryToVal(sqlite3_stmt* st, const threading::Field* field, int p
             if ( subpos != -1 ) {
                 const char* text = (const char*)sqlite3_column_text(st, subpos);
 
-                if ( text == 0 )
+                if ( text == nullptr )
                     Error("Port protocol definition did not contain text");
                 else {
                     std::string s(text, sqlite3_column_bytes(st, subpos));

@@ -11,6 +11,7 @@ Checks: [-*,
          modernize-use-bool-literals,
          modernize-use-default-member-init,
          modernize-use-emplace,
+         modernize-use-nullptr,
 
          # Enable a very limited number of the cppcoreguidelines checkers.
          # See the notes for some of the rest of them below.

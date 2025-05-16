@@ -31,8 +31,8 @@ STACK_OF(X509)* x509_get_untrusted_stack(zeek::VectorVal* certs_vec)
 	if ( ! untrusted_certs )
 		{
 		zeek::emit_builtin_error(zeek::util::fmt("Untrusted certificate stack initialization error: %s",
-		                       ERR_error_string(ERR_get_error(),NULL)));
-		return 0;
+		                       ERR_error_string(ERR_get_error(), nullptr)));
+		return nullptr;
 		}
 
 	for ( int i = 1; i < (int) certs_vec->Size(); ++i ) // start at 1 - 0 is host cert
@@ -48,7 +48,7 @@ STACK_OF(X509)* x509_get_untrusted_stack(zeek::VectorVal* certs_vec)
 			{
 			sk_X509_free(untrusted_certs);
 			zeek::emit_builtin_error("No certificate in opaque in stack");
-			return 0;
+			return nullptr;
 			}
 
 		sk_X509_push(untrusted_certs, x);
@@ -73,10 +73,10 @@ X509* x509_get_ocsp_signer(const STACK_OF(X509)* certs,
 	else if ( resp_id->type == V_OCSP_RESPID_KEY )
 		key = resp_id->value.byKey;
 	else
-		return 0;
+		return nullptr;
 #else
 	if ( ! OCSP_resp_get0_id(basic_resp, &key, &name) )
-		return 0;
+		return nullptr;
 #endif
 
 	if ( name )
@@ -85,7 +85,7 @@ X509* x509_get_ocsp_signer(const STACK_OF(X509)* certs,
 
 	// Just like OpenSSL, we just support SHA-1 lookups and bail out otherwise.
 	if ( key->length != SHA_DIGEST_LENGTH )
-		return 0;
+		return nullptr;
 
 	unsigned char* key_hash = key->data;
 
@@ -93,7 +93,7 @@ X509* x509_get_ocsp_signer(const STACK_OF(X509)* certs,
 		{
 		unsigned char digest[SHA_DIGEST_LENGTH];
 		X509* cert = sk_X509_value(certs, i);
-		if ( ! X509_pubkey_digest(cert, EVP_sha1(), digest, NULL) )
+		if ( ! X509_pubkey_digest(cert, EVP_sha1(), digest, nullptr) )
 			// digest failed for this certificate, try with next
 			continue;
 
@@ -102,7 +102,7 @@ X509* x509_get_ocsp_signer(const STACK_OF(X509)* certs,
 			return cert;
 		}
 
-	return 0;
+	return nullptr;
 	}
 
 // Convert hash algorithm registry numbers to the OpenSSL EVP_MD.
@@ -304,21 +304,21 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 
 	// from here, always goto cleanup. Initialize all other required variables...
 	time_t vtime = (time_t) verify_time;
-	OCSP_BASICRESP *basic = 0;
-	OCSP_SINGLERESP *single = 0;
-	X509_STORE_CTX *csc = 0;
-	OCSP_CERTID *certid = 0;
+	OCSP_BASICRESP *basic = nullptr;
+	OCSP_SINGLERESP *single = nullptr;
+	X509_STORE_CTX *csc = nullptr;
+	OCSP_CERTID *certid = nullptr;
 	stack_st_X509* ocsp_certs = nullptr;
 	int status = -1;
 	int out = -1;
 	int result = -1;
-	X509* issuer_certificate = 0;
-	X509* signer = 0;
+	X509* issuer_certificate = nullptr;
+	X509* signer = nullptr;
 	ASN1_GENERALIZEDTIME* thisUpdate = nullptr;
 	ASN1_GENERALIZEDTIME* nextUpdate = nullptr;
 	int type = -1;
 
-	OCSP_RESPONSE *resp = d2i_OCSP_RESPONSE(NULL, &start, ocsp_reply->Len());
+	OCSP_RESPONSE *resp = d2i_OCSP_RESPONSE(nullptr, &start, ocsp_reply->Len());
 
 	if ( ! resp )
 		{
@@ -348,7 +348,7 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 	// the lookup.
 	// Yay.
 
-	issuer_certificate = 0;
+	issuer_certificate = nullptr;
 	for ( int i = 0; i < sk_X509_num(untrusted_certs); i++)
 		{
 		OCSP_basic_add1_cert(basic, sk_X509_value(untrusted_certs, i));
@@ -404,10 +404,10 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 	// We pass OCSP_NOVERIFY to let OCSP_basic_verify skip the chain verification.
 	// With that, it only verifies the signature of the basic response and we are responsible
 	// for the chain ourselves. We have to do that since we cannot get OCSP_basic_verify to use our timestamp.
-	out = OCSP_basic_verify(basic, NULL, ctx, OCSP_NOVERIFY);
+	out = OCSP_basic_verify(basic, nullptr, ctx, OCSP_NOVERIFY);
 	if ( out < 1 )
 		{
-		rval = x509_result_record(out, ERR_error_string(ERR_get_error(),NULL));
+		rval = x509_result_record(out, ERR_error_string(ERR_get_error(), nullptr));
 		goto x509_ocsp_cleanup;
 		}
 
@@ -421,7 +421,7 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 	// into accepting.
 
 	if ( issuer_certificate )
-		certid = OCSP_cert_to_id(NULL, cert, issuer_certificate);
+		certid = OCSP_cert_to_id(nullptr, cert, issuer_certificate);
 	else
 		{
 		// issuer not in list sent by server, check store
@@ -434,7 +434,7 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 			goto x509_ocsp_cleanup;
 			}
 
-		certid = OCSP_cert_to_id(NULL, cert,X509_OBJECT_get0_X509( obj));
+		certid = OCSP_cert_to_id(nullptr, cert,X509_OBJECT_get0_X509( obj));
 		X509_OBJECT_free(obj);
 		}
 
@@ -457,7 +457,7 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 		return x509_result_record(-1, "OCSP reply is not for host certificate");
 
 	// next - check freshness of proof...
-	type = OCSP_single_get0_status(single, NULL, NULL, &thisUpdate, &nextUpdate);
+	type = OCSP_single_get0_status(single, nullptr, nullptr, &thisUpdate, &nextUpdate);
 
 	if ( type == -1 )
 		{
@@ -774,7 +774,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 		goto sct_verify_err;
 		}
 
-	if ( ! EVP_DigestVerifyInit(mdctx, NULL, hash, NULL, key) )
+	if ( ! EVP_DigestVerifyInit(mdctx, nullptr, hash, nullptr, key) )
 		{
 		errstr = "Could not init signature verification";
 		goto sct_verify_err;

@@ -55,12 +55,12 @@ public:
 
     StreamType stream_type; // to distinguish between event and table streams
 
-    EnumVal* type;
-    ReaderFrontend* reader;
-    TableVal* config;
+    EnumVal* type = nullptr;
+    ReaderFrontend* reader = nullptr;
+    TableVal* config = nullptr;
     EventHandlerPtr error_event;
 
-    RecordVal* description;
+    RecordVal* description = nullptr;
 
     virtual ~Stream();
 
@@ -68,8 +68,7 @@ protected:
     Stream(StreamType t);
 };
 
-Manager::Stream::Stream(StreamType t)
-    : name(), removed(), stream_type(t), type(), reader(), config(), error_event(), description() {}
+Manager::Stream::Stream(StreamType t) : stream_type(t) {}
 
 Manager::Stream::~Stream() {
     Unref(type);
@@ -84,14 +83,14 @@ public:
     unsigned int num_val_fields;
     bool want_record;
 
-    TableVal* tab;
-    RecordType* rtype;
-    RecordType* itype;
+    TableVal* tab = nullptr;
+    RecordType* rtype = nullptr;
+    RecordType* itype = nullptr;
 
-    PDict<InputHash>* currDict;
-    PDict<InputHash>* lastDict;
+    PDict<InputHash>* currDict = nullptr;
+    PDict<InputHash>* lastDict = nullptr;
 
-    Func* pred;
+    Func* pred = nullptr;
 
     EventHandlerPtr event;
 
@@ -103,7 +102,7 @@ class Manager::EventStream final : public Manager::Stream {
 public:
     EventHandlerPtr event;
 
-    RecordType* fields;
+    RecordType* fields = nullptr;
     unsigned int num_fields;
 
     bool want_record;
@@ -119,21 +118,9 @@ public:
     ~AnalysisStream() override = default;
 };
 
-Manager::TableStream::TableStream()
-    : Manager::Stream::Stream(TABLE_STREAM),
-      num_idx_fields(),
-      num_val_fields(),
-      want_record(),
-      tab(),
-      rtype(),
-      itype(),
-      currDict(),
-      lastDict(),
-      pred(),
-      event() {}
+Manager::TableStream::TableStream() : Manager::Stream::Stream(TABLE_STREAM) {}
 
-Manager::EventStream::EventStream()
-    : Manager::Stream::Stream(EVENT_STREAM), event(), fields(), num_fields(), want_record() {}
+Manager::EventStream::EventStream() : Manager::Stream::Stream(EVENT_STREAM) {}
 
 Manager::EventStream::~EventStream() {
     if ( fields )

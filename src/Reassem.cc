@@ -243,12 +243,7 @@ uint64_t DataBlockList::Trim(uint64_t seq, uint64_t max_old, DataBlockList* old_
 }
 
 Reassembler::Reassembler(uint64_t init_seq, ReassemblerType reassem_type)
-    : block_list(this),
-      old_block_list(this),
-      last_reassem_seq(init_seq),
-      trim_seq(init_seq),
-      max_old_blocks(0),
-      rtype(reassem_type) {}
+    : block_list(this), old_block_list(this), last_reassem_seq(init_seq), trim_seq(init_seq), rtype(reassem_type) {}
 
 void Reassembler::CheckOverlap(const DataBlockList& list, uint64_t seq, uint64_t len, const u_char* data) {
     if ( list.Empty() )

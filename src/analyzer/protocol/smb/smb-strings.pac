@@ -59,7 +59,7 @@ refine connection SMB_Conn += {
 	%}
 
 	%init{
-		me = 0;
+		me = nullptr;
 	%}
 
 	function store_this_unicode_string(s: SMB_unicode_string): bool

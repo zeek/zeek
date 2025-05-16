@@ -213,7 +213,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
     glob_t gl;
 
-    if ( glob(dypattern.c_str(), 0, 0, &gl) == 0 ) {
+    if ( glob(dypattern.c_str(), 0, nullptr, &gl) == 0 ) {
         for ( size_t i = 0; i < gl.gl_pathc; i++ ) {
             const char* path = gl.gl_pathv[i];
 

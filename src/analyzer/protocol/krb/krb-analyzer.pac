@@ -154,7 +154,7 @@ bool proc_error_arguments(zeek::RecordVal* rv, const std::vector<KRB_ERROR_Arg*>
 				break;
 			case 12:
 				if ( error_code == KDC_ERR_PREAUTH_REQUIRED )
-					rv->Assign(10, proc_padata(arg->args()->e_data()->padata(), NULL, true));
+					rv->Assign(10, proc_padata(arg->args()->e_data()->padata(), nullptr, true));
 				break;
 			default:
 				break;

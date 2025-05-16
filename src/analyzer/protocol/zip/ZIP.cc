@@ -11,12 +11,12 @@ ZIP_Analyzer::ZIP_Analyzer(Connection* conn, bool orig, Method arg_method)
     method = arg_method;
 
     zip = new z_stream;
-    zip->zalloc = 0;
-    zip->zfree = 0;
-    zip->opaque = 0;
-    zip->next_out = 0;
+    zip->zalloc = nullptr;
+    zip->zfree = nullptr;
+    zip->opaque = nullptr;
+    zip->next_out = nullptr;
     zip->avail_out = 0;
-    zip->next_in = 0;
+    zip->next_in = nullptr;
     zip->avail_in = 0;
 
     // "32" is a gross overload hack that means "check it

@@ -20,7 +20,7 @@ function bytestring_caseprefix(s1: const_bytestring, s2: const_charptr): bool
 
 function bytestring_to_int(s: const_bytestring, base: int): int
 	%{
-	return strtol((const char*) std_str(s).c_str(), 0, base);
+	return strtol((const char*) std_str(s).c_str(), nullptr, base);
 	%}
 
 function bytestring_to_double(s: const_bytestring): double

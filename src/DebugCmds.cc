@@ -60,7 +60,7 @@ static void lookup_global_symbols_regex(const string& orig_regex, vector<ID*>& m
     for ( const auto& sym : syms ) {
         ID* nextid = sym.second.get();
         if ( ! func_only || nextid->GetType()->Tag() == TYPE_FUNC )
-            if ( ! regexec(&re, nextid->Name(), 0, 0, 0) )
+            if ( ! regexec(&re, nextid->Name(), 0, nullptr, 0) )
                 matches.push_back(nextid);
     }
 }

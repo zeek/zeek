@@ -287,7 +287,7 @@ void PacketProfiler::ProfilePkt(double t, unsigned int bytes) {
         struct rusage res;
         struct timeval ptimestamp;
         getrusage(RUSAGE_SELF, &res);
-        gettimeofday(&ptimestamp, 0);
+        gettimeofday(&ptimestamp, nullptr);
 
         util::get_memory_usage(&last_mem, nullptr);
         last_Utime = res.ru_utime.tv_sec + res.ru_utime.tv_usec / 1e6;
@@ -302,7 +302,7 @@ void PacketProfiler::ProfilePkt(double t, unsigned int bytes) {
         struct rusage res;
         struct timeval ptimestamp;
         getrusage(RUSAGE_SELF, &res);
-        gettimeofday(&ptimestamp, 0);
+        gettimeofday(&ptimestamp, nullptr);
 
         double curr_Utime = res.ru_utime.tv_sec + res.ru_utime.tv_usec / 1e6;
         double curr_Stime = res.ru_stime.tv_sec + res.ru_stime.tv_usec / 1e6;

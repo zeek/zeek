@@ -65,7 +65,7 @@ bool X509::EndOfFile() {
 
     // ok, now we can try to parse the certificate with openssl. Should
     // be rather straightforward...
-    ::X509* ssl_cert = d2i_X509(NULL, &cert_char, cert_data.size());
+    ::X509* ssl_cert = d2i_X509(nullptr, &cert_char, cert_data.size());
     if ( ! ssl_cert ) {
         reporter->Weird(GetFile(), "x509_cert_parse_error");
         return false;
@@ -155,7 +155,7 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f) {
     // if the string is longer than 255, that will be our null-termination,
     // otherwise i2t does null-terminate.
     ASN1_OBJECT* algorithm;
-    X509_PUBKEY_get0_param(&algorithm, NULL, NULL, NULL, X509_get_X509_PUBKEY(ssl_cert));
+    X509_PUBKEY_get0_param(&algorithm, nullptr, nullptr, nullptr, X509_get_X509_PUBKEY(ssl_cert));
     if ( ! i2t_ASN1_OBJECT(buf, 255, algorithm) )
         buf[0] = 0;
 
@@ -165,7 +165,7 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f) {
     i2a_ASN1_OBJECT(bio, ssl_cert->sig_alg->algorithm);
 #else
     const ASN1_OBJECT* alg;
-    X509_ALGOR_get0(&alg, NULL, NULL, X509_get0_tbs_sigalg(ssl_cert));
+    X509_ALGOR_get0(&alg, nullptr, nullptr, X509_get0_tbs_sigalg(ssl_cert));
     i2a_ASN1_OBJECT(bio, alg);
 #endif
     len = BIO_gets(bio, buf, sizeof(buf));
@@ -180,13 +180,13 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f) {
 
     if ( OBJ_obj2nid(algorithm) == NID_md5WithRSAEncryption ) {
         ASN1_OBJECT* copy = OBJ_dup(algorithm); // the next line will destroy the original algorithm.
-        X509_PUBKEY_set0_param(X509_get_X509_PUBKEY(ssl_cert), OBJ_nid2obj(NID_rsaEncryption), 0, NULL, NULL, 0);
+        X509_PUBKEY_set0_param(X509_get_X509_PUBKEY(ssl_cert), OBJ_nid2obj(NID_rsaEncryption), 0, nullptr, nullptr, 0);
         algorithm = copy;
         // we do not have to worry about freeing algorithm in that case - since it will be
         // re-assigned using set0_param and the cert will take ownership.
     }
     else
-        algorithm = 0;
+        algorithm = nullptr;
 
     if ( ! i2t_ASN1_OBJECT(buf, 255, OBJ_nid2obj(X509_get_signature_nid(ssl_cert))) )
         buf[0] = 0;
@@ -195,7 +195,7 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f) {
 
     // Things we can do when we have the key...
     EVP_PKEY* pkey = X509_extract_key(ssl_cert);
-    if ( pkey != NULL ) {
+    if ( pkey != nullptr ) {
         if ( EVP_PKEY_base_id(pkey) == EVP_PKEY_DSA )
             pX509Cert->Assign(9, "dsa");
 
@@ -204,7 +204,7 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f) {
 
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
             const BIGNUM* e = nullptr;
-            RSA_get0_key(EVP_PKEY_get0_RSA(pkey), NULL, &e, NULL);
+            RSA_get0_key(EVP_PKEY_get0_RSA(pkey), nullptr, &e, nullptr);
 #else
             BIGNUM* e = nullptr;
             EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_E, &e);
@@ -216,10 +216,10 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f) {
             BN_free(e);
             e = nullptr;
 #endif
-            if ( exponent != NULL ) {
+            if ( exponent != nullptr ) {
                 pX509Cert->Assign(11, exponent);
                 OPENSSL_free(exponent);
-                exponent = NULL;
+                exponent = nullptr;
             }
         }
 #ifndef OPENSSL_NO_EC
@@ -232,7 +232,7 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f) {
         // set key algorithm back. We do not have to free the value that we created because (I
         // think) it comes out of a static array from OpenSSL memory.
         if ( algorithm )
-            X509_PUBKEY_set0_param(X509_get_X509_PUBKEY(ssl_cert), algorithm, 0, NULL, NULL, 0);
+            X509_PUBKEY_set0_param(X509_get_X509_PUBKEY(ssl_cert), algorithm, 0, nullptr, nullptr, 0);
 
         unsigned int length = KeyLength(pkey);
         if ( length > 0 )
@@ -259,9 +259,9 @@ X509_STORE* X509::GetRootStore(TableVal* root_certs) {
         StringVal* sv = val->AsStringVal();
         assert(sv);
         const uint8_t* data = sv->Bytes();
-        ::X509* x = d2i_X509(NULL, &data, sv->Len());
+        ::X509* x = d2i_X509(nullptr, &data, sv->Len());
         if ( ! x ) {
-            emit_builtin_error(util::fmt("Root CA error: %s", ERR_error_string(ERR_get_error(), NULL)));
+            emit_builtin_error(util::fmt("Root CA error: %s", ERR_error_string(ERR_get_error(), nullptr)));
             return nullptr;
         }
 
@@ -443,7 +443,7 @@ StringValPtr X509::KeyCurve(EVP_PKEY* key) {
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
     const EC_GROUP* group;
     int nid;
-    if ( (group = EC_KEY_get0_group(EVP_PKEY_get0_EC_KEY(key))) == NULL )
+    if ( (group = EC_KEY_get0_group(EVP_PKEY_get0_EC_KEY(key))) == nullptr )
         // I guess we could not parse this
         return nullptr;
 
@@ -468,13 +468,13 @@ StringValPtr X509::KeyCurve(EVP_PKEY* key) {
 }
 
 unsigned int X509::KeyLength(EVP_PKEY* key) {
-    assert(key != NULL);
+    assert(key != nullptr);
 
     switch ( EVP_PKEY_base_id(key) ) {
         case EVP_PKEY_RSA: {
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
             const BIGNUM* n = nullptr;
-            RSA_get0_key(EVP_PKEY_get0_RSA(key), &n, NULL, NULL);
+            RSA_get0_key(EVP_PKEY_get0_RSA(key), &n, nullptr, nullptr);
             return BN_num_bits(n);
 #else
             BIGNUM* n = nullptr;
@@ -488,7 +488,7 @@ unsigned int X509::KeyLength(EVP_PKEY* key) {
         case EVP_PKEY_DSA: {
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
             const BIGNUM* p;
-            DSA_get0_pqg(EVP_PKEY_get0_DSA(key), &p, NULL, NULL);
+            DSA_get0_pqg(EVP_PKEY_get0_DSA(key), &p, nullptr, nullptr);
             return BN_num_bits(p);
 #else
             BIGNUM* p = nullptr;
@@ -516,7 +516,7 @@ unsigned int X509::KeyLength(EVP_PKEY* key) {
                 return 0;
             }
 
-            if ( ! EC_GROUP_get_order(group, ec_order, NULL) ) {
+            if ( ! EC_GROUP_get_order(group, ec_order, nullptr) ) {
                 // could not get ec-group-order
                 BN_free(ec_order);
                 return 0;
@@ -539,7 +539,7 @@ unsigned int X509::KeyLength(EVP_PKEY* key) {
 
 X509Val::X509Val(::X509* arg_certificate) : OpaqueVal(x509_opaque_type) { certificate = arg_certificate; }
 
-X509Val::X509Val() : OpaqueVal(x509_opaque_type) { certificate = 0; }
+X509Val::X509Val() : OpaqueVal(x509_opaque_type) { certificate = nullptr; }
 
 X509Val::~X509Val() {
     if ( certificate )
@@ -578,7 +578,7 @@ bool X509Val::DoUnserializeData(BrokerDataView data) {
     auto s = data.ToString();
 
     auto opensslbuf = reinterpret_cast<const unsigned char*>(s.data());
-    certificate = d2i_X509(NULL, &opensslbuf, s.size());
+    certificate = d2i_X509(nullptr, &opensslbuf, s.size());
     return certificate != nullptr;
 }
 

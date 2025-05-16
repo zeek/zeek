@@ -57,7 +57,7 @@ HashDigestState* hash_init(HashAlgorithm alg) {
         default: reporter->InternalError("Unknown hash algorithm passed to hash_init");
     }
 
-    if ( ! EVP_DigestInit_ex(c, md, NULL) )
+    if ( ! EVP_DigestInit_ex(c, md, nullptr) )
         reporter->InternalError("EVP_DigestInit failed");
 
     return to_opaque_ptr(c);
@@ -74,7 +74,7 @@ void hash_final(HashDigestState* c, u_char* md) {
 }
 
 void hash_final_no_free(HashDigestState* c, u_char* md) {
-    if ( ! EVP_DigestFinal(to_native_ptr(c), md, NULL) )
+    if ( ! EVP_DigestFinal(to_native_ptr(c), md, nullptr) )
         reporter->InternalError("EVP_DigestFinal failed");
 }
 

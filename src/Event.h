@@ -38,7 +38,7 @@ namespace detail {
  */
 struct MetadataDescriptor {
     zeek_uint_t id;
-    EnumValPtr enum_val;
+    EnumValPtr id_val;
     TypePtr type;
 };
 

@@ -36,7 +36,7 @@ RecordValPtr detail::MetadataEntry::BuildVal() const {
         return rv;
     }
 
-    rv->Assign(0, desc->enum_val);
+    rv->Assign(0, desc->id_val);
     rv->Assign(1, val);
 
     return rv;

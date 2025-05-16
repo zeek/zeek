@@ -10,7 +10,7 @@ export {
 	redef enum Log::ID += { LOG };
 
 	## The ports to register Redis for.
-	const ports = { 6379/tcp } &redef;
+	const ports = {6379/tcp} &redef;
 
 	## Record type containing the column fields of the Redis log.
 	type Info: record {
@@ -21,7 +21,7 @@ export {
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id: conn_id &log;
 		## The Redis command.
-		cmd: Command &log;
+		request: Command &log;
 		## The response for the command.
 		response: ServerData &log &optional;
 	};
@@ -31,6 +31,14 @@ export {
 
 	global finalize_redis: Conn::RemovalHook;
 
+	## Which numbered commands should not expect a reply due to CLIENT REPLY commands.
+	## These commands may simply skip one, or they may turn off replies then later
+	## reenable them. Thus, the end of the interval is optional.
+	type NoReplyRange: record {
+		begin: count;
+		end: count &optional;
+	};
+
 	type State: record {
 		## Pending requests.
 		pending: table[count] of Info;
@@ -38,10 +46,10 @@ export {
 		current_request: count &default=0;
 		## Current response in the pending queue.
 		current_response: count &default=0;
-		## Ranges where we do not expect a response.
+		## Ranges where we do not expect a response due to CLIENT REPLY commands.
 		## Each range is one or two elements, one meaning it's unbounded, two meaning
 		## it begins at one and ends at the second.
-		no_response_ranges: vector of vector of count;
+		no_response_ranges: vector of NoReplyRange;
 		## We store if this analyzer had a violation to avoid logging if so.
 		## This should not be super necessary, but worth a shot.
 		violation: bool &default=F;
@@ -57,12 +65,12 @@ redef record connection += {
 	redis_state: State &optional;
 };
 
-redef likely_server_ports += { ports };
+redef likely_server_ports += {ports};
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Redis::LOG, [ $columns=Info, $path="redis",
-	    $policy=log_policy ]);
+	Log::create_stream(Redis::LOG, [$columns=Info, $path="redis",
+	    $policy=log_policy]);
 
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SPICY_REDIS, ports);
 	}
@@ -70,19 +78,14 @@ event zeek_init() &priority=5
 event analyzer_violation_info(atype: AllAnalyzers::Tag,
     info: AnalyzerViolationInfo)
 	{
-	if ( atype == Analyzer::ANALYZER_SPICY_REDIS )
+	if ( atype == Analyzer::ANALYZER_SPICY_REDIS && info?$c && info$c
+	    ?$redis_state )
 		{
-		if ( info?$c )
-			{
-			if ( info$c?$redis_state )
-				{
-				info$c$redis_state$violation = T;
-				}
-			}
+		info$c$redis_state$violation = T;
 		}
 	}
 
-function new_redis_session(c: connection): Info
+function new_redis_info(c: connection): Info
 	{
 	return Info($ts=network_time(), $uid=c$uid, $id=c$id);
 	}
@@ -106,7 +109,7 @@ function set_state(c: connection, is_orig: bool)
 		current = c$redis_state$current_response;
 
 	if ( current !in c$redis_state$pending )
-		c$redis_state$pending[current] = new_redis_session(c);
+		c$redis_state$pending[current] = new_redis_info(c);
 
 	c$redis = c$redis_state$pending[current];
 	}
@@ -114,8 +117,9 @@ function set_state(c: connection, is_orig: bool)
 ## Returns whether the last "no response" interval is not still open.
 function is_last_interval_closed(c: connection): bool
 	{
-	return |c$redis_state$no_response_ranges| == 0
-	    || |c$redis_state$no_response_ranges[|c$redis_state$no_response_ranges| - 1]| != 1;
+	return |c$redis_state$no_response_ranges| == 0 ||
+	    c$redis_state$no_response_ranges[|c$redis_state$no_response_ranges| - 1]
+	    ?$end;
 	}
 
 event Redis::client_command(c: connection, command: Command)
@@ -150,9 +154,9 @@ event Redis::client_command(c: connection, command: Command)
 					{
 					local range = c$redis_state$no_response_ranges[|c$redis_state$no_response_ranges|
 					    - 1];
-					if ( |range| == 1 )
+					if ( ! range?$end )
 						{
-						range += c$redis_state$current_request;
+						range$end = c$redis_state$current_request;
 						}
 					}
 				}
@@ -161,21 +165,22 @@ event Redis::client_command(c: connection, command: Command)
 				# Only add a new interval if the last one is closed
 				if ( is_last_interval_closed(c) )
 					{
-					c$redis_state$no_response_ranges += vector(c$redis_state$current_request);
+					c$redis_state$no_response_ranges += NoReplyRange(
+					    $begin=c$redis_state$current_request);
 					}
 				}
 			if ( to_lower(command$raw[2]) == "skip" )
 				{
 				if ( is_last_interval_closed(c) )
 					# It skips this one and the next one
-					c$redis_state$no_response_ranges += vector(c$redis_state$current_request,
-					    c$redis_state$current_request + 2);
+					c$redis_state$no_response_ranges += NoReplyRange(
+					    $begin=c$redis_state$current_request, $end=c$redis_state$current_request + 2);
 				}
 			}
 		}
 	set_state(c, T);
 
-	c$redis$cmd = command;
+	c$redis$request = command;
 	}
 
 ## Gets the next response number based on a connection. This is necessary since
@@ -186,11 +191,10 @@ function response_num(c: connection): count
 	for ( i in c$redis_state$no_response_ranges )
 		{
 		local range = c$redis_state$no_response_ranges[i];
-		assert |range| >= 1;
-		if ( |range| == 1 && resp_num > range[0] )
+		if ( ! range?$end && resp_num > range$begin )
 			{ } # TODO: This is necessary if not using pipelining
-		if ( |range| == 2 && resp_num >= range[0] && resp_num < range[1] )
-			return range[1];
+		if ( range?$end && resp_num >= range$begin && resp_num < range$end )
+			return range$end;
 		}
 
 	# Default: no disable/enable shenanigans
@@ -218,7 +222,7 @@ event Redis::server_data(c: connection, data: Redis::ServerData)
 			}
 
 		if ( previous_response_num in c$redis_state$pending &&
-		    c$redis_state$pending[previous_response_num]?$cmd )
+		    c$redis_state$pending[previous_response_num]?$request )
 			{
 			Log::write(Redis::LOG, c$redis_state$pending[previous_response_num]);
 			delete c$redis_state$pending[previous_response_num];
@@ -226,7 +230,7 @@ event Redis::server_data(c: connection, data: Redis::ServerData)
 		previous_response_num += 1;
 		}
 	# Log this one if we have the request and response
-	if ( c$redis?$cmd )
+	if ( c$redis?$request )
 		{
 		Log::write(Redis::LOG, c$redis);
 		delete c$redis_state$pending[c$redis_state$current_response];
@@ -237,8 +241,8 @@ hook finalize_redis(c: connection)
 	{
 	if ( c$redis_state$violation )
 		{
-		# If there's a violation, make sure everything gets deleted
-		delete c$redis_state;
+		# If there's a violation, don't log the remaining parts, just return.
+		return;
 		}
 	# Flush all pending but incomplete request/response pairs.
 	if ( c?$redis_state && c$redis_state$current_response != 0 )

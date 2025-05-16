@@ -1,7 +1,7 @@
 # @TEST-DOC: Test Zeek parsing "pipelined" data responses
 # @TEST-REQUIRES: have-spicy
 #
-# @TEST-EXEC: zeek -b -Cr $TRACES/redis/excessive-pipelining.pcap %INPUT >output
+# @TEST-EXEC: zeek -b -r $TRACES/redis/excessive-pipelining.pcap %INPUT >output
 # @TEST-EXEC: btest-diff redis.log
 # @TEST-EXEC: btest-diff weird.log
 

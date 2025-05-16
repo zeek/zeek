@@ -376,7 +376,7 @@ NameExprPtr Reducer::GenInlineBlockName(const IDPtr& id) {
 
 void Reducer::PushInlineBlock() {
     ++inline_block_level;
-    block_locals.emplace_back(std::unordered_map<const ID*, IDPtr>());
+    block_locals.emplace_back();
 }
 
 void Reducer::PopInlineBlock() {

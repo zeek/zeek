@@ -74,7 +74,7 @@ bool Plugin::HookPublishEvent(zeek::cluster::Backend& backend, const std::string
             zeek::reporter->FatalError("Failed to add string metadata");
         }
 
-        // metadata is just a vector, so can have duplicate entries.
+        // Event metadata is just a vector, so can have duplicate entries.
         if ( ! event.AddMetadata(string_md, zeek::make_intrusive<zeek::StringVal>("more string metadata")) ) {
             zeek::reporter->FatalError("Failed to add string metadata");
         }

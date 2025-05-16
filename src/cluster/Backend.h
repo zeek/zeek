@@ -61,11 +61,6 @@ public:
     zeek::Args& Args() { return args; }
 
     /**
-     * @return The network timestamp metadata of this event or 0.0.
-     */
-    double Timestamp() const { return timestamp; }
-
-    /**
      * Add metadata to this cluster event.
      *
      * The used metadata \a id has to be registered via the Zeek script-layer

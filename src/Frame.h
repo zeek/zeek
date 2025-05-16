@@ -13,7 +13,6 @@
 #include "zeek/Obj.h"
 #include "zeek/Type.h"
 #include "zeek/ZeekArgs.h"
-#include "zeek/ZeekList.h" // for typedef val_list
 
 namespace zeek {
 

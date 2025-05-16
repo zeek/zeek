@@ -6,6 +6,7 @@
 
 #include "zeek/Event.h"
 #include "zeek/file_analysis/Manager.h"
+#include "zeek/file_analysis/analyzer/entropy/events.bif.h"
 #include "zeek/util.h"
 
 namespace zeek::file_analysis::detail {

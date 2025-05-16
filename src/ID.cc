@@ -2,8 +2,6 @@
 
 #include "zeek/ID.h"
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/Attr.h"
 #include "zeek/Desc.h"
 #include "zeek/Dict.h"

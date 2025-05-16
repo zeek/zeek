@@ -31,7 +31,6 @@
 #include "zeek/broker/Data.h"
 #include "zeek/broker/Store.h"
 #include "zeek/broker/comm.bif.h"
-#include "zeek/broker/data.bif.h"
 #include "zeek/broker/messaging.bif.h"
 #include "zeek/broker/store.bif.h"
 #include "zeek/cluster/serializer/broker/Serializer.h"

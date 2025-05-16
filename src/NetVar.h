@@ -2,6 +2,8 @@
 
 #pragma once
 
+// These includes are needed for the inclusion of the bif headers at the end
+// of this file.
 #include "zeek/EventRegistry.h"
 #include "zeek/Val.h"
 

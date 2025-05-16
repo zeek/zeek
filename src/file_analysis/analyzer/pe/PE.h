@@ -2,9 +2,6 @@
 
 #pragma once
 
-#include <string>
-
-#include "zeek/File.h"
 #include "zeek/Val.h"
 
 #include "file_analysis/analyzer/pe/pe_pac.h"

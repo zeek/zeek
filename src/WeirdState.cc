@@ -3,7 +3,6 @@
 #include "zeek/WeirdState.h"
 
 #include "zeek/RunState.h"
-#include "zeek/util.h"
 
 namespace zeek::detail {
 

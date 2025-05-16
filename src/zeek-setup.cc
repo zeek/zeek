@@ -23,6 +23,8 @@
 #include "zeek/3rdparty/sqlite3.h"
 #endif
 
+#include <binpac.h>
+
 #include "zeek/DNS_Mgr.h"
 #include "zeek/Debug.h"
 #include "zeek/Desc.h"
@@ -49,7 +51,6 @@
 #include "zeek/Trigger.h"
 #include "zeek/Var.h"
 #include "zeek/analyzer/Manager.h"
-#include "zeek/binpac_zeek.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/cluster/Backend.h"
 #include "zeek/cluster/Manager.h"

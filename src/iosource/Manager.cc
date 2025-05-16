@@ -12,7 +12,6 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#include "zeek/NetVar.h"
 #include "zeek/RunState.h"
 #include "zeek/iosource/Component.h"
 #include "zeek/iosource/IOSource.h"

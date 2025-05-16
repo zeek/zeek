@@ -2,12 +2,9 @@
 
 #include "zeek/analyzer/protocol/netbios/NetbiosSSN.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cctype>
 
 #include "zeek/Event.h"
-#include "zeek/NetVar.h"
 #include "zeek/RunState.h"
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/protocol/netbios/events.bif.h"

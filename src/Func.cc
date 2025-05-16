@@ -16,6 +16,7 @@
 #include <csignal>
 #include <cstdlib>
 
+// Most of these includes are needed for code included from bif files.
 #include "zeek/Base64.h"
 #include "zeek/Debug.h"
 #include "zeek/Desc.h"

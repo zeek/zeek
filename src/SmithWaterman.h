@@ -3,6 +3,7 @@
 #pragma once
 
 #include <map>
+#include <string>
 #include <vector>
 
 #include "zeek/ZeekString.h"

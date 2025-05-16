@@ -2,12 +2,8 @@
 
 #include "zeek/script_opt/ZAM/Profile.h"
 
-#include <unordered_map>
-#include <unordered_set>
-
 #include "zeek/Obj.h"
 #include "zeek/script_opt/ProfileFunc.h"
-#include "zeek/script_opt/ZAM/ZBody.h"
 
 namespace zeek::detail {
 

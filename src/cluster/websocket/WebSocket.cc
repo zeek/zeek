@@ -20,7 +20,6 @@
 #include "zeek/net_util.h"
 #include "zeek/threading/MsgThread.h"
 
-#include "broker/data.bif.h"
 #include "broker/data_envelope.hh"
 #include "broker/error.hh"
 #include "broker/format/json.hh"

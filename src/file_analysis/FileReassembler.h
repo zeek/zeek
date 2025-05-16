@@ -7,7 +7,6 @@
 namespace zeek {
 
 class Connection;
-class File;
 
 namespace file_analysis {
 

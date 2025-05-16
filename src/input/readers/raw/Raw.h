@@ -5,7 +5,6 @@
 #include <sys/types.h>
 #include <memory>
 #include <mutex>
-#include <vector>
 
 #include "zeek/input/ReaderBackend.h"
 

@@ -2,9 +2,6 @@
 
 #include "zeek/analyzer/protocol/dhcp/DHCP.h"
 
-#include "zeek/analyzer/protocol/dhcp/events.bif.h"
-#include "zeek/analyzer/protocol/dhcp/types.bif.h"
-
 namespace zeek::analyzer::dhcp {
 
 DHCP_Analyzer::DHCP_Analyzer(Connection* conn) : Analyzer("DHCP", conn) { interp = new binpac::DHCP::DHCP_Conn(this); }

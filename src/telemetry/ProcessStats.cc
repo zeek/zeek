@@ -2,8 +2,6 @@
 
 #include "zeek/telemetry/ProcessStats.h"
 
-#include "zeek/util.h"
-
 #ifdef __APPLE__
 
 #include <libproc.h>
@@ -63,7 +61,13 @@ process_stats get_process_stats() {
 
 #elif defined(HAVE_LINUX)
 
+#include <dirent.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <atomic>
+#include <cstdio>
+#include <cstring>
+
 std::atomic<long> global_ticks_per_second;
 std::atomic<long> global_page_size;
 
@@ -172,9 +176,10 @@ process_stats get_process_stats() {
 // Force these includes into a specific order so that the libraries can find
 // all of the required types.
 // clang-format off
+#include <sys/types.h>
+#include <sys/cdefs.h>
 #include <sys/queue.h>
 #include <sys/sysctl.h>
-#include <sys/types.h>
 #include <sys/user.h>
 #include <unistd.h>
 #include <libprocstat.h>

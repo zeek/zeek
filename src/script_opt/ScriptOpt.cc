@@ -5,7 +5,6 @@
 #include "zeek/Desc.h"
 #include "zeek/EventHandler.h"
 #include "zeek/EventRegistry.h"
-#include "zeek/Options.h"
 #include "zeek/Reporter.h"
 #include "zeek/module_util.h"
 #include "zeek/script_opt/CPP/Compile.h"

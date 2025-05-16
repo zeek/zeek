@@ -19,7 +19,6 @@
 
 #include "zeek/CompHash.h"
 #include "zeek/Desc.h"
-#include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/Scope.h"
 #include "zeek/Var.h"

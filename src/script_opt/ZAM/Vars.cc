@@ -4,7 +4,6 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Reporter.h"
-#include "zeek/script_opt/Reduce.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 
 namespace zeek::detail {

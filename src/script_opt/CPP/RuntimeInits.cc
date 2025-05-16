@@ -6,6 +6,8 @@
 #include "zeek/File.h"
 #include "zeek/RE.h"
 #include "zeek/ZeekString.h"
+#include "zeek/module_util.h"
+#include "zeek/script_opt/CPP/AttrExprType.h"
 #include "zeek/script_opt/CPP/RuntimeInitSupport.h"
 
 using namespace std;

@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "zeek/script_opt/ZAM/BuiltInSupport.h"
 #include "zeek/script_opt/ZAM/Support.h"
 #include "zeek/script_opt/ZAM/ZInstAux.h"
 #include "zeek/script_opt/ZAM/ZOp.h"

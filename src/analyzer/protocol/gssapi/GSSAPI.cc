@@ -3,7 +3,6 @@
 #include "zeek/analyzer/protocol/gssapi/GSSAPI.h"
 
 #include "zeek/Reporter.h"
-#include "zeek/analyzer/protocol/gssapi/events.bif.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
 namespace zeek::analyzer::gssapi {

@@ -8,7 +8,6 @@
 
 #include "zeek/broker/Data.h"
 #include "zeek/probabilistic/BitVector.h"
-#include "zeek/util.h"
 
 namespace zeek::probabilistic::detail {
 

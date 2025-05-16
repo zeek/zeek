@@ -5,8 +5,6 @@
 #include <sys/types.h> // for u_char
 #include <cstdint>     // for u_char
 
-#include "zeek/util.h"
-
 namespace zeek::detail {
 
 class RuleEndpointState;

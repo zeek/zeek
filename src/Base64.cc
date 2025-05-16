@@ -2,8 +2,6 @@
 
 #include "zeek/Base64.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cmath>
 
 #include "zeek/Conn.h"

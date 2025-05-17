@@ -105,10 +105,30 @@ event Intel::insert_indicator(item: Intel::Item) &priority=5
 	Intel::_insert(item, F);
 	}
 
+function invoke_indicator_hook(store: MinDataStore, h: hook(v: string, t: Intel::Type))
+	{
+	for ( a in store$host_data )
+		hook h(cat(a), Intel::ADDR);
+
+	for ( sn in store$subnet_data)
+		hook h(cat(sn), Intel::SUBNET);
+
+	for ( [indicator_value, indicator_type] in store$string_data )
+		hook h(indicator_value, indicator_type);
+	}
+
 # Handling of a complete MinDataStore snapshot
+#
+# Invoke the removed and inserted hooks using the old and new min data store
+# instances, respectively. The way this event is used, the original
+# min_data_store should essentially be empty.
 event new_min_data_store(store: MinDataStore)
 	{
+	invoke_indicator_hook(min_data_store, Intel::indicator_removed);
+
 	min_data_store = store;
+
+	invoke_indicator_hook(min_data_store, Intel::indicator_inserted);
 	}
 @endif
 

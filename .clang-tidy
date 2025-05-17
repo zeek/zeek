@@ -1,19 +1,7 @@
 Checks: [-*,
          bugprone-*,
          performance-*,
-
-         modernize-loop-convert,
-         modernize-make-unique,
-         modernize-min-max-use-initializer-list,
-         modernize-pass-by-value,
-         modernize-redundant-void-arg,
-         modernize-return-braced-init-list,
-         modernize-use-bool-literals,
-         modernize-use-default-member-init,
-         modernize-use-emplace,
-         modernize-use-nullptr,
-         modernize-use-override,
-         modernize-use-transparent-functors,
+         modernize-*,
 
          # Enable a very limited number of the cppcoreguidelines checkers.
          # See the notes for some of the rest of them below.
@@ -25,6 +13,7 @@ Checks: [-*,
          -bugprone-narrowing-conversions,
          -bugprone-unchecked-optional-access,
          -performance-unnecessary-value-param,
+         -modernize-use-equals-default,
 
          # The following cause either lots of pointless or advisory warnings
          -bugprone-easily-swappable-parameters,
@@ -39,11 +28,19 @@ Checks: [-*,
          # and so this one generates a lot of warnings.
          -bugprone-switch-missing-default-case,
 
-         # These report warnings that are rather difficult to fix.
+         # These report warnings that are rather difficult to fix or are things
+         # we simply don't want to fix.
          -bugprone-undefined-memory-manipulation,
          -bugprone-pointer-arithmetic-on-polymorphic-object,
          -bugprone-empty-catch,
          -bugprone-exception-escape,
+         -modernize-avoid-c-arrays,
+         -modernize-concat-nested-namespaces,
+         -modernize-raw-string-literal,
+         -modernize-use-auto,
+         -modernize-use-nodiscard,
+         -modernize-use-ranges,
+         -modernize-use-trailing-return-type,
 
          # This one returns a bunch of findings in DFA and the sqlite library.
          # We're unlikely to fix either of them.
@@ -58,4 +55,11 @@ Checks: [-*,
          #cppcoreguidelines-pro-type-cstyle-cast,
          #cppcoreguidelines-pro-type-static-cast-downcast,
          #cppcoreguidelines-special-member-functions,
+
+         # These are features in newer version of C++ that we don't have
+         # access to yet.
+         -modernize-use-starts-ends-with,
+         -modernize-use-std-format,
+         -modernize-use-std-numbers,
+         -modernize-use-std-print,
 ]

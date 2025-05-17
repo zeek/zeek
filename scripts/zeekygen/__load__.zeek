@@ -17,6 +17,9 @@
 @load policy/misc/dump-events.zeek
 @load policy/protocols/conn/speculative-service.zeek
 
+# Remove in v8.1: This script is deprecated and conflicts with detect-sql-injection.zeek
+# @load policy/protocols/http/detect-sqli.zeek
+
 @if ( have_spicy() )
 # Loading this messes up documentation of some elements defined elsewhere.
 # @load frameworks/spicy/record-spicy-batch.zeek

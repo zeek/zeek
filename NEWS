@@ -44,6 +44,18 @@ Removed Functionality
 Deprecated Functionality
 ------------------------
 
+- The ``protocols/http/detect-sqli.zeek`` script has been deprecated in favor of a
+  new ``protocols/http/detect-sql-injection.zeek`` script to switch from the victim
+  host being placed into the ``src`` field of a notice to instead use ``dst``.
+  The attacker host is now placed into ``src``. Further, notices hold the first
+  sampled connection uid.
+
+  Note that the ``Notice::Type`` enumeration names remain the same. You can determine
+  which script was used by the presence of populated ``uid`` and ``dst`` fields in the
+  ``notice.log`` entries.
+
+  The replacement script doesn't populate the ``email_body_sections`` anymore either.
+
 Zeek 7.2.0
 ==========
 

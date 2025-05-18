@@ -4,10 +4,11 @@
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-REQUIRES: which jq
 #
-# @TEST-PORT: BROKER_PORT1
-# @TEST-PORT: BROKER_PORT2
-# @TEST-PORT: BROKER_PORT3
-# @TEST-PORT: BROKER_PORT4
+# @TEST-PORT: BROKER_MANAGER_PORT
+# @TEST-PORT: BROKER_LOGGER1_PORT
+# @TEST-PORT: BROKER_PROXY1_PORT
+# @TEST-PORT: BROKER_WORKER1_PORT
+#
 # @TEST-PORT: METRICS_PORT1
 # @TEST-PORT: METRICS_PORT2
 # @TEST-PORT: METRICS_PORT3
@@ -15,19 +16,19 @@
 #
 # @TEST-REQUIRES: which curl
 # @TEST-EXEC: zeek --parse-only %INPUT
-# @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -b %INPUT
+# @TEST-EXEC: btest-bg-run manager ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager zeek -b %INPUT
 # @TEST-EXEC: btest-bg-run logger-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=logger-1 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-run proxy-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=proxy-1 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 30
-# @TEST-EXEC: btest-diff manager-1/services.out
+# @TEST-EXEC: btest-diff manager/services.out
 
 # @TEST-START-FILE cluster-layout.zeek
 redef Cluster::nodes = {
-	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1")), $metrics_port=to_port(getenv("METRICS_PORT1"))],
-	["logger-1"] = [$node_type=Cluster::LOGGER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1", $metrics_port=to_port(getenv("METRICS_PORT2"))],
-	["proxy-1"] = [$node_type=Cluster::PROXY,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT3")), $manager="manager-1", $metrics_port=to_port(getenv("METRICS_PORT3"))],
-	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT4")), $manager="manager-1", $metrics_port=to_port(getenv("METRICS_PORT4"))],
+	["manager"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_MANAGER_PORT")), $metrics_port=to_port(getenv("METRICS_PORT1"))],
+	["logger-1"] = [$node_type=Cluster::LOGGER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_LOGGER1_PORT")), $manager="manager", $metrics_port=to_port(getenv("METRICS_PORT2"))],
+	["proxy-1"] = [$node_type=Cluster::PROXY,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PROXY1_PORT")), $manager="manager", $metrics_port=to_port(getenv("METRICS_PORT3"))],
+	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_WORKER1_PORT")), $manager="manager", $metrics_port=to_port(getenv("METRICS_PORT4"))],
 };
 # @TEST-END-FILE
 
@@ -60,7 +61,7 @@ done
 # So the cluster nodes don't terminate right away.
 #redef exit_only_after_terminate=T;
 
-@if ( Cluster::node == "manager-1" )
+@if ( Cluster::node == "manager" )
 
 @load base/utils/exec
 

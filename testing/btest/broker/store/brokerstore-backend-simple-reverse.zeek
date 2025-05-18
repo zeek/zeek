@@ -1,8 +1,10 @@
-# @TEST-PORT: BROKER_PORT1
-# @TEST-PORT: BROKER_PORT2
-# @TEST-PORT: BROKER_PORT3
+# @TEST-PORT: BROKER_MANAGER_PORT
+# @TEST-PORT: BROKER_WORKER1_PORT
+# @TEST-PORT: BROKER_WORKER2_PORT
+#
+# @TEST-EXEC: cp $FILES/broker/cluster-layout.zeek .
 
-# @TEST-EXEC: btest-bg-run manager-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -b %DIR/sort-stuff.zeek ../common.zeek ../master.zeek >../master.out"
+# @TEST-EXEC: btest-bg-run manager  "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager  zeek -b %DIR/sort-stuff.zeek ../common.zeek ../master.zeek >../master.out"
 # @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b %DIR/sort-stuff.zeek ../common.zeek ../clone.zeek >../clone.out"
 # @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -b %DIR/sort-stuff.zeek ../common.zeek ../clone2.zeek >../clone2.out"
 # @TEST-EXEC: btest-bg-wait 40
@@ -11,14 +13,6 @@
 # @TEST-EXEC: btest-diff clone.out
 # @TEST-EXEC: diff master.out clone.out
 # @TEST-EXEC: diff master.out clone2.out
-
-# @TEST-START-FILE cluster-layout.zeek
-redef Cluster::nodes = {
-	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
-	["worker-1"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1"],
-	["worker-2"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT3")), $manager="manager-1"],
-};
-# @TEST-END-FILE
 
 # @TEST-START-FILE common.zeek
 @load base/frameworks/cluster

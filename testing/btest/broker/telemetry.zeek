@@ -1,20 +1,16 @@
 # @TEST-DOC: run a mini two-node cluster and check that Broker's peering telemetry is available.
 #
-# @TEST-PORT: BROKER_PORT
+# @TEST-PORT: BROKER_MANAGER_PORT
+# @TEST-PORT: BROKER_WORKER1_PORT
 #
-# @TEST-EXEC: btest-bg-run manager ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager zeek -b manager.zeek
-# @TEST-EXEC: btest-bg-run worker ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker zeek -b worker.zeek
+# @TEST-EXEC: cp $FILES/broker/cluster-layout.zeek .
+#
+# @TEST-EXEC: btest-bg-run manager  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager  zeek -b manager.zeek
+# @TEST-EXEC: btest-bg-run worker-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b worker.zeek
 # @TEST-EXEC: btest-bg-wait 15
 #
 # @TEST-EXEC: btest-diff manager/out
-# @TEST-EXEC: btest-diff worker/out
-
-# @TEST-START-FILE cluster-layout.zeek
-redef Cluster::nodes = {
-	["manager"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT"))],
-	["worker"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $manager="manager"],
-};
-# @TEST-END-FILE
+# @TEST-EXEC: btest-diff worker-1/out
 
 # @TEST-START-FILE common.zeek
 @load base/frameworks/cluster

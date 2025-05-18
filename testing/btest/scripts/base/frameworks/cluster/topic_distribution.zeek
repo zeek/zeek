@@ -1,24 +1,16 @@
-# @TEST-PORT: BROKER_PORT1
-# @TEST-PORT: BROKER_PORT2
-# @TEST-PORT: BROKER_PORT3
-# @TEST-PORT: BROKER_PORT4
-# @TEST-PORT: BROKER_PORT5
+# @TEST-PORT: BROKER_MANAGER_PORT
+# @TEST-PORT: BROKER_PROXY1_PORT
+# @TEST-PORT: BROKER_PROXY2_PORT
 #
-# @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -b %INPUT
+# @TEST-EXEC: cp $FILES/broker/cluster-layout.zeek .
+#
+# @TEST-EXEC: btest-bg-run manager   ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager zeek -b %INPUT
 # @TEST-EXEC: btest-bg-run proxy-1   ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=proxy-1 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-run proxy-2   ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=proxy-2 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 40
-# @TEST-EXEC: btest-diff manager-1/.stdout
+# @TEST-EXEC: btest-diff manager/.stdout
 
 @load policy/frameworks/cluster/experimental
-
-# @TEST-START-FILE cluster-layout.zeek
-redef Cluster::nodes = {
-	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
-	["proxy-1"] = [$node_type=Cluster::PROXY,     $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1"],
-	["proxy-2"] = [$node_type=Cluster::PROXY,     $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT3")), $manager="manager-1"],
-};
-# @TEST-END-FILE
 
 event go_away()
 	{
@@ -46,7 +38,7 @@ function print_stuff(heading: string)
 
 event Cluster::Experimental::cluster_started()
 	{
-	if ( Cluster::node != "manager-1" )
+	if ( Cluster::node != "manager" )
 		return;
 
 	print_stuff("1st stuff");
@@ -56,7 +48,7 @@ event Cluster::Experimental::cluster_started()
 
 event Cluster::node_down(name: string, id: string)
 	{
-	if ( Cluster::node != "manager-1" )
+	if ( Cluster::node != "manager" )
 		return;
 
 	if ( name == "proxy-1" )
@@ -75,6 +67,6 @@ event Cluster::node_down(name: string, id: string)
 
 event Cluster::node_down(name: string, id: string)
 	{
-	if ( name == "manager-1" )
+	if ( name == "manager" )
 		terminate();
 	}

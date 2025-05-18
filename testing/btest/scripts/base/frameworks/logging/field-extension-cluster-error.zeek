@@ -1,19 +1,14 @@
-# @TEST-PORT: BROKER_PORT1
-# @TEST-PORT: BROKER_PORT2
+# @TEST-PORT: BROKER_MANAGER_PORT
+# @TEST-PORT: BROKER_WORKER1_PORT
 #
-# @TEST-EXEC: btest-bg-run manager-1 "cp ../cluster-layout.zeek . && CLUSTER_NODE=manager-1 zeek -b %INPUT"
-# @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-1 zeek -b --pseudo-realtime -C -r $TRACES/wikipedia.trace %INPUT"
+# @TEST-EXEC: cp $FILES/broker/cluster-layout.zeek .
+#
+# @TEST-EXEC: btest-bg-run manager  "cp ../cluster-layout.zeek . && CLUSTER_NODE=manager  zeek -b %INPUT"
+# @TEST-EXEC: btest-bg-run worker-1 "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-1 zeek -b --pseudo-realtime -C -r $TRACES/wikipedia.trace %INPUT"
 # @TEST-EXEC: btest-bg-wait 30
-# @TEST-EXEC: grep qux manager-1/reporter.log   | sed 's#line ..#line XX#g'  > manager-reporter.log
-# @TEST-EXEC: grep qux manager-1/reporter-2.log | sed 's#line ..*#line XX#g' >> manager-reporter.log
+# @TEST-EXEC: grep qux manager/reporter.log   | sed 's#line ..#line XX#g'  > manager-reporter.log
+# @TEST-EXEC: grep qux manager/reporter-2.log | sed 's#line ..*#line XX#g' >> manager-reporter.log
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-canonifier | $SCRIPTS/diff-remove-abspath | grep -v ^# | $SCRIPTS/diff-sort" btest-diff manager-reporter.log
-
-# @TEST-START-FILE cluster-layout.zeek
-redef Cluster::nodes = {
-	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
-	["worker-1"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1"],
-};
-# @TEST-END-FILE
 
 @load base/frameworks/cluster
 @load base/frameworks/logging
@@ -72,7 +67,7 @@ event zeek_init()
 		suspend_processing();
 		}
 
-	if ( Cluster::node == "manager-1" )
+	if ( Cluster::node == "manager" )
 		{
 		Broker::subscribe("ready");
 		}

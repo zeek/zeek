@@ -401,8 +401,10 @@ static void terminate_zeek() {
 
     script_coverage_mgr.WriteStats();
 
-    if ( etm )
-        etm->Generate();
+    if ( event_trace_mgr ) {
+        event_trace_mgr->Generate();
+        event_trace_mgr.reset();
+    }
 
     delete zeekygen_mgr;
     delete packet_mgr;
@@ -775,7 +777,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         auto ipbb = make_intrusive<BuiltinFunc>(init_bifs, ipbid->Name(), false);
 
         if ( options.event_trace_file )
-            etm = std::make_unique<EventTraceMgr>(*options.event_trace_file);
+            event_trace_mgr = std::make_unique<EventTraceMgr>(*options.event_trace_file);
 
         // Parsing involves reading input files, including any input
         // interactively provided by the user at the console. Temporarily

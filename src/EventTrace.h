@@ -441,6 +441,8 @@ class EventTraceMgr {
 public:
     EventTraceMgr(const std::string& trace_file);
 
+    ~EventTraceMgr();
+
     // Generates the trace upon exit.
     void Generate();
 
@@ -465,6 +467,6 @@ private:
 };
 
 // If non-nil then we're doing event tracing.
-extern std::unique_ptr<EventTraceMgr> etm;
+extern std::unique_ptr<EventTraceMgr> event_trace_mgr;
 
 } // namespace zeek::detail

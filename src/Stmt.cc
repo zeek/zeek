@@ -902,8 +902,8 @@ ValPtr EventStmt::Exec(Frame* f, StmtFlowType& flow) {
     auto h = event_expr->Handler();
 
     if ( args && h ) {
-        if ( etm )
-            etm->ScriptEventQueued(h);
+        if ( event_trace_mgr )
+            event_trace_mgr->ScriptEventQueued(h);
 
         event_mgr.Enqueue(h, std::move(*args));
     }

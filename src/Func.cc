@@ -355,8 +355,8 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
         return nullptr;
     }
 
-    if ( etm && Flavor() == FUNC_FLAVOR_EVENT )
-        etm->StartEvent(this, args);
+    if ( event_trace_mgr && Flavor() == FUNC_FLAVOR_EVENT )
+        event_trace_mgr->StartEvent(this, args);
 
     if ( g_trace_state.DoTrace() ) {
         ODesc d;
@@ -433,8 +433,8 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
             result = val_mgr->True();
     }
 
-    else if ( etm && Flavor() == FUNC_FLAVOR_EVENT )
-        etm->EndEvent(this, args);
+    else if ( event_trace_mgr && Flavor() == FUNC_FLAVOR_EVENT )
+        event_trace_mgr->EndEvent(this, args);
 
     // Warn if the function returns something, but we returned from
     // the function without an explicit return, or without a value.

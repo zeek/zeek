@@ -45,6 +45,11 @@ private:
      */
     OperationResult Step(sqlite3_stmt* stmt, bool parse_value = false);
 
+    /**
+     * Helper utility for running pragmas on the database.
+     */
+    OperationResult RunPragma(std::string_view name, std::optional<std::string_view> value = std::nullopt);
+
     sqlite3* db = nullptr;
 
     using stmt_deleter = std::function<void(sqlite3_stmt*)>;

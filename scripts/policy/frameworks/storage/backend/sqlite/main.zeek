@@ -20,10 +20,12 @@ export {
 		## different between the two.
 		table_name: string;
 
-		## Key/value table for passing tuning parameters when opening the
-		## database.  These must be pairs that can be passed to the ``pragma``
-		## command in sqlite.
-		tuning_params: table[string] of string &default=table(
+		## Key/value table for passing pragma commands when opening the database.
+		## These must be pairs that can be passed to the ``pragma`` command in
+		## sqlite. The ``integrity_check`` pragma is run automatically and does
+		## not need to be included here. For pragmas without a second argument,
+		## set the value to an empty string.
+		pragma_commands: table[string] of string &default=table(
 			["busy_timeout"] = "5000",
 			["journal_mode"] = "WAL",
 			["synchronous"] = "normal",

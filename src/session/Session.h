@@ -3,7 +3,6 @@
 #pragma once
 
 #include <map>
-#include <memory>
 
 #include "zeek/EventHandler.h"
 #include "zeek/Hash.h"

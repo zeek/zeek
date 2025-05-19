@@ -7,7 +7,6 @@
 #include <string>
 
 #include "zeek/Func.h"
-#include "zeek/Stmt.h"
 
 namespace zeek {
 

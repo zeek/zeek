@@ -2,8 +2,6 @@
 
 #include "zeek/file_analysis/analyzer/hash/Hash.h"
 
-#include <string>
-
 #include "zeek/Event.h"
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/util.h"

@@ -3,7 +3,6 @@
 #include "zeek/plugin/Plugin.h"
 
 #include "zeek/analyzer/Component.h"
-#include "zeek/analyzer/protocol/zip/ZIP.h"
 
 namespace zeek::plugin::detail::Zeek_ZIP {
 

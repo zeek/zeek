@@ -2,10 +2,7 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
-
-#include <iostream>
-#include <vector>
+#include <string>
 
 #include "zeek/3rdparty/sqlite3.h"
 #include "zeek/input/ReaderBackend.h"

@@ -5,11 +5,11 @@
 #pragma once
 
 #include <zlib.h>
+#include <string>
 
 #include "zeek/Desc.h"
 #include "zeek/logging/WriterBackend.h"
-#include "zeek/threading/formatters/Ascii.h"
-#include "zeek/threading/formatters/JSON.h"
+#include "zeek/threading/Formatter.h"
 
 namespace zeek::plugin::detail::Zeek_AsciiWriter {
 class Plugin;

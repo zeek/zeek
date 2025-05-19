@@ -2,17 +2,12 @@
 
 #include "zeek/analyzer/Manager.h"
 
-#include "zeek/Hash.h"
+#include "zeek/Conn.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/RunState.h"
 #include "zeek/Val.h"
-#include "zeek/analyzer/protocol/conn-size/ConnSize.h"
-#include "zeek/analyzer/protocol/pia/PIA.h"
-#include "zeek/analyzer/protocol/tcp/TCP.h"
-#include "zeek/analyzer/protocol/tcp/events.bif.h"
 #include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
-#include "zeek/plugin/Manager.h"
 
 namespace zeek::analyzer {
 

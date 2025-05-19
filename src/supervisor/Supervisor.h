@@ -2,11 +2,8 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
-
 #include <sys/types.h>
 #include <chrono>
-#include <cstdint>
 #include <map>
 #include <memory>
 #include <optional>
@@ -17,8 +14,6 @@
 
 #include "zeek/Flare.h"
 #include "zeek/Func.h"
-#include "zeek/IntrusivePtr.h"
-#include "zeek/NetVar.h"
 #include "zeek/Options.h"
 #include "zeek/Pipe.h"
 #include "zeek/Timer.h"

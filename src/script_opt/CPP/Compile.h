@@ -2,6 +2,7 @@
 
 #pragma once
 
+// Most of these headers are needed for the block of #includes later
 #include "zeek/Desc.h"
 #include "zeek/script_opt/CPP/Func.h"
 #include "zeek/script_opt/CPP/InitsInfo.h"

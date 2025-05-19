@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
-
 #include <zlib.h>
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"

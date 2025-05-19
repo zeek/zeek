@@ -2,8 +2,6 @@
 
 #include "zeek/Notifier.h"
 
-#include <set>
-
 #include "zeek/DebugLogger.h"
 
 zeek::notifier::detail::Registry zeek::notifier::detail::registry;

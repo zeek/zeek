@@ -4,13 +4,13 @@
 
 #include <sys/types.h>
 #include <fstream>
-#include <iostream>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "zeek/Obj.h"
 #include "zeek/input/ReaderBackend.h"
-#include "zeek/threading/formatters/Ascii.h"
+#include "zeek/threading/Formatter.h"
 
 namespace zeek::input::reader::detail {
 

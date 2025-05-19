@@ -2,21 +2,21 @@
 
 #include "zeek/file_analysis/File.h"
 
-#include <limits>
 #include <utility>
 
+#include "zeek/Conn.h"
 #include "zeek/Event.h"
 #include "zeek/Reporter.h"
 #include "zeek/RuleMatcher.h"
 #include "zeek/Type.h"
 #include "zeek/Val.h"
 #include "zeek/analyzer/Analyzer.h"
-#include "zeek/analyzer/Manager.h"
 #include "zeek/file_analysis/Analyzer.h"
 #include "zeek/file_analysis/FileReassembler.h"
 #include "zeek/file_analysis/FileTimer.h"
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/file_analysis/analyzer/extract/Extract.h"
+#include "zeek/file_analysis/analyzer/extract/events.bif.h"
 
 namespace zeek::file_analysis {
 

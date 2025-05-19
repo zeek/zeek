@@ -8,7 +8,6 @@
 #include "zeek/Event.h"
 #include "zeek/Frag.h"
 #include "zeek/IP.h"
-#include "zeek/IPAddr.h"
 #include "zeek/NetVar.h"
 #include "zeek/PacketFilter.h"
 #include "zeek/RunState.h"

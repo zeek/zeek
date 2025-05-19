@@ -4,8 +4,6 @@
 
 #include "zeek/RunState.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
-#include "zeek/analyzer/protocol/tcp/events.bif.h"
-#include "zeek/analyzer/protocol/tcp/types.bif.h"
 #include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
 
 using namespace zeek;

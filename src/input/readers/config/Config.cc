@@ -7,13 +7,13 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <cerrno>
-#include <sstream>
 #include <unordered_set>
 
 #include "zeek/Desc.h"
 #include "zeek/input/Manager.h"
 #include "zeek/input/readers/config/config.bif.h"
 #include "zeek/threading/SerialTypes.h"
+#include "zeek/threading/formatters/Ascii.h"
 
 using zeek::threading::Field;
 using zeek::threading::Value;

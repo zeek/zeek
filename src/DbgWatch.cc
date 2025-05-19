@@ -4,8 +4,6 @@
 
 #include "zeek/DbgWatch.h"
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/Debug.h"
 #include "zeek/Reporter.h"
 

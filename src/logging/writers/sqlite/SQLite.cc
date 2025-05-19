@@ -2,12 +2,10 @@
 
 #include "zeek/logging/writers/sqlite/SQLite.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cerrno>
 #include <string>
-#include <vector>
 
+#include "zeek/Desc.h"
 #include "zeek/logging/writers/sqlite/sqlite.bif.h"
 #include "zeek/threading/SerialTypes.h"
 #include "zeek/util.h"

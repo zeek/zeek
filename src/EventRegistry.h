@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "zeek/zeek-config.h"
-
 #include <map>
 #include <memory>
 #include <string>

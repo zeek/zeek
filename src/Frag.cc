@@ -2,9 +2,6 @@
 
 #include "zeek/Frag.h"
 
-#include "zeek/zeek-config.h"
-
-#include "zeek/Hash.h"
 #include "zeek/IP.h"
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"

@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "zeek/NetVar.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
 namespace zeek::analyzer::rpc {

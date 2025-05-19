@@ -2,8 +2,6 @@
 
 #include "zeek/RuleCondition.h"
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/Func.h"
 #include "zeek/ID.h"
 #include "zeek/Reporter.h"

@@ -11,7 +11,6 @@
 
 #include "zeek/ID.h"
 #include "zeek/Reporter.h"
-#include "zeek/util.h"
 #include "zeek/zeekygen/Configuration.h"
 #include "zeek/zeekygen/SpicyModuleInfo.h"
 

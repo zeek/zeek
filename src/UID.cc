@@ -7,8 +7,6 @@
 #include "zeek/Reporter.h"
 #include "zeek/util.h"
 
-using namespace std;
-
 namespace zeek {
 
 void UID::Set(zeek_uint_t bits, const uint64_t* v, size_t n) {

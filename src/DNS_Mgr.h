@@ -5,13 +5,11 @@
 #include <netdb.h>
 #include <list>
 #include <map>
-#include <queue>
 #include <utility>
 #include <variant>
 
 #include "zeek/EventHandler.h"
 #include "zeek/IPAddr.h"
-#include "zeek/List.h"
 #include "zeek/iosource/IOSource.h"
 #include "zeek/util.h"
 

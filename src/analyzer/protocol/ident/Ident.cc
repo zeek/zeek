@@ -2,12 +2,8 @@
 
 #include "zeek/analyzer/protocol/ident/Ident.h"
 
-#include "zeek/zeek-config.h"
-
 #include <cctype>
 
-#include "zeek/Event.h"
-#include "zeek/NetVar.h"
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/protocol/ident/events.bif.h"
 

@@ -2,8 +2,6 @@
 
 #include "zeek/RuleAction.h"
 
-#include "zeek/zeek-config.h"
-
 #include <algorithm>
 #include <string>
 
@@ -12,7 +10,6 @@
 #include "zeek/Event.h"
 #include "zeek/Func.h"
 #include "zeek/ID.h"
-#include "zeek/NetVar.h"
 #include "zeek/RuleMatcher.h"
 #include "zeek/Type.h"
 #include "zeek/analyzer/Manager.h"

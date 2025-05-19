@@ -4,9 +4,10 @@
 
 #pragma once
 
-#include <optional>
 #include <regex>
 #include <string>
+#include <unordered_set>
+#include <vector>
 
 #include "zeek/Expr.h"
 #include "zeek/Func.h"

@@ -2,8 +2,6 @@
 
 #include "zeek/iosource/pcap/Source.h"
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/3rdparty/doctest.h"
 
 #ifdef HAVE_PCAP_INT_H

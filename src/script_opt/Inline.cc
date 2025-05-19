@@ -2,7 +2,6 @@
 
 #include "zeek/script_opt/Inline.h"
 
-#include "zeek/Desc.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/module_util.h"
 #include "zeek/script_opt/Expr.h"

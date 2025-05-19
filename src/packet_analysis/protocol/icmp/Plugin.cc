@@ -5,7 +5,6 @@
 #include "zeek/analyzer/Component.h"
 #include "zeek/packet_analysis/Component.h"
 #include "zeek/packet_analysis/protocol/icmp/ICMP.h"
-#include "zeek/packet_analysis/protocol/icmp/ICMPSessionAdapter.h"
 
 namespace zeek::plugin::Zeek_ICMP {
 

@@ -2,12 +2,9 @@
 
 // Driver (and other high-level) methods for ZAM compilation.
 
-#include "zeek/CompHash.h"
 #include "zeek/Frame.h"
-#include "zeek/RE.h"
 #include "zeek/Reporter.h"
 #include "zeek/Scope.h"
-#include "zeek/module_util.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 

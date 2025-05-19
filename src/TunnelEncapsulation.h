@@ -4,7 +4,6 @@
 
 #include <vector>
 
-#include "zeek/ID.h"
 #include "zeek/IP.h"
 #include "zeek/IPAddr.h"
 #include "zeek/NetVar.h"

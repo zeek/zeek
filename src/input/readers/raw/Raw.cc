@@ -17,6 +17,7 @@
 
 extern char** environ;
 
+#include "zeek/input/Component.h"
 #include "zeek/input/readers/raw/Plugin.h"
 #include "zeek/input/readers/raw/raw.bif.h"
 #include "zeek/threading/SerialTypes.h"

@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "zeek/analyzer/protocol/sip/events.bif.h"
 #include "zeek/analyzer/protocol/sip/sip_pac.h"
 
 namespace zeek::analyzer::sip {

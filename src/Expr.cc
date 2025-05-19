@@ -2,8 +2,6 @@
 
 #include "zeek/Expr.h"
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/DebugLogger.h"
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
@@ -22,7 +20,6 @@
 #include "zeek/Trigger.h"
 #include "zeek/Type.h"
 #include "zeek/broker/Data.h"
-#include "zeek/digest.h"
 #include "zeek/module_util.h"
 #include "zeek/script_opt/Expr.h"
 #include "zeek/script_opt/ScriptOpt.h"

@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "zeek/analyzer/protocol/ntlm/events.bif.h"
 #include "zeek/analyzer/protocol/ntlm/ntlm_pac.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 

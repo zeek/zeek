@@ -2,8 +2,6 @@
 
 #include "zeek/Timer.h"
 
-#include "zeek/zeek-config.h"
-
 #include "zeek/Desc.h"
 #include "zeek/NetVar.h"
 #include "zeek/RunState.h"

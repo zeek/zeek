@@ -2,7 +2,6 @@
 %include zeek.pac
 
 %extern{
-#include "zeek/Reporter.h"
 #include "zeek/analyzer/protocol/snmp/types.bif.h"
 #include "zeek/analyzer/protocol/snmp/events.bif.h"
 %}

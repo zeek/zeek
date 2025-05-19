@@ -7,7 +7,6 @@
 #include <unistd.h>
 #include <atomic>
 #include <cstdint>
-#include <iosfwd>
 #include <thread>
 
 namespace zeek::threading {

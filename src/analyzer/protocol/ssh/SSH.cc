@@ -4,7 +4,6 @@
 
 #include "zeek/Reporter.h"
 #include "zeek/analyzer/protocol/ssh/events.bif.h"
-#include "zeek/analyzer/protocol/ssh/types.bif.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
 namespace zeek::analyzer::ssh {

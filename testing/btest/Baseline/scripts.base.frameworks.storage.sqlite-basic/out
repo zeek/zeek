@@ -4,7 +4,7 @@ Storage::backend_opened, Storage::STORAGE_BACKEND_SQLITE, [serializer=Storage::S
 [journal_mode] = WAL,
 [temp_store] = memory,
 [busy_timeout] = 5000
-}]]
+}, pragma_timeout=500.0 msecs, pragma_wait_on_failure=5.0 msecs]]
 open result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<opaque of BackendHandleVal>]
 put result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<uninitialized>]
 get result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=value5678]

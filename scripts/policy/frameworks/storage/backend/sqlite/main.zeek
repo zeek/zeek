@@ -30,7 +30,17 @@ export {
 			["journal_mode"] = "WAL",
 			["synchronous"] = "normal",
 			["temp_store"] = "memory"
-		);
+		) &ordered;
+
+		## The total amount of time that an SQLite backend will spend attempting
+		## to run an individual pragma command before giving up and returning an
+		## initialization error. Setting this to zero will result in the backend
+		## attempting forever until success.
+		pragma_timeout: interval &default=500 msec;
+
+		## The amount of time that at SQLite backend will wait between failures
+		## to run an individual pragma command.
+		pragma_wait_on_busy: interval &default=5 msec;
 	};
 }
 

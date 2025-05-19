@@ -9,26 +9,29 @@
 #include "zeek/Val.h"
 #include "zeek/storage/ReturnCode.h"
 
+using namespace std::chrono_literals;
+
 namespace zeek::storage::backend::sqlite {
 
 OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::string_view> value) {
     char* errorMsg = nullptr;
+    std::chrono::milliseconds time_spent = 0ms;
 
     std::string cmd = util::fmt("pragma %.*s", static_cast<int>(name.size()), name.data());
     if ( value && ! value->empty() )
         cmd += util::fmt(" = %.*s", static_cast<int>(value->size()), value->data());
 
-    while ( attempts < 5 ) {
+    while ( pragma_timeout == 0ms || time_spent < pragma_timeout ) {
         int res = sqlite3_exec(db, cmd.c_str(), NULL, NULL, &errorMsg);
         if ( res == SQLITE_OK ) {
             break;
         }
         else if ( res == SQLITE_BUSY ) {
             // If we got back that the database is busy, it likely means that another process is trying to
-            // do their pragmas at startup too. Sleep for a little bit and try again.
+            // do their pragmas at startup too. Exponentially back off and try again after a sleep.
             sqlite3_free(errorMsg);
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            ++attempts;
+            std::this_thread::sleep_for(pragma_wait_on_busy);
+            time_spent += pragma_wait_on_busy;
         }
         else {
             std::string err = util::fmt("Error while executing pragma '%s': %s", cmd.c_str(), errorMsg);
@@ -37,7 +40,7 @@ OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::stri
         }
     }
 
-    if ( attempts == 5 ) {
+    if ( pragma_timeout != 0ms && time_spent >= pragma_timeout ) {
         std::string err =
             util::fmt("Database was busy while executing %.*s pragma", static_cast<int>(name.size()), name.data());
         return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
@@ -70,6 +73,12 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     StringValPtr path = backend_options->GetField<StringVal>("database_path");
     full_path = zeek::filesystem::path(path->ToStdString()).string();
     table_name = backend_options->GetField<StringVal>("table_name")->ToStdString();
+
+    auto pragma_timeout_val = backend_options->GetField<IntervalVal>("pragma_timeout");
+    pragma_timeout = std::chrono::milliseconds(static_cast<int64_t>(pragma_timeout_val->Get() * 1000));
+
+    auto pragma_wof_val = backend_options->GetField<IntervalVal>("pragma_wait_on_busy");
+    pragma_wait_on_busy = std::chrono::milliseconds(static_cast<int64_t>(pragma_timeout_val->Get() * 1000));
 
     if ( auto open_res =
              CheckError(sqlite3_open_v2(full_path.c_str(), &db,

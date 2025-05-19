@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <chrono>
+
 #include "zeek/storage/Backend.h"
 
 // Forward declare these to avoid including sqlite3.h here
@@ -62,6 +64,8 @@ private:
 
     std::string full_path;
     std::string table_name;
+    std::chrono::milliseconds pragma_timeout;
+    std::chrono::milliseconds pragma_wait_on_busy;
 };
 
 } // namespace zeek::storage::backend::sqlite

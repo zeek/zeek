@@ -441,6 +441,8 @@ class EventTraceMgr {
 public:
     EventTraceMgr(const std::string& trace_file);
 
+    ~EventTraceMgr();
+
     // Generates the trace upon exit.
     void Generate();
 

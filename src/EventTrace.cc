@@ -955,7 +955,17 @@ bool ValTraceMgr::IsUnsupported(const Val* v) const {
 EventTraceMgr::EventTraceMgr(const std::string& trace_file) {
     f = fopen(trace_file.c_str(), "w");
     if ( ! f )
-        reporter->FatalError("can't open event trace file %s", trace_file.c_str());
+        reporter->FatalError("can't open event trace file %s: %s", trace_file.c_str(), strerror(errno));
+}
+
+EventTraceMgr::~EventTraceMgr() {
+    if ( f ) {
+        if ( fclose(f) )
+            // Not fatal, won't do anything with it anymore anyhow.
+            reporter->Error("failed to close event trace file: %s", strerror(errno));
+
+        f = nullptr;
+    }
 }
 
 void EventTraceMgr::Generate() {
@@ -999,8 +1009,6 @@ void EventTraceMgr::Generate() {
         for ( auto& c : c_t )
             fprintf(f, "#\t%s\n", c.c_str());
     }
-
-    fclose(f);
 }
 
 void EventTraceMgr::StartEvent(const ScriptFunc* ev, const zeek::Args* args) {

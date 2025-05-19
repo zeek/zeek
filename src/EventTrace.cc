@@ -95,7 +95,7 @@ bool ValTrace::operator==(const ValTrace& vt) const {
 
         case TYPE_SUBNET: return v->AsSubNet() == vt_v->AsSubNet();
 
-        case TYPE_FUNC: return v->AsFile() == vt_v->AsFile();
+        case TYPE_FUNC: return v->AsFunc() == vt_v->AsFunc();
 
         case TYPE_FILE: return v->AsFile() == vt_v->AsFile();
 

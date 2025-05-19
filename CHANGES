@@ -1,3 +1,11 @@
+8.0.0-dev.142 | 2025-05-19 12:32:56 -0700
+
+  * EventTrace: Fix operator==() UBSAN downcast error (Arne Welzel, Corelight)
+
+    New test triggered the following error:
+
+        runtime error: downcast of address 0x57021a323ea0 which does not point to an object of type 'const FileVal' 0x57021a323ea0: note: object is of type 'zeek::FuncVal'
+
 8.0.0-dev.140 | 2025-05-19 11:04:29 -0700
 
   * Change from_json to return an error rather than print it. (Steve Smoot, Corelight)

@@ -1,3 +1,7 @@
+7.2.0-9 | 2025-05-19 12:34:10 -0700
+
+  * Bump `auxil/spicy` to v1.13.1 (Benjamin Bannier, Corelight)
+
 7.2.0-7 | 2025-05-19 09:31:58 -0700
 
   * IXWebSocket: Point at upstream, bump to v11.4.6 (Arne Welzel, Corelight)

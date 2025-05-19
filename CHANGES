@@ -1,3 +1,7 @@
+7.0.7-2 | 2025-05-19 09:09:07 -0700
+
+  * Bump `auxil/spicy` to v1.11.5 (Benjamin Bannier, Corelight)
+
 7.0.7 | 2025-05-08 14:46:40 -0700
 
   * Release 7.0.7.

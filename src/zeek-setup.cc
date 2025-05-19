@@ -400,8 +400,10 @@ static void terminate_zeek() {
 
     script_coverage_mgr.WriteStats();
 
-    if ( event_trace_mgr )
+    if ( event_trace_mgr ) {
         event_trace_mgr->Generate();
+        event_trace_mgr.reset();
+    }
 
     delete zeekygen_mgr;
     delete packet_mgr;

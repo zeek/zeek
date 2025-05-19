@@ -1,3 +1,7 @@
+8.0.0-dev.140 | 2025-05-19 11:04:29 -0700
+
+  * Change from_json to return an error rather than print it. (Steve Smoot, Corelight)
+
 8.0.0-dev.136 | 2025-05-19 20:01:30 +0200
 
   * btest/core: Add event-trace test (Arne Welzel, Corelight)

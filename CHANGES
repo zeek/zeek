@@ -1,3 +1,7 @@
+7.0.7-6 | 2025-05-19 09:22:22 -0700
+
+  * Update paraglob submodule for GCC 15.1 build fix (Tim Wojtulewicz, Corelight)
+
 7.0.7-5 | 2025-05-19 09:20:24 -0700
 
   * probabilistic/BitVector: Add include <cstdint> (Arne Welzel, Corelight)

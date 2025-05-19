@@ -3,6 +3,22 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 7.0.8
+==========
+
+We would like to thank Ivan Navi (@i2z1) and Seth Grover (@mmguero) for their contributions
+to this release.
+
+This release fixes the following bugs:
+
+- GCC 15.1 failed to build both Zeek and the integrated Paraglob library.
+
+- The requirement for the BIND library to be present for the build was removed. This
+  library is not needed since we migrated to C-Ares for DNS lookups.
+
+- The Spicy submodule was updated to v1.11.5. This version brings a fix for a compilation
+  failure when iterating over a byte value.
+
 Zeek 7.0.7
 ==========
 

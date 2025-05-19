@@ -1,3 +1,7 @@
+7.0.8 | 2025-05-19 14:00:30 -0700
+
+  * Update CHANGES, VERSION, and NEWS for 7.0.8 (Tim Wojtulewicz, Corelight)
+
 7.0.7-7 | 2025-05-19 11:17:50 -0700
 
   * external/subdir-btest.cfg: Set OPENSSL_ENABLE_SHA1_SIGNATURES=1 (Arne Welzel, Corelight)

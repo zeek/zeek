@@ -467,6 +467,6 @@ private:
 };
 
 // If non-nil then we're doing event tracing.
-extern std::unique_ptr<EventTraceMgr> etm;
+extern std::unique_ptr<EventTraceMgr> event_trace_mgr;
 
 } // namespace zeek::detail

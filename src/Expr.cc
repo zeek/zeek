@@ -3868,8 +3868,8 @@ ValPtr ScheduleExpr::Eval(Frame* f) const {
     if ( args ) {
         auto handler = event->Handler();
 
-        if ( etm )
-            etm->ScriptEventQueued(handler);
+        if ( event_trace_mgr )
+            event_trace_mgr->ScriptEventQueued(handler);
 
         timer_mgr->Add(new ScheduleTimer(handler, std::move(*args), dt));
     }
@@ -4474,8 +4474,8 @@ ValPtr EventExpr::Eval(Frame* f) const {
     auto v = eval_list(f, args.get());
 
     if ( handler ) {
-        if ( etm )
-            etm->ScriptEventQueued(handler);
+        if ( event_trace_mgr )
+            event_trace_mgr->ScriptEventQueued(handler);
 
         event_mgr.Enqueue(handler, std::move(*v));
     }

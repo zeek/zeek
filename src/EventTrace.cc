@@ -13,7 +13,7 @@
 
 namespace zeek::detail {
 
-std::unique_ptr<EventTraceMgr> etm;
+std::unique_ptr<EventTraceMgr> event_trace_mgr;
 
 // Helper function for generating a correct script-level representation
 // of a string constant.

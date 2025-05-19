@@ -64,18 +64,18 @@ builds_only_if_template: &BUILDS_ONLY_IF_TEMPLATE
     ) )
 
 skip_task_on_pr: &SKIP_TASK_ON_PR
-  # Skip this task on PRs if it does not have the fullci label,
+  # Skip this task on PRs if it does not have the CI: Full label,
   # it continues to run for direct pushes to master/release.
   skip: >
-    ! ( $CIRRUS_PR == '' || $CIRRUS_PR_LABELS =~ '.*fullci.*' )
+    ! ( $CIRRUS_PR == '' || $CIRRUS_PR_LABELS =~ '.*CI: Full.*' )
 
 zam_skip_task_on_pr: &ZAM_SKIP_TASK_ON_PR
-  # Skip this task on PRs unless it has the `fullci` or `zamci` label
+  # Skip this task on PRs unless it has the "CI: Full" or "CI: ZAM" label
   # or files in src/script_opt/** were modified.
   # It continues to run for direct pushes to master/release, as
   # CIRRUS_PR will be empty.
   skip: >
-    ! ( $CIRRUS_PR == '' || $CIRRUS_PR_LABELS =~ '.*fullci.*' || $CIRRUS_PR_LABELS =~ '.*zamci.*' || changesInclude('src/script_opt/**') )
+    ! ( $CIRRUS_PR == '' || $CIRRUS_PR_LABELS =~ '.*CI: (Full|ZAM).*' || changesInclude('src/script_opt/**') )
 
 benchmark_only_if_template: &BENCHMARK_ONLY_IF_TEMPLATE
   # only_if condition for cron-triggered benchmarking tests.
@@ -83,8 +83,7 @@ benchmark_only_if_template: &BENCHMARK_ONLY_IF_TEMPLATE
   only_if: >
     ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
     ( $CIRRUS_CRON == 'benchmark-nightly' ||
-      $CIRRUS_PR_LABELS =~ '.*fullci.*' ||
-      $CIRRUS_PR_LABELS =~ '.*benchmark.*' )
+      $CIRRUS_PR_LABELS =~ '.*CI: (Full|Benchmark).*' )
 
 ci_template: &CI_TEMPLATE
   << : *BUILDS_ONLY_IF_TEMPLATE
@@ -727,7 +726,7 @@ cluster_testing_docker_builder:
 
 
 # Test zeekctl upon master and release pushes and also when
-# a PR has a zeekctlci or fullci label.
+# a PR has a "CI: Zeekctl" or "CI: Full" label.
 #
 # Also triggers on CIRRUS_CRON == 'zeekctl-nightly' if that is configured
 # through the Cirrus Web UI.
@@ -736,7 +735,7 @@ zeekctl_debian12_task:
   memory: *MEMORY
   only_if: >
     ( $CIRRUS_CRON == 'zeekctl-nightly' ) ||
-    ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS =~ '.*(zeekctlci|fullci).*' ) ||
+    ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS =~ '.*CI: (Zeekctl|Full).*' ) ||
     ( $CIRRUS_REPO_NAME == 'zeek' && (
         $CIRRUS_BRANCH == 'master' ||
         $CIRRUS_BRANCH =~ 'release/.*' )

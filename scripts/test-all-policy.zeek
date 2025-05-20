@@ -119,7 +119,8 @@
 @load protocols/ftp/detect-bruteforcing.zeek
 @load protocols/ftp/detect.zeek
 @load protocols/ftp/software.zeek
-@load protocols/http/detect-sqli.zeek
+# @load protocols/http/detect-sqli.zeek
+@load protocols/http/detect-sql-injection.zeek
 @load protocols/http/detect-webapps.zeek
 @load protocols/http/header-names.zeek
 @load protocols/http/software-browser-plugins.zeek

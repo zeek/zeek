@@ -1,3 +1,9 @@
+8.0.0-dev.146 | 2025-05-20 16:25:58 +0200
+
+  * site/local: Switch to detect-sql-injection (Arne Welzel, Corelight)
+
+  * Add a revised script for detecting HTTP SQL injection, deprecate original (Vern Paxson, Corelight)
+
 8.0.0-dev.142 | 2025-05-19 12:32:56 -0700
 
   * EventTrace: Fix operator==() UBSAN downcast error (Arne Welzel, Corelight)

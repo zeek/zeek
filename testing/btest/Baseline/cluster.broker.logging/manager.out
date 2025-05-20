@@ -6,7 +6,7 @@ B nodes_up, 4
 B nodes_up, 5
 C cluster_started
 D send_finish
-E node_down, logger
-E node_down, proxy
+E node_down, logger-1
+E node_down, proxy-1
 E node_down, worker-1
 E node_down, worker-2

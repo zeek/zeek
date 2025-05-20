@@ -1,7 +1,9 @@
 # @TEST-DOC: Send any values and observe behavior using broker.
 #
-# @TEST-PORT: BROKER_PORT1
-# @TEST-PORT: BROKER_PORT2
+# @TEST-PORT: BROKER_MANAGER_PORT
+# @TEST-PORT: BROKER_WORKER1_PORT
+#
+# @TEST-EXEC: cp $FILES/broker/cluster-layout.zeek .
 #
 # @TEST-EXEC: zeek -b --parse-only common.zeek manager.zeek worker.zeek
 #
@@ -11,13 +13,6 @@
 # @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff ./manager/.stdout
 # @TEST-EXEC: btest-diff ./worker-1/.stdout
-
-# @TEST-START-FILE cluster-layout.zeek
-redef Cluster::nodes = {
-	["manager"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
-	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager"],
-};
-# @TEST-END-FILE
 
 # @TEST-START-FILE common.zeek
 redef Log::default_rotation_interval = 0sec;

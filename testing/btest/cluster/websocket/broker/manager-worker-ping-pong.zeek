@@ -9,8 +9,11 @@
 #
 # @TEST-REQUIRES: python3 -c 'import websockets.sync'
 #
-# @TEST-PORT: BROKER_PORT1
+# @TEST-PORT: BROKER_MANAGER_PORT
+# @TEST-PORT: BROKER_WORKER1_PORT
 # @TEST-PORT: WEBSOCKET_PORT
+#
+# @TEST-EXEC: cp $FILES/broker/cluster-layout.zeek .
 #
 # @TEST-EXEC: cp $FILES/ws/wstest.py .
 #
@@ -29,13 +32,6 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER='grep -v PEER_UNAVAILABLE' btest-diff ./worker-1/.stderr
 # @TEST-EXEC: btest-diff ./client/.stdout
 # @TEST-EXEC: btest-diff ./client/.stderr
-
-# @TEST-START-FILE cluster-layout.zeek
-redef Cluster::nodes = {
-	["manager"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
-	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $manager="manager"],
-};
-# @TEST-END-FILE
 
 # @TEST-START-FILE common.zeek
 redef Log::enable_local_logging = T;

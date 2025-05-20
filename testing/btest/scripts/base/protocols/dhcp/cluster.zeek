@@ -1,23 +1,18 @@
 # Test in cluster mode, the manager produces the cluster.log
 #
-# @TEST-PORT: BROKER_PORT1
-# @TEST-PORT: BROKER_PORT2
+# @TEST-PORT: BROKER_MANAGER_PORT
+# @TEST-PORT: BROKER_WORKER1_PORT
+#
+# @TEST-EXEC: cp $FILES/broker/cluster-layout.zeek .
 #
 # @TEST-EXEC: zeek -b --parse-only %INPUT
-# @TEST-EXEC: btest-bg-run manager-1 "cp ../cluster-layout.zeek . && CLUSTER_NODE=manager-1 zeek -b %INPUT"
-# @TEST-EXEC: btest-bg-run worker-1  "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-1 zeek -b --pseudo-realtime -C -r $TRACES/dhcp/dhcp_ack_subscriber_id_and_agent_remote_id.trace %INPUT"
+# @TEST-EXEC: btest-bg-run manager  "cp ../cluster-layout.zeek . && CLUSTER_NODE=manager  zeek -b %INPUT"
+# @TEST-EXEC: btest-bg-run worker-1 "cp ../cluster-layout.zeek . && CLUSTER_NODE=worker-1 zeek -b --pseudo-realtime -C -r $TRACES/dhcp/dhcp_ack_subscriber_id_and_agent_remote_id.trace %INPUT"
 
 # @TEST-EXEC: btest-bg-wait 10
 # @TEST-EXEC: btest-diff worker-1/.stdout
-# @TEST-EXEC: btest-diff manager-1/.stdout
-# @TEST-EXEC: btest-diff manager-1/dhcp.log
-
-# @TEST-START-FILE cluster-layout.zeek
-redef Cluster::nodes = {
-	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
-	["worker-1"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1"],
-};
-# @TEST-END-FILE
+# @TEST-EXEC: btest-diff manager/.stdout
+# @TEST-EXEC: btest-diff manager/dhcp.log
 
 @load base/protocols/dhcp
 @load base/frameworks/broker

@@ -1,16 +1,18 @@
 # @TEST-DOC: Startup a Broker cluster by hand, testing basic logging and node_up and node_down events on the manager.
 #
-# @TEST-PORT: BROKER_PORT1
-# @TEST-PORT: BROKER_PORT2
-# @TEST-PORT: BROKER_PORT3
-# @TEST-PORT: BROKER_PORT4
-# @TEST-PORT: BROKER_PORT5
+# @TEST-PORT: BROKER_MANAGER_PORT
+# @TEST-PORT: BROKER_LOGGER1_PORT
+# @TEST-PORT: BROKER_PROXY1_PORT
+# @TEST-PORT: BROKER_WORKER1_PORT
+# @TEST-PORT: BROKER_WORKER2_PORT
+#
+# @TEST-EXEC: cp $FILES/broker/cluster-layout.zeek .
 #
 # @TEST-EXEC: chmod +x ./check-test-log.sh
 #
 # @TEST-EXEC: btest-bg-run manager "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=manager zeek -b ../manager.zeek >out"
-# @TEST-EXEC: btest-bg-run logger "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=logger zeek -b ../other.zeek >out"
-# @TEST-EXEC: btest-bg-run proxy "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=proxy zeek -b ../other.zeek >out"
+# @TEST-EXEC: btest-bg-run logger-1 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=logger-1 zeek -b ../other.zeek >out"
+# @TEST-EXEC: btest-bg-run proxy-1 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=proxy-1 zeek -b ../other.zeek >out"
 # @TEST-EXEC: btest-bg-run worker-1 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-1 zeek -b ../other.zeek >out"
 # @TEST-EXEC: btest-bg-run worker-2 "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=worker-2 zeek -b ../other.zeek >out"
 #
@@ -18,18 +20,6 @@
 # @TEST-EXEC: btest-diff test.log.normalized
 # @TEST-EXEC: sort manager/out > manager.out
 # @TEST-EXEC: btest-diff manager.out
-
-# @TEST-START-FILE cluster-layout.zeek
-redef Cluster::manager_is_logger = F;
-
-redef Cluster::nodes = {
-    ["manager"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
-    ["logger"] = [$node_type=Cluster::LOGGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager"],
-    ["proxy"] = [$node_type=Cluster::PROXY, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT3")), $manager="manager"],
-    ["worker-1"] = [$node_type=Cluster::WORKER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT4")), $manager="manager"],
-    ["worker-2"] = [$node_type=Cluster::WORKER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT5")), $manager="manager"],
-};
-# @TEST-END-FILE
 
 # @TEST-START-FILE common.zeek
 @load frameworks/cluster/experimental
@@ -120,10 +110,10 @@ event finish(name: string) {
 # @TEST-START-FILE check-test-log.sh
 #!/bin/sh
 #
-# This script checks logger/test.log until the expected number
+# This script checks logger-1/test.log until the expected number
 # of log entries have been observed and puts a normalized version
 # into the testing directory for baselining.
-TEST_LOG=../logger/test.log
+TEST_LOG=../logger-1/test.log
 
 if [ ! -f $TEST_LOG ]; then
 	echo "$TEST_LOG not found!" >&2

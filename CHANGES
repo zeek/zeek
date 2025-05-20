@@ -1,3 +1,18 @@
+8.0.0-dev.159 | 2025-05-20 20:30:18 +0200
+
+  * Update cluster-layout.zeek usage in btests (Arne Welzel, Corelight)
+
+  * testing/btest/Files: Add generic broker/cluster-layout.zeek (Arne Welzel, Corelight)
+
+    This is a cluster-layout.zeek template that can be copied into a testing
+    directory if needed. The idea is that a developer sets environment
+    variables within their btest and the Cluster::nodes variable is
+    implicitly extended by appropriate nodes.
+
+    For example, using @TEST-PORT BROKER_LOGGER1_PORT will add an appropriate
+    logger-1 node to Cluster::nodes, based on the existence of the
+    BROKER_LOGGER1_PORT environment variable.
+
 8.0.0-dev.146 | 2025-05-20 16:25:58 +0200
 
   * site/local: Switch to detect-sql-injection (Arne Welzel, Corelight)

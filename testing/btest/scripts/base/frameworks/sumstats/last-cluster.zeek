@@ -1,21 +1,16 @@
-# @TEST-PORT: BROKER_PORT1
-# @TEST-PORT: BROKER_PORT2
+# @TEST-PORT: BROKER_MANAGER_PORT
+# @TEST-PORT: BROKER_WORKER1_PORT
 #
-# @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -b %INPUT
+# @TEST-EXEC: cp $FILES/broker/cluster-layout.zeek .
+#
+# @TEST-EXEC: btest-bg-run manager   ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager zeek -b %INPUT
 # @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 25
 
-# @TEST-EXEC: btest-diff manager-1/.stdout
+# @TEST-EXEC: btest-diff manager/.stdout
 
 @load base/frameworks/sumstats
 @load base/frameworks/cluster
-
-# @TEST-START-FILE cluster-layout.zeek
-redef Cluster::nodes = {
-	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
-	["worker-1"]  = [$node_type=Cluster::WORKER,  $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1"],
-};
-# @TEST-END-FILE
 
 global c = 0;
 
@@ -57,7 +52,7 @@ event Cluster::node_up(name: string, id: string)
 	{
 	print "node up", name;
 
-	if ( Cluster::node == "worker-1" && name == "manager-1" )
+	if ( Cluster::node == "worker-1" && name == "manager" )
 		schedule 0.1secs { do_observe() };
 	}
 

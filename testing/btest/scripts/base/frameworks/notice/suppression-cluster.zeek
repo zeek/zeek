@@ -1,26 +1,19 @@
-# @TEST-PORT: BROKER_PORT1
-# @TEST-PORT: BROKER_PORT2
-# @TEST-PORT: BROKER_PORT3
-# @TEST-PORT: BROKER_PORT4
+# @TEST-PORT: BROKER_MANAGER_PORT
+# @TEST-PORT: BROKER_PROXY1_PORT
+# @TEST-PORT: BROKER_WORKER1_PORT
+# @TEST-PORT: BROKER_WORKER2_PORT
 #
-# @TEST-EXEC: btest-bg-run manager-1 ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager-1 zeek -b %INPUT
+# @TEST-EXEC: cp $FILES/broker/cluster-layout.zeek .
+#
+# @TEST-EXEC: btest-bg-run manager   ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=manager zeek -b %INPUT
 # @TEST-EXEC: btest-bg-run proxy-1   ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=proxy-1 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-run worker-1  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-1 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-run worker-2  ZEEKPATH=$ZEEKPATH:.. CLUSTER_NODE=worker-2 zeek -b %INPUT
 # @TEST-EXEC: btest-bg-wait 30
-# @TEST-EXEC: btest-diff manager-1/notice.log
+# @TEST-EXEC: btest-diff manager/notice.log
 
 @load base/frameworks/notice
 @load policy/frameworks/cluster/experimental
-
-# @TEST-START-FILE cluster-layout.zeek
-redef Cluster::nodes = {
-	["manager-1"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT1"))],
-	["proxy-1"] = [$node_type=Cluster::PROXY,     $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT2")), $manager="manager-1"],
-	["worker-1"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT3")), $manager="manager-1"],
-	["worker-2"] = [$node_type=Cluster::WORKER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_PORT4")), $manager="manager-1"],
-};
-# @TEST-END-FILE
 
 redef Log::default_rotation_interval = 0secs;
 
@@ -41,7 +34,7 @@ event do_notice()
 	        $msg="test notice!",
 	        $identifier="this identifier is static"]);
 	Broker::flush_logs();
-	Broker::publish(Cluster::node_topic("manager-1"), proceed);
+	Broker::publish(Cluster::node_topic("manager"), proceed);
 	}
 
 event Notice::suppressed(n: Notice::Info)
@@ -58,7 +51,7 @@ event Notice::begin_suppression(ts: time, suppress_for: interval, note: Notice::
 	print "begin suppression", suppress_for, note, identifier;
 
 	if ( Cluster::node == "worker-1" )
-		Broker::publish(Cluster::node_topic("manager-1"), proceed);
+		Broker::publish(Cluster::node_topic("manager"), proceed);
 	}
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )

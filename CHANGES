@@ -1,3 +1,7 @@
+7.2.1 | 2025-05-20 09:12:46 -0700
+
+  * Update CHANGES, VERSION, and NEWS for 7.2.1 release (Tim Wojtulewicz, Corelight)
+
 7.2.0-9 | 2025-05-19 12:34:10 -0700
 
   * Bump `auxil/spicy` to v1.13.1 (Benjamin Bannier, Corelight)

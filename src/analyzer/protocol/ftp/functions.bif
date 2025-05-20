@@ -4,45 +4,40 @@ type ftp_port: record;
 %%{
 #include "zeek/Reporter.h"
 
-static zeek::RecordValPtr parse_port(const char* line)
+static zeek::RecordValPtr parse_port(std::string_view line)
 	{
 	auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::ftp_port);
 
-	int bytes[6];
-	if ( line && sscanf(line, "%d,%d,%d,%d,%d,%d",
-			&bytes[0], &bytes[1], &bytes[2],
-			&bytes[3], &bytes[4], &bytes[5]) == 6 )
+	bool good = false;
+	uint32_t port = 0;
+	uint32_t addr = 0;
+
+	int32_t bytes[6];
+	if ( line.size() >= 11 && sscanf(line.data(),
+                                     "%" SCNd32 ",%" SCNd32 ",%" SCNd32 ",%" SCNd32 ",%" SCNd32 ",%" SCNd32,
+	                                 &bytes[0], &bytes[1], &bytes[2],
+	                                 &bytes[3], &bytes[4], &bytes[5]) == 6 )
 		{
-		int good = 1;
+		good = true;
 
 		for ( int i = 0; i < 6; ++i )
 			if ( bytes[i] < 0 || bytes[i] > 255 )
 				{
-				good = 0;
+				good = false;
 				break;
 				}
 
-		uint32_t addr = (bytes[0] << 24) | (bytes[1] << 16) |
-				(bytes[2] << 8) | bytes[3];
-		uint32_t port = (bytes[4] << 8) | bytes[5];
-
-		// Since port is unsigned, no need to check for < 0.
-		if ( port > 65535 )
+		if ( good )
 			{
-			port = 0;
-			good = 0;
+			addr = (bytes[0] << 24) | (bytes[1] << 16) |
+					(bytes[2] << 8) | bytes[3];
+			port = (bytes[4] << 8) | bytes[5];
 			}
+		}
 
-		r->Assign(0, zeek::make_intrusive<zeek::AddrVal>(htonl(addr)));
-		r->Assign(1, zeek::val_mgr->Port(port, TRANSPORT_TCP));
-		r->Assign(2, good);
-		}
-	else
-		{
-		r->Assign(0, zeek::make_intrusive<zeek::AddrVal>(uint32_t(0)));
-		r->Assign(1, zeek::val_mgr->Port(0, TRANSPORT_TCP));
-		r->Assign(2, false);
-		}
+	r->Assign(0, zeek::make_intrusive<zeek::AddrVal>(htonl(addr)));
+	r->Assign(1, zeek::val_mgr->Port(port, TRANSPORT_TCP));
+	r->Assign(2, good);
 
 	return r;
 	}
@@ -54,7 +49,7 @@ static zeek::RecordValPtr parse_eftp(const char* line)
 	int net_proto = 0;	// currently not used
 	zeek::IPAddr addr;	// unspecified IPv6 address (all 128 bits zero)
 	int port = 0;
-	int good = 0;
+	bool good = false;
 
 	if ( line )
 		{
@@ -66,12 +61,12 @@ static zeek::RecordValPtr parse_eftp(const char* line)
 
 		if ( *line )
 			{
-			good = 1;
+			good = true;
 			++line;	// skip delimiter
 
 			net_proto = strtol(line, &next_delim, 10);
 			if ( *next_delim != delimiter )
-				good = 0;
+				good = false;
 
 			line = next_delim;
 			if ( *line )
@@ -83,7 +78,7 @@ static zeek::RecordValPtr parse_eftp(const char* line)
 				if ( nptr == NULL )
 					{
 					nptr = line + strlen(line);
-					good = 0;
+					good = false;
 					}
 
 				std::string s(line, nptr-line); // extract IP address
@@ -100,12 +95,12 @@ static zeek::RecordValPtr parse_eftp(const char* line)
 				++line;	// now the port
 				port = strtol(line, &next_delim, 10);
 				if ( *next_delim != delimiter )
-					good = 0;
+					good = false;
 
 				if ( port < 0 || port > 65535 )
 					{
 					port = 0;
-					good = 0;
+					good = false;
 					}
 				}
 			}
@@ -130,7 +125,7 @@ static zeek::RecordValPtr parse_eftp(const char* line)
 ## .. zeek:see:: parse_eftp_port parse_ftp_pasv parse_ftp_epsv fmt_ftp_port
 function parse_ftp_port%(s: string%): ftp_port
 	%{
-	return parse_port(s->CheckString());
+	return parse_port(s->ToStdStringView());
 	%}
 
 ## Converts a string representation of the FTP EPRT command (see :rfc:`2428`)
@@ -158,6 +153,10 @@ function parse_eftp_port%(s: string%): ftp_port
 function parse_ftp_pasv%(str: string%): ftp_port
 	%{
 	const char* s = str->CheckString();
+
+	if ( str->Len() == 0 )
+	   return parse_port("");
+
 	const char* line = strchr(s, '(');
 	if ( line )
 		++line;	// move past '('
@@ -170,7 +169,11 @@ function parse_ftp_pasv%(str: string%): ftp_port
 		++line;	// now points to first digit, or beginning of s
 		}
 
-	return parse_port(line);
+	// Make sure we didn't step past the end of the string.
+	if ( ! line || ( line - s ) > str->Len() )
+		return parse_port("");
+	else
+		return parse_port(std::string_view{line});
 	%}
 
 ## Converts the result of the FTP EPSV command (see :rfc:`2428`) to an

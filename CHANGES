@@ -1,3 +1,13 @@
+8.0.0-dev.164 | 2025-05-20 12:02:09 -0700
+
+  * Add extra input files to ftp fuzzer corpus (Tim Wojtulewicz, Corelight)
+
+  * Use bool instead of int flag in FTP analyzer's parse_eftp method (Tim Wojtulewicz, Corelight)
+
+  * Fix undefined behavior in FTP analyzer's parse_port method (Tim Wojtulewicz, Corelight)
+
+  * Fix invalid-read in FTP analyzer's parse_port method (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.159 | 2025-05-20 20:30:18 +0200
 
   * Update cluster-layout.zeek usage in btests (Arne Welzel, Corelight)

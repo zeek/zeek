@@ -25,7 +25,8 @@ export {
 		## sqlite. The ``integrity_check`` pragma is run automatically and does
 		## not need to be included here. For pragmas without a second argument,
 		## set the value to an empty string.
-		pragma_commands: table[string] of string &default=table(
+		pragma_commands: table[string] of string &ordered &default=table(
+			["integrity_check"] = "",
 			["busy_timeout"] = "5000",
 			["journal_mode"] = "WAL",
 			["synchronous"] = "normal",

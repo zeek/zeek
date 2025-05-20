@@ -2,8 +2,9 @@
 Storage::backend_opened, Storage::STORAGE_BACKEND_SQLITE, [serializer=Storage::STORAGE_SERIALIZER_JSON, sqlite=[database_path=test.sqlite, table_name=testing, pragma_commands={
 [synchronous] = normal,
 [journal_mode] = WAL,
-[temp_store] = memory,
-[busy_timeout] = 5000
+[busy_timeout] = 5000,
+[integrity_check] = ,
+[temp_store] = memory
 }, pragma_timeout=500.0 msecs, pragma_wait_on_failure=5.0 msecs]]
 open result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<opaque of BackendHandleVal>]
 put result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<uninitialized>]

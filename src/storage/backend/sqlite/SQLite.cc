@@ -5,6 +5,7 @@
 #include <thread>
 
 #include "zeek/3rdparty/sqlite3.h"
+#include "zeek/DebugLogger.h"
 #include "zeek/Func.h"
 #include "zeek/Val.h"
 #include "zeek/storage/ReturnCode.h"
@@ -20,6 +21,8 @@ OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::stri
     std::string cmd = util::fmt("pragma %.*s", static_cast<int>(name.size()), name.data());
     if ( value && ! value->empty() )
         cmd += util::fmt(" = %.*s", static_cast<int>(value->size()), value->data());
+
+    DBG_LOG(DBG_STORAGE, "Executing pragma %s on %s", cmd.c_str(), full_path.c_str());
 
     while ( pragma_timeout == 0ms || time_spent < pragma_timeout ) {
         int res = sqlite3_exec(db, cmd.c_str(), NULL, NULL, &errorMsg);
@@ -89,14 +92,6 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         return open_res;
     }
 
-    char* errorMsg = nullptr;
-
-    OperationResult pragma_res = RunPragma("integrity_check");
-    if ( pragma_res.code != ReturnCode::SUCCESS ) {
-        Error(pragma_res.err_str.c_str());
-        return pragma_res;
-    }
-
     auto pragmas = backend_options->GetField<TableVal>("pragma_commands")->ToMap();
     for ( const auto& [k, v] : pragmas ) {
         auto ks = k->AsListVal()->Idx(0)->AsStringVal();
@@ -104,7 +99,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         auto vs = v->AsStringVal();
         auto vs_sv = vs->ToStdStringView();
 
-        pragma_res = RunPragma(ks_sv, vs_sv);
+        auto pragma_res = RunPragma(ks_sv, vs_sv);
         if ( pragma_res.code != ReturnCode::SUCCESS ) {
             Error(pragma_res.err_str.c_str());
             return pragma_res;
@@ -114,6 +109,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     std::string create = "create table if not exists " + table_name + " (";
     create.append("key_str blob primary key, value_str blob not null, expire_time real);");
 
+    char* errorMsg = nullptr;
     if ( int res = sqlite3_exec(db, create.c_str(), NULL, NULL, &errorMsg); res != SQLITE_OK ) {
         std::string err = util::fmt("Error executing table creation statement: (%d) %s", res, errorMsg);
         Error(err.c_str());

@@ -866,7 +866,7 @@ static std::set<EventGroupPtr> get_func_groups(const std::vector<AttrPtr>& attrs
         }
 
         auto group = event_registry->RegisterGroup(EventGroupKind::Attribute, v->AsStringVal()->ToStdStringView());
-        groups.insert(group);
+        groups.insert(std::move(group));
     }
 
     return groups;

@@ -23,7 +23,11 @@ using namespace zeek::cluster;
 
 
 bool detail::LocalEventHandlingStrategy::DoProcessEvent(std::string_view topic, detail::Event e) {
-    zeek::event_mgr.Enqueue(e.Handler(), std::move(e.Args()), util::detail::SOURCE_BROKER, 0, nullptr, e.Timestamp());
+    zeek::detail::EventMetadataVectorPtr meta;
+    if ( auto ts = e.Timestamp(); ts > 0.0 )
+        meta = zeek::detail::MakeEventMetadataVector(e.Timestamp());
+
+    zeek::event_mgr.Enqueue(std::move(meta), e.Handler(), std::move(e.Args()), util::detail::SOURCE_BROKER);
     return true;
 }
 

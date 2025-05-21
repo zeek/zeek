@@ -37,7 +37,7 @@ string type_name;
 // already been defined/written to the C++ files.
 static std::set<std::string> events;
 
-enum {
+enum : uint8_t {
 	C_SEGMENT_DEF,
 	FUNC_DEF,
 	EVENT_DEF,

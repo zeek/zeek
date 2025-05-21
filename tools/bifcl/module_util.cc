@@ -16,7 +16,7 @@ string extract_module_name(const char* name) {
     string::size_type pos = module_name.rfind("::");
 
     if ( pos == string::npos )
-        return string(GLOBAL_MODULE_NAME);
+        return GLOBAL_MODULE_NAME;
 
     module_name.erase(pos);
 
@@ -31,17 +31,17 @@ string extract_var_name(const char* name) {
         return var_name;
 
     if ( pos + 2 > var_name.size() )
-        return string("");
+        return "";
 
     return var_name.substr(pos + 2);
 }
 
 string normalized_module_name(const char* module_name) {
-    int mod_len;
+    size_t mod_len;
     if ( mod_len = strlen(module_name); mod_len >= 2 && streq(module_name + mod_len - 2, "::") )
         mod_len -= 2;
 
-    return string(module_name, mod_len);
+    return {module_name, mod_len};
 }
 
 string make_full_var_name(const char* module_name, const char* var_name) {
@@ -49,7 +49,7 @@ string make_full_var_name(const char* module_name, const char* var_name) {
         if ( streq(GLOBAL_MODULE_NAME, extract_module_name(var_name).c_str()) )
             return extract_var_name(var_name);
 
-        return string(var_name);
+        return var_name;
     }
 
     string full_name = normalized_module_name(module_name);

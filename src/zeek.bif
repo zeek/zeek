@@ -5320,6 +5320,7 @@ function from_json%(s: string, t: any, key_func: string_mapper &default=from_jso
 	static auto result_type = zeek::id::find_type<RecordType>("from_json_result");
 	static auto v_idx = result_type->FieldOffset("v");
 	static auto valid_idx = result_type->FieldOffset("valid");
+	static auto err_idx = result_type->FieldOffset("err");
 	static auto default_key_func_ptr = zeek::id::find_func("from_json_default_key_mapper");
 
 	auto rval = zeek::make_intrusive<RecordVal>(result_type);
@@ -5348,7 +5349,7 @@ function from_json%(s: string, t: any, key_func: string_mapper &default=from_jso
 	else
 		{
 		rval->Assign(valid_idx, false);
-                rval->Assign(result_type->FieldOffset("err"), res.error().c_str());
+		rval->Assign(err_idx, res.error().c_str());
 		}
 
 	return std::move(rval);

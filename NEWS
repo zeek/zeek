@@ -8,6 +8,8 @@ Zeek 8.0.0
 
 We would like to thank ... for their contributions to this release.
 
+Mohan Dhawan and Justin Azoff for pushing for the ``intel/seen`` event group additions!
+
 Breaking Changes
 ----------------
 
@@ -17,6 +19,24 @@ Breaking Changes
 
 New Functionality
 -----------------
+
+- The ``frameworks/intel/seen`` scripts have been annotated with event groups
+  and a new ``frameworks/intel/seen/manage-event-groups`` policy script added.
+
+  The motivation is to allow Zeek distributors to load the ``intel/seen`` scripts
+  by default without incurring their event overhead when no Intel indicators are
+  loaded. Corresponding event handlers are enabled once the first Intel indicator
+  of a given ``Intel::Type`` is added. Event handlers are disabled when the last
+  indicator is removed, again.
+
+  Note that the ``manage-event-groups`` script interacts with the ``Intel::seen_policy``
+  hook: If no indicators for a given ``Intel::Type`` are loaded, the ``Intel::seen_policy``
+  will not be invoked as the event handlers extracting indicators aren't executed.
+
+  If you rely on the ``Intel::seen_policy`` hook to be invoked regardless of the
+  contents of the Intel store, do not load the ``manage-event-groups`` or set:
+
+	redef Intel::manage_seen_event_groups = F;
 
 - A new plugin hook, ``HookPublishEvent()``, has been added for intercepting
   publishing of Zeek events. This hook may be used for monitoring purposes,
@@ -32,6 +52,16 @@ New Functionality
 	bool HookPublishEvent(zeek::cluster::Backend& backend,
 	                      const std::string& topic,
 	                      zeek::cluster::detail::Event& event);
+
+- Two new script-level hooks in the Intel framework have been added.
+
+	hook indicator_inserted(indicator_value: string, indicator_type: Intel::Type)
+
+	hook indicator_removed(indicator_value: string, indicator_type: Intel::Type)
+
+  These are reliably invoked on worker and manager nodes the first time an
+  indicator value is inserted into the store and once it has been completely
+  removed from the store. When all associated metadata entries removed.
 
 Changed Functionality
 ---------------------

@@ -66,6 +66,40 @@ Event::Event(detail::EventMetadataVectorPtr arg_meta, const EventHandlerPtr& arg
         Ref(obj);
 }
 
+zeek::VectorValPtr Event::MetadataValues(const EnumValPtr& id) const {
+    static const auto& any_vec_t = zeek::id::find_type<zeek::VectorType>("any_vec");
+    auto result = zeek::make_intrusive<zeek::VectorVal>(any_vec_t);
+
+    if ( ! meta )
+        return result;
+
+    auto id_int = id->Get();
+    if ( id_int < 0 )
+        zeek::reporter->InternalError("Negative enum value %s: %" PRId64, obj_desc_short(id.get()).c_str(), id_int);
+
+    zeek_uint_t uintid = static_cast<zeek_uint_t>(id_int);
+    const auto* desc = event_registry->LookupMetadata(uintid);
+    if ( ! desc )
+        return result;
+
+    for ( const auto& entry : *meta ) {
+        if ( entry.Id() != uintid )
+            continue;
+
+        // Sanity check the type.
+        if ( ! same_type(desc->Type(), entry.Val()->GetType()) ) {
+            zeek::reporter->InternalWarning("metadata has unexpected type %s, wanted %s",
+                                            obj_desc_short(entry.Val()->GetType().get()).c_str(),
+                                            obj_desc_short(desc->Type().get()).c_str());
+            continue;
+        }
+
+        result->Append(entry.Val());
+    }
+
+    return result;
+}
+
 double Event::Time() const {
     if ( ! meta )
         return 0.0;

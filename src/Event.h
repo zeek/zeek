@@ -66,6 +66,18 @@ public:
     const zeek::Args& Args() const { return args; }
     double Time() const;
 
+    /**
+     * @return a pointer to the MetadataVector of this event or a nullptr.
+     */
+    const detail::EventMetadataVector* Metadata() const { return meta.get(); }
+
+    /**
+     * @return a vector of values for metadata matching identifier \a id.
+     *
+     * @param id The metadata identifier as an enum value.
+     */
+    VectorValPtr MetadataValues(const EnumValPtr& id) const;
+
     void Describe(ODesc* d) const override;
 
 private:

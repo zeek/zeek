@@ -428,6 +428,50 @@ function EventMetadata::register%(id: EventMetadata::ID, t: any%): bool
        return zeek::val_mgr->Bool(r);
        %}
 
+## Query the current event's metadata with identifier *id*.
+##
+## id: The metadata identifier, e.g. ``EventMetadata::NETWORK_TIMESTAMP``.
+##
+## Returns: A vector of values. The vector is empty if no metadata with
+##          the given identifier is attached to this event, otherwise a
+##          vector whose elements are of the type used during registration.
+##
+## .. zeek:see:: EventMetadata::register EventMetadata::current_all
+function EventMetadata::current%(id: EventMetadata::ID%): any_vec
+	%{
+	static const auto& vt = zeek::id::find_type<zeek::VectorType>("any_vec");
+
+	const auto* event = zeek::event_mgr.CurrentEvent();
+	if ( ! event )
+		return zeek::make_intrusive<zeek::VectorVal>(vt);
+
+	return event->MetadataValues({zeek::NewRef{}, id->AsEnumVal()});
+	%}
+
+## Query all of the current event's metadata.
+##
+## Returns: A vector :zeek:see:`EventMetadata::Entry` elements holding all
+##          the metadata attached to this event.
+##
+## .. zeek:see:: EventMetadata::register EventMetadata::current
+function EventMetadata::current_all%(%): event_metadata_vec
+	%{
+	static const auto& vt = zeek::id::find_type<zeek::VectorType>("event_metadata_vec");
+	auto result = zeek::make_intrusive<zeek::VectorVal>(vt);
+
+	const auto* event = zeek::event_mgr.CurrentEvent();
+	if ( ! event )
+		return result;
+
+	if ( const auto* mdv = event->Metadata() ) {
+		for ( const auto& entry : *mdv )
+			result->Append(entry.BuildVal());
+
+	}
+
+	return result;
+	%}
+
 ## Returns a system environment variable.
 ##
 ## var: The name of the variable whose value to request.

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <stdio.h>
+#include <cstdint>
+#include <cstdio>
 
 enum builtin_func_arg_type {
 #define DEFINE_BIF_TYPE(id, bif_type, bro_type, c_type, c_type_smart, accessor, accessor_smart, cast_smart,            \

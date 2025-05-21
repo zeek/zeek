@@ -1,11 +1,10 @@
 %{
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <vector>
 #include <set>
 #include <string>
-#include <cstring>
-
-#include <stdio.h>
-#include <stdlib.h>
 
 #include "module_util.h"
 

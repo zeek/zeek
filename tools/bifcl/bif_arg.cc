@@ -1,11 +1,6 @@
-
-#include <set>
-#include <string>
-using namespace std;
-
-#include <string.h>
-
 #include "bif_arg.h"
+
+#include <cstring>
 
 static struct {
     const char* type_enum;

@@ -1,15 +1,15 @@
 %top{
-// Include stdint.h at the start of the generated file. Typically
+// Include cstdint at the start of the generated file. Typically
 // MSVC will include this header later, after the definitions of
 // the integral type macros. MSVC then complains that about the
-// redefinition of the types. Including stdint.h early avoids this.
-#include <stdint.h>
+// redefinition of the types. Including cstdint early avoids this.
+#include <cstdint>
 }
 
 %{
 #include <ctype.h>
-#include <string.h>
 #include <unistd.h>
+#include <cstring>
 #include <memory>
 #include "bif_arg.h"
 #include "bif_parse.h"

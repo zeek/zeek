@@ -12,6 +12,7 @@
 #include "zeek/iosource/Manager.h"
 #include "zeek/plugin/Manager.h"
 
+#include "const.bif.netvar_h"
 #include "event.bif.netvar_h"
 
 zeek::EventMgr zeek::event_mgr;
@@ -48,6 +49,19 @@ Event::Event(const EventHandlerPtr& arg_handler, zeek::Args arg_args, util::deta
       obj(arg_obj),
       next_event(nullptr),
       meta(detail::MakeEventMetadataVector(arg_ts)) {
+    if ( obj )
+        Ref(obj);
+}
+
+Event::Event(detail::EventMetadataVectorPtr arg_meta, const EventHandlerPtr& arg_handler, zeek::Args arg_args,
+             util::detail::SourceID arg_src, analyzer::ID arg_aid, Obj* arg_obj)
+    : handler(arg_handler),
+      args(std::move(arg_args)),
+      src(arg_src),
+      aid(arg_aid),
+      obj(arg_obj),
+      next_event(nullptr),
+      meta(std::move(arg_meta)) {
     if ( obj )
         Ref(obj);
 }
@@ -120,8 +134,60 @@ EventMgr::~EventMgr() {
 }
 
 void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl, util::detail::SourceID src, analyzer::ID aid, Obj* obj,
-                       double ts) {
-    QueueEvent(new Event(h, std::move(vl), src, aid, obj, ts));
+                       DeprecatedTimestamp deprecated_ts) {
+    detail::EventMetadataVectorPtr meta;
+
+    double ts = double(deprecated_ts);
+    if ( BifConst::EventMetadata::add_network_timestamp ) {
+        if ( ts < 0.0 ) // default -1.0, modify to current network_time
+            ts = run_state::network_time;
+
+        // In v8.1 when the deprecated_ts parameters is gone: Just use run_state::network_time directly here.
+        meta = detail::MakeEventMetadataVector(ts);
+    }
+    else if ( ts >= 0.0 ) {
+        // EventMetadata::add_network_timestamp is false, but EventMgr::Enqueue()
+        // with an explicit (non-negative) timestamp is used. That's a deprecated
+        // API, but we continue to support it until v8.1.
+        meta = detail::MakeEventMetadataVector(ts);
+    }
+
+    QueueEvent(new Event(std::move(meta), h, std::move(vl), src, aid, obj));
+}
+
+void EventMgr::Enqueue(detail::EventMetadataVectorPtr meta, const EventHandlerPtr& h, Args vl,
+                       util::detail::SourceID src, analyzer::ID aid, Obj* obj) {
+    if ( BifConst::EventMetadata::add_network_timestamp ) {
+        // If all events are supposed to have a network time attached, ensure
+        // that the meta vector was passed *and* contains a network timestamp.
+        bool has_time = false;
+
+        if ( ! meta ) {
+            // No metadata vector at all, make one with a timestamp.
+            meta = detail::MakeEventMetadataVector(run_state::network_time);
+        }
+        else {
+            // Check all entries for a network timestamp
+            for ( const auto& m : *meta ) {
+                if ( m.Id() == static_cast<zeek_uint_t>(detail::MetadataType::NetworkTimestamp) ) {
+                    has_time = true;
+
+                    if ( m.Val()->GetType()->Tag() != TYPE_TIME ) {
+                        // This should've been caught during parsing.
+                        zeek::reporter->InternalError("event metadata timestamp has wrong type: %s",
+                                                      obj_desc_short(m.Val()->GetType().get()).c_str());
+                    }
+                }
+            }
+
+            if ( ! has_time ) {
+                auto tv = zeek::make_intrusive<zeek::TimeVal>(run_state::network_time);
+                meta->push_back({static_cast<zeek_uint_t>(detail::MetadataType::NetworkTimestamp), std::move(tv)});
+            }
+        }
+    }
+
+    QueueEvent(new Event(std::move(meta), h, std::move(vl), src, aid, obj));
 }
 
 void EventMgr::QueueEvent(Event* event) {
@@ -150,7 +216,13 @@ void EventMgr::Dispatch(Event* event, bool no_remote) {
 }
 
 void EventMgr::Dispatch(const EventHandlerPtr& h, zeek::Args vl) {
-    auto* ev = new Event(h, std::move(vl));
+    detail::EventMetadataVectorPtr meta;
+
+    // If all events should have network timestamps, create the vector holding one.
+    if ( BifConst::EventMetadata::add_network_timestamp )
+        meta = detail::MakeEventMetadataVector(run_state::network_time);
+
+    auto* ev = new Event(std::move(meta), h, std::move(vl), util::detail::SOURCE_LOCAL, 0, nullptr);
 
     // Technically this isn't queued, but still give plugins a chance to
     // intercept the event and cancel or modify it if really wanted.

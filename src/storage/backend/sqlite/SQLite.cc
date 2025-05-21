@@ -22,7 +22,7 @@ OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::stri
     if ( value && ! value->empty() )
         cmd += util::fmt(" = %.*s", static_cast<int>(value->size()), value->data());
 
-    DBG_LOG(DBG_STORAGE, "Executing pragma %s on %s", cmd.c_str(), full_path.c_str());
+    DBG_LOG(DBG_STORAGE, "Executing '%s' on %s", cmd.c_str(), full_path.c_str());
 
     while ( pragma_timeout == 0ms || time_spent < pragma_timeout ) {
         int res = sqlite3_exec(db, cmd.c_str(), NULL, NULL, &errorMsg);
@@ -37,17 +37,20 @@ OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::stri
             time_spent += pragma_wait_on_busy;
         }
         else {
-            std::string err = util::fmt("Error while executing pragma '%s': %s", cmd.c_str(), errorMsg);
+            std::string err = util::fmt("Error while executing '%s': %s (%d)", cmd.c_str(), errorMsg, res);
             sqlite3_free(errorMsg);
+            DBG_LOG(DBG_STORAGE, "%s", err.c_str());
             return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
         }
     }
 
     if ( pragma_timeout != 0ms && time_spent >= pragma_timeout ) {
-        std::string err =
-            util::fmt("Database was busy while executing %.*s pragma", static_cast<int>(name.size()), name.data());
+        std::string err = util::fmt("Database was busy while executing '%s'", cmd.c_str());
+        DBG_LOG(DBG_STORAGE, "%s", err.c_str());
         return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
     }
+
+    DBG_LOG(DBG_STORAGE, "'%s' successful", cmd.c_str());
 
     return {ReturnCode::SUCCESS};
 }

@@ -1,3 +1,25 @@
+8.0.0-dev.179 | 2025-05-21 09:40:31 -0700
+
+  * SQLite: Move integrity_check to pragma table (Tim Wojtulewicz, Corelight)
+
+  * SQLite: Add backend option for pragma timeout (Tim Wojtulewicz, Corelight)
+
+  * SQLite: Rename tuning_params to pragma_commands, move running pragmas to utility method (Tim Wojtulewicz, Corelight)
+
+  * SQLite: Retry pragma statements at startup to avoid contention (Tim Wojtulewicz, Corelight)
+
+  * SQLite: Check for locked database as well as busy databases (Tim Wojtulewicz, Corelight)
+
+  * SQLite: Fix some string-sizing issues (Tim Wojtulewicz, Corelight)
+
+  * SQLite: Run pragmas on connection before creating table (Tim Wojtulewicz, Corelight)
+
+  * SQLite: Add busy_timeout pragma to default options (Tim Wojtulewicz, Corelight)
+
+  * Prefix sqlite-based btests with sqlite- to match redis tests (Tim Wojtulewicz, Corelight)
+
+  * Add sqlite cluster storage btest (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.168 | 2025-05-21 13:38:46 +0200
 
   * http/detect-sql-injection: Fix zeekygen comment (Arne Welzel, Corelight)

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <chrono>
+
 #include "zeek/storage/Backend.h"
 
 // Forward declare these to avoid including sqlite3.h here
@@ -45,6 +47,11 @@ private:
      */
     OperationResult Step(sqlite3_stmt* stmt, bool parse_value = false);
 
+    /**
+     * Helper utility for running pragmas on the database.
+     */
+    OperationResult RunPragma(std::string_view name, std::optional<std::string_view> value = std::nullopt);
+
     sqlite3* db = nullptr;
 
     using stmt_deleter = std::function<void(sqlite3_stmt*)>;
@@ -57,6 +64,8 @@ private:
 
     std::string full_path;
     std::string table_name;
+    std::chrono::milliseconds pragma_timeout;
+    std::chrono::milliseconds pragma_wait_on_busy;
 };
 
 } // namespace zeek::storage::backend::sqlite

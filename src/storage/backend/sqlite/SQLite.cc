@@ -2,12 +2,55 @@
 
 #include "zeek/storage/backend/sqlite/SQLite.h"
 
+#include <thread>
+
 #include "zeek/3rdparty/sqlite3.h"
+#include "zeek/DebugLogger.h"
 #include "zeek/Func.h"
 #include "zeek/Val.h"
 #include "zeek/storage/ReturnCode.h"
 
+using namespace std::chrono_literals;
+
 namespace zeek::storage::backend::sqlite {
+
+OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::string_view> value) {
+    char* errorMsg = nullptr;
+    std::chrono::milliseconds time_spent = 0ms;
+
+    std::string cmd = util::fmt("pragma %.*s", static_cast<int>(name.size()), name.data());
+    if ( value && ! value->empty() )
+        cmd += util::fmt(" = %.*s", static_cast<int>(value->size()), value->data());
+
+    DBG_LOG(DBG_STORAGE, "Executing pragma %s on %s", cmd.c_str(), full_path.c_str());
+
+    while ( pragma_timeout == 0ms || time_spent < pragma_timeout ) {
+        int res = sqlite3_exec(db, cmd.c_str(), NULL, NULL, &errorMsg);
+        if ( res == SQLITE_OK ) {
+            break;
+        }
+        else if ( res == SQLITE_BUSY ) {
+            // If we got back that the database is busy, it likely means that another process is trying to
+            // do their pragmas at startup too. Exponentially back off and try again after a sleep.
+            sqlite3_free(errorMsg);
+            std::this_thread::sleep_for(pragma_wait_on_busy);
+            time_spent += pragma_wait_on_busy;
+        }
+        else {
+            std::string err = util::fmt("Error while executing pragma '%s': %s", cmd.c_str(), errorMsg);
+            sqlite3_free(errorMsg);
+            return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
+        }
+    }
+
+    if ( pragma_timeout != 0ms && time_spent >= pragma_timeout ) {
+        std::string err =
+            util::fmt("Database was busy while executing %.*s pragma", static_cast<int>(name.size()), name.data());
+        return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
+    }
+
+    return {ReturnCode::SUCCESS};
+}
 
 storage::BackendPtr SQLite::Instantiate() { return make_intrusive<SQLite>(); }
 
@@ -34,6 +77,12 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     full_path = zeek::filesystem::path(path->ToStdString()).string();
     table_name = backend_options->GetField<StringVal>("table_name")->ToStdString();
 
+    auto pragma_timeout_val = backend_options->GetField<IntervalVal>("pragma_timeout");
+    pragma_timeout = std::chrono::milliseconds(static_cast<int64_t>(pragma_timeout_val->Get() * 1000));
+
+    auto pragma_wof_val = backend_options->GetField<IntervalVal>("pragma_wait_on_busy");
+    pragma_wait_on_busy = std::chrono::milliseconds(static_cast<int64_t>(pragma_timeout_val->Get() * 1000));
+
     if ( auto open_res =
              CheckError(sqlite3_open_v2(full_path.c_str(), &db,
                                         SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, NULL));
@@ -43,39 +92,30 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         return open_res;
     }
 
+    auto pragmas = backend_options->GetField<TableVal>("pragma_commands")->ToMap();
+    for ( const auto& [k, v] : pragmas ) {
+        auto ks = k->AsListVal()->Idx(0)->AsStringVal();
+        auto ks_sv = ks->ToStdStringView();
+        auto vs = v->AsStringVal();
+        auto vs_sv = vs->ToStdStringView();
+
+        auto pragma_res = RunPragma(ks_sv, vs_sv);
+        if ( pragma_res.code != ReturnCode::SUCCESS ) {
+            Error(pragma_res.err_str.c_str());
+            return pragma_res;
+        }
+    }
+
     std::string create = "create table if not exists " + table_name + " (";
     create.append("key_str blob primary key, value_str blob not null, expire_time real);");
 
     char* errorMsg = nullptr;
     if ( int res = sqlite3_exec(db, create.c_str(), NULL, NULL, &errorMsg); res != SQLITE_OK ) {
-        std::string err = util::fmt("Error executing table creation statement: %s", errorMsg);
+        std::string err = util::fmt("Error executing table creation statement: (%d) %s", res, errorMsg);
         Error(err.c_str());
         sqlite3_free(errorMsg);
         Close(nullptr);
         return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
-    }
-
-    if ( int res = sqlite3_exec(db, "pragma integrity_check", NULL, NULL, &errorMsg); res != SQLITE_OK ) {
-        std::string err = util::fmt("Error executing integrity check: %s", errorMsg);
-        Error(err.c_str());
-        sqlite3_free(errorMsg);
-        Close(nullptr);
-        return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
-    }
-
-    auto tuning_params = backend_options->GetField<TableVal>("tuning_params")->ToMap();
-    for ( const auto& [k, v] : tuning_params ) {
-        auto ks = k->AsListVal()->Idx(0)->AsStringVal();
-        auto vs = v->AsStringVal();
-        std::string cmd = util::fmt("pragma %s = %s", ks->ToStdStringView().data(), vs->ToStdStringView().data());
-
-        if ( int res = sqlite3_exec(db, cmd.c_str(), NULL, NULL, &errorMsg); res != SQLITE_OK ) {
-            std::string err = util::fmt("Error executing tuning pragma statement: %s", errorMsg);
-            Error(err.c_str());
-            sqlite3_free(errorMsg);
-            Close(nullptr);
-            return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
-        }
     }
 
     static std::array<std::string, 5> statements =
@@ -92,7 +132,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     int i = 0;
     for ( const auto& stmt : statements ) {
         sqlite3_stmt* ps;
-        if ( auto prep_res = CheckError(sqlite3_prepare_v2(db, stmt.c_str(), stmt.size(), &ps, NULL));
+        if ( auto prep_res = CheckError(sqlite3_prepare_v2(db, stmt.c_str(), static_cast<int>(stmt.size()), &ps, NULL));
              prep_res.code != ReturnCode::SUCCESS ) {
             Close(nullptr);
             return prep_res;
@@ -106,8 +146,6 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     get_stmt = std::move(stmt_ptrs[2]);
     erase_stmt = std::move(stmt_ptrs[3]);
     expire_stmt = std::move(stmt_ptrs[4]);
-
-    sqlite3_busy_timeout(db, 5000);
 
     return {ReturnCode::SUCCESS};
 }
@@ -126,7 +164,8 @@ OperationResult SQLite::DoClose(ResultCallback* cb) {
         expire_stmt.reset();
 
         char* errmsg;
-        if ( int res = sqlite3_exec(db, "pragma optimize", NULL, NULL, &errmsg); res != SQLITE_OK ) {
+        if ( int res = sqlite3_exec(db, "pragma optimize", NULL, NULL, &errmsg);
+             res != SQLITE_OK && res != SQLITE_BUSY ) {
             // We're shutting down so capture the error message here for informational
             // reasons, but don't do anything else with it.
             op_res = {ReturnCode::DISCONNECTION_FAILED, util::fmt("Sqlite failed to optimize at shutdown: %s", errmsg)};
@@ -294,7 +333,7 @@ OperationResult SQLite::Step(sqlite3_stmt* stmt, bool parse_value) {
         else
             ret = {ReturnCode::SUCCESS};
     }
-    else if ( step_status == SQLITE_BUSY )
+    else if ( step_status == SQLITE_BUSY || step_status == SQLITE_LOCKED )
         // TODO: this could retry a number of times instead of just failing
         ret = {ReturnCode::TIMEOUT};
     else if ( step_status == SQLITE_CONSTRAINT )

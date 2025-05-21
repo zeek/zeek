@@ -20,14 +20,28 @@ export {
 		## different between the two.
 		table_name: string;
 
-		## Key/value table for passing tuning parameters when opening the
-		## database.  These must be pairs that can be passed to the ``pragma``
-		## command in sqlite.
-		tuning_params: table[string] of string &default=table(
+		## Key/value table for passing pragma commands when opening the database.
+		## These must be pairs that can be passed to the ``pragma`` command in
+		## sqlite. The ``integrity_check`` pragma is run automatically and does
+		## not need to be included here. For pragmas without a second argument,
+		## set the value to an empty string.
+		pragma_commands: table[string] of string &ordered &default=table(
+			["integrity_check"] = "",
+			["busy_timeout"] = "5000",
 			["journal_mode"] = "WAL",
 			["synchronous"] = "normal",
 			["temp_store"] = "memory"
-		);
+		) &ordered;
+
+		## The total amount of time that an SQLite backend will spend attempting
+		## to run an individual pragma command before giving up and returning an
+		## initialization error. Setting this to zero will result in the backend
+		## attempting forever until success.
+		pragma_timeout: interval &default=500 msec;
+
+		## The amount of time that at SQLite backend will wait between failures
+		## to run an individual pragma command.
+		pragma_wait_on_busy: interval &default=5 msec;
 	};
 }
 

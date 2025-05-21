@@ -3299,11 +3299,11 @@ function ptr_name_to_addr%(s: string%): addr
 		uint32_t b[32];
 		char ss[9]; // this will contain "ip6.arpa"
 		if ( sscanf(s->CheckString(),
-			"%1" SCNx32 "%1" SCNx32 "%1" SCNx32 "%1" SCNx32 "%1" SCNx32 "%1" SCNx32 "%1" SCNx32 "%1" SCNx32
-			"%1" SCNx32 "%1" SCNx32 "%1" SCNx32 "%1" SCNx32 "%1" SCNx32 "%1" SCNx32 "%1" SCNx32 "%1" SCNx32
-			"%1" SCNx32 "%1" SCNx32 "%1" SCNx32 "%1" SCNx32 "%1" SCNx32 "%1" SCNx32 "%1" SCNx32 "%1" SCNx32
-			"%1" SCNx32 "%1" SCNx32 "%1" SCNx32 "%1" SCNx32 "%1" SCNx32 "%1" SCNx32 "%1" SCNx32 "%1" SCNx32
-            "%8s",
+			"%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32
+			".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32
+			".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32
+			".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32
+            ".%8s",
 			b+31, b+30, b+29, b+28, b+27, b+26, b+25, b+24,
 			b+23, b+22, b+21, b+20, b+19, b+18, b+17, b+16,
 			b+15, b+14, b+13, b+12, b+11, b+10, b+9, b+8,

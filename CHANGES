@@ -1,3 +1,14 @@
+8.0.0-dev.168 | 2025-05-21 13:38:46 +0200
+
+  * http/detect-sql-injection: Fix zeekygen comment (Arne Welzel, Corelight)
+
+        Discarded extraneous Zeekygen comment: $src field; and always provides a victim IP address in the $dst field.
+
+  * btest/coverage/test-all-policy-zeekygen: Load test-all-policy with zeekygen enabled (Arne Welzel, Corelight)
+
+    There should not be warnings produced. The default ZEEK_DISABLE_ZEEKYGEN=1
+    setting in the btest configuration hid some issues previously.
+
 8.0.0-dev.164 | 2025-05-20 12:02:09 -0700
 
   * Add extra input files to ftp fuzzer corpus (Tim Wojtulewicz, Corelight)

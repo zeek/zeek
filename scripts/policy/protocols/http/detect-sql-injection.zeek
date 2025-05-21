@@ -1,8 +1,8 @@
 ##! SQL injection attack detection in HTTP.
-
-## The script annotates the notices it generates with an associated $uid
-## connection identifier; always provides an attacker IP address in the
-## $src field; and always provides a victim IP address in the $dst field.
+##!
+##! The script annotates the notices it generates with an associated $uid
+##! connection identifier; always provides an attacker IP address in the
+##! $src field; and always provides a victim IP address in the $dst field.
 
 @load base/frameworks/notice
 @load base/frameworks/sumstats

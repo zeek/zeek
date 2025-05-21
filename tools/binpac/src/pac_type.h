@@ -1,7 +1,9 @@
 #ifndef pac_type_h
 #define pac_type_h
 
+#include <cstdint>
 #include <map>
+
 using namespace std;
 
 #include "pac_common.h"
@@ -10,7 +12,7 @@ using namespace std;
 
 class Type : public Object, public DataDepElement {
 public:
-    enum TypeType {
+    enum TypeType : int8_t {
         UNDEF = -1,
         EMPTY,
         BUILTIN,
@@ -200,7 +202,7 @@ public:
     bool BufferableWithLineBreaker() const;
     Expr* LineBreaker() const;
 
-    enum BufferMode {
+    enum BufferMode : uint8_t {
         NOT_BUFFERABLE,
         BUFFER_NOTHING, // for type "empty"
         BUFFER_BY_LENGTH,
@@ -236,20 +238,21 @@ protected:
     virtual Type* DoClone() const = 0;
 
 protected:
-    TypeType tot_;
     const TypeDecl* type_decl_;
-    bool declared_as_type_;
     const ID* type_decl_id_;
     Env* env_;
 
     const ID* value_var_;
+
     bool anonymous_value_var_; // whether the ID is anonymous
+    bool declared_as_type_;
+    bool boundary_checked_;
+    TypeType tot_;
 
     string data_id_str_;
     int value_var_type_;
     Field* size_var_field_;
     char* size_expr_;
-    bool boundary_checked_;
     string lvalue_;
     FieldList* fields_;
 
@@ -278,13 +281,13 @@ protected:
     Expr* attr_byteorder_expr_;
     ExprList* attr_checks_;
     ExprList* attr_enforces_;
-    bool attr_chunked_;
-    bool attr_exportsourcedata_;
     Expr* attr_if_expr_;
     Expr* attr_length_expr_;
     FieldList* attr_letfields_;
     Expr* attr_multiline_end_;
     Expr* attr_linebreaker_;
+    bool attr_chunked_;
+    bool attr_exportsourcedata_;
     bool attr_oneline_;
     bool attr_refcount_;
     ExprList* attr_requires_;

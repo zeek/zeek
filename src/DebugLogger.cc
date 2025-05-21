@@ -113,7 +113,7 @@ void DebugLogger::EnableStreams(const char* s) {
         if ( util::starts_with(ltok, "plugin-") ) {
             // Cannot verify this at this time, plugins may not
             // have been loaded.
-            enabled_streams.insert(ltok);
+            enabled_streams.insert(std::move(ltok));
             goto next;
         }
 

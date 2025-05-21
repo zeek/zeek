@@ -5,7 +5,9 @@
 #include <thread>
 
 #include "zeek/3rdparty/sqlite3.h"
+#include "zeek/CompHash.h"
 #include "zeek/DebugLogger.h"
+#include "zeek/Dict.h"
 #include "zeek/Func.h"
 #include "zeek/Val.h"
 #include "zeek/storage/ReturnCode.h"
@@ -95,11 +97,15 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         return open_res;
     }
 
-    auto pragmas = backend_options->GetField<TableVal>("pragma_commands")->ToMap();
-    for ( const auto& [k, v] : pragmas ) {
-        auto ks = k->AsListVal()->Idx(0)->AsStringVal();
+    auto pragmas = backend_options->GetField<TableVal>("pragma_commands");
+    for ( const auto& iter : *(pragmas->Get()) ) {
+        auto k = iter.GetHashKey();
+        auto v = iter.value;
+        auto vl = pragmas->GetTableHash()->RecoverVals(*k);
+
+        auto ks = vl->AsListVal()->Idx(0)->AsStringVal();
         auto ks_sv = ks->ToStdStringView();
-        auto vs = v->AsStringVal();
+        auto vs = v->GetVal()->AsStringVal();
         auto vs_sv = vs->ToStdStringView();
 
         auto pragma_res = RunPragma(ks_sv, vs_sv);

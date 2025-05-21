@@ -4,6 +4,7 @@
 
 #include <tuple>
 #include <type_traits>
+#include <vector>
 
 #include "zeek/ZeekArgs.h"
 #include "zeek/analyzer/Analyzer.h"
@@ -18,6 +19,38 @@ extern double network_time;
 
 class EventMgr;
 
+namespace detail {
+
+/**
+ * An event metadata entry as stored in Event or @ref zeek::cluster::detail::Event.
+ */
+class MetadataEntry {
+public:
+    MetadataEntry(zeek_uint_t id, zeek::ValPtr val) : id(id), val(std::move(val)) {}
+
+    zeek_uint_t Id() const { return id; }
+    const zeek::ValPtr& Val() const { return val; }
+
+    /**
+     * @return Pointer to a script-layer ``EventMetadata::Entry`` zeek::RecordVal representing this metadata entry.
+     */
+    RecordValPtr BuildVal() const;
+
+private:
+    zeek_uint_t id;
+    zeek::ValPtr val;
+};
+
+using EventMetadataVector = std::vector<MetadataEntry>;
+using EventMetadataVectorPtr = std::unique_ptr<EventMetadataVector>;
+
+/**
+ * @return A new event metadata vector containing network timestamp value set to \a t;
+ */
+EventMetadataVectorPtr MakeEventMetadataVector(double t);
+
+} // namespace detail
+
 class Event final : public Obj {
 public:
     Event(const EventHandlerPtr& handler, zeek::Args args, util::detail::SourceID src = util::detail::SOURCE_LOCAL,
@@ -30,7 +63,7 @@ public:
     analyzer::ID Analyzer() const { return aid; }
     EventHandlerPtr Handler() const { return handler; }
     const zeek::Args& Args() const { return args; }
-    double Time() const { return ts; }
+    double Time() const;
 
     void Describe(ODesc* d) const override;
 
@@ -45,9 +78,9 @@ private:
     zeek::Args args;
     util::detail::SourceID src;
     analyzer::ID aid;
-    double ts;
     Obj* obj;
     Event* next_event;
+    detail::EventMetadataVectorPtr meta;
 };
 
 class EventMgr final : public Obj, public iosource::IOSource {

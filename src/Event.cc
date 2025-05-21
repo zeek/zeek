@@ -2,9 +2,12 @@
 
 #include "zeek/Event.h"
 
+#include <cinttypes>
+
 #include "zeek/Desc.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/Trigger.h"
+#include "zeek/Type.h"
 #include "zeek/Val.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/plugin/Manager.h"
@@ -15,17 +18,56 @@ zeek::EventMgr zeek::event_mgr;
 
 namespace zeek {
 
+detail::EventMetadataVectorPtr detail::MakeEventMetadataVector(double t) {
+    auto tv = make_intrusive<TimeVal>(t);
+    auto entry = detail::MetadataEntry{static_cast<zeek_uint_t>(detail::MetadataType::NetworkTimestamp), std::move(tv)};
+    return std::make_unique<detail::EventMetadataVector>(std::vector{std::move(entry)});
+}
+
+RecordValPtr detail::MetadataEntry::BuildVal() const {
+    static const auto rt = id::find_type<RecordType>("EventMetadata::Entry");
+    auto rv = make_intrusive<RecordVal>(rt);
+    const auto* desc = event_registry->LookupMetadata(id);
+    if ( ! desc ) {
+        zeek::reporter->InternalWarning("unable to find metadata descriptor for id %" PRIu64, id);
+        return rv;
+    }
+
+    rv->Assign(0, desc->IdVal());
+    rv->Assign(1, val);
+
+    return rv;
+}
+
 Event::Event(const EventHandlerPtr& arg_handler, zeek::Args arg_args, util::detail::SourceID arg_src,
              analyzer::ID arg_aid, Obj* arg_obj, double arg_ts)
     : handler(arg_handler),
       args(std::move(arg_args)),
       src(arg_src),
       aid(arg_aid),
-      ts(arg_ts),
       obj(arg_obj),
-      next_event(nullptr) {
+      next_event(nullptr),
+      meta(detail::MakeEventMetadataVector(arg_ts)) {
     if ( obj )
         Ref(obj);
+}
+
+double Event::Time() const {
+    if ( ! meta )
+        return 0.0;
+
+    for ( const auto& m : *meta )
+        if ( m.Id() == static_cast<zeek_uint_t>(detail::MetadataType::NetworkTimestamp) ) {
+            if ( m.Val()->GetType()->Tag() != TYPE_TIME ) {
+                // This should've been caught during parsing.
+                zeek::reporter->InternalError("event metadata timestamp has wrong type: %s",
+                                              obj_desc_short(m.Val()->GetType().get()).c_str());
+            }
+
+            return m.Val()->AsTime();
+        }
+
+    return 0.0;
 }
 
 void Event::Describe(ODesc* d) const {
@@ -53,7 +95,7 @@ void Event::Dispatch(bool no_remote) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         // Replace in v8.1 with handler->Call(&args).
-        handler->Call(&args, no_remote, ts);
+        handler->Call(&args, no_remote, Time());
 #pragma GCC diagnostic pop
     }
 

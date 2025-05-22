@@ -1,3 +1,19 @@
+8.0.0-dev.188 | 2025-05-22 16:54:58 -0700
+
+  * SQLite: Add TODO note about possibly using sqlite3_busy_timeout (Tim Wojtulewicz, Corelight)
+
+  * SQLite: Fix typo in variable name causing pragmas not to retry on busy (Tim Wojtulewicz, Corelight)
+
+  * SQLite: Use tableval iteration instead of ToMap for pragmas (Tim Wojtulewicz, Corelight)
+
+  * SQLite: Fix logging/error messages around executing pragmas (Tim Wojtulewicz, Corelight)
+
+  * Disable sqlite-cluster btest (Tim Wojtulewicz, Corelight)
+
+    This test is being flaky on some platforms and still having problems
+    with executing pragmas at startup. Disable it for now until it can be
+    fixed.
+
 8.0.0-dev.181 | 2025-05-21 12:47:01 -0700
 
   * Update baseline of sqlite-basic btest after recent changes (Tim Wojtulewicz, Corelight)

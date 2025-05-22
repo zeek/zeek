@@ -5,7 +5,9 @@
 #include <thread>
 
 #include "zeek/3rdparty/sqlite3.h"
+#include "zeek/CompHash.h"
 #include "zeek/DebugLogger.h"
+#include "zeek/Dict.h"
 #include "zeek/Func.h"
 #include "zeek/Val.h"
 #include "zeek/storage/ReturnCode.h"
@@ -22,7 +24,7 @@ OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::stri
     if ( value && ! value->empty() )
         cmd += util::fmt(" = %.*s", static_cast<int>(value->size()), value->data());
 
-    DBG_LOG(DBG_STORAGE, "Executing pragma %s on %s", cmd.c_str(), full_path.c_str());
+    DBG_LOG(DBG_STORAGE, "Executing '%s' on %s", cmd.c_str(), full_path.c_str());
 
     while ( pragma_timeout == 0ms || time_spent < pragma_timeout ) {
         int res = sqlite3_exec(db, cmd.c_str(), NULL, NULL, &errorMsg);
@@ -37,17 +39,20 @@ OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::stri
             time_spent += pragma_wait_on_busy;
         }
         else {
-            std::string err = util::fmt("Error while executing pragma '%s': %s", cmd.c_str(), errorMsg);
+            std::string err = util::fmt("Error while executing '%s': %s (%d)", cmd.c_str(), errorMsg, res);
             sqlite3_free(errorMsg);
+            DBG_LOG(DBG_STORAGE, "%s", err.c_str());
             return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
         }
     }
 
     if ( pragma_timeout != 0ms && time_spent >= pragma_timeout ) {
-        std::string err =
-            util::fmt("Database was busy while executing %.*s pragma", static_cast<int>(name.size()), name.data());
+        std::string err = util::fmt("Database was busy while executing '%s'", cmd.c_str());
+        DBG_LOG(DBG_STORAGE, "%s", err.c_str());
         return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
     }
+
+    DBG_LOG(DBG_STORAGE, "'%s' successful", cmd.c_str());
 
     return {ReturnCode::SUCCESS};
 }
@@ -80,8 +85,8 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     auto pragma_timeout_val = backend_options->GetField<IntervalVal>("pragma_timeout");
     pragma_timeout = std::chrono::milliseconds(static_cast<int64_t>(pragma_timeout_val->Get() * 1000));
 
-    auto pragma_wof_val = backend_options->GetField<IntervalVal>("pragma_wait_on_busy");
-    pragma_wait_on_busy = std::chrono::milliseconds(static_cast<int64_t>(pragma_timeout_val->Get() * 1000));
+    auto pragma_wait_val = backend_options->GetField<IntervalVal>("pragma_wait_on_busy");
+    pragma_wait_on_busy = std::chrono::milliseconds(static_cast<int64_t>(pragma_wait_val->Get() * 1000));
 
     if ( auto open_res =
              CheckError(sqlite3_open_v2(full_path.c_str(), &db,
@@ -92,11 +97,20 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         return open_res;
     }
 
-    auto pragmas = backend_options->GetField<TableVal>("pragma_commands")->ToMap();
-    for ( const auto& [k, v] : pragmas ) {
-        auto ks = k->AsListVal()->Idx(0)->AsStringVal();
+    // TODO: Should we use sqlite3_busy_timeout here instead of using the pragma? That would
+    // at least let us skip over one. The busy timeout is per-connection as well, so it'll
+    // never fail to run like the other pragmas can.
+    //    sqlite3_busy_timeout(db, 2000);
+
+    auto pragmas = backend_options->GetField<TableVal>("pragma_commands");
+    for ( const auto& iter : *(pragmas->Get()) ) {
+        auto k = iter.GetHashKey();
+        auto v = iter.value;
+        auto vl = pragmas->GetTableHash()->RecoverVals(*k);
+
+        auto ks = vl->AsListVal()->Idx(0)->AsStringVal();
         auto ks_sv = ks->ToStdStringView();
-        auto vs = v->AsStringVal();
+        auto vs = v->GetVal()->AsStringVal();
         auto vs_sv = vs->ToStdStringView();
 
         auto pragma_res = RunPragma(ks_sv, vs_sv);

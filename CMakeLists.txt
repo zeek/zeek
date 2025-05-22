@@ -203,7 +203,6 @@ else ()
 endif ()
 
 include(cmake/CommonCMakeConfig.cmake)
-include(cmake/FindClangTidy.cmake)
 include(cmake/CheckCompilerArch.cmake)
 
 string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)

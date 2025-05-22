@@ -1,1 +1,2 @@
 const MIME::max_depth: count;
+const MIME::mime_mail_as_file: bool;

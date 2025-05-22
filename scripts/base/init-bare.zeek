@@ -3594,6 +3594,8 @@ export {
 	## Stop analysis of nested multipart MIME entities if this depth is
 	## reached. Setting this value to 0 removes the limit.
 	const max_depth = 100 &redef;
+	## Whether a mime mail is considered to be a file.
+	const mime_mail_as_file = F &redef;
 
 }
 

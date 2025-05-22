@@ -7,4 +7,4 @@
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff .stdout
 
-@load frameworks/analyzer/analyzer-debug-log.zeek
+@load frameworks/analyzer/debug-logging.zeek

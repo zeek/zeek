@@ -441,7 +441,6 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_X509.types.bif.zeek, <...>/Zeek_X509.types.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_XMPP.events.bif.zeek, <...>/Zeek_XMPP.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./addrs, <...>/addrs.zeek) -> -1
-0.000000   MetaHookPost  LoadFile(0, ./analyzer-failed-log, <...>/analyzer-failed-log.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./analyzer.bif.zeek, <...>/analyzer.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./api, <...>/api.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./backpressure, <...>/backpressure.zeek) -> -1
@@ -464,6 +463,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./input, <...>/input.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./input.bif.zeek, <...>/input.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./log, <...>/log.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./logging, <...>/logging.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./logging.bif.zeek, <...>/logging.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./magic, <...>/magic) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./main, <...>/main.zeek) -> -1
@@ -755,7 +755,6 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_X509.types.bif.zeek, <...>/Zeek_X509.types.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_XMPP.events.bif.zeek, <...>/Zeek_XMPP.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./addrs, <...>/addrs.zeek) -> (-1, <no content>)
-0.000000   MetaHookPost  LoadFileExtended(0, ./analyzer-failed-log, <...>/analyzer-failed-log.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./analyzer.bif.zeek, <...>/analyzer.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./api, <...>/api.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./backpressure, <...>/backpressure.zeek) -> (-1, <no content>)
@@ -778,6 +777,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./input, <...>/input.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./input.bif.zeek, <...>/input.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./log, <...>/log.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./logging, <...>/logging.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./logging.bif.zeek, <...>/logging.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./magic, <...>/magic) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./main, <...>/main.zeek) -> (-1, <no content>)
@@ -1380,7 +1380,6 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_X509.types.bif.zeek, <...>/Zeek_X509.types.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_XMPP.events.bif.zeek, <...>/Zeek_XMPP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./addrs, <...>/addrs.zeek)
-0.000000   MetaHookPre   LoadFile(0, ./analyzer-failed-log, <...>/analyzer-failed-log.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./analyzer.bif.zeek, <...>/analyzer.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./api, <...>/api.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./backpressure, <...>/backpressure.zeek)
@@ -1403,6 +1402,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./input, <...>/input.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./input.bif.zeek, <...>/input.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./log, <...>/log.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./logging, <...>/logging.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./logging.bif.zeek, <...>/logging.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./magic, <...>/magic)
 0.000000   MetaHookPre   LoadFile(0, ./main, <...>/main.zeek)
@@ -1694,7 +1694,6 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_X509.types.bif.zeek, <...>/Zeek_X509.types.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_XMPP.events.bif.zeek, <...>/Zeek_XMPP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./addrs, <...>/addrs.zeek)
-0.000000   MetaHookPre   LoadFileExtended(0, ./analyzer-failed-log, <...>/analyzer-failed-log.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./analyzer.bif.zeek, <...>/analyzer.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./api, <...>/api.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./backpressure, <...>/backpressure.zeek)
@@ -1717,6 +1716,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./input, <...>/input.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./input.bif.zeek, <...>/input.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./log, <...>/log.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./logging, <...>/logging.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./logging.bif.zeek, <...>/logging.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./magic, <...>/magic)
 0.000000   MetaHookPre   LoadFileExtended(0, ./main, <...>/main.zeek)
@@ -2318,7 +2318,6 @@
 0.000000 | HookLoadFile  ./Zeek_X509.types.bif.zeek <...>/Zeek_X509.types.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_XMPP.events.bif.zeek <...>/Zeek_XMPP.events.bif.zeek
 0.000000 | HookLoadFile  ./addrs <...>/addrs.zeek
-0.000000 | HookLoadFile  ./analyzer-failed-log <...>/analyzer-failed-log.zeek
 0.000000 | HookLoadFile  ./analyzer.bif.zeek <...>/analyzer.bif.zeek
 0.000000 | HookLoadFile  ./api <...>/api.zeek
 0.000000 | HookLoadFile  ./archive <...>/archive.sig
@@ -2350,6 +2349,7 @@
 0.000000 | HookLoadFile  ./java <...>/java.sig
 0.000000 | HookLoadFile  ./libmagic <...>/libmagic.sig
 0.000000 | HookLoadFile  ./log <...>/log.zeek
+0.000000 | HookLoadFile  ./logging <...>/logging.zeek
 0.000000 | HookLoadFile  ./logging.bif.zeek <...>/logging.bif.zeek
 0.000000 | HookLoadFile  ./magic <...>/magic
 0.000000 | HookLoadFile  ./main <...>/main.zeek
@@ -2632,7 +2632,6 @@
 0.000000 | HookLoadFileExtended ./Zeek_X509.types.bif.zeek <...>/Zeek_X509.types.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_XMPP.events.bif.zeek <...>/Zeek_XMPP.events.bif.zeek
 0.000000 | HookLoadFileExtended ./addrs <...>/addrs.zeek
-0.000000 | HookLoadFileExtended ./analyzer-failed-log <...>/analyzer-failed-log.zeek
 0.000000 | HookLoadFileExtended ./analyzer.bif.zeek <...>/analyzer.bif.zeek
 0.000000 | HookLoadFileExtended ./api <...>/api.zeek
 0.000000 | HookLoadFileExtended ./archive <...>/archive.sig
@@ -2664,6 +2663,7 @@
 0.000000 | HookLoadFileExtended ./java <...>/java.sig
 0.000000 | HookLoadFileExtended ./libmagic <...>/libmagic.sig
 0.000000 | HookLoadFileExtended ./log <...>/log.zeek
+0.000000 | HookLoadFileExtended ./logging <...>/logging.zeek
 0.000000 | HookLoadFileExtended ./logging.bif.zeek <...>/logging.bif.zeek
 0.000000 | HookLoadFileExtended ./magic <...>/magic
 0.000000 | HookLoadFileExtended ./main <...>/main.zeek

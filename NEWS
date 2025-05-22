@@ -55,7 +55,7 @@ Changed Functionality
   As part of this work, a new `analyzer_failed` event has been introduced.
 
 - `analyzer.log` was renamed to `analyzer_debug.log`, and is no longer created
-  by default. The log file will be created if the `frameworks/analyzer/analyzer-debug-log.zeek policy`
+  by default. The log file will be created if the `frameworks/analyzer/debug-logging.zeek`
   policy script is loaded.
 
   Note that the namespace for options in the script changed. Furthermore the default

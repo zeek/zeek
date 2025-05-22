@@ -9,6 +9,6 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="sed -r 's,(.*) \(/[^\)]+\),\1 (...),'" btest-diff analyzer.cut
 # @TEST-EXEC: test ! -f postgresql.log
 
-@load frameworks/analyzer/analyzer-debug-log.zeek
+@load frameworks/analyzer/debug-logging.zeek
 @load base/protocols/conn
 @load base/protocols/postgresql

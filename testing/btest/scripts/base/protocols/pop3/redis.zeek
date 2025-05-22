@@ -5,7 +5,7 @@
 # @TEST-EXEC: btest-diff weird.log
 # @TEST-EXEC: btest-diff analyzer_debug.log
 
-@load frameworks/analyzer/analyzer-debug-log.zeek
+@load frameworks/analyzer/debug-logging.zeek
 @load base/frameworks/notice/weird
 @load base/protocols/conn
 @load base/protocols/pop3

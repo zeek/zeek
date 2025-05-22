@@ -1,0 +1,15 @@
+# @TEST-DOC: Test case for extracting multiple mails from the same SMTP session.
+#
+# @TEST-EXEC: zeek -C -b -r $TRACES/smtp/smtp-bdat-pipeline-8bitmime.pcap %INPUT
+# @TEST-EXEC: zeek-cut -m fuid uid seen_bytes parent_fuid sha1 < files.log > files.cut
+# @TEST-EXEC: btest-diff files.cut
+
+@load base/files/hash
+@load base/files/extract
+@load base/protocols/smtp
+@load policy/protocols/mime/mime_mail_as_file
+
+event file_over_new_connection(f: fa_file, c: connection, is_orig: bool)
+    {
+        Files::add_analyzer(f, Files::ANALYZER_SHA1);
+    }

@@ -1,8 +1,6 @@
 ##! Creates the now deprecated dpd.logfile.
 # Remove in v8.1
 
-@deprecated("dpd.log is deprecated; remove in 8.1")
-
 module DPD;
 
 export {

@@ -1,7 +1,7 @@
 @load test-all-policy.zeek
 
 # Scripts which are commented out in test-all-policy.zeek.
-@load frameworks/analyzer/dpd-log.zeek
+@load frameworks/analyzer/deprecated-dpd-log.zeek
 @load protocols/ssl/decryption.zeek
 @ifdef ( Cluster::CLUSTER_BACKEND_ZEROMQ )
 @load frameworks/cluster/backend/zeromq/connect.zeek

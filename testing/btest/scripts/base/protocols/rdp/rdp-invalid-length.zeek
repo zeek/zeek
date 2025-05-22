@@ -5,5 +5,5 @@
 # @TEST-EXEC: zeek -C -b -r $TRACES/rdp/rdp-invalid-length.pcap %INPUT
 # @TEST-EXEC: btest-diff analyzer_debug.log
 
-@load frameworks/analyzer/analyzer-debug-log.zeek
+@load frameworks/analyzer/debug-logging.zeek
 @load base/protocols/rdp

@@ -31,4 +31,4 @@
 # The pcap has non Modbus traffic (i.e., DCERPC, HTTP, Magellan, NFS, RDP, TLS) on TCP port 502.
 # This traffic should not be labelled as Modbus in conn.log, and not generate any Modbus events.
 
-@load frameworks/analyzer/analyzer-debug-log.zeek
+@load frameworks/analyzer/debug-logging.zeek

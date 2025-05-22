@@ -54,8 +54,9 @@ private:
 
     sqlite3* db = nullptr;
 
-    using stmt_deleter = std::function<void(sqlite3_stmt*)>;
-    using unique_stmt_ptr = std::unique_ptr<sqlite3_stmt, stmt_deleter>;
+    using sqlite_stmt_func = std::function<void(sqlite3_stmt*)>;
+    using unique_stmt_ptr = std::unique_ptr<sqlite3_stmt, sqlite_stmt_func>;
+
     unique_stmt_ptr put_stmt;
     unique_stmt_ptr put_update_stmt;
     unique_stmt_ptr get_stmt;

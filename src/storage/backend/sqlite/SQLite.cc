@@ -152,7 +152,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
             return prep_res;
         }
 
-        stmt_ptrs[i++] = unique_stmt_ptr(ps, [](sqlite3_stmt* stmt) { sqlite3_finalize(stmt); });
+        stmt_ptrs[i++] = unique_stmt_ptr(ps, sqlite3_finalize);
     }
 
     put_stmt = std::move(stmt_ptrs[0]);
@@ -171,6 +171,7 @@ OperationResult SQLite::DoClose(ResultCallback* cb) {
     OperationResult op_res{ReturnCode::SUCCESS};
 
     if ( db ) {
+        // These will all call sqlite3_finalize as they're deleted.
         put_stmt.reset();
         put_update_stmt.reset();
         get_stmt.reset();
@@ -208,15 +209,14 @@ OperationResult SQLite::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool
     if ( ! key_data )
         return {ReturnCode::SERIALIZATION_FAILED, "Failed to serialize key"};
 
-    sqlite3_stmt* stmt;
+    unique_stmt_ptr stmt;
     if ( ! overwrite )
-        stmt = put_stmt.get();
+        stmt = unique_stmt_ptr(put_stmt.get(), sqlite3_reset);
     else
-        stmt = put_update_stmt.get();
+        stmt = unique_stmt_ptr(put_update_stmt.get(), sqlite3_reset);
 
-    if ( auto res = CheckError(sqlite3_bind_blob(stmt, 1, key_data->data(), key_data->size(), SQLITE_STATIC));
+    if ( auto res = CheckError(sqlite3_bind_blob(stmt.get(), 1, key_data->data(), key_data->size(), SQLITE_STATIC));
          res.code != ReturnCode::SUCCESS ) {
-        sqlite3_reset(stmt);
         return res;
     }
 
@@ -224,26 +224,23 @@ OperationResult SQLite::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool
     if ( ! val_data )
         return {ReturnCode::SERIALIZATION_FAILED, "Failed to serialize value"};
 
-    if ( auto res = CheckError(sqlite3_bind_blob(stmt, 2, val_data->data(), val_data->size(), SQLITE_STATIC));
+    if ( auto res = CheckError(sqlite3_bind_blob(stmt.get(), 2, val_data->data(), val_data->size(), SQLITE_STATIC));
          res.code != ReturnCode::SUCCESS ) {
-        sqlite3_reset(stmt);
         return res;
     }
 
-    if ( auto res = CheckError(sqlite3_bind_double(stmt, 3, expiration_time)); res.code != ReturnCode::SUCCESS ) {
-        sqlite3_reset(stmt);
+    if ( auto res = CheckError(sqlite3_bind_double(stmt.get(), 3, expiration_time)); res.code != ReturnCode::SUCCESS ) {
         return res;
     }
 
     if ( overwrite ) {
-        if ( auto res = CheckError(sqlite3_bind_blob(stmt, 4, val_data->data(), val_data->size(), SQLITE_STATIC));
+        if ( auto res = CheckError(sqlite3_bind_blob(stmt.get(), 4, val_data->data(), val_data->size(), SQLITE_STATIC));
              res.code != ReturnCode::SUCCESS ) {
-            sqlite3_reset(stmt);
             return res;
         }
     }
 
-    return Step(stmt, false);
+    return Step(stmt.get(), false);
 }
 
 /**
@@ -257,15 +254,14 @@ OperationResult SQLite::DoGet(ResultCallback* cb, ValPtr key) {
     if ( ! key_data )
         return {ReturnCode::SERIALIZATION_FAILED, "Failed to serialize key"};
 
-    auto stmt = get_stmt.get();
+    auto stmt = unique_stmt_ptr(get_stmt.get(), sqlite3_reset);
 
-    if ( auto res = CheckError(sqlite3_bind_blob(stmt, 1, key_data->data(), key_data->size(), SQLITE_STATIC));
+    if ( auto res = CheckError(sqlite3_bind_blob(stmt.get(), 1, key_data->data(), key_data->size(), SQLITE_STATIC));
          res.code != ReturnCode::SUCCESS ) {
-        sqlite3_reset(stmt);
         return res;
     }
 
-    return Step(stmt, true);
+    return Step(stmt.get(), true);
 }
 
 /**
@@ -279,15 +275,14 @@ OperationResult SQLite::DoErase(ResultCallback* cb, ValPtr key) {
     if ( ! key_data )
         return {ReturnCode::SERIALIZATION_FAILED, "Failed to serialize key"};
 
-    auto stmt = erase_stmt.get();
+    auto stmt = unique_stmt_ptr(erase_stmt.get(), sqlite3_reset);
 
-    if ( auto res = CheckError(sqlite3_bind_blob(stmt, 1, key_data->data(), key_data->size(), SQLITE_STATIC));
+    if ( auto res = CheckError(sqlite3_bind_blob(stmt.get(), 1, key_data->data(), key_data->size(), SQLITE_STATIC));
          res.code != ReturnCode::SUCCESS ) {
-        sqlite3_reset(stmt);
         return res;
     }
 
-    return Step(stmt, false);
+    return Step(stmt.get(), false);
 }
 
 /**
@@ -295,20 +290,18 @@ OperationResult SQLite::DoErase(ResultCallback* cb, ValPtr key) {
  * derived classes.
  */
 void SQLite::DoExpire(double current_network_time) {
-    auto stmt = expire_stmt.get();
+    auto stmt = unique_stmt_ptr(expire_stmt.get(), sqlite3_reset);
 
-    int status = sqlite3_bind_double(stmt, 1, current_network_time);
+    int status = sqlite3_bind_double(stmt.get(), 1, current_network_time);
     if ( status != SQLITE_OK ) {
         // TODO: do something with the error?
-    }
-    else {
-        status = sqlite3_step(stmt);
-        if ( status != SQLITE_ROW ) {
-            // TODO: should this return an error somehow? Reporter warning?
-        }
+        return;
     }
 
-    sqlite3_reset(stmt);
+    status = sqlite3_step(stmt.get());
+    if ( status != SQLITE_ROW ) {
+        // TODO: should this return an error somehow? Reporter warning?
+    }
 }
 
 // returns true in case of error
@@ -330,7 +323,6 @@ OperationResult SQLite::Step(sqlite3_stmt* stmt, bool parse_value) {
             size_t blob_size = sqlite3_column_bytes(stmt, 0);
 
             auto val = serializer->Unserialize({blob, blob_size}, val_type);
-            sqlite3_reset(stmt);
 
             if ( val )
                 ret = {ReturnCode::SUCCESS, "", val.value()};
@@ -354,8 +346,6 @@ OperationResult SQLite::Step(sqlite3_stmt* stmt, bool parse_value) {
         ret = {ReturnCode::KEY_EXISTS};
     else
         ret = {ReturnCode::OPERATION_FAILED};
-
-    sqlite3_reset(stmt);
 
     return ret;
 }

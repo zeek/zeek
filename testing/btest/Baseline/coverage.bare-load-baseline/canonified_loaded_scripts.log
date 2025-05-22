@@ -146,7 +146,7 @@ scripts/base/init-frameworks-and-bifs.zeek
     scripts/base/frameworks/config/weird.zeek
   scripts/base/frameworks/analyzer/__load__.zeek
     scripts/base/frameworks/analyzer/dpd.zeek
-    scripts/base/frameworks/analyzer/analyzer-failed-log.zeek
+    scripts/base/frameworks/analyzer/logging.zeek
   scripts/base/frameworks/files/__load__.zeek
     scripts/base/frameworks/files/main.zeek
       scripts/base/utils/site.zeek

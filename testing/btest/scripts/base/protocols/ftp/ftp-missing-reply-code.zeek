@@ -2,7 +2,7 @@
 # @TEST-EXEC: zeek -b -r $TRACES/ftp/ftp-missing-reply-code.pcap %INPUT
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff ftp.log
-# @TEST-EXEC: btest-diff dpd.log
+# @TEST-EXEC: btest-diff analyzer.log
 # @TEST-EXEC: test ! -f reporter.log
 
 @load base/protocols/conn

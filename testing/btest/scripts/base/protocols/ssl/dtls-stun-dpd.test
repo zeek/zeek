@@ -1,8 +1,8 @@
 # @TEST-REQUIRES: ! have-spicy-ssl  # DTLS is not supported in Spicy SSL yet
 # @TEST-EXEC: zeek -b -r $TRACES/tls/webrtc-stun.pcap %INPUT
 # @TEST-EXEC: btest-diff ssl.log
-# @TEST-EXEC: touch dpd.log
-# @TEST-EXEC: btest-diff dpd.log
+# @TEST-EXEC: touch analyzer.log
+# @TEST-EXEC: btest-diff analyzer.log
 # @TEST-EXEC: btest-diff .stdout
 
 @load base/protocols/ssl

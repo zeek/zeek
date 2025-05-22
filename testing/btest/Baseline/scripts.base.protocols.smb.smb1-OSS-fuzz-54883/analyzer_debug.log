@@ -3,10 +3,11 @@
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
-#path	analyzer
+#path	analyzer_debug
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	cause	analyzer_kind	analyzer_name	uid	fuid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	failure_reason	failure_data
 #types	time	string	string	string	string	string	addr	port	addr	port	string	string
 XXXXXXXXXX.XXXXXX	violation	protocol	SMB	CHhAvVGS1DHFjwGM9	-	10.0.0.1	48026	10.0.0.2	139	Binpac exception: binpac exception: out_of_bound: SMB1_write_andx_request:data: 762064980 > 32	-
 XXXXXXXXXX.XXXXXX	violation	protocol	SMB	CHhAvVGS1DHFjwGM9	-	10.0.0.1	48026	10.0.0.2	139	Binpac exception: binpac exception: out_of_bound: SMB1_write_andx_request:data: 4123 > 32	-
+XXXXXXXXXX.XXXXXX	confirmation	protocol	SMB	CHhAvVGS1DHFjwGM9	-	10.0.0.1	48026	10.0.0.2	139	-	-
 #close XXXX-XX-XX-XX-XX-XX

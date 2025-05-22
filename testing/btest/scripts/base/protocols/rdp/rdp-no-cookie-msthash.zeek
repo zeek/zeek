@@ -4,7 +4,6 @@
 # @TEST-EXEC: btest-diff rdp.log
 # @TEST-EXEC: btest-diff ssl.log
 # @TEST-EXEC: test ! -f analyzer.log
-# @TEST-EXEC: test ! -f dpd.log
 
 @load base/protocols/rdp
 @load base/protocols/ssl

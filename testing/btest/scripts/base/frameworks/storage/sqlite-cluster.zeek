@@ -1,5 +1,3 @@
-# @TEST-IGNORE
-
 # @TEST-DOC: Tests SQLite storage in a cluster environment
 
 # @TEST-PORT: BROKER_MANAGER_PORT

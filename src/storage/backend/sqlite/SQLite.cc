@@ -85,8 +85,8 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     auto pragma_timeout_val = backend_options->GetField<IntervalVal>("pragma_timeout");
     pragma_timeout = std::chrono::milliseconds(static_cast<int64_t>(pragma_timeout_val->Get() * 1000));
 
-    auto pragma_wof_val = backend_options->GetField<IntervalVal>("pragma_wait_on_busy");
-    pragma_wait_on_busy = std::chrono::milliseconds(static_cast<int64_t>(pragma_timeout_val->Get() * 1000));
+    auto pragma_wait_val = backend_options->GetField<IntervalVal>("pragma_wait_on_busy");
+    pragma_wait_on_busy = std::chrono::milliseconds(static_cast<int64_t>(pragma_wait_val->Get() * 1000));
 
     if ( auto open_res =
              CheckError(sqlite3_open_v2(full_path.c_str(), &db,

@@ -7,6 +7,6 @@
 # @TEST-EXEC: btest-diff ldap.log
 # @TEST-EXEC: btest-diff ldap_search.log
 # @TEST-EXEC: ! test -f weird.log
-# @TEST-EXEC: ! test -f analyzer_failed.log
+# @TEST-EXEC: ! test -f analyzer.log
 #
 # @TEST-DOC: Test LDAP analyzer with SASL encrypted payloads.

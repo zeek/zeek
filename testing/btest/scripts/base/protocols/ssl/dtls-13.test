@@ -8,7 +8,7 @@
 # @TEST-EXEC: cat ssl.log >> ssl-all.log
 # @TEST-EXEC: btest-diff ssl-all.log
 # @TEST-EXEC: btest-diff .stdout
-# @TEST-EXEC: test ! -f analyzer_failed.log
+# @TEST-EXEC: test ! -f analyzer.log
 
 event ssl_client_hello(c: connection, version: count, record_version: count, possible_ts: time, client_random: string, session_id: string, ciphers: index_vec, comp_methods: index_vec)
 	{

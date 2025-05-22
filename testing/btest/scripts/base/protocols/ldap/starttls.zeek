@@ -7,7 +7,7 @@
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff ldap.log
 # @TEST-EXEC: btest-diff ssl.log
-# @TEST-EXEC: ! test -f analyzer_failed.log
+# @TEST-EXEC: ! test -f analyzer.log
 #
 # @TEST-DOC: LDAP supports StartTLS through extendedRequest 1.3.6.1.4.1.1466.20037
 

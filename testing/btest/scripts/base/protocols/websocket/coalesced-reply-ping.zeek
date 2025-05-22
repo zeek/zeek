@@ -8,7 +8,7 @@
 # @TEST-EXEC: btest-diff out-coalesced
 # @TEST-EXEC: btest-diff weird.log
 # @TEST-EXEC: diff out-separate out-coalesced
-# @TEST-EXEC: test ! -f analyzer_failed.log
+# @TEST-EXEC: test ! -f analyzer.log
 
 @load base/protocols/websocket
 

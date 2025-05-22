@@ -97,6 +97,11 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         return open_res;
     }
 
+    // TODO: Should we use sqlite3_busy_timeout here instead of using the pragma? That would
+    // at least let us skip over one. The busy timeout is per-connection as well, so it'll
+    // never fail to run like the other pragmas can.
+    //    sqlite3_busy_timeout(db, 2000);
+
     auto pragmas = backend_options->GetField<TableVal>("pragma_commands");
     for ( const auto& iter : *(pragmas->Get()) ) {
         auto k = iter.GetHashKey();

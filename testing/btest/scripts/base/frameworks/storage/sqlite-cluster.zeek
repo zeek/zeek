@@ -19,11 +19,18 @@
 @load policy/frameworks/storage/backend/sqlite
 @load policy/frameworks/cluster/experimental
 
+redef Storage::expire_interval = 2 secs;
+
 global sqlite_data_written: event() &is_used;
 
 @if ( Cluster::local_node_type() == Cluster::WORKER )
 
 global backend: opaque of Storage::BackendHandle;
+global key1: string = "key1234";
+global value1: string = "value1234";
+
+global key2: string = "key2345";
+global value2: string = "value2345";
 
 event zeek_init()
 	{
@@ -39,13 +46,22 @@ event zeek_init()
 	backend = open_res$value;
 	}
 
+event check_removed()
+	{
+	local res = Storage::Sync::get(backend, key1);
+	print Cluster::node, "get result 1 after expiration", res;
+
+	res = Storage::Sync::get(backend, key2);
+	print Cluster::node, "get result 2 after expiration", res;
+
+	Storage::Sync::close_backend(backend);
+	terminate();
+	}
+
 event sqlite_data_written()
 	{
 	print "sqlite_data_written";
-	local res = Storage::Sync::get(backend, "1234");
-	print Cluster::node, res;
-	Storage::Sync::close_backend(backend);
-	terminate();
+	schedule 5secs { check_removed() };
 	}
 
 @else
@@ -71,8 +87,11 @@ event sqlite_data_written()
 
 event Cluster::Experimental::cluster_started()
 	{
-	local res = Storage::Sync::put(backend, [ $key="1234", $value="5678" ]);
-	print Cluster::node, "put result", res;
+	local res = Storage::Sync::put(backend, [ $key=key1, $value=value1 ]);
+	print Cluster::node, "put result 1", res;
+
+	res = Storage::Sync::put(backend, [ $key=key2, $value=value2, $expire_time=2 sec ]);
+	print Cluster::node, "put result 2", res;
 
 	local e = Cluster::make_event(sqlite_data_written);
 	Cluster::publish(Cluster::manager_topic, e);

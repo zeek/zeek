@@ -95,7 +95,7 @@ private:
     zeek::Args args;
     util::detail::SourceID src;
     analyzer::ID aid;
-    Obj* obj;
+    zeek::IntrusivePtr<Obj> obj;
     Event* next_event;
     detail::EventMetadataVectorPtr meta;
 };

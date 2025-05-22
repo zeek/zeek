@@ -46,12 +46,9 @@ Event::Event(const EventHandlerPtr& arg_handler, zeek::Args arg_args, util::deta
       args(std::move(arg_args)),
       src(arg_src),
       aid(arg_aid),
-      obj(arg_obj),
+      obj(zeek::NewRef{}, arg_obj),
       next_event(nullptr),
-      meta(detail::MakeEventMetadataVector(arg_ts)) {
-    if ( obj )
-        Ref(obj);
-}
+      meta(detail::MakeEventMetadataVector(arg_ts)) {}
 
 Event::Event(detail::EventMetadataVectorPtr arg_meta, const EventHandlerPtr& arg_handler, zeek::Args arg_args,
              util::detail::SourceID arg_src, analyzer::ID arg_aid, Obj* arg_obj)
@@ -59,12 +56,9 @@ Event::Event(detail::EventMetadataVectorPtr arg_meta, const EventHandlerPtr& arg
       args(std::move(arg_args)),
       src(arg_src),
       aid(arg_aid),
-      obj(arg_obj),
+      obj(zeek::NewRef{}, arg_obj),
       next_event(nullptr),
-      meta(std::move(arg_meta)) {
-    if ( obj )
-        Ref(obj);
-}
+      meta(std::move(arg_meta)) {}
 
 zeek::VectorValPtr Event::MetadataValues(const EnumValPtr& id) const {
     static const auto& any_vec_t = zeek::id::find_type<zeek::VectorType>("any_vec");
@@ -151,9 +145,8 @@ void Event::Dispatch(bool no_remote) {
         // Already reported.
     }
 
-    if ( obj )
-        // obj->EventDone();
-        Unref(obj);
+    // Unref obj
+    obj.reset();
 
     if ( handler->ErrorHandler() )
         reporter->EndErrorHandler();

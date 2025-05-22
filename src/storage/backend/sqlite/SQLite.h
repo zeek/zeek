@@ -53,6 +53,7 @@ private:
     OperationResult RunPragma(std::string_view name, std::optional<std::string_view> value = std::nullopt);
 
     sqlite3* db = nullptr;
+    sqlite3* expire_db = nullptr;
 
     using sqlite_stmt_func = std::function<void(sqlite3_stmt*)>;
     using unique_stmt_ptr = std::unique_ptr<sqlite3_stmt, sqlite_stmt_func>;
@@ -61,7 +62,11 @@ private:
     unique_stmt_ptr put_update_stmt;
     unique_stmt_ptr get_stmt;
     unique_stmt_ptr erase_stmt;
+
+    unique_stmt_ptr check_expire_stmt;
     unique_stmt_ptr expire_stmt;
+    unique_stmt_ptr get_expiry_last_run_stmt;
+    unique_stmt_ptr update_expiry_last_run_stmt;
 
     std::string full_path;
     std::string table_name;

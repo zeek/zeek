@@ -37,16 +37,17 @@ Changed Functionality
 ---------------------
 
 - Logging of failed analyzers has been overhauled. `dpd.log` was replaced with
-  a new `analyzer_failed.log` that presents a more unified and consistent view
-  of failed analyzers.
+  by a new `analyzer.log` that presents a more unified and consistent view
+  of failed analyzers. The previous `analyzer.log` was renamed to `analyzer-debug.log`;
+  see below for more details.
 
-  For protocol analyzers, `analyzer_failed.log` contains analyzers that
+  For protocol analyzers, `analyzer.log` contains analyzers that
   were previously confirmed and then reported a protocol violation that caused
   Zeek to decide to remove the violating analyzer from the connection.
 
-  For file and packet analyzers, all errors will be logged to `analyzer_failed.log`.
+  For file and packet analyzers, all errors will be logged to `analyzer.log`.
 
-  If you compare the output between `dpd.log` and `analyzer_failed.log` you might
+  If you compare the output between `dpd.log` and `analyzer.log` you might
   notice discrepancies in some corner cases. For `dpd.log`, the logic paths of
   logging violations and removing analyzers were separate - so an entry in
   `dpd.log` does not necessarily mean that an analyzer ware removed from a connection.
@@ -77,9 +78,9 @@ Removed Functionality
 Deprecated Functionality
 ------------------------
 
-- The `dpd.log` is now deprecated and replaced by the `analyzer_failed.log` (see above).
+- The `dpd.log` is now deprecated and replaced by `analyzer.log` (see above).
   `dpd.log` is no longer created by default, but can be loaded using the
-  `frameworks/analyzer/dpd-log.zeek` policy script.
+  `frameworks/analyzer/deprecated-dpd-log.zeek` policy script.
 
 - The ``protocols/http/detect-sqli.zeek`` script has been deprecated in favor of a
   new ``protocols/http/detect-sql-injection.zeek`` script to switch from the victim

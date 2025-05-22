@@ -3,9 +3,9 @@
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
-#path	analyzer_failed
+#path	analyzer
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	analyzer_kind	analyzer_name	uid	fuid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	failure_reason	failure_data
 #types	time	string	string	string	string	addr	port	addr	port	string	string
-XXXXXXXXXX.XXXXXX	protocol	NTLM	CHhAvVGS1DHFjwGM9	-	192.168.0.173	1068	192.168.0.2	4997	NTLM AV Pair loop underflow	-
+XXXXXXXXXX.XXXXXX	protocol	FTP	CHhAvVGS1DHFjwGM9	-	127.0.0.1	51344	127.0.0.1	21	non-numeric reply code	SYST not supported
 #close XXXX-XX-XX-XX-XX-XX

@@ -1,4 +1,4 @@
-##! Logging analyzer  violations into analyzer_failed.log
+##! Logging analyzer  violations into analyzer.log
 
 @load base/frameworks/logging
 @load ./main
@@ -9,7 +9,7 @@ export {
 	## Add the analyzer logging stream identifier.
 	redef enum Log::ID += { LOG };
 
-	## The record type defining the columns to log in the analyzer-failed logging stream.
+	## The record type defining the columns to log in the analyzer logging stream.
 	type Info: record {
 		## Timestamp of the violation.
 		ts:             time              &log;
@@ -38,7 +38,7 @@ export {
 
 	## An event that can be handled to access the :zeek:type:`Analyzer::Logging::Info`
 	## record as it is sent on to the logging framework.
-	global log_analyzer_failed: event(rec: Info);
+	global log_analyzer: event(rec: Info);
 
 	## A default logging policy hook for the stream.
 	global log_policy: Log::PolicyHook;
@@ -46,7 +46,7 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(LOG, [$columns=Info, $path="analyzer_failed", $ev=log_analyzer_failed, $policy=log_policy]);
+	Log::create_stream(LOG, [$columns=Info, $path="analyzer", $ev=log_analyzer, $policy=log_policy]);
 	}
 
 function log_analyzer_failure(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo)

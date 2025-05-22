@@ -1,5 +1,5 @@
 # @TEST-EXEC: zeek -b -C -r $TRACES/smb/smb311.pcap %INPUT
-# @TEST-EXEC: test ! -f analyzer_failed.log
+# @TEST-EXEC: test ! -f analyzer.log
 # @TEST-EXEC: test ! -f weird.log
 # @TEST-EXEC: btest-diff .stdout
 

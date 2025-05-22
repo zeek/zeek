@@ -2,7 +2,7 @@
 
 # @TEST-EXEC: zeek -b -r $TRACES/dce-rpc/ntlm-empty-av-sequence.pcap %INPUT
 # @TEST-EXEC: btest-diff ntlm.log
-# @TEST-EXEC: btest-diff analyzer_failed.log
+# @TEST-EXEC: btest-diff analyzer.log
 
 @load frameworks/analyzer/debug-logging.zeek
 @load base/protocols/dce-rpc

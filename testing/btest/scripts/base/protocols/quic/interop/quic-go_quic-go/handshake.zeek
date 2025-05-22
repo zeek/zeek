@@ -7,4 +7,4 @@
 # @TEST-EXEC: btest-diff ssl.log
 # @TEST-EXEC: btest-diff quic.log
 # @TEST-EXEC: btest-diff .stderr
-# @TEST-EXEC: test ! -f analyzer_failed.log
+# @TEST-EXEC: test ! -f analyzer.log

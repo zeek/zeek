@@ -3,9 +3,9 @@
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
-#path	analyzer_failed
+#path	analyzer
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	analyzer_kind	analyzer_name	uid	fuid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	failure_reason	failure_data
 #types	time	string	string	string	string	addr	port	addr	port	string	string
-XXXXXXXXXX.XXXXXX	protocol	FTP	CHhAvVGS1DHFjwGM9	-	127.0.0.1	51354	127.0.0.1	21	non-numeric reply code	99 PASV invalid
+XXXXXXXXXX.XXXXXX	protocol	SPICY_SSH	CHhAvVGS1DHFjwGM9	-	192.150.186.169	49244	131.159.14.23	22	failed to match regular expression (<...>/test.spicy:9:15-9:22)	SSH-2.0-OpenSSH_3.8.1p1\x0a
 #close XXXX-XX-XX-XX-XX-XX

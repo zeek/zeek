@@ -6,6 +6,6 @@
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff ldap.log
 # @TEST-EXEC: btest-diff ldap_search.log
-# @TEST-EXEC: ! test -f analyzer_failed.log
+# @TEST-EXEC: ! test -f analyzer.log
 #
 # @TEST-DOC: Test LDAP analyzer with GSS-API integrity traffic where we can still peak into LDAP wrapped into WRAP tokens.

@@ -23,7 +23,7 @@ if [ "$filename" == "analyzer_debug.log" ]; then
     addl="$(dirname $0)/diff-remove-abspath"
 fi
 
-if [ "$filename" == "analyzer_failed.log" ]; then
+if [ "$filename" == "analyzer.log" ]; then
     addl="$(dirname $0)/diff-remove-abspath"
 fi
 

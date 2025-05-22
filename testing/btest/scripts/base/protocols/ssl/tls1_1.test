@@ -3,7 +3,7 @@
 # @TEST-EXEC: zeek -b -r $TRACES/tls/tls1_1.pcap %INPUT
 # @TEST-EXEC: btest-diff ssl.log
 # @TEST-EXEC: btest-diff x509.log
-# @TEST-EXEC: test ! -f analyzer_failed.log
+# @TEST-EXEC: test ! -f analyzer.log
 
 @load base/protocols/ssl
 @load base/files/x509

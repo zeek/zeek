@@ -62,11 +62,14 @@ private:
     unique_stmt_ptr get_stmt;
     unique_stmt_ptr erase_stmt;
     unique_stmt_ptr expire_stmt;
+    unique_stmt_ptr get_expire_last_run;
+    unique_stmt_ptr update_expire_last_run_stmt;
 
     std::string full_path;
     std::string table_name;
     std::chrono::milliseconds pragma_timeout;
     std::chrono::milliseconds pragma_wait_on_busy;
+    bool is_cluster = false;
 };
 
 } // namespace zeek::storage::backend::sqlite

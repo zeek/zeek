@@ -11,7 +11,7 @@
 # @TEST-EXEC: echo "two-binary-fragments.pcap" >>out
 # @TEST-EXEC: zeek -b -r $TRACES//websocket/two-binary-fragments.pcap %INPUT >>out
 # @TEST-EXEC: btest-diff out
-# @TEST-EXEC: test ! -f analyzer_failed.log
+# @TEST-EXEC: test ! -f analyzer.log
 # @TEST-EXEC: test ! -f weird.log
 
 @load base/protocols/websocket

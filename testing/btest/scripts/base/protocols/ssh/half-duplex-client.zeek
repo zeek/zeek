@@ -1,5 +1,5 @@
 # Tests processing of half-duplex client-side connections, including no
-# analyzer_failed.log output.
+# analyzer.log output.
 
 # @TEST-EXEC: zeek -r $TRACES/ssh/ssh.client-side-half-duplex.pcap %INPUT
 # @TEST-EXEC: btest-diff analyzer_debug.log

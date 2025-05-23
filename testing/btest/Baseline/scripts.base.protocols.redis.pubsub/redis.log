@@ -5,7 +5,7 @@
 #unset_field	-
 #path	redis
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd.name	cmd.key	cmd.value	reply.success	reply.data
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd.name	cmd.key	cmd.value	success	reply.value
 #types	time	string	addr	port	addr	port	string	string	string	bool	string
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	56162	127.0.0.1	6379	SUBSCRIBE	-	-	T	-
 XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	127.0.0.1	56163	127.0.0.1	6379	PUBLISH	-	-	T	-

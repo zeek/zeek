@@ -11,7 +11,12 @@ event Redis::command(c: connection, command: Redis::Command)
 	print "BAD", command;
 	}
 
-event Redis::reply(c: connection, dat: Redis::ServerData)
+event Redis::reply(c: connection, dat: Redis::ReplyData)
+	{
+	print "BAD", dat;
+	}
+
+event Redis::error(c: connection, dat: Redis::ReplyData)
 	{
 	print "BAD", dat;
 	}

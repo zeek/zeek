@@ -5,10 +5,10 @@
 #unset_field	-
 #path	redis
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd.name	cmd.key	cmd.value	reply.success	reply.data
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	cmd.name	cmd.key	cmd.value	success	reply.value
 #types	time	string	addr	port	addr	port	string	string	string	bool	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	49992	127.0.0.1	6379	XADD	-	-	T	-
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	49992	127.0.0.1	6379	XADD	-	-	T	-
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	49992	127.0.0.1	6379	XADD	-	-	T	-
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	49992	127.0.0.1	6379	XADD	-	-	T	1729622832637-0
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	49992	127.0.0.1	6379	XADD	-	-	T	1729622836953-0
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	49992	127.0.0.1	6379	XADD	-	-	T	1729622840530-0
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	49992	127.0.0.1	6379	XRANGE	-	-	T	-
 #close XXXX-XX-XX-XX-XX-XX

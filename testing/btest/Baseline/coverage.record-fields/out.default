@@ -605,11 +605,11 @@ connection {
              }
         * id: record conn_id, log=T, optional=F
             conn_id { ... }
-        * reply: record Redis::ServerData, log=T, optional=T
-            Redis::ServerData {
-              * data: string, log=T, optional=T
-              * success: bool, log=T, optional=F
+        * reply: record Redis::ReplyData, log=T, optional=T
+            Redis::ReplyData {
+              * value: string, log=T, optional=T
              }
+        * success: bool, log=T, optional=T
         * ts: time, log=T, optional=F
         * uid: string, log=T, optional=F
        }

@@ -22,8 +22,10 @@ export {
 		id: conn_id &log;
 		## The Redis command.
 		cmd: Command &log;
+		## If the command was successful. Only set if the server responded.
+		success: bool &log &optional;
 		## The reply for the command.
-		reply: ServerData &log &optional;
+		reply: ReplyData &log &optional;
 	};
 
 	## A default logging policy hook for the stream.
@@ -198,16 +200,9 @@ function reply_num(c: connection): count
 	return resp_num;
 	}
 
-event Redis::reply(c: connection, data: Redis::ServerData)
+# Logs up to and including the last seen command from the last reply
+function log_from(c: connection, previous_reply_num: count)
 	{
-	if ( ! c?$redis_state )
-		make_new_state(c);
-
-	local previous_reply_num = c$redis_state$current_reply;
-	c$redis_state$current_reply = reply_num(c);
-	set_state(c, F);
-
-	c$redis$reply = data;
 	# Log each of the pending replies to this point - we will not go
 	# back.
 	while ( previous_reply_num < c$redis_state$current_reply )
@@ -232,6 +227,34 @@ event Redis::reply(c: connection, data: Redis::ServerData)
 		Log::write(Redis::LOG, c$redis);
 		delete c$redis_state$pending[c$redis_state$current_reply];
 		}
+	}
+
+event Redis::reply(c: connection, data: ReplyData)
+	{
+	if ( ! c?$redis_state )
+		make_new_state(c);
+
+	local previous_reply_num = c$redis_state$current_reply;
+	c$redis_state$current_reply = reply_num(c);
+	set_state(c, F);
+
+	c$redis$reply = data;
+	c$redis$success = T;
+	log_from(c, previous_reply_num);
+	}
+
+event Redis::error(c: connection, data: ReplyData)
+	{
+	if ( ! c?$redis_state )
+		make_new_state(c);
+
+	local previous_reply_num = c$redis_state$current_reply;
+	c$redis_state$current_reply = reply_num(c);
+	set_state(c, F);
+
+	c$redis$reply = data;
+	c$redis$success = F;
+	log_from(c, previous_reply_num);
 	}
 
 hook finalize_redis(c: connection)

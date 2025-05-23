@@ -367,3 +367,37 @@ public function make_auth(command: Command): Auth {
 public function is_auth(data: RESP::ClientData): bool {
     return data.command.known && *(data.command.known) == KnownCommand::AUTH && |data.command.raw| >= 2;
 }
+
+type ReplyData = struct {
+    value: optional<bytes>;
+};
+
+public function is_err(server_data: RESP::ServerData): bool {
+    return server_data.data?.simple_error || server_data.data?.bulk_error;
+}
+
+function bulk_string_content(bulk: RESP::BulkString): bytes {
+    if (bulk?.content)
+        return bulk.content;
+    else
+        return b"";
+}
+
+# Gets the server reply in a simpler form
+public function make_server_reply(data: RESP::ServerData): ReplyData {
+    local res: ReplyData = [$value = Null];
+    if (data.data?.simple_error)
+        res.value = data.data.simple_error.content;
+    else if (data.data?.bulk_error)
+        res.value = bulk_string_content(data.data.bulk_error);
+    else if (data.data?.simple_string)
+        res.value = data.data.simple_string.content;
+    else if (data.data?.bulk_string)
+        res.value = bulk_string_content(data.data.bulk_string);
+    else if (data.data?.verbatim_string)
+        res.value = bulk_string_content(data.data.verbatim_string);
+    else if (data.data?.boolean)
+        res.value = data.data.boolean.val ? b"T" : b"F";
+
+    return res;
+}

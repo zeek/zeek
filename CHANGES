@@ -1,3 +1,9 @@
+8.0.0-dev.204 | 2025-05-23 12:13:41 -0700
+
+  * Redis: bump version of hiredis required (Tim Wojtulewicz, Corelight)
+
+  * Redis: return proper error if connection fails (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.201 | 2025-05-23 20:57:54 +0200
 
   * Add generic event metadata, part 1 (Arne Welzel, Corelight)

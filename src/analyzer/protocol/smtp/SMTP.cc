@@ -523,8 +523,10 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig) {
                     state = detail::SMTP_RCPT_OK;
                     break;
 
-                case 250:
+                case 250: // NOLINT(bugprone-branch-clone)
                 case 251: // ?? Shall we catch 251? (RFC 2821)
+                    break;
+
                 case 421:
                 case 450:
                 case 451:

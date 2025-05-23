@@ -1385,12 +1385,14 @@ AddExpr::AddExpr(ExprPtr arg_op1, ExprPtr arg_op2) : BinaryExpr(EXPR_ADD, std::m
 
     TypePtr base_result_type;
 
-    if ( (bt2 == TYPE_INTERVAL && (bt1 == TYPE_TIME || bt1 == TYPE_INTERVAL)) || BothString(bt1, bt2) )
-        base_result_type = base_type(bt1);
+    if ( (bt2 == TYPE_INTERVAL && (bt1 == TYPE_TIME || bt1 == TYPE_INTERVAL)) )
+        base_result_type = base_type(bt1); // NOLINT(bugprone-branch-clone)
     else if ( bt2 == TYPE_TIME && bt1 == TYPE_INTERVAL )
         base_result_type = base_type(bt2);
     else if ( BothArithmetic(bt1, bt2) )
         PromoteType(max_type(bt1, bt2), is_vector(op1) || is_vector(op2));
+    else if ( BothString(bt1, bt2) )
+        base_result_type = base_type(bt1);
     else
         ExprError("requires arithmetic operands");
 

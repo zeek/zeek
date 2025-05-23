@@ -1842,7 +1842,7 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
     // First do all checks that don't require any recursion.
 
     switch ( t1->Tag() ) {
-        case TYPE_VOID:
+        case TYPE_VOID: // NOLINT(bugprone-branch-clone)
         case TYPE_BOOL:
         case TYPE_INT:
         case TYPE_COUNT:
@@ -1855,7 +1855,8 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
         case TYPE_ADDR:
         case TYPE_SUBNET:
         case TYPE_ANY:
-        case TYPE_ERROR:
+        case TYPE_ERROR: return true;
+
         case TYPE_ENUM:
             // We should probably check to see whether all of the
             // enumerations are present and in the same location.

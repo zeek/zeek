@@ -1,3 +1,7 @@
+8.0.0-dev.191 | 2025-05-23 08:32:00 -0700
+
+  * Remove FindClangTidy.cmake, update cmake submodule (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.188 | 2025-05-22 16:54:58 -0700
 
   * SQLite: Add TODO note about possibly using sqlite3_busy_timeout (Tim Wojtulewicz, Corelight)

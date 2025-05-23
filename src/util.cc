@@ -1875,8 +1875,8 @@ double current_time(bool real) {
 struct timeval double_to_timeval(double t) {
     struct timeval tv;
 
-    double t1 = floor(t);
-    tv.tv_sec = static_cast<int>(t1);
+    double t1 = std::floor(t);
+    tv.tv_sec = static_cast<time_t>(t1);
     tv.tv_usec = std::lround((t - t1) * 1e6);
 
     return tv;

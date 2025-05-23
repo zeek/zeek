@@ -51,6 +51,11 @@ export {
 		## The command in an enum if it was known
 		known: KnownCommand &optional;
 	};
+
+	## A generic Redis reply from the client.
+	type ReplyData: record {
+		value: string &log &optional;
+	};
 }
 
 ## Generated for Redis SET commands sent to the Redis server.
@@ -87,7 +92,7 @@ global command: event(c: connection, cmd: Command);
 ## c: The connection.
 ##
 ## data: The server data sent to the client.
-global reply: event(c: connection, data: string);
+global reply: event(c: connection, data: ReplyData);
 
 ## Generated for every error response sent by the Redis server to the
 ## client.
@@ -95,4 +100,4 @@ global reply: event(c: connection, data: string);
 ## c: The connection.
 ##
 ## data: The server data sent to the client.
-global error: event(c: connection, data: string);
+global error: event(c: connection, data: ReplyData);

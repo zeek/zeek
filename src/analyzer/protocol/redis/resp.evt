@@ -16,5 +16,5 @@ on RESP::ClientData if ( Redis::is_auth(self) ) -> event Redis::auth_command($co
 # All client data is a command
 on RESP::ClientData -> event Redis::command($conn, self.command);
 
-on RESP::ServerData if ( ! Redis::is_err(self) ) -> event Redis::reply($conn, Redis::get_server_data(self));
-on RESP::ServerData if ( Redis::is_err(self) ) -> event Redis::error($conn, Redis::get_server_data(self));
+on RESP::ServerData if ( ! Redis::is_err(self) ) -> event Redis::reply($conn, Redis::make_server_reply(self));
+on RESP::ServerData if ( Redis::is_err(self) ) -> event Redis::error($conn, Redis::make_server_reply(self));

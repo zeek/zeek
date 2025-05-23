@@ -25,7 +25,7 @@ export {
 		## If the command was successful. Only set if the server responded.
 		success: bool &log &optional;
 		## The reply for the command.
-		reply: string &log &optional;
+		reply: ReplyData &log &optional;
 	};
 
 	## A default logging policy hook for the stream.
@@ -229,7 +229,7 @@ function log_from(c: connection, previous_reply_num: count)
 		}
 	}
 
-event Redis::reply(c: connection, data: string)
+event Redis::reply(c: connection, data: ReplyData)
 	{
 	if ( ! c?$redis_state )
 		make_new_state(c);
@@ -243,7 +243,7 @@ event Redis::reply(c: connection, data: string)
 	log_from(c, previous_reply_num);
 	}
 
-event Redis::error(c: connection, data: string)
+event Redis::error(c: connection, data: ReplyData)
 	{
 	if ( ! c?$redis_state )
 		make_new_state(c);

@@ -17,12 +17,12 @@ event Redis::auth_command(c: connection, command: Redis::AuthCommand)
 	print fmt("password: %s", command$password);
 	}
 
-event Redis::reply(c: connection, data: string)
+event Redis::reply(c: connection, data: Redis::ReplyData)
 	{
-	print "Auth succeeded:", data;
+	print "Auth succeeded:", data$value;
 	}
 
-event Redis::error(c: connection, data: string)
+event Redis::error(c: connection, data: Redis::ReplyData)
 	{
-	print "Auth failed:", data;
+	print "Auth failed:", data$value;
 	}

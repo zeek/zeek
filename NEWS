@@ -15,6 +15,15 @@ Breaking Changes
   files. We tested builds of all of the existing third-party packages and only noticed one
   or two failures, but there is a possibility for breakage related to this cleanup.
 
+- Network timestamps are not added to events by default anymore. Use the following
+  redef line to enable them:
+
+	redef EventMetadata::add_network_timestamp = T;
+
+  The background is that event metadata has become more generic and may incur
+  a small overhead when enabled. There's not enough users of network timestamp
+  metadata to justify the complexity of treating it separate.
+
 New Functionality
 -----------------
 
@@ -64,6 +73,13 @@ Deprecated Functionality
   ``notice.log`` entries.
 
   The replacement script doesn't populate the ``email_body_sections`` anymore either.
+
+- The ``zeek::Event()`` constructor was deprecated. Use ``event_mgr::Enqueue()``
+  or ``event_mgr::Dispatch()`` instead.
+
+- Passing ``ts`` as the last argument to ``EventMgr::Enqueue()`` has been deprecated
+  and will lead to compile time warnings. Use ``EventMgr::Enqueue(detail::MetadataVectorPtr meta, ...)``
+  for populating ``meta`` accordingly.
 
 Zeek 7.2.0
 ==========

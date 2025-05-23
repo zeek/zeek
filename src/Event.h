@@ -4,6 +4,7 @@
 
 #include <tuple>
 #include <type_traits>
+#include <vector>
 
 #include "zeek/ZeekArgs.h"
 #include "zeek/analyzer/Analyzer.h"
@@ -18,8 +19,41 @@ extern double network_time;
 
 class EventMgr;
 
+namespace detail {
+
+/**
+ * An event metadata entry as stored in Event or @ref zeek::cluster::detail::Event.
+ */
+class MetadataEntry {
+public:
+    MetadataEntry(zeek_uint_t id, zeek::ValPtr val) : id(id), val(std::move(val)) {}
+
+    zeek_uint_t Id() const { return id; }
+    const zeek::ValPtr& Val() const { return val; }
+
+    /**
+     * @return Pointer to a script-layer ``EventMetadata::Entry`` zeek::RecordVal representing this metadata entry.
+     */
+    RecordValPtr BuildVal() const;
+
+private:
+    zeek_uint_t id;
+    zeek::ValPtr val;
+};
+
+using EventMetadataVector = std::vector<MetadataEntry>;
+using EventMetadataVectorPtr = std::unique_ptr<EventMetadataVector>;
+
+/**
+ * @return A new event metadata vector containing network timestamp value set to \a t;
+ */
+EventMetadataVectorPtr MakeEventMetadataVector(double t);
+
+} // namespace detail
+
 class Event final : public Obj {
 public:
+    [[deprecated("Remove in v8.1: Do not instantiate raw events. Use EventMgr::Dispatch() or EventMgr::Enqueue().")]]
     Event(const EventHandlerPtr& handler, zeek::Args args, util::detail::SourceID src = util::detail::SOURCE_LOCAL,
           analyzer::ID aid = 0, Obj* obj = nullptr, double ts = run_state::network_time);
 
@@ -30,12 +64,28 @@ public:
     analyzer::ID Analyzer() const { return aid; }
     EventHandlerPtr Handler() const { return handler; }
     const zeek::Args& Args() const { return args; }
-    double Time() const { return ts; }
+    double Time() const;
+
+    /**
+     * @return a pointer to the MetadataVector of this event or a nullptr.
+     */
+    const detail::EventMetadataVector* Metadata() const { return meta.get(); }
+
+    /**
+     * @return a vector of values for metadata matching identifier \a id.
+     *
+     * @param id The metadata identifier as an enum value.
+     */
+    VectorValPtr MetadataValues(const EnumValPtr& id) const;
 
     void Describe(ODesc* d) const override;
 
 private:
     friend class EventMgr;
+
+    // Construct an event with a metadata vector. Passing arg_meta as nullptr is explicitly allowed.
+    Event(detail::EventMetadataVectorPtr arg_meta, const EventHandlerPtr& arg_handler, zeek::Args arg_args,
+          util::detail::SourceID arg_src, analyzer::ID arg_aid, Obj* arg_obj);
 
     // This method is protected to make sure that everybody goes through
     // EventMgr::Dispatch().
@@ -43,14 +93,16 @@ private:
 
     EventHandlerPtr handler;
     zeek::Args args;
+    detail::EventMetadataVectorPtr meta;
     util::detail::SourceID src;
     analyzer::ID aid;
-    double ts;
-    Obj* obj;
+    zeek::IntrusivePtr<Obj> obj;
     Event* next_event;
 };
 
 class EventMgr final : public Obj, public iosource::IOSource {
+    class DeprecatedTimestamp;
+
 public:
     ~EventMgr() override;
 
@@ -66,10 +118,10 @@ public:
      * @param obj  an arbitrary object to use as a "cookie" or just hold a
      * reference to until dispatching the event.
      * @param ts  timestamp at which the event is intended to be executed
-     * (defaults to current network time).
+     * (defaults to current network time - deprecated).
      */
     void Enqueue(const EventHandlerPtr& h, zeek::Args vl, util::detail::SourceID src = util::detail::SOURCE_LOCAL,
-                 analyzer::ID aid = 0, Obj* obj = nullptr, double ts = run_state::network_time);
+                 analyzer::ID aid = 0, Obj* obj = nullptr, DeprecatedTimestamp ts = {});
 
     /**
      * A version of Enqueue() taking a variable number of arguments.
@@ -79,6 +131,19 @@ public:
         const EventHandlerPtr& h, Args&&... args) {
         return Enqueue(h, zeek::Args{std::forward<Args>(args)...});
     }
+
+    /**
+     * Enqueue() with metadata vector support.
+     * @param meta  Metadata to attach to the event, can be nullptr.
+     * @param h  reference to the event handler to later call.
+     * @param vl  the argument list to the event handler call.
+     * @param src  indicates the origin of the event (local versus remote).
+     * @param aid  identifies the protocol analyzer generating the event.
+     * @param obj  an arbitrary object to use as a "cookie" or just hold a
+     * reference to until dispatching the event.
+     */
+    void Enqueue(detail::EventMetadataVectorPtr meta, const EventHandlerPtr& h, zeek::Args vl,
+                 util::detail::SourceID src = util::detail::SOURCE_LOCAL, analyzer::ID aid = 0, Obj* obj = nullptr);
 
     [[deprecated("Remove in v8.1: Use Dispatch(handler, args) instead.")]]
     void Dispatch(Event* event, bool no_remote = false);
@@ -116,6 +181,11 @@ public:
     // by returning a zero-timeout.
     double GetNextTimeout() override { return head ? 0.0 : -1.0; }
 
+    /**
+     * @return A pointer to the currently dispatched event or nullptr.
+     */
+    const Event* CurrentEvent() const { return current; }
+
     void Process() override;
     const char* Tag() override { return "EventManager"; }
     void InitPostScript();
@@ -124,6 +194,24 @@ public:
     uint64_t num_events_dispatched = 0;
 
 private:
+    /**
+     * Helper class to produce a compile time warning if Enqueue() is called with an explicit timestamp.
+     *
+     * Remove in v8.1.
+     */
+    class DeprecatedTimestamp {
+    public:
+        DeprecatedTimestamp() : d(-1.0) {}
+        [[deprecated("Use overload EventMgr::Enqueue(EventMetadataVectorPtr meta, ...) to pass timestamp metadata")]]
+        /*implicit*/ DeprecatedTimestamp(double d)
+            : d(d) {}
+
+        explicit operator double() const { return d; }
+
+    private:
+        double d;
+    };
+
     void QueueEvent(Event* event);
 
     Event* current = nullptr;

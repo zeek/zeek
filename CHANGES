@@ -1,3 +1,14 @@
+8.0.0-dev.201 | 2025-05-23 20:57:54 +0200
+
+  * Add generic event metadata, part 1 (Arne Welzel, Corelight)
+
+    The ``ts`` member of ``Event`` was removed in favor of a more generic
+    approach that can hold any event metadata. Further, the Zeek script-layer
+    API for registering event metadata types was added.
+
+    Event instances do not network timestamp metadata by default anymore.
+    This feature can be re-enabled via EventMetadata::add_network_timestamp=T.
+
 8.0.0-dev.191 | 2025-05-23 08:32:00 -0700
 
   * Remove FindClangTidy.cmake, update cmake submodule (Tim Wojtulewicz, Corelight)

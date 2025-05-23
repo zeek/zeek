@@ -4,6 +4,8 @@
 # Note: We use a PCAP with DNS queries only so that we have a single packet per
 # time step. Thus the run loop will be executed only once per time step.
 
+redef EventMetadata::add_network_timestamp = T;
+
 global runs = -1;
 
 event test(depth: count)

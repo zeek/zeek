@@ -3,11 +3,16 @@
 #include "zeek/EventRegistry.h"
 
 #include <algorithm>
+#include <cinttypes>
 
+#include "zeek/Desc.h"
 #include "zeek/EventHandler.h"
 #include "zeek/Func.h"
 #include "zeek/RE.h"
 #include "zeek/Reporter.h"
+#include "zeek/Traverse.h"
+#include "zeek/TraverseTypes.h"
+#include "zeek/Type.h"
 
 namespace zeek {
 
@@ -163,5 +168,68 @@ void EventGroup::Disable() {
 }
 
 void EventGroup::AddFunc(detail::ScriptFuncPtr f) { funcs.insert(f); }
+
+namespace {
+
+class EventMetadataTypeRejector : public detail::TraversalCallback {
+public:
+    detail::TraversalCode PreType(const Type* t) override {
+        if ( visited.count(t) > 0 )
+            return detail::TC_ABORTSTMT;
+
+        visited.insert(t);
+
+        if ( reject.count(t->Tag()) )
+            rejected.push_back(t);
+
+        return detail::TC_CONTINUE;
+    };
+
+    std::set<const zeek::Type*> visited;
+    std::vector<const zeek::Type*> rejected;
+
+    std::set<zeek::TypeTag> reject = {TYPE_ANY, TYPE_FUNC, TYPE_FILE, TYPE_OPAQUE};
+};
+
+} // namespace
+
+bool EventRegistry::RegisterMetadata(EnumValPtr id, TypePtr type) {
+    static const auto& metadata_id_type = id::find_type<EnumType>("EventMetadata::ID");
+
+    if ( metadata_id_type != id->GetType() )
+        return false;
+
+    auto id_int = id->Get();
+    if ( id_int < 0 ) {
+        zeek::reporter->InternalError("Negative enum value %s: %" PRId64, obj_desc_short(id.get()).c_str(), id_int);
+    }
+
+    zeek_uint_t id_uint = static_cast<zeek_uint_t>(id_int);
+
+    if ( auto it = event_metadata_types.find(id_uint); it != event_metadata_types.end() )
+        return same_type(it->second.Type(), type);
+
+    EventMetadataTypeRejector cb;
+    type->Traverse(&cb);
+
+    if ( cb.rejected.size() > 0 )
+        return false;
+
+    event_metadata_types.insert({id_uint, EventMetadataDescriptor{id_uint, std::move(id), std::move(type)}});
+
+    return true;
+}
+
+const EventMetadataDescriptor* EventRegistry::LookupMetadata(zeek_uint_t id) const {
+    const auto it = event_metadata_types.find(id);
+    if ( it == event_metadata_types.end() )
+        return nullptr;
+
+    if ( it->second.Id() != id ) {
+        zeek::reporter->InternalError("inconsistent metadata descriptor: %" PRIu64 " vs %" PRId64, it->second.Id(), id);
+    }
+
+    return &(it->second);
+}
 
 } // namespace zeek

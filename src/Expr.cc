@@ -24,6 +24,8 @@
 #include "zeek/script_opt/Expr.h"
 #include "zeek/script_opt/ScriptOpt.h"
 
+#include "const.bif.netvar_h"
+
 namespace zeek::detail {
 
 const char* expr_name(ExprTag t) {
@@ -3827,11 +3829,17 @@ ScheduleTimer::ScheduleTimer(const EventHandlerPtr& arg_event, Args arg_args, do
 
 void ScheduleTimer::Dispatch(double /* t */, bool /* is_expire */) {
     if ( event ) {
-        // An event's intended timestamp might be in the past as timer expiration is driven by
-        // network time. Guarantee that the intended timestamp is never in the future (e.g.,
-        // when all timers are expired on shutdown).
-        auto ts = std::min(this->Time(), run_state::network_time);
-        event_mgr.Enqueue(event, std::move(args), util::detail::SOURCE_LOCAL, 0, nullptr, ts);
+        detail::EventMetadataVectorPtr meta;
+
+        if ( BifConst::EventMetadata::add_network_timestamp ) {
+            // An event's intended timestamp might be in the past as timer expiration is driven by
+            // network time. Guarantee that the intended timestamp is never in the future (e.g.,
+            // when all timers are expired on shutdown).
+            auto ts = std::min(this->Time(), run_state::network_time);
+            meta = detail::MakeEventMetadataVector(ts);
+        }
+
+        event_mgr.Enqueue(std::move(meta), event, std::move(args));
     }
 }
 

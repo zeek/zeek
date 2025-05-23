@@ -74,7 +74,7 @@ std::list<std::tuple<IPPrefix, void*>> PrefixTable::FindAll(const IPAddr& addr, 
     // because the double-pointer is implicitly converted to a void* for the call to
     // free(). The double-pointer was calloc'd in patricia_search_all as an array of
     // pointers, so it's safe to free. Explicitly cast it to void* to silence the warning.
-    free(reinterpret_cast<void*>(list));
+    free(static_cast<void*>(list));
     return out;
 }
 

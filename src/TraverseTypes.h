@@ -25,8 +25,6 @@ enum TraversalCode {
 #define HANDLE_TC_STMT_POST(code)                                                                                      \
     {                                                                                                                  \
         switch ( code ) {                                                                                              \
-            case zeek::detail::TC_ABORTALL:                                                                            \
-            case zeek::detail::TC_CONTINUE: return (code);                                                             \
             case zeek::detail::TC_ABORTSTMT: return zeek::detail::TC_CONTINUE;                                         \
         }                                                                                                              \
     }

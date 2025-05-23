@@ -246,8 +246,7 @@ OperationResult Redis::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     StringValPtr host = backend_options->GetField<StringVal>("server_host");
     if ( host ) {
         PortValPtr port = backend_options->GetField<PortVal>("server_port");
-        server_addr = util::fmt("%.*s:%d", static_cast<int>(host->ToStdStringView().size()),
-                                host->ToStdStringView().data(), port->Port());
+        server_addr = util::fmt("%s:%d", host->ToStdString().c_str(), port->Port());
         REDIS_OPTIONS_SET_TCP(&opt, host->ToStdStringView().data(), port->Port());
     }
     else {

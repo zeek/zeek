@@ -177,14 +177,15 @@ OperationResult SQLite::DoClose(ResultCallback* cb) {
         erase_stmt.reset();
         expire_stmt.reset();
 
-        char* errmsg;
+        char* errmsg = nullptr;
         if ( int res = sqlite3_exec(db, "pragma optimize", NULL, NULL, &errmsg);
              res != SQLITE_OK && res != SQLITE_BUSY ) {
             // We're shutting down so capture the error message here for informational
             // reasons, but don't do anything else with it.
             op_res = {ReturnCode::DISCONNECTION_FAILED, util::fmt("Sqlite failed to optimize at shutdown: %s", errmsg)};
-            sqlite3_free(errmsg);
         }
+
+        sqlite3_free(errmsg);
 
         if ( int res = sqlite3_close_v2(db); res != SQLITE_OK ) {
             if ( op_res.err_str.empty() )

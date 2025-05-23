@@ -1,3 +1,13 @@
+7.2.1-1 | 2025-07-14 14:18:30 -0700
+
+  * Redis: bump version of hiredis required (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit f996f661b66ac5c0236203a54a79ce898531ac67)
+
+  * Redis: return proper error if connection fails (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit f996f661b66ac5c0236203a54a79ce898531ac67)
+
 7.2.1 | 2025-05-20 09:12:46 -0700
 
   * Update CHANGES, VERSION, and NEWS for 7.2.1 release (Tim Wojtulewicz, Corelight)

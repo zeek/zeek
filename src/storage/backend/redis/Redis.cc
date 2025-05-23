@@ -628,7 +628,7 @@ void Redis::HandleInfoResult(redisReply* reply) {
 }
 
 void Redis::OnConnect(int status) {
-    DBG_LOG(DBG_STORAGE, "Redis backend: connection event");
+    DBG_LOG(DBG_STORAGE, "Redis backend: connection event, status=%d", status);
     --active_ops;
 
     connected = false;
@@ -638,7 +638,7 @@ void Redis::OnConnect(int status) {
 
         if ( status == REDIS_ERR ) {
             // TODO: do something with the error?
-            DBG_LOG(DBG_STORAGE, "INFO command failed: %s", async_ctx->errstr);
+            DBG_LOG(DBG_STORAGE, "INFO command failed: %s err=%d", async_ctx->errstr, async_ctx->err);
             CompleteCallback(open_cb,
                              {ReturnCode::OPERATION_FAILED,
                               util::fmt("INFO command failed to retrieve server info: %s", async_ctx->errstr)});
@@ -647,12 +647,17 @@ void Redis::OnConnect(int status) {
 
         ++active_ops;
     }
+    else {
+        DBG_LOG(DBG_STORAGE, "Redis backend: connection failed: %s err=%d", async_ctx->errstr, async_ctx->err);
+        CompleteCallback(open_cb,
+                         {ReturnCode::CONNECTION_FAILED, util::fmt("Connection failed: %s", async_ctx->errstr)});
+    }
 
     // TODO: we could attempt to reconnect here
 }
 
 void Redis::OnDisconnect(int status) {
-    DBG_LOG(DBG_STORAGE, "Redis backend: disconnection event");
+    DBG_LOG(DBG_STORAGE, "Redis backend: disconnection event, status=%d", status);
 
     connected = false;
     if ( status == REDIS_ERR ) {

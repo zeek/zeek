@@ -29,9 +29,9 @@ if (HIREDIS_FOUND)
     set(HIREDIS_VERSION
         "${HIREDIS_MAJOR_VERSION}.${HIREDIS_MINOR_VERSION}.${HIREDIS_PATCH_VERSION}")
 
-    if (HIREDIS_VERSION VERSION_LESS "1.0.0")
+    if (HIREDIS_VERSION VERSION_LESS "1.1.0")
         message(
-            STATUS "Hiredis library version ${HIREDIS_VERSION} is too old, need v1.0.0 or later.")
+            STATUS "Hiredis library version ${HIREDIS_VERSION} is too old, need v1.1.0 or later.")
         unset(HIREDIS_FOUND)
 
     else ()

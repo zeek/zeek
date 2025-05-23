@@ -17,7 +17,8 @@ enum TraversalCode {
         switch ( code ) {                                                                                              \
             case zeek::detail::TC_ABORTALL: return (code);                                                             \
             case zeek::detail::TC_ABORTSTMT: return zeek::detail::TC_CONTINUE;                                         \
-            case zeek::detail::TC_CONTINUE: break;                                                                     \
+            case zeek::detail::TC_CONTINUE:                                                                            \
+            default: break;                                                                                            \
         }                                                                                                              \
     }
 

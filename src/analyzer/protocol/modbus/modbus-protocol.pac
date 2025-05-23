@@ -112,7 +112,7 @@ type ModbusTCP_Request(header: ModbusTCP_TransportHeader) = case header.fc of {
 #
 type ModbusTCP_Response(header: ModbusTCP_TransportHeader) = case header.fc & 0x80 of {
     0       -> normal_response      : ModbusTCP_NormalResponse(header);
-    default -> exception_response   : ExcResponse(header);
+    default -> exception_response   : ModbusTCP_ExceptResponse(header);
 };
 
 type ModbusTCP_NormalResponse(header: ModbusTCP_TransportHeader) = case header.fc of {

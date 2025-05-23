@@ -44,21 +44,21 @@ Event::Event(const EventHandlerPtr& arg_handler, zeek::Args arg_args, util::deta
              analyzer::ID arg_aid, Obj* arg_obj, double arg_ts)
     : handler(arg_handler),
       args(std::move(arg_args)),
+      meta(detail::MakeEventMetadataVector(arg_ts)),
       src(arg_src),
       aid(arg_aid),
       obj(zeek::NewRef{}, arg_obj),
-      next_event(nullptr),
-      meta(detail::MakeEventMetadataVector(arg_ts)) {}
+      next_event(nullptr) {}
 
 Event::Event(detail::EventMetadataVectorPtr arg_meta, const EventHandlerPtr& arg_handler, zeek::Args arg_args,
              util::detail::SourceID arg_src, analyzer::ID arg_aid, Obj* arg_obj)
     : handler(arg_handler),
       args(std::move(arg_args)),
+      meta(std::move(arg_meta)),
       src(arg_src),
       aid(arg_aid),
       obj(zeek::NewRef{}, arg_obj),
-      next_event(nullptr),
-      meta(std::move(arg_meta)) {}
+      next_event(nullptr) {}
 
 zeek::VectorValPtr Event::MetadataValues(const EnumValPtr& id) const {
     static const auto& any_vec_t = zeek::id::find_type<zeek::VectorType>("any_vec");

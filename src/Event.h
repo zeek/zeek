@@ -93,11 +93,11 @@ private:
 
     EventHandlerPtr handler;
     zeek::Args args;
+    detail::EventMetadataVectorPtr meta;
     util::detail::SourceID src;
     analyzer::ID aid;
     zeek::IntrusivePtr<Obj> obj;
     Event* next_event;
-    detail::EventMetadataVectorPtr meta;
 };
 
 class EventMgr final : public Obj, public iosource::IOSource {

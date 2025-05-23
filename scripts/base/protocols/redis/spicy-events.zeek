@@ -51,14 +51,6 @@ export {
 		## The command in an enum if it was known
 		known: KnownCommand &optional;
 	};
-
-	## Generic server data returned from the server.
-	type ServerData: record {
-		## Did the server reply without erroring?
-		success: bool &log;
-		## The string response, if it was a simple string or error
-		data: string &log &optional;
-	};
 }
 
 ## Generated for Redis SET commands sent to the Redis server.
@@ -89,9 +81,18 @@ global auth_command: event(c: connection, command: AuthCommand);
 ## cmd: The command sent to the server.
 global command: event(c: connection, cmd: Command);
 
-## Generated for every response sent by the Redis server to the client.
+## Generated for every successful response sent by the Redis server to the
+## client.
 ##
 ## c: The connection.
 ##
 ## data: The server data sent to the client.
-global reply: event(c: connection, data: ServerData);
+global reply: event(c: connection, data: string);
+
+## Generated for every error response sent by the Redis server to the
+## client.
+##
+## c: The connection.
+##
+## data: The server data sent to the client.
+global error: event(c: connection, data: string);

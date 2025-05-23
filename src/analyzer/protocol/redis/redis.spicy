@@ -367,3 +367,32 @@ public function make_auth(command: Command): Auth {
 public function is_auth(data: RESP::ClientData): bool {
     return data.command.known && *(data.command.known) == KnownCommand::AUTH && |data.command.raw| >= 2;
 }
+
+public function is_err(server_data: RESP::ServerData): bool {
+    return server_data.data?.simple_error || server_data.data?.bulk_error;
+}
+
+function bulk_string_content(bulk: RESP::BulkString): bytes {
+    if (bulk?.content)
+        return bulk.content;
+    else
+        return b"";
+}
+
+# Gets the data as a string from the server data, if possible
+public function get_server_data(data: RESP::ServerData): bytes {
+    if (data.data?.simple_error)
+        return data.data.simple_error.content;
+    else if (data.data?.bulk_error)
+        return bulk_string_content(data.data.bulk_error);
+    else if (data.data?.simple_string)
+        return data.data.simple_string.content;
+    else if (data.data?.bulk_string)
+        return bulk_string_content(data.data.bulk_string);
+    else if (data.data?.verbatim_string)
+        return bulk_string_content(data.data.verbatim_string);
+    else if (data.data?.boolean)
+        return data.data.boolean.val ? b"T" : b"F";
+
+    return b"";
+}

@@ -2,9 +2,12 @@
 AUTH
 username: notauser
 password: notapassword
+Auth failed:, WRONGPASS invalid username-password pair or user is disabled.
 AUTH
 username: default
 password: defaultpassword
+Auth succeeded:, OK
 AUTH
 username: noone
 password: password
+Auth failed:, WRONGPASS invalid username-password pair or user is disabled.

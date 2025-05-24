@@ -1,0 +1,403 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+#
+# Handle any Redis-specific "parsing"
+
+module Redis;
+
+import RESP;
+
+public type KnownCommand = enum {
+    APPEND,
+    AUTH,
+    BITCOUNT,
+    BITFIELD,
+    BITFIELD_RO,
+    BITOP,
+    BITPOS,
+    BLMPOP,
+    BLPOP,
+    BRPOP,
+    CLIENT,
+    COPY,
+    DECR,
+    DECRBY,
+    DEL,
+    DUMP,
+    EXISTS,
+    EXPIRE,
+    EXPIREAT,
+    EXPIRETIME,
+    GET,
+    GETBIT,
+    GETDEL,
+    GETEX,
+    GETRANGE,
+    GETSET,
+    HDEL,
+    HGET,
+    HSET,
+    INCR,
+    INCRBY,
+    KEYS,
+    MGET,
+    MOVE,
+    MSET,
+    PERSIST,
+    RENAME,
+    SET,
+    STRLEN,
+    TTL,
+    TYPE,
+};
+
+type Command = struct {
+    raw: vector<bytes>;
+    name: bytes;
+    key: optional<bytes>;
+    value: optional<bytes>;
+    known: optional<KnownCommand>;
+};
+
+# This just assumes all elements in the array is a bulk string and puts them in a vector
+public function make_command(command: RESP::ClientData): Command {
+    if (command?.multibulk)
+        return bulk_command(command);
+    else
+        return inline_command(command);
+}
+
+public function bulk_command(command: RESP::ClientData): Command {
+    local v: vector<bytes>;
+    for (ele in command.multibulk.elements) {
+        v.push_back(ele.content);
+    }
+    return parse_command(v);
+}
+
+public function inline_command(command: RESP::ClientData): Command {
+    # Only call this if it's inline :)
+    assert command?.inline;
+
+    local tokenized: vector<bytes>;
+    local it = command.inline.at(0);
+    # Redis whitespace characters are null, tab, LF, CR, and space
+    local whitespace = set<uint8>(0, 9, 10, 13, 32);
+    # Note: this logic is a bit different from Redis. Hopefully it doesn't matter
+    while (True) {
+        while (it != end(command.inline) && ((*it) in whitespace))
+            it++;
+
+        # Get a token
+        local start = it;
+        if (it != end(command.inline)) {
+            local double_quotes = False;
+            local single_quotes = False;
+            local done = False;
+            while (!done) {
+                if (double_quotes) {
+                    if (*it == '\' && it + 1 != end(command.inline) && *(it + 1) == '"') {
+                        # Skip one, then later we skip another
+                        it++;
+                    } else if (*it == '"') {
+                        double_quotes = False;
+                    }
+
+                    it++;
+                } else if (single_quotes) {
+                    if (*it == '\' && it + 1 != end(command.inline) && *(it + 1) == ''') {
+                        # Skip one, then later we skip another
+                        it++;
+                    } else if (*it == ''') {
+                        single_quotes = False;
+                    }
+
+                    it++;
+                } else {
+                    if (it != end(command.inline)) {
+                        switch (*it) {
+                            case '"': double_quotes = True;
+                            case ''': single_quotes = True;
+                            default: {
+                                if ((*it) in whitespace)
+                                    done = True;
+                            }
+                        }
+
+                        if (!done)
+                            it++;
+                    }
+                }
+
+                if (it == end(command.inline))
+                    done = True;
+            }
+        } else
+            break;
+
+        tokenized.push_back(command.inline.sub(start, it));
+    }
+    return parse_command(tokenized);
+}
+
+# Parses the vector of bytes to get a Command object
+function parse_command(raw: vector<bytes>): Command {
+    assert |raw| >= 1;
+    local cmd = command_from(raw[0]);
+    local parsed: Command = [$raw = raw, $name = raw[0], $key = Null, $value = Null, $known = cmd];
+    if (!cmd)
+        return parsed;
+
+    if (|raw| >= 2) {
+        switch (*cmd) {
+            case KnownCommand::KEYS:
+                parsed.key = raw[1];
+            case KnownCommand::APPEND,
+                 KnownCommand::BITCOUNT,
+                 KnownCommand::BITFIELD,
+                 KnownCommand::BITFIELD_RO,
+                 KnownCommand::BITPOS,
+                 KnownCommand::BLPOP,
+                 KnownCommand::BRPOP,
+                 KnownCommand::COPY,
+                 KnownCommand::DECR,
+                 KnownCommand::DECRBY,
+                 KnownCommand::DEL,
+                 KnownCommand::DUMP,
+                 KnownCommand::EXISTS,
+                 KnownCommand::EXPIRE,
+                 KnownCommand::EXPIREAT,
+                 KnownCommand::EXPIRETIME,
+                 KnownCommand::GET,
+                 KnownCommand::GETBIT,
+                 KnownCommand::GETDEL,
+                 KnownCommand::GETEX,
+                 KnownCommand::GETRANGE,
+                 KnownCommand::GETSET,
+                 KnownCommand::HDEL,
+                 KnownCommand::HGET,
+                 KnownCommand::HSET,
+                 KnownCommand::INCR,
+                 KnownCommand::INCRBY,
+                 KnownCommand::MGET,
+                 KnownCommand::MOVE,
+                 KnownCommand::MSET,
+                 KnownCommand::PERSIST,
+                 KnownCommand::RENAME,
+                 KnownCommand::SET,
+                 KnownCommand::STRLEN,
+                 KnownCommand::TTL,
+                 KnownCommand::TYPE:
+                parsed.key = raw[1];
+            default: ();
+        }
+    }
+
+    if (|raw| >= 3) {
+        switch (*cmd) {
+            case KnownCommand::SET,
+                 KnownCommand::APPEND,
+                 KnownCommand::DECRBY,
+                 KnownCommand::EXPIRE,
+                 KnownCommand::EXPIREAT,
+                 KnownCommand::GETBIT,
+                 KnownCommand::GETSET,
+                 KnownCommand::HDEL,
+                 KnownCommand::HGET,
+                 KnownCommand::INCRBY,
+                 KnownCommand::MOVE,
+                 KnownCommand::MSET,
+                 KnownCommand::RENAME:
+                parsed.value = raw[2];
+            # Op first, destination second, then a list of keys. Just log dest
+            case KnownCommand::BITOP: parsed.key = raw[2];
+            default: ();
+        }
+    }
+
+    if (|raw| >= 4) {
+        switch (*cmd) {
+            # timeout, numkeys, then key
+            case KnownCommand::BLMPOP: parsed.key = raw[3];
+            default: ();
+        }
+    }
+
+    return parsed;
+}
+
+function command_from(cmd_bytes: bytes): optional<KnownCommand> {
+    local cmd: optional<KnownCommand> = Null;
+    switch (cmd_bytes.lower()) {
+        case b"set": cmd = KnownCommand::SET;
+        case b"append": cmd = KnownCommand::APPEND;
+        case b"auth": cmd = KnownCommand::AUTH;
+        case b"bitcount": cmd = KnownCommand::BITCOUNT;
+        case b"bitfield": cmd = KnownCommand::BITFIELD;
+        case b"bitfield_ro": cmd = KnownCommand::BITFIELD_RO;
+        case b"bitop": cmd = KnownCommand::BITOP;
+        case b"bitpos": cmd = KnownCommand::BITPOS;
+        case b"blmpop": cmd = KnownCommand::BLMPOP;
+        case b"blpop": cmd = KnownCommand::BLPOP;
+        case b"brpop": cmd = KnownCommand::BRPOP;
+        case b"client": cmd = KnownCommand::CLIENT;
+        case b"copy": cmd = KnownCommand::COPY;
+        case b"decr": cmd = KnownCommand::DECR;
+        case b"decrby": cmd = KnownCommand::DECRBY;
+        case b"del": cmd = KnownCommand::DEL;
+        case b"dump": cmd = KnownCommand::DUMP;
+        case b"exists": cmd = KnownCommand::EXISTS;
+        case b"expire": cmd = KnownCommand::EXPIRE;
+        case b"expireat": cmd = KnownCommand::EXPIREAT;
+        case b"expiretime": cmd = KnownCommand::EXPIRETIME;
+        case b"expiretime": cmd = KnownCommand::EXPIRETIME;
+        case b"get": cmd = KnownCommand::GET;
+        case b"getbit": cmd = KnownCommand::GETBIT;
+        case b"getdel": cmd = KnownCommand::GETDEL;
+        case b"getex": cmd = KnownCommand::GETEX;
+        case b"getrange": cmd = KnownCommand::GETRANGE;
+        case b"getset": cmd = KnownCommand::GETSET;
+        case b"hdel": cmd = KnownCommand::HDEL;
+        case b"hget": cmd = KnownCommand::HGET;
+        case b"hset": cmd = KnownCommand::HSET;
+        case b"incr": cmd = KnownCommand::INCR;
+        case b"incrby": cmd = KnownCommand::INCRBY;
+        case b"keys": cmd = KnownCommand::KEYS;
+        case b"mget": cmd = KnownCommand::MGET;
+        case b"move": cmd = KnownCommand::MOVE;
+        case b"mset": cmd = KnownCommand::MSET;
+        case b"persist": cmd = KnownCommand::PERSIST;
+        case b"rename": cmd = KnownCommand::RENAME;
+        case b"strlen": cmd = KnownCommand::STRLEN;
+        case b"ttl": cmd = KnownCommand::TTL;
+        case b"type": cmd = KnownCommand::TYPE;
+        default: cmd = Null;
+    }
+
+    return cmd;
+}
+
+type Set = struct {
+    key: bytes;
+    value: bytes;
+    nx: bool &default=False;
+    xx: bool &default=False;
+    get: bool &default=False;
+    ex: optional<uint64> &default=Null;
+    px: optional<uint64> &default=Null;
+    exat: optional<uint64> &default=Null;
+    pxat: optional<uint64> &default=Null;
+    keep_ttl: bool &default=False;
+};
+
+public function make_set(command: Command): Set {
+    assert |command.raw| >= 3 : "Must have at least 3 elements in SET";
+    assert command.key : "SET must validate a key";
+    assert command.value : "SET must validate a value";
+    local parsed: Set = [$key = *command.key, $value = *command.value];
+    local i = 3;
+    while (i < |command.raw|) {
+        switch (command.raw[i].lower()) {
+            case b"nx": parsed.nx = True;
+            case b"xx": parsed.xx = True;
+            case b"get": parsed.get = True;
+            case b"ex": {
+                ++i;
+                if (i >= |command.raw|)
+                    break;
+                parsed.ex = command.raw[i].to_uint();
+            }
+            case b"px": {
+                ++i;
+                if (i >= |command.raw|)
+                    break;
+                parsed.px = command.raw[i].to_uint();
+            }
+            case b"exat": {
+                ++i;
+                if (i >= |command.raw|)
+                    break;
+                parsed.exat = command.raw[i].to_uint();
+            }
+            case b"pxat": {
+                ++i;
+                if (i >= |command.raw|)
+                    break;
+                parsed.pxat = command.raw[i].to_uint();
+            }
+            case b"keepttl": parsed.keep_ttl = True;
+            default: ();
+        }
+
+        ++i;
+    }
+    return parsed;
+}
+
+public function is_set(data: RESP::ClientData): bool {
+    return data.command.known && *(data.command.known) == KnownCommand::SET && data.command.key && data.command.value;
+}
+
+type Get = struct {
+    key: bytes;
+};
+
+public function make_get(command: Command): Get {
+    assert command.key : "GET must validate a key";
+    return [$key = *command.key];
+}
+
+public function is_get(data: RESP::ClientData): bool {
+    return data.command.known && *(data.command.known) == KnownCommand::GET && |data.command.raw| >= 2;
+}
+
+type Auth = struct {
+    username: optional<bytes>;
+    password: bytes;
+};
+
+public function make_auth(command: Command): Auth {
+    assert |command.raw| >= 2 : "AUTH must have arguments";
+    if (|command.raw| == 2) {
+        return [$username = Null, $password = command.raw[1]];
+    }
+
+    return [$username = command.raw[1], $password = command.raw[2]];
+}
+
+public function is_auth(data: RESP::ClientData): bool {
+    return data.command.known && *(data.command.known) == KnownCommand::AUTH && |data.command.raw| >= 2;
+}
+
+type ReplyData = struct {
+    value: optional<bytes>;
+};
+
+public function is_err(server_data: RESP::ServerData): bool {
+    return server_data.data?.simple_error || server_data.data?.bulk_error;
+}
+
+function bulk_string_content(bulk: RESP::BulkString): bytes {
+    if (bulk?.content)
+        return bulk.content;
+    else
+        return b"";
+}
+
+# Gets the server reply in a simpler form
+public function make_server_reply(data: RESP::ServerData): ReplyData {
+    local res: ReplyData = [$value = Null];
+    if (data.data?.simple_error)
+        res.value = data.data.simple_error.content;
+    else if (data.data?.bulk_error)
+        res.value = bulk_string_content(data.data.bulk_error);
+    else if (data.data?.simple_string)
+        res.value = data.data.simple_string.content;
+    else if (data.data?.bulk_string)
+        res.value = bulk_string_content(data.data.bulk_string);
+    else if (data.data?.verbatim_string)
+        res.value = bulk_string_content(data.data.verbatim_string);
+    else if (data.data?.boolean)
+        res.value = data.data.boolean.val ? b"T" : b"F";
+
+    return res;
+}

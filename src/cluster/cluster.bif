@@ -203,7 +203,7 @@ function Cluster::__listen_websocket%(options: WebSocketServerOptions%): bool
 		}
 
 		options_rec->AssignField("listen_addr", zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(host)));
-        }
+	}
 
 	struct ServerOptions server_options {
 		options_rec->GetField<zeek::AddrVal>("listen_addr")->AsAddr().AsString(),

@@ -69,7 +69,12 @@ std::list<std::tuple<IPPrefix, void*>> PrefixTable::FindAll(const IPAddr& addr, 
         out.emplace_back(PrefixToIPPrefix(list[i]->prefix), list[i]->data);
 
     Deref_Prefix(prefix);
-    free(list);
+
+    // clang-tidy reports a bugprone-multi-level-implicit-pointer-conversion warning here
+    // because the double-pointer is implicitly converted to a void* for the call to
+    // free(). The double-pointer was calloc'd in patricia_search_all as an array of
+    // pointers, so it's safe to free. Explicitly cast it to void* to silence the warning.
+    free(static_cast<void*>(list));
     return out;
 }
 

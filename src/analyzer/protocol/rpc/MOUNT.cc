@@ -22,10 +22,8 @@ bool MOUNT_Interp::RPC_BuildCall(RPC_CallInfo* c, const u_char*& buf, int& n) {
     switch ( proc ) {
         case BifEnum::MOUNT3::PROC_NULL: break;
 
-        case BifEnum::MOUNT3::PROC_MNT: callarg = mount3_dirmntargs(buf, n); break;
-
-        case BifEnum::MOUNT3::PROC_UMNT: callarg = mount3_dirmntargs(buf, n); break;
-
+        case BifEnum::MOUNT3::PROC_MNT:
+        case BifEnum::MOUNT3::PROC_UMNT:
         case BifEnum::MOUNT3::PROC_UMNT_ALL: callarg = mount3_dirmntargs(buf, n); break;
 
         default:
@@ -88,11 +86,6 @@ bool MOUNT_Interp::RPC_BuildReply(RPC_CallInfo* c, BifEnum::rpc_status rpc_statu
             break;
 
         case BifEnum::MOUNT3::PROC_UMNT:
-            n = 0;
-            mount_status = BifEnum::MOUNT3::MNT3_OK;
-            event = mount_proc_umnt;
-            break;
-
         case BifEnum::MOUNT3::PROC_UMNT_ALL:
             n = 0;
             mount_status = BifEnum::MOUNT3::MNT3_OK;

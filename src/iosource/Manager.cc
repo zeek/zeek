@@ -38,7 +38,7 @@ void Manager::WakeupHandler::Ping(std::string_view where) {
     // Calling DBG_LOG calls fprintf, which isn't safe to call in a signal
     // handler.
     if ( signal_val != 0 )
-        DBG_LOG(DBG_MAINLOOP, "Pinging WakeupHandler from %s", where.data());
+        DBG_LOG(DBG_MAINLOOP, "Pinging WakeupHandler from %.*s", static_cast<int>(where.size()), where.data());
 
     flare.Fire(true);
 }

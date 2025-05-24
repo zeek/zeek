@@ -323,14 +323,12 @@ void IDOptInfo::ConfluenceBlockEndsAfter(const Stmt* s, bool no_orig_flow) {
                 continue;
         }
 
-        else if ( ur.EndsAfter() < cs_stmt_num )
+        else if ( ur.EndsAfter() < cs_stmt_num || pc.count(i) == 0 )
             // Irrelevant, didn't extend into confluence region.
             // We test here just to avoid the set lookup in
             // the next test, which presumably will sometimes
             // be a tad expensive.
-            continue;
-
-        else if ( pc.count(i) == 0 )
+            // or
             // This region isn't active, and we're not
             // tracking it for confluence.
             continue;
@@ -440,13 +438,10 @@ int IDOptInfo::FindRegionBeforeIndex(int stmt_num) {
         if ( ur.StartsAfter() >= stmt_num )
             break;
 
-        if ( ur.EndsAfter() == NO_DEF )
-            // It's active for everything beyond its start.
-            region_ind = i;
-
-        else if ( ur.EndsAfter() >= stmt_num - 1 )
-            // It's active at the beginning of the statement of
-            // interest.
+        // It's active for everything beyond its start.
+        // or
+        // It's active at the beginning of the statement of interest.
+        if ( (ur.EndsAfter() == NO_DEF) || (ur.EndsAfter() >= stmt_num - 1) )
             region_ind = i;
     }
 

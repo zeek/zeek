@@ -246,7 +246,7 @@ OperationResult Redis::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     StringValPtr host = backend_options->GetField<StringVal>("server_host");
     if ( host ) {
         PortValPtr port = backend_options->GetField<PortVal>("server_port");
-        server_addr = util::fmt("%s:%d", host->ToStdStringView().data(), port->Port());
+        server_addr = util::fmt("%s:%d", host->ToStdString().c_str(), port->Port());
         REDIS_OPTIONS_SET_TCP(&opt, host->ToStdStringView().data(), port->Port());
     }
     else {
@@ -695,10 +695,12 @@ OperationResult Redis::ParseReplyError(std::string_view op_str, std::string_view
     if ( async_ctx->err == REDIS_ERR_TIMEOUT )
         return {ReturnCode::TIMEOUT};
     else if ( async_ctx->err == REDIS_ERR_IO )
-        return {ReturnCode::OPERATION_FAILED, util::fmt("%s operation IO error: %s", op_str.data(), strerror(errno))};
+        return {ReturnCode::OPERATION_FAILED, util::fmt("%.*s operation IO error: %s", static_cast<int>(op_str.size()),
+                                                        op_str.data(), strerror(errno))};
     else
         return {ReturnCode::OPERATION_FAILED,
-                util::fmt("%s operation failed: %s", op_str.data(), reply_err_str.data())};
+                util::fmt("%.*s operation failed: %.*s", static_cast<int>(op_str.size()), op_str.data(),
+                          static_cast<int>(reply_err_str.size()), reply_err_str.data())};
 }
 
 void Redis::DoPoll() {

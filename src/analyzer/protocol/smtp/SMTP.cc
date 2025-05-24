@@ -20,7 +20,7 @@ static const char* smtp_cmd_word[] = {
 
 static const char* unknown_cmd = "(UNKNOWN)";
 
-#define SMTP_CMD_WORD(code) ((code >= 0) ? smtp_cmd_word[code] : unknown_cmd)
+#define SMTP_CMD_WORD(code) (((code) >= 0) ? smtp_cmd_word[code] : unknown_cmd)
 
 namespace zeek::analyzer::smtp {
 
@@ -523,7 +523,7 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig) {
                     state = detail::SMTP_RCPT_OK;
                     break;
 
-                case 250:
+                case 250: // NOLINT(bugprone-branch-clone)
                 case 251: // ?? Shall we catch 251? (RFC 2821)
                     break;
 
@@ -590,8 +590,7 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig) {
                     state = detail::SMTP_IN_BDAT;
                     break;
 
-                case 250: break; // server accepted BDAT transfer.
-
+                case 250: // server accepted BDAT transfer.
                 case 421:
                 case 500:
                 case 501:
@@ -620,8 +619,7 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig) {
                     state = detail::SMTP_AFTER_DATA;
                     break;
 
-                case 250: break;
-
+                case 250:
                 case 421:
                 case 451:
                 case 452:
@@ -668,8 +666,7 @@ void SMTP_Analyzer::UpdateState(int cmd_code, int reply_code, bool orig) {
 
                 case 334: state = detail::SMTP_IN_AUTH; break;
 
-                case 235: state = detail::SMTP_INITIATED; break;
-
+                case 235:
                 case 432:
                 case 454:
                 case 501:

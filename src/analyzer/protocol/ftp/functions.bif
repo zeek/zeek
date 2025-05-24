@@ -4,7 +4,7 @@ type ftp_port: record;
 %%{
 #include "zeek/Reporter.h"
 
-static zeek::RecordValPtr parse_port(std::string_view line)
+static zeek::RecordValPtr parse_port(const std::string& line)
 	{
 	auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::ftp_port);
 
@@ -13,7 +13,7 @@ static zeek::RecordValPtr parse_port(std::string_view line)
 	uint32_t addr = 0;
 
 	int32_t bytes[6];
-	if ( line.size() >= 11 && sscanf(line.data(),
+	if ( line.size() >= 11 && sscanf(line.c_str(),
                                      "%" SCNd32 ",%" SCNd32 ",%" SCNd32 ",%" SCNd32 ",%" SCNd32 ",%" SCNd32,
 	                                 &bytes[0], &bytes[1], &bytes[2],
 	                                 &bytes[3], &bytes[4], &bytes[5]) == 6 )
@@ -125,7 +125,7 @@ static zeek::RecordValPtr parse_eftp(const char* line)
 ## .. zeek:see:: parse_eftp_port parse_ftp_pasv parse_ftp_epsv fmt_ftp_port
 function parse_ftp_port%(s: string%): ftp_port
 	%{
-	return parse_port(s->ToStdStringView());
+	return parse_port(s->ToStdString());
 	%}
 
 ## Converts a string representation of the FTP EPRT command (see :rfc:`2428`)
@@ -160,20 +160,28 @@ function parse_ftp_pasv%(str: string%): ftp_port
 	const char* line = strchr(s, '(');
 	if ( line )
 		++line;	// move past '('
-	else if ( (line = strstr(s, "PORT")) )
+	else if ( line = strstr(s, "PORT"); line != nullptr )
 		line += 5;	// Skip over
-	else if ( (line = strchr(s, ',')) )
+	else if ( line = strchr(s, ','); line != nullptr )
 		{ // Look for comma-separated list.
-		while ( --line >= s && isdigit(*line) )
-			;	// Back up over preceding digits.
-		++line;	// now points to first digit, or beginning of s
+		do
+			{
+			// Back up over preceding digits. We'll end on the
+			// first digit or the beginning of s.
+			--line;
+			}
+		while ( line >= s && isdigit(*line) );
+
+		// Scoot forward one to point at the first digit or at the
+		// beginning of s.
+		++line;
 		}
 
 	// Make sure we didn't step past the end of the string.
 	if ( ! line || ( line - s ) > str->Len() )
 		return parse_port("");
 	else
-		return parse_port(std::string_view{line});
+		return parse_port(std::string{line});
 	%}
 
 ## Converts the result of the FTP EPSV command (see :rfc:`2428`) to an

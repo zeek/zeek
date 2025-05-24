@@ -103,7 +103,7 @@ void HTTP_Entity::Deliver(int len, const char* data, bool trailing_CRLF) {
     // Entity body.
     if ( content_type == analyzer::mime::CONTENT_TYPE_MULTIPART ||
          content_type == analyzer::mime::CONTENT_TYPE_MESSAGE )
-        DeliverBody(len, data, trailing_CRLF);
+        DeliverBody(len, data, trailing_CRLF); // NOLINT(bugprone-branch-clone)
 
     else if ( chunked_transfer_state != NON_CHUNKED_TRANSFER ) {
         switch ( chunked_transfer_state ) {
@@ -1111,7 +1111,7 @@ const char* HTTP_Analyzer::PrefixMatch(const char* line, const char* end_of_line
 
 const char* HTTP_Analyzer::PrefixWordMatch(const char* line, const char* end_of_line, const char* prefix,
                                            bool ignore_case) {
-    if ( (line = PrefixMatch(line, end_of_line, prefix, ignore_case)) == nullptr )
+    if ( line = PrefixMatch(line, end_of_line, prefix, ignore_case); line == nullptr )
         return nullptr;
 
     const char* orig_line = line;

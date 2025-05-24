@@ -114,7 +114,7 @@ refine flow ModbusTCP_Flow += {
 		%}
 
 	# EXCEPTION
-	function deliver_Exception(header: ModbusTCP_TransportHeader, message: Exception): bool
+	function deliver_Exception(header: ModbusTCP_TransportHeader, message: ModbusTCP_ExceptResponse): bool
 		%{
 		if ( ::modbus_exception )
 			{

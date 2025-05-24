@@ -110,7 +110,10 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f) {
     auto pX509Cert = make_intrusive<RecordVal>(BifType::Record::X509::Certificate);
     BIO* bio = BIO_new(BIO_s_mem());
 
+    // The cast here is intentional to force it into a specific version of Assign()
+    // NOLINTNEXTLINE(bugprone-misplaced-widening-cast)
     pX509Cert->Assign(0, static_cast<uint64_t>(X509_get_version(ssl_cert) + 1));
+
     i2a_ASN1_INTEGER(bio, X509_get_serialNumber(ssl_cert));
     int len = BIO_read(bio, buf, sizeof(buf));
     pX509Cert->Assign(1, make_intrusive<StringVal>(len, buf));
@@ -374,6 +377,8 @@ void X509::ParseSAN(X509_EXTENSION* ext) {
 
                     emails->Assign(emails->Size(), std::move(bs));
                     break;
+
+                default: break;
             }
         }
 

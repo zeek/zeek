@@ -63,7 +63,6 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterConstant(const ValPtr& vp, int& con
     }
 
     auto tag = t->Tag();
-    auto const_name = const_info[tag]->NextName();
     shared_ptr<CPP_InitInfo> gi;
 
     switch ( tag ) {
@@ -73,14 +72,11 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterConstant(const ValPtr& vp, int& con
 
         case TYPE_COUNT: gi = make_shared<BasicConstInfo>(to_string(vp->AsCount()) + "ULL"); break;
 
-        case TYPE_DOUBLE: gi = make_shared<BasicConstInfo>(to_string(vp->AsDouble())); break;
-
-        case TYPE_TIME: gi = make_shared<BasicConstInfo>(to_string(vp->AsDouble())); break;
-
+        case TYPE_DOUBLE:
+        case TYPE_TIME:
         case TYPE_INTERVAL: gi = make_shared<BasicConstInfo>(to_string(vp->AsDouble())); break;
 
-        case TYPE_ADDR: gi = make_shared<DescConstInfo>(this, vp); break;
-
+        case TYPE_ADDR:
         case TYPE_SUBNET: gi = make_shared<DescConstInfo>(this, vp); break;
 
         case TYPE_ENUM: gi = make_shared<EnumConstInfo>(this, vp); break;

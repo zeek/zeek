@@ -12,9 +12,6 @@ FixedCatArg::FixedCatArg(TypePtr _t) : t(std::move(_t)) {
         case TYPE_BOOL: max_size = 1; break;
 
         case TYPE_INT:
-            max_size = 20; // sufficient for 64 bits
-            break;
-
         case TYPE_COUNT:
             max_size = 20; // sufficient for 64 bits
             break;

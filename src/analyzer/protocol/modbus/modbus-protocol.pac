@@ -112,7 +112,7 @@ type ModbusTCP_Request(header: ModbusTCP_TransportHeader) = case header.fc of {
 #
 type ModbusTCP_Response(header: ModbusTCP_TransportHeader) = case header.fc & 0x80 of {
     0       -> normal_response      : ModbusTCP_NormalResponse(header);
-    default -> exception_response   : Exception(header);
+    default -> exception_response   : ModbusTCP_ExceptResponse(header);
 };
 
 type ModbusTCP_NormalResponse(header: ModbusTCP_TransportHeader) = case header.fc of {
@@ -140,7 +140,7 @@ type ModbusTCP_NormalResponse(header: ModbusTCP_TransportHeader) = case header.f
 	default                                 -> unknown:                         bytestring &restofdata;
 };
 
-type Exception(header: ModbusTCP_TransportHeader) = record {
+type ModbusTCP_ExceptResponse(header: ModbusTCP_TransportHeader) = record {
 	code: uint8;
 } &let {
 	deliver: bool = $context.flow.deliver_Exception(header, this);

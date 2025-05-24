@@ -93,8 +93,7 @@ std::string extract_ip(const std::string& i) {
     if ( s.size() > 1 && s.substr(0, 2) == "0x" )
         s.erase(0, 2);
 
-    size_t pos = 0;
-    if ( (pos = s.find(']')) != std::string::npos )
+    if ( size_t pos = s.find(']'); pos != std::string::npos )
         s = s.substr(0, pos);
 
     return s;
@@ -298,9 +297,9 @@ void hmac_md5(size_t size, const unsigned char* bytes, unsigned char digest[16])
 
 static bool read_random_seeds(const char* read_file, uint32_t* seed,
                               std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE>& buf) {
-    FILE* f = nullptr;
+    FILE* f = fopen(read_file, "r");
 
-    if ( ! (f = fopen(read_file, "r")) ) {
+    if ( ! f ) {
         reporter->Warning("Could not open seed file '%s': %s", read_file, strerror(errno));
         return false;
     }
@@ -328,9 +327,9 @@ static bool read_random_seeds(const char* read_file, uint32_t* seed,
 
 static bool write_random_seeds(const char* write_file, uint32_t seed,
                                std::array<uint32_t, zeek::detail::KeyedHash::SEED_INIT_SIZE>& buf) {
-    FILE* f = nullptr;
+    FILE* f = fopen(write_file, "w+");
 
-    if ( ! (f = fopen(write_file, "w+")) ) {
+    if ( ! f ) {
         reporter->Warning("Could not create seed file '%s': %s", write_file, strerror(errno));
         return false;
     }
@@ -1764,7 +1763,7 @@ vector<string>* tokenize_string(std::string_view input, std::string_view delim, 
     return rval;
 }
 
-vector<std::string_view> tokenize_string(std::string_view input, const char delim) noexcept {
+vector<std::string_view> tokenize_string(std::string_view input, const char delim) {
     vector<std::string_view> rval;
 
     size_t pos = 0;
@@ -1876,9 +1875,9 @@ double current_time(bool real) {
 struct timeval double_to_timeval(double t) {
     struct timeval tv;
 
-    double t1 = floor(t);
-    tv.tv_sec = int(t1);
-    tv.tv_usec = int((t - t1) * 1e6 + 0.5);
+    double t1 = std::floor(t);
+    tv.tv_sec = static_cast<time_t>(t1);
+    tv.tv_usec = std::lround((t - t1) * 1e6);
 
     return tv;
 }
@@ -2337,6 +2336,7 @@ TEST_CASE("util json_escape_utf8") {
 
     // Valid ASCII and valid ASCII control characters
     CHECK(json_escape_utf8("a") == "a");
+    // NOLINTNEXTLINE(bugprone-string-literal-with-embedded-nul)
     CHECK(json_escape_utf8("\b\f\n\r\t\x00\x15") == "\b\f\n\r\t\x00\x15");
 
     // Table 3-7 in https://www.unicode.org/versions/Unicode12.0.0/ch03.pdf describes what is
@@ -2403,14 +2403,10 @@ static bool check_ok_utf8(const unsigned char* start, const unsigned char* end) 
     if ( result != conversionOK )
         return false;
 
-    if ( (output[0] <= 0x001F) || (output[0] == 0x007F) || (output[0] >= 0x0080 && output[0] <= 0x009F) )
-        // Control characters
-        return false;
-    else if ( output[0] >= 0xE000 && output[0] <= 0xF8FF )
-        // Private Use Area
-        return false;
-    else if ( output[0] >= 0xFFF0 && output[0] <= 0xFFFF )
-        // Specials Characters
+    if ( ((output[0] <= 0x001F) || (output[0] == 0x007F) ||
+          (output[0] >= 0x0080 && output[0] <= 0x009F)) || // Control characters
+         (output[0] >= 0xE000 && output[0] <= 0xF8FF) ||   // Private Use Area
+         (output[0] >= 0xFFF0 && output[0] <= 0xFFFF) )    // Special characters
         return false;
 
     return true;

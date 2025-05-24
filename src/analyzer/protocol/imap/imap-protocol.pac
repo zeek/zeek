@@ -53,7 +53,6 @@ refine connection IMAP_Conn += {
 		%{
 		string cmdstr = std_str(command);
 		std::transform(cmdstr.begin(), cmdstr.end(), cmdstr.begin(), ::tolower);
-		string tagstr = std_str(tag);
 
 		if ( !is_orig && cmdstr == "capability" && tag == "*" ) {
 			return CMD_CAPABILITY;

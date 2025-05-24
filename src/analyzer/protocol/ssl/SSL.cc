@@ -341,7 +341,7 @@ bool SSL_Analyzer::TryDecryptApplicationData(int len, const u_char* data, bool i
         decrypted.resize(decrypted_len);
 
         int res = 0;
-        if ( ! (res = EVP_DecryptFinal(ctx, NULL, &res)) ) {
+        if ( res = EVP_DecryptFinal(ctx, NULL, &res); res == 0 ) {
             DBG_LOG(DBG_ANALYZER, "Decryption failed with return code: %d. Invalid key?\n", res);
             EVP_CIPHER_CTX_free(ctx);
             return false;

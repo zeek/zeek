@@ -57,7 +57,7 @@ void TCPSessionAdapter::Init() {
 }
 
 void TCPSessionAdapter::Done() {
-    Analyzer::Done();
+    IP::SessionAdapter::Done();
 
     if ( run_state::terminating && connection_pending && is_active && ! BothClosed() )
         Event(connection_pending);
@@ -299,7 +299,7 @@ static zeek::RecordValPtr build_syn_packet_val(bool is_orig, const zeek::IP_Hdr*
 
     // Parse TCP options.
     u_char* options = (u_char*)tcp + sizeof(struct tcphdr);
-    u_char* opt_end = (u_char*)tcp + tcp->th_off * 4;
+    u_char* opt_end = (u_char*)tcp + static_cast<ptrdiff_t>(tcp->th_off * 4);
 
     while ( options < opt_end ) {
         unsigned int opt = options[0];
@@ -460,23 +460,27 @@ static int32_t update_last_seq(analyzer::tcp::TCP_Endpoint* endpoint, uint32_t l
         // ### perhaps trust RST seq #'s if initial and not too
         // outlandish, but not if they're coming after the other
         // side has sent a FIN - trust the FIN ack instead
-        ;
+        ; // NOLINT(bugprone-branch-clone)
+
 
     else if ( flags.FIN() && endpoint->LastSeq() == endpoint->StartSeq() + 1 )
         // Update last_seq based on the FIN even if delta_last < 0.
         // This is to accommodate > 2 GB connections for which
         // we've only seen the SYN and the FIN (hence the check
         // for last_seq == start_seq + 1).
-        endpoint->UpdateLastSeq(last_seq);
+        endpoint->UpdateLastSeq(last_seq); // NOLINT(bugprone-branch-clone)
+
 
     else if ( endpoint->state == analyzer::tcp::TCP_ENDPOINT_RESET )
         // don't trust any subsequent sequence numbers
-        ;
+        ; // NOLINT(bugprone-branch-clone)
+
 
     else if ( delta_last > 0 )
         // ### check for large jumps here.
         // ## endpoint->last_seq = last_seq;
-        endpoint->UpdateLastSeq(last_seq);
+        endpoint->UpdateLastSeq(last_seq); // NOLINT(bugprone-branch-clone)
+
 
     else if ( delta_last <= 0 && len > 0 )
         endpoint->DidRxmit();
@@ -1458,7 +1462,7 @@ void TCPSessionAdapter::SynWeirds(analyzer::tcp::TCP_Flags flags, analyzer::tcp:
 int TCPSessionAdapter::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig) {
     // Parse TCP options.
     const u_char* options = (const u_char*)tcp + sizeof(struct tcphdr);
-    const u_char* opt_end = (const u_char*)tcp + tcp->th_off * 4;
+    const u_char* opt_end = (const u_char*)tcp + static_cast<ptrdiff_t>(tcp->th_off * 4);
     std::vector<const u_char*> opts;
 
     while ( options < opt_end ) {

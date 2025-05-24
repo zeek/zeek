@@ -820,7 +820,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, Tab
         }
 
         // Alright, we want this field.
-        filter->indices.push_back(new_indices);
+        filter->indices.push_back(std::move(new_indices));
 
         void* tmp = realloc(filter->fields, sizeof(threading::Field*) * (filter->num_fields + 1));
 

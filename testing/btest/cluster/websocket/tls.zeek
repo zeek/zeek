@@ -46,7 +46,7 @@ event zeek_init()
 	);
 
 	local ws_server_options = Cluster::WebSocketServerOptions(
-		$listen_host="127.0.0.1",
+		$listen_addr=127.0.0.1,
 		$listen_port=to_port(getenv("WEBSOCKET_PORT")),
 		$tls_options=tls_options,
 	);

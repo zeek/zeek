@@ -1,6 +1,7 @@
 %%{
 #include <string>
 
+#include "zeek/IPAddr.h"
 #include "zeek/cluster/Backend.h"
 #include "zeek/cluster/BifSupport.h"
 #include "zeek/cluster/Manager.h"
@@ -192,8 +193,20 @@ function Cluster::__listen_websocket%(options: WebSocketServerOptions%): bool
 		tls_options_rec->GetFieldOrDefault<zeek::StringVal>("ciphers")->ToStdString(),
 	};
 
+	// Backwards compat for listen_host if listen_addr isn't set.
+	// Convert to an addr val and assign to listen_addr, else bail.
+	if ( options_rec->HasField("listen_host") && ! options_rec->HasField("listen_addr") ) {
+		auto host = options_rec->GetField<zeek::StringVal>("listen_host")->ToStdString();
+		if ( ! zeek::IPAddr::IsValid(host.c_str()) ) {
+			zeek::emit_builtin_error("invalid listen_host");
+			return zeek::val_mgr->False();
+		}
+
+		options_rec->AssignField("listen_addr", zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(host)));
+	}
+
 	struct ServerOptions server_options {
-		options_rec->GetField<zeek::StringVal>("listen_host")->ToStdString(),
+		options_rec->GetField<zeek::AddrVal>("listen_addr")->AsAddr().AsString(),
 		static_cast<uint16_t>(options_rec->GetField<zeek::PortVal>("listen_port")->Port()),
 	};
 

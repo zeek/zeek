@@ -20,20 +20,20 @@ event zeek_init()
 	local ws_port = to_port(getenv("WEBSOCKET_PORT"));
 	local wss_port = to_port(getenv("WEBSOCKET_SECURE_PORT"));
 
-	local ws_opts = Cluster::WebSocketServerOptions($listen_host="127.0.0.1", $listen_port=ws_port);
+	local ws_opts = Cluster::WebSocketServerOptions($listen_addr=127.0.0.1, $listen_port=ws_port);
 	local ws_opts_x = copy(ws_opts);
 	ws_opts_x$tls_options = tls_options;
 
-	local ws_opts_wss_port = Cluster::WebSocketServerOptions($listen_host="127.0.0.1", $listen_port=wss_port);
+	local ws_opts_wss_port = Cluster::WebSocketServerOptions($listen_addr=127.0.0.1, $listen_port=wss_port);
 
 	local ws_tls_opts = Cluster::WebSocketServerOptions(
-		$listen_host="127.0.0.1",
+		$listen_addr=127.0.0.1,
 		$listen_port=wss_port,
 		$tls_options=tls_options,
 	);
 	# Same as ws_tls_opts
 	local ws_tls_opts_copy = Cluster::WebSocketServerOptions(
-		$listen_host="127.0.0.1",
+		$listen_addr=127.0.0.1,
 		$listen_port=wss_port,
 		$tls_options=tls_options_2,
 	);

@@ -14,6 +14,6 @@ event zeek_init()
 		$key_file="../localhost.key",
 	);
 
-	assert ! Cluster::listen_websocket([$listen_host="127.0.0.1", $listen_port=1234/tcp, $tls_options=tls_options_no_key]);
-	assert ! Cluster::listen_websocket([$listen_host="127.0.0.1", $listen_port=1234/tcp, $tls_options=tls_options_no_cert]);
+	assert ! Cluster::listen_websocket([$listen_addr=127.0.0.1, $listen_port=1234/tcp, $tls_options=tls_options_no_key]);
+	assert ! Cluster::listen_websocket([$listen_addr=127.0.0.1, $listen_port=1234/tcp, $tls_options=tls_options_no_cert]);
 	}

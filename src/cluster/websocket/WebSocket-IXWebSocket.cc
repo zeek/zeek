@@ -3,10 +3,13 @@
 // Implementation of a WebSocket server and clients using the IXWebSocket client library.
 #include "zeek/cluster/websocket/WebSocket.h"
 
+#include <sys/socket.h>
 #include <memory>
 #include <stdexcept>
 
+#include "zeek/IPAddr.h"
 #include "zeek/Reporter.h"
+#include "zeek/net_util.h"
 
 #include "ixwebsocket/IXConnectionState.h"
 #include "ixwebsocket/IXSocketTLSOptions.h"
@@ -73,11 +76,18 @@ private:
 
 std::unique_ptr<WebSocketServer> StartServer(std::unique_ptr<WebSocketEventDispatcher> dispatcher,
                                              const ServerOptions& options) {
-    auto server =
-        std::make_unique<ix::WebSocketServer>(options.port, options.host, ix::SocketServer::kDefaultTcpBacklog,
-                                              options.max_connections,
-                                              ix::WebSocketServer::kDefaultHandShakeTimeoutSecs,
-                                              ix::SocketServer::kDefaultAddressFamily, options.ping_interval_seconds);
+    if ( ! zeek::IPAddr::IsValid(options.host.c_str()) ) {
+        zeek::reporter->Error("WebSocket: Host is not a valid IP %s", options.host.c_str());
+        return nullptr;
+    }
+
+    zeek::IPAddr host_addr(options.host);
+    int address_family = host_addr.GetFamily() == IPv4 ? AF_INET : AF_INET6;
+
+    auto server = std::make_unique<ix::WebSocketServer>(options.port, options.host,
+                                                        ix::SocketServer::kDefaultTcpBacklog, options.max_connections,
+                                                        ix::WebSocketServer::kDefaultHandShakeTimeoutSecs,
+                                                        address_family, options.ping_interval_seconds);
 
     if ( ! options.per_message_deflate )
         server->disablePerMessageDeflate();

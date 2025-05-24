@@ -2,6 +2,7 @@
 #
 # @TEST-REQUIRES: have-zeromq
 # @TEST-REQUIRES: python3 -c 'import websockets.sync'
+# @TEST-REQUIRES: can-listen-tcp 6 ::1
 #
 # @TEST-GROUP: cluster-zeromq
 #
@@ -20,7 +21,7 @@
 # @TEST-EXEC: btest-bg-run manager "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=manager zeek -b ../manager.zeek >out"
 # @TEST-EXEC: btest-bg-run client "python3 ../client.py >out"
 #
-# @TEST-EXEC: btest-bg-wait 3
+# @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff ./manager/out
 # @TEST-EXEC: btest-diff ./manager/.stderr
 # @TEST-EXEC: btest-diff ./client/out

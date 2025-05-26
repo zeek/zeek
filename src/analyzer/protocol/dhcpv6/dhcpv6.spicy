@@ -1,5 +1,7 @@
-# Copyright (c) 2024 by the Zeek Project. See LICENSE for details.
-
+# See the file "COPYING" in the main distribution directory for copyright.
+#
+# Dynamic Host Configuration Protocol for IPv6 (DHCPv6)
+#
 # https://datatracker.ietf.org/doc/html/rfc8415
 #
 #  IANA has updated the All_DHCP_Relay_Agents_and_Servers (ff02::1:2)
@@ -177,6 +179,7 @@ public type Message = unit {
         for (o in self.options) {
             print o;
         }
+
         spicy::accept_input();
     }
 };

@@ -1,0 +1,29 @@
+Support for Dynamic Host Configuration Protocol (DHCP) analysis.
+
+
+Log structure:
+
+DHCPv4 logs transactions
+
+
+We could also go [txid, iaid] and produce a log for each entry, but that'd
+be the correct thing to do!
+
+Probably overthinking if there's only ever a single IAID per transaction,
+but in theory this is possible.
+
+# What if there's no IAID? That's okay, too.
+
+So... pivot on IAID?
+
+State:
+
+   transaction_id: count
+   ianas: vector of IA_NA
+
+   # Common stuff
+
+
+# Log entry
+
+txid, ia_na.aid, iaaddr

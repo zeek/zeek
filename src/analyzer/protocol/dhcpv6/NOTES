@@ -1,0 +1,61 @@
+2 messages
+
+
+INFORMATION-REQUEST message
+
+   * No address or route delegation
+
+SOLICIT message
+  * Rapid Commit option
+
+
+REPLY message
+  * 
+
+RENEW message -> REPLY
+
+
+4 messages
+
+SOLICIT -> ALL_DHCP
+  -> ADVERTISE message
+
+REQUEST message to the selected server
+ -> asks for addresses, delegated prefixes, other configuration
+
+  -> REPLY
+
+
+
+Reconfigure messages
+  * the client listens for them
+    -> information request
+    -> renew
+    -> rebind
+
+
+6.1 Stateless DHCP
+
+* other configuration parameters
+
+
+6.3 Prefix Delegation
+
+IA     - identity association
+IA_NA  - non-temporary address
+IA_TA  - temporary address
+IA_PD  - Prefix delegation
+
+
+
+FreeBSD:
+
+
+  dhcpcd -6 em0
+  dhcpcd -6 em0 --release
+
+After changing some configuration in /usr/local/etc/dhcpcd.conf
+
+  rapid_commit
+  vendorclassid
+  hostname

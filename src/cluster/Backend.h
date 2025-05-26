@@ -232,9 +232,8 @@ public:
      *
      * @param handler A function val representing an event handler.
      * @param args The arguments for the event handler.
-     * @param timestamp The network time to add to the event as metadata.
      */
-    std::optional<detail::Event> MakeClusterEvent(FuncValPtr handler, ArgsSpan args, double timestamp = 0.0) const;
+    std::optional<detail::Event> MakeClusterEvent(FuncValPtr handler, ArgsSpan args) const;
 
     /**
      * Publish a cluster::detail::Event instance to a given topic.

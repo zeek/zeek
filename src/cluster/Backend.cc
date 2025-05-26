@@ -135,13 +135,11 @@ bool Backend::Init(std::string nid) {
     return DoInit();
 }
 
-std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsSpan args, double timestamp) const {
+std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsSpan args) const {
     auto checked_args = detail::check_args(handler, args);
     if ( ! checked_args )
         return std::nullopt;
 
-    if ( timestamp == 0.0 )
-        timestamp = zeek::event_mgr.CurrentEventTime();
 
     const auto& eh = zeek::event_registry->Lookup(handler->AsFuncPtr()->GetName());
     if ( ! eh ) {
@@ -149,7 +147,26 @@ std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsS
         return std::nullopt;
     }
 
-    return zeek::cluster::detail::Event{eh, std::move(*checked_args), timestamp};
+    /**
+     * If you ever stare at this and wonder: Currently, if someone calls
+     * Cluster::publish() from within a remote event in script land, then
+     * CurrentEventTime() below will yield the network timestamp of the
+     * remote event. That means that the outgoing event from this node will
+     * have the network timestamp of the originating node, which may be
+     * different from what the local network time is.
+     *
+     * This could be confusing and another policy might be to always set
+     * the network timestamp metadata for for outgoing events to the local
+     * network time instead, even when currently handling a remote event.
+     *
+     * @J-Gras prefers the current behavior. @awelzel wonders if there should
+     * be an opt-in/opt-out for this behavior. Procrastinating it for now.
+     */
+    zeek::detail::EventMetadataVectorPtr meta;
+    if ( zeek::BifConst::EventMetadata::add_network_timestamp )
+        meta = zeek::detail::MakeEventMetadataVector(zeek::event_mgr.CurrentEventTime());
+
+    return zeek::cluster::detail::Event{eh, std::move(*checked_args), std::move(meta)};
 }
 
 void Backend::DoReadyToPublishCallback(Backend::ReadyCallback cb) {

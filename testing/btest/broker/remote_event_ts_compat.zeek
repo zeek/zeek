@@ -19,6 +19,11 @@ redef exit_only_after_terminate = T;
 redef allow_network_time_forward = F;
 redef EventMetadata::add_network_timestamp = T;
 
+# This is needed so that the receiving node sets its
+# own local network timestamp on remote events that do
+# not have network timestamp metadata.
+redef EventMetadata::add_missing_remote_network_timestamp = T;
+
 event zeek_init()
 	{
 	Broker::subscribe(getenv("TOPIC"));

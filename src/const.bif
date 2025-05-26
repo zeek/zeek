@@ -36,3 +36,4 @@ const Log::write_buffer_size: count;
 const Storage::expire_interval: interval;
 
 const EventMetadata::add_network_timestamp: bool;
+const EventMetadata::add_missing_remote_network_timestamp: bool;

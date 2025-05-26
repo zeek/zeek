@@ -60,7 +60,7 @@ zeek::RecordValPtr make_event(zeek::ArgsSpan args) {
 
     if ( maybe_func_val->GetType()->Tag() != zeek::TYPE_FUNC ) {
         zeek::emit_builtin_error(
-            zeek::util::fmt("got non-event type '%s'", zeek::obj_desc_short(maybe_func_val->GetType().get()).c_str()));
+            zeek::util::fmt("got non-event type '%s'", zeek::obj_desc_short(maybe_func_val->GetType()).c_str()));
         return rec;
     }
 
@@ -121,7 +121,7 @@ zeek::ValPtr publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args) {
             if ( zeek::cluster::backend != zeek::broker_mgr ) {
                 zeek::emit_builtin_error(
                     zeek::util::fmt("Publish of Broker::Event record instance with type '%s' to a non-Broker backend",
-                                    zeek::obj_desc_short(args[0]->GetType().get()).c_str()));
+                                    zeek::obj_desc_short(args[0]->GetType()).c_str()));
 
                 return zeek::val_mgr->False();
             }
@@ -130,13 +130,13 @@ zeek::ValPtr publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args) {
         }
         else {
             zeek::emit_builtin_error(zeek::util::fmt("Publish of unknown record type '%s'",
-                                                     zeek::obj_desc_short(args[0]->GetType().get()).c_str()));
+                                                     zeek::obj_desc_short(args[0]->GetType()).c_str()));
             return zeek::val_mgr->False();
         }
     }
 
     zeek::emit_builtin_error(zeek::util::fmt("expected function or record as first argument, got %s",
-                                             zeek::obj_desc_short(args[0]->GetType().get()).c_str()));
+                                             zeek::obj_desc_short(args[0]->GetType()).c_str()));
     return zeek::val_mgr->False();
 }
 

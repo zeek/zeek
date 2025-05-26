@@ -73,8 +73,7 @@ std::optional<zeek::Args> detail::check_args(const zeek::FuncValPtr& handler, ze
 
         if ( ! same_type(got_type, expected_type) ) {
             zeek::reporter->Error("event parameter #%zu type mismatch, got %s, expecting %s", i + 1,
-                                  zeek::obj_desc_short(got_type.get()).c_str(),
-                                  zeek::obj_desc_short(expected_type.get()).c_str());
+                                  zeek::obj_desc_short(got_type).c_str(), zeek::obj_desc_short(expected_type).c_str());
             return std::nullopt;
         }
 
@@ -110,7 +109,7 @@ std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsS
 
     const auto& eh = zeek::event_registry->Lookup(handler->AsFuncPtr()->GetName());
     if ( ! eh ) {
-        zeek::reporter->Error("event registry lookup of '%s' failed", obj_desc(handler.get()).c_str());
+        zeek::reporter->Error("event registry lookup of '%s' failed", obj_desc_short(handler).c_str());
         return std::nullopt;
     }
 

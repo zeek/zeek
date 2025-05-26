@@ -24,6 +24,12 @@ Breaking Changes
   a small overhead when enabled. There's not enough users of network timestamp
   metadata to justify the complexity of treating it separate.
 
+- The ``current_event_time()`` builtin function as well as ``Event::Time()``
+  and ``EventMgr::CurrentEventTime()`` now return ``-1.0`` if not timestamp
+  metadata is available for the current event, or if no event is being
+  dispatched. Previously this would've likely been 0.0, or the previously
+  dispatched event.
+
 New Functionality
 -----------------
 

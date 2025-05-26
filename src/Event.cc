@@ -96,7 +96,7 @@ zeek::VectorValPtr Event::MetadataValues(const EnumValPtr& id) const {
 
 double Event::Time() const {
     if ( ! meta )
-        return 0.0;
+        return detail::NO_TIMESTAMP;
 
     for ( const auto& m : *meta )
         if ( m.Id() == static_cast<zeek_uint_t>(detail::MetadataType::NetworkTimestamp) ) {
@@ -109,7 +109,7 @@ double Event::Time() const {
             return m.Val()->AsTime();
         }
 
-    return 0.0;
+    return detail::NO_TIMESTAMP;
 }
 
 void Event::Describe(ODesc* d) const {

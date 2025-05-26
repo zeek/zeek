@@ -11,6 +11,7 @@
 #include "zeek/Val.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/plugin/Manager.h"
+#include "zeek/util.h"
 
 #include "const.bif.netvar_h"
 #include "event.bif.netvar_h"
@@ -165,12 +166,19 @@ void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl, util::detail::SourceID
     detail::EventMetadataVectorPtr meta;
 
     double ts = double(deprecated_ts);
-    if ( src == util::detail::SOURCE_LOCAL && BifConst::EventMetadata::add_network_timestamp ) {
-        // If this is a local event and EventMetadata::add_network_timestamp is
-        // enabled automatically set the network timestamp for this event to the
-        // current network time when it is < 0 (default is -1.0).
-        //
-        // See the other Enqueue() implementation for the local motivation.
+
+    // If this is a local event and EventMetadata::add_network_timestamp is
+    // enabled, automatically set the network timestamp for this event to the
+    // current network time when it is < 0 (default of deprecated_ts is -1.0).
+    //
+    // See the other Enqueue() implementation for the local vs broker/remote
+    // motivation of want_network_timestamp.
+    bool want_network_timestamp =
+        BifConst::EventMetadata::add_network_timestamp &&
+        ((src == util::detail::SOURCE_LOCAL) ||
+         (src == util::detail::SOURCE_BROKER && BifConst::EventMetadata::add_missing_remote_network_timestamp));
+
+    if ( want_network_timestamp ) {
         if ( ts < 0.0 )
             ts = run_state::network_time;
 
@@ -189,15 +197,23 @@ void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl, util::detail::SourceID
 
 void EventMgr::Enqueue(detail::EventMetadataVectorPtr meta, const EventHandlerPtr& h, Args vl,
                        util::detail::SourceID src, analyzer::ID aid, Obj* obj) {
-    if ( src == util::detail::SOURCE_LOCAL && BifConst::EventMetadata::add_network_timestamp ) {
-        // If all events are supposed to have a network time attached, ensure
-        // that the meta vector was passed *and* contains a network timestamp.
-        //
-        // This is only done for local events, however. For remote events (src == BROKER)
-        // that do not hold network timestamp metadata, it seems less surprising to keep
-        // it unset. If it is required that a remote node sends *their* network timestamp,
-        // defaulting to this node's network time seems more confusing and error prone
-        // than just leaving it unset and having the consumer deal with the situation.
+    // Attach network timestamps to all events if EventMetadata::add_network_timestamp is T and
+    //
+    //   1) this event is locally generated
+    //   or
+    //   2) this is a remote event and EventMetadata::add_missing_remote_network_timestamp is T
+    //
+    // Why so complicated? It seems less surprising behavior to keep network timestamp metadata unset
+    // if a remote event didn't have any attached. It should help to more easily figure out what's
+    // actually going on compared to setting it to the local network time. If all nodes are required to
+    // send *their* network timestamp, filling it with this node's network time seems more confusing
+    // and error prone compared to just leaving it unset and having the consumer deal with the situation.
+    bool want_network_timestamp =
+        BifConst::EventMetadata::add_network_timestamp &&
+        ((src == util::detail::SOURCE_LOCAL) ||
+         (src == util::detail::SOURCE_BROKER && BifConst::EventMetadata::add_missing_remote_network_timestamp));
+
+    if ( want_network_timestamp ) {
         bool has_time = false;
 
         if ( ! meta ) {

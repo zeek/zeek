@@ -165,8 +165,13 @@ void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl, util::detail::SourceID
     detail::EventMetadataVectorPtr meta;
 
     double ts = double(deprecated_ts);
-    if ( BifConst::EventMetadata::add_network_timestamp ) {
-        if ( ts < 0.0 ) // default -1.0, modify to current network_time
+    if ( src == util::detail::SOURCE_LOCAL && BifConst::EventMetadata::add_network_timestamp ) {
+        // If this is a local event and EventMetadata::add_network_timestamp is
+        // enabled automatically set the network timestamp for this event to the
+        // current network time when it is < 0 (default is -1.0).
+        //
+        // See the other Enqueue() implementation for the local motivation.
+        if ( ts < 0.0 )
             ts = run_state::network_time;
 
         // In v8.1 when the deprecated_ts parameters is gone: Just use run_state::network_time directly here.
@@ -184,9 +189,15 @@ void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl, util::detail::SourceID
 
 void EventMgr::Enqueue(detail::EventMetadataVectorPtr meta, const EventHandlerPtr& h, Args vl,
                        util::detail::SourceID src, analyzer::ID aid, Obj* obj) {
-    if ( BifConst::EventMetadata::add_network_timestamp ) {
+    if ( src == util::detail::SOURCE_LOCAL && BifConst::EventMetadata::add_network_timestamp ) {
         // If all events are supposed to have a network time attached, ensure
         // that the meta vector was passed *and* contains a network timestamp.
+        //
+        // This is only done for local events, however. For remote events (src == BROKER)
+        // that do not hold network timestamp metadata, it seems less surprising to keep
+        // it unset. If it is required that a remote node sends *their* network timestamp,
+        // defaulting to this node's network time seems more confusing and error prone
+        // than just leaving it unset and having the consumer deal with the situation.
         bool has_time = false;
 
         if ( ! meta ) {

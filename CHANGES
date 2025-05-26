@@ -1,3 +1,19 @@
+8.0.0-dev.209 | 2025-05-26 16:08:44 +0200
+
+  * btest: Add test for Cluster::hello zero-timestamp (Arne Welzel, Corelight)
+
+  * EventMgr/Enqueue: Add automatic timestamp metadata to local events, only (Arne Welzel, Corelight)
+
+    It seems less surprising if only local events receive automatic network
+    timestamp metadata. For remote events the automatic value will most
+    likely be misleading.
+
+  * cluster and broker: Propagate zero-timestamp as metadata, too. (Arne Welzel, Corelight)
+
+    This will be cleaned up later to just pass all contained metadata from
+    a cluster event to the queued event, but for now do this here, otherwise
+    we break some internal tests.
+
 8.0.0-dev.204 | 2025-05-23 12:13:41 -0700
 
   * Redis: bump version of hiredis required (Tim Wojtulewicz, Corelight)

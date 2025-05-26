@@ -1657,7 +1657,7 @@ void Manager::ProcessMessage(std::string_view topic, broker::zeek::Event& ev) {
 
     if ( vl.size() == args.size() ) {
         zeek::detail::EventMetadataVectorPtr meta;
-        if ( ts > 0.0 )
+        if ( ts >= 0.0 )
             meta = zeek::detail::MakeEventMetadataVector(ts);
 
         event_mgr.Enqueue(std::move(meta), handler, std::move(vl), util::detail::SOURCE_BROKER);

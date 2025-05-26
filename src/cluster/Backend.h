@@ -92,6 +92,11 @@ public:
      */
     const zeek::detail::EventMetadataVector* Metadata() const { return meta.get(); }
 
+    /**
+     * Move data out of this event as preparation for Enqueue()
+     */
+    std::tuple<zeek::EventHandlerPtr, zeek::Args, zeek::detail::EventMetadataVectorPtr> Take() &&;
+
 private:
     EventHandlerPtr handler;
     zeek::Args args;

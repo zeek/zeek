@@ -2,14 +2,17 @@
 
 #include "zeek/cluster/Backend.h"
 
+#include <memory>
 #include <optional>
 
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
+#include "zeek/EventHandler.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/Func.h"
 #include "zeek/Reporter.h"
 #include "zeek/Type.h"
+#include "zeek/Val.h"
 #include "zeek/cluster/Manager.h"
 #include "zeek/cluster/OnLoop.h"
 #include "zeek/cluster/Serializer.h"
@@ -19,8 +22,40 @@
 #include "zeek/plugin/Plugin.h"
 #include "zeek/util.h"
 
+#include "zeek/3rdparty/doctest.h"
+
 using namespace zeek::cluster;
 
+double detail::Event::Timestamp() const {
+    if ( meta ) {
+        for ( const auto& m : *meta ) {
+            if ( m.Id() == static_cast<zeek_uint_t>(zeek::detail::MetadataType::NetworkTimestamp) )
+                return m.Val()->AsTime();
+        }
+    }
+
+    return zeek::detail::NO_TIMESTAMP;
+}
+
+bool detail::Event::AddMetadata(const EnumValPtr& id, zeek::ValPtr val) {
+    if ( ! id || ! val )
+        return false;
+
+    const auto* desc = zeek::event_registry->LookupMetadata(id->Get());
+    if ( ! desc )
+        return false;
+
+    if ( ! same_type(val->GetType(), desc->Type()) )
+        return false;
+
+    if ( ! meta )
+        meta = std::make_unique<zeek::detail::EventMetadataVector>();
+
+    // Internally stored as zeek_uint_t for serializers.
+    meta->emplace_back(desc->Id(), std::move(val));
+
+    return true;
+}
 
 bool detail::LocalEventHandlingStrategy::DoProcessEvent(std::string_view topic, detail::Event e) {
     zeek::detail::EventMetadataVectorPtr meta;
@@ -243,3 +278,48 @@ void ThreadedBackend::Process(QueueMessage&& msg) {
         zeek::reporter->FatalError("Unimplemented QueueMessage %zu", msg.index());
     }
 }
+
+TEST_SUITE_BEGIN("cluster event");
+
+TEST_CASE("add metadata") {
+    auto* handler = zeek::event_registry->Lookup("Supervisor::node_status");
+    zeek::Args args{zeek::make_intrusive<zeek::StringVal>("TEST"), zeek::val_mgr->Count(42)};
+    zeek::cluster::detail::Event event{handler, args, nullptr};
+
+    auto nts = zeek::id::find_val<zeek::EnumVal>("EventMetadata::NETWORK_TIMESTAMP");
+    REQUIRE(nts);
+    auto unk = zeek::id::find_val<zeek::EnumVal>("Log::UNKNOWN");
+    REQUIRE(unk);
+
+    bool registered = zeek::event_registry->RegisterMetadata(nts, zeek::base_type(zeek::TYPE_TIME));
+    REQUIRE(registered);
+
+    SUBCASE("valid") {
+        CHECK_EQ(event.Timestamp(), -1.0);
+        CHECK(event.AddMetadata(nts, zeek::make_intrusive<zeek::TimeVal>(42.0)));
+        CHECK_EQ(event.Timestamp(), 42.0);
+    }
+
+    SUBCASE("valid-two-times") {
+        CHECK_EQ(event.Timestamp(), -1.0);
+        CHECK(event.AddMetadata(nts, zeek::make_intrusive<zeek::TimeVal>(42.0)));
+        CHECK(event.AddMetadata(nts, zeek::make_intrusive<zeek::TimeVal>(43.0)));
+        CHECK_EQ(event.Timestamp(), 42.0);     // finds the first one
+        CHECK_EQ(event.Metadata()->size(), 2); // both are stored
+    }
+
+    SUBCASE("invalid-value-type") {
+        CHECK_EQ(event.Timestamp(), -1.0);
+        CHECK_FALSE(event.AddMetadata(nts, zeek::make_intrusive<zeek::DoubleVal>(42.0)));
+        CHECK_EQ(event.Timestamp(), -1.0);
+        CHECK_EQ(event.Metadata(), nullptr);
+    }
+
+    SUBCASE("unregistered-metadata-identifier") {
+        CHECK_EQ(event.Timestamp(), -1.0);
+        CHECK_FALSE(event.AddMetadata(unk, zeek::make_intrusive<zeek::DoubleVal>(42.0)));
+        CHECK_EQ(event.Timestamp(), -1.0);
+        CHECK_EQ(event.Metadata(), nullptr);
+    }
+}
+TEST_SUITE_END();

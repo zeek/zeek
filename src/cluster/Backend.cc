@@ -57,6 +57,10 @@ bool detail::Event::AddMetadata(const EnumValPtr& id, zeek::ValPtr val) {
     return true;
 }
 
+std::tuple<zeek::EventHandlerPtr, zeek::Args, zeek::detail::EventMetadataVectorPtr> detail::Event::Take() && {
+    return {handler, std::move(args), std::move(meta)};
+}
+
 bool detail::LocalEventHandlingStrategy::DoProcessEvent(std::string_view topic, detail::Event e) {
     zeek::detail::EventMetadataVectorPtr meta;
     if ( auto ts = e.Timestamp(); ts >= 0.0 )

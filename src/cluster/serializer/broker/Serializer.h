@@ -2,13 +2,39 @@
 
 #pragma once
 
+#include <memory>
+#include <vector>
+
 #include "zeek/cluster/Serializer.h"
 
 namespace broker::zeek {
 class Event;
 }
 
-namespace zeek::cluster::detail {
+namespace zeek {
+
+namespace detail {
+class MetadataEntry;
+
+using EventMetadataVector = std::vector<MetadataEntry>;
+using EventMetadataVectorPtr = std::unique_ptr<EventMetadataVector>;
+
+} // namespace detail
+
+namespace cluster::detail {
+
+/**
+ * Produce a EventMetadataVectorPtr from a broker event.
+ *
+ * The implementation relies on @ref zeek::EventRegistry::LookupMetadata()
+ * to find expected metadata types. If there's no metadata at all attached
+ * to this event, returns a nullptr,
+ *
+ * @param ev The broker event.
+
+ * @return Pointer to a @ref zeek::detail::EventMetadataVector holding values for all known metadata.
+ */
+zeek::detail::EventMetadataVectorPtr metadata_vector_from_broker_event(const broker::zeek::Event& ev);
 
 /**
  * Convert a broker::zeek::Event to cluster::detail::Event by looking
@@ -50,4 +76,5 @@ public:
     std::optional<detail::Event> UnserializeEvent(byte_buffer_span buf) override;
 };
 
-} // namespace zeek::cluster::detail
+} // namespace cluster::detail
+} // namespace zeek

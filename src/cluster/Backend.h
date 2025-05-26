@@ -42,12 +42,6 @@ public:
         : handler(handler), args(std::move(args)), meta(std::move(meta)) {}
 
     /**
-     * Constructor.
-     */
-    [[deprecated]] Event(const EventHandlerPtr& handler, zeek::Args args, double timestamp = 0.0)
-        : handler(handler), args(std::move(args)), meta(zeek::detail::MakeEventMetadataVector(timestamp)) {}
-
-    /**
      * @return The name of the event.
      */
     std::string_view HandlerName() const { return handler->Name(); }

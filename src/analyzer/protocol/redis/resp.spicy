@@ -1,0 +1,211 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
+module RESP;
+
+import Redis;
+
+import spicy;
+
+# Maximum size for parsing of certain fields. By restricting this we avoid
+# exhausting main memory.
+const MAX_SIZE = 1024 * 1024;
+const MAX_RECURSION_DEPTH = 20;
+
+public type ClientMessages = unit {
+    # The context here refers to whether we saw client data first. It is a one-time switch,
+    # either we have seen client data or not.
+    %context = bool;
+    on %init {
+        *self.context() = True;
+    }
+    : ClientData[];
+};
+
+public type ServerMessages = unit {
+    %context = bool;
+    on %init {
+        if (!*self.context()) {
+            throw "Server responses must come after a client request is seen";
+        }
+    }
+    : (ServerData &synchronize)[];
+};
+
+public type ClientData = unit {
+    on %init() {
+        self.start = self.input();
+    }
+
+    # Clients can only be an array or inline
+    ty: uint8 &convert=DataType($$) {
+        if (self.ty != DataType::ARRAY) {
+            # This is inline, so we need to reparse `ty`
+            self.set_input(self.start);
+        }
+    }
+    if (self.ty == DataType::ARRAY) {
+        multibulk: BulkStringArray;
+    } else {
+        inline: RedisBytes &max-size=1024;
+    };
+
+    var start: iterator<stream>;
+    var command: Redis::Command;
+
+    on %done {
+        self.command = Redis::make_command(self);
+    }
+};
+
+type BulkStringArray = unit {
+    num_elements: RedisBytes &convert=$$.to_int(10) &requires=self.num_elements <= int64(MAX_SIZE);
+    # Null array is an array with elements unset. This is different from an empty array
+    elements: BulkStringWithTy[uint64(self.num_elements)];
+};
+
+type BulkStringWithTy = unit {
+    # Need to consume the type here
+    : uint8 &requires=$$ == '$';
+
+    length: RedisBytes &convert=$$.to_int(10) &requires=self.length <= int64(MAX_SIZE);
+    # NullBulkString is a BulkString with content unset
+    content: bytes &size=uint64(self.length) if(self.length >= 0);
+
+    # Consume last CLRF
+    : skip RedisBytes;
+};
+
+public type ServerData = unit {
+    %synchronize-after = b"\x0d\x0a";
+    var depth: uint8& = new uint8;
+    data: Data(self.depth);
+};
+
+type Data = unit(depth: uint8&) {
+    %synchronize-after = b"\x0d\x0a";
+    ty: uint8 &convert=DataType($$);
+    switch (self.ty) {
+        DataType::SIMPLE_STRING -> simple_string: SimpleString(False);
+        DataType::SIMPLE_ERROR -> simple_error: SimpleString(True);
+        DataType::INTEGER -> integer: Integer;
+        DataType::BULK_STRING -> bulk_string: BulkString(False);
+        DataType::ARRAY -> array: Array(depth);
+        DataType::NULL -> null: Null_;
+        DataType::BOOLEAN -> boolean: Boolean;
+        DataType::DOUBLE -> double: Double;
+        DataType::BIG_NUM -> big_num: BigNum;
+        DataType::BULK_ERROR -> bulk_error: BulkString(True);
+        # This can be a different type, but the docs also say:
+        # "Some client libraries may ignore the difference between this type and the string type"
+        # It just includes the encoding first in the content
+        DataType::VERBATIM_STRING -> verbatim_string: BulkString(False);
+        DataType::MAP -> map_: Map(depth);
+        DataType::SET -> set_: Set(depth);
+        # "Push events are encoded similarly to arrays, differing only in their
+        # first byte" - TODO: can probably make it more obvious, though
+        DataType::PUSH -> push: Array(depth);
+    };
+
+    on %init {
+        depth++;
+        if (*depth > MAX_RECURSION_DEPTH)
+            throw "exceeded max recursion depth";
+    }
+
+    on %done {
+        depth--;
+    }
+};
+
+type DataType = enum {
+    SIMPLE_STRING = '+',
+    SIMPLE_ERROR = '-',
+    INTEGER = ':',
+    BULK_STRING = '$',
+    ARRAY = '*',
+    NULL = '_',
+    BOOLEAN = '#',
+    DOUBLE = ',',
+    BIG_NUM = '(',
+    BULK_ERROR = '!',
+    VERBATIM_STRING = '=',
+    MAP = '%',
+    SET = '~',
+    PUSH = '>',
+};
+
+# Helper unit to extract bytes of some reasonable size so we do not exhaust mem.
+type RedisBytes = unit {
+    data: bytes &until=b"\x0d\x0a" &max-size=MAX_SIZE;
+} &convert=self.data;
+
+type SimpleString = unit(is_error: bool) {
+    content: RedisBytes;
+};
+
+type Integer = unit {
+    int: RedisBytes &convert=$$.to_int(10);
+};
+
+type BulkString = unit(is_error: bool) {
+    length: RedisBytes &convert=$$.to_int(10) &requires=self.length <= int64(MAX_SIZE);
+    # NullBulkString is a BulkString with content unset
+    content: bytes &size=uint64(self.length) if(self.length >= 0);
+
+    # Consume last CLRF if not a null bulk string
+    : skip RedisBytes if(self.length >= 0);
+};
+
+type Array = unit(depth: uint8&) {
+    num_elements: RedisBytes &convert=$$.to_int(10) &requires=self.num_elements <= int64(MAX_SIZE);
+    # Null array is an array with elements unset. This is different from an empty array
+    elements: Data(depth)[uint64(self.num_elements)];
+};
+
+type Null_ = unit {
+    # Still must consume CLRF
+    : skip RedisBytes;
+};
+
+type Boolean = unit {
+    val: uint8 &convert=$$ == 't';
+    : skip RedisBytes;
+};
+
+type Double = unit {
+    val: RedisBytes &convert=$$.to_real();
+};
+
+type BigNum = unit {
+    # Big num can be very big so leave it in bytes.
+    val: RedisBytes;
+};
+
+type Map = unit(depth: uint8&) {
+    num_elements: RedisBytes &convert=$$.to_uint(10);
+    # TODO: How can I make this into a map? Alternatively, how can I do this better?
+    raw_data: Data(depth)[self.num_elements * 2];
+
+    # TODO: This is broken. See https://github.com/zeek/spicy/issues/2061
+    #    var key_val_pairs: vector<tuple<Data, Data>>;
+    #    on raw_data {
+    #        while (local i = 0; i < self.num_elements) {
+    #            self.key_val_pairs.push_back(($$[i], $$[i + 1]));
+    #            i += 2;
+    #        }
+    #    }
+};
+
+type Set = unit(depth: uint8&) {
+    num_elements: RedisBytes &convert=$$.to_uint(10) &requires=self.num_elements <= MAX_SIZE;
+    # TODO: This should be a set but doesn't go in the backed C++ set
+    elements: Data(depth)[self.num_elements];
+};
+
+on ServerData::%done {
+    spicy::accept_input();
+}
+
+on ServerData::%error {
+    spicy::decline_input("error while parsing RESP server data");
+}

@@ -42,6 +42,17 @@ New Functionality
 	                      const std::string& topic,
 	                      zeek::cluster::detail::Event& event);
 
+- Zeek now includes the Redis protocol analyzer from the evantypanski/spicy-redis
+  project (https://github.com/evantypanski/spicy-redis). This analyzer is enabled
+  by default. This analyzer logs Redis commands and their associated replies in
+  ``redis.log``.
+
+  To disable the analyzer in case of issues, use the following snippet:
+
+	redef Analyzer::disabled_analyzers += {
+		Analyzer::ANALYZER_REDIS,
+	};
+
 Changed Functionality
 ---------------------
 

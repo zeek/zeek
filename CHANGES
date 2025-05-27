@@ -1,3 +1,44 @@
+8.0.0-dev.227 | 2025-05-27 10:18:49 -0400
+
+  * spicy-redis: Separate error replies from success (Evan Typanski, Corelight)
+
+  * spicy-redis: Cleanup scripts and tests (Evan Typanski, Corelight)
+
+    - Recomputes checksums for pcaps to keep clean
+    - Removes some tests that had big pcaps or weren't necessary
+    - Cleans up scripting names and minor points
+    - Comments out Spicy code that causes a build failure now with a TODO to
+      uncomment it
+
+  * spciy-redis: Bring Redis analyzer into Zeek proper (Evan Typanski, Corelight)
+
+  * spicy-redis: Abort parsing if server data comes first (Evan Typanski, Corelight)
+
+    Redis seems to only want client data first to request server data. The
+    DPD signature seems to pick up on some cases where server data comes
+    first, but is otherwise "valid" RESP. See if this helps lower FP rates.
+
+  * spicy-redis: Add recursion depth to server data (Evan Typanski, Corelight)
+
+  * spicy-redis: Make client data only accept bulk strings (Evan Typanski, Corelight)
+
+  * spicy-redis: Add dpd signature and clean pcaps (Evan Typanski, Corelight)
+
+  * spicy-redis: Add some commands and touch up parsing (Evan Typanski, Corelight)
+
+  * spicy-redis: Add some script logic for logging (Evan Typanski, Corelight)
+
+  * spicy-redis: Separate client/server (Evan Typanski, Corelight)
+
+    This makes the parser more official and splits the client/server out
+    from each other.
+
+  * spicy-redis: Touchup logging and Spicy issues (Evan Typanski, Corelight)
+
+  * spicy-redis: Add synchronization and pipeline support (Evan Typanski, Corelight)
+
+  * spicy-redis: Begin Spicy Redis analyzer (Evan Typanski, Corelight)
+
 8.0.0-dev.209 | 2025-05-26 16:08:44 +0200
 
   * btest: Add test for Cluster::hello zero-timestamp (Arne Welzel, Corelight)

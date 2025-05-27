@@ -1,3 +1,17 @@
+8.0.0-dev.259 | 2025-05-27 12:49:05 -0700
+
+  * Add a few std::moves to fix Coverity warnings (Tim Wojtulewicz, Corelight)
+
+  * Fix possible memory leak in broker::Manager (Tim Wojtulewicz, Corelight)
+
+  * fixup! Use SCN* constants when reading into sized integer types (Tim Wojtulewicz, Corelight)
+
+  * from_json: Statically lookup err index in result type (Tim Wojtulewicz, Corelight)
+
+  * Use SCN* constants when reading into sized integer types (Tim Wojtulewicz, Corelight)
+
+  * Remove setting unused variable value in FTP::parse_eftp (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.252 | 2025-05-27 11:59:00 -0700
 
   * Update .clang-tidy to have bugprone-* enabled with some exclusions (Tim Wojtulewicz, Corelight)

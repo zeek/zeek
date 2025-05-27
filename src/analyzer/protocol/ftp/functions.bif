@@ -76,10 +76,7 @@ static zeek::RecordValPtr parse_eftp(const char* line)
 				{
 				const char* nptr = strchr(line, delimiter);
 				if ( nptr == NULL )
-					{
 					nptr = line + strlen(line);
-					good = false;
-					}
 
 				std::string s(line, nptr-line); // extract IP address
 				struct in6_addr result;

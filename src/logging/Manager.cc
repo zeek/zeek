@@ -811,7 +811,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, Tab
         }
 
         // Alright, we want this field.
-        filter->indices.push_back(new_indices);
+        filter->indices.push_back(std::move(new_indices));
 
         // Static cast this to void* to avoid a clang-tidy warning about converting from the
         // double-pointer to void*

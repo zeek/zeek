@@ -11,8 +11,8 @@
 #include "zeek/analyzer/protocol/bittorrent/events.bif.h"
 #include "zeek/analyzer/protocol/tcp/TCP_Reassembler.h"
 
-#define FMT_INT "%" PRId64
-#define FMT_UINT "%" PRIu64
+#define FMT_INT "%" SCNd64
+#define FMT_UINT "%" SCNu64
 
 namespace zeek::analyzer::bittorrent {
 

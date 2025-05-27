@@ -11,7 +11,7 @@
 #include <sys/stat.h>
 
 #include <algorithm>
-#include <cmath>
+#include <cinttypes>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -3299,10 +3299,11 @@ function ptr_name_to_addr%(s: string%): addr
 		uint32_t b[32];
 		char ss[9]; // this will contain "ip6.arpa"
 		if ( sscanf(s->CheckString(),
-			"%1x.%1x.%1x.%1x.%1x.%1x.%1x.%1x."
-			"%1x.%1x.%1x.%1x.%1x.%1x.%1x.%1x."
-			"%1x.%1x.%1x.%1x.%1x.%1x.%1x.%1x."
-			"%1x.%1x.%1x.%1x.%1x.%1x.%1x.%1x.%8s",
+			"%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32
+			".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32
+			".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32
+			".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32 ".%1" SCNx32
+            ".%8s",
 			b+31, b+30, b+29, b+28, b+27, b+26, b+25, b+24,
 			b+23, b+22, b+21, b+20, b+19, b+18, b+17, b+16,
 			b+15, b+14, b+13, b+12, b+11, b+10, b+9, b+8,
@@ -5319,6 +5320,7 @@ function from_json%(s: string, t: any, key_func: string_mapper &default=from_jso
 	static auto result_type = zeek::id::find_type<RecordType>("from_json_result");
 	static auto v_idx = result_type->FieldOffset("v");
 	static auto valid_idx = result_type->FieldOffset("valid");
+	static auto err_idx = result_type->FieldOffset("err");
 	static auto default_key_func_ptr = zeek::id::find_func("from_json_default_key_mapper");
 
 	auto rval = zeek::make_intrusive<RecordVal>(result_type);
@@ -5347,7 +5349,7 @@ function from_json%(s: string, t: any, key_func: string_mapper &default=from_jso
 	else
 		{
 		rval->Assign(valid_idx, false);
-                rval->Assign(result_type->FieldOffset("err"), res.error().c_str());
+		rval->Assign(err_idx, res.error().c_str());
 		}
 
 	return std::move(rval);

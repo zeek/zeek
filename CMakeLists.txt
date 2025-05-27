@@ -68,7 +68,8 @@ option(INSTALL_ZEEKCTL "Install zeekctl." ${ZEEK_INSTALL_TOOLS_DEFAULT})
 option(INSTALL_ZEEK_CLIENT "Install the zeek-client." ${ZEEK_INSTALL_TOOLS_DEFAULT})
 option(INSTALL_ZKG "Install zkg." ${ZEEK_INSTALL_TOOLS_DEFAULT})
 option(PREALLOCATE_PORT_ARRAY "Pre-allocate all ports for zeek::Val." ON)
-option(ZEEK_STANDALONE "Build Zeek as stand-alone binary?" ON)
+option(ZEEK_STANDALONE "Build Zeek as stand-alone binary." ON)
+option(ZEEK_ENABLE_FUZZERS "Build Zeek fuzzing targets." OFF)
 
 # Non-boolean options.
 if (NOT WIN32)
@@ -1494,68 +1495,116 @@ if (ZEEK_LEGACY_ANALYZERS OR ZEEK_SKIPPED_ANALYZERS)
     )
 endif ()
 
-message(
-    "\n====================|  Zeek Build Summary  |===================="
-    "\n"
-    "\nBuild type:           ${CMAKE_BUILD_TYPE}"
-    "\nBuild dir:            ${PROJECT_BINARY_DIR}"
-    "\n"
-    "\nInstall prefix:       ${CMAKE_INSTALL_PREFIX}"
-    "\nConfig file dir:      ${ZEEK_ETC_INSTALL_DIR}"
-    "\nLog dir:              ${ZEEK_LOG_DIR}"
-    "\nPlugin dir:           ${ZEEK_PLUGIN_DIR}"
-    "\nPython module dir:    ${PY_MOD_INSTALL_DIR}"
-    "\nScript dir:           ${ZEEK_SCRIPT_INSTALL_PATH}"
-    "\nSpool dir:            ${ZEEK_SPOOL_DIR}"
-    "\nState dir:            ${ZEEK_STATE_DIR}"
-    "\nSpicy modules dir:    ${ZEEK_SPICY_MODULE_PATH}"
-    "\n"
-    "\nDebug mode:           ${ENABLE_DEBUG}"
-    "\nUnit tests:           ${ENABLE_ZEEK_UNIT_TESTS}"
-    "\nBuiltin Plugins:      ${ZEEK_BUILTIN_PLUGINS}"
-    "\n"
-    "\nCC:                   ${CMAKE_C_COMPILER}"
-    "\nCFLAGS:               ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BuildType}}"
-    "\nCXX:                  ${CMAKE_CXX_COMPILER}"
-    "\nCXXFLAGS:             ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}"
-    "\nCPP:                  ${CMAKE_CXX_COMPILER}"
-    "\n"
-    "\nAF_PACKET:            ${ZEEK_HAVE_AF_PACKET}"
-    "\nAux. Tools:           ${INSTALL_AUX_TOOLS}"
-    "\nBifCL:                ${_bifcl_exe_path}"
-    "\nBinPAC:               ${_binpac_exe_path}"
-    "\nBTest:                ${INSTALL_BTEST}"
-    "\nBTest tooling:        ${_install_btest_tools_msg}"
-    "\nGen-ZAM:              ${_gen_zam_exe_path}"
-    "\nJavaScript:           ${ZEEK_HAVE_JAVASCRIPT}"
-    "\nSpicy:                ${_spicy}"
-    "\nSpicy analyzers:      ${USE_SPICY_ANALYZERS}"
-    "\nzeek-client:          ${INSTALL_ZEEK_CLIENT}"
-    "\nZeekControl:          ${INSTALL_ZEEKCTL}"
-    "\nzkg:                  ${INSTALL_ZKG}"
-    "\n"
-    "\nlibmaxminddb:         ${USE_GEOIP}"
-    "\nKerberos:             ${USE_KRB5}"
-    "\ngperftools found:     ${HAVE_PERFTOOLS}"
-    "\n  - tcmalloc:         ${USE_PERFTOOLS_TCMALLOC}"
-    "\n  - debugging:        ${USE_PERFTOOLS_DEBUG}"
-    "\njemalloc:             ${ENABLE_JEMALLOC}"
-    "\n"
-    "\nCluster backends:"
-    "\n  - Broker:           ON"
-    "\n  - ZeroMQ:           ${ENABLE_CLUSTER_BACKEND_ZEROMQ}"
-    "\n"
-    "\nStorage backends:"
-    "\n  - SQLite:           ON"
-    "\n  - Redis:            ${ENABLE_STORAGE_BACKEND_REDIS}"
-    "\n"
-    "\nFuzz Targets:         ${ZEEK_ENABLE_FUZZERS}"
-    "\nFuzz Engine:          ${ZEEK_FUZZING_ENGINE}"
-    "\n"
-    "\nInclude What You Use: ${ENABLE_IWYU}"
-    "\nClang-Tidy:           ${ENABLE_CLANG_TIDY}"
-    "${_analyzer_warning}"
-    "\n"
-    "\n================================================================\n")
+set(_zeek_builtin_plugins "${ZEEK_BUILTIN_PLUGINS}")
+if (NOT ZEEK_BUILTIN_PLUGINS)
+    set(_zeek_builtin_plugins "none")
+endif ()
+
+set(_zeek_fuzzing_engine "${ZEEK_FUZZING_ENGINE}")
+if (NOT ZEEK_FUZZING_ENGINE)
+    if (ZEEK_ENABLE_FUZZERS)
+        # The default fuzzer used by gcc and clang is libFuzzer. This is if you
+        # simply pass '-fsanitize=fuzzer' to the compiler.
+        set(_zeek_fuzzing_engine "libFuzzer")
+    endif ()
+endif ()
+
+## Utility method for outputting status information for features that just have a
+## string representation. This can also take an option second argument that is a
+## value string to print.
+function (output_summary_line what)
+    set(_spaces "                                        ")
+    string(LENGTH ${what} _what_length)
+    math(EXPR _num_spaces "25 - ${_what_length}")
+    string(SUBSTRING ${_spaces} 0 ${_num_spaces} _spacing)
+    message("${what}:${_spacing}${ARGV1}")
+endfunction ()
+
+## Utility method for outputting status information for features that have an ON/OFF
+## state.
+function (output_summary_state what state)
+    if (${state})
+        output_summary_line("${what}" "ON")
+    else ()
+        output_summary_line("${what}" "OFF")
+    endif ()
+endfunction ()
+
+message("\n====================|  Zeek Build Summary  |====================\n")
+
+output_summary_line("Build type" "${CMAKE_BUILD_TYPE}")
+output_summary_line("Build dir" "${PROJECT_BINARY_DIR}")
+message("")
+
+output_summary_line("Install prefix" "${CMAKE_INSTALL_PREFIX}")
+output_summary_line("Config file dir" "${ZEEK_ETC_INSTALL_DIR}")
+output_summary_line("Log dir" "${ZEEK_LOG_DIR}")
+output_summary_line("Plugin dir" "${ZEEK_PLUGIN_DIR}")
+output_summary_line("Python module dir" "${PY_MOD_INSTALL_DIR}")
+output_summary_line("Script dir" "${ZEEK_SCRIPT_INSTALL_PATH}")
+output_summary_line("Spool dir" "${ZEEK_SPOOL_DIR}")
+output_summary_line("State dir" "${ZEEK_STATE_DIR}")
+output_summary_line("Spicy modules dir" "${ZEEK_SPICY_MODULE_PATH}")
+message("")
+
+output_summary_state("Debug mode" ${ENABLE_DEBUG})
+output_summary_state("Unit tests" ${ENABLE_ZEEK_UNIT_TESTS})
+message("")
+
+output_summary_line("Builtin Plugins" "${_zeek_builtin_plugins}")
+message("")
+
+output_summary_line("CC" "${CMAKE_C_COMPILER}")
+output_summary_line("CFLAGS" "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${BuildType}}")
+output_summary_line("CXX" "${CMAKE_CXX_COMPILER}")
+output_summary_line("CXXFLAGS" "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}")
+output_summary_line("CPP" "${CMAKE_CXX_COMPILER}")
+message("")
+
+output_summary_state("AF_PACKET" ${ZEEK_HAVE_AF_PACKET})
+output_summary_state("Aux. Tools" ${INSTALL_AUX_TOOLS})
+output_summary_line("BifCL" ${_bifcl_exe_path})
+output_summary_line("BinPAC" ${_binpac_exe_path})
+output_summary_state("BTest" ${INSTALL_BTEST})
+output_summary_line("BTest tooling" ${_install_btest_tools_msg})
+output_summary_line("Gen-ZAM" ${_gen_zam_exe_path})
+output_summary_state("JavaScript" ${ZEEK_HAVE_JAVASCRIPT})
+output_summary_line("Spicy" ${_spicy})
+output_summary_state("Spicy analyzers" ${USE_SPICY_ANALYZERS})
+output_summary_state("zeek-client" ${INSTALL_ZEEK_CLIENT})
+output_summary_state("ZeekControl" ${INSTALL_ZEEKCTL})
+output_summary_state("zkg" ${INSTALL_ZKG})
+message("")
+
+output_summary_state("libmaxminddb" ${USE_GEOIP})
+output_summary_state("Kerberos" ${USE_KRB5})
+output_summary_state("gperftools" ${HAVE_PERFTOOLS})
+output_summary_state("  - tcmalloc" ${USE_PERFTOOLS_TCMALLOC})
+output_summary_state("  - debugging" ${USE_PERFTOOLS_DEBUG})
+output_summary_state("jemalloc" ${ENABLE_JEMALLOC})
+message("")
+
+output_summary_line("Cluster backends")
+output_summary_state("  - Broker" ON)
+output_summary_state("  - ZeroMQ" ${ENABLE_CLUSTER_BACKEND_ZEROMQ})
+message("")
+
+output_summary_line("Storage backends")
+output_summary_state("  - SQLite" ON)
+output_summary_state("  - Redis" ${ENABLE_STORAGE_BACKEND_REDIS})
+message("")
+
+output_summary_state("Fuzz Targets" ${ZEEK_ENABLE_FUZZERS})
+output_summary_line("Fuzz Engine" "${_zeek_fuzzing_engine}")
+message("")
+
+output_summary_line("External Tools/Linters")
+output_summary_state("  - Include What You Use" ${ENABLE_IWYU})
+output_summary_state("  - Clang-Tidy" ${ENABLE_CLANG_TIDY})
+
+if (${_analyzer_warning})
+    message("${_analyzer_warning}\n")
+endif ()
+message("\n================================================================")
 
 include(UserChangedWarning)

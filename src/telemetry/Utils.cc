@@ -16,7 +16,8 @@ std::string BuildFullPrometheusName(std::string_view prefix, std::string_view na
     if ( prefix.empty() || name.empty() )
         reporter->FatalError("Telemetry metric families must have a non-zero-length prefix and name");
 
-    std::string fn = util::fmt("%s_%s", prefix.data(), name.data());
+    std::string fn = util::fmt("%.*s_%.*s", static_cast<int>(prefix.size()), prefix.data(),
+                               static_cast<int>(name.size()), name.data());
     std::for_each(fn.begin(), fn.end(), [](char& c) {
         if ( ! std::isalnum(c) )
             c = '_';

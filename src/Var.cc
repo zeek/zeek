@@ -203,6 +203,7 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init, std:
     }
 
     if ( id->GetType() && id->GetType()->Tag() != TYPE_ERROR && ! id->IsBlank() ) {
+        // NOLINTNEXTLINE(bugprone-assignment-in-if-condition)
         if ( dt != VAR_REDEF && (! init || ! do_init || (! t && ! (t = init_type(init)))) ) {
             id->Error("already defined", init.get());
             return;
@@ -749,6 +750,7 @@ void end_func(StmtPtr body, const char* module_name, bool free_of_conditionals) 
     // Note: ideally, something would take ownership of this memory until the
     // end of script execution, but that's essentially the same as the
     // lifetime of the process at the moment, so ok to "leak" it.
+    // NOLINTNEXTLINE(bugprone-unused-return-value)
     ingredients.release();
 }
 

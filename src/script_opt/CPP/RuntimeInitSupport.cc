@@ -211,9 +211,11 @@ IDPtr find_global__CPP(const char* g) {
 RecordTypePtr get_record_type__CPP(const char* record_type_name) {
     IDPtr existing_type;
 
-    if ( record_type_name && (existing_type = global_scope()->Find(record_type_name)) &&
-         existing_type->GetType()->Tag() == TYPE_RECORD )
-        return cast_intrusive<RecordType>(existing_type->GetType());
+    if ( record_type_name ) {
+        IDPtr existing_type = global_scope()->Find(record_type_name);
+        if ( existing_type && existing_type->GetType()->Tag() == TYPE_RECORD )
+            return cast_intrusive<RecordType>(existing_type->GetType());
+    }
 
     return make_intrusive<RecordType>(new type_decl_list());
 }

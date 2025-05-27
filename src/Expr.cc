@@ -892,11 +892,13 @@ ValPtr BinaryExpr::StringFold(Val* v1, Val* v2) const {
 
     switch ( tag ) {
 #undef DO_FOLD
+// NOLINTBEGIN(bugprone-macro-parentheses)
 #define DO_FOLD(sense)                                                                                                 \
     {                                                                                                                  \
         result = Bstr_cmp(s1, s2) sense 0;                                                                             \
         break;                                                                                                         \
     }
+            // NOLINTEND(bugprone-macro-parentheses)
 
         case EXPR_LT: DO_FOLD(<)
         case EXPR_LE: DO_FOLD(<=)
@@ -1383,8 +1385,8 @@ AddExpr::AddExpr(ExprPtr arg_op1, ExprPtr arg_op2) : BinaryExpr(EXPR_ADD, std::m
 
     TypePtr base_result_type;
 
-    if ( bt2 == TYPE_INTERVAL && (bt1 == TYPE_TIME || bt1 == TYPE_INTERVAL) )
-        base_result_type = base_type(bt1);
+    if ( (bt2 == TYPE_INTERVAL && (bt1 == TYPE_TIME || bt1 == TYPE_INTERVAL)) )
+        base_result_type = base_type(bt1); // NOLINT(bugprone-branch-clone)
     else if ( bt2 == TYPE_TIME && bt1 == TYPE_INTERVAL )
         base_result_type = base_type(bt2);
     else if ( BothArithmetic(bt1, bt2) )
@@ -1925,7 +1927,7 @@ CmpExpr::CmpExpr(ExprTag tag, ExprPtr _op1, ExprPtr _op2) : BinaryExpr(tag, std:
 void CmpExpr::Canonicalize() {
     if ( tag == EXPR_EQ || tag == EXPR_NE ) {
         if ( op2->GetType()->Tag() == TYPE_PATTERN )
-            SwapOps();
+            SwapOps(); //NOLINT(bugprone-branch-clone)
 
         else if ( op1->GetType()->Tag() == TYPE_PATTERN )
             ;
@@ -4082,10 +4084,13 @@ CallExpr::CallExpr(ExprPtr arg_func, ListExprPtr arg_args, bool in_hook, bool _i
              util::streq(((NameExpr*)func.get())->Id()->Name(), "fmt") &&
              // The following is needed because fmt might not yet
              // be bound as a name.
-             did_builtin_init && (func_val = func->Eval(nullptr)) ) {
-            zeek::Func* f = func_val->AsFunc();
-            if ( f->GetKind() == Func::BUILTIN_FUNC && ! check_built_in_call((BuiltinFunc*)f, this) )
-                SetError();
+             did_builtin_init ) {
+            func_val = func->Eval(nullptr);
+            if ( func_val ) {
+                zeek::Func* f = func_val->AsFunc();
+                if ( f->GetKind() == Func::BUILTIN_FUNC && ! check_built_in_call((BuiltinFunc*)f, this) )
+                    SetError();
+            }
         }
     }
 }

@@ -202,7 +202,7 @@ static void vec_exec(ZOp op, TypePtr t, VectorVal*& v1, const VectorVal* v2, con
                 auto vi = (*v[i]).rhs_accessor;                                                                        \
                 if ( ov_check(vi) ) {                                                                                  \
                     std::string err = "overflow promoting from ";                                                      \
-                    err += ov_err;                                                                                     \
+                    err += (ov_err);                                                                                   \
                     err += " arithmetic value";                                                                        \
                     /* The run-time error will throw an exception, so recover intermediary memory. */                  \
                     delete res_zv;                                                                                     \

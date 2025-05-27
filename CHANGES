@@ -1,3 +1,9 @@
+8.0.0-dev.252 | 2025-05-27 11:59:00 -0700
+
+  * Update .clang-tidy to have bugprone-* enabled with some exclusions (Tim Wojtulewicz, Corelight)
+
+  * Fix clang-tidy bugprone-* warnings (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.229 | 2025-05-27 17:46:35 +0100
 
   * Add explicit TLS support for FTP (Johanna Amann, Corelight)

@@ -255,7 +255,6 @@ bool CSE_ValidityChecker::CheckTableRef(const TypePtr& t) { return CheckSideEffe
 
 bool CSE_ValidityChecker::CheckCall(const CallExpr* c) {
     auto func = c->Func();
-    std::string desc;
     if ( func->Tag() != EXPR_NAME )
         // Can't analyze indirect calls.
         return Invalid();

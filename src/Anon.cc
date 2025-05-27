@@ -54,7 +54,7 @@ static int bi_ffs(uint32_t value) {
     return add + bvals[value & 0xf];
 }
 
-#define first_n_bit_mask(n) (~(0xFFFFFFFFU >> n))
+static inline uint64_t first_n_bit_mask(int n) { return ~(0xFFFFFFFFU >> n); }
 
 ipaddr32_t AnonymizeIPAddr::Anonymize(ipaddr32_t addr) {
     std::map<ipaddr32_t, ipaddr32_t>::iterator p = mapping.find(addr);

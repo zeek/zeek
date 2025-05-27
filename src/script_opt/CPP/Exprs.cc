@@ -1241,7 +1241,6 @@ string CPPCompile::GenField(const ExprPtr& rec, int field) {
         auto pt = processed_types.find(rt);
         ASSERT(pt != processed_types.end());
         auto rt_offset = pt->second->Offset();
-        string field_name = rt->FieldName(field);
         field_decls.emplace_back(rt_offset, rt->FieldDecl(field));
 
         if ( rfm != record_field_mappings.end() )

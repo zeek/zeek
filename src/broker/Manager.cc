@@ -1590,7 +1590,7 @@ void Manager::ProcessMessage(std::string_view topic, broker::zeek::Event& ev) {
         if ( p.size() > topic.size() )
             continue;
 
-        if ( strncmp(p.data(), topic.data(), p.size()) != 0 )
+        if ( strncmp(p.data(), topic.data(), p.size()) != 0 ) // NOLINT(bugprone-suspicious-stringview-data-usage)
             continue;
 
         DBG_LOG(DBG_BROKER, "Skip processing of forwarded event: %s %s", std::string{name}.c_str(),
@@ -1937,7 +1937,7 @@ void Manager::ProcessStoreResponse(detail::StoreHandleVal* s, broker::store::res
         BrokerData tmp{std::move(*response.answer)};
         request->second->Result(detail::query_result(std::move(tmp).ToRecordVal()));
     }
-    else if ( response.answer.error() == broker::ec::request_timeout ) {
+    else if ( response.answer.error() == broker::ec::request_timeout ) { // NOLINT(bugprone-branch-clone)
         // Fine, trigger's timeout takes care of things.
     }
     else if ( response.answer.error() == broker::ec::stale_data ) {

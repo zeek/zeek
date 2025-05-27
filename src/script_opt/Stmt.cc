@@ -1281,7 +1281,7 @@ StmtPtr CheckAnyLenStmt::DoReduce(Reducer* c) {
 }
 
 void CheckAnyLenStmt::StmtDescribe(ODesc* d) const {
-    Stmt::StmtDescribe(d);
+    Stmt::StmtDescribe(d); // NOLINT(bugprone-parent-virtual-call)
 
     e->Describe(d);
     if ( ! d->IsBinary() )

@@ -265,11 +265,9 @@ TraversalCode GenIDDefs::PostStmt(const Stmt* s) {
             break;
         }
 
+        // No need to do anything, the work all occurs
+        // with NoFlowAfter.
         case STMT_FALLTHROUGH:
-            // No need to do anything, the work all occurs
-            // with NoFlowAfter.
-            break;
-
         default: break;
     }
 
@@ -379,15 +377,13 @@ bool GenIDDefs::CheckLHS(const ExprPtr& lhs, const ExprPtr& rhs) {
             return true;
         }
 
+        // If we want to track record field initializations,
+        // we'd handle that here.
         case EXPR_FIELD:
-            // If we want to track record field initializations,
-            // we'd handle that here.
-            return false;
 
-        case EXPR_INDEX:
-            // If we wanted to track potential alterations of
-            // aggregates, we'd do that here.
-            return false;
+        // If we wanted to track potential alterations of
+        // aggregates, we'd do that here.
+        case EXPR_INDEX: return false;
 
         default: reporter->InternalError("bad tag in GenIDDefs::CheckLHS");
     }

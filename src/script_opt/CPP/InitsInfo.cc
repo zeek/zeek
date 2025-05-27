@@ -491,7 +491,6 @@ ListTypeInfo::ListTypeInfo(CPPCompile* _c, TypePtr _t)
 }
 
 void ListTypeInfo::AddInitializerVals(std::vector<std::string>& ivs) const {
-    string type_list;
     for ( auto& t : types ) {
         auto iv = Fmt(c->TypeOffset(t));
         ivs.emplace_back(iv);

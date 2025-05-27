@@ -4,11 +4,9 @@
 
 #include <cstdint>
 
-#define RT_MONTEN                                                                                                      \
-    6 /* Bytes used as Monte Carlo                                                                                     \
-         co-ordinates. This should be no more                                                                          \
-         bits than the mantissa of your "double"                                                                       \
-         floating point type. */
+// Bytes used as Monte Carlo co-ordinates. This should be no more bits than the mantissa
+// of your "double" floating point type.
+constexpr int RT_MONTEN = 6;
 
 namespace zeek {
 

@@ -1169,6 +1169,9 @@ MIME_Mail::MIME_Mail(analyzer::Analyzer* mail_analyzer, bool orig, int buf_size)
 
     content_hash_length = 0;
 
+    if ( mime_begin_mail )
+        analyzer->EnqueueConnEvent(mime_begin_mail, analyzer->ConnVal());
+
     top_level = new MIME_Entity(this, nullptr); // to be changed to MIME_Mail
     BeginEntity(top_level);
 }
@@ -1186,6 +1189,9 @@ void MIME_Mail::Done() {
         analyzer->EnqueueConnEvent(mime_content_hash, analyzer->ConnVal(), val_mgr->Count(content_hash_length),
                                    make_intrusive<StringVal>(new String(true, digest, 16)));
     }
+
+    if ( mime_end_mail )
+        analyzer->EnqueueConnEvent(mime_end_mail, analyzer->ConnVal());
 
     MIME_Message::Done();
 

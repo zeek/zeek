@@ -36,6 +36,38 @@ event mime_begin_entity%(c: connection%);
 ##    however, it raises :zeek:id:`http_end_entity` instead.
 event mime_end_entity%(c: connection%);
 
+## Generated when starting to parse an email that could contain MIME entities.
+## MIME is a protocol-independent data format for encoding text and files, along with
+## corresponding metadata, for transmission. Zeek raises this event when it
+## begins parsing a MIME mail extracted from an email protocol.
+##
+## Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
+## `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+## about MIME.
+##
+## c: The connection.
+##
+## .. zeek:see:: mime_end_mail mime_begin_entity mime_end_entity
+##
+## .. note:: Signals mime_begin_entity and mime_end_entity will be generated
+##           for all entities contained in the mail before the corresponding
+##           mime_end_mail signal is generated.
+event mime_begin_mail%(c: connection%);
+
+## Generated when done pasring an email that could contain MIME entities.
+## MIME is a protocol-independent data format for encoding text and files, along with
+## corresponding metadata, for transmission. Zeek raises this event when it
+## is done parsing a MIME mail extracted from an email protocol.
+##
+## Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
+## `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+## about MIME.
+##
+## c: The connection.
+##
+## .. zeek:see:: mime_end_mail mime_begin_entity mime_end_entity
+event mime_end_mail%(c: connection%);
+
 ## Generated for individual MIME headers extracted from email MIME
 ## entities.  MIME is a protocol-independent data format for encoding text and
 ## files, along with corresponding metadata, for transmission.
@@ -194,4 +226,3 @@ event mime_event%(c: connection, event_type: string, detail: string%);
 ## .. note:: While Zeek also decodes MIME entities extracted from HTTP
 ##    sessions, there's no corresponding event for that currently.
 event mime_content_hash%(c: connection, content_len: count, hash_value: string%);
-

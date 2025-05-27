@@ -1008,6 +1008,7 @@ if (NOT DISABLE_SPICY)
             set(Python3_EXECUTABLE ${Python_EXECUTABLE} CACHE STRING "Python3_EXECUTABLE hint")
         endif ()
 
+        set(SPICY_ENABLE_TESTS OFF)
         add_subdirectory(auxil/spicy)
         include(ConfigureSpicyBuild) # set some options different for building Spicy
 

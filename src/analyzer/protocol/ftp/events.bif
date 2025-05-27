@@ -33,3 +33,9 @@ event ftp_request%(c: connection, command: string, arg: string%);
 ##    parse_ftp_epsv parse_ftp_pasv parse_ftp_port
 event ftp_reply%(c: connection, code: count, msg: string, cont_resp: bool%);
 
+## Generated if an FTP connection switched to TLS using AUTH TLS. After this
+## event no more FTP events will be raised for the connection. See the SSL
+## analyzer for related SSL events, which will now be generated.
+##
+## c: The connection.
+event ftp_starttls%(c: connection%);

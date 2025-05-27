@@ -1,3 +1,10 @@
+8.0.0-dev.229 | 2025-05-27 17:46:35 +0100
+
+  * Add explicit TLS support for FTP (Johanna Amann, Corelight)
+
+    This is defined in RFC 4217; TLS is initialized by the client sending an
+    `AUTH TLS` command.
+
 8.0.0-dev.227 | 2025-05-27 10:18:49 -0400
 
   * spicy-redis: Separate error replies from success (Evan Typanski, Corelight)

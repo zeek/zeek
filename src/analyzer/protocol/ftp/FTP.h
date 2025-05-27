@@ -24,6 +24,7 @@ protected:
     analyzer::login::NVT_Analyzer* nvt_resp;
     uint32_t pending_reply;     // code associated with multi-line reply, or 0
     std::string auth_requested; // AUTH method requested
+    bool tls_active = false;    // starttls active
 };
 
 /**

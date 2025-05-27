@@ -207,6 +207,35 @@ export {
 	## item: The intel item that should be inserted.
 	global filter_item: hook(item: Intel::Item);
 
+	## This hook is invoked when a new indicator has been inserted into
+	## the min data store for the first time.
+	##
+	## Calls to :zeek:see:`Intel::seen` with a matching indicator value
+	## and type will result in matches.
+	##
+	## Subsequent inserts of the same indicator type and value do not
+	## invoke this hook. Breaking from this hook has no effect.
+	##
+	## indicator: The indicator value.
+	##
+	## indicator_type: The indicator type.
+	##
+	## .. zeek::see:: Intel::indicator_removed
+	global indicator_inserted: hook(indicator: string, indiator_type: Type);
+
+	## This hook is invoked when an indicator has been removed from
+	## the min data store.
+	##
+	## After this hooks runs, :zeek:see:`Intel::seen` for the indicator
+	## will not return any matches. Breaking from this hook has no effect.
+	##
+	## indicator: The indicator value.
+	##
+	## indicator_type: The indicator type.
+	##
+	## .. zeek::see:: Intel::indicator_inserted
+	global indicator_removed: hook(indicator: string, indiator_type: Type);
+
 	global log_intel: event(rec: Info);
 }
 
@@ -507,18 +536,44 @@ function _insert(item: Item, first_dispatch: bool &default = T)
 	# All intelligence is case insensitive at the moment.
 	local lower_indicator = to_lower(item$indicator);
 
+	# Track if the indicator was inserted into the min_data_store.
+	# It's tempting to just use is_new above, but it seems that only works
+	# correctly on a worker if the manager never spuriously sends a
+	# Intel::insert_item(), so better to determine this locally based
+	# on the actual contents of the min_data_store.
+	local inserted = F;
+	local inserted_value = "";
+
 	# Insert indicator into MinDataStore (might exist already).
 	switch ( item$indicator_type )
 		{
 		case ADDR:
 			local host = to_addr(item$indicator);
+			if ( host !in min_data_store$host_data )
+				{
+				inserted = T;
+				inserted_value = cat(host);
+				}
+
 			add min_data_store$host_data[host];
 			break;
 		case SUBNET:
 			local net = to_subnet(item$indicator);
+			if ( net !in min_data_store$subnet_data )
+				{
+				inserted = T;
+				inserted_value = cat(net);
+				}
+
 			add min_data_store$subnet_data[net];
 			break;
 		default:
+			if ( [lower_indicator, item$indicator_type] !in min_data_store$string_data )
+				{
+				inserted = T;
+				inserted_value = lower_indicator;
+				}
+
 			add min_data_store$string_data[lower_indicator, item$indicator_type];
 			break;
 		}
@@ -533,6 +588,9 @@ function _insert(item: Item, first_dispatch: bool &default = T)
 		# Announce a (possibly) new item if this is the first dispatch and
 		# we know it is new or have to assume that on a worker.
 		event Intel::new_item(item);
+
+	if ( inserted )
+		hook Intel::indicator_inserted(inserted_value, item$indicator_type);
 	}
 
 function insert(item: Item)
@@ -632,18 +690,43 @@ function remove(item: Item, purge_indicator: bool)
 # Handling of indicator removal in minimal data stores.
 event remove_indicator(item: Item)
 	{
+	local removed = F;
+	local removed_value = "";
+
 	switch ( item$indicator_type )
 		{
 		case ADDR:
 			local host = to_addr(item$indicator);
+			if ( host in min_data_store$host_data )
+				{
+				removed = T;
+				removed_value = cat(host);
+				}
+
 			delete min_data_store$host_data[host];
 			break;
 		case SUBNET:
 			local net = to_subnet(item$indicator);
+			if ( net in min_data_store$subnet_data )
+				{
+				removed = T;
+				removed_value = cat(net);
+				}
+
 			delete min_data_store$subnet_data[net];
 			break;
 		default:
-			delete min_data_store$string_data[to_lower(item$indicator), item$indicator_type];
+			local indicator_value = to_lower(item$indicator);
+			if ( [indicator_value, item$indicator_type] in min_data_store$string_data )
+				{
+				removed = T;
+				removed_value = indicator_value;
+				}
+
+			delete min_data_store$string_data[indicator_value, item$indicator_type];
 			break;
 		}
+
+	if ( removed )
+		hook Intel::indicator_removed(removed_value, item$indicator_type);
 	}

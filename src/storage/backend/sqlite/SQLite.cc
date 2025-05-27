@@ -139,6 +139,8 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
     }
 
+    sqlite3_free(errorMsg);
+
     // Create a table for controlling expiration contention. The ukey column here ensures that only
     // one row exists for this backend's table.
     cmd = util::fmt("create table if not exists zeek_expire_ctrl (ukey primary key, last_run double);");
@@ -149,6 +151,8 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         Close(nullptr);
         return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
     }
+
+    sqlite3_free(errorMsg);
 
     // Attempt to insert an initial value into the table if this is the first run with
     // this file. This may result in a SQLITE_CONSTRAINT if the row already exists. That's
@@ -163,6 +167,8 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         Close(nullptr);
         return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
     }
+
+    sqlite3_free(errorMsg);
 
     static std::array<std::string, 7> statements =
         {util::fmt("insert into %s (key_str, value_str, expire_time) values(?, ?, ?)", table_name.c_str()),
@@ -337,6 +343,8 @@ void SQLite::DoExpire(double current_network_time) {
     status = SQLITE_BUSY;
     while ( status == SQLITE_BUSY ) {
         status = sqlite3_exec(db, "begin exclusive transaction", nullptr, nullptr, &errMsg);
+        sqlite3_free(errMsg);
+
         if ( status == SQLITE_OK )
             break;
         else if ( status == SQLITE_BUSY )
@@ -363,6 +371,7 @@ void SQLite::DoExpire(double current_network_time) {
                 if ( current_network_time > 0 &&
                      (current_network_time - last_run) < zeek::BifConst::Storage::expire_interval ) {
                     sqlite3_exec(db, "rollback TRANSACTION", nullptr, nullptr, &errMsg);
+                    sqlite3_free(errMsg);
                     return;
                 }
             }
@@ -383,8 +392,10 @@ void SQLite::DoExpire(double current_network_time) {
                 util::fmt("Error preparing statement to update expiration control time: %s", sqlite3_errmsg(db));
             DBG_LOG(DBG_STORAGE, "%s", err.c_str());
             Error(err.c_str());
+            sqlite3_free(errMsg);
 
             sqlite3_exec(db, "rollback transaction", nullptr, nullptr, &errMsg);
+            sqlite3_free(errMsg);
             return;
         }
 
@@ -393,8 +404,10 @@ void SQLite::DoExpire(double current_network_time) {
             std::string err = util::fmt("Error updating expiration control time: %s", errMsg);
             DBG_LOG(DBG_STORAGE, "%s", err.c_str());
             Error(err.c_str());
+            sqlite3_free(errMsg);
 
             sqlite3_exec(db, "rollback transaction", nullptr, nullptr, &errMsg);
+            sqlite3_free(errMsg);
             return;
         }
     }
@@ -407,8 +420,10 @@ void SQLite::DoExpire(double current_network_time) {
         std::string err = util::fmt("Error preparing statement to expire elements: %s", sqlite3_errmsg(db));
         DBG_LOG(DBG_STORAGE, "%s", err.c_str());
         Error(err.c_str());
+        sqlite3_free(errMsg);
 
         sqlite3_exec(db, "rollback transaction", nullptr, nullptr, &errMsg);
+        sqlite3_free(errMsg);
         return;
     }
 
@@ -420,6 +435,7 @@ void SQLite::DoExpire(double current_network_time) {
     }
 
     sqlite3_exec(db, "commit transaction", nullptr, nullptr, &errMsg);
+    sqlite3_free(errMsg);
 }
 
 // returns true in case of error

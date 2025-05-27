@@ -65,6 +65,11 @@ static bool is_ftp_cmd(int len, const char* s) {
 void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig) {
     analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(length, data, orig);
 
+    if ( tls_active ) {
+        ForwardStream(length, data, orig);
+        return;
+    }
+
     if ( (orig && ! ftp_request) || (! orig && ! ftp_reply) )
         return;
 
@@ -172,6 +177,17 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig) {
             }
         }
 
+        if ( reply_code == 234 && auth_requested.size() > 0 && auth_requested == "TLS" ) {
+            EnqueueConnEvent(ftp_starttls, ConnVal());
+            Analyzer* ssl = analyzer_mgr->InstantiateAnalyzer("SSL", Conn());
+            if ( ssl ) {
+                AddChildAnalyzer(ssl);
+                RemoveSupportAnalyzer(nvt_orig);
+                RemoveSupportAnalyzer(nvt_resp);
+                tls_active = true;
+            }
+        }
+
         if ( reply_code == 334 && auth_requested.size() > 0 && auth_requested == "GSSAPI" ) {
             // Server wants to proceed with an ADAT exchange and we
             // know how to analyze the GSI mechanism, so attach analyzer
@@ -192,7 +208,8 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig) {
 
     EnqueueConnEvent(f, std::move(vl));
 
-    ForwardStream(length, data, orig);
+    if ( ! tls_active )
+        ForwardStream(length, data, orig);
 }
 
 void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {

@@ -3,9 +3,12 @@
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
-#path	analyzer
+#path	analyzer_debug
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	cause	analyzer_kind	analyzer_name	uid	fuid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	failure_reason	failure_data
 #types	time	string	string	string	string	string	addr	port	addr	port	string	string
+XXXXXXXXXX.XXXXXX	confirmation	protocol	SOCKS	ClEkJM2Vm5giqnMf4h	-	10.0.0.55	53994	60.190.189.214	8124	-	-
+XXXXXXXXXX.XXXXXX	confirmation	protocol	HTTP	ClEkJM2Vm5giqnMf4h	-	10.0.0.55	53994	60.190.189.214	8124	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	DCE_RPC	ClEkJM2Vm5giqnMf4h	-	10.0.0.55	53994	60.190.189.214	8124	Binpac exception: binpac exception: out_of_bound: DCE_RPC_PDU:frag: -2665 > 31	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	DCE_RPC	ClEkJM2Vm5giqnMf4h	-	10.0.0.55	53994	60.190.189.214	8124	-	-
 #close XXXX-XX-XX-XX-XX-XX

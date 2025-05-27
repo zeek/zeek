@@ -6,7 +6,6 @@
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff ldap.log
-# @TEST-EXEC: ! test -f dpd.log
 # @TEST-EXEC: ! test -f analyzer.log
 #
 # @TEST-DOC: Testing OpenLDAP's ldapwhoami utility with simple authentication.

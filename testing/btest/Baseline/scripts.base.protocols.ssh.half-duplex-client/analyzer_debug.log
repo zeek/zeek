@@ -3,28 +3,48 @@
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
-#path	analyzer
+#path	analyzer_debug
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	cause	analyzer_kind	analyzer_name	uid	fuid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	failure_reason	failure_data
 #types	time	string	string	string	string	string	addr	port	addr	port	string	string
 XXXXXXXXXX.XXXXXX	violation	protocol	SSH	CHhAvVGS1DHFjwGM9	-	192.168.1.79	51880	131.159.21.1	22	Binpac exception: binpac exception: invalid index for case: SSH_Key_Exchange: 3	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	SSH	CHhAvVGS1DHFjwGM9	-	192.168.1.79	51880	131.159.21.1	22	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	SSH	C4J4Th3PJpwUYZZ6gc	-	192.168.2.1	57189	192.168.2.158	22	Binpac exception: binpac exception: invalid index for case: SSH_Key_Exchange: 3	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	SSH	C4J4Th3PJpwUYZZ6gc	-	192.168.2.1	57189	192.168.2.158	22	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	SSH	CUM0KZ3MLUfNB0cl11	-	192.168.2.1	57191	192.168.2.158	22	Binpac exception: binpac exception: invalid index for case: SSH_Key_Exchange: 3	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	SSH	CUM0KZ3MLUfNB0cl11	-	192.168.2.1	57191	192.168.2.158	22	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	SSH	CmES5u32sYpV7JYN	-	192.168.2.1	56594	192.168.2.158	22	Binpac exception: binpac exception: invalid index for case: SSH_Key_Exchange: 3	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	SSH	CmES5u32sYpV7JYN	-	192.168.2.1	56594	192.168.2.158	22	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	SSH	C37jN32gN3y3AZzyf6	-	192.168.2.1	56821	192.168.2.158	22	Binpac exception: binpac exception: invalid index for case: SSH_Key_Exchange: 3	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	SSH	C37jN32gN3y3AZzyf6	-	192.168.2.1	56821	192.168.2.158	22	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	SSH	C3eiCBGOLw3VtHfOj	-	192.168.2.1	56837	192.168.2.158	22	Binpac exception: binpac exception: invalid index for case: SSH_Key_Exchange: 3	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	SSH	C3eiCBGOLw3VtHfOj	-	192.168.2.1	56837	192.168.2.158	22	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	SSH	CwjjYJ2WqgTbAqiHl6	-	192.168.2.1	56845	192.168.2.158	22	Binpac exception: binpac exception: invalid index for case: SSH_Key_Exchange: 3	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	SSH	CwjjYJ2WqgTbAqiHl6	-	192.168.2.1	56845	192.168.2.158	22	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	SSH	C0LAHyvtKSQHyJxIl	-	192.168.2.1	56875	192.168.2.158	22	Binpac exception: binpac exception: invalid index for case: SSH_Key_Exchange: 3	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	SSH	C0LAHyvtKSQHyJxIl	-	192.168.2.1	56875	192.168.2.158	22	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	SSH	C9rXSW3KSpTYvPrlI1	-	192.168.2.1	56878	192.168.2.158	22	Binpac exception: binpac exception: invalid index for case: SSH_Key_Exchange: 3	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	SSH	C9rXSW3KSpTYvPrlI1	-	192.168.2.1	56878	192.168.2.158	22	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	SSH	Ck51lg1bScffFj34Ri	-	192.168.2.1	56940	192.168.2.158	22	Binpac exception: binpac exception: invalid index for case: SSH_Key_Exchange: 3	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	SSH	Ck51lg1bScffFj34Ri	-	192.168.2.1	56940	192.168.2.158	22	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	SSH	C9mvWx3ezztgzcexV7	-	192.168.2.1	57831	192.168.2.158	22	Binpac exception: binpac exception: invalid index for case: SSH_Key_Exchange: 3	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	SSH	C9mvWx3ezztgzcexV7	-	192.168.2.1	57831	192.168.2.158	22	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	SSH	CNnMIj2QSd84NKf7U3	-	192.168.2.1	59246	192.168.2.158	22	Binpac exception: binpac exception: invalid index for case: SSH_Key_Exchange: 3	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	SSH	CNnMIj2QSd84NKf7U3	-	192.168.2.1	59246	192.168.2.158	22	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	SSH	C7fIlMZDuRiqjpYbb	-	192.168.1.32	41164	128.2.10.238	22	Binpac exception: binpac exception: invalid index for case: SSH_Key_Exchange: 3	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	SSH	C7fIlMZDuRiqjpYbb	-	192.168.1.32	41164	128.2.10.238	22	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	SSH	CtxTCR2Yer0FR1tIBg	-	192.168.1.32	33910	128.2.13.133	22	Binpac exception: binpac exception: invalid index for case: SSH_Key_Exchange: 3	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	SSH	CtxTCR2Yer0FR1tIBg	-	192.168.1.32	33910	128.2.13.133	22	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	SSH	CpmdRlaUoJLN3uIRa	-	192.168.1.32	41268	128.2.10.238	22	Binpac exception: binpac exception: invalid index for case: SSH_Key_Exchange: 3	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	SSH	CpmdRlaUoJLN3uIRa	-	192.168.1.32	41268	128.2.10.238	22	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	SSH	C1Xkzz2MaGtLrc1Tla	-	192.168.1.31	52294	192.168.1.32	22	Binpac exception: binpac exception: invalid index for case: SSH_Key_Exchange: 3	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	SSH	C1Xkzz2MaGtLrc1Tla	-	192.168.1.31	52294	192.168.1.32	22	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	SSH	CqlVyW1YwZ15RhTBc4	-	192.168.1.31	51489	192.168.1.32	22	Binpac exception: binpac exception: invalid index for case: SSH_Key_Exchange: 3	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	SSH	CqlVyW1YwZ15RhTBc4	-	192.168.1.31	51489	192.168.1.32	22	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	SSH	CLNN1k2QMum1aexUK7	-	192.168.1.32	58641	131.103.20.168	22	Binpac exception: binpac exception: invalid index for case: SSH_Key_Exchange: 3	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	SSH	CLNN1k2QMum1aexUK7	-	192.168.1.32	58641	131.103.20.168	22	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	SSH	CBA8792iHmnhPLksKa	-	192.168.1.32	58646	131.103.20.168	22	Binpac exception: binpac exception: invalid index for case: SSH_Key_Exchange: 3	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	SSH	CBA8792iHmnhPLksKa	-	192.168.1.32	58646	131.103.20.168	22	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	SSH	CGLPPc35OzDQij1XX8	-	192.168.1.32	58649	131.103.20.168	22	Binpac exception: binpac exception: invalid index for case: SSH_Key_Exchange: 3	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	SSH	CGLPPc35OzDQij1XX8	-	192.168.1.32	58649	131.103.20.168	22	-	-
 #close XXXX-XX-XX-XX-XX-XX

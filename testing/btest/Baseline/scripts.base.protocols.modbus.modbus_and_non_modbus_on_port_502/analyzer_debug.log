@@ -3,13 +3,21 @@
 #set_separator	,
 #empty_field	(empty)
 #unset_field	-
-#path	analyzer
+#path	analyzer_debug
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	cause	analyzer_kind	analyzer_name	uid	fuid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	failure_reason	failure_data
 #types	time	string	string	string	string	string	addr	port	addr	port	string	string
+XXXXXXXXXX.XXXXXX	confirmation	protocol	MODBUS	CHhAvVGS1DHFjwGM9	-	10.0.0.9	3082	10.0.0.3	502	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	MODBUS	ClEkJM2Vm5giqnMf4h	-	87.236.176.106	38129	192.168.10.111	502	Binpac exception: binpac exception: &enforce violation : ModbusTCP_TransportHeader:pid	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	MODBUS	ClEkJM2Vm5giqnMf4h	-	87.236.176.106	38129	192.168.10.111	502	-	-
+XXXXXXXXXX.XXXXXX	confirmation	protocol	DCE_RPC	ClEkJM2Vm5giqnMf4h	-	87.236.176.106	38129	192.168.10.111	502	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	MODBUS	C4J4Th3PJpwUYZZ6gc	-	87.236.176.96	60175	192.168.10.111	502	Binpac exception: binpac exception: &enforce violation : ModbusTCP_TransportHeader:pid	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	MODBUS	C4J4Th3PJpwUYZZ6gc	-	87.236.176.96	60175	192.168.10.111	502	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	MODBUS	CtPZjS20MLrsMUOJi2	-	66.175.213.4	58380	192.168.10.111	502	Binpac exception: binpac exception: &enforce violation : ModbusTCP_TransportHeader:pid	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	MODBUS	CtPZjS20MLrsMUOJi2	-	66.175.213.4	58380	192.168.10.111	502	-	-
+XXXXXXXXXX.XXXXXX	confirmation	protocol	SSL	CtPZjS20MLrsMUOJi2	-	66.175.213.4	58380	192.168.10.111	502	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	MODBUS	CP5puj4I8PtEU4qzYg	-	159.203.208.13	33752	192.168.10.113	502	Binpac exception: binpac exception: &enforce violation : ModbusTCP_TransportHeader:pid	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	MODBUS	CP5puj4I8PtEU4qzYg	-	159.203.208.13	33752	192.168.10.113	502	-	-
 XXXXXXXXXX.XXXXXX	violation	protocol	MODBUS	C37jN32gN3y3AZzyf6	-	62.122.184.123	7488	192.168.10.111	502	Binpac exception: binpac exception: &enforce violation : ModbusTCP_TransportHeader:pid	-
+XXXXXXXXXX.XXXXXX	disabled	protocol	MODBUS	C37jN32gN3y3AZzyf6	-	62.122.184.123	7488	192.168.10.111	502	-	-
 #close XXXX-XX-XX-XX-XX-XX

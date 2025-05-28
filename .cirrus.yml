@@ -68,13 +68,13 @@ skip_task_on_pr: &SKIP_TASK_ON_PR
   # Skip this task on PRs if it does not have the CI: Full label,
   # it continues to run for direct pushes to master/release.
   skip: >
-    ! ( $CIRRUS_PR == '' || $CIRRUS_PR_LABELS =~ '.*CI: Full.*' )
+    ( ! ($CIRRUS_PR == '' || $CIRRUS_PR_LABELS =~ '.*CI: Full.*') || $CIRRUS_PR_LABELS =~ '.*CI: Skip All' )
 
 skip_cluster_test_on_pr: &SKIP_CLUSTER_TEST_ON_PR
   # Skip this task on PRs if it does not have the CI: Full label,
   # it continues to run for direct pushes to master/release.
   skip: >
-    ! ( $CIRRUS_PR == '' || $CIRRUS_PR_LABELS =~ '.*CI: (Full|Cluster Test).*')
+    ( ! ($CIRRUS_PR == '' || $CIRRUS_PR_LABELS =~ '.*CI: (Full|Cluster Test).*') || $CIRRUS_PR_LABELS =~ '.*CI: Skip All' )
 
 zam_skip_task_on_pr: &ZAM_SKIP_TASK_ON_PR
   # Skip this task on PRs unless it has the "CI: Full" or "CI: ZAM" label
@@ -82,7 +82,7 @@ zam_skip_task_on_pr: &ZAM_SKIP_TASK_ON_PR
   # It continues to run for direct pushes to master/release, as
   # CIRRUS_PR will be empty.
   skip: >
-    ! ( $CIRRUS_PR == '' || $CIRRUS_PR_LABELS =~ '.*CI: (Full|ZAM).*' || changesInclude('src/script_opt/**') )
+    ( ! ($CIRRUS_PR == '' || $CIRRUS_PR_LABELS =~ '.*CI: (Full|ZAM).*' || changesInclude('src/script_opt/**')) || $CIRRUS_PR_LABELS =~ '.*CI: Skip All' )
 
 benchmark_only_if_template: &BENCHMARK_ONLY_IF_TEMPLATE
   # only_if condition for cron-triggered benchmarking tests.
@@ -135,6 +135,10 @@ ci_template: &CI_TEMPLATE
     ccache_prune_script:
       # Evit some of the cached build artifacts not used in this build.
       CCACHE_MAXSIZE=${ZEEK_CCACHE_PRUNE_SIZE} ccache -c
+
+  # Always skip all tasks on a PR if the "CI: Skip All" label is applied.
+  skip: >
+    $CIRRUS_PR != '' && $CIRRUS_PR_LABELS =~ '.*CI: Skip All.*'
 
 env:
   CIRRUS_WORKING_DIR: /zeek
@@ -532,6 +536,8 @@ windows_task:
     # Give verbose error output on a test failure.
     CTEST_OUTPUT_ON_FAILURE: 1
   << : *BUILDS_ONLY_IF_TEMPLATE
+  skip: >
+    $CIRRUS_PR != '' && $CIRRUS_PR_LABELS =~ '.*CI: Skip All.*'
 
 
 # Container images

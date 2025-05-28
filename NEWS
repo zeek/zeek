@@ -72,6 +72,10 @@ Changed Functionality
 Removed Functionality
 ---------------------
 
+- The ``--with-bind`` argument for ``configure`` was removed. We removed the need for the
+  BIND library from our CMake setup in the v7.2 release, but this non-functional argument
+  was left behind.
+
 Deprecated Functionality
 ------------------------
 

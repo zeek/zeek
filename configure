@@ -92,7 +92,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
   Required Packages in Non-Standard Locations:
     --with-bifcl=PATH      path to Zeek BIF compiler executable
                            (useful for cross-compiling)
-    --with-bind=PATH       path to BIND install root
     --with-binpac=PATH     path to BinPAC executable
                            (useful for cross-compiling)
     --with-bison=PATH      path to bison executable

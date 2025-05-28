@@ -5,7 +5,7 @@ SHELL [ "powershell" ]
 
 # A version field to invalidatea Cirrus's build cache when needed, as suggested in
 # https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION 20230801
+ENV DOCKERFILE_VERSION 20250528
 
 RUN Set-ExecutionPolicy Unrestricted -Force
 
@@ -14,8 +14,8 @@ RUN [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePoin
     iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
 # Install prerequisites
-RUN choco install -y --no-progress visualstudio2019buildtools --version=16.11.11.0
-RUN choco install -y --no-progress visualstudio2019-workload-vctools --version=1.0.0 --package-parameters '--add Microsoft.VisualStudio.Component.VC.ATLMFC'
+RUN choco install -y --no-progress visualstudio2022buildtools --version=117.14.1
+RUN choco install -y --no-progress visualstudio2022-workload-vctools --version=1.0.0 --package-parameters '--add Microsoft.VisualStudio.Component.VC.ATLMFC'
 RUN choco install -y --no-progress sed
 RUN choco install -y --no-progress winflexbison3
 RUN choco install -y --no-progress msysgit
@@ -30,4 +30,4 @@ RUN mkdir C:\build
 WORKDIR C:\build
 
 # This entry point starts the developer command prompt and launches the PowerShell shell.
-ENTRYPOINT ["C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\Common7\\Tools\\VsDevCmd.bat", "-arch=x64", "&&", "powershell.exe", "-NoLogo", "-ExecutionPolicy", "Unrestricted"]
+ENTRYPOINT ["C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\Tools\\VsDevCmd.bat", "-arch=x64", "&&", "powershell.exe", "-NoLogo", "-ExecutionPolicy", "Unrestricted"]

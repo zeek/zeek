@@ -20,18 +20,51 @@ export {
 	};
 
 	redef record State += {
+		## Track the number of MIME encoded files in the
+		## current transaction
+		mail_depth: count &default=0;
 		## Track the number of MIME encoded files transferred
 		## during a session.
 		mime_depth: count &default=0;
+		## The fuid of the parent mail.
+		mail_fuid: string &default="";
 	};
+
+	type EntityInfo: record {
+		mail_depth: count;
+		trans_depth: count;
+	};
+
+	redef record fa_file += {
+		smtp: SMTP::EntityInfo &optional;
+	};
+
+	## Helper function to test if a file is a whole mail message.
+	global is_mime_mail: function(f: fa_file): bool;
 }
+
+function is_mime_mail(f: fa_file): bool
+	{
+	return MIME::mime_mail_as_file && f$source == "SMTP" && f$smtp$mail_depth == 0;
+	}
+
+event mime_begin_mail(c: connection) &priority=10
+	{
+	if ( c?$smtp_state )
+		{
+		c$smtp_state$mail_depth = 0;
+		}
+	}
 
 event mime_begin_entity(c: connection) &priority=10
 	{
 	if ( c?$smtp )
 		c$smtp$entity = Entity();
 	if ( c?$smtp_state )
+		{
+		++c$smtp_state$mail_depth;
 		++c$smtp_state$mime_depth;
+		}
 	}
 
 event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5
@@ -41,6 +74,14 @@ event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priori
 		if ( c$smtp?$entity && c$smtp$entity?$filename )
 			f$info$filename = c$smtp$entity$filename;
 		f$info$depth = c$smtp_state$mime_depth;
+		f$smtp = SMTP::EntityInfo(
+			$mail_depth=c$smtp_state$mail_depth,
+			$trans_depth=c$smtp$trans_depth,
+		);
+		if ( is_mime_mail(f) )
+			c$smtp_state$mail_fuid = f$id;
+		else if ( c$smtp_state$mail_fuid != "" )
+			f$parent_id = c$smtp_state$mail_fuid;
 		}
 	}
 

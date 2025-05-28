@@ -70,6 +70,12 @@ skip_task_on_pr: &SKIP_TASK_ON_PR
   skip: >
     ! ( $CIRRUS_PR == '' || $CIRRUS_PR_LABELS =~ '.*CI: Full.*' )
 
+skip_cluster_test_on_pr: &SKIP_CLUSTER_TEST_ON_PR
+  # Skip this task on PRs if it does not have the CI: Full label,
+  # it continues to run for direct pushes to master/release.
+  skip: >
+    ! ( $CIRRUS_PR == '' || $CIRRUS_PR_LABELS =~ '.*CI: (Full|Cluster Test).*')
+
 zam_skip_task_on_pr: &ZAM_SKIP_TASK_ON_PR
   # Skip this task on PRs unless it has the "CI: Full" or "CI: ZAM" label
   # or files in src/script_opt/** were modified.
@@ -612,7 +618,7 @@ amd64_container_image_docker_builder:
   env:
     CIRRUS_ARCH: amd64
   << : *DOCKER_BUILD_TEMPLATE
-  << : *SKIP_TASK_ON_PR
+  << : *SKIP_CLUSTER_TEST_ON_PR
 
 container_image_manifest_docker_builder:
   cpu: 1
@@ -741,7 +747,7 @@ cluster_testing_docker_builder:
       path: "testing/external/zeek-testing-cluster/.tmp/**"
   depends_on:
     - amd64_container_image
-  << : *SKIP_TASK_ON_PR
+  << : *SKIP_CLUSTER_TEST_ON_PR
 
 
 # Test zeekctl upon master and release pushes and also when

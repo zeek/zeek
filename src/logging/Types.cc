@@ -8,8 +8,6 @@
 
 namespace zeek::logging::detail {
 
-LogWriteHeader::LogWriteHeader() = default;
-
 LogWriteHeader::LogWriteHeader(EnumValPtr arg_stream_id, EnumValPtr arg_writer_id, std::string arg_filter_name,
                                std::string arg_path)
     : stream_id(std::move(arg_stream_id)),
@@ -19,10 +17,6 @@ LogWriteHeader::LogWriteHeader(EnumValPtr arg_stream_id, EnumValPtr arg_writer_i
     stream_name = obj_desc_short(stream_id.get());
     writer_name = obj_desc_short(writer_id.get());
 }
-
-LogWriteHeader& LogWriteHeader::operator=(const LogWriteHeader& other) = default;
-
-LogWriteHeader::~LogWriteHeader() = default;
 
 bool LogWriteHeader::PopulateEnumVals() {
     static const auto& stream_id_type = zeek::id::find_type<zeek::EnumType>("Log::ID");

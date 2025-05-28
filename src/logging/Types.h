@@ -40,7 +40,7 @@ struct LogWriteHeader {
     /**
      * Default constructor.
      */
-    LogWriteHeader();
+    LogWriteHeader() = default;
 
     /**
      * Constructor that populates stream_name and writer_name.
@@ -55,12 +55,22 @@ struct LogWriteHeader {
     /**
      * Assignment operator.
      */
-    LogWriteHeader& operator=(const LogWriteHeader& other);
+    LogWriteHeader& operator=(const LogWriteHeader& other) = default;
 
     /**
      * Destructor.
      */
-    ~LogWriteHeader();
+    ~LogWriteHeader() = default;
+
+    /**
+     * Copy constructor.
+     */
+    LogWriteHeader(const LogWriteHeader& other) = default;
+
+    /**
+     * Move constructor.
+     */
+    LogWriteHeader(LogWriteHeader&& other) noexcept = default;
 
     /**
      * Helper to populate stream_id and writer_id after the

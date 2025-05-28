@@ -19,6 +19,7 @@ Key::Key(Key&& rhs) noexcept {
     data = rhs.data;
     size = rhs.size;
     copied = rhs.copied;
+    type = rhs.type;
 
     rhs.data = nullptr;
     rhs.size = 0;
@@ -30,6 +31,7 @@ Key& Key::operator=(Key&& rhs) noexcept {
         data = rhs.data;
         size = rhs.size;
         copied = rhs.copied;
+        type = rhs.type;
 
         rhs.data = nullptr;
         rhs.size = 0;

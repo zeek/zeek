@@ -19,15 +19,18 @@
 
    :Type: :zeek:type:`record`
 
-      field_func: :zeek:type:`function` (i: :zeek:type:`int`, j: :zeek:type:`int`) : :zeek:type:`string`
-         This is a record field function.
-         
 
-         :param i: First param.
+   .. zeek:field:: field_func :zeek:type:`function` (i: :zeek:type:`int`, j: :zeek:type:`int`) : :zeek:type:`string`
 
-         :param j: Second param.
-         
+      This is a record field function.
+      
 
-         :returns: A string.
+      :param i: First param.
+
+      :param j: Second param.
+      
+
+      :returns: A string.
+
 
 

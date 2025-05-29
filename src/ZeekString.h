@@ -91,6 +91,17 @@ public:
      */
     std::pair<const char*, size_t> CheckStringWithSize() const;
 
+    /**
+     * Returns the string data as a std::string. This makes a copy of the
+     * string data.
+     */
+    std::string ToStdString() const;
+
+    /**
+     * Returns the string data as a std::string_view.
+     */
+    std::string_view ToStdStringView() const;
+
     enum render_style {
         ESC_NONE = 0,
         ESC_ESC = (1 << 1),  // '\' -> "\\"

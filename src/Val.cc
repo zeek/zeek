@@ -782,11 +782,9 @@ const char* StringVal::CheckString() const { return string_val->CheckString(); }
 
 std::pair<const char*, size_t> StringVal::CheckStringWithSize() const { return string_val->CheckStringWithSize(); }
 
-string StringVal::ToStdString() const { return {(char*)string_val->Bytes(), static_cast<size_t>(string_val->Len())}; }
+string StringVal::ToStdString() const { return string_val->ToStdString(); }
 
-string_view StringVal::ToStdStringView() const {
-    return {(char*)string_val->Bytes(), static_cast<size_t>(string_val->Len())};
-}
+string_view StringVal::ToStdStringView() const { return string_val->ToStdStringView(); }
 
 StringVal* StringVal::ToUpper() {
     string_val->ToUpper();

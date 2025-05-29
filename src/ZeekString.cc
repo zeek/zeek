@@ -177,6 +177,10 @@ std::pair<const char*, size_t> String::CheckStringWithSize() const {
 
 const char* String::CheckString() const { return CheckStringWithSize().first; }
 
+std::string String::ToStdString() const { return {(char*)Bytes(), static_cast<size_t>(Len())}; }
+
+std::string_view String::ToStdStringView() const { return {(char*)Bytes(), static_cast<size_t>(Len())}; }
+
 char* String::Render(int format, int* len) const {
     // Maximum character expansion is as \xHH, so a factor of 4.
     char* s = new char[n * 4 + 1]; // +1 is for final '\0'

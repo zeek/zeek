@@ -56,7 +56,7 @@ export {
 
 		## A value to represent the depth of this file in relation
 		## to its source.  In SMTP, it is the depth of the MIME
-		## attachment on the message.  In HTTP, it is the depth of the
+		## attachment within the SMTP session.  In HTTP, it is the depth of the
 		## request within the TCP connection.
 		depth: count &default=0 &log;
 

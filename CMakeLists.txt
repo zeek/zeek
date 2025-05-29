@@ -864,8 +864,7 @@ endif ()
 set(PY_MOD_INSTALL_DIR ${py_mod_install_dir} CACHE STRING "Installation path for Python modules"
                                                    FORCE)
 
-if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/auxil/binpac/CMakeLists.txt)
-
+if (NOT BINPAC_EXE_PATH)
     set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
     if (MSVC)
         set(BUILD_STATIC_BINPAC true)
@@ -876,17 +875,20 @@ if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/auxil/binpac/CMakeLists.txt)
     endif ()
 
     add_subdirectory(auxil/binpac)
+    add_executable(Zeek::BinPAC ALIAS binpac)
     set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
 
     # FIXME: avoid hard-coding a path for multi-config generator support. See the
     # TODO in ZeekPluginConfig.cmake.in.
     set(BINPAC_EXE_PATH "${CMAKE_BINARY_DIR}/auxil/binpac/src/binpac${CMAKE_EXECUTABLE_SUFFIX}")
+    set(_binpac_exe_path "included")
+else ()
+    # This has to be called to get the include paths setup correctly.
+    find_package(BinPAC REQUIRED)
+    add_executable(Zeek::BinPAC IMPORTED)
+    set_property(TARGET Zeek::BinPAC PROPERTY IMPORTED_LOCATION "${BINPAC_EXE_PATH}")
+    set(_binpac_exe_path "${BINPAC_EXE_PATH}")
 endif ()
-
-find_package(BinPAC REQUIRED)
-
-# Add an alias (used by our plugin setup).
-add_executable(Zeek::BinPAC ALIAS binpac)
 
 if (NOT BIFCL_EXE_PATH)
     add_subdirectory(auxil/bifcl)
@@ -898,7 +900,7 @@ if (NOT BIFCL_EXE_PATH)
 else ()
     add_executable(Zeek::BifCl IMPORTED)
     set_property(TARGET Zeek::BifCl PROPERTY IMPORTED_LOCATION "${BIFCL_EXE_PATH}")
-    set(_bifcl_exe_path "BIFCL_EXE_PATH")
+    set(_bifcl_exe_path "${BIFCL_EXE_PATH}")
 endif ()
 
 if (NOT GEN_ZAM_EXE_PATH)
@@ -1458,11 +1460,6 @@ if (INSTALL_BTEST_PCAPS)
     set(_install_btest_tools_msg "all")
 else ()
     set(_install_btest_tools_msg "no pcaps")
-endif ()
-
-set(_binpac_exe_path "included")
-if (BINPAC_EXE_PATH)
-    set(_binpac_exe_path ${BINPAC_EXE_PATH})
 endif ()
 
 set(_gen_zam_exe_path "included")

@@ -246,6 +246,10 @@ OperationResult Redis::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     StringValPtr host = backend_options->GetField<StringVal>("server_host");
     if ( host ) {
         PortValPtr port = backend_options->GetField<PortVal>("server_port");
+        if ( ! port )
+            return {ReturnCode::CONNECTION_FAILED,
+                    "server_port must be set if server_host is set in Redis options record"};
+
         server_addr = util::fmt("%s:%d", host->ToStdString().c_str(), port->Port());
         REDIS_OPTIONS_SET_TCP(&opt, host->ToStdStringView().data(), port->Port());
     }

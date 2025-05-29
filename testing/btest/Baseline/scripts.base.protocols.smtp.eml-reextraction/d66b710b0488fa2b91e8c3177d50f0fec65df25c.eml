@@ -1,0 +1,15 @@
+Received: from gras-os-desk.cern.ch (localhost [127.0.0.1])
+	by gras-os-desk.cern.ch (8.14.7/8.14.7) with ESMTP id tB8LU1sU014630;
+	Tue, 8 Dec 2015 22:30:01 +0100
+Received: (from root@localhost)
+	by gras-os-desk.cern.ch (8.14.7/8.14.7/Submit) id tB8LU0vs014629;
+	Tue, 8 Dec 2015 22:30:00 +0100
+Date: Tue, 8 Dec 2015 22:30:00 +0100
+Message-Id: <201512082130.tB8LU0vs014629@gras-os-desk.cern.ch>
+To: "Jan Grashoefer" <jan.grashoefer@gmail.com>,
+        "Test Group":addr-spec@example.com, <angle-addr@example.com>,
+        "Test Member" <name-addr@example.com>;, jan.grashofer@cern.ch
+From: jan.grashoefer@cern.ch (Jan Grashoefer)
+Subject: Testmail
+
+This is a test mail.

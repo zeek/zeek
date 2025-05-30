@@ -5493,10 +5493,16 @@ export {
 		## Timestamps will be formatted as UNIX epoch doubles.  This is
 		## the format that Zeek typically writes out timestamps.
 		TS_EPOCH,
+		## Timestamps will be formatted as signed integers that
+		## represent the number of milliseconds since the UNIX
+		## epoch. Timestamps before the UNIX epoch are represented
+		## as negative values.
+		TS_MILLIS,
 		## Timestamps will be formatted as unsigned integers that
 		## represent the number of milliseconds since the UNIX
-		## epoch.
-		TS_MILLIS,
+		## epoch. Timestamps before the UNIX epoch result in negative
+		## values being interpreted as large unsigned integers.
+		TS_MILLIS_UNSIGNED,
 		## Timestamps will be formatted in the ISO8601 DateTime format.
 		## Subseconds are also included which isn't actually part of the
 		## standard but most consumers that parse ISO8601 seem to be able

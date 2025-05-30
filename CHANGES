@@ -1,3 +1,18 @@
+8.0.0-dev.288 | 2025-05-30 17:24:05 +0200
+
+  * GH-4494: logging/ascii/json: Make TS_MILLIS signed, add TS_MILLIS_UNSIGNED (Arne Welzel, Corelight)
+
+    It seems TS_MILLIS is specifically for Elasticsearch and starting with
+    Elasticsearch 8.2 epoch_millis does (again?) support negative epoch_millis,
+    so make Zeek produce that by default.
+
+    If this breaks a given deployment, they can switch Zeek back to TS_MILLIS_UNSIGNED.
+
+    https://discuss.elastic.co/t/migration-from-es-6-8-to-7-17-issues-with-negative-date-epoch-timestamp/335259
+    https://github.com/elastic/elasticsearch/pull/80208
+
+    Thanks for @timo-mue for reporting!
+
 8.0.0-dev.286 | 2025-05-30 08:12:43 -0700
 
   * Add move operations for LogWriteHeader (Tim Wojtulewicz, Corelight)

@@ -19,10 +19,11 @@ namespace zeek::threading::formatter {
 class JSON : public Formatter {
 public:
     enum TimeFormat {
-        TS_EPOCH,   // Doubles that represents seconds from the UNIX epoch.
-        TS_ISO8601, // ISO 8601 defined human readable timestamp format.
-        TS_MILLIS   // Milliseconds from the UNIX epoch.  Some consumers need this (e.g.,
-                    // elasticsearch).
+        TS_EPOCH,          // Doubles that represents seconds from the UNIX epoch.
+        TS_ISO8601,        // ISO 8601 defined human readable timestamp format.
+        TS_MILLIS,         // Signed milliseconds from the UNIX epoch.  Some consumers need this (e.g.,
+                           // elasticsearch).
+        TS_MILLIS_UNSIGNED // Unsigned milliseconds from the UNIX epoch, overflowing.
     };
 
     JSON(MsgThread* t, TimeFormat tf, bool include_unset_fields = false);

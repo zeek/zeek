@@ -121,7 +121,19 @@ void JSON::BuildJSON(zeek::json::detail::NullDoubleWriter& writer, Value* val, c
 
             else if ( timestamps == TS_MILLIS ) {
                 // ElasticSearch uses milliseconds for timestamps
-                writer.Uint64((uint64_t)(val->val.double_val * 1000));
+                writer.Int64((int64_t)(val->val.double_val * 1000));
+            }
+            else if ( timestamps == TS_MILLIS_UNSIGNED ) {
+                // Without the cast through int64_t the resulting
+                // uint64_t value is zero for negative timestamps
+                // on arm64. This is UB territory, a negative value
+                // cannot be represented in uint64_t and so the
+                // compiler is free to do whatever. Prevent this by
+                // casting through an int64_t.
+                //
+                // https://stackoverflow.com/a/55057221
+                uint64_t v = static_cast<uint64_t>(static_cast<int64_t>(val->val.double_val * 1000));
+                writer.Uint64(v);
             }
 
             break;

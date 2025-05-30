@@ -363,6 +363,8 @@ bool Ascii::InitFormatter() {
             tf = threading::formatter::JSON::TS_EPOCH;
         else if ( strcmp(json_timestamps.c_str(), "JSON::TS_MILLIS") == 0 )
             tf = threading::formatter::JSON::TS_MILLIS;
+        else if ( strcmp(json_timestamps.c_str(), "JSON::TS_MILLIS_UNSIGNED") == 0 )
+            tf = threading::formatter::JSON::TS_MILLIS_UNSIGNED;
         else if ( strcmp(json_timestamps.c_str(), "JSON::TS_ISO8601") == 0 )
             tf = threading::formatter::JSON::TS_ISO8601;
         else {

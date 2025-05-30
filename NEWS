@@ -24,6 +24,17 @@ Breaking Changes
   a small overhead when enabled. There's not enough users of network timestamp
   metadata to justify the complexity of treating it separate.
 
+- The ASCII writer's ``JSON::TS_MILLIS`` timestamp format was changed to produce
+  signed integers. This matters for the representation for timestamps that are
+  before the UNIX epoch. These are now written as negative values, while previously
+  the negative value was interpreted as an unsigned integer, resulting in very large
+  timestamps, potentially causing issues for downstream consumers.
+
+  If you prefer to always have unsigned values, it's possible to revert to the previous
+  behavior by setting:
+
+	redef LogAscii::json_timestamps = JSON::TS_MILLIS_UNSIGNED;
+
 New Functionality
 -----------------
 

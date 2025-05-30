@@ -539,7 +539,7 @@ void Manager::DoInitPostScript() {
         reporter->FatalError("Invalid Broker::web_socket_overflow_policy: %s", web_socket_overflow_policy);
     }
 
-    broker::configuration config{std::move(options)};
+    broker::configuration config{options};
 
     config.openssl_cafile(get_option("Broker::ssl_cafile")->AsString()->CheckString());
     config.openssl_capath(get_option("Broker::ssl_capath")->AsString()->CheckString());
@@ -678,6 +678,7 @@ void Manager::DoTerminate() {
     iosource_mgr->UnregisterFd(bstate->loggerQueue->FlareFd(), this);
 
     vector<string> stores_to_close;
+    stores_to_close.reserve(data_stores.size());
 
     for ( auto& x : data_stores )
         stores_to_close.push_back(x.first);
@@ -910,7 +911,7 @@ bool Manager::PublishIdentifier(std::string topic, std::string id) {
         return false;
     }
 
-    broker::zeek::IdentifierUpdate msg(std::move(id), std::move(data.value_));
+    broker::zeek::IdentifierUpdate msg(std::move(id), data.value_);
     DBG_LOG(DBG_BROKER, "Publishing id-update: %s", RenderMessage(topic, msg.as_data()).c_str());
     bstate->endpoint.publish(std::move(topic), msg.move_data());
     num_ids_outgoing_metric->Inc();
@@ -951,10 +952,9 @@ bool Manager::PublishLogCreate(EnumVal* stream, EnumVal* writer, const logging::
     }
 
     std::string topic = default_log_topic_prefix + stream_id;
-    auto bstream_id = broker::enum_value(std::move(stream_id));
-    auto bwriter_id = broker::enum_value(std::move(writer_id));
-    broker::zeek::LogCreate msg(std::move(bstream_id), std::move(bwriter_id), std::move(writer_info),
-                                std::move(fields_data));
+    auto bstream_id = broker::enum_value(stream_id);
+    auto bwriter_id = broker::enum_value(writer_id);
+    broker::zeek::LogCreate msg(bstream_id, bwriter_id, writer_info, fields_data);
 
     DBG_LOG(DBG_BROKER, "Publishing log creation: %s", RenderMessage(topic, msg.as_data()).c_str());
 
@@ -1028,9 +1028,9 @@ bool Manager::PublishLogWrite(EnumVal* stream, EnumVal* writer, const string& pa
 
     std::string topic = v->AsString()->CheckString();
 
-    auto bstream_id = broker::enum_value(std::move(stream_id));
-    auto bwriter_id = broker::enum_value(std::move(writer_id));
-    broker::zeek::LogWrite msg(std::move(bstream_id), std::move(bwriter_id), std::move(path), std::move(serial_data));
+    auto bstream_id = broker::enum_value(stream_id);
+    auto bwriter_id = broker::enum_value(writer_id);
+    broker::zeek::LogWrite msg(bstream_id, bwriter_id, std::move(path), std::move(serial_data));
 
     DBG_LOG(DBG_BROKER, "Buffering log record: %s", RenderMessage(topic, msg.as_data()).c_str());
 
@@ -1301,8 +1301,7 @@ void Manager::ProcessMessages() {
             // message. Since `topic` still points into the original memory
             // region, we may no longer access it after this point.
             auto topic_str = broker::get_topic_str(message);
-            broker::zeek::visit_as_message([this, topic_str](auto& msg) { ProcessMessage(topic_str, msg); },
-                                           std::move(message));
+            broker::zeek::visit_as_message([this, topic_str](auto& msg) { ProcessMessage(topic_str, msg); }, message);
         } catch ( std::runtime_error& e ) {
             reporter->Warning("ignoring invalid Broker message: %s", +e.what());
             continue;

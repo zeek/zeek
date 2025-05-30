@@ -341,9 +341,12 @@ void CPPCompile::RegisterCompiledBody(const string& f) {
     auto be = body_events.find(f);
     if ( be != body_events.end() )
         for ( const auto& e : be->second ) {
-            if ( events.size() > 0 )
+            if ( ! events.empty() )
                 events += ", ";
-            events = events + "\"" + e + "\"";
+
+            events += "\"";
+            events += e;
+            events += "\"";
         }
 
     events = string("{") + events + "}";

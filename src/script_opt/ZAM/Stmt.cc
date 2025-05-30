@@ -616,7 +616,7 @@ const ZAMStmt ZAMCompiler::TypeSwitch(const SwitchStmt* sw, const NameExpr* v, c
 }
 
 const ZAMStmt ZAMCompiler::CompileWhile(const WhileStmt* ws) {
-    auto loop_condition = ws->Condition();
+    const auto& loop_condition = ws->Condition();
 
     if ( loop_condition->Tag() == EXPR_CONST ) {
         if ( loop_condition->IsZero() )
@@ -1019,7 +1019,7 @@ const ZAMStmt ZAMCompiler::CompileWhen(const WhenStmt* ws) {
     aux->wi = wi;
 
     for ( auto i = 0; i < n; ++i ) {
-        auto la = local_aggr_slots[i];
+        const auto& la = local_aggr_slots[i];
         aux->Add(i, FrameSlot(la), la->GetType());
     }
 
@@ -1072,7 +1072,7 @@ const ZAMStmt ZAMCompiler::CompileAssert(const AssertStmt* as) {
     auto cond_desc = make_intrusive<StringVal>(new String(as->CondDesc()));
     auto cond_desc_e = make_intrusive<ConstExpr>(cond_desc);
 
-    if ( auto msg = as->Msg() ) {
+    if ( const auto& msg = as->Msg() ) {
         auto& msg_setup_stmt = as->MsgSetupStmt();
         if ( msg_setup_stmt )
             (void)CompileStmt(msg_setup_stmt);

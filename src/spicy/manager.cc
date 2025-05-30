@@ -636,20 +636,18 @@ void Manager::InitPostScript() {
     auto spicy_config = ::spicy::rt::configuration::get();
     spicy_config.hook_accept_input = hook_accept_input;
     spicy_config.hook_decline_input = hook_decline_input;
-    ::spicy::rt::configuration::set(std::move(spicy_config));
+    ::spicy::rt::configuration::set(spicy_config);
 
     try {
         ::hilti::rt::init();
         ::spicy::rt::init();
     } catch ( const hilti::rt::Exception& e ) {
-        std::cerr << hilti::rt::fmt("uncaught runtime exception %s during initialization: %s",
-                                    hilti::rt::demangle(typeid(e).name()), e.what())
-                  << std::endl;
+        std::cerr << hilti::rt::fmt("uncaught runtime exception %s during initialization: %s\n",
+                                    hilti::rt::demangle(typeid(e).name()), e.what());
         exit(1);
     } catch ( const std::runtime_error& e ) {
-        std::cerr << hilti::rt::fmt("uncaught C++ exception %s during initialization: %s",
-                                    hilti::rt::demangle(typeid(e).name()), e.what())
-                  << std::endl;
+        std::cerr << hilti::rt::fmt("uncaught C++ exception %s during initialization: %s\n",
+                                    hilti::rt::demangle(typeid(e).name()), e.what());
         exit(1);
     }
 

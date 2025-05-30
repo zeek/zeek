@@ -540,7 +540,7 @@ const ZAMStmt ZAMCompiler::CompileSchedule(const NameExpr* n, const ConstExpr* c
 }
 
 const ZAMStmt ZAMCompiler::CompileEvent(EventHandler* h, const ListExpr* l) {
-    auto exprs = l->Exprs();
+    const auto& exprs = l->Exprs();
     unsigned int n = exprs.length();
 
     bool all_vars = true;
@@ -895,7 +895,7 @@ const ZAMStmt ZAMCompiler::CompileIndex(const NameExpr* n1, int n2_slot, const T
         }
     }
 
-    auto indexes = l->Exprs();
+    const auto& indexes = l->Exprs();
 
     ZOp op;
 
@@ -1515,7 +1515,7 @@ const ZAMStmt ZAMCompiler::ConstructVector(const NameExpr* n, const Expr* e) {
 }
 
 const ZAMStmt ZAMCompiler::ArithCoerce(const NameExpr* n, const Expr* e) {
-    auto nt = n->GetType();
+    const auto& nt = n->GetType();
     auto nt_is_vec = nt->Tag() == TYPE_VECTOR;
 
     auto op = e->GetOp1();

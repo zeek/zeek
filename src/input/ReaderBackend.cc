@@ -49,7 +49,7 @@ private:
 
 class ReaderErrorMessage final : public threading::OutputMessage<ReaderFrontend> {
 public:
-    enum Type { INFO, WARNING, ERROR };
+    enum Type : uint8_t { INFO, WARNING, ERROR };
 
     ReaderErrorMessage(ReaderFrontend* reader, Type arg_type, const char* arg_msg)
         : threading::OutputMessage<ReaderFrontend>("ReaderErrorMessage", reader) {

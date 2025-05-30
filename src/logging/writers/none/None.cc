@@ -11,10 +11,10 @@ namespace zeek::logging::writer::detail {
 
 bool None::DoInit(const WriterInfo& info, int num_fields, const threading::Field* const* fields) {
     if ( BifConst::LogNone::debug ) {
-        std::cout << "[logging::writer::None]" << std::endl;
-        std::cout << "  path=" << info.path << std::endl;
-        std::cout << "  rotation_interval=" << info.rotation_interval << std::endl;
-        std::cout << "  rotation_base=" << info.rotation_base << std::endl;
+        std::cout << "[logging::writer::None]\n";
+        std::cout << "  path=" << info.path << "\n";
+        std::cout << "  rotation_interval=" << info.rotation_interval << "\n";
+        std::cout << "  rotation_base=" << info.rotation_base << "\n";
 
         // Output the config sorted by keys.
 
@@ -26,14 +26,15 @@ bool None::DoInit(const WriterInfo& info, int num_fields, const threading::Field
         std::sort(keys.begin(), keys.end());
 
         for ( std::vector<std::pair<std::string, std::string>>::const_iterator i = keys.begin(); i != keys.end(); i++ )
-            std::cout << "  config[" << (*i).first << "] = " << (*i).second << std::endl;
+            std::cout << "  config[" << (*i).first << "] = " << (*i).second << "\n";
 
         for ( int i = 0; i < num_fields; i++ ) {
             const threading::Field* field = fields[i];
-            std::cout << "  field " << field->name << ": " << type_name(field->type) << std::endl;
+            std::cout << "  field " << field->name << ": " << type_name(field->type) << "\n";
         }
 
-        std::cout << std::endl;
+        std::cout << "\n";
+        std::cout << std::flush;
     }
 
     return true;

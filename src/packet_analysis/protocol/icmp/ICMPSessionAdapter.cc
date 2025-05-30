@@ -9,7 +9,7 @@
 using namespace zeek::packet_analysis::ICMP;
 using namespace zeek::packet_analysis::IP;
 
-enum ICMP_EndpointState {
+enum ICMP_EndpointState : uint8_t {
     ICMP_INACTIVE, // no packet seen
     ICMP_ACTIVE,   // packets seen
 };

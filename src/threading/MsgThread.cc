@@ -69,7 +69,7 @@ private:
 // A message from the child to be passed on to the Reporter.
 class ReporterMessage final : public OutputMessage<MsgThread> {
 public:
-    enum Type { INFO, WARNING, ERROR, FATAL_ERROR, FATAL_ERROR_WITH_CORE, INTERNAL_WARNING, INTERNAL_ERROR };
+    enum Type : uint8_t { INFO, WARNING, ERROR, FATAL_ERROR, FATAL_ERROR_WITH_CORE, INTERNAL_WARNING, INTERNAL_ERROR };
 
     ReporterMessage(Type arg_type, MsgThread* thread, std::string_view arg_msg)
         : OutputMessage<MsgThread>("ReporterMessage", thread) {

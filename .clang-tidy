@@ -1,9 +1,11 @@
 Checks: [-*,
          bugprone-*,
+         performance-*,
 
          # Skipping these temporarily because they are very noisy
          -bugprone-narrowing-conversions,
          -bugprone-unchecked-optional-access,
+         -performance-unnecessary-value-param,
 
          # The following cause either lots of pointless or advisory warnings
          -bugprone-easily-swappable-parameters,
@@ -22,5 +24,9 @@ Checks: [-*,
          -bugprone-undefined-memory-manipulation,
          -bugprone-pointer-arithmetic-on-polymorphic-object,
          -bugprone-empty-catch,
-         -bugprone-exception-escape
+         -bugprone-exception-escape,
+
+         # This one returns a bunch of findings in DFA and the sqlite library.
+         # We're unlikely to fix either of them.
+         -performance-no-int-to-ptr,
 ]

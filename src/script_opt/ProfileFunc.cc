@@ -651,7 +651,7 @@ bool ProfileFuncs::HasSideEffects(SideEffectsOp::AccessType access, const TypePt
 
 bool ProfileFuncs::GetSideEffects(SideEffectsOp::AccessType access, const Type* t, IDSet& non_local_ids,
                                   TypeSet& aggrs) const {
-    for ( auto se : side_effects_ops )
+    for ( const auto& se : side_effects_ops )
         if ( AssessSideEffects(se.get(), access, t, non_local_ids, aggrs) )
             return true;
 
@@ -1526,7 +1526,7 @@ ASTBlockAnalyzer::ASTBlockAnalyzer(std::vector<FuncInfo>& funcs) {
 
         auto func = f.Func();
         auto fn = func->GetName();
-        auto body = f.Body();
+        const auto& body = f.Body();
 
         // First get the line numbers all sorted out.
         SetBlockLineNumbers sbln;

@@ -9,7 +9,7 @@
 using namespace zeek::packet_analysis::UDP;
 using namespace zeek::packet_analysis::IP;
 
-enum UDP_EndpointState {
+enum UDP_EndpointState : uint8_t {
     UDP_INACTIVE, // no packet seen
     UDP_ACTIVE,   // packets seen
 };

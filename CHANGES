@@ -1,3 +1,13 @@
+8.0.0-dev.286 | 2025-05-30 08:12:43 -0700
+
+  * Add move operations for LogWriteHeader (Tim Wojtulewicz, Corelight)
+
+  * Add missing setting of type in session::Key move operations (Tim Wojtulewicz, Corelight)
+
+  * Update .clang-tidy to have performance-* enabled with some exclusions (Tim Wojtulewicz, Corelight)
+
+  * Fix clang-tidy performance-* warnings (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.271 | 2025-05-30 16:48:43 +0200
 
   * Update doc submodule [nomail] [skip ci] (Arne Welzel, Corelight)

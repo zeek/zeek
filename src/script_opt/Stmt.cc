@@ -926,7 +926,7 @@ static bool simplify_chain(const std::vector<StmtPtr>& stmts, unsigned int start
     // At this point, chain_stmts has only the remainders that weren't removed.
     for ( auto s : stmts )
         if ( chain_stmts.count(s.get()) > 0 )
-            f_stmts.push_back(s);
+            f_stmts.push_back(std::move(s));
 
     return true;
 }
@@ -1056,6 +1056,8 @@ StmtPtr InitStmt::Duplicate() {
     // Need to duplicate the initializer list since later reductions
     // can modify it in place.
     std::vector<IDPtr> new_inits;
+    new_inits.reserve(inits.size());
+
     for ( const auto& id : inits )
         new_inits.push_back(id);
 
@@ -1102,7 +1104,7 @@ StmtPtr AssertStmt::DoReduce(Reducer* c) {
 
 bool WhenInfo::HasUnreducedIDs(Reducer* c) const {
     for ( auto& cp : *cl ) {
-        auto cid = cp.Id();
+        const auto& cid = cp.Id();
 
         if ( when_new_locals.count(cid.get()) == 0 && ! c->ID_IsReduced(cp.Id()) )
             return true;

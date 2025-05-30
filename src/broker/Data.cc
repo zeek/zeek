@@ -198,13 +198,13 @@ struct val_converter {
 
                     if ( disambiguate ) {
                         // Disambiguate from composite key w/ multiple vals.
-                        composite_key.emplace_back(std::move(item));
+                        composite_key.emplace_back(item);
                         indices = &composite_key;
                     }
                 }
             }
             else {
-                composite_key.emplace_back(std::move(item));
+                composite_key.emplace_back(item);
                 indices = &composite_key;
             }
 
@@ -247,13 +247,13 @@ struct val_converter {
 
                     if ( disambiguate ) {
                         // Disambiguate from composite key w/ multiple vals.
-                        composite_key.emplace_back(std::move(item.first));
+                        composite_key.emplace_back(item.first);
                         indices = &composite_key;
                     }
                 }
             }
             else {
-                composite_key.emplace_back(std::move(item.first));
+                composite_key.emplace_back(item.first);
                 indices = &composite_key;
             }
 
@@ -694,8 +694,7 @@ struct type_checker {
         else if ( type->Tag() == TYPE_OPAQUE ) {
             // TODO: Could avoid doing the full unserialization here
             // and just check if the type is a correct match.
-            auto cpy = a;
-            auto ov = OpaqueVal::UnserializeData(BrokerListView{&cpy});
+            auto ov = OpaqueVal::UnserializeData(BrokerListView{&a});
             return ov != nullptr;
         }
 
@@ -729,19 +728,19 @@ std::optional<broker::data> val_to_data(const Val* v) {
             return {broker::port(p->Port(), to_broker_port_proto(p->PortType()))};
         }
         case TYPE_ADDR: {
-            auto a = v->AsAddr();
+            const auto& a = v->AsAddr();
             in6_addr tmp;
             a.CopyIPv6(&tmp);
             return {broker::address(reinterpret_cast<const uint32_t*>(&tmp), broker::address::family::ipv6,
                                     broker::address::byte_order::network)};
         } break;
         case TYPE_SUBNET: {
-            auto s = v->AsSubNet();
+            const auto& s = v->AsSubNet();
             in6_addr tmp;
             s.Prefix().CopyIPv6(&tmp);
             auto a = broker::address(reinterpret_cast<const uint32_t*>(&tmp), broker::address::family::ipv6,
                                      broker::address::byte_order::network);
-            return {broker::subnet(std::move(a), s.Length())};
+            return {broker::subnet(a, s.Length())};
         } break;
         case TYPE_DOUBLE: return {v->AsDouble()};
         case TYPE_TIME: {
@@ -1036,7 +1035,7 @@ IMPLEMENT_OPAQUE_VALUE(zeek::Broker::detail::DataVal)
 std::optional<BrokerData> DataVal::DoSerializeData() const { return BrokerData{data}; }
 
 bool DataVal::DoUnserializeData(BrokerDataView dv) {
-    data = std::move(*dv.value_);
+    data = *dv.value_;
     return true;
 }
 

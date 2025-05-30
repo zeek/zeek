@@ -1,7 +1,8 @@
-# @TEST-DOC: Run a single node cluster (manager) with a websocket server and have a single client connect.
+# @TEST-DOC: Make a WebSocket server listen on IPv6 ::1.
 #
 # @TEST-REQUIRES: have-zeromq
 # @TEST-REQUIRES: python3 -c 'import websockets.sync'
+# @TEST-REQUIRES: can-listen-tcp 6 ::1
 #
 # @TEST-GROUP: cluster-zeromq
 #
@@ -12,6 +13,7 @@
 #
 # @TEST-EXEC: cp $FILES/zeromq/cluster-layout-simple.zeek cluster-layout.zeek
 # @TEST-EXEC: cp $FILES/zeromq/test-bootstrap.zeek zeromq-test-bootstrap.zeek
+# @TEST-EXEC: cp $FILES/ws/wstest.py .
 #
 # @TEST-EXEC: zeek -b --parse-only manager.zeek
 # @TEST-EXEC: python3 -m py_compile client.py
@@ -19,13 +21,13 @@
 # @TEST-EXEC: btest-bg-run manager "ZEEKPATH=$ZEEKPATH:.. && CLUSTER_NODE=manager zeek -b ../manager.zeek >out"
 # @TEST-EXEC: btest-bg-run client "python3 ../client.py >out"
 #
-# @TEST-EXEC: btest-bg-wait 5
+# @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff ./manager/out
 # @TEST-EXEC: btest-diff ./manager/.stderr
 # @TEST-EXEC: btest-diff ./client/out
 # @TEST-EXEC: btest-diff ./client/.stderr
 
-# # @TEST-START-FILE manager.zeek
+# @TEST-START-FILE manager.zeek
 @load ./zeromq-test-bootstrap
 redef exit_only_after_terminate = T;
 
@@ -36,8 +38,8 @@ global pong: event(msg: string, c: count) &is_used;
 
 event zeek_init()
 	{
-	Cluster::subscribe("/zeek/event/my_topic");
-	Cluster::listen_websocket([$listen_addr=127.0.0.1, $listen_port=to_port(getenv("WEBSOCKET_PORT"))]);
+	Cluster::subscribe("/test/pings/");
+	Cluster::listen_websocket([$listen_addr=[::1], $listen_port=to_port(getenv("WEBSOCKET_PORT"))]);
 	}
 
 event ping(msg: string, n: count) &is_used
@@ -45,7 +47,7 @@ event ping(msg: string, n: count) &is_used
 	++ping_count;
 	print fmt("got ping: %s, %s", msg, n);
 	local e = Cluster::make_event(pong, "my-message", ping_count);
-	Cluster::publish("/zeek/event/my_topic", e);
+	Cluster::publish("/test/pings", e);
 	}
 
 event Cluster::websocket_client_added(info: Cluster::EndpointInfo, subscriptions: string_vec)
@@ -58,44 +60,26 @@ event Cluster::websocket_client_lost(info: Cluster::EndpointInfo, code: count, r
 	print "Cluster::websocket_client_lost";
 	terminate();
 	}
-# # @TEST-END-FILE
+# @TEST-END-FILE
 
 
 # @TEST-START-FILE client.py
-import json, os, time
-import websockets.exceptions
-from websockets.sync.client import connect
+# @TEST-START-FILE client.py
+import wstest
 
-ws_port = os.environ['WEBSOCKET_PORT'].split('/')[0]
-ws_prefix = f'ws://127.0.0.1:{ws_port}'
-topic = '/zeek/event/my_topic'
+def run(ws_url):
+    with wstest.connect("ws1", ws_url) as tc:
+        print("Connected")
+        tc.hello_v1(["/test/pings"])
 
+        for i in range(5):
+            print("Sending ping", i)
+            tc.send_json(wstest.build_event_v1("/test/pings/", "ping", [f"ping {i}", i]))
+            pong = tc.recv_json()
+            assert pong["@data-type"] == "vector"
+            ev = pong["data"][2]["data"]
+            print("topic", pong["topic"], "event name", ev[0]["data"], "args", ev[1]["data"])
 
-def run(ws_prefix):
-    with connect(ws_prefix + '/v1/messages/json') as ws_good:
-        print('Connected ws_good!')
-        with connect(ws_prefix + '/v0/messages/json') as ws_bad:
-            print('Connected ws_bad!')
-            try:
-                err = json.loads(ws_bad.recv())
-            except websockets.exceptions.ConnectionClosedError as e:
-                pass
-
-            print('Error for ws_bad', err)
-
-        ws_good.send(json.dumps(['hello-good']))
-        ack = json.loads(ws_good.recv())
-        assert 'type' in ack
-        assert ack['type'] == 'ack'
-
-def main():
-    for _ in range(100):
-        try:
-            run(ws_prefix)
-            break
-        except ConnectionRefusedError:
-            time.sleep(0.1)
-
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    wstest.main(run, wstest.WS6_URL_V1)
 # @TEST-END-FILE

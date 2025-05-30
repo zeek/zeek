@@ -363,7 +363,9 @@ export {
 	## WebSocket server options to pass to :zeek:see:`Cluster::listen_websocket`.
 	type WebSocketServerOptions: record {
 		## The host address to listen on.
-		listen_host: string;
+		listen_host: string &optional &deprecated="Remove in v8.1: Use $listen_addr instead.";
+		## The address to listen on, cannot be used together with ``listen_host``.
+		listen_addr: addr &optional;
 		## The port the WebSocket server is supposed to listen on.
 		listen_port: port;
 		## The maximum event queue size for this server.

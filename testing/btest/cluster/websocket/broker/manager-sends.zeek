@@ -44,7 +44,7 @@ global lost = 0;
 event zeek_init()
 	{
 	Cluster::listen_websocket([
-		$listen_host="127.0.0.1",
+		$listen_addr=127.0.0.1,
 		$listen_port=to_port(getenv("WEBSOCKET_PORT")),
 	]);
 	}

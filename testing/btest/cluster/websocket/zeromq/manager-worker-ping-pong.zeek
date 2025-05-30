@@ -79,7 +79,7 @@ event Cluster::node_up(name: string, id: string)
 	# Delay listening on WebSocket clients until worker-1 is around.
 	if ( name == "worker-1" )
 		Cluster::listen_websocket([
-			$listen_host="127.0.0.1",
+			$listen_addr=127.0.0.1,
 			$listen_port=to_port(getenv("WEBSOCKET_PORT"))
 		]);
 	}

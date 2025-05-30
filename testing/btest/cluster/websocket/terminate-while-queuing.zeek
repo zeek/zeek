@@ -53,7 +53,7 @@ event Cluster::websocket_client_lost(info: Cluster::EndpointInfo, code: count, r
 
 event zeek_init()
 	{
-	Cluster::listen_websocket([$listen_host="127.0.0.1", $listen_port=to_port(getenv("WEBSOCKET_PORT"))]);
+	Cluster::listen_websocket([$listen_addr=127.0.0.1, $listen_port=to_port(getenv("WEBSOCKET_PORT"))]);
 	Cluster::subscribe("/test/pings/");
 	}
 # @TEST-END-FILE

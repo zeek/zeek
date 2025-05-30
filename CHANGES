@@ -1,3 +1,17 @@
+7.2.1-2 | 2025-07-14 14:20:11 -0700
+
+  * IXWebsocket: Bump to version with memset() sock addr fix (Arne Welzel, Corelight)
+
+    (cherry picked from commit f16ebd34b3087c8f860aa2ef6527b671731eda1a)
+
+  * cluster/websocket: Deprecate $listen_host, introduce $listen_addr (Arne Welzel, Corelight)
+
+    (cherry picked from commit f16ebd34b3087c8f860aa2ef6527b671731eda1a)
+
+  * GH-4474: cluster/websocket-ixwebsocket: Determine proper address_family (Arne Welzel, Corelight)
+
+    (cherry picked from commit f16ebd34b3087c8f860aa2ef6527b671731eda1a)
+
 7.2.1-1 | 2025-07-14 14:18:30 -0700
 
   * Redis: bump version of hiredis required (Tim Wojtulewicz, Corelight)

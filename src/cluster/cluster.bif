@@ -1,6 +1,7 @@
 %%{
 #include <string>
 
+#include "zeek/IPAddr.h"
 #include "zeek/cluster/Backend.h"
 #include "zeek/cluster/BifSupport.h"
 #include "zeek/cluster/Manager.h"
@@ -192,8 +193,32 @@ function Cluster::__listen_websocket%(options: WebSocketServerOptions%): bool
 		tls_options_rec->GetFieldOrDefault<zeek::StringVal>("ciphers")->ToStdString(),
 	};
 
-	struct ServerOptions server_options {
-		options_rec->GetField<zeek::StringVal>("listen_host")->ToStdString(),
+	std::string listen_addr;
+
+	// Backwards compat for listen_host if listen_addr isn't set.
+	if ( options_rec->HasField("listen_host") ) {
+		if ( options_rec->HasField("listen_addr") ) {
+			zeek::emit_builtin_error("cannot use both listen_addr and listen_host");
+			return zeek::val_mgr->False();
+		}
+
+		auto host = options_rec->GetField<zeek::StringVal>("listen_host")->ToStdString();
+		if ( ! zeek::IPAddr::IsValid(host.c_str()) ) {
+			zeek::emit_builtin_error("invalid listen_host");
+			return zeek::val_mgr->False();
+		}
+
+		listen_addr = std::move(host);
+
+	} else if ( options_rec->HasField("listen_addr") ) {
+		listen_addr = options_rec->GetField<zeek::AddrVal>("listen_addr")->AsAddr().AsString();
+	} else {
+		zeek::emit_builtin_error("missing listen_host field");
+		return zeek::val_mgr->False();
+	}
+
+	struct ServerOptions server_options{
+		listen_addr,
 		static_cast<uint16_t>(options_rec->GetField<zeek::PortVal>("listen_port")->Port()),
 	};
 

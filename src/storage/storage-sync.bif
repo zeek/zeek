@@ -33,7 +33,7 @@ function Storage::Sync::__open_backend%(btype: Storage::Backend, options: any, k
 
 	// If the backend only supports async, block until it's ready and then pull the result out of
 	// the callback.
-	if ( ! b.value()->SupportsSync() ) {
+	if ( op_result.code == ReturnCode::IN_PROGRESS && ! b.value()->SupportsSync() ) {
 		b.value()->Poll();
 		op_result = cb->Result();
 	}

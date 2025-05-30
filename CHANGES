@@ -1,3 +1,9 @@
+8.0.0-dev.294 | 2025-05-30 10:29:29 -0700
+
+  * CI: Add PR label for skipping all CI jobs (Tim Wojtulewicz, Corelight)
+
+  * CI: Add PR label for running cluster tests (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.291 | 2025-05-30 08:39:28 -0700
 
   * CI: Add new task to run clang-tidy as part of nightly builds (Tim Wojtulewicz, Corelight)

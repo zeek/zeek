@@ -1,3 +1,7 @@
+8.0.0-dev.271 | 2025-05-30 16:48:43 +0200
+
+  * Update doc submodule [nomail] [skip ci] (Arne Welzel, Corelight)
+
 8.0.0-dev.270 | 2025-05-30 16:44:23 +0200
 
   * Bump doc submodule for ext/zeek.py modifications (Arne Welzel, Corelight)

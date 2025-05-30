@@ -1,3 +1,9 @@
+8.0.0-dev.291 | 2025-05-30 08:39:28 -0700
+
+  * CI: Add new task to run clang-tidy as part of nightly builds (Tim Wojtulewicz, Corelight)
+
+  * CI: Update to clang 19 on ubuntu 24.04, add clang-tidy package (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.288 | 2025-05-30 17:24:05 +0200
 
   * GH-4494: logging/ascii/json: Make TS_MILLIS signed, add TS_MILLIS_UNSIGNED (Arne Welzel, Corelight)

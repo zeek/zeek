@@ -19,6 +19,7 @@ asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broke
 ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --ccache --enable-werror
 tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --ccache --enable-werror
 macos_config: &MACOS_CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror --with-krb5=/opt/homebrew/opt/krb5
+clang_tidy_config: &CLANG_TIDY_CONFIG --build-type=debug --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror --enable-clang-tidy
 
 resources_template: &RESOURCES_TEMPLATE
   cpu: *CPUS
@@ -300,9 +301,27 @@ ubuntu24_clang_libcpp_task:
   << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR
   env:
-    CC: clang-18
-    CXX: clang++-18
+    CC: clang-19
+    CXX: clang++-19
     CXXFLAGS: -stdlib=libc++
+
+ubuntu24_clang_tidy_task:
+  container:
+    # Ubuntu 24.04 EOL: Jun 2029
+    dockerfile: ci/ubuntu-24.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  # Run on merges to master and release/.* and benchmark-nightly cron.
+  only_if: >
+    ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
+      $CIRRUS_BRANCH == 'master' ||
+      $CIRRUS_BRANCH =~ 'release/.*' ||
+      $CIRRUS_CRON == 'benchmark-nightly'
+  env:
+    CC: clang-19
+    CXX: clang++-19
+    ZEEK_CI_CONFIGURE_FLAGS: *CLANG_TIDY_CONFIG
+
 
 ubuntu22_task:
   container:
@@ -445,8 +464,8 @@ ubsan_sanitizer_task:
   << : *SKIP_TASK_ON_PR
   test_fuzzers_script: ./ci/test-fuzzers.sh
   env:
-    CC: clang-18
-    CXX: clang++-18
+    CC: clang-19
+    CXX: clang++-19
     CXXFLAGS: -DZEEK_DICT_DEBUG
     ZEEK_CI_CONFIGURE_FLAGS: *UBSAN_SANITIZER_CONFIG
     ZEEK_TAILORED_UB_CHECKS: 1
@@ -459,8 +478,8 @@ ubsan_sanitizer_zam_task:
 
   << : *CI_TEMPLATE
   env:
-    CC: clang-18
-    CXX: clang++-18
+    CC: clang-19
+    CXX: clang++-19
     ZEEK_CI_CONFIGURE_FLAGS: *UBSAN_SANITIZER_CONFIG
     ZEEK_TAILORED_UB_CHECKS: 1
     UBSAN_OPTIONS: print_stacktrace=1
@@ -480,8 +499,8 @@ tsan_sanitizer_task:
   << : *CI_TEMPLATE
   << : *SKIP_TASK_ON_PR
   env:
-    CC: clang-18
-    CXX: clang++-18
+    CC: clang-19
+    CXX: clang++-19
     ZEEK_CI_CONFIGURE_FLAGS: *TSAN_SANITIZER_CONFIG
     ZEEK_CI_DISABLE_SCRIPT_PROFILING: 1
     # If this is defined directly in the environment, configure fails to find

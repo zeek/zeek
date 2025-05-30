@@ -42,6 +42,7 @@ public:
     void HandleEraseResult(redisReply* reply, ResultCallback* callback);
     void HandleGeneric(redisReply* reply);
     void HandleInfoResult(redisReply* reply);
+    void HandleAuthResult(redisReply* reply);
 
     /**
      * Returns whether the backend is opened.
@@ -63,6 +64,8 @@ private:
     OperationResult ParseReplyError(std::string_view op_str, std::string_view reply_err_str) const;
     OperationResult CheckServerVersion();
 
+    void SendInfoRequest();
+
     redisAsyncContext* async_ctx = nullptr;
 
     // When running in sync mode, this is used to keep a queue of replies as
@@ -77,6 +80,8 @@ private:
     std::string server_addr;
     std::string key_prefix;
     std::string disconnect_reason;
+    std::string username;
+    std::string password;
 
     std::atomic<bool> connected = false;
     std::atomic<bool> expire_running = false;

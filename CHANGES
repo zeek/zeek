@@ -1,3 +1,7 @@
+8.0.0-dev.296 | 2025-05-30 12:16:27 -0700
+
+  * Add utility methods to make CMake summary output nicer (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.294 | 2025-05-30 10:29:29 -0700
 
   * CI: Add PR label for skipping all CI jobs (Tim Wojtulewicz, Corelight)

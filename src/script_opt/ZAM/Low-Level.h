@@ -31,9 +31,6 @@ int InternalAddVal(ZInstAux* zi, int i, Expr* e);
 // global/capture store for this instruction.
 const ZAMStmt AddInst(const ZInstI& inst, bool suppress_non_local = false);
 
-// Returns the statement just before the given one.
-ZAMStmt PrevStmt(const ZAMStmt s);
-
 // Returns the last (interpreter) statement in the body.
 const Stmt* LastStmt(const Stmt* s) const;
 

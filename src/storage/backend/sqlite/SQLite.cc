@@ -12,6 +12,8 @@
 #include "zeek/Val.h"
 #include "zeek/storage/ReturnCode.h"
 
+#include "const.bif.netvar_h"
+
 using namespace std::chrono_literals;
 
 namespace zeek::storage::backend::sqlite {
@@ -77,6 +79,11 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     sqlite3_enable_shared_cache(1);
 #endif
 
+    // Store whether we're in a cluster. Knowing this means we can simplify other parts of the code.
+    auto local_node_name = id::find_val("Cluster::node")->AsStringVal();
+    if ( local_node_name->Len() > 0 )
+        is_cluster = true;
+
     RecordValPtr backend_options = options->GetField<RecordVal>("sqlite");
     StringValPtr path = backend_options->GetField<StringVal>("database_path");
     full_path = zeek::filesystem::path(path->ToStdString()).string();
@@ -110,7 +117,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
 
         auto ks = vl->AsListVal()->Idx(0)->AsStringVal();
         auto ks_sv = ks->ToStdStringView();
-        auto vs = v->GetVal()->AsStringVal();
+        auto vs = iter.value->GetVal()->AsStringVal();
         auto vs_sv = vs->ToStdStringView();
 
         auto pragma_res = RunPragma(ks_sv, vs_sv);
@@ -120,11 +127,11 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         }
     }
 
-    std::string create = "create table if not exists " + table_name + " (";
-    create.append("key_str blob primary key, value_str blob not null, expire_time real);");
+    std::string cmd = "create table if not exists " + table_name + " (";
+    cmd.append("key_str blob primary key, value_str blob not null, expire_time real);");
 
     char* errorMsg = nullptr;
-    if ( int res = sqlite3_exec(db, create.c_str(), NULL, NULL, &errorMsg); res != SQLITE_OK ) {
+    if ( int res = sqlite3_exec(db, cmd.c_str(), NULL, NULL, &errorMsg); res != SQLITE_OK ) {
         std::string err = util::fmt("Error executing table creation statement: (%d) %s", res, errorMsg);
         Error(err.c_str());
         sqlite3_free(errorMsg);
@@ -132,7 +139,38 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
     }
 
-    static std::array<std::string, 5> statements =
+    sqlite3_free(errorMsg);
+
+    // Create a table for controlling expiration contention. The ukey column here ensures that only
+    // one row exists for this backend's table.
+    cmd = util::fmt("create table if not exists zeek_expire_ctrl (ukey primary key, last_run double);");
+    if ( int res = sqlite3_exec(db, cmd.c_str(), NULL, NULL, &errorMsg); res != SQLITE_OK ) {
+        std::string err = util::fmt("Error executing table creation statement: (%d) %s", res, errorMsg);
+        Error(err.c_str());
+        sqlite3_free(errorMsg);
+        Close(nullptr);
+        return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
+    }
+
+    sqlite3_free(errorMsg);
+
+    // Attempt to insert an initial value into the table if this is the first run with
+    // this file. This may result in a SQLITE_CONSTRAINT if the row already exists. That's
+    // not an error, as it's possible if the file already existed.
+    cmd = util::fmt("insert into zeek_expire_ctrl (ukey, last_run) values('%s', 0);", table_name.c_str());
+    if ( int res = sqlite3_exec(db, cmd.c_str(), nullptr, nullptr, &errorMsg);
+         res != SQLITE_OK && res != SQLITE_CONSTRAINT ) {
+        std::string err =
+            util::fmt("Error inserting initial row into expiration control table: (%d) %s", res, errorMsg);
+        Error(err.c_str());
+        sqlite3_free(errorMsg);
+        Close(nullptr);
+        return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
+    }
+
+    sqlite3_free(errorMsg);
+
+    static std::array<std::string, 7> statements =
         {util::fmt("insert into %s (key_str, value_str, expire_time) values(?, ?, ?)", table_name.c_str()),
          util::fmt("insert into %s (key_str, value_str, expire_time) values(?, ?, ?) ON CONFLICT(key_str) "
                    "DO UPDATE SET value_str=?",
@@ -140,9 +178,11 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
          util::fmt("select value_str from %s where key_str=?", table_name.c_str()),
          util::fmt("delete from %s where key_str=?", table_name.c_str()),
          util::fmt("delete from %s where expire_time > 0 and expire_time != 0 and expire_time <= ?",
-                   table_name.c_str())};
+                   table_name.c_str()),
+         util::fmt("select last_run from zeek_expire_ctrl where ukey = '%s'", table_name.c_str()),
+         util::fmt("update zeek_expire_ctrl set last_run = ? where ukey = '%s'", table_name.c_str())};
 
-    std::array<unique_stmt_ptr, 5> stmt_ptrs;
+    std::array<unique_stmt_ptr, 7> stmt_ptrs;
     int i = 0;
     for ( const auto& stmt : statements ) {
         sqlite3_stmt* ps;
@@ -152,7 +192,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
             return prep_res;
         }
 
-        stmt_ptrs[i++] = unique_stmt_ptr(ps, [](sqlite3_stmt* stmt) { sqlite3_finalize(stmt); });
+        stmt_ptrs[i++] = unique_stmt_ptr(ps, sqlite3_finalize);
     }
 
     put_stmt = std::move(stmt_ptrs[0]);
@@ -160,6 +200,8 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     get_stmt = std::move(stmt_ptrs[2]);
     erase_stmt = std::move(stmt_ptrs[3]);
     expire_stmt = std::move(stmt_ptrs[4]);
+    get_expire_last_run = std::move(stmt_ptrs[5]);
+    update_expire_last_run_stmt = std::move(stmt_ptrs[6]);
 
     return {ReturnCode::SUCCESS};
 }
@@ -171,11 +213,14 @@ OperationResult SQLite::DoClose(ResultCallback* cb) {
     OperationResult op_res{ReturnCode::SUCCESS};
 
     if ( db ) {
+        // These will all call sqlite3_finalize as they're deleted.
         put_stmt.reset();
         put_update_stmt.reset();
         get_stmt.reset();
         erase_stmt.reset();
         expire_stmt.reset();
+        get_expire_last_run.reset();
+        update_expire_last_run_stmt.reset();
 
         char* errmsg;
         if ( int res = sqlite3_exec(db, "pragma optimize", NULL, NULL, &errmsg);
@@ -208,15 +253,14 @@ OperationResult SQLite::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool
     if ( ! key_data )
         return {ReturnCode::SERIALIZATION_FAILED, "Failed to serialize key"};
 
-    sqlite3_stmt* stmt;
+    unique_stmt_ptr stmt;
     if ( ! overwrite )
-        stmt = put_stmt.get();
+        stmt = unique_stmt_ptr(put_stmt.get(), sqlite3_reset);
     else
-        stmt = put_update_stmt.get();
+        stmt = unique_stmt_ptr(put_update_stmt.get(), sqlite3_reset);
 
-    if ( auto res = CheckError(sqlite3_bind_blob(stmt, 1, key_data->data(), key_data->size(), SQLITE_STATIC));
+    if ( auto res = CheckError(sqlite3_bind_blob(stmt.get(), 1, key_data->data(), key_data->size(), SQLITE_STATIC));
          res.code != ReturnCode::SUCCESS ) {
-        sqlite3_reset(stmt);
         return res;
     }
 
@@ -224,26 +268,23 @@ OperationResult SQLite::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool
     if ( ! val_data )
         return {ReturnCode::SERIALIZATION_FAILED, "Failed to serialize value"};
 
-    if ( auto res = CheckError(sqlite3_bind_blob(stmt, 2, val_data->data(), val_data->size(), SQLITE_STATIC));
+    if ( auto res = CheckError(sqlite3_bind_blob(stmt.get(), 2, val_data->data(), val_data->size(), SQLITE_STATIC));
          res.code != ReturnCode::SUCCESS ) {
-        sqlite3_reset(stmt);
         return res;
     }
 
-    if ( auto res = CheckError(sqlite3_bind_double(stmt, 3, expiration_time)); res.code != ReturnCode::SUCCESS ) {
-        sqlite3_reset(stmt);
+    if ( auto res = CheckError(sqlite3_bind_double(stmt.get(), 3, expiration_time)); res.code != ReturnCode::SUCCESS ) {
         return res;
     }
 
     if ( overwrite ) {
-        if ( auto res = CheckError(sqlite3_bind_blob(stmt, 4, val_data->data(), val_data->size(), SQLITE_STATIC));
+        if ( auto res = CheckError(sqlite3_bind_blob(stmt.get(), 4, val_data->data(), val_data->size(), SQLITE_STATIC));
              res.code != ReturnCode::SUCCESS ) {
-            sqlite3_reset(stmt);
             return res;
         }
     }
 
-    return Step(stmt, false);
+    return Step(stmt.get(), false);
 }
 
 /**
@@ -257,15 +298,14 @@ OperationResult SQLite::DoGet(ResultCallback* cb, ValPtr key) {
     if ( ! key_data )
         return {ReturnCode::SERIALIZATION_FAILED, "Failed to serialize key"};
 
-    auto stmt = get_stmt.get();
+    auto stmt = unique_stmt_ptr(get_stmt.get(), sqlite3_reset);
 
-    if ( auto res = CheckError(sqlite3_bind_blob(stmt, 1, key_data->data(), key_data->size(), SQLITE_STATIC));
+    if ( auto res = CheckError(sqlite3_bind_blob(stmt.get(), 1, key_data->data(), key_data->size(), SQLITE_STATIC));
          res.code != ReturnCode::SUCCESS ) {
-        sqlite3_reset(stmt);
         return res;
     }
 
-    return Step(stmt, true);
+    return Step(stmt.get(), true);
 }
 
 /**
@@ -279,15 +319,14 @@ OperationResult SQLite::DoErase(ResultCallback* cb, ValPtr key) {
     if ( ! key_data )
         return {ReturnCode::SERIALIZATION_FAILED, "Failed to serialize key"};
 
-    auto stmt = erase_stmt.get();
+    auto stmt = unique_stmt_ptr(erase_stmt.get(), sqlite3_reset);
 
-    if ( auto res = CheckError(sqlite3_bind_blob(stmt, 1, key_data->data(), key_data->size(), SQLITE_STATIC));
+    if ( auto res = CheckError(sqlite3_bind_blob(stmt.get(), 1, key_data->data(), key_data->size(), SQLITE_STATIC));
          res.code != ReturnCode::SUCCESS ) {
-        sqlite3_reset(stmt);
         return res;
     }
 
-    return Step(stmt, false);
+    return Step(stmt.get(), false);
 }
 
 /**
@@ -295,20 +334,108 @@ OperationResult SQLite::DoErase(ResultCallback* cb, ValPtr key) {
  * derived classes.
  */
 void SQLite::DoExpire(double current_network_time) {
-    auto stmt = expire_stmt.get();
+    int status;
+    char* errMsg = nullptr;
+    unique_stmt_ptr stmt;
 
-    int status = sqlite3_bind_double(stmt, 1, current_network_time);
-    if ( status != SQLITE_OK ) {
-        // TODO: do something with the error?
+    // Begin an exclusive transaction here to lock the database for this one process. That
+    // will ensure there isn't a TOCTOU bug in the time check below.
+    status = SQLITE_BUSY;
+    while ( status == SQLITE_BUSY ) {
+        status = sqlite3_exec(db, "begin exclusive transaction", nullptr, nullptr, &errMsg);
+        sqlite3_free(errMsg);
+
+        if ( status == SQLITE_OK )
+            break;
+        else if ( status == SQLITE_BUSY )
+            // I honestly don't know if we need to wait here. This should fall under the
+            // 'busy_timeout' pragma timeout, which means that we've already waited for
+            // some amount of time before even getting here.
+            std::this_thread::sleep_for(5ms);
+        else if ( status != SQLITE_BUSY )
+            return;
     }
-    else {
-        status = sqlite3_step(stmt);
-        if ( status != SQLITE_ROW ) {
-            // TODO: should this return an error somehow? Reporter warning?
+
+    // We don't need to check for contention if we're running under a single process.
+    if ( is_cluster ) {
+        // Check if the expiration control key is less than the interval. Exit if not.
+        stmt = unique_stmt_ptr(get_expire_last_run.get(), sqlite3_reset);
+        while ( status != SQLITE_ROW ) {
+            status = sqlite3_step(stmt.get());
+            if ( status == SQLITE_ROW ) {
+                double last_run = sqlite3_column_double(stmt.get(), 0);
+
+                DBG_LOG(DBG_STORAGE, "Expiration last run: %f  diff: %f  interval: %f", last_run,
+                        current_network_time - last_run, zeek::BifConst::Storage::expire_interval);
+
+                if ( current_network_time > 0 &&
+                     (current_network_time - last_run) < zeek::BifConst::Storage::expire_interval ) {
+                    sqlite3_exec(db, "rollback TRANSACTION", nullptr, nullptr, &errMsg);
+                    sqlite3_free(errMsg);
+                    return;
+                }
+            }
+            else if ( status == SQLITE_BUSY )
+                // I honestly don't know if we need to wait here. This should fall under
+                // the 'busy_timeout' pragma timeout, which means that we've already
+                // waited for some amount of time before even getting here.
+                std::this_thread::sleep_for(5ms);
+            else if ( status != SQLITE_BUSY )
+                return;
+        }
+
+        // Update the expiration control key
+        stmt = unique_stmt_ptr(update_expire_last_run_stmt.get(), sqlite3_reset);
+        status = sqlite3_bind_double(stmt.get(), 1, current_network_time);
+        if ( status != SQLITE_OK ) {
+            std::string err =
+                util::fmt("Error preparing statement to update expiration control time: %s", sqlite3_errmsg(db));
+            DBG_LOG(DBG_STORAGE, "%s", err.c_str());
+            Error(err.c_str());
+            sqlite3_free(errMsg);
+
+            sqlite3_exec(db, "rollback transaction", nullptr, nullptr, &errMsg);
+            sqlite3_free(errMsg);
+            return;
+        }
+
+        status = sqlite3_step(stmt.get());
+        if ( status != SQLITE_ROW && status != SQLITE_DONE ) {
+            std::string err = util::fmt("Error updating expiration control time: %s", errMsg);
+            DBG_LOG(DBG_STORAGE, "%s", err.c_str());
+            Error(err.c_str());
+            sqlite3_free(errMsg);
+
+            sqlite3_exec(db, "rollback transaction", nullptr, nullptr, &errMsg);
+            sqlite3_free(errMsg);
+            return;
         }
     }
 
-    sqlite3_reset(stmt);
+    // Delete the values.
+    stmt = unique_stmt_ptr(expire_stmt.get(), sqlite3_reset);
+
+    status = sqlite3_bind_double(stmt.get(), 1, current_network_time);
+    if ( status != SQLITE_OK ) {
+        std::string err = util::fmt("Error preparing statement to expire elements: %s", sqlite3_errmsg(db));
+        DBG_LOG(DBG_STORAGE, "%s", err.c_str());
+        Error(err.c_str());
+        sqlite3_free(errMsg);
+
+        sqlite3_exec(db, "rollback transaction", nullptr, nullptr, &errMsg);
+        sqlite3_free(errMsg);
+        return;
+    }
+
+    status = sqlite3_step(stmt.get());
+    if ( status != SQLITE_ROW && status != SQLITE_DONE ) {
+        std::string err = util::fmt("Error expiring elements: %s", sqlite3_errmsg(db));
+        DBG_LOG(DBG_STORAGE, "%s", err.c_str());
+        Error(err.c_str());
+    }
+
+    sqlite3_exec(db, "commit transaction", nullptr, nullptr, &errMsg);
+    sqlite3_free(errMsg);
 }
 
 // returns true in case of error
@@ -330,7 +457,6 @@ OperationResult SQLite::Step(sqlite3_stmt* stmt, bool parse_value) {
             size_t blob_size = sqlite3_column_bytes(stmt, 0);
 
             auto val = serializer->Unserialize({blob, blob_size}, val_type);
-            sqlite3_reset(stmt);
 
             if ( val )
                 ret = {ReturnCode::SUCCESS, "", val.value()};
@@ -354,8 +480,6 @@ OperationResult SQLite::Step(sqlite3_stmt* stmt, bool parse_value) {
         ret = {ReturnCode::KEY_EXISTS};
     else
         ret = {ReturnCode::OPERATION_FAILED};
-
-    sqlite3_reset(stmt);
 
     return ret;
 }

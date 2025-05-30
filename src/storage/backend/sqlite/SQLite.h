@@ -54,18 +54,22 @@ private:
 
     sqlite3* db = nullptr;
 
-    using stmt_deleter = std::function<void(sqlite3_stmt*)>;
-    using unique_stmt_ptr = std::unique_ptr<sqlite3_stmt, stmt_deleter>;
+    using sqlite_stmt_func = std::function<void(sqlite3_stmt*)>;
+    using unique_stmt_ptr = std::unique_ptr<sqlite3_stmt, sqlite_stmt_func>;
+
     unique_stmt_ptr put_stmt;
     unique_stmt_ptr put_update_stmt;
     unique_stmt_ptr get_stmt;
     unique_stmt_ptr erase_stmt;
     unique_stmt_ptr expire_stmt;
+    unique_stmt_ptr get_expire_last_run;
+    unique_stmt_ptr update_expire_last_run_stmt;
 
     std::string full_path;
     std::string table_name;
     std::chrono::milliseconds pragma_timeout;
     std::chrono::milliseconds pragma_wait_on_busy;
+    bool is_cluster = false;
 };
 
 } // namespace zeek::storage::backend::sqlite

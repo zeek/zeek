@@ -1326,17 +1326,14 @@ void RecordType::DescribeFields(ODesc* d, bool func_args) const {
 }
 
 void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const {
-    if ( ! func_args )
-        d->PushIndent();
-
     for ( int i = 0; i < num_fields; ++i ) {
-        if ( i > 0 ) {
-            if ( func_args )
+        if ( func_args ) {
+            if ( i > 0 )
                 d->Add(", ");
-            else {
-                d->NL();
-                d->NL();
-            }
+        }
+        else {
+            d->NL();
+            d->NL();
         }
 
         const TypeDecl* td = FieldDecl(i);
@@ -1347,8 +1344,39 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const {
             if ( num_fields == 1 && util::streq(td->id, "va_args") && td->type->Tag() == TYPE_ANY )
                 // This was a BIF using variable argument list
                 d->Add("...");
-            else
-                td->DescribeReST(d);
+            else {
+                if ( func_args ) {
+                    td->DescribeReST(d);
+                }
+                else {
+                    // ReST rendering of a TypeDecl as zeek:field directive if
+                    // this is about rendering a proper record type and not
+                    // function parameters.
+                    //
+                    // Not sure why we're treating record types and function
+                    // signatures the same thing and than denote what it is
+                    // by passing around a bool. Open-code the field directive
+                    // rendering here.
+                    d->Add(".. zeek:field:: ");
+                    d->Add(td->id);
+                    d->Add(" ");
+                    if ( ! td->type->GetName().empty() ) {
+                        d->Add(":zeek:type:`");
+                        d->Add(td->type->GetName());
+                        d->Add("`");
+                    }
+                    else {
+                        td->type->DescribeReST(d, /*roles_only=*/true);
+                    }
+                    if ( td->attrs ) {
+                        d->SP();
+                        td->attrs->DescribeReST(d, /*shorten=*/true);
+                    }
+
+                    // Good thing ReST doesn't care too much about extra whitespace.
+                    d->NL();
+                }
+            }
         }
 
         if ( func_args )
@@ -1396,11 +1424,8 @@ void RecordType::DescribeFieldsReST(ODesc* d, bool func_args) const {
                 d->Add(cmnts[i].c_str());
         }
 
-        d->PopIndentNoNL();
+        d->PopIndent();
     }
-
-    if ( ! func_args )
-        d->PopIndentNoNL();
 }
 
 string RecordType::GetFieldDeprecationWarning(int field, bool has_check) const {

@@ -42,10 +42,14 @@
 
    :Type: :zeek:type:`record`
 
-      f1: :zeek:type:`ZeekygenTest::TypeAlias`
 
-      f2: :zeek:type:`ZeekygenTest::OtherTypeAlias`
+   .. zeek:field:: f1 :zeek:type:`ZeekygenTest::TypeAlias`
 
-      f3: :zeek:type:`bool`
+
+   .. zeek:field:: f2 :zeek:type:`ZeekygenTest::OtherTypeAlias`
+
+
+   .. zeek:field:: f3 :zeek:type:`bool`
+
 
 

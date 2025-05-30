@@ -4,9 +4,12 @@
 
    :Type: :zeek:type:`record`
 
-      field1: :zeek:type:`bool`
 
-      field2: :zeek:type:`count`
+   .. zeek:field:: field1 :zeek:type:`bool`
+
+
+   .. zeek:field:: field2 :zeek:type:`count`
+
 
 
 .. zeek:type:: TestRecord2
@@ -14,18 +17,27 @@
 
    :Type: :zeek:type:`record`
 
-      A: :zeek:type:`count`
-         document ``A``
 
-      B: :zeek:type:`bool`
-         document ``B``
+   .. zeek:field:: A :zeek:type:`count`
 
-      C: :zeek:type:`TestRecord1`
-         and now ``C``
-         is a declared type
+      document ``A``
 
-      D: :zeek:type:`set` [:zeek:type:`count`, :zeek:type:`bool`]
-         sets/tables should show the index types
+
+   .. zeek:field:: B :zeek:type:`bool`
+
+      document ``B``
+
+
+   .. zeek:field:: C :zeek:type:`TestRecord1`
+
+      and now ``C``
+      is a declared type
+
+
+   .. zeek:field:: D :zeek:type:`set` [:zeek:type:`count`, :zeek:type:`bool`]
+
+      sets/tables should show the index types
+
 
    Here's the ways records and record fields can be documented.
 

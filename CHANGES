@@ -1,3 +1,9 @@
+8.0.0-dev.270 | 2025-05-30 16:44:23 +0200
+
+  * Bump doc submodule for ext/zeek.py modifications (Arne Welzel, Corelight)
+
+  * RecordType:DescribeReST: Render RecordType using zeek:field directive (Arne Welzel, Corelight)
+
 8.0.0-dev.267 | 2025-05-30 11:43:57 +0200
 
   * IXWebsocket: Bump to version with memset() sock addr fix (Arne Welzel, Corelight)

@@ -69,6 +69,10 @@ Changed Functionality
   found/picked-up by default. Use --with-krb5 for pointing at a custom librkb5
   installation.
 
+- The ``$listen_host`` configuration for ``Cluster::listen_websocket()``'s
+  ``WebSocketServerOptions`` was deprecated. Use the new ``$listen_addr`` field
+  instead.
+
 Removed Functionality
 ---------------------
 

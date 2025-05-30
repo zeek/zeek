@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+#
+# Try binding on the given family with addr and a port of 0 so that an
+# ephemeral port is allocated. This can be used to guard IPv6 tests.
+
+import socket
+import sys
+
+
+def usage():
+    print(f"Usage: {sys.argv[0]} 4|6 <addr>", file=sys.stderr)
+    sys.exit(1)
+
+
+if len(sys.argv) != 3:
+    usage()
+
+family = 0
+
+if sys.argv[1] == "4":
+    family = socket.AF_INET
+elif sys.argv[1] == "6":
+    family = socket.AF_INET6
+else:
+    usage()
+
+addr = sys.argv[2]
+port = 0
+
+s = socket.socket(family)
+
+try:
+    s.bind((addr, port))
+except Exception as e:
+    print(f"cannot listen on {addr}:{port} ({e!r})")
+    sys.exit(1)
+finally:
+    try:
+        s.close()
+    except:
+        pass

@@ -43,6 +43,7 @@ WS_PORT = (
 
 # IPv4 non-secure WebSocker URL for version 1
 WS4_URL_V1 = f"ws://127.0.0.1:{WS_PORT}/v1/messages/json"
+WS6_URL_V1 = f"ws://[::1]:{WS_PORT}/v1/messages/json"
 
 DEFAULT_RECV_TIMEOUT = 0.1
 OWN_TOPIC_PREFIX = "/zeek/wstest"

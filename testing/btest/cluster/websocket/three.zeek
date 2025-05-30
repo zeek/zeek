@@ -71,7 +71,7 @@ event Cluster::Backend::ZeroMQ::subscription(topic: string)
 
 event zeek_init()
 	{
-	Cluster::listen_websocket([$listen_host="127.0.0.1", $listen_port=to_port(getenv("WEBSOCKET_PORT"))]);
+	Cluster::listen_websocket([$listen_addr=127.0.0.1, $listen_port=to_port(getenv("WEBSOCKET_PORT"))]);
 	Cluster::subscribe("/test/manager");
 	}
 # @TEST-END-FILE

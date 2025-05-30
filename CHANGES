@@ -1,3 +1,11 @@
+8.0.0-dev.267 | 2025-05-30 11:43:57 +0200
+
+  * IXWebsocket: Bump to version with memset() sock addr fix (Arne Welzel, Corelight)
+
+  * cluster/websocket: Deprecate $listen_host, introduce $listen_addr (Arne Welzel, Corelight)
+
+  * GH-4474: cluster/websocket-ixwebsocket: Determine proper address_family (Arne Welzel, Corelight)
+
 8.0.0-dev.262 | 2025-05-28 08:29:33 -0700
 
   * Remove obsolete --with-bind configure flag (Tim Wojtulewicz, Corelight)

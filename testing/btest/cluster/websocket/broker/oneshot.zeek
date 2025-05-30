@@ -36,7 +36,7 @@ global ping: event(msg: string, c: count) &is_used;
 event zeek_init()
 	{
 	Cluster::subscribe("/test/pings");
-	Cluster::listen_websocket([$listen_host="127.0.0.1", $listen_port=to_port(getenv("WEBSOCKET_PORT"))]);
+	Cluster::listen_websocket([$listen_addr=127.0.0.1, $listen_port=to_port(getenv("WEBSOCKET_PORT"))]);
 	}
 
 event ping(msg: string, n: count) &is_used

@@ -32,7 +32,7 @@ redef Broker::disable_ssl = T;
 event zeek_init()
 	{
 	Cluster::subscribe("/test/pings");
-	Cluster::listen_websocket([$listen_host="127.0.0.1", $listen_port=to_port(getenv("WEBSOCKET_PORT"))]);
+	Cluster::listen_websocket([$listen_addr=127.0.0.1, $listen_port=to_port(getenv("WEBSOCKET_PORT"))]);
 	}
 
 global ping_count = 0;

@@ -124,14 +124,14 @@ void redisGeneric(redisAsyncContext* ctx, void* reply, void* privdata) {
 }
 
 /**
- * Callback handler for ZADD commands.
+ * Callback handler for INFO commands.
  *
  * @param ctx The async context that called this callback.
  * @param reply The reply from the server for the command.
  * @param privdata A pointer to private data passed in the command.
  */
 void redisINFO(redisAsyncContext* ctx, void* reply, void* privdata) {
-    auto t = Tracer("generic");
+    auto t = Tracer("info");
     auto backend = static_cast<zeek::storage::backend::redis::Redis*>(ctx->data);
     backend->HandleInfoResult(static_cast<redisReply*>(reply));
 }
@@ -630,8 +630,13 @@ void Redis::HandleInfoResult(redisReply* reply) {
         }
     }
 
-    if ( ! connected && res.err_str.empty() )
-        res.err_str = "INFO command did not return server version";
+    if ( ! connected ) {
+        if ( res.err_str.empty() )
+            res.err_str = "INFO command did not return server version";
+
+        disconnect_reason = res.err_str;
+        redisAsyncDisconnect(async_ctx);
+    }
 
     freeReplyObject(reply);
     CompleteCallback(open_cb, res);
@@ -678,8 +683,13 @@ void Redis::OnDisconnect(int status) {
     else {
         --active_ops;
 
-        EnqueueBackendLost("Client disconnected");
-        CompleteCallback(close_cb, {ReturnCode::SUCCESS});
+        if ( disconnect_reason.empty() )
+            EnqueueBackendLost("Client disconnected");
+        else
+            EnqueueBackendLost(util::fmt("Client disconnected: %s", disconnect_reason.c_str()));
+
+        if ( close_cb )
+            CompleteCallback(close_cb, {ReturnCode::SUCCESS});
     }
 
     redisAsyncFree(async_ctx);

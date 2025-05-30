@@ -2951,6 +2951,8 @@ RecordFieldUpdatesExpr::RecordFieldUpdatesExpr(ExprTag t, const std::vector<cons
         ASSERT(stmt_pool.count(s) > 0);
         stmt_pool.erase(s);
     }
+
+    SetType(base_type(TYPE_VOID));
 }
 
 RecordFieldUpdatesExpr::RecordFieldUpdatesExpr(ExprTag t, ExprPtr e1, ExprPtr e2, std::vector<int> _lhs_map,
@@ -2958,6 +2960,7 @@ RecordFieldUpdatesExpr::RecordFieldUpdatesExpr(ExprTag t, ExprPtr e1, ExprPtr e2
     : BinaryExpr(t, std::move(e1), std::move(e2)) {
     lhs_map = std::move(_lhs_map);
     rhs_map = std::move(_rhs_map);
+    SetType(base_type(TYPE_VOID));
 }
 
 ValPtr RecordFieldUpdatesExpr::Fold(Val* v1, Val* v2) const {

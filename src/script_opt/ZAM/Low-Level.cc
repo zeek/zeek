@@ -183,6 +183,4 @@ const Stmt* ZAMCompiler::LastStmt(const Stmt* s) const {
         return s;
 }
 
-ZAMStmt ZAMCompiler::PrevStmt(const ZAMStmt s) { return ZAMStmt(s.stmt_num - 1); }
-
 } // namespace zeek::detail

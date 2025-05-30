@@ -1,3 +1,9 @@
+8.0.0-dev.299 | 2025-05-30 13:06:42 -0700
+
+  * fix for crash when interpreting transformed ASTs that include multi-field record assignments/additions (Vern Paxson, Corelight)
+
+  * Remove unused ZAM compiler method (Vern Paxson, Corelight)
+
 8.0.0-dev.296 | 2025-05-30 12:16:27 -0700
 
   * Add utility methods to make CMake summary output nicer (Tim Wojtulewicz, Corelight)

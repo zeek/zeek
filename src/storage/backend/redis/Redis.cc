@@ -136,6 +136,19 @@ void redisINFO(redisAsyncContext* ctx, void* reply, void* privdata) {
     backend->HandleInfoResult(static_cast<redisReply*>(reply));
 }
 
+/**
+ * Callback handler for AUTH commands.
+ *
+ * @param ctx The async context that called this callback.
+ * @param reply The reply from the server for the command.
+ * @param privdata A pointer to private data passed in the command.
+ */
+void redisAUTH(redisAsyncContext* ctx, void* reply, void* privdata) {
+    auto t = Tracer("auth");
+    auto backend = static_cast<zeek::storage::backend::redis::Redis*>(ctx->data);
+    backend->HandleAuthResult(static_cast<redisReply*>(reply));
+}
+
 // Because we called redisPollAttach in DoOpen(), privdata here is a
 // redisPollEvents object. We can go through that object to get the context's
 // data, which contains the backend. Because we overrode these callbacks in
@@ -270,6 +283,14 @@ OperationResult Redis::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     auto connect_timeout_opt = backend_options->GetField<IntervalVal>("connect_timeout")->Get();
     struct timeval timeout = util::double_to_timeval(connect_timeout_opt);
     opt.connect_timeout = &timeout;
+
+    auto username_field = backend_options->GetField<StringVal>("username");
+    if ( username_field )
+        username = username_field->ToStdString();
+
+    auto password_field = backend_options->GetField<StringVal>("password");
+    if ( password_field )
+        password = password_field->ToStdString();
 
     // The connection request below should be operation #1.
     active_ops = 1;
@@ -642,25 +663,74 @@ void Redis::HandleInfoResult(redisReply* reply) {
     CompleteCallback(open_cb, res);
 }
 
+void Redis::HandleAuthResult(redisReply* reply) {
+    DBG_LOG(DBG_STORAGE, "Redis backend: auth event");
+    --active_ops;
+
+    if ( strncmp(reply->str, "OK", 2) != 0 ) {
+        std::string reason = util::fmt("AUTH command failed to authenticate: %s", reply->str);
+        CompleteCallback(open_cb, {ReturnCode::CONNECTION_FAILED, reason});
+        freeReplyObject(reply);
+
+        disconnect_reason = reason;
+        redisAsyncDisconnect(async_ctx);
+        return;
+    }
+
+    freeReplyObject(reply);
+    SendInfoRequest();
+}
+
+void Redis::SendInfoRequest() {
+    DBG_LOG(DBG_STORAGE, "Redis backend: Sending INFO request");
+
+    // Request the INFO block from the server that should contain the version information.
+    int status = redisAsyncCommand(async_ctx, redisINFO, NULL, "INFO server");
+
+    if ( status == REDIS_ERR ) {
+        // TODO: do something with the error?
+        DBG_LOG(DBG_STORAGE, "INFO command failed: %s err=%d", async_ctx->errstr, async_ctx->err);
+        CompleteCallback(open_cb, {ReturnCode::OPERATION_FAILED,
+                                   util::fmt("INFO command failed to retrieve server info: %s", async_ctx->errstr)});
+        return;
+    }
+
+    ++active_ops;
+}
+
 void Redis::OnConnect(int status) {
     DBG_LOG(DBG_STORAGE, "Redis backend: connection event, status=%d", status);
     --active_ops;
 
     connected = false;
     if ( status == REDIS_OK ) {
-        // Request the INFO block from the server that should contain the version information.
-        status = redisAsyncCommand(async_ctx, redisINFO, NULL, "INFO server");
+        bool made_auth_request = false;
 
+        // If the username and/or password are set, send an AUTH command. Fail to
+        // connect if the authentication fails. We want to pause here while opening.
+        if ( ! username.empty() && ! password.empty() ) {
+            status = redisAsyncCommand(async_ctx, redisAUTH, NULL, "AUTH %s %s", username.c_str(), password.c_str());
+            made_auth_request = true;
+        }
+        else if ( ! password.empty() ) {
+            status = redisAsyncCommand(async_ctx, redisAUTH, NULL, "AUTH %s", password.c_str());
+            made_auth_request = true;
+        }
+
+        // This will be reset by the sync calls above if we make them and they fail. The
+        // condition will always be false if we don't make any auth call.
         if ( status == REDIS_ERR ) {
-            // TODO: do something with the error?
-            DBG_LOG(DBG_STORAGE, "INFO command failed: %s err=%d", async_ctx->errstr, async_ctx->err);
-            CompleteCallback(open_cb,
-                             {ReturnCode::OPERATION_FAILED,
-                              util::fmt("INFO command failed to retrieve server info: %s", async_ctx->errstr)});
+            DBG_LOG(DBG_STORAGE, "AUTH command failed: %s err=%d", async_ctx->errstr, async_ctx->err);
+            CompleteCallback(open_cb, {ReturnCode::OPERATION_FAILED,
+                                       util::fmt("AUTH command failed to queue: %s", async_ctx->errstr)});
             return;
         }
 
-        ++active_ops;
+        if ( made_auth_request )
+            ++active_ops;
+        else
+            // This will be called from the handler of the auth event if that succeeds.
+            SendInfoRequest();
     }
     else {
         DBG_LOG(DBG_STORAGE, "Redis backend: connection failed: %s err=%d", async_ctx->errstr, async_ctx->err);
@@ -682,11 +752,9 @@ void Redis::OnDisconnect(int status) {
     }
     else {
         --active_ops;
-
-        if ( disconnect_reason.empty() )
-            EnqueueBackendLost("Client disconnected");
-        else
-            EnqueueBackendLost(util::fmt("Client disconnected: %s", disconnect_reason.c_str()));
+        std::string msg =
+            util::fmt("Client disconnected%s%s", disconnect_reason.empty() ? "" : ": ", disconnect_reason.c_str());
+        EnqueueBackendLost(msg);
 
         if ( close_cb )
             CompleteCallback(close_cb, {ReturnCode::SUCCESS});

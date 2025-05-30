@@ -7,6 +7,7 @@
 #include <string>
 #include <utility>
 
+#include "zeek/IntrusivePtr.h"
 #include "zeek/ZeekString.h" // for byte_vec
 #include "zeek/util.h"       // for zeek_int_t
 
@@ -211,13 +212,13 @@ protected:
 };
 
 // Returns a string representation of an object's description.  Used for
-// debugging and error messages.  takes a bare pointer rather than an
-// IntrusivePtr because the latter is harder to deal with when making
-// calls from a debugger like lldb, which is the main use of this function.
+// debugging and error messages.
 class Obj;
 std::string obj_desc(const Obj* o);
+inline std::string obj_desc(const IntrusivePtr<Obj>& o) { return obj_desc(o.get()); }
 
 // Same as obj_desc(), but ensure it is short and don't include location info.
 std::string obj_desc_short(const Obj* o);
+inline std::string obj_desc_short(const IntrusivePtr<Obj>& o) { return obj_desc_short(o.get()); }
 
 } // namespace zeek

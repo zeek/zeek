@@ -170,8 +170,8 @@ public:
     // the event was intended to be executed. For scheduled events, this is the time the event
     // was scheduled to. For any other event, this is the time when the event was created.
     //
-    // If no event is being processed, returns 0.0.
-    double CurrentEventTime() const { return current ? current->Time() : 0.0; }
+    // If no event is being processed or there is no timestamp information, returns -1.0
+    double CurrentEventTime() const { return current ? current->Time() : -1.0; }
 
     int Size() const { return num_events_queued - num_events_dispatched; }
 

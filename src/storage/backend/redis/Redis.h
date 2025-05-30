@@ -70,12 +70,13 @@ private:
     // poll.
     std::deque<redisReply*> reply_queue;
 
-    OpenResultCallback* open_cb;
-    ResultCallback* close_cb;
+    OpenResultCallback* open_cb = nullptr;
+    ResultCallback* close_cb = nullptr;
     std::mutex expire_mutex;
 
     std::string server_addr;
     std::string key_prefix;
+    std::string disconnect_reason;
 
     std::atomic<bool> connected = false;
     std::atomic<bool> expire_running = false;

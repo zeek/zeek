@@ -9,20 +9,22 @@
 #include "zeek/analyzer/protocol/login/events.bif.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#define IS_3_BYTE_OPTION(c) ((c) >= 251 && (c) <= 254)
+constexpr bool IS_3_BYTE_OPTION(unsigned int code) { return code >= 251 && code <= 254; }
 
-#define TELNET_OPT_SB 250
-#define TELNET_OPT_SE 240
+enum TelnetOpts : uint8_t {
+    TELNET_OPT_SB = 250,
+    TELNET_OPT_SE = 240,
 
-#define TELNET_OPT_IS 0
-#define TELNET_OPT_SEND 1
+    TELNET_OPT_IS = 0,
+    TELNET_OPT_SEND = 1,
 
-#define TELNET_OPT_WILL 251
-#define TELNET_OPT_WONT 252
-#define TELNET_OPT_DO 253
-#define TELNET_OPT_DONT 254
+    TELNET_OPT_WILL = 251,
+    TELNET_OPT_WONT = 252,
+    TELNET_OPT_DO = 253,
+    TELNET_OPT_DONT = 254,
 
-#define TELNET_IAC 255
+    TELNET_IAC = 255,
+};
 
 namespace zeek::analyzer::login {
 
@@ -114,15 +116,17 @@ void TelnetTerminalOption::RecvSubOption(u_char* data, int len) {
     endp->SetTerminal(data + 1, len - 1);
 }
 
-#define ENCRYPT_SET_ALGORITHM 0
-#define ENCRYPT_SUPPORT_ALGORITHM 1
-#define ENCRYPT_REPLY 2
-#define ENCRYPT_STARTING_TO_ENCRYPT 3
-#define ENCRYPT_NO_LONGER_ENCRYPTING 4
-#define ENCRYPT_REQUEST_START_TO_ENCRYPT 5
-#define ENCRYPT_REQUEST_NO_LONGER_ENCRYPT 6
-#define ENCRYPT_ENCRYPT_KEY 7
-#define ENCRYPT_DECRYPT_KEY 8
+enum EncryptOptions : uint8_t {
+    ENCRYPT_SET_ALGORITHM = 0,
+    ENCRYPT_SUPPORT_ALGORITHM,
+    ENCRYPT_REPLY,
+    ENCRYPT_STARTING_TO_ENCRYPT,
+    ENCRYPT_NO_LONGER_ENCRYPTING,
+    ENCRYPT_REQUEST_START_TO_ENCRYPT,
+    ENCRYPT_REQUEST_NO_LONGER_ENCRYPT,
+    ENCRYPT_ENCRYPT_KEY,
+    ENCRYPT_DECRYPT_KEY,
+};
 
 void TelnetEncryptOption::RecvSubOption(u_char* data, int len) {
     if ( ! active ) {
@@ -157,13 +161,15 @@ void TelnetEncryptOption::RecvSubOption(u_char* data, int len) {
     }
 }
 
-#define HERE_IS_AUTHENTICATION 0
-#define SEND_ME_AUTHENTICATION 1
-#define AUTHENTICATION_STATUS 2
-#define AUTHENTICATION_NAME 3
+enum AuthOptions : uint8_t {
+    HERE_IS_AUTHENTICATION = 0,
+    SEND_ME_AUTHENTICATION,
+    AUTHENTICATION_STATUS,
+    AUTHENTICATION_NAME,
+};
 
-#define AUTH_REJECT 1
-#define AUTH_ACCEPT 2
+constexpr int AUTH_REJECT = 1;
+constexpr int AUTH_ACCEPT = 2;
 
 void TelnetAuthenticateOption::RecvSubOption(u_char* data, int len) {
     if ( len <= 0 ) {
@@ -212,14 +218,14 @@ void TelnetAuthenticateOption::RecvSubOption(u_char* data, int len) {
     }
 }
 
-#define ENVIRON_IS 0
-#define ENVIRON_SEND 1
-#define ENVIRON_INFO 2
+constexpr int ENVIRON_IS = 0;
+constexpr int ENVIRON_SEND = 1;
+constexpr int ENVIRON_INFO = 2;
 
-#define ENVIRON_VAR 0
-#define ENVIRON_VAL 1
-#define ENVIRON_ESC 2
-#define ENVIRON_USERVAR 3
+constexpr int ENVIRON_VAR = 0;
+constexpr int ENVIRON_VAL = 1;
+constexpr int ENVIRON_ESC = 2;
+constexpr int ENVIRON_USERVAR = 3;
 
 void TelnetEnvironmentOption::RecvSubOption(u_char* data, int len) {
     if ( len <= 0 ) {
@@ -386,7 +392,7 @@ void NVT_Analyzer::SetEncrypting(int mode) {
         Event(activating_encryption);
 }
 
-#define MAX_DELIVER_UNIT 128
+constexpr int MAX_DELIVER_UNIT = 128;
 
 void NVT_Analyzer::DoDeliver(int len, const u_char* data) {
     while ( len > 0 ) {
@@ -412,17 +418,16 @@ void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data) {
         if ( binary_mode && c != TELNET_IAC )
             c &= 0x7f;
 
-#define EMIT_LINE                                                                                                      \
-    {                                                                                                                  \
-        buf[offset] = '\0';                                                                                            \
-        ForwardStream(offset, buf, IsOrig());                                                                          \
-        offset = 0;                                                                                                    \
-    }
+        auto EMIT_LINE = [this]() {
+            buf[offset] = '\0';
+            ForwardStream(offset, buf, IsOrig());
+            offset = 0;
+        };
 
         switch ( c ) {
             case '\r':
                 if ( CRLFAsEOL() & CR_as_EOL )
-                    EMIT_LINE
+                    EMIT_LINE();
                 else
                     buf[offset++] = c;
                 break;
@@ -434,12 +439,12 @@ void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data) {
                         ;
                     else {
                         --offset; // remove '\r'
-                        EMIT_LINE
+                        EMIT_LINE();
                     }
                 }
 
                 else if ( CRLFAsEOL() & LF_as_EOL )
-                    EMIT_LINE
+                    EMIT_LINE();
 
                 else {
                     if ( Conn()->FlagEvent(SINGULAR_LF) )

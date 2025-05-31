@@ -25,6 +25,8 @@ ARPAnalyzer::ARPAnalyzer() : zeek::packet_analysis::Analyzer("ARP") {}
 // ... and on Solaris we are missing half of the ARPOP codes, so define
 // them here as necessary:
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+
 #ifndef ARPOP_REQUEST
 #define ARPOP_REQUEST 1 // ARP request.
 #endif
@@ -83,6 +85,8 @@ ARPAnalyzer::ARPAnalyzer() : zeek::packet_analysis::Analyzer("ARP") {}
 #ifndef ARPHRD_IEEE802
 #define ARPHRD_IEEE802 6
 #endif
+
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 bool ARPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) {
     packet->l3_proto = L3_ARP;

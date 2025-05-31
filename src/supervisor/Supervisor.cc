@@ -16,6 +16,7 @@
 #include <utility>
 #include <variant>
 
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define RAPIDJSON_HAS_STDSTRING 1
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
@@ -43,11 +44,13 @@ extern "C" {
 #include "zeek/util.h"
 #include "zeek/zeek-affinity.h"
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
 #ifdef DEBUG
 #define DBG_STEM(...) stem->LogDebug(__VA_ARGS__);
 #else
 #define DBG_STEM(...)
 #endif
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 using namespace zeek;
 using zeek::detail::SupervisedNode;

@@ -27,7 +27,7 @@
 #include "rapidjson/document.h"
 #include "rapidjson/rapidjson.h"
 
-
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define WS_DEBUG(...) PLUGIN_DBG_LOG(zeek::plugin::Cluster_WebSocket::plugin, __VA_ARGS__)
 
 namespace zeek {

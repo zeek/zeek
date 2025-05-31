@@ -14,13 +14,15 @@
 #undef SMTP_CMD_DEF
 #define SMTP_CMD_DEF(cmd) #cmd,
 
+// This could be constexpr too but it would require changing the macro above. It doesn't
+// matter that much though.
 static const char* smtp_cmd_word[] = {
 #include "SMTP_cmd.def"
 };
 
-static const char* unknown_cmd = "(UNKNOWN)";
+static constexpr char unknown_cmd[] = "(UNKNOWN)";
 
-#define SMTP_CMD_WORD(code) (((code) >= 0) ? smtp_cmd_word[code] : unknown_cmd)
+static constexpr const char* SMTP_CMD_WORD(int code) { return code >= 0 ? smtp_cmd_word[code] : unknown_cmd; }
 
 namespace zeek::analyzer::smtp {
 

@@ -69,6 +69,7 @@ Type::Type(TypeTag t, bool arg_base_type)
       is_network_order(zeek::is_network_order(t)),
       base_type(arg_base_type) {}
 
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define CHECK_TYPE_TAG(tag_type, func_name) CHECK_TAG(tag, tag_type, func_name, type_name)
 
 const TypeList* Type::AsTypeList() const {

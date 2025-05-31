@@ -174,6 +174,8 @@ public:
         inits_vec.resize(num_inits);
     }
 
+    virtual ~CPP_AbstractInits() = default;
+
     // Initialize the given cohort of elements.
     void InitializeCohort(InitsManager* im, int cohort) {
         // Get this object's vector-of-vector-of-indices.

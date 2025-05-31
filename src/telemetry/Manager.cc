@@ -2,6 +2,7 @@
 
 #include "zeek/telemetry/Manager.h"
 
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define RAPIDJSON_HAS_STDSTRING 1
 
 // CivetServer is from the civetweb submodule in prometheus-cpp

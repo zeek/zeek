@@ -6,6 +6,7 @@
 #define __STDC_LIMIT_MACROS
 #endif
 
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define RAPIDJSON_HAS_STDSTRING 1
 
 #include <rapidjson/internal/ieee754.h>

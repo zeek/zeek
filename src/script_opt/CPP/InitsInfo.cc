@@ -299,9 +299,12 @@ void FuncConstInfo::InitializerVals(std::vector<std::string>& ivs) const {
     }
 }
 
-void TypeConstInfo::InitializerVals(std::vector<std::string>& ivs) const {
-    auto& t = tv->GetType()->AsTypeType()->GetType();
-    ivs.emplace_back(Fmt(t->Tag()));
+TypeConstInfo::TypeConstInfo(CPPCompile* _c, ValPtr v) : CompoundItemInfo(_c, v) {
+    auto tv = v->AsTypeVal();
+    auto t = tv->GetType()->AsTypeType()->GetType();
+    auto gi = c->RegisterType(t);
+    type = c->TypeOffset(t);
+    init_cohort = max(init_cohort, gi->InitCohort() + 1);
 }
 
 AttrInfo::AttrInfo(CPPCompile* _c, const AttrPtr& attr) : CompoundItemInfo(_c) {

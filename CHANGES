@@ -1,3 +1,9 @@
+8.0.0-dev.335 | 2025-06-02 14:52:44 -0700
+
+  * Update libunistd submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Update Windows CI image to Visual Studio 2022 (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.332 | 2025-06-02 14:31:29 -0700
 
   * CI: Force rebuild of opensuse tumbleweed docker image (Tim Wojtulewicz, Corelight)

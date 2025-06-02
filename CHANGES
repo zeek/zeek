@@ -1,3 +1,29 @@
+8.0.0-dev.303 | 2025-06-02 09:51:53 +0200
+
+  * intel/seen/manage-event-groups: Policy script for toggling intel event groups (Arne Welzel, Corelight)
+
+    Co-authored-by: Mohan Dhawan <mohan@corelight.com>
+
+  * intel: Add indicator_inserted and indicator_removed hooks (Arne Welzel, Corelight)
+
+    This change adds two new hooks to the Intel framework that can be used
+    to intercept added and removed indicators and their type.
+
+    These hooks are fairly low-level. One immediate use-case is to count the
+    number of indicators loaded per Intel::Type and enable and disable the
+    corresponding event groups of the intel/seen scripts.
+
+    I attempted to gauge the overhead and while it's definitely there, loading
+    a file with ~500k DOMAIN entries takes somewhere around ~0.5 seconds hooks
+    when populated via the min_data_store store mechanism. While that
+    doesn't sound great, it actually takes the manager on my system 2.5
+    seconds to serialize and Cluster::publish() the min_data_store alone
+    and its doing that serially for every active worker. Mostly to say that
+    the bigger overhead in that area on the manager doing redundant work
+    per worker.
+
+    Co-authored-by: Mohan Dhawan <mohan@corelight.com>
+
 8.0.0-dev.299 | 2025-05-30 13:06:42 -0700
 
   * fix for crash when interpreting transformed ASTs that include multi-field record assignments/additions (Vern Paxson, Corelight)

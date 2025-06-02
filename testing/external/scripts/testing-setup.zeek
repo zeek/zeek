@@ -17,6 +17,11 @@ redef DPD::track_removed_services_in_connection=T;
 	redef LogAscii::use_json = F;
 @endif
 
+# The tests don't load intel data and so all Intel event groups are disabled
+# due to intel/seen/manage-event-groups being loaded by default. Disable that
+# functionality by default to cover execution in the intel/seen scripts.
+redef Intel::manage_seen_event_groups = F;
+
 # The IMAP analyzer includes absolute filenames in its error messages,
 # exclude it for now from analyzer.log.
 # https://github.com/zeek/zeek/issues/2659

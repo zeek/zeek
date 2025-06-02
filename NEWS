@@ -35,8 +35,25 @@ Breaking Changes
 
 	redef LogAscii::json_timestamps = JSON::TS_MILLIS_UNSIGNED;
 
+- The ``current_event_time()`` builtin function as well as ``Event::Time()``
+  and ``EventMgr::CurrentEventTime()`` now return ``-1.0`` if no timestamp
+  metadata is available for the current event, or if no event is being
+  dispatched. Previously this would've been 0.0, or the timestamp of the previously
+  dispatched event.
+
+- Missing network timestamp metadata on remote events is not set to the local
+  network time anymore by default. This potentially hid useful debugging information
+  about another node not sending timestamp metadata. The old behavior can be
+  re-enabled as follows:
+
+	redef EventMetadata::add_missing_remote_network_timestamp = T;
+
 New Functionality
 -----------------
+
+- Generic event metadata support. A new ``EventMetadata`` module was added allowing
+  to register generic event metadata types and accessing the current event's metadata
+  using the functions ``current()`` and ``current_all()`` of this module.
 
 - A new plugin hook, ``HookPublishEvent()``, has been added for intercepting
   publishing of Zeek events. This hook may be used for monitoring purposes,

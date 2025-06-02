@@ -2,14 +2,17 @@
 
 #include "zeek/cluster/Backend.h"
 
+#include <memory>
 #include <optional>
 
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
+#include "zeek/EventHandler.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/Func.h"
 #include "zeek/Reporter.h"
 #include "zeek/Type.h"
+#include "zeek/Val.h"
 #include "zeek/cluster/Manager.h"
 #include "zeek/cluster/OnLoop.h"
 #include "zeek/cluster/Serializer.h"
@@ -19,15 +22,48 @@
 #include "zeek/plugin/Plugin.h"
 #include "zeek/util.h"
 
+#include "zeek/3rdparty/doctest.h"
+
 using namespace zeek::cluster;
 
+double detail::Event::Timestamp() const {
+    if ( meta ) {
+        for ( const auto& m : *meta ) {
+            if ( m.Id() == static_cast<zeek_uint_t>(zeek::detail::MetadataType::NetworkTimestamp) )
+                return m.Val()->AsTime();
+        }
+    }
+
+    return zeek::detail::NO_TIMESTAMP;
+}
+
+bool detail::Event::AddMetadata(const EnumValPtr& id, zeek::ValPtr val) {
+    if ( ! id || ! val )
+        return false;
+
+    const auto* desc = zeek::event_registry->LookupMetadata(id->Get());
+    if ( ! desc )
+        return false;
+
+    if ( ! same_type(val->GetType(), desc->Type()) )
+        return false;
+
+    if ( ! meta )
+        meta = std::make_unique<zeek::detail::EventMetadataVector>();
+
+    // Internally stored as zeek_uint_t for serializers.
+    meta->emplace_back(desc->Id(), std::move(val));
+
+    return true;
+}
+
+std::tuple<zeek::EventHandlerPtr, zeek::Args, zeek::detail::EventMetadataVectorPtr> detail::Event::Take() && {
+    return {handler, std::move(args), std::move(meta)};
+}
 
 bool detail::LocalEventHandlingStrategy::DoProcessEvent(std::string_view topic, detail::Event e) {
-    zeek::detail::EventMetadataVectorPtr meta;
-    if ( auto ts = e.Timestamp(); ts >= 0.0 )
-        meta = zeek::detail::MakeEventMetadataVector(e.Timestamp());
-
-    zeek::event_mgr.Enqueue(std::move(meta), e.Handler(), std::move(e.Args()), util::detail::SOURCE_BROKER);
+    auto [handler, args, meta] = std::move(e).Take();
+    zeek::event_mgr.Enqueue(std::move(meta), handler, std::move(args), util::detail::SOURCE_BROKER);
     return true;
 }
 
@@ -73,8 +109,7 @@ std::optional<zeek::Args> detail::check_args(const zeek::FuncValPtr& handler, ze
 
         if ( ! same_type(got_type, expected_type) ) {
             zeek::reporter->Error("event parameter #%zu type mismatch, got %s, expecting %s", i + 1,
-                                  zeek::obj_desc_short(got_type.get()).c_str(),
-                                  zeek::obj_desc_short(expected_type.get()).c_str());
+                                  zeek::obj_desc_short(got_type).c_str(), zeek::obj_desc_short(expected_type).c_str());
             return std::nullopt;
         }
 
@@ -100,21 +135,38 @@ bool Backend::Init(std::string nid) {
     return DoInit();
 }
 
-std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsSpan args, double timestamp) const {
+std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsSpan args) const {
     auto checked_args = detail::check_args(handler, args);
     if ( ! checked_args )
         return std::nullopt;
 
-    if ( timestamp == 0.0 )
-        timestamp = zeek::event_mgr.CurrentEventTime();
 
     const auto& eh = zeek::event_registry->Lookup(handler->AsFuncPtr()->GetName());
     if ( ! eh ) {
-        zeek::reporter->Error("event registry lookup of '%s' failed", obj_desc(handler.get()).c_str());
+        zeek::reporter->Error("event registry lookup of '%s' failed", obj_desc_short(handler).c_str());
         return std::nullopt;
     }
 
-    return zeek::cluster::detail::Event{eh, std::move(*checked_args), timestamp};
+    /**
+     * If you ever stare at this and wonder: Currently, if someone calls
+     * Cluster::publish() from within a remote event in script land, then
+     * CurrentEventTime() below will yield the network timestamp of the
+     * remote event. That means that the outgoing event from this node will
+     * have the network timestamp of the originating node, which may be
+     * different from what the local network time is.
+     *
+     * This could be confusing and another policy might be to always set
+     * the network timestamp metadata for for outgoing events to the local
+     * network time instead, even when currently handling a remote event.
+     *
+     * @J-Gras prefers the current behavior. @awelzel wonders if there should
+     * be an opt-in/opt-out for this behavior. Procrastinating it for now.
+     */
+    zeek::detail::EventMetadataVectorPtr meta;
+    if ( zeek::BifConst::EventMetadata::add_network_timestamp )
+        meta = zeek::detail::MakeEventMetadataVector(zeek::event_mgr.CurrentEventTime());
+
+    return zeek::cluster::detail::Event{eh, std::move(*checked_args), std::move(meta)};
 }
 
 void Backend::DoReadyToPublishCallback(Backend::ReadyCallback cb) {
@@ -244,3 +296,48 @@ void ThreadedBackend::Process(QueueMessage&& msg) {
         zeek::reporter->FatalError("Unimplemented QueueMessage %zu", msg.index());
     }
 }
+
+TEST_SUITE_BEGIN("cluster event");
+
+TEST_CASE("add metadata") {
+    auto* handler = zeek::event_registry->Lookup("Supervisor::node_status");
+    zeek::Args args{zeek::make_intrusive<zeek::StringVal>("TEST"), zeek::val_mgr->Count(42)};
+    zeek::cluster::detail::Event event{handler, args, nullptr};
+
+    auto nts = zeek::id::find_val<zeek::EnumVal>("EventMetadata::NETWORK_TIMESTAMP");
+    REQUIRE(nts);
+    auto unk = zeek::id::find_val<zeek::EnumVal>("Log::UNKNOWN");
+    REQUIRE(unk);
+
+    bool registered = zeek::event_registry->RegisterMetadata(nts, zeek::base_type(zeek::TYPE_TIME));
+    REQUIRE(registered);
+
+    SUBCASE("valid") {
+        CHECK_EQ(event.Timestamp(), -1.0);
+        CHECK(event.AddMetadata(nts, zeek::make_intrusive<zeek::TimeVal>(42.0)));
+        CHECK_EQ(event.Timestamp(), 42.0);
+    }
+
+    SUBCASE("valid-two-times") {
+        CHECK_EQ(event.Timestamp(), -1.0);
+        CHECK(event.AddMetadata(nts, zeek::make_intrusive<zeek::TimeVal>(42.0)));
+        CHECK(event.AddMetadata(nts, zeek::make_intrusive<zeek::TimeVal>(43.0)));
+        CHECK_EQ(event.Timestamp(), 42.0);     // finds the first one
+        CHECK_EQ(event.Metadata()->size(), 2); // both are stored
+    }
+
+    SUBCASE("invalid-value-type") {
+        CHECK_EQ(event.Timestamp(), -1.0);
+        CHECK_FALSE(event.AddMetadata(nts, zeek::make_intrusive<zeek::DoubleVal>(42.0)));
+        CHECK_EQ(event.Timestamp(), -1.0);
+        CHECK_EQ(event.Metadata(), nullptr);
+    }
+
+    SUBCASE("unregistered-metadata-identifier") {
+        CHECK_EQ(event.Timestamp(), -1.0);
+        CHECK_FALSE(event.AddMetadata(unk, zeek::make_intrusive<zeek::DoubleVal>(42.0)));
+        CHECK_EQ(event.Timestamp(), -1.0);
+        CHECK_EQ(event.Metadata(), nullptr);
+    }
+}
+TEST_SUITE_END();

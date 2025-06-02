@@ -49,6 +49,8 @@ using EventMetadataVectorPtr = std::unique_ptr<EventMetadataVector>;
  */
 EventMetadataVectorPtr MakeEventMetadataVector(double t);
 
+constexpr double NO_TIMESTAMP = -1.0;
+
 } // namespace detail
 
 class Event final : public Obj {
@@ -170,8 +172,8 @@ public:
     // the event was intended to be executed. For scheduled events, this is the time the event
     // was scheduled to. For any other event, this is the time when the event was created.
     //
-    // If no event is being processed, returns 0.0.
-    double CurrentEventTime() const { return current ? current->Time() : 0.0; }
+    // If no event is being processed or there is no timestamp information, returns -1.0
+    double CurrentEventTime() const { return current ? current->Time() : detail::NO_TIMESTAMP; }
 
     int Size() const { return num_events_queued - num_events_dispatched; }
 

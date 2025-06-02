@@ -9,6 +9,7 @@
 #include <string_view>
 #include <variant>
 
+#include "zeek/Event.h"
 #include "zeek/EventHandler.h"
 #include "zeek/Span.h"
 #include "zeek/Tag.h"
@@ -37,8 +38,8 @@ public:
     /**
      * Constructor.
      */
-    Event(const EventHandlerPtr& handler, zeek::Args args, double timestamp = 0.0)
-        : handler(handler), args(std::move(args)), timestamp(timestamp) {}
+    Event(const EventHandlerPtr& handler, zeek::Args args, zeek::detail::EventMetadataVectorPtr meta)
+        : handler(handler), args(std::move(args)), meta(std::move(meta)) {}
 
     /**
      * @return The name of the event.
@@ -60,16 +61,40 @@ public:
     zeek::Args& Args() { return args; }
 
     /**
-     * @return The network timestamp metadata of this event or 0.0.
+     * @return The network timestamp metadata of this event or -1.0 if not set.
      */
-    double Timestamp() const { return timestamp; }
+    double Timestamp() const;
+
+    /**
+     * Add metadata to this cluster event.
+     *
+     * The used metadata \a id has to be registered via the Zeek script-layer
+     * function EventMetadata::register(), or via the C++ API
+     * EventMgr::RegisterMetadata() during an InitPostScript() hook.
+     *
+     * Non-registered metadata will not be added and false is returned.
+     *
+     * @param id The enum value identifying the event metadata.
+     * @param val The value to use.
+
+     * @return true if \a val was was added, else false.
+     */
+    bool AddMetadata(const EnumValPtr& id, ValPtr val);
+
+    /**
+     * @return A pointer to the metadata vector, or nullptr if no Metadata has been added yet.
+     */
+    const zeek::detail::EventMetadataVector* Metadata() const { return meta.get(); }
+
+    /**
+     * Move data out of this event as preparation for Enqueue()
+     */
+    std::tuple<zeek::EventHandlerPtr, zeek::Args, zeek::detail::EventMetadataVectorPtr> Take() &&;
 
 private:
     EventHandlerPtr handler;
     zeek::Args args;
-    double timestamp; // TODO: This should be more generic, possibly holding a
-                      // vector of key/value metadata, rather than just
-                      // the timestamp.
+    zeek::detail::EventMetadataVectorPtr meta;
 };
 
 /**
@@ -201,9 +226,8 @@ public:
      *
      * @param handler A function val representing an event handler.
      * @param args The arguments for the event handler.
-     * @param timestamp The network time to add to the event as metadata.
      */
-    std::optional<detail::Event> MakeClusterEvent(FuncValPtr handler, ArgsSpan args, double timestamp = 0.0) const;
+    std::optional<detail::Event> MakeClusterEvent(FuncValPtr handler, ArgsSpan args) const;
 
     /**
      * Publish a cluster::detail::Event instance to a given topic.

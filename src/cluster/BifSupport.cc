@@ -17,29 +17,20 @@
 namespace {
 
 // Convert a script-level Cluster::Event to a cluster::detail::Event.
-std::optional<zeek::cluster::detail::Event> to_cluster_event(const zeek::RecordValPtr& rec) {
+std::optional<zeek::cluster::detail::Event> to_cluster_event(const zeek::cluster::Backend* backend,
+                                                             const zeek::RecordValPtr& rec) {
     const auto& func = rec->GetField<zeek::FuncVal>(0);
     const auto& vargs = rec->GetField<zeek::VectorVal>(1);
 
     if ( ! func )
         return std::nullopt;
 
-    const auto& eh = zeek::event_registry->Lookup(func->AsFuncPtr()->GetName());
-    if ( ! eh ) {
-        zeek::emit_builtin_error(
-            zeek::util::fmt("event registry lookup of '%s' failed", zeek::obj_desc_short(func.get()).c_str()));
-        return std::nullopt;
-    }
-
     // Need to copy from VectorVal to zeek::Args
     zeek::Args args(vargs->Size());
     for ( size_t i = 0; i < vargs->Size(); i++ )
         args[i] = vargs->ValAt(i);
 
-    // TODO: Support configurable timestamps or custom metadata on the record.
-    auto timestamp = zeek::event_mgr.CurrentEventTime();
-
-    return zeek::cluster::detail::Event(eh, std::move(args), timestamp);
+    return backend->MakeClusterEvent(func, zeek::Span{args});
 }
 } // namespace
 
@@ -60,7 +51,7 @@ zeek::RecordValPtr make_event(zeek::ArgsSpan args) {
 
     if ( maybe_func_val->GetType()->Tag() != zeek::TYPE_FUNC ) {
         zeek::emit_builtin_error(
-            zeek::util::fmt("got non-event type '%s'", zeek::obj_desc_short(maybe_func_val->GetType().get()).c_str()));
+            zeek::util::fmt("got non-event type '%s'", zeek::obj_desc_short(maybe_func_val->GetType()).c_str()));
         return rec;
     }
 
@@ -97,11 +88,8 @@ zeek::ValPtr publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args) {
 
     auto topic_str = topic->AsStringVal()->ToStdString();
 
-    auto timestamp = zeek::event_mgr.CurrentEventTime();
-
     if ( args[0]->GetType()->Tag() == zeek::TYPE_FUNC ) {
-        auto event = zeek::cluster::backend->MakeClusterEvent({zeek::NewRef{}, args[0]->AsFuncVal()}, args.subspan(1),
-                                                              timestamp);
+        auto event = zeek::cluster::backend->MakeClusterEvent({zeek::NewRef{}, args[0]->AsFuncVal()}, args.subspan(1));
         if ( event )
             return zeek::val_mgr->Bool(zeek::cluster::backend->PublishEvent(topic_str, *event));
 
@@ -109,7 +97,7 @@ zeek::ValPtr publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args) {
     }
     else if ( args[0]->GetType()->Tag() == zeek::TYPE_RECORD ) {
         if ( args[0]->GetType() == cluster_event_type ) { // Handling Cluster::Event record type
-            auto ev = to_cluster_event(zeek::cast_intrusive<zeek::RecordVal>(args[0]));
+            auto ev = to_cluster_event(zeek::cluster::backend, zeek::cast_intrusive<zeek::RecordVal>(args[0]));
             if ( ! ev )
                 return zeek::val_mgr->False();
 
@@ -121,7 +109,7 @@ zeek::ValPtr publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args) {
             if ( zeek::cluster::backend != zeek::broker_mgr ) {
                 zeek::emit_builtin_error(
                     zeek::util::fmt("Publish of Broker::Event record instance with type '%s' to a non-Broker backend",
-                                    zeek::obj_desc_short(args[0]->GetType().get()).c_str()));
+                                    zeek::obj_desc_short(args[0]->GetType()).c_str()));
 
                 return zeek::val_mgr->False();
             }
@@ -130,13 +118,13 @@ zeek::ValPtr publish_event(const zeek::ValPtr& topic, zeek::ArgsSpan args) {
         }
         else {
             zeek::emit_builtin_error(zeek::util::fmt("Publish of unknown record type '%s'",
-                                                     zeek::obj_desc_short(args[0]->GetType().get()).c_str()));
+                                                     zeek::obj_desc_short(args[0]->GetType()).c_str()));
             return zeek::val_mgr->False();
         }
     }
 
     zeek::emit_builtin_error(zeek::util::fmt("expected function or record as first argument, got %s",
-                                             zeek::obj_desc_short(args[0]->GetType().get()).c_str()));
+                                             zeek::obj_desc_short(args[0]->GetType()).c_str()));
     return zeek::val_mgr->False();
 }
 

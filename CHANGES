@@ -1,3 +1,66 @@
+8.0.0-dev.324 | 2025-06-02 17:32:39 +0200
+
+  * Event: Bail on add_missing_remote_network_timestamp without add_network_timestamp (Arne Welzel, Corelight)
+
+  * btest/plugin: Test custom metadata publish (Arne Welzel, Corelight)
+
+    Usage demo for plugin writers to add custom event metadata and access in
+    in Zeek scripts.
+
+  * NEWS: Add note about generic event metadata (Arne Welzel, Corelight)
+
+  * cluster: Remove deprecated Event constructor (Arne Welzel, Corelight)
+
+    It is now unused, ditch it. This wasn't available in an LTS release yet
+    and anyhow is in the detail namespace.
+
+  * cluster: Remove some explicit timestamp handling (Arne Welzel, Corelight)
+
+    Backend::MakeClusterEvent() for now is the only place to add implicit
+    network timestamp metadata within the cluster component.
+
+  * broker/Manager: Fetch and forward all metadata from events (Arne Welzel, Corelight)
+
+    Also use the generic metadata version for publishing, keep the
+    ts-based API for now, but only add timestamps when
+    EventMetadata::add_network_timestamp is T. I'm not sure what the
+    right way forward here is, maybe deprecating Broker's publish event
+    variations and funneling through cluster.
+
+  * Event/init-bare: Add add_missing_remote_network_timestamp logic (Arne Welzel, Corelight)
+
+    Make defaulting to the local network timestamp for remote events opt-in.
+
+  * cluster/Backend/DoProcessEvent: Use generic metadata, not just timestamps (Arne Welzel, Corelight)
+
+  * cluster/Event: Support moving args and metadata from event (Arne Welzel, Corelight)
+
+  * cluster/serializer/broker: Support generic metadata (Arne Welzel, Corelight)
+
+    Instead of handling just the network timestamp, support extraction of
+    the whole metadata vector that broker events hold.
+
+  * cluster/Event: Generic metadata support (Arne Welzel, Corelight)
+
+    Instead of a timestamp attribute, switch to holding a EventMetadataVectorPtr
+    like zeek::Event instances do. Keep the old constructor until the end of
+    the patch series.
+
+  * Event: Use -1.0 for undefined/unset timestamps (Arne Welzel, Corelight)
+
+    This can happen if either there's no network timestamp associated with
+    an event, or there's currently no event being dispatched. Using 0.0
+    isn't great as it's the normal start timestamp before reading a network
+    packet. Using -1.0 gives the caller a chance to check and realize what's
+    going on.
+
+  * cluster: Use shorter obj_desc versions (Arne Welzel, Corelight)
+
+  * Desc: Add obj_desc() / obj_desc_short() overloads for IntrusivePtr (Arne Welzel, Corelight)
+
+    When using these helpers in code, one barely has raw pointers and the
+    repeated `.get()` call cumbersome and noisy.
+
 8.0.0-dev.309 | 2025-06-02 10:17:14 +0200
 
   * Prefer `std::move` over copy (Benjamin Bannier, Corelight)

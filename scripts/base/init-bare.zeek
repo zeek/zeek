@@ -601,6 +601,16 @@ export {
 	## might be a value before the network_time() when the event
 	## was actually dispatched.
 	const add_network_timestamp: bool = F &redef;
+
+	## By default, remote events without network timestamp metadata
+	## will yield a negative zeek:see:`current_event_time` during
+	## processing. To have the receiving Zeek node set the event's
+	## network timestamp metadata with its current local network time,
+	## set this option to true.
+	##
+	## This setting is only in effect if :zeek:see:`EventMetadata::add_network_timestamp`
+	## is also set to true.
+	const add_missing_remote_network_timestamp: bool = F &redef;
 }
 
 module FTP;

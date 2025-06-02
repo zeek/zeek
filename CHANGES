@@ -1,3 +1,12 @@
+8.0.0-dev.332 | 2025-06-02 14:31:29 -0700
+
+  * CI: Force rebuild of opensuse tumbleweed docker image (Tim Wojtulewicz, Corelight)
+
+    Something is off with the libhiredis package that's installed
+    as part of the current image, and 'zypper patch' is failing to
+    update it during the prepare step. Force a rebuild so the
+    updated package is part of the image to start with.
+
 8.0.0-dev.330 | 2025-06-02 14:30:41 -0700
 
   * Bump Spicy to pull in fix. (Robin Sommer, Corelight)

@@ -196,6 +196,10 @@ if (MSVC)
         #set(WERROR_FLAG "/WX")
         #set(WERROR_FLAG "/WX")
     endif ()
+
+    # Always build binpac in static mode if building on Windows
+    set(BUILD_STATIC_BINPAC true)
+
 else ()
     include(GNUInstallDirs)
     if (BUILD_WITH_WERROR)
@@ -866,42 +870,33 @@ endif ()
 set(PY_MOD_INSTALL_DIR ${py_mod_install_dir} CACHE STRING "Installation path for Python modules"
                                                    FORCE)
 
-if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/auxil/binpac/CMakeLists.txt)
+# BinPAC uses the same 'ENABLE_STATIC_ONLY' variable to define whether
+# to build statically. Save a local copy so it can be set based on the
+# configure flag before we add the subdirectory.
+set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
 
-    set(ENABLE_STATIC_ONLY_SAVED ${ENABLE_STATIC_ONLY})
-    if (MSVC)
-        set(BUILD_STATIC_BINPAC true)
-    endif ()
-
-    if (BUILD_STATIC_BINPAC)
-        set(ENABLE_STATIC_ONLY true)
-    endif ()
-
-    add_subdirectory(auxil/binpac)
-    set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
-
-    # FIXME: avoid hard-coding a path for multi-config generator support. See the
-    # TODO in ZeekPluginConfig.cmake.in.
-    set(BINPAC_EXE_PATH "${CMAKE_BINARY_DIR}/auxil/binpac/src/binpac${CMAKE_EXECUTABLE_SUFFIX}")
+if (BUILD_STATIC_BINPAC)
+    set(ENABLE_STATIC_ONLY true)
 endif ()
 
-find_package(BinPAC REQUIRED)
+add_subdirectory(auxil/binpac)
+set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
 
-# Add an alias (used by our plugin setup).
+# FIXME: avoid hard-coding a path for multi-config generator support. See the
+# TODO in ZeekPluginConfig.cmake.in.
+set(BINPAC_EXE_PATH "${CMAKE_BINARY_DIR}/auxil/binpac/src/binpac${CMAKE_EXECUTABLE_SUFFIX}")
+set(_binpac_exe_path "included")
+
+# Need to call find_package so it sets up the include paths used by plugin builds.
+find_package(BinPAC REQUIRED)
 add_executable(Zeek::BinPAC ALIAS binpac)
 
-if (NOT BIFCL_EXE_PATH)
-    add_subdirectory(auxil/bifcl)
-    add_executable(Zeek::BifCl ALIAS bifcl)
-    # FIXME: avoid hard-coding a path for multi-config generator support. See the
-    # TODO in ZeekPluginConfig.cmake.in.
-    set(BIFCL_EXE_PATH "${CMAKE_BINARY_DIR}/auxil/bifcl/bifcl${CMAKE_EXECUTABLE_SUFFIX}")
-    set(_bifcl_exe_path "included")
-else ()
-    add_executable(Zeek::BifCl IMPORTED)
-    set_property(TARGET Zeek::BifCl PROPERTY IMPORTED_LOCATION "${BIFCL_EXE_PATH}")
-    set(_bifcl_exe_path "BIFCL_EXE_PATH")
-endif ()
+add_subdirectory(auxil/bifcl)
+add_executable(Zeek::BifCl ALIAS bifcl)
+# FIXME: avoid hard-coding a path for multi-config generator support. See the
+# TODO in ZeekPluginConfig.cmake.in.
+set(BIFCL_EXE_PATH "${CMAKE_BINARY_DIR}/auxil/bifcl/bifcl${CMAKE_EXECUTABLE_SUFFIX}")
+set(_bifcl_exe_path "included")
 
 if (NOT GEN_ZAM_EXE_PATH)
     add_subdirectory(auxil/gen-zam)
@@ -1240,11 +1235,7 @@ endif ()
 include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
 execute_process(COMMAND "${CMAKE_COMMAND}" -E create_symlink "." "${CMAKE_CURRENT_BINARY_DIR}/zeek")
 
-if (BinPAC_ROOT_DIR)
-    set(ZEEK_CONFIG_BINPAC_ROOT_DIR ${BinPAC_ROOT_DIR})
-else ()
-    set(ZEEK_CONFIG_BINPAC_ROOT_DIR ${ZEEK_ROOT_DIR})
-endif ()
+set(ZEEK_CONFIG_BINPAC_ROOT_DIR ${BinPAC_ROOT_DIR})
 
 if (BROKER_ROOT_DIR)
     set(ZEEK_CONFIG_BROKER_ROOT_DIR ${BROKER_ROOT_DIR})
@@ -1460,11 +1451,6 @@ if (INSTALL_BTEST_PCAPS)
     set(_install_btest_tools_msg "all")
 else ()
     set(_install_btest_tools_msg "no pcaps")
-endif ()
-
-set(_binpac_exe_path "included")
-if (BINPAC_EXE_PATH)
-    set(_binpac_exe_path ${BINPAC_EXE_PATH})
 endif ()
 
 set(_gen_zam_exe_path "included")

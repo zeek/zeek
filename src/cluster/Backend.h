@@ -17,6 +17,7 @@
 #include "zeek/ZeekArgs.h"
 #include "zeek/cluster/BifSupport.h"
 #include "zeek/cluster/Serializer.h"
+#include "zeek/cluster/Telemetry.h"
 #include "zeek/logging/Types.h"
 
 namespace zeek {
@@ -341,6 +342,13 @@ public:
      */
     const std::string& NodeId() const { return node_id; }
 
+    /**
+     * Set the telemetry handle to be used by this backend.
+     *
+     * @param The new telemetry instance to use.
+     */
+    void SetTelemetry(detail::TelemetryPtr new_telemetry) { telemetry = std::move(new_telemetry); }
+
 protected:
     /**
      * Constructor.
@@ -409,6 +417,14 @@ protected:
      * @param nid
      */
     void SetNodeId(std::string nid);
+
+    /**
+     * Provides access to the detail::Telemetry handle.
+     */
+    detail::Telemetry& Telemetry() {
+        assert(telemetry);
+        return *telemetry;
+    }
 
 private:
     /**
@@ -550,6 +566,8 @@ private:
      * The backend's instance cluster node identifier.
      */
     std::string node_id;
+
+    detail::TelemetryPtr telemetry;
 };
 
 /**

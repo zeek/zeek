@@ -54,6 +54,7 @@
 #include "zeek/broker/Manager.h"
 #include "zeek/cluster/Backend.h"
 #include "zeek/cluster/Manager.h"
+#include "zeek/cluster/Telemetry.h"
 #include "zeek/conn_key/Manager.h"
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/input.h"
@@ -890,6 +891,8 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
 
             cluster::backend = backend.release();
         }
+
+        cluster::detail::configure_backend_telemetry(*cluster::backend, "core");
 
         broker_mgr->InitPostScript();
         if ( cluster::backend != broker_mgr )

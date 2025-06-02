@@ -104,7 +104,7 @@ public:
     bool EnableAnalyzer(EnumVal* tag);
 
     /**
-     * Enables an analyzer type. Disabled analyzers will not be
+     * Disables an analyzer type. Disabled analyzers will not be
      * instantiated for new connections.
      *
      * @param tag The analyzer's tag.

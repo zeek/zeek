@@ -1,3 +1,7 @@
+8.0.0-dev.326 | 2025-06-02 11:43:56 -0700
+
+  * Fix incorrectly copied comment [skip CI] (Benjamin Bannier, Corelight)
+
 8.0.0-dev.324 | 2025-06-02 17:32:39 +0200
 
   * Event: Bail on add_missing_remote_network_timestamp without add_network_timestamp (Arne Welzel, Corelight)

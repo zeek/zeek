@@ -1,4 +1,5 @@
 # @TEST-DOC: Tests SQLite storage in a cluster environment
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 
 # @TEST-PORT: BROKER_MANAGER_PORT
 # @TEST-PORT: BROKER_WORKER1_PORT

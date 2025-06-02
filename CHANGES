@@ -1,3 +1,11 @@
+8.0.0-dev.307 | 2025-06-02 10:12:14 +0200
+
+  * minor BTest maintenance updates for -O gen-C++ (Vern Paxson, Corelight)
+
+  * fix for more robustly finding BTests to assess for -O gen-C++ (Vern Paxson, Corelight)
+
+  * fix for -O gen-C++ dealing with type constants of unnamed compound types (Vern Paxson, Corelight)
+
 8.0.0-dev.303 | 2025-06-02 09:51:53 +0200
 
   * intel/seen/manage-event-groups: Policy script for toggling intel event groups (Arne Welzel, Corelight)

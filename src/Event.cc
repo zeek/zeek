@@ -364,6 +364,14 @@ void EventMgr::InitPostScript() {
     if ( ! zeek::event_registry->RegisterMetadata(net_ts_val, zeek::base_type(zeek::TYPE_TIME)) )
         zeek::reporter->FatalError("Failed to register NETWORK_TIMESTAMP metadata");
 
+    // Remove this if there's ever a use-case to not use them together.
+    if ( BifConst::EventMetadata::add_missing_remote_network_timestamp &&
+         ! BifConst::EventMetadata::add_network_timestamp )
+        zeek::reporter->FatalError(
+            "Setting EventMetadata::add_missing_remote_network_timestamp is only valid together with "
+            "EventMetadata::add_network_timestamp");
+
+
     iosource_mgr->Register(this, true, false);
 }
 } // namespace zeek

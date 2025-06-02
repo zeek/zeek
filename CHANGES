@@ -1,3 +1,11 @@
+8.0.0-dev.328 | 2025-06-02 11:45:03 -0700
+
+  * Bump zeekjs to v0.17.1 (Arne Welzel, Corelight)
+
+        b340648 version: 0.17.1
+        ccd32e1 ci/docker: Use Fedora 42, retire Fedora 40
+        6893431 Nodejs: Use argv.data() over &argv[0]
+
 8.0.0-dev.326 | 2025-06-02 11:43:56 -0700
 
   * Fix incorrectly copied comment [skip CI] (Benjamin Bannier, Corelight)

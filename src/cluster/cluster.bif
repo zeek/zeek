@@ -1,5 +1,6 @@
 %%{
 #include <string>
+#include <utility>
 
 #include "zeek/IPAddr.h"
 #include "zeek/cluster/Backend.h"
@@ -218,7 +219,7 @@ function Cluster::__listen_websocket%(options: WebSocketServerOptions%): bool
 	}
 
 	struct ServerOptions server_options{
-		listen_addr,
+		std::move(listen_addr),
 		static_cast<uint16_t>(options_rec->GetField<zeek::PortVal>("listen_port")->Port()),
 	};
 

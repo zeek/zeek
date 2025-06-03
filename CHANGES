@@ -1,3 +1,13 @@
+8.0.0-dev.341 | 2025-06-03 11:54:04 -0700
+
+  * Redis: Add support for sending AUTH commands during connection (Tim Wojtulewicz, Corelight)
+
+  * Redis: disconnect cleanly if INFO request fails (Tim Wojtulewicz, Corelight)
+
+  * Fix segfault if storage sync open_backend returns bad code (Tim Wojtulewicz, Corelight)
+
+  * Add ToStdString and ToStdStringView to ZeekString (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.335 | 2025-06-02 14:52:44 -0700
 
   * Update libunistd submodule [nomail] (Tim Wojtulewicz, Corelight)

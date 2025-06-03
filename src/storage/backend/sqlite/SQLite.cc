@@ -84,6 +84,8 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     full_path = zeek::filesystem::path(path->ToStdString()).string();
     table_name = backend_options->GetField<StringVal>("table_name")->ToStdString();
 
+    auto busy_timeout = backend_options->GetField<IntervalVal>("busy_timeout")->Get();
+
     auto pragma_timeout_val = backend_options->GetField<IntervalVal>("pragma_timeout");
     pragma_timeout = std::chrono::milliseconds(static_cast<int64_t>(pragma_timeout_val->Get() * 1000));
 
@@ -99,25 +101,26 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         return open_res;
     }
 
-    // TODO: Should we use sqlite3_busy_timeout here instead of using the pragma? That would
-    // at least let us skip over one. The busy timeout is per-connection as well, so it'll
-    // never fail to run like the other pragmas can.
-    //    sqlite3_busy_timeout(db, 2000);
+    sqlite3_busy_timeout(db, busy_timeout * 1000);
 
     auto pragmas = backend_options->GetField<TableVal>("pragma_commands");
     for ( const auto& iter : *(pragmas->Get()) ) {
         auto k = iter.GetHashKey();
-        auto v = iter.value;
         auto vl = pragmas->GetTableHash()->RecoverVals(*k);
 
         auto ks = vl->AsListVal()->Idx(0)->AsStringVal();
         auto ks_sv = ks->ToStdStringView();
+
+        if ( ks_sv == "busy_timeout" )
+            continue;
+
         auto vs = iter.value->GetVal()->AsStringVal();
         auto vs_sv = vs->ToStdStringView();
 
         auto pragma_res = RunPragma(ks_sv, vs_sv);
         if ( pragma_res.code != ReturnCode::SUCCESS ) {
             Error(pragma_res.err_str.c_str());
+            Close(nullptr);
             return pragma_res;
         }
     }

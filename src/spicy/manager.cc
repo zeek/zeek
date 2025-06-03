@@ -354,7 +354,7 @@ bool Manager::toggleProtocolAnalyzer(const Tag& tag, bool enable) {
         analyzer_mgr->DisableAnalyzer(tag);
 
         if ( analyzer.replaces ) {
-            SPICY_DEBUG(hilti::rt::fmt("Re-enabling standard protocol analyzer %s", analyzer.name_analyzer));
+            SPICY_DEBUG(hilti::rt::fmt("Re-enabling standard protocol analyzer %s", analyzer.name_replaces));
             analyzer_mgr->EnableAnalyzer(analyzer.replaces);
         }
     }

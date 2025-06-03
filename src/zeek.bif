@@ -5615,3 +5615,48 @@ function find_in_zeekpath%(p: string%): string
 
 	return zeek::make_intrusive<zeek::StringVal>(resolved.c_str());
 	%}
+
+# Function: get_tags_by_category
+# Description:
+#   Runs a shell command `zeek -NN` filtered by the given category using grep,
+#   and returns a vector of strings containing matching tags.
+#
+# Parameters:
+#   category (string) - The category name to filter tags by.
+#
+# Returns:
+#   vector<string> - A vector containing all matching tag strings.
+#
+# Notes:
+#   - Uses popen() to execute the command and reads output line-by-line.
+#   - If popen() fails, reports an error via Zeek's reporter and returns nullptr.
+
+function get_tags_by_category%(category: string%): string_vec
+	%{
+	std::string command;
+	command.append("zeek -NN | grep -i \"\\[");
+	command.append(category->CheckString());
+	command.append("\\]\"");
+
+	std::array<char, 256> buffer;
+
+	std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.c_str(), "r"), pclose);
+	if ( !pipe )
+	{
+		zeek::reporter->Error("popen() failed");
+		return nullptr;
+	}
+
+	auto result = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
+
+	while ( fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr )
+	{
+		std::string line(buffer.data());
+		if ( !line.empty() && line.back() == '\n' )
+			line.pop_back();
+
+		result->Append(zeek::make_intrusive<zeek::StringVal>(line));
+	}
+
+	return std::move(result);
+	%}

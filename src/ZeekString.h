@@ -4,6 +4,7 @@
 
 #include <sys/types.h>
 #include <iosfwd>
+#include <string>
 #include <string_view>
 #include <vector>
 

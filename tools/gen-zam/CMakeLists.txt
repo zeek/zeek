@@ -3,7 +3,7 @@ project(Gen-ZAM C CXX)
 
 include(cmake/CommonCMakeConfig.cmake)
 
-include(RequireCXX17)
+include(RequireCXXStd)
 
 set(GEN_ZAM_SRCS src/Gen-ZAM.cc)
 set(GEN_ZAM_HEADERS src/Gen-ZAM.h)

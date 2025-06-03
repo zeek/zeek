@@ -9,7 +9,7 @@
 
 %%{ // C++ segment
 #include <sys/stat.h>
-
+#include <string>
 #include <algorithm>
 #include <cinttypes>
 #include <cmath>
@@ -32,6 +32,9 @@
 #include "zeek/Hash.h"
 #include "zeek/CompHash.h"
 #include "zeek/packet_analysis/Manager.h"
+#include "zeek/plugin/Manager.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/plugin/Component.h"
 
 using namespace std;
 
@@ -336,6 +339,34 @@ zeek::RecordValPtr zeek::detail::build_dummy_conn_record()
 	c->Assign(6, zeek::val_mgr->EmptyString());	// history
 
 	return c;
+	}
+
+
+	//List of components
+static zeek::plugin::component::Type CategoryStringToEnum(const std::string& category)
+	{
+	static const std::unordered_map<std::string, zeek::plugin::component::Type> type_map = {
+		{"READER", zeek::plugin::component::READER},
+		{"WRITER", zeek::plugin::component::WRITER},
+		{"ANALYZER", zeek::plugin::component::ANALYZER},
+		{"PACKET_ANALYZER", zeek::plugin::component::PACKET_ANALYZER},
+		{"FILE_ANALYZER", zeek::plugin::component::FILE_ANALYZER},
+		{"IOSOURCE", zeek::plugin::component::IOSOURCE},
+		{"PKTSRC", zeek::plugin::component::PKTSRC},
+		{"PKTDUMPER", zeek::plugin::component::PKTDUMPER},
+		{"SESSION_ADAPTER", zeek::plugin::component::SESSION_ADAPTER},
+		{"CLUSTER_BACKEND", zeek::plugin::component::CLUSTER_BACKEND},
+		{"EVENT_SERIALIZER", zeek::plugin::component::EVENT_SERIALIZER},
+		{"LOG_SERIALIZER", zeek::plugin::component::LOG_SERIALIZER},
+		{"STORAGE_BACKEND", zeek::plugin::component::STORAGE_BACKEND},
+		{"STORAGE_SERIALIZER", zeek::plugin::component::STORAGE_SERIALIZER},
+	};
+
+	auto it = type_map.find(category);
+	if ( it != type_map.end() )
+		return it->second;
+
+	return static_cast<zeek::plugin::component::Type>(-1); // Invalid
 	}
 
 %%}
@@ -5614,4 +5645,51 @@ function find_in_zeekpath%(p: string%): string
 		}
 
 	return zeek::make_intrusive<zeek::StringVal>(resolved.c_str());
+	%}
+
+## Get a list of tags available for a plugin category.
+##
+## category: The plugin category to request tags for.
+##
+## Returns: A vector of records containing the tags of all plugin components
+##          that belong to the specified category.
+function get_tags_by_category%(category: string%): tag_component_vec
+	%{
+	std::string cat = category->CheckString();
+	auto type = CategoryStringToEnum(cat);
+
+	if ( type == static_cast<plugin::component::Type>(-1) )
+		{
+		reporter->Error("Unknown category type: %s", cat.c_str());
+		return nullptr;
+		}
+
+	static auto vec_type = zeek::id::find_type<zeek::VectorType>("tag_component_vec");
+	static auto rec_type = zeek::id::find_type<zeek::RecordType>("tag_component");
+
+	if ( ! vec_type || ! rec_type )
+		{
+		reporter->Error("Required types not found (tag_component or component_vec)");
+		return nullptr;
+		}
+
+	auto result = zeek::make_intrusive<zeek::VectorVal>(vec_type);
+	auto all_components = plugin_mgr->Components<plugin::Component>();
+
+	for ( auto* component : all_components )
+		{
+		if ( component->Type() == type )
+			{
+			auto rec = zeek::make_intrusive<zeek::RecordVal>(rec_type);
+
+			rec->Assign(0, zeek::make_intrusive<zeek::StringVal>(component->Name()));
+			rec->Assign(1, zeek::make_intrusive<zeek::StringVal>(component->CanonicalName()));
+			rec->Assign(2, zeek::make_intrusive<zeek::StringVal>(cat + "_" + component->CanonicalName()));
+			rec->Assign(3, zeek::make_intrusive<zeek::BoolVal>(component->Enabled()));
+
+			result->Append(std::move(rec));
+			}
+		}
+
+	return result;
 	%}

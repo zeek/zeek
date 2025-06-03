@@ -27,7 +27,11 @@ export {
 redef record connection += {
 	## The set of services (analyzers) for which Zeek has observed a
 	## violation after the same service had previously been confirmed.
-	service_violation: set[string] &default=set() &ordered;
+	service_violation: set[string] &default=set() &ordered &deprecated="Remove in v8.1. Consider using failed_analyzers instead";
+
+	## The set of prototol analyzers that were removed due to a protocol
+	## violation after the same analyzer had previously been confirmed.
+	failed_analyzers: set[string] &default=set() &ordered;
 };
 
 # Add confirmed protocol analyzers to conn.log service field
@@ -44,7 +48,7 @@ event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirm
 	add c$service[analyzer];
 	}
 
-# Remove failed analyzers from service field and add them to c$service_violation
+# Remove failed analyzers from service field and add them to c$failed_analyzers
 # Low priority to allow other handlers to check if the analyzer was confirmed
 event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=-5
 	{
@@ -67,8 +71,8 @@ event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolatio
 
 	# if statement is separate, to allow repeated removal of service, in case there are several
 	# confirmation and violation events
-	if ( analyzer !in c$service_violation )
-		add c$service_violation[analyzer];
+	if ( analyzer !in c$failed_analyzers )
+		add c$failed_analyzers[analyzer];
 
 	# add "-service" to the list of services on removal due to violation, if analyzer was confirmed before
 	if ( track_removed_services_in_connection && Analyzer::name(atype) in c$service )

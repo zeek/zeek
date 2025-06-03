@@ -2,6 +2,7 @@
 [zeek, -b, <...>/record-fields.zeek]
 connection {
   * duration: interval, log=F, optional=F
+  * failed_analyzers: set[string], log=F, optional=T
   * history: string, log=F, optional=F
   * id: record conn_id, log=F, optional=F
       conn_id {

@@ -27,7 +27,7 @@ event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolatio
 
 	# Only add if previously confirmed and not failed
 	local analyzer_name = Analyzer::name(atype);
-	if ( analyzer_name !in c$service || analyzer_name in c$service_violation )
+	if ( analyzer_name !in c$service || analyzer_name in c$failed_analyzers )
 		return;
 
 	set_conn(c, F);

@@ -137,6 +137,7 @@ connection {
   * duration: interval, log=F, optional=F
   * extract_orig: bool, log=F, optional=T
   * extract_resp: bool, log=F, optional=T
+  * failed_analyzers: set[string], log=F, optional=T
   * ftp: record FTP::Info, log=F, optional=T
       FTP::Info {
         * arg: string, log=T, optional=T

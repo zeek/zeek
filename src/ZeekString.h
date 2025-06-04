@@ -4,6 +4,7 @@
 
 #include <sys/types.h>
 #include <iosfwd>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -90,6 +91,17 @@ public:
      * Like @c CheckString(), but also returns the length of the string.
      */
     std::pair<const char*, size_t> CheckStringWithSize() const;
+
+    /**
+     * Returns the string data as a std::string. This makes a copy of the
+     * string data.
+     */
+    std::string ToStdString() const;
+
+    /**
+     * Returns the string data as a std::string_view.
+     */
+    std::string_view ToStdStringView() const;
 
     enum render_style {
         ESC_NONE = 0,

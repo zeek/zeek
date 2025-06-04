@@ -5,17 +5,28 @@ if ! redis-server --version; then
     exit 1
 fi
 
-if [ $# -ne 1 ]; then
-    echo "Usage $0 <listen_port>" >2
+if [ $# -lt 1 ]; then
+    echo "Usage $0 <listen_port> (<password>)" >2
     exit 1
 fi
 
 listen_port=$1
 
-exec redis-server \
-    --bind 127.0.0.1 \
-    --port ${listen_port} \
-    --loglevel verbose \
-    --logfile redis.log \
-    --pidfile redis.pid \
-    --databases 1
+if [ $# -eq 1 ]; then
+    exec redis-server \
+        --bind 127.0.0.1 \
+        --port ${listen_port} \
+        --loglevel verbose \
+        --logfile redis.log \
+        --pidfile redis.pid \
+        --databases 1
+elif [ $# -eq 2 ]; then
+    exec redis-server \
+        --bind 127.0.0.1 \
+        --port ${listen_port} \
+        --loglevel verbose \
+        --logfile redis.log \
+        --pidfile redis.pid \
+        --databases 1 \
+        --requirepass $2
+fi

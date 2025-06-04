@@ -6,6 +6,7 @@
 
 #include <netdb.h>
 #include <netinet/in.h>
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define RAPIDJSON_HAS_STDSTRING 1
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>
@@ -52,6 +53,8 @@ Val::~Val() {
 #endif
 }
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+
 #define CONVERTER(tag, ctype, name)                                                                                    \
     ctype name() {                                                                                                     \
         CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", type_name)                                                       \
@@ -67,6 +70,8 @@ Val::~Val() {
 #define CONVERTERS(tag, ctype, name)                                                                                   \
     CONVERTER(tag, ctype, name)                                                                                        \
     CONST_CONVERTER(tag, ctype, name)
+
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 CONVERTERS(TYPE_FUNC, FuncVal*, Val::AsFuncVal)
 CONVERTERS(TYPE_FILE, FileVal*, Val::AsFileVal)
@@ -782,11 +787,9 @@ const char* StringVal::CheckString() const { return string_val->CheckString(); }
 
 std::pair<const char*, size_t> StringVal::CheckStringWithSize() const { return string_val->CheckStringWithSize(); }
 
-string StringVal::ToStdString() const { return {(char*)string_val->Bytes(), static_cast<size_t>(string_val->Len())}; }
+string StringVal::ToStdString() const { return string_val->ToStdString(); }
 
-string_view StringVal::ToStdStringView() const {
-    return {(char*)string_val->Bytes(), static_cast<size_t>(string_val->Len())};
-}
+string_view StringVal::ToStdStringView() const { return string_val->ToStdStringView(); }
 
 StringVal* StringVal::ToUpper() {
     string_val->ToUpper();

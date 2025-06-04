@@ -4,12 +4,12 @@
 
 #include "zeek/analyzer/protocol/tcp/ContentLine.h"
 
-#define TELNET_OPTION_BINARY 0
-#define TELNET_OPTION_TERMINAL 24
-#define TELNET_OPTION_AUTHENTICATE 37
-#define TELNET_OPTION_ENCRYPT 38
-#define TELNET_OPTION_ENVIRON 39
-#define NUM_TELNET_OPTIONS 5
+constexpr uint8_t TELNET_OPTION_BINARY = 0;
+constexpr uint8_t TELNET_OPTION_TERMINAL = 24;
+constexpr uint8_t TELNET_OPTION_AUTHENTICATE = 37;
+constexpr uint8_t TELNET_OPTION_ENCRYPT = 38;
+constexpr uint8_t TELNET_OPTION_ENVIRON = 39;
+constexpr uint8_t NUM_TELNET_OPTIONS = 5;
 
 namespace zeek::analyzer::login {
 
@@ -20,11 +20,8 @@ public:
     TelnetOption(NVT_Analyzer* endp, unsigned int code);
     virtual ~TelnetOption() {}
 
-// Whether we told the other side WILL/WONT/DO/DONT.
-#define OPT_SAID_WILL 0x1
-#define OPT_SAID_WONT 0x2
-#define OPT_SAID_DO 0x4
-#define OPT_SAID_DONT 0x8
+    // Whether we told the other side WILL/WONT/DO/DONT.
+    enum SaidOptions : uint8_t { OPT_SAID_WILL = 0x1, OPT_SAID_WONT = 0x2, OPT_SAID_DO = 0x4, OPT_SAID_DONT = 0x8 };
 
     unsigned int Code() const { return code; }
 
@@ -52,10 +49,10 @@ protected:
     virtual void InconsistentOption(unsigned int type);
     virtual void BadOption();
 
-    NVT_Analyzer* endp;
+    NVT_Analyzer* endp = nullptr;
     unsigned int code;
-    int flags;
-    int active;
+    int flags = 0;
+    bool active = false;
 };
 
 namespace detail {

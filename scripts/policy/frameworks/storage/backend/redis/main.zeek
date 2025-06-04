@@ -39,6 +39,13 @@ export {
 		## Timeout for operation requests sent to the backend. Operations that
 		## exceed this time will return :zeek:see:`Storage::TIMEOUT`.
 		operation_timeout: interval &default=default_operation_timeout;
+
+		## A username to use for authentication the server is protected by an ACL.
+		username: string &optional;
+
+		## A username to use for authentication the server is protected by an ACL
+		## or by a simple password.
+		password: string &optional;
 	};
 }
 

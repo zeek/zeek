@@ -5,12 +5,14 @@
 #include "zeek/analyzer/protocol/rpc/XDR.h"
 #include "zeek/analyzer/protocol/rpc/events.bif.h"
 
-#define PMAPPROC_NULL 0
-#define PMAPPROC_SET 1
-#define PMAPPROC_UNSET 2
-#define PMAPPROC_GETPORT 3
-#define PMAPPROC_DUMP 4
-#define PMAPPROC_CALLIT 5
+enum PortmapperProcs : uint8_t {
+    PMAPPROC_NULL = 0,
+    PMAPPROC_SET = 1,
+    PMAPPROC_UNSET = 2,
+    PMAPPROC_GETPORT = 3,
+    PMAPPROC_DUMP = 4,
+    PMAPPROC_CALLIT = 5,
+};
 
 namespace zeek::analyzer::rpc {
 namespace detail {

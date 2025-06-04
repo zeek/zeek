@@ -9,5 +9,5 @@ get result same as originally inserted, T
 put result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<uninitialized>]
 get result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=value2345]
 get result same as overwritten, T
-Storage::backend_opened, Storage::STORAGE_BACKEND_REDIS, [serializer=Storage::STORAGE_SERIALIZER_JSON, redis=[server_host=127.0.0.1, server_port=xxxx/tcp, server_unix_socket=<uninitialized>, key_prefix=testing, connect_timeout=5.0 secs, operation_timeout=5.0 secs]]
-Storage::backend_lost, Storage::STORAGE_BACKEND_REDIS, [serializer=Storage::STORAGE_SERIALIZER_JSON, redis=[server_host=127.0.0.1, server_port=xxxx/tcp, server_unix_socket=<uninitialized>, key_prefix=testing, connect_timeout=5.0 secs, operation_timeout=5.0 secs]], Client disconnected
+Storage::backend_opened, Storage::STORAGE_BACKEND_REDIS, [serializer=Storage::STORAGE_SERIALIZER_JSON, redis=[server_host=127.0.0.1, server_port=xxxx/tcp, server_unix_socket=<uninitialized>, key_prefix=testing, connect_timeout=5.0 secs, operation_timeout=5.0 secs, username=<uninitialized>, password=<uninitialized>]]
+Storage::backend_lost, Storage::STORAGE_BACKEND_REDIS, [serializer=Storage::STORAGE_SERIALIZER_JSON, redis=[server_host=127.0.0.1, server_port=xxxx/tcp, server_unix_socket=<uninitialized>, key_prefix=testing, connect_timeout=5.0 secs, operation_timeout=5.0 secs, username=<uninitialized>, password=<uninitialized>]], Client disconnected

@@ -41,6 +41,8 @@ void TCPStateStats::PrintStats(File* file, const char* prefix) {
         file->Write(prefix);
 
         switch ( i ) {
+// This macro really doesn't save us much typing, if that was the intention
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define STATE_STRING(state, str)                                                                                       \
     case state: file->Write(str); break;
 

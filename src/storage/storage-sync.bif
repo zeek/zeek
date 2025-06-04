@@ -7,6 +7,13 @@
 
 using namespace zeek;
 using namespace zeek::storage;
+
+static void wait_for_result(OperationResult& op_result, BackendPtr& backend, ResultCallback* cb) {
+	if ( op_result.code == ReturnCode::IN_PROGRESS && ! backend->SupportsSync() ) {
+		backend->Poll();
+		op_result = cb->Result();
+	}
+}
 %%}
 
 module Storage::Sync;
@@ -31,12 +38,8 @@ function Storage::Sync::__open_backend%(btype: Storage::Backend, options: any, k
 	auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
 	auto op_result = storage_mgr->OpenBackend(b.value(), cb, options_val, kt, vt);
 
-	// If the backend only supports async, block until it's ready and then pull the result out of
-	// the callback.
-	if ( ! b.value()->SupportsSync() ) {
-		b.value()->Poll();
-		op_result = cb->Result();
-	}
+	// Potentially wait for a result if the backend only supports async.
+	wait_for_result(op_result, b.value(), cb);
 
 	delete cb;
 
@@ -54,12 +57,8 @@ function Storage::Sync::__close_backend%(backend: opaque of Storage::BackendHand
 		auto cb = new ResultCallback();
 		op_result = storage_mgr->CloseBackend((*b)->backend, cb);
 
-		// If the backend only supports async, block until it's ready and then pull the result out of
-		// the callback.
-		if ( ! (*b)->backend->SupportsSync() ) {
-		   (*b)->backend->Poll();
-		   op_result = cb->Result();
-		}
+		// Potentially wait for a result if the backend only supports async.
+		wait_for_result(op_result, (*b)->backend, cb);
 
 		delete cb;
 	}
@@ -84,12 +83,8 @@ function Storage::Sync::__put%(backend: opaque of Storage::BackendHandle, key: a
 		auto val_v = IntrusivePtr<Val>{NewRef{}, value};
 		op_result = (*b)->backend->Put(cb, key_v, val_v, overwrite, expire_time);
 
-		// If the backend only supports async, block until it's ready and then pull the result out of
-		// the callback.
-		if ( ! (*b)->backend->SupportsSync() ) {
-			(*b)->backend->Poll();
-			op_result = cb->Result();
-		}
+		// Potentially wait for a result if the backend only supports async.
+		wait_for_result(op_result, (*b)->backend, cb);
 
 		delete cb;
 	}
@@ -109,12 +104,8 @@ function Storage::Sync::__get%(backend: opaque of Storage::BackendHandle, key: a
 		auto key_v = IntrusivePtr<Val>{NewRef{}, key};
 		op_result = (*b)->backend->Get(cb, key_v);
 
-		// If the backend only supports async, block until it's ready and then pull the result out of
-		// the callback.
-		if ( ! (*b)->backend->SupportsSync() ) {
-			(*b)->backend->Poll();
-			op_result = cb->Result();
-		}
+		// Potentially wait for a result if the backend only supports async.
+		wait_for_result(op_result, (*b)->backend, cb);
 
 		delete cb;
 	}
@@ -134,12 +125,8 @@ function Storage::Sync::__erase%(backend: opaque of Storage::BackendHandle, key:
 		auto key_v = IntrusivePtr<Val>{NewRef{}, key};
 		op_result = (*b)->backend->Erase(cb, key_v);
 
-		// If the backend only supports async, block until it's ready and then pull the result out of
-		// the callback.
-		if ( ! (*b)->backend->SupportsSync() ) {
-			(*b)->backend->Poll();
-			op_result = cb->Result();
-		}
+		// Potentially wait for a result if the backend only supports async.
+		wait_for_result(op_result, (*b)->backend, cb);
 
 		delete cb;
 	}

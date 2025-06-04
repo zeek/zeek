@@ -1,3 +1,36 @@
+8.0.0-dev.353 | 2025-06-04 09:38:20 -0700
+
+  * Add some notes about missing/disabled cppcoreguildlines clang-tidy checkers (Tim Wojtulewicz, Corelight)
+
+  * Fix clang-tidy cppcoreguidelines-macro-usage findings (macro functions) (Tim Wojtulewicz, Corelight)
+
+  * Fix clang-tidy cppcoreguidelines-macro-usage findings (macros as constants) (Tim Wojtulewicz, Corelight)
+
+  * script_opt: Add missing virtual destructor (cppcoreguidelines-virtual-class-destructor) (Tim Wojtulewicz, Corelight)
+
+  * Parallelize coverage/bare-mode-errors (Johanna Amann, Corelight)
+
+    Currently, coverage/bare-mode-errors is one of the slowest tests in the
+    entire test suite. This is caused by the fact that it has to repeatedly
+    launch Zeek for every script that we ship. This is done sequentially.
+
+    This commit changes this test to use xargs to spawn 20 parallell
+    processes.
+
+8.0.0-dev.346 | 2025-06-04 08:39:54 -0400
+
+  * Fix Spicy re-enable builtin analyzer debug message (Evan Typanski, Corelight)
+
+8.0.0-dev.341 | 2025-06-03 11:54:04 -0700
+
+  * Redis: Add support for sending AUTH commands during connection (Tim Wojtulewicz, Corelight)
+
+  * Redis: disconnect cleanly if INFO request fails (Tim Wojtulewicz, Corelight)
+
+  * Fix segfault if storage sync open_backend returns bad code (Tim Wojtulewicz, Corelight)
+
+  * Add ToStdString and ToStdStringView to ZeekString (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.335 | 2025-06-02 14:52:44 -0700
 
   * Update libunistd submodule [nomail] (Tim Wojtulewicz, Corelight)

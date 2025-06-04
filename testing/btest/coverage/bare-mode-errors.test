@@ -9,5 +9,5 @@
 # @TEST-REQUIRES: have-zeromq
 #
 # @TEST-EXEC: test -d $DIST/scripts
-# @TEST-EXEC: for script in `find $DIST/scripts/ -name \*\.zeek`; do zeek -b --parse-only $script >>errors 2>&1; done
+# @TEST-EXEC: find $DIST/scripts/ -name "*.zeek" -print0 | xargs -0 -n1 -P 20 -- zeek -b --parse-only >>errors 2>&1
 # @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-sort" btest-diff errors

@@ -10,14 +10,15 @@
 #include "zeek/analyzer/protocol/netbios/events.bif.h"
 #include "zeek/session/Manager.h"
 
-constexpr double netbios_ssn_session_timeout = 15.0;
+static constexpr double netbios_ssn_session_timeout = 15.0;
 
-#define MAKE_INT16(dest, src)                                                                                          \
-    (dest) = *(src);                                                                                                   \
-    (dest) <<= 8;                                                                                                      \
-    (src)++;                                                                                                           \
-    (dest) |= *(src);                                                                                                  \
-    (src)++;
+static constexpr void MAKE_INT16(uint16_t& dest, const u_char*& src) {
+    dest = *src;
+    dest <= 8;
+    src++;
+    dest |= *src;
+    src++;
+}
 
 namespace zeek::analyzer::netbios_ssn {
 namespace detail {

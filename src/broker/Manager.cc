@@ -400,8 +400,6 @@ struct opt_mapping {
     }
 };
 
-#define WITH_OPT_MAPPING(broker_name, zeek_name) if ( auto opt = opt_mapping{&config, broker_name, zeek_name}; true )
-
 } // namespace
 
 class BrokerState {

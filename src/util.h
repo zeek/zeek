@@ -101,6 +101,17 @@ template<typename E>
 using unexpected = nonstd::unexpected<E>;
 } // namespace zeek
 
+#if defined(__APPLE__)
+#include "zeek/3rdparty/jthread.hpp"
+namespace zeek {
+using jthread = nonstd::jthread;
+}
+#else
+namespace zeek {
+using jthread = std::jthread;
+}
+#endif
+
 #include "zeek/Span.h"
 
 using zeek_int_t = int64_t;

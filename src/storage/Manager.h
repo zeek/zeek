@@ -5,7 +5,6 @@
 #include <mutex>
 #include <thread>
 
-#include "zeek/3rdparty/jthread.hpp"
 #include "zeek/Timer.h"
 #include "zeek/plugin/ComponentManager.h"
 #include "zeek/storage/Backend.h"
@@ -99,7 +98,7 @@ protected:
     friend class storage::detail::ExpirationTimer;
     void RunExpireThread();
     void StartExpirationTimer();
-    std::jthread expiration_thread;
+    zeek::jthread expiration_thread;
 
     friend class storage::OpenResultCallback;
     void RegisterBackend(BackendPtr backend);

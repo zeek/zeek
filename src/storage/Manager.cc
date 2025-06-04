@@ -24,7 +24,7 @@ void detail::ExpirationTimer::Dispatch(double t, bool is_expire) {
     // in the interim.
     if ( ! expire_running.test_and_set() ) {
         DBG_LOG(DBG_STORAGE, "Starting new expiration thread");
-        storage_mgr->expiration_thread = std::jthread([t]() { storage_mgr->Expire(t); });
+        storage_mgr->expiration_thread = zeek::jthread([t]() { storage_mgr->Expire(t); });
     }
 
     storage_mgr->StartExpirationTimer();

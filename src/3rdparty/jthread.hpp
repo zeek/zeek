@@ -15,7 +15,7 @@
 
 #include "stop_token.hpp"
 
-namespace std {
+namespace nonstd {
 
 //*****************************************
 //* class jthread
@@ -148,6 +148,6 @@ inline void jthread::swap(jthread& t) noexcept {
 }
 
 
-} // namespace std
+} // namespace nonstd
 
 #endif // JTHREAD_HPP

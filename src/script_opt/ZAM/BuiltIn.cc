@@ -269,7 +269,7 @@ bool SortZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) 
     auto comp_func = comp_val->AsNameExpr();
     auto comp_type = comp_func->GetType()->AsFuncType();
 
-    if ( comp_type->Yield()->Tag() != TYPE_INT || ! comp_type->ParamList()->AllMatch(elt_type, 0) ||
+    if ( comp_type->Yield()->Tag() != TYPE_INT || ! comp_type->ParamList()->AllMatch(elt_type, false) ||
          comp_type->ParamList()->GetTypes().size() != 2 )
         return false;
 

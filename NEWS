@@ -156,6 +156,10 @@ Changed Functionality
 - `detect-protocol.zeek was the last non-deprecated policy script left in
   `frameworks/dpd`.  It was moved to `frameworks/analyzer/detect-protocol.zeek`.
 
+- The `not_valid_before` and `not_valid_after` times are now logged as GMT timestamps.
+  Before, the times were logged as local times; thus the output was dependent on the
+  timezone that your system is set to.
+
 Removed Functionality
 ---------------------
 

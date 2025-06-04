@@ -151,7 +151,7 @@ double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, file_analysis::File* 
     lTime.tm_yday = 0;
     lTime.tm_isdst = 0; // No DST adjustment requested
 
-    lResult = mktime(&lTime);
+    lResult = timegm(&lTime);
 
     if ( lResult ) {
         if ( lTime.tm_isdst != 0 )

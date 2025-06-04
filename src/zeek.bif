@@ -9,7 +9,7 @@
 
 %%{ // C++ segment
 #include <sys/stat.h>
-
+#include <string>
 #include <algorithm>
 #include <cinttypes>
 #include <cmath>
@@ -32,6 +32,9 @@
 #include "zeek/Hash.h"
 #include "zeek/CompHash.h"
 #include "zeek/packet_analysis/Manager.h"
+#include "zeek/plugin/Manager.h"
+#include "zeek/plugin/Plugin.h"
+#include "zeek/plugin/Component.h"
 
 using namespace std;
 
@@ -336,6 +339,32 @@ zeek::RecordValPtr zeek::detail::build_dummy_conn_record()
 	c->Assign(6, zeek::val_mgr->EmptyString());	// history
 
 	return c;
+	}
+
+static zeek::plugin::component::Type CategoryStringToEnum(const std::string& category)
+	{
+    static const std::unordered_map<std::string, zeek::plugin::component::Type> type_map = {
+        {"READER", zeek::plugin::component::READER},
+        {"WRITER", zeek::plugin::component::WRITER},
+        {"ANALYZER", zeek::plugin::component::ANALYZER},
+        {"PACKET_ANALYZER", zeek::plugin::component::PACKET_ANALYZER},
+        {"FILE_ANALYZER", zeek::plugin::component::FILE_ANALYZER},
+        {"IOSOURCE", zeek::plugin::component::IOSOURCE},
+        {"PKTSRC", zeek::plugin::component::PKTSRC},
+        {"PKTDUMPER", zeek::plugin::component::PKTDUMPER},
+        {"SESSION_ADAPTER", zeek::plugin::component::SESSION_ADAPTER},
+        {"CLUSTER_BACKEND", zeek::plugin::component::CLUSTER_BACKEND},
+        {"EVENT_SERIALIZER", zeek::plugin::component::EVENT_SERIALIZER},
+        {"LOG_SERIALIZER", zeek::plugin::component::LOG_SERIALIZER},
+        {"STORAGE_BACKEND", zeek::plugin::component::STORAGE_BACKEND},
+        {"STORAGE_SERIALIZER", zeek::plugin::component::STORAGE_SERIALIZER},
+    };
+
+    auto it = type_map.find(category);
+    if ( it != type_map.end() )
+        return it->second;
+
+    return static_cast<zeek::plugin::component::Type>(-1); // Invalid
 	}
 
 %%}
@@ -5616,47 +5645,46 @@ function find_in_zeekpath%(p: string%): string
 	return zeek::make_intrusive<zeek::StringVal>(resolved.c_str());
 	%}
 
-# Function: get_tags_by_category
-# Description:
-#   Runs a shell command `zeek -NN` filtered by the given category using grep,
-#   and returns a vector of strings containing matching tags.
-#
-# Parameters:
-#   category (string) - The category name to filter tags by.
-#
-# Returns:
-#   vector<string> - A vector containing all matching tag strings.
-#
-# Notes:
-#   - Uses popen() to execute the command and reads output line-by-line.
-#   - If popen() fails, reports an error via Zeek's reporter and returns nullptr.
-
+## Returns a vector of strings containing the tags of all plugin components
+## that belong to the specified category.
+##
+## @param category
+##    A string representing the category of components to filter by.
+##    Valid categories include: "READER", "WRITER", "ANALYZER", "PACKET_ANALYZER",
+##    "FILE_ANALYZER", "IOSOURCE", "PKTSRC", "PKTDUMPER", "SESSION_ADAPTER",
+##    "CLUSTER_BACKEND", "EVENT_SERIALIZER", "LOG_SERIALIZER", "STORAGE_BACKEND",
+##    "STORAGE_SERIALIZER".
+##
+## @return
+##    A vector of strings (string_vec) with the tags of matching components.
+##    Returns null and raises an error if the category is unknown.
 function get_tags_by_category%(category: string%): string_vec
 	%{
-	std::string command;
-	command.append("zeek -NN | grep -i \"\\[");
-	command.append(category->CheckString());
-	command.append("\\]\"");
+    std::string cat = category->CheckString();
+    auto type = CategoryStringToEnum(cat);
 
-	std::array<char, 256> buffer;
+    if ( type == static_cast<plugin::component::Type>(-1) )
+    {
+        reporter->Error("Unknown category type: %s", cat.c_str());
+        return nullptr;
+    }
 
-	std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.c_str(), "r"), pclose);
-	if ( !pipe )
+    auto result = make_intrusive<VectorVal>(id::string_vec);
+    auto all_components = plugin_mgr->Components<plugin::Component>();
+
+    for ( auto* component : all_components )
 	{
-		zeek::reporter->Error("popen() failed");
-		return nullptr;
+    if ( component->Type() == type )
+    {
+        std::string name = component->Name();
+        std::string canonical_tag = cat + "_" + component->CanonicalName();
+        std::string status = component->Enabled() ? "enabled" : "disabled";
+
+        char buffer[512];
+        snprintf(buffer, sizeof(buffer), "%s (%s, %s)", name.c_str(), canonical_tag.c_str(), status.c_str());
+
+        result->Append(make_intrusive<StringVal>(buffer));
+    }
 	}
-
-	auto result = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
-
-	while ( fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr )
-	{
-		std::string line(buffer.data());
-		if ( !line.empty() && line.back() == '\n' )
-			line.pop_back();
-
-		result->Append(zeek::make_intrusive<zeek::StringVal>(line));
-	}
-
-	return std::move(result);
+    return result;
 	%}

@@ -142,7 +142,7 @@ static ExprPtr initialize_var(const IDPtr& id, InitClass c, ExprPtr init) {
     ExprPtr assignment;
 
     if ( c == INIT_FULL )
-        assignment = make_intrusive<AssignExpr>(lhs, init, false);
+        assignment = make_intrusive<AssignExpr>(lhs, init, false, nullptr, id->GetAttrs());
     else if ( c == INIT_EXTRA )
         assignment = make_intrusive<AddToExpr>(lhs, init);
     else if ( c == INIT_REMOVE )

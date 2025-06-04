@@ -162,6 +162,12 @@ Changed Functionality
 - Running Zeek with Zeekygen for documentation extraction (-X|--zeekygen
   <cfgfile>) now implies -a, i.e., parse-only mode.
 
+- The `not_valid_before` and `not_valid_after` times of X509 certificates are
+  now logged as GMT timestamps. Before, they were logged as local times; thus
+  the output was dependent on the timezone that your system is set to.
+  Similarly, the related events and the Zeek data structures all interpreted
+  times in X509 certificates as local times.
+
 Removed Functionality
 ---------------------
 

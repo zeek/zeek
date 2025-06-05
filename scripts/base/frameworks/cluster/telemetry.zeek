@@ -17,7 +17,7 @@ export {
 
 	## The telemetry types to enable.
 	const metrics_enabled: set[Type] = {
-		VERBOSE,
+		SIMPLE,
 	} &redef;
 
 	## Table used for normalizing topic names that contain random parts.

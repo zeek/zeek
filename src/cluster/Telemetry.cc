@@ -45,8 +45,8 @@ void SimpleTelemetry::OnOutgoingEvent(std::string_view topic, const Event& e, co
 void SimpleTelemetry::OnIncomingEvent(std::string_view topic, const Event& e, const MessageInfo& info) { in->Inc(); }
 
 VerboseTelemetry::VerboseTelemetry(TopicNormalizer topic_normalizer) : topic_normalizer(std::move(topic_normalizer)) {
-    out = zeek::telemetry_mgr->CounterFamily("zeek", "cluster_outgoing_events", {"topic", "handler"}, "help");
-    in = zeek::telemetry_mgr->CounterFamily("zeek", "cluster_incoming_events", {"topic", "handler"}, "help");
+    out = zeek::telemetry_mgr->CounterFamily("zeek", "cluster_verbose_outgoing_events", {"topic", "handler"}, "help");
+    in = zeek::telemetry_mgr->CounterFamily("zeek", "cluster_verbose_incoming_events", {"topic", "handler"}, "help");
 }
 
 void VerboseTelemetry::OnOutgoingEvent(std::string_view topic, const Event& e, const MessageInfo& info) {

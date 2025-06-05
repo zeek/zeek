@@ -38,6 +38,7 @@ enum Type {
     LOG_SERIALIZER,     /// A serializer for log batches, used by cluster backends.
     STORAGE_BACKEND,    /// A backend for the storage framework.
     STORAGE_SERIALIZER, /// A serializer for the storage framework.
+    CONNTUPLE,          /// A builder for connection tuples.
 };
 
 } // namespace component

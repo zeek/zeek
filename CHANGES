@@ -1,3 +1,7 @@
+8.0.0-dev.367 | 2025-06-05 08:22:25 -0700
+
+  * Silence -Wnontrivial-memcall warning in ConnKey methods (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.363 | 2025-06-05 07:15:59 +0100
 
   * dpd.log to analyzer.log changes:

@@ -33,8 +33,9 @@ ConnKey& ConnKey::operator=(const ConnKey& rhs) {
 
     // Because of padding in the object, this needs to memset to clear out
     // the extra memory used by padding. Otherwise, the session key stuff
-    // doesn't work quite right.
-    memset(this, 0, sizeof(ConnKey));
+    // doesn't work quite right. The static_cast is to silence a
+    // -Wnontrival-memcall warning from clang++ 17 and later.
+    memset(static_cast<void*>(this), 0, sizeof(ConnKey));
 
     memcpy(&ip1, &rhs.ip1, sizeof(in6_addr));
     memcpy(&ip2, &rhs.ip2, sizeof(in6_addr));
@@ -104,8 +105,9 @@ void ConnKey::Init(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint
                    bool one_way) {
     // Because of padding in the object, this needs to memset to clear out
     // the extra memory used by padding. Otherwise, the session key stuff
-    // doesn't work quite right.
-    memset(this, 0, sizeof(ConnKey));
+    // doesn't work quite right. The static_cast is to silence a
+    // -Wnontrival-memcall warning from clang++ 17 and later.
+    memset(static_cast<void*>(this), 0, sizeof(ConnKey));
 
     // Lookup up connection based on canonical ordering, which is
     // the smaller of <src addr, src port> and <dst addr, dst port>

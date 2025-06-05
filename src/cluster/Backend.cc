@@ -131,7 +131,7 @@ Backend::Backend(std::string_view arg_name, std::unique_ptr<EventSerializer> es,
         reporter->InternalError("unknown cluster backend name '%s'; mismatch with tag component?", name.c_str());
 
     // No telemetry by default.
-    telemetry = std::make_unique<detail::NoneTelemetry>();
+    telemetry = std::make_unique<detail::NullTelemetry>();
 }
 
 bool Backend::Init(std::string nid) {
@@ -189,7 +189,7 @@ bool Backend::DoPublishEvent(const std::string& topic, cluster::detail::Event& e
     if ( ! event_serializer->SerializeEvent(buf, event) )
         return false;
 
-    Telemetry().OutgoingEvent(topic, event, detail::MessageInfo{buf.size()});
+    Telemetry().OnOutgoingEvent(topic, event, detail::MessageInfo{buf.size()});
 
     return DoPublishEvent(topic, event_serializer->Name(), buf);
 }
@@ -233,7 +233,7 @@ bool Backend::ProcessEventMessage(std::string_view topic, std::string_view forma
         return false;
     }
 
-    Telemetry().IncomingEvent(topic, *r, detail::MessageInfo{payload.size()});
+    Telemetry().OnIncomingEvent(topic, *r, detail::MessageInfo{payload.size()});
 
     return ProcessEvent(topic, std::move(*r));
 }

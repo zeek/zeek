@@ -3,13 +3,32 @@
 #pragma once
 
 #include <cstddef>
+#include <functional>
 #include <memory>
 #include <string_view>
+#include <vector>
 
-#include "session/Manager.h"
-#include "telemetry/Histogram.h"
+#include "zeek/IntrusivePtr.h"
 
-namespace zeek::cluster {
+
+namespace zeek {
+
+class TableVal;
+using TableValPtr = zeek::IntrusivePtr<TableVal>;
+
+namespace telemetry {
+class Counter;
+using CounterPtr = std::shared_ptr<Counter>;
+
+class CounterFamily;
+using CounterFamilyPtr = std::shared_ptr<CounterFamily>;
+
+class HistogramFamily;
+using HistogramFamilyPtr = std::shared_ptr<HistogramFamily>;
+
+} // namespace telemetry
+
+namespace cluster {
 
 class Backend;
 
@@ -45,33 +64,65 @@ class Telemetry {
 public:
     virtual ~Telemetry() = default;
 
-    virtual void OutgoingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) = 0;
-    virtual void IncomingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) = 0;
+    virtual void OnOutgoingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) = 0;
+    virtual void OnIncomingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) = 0;
 };
 
 using TelemetryPtr = std::unique_ptr<Telemetry>;
 
-// Null telemetry used for WebSocket clients, or when metrics are
-// explicitly disabled.
-class NoneTelemetry : public Telemetry {
+// Reporting nothing.
+class NullTelemetry : public Telemetry {
+    void OnOutgoingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override {}
+    void OnIncomingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override {}
+};
+
+
+// A container for telemetry instances, delegating to its children.
+class CompositeTelemetry : public Telemetry {
 public:
-    void OutgoingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override;
-    void IncomingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override;
+    void OnOutgoingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override {
+        for ( const auto& c : children )
+            c->OnOutgoingEvent(topic, e, info);
+    }
+
+    void OnIncomingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override {
+        for ( const auto& c : children )
+            c->OnIncomingEvent(topic, e, info);
+    }
+
+    void Add(TelemetryPtr child) { children.push_back(std::move(child)); }
+
+private:
+    std::vector<TelemetryPtr> children;
 };
 
 /**
- * A telemetry class producing metrics labeled with topics.
+ * Just one metric for incoming and one for outgoing metrics.
+ */
+class SimpleTelemetry : public Telemetry {
+public:
+    SimpleTelemetry();
+
+    void OnOutgoingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override;
+    void OnIncomingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override;
+
+private:
+    telemetry::CounterPtr in, out;
+};
+
+/**
+ * A telemetry class producing metrics labeled with handler names and topics.
  *
  * Note that randomly generated topic names will cause unbounded
- * metrics growth. Should we do something or assume that only few
- * users will actually do this kind of stuff?
+ * metrics growth. A topic_normalizer should be injected to normalize
+ * topic names.
  */
-class ProductionTelemetry : public Telemetry {
+class VerboseTelemetry : public Telemetry {
 public:
-    ProductionTelemetry(TopicNormalizer topic_normalizer);
+    VerboseTelemetry(TopicNormalizer topic_normalizer);
 
-    void OutgoingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override;
-    void IncomingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override;
+    void OnOutgoingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override;
+    void OnIncomingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override;
 
 private:
     TopicNormalizer topic_normalizer;
@@ -84,10 +135,10 @@ private:
  */
 class DebugTelemetry : public Telemetry {
 public:
-    DebugTelemetry(TopicNormalizer topic_normalizer, std::vector<double> message_size_bounds);
+    DebugTelemetry(TopicNormalizer topic_normalizer, std::vector<double> bounds);
 
-    void OutgoingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override;
-    void IncomingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override;
+    void OnOutgoingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override;
+    void OnIncomingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override;
 
 private:
     TopicNormalizer topic_normalizer;
@@ -104,4 +155,5 @@ private:
 void configure_backend_telemetry(Backend& backend);
 
 } // namespace detail
-} // namespace zeek::cluster
+} // namespace cluster
+} // namespace zeek

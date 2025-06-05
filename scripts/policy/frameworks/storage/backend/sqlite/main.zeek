@@ -20,14 +20,19 @@ export {
 		## different between the two.
 		table_name: string;
 
+		## The timeout for the connection to the database. This is set
+		## per-connection. It is equivalent to setting a ``busy_timeout`` pragma
+		## value, but that value will be ignored in favor of this field.
+		busy_timeout: interval &default=5 secs;
+
 		## Key/value table for passing pragma commands when opening the database.
 		## These must be pairs that can be passed to the ``pragma`` command in
 		## sqlite. The ``integrity_check`` pragma is run automatically and does
 		## not need to be included here. For pragmas without a second argument,
-		## set the value to an empty string.
+		## set the value to an empty string. Setting the ``busy_timeout`` pragma
+		## here will be ignored.
 		pragma_commands: table[string] of string &ordered &default=table(
 			["integrity_check"] = "",
-			["busy_timeout"] = "5000",
 			["journal_mode"] = "WAL",
 			["synchronous"] = "normal",
 			["temp_store"] = "memory"

@@ -1,3 +1,22 @@
+8.0.0-dev.375 | 2025-06-05 12:43:26 -0700
+
+  * Add busy_timeout script-level option, override any busy_timeout pragma (Tim Wojtulewicz, Corelight)
+
+  * Handle potential contention when running sqlite expiration (Tim Wojtulewicz, Corelight)
+
+  * Add expiration to sqlite-cluster.btest (Tim Wojtulewicz, Corelight)
+
+  * Use unique_ptr to avoid needing to call sqlite3_reset manually (Tim Wojtulewicz, Corelight)
+
+  * Move Deferred class from ZeroMQ to util (Tim Wojtulewicz, Corelight)
+
+  * Temporarily disable pppoe-over-qinq-test for spicy-ssl (Johanna Amann, Corelight)
+
+    The analyzer.log changes exposed a new bug in the Spicy SSL
+    implemenataion.
+
+    Relates to GH-4547
+
 8.0.0-dev.367 | 2025-06-05 08:22:25 -0700
 
   * Silence -Wnontrivial-memcall warning in ConnKey methods (Tim Wojtulewicz, Corelight)

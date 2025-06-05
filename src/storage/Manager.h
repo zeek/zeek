@@ -3,7 +3,22 @@
 #pragma once
 
 #include <mutex>
+
+// Apple's clang has an implementation of std::jthread, but it's still marked
+// as experimental. Use the 3rdparty one for that platform and for any other
+// that doesn't have it. This could move to util.h if some other code needs
+// jthread in the future.
+#if defined(__APPLE__) || ! defined(__cpp_lib_jthread)
+#include "zeek/3rdparty/jthread.hpp"
+namespace zeek {
+using jthread = nonstd::jthread;
+}
+#else
 #include <thread>
+namespace zeek {
+using jthread = std::jthread;
+}
+#endif
 
 #include "zeek/Timer.h"
 #include "zeek/plugin/ComponentManager.h"

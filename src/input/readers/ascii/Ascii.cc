@@ -121,15 +121,15 @@ bool Ascii::OpenFile() {
     fname = Info().source;
 
     if ( fname.front() != '/' && ! path_prefix.empty() ) {
-        string path = path_prefix;
-        std::size_t last = path.find_last_not_of('/');
+        std::size_t last = path_prefix.find_last_not_of('/');
 
+        string path;
         if ( last == string::npos ) // Nothing but slashes -- weird but ok...
             path = "/";
         else
-            path.erase(last + 1);
+            path = path_prefix.substr(0, last + 1);
 
-        fname = path + "/" + fname;
+        fname = util::fmt("%s/%s", path.c_str(), fname.c_str());
     }
 
     file.open(fname);

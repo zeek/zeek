@@ -6,7 +6,7 @@
 # @TEST-EXEC: cp -r %DIR/hooks-plugin/* .
 # @TEST-EXEC: ./configure --zeek-dist=${DIST} && make
 # @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::Hooks" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/http/get.trace %INPUT s1.sig 2>&1 | $SCRIPTS/diff-remove-abspath | sort | uniq  >output
-# @TEST-EXEC: btest-diff output
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-timestamps btest-diff output
 
 @load base/protocols/conn
 @load base/protocols/http

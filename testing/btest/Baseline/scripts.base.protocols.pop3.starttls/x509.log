@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	fingerprint	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len	host_cert	client_cert
 #types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count	bool	bool
-XXXXXXXXXX.XXXXXX	5f262710f31214ecdb6ffbfe4b45a8d1c7042e7c87c3eae9bc317035dafeb7ac	3	01	emailAddress=postmaster@lilawelt.de,CN=chimaera.lilawelt.de,OU=Servers,O=Lilawelt,L=Munich,C=DE	emailAddress=postmaster@lilawelt.de,CN=Lilawelt,OU=Lilawelt CA,O=Lilawelt,L=Munich,C=DE	XXXXXXXXXX.XXXXXX	XXXXXXXXXX.XXXXXX	rsaEncryption	md5WithRSAEncryption	rsa	2048	65537	-	-	-	-	-	F	-	T	F
+XXXXXXXXXX.XXXXXX	5f262710f31214ecdb6ffbfe4b45a8d1c7042e7c87c3eae9bc317035dafeb7ac	3	01	emailAddress=postmaster@lilawelt.de,CN=chimaera.lilawelt.de,OU=Servers,O=Lilawelt,L=Munich,C=DE	emailAddress=postmaster@lilawelt.de,CN=Lilawelt,OU=Lilawelt CA,O=Lilawelt,L=Munich,C=DE	1178385788.000000	1493745788.000000	rsaEncryption	md5WithRSAEncryption	rsa	2048	65537	-	-	-	-	-	F	-	T	F
 #close XXXX-XX-XX-XX-XX-XX

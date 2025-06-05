@@ -9,7 +9,7 @@
 # @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: grep qux manager/reporter.log   | sed 's#line ..#line XX#g'  > manager-reporter.log
 # @TEST-EXEC: grep qux manager/reporter-2.log | sed 's#line ..*#line XX#g' >> manager-reporter.log
-# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-canonifier | $SCRIPTS/diff-remove-abspath | grep -v ^# | $SCRIPTS/diff-sort" btest-diff manager-reporter.log
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-timestamps | $SCRIPTS/diff-remove-abspath | grep -v ^# | $SCRIPTS/diff-sort" btest-diff manager-reporter.log
 
 @load base/frameworks/cluster
 @load base/frameworks/logging

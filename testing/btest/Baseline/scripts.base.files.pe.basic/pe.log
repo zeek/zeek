@@ -8,7 +8,7 @@
 #fields	ts	id	machine	compile_ts	os	subsystem	is_exe	is_64bit	uses_aslr	uses_dep	uses_code_integrity	uses_seh	has_import_table	has_export_table	has_cert_table	has_debug_data	section_names
 #types	time	string	string	time	string	string	bool	bool	bool	bool	bool	bool	bool	bool	bool	bool	vector[string]
 XXXXXXXXXX.XXXXXX	FMmjM54uAmLxPMZoV4	unknown-475	0.000000	-	-	F	T	F	F	F	T	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	FZrhNp43wirvfAjbc	I386	XXXXXXXXXX.XXXXXX	Windows XP x64 or Server 2003	WINDOWS_GUI	T	F	F	F	F	T	T	F	F	T	.text,.data,.rsrc
-XXXXXXXXXX.XXXXXX	FuJAMo3ajILHQd1kFf	I386	XXXXXXXXXX.XXXXXX	Windows 95 or NT 4.0	WINDOWS_CUI	T	F	F	F	F	T	T	F	T	T	.text,.rdata,.data,.rsrc
-XXXXXXXXXX.XXXXXX	FbSGUN27wZI9RUxbv4	I386	XXXXXXXXXX.XXXXXX	Windows 95 or NT 4.0	WINDOWS_GUI	T	F	F	F	F	T	T	T	F	F	.text,.Ddata,.data,.rsrc
+XXXXXXXXXX.XXXXXX	FZrhNp43wirvfAjbc	I386	1171692517.000000	Windows XP x64 or Server 2003	WINDOWS_GUI	T	F	F	F	F	T	T	F	F	T	.text,.data,.rsrc
+XXXXXXXXXX.XXXXXX	FuJAMo3ajILHQd1kFf	I386	1210911433.000000	Windows 95 or NT 4.0	WINDOWS_CUI	T	F	F	F	F	T	T	F	T	T	.text,.rdata,.data,.rsrc
+XXXXXXXXXX.XXXXXX	FbSGUN27wZI9RUxbv4	I386	1402852568.000000	Windows 95 or NT 4.0	WINDOWS_GUI	T	F	F	F	F	T	T	T	F	F	.text,.Ddata,.data,.rsrc
 #close XXXX-XX-XX-XX-XX-XX

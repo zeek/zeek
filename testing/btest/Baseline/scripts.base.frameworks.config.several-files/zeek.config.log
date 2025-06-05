@@ -9,4 +9,4 @@ XXXXXXXXXX.XXXXXX	testenum	SSH::LOG	Conn::LOG	../configfile1
 XXXXXXXXXX.XXXXXX	testint	0	-1	../configfile1
 XXXXXXXXXX.XXXXXX	testinterval	1.0 sec	1.0 min	../configfile2
 XXXXXXXXXX.XXXXXX	testport	42/tcp	45/unknown	../configfile2
-XXXXXXXXXX.XXXXXX	testtime	0.0	XXXXXXXXXX.XXXXXX	../configfile2
+XXXXXXXXXX.XXXXXX	testtime	0.0	1507321987.0	../configfile2

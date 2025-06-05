@@ -6,3 +6,5 @@
 # @TEST-EXEC: ZEEK_PLUGIN_PATH=`pwd` zeek -r $TRACES/socks.trace Log::default_writer=Log::WRITER_FOO %INPUT | sort >>output
 # @TEST-EXEC: btest-diff output
 
+@load frameworks/analyzer/debug-logging.zeek
+

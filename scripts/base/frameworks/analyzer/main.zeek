@@ -88,6 +88,15 @@ export {
 	## Returns: The analyzer name corresponding to the tag.
 	global name: function(tag: Analyzer::Tag) : string;
 
+	## Translates an analyzer type to a string with the analyzer's type.
+	##
+	## Possible values are "protocol", "packet", "file", or "unknown".
+	##
+	## tag: The analyzer tag.
+	##
+	## Returns: The analyzer kind corresponding to the tag.
+	global kind: function(tag: Analyzer::Tag) : string;
+
 	## Check whether the given analyzer name exists.
 	##
 	## This can be used before calling :zeek:see:`Analyzer::get_tag` to
@@ -163,6 +172,23 @@ export {
 	##
 	## This set can be added to via :zeek:see:`redef`.
 	global requested_analyzers: set[AllAnalyzers::Tag] = {} &redef;
+
+	## Event that is raised when an analyzer raised a service violation and was
+	## removed.
+	##
+	## The event is also raised if the analyzer already was no longer active by
+	## the time that the violation was handled - so if it happens at the very
+	## end of a connection.
+	##
+	## Currently this event is only raised for protocol analyzers, as packet
+	## and file analyzers are never actively removed/disabled.
+	##
+	## ts: time at which the violation occurred
+	##
+	## atype: atype: The analyzer tag, such as ``Analyzer::ANALYZER_HTTP``.
+	##
+	##info: Details about the violation. This record should include a :zeek:type:`connection`
+	global analyzer_failed: event(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo);
 }
 
 @load base/bif/analyzer.bif
@@ -244,6 +270,19 @@ function all_registered_ports(): table[AllAnalyzers::Tag] of set[port]
 function name(atype: AllAnalyzers::Tag) : string
 	{
 	return __name(atype);
+	}
+
+function kind(atype: AllAnalyzers::Tag): string
+	{
+	if ( is_protocol_analyzer(atype) )
+		return "protocol";
+	else if ( is_packet_analyzer(atype) )
+		return "packet";
+	else if ( is_file_analyzer(atype) )
+		return "file";
+
+	Reporter::warning(fmt("Unknown kind of analyzer %s", atype));
+	return "unknown";
 	}
 
 function has_tag(name: string): bool

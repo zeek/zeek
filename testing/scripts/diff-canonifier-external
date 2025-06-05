@@ -19,6 +19,14 @@ if [ "$filename" == "ssh.log" ]; then
     addl="$(dirname $0)/diff-remove-fields remote_location"
 fi
 
+if [ "$filename" == "analyzer_debug.log" ]; then
+    addl="$(dirname $0)/diff-remove-abspath"
+fi
+
+if [ "$filename" == "analyzer.log" ]; then
+    addl="$(dirname $0)/diff-remove-abspath"
+fi
+
 $(dirname $0)/diff-remove-timestamps |
     $(dirname $0)/diff-remove-uids |
     $(dirname $0)/diff-remove-file-ids |

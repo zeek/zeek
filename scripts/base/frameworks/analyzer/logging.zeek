@@ -1,8 +1,6 @@
-##! Logging analyzer confirmations and violations into analyzer.log
+##! Logging analyzer  violations into analyzer.log
 
-@load base/frameworks/config
 @load base/frameworks/logging
-
 @load ./main
 
 module Analyzer::Logging;
@@ -11,16 +9,10 @@ export {
 	## Add the analyzer logging stream identifier.
 	redef enum Log::ID += { LOG };
 
-	## A default logging policy hook for the stream.
-	global log_policy: Log::PolicyHook;
-
 	## The record type defining the columns to log in the analyzer logging stream.
 	type Info: record {
-		## Timestamp of confirmation or violation.
+		## Timestamp of the violation.
 		ts:             time              &log;
-		## What caused this log entry to be produced. This can
-		## currently be "violation" or "confirmation".
-		cause:          string            &log;
 		## The kind of analyzer involved. Currently "packet", "file"
 		## or "protocol".
 		analyzer_kind:  string            &log;
@@ -33,161 +25,59 @@ export {
 		fuid:           string            &log &optional;
 		## Connection identifier if available
 		id:             conn_id           &log &optional;
-
 		## Failure or violation reason, if available.
-		failure_reason: string            &log &optional;
-
+		failure_reason: string            &log;
 		## Data causing failure or violation if available. Truncated
 		## to :zeek:see:`Analyzer::Logging::failure_data_max_size`.
 		failure_data:   string            &log &optional;
 	};
 
-	## Enable logging of analyzer violations and optionally confirmations
-	## when :zeek:see:`Analyzer::Logging::include_confirmations` is set.
-	option enable = T;
-
-	## Enable analyzer_confirmation. They are usually less interesting
-	## outside of development of analyzers or troubleshooting scenarios.
-	## Setting this option may also generated multiple log entries per
-	## connection, minimally one for each conn.log entry with a populated
-	## service field.
-	option include_confirmations = F;
-
-	## Enable tracking of analyzers getting disabled. This is mostly
-	## interesting for troubleshooting of analyzers in DPD scenarios.
-	## Setting this option may also generated multiple log entries per
-	## connection.
-	option include_disabling = F;
-
 	## If a violation contains information about the data causing it,
 	## include at most this many bytes of it in the log.
 	option failure_data_max_size = 40;
 
-	## Set of analyzers for which to not log confirmations or violations.
-	option ignore_analyzers: set[AllAnalyzers::Tag] = set();
-}
+	## An event that can be handled to access the :zeek:type:`Analyzer::Logging::Info`
+	## record as it is sent on to the logging framework.
+	global log_analyzer: event(rec: Info);
 
+	## A default logging policy hook for the stream.
+	global log_policy: Log::PolicyHook;
+}
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(LOG, [$columns=Info, $path="analyzer", $policy=log_policy,
-	                         $event_groups=set("Analyzer::Logging")]);
-
-	local enable_handler = function(id: string, new_value: bool): bool {
-		if ( new_value )
-		    Log::enable_stream(LOG);
-		else
-		    Log::disable_stream(LOG);
-
-		return new_value;
-	};
-	Option::set_change_handler("Analyzer::Logging::enable", enable_handler);
-
-	local include_confirmations_handler = function(id: string, new_value: bool): bool {
-		if ( new_value )
-		    enable_event_group("Analyzer::Logging::include_confirmations");
-		else
-		    disable_event_group("Analyzer::Logging::include_confirmations");
-
-		return new_value;
-	};
-	Option::set_change_handler("Analyzer::Logging::include_confirmations",
-	                           include_confirmations_handler);
-
-	local include_disabling_handler = function(id: string, new_value: bool): bool {
-		if ( new_value )
-		    enable_event_group("Analyzer::Logging::include_disabling");
-		else
-		    disable_event_group("Analyzer::Logging::include_disabling");
-
-		return new_value;
-	};
-	Option::set_change_handler("Analyzer::Logging::include_disabling",
-	                           include_disabling_handler);
-
-	# Call the handlers directly with the current values to avoid config
-	# framework interactions like creating entries in config.log.
-	enable_handler("Analyzer::Logging::enable", Analyzer::Logging::enable);
-	include_confirmations_handler("Analyzer::Logging::include_confirmations",
-	                              Analyzer::Logging::include_confirmations);
-	include_disabling_handler("Analyzer::Logging::include_disabling",
-	                          Analyzer::Logging::include_disabling);
-
+	Log::create_stream(LOG, [$columns=Info, $path="analyzer", $ev=log_analyzer, $policy=log_policy]);
 	}
 
-function analyzer_kind(atype: AllAnalyzers::Tag): string
+function log_analyzer_failure(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo)
 	{
-	if ( is_protocol_analyzer(atype) )
-		return "protocol";
-	else if ( is_packet_analyzer(atype) )
-		return "packet";
-	else if ( is_file_analyzer(atype) )
-		return "file";
+	local rec = Info(
+		$ts=ts,
+		$analyzer_kind=Analyzer::kind(atype),
+		$analyzer_name=Analyzer::name(atype),
+		$failure_reason=info$reason
+	);
 
-	Reporter::warning(fmt("Unknown kind of analyzer %s", atype));
-	return "unknown";
-	}
-
-function populate_from_conn(rec: Info, c: connection)
-	{
-	rec$id = c$id;
-	rec$uid = c$uid;
-	}
-
-function populate_from_file(rec: Info, f: fa_file)
-	{
-	rec$fuid = f$id;
-	# If the confirmation didn't have a connection, but the
-	# fa_file object has exactly one, use it.
-	if ( ! rec?$uid && f?$conns && |f$conns| == 1 )
+	if ( info?$c )
 		{
-		for ( _, c in f$conns )
+		rec$id = info$c$id;
+		rec$uid = info$c$uid;
+		}
+
+	if ( info?$f )
+		{
+		rec$fuid = info$f$id;
+		# If the confirmation didn't have a connection, but the
+		# fa_file object has exactly one, use it.
+		if ( ! rec?$uid && info$f?$conns && |info$f$conns| == 1 )
 			{
-			rec$id = c$id;
-			rec$uid = c$uid;
+			for ( _, c in info$f$conns )
+				{
+				rec$id = c$id;
+				rec$uid = c$uid;
+				}
 			}
 		}
-	}
-
-event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &group="Analyzer::Logging::include_confirmations"
-	{
-	if ( atype in ignore_analyzers )
-		return;
-
-	local rec = Info(
-		$ts=network_time(),
-		$cause="confirmation",
-		$analyzer_kind=analyzer_kind(atype),
-		$analyzer_name=Analyzer::name(atype),
-	);
-
-	if ( info?$c )
-		populate_from_conn(rec, info$c);
-
-	if ( info?$f )
-		populate_from_file(rec, info$f);
-
-	Log::write(LOG, rec);
-	}
-
-event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=6
-	{
-	if ( atype in ignore_analyzers )
-		return;
-
-	local rec = Info(
-		$ts=network_time(),
-		$cause="violation",
-		$analyzer_kind=analyzer_kind(atype),
-		$analyzer_name=Analyzer::name(atype),
-		$failure_reason=info$reason,
-	);
-
-	if ( info?$c )
-		populate_from_conn(rec, info$c);
-
-	if ( info?$f )
-		populate_from_file(rec, info$f);
 
 	if ( info?$data )
 		{
@@ -200,19 +90,31 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 	Log::write(LOG, rec);
 	}
 
-hook Analyzer::disabling_analyzer(c: connection, atype: AllAnalyzers::Tag, aid: count) &priority=-1000 &group="Analyzer::Logging::include_disabling"
+# event currently is only raised for protocol analyzers; we do not fail packet and file analyzers
+event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo)
 	{
-	if ( atype in ignore_analyzers )
+	if ( ! is_protocol_analyzer(atype) )
 		return;
 
-	local rec = Info(
-		$ts=network_time(),
-		$cause="disabled",
-		$analyzer_kind=analyzer_kind(atype),
-		$analyzer_name=Analyzer::name(atype),
-	);
+	if ( ! info?$c )
+		return;
 
-	populate_from_conn(rec, c);
+	# log only for previously confirmed service that did not already log violation
+	# note that analyzers can fail repeatedly in some circumstances - e.g. when they
+	# are re-attached by the dynamic protocol detection due to later data.
+	local analyzer_name = Analyzer::name(atype);
+	if ( analyzer_name !in info$c$service || analyzer_name in info$c$failed_analyzers )
+		return;
 
-	Log::write(LOG, rec);
+	log_analyzer_failure(ts, atype, info);
 	}
+
+# log packet and file analyzers here separately
+event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo )
+	{
+	if ( is_protocol_analyzer(atype) )
+		return;
+
+	log_analyzer_failure(network_time(), atype, info);
+	}
+

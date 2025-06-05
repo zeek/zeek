@@ -134,19 +134,10 @@ connection {
         * pending_replies: table[count] of record Queue::Queue, log=F, optional=T
             Queue::Queue { ... }
        }
-  * dpd: record DPD::Info, log=F, optional=T
-      DPD::Info {
-        * analyzer: string, log=T, optional=F
-        * failure_reason: string, log=T, optional=F
-        * id: record conn_id, log=T, optional=F
-            conn_id { ... }
-        * proto: enum transport_proto, log=T, optional=F
-        * ts: time, log=T, optional=F
-        * uid: string, log=T, optional=F
-       }
   * duration: interval, log=F, optional=F
   * extract_orig: bool, log=F, optional=T
   * extract_resp: bool, log=F, optional=T
+  * failed_analyzers: set[string], log=F, optional=T
   * ftp: record FTP::Info, log=F, optional=T
       FTP::Info {
         * arg: string, log=T, optional=T

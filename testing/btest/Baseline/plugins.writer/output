@@ -3,14 +3,16 @@ Demo::Foo - A Foo test logging writer (dynamic, version 1.0.0)
     [Writer] Foo (Log::WRITER_FOO)
 
 ===
-[analyzer] XXXXXXXXXX.XXXXXX|violation|protocol|DCE_RPC|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|Binpac exception: binpac exception: out_of_bound: DCE_RPC_PDU:frag: -2665 > 31|-
-[analyzer] XXXXXXXXXX.XXXXXX|violation|protocol|DCE_RPC|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|Binpac exception: binpac exception: &enforce violation : DCE_RPC_Header:rpc_vers|-
-[analyzer] XXXXXXXXXX.XXXXXX|violation|protocol|DCE_RPC|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|Binpac exception: binpac exception: &enforce violation : DCE_RPC_Header:rpc_vers|-
-[analyzer] XXXXXXXXXX.XXXXXX|violation|protocol|DCE_RPC|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|Binpac exception: binpac exception: &enforce violation : DCE_RPC_Header:rpc_vers|-
-[analyzer] XXXXXXXXXX.XXXXXX|violation|protocol|DCE_RPC|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|Binpac exception: binpac exception: &enforce violation : DCE_RPC_Header:rpc_vers|-
-[analyzer] XXXXXXXXXX.XXXXXX|violation|protocol|DCE_RPC|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|Binpac exception: binpac exception: &enforce violation : DCE_RPC_Header:rpc_vers|-
-[analyzer] XXXXXXXXXX.XXXXXX|violation|protocol|DCE_RPC|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|Binpac exception: binpac exception: &enforce violation : DCE_RPC_Header:rpc_vers|-
-[analyzer] XXXXXXXXXX.XXXXXX|violation|protocol|DCE_RPC|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|Binpac exception: binpac exception: &enforce violation : DCE_RPC_Header:rpc_vers|-
+[analyzer_debug] XXXXXXXXXX.XXXXXX|confirmation|protocol|SOCKS|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|-|-
+[analyzer_debug] XXXXXXXXXX.XXXXXX|confirmation|protocol|HTTP|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|-|-
+[analyzer_debug] XXXXXXXXXX.XXXXXX|violation|protocol|DCE_RPC|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|Binpac exception: binpac exception: out_of_bound: DCE_RPC_PDU:frag: -2665 > 31|-
+[analyzer_debug] XXXXXXXXXX.XXXXXX|violation|protocol|DCE_RPC|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|Binpac exception: binpac exception: &enforce violation : DCE_RPC_Header:rpc_vers|-
+[analyzer_debug] XXXXXXXXXX.XXXXXX|violation|protocol|DCE_RPC|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|Binpac exception: binpac exception: &enforce violation : DCE_RPC_Header:rpc_vers|-
+[analyzer_debug] XXXXXXXXXX.XXXXXX|violation|protocol|DCE_RPC|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|Binpac exception: binpac exception: &enforce violation : DCE_RPC_Header:rpc_vers|-
+[analyzer_debug] XXXXXXXXXX.XXXXXX|violation|protocol|DCE_RPC|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|Binpac exception: binpac exception: &enforce violation : DCE_RPC_Header:rpc_vers|-
+[analyzer_debug] XXXXXXXXXX.XXXXXX|violation|protocol|DCE_RPC|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|Binpac exception: binpac exception: &enforce violation : DCE_RPC_Header:rpc_vers|-
+[analyzer_debug] XXXXXXXXXX.XXXXXX|violation|protocol|DCE_RPC|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|Binpac exception: binpac exception: &enforce violation : DCE_RPC_Header:rpc_vers|-
+[analyzer_debug] XXXXXXXXXX.XXXXXX|violation|protocol|DCE_RPC|ClEkJM2Vm5giqnMf4h|-|10.0.0.55|53994|60.190.189.214|8124|Binpac exception: binpac exception: &enforce violation : DCE_RPC_Header:rpc_vers|-
 [conn] XXXXXXXXXX.XXXXXX|CHhAvVGS1DHFjwGM9|10.0.0.55|53994|60.190.189.214|8124|tcp|-|4.314406|0|0|S0|T|F|0|S|5|320|0|0|-|6
 [conn] XXXXXXXXXX.XXXXXX|ClEkJM2Vm5giqnMf4h|10.0.0.55|53994|60.190.189.214|8124|tcp|socks,http|13.839419|3860|2934|SF|T|F|0|ShADadfF|23|5080|20|3986|-|6
 [conn] XXXXXXXXXX.XXXXXX|C4J4Th3PJpwUYZZ6gc|10.0.0.55|53994|60.190.189.214|8124|tcp|-|-|-|-|SH|T|F|0|F|1|52|0|0|-|6

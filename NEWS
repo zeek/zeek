@@ -114,6 +114,27 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- Logging of failed analyzers has been overhauled. `dpd.log` was replaced
+  by a new `analyzer.log` that presents a more unified and consistent view
+  of failed analyzers. The previous `analyzer.log` was renamed to `analyzer-debug.log`;
+  see below for more details.
+
+  For protocol analyzers, `analyzer.log` now reports initially confirmed analyzers that
+  Zeek subsequently removed from the connection due to a protocol violation.
+
+  For file and packet analyzers, all errors will be logged to `analyzer.log`.
+
+  As part of this work, a new `analyzer_failed` event has been introduced. This event
+  is raised when an analyzer is removed because of raising a violation.
+
+- `analyzer.log` was renamed to `analyzer_debug.log`, and is no longer created
+  by default. The log file will be created if the `frameworks/analyzer/debug-logging.zeek`
+  policy script is loaded.
+
+  Note that the namespace for options in the script changed to
+  `Analyzer::DebugLogging`. Furthermore the default options changed to enable
+  more detailed output by default.
+
 - Publishing remote events with vector arguments that contain holes is now
   rejected. The receiver side never had a chance to figure out where these
   holes would have been. There's a chance this breaks scripts that accidentally
@@ -129,6 +150,12 @@ Changed Functionality
   ``WebSocketServerOptions`` was deprecated. Use the new ``$listen_addr`` field
   instead.
 
+- The `service_violation` field of the connection record was marked as deprecated.
+  Consider using the new `failed_analyzers` field of the connection record instead.
+
+- `detect-protocol.zeek was the last non-deprecated policy script left in
+  `frameworks/dpd`.  It was moved to `frameworks/analyzer/detect-protocol.zeek`.
+
 Removed Functionality
 ---------------------
 
@@ -138,6 +165,10 @@ Removed Functionality
 
 Deprecated Functionality
 ------------------------
+
+- The `dpd.log` is now deprecated and replaced by `analyzer.log` (see above).
+  `dpd.log` is no longer created by default, but can be loaded using the
+  `frameworks/analyzer/deprecated-dpd-log.zeek` policy script.
 
 - The ``protocols/http/detect-sqli.zeek`` script has been deprecated in favor of a
   new ``protocols/http/detect-sql-injection.zeek`` script to switch from the victim

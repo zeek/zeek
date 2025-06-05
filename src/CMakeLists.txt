@@ -41,18 +41,8 @@ set(BISON_FLAGS "--debug")
 
 if (MSVC)
     set(SIGN_COMPARE_FLAG "/wd4018")
-    if (BUILD_WITH_WERROR)
-        # TODO: This is disabled for now because there a bunch of known
-        # compiler warnings on Windows that we don't have good fixes for.
-        #set(WERROR_FLAG "/WX")
-        #set(WNOERROR_FLAG "/WX:NO")
-    endif ()
 else ()
     set(SIGN_COMPARE_FLAG "-Wno-sign-compare")
-    if (BUILD_WITH_WERROR)
-        set(WERROR_FLAG "-Werror")
-        set(WNOERROR_FLAG "-Wno-error")
-    endif ()
 endif ()
 
 # Rule parser/scanner

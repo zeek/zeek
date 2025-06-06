@@ -12,6 +12,7 @@ const report_gaps_for_partial: bool;
 const exit_only_after_terminate: bool;
 const digest_salt: string;
 const max_analyzer_violations: count;
+const netbios_ssn_session_timeout: interval;
 
 const io_poll_interval_default: count;
 const io_poll_interval_live: count;

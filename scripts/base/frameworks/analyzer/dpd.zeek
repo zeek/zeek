@@ -1,4 +1,4 @@
-##! Disables analyzers if protocol violations occur, and add service information
+##! Disables analyzers if protocol violations occur, and adds service information
 ##! to connection log.
 
 @load ./main

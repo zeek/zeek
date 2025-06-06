@@ -4,6 +4,12 @@
 
 global tbl: table[count] of count;
 global tbl2: table[count] of count &ordered;
+global tbl3: table[count] of count = {
+    [4] = 4,
+    [5] = 5,
+} &ordered &redef;
+
+redef tbl3 += { [6] = 6 };
 
 event zeek_init()
 {
@@ -13,14 +19,23 @@ event zeek_init()
        ++i;
        tbl[i] = i;
        tbl2[i] = i;
+       tbl3[i] = i;
     }
 
+    print "tbl";
     for ( [k], v in tbl )
     {
        print(v);
     }
 
+    print "tbl2";
     for ( [k], v in tbl2 )
+    {
+       print(v);
+    }
+
+    print "tbl3";
+    for ( [k], v in tbl3 )
     {
        print(v);
     }

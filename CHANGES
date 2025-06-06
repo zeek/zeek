@@ -1,3 +1,7 @@
+8.0.0-dev.382 | 2025-06-06 17:33:39 +0200
+
+  * Fix `&ordered` attribute not preserved in table initializer assignments (赵富鹏)
+
 8.0.0-dev.380 | 2025-06-06 10:26:17 +0200
 
   * docker: Add `net-tools` and `procps` dependencies (Edoardo Mich)

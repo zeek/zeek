@@ -295,6 +295,12 @@ export {
 	## Returns: a topic string that may used to send a message exclusively to
 	##          a given cluster node.
 	global nodeid_topic: function(id: string): string;
+
+	## Delegate to Broker::__subscribe()
+	global subscribe: function(topic_prefix: string): bool;
+
+	## Delegate to Broker::__unsubscribe()
+	global unsubscribe: function(topic_prefix: string): bool;
 }
 
 # Track active nodes per type.
@@ -518,4 +524,14 @@ function create_store(name: string, persistent: bool &default=F): Cluster::Store
 function log(msg: string)
 	{
 	Log::write(Cluster::LOG, [$ts = network_time(), $node = node, $message = msg]);
+	}
+
+function subscribe(topic_prefix: string): bool
+	{
+	return Broker::__subscribe(topic_prefix);
+	}
+
+function unsubscribe(topic_prefix: string): bool
+	{
+	return Broker::__unsubscribe(topic_prefix);
 	}

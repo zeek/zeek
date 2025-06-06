@@ -101,6 +101,12 @@ function Broker::make_event%(...%): Broker::Event
 	return RecordValPtr{zeek::AdoptRef{}, zeek::broker_mgr->MakeEvent(&args, frame)};
 	%}
 
+## Delegate to Broker::make_event()
+function Cluster::make_event%(...%): Broker::Event
+	%{
+	return zeek::BifFunc::Broker::make_event_bif(frame, BiF_ARGS);
+	%}
+
 ## Publishes an event at a given topic.
 ##
 ## topic: a topic associated with the event message.
@@ -120,6 +126,12 @@ function Broker::publish%(topic: string, ...%): bool
 
 	auto rval = publish_event_args(args, topic->AsString(), frame);
 	return zeek::val_mgr->Bool(rval);
+	%}
+
+## Delegate to Broker::make_event()
+function Cluster::publish%(topic: string, ...%): bool
+	%{
+	return zeek::BifFunc::Broker::publish_bif(frame, BiF_ARGS);
 	%}
 
 function Broker::__flush_logs%(%): count

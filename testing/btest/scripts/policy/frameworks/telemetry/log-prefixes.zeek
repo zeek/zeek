@@ -1,5 +1,5 @@
 # @TEST-DOC: Tests that setting log_prefixes filters out the zeek metrics normally created.
-# @TEST-EXEC: zcat <$TRACES/echo-connections.pcap.gz | zeek -b -Cr - %INPUT > out
+# @TEST-EXEC: zcat <$TRACES/echo-connections.pcap.gz | zeek -b -r - %INPUT > out
 
 # @TEST-EXEC: btest-diff telemetry.log
 # @TEST-EXEC: btest-diff telemetry_histogram.log

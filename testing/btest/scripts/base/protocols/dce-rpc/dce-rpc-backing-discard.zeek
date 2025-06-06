@@ -1,5 +1,5 @@
 # @TEST-DOC: Pcap does not contain close requests for the involved fids (filtered out with wireshark)
-# @TEST-EXEC: zeek -C -r $TRACES/dce-rpc/20-fids-no-close.pcap %INPUT >out
+# @TEST-EXEC: zeek -r $TRACES/dce-rpc/20-fids-no-close.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff weird.log
 

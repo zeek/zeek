@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -d -o zeek_test.hlto analyzer.spicy analyzer.evt
-# @TEST-EXEC: HILTI_DEBUG=spicy zeek -Cr ${TRACES}/spicy/packet-analyzer-violation.pcap zeek_test.hlto %INPUT >output 2>&1
+# @TEST-EXEC: HILTI_DEBUG=spicy zeek -r ${TRACES}/spicy/packet-analyzer-violation.pcap zeek_test.hlto %INPUT >output 2>&1
 # @TEST-EXEC: btest-diff output
 #
 # @TEST-DOC: Checks that packet analyzers correctly report violations. This is a regression test for #132.

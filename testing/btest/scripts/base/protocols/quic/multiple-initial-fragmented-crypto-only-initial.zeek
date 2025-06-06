@@ -1,7 +1,7 @@
 # @TEST-DOC: Pcap with CRYPTO frames fragemented over multiple INITIAL packets. The pcap only contains 3 INITIAL packets. Check what logs are created.
 
 # @TEST-REQUIRES: ${SCRIPTS}/have-spicy
-# @TEST-EXEC: zeek -Cr $TRACES/quic/quic-multiple-initial-fragmented-crypto-only-initial.pcap base/protocols/quic
+# @TEST-EXEC: zeek -r $TRACES/quic/quic-multiple-initial-fragmented-crypto-only-initial.pcap base/protocols/quic
 # @TEST-EXEC: test ! -f analyzer.log
 # @TEST-EXEC: test ! -f dpd.log
 # @TEST-EXEC: zeek-cut -m ts uid history service < conn.log > conn.log.cut

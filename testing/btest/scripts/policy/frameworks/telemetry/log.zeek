@@ -1,5 +1,5 @@
 # @TEST-DOC: Test loading of telemetry/log and smoke check the telemetry.log file
-# @TEST-EXEC: zeek -b -Cr $TRACES/wikipedia.trace %INPUT > out
+# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.trace %INPUT > out
 # @TEST-EXEC: grep -E 'zeek_(net|.*sessions)' telemetry.log > telemetry.log.filtered
 # @TEST-EXEC: grep 'zeek.*connection_duration' telemetry_histogram.log > telemetry_histogram.log.filtered
 

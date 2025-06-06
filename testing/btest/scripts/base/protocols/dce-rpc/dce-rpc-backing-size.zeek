@@ -1,5 +1,5 @@
 # @TEST-DOC: Ensure dce_rpc_backing state stays bounded when pipes are closed properly.
-# @TEST-EXEC: zeek -C -r $TRACES/dce-rpc/20-fids.pcap %INPUT >out
+# @TEST-EXEC: zeek -r $TRACES/dce-rpc/20-fids.pcap %INPUT >out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: test ! -f weird.log
 

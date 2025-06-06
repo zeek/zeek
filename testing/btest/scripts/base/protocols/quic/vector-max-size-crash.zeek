@@ -1,7 +1,7 @@
 # @TEST-DOC: Test that runs the pcap
 
 # @TEST-REQUIRES: ${SCRIPTS}/have-spicy
-# @TEST-EXEC: zeek -Cr $TRACES/quic/vector-max-size-crash.pcap base/protocols/quic %INPUT > out
+# @TEST-EXEC: zeek -r $TRACES/quic/vector-max-size-crash.pcap base/protocols/quic %INPUT > out
 # @TEST-EXEC: zeek-cut -m ts uid history service < conn.log > conn.log.cut
 # @TEST-EXEC: zeek-cut -m ts cause uid analyzer_kind analyzer_name failure_reason < analyzer_debug.log > analyzer_debug.log.cut
 # @TEST-EXEC: btest-diff conn.log.cut

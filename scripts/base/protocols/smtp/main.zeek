@@ -80,6 +80,7 @@ export {
 		trans_mail_from_seen:     bool      &default=F;
 		trans_rcpt_to_seen:       bool      &default=F;
 		invalid_transactions:     count     &default=0;
+		bdat_last_observed:       bool      &default=F;
 		analyzer_id:              count     &optional;
 	};
 
@@ -261,6 +262,7 @@ event smtp_request(c: connection, is_orig: bool, command: string, arg: string) &
 			# the last BDAT command.
 			c$smtp_state$trans_mail_from_seen = F;
 			c$smtp_state$trans_rcpt_to_seen = F;
+			c$smtp_state$bdat_last_observed = T;
 			}
 		}
 	else if ( upper_command == "." )
@@ -284,10 +286,11 @@ event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string,
 event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string,
                  msg: string, cont_resp: bool) &priority=-5
 	{
-	if ( cmd == "." )
+	if ( cmd == "." || (!cont_resp && cmd == "BDAT" && c$smtp_state$bdat_last_observed ) )
 		{
 		# Track the number of messages seen in this session.
 		++c$smtp_state$messages_transferred;
+		c$smtp_state$bdat_last_observed = F;
 		smtp_message(c);
 		c$smtp = new_smtp_log(c);
 		}

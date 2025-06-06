@@ -571,16 +571,6 @@ void ZeroMQBackend::Run() {
         }
     };
 
-    // Helper class running at destruction.
-    class Deferred {
-    public:
-        Deferred(std::function<void()> deferred) : closer(std::move(deferred)) {}
-        ~Deferred() { closer(); }
-
-    private:
-        std::function<void()> closer;
-    };
-
     struct SocketInfo {
         zmq::socket_ref socket;
         std::string name;
@@ -595,7 +585,7 @@ void ZeroMQBackend::Run() {
     };
 
     // Called when Run() terminates.
-    auto deferred_close = Deferred([this]() {
+    auto deferred_close = util::Deferred([this]() {
         child_inproc.close();
         xpub.close();
         xsub.close();

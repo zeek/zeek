@@ -1,3 +1,80 @@
+8.0.0-dev.380 | 2025-06-06 10:26:17 +0200
+
+  * docker: Add `net-tools` and `procps` dependencies (Edoardo Mich)
+
+    Add `net-tools` and `procps` to the final.Dockerfile, to avoid warning in
+    zeekctl commands like: "failed to find local IP addresses [...]" and the
+    error in `zeekctl top` command caused respectively by missing `ifconfig`
+    and `top` commands.
+
+8.0.0-dev.378 | 2025-06-05 20:31:00 -0700
+
+  * Follow-ups to configure output reformatting (Tim Wojtulewicz, Corelight)
+
+8.0.0-dev.375 | 2025-06-05 12:43:26 -0700
+
+  * Add busy_timeout script-level option, override any busy_timeout pragma (Tim Wojtulewicz, Corelight)
+
+  * Handle potential contention when running sqlite expiration (Tim Wojtulewicz, Corelight)
+
+  * Add expiration to sqlite-cluster.btest (Tim Wojtulewicz, Corelight)
+
+  * Use unique_ptr to avoid needing to call sqlite3_reset manually (Tim Wojtulewicz, Corelight)
+
+  * Move Deferred class from ZeroMQ to util (Tim Wojtulewicz, Corelight)
+
+  * Temporarily disable pppoe-over-qinq-test for spicy-ssl (Johanna Amann, Corelight)
+
+    The analyzer.log changes exposed a new bug in the Spicy SSL
+    implemenataion.
+
+    Relates to GH-4547
+
+8.0.0-dev.367 | 2025-06-05 08:22:25 -0700
+
+  * Silence -Wnontrivial-memcall warning in ConnKey methods (Tim Wojtulewicz, Corelight)
+
+8.0.0-dev.363 | 2025-06-05 07:15:59 +0100
+
+  * dpd.log to analyzer.log changes:
+
+    Logging of failed analyzers has been overhauled. `dpd.log` was replaced by
+    a new `analyzer.log` that presents a more unified and consistent view of
+    failed analyzers. The previous `analyzer.log` was renamed to
+    `analyzer-debug.log`.
+
+    For protocol analyzers, `analyzer.log` now reports initially confirmed
+    analyzers that Zeek subsequently removed from the connection due to a
+    protocol violation.
+
+    For file and packet analyzers, all errors will be logged to `analyzer.log`.
+
+    As part of this work, a new `analyzer_failed` event has been introduced.
+    This event is raised when an analyzer is removed because of raising a
+    violation.
+
+    `analyzer.log` was renamed to `analyzer_debug.log`, and is no longer
+    created by default. The log file will be created if the
+    `frameworks/analyzer/debug-logging.zeek` policy script is loaded.
+
+    The namespace for options in the script changed to
+    `Analyzer::DebugLogging`. Furthermore the default options changed to enable
+    more detailed output by default.
+
+    The `service_violation` field of the connection record was marked as
+    deprecated.  A new `failed_analyzers` field was inroduced instead, with
+    slightly different semantics.  Where c$failed_analyzers tracks analyzers
+    that were removed due to a violation, c$service_violation tracks violations
+    - and doesn't care if an analyzer was actually removed due to it.
+    (Johanna Amann, Corelight)
+
+  * Move detect-protocol from frameworks/dpd to frameworks/analyzer
+
+    detect-protocol.zeek was the last non-deprecated script left in
+    policy/frameworks/dpd. It was moved to policy/frameworks/analyzer. A
+    script that loads the script from the new location with a deprecation
+    warning was added. (Johanna Amann, Corelight)
+
 8.0.0-dev.353 | 2025-06-04 09:38:20 -0700
 
   * Add some notes about missing/disabled cppcoreguildlines clang-tidy checkers (Tim Wojtulewicz, Corelight)

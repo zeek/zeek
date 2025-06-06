@@ -9,6 +9,10 @@
 
 # The base/ scripts are all loaded by default and not included here.
 
+@load frameworks/analyzer/debug-logging.zeek
+@load frameworks/analyzer/detect-protocols.zeek
+# @load frameworks/analyzer/deprecated-dpd-log.zeek
+@load frameworks/analyzer/packet-segment-logging.zeek
 # @load frameworks/control/controllee.zeek
 # @load frameworks/control/controller.zeek
 @ifdef ( Cluster::CLUSTER_BACKEND_ZEROMQ )
@@ -46,8 +50,8 @@
 @load frameworks/management/request.zeek
 @load frameworks/management/types.zeek
 @load frameworks/management/util.zeek
-@load frameworks/dpd/detect-protocols.zeek
-@load frameworks/dpd/packet-segment-logging.zeek
+# @load frameworks/dpd/detect-protocols.zeek
+# @load frameworks/dpd/packet-segment-logging.zeek
 @load frameworks/intel/do_notice.zeek
 @load frameworks/intel/do_expire.zeek
 @load frameworks/intel/whitelist.zeek

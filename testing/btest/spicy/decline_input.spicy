@@ -1,9 +1,9 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -d -o foo.hlto foo.spicy foo.evt %INPUT
-# @TEST-EXEC: zeek -Cr ${TRACES}/udp-packet.pcap foo.hlto foo.zeek
-# @TEST-EXEC: cat analyzer.log | zeek-cut analyzer_name failure_reason failure_data > analyzer.log2 && mv analyzer.log2 analyzer.log
-# @TEST-EXEC: btest-diff analyzer.log
+# @TEST-EXEC: zeek -Cr ${TRACES}/udp-packet.pcap frameworks/analyzer/debug-logging.zeek Analyzer::DebugLogging::include_disabling=F Analyzer::DebugLogging::include_confirmations=F foo.hlto foo.zeek
+# @TEST-EXEC: cat analyzer_debug.log | zeek-cut analyzer_name failure_reason failure_data > analyzer_debug.log2 && mv analyzer_debug.log2 analyzer_debug.log
+# @TEST-EXEC: btest-diff analyzer_debug.log
 #
 # @TEST-DOC: Validates that decline_input is propagated properly. This is a regression test for #3276.
 

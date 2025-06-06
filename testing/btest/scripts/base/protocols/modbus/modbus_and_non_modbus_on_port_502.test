@@ -23,10 +23,12 @@
 #
 # @TEST-REQUIRES: ! have-spicy-ssl
 #
-# @TEST-EXEC: zeek -r $TRACES/modbus/modbus-and-non-modbus-p502.pcap
+# @TEST-EXEC: zeek -r $TRACES/modbus/modbus-and-non-modbus-p502.pcap %INPUT
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff modbus.log
-# @TEST-EXEC: btest-diff analyzer.log
+# @TEST-EXEC: btest-diff analyzer_debug.log
 
 # The pcap has non Modbus traffic (i.e., DCERPC, HTTP, Magellan, NFS, RDP, TLS) on TCP port 502.
 # This traffic should not be labelled as Modbus in conn.log, and not generate any Modbus events.
+
+@load frameworks/analyzer/debug-logging.zeek

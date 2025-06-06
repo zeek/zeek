@@ -1,35 +1,15 @@
-##! Activates port-independent protocol detection and selectively disables
-##! analyzers if protocol violations occur.
+##! Disables analyzers if protocol violations occur, and add service information
+##! to connection log.
+
+@load ./main
 
 module DPD;
 
 export {
-	## Add the DPD logging stream identifier.
-	redef enum Log::ID += { LOG };
-
-	## A default logging policy hook for the stream.
-	global log_policy: Log::PolicyHook;
-
-	## The record type defining the columns to log in the DPD logging stream.
-	type Info: record {
-		## Timestamp for when protocol analysis failed.
-		ts:             time            &log;
-		## Connection unique ID.
-		uid:            string          &log;
-		## Connection ID containing the 4-tuple which identifies endpoints.
-		id:             conn_id         &log;
-		## Transport protocol for the violation.
-		proto:          transport_proto &log;
-		## The analyzer that generated the violation.
-		analyzer:       string          &log;
-		## The textual reason for the analysis failure.
-		failure_reason: string          &log;
-	};
-
 	## Deprecated, please see https://github.com/zeek/zeek/pull/4200 for details
 	option max_violations: table[Analyzer::Tag] of count = table() &deprecated="Remove in v8.1: This has become non-functional in Zeek 7.2, see PR #4200" &default = 5;
 
-	## Analyzers which you don't want to throw
+	## Analyzers which you don't want to remove on violations.
 	option ignore_violations: set[Analyzer::Tag] = set();
 
 	## Ignore violations which go this many bytes into the connection.
@@ -45,17 +25,16 @@ export {
 }
 
 redef record connection += {
-	dpd: Info &optional;
 	## The set of services (analyzers) for which Zeek has observed a
 	## violation after the same service had previously been confirmed.
-	service_violation: set[string] &default=set() &ordered;
+	service_violation: set[string] &default=set() &ordered &deprecated="Remove in v8.1. Consider using failed_analyzers instead";
+
+	## The set of prototol analyzers that were removed due to a protocol
+	## violation after the same analyzer had previously been confirmed.
+	failed_analyzers: set[string] &default=set() &ordered;
 };
 
-event zeek_init() &priority=5
-	{
-	Log::create_stream(DPD::LOG, [$columns=Info, $path="dpd", $policy=log_policy]);
-	}
-
+# Add confirmed protocol analyzers to conn.log service field
 event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo) &priority=10
 	{
 	if ( ! is_protocol_analyzer(atype) && ! is_packet_analyzer(atype) )
@@ -69,9 +48,11 @@ event analyzer_confirmation_info(atype: AllAnalyzers::Tag, info: AnalyzerConfirm
 	add c$service[analyzer];
 	}
 
-event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=10
+# Remove failed analyzers from service field and add them to c$failed_analyzers
+# Low priority to allow other handlers to check if the analyzer was confirmed
+event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo) &priority=-5
 	{
-	if ( ! is_protocol_analyzer(atype) && ! is_packet_analyzer(atype) )
+	if ( ! is_protocol_analyzer(atype) )
 		return;
 
 	if ( ! info?$c )
@@ -90,35 +71,21 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 
 	# if statement is separate, to allow repeated removal of service, in case there are several
 	# confirmation and violation events
-	if ( analyzer in c$service_violation )
-		return;
+	if ( analyzer !in c$failed_analyzers )
+		add c$failed_analyzers[analyzer];
 
-	add c$service_violation[analyzer];
-
-	local dpd: Info;
-	dpd$ts = network_time();
-	dpd$uid = c$uid;
-	dpd$id = c$id;
-	dpd$proto = get_port_transport_proto(c$id$orig_p);
-	dpd$analyzer = analyzer;
-
-	# Encode data into the reason if there's any as done for the old
-	# analyzer_violation event, previously.
-	local reason = info$reason;
-	if ( info?$data )
+	# add "-service" to the list of services on removal due to violation, if analyzer was confirmed before
+	if ( track_removed_services_in_connection && Analyzer::name(atype) in c$service )
 		{
-		local ellipsis = |info$data| > 40 ? "..." : "";
-		local data = info$data[0:40];
-		reason = fmt("%s [%s%s]", reason, data, ellipsis);
+		local rname = cat("-", Analyzer::name(atype));
+		if ( rname !in c$service )
+			add c$service[rname];
 		}
-
-	dpd$failure_reason = reason;
-	c$dpd = dpd;
 	}
 
 event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo ) &priority=5
 	{
-	if ( ! is_protocol_analyzer(atype) && ! is_packet_analyzer(atype) )
+	if ( ! is_protocol_analyzer(atype) )
 		return;
 
 	if ( ! info?$c || ! info?$aid )
@@ -133,29 +100,18 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 	if ( ignore_violations_after > 0 && size > ignore_violations_after )
 		return;
 
+	# analyzer already was removed or connection finished
+	# let's still log this.
+	if ( lookup_connection_analyzer_id(c$id, atype) == 0 )
+		{
+		event analyzer_failed(network_time(), atype, info);
+		return;
+		}
+
 	local disabled = disable_analyzer(c$id, aid, F);
 
-	# add "-service" to the list of services on removal due to violation, if analyzer was confirmed before
-	if ( track_removed_services_in_connection && disabled && Analyzer::name(atype) in c$service )
-		{
-		local rname = cat("-", Analyzer::name(atype));
-		if ( rname !in c$service )
-			add c$service[rname];
-		}
-
+	# If analyzer was disabled, send failed event
+	if ( disabled )
+		event analyzer_failed(network_time(), atype, info);
 	}
 
-event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo ) &priority=-5
-	{
-	if ( ! is_protocol_analyzer(atype) && ! is_packet_analyzer(atype) )
-		return;
-
-	if ( ! info?$c )
-		return;
-
-	if ( info$c?$dpd )
-		{
-		Log::write(DPD::LOG, info$c$dpd);
-		delete info$c$dpd;
-		}
-	}

@@ -10,8 +10,6 @@
 #include "zeek/analyzer/protocol/netbios/events.bif.h"
 #include "zeek/session/Manager.h"
 
-static constexpr double netbios_ssn_session_timeout = 15.0;
-
 static constexpr void MAKE_INT16(uint16_t& dest, const u_char*& src) {
     dest = *src;
     dest <= 8;
@@ -397,8 +395,9 @@ NetbiosSSN_Analyzer::NetbiosSSN_Analyzer(Connection* conn)
         AddSupportAnalyzer(resp_netbios);
     }
     else {
-        ADD_ANALYZER_TIMER(&NetbiosSSN_Analyzer::ExpireTimer, run_state::network_time + netbios_ssn_session_timeout,
-                           true, zeek::detail::TIMER_NB_EXPIRE);
+        ADD_ANALYZER_TIMER(&NetbiosSSN_Analyzer::ExpireTimer,
+                           run_state::network_time + BifConst::netbios_ssn_session_timeout, true,
+                           zeek::detail::TIMER_NB_EXPIRE);
     }
 }
 
@@ -446,12 +445,13 @@ void NetbiosSSN_Analyzer::ExpireTimer(double t) {
     // The - 1.0 in the following is to allow 1 second for the
     // common case of a single request followed by a single reply,
     // so we don't needlessly set the timer twice in that case.
-    if ( run_state::terminating || run_state::network_time - Conn()->LastTime() >= netbios_ssn_session_timeout - 1.0 ) {
+    if ( run_state::terminating ||
+         run_state::network_time - Conn()->LastTime() >= BifConst::netbios_ssn_session_timeout - 1.0 ) {
         Event(connection_timeout);
         session_mgr->Remove(Conn());
     }
     else
-        ADD_ANALYZER_TIMER(&NetbiosSSN_Analyzer::ExpireTimer, t + netbios_ssn_session_timeout, true,
+        ADD_ANALYZER_TIMER(&NetbiosSSN_Analyzer::ExpireTimer, t + BifConst::netbios_ssn_session_timeout, true,
                            zeek::detail::TIMER_NB_EXPIRE);
 }
 

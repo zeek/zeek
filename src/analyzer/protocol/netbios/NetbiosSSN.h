@@ -156,6 +156,7 @@ protected:
     Contents_NetbiosSSN* orig_netbios;
     Contents_NetbiosSSN* resp_netbios;
     int did_session_done;
+    double session_timeout;
 };
 
 // FIXME: Doesn't really fit into new analyzer structure. What to do?

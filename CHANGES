@@ -1,3 +1,14 @@
+7.0.8-3 | 2025-07-14 14:11:30 -0700
+
+  * docker: Add `net-tools` and `procps` dependencies (Edoardo Mich)
+
+    Add `net-tools` and `procps` to the final.Dockerfile, to avoid warning in
+    zeekctl commands like: "failed to find local IP addresses [...]" and the
+    error in `zeekctl top` command caused respectively by missing `ifconfig`
+    and `top` commands.
+
+    (cherry picked from commit 8189716adcd16e017c4ea7bcd2358f89bd6cbcc5)
+
 7.0.8-2 | 2025-07-14 14:09:51 -0700
 
   * Update ZeekJS to v0.18.0 (Tim Wojtulewicz, Corelight)

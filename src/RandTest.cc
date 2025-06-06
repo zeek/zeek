@@ -29,16 +29,6 @@ constexpr double RT_INCIRC = 281474943156225.0;
 
 namespace zeek::detail {
 
-RandTest::RandTest() {
-    totalc = 0;
-    mp = 0;
-    sccfirst = 1;
-    inmont = mcount = 0;
-    cexp = montex = montey = montepi = sccu0 = scclast = scct1 = scct2 = scct3 = 0.0;
-
-    memset(ccount, 0, sizeof(ccount));
-}
-
 void RandTest::add(const void* buf, int bufl) {
     const unsigned char* bp = static_cast<const unsigned char*>(buf);
     int oc;

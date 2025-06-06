@@ -1,7 +1,7 @@
 %extern{
 #include "zeek/3rdparty/ConvertUTF.h"
 #include "zeek/binpac_zeek.h"
-#include "zeek/util.h"
+#include "zeek/util-types.h"
 #include "zeek/Reporter.h"
 #include "zeek/Val.h"
 #include "zeek/RunState.h"

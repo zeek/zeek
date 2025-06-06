@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "zeek/Span.h"
-#include "zeek/util.h"
+#include "zeek/util-types.h"
 
 namespace zeek::telemetry {
 

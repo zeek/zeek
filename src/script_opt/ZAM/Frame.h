@@ -8,7 +8,7 @@
 
 #include "zeek/Attr.h"
 #include "zeek/ID.h"
-#include "zeek/util.h"
+#include "zeek/util-types.h"
 
 namespace zeek::detail {
 

@@ -6,7 +6,6 @@
 
 #include "zeek/Tag.h"
 #include "zeek/plugin/Component.h"
-#include "zeek/util.h"
 
 namespace zeek::packet_analysis {
 

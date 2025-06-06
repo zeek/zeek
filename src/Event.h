@@ -9,7 +9,7 @@
 #include "zeek/ZeekArgs.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/iosource/IOSource.h"
-#include "zeek/util.h"
+#include "zeek/util-types.h"
 
 namespace zeek {
 

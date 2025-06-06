@@ -9,11 +9,13 @@
 
 #pragma once
 
+#include <memory>
+#include <string>
 #include <vector>
 
 #include "zeek/IntrusivePtr.h"
 #include "zeek/script_opt/ZAM/Profile.h"
-#include "zeek/util.h"
+#include "zeek/util-types.h"
 
 namespace zeek {
 

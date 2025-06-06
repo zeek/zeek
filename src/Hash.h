@@ -22,7 +22,7 @@
 #include <unistd.h>
 #include <cstdlib>
 
-#include "zeek/util.h" // for zeek_int_t
+#include "zeek/util-types.h" // for zeek_int_t
 
 // to allow md5_hmac_bif access to the hmac seed
 #include "zeek/ZeekArgs.h"

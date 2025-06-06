@@ -60,7 +60,7 @@ public:
          *
          * Structure takes ownership of string.
          */
-        const char* path;
+        const char* path = nullptr;
 
         /**
          * The filter this writer is attached to.
@@ -79,17 +79,17 @@ public:
         /**
          * The rotation interval as configured for this writer.
          */
-        double rotation_interval;
+        double rotation_interval = 0.0;
 
         /**
          * The parsed value of log_rotate_base_time in seconds.
          */
-        double rotation_base;
+        double rotation_base = 0.0;
 
         /**
          * The network time when the writer is created.
          */
-        double network_time;
+        double network_time = 0.0;
 
         /**
          * A map of key/value pairs corresponding to the relevant
@@ -97,7 +97,7 @@ public:
          */
         config_map config;
 
-        WriterInfo() : path(nullptr), rotation_interval(0.0), rotation_base(0.0), network_time(0.0) {}
+        WriterInfo() {}
 
         WriterInfo(const WriterInfo& other) {
             path = other.path ? util::copy_string(other.path) : nullptr;

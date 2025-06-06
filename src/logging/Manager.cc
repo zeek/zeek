@@ -1711,8 +1711,7 @@ WriterFrontend* Manager::CreateWriterForFilter(Filter* filter, const std::string
         auto index = filter->config->RecreateIndex(*k);
         string key = index->Idx(0)->AsString()->CheckString();
         string value = v->GetVal()->AsString()->CheckString();
-        info->config.emplace(util::copy_string(key.c_str(), key.size()),
-                             util::copy_string(value.c_str(), value.size()));
+        info->config.emplace(key, value);
     }
 
     // CreateWriter() will set the other fields in info.

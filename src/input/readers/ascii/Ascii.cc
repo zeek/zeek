@@ -82,23 +82,23 @@ bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* f
 
     // Set per-filter configuration options.
     for ( const auto& [k, v] : info.config ) {
-        if ( strcmp(k, "separator") == 0 )
+        if ( k == "separator" )
             separator.assign(v);
 
-        else if ( strcmp(k, "set_separator") == 0 )
+        else if ( k == "set_separator" )
             set_separator.assign(v);
 
-        else if ( strcmp(k, "empty_field") == 0 )
+        else if ( k == "empty_field" )
             empty_field.assign(v);
 
-        else if ( strcmp(k, "unset_field") == 0 )
+        else if ( k == "unset_field" )
             unset_field.assign(v);
 
-        else if ( strcmp(k, "fail_on_invalid_lines") == 0 )
-            fail_on_invalid_lines = (strncmp(v, "T", 1) == 0);
+        else if ( k == "fail_on_invalid_lines" )
+            fail_on_invalid_lines = (v == "T");
 
-        else if ( strcmp(k, "fail_on_file_problem") == 0 )
-            fail_on_file_problem = (strncmp(v, "T", 1) == 0);
+        else if ( k == "fail_on_file_problem" )
+            fail_on_file_problem = (v == "T");
     }
 
     if ( separator.size() != 1 )

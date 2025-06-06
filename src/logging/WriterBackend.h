@@ -50,8 +50,7 @@ public:
      * A struct passing information to the writer at initialization time.
      */
     struct WriterInfo {
-        // Structure takes ownership of these strings.
-        using config_map = std::map<const char*, const char*, util::CompareString>;
+        using config_map = std::map<std::string, std::string>;
 
         /**
          * A string left to the interpretation of the writer
@@ -106,8 +105,8 @@ public:
             rotation_base = other.rotation_base;
             network_time = other.network_time;
 
-            for ( config_map::const_iterator i = other.config.begin(); i != other.config.end(); i++ )
-                config.insert(std::make_pair(util::copy_string(i->first), util::copy_string(i->second)));
+            for ( const auto& [k, v] : other.config )
+                config.emplace(k, v);
 
             filter_name = other.filter_name;
         }
@@ -115,11 +114,6 @@ public:
         ~WriterInfo() {
             delete[] path;
             delete[] post_proc_func;
-
-            for ( config_map::iterator i = config.begin(); i != config.end(); i++ ) {
-                delete[] i->first;
-                delete[] i->second;
-            }
         }
 
         // Note, these need to be adapted when changing the struct's

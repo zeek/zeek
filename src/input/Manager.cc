@@ -230,8 +230,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description) {
             auto index = info->config->RecreateIndex(*k);
             string key = index->Idx(0)->AsString()->CheckString();
             string value = v->GetVal()->AsString()->CheckString();
-            rinfo.config.insert(std::make_pair(util::copy_string(key.c_str(), key.size()),
-                                               util::copy_string(value.c_str(), value.size())));
+            rinfo.config.emplace(key, value);
         }
     }
 

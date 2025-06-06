@@ -166,8 +166,11 @@ public:
     Vec* Split(const IdxVec& indices) const;
 
     // Helper functions for vectors:
+    [[deprecated("Remove in v8.1. The ZeekString vector methods are unused.")]]
     static VectorVal* VecToPolicy(Vec* vec);
+    [[deprecated("Remove in v8.1. The ZeekString vector methods are unused.")]]
     static Vec* VecFromPolicy(VectorVal* vec);
+    [[deprecated("Remove in v8.1. The ZeekString vector methods are unused.")]]
     static char* VecToString(const Vec* vec);
 
 protected:

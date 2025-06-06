@@ -587,7 +587,10 @@ TEST_CASE("searching/modification") {
     CHECK_EQ(s, *s3);
     delete s3;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     char* temp = zeek::String::VecToString(splits);
+#pragma GCC diagnostic pop
     CHECK_EQ(std::string(temp), "[this, is, a, test,]");
     free(temp);
 

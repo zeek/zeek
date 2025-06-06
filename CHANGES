@@ -1,3 +1,13 @@
+8.0.0-dev.406 | 2025-06-06 11:45:33 -0700
+
+  * Move initialization of RandTest members to header (Tim Wojtulewicz, Corelight)
+
+  * Update .clang-tidy to have modernize-* enabled with some exclusions (Tim Wojtulewicz, Corelight)
+
+  * Fix clang-tidy modernize findings (Tim Wojtulewicz, Corelight)
+
+  * Update bifcl submodule with clang-tidy fixes [nomail] (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.389 | 2025-06-06 10:43:07 -0700
 
   * Make Zeekygen docs generation (-X) imply parse-only (-a) (Christian Kreibich, Corelight)

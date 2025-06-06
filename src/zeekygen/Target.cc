@@ -174,8 +174,8 @@ template<class T>
 static vector<T*> filter_matches(const vector<Info*>& from, Target* t) {
     vector<T*> rval;
 
-    for ( size_t i = 0; i < from.size(); ++i ) {
-        T* d = dynamic_cast<T*>(from[i]);
+    for ( Info* f : from ) {
+        T* d = dynamic_cast<T*>(f);
 
         if ( ! d )
             continue;
@@ -189,7 +189,7 @@ static vector<T*> filter_matches(const vector<Info*>& from, Target* t) {
     return rval;
 }
 
-TargetFile::TargetFile(const string& arg_name) : name(arg_name), f() {
+TargetFile::TargetFile(string arg_name) : name(std::move(arg_name)), f() {
     if ( name.find('/') != string::npos ) {
         string dir = util::SafeDirname(name).result;
 
@@ -210,7 +210,8 @@ TargetFile::~TargetFile() {
     DBG_LOG(DBG_ZEEKYGEN, "Wrote out-of-date target '%s'", name.c_str());
 }
 
-Target::Target(const string& arg_name, const string& arg_pattern) : name(arg_name), pattern(arg_pattern), prefix() {
+Target::Target(string arg_name, string arg_pattern)
+    : name(std::move(arg_name)), pattern(std::move(arg_pattern)), prefix() {
     size_t pos = pattern.find('*');
 
     if ( pos == 0 || pos == string::npos )
@@ -339,19 +340,18 @@ void PackageTarget::DoFindDependencies(const vector<Info*>& infos) {
     if ( pkg_deps.empty() )
         reporter->FatalError("No match for Zeekygen target '%s' pattern '%s'", Name().c_str(), Pattern().c_str());
 
-    for ( size_t i = 0; i < infos.size(); ++i ) {
-        ScriptInfo* script = dynamic_cast<ScriptInfo*>(infos[i]);
+    for ( Info* info : infos ) {
+        ScriptInfo* script = dynamic_cast<ScriptInfo*>(info);
 
         if ( ! script )
             continue;
 
-        for ( size_t j = 0; j < pkg_deps.size(); ++j ) {
-            if ( strncmp(script->Name().c_str(), pkg_deps[j]->Name().c_str(), pkg_deps[j]->Name().size()) != 0 )
+        for ( const auto& dep : pkg_deps ) {
+            if ( strncmp(script->Name().c_str(), dep->Name().c_str(), dep->Name().size()) != 0 )
                 continue;
 
-            DBG_LOG(DBG_ZEEKYGEN, "Script %s associated with package %s", script->Name().c_str(),
-                    pkg_deps[j]->Name().c_str());
-            pkg_manifest[pkg_deps[j]].push_back(script);
+            DBG_LOG(DBG_ZEEKYGEN, "Script %s associated with package %s", script->Name().c_str(), dep->Name().c_str());
+            pkg_manifest[dep].push_back(script);
             script_deps.push_back(script);
         }
     }
@@ -366,26 +366,26 @@ void PackageTarget::DoGenerate() const {
 
     fprintf(file.f, ":orphan:\n\n");
 
-    for ( manifest_t::const_iterator it = pkg_manifest.begin(); it != pkg_manifest.end(); ++it ) {
-        string header = util::fmt("Package: %s", it->first->Name().c_str());
+    for ( const auto& [pkg, info_vec] : pkg_manifest ) {
+        string header = util::fmt("Package: %s", pkg->Name().c_str());
         header += "\n" + string(header.size(), '=');
 
         fprintf(file.f, "%s\n\n", header.c_str());
 
-        vector<string> readme = it->first->GetReadme();
+        vector<string> readme = pkg->GetReadme();
 
-        for ( size_t i = 0; i < readme.size(); ++i )
-            fprintf(file.f, "%s\n", readme[i].c_str());
+        for ( const auto& r : readme )
+            fprintf(file.f, "%s\n", r.c_str());
 
         fprintf(file.f, "\n");
 
-        for ( size_t i = 0; i < it->second.size(); ++i ) {
-            fprintf(file.f, ":doc:`/scripts/%s`\n\n", it->second[i]->Name().c_str());
+        for ( ScriptInfo* info : info_vec ) {
+            fprintf(file.f, ":doc:`/scripts/%s`\n\n", info->Name().c_str());
 
-            vector<string> cmnts = it->second[i]->GetComments();
+            vector<string> cmnts = info->GetComments();
 
-            for ( size_t j = 0; j < cmnts.size(); ++j )
-                fprintf(file.f, "   %s\n", cmnts[j].c_str());
+            for ( const auto& cmnt : cmnts )
+                fprintf(file.f, "   %s\n", cmnt.c_str());
 
             fprintf(file.f, "\n");
         }
@@ -405,8 +405,8 @@ void PackageIndexTarget::DoGenerate() const {
 
     TargetFile file(Name());
 
-    for ( size_t i = 0; i < pkg_deps.size(); ++i )
-        fprintf(file.f, "%s\n", pkg_deps[i]->ReStructuredText().c_str());
+    for ( PackageInfo* info : pkg_deps )
+        fprintf(file.f, "%s\n", info->ReStructuredText().c_str());
 }
 
 void ScriptTarget::DoFindDependencies(const vector<Info*>& infos) {
@@ -418,9 +418,9 @@ void ScriptTarget::DoFindDependencies(const vector<Info*>& infos) {
     if ( ! IsDir() )
         return;
 
-    for ( size_t i = 0; i < script_deps.size(); ++i ) {
-        if ( util::detail::is_package_loader(script_deps[i]->Name()) ) {
-            string pkg_dir = util::SafeDirname(script_deps[i]->Name()).result;
+    for ( ScriptInfo* d : script_deps ) {
+        if ( util::detail::is_package_loader(d->Name()) ) {
+            string pkg_dir = util::SafeDirname(d->Name()).result;
             string target_file = Name() + pkg_dir + "/index.rst";
             Target* t = new PackageTarget(target_file, pkg_dir);
             t->FindDependencies(infos);
@@ -441,7 +441,7 @@ vector<string> dir_contents_recursive(string dir) {
 
     char* scan_path[2] = {dir.data(), nullptr};
 
-    FTS* fts = fts_open(scan_path, FTS_NOCHDIR, 0);
+    FTS* fts = fts_open(scan_path, FTS_NOCHDIR, nullptr);
 
     if ( ! fts ) {
         reporter->Error("fts_open failure: %s", strerror(errno));
@@ -472,23 +472,23 @@ void ScriptTarget::DoGenerate() const {
         set<string> targets;
         vector<string> dir_contents = dir_contents_recursive(Name());
 
-        for ( size_t i = 0; i < script_deps.size(); ++i ) {
-            string target_filename = Name() + script_deps[i]->Name() + ".rst";
+        for ( ScriptInfo* d : script_deps ) {
+            string target_filename = Name() + d->Name() + ".rst";
             targets.insert(target_filename);
             vector<ScriptInfo*> dep;
-            dep.push_back(script_deps[i]);
+            dep.push_back(d);
 
             if ( zeek::detail::zeekygen_mgr->IsUpToDate(target_filename, dep) )
                 continue;
 
             TargetFile file(target_filename);
 
-            fprintf(file.f, "%s\n", script_deps[i]->ReStructuredText().c_str());
+            fprintf(file.f, "%s\n", d->ReStructuredText().c_str());
         }
 
-        for ( size_t i = 0; i < pkg_deps.size(); ++i ) {
-            targets.insert(pkg_deps[i]->Name());
-            pkg_deps[i]->Generate();
+        for ( Target* tgt : pkg_deps ) {
+            targets.insert(tgt->Name());
+            tgt->Generate();
         }
 
         for ( const auto& f : dir_contents ) {
@@ -511,8 +511,9 @@ void ScriptTarget::DoGenerate() const {
 
     TargetFile file(Name());
 
-    for ( size_t i = 0; i < script_deps.size(); ++i )
-        fprintf(file.f, "%s\n", script_deps[i]->ReStructuredText().c_str());
+    for ( ScriptInfo* d : script_deps ) {
+        fprintf(file.f, "%s\n", d->ReStructuredText().c_str());
+    }
 }
 
 void ScriptSummaryTarget::DoGenerate() const {
@@ -521,9 +522,7 @@ void ScriptSummaryTarget::DoGenerate() const {
 
     TargetFile file(Name());
 
-    for ( size_t i = 0; i < script_deps.size(); ++i ) {
-        ScriptInfo* d = dynamic_cast<ScriptInfo*>(script_deps[i]);
-
+    for ( ScriptInfo* d : script_deps ) {
         if ( ! d )
             continue;
 
@@ -531,8 +530,8 @@ void ScriptSummaryTarget::DoGenerate() const {
 
         vector<string> cmnts = d->GetComments();
 
-        for ( size_t i = 0; i < cmnts.size(); ++i )
-            fprintf(file.f, "    %s\n", cmnts[i].c_str());
+        for ( const string& cmnt : cmnts )
+            fprintf(file.f, "    %s\n", cmnt.c_str());
 
         fprintf(file.f, "\n");
     }
@@ -547,9 +546,7 @@ void ScriptIndexTarget::DoGenerate() const {
     fprintf(file.f, ".. toctree::\n");
     fprintf(file.f, "   :maxdepth: 1\n\n");
 
-    for ( size_t i = 0; i < script_deps.size(); ++i ) {
-        ScriptInfo* d = dynamic_cast<ScriptInfo*>(script_deps[i]);
-
+    for ( ScriptInfo* d : script_deps ) {
         if ( ! d )
             continue;
 
@@ -570,8 +567,8 @@ void IdentifierTarget::DoGenerate() const {
 
     TargetFile file(Name());
 
-    for ( size_t i = 0; i < id_deps.size(); ++i )
-        fprintf(file.f, "%s\n\n", id_deps[i]->ReStructuredText().c_str());
+    for ( IdentifierInfo* info : id_deps )
+        fprintf(file.f, "%s\n\n", info->ReStructuredText().c_str());
 }
 
 } // namespace zeek::zeekygen::detail

@@ -756,12 +756,11 @@ refine flow DHCP_Flow += {
 
 		uint16 i = 0;
 
-		for ( auto ptrsubopt = ${v.relay_agent_inf}->begin();
-		      ptrsubopt != ${v.relay_agent_inf}->end(); ++ptrsubopt )
+		for ( const auto& ptrsubopt : *${v.relay_agent_inf} )
 			{
 			auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::DHCP::SubOpt);
-			r->Assign(0, (*ptrsubopt)->code());
-			r->Assign(1, to_stringval((*ptrsubopt)->value()));
+			r->Assign(0, ptrsubopt->code());
+			r->Assign(1, to_stringval(ptrsubopt->value()));
 
 			relay_agent_sub_opt->Assign(i, std::move(r));
 			++i;

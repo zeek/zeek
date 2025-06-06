@@ -194,14 +194,13 @@ void ProfileLogger::Log() {
     file->Write(util::fmt("%0.6f Threads: current=%zu\n", run_state::network_time, thread_mgr->NumThreads()));
 
     const threading::Manager::msg_stats_list& thread_stats = thread_mgr->GetMsgThreadStats();
-    for ( threading::Manager::msg_stats_list::const_iterator i = thread_stats.begin(); i != thread_stats.end(); ++i ) {
-        threading::MsgThread::Stats s = i->second;
+    for ( const auto& [name, s] : thread_stats ) {
         file->Write(util::fmt("%0.6f   %-25s in=%" PRIu64 " out=%" PRIu64 " pending=%" PRIu64 "/%" PRIu64
                               " (#queue r/w: in=%" PRIu64 "/%" PRIu64 " out=%" PRIu64 "/%" PRIu64 ")"
                               "\n",
-                              run_state::network_time, i->first.c_str(), s.sent_in, s.sent_out, s.pending_in,
-                              s.pending_out, s.queue_in_stats.num_reads, s.queue_in_stats.num_writes,
-                              s.queue_out_stats.num_reads, s.queue_out_stats.num_writes));
+                              run_state::network_time, name.c_str(), s.sent_in, s.sent_out, s.pending_in, s.pending_out,
+                              s.queue_in_stats.num_reads, s.queue_in_stats.num_writes, s.queue_out_stats.num_reads,
+                              s.queue_out_stats.num_writes));
     }
 
     auto cs = broker_mgr->GetStatistics();
@@ -288,7 +287,7 @@ void PacketProfiler::ProfilePkt(double t, unsigned int bytes) {
         struct rusage res;
         struct timeval ptimestamp;
         getrusage(RUSAGE_SELF, &res);
-        gettimeofday(&ptimestamp, 0);
+        gettimeofday(&ptimestamp, nullptr);
 
         util::get_memory_usage(&last_mem, nullptr);
         last_Utime = res.ru_utime.tv_sec + res.ru_utime.tv_usec / 1e6;
@@ -303,7 +302,7 @@ void PacketProfiler::ProfilePkt(double t, unsigned int bytes) {
         struct rusage res;
         struct timeval ptimestamp;
         getrusage(RUSAGE_SELF, &res);
-        gettimeofday(&ptimestamp, 0);
+        gettimeofday(&ptimestamp, nullptr);
 
         double curr_Utime = res.ru_utime.tv_sec + res.ru_utime.tv_usec / 1e6;
         double curr_Stime = res.ru_stime.tv_sec + res.ru_stime.tv_usec / 1e6;

@@ -11,7 +11,7 @@ namespace zeek::file_analysis {
 class File;
 
 FileReassembler::FileReassembler(File* f, uint64_t starting_offset)
-    : Reassembler(starting_offset, REASSEM_FILE), the_file(f), flushing(false) {}
+    : Reassembler(starting_offset, REASSEM_FILE), the_file(f) {}
 
 uint64_t FileReassembler::Flush() {
     if ( flushing )

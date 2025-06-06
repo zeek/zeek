@@ -213,7 +213,7 @@ bool Manager::ActivateDynamicPluginInternal(const std::string& name, bool ok_if_
 
     glob_t gl;
 
-    if ( glob(dypattern.c_str(), 0, 0, &gl) == 0 ) {
+    if ( glob(dypattern.c_str(), 0, nullptr, &gl) == 0 ) {
         for ( size_t i = 0; i < gl.gl_pathc; i++ ) {
             const char* path = gl.gl_pathv[i];
 
@@ -440,9 +440,8 @@ void Manager::ExtendZeekPathForPlugins() {
 void Manager::InitPreScript() {
     assert(! init);
 
-    for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
-          i != Manager::ActivePluginsInternal()->end(); i++ ) {
-        (*i)->DoConfigure();
+    for ( Plugin* plugin : *Manager::ActivePluginsInternal() ) {
+        plugin->DoConfigure();
     }
 
     // Sort plugins by name to make sure we have a deterministic order.
@@ -452,10 +451,9 @@ void Manager::InitPreScript() {
     // order.
     ActivePluginsInternal()->sort(plugin_cmp);
 
-    for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
-          i != Manager::ActivePluginsInternal()->end(); i++ ) {
-        (*i)->InitializeComponents();
-        (*i)->InitPreScript();
+    for ( Plugin* plugin : *Manager::ActivePluginsInternal() ) {
+        plugin->InitializeComponents();
+        plugin->InitPreScript();
     }
 
     init = true;
@@ -464,13 +462,12 @@ void Manager::InitPreScript() {
 void Manager::InitBifs() {
     bif_init_func_map* bifs = BifFilesInternal();
 
-    for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
-          i != Manager::ActivePluginsInternal()->end(); i++ ) {
-        bif_init_func_map::const_iterator b = bifs->find(util::strtolower((*i)->Name()));
+    for ( Plugin* plugin : *Manager::ActivePluginsInternal() ) {
+        bif_init_func_map::const_iterator b = bifs->find(util::strtolower(plugin->Name()));
 
         if ( b != bifs->end() ) {
-            for ( bif_init_func_list::const_iterator j = b->second->begin(); j != b->second->end(); ++j )
-                (**j)(*i);
+            for ( const auto& func : *(b->second) )
+                func(plugin);
         }
     }
 }
@@ -478,25 +475,22 @@ void Manager::InitBifs() {
 void Manager::InitPostScript() {
     assert(init);
 
-    for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
-          i != Manager::ActivePluginsInternal()->end(); i++ )
-        (*i)->InitPostScript();
+    for ( Plugin* plugin : *Manager::ActivePluginsInternal() )
+        plugin->InitPostScript();
 }
 
 void Manager::InitPreExecution() {
     assert(init);
 
-    for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
-          i != Manager::ActivePluginsInternal()->end(); i++ )
-        (*i)->InitPreExecution();
+    for ( Plugin* plugin : *Manager::ActivePluginsInternal() )
+        plugin->InitPreExecution();
 }
 
 void Manager::FinishPlugins() {
     assert(init);
 
-    for ( plugin_list::iterator i = Manager::ActivePluginsInternal()->begin();
-          i != Manager::ActivePluginsInternal()->end(); i++ )
-        (*i)->Done();
+    for ( Plugin* plugin : *Manager::ActivePluginsInternal() )
+        plugin->Done();
 
     Manager::ActivePluginsInternal()->clear();
 
@@ -510,18 +504,18 @@ Manager::inactive_plugin_list Manager::InactivePlugins() const {
 
     inactive_plugin_list inactives;
 
-    for ( dynamic_plugin_map::const_iterator i = dynamic_plugins.begin(); i != dynamic_plugins.end(); i++ ) {
+    for ( const auto& [index, plugin] : dynamic_plugins ) {
         bool found = false;
 
-        for ( plugin_list::const_iterator j = all->begin(); j != all->end(); j++ ) {
-            if ( (*i).first == util::strtolower((*j)->Name()) ) {
+        for ( Plugin* plugin : *all ) {
+            if ( index == util::strtolower(plugin->Name()) ) {
                 found = true;
                 break;
             }
         }
 
         if ( ! found )
-            inactives.emplace_back(*i);
+            inactives.emplace_back(index, plugin);
     }
 
     return inactives;
@@ -595,9 +589,9 @@ void Manager::EnableHook(HookType hook, Plugin* plugin, int prio) {
 
     hook_list* l = hooks[hook];
 
-    for ( hook_list::iterator i = l->begin(); i != l->end(); i++ ) {
+    for ( const auto& [_, hook_plugin] : *l ) {
         // Already enabled for this plugin.
-        if ( (*i).second == plugin )
+        if ( hook_plugin == plugin )
             return;
     }
 
@@ -646,9 +640,7 @@ int Manager::HookLoadFile(const Plugin::LoadType type, const string& file, const
     int rc = -1;
 
     if ( l )
-        for ( hook_list::iterator i = l->begin(); i != l->end(); ++i ) {
-            Plugin* p = (*i).second;
-
+        for ( const auto& [_, p] : *l ) {
             rc = p->HookLoadFile(type, file, resolved);
 
             if ( rc >= 0 )
@@ -677,9 +669,7 @@ std::pair<int, std::optional<std::string>> Manager::HookLoadFileExtended(const P
     std::pair<int, std::optional<std::string>> rc = {-1, std::nullopt};
 
     if ( l )
-        for ( hook_list::iterator i = l->begin(); i != l->end(); ++i ) {
-            Plugin* p = (*i).second;
-
+        for ( const auto& [_, p] : *l ) {
             rc = p->HookLoadFileExtended(type, file, resolved);
 
             if ( rc.first >= 0 )
@@ -713,9 +703,7 @@ std::pair<bool, ValPtr> Manager::HookCallFunction(const Func* func, zeek::detail
     std::pair<bool, ValPtr> rval{false, nullptr};
 
     if ( l ) {
-        for ( hook_list::iterator i = l->begin(); i != l->end(); ++i ) {
-            Plugin* p = (*i).second;
-
+        for ( const auto& [_, p] : *l ) {
             rval = p->HookFunctionCall(func, parent, vecargs);
 
             if ( rval.first )
@@ -742,9 +730,7 @@ bool Manager::HookQueueEvent(Event* event) const {
     bool result = false;
 
     if ( l )
-        for ( hook_list::iterator i = l->begin(); i != l->end(); ++i ) {
-            Plugin* p = (*i).second;
-
+        for ( const auto& [_, p] : *l ) {
             if ( p->HookQueueEvent(event) ) {
                 result = true;
                 break;
@@ -766,8 +752,7 @@ void Manager::HookDrainEvents() const {
     hook_list* l = hooks[HOOK_DRAIN_EVENTS];
 
     if ( l )
-        for ( hook_list::iterator i = l->begin(); i != l->end(); ++i ) {
-            Plugin* p = (*i).second;
+        for ( const auto& [_, p] : *l ) {
             p->HookDrainEvents();
         }
 
@@ -786,8 +771,7 @@ void Manager::HookSetupAnalyzerTree(Connection* conn) const {
     hook_list* l = hooks[HOOK_SETUP_ANALYZER_TREE];
 
     if ( l ) {
-        for ( hook_list::iterator i = l->begin(); i != l->end(); ++i ) {
-            Plugin* p = (*i).second;
+        for ( const auto& [_, p] : *l ) {
             p->HookSetupAnalyzerTree(conn);
         }
     }
@@ -808,8 +792,7 @@ void Manager::HookUpdateNetworkTime(double network_time) const {
     hook_list* l = hooks[HOOK_UPDATE_NETWORK_TIME];
 
     if ( l )
-        for ( hook_list::iterator i = l->begin(); i != l->end(); ++i ) {
-            Plugin* p = (*i).second;
+        for ( const auto& [_, p] : *l ) {
             p->HookUpdateNetworkTime(network_time);
         }
 
@@ -828,8 +811,7 @@ void Manager::HookObjDtor(void* obj) const {
     hook_list* l = hooks[HOOK_OBJ_DTOR];
 
     if ( l )
-        for ( hook_list::iterator i = l->begin(); i != l->end(); ++i ) {
-            Plugin* p = (*i).second;
+        for ( const auto& [_, p] : *l ) {
             p->HookObjDtor(obj);
         }
 
@@ -856,8 +838,7 @@ void Manager::HookLogInit(const std::string& writer, const std::string& instanti
     hook_list* l = hooks[HOOK_LOG_INIT];
 
     if ( l )
-        for ( hook_list::iterator i = l->begin(); i != l->end(); ++i ) {
-            Plugin* p = (*i).second;
+        for ( const auto& [_, p] : *l ) {
             p->HookLogInit(writer, instantiating_filter, local, remote, info, num_fields, fields);
         }
 
@@ -885,9 +866,7 @@ bool Manager::HookLogWrite(const std::string& writer, const std::string& filter,
     bool result = true;
 
     if ( l )
-        for ( hook_list::iterator i = l->begin(); i != l->end(); ++i ) {
-            Plugin* p = (*i).second;
-
+        for ( const auto& [_, p] : *l ) {
             if ( ! p->HookLogWrite(writer, filter, info, num_fields, fields, vals) ) {
                 result = false;
                 break;
@@ -924,9 +903,7 @@ bool Manager::HookReporter(const std::string& prefix, const EventHandlerPtr even
     bool result = true;
 
     if ( l ) {
-        for ( hook_list::iterator i = l->begin(); i != l->end(); ++i ) {
-            Plugin* p = (*i).second;
-
+        for ( const auto& [_, p] : *l ) {
             if ( ! p->HookReporter(prefix, event, conn, addl, location, location1, location2, time, message) ) {
                 result = false;
                 break;
@@ -951,8 +928,7 @@ void Manager::HookUnprocessedPacket(const Packet* packet) const {
     hook_list* l = hooks[HOOK_UNPROCESSED_PACKET];
 
     if ( l )
-        for ( hook_list::iterator i = l->begin(); i != l->end(); ++i ) {
-            Plugin* p = (*i).second;
+        for ( const auto& [_, p] : *l ) {
             p->HookUnprocessedPacket(packet);
         }
 
@@ -976,9 +952,7 @@ bool Manager::HookPublishEvent(zeek::cluster::Backend& backend, const std::strin
     bool result = true;
 
     if ( l ) {
-        for ( hook_list::iterator i = l->begin(); i != l->end(); ++i ) {
-            Plugin* p = (*i).second;
-
+        for ( const auto& [_, p] : *l ) {
             if ( ! p->HookPublishEvent(backend, topic, event) ) {
                 result = false;
                 break;

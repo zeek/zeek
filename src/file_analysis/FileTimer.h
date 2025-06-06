@@ -19,7 +19,7 @@ public:
      * @param id the file identifier which will be checked for inactivity.
      * @param interval amount of time after \a t to check for inactivity.
      */
-    FileTimer(double t, const std::string& id, double interval);
+    FileTimer(double t, std::string id, double interval);
 
     /**
      * Check inactivity of file_analysis::File corresponding to #file_id,

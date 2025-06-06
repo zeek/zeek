@@ -281,7 +281,7 @@ void Inliner::CoalesceEventHandlers(ScriptFuncPtr func, const std::vector<Func::
             return;
 
         auto ie_s = with_location_of(make_intrusive<ExprStmt>(ie), bp);
-        merged_body->Stmts().push_back(std::move(ie_s));
+        merged_body->Stmts().emplace_back(std::move(ie_s));
     }
 
     auto inlined_func = make_intrusive<CoalescedScriptFunc>(merged_body, new_scope, func);

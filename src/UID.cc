@@ -12,8 +12,7 @@ namespace zeek {
 void UID::Set(zeek_uint_t bits, const uint64_t* v, size_t n) {
     initialized = true;
 
-    for ( size_t i = 0; i < UID_LEN; ++i )
-        uid[i] = 0;
+    memset(uid, 0, sizeof(uid));
 
     if ( bits > UID_LEN * 64 )
         bits = UID_LEN * 64;
@@ -33,8 +32,8 @@ std::string UID::Base62(std::string prefix) const {
         reporter->InternalError("use of uninitialized UID");
 
     char tmp[sizeof(uid) * 8 + 1]; // enough for even binary representation
-    for ( size_t i = 0; i < UID_LEN; ++i )
-        prefix.append(util::uitoa_n(uid[i], tmp, sizeof(tmp), 62));
+    for ( const auto& digit : uid )
+        prefix.append(util::uitoa_n(digit, tmp, sizeof(tmp), 62));
 
     return prefix;
 }

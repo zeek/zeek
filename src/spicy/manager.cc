@@ -532,7 +532,7 @@ void Manager::analyzerError(file_analysis::Analyzer* a, const std::string& msg, 
     reporter->PopLocation();
 
     if ( a )
-        a->SetSkip(1); // Imitate what AnalyzerError() does for protocol analyzers.
+        a->SetSkip(true); // Imitate what AnalyzerError() does for protocol analyzers.
 }
 
 void Manager::analyzerError(packet_analysis::Analyzer* a, const std::string& msg, const std::string& location) {
@@ -861,7 +861,7 @@ void Manager::searchModules(const std::string& paths) {
 
 detail::Location Manager::makeLocation(const std::string& fname) {
     auto x = _locations.insert(fname);
-    return detail::Location(x.first->c_str(), 0, 0, 0, 0);
+    return {x.first->c_str(), 0, 0, 0, 0};
 }
 
 void Manager::autoDiscoverModules() {

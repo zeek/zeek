@@ -125,8 +125,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
             pos = myline.length();
 
         command = myline.substr(0, pos);
-        for ( size_t i = 0; i < command.size(); ++i )
-            command[i] = toupper(command[i]);
+        command = util::to_upper(command);
 
         // Adjust for the no-parameter case
         if ( pos == myline.length() )
@@ -743,9 +742,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
 
         string empty_string = "";
 
-        for ( unsigned int i = 0; i < users.size(); ++i ) {
+        for ( auto nick : users ) {
             auto info = make_intrusive<RecordVal>(irc_join_info);
-            string nick = users[i];
             string mode = "none";
 
             if ( nick[0] == '@' ) {

@@ -1170,7 +1170,7 @@ std::optional<SupervisorStemHandle> Supervisor::CreateStem(bool supervisor_mode)
     sh.pid = pid;
     sh.stdout_pipe = std::move(fork_res.stdout_pipe);
     sh.stderr_pipe = std::move(fork_res.stderr_pipe);
-    return std::optional<SupervisorStemHandle>(std::move(sh));
+    return {std::move(sh)};
 }
 
 static BifEnum::Supervisor::ClusterRole role_str_to_enum(std::string_view r) {

@@ -147,7 +147,7 @@ refine connection SMB_Conn += {
 
 type SMB_dialect = record {
 	buffer_format  : uint8; # must be 0x2 for dialect
-	name           : SMB_string(0,0);
+	name           : SMB_string(false, 0);
 };
 
 type SMB1_negotiate_request(header: SMB_Header) = record {

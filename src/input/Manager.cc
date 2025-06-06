@@ -51,16 +51,16 @@ static void input_hash_delete_func(void* val) {
 class Manager::Stream {
 public:
     string name;
-    bool removed;
+    bool removed = false;
 
     StreamType stream_type; // to distinguish between event and table streams
 
-    EnumVal* type;
-    ReaderFrontend* reader;
-    TableVal* config;
+    EnumVal* type = nullptr;
+    ReaderFrontend* reader = nullptr;
+    TableVal* config = nullptr;
     EventHandlerPtr error_event;
 
-    RecordVal* description;
+    RecordVal* description = nullptr;
 
     virtual ~Stream();
 
@@ -68,8 +68,7 @@ protected:
     Stream(StreamType t);
 };
 
-Manager::Stream::Stream(StreamType t)
-    : name(), removed(), stream_type(t), type(), reader(), config(), error_event(), description() {}
+Manager::Stream::Stream(StreamType t) : stream_type(t) {}
 
 Manager::Stream::~Stream() {
     Unref(type);
@@ -80,18 +79,18 @@ Manager::Stream::~Stream() {
 
 class Manager::TableStream final : public Manager::Stream {
 public:
-    unsigned int num_idx_fields;
-    unsigned int num_val_fields;
-    bool want_record;
+    unsigned int num_idx_fields = 0;
+    unsigned int num_val_fields = 0;
+    bool want_record = false;
 
-    TableVal* tab;
-    RecordType* rtype;
-    RecordType* itype;
+    TableVal* tab = nullptr;
+    RecordType* rtype = nullptr;
+    RecordType* itype = nullptr;
 
-    PDict<InputHash>* currDict;
-    PDict<InputHash>* lastDict;
+    PDict<InputHash>* currDict = nullptr;
+    PDict<InputHash>* lastDict = nullptr;
 
-    Func* pred;
+    Func* pred = nullptr;
 
     EventHandlerPtr event;
 
@@ -103,7 +102,7 @@ class Manager::EventStream final : public Manager::Stream {
 public:
     EventHandlerPtr event;
 
-    RecordType* fields;
+    RecordType* fields = nullptr;
     unsigned int num_fields;
 
     bool want_record;
@@ -119,21 +118,9 @@ public:
     ~AnalysisStream() override = default;
 };
 
-Manager::TableStream::TableStream()
-    : Manager::Stream::Stream(TABLE_STREAM),
-      num_idx_fields(),
-      num_val_fields(),
-      want_record(),
-      tab(),
-      rtype(),
-      itype(),
-      currDict(),
-      lastDict(),
-      pred(),
-      event() {}
+Manager::TableStream::TableStream() : Manager::Stream::Stream(TABLE_STREAM) {}
 
-Manager::EventStream::EventStream()
-    : Manager::Stream::Stream(EVENT_STREAM), event(), fields(), num_fields(), want_record() {}
+Manager::EventStream::EventStream() : Manager::Stream::Stream(EVENT_STREAM) {}
 
 Manager::EventStream::~EventStream() {
     if ( fields )
@@ -169,9 +156,9 @@ Manager::Manager() : plugin::ComponentManager<input::Component>("Input", "Reader
 }
 
 Manager::~Manager() {
-    for ( map<ReaderFrontend*, Stream*>::iterator s = readers.begin(); s != readers.end(); ++s ) {
-        delete s->second;
-        delete s->first;
+    for ( auto& [frontend, stream] : readers ) {
+        delete stream;
+        delete frontend;
     }
 }
 
@@ -1439,8 +1426,8 @@ int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const* 
 
     if ( convert_error ) {
         // we have an error somewhere in our out_vals. Just delete all of them.
-        for ( list<Val*>::const_iterator it = out_vals.begin(), end = out_vals.end(); it != end; ++it )
-            Unref(*it);
+        for ( auto* val : out_vals )
+            Unref(val);
     }
     else
         SendEvent(stream->event, out_vals);
@@ -1712,8 +1699,8 @@ void Manager::SendEvent(EventHandlerPtr ev, list<Val*> events) const {
     DBG_LOG(DBG_INPUT, "SendEvent with %" PRIuPTR " vals (list)", events.size());
 #endif
 
-    for ( list<Val*>::iterator i = events.begin(); i != events.end(); i++ )
-        vl.emplace_back(AdoptRef{}, *i);
+    for ( auto* val : events )
+        vl.emplace_back(AdoptRef{}, val);
 
     if ( ev )
         event_mgr.Enqueue(ev, std::move(vl), util::detail::SOURCE_LOCAL);
@@ -2167,9 +2154,9 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, Type* request_type, 
 }
 
 Manager::Stream* Manager::FindStream(const string& name) const {
-    for ( auto s = readers.begin(); s != readers.end(); ++s ) {
-        if ( (*s).second->name == name )
-            return (*s).second;
+    for ( const auto& [_, stream] : readers ) {
+        if ( stream->name == name )
+            return stream;
     }
 
     return nullptr;
@@ -2186,12 +2173,12 @@ Manager::Stream* Manager::FindStream(ReaderFrontend* reader) const {
 // Function is called on Zeek shutdown.
 // Signal all frontends that they will cease operation.
 void Manager::Terminate() {
-    for ( map<ReaderFrontend*, Stream*>::iterator i = readers.begin(); i != readers.end(); ++i ) {
-        if ( i->second->removed )
+    for ( const auto& [_, stream] : readers ) {
+        if ( stream->removed )
             continue;
 
-        i->second->removed = true;
-        i->second->reader->Stop();
+        stream->removed = true;
+        stream->reader->Stop();
     }
 }
 

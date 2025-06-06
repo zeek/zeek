@@ -39,7 +39,7 @@ TEST_CASE("dict operation") {
     dict.Remove(key2);
     CHECK(dict.Length() == 0);
     uint32_t* lookup2 = dict.Lookup(key2);
-    CHECK(lookup2 == (uint32_t*)0);
+    CHECK(lookup2 == (uint32_t*)nullptr);
     delete key2;
 
     CHECK(dict.MaxLength() == 1);
@@ -89,7 +89,7 @@ TEST_CASE("dict nthentry") {
 
     // NthEntry returns null for unordered dicts
     uint32_t* lookup = unordered.NthEntry(0);
-    CHECK(lookup == (uint32_t*)0);
+    CHECK(lookup == (uint32_t*)nullptr);
 
     // Ordered dicts are based on order of insertion, nothing about the
     // data itself

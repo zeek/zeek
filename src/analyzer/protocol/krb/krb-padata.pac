@@ -18,9 +18,8 @@ zeek::VectorValPtr proc_padata(const KRB_PA_Data_Sequence* data, const ZeekAnaly
 	if ( ! data->data()->has_padata() )
 		return vv;
 
-	for ( uint i = 0; i < data->data()->padata_elems()->size(); ++i)
+	for ( KRB_PA_Data* element : *(data->data()->padata_elems()) )
 		{
-		KRB_PA_Data* element = (*data->data()->padata_elems())[i];
 		uint64_t data_type = element->data_type();
 
 		if ( is_error && ( data_type == PA_PW_AS_REQ || data_type == PA_PW_AS_REP ) )

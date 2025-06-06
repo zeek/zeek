@@ -775,7 +775,7 @@ void Manager::Peer(const string& addr, uint16_t port, double retry) {
 
     auto secs = broker::timeout::seconds(static_cast<uint64_t>(retry));
     bstate->endpoint.peer_nosync(addr, port, secs);
-    bstate->outbound_peerings.emplace(broker::network_info(addr, port));
+    bstate->outbound_peerings.emplace(addr, port);
 
     auto counts_as_iosource = get_option("Broker::peer_counts_as_iosource")->AsBool();
 
@@ -1160,7 +1160,7 @@ RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame) {
     zeek::Args cargs;
     cargs.reserve(args->size());
     for ( auto* a : *args )
-        cargs.push_back({zeek::NewRef{}, a});
+        cargs.emplace_back(zeek::NewRef{}, a);
 
     return MakeEvent(ArgsSpan{cargs}, frame)->Ref()->AsRecordVal();
 }

@@ -738,8 +738,8 @@ IPAddr SubNetVal::Mask() const {
         // We need to special-case a mask width of zero, since
         // the compiler doesn't guarantee that 1 << 32 yields 0.
         uint32_t m[4];
-        for ( unsigned int i = 0; i < 4; ++i )
-            m[i] = 0;
+        for ( uint32_t& digit : m )
+            digit = 0;
         IPAddr rval(IPv6, m, IPAddr::Host);
         return rval;
     }
@@ -1638,7 +1638,7 @@ bool detail::TablePatternMatcher::MatchAll(const StringValPtr& s) {
 
 void detail::TablePatternMatcher::Build() {
     matcher_yields.clear();
-    matcher_yields.push_back(nullptr);
+    matcher_yields.emplace_back(nullptr);
 
     auto& tbl_dict = *tbl->Get();
     auto& tbl_hash = *tbl->GetTableHash();
@@ -2141,7 +2141,7 @@ bool TableVal::Contains(const IPAddr& addr) const {
         return false;
     }
 
-    return (subnets->Lookup(addr, 128, false) != 0);
+    return (subnets->Lookup(addr, 128, false) != nullptr);
 }
 
 VectorValPtr TableVal::LookupSubnets(const SubNetVal* search) {

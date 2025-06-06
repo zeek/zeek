@@ -64,7 +64,7 @@ protected:
      * @param arg_limit the maximum allowed file size.
      * @param arg_limit_includes_missing missing bytes count towards limit if true.
      */
-    Extract(RecordValPtr args, file_analysis::File* file, const std::string& arg_filename, uint64_t arg_limit,
+    Extract(RecordValPtr args, file_analysis::File* file, std::string arg_filename, uint64_t arg_limit,
             bool arg_limit_includes_missing);
 
 private:

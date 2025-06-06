@@ -6,8 +6,8 @@ refine connection GSSAPI_Conn += {
 	%}
 
 	%init{
-		ntlm=0;
-		krb5=0;
+		ntlm = nullptr;
+		krb5 = nullptr;
 	%}
 
 	%cleanup{
@@ -15,14 +15,14 @@ refine connection GSSAPI_Conn += {
 			{
 			ntlm->Done();
 			delete ntlm;
-			ntlm=0;
+			ntlm = nullptr;
 			}
 
 		if ( krb5 )
 			{
 			krb5->Done();
 			delete krb5;
-			krb5=0;
+			krb5 = nullptr;
 			}
 	%}
 
@@ -50,7 +50,7 @@ refine connection GSSAPI_Conn += {
 				{
 				krb5->DeliverPacket(${val.krb.blob}.length(),
 				                    ${val.krb.blob}.begin(),
-				                    is_orig, 0, 0, 0);
+				                    is_orig, 0, nullptr, 0);
 				}
 			}
 

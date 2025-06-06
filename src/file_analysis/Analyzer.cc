@@ -24,7 +24,7 @@ void Analyzer::SetAnalyzerTag(const zeek::Tag& arg_tag) {
 }
 
 Analyzer::Analyzer(zeek::Tag arg_tag, RecordValPtr arg_args, File* arg_file)
-    : tag(arg_tag),
+    : tag(std::move(arg_tag)),
       args(std::move(arg_args)),
       file(arg_file),
       got_stream_delivery(false),

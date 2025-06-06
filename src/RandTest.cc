@@ -17,6 +17,7 @@
 #include "zeek/RandTest.h"
 
 #include <cmath>
+#include <cstring>
 
 constexpr double log2of10 = 3.32192809488736234787;
 
@@ -27,18 +28,6 @@ static double rt_log2(double x) { return log2of10 * log10(x); }
 constexpr double RT_INCIRC = 281474943156225.0;
 
 namespace zeek::detail {
-
-RandTest::RandTest() {
-    totalc = 0;
-    mp = 0;
-    sccfirst = 1;
-    inmont = mcount = 0;
-    cexp = montex = montey = montepi = sccu0 = scclast = scct1 = scct2 = scct3 = 0.0;
-
-    for ( int i = 0; i < 256; i++ ) {
-        ccount[i] = 0;
-    }
-}
 
 void RandTest::add(const void* buf, int bufl) {
     const unsigned char* bp = static_cast<const unsigned char*>(buf);

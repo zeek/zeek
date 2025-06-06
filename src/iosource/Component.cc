@@ -23,8 +23,8 @@ PktSrcComponent::PktSrcComponent(const std::string& arg_name, const std::string&
 const std::vector<std::string>& PktSrcComponent::Prefixes() const { return prefixes; }
 
 bool PktSrcComponent::HandlesPrefix(const std::string& prefix) const {
-    for ( std::vector<std::string>::const_iterator i = prefixes.begin(); i != prefixes.end(); i++ ) {
-        if ( *i == prefix )
+    for ( const auto& pfx : prefixes ) {
+        if ( pfx == prefix )
             return true;
     }
 
@@ -42,11 +42,11 @@ void PktSrcComponent::DoDescribe(ODesc* d) const {
 
     std::string prefs;
 
-    for ( std::vector<std::string>::const_iterator i = prefixes.begin(); i != prefixes.end(); i++ ) {
+    for ( const auto& pfx : prefixes ) {
         if ( prefs.size() )
             prefs += ", ";
 
-        prefs += '"' + *i + '"';
+        prefs += '"' + pfx + '"';
     }
 
     d->Add("interface prefix");
@@ -80,8 +80,8 @@ PktDumperComponent::factory_callback PktDumperComponent::Factory() const { retur
 const std::vector<std::string>& PktDumperComponent::Prefixes() const { return prefixes; }
 
 bool PktDumperComponent::HandlesPrefix(const std::string& prefix) const {
-    for ( std::vector<std::string>::const_iterator i = prefixes.begin(); i != prefixes.end(); i++ ) {
-        if ( *i == prefix )
+    for ( const auto& pfx : prefixes ) {
+        if ( pfx == prefix )
             return true;
     }
 
@@ -93,11 +93,11 @@ void PktDumperComponent::DoDescribe(ODesc* d) const {
 
     std::string prefs;
 
-    for ( std::vector<std::string>::const_iterator i = prefixes.begin(); i != prefixes.end(); i++ ) {
+    for ( const auto& pfx : prefixes ) {
         if ( prefs.size() )
             prefs += ", ";
 
-        prefs += '"' + *i + '"';
+        prefs += '"' + pfx + '"';
     }
 
     d->Add("dumper prefix");

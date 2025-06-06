@@ -28,7 +28,7 @@ cd $build_dir
 export ZEEK_SEED_FILE=$source_dir/testing/btest/random.seed
 
 function run_zeek {
-    ZEEK_ALLOW_INIT_ERRORS=1 zeek -X $conf_file zeekygen >/dev/null
+    ZEEK_ALLOW_INIT_ERRORS=1 zeek -X $conf_file zeekygen
 
     if [ $? -ne 0 ]; then
         echo "Failed running zeek with zeekygen config file $conf_file" >&2

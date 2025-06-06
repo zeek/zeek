@@ -1,3 +1,7 @@
+8.0.0-dev.389 | 2025-06-06 10:43:07 -0700
+
+  * Make Zeekygen docs generation (-X) imply parse-only (-a) (Christian Kreibich, Corelight)
+
 8.0.0-dev.382 | 2025-06-06 17:33:39 +0200
 
   * Fix `&ordered` attribute not preserved in table initializer assignments (赵富鹏)

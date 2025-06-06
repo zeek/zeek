@@ -133,7 +133,7 @@ void usage(const char* prog) {
     printf("    -T|--re-level <level>           | set 'RE_level' for rules\n");
     printf("    -U|--status-file <file>         | Record process status in file\n");
     printf("    -W|--watchdog                   | activate watchdog timer\n");
-    printf("    -X|--zeekygen <cfgfile>         | generate documentation based on config file\n");
+    printf("    -X|--zeekygen <cfgfile>         | generate documentation based on config file; implies -a\n");
 
 #ifdef USE_PERFTOOLS_DEBUG
     printf("    -m|--mem-leaks                  | show leaks  [perftools]\n");

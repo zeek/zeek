@@ -156,6 +156,9 @@ Changed Functionality
 - `detect-protocol.zeek was the last non-deprecated policy script left in
   `frameworks/dpd`.  It was moved to `frameworks/analyzer/detect-protocol.zeek`.
 
+- Running Zeek with Zeekygen for documentation extraction (-X|--zeekygen
+  <cfgfile>) now implies -a, i.e., parse-only mode.
+
 Removed Functionality
 ---------------------
 

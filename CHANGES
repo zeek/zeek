@@ -1,3 +1,14 @@
+7.2.1-4 | 2025-07-14 14:26:57 -0700
+
+  * docker: Add `net-tools` and `procps` dependencies (Edoardo Mich)
+
+    Add `net-tools` and `procps` to the final.Dockerfile, to avoid warning in
+    zeekctl commands like: "failed to find local IP addresses [...]" and the
+    error in `zeekctl top` command caused respectively by missing `ifconfig`
+    and `top` commands.
+
+    (cherry picked from commit 8189716adcd16e017c4ea7bcd2358f89bd6cbcc5)
+
 7.2.1-3 | 2025-07-14 14:25:26 -0700
 
   * GH-4522: smtp: Fix last_reply column in smtp.log for BDAT LAST (Arne Welzel, Corelight)

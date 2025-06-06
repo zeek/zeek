@@ -27,6 +27,8 @@ RUN apt-get -q update \
      libuv1 \
      libz1 \
      libzmq5 \
+     net-tools \
+     procps \
      python3-git \
      python3-minimal \
      python3-semantic-version \

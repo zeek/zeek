@@ -49,9 +49,23 @@ if (MSVC)
     endif ()
 else ()
     set(SIGN_COMPARE_FLAG "-Wno-sign-compare")
+
     if (BUILD_WITH_WERROR)
         set(WERROR_FLAG "-Werror")
         set(WNOERROR_FLAG "-Wno-error")
+
+        # With versions >=13.0 GCC gained `-Warray-bounds` which reports false
+        # positives, see e.g., https://gcc.gnu.org/bugzilla/show_bug.cgi?id=111273.
+        if (CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13.0)
+            list(APPEND WERROR_FLAG "-Wno-error=array-bounds")
+        endif ()
+
+        # With versions >=11.0 GCC is returning false positives for -Wrestrict. See
+        # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100366. It's more prevalent
+        # building with -std=c++20.
+        if (CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 11.0)
+            list(APPEND WERROR_FLAG "-Wno-error=restrict")
+        endif ()
     endif ()
 endif ()
 

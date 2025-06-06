@@ -43,18 +43,21 @@ std::string BuildFullPrometheusName(std::string_view prefix, std::string_view na
 prometheus::Labels BuildPrometheusLabels(Span<const LabelView> labels) {
     prometheus::Labels p_labels;
 
-    bool found_endpoint = false;
+    static std::string metrics_endpoint_label =
+        id::find_val<zeek::StringVal>("Telemetry::metrics_endpoint_label")->ToStdString();
+
+    static std::string metrics_endpoint_name =
+        id::find_val<zeek::StringVal>("Telemetry::metrics_endpoint_name")->ToStdString();
+
+    bool found_endpoint_label = false;
     for ( const auto& lbl : labels ) {
         p_labels.emplace(util::strreplace(std::string{lbl.first}, "-", "_"), lbl.second);
-        if ( lbl.first == "endpoint" )
-            found_endpoint = true;
+        if ( lbl.first == metrics_endpoint_label )
+            found_endpoint_label = true;
     }
 
-    if ( ! found_endpoint ) {
-        auto endpoint = id::find_val("Telemetry::metrics_endpoint_name")->AsStringVal();
-        if ( endpoint && endpoint->Len() > 0 )
-            p_labels.emplace("endpoint", endpoint->ToStdString());
-    }
+    if ( ! found_endpoint_label && ! metrics_endpoint_label.empty() && ! metrics_endpoint_name.empty() )
+        p_labels.emplace(metrics_endpoint_label, metrics_endpoint_name);
 
     return p_labels;
 }

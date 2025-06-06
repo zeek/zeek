@@ -163,7 +163,7 @@ public:
     /**
      * Accesses the header at the given location in the chain.
      */
-    const IPv6_Hdr* operator[](const size_t i) const { return chain[i]; }
+    const IPv6_Hdr* operator[](const size_t i) const { return &chain[i]; }
 
     /**
      * Returns whether the header chain indicates a fragmented packet.
@@ -174,7 +174,7 @@ public:
      * Returns pointer to fragment header structure if the chain contains one.
      */
     const struct ip6_frag* GetFragHdr() const {
-        return IsFragment() ? (const struct ip6_frag*)chain[chain.size() - 1]->Data() : nullptr;
+        return IsFragment() ? (const struct ip6_frag*)chain[chain.size() - 1].Data() : nullptr;
     }
 
     /**
@@ -245,7 +245,7 @@ protected:
      */
     void ProcessDstOpts(const struct ip6_dest* d, uint16_t len);
 
-    std::vector<IPv6_Hdr*> chain;
+    std::vector<IPv6_Hdr> chain;
 
     /**
      * The summation of all header lengths in the chain in bytes.

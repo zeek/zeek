@@ -457,8 +457,6 @@ static inline bool isIPv6ExtHeader(uint8_t type) {
 }
 
 IPv6_Hdr_Chain::~IPv6_Hdr_Chain() {
-    for ( auto& c : chain )
-        delete c;
     delete homeAddr;
     delete finalDst;
 }
@@ -481,23 +479,21 @@ void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, uint64_t total_len, bool se
             return;
 
         current_type = next_type;
-        IPv6_Hdr* p = new IPv6_Hdr(current_type, hdrs);
+        IPv6_Hdr p{current_type, hdrs};
 
-        next_type = p->NextHdr();
-        uint16_t cur_len = p->Length();
+        next_type = p.NextHdr();
+        uint16_t cur_len = p.Length();
 
         // If this header is truncated, don't add it to chain, don't go further.
-        if ( cur_len > total_len ) {
-            delete p;
+        if ( cur_len > total_len )
             return;
-        }
 
         if ( set_next && next_type == IPPROTO_FRAGMENT ) {
-            p->ChangeNext(next);
+            p.ChangeNext(next);
             next_type = next;
         }
 
-        chain.push_back(p);
+        chain.emplace_back(std::move(p));
 
         // Check for routing headers and remember final destination address.
         if ( current_type == IPPROTO_ROUTING )
@@ -521,7 +517,7 @@ bool IPv6_Hdr_Chain::IsFragment() const {
         return false;
     }
 
-    return chain[chain.size() - 1]->Type() == IPPROTO_FRAGMENT;
+    return chain.back().Type() == IPPROTO_FRAGMENT;
 }
 
 IPAddr IPv6_Hdr_Chain::SrcAddr() const {
@@ -533,7 +529,7 @@ IPAddr IPv6_Hdr_Chain::SrcAddr() const {
         return {};
     }
 
-    return IPAddr{((const struct ip6_hdr*)(chain[0]->Data()))->ip6_src};
+    return IPAddr{((const struct ip6_hdr*)(chain[0].Data()))->ip6_src};
 }
 
 IPAddr IPv6_Hdr_Chain::DstAddr() const {
@@ -545,7 +541,7 @@ IPAddr IPv6_Hdr_Chain::DstAddr() const {
         return {};
     }
 
-    return IPAddr{((const struct ip6_hdr*)(chain[0]->Data()))->ip6_dst};
+    return IPAddr{((const struct ip6_hdr*)(chain[0].Data()))->ip6_dst};
 }
 
 void IPv6_Hdr_Chain::ProcessRoutingHeader(const struct ip6_rthdr* r, uint16_t len) {
@@ -647,9 +643,9 @@ VectorValPtr IPv6_Hdr_Chain::ToVal() const {
     auto rval = make_intrusive<VectorVal>(ip6_ext_hdr_chain_type);
 
     for ( size_t i = 1; i < chain.size(); ++i ) {
-        auto v = chain[i]->ToVal();
+        auto v = chain[i].ToVal();
         auto ext_hdr = make_intrusive<RecordVal>(ip6_ext_hdr_type);
-        uint8_t type = chain[i]->Type();
+        uint8_t type = chain[i].Type();
         ext_hdr->Assign(0, type);
 
         switch ( type ) {
@@ -700,11 +696,11 @@ IPv6_Hdr_Chain* IPv6_Hdr_Chain::Copy(const ip6_hdr* new_hdr) const {
     }
 
     const u_char* new_data = (const u_char*)new_hdr;
-    const u_char* old_data = chain[0]->Data();
+    const u_char* old_data = chain[0].Data();
 
     for ( const auto& c : chain ) {
-        int off = c->Data() - old_data;
-        rval->chain.push_back(new IPv6_Hdr(c->Type(), new_data + off));
+        int off = c.Data() - old_data;
+        rval->chain.emplace_back(c.Type(), new_data + off);
     }
 
     return rval;

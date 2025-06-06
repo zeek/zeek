@@ -34,8 +34,6 @@ class Backend;
 
 namespace detail {
 
-class Event;
-
 class MessageInfo {
 public:
     explicit MessageInfo(size_t size) : size(size) {}
@@ -64,30 +62,30 @@ class Telemetry {
 public:
     virtual ~Telemetry() = default;
 
-    virtual void OnOutgoingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) = 0;
-    virtual void OnIncomingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) = 0;
+    virtual void OnOutgoingEvent(std::string_view topic, std::string_view handler_name, const MessageInfo& info) = 0;
+    virtual void OnIncomingEvent(std::string_view topic, std::string_view handler_name, const MessageInfo& info) = 0;
 };
 
 using TelemetryPtr = std::unique_ptr<Telemetry>;
 
 // Reporting nothing.
 class NullTelemetry : public Telemetry {
-    void OnOutgoingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override {}
-    void OnIncomingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override {}
+    void OnOutgoingEvent(std::string_view topic, std::string_view handler_name, const MessageInfo& info) override {}
+    void OnIncomingEvent(std::string_view topic, std::string_view handler_name, const MessageInfo& info) override {}
 };
 
 
 // A container for telemetry instances, delegating to its children.
 class CompositeTelemetry : public Telemetry {
 public:
-    void OnOutgoingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override {
+    void OnOutgoingEvent(std::string_view topic, std::string_view handler_name, const MessageInfo& info) override {
         for ( const auto& c : children )
-            c->OnOutgoingEvent(topic, e, info);
+            c->OnOutgoingEvent(topic, handler_name, info);
     }
 
-    void OnIncomingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override {
+    void OnIncomingEvent(std::string_view topic, std::string_view handler_name, const MessageInfo& info) override {
         for ( const auto& c : children )
-            c->OnIncomingEvent(topic, e, info);
+            c->OnIncomingEvent(topic, handler_name, info);
     }
 
     void Add(TelemetryPtr child) { children.push_back(std::move(child)); }
@@ -103,8 +101,8 @@ class SimpleTelemetry : public Telemetry {
 public:
     SimpleTelemetry();
 
-    void OnOutgoingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override;
-    void OnIncomingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override;
+    void OnOutgoingEvent(std::string_view topic, std::string_view handler_name, const MessageInfo& info) override;
+    void OnIncomingEvent(std::string_view topic, std::string_view handler_name, const MessageInfo& info) override;
 
 private:
     telemetry::CounterPtr in, out;
@@ -121,8 +119,8 @@ class VerboseTelemetry : public Telemetry {
 public:
     VerboseTelemetry(TopicNormalizer topic_normalizer);
 
-    void OnOutgoingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override;
-    void OnIncomingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override;
+    void OnOutgoingEvent(std::string_view topic, std::string_view handler_name, const MessageInfo& info) override;
+    void OnIncomingEvent(std::string_view topic, std::string_view handler_name, const MessageInfo& info) override;
 
 private:
     TopicNormalizer topic_normalizer;
@@ -137,8 +135,8 @@ class DebugTelemetry : public Telemetry {
 public:
     DebugTelemetry(TopicNormalizer topic_normalizer, std::vector<double> bounds);
 
-    void OnOutgoingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override;
-    void OnIncomingEvent(const std::string_view topic, const Event& e, const MessageInfo& info) override;
+    void OnOutgoingEvent(std::string_view topic, std::string_view handler_name, const MessageInfo& info) override;
+    void OnIncomingEvent(std::string_view topic, std::string_view handler_name, const MessageInfo& info) override;
 
 private:
     TopicNormalizer topic_normalizer;

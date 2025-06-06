@@ -36,27 +36,33 @@ std::string_view TableTopicNormalizer::operator()(std::string_view topic) {
 }
 
 SimpleTelemetry::SimpleTelemetry() {
-    out = zeek::telemetry_mgr->CounterInstance("zeek", "cluster_outgoing_events", {}, "Number of outgoing events");
-    in = zeek::telemetry_mgr->CounterInstance("zeek", "cluster_incoming_events", {}, "Number of incoming events");
+    out = zeek::telemetry_mgr->CounterInstance("zeek", "cluster_backend_outgoing_events", {},
+                                               "Number of outgoing events");
+    in = zeek::telemetry_mgr->CounterInstance("zeek", "cluster_backend_incoming_events", {},
+                                              "Number of incoming events");
 }
 
-void SimpleTelemetry::OnOutgoingEvent(std::string_view topic, const Event& e, const MessageInfo& info) { out->Inc(); }
+void SimpleTelemetry::OnOutgoingEvent(std::string_view topic, std::string_view handler_name, const MessageInfo& info) {
+    out->Inc();
+}
 
-void SimpleTelemetry::OnIncomingEvent(std::string_view topic, const Event& e, const MessageInfo& info) { in->Inc(); }
+void SimpleTelemetry::OnIncomingEvent(std::string_view topic, std::string_view handler_name, const MessageInfo& info) {
+    in->Inc();
+}
 
 VerboseTelemetry::VerboseTelemetry(TopicNormalizer topic_normalizer) : topic_normalizer(std::move(topic_normalizer)) {
-    out = zeek::telemetry_mgr->CounterFamily("zeek", "cluster_verbose_outgoing_events", {"topic", "handler"}, "help");
-    in = zeek::telemetry_mgr->CounterFamily("zeek", "cluster_verbose_incoming_events", {"topic", "handler"}, "help");
+    out = zeek::telemetry_mgr->CounterFamily("zeek", "cluster_outgoing_events", {"topic", "handler"}, "help");
+    in = zeek::telemetry_mgr->CounterFamily("zeek", "cluster_incoming_events", {"topic", "handler"}, "help");
 }
 
-void VerboseTelemetry::OnOutgoingEvent(std::string_view topic, const Event& e, const MessageInfo& info) {
+void VerboseTelemetry::OnOutgoingEvent(std::string_view topic, std::string_view handler_name, const MessageInfo& info) {
     auto normalized_topic = topic_normalizer(topic);
-    out->GetOrAdd({{"topic", normalized_topic}, {"handler", e.HandlerName()}})->Inc();
+    out->GetOrAdd({{"topic", normalized_topic}, {"handler", handler_name}})->Inc();
 }
 
-void VerboseTelemetry::OnIncomingEvent(std::string_view topic, const Event& e, const MessageInfo& info) {
+void VerboseTelemetry::OnIncomingEvent(std::string_view topic, std::string_view handler_name, const MessageInfo& info) {
     auto normalized_topic = topic_normalizer(topic);
-    in->GetOrAdd({{"topic", normalized_topic}, {"handler", e.HandlerName()}})->Inc();
+    in->GetOrAdd({{"topic", normalized_topic}, {"handler", handler_name}})->Inc();
 }
 
 namespace {
@@ -91,24 +97,25 @@ std::string determine_script_location() {
 DebugTelemetry::DebugTelemetry(TopicNormalizer topic_normalizer, std::vector<double> arg_message_size_bounds)
     : topic_normalizer(std::move(topic_normalizer)), message_size_bounds(std::move(arg_message_size_bounds)) {
     out = zeek::telemetry_mgr->HistogramFamily("zeek", "cluster_outgoing_event_sizes",
-                                               {"topic", "handler", "script_location"}, message_size_bounds, "help");
+                                               {"topic", "handler", "script_location"}, message_size_bounds,
+                                               "The size distribution of outgoing events");
     in = zeek::telemetry_mgr->HistogramFamily("zeek", "cluster_incoming_event_sizes", {"topic", "handler"},
-                                              message_size_bounds, "help");
+                                              message_size_bounds, "The size distribution of incoming events");
 }
 
-void DebugTelemetry::OnOutgoingEvent(std::string_view topic, const Event& e, const MessageInfo& info) {
+void DebugTelemetry::OnOutgoingEvent(std::string_view topic, std::string_view handler_name, const MessageInfo& info) {
     auto normalized_topic = topic_normalizer(topic);
     std::string script_location = determine_script_location();
 
-    const auto& hist = out->GetOrAdd(
-        {{"topic", normalized_topic}, {"handler", e.HandlerName()}, {"script_location", script_location}});
+    const auto& hist =
+        out->GetOrAdd({{"topic", normalized_topic}, {"handler", handler_name}, {"script_location", script_location}});
 
     hist->Observe(static_cast<double>(info.Size()));
 }
 
-void DebugTelemetry::OnIncomingEvent(std::string_view topic, const Event& e, const MessageInfo& info) {
+void DebugTelemetry::OnIncomingEvent(std::string_view topic, std::string_view handler_name, const MessageInfo& info) {
     auto normalized_topic = topic_normalizer(topic);
-    const auto& hist = in->GetOrAdd({{"topic", normalized_topic}, {"handler", e.HandlerName()}});
+    const auto& hist = in->GetOrAdd({{"topic", normalized_topic}, {"handler", handler_name}});
     hist->Observe(static_cast<double>(info.Size()));
 }
 

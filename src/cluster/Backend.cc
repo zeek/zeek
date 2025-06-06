@@ -189,7 +189,7 @@ bool Backend::DoPublishEvent(const std::string& topic, cluster::detail::Event& e
     if ( ! event_serializer->SerializeEvent(buf, event) )
         return false;
 
-    Telemetry().OnOutgoingEvent(topic, event, detail::MessageInfo{buf.size()});
+    Telemetry().OnOutgoingEvent(topic, event.HandlerName(), detail::MessageInfo{buf.size()});
 
     return DoPublishEvent(topic, event_serializer->Name(), buf);
 }
@@ -233,7 +233,7 @@ bool Backend::ProcessEventMessage(std::string_view topic, std::string_view forma
         return false;
     }
 
-    Telemetry().OnIncomingEvent(topic, *r, detail::MessageInfo{payload.size()});
+    Telemetry().OnIncomingEvent(topic, r->HandlerName(), detail::MessageInfo{payload.size()});
 
     return ProcessEvent(topic, std::move(*r));
 }

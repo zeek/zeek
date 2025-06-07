@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -C -b -r $TRACES/wlanmon.pcap %INPUT | sort | uniq -c | awk '{print $1, $2, $3}' >output
+# @TEST-EXEC: zeek -b -r $TRACES/wlanmon.pcap %INPUT | sort | uniq -c | awk '{print $1, $2, $3}' >output
 # @TEST-EXEC: btest-diff output
 
 # The sampling functionality itself is already tested through other tests.

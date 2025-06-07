@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -o test.hlto udp-test.spicy ./udp-test.evt
-# @TEST-EXEC: HILTI_DEBUG=zeek zeek -Cr ${TRACES}/udp-packet.pcap test.hlto %INPUT >out 2>&1
+# @TEST-EXEC: HILTI_DEBUG=zeek zeek -r ${TRACES}/udp-packet.pcap test.hlto %INPUT >out 2>&1
 # @TEST-EXEC: grep -e 'Scheduling analyzer' -e 'error during parsing' < out > out.filtered
 # @TEST-EXEC: btest-diff out.filtered
 

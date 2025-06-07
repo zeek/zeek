@@ -1,8 +1,8 @@
 # @TEST-DOC: Test that misc/dump events works.
 #
 # @TEST-REQUIRES: ${SCRIPTS}/have-spicy
-# @TEST-EXEC: zeek -b -Cr ${TRACES}/postgresql/psql-select-now.pcap %INPUT >>output
-# @TEST-EXEC: zeek -b -Cr ${TRACES}/postgresql/psql-insert-fail-drop-fail.pcap %INPUT >>output
+# @TEST-EXEC: zeek -b -r ${TRACES}/postgresql/psql-select-now.pcap %INPUT >>output
+# @TEST-EXEC: zeek -b -r ${TRACES}/postgresql/psql-insert-fail-drop-fail.pcap %INPUT >>output
 #
 # @TEST-EXEC: btest-diff output
 

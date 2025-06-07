@@ -1,5 +1,5 @@
 # @TEST-DOC: The POP3 signature triggered on Redis traffic. Ensure the analyzer is eventually removed to avoid.
-# @TEST-EXEC: zeek -C -b -r $TRACES/pop3/redis-50-pings.pcap %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/pop3/redis-50-pings.pcap %INPUT >out
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff weird.log

@@ -1,5 +1,5 @@
 # @TEST-DOC: Ensure basic POP3 functionality.
-# @TEST-EXEC: zeek -C -b -r $TRACES/pop3/pop3.pcap %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/pop3/pop3.pcap %INPUT >out
 # @TEST-EXEC: btest-diff conn.log
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: test ! -f weird.log

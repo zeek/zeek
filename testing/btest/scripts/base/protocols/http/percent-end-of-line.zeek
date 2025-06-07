@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -Cr $TRACES/http/percent-end-of-line.pcap %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/http/percent-end-of-line.pcap %INPUT
 # @TEST-EXEC: btest-diff http.log
 # @TEST-EXEC: btest-diff weird.log
 

@@ -1,3 +1,3 @@
 # @TEST-DOC: Tests that an IP-in-IP tunnel with max-depth set to 1 doesn't crash
-# @TEST-EXEC: zeek -C -r $TRACES/tunnels/gre-within-gre.pcap Tunnel::max_depth=1
+# @TEST-EXEC: zeek -r $TRACES/tunnels/gre-within-gre.pcap Tunnel::max_depth=1
 # @TEST-EXEC: btest-diff weird.log

@@ -1,7 +1,7 @@
 # @TEST-DOC: Test the parameter status event.
 #
 # @TEST-REQUIRES: ${SCRIPTS}/have-spicy
-# @TEST-EXEC: zeek -b -Cr ${TRACES}/postgresql/psql-login-no-sslrequest.pcap %INPUT >output
+# @TEST-EXEC: zeek -b -r ${TRACES}/postgresql/psql-login-no-sslrequest.pcap %INPUT >output
 #
 # @TEST-EXEC: btest-diff output
 

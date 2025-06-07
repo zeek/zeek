@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b -Cr $TRACES/wikipedia.trace %INPUT
+# @TEST-EXEC: zeek -b -r $TRACES/wikipedia.trace %INPUT
 # @TEST-EXEC: btest-diff intel.log
 
 #@TEST-START-FILE intel.dat

@@ -1,7 +1,7 @@
 # @TEST-DOC: PCAP for which decryption failed due to not using the initial destination connection ID consistently.
 
 # @TEST-REQUIRES: ${SCRIPTS}/have-spicy
-# @TEST-EXEC: zeek -Cr $TRACES/quic/quic-decrypt-fail-google-de-51833.pcap base/protocols/quic
+# @TEST-EXEC: zeek -r $TRACES/quic/quic-decrypt-fail-google-de-51833.pcap base/protocols/quic
 # @TEST-EXEC: test ! -f analyzer.log
 # @TEST-EXEC: test ! -f dpd.log
 # @TEST-EXEC: zeek-cut -m ts uid history service < conn.log > conn.log.cut

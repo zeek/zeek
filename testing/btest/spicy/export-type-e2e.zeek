@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -do export.hlto export.spicy export.evt
-# @TEST-EXEC: zeek -Cr $TRACES/http/pipelined-requests.trace export.hlto %INPUT >>output
+# @TEST-EXEC: zeek -r $TRACES/http/pipelined-requests.trace export.hlto %INPUT >>output
 # @TEST-EXEC: test '!' -e reporter.log
 # @TEST-EXEC: btest-diff output
 #

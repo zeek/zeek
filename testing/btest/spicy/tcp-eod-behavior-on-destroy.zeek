@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -d foo.spicy foo.evt -o foo.hlto
-# @TEST-EXEC: zeek -Cr ${TRACES}/http/206_example_b.pcap foo.hlto "Spicy::enable_print=T" >output 2>&1
+# @TEST-EXEC: zeek -r ${TRACES}/http/206_example_b.pcap foo.hlto "Spicy::enable_print=T" >output 2>&1
 # @TEST-EXEC: btest-diff output
 #
 # @TEST-DOC: Exercise &eod behavior when processing is aborted without a regular connection shutdown; regression test for Zeek #4501.

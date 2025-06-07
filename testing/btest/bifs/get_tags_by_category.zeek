@@ -4,7 +4,7 @@
 
 event zeek_init()
     {
-    local result = get_tags_by_category("STORAGE_BACKEND");
+    local result = get_tags_by_category("ANALYZER");
 
     for (i in result)
         print result[i];

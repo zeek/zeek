@@ -106,8 +106,8 @@ RuleHdrTest::RuleHdrTest(RuleHdrTest& h) {
 
     prefix_vals = h.prefix_vals;
 
-    for ( int j = 0; j < Rule::TYPES; ++j ) {
-        for ( PatternSet* orig_set : h.psets[j] ) {
+    for ( const auto& pset : h.psets ) {
+        for ( PatternSet* orig_set : pset ) {
             PatternSet* copied_set = new PatternSet;
             copied_set->re = nullptr;
             copied_set->ids = orig_set->ids;
@@ -133,8 +133,8 @@ RuleHdrTest::~RuleHdrTest() {
         delete val;
     delete vals;
 
-    for ( int i = 0; i < Rule::TYPES; ++i ) {
-        for ( auto pset : psets[i] ) {
+    for ( auto& pset_list : psets ) {
+        for ( auto& pset : pset_list ) {
             delete pset->re;
             delete pset;
         }
@@ -515,10 +515,10 @@ static inline bool match_or(const maskedvalue_list& mvals, uint32_t v, FuncT com
 // Evaluate a prefix list (matches if at least one value matches).
 template<typename FuncT>
 static inline bool match_or(const vector<IPPrefix>& prefixes, const IPAddr& a, FuncT comp) {
-    for ( size_t i = 0; i < prefixes.size(); ++i ) {
+    for ( const auto& pfx : prefixes ) {
         IPAddr masked(a);
-        masked.Mask(prefixes[i].LengthIPv6());
-        if ( comp(masked, prefixes[i].Prefix()) )
+        masked.Mask(pfx.LengthIPv6());
+        if ( comp(masked, pfx.Prefix()) )
             return true;
     }
     return false;
@@ -538,10 +538,10 @@ static inline bool match_not_and(const maskedvalue_list& mvals, uint32_t v, Func
 // Evaluate a prefix list (doesn't match if any value matches).
 template<typename FuncT>
 static inline bool match_not_and(const vector<IPPrefix>& prefixes, const IPAddr& a, FuncT comp) {
-    for ( size_t i = 0; i < prefixes.size(); ++i ) {
+    for ( const auto& pfx : prefixes ) {
         IPAddr masked(a);
-        masked.Mask(prefixes[i].LengthIPv6());
-        if ( comp(masked, prefixes[i].Prefix()) )
+        masked.Mask(pfx.LengthIPv6());
+        if ( comp(masked, pfx.Prefix()) )
             return false;
     }
     return true;
@@ -549,17 +549,17 @@ static inline bool match_not_and(const vector<IPPrefix>& prefixes, const IPAddr&
 
 static inline bool compare(const maskedvalue_list& mvals, uint32_t v, RuleHdrTest::Comp comp) {
     switch ( comp ) {
-        case RuleHdrTest::EQ: return match_or(mvals, v, std::equal_to<uint32_t>()); break;
+        case RuleHdrTest::EQ: return match_or(mvals, v, std::equal_to<>()); break;
 
-        case RuleHdrTest::NE: return match_not_and(mvals, v, std::equal_to<uint32_t>()); break;
+        case RuleHdrTest::NE: return match_not_and(mvals, v, std::equal_to<>()); break;
 
-        case RuleHdrTest::LT: return match_or(mvals, v, std::less<uint32_t>()); break;
+        case RuleHdrTest::LT: return match_or(mvals, v, std::less<>()); break;
 
-        case RuleHdrTest::GT: return match_or(mvals, v, std::greater<uint32_t>()); break;
+        case RuleHdrTest::GT: return match_or(mvals, v, std::greater<>()); break;
 
-        case RuleHdrTest::LE: return match_or(mvals, v, std::less_equal<uint32_t>()); break;
+        case RuleHdrTest::LE: return match_or(mvals, v, std::less_equal<>()); break;
 
-        case RuleHdrTest::GE: return match_or(mvals, v, std::greater_equal<uint32_t>()); break;
+        case RuleHdrTest::GE: return match_or(mvals, v, std::greater_equal<>()); break;
 
         default: reporter->InternalError("unknown RuleHdrTest comparison type"); break;
     }
@@ -568,17 +568,17 @@ static inline bool compare(const maskedvalue_list& mvals, uint32_t v, RuleHdrTes
 
 static inline bool compare(const vector<IPPrefix>& prefixes, const IPAddr& a, RuleHdrTest::Comp comp) {
     switch ( comp ) {
-        case RuleHdrTest::EQ: return match_or(prefixes, a, std::equal_to<IPAddr>()); break;
+        case RuleHdrTest::EQ: return match_or(prefixes, a, std::equal_to<>()); break;
 
-        case RuleHdrTest::NE: return match_not_and(prefixes, a, std::equal_to<IPAddr>()); break;
+        case RuleHdrTest::NE: return match_not_and(prefixes, a, std::equal_to<>()); break;
 
-        case RuleHdrTest::LT: return match_or(prefixes, a, std::less<IPAddr>()); break;
+        case RuleHdrTest::LT: return match_or(prefixes, a, std::less<>()); break;
 
-        case RuleHdrTest::GT: return match_or(prefixes, a, std::greater<IPAddr>()); break;
+        case RuleHdrTest::GT: return match_or(prefixes, a, std::greater<>()); break;
 
-        case RuleHdrTest::LE: return match_or(prefixes, a, std::less_equal<IPAddr>()); break;
+        case RuleHdrTest::LE: return match_or(prefixes, a, std::less_equal<>()); break;
 
-        case RuleHdrTest::GE: return match_or(prefixes, a, std::greater_equal<IPAddr>()); break;
+        case RuleHdrTest::GE: return match_or(prefixes, a, std::greater_equal<>()); break;
 
         default: reporter->InternalError("unknown RuleHdrTest comparison type"); break;
     }
@@ -1083,12 +1083,12 @@ void RuleMatcher::GetStats(Stats* stats, RuleHdrTest* hdr_test) const {
 
     DFA_State_Cache::Stats cstats;
 
-    for ( int i = 0; i < Rule::TYPES; ++i ) {
-        for ( const auto& set : hdr_test->psets[i] ) {
-            assert(set->re);
+    for ( const auto& pset_list : hdr_test->psets ) {
+        for ( const auto& pset : pset_list ) {
+            assert(pset->re);
 
             ++stats->matchers;
-            set->re->DFA()->Cache()->GetStats(&cstats);
+            pset->re->DFA()->Cache()->GetStats(&cstats);
 
             stats->dfa_states += cstats.dfa_states;
             stats->computed += cstats.computed;
@@ -1183,7 +1183,9 @@ static bool val_to_maskedval(Val* v, maskedvalue_list* append_to, vector<IPPrefi
                 v->AsSubNet().Prefix().GetBytes(&n);
                 v->AsSubNetVal()->Mask().CopyIPv6(m);
 
-                for ( unsigned int i = 0; i < 4; ++i )
+                // Intentionally leaving this as a normal loop because it's more descriptive.
+                // NOLINTNEXTLINE(modernize-loop-convert)
+                for ( unsigned int i = 0; i < 4; i++ )
                     m[i] = ntohl(m[i]);
 
                 bool is_v4_mask = m[0] == 0xffffffff && m[1] == m[0] && m[2] == m[0];

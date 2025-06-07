@@ -66,7 +66,7 @@ std::string Benchmark::RandomString(const int len) {
 
 double Benchmark::CurrTime() {
     struct timeval tv;
-    if ( gettimeofday(&tv, 0) != 0 ) {
+    if ( gettimeofday(&tv, nullptr) != 0 ) {
         FatalError(Fmt("Could not get time: %d", errno));
     }
 

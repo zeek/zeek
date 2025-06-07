@@ -43,8 +43,8 @@ TCPSessionAdapter::TCPSessionAdapter(Connection* conn) : packet_analysis::IP::Se
 }
 
 TCPSessionAdapter::~TCPSessionAdapter() {
-    LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
-    delete *i;
+    for ( Analyzer* a : packet_children )
+        delete a;
 
     delete orig;
     delete resp;
@@ -52,8 +52,8 @@ TCPSessionAdapter::~TCPSessionAdapter() {
 
 void TCPSessionAdapter::Init() {
     Analyzer::Init();
-    LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
-    (*i)->Init();
+    for ( Analyzer* a : packet_children )
+        a->Init();
 }
 
 void TCPSessionAdapter::Done() {
@@ -62,8 +62,8 @@ void TCPSessionAdapter::Done() {
     if ( run_state::terminating && connection_pending && is_active && ! BothClosed() )
         Event(connection_pending);
 
-    LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
-    (*i)->Done();
+    for ( Analyzer* a : packet_children )
+        a->Done();
 
     orig->Done();
     resp->Done();
@@ -644,9 +644,8 @@ analyzer::Analyzer* TCPSessionAdapter::FindChild(analyzer::ID arg_id) {
     if ( child )
         return child;
 
-    LOOP_OVER_GIVEN_CHILDREN(i, packet_children) {
-        analyzer::Analyzer* child = (*i)->FindChild(arg_id);
-        if ( child )
+    for ( Analyzer* a : packet_children ) {
+        if ( analyzer::Analyzer* child = a->FindChild(arg_id) )
             return child;
     }
 
@@ -659,9 +658,8 @@ analyzer::Analyzer* TCPSessionAdapter::FindChild(zeek::Tag arg_tag) {
     if ( child )
         return child;
 
-    LOOP_OVER_GIVEN_CHILDREN(i, packet_children) {
-        analyzer::Analyzer* child = (*i)->FindChild(arg_tag);
-        if ( child )
+    for ( Analyzer* a : packet_children ) {
+        if ( analyzer::Analyzer* child = a->FindChild(arg_tag) )
             return child;
     }
 
@@ -1046,8 +1044,8 @@ void TCPSessionAdapter::UpdateConnVal(RecordVal* conn_val) {
     Analyzer::UpdateConnVal(conn_val);
 
     // Have to do packet_children ourselves.
-    LOOP_OVER_GIVEN_CHILDREN(i, packet_children)
-    (*i)->UpdateConnVal(conn_val);
+    for ( Analyzer* a : packet_children )
+        a->UpdateConnVal(conn_val);
 }
 
 void TCPSessionAdapter::AttemptTimer(double /* t */) {
@@ -1182,11 +1180,12 @@ FilePtr TCPSessionAdapter::GetContentsFile(unsigned int direction) const {
 void TCPSessionAdapter::ConnectionClosed(analyzer::tcp::TCP_Endpoint* endpoint, analyzer::tcp::TCP_Endpoint* peer,
                                          bool gen_event) {
     const analyzer::analyzer_list& children(GetChildren());
-    LOOP_OVER_CONST_CHILDREN(i)
-    // Using this type of cast here is nasty (will crash if
-    // we inadvertently have a child analyzer that's not a
-    // TCP_ApplicationAnalyzer), but we have to ...
-    static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(*i)->ConnectionClosed(endpoint, peer, gen_event);
+
+    for ( Analyzer* a : children )
+        // Using this type of cast here is nasty (will crash if
+        // we inadvertently have a child analyzer that's not a
+        // TCP_ApplicationAnalyzer), but we have to ...
+        static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(a)->ConnectionClosed(endpoint, peer, gen_event);
 
     if ( DataPending(endpoint) ) {
         // Don't close out the connection yet, there's still data to
@@ -1266,9 +1265,10 @@ void TCPSessionAdapter::ConnectionClosed(analyzer::tcp::TCP_Endpoint* endpoint, 
 
 void TCPSessionAdapter::ConnectionFinished(bool half_finished) {
     const analyzer::analyzer_list& children(GetChildren());
-    LOOP_OVER_CONST_CHILDREN(i)
-    // Again, nasty - see TCPSessionAdapter::ConnectionClosed.
-    static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(*i)->ConnectionFinished(half_finished);
+
+    for ( Analyzer* a : children )
+        // Again, nasty - see TCPSessionAdapter::ConnectionClosed.
+        static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(a)->ConnectionFinished(half_finished);
 
     if ( half_finished )
         Event(connection_half_finished);
@@ -1282,8 +1282,8 @@ void TCPSessionAdapter::ConnectionReset() {
     Event(connection_reset);
 
     const analyzer::analyzer_list& children(GetChildren());
-    LOOP_OVER_CONST_CHILDREN(i)
-    static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(*i)->ConnectionReset();
+    for ( Analyzer* a : children )
+        static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(a)->ConnectionReset();
 
     is_active = 0;
 }
@@ -1312,8 +1312,8 @@ void TCPSessionAdapter::EndpointEOF(analyzer::tcp::TCP_Reassembler* endp) {
         EnqueueConnEvent(connection_EOF, ConnVal(), val_mgr->Bool(endp->IsOrig()));
 
     const analyzer::analyzer_list& children(GetChildren());
-    LOOP_OVER_CONST_CHILDREN(i)
-    static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(*i)->EndpointEOF(endp->IsOrig());
+    for ( Analyzer* a : children )
+        static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(a)->EndpointEOF(endp->IsOrig());
 
     if ( close_deferred ) {
         if ( DataPending(endp->Endpoint()) ) {
@@ -1331,8 +1331,8 @@ void TCPSessionAdapter::EndpointEOF(analyzer::tcp::TCP_Reassembler* endp) {
 
 void TCPSessionAdapter::PacketWithRST() {
     const analyzer::analyzer_list& children(GetChildren());
-    LOOP_OVER_CONST_CHILDREN(i)
-    static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(*i)->PacketWithRST();
+    for ( Analyzer* a : children )
+        static_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(a)->PacketWithRST();
 }
 
 void TCPSessionAdapter::CheckPIA_FirstPacket(bool is_orig, const IP_Hdr* ip) {

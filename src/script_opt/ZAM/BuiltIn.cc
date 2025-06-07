@@ -269,7 +269,7 @@ bool SortZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args) 
     auto comp_func = comp_val->AsNameExpr();
     auto comp_type = comp_func->GetType()->AsFuncType();
 
-    if ( comp_type->Yield()->Tag() != TYPE_INT || ! comp_type->ParamList()->AllMatch(elt_type, 0) ||
+    if ( comp_type->Yield()->Tag() != TYPE_INT || ! comp_type->ParamList()->AllMatch(elt_type, false) ||
          comp_type->ParamList()->GetTypes().size() != 2 )
         return false;
 
@@ -312,8 +312,7 @@ bool MultiZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args)
     std::vector<ValPtr> consts;
     std::vector<int> v;
 
-    for ( auto i = 0U; i < args.size(); ++i ) {
-        auto a = args[i];
+    for ( const auto& a : args ) {
         if ( a->Tag() == EXPR_NAME )
             v.push_back(zam->FrameSlot(a->AsNameExpr()));
         else
@@ -402,9 +401,9 @@ bool MultiZBI::Build(ZAMCompiler* zam, const NameExpr* n, const ExprPList& args)
 BiFArgsType MultiZBI::ComputeArgsType(const ExprPList& args) const {
     zeek_uint_t mask = 0;
 
-    for ( auto i = 0U; i < args.size(); ++i ) {
+    for ( const auto& a : args ) {
         mask <<= 1;
-        if ( args[i]->Tag() == EXPR_CONST )
+        if ( a->Tag() == EXPR_CONST )
             mask |= 1;
     }
 

@@ -23,17 +23,17 @@ bool IdInfoComp::operator()(const IdentifierInfo* lhs, const IdentifierInfo* rhs
 static vector<string> summary_comment(const vector<string>& cmnts) {
     vector<string> rval;
 
-    for ( size_t i = 0; i < cmnts.size(); ++i ) {
-        size_t end = end_of_first_sentence(cmnts[i]);
+    for ( const auto& cmnt : cmnts ) {
+        size_t end = end_of_first_sentence(cmnt);
 
         if ( end == string::npos ) {
-            if ( is_all_whitespace(cmnts[i]) )
+            if ( is_all_whitespace(cmnt) )
                 break;
 
-            rval.push_back(cmnts[i]);
+            rval.push_back(cmnt);
         }
         else {
-            rval.push_back(cmnts[i].substr(0, end + 1));
+            rval.push_back(cmnt.substr(0, end + 1));
             break;
         }
     }
@@ -68,12 +68,12 @@ static string make_summary(const string& heading, char underline, char border, c
 
     ReStructuredTextTable table(2);
 
-    for ( id_info_list::const_iterator it = id_list.begin(); it != id_list.end(); ++it ) {
-        auto* id = (*it)->GetID();
+    for ( IdentifierInfo* info : id_list ) {
+        auto* id = info->GetID();
         ODesc d;
         d.SetQuotes(true);
         id->DescribeReSTShort(&d);
-        add_summary_rows(d, summary_comment((*it)->GetComments()), &table);
+        add_summary_rows(d, summary_comment(info->GetComments()), &table);
     }
 
     return make_heading(heading, underline) + table.AsString(border) + "\n";
@@ -86,14 +86,14 @@ static string make_redef_summary(const string& heading, char underline, char bor
 
     ReStructuredTextTable table(2);
 
-    for ( id_info_set::const_iterator it = id_set.begin(); it != id_set.end(); ++it ) {
-        auto* id = (*it)->GetID();
+    for ( IdentifierInfo* info : id_set ) {
+        auto* id = info->GetID();
         ODesc d;
         d.SetQuotes(true);
         id->DescribeReSTShort(&d);
 
         using redef_list = std::list<IdentifierInfo::Redefinition>;
-        redef_list redefs = (*it)->GetRedefs(from_script);
+        redef_list redefs = info->GetRedefs(from_script);
 
         for ( redef_list::const_iterator iit = redefs.begin(); iit != redefs.end(); ++iit ) {
             add_summary_rows(d, summary_comment(iit->comments), &table);
@@ -199,8 +199,8 @@ static string make_details(const string& heading, char underline, const id_info_
 
     string rval = make_heading(heading, underline);
 
-    for ( id_info_list::const_iterator it = id_list.begin(); it != id_list.end(); ++it ) {
-        rval += (*it)->ReStructuredText();
+    for ( IdentifierInfo* info : id_list ) {
+        rval += info->ReStructuredText();
         rval += "\n\n";
     }
 
@@ -213,18 +213,18 @@ static string make_redef_details(const string& heading, char underline, const id
 
     string rval = make_heading(heading, underline);
 
-    for ( id_info_set::const_iterator it = id_set.begin(); it != id_set.end(); ++it ) {
-        rval += (*it)->ReStructuredText(true);
+    for ( IdentifierInfo* info : id_set ) {
+        rval += info->ReStructuredText(true);
         rval += "\n\n";
     }
 
     return rval;
 }
 
-ScriptInfo::ScriptInfo(const string& arg_name, const string& arg_path)
+ScriptInfo::ScriptInfo(string arg_name, string arg_path)
     : Info(),
-      name(arg_name),
-      path(arg_path),
+      name(std::move(arg_name)),
+      path(std::move(arg_path)),
       is_pkg_loader(util::detail::is_package_loader(name)),
       dependencies(),
       module_usages(),
@@ -337,13 +337,13 @@ string ScriptInfo::DoReStructuredText(bool roles_only) const {
     rval += ":tocdepth: 3\n\n";
     rval += make_heading(name, '=');
 
-    for ( string_set::const_iterator it = module_usages.begin(); it != module_usages.end(); ++it )
-        rval += ".. zeek:namespace:: " + *it + "\n";
+    for ( const auto& usage : module_usages )
+        rval += ".. zeek:namespace:: " + usage + "\n";
 
     rval += "\n";
 
-    for ( size_t i = 0; i < comments.size(); ++i )
-        rval += comments[i] + "\n";
+    for ( const auto& cmnt : comments )
+        rval += cmnt + "\n";
 
     rval += "\n";
 
@@ -410,15 +410,15 @@ string ScriptInfo::DoReStructuredText(bool roles_only) const {
 time_t ScriptInfo::DoGetModificationTime() const {
     time_t most_recent = get_mtime(path);
 
-    for ( string_set::const_iterator it = dependencies.begin(); it != dependencies.end(); ++it ) {
-        Info* info = zeek::detail::zeekygen_mgr->GetScriptInfo(*it);
+    for ( const auto& dep : dependencies ) {
+        Info* info = zeek::detail::zeekygen_mgr->GetScriptInfo(dep);
 
         if ( ! info ) {
-            string pkg_name = *it + "/__load__.zeek";
+            string pkg_name = dep + "/__load__.zeek";
             info = zeek::detail::zeekygen_mgr->GetScriptInfo(pkg_name);
 
             if ( ! info )
-                reporter->InternalWarning("Zeekygen failed to get mtime of %s", it->c_str());
+                reporter->InternalWarning("Zeekygen failed to get mtime of %s", dep.c_str());
             continue;
         }
 

@@ -142,7 +142,7 @@ static ExprPtr initialize_var(const IDPtr& id, InitClass c, ExprPtr init) {
     ExprPtr assignment;
 
     if ( c == INIT_FULL )
-        assignment = make_intrusive<AssignExpr>(lhs, init, false);
+        assignment = make_intrusive<AssignExpr>(lhs, init, false, nullptr, id->GetAttrs());
     else if ( c == INIT_EXTRA )
         assignment = make_intrusive<AddToExpr>(lhs, init);
     else if ( c == INIT_REMOVE )
@@ -438,9 +438,9 @@ static Attr* find_attr(const std::vector<AttrPtr>* al, AttrTag tag) {
     if ( ! al )
         return nullptr;
 
-    for ( size_t i = 0; i < al->size(); ++i )
-        if ( (*al)[i]->Tag() == tag )
-            return (*al)[i].get();
+    for ( const auto& attr : *al )
+        if ( attr->Tag() == tag )
+            return attr.get();
 
     return nullptr;
 }

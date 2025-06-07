@@ -65,8 +65,8 @@ void EventHandler::Call(Args* vl, bool no_remote, double ts) {
             xs.Reserve(vl->size());
             bool valid_args = true;
 
-            for ( size_t index = 0; index < vl->size(); ++index ) {
-                if ( ! xs.Add((*vl)[index]) ) {
+            for ( const auto& v : *vl ) {
+                if ( ! xs.Add(v) ) {
                     valid_args = false;
                     auto_publish.clear();
                     reporter->Error("failed auto-remote event '%s', disabled", Name());

@@ -54,7 +54,7 @@ void Manager::InitPostScript() {
                     m.second = 0;
 
                 MsgThread::Stats thread_stats;
-                for ( const auto& t : thread_mgr->msg_threads ) {
+                for ( auto* t : thread_mgr->msg_threads ) {
                     t->GetStats(&thread_stats);
 
                     thread_mgr->current_bucketed_messages.pending_in_total += thread_stats.pending_in;
@@ -140,16 +140,16 @@ void Manager::Terminate() {
 
     // Signal all to stop.
 
-    for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
-        (*i)->SignalStop();
+    for ( auto* t : all_threads )
+        t->SignalStop();
 
-    for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
-        (*i)->WaitForStop();
+    for ( auto* t : all_threads )
+        t->WaitForStop();
 
     // Then join them all.
-    for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ ) {
-        (*i)->Join();
-        delete *i;
+    for ( auto* t : all_threads ) {
+        t->Join();
+        delete t;
     }
 
     all_threads.clear();
@@ -183,8 +183,8 @@ void Manager::AddMsgThread(MsgThread* thread) {
 void Manager::KillThreads() {
     DBG_LOG(DBG_THREADING, "Killing threads ...");
 
-    for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ )
-        (*i)->Kill();
+    for ( auto* t : all_threads )
+        t->Kill();
 }
 
 void Manager::KillThread(BasicThread* thread) {
@@ -199,15 +199,12 @@ void Manager::SendHeartbeats() {
     // Since this is a regular timer, this is also an ideal place to check whether we have
     // and dead threads and to delete them.
     all_thread_list to_delete;
-    for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ ) {
-        BasicThread* t = *i;
-
+    for ( auto* t : all_threads ) {
         if ( t->Killed() )
             to_delete.push_back(t);
     }
 
-    for ( all_thread_list::iterator i = to_delete.begin(); i != to_delete.end(); i++ ) {
-        BasicThread* t = *i;
+    for ( auto* t : to_delete ) {
         t->WaitForStop();
 
         all_threads.remove(t);
@@ -290,9 +287,7 @@ void Manager::Flush() {
 
     did_process = false;
 
-    for ( msg_thread_list::iterator i = msg_threads.begin(); i != msg_threads.end(); i++ ) {
-        MsgThread* t = *i;
-
+    for ( auto* t : msg_threads ) {
         if ( do_beat )
             t->Heartbeat();
 
@@ -316,15 +311,12 @@ void Manager::Flush() {
 
     all_thread_list to_delete;
 
-    for ( all_thread_list::iterator i = all_threads.begin(); i != all_threads.end(); i++ ) {
-        BasicThread* t = *i;
-
+    for ( auto* t : all_threads ) {
         if ( t->Killed() )
             to_delete.push_back(t);
     }
 
-    for ( all_thread_list::iterator i = to_delete.begin(); i != to_delete.end(); i++ ) {
-        BasicThread* t = *i;
+    for ( auto* t : to_delete ) {
         t->WaitForStop();
 
         all_threads.remove(t);
@@ -346,9 +338,7 @@ void Manager::Flush() {
 const threading::Manager::msg_stats_list& threading::Manager::GetMsgThreadStats() {
     stats.clear();
 
-    for ( msg_thread_list::iterator i = msg_threads.begin(); i != msg_threads.end(); i++ ) {
-        MsgThread* t = *i;
-
+    for ( auto* t : msg_threads ) {
         MsgThread::Stats s;
         t->GetStats(&s);
 

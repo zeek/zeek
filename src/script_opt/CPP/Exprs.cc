@@ -141,7 +141,7 @@ string CPPCompile::GenExpr(const Expr* e, GenType gt, bool top_level) {
         default:
             // Intended to catch errors in overlooking the possible
             // expressions that might appear.
-            return string("EXPR");
+            return "EXPR";
     }
 }
 
@@ -825,7 +825,7 @@ string CPPCompile::GenVal(const ValPtr& v) {
     auto it = t->InternalType();
 
     if ( tag == TYPE_BOOL )
-        return string(v->IsZero() ? "false" : "true");
+        return v->IsZero() ? "false" : "true";
 
     if ( tag == TYPE_ENUM )
         return GenEnum(t, v);

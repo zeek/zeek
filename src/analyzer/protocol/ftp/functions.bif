@@ -20,8 +20,8 @@ static zeek::RecordValPtr parse_port(const std::string& line)
 		{
 		good = true;
 
-		for ( int i = 0; i < 6; ++i )
-			if ( bytes[i] < 0 || bytes[i] > 255 )
+		for ( int b : bytes )
+			if ( b < 0 || b > 255 )
 				{
 				good = false;
 				break;
@@ -75,19 +75,19 @@ static zeek::RecordValPtr parse_eftp(const char* line)
 			if ( *line && *line != delimiter )
 				{
 				const char* nptr = strchr(line, delimiter);
-				if ( nptr == NULL )
+				if ( nptr == nullptr )
 					nptr = line + strlen(line);
 
 				std::string s(line, nptr-line); // extract IP address
 				struct in6_addr result;
-				good = zeek::IPAddr::ConvertString(s.c_str(), &result) ? 1 : 0;
+				good = zeek::IPAddr::ConvertString(s.c_str(), &result);
 				if ( good )
 					addr = zeek::IPAddr(result);
 				}
 
 			line = strchr(line, delimiter);
 
-			if ( line != NULL )
+			if ( line != nullptr )
 				{
 				++line;	// now the port
 				port = strtol(line, &next_delim, 10);

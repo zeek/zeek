@@ -64,9 +64,9 @@ Manager::~Manager() {
 
     sources.clear();
 
-    for ( PktDumperList::iterator i = pkt_dumpers.begin(); i != pkt_dumpers.end(); ++i ) {
-        (*i)->Done();
-        delete *i;
+    for ( PktDumper* dumper : pkt_dumpers ) {
+        dumper->Done();
+        delete dumper;
     }
 
     pkt_dumpers.clear();
@@ -189,7 +189,7 @@ void Manager::Poll(ReadySources* ready, double timeout, IOSource* timeout_src) {
     struct timespec kqueue_timeout;
     ConvertTimeout(timeout, kqueue_timeout);
 
-    int ret = kevent(event_queue, NULL, 0, events.data(), events.size(), &kqueue_timeout);
+    int ret = kevent(event_queue, nullptr, 0, events.data(), events.size(), &kqueue_timeout);
     if ( ret == -1 ) {
         // Ignore interrupts since we may catch one during shutdown and we don't want the
         // error to get printed.
@@ -249,18 +249,18 @@ bool Manager::RegisterFd(int fd, IOSource* src, int flags) {
     if ( (flags & IOSource::READ) != 0 ) {
         if ( fd_map.count(fd) == 0 ) {
             new_events.push_back({});
-            EV_SET(&(new_events.back()), fd, EVFILT_READ, EV_ADD, 0, 0, NULL);
+            EV_SET(&(new_events.back()), fd, EVFILT_READ, EV_ADD, 0, 0, nullptr);
         }
     }
     if ( (flags & IOSource::WRITE) != 0 ) {
         if ( write_fd_map.count(fd) == 0 ) {
             new_events.push_back({});
-            EV_SET(&(new_events.back()), fd, EVFILT_WRITE, EV_ADD, 0, 0, NULL);
+            EV_SET(&(new_events.back()), fd, EVFILT_WRITE, EV_ADD, 0, 0, nullptr);
         }
     }
 
     if ( ! new_events.empty() ) {
-        int ret = kevent(event_queue, new_events.data(), new_events.size(), NULL, 0, NULL);
+        int ret = kevent(event_queue, new_events.data(), new_events.size(), nullptr, 0, nullptr);
         if ( ret != -1 ) {
             DBG_LOG(DBG_MAINLOOP, "Registered fd %d from %s", fd, src->Tag());
             for ( const auto& a : new_events )
@@ -289,18 +289,18 @@ bool Manager::UnregisterFd(int fd, IOSource* src, int flags) {
     if ( (flags & IOSource::READ) != 0 ) {
         if ( fd_map.count(fd) != 0 ) {
             new_events.push_back({});
-            EV_SET(&(new_events.back()), fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+            EV_SET(&(new_events.back()), fd, EVFILT_READ, EV_DELETE, 0, 0, nullptr);
         }
     }
     if ( (flags & IOSource::WRITE) != 0 ) {
         if ( write_fd_map.count(fd) != 0 ) {
             new_events.push_back({});
-            EV_SET(&(new_events.back()), fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+            EV_SET(&(new_events.back()), fd, EVFILT_WRITE, EV_DELETE, 0, 0, nullptr);
         }
     }
 
     if ( ! new_events.empty() ) {
-        int ret = kevent(event_queue, new_events.data(), new_events.size(), NULL, 0, NULL);
+        int ret = kevent(event_queue, new_events.data(), new_events.size(), nullptr, 0, nullptr);
         if ( ret != -1 ) {
             DBG_LOG(DBG_MAINLOOP, "Unregistered fd %d from %s", fd, src->Tag());
             for ( const auto& a : new_events )

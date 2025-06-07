@@ -29,7 +29,7 @@ OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::stri
     DBG_LOG(DBG_STORAGE, "Executing '%s' on %s", cmd.c_str(), full_path.c_str());
 
     while ( pragma_timeout == 0ms || time_spent < pragma_timeout ) {
-        int res = sqlite3_exec(db, cmd.c_str(), NULL, NULL, &errorMsg);
+        int res = sqlite3_exec(db, cmd.c_str(), nullptr, nullptr, &errorMsg);
         if ( res == SQLITE_OK ) {
             break;
         }
@@ -94,7 +94,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
 
     if ( auto open_res =
              CheckError(sqlite3_open_v2(full_path.c_str(), &db,
-                                        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL));
+                                        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, nullptr));
          open_res.code != ReturnCode::SUCCESS ) {
         sqlite3_close_v2(db);
         db = nullptr;
@@ -129,7 +129,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     // simultaneous multi-threaded access to the same connection.
     if ( auto open_res =
              CheckError(sqlite3_open_v2(full_path.c_str(), &expire_db,
-                                        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, NULL));
+                                        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_NOMUTEX, nullptr));
          open_res.code != ReturnCode::SUCCESS ) {
         Close(nullptr);
         return open_res;
@@ -141,7 +141,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     cmd.append("key_str blob primary key, value_str blob not null, expire_time real);");
 
     char* errorMsg = nullptr;
-    if ( int res = sqlite3_exec(db, cmd.c_str(), NULL, NULL, &errorMsg); res != SQLITE_OK ) {
+    if ( int res = sqlite3_exec(db, cmd.c_str(), nullptr, nullptr, &errorMsg); res != SQLITE_OK ) {
         std::string err = util::fmt("Error executing table creation statement: (%d) %s", res, errorMsg);
         Error(err.c_str());
         sqlite3_free(errorMsg);
@@ -154,7 +154,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     // Create a table for controlling expiration contention. The ukey column here ensures that only
     // one row exists for this backend's table.
     cmd = util::fmt("create table if not exists zeek_storage_expiry_runs (ukey primary key, last_run double);");
-    if ( int res = sqlite3_exec(db, cmd.c_str(), NULL, NULL, &errorMsg); res != SQLITE_OK ) {
+    if ( int res = sqlite3_exec(db, cmd.c_str(), nullptr, nullptr, &errorMsg); res != SQLITE_OK ) {
         std::string err = util::fmt("Error executing table creation statement: (%d) %s", res, errorMsg);
         Error(err.c_str());
         sqlite3_free(errorMsg);
@@ -211,7 +211,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     for ( const auto& [stmt, stmt_db] : statements ) {
         sqlite3_stmt* ps;
         if ( auto prep_res =
-                 CheckError(sqlite3_prepare_v2(stmt_db, stmt.c_str(), static_cast<int>(stmt.size()), &ps, NULL));
+                 CheckError(sqlite3_prepare_v2(stmt_db, stmt.c_str(), static_cast<int>(stmt.size()), &ps, nullptr));
              prep_res.code != ReturnCode::SUCCESS ) {
             Close(nullptr);
             return prep_res;
@@ -250,7 +250,7 @@ OperationResult SQLite::DoClose(ResultCallback* cb) {
         update_expiry_last_run_stmt.reset();
 
         char* errmsg;
-        if ( int res = sqlite3_exec(db, "pragma optimize", NULL, NULL, &errmsg);
+        if ( int res = sqlite3_exec(db, "pragma optimize", nullptr, nullptr, &errmsg);
              res != SQLITE_OK && res != SQLITE_BUSY ) {
             // We're shutting down so capture the error message here for informational
             // reasons, but don't do anything else with it.

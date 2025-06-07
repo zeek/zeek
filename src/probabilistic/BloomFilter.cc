@@ -164,8 +164,8 @@ BasicBloomFilter::~BasicBloomFilter() { delete bits; }
 void BasicBloomFilter::Add(const zeek::detail::HashKey* key) {
     detail::Hasher::digest_vector h = hasher->Hash(key);
 
-    for ( size_t i = 0; i < h.size(); ++i )
-        bits->Set(h[i] % bits->Size());
+    for ( unsigned long long i : h )
+        bits->Set(i % bits->Size());
 }
 
 bool BasicBloomFilter::Decrement(const zeek::detail::HashKey* key) {
@@ -176,8 +176,8 @@ bool BasicBloomFilter::Decrement(const zeek::detail::HashKey* key) {
 size_t BasicBloomFilter::Count(const zeek::detail::HashKey* key) const {
     detail::Hasher::digest_vector h = hasher->Hash(key);
 
-    for ( size_t i = 0; i < h.size(); ++i ) {
-        if ( ! (*bits)[h[i] % bits->Size()] )
+    for ( unsigned long long i : h ) {
+        if ( ! (*bits)[i % bits->Size()] )
             return 0;
     }
 
@@ -267,8 +267,8 @@ std::string CountingBloomFilter::InternalState() const { return util::fmt("%" PR
 void CountingBloomFilter::Add(const zeek::detail::HashKey* key) {
     detail::Hasher::digest_vector h = hasher->Hash(key);
 
-    for ( size_t i = 0; i < h.size(); ++i )
-        cells->Increment(h[i] % cells->Size());
+    for ( unsigned long long i : h )
+        cells->Increment(i % cells->Size());
 }
 
 bool CountingBloomFilter::Decrement(const zeek::detail::HashKey* key) {
@@ -278,8 +278,8 @@ bool CountingBloomFilter::Decrement(const zeek::detail::HashKey* key) {
 
     detail::Hasher::digest_vector h = hasher->Hash(key);
 
-    for ( size_t i = 0; i < h.size(); ++i )
-        cells->Decrement(h[i] % cells->Size());
+    for ( unsigned long long i : h )
+        cells->Decrement(i % cells->Size());
 
     return true;
 }
@@ -289,8 +289,8 @@ size_t CountingBloomFilter::Count(const zeek::detail::HashKey* key) const {
 
     detail::CounterVector::size_type min = std::numeric_limits<detail::CounterVector::size_type>::max();
 
-    for ( size_t i = 0; i < h.size(); ++i ) {
-        detail::CounterVector::size_type cnt = cells->Count(h[i] % cells->Size());
+    for ( unsigned long long i : h ) {
+        detail::CounterVector::size_type cnt = cells->Count(i % cells->Size());
         if ( cnt < min )
             min = cnt;
     }

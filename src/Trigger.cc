@@ -162,8 +162,8 @@ void Trigger::Terminate() {
 Trigger::~Trigger() {
     DBG_LOG(DBG_NOTIFIERS, "%s: deleting", Name());
 
-    for ( ValCache::iterator i = cache.begin(); i != cache.end(); ++i )
-        Unref(i->second);
+    for ( auto& [_, trigger] : cache )
+        Unref(trigger);
 
     Unref(frame);
     UnregisterAll();
@@ -457,9 +457,8 @@ void Manager::Process() {
     TriggerList tmp;
     pending = &tmp;
 
-    for ( TriggerList::iterator i = orig->begin(); i != orig->end(); ++i ) {
-        Trigger* t = *i;
-        (*i)->Eval();
+    for ( auto* t : *orig ) {
+        t->Eval();
         Unref(t);
     }
 

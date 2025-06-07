@@ -409,7 +409,7 @@ void init_random_seed(const char* read_file, const char* write_file, bool use_em
         pos += nbytes / sizeof(uint32_t);
 #else
         // Gather up some entropy.
-        gettimeofday((struct timeval*)(buf.data() + pos), 0);
+        gettimeofday((struct timeval*)(buf.data() + pos), nullptr);
         pos += sizeof(struct timeval) / sizeof(uint32_t);
 
         // use urandom. For reasons see e.g. http://www.2uo.de/myths-about-urandom/
@@ -664,8 +664,8 @@ string normalize_path(std::string_view path) {
         }
     }
 
-    for ( auto it = final_components.begin(); it != final_components.end(); ++it ) {
-        new_path.append(*it);
+    for ( const auto& comp : final_components ) {
+        new_path.append(comp);
         new_path.append("/");
     }
 
@@ -681,8 +681,8 @@ string without_zeekpath_component(std::string_view path) {
 
     const auto paths = tokenize_string(zeek_path(), path_list_separator[0]);
 
-    for ( size_t i = 0; i < paths.size(); ++i ) {
-        string common = normalize_path(paths[i]);
+    for ( const auto& p : paths ) {
+        string common = normalize_path(p);
 
         if ( rval.find(common) != 0 )
             continue;
@@ -1817,8 +1817,8 @@ string find_file(const string& filename, const string& path_set, const string& o
     if ( ! opt_ext.empty() )
         ext.push_back(opt_ext);
 
-    for ( size_t n = 0; n < paths.size(); ++n ) {
-        string f = find_file_in_path(filename, paths[n], ext);
+    for ( const auto& p : paths ) {
+        string f = find_file_in_path(filename, p, ext);
 
         if ( ! f.empty() )
             return f;
@@ -1833,8 +1833,8 @@ string find_script_file(const string& filename, const string& path_set) {
 
     vector<string> ext = {".zeek"};
 
-    for ( size_t n = 0; n < paths.size(); ++n ) {
-        string f = find_file_in_path(filename, paths[n], ext);
+    for ( const auto& p : paths ) {
+        string f = find_file_in_path(filename, p, ext);
 
         if ( ! f.empty() )
             return f;
@@ -1853,7 +1853,7 @@ double current_time(bool real) {
     tv.tv_sec = ms.count() / 1000;
     tv.tv_usec = (ms.count() % 1000) * 1000;
 #else
-    if ( gettimeofday(&tv, 0) < 0 )
+    if ( gettimeofday(&tv, nullptr) < 0 )
         reporter->InternalError("gettimeofday failed in current_time()");
 #endif
     double t = double(tv.tv_sec) + double(tv.tv_usec) / 1e6;
@@ -1942,7 +1942,7 @@ uint64_t calculate_unique_id(size_t pool) {
             memset(&unique, 0, sizeof(unique)); // Make valgrind happy.
             gethostname(unique.hostname, 120);
             unique.hostname[sizeof(unique.hostname) - 1] = '\0';
-            gettimeofday(&unique.time, 0);
+            gettimeofday(&unique.time, nullptr);
             unique.pool = (uint64_t)pool;
             unique.pid = getpid();
             unique.rnd = static_cast<int>(detail::random_number());

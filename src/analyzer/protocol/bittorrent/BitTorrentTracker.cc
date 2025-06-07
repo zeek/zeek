@@ -195,7 +195,7 @@ void BitTorrentTracker_Analyzer::EndpointEOF(bool is_orig) {
     analyzer::tcp::TCP_ApplicationAnalyzer::EndpointEOF(is_orig);
 }
 
-void BitTorrentTracker_Analyzer::InitBencParser(void) {
+void BitTorrentTracker_Analyzer::InitBencParser() {
     benc_stack.clear();
     benc_count.clear();
 
@@ -304,7 +304,7 @@ bool BitTorrentTracker_Analyzer::ParseRequest(char* line) {
 
 void BitTorrentTracker_Analyzer::RequestGet(char* uri) { req_val_uri = new StringVal(uri); }
 
-void BitTorrentTracker_Analyzer::EmitRequest(void) {
+void BitTorrentTracker_Analyzer::EmitRequest() {
     AnalyzerConfirmation();
 
     if ( bt_tracker_request )
@@ -443,7 +443,7 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name, detail::
     res_val_benc->Assign(std::move(name_), std::move(benc_value));
 }
 
-void BitTorrentTracker_Analyzer::ResponseBody(void) {
+void BitTorrentTracker_Analyzer::ResponseBody() {
     switch ( ResponseParseBenc() ) {
         case 0:
             EmitResponse();
@@ -466,7 +466,7 @@ void BitTorrentTracker_Analyzer::ResponseBody(void) {
         }                                                                                                              \
     }
 
-int BitTorrentTracker_Analyzer::ResponseParseBenc(void) {
+int BitTorrentTracker_Analyzer::ResponseParseBenc() {
     auto INC_COUNT = [this]() {
         unsigned int count = benc_count.back();
         benc_count.pop_back();
@@ -696,7 +696,7 @@ int BitTorrentTracker_Analyzer::ResponseParseBenc(void) {
     return -2; // need more data
 }
 
-void BitTorrentTracker_Analyzer::EmitResponse(void) {
+void BitTorrentTracker_Analyzer::EmitResponse() {
     AnalyzerConfirmation();
 
     if ( bt_tracker_response )

@@ -1,3 +1,21 @@
+8.0.0-dev.406 | 2025-06-06 11:45:33 -0700
+
+  * Move initialization of RandTest members to header (Tim Wojtulewicz, Corelight)
+
+  * Update .clang-tidy to have modernize-* enabled with some exclusions (Tim Wojtulewicz, Corelight)
+
+  * Fix clang-tidy modernize findings (Tim Wojtulewicz, Corelight)
+
+  * Update bifcl submodule with clang-tidy fixes [nomail] (Tim Wojtulewicz, Corelight)
+
+8.0.0-dev.389 | 2025-06-06 10:43:07 -0700
+
+  * Make Zeekygen docs generation (-X) imply parse-only (-a) (Christian Kreibich, Corelight)
+
+8.0.0-dev.382 | 2025-06-06 17:33:39 +0200
+
+  * Fix `&ordered` attribute not preserved in table initializer assignments (赵富鹏)
+
 8.0.0-dev.380 | 2025-06-06 10:26:17 +0200
 
   * docker: Add `net-tools` and `procps` dependencies (Edoardo Mich)

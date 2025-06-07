@@ -136,9 +136,9 @@ void Attr::DescribeReST(ODesc* d, bool shorten) const {
             expr->Eval(nullptr)->Describe(&dd);
             std::string s = dd.Description();
 
-            for ( size_t i = 0; i < s.size(); ++i )
-                if ( s[i] == '\n' )
-                    s[i] = ' ';
+            for ( auto& c : s )
+                if ( c == '\n' )
+                    c = ' ';
 
             add_long_expr_string(d, s, shorten);
         }

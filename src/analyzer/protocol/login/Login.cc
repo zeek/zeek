@@ -180,7 +180,7 @@ void Login_Analyzer::AuthenticationDialog(bool orig, char* line) {
     const char* prompt = IsLoginPrompt(line);
     bool is_timeout = IsTimeout(line);
     if ( prompt && ! IsSuccessMsg(line) && ! is_timeout ) {
-        is_VMS = strstr(line, "Username:") != 0;
+        is_VMS = strstr(line, "Username:") != nullptr;
 
         // If we see multiple login prompts, presume that
         // each is consuming one line of typeahead.

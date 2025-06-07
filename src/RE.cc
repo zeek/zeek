@@ -19,7 +19,7 @@ zeek::detail::NFA_Machine* zeek::detail::nfa = nullptr;
 bool zeek::detail::case_insensitive = false;
 bool zeek::detail::re_single_line = false;
 
-extern int RE_parse(void);
+extern int RE_parse();
 extern void RE_set_input(const char* str);
 extern void RE_done_with_scan();
 
@@ -271,8 +271,8 @@ void Specific_RE_Matcher::Dump(FILE* f) { dfa->Dump(f); }
 inline void RE_Match_State::AddMatches(const AcceptingSet& as, MatchPos position) {
     using am_idx = std::pair<AcceptIdx, MatchPos>;
 
-    for ( AcceptingSet::const_iterator it = as.begin(); it != as.end(); ++it )
-        accepted_matches.insert(am_idx(*it, position));
+    for ( const auto& entry : as )
+        accepted_matches.insert(am_idx(entry, position));
 }
 
 bool RE_Match_State::Match(const u_char* bv, int n, bool bol, bool eol, bool clear) {

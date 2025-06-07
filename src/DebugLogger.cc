@@ -44,7 +44,7 @@ void DebugLogger::OpenDebugLog(const char* filename) {
             }
         }
 
-        util::detail::setvbuf(file, NULL, _IOLBF, 0);
+        util::detail::setvbuf(file, nullptr, _IOLBF, 0);
     }
     else
         file = stderr;
@@ -90,9 +90,9 @@ void DebugLogger::EnableStreams(const char* s) {
         std::string ltok{util::strreplace(util::strtolower(tok), "_", "-")};
 
         if ( strcasecmp("all", tok) == 0 ) {
-            for ( int i = 0; i < NUM_DBGS; ++i ) {
-                streams[i].enabled = true;
-                enabled_streams.insert(streams[i].prefix);
+            for ( auto& strm : streams ) {
+                strm.enabled = true;
+                enabled_streams.insert(strm.prefix);
             }
 
             all = true;
@@ -130,7 +130,7 @@ void DebugLogger::EnableStreams(const char* s) {
         reporter->FatalError("unknown debug stream '%s', try -B help.\n", tok);
 
     next:
-        tok = strtok(0, ",");
+        tok = strtok(nullptr, ",");
     }
 
     delete[] tmp;

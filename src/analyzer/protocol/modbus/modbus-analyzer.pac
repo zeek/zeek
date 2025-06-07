@@ -524,14 +524,14 @@ refine flow ModbusTCP_Flow += {
 			{
 			auto vect = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::ModbusFileRecordRequests);
 
-			for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
+			for ( const auto& ref : *(${message.references}) )
 				{
 				auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::ModbusFileRecordRequest);
 
-				r->Assign(0, zeek::val_mgr->Count(${message.references[i].ref_type}));
-				r->Assign(1, zeek::val_mgr->Count(${message.references[i].file_num}));
-				r->Assign(2, zeek::val_mgr->Count(${message.references[i].record_num}));
-				r->Assign(3, zeek::val_mgr->Count(${message.references[i].record_len}));
+				r->Assign(0, zeek::val_mgr->Count(${ref.ref_type}));
+				r->Assign(1, zeek::val_mgr->Count(${ref.file_num}));
+				r->Assign(2, zeek::val_mgr->Count(${ref.record_num}));
+				r->Assign(3, zeek::val_mgr->Count(${ref.record_len}));
 
 				vect->Append(r);
 				}
@@ -551,13 +551,13 @@ refine flow ModbusTCP_Flow += {
 			{
 			auto vect = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::ModbusFileRecordResponses);
 
-			for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
+			for ( const auto& ref : *(${message.references}) )
 				{
 				auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::ModbusFileRecordResponse);
 
-				r->Assign(0, zeek::val_mgr->Count(${message.references[i].file_len}));
-				r->Assign(1, zeek::val_mgr->Count(${message.references[i].ref_type}));
-				r->Assign(2, to_stringval(${message.references[i].record_data}));
+				r->Assign(0, zeek::val_mgr->Count(${ref.file_len}));
+				r->Assign(1, zeek::val_mgr->Count(${ref.ref_type}));
+				r->Assign(2, to_stringval(${ref.record_data}));
 
 				vect->Append(r);
 				}
@@ -577,14 +577,14 @@ refine flow ModbusTCP_Flow += {
 			{
 			auto vect = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::ModbusFileReferences);
 
-			for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
+			for ( const auto& ref : *(${message.references}) )
 				{
 				auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::ModbusFileReference);
-				r->Assign(0, zeek::val_mgr->Count(${message.references[i].ref_type}));
-				r->Assign(1, zeek::val_mgr->Count(${message.references[i].file_num}));
-				r->Assign(2, zeek::val_mgr->Count(${message.references[i].record_num}));
-				r->Assign(3, zeek::val_mgr->Count(${message.references[i].record_length}));
-				r->Assign(4, to_stringval(${message.references[i].record_data}));
+				r->Assign(0, zeek::val_mgr->Count(${ref.ref_type}));
+				r->Assign(1, zeek::val_mgr->Count(${ref.file_num}));
+				r->Assign(2, zeek::val_mgr->Count(${ref.record_num}));
+				r->Assign(3, zeek::val_mgr->Count(${ref.record_length}));
+				r->Assign(4, to_stringval(${ref.record_data}));
 
 				vect->Append(r);
 				}
@@ -604,14 +604,14 @@ refine flow ModbusTCP_Flow += {
 			{
 			auto vect = zeek::make_intrusive<zeek::VectorVal>(zeek::BifType::Vector::ModbusFileReferences);
 
-			for ( unsigned int i = 0; i < (${message.references}->size()); ++i )
+			for ( const auto& ref : *(${message.references}) )
 				{
 				auto r = zeek::make_intrusive<zeek::RecordVal>(zeek::BifType::Record::ModbusFileReference);
-				r->Assign(0, zeek::val_mgr->Count(${message.references[i].ref_type}));
-				r->Assign(1, zeek::val_mgr->Count(${message.references[i].file_num}));
-				r->Assign(2, zeek::val_mgr->Count(${message.references[i].record_num}));
-				r->Assign(3, zeek::val_mgr->Count(${message.references[i].record_length}));
-				r->Assign(4, to_stringval(${message.references[i].record_data}));
+				r->Assign(0, zeek::val_mgr->Count(${ref.ref_type}));
+				r->Assign(1, zeek::val_mgr->Count(${ref.file_num}));
+				r->Assign(2, zeek::val_mgr->Count(${ref.record_num}));
+				r->Assign(3, zeek::val_mgr->Count(${ref.record_length}));
+				r->Assign(4, to_stringval(${ref.record_data}));
 
 				vect->Append(r);
 				}

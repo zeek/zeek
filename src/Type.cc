@@ -756,9 +756,7 @@ void FuncType::DescribeReST(ODesc* d, bool roles_only) const {
 void FuncType::AddPrototype(Prototype p) { prototypes.emplace_back(std::move(p)); }
 
 std::optional<FuncType::Prototype> FuncType::FindPrototype(const RecordType& args) const {
-    for ( auto i = 0u; i < prototypes.size(); ++i ) {
-        const auto& p = prototypes[i];
-
+    for ( const auto& p : prototypes ) {
         if ( args.NumFields() != p.args->NumFields() )
             continue;
 
@@ -904,7 +902,7 @@ public:
         auto v = init_expr->Eval(nullptr);
         if ( ! v ) {
             reporter->Error("failed &default in record creation");
-            return ZVal();
+            return {};
         }
 
         if ( coerce_type )
@@ -913,7 +911,7 @@ public:
         else if ( init_type->Tag() == TYPE_VECTOR )
             concretize_if_unspecified(cast_intrusive<VectorVal>(v), init_type->Yield());
 
-        return ZVal(v, init_type);
+        return {v, init_type};
     }
 
     bool IsDeferrable() const override { return false; }
@@ -932,7 +930,7 @@ class RecordFieldInit final : public FieldInit {
 public:
     RecordFieldInit(RecordTypePtr _init_type) : init_type(std::move(_init_type)) {}
 
-    ZVal Generate() const override { return ZVal(new RecordVal(init_type)); }
+    ZVal Generate() const override { return {new RecordVal(init_type)}; }
 
     bool IsDeferrable() const override {
         assert(! run_state::is_parsing);
@@ -950,7 +948,7 @@ public:
     TableFieldInit(TableTypePtr _init_type, detail::AttributesPtr _attrs)
         : init_type(std::move(_init_type)), attrs(std::move(_attrs)) {}
 
-    ZVal Generate() const override { return ZVal(new TableVal(init_type, attrs)); }
+    ZVal Generate() const override { return {new TableVal(init_type, attrs)}; }
 
 private:
     TableTypePtr init_type;
@@ -963,7 +961,7 @@ class VectorFieldInit final : public FieldInit {
 public:
     VectorFieldInit(VectorTypePtr _init_type) : init_type(std::move(_init_type)) {}
 
-    ZVal Generate() const override { return ZVal(new VectorVal(init_type)); }
+    ZVal Generate() const override { return {new VectorVal(init_type)}; }
 
 private:
     VectorTypePtr init_type;
@@ -1661,8 +1659,8 @@ const char* EnumType::Lookup(zeek_int_t value) const {
 
 EnumType::enum_name_list EnumType::Names() const {
     enum_name_list n;
-    for ( auto iter = names.begin(); iter != names.end(); ++iter )
-        n.emplace_back(iter->first, iter->second);
+    for ( const auto& [name, value] : names )
+        n.emplace_back(name, value);
 
     return n;
 }

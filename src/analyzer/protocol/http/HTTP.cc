@@ -1631,11 +1631,11 @@ void HTTP_Analyzer::SkipEntityData(bool is_orig) {
 }
 
 bool is_reserved_URI_char(unsigned char ch) { // see RFC 3986 (definition of URI)
-    return strchr(":/?#[]@!$&'()*+,;=", ch) != 0;
+    return strchr(":/?#[]@!$&'()*+,;=", ch) != nullptr;
 }
 
 bool is_unreserved_URI_char(unsigned char ch) { // see RFC 3986 (definition of URI)
-    return isalnum(ch) != 0 || strchr("-_.!~*\'()", ch) != 0;
+    return isalnum(ch) != 0 || strchr("-_.!~*\'()", ch) != nullptr;
 }
 
 void escape_URI_char(unsigned char ch, unsigned char*& p) {

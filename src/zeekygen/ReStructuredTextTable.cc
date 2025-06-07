@@ -40,16 +40,16 @@ string ReStructuredTextTable::MakeBorder(const vector<size_t>& col_sizes, char b
 string ReStructuredTextTable::AsString(char border) const {
     string rval = MakeBorder(longest_row_in_column, border);
 
-    for ( size_t row = 0; row < rows.size(); ++row ) {
+    for ( const auto& row : rows ) {
         for ( size_t col = 0; col < num_cols; ++col ) {
             if ( col > 0 ) {
-                size_t last = rows[row][col - 1].size();
+                size_t last = row[col - 1].size();
                 size_t longest = longest_row_in_column[col - 1];
                 size_t whitespace = longest - last + 1;
                 rval += string(whitespace, ' ');
             }
 
-            rval += rows[row][col];
+            rval += row[col];
         }
 
         rval += "\n";

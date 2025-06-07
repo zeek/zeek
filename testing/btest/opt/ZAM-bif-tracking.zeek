@@ -342,6 +342,7 @@ global known_BiFs = set(
 	"get_reporter_stats",
 	"get_resp_seq",
 	"get_script_comments",
+	"get_tags_by_category",
 	"get_thread_stats",
 	"get_timer_stats",
 	"getenv",

@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	helo	mailfrom	rcptto	date	from	to	cc	reply_to	msg_id	in_reply_to	subject	x_originating_ip	first_received	second_received	last_reply	path	user_agent	tls	fuids
 #types	time	string	addr	port	addr	port	count	string	string	set[string]	string	string	set[string]	set[string]	string	string	string	string	addr	string	string	string	vector[addr]	string	bool	vector[string]
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	52210	127.0.0.1	25	1	localhost	zeek@localhost	root@localhost	-	Sam@random.com	Susan@random.com	-	-	-	-	This is a bodyless test message	-	-	-	221 2.0.0 Bye	127.0.0.1,127.0.0.1	-	F	(empty)
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	52210	127.0.0.1	25	1	localhost	zeek@localhost	root@localhost	-	Sam@random.com	Susan@random.com	-	-	-	-	This is a bodyless test message	-	-	-	250 2.0.0 Ok: 86 bytes queued as 1E2891CA025	127.0.0.1,127.0.0.1	-	F	(empty)
 #close XXXX-XX-XX-XX-XX-XX

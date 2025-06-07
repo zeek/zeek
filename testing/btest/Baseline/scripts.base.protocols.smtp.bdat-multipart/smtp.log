@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	helo	mailfrom	rcptto	date	from	to	cc	reply_to	msg_id	in_reply_to	subject	x_originating_ip	first_received	second_received	last_reply	path	user_agent	tls	fuids
 #types	time	string	addr	port	addr	port	count	string	string	set[string]	string	string	set[string]	set[string]	string	string	string	string	addr	string	string	string	vector[addr]	string	bool	vector[string]
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	38848	127.0.0.1	25	1	localhost	zeek@localhost	root@localhost	Tue, 12 Dec 2023 17:37:16 +0100	Arne Welzel <arne.welzel@corelight.com>	Arne Welzel <arne.welzel@corelight.com>	-	-	<CADsmdyWKpbe9NVsh29VkbMCRZRfXUUXH+316vKFgDGHtJxwoAw@mail.gmail.com>	-	Zeek Logo	-	-	-	221 2.0.0 Bye	127.0.0.1,127.0.0.1	-	F	FemNmn1XNlVbnEe4u3,FWMIGN1fQdGfq0zsg1
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	127.0.0.1	38848	127.0.0.1	25	1	localhost	zeek@localhost	root@localhost	Tue, 12 Dec 2023 17:37:16 +0100	Arne Welzel <arne.welzel@corelight.com>	Arne Welzel <arne.welzel@corelight.com>	-	-	<CADsmdyWKpbe9NVsh29VkbMCRZRfXUUXH+316vKFgDGHtJxwoAw@mail.gmail.com>	-	Zeek Logo	-	-	-	250 2.0.0 Ok: 3462 bytes queued as 077781CA025	127.0.0.1,127.0.0.1	-	F	FemNmn1XNlVbnEe4u3,FWMIGN1fQdGfq0zsg1
 #close XXXX-XX-XX-XX-XX-XX

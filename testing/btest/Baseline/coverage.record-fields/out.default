@@ -784,6 +784,7 @@ connection {
   * smtp_state: record SMTP::State, log=F, optional=T
       SMTP::State {
         * analyzer_id: count, log=F, optional=T
+        * bdat_last_observed: bool, log=F, optional=T
         * helo: string, log=F, optional=T
         * invalid_transactions: count, log=F, optional=T
         * messages_transferred: count, log=F, optional=T

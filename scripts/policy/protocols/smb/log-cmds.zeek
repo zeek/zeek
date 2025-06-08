@@ -29,7 +29,7 @@ const deferred_logging_cmds: set[string] = {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(SMB::CMD_LOG, [$columns=SMB::CmdInfo, $path="smb_cmd", $policy=log_policy]);
+	Log::create_stream(SMB::CMD_LOG, Log::Stream($columns=SMB::CmdInfo, $path="smb_cmd", $policy=log_policy));
 	}
 
 event smb1_message(c: connection, hdr: SMB1::Header, is_orig: bool) &priority=-5

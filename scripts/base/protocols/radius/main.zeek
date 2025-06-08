@@ -65,7 +65,7 @@ redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(RADIUS::LOG, [$columns=Info, $ev=log_radius, $path="radius", $policy=log_policy]);
+	Log::create_stream(RADIUS::LOG, Log::Stream($columns=Info, $ev=log_radius, $path="radius", $policy=log_policy));
 	Analyzer::register_for_ports(Analyzer::ANALYZER_RADIUS, ports);
 	}
 

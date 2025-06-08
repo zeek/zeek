@@ -42,7 +42,7 @@ function __init_cluster_nodes(): bool
 		if ( endp$role in rolemap )
 			typ = rolemap[endp$role];
 
-		cnode = [$node_type=typ, $ip=endp$host, $p=endp$p];
+		cnode = Cluster::Node($node_type=typ, $ip=endp$host, $p=endp$p);
 		if ( |manager_name| > 0 && cnode$node_type != Cluster::MANAGER )
 			cnode$manager = manager_name;
 		if ( endp?$metrics_port )

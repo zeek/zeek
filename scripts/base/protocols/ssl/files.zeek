@@ -96,14 +96,17 @@ function describe_file(f: fa_file): string
 
 event zeek_init() &priority=5
 	{
-	Files::register_protocol(Analyzer::ANALYZER_SSL,
-	                         [$get_file_handle = SSL::get_file_handle,
-	                          $describe        = SSL::describe_file]);
+		Files::register_protocol(
+				Analyzer::ANALYZER_SSL,
+				Files::ProtoRegistration(
+					$get_file_handle = SSL::get_file_handle,
+					$describe        = SSL::describe_file));
 
-	Files::register_protocol(Analyzer::ANALYZER_DTLS,
-	                         [$get_file_handle = SSL::get_file_handle,
-	                          $describe        = SSL::describe_file]);
-
+		Files::register_protocol(
+				Analyzer::ANALYZER_DTLS,
+				Files::ProtoRegistration(
+					$get_file_handle = SSL::get_file_handle,
+					$describe        = SSL::describe_file));
 
 	local ssl_filter = Log::get_filter(SSL::LOG, "default");
 	if ( ssl_filter$name != "<not found>" )

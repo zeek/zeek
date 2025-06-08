@@ -83,7 +83,7 @@ event zeek_init() &priority=5
 	{
 	Analyzer::register_for_ports(Analyzer::ANALYZER_KRB, udp_ports);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_KRB_TCP, tcp_ports);
-	Log::create_stream(KRB::LOG, [$columns=Info, $ev=log_krb, $path="kerberos", $policy=log_policy]);
+	Log::create_stream(KRB::LOG, Log::Stream($columns=Info, $ev=log_krb, $path="kerberos", $policy=log_policy));
 	}
 
 function set_session(c: connection): bool

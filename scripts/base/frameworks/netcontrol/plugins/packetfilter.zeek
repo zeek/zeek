@@ -106,7 +106,7 @@ global packetfilter_plugin = Plugin(
 
 function create_packetfilter() : PluginState
 	{
-	local p: PluginState = [$plugin=packetfilter_plugin];
+	local p = PluginState($plugin=packetfilter_plugin);
 
 	return p;
 	}

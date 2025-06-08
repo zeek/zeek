@@ -15,6 +15,13 @@ export {
 	## HTTP. The default value means Zeek won't expose the port.
 	const metrics_port = 0/unknown &redef;
 
+	## Every metric automatically receives a label with the following name
+	## and the metrics_endpoint_name as value to identify the originating
+	## cluster node.
+	## The label was previously hard-code as "endpoint", and that's why
+	## the variable is called the way it is, but "node" is the better label.
+	const metrics_endpoint_label = "node" &redef;
+
 	## ID for the metrics exporter. This is used as the 'endpoint' label
 	## value when exporting data to Prometheus. In a cluster setup, this
 	## defaults to the name of the node in the cluster configuration.

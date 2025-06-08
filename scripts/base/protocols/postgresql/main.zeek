@@ -75,7 +75,7 @@ redef likely_server_ports += { ports };
 event zeek_init() {
 	Analyzer::register_for_ports(Analyzer::ANALYZER_POSTGRESQL, ports);
 
-	Log::create_stream(PostgreSQL::LOG, [$columns=Info, $ev=log_postgresql, $path="postgresql"]);
+	Log::create_stream(PostgreSQL::LOG, Log::Stream($columns=Info, $ev=log_postgresql, $path="postgresql"));
 }
 
 hook set_session(c: connection) {

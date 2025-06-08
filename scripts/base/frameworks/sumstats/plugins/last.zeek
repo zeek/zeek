@@ -54,7 +54,7 @@ hook register_observe_plugins()
 		if ( r$num_last_elements > 0 )
 			{
 			if ( ! rv?$last_elements )
-				rv$last_elements = Queue::init([$max_len=r$num_last_elements]);
+				rv$last_elements = Queue::init(Queue::Settings($max_len=r$num_last_elements));
 			Queue::put(rv$last_elements, obs);
 			}
 		});

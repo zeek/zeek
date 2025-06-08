@@ -98,7 +98,7 @@ function request(req: Request): ActiveHTTP::Response
 	local cmd = request2curl(req, bodyfile, headersfile);
 	local stdin_data = req?$client_data ? req$client_data : "";
 
-	return when [req, resp, cmd, stdin_data, bodyfile, headersfile] ( local result = Exec::run([$cmd=cmd, $stdin=stdin_data, $read_files=set(bodyfile, headersfile)]) )
+	return when [req, resp, cmd, stdin_data, bodyfile, headersfile] ( local result = Exec::run(Exec::Command($cmd=cmd, $stdin=stdin_data, $read_files=set(bodyfile, headersfile))) )
 		{
 		# If there is no response line then nothing else will work either.
 		if ( ! (result?$files && headersfile in result$files) )

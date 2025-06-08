@@ -13,10 +13,11 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &gr
 		# Remove the occasional port value that shows up here.
 		local host = gsub(value, /:[[:digit:]]+$/, "");
 		if ( is_valid_ip(host) )
-			Intel::seen([$host=to_addr(host),
-				     $indicator_type=Intel::ADDR,
-				     $conn=c,
-				     $where=HTTP::IN_HOST_HEADER]);
+			Intel::seen(Intel::Seen(
+				$host=to_addr(host),
+				$indicator_type=Intel::ADDR,
+				$conn=c,
+				$where=HTTP::IN_HOST_HEADER));
 		break;
 
 		case "X-FORWARDED-FOR":
@@ -25,10 +26,11 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &gr
 			local addrs = extract_ip_addresses(value);
 			for ( i in addrs )
 				{
-				Intel::seen([$host=to_addr(addrs[i]),
-				             $indicator_type=Intel::ADDR,
-				             $conn=c,
-				             $where=HTTP::IN_X_FORWARDED_FOR_HEADER]);
+				Intel::seen(Intel::Seen(
+					$host=to_addr(addrs[i]),
+					$indicator_type=Intel::ADDR,
+					$conn=c,
+					$where=HTTP::IN_X_FORWARDED_FOR_HEADER));
 				}
 			}
 		break;
@@ -43,10 +45,11 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &gr
 	# Remove the occasional port value that shows up here.
 	local host = gsub(value, /:[[:digit:]]+$/, "");
 	if ( ! is_valid_ip(host) )
-		Intel::seen([$indicator=host,
-			     $indicator_type=Intel::DOMAIN,
-			     $conn=c,
-			     $where=HTTP::IN_HOST_HEADER]);
+		Intel::seen(Intel::Seen(
+			$indicator=host,
+			$indicator_type=Intel::DOMAIN,
+			$conn=c,
+			$where=HTTP::IN_HOST_HEADER));
 	}
 
 
@@ -55,10 +58,11 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &gr
 	if ( ! is_orig || name != "REFERER" )
 	    return;
 
-	Intel::seen([$indicator=sub(value, /^.*:\/\//, ""),
-	             $indicator_type=Intel::URL,
-	             $conn=c,
-	             $where=HTTP::IN_REFERRER_HEADER]);
+	Intel::seen(Intel::Seen(
+		$indicator=sub(value, /^.*:\/\//, ""),
+		$indicator_type=Intel::URL,
+		$conn=c,
+		$where=HTTP::IN_REFERRER_HEADER));
 	}
 
 event http_header(c: connection, is_orig: bool, name: string, value: string) &group="Intel::SOFTWARE"
@@ -66,8 +70,9 @@ event http_header(c: connection, is_orig: bool, name: string, value: string) &gr
 	if ( ! is_orig || name != "USER-AGENT" )
 	    return;
 
-	Intel::seen([$indicator=value,
-	             $indicator_type=Intel::SOFTWARE,
-	             $conn=c,
-	             $where=HTTP::IN_USER_AGENT_HEADER]);
+	Intel::seen(Intel::Seen(
+		$indicator=value,
+		$indicator_type=Intel::SOFTWARE,
+		$conn=c,
+		$where=HTTP::IN_USER_AGENT_HEADER));
 	}

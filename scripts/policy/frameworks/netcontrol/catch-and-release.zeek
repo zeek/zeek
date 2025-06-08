@@ -168,7 +168,7 @@ global catch_release_recently_notified: set[addr] &create_expire=30secs;
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(NetControl::CATCH_RELEASE, [$columns=CatchReleaseInfo, $ev=log_netcontrol_catch_release, $path="netcontrol_catch_release", $policy=log_policy_catch_release]);
+	Log::create_stream(NetControl::CATCH_RELEASE, Log::Stream($columns=CatchReleaseInfo, $ev=log_netcontrol_catch_release, $path="netcontrol_catch_release", $policy=log_policy_catch_release));
 	}
 
 function get_watch_interval(current_interval: count): interval

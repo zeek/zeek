@@ -318,7 +318,7 @@ const notice_actions = {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Weird::LOG, [$columns=Info, $ev=log_weird, $path="weird", $policy=log_policy]);
+	Log::create_stream(Weird::LOG, Log::Stream($columns=Info, $ev=log_weird, $path="weird", $policy=log_policy));
 	}
 
 function flow_id_string(src: addr, dst: addr): string

@@ -38,7 +38,7 @@ public:
     constexpr static int DEFAULT_LIST_SIZE = 10;
     constexpr static int LIST_GROWTH_FACTOR = 2;
 
-    ~List() { free(entries); }
+    ~List() { free(static_cast<void*>(entries)); }
     explicit List(int size = 0) {
         num_entries = 0;
 
@@ -78,7 +78,8 @@ public:
     List(const T* arr, int n) {
         num_entries = max_entries = n;
         entries = (T*)util::safe_malloc(max_entries * sizeof(T));
-        memcpy(entries, arr, n * sizeof(T)); // NOLINT(bugprone-bitwise-pointer-cast)
+        // NOLINTNEXTLINE(bugprone-bitwise-pointer-cast,bugprone-multi-level-implicit-pointer-conversion)
+        memcpy(entries, arr, n * sizeof(T));
     }
 
     List(std::initializer_list<T> il) : List(il.begin(), il.size()) {}
@@ -87,7 +88,7 @@ public:
         if ( this == &b )
             return *this;
 
-        free(entries);
+        free(static_cast<void*>(entries));
 
         max_entries = b.max_entries;
         num_entries = b.num_entries;
@@ -107,7 +108,7 @@ public:
         if ( this == &b )
             return *this;
 
-        free(entries);
+        free(static_cast<void*>(entries));
         entries = b.entries;
         num_entries = b.num_entries;
         max_entries = b.max_entries;
@@ -122,7 +123,7 @@ public:
 
     void clear() // remove all entries
     {
-        free(entries);
+        free(static_cast<void*>(entries));
         entries = nullptr;
         num_entries = max_entries = 0;
     }

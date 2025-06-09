@@ -366,7 +366,7 @@ public:
      */
     const ip6_mobility* MobilityHeader() const {
         if ( ip4 )
-            return nullptr;
+            return nullptr; // NOLINT(bugprone-branch-clone)
         else if ( (*ip6_hdrs)[ip6_hdrs->Size() - 1]->Type() != IPPROTO_MOBILITY )
             return nullptr;
         else

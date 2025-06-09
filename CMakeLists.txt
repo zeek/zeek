@@ -1083,7 +1083,7 @@ set(USE_GEOIP false)
 find_package(LibMMDB)
 if (LIBMMDB_FOUND)
     set(USE_GEOIP true)
-    include_directories(BEFORE ${LibMMDB_INCLUDE_DIR})
+    include_directories(BEFORE SYSTEM ${LibMMDB_INCLUDE_DIR})
     list(APPEND OPTLIBS ${LibMMDB_LIBRARY})
 endif ()
 
@@ -1091,7 +1091,7 @@ set(USE_KRB5 false)
 find_package(LibKrb5)
 if (LIBKRB5_FOUND)
     set(USE_KRB5 true)
-    include_directories(BEFORE ${LibKrb5_INCLUDE_DIR})
+    include_directories(BEFORE SYSTEM ${LibKrb5_INCLUDE_DIR})
     list(APPEND OPTLIBS ${LibKrb5_LIBRARY})
 endif ()
 
@@ -1124,7 +1124,7 @@ endif ()
 # dependencies which tend to be in standard system locations and thus cause the
 # system OpenSSL headers to still be picked up even if one specifies
 # --with-openssl (which may be common).
-include_directories(BEFORE ${OPENSSL_INCLUDE_DIR})
+include_directories(BEFORE SYSTEM ${OPENSSL_INCLUDE_DIR})
 
 # Determine if libfts is external to libc, i.e. musl
 find_package(FTS)

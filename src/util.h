@@ -425,7 +425,7 @@ constexpr size_t pad_size(size_t size) {
     if ( size == 0 )
         return 0; // glibc allocated 16 bytes anyway.
 
-    const int pad = 8;
+    const size_t pad = 8;
     if ( size < 12 )
         return 2 * pad;
 

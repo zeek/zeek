@@ -38,12 +38,16 @@ public:
     ConnKey(const ConnKey& rhs) { *this = rhs; }
     ConnKey(Val* v);
 
+    // FIXME: This is getting reworked as part of the connection tuple changes. Suppress
+    // the clang-tidy warning for the time being.
+    // NOLINTBEGIN(bugprone-suspicious-memory-comparison)
     bool operator<(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) < 0; }
     bool operator<=(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) <= 0; }
     bool operator==(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) == 0; }
     bool operator!=(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) != 0; }
     bool operator>=(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) >= 0; }
     bool operator>(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) > 0; }
+    // NOLINTEND(bugprone-suspicious-memory-comparison)
 
     ConnKey& operator=(const ConnKey& rhs);
 

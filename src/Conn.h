@@ -27,9 +27,6 @@ class RecordVal;
 using ValPtr = IntrusivePtr<Val>;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 
-namespace session {
-class Manager;
-}
 namespace detail {
 
 class Specific_RE_Matcher;

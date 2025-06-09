@@ -104,6 +104,8 @@ public:
         return *this;
     }
     const EventHandlerPtr& operator=(const EventHandlerPtr& h) {
+        if ( this == &h )
+            return *this;
         handler = h.handler;
         return *this;
     }

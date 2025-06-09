@@ -166,7 +166,7 @@ protected:
     }
 
     void DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen) override {
-        Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
+        TCP_ApplicationAnalyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
         PIA_DeliverPacket(len, data, is_orig, seq, ip, caplen, false);
     }
 

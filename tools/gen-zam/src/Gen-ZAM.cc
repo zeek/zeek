@@ -2633,6 +2633,8 @@ void ZAMGen::InitEmitTargets()
 	// Avoid bugprone-branch-clone warnings from clang-tidy in generated code.
 	Emit(OpName, "// NOLINTBEGIN(bugprone-branch-clone)");
 	Emit(Eval, "// NOLINTBEGIN(bugprone-branch-clone)");
+	Emit(EvalMacros, "// NOLINTBEGIN(bugprone-macro-parentheses)");
+	Emit(EvalMacros, "// NOLINTBEGIN(cppcoreguidelines-macro-usage)");
 
 	InitSwitch(C1Def, "C1 assignment");
 	InitSwitch(C2Def, "C2 assignment");
@@ -2658,6 +2660,8 @@ void ZAMGen::CloseEmitTargets()
 
 	Emit(OpName, "// NOLINTEND(bugprone-branch-clone)");
 	Emit(Eval, "// NOLINTEND(bugprone-branch-clone)");
+	Emit(EvalMacros, "// NOLINTEND(cppcoreguidelines-macro-usage)");
+	Emit(EvalMacros, "// NOLINTEND(bugprone-macro-parentheses)");
 
 	for ( auto& gf : gen_files )
 		fclose(gf.second);

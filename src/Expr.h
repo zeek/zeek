@@ -232,10 +232,12 @@ public:
     bool IsParen() const { return paren; }
 
     // These are used by script optimization for AST analysis.
+    // NOLINTBEGIN(bugprone-macro-parentheses)
 #define ZEEK_EXPR_ACCESSOR_DECLS(ctype)                                                                                \
     const ctype* As##ctype() const;                                                                                    \
     ctype* As##ctype();                                                                                                \
     IntrusivePtr<ctype> As##ctype##Ptr();
+    // NOLINTEND(bugprone-macro-parentheses)
 
     ZEEK_EXPR_ACCESSOR_DECLS(AddToExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(AssignExpr)

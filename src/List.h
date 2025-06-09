@@ -78,7 +78,7 @@ public:
     List(const T* arr, int n) {
         num_entries = max_entries = n;
         entries = (T*)util::safe_malloc(max_entries * sizeof(T));
-        memcpy(entries, arr, n * sizeof(T));
+        memcpy(entries, arr, n * sizeof(T)); // NOLINT(bugprone-bitwise-pointer-cast)
     }
 
     List(std::initializer_list<T> il) : List(il.begin(), il.size()) {}

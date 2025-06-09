@@ -937,8 +937,9 @@ public:
             for ( int idx = 0; idx < Capacity(); idx++ )
                 if ( ! table[idx].Empty() ) {
                     std::string s((char*)table[idx].GetKey(), table[idx].key_size);
-                    f << s << std::endl;
+                    f << s << "\n";
                 }
+            f << std::flush;
         }
     }
 

@@ -1,10 +1,10 @@
 
 %extern{
 	#include <cmath>
-	#define FRAC_16 pow(2,-16)
-	#define FRAC_32 pow(2,-32)
+	#define FRAC_16 std::pow(2,-16)
+	#define FRAC_32 std::pow(2,-32)
 	// NTP defines the epoch from 1900, not 1970
-	#define EPOCH_OFFSET -2208988800
+	constexpr double EPOCH_OFFSET = -2208988800;
 %}
 
 %header{

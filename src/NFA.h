@@ -5,16 +5,16 @@
 #include "zeek/List.h"
 #include "zeek/Obj.h"
 
-#define NO_ACCEPT 0
+constexpr int NO_ACCEPT = 0;
 
-#define NO_UPPER_BOUND -1
+constexpr int NO_UPPER_BOUND = -1;
 
-#define SYM_BOL 256
-#define SYM_EOL 257
-#define NUM_SYM 258
+constexpr int SYM_BOL = 256;
+constexpr int SYM_EOL = 257;
+constexpr int NUM_SYM = 258;
 
-#define SYM_EPSILON 259
-#define SYM_CCL 260
+constexpr int SYM_EPSILON = 259;
+constexpr int SYM_CCL = 260;
 
 namespace zeek {
 

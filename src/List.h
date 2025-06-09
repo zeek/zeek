@@ -317,4 +317,4 @@ using name_list = PList<char>;
 // Macro to visit each list element in turn.
 #define loop_over_list(list, iterator)                                                                                 \
     int iterator;                                                                                                      \
-    for ( iterator = 0; iterator < (list).length(); ++iterator )
+    for ( (iterator) = 0; (iterator) < (list).length(); ++(iterator) )

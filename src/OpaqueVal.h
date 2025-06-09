@@ -229,7 +229,7 @@ public:
     static void hmac(const T& vlist, u_char key[ZEEK_MD5_DIGEST_LENGTH], u_char result[ZEEK_MD5_DIGEST_LENGTH]) {
         digest(vlist, result);
 
-        for ( int i = 0; i < ZEEK_MD5_DIGEST_LENGTH; ++i )
+        for ( size_t i = 0; i < ZEEK_MD5_DIGEST_LENGTH; ++i )
             result[i] ^= key[i];
 
         detail::internal_md5(result, ZEEK_MD5_DIGEST_LENGTH, result);

@@ -432,7 +432,7 @@ inline IPAddr::IPAddr(Family family, const uint32_t* bytes, ByteOrder order) {
 
         if ( order == Host ) {
             for ( unsigned int i = 0; i < 4; ++i ) {
-                uint32_t* p = (uint32_t*)&in6.s6_addr[i * 4];
+                uint32_t* p = (uint32_t*)&in6.s6_addr[i * static_cast<ptrdiff_t>(4)];
                 *p = htonl(*p);
             }
         }

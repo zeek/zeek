@@ -355,7 +355,7 @@ public:
      */
     const u_char* Payload() const {
         if ( ip4 )
-            return ((const u_char*)ip4) + ip4->ip_hl * 4;
+            return ((const u_char*)ip4) + (ip4->ip_hl * static_cast<std::ptrdiff_t>(4));
 
         return ((const u_char*)ip6) + ip6_hdrs->TotalLength();
     }

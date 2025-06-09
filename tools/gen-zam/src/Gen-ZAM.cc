@@ -2630,6 +2630,10 @@ void ZAMGen::InitEmitTargets()
 		gen_files[gfn.first] = f;
 		}
 
+	// Avoid bugprone-branch-clone warnings from clang-tidy in generated code.
+	Emit(OpName, "// NOLINTBEGIN(bugprone-branch-clone)");
+	Emit(Eval, "// NOLINTBEGIN(bugprone-branch-clone)");
+
 	InitSwitch(C1Def, "C1 assignment");
 	InitSwitch(C2Def, "C2 assignment");
 	InitSwitch(C3Def, "C3 assignment");
@@ -2651,6 +2655,9 @@ void ZAMGen::InitSwitch(EmitTarget et, string desc)
 void ZAMGen::CloseEmitTargets()
 	{
 	FinishSwitches();
+
+	Emit(OpName, "// NOLINTEND(bugprone-branch-clone)");
+	Emit(Eval, "// NOLINTEND(bugprone-branch-clone)");
 
 	for ( auto& gf : gen_files )
 		fclose(gf.second);

@@ -50,6 +50,7 @@ public:
 
         max_entries = size;
 
+        // NOLINTNEXTLINE(bugprone-sizeof-expression)
         entries = (T*)util::safe_malloc(max_entries * sizeof(T));
     }
 
@@ -58,6 +59,7 @@ public:
         num_entries = b.num_entries;
 
         if ( max_entries )
+            // NOLINTNEXTLINE(bugprone-sizeof-expression)
             entries = (T*)util::safe_malloc(max_entries * sizeof(T));
         else
             entries = nullptr;
@@ -77,8 +79,9 @@ public:
 
     List(const T* arr, int n) {
         num_entries = max_entries = n;
+        // NOLINTNEXTLINE(bugprone-sizeof-expression)
         entries = (T*)util::safe_malloc(max_entries * sizeof(T));
-        // NOLINTNEXTLINE(bugprone-bitwise-pointer-cast,bugprone-multi-level-implicit-pointer-conversion)
+        // NOLINTNEXTLINE(bugprone-bitwise-pointer-cast,bugprone-multi-level-implicit-pointer-conversion,bugprone-sizeof-expression)
         memcpy(entries, arr, n * sizeof(T));
     }
 
@@ -94,6 +97,7 @@ public:
         num_entries = b.num_entries;
 
         if ( max_entries )
+            // NOLINTNEXTLINE(bugprone-sizeof-expression)
             entries = (T*)util::safe_malloc(max_entries * sizeof(T));
         else
             entries = nullptr;
@@ -139,6 +143,7 @@ public:
             new_size = num_entries; // do not lose any entries
 
         if ( new_size != max_entries ) {
+            // NOLINTNEXTLINE(bugprone-sizeof-expression)
             entries = (T*)util::safe_realloc((void*)entries, sizeof(T) * new_size);
             if ( entries )
                 max_entries = new_size;

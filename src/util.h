@@ -454,11 +454,11 @@ extern void safe_close(int fd);
 // Versions of realloc/malloc which abort() on out of memory
 
 inline void* safe_realloc(void* ptr, size_t size) {
-    ptr = realloc(ptr, size);
-    if ( size && ! ptr )
+    void* new_ptr = realloc(ptr, size);
+    if ( size && ! new_ptr )
         out_of_memory("realloc");
 
-    return ptr;
+    return new_ptr;
 }
 
 inline void* safe_malloc(size_t size) {

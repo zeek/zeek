@@ -628,7 +628,7 @@ public:
             if ( max_entries < num_entries )
                 max_entries = num_entries;
             if ( num_entries > ThresholdEntries() )
-                SizeUp();
+                SizeUp(); // NOLINT(bugprone-branch-clone)
 
             // if space_distance is too great, performance decreases. we need to sizeup for
             // performance.

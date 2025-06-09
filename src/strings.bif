@@ -1166,8 +1166,8 @@ function hexdump%(data_str: string%) : string
 #define HEX_LINE_RIGHT_MIDDLE        31
 #define HEX_BLOCK_LEN                23
 #define HEX_LINE_BYTES               16
-#define NULL_CHAR                    '.'
-#define NONPRINT_CHAR                '.'
+constexpr char NULL_CHAR = '.';
+constexpr char NONPRINT_CHAR = '.';
 
 	const u_char* data = data_str->Bytes();
 	unsigned data_size = data_str->Len();
@@ -1211,7 +1211,7 @@ function hexdump%(data_str: string%) : string
 		// If unprintable, use special characters:
 		if ( val < 0x20 || val >= 0x7f )
 			{
-			if ( val == 0 )
+			if ( val == 0x00 )
 				ascii_byte = NULL_CHAR;
 			else
 				ascii_byte = NONPRINT_CHAR;

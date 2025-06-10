@@ -17,11 +17,14 @@
 // those headers here and create install dependencies on them.
 struct ares_channeldata;
 using ares_channel = struct ares_channeldata*;
+
 #ifndef T_PTR
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define T_PTR 12
 #endif
 
 #ifndef T_TXT
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define T_TXT 16
 #endif
 
@@ -320,7 +323,7 @@ protected:
         bool processed = false;
 
         AsyncRequest(std::string host, int request_type) : host(std::move(host)), type(request_type) {}
-        AsyncRequest(const IPAddr& addr) : addr(addr), type(T_PTR) {}
+        AsyncRequest(const IPAddr& addr);
 
         void Resolved(const std::string& name);
         void Resolved(TableValPtr addrs);

@@ -386,6 +386,7 @@ extern analyzer::Manager* analyzer_mgr;
 
 // Macros for analyzer debug logging which include the connection id into the
 // message.
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
 #ifdef DEBUG
 #define DBG_ANALYZER(conn, txt)                                                                                        \
     DBG_LOG(zeek::DBG_ANALYZER, "%s " txt,                                                                             \
@@ -399,3 +400,4 @@ extern analyzer::Manager* analyzer_mgr;
 #define DBG_ANALYZER(conn, txt)
 #define DBG_ANALYZER_ARGS(conn, fmt, ...)
 #endif
+// NOLINTEND(cppcoreguidelines-macro-usage)

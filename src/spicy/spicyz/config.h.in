@@ -56,7 +56,8 @@ inline const auto CxxZeekIncludesDirectories() {
     return includes;
 }
 
-// Version of Spicy that we are compiling against.
+// Version of Spicy that we are compiling against. Used for codegen changes in glue-compiler.cc.
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #cmakedefine SPICY_VERSION_NUMBER ${SPICY_VERSION_NUMBER}
 
 inline const auto InstallPrefix = path("${CMAKE_INSTALL_PREFIX}");

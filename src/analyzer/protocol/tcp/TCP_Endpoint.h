@@ -193,16 +193,19 @@ public:
     // Codes used for tracking history.  For responders, we shift these
     // over by 16 bits in order to fit both originator and responder
     // into a Connection's hist_seen field.
-#define HIST_SYN_PKT 0x1
-#define HIST_FIN_PKT 0x2
-#define HIST_RST_PKT 0x4
-#define HIST_FIN_RST_PKT 0x8
-#define HIST_DATA_PKT 0x10
-#define HIST_ACK_PKT 0x20
-#define HIST_MULTI_FLAG_PKT 0x40
-#define HIST_CORRUPT_PKT 0x80
-#define HIST_RXMIT 0x100
-#define HIST_WIN0 0x200
+    enum HistoryMasks : uint16_t {
+        HIST_SYN_PKT = 0x1,
+        HIST_FIN_PKT = 0x2,
+        HIST_RST_PKT = 0x4,
+        HIST_FIN_RST_PKT = 0x8,
+        HIST_DATA_PKT = 0x10,
+        HIST_ACK_PKT = 0x20,
+        HIST_MULTI_FLAG_PKT = 0x40,
+        HIST_CORRUPT_PKT = 0x80,
+        HIST_RXMIT = 0x100,
+        HIST_WIN0 = 0x200,
+    };
+
     // #define HIST_UNKNOWN_PKT 0x400  (do not use - used in Session.h)
     bool CheckHistory(uint32_t mask, char code);
     void AddHistory(char code);
@@ -248,10 +251,50 @@ protected:
     uint32_t gap_cnt, gap_thresh;
 };
 
-#define ENDIAN_UNKNOWN 0
-#define ENDIAN_LITTLE 1
-#define ENDIAN_BIG 2
-#define ENDIAN_CONFUSED 3
+enum EndianTypes : uint8_t {
+    ENDIAN_UNKNOWN = 0,
+    ENDIAN_LITTLE = 1,
+    ENDIAN_BIG = 2,
+    ENDIAN_CONFUSED = 3,
+};
 
 } // namespace analyzer::tcp
 } // namespace zeek
+
+[[deprecated(
+    "Remove in v8.1. Use version in zeek::analyzer::tcp::TCP_Endpoint namespace.")]] constexpr int HIST_SYN_PKT =
+    zeek::analyzer::tcp::TCP_Endpoint::HIST_SYN_PKT;
+
+[[deprecated(
+    "Remove in v8.1. Use version in zeek::analyzer::tcp::TCP_Endpoint namespace.")]] constexpr int HIST_FIN_PKT =
+    zeek::analyzer::tcp::TCP_Endpoint::HIST_FIN_PKT;
+
+[[deprecated(
+    "Remove in v8.1. Use version in zeek::analyzer::tcp::TCP_Endpoint namespace.")]] constexpr int HIST_RST_PKT =
+    zeek::analyzer::tcp::TCP_Endpoint::HIST_RST_PKT;
+
+[[deprecated(
+    "Remove in v8.1. Use version in zeek::analyzer::tcp::TCP_Endpoint namespace.")]] constexpr int HIST_FIN_RST_PKT =
+    zeek::analyzer::tcp::TCP_Endpoint::HIST_FIN_RST_PKT;
+
+[[deprecated(
+    "Remove in v8.1. Use version in zeek::analyzer::tcp::TCP_Endpoint namespace.")]] constexpr int HIST_DATA_PKT =
+    zeek::analyzer::tcp::TCP_Endpoint::HIST_DATA_PKT;
+
+[[deprecated(
+    "Remove in v8.1. Use version in zeek::analyzer::tcp::TCP_Endpoint namespace.")]] constexpr int HIST_ACK_PKT =
+    zeek::analyzer::tcp::TCP_Endpoint::HIST_ACK_PKT;
+
+[[deprecated(
+    "Remove in v8.1. Use version in zeek::analyzer::tcp::TCP_Endpoint namespace.")]] constexpr int HIST_MULTI_FLAG_PKT =
+    zeek::analyzer::tcp::TCP_Endpoint::HIST_MULTI_FLAG_PKT;
+
+[[deprecated(
+    "Remove in v8.1. Use version in zeek::analyzer::tcp::TCP_Endpoint namespace.")]] constexpr int HIST_CORRUPT_PKT =
+    zeek::analyzer::tcp::TCP_Endpoint::HIST_CORRUPT_PKT;
+
+[[deprecated("Remove in v8.1. Use version in zeek::analyzer::tcp::TCP_Endpoint namespace.")]] constexpr int HIST_RXMIT =
+    zeek::analyzer::tcp::TCP_Endpoint::HIST_RXMIT;
+
+[[deprecated("Remove in v8.1. Use version in zeek::analyzer::tcp::TCP_Endpoint namespace.")]] constexpr int HIST_WIN0 =
+    zeek::analyzer::tcp::TCP_Endpoint::HIST_WIN0;

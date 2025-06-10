@@ -33,6 +33,7 @@ class FragReassembler;
 }
 
 #ifndef IPPROTO_MOBILITY
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define IPPROTO_MOBILITY 135
 #endif
 

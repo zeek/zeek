@@ -157,6 +157,7 @@ public:
         return cast_intrusive<T>(type);
     }
 
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define UNDERLYING_ACCESSOR_DECL(ztype, ctype, name) ctype name() const;
 
     UNDERLYING_ACCESSOR_DECL(detail::IntValImplementation, zeek_int_t, AsInt)
@@ -433,12 +434,12 @@ public:
     // Same as for IntVal: no Get() method needed.
 };
 
-#define Microseconds 1e-6
-#define Milliseconds 1e-3
-#define Seconds 1.0
-#define Minutes (60 * Seconds)
-#define Hours (60 * Minutes)
-#define Days (24 * Hours)
+constexpr double Microseconds = 1e-6;
+constexpr double Milliseconds = 1e-3;
+constexpr double Seconds = 1.0;
+constexpr double Minutes = (60 * Seconds);
+constexpr double Hours = (60 * Minutes);
+constexpr double Days = (24 * Hours);
 
 class IntervalVal final : public detail::DoubleValImplementation {
 public:
@@ -1717,6 +1718,7 @@ private:
     std::vector<TypePtr>* yield_types = nullptr;
 };
 
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define UNDERLYING_ACCESSOR_DEF(ztype, ctype, name)                                                                    \
     inline ctype Val::name() const { return static_cast<const ztype*>(this)->Get(); }
 

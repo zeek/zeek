@@ -605,4 +605,6 @@ int dbg_cmd_trace(DebugCmd cmd, const vector<string>& args) {
     return 0;
 }
 
+int num_debug_cmds() { return static_cast<int>(g_DebugCmdInfos.size()); }
+
 } // namespace zeek::detail

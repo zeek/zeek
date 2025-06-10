@@ -51,7 +51,7 @@ extern DebugCmdInfoQueue g_DebugCmdInfos;
 
 void init_global_dbg_constants();
 
-#define num_debug_cmds() (static_cast<int>(g_DebugCmdInfos.size()))
+extern int num_debug_cmds();
 
 // Looks up the info record and returns it; if cmd is not found returns 0.
 const DebugCmdInfo* get_debug_cmd_info(DebugCmd cmd);

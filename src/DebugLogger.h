@@ -16,6 +16,7 @@
 #include <unistd.h> // Needed to ignore __attribute__((format(printf))) on MSVC
 #endif
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
 #define DBG_LOG(stream, ...)                                                                                           \
     if ( ::zeek::detail::debug_logger.IsEnabled(stream) )                                                              \
     ::zeek::detail::debug_logger.Log(stream, __VA_ARGS__)
@@ -26,6 +27,7 @@
 #define DBG_POP(stream) ::zeek::detail::debug_logger.PopIndent(stream)
 
 #define PLUGIN_DBG_LOG(plugin, ...) ::zeek::detail::debug_logger.Log(plugin, __VA_ARGS__)
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 namespace zeek {
 
@@ -124,9 +126,11 @@ extern DebugLogger debug_logger;
 } // namespace zeek
 
 #else
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
 #define DBG_LOG(...)
 #define DBG_LOG_VERBOSE(...)
 #define DBG_PUSH(stream)
 #define DBG_POP(stream)
 #define PLUGIN_DBG_LOG(plugin, ...)
+// NOLINTEND(cppcoreguidelines-macro-usage)
 #endif

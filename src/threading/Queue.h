@@ -196,6 +196,7 @@ inline std::vector<std::unique_lock<std::mutex>> Queue<T>::LocksForAllQueues() {
     std::vector<std::unique_lock<std::mutex>> locks;
 
     try {
+        // NOLINTNEXTLINE(modernize-loop-convert)
         for ( int i = 0; i < NUM_QUEUES; i++ )
             locks.emplace_back(std::unique_lock<std::mutex>(mutex[i]));
     }
@@ -216,6 +217,7 @@ inline uint64_t Queue<T>::Size() {
 
     uint64_t size = 0;
 
+    // NOLINTNEXTLINE(modernize-loop-convert)
     for ( int i = 0; i < NUM_QUEUES; i++ )
         size += messages[i].size();
 

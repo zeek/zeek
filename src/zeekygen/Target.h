@@ -281,8 +281,8 @@ public:
     ScriptTarget(const std::string& name, const std::string& pattern) : Target(name, pattern), script_deps() {}
 
     ~ScriptTarget() override {
-        for ( size_t i = 0; i < pkg_deps.size(); ++i )
-            delete pkg_deps[i];
+        for ( auto* pkg : pkg_deps )
+            delete pkg;
     }
 
 protected:

@@ -64,7 +64,7 @@ private:
     std::string filename;
     MMDB_s mmdb;
     struct stat file_info;
-    bool reported_error; // to ensure we emit builtin errors during opening only once.
+    bool reported_error = false; // to ensure we emit builtin errors during opening only once.
     double last_check;
 };
 

@@ -250,8 +250,8 @@ protected:
 
     detail::RPC_Interpreter* interp;
 
-    Contents_RPC* orig_rpc;
-    Contents_RPC* resp_rpc;
+    Contents_RPC* orig_rpc = nullptr;
+    Contents_RPC* resp_rpc = nullptr;
 };
 
 } // namespace zeek::analyzer::rpc

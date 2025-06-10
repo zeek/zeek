@@ -20,8 +20,6 @@ using namespace std;
 
 namespace zeek::detail {
 
-ScriptCoverageManager::ScriptCoverageManager() : ignoring(0), delim('\t') {}
-
 void ScriptCoverageManager::AddStmt(Stmt* s) {
     if ( ignoring != 0 || analysis_options.gen_ZAM )
         return;

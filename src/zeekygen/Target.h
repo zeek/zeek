@@ -35,8 +35,8 @@ struct TargetFile {
      */
     ~TargetFile();
 
-    std::string name; /**< File name. */
-    FILE* f;          /**< File stream. */
+    std::string name;  /**< File name. */
+    FILE* f = nullptr; /**< File stream. */
 };
 
 /**

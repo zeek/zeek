@@ -15,7 +15,7 @@ namespace zeek::input::reader::detail {
 
 streamsize Binary::chunk_size = 0;
 
-Binary::Binary(ReaderFrontend* frontend) : ReaderBackend(frontend), in(nullptr), mtime(0), ino(0), firstrun(true) {
+Binary::Binary(ReaderFrontend* frontend) : ReaderBackend(frontend) {
     if ( ! chunk_size ) {
         chunk_size = BifConst::InputBinary::chunk_size;
 

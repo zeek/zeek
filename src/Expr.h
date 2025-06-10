@@ -1146,8 +1146,8 @@ protected:
     void ExprDescribe(ODesc* d) const override;
 
     const char* field_name;
-    const TypeDecl* td;
-    int field; // -1 = attributes
+    const TypeDecl* td = nullptr;
+    int field = -1;
 };
 
 // "rec?$fieldname" is true if the value of $fieldname in rec is not nil.
@@ -1171,8 +1171,8 @@ protected:
 
     void ExprDescribe(ODesc* d) const override;
 
-    const char* field_name;
-    int field;
+    const char* field_name = nullptr;
+    int field = -1;
 };
 
 class RecordConstructorExpr final : public Expr {

@@ -73,7 +73,8 @@ protected:
     void PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen,
                            bool clear_state);
 
-    enum State : uint8_t { INIT, BUFFERING, MATCHING_ONLY, SKIPPING } state;
+    enum State : uint8_t { INIT, BUFFERING, MATCHING_ONLY, SKIPPING };
+    State state = INIT;
 
     // Buffers one chunk of data.  Used both for packet payload (incl.
     // sequence numbers for TCP) and chunks of a reassembled stream.
@@ -114,8 +115,8 @@ private:
     // Joint backend for the two public FirstPacket() methods.
     void FirstPacket(bool is_orig, const std::optional<TransportProto>& proto, const IP_Hdr* ip);
 
-    analyzer::Analyzer* as_analyzer;
-    Connection* conn;
+    analyzer::Analyzer* as_analyzer = nullptr;
+    Connection* conn = nullptr;
     DataBlock current_packet;
 };
 

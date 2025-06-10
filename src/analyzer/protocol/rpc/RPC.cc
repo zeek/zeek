@@ -625,7 +625,7 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig) {
 }
 
 RPC_Analyzer::RPC_Analyzer(const char* name, Connection* conn, detail::RPC_Interpreter* arg_interp)
-    : analyzer::tcp::TCP_ApplicationAnalyzer(name, conn), interp(arg_interp), orig_rpc(), resp_rpc() {
+    : analyzer::tcp::TCP_ApplicationAnalyzer(name, conn), interp(arg_interp) {
     if ( Conn()->ConnTransport() == TRANSPORT_UDP )
         ADD_ANALYZER_TIMER(&RPC_Analyzer::ExpireTimer, run_state::network_time + zeek::detail::rpc_timeout, true,
                            zeek::detail::TIMER_RPC_EXPIRE);

@@ -32,10 +32,10 @@ private:
     int UpdateModificationTime();
 
     std::string fname;
-    std::ifstream* in;
-    time_t mtime;
-    ino_t ino;
-    bool firstrun;
+    std::ifstream* in = nullptr;
+    time_t mtime = 0;
+    ino_t ino = 0;
+    bool firstrun = true;
 
     // options set from the script-level.
     static std::streamsize chunk_size;

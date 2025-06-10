@@ -68,7 +68,7 @@ namespace detail {
 class DebugLogger {
 public:
     // Output goes to stderr per default.
-    DebugLogger() : file(nullptr), all(false), verbose(false) {};
+    DebugLogger() = default;
     ~DebugLogger();
 
     void OpenDebugLog(const char* filename = 0);
@@ -99,14 +99,14 @@ public:
     void ShowStreamsHelp();
 
 private:
-    FILE* file;
-    bool all;
-    bool verbose;
+    FILE* file = nullptr;
+    bool all = false;
+    bool verbose = false;
 
     struct Stream {
-        const char* prefix;
-        int indent;
-        bool enabled;
+        const char* prefix = nullptr;
+        int indent = 0;
+        bool enabled = false;
     };
 
     std::set<std::string> enabled_streams;

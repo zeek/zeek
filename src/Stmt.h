@@ -220,9 +220,9 @@ protected:
     // the matching type-based case if it defines one.
     std::pair<int, ID*> FindCaseLabelMatch(const Val* v) const;
 
-    case_list* cases;
-    int default_case_idx;
-    CompositeHash* comp_hash;
+    case_list* cases = nullptr;
+    int default_case_idx = -1;
+    CompositeHash* comp_hash = nullptr;
     std::unordered_map<const Val*, int> case_label_value_map;
     PDict<int> case_label_hash_map;
     std::vector<std::pair<ID*, int>> case_label_type_list;

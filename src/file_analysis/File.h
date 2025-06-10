@@ -314,31 +314,31 @@ protected:
     static void StaticInit();
 
 protected:
-    std::string id;                      /**< A pretty hash that likely identifies file */
-    RecordValPtr val;                    /**< \c fa_file from script layer. */
-    FileReassembler* file_reassembler;   /**< A reassembler for the file if it's needed. */
-    uint64_t stream_offset;              /**< The offset of the file which has been forwarded. */
-    uint64_t reassembly_max_buffer;      /**< Maximum allowed buffer for reassembly. */
-    bool did_metadata_inference;         /**< Whether the metadata inference has already been attempted. */
-    bool reassembly_enabled;             /**< Whether file stream reassembly is needed. */
-    bool postpone_timeout;               /**< Whether postponing timeout is requested. */
-    bool done;                           /**< If this object is about to be deleted. */
-    uint64_t seen_bytes;                 /**< Number of bytes processed for this file. */
-    uint64_t missing_bytes;              /**< Number of bytes missed for this file. */
-    uint64_t overflow_bytes;             /**< Number of bytes not delivered. */
-    detail::AnalyzerSet analyzers;       /**< A set of attached file analyzers. */
-    std::list<Analyzer*> done_analyzers; /**< Analyzers we're done with, remembered here until they
-                                            can be safely deleted. */
+    std::string id;                              /**< A pretty hash that likely identifies file */
+    RecordValPtr val;                            /**< \c fa_file from script layer. */
+    FileReassembler* file_reassembler = nullptr; /**< A reassembler for the file if it's needed. */
+    uint64_t stream_offset = 0;                  /**< The offset of the file which has been forwarded. */
+    uint64_t reassembly_max_buffer = 0;          /**< Maximum allowed buffer for reassembly. */
+    bool did_metadata_inference = false;         /**< Whether the metadata inference has already been attempted. */
+    bool reassembly_enabled = false;             /**< Whether file stream reassembly is needed. */
+    bool postpone_timeout = false;               /**< Whether postponing timeout is requested. */
+    bool done = false;                           /**< If this object is about to be deleted. */
+    uint64_t seen_bytes = 0;                     /**< Number of bytes processed for this file. */
+    uint64_t missing_bytes = 0;                  /**< Number of bytes missed for this file. */
+    uint64_t overflow_bytes = 0;                 /**< Number of bytes not delivered. */
+    detail::AnalyzerSet analyzers;               /**< A set of attached file analyzers. */
+    std::list<Analyzer*> done_analyzers;         /**< Analyzers we're done with, remembered here until they
+                                                    can be safely deleted. */
 
     struct BOF_Buffer {
-        BOF_Buffer() : full(false), size(0) {}
+        BOF_Buffer() = default;
         ~BOF_Buffer() {
             for ( auto* chunk : chunks )
                 delete chunk;
         }
 
-        bool full;
-        uint64_t size;
+        bool full = false;
+        uint64_t size = 0;
         String::CVec chunks;
     } bof_buffer; /**< Beginning of file buffer. */
 

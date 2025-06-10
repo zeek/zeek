@@ -112,13 +112,11 @@ private:
     friend class RuleMatcher;
 
     struct PatternSet {
-        PatternSet() : re() {}
-
         // If we're above the 'RE_level' (see RuleMatcher), this
         // expr contains all patterns on this node. If we're on
         // 'RE_level', it additionally contains all patterns
         // of any of its children.
-        Specific_RE_Matcher* re;
+        Specific_RE_Matcher* re = nullptr;
 
         // All the patterns and their rule indices.
         string_list patterns;

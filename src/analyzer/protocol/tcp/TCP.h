@@ -117,8 +117,8 @@ public:
 protected:
     void DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
-    TCPStats_Endpoint* orig_stats;
-    TCPStats_Endpoint* resp_stats;
+    TCPStats_Endpoint* orig_stats = nullptr;
+    TCPStats_Endpoint* resp_stats = nullptr;
 };
 
 } // namespace zeek::analyzer::tcp

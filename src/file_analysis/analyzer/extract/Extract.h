@@ -69,10 +69,10 @@ protected:
 
 private:
     std::string filename;
-    FILE* file_stream;
-    uint64_t limit;              // the file extraction limit
-    uint64_t written;            // how many bytes we have written so far
-    bool limit_includes_missing; // do count missing bytes against limit if true
+    FILE* file_stream = nullptr;
+    uint64_t limit = 0;                  // the file extraction limit
+    uint64_t written = 0;                // how many bytes we have written so far
+    bool limit_includes_missing = false; // do count missing bytes against limit if true
 };
 
 } // namespace zeek::file_analysis::detail

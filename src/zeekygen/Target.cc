@@ -189,7 +189,7 @@ static vector<T*> filter_matches(const vector<Info*>& from, Target* t) {
     return rval;
 }
 
-TargetFile::TargetFile(string arg_name) : name(std::move(arg_name)), f() {
+TargetFile::TargetFile(string arg_name) : name(std::move(arg_name)) {
     if ( name.find('/') != string::npos ) {
         string dir = util::SafeDirname(name).result;
 

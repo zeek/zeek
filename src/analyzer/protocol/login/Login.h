@@ -64,7 +64,7 @@ protected:
 // If we have more user text than this unprocessed, we complain about
 // excessive typeahead.
 #define MAX_USER_TEXT 12
-    char* user_text[MAX_USER_TEXT];
+    char* user_text[MAX_USER_TEXT] = {0};
     int user_text_first, user_text_last; // indices into user_text
     int num_user_text;                   // number of entries in user_text
 

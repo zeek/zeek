@@ -316,8 +316,7 @@ void TelnetBinaryOption::InconsistentOption(unsigned int /* type */) {
 
 } // namespace detail
 
-NVT_Analyzer::NVT_Analyzer(Connection* conn, bool orig)
-    : analyzer::tcp::ContentLine_Analyzer("NVT", conn, orig), options() {}
+NVT_Analyzer::NVT_Analyzer(Connection* conn, bool orig) : analyzer::tcp::ContentLine_Analyzer("NVT", conn, orig) {}
 
 NVT_Analyzer::~NVT_Analyzer() {
     for ( int i = 0; i < num_options; ++i )

@@ -195,8 +195,7 @@ RecordVal* TCPStats_Endpoint::BuildStats() {
     return stats;
 }
 
-TCPStats_Analyzer::TCPStats_Analyzer(Connection* c)
-    : TCP_ApplicationAnalyzer("TCPSTATS", c), orig_stats(), resp_stats() {}
+TCPStats_Analyzer::TCPStats_Analyzer(Connection* c) : TCP_ApplicationAnalyzer("TCPSTATS", c) {}
 
 TCPStats_Analyzer::~TCPStats_Analyzer() {
     delete orig_stats;

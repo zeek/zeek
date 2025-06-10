@@ -32,18 +32,18 @@ protected:
 
     void ThresholdEvent(EventHandlerPtr f, uint64_t threshold, bool is_orig);
 
-    uint64_t orig_bytes;
-    uint64_t resp_bytes;
-    uint64_t orig_pkts;
-    uint64_t resp_pkts;
+    uint64_t orig_bytes = 0;
+    uint64_t resp_bytes = 0;
+    uint64_t orig_pkts = 0;
+    uint64_t resp_pkts = 0;
 
-    uint64_t orig_bytes_thresh;
-    uint64_t resp_bytes_thresh;
-    uint64_t orig_pkts_thresh;
-    uint64_t resp_pkts_thresh;
+    uint64_t orig_bytes_thresh = 0;
+    uint64_t resp_bytes_thresh = 0;
+    uint64_t orig_pkts_thresh = 0;
+    uint64_t resp_pkts_thresh = 0;
 
-    double start_time;
-    double duration_thresh;
+    double start_time = 0.0;
+    double duration_thresh = 0.0;
 };
 
 // Exposed to make it available to script optimization.

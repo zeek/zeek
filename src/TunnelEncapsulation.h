@@ -145,7 +145,7 @@ protected:
  */
 class EncapsulationStack {
 public:
-    EncapsulationStack() : conns(nullptr) {}
+    EncapsulationStack() = default;
 
     EncapsulationStack(const EncapsulationStack& other) {
         if ( other.conns )
@@ -241,7 +241,7 @@ public:
     void Pop();
 
 protected:
-    std::vector<EncapsulatingConn>* conns;
+    std::vector<EncapsulatingConn>* conns = nullptr;
 };
 
 } // namespace zeek

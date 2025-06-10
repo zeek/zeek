@@ -14,7 +14,7 @@
 
 namespace zeek::analyzer::pia {
 
-PIA::PIA(analyzer::Analyzer* arg_as_analyzer) : state(INIT), as_analyzer(arg_as_analyzer), conn(), current_packet() {}
+PIA::PIA(analyzer::Analyzer* arg_as_analyzer) : as_analyzer(arg_as_analyzer), current_packet() {}
 
 PIA::~PIA() { ClearBuffer(&pkt_buffer); }
 

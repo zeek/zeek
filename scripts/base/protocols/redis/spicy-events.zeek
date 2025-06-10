@@ -37,6 +37,12 @@ export {
 		password: string;
 	};
 
+	## The Redis HELLO command (handshake).
+	type HelloCommand: record {
+		## The sent requested RESP version, such as "2" or "3"
+		requested_resp_version: string &optional;
+	};
+
 	## A generic Redis command from the client.
 	type Command: record {
 		## The raw command, exactly as parsed
@@ -79,6 +85,13 @@ global get_command: event(c: connection, key: string);
 ## command: The AUTH command sent to the server and its data.
 global auth_command: event(c: connection, command: AuthCommand);
 
+## Generated for Redis HELLO commands sent to the Redis server.
+##
+## c: The connection.
+##
+## command: The HELLO command sent to the server and its data.
+global hello_command: event(c: connection, command: HelloCommand);
+
 ## Generated for every command sent by the client to the Redis server.
 ##
 ## c: The connection.
@@ -87,11 +100,15 @@ global auth_command: event(c: connection, command: AuthCommand);
 global command: event(c: connection, cmd: Command);
 
 ## Generated for every successful response sent by the Redis server to the
-## client.
+## client. For RESP2, this includes "push" messages, which are out of band.
+## These will also raise a server_push event. RESP3 push messages will only
+## raise a server_push event.
 ##
 ## c: The connection.
 ##
 ## data: The server data sent to the client.
+##
+## .. zeek:see:: Redis::server_push
 global reply: event(c: connection, data: ReplyData);
 
 ## Generated for every error response sent by the Redis server to the
@@ -101,3 +118,11 @@ global reply: event(c: connection, data: ReplyData);
 ##
 ## data: The server data sent to the client.
 global error: event(c: connection, data: ReplyData);
+
+## Generated for out-of-band data, outside of the request-response
+## model.
+##
+## c: The connection.
+##
+## data: The server data sent to the client.
+global server_push: event(c: connection, data: ReplyData);

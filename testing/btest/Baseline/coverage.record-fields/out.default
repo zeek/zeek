@@ -615,6 +615,9 @@ connection {
              }
         * pending: table[count] of record Redis::Info, log=F, optional=F
             Redis::Info { ... }
+        * resp_version: enum Redis::RESPVersion, log=F, optional=T
+        * skip_commands: set[count], log=F, optional=F
+        * subscribed_mode: bool, log=F, optional=T
         * violation: bool, log=F, optional=T
        }
   * removal_hooks: set[func], log=F, optional=T

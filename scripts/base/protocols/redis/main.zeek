@@ -41,6 +41,11 @@ export {
 		end: count &optional;
 	};
 
+	type RESPVersion: enum {
+		RESP2,
+		RESP3
+	};
+
 	type State: record {
 		## Pending commands.
 		pending: table[count] of Info;
@@ -52,14 +57,34 @@ export {
 		## Each range is one or two elements, one meaning it's unbounded, two meaning
 		## it begins at one and ends at the second.
 		no_reply_ranges: vector of NoReplyRange;
+		## The command indexes (from current_command and current_reply) that will
+		## not get responses no matter what.
+		skip_commands: set[count];
 		## We store if this analyzer had a violation to avoid logging if so.
 		## This should not be super necessary, but worth a shot.
 		violation: bool &default=F;
+		## If we are in "subscribed" mode
+		subscribed_mode: bool &default=F;
+		## The RESP version
+		resp_version: RESPVersion &default=RESP2;
 	};
 
 	# Redis specifically mentions 10k commands as a good pipelining threshold, so
 	# we'll piggyback on that.
 	option max_pending_commands = 10000;
+
+	# These commands enter subscribed mode
+	global enter_subscribed_mode = [KnownCommand_PSUBSCRIBE,
+	    KnownCommand_SSUBSCRIBE, KnownCommand_SUBSCRIBE];
+
+	# These commands exit subscribed mode
+	global exit_subscribed_mode = [KnownCommand_RESET, KnownCommand_QUIT];
+
+	# These commands don't expect a response (ever) - their replies are out of band.
+	global no_response_commands = [KnownCommand_PSUBSCRIBE,
+	    KnownCommand_PUNSUBSCRIBE, KnownCommand_SSUBSCRIBE,
+	    KnownCommand_SUBSCRIBE, KnownCommand_SUNSUBSCRIBE,
+	    KnownCommand_UNSUBSCRIBE];
 }
 
 redef record connection += {
@@ -122,6 +147,15 @@ function is_last_interval_closed(c: connection): bool
 	    c$redis_state$no_reply_ranges[-1]?$end;
 	}
 
+event Redis::hello_command(c: connection, hello: HelloCommand)
+	{
+	if ( ! c?$redis_state )
+		make_new_state(c);
+
+	if ( hello?$requested_resp_version && hello$requested_resp_version == "3" )
+		c$redis_state$resp_version = RESP3;
+	}
+
 event Redis::command(c: connection, cmd: Command)
 	{
 	if ( ! c?$redis_state )
@@ -139,6 +173,26 @@ event Redis::command(c: connection, cmd: Command)
 		}
 
 	++c$redis_state$current_command;
+
+	if ( cmd?$known )
+		{
+		if ( c$redis_state$resp_version == RESP2 )
+			{
+			local should_enter = cmd$known in enter_subscribed_mode;
+			local should_exit = cmd$known in exit_subscribed_mode;
+			c$redis_state$subscribed_mode = should_enter && ! should_exit;
+
+			# It's weird if it's in both - in the future users may be able to add that
+			if ( should_enter && should_exit )
+				Reporter::conn_weird("Redis_command_enter_exit_subscribed_mode", c, cat(
+				    cmd$known));
+			}
+		if ( cmd$known in no_response_commands || c$redis_state$subscribed_mode )
+			{
+			add c$redis_state$skip_commands[c$redis_state$current_command];
+			}
+		}
+
 	# CLIENT commands can skip a number of replies and may be used with
 	# pipelining. We need special logic in order to track the command/reply
 	# pairs.
@@ -177,6 +231,7 @@ event Redis::command(c: connection, cmd: Command)
 				}
 			}
 		}
+
 	set_state(c, T);
 
 	c$redis$cmd = cmd;
@@ -187,17 +242,24 @@ event Redis::command(c: connection, cmd: Command)
 function reply_num(c: connection): count
 	{
 	local resp_num = c$redis_state$current_reply + 1;
+	local result = resp_num;
 	for ( i in c$redis_state$no_reply_ranges )
 		{
 		local range = c$redis_state$no_reply_ranges[i];
 		if ( ! range?$end && resp_num > range$begin )
 			{ } # TODO: This is necessary if not using pipelining
 		if ( range?$end && resp_num >= range$begin && resp_num < range$end )
-			return range$end;
+			result = range$end;
 		}
 
-	# Default: no disable/enable shenanigans
-	return resp_num;
+	# Account for commands that don't expect a response
+	while ( result in c$redis_state$skip_commands )
+		{
+		delete c$redis_state$skip_commands[result];
+		result += 1;
+		}
+
+	return result;
 	}
 
 # Logs up to and including the last seen command from the last reply
@@ -234,6 +296,11 @@ event Redis::reply(c: connection, data: ReplyData)
 	if ( ! c?$redis_state )
 		make_new_state(c);
 
+	if ( c$redis_state$subscribed_mode )
+		{
+		event server_push(c, data);
+		return;
+		}
 	local previous_reply_num = c$redis_state$current_reply;
 	c$redis_state$current_reply = reply_num(c);
 	set_state(c, F);
@@ -241,6 +308,10 @@ event Redis::reply(c: connection, data: ReplyData)
 	c$redis$reply = data;
 	c$redis$success = T;
 	log_from(c, previous_reply_num);
+
+	# Tidy up the skip_commands when it's up to date
+	if ( c$redis_state$current_command == c$redis_state$current_reply )
+		clear_table(c$redis_state$skip_commands);
 	}
 
 event Redis::error(c: connection, data: ReplyData)

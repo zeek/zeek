@@ -34,6 +34,7 @@ public type KnownCommand = enum {
     GETRANGE,
     GETSET,
     HDEL,
+    HELLO,
     HGET,
     HSET,
     INCR,
@@ -43,11 +44,19 @@ public type KnownCommand = enum {
     MOVE,
     MSET,
     PERSIST,
+    PSUBSCRIBE,
+    PUNSUBSCRIBE,
+    QUIT,
     RENAME,
+    RESET,
     SET,
     STRLEN,
+    SUBSCRIBE,
+    SSUBSCRIBE,
+    SUNSUBSCRIBE,
     TTL,
     TYPE,
+    UNSUBSCRIBE,
 };
 
 type Command = struct {
@@ -228,7 +237,6 @@ function parse_command(raw: vector<bytes>): Command {
 function command_from(cmd_bytes: bytes): optional<KnownCommand> {
     local cmd: optional<KnownCommand> = Null;
     switch (cmd_bytes.lower()) {
-        case b"set": cmd = KnownCommand::SET;
         case b"append": cmd = KnownCommand::APPEND;
         case b"auth": cmd = KnownCommand::AUTH;
         case b"bitcount": cmd = KnownCommand::BITCOUNT;
@@ -257,6 +265,7 @@ function command_from(cmd_bytes: bytes): optional<KnownCommand> {
         case b"getrange": cmd = KnownCommand::GETRANGE;
         case b"getset": cmd = KnownCommand::GETSET;
         case b"hdel": cmd = KnownCommand::HDEL;
+        case b"hello": cmd = KnownCommand::HELLO;
         case b"hget": cmd = KnownCommand::HGET;
         case b"hset": cmd = KnownCommand::HSET;
         case b"incr": cmd = KnownCommand::INCR;
@@ -266,10 +275,19 @@ function command_from(cmd_bytes: bytes): optional<KnownCommand> {
         case b"move": cmd = KnownCommand::MOVE;
         case b"mset": cmd = KnownCommand::MSET;
         case b"persist": cmd = KnownCommand::PERSIST;
+        case b"psubscribe": cmd = KnownCommand::PSUBSCRIBE;
+        case b"punsubscribe": cmd = KnownCommand::PUNSUBSCRIBE;
+        case b"quit": cmd = KnownCommand::QUIT;
         case b"rename": cmd = KnownCommand::RENAME;
+        case b"reset": cmd = KnownCommand::RESET;
+        case b"set": cmd = KnownCommand::SET;
         case b"strlen": cmd = KnownCommand::STRLEN;
+        case b"ssubscribe": cmd = KnownCommand::SSUBSCRIBE;
+        case b"subscribe": cmd = KnownCommand::SUBSCRIBE;
+        case b"sunsubscribe": cmd = KnownCommand::SUNSUBSCRIBE;
         case b"ttl": cmd = KnownCommand::TTL;
         case b"type": cmd = KnownCommand::TYPE;
+        case b"unsubscribe": cmd = KnownCommand::UNSUBSCRIBE;
         default: cmd = Null;
     }
 
@@ -368,12 +386,40 @@ public function is_auth(data: RESP::ClientData): bool {
     return data.command.known && *(data.command.known) == KnownCommand::AUTH && |data.command.raw| >= 2;
 }
 
+type Hello = struct {
+    requested_resp_version: optional<bytes>;
+};
+
+public function make_hello(command: Command): Hello {
+    local hi: Hello = [$requested_resp_version = Null];
+    if (|command.raw| > 1)
+        hi.requested_resp_version = command.raw[1];
+    return hi;
+}
+
+public function is_hello(data: RESP::ClientData): bool {
+    return data.command.known && *(data.command.known) == KnownCommand::HELLO;
+}
+
 type ReplyData = struct {
     value: optional<bytes>;
 };
 
-public function is_err(server_data: RESP::ServerData): bool {
-    return server_data.data?.simple_error || server_data.data?.bulk_error;
+public type ReplyType = enum {
+    Reply, # A response to a command
+    Error, # An error response to a command
+    Push, # A server message that is not responding to a command
+};
+
+public function classify(server_data: RESP::ServerData): ReplyType {
+    if (server_data.data?.simple_error || server_data.data?.bulk_error)
+        return ReplyType::Error;
+
+    # We can tell with RESP3 this is push here, but RESP2 relies on scripts
+    if (server_data.data?.push)
+        return ReplyType::Push;
+
+    return ReplyType::Reply;
 }
 
 function bulk_string_content(bulk: RESP::BulkString): bytes {
@@ -397,10 +443,10 @@ function stringify(data: RESP::Data): optional<bytes> {
         return bulk_string_content(data.verbatim_string);
     else if (data?.boolean)
         return data.boolean.val ? b"T" : b"F";
-    else if (data?.array) {
+    else if (data?.array || data?.push) {
         local res = b"[";
         local first = True;
-        for (ele in data.array.elements) {
+        for (ele in data?.array ? data.array.elements : data.push.elements) {
             if (!first)
                 res += b", ";
             local ele_stringified = stringify(ele);

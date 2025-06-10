@@ -422,7 +422,7 @@ enum_def:	enum_def_1 enum_list TOK_RPB opt_attr_list
 			fprintf(fp_zeek_init, "} ");
 			fprintf(fp_zeek_init, "%s", $4);
 			fprintf(fp_zeek_init, ";\n");
-            fprintf(fp_netvar_h, "}; }\n");
+			fprintf(fp_netvar_h, "}; }\n");
 
 			// Now generate the netvar's.
 			fprintf(fp_netvar_h, "namespace zeek::%s { extern zeek::IntrusivePtr<zeek::EnumType> %s; %s}\n",
@@ -449,10 +449,11 @@ enum_def_1:	TOK_ENUM opt_ws TOK_ID opt_ws TOK_LPB opt_ws
 			// this is the namespace were the enumerators are defined, not where
 			// the type is defined.
 			// We don't support fully qualified names as enumerators. Use a module name
+			fprintf(fp_netvar_h, "// NOLINTNEXTLINE(performance-enum-size)\n");
 			if ( decl.module_name != GLOBAL_MODULE_NAME )
 				fprintf(fp_netvar_h, "namespace BifEnum::%s { ", decl.module_name.c_str());
-            else
-                fprintf(fp_netvar_h, "namespace BifEnum { ");
+			else
+				fprintf(fp_netvar_h, "namespace BifEnum { ");
 			fprintf(fp_netvar_h, "enum %s {\n", $3);
 			}
 	;

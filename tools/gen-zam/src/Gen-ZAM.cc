@@ -2284,6 +2284,7 @@ void ZAM_InternalOpTemplate::ParseCall(const string& line, const Words& words)
 				}
 
 			eval += "auto n = aux->n;\n";
+			eval += "args.reserve(n);\n";
 			eval += "for ( auto i = 0; i < n; ++i )\n";
 			eval += "\targs.push_back(aux->ToVal(frame, i));\n";
 			}

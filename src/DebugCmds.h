@@ -68,6 +68,7 @@ int find_all_matching_cmds(const std::string& prefix, const char* array_of_match
 // These functions return <= 0 if failure, > 0 for success.
 // More particular return values are command-specific: see comments w/function.
 
+// NOLINTNEXTLINE(modernize-use-using)
 typedef int DbgCmdFn(DebugCmd cmd, const std::vector<std::string>& args);
 
 DbgCmdFn dbg_cmd_backtrace;

@@ -16,7 +16,7 @@
 // These are defined in ares headers but we don't want to have to include
 // those headers here and create install dependencies on them.
 struct ares_channeldata;
-typedef struct ares_channeldata* ares_channel;
+using ares_channel = struct ares_channeldata*;
 #ifndef T_PTR
 #define T_PTR 12
 #endif

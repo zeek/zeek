@@ -101,3 +101,11 @@ global reply: event(c: connection, data: ReplyData);
 ##
 ## data: The server data sent to the client.
 global error: event(c: connection, data: ReplyData);
+
+## Generated for every message the server sends that is not a reply to a
+## command.
+##
+## c: The connection.
+##
+## data: The server data sent to the client.
+global server_message: event(c: connection, data: ReplyData);

@@ -372,8 +372,27 @@ type ReplyData = struct {
     value: optional<bytes>;
 };
 
-public function is_err(server_data: RESP::ServerData): bool {
-    return server_data.data?.simple_error || server_data.data?.bulk_error;
+public type ReplyType = enum {
+    Reply, # A response to a command
+    Error, # An error response to a command
+    Message, # A server message that is not responding to a command
+};
+
+public function classify(server_data: RESP::ServerData): ReplyType {
+    if (server_data.data?.simple_error || server_data.data?.bulk_error)
+        return ReplyType::Error;
+
+    # 'message' and 'pmessage' responses (from pub/sub) are handled specially.
+    if (server_data.data?.array) {
+        if (server_data.data.array.num_elements >= 3) {
+            local stringified = stringify(*server_data.data.array.elements.at(0));
+            if (stringified && (*stringified == b"message" || *stringified == b"pmessage")) {
+                return ReplyType::Message;
+            }
+        }
+    }
+
+    return ReplyType::Reply;
 }
 
 function bulk_string_content(bulk: RESP::BulkString): bytes {

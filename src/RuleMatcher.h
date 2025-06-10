@@ -266,7 +266,7 @@ public:
      * Ordered from greatest to least strength.  Matches of the same strength
      * will be in the set in lexicographic order of the MIME type string.
      */
-    using MIME_Matches = std::map<int, std::set<std::string>, std::greater<int>>;
+    using MIME_Matches = std::map<int, std::set<std::string>, std::greater<>>;
 
     /**
      * Matches a chunk of data against file magic signatures.

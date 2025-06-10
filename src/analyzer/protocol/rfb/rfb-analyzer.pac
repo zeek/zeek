@@ -69,7 +69,7 @@ refine flow RFB_Flow += {
 
 refine connection RFB_Conn += {
 	%member{
-		enum ServerState {
+		enum ServerState : uint8_t {
 			SERVER_VERSION            =  0,
 			SERVER_AUTH_TYPE          =  1,
 			SERVER_AUTH_TYPE37        =  2,
@@ -84,7 +84,7 @@ refine connection RFB_Conn += {
 			SERVER_INVALID            =100,
 		};
 
-		enum ClientState {
+		enum ClientState : uint8_t {
 			CLIENT_VERSION           =  0,
 			CLIENT_AUTH_SELECTION    =  1,
 			CLIENT_AUTH_VNC_RESPONSE =  2,

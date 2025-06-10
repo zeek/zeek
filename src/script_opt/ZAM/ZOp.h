@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -11,7 +12,7 @@
 namespace zeek::detail {
 
 // Opcodes associated with ZAM instructions.
-enum ZOp {
+enum ZOp : uint16_t {
 #include "zeek/ZAM-OpsDefs.h"
     OP_NOP,
 };
@@ -25,7 +26,7 @@ enum ZOp {
 // I1/I2/I3/I4: the instruction's integer value, used directly (not as a slot)
 // FRAME: a slot in the (interpreter) Frame object
 // X: no operands
-enum ZAMOpType {
+enum ZAMOpType : uint8_t {
     OP_X,
     OP_C,
     OP_V,
@@ -56,7 +57,7 @@ enum ZAMOpType {
 };
 
 // Possible "flavors" for an operator's first slot.
-enum ZAMOp1Flavor {
+enum ZAMOp1Flavor : uint8_t {
     OP1_READ,       // the slot is read, not modified
     OP1_WRITE,      // the slot is modified, not read - the most common
     OP1_READ_WRITE, // the slot is both read and then modified, e.g. "++"

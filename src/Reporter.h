@@ -304,15 +304,15 @@ private:
     bool PermitFlowWeird(const char* name, const IPAddr& o, const IPAddr& r);
     bool PermitExpiredConnWeird(const char* name, const RecordVal& conn_id);
 
-    enum class PermitWeird { Allow, Deny, Unknown };
+    enum class PermitWeird : uint8_t { Allow, Deny, Unknown };
     PermitWeird CheckGlobalWeirdLists(const char* name);
 
     bool EmitToStderr(bool flag);
 
     int errors;
+    int in_error_handler;
     bool via_events;
     bool syslog_open;
-    int in_error_handler;
     bool info_to_stderr;
     bool warnings_to_stderr;
     bool errors_to_stderr;

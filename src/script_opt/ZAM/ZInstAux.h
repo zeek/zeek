@@ -93,7 +93,7 @@ private:
     bool is_managed = false;
 };
 
-enum ControlFlowType {
+enum ControlFlowType : uint8_t {
     CFT_IF,
     CFT_BLOCK_END,
     CFT_ELSE,

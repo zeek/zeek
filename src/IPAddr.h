@@ -72,7 +72,7 @@ public:
     /**
      * Byte order.
      */
-    enum ByteOrder { Host, Network };
+    enum ByteOrder : uint8_t { Host, Network };
 
     /**
      * Constructs the unspecified IPv6 address (all 128 bits zeroed).

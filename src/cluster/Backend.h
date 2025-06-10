@@ -247,7 +247,7 @@ public:
     /**
      * Status codes for callbacks.
      */
-    enum class CallbackStatus {
+    enum class CallbackStatus : uint8_t {
         Success,
         Error,
         NotImplemented,

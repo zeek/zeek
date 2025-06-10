@@ -15,7 +15,7 @@ class BrokerDataView;
 namespace zeek::probabilistic::detail {
 
 /** Types of derived Hasher classes. */
-enum HasherType { Default, Double };
+enum HasherType : uint8_t { Default, Double };
 
 /**
  * Abstract base class for hashers. A hasher creates a family of hash

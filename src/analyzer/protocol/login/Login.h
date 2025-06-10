@@ -6,7 +6,7 @@
 
 namespace zeek::analyzer::login {
 
-enum login_state {
+enum login_state : uint8_t {
     LOGIN_STATE_AUTHENTICATE, // trying to authenticate
     LOGIN_STATE_LOGGED_IN,    // successful authentication
     LOGIN_STATE_SKIP,         // skip any further processing

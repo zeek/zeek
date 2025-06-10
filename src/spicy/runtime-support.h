@@ -141,7 +141,7 @@ void register_spicy_module_end();
 
 
 /** Identifies a Zeek-side type. */
-enum class ZeekTypeTag : uint64_t {
+enum class ZeekTypeTag : uint8_t {
     Addr,
     Any,
     Bool,

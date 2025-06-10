@@ -234,7 +234,7 @@ protected:
 
 class ScriptOptBuiltinExpr : public Expr {
 public:
-    enum SOBuiltInTag {
+    enum SOBuiltInTag : uint8_t {
         MINIMUM,
         MAXIMUM,
         HAS_ELEMENTS,

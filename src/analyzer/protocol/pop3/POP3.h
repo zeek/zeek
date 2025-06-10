@@ -19,11 +19,11 @@
 namespace zeek::analyzer::pop3 {
 namespace detail {
 
-enum POP3_Cmd {
+enum POP3_Cmd : uint8_t {
 #include "POP3_cmd.def"
 };
 
-enum POP3_MasterState {
+enum POP3_MasterState : uint8_t {
     POP3_START,
     POP3_AUTHORIZATION,
     POP3_TRANSACTION,
@@ -31,7 +31,7 @@ enum POP3_MasterState {
     POP3_FINISHED,
 };
 
-enum POP3_State {
+enum POP3_State : uint8_t {
     START,
     USER,
     PASS,
@@ -57,7 +57,7 @@ enum POP3_State {
     END,
 };
 
-enum POP3_SubState {
+enum POP3_SubState : uint8_t {
     POP3_OK,
     POP3_WOK,
 };

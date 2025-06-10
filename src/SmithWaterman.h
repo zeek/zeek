@@ -106,7 +106,7 @@ private:
 // We support two modes of operation: finding a single optimal alignment,
 // and repeated alignments.
 //
-enum SWVariant {
+enum SWVariant : uint8_t {
     SW_SINGLE = 0,   // return a single, optimum alignment
     SW_MULTIPLE = 1, // find repeated, non-overlapping alignments
 };

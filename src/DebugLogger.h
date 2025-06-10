@@ -7,6 +7,7 @@
 
 #ifdef DEBUG
 
+#include <cstdint>
 #include <cstdio>
 #include <set>
 #include <string>
@@ -35,7 +36,7 @@ class Plugin;
 // To add a new debugging stream, add a constant here as well as
 // an entry to DebugLogger::streams in DebugLogger.cc.
 
-enum DebugStream {
+enum DebugStream : uint8_t {
     DBG_SERIAL,          // Serialization
     DBG_RULES,           // Signature matching
     DBG_STRING,          // String code

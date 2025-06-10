@@ -73,7 +73,7 @@ protected:
     void PIA_DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen,
                            bool clear_state);
 
-    enum State { INIT, BUFFERING, MATCHING_ONLY, SKIPPING } state;
+    enum State : uint8_t { INIT, BUFFERING, MATCHING_ONLY, SKIPPING } state;
 
     // Buffers one chunk of data.  Used both for packet payload (incl.
     // sequence numbers for TCP) and chunks of a reassembled stream.

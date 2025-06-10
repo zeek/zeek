@@ -30,7 +30,7 @@ namespace zeek {
 template<typename T>
 class Dictionary;
 
-enum DictOrder { ORDERED, UNORDERED };
+enum DictOrder : uint8_t { ORDERED, UNORDERED };
 
 // A dict_delete_func that just calls delete.
 extern void generic_delete_func(void*);

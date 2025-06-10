@@ -14,7 +14,7 @@ namespace zeek {
 
 // Whenever subclassing the Reassembler class
 // you should add to this for known subclasses.
-enum ReassemblerType {
+enum ReassemblerType : uint8_t {
     REASSEM_UNKNOWN,
     REASSEM_TCP,
     REASSEM_FRAG,

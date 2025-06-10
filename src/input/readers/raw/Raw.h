@@ -78,7 +78,14 @@ private:
     int pipes[6] = {-1};
     pid_t childpid;
 
-    enum IoChannels { stdout_in = 0, stdout_out = 1, stdin_in = 2, stdin_out = 3, stderr_in = 4, stderr_out = 5 };
+    enum IoChannels : uint8_t {
+        stdout_in = 0,
+        stdout_out = 1,
+        stdin_in = 2,
+        stdin_out = 3,
+        stderr_in = 4,
+        stderr_out = 5
+    };
 
     static const int block_size;
 };

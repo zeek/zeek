@@ -18,7 +18,7 @@ namespace analyzer::tcp {
 
 class TCP_Reassembler;
 
-enum EndpointState {
+enum EndpointState : uint8_t {
     TCP_ENDPOINT_INACTIVE,     // no SYN (or other packets) seen for this side
     TCP_ENDPOINT_SYN_SENT,     // SYN seen, but no ack
     TCP_ENDPOINT_SYN_ACK_SENT, // SYN ack seen, no initial SYN

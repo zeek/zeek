@@ -79,6 +79,11 @@ public type ServerData = unit {
     %synchronize-after = b"\x0d\x0a";
     var depth: uint8& = new uint8;
     data: Data(self.depth);
+
+    var type_: Redis::ReplyType;
+    on %done {
+        self.type_ = Redis::classify(self);
+    }
 };
 
 type Data = unit(depth: uint8&) {

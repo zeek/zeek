@@ -1,4 +1,5 @@
 // See the file "COPYING" in the main distribution directory for copyright.
+// NOLINTBEGIN(modernize-macro-to-enum)
 
 #pragma once
 
@@ -306,3 +307,5 @@
 
 /* compiled with Spicy support */
 #cmakedefine HAVE_SPICY
+
+// NOLINTEND(modernize-macro-to-enum)

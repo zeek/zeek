@@ -4,7 +4,7 @@
 %include zeek.pac
 
 %extern{
-#define MSGLEN_LIMIT 0x40000
+constexpr uint32_t MSGLEN_LIMIT = 0x40000;
 
 #include "zeek/analyzer/protocol/bittorrent/events.bif.h"
 %}

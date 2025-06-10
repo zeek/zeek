@@ -18,12 +18,12 @@
 // We have four different port name spaces: TCP, UDP, ICMP, and UNKNOWN.
 // We distinguish between them based on the bits specified in the *_PORT_MASK
 // entries specified below.
-#define NUM_PORT_SPACES 4
-#define PORT_SPACE_MASK 0x30000
+constexpr int NUM_PORT_SPACES = 4;
+constexpr uint32_t PORT_SPACE_MASK = 0x30000;
 
-#define TCP_PORT_MASK 0x10000
-#define UDP_PORT_MASK 0x20000
-#define ICMP_PORT_MASK 0x30000
+constexpr uint32_t TCP_PORT_MASK = 0x10000;
+constexpr uint32_t UDP_PORT_MASK = 0x20000;
+constexpr uint32_t ICMP_PORT_MASK = 0x30000;
 
 namespace zeek {
 

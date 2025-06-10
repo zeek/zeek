@@ -110,7 +110,7 @@ void ConnDecl::GenGapFunc(Output* out_h, Output* out_cc) {
 void ConnDecl::GenProcessFunc(Output* out_h, Output* out_cc) {
     string proto = strfmt("%s(bool is_orig, const_byteptr begin, const_byteptr end)", kNewData);
 
-    out_h->println("void %s;", proto.c_str());
+    out_h->println("void %s override;", proto.c_str());
 
     out_cc->println("void %s::%s {", class_name().c_str(), proto.c_str());
     out_cc->inc_indent();

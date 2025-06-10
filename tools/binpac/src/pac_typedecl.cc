@@ -178,9 +178,15 @@ void TypeDecl::GenConstructorFunc(Output* out_h, Output* out_cc) {
 }
 
 void TypeDecl::GenDestructorFunc(Output* out_h, Output* out_cc) {
+    vector<string> base_classes;
+    AddBaseClass(&base_classes);
+
     string proto = strfmt("~%s()", class_name().c_str());
 
-    out_h->println("%s;", proto.c_str());
+    if ( base_classes.empty() )
+        out_h->println("%s;", proto.c_str());
+    else
+        out_h->println("%s override;", proto.c_str());
 
     out_cc->println("%s::%s {", class_name().c_str(), proto.c_str());
     out_cc->inc_indent();

@@ -8,14 +8,14 @@ namespace binpac {
 // The interface for a connection analyzer
 class ConnectionAnalyzer {
 public:
-    virtual ~ConnectionAnalyzer() {}
+    virtual ~ConnectionAnalyzer() = default;
     virtual void NewData(bool is_orig, const unsigned char* begin_of_data, const unsigned char* end_of_data) = 0;
 };
 
 // The interface for a flow analyzer
 class FlowAnalyzer {
 public:
-    virtual ~FlowAnalyzer() {}
+    virtual ~FlowAnalyzer() = default;
     virtual void NewData(const unsigned char* begin_of_data, const unsigned char* end_of_data) = 0;
 };
 

@@ -292,7 +292,7 @@ public:
     // Adds to the trace an update for the given value.
     void AddDelta(ValPtr val, std::string rhs, bool needs_lhs, bool is_first_def) {
         auto& d = is_post ? post_deltas : deltas;
-        d.emplace_back(DeltaGen(val, rhs, needs_lhs, is_first_def));
+        d.emplace_back(val, rhs, needs_lhs, is_first_def);
     }
 
     // Initially we analyze events pre-execution.  When this flag

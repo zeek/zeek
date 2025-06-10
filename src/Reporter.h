@@ -165,12 +165,10 @@ public:
     // stack of location so that the most recent is always the one that
     // will be assumed to be the current one. The pointer must remain
     // valid until the location is popped.
-    void PushLocation(const detail::Location* location) {
-        locations.push_back(std::pair<const detail::Location*, const detail::Location*>(location, 0));
-    }
+    void PushLocation(const detail::Location* location) { locations.emplace_back(location, nullptr); }
 
     void PushLocation(const detail::Location* loc1, const detail::Location* loc2) {
-        locations.push_back(std::pair<const detail::Location*, const detail::Location*>(loc1, loc2));
+        locations.emplace_back(loc1, loc2);
     }
 
     // Removes the top-most location information from stack.

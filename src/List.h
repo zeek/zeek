@@ -68,7 +68,7 @@ public:
             entries[i] = b.entries[i];
     }
 
-    List(List&& b) {
+    List(List&& b) noexcept {
         entries = b.entries;
         num_entries = b.num_entries;
         max_entries = b.max_entries;
@@ -108,7 +108,7 @@ public:
         return *this;
     }
 
-    List& operator=(List&& b) {
+    List& operator=(List&& b) noexcept {
         if ( this == &b )
             return *this;
 

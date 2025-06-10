@@ -44,7 +44,7 @@ public:
     bool Undelivered(int64_t len);
     int64_t BodyLength() const { return body_length; }
     int64_t HeaderLength() const { return header_length; }
-    void SkipBody() { deliver_body = 0; }
+    void SkipBody() { deliver_body = false; }
     const std::string& FileID() const { return precomputed_file_id; }
 
 protected:

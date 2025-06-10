@@ -323,7 +323,7 @@ public:
     /**
      * Converts the value to a Boolean.
      */
-    [[nodiscard]] bool ToBool(bool fallback = 0) const noexcept {
+    [[nodiscard]] bool ToBool(bool fallback = false) const noexcept {
         if ( auto val = broker::get_if<bool>(value_); val ) {
             return *val;
         }

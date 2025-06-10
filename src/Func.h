@@ -351,7 +351,7 @@ public:
 protected:
     BuiltinFunc() {
         func = nullptr;
-        is_pure = 0;
+        is_pure = false;
     }
 
     built_in_func func;

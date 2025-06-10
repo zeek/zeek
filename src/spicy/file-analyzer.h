@@ -25,6 +25,8 @@ public:
      */
     FileState(Cookie cookie) : ParsingState(::spicy::rt::driver::ParsingType::Stream), _cookie(std::move(cookie)) {}
 
+    virtual ~FileState() = default;
+
     /** Returns the cookie pointer to use with the runtime library during analysis. */
     auto* cookie() { return &_cookie; }
 

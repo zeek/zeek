@@ -26,6 +26,8 @@ public:
      */
     PacketState(Cookie cookie) : ParsingState(::spicy::rt::driver::ParsingType::Block), _cookie(std::move(cookie)) {}
 
+    virtual ~PacketState() = default;
+
     /** Returns the cookie pointer to use with the runtime library during analysis. */
     auto* cookie() { return &_cookie; }
 

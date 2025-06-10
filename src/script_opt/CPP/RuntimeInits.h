@@ -327,6 +327,8 @@ public:
         inits_vec.resize(inits.size());
     }
 
+    virtual ~CPP_AbstractBasicConsts() = default;
+
     void InitializeCohort(InitsManager* im, int cohort) {
         ASSERT(cohort == 0);
         auto& offsets_vec = im->Indices(offsets_set);

@@ -40,6 +40,8 @@ public:
 
     using BSSAlignVec = std::vector<BSSAlign>;
 
+    Substring() = delete;
+
     explicit Substring(const std::string& string) : String(string), _num(), _new(false) {}
 
     explicit Substring(const String& string) : String(string), _num(), _new(false) {}
@@ -74,8 +76,6 @@ public:
 
 private:
     using DataMap = std::map<std::string, void*>;
-
-    Substring();
 
     // The alignments registered for this substring.
     BSSAlignVec _aligns;

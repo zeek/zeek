@@ -132,8 +132,7 @@ public:
             }
         }
 
-    private:
-        const ReaderInfo& operator=(const ReaderInfo& other); // Disable.
+        const ReaderInfo& operator=(const ReaderInfo& other) = delete;
     };
 
     /**

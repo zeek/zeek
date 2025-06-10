@@ -127,8 +127,7 @@ public:
         broker::data ToBroker() const;
         bool FromBroker(broker::data d);
 
-    private:
-        const WriterInfo& operator=(const WriterInfo& other); // Disable.
+        const WriterInfo& operator=(const WriterInfo& other) = delete;
     };
 
     /**

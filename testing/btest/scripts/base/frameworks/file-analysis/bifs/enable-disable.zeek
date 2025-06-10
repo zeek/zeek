@@ -1,5 +1,5 @@
-# @TEST-EXEC: zeek -C -b -r $TRACES/pe/pe.trace %INPUT >out
-# @TEST-EXEC: zeek -C -b -r $TRACES/pe/pe.trace %INPUT disable_it=T >>out
+# @TEST-EXEC: zeek -b -r $TRACES/pe/pe.trace %INPUT >out
+# @TEST-EXEC: zeek -b -r $TRACES/pe/pe.trace %INPUT disable_it=T >>out
 # @TEST-EXEC: btest-diff out
 
 @load base/protocols/ftp

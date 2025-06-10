@@ -1,6 +1,6 @@
 # This tests a OCSP request missing response
 
-# @TEST-EXEC: zeek -C -r $TRACES/tls/ocsp-request-only.pcap %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tls/ocsp-request-only.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 event zeek_init()

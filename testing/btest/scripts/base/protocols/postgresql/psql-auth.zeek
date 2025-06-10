@@ -1,7 +1,7 @@
 # @TEST-DOC: Test Zeek parsing a trace file through the PostgreSQL analyzer.
 #
 # @TEST-REQUIRES: ${SCRIPTS}/have-spicy
-# @TEST-EXEC: zeek -b -Cr ${TRACES}/postgresql/psql-select-now.pcap %INPUT >output
+# @TEST-EXEC: zeek -b -r ${TRACES}/postgresql/psql-select-now.pcap %INPUT >output
 #
 # @TEST-EXEC: btest-diff output
 

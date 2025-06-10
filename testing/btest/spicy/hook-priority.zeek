@@ -1,6 +1,6 @@
 # @TEST-REQUIRES: have-spicy
 # @TEST-EXEC: spicyz -d -o foo.hlto foo.spicy foo.evt
-# @TEST-EXEC: zeek -Cr ${TRACES}/http/post.trace Zeek::Spicy foo.hlto %INPUT >>output 2>&1
+# @TEST-EXEC: zeek -r ${TRACES}/http/post.trace Zeek::Spicy foo.hlto %INPUT >>output 2>&1
 # @TEST-EXEC: btest-diff output
 #
 # @TEST-DOC: This test validates that hooks from EVT files are invoked after hooks in the Spicy grammar.

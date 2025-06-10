@@ -653,12 +653,12 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 		RET_CONST(zeek::val_mgr->Port(p, TRANSPORT_UNKNOWN)->Ref())
 	}
 
-{FLOAT}{OWS}day(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Days))
-{FLOAT}{OWS}hr(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Hours))
-{FLOAT}{OWS}min(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Minutes))
-{FLOAT}{OWS}sec(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Seconds))
-{FLOAT}{OWS}msec(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Milliseconds))
-{FLOAT}{OWS}usec(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext),Microseconds))
+{FLOAT}{OWS}day(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext), zeek::Days))
+{FLOAT}{OWS}hr(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext), zeek::Hours))
+{FLOAT}{OWS}min(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext), zeek::Minutes))
+{FLOAT}{OWS}sec(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext), zeek::Seconds))
+{FLOAT}{OWS}msec(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext), zeek::Milliseconds))
+{FLOAT}{OWS}usec(s?)	RET_CONST(new zeek::IntervalVal(atof(yytext), zeek::Microseconds))
 
 "0x"{HEX}+	RET_CONST(zeek::val_mgr->Count(static_cast<zeek_uint_t>(strtoull(yytext, 0, 16))).release())
 

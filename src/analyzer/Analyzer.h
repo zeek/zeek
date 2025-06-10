@@ -772,6 +772,8 @@ private:
     static ID id_counter;
 };
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+
 /**
  * Convenience macro to add a new timer.
  */
@@ -801,6 +803,8 @@ private:
  */
 #define LOOP_OVER_GIVEN_CONST_CHILDREN(var, the_kids)                                                                  \
     for ( auto(var) = (the_kids).cbegin(); (var) != (the_kids).cend(); ++(var) )
+
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 /**
  * Support analyzer preprocess input before it reaches an analyzer's main
@@ -893,9 +897,21 @@ private:
 };
 
 // The following need to be consistent with zeek.init.
-#define CONTENTS_NONE 0
-#define CONTENTS_ORIG 1
-#define CONTENTS_RESP 2
-#define CONTENTS_BOTH 3
+constexpr int CONTENTS_NONE = 0;
+constexpr int CONTENTS_ORIG = 1;
+constexpr int CONTENTS_RESP = 2;
+constexpr int CONTENTS_BOTH = 3;
 
 } // namespace zeek::analyzer
+
+[[deprecated("Remove in v8.1. Use version in zeek::analyzer namespace.")]] constexpr int CONTENTS_NONE =
+    zeek::analyzer::CONTENTS_NONE;
+
+[[deprecated("Remove in v8.1. Use version in zeek::analyzer namespace.")]] constexpr int CONTENTS_ORIG =
+    zeek::analyzer::CONTENTS_ORIG;
+
+[[deprecated("Remove in v8.1. Use version in zeek::analyzer namespace.")]] constexpr int CONTENTS_RESP =
+    zeek::analyzer::CONTENTS_RESP;
+
+[[deprecated("Remove in v8.1. Use version in zeek::analyzer namespace.")]] constexpr int CONTENTS_BOTH =
+    zeek::analyzer::CONTENTS_BOTH;

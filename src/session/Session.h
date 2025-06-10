@@ -326,4 +326,5 @@ protected:
 } // namespace session
 } // namespace zeek
 
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define ADD_TIMER(timer, t, do_expire, type) AddTimer(timer_func(timer), (t), (do_expire), (type))

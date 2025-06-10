@@ -790,11 +790,14 @@ public:
     int ExpectedCapacity() const { return bucket_capacity; }
 
     // Debugging
-#define DUMPIF(f)                                                                                                      \
-    if ( f )                                                                                                           \
-    Dump(1)
-
 #ifdef ZEEK_DICT_DEBUG
+    void DumpIfInvalid(bool valid) const {
+        if ( ! valid ) {
+            Dump(1);
+            abort();
+        }
+    }
+
     void AssertValid() const {
         bool valid = true;
         int n = num_entries;
@@ -805,8 +808,7 @@ public:
                     n--;
 
         valid = (n == 0);
-        ASSERT(valid);
-        DUMPIF(! valid);
+        DumpIfInvalid(valid);
 
         // entries must clustered together
         for ( int i = 1; i < Capacity(); i++ ) {
@@ -815,28 +817,27 @@ public:
 
             if ( table[i - 1].Empty() ) {
                 valid = (table[i].distance == 0);
-                ASSERT(valid);
-                DUMPIF(! valid);
+                DumpIfInvalid(valid);
             }
             else {
                 valid = (table[i].bucket >= table[i - 1].bucket);
-                ASSERT(valid);
-                DUMPIF(! valid);
+                DumpIfInvalid(valid);
 
                 if ( table[i].bucket == table[i - 1].bucket ) {
                     valid = (table[i].distance == table[i - 1].distance + 1);
-                    ASSERT(valid);
-                    DUMPIF(! valid);
+                    DumpIfInvalid(valid);
                 }
                 else {
                     valid = (table[i].distance <= table[i - 1].distance);
-                    ASSERT(valid);
-                    DUMPIF(! valid);
+                    DumpIfInvalid(valid);
                 }
             }
         }
     }
+
 #endif // ZEEK_DICT_DEBUG
+
+    static constexpr size_t DICT_NUM_DISTANCES = 5;
 
     void Dump(int level = 0) const {
         int key_size = 0;
@@ -848,7 +849,6 @@ public:
                 continue;
         }
 
-#define DICT_NUM_DISTANCES 5
         int distances[DICT_NUM_DISTANCES];
         int max_distance = 0;
         DistanceStats(max_distance, distances, DICT_NUM_DISTANCES);
@@ -858,9 +858,9 @@ public:
             Capacity(), Length(), MaxLength(), (double)Length() / (table ? Capacity() : 1), max_distance,
             key_size / (Length() ? Length() : 1), log2_buckets, remaps, remap_end);
         if ( Length() > 0 ) {
-            for ( int i = 0; i < DICT_NUM_DISTANCES - 1; i++ )
-                printf("[%d]%2d%% ", i, 100 * distances[i] / Length());
-            printf("[%d+]%2d%% ", DICT_NUM_DISTANCES - 1, 100 * distances[DICT_NUM_DISTANCES - 1] / Length());
+            for ( size_t i = 0; i < DICT_NUM_DISTANCES - 1; i++ )
+                printf("[%zu]%2d%% ", i, 100 * distances[i] / Length());
+            printf("[%zu+]%2d%% ", DICT_NUM_DISTANCES - 1, 100 * distances[DICT_NUM_DISTANCES - 1] / Length());
         }
         else
             printf("\n");

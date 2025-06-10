@@ -92,7 +92,9 @@ public:
                const detail::Location* expr_location = nullptr) const;
 
     // Report internal errors.
-    void BadTag(const char* msg, const char* t1 = nullptr, const char* t2 = nullptr) const;
+    [[noreturn]] void BadTag(const char* msg, const char* t1 = nullptr, const char* t2 = nullptr) const;
+
+    // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define CHECK_TAG(t1, t2, text, tag_to_text_func)                                                                      \
     {                                                                                                                  \
         if ( (t1) != (t2) )                                                                                            \

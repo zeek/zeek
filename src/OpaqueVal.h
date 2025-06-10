@@ -88,6 +88,8 @@ private:
     std::unordered_map<std::string, Factory*> _types;
 };
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+
 /**
  * Macro to insert into an OpaqueVal-derived class's declaration. Overrides the "new" serialization methods
  * DoSerializeData and DoUnserializeData.
@@ -100,11 +102,14 @@ private:
     const char* OpaqueName() const override { return #T; }                                                             \
     static zeek::OpaqueValPtr OpaqueInstantiate() { return zeek::make_intrusive<T>(); }
 
+
 #define __OPAQUE_MERGE(a, b) a##b
 #define __OPAQUE_ID(x) __OPAQUE_MERGE(_opaque, x)
 
 /** Macro to insert into an OpaqueVal-derived class's implementation file. */
 #define IMPLEMENT_OPAQUE_VALUE(T) static zeek::OpaqueMgr::Register<T> __OPAQUE_ID(__LINE__)(#T);
+
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 /**
  * Base class for all opaque values. Opaque values are types that are managed

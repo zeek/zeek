@@ -14,6 +14,7 @@ enum TraversalCode : uint8_t {
     TC_ABORTSTMT = 2,
 };
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
 #define HANDLE_TC_STMT_PRE(code)                                                                                       \
     {                                                                                                                  \
         switch ( code ) {                                                                                              \
@@ -45,5 +46,7 @@ enum TraversalCode : uint8_t {
 
 #define HANDLE_TC_ATTR_PRE(code) HANDLE_TC_STMT_PRE(code)
 #define HANDLE_TC_ATTR_POST(code) return (code);
+
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 } // namespace zeek::detail

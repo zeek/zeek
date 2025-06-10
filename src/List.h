@@ -321,6 +321,7 @@ using name_list = PList<char>;
 } // namespace zeek
 
 // Macro to visit each list element in turn.
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define loop_over_list(list, iterator)                                                                                 \
     int iterator;                                                                                                      \
     for ( (iterator) = 0; (iterator) < (list).length(); ++(iterator) )

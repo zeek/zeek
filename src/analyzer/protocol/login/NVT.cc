@@ -412,7 +412,7 @@ void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data) {
 
         switch ( c ) {
             case '\r':
-                if ( CRLFAsEOL() & CR_as_EOL ) {
+                if ( CRLFAsEOL() & tcp::CR_as_EOL ) {
                     buf[offset] = '\0';
                     ForwardStream(offset, buf, IsOrig());
                     offset = 0;
@@ -423,7 +423,7 @@ void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data) {
 
             case '\n':
                 if ( last_char == '\r' ) {
-                    if ( CRLFAsEOL() & CR_as_EOL )
+                    if ( CRLFAsEOL() & tcp::CR_as_EOL )
                         // we already emitted, skip
                         ;
                     else {
@@ -434,7 +434,7 @@ void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data) {
                     }
                 }
 
-                else if ( CRLFAsEOL() & LF_as_EOL ) {
+                else if ( CRLFAsEOL() & tcp::LF_as_EOL ) {
                     buf[offset] = '\0';
                     ForwardStream(offset, buf, IsOrig());
                     offset = 0;
@@ -474,7 +474,7 @@ void NVT_Analyzer::DeliverChunk(int& len, const u_char*& data) {
             default: buf[offset++] = c; break;
         }
 
-        if ( ! (CRLFAsEOL() & CR_as_EOL) && last_char == '\r' && c != '\n' && c != '\0' ) {
+        if ( ! (CRLFAsEOL() & tcp::CR_as_EOL) && last_char == '\r' && c != '\n' && c != '\0' ) {
             if ( Conn()->FlagEvent(SINGULAR_CR) )
                 Weird("line_terminated_with_single_CR");
         }

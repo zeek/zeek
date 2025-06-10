@@ -21,6 +21,8 @@ class ZAMCompiler; // for "friend" declarations
 
 class ExprListStmt : public Stmt {
 public:
+    ~ExprListStmt() override;
+
     const ListExpr* ExprList() const { return l.get(); }
     const ListExprPtr& ExprListPtr() const { return l; }
 
@@ -34,8 +36,6 @@ public:
 
 protected:
     ExprListStmt(StmtTag t, ListExprPtr arg_l);
-
-    ~ExprListStmt() override;
 
     ValPtr Exec(Frame* f, StmtFlowType& flow) override;
     virtual ValPtr DoExec(std::vector<ValPtr> vals, StmtFlowType& flow) = 0;

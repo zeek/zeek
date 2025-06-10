@@ -356,6 +356,8 @@ protected:
 
 class IndexType : public Type {
 public:
+    ~IndexType() override = default;
+
     int MatchesIndex(detail::ListExpr* index) const override;
 
     const TypeListPtr& GetIndices() const { return indices; }
@@ -390,8 +392,6 @@ protected:
         is_subnet_index = types.size() == 1 && types[0]->Tag() == TYPE_SUBNET;
         is_pattern_index = types.size() == 1 && types[0]->Tag() == TYPE_PATTERN;
     }
-
-    ~IndexType() override = default;
 
     void DoDescribe(ODesc* d) const override;
 

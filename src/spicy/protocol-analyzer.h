@@ -17,6 +17,11 @@
 namespace zeek::spicy::rt {
 
 /** Parsing state for one endpoint of the connection. */
+// FIXME: It's strange that the parent class of this does not have a virtual destructor,
+// but fixing it requires also implementing copy constructor/operators, and it turns into
+// a rabbit hole.
+//
+// NOLINTNEXTLINE(cppcoreguidelines-virtual-class-destructor)
 class EndpointState : public ::spicy::rt::driver::ParsingState {
 public:
     /**

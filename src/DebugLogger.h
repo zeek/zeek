@@ -71,7 +71,7 @@ public:
     DebugLogger() = default;
     ~DebugLogger();
 
-    void OpenDebugLog(const char* filename = 0);
+    void OpenDebugLog(const char* filename = nullptr);
 
     void Log(DebugStream stream, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
     void Log(const plugin::Plugin& plugin, const char* fmt, ...) __attribute__((format(printf, 3, 4)));

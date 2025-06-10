@@ -880,7 +880,7 @@ public:
         }
     }
 
-    void DistanceStats(int& max_distance, int* distances = 0, int num_distances = 0) const {
+    void DistanceStats(int& max_distance, int* distances = nullptr, int num_distances = 0) const {
         max_distance = 0;
         for ( int i = 0; i < num_distances; i++ )
             distances[i] = 0;

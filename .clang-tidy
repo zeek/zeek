@@ -10,6 +10,7 @@ Checks: [-*,
          cppcoreguidelines-virtual-class-destructor,
 
          # Skipping these temporarily because they are very noisy
+         -bugprone-forward-declaration-namespace,
          -bugprone-narrowing-conversions,
          -bugprone-unchecked-optional-access,
          -performance-unnecessary-value-param,
@@ -63,3 +64,10 @@ Checks: [-*,
          -modernize-use-std-numbers,
          -modernize-use-std-print,
 ]
+
+HeaderFilterRegex: '.h'
+ExcludeHeaderFilterRegex: '.*(auxil|3rdparty)/.*'
+SystemHeaders: false
+CheckOptions:
+    - key: modernize-use-default-member-init.UseAssignment
+      value: 'true'

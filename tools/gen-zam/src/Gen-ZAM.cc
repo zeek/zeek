@@ -1996,7 +1996,7 @@ void ZAM_UnaryExprOpTemplate::BuildInstruction(const OCVec& oc,
 		{
 		type_src = constant_op ? "n" : "n1";
 		Emit("auto " + type_src + " = flhs->GetOp1()->AsNameExpr();");
-		Emit("auto t = flhs->GetType();");
+		Emit("const auto& t = flhs->GetType();");
 		}
 
 	else
@@ -2005,7 +2005,7 @@ void ZAM_UnaryExprOpTemplate::BuildInstruction(const OCVec& oc,
 			type_src = constant_op ? "n" : "n1";
 
 		auto type_suffix = zc == ZIC_VEC ? "->Yield();" : ";";
-		Emit("auto t = " + type_src + "->GetType()" + type_suffix);
+		Emit("const auto& t = " + type_src + "->GetType()" + type_suffix);
 		}
 
 	BuildInstructionCore(params, suffix, zc);
@@ -2127,7 +2127,7 @@ void ZAM_BinaryExprOpTemplate::BuildInstruction(const OCVec& oc,
 	auto constant_op = oc[1] == ZAM_OC_CONSTANT;
 	string type_src = constant_op ? "c" : "n2";
 	auto type_suffix = zc == ZIC_VEC ? "->Yield();" : ";";
-	Emit("auto t = " + type_src + "->GetType()" + type_suffix);
+	Emit("const auto& t = " + type_src + "->GetType()" + type_suffix);
 
 	GenerateSecondTypeVars(oc, zc);
 	BuildInstructionCore(params, suffix, zc);
@@ -2163,7 +2163,7 @@ void ZAM_BinaryExprOpTemplate::GenerateSecondTypeVars(const OCVec& oc,
 			type_src2 = "n3";
 		}
 
-	Emit("auto t2 = " + type_src2 + "->GetType()" + type_suffix);
+	Emit("const auto& t2 = " + type_src2 + "->GetType()" + type_suffix);
 	Emit("auto tag2 = t2->Tag();");
 	Emit("auto i_t2 = t2->InternalType();");
 	}
@@ -2210,7 +2210,7 @@ void ZAM_RelationalExprOpTemplate::BuildInstruction(const OCVec& oc,
 		}
 
 	auto type_suffix = zc == ZIC_VEC ? "->Yield();" : ";";
-	Emit("auto t = " + op1 + "->GetType()" + type_suffix);
+	Emit("const auto& t = " + op1 + "->GetType()" + type_suffix);
 	GenerateSecondTypeVars(oc, zc);
 	BuildInstructionCore(params, suffix, zc);
 

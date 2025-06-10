@@ -29,7 +29,7 @@ static inline void add_path(std::string& old_path, const path& new_path) {
 static path get_env_path_or(const char* name, const char* default_) {
     assert(std::strlen(default_) != 0);
     if ( auto p = hilti::rt::getenv(name); p && ! p->empty() )
-        return path(*p);
+        return {*p};
     else
         return default_;
 }

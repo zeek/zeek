@@ -96,7 +96,7 @@ public:
     // For the current iteration, returns the corresponding value.
     ZVal IterValue() {
         auto tev = (*tbl_iter)->value;
-        return ZVal(tev->GetVal(), value_var_type);
+        return {tev->GetVal(), value_var_type};
     }
 
     // Called upon finishing the iteration.

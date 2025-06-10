@@ -41,6 +41,7 @@ void EnumDecl::Prepare() {
 }
 
 void EnumDecl::GenForwardDeclaration(Output* out_h) {
+    out_h->println("// NOLINTNEXTLINE(performance-enum-size)");
     out_h->println("enum %s {", id_->Name());
     out_h->inc_indent();
     int c = 0;

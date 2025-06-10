@@ -406,7 +406,7 @@ class TableType : public IndexType {
 public:
     TableType(TypeListPtr ind, TypePtr yield);
 
-    ~TableType();
+    ~TableType() override;
 
     /**
      * Assesses whether an &expire_func attribute's function type is compatible

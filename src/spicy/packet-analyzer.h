@@ -54,7 +54,7 @@ private:
 class PacketAnalyzer : public packet_analysis::Analyzer {
 public:
     PacketAnalyzer(std::string name);
-    virtual ~PacketAnalyzer();
+    ~PacketAnalyzer() override;
 
     /** Records a debug message. */
     void DebugMsg(const std::string& msg) { _state.DebugMsg(msg); }

@@ -123,7 +123,7 @@ private:
 class TCP_Analyzer : public ProtocolAnalyzer, public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
     TCP_Analyzer(Connection* conn);
-    virtual ~TCP_Analyzer();
+    ~TCP_Analyzer() override;
 
     // Overridden from Spicy's Analyzer.
     void Init() override;
@@ -151,7 +151,7 @@ public:
 class UDP_Analyzer : public ProtocolAnalyzer, public analyzer::Analyzer {
 public:
     UDP_Analyzer(Connection* conn);
-    virtual ~UDP_Analyzer();
+    ~UDP_Analyzer() override;
 
     // Overridden from Spicy's Analyzer.
     void Init() override;

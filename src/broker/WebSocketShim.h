@@ -26,7 +26,7 @@ class WebSocketShim : public zeek::cluster::Backend {
 public:
     WebSocketShim(std::unique_ptr<zeek::cluster::EventSerializer> es, std::unique_ptr<zeek::cluster::LogSerializer> ls,
                   std::unique_ptr<zeek::cluster::detail::EventHandlingStrategy> ehs);
-    ~WebSocketShim();
+    ~WebSocketShim() override;
 
     /**
      * Component factory.

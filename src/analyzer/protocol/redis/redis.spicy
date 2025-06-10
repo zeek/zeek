@@ -383,21 +383,40 @@ function bulk_string_content(bulk: RESP::BulkString): bytes {
         return b"";
 }
 
+# Returns the bytes string value of this, or Null if it cannot.
+function stringify(data: RESP::Data): optional<bytes> {
+    if (data?.simple_error)
+        return data.simple_error.content;
+    else if (data?.bulk_error)
+        return bulk_string_content(data.bulk_error);
+    else if (data?.simple_string)
+        return data.simple_string.content;
+    else if (data?.bulk_string)
+        return bulk_string_content(data.bulk_string);
+    else if (data?.verbatim_string)
+        return bulk_string_content(data.verbatim_string);
+    else if (data?.boolean)
+        return data.boolean.val ? b"T" : b"F";
+    else if (data?.array) {
+        local res = b"[";
+        local first = True;
+        for (ele in data.array.elements) {
+            if (!first)
+                res += b", ";
+            local ele_stringified = stringify(ele);
+            if (!ele_stringified)
+                return Null;
+            res += *ele_stringified;
+            first = False;
+        }
+        res += b"]";
+        return res;
+    }
+
+    return Null;
+}
+
 # Gets the server reply in a simpler form
 public function make_server_reply(data: RESP::ServerData): ReplyData {
-    local res: ReplyData = [$value = Null];
-    if (data.data?.simple_error)
-        res.value = data.data.simple_error.content;
-    else if (data.data?.bulk_error)
-        res.value = bulk_string_content(data.data.bulk_error);
-    else if (data.data?.simple_string)
-        res.value = data.data.simple_string.content;
-    else if (data.data?.bulk_string)
-        res.value = bulk_string_content(data.data.bulk_string);
-    else if (data.data?.verbatim_string)
-        res.value = bulk_string_content(data.data.verbatim_string);
-    else if (data.data?.boolean)
-        res.value = data.data.boolean.val ? b"T" : b"F";
-
-    return res;
+    return [$value = stringify(data.data)];
 }

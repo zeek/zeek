@@ -63,7 +63,7 @@ inline void log(const std::string& msg) {
 class Manager : public zeek::plugin::Plugin {
 public:
     Manager() {}
-    virtual ~Manager();
+    ~Manager() override;
 
     /**
      * Runtime method to begin registration of a Spicy EVT module. All

@@ -53,7 +53,7 @@ private:
 class FileAnalyzer : public file_analysis::Analyzer {
 public:
     FileAnalyzer(RecordValPtr arg_args, file_analysis::File* arg_file);
-    virtual ~FileAnalyzer();
+    ~FileAnalyzer() override;
 
     static file_analysis::Analyzer* InstantiateAnalyzer(RecordValPtr args, file_analysis::File* file);
 

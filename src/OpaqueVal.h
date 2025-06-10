@@ -236,7 +236,7 @@ public:
     }
 
     MD5Val();
-    ~MD5Val();
+    ~MD5Val() override;
 
     ValPtr DoClone(CloneState* state) override;
 
@@ -264,7 +264,7 @@ public:
     }
 
     SHA1Val();
-    ~SHA1Val();
+    ~SHA1Val() override;
 
     ValPtr DoClone(CloneState* state) override;
 
@@ -292,7 +292,7 @@ public:
     }
 
     SHA256Val();
-    ~SHA256Val();
+    ~SHA256Val() override;
 
     ValPtr DoClone(CloneState* state) override;
 

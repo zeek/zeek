@@ -68,8 +68,8 @@ public:
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     ExprPtr ReduceToSingleton(Reducer* c, StmtPtr& red_stmt) override;
 
-    ExprPtr GetOp3() const override final { return op3; }
-    void SetOp3(ExprPtr _op) override final { op3 = std::move(_op); }
+    ExprPtr GetOp3() const final { return op3; }
+    void SetOp3(ExprPtr _op) final { op3 = std::move(_op); }
 
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
@@ -246,11 +246,11 @@ public:
 
     auto Tag() const { return tag; }
 
-    ExprPtr GetOp1() const override final { return arg1; }
-    ExprPtr GetOp2() const override final { return arg2; }
+    ExprPtr GetOp1() const final { return arg1; }
+    ExprPtr GetOp2() const final { return arg2; }
 
-    void SetOp1(ExprPtr op) override final { arg1 = std::move(op); }
-    void SetOp2(ExprPtr op) override final { arg2 = std::move(op); }
+    void SetOp1(ExprPtr op) final { arg1 = std::move(op); }
+    void SetOp2(ExprPtr op) final { arg2 = std::move(op); }
 
     ValPtr Eval(Frame* f) const override;
 

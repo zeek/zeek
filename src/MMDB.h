@@ -70,14 +70,14 @@ private:
 
 class LocDB : public MMDB {
 public:
-    bool OpenFromScriptConfig();
-    std::string_view Description() { return "GeoIP location database"; }
+    bool OpenFromScriptConfig() override;
+    std::string_view Description() override { return "GeoIP location database"; }
 };
 
 class AsnDB : public MMDB {
 public:
-    bool OpenFromScriptConfig();
-    std::string_view Description() { return "GeoIP ASN database"; }
+    bool OpenFromScriptConfig() override;
+    std::string_view Description() override { return "GeoIP ASN database"; }
 };
 
 #endif // USE_GEOIP

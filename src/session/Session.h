@@ -50,7 +50,7 @@ public:
     Session(double t, EventHandlerPtr timeout_event, EventHandlerPtr status_update_event = nullptr,
             double status_update_interval = 0);
 
-    virtual ~Session() {}
+    ~Session() override = default;
 
     /**
      * Invoked when the session is about to be removed. Use Ref(this)
@@ -135,7 +135,7 @@ public:
         return EnqueueEvent(h, analyzer, zeek::Args{std::forward<Args>(args)...});
     }
 
-    virtual void Describe(ODesc* d) const override;
+    void Describe(ODesc* d) const override;
 
     /**
      * Sets the session to expire after a given amount of time.

@@ -1,3 +1,9 @@
+8.0.0-dev.410 | 2025-06-09 18:00:33 -0700
+
+  * Btests: don't use -C in Zeek invocations that don't actually need it (Christian Kreibich, Corelight)
+
+  * Remove executable file permission bits from a bunch of our pcaps (Christian Kreibich, Corelight)
+
 8.0.0-dev.406 | 2025-06-06 11:45:33 -0700
 
   * Move initialization of RandTest members to header (Tim Wojtulewicz, Corelight)

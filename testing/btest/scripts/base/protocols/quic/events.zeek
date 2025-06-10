@@ -1,9 +1,9 @@
 # @TEST-DOC: Supported events so far.
 
 # @TEST-REQUIRES: ${SCRIPTS}/have-spicy
-# @TEST-EXEC: zeek -Cr $TRACES/quic/interop/quic-go_quic-go/retry.pcap base/protocols/quic %INPUT >out
+# @TEST-EXEC: zeek -r $TRACES/quic/interop/quic-go_quic-go/retry.pcap base/protocols/quic %INPUT >out
 # @TEST-EXEC: echo "zerortt.pcap" >>out
-# @TEST-EXEC: zeek -Cr $TRACES/quic/interop/quic-go_quic-go/zerortt.pcap base/protocols/quic %INPUT >>out
+# @TEST-EXEC: zeek -r $TRACES/quic/interop/quic-go_quic-go/zerortt.pcap base/protocols/quic %INPUT >>out
 # @TEST-EXEC: btest-diff out
 # @TEST-EXEC: btest-diff .stderr
 #

@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -C -r $TRACES/tunnels/gtp/gtp9_unknown_or_too_short_payload.pcap %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tunnels/gtp/gtp9_unknown_or_too_short_payload.pcap %INPUT
 # @TEST-EXEC: btest-diff analyzer.log
 # @TEST-EXEC: btest-diff tunnel.log
 

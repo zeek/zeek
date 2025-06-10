@@ -333,8 +333,8 @@ protected:
     struct BOF_Buffer {
         BOF_Buffer() : full(false), size(0) {}
         ~BOF_Buffer() {
-            for ( size_t i = 0; i < chunks.size(); ++i )
-                delete chunks[i];
+            for ( auto* chunk : chunks )
+                delete chunk;
         }
 
         bool full;

@@ -106,8 +106,8 @@ public:
             rotation_base = other.rotation_base;
             network_time = other.network_time;
 
-            for ( config_map::const_iterator i = other.config.begin(); i != other.config.end(); i++ )
-                config.insert(std::make_pair(util::copy_string(i->first), util::copy_string(i->second)));
+            for ( const auto& [k, v] : other.config )
+                config.insert(std::make_pair(util::copy_string(k), util::copy_string(v)));
 
             filter_name = other.filter_name;
         }
@@ -116,9 +116,9 @@ public:
             delete[] path;
             delete[] post_proc_func;
 
-            for ( config_map::iterator i = config.begin(); i != config.end(); i++ ) {
-                delete[] i->first;
-                delete[] i->second;
+            for ( auto [k, v] : config ) {
+                delete[] k;
+                delete[] v;
             }
         }
 

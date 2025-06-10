@@ -328,6 +328,7 @@ set(MAIN_SRCS
     CCL.cc
     CompHash.cc
     Conn.cc
+    ConnKey.h
     DFA.cc
     DbgBreakpoint.cc
     DbgHelp.cc

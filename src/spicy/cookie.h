@@ -185,6 +185,9 @@ struct Cookie {
             throw std::runtime_error("invalid cookie");
     }
 
+    Cookie(const Cookie& other) = delete;
+    Cookie& operator=(const Cookie& other) = delete;
+
 private:
     union Data {
         cookie::ProtocolAnalyzer protocol;
@@ -241,9 +244,6 @@ private:
         else if ( other.packet )
             packet = &data.packet;
     }
-
-    Cookie(const Cookie& other) = delete;
-    Cookie& operator=(const Cookie& other) = delete;
 
     friend inline void swap(Cookie& lhs, Cookie& rhs) noexcept {
         Cookie tmp = std::move(lhs);

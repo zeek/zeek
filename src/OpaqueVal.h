@@ -328,6 +328,10 @@ public:
     explicit BloomFilterVal(probabilistic::BloomFilter* bf);
     ~BloomFilterVal() override;
 
+    // Disable.
+    BloomFilterVal(const BloomFilterVal&) = delete;
+    BloomFilterVal& operator=(const BloomFilterVal&) = delete;
+
     ValPtr DoClone(CloneState* state) override;
 
     const TypePtr& Type() const { return type; }
@@ -350,10 +354,6 @@ protected:
 
     DECLARE_OPAQUE_VALUE_DATA(BloomFilterVal)
 private:
-    // Disable.
-    BloomFilterVal(const BloomFilterVal&);
-    BloomFilterVal& operator=(const BloomFilterVal&);
-
     TypePtr type;
     detail::CompositeHash* hash;
     probabilistic::BloomFilter* bloom_filter;

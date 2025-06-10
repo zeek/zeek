@@ -136,7 +136,7 @@ public:
 #endif
     }
 
-    Configuration(Configuration&& c) {
+    Configuration(Configuration&& c) noexcept {
         zeek_version = std::move(c.zeek_version);
 
         name = std::move(c.name);
@@ -152,7 +152,7 @@ public:
         version = c.version;
     }
 
-    Configuration& operator=(Configuration&& c) {
+    Configuration& operator=(Configuration&& c) noexcept {
         zeek_version = std::move(c.zeek_version);
 
         name = std::move(c.name);

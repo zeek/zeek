@@ -23,9 +23,9 @@
 extern void rules_error(const char* msg);
 extern void rules_error(const char* msg, const char* addl);
 extern void rules_error(zeek::detail::Rule* id, const char* msg);
-extern int rules_lex(void);
-extern int rules_parse(void);
-extern "C" int rules_wrap(void);
+extern int rules_lex();
+extern int rules_parse();
+extern "C" int rules_wrap();
 extern int rules_line_number;
 extern const char* current_rule_file;
 

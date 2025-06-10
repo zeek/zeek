@@ -6,7 +6,7 @@
 
 #include "zeek/analyzer/protocol/tcp/TCP.h"
 
-#define BTTRACKER_BUF 2048
+constexpr uint32_t BTTRACKER_BUF = 2048;
 
 namespace zeek {
 

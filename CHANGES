@@ -1,3 +1,7 @@
+8.0.0-dev.414 | 2025-06-10 12:08:36 -0700
+
+  * Move netbios_ssn_session_timeout to a script-level constant (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.412 | 2025-06-10 18:50:39 +0200
 
   * btest/opt/ZAM-bif-tracking: Disable by default (Arne Welzel, Corelight)

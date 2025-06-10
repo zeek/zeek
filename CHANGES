@@ -1,3 +1,7 @@
+8.0.0-dev.412 | 2025-06-10 18:50:39 +0200
+
+  * btest/opt/ZAM-bif-tracking: Disable by default (Arne Welzel, Corelight)
+
 8.0.0-dev.410 | 2025-06-09 18:00:33 -0700
 
   * Btests: don't use -C in Zeek invocations that don't actually need it (Christian Kreibich, Corelight)

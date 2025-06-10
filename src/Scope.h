@@ -37,7 +37,7 @@ public:
 
     template<typename N, typename I>
     void Insert(N&& name, I&& id) {
-        local[std::forward<N>(name)] = std::forward<I>(id);
+        local[std::forward<N>(name)] = id;
         ordered_vars.push_back(std::forward<I>(id));
     }
 

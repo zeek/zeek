@@ -749,10 +749,9 @@ void Ascii::RotateLeftoverLogs() {
         auto ppf = default_ppf;
 
         if ( ! ll.post_proc_func.empty() ) {
-            auto func = id::find_func(ll.post_proc_func.data());
-
-            if ( func )
-                ppf = std::move(func);
+            const auto& id = id::find(ll.post_proc_func.data());
+            if ( id && id->GetVal() && same_type(id->GetVal()->GetType(), default_ppf->GetType()) )
+                ppf = id->GetVal()->AsFuncVal()->AsFuncPtr();
             else
                 reporter->Warning(
                     "Could not postprocess log '%s' with intended "

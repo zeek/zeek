@@ -144,6 +144,7 @@ macro WhenCall(lhs, func)
 		auto current_assoc = Z_FRAME->GetTriggerAssoc();
 		auto n = aux->n;
 		std::vector<ValPtr> args;
+		args.reserve(n);
 		for ( auto i = 0; i < n; ++i )
 			args.push_back(aux->ToVal(frame, i));
 		Z_FRAME->SetCall(Z_AUX->call_expr.get());

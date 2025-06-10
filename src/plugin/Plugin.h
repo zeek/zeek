@@ -141,7 +141,7 @@ public:
 
         name = std::move(c.name);
         description = std::move(c.description);
-        version = std::move(c.version);
+        version = c.version;
     }
 
     Configuration(const Configuration& c) {
@@ -157,7 +157,7 @@ public:
 
         name = std::move(c.name);
         description = std::move(c.description);
-        version = std::move(c.version);
+        version = c.version;
 
         return *this;
     }

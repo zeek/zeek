@@ -20,7 +20,7 @@ namespace analyzer::bittorrent {
 
 namespace detail {
 
-enum BTT_States {
+enum BTT_States : uint8_t {
     BTT_REQ_GET,
     BTT_REQ_HEADER,
     BTT_REQ_DONE,
@@ -32,9 +32,15 @@ enum BTT_States {
 };
 
 // "benc" = Bencode ("Bee-Encode"), per http://en.wikipedia.org/wiki/Bencode
-enum BTT_BencTypes { BENC_TYPE_INT = 0, BENC_TYPE_STR = 1, BENC_TYPE_DIR = 2, BENC_TYPE_LIST = 3, BENC_TYPE_NONE = 10 };
+enum BTT_BencTypes : uint8_t {
+    BENC_TYPE_INT = 0,
+    BENC_TYPE_STR = 1,
+    BENC_TYPE_DIR = 2,
+    BENC_TYPE_LIST = 3,
+    BENC_TYPE_NONE = 10
+};
 
-enum BTT_BencStates {
+enum BTT_BencStates : uint8_t {
     BENC_STATE_EMPTY,
     BENC_STATE_INT1,
     BENC_STATE_INT2,

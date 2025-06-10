@@ -171,7 +171,7 @@ struct Cookie {
         bool confirmed = false;   // valid only for protocol analyzers;
     } cache;
 
-    enum Tag { Protocol, File, Packet };
+    enum Tag : uint8_t { Protocol, File, Packet };
 
     /** Returns the type of cookie currently stored. */
     Tag tag() const {

@@ -38,7 +38,7 @@ using RecordValPtr = IntrusivePtr<RecordVal>;
  * This enum is sized as an int32_t to make the Packet structure align
  * correctly.
  */
-enum Layer3Proto : int32_t {
+enum Layer3Proto : int8_t {
     L3_UNKNOWN = -1, /// Layer 3 type could not be determined.
     L3_IPV4 = 1,     /// Layer 3 is IPv4.
     L3_IPV6 = 2,     /// Layer 3 is IPv6.
@@ -149,11 +149,6 @@ public:
     uint32_t link_type;           /// pcap link_type (DLT_EN10MB, DLT_RAW, etc)
 
     /**
-     * Layer 3 protocol identified (if any).
-     */
-    Layer3Proto l3_proto;
-
-    /**
      * If layer 2 is Ethernet, innermost ethertype field.
      */
     uint32_t eth_type;
@@ -167,6 +162,11 @@ public:
      * (Innermost) VLAN tag if any, else 0.
      */
     uint32_t inner_vlan = 0;
+
+    /**
+     * Layer 3 protocol identified (if any).
+     */
+    Layer3Proto l3_proto;
 
     /**
      * If this packet is related to a connection, this flag denotes whether

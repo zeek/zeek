@@ -42,7 +42,7 @@ namespace packet_analysis::IP {
 class SessionAdapter;
 }
 
-enum ConnEventToFlag {
+enum ConnEventToFlag : uint8_t {
     NUL_IN_LINE,
     SINGULAR_CR,
     SINGULAR_LF,

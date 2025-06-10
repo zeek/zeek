@@ -16,12 +16,12 @@ namespace detail {
 
 class SMTP_BDAT_Analyzer;
 
-enum SMTP_Cmd {
+enum SMTP_Cmd : uint8_t {
 #include "SMTP_cmd.def"
 };
 
 // State is updated on every SMTP reply.
-enum SMTP_State {
+enum SMTP_State : uint8_t {
     SMTP_CONNECTED,     // 0: before the opening message
     SMTP_INITIATED,     // 1: after opening message 220, EHLO/HELO expected
     SMTP_NOT_AVAILABLE, // 2: after opening message 554, etc.

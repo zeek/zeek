@@ -30,7 +30,7 @@
 
 namespace zeek {
 
-enum class ListOrder : int { ORDERED, UNORDERED };
+enum class ListOrder : uint8_t { ORDERED, UNORDERED };
 
 template<typename T, ListOrder Order = ListOrder::ORDERED>
 class List {

@@ -405,7 +405,7 @@ private:
     /**
      * Helper enum for CreateWriterForFilter to avoid bool params.
      */
-    enum class WriterOrigin {
+    enum class WriterOrigin : uint8_t {
         REMOTE,
         LOCAL,
     };
@@ -434,7 +434,7 @@ private:
     bool CheckFilterWriterConflict(const WriterInfo* winfo, const Filter* filter);
 
     // Verdict of a PolicyHook.
-    enum class PolicyVerdict {
+    enum class PolicyVerdict : uint8_t {
         PASS,
         VETO,
     };

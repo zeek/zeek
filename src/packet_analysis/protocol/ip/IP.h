@@ -29,7 +29,12 @@ private:
     zeek::detail::Discarder* discarder = nullptr;
 };
 
-enum class ParseResult { Ok = 0, CaplenTooSmall = -1, BadProtocol = -2, CaplenTooLarge = 1 };
+enum class ParseResult : int8_t {
+    CaplenTooSmall = -1,
+    BadProtocol = -2,
+    Ok = 0,
+    CaplenTooLarge = 1,
+};
 
 /**
  * Returns a wrapper IP_Hdr object if \a pkt appears to be a valid IPv4

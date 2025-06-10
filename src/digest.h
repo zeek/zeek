@@ -38,7 +38,7 @@ namespace zeek::detail {
 
 // if you add something here, note that you might have to make sure that the
 // static_out member in calculate_digest is still long enough.
-enum HashAlgorithm { Hash_MD5, Hash_SHA1, Hash_SHA224, Hash_SHA256, Hash_SHA384, Hash_SHA512 };
+enum HashAlgorithm : uint8_t { Hash_MD5, Hash_SHA1, Hash_SHA224, Hash_SHA256, Hash_SHA384, Hash_SHA512 };
 
 inline const char* digest_print(const u_char* digest, size_t n) {
     static char buf[ZEEK_DIGEST_PRINT_LENGTH];

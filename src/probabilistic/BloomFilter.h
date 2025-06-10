@@ -20,7 +20,7 @@ class CounterVector;
 }
 
 /** Types of derived BloomFilter classes. */
-enum BloomFilterType { Basic, Counting };
+enum BloomFilterType : uint8_t { Basic, Counting };
 
 /**
  * The abstract base class for Bloom filters.

@@ -16,7 +16,7 @@ class ReaderFrontend;
 /**
  * The modes a reader can be in.
  */
-enum ReaderMode {
+enum ReaderMode : uint8_t {
     /**
      * Manual refresh reader mode. The reader will read the file once,
      * and send all read data back to the manager. After that, no automatic

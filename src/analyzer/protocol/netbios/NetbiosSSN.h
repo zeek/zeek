@@ -7,7 +7,7 @@
 namespace zeek::analyzer::netbios_ssn {
 namespace detail {
 
-enum NetbiosSSN_Opcode {
+enum NetbiosSSN_Opcode : uint8_t {
     NETBIOS_SSN_MSG = 0x0,
     NETBIOS_DGM_DIRECT_UNIQUE = 0x10,
     NETBIOS_DGM_DIRECT_GROUP = 0x11,
@@ -59,7 +59,7 @@ struct NetbiosDGM_RawMsgHdr {
     uint16_t offset;
 };
 
-enum NetbiosSSN_State {
+enum NetbiosSSN_State : uint8_t {
     NETBIOS_SSN_TYPE,   // looking for type field
     NETBIOS_SSN_FLAGS,  // looking for flag field
     NETBIOS_SSN_LEN_HI, // looking for high-order byte of length

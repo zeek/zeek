@@ -2,11 +2,13 @@
 
 #pragma once
 
+#include <cstdint>
+
 namespace zeek::detail {
 
 class TraversalCallback;
 
-enum TraversalCode {
+enum TraversalCode : uint8_t {
     TC_CONTINUE = 0,
     TC_ABORTALL = 1,
     TC_ABORTSTMT = 2,

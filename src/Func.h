@@ -57,7 +57,7 @@ class Func : public Obj {
 public:
     static inline const FuncPtr nil;
 
-    enum Kind { SCRIPT_FUNC, BUILTIN_FUNC };
+    enum Kind : uint8_t { SCRIPT_FUNC, BUILTIN_FUNC };
 
     explicit Func(Kind arg_kind) : kind(arg_kind) {}
 

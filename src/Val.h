@@ -1056,7 +1056,7 @@ protected:
     double CallExpireFunc(ListValPtr idx);
 
     // Enum for the different kinds of changes an &on_change handler can see
-    enum OnChangeType { ELEMENT_NEW, ELEMENT_CHANGED, ELEMENT_REMOVED, ELEMENT_EXPIRED };
+    enum OnChangeType : uint8_t { ELEMENT_NEW, ELEMENT_CHANGED, ELEMENT_REMOVED, ELEMENT_EXPIRED };
 
     // Calls &change_func.
     void CallChangeFunc(const ValPtr& index, const ValPtr& old_value, OnChangeType tpe);

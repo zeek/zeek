@@ -3,6 +3,7 @@
 #pragma once
 
 #include <sys/types.h> // for u_char
+#include <cstdint>
 #include <functional>
 #include <map>
 #include <set>
@@ -78,8 +79,8 @@ extern uint32_t id_to_uint(const char* id);
 class RuleHdrTest {
 public:
     // Note: Adapt RuleHdrTest::PrintDebug() when changing these enums.
-    enum Comp { LE, GE, LT, GT, EQ, NE };
-    enum Prot { NOPROT, IP, IPv6, ICMP, ICMPv6, TCP, UDP, NEXT, IPSrc, IPDst };
+    enum Comp : uint8_t { LE, GE, LT, GT, EQ, NE };
+    enum Prot : uint8_t { NOPROT, IP, IPv6, ICMP, ICMPv6, TCP, UDP, NEXT, IPSrc, IPDst };
 
     RuleHdrTest(Prot arg_prot, uint32_t arg_offset, uint32_t arg_size, Comp arg_comp, maskedvalue_list* arg_vals);
     RuleHdrTest(Prot arg_prot, Comp arg_comp, std::vector<IPPrefix> arg_v);

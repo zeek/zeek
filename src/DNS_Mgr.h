@@ -54,7 +54,7 @@ class DNS_Mapping;
 using DNS_MappingPtr = std::shared_ptr<DNS_Mapping>;
 class DNS_Request;
 
-enum DNS_MgrMode {
+enum DNS_MgrMode : uint8_t {
     DNS_PRIME,   // used to prime the cache
     DNS_FORCE,   // internal error if cache miss
     DNS_DEFAULT, // lookup names as they're requested

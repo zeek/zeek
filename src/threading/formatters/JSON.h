@@ -18,7 +18,7 @@ namespace zeek::threading::formatter {
  */
 class JSON : public Formatter {
 public:
-    enum TimeFormat {
+    enum TimeFormat : uint8_t {
         TS_EPOCH,          // Doubles that represents seconds from the UNIX epoch.
         TS_ISO8601,        // ISO 8601 defined human readable timestamp format.
         TS_MILLIS,         // Signed milliseconds from the UNIX epoch.  Some consumers need this (e.g.,

@@ -33,7 +33,7 @@ using ScopePtr = IntrusivePtr<Scope>;
 using ScriptFuncPtr = IntrusivePtr<ScriptFunc>;
 using FunctionIngredientsPtr = std::shared_ptr<FunctionIngredients>;
 
-enum ExprTag : int {
+enum ExprTag : int8_t {
     EXPR_ANY = -1,
     EXPR_NAME,
     EXPR_CONST,

@@ -59,7 +59,7 @@ public:
 } // namespace detail
 
 // Zeek types.
-enum TypeTag {
+enum TypeTag : uint8_t {
     TYPE_VOID,     // 0
     TYPE_BOOL,     // 1
     TYPE_INT,      // 2
@@ -91,9 +91,9 @@ extern const char* type_name(TypeTag t);
 
 constexpr bool is_network_order(TypeTag tag) noexcept { return tag == TYPE_PORT; }
 
-enum FunctionFlavor { FUNC_FLAVOR_FUNCTION, FUNC_FLAVOR_EVENT, FUNC_FLAVOR_HOOK };
+enum FunctionFlavor : uint8_t { FUNC_FLAVOR_FUNCTION, FUNC_FLAVOR_EVENT, FUNC_FLAVOR_HOOK };
 
-enum InternalTypeTag : uint16_t {
+enum InternalTypeTag : uint8_t {
     TYPE_INTERNAL_VOID,
     TYPE_INTERNAL_INT,
     TYPE_INTERNAL_UNSIGNED,

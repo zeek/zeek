@@ -35,7 +35,7 @@ class DbgWatch;
 class DbgDisplay;
 
 // This needs to be defined before we do the includes that come after it.
-enum ParseLocationRecType { PLR_UNKNOWN, PLR_FILE_AND_LINE, PLR_FUNCTION };
+enum ParseLocationRecType : uint8_t { PLR_UNKNOWN, PLR_FILE_AND_LINE, PLR_FUNCTION };
 class ParseLocationRec {
 public:
     ParseLocationRecType type;

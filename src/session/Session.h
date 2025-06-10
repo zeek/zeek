@@ -30,7 +30,7 @@ constexpr uint32_t HIST_UNKNOWN_PKT = 0x400; // Initially for exceeded_tunnel_ma
 class Session;
 using timer_func = void (Session::*)(double t);
 
-enum class AnalyzerConfirmationState { UNKNOWN, VIOLATED, CONFIRMED };
+enum class AnalyzerConfirmationState : uint8_t { UNKNOWN, VIOLATED, CONFIRMED };
 
 class Session : public Obj {
 public:

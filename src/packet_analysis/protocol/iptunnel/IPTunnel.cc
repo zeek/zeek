@@ -37,14 +37,14 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
     if ( gre_version != 0 ) {
         // Check for a valid inner packet first.
         auto result = packet_analysis::IP::ParsePacket(len, data, proto, inner);
-        if ( result == packet_analysis::IP::ParseResult::BadProtocol )
+        if ( result == packet_analysis::IP::ParseResult::BAD_PROTOCOL )
             Weird("invalid_inner_IP_version", packet);
-        else if ( result == packet_analysis::IP::ParseResult::CaplenTooSmall )
+        else if ( result == packet_analysis::IP::ParseResult::CAPLEN_TOO_SMALL )
             Weird("truncated_inner_IP", packet);
-        else if ( result == packet_analysis::IP::ParseResult::CaplenTooLarge )
+        else if ( result == packet_analysis::IP::ParseResult::CAPLEN_TOO_LARGE )
             Weird("inner_IP_payload_length_mismatch", packet);
 
-        if ( result != packet_analysis::IP::ParseResult::Ok )
+        if ( result != packet_analysis::IP::ParseResult::OK )
             return false;
     }
 

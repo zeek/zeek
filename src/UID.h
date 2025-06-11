@@ -5,7 +5,7 @@
 #include <cstring>
 #include <string>
 
-#include "zeek/util.h" // for zeek_int_t
+#include "zeek/util-types.h"
 
 namespace zeek {
 

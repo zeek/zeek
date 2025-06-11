@@ -9,7 +9,7 @@
 
 #include "zeek/IntrusivePtr.h"
 #include "zeek/ZeekString.h" // for byte_vec
-#include "zeek/util.h"       // for zeek_int_t
+#include "zeek/util-types.h"
 
 namespace zeek {
 

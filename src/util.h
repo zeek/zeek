@@ -92,19 +92,7 @@ namespace filesystem = ghc::filesystem;
 inline constexpr std::string_view path_list_separator = ":";
 #endif
 
-#include "zeek/3rdparty/nonstd/expected.hpp"
-namespace zeek {
-template<typename T, typename E>
-using expected = nonstd::expected<T, E>;
-
-template<typename E>
-using unexpected = nonstd::unexpected<E>;
-} // namespace zeek
-
-#include "zeek/Span.h"
-
-using zeek_int_t = int64_t;
-using zeek_uint_t = uint64_t;
+#include "zeek/util-types.h"
 
 #ifndef HAVE_STRCASESTR
 extern char* strcasestr(const char* s, const char* find);
@@ -117,10 +105,6 @@ namespace zeek {
 
 class ODesc;
 class RecordVal;
-
-// Byte buffer types used by serialization code in storage and cluster.
-using byte_buffer = std::vector<std::byte>;
-using byte_buffer_span = Span<const std::byte>;
 
 namespace util {
 namespace detail {
@@ -219,21 +203,6 @@ constexpr SourceID SOURCE_BROKER = 0xffffffff;
 bool is_package_loader(const std::string& path);
 
 extern void add_to_zeek_path(const std::string& dir);
-
-/**
- * Wrapper class for functions like dirname(3) or basename(3) that won't
- * modify the path argument and may optionally abort execution on error.
- */
-class SafePathOp {
-public:
-    std::string result;
-    bool error;
-
-protected:
-    SafePathOp() : result(), error() {}
-
-    void CheckValid(const char* result, const char* path, bool error_aborts);
-};
 
 /**
  * Flatten a script name by replacing '/' path separators with '.'.
@@ -397,24 +366,6 @@ extern const std::string& zeek_path();
 extern const char* zeek_plugin_path();
 extern const char* zeek_plugin_activate();
 extern std::string zeek_prefixes();
-
-class SafeDirname : public detail::SafePathOp {
-public:
-    explicit SafeDirname(const char* path, bool error_aborts = true);
-    explicit SafeDirname(const std::string& path, bool error_aborts = true);
-
-private:
-    void DoFunc(const std::string& path, bool error_aborts = true);
-};
-
-class SafeBasename : public detail::SafePathOp {
-public:
-    explicit SafeBasename(const char* path, bool error_aborts = true);
-    explicit SafeBasename(const std::string& path, bool error_aborts = true);
-
-private:
-    void DoFunc(const std::string& path, bool error_aborts = true);
-};
 
 std::string implode_string_vector(const std::vector<std::string>& v, const std::string& delim = "\n");
 

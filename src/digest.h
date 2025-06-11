@@ -10,7 +10,7 @@
 #include <cstdint>
 #include <cstdio>
 
-#include "zeek/util.h"
+#include "zeek/util.h" // for util::bytetohex
 
 // Required buffer size for an MD5 digest.
 #define ZEEK_MD5_DIGEST_LENGTH 16

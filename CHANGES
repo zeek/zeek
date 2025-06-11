@@ -1,3 +1,11 @@
+8.0.0-dev.423 | 2025-06-11 11:12:18 -0700
+
+  * Remove some unused #includes from spicy code (Tim Wojtulewicz, Corelight)
+
+  * Remove using util.h in various headers in favor of util-types.h (Tim Wojtulewicz, Corelight)
+
+  * Move type definitions/aliases from util.h to a separate file (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.419 | 2025-06-11 09:00:46 -0700
 
   * Bugfix: AsString() on an EnumVal will segfault (Christian Kreibich, Corelight)

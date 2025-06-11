@@ -786,6 +786,8 @@ connection {
         * analyzer_id: count, log=F, optional=T
         * helo: string, log=F, optional=T
         * invalid_transactions: count, log=F, optional=T
+        * mail_depth: count, log=F, optional=T
+        * mail_fuid: string, log=F, optional=T
         * messages_transferred: count, log=F, optional=T
         * mime_depth: count, log=F, optional=T
         * pending_messages: set[record SMTP::Info], log=F, optional=T

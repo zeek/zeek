@@ -26,6 +26,7 @@ XXXXXXXXXX.XXXXXX smtp_reply
 XXXXXXXXXX.XXXXXX smtp_request
 XXXXXXXXXX.XXXXXX smtp_reply
 XXXXXXXXXX.XXXXXX smtp_request
+XXXXXXXXXX.XXXXXX mime_begin_mail
 XXXXXXXXXX.XXXXXX mime_begin_entity
 XXXXXXXXXX.XXXXXX Broker::log_flush
 XXXXXXXXXX.XXXXXX smtp_reply
@@ -109,6 +110,7 @@ XXXXXXXXXX.XXXXXX smtp_reply
 XXXXXXXXXX.XXXXXX smtp_request
 XXXXXXXXXX.XXXXXX smtp_reply
 XXXXXXXXXX.XXXXXX smtp_request
+XXXXXXXXXX.XXXXXX mime_begin_mail
 XXXXXXXXXX.XXXXXX mime_begin_entity
 XXXXXXXXXX.XXXXXX smtp_reply
 XXXXXXXXXX.XXXXXX mime_one_header

@@ -3,6 +3,7 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 
 #include "zeek/Tag.h"
 #include "zeek/plugin/Component.h"

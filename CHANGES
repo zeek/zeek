@@ -1,3 +1,7 @@
+8.0.0-dev.425 | 2025-06-11 13:18:36 -0700
+
+  * Add missing #include to packet_analysis/Component.h (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.423 | 2025-06-11 11:12:18 -0700
 
   * Remove some unused #includes from spicy code (Tim Wojtulewicz, Corelight)

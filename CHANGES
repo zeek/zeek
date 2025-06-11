@@ -1,3 +1,7 @@
+8.0.0-dev.419 | 2025-06-11 09:00:46 -0700
+
+  * Bugfix: AsString() on an EnumVal will segfault (Christian Kreibich, Corelight)
+
 8.0.0-dev.417 | 2025-06-11 17:24:11 +0200
 
   * GH-4522: smtp: Fix last_reply column in smtp.log for BDAT LAST (Arne Welzel, Corelight)

@@ -1,3 +1,19 @@
+7.0.8-1 | 2025-07-14 13:56:17 -0700
+
+  * GH-4522: smtp: Fix last_reply column in smtp.log for BDAT LAST (Arne Welzel, Corelight)
+
+    The response to BDAT LAST was never recognized, resulting in the
+    BDAT LAST commands not being logged in a timely fashion and receiving
+    the wrong status.
+
+    This likely doesn't handle complex pipeline scenarios, but it fixes
+    the wrong behavior for smtp_reply() not handling simple BDAT commands
+    responses.
+
+    Thanks @cccs-jsjm for the report!
+
+    (cherry picked from commit f5063bfcd409a88420d16be3ea2d9706fedc7f3e)
+
 7.0.8 | 2025-05-19 14:00:30 -0700
 
   * Update CHANGES, VERSION, and NEWS for 7.0.8 (Tim Wojtulewicz, Corelight)

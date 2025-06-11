@@ -133,6 +133,7 @@
 @load protocols/http/var-extraction-cookies.zeek
 @load protocols/http/var-extraction-uri.zeek
 @load protocols/krb/ticket-logging.zeek
+@load protocols/mime/mime_mail_as_file.zeek
 @load protocols/modbus/known-masters-slaves.zeek
 @load protocols/modbus/track-memmap.zeek
 @load protocols/mysql/software.zeek

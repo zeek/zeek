@@ -168,7 +168,7 @@ bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
     // and reused in the IP analyzer somehow?
     std::shared_ptr<IP_Hdr> inner = nullptr;
     auto result = packet_analysis::IP::ParsePacket(len, te.InnerIP(), IPPROTO_IPV6, inner);
-    if ( result == packet_analysis::IP::ParseResult::CaplenTooLarge ) {
+    if ( result == packet_analysis::IP::ParseResult::CAPLEN_TOO_LARGE ) {
         if ( inner->NextProto() == IPPROTO_NONE && inner->PayloadLen() == 0 )
             // Teredo bubbles having data after IPv6 header isn't strictly a
             // violation, but a little weird.
@@ -179,8 +179,8 @@ bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
         }
     }
 
-    if ( result == packet_analysis::IP::ParseResult::CaplenTooSmall ||
-         result == packet_analysis::IP::ParseResult::BadProtocol ) {
+    if ( result == packet_analysis::IP::ParseResult::CAPLEN_TOO_SMALL ||
+         result == packet_analysis::IP::ParseResult::BAD_PROTOCOL ) {
         AnalyzerViolation("Truncated Teredo or invalid inner IP version", conn, (const char*)data, len);
         return false;
     }

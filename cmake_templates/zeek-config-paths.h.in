@@ -3,7 +3,8 @@
 #pragma once
 
 constexpr char ZEEK_SCRIPT_INSTALL_PATH[] = "@ZEEK_SCRIPT_INSTALL_PATH@";
-constexpr char BRO_PLUGIN_INSTALL_PATH[] = "@ZEEK_PLUGIN_DIR@";
+[[deprecated("Remove in v8.1. Use ZEEK_PLUGIN_INSTALL_PATH")]] constexpr char BRO_PLUGIN_INSTALL_PATH[] =
+    "@ZEEK_PLUGIN_DIR@";
 constexpr char ZEEK_PLUGIN_INSTALL_PATH[] = "@ZEEK_PLUGIN_DIR@";
 constexpr char DEFAULT_ZEEKPATH[] = "@DEFAULT_ZEEKPATH@";
 constexpr char ZEEK_SPICY_MODULE_PATH[] = "@ZEEK_SPICY_MODULE_PATH@";

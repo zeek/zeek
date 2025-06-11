@@ -1593,6 +1593,8 @@ void Manager::ProcessMessage(std::string_view topic, broker::zeek::Event& ev) {
     DBG_LOG(DBG_BROKER, "Process event: %s (with %zu metadata entries) %s", std::string{name}.c_str(),
             meta ? meta->size() : 0, RenderMessage(args).c_str());
     num_events_incoming_metric->Inc();
+    size_t size = ev.as_data().shared_envelope()->raw_bytes().second;
+    Telemetry().OnIncomingEvent(topic, name, cluster::detail::MessageInfo{size});
     auto handler = event_registry->Lookup(name);
 
     if ( ! handler )

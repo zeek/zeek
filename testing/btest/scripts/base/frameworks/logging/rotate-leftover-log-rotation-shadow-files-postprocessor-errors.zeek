@@ -21,7 +21,7 @@
 # @TEST-EXEC: cat ./conn.*.log ./dns.*.log > logs.cat
 
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out
-# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
+# @TEST-EXEC: TEST_DIFF_CANONIFIER="$SCRIPTS/diff-remove-abspath | $SCRIPTS/diff-sort" btest-diff .stderr
 # @TEST-EXEC: btest-diff logs.cat
 
 module GLOBAL;

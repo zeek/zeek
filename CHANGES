@@ -1,3 +1,19 @@
+7.2.1-3 | 2025-07-14 14:25:26 -0700
+
+  * GH-4522: smtp: Fix last_reply column in smtp.log for BDAT LAST (Arne Welzel, Corelight)
+
+    The response to BDAT LAST was never recognized, resulting in the
+    BDAT LAST commands not being logged in a timely fashion and receiving
+    the wrong status.
+
+    This likely doesn't handle complex pipeline scenarios, but it fixes
+    the wrong behavior for smtp_reply() not handling simple BDAT commands
+    responses.
+
+    Thanks @cccs-jsjm for the report!
+
+    (cherry picked from commit f5063bfcd409a88420d16be3ea2d9706fedc7f3e)
+
 7.2.1-2 | 2025-07-14 14:20:11 -0700
 
   * IXWebsocket: Bump to version with memset() sock addr fix (Arne Welzel, Corelight)

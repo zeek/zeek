@@ -186,12 +186,16 @@ const RecordValPtr& Connection::GetVal() {
 
         TransportProto prot_type = ConnTransport();
 
+        // XXX this could technically move into IPBasedConnKey.
         auto id_val = make_intrusive<RecordVal>(id::conn_id);
         id_val->Assign(0, make_intrusive<AddrVal>(orig_addr));
         id_val->Assign(1, val_mgr->Port(ntohs(orig_port), prot_type));
         id_val->Assign(2, make_intrusive<AddrVal>(resp_addr));
         id_val->Assign(3, val_mgr->Port(ntohs(resp_port), prot_type));
         id_val->Assign(4, KeyProto());
+
+        // Allow customized ConnKeys to augment the conn_id:
+        key->CompleteConnIdVal(id_val);
 
         auto orig_endp = make_intrusive<RecordVal>(id::endpoint);
         orig_endp->Assign(0, 0);

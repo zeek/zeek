@@ -125,6 +125,7 @@ struct WebSocketOpen {
     std::string id;
     std::string uri;
     std::string protocol;
+    std::optional<std::string> application_name;
     std::shared_ptr<WebSocketClient> wsc;
 };
 

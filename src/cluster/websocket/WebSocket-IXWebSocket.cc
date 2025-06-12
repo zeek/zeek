@@ -138,8 +138,13 @@ std::unique_ptr<WebSocketServer> StartServer(std::unique_ptr<WebSocketEventDispa
                                                   remoteIp = std::move(remoteIp),
                                                   ixws = std::move(ixws)](const ix::WebSocketMessagePtr& msg) mutable {
             if ( msg->type == ix::WebSocketMessageType::Open ) {
-                dispatcher->QueueForProcessing(
-                    WebSocketOpen{id, msg->openInfo.uri, msg->openInfo.protocol, std::move(ixws)});
+                std::optional<std::string> application_name;
+                auto it = msg->openInfo.headers.find("X-Application-Name");
+                if ( it != msg->openInfo.headers.end() )
+                    application_name = it->second;
+
+                dispatcher->QueueForProcessing(WebSocketOpen{id, msg->openInfo.uri, msg->openInfo.protocol,
+                                                             std::move(application_name), std::move(ixws)});
             }
             else if ( msg->type == ix::WebSocketMessageType::Message ) {
                 dispatcher->QueueForProcessing(WebSocketMessage{id, msg->str});

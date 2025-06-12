@@ -8,6 +8,7 @@
 #include "zeek/Conn.h"
 #include "zeek/Event.h"
 #include "zeek/analyzer/Manager.h"
+#include "zeek/packet_analysis/protocol/ip/conn_key/IPBasedConnKey.h"
 #include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
 
 #include "zeek/3rdparty/doctest.h"
@@ -806,8 +807,9 @@ TEST_SUITE("Analyzer management") {
         REQUIRE(zeek::analyzer_mgr);
 
         zeek::Packet p;
-        zeek::ConnTuple t;
-        auto conn = std::make_unique<zeek::Connection>(zeek::detail::ConnKey(t), 0, &t, 0, &p);
+        zeek::ConnTuple ct;
+        zeek::IPBasedConnKeyPtr kp = std::make_unique<zeek::IPConnKey>();
+        auto conn = std::make_unique<zeek::Connection>(std::move(kp), ct, 0, 0, &p);
         auto* tcp = new zeek::packet_analysis::TCP::TCPSessionAdapter(conn.get());
         conn->SetSessionAdapter(tcp, nullptr);
 
@@ -838,8 +840,9 @@ TEST_SUITE("Analyzer management") {
         REQUIRE(zeek::analyzer_mgr);
 
         zeek::Packet p;
-        zeek::ConnTuple t;
-        auto conn = std::make_unique<zeek::Connection>(zeek::detail::ConnKey(t), 0, &t, 0, &p);
+        zeek::ConnTuple ct;
+        zeek::IPBasedConnKeyPtr kp = std::make_unique<zeek::IPConnKey>();
+        auto conn = std::make_unique<zeek::Connection>(std::move(kp), ct, 0, 0, &p);
 
         auto ssh = zeek::analyzer_mgr->InstantiateAnalyzer("SSH", conn.get());
         REQUIRE(ssh);

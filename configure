@@ -184,6 +184,8 @@ builddir=build
 CMakeCacheEntries=""
 display_cmake=0
 has_disable_archiver=0
+has_with_binpac=0
+has_with_bifcl=0
 
 # parse arguments
 while [ $# -ne 0 ]; do
@@ -327,9 +329,6 @@ while [ $# -ne 0 ]; do
         --disable-af-packet)
             append_cache_entry DISABLE_AF_PACKET BOOL true
             ;;
-        --disable-archiver)
-            has_disable_archiver=1
-            ;;
         --disable-auxtools)
             append_cache_entry INSTALL_AUX_TOOLS BOOL false
             ;;
@@ -371,13 +370,13 @@ while [ $# -ne 0 ]; do
             append_cache_entry INSTALL_ZKG BOOL false
             ;;
         --with-bifcl=*)
-            append_cache_entry BIFCL_EXE_PATH PATH $optarg
+            has_with_bifcl=1
             ;;
         --with-bind=*)
             append_cache_entry BIND_ROOT_DIR PATH $optarg
             ;;
         --with-binpac=*)
-            append_cache_entry BINPAC_EXE_PATH PATH $optarg
+            has_with_binpac=1
             ;;
         --with-bison=*)
             append_cache_entry BISON_EXECUTABLE PATH $optarg
@@ -510,7 +509,14 @@ echo "# This is the command used to configure this build" >config.status
 echo $command >>config.status
 chmod u+x config.status
 
-if [ $has_disable_archiver -eq 1 ]; then
+if [ $has_with_bifcl -eq 1 ]; then
     echo
-    echo "NOTE: The --disable-archiver argument no longer has any effect and will be removed in v7.1. zeek-archiver is now part of zeek-aux, so consider --disable-auxtools instead."
+    echo "The --with-bifcl option has been deprecated and will be removed in v8.1."
+    echo "The bundled version of bifcl will always be used."
+fi
+
+if [ $has_with_binpac -eq 1 ]; then
+    echo
+    echo "The --with-binpac option has been deprecated and will be removed in v8.1."
+    echo "The bundled version of BinPAC will always be used.\n"
 fi

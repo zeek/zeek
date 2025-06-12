@@ -4,6 +4,8 @@
 
 #include "zeek/cluster/websocket/WebSocket.h"
 
+#include <algorithm>
+#include <cctype>
 #include <memory>
 #include <string_view>
 #include <variant>
@@ -292,6 +294,24 @@ void WebSocketEventDispatcher::Process(const WebSocketOpen& open) {
         return;
     }
 
+    std::string application_name = open.application_name.value_or("unknown");
+
+    // A bit ad-hoc
+    bool good_application_name = std::all_of(application_name.begin(), application_name.end(), [](auto c) {
+        return std::isalnum(c) || c == '/' || c == '_' || c == '-' || c == '.' || c == '=' || c == ':' || c == '*' ||
+               c == '@';
+    });
+
+    if ( ! good_application_name ) {
+        QueueReply(WebSocketCloseReply{wsc, 1001, "Internal error"});
+        open.wsc->SendError("invalid_application_name", "Invalid X-Application-Name");
+        open.wsc->Close(1008, "Invalid X-Application-Name");
+
+        // Still create an entry as we might see messages and close events coming in.
+        clients[id] = WebSocketClientEntry{id, wsc, nullptr};
+        return;
+    }
+
     // Generate an ID for this client.
     auto ws_id = cluster::backend->NodeId() + "-websocket-" + id;
 
@@ -322,7 +342,7 @@ void WebSocketEventDispatcher::Process(const WebSocketOpen& open) {
         return;
     }
 
-    cluster::detail::configure_backend_telemetry(*backend, "websocket");
+    cluster::detail::configure_backend_telemetry(*backend, "websocket", {{"app", application_name}});
 
     WS_DEBUG("New WebSocket client %s (%s:%d) - using id %s backend=%p", id.c_str(), wsc->getRemoteIp().c_str(),
              wsc->getRemotePort(), ws_id.c_str(), backend.get());

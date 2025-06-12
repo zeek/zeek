@@ -322,7 +322,11 @@ void WebSocketEventDispatcher::Process(const WebSocketOpen& open) {
         return;
     }
 
-    cluster::detail::configure_backend_telemetry(*backend, "websocket");
+    const auto& hdrit = open.headers.find("X-APPLICATION-NAME");
+    std::string app = hdrit != open.headers.end() ? hdrit->second : "unknown";
+    // TODO: Need to sanitize or reject the client if the header value looks insane, rather than just trusting
+    // whatever it is sending.
+    cluster::detail::configure_backend_telemetry(*backend, "websocket", {{"app", app}});
 
     WS_DEBUG("New WebSocket client %s (%s:%d) - using id %s backend=%p", id.c_str(), wsc->getRemoteIp().c_str(),
              wsc->getRemotePort(), ws_id.c_str(), backend.get());

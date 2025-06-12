@@ -86,12 +86,13 @@ event zeek_init() &priority=3
 			local r = result["http.sqli.attacker"];
 			local dst = to_addr(r$samples[0]$str);
 			local uid = r$samples[0]$uid;
-			NOTICE([$note=SQL_Injection_Attacker,
+			NOTICE(Notice::Info(
+				$note=SQL_Injection_Attacker,
 				$msg="An SQL injection attacker was discovered!",
 				$uid=uid,
 				$src=key$host,
 				$dst=dst,
-				$identifier=cat(key$host)]);
+				$identifier=cat(key$host)));
 			}
 	]);
 
@@ -109,12 +110,13 @@ event zeek_init() &priority=3
 			local r = result["http.sqli.victim"];
 			local src = to_addr(r$samples[0]$str);
 			local uid = r$samples[0]$uid;
-			NOTICE([$note=SQL_Injection_Victim,
+			NOTICE(Notice::Info(
+				$note=SQL_Injection_Victim,
 				$msg="An SQL injection victim was discovered!",
 				$uid=uid,
 				$src=src,
 				$dst=key$host,
-				$identifier=cat(key$host)]);
+				$identifier=cat(key$host)));
 			}
 	]);
 	}

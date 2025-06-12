@@ -46,7 +46,7 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(LOG, [$columns=Info, $path="analyzer", $ev=log_analyzer, $policy=log_policy]);
+	Log::create_stream(LOG, Log::Stream($columns=Info, $path="analyzer", $ev=log_analyzer, $policy=log_policy));
 	}
 
 function log_analyzer_failure(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolationInfo)

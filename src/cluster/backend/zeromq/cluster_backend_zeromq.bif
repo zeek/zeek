@@ -1,5 +1,5 @@
 %%{
-#include "ZeroMQ.h"
+#include "zeek/cluster/backend/zeromq/ZeroMQ.h"
 %%}
 
 function Cluster::Backend::ZeroMQ::spawn_zmq_proxy_thread%(%): bool

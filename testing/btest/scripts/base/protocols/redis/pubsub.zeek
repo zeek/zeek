@@ -5,8 +5,12 @@
 # @TEST-EXEC: btest-diff output
 # @TEST-EXEC: btest-diff redis.log
 
-# Testing the example of pub sub in REDIS docs:
-# https://redis.io/docs/latest/develop/interact/pubsub/
-# These are just commands between two different clients, one PUBLISH and one SUBSCRIBE
+# Test pub/sub from Redis. This has two subscribers, one using a pattern. Then, the
+# messages that were published get printed to output.
 
 @load base/protocols/redis
+
+event Redis::server_message(c: connection, data: Redis::ReplyData)
+	{
+	print "Got published data!", data;
+	}

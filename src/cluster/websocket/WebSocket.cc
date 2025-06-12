@@ -14,6 +14,7 @@
 #include "zeek/cluster/Manager.h"
 #include "zeek/cluster/OnLoop.h"
 #include "zeek/cluster/Serializer.h"
+#include "zeek/cluster/Telemetry.h"
 #include "zeek/cluster/serializer/broker/Serializer.h"
 #include "zeek/cluster/websocket/Plugin.h"
 #include "zeek/cluster/websocket/events.bif.h"
@@ -320,6 +321,12 @@ void WebSocketEventDispatcher::Process(const WebSocketOpen& open) {
         QueueReply(WebSocketCloseReply{wsc, 1001, "Internal error"});
         return;
     }
+
+    const auto& hdrit = open.headers.find("X-APPLICATION-NAME");
+    std::string app = hdrit != open.headers.end() ? hdrit->second : "unknown";
+    // TODO: Need to sanitize or reject the client if the header value looks insane, rather than just trusting
+    // whatever it is sending.
+    cluster::detail::configure_backend_telemetry(*backend, "websocket", {{"app", app}});
 
     WS_DEBUG("New WebSocket client %s (%s:%d) - using id %s backend=%p", id.c_str(), wsc->getRemoteIp().c_str(),
              wsc->getRemotePort(), ws_id.c_str(), backend.get());

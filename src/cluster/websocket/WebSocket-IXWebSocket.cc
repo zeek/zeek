@@ -10,6 +10,7 @@
 #include "zeek/IPAddr.h"
 #include "zeek/Reporter.h"
 #include "zeek/net_util.h"
+#include "zeek/util.h"
 
 #include "ixwebsocket/IXConnectionState.h"
 #include "ixwebsocket/IXSocketTLSOptions.h"
@@ -138,8 +139,13 @@ std::unique_ptr<WebSocketServer> StartServer(std::unique_ptr<WebSocketEventDispa
                                                   remoteIp = std::move(remoteIp),
                                                   ixws = std::move(ixws)](const ix::WebSocketMessagePtr& msg) mutable {
             if ( msg->type == ix::WebSocketMessageType::Open ) {
+                // Pass all headers in upper-cased form to the dispatcher.
+                std::map<std::string, std::string> headers;
+                for ( const auto& [name, value] : msg->openInfo.headers )
+                    headers[zeek::util::strtoupper(name)] = value;
+
                 dispatcher->QueueForProcessing(
-                    WebSocketOpen{id, msg->openInfo.uri, msg->openInfo.protocol, std::move(ixws)});
+                    WebSocketOpen{id, msg->openInfo.uri, msg->openInfo.protocol, std::move(headers), std::move(ixws)});
             }
             else if ( msg->type == ix::WebSocketMessageType::Message ) {
                 dispatcher->QueueForProcessing(WebSocketMessage{id, msg->str});

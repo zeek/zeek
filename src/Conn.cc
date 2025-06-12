@@ -23,8 +23,27 @@ namespace zeek {
 uint64_t Connection::total_connections = 0;
 uint64_t Connection::current_connections = 0;
 
+Connection::Connection(zeek::IPBasedConnKeyPtr k, const zeek::ConnTuple& ct, double t, uint32_t flow, const Packet* pkt)
+    : Session(t, connection_timeout, connection_status_update, detail::connection_status_update_interval),
+      key(std::move(k)) {
+    orig_addr = ct.src_addr;
+    resp_addr = ct.dst_addr;
+    orig_port = ct.src_port;
+    resp_port = ct.dst_port;
+
+    switch ( ct.proto ) {
+        case IPPROTO_TCP: proto = TRANSPORT_TCP; break;
+        case IPPROTO_UDP: proto = TRANSPORT_UDP; break;
+        case IPPROTO_ICMP:
+        case IPPROTO_ICMPV6: proto = TRANSPORT_ICMP; break;
+        default: proto = TRANSPORT_UNKNOWN; break;
+    }
+
+    Init(flow, pkt);
+}
+
 Connection::Connection(const detail::ConnKey& k, double t, const ConnTuple* id, uint32_t flow, const Packet* pkt)
-    : Session(t, connection_timeout, connection_status_update, detail::connection_status_update_interval), key(k) {
+    : Session(t, connection_timeout, connection_status_update, detail::connection_status_update_interval) {
     orig_addr = id->src_addr;
     resp_addr = id->dst_addr;
     orig_port = id->src_port;
@@ -38,6 +57,28 @@ Connection::Connection(const detail::ConnKey& k, double t, const ConnTuple* id, 
         default: proto = TRANSPORT_UNKNOWN; break;
     }
 
+    key = std::make_unique<zeek::IPConnKey>();
+    key->InitTuple(*id);
+    key->Init(*pkt);
+
+    Init(flow, pkt);
+}
+
+Connection::~Connection() {
+    if ( ! finished )
+        reporter->InternalError("Done() not called before destruction of Connection");
+
+    CancelTimers();
+
+    if ( conn_val )
+        conn_val->SetOrigin(nullptr);
+
+    delete adapter;
+
+    --current_connections;
+}
+
+void Connection::Init(uint32_t flow, const Packet* pkt) {
     orig_flow_label = flow;
     resp_flow_label = 0;
     saw_first_orig_packet = 1;
@@ -69,20 +110,6 @@ Connection::Connection(const detail::ConnKey& k, double t, const ConnTuple* id, 
     ++total_connections;
 
     encapsulation = pkt->encap;
-}
-
-Connection::~Connection() {
-    if ( ! finished )
-        reporter->InternalError("Done() not called before destruction of Connection");
-
-    CancelTimers();
-
-    if ( conn_val )
-        conn_val->SetOrigin(nullptr);
-
-    delete adapter;
-
-    --current_connections;
 }
 
 void Connection::CheckEncapsulation(const std::shared_ptr<EncapsulationStack>& arg_encap) {
@@ -157,6 +184,13 @@ void Connection::NextPacket(double t, bool is_orig, const IP_Hdr* ip, int len, i
     run_state::current_pkt = nullptr;
 }
 
+
+const ConnKey& Connection::Key() const { return *key; }
+
+session::detail::Key Connection::SessionKey(bool copy) const { return key->SessionKey(); }
+
+uint8_t Connection::KeyProto() const { return key->PackedTuple().proto; }
+
 bool Connection::IsReuse(double t, const u_char* pkt) { return adapter && adapter->IsReuse(t, pkt); }
 
 namespace {
@@ -186,12 +220,16 @@ const RecordValPtr& Connection::GetVal() {
 
         TransportProto prot_type = ConnTransport();
 
+        // XXX this could technically move into IPBasedConnKey.
         auto id_val = make_intrusive<RecordVal>(id::conn_id);
         id_val->Assign(0, make_intrusive<AddrVal>(orig_addr));
         id_val->Assign(1, val_mgr->Port(ntohs(orig_port), prot_type));
         id_val->Assign(2, make_intrusive<AddrVal>(resp_addr));
         id_val->Assign(3, val_mgr->Port(ntohs(resp_port), prot_type));
         id_val->Assign(4, KeyProto());
+
+        // Allow customized ConnKeys to augment the conn_id:
+        key->PopulateConnIdVal(*id_val);
 
         auto orig_endp = make_intrusive<RecordVal>(id::endpoint);
         orig_endp->Assign(0, 0);

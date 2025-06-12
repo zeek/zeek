@@ -5,6 +5,7 @@
 #include "zeek/Conn.h"
 #include "zeek/DebugLogger.h"
 #include "zeek/analyzer/protocol/mime/MIME.h"
+#include "zeek/packet_analysis/protocol/ip/conn_key/IPBasedConnKey.h"
 #include "zeek/util.h"
 
 #include "zeek/3rdparty/doctest.h"
@@ -327,8 +328,9 @@ private:
 
 TEST_CASE("line forward testing") {
     zeek::Packet p;
-    zeek::ConnTuple t;
-    auto conn = std::make_unique<zeek::Connection>(zeek::detail::ConnKey(t), 0, &t, 0, &p);
+    zeek::ConnTuple ct;
+    zeek::IPBasedConnKeyPtr kp = std::make_unique<zeek::IPConnKey>();
+    auto conn = std::make_unique<zeek::Connection>(std::move(kp), ct, 0, 0, &p);
     auto smtp_analyzer =
         std::unique_ptr<zeek::analyzer::Analyzer>(zeek::analyzer_mgr->InstantiateAnalyzer("SMTP", conn.get()));
     auto mail = std::make_unique<Test_MIME_Message>(smtp_analyzer.get());

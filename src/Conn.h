@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <string>
 
+#include "zeek/ConnKey.h"
 #include "zeek/IPAddr.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Rule.h"
@@ -26,6 +27,9 @@ class RecordVal;
 
 using ValPtr = IntrusivePtr<Val>;
 using RecordValPtr = IntrusivePtr<RecordVal>;
+
+class IPBasedConnKey;
+using IPBasedConnKeyPtr = std::unique_ptr<IPBasedConnKey>;
 
 namespace detail {
 
@@ -64,6 +68,7 @@ static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1, const IPA
 
 class Connection final : public session::Session {
 public:
+    Connection(zeek::IPBasedConnKeyPtr k, const zeek::ConnTuple& ct, double t, uint32_t flow, const Packet* pkt);
     Connection(const detail::ConnKey& k, double t, const ConnTuple* id, uint32_t flow, const Packet* pkt);
     ~Connection() override;
 
@@ -101,10 +106,12 @@ public:
     // Keys are only considered valid for a connection when a
     // connection is in the session map. If it is removed, the key
     // should be marked invalid.
-    const detail::ConnKey& Key() const { return key; }
-    session::detail::Key SessionKey(bool copy) const override {
-        return session::detail::Key{&key, sizeof(key), session::detail::Key::CONNECTION_KEY_TYPE, copy};
-    }
+    //
+    // These touch the key, which we forward-declared above. Therefore this
+    // hides the implementation, which has the full class definition.
+    const ConnKey& Key() const;
+    session::detail::Key SessionKey(bool copy) const override;
+    uint8_t KeyProto() const;
 
     const IPAddr& OrigAddr() const { return orig_addr; }
     const IPAddr& RespAddr() const { return resp_addr; }
@@ -129,8 +136,6 @@ public:
         else
             return "unknown";
     }
-
-    uint8_t KeyProto() const { return key.transport; }
 
     // Returns true if the packet reflects a reuse of this
     // connection (i.e., not a continuation but the beginning of
@@ -196,6 +201,9 @@ public:
     bool IsFinished() { return finished; }
 
 private:
+    // Common initialization for the constructors.
+    void Init(uint32_t flow, const Packet* pkt);
+
     friend class session::detail::Timer;
 
     IPAddr orig_addr;
@@ -211,7 +219,7 @@ private:
     std::shared_ptr<EncapsulationStack> encapsulation; // tunnels
     uint8_t tunnel_changes = 0;
 
-    detail::ConnKey key;
+    IPBasedConnKeyPtr key;
 
     unsigned int weird : 1;
     unsigned int finished : 1;

@@ -19,11 +19,15 @@ bool GTPv1_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
     }
 
     auto conn = static_cast<Connection*>(packet->session);
-    zeek::detail::ConnKey conn_key = conn->Key();
+    const auto& key = conn->Key();
+    auto sk = key.SessionKey();
 
-    auto cm_it = conn_map.find(conn_key);
+    auto cm_it = conn_map.find(sk);
     if ( cm_it == conn_map.end() ) {
-        cm_it = conn_map.insert(cm_it, {conn_key, std::make_unique<binpac::GTPv1::GTPv1_Conn>(this)});
+        sk.CopyData(); // Copy key data to store in map.
+        auto [it, inserted] = conn_map.emplace(std::move(sk), std::make_unique<binpac::GTPv1::GTPv1_Conn>(this));
+        assert(inserted);
+        cm_it = it;
 
         // Let script land know about the state we created, so it will
         // register a conn removal hook for cleanup.

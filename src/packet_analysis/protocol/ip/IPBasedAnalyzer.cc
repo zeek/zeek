@@ -7,6 +7,8 @@
 #include "zeek/Val.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/conn_key/Manager.h"
+#include "zeek/packet_analysis/protocol/ip/conn_key/IPBasedConnKey.h"
 #include "zeek/plugin/Manager.h"
 #include "zeek/session/Manager.h"
 
@@ -26,13 +28,30 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
     if ( ! BuildConnTuple(len, data, pkt, tuple) )
         return false;
 
-    const std::shared_ptr<IP_Hdr>& ip_hdr = pkt->ip_hdr;
-    zeek::detail::ConnKey key(tuple);
+    static IPBasedConnKeyPtr key; // Note, this is static for reuse:
+    if ( ! key ) {
+        ConnKeyPtr ck = conn_key_mgr->GetFactory().NewConnKey();
 
-    Connection* conn = session_mgr->FindConnection(key);
+        // The IPBasedAnalyzer requires a factory that produces IPBasedConnKey instances.
+        // We could check with dynamic_cast, but that's probably slow, so assume plugin
+        // providers know what they're doing here and anyhow, we don't really have analyzers
+        // that instantiate non-IP connections today and definitely not here!
+        key = IPBasedConnKeyPtr(static_cast<IPBasedConnKey*>(ck.release()));
+    }
+
+    // Initialize the key with the IP conn tuple and the packet as additional context.
+    //
+    // Custom IPConnKey implementations can fiddle with the Key through
+    // the DoInit(const Packet& pkt) hook called at this point.
+    key->InitTuple(tuple);
+    key->Init(*pkt);
+
+    const std::shared_ptr<IP_Hdr>& ip_hdr = pkt->ip_hdr;
+
+    Connection* conn = session_mgr->FindConnection(*key);
 
     if ( ! conn ) {
-        conn = NewConn(&tuple, key, pkt);
+        conn = NewConn(tuple, std::move(key), pkt);
         if ( conn )
             session_mgr->Insert(conn, false);
     }
@@ -41,7 +60,7 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
             conn->Event(connection_reused, nullptr);
 
             session_mgr->Remove(conn);
-            conn = NewConn(&tuple, key, pkt);
+            conn = NewConn(tuple, std::move(key), pkt);
             if ( conn )
                 session_mgr->Insert(conn, false);
         }
@@ -140,18 +159,19 @@ bool IPBasedAnalyzer::IsLikelyServerPort(uint32_t port) const {
     return port_cache.find(port) != port_cache.end();
 }
 
-zeek::Connection* IPBasedAnalyzer::NewConn(const ConnTuple* id, const zeek::detail::ConnKey& key, const Packet* pkt) {
-    int src_h = ntohs(id->src_port);
-    int dst_h = ntohs(id->dst_port);
+zeek::Connection* IPBasedAnalyzer::NewConn(const ConnTuple& id, IPBasedConnKeyPtr key, const Packet* pkt) {
+    int src_h = ntohs(id.src_port);
+    int dst_h = ntohs(id.dst_port);
     bool flip = false;
 
     if ( ! WantConnection(src_h, dst_h, pkt->ip_hdr->Payload(), flip) )
         return nullptr;
 
-    Connection* conn = new Connection(key, run_state::processing_start_time, id, pkt->ip_hdr->FlowLabel(), pkt);
+    Connection* conn =
+        new Connection(std::move(key), id, run_state::processing_start_time, pkt->ip_hdr->FlowLabel(), pkt);
     conn->SetTransport(transport);
 
-    if ( flip && ! id->dst_addr.IsBroadcast() )
+    if ( flip && ! id.dst_addr.IsBroadcast() )
         conn->FlipRoles();
 
     BuildSessionAnalyzerTree(conn);

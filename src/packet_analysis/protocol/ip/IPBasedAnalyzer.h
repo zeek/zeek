@@ -7,6 +7,7 @@
 
 #include "zeek/Tag.h"
 #include "zeek/packet_analysis/Analyzer.h"
+#include "zeek/packet_analysis/protocol/ip/conn_key/IPBasedConnKey.h"
 
 namespace zeek::analyzer::pia {
 class PIA;
@@ -184,7 +185,7 @@ private:
      * @param key A connection ID key generated from the ID.
      * @param pkt The packet associated with the new connection.
      */
-    zeek::Connection* NewConn(const ConnTuple* id, const zeek::detail::ConnKey& key, const Packet* pkt);
+    zeek::Connection* NewConn(const ConnTuple& id, IPBasedConnKeyPtr key, const Packet* pkt);
 
     void BuildSessionAnalyzerTree(Connection* conn);
 

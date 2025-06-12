@@ -117,6 +117,9 @@ bool WebSocketShim::DoPublishEvent(const std::string& topic, zeek::cluster::deta
         return false;
     }
 
+    size_t size = r->as_data().shared_envelope()->raw_bytes().second;
+    Telemetry().OnOutgoingEvent(topic, r->name(), cluster::detail::SerializationInfo{size});
+
     auto msg = broker::data_envelope::make(broker::topic(topic), r->as_data());
     state->hub.publish(std::move(msg));
     return true;
@@ -174,6 +177,9 @@ void WebSocketShim::ProcessMessage(std::string_view topic, broker::zeek::Event& 
         ProcessError("broker_error", msg);
         return;
     }
+
+    size_t size = ev.as_data().shared_envelope()->raw_bytes().second;
+    Telemetry().OnIncomingEvent(topic, r->HandlerName(), cluster::detail::SerializationInfo{size});
 
     ProcessEvent(topic, std::move(*r));
 }

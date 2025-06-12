@@ -2,6 +2,7 @@ module PacketAnalyzer::TEREDO;
 
 %%{
 #include "zeek/Conn.h"
+#include "zeek/conntuple/Manager.h"
 #include "zeek/session/Manager.h"
 #include "zeek/packet_analysis/Manager.h"
 #include "zeek/packet_analysis/protocol/teredo/Teredo.h"
@@ -12,8 +13,10 @@ function remove_teredo_connection%(cid: conn_id%) : bool
 	zeek::packet_analysis::AnalyzerPtr teredo = zeek::packet_mgr->GetAnalyzer("Teredo");
 	if ( teredo )
 		{
-		zeek::detail::ConnKey conn_key(cid);
-		static_cast<zeek::packet_analysis::teredo::TeredoAnalyzer*>(teredo.get())->RemoveConnection(conn_key);
+		// XXX: Should be IP specific builder!
+		auto ck = zeek::conntuple_mgr->GetFactory().FromVal({zeek::NewRef{}, cid});
+		auto sk = ck->SessionKey();
+		static_cast<zeek::packet_analysis::teredo::TeredoAnalyzer*>(teredo.get())->RemoveConnection(sk);
 		}
 
 	return zeek::val_mgr->True();

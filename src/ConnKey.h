@@ -20,7 +20,7 @@ using RecordValPtr = zeek::IntrusivePtr<RecordVal>;
  */
 class ConnKey {
 public:
-    virtual ~ConnKey() {}
+    virtual ~ConnKey() = default;
 
     /**
      * Initialization of this key with the current packet.

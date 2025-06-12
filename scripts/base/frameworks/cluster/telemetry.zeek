@@ -5,7 +5,7 @@ export {
 	type Type: enum {
 		## Creates two counter metric, one for incoming and one
 		## for outgoing events without labels.
-		SIMPLE,
+		INFO,
 		## Creates counter metrics for incoming and outgoing events
 		## labeled with handler and normalized topic names.
 		VERBOSE,
@@ -15,9 +15,14 @@ export {
 		DEBUG,
 	};
 
-	## The telemetry types to enable.
-	const metrics_enabled: set[Type] = {
-		SIMPLE,
+	## The telemetry types to enable for the core backend.
+	const core_metrics: set[Type] = {
+		INFO,
+	} &redef;
+
+	## The telemetry types to enable for WebSocket backends.
+	const websocket_metrics: set[Type] = {
+		INFO,
 	} &redef;
 
 	## Table used for normalizing topic names that contain random parts.

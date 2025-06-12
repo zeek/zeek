@@ -883,7 +883,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
             cluster::backend = backend.release();
         }
 
-        cluster::detail::configure_backend_telemetry(*cluster::backend);
+        cluster::detail::configure_backend_telemetry(*cluster::backend, "core");
 
         broker_mgr->InitPostScript();
         if ( cluster::backend != broker_mgr )

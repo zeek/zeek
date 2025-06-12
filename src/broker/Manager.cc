@@ -842,7 +842,7 @@ bool Manager::DoPublishEvent(const std::string& topic, cluster::detail::Event& e
     auto& ev = maybe_ev.value();
 
     size_t size = ev.as_data().shared_envelope()->raw_bytes().second;
-    Telemetry().OnOutgoingEvent(topic, event.HandlerName(), cluster::detail::MessageInfo{size});
+    Telemetry().OnOutgoingEvent(topic, event.HandlerName(), cluster::detail::SerializationInfo{size});
 
     DBG_LOG(DBG_BROKER, "Publishing event: %s", RenderEvent(topic, std::string(ev.name()), ev.args()).c_str());
     bstate->endpoint.publish(topic, ev.move_data());
@@ -867,7 +867,7 @@ bool Manager::PublishEvent(string topic, std::string name, broker::vector args, 
     broker::zeek::Event ev(name, args, meta);
 
     size_t size = ev.as_data().shared_envelope()->raw_bytes().second;
-    Telemetry().OnOutgoingEvent(topic, name, cluster::detail::MessageInfo{size});
+    Telemetry().OnOutgoingEvent(topic, name, cluster::detail::SerializationInfo{size});
 
     DBG_LOG(DBG_BROKER, "Publishing event: %s", RenderEvent(topic, std::string(ev.name()), ev.args()).c_str());
     bstate->endpoint.publish(std::move(topic), ev.move_data());
@@ -1594,7 +1594,7 @@ void Manager::ProcessMessage(std::string_view topic, broker::zeek::Event& ev) {
             meta ? meta->size() : 0, RenderMessage(args).c_str());
     num_events_incoming_metric->Inc();
     size_t size = ev.as_data().shared_envelope()->raw_bytes().second;
-    Telemetry().OnIncomingEvent(topic, name, cluster::detail::MessageInfo{size});
+    Telemetry().OnIncomingEvent(topic, name, cluster::detail::SerializationInfo{size});
     auto handler = event_registry->Lookup(name);
 
     if ( ! handler )

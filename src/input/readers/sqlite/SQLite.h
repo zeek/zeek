@@ -28,14 +28,14 @@ private:
 
     threading::Value* EntryToVal(sqlite3_stmt* st, const threading::Field* field, int pos, int subpos);
 
-    const threading::Field* const* fields; // raw mapping
-    unsigned int num_fields;
-    int mode;
-    bool started;
+    const threading::Field* const* fields = nullptr; // raw mapping
+    unsigned int num_fields = 0;
+    int mode = 0;
+    bool started = false;
     std::string query;
-    sqlite3* db;
-    sqlite3_stmt* st;
-    threading::formatter::Ascii* io;
+    sqlite3* db = nullptr;
+    sqlite3_stmt* st = nullptr;
+    threading::formatter::Ascii* io = nullptr;
 
     std::string set_separator;
     std::string unset_field;

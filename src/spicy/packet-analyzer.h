@@ -26,6 +26,8 @@ public:
      */
     PacketState(Cookie cookie) : ParsingState(::spicy::rt::driver::ParsingType::Block), _cookie(std::move(cookie)) {}
 
+    virtual ~PacketState() = default;
+
     /** Returns the cookie pointer to use with the runtime library during analysis. */
     auto* cookie() { return &_cookie; }
 
@@ -54,7 +56,7 @@ private:
 class PacketAnalyzer : public packet_analysis::Analyzer {
 public:
     PacketAnalyzer(std::string name);
-    virtual ~PacketAnalyzer();
+    ~PacketAnalyzer() override;
 
     /** Records a debug message. */
     void DebugMsg(const std::string& msg) { _state.DebugMsg(msg); }

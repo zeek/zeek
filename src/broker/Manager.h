@@ -90,7 +90,7 @@ struct Stats {
 class Manager : public zeek::cluster::Backend, public iosource::IOSource {
 public:
     /** Broker protocol to expect on a listening port. */
-    enum class BrokerProtocol {
+    enum class BrokerProtocol : uint8_t {
         Native,   /**< Broker's native binary protocol */
         WebSocket /** Broker's WebSocket protocol for external clients. */
     };

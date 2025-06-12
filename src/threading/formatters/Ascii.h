@@ -46,10 +46,10 @@ public:
     Ascii(MsgThread* t, const SeparatorInfo& info);
     ~Ascii() override = default;
 
-    virtual bool Describe(ODesc* desc, Value* val, const std::string& name = "") const override;
-    virtual bool Describe(ODesc* desc, int num_fields, const Field* const* fields, Value** vals) const override;
-    virtual Value* ParseValue(const std::string& s, const std::string& name, TypeTag type,
-                              TypeTag subtype = TYPE_ERROR) const override;
+    bool Describe(ODesc* desc, Value* val, const std::string& name = "") const override;
+    bool Describe(ODesc* desc, int num_fields, const Field* const* fields, Value** vals) const override;
+    Value* ParseValue(const std::string& s, const std::string& name, TypeTag type,
+                      TypeTag subtype = TYPE_ERROR) const override;
 
 private:
     bool CheckNumberError(const char* start, const char* end, bool nonneg_only = false) const;

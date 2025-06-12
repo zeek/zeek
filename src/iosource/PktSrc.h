@@ -219,7 +219,7 @@ public:
      * poll should time out in seconds from the current time. Return
      * -1 if this should not be considered.
      */
-    virtual double GetNextTimeout() override;
+    double GetNextTimeout() override;
 
 protected:
     friend class Manager;

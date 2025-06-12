@@ -33,6 +33,7 @@ namespace plugin {
  *
  * @param method_call The \a Manager method corresponding to the hook.
  */
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define PLUGIN_HOOK_VOID(hook, method_call)                                                                            \
     {                                                                                                                  \
         if ( zeek::plugin_mgr->HavePluginForHook(zeek::plugin::hook) )                                                 \
@@ -49,6 +50,7 @@ namespace plugin {
  * @param default_result: The result to use if there's no plugin implementing
  * the hook.
  */
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define PLUGIN_HOOK_WITH_RESULT(hook, method_call, default_result)                                                     \
     (zeek::plugin_mgr->HavePluginForHook(zeek::plugin::hook) ? zeek::plugin_mgr->method_call : (default_result))
 

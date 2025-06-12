@@ -19,7 +19,6 @@ IdentifierInfo::IdentifierInfo(zeek::detail::IDPtr arg_id, ScriptInfo* script, b
       initial_val(),
       redefs(),
       fields(),
-      last_field_seen(),
       declaring_script(script),
       from_redef(redef) {
     if ( id->GetVal() && (id->IsOption() || id->IsRedefinable()) )

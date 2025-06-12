@@ -18,12 +18,12 @@
 // We have four different port name spaces: TCP, UDP, ICMP, and UNKNOWN.
 // We distinguish between them based on the bits specified in the *_PORT_MASK
 // entries specified below.
-#define NUM_PORT_SPACES 4
-#define PORT_SPACE_MASK 0x30000
+constexpr int NUM_PORT_SPACES = 4;
+constexpr uint32_t PORT_SPACE_MASK = 0x30000;
 
-#define TCP_PORT_MASK 0x10000
-#define UDP_PORT_MASK 0x20000
-#define ICMP_PORT_MASK 0x30000
+constexpr uint32_t TCP_PORT_MASK = 0x10000;
+constexpr uint32_t UDP_PORT_MASK = 0x20000;
+constexpr uint32_t ICMP_PORT_MASK = 0x30000;
 
 namespace zeek {
 
@@ -157,6 +157,7 @@ public:
         return cast_intrusive<T>(type);
     }
 
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define UNDERLYING_ACCESSOR_DECL(ztype, ctype, name) ctype name() const;
 
     UNDERLYING_ACCESSOR_DECL(detail::IntValImplementation, zeek_int_t, AsInt)
@@ -433,12 +434,12 @@ public:
     // Same as for IntVal: no Get() method needed.
 };
 
-#define Microseconds 1e-6
-#define Milliseconds 1e-3
-#define Seconds 1.0
-#define Minutes (60 * Seconds)
-#define Hours (60 * Minutes)
-#define Days (24 * Hours)
+constexpr double Microseconds = 1e-6;
+constexpr double Milliseconds = 1e-3;
+constexpr double Seconds = 1.0;
+constexpr double Minutes = (60 * Seconds);
+constexpr double Hours = (60 * Minutes);
+constexpr double Days = (24 * Hours);
 
 class IntervalVal final : public detail::DoubleValImplementation {
 public:
@@ -1056,7 +1057,7 @@ protected:
     double CallExpireFunc(ListValPtr idx);
 
     // Enum for the different kinds of changes an &on_change handler can see
-    enum OnChangeType { ELEMENT_NEW, ELEMENT_CHANGED, ELEMENT_REMOVED, ELEMENT_EXPIRED };
+    enum OnChangeType : uint8_t { ELEMENT_NEW, ELEMENT_CHANGED, ELEMENT_REMOVED, ELEMENT_EXPIRED };
 
     // Calls &change_func.
     void CallChangeFunc(const ValPtr& index, const ValPtr& old_value, OnChangeType tpe);
@@ -1717,6 +1718,7 @@ private:
     std::vector<TypePtr>* yield_types = nullptr;
 };
 
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define UNDERLYING_ACCESSOR_DEF(ztype, ctype, name)                                                                    \
     inline ctype Val::name() const { return static_cast<const ztype*>(this)->Get(); }
 

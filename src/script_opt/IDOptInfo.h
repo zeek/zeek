@@ -18,7 +18,7 @@ class Stmt;
 
 using ExprPtr = IntrusivePtr<Expr>;
 
-#define NO_DEF -1
+constexpr int NO_DEF = -1;
 
 // This class tracks a single region during which an identifier has
 // a consistent state of definition, meaning either it's (1) defined

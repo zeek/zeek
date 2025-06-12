@@ -70,7 +70,7 @@ class Plugin;
  * Hook types that a plugin may define. Each label maps to the corresponding
  * virtual method in \a Plugin.
  */
-enum HookType {
+enum HookType : uint8_t {
     // Note: when changing this table, update hook_name() in Plugin.cc.
     HOOK_LOAD_FILE,           //< Activates Plugin::HookLoadFile().
     HOOK_LOAD_FILE_EXT,       //< Activates Plugin::HookLoadFileExtended().
@@ -136,12 +136,12 @@ public:
 #endif
     }
 
-    Configuration(Configuration&& c) {
+    Configuration(Configuration&& c) noexcept {
         zeek_version = std::move(c.zeek_version);
 
         name = std::move(c.name);
         description = std::move(c.description);
-        version = std::move(c.version);
+        version = c.version;
     }
 
     Configuration(const Configuration& c) {
@@ -152,12 +152,12 @@ public:
         version = c.version;
     }
 
-    Configuration& operator=(Configuration&& c) {
+    Configuration& operator=(Configuration&& c) noexcept {
         zeek_version = std::move(c.zeek_version);
 
         name = std::move(c.name);
         description = std::move(c.description);
-        version = std::move(c.version);
+        version = c.version;
 
         return *this;
     }
@@ -192,7 +192,13 @@ public:
     /**
      * Type of the item.
      */
-    enum Type { FUNCTION = 1, EVENT = 2, CONSTANT = 3, GLOBAL = 4, TYPE = 5 };
+    enum Type : uint8_t {
+        FUNCTION = 1,
+        EVENT = 2,
+        CONSTANT = 3,
+        GLOBAL = 4,
+        TYPE = 5,
+    };
 
     /**
      * Constructor.
@@ -242,7 +248,7 @@ public:
     /**
      * Type of the argument.
      */
-    enum Type {
+    enum Type : uint8_t {
         BOOL,
         DOUBLE,
         EVENT,
@@ -669,7 +675,7 @@ public:
     /**
      * The different types of @loads supported by HookLoadFile.
      */
-    enum LoadType { SCRIPT, SIGNATURES, PLUGIN };
+    enum LoadType : uint8_t { SCRIPT, SIGNATURES, PLUGIN };
 
     /**
      * Constructor.

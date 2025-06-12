@@ -30,7 +30,7 @@
 
 namespace zeek {
 
-enum class ListOrder : int { ORDERED, UNORDERED };
+enum class ListOrder : uint8_t { ORDERED, UNORDERED };
 
 template<typename T, ListOrder Order = ListOrder::ORDERED>
 class List {
@@ -38,7 +38,7 @@ public:
     constexpr static int DEFAULT_LIST_SIZE = 10;
     constexpr static int LIST_GROWTH_FACTOR = 2;
 
-    ~List() { free(entries); }
+    ~List() { free(static_cast<void*>(entries)); }
     explicit List(int size = 0) {
         num_entries = 0;
 
@@ -50,6 +50,7 @@ public:
 
         max_entries = size;
 
+        // NOLINTNEXTLINE(bugprone-sizeof-expression)
         entries = (T*)util::safe_malloc(max_entries * sizeof(T));
     }
 
@@ -58,6 +59,7 @@ public:
         num_entries = b.num_entries;
 
         if ( max_entries )
+            // NOLINTNEXTLINE(bugprone-sizeof-expression)
             entries = (T*)util::safe_malloc(max_entries * sizeof(T));
         else
             entries = nullptr;
@@ -66,7 +68,7 @@ public:
             entries[i] = b.entries[i];
     }
 
-    List(List&& b) {
+    List(List&& b) noexcept {
         entries = b.entries;
         num_entries = b.num_entries;
         max_entries = b.max_entries;
@@ -77,7 +79,9 @@ public:
 
     List(const T* arr, int n) {
         num_entries = max_entries = n;
+        // NOLINTNEXTLINE(bugprone-sizeof-expression)
         entries = (T*)util::safe_malloc(max_entries * sizeof(T));
+        // NOLINTNEXTLINE(bugprone-bitwise-pointer-cast,bugprone-multi-level-implicit-pointer-conversion,bugprone-sizeof-expression)
         memcpy(entries, arr, n * sizeof(T));
     }
 
@@ -87,12 +91,13 @@ public:
         if ( this == &b )
             return *this;
 
-        free(entries);
+        free(static_cast<void*>(entries));
 
         max_entries = b.max_entries;
         num_entries = b.num_entries;
 
         if ( max_entries )
+            // NOLINTNEXTLINE(bugprone-sizeof-expression)
             entries = (T*)util::safe_malloc(max_entries * sizeof(T));
         else
             entries = nullptr;
@@ -103,11 +108,11 @@ public:
         return *this;
     }
 
-    List& operator=(List&& b) {
+    List& operator=(List&& b) noexcept {
         if ( this == &b )
             return *this;
 
-        free(entries);
+        free(static_cast<void*>(entries));
         entries = b.entries;
         num_entries = b.num_entries;
         max_entries = b.max_entries;
@@ -122,7 +127,7 @@ public:
 
     void clear() // remove all entries
     {
-        free(entries);
+        free(static_cast<void*>(entries));
         entries = nullptr;
         num_entries = max_entries = 0;
     }
@@ -138,6 +143,7 @@ public:
             new_size = num_entries; // do not lose any entries
 
         if ( new_size != max_entries ) {
+            // NOLINTNEXTLINE(bugprone-sizeof-expression)
             entries = (T*)util::safe_realloc((void*)entries, sizeof(T) * new_size);
             if ( entries )
                 max_entries = new_size;
@@ -315,6 +321,7 @@ using name_list = PList<char>;
 } // namespace zeek
 
 // Macro to visit each list element in turn.
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define loop_over_list(list, iterator)                                                                                 \
     int iterator;                                                                                                      \
-    for ( iterator = 0; iterator < (list).length(); ++iterator )
+    for ( (iterator) = 0; (iterator) < (list).length(); ++(iterator) )

@@ -185,8 +185,8 @@ private:
     ValPtr initial_val;
     redef_list redefs;
     record_field_map fields;
-    RecordField* last_field_seen;
-    ScriptInfo* declaring_script;
+    RecordField* last_field_seen = nullptr;
+    ScriptInfo* declaring_script = nullptr;
     bool from_redef = false;
 };
 

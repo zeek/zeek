@@ -95,7 +95,7 @@ eval	auto vv = $1.AsVector();
 		vv->Assign(0, $2.ToVal(Z_TYPE));
 	else
 		{
-		vv->RawVec().push_back(CopyVal($2));
+		vv->RawVec().emplace_back(CopyVal($2));
 		vv->Modified();
 		}
 

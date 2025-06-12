@@ -24,7 +24,7 @@ public:
     /**
      * Overridden from parent class.
      */
-    virtual void Done() override;
+    void Done() override;
 
     /**
      * Sets the parent packet analyzer for this session adapter. This can't be passed to

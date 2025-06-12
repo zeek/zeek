@@ -17,6 +17,11 @@
 namespace zeek::spicy::rt {
 
 /** Parsing state for one endpoint of the connection. */
+// FIXME: It's strange that the parent class of this does not have a virtual destructor,
+// but fixing it requires also implementing copy constructor/operators, and it turns into
+// a rabbit hole.
+//
+// NOLINTNEXTLINE(cppcoreguidelines-virtual-class-destructor)
 class EndpointState : public ::spicy::rt::driver::ParsingState {
 public:
     /**
@@ -123,7 +128,7 @@ private:
 class TCP_Analyzer : public ProtocolAnalyzer, public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
     TCP_Analyzer(Connection* conn);
-    virtual ~TCP_Analyzer();
+    ~TCP_Analyzer() override;
 
     // Overridden from Spicy's Analyzer.
     void Init() override;
@@ -151,7 +156,7 @@ public:
 class UDP_Analyzer : public ProtocolAnalyzer, public analyzer::Analyzer {
 public:
     UDP_Analyzer(Connection* conn);
-    virtual ~UDP_Analyzer();
+    ~UDP_Analyzer() override;
 
     // Overridden from Spicy's Analyzer.
     void Init() override;

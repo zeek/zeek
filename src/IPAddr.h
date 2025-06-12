@@ -38,12 +38,16 @@ public:
     ConnKey(const ConnKey& rhs) { *this = rhs; }
     ConnKey(Val* v);
 
+    // FIXME: This is getting reworked as part of the connection tuple changes. Suppress
+    // the clang-tidy warning for the time being.
+    // NOLINTBEGIN(bugprone-suspicious-memory-comparison)
     bool operator<(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) < 0; }
     bool operator<=(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) <= 0; }
     bool operator==(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) == 0; }
     bool operator!=(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) != 0; }
     bool operator>=(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) >= 0; }
     bool operator>(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) > 0; }
+    // NOLINTEND(bugprone-suspicious-memory-comparison)
 
     ConnKey& operator=(const ConnKey& rhs);
 
@@ -68,7 +72,7 @@ public:
     /**
      * Byte order.
      */
-    enum ByteOrder { Host, Network };
+    enum ByteOrder : uint8_t { Host, Network };
 
     /**
      * Constructs the unspecified IPv6 address (all 128 bits zeroed).
@@ -432,7 +436,7 @@ inline IPAddr::IPAddr(Family family, const uint32_t* bytes, ByteOrder order) {
 
         if ( order == Host ) {
             for ( unsigned int i = 0; i < 4; ++i ) {
-                uint32_t* p = (uint32_t*)&in6.s6_addr[i * 4];
+                uint32_t* p = (uint32_t*)&in6.s6_addr[i * static_cast<ptrdiff_t>(4)];
                 *p = htonl(*p);
             }
         }

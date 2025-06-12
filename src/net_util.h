@@ -125,7 +125,7 @@ enum TransportProto : uint8_t {
 
 extern const char* transport_proto_string(TransportProto proto);
 
-enum IPFamily { IPv4, IPv6 };
+enum IPFamily : uint8_t { IPv4, IPv6 };
 
 namespace zeek {
 

@@ -8,8 +8,8 @@
 
 namespace zeek::analyzer::tcp {
 
-#define CR_as_EOL 1
-#define LF_as_EOL 2
+constexpr int CR_as_EOL = 1;
+constexpr int LF_as_EOL = 2;
 
 // Slightly smaller than 16MB so that the buffer is not unnecessarily resized to 32M.
 constexpr auto DEFAULT_MAX_LINE_LENGTH = 16 * 1024 * 1024 - 100;
@@ -122,3 +122,9 @@ protected:
 };
 
 } // namespace zeek::analyzer::tcp
+
+// These were previously #defined, so they have to be outside of the namespace.
+[[deprecated("Remove in v8.1, use the version in the zeek:::analyzer::tcp namespace")]] constexpr int CR_as_EOL =
+    zeek::analyzer::tcp::CR_as_EOL;
+[[deprecated("Remove in v8.1, use the version in the zeek:::analyzer::tcp namespace")]] constexpr int LF_as_EOL =
+    zeek::analyzer::tcp::LF_as_EOL;

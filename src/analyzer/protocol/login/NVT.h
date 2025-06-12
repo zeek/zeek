@@ -164,7 +164,7 @@ protected:
     int encrypting_mode = 0;
     char* auth_name = nullptr;
 
-    TelnetOption* options[NUM_TELNET_OPTIONS];
+    TelnetOption* options[NUM_TELNET_OPTIONS] = {nullptr};
     int num_options = 0;
 };
 

@@ -7,6 +7,7 @@
 
 #ifdef DEBUG
 
+#include <cstdint>
 #include <cstdio>
 #include <set>
 #include <string>
@@ -15,6 +16,7 @@
 #include <unistd.h> // Needed to ignore __attribute__((format(printf))) on MSVC
 #endif
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
 #define DBG_LOG(stream, ...)                                                                                           \
     if ( ::zeek::detail::debug_logger.IsEnabled(stream) )                                                              \
     ::zeek::detail::debug_logger.Log(stream, __VA_ARGS__)
@@ -25,6 +27,7 @@
 #define DBG_POP(stream) ::zeek::detail::debug_logger.PopIndent(stream)
 
 #define PLUGIN_DBG_LOG(plugin, ...) ::zeek::detail::debug_logger.Log(plugin, __VA_ARGS__)
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 namespace zeek {
 
@@ -35,7 +38,7 @@ class Plugin;
 // To add a new debugging stream, add a constant here as well as
 // an entry to DebugLogger::streams in DebugLogger.cc.
 
-enum DebugStream {
+enum DebugStream : uint8_t {
     DBG_SERIAL,          // Serialization
     DBG_RULES,           // Signature matching
     DBG_STRING,          // String code
@@ -67,10 +70,10 @@ namespace detail {
 class DebugLogger {
 public:
     // Output goes to stderr per default.
-    DebugLogger() : file(nullptr), all(false), verbose(false) {};
+    DebugLogger() = default;
     ~DebugLogger();
 
-    void OpenDebugLog(const char* filename = 0);
+    void OpenDebugLog(const char* filename = nullptr);
 
     void Log(DebugStream stream, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
     void Log(const plugin::Plugin& plugin, const char* fmt, ...) __attribute__((format(printf, 3, 4)));
@@ -98,14 +101,14 @@ public:
     void ShowStreamsHelp();
 
 private:
-    FILE* file;
-    bool all;
-    bool verbose;
+    FILE* file = nullptr;
+    bool all = false;
+    bool verbose = false;
 
     struct Stream {
-        const char* prefix;
-        int indent;
-        bool enabled;
+        const char* prefix = nullptr;
+        int indent = 0;
+        bool enabled = false;
     };
 
     std::set<std::string> enabled_streams;
@@ -123,9 +126,11 @@ extern DebugLogger debug_logger;
 } // namespace zeek
 
 #else
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
 #define DBG_LOG(...)
 #define DBG_LOG_VERBOSE(...)
 #define DBG_PUSH(stream)
 #define DBG_POP(stream)
 #define PLUGIN_DBG_LOG(plugin, ...)
+// NOLINTEND(cppcoreguidelines-macro-usage)
 #endif

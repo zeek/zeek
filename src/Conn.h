@@ -27,9 +27,6 @@ class RecordVal;
 using ValPtr = IntrusivePtr<Val>;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 
-namespace session {
-class Manager;
-}
 namespace detail {
 
 class Specific_RE_Matcher;
@@ -45,7 +42,7 @@ namespace packet_analysis::IP {
 class SessionAdapter;
 }
 
-enum ConnEventToFlag {
+enum ConnEventToFlag : uint8_t {
     NUL_IN_LINE,
     SINGULAR_CR,
     SINGULAR_LF,

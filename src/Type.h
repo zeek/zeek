@@ -59,7 +59,7 @@ public:
 } // namespace detail
 
 // Zeek types.
-enum TypeTag {
+enum TypeTag : uint8_t {
     TYPE_VOID,     // 0
     TYPE_BOOL,     // 1
     TYPE_INT,      // 2
@@ -91,9 +91,9 @@ extern const char* type_name(TypeTag t);
 
 constexpr bool is_network_order(TypeTag tag) noexcept { return tag == TYPE_PORT; }
 
-enum FunctionFlavor { FUNC_FLAVOR_FUNCTION, FUNC_FLAVOR_EVENT, FUNC_FLAVOR_HOOK };
+enum FunctionFlavor : uint8_t { FUNC_FLAVOR_FUNCTION, FUNC_FLAVOR_EVENT, FUNC_FLAVOR_HOOK };
 
-enum InternalTypeTag : uint16_t {
+enum InternalTypeTag : uint8_t {
     TYPE_INTERNAL_VOID,
     TYPE_INTERNAL_INT,
     TYPE_INTERNAL_UNSIGNED,
@@ -356,6 +356,8 @@ protected:
 
 class IndexType : public Type {
 public:
+    ~IndexType() override = default;
+
     int MatchesIndex(detail::ListExpr* index) const override;
 
     const TypeListPtr& GetIndices() const { return indices; }
@@ -391,8 +393,6 @@ protected:
         is_pattern_index = types.size() == 1 && types[0]->Tag() == TYPE_PATTERN;
     }
 
-    ~IndexType() override = default;
-
     void DoDescribe(ODesc* d) const override;
 
     TypeListPtr indices;
@@ -406,7 +406,7 @@ class TableType : public IndexType {
 public:
     TableType(TypeListPtr ind, TypePtr yield);
 
-    ~TableType();
+    ~TableType() override;
 
     /**
      * Assesses whether an &expire_func attribute's function type is compatible

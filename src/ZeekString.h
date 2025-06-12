@@ -3,6 +3,7 @@
 #pragma once
 
 #include <sys/types.h>
+#include <cstdint>
 #include <iosfwd>
 #include <string>
 #include <string_view>
@@ -103,7 +104,7 @@ public:
      */
     std::string_view ToStdStringView() const;
 
-    enum render_style {
+    enum render_style : uint8_t {
         ESC_NONE = 0,
         ESC_ESC = (1 << 1),  // '\' -> "\\"
         ESC_QUOT = (1 << 2), // '"' -> "\"", ''' -> "\'"

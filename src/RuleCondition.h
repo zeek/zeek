@@ -22,7 +22,12 @@ public:
     virtual void PrintDebug() = 0;
 };
 
-enum RuleStateKind { RULE_STATE_ESTABLISHED = 1, RULE_STATE_ORIG = 2, RULE_STATE_RESP = 4, RULE_STATE_STATELESS = 8 };
+enum RuleStateKind : uint8_t {
+    RULE_STATE_ESTABLISHED = 1,
+    RULE_STATE_ORIG = 2,
+    RULE_STATE_RESP = 4,
+    RULE_STATE_STATELESS = 8
+};
 
 // Implements the "tcp-state" keyword.
 class RuleConditionTCPState : public RuleCondition {
@@ -53,7 +58,7 @@ private:
 // Implements "ip-options".
 class RuleConditionIPOptions : public RuleCondition {
 public:
-    enum Options {
+    enum Options : uint8_t {
         OPT_LSRR = 1,
         OPT_LSRRE = 2,
         OPT_RR = 4,
@@ -83,7 +88,7 @@ public:
 // Implements "payload-size".
 class RuleConditionPayloadSize : public RuleCondition {
 public:
-    enum Comp { RULE_LE, RULE_GE, RULE_LT, RULE_GT, RULE_EQ, RULE_NE };
+    enum Comp : uint8_t { RULE_LE, RULE_GE, RULE_LT, RULE_GT, RULE_EQ, RULE_NE };
 
     RuleConditionPayloadSize(uint32_t arg_val, Comp arg_comp) {
         val = arg_val;

@@ -192,16 +192,17 @@ static void update_history(analyzer::tcp::TCP_Flags flags, analyzer::tcp::TCP_En
     int bits_set = (flags.SYN() ? 1 : 0) + (flags.FIN() ? 1 : 0) + (flags.RST() ? 1 : 0);
     if ( bits_set > 1 ) {
         if ( flags.FIN() && flags.RST() )
-            endpoint->CheckHistory(HIST_FIN_RST_PKT, 'I');
+            endpoint->CheckHistory(analyzer::tcp::TCP_Endpoint::HIST_FIN_RST_PKT, 'I');
         else
-            endpoint->CheckHistory(HIST_MULTI_FLAG_PKT, 'Q');
+            endpoint->CheckHistory(analyzer::tcp::TCP_Endpoint::HIST_MULTI_FLAG_PKT, 'Q');
     }
 
     else if ( bits_set == 1 ) {
         if ( flags.SYN() ) {
             char code = flags.ACK() ? 'H' : 'S';
 
-            if ( endpoint->CheckHistory(HIST_SYN_PKT, code) && rel_seq != endpoint->hist_last_SYN )
+            if ( endpoint->CheckHistory(analyzer::tcp::TCP_Endpoint::HIST_SYN_PKT, code) &&
+                 rel_seq != endpoint->hist_last_SYN )
                 endpoint->AddHistory(code);
 
             endpoint->hist_last_SYN = rel_seq;
@@ -211,14 +212,16 @@ static void update_history(analyzer::tcp::TCP_Flags flags, analyzer::tcp::TCP_En
             // For FIN's, the sequence number comes at the
             // end of (any data in) the packet, not the
             // beginning as for SYNs and RSTs.
-            if ( endpoint->CheckHistory(HIST_FIN_PKT, 'F') && rel_seq + len != endpoint->hist_last_FIN )
+            if ( endpoint->CheckHistory(analyzer::tcp::TCP_Endpoint::HIST_FIN_PKT, 'F') &&
+                 rel_seq + len != endpoint->hist_last_FIN )
                 endpoint->AddHistory('F');
 
             endpoint->hist_last_FIN = rel_seq + len;
         }
 
         if ( flags.RST() ) {
-            if ( endpoint->CheckHistory(HIST_RST_PKT, 'R') && rel_seq != endpoint->hist_last_RST )
+            if ( endpoint->CheckHistory(analyzer::tcp::TCP_Endpoint::HIST_RST_PKT, 'R') &&
+                 rel_seq != endpoint->hist_last_RST )
                 endpoint->AddHistory('R');
 
             endpoint->hist_last_RST = rel_seq;
@@ -227,10 +230,10 @@ static void update_history(analyzer::tcp::TCP_Flags flags, analyzer::tcp::TCP_En
 
     else { // bits_set == 0
         if ( len )
-            endpoint->CheckHistory(HIST_DATA_PKT, 'D');
+            endpoint->CheckHistory(analyzer::tcp::TCP_Endpoint::HIST_DATA_PKT, 'D');
 
         else if ( flags.ACK() )
-            endpoint->CheckHistory(HIST_ACK_PKT, 'A');
+            endpoint->CheckHistory(analyzer::tcp::TCP_Endpoint::HIST_ACK_PKT, 'A');
     }
 }
 
@@ -1142,28 +1145,28 @@ void TCPSessionAdapter::DeleteTimer(double /* t */) { session_mgr->Remove(Conn()
 void TCPSessionAdapter::ConnDeleteTimer(double t) { Conn()->DeleteTimer(t); }
 
 void TCPSessionAdapter::SetContentsFile(unsigned int direction, FilePtr f) {
-    if ( direction == CONTENTS_NONE ) {
+    if ( direction == analyzer::CONTENTS_NONE ) {
         orig->SetContentsFile(nullptr);
         resp->SetContentsFile(nullptr);
     }
 
     else {
-        if ( direction == CONTENTS_ORIG || direction == CONTENTS_BOTH )
+        if ( direction == analyzer::CONTENTS_ORIG || direction == analyzer::CONTENTS_BOTH )
             orig->SetContentsFile(f);
-        if ( direction == CONTENTS_RESP || direction == CONTENTS_BOTH )
+        if ( direction == analyzer::CONTENTS_RESP || direction == analyzer::CONTENTS_BOTH )
             resp->SetContentsFile(f);
     }
 }
 
 FilePtr TCPSessionAdapter::GetContentsFile(unsigned int direction) const {
     switch ( direction ) {
-        case CONTENTS_NONE: return nullptr;
+        case analyzer::CONTENTS_NONE: return nullptr;
 
-        case CONTENTS_ORIG: return orig->GetContentsFile();
+        case analyzer::CONTENTS_ORIG: return orig->GetContentsFile();
 
-        case CONTENTS_RESP: return resp->GetContentsFile();
+        case analyzer::CONTENTS_RESP: return resp->GetContentsFile();
 
-        case CONTENTS_BOTH:
+        case analyzer::CONTENTS_BOTH:
             if ( orig->GetContentsFile() != resp->GetContentsFile() )
                 // This is an "error".
                 return nullptr;

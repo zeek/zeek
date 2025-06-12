@@ -314,7 +314,7 @@ public:
     //	CONSTRUCTION - relevant for constructing/coercing a record
     //	READ - relevant for reading a table element
     //	WRITE - relevant for modifying a table element
-    enum AccessType { NONE, CALL, CONSTRUCTION, READ, WRITE };
+    enum AccessType : uint8_t { NONE, CALL, CONSTRUCTION, READ, WRITE };
 
     SideEffectsOp(AccessType at = NONE, const Type* t = nullptr) : access(at), type(t) {}
 

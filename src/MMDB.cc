@@ -72,7 +72,7 @@ static zeek::ValPtr mmdb_getvalue(MMDB_entry_data_s* entry_data, int status, int
     return nullptr;
 }
 
-MMDB::MMDB() : mmdb{}, file_info{}, reported_error{false}, last_check{zeek::run_state::network_time} {}
+MMDB::MMDB() : mmdb{}, file_info{}, last_check{zeek::run_state::network_time} {}
 
 MMDB::~MMDB() { Close(); }
 

@@ -4,9 +4,11 @@
 
 #pragma once
 
+#include <cstdint>
+
 namespace zeek::detail {
 
-enum AttrExprType {
+enum AttrExprType : uint8_t {
     AE_NONE,   // attribute doesn't have an expression
     AE_CONST,  // easy expression - a constant (ConstExpr)
     AE_NAME,   // easy - a global (NameExpr)

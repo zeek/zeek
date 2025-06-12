@@ -69,7 +69,10 @@ static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1, const IPA
 class Connection final : public session::Session {
 public:
     Connection(zeek::IPBasedConnKeyPtr k, const zeek::ConnTuple& ct, double t, uint32_t flow, const Packet* pkt);
+
+    [[deprecated("Remove in v8.1. Switch to ConnKey factories and the new zeek::ConnKey tree.")]]
     Connection(const detail::ConnKey& k, double t, const ConnTuple* id, uint32_t flow, const Packet* pkt);
+
     ~Connection() override;
 
     /**
@@ -201,7 +204,8 @@ public:
     bool IsFinished() { return finished; }
 
 private:
-    // Common initialization for the constructors.
+    // Common initialization for the constructors. This can move back into the
+    // (sole) constructor when we remove the deprecated one in 8.1.
     void Init(uint32_t flow, const Packet* pkt);
 
     friend class session::detail::Timer;

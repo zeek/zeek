@@ -42,6 +42,8 @@ Connection::Connection(zeek::IPBasedConnKeyPtr k, const zeek::ConnTuple& ct, dou
     Init(flow, pkt);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 Connection::Connection(const detail::ConnKey& k, double t, const ConnTuple* id, uint32_t flow, const Packet* pkt)
     : Session(t, connection_timeout, connection_status_update, detail::connection_status_update_interval) {
     orig_addr = id->src_addr;
@@ -63,6 +65,7 @@ Connection::Connection(const detail::ConnKey& k, double t, const ConnTuple* id, 
 
     Init(flow, pkt);
 }
+#pragma GCC diagnostic pop
 
 Connection::~Connection() {
     if ( ! finished )

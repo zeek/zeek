@@ -27,6 +27,8 @@ ConnKey::ConnKey(const ConnTuple& id) {
     Init(id.src_addr, id.dst_addr, id.src_port, id.dst_port, id.proto, id.is_one_way);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 ConnKey& ConnKey::operator=(const ConnKey& rhs) {
     if ( this == &rhs )
         return *this;
@@ -45,6 +47,7 @@ ConnKey& ConnKey::operator=(const ConnKey& rhs) {
 
     return *this;
 }
+#pragma GCC diagnostic pop
 
 ConnKey::ConnKey(Val* v) {
     const auto& vt = v->GetType();

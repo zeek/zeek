@@ -65,7 +65,7 @@ zeek::expected<zeek::ConnKeyPtr, std::string> Factory::DoConnKeyFromVal(const ze
             "invalid connection ID record encountered: the proto field has the \"unknown\" 65535 value. "
             "Did you forget to set it?");
 
-    ick->InitTuple(ConnTuple{orig_addr, resp_addr, htons(orig_portv->Port()), htons(resp_portv->Port()), proto16_t});
+    ick->InitTuple(orig_addr, htons(orig_portv->Port()), resp_addr, htons(resp_portv->Port()), proto16_t);
 
     // Asserting here on the absence of errors can fail btests.
 

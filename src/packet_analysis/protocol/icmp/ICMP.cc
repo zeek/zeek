@@ -28,23 +28,24 @@ SessionAdapter* ICMPAnalyzer::MakeSessionAdapter(Connection* conn) {
     return root;
 }
 
-bool ICMPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet, ConnTuple& tuple) {
+bool ICMPAnalyzer::InitConnKey(size_t len, const uint8_t* data, Packet* packet, IPBasedConnKey& key) {
     if ( ! CheckHeaderTrunc(ICMP_MINLEN, len, packet) )
         return false;
 
-    tuple.src_addr = packet->ip_hdr->SrcAddr();
-    tuple.dst_addr = packet->ip_hdr->DstAddr();
-    tuple.proto = packet->proto;
-
     const struct icmp* icmpp = (const struct icmp*)data;
-    tuple.src_port = htons(icmpp->icmp_type);
+
+    uint32_t icmp_counter_type = 0;
+    bool is_one_way = false;
 
     if ( packet->proto == IPPROTO_ICMP )
-        tuple.dst_port = htons(ICMP4_counterpart(icmpp->icmp_type, icmpp->icmp_code, tuple.is_one_way));
+        icmp_counter_type = ICMP4_counterpart(icmpp->icmp_type, icmpp->icmp_code, is_one_way);
     else if ( packet->proto == IPPROTO_ICMPV6 )
-        tuple.dst_port = htons(ICMP6_counterpart(icmpp->icmp_type, icmpp->icmp_code, tuple.is_one_way));
+        icmp_counter_type = ICMP6_counterpart(icmpp->icmp_type, icmpp->icmp_code, is_one_way);
     else
         reporter->InternalError("Reached ICMP packet analyzer with unknown packet protocol %x", packet->proto);
+
+    key.InitTuple(packet->ip_hdr->SrcAddr(), htons(icmpp->icmp_type), packet->ip_hdr->DstAddr(),
+                  htons(icmp_counter_type), packet->proto, is_one_way);
 
     return true;
 }

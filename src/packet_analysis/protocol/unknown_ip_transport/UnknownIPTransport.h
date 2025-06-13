@@ -23,10 +23,7 @@ public:
     packet_analysis::IP::SessionAdapter* MakeSessionAdapter(Connection* conn) override;
 
 protected:
-    /**
-     * Parse the header from the packet into a ConnTuple object.
-     */
-    bool BuildConnTuple(size_t len, const uint8_t* data, Packet* packet, ConnTuple& tuple) override;
+    bool InitConnKey(size_t len, const uint8_t* data, Packet* packet, IPBasedConnKey& key) override;
 
     void DeliverPacket(Connection* c, double t, bool is_orig, int remaining, Packet* pkt) override;
 };

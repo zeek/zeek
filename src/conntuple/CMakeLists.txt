@@ -7,3 +7,5 @@ zeek_add_subdir_library(
     Factory.h
     Component.cc
     Manager.cc)
+
+add_subdirectory(fivetuple)

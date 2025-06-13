@@ -24,10 +24,6 @@ IPBasedAnalyzer::~IPBasedAnalyzer() {
 }
 
 bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt) {
-    ConnTuple tuple;
-    if ( ! BuildConnTuple(len, data, pkt, tuple) )
-        return false;
-
     static IPBasedConnKeyPtr key; // Note, this is static for reuse:
     if ( ! key ) {
         ConnKeyPtr ck = conn_key_mgr->GetFactory().NewConnKey();
@@ -39,19 +35,28 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
         key = IPBasedConnKeyPtr(static_cast<IPBasedConnKey*>(ck.release()));
     }
 
-    // Initialize the key with the IP conn tuple and the packet as additional context.
-    //
-    // Custom IPConnKey implementations can fiddle with the Key through
-    // the DoInit(const Packet& pkt) hook called at this point.
-    key->InitTuple(tuple);
+    // Deprecated: remove ConnTuple use in 8.1 and only use InitConnKey().
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    ConnTuple tuple;
+    if ( BuildConnTuple(len, data, pkt, tuple) ) {
+        key->InitTuple(tuple.src_addr, tuple.src_port, tuple.dst_addr, tuple.dst_port, pkt->proto);
+#pragma GCC diagnostic pop
+    }
+    else if ( ! InitConnKey(len, data, pkt, *key) ) {
+        return false;
+    }
+
     key->Init(*pkt);
 
     const std::shared_ptr<IP_Hdr>& ip_hdr = pkt->ip_hdr;
+    auto src_addr = key->SrcAddr();
+    auto src_port = key->SrcPort();
 
     Connection* conn = session_mgr->FindConnection(*key);
 
     if ( ! conn ) {
-        conn = NewConn(tuple, std::move(key), pkt);
+        conn = NewConn(std::move(key), pkt);
         if ( conn )
             session_mgr->Insert(conn, false);
     }
@@ -60,7 +65,7 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
             conn->Event(connection_reused, nullptr);
 
             session_mgr->Remove(conn);
-            conn = NewConn(tuple, std::move(key), pkt);
+            conn = NewConn(std::move(key), pkt);
             if ( conn )
                 session_mgr->Insert(conn, false);
         }
@@ -76,7 +81,7 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
     // get logged, which means we can mark this packet as having been processed.
     pkt->processed = true;
 
-    bool is_orig = (tuple.src_addr == conn->OrigAddr()) && (tuple.src_port == conn->OrigPort());
+    bool is_orig = (src_addr == conn->OrigAddr()) && (src_port == conn->OrigPort());
     pkt->is_orig = is_orig;
 
     conn->CheckFlowLabel(is_orig, ip_hdr->FlowLabel());
@@ -159,19 +164,18 @@ bool IPBasedAnalyzer::IsLikelyServerPort(uint32_t port) const {
     return port_cache.find(port) != port_cache.end();
 }
 
-zeek::Connection* IPBasedAnalyzer::NewConn(const ConnTuple& id, IPBasedConnKeyPtr key, const Packet* pkt) {
-    int src_h = ntohs(id.src_port);
-    int dst_h = ntohs(id.dst_port);
+zeek::Connection* IPBasedAnalyzer::NewConn(IPBasedConnKeyPtr key, const Packet* pkt) {
+    auto src_p = ntohs(key->SrcPort());
+    auto dst_p = ntohs(key->DstPort());
     bool flip = false;
 
-    if ( ! WantConnection(src_h, dst_h, pkt->ip_hdr->Payload(), flip) )
+    if ( ! WantConnection(src_p, dst_p, pkt->ip_hdr->Payload(), flip) )
         return nullptr;
 
-    Connection* conn =
-        new Connection(std::move(key), id, run_state::processing_start_time, pkt->ip_hdr->FlowLabel(), pkt);
+    Connection* conn = new Connection(std::move(key), run_state::processing_start_time, pkt->ip_hdr->FlowLabel(), pkt);
     conn->SetTransport(transport);
 
-    if ( flip && ! id.dst_addr.IsBroadcast() )
+    if ( flip && ! conn->RespAddr().IsBroadcast() )
         conn->FlipRoles();
 
     BuildSessionAnalyzerTree(conn);

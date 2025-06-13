@@ -34,7 +34,34 @@ struct PackedConnTuple {
  */
 class IPBasedConnKey : public zeek::ConnKey {
 public:
-    void InitTuple(const ConnTuple& ct) { InitPackedTuple(ct); }
+    /**
+     * Initializes the key to the given 5-tuple. This canonicalizes the
+     * packed tuple storage, including potential endpoint flips for
+     * consistent connection lookups regardless of directionality.
+     */
+    void InitTuple(const IPAddr& src_addr, uint32_t src_port, const IPAddr& dst_addr, uint32_t dst_port, uint16_t proto,
+                   bool is_one_way = false);
+
+    /**
+     * The source address the key got initialized with.
+     */
+    IPAddr SrcAddr() const { return flipped ? IPAddr(PackedTuple().ip2) : IPAddr(PackedTuple().ip1); }
+    /**
+     * The destination address the key got initialized with.
+     */
+    IPAddr DstAddr() const { return flipped ? IPAddr(PackedTuple().ip1) : IPAddr(PackedTuple().ip2); }
+    /**
+     * The source port the key got initialized with.
+     */
+    uint16_t SrcPort() const { return flipped ? PackedTuple().port2 : PackedTuple().port1; }
+    /**
+     * The destination port the key got initialized with.
+     */
+    uint16_t DstPort() const { return flipped ? PackedTuple().port1 : PackedTuple().port2; }
+    /**
+     * The IP protocol the key got initialized with.
+     */
+    uint16_t Proto() const { return PackedTuple().proto; }
 
     /**
      * Return a modifiable reference to the embedded PackedConnTuple.
@@ -56,28 +83,8 @@ public:
      */
     virtual const detail::PackedConnTuple& PackedTuple() const = 0;
 
-private:
-    /**
-     * Initialize a packed tuple from a ConnTuple instance.
-     */
-    void InitPackedTuple(const ConnTuple& ct) {
-        auto& tuple = PackedTuple();
-
-        if ( ct.is_one_way || addr_port_canon_lt(ct.src_addr, ct.src_port, ct.dst_addr, ct.dst_port) ) {
-            ct.src_addr.CopyIPv6(&tuple.ip1);
-            ct.dst_addr.CopyIPv6(&tuple.ip2);
-            tuple.port1 = ct.src_port;
-            tuple.port2 = ct.dst_port;
-        }
-        else {
-            ct.dst_addr.CopyIPv6(&tuple.ip1);
-            ct.src_addr.CopyIPv6(&tuple.ip2);
-            tuple.port1 = ct.dst_port;
-            tuple.port2 = ct.src_port;
-        }
-
-        tuple.proto = ct.proto;
-    }
+protected:
+    bool flipped = false;
 };
 
 using IPBasedConnKeyPtr = std::unique_ptr<IPBasedConnKey>;

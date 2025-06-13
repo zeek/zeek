@@ -23,15 +23,15 @@ namespace zeek {
 uint64_t Connection::total_connections = 0;
 uint64_t Connection::current_connections = 0;
 
-Connection::Connection(zeek::IPBasedConnKeyPtr k, const zeek::ConnTuple& ct, double t, uint32_t flow, const Packet* pkt)
+Connection::Connection(zeek::IPBasedConnKeyPtr k, double t, uint32_t flow, const Packet* pkt)
     : Session(t, connection_timeout, connection_status_update, detail::connection_status_update_interval),
       key(std::move(k)) {
-    orig_addr = ct.src_addr;
-    resp_addr = ct.dst_addr;
-    orig_port = ct.src_port;
-    resp_port = ct.dst_port;
+    orig_addr = key->SrcAddr();
+    resp_addr = key->DstAddr();
+    orig_port = key->SrcPort();
+    resp_port = key->DstPort();
 
-    switch ( ct.proto ) {
+    switch ( key->Proto() ) {
         case IPPROTO_TCP: proto = TRANSPORT_TCP; break;
         case IPPROTO_UDP: proto = TRANSPORT_UDP; break;
         case IPPROTO_ICMP:
@@ -60,7 +60,7 @@ Connection::Connection(const detail::ConnKey& k, double t, const ConnTuple* id, 
     }
 
     key = std::make_unique<zeek::IPConnKey>();
-    key->InitTuple(*id);
+    key->InitTuple(id->src_addr, id->src_port, id->dst_addr, id->dst_port, id->proto, id->is_one_way);
     key->Init(*pkt);
 
     Init(flow, pkt);

@@ -328,9 +328,8 @@ private:
 
 TEST_CASE("line forward testing") {
     zeek::Packet p;
-    zeek::ConnTuple ct;
     zeek::IPBasedConnKeyPtr kp = std::make_unique<zeek::IPConnKey>();
-    auto conn = std::make_unique<zeek::Connection>(std::move(kp), ct, 0, 0, &p);
+    auto conn = std::make_unique<zeek::Connection>(std::move(kp), 0, 0, &p);
     auto smtp_analyzer =
         std::unique_ptr<zeek::analyzer::Analyzer>(zeek::analyzer_mgr->InstantiateAnalyzer("SMTP", conn.get()));
     auto mail = std::make_unique<Test_MIME_Message>(smtp_analyzer.get());

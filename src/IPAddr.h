@@ -25,6 +25,8 @@ constexpr uint16_t INVALID_CONN_KEY_IP_PROTO = 65534;
 
 class HashKey;
 
+// Deprecated: Remove the whole class in v8.1. Switch usage to the conntuple factories and the new zeek::ConnKey tree.
+// XXX using [[deprecated]] for the whole class leads to hard errors on FreeBSD/MacOS.
 class ConnKey {
 public:
     in6_addr ip1;

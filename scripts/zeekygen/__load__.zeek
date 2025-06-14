@@ -2,6 +2,7 @@
 
 # Scripts which are commented out in test-all-policy.zeek.
 @load frameworks/analyzer/deprecated-dpd-log.zeek
+@load frameworks/conn_key/vlan_fivetuple.zeek
 
 # Remove in v8.1: replaced by frameworks/analyzer/detect-protocols.zeek
 @pragma push ignore-deprecations

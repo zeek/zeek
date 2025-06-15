@@ -579,6 +579,10 @@ const io_poll_interval_live = 10 &redef;
 ## while testing, but should be used sparingly.
 const running_under_test: bool = F &redef;
 
+## The amount of time before a connection created by the netbios analyzer times
+## out and is removed.
+const netbios_ssn_session_timeout: interval = 15 sec &redef;
+
 module EventMetadata;
 
 export {

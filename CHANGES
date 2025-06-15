@@ -1,3 +1,41 @@
+8.0.0-dev.425 | 2025-06-11 13:18:36 -0700
+
+  * Add missing #include to packet_analysis/Component.h (Tim Wojtulewicz, Corelight)
+
+8.0.0-dev.423 | 2025-06-11 11:12:18 -0700
+
+  * Remove some unused #includes from spicy code (Tim Wojtulewicz, Corelight)
+
+  * Remove using util.h in various headers in favor of util-types.h (Tim Wojtulewicz, Corelight)
+
+  * Move type definitions/aliases from util.h to a separate file (Tim Wojtulewicz, Corelight)
+
+8.0.0-dev.419 | 2025-06-11 09:00:46 -0700
+
+  * Bugfix: AsString() on an EnumVal will segfault (Christian Kreibich, Corelight)
+
+8.0.0-dev.417 | 2025-06-11 17:24:11 +0200
+
+  * GH-4522: smtp: Fix last_reply column in smtp.log for BDAT LAST (Arne Welzel, Corelight)
+
+    The response to BDAT LAST was never recognized, resulting in the
+    BDAT LAST commands not being logged in a timely fashion and receiving
+    the wrong status.
+
+    This likely doesn't handle complex pipeline scenarios, but it fixes
+    the wrong behavior for smtp_reply() not handling simple BDAT commands
+    responses.
+
+    Thanks @cccs-jsjm for the report!
+
+8.0.0-dev.414 | 2025-06-10 12:08:36 -0700
+
+  * Move netbios_ssn_session_timeout to a script-level constant (Tim Wojtulewicz, Corelight)
+
+8.0.0-dev.412 | 2025-06-10 18:50:39 +0200
+
+  * btest/opt/ZAM-bif-tracking: Disable by default (Arne Welzel, Corelight)
+
 8.0.0-dev.410 | 2025-06-09 18:00:33 -0700
 
   * Btests: don't use -C in Zeek invocations that don't actually need it (Christian Kreibich, Corelight)

@@ -2,6 +2,9 @@
 #
 # @TEST-REQUIRES: have-spicy
 #
+# Only run this test when ZEEK_ZAM_MAINTENANCE env is set and not "0".
+# @TEST-REQUIRES: test "${ZEEK_ZAM_MAINTENANCE}" != "" && test "${ZEEK_ZAM_MAINTENANCE}" != "0"
+#
 # @TEST-EXEC: zeek -b %INPUT >output
 # @TEST-EXEC: btest-diff output
 

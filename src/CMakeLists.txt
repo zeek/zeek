@@ -318,6 +318,7 @@ set(MAIN_SRCS
     digest.cc
     net_util.cc
     util.cc
+    util-types.cc
     module_util.cc
     zeek-affinity.cc
     zeek-setup.cc

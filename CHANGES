@@ -1,3 +1,24 @@
+7.0.8-4 | 2025-07-14 14:12:46 -0700
+
+  * btest/logging: Fly-by cleanup (Arne Welzel, Corelight)
+
+    (cherry picked from commit f4357485d2006813fba768aa83e9e1bf8e8bb236)
+
+  * GH-4562: logging/Ascii: Fix abort() for non-existing postrotation functions (Arne Welzel, Corelight)
+
+    When looking up the postprocessor function from shadow files, id::find_func()
+    would abort() if the function wasn't available instead of falling back
+    to the default postprocessor.
+
+    Fix by using id::find() and checking the type explicitly and also adding a
+    strict type check while at it.
+
+    This issue was tickled by loading the json-streaming-logs package,
+    Zeek creating shadow files containing its custom postprocessor function,
+    then restarting Zeek without the package loaded.
+
+    (cherry picked from commit f4357485d2006813fba768aa83e9e1bf8e8bb236)
+
 7.0.8-3 | 2025-07-14 14:11:30 -0700
 
   * docker: Add `net-tools` and `procps` dependencies (Edoardo Mich)

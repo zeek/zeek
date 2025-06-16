@@ -22,20 +22,6 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-sort btest-diff out
 # @TEST-EXEC: btest-diff logs.cat
 
-module Test;
-
-export {
-	# Create a new ID for our log stream
-	redef enum Log::ID += { LOG };
-
-	# Define a record with all the columns the log file can have.
-	# (I'm using a subset of fields from ssh-ext for demonstration.)
-	type Log: record {
-		t: time;
-		id: conn_id; # Will be rolled out into individual columns.
-	} &log;
-}
-
 module GLOBAL;
 
 function my_rotation_postprocessor(info: Log::RotationInfo) : bool

@@ -16,12 +16,7 @@ using namespace std;
 
 namespace zeek::file_analysis {
 
-Manager::Manager()
-    : plugin::ComponentManager<file_analysis::Component>("Files", "Tag", "AllAnalyzers"),
-      current_file_id(),
-      magic_state(),
-      cumulative_files(0),
-      max_files(0) {}
+Manager::Manager() : plugin::ComponentManager<file_analysis::Component>("Files", "Tag", "AllAnalyzers") {}
 
 Manager::~Manager() {
     for ( const auto& [_, tag] : mime_types )

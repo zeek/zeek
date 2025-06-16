@@ -53,7 +53,7 @@ public:
     /**
      * Type of input a packet source supports.
      */
-    enum InputType {
+    enum InputType : uint8_t {
         LIVE,  ///< Live input.
         TRACE, ///< Offline input from trace file.
         BOTH   ///< Live input as well as offline.

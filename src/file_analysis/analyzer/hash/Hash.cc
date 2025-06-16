@@ -16,7 +16,6 @@ Hash::Hash(RecordValPtr args, file_analysis::File* file, HashVal* hv, StringValP
     : file_analysis::Analyzer(file_mgr->GetComponentTag(util::to_upper(arg_kind->ToStdString())), std::move(args),
                               file),
       hash(hv),
-      fed(false),
       kind(std::move(arg_kind)) {
     hash->Init();
 }

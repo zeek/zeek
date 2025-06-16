@@ -30,7 +30,7 @@ constexpr uint32_t HIST_UNKNOWN_PKT = 0x400; // Initially for exceeded_tunnel_ma
 class Session;
 using timer_func = void (Session::*)(double t);
 
-enum class AnalyzerConfirmationState { UNKNOWN, VIOLATED, CONFIRMED };
+enum class AnalyzerConfirmationState : uint8_t { UNKNOWN, VIOLATED, CONFIRMED };
 
 class Session : public Obj {
 public:
@@ -50,7 +50,7 @@ public:
     Session(double t, EventHandlerPtr timeout_event, EventHandlerPtr status_update_event = nullptr,
             double status_update_interval = 0);
 
-    virtual ~Session() {}
+    ~Session() override = default;
 
     /**
      * Invoked when the session is about to be removed. Use Ref(this)
@@ -135,7 +135,7 @@ public:
         return EnqueueEvent(h, analyzer, zeek::Args{std::forward<Args>(args)...});
     }
 
-    virtual void Describe(ODesc* d) const override;
+    void Describe(ODesc* d) const override;
 
     /**
      * Sets the session to expire after a given amount of time.
@@ -326,4 +326,5 @@ protected:
 } // namespace session
 } // namespace zeek
 
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define ADD_TIMER(timer, t, do_expire, type) AddTimer(timer_func(timer), (t), (do_expire), (type))

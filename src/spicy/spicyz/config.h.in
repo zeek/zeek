@@ -29,7 +29,7 @@ static inline void add_path(std::string& old_path, const path& new_path) {
 static path get_env_path_or(const char* name, const char* default_) {
     assert(std::strlen(default_) != 0);
     if ( auto p = hilti::rt::getenv(name); p && ! p->empty() )
-        return path(*p);
+        return {*p};
     else
         return default_;
 }
@@ -56,7 +56,8 @@ inline const auto CxxZeekIncludesDirectories() {
     return includes;
 }
 
-// Version of Spicy that we are compiling against.
+// Version of Spicy that we are compiling against. Used for codegen changes in glue-compiler.cc.
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #cmakedefine SPICY_VERSION_NUMBER ${SPICY_VERSION_NUMBER}
 
 inline const auto InstallPrefix = path("${CMAKE_INSTALL_PREFIX}");

@@ -18,12 +18,12 @@ class IPPrefix;
 class File;
 class Type;
 
-enum DescType {
+enum DescType : uint8_t {
     DESC_READABLE,
     DESC_BINARY,
 };
 
-enum DescStyle {
+enum DescStyle : uint8_t {
     STANDARD_STYLE,
     RAW_STYLE,
 };

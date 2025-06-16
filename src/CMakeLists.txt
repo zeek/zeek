@@ -465,15 +465,15 @@ set(MAIN_SRCS
     digest.h)
 
 set(THIRD_PARTY_SRCS
-    3rdparty/zeek_inet_ntop.c
-    3rdparty/bsd-getopt-long.c
+    $<$<BOOL:USE_SQLITE>:3rdparty/sqlite3.c>
     3rdparty/ConvertUTF.c
+    3rdparty/bsd-getopt-long.c
     3rdparty/in_cksum.cc
     3rdparty/modp_numtoa.c
     3rdparty/patricia.c
     3rdparty/setsignal.c
-    $<$<BOOL:USE_SQLITE>:3rdparty/sqlite3.c>
-    3rdparty/strsep.c)
+    3rdparty/strsep.c
+    3rdparty/zeek_inet_ntop.c)
 
 if (USE_SQLITE AND WNOERROR_FLAG)
     set_source_files_properties(3rdparty/sqlite3.c PROPERTIES COMPILE_FLAGS ${WNOERROR_FLAG})

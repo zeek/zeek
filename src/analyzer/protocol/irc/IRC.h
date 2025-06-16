@@ -16,11 +16,11 @@ namespace irc {
  * \brief Main class for analyzing IRC traffic.
  */
 class IRC_Analyzer final : public analyzer::tcp::TCP_ApplicationAnalyzer {
-    enum {
+    enum : uint8_t {
         WAIT_FOR_REGISTRATION,
         REGISTERED,
     };
-    enum {
+    enum : uint8_t {
         NO_ZIP,
         ACCEPT_ZIP,
         ZIP_LOADED,

@@ -60,8 +60,8 @@ protected:
     void Finalize();
 
 private:
-    HashVal* hash;
-    bool fed;
+    HashVal* hash = nullptr;
+    bool fed = false;
     StringValPtr kind;
 };
 

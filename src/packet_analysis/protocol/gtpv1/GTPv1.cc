@@ -55,7 +55,7 @@ bool GTPv1_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
     std::shared_ptr<IP_Hdr> inner = nullptr;
     auto result = packet_analysis::IP::ParsePacket(len, data, next_header, inner);
 
-    if ( result == packet_analysis::IP::ParseResult::Ok ) {
+    if ( result == packet_analysis::IP::ParseResult::OK ) {
         cm_it->second->set_valid(packet->is_orig, true);
 
         if ( (! BifConst::Tunnel::delay_gtp_confirmation) ||
@@ -67,12 +67,12 @@ bool GTPv1_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
             gtp_hdr_val = nullptr;
         }
     }
-    else if ( result == packet_analysis::IP::ParseResult::BadProtocol ) {
+    else if ( result == packet_analysis::IP::ParseResult::BAD_PROTOCOL ) {
         AnalyzerViolation("Invalid IP version in wrapped packet", packet->session);
         gtp_hdr_val = nullptr;
         return false;
     }
-    else if ( result == packet_analysis::IP::ParseResult::CaplenTooSmall ) {
+    else if ( result == packet_analysis::IP::ParseResult::CAPLEN_TOO_SMALL ) {
         AnalyzerViolation("Truncated GTPv1", packet->session);
         gtp_hdr_val = nullptr;
         return false;

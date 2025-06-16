@@ -38,6 +38,13 @@ public:
     BasicThread& operator=(BasicThread const&) = delete;
 
     /**
+     * Destructor. This will be called by the manager.
+     *
+     * Only Zeek's main thread may delete thread instances.
+     */
+    virtual ~BasicThread();
+
+    /**
      * Returns a descriptive name for the thread. If not set via
      * SetName(), a default name is chosen automatically.
      *
@@ -167,14 +174,6 @@ protected:
      * Executed with Kill(). This is a hook into killing the thread.
      */
     virtual void OnKill() {}
-
-    /**
-     * Destructor. This will be called by the manager.
-     *
-     * Only Zeek's main thread may delete thread instances.
-     *
-     */
-    virtual ~BasicThread();
 
     /**
      * Waits until the thread's Run() method has finished and then joins

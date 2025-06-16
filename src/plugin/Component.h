@@ -23,7 +23,7 @@ namespace component {
 /**
  * Component types.
  */
-enum Type {
+enum Type : uint8_t {
     READER,             /// An input reader (not currently used).
     WRITER,             /// A logging writer (not currently used).
     ANALYZER,           /// A protocol analyzer.

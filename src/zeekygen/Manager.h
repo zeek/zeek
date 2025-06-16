@@ -226,7 +226,7 @@ private:
 
     IdentifierInfo* CreateIdentifierInfo(zeek::detail::IDPtr id, ScriptInfo* script, bool from_redef = false);
 
-    bool disabled;
+    bool disabled = false;
     comment_buffer_t comment_buffer;         // For whatever next identifier comes in.
     comment_buffer_map_t comment_buffer_map; // For a particular identifier.
     InfoMap<PackageInfo> packages;
@@ -234,11 +234,11 @@ private:
     InfoMap<IdentifierInfo> identifiers;
     InfoMap<SpicyModuleInfo> spicy_modules;
     std::vector<Info*> all_info;
-    IdentifierInfo* last_identifier_seen;
-    IdentifierInfo* incomplete_type;
+    IdentifierInfo* last_identifier_seen = nullptr;
+    IdentifierInfo* incomplete_type = nullptr;
     std::map<std::string, std::string> enum_mappings; // enum id -> enum type id
     Config config;
-    time_t mtime;
+    time_t mtime = 0;
 };
 
 template<class T>

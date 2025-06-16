@@ -57,9 +57,9 @@ public:
     void UnsetFlags(int flags);
 
 private:
-    int fds[2];
-    int flags[2];
-    int status_flags[2];
+    int fds[2] = {-1, -1};
+    int flags[2] = {0};
+    int status_flags[2] = {0};
 };
 
 /**
@@ -119,7 +119,7 @@ public:
     void Swap() { swapped = ! swapped; }
 
 private:
-    Pipe pipes[2];
+    Pipe pipes[2]; // NOLINT(modernize-use-default-member-init)
     bool swapped = false;
 };
 

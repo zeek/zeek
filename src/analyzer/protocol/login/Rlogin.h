@@ -9,7 +9,7 @@ namespace zeek::analyzer::login {
 
 class Rlogin_Analyzer;
 
-enum rlogin_state {
+enum rlogin_state : uint8_t {
     RLOGIN_FIRST_NULL,       // waiting to see first NUL
     RLOGIN_CLIENT_USER_NAME, // scanning client user name up to NUL
     RLOGIN_SERVER_USER_NAME, // scanning server user name up to NUL

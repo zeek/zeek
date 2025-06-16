@@ -47,6 +47,8 @@ public:
      */
     virtual ~CounterVector();
 
+    CounterVector& operator=(const CounterVector&) = delete;
+
     /**
      * Increments a given cell.
      *
@@ -157,8 +159,6 @@ protected:
     CounterVector() = default;
 
 private:
-    CounterVector& operator=(const CounterVector&); // Disable.
-
     BitVector* bits = nullptr;
     size_t width = 0;
 };

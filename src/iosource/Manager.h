@@ -193,7 +193,7 @@ private:
     class WakeupHandler final : public IOSource {
     public:
         WakeupHandler();
-        ~WakeupHandler();
+        ~WakeupHandler() override;
 
         /**
          * Tells the handler to wake up the loop by firing the flare.

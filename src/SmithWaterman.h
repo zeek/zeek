@@ -40,6 +40,8 @@ public:
 
     using BSSAlignVec = std::vector<BSSAlign>;
 
+    Substring() = delete;
+
     explicit Substring(const std::string& string) : String(string), _num(), _new(false) {}
 
     explicit Substring(const String& string) : String(string), _num(), _new(false) {}
@@ -75,8 +77,6 @@ public:
 private:
     using DataMap = std::map<std::string, void*>;
 
-    Substring();
-
     // The alignments registered for this substring.
     BSSAlignVec _aligns;
 
@@ -106,7 +106,7 @@ private:
 // We support two modes of operation: finding a single optimal alignment,
 // and repeated alignments.
 //
-enum SWVariant {
+enum SWVariant : uint8_t {
     SW_SINGLE = 0,   // return a single, optimum alignment
     SW_MULTIPLE = 1, // find repeated, non-overlapping alignments
 };

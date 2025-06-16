@@ -14,15 +14,13 @@
 namespace zeek::analyzer::ftp {
 
 FTP_Analyzer::FTP_Analyzer(Connection* conn) : analyzer::tcp::TCP_ApplicationAnalyzer("FTP", conn) {
-    pending_reply = 0;
-
     nvt_orig = new analyzer::login::NVT_Analyzer(conn, true);
     nvt_orig->SetIsNULSensitive(true);
-    nvt_orig->SetCRLFAsEOL(LF_as_EOL);
+    nvt_orig->SetCRLFAsEOL(tcp::LF_as_EOL);
 
     nvt_resp = new analyzer::login::NVT_Analyzer(conn, false);
     nvt_resp->SetIsNULSensitive(true);
-    nvt_resp->SetCRLFAsEOL(LF_as_EOL);
+    nvt_resp->SetCRLFAsEOL(tcp::LF_as_EOL);
 
     nvt_resp->SetPeer(nvt_orig);
     nvt_orig->SetPeer(nvt_resp);

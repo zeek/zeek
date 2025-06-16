@@ -85,6 +85,9 @@ inline UID::UID(const UID& other) {
 }
 
 inline UID& UID::operator=(const UID& other) {
+    if ( this == &other )
+        return *this;
+
     memmove(uid, other.uid, sizeof(uid));
     initialized = other.initialized;
     return *this;

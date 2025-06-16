@@ -60,7 +60,7 @@ public:
          *
          * Structure takes ownership of string.
          */
-        const char* path;
+        const char* path = nullptr;
 
         /**
          * The filter this writer is attached to.
@@ -79,17 +79,17 @@ public:
         /**
          * The rotation interval as configured for this writer.
          */
-        double rotation_interval;
+        double rotation_interval = 0.0;
 
         /**
          * The parsed value of log_rotate_base_time in seconds.
          */
-        double rotation_base;
+        double rotation_base = 0.0;
 
         /**
          * The network time when the writer is created.
          */
-        double network_time;
+        double network_time = 0.0;
 
         /**
          * A map of key/value pairs corresponding to the relevant
@@ -97,7 +97,7 @@ public:
          */
         config_map config;
 
-        WriterInfo() : path(nullptr), rotation_interval(0.0), rotation_base(0.0), network_time(0.0) {}
+        WriterInfo() = default;
 
         WriterInfo(const WriterInfo& other) {
             path = other.path ? util::copy_string(other.path) : nullptr;
@@ -106,8 +106,8 @@ public:
             rotation_base = other.rotation_base;
             network_time = other.network_time;
 
-            for ( config_map::const_iterator i = other.config.begin(); i != other.config.end(); i++ )
-                config.insert(std::make_pair(util::copy_string(i->first), util::copy_string(i->second)));
+            for ( const auto& [k, v] : other.config )
+                config.insert(std::make_pair(util::copy_string(k), util::copy_string(v)));
 
             filter_name = other.filter_name;
         }
@@ -116,9 +116,9 @@ public:
             delete[] path;
             delete[] post_proc_func;
 
-            for ( config_map::iterator i = config.begin(); i != config.end(); i++ ) {
-                delete[] i->first;
-                delete[] i->second;
+            for ( auto [k, v] : config ) {
+                delete[] k;
+                delete[] v;
             }
         }
 
@@ -127,8 +127,7 @@ public:
         broker::data ToBroker() const;
         bool FromBroker(broker::data d);
 
-    private:
-        const WriterInfo& operator=(const WriterInfo& other); // Disable.
+        const WriterInfo& operator=(const WriterInfo& other) = delete;
     };
 
     /**

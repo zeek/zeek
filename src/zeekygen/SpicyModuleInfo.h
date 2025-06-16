@@ -21,8 +21,8 @@ public:
      * @param name name of the Spicy EVT module.
      * @param description text describing the module further
      */
-    explicit SpicyModuleInfo(const std::string& name, const std::string& description)
-        : name(name), description(description) {}
+    explicit SpicyModuleInfo(std::string name, std::string description)
+        : name(std::move(name)), description(std::move(description)) {}
 
     /** @return textual description of the module */
     const auto& Description() const { return description; }

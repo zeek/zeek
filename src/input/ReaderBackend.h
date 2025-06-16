@@ -16,7 +16,7 @@ class ReaderFrontend;
 /**
  * The modes a reader can be in.
  */
-enum ReaderMode {
+enum ReaderMode : uint8_t {
     /**
      * Manual refresh reader mode. The reader will read the file once,
      * and send all read data back to the manager. After that, no automatic
@@ -118,22 +118,21 @@ public:
             name = other.name ? util::copy_string(other.name) : nullptr;
             mode = other.mode;
 
-            for ( config_map::const_iterator i = other.config.begin(); i != other.config.end(); i++ )
-                config.insert(std::make_pair(util::copy_string(i->first), util::copy_string(i->second)));
+            for ( const auto& [k, v] : other.config )
+                config.insert(std::make_pair(util::copy_string(k), util::copy_string(v)));
         }
 
         ~ReaderInfo() {
             delete[] source;
             delete[] name;
 
-            for ( config_map::iterator i = config.begin(); i != config.end(); i++ ) {
-                delete[] i->first;
-                delete[] i->second;
+            for ( auto [k, v] : config ) {
+                delete[] k;
+                delete[] v;
             }
         }
 
-    private:
-        const ReaderInfo& operator=(const ReaderInfo& other); // Disable.
+        const ReaderInfo& operator=(const ReaderInfo& other) = delete;
     };
 
     /**

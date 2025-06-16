@@ -42,7 +42,7 @@ struct BDATCmd parse_bdat_arg(int length, const char* arg);
  *
  * Helper class to avoid true/false parameters.
  */
-enum class ChunkType {
+enum class ChunkType : uint8_t {
     None,
     Intermediate,
     Last,

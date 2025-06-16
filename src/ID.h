@@ -38,14 +38,14 @@ class Attributes;
 class Expr;
 using ExprPtr = IntrusivePtr<Expr>;
 
-enum InitClass {
+enum InitClass : uint8_t {
     INIT_NONE,
     INIT_FULL,
     INIT_EXTRA,
     INIT_REMOVE,
     INIT_SKIP,
 };
-enum IDScope { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL };
+enum IDScope : uint8_t { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL };
 
 class ID;
 using IDPtr = IntrusivePtr<ID>;

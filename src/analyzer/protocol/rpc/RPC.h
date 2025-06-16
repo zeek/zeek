@@ -7,17 +7,17 @@
 namespace zeek::analyzer::rpc {
 namespace detail {
 
-enum {
+enum : uint8_t {
     RPC_CALL = 0,
     RPC_REPLY = 1,
 };
 
-enum {
+enum : uint8_t {
     RPC_MSG_ACCEPTED = 0,
     RPC_MSG_DENIED = 1,
 };
 
-enum {
+enum : uint8_t {
     RPC_SUCCESS = 0,
     RPC_PROG_UNAVAIL = 1,
     RPC_PROG_MISMATCH = 2,
@@ -26,12 +26,12 @@ enum {
     RPC_SYSTEM_ERR = 5,
 };
 
-enum {
+enum : uint8_t {
     RPC_MISMATCH = 0,
     RPC_AUTH_ERROR = 1,
 };
 
-enum {
+enum : uint8_t {
     RPC_AUTH_BADCRED = 1,
     RPC_AUTH_REJECTEDCRED = 2,
     RPC_AUTH_BADVERF = 3,
@@ -39,7 +39,7 @@ enum {
     RPC_AUTH_TOOWEAK = 5,
 };
 
-enum {
+enum : uint8_t {
     RPC_AUTH_NULL = 0,
     RPC_AUTH_UNIX = 1,
     RPC_AUTH_SHORT = 2,
@@ -196,14 +196,14 @@ public:
     ~Contents_RPC() override = default;
 
 protected:
-    enum state_t {
+    enum state_t : uint8_t {
         WAIT_FOR_MESSAGE,
         WAIT_FOR_MARKER,
         WAIT_FOR_DATA,
         WAIT_FOR_LAST_DATA,
     };
 
-    enum resync_state_t {
+    enum resync_state_t : uint8_t {
         NEED_RESYNC,
         RESYNC_WAIT_FOR_MSG_START,
         RESYNC_WAIT_FOR_FULL_MSG,
@@ -250,8 +250,8 @@ protected:
 
     detail::RPC_Interpreter* interp;
 
-    Contents_RPC* orig_rpc;
-    Contents_RPC* resp_rpc;
+    Contents_RPC* orig_rpc = nullptr;
+    Contents_RPC* resp_rpc = nullptr;
 };
 
 } // namespace zeek::analyzer::rpc

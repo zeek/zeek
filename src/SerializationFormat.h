@@ -20,7 +20,7 @@ namespace detail {
 // Abstract base class.
 class SerializationFormat {
 public:
-    SerializationFormat();
+    SerializationFormat() = default;
     virtual ~SerializationFormat();
 
     // Unserialization.
@@ -88,16 +88,16 @@ protected:
 
     static const uint32_t INITIAL_SIZE = 65536;
     static const float GROWTH_FACTOR;
-    char* output;
-    uint32_t output_size;
-    uint32_t output_pos;
+    char* output = nullptr;
+    uint32_t output_size = 0;
+    uint32_t output_pos = 0;
 
-    const char* input;
-    uint32_t input_len;
-    uint32_t input_pos;
+    const char* input = nullptr;
+    uint32_t input_len = 0;
+    uint32_t input_pos = 0;
 
-    int bytes_written;
-    int bytes_read;
+    int bytes_written = 0;
+    int bytes_read = 0;
 };
 
 class BinarySerializationFormat final : public SerializationFormat {

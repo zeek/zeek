@@ -2,6 +2,8 @@
 
 #include "zeek/cluster/Telemetry.h"
 
+#include <cinttypes>
+
 #include "zeek/Desc.h"
 #include "zeek/Expr.h"
 #include "zeek/Func.h"
@@ -253,7 +255,7 @@ void configure_backend_telemetry(Backend& backend, std::string_view name, LabelL
                                                              static_labels, std::move(bounds_vec));
         }
         else {
-            zeek::reporter->FatalError("Invalid metric_type %s %lu", obj_desc_short(metric_type).c_str(),
+            zeek::reporter->FatalError("Invalid metric_type %s %" PRIu64, obj_desc_short(metric_type).c_str(),
                                        metric_type->Get());
         }
 

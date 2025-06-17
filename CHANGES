@@ -1,3 +1,10 @@
+8.0.0-dev.435 | 2025-06-17 09:25:30 +0200
+
+  * GH-4573: IOSource: Remove IsPacketSource (Arne Welzel, Corelight)
+
+    This wasn't used in tree and even the PktSrc class doesn't override this
+    to return true, so just remove it outright without deprecation.
+
 8.0.0-dev.433 | 2025-06-16 14:58:12 +0200
 
   * btest/logging: Fly-by cleanup (Arne Welzel, Corelight)

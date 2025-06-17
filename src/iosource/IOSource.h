@@ -33,11 +33,6 @@ public:
     bool IsOpen() const { return ! closed; }
 
     /**
-     * Returns true if this is a packet source.
-     */
-    virtual bool IsPacketSource() const { return false; }
-
-    /**
      * Initializes the source. Can be overwritten by derived classes.
      */
     virtual void InitSource() {}

@@ -1,3 +1,14 @@
+8.0.0-dev.443 | 2025-06-18 13:27:06 +0100
+
+  * Change x509 not_before/not_after to not be based on local timezone (Johanna Amann, Corelight)
+
+    Not the not_before/not_after fields output GMT based times.
+
+    Also adds a new btest diff canonifier which only removes the first
+    timestamp in a line.
+
+  * Mark ZeekString vector helper methods deprecated (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.439 | 2025-06-18 13:12:59 +0200
 
   * Enable Spicy SSL analyzer in nightly CI job against Spicy `HEAD` (Benjamin Bannier, Corelight)

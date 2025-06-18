@@ -1904,7 +1904,7 @@ public function convert_certificate_authorities(c: vector<CertificateAuthority>)
 }
 
 # returns true for the "client"
-public function get_direction(sh: Share): bool {
+public function get_direction(sh: Share&): bool {
     if (sh.flipped)
         return !zeek::is_orig();
     else

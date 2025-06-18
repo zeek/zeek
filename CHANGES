@@ -1,3 +1,29 @@
+8.0.0-dev.439 | 2025-06-18 13:12:59 +0200
+
+  * Enable Spicy SSL analyzer in nightly CI job against Spicy `HEAD` (Benjamin Bannier, Corelight)
+
+  * Clean up use of references in Spicy SSL analyzer (Benjamin Bannier, Corelight)
+
+    The Spicy SSL analyzer was using references pretty heavily, probably to
+    work around now fixed issues with `inout` parameters in older Spicy
+    versions. At least for units this seems not needed anymore, and was also
+    partially incorrect, e.g., the Spicy docs call out that when using
+    `inout` parameters, passed and expected types should match exactly so
+    passing a reference as an `inout` value seems incorrect. Additionally,
+    one use case for references in Spicy is to use their interior
+    mutability, i.e., a reference never needs to be passed `inout` since
+    their can always be mutated.
+
+    Internally units are stored as reference-counted values, and references
+    to units are not much cheaper since they also need to be refcounted.
+    With that there seems litle reason to use references in this analyzer at
+    all, and this patch drops their use completely; instead we either pass
+    values, or values declared `inout`.
+
+    We leave the use of references for sharing sinks in place.
+
+  * GH-2091: Add workaround for zeek/spicy#2091 (Benjamin Bannier, Corelight)
+
 8.0.0-dev.435 | 2025-06-17 09:25:30 +0200
 
   * GH-4573: IOSource: Remove IsPacketSource (Arne Welzel, Corelight)

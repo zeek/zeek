@@ -80,7 +80,7 @@ public:
      */
     struct ReaderInfo {
         // Structure takes ownership of the strings.
-        using config_map = std::map<const char*, const char*, util::CompareString>;
+        using config_map = std::map<std::string, std::string>;
 
         /**
          * A string left to the interpretation of the reader
@@ -118,18 +118,13 @@ public:
             name = other.name ? util::copy_string(other.name) : nullptr;
             mode = other.mode;
 
-            for ( config_map::const_iterator i = other.config.begin(); i != other.config.end(); i++ )
-                config.insert(std::make_pair(util::copy_string(i->first), util::copy_string(i->second)));
+            for ( const auto& [k, v] : other.config )
+                config.emplace(k, v);
         }
 
         ~ReaderInfo() {
             delete[] source;
             delete[] name;
-
-            for ( config_map::iterator i = config.begin(); i != config.end(); i++ ) {
-                delete[] i->first;
-                delete[] i->second;
-            }
         }
 
     private:

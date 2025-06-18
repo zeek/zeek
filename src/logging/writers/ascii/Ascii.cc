@@ -256,10 +256,10 @@ bool Ascii::InitFilterOptions() {
 
     // Set per-filter configuration options.
     for ( const auto& [key, value] : info.config ) {
-        if ( strcmp(key, "tsv") == 0 ) {
-            if ( strcmp(value, "T") == 0 )
+        if ( key == "tsv" ) {
+            if ( value == "T" )
                 tsv = true;
-            else if ( strcmp(value, "F") == 0 )
+            else if ( value == "F" )
                 tsv = false;
             else {
                 Error("invalid value for 'tsv', must be a string and either \"T\" or \"F\"");
@@ -267,18 +267,18 @@ bool Ascii::InitFilterOptions() {
             }
         }
 
-        else if ( strcmp(key, "gzip_level") == 0 ) {
-            gzip_level = atoi(value);
+        else if ( key == "gzip_level" ) {
+            gzip_level = atoi(value.c_str());
 
             if ( gzip_level < 0 || gzip_level > 9 ) {
                 Error("invalid value for 'gzip_level', must be a number between 0 and 9.");
                 return false;
             }
         }
-        else if ( strcmp(key, "use_json") == 0 ) {
-            if ( strcmp(value, "T") == 0 )
+        else if ( key == "use_json" ) {
+            if ( value == "T" )
                 use_json = true;
-            else if ( strcmp(value, "F") == 0 )
+            else if ( value == "F" )
                 use_json = false;
             else {
                 Error("invalid value for 'use_json', must be a string and either \"T\" or \"F\"");
@@ -286,10 +286,10 @@ bool Ascii::InitFilterOptions() {
             }
         }
 
-        else if ( strcmp(key, "enable_utf_8") == 0 ) {
-            if ( strcmp(value, "T") == 0 )
+        else if ( key == "enable_utf_8" ) {
+            if ( value == "T" )
                 enable_utf_8 = true;
-            else if ( strcmp(value, "F") == 0 )
+            else if ( value == "F" )
                 enable_utf_8 = false;
             else {
                 Error("invalid value for 'enable_utf_8', must be a string and either \"T\" or \"F\"");
@@ -297,10 +297,10 @@ bool Ascii::InitFilterOptions() {
             }
         }
 
-        else if ( strcmp(key, "output_to_stdout") == 0 ) {
-            if ( strcmp(value, "T") == 0 )
+        else if ( key == "output_to_stdout" ) {
+            if ( value == "T" )
                 output_to_stdout = true;
-            else if ( strcmp(value, "F") == 0 )
+            else if ( value == "F" )
                 output_to_stdout = false;
             else {
                 Error(
@@ -310,28 +310,28 @@ bool Ascii::InitFilterOptions() {
             }
         }
 
-        else if ( strcmp(key, "separator") == 0 )
+        else if ( key == "separator" )
             separator.assign(value);
 
-        else if ( strcmp(key, "set_separator") == 0 )
+        else if ( key == "set_separator" )
             set_separator.assign(value);
 
-        else if ( strcmp(key, "empty_field") == 0 )
+        else if ( key == "empty_field" )
             empty_field.assign(value);
 
-        else if ( strcmp(key, "unset_field") == 0 )
+        else if ( key == "unset_field" )
             unset_field.assign(value);
 
-        else if ( strcmp(key, "meta_prefix") == 0 )
+        else if ( key == "meta_prefix" )
             meta_prefix.assign(value);
 
-        else if ( strcmp(key, "json_timestamps") == 0 )
+        else if ( key == "json_timestamps" )
             json_timestamps.assign(value);
 
-        else if ( strcmp(key, "json_include_unset_fields") == 0 ) {
-            if ( strcmp(value, "T") == 0 )
+        else if ( key == "json_include_unset_fields" ) {
+            if ( value == "T" )
                 json_include_unset_fields = true;
-            else if ( strcmp(value, "F") == 0 )
+            else if ( value == "F" )
                 json_include_unset_fields = false;
             else {
                 Error(
@@ -341,7 +341,7 @@ bool Ascii::InitFilterOptions() {
             }
         }
 
-        else if ( strcmp(key, "gzip_file_extension") == 0 )
+        else if ( key == "gzip_file_extension" )
             gzip_file_extension.assign(value);
     }
 

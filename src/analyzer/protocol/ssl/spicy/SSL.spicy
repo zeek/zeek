@@ -740,7 +740,7 @@ type SSL2ClientMasterKey = unit(length: uint16, inout sh: Share) {
 # For TLS-y protocols - determine how to continue
 type TLSRecordFragmentChoice = unit(content_type: uint8, handshakesink: sink&, alertsink: sink&, inout msg: Message, inout sh: Share) {
     # content_type: uint8; # &convert=ContentType($$);
-    version: uint16;
+    version: uint16 &requires=($$ == SSLv3 || $$ == TLSv10 || $$ == TLSv11 || $$ == TLSv12 : "Invalid version in record layer. Version: %s" % $$);
 
     switch (is_dtls_version(self.version)) {
         True -> dtlsfragment: DTLSRecordFragment(content_type, handshakesink, alertsink, msg, sh);

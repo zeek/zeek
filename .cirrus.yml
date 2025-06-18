@@ -376,6 +376,7 @@ ubuntu22_spicy_head_task:
   << : *CI_TEMPLATE
   env:
     ZEEK_CI_CREATE_ARTIFACT: 1
+    ZEEK_CI_CONFIGURE_FLAGS: *SPICY_SSL_CONFIG
     # Pull auxil/spicy to the latest head version. May or may not build.
     ZEEK_CI_PREBUILD_COMMAND: 'cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive'
   spicy_install_analyzers_script: ./ci/spicy-install-analyzers.sh

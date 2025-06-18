@@ -862,16 +862,16 @@ type Heartbeat = unit(sh: Share, length: uint16) {
 };
 
 # note - this will mostly be garbage because it is encrypted.
-public type Alert = unit(sh: Share&) {
+public type Alert = unit(sh: Share) {
     alerts: Alert_message(sh)[];
 };
 
-type Alert_message = unit(sh: Share&) {
+type Alert_message = unit(sh: Share) {
     level: uint8; # &convert=AlertLevel($$);
     description: uint8; # &convert=AlertDescription($$);
 };
 
-type Handshake = unit(inout msg: Message, sh: Share&) {
+type Handshake = unit(inout msg: Message, inout sh: Share) {
     handshakes: Handshake_message(msg, sh)[];
 };
 
@@ -1904,7 +1904,7 @@ public function convert_certificate_authorities(c: vector<CertificateAuthority>)
 }
 
 # returns true for the "client"
-public function get_direction(sh: Share&): bool {
+public function get_direction(sh: Share): bool {
     if (sh.flipped)
         return !zeek::is_orig();
     else

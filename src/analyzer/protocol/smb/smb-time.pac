@@ -11,7 +11,7 @@ double filetime2zeektime(uint64_t ts)
 	{
 	// Zeek can't support times back to the 1600's
 	// so we subtract a lot of seconds.
-	return (ts / 10000000.0L) - 11644473600.0L;
+	return (static_cast<double>(ts) / 10000000.0) - 11644473600.0;
 	}
 
 double time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz)

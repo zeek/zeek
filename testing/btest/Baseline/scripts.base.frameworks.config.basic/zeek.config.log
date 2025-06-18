@@ -21,7 +21,7 @@ XXXXXXXXXX.XXXXXX	testaddr	2607:f8b0:4005:801::1	2607:f8b0:4005:801::2	../config
 XXXXXXXXXX.XXXXXX	testsub	0.0.0.0/0	2607:f8b0:4001::/48	../configfile
 XXXXXXXXXX.XXXXXX	testsub	2607:f8b0:4001::/48	2607:f8b0:4002::/48	../configfile
 XXXXXXXXXX.XXXXXX	testinterval	1.0 sec	1.0 min	../configfile
-XXXXXXXXXX.XXXXXX	testtime	0.0	XXXXXXXXXX.XXXXXX	../configfile
+XXXXXXXXXX.XXXXXX	testtime	0.0	1507321987.0	../configfile
 XXXXXXXXXX.XXXXXX	test_set	(empty)	a,d,b,c,erdbeerschnitzel	../configfile
 XXXXXXXXXX.XXXXXX	test_set	a,d,b,c,erdbeerschnitzel	a,c,b	../configfile
 XXXXXXXXXX.XXXXXX	test_vector	(empty)	1,2,3,4,5,6	../configfile

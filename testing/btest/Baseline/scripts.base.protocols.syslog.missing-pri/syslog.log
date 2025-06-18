@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	facility	severity	message
 #types	time	string	addr	port	addr	port	enum	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.2.118	60786	192.168.2.21	514	udp	UNSPECIFIED	UNSPECIFIED	This is not really a syslog message #173538 XXXXXXXXXX.XXXXXX
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.2.118	60786	192.168.2.21	514	udp	UNSPECIFIED	UNSPECIFIED	This is not really a syslog message #173538 1552584410.781186
 #close XXXX-XX-XX-XX-XX-XX

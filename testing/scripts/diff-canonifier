@@ -2,4 +2,4 @@
 #
 # Default canonifier used with the tests in testing/btest/*.
 
-$(dirname $0)/diff-remove-timestamps
+$(dirname $0)/diff-remove-first-timestamp

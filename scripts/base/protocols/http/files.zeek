@@ -50,7 +50,8 @@ function describe_file(f: fa_file): string
 
 event zeek_init() &priority=5
 	{
-	Files::register_protocol(Analyzer::ANALYZER_HTTP,
-	                         [$get_file_handle = HTTP::get_file_handle,
-	                          $describe        = HTTP::describe_file]);
+		Files::register_protocol(Analyzer::ANALYZER_HTTP,
+				Files::ProtoRegistration(
+					$get_file_handle = HTTP::get_file_handle,
+					$describe        = HTTP::describe_file));
 	}

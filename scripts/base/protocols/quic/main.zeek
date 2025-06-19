@@ -236,6 +236,6 @@ hook finalize_quic(c: connection)
 
 event zeek_init()
 	{
-	Log::create_stream(LOG, [$columns=Info, $ev=log_quic, $path="quic", $policy=log_policy]);
+	Log::create_stream(LOG, Log::Stream($columns=Info, $ev=log_quic, $path="quic", $policy=log_policy));
 	Analyzer::register_for_ports(Analyzer::ANALYZER_QUIC, quic_ports);
 	}

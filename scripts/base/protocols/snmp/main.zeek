@@ -73,7 +73,7 @@ redef likely_server_ports += { ports };
 event zeek_init() &priority=5
 	{
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SNMP, ports);
-	Log::create_stream(SNMP::LOG, [$columns=SNMP::Info, $ev=log_snmp, $path="snmp", $policy=log_policy]);
+	Log::create_stream(SNMP::LOG, Log::Stream($columns=SNMP::Info, $ev=log_snmp, $path="snmp", $policy=log_policy));
 	}
 
 function init_state(c: connection, h: SNMP::Header): Info

@@ -649,6 +649,7 @@ if (ENABLE_DEBUG)
     set(VERSION_C_IDENT "${VERSION_C_IDENT}_debug")
     target_compile_definitions(zeek_internal INTERFACE DEBUG)
     target_compile_definitions(zeek_dynamic_plugin_base INTERFACE DEBUG)
+    set(SPICYZ_FLAGS "-d" CACHE STRING "Additional flags to pass to spicyz for builtin analyzers")
 endif ()
 
 if (NOT BINARY_PACKAGING_MODE)

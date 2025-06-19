@@ -289,6 +289,7 @@ while [ $# -ne 0 ]; do
         --enable-debug)
             append_cache_entry ENABLE_DEBUG BOOL true
             append_cache_entry ENABLE_ZAM_PROFILE BOOL true
+            append_cache_entry SPICYZ_FLAGS BOOL "-d"
             ;;
         --enable-fuzzers)
             append_cache_entry ZEEK_ENABLE_FUZZERS BOOL true

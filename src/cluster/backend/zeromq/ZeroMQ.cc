@@ -373,7 +373,6 @@ bool ZeroMQBackend::DoUnsubscribe(const std::string& topic_prefix) {
 
 bool ZeroMQBackend::DoPublishLogWrites(const logging::detail::LogWriteHeader& header, const std::string& format,
                                        byte_buffer& buf) {
-    ZEROMQ_DEBUG("Publishing %zu bytes of log writes (path %s)", buf.size(), header.path.c_str());
     static std::string message_type = "log-write";
 
     // Publishing a log write is done using 4 parts
@@ -388,6 +387,14 @@ bool ZeroMQBackend::DoPublishLogWrites(const logging::detail::LogWriteHeader& he
         zmq::const_buffer{format.data(), format.size()},
         zmq::const_buffer{buf.data(), buf.size()},
     };
+
+    // If the log_push socket isn't yet initialized or has been closed, just return.
+    if ( ! log_push ) {
+        ZEROMQ_DEBUG("Skipping log write - log_push socket not open");
+        return false;
+    }
+
+    ZEROMQ_DEBUG("Publishing %zu bytes of log writes (path %s)", buf.size(), header.path.c_str());
 
     for ( size_t i = 0; i < parts.size(); i++ ) {
         zmq::send_flags flags = zmq::send_flags::dontwait;

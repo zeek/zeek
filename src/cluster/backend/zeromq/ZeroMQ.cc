@@ -90,6 +90,7 @@ void ZeroMQBackend::DoInitPostScript() {
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::listen_xpub_endpoint")->ToStdString();
     listen_xsub_endpoint =
         zeek::id::find_val<zeek::StringVal>("Cluster::Backend::ZeroMQ::listen_xsub_endpoint")->ToStdString();
+    ipv6 = zeek::id::find_val<zeek::BoolVal>("Cluster::Backend::ZeroMQ::ipv6")->AsBool() ? 1 : 0;
     listen_xpub_nodrop =
         zeek::id::find_val<zeek::BoolVal>("Cluster::Backend::ZeroMQ::listen_xpub_nodrop")->AsBool() ? 1 : 0;
     connect_xpub_endpoint =
@@ -159,6 +160,9 @@ void ZeroMQBackend::DoTerminate() {
 }
 
 bool ZeroMQBackend::DoInit() {
+    // Enable IPv6 support for all subsequently created sockets, if configured.
+    ctx.set(zmq::ctxopt::ipv6, ipv6);
+
     xsub = zmq::socket_t(ctx, zmq::socket_type::xsub);
     xpub = zmq::socket_t(ctx, zmq::socket_type::xpub);
     log_push = zmq::socket_t(ctx, zmq::socket_type::push);
@@ -177,14 +181,16 @@ bool ZeroMQBackend::DoInit() {
     try {
         xsub.connect(connect_xsub_endpoint);
     } catch ( zmq::error_t& err ) {
-        zeek::reporter->Error("ZeroMQ: Failed to connect to XSUB %s: %s", connect_xsub_endpoint.c_str(), err.what());
+        zeek::reporter->Error("ZeroMQ: Failed to connect xsub socket %s: %s", connect_xsub_endpoint.c_str(),
+                              err.what());
         return false;
     }
 
     try {
         xpub.connect(connect_xpub_endpoint);
     } catch ( zmq::error_t& err ) {
-        zeek::reporter->Error("ZeroMQ: Failed to connect to XPUB %s: %s", connect_xpub_endpoint.c_str(), err.what());
+        zeek::reporter->Error("ZeroMQ: Failed to connect xpub socket %s: %s", connect_xpub_endpoint.c_str(),
+                              err.what());
         return false;
     }
 
@@ -221,8 +227,7 @@ bool ZeroMQBackend::DoInit() {
         try {
             log_pull.bind(listen_log_endpoint);
         } catch ( zmq::error_t& err ) {
-            zeek::reporter->Error("ZeroMQ: Failed to bind to PULL socket %s: %s", listen_log_endpoint.c_str(),
-                                  err.what());
+            zeek::reporter->Error("ZeroMQ: Failed to bind pull socket %s: %s", listen_log_endpoint.c_str(), err.what());
             return false;
         }
     }
@@ -236,7 +241,7 @@ bool ZeroMQBackend::DoInit() {
         try {
             log_push.connect(endp);
         } catch ( zmq::error_t& err ) {
-            zeek::reporter->Error("ZeroMQ: Failed to connect to PUSH socket %s: %s", endp.c_str(), err.what());
+            zeek::reporter->Error("ZeroMQ: Failed to connect push socket %s: %s", endp.c_str(), err.what());
             return false;
         }
     }
@@ -270,8 +275,8 @@ bool ZeroMQBackend::DoInit() {
 }
 
 bool ZeroMQBackend::SpawnZmqProxyThread() {
-    proxy_thread =
-        std::make_unique<ProxyThread>(listen_xpub_endpoint, listen_xsub_endpoint, listen_xpub_nodrop, proxy_io_threads);
+    proxy_thread = std::make_unique<ProxyThread>(listen_xpub_endpoint, listen_xsub_endpoint, ipv6, listen_xpub_nodrop,
+                                                 proxy_io_threads);
     return proxy_thread->Start();
 }
 

@@ -491,6 +491,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./store.bif.zeek, <...>/store.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./strings.bif.zeek, <...>/strings.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./supervisor.bif.zeek, <...>/supervisor.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./telemetry, <...>/telemetry.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./telemetry_consts.bif.zeek, <...>/telemetry_consts.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./telemetry_functions.bif.zeek, <...>/telemetry_functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./telemetry_types.bif.zeek, <...>/telemetry_types.bif.zeek) -> -1
@@ -805,6 +806,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./store.bif.zeek, <...>/store.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./strings.bif.zeek, <...>/strings.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./supervisor.bif.zeek, <...>/supervisor.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./telemetry, <...>/telemetry.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./telemetry_consts.bif.zeek, <...>/telemetry_consts.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./telemetry_functions.bif.zeek, <...>/telemetry_functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./telemetry_types.bif.zeek, <...>/telemetry_types.bif.zeek) -> (-1, <no content>)
@@ -1430,6 +1432,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./store.bif.zeek, <...>/store.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./strings.bif.zeek, <...>/strings.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./supervisor.bif.zeek, <...>/supervisor.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./telemetry, <...>/telemetry.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./telemetry_consts.bif.zeek, <...>/telemetry_consts.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./telemetry_functions.bif.zeek, <...>/telemetry_functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./telemetry_types.bif.zeek, <...>/telemetry_types.bif.zeek)
@@ -1744,6 +1747,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./store.bif.zeek, <...>/store.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./strings.bif.zeek, <...>/strings.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./supervisor.bif.zeek, <...>/supervisor.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./telemetry, <...>/telemetry.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./telemetry_consts.bif.zeek, <...>/telemetry_consts.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./telemetry_functions.bif.zeek, <...>/telemetry_functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./telemetry_types.bif.zeek, <...>/telemetry_types.bif.zeek)
@@ -2380,6 +2384,7 @@
 0.000000 | HookLoadFile  ./store.bif.zeek <...>/store.bif.zeek
 0.000000 | HookLoadFile  ./strings.bif.zeek <...>/strings.bif.zeek
 0.000000 | HookLoadFile  ./supervisor.bif.zeek <...>/supervisor.bif.zeek
+0.000000 | HookLoadFile  ./telemetry <...>/telemetry.zeek
 0.000000 | HookLoadFile  ./telemetry_consts.bif.zeek <...>/telemetry_consts.bif.zeek
 0.000000 | HookLoadFile  ./telemetry_functions.bif.zeek <...>/telemetry_functions.bif.zeek
 0.000000 | HookLoadFile  ./telemetry_types.bif.zeek <...>/telemetry_types.bif.zeek
@@ -2694,6 +2699,7 @@
 0.000000 | HookLoadFileExtended ./store.bif.zeek <...>/store.bif.zeek
 0.000000 | HookLoadFileExtended ./strings.bif.zeek <...>/strings.bif.zeek
 0.000000 | HookLoadFileExtended ./supervisor.bif.zeek <...>/supervisor.bif.zeek
+0.000000 | HookLoadFileExtended ./telemetry <...>/telemetry.zeek
 0.000000 | HookLoadFileExtended ./telemetry_consts.bif.zeek <...>/telemetry_consts.bif.zeek
 0.000000 | HookLoadFileExtended ./telemetry_functions.bif.zeek <...>/telemetry_functions.bif.zeek
 0.000000 | HookLoadFileExtended ./telemetry_types.bif.zeek <...>/telemetry_types.bif.zeek

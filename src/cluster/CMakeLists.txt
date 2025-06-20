@@ -4,10 +4,11 @@ zeek_add_subdir_library(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
     SOURCES
-    Component.cc
     Backend.cc
     BifSupport.cc
+    Component.cc
     Manager.cc
+    Telemetry.cc
     BIFS
     cluster.bif)
 

@@ -38,6 +38,9 @@ void thread_fun(ProxyThread::Args* args) {
 bool ProxyThread::Start() {
     ctx.set(zmq::ctxopt::io_threads, io_threads);
 
+    // Enable IPv6 support for all subsequently created sockets, if configured.
+    ctx.set(zmq::ctxopt::ipv6, ipv6);
+
     zmq::socket_t xpub(ctx, zmq::socket_type::xpub);
     zmq::socket_t xsub(ctx, zmq::socket_type::xsub);
 
@@ -53,14 +56,16 @@ bool ProxyThread::Start() {
     try {
         xpub.bind(xpub_endpoint);
     } catch ( zmq::error_t& err ) {
-        zeek::reporter->Error("Failed to bind xpub socket %s: %s (%d)", xpub_endpoint.c_str(), err.what(), err.num());
+        zeek::reporter->Error("ZeroMQ: Failed to bind xpub socket %s: %s (%d)", xpub_endpoint.c_str(), err.what(),
+                              err.num());
         return false;
     }
 
     try {
         xsub.bind(xsub_endpoint);
     } catch ( zmq::error_t& err ) {
-        zeek::reporter->Error("Failed to bind xsub socket %s: %s (%d)", xpub_endpoint.c_str(), err.what(), err.num());
+        zeek::reporter->Error("ZeroMQ: Failed to bind xsub socket %s: %s (%d)", xsub_endpoint.c_str(), err.what(),
+                              err.num());
         return false;
     }
 

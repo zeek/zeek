@@ -54,6 +54,7 @@
 #include "zeek/broker/Manager.h"
 #include "zeek/cluster/Backend.h"
 #include "zeek/cluster/Manager.h"
+#include "zeek/conn_key/Manager.h"
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/input.h"
 #include "zeek/input/Manager.h"
@@ -161,6 +162,7 @@ void do_ssl_deinit() {
 
 zeek::ValManager* zeek::val_mgr = nullptr;
 zeek::packet_analysis::Manager* zeek::packet_mgr = nullptr;
+zeek::conn_key::Manager* zeek::conn_key_mgr = nullptr;
 zeek::analyzer::Manager* zeek::analyzer_mgr = nullptr;
 zeek::plugin::Manager* zeek::plugin_mgr = nullptr;
 
@@ -408,6 +410,7 @@ static void terminate_zeek() {
 
     delete zeekygen_mgr;
     delete packet_mgr;
+    delete conn_key_mgr;
     delete analyzer_mgr;
     delete file_mgr;
     delete cluster::manager;
@@ -690,6 +693,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     iosource_mgr = new iosource::Manager();
     event_registry = new EventRegistry();
     packet_mgr = new packet_analysis::Manager();
+    conn_key_mgr = new conn_key::Manager();
     analyzer_mgr = new analyzer::Manager();
     log_mgr = new logging::Manager();
     input_mgr = new input::Manager();
@@ -838,6 +842,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
 
         RecordType::InitPostScript();
 
+        conn_key_mgr->InitPostScript();
         telemetry_mgr->InitPostScript();
         thread_mgr->InitPostScript();
         iosource_mgr->InitPostScript();

@@ -52,6 +52,8 @@ void Component::Describe(ODesc* d) const {
 
         case component::STORAGE_SERIALIZER: d->Add("Storage Serializer"); break;
 
+        case component::CONNKEY: d->Add("ConnKey Factory"); break;
+
         default:
             reporter->InternalWarning("unknown component type in plugin::Component::Describe");
             d->Add("<unknown component type>");

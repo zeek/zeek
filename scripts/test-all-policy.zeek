@@ -114,6 +114,7 @@
 @load protocols/conn/mac-logging.zeek
 @load protocols/conn/vlan-logging.zeek
 @load protocols/conn/weirds.zeek
+#@load frameworks/conn_key/vlan_fivetuple.zeek
 #@load protocols/conn/speculative-service.zeek
 @load protocols/dhcp/msg-orig.zeek
 @load protocols/dhcp/software.zeek

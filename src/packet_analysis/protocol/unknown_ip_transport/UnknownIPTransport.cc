@@ -33,10 +33,8 @@ SessionAdapter* UnknownIPTransportAnalyzer::MakeSessionAdapter(Connection* conn)
     return root;
 }
 
-bool UnknownIPTransportAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet, ConnTuple& tuple) {
-    tuple.src_addr = packet->ip_hdr->SrcAddr();
-    tuple.dst_addr = packet->ip_hdr->DstAddr();
-    tuple.proto = packet->proto;
+bool UnknownIPTransportAnalyzer::InitConnKey(size_t len, const uint8_t* data, Packet* packet, IPBasedConnKey& key) {
+    key.InitTuple(packet->ip_hdr->SrcAddr(), 0, packet->ip_hdr->DstAddr(), 0, packet->proto);
 
     return true;
 }

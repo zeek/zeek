@@ -347,7 +347,6 @@ in	return TOK_IN;
 int	return TOK_INT;
 interval	return TOK_INTERVAL;
 is	return TOK_IS;
-list	return TOK_LIST;
 local	return in_when_cond ? TOK_WHEN_LOCAL : TOK_LOCAL;
 module	return TOK_MODULE;
 next	return TOK_NEXT;

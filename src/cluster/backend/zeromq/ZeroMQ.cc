@@ -72,10 +72,8 @@ constexpr DebugFlag operator&(uint8_t x, DebugFlag y) { return static_cast<Debug
 
 ZeroMQBackend::ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
                              std::unique_ptr<detail::EventHandlingStrategy> ehs)
-    : ThreadedBackend("ZeroMQ", std::move(es), std::move(ls), std::move(ehs)) {
-    log_push = zmq::socket_t(ctx, zmq::socket_type::push);
-    main_inproc = zmq::socket_t(ctx, zmq::socket_type::pair);
-}
+    : ThreadedBackend("ZeroMQ", std::move(es), std::move(ls), std::move(ehs)),
+      main_inproc(zmq::socket_t(ctx, zmq::socket_type::pair)) {}
 
 ZeroMQBackend::~ZeroMQBackend() {
     try {
@@ -163,6 +161,7 @@ void ZeroMQBackend::DoTerminate() {
 bool ZeroMQBackend::DoInit() {
     xsub = zmq::socket_t(ctx, zmq::socket_type::xsub);
     xpub = zmq::socket_t(ctx, zmq::socket_type::xpub);
+    log_push = zmq::socket_t(ctx, zmq::socket_type::push);
     log_pull = zmq::socket_t(ctx, zmq::socket_type::pull);
     child_inproc = zmq::socket_t(ctx, zmq::socket_type::pair);
 

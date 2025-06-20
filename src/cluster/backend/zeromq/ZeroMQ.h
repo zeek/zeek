@@ -80,6 +80,7 @@ private:
     std::string listen_xsub_endpoint;
     std::string listen_xpub_endpoint;
     std::string listen_log_endpoint;
+    int ipv6 = 1;
     int listen_xpub_nodrop = 1;
 
     int linger_ms = 0;

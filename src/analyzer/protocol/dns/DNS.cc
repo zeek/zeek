@@ -15,6 +15,32 @@
 #include "zeek/analyzer/protocol/dns/events.bif.h"
 #include "zeek/session/Manager.h"
 
+namespace {
+zeek::StringValPtr extract_char_string(zeek::analyzer::Analyzer* analyzer, const u_char*& data, int& len, int& rdlen) {
+    if ( rdlen <= 0 )
+        return nullptr;
+
+    uint8_t str_size = data[0];
+
+    --rdlen;
+    --len;
+    ++data;
+
+    if ( str_size > rdlen ) {
+        analyzer->Weird("DNS_TXT_char_str_past_rdlen");
+        return nullptr;
+    }
+
+    auto rval = zeek::make_intrusive<zeek::StringVal>(str_size, reinterpret_cast<const char*>(data));
+
+    rdlen -= str_size;
+    len -= str_size;
+    data += str_size;
+
+    return rval;
+}
+} // namespace
+
 namespace zeek::analyzer::dns {
 
 namespace detail {
@@ -1411,30 +1437,6 @@ bool DNS_Interpreter::ParseRR_WKS(detail::DNS_MsgInfo* msg, const u_char*& data,
 
     // TODO: Return a status which reflects if the port parameters were successfully parsed
     return true;
-}
-
-static StringValPtr extract_char_string(analyzer::Analyzer* analyzer, const u_char*& data, int& len, int& rdlen) {
-    if ( rdlen <= 0 )
-        return nullptr;
-
-    uint8_t str_size = data[0];
-
-    --rdlen;
-    --len;
-    ++data;
-
-    if ( str_size > rdlen ) {
-        analyzer->Weird("DNS_TXT_char_str_past_rdlen");
-        return nullptr;
-    }
-
-    auto rval = make_intrusive<StringVal>(str_size, reinterpret_cast<const char*>(data));
-
-    rdlen -= str_size;
-    len -= str_size;
-    data += str_size;
-
-    return rval;
 }
 
 bool DNS_Interpreter::ParseRR_HINFO(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength) {

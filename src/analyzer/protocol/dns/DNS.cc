@@ -11,9 +11,36 @@
 #include "zeek/Event.h"
 #include "zeek/NetVar.h"
 #include "zeek/RunState.h"
+#include "zeek/Val.h"
 #include "zeek/ZeekString.h"
 #include "zeek/analyzer/protocol/dns/events.bif.h"
 #include "zeek/session/Manager.h"
+
+namespace {
+zeek::StringValPtr extract_char_string(zeek::analyzer::Analyzer* analyzer, const u_char*& data, int& len, int& rdlen) {
+    if ( rdlen <= 0 )
+        return nullptr;
+
+    uint8_t str_size = data[0];
+
+    --rdlen;
+    --len;
+    ++data;
+
+    if ( str_size > rdlen ) {
+        analyzer->Weird("DNS_TXT_char_str_past_rdlen");
+        return nullptr;
+    }
+
+    auto rval = zeek::make_intrusive<zeek::StringVal>(str_size, reinterpret_cast<const char*>(data));
+
+    rdlen -= str_size;
+    len -= str_size;
+    data += str_size;
+
+    return rval;
+}
+} // namespace
 
 namespace zeek::analyzer::dns {
 
@@ -272,6 +299,8 @@ bool DNS_Interpreter::ParseAnswer(detail::DNS_MsgInfo* msg, const u_char*& data,
                 status = ParseRR_SRV(msg, data, len, rdlength, msg_start);
 
             break;
+
+        case detail::TYPE_NAPTR: status = ParseRR_NAPTR(msg, data, len, rdlength, msg_start); break;
 
         case detail::TYPE_EDNS: status = ParseRR_EDNS(msg, data, len, rdlength, msg_start); break;
 
@@ -598,6 +627,50 @@ bool DNS_Interpreter::ParseRR_SRV(detail::DNS_MsgInfo* msg, const u_char*& data,
         analyzer->EnqueueConnEvent(dns_SRV_reply, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildAnswerVal(),
                                    make_intrusive<StringVal>(new String(name, name_end - name, true)),
                                    val_mgr->Count(priority), val_mgr->Count(weight), val_mgr->Count(port));
+
+    return true;
+}
+
+bool DNS_Interpreter::ParseRR_NAPTR(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength,
+                                    const u_char* msg_start) {
+    zeek_uint_t order = ExtractShort(data, len);
+    zeek_uint_t preference = ExtractShort(data, len);
+    rdlength -= 4;
+
+    if ( len <= 0 || rdlength <= 0 ) {
+        analyzer->AnalyzerViolation("DNS_NAPTR_too_short");
+        return false;
+    }
+
+    // These all check rdlength and return nullptr if there's not enough data available.
+    auto flags = extract_char_string(analyzer, data, len, rdlength);
+    auto service = extract_char_string(analyzer, data, len, rdlength);
+    auto regexp = extract_char_string(analyzer, data, len, rdlength);
+
+    // The replacement string is a name. Compression shouldn't be used, but doesn't seem
+    // we have a helper that would allow to control this.
+    u_char replacement[513];
+    int replacement_len = sizeof(replacement) - 1;
+    u_char* replacement_end = ExtractName(data, len, replacement, replacement_len, msg_start, false);
+
+    if ( ! flags || ! service || ! regexp || ! replacement_end ) {
+        analyzer->AnalyzerViolation("DNS_NAPTR_RR_too_short");
+        return false;
+    }
+
+    if ( dns_NAPTR_reply && ! msg->skip_event ) {
+        static auto dns_naptr_rr = id::find_type<RecordType>("dns_naptr_rr");
+        auto r = make_intrusive<RecordVal>(dns_naptr_rr);
+
+        r->Assign(0, order);
+        r->Assign(1, preference);
+        r->Assign(2, std::move(flags));
+        r->Assign(3, std::move(service));
+        r->Assign(4, std::move(regexp));
+        r->Assign(5, zeek::make_intrusive<StringVal>(new String(replacement, replacement_end - replacement, true)));
+
+        analyzer->EnqueueConnEvent(dns_NAPTR_reply, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildAnswerVal(), r);
+    }
 
     return true;
 }
@@ -1411,30 +1484,6 @@ bool DNS_Interpreter::ParseRR_WKS(detail::DNS_MsgInfo* msg, const u_char*& data,
 
     // TODO: Return a status which reflects if the port parameters were successfully parsed
     return true;
-}
-
-static StringValPtr extract_char_string(analyzer::Analyzer* analyzer, const u_char*& data, int& len, int& rdlen) {
-    if ( rdlen <= 0 )
-        return nullptr;
-
-    uint8_t str_size = data[0];
-
-    --rdlen;
-    --len;
-    ++data;
-
-    if ( str_size > rdlen ) {
-        analyzer->Weird("DNS_TXT_char_str_past_rdlen");
-        return nullptr;
-    }
-
-    auto rval = make_intrusive<StringVal>(str_size, reinterpret_cast<const char*>(data));
-
-    rdlen -= str_size;
-    len -= str_size;
-    data += str_size;
-
-    return rval;
 }
 
 bool DNS_Interpreter::ParseRR_HINFO(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength) {

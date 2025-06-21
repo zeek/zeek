@@ -114,6 +114,9 @@ New Functionality
 
 	redef Intel::manage_seen_event_groups = F;
 
+- The DNS analyzer was extended to support NAPTR RRs (RFC 2915, RFC 3403).
+  A corresponding ``dns_NAPTR_reply`` event was added.
+
 Changed Functionality
 ---------------------
 

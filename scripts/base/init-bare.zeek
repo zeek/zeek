@@ -3048,6 +3048,20 @@ type dns_svcb_rr: record {
 	target_name: string;	##< Target name, the hostname of the service endpoint.
 };
 
+## A NAPTR record.
+##
+## See also RFC 2915 - The Naming Authority Pointer (NAPTR) DNS Resource Record.
+##
+## .. zeek:see:: dns_NAPTR_reply
+type dns_naptr_rr: record {
+	order: count;        ##< Order in which to process NAPTR records.
+	preference: count;   ##< Preference specifying processing order for *equal* :zeek:field:`dns_naptr_rr$order` fields.
+	flags: string;       ##< Flags to control rewriting. E.g. "u", "a", "s" or "p".
+	service: string;     ##< The services available down this rewrite path.
+	regexp: string;      ##< Substitution expression to be applied to the original query.
+	replacement: string; ##< The next name to query, where the type is depending on the :zeek:field:`dns_naptr_rr$flags` field.
+};
+
 # DNS answer types.
 #
 # .. zeek:see:: dns_answer

@@ -537,6 +537,20 @@ event dns_SRV_reply(c: connection, msg: dns_msg, ans: dns_answer, target: string
 	hook DNS::do_reply(c, msg, ans, target);
 	}
 
+event dns_NAPTR_reply(c: connection, msg: dns_msg, ans: dns_answer, naptr: dns_naptr_rr) &priority=5
+	{
+	# Just encode all the fields for NAPTR RR in the reply string.
+	local tmp = "";
+	if ( |naptr$regexp| > 0 )
+		tmp += fmt("%s", naptr$regexp);
+	if ( |naptr$replacement| > 0 )
+		tmp += fmt("%s%s", |tmp| > 0 ? " " : "", naptr$replacement);
+
+	local r = fmt("NAPTR %s %s %s %s %s", naptr$order, naptr$preference, naptr$flags, naptr$service, tmp);
+
+	hook DNS::do_reply(c, msg, ans, r);
+	}
+
 # TODO: figure out how to handle these
 #event dns_EDNS(c: connection, msg: dns_msg, ans: dns_answer)
 #	{

@@ -360,6 +360,7 @@ protected:
     bool ParseRR_MX(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength, const u_char* msg_start);
     bool ParseRR_NBS(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength, const u_char* msg_start);
     bool ParseRR_SRV(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength, const u_char* msg_start);
+    bool ParseRR_NAPTR(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength, const u_char* msg_start);
     bool ParseRR_EDNS(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength, const u_char* msg_start);
     bool ParseRR_EDNS_ECS(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength,
                           const u_char* msg_start);

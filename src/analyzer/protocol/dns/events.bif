@@ -467,6 +467,23 @@ event dns_CAA_reply%(c: connection, msg: dns_msg, ans: dns_answer, flags: count,
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_SRV_reply%(c: connection, msg: dns_msg, ans: dns_answer, target: string, priority: count, weight: count, p: count%);
 
+## Generated for DNS replies of type *NAPTR*. For replies with multiple answers,
+## an individual event of the corresponding type is raised for each.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## ans: The type-independent part of the parsed answer record.
+##
+## naptr: The parsed RDATA of NAPTR type record.
+##
+## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
+##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
+##    dns_TSIG_addl dns_TXT_reply dns_SPF_reply dns_WKS_reply dns_SRV_reply dns_end
+event dns_NAPTR_reply%(c: connection, msg: dns_msg, ans: dns_answer, naptr: dns_naptr_rr%);
+
 ## Generated on DNS reply resource records when the type of record is not one
 ## that Zeek knows how to parse and generate another more specific event.
 ##

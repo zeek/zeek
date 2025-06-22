@@ -145,7 +145,7 @@ WebSocketClient::SendInfo WebSocketClient::SendError(std::string_view tag, std::
     *out++ = ',';
     broker::format::json::v1::append_field("code", tag, out);
     *out++ = ',';
-    broker::format::json::v1::append_field("message", message, out);
+    broker::format::json::v1::append_field("context", message, out);
     *out++ = '}';
     return SendText(buf);
 }

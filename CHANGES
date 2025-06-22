@@ -1,3 +1,18 @@
+7.2.1-7 | 2025-07-14 14:32:04 -0700
+
+  * GH-4594: Align WebSocket error in cluster with one in Broker (Benjamin Bannier, Corelight)
+
+    The schema of cluster WebSocket error messages deviated from the
+    existing one in Broker which breaks seamless migration from the Broker
+    WebSocket bindings.
+
+    This patch aligns the serialization in cluster with the one in Broker.
+    This is technically a breaking change of the cluster schema, but since
+    it never worked like documented and is still experimental this is
+    probably fine.
+
+    (cherry picked from commit b1157e4e03b38560ddbb5df3e4760ca24b0319b4)
+
 7.2.1-6 | 2025-07-14 14:30:44 -0700
 
   * cluster/zeromq: Short-circuit DoPublishLogWrite() when not initialized (Arne Welzel, Corelight)

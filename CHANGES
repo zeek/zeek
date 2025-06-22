@@ -1,3 +1,16 @@
+8.0.0-dev.447 | 2025-06-22 15:49:11 +0200
+
+  * GH-4594: Align WebSocket error in cluster with one in Broker (Benjamin Bannier, Corelight)
+
+    The schema of cluster WebSocket error messages deviated from the
+    existing one in Broker which breaks seamless migration from the Broker
+    WebSocket bindings.
+
+    This patch aligns the serialization in cluster with the one in Broker.
+    This is technically a breaking change of the cluster schema, but since
+    it never worked like documented and is still experimental this is
+    probably fine.
+
 8.0.0-dev.445 | 2025-06-22 15:48:21 +0200
 
   * GH-4571: broker: Handle Broker::publish() with non Broker::Event (Arne Welzel, Corelight)

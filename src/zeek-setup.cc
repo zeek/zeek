@@ -344,6 +344,29 @@ static void done_with_network() {
     ZEEK_LSAN_DISABLE();
 }
 
+// Just a helper to destruct all managers without terminating.
+static void delete_managers() {
+    delete zeekygen_mgr;
+    delete packet_mgr;
+    delete analyzer_mgr;
+    delete file_mgr;
+    delete cluster::manager;
+    // broker_mgr, timer_mgr, supervisor, and dns_mgr are deleted via iosource_mgr
+    delete iosource_mgr;
+    delete event_registry;
+    delete log_mgr;
+    delete reporter;
+    delete plugin_mgr;
+    delete val_mgr;
+    delete session_mgr;
+    delete fragment_mgr;
+    delete telemetry_mgr;
+#ifdef HAVE_SPICY
+    delete spicy_mgr;
+#endif
+    delete storage_mgr;
+}
+
 static void terminate_zeek() {
     util::detail::set_processing_status("TERMINATING", "terminate_zeek");
 
@@ -406,25 +429,7 @@ static void terminate_zeek() {
         event_trace_mgr.reset();
     }
 
-    delete zeekygen_mgr;
-    delete packet_mgr;
-    delete analyzer_mgr;
-    delete file_mgr;
-    delete cluster::manager;
-    // broker_mgr, timer_mgr, supervisor, and dns_mgr are deleted via iosource_mgr
-    delete iosource_mgr;
-    delete event_registry;
-    delete log_mgr;
-    delete reporter;
-    delete plugin_mgr;
-    delete val_mgr;
-    delete session_mgr;
-    delete fragment_mgr;
-    delete telemetry_mgr;
-#ifdef HAVE_SPICY
-    delete spicy_mgr;
-#endif
-    delete storage_mgr;
+    delete_managers();
 
     // free the global scope
     pop_scope();
@@ -1124,8 +1129,10 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     // Drain the event queue here to support the protocols framework configuring DPM
     event_mgr.Drain();
 
-    if ( reporter->Errors() > 0 && ! getenv("ZEEK_ALLOW_INIT_ERRORS") )
+    if ( reporter->Errors() > 0 && ! getenv("ZEEK_ALLOW_INIT_ERRORS") ) {
+        delete_managers();
         reporter->FatalError("errors occurred while initializing");
+    }
 
     run_state::detail::zeek_init_done = true;
     packet_mgr->DumpDebug();

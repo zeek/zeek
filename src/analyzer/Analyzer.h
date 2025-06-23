@@ -772,6 +772,8 @@ private:
     static ID id_counter;
 };
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+
 /**
  * Convenience macro to add a new timer.
  */
@@ -781,25 +783,28 @@ private:
 /**
  * Internal convenience macro to iterate over the list of child analyzers.
  */
-#define LOOP_OVER_CHILDREN(var) for ( auto var = children.begin(); var != children.end(); ++var )
+#define LOOP_OVER_CHILDREN(var) for ( auto(var) = children.begin(); (var) != children.end(); ++(var) )
 
 /**
  * Internal convenience macro to iterate over the constant list of child
  * analyzers.
  */
-#define LOOP_OVER_CONST_CHILDREN(var) for ( auto var = children.cbegin(); var != children.cend(); ++var )
+#define LOOP_OVER_CONST_CHILDREN(var) for ( auto(var) = children.cbegin(); (var) != children.cend(); ++(var) )
 
 /**
  * Convenience macro to iterate over a given list of child analyzers.
  */
-#define LOOP_OVER_GIVEN_CHILDREN(var, the_kids) for ( auto var = the_kids.begin(); var != the_kids.end(); ++var )
+#define LOOP_OVER_GIVEN_CHILDREN(var, the_kids)                                                                        \
+    for ( auto(var) = (the_kids).begin(); (var) != (the_kids).end(); ++(var) )
 
 /**
  * Convenience macro to iterate over a given constant list of child
  * analyzers.
  */
 #define LOOP_OVER_GIVEN_CONST_CHILDREN(var, the_kids)                                                                  \
-    for ( auto var = the_kids.cbegin(); var != the_kids.cend(); ++var )
+    for ( auto(var) = (the_kids).cbegin(); (var) != (the_kids).cend(); ++(var) )
+
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 /**
  * Support analyzer preprocess input before it reaches an analyzer's main
@@ -892,9 +897,21 @@ private:
 };
 
 // The following need to be consistent with zeek.init.
-#define CONTENTS_NONE 0
-#define CONTENTS_ORIG 1
-#define CONTENTS_RESP 2
-#define CONTENTS_BOTH 3
+constexpr int CONTENTS_NONE = 0;
+constexpr int CONTENTS_ORIG = 1;
+constexpr int CONTENTS_RESP = 2;
+constexpr int CONTENTS_BOTH = 3;
 
 } // namespace zeek::analyzer
+
+[[deprecated("Remove in v8.1. Use version in zeek::analyzer namespace.")]] constexpr int CONTENTS_NONE =
+    zeek::analyzer::CONTENTS_NONE;
+
+[[deprecated("Remove in v8.1. Use version in zeek::analyzer namespace.")]] constexpr int CONTENTS_ORIG =
+    zeek::analyzer::CONTENTS_ORIG;
+
+[[deprecated("Remove in v8.1. Use version in zeek::analyzer namespace.")]] constexpr int CONTENTS_RESP =
+    zeek::analyzer::CONTENTS_RESP;
+
+[[deprecated("Remove in v8.1. Use version in zeek::analyzer namespace.")]] constexpr int CONTENTS_BOTH =
+    zeek::analyzer::CONTENTS_BOTH;

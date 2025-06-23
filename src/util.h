@@ -38,6 +38,7 @@
 
 #include <cassert>
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
 #ifdef ASSERT
 #undef ASSERT
 #endif
@@ -55,6 +56,7 @@
 #define DEBUG_fputs(...)
 
 #endif
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 #ifdef USE_PERFTOOLS_DEBUG
 #include <gperftools/heap-checker.h>
@@ -100,6 +102,10 @@ extern char* strcasestr(const char* s, const char* find);
 
 // This is used by the patricia code and so it remains outside of the namespace.
 extern "C" void out_of_memory(const char* where);
+
+constexpr int UID_POOL_DEFAULT_INTERNAL = 1;
+constexpr int UID_POOL_DEFAULT_SCRIPT = 2;
+constexpr int UID_POOL_CUSTOM_SCRIPT = 10; // First available custom script level pool.
 
 namespace zeek {
 
@@ -408,9 +414,6 @@ extern double curr_CPU_time();
 // instances. The integer can be drawn from different pools, which is helpful
 // when the random number generator is seeded to be deterministic. In that
 // case, the same sequence of integers is generated per pool.
-#define UID_POOL_DEFAULT_INTERNAL 1
-#define UID_POOL_DEFAULT_SCRIPT 2
-#define UID_POOL_CUSTOM_SCRIPT 10 // First available custom script level pool.
 extern uint64_t calculate_unique_id();
 extern uint64_t calculate_unique_id(const size_t pool);
 
@@ -425,14 +428,20 @@ constexpr size_t pad_size(size_t size) {
     if ( size == 0 )
         return 0; // glibc allocated 16 bytes anyway.
 
-    const int pad = 8;
+    const size_t pad = 8;
     if ( size < 12 )
         return 2 * pad;
 
     return ((size + 3) / pad + 1) * pad;
 }
 
-#define padded_sizeof(x) (zeek::util::pad_size(sizeof(x)))
+template<typename T>
+constexpr size_t padded_size_of() {
+    return zeek::util::pad_size(sizeof(T));
+}
+
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
+#define padded_sizeof(x) (zeek::util::padded_size_of<decltype((x))>())
 
 // Like write() but handles interrupted system calls by restarting. Returns
 // true if the write was successful, otherwise sets errno. This function is
@@ -454,11 +463,11 @@ extern void safe_close(int fd);
 // Versions of realloc/malloc which abort() on out of memory
 
 inline void* safe_realloc(void* ptr, size_t size) {
-    ptr = realloc(ptr, size);
-    if ( size && ! ptr )
+    void* new_ptr = realloc(ptr, size);
+    if ( size && ! new_ptr )
         out_of_memory("realloc");
 
-    return ptr;
+    return new_ptr;
 }
 
 inline void* safe_malloc(size_t size) {

@@ -20,14 +20,14 @@ namespace zeek::detail {
 
 // TODO: Anon.h may not be the right place to put these functions ...
 
-enum ip_addr_anonymization_class_t {
+enum ip_addr_anonymization_class_t : uint8_t {
     ORIG_ADDR, // client address
     RESP_ADDR, // server address
     OTHER_ADDR,
     NUM_ADDR_ANONYMIZATION_CLASSES,
 };
 
-enum ip_addr_anonymization_method_t {
+enum ip_addr_anonymization_method_t : uint8_t {
     KEEP_ORIG_ADDR,
     SEQUENTIALLY_NUMBERED,
     RANDOM_MD5,

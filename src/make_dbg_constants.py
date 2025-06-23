@@ -39,7 +39,7 @@ enum_str = f"""
 // This file was automatically generated from {inputfile}
 // DO NOT EDIT.
 //
-enum DebugCmd {{
+enum DebugCmd : uint8_t {{
 """
 
 init_str = f"""

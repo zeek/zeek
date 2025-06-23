@@ -1,3 +1,21 @@
+8.0.0-dev.489 | 2025-06-23 10:36:38 -0700
+
+  * Deprecate BRO_PLUGIN_INSTALL_PATH constant (Tim Wojtulewicz, Corelight)
+
+  * Make constants in IP::ParseResult uppercase, deprecate the old ones (Tim Wojtulewicz, Corelight)
+
+  * Fix comparison against CapLen results in IPTunnel (Tim Wojtulewicz, Corelight)
+
+  * Fix clang-tidy warnings in headers (Tim Wojtulewicz, Corelight)
+
+  * Change clang-tidy configuration to also scan headers (Tim Wojtulewicz, Corelight)
+
+  * Don't pass local source/binary directory to zeek_add_plugin for Redis backend (Tim Wojtulewicz, Corelight)
+
+  * Update bifcl/binpac/gen-zam submodules with clang-tidy fixes (Tim Wojtulewicz, Corelight)
+
+  * Avoid linting headers in external paths (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.447 | 2025-06-22 15:49:11 +0200
 
   * GH-4594: Align WebSocket error in cluster with one in Broker (Benjamin Bannier, Corelight)

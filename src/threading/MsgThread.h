@@ -54,7 +54,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~MsgThread();
+    ~MsgThread() override;
 
     /**
      * Sends a message to the child thread. The message will be processed

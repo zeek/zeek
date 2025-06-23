@@ -30,19 +30,19 @@ namespace analyzer::mime {
 
 // MIME Constants
 
-#define HT '\011'
-#define SP '\040'
-#define CR '\015'
-#define LF '\012'
+constexpr char HT = '\011';
+constexpr char SP = '\040';
+constexpr char CR = '\015';
+constexpr char LF = '\012';
 
-enum MIME_CONTENT_TYPE {
+enum MIME_CONTENT_TYPE : uint8_t {
     CONTENT_TYPE_MULTIPART,
     CONTENT_TYPE_MESSAGE,
     CONTENT_TYPE_TEXT,
     CONTENT_TYPE_OTHER, // image | audio | video | application | <other>
 };
 
-enum MIME_EVENT_TYPE {
+enum MIME_EVENT_TYPE : uint8_t {
     MIME_EVENT_ILLEGAL_FORMAT,
     MIME_EVENT_ILLEGAL_ENCODING,
     MIME_EVENT_CONTENT_GAP,

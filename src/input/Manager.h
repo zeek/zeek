@@ -247,7 +247,7 @@ private:
     void Warning(const Stream* i, const char* fmt, ...) const __attribute__((format(printf, 3, 4)));
     void Error(const Stream* i, const char* fmt, ...) const __attribute__((format(printf, 3, 4)));
 
-    enum class ErrorType { INFO, WARNING, ERROR };
+    enum class ErrorType : uint8_t { INFO, WARNING, ERROR };
     void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, ...) const
         __attribute__((format(printf, 5, 6)));
     void ErrorHandler(const Stream* i, ErrorType et, bool reporter_send, const char* fmt, va_list ap) const
@@ -256,7 +256,7 @@ private:
     Stream* FindStream(const std::string& name) const;
     Stream* FindStream(ReaderFrontend* reader) const;
 
-    enum StreamType { TABLE_STREAM, EVENT_STREAM, ANALYSIS_STREAM };
+    enum StreamType : uint8_t { TABLE_STREAM, EVENT_STREAM, ANALYSIS_STREAM };
 
     std::map<ReaderFrontend*, Stream*> readers;
 

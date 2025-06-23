@@ -23,6 +23,7 @@
 
 // Macro helper to report Spicy debug messages. This forwards to
 // to both the Zeek logger and the Spicy runtime logger.
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define SPICY_DEBUG(msg) ::zeek::spicy::log(msg);
 
 namespace hilti::rt {
@@ -63,7 +64,7 @@ inline void log(const std::string& msg) {
 class Manager : public zeek::plugin::Plugin {
 public:
     Manager() {}
-    virtual ~Manager();
+    ~Manager() override;
 
     /**
      * Runtime method to begin registration of a Spicy EVT module. All

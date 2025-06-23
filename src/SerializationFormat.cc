@@ -12,10 +12,7 @@
 
 namespace zeek::detail {
 
-const float SerializationFormat::GROWTH_FACTOR = 2.5;
-
-SerializationFormat::SerializationFormat()
-    : output(), output_size(), output_pos(), input(), input_len(), input_pos(), bytes_written(), bytes_read() {}
+constexpr float SerializationFormat::GROWTH_FACTOR = 2.5;
 
 SerializationFormat::~SerializationFormat() { free(output); }
 

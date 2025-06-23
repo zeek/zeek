@@ -88,6 +88,8 @@ private:
     std::unordered_map<std::string, Factory*> _types;
 };
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+
 /**
  * Macro to insert into an OpaqueVal-derived class's declaration. Overrides the "new" serialization methods
  * DoSerializeData and DoUnserializeData.
@@ -100,11 +102,14 @@ private:
     const char* OpaqueName() const override { return #T; }                                                             \
     static zeek::OpaqueValPtr OpaqueInstantiate() { return zeek::make_intrusive<T>(); }
 
+
 #define __OPAQUE_MERGE(a, b) a##b
 #define __OPAQUE_ID(x) __OPAQUE_MERGE(_opaque, x)
 
 /** Macro to insert into an OpaqueVal-derived class's implementation file. */
 #define IMPLEMENT_OPAQUE_VALUE(T) static zeek::OpaqueMgr::Register<T> __OPAQUE_ID(__LINE__)(#T);
+
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 /**
  * Base class for all opaque values. Opaque values are types that are managed
@@ -229,14 +234,14 @@ public:
     static void hmac(const T& vlist, u_char key[ZEEK_MD5_DIGEST_LENGTH], u_char result[ZEEK_MD5_DIGEST_LENGTH]) {
         digest(vlist, result);
 
-        for ( int i = 0; i < ZEEK_MD5_DIGEST_LENGTH; ++i )
+        for ( size_t i = 0; i < ZEEK_MD5_DIGEST_LENGTH; ++i )
             result[i] ^= key[i];
 
         detail::internal_md5(result, ZEEK_MD5_DIGEST_LENGTH, result);
     }
 
     MD5Val();
-    ~MD5Val();
+    ~MD5Val() override;
 
     ValPtr DoClone(CloneState* state) override;
 
@@ -264,7 +269,7 @@ public:
     }
 
     SHA1Val();
-    ~SHA1Val();
+    ~SHA1Val() override;
 
     ValPtr DoClone(CloneState* state) override;
 
@@ -292,7 +297,7 @@ public:
     }
 
     SHA256Val();
-    ~SHA256Val();
+    ~SHA256Val() override;
 
     ValPtr DoClone(CloneState* state) override;
 
@@ -328,6 +333,10 @@ public:
     explicit BloomFilterVal(probabilistic::BloomFilter* bf);
     ~BloomFilterVal() override;
 
+    // Disable.
+    BloomFilterVal(const BloomFilterVal&) = delete;
+    BloomFilterVal& operator=(const BloomFilterVal&) = delete;
+
     ValPtr DoClone(CloneState* state) override;
 
     const TypePtr& Type() const { return type; }
@@ -350,10 +359,6 @@ protected:
 
     DECLARE_OPAQUE_VALUE_DATA(BloomFilterVal)
 private:
-    // Disable.
-    BloomFilterVal(const BloomFilterVal&);
-    BloomFilterVal& operator=(const BloomFilterVal&);
-
     TypePtr type;
     detail::CompositeHash* hash;
     probabilistic::BloomFilter* bloom_filter;

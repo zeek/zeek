@@ -15,7 +15,7 @@
 
 namespace zeek::analyzer::http {
 
-enum CHUNKED_TRANSFER_STATE {
+enum CHUNKED_TRANSFER_STATE : uint8_t {
     NON_CHUNKED_TRANSFER,
     BEFORE_CHUNK,
     EXPECT_CHUNK_SIZE,
@@ -44,7 +44,7 @@ public:
     bool Undelivered(int64_t len);
     int64_t BodyLength() const { return body_length; }
     int64_t HeaderLength() const { return header_length; }
-    void SkipBody() { deliver_body = 0; }
+    void SkipBody() { deliver_body = false; }
     const std::string& FileID() const { return precomputed_file_id; }
 
 protected:
@@ -59,7 +59,7 @@ protected:
     int expect_body;
     int64_t body_length;
     int64_t header_length;
-    enum { IDENTITY, GZIP, COMPRESS, DEFLATE } encoding;
+    enum : uint8_t { IDENTITY, GZIP, COMPRESS, DEFLATE } encoding;
     analyzer::zip::ZIP_Analyzer* zip;
     bool deliver_body;
     bool is_partial_content;
@@ -81,7 +81,7 @@ protected:
     void SubmitAllHeaders() override;
 };
 
-enum {
+enum : uint8_t {
     HTTP_BODY_NOT_EXPECTED,
     HTTP_BODY_EXPECTED,
     HTTP_BODY_MAYBE,

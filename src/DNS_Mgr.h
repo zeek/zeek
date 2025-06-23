@@ -16,12 +16,15 @@
 // These are defined in ares headers but we don't want to have to include
 // those headers here and create install dependencies on them.
 struct ares_channeldata;
-typedef struct ares_channeldata* ares_channel;
+using ares_channel = struct ares_channeldata*;
+
 #ifndef T_PTR
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define T_PTR 12
 #endif
 
 #ifndef T_TXT
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define T_TXT 16
 #endif
 
@@ -54,7 +57,7 @@ class DNS_Mapping;
 using DNS_MappingPtr = std::shared_ptr<DNS_Mapping>;
 class DNS_Request;
 
-enum DNS_MgrMode {
+enum DNS_MgrMode : uint8_t {
     DNS_PRIME,   // used to prime the cache
     DNS_FORCE,   // internal error if cache miss
     DNS_DEFAULT, // lookup names as they're requested
@@ -320,7 +323,7 @@ protected:
         bool processed = false;
 
         AsyncRequest(std::string host, int request_type) : host(std::move(host)), type(request_type) {}
-        AsyncRequest(const IPAddr& addr) : addr(addr), type(T_PTR) {}
+        AsyncRequest(const IPAddr& addr);
 
         void Resolved(const std::string& name);
         void Resolved(TableValPtr addrs);

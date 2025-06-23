@@ -22,7 +22,7 @@ class Stmt;
 using StmtPtr = IntrusivePtr<Stmt>;
 using ScopePtr = IntrusivePtr<Scope>;
 
-enum DeclType {
+enum DeclType : uint8_t {
     VAR_REGULAR,
     VAR_CONST,
     VAR_REDEF,

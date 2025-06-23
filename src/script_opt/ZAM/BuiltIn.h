@@ -132,7 +132,7 @@ public:
 // values assigned to them reflecting the bit-pattern of the arguments from
 // left (most significant) to right (least), with a 1-bit encoding Constant,
 // 0-bit for Variable.
-enum BiFArgsType {
+enum BiFArgsType : uint8_t {
     VV = 0x0,
     VC = 0x1,
     CV = 0x2,

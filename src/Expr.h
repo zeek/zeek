@@ -33,7 +33,7 @@ using ScopePtr = IntrusivePtr<Scope>;
 using ScriptFuncPtr = IntrusivePtr<ScriptFunc>;
 using FunctionIngredientsPtr = std::shared_ptr<FunctionIngredients>;
 
-enum ExprTag : int {
+enum ExprTag : int8_t {
     EXPR_ANY = -1,
     EXPR_NAME,
     EXPR_CONST,
@@ -232,10 +232,12 @@ public:
     bool IsParen() const { return paren; }
 
     // These are used by script optimization for AST analysis.
+    // NOLINTBEGIN(bugprone-macro-parentheses)
 #define ZEEK_EXPR_ACCESSOR_DECLS(ctype)                                                                                \
     const ctype* As##ctype() const;                                                                                    \
     ctype* As##ctype();                                                                                                \
     IntrusivePtr<ctype> As##ctype##Ptr();
+    // NOLINTEND(bugprone-macro-parentheses)
 
     ZEEK_EXPR_ACCESSOR_DECLS(AddToExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(AssignExpr)
@@ -253,7 +255,7 @@ public:
     ZEEK_EXPR_ACCESSOR_DECLS(NameExpr)
     ZEEK_EXPR_ACCESSOR_DECLS(RefExpr)
 
-    void Describe(ODesc* d) const override final;
+    void Describe(ODesc* d) const final;
 
     virtual TraversalCode Traverse(TraversalCallback* cb) const = 0;
 
@@ -511,8 +513,8 @@ public:
     bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
-    ExprPtr GetOp1() const override final { return op; }
-    void SetOp1(ExprPtr _op) override final { op = std::move(_op); }
+    ExprPtr GetOp1() const final { return op; }
+    void SetOp1(ExprPtr _op) final { op = std::move(_op); }
 
 protected:
     UnaryExpr(ExprTag arg_tag, ExprPtr arg_op);
@@ -547,11 +549,11 @@ public:
     bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
-    ExprPtr GetOp1() const override final { return op1; }
-    ExprPtr GetOp2() const override final { return op2; }
+    ExprPtr GetOp1() const final { return op1; }
+    ExprPtr GetOp2() const final { return op2; }
 
-    void SetOp1(ExprPtr _op) override final { op1 = std::move(_op); }
-    void SetOp2(ExprPtr _op) override final { op2 = std::move(_op); }
+    void SetOp1(ExprPtr _op) final { op1 = std::move(_op); }
+    void SetOp2(ExprPtr _op) final { op2 = std::move(_op); }
 
 protected:
     BinaryExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
@@ -930,13 +932,13 @@ public:
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     StmtPtr ReduceToSingletons(Reducer* c) override;
 
-    ExprPtr GetOp1() const override final { return op1; }
-    ExprPtr GetOp2() const override final { return op2; }
-    ExprPtr GetOp3() const override final { return op3; }
+    ExprPtr GetOp1() const final { return op1; }
+    ExprPtr GetOp2() const final { return op2; }
+    ExprPtr GetOp3() const final { return op3; }
 
-    void SetOp1(ExprPtr _op) override final { op1 = std::move(_op); }
-    void SetOp2(ExprPtr _op) override final { op2 = std::move(_op); }
-    void SetOp3(ExprPtr _op) override final { op3 = std::move(_op); }
+    void SetOp1(ExprPtr _op) final { op1 = std::move(_op); }
+    void SetOp2(ExprPtr _op) final { op2 = std::move(_op); }
+    void SetOp3(ExprPtr _op) final { op3 = std::move(_op); }
 
 protected:
     void ExprDescribe(ODesc* d) const override;
@@ -1144,8 +1146,8 @@ protected:
     void ExprDescribe(ODesc* d) const override;
 
     const char* field_name;
-    const TypeDecl* td;
-    int field; // -1 = attributes
+    const TypeDecl* td = nullptr;
+    int field = -1;
 };
 
 // "rec?$fieldname" is true if the value of $fieldname in rec is not nil.
@@ -1169,8 +1171,8 @@ protected:
 
     void ExprDescribe(ODesc* d) const override;
 
-    const char* field_name;
-    int field;
+    const char* field_name = nullptr;
+    int field = -1;
 };
 
 class RecordConstructorExpr final : public Expr {
@@ -1398,11 +1400,11 @@ public:
     bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
 
-    ExprPtr GetOp1() const override final;
-    ExprPtr GetOp2() const override final;
+    ExprPtr GetOp1() const final;
+    ExprPtr GetOp2() const final;
 
-    void SetOp1(ExprPtr _op) override final;
-    void SetOp2(ExprPtr _op) override final;
+    void SetOp1(ExprPtr _op) final;
+    void SetOp2(ExprPtr _op) final;
 
 protected:
     void ExprDescribe(ODesc* d) const override;
@@ -1597,8 +1599,8 @@ public:
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;
     StmtPtr ReduceToSingletons(Reducer* c) override;
 
-    ExprPtr GetOp1() const override final { return args; }
-    void SetOp1(ExprPtr _op) override final { args = {NewRef{}, _op->AsListExpr()}; }
+    ExprPtr GetOp1() const final { return args; }
+    void SetOp1(ExprPtr _op) final { args = {NewRef{}, _op->AsListExpr()}; }
 
 protected:
     void ExprDescribe(ODesc* d) const override;

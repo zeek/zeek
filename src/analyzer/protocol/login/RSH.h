@@ -9,7 +9,7 @@ namespace zeek::analyzer::login {
 
 class Rsh_Analyzer;
 
-enum rsh_state {
+enum rsh_state : uint8_t {
     RSH_FIRST_NULL,       // waiting to see first NUL
     RSH_CLIENT_USER_NAME, // scanning client user name up to NUL
     RSH_SERVER_USER_NAME, // scanning server user name up to NUL

@@ -32,6 +32,6 @@ inline bool operator==(const PortRange& a, const PortRange& b) {
 
 inline bool operator!=(const PortRange& a, const PortRange& b) { return ! (a == b); }
 
-inline PortRange make_port_range(hilti::rt::Port begin, hilti::rt::Port end) { return PortRange(begin, end); }
+inline PortRange make_port_range(hilti::rt::Port begin, hilti::rt::Port end) { return {begin, end}; }
 
 } // namespace zeek::spicy::rt

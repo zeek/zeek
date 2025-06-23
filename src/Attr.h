@@ -24,7 +24,7 @@ namespace detail {
 class Expr;
 using ExprPtr = IntrusivePtr<Expr>;
 
-enum AttrTag {
+enum AttrTag : uint8_t {
     ATTR_OPTIONAL,
     ATTR_DEFAULT,
     ATTR_DEFAULT_INSERT, // insert default value on failed lookups

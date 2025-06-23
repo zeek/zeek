@@ -2,10 +2,12 @@
 
 #pragma once
 
+#include <cstdint>
+
 namespace zeek::detail {
 
 // These are in a separate file to break circular dependences
-enum StmtTag {
+enum StmtTag : uint8_t {
     STMT_ALARM, // Does no longer exist but kept to create enums consistent.
     STMT_PRINT,
     STMT_EVENT,
@@ -33,7 +35,7 @@ enum StmtTag {
 #define NUM_STMTS (int(STMT_STD_FUNCTION) + 1)
 };
 
-enum StmtFlowType {
+enum StmtFlowType : uint8_t {
     FLOW_NEXT,       // continue on to next statement
     FLOW_LOOP,       // go to top of loop
     FLOW_BREAK,      // break out of loop

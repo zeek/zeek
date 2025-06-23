@@ -20,7 +20,7 @@ public:
 
     using element_type = T;
 
-    using value_type = typename std::remove_cv<T>::type;
+    using value_type = std::remove_cv_t<T>;
 
     using index_type = size_t;
 

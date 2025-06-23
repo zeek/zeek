@@ -213,7 +213,7 @@ private:
     friend ValPtr BifFunc::md5_hmac_bif(zeek::detail::Frame* frame, const Args*);
 };
 
-enum HashKeyTag { HASH_KEY_INT, HASH_KEY_DOUBLE, HASH_KEY_STRING };
+enum HashKeyTag : uint8_t { HASH_KEY_INT, HASH_KEY_DOUBLE, HASH_KEY_STRING };
 
 constexpr int NUM_HASH_KEYS = HASH_KEY_STRING + 1;
 

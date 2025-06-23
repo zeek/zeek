@@ -22,7 +22,7 @@ namespace tcp {
 
 class TCP_Reassembler final : public Reassembler {
 public:
-    enum Type {
+    enum Type : uint8_t {
         Direct,  // deliver to destination analyzer itself
         Forward, // forward to destination analyzer's children
     };

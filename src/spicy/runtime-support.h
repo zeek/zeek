@@ -141,7 +141,7 @@ void register_spicy_module_end();
 
 
 /** Identifies a Zeek-side type. */
-enum class ZeekTypeTag : uint64_t {
+enum class ZeekTypeTag : uint8_t {
     Addr,
     Any,
     Bool,
@@ -549,7 +549,7 @@ inline ::hilti::rt::Address as_address(const ValPtr& v) {
 /** Converts a Zeek `bool` value to its Spicy equivalent. Throws on error. */
 inline ::hilti::rt::Bool as_bool(const ValPtr& v) {
     detail::check_type(v, TYPE_BOOL, "bool");
-    return ::hilti::rt::Bool(v->AsBool());
+    return {v->AsBool()};
 }
 
 /** Converts a Zeek `count` value to its Spicy equivalent. Throws on error. */
@@ -592,7 +592,7 @@ inline ::hilti::rt::Port as_port(const ValPtr& v) {
     auto p = v->AsPortVal();
     // Wrap port number into safe integer to catch any overflows (Zeek returns
     // an uint32, while HILTI wants an uint16).
-    return ::hilti::rt::Port(hilti::rt::integer::safe<uint16_t>(p->Port()), p->PortType());
+    return {hilti::rt::integer::safe<uint16_t>(p->Port()), p->PortType()};
 }
 
 /** Converts a Zeek `record` value to its Spicy equivalent. Throws on error. */
@@ -615,14 +615,14 @@ inline ValSetPtr as_set(const ValPtr& v) {
 inline hilti::rt::Bytes as_string(const ValPtr& v) {
     detail::check_type(v, TYPE_STRING, "string");
     auto str = v->AsString();
-    return hilti::rt::Bytes(reinterpret_cast<const char*>(str->Bytes()), str->Len());
+    return {reinterpret_cast<const char*>(str->Bytes()), static_cast<size_t>(str->Len())};
 }
 
 /** Converts a Zeek `subnet` value to its Spicy equivalent. Throws on error. */
 inline ::hilti::rt::Network as_subnet(const ValPtr& v) {
     detail::check_type(v, TYPE_SUBNET, "subnet");
     auto subnet = v->AsSubNet();
-    return ::hilti::rt::Network(subnet.Prefix(), subnet.Length());
+    return {subnet.Prefix(), subnet.Length()};
 }
 
 /** Converts a Zeek `table` value to its Spicy equivalent. Throws on error. */

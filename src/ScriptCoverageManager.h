@@ -19,9 +19,6 @@ using ObjPtr = IntrusivePtr<Obj>;
  */
 class ScriptCoverageManager {
 public:
-    ScriptCoverageManager();
-    virtual ~ScriptCoverageManager() = default;
-
     /**
      * Imports Zeek script Stmt usage information from file pointed to by
      * environment variable ZEEK_PROFILER_FILE.
@@ -64,12 +61,12 @@ private:
      * Indicates whether new statements will not be considered as part of
      * coverage statistics because it was marked with the @no-test tag.
      */
-    uint32_t ignoring;
+    uint32_t ignoring = 0;
 
     /**
      * The character to use to delimit ScriptCoverageManager output files.  Default is '\t'.
      */
-    char delim;
+    char delim = '\t';
 
     /**
      * This maps Stmt location-desc pairs to the total number of times that

@@ -16,7 +16,6 @@ Extract::Extract(RecordValPtr args, file_analysis::File* file, std::string arg_f
     : file_analysis::Analyzer(file_mgr->GetComponentTag("EXTRACT"), std::move(args), file),
       filename(std::move(arg_filename)),
       limit(arg_limit),
-      written(0),
       limit_includes_missing(arg_limit_includes_missing) {
     char buf[128];
     file_stream = fopen(filename.data(), "wb");

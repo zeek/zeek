@@ -30,7 +30,7 @@ namespace zeek {
 template<typename T>
 class Dictionary;
 
-enum DictOrder { ORDERED, UNORDERED };
+enum DictOrder : uint8_t { ORDERED, UNORDERED };
 
 // A dict_delete_func that just calls delete.
 extern void generic_delete_func(void*);
@@ -628,7 +628,7 @@ public:
             if ( max_entries < num_entries )
                 max_entries = num_entries;
             if ( num_entries > ThresholdEntries() )
-                SizeUp();
+                SizeUp(); // NOLINT(bugprone-branch-clone)
 
             // if space_distance is too great, performance decreases. we need to sizeup for
             // performance.
@@ -790,11 +790,14 @@ public:
     int ExpectedCapacity() const { return bucket_capacity; }
 
     // Debugging
-#define DUMPIF(f)                                                                                                      \
-    if ( f )                                                                                                           \
-    Dump(1)
-
 #ifdef ZEEK_DICT_DEBUG
+    void DumpIfInvalid(bool valid) const {
+        if ( ! valid ) {
+            Dump(1);
+            abort();
+        }
+    }
+
     void AssertValid() const {
         bool valid = true;
         int n = num_entries;
@@ -805,8 +808,7 @@ public:
                     n--;
 
         valid = (n == 0);
-        ASSERT(valid);
-        DUMPIF(! valid);
+        DumpIfInvalid(valid);
 
         // entries must clustered together
         for ( int i = 1; i < Capacity(); i++ ) {
@@ -815,28 +817,27 @@ public:
 
             if ( table[i - 1].Empty() ) {
                 valid = (table[i].distance == 0);
-                ASSERT(valid);
-                DUMPIF(! valid);
+                DumpIfInvalid(valid);
             }
             else {
                 valid = (table[i].bucket >= table[i - 1].bucket);
-                ASSERT(valid);
-                DUMPIF(! valid);
+                DumpIfInvalid(valid);
 
                 if ( table[i].bucket == table[i - 1].bucket ) {
                     valid = (table[i].distance == table[i - 1].distance + 1);
-                    ASSERT(valid);
-                    DUMPIF(! valid);
+                    DumpIfInvalid(valid);
                 }
                 else {
                     valid = (table[i].distance <= table[i - 1].distance);
-                    ASSERT(valid);
-                    DUMPIF(! valid);
+                    DumpIfInvalid(valid);
                 }
             }
         }
     }
+
 #endif // ZEEK_DICT_DEBUG
+
+    static constexpr size_t DICT_NUM_DISTANCES = 5;
 
     void Dump(int level = 0) const {
         int key_size = 0;
@@ -848,7 +849,6 @@ public:
                 continue;
         }
 
-#define DICT_NUM_DISTANCES 5
         int distances[DICT_NUM_DISTANCES];
         int max_distance = 0;
         DistanceStats(max_distance, distances, DICT_NUM_DISTANCES);
@@ -858,9 +858,9 @@ public:
             Capacity(), Length(), MaxLength(), (double)Length() / (table ? Capacity() : 1), max_distance,
             key_size / (Length() ? Length() : 1), log2_buckets, remaps, remap_end);
         if ( Length() > 0 ) {
-            for ( int i = 0; i < DICT_NUM_DISTANCES - 1; i++ )
-                printf("[%d]%2d%% ", i, 100 * distances[i] / Length());
-            printf("[%d+]%2d%% ", DICT_NUM_DISTANCES - 1, 100 * distances[DICT_NUM_DISTANCES - 1] / Length());
+            for ( size_t i = 0; i < DICT_NUM_DISTANCES - 1; i++ )
+                printf("[%zu]%2d%% ", i, 100 * distances[i] / Length());
+            printf("[%zu+]%2d%% ", DICT_NUM_DISTANCES - 1, 100 * distances[DICT_NUM_DISTANCES - 1] / Length());
         }
         else
             printf("\n");
@@ -880,7 +880,7 @@ public:
         }
     }
 
-    void DistanceStats(int& max_distance, int* distances = 0, int num_distances = 0) const {
+    void DistanceStats(int& max_distance, int* distances = nullptr, int num_distances = 0) const {
         max_distance = 0;
         for ( int i = 0; i < num_distances; i++ )
             distances[i] = 0;
@@ -937,8 +937,9 @@ public:
             for ( int idx = 0; idx < Capacity(); idx++ )
                 if ( ! table[idx].Empty() ) {
                     std::string s((char*)table[idx].GetKey(), table[idx].key_size);
-                    f << s << std::endl;
+                    f << s << "\n";
                 }
+            f << std::flush;
         }
     }
 

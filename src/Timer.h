@@ -136,9 +136,9 @@ public:
     static unsigned int* CurrentTimers() { return current_timers; }
 
     // IOSource API methods
-    virtual double GetNextTimeout() override;
-    virtual void Process() override;
-    virtual const char* Tag() override { return "TimerMgr"; }
+    double GetNextTimeout() override;
+    void Process() override;
+    const char* Tag() override { return "TimerMgr"; }
 
     /**
      * Performs some extra initialization on a timer manager. This shouldn't

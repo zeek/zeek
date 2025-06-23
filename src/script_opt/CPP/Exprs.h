@@ -16,7 +16,10 @@
 // values, the end goal is to have the value in (1) native form, (2) instead
 // in ValPtr form, or (3) whichever is more convenient to generate (sometimes
 // used when the caller knows that the value is non-native).
-enum GenType {
+
+#include <cstdint>
+
+enum GenType : uint8_t {
     GEN_NATIVE,
     GEN_VAL_PTR,
     GEN_DONT_CARE,

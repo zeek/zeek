@@ -386,15 +386,18 @@ extern analyzer::Manager* analyzer_mgr;
 
 // Macros for analyzer debug logging which include the connection id into the
 // message.
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
 #ifdef DEBUG
 #define DBG_ANALYZER(conn, txt)                                                                                        \
     DBG_LOG(zeek::DBG_ANALYZER, "%s " txt,                                                                             \
-            fmt_conn_id(conn->OrigAddr(), ntohs(conn->OrigPort()), conn->RespAddr(), ntohs(conn->RespPort())));
+            fmt_conn_id((conn)->OrigAddr(), ntohs((conn)->OrigPort()), (conn)->RespAddr(),                             \
+                        ntohs((conn)->RespPort())));
 #define DBG_ANALYZER_ARGS(conn, fmt, ...)                                                                              \
     DBG_LOG(zeek::DBG_ANALYZER, "%s " fmt,                                                                             \
-            fmt_conn_id(conn->OrigAddr(), ntohs(conn->OrigPort()), conn->RespAddr(), ntohs(conn->RespPort())),         \
+            fmt_conn_id((conn)->OrigAddr(), ntohs((conn)->OrigPort()), (conn)->RespAddr(), ntohs((conn)->RespPort())), \
             ##__VA_ARGS__);
 #else
 #define DBG_ANALYZER(conn, txt)
 #define DBG_ANALYZER_ARGS(conn, fmt, ...)
 #endif
+// NOLINTEND(cppcoreguidelines-macro-usage)

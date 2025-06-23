@@ -6,7 +6,7 @@
 
 namespace zeek::analyzer::login {
 
-enum login_state {
+enum login_state : uint8_t {
     LOGIN_STATE_AUTHENTICATE, // trying to authenticate
     LOGIN_STATE_LOGGED_IN,    // successful authentication
     LOGIN_STATE_SKIP,         // skip any further processing
@@ -14,10 +14,14 @@ enum login_state {
 };
 
 // If no action by this many lines, we're definitely confused.
-#define MAX_AUTHENTICATE_LINES 50
+constexpr int MAX_AUTHENTICATE_LINES = 50;
 
 // Maximum # lines look after login for failure.
-#define MAX_LOGIN_LOOKAHEAD 10
+constexpr int MAX_LOGIN_LOOKAHEAD = 10;
+
+// If we have more user text than this unprocessed, we complain about
+// excessive typeahead.
+constexpr int MAX_USER_TEXT = 12;
 
 class Login_Analyzer : public analyzer::tcp::TCP_ApplicationAnalyzer {
 public:
@@ -61,10 +65,7 @@ protected:
     bool HaveTypeahead() const { return num_user_text > 0; }
     void FlushEmptyTypeahead();
 
-// If we have more user text than this unprocessed, we complain about
-// excessive typeahead.
-#define MAX_USER_TEXT 12
-    char* user_text[MAX_USER_TEXT];
+    char* user_text[MAX_USER_TEXT] = {nullptr};
     int user_text_first, user_text_last; // indices into user_text
     int num_user_text;                   // number of entries in user_text
 

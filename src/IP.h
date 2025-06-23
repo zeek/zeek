@@ -33,6 +33,7 @@ class FragReassembler;
 }
 
 #ifndef IPPROTO_MOBILITY
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define IPPROTO_MOBILITY 135
 #endif
 
@@ -355,7 +356,7 @@ public:
      */
     const u_char* Payload() const {
         if ( ip4 )
-            return ((const u_char*)ip4) + ip4->ip_hl * 4;
+            return ((const u_char*)ip4) + (ip4->ip_hl * static_cast<std::ptrdiff_t>(4));
 
         return ((const u_char*)ip6) + ip6_hdrs->TotalLength();
     }
@@ -366,7 +367,7 @@ public:
      */
     const ip6_mobility* MobilityHeader() const {
         if ( ip4 )
-            return nullptr;
+            return nullptr; // NOLINT(bugprone-branch-clone)
         else if ( (*ip6_hdrs)[ip6_hdrs->Size() - 1]->Type() != IPPROTO_MOBILITY )
             return nullptr;
         else

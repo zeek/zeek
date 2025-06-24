@@ -31,7 +31,7 @@ public:
     /**
      * Destructor.
      */
-    ~ZeroMQBackend();
+    ~ZeroMQBackend() override;
 
     /**
      * Spawns a thread running zmq_proxy() for the configured XPUB/XSUB listen

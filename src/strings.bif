@@ -1146,28 +1146,19 @@ function find_first%(str: string, re: pattern%) : string
 function hexdump%(data_str: string%) : string
 	%{
 
-// The width of a line of text in the hex-mode view, consisting
-// of offset, hex view and ASCII view:
-//
-// 32 +     16 characters per 8 bytes, twice
-// (2*7) +  Single space between bytes, twice
-// 4 +      Two spaces between 8-byte sets and ASCII
-// 1 +      For newline
-// 17 +     For ASCII display, with spacer column
-// 6        For 5-digit offset counter, including spacer
-//
-#define HEX_LINE_WIDTH               74
-
-#define HEX_LINE_START                6
-#define HEX_LINE_END                 53
-#define HEX_LINE_START_ASCII         56
-#define HEX_LINE_START_RIGHT_ASCII   65
-#define HEX_LINE_LEFT_MIDDLE         28
-#define HEX_LINE_RIGHT_MIDDLE        31
-#define HEX_BLOCK_LEN                23
-#define HEX_LINE_BYTES               16
-#define NULL_CHAR                    '.'
-#define NONPRINT_CHAR                '.'
+	// The width of a line of text in the hex-mode view, consisting
+	// of offset, hex view and ASCII view:
+	//
+	// 32 +     16 characters per 8 bytes, twice
+	// (2*7) +  Single space between bytes, twice
+	// 4 +      Two spaces between 8-byte sets and ASCII
+	// 1 +      For newline
+	// 17 +     For ASCII display, with spacer column
+	// 6        For 5-digit offset counter, including spacer
+	//
+	constexpr int HEX_LINE_WIDTH = 74;
+	constexpr char NULL_CHAR = '.';
+	constexpr char NONPRINT_CHAR = '.';
 
 	const u_char* data = data_str->Bytes();
 	unsigned data_size = data_str->Len();
@@ -1211,7 +1202,7 @@ function hexdump%(data_str: string%) : string
 		// If unprintable, use special characters:
 		if ( val < 0x20 || val >= 0x7f )
 			{
-			if ( val == 0 )
+			if ( val == 0x00 )
 				ascii_byte = NULL_CHAR;
 			else
 				ascii_byte = NONPRINT_CHAR;

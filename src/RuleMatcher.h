@@ -3,6 +3,7 @@
 #pragma once
 
 #include <sys/types.h> // for u_char
+#include <cstdint>
 #include <functional>
 #include <map>
 #include <set>
@@ -22,9 +23,9 @@
 extern void rules_error(const char* msg);
 extern void rules_error(const char* msg, const char* addl);
 extern void rules_error(zeek::detail::Rule* id, const char* msg);
-extern int rules_lex(void);
-extern int rules_parse(void);
-extern "C" int rules_wrap(void);
+extern int rules_lex();
+extern int rules_parse();
+extern "C" int rules_wrap();
 extern int rules_line_number;
 extern const char* current_rule_file;
 
@@ -78,8 +79,8 @@ extern uint32_t id_to_uint(const char* id);
 class RuleHdrTest {
 public:
     // Note: Adapt RuleHdrTest::PrintDebug() when changing these enums.
-    enum Comp { LE, GE, LT, GT, EQ, NE };
-    enum Prot { NOPROT, IP, IPv6, ICMP, ICMPv6, TCP, UDP, NEXT, IPSrc, IPDst };
+    enum Comp : uint8_t { LE, GE, LT, GT, EQ, NE };
+    enum Prot : uint8_t { NOPROT, IP, IPv6, ICMP, ICMPv6, TCP, UDP, NEXT, IPSrc, IPDst };
 
     RuleHdrTest(Prot arg_prot, uint32_t arg_offset, uint32_t arg_size, Comp arg_comp, maskedvalue_list* arg_vals);
     RuleHdrTest(Prot arg_prot, Comp arg_comp, std::vector<IPPrefix> arg_v);
@@ -111,13 +112,11 @@ private:
     friend class RuleMatcher;
 
     struct PatternSet {
-        PatternSet() : re() {}
-
         // If we're above the 'RE_level' (see RuleMatcher), this
         // expr contains all patterns on this node. If we're on
         // 'RE_level', it additionally contains all patterns
         // of any of its children.
-        Specific_RE_Matcher* re;
+        Specific_RE_Matcher* re = nullptr;
 
         // All the patterns and their rule indices.
         string_list patterns;
@@ -267,7 +266,7 @@ public:
      * Ordered from greatest to least strength.  Matches of the same strength
      * will be in the set in lexicographic order of the MIME type string.
      */
-    using MIME_Matches = std::map<int, std::set<std::string>, std::greater<int>>;
+    using MIME_Matches = std::map<int, std::set<std::string>, std::greater<>>;
 
     /**
      * Matches a chunk of data against file magic signatures.

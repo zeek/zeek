@@ -2782,7 +2782,7 @@ static void report_field_deprecation(const RecordType* rt, const Expr* e, int fi
 }
 
 FieldExpr::FieldExpr(ExprPtr arg_op, const char* arg_field_name)
-    : UnaryExpr(EXPR_FIELD, std::move(arg_op)), field_name(util::copy_string(arg_field_name)), td(nullptr), field(0) {
+    : UnaryExpr(EXPR_FIELD, std::move(arg_op)), field_name(util::copy_string(arg_field_name)) {
     if ( IsError() )
         return;
 
@@ -2863,7 +2863,7 @@ void FieldExpr::ExprDescribe(ODesc* d) const {
 }
 
 HasFieldExpr::HasFieldExpr(ExprPtr arg_op, const char* arg_field_name)
-    : UnaryExpr(EXPR_HAS_FIELD, std::move(arg_op)), field_name(arg_field_name), field(0) {
+    : UnaryExpr(EXPR_HAS_FIELD, std::move(arg_op)), field_name(arg_field_name) {
     if ( IsError() )
         return;
 

@@ -88,7 +88,7 @@ eval	EvalIndexAnyVec($$, $1, $2)
 
 macro WhenIndexResCheck(vec)
 	if ( vec && IndexExprWhen::evaluating > 0 )
-		IndexExprWhen::results.push_back({NewRef{}, vec});
+		IndexExprWhen::results.emplace_back(NewRef{}, vec);
 
 internal-op When-Index-Vec
 class VVV

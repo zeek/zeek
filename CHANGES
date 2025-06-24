@@ -1,3 +1,115 @@
+8.0.0-dev.493 | 2025-06-23 10:52:22 -0700
+
+  * Switch IPv6_Hdr_Chain to a vector of objects instead of pointers (Tim Wojtulewicz, Corelight)
+
+8.0.0-dev.491 | 2025-06-23 10:39:31 -0700
+
+  * Remove unneeded include dirs in zeromq CMakeLists.txt (Tim Wojtulewicz, Corelight)
+
+8.0.0-dev.489 | 2025-06-23 10:36:38 -0700
+
+  * Deprecate BRO_PLUGIN_INSTALL_PATH constant (Tim Wojtulewicz, Corelight)
+
+  * Make constants in IP::ParseResult uppercase, deprecate the old ones (Tim Wojtulewicz, Corelight)
+
+  * Fix comparison against CapLen results in IPTunnel (Tim Wojtulewicz, Corelight)
+
+  * Fix clang-tidy warnings in headers (Tim Wojtulewicz, Corelight)
+
+    This entry is a large collection of commits.
+
+  * Change clang-tidy configuration to also scan headers (Tim Wojtulewicz, Corelight)
+
+  * Don't pass local source/binary directory to zeek_add_plugin for Redis backend (Tim Wojtulewicz, Corelight)
+
+  * Update bifcl/binpac/gen-zam submodules with clang-tidy fixes (Tim Wojtulewicz, Corelight)
+
+  * Avoid linting headers in external paths (Tim Wojtulewicz, Corelight)
+
+8.0.0-dev.447 | 2025-06-22 15:49:11 +0200
+
+  * GH-4594: Align WebSocket error in cluster with one in Broker (Benjamin Bannier, Corelight)
+
+    The schema of cluster WebSocket error messages deviated from the
+    existing one in Broker which breaks seamless migration from the Broker
+    WebSocket bindings.
+
+    This patch aligns the serialization in cluster with the one in Broker.
+    This is technically a breaking change of the cluster schema, but since
+    it never worked like documented and is still experimental this is
+    probably fine.
+
+8.0.0-dev.445 | 2025-06-22 15:48:21 +0200
+
+  * GH-4571: broker: Handle Broker::publish() with non Broker::Event (Arne Welzel, Corelight)
+
+8.0.0-dev.443 | 2025-06-18 13:27:06 +0100
+
+  * Change x509 not_before/not_after to not be based on local timezone (Johanna Amann, Corelight)
+
+    Not the not_before/not_after fields output GMT based times.
+
+    Also adds a new btest diff canonifier which only removes the first
+    timestamp in a line.
+
+  * Mark ZeekString vector helper methods deprecated (Tim Wojtulewicz, Corelight)
+
+8.0.0-dev.439 | 2025-06-18 13:12:59 +0200
+
+  * Enable Spicy SSL analyzer in nightly CI job against Spicy `HEAD` (Benjamin Bannier, Corelight)
+
+  * Clean up use of references in Spicy SSL analyzer (Benjamin Bannier, Corelight)
+
+    The Spicy SSL analyzer was using references pretty heavily, probably to
+    work around now fixed issues with `inout` parameters in older Spicy
+    versions. At least for units this seems not needed anymore, and was also
+    partially incorrect, e.g., the Spicy docs call out that when using
+    `inout` parameters, passed and expected types should match exactly so
+    passing a reference as an `inout` value seems incorrect. Additionally,
+    one use case for references in Spicy is to use their interior
+    mutability, i.e., a reference never needs to be passed `inout` since
+    their can always be mutated.
+
+    Internally units are stored as reference-counted values, and references
+    to units are not much cheaper since they also need to be refcounted.
+    With that there seems litle reason to use references in this analyzer at
+    all, and this patch drops their use completely; instead we either pass
+    values, or values declared `inout`.
+
+    We leave the use of references for sharing sinks in place.
+
+  * GH-2091: Add workaround for zeek/spicy#2091 (Benjamin Bannier, Corelight)
+
+8.0.0-dev.435 | 2025-06-17 09:25:30 +0200
+
+  * GH-4573: IOSource: Remove IsPacketSource (Arne Welzel, Corelight)
+
+    This wasn't used in tree and even the PktSrc class doesn't override this
+    to return true, so just remove it outright without deprecation.
+
+8.0.0-dev.433 | 2025-06-16 14:58:12 +0200
+
+  * btest/logging: Fly-by cleanup (Arne Welzel, Corelight)
+
+  * GH-4562: logging/Ascii: Fix abort() for non-existing postrotation functions (Arne Welzel, Corelight)
+
+    When looking up the postprocessor function from shadow files, id::find_func()
+    would abort() if the function wasn't available instead of falling back
+    to the default postprocessor.
+
+    Fix by using id::find() and checking the type explicitly and also adding a
+    strict type check while at it.
+
+    This issue was tickled by loading the json-streaming-logs package,
+    Zeek creating shadow files containing its custom postprocessor function,
+    then restarting Zeek without the package loaded.
+
+  * Bump `auxil/spicy` to latest development snapshot (Benjamin Bannier, Corelight)
+
+8.0.0-dev.428 | 2025-06-16 13:47:54 +0200
+
+  * btest/cluster/websocket: Add cert-less test (Arne Welzel, Corelight)
+
 8.0.0-dev.425 | 2025-06-11 13:18:36 -0700
 
   * Add missing #include to packet_analysis/Component.h (Tim Wojtulewicz, Corelight)

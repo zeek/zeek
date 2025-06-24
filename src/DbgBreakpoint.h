@@ -12,9 +12,9 @@ namespace zeek::detail {
 class Stmt;
 class ParseLocationRec;
 
-enum BreakCode { BC_NO_HIT, BC_HIT, BC_HIT_AND_DELETE };
+enum BreakCode : uint8_t { BC_NO_HIT, BC_HIT, BC_HIT_AND_DELETE };
 class DbgBreakpoint {
-    enum Kind { BP_STMT = 0, BP_FUNC, BP_LINE, BP_TIME };
+    enum Kind : uint8_t { BP_STMT = 0, BP_FUNC, BP_LINE, BP_TIME };
 
 public:
     DbgBreakpoint();

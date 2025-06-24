@@ -642,7 +642,7 @@ void SwitchStmt::Init() {
 }
 
 SwitchStmt::SwitchStmt(ExprPtr index, case_list* arg_cases)
-    : ExprStmt(STMT_SWITCH, std::move(index)), cases(arg_cases), default_case_idx(-1) {
+    : ExprStmt(STMT_SWITCH, std::move(index)), cases(arg_cases) {
     Init();
 
     bool have_exprs = false;

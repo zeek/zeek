@@ -69,7 +69,7 @@ protected:
     size_t buf_len; // size off msg_buf
 };
 
-#define NCP_TCPIP_HEADER_LENGTH 8
+constexpr int NCP_TCPIP_HEADER_LENGTH = 8;
 
 class NCP_FrameBuffer : public FrameBuffer {
 public:

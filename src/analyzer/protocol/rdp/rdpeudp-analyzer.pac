@@ -1,12 +1,12 @@
 refine connection RDPEUDP_Conn += {
 	%member{
-		enum RDPEUDP_STATE {
+		enum RDPEUDP_STATE : uint8_t {
 			NEED_SYN	= 0x1,
 			NEED_SYNACK	= 0x2,
 			NED_ACK		= 0x3,
 			ESTABLISHED	= 0x4,
 		};
-		enum RDPUDP_VERSION_INFO_FLAG {
+		enum RDPUDP_VERSION_INFO_FLAG : uint16_t {
 			RDPUDP_PROTOCOL_VERSION_1 = 0x0001,
 			RDPUDP_PROTOCOL_VERSION_2 = 0x0002,
 			RDPUDP_PROTOCOL_VERSION_3 = 0x0101

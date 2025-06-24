@@ -99,6 +99,8 @@ extern Registry registry;
  */
 class Modifiable {
 public:
+    virtual ~Modifiable();
+
     /**
      * Calling this method signals to all registered receivers that the
      * object has been modified.
@@ -110,8 +112,6 @@ public:
 
 protected:
     friend class Registry;
-
-    virtual ~Modifiable();
 
     // Number of currently registered receivers.
     uint64_t num_receivers = 0;

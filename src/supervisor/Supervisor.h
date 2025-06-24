@@ -241,7 +241,7 @@ public:
     /**
      * Destruction also cleanly shuts down the entire supervised process tree.
      */
-    ~Supervisor();
+    ~Supervisor() override;
 
     /**
      * Perform some initialization that needs to happen after scripts are loaded

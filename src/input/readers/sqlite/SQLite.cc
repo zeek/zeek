@@ -16,8 +16,7 @@ using zeek::threading::Value;
 
 namespace zeek::input::reader::detail {
 
-SQLite::SQLite(ReaderFrontend* frontend)
-    : ReaderBackend(frontend), fields(), num_fields(), mode(), started(), query(), db(), st() {
+SQLite::SQLite(ReaderFrontend* frontend) : ReaderBackend(frontend) {
     set_separator.assign((const char*)BifConst::LogSQLite::set_separator->Bytes(),
                          BifConst::InputSQLite::set_separator->Len());
 

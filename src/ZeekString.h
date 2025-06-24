@@ -3,6 +3,7 @@
 #pragma once
 
 #include <sys/types.h>
+#include <cstdint>
 #include <iosfwd>
 #include <string>
 #include <string_view>
@@ -103,7 +104,7 @@ public:
      */
     std::string_view ToStdStringView() const;
 
-    enum render_style {
+    enum render_style : uint8_t {
         ESC_NONE = 0,
         ESC_ESC = (1 << 1),  // '\' -> "\\"
         ESC_QUOT = (1 << 2), // '"' -> "\"", ''' -> "\'"
@@ -166,8 +167,11 @@ public:
     Vec* Split(const IdxVec& indices) const;
 
     // Helper functions for vectors:
+    [[deprecated("Remove in v8.1. The ZeekString vector methods are unused.")]]
     static VectorVal* VecToPolicy(Vec* vec);
+    [[deprecated("Remove in v8.1. The ZeekString vector methods are unused.")]]
     static Vec* VecFromPolicy(VectorVal* vec);
+    [[deprecated("Remove in v8.1. The ZeekString vector methods are unused.")]]
     static char* VecToString(const Vec* vec);
 
 protected:

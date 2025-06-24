@@ -13,15 +13,14 @@ namespace zeek::file_analysis::detail {
  */
 class PE : public file_analysis::Analyzer {
 public:
-    ~PE();
+    ~PE() override;
 
     static file_analysis::Analyzer* Instantiate(RecordValPtr args, file_analysis::File* file) {
         return new PE(std::move(args), file);
     }
 
-    virtual bool DeliverStream(const u_char* data, uint64_t len);
-
-    virtual bool EndOfFile();
+    bool DeliverStream(const u_char* data, uint64_t len) override;
+    bool EndOfFile() override;
 
 protected:
     PE(RecordValPtr args, file_analysis::File* file);

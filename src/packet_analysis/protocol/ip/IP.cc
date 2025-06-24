@@ -276,29 +276,29 @@ ParseResult zeek::packet_analysis::IP::ParsePacket(int caplen, const u_char* con
                                                    std::shared_ptr<zeek::IP_Hdr>& inner) {
     if ( proto == IPPROTO_IPV6 ) {
         if ( caplen < (int)sizeof(struct ip6_hdr) )
-            return ParseResult::CaplenTooSmall;
+            return ParseResult::CAPLEN_TOO_SMALL;
 
         const struct ip6_hdr* ip6 = (const struct ip6_hdr*)pkt;
         inner = std::make_shared<zeek::IP_Hdr>(ip6, false, caplen);
         if ( (ip6->ip6_ctlun.ip6_un2_vfc & 0xF0) != 0x60 )
-            return ParseResult::BadProtocol;
+            return ParseResult::BAD_PROTOCOL;
     }
 
     else if ( proto == IPPROTO_IPV4 ) {
         if ( caplen < (int)sizeof(struct ip) )
-            return ParseResult::BadProtocol;
+            return ParseResult::BAD_PROTOCOL;
 
         const struct ip* ip4 = (const struct ip*)pkt;
         inner = std::make_shared<zeek::IP_Hdr>(ip4, false);
         if ( ip4->ip_v != 4 )
-            return ParseResult::BadProtocol;
+            return ParseResult::BAD_PROTOCOL;
     }
     else {
-        return ParseResult::BadProtocol;
+        return ParseResult::BAD_PROTOCOL;
     }
 
     if ( (uint32_t)caplen != inner->TotalLen() )
-        return (uint32_t)caplen < inner->TotalLen() ? ParseResult::CaplenTooSmall : ParseResult::CaplenTooLarge;
+        return (uint32_t)caplen < inner->TotalLen() ? ParseResult::CAPLEN_TOO_SMALL : ParseResult::CAPLEN_TOO_LARGE;
 
-    return ParseResult::Ok;
+    return ParseResult::OK;
 }

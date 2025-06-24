@@ -2,16 +2,19 @@
 
 #pragma once
 
+#include <cstdint>
+
 namespace zeek::detail {
 
 class TraversalCallback;
 
-enum TraversalCode {
+enum TraversalCode : uint8_t {
     TC_CONTINUE = 0,
     TC_ABORTALL = 1,
     TC_ABORTSTMT = 2,
 };
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
 #define HANDLE_TC_STMT_PRE(code)                                                                                       \
     {                                                                                                                  \
         switch ( code ) {                                                                                              \
@@ -43,5 +46,7 @@ enum TraversalCode {
 
 #define HANDLE_TC_ATTR_PRE(code) HANDLE_TC_STMT_PRE(code)
 #define HANDLE_TC_ATTR_POST(code) return (code);
+
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 } // namespace zeek::detail

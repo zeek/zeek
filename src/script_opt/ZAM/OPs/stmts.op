@@ -354,7 +354,7 @@ op1-read
 classes VC
 op-types I S
 eval	{
-	zeek::StringValPtr msg_val = zeek::val_mgr->EmptyString();
+	const zeek::StringValPtr& msg_val = zeek::val_mgr->EmptyString();
 	report_assert($$, $1->ToStdString(), msg_val, Z_LOC->Loc());
 	}
 

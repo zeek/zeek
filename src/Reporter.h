@@ -165,12 +165,10 @@ public:
     // stack of location so that the most recent is always the one that
     // will be assumed to be the current one. The pointer must remain
     // valid until the location is popped.
-    void PushLocation(const detail::Location* location) {
-        locations.push_back(std::pair<const detail::Location*, const detail::Location*>(location, 0));
-    }
+    void PushLocation(const detail::Location* location) { locations.emplace_back(location, nullptr); }
 
     void PushLocation(const detail::Location* loc1, const detail::Location* loc2) {
-        locations.push_back(std::pair<const detail::Location*, const detail::Location*>(loc1, loc2));
+        locations.emplace_back(loc1, loc2);
     }
 
     // Removes the top-most location information from stack.
@@ -304,15 +302,15 @@ private:
     bool PermitFlowWeird(const char* name, const IPAddr& o, const IPAddr& r);
     bool PermitExpiredConnWeird(const char* name, const RecordVal& conn_id);
 
-    enum class PermitWeird { Allow, Deny, Unknown };
+    enum class PermitWeird : uint8_t { Allow, Deny, Unknown };
     PermitWeird CheckGlobalWeirdLists(const char* name);
 
     bool EmitToStderr(bool flag);
 
     int errors;
+    int in_error_handler;
     bool via_events;
     bool syslog_open;
-    int in_error_handler;
     bool info_to_stderr;
     bool warnings_to_stderr;
     bool errors_to_stderr;

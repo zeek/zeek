@@ -10,10 +10,10 @@ namespace zeek::analyzer::snmp {
 class SNMP_Analyzer final : public analyzer::Analyzer {
 public:
     explicit SNMP_Analyzer(Connection* conn);
-    virtual ~SNMP_Analyzer();
+    ~SNMP_Analyzer() override;
 
-    virtual void Done();
-    virtual void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen);
+    void Done() override;
+    void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
     static analyzer::Analyzer* InstantiateAnalyzer(Connection* conn) { return new SNMP_Analyzer(conn); }
 

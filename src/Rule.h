@@ -36,7 +36,7 @@ public:
     const char* ID() const { return id; }
     unsigned int Index() const { return idx; }
 
-    enum PatternType {
+    enum PatternType : uint8_t {
         FILE_MAGIC,
         PAYLOAD,
         HTTP_REQUEST,

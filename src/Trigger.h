@@ -169,7 +169,7 @@ private:
 class Manager final : public iosource::IOSource {
 public:
     Manager();
-    ~Manager();
+    ~Manager() override;
 
     void InitPostScript();
 

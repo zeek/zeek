@@ -25,6 +25,8 @@ public:
      */
     FileState(Cookie cookie) : ParsingState(::spicy::rt::driver::ParsingType::Stream), _cookie(std::move(cookie)) {}
 
+    virtual ~FileState() = default;
+
     /** Returns the cookie pointer to use with the runtime library during analysis. */
     auto* cookie() { return &_cookie; }
 
@@ -53,7 +55,7 @@ private:
 class FileAnalyzer : public file_analysis::Analyzer {
 public:
     FileAnalyzer(RecordValPtr arg_args, file_analysis::File* arg_file);
-    virtual ~FileAnalyzer();
+    ~FileAnalyzer() override;
 
     static file_analysis::Analyzer* InstantiateAnalyzer(RecordValPtr args, file_analysis::File* file);
 

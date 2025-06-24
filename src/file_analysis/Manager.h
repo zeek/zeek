@@ -428,17 +428,17 @@ private:
 
     TagSet* LookupMIMEType(const std::string& mtype, bool add_if_not_found);
 
-    std::map<std::string, File*> id_map;           /**< Map file ID to file_analysis::File records. */
-    std::set<std::string> ignored;                 /**< Ignored files.  Will be finally removed on EOF. */
-    std::string current_file_id;                   /**< Hash of what get_file_handle event sets. */
-    zeek::detail::RuleFileMagicState* magic_state; /**< File magic signature match state. */
-    MIMEMap mime_types;                            /**< Mapping of MIME types to analyzers. */
+    std::map<std::string, File*> id_map;                     /**< Map file ID to file_analysis::File records. */
+    std::set<std::string> ignored;                           /**< Ignored files.  Will be finally removed on EOF. */
+    std::string current_file_id;                             /**< Hash of what get_file_handle event sets. */
+    zeek::detail::RuleFileMagicState* magic_state = nullptr; /**< File magic signature match state. */
+    MIMEMap mime_types;                                      /**< Mapping of MIME types to analyzers. */
 
     inline static TableVal* disabled = nullptr;      /**< Table of disabled analyzers. */
     inline static TableType* tag_set_type = nullptr; /**< Type for set[tag]. */
 
-    size_t cumulative_files;
-    size_t max_files;
+    size_t cumulative_files = 0;
+    size_t max_files = 0;
 
     zeek::detail::CompositeHash* analyzer_hash = nullptr;
 };

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 namespace zeek::iosource {
 
 /**
@@ -10,7 +12,7 @@ namespace zeek::iosource {
  */
 class IOSource {
 public:
-    enum ProcessFlags { READ = 0x01, WRITE = 0x02 };
+    enum ProcessFlags : uint8_t { READ = 0x01, WRITE = 0x02 };
 
     /**
      * Constructor.
@@ -31,11 +33,6 @@ public:
      * Otherwise, source may be removed.
      */
     bool IsOpen() const { return ! closed; }
-
-    /**
-     * Returns true if this is a packet source.
-     */
-    virtual bool IsPacketSource() const { return false; }
 
     /**
      * Initializes the source. Can be overwritten by derived classes.

@@ -32,11 +32,11 @@ private:
     int AddParams(threading::Value* val, int pos);
     std::string GetTableType(int, int);
 
-    const threading::Field* const* fields; // raw mapping
-    unsigned int num_fields;
+    const threading::Field* const* fields = nullptr; // raw mapping
+    unsigned int num_fields = 0;
 
-    sqlite3* db;
-    sqlite3_stmt* st;
+    sqlite3* db = nullptr;
+    sqlite3_stmt* st = nullptr;
 
     std::string set_separator;
     std::string unset_field;

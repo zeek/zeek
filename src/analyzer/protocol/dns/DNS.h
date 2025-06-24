@@ -7,7 +7,7 @@
 namespace zeek::analyzer::dns {
 namespace detail {
 
-enum DNS_Opcode {
+enum DNS_Opcode : uint8_t {
     DNS_OP_QUERY = 0,  ///< standard query
     DNS_OP_IQUERY = 1, ///< reverse query
 
@@ -22,16 +22,17 @@ enum DNS_Opcode {
     NETBIOS_REFRESH = 8,
 };
 
-enum DNS_Code {
-    DNS_CODE_OK = 0,          ///< no error
-    DNS_CODE_FORMAT_ERR = 1,  ///< format error
-    DNS_CODE_SERVER_FAIL = 2, ///< server failure
-    DNS_CODE_NAME_ERR = 3,    ///< no such domain
-    DNS_CODE_NOT_IMPL = 4,    ///< not implemented
-    DNS_CODE_REFUSED = 5,     ///< refused
+enum DNS_Code : uint16_t {
+    DNS_CODE_OK = 0,           ///< no error
+    DNS_CODE_FORMAT_ERR = 1,   ///< format error
+    DNS_CODE_SERVER_FAIL = 2,  ///< server failure
+    DNS_CODE_NAME_ERR = 3,     ///< no such domain
+    DNS_CODE_NOT_IMPL = 4,     ///< not implemented
+    DNS_CODE_REFUSED = 5,      ///< refused
+    DNS_CODE_RESERVED = 65535, ///< Force clang-tidy to accept this enum being 16 bits
 };
 
-enum RR_Type {
+enum RR_Type : uint16_t {
     TYPE_A = 1,      ///< host address
     TYPE_NS = 2,     ///< authoritative name server
     TYPE_CNAME = 5,  ///< canonical name
@@ -80,10 +81,13 @@ enum RR_Type {
     TYPE_BINDS = 65534, ///< Bind9's Private Type Rec for signaling state of signing process
 };
 
-#define DNS_CLASS_IN 1
-#define DNS_CLASS_ANY 255
+enum DNS_Class : uint16_t {
+    DNS_CLASS_IN = 1,
+    DNS_CLASS_ANY = 255,
+    DNS_CLASS_RESERVED = 65535, ///< Force clang-tidy to accept this enum being 16 bits
+};
 
-enum DNS_AnswerType {
+enum DNS_AnswerType : uint8_t {
     DNS_QUESTION,
     DNS_ANSWER,
     DNS_AUTHORITY,
@@ -92,7 +96,7 @@ enum DNS_AnswerType {
 
 // https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml
 // DNS EDNS0 Option Codes (OPT)
-enum EDNS_OPT_Type {
+enum EDNS_OPT_Type : uint16_t {
     TYPE_LLQ = 1,          ///< https://www.iana.org/go/draft-sekar-dns-llq-06
     TYPE_UL = 2,           ///< http://files.dns-sd.org/draft-sekar-dns-ul.txt
     TYPE_NSID = 3,         ///< RFC5001
@@ -112,7 +116,7 @@ enum EDNS_OPT_Type {
     TYPE_DEVICE_ID = 26946 ///< https://docs.umbrella.com/developer/networkdevices-api/identifying-dns-traffic2
 };
 
-enum DNSSEC_Algo {
+enum DNSSEC_Algo : uint8_t {
     reserved0 = 0,
     RSA_MD5 = 1,        ///<	[RFC2537]  NOT RECOMMENDED
     Diffie_Hellman = 2, ///< [RFC2539]
@@ -134,7 +138,7 @@ enum DNSSEC_Algo {
     reserved255 = 255,
 };
 
-enum DNSSEC_Digest {
+enum DNSSEC_Digest : uint8_t {
     reserved = 0,
     SHA1 = 1, ///< [RFC3110]  MANDATORY
     SHA256 = 2,
@@ -144,7 +148,7 @@ enum DNSSEC_Digest {
 
 ///< all keys are defined in RFC draft
 ///< https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-svcb-https-07#section-14.3.2
-enum SVCPARAM_Key {
+enum SVCPARAM_Key : uint8_t {
     mandatory = 0,
     alpn = 1,
     no_default_alpn = 2,
@@ -392,7 +396,7 @@ protected:
     bool is_netbios;
 };
 
-enum TCP_DNS_state {
+enum TCP_DNS_state : uint8_t {
     DNS_LEN_HI,         ///< looking for the high-order byte of the length
     DNS_LEN_LO,         ///< looking for the low-order byte of the length
     DNS_MESSAGE_BUFFER, ///< building up the message in the buffer

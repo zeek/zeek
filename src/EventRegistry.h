@@ -18,7 +18,7 @@
 namespace zeek {
 
 // The different kinds of event groups that exist.
-enum class EventGroupKind {
+enum class EventGroupKind : uint8_t {
     Attribute,
     Module,
 };

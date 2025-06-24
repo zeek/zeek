@@ -66,15 +66,22 @@ static bool publish_event_args(ArgsSpan args, const zeek::String* topic,
                                         "Did you mean to use Cluster::publish() instead of Broker::publish()?");
 
 	if ( args[0]->GetType()->Tag() == zeek::TYPE_RECORD )
-		rval = zeek::broker_mgr->PublishEvent(topic->CheckString(),
-		                                      args[0]->AsRecordVal());
-	else
 		{
-		auto ev = zeek::broker_mgr->MakeEvent(args, frame);
-		rval = zeek::broker_mgr->PublishEvent(topic->CheckString(), ev->AsRecordVal());
+		auto* rv = args[0]->AsRecordVal();
+
+		// same_type() should be fast if it's the type pointers are the same.
+		if ( ! zeek::same_type(rv->GetType(), zeek::BifType::Record::Broker::Event) )
+			{
+			zeek::emit_builtin_error(zeek::util::fmt("expected Broker::Event, got %s",
+			                                         zeek::obj_desc_short(rv->GetType()).c_str()));
+			return false;
+			}
+
+		return zeek::broker_mgr->PublishEvent(topic->CheckString(), rv);
 		}
 
-	return rval;
+	auto ev = zeek::broker_mgr->MakeEvent(args, frame);
+	return zeek::broker_mgr->PublishEvent(topic->CheckString(), ev->AsRecordVal());
 	}
 
 static bool is_cluster_pool(zeek::Val* pool)

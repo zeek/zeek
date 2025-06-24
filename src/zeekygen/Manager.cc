@@ -51,18 +51,14 @@ static string RemoveLeadingSpace(const string& s) {
 }
 
 Manager::Manager(const string& arg_config, const string& command)
-    : disabled(),
-      comment_buffer(),
+    : comment_buffer(),
       comment_buffer_map(),
       packages(),
       scripts(),
       identifiers(),
       all_info(),
-      last_identifier_seen(),
-      incomplete_type(),
       enum_mappings(),
-      config(arg_config),
-      mtime() {
+      config(arg_config) {
     if ( getenv("ZEEK_DISABLE_ZEEKYGEN") )
         disabled = true;
 

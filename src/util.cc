@@ -1593,7 +1593,7 @@ const char* zeek_plugin_path() {
     const char* path = getenv("ZEEK_PLUGIN_PATH");
 
     if ( ! path )
-        path = BRO_PLUGIN_INSTALL_PATH;
+        path = ZEEK_PLUGIN_INSTALL_PATH;
 
     return path;
 }

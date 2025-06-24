@@ -14,7 +14,7 @@ namespace zeek {
 
 // Whenever subclassing the Reassembler class
 // you should add to this for known subclasses.
-enum ReassemblerType {
+enum ReassemblerType : uint8_t {
     REASSEM_UNKNOWN,
     REASSEM_TCP,
     REASSEM_FRAG,
@@ -44,7 +44,7 @@ public:
         memcpy(block, other.block, size);
     }
 
-    DataBlock(DataBlock&& other) {
+    DataBlock(DataBlock&& other) noexcept {
         seq = other.seq;
         upper = other.upper;
         block = other.block;
@@ -64,7 +64,7 @@ public:
         return *this;
     }
 
-    DataBlock& operator=(DataBlock&& other) {
+    DataBlock& operator=(DataBlock&& other) noexcept {
         if ( this == &other )
             return *this;
 

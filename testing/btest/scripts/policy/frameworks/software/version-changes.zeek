@@ -1,6 +1,6 @@
 # @TEST-EXEC: zeek -b %INPUT
 # @TEST-EXEC: btest-diff software.log
-# @TEST-EXEC: btest-diff notice.log
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-timestamps btest-diff notice.log
 
 @load base/frameworks/software
 @load policy/frameworks/software/version-changes

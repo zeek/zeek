@@ -1,3 +1,30 @@
+8.0.0-dev.496 | 2025-06-24 14:00:39 +0100
+
+  * Default canonifier change to only remove first timestamp in line (Johanna Amann, Corelight)
+
+    In the past, we used a default canonifier, which removes everything that
+    looks like a timestamp from log files. The goal of this is to prevent
+    logs from changing, e.g., due to local system times ending up in log
+    files.
+
+    This update changes the default canonifier, so that only the first
+    timestamp in a line is removed. This should skip timestamps that are
+    likely to change while keeping timestamps that are parsed
+    from protocol information.
+
+  * Align SMB timestamp calculation between operating systems (Johanna Amann, Corelight)
+
+    The way that SMB timestamps were calculated used a "long double" for
+    the conversion calculation.
+
+    OS-X and Linux seem to have different sizes for long doubles. On the
+    Linux distributions that I have available, a long double is 128bits, vs
+    64 bits in OS-X.
+
+    This leads to slight discrepancies in the timestamps. This commit
+    changes this calculation to use a double on both systems, which is 64
+    bits and eliminates this difference.
+
 8.0.0-dev.493 | 2025-06-23 10:52:22 -0700
 
   * Switch IPv6_Hdr_Chain to a vector of objects instead of pointers (Tim Wojtulewicz, Corelight)

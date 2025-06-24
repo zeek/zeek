@@ -28,7 +28,6 @@ message(
     "\nCXXFLAGS:          ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BuildType}}"
     "\nCPP:               ${CMAKE_CXX_COMPILER}"
     "\n"
-    "\n================================================================\n"
-)
+    "\n================================================================\n")
 
 include(UserChangedWarning)

@@ -6,7 +6,8 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 8.0.0
 ==========
 
-We would like to thank ... for their contributions to this release.
+We would like to thank Bhaskar Bhar (@bhaskarbhar) for their contributions to this
+release.
 
 Breaking Changes
 ----------------
@@ -123,6 +124,13 @@ New Functionality
 
 - The DNS analyzer was extended to support NAPTR RRs (RFC 2915, RFC 3403).
   A corresponding ``dns_NAPTR_reply`` event was added.
+
+- A new ``get_tags_by_category`` BIF method was added that returns a list of tags for a
+  specified plugin category. This can be used in lieu of calling ``zeek -NN`` and
+  parsing the output. For example, this will return the list of all analyzer plugins
+  currently loaded:
+
+    get_tags_by_category("ANALYZER");
 
 Changed Functionality
 ---------------------

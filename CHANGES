@@ -1,3 +1,9 @@
+8.0.0-dev.514 | 2025-06-24 15:38:18 -0700
+
+  * Add get_tags_by_category BIF method (bhaskarbhar)
+
+  * Add NEWS entry about deprecation of --with-binpac and --with-bifcl (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.511 | 2025-06-24 12:51:08 -0700
 
   * Deprecate --with-binpac/--with-bifcl configure options (Tim Wojtulewicz, Corelight)

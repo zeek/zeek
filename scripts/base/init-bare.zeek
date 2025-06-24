@@ -373,6 +373,18 @@ type endpoint_stats: record {
 	endian_type: count;
 };
 
+## Record containing information about a tag.
+##
+## .. zeek:see:: get_tags_by_category
+type tag_component: record {
+	name: string;
+	canonical_name: string;
+	tag: string;
+	enabled: bool;
+};
+
+type tag_component_vec : vector of tag_component;
+
 ## Arguments given to Zeek from the command line. In order to use this, Zeek
 ## must use a ``--`` command line argument immediately followed by a script
 ## file and additional arguments after that. For example::

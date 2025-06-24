@@ -21,9 +21,10 @@ public:
      * @param xsub_endpoint the XSUB socket address to listen on.
      * @param xpub_nodrop the xpub_nodrop option to use on the XPUB socket.
      */
-    ProxyThread(std::string xpub_endpoint, std::string xsub_endpoint, int xpub_nodrop, int io_threads)
+    ProxyThread(std::string xpub_endpoint, std::string xsub_endpoint, int ipv6, int xpub_nodrop, int io_threads)
         : xpub_endpoint(std::move(xpub_endpoint)),
           xsub_endpoint(std::move(xsub_endpoint)),
+          ipv6(ipv6),
           xpub_nodrop(xpub_nodrop),
           io_threads(io_threads) {}
 
@@ -54,6 +55,7 @@ private:
     Args args;
     std::string xpub_endpoint;
     std::string xsub_endpoint;
+    int ipv6 = 1;
     int xpub_nodrop = 1;
     int io_threads = 2;
 };

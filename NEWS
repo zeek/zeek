@@ -51,6 +51,13 @@ Breaking Changes
 - The ``IsPacketSource()`` method on ``IOSource`` was removed. It was unused
   and incorrectly returned ``false`` on all packet sources.
 
+- The ``--with-binpac`` and ``--with-bifcl`` arguments for ``configure`` are now
+  deprecated.  Both arguments have for a long time just used the internal version of the
+  tooling even if something was passed, so they were mostly useless. This may cause
+  breakage of cross-compiling, where the ``binpac`` and ``bifcl`` tooling needs to be run
+  on the host machine. We haven't heard from anyone that this is the case with the
+  arguments in their currently-broken state.
+
 New Functionality
 -----------------
 
@@ -177,6 +184,10 @@ Removed Functionality
 - The ``--with-bind`` argument for ``configure`` was removed. We removed the need for the
   BIND library from our CMake setup in the v7.2 release, but this non-functional argument
   was left behind.
+
+- The ``--disable-archiver`` argument for ``configure`` was removed. This was deprecated
+  and scheduled to be removed in v7.1, but we apparently missed it during the cleanup for
+  that release.
 
 Deprecated Functionality
 ------------------------

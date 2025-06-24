@@ -31,7 +31,7 @@ event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string)
 	local evt = Cluster::make_event(my_event, 42);
 	local r = Broker::publish("/test/topic", evt);
 	assert ! r;  # Supposed to fail.
-	exit(0);
+	terminate();
 	}
 # @TEST-END-FILE
 

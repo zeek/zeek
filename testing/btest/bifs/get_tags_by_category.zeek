@@ -3,9 +3,13 @@
 # @TEST-EXEC: btest-diff out
 
 event zeek_init()
-    {
+{
     local result = get_tags_by_category("ANALYZER");
 
     for (i in result)
-        print result[i];
+    {
+        local rec = result[i];
+        if ( rec$name == "FTP" )
+            print rec;
     }
+}

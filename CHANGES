@@ -1,3 +1,10 @@
+8.0.0-dev.508 | 2025-06-24 19:07:14 +0200
+
+  * btest/broker/publish-errors: Avoid exit(0) (Arne Welzel, Corelight)
+
+    Calling exit() doesn't properly shutdown the manager instances and TSAN reports a
+    leaked thread. Just avoid this for now by using terminate() instead.
+
 8.0.0-dev.506 | 2025-06-24 17:44:06 +0200
 
   * DNS: Implement NAPTR RR support (Arne Welzel, Corelight)

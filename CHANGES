@@ -1,3 +1,12 @@
+8.0.0-dev.506 | 2025-06-24 17:44:06 +0200
+
+  * DNS: Implement NAPTR RR support (Arne Welzel, Corelight)
+
+    My phone is sending NAPTR queries and we reported an unknown RR type 35
+    in weird.log for the response, so figured I'd just add it.
+
+  * DNS: Move extract_char_string() helper around (Arne Welzel, Corelight)
+
 8.0.0-dev.503 | 2025-06-24 17:14:28 +0200
 
   * cluster/zeromq: Short-circuit DoPublishLogWrite() when not initialized (Arne Welzel, Corelight)

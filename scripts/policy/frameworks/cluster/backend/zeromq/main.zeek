@@ -22,6 +22,9 @@
 ##! possible to run non-Zeek logger nodes. All a logger node needs to do is
 ##! open a ZeroMQ PULL socket and interpret the format used by Zeek nodes
 ##! to send their log writes.
+
+@load base/utils/addrs
+
 module Cluster::Backend::ZeroMQ;
 
 export {
@@ -138,6 +141,15 @@ export {
 	## See ZeroMQ's `ZMQ_RCVBUF documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc34>`_
 	## for more details.
 	const log_rcvbuf: int = -1 &redef;
+
+	## Set ZMQ_IPV6 option.
+	##
+	## The ZeroMQ library has IPv6 support in ZeroMQ. For Zeek we enable it
+	## unconditionally such that listening or connecting  with IPv6 just works.
+	##
+	## See ZeroMQ's `ZMQ_IPV6 documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc23>`_
+	## for more details.
+	const ipv6 = T &redef;
 
 	## Do not silently drop messages if high-water-mark is reached.
 	##
@@ -278,7 +290,7 @@ redef Cluster::worker_pool_spec = Cluster::PoolSpec(
 @if ( Cluster::local_node_type() == Cluster::LOGGER || (Cluster::manager_is_logger && Cluster::local_node_type() == Cluster::MANAGER) )
 const my_node = Cluster::nodes[Cluster::node];
 @if ( my_node?$p )
-redef listen_log_endpoint = fmt("tcp://%s:%s", my_node$ip, port_to_count(my_node$p));
+redef listen_log_endpoint = fmt("tcp://%s:%s", addr_to_uri(my_node$ip), port_to_count(my_node$p));
 @endif
 @endif
 
@@ -298,7 +310,7 @@ event zeek_init() &priority=100
 		local endp: string;
 		if ( node$node_type == Cluster::LOGGER && node?$p )
 			{
-			endp = fmt("tcp://%s:%s", node$ip, port_to_count(node$p));
+			endp = fmt("tcp://%s:%s", addr_to_uri(node$ip), port_to_count(node$p));
 			connect_log_endpoints += endp;
 			}
 

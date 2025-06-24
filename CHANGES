@@ -1,3 +1,44 @@
+7.2.1-6 | 2025-07-14 14:30:44 -0700
+
+  * cluster/zeromq: Short-circuit DoPublishLogWrite() when not initialized (Arne Welzel, Corelight)
+
+    After moving the log_push initialization from the constructor to the
+    DoInit() method, it's now possible that DoPublishLogWrites() is invoked
+    even if DoInit() was never called. Handle this by short-circuiting. This
+    is sort of an error, but can happen during tests if scripts are loaded
+    somewhat arbitrarily.
+
+    (cherry picked from commit cab4ebf51361cb8c9cb44c3ebca9ff8c6d251ec7)
+
+  * cluster/zeromq: Hook up and enable IPV6 by default (Arne Welzel, Corelight)
+
+    ZeroMQ's IPv6 support isn't enabled by default, resulting in
+    "No such device" errors when attempting to listen on an IPv6
+    address. This change adds a ipv6 option to the ZeroMQ module
+    and enables it by default. Further, adds a test configuring
+    everything to listen on IPv6 ::1 as well, and one test to provoke
+    the original error. This also regularizes some error messages.
+
+    The addr_to_uri() calls weren't actually needed, but they apparently do
+    not hurt and the result is easier on the eyes, so use them :-)
+
+    (cherry picked from commit cab4ebf51361cb8c9cb44c3ebca9ff8c6d251ec7)
+
+  * cluster/zeromq/connect: Make failures fatal (Arne Welzel, Corelight)
+
+    The cluster is borked if the initialization fails, so may as well just
+    completely abort Zeek at that point with a fatal error. There's no real
+    point in continuing to run.
+
+    (cherry picked from commit cab4ebf51361cb8c9cb44c3ebca9ff8c6d251ec7)
+
+  * cluster/zeromq: Move log_push creation to DoInit() (Arne Welzel, Corelight)
+
+    The log_push socket should be affected by the IPV6 option, so need to
+    delay its creation a bit.
+
+    (cherry picked from commit cab4ebf51361cb8c9cb44c3ebca9ff8c6d251ec7)
+
 7.2.1-5 | 2025-07-14 14:29:49 -0700
 
   * btest/logging: Fly-by cleanup (Arne Welzel, Corelight)

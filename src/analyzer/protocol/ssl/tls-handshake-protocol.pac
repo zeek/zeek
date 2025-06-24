@@ -793,7 +793,8 @@ type Finished(rec: HandshakeRecord) = record {
 
 type SessionTicketHandshake(rec: HandshakeRecord) = record {
 	ticket_lifetime_hint: uint32;
-	data:                 bytestring &restofdata;
+	length: uint16;
+	data: bytestring &length=length;
 };
 
 ######################################################################

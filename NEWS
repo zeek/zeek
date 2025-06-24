@@ -51,6 +51,11 @@ Breaking Changes
 - The ``IsPacketSource()`` method on ``IOSource`` was removed. It was unused
   and incorrectly returned ``false`` on all packet sources.
 
+- The parsing of data for the ``ssl_session_ticket_handshake`` event was fixed.
+  In the past, the data contained two extra bytes before the session ticket
+  data. The event now contains only the session ticket data. You might have to
+  adjust your scripts if you manually worked around this bug in the past.
+
 New Functionality
 -----------------
 

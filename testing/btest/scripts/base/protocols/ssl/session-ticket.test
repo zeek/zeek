@@ -1,0 +1,13 @@
+# @TEST-DOC: Tests the ssl_session_ticket_handshake event
+# @TEST-EXEC: echo "CVE-2015-3194.pcap"
+# @TEST-EXEC: zeek -b -C -r $TRACES/tls/CVE-2015-3194.pcap %INPUT
+# @TEST-EXEC: echo "client-certificate.pcap"
+# @TEST-EXEC: zeek -b -C -r $TRACES/tls/client-certificate.pcap %INPUT
+# @TEST-EXEC: btest-diff .stdout
+
+@load base/protocols/ssl
+
+event ssl_session_ticket_handshake(c: connection, ticket_lifetime_hint: count, ticket: string)
+	{
+	print ticket_lifetime_hint, ticket;
+	}

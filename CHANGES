@@ -1,3 +1,9 @@
+8.0.0-dev.511 | 2025-06-24 12:51:08 -0700
+
+  * Deprecate --with-binpac/--with-bifcl configure options (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecated --disable-archiver configure argument (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.508 | 2025-06-24 19:07:14 +0200
 
   * btest/broker/publish-errors: Avoid exit(0) (Arne Welzel, Corelight)

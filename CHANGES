@@ -1,3 +1,7 @@
+8.0.0-dev.498 | 2025-06-24 16:30:52 +0200
+
+  * GH-4587: Build builtin Spicy analyzers in debug mode if debug mode is enabled (Benjamin Bannier, Corelight)
+
 8.0.0-dev.496 | 2025-06-24 14:00:39 +0100
 
   * Default canonifier change to only remove first timestamp in line (Johanna Amann, Corelight)

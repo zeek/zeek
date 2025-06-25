@@ -317,7 +317,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"global_ids", ATTR_IDEMPOTENT},
     {"global_options", ATTR_IDEMPOTENT},
     {"gsub", ATTR_FOLDABLE},
-    {"get_tags_by_category", ATTR_NO_ZEEK_SIDE_EFFECTS},
+    {"get_plugin_components", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"has_event_group", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"has_module_events", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"have_spicy", ATTR_IDEMPOTENT},

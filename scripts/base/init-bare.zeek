@@ -375,15 +375,15 @@ type endpoint_stats: record {
 
 ## Record containing information about a tag.
 ##
-## .. zeek:see:: get_tags_by_category
-type tag_component: record {
+## .. zeek:see:: get_plugin_components
+type PluginComponent: record {
 	name: string;
 	canonical_name: string;
 	tag: string;
 	enabled: bool;
 };
 
-type tag_component_vec : vector of tag_component;
+type plugin_component_vec : vector of PluginComponent;
 
 ## Arguments given to Zeek from the command line. In order to use this, Zeek
 ## must use a ``--`` command line argument immediately followed by a script

@@ -1,3 +1,14 @@
+8.0.0-dev.535 | 2025-06-25 19:27:01 +0200
+
+  * Update zeek.bif (bhaskarbhar)
+
+  * Update init-bare.zeek (bhaskarbhar)
+
+  * Remove `list` from Zeek grammar (Evan Typanski, Corelight)
+
+    Using it would make Zeek segfault (at least in locals). It has been an
+    error for 15 years.
+
 8.0.0-dev.530 | 2025-06-25 10:35:53 -0400
 
   * Remove `list` from Zeek grammar (Evan Typanski, Corelight)

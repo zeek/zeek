@@ -25,6 +25,7 @@ constexpr uint16_t INVALID_CONN_KEY_IP_PROTO = 65534;
 
 class HashKey;
 
+// Deprecated: Remove the whole class in v8.1. Switch usage to the conntuple factories and the new zeek::ConnKey tree.
 class ConnKey {
 public:
     in6_addr ip1;
@@ -33,10 +34,12 @@ public:
     uint16_t port2 = 0;
     uint16_t transport = INVALID_CONN_KEY_IP_PROTO;
 
-    ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, uint16_t proto, bool one_way);
-    ConnKey(const ConnTuple& conn);
-    ConnKey(const ConnKey& rhs) { *this = rhs; }
-    ConnKey(Val* v);
+    [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] ConnKey(const IPAddr& src, const IPAddr& dst,
+                                                                               uint16_t src_port, uint16_t dst_port,
+                                                                               uint16_t proto, bool one_way);
+    [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] ConnKey(const ConnTuple& conn);
+    [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] ConnKey(const ConnKey& rhs) { *this = rhs; }
+    [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] ConnKey(Val* v);
 
     // FIXME: This is getting reworked as part of the connection tuple changes. Suppress
     // the clang-tidy warning for the time being.

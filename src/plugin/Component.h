@@ -38,6 +38,7 @@ enum Type : uint8_t {
     LOG_SERIALIZER,     /// A serializer for log batches, used by cluster backends.
     STORAGE_BACKEND,    /// A backend for the storage framework.
     STORAGE_SERIALIZER, /// A serializer for the storage framework.
+    CONNKEY,            /// A factory for connection keys.
 };
 
 } // namespace component

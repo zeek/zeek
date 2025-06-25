@@ -1,3 +1,60 @@
+8.0.0-dev.528 | 2025-06-25 14:17:35 +0200
+
+  * btest/plugins: Add test for custom ConnKey factory (Arne Welzel, Corelight)
+
+    This just counts DoInits() and adds that information to the conn_id
+    record, but without including it into the hash. Mostly for smoke
+    testing.
+
+  * NEWS updates for pluggable connection tuples. (Christian Kreibich, Corelight)
+
+  * Add a VLAN-aware flow tuple implementation. (Christian Kreibich, Corelight)
+
+    This is a first "real" implementation of a custom tuple, adding additional
+    fields over the standard five-tuple.
+
+    Includes test cases.
+
+  * Deprecate ConnTuple and related APIs. (Christian Kreibich, Corelight)
+
+    Given IP-aware ConnKeys, ConnTuples aren't really required any more. ConnTuple
+    had two benefits:
+
+    - It preserved the original src/dst orientation from the packet headers it was
+    based on, which IPBasedConnKey now tracks and provides accessor methods for.
+
+    - In IPBasedAnalyzer::AnalyzePacket() its instance survived past the std:move()
+    of the key into NewConn(), which we sidestep by keeping the original src address
+    and port around until we need after the connection is obtained.
+
+  * Deprecate the old Connection constructor and detail::ConnKey class. (Christian Kreibich, Corelight)
+
+    The new key-based Connection constructor replaces the former, and the new
+    ConnKey class tree replaces the latter.
+
+  * Switch to virtualized use of new zeek::ConnKey class tree (Christian Kreibich, Corelight)
+
+    This touches quite a few places, but each just swaps out existing
+    APIs and/or zeek::detail::ConnKey instances.
+
+  * Provide a connkey factory for Zeek's default five-tuples. (Christian Kreibich, Corelight)
+
+    Since the base factory is pure virtual this is now the first full
+    implementation, but still a bit of a special case because it implements Zeek's
+    default behavior and doesn't add "custom" content to the tuple.
+
+  * Add IP-specific ConnKey implementation. (Christian Kreibich, Corelight)
+
+    The InitTuple() implementation here is a placeholder for a fuller one following
+    later, when we do away with the need for ConnTuple.
+
+  * Establish plugin infrastructure for ConnKey factories. (Christian Kreibich, Corelight)
+
+    ConnKey factories are intermediaries that encapsulate the details of how to
+    instantiate ConnKeys, which codify the hash input for connection lookups.
+
+  * Add new ConnKey abstraction. (Christian Kreibich, Corelight)
+
 8.0.0-dev.517 | 2025-06-25 09:33:46 +0200
 
   * telemetry: Rename endpoint label to node label (Arne Welzel, Corelight)

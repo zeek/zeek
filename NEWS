@@ -73,6 +73,29 @@ Breaking Changes
 New Functionality
 -----------------
 
+- Zeek now supports pluggable and customizable connection tracking. The default
+  behavior remains unchanged and uses a connection's five tuple based on the
+  IP/port pairs and proto field. Zeek 8 ships with one additional implementation,
+  to factor VLAN tags into the connection tracking. To switch to VLAN-aware
+  connection tracking:
+
+	@load frameworks/conn_key/vlan_fivetuple
+
+  This results in two additional fields in the conn_id record, showing any VLAN
+  tags involved in the flow. (Accordingly, every log using conn_id reflects the
+  change as well as these fields have the ``&log`` attribute.)
+
+  This feature does not automatically provide a notion of endpoint that
+  corresponds with the effective flow tuple. For example, applications tracking
+  endpoints by IP address do not somehow become VLAN-aware when enabling
+  VLAN-aware tracking.
+
+  Users may add their own plugins (for example via a zkg package) to provide
+  alternative implementations. This involves implementing a factory for
+  connection "keys" that factor in additional flow information. See the VLAN
+  implementation in the ``src/packet_analysis/protocol/ip/conn_key/vlan_fivetuple``
+  directory for an example.
+
 - Generic event metadata support. A new ``EventMetadata`` module was added allowing
   to register generic event metadata types and accessing the current event's metadata
   using the functions ``current()`` and ``current_all()`` of this module.
@@ -233,6 +256,11 @@ Deprecated Functionality
 - Passing ``ts`` as the last argument to ``EventMgr::Enqueue()`` has been deprecated
   and will lead to compile time warnings. Use ``EventMgr::Enqueue(detail::MetadataVectorPtr meta, ...)``
   for populating ``meta`` accordingly.
+
+- For plugin authors: in the core, the constructor for Connection instances has
+  been deprecated in favor of a new one to support pluggable connection
+  tuples. The ConnTuple struct, used by this deprecated Connection constructor,
+  is now deprecated as well.
 
 Zeek 7.2.0
 ==========

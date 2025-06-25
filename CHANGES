@@ -1,3 +1,10 @@
+8.0.0-dev.530 | 2025-06-25 10:35:53 -0400
+
+  * Remove `list` from Zeek grammar (Evan Typanski, Corelight)
+
+    Using it would make Zeek segfault (at least in locals). It has been an
+    error for 15 years.
+
 8.0.0-dev.528 | 2025-06-25 14:17:35 +0200
 
   * btest/plugins: Add test for custom ConnKey factory (Arne Welzel, Corelight)

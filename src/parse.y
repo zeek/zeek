@@ -13,7 +13,7 @@
 %token TOK_CONSTANT TOK_COPY TOK_COUNT TOK_DEFAULT TOK_DELETE
 %token TOK_DOUBLE TOK_ELSE TOK_ENUM TOK_EVENT TOK_EXPORT TOK_FALLTHROUGH
 %token TOK_FILE TOK_FOR TOK_FUNCTION TOK_GLOBAL TOK_HOOK TOK_ID TOK_IF TOK_INT
-%token TOK_INTERVAL TOK_LIST TOK_MODULE
+%token TOK_INTERVAL TOK_MODULE
 %token TOK_LOCAL TOK_WHEN_LOCAL
 %token TOK_NEXT TOK_OF TOK_OPAQUE TOK_PATTERN TOK_PATTERN_END TOK_PATTERN_TEXT
 %token TOK_PORT TOK_PRINT TOK_RECORD TOK_REDEF
@@ -1208,22 +1208,6 @@ simple_type:
 			set_location(@1, @5);
 			$4->UpdateLocationEndInfo(@5);
 			$$ = $4;
-			}
-
-	|	TOK_LIST
-			{
-			set_location(@1);
-			// $$ = new TypeList();
-			reporter->Error("list type not implemented");
-			$$ = 0;
-			}
-
-	|	TOK_LIST TOK_OF type
-			{
-			set_location(@1);
-			// $$ = new TypeList($3);
-			reporter->Error("list type not implemented");
-			$$ = 0;
 			}
 
 	|	TOK_VECTOR TOK_OF type

@@ -54,19 +54,20 @@ bool UDPAnalyzer::WantConnection(uint16_t src_port, uint16_t dst_port, const u_c
     return true;
 }
 
-bool UDPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet, ConnTuple& tuple) {
+bool UDPAnalyzer::InitConnKey(size_t len, const uint8_t* data, Packet* packet, IPBasedConnKey& key) {
     uint32_t min_hdr_len = sizeof(struct udphdr);
     if ( ! CheckHeaderTrunc(min_hdr_len, len, packet) )
         return false;
 
-    tuple.src_addr = packet->ip_hdr->SrcAddr();
-    tuple.dst_addr = packet->ip_hdr->DstAddr();
-
     const struct udphdr* up = (const struct udphdr*)packet->ip_hdr->Payload();
+<<<<<<< HEAD
     tuple.src_port = up->uh_sport;
     tuple.dst_port = up->uh_dport;
     tuple.is_one_way = false;
     tuple.proto = TRANSPORT_UDP;
+=======
+    key.InitTuple(packet->ip_hdr->SrcAddr(), up->uh_sport, packet->ip_hdr->DstAddr(), up->uh_dport, packet->proto);
+>>>>>>> cd934c460b (Merge remote-tracking branch 'origin/topic/christian/extensible-conntuples')
 
     return true;
 }

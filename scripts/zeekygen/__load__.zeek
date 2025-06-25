@@ -1,6 +1,17 @@
 @load test-all-policy.zeek
 
 # Scripts which are commented out in test-all-policy.zeek.
+<<<<<<< HEAD
+=======
+@load frameworks/analyzer/deprecated-dpd-log.zeek
+@load frameworks/conn_key/vlan_fivetuple.zeek
+
+# Remove in v8.1: replaced by frameworks/analyzer/detect-protocols.zeek
+@pragma push ignore-deprecations
+@load frameworks/dpd/detect-protocols.zeek
+@pragma pop ignore-deprecations
+
+>>>>>>> cd934c460b (Merge remote-tracking branch 'origin/topic/christian/extensible-conntuples')
 @load protocols/ssl/decryption.zeek
 @load frameworks/cluster/nodes-experimental/manager.zeek
 @load frameworks/control/controllee.zeek

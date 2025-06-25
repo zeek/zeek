@@ -7,6 +7,7 @@
 #include <tuple>
 #include <type_traits>
 
+#include "zeek/ConnKey.h"
 #include "zeek/IPAddr.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Rule.h"
@@ -29,9 +30,15 @@ class RecordVal;
 using ValPtr = IntrusivePtr<Val>;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 
+<<<<<<< HEAD
 namespace session {
 class Manager;
 }
+=======
+class IPBasedConnKey;
+using IPBasedConnKeyPtr = std::unique_ptr<IPBasedConnKey>;
+
+>>>>>>> cd934c460b (Merge remote-tracking branch 'origin/topic/christian/extensible-conntuples')
 namespace detail {
 
 class Specific_RE_Matcher;
@@ -54,13 +61,28 @@ enum ConnEventToFlag {
     NUM_EVENTS_TO_FLAG,
 };
 
+// Deprecated without replacement: remove in v8.1.
+// XXX using [[deprecated]] for the whole struct leads to hard errors on FreeBSD/MacOS.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 struct ConnTuple {
+<<<<<<< HEAD
     IPAddr src_addr;
     IPAddr dst_addr;
     uint32_t src_port = 0;
     uint32_t dst_port = 0;
     bool is_one_way = false; // if true, don't canonicalize order
     TransportProto proto = TRANSPORT_UNKNOWN;
+=======
+#pragma GCC diagnostic pop
+    [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] IPAddr src_addr;
+    [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] IPAddr dst_addr;
+    [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] uint32_t src_port = 0;
+    [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] uint32_t dst_port = 0;
+    [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] uint16_t proto = UNKNOWN_IP_PROTO;
+    [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] bool is_one_way =
+        false; // if true, don't canonicalize order
+>>>>>>> cd934c460b (Merge remote-tracking branch 'origin/topic/christian/extensible-conntuples')
 };
 
 static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1, const IPAddr& addr2, uint32_t p2) {
@@ -69,7 +91,11 @@ static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1, const IPA
 
 class Connection final : public session::Session {
 public:
+    Connection(zeek::IPBasedConnKeyPtr k, double t, uint32_t flow, const Packet* pkt);
+
+    [[deprecated("Remove in v8.1. Switch to ConnKey factories and the new zeek::ConnKey tree.")]]
     Connection(const detail::ConnKey& k, double t, const ConnTuple* id, uint32_t flow, const Packet* pkt);
+
     ~Connection() override;
 
     /**
@@ -106,10 +132,12 @@ public:
     // Keys are only considered valid for a connection when a
     // connection is in the session map. If it is removed, the key
     // should be marked invalid.
-    const detail::ConnKey& Key() const { return key; }
-    session::detail::Key SessionKey(bool copy) const override {
-        return session::detail::Key{&key, sizeof(key), session::detail::Key::CONNECTION_KEY_TYPE, copy};
-    }
+    //
+    // These touch the key, which we forward-declared above. Therefore this
+    // hides the implementation, which has the full class definition.
+    const ConnKey& Key() const;
+    session::detail::Key SessionKey(bool copy) const override;
+    uint8_t KeyProto() const;
 
     const IPAddr& OrigAddr() const { return orig_addr; }
     const IPAddr& RespAddr() const { return resp_addr; }
@@ -205,6 +233,10 @@ public:
     bool IsFinished() { return finished; }
 
 private:
+    // Common initialization for the constructors. This can move back into the
+    // (sole) constructor when we remove the deprecated one in 8.1.
+    void Init(uint32_t flow, const Packet* pkt);
+
     friend class session::detail::Timer;
 
     IPAddr orig_addr;
@@ -220,7 +252,7 @@ private:
     std::shared_ptr<EncapsulationStack> encapsulation; // tunnels
     uint8_t tunnel_changes = 0;
 
-    detail::ConnKey key;
+    IPBasedConnKeyPtr key;
 
     unsigned int weird : 1;
     unsigned int finished : 1;

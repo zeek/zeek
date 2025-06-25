@@ -1,6 +1,7 @@
 #pragma once
 
 #include "zeek/packet_analysis/Analyzer.h"
+#include "zeek/session/Key.h"
 
 #include "packet_analysis/protocol/gtpv1/gtpv1_pac.h"
 
@@ -25,11 +26,10 @@ public:
         gtp_hdr_val = std::move(val);
     }
 
-    void RemoveConnection(const zeek::detail::ConnKey& conn_key) { conn_map.erase(conn_key); }
+    void RemoveConnection(const zeek::session::detail::Key& conn_key) { conn_map.erase(conn_key); }
 
 protected:
-    using ConnMap = std::map<zeek::detail::ConnKey, std::unique_ptr<binpac::GTPv1::GTPv1_Conn>>;
-    ConnMap conn_map;
+    std::map<zeek::session::detail::Key, std::unique_ptr<binpac::GTPv1::GTPv1_Conn>> conn_map;
 
     int inner_packet_offset = -1;
     uint8_t next_header = 0;

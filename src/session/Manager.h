@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <utility>
 
+#include "zeek/ConnKey.h"
 #include "zeek/Frag.h"
 #include "zeek/Hash.h"
 #include "zeek/NetVar.h"
@@ -65,7 +66,7 @@ public:
      * @param conn_key The key for the connection to search for.
      * @return The connection, or nullptr if one doesn't exist.
      */
-    Connection* FindConnection(const zeek::detail::ConnKey& conn_key);
+    Connection* FindConnection(const zeek::ConnKey& conn_key);
 
     void Remove(Session* s);
     void Insert(Session* c, bool remove_existing = true);

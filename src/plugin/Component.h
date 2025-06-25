@@ -20,6 +20,7 @@ namespace component {
 /**
  * Component types.
  */
+<<<<<<< HEAD
 enum Type {
     READER,          /// An input reader (not currently used).
     WRITER,          /// A logging writer (not currently used).
@@ -30,6 +31,24 @@ enum Type {
     PKTSRC,          /// A packet source.
     PKTDUMPER,       /// A packet dumper.
     SESSION_ADAPTER, /// A session adapter analyzer.
+=======
+enum Type : uint8_t {
+    READER,             /// An input reader (not currently used).
+    WRITER,             /// A logging writer (not currently used).
+    ANALYZER,           /// A protocol analyzer.
+    PACKET_ANALYZER,    /// A packet analyzer.
+    FILE_ANALYZER,      /// A file analyzer.
+    IOSOURCE,           /// An I/O source, excluding packet sources.
+    PKTSRC,             /// A packet source.
+    PKTDUMPER,          /// A packet dumper.
+    SESSION_ADAPTER,    /// A session adapter analyzer.
+    CLUSTER_BACKEND,    /// A cluster backend.
+    EVENT_SERIALIZER,   /// A serializer for events, used by cluster backends.
+    LOG_SERIALIZER,     /// A serializer for log batches, used by cluster backends.
+    STORAGE_BACKEND,    /// A backend for the storage framework.
+    STORAGE_SERIALIZER, /// A serializer for the storage framework.
+    CONNKEY,            /// A factory for connection keys.
+>>>>>>> cd934c460b (Merge remote-tracking branch 'origin/topic/christian/extensible-conntuples')
 };
 
 } // namespace component

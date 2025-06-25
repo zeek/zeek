@@ -188,6 +188,26 @@ bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
         return false;
     }
 
+<<<<<<< HEAD
+=======
+    const auto& k = conn->Key();
+    auto sk = k.SessionKey();
+    OrigRespMap::iterator or_it = orig_resp_map.find(sk);
+
+    // The first time a teredo packet is parsed successfully, insert
+    // state into orig_resp_map so we can confirm when both sides
+    // see valid Teredo packets. Further, raise an event so that script
+    // layer can install a connection removal hooks to cleanup later.
+    if ( or_it == orig_resp_map.end() ) {
+        sk.CopyData(); // Copy key data to store in map.
+        auto [it, inserted] = orig_resp_map.emplace(std::move(sk), OrigResp{});
+        assert(inserted);
+        or_it = it;
+
+        packet->session->EnqueueEvent(new_teredo_state, nullptr, packet->session->GetVal());
+    }
+
+>>>>>>> cd934c460b (Merge remote-tracking branch 'origin/topic/christian/extensible-conntuples')
     if ( packet->is_orig )
         or_it->second.valid_orig = true;
     else

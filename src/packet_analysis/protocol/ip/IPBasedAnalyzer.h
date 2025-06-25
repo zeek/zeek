@@ -8,6 +8,7 @@
 #include "zeek/ID.h"
 #include "zeek/Tag.h"
 #include "zeek/packet_analysis/Analyzer.h"
+#include "zeek/packet_analysis/protocol/ip/conn_key/IPBasedConnKey.h"
 
 namespace zeek::analyzer::pia {
 class PIA;
@@ -99,9 +100,28 @@ protected:
     IPBasedAnalyzer(const char* name, TransportProto proto, uint32_t mask, bool report_unknown_protocols);
 
     /**
+     * Initialize the given ConnKey from the packet header & data.
+     *
+     * @param len Remaining length of data.
+     * @param data Remaining packet data.
+     * @param packet The packet being processed.
+     * @param key The ConnKey instance to initialize.
+     *
+     * @return True if initialization succeeded, false otherwise (e.g. because
+     * there wasn't enough data available).
+     */
+    virtual bool InitConnKey(size_t len, const uint8_t* data, Packet* packet, IPBasedConnKey& key) {
+        // Given deprecation of BuildConnTuple below, make this pure virtual in 8.1.
+        return false;
+    }
+
+    /**
      * Parse the header from the packet into a ConnTuple object.
      */
-    virtual bool BuildConnTuple(size_t len, const uint8_t* data, Packet* packet, ConnTuple& tuple) = 0;
+    [[deprecated("Remove in v8.1. Switch to InitConnKey() and key-only initialization.")]]
+    virtual bool BuildConnTuple(size_t len, const uint8_t* data, Packet* packet, ConnTuple& tuple) {
+        return false;
+    }
 
     /**
      * Continues process of packet after the connection has been inserted into the
@@ -180,12 +200,10 @@ private:
     /**
      * Creates a new Connection object from data gleaned from the current packet.
      *
-     * @param id A connection ID generated from the packet data. This should have been
-     * passed in from a child analyzer.
-     * @param key A connection ID key generated from the ID.
-     * @param pkt The packet associated with the new connection.
+     * @param key A ConnKey with common 5-tuple information.
+     * @param pkt The packet associated with the new connection, for additional connection info.
      */
-    zeek::Connection* NewConn(const ConnTuple* id, const zeek::detail::ConnKey& key, const Packet* pkt);
+    zeek::Connection* NewConn(IPBasedConnKeyPtr key, const Packet* pkt);
 
     void BuildSessionAnalyzerTree(Connection* conn);
 

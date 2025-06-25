@@ -28,11 +28,12 @@ SessionAdapter* TCPAnalyzer::MakeSessionAdapter(Connection* conn) {
 
 zeek::analyzer::pia::PIA* TCPAnalyzer::MakePIA(Connection* conn) { return new analyzer::pia::PIA_TCP(conn); }
 
-bool TCPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet, ConnTuple& tuple) {
+bool TCPAnalyzer::InitConnKey(size_t len, const uint8_t* data, Packet* packet, IPBasedConnKey& key) {
     uint32_t min_hdr_len = sizeof(struct tcphdr);
     if ( ! CheckHeaderTrunc(min_hdr_len, len, packet) )
         return false;
 
+<<<<<<< HEAD
     tuple.src_addr = packet->ip_hdr->SrcAddr();
     tuple.dst_addr = packet->ip_hdr->DstAddr();
 
@@ -43,6 +44,10 @@ bool TCPAnalyzer::BuildConnTuple(size_t len, const uint8_t* data, Packet* packet
     tuple.dst_port = tp->th_dport;
     tuple.is_one_way = false;
     tuple.proto = TRANSPORT_TCP;
+=======
+    const struct tcphdr* tp = (const struct tcphdr*)packet->ip_hdr->Payload();
+    key.InitTuple(packet->ip_hdr->SrcAddr(), tp->th_sport, packet->ip_hdr->DstAddr(), tp->th_dport, packet->proto);
+>>>>>>> cd934c460b (Merge remote-tracking branch 'origin/topic/christian/extensible-conntuples')
 
     return true;
 }

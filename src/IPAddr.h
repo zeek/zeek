@@ -22,6 +22,7 @@ namespace detail {
 
 class HashKey;
 
+// Deprecated: Remove the whole class in v8.1. Switch usage to the conntuple factories and the new zeek::ConnKey tree.
 class ConnKey {
 public:
     in6_addr ip1;
@@ -31,10 +32,19 @@ public:
     TransportProto transport = TRANSPORT_UNKNOWN;
     bool valid = true;
 
+<<<<<<< HEAD
     ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, TransportProto t, bool one_way);
     ConnKey(const ConnTuple& conn);
     ConnKey(const ConnKey& rhs) { *this = rhs; }
     ConnKey(Val* v);
+=======
+    [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] ConnKey(const IPAddr& src, const IPAddr& dst,
+                                                                               uint16_t src_port, uint16_t dst_port,
+                                                                               uint16_t proto, bool one_way);
+    [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] ConnKey(const ConnTuple& conn);
+    [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] ConnKey(const ConnKey& rhs) { *this = rhs; }
+    [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] ConnKey(Val* v);
+>>>>>>> cd934c460b (Merge remote-tracking branch 'origin/topic/christian/extensible-conntuples')
 
     bool operator<(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) < 0; }
     bool operator<=(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) <= 0; }

@@ -36,6 +36,17 @@ Breaking Changes
 
 	redef LogAscii::json_timestamps = JSON::TS_MILLIS_UNSIGNED;
 
+- The "endpoint" label of metrics exposed via Prometheus or the ``telemetry.log``
+  was renamed to "node". This is done for consistency with cluster terminology:
+  The label values have always been the value of ``Cluster::node`, so it's more intuitive
+  to call it. The "endpoint" name originated from a time when the telemetry framework
+  was implemented in Broker.
+
+  To revert to the "endpoint" label, you can do the following, but we strongly
+  suggest to migrate to the new default "node" instead:
+
+	redef Telemetry::metrics_endpoint_label = "endpoint";
+
 - The ``current_event_time()`` builtin function as well as ``Event::Time()``
   and ``EventMgr::CurrentEventTime()`` now return ``-1.0`` if no timestamp
   metadata is available for the current event, or if no event is being

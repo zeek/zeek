@@ -1,3 +1,14 @@
+8.0.0-dev.517 | 2025-06-25 09:33:46 +0200
+
+  * telemetry: Rename endpoint label to node label (Arne Welzel, Corelight)
+
+    Using a label named "endpoint" is not intuitive and requires explaining to
+    users that it's really just the Cluster::node value. Change the label to
+    "node", so that we don't need to do the explaining.
+
+    This probably breaks some existing users of the Prometheus metrics, but after
+    looking more at metrics recently, "endpoint" really is a thorn in my eye.
+
 8.0.0-dev.514 | 2025-06-24 15:38:18 -0700
 
   * Add get_tags_by_category BIF method (bhaskarbhar)

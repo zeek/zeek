@@ -926,7 +926,7 @@ void do_atif(zeek::detail::Expr* expr) {
         return;
     }
 
-        set_ignoring(! val->AsBool());
+    set_ignoring(! val->AsBool());
 }
 
 void do_atifdef(const char* id) {
@@ -939,7 +939,7 @@ void do_atifdef(const char* id) {
     if ( ! found )
         found = (zeek::detail::module_names().count(id) != 0);
 
-        set_ignoring(! found);
+    set_ignoring(! found);
 }
 
 void do_atifndef(const char* id) {
@@ -952,7 +952,7 @@ void do_atifndef(const char* id) {
     if ( ! found )
         found = (zeek::detail::module_names().count(id) != 0);
 
-        set_ignoring(found);
+    set_ignoring(found);
 }
 
 void do_atelse() {

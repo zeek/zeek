@@ -38,6 +38,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/RE.h"
 #include "zeek/RunState.h"
+#include "zeek/ScriptCoverageManager.h"
 #include "zeek/Traverse.h"
 #include "zeek/module_util.h"
 #include "zeek/ScannedFile.h"
@@ -866,7 +867,7 @@ static int load_files(const char* orig_file) {
     yy_switch_to_buffer(buffer);
     yylloc.first_line = yylloc.last_line = line_number = 1;
 
-	return switch_to(file_path.c_str(), buffer);
+    return switch_to(file_path.c_str(), buffer);
 }
 
 void begin_RE() { BEGIN(RE); }
@@ -891,9 +892,14 @@ public:
     std::vector<const zeek::detail::NameExpr*> local_names;
 };
 
-static void begin_ignoring() {
-    if_stack.push_back(conditional_depth);
-    BEGIN(IGNORE);
+static void set_ignoring(bool start_ignoring) {
+    if ( script_coverage_mgr.IsActive() )
+        script_coverage_mgr.AddConditional(GetCurrentLocation(), ! start_ignoring);
+
+    if ( start_ignoring ) {
+        if_stack.push_back(conditional_depth);
+        BEGIN(IGNORE);
+    }
 }
 
 static void resume_processing() {
@@ -920,8 +926,7 @@ void do_atif(zeek::detail::Expr* expr) {
         return;
     }
 
-    if ( ! val->AsBool() )
-        begin_ignoring();
+        set_ignoring(! val->AsBool());
 }
 
 void do_atifdef(const char* id) {
@@ -934,8 +939,7 @@ void do_atifdef(const char* id) {
     if ( ! found )
         found = (zeek::detail::module_names().count(id) != 0);
 
-    if ( ! found )
-        begin_ignoring();
+        set_ignoring(! found);
 }
 
 void do_atifndef(const char* id) {
@@ -948,8 +952,7 @@ void do_atifndef(const char* id) {
     if ( ! found )
         found = (zeek::detail::module_names().count(id) != 0);
 
-    if ( found )
-        begin_ignoring();
+        set_ignoring(found);
 }
 
 void do_atelse() {
@@ -960,9 +963,11 @@ void do_atelse() {
         return;
 
     if ( YY_START == INITIAL )
-        begin_ignoring();
-    else
+        set_ignoring(true);
+    else {
+        set_ignoring(false);
         resume_processing();
+    }
 }
 
 void do_atendif() {

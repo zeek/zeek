@@ -15,10 +15,19 @@ namespace zeek::detail {
 using ObjPtr = IntrusivePtr<Obj>;
 
 /**
- * A simple class for managing stats of Zeek script coverage across Zeek runs.
+ * A class for managing stats of Zeek script coverage across Zeek runs.
  */
 class ScriptCoverageManager {
 public:
+    ScriptCoverageManager();
+
+    /**
+     * Returns true if the manager is active (will do work), false if not.
+     *
+     * @return: true if active, false if not.
+     */
+    bool IsActive() const { return pf != nullptr; }
+
     /**
      * Imports Zeek script Stmt usage information from file pointed to by
      * environment variable ZEEK_PROFILER_FILE.
@@ -45,8 +54,14 @@ public:
 
     void AddStmt(Stmt* s);
     void AddFunction(IDPtr func_id, StmtPtr body);
+    void AddConditional(Location cond_loc, std::string_view text, bool was_true);
 
 private:
+    /**
+     * The name of the profile file, or nil if we're not profiling.
+     */
+    const char* pf;
+
     /**
      * The current, global ScriptCoverageManager instance creates this list at parse-time.
      */
@@ -56,6 +71,20 @@ private:
      * A similar list for tracking functions and their bodies.
      */
     std::list<std::pair<IDPtr, StmtPtr>> func_instances;
+
+    /**
+     * Helper struct for tracking the result of @-directives.
+     */
+    struct Conditional {
+        Location loc;
+        std::string text;
+        bool result;
+    };
+
+    /**
+     * A similar list for tracking conditionals and whether they were true.
+     */
+    std::list<Conditional> cond_instances;
 
     /**
      * Indicates whether new statements will not be considered as part of
@@ -95,7 +124,10 @@ private:
      * Tracks the usage of a given object with a given description
      * and a given coverage count.
      */
-    void TrackUsage(const ObjPtr& obj, std::string desc, uint64_t cnt);
+    void TrackUsage(const ObjPtr& obj, std::string desc, uint64_t cnt) {
+        TrackUsage(obj->GetLocationInfo(), std::move(desc), cnt);
+    }
+    void TrackUsage(const Location* loc, std::string desc, uint64_t cnt);
 
     /**
      * Reports a single coverage instance.

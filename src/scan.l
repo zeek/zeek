@@ -27,6 +27,7 @@
 #include "zeek/Scope.h"
 #include "zeek/ZeekString.h"
 #include "zeek/DNS_Mgr.h"
+#include "zeek/Desc.h"
 #include "zeek/Expr.h"
 #include "zeek/Func.h"
 #include "zeek/Stmt.h"
@@ -38,6 +39,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/RE.h"
 #include "zeek/RunState.h"
+#include "zeek/ScriptCoverageManager.h"
 #include "zeek/Traverse.h"
 #include "zeek/module_util.h"
 #include "zeek/ScannedFile.h"
@@ -866,7 +868,7 @@ static int load_files(const char* orig_file) {
     yy_switch_to_buffer(buffer);
     yylloc.first_line = yylloc.last_line = line_number = 1;
 
-	return switch_to(file_path.c_str(), buffer);
+    return switch_to(file_path.c_str(), buffer);
 }
 
 void begin_RE() { BEGIN(RE); }
@@ -891,9 +893,23 @@ public:
     std::vector<const zeek::detail::NameExpr*> local_names;
 };
 
-static void begin_ignoring() {
-    if_stack.push_back(conditional_depth);
-    BEGIN(IGNORE);
+static void set_ignoring(bool start_ignoring, std::string_view directive, std::optional<std::string_view> value = std::nullopt) {
+    if ( script_coverage_mgr.IsActive() ) {
+        std::string text = std::string(directive);
+
+        if ( value ) {
+             text += " ( ";
+             text += *value;
+             text += " )";
+        }
+
+        script_coverage_mgr.AddConditional(GetCurrentLocation(), text, ! start_ignoring);
+    }
+
+    if ( start_ignoring ) {
+        if_stack.push_back(conditional_depth);
+        BEGIN(IGNORE);
+    }
 }
 
 static void resume_processing() {
@@ -920,8 +936,7 @@ void do_atif(zeek::detail::Expr* expr) {
         return;
     }
 
-    if ( ! val->AsBool() )
-        begin_ignoring();
+    set_ignoring(! val->AsBool(), "@if", zeek::obj_desc_short(expr));
 }
 
 void do_atifdef(const char* id) {
@@ -934,8 +949,7 @@ void do_atifdef(const char* id) {
     if ( ! found )
         found = (zeek::detail::module_names().count(id) != 0);
 
-    if ( ! found )
-        begin_ignoring();
+    set_ignoring(! found, "@ifdef", id);
 }
 
 void do_atifndef(const char* id) {
@@ -948,8 +962,7 @@ void do_atifndef(const char* id) {
     if ( ! found )
         found = (zeek::detail::module_names().count(id) != 0);
 
-    if ( found )
-        begin_ignoring();
+    set_ignoring(found, "@ifndef", id);
 }
 
 void do_atelse() {
@@ -960,9 +973,11 @@ void do_atelse() {
         return;
 
     if ( YY_START == INITIAL )
-        begin_ignoring();
-    else
+        set_ignoring(true, "@else");
+    else {
+        set_ignoring(false, "@else");
         resume_processing();
+    }
 }
 
 void do_atendif() {

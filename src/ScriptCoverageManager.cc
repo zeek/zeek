@@ -20,6 +20,8 @@ using namespace std;
 
 namespace zeek::detail {
 
+ScriptCoverageManager::ScriptCoverageManager() { pf = getenv("ZEEK_PROFILER_FILE"); }
+
 void ScriptCoverageManager::AddStmt(Stmt* s) {
     if ( ignoring != 0 || analysis_options.gen_ZAM )
         return;
@@ -34,14 +36,16 @@ void ScriptCoverageManager::AddFunction(IDPtr func_id, StmtPtr body) {
     func_instances.emplace_back(func_id, body);
 }
 
-bool ScriptCoverageManager::ReadStats() {
-    char* bf = getenv("ZEEK_PROFILER_FILE");
+void ScriptCoverageManager::AddConditional(Location cond_loc, std::string_view text, bool was_true) {
+    cond_instances.push_back({cond_loc, std::string(text), was_true});
+}
 
-    if ( ! bf )
+bool ScriptCoverageManager::ReadStats() {
+    if ( ! IsActive() )
         return false;
 
     std::ifstream ifs;
-    ifs.open(bf, std::ifstream::in);
+    ifs.open(pf, std::ifstream::in);
 
     if ( ! ifs )
         return false;
@@ -82,38 +86,43 @@ bool ScriptCoverageManager::ReadStats() {
 }
 
 bool ScriptCoverageManager::WriteStats() {
-    char* bf = getenv("ZEEK_PROFILER_FILE");
-
-    if ( ! bf )
+    if ( ! IsActive() )
         return false;
 
-    util::SafeDirname dirname{bf};
+    util::SafeDirname dirname{pf};
 
     if ( ! util::detail::ensure_intermediate_dirs(dirname.result.data()) ) {
-        reporter->Error("Failed to open ZEEK_PROFILER_FILE destination '%s' for writing", bf);
+        reporter->Error("Failed to open ZEEK_PROFILER_FILE destination '%s' for writing", pf);
         return false;
     }
 
     FILE* f;
-    const char* p = strstr(bf, "XXXXXX");
+    const char* p = strstr(pf, "XXXXXX");
 
     if ( p && ! p[6] ) {
         mode_t old_umask = umask(S_IXUSR | S_IRWXO | S_IRWXG);
-        int fd = mkstemp(bf);
+        auto pf_copy = strdup(pf);
+        if ( ! pf_copy ) {
+            reporter->InternalError("Memory exhausted in ScriptCoverageManager::WriteStats");
+            return false;
+        }
+
+        int fd = mkstemp(pf_copy);
+        free(pf_copy);
         umask(old_umask);
 
         if ( fd == -1 ) {
-            reporter->Error("Failed to generate unique file name from ZEEK_PROFILER_FILE: %s", bf);
+            reporter->Error("Failed to generate unique file name from ZEEK_PROFILER_FILE: %s", pf);
             return false;
         }
         f = fdopen(fd, "w");
     }
     else {
-        f = fopen(bf, "w");
+        f = fopen(pf, "w");
     }
 
     if ( ! f ) {
-        reporter->Error("Failed to open ZEEK_PROFILER_FILE destination '%s' for writing", bf);
+        reporter->Error("Failed to open ZEEK_PROFILER_FILE destination '%s' for writing", pf);
         return false;
     }
 
@@ -130,6 +139,9 @@ bool ScriptCoverageManager::WriteStats() {
         TrackUsage(body, desc, body->GetAccessCount());
     }
 
+    for ( const auto& [cond_loc, text, was_true] : cond_instances )
+        TrackUsage(&cond_loc, text, was_true ? 1 : 0);
+
     for ( auto& [location_info, cnt] : usage_map )
         Report(f, cnt, location_info.first, location_info.second);
 
@@ -137,9 +149,9 @@ bool ScriptCoverageManager::WriteStats() {
     return true;
 }
 
-void ScriptCoverageManager::TrackUsage(const ObjPtr& obj, std::string desc, uint64_t cnt) {
+void ScriptCoverageManager::TrackUsage(const Location* loc, std::string desc, uint64_t cnt) {
     ODesc location_info;
-    obj->GetLocationInfo()->Describe(&location_info);
+    loc->Describe(&location_info);
 
     static canonicalize_desc cd{delim};
     for_each(desc.begin(), desc.end(), cd);

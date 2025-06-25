@@ -383,7 +383,7 @@ type PluginComponent: record {
 	enabled: bool;
 };
 
-type PluginComponent_vec : vector of PluginComponent;
+type plugin_component_vec : vector of PluginComponent;
 
 ## Arguments given to Zeek from the command line. In order to use this, Zeek
 ## must use a ``--`` command line argument immediately followed by a script

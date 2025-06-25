@@ -4,7 +4,7 @@
 
 event zeek_init()
 {
-    local result = get_tags_by_category("ANALYZER");
+    local result = get_plugin_components("ANALYZER");
 
     for (i in result)
     {

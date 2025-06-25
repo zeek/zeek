@@ -5653,7 +5653,7 @@ function find_in_zeekpath%(p: string%): string
 ##
 ## Returns: A vector of records containing the tags of all plugin components
 ##          that belong to the specified category.
-function get_tags_by_category%(category: string%): tag_component_vec
+function get_plugin_components%(category: string%): PluginComponent_vec
 	%{
 	std::string cat = category->CheckString();
 	auto type = CategoryStringToEnum(cat);
@@ -5664,12 +5664,12 @@ function get_tags_by_category%(category: string%): tag_component_vec
 		return nullptr;
 		}
 
-	static auto vec_type = zeek::id::find_type<zeek::VectorType>("tag_component_vec");
-	static auto rec_type = zeek::id::find_type<zeek::RecordType>("tag_component");
+	static auto vec_type = zeek::id::find_type<zeek::VectorType>("PluginComponent_vec");
+	static auto rec_type = zeek::id::find_type<zeek::RecordType>("PluginComponent");
 
 	if ( ! vec_type || ! rec_type )
 		{
-		reporter->Error("Required types not found (tag_component or component_vec)");
+		reporter->Error("Required types not found (PluginComponent or PluginComponent_vec)");
 		return nullptr;
 		}
 

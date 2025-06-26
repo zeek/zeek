@@ -12,5 +12,5 @@
 
 event Redis::server_push(c: connection, data: Redis::ReplyData)
 	{
-	print "Got published data!", data;
+	print "Got published data!", data$value;
 	}

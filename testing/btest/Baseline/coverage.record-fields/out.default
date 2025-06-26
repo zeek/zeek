@@ -598,7 +598,9 @@ connection {
             conn_id { ... }
         * reply: record Redis::ReplyData, log=T, optional=T
             Redis::ReplyData {
-              * value: string, log=T, optional=T
+              * attributes: string, log=F, optional=T
+              * min_protocol_version: count, log=F, optional=F
+              * value: string, log=T, optional=F
              }
         * success: bool, log=T, optional=T
         * ts: time, log=T, optional=F

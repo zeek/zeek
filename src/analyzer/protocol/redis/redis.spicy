@@ -402,7 +402,9 @@ public function is_hello(data: RESP::ClientData): bool {
 }
 
 type ReplyData = struct {
-    value: optional<bytes>;
+    attributes: optional<bytes>;
+    value: bytes;
+    min_protocol_version: uint8;
 };
 
 public type ReplyType = enum {
@@ -427,6 +429,25 @@ function bulk_string_content(bulk: RESP::BulkString): bytes {
         return bulk.content;
     else
         return b"";
+}
+
+function stringify_map(data: RESP::Map): bytes {
+    local res = b"{";
+    local first = True;
+    local i = 0;
+    # num_elements refers to the number of map entries, each with 2 entries
+    # in the raw data
+    while (i < data.num_elements) {
+        if (!first)
+            res += b", ";
+        res += stringify(data.raw_data[i * 2]);
+        res += b": ";
+        res += stringify(data.raw_data[(i * 2) + 1]);
+        i += 1;
+        first = False;
+    }
+    res += b"}";
+    return res;
 }
 
 # Returns the bytes string value of this, or Null if it cannot.
@@ -463,20 +484,7 @@ function stringify(data: RESP::Data): bytes {
     else if (data?.verbatim_string)
         return bulk_string_content(data.verbatim_string);
     else if (data?.map_) {
-        local res = b"{";
-        local first = True;
-        local i = 0;
-        while (i < data.map_.num_elements) {
-            if (!first)
-                res += b", ";
-            res += stringify(data.map_.raw_data[i]);
-            res += b": ";
-            res += stringify(data.map_.raw_data[i + 1]);
-            i += 2;
-            first = False;
-        }
-        res += b"}";
-        return res;
+        return stringify_map(data.map_);
     } else if (data?.set_) {
         local res = b"(";
         local first = True;
@@ -506,5 +514,25 @@ function stringify(data: RESP::Data): bytes {
 
 # Gets the server reply in a simpler form
 public function make_server_reply(data: RESP::ServerData): ReplyData {
-    return [$value = stringify(data.data)];
+    local min_protocol_version: uint8 = 2;
+    switch (data.data.ty) {
+        case RESP::DataType::NULL,
+             RESP::DataType::BOOLEAN,
+             RESP::DataType::DOUBLE,
+             RESP::DataType::BIG_NUM,
+             RESP::DataType::BULK_ERROR,
+             RESP::DataType::VERBATIM_STRING,
+             RESP::DataType::MAP,
+             RESP::DataType::SET,
+             RESP::DataType::PUSH: min_protocol_version = 3;
+        default: min_protocol_version = 2;
+    }
+
+    local attributes: optional<bytes> = Null;
+    if (data.data?.attributes) {
+        min_protocol_version = 3;
+        attributes = stringify_map(data.data.attributes);
+    }
+
+    return [$attributes = attributes, $value = stringify(data.data), $min_protocol_version = min_protocol_version];
 }

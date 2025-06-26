@@ -296,6 +296,12 @@ event Redis::reply(c: connection, data: ReplyData)
 	if ( ! c?$redis_state )
 		make_new_state(c);
 
+	if ( data$min_protocol_version == 3 )
+		{
+		c$redis_state$resp_version = RESP3;
+		c$redis_state$subscribed_mode = F;
+		}
+
 	if ( c$redis_state$subscribed_mode )
 		{
 		event server_push(c, data);

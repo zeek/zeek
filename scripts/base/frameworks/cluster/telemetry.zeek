@@ -29,7 +29,6 @@ export {
 	## Map to an empty string to skip recording a specific metric
 	## completely.
 	const topic_normalizations: table[pattern] of string = {
-		[/^zeek\.cluster\.nodeid\..*/] = "zeek.cluster.nodeid.__normalized__",
 		[/^zeek\/cluster\/nodeid\/.*/] = "zeek/cluster/nodeid/__normalized__",
 	} &ordered &redef;
 

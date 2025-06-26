@@ -7,6 +7,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <string_view>
 
 #include "zeek/CCL.h"
 #include "zeek/EquivClass.h"
@@ -89,6 +90,7 @@ public:
 
     bool MatchAll(const char* s);
     bool MatchAll(const String* s);
+    bool MatchAll(std::string_view sv);
 
     // Compiles a set of regular expressions simultaneously.
     // 'idx' contains indices associated with the expressions.
@@ -104,16 +106,21 @@ public:
     // Behaves as MatchAll(), consuming the complete input string.
     bool MatchSet(const String* s, std::vector<AcceptIdx>& matches);
 
+    // As MatchSet() above, but taking a std::string_view.
+    bool MatchSet(std::string_view sv, std::vector<AcceptIdx>& matches);
+
     // Returns the position in s just beyond where the first match
     // occurs, or 0 if there is no such position in s.  Note that
     // if the pattern matches empty strings, matching continues
     // in an attempt to match at least one character.
     int Match(const char* s);
     int Match(const String* s);
+    int Match(std::string_view sv);
     int Match(const u_char* bv, int n);
 
     int LongestMatch(const char* s);
     int LongestMatch(const String* s);
+    int LongestMatch(std::string_view sv);
     int LongestMatch(const u_char* bv, int n, bool bol = true, bool eol = true);
 
     EquivClass* EC() { return &equiv_class; }

@@ -22,11 +22,7 @@ TableTopicNormalizer::TableTopicNormalizer() {
 }
 
 std::string_view TableTopicNormalizer::operator()(std::string_view topic) {
-    // TODO: It'd be nice if we could just lookup via string_view so we can
-    // avoid the allocation of the intermediary StringVal just to match
-    // against the patterns.
-    auto sv = zeek::make_intrusive<zeek::StringVal>(topic);
-    VectorValPtr r = topic_normalizations->LookupPattern(sv);
+    VectorValPtr r = topic_normalizations->LookupPattern(topic);
 
     if ( r->Size() == 0 )
         return topic;

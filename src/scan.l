@@ -27,6 +27,7 @@
 #include "zeek/Scope.h"
 #include "zeek/ZeekString.h"
 #include "zeek/DNS_Mgr.h"
+#include "zeek/Desc.h"
 #include "zeek/Expr.h"
 #include "zeek/Func.h"
 #include "zeek/Stmt.h"
@@ -892,9 +893,18 @@ public:
     std::vector<const zeek::detail::NameExpr*> local_names;
 };
 
-static void set_ignoring(bool start_ignoring) {
-    if ( script_coverage_mgr.IsActive() )
-        script_coverage_mgr.AddConditional(GetCurrentLocation(), ! start_ignoring);
+static void set_ignoring(bool start_ignoring, std::string_view directive, std::optional<std::string_view> value = std::nullopt) {
+    if ( script_coverage_mgr.IsActive() ) {
+        std::string text = std::string(directive);
+
+        if ( value ) {
+             text += " ( ";
+             text += *value;
+             text += " )";
+        }
+
+        script_coverage_mgr.AddConditional(GetCurrentLocation(), text, ! start_ignoring);
+    }
 
     if ( start_ignoring ) {
         if_stack.push_back(conditional_depth);
@@ -926,7 +936,7 @@ void do_atif(zeek::detail::Expr* expr) {
         return;
     }
 
-    set_ignoring(! val->AsBool());
+    set_ignoring(! val->AsBool(), "@if", zeek::obj_desc_short(expr));
 }
 
 void do_atifdef(const char* id) {
@@ -939,7 +949,7 @@ void do_atifdef(const char* id) {
     if ( ! found )
         found = (zeek::detail::module_names().count(id) != 0);
 
-    set_ignoring(! found);
+    set_ignoring(! found, "@ifdef", id);
 }
 
 void do_atifndef(const char* id) {
@@ -952,7 +962,7 @@ void do_atifndef(const char* id) {
     if ( ! found )
         found = (zeek::detail::module_names().count(id) != 0);
 
-    set_ignoring(found);
+    set_ignoring(found, "@ifndef", id);
 }
 
 void do_atelse() {
@@ -963,9 +973,9 @@ void do_atelse() {
         return;
 
     if ( YY_START == INITIAL )
-        set_ignoring(true);
+        set_ignoring(true, "@else");
     else {
-        set_ignoring(false);
+        set_ignoring(false, "@else");
         resume_processing();
     }
 }

@@ -36,8 +36,8 @@ void ScriptCoverageManager::AddFunction(IDPtr func_id, StmtPtr body) {
     func_instances.emplace_back(func_id, body);
 }
 
-void ScriptCoverageManager::AddConditional(Location cond_loc, bool was_true) {
-    cond_instances.emplace_back(cond_loc, was_true);
+void ScriptCoverageManager::AddConditional(Location cond_loc, std::string_view text, bool was_true) {
+    cond_instances.push_back({cond_loc, std::string(text), was_true});
 }
 
 bool ScriptCoverageManager::ReadStats() {
@@ -139,8 +139,8 @@ bool ScriptCoverageManager::WriteStats() {
         TrackUsage(body, desc, body->GetAccessCount());
     }
 
-    for ( auto& [cond_loc, was_true] : cond_instances )
-        TrackUsage(&cond_loc, "CONDITIONAL", was_true ? 1 : 0);
+    for ( const auto& [cond_loc, text, was_true] : cond_instances )
+        TrackUsage(&cond_loc, text, was_true ? 1 : 0);
 
     for ( auto& [location_info, cnt] : usage_map )
         Report(f, cnt, location_info.first, location_info.second);

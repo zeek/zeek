@@ -54,7 +54,7 @@ public:
 
     void AddStmt(Stmt* s);
     void AddFunction(IDPtr func_id, StmtPtr body);
-    void AddConditional(Location cond_loc, bool was_true);
+    void AddConditional(Location cond_loc, std::string_view text, bool was_true);
 
 private:
     /**
@@ -73,9 +73,18 @@ private:
     std::list<std::pair<IDPtr, StmtPtr>> func_instances;
 
     /**
+     * Helper struct for tracking the result of @-directives.
+     */
+    struct Conditional {
+        Location loc;
+        std::string text;
+        bool result;
+    };
+
+    /**
      * A similar list for tracking conditionals and whether they were true.
      */
-    std::list<std::pair<Location, bool>> cond_instances;
+    std::list<Conditional> cond_instances;
 
     /**
      * Indicates whether new statements will not be considered as part of

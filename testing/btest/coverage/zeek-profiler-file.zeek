@@ -26,4 +26,14 @@ event new_connection(c: connection)
 event new_connection(c: connection)
 	{ print "new conn"; }
 @endif
+@ifdef ( Conn::Info )
+event zeek_init() { print Conn::Info; }
+@else
+event zeek_init() { print "No Conn::Info"; }
+@endif
+@ifndef ( Conn::Info )
+event zeek_init() { print "No Conn::Info"; }
+@else
+event zeek_init() { print Conn::Info; }
+@endif
 # @TEST-END-FILE

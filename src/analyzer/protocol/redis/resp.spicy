@@ -116,7 +116,7 @@ type Data = unit(depth: uint8&) {
         DataType::MAP -> map_: Map(depth);
         DataType::SET -> set_: Set(depth);
         # "Push events are encoded similarly to arrays, differing only in their
-        # first byte" - TODO: can probably make it more obvious, though
+        # first byte"
         DataType::PUSH -> push: Array(depth);
     };
 
@@ -197,22 +197,11 @@ type BigNum = unit {
 
 type Map = unit(depth: uint8&) {
     num_elements: RedisBytes &convert=$$.to_uint(10);
-    # TODO: How can I make this into a map? Alternatively, how can I do this better?
     raw_data: Data(depth)[self.num_elements * 2];
-
-    # TODO: This is broken. See https://github.com/zeek/spicy/issues/2061
-    #    var key_val_pairs: vector<tuple<Data, Data>>;
-    #    on raw_data {
-    #        while (local i = 0; i < self.num_elements) {
-    #            self.key_val_pairs.push_back(($$[i], $$[i + 1]));
-    #            i += 2;
-    #        }
-    #    }
 };
 
 type Set = unit(depth: uint8&) {
     num_elements: RedisBytes &convert=$$.to_uint(10) &requires=self.num_elements <= MAX_SIZE;
-    # TODO: This should be a set but doesn't go in the backed C++ set
     elements: Data(depth)[self.num_elements];
 };
 

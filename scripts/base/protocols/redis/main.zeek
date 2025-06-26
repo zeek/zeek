@@ -74,17 +74,17 @@ export {
 	option max_pending_commands = 10000;
 
 	# These commands enter subscribed mode
-	global enter_subscribed_mode = [KnownCommand_PSUBSCRIBE,
-	    KnownCommand_SSUBSCRIBE, KnownCommand_SUBSCRIBE];
+	global enter_subscribed_mode = [RedisCommand_PSUBSCRIBE,
+	    RedisCommand_SSUBSCRIBE, RedisCommand_SUBSCRIBE];
 
 	# These commands exit subscribed mode
-	global exit_subscribed_mode = [KnownCommand_RESET, KnownCommand_QUIT];
+	global exit_subscribed_mode = [RedisCommand_RESET, RedisCommand_QUIT];
 
 	# These commands don't expect a response (ever) - their replies are out of band.
-	global no_response_commands = [KnownCommand_PSUBSCRIBE,
-	    KnownCommand_PUNSUBSCRIBE, KnownCommand_SSUBSCRIBE,
-	    KnownCommand_SUBSCRIBE, KnownCommand_SUNSUBSCRIBE,
-	    KnownCommand_UNSUBSCRIBE];
+	global no_response_commands = [RedisCommand_PSUBSCRIBE,
+	    RedisCommand_PUNSUBSCRIBE, RedisCommand_SSUBSCRIBE,
+	    RedisCommand_SUBSCRIBE, RedisCommand_SUNSUBSCRIBE,
+	    RedisCommand_UNSUBSCRIBE];
 }
 
 redef record connection += {
@@ -147,7 +147,7 @@ function is_last_interval_closed(c: connection): bool
 	    c$redis_state$no_reply_ranges[-1]?$end;
 	}
 
-event Redis::hello_command(c: connection, hello: HelloCommand)
+event hello_command(c: connection, hello: HelloCommand)
 	{
 	if ( ! c?$redis_state )
 		make_new_state(c);
@@ -156,7 +156,7 @@ event Redis::hello_command(c: connection, hello: HelloCommand)
 		c$redis_state$resp_version = RESP3;
 	}
 
-event Redis::command(c: connection, cmd: Command)
+event command(c: connection, cmd: Command)
 	{
 	if ( ! c?$redis_state )
 		make_new_state(c);
@@ -196,7 +196,7 @@ event Redis::command(c: connection, cmd: Command)
 	# CLIENT commands can skip a number of replies and may be used with
 	# pipelining. We need special logic in order to track the command/reply
 	# pairs.
-	if ( cmd?$known && cmd$known == KnownCommand_CLIENT )
+	if ( cmd?$known && cmd$known == RedisCommand_CLIENT )
 		{
 		# All 3 CLIENT commands we care about have 3 elements
 		if ( |cmd$raw| == 3 )
@@ -291,11 +291,12 @@ function log_from(c: connection, previous_reply_num: count)
 		}
 	}
 
-event Redis::reply(c: connection, data: ReplyData)
+event reply(c: connection, data: ReplyData)
 	{
 	if ( ! c?$redis_state )
 		make_new_state(c);
 
+	# If the server is talking in RESP3, mark accordingly, even if we didn't see HELLO
 	if ( data$min_protocol_version == 3 )
 		{
 		c$redis_state$resp_version = RESP3;
@@ -307,6 +308,7 @@ event Redis::reply(c: connection, data: ReplyData)
 		event server_push(c, data);
 		return;
 		}
+
 	local previous_reply_num = c$redis_state$current_reply;
 	c$redis_state$current_reply = reply_num(c);
 	set_state(c, F);
@@ -320,7 +322,7 @@ event Redis::reply(c: connection, data: ReplyData)
 		clear_table(c$redis_state$skip_commands);
 	}
 
-event Redis::error(c: connection, data: ReplyData)
+event error(c: connection, data: ReplyData)
 	{
 	if ( ! c?$redis_state )
 		make_new_state(c);

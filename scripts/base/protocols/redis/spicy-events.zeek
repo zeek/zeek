@@ -55,7 +55,7 @@ export {
 		## The value, if this command is known to have a value
 		value: string &log &optional;
 		## The command in an enum if it was known
-		known: KnownCommand &optional;
+		known: RedisCommand &optional;
 	};
 
 	## A generic Redis reply from the client.

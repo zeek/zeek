@@ -7,7 +7,7 @@ protocol analyzer Redis over TCP:
 import RESP;
 import Redis;
 
-export Redis::KnownCommand;
+export Redis::RedisCommand;
 
 on RESP::ClientData if ( Redis::is_set(self) ) -> event Redis::set_command($conn, Redis::make_set(self.command));
 on RESP::ClientData if ( Redis::is_get(self) ) -> event Redis::get_command($conn, Redis::make_get(self.command).key);

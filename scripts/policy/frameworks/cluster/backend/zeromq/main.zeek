@@ -257,6 +257,10 @@ function zeromq_nodeid_topic(id: string): string {
 	return nodeid_topic_prefix + "." + id + ".";
 }
 
+redef Cluster::Telemetry::topic_normalizations += {
+	[/^zeek\.cluster\.nodeid\..*/] = "zeek.cluster.nodeid.__normalized__",
+};
+
 # Unique identifier for this node with some debug information.
 const my_node_id = fmt("zeromq_%s_%s_%s_%s",  Cluster::node, gethostname(), getpid(), unique_id("N"));
 

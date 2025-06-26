@@ -189,15 +189,22 @@ std::string Specific_RE_Matcher::LookupDef(const std::string& def) {
     return {};
 }
 
-bool Specific_RE_Matcher::MatchAll(const char* s) { return MatchAll((const u_char*)(s), strlen(s)); }
+bool Specific_RE_Matcher::MatchAll(const char* s) { return MatchAll(std::string_view{s}); }
 
 bool Specific_RE_Matcher::MatchAll(const String* s) {
     // s->Len() does not include '\0'.
     return MatchAll(s->Bytes(), s->Len());
 }
+bool Specific_RE_Matcher::MatchAll(std::string_view sv) {
+    return MatchAll(reinterpret_cast<const u_char*>(sv.data()), sv.size());
+}
 
 bool Specific_RE_Matcher::MatchSet(const String* s, std::vector<AcceptIdx>& matches) {
     return MatchAll(s->Bytes(), s->Len(), &matches);
+}
+
+bool Specific_RE_Matcher::MatchSet(std::string_view sv, std::vector<AcceptIdx>& matches) {
+    return MatchAll(reinterpret_cast<const u_char*>(sv.data()), sv.size(), &matches);
 }
 
 int Specific_RE_Matcher::Match(const char* s) { return Match((const u_char*)(s), strlen(s)); }

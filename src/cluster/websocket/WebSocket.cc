@@ -303,7 +303,6 @@ void WebSocketEventDispatcher::Process(const WebSocketOpen& open) {
     });
 
     if ( ! good_application_name ) {
-        QueueReply(WebSocketCloseReply{wsc, 1001, "Internal error"});
         open.wsc->SendError("invalid_application_name", "Invalid X-Application-Name");
         open.wsc->Close(1008, "Invalid X-Application-Name");
 

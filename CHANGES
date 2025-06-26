@@ -1,3 +1,11 @@
+8.0.0-dev.538 | 2025-06-26 09:58:39 +0100
+
+  * Only pass session ticket data in ssl_session_ticket_handshake event (Johanna Amann, Corelight)
+
+    This commit fixes the parsing of the data field in the SSL analyzer. So
+    far, this field contained two extra bytes at the beginning, which
+    contain the length of the following data.
+
 8.0.0-dev.535 | 2025-06-25 19:27:01 +0200
 
   * Update zeek.bif (bhaskarbhar)

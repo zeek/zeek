@@ -70,6 +70,11 @@ Breaking Changes
   on the host machine. We haven't heard from anyone that this is the case with the
   arguments in their currently-broken state.
 
+- The parsing of data for the ``ssl_session_ticket_handshake`` event was fixed.
+  In the past, the data contained two extra bytes before the session ticket
+  data. The event now contains only the session ticket data. You might have to
+  adjust your scripts if you manually worked around this bug in the past.
+
 New Functionality
 -----------------
 

@@ -101,6 +101,29 @@ New Functionality
   implementation in the ``src/packet_analysis/protocol/ip/conn_key/vlan_fivetuple``
   directory for an example.
 
+- Cluster telemetry improvements. Zeek now exposes a configurable number of
+  metrics regarding outgoing and incoming cluster events. By default, the number
+  of events sent and received by a Zeek cluster node and any attached WebSocket
+  clients is tracked as four individual counters. It's possible to gather more
+  detailed information by adding ``Cluster::Telemetry::VERBOSE`` and
+  ``Cluster::Telemetry::DEBUG`` to the variables ``Cluster::core_metrics`` and
+  ``Cluster::webscoket_metrics``:
+
+	redef Cluster::core_metrics += { Cluster::Telemetry::VERBOSE };
+	redef Cluster::websocket_metrics += { Cluster::Telemetry::DEBUG };
+
+  Configuring verbose, adds metrics that are labeled with the event handler
+  and topic name. Configuring debug, uses histogram metrics to additionally track
+  the distribution of the serialized event size. Additionally, when debug is selected,
+  outgoing events are labeled with the script location from where they were published.
+
+- Support for the X-Application-Name HTTP header was added to the WebSocket API at
+  ``v1/messages/json``. A WebSocket application connecting to Zeek may set the
+  X-Application-Name header to a descriptive identifier. The value of this header
+  will be added to the cluster metrics as ``app`` label. This allows to gather
+  incoming and outgoing event metrics of a specific WebSocket application, simply
+  by setting the X-Application-Name header.
+
 - Generic event metadata support. A new ``EventMetadata`` module was added allowing
   to register generic event metadata types and accessing the current event's metadata
   using the functions ``current()`` and ``current_all()`` of this module.

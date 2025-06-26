@@ -1,3 +1,25 @@
+8.0.0-dev.546 | 2025-06-26 14:30:37 +0200
+
+  * btest/cluster/telemetry: Add smoke testing for telemetry (Arne Welzel, Corelight)
+
+  * cluster/WebSocket: Fetch X-Application-Name header as app label (Arne Welzel, Corelight)
+
+  * cluster/WebSocket: Pass X-Application-Name to dispatcher (Arne Welzel, Corelight)
+
+    This is going to be used to add labels to telemetry if the
+    X-Application-Name header is set.
+
+  * broker/WebSocketShim: Add calls to Telemetry hooks (Arne Welzel, Corelight)
+
+    WebSocket clients with Broker do not use the normal Broker backend, so
+    we need to add the telemetry invocations explicitly.
+
+  * cluster/WebSocket: Configure telemetry for WebSocket backends (Arne Welzel, Corelight)
+
+  * broker: Hook up generic cluster telemetry (Arne Welzel, Corelight)
+
+  * cluster: Introduce telemetry component (Arne Welzel, Corelight)
+
 8.0.0-dev.538 | 2025-06-26 09:58:39 +0100
 
   * Only pass session ticket data in ssl_session_ticket_handshake event (Johanna Amann, Corelight)

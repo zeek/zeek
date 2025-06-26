@@ -16,6 +16,7 @@
 #include "zeek/cluster/Manager.h"
 #include "zeek/cluster/OnLoop.h"
 #include "zeek/cluster/Serializer.h"
+#include "zeek/cluster/Telemetry.h"
 #include "zeek/cluster/cluster.bif.h"
 #include "zeek/logging/Manager.h"
 #include "zeek/plugin/Manager.h"
@@ -128,6 +129,9 @@ Backend::Backend(std::string_view arg_name, std::unique_ptr<EventSerializer> es,
     tag = zeek::cluster::manager->Backends().GetComponentTag(name);
     if ( ! tag )
         reporter->InternalError("unknown cluster backend name '%s'; mismatch with tag component?", name.c_str());
+
+    // No telemetry by default.
+    telemetry = std::make_unique<detail::NullTelemetry>();
 }
 
 bool Backend::Init(std::string nid) {
@@ -185,6 +189,8 @@ bool Backend::DoPublishEvent(const std::string& topic, cluster::detail::Event& e
     if ( ! event_serializer->SerializeEvent(buf, event) )
         return false;
 
+    Telemetry().OnOutgoingEvent(topic, event.HandlerName(), detail::SerializationInfo{buf.size()});
+
     return DoPublishEvent(topic, event_serializer->Name(), buf);
 }
 
@@ -226,6 +232,8 @@ bool Backend::ProcessEventMessage(std::string_view topic, std::string_view forma
         zeek::reporter->Error("Failed to unserialize message: %s: %s", std::string{topic}.c_str(), escaped.c_str());
         return false;
     }
+
+    Telemetry().OnIncomingEvent(topic, r->HandlerName(), detail::SerializationInfo{payload.size()});
 
     return ProcessEvent(topic, std::move(*r));
 }

@@ -60,7 +60,12 @@ export {
 
 	## A generic Redis reply from the client.
 	type ReplyData: record {
-		value: string &log &optional;
+		## The RESP3 attributes applied to this, if any
+		attributes: string &optional;
+		## The string version of the reply data
+		value: string &log;
+		## The minimum RESP version that supports this reply type
+		min_protocol_version: count;
 	};
 }
 

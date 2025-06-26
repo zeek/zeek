@@ -89,6 +89,15 @@ public type ServerData = unit {
 type Data = unit(depth: uint8&) {
     %synchronize-after = b"\x0d\x0a";
     ty: uint8 &convert=DataType($$);
+
+    # Attributes are special, they precede the actual data
+    if (self.ty == DataType::ATTRIBUTE) {
+        attributes: Map(depth);
+        : uint8 &convert=DataType($$) {
+            self.ty = $$;
+        }
+    };
+
     switch (self.ty) {
         DataType::SIMPLE_STRING -> simple_string: SimpleString(False);
         DataType::SIMPLE_ERROR -> simple_error: SimpleString(True);
@@ -135,6 +144,7 @@ type DataType = enum {
     BULK_ERROR = '!',
     VERBATIM_STRING = '=',
     MAP = '%',
+    ATTRIBUTE = '|',
     SET = '~',
     PUSH = '>',
 };

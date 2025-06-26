@@ -13,5 +13,5 @@
 event Redis::server_push(c: connection, data: Redis::ReplyData)
 	{
 	# The first 2 are SUBSCRIBE replies, the other 3 are message and pmessage
-	print "Got published data!", data;
+	print "Got published data!", data$value;
 	}

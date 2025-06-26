@@ -49,6 +49,8 @@ public:
      */
     zeek::storage::OperationResult DoErase(zeek::storage::ResultCallback* cb, zeek::ValPtr key) override;
 
+    std::string DoGetConfigMetricsLabel() const override;
+
 private:
     std::map<zeek::byte_buffer, zeek::byte_buffer> data;
     bool open = false;

@@ -29,4 +29,7 @@ export {
 		## backend.
 		expire_time: interval &default=0sec;
 	};
+
+	# The histogram buckets to use for operation latency metrics, in seconds.
+	const latency_metric_bounds: vector of double = { 0.001, 0.01, 0.1, 1.0, } &redef;
 }

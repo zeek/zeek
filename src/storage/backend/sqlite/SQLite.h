@@ -34,6 +34,7 @@ private:
     OperationResult DoGet(ResultCallback* cb, ValPtr key) override;
     OperationResult DoErase(ResultCallback* cb, ValPtr key) override;
     void DoExpire(double current_network_time) override;
+    std::string DoGetConfigMetricsLabel() const override;
 
     /**
      * Checks whether a status code returned by an sqlite call is a success.

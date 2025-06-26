@@ -27,7 +27,7 @@ public:
      *
      * @return The debugging name.
      */
-    const char* Tag() override { return tag_str.c_str(); }
+    const char* Tag() override { return Backend::Tag(); }
 
     // IOSource interface
     double GetNextTimeout() override { return -1; }
@@ -61,6 +61,7 @@ private:
     OperationResult DoErase(ResultCallback* cb, ValPtr key) override;
     void DoExpire(double current_network_time) override;
     void DoPoll() override;
+    std::string DoGetConfigMetricsLabel() const override;
 
     OperationResult ParseReplyError(std::string_view op_str, std::string_view reply_err_str) const;
     OperationResult CheckServerVersion();

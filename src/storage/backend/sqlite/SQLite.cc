@@ -12,6 +12,7 @@
 #include "zeek/Func.h"
 #include "zeek/Val.h"
 #include "zeek/storage/ReturnCode.h"
+#include "zeek/telemetry/Counter.h"
 
 #include "const.bif.netvar_h"
 
@@ -74,6 +75,11 @@ OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::stri
 }
 
 storage::BackendPtr SQLite::Instantiate() { return make_intrusive<SQLite>(); }
+
+std::string SQLite::DoGetConfigMetricsLabel() const {
+    std::string tag = util::fmt("%s-%s", full_path.c_str(), table_name.c_str());
+    return tag;
+}
 
 /**
  * Called by the manager system to open the backend.
@@ -362,6 +368,8 @@ OperationResult SQLite::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool
                 step_result.code = ReturnCode::KEY_EXISTS;
         }
 
+    IncBytesWrittenMetric(val_data->size());
+
     return step_result;
 }
 
@@ -391,6 +399,7 @@ OperationResult SQLite::DoGet(ResultCallback* cb, ValPtr key) {
     auto value_parser = [this](sqlite3_stmt* stmt) -> OperationResult {
         auto blob = static_cast<const std::byte*>(sqlite3_column_blob(stmt, 0));
         size_t blob_size = sqlite3_column_bytes(stmt, 0);
+        IncBytesReadMetric(blob_size);
 
         auto val = serializer->Unserialize({blob, blob_size}, val_type);
 
@@ -529,6 +538,11 @@ void SQLite::DoExpire(double current_network_time) {
         DBG_LOG(DBG_STORAGE, "%s", err.c_str());
         Error(err.c_str());
     }
+
+    // Get the number of changes from the delete statement. This should be identical to the num_to_expire
+    // value earlier because we're under a transaction, but this should be the exact number that changed.
+    int changes = sqlite3_changes(db);
+    IncExpiredEntriesMetric(changes);
 
     sqlite3_exec(expire_db, "commit transaction", nullptr, nullptr, &errMsg);
     sqlite3_free(errMsg);

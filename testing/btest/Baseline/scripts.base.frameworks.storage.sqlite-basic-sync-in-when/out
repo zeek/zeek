@@ -4,3 +4,9 @@ put result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<uninitiali
 get result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=value5678]
 get result same as inserted, T
 closed succesfully
+Storage::backend_opened, Storage::STORAGE_BACKEND_SQLITE, [serializer=Storage::STORAGE_SERIALIZER_JSON, sqlite=[database_path=test.sqlite, table_name=testing, busy_timeout=5.0 secs, pragma_commands={
+[integrity_check] = ,
+[journal_mode] = WAL,
+[synchronous] = normal,
+[temp_store] = memory
+}, pragma_timeout=500.0 msecs, pragma_wait_on_busy=5.0 msecs]]

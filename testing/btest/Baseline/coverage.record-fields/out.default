@@ -589,7 +589,7 @@ connection {
         * cmd: record Redis::Command, log=T, optional=F
             Redis::Command {
               * key: string, log=T, optional=T
-              * known: enum Redis::KnownCommand, log=F, optional=T
+              * known: enum Redis::RedisCommand, log=F, optional=T
               * name: string, log=T, optional=F
               * raw: vector of string, log=F, optional=F
               * value: string, log=T, optional=T

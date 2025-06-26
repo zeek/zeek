@@ -246,6 +246,16 @@ constexpr char REQUIRED_VERSION[] = "6.2.0";
 
 storage::BackendPtr Redis::Instantiate() { return make_intrusive<Redis>(); }
 
+std::string Redis::MetricsTag() const {
+    std::string tag = util::fmt("redis-%s-%s", server_addr.c_str(), key_prefix.c_str());
+    std::transform(tag.begin(), tag.end(), tag.begin(), [](unsigned char c) -> char {
+        if ( ! std::isalnum(c) )
+            return '-';
+        return c;
+    });
+    return tag;
+}
+
 /**
  * Called by the manager system to open the backend.
  */

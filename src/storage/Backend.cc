@@ -8,8 +8,31 @@
 #include "zeek/storage/Manager.h"
 #include "zeek/storage/ReturnCode.h"
 #include "zeek/storage/storage-events.bif.h"
+#include "zeek/telemetry/Counter.h"
+#include "zeek/telemetry/Histogram.h"
+#include "zeek/telemetry/Manager.h"
 
 namespace zeek::storage {
+
+namespace detail {
+
+struct OperationMetrics {
+    telemetry::CounterPtr success;
+    telemetry::CounterPtr fail;
+    telemetry::CounterPtr timeouts;
+    telemetry::HistogramPtr latency;
+
+    OperationMetrics(const telemetry::CounterFamilyPtr& success_family, const telemetry::CounterFamilyPtr& fail_family,
+                     const telemetry::CounterFamilyPtr& timeout_family,
+                     const telemetry::HistogramFamilyPtr& latency_family, std::string_view operation_type,
+                     std::string_view tag)
+        : success(success_family->GetOrAdd({{"operation", operation_type}, {"tag", tag}})),
+          fail(fail_family->GetOrAdd({{"operation", operation_type}, {"tag", tag}})),
+          timeouts(timeout_family->GetOrAdd({{"operation", operation_type}, {"tag", tag}})),
+          latency(latency_family->GetOrAdd({{"operation", operation_type}, {"tag", tag}})) {}
+};
+
+} // namespace detail
 
 RecordValPtr OperationResult::BuildVal() { return MakeVal(code, err_str, value); }
 
@@ -32,9 +55,22 @@ ResultCallback::ResultCallback(zeek::detail::trigger::TriggerPtr trigger, const 
 void ResultCallback::Timeout() {
     if ( ! IsSyncCallback() )
         trigger->Cache(assoc, OperationResult::MakeVal(ReturnCode::TIMEOUT).get());
+
+    if ( metrics )
+        metrics->timeouts->Inc();
 }
 
 void ResultCallback::Complete(OperationResult res) {
+    if ( metrics ) {
+        if ( res.code == ReturnCode::SUCCESS )
+            metrics->success->Inc();
+        else
+            metrics->fail->Inc();
+
+        // Store the latency between start and completion in milliseconds.
+        metrics->latency->Observe((util::current_time() - start_time) * 1000);
+    }
+
     // If this is a sync callback, there isn't a trigger to process. Store the result and bail.
     if ( IsSyncCallback() ) {
         result = std::move(res);
@@ -44,6 +80,11 @@ void ResultCallback::Complete(OperationResult res) {
     auto res_val = res.BuildVal();
     trigger->Cache(assoc, res_val.get());
     trigger->Release();
+}
+
+void ResultCallback::InitMetrics(detail::OperationMetrics* m) {
+    metrics = m;
+    start_time = util::current_time();
 }
 
 OpenResultCallback::OpenResultCallback(IntrusivePtr<detail::BackendHandleVal> backend)
@@ -70,6 +111,12 @@ Backend::Backend(uint8_t modes, std::string_view tag_name) : modes(modes) {
     tag_str = zeek::obj_desc_short(tag.AsVal().get());
 }
 
+Backend::~Backend() {
+    delete put_metrics;
+    delete get_metrics;
+    delete erase_metrics;
+}
+
 OperationResult Backend::Open(OpenResultCallback* cb, RecordValPtr options, TypePtr kt, TypePtr vt) {
     key_type = std::move(kt);
     val_type = std::move(vt);
@@ -88,12 +135,17 @@ OperationResult Backend::Open(OpenResultCallback* cb, RecordValPtr options, Type
     if ( ! ret.value )
         ret.value = cb->Backend();
 
+    if ( ret.code == ReturnCode::SUCCESS )
+        InitMetrics();
+
     return ret;
 }
 
 OperationResult Backend::Close(ResultCallback* cb) { return DoClose(cb); }
 
 OperationResult Backend::Put(ResultCallback* cb, ValPtr key, ValPtr value, bool overwrite, double expiration_time) {
+    cb->InitMetrics(put_metrics);
+
     // The intention for this method is to do some other heavy lifting in regard
     // to backends that need to pass data through the manager instead of directly
     // through the workers. For the first versions of the storage framework it
@@ -113,6 +165,8 @@ OperationResult Backend::Put(ResultCallback* cb, ValPtr key, ValPtr value, bool 
 }
 
 OperationResult Backend::Get(ResultCallback* cb, ValPtr key) {
+    cb->InitMetrics(get_metrics);
+
     // See the note in Put().
     if ( ! same_type(key->GetType(), key_type) ) {
         auto ret = OperationResult{ReturnCode::KEY_TYPE_MISMATCH};
@@ -124,6 +178,8 @@ OperationResult Backend::Get(ResultCallback* cb, ValPtr key) {
 }
 
 OperationResult Backend::Erase(ResultCallback* cb, ValPtr key) {
+    cb->InitMetrics(erase_metrics);
+
     // See the note in Put().
     if ( ! same_type(key->GetType(), key_type) ) {
         auto ret = OperationResult{ReturnCode::KEY_TYPE_MISMATCH};
@@ -149,6 +205,26 @@ void Backend::EnqueueBackendOpened() { event_mgr.Enqueue(Storage::backend_opened
 
 void Backend::EnqueueBackendLost(std::string_view reason) {
     event_mgr.Enqueue(Storage::backend_lost, tag.AsVal(), backend_options, make_intrusive<StringVal>(reason));
+}
+
+void Backend::InitMetrics() {
+    auto success_family = telemetry_mgr->CounterFamily("zeek", "storage_operation_success", {"operation", "tag"},
+                                                       "Successful Storage Operations");
+    auto fail_family = telemetry_mgr->CounterFamily("zeek", "storage_operation_failed", {"operation", "tag"},
+                                                    "Failed Storage Operations");
+    auto timeout_family = telemetry_mgr->CounterFamily("zeek", "storage_operation_timeout", {"operation", "tag"},
+                                                       "Timeouted Storage Operations");
+
+    double bounds[] = {1.0, 10.0, 100.0};
+    auto latency_family = telemetry_mgr->HistogramFamily("zeek", "storage_operation_latency", {"operation", "tag"},
+                                                         bounds, "Storage Operation Latency", "milliseconds");
+
+    put_metrics =
+        new detail::OperationMetrics(success_family, fail_family, timeout_family, latency_family, "put", MetricsTag());
+    get_metrics =
+        new detail::OperationMetrics(success_family, fail_family, timeout_family, latency_family, "get", MetricsTag());
+    erase_metrics = new detail::OperationMetrics(success_family, fail_family, timeout_family, latency_family, "erase",
+                                                 MetricsTag());
 }
 
 zeek::OpaqueTypePtr detail::backend_opaque;

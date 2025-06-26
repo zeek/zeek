@@ -26,7 +26,9 @@ public:
      *
      * @return The debugging name.
      */
-    const char* Tag() override { return tag_str.c_str(); }
+    const char* Tag() override { return Backend::Tag(); }
+
+    std::string MetricsTag() const override;
 
     // IOSource interface
     double GetNextTimeout() override { return -1; }

@@ -127,28 +127,41 @@ void VerboseTelemetry::OnIncomingEvent(std::string_view topic, std::string_view 
 
 namespace {
 
-std::string determine_script_location() {
-    std::string result = "none";
+// Cache CallExpr pointers to their location.
+std::map<const zeek::detail::CallExpr*, std::string> location_cache;
 
-    if ( zeek::detail::call_stack.empty() )
-        return result;
-
+// Cached lookup of a script location.
+std::string_view determine_script_location() {
     ssize_t sidx = static_cast<ssize_t>(zeek::detail::call_stack.size()) - 1;
-
     while ( sidx >= 0 ) {
         const auto* func = zeek::detail::call_stack[sidx].func;
         const auto* ce = zeek::detail::call_stack[sidx].call;
 
-        // without_zeekpath_component looks pretty expensive and might be
-        // better to cache the result using the ce pointer instead of computing
-        // it over and over again.
+        // Cached?
+        auto it = location_cache.find(ce);
+        if ( it != location_cache.end() )
+            return it->second;
+
+        // Future: Ignore wrapper functions if we ever come across some.
+        // We only care about Broker::publish() and Cluster::publish() and
+        // these aren't wrapped, so currently nothing to do here.
+        //
+        // if ( ignore func ) {
+        //     --sidx;
+        //      continue;
+        // }
+
         const auto* loc = ce->GetLocationInfo();
         std::string normalized_location = zeek::util::detail::without_zeekpath_component(loc->filename);
-        result = normalized_location + ":" + std::to_string(loc->first_line);
-        break;
+        normalized_location = normalized_location + ":" + std::to_string(loc->first_line);
+
+        bool inserted = false;
+        std::tie(it, inserted) = location_cache.emplace(ce, std::move(normalized_location));
+        assert(inserted);
+        return it->second;
     }
 
-    return result;
+    return "none";
 }
 
 } // namespace
@@ -194,11 +207,10 @@ DebugTelemetry::DebugTelemetry(TopicNormalizer topic_normalizer, std::string_vie
 void DebugTelemetry::OnOutgoingEvent(std::string_view topic, std::string_view handler_name,
                                      const SerializationInfo& info) {
     auto normalized_topic = topic_normalizer(topic);
-    std::string script_location = determine_script_location();
 
     labels_view[topic_idx].second = normalized_topic;
     labels_view[handler_idx].second = handler_name;
-    labels_view[script_location_idx].second = script_location;
+    labels_view[script_location_idx].second = determine_script_location();
 
     const auto& hist = out->GetOrAdd(labels_view);
     hist->Observe(static_cast<double>(info.Size()));

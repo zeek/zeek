@@ -430,36 +430,78 @@ function bulk_string_content(bulk: RESP::BulkString): bytes {
 }
 
 # Returns the bytes string value of this, or Null if it cannot.
-function stringify(data: RESP::Data): optional<bytes> {
-    if (data?.simple_error)
-        return data.simple_error.content;
-    else if (data?.bulk_error)
-        return bulk_string_content(data.bulk_error);
-    else if (data?.simple_string)
+function stringify(data: RESP::Data): bytes {
+    if (data?.simple_string)
         return data.simple_string.content;
+    else if (data?.simple_error)
+        return data.simple_error.content;
+    else if (data?.integer)
+        return data.integer.val;
     else if (data?.bulk_string)
         return bulk_string_content(data.bulk_string);
-    else if (data?.verbatim_string)
-        return bulk_string_content(data.verbatim_string);
-    else if (data?.boolean)
-        return data.boolean.val ? b"T" : b"F";
-    else if (data?.array || data?.push) {
+    else if (data?.array) {
         local res = b"[";
         local first = True;
-        for (ele in data?.array ? data.array.elements : data.push.elements) {
+        for (ele in data.array.elements) {
             if (!first)
                 res += b", ";
-            local ele_stringified = stringify(ele);
-            if (!ele_stringified)
-                return Null;
-            res += *ele_stringified;
+            res += stringify(ele);
+            first = False;
+        }
+        res += b"]";
+        return res;
+    } else if (data?.null)
+        return b"null";
+    else if (data?.boolean)
+        return data.boolean.val ? b"T" : b"F";
+    else if (data?.double)
+        return data.double.val;
+    else if (data?.big_num)
+        return data.big_num.val;
+    else if (data?.bulk_error)
+        return bulk_string_content(data.bulk_error);
+    else if (data?.verbatim_string)
+        return bulk_string_content(data.verbatim_string);
+    else if (data?.map_) {
+        local res = b"{";
+        local first = True;
+        local i = 0;
+        while (i < data.map_.num_elements) {
+            if (!first)
+                res += b", ";
+            res += stringify(data.map_.raw_data[i]);
+            res += b": ";
+            res += stringify(data.map_.raw_data[i + 1]);
+            i += 2;
+            first = False;
+        }
+        res += b"}";
+        return res;
+    } else if (data?.set_) {
+        local res = b"(";
+        local first = True;
+        for (ele in data.set_.elements) {
+            if (!first)
+                res += b", ";
+            res += stringify(ele);
+            first = False;
+        }
+        res += b")";
+        return res;
+    } else if (data?.push) {
+        local res = b"[";
+        local first = True;
+        for (ele in data.push.elements) {
+            if (!first)
+                res += b", ";
+            res += stringify(ele);
             first = False;
         }
         res += b"]";
         return res;
     }
 
-    return Null;
+    throw "unknown RESP type";
 }
 
 # Gets the server reply in a simpler form

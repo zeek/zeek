@@ -149,7 +149,7 @@ type SimpleString = unit(is_error: bool) {
 };
 
 type Integer = unit {
-    int: RedisBytes &convert=$$.to_int(10);
+    val: RedisBytes;
 };
 
 type BulkString = unit(is_error: bool) {
@@ -178,11 +178,10 @@ type Boolean = unit {
 };
 
 type Double = unit {
-    val: RedisBytes &convert=$$.to_real();
+    val: RedisBytes;
 };
 
 type BigNum = unit {
-    # Big num can be very big so leave it in bytes.
     val: RedisBytes;
 };
 

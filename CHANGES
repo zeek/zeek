@@ -1,3 +1,14 @@
+8.0.0-dev.551 | 2025-06-26 20:21:31 +0100
+
+  * Spicy SSL analyzer: make record layer version parsing more strict (Johanna Amann, Corelight)
+
+    The Spicy based SSL analyzer was, so far, more permissive with the
+    record layer versions that it would accept.
+
+    This change brings the parsing of record layer versions in line with the
+    binpac based analyzer. This behavioral difference was discovered due to
+    a test that changed with the recent dpd log changes.
+
 8.0.0-dev.548 | 2025-06-26 18:49:31 +0200
 
   * extend script coverage profiling to track whether conditionals evaluate to true/false (Vern Paxson, Corelight)

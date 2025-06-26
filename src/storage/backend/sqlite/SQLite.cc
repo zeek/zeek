@@ -61,6 +61,16 @@ OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::stri
 
 storage::BackendPtr SQLite::Instantiate() { return make_intrusive<SQLite>(); }
 
+std::string SQLite::GetConfigForMetrics() const {
+    std::string tag = util::fmt("%s-%s", full_path.c_str(), table_name.c_str());
+    std::transform(tag.begin(), tag.end(), tag.begin(), [](unsigned char c) -> char {
+        if ( ! std::isalnum(c) )
+            return '-';
+        return c;
+    });
+    return tag;
+}
+
 /**
  * Called by the manager system to open the backend.
  */

@@ -24,6 +24,8 @@ public:
      */
     bool IsOpen() override { return db != nullptr; }
 
+    std::string GetConfigForMetrics() const override;
+
 private:
     OperationResult DoOpen(OpenResultCallback* cb, RecordValPtr options) override;
     OperationResult DoClose(ResultCallback* cb) override;

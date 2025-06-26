@@ -177,7 +177,8 @@ type NameType = enum {
 #   anonymous = 0, rsa= 1, dsa= 2, ecdsa= 3
 # };
 
-const UNKNOWN_VERSION: uint16 = 0x0000;
+# UNKNOWN_VERSION is outside the 16-bit range of real possible versions
+const UNKNOWN_VERSION: uint32 = 0xFFFF0000;
 const SSLv2 = 0x0002;
 const SSLv3 = 0x0300;
 const TLSv10 = 0x0301;
@@ -567,7 +568,7 @@ type Share = unit {
     # version as seen in server_hello (for signature and hash-alg choice)
     var chosen_version_sh_outer: uint16;
     # final negotiated version - can e.g. be used to distinguished tls 1.3
-    var negotiated_version: uint16;
+    var negotiated_version: uint32 = UNKNOWN_VERSION;
     # set to true if chosen version is identified as a tls 1.3 version
     var tls_13: bool;
     var chosen_cipher: uint16;
@@ -660,7 +661,7 @@ public type Message = unit {
 
     sink handshakesink;
     sink alertsink;
-    var record_version: uint16;
+    var record_version: uint32;
     var dtls: bool = False;
     var partial: bool = False;
     var first_packet: bool = True; # needed for SSLv2, which sadly is quite stateful.

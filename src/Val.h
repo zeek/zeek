@@ -4,6 +4,8 @@
 
 #include <sys/types.h> // for u_char
 #include <array>
+#include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -897,6 +899,11 @@ public:
     // the given string.
     // Causes an internal error if called for any other kind of table.
     VectorValPtr LookupPattern(const StringValPtr& s);
+
+    // For a table[pattern], return a vector of all yields matching
+    // the given string.
+    // Causes an internal error if called for any other kind of table.
+    VectorValPtr LookupPattern(std::string_view sv);
 
     // For a table[pattern] or set[pattern], returns True if any of the
     // patterns in the index matches the given string, else False.

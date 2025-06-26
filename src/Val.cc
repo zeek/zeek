@@ -1573,10 +1573,10 @@ public:
 
     void Clear() { matcher.reset(); }
 
-    VectorValPtr Lookup(const StringValPtr& s);
+    VectorValPtr Lookup(std::string_view sv);
 
     // Delegate to matcher->MatchAll().
-    bool MatchAll(const StringValPtr& s);
+    bool MatchAll(std::string_view sv);
 
     void GetStats(detail::DFA_State_Cache_Stats* stats) const {
         if ( matcher && matcher->DFA() )
@@ -1606,7 +1606,7 @@ private:
     std::vector<ValPtr> matcher_yields;
 };
 
-VectorValPtr detail::TablePatternMatcher::Lookup(const StringValPtr& s) {
+VectorValPtr detail::TablePatternMatcher::Lookup(std::string_view sv) {
     auto results = make_intrusive<VectorVal>(vtype);
 
     if ( ! matcher ) {
@@ -1617,7 +1617,7 @@ VectorValPtr detail::TablePatternMatcher::Lookup(const StringValPtr& s) {
     }
 
     std::vector<AcceptIdx> matches;
-    matcher->MatchSet(s->AsString(), matches);
+    matcher->MatchSet(sv, matches);
 
     for ( auto m : matches )
         results->Append(matcher_yields[m]);
@@ -1625,7 +1625,7 @@ VectorValPtr detail::TablePatternMatcher::Lookup(const StringValPtr& s) {
     return results;
 }
 
-bool detail::TablePatternMatcher::MatchAll(const StringValPtr& s) {
+bool detail::TablePatternMatcher::MatchAll(std::string_view sv) {
     if ( ! matcher ) {
         if ( tbl->Get()->Length() == 0 )
             return false;
@@ -1633,7 +1633,7 @@ bool detail::TablePatternMatcher::MatchAll(const StringValPtr& s) {
         Build();
     }
 
-    return matcher->MatchAll(s->AsString());
+    return matcher->MatchAll(sv);
 }
 
 void detail::TablePatternMatcher::Build() {
@@ -2182,18 +2182,20 @@ TableValPtr TableVal::LookupSubnetValues(const SubNetVal* search) {
     return nt;
 }
 
-VectorValPtr TableVal::LookupPattern(const StringValPtr& s) {
+VectorValPtr TableVal::LookupPattern(const StringValPtr& s) { return LookupPattern(s->ToStdStringView()); }
+
+VectorValPtr TableVal::LookupPattern(std::string_view sv) {
     if ( ! pattern_matcher || ! GetType()->Yield() )
         reporter->InternalError("LookupPattern called on wrong table type");
 
-    return pattern_matcher->Lookup(s);
+    return pattern_matcher->Lookup(sv);
 }
 
 bool TableVal::MatchPattern(const StringValPtr& s) {
     if ( ! pattern_matcher )
         reporter->InternalError("LookupPattern called on wrong table type");
 
-    return pattern_matcher->MatchAll(s);
+    return pattern_matcher->MatchAll(s->ToStdStringView());
 }
 
 void TableVal::GetPatternMatcherStats(detail::DFA_State_Cache_Stats* stats) const {

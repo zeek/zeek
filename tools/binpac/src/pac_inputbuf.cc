@@ -20,8 +20,8 @@ DataPtr InputBuffer::GenDataBeginEnd(Output* out_cc, Env* env) {
     env->AddID(begin_of_data, TEMP_VAR, extern_type_const_byteptr);
     env->AddID(end_of_data, TEMP_VAR, extern_type_const_byteptr);
 
-    out_cc->println("%s %s, %s;", extern_type_const_byteptr->DataTypeStr().c_str(), env->LValue(begin_of_data),
-                    env->LValue(end_of_data));
+    out_cc->println("%s %s;", extern_type_const_byteptr->DataTypeStr().c_str(), env->LValue(begin_of_data));
+    out_cc->println("%s %s;", extern_type_const_byteptr->DataTypeStr().c_str(), env->LValue(end_of_data));
 
     out_cc->println("get_pointers(%s, &%s, &%s);", expr_->EvalExpr(out_cc, env), env->LValue(begin_of_data),
                     env->LValue(end_of_data));

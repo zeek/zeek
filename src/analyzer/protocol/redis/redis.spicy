@@ -526,11 +526,9 @@ public function make_server_reply(data: RESP::ServerData): ReplyData {
         default: min_protocol_version = 2;
     }
 
-    if (data.data?.attributes)
-        min_protocol_version = 3;
-
     local attributes: optional<bytes> = Null;
     if (data.data?.attributes) {
+        min_protocol_version = 3;
         attributes = stringify_map(data.data.attributes);
     }
 

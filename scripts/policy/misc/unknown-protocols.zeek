@@ -54,5 +54,5 @@ event unknown_protocol(analyzer_name: string, protocol: count, first_bytes: stri
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(LOG, [$columns=Info, $path="unknown_protocols", $policy=log_policy]);
+	Log::create_stream(LOG, Log::Stream($columns=Info, $path="unknown_protocols", $policy=log_policy));
 	}

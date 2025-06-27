@@ -60,13 +60,13 @@ const pe_mime_types = { "application/x-dosexec" };
 event zeek_init() &priority=5
 	{
 	Files::register_for_mime_types(Files::ANALYZER_PE, pe_mime_types);
-	Log::create_stream(LOG, [$columns=Info, $ev=log_pe, $path="pe", $policy=log_policy]);
+	Log::create_stream(LOG, Log::Stream($columns=Info, $ev=log_pe, $path="pe", $policy=log_policy));
 	}
 
 hook set_file(f: fa_file) &priority=5
 	{
 	if ( ! f?$pe )
-		f$pe = [$ts=f$info$ts, $id=f$id];
+		f$pe = PE::Info($ts=f$info$ts, $id=f$id);
 	}
 
 event pe_dos_header(f: fa_file, h: PE::DOSHeader) &priority=5

@@ -447,7 +447,7 @@ global openflow_plugin = Plugin(
 
 function create_openflow(controller: OpenFlow::Controller, config: OfConfig &default=[]) : PluginState
 	{
-	local p: PluginState = [$plugin=openflow_plugin, $of_controller=controller, $of_config=config];
+	local p = PluginState($plugin=openflow_plugin, $of_controller=controller, $of_config=config);
 
 	return p;
 	}

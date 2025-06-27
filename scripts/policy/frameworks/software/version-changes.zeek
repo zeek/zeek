@@ -32,6 +32,9 @@ event Software::version_change(old: Software::Info, new: Software::Info)
 	                software_fmt_version(old$version),
                 	software_fmt_version(new$version));
 
-	NOTICE([$note=Software_Version_Change, $src=new$host,
-	        $msg=msg, $sub=software_fmt(new)]);
+	NOTICE(Notice::Info(
+			$note=Software_Version_Change,
+			$src=new$host,
+			$msg=msg,
+			$sub=software_fmt(new)));
 	}

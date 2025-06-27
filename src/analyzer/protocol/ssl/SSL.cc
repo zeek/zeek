@@ -141,7 +141,8 @@ std::optional<std::vector<u_char>> SSL_Analyzer::TLS12_PRF(const std::string& se
     // alloc context + params
     EVP_KDF* kdf = EVP_KDF_fetch(nullptr, "TLS1-PRF", nullptr);
     EVP_KDF_CTX* kctx = EVP_KDF_CTX_new(kdf);
-    OSSL_PARAM params[4], *p = params;
+    OSSL_PARAM params[4];
+    OSSL_PARAM* p = params;
     EVP_KDF_free(kdf);
 #else  /* OSSL 3 */
     // alloc buffers

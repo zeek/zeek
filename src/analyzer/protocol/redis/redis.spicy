@@ -435,13 +435,15 @@ function stringify_map(data: RESP::Map&): bytes {
     local res = b"{";
     local first = True;
     local i = 0;
+    # num_elements refers to the number of map entries, each with 2 entries
+    # in the raw data
     while (i < data.num_elements) {
         if (!first)
             res += b", ";
-        res += stringify(data.raw_data[i]);
+        res += stringify(data.raw_data[i * 2]);
         res += b": ";
-        res += stringify(data.raw_data[i + 1]);
-        i += 2;
+        res += stringify(data.raw_data[(i * 2) + 1]);
+        i += 1;
         first = False;
     }
     res += b"}";

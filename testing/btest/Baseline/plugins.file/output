@@ -4,19 +4,19 @@ Demo::Foo - A Foo test analyzer (dynamic, version 1.0.0)
     [Event] foo_piece
 
 ===
-analyzer_confirmation_info, Files::ANALYZER_FOO, FOFAMf1wvPV12L4AOe
-foo_piece, FOFAMf1wvPV12L4AOe, The National Center 
-foo_piece, FOFAMf1wvPV12L4AOe, net, consult your lo
-foo_piece, FOFAMf1wvPV12L4AOe, most everything else
-analyzer_violation_info, Files::ANALYZER_FOO, FOFAMf1wvPV12L4AOe, test violation 3, most everything 
-foo_piece, FOFAMf1wvPV12L4AOe, low:\x0a\x0a   /Mac       
-foo_piece, FOFAMf1wvPV12L4AOe, es and directories o
-foo_piece, FOFAMf1wvPV12L4AOe, r example, here is a
-analyzer_violation_info, Files::ANALYZER_FOO, FOFAMf1wvPV12L4AOe, test violation 6, r example, here 
-foo_piece, FOFAMf1wvPV12L4AOe, application, StuffIt
-foo_piece, FOFAMf1wvPV12L4AOe, tion BinHex by doubl
-foo_piece, FOFAMf1wvPV12L4AOe, laced, or are going 
-analyzer_violation_info, Files::ANALYZER_FOO, FOFAMf1wvPV12L4AOe, test violation 9, laced, or are go
-foo_piece, FOFAMf1wvPV12L4AOe, sers several documen
-foo_piece, FOFAMf1wvPV12L4AOe, er or can be printed
-foo_piece, FOFAMf1wvPV12L4AOe,  \x0a\x0aBug reports shoul
+analyzer_confirmation_info, Files::ANALYZER_FOO, FQZZdL2WDqWxNZIZ2
+foo_piece, FQZZdL2WDqWxNZIZ2, The National Center 
+foo_piece, FQZZdL2WDqWxNZIZ2, net, consult your lo
+foo_piece, FQZZdL2WDqWxNZIZ2, most everything else
+analyzer_violation_info, Files::ANALYZER_FOO, FQZZdL2WDqWxNZIZ2, test violation 3, most everything 
+foo_piece, FQZZdL2WDqWxNZIZ2, low:\x0a\x0a   /Mac       
+foo_piece, FQZZdL2WDqWxNZIZ2, es and directories o
+foo_piece, FQZZdL2WDqWxNZIZ2, r example, here is a
+analyzer_violation_info, Files::ANALYZER_FOO, FQZZdL2WDqWxNZIZ2, test violation 6, r example, here 
+foo_piece, FQZZdL2WDqWxNZIZ2, application, StuffIt
+foo_piece, FQZZdL2WDqWxNZIZ2, tion BinHex by doubl
+foo_piece, FQZZdL2WDqWxNZIZ2, laced, or are going 
+analyzer_violation_info, Files::ANALYZER_FOO, FQZZdL2WDqWxNZIZ2, test violation 9, laced, or are go
+foo_piece, FQZZdL2WDqWxNZIZ2, sers several documen
+foo_piece, FQZZdL2WDqWxNZIZ2, er or can be printed
+foo_piece, FQZZdL2WDqWxNZIZ2,  \x0a\x0aBug reports shoul

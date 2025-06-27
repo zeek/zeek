@@ -151,7 +151,8 @@ Function that calls the AEAD decryption routine, and returns the decrypted data.
 */
 hilti::rt::Bytes decrypt(const std::vector<uint8_t>& client_key, const hilti::rt::Bytes& data, uint64_t payload_length,
                          const DecryptionInformation& decryptInfo) {
-    int out, out2;
+    int out = 0;
+    int out2 = 0;
 
     if ( payload_length < decryptInfo.packet_number_length + AEAD_TAG_LENGTH )
         throw hilti::rt::RuntimeError(hilti::rt::fmt("payload too small %ld < %ld", payload_length,

@@ -59,8 +59,12 @@ ConnKey::ConnKey(Val* v) {
     RecordType* vr = vt->AsRecordType();
     auto vl = v->As<RecordVal*>();
 
-    int orig_h, orig_p; // indices into record's value list
-    int resp_h, resp_p;
+    // indices into record's value list
+    int orig_h;
+    int orig_p;
+
+    int resp_h;
+    int resp_p;
     int proto;
 
     if ( vr == id::conn_id ) {

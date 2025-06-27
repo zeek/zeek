@@ -87,7 +87,8 @@ void ProfileLogger::Log() {
     struct timeval tv_utime = r.ru_utime;
     struct timeval tv_stime = r.ru_stime;
 
-    uint64_t total, malloced;
+    uint64_t total;
+    uint64_t malloced;
     util::get_memory_usage(&total, &malloced);
 
     static unsigned int first_total = 0;

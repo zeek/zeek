@@ -681,10 +681,10 @@ bool MIME_Entity::ParseContentTypeField(MIME_Header* h) {
     int len = val.length;
     const char* data = val.data;
 
-    data_chunk_t ty, subty;
-    int offset;
+    data_chunk_t ty;
+    data_chunk_t subty;
+    int offset = MIME_get_slash_token_pair(len, data, &ty, &subty);
 
-    offset = MIME_get_slash_token_pair(len, data, &ty, &subty);
     if ( offset < 0 ) {
         IllegalFormat("media type/subtype not found in content type");
         return false;
@@ -930,9 +930,8 @@ void MIME_Entity::DecodeQuotedPrintable(int len, const char* data) {
             else {
                 int legal = 0;
                 if ( i + 2 < len ) {
-                    int a, b;
-                    a = util::decode_hex(data[i + 1]);
-                    b = util::decode_hex(data[i + 2]);
+                    int a = util::decode_hex(data[i + 1]);
+                    int b = util::decode_hex(data[i + 2]);
 
                     if ( a >= 0 && b >= 0 ) {
                         DataOctet((a << 4) + b);

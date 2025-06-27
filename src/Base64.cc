@@ -217,17 +217,19 @@ String* decode_base64(const String* s, const String* a, Connection* conn) {
     }
 
     int buf_len = int((s->Len() + 3) / 4) * 3 + 1;
-    int rlen2, rlen = buf_len;
-    char *rbuf2, *rbuf = new char[rlen];
+    int rlen = buf_len;
+    char* rbuf = new char[rlen];
 
     Base64Converter dec(conn, a ? a->CheckString() : "");
     dec.Decode(s->Len(), (const char*)s->Bytes(), &rlen, &rbuf);
 
-    if ( dec.Errored() )
-        goto err;
+    if ( dec.Errored() ) {
+        delete[] rbuf;
+        return nullptr;
+    }
 
-    rlen2 = buf_len - rlen;
-    rbuf2 = rbuf + rlen;
+    int rlen2 = buf_len - rlen;
+    char* rbuf2 = rbuf + rlen;
     // Done() returns -1 if there isn't enough padding, but we just ignore
     // it.
     dec.Done(&rlen2, &rbuf2);
@@ -235,10 +237,6 @@ String* decode_base64(const String* s, const String* a, Connection* conn) {
 
     rbuf[rlen] = '\0';
     return new String(true, (u_char*)rbuf, rlen);
-
-err:
-    delete[] rbuf;
-    return nullptr;
 }
 
 String* encode_base64(const String* s, const String* a, Connection* conn) {

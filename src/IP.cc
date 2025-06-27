@@ -463,8 +463,8 @@ IPv6_Hdr_Chain::~IPv6_Hdr_Chain() {
 
 void IPv6_Hdr_Chain::Init(const struct ip6_hdr* ip6, uint64_t total_len, bool set_next, uint16_t next) {
     length = 0;
-    uint8_t current_type, next_type;
-    next_type = IPPROTO_IPV6;
+    uint8_t current_type;
+    uint8_t next_type = IPPROTO_IPV6;
     const u_char* hdrs = (const u_char*)ip6;
 
     if ( total_len < (int)sizeof(struct ip6_hdr) ) {

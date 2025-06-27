@@ -46,7 +46,8 @@ event DHCP::log_dhcp(rec: DHCP::Info)
 		                     $orig_p=rec$client_port,
 		                     $resp_h=rec$server_addr,
 		                     $resp_p=rec$server_port,
-				     $proto=17]; # DHCP is typically UDP
+				     $proto=17, # DHCP is typically UDP
+				     $ctx=conn_id_ctx()];  # TODO: Propagate ctx from original conn_id.
 
 		if ( rec?$client_software && rec$assigned_addr != 255.255.255.255 )
 			{

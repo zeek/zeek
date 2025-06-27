@@ -79,11 +79,25 @@ public type ServerData = unit {
     %synchronize-after = b"\x0d\x0a";
     var depth: uint8& = new uint8;
     data: Data(self.depth);
+
+    var type_: Redis::ReplyType;
+    on %done {
+        self.type_ = Redis::classify(self);
+    }
 };
 
 type Data = unit(depth: uint8&) {
     %synchronize-after = b"\x0d\x0a";
     ty: uint8 &convert=DataType($$);
+
+    # Attributes are special, they precede the actual data
+    if (self.ty == DataType::ATTRIBUTE) {
+        attributes: Map(depth);
+        : uint8 &convert=DataType($$) {
+            self.ty = $$;
+        }
+    };
+
     switch (self.ty) {
         DataType::SIMPLE_STRING -> simple_string: SimpleString(False);
         DataType::SIMPLE_ERROR -> simple_error: SimpleString(True);
@@ -102,7 +116,7 @@ type Data = unit(depth: uint8&) {
         DataType::MAP -> map_: Map(depth);
         DataType::SET -> set_: Set(depth);
         # "Push events are encoded similarly to arrays, differing only in their
-        # first byte" - TODO: can probably make it more obvious, though
+        # first byte"
         DataType::PUSH -> push: Array(depth);
     };
 
@@ -130,6 +144,7 @@ type DataType = enum {
     BULK_ERROR = '!',
     VERBATIM_STRING = '=',
     MAP = '%',
+    ATTRIBUTE = '|',
     SET = '~',
     PUSH = '>',
 };
@@ -144,7 +159,7 @@ type SimpleString = unit(is_error: bool) {
 };
 
 type Integer = unit {
-    int: RedisBytes &convert=$$.to_int(10);
+    val: RedisBytes;
 };
 
 type BulkString = unit(is_error: bool) {
@@ -173,32 +188,20 @@ type Boolean = unit {
 };
 
 type Double = unit {
-    val: RedisBytes &convert=$$.to_real();
+    val: RedisBytes;
 };
 
 type BigNum = unit {
-    # Big num can be very big so leave it in bytes.
     val: RedisBytes;
 };
 
 type Map = unit(depth: uint8&) {
     num_elements: RedisBytes &convert=$$.to_uint(10);
-    # TODO: How can I make this into a map? Alternatively, how can I do this better?
     raw_data: Data(depth)[self.num_elements * 2];
-
-    # TODO: This is broken. See https://github.com/zeek/spicy/issues/2061
-    #    var key_val_pairs: vector<tuple<Data, Data>>;
-    #    on raw_data {
-    #        while (local i = 0; i < self.num_elements) {
-    #            self.key_val_pairs.push_back(($$[i], $$[i + 1]));
-    #            i += 2;
-    #        }
-    #    }
 };
 
 type Set = unit(depth: uint8&) {
     num_elements: RedisBytes &convert=$$.to_uint(10) &requires=self.num_elements <= MAX_SIZE;
-    # TODO: This should be a set but doesn't go in the backed C++ set
     elements: Data(depth)[self.num_elements];
 };
 

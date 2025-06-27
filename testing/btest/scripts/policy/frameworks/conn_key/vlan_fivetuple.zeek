@@ -4,7 +4,7 @@
 # To create: tcprewrite --enet-vlan=add --enet-vlan-tag 20 --enet-vlan-cfi=1 --enet-vlan-pri=2 -i in.pcap -o out.pcap
 #
 # @TEST-EXEC: zeek -r $TRACES/vlan-collisions.pcap %INPUT
-# @TEST-EXEC: zeek-cut -m ts uid id.orig_h id.orig_p id.resp_h id.resp_p id.vlan id.inner_vlan orig_pkts resp_pkts service <conn.log >conn.log.cut
+# @TEST-EXEC: zeek-cut -m ts uid id.orig_h id.orig_p id.resp_h id.resp_p id.ctx.vlan id.ctx.inner_vlan orig_pkts resp_pkts service <conn.log >conn.log.cut
 # @TEST-EXEC: btest-diff conn.log.cut
 
 # Default operation: Zeek isn't VLAN-aware, a single conn.log entry results.
@@ -27,7 +27,7 @@ redef ConnKey::factory = ConnKey::CONNKEY_VLAN_FIVETUPLE;
 
 # Add an extra field before the VLAN ones, to throw off any fixed-offset code.
 
-redef record conn_id += {
+redef record conn_id_ctx += {
 	foo: int &default=1;
 };
 
@@ -35,11 +35,11 @@ redef record conn_id += {
 
 # @TEST-START-NEXT
 
-# Add the right fields, but in the wrong order. (zeek-cut obscures the difference.)
+# Add the right fields, but in a different order. (zeek-cut obscures the difference.)
 
-redef record conn_id += {
-	inner_vlan: int      &log &optional;
-	vlan: int      &log &optional;
+redef record conn_id_ctx += {
+	inner_vlan: int &log &optional;
+	vlan: int &log &optional;
 };
 
 redef ConnKey::factory = ConnKey::CONNKEY_VLAN_FIVETUPLE;
@@ -48,9 +48,9 @@ redef ConnKey::factory = ConnKey::CONNKEY_VLAN_FIVETUPLE;
 
 # Add the right fields, but with the wrong types.
 
-redef record conn_id += {
-	vlan: string      &log &optional;
-	inner_vlan: string      &log &optional;
+redef record conn_id_ctx += {
+	vlan: string &log &optional;
+	inner_vlan: string &log &optional;
 };
 
 redef ConnKey::factory = ConnKey::CONNKEY_VLAN_FIVETUPLE;

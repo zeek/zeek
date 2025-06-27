@@ -20,7 +20,7 @@ namespace zeek::detail {
 // A comparison callable to assist with consistent iteration order over tables
 // during reservation & writes.
 struct HashKeyComparer {
-    bool operator()(const std::unique_ptr<HashKey>& a, const std::unique_ptr<HashKey>& b) const {
+    bool operator()(HashKey* a, HashKey* b) const {
         if ( a->Hash() != b->Hash() )
             return a->Hash() < b->Hash();
         if ( a->Size() != b->Size() )
@@ -29,7 +29,7 @@ struct HashKeyComparer {
     }
 };
 
-using HashkeyMap = std::map<std::unique_ptr<HashKey>, ListValPtr, HashKeyComparer>;
+using HashkeyMap = std::map<HashKey*, ListValPtr, HashKeyComparer>;
 using HashkeyMapPtr = std::unique_ptr<HashkeyMap>;
 
 // Helper that produces a table from HashKeys to the ListVal indexes into the
@@ -49,7 +49,7 @@ const HashkeyMapPtr ordered_hashkeys(const TableVal* tv) {
         // is tricky in case of subnets (consider the special-casing in
         // TableVal::Find()).
         auto lv = tv->RecreateIndex(*k);
-        res->insert_or_assign(std::move(k), lv);
+        res->insert_or_assign(k, lv);
     }
 
     return res;

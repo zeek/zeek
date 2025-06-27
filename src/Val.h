@@ -784,8 +784,13 @@ public:
      *        Broker stores.
      * @return  True if the assignment type-checked.
      */
-    bool Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr new_val, bool broker_forward = true,
+    bool Assign(ValPtr index, detail::HashKey* k, ValPtr new_val, bool broker_forward = true,
                 bool* iterators_invalidated = nullptr);
+
+    bool Assign(ValPtr index, const std::shared_ptr<detail::HashKey>& k, ValPtr new_val, bool broker_forward = true,
+                bool* iterators_invalidated = nullptr) {
+        return Assign(std::move(index), k.get(), std::move(new_val), broker_forward, iterators_invalidated);
+    }
 
     ValPtr SizeVal() const override;
 

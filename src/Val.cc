@@ -1816,7 +1816,7 @@ bool TableVal::Assign(ValPtr index, ValPtr new_val, bool broker_forward, bool* i
     return Assign(std::move(index), std::move(k), std::move(new_val), broker_forward, iterators_invalidated);
 }
 
-bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr new_val, bool broker_forward,
+bool TableVal::Assign(ValPtr index, detail::HashKey* k, ValPtr new_val, bool broker_forward,
                       bool* iterators_invalidated) {
     bool is_set = table_type->IsSet();
 
@@ -1825,7 +1825,7 @@ bool TableVal::Assign(ValPtr index, std::unique_ptr<detail::HashKey> k, ValPtr n
 
     TableEntryVal* new_entry_val = new TableEntryVal(std::move(new_val));
     detail::HashKey k_copy(k->Key(), k->Size(), k->Hash());
-    TableEntryVal* old_entry_val = table_val->Insert(k.get(), new_entry_val, iterators_invalidated);
+    TableEntryVal* old_entry_val = table_val->Insert(k, new_entry_val, iterators_invalidated);
 
     // If the dictionary index already existed, the insert may free up the
     // memory allocated to the key bytes, so have to assume k is invalid
@@ -1888,7 +1888,7 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const {
         auto k = tble.GetHashKey();
         auto* v = tble.value;
 
-        if ( is_first_init && t->AsTable()->Lookup(k.get()) ) {
+        if ( is_first_init && t->AsTable()->Lookup(k) ) {
             auto key = GetTableHash()->RecoverVals(*k);
             // ### Shouldn't complain if their values are equal.
             key->Warn("multiple initializations for index");
@@ -1896,11 +1896,11 @@ bool TableVal::AddTo(Val* val, bool is_first_init, bool propagate_ops) const {
         }
 
         if ( type->IsSet() ) {
-            if ( ! t->Assign(v->GetVal(), std::move(k), nullptr) )
+            if ( ! t->Assign(v->GetVal(), k, nullptr) )
                 return false;
         }
         else {
-            if ( ! t->Assign(nullptr, std::move(k), v->GetVal()) )
+            if ( ! t->Assign(nullptr, k, v->GetVal()) )
                 return false;
         }
     }
@@ -1952,8 +1952,8 @@ TableValPtr TableVal::Intersection(const TableVal& tv) const {
 
         // Here we leverage the same assumption about consistent
         // hashes as in TableVal::RemoveFrom above.
-        if ( t0->Lookup(k.get()) )
-            result->table_val->Insert(k.get(), new TableEntryVal(nullptr));
+        if ( t0->Lookup(k) )
+            result->table_val->Insert(k, new TableEntryVal(nullptr));
     }
 
     return result;
@@ -1971,7 +1971,7 @@ bool TableVal::EqualTo(const TableVal& tv) const {
 
         // Here we leverage the same assumption about consistent
         // hashes as in TableVal::RemoveFrom above.
-        if ( ! t1->Lookup(k.get()) )
+        if ( ! t1->Lookup(k) )
             return false;
     }
 
@@ -1990,7 +1990,7 @@ bool TableVal::IsSubsetOf(const TableVal& tv) const {
 
         // Here we leverage the same assumption about consistent
         // hashes as in TableVal::RemoveFrom above.
-        if ( ! t1->Lookup(k.get()) )
+        if ( ! t1->Lookup(k) )
             return false;
     }
 
@@ -2664,7 +2664,7 @@ void TableVal::DoExpire(double t) {
                 // It's possible that the user-provided
                 // function modified or deleted the table
                 // value, so look it up again.
-                v = table_val->Lookup(k.get());
+                v = table_val->Lookup(k);
 
                 if ( ! v ) { // user-provided function deleted it
                     if ( ! expire_iterator )
@@ -2689,7 +2689,7 @@ void TableVal::DoExpire(double t) {
                     reporter->InternalWarning("index not in prefix table");
             }
 
-            table_val->RemoveEntry(k.get());
+            table_val->RemoveEntry(k);
             if ( change_func ) {
                 if ( ! idx )
                     idx = RecreateIndex(*k);
@@ -2814,7 +2814,7 @@ ValPtr TableVal::DoClone(CloneState* state) {
         auto key = tble.GetHashKey();
         auto* val = tble.value;
         TableEntryVal* nval = val->Clone(state);
-        tv->table_val->Insert(key.get(), nval);
+        tv->table_val->Insert(key, nval);
 
         if ( subnets ) {
             auto idx = RecreateIndex(*key);

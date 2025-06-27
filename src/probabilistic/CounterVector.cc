@@ -70,7 +70,8 @@ void CounterVector::Reset() { bits->Reset(); }
 CounterVector::count_type CounterVector::Count(size_type cell) const {
     assert(cell < Size());
 
-    size_t cnt = 0, order = 1;
+    size_t cnt = 0;
+    size_t order = 1;
     size_t lsb = cell * width;
 
     for ( size_t i = lsb; i < lsb + width; ++i, order <<= 1 )

@@ -480,7 +480,10 @@ void ZAMCompiler::ComputeFrameLifetimes() {
                 break;
         }
 
-        int s1, s2, s3, s4;
+        int s1;
+        int s2;
+        int s3;
+        int s4;
 
         if ( ! inst->UsesSlots(s1, s2, s3, s4) )
             continue;

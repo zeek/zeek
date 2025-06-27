@@ -375,7 +375,8 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
             DEBUG_MSG("Parsed Content-Range: %s %s-%s/%s\n", byte_unit.c_str(), first_byte_pos.c_str(),
                       last_byte_pos.c_str(), instance_length_str.c_str());
 
-        int64_t f, l;
+        int64_t f;
+        int64_t l;
         int fr = util::atoi_n(first_byte_pos.size(), first_byte_pos.c_str(), nullptr, 10, f);
         int lr = util::atoi_n(last_byte_pos.size(), last_byte_pos.c_str(), nullptr, 10, l);
         if ( fr != 1 || lr != 1 ) {

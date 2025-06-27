@@ -43,7 +43,8 @@ DNS_Mapping::DNS_Mapping(FILE* f) {
         return;
     }
 
-    char req_buf[512 + 1], name_buf[512 + 1];
+    char req_buf[512 + 1];
+    char name_buf[512 + 1];
     int is_req_host;
     int failed_local;
     int num_addrs;

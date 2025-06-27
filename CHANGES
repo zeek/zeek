@@ -1,3 +1,14 @@
+8.0.0-dev.554 | 2025-06-27 12:29:36 -0700
+
+  * Fix clang-tidy readability-isolate-declaration warnings (Benjamin Bannier, Corelight)
+
+    I missed one of these in review so a machine is probably better at
+    catching them.
+
+    I fixed the existing instances which where largely in code which look
+    dated. Where possible I slightly reorganized the code so we do not have
+    to leave values uninitialized, but did not touch up anything else.
+
 8.0.0-dev.551 | 2025-06-26 20:21:31 +0100
 
   * Spicy SSL analyzer: make record layer version parsing more strict (Johanna Amann, Corelight)

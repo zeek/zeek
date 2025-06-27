@@ -54,7 +54,8 @@ protected:
     };
 
     std::pair<int, int> GetConnIdFieldOffsets() {
-        static int vlan_offset = -2, inner_vlan_offset = -2;
+        static int vlan_offset = -2;
+        static int inner_vlan_offset = -2;
 
         if ( vlan_offset == -2 && inner_vlan_offset == -2 ) {
             vlan_offset = id::conn_id->FieldOffset("vlan");
@@ -101,7 +102,8 @@ zeek::expected<zeek::ConnKeyPtr, std::string> Factory::DoConnKeyFromVal(const ze
     auto rt = v.GetType()->AsRecordType();
     auto vl = v.AsRecordVal();
 
-    int vlan_offset, inner_vlan_offset;
+    int vlan_offset;
+    int inner_vlan_offset;
     if ( rt == id::conn_id ) {
         std::tie(vlan_offset, inner_vlan_offset) = k->GetConnIdFieldOffsets();
     }

@@ -45,8 +45,11 @@ void Entropy::Finalize() {
     if ( ! file_entropy )
         return;
 
-    double montepi, scc, ent, mean, chisq;
-    montepi = scc = ent = mean = chisq = 0.0;
+    double montepi = 0;
+    double scc = 0;
+    double ent = 0;
+    double mean = 0;
+    double chisq = 0;
     entropy->Get(&ent, &chisq, &mean, &montepi, &scc);
 
     static auto entropy_test_result = id::find_type<RecordType>("entropy_test_result");

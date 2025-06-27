@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	name	addl	notice	peer	source
 #types	time	string	addr	port	addr	port	string	string	bool	string	string
-XXXXXXXXXX.XXXXXX	-	-	-	-	-	too_many_analyzer_violations	FOFAMf1wvPV12L4AOe	F	zeek	FOO
+XXXXXXXXXX.XXXXXX	-	-	-	-	-	too_many_analyzer_violations	FQZZdL2WDqWxNZIZ2	F	zeek	FOO
 #close XXXX-XX-XX-XX-XX-XX

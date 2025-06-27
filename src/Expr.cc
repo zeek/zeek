@@ -718,9 +718,15 @@ ValPtr BinaryExpr::Fold(Val* v1, Val* v2) const {
     if ( it == TYPE_INTERNAL_SUBNET )
         return SubNetFold(v1, v2);
 
-    zeek_int_t i1 = 0, i2 = 0, i3 = 0;
-    zeek_uint_t u1 = 0, u2 = 0, u3 = 0;
-    double d1 = 0.0, d2 = 0.0, d3 = 0.0;
+    zeek_int_t i1 = 0;
+    zeek_int_t i2 = 0;
+    zeek_int_t i3 = 0;
+    zeek_uint_t u1 = 0;
+    zeek_uint_t u2 = 0;
+    zeek_uint_t u3 = 0;
+    double d1 = 0.0;
+    double d2 = 0.0;
+    double d3 = 0.0;
     bool is_integral = false;
     bool is_unsigned = false;
 
@@ -1382,7 +1388,8 @@ AddExpr::AddExpr(ExprPtr arg_op1, ExprPtr arg_op2) : BinaryExpr(EXPR_ADD, std::m
     if ( IsError() )
         return;
 
-    TypeTag bt1, bt2;
+    TypeTag bt1;
+    TypeTag bt2;
     if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
         return;
 
@@ -1572,7 +1579,8 @@ SubExpr::SubExpr(ExprPtr arg_op1, ExprPtr arg_op2) : BinaryExpr(EXPR_SUB, std::m
     const auto& t1 = op1->GetType();
     const auto& t2 = op2->GetType();
 
-    TypeTag bt1, bt2;
+    TypeTag bt1;
+    TypeTag bt2;
     if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
         return;
 
@@ -1663,7 +1671,8 @@ TimesExpr::TimesExpr(ExprPtr arg_op1, ExprPtr arg_op2)
 
     Canonicalize();
 
-    TypeTag bt1, bt2;
+    TypeTag bt1;
+    TypeTag bt2;
     if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
         return;
 
@@ -1690,7 +1699,8 @@ DivideExpr::DivideExpr(ExprPtr arg_op1, ExprPtr arg_op2)
     if ( IsError() )
         return;
 
-    TypeTag bt1, bt2;
+    TypeTag bt1;
+    TypeTag bt2;
     if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
         return;
 
@@ -1718,7 +1728,8 @@ MaskExpr::MaskExpr(ExprPtr arg_op1, ExprPtr arg_op2) : BinaryExpr(EXPR_MASK, std
     if ( IsError() )
         return;
 
-    TypeTag bt1, bt2;
+    TypeTag bt1;
+    TypeTag bt2;
     if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
         return;
 
@@ -1754,7 +1765,8 @@ ModExpr::ModExpr(ExprPtr arg_op1, ExprPtr arg_op2) : BinaryExpr(EXPR_MOD, std::m
     if ( IsError() )
         return;
 
-    TypeTag bt1, bt2;
+    TypeTag bt1;
+    TypeTag bt2;
     if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
         return;
 
@@ -1769,7 +1781,8 @@ BoolExpr::BoolExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
     if ( IsError() )
         return;
 
-    TypeTag bt1, bt2;
+    TypeTag bt1;
+    TypeTag bt2;
     if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
         return;
 
@@ -1958,7 +1971,8 @@ EqExpr::EqExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
     const auto& t1 = op1->GetType();
     const auto& t2 = op2->GetType();
 
-    TypeTag bt1, bt2;
+    TypeTag bt1;
+    TypeTag bt2;
     if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
         return;
 
@@ -2048,7 +2062,8 @@ RelExpr::RelExpr(ExprTag arg_tag, ExprPtr arg_op1, ExprPtr arg_op2)
     const auto& t1 = op1->GetType();
     const auto& t2 = op2->GetType();
 
-    TypeTag bt1, bt2;
+    TypeTag bt1;
+    TypeTag bt2;
     if ( ! get_types_from_scalars_or_vectors(this, bt1, bt2) )
         return;
 

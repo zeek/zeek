@@ -239,7 +239,8 @@ void TelnetEnvironmentOption::RecvSubOption(u_char* data, int len) {
     ++data;
 
     while ( len > 0 ) {
-        int code1, code2;
+        int code1;
+        int code2;
         char* var_name = ExtractEnv(data, len, code1);
         char* var_val = ExtractEnv(data, len, code2);
 

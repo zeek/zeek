@@ -1335,7 +1335,6 @@ char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix) {
 
     int i = 0;
     uint64_t v;
-    char *p, *q;
     char c;
 
     if ( prefix ) {

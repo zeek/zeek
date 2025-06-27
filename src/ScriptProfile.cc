@@ -44,7 +44,10 @@ void ScriptProfile::Report(FILE* f, bool with_traces) const {
     std::string call_stacks;
 
     if ( with_traces ) {
-        std::string calls, counts, cpu, memory;
+        std::string calls;
+        std::string counts;
+        std::string cpu;
+        std::string memory;
 
         for ( const auto& [s, stats] : Stacks() ) {
             calls += util::fmt("%s|", s.c_str());

@@ -82,8 +82,8 @@ bool IPTunnelAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pa
 bool IPTunnelAnalyzer::ProcessEncapsulatedPacket(double t, Packet* pkt, const std::shared_ptr<IP_Hdr>& inner,
                                                  std::shared_ptr<EncapsulationStack> prev,
                                                  const EncapsulatingConn& ec) {
-    uint32_t caplen, len;
-    caplen = len = inner->TotalLen();
+    uint32_t caplen = inner->TotalLen();
+    uint32_t len = caplen;
 
     pkt_timeval ts;
     int link_type;

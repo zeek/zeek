@@ -392,7 +392,8 @@ void OCSP::ParseResponse(OCSP_RESPONSE* resp) {
     const ASN1_GENERALIZEDTIME* produced_at = nullptr;
     const STACK_OF(X509)* certs = nullptr;
 
-    int resp_count, num_ext = 0;
+    int resp_count;
+    int num_ext = 0;
     VectorVal* certs_vector = nullptr;
     int len = 0;
 

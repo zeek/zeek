@@ -203,7 +203,8 @@ bool Value::IsCompatibleType(Type* t, bool atomic_only) {
 }
 
 bool Value::Read(detail::SerializationFormat* fmt) {
-    int ty, sty;
+    int ty;
+    int sty;
 
     if ( ! (fmt->Read(&ty, "type") && fmt->Read(&sty, "subtype") && fmt->Read(&present, "present")) )
         return false;

@@ -385,7 +385,8 @@ void ZAMCompiler::Dump() {
 
         for ( auto i = 0U; i < insts2.size(); ++i ) {
             auto& inst = insts2[i];
-            std::string liveness, depth;
+            std::string liveness;
+            std::string depth;
 
             if ( inst->live )
                 liveness = util::fmt("(labels %d)", inst->num_labels);
@@ -460,7 +461,8 @@ void ZAMCompiler::DumpInsts1(const FrameReMap* remappings) {
             // we need to concretize the branch slots
             ConcretizeBranch(inst, inst->target, inst->target_slot);
 
-        std::string liveness, depth;
+        std::string liveness;
+        std::string depth;
 
         if ( inst->live )
             liveness = util::fmt("(labels %d)", inst->num_labels);

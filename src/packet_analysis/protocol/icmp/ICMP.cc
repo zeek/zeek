@@ -250,13 +250,17 @@ TransportProto ICMPAnalyzer::GetContextProtocol(const IP_Hdr* ip_hdr, uint32_t* 
 }
 
 zeek::RecordValPtr ICMPAnalyzer::ExtractICMP4Context(int len, const u_char*& data) {
-    uint32_t ip_len, frag_offset;
+    uint32_t ip_len;
+    uint32_t frag_offset;
     bool bad_hdr_len = false;
     bool bad_checksum = false;
     TransportProto proto = TRANSPORT_UNKNOWN;
-    int DF, MF;
-    IPAddr src_addr, dst_addr;
-    uint32_t src_port, dst_port;
+    int DF;
+    int MF;
+    IPAddr src_addr;
+    IPAddr dst_addr;
+    uint32_t src_port;
+    uint32_t dst_port;
 
     if ( len < (int)sizeof(struct ip) ) {
         // We don't have an entire IP header.
@@ -322,13 +326,17 @@ zeek::RecordValPtr ICMPAnalyzer::ExtractICMP4Context(int len, const u_char*& dat
 }
 
 zeek::RecordValPtr ICMPAnalyzer::ExtractICMP6Context(int len, const u_char*& data) {
-    int DF = 0, MF = 0, bad_hdr_len = 0;
+    int DF = 0;
+    int MF = 0;
+    int bad_hdr_len = 0;
     TransportProto proto = TRANSPORT_UNKNOWN;
 
     IPAddr src_addr;
     IPAddr dst_addr;
-    uint32_t ip_len, frag_offset = 0;
-    uint32_t src_port, dst_port;
+    uint32_t ip_len;
+    uint32_t frag_offset = 0;
+    uint32_t src_port;
+    uint32_t dst_port;
 
     if ( len < (int)sizeof(struct ip6_hdr) ) {
         bad_hdr_len = 1;
@@ -408,7 +416,8 @@ void ICMPAnalyzer::RouterAdvert(double t, const struct icmp* icmpp, int len, int
     if ( ! f )
         return;
 
-    uint32_t reachable = 0, retrans = 0;
+    uint32_t reachable = 0;
+    uint32_t retrans = 0;
 
     if ( caplen >= (int)sizeof(reachable) )
         memcpy(&reachable, data, sizeof(reachable));
@@ -480,7 +489,8 @@ void ICMPAnalyzer::Redirect(double t, const struct icmp* icmpp, int len, int cap
     if ( ! f )
         return;
 
-    IPAddr tgtaddr, dstaddr;
+    IPAddr tgtaddr;
+    IPAddr dstaddr;
 
     if ( caplen >= (int)sizeof(in6_addr) )
         tgtaddr = IPAddr(*((const in6_addr*)data));

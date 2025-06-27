@@ -94,8 +94,10 @@ zeek::RecordValPtr proc_krb_kdc_req_arguments(KRB_KDC_REQ* msg, const ZeekAnalyz
 
 bool proc_error_arguments(zeek::RecordVal* rv, const std::vector<KRB_ERROR_Arg*>* args, int64 error_code )
 {
-	uint ctime_i = 0, stime_i = 0;
-	int64 ctime_usecs = 0, stime_usecs = 0;
+	uint ctime_i = 0;
+	uint stime_i = 0;
+	int64 ctime_usecs = 0;
+	int64 stime_usecs = 0;
 
 	// We need to do a pass first, to see if we have microseconds for the timestamp values, which are optional
 

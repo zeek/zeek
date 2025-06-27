@@ -39,7 +39,6 @@ void Ident_Analyzer::Done() {
 void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig) {
     analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(length, data, is_orig);
 
-    int remote_port, local_port;
     const char* line = (const char*)data;
     const char* orig_line = line;
     const char* end_of_line = line + length;
@@ -56,7 +55,10 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
         if ( ! ident_request )
             return;
 
+        int remote_port;
+        int local_port;
         line = ParsePair(line, end_of_line, remote_port, local_port);
+
         if ( ! line ) {
             if ( s && s->state == analyzer::tcp::TCP_ENDPOINT_CLOSED &&
                  (s->prev_state == analyzer::tcp::TCP_ENDPOINT_INACTIVE ||
@@ -83,6 +85,8 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
         if ( ! ident_reply )
             return;
 
+        int remote_port;
+        int local_port;
         line = ParsePair(line, end_of_line, remote_port, local_port);
 
         if ( ! line || line == end_of_line || line[0] != ':' ) {

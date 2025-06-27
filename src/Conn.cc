@@ -230,9 +230,10 @@ const RecordValPtr& Connection::GetVal() {
         id_val->Assign(2, make_intrusive<AddrVal>(resp_addr));
         id_val->Assign(3, val_mgr->Port(ntohs(resp_port), prot_type));
         id_val->Assign(4, KeyProto());
+        auto* ctx = id_val->GetFieldAs<zeek::RecordVal>(5);
 
-        // Allow customized ConnKeys to augment the conn_id:
-        key->PopulateConnIdVal(*id_val);
+        // Allow customized ConnKeys to augment conn_id and ctx.
+        key->PopulateConnIdVal(*id_val, *ctx);
 
         auto orig_endp = make_intrusive<RecordVal>(id::endpoint);
         orig_endp->Assign(0, 0);

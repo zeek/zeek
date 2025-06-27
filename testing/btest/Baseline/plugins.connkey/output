@@ -5,9 +5,9 @@ Demo::Foo - A Foo ConnKey factory (dynamic, version 1.0.0)
 ===
 DoNewConnKey (0 key all_inits)
 DoNewConnKey (1 key all_inits)
-DoConnKeyFromVal for [orig_h=141.142.220.235, orig_p=50003/tcp, resp_h=199.233.217.249, resp_p=21/tcp, proto=6, ctx=[], inits=0]
+DoConnKeyFromVal for [orig_h=141.142.220.235, orig_p=50003/tcp, resp_h=199.233.217.249, resp_p=21/tcp, proto=6, ctx=[inits=0], inits=0]
 DoNewConnKey (2 key all_inits)
-DoConnKeyFromVal for [orig_h=141.142.220.235, orig_p=50003/tcp, resp_h=199.233.217.249, resp_p=21/tcp, proto=6, ctx=[], inits=0]
+DoConnKeyFromVal for [orig_h=141.142.220.235, orig_p=50003/tcp, resp_h=199.233.217.249, resp_p=21/tcp, proto=6, ctx=[inits=0], inits=0]
 DoNewConnKey (6 key all_inits)
 DoNewConnKey (22 key all_inits)
 DoNewConnKey (40 key all_inits)

@@ -37,7 +37,7 @@ protected:
         return {reinterpret_cast<const void*>(&key), sizeof(key), session::detail::Key::CONNECTION_KEY_TYPE};
     }
 
-    void DoPopulateConnIdVal(RecordVal& conn_id) override {
+    void DoPopulateConnIdVal(RecordVal& conn_id, RecordVal& ctx) override {
         if ( conn_id.NumFields() <= 5 )
             return;
 

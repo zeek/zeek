@@ -23,9 +23,11 @@ public:
 
     void DoInit(const zeek::Packet& pkt) override { ++all_inits; }
 
-    void DoPopulateConnIdVal(zeek::RecordVal& rv) override {
+    void DoPopulateConnIdVal(zeek::RecordVal& rv, zeek::RecordVal& ctx) override {
         static int offset = rv.GetType<zeek::RecordType>()->FieldOffset("inits");
+        static int offset_ctx = ctx.GetType<zeek::RecordType>()->FieldOffset("inits");
         rv.Assign(offset, zeek::make_intrusive<zeek::IntVal>(inits));
+        ctx.Assign(offset_ctx, zeek::make_intrusive<zeek::StringVal>(std::to_string(inits)));
     }
 
 private:

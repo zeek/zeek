@@ -360,7 +360,7 @@ TEST_CASE("dict robust iteration replacement") {
     // Replace it with something else
     auto k = it->GetHashKey();
     DictTestDummy* val4 = new DictTestDummy(50);
-    dict.Insert(k.get(), val4);
+    dict.Insert(k, val4);
 
     // Delete the original element
     delete val2;
@@ -432,6 +432,43 @@ TEST_CASE("dict iterator invalidation") {
     delete key;
     delete key2;
     delete key3;
+}
+
+TEST_CASE("dict structured bindings") {
+    PDict<uint32_t> dict;
+
+    uint32_t val = 15;
+    uint32_t key_val = 5;
+    detail::HashKey* key = new detail::HashKey(key_val);
+
+    uint32_t val2 = 10;
+    uint32_t key_val2 = 25;
+    detail::HashKey* key2 = new detail::HashKey(key_val2);
+
+    dict.Insert(key, &val);
+    dict.Insert(key2, &val2);
+
+    int count = 0;
+    for ( const auto& [k, v] : dict ) {
+        uint64_t kv = *(uint32_t*)k->Key();
+
+        switch ( count ) {
+            case 0:
+                CHECK(kv == key_val2);
+                CHECK(*v == val2);
+                break;
+            case 1:
+                CHECK(kv == key_val);
+                CHECK(*v == val);
+                break;
+            default: break;
+        }
+
+        count++;
+    }
+
+    delete key;
+    delete key2;
 }
 
 // private

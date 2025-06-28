@@ -8,6 +8,9 @@ connection {
         * history: string, log=T, optional=T
         * id: record conn_id, log=T, optional=F
             conn_id {
+              * ctx: record conn_id_ctx, log=T, optional=T
+                  conn_id_ctx {
+                   }
               * orig_h: addr, log=T, optional=F
               * orig_p: port, log=T, optional=F
               * proto: count, log=F, optional=T

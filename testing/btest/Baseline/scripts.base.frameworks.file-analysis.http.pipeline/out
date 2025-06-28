@@ -4,7 +4,7 @@ file #0, 0, 0
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #0, 2675, 0
-[orig_h=192.168.1.104, orig_p=1673/tcp, resp_h=63.245.209.11, resp_p=80/tcp, proto=6]
+[orig_h=192.168.1.104, orig_p=1673/tcp, resp_h=63.245.209.11, resp_p=80/tcp, proto=6, ctx=[]]
 FILE_BOF_BUFFER
 /*\x0a********
 MIME_TYPE
@@ -18,7 +18,7 @@ file #1, 0, 0
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #1, 21421, 0
-[orig_h=192.168.1.104, orig_p=1673/tcp, resp_h=63.245.209.11, resp_p=80/tcp, proto=6]
+[orig_h=192.168.1.104, orig_p=1673/tcp, resp_h=63.245.209.11, resp_p=80/tcp, proto=6, ctx=[]]
 FILE_BOF_BUFFER
 //-- Google
 MIME_TYPE
@@ -32,7 +32,7 @@ file #2, 0, 0
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #2, 94, 0
-[orig_h=192.168.1.104, orig_p=1673/tcp, resp_h=63.245.209.11, resp_p=80/tcp, proto=6]
+[orig_h=192.168.1.104, orig_p=1673/tcp, resp_h=63.245.209.11, resp_p=80/tcp, proto=6, ctx=[]]
 FILE_BOF_BUFFER
 GIF89a\x04\x00\x04\x00\xb3
 MIME_TYPE
@@ -47,7 +47,7 @@ file #3, 0, 0
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #3, 2349, 0
-[orig_h=192.168.1.104, orig_p=1673/tcp, resp_h=63.245.209.11, resp_p=80/tcp, proto=6]
+[orig_h=192.168.1.104, orig_p=1673/tcp, resp_h=63.245.209.11, resp_p=80/tcp, proto=6, ctx=[]]
 FILE_BOF_BUFFER
 \x89PNG\x0d\x0a\x1a\x0a\x00\x00\x00
 MIME_TYPE
@@ -62,7 +62,7 @@ file #4, 0, 0
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #4, 27579, 0
-[orig_h=192.168.1.104, orig_p=1673/tcp, resp_h=63.245.209.11, resp_p=80/tcp, proto=6]
+[orig_h=192.168.1.104, orig_p=1673/tcp, resp_h=63.245.209.11, resp_p=80/tcp, proto=6, ctx=[]]
 FILE_BOF_BUFFER
 \x89PNG\x0d\x0a\x1a\x0a\x00\x00\x00
 MIME_TYPE

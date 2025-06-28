@@ -8,6 +8,6 @@
 #fields	ts	fuid	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	source	depth	analyzers	mime_type	filename	duration	local_orig	is_orig	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timedout	parent_fuid
 #types	time	string	string	addr	port	addr	port	string	count	set[string]	string	string	interval	bool	bool	count	count	count	count	bool	string
 XXXXXXXXXX.XXXXXX	FaGjhv1ozACeoEnwg5	ClEkJM2Vm5giqnMf4h	192.168.0.107	58718	88.198.248.254	80	HTTP	0	(empty)	-	-	0.076646	F	F	30003	104857600	179998	0	T	-
-XXXXXXXXXX.XXXXXX	FaGjhv1ozACeoEnwg5	C4J4Th3PJpwUYZZ6gc	192.168.0.107	58720	88.198.248.254	80	HTTP	0	(empty)	-	-	0.076646	F	F	30003	104857600	179998	0	T	-
 XXXXXXXXXX.XXXXXX	FaGjhv1ozACeoEnwg5	CHhAvVGS1DHFjwGM9	192.168.0.107	58716	88.198.248.254	80	HTTP	0	(empty)	-	-	0.076646	F	F	30003	104857600	179998	0	T	-
+XXXXXXXXXX.XXXXXX	FaGjhv1ozACeoEnwg5	C4J4Th3PJpwUYZZ6gc	192.168.0.107	58720	88.198.248.254	80	HTTP	0	(empty)	-	-	0.076646	F	F	30003	104857600	179998	0	T	-
 #close XXXX-XX-XX-XX-XX-XX

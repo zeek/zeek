@@ -30,15 +30,23 @@ public:
 
     /**
      * When Zeek renders a connection into a script-layer record, it calls this
-     * method to populate custom conn_id fields unique to this ConnKey, such as
-     * VLAN fields. This only needs to populate in fields in addition to Zeek's
+     * method to populate custom ctx fields unique to this ConnKey, such as
+     * VLAN fields. This only needs to populate fields in addition to Zeek's
      * five-tuple (i.e., complete the record, not populate all of it).
+     *
+     * The common pattern is to fill out the ctx record as that allows to use it
+     * as an additional piece of information in script-layer tables or records to
+     * discriminate between addresses in different contexts.
+     *
+     * Currently, conn_id and ctx always have the script-layer types conn_id and
+     * conn_id_ctx, but could be of different types in the future for non-IP connections.
      *
      * The default implementation does nothing.
      *
      * @param conn_id The conn_id record to populate.
+     * @param ctx The ctx record to populate.
      */
-    void PopulateConnIdVal(RecordVal& conn_id) { DoPopulateConnIdVal(conn_id); };
+    void PopulateConnIdVal(RecordVal& conn_id, RecordVal& ctx) { DoPopulateConnIdVal(conn_id, ctx); };
 
     /**
      * Return a non-owning session::detail::Key instance for connection lookups.
@@ -72,9 +80,13 @@ protected:
     /**
      * Hook method for ConnKey::PopulateConnIdVal.
      *
-     * The default implementation does nothing.
+     * Plugins should override this method to set connection key specific fields
+     * on the conn_id_ctx and if there's a use, also on conn_id.
+     *
+     * @param conn_id The conn_id script-layer record to populate.
+     * @param ctx The conn_id$ctx script-layer record to populate.
      */
-    virtual void DoPopulateConnIdVal(RecordVal& conn_id) {}
+    virtual void DoPopulateConnIdVal(RecordVal& conn_id, RecordVal& ctx) {}
 
     /**
      * Hook method for implementing ConnKey::SessionKey.

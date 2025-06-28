@@ -58,13 +58,13 @@ Val::~Val() {
 #define CONVERTER(tag, ctype, name)                                                                                    \
     ctype name() {                                                                                                     \
         CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", type_name)                                                       \
-        return static_cast<ctype>(this);                                                                              \
+        return static_cast<ctype>(this);                                                                               \
     }
 
 #define CONST_CONVERTER(tag, ctype, name)                                                                              \
     const ctype name() const {                                                                                         \
         CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", type_name)                                                       \
-        return static_cast<const ctype>(this);                                                                        \
+        return static_cast<const ctype>(this);                                                                         \
     }
 
 #define CONVERTERS(tag, ctype, name)                                                                                   \

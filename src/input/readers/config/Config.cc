@@ -54,10 +54,10 @@ void Config::DoClose() {}
 bool Config::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields) {
     fail_on_file_problem = BifConst::InputConfig::fail_on_file_problem;
 
-    set_separator.assign((const char*)BifConst::InputConfig::set_separator->Bytes(),
+    set_separator.assign(reinterpret_cast<const char*>(BifConst::InputConfig::set_separator->Bytes()),
                          BifConst::InputConfig::set_separator->Len());
 
-    empty_field.assign((const char*)BifConst::InputConfig::empty_field->Bytes(),
+    empty_field.assign(reinterpret_cast<const char*>(BifConst::InputConfig::empty_field->Bytes()),
                        BifConst::InputConfig::empty_field->Len());
 
     threading::formatter::Ascii::SeparatorInfo sep_info("\t", set_separator, "", empty_field);

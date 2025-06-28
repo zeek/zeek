@@ -308,7 +308,7 @@ static void addrinfo_cb(void* arg, int status, int timeouts, struct ares_addrinf
                 addrs.push_back(&addr->sin_addr);
             }
             else if ( entry->ai_family == AF_INET6 ) {
-                struct sockaddr_in6* addr = (struct sockaddr_in6*)(entry->ai_addr);
+                struct sockaddr_in6* addr = reinterpret_cast<sockaddr_in6*>(entry->ai_addr);
                 addrs6.push_back(&addr->sin6_addr);
             }
         }

@@ -148,7 +148,7 @@ void Login_Analyzer::AuthenticationDialog(bool orig, char* line) {
                 // VMS repeats the username, not the last line
                 // typed (which presumably is the password).
                 if ( username ) {
-                    line = (char*)username->AsString()->Bytes();
+                    line = reinterpret_cast<char*>(username->AsString()->Bytes());
                     if ( strstr(line, VMS_REPEAT_SEQ) )
                         Confused("username_with_embedded_repeat", line);
                     else
@@ -287,7 +287,7 @@ void Login_Analyzer::SetEnv(bool orig, char* name, char* val) {
             if ( username ) {
                 const String* u = username->AsString();
                 const byte_vec ub = u->Bytes();
-                const char* us = (const char*)ub;
+                const char* us = reinterpret_cast<const char*>(ub);
                 if ( ! util::streq(val, us) )
                     Confused("multiple_USERs", val);
                 Unref(username);

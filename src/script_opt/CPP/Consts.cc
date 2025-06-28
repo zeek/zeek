@@ -32,7 +32,7 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterConstant(const ValPtr& vp, int& con
         // We can't rely on these to render with consistent
         // escaping, sigh.  Just use the raw string.
         auto s = v->AsString();
-        auto b = (const char*)(s->Bytes());
+        auto b = reinterpret_cast<const char*>(s->Bytes());
         c_desc = string(b, s->Len()) + "string";
     }
     else {

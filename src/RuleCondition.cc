@@ -162,7 +162,7 @@ bool RuleConditionEval::DoMatch(Rule* rule, RuleEndpointState* state, const u_ch
     args.emplace_back(AdoptRef{}, rule_matcher->BuildRuleStateValue(rule, state));
 
     if ( data )
-        args.emplace_back(make_intrusive<StringVal>(len, (const char*)data));
+        args.emplace_back(make_intrusive<StringVal>(len, reinterpret_cast<const char*>(data)));
     else
         args.emplace_back(val_mgr->EmptyString());
 

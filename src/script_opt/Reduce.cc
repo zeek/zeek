@@ -851,10 +851,7 @@ IDPtr Reducer::GenLocal(const IDPtr& orig) {
     return local_id;
 }
 
-bool Reducer::IsNewLocal(const ID* id) const {
-    ID* non_const_ID = (ID*)id; // I don't get why C++ requires this
-    return new_locals.count(non_const_ID) != 0;
-}
+bool Reducer::IsNewLocal(const ID* id) const { return new_locals.count(id) != 0; }
 
 std::shared_ptr<TempVar> Reducer::FindTemporary(const ID* id) const {
     auto tmp = ids_to_temps.find(id);

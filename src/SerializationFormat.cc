@@ -32,7 +32,7 @@ void SerializationFormat::StartWrite() {
     }
 
     if ( ! output ) {
-        output = (char*)util::safe_malloc(INITIAL_SIZE);
+        output = reinterpret_cast<char*>(util::safe_malloc(INITIAL_SIZE));
         output_size = INITIAL_SIZE;
     }
 
@@ -75,7 +75,7 @@ bool SerializationFormat::WriteData(const void* b, size_t count) {
     // size is a no-op, but the same claim can't be made on other platforms.
     // There's really no reason to do that though.
     if ( size_changed )
-        output = (char*)util::safe_realloc(output, output_size);
+        output = reinterpret_cast<char*>(util::safe_realloc(output, output_size));
 
     memcpy(output + output_pos, b, count);
     output_pos += count;
@@ -251,7 +251,7 @@ bool BinarySerializationFormat::Read(struct in_addr* addr, const char* tag) {
 }
 
 bool BinarySerializationFormat::Read(struct in6_addr* addr, const char* tag) {
-    uint32_t* bytes = (uint32_t*)&addr->s6_addr;
+    uint32_t* bytes = reinterpret_cast<uint32_t*>(&addr->s6_addr);
 
     for ( int i = 0; i < 4; ++i ) {
         if ( ! Read(&bytes[i], "addr6-part") )
@@ -340,7 +340,7 @@ bool BinarySerializationFormat::Write(const IPPrefix& prefix, const char* tag) {
 }
 
 bool BinarySerializationFormat::Write(const struct in_addr& addr, const char* tag) {
-    const uint32_t* bytes = (uint32_t*)&addr.s_addr;
+    const uint32_t* bytes = reinterpret_cast<const uint32_t*>(&addr.s_addr);
 
     if ( ! Write(static_cast<uint32_t>(ntohl(bytes[0])), "addr4") )
         return false;
@@ -349,7 +349,7 @@ bool BinarySerializationFormat::Write(const struct in_addr& addr, const char* ta
 }
 
 bool BinarySerializationFormat::Write(const struct in6_addr& addr, const char* tag) {
-    const uint32_t* bytes = (uint32_t*)&addr.s6_addr;
+    const uint32_t* bytes = reinterpret_cast<const uint32_t*>(&addr.s6_addr);
 
     for ( int i = 0; i < 4; ++i ) {
         if ( ! Write(static_cast<uint32_t>(ntohl(bytes[i])), "addr6-part") )

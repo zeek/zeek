@@ -23,7 +23,7 @@ zeek::ValPtr GetTimeFromAsn1(zeek::StringVal* atime, int64 usecs)
 	char* pBuffer = lBuffer;
 
 	size_t lTimeLength = atime->Len();
-	char * pString = (char *) atime->Bytes();
+	const char* pString = reinterpret_cast<const char*>(atime->Bytes());
 
 	if ( lTimeLength != 15 && lTimeLength != 17 )
 		return nullptr;

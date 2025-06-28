@@ -539,7 +539,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
     req_buffer_size++;
 
     if ( req_buffer_size > DEFAULT_BUFFER_SIZE ) {
-        buffer = (char*)malloc(req_buffer_size);
+        buffer = reinterpret_cast<char*>(malloc(req_buffer_size));
         if ( ! buffer ) {
             va_end(ap_copy);
             FatalError("out of memory in Reporter");

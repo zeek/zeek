@@ -50,8 +50,8 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
     int proto = packet->proto;
     int gre_link_type = DLT_RAW;
 
-    uint16_t flags_ver = ntohs(*((uint16_t*)(data + 0)));
-    uint16_t proto_typ = ntohs(*((uint16_t*)(data + 2)));
+    uint16_t flags_ver = ntohs(*reinterpret_cast<const uint16_t*>(data + 0));
+    uint16_t proto_typ = ntohs(*reinterpret_cast<const uint16_t*>(data + 2));
     int gre_version = flags_ver & 0x0007;
 
     unsigned int eth_len = 0;
@@ -173,7 +173,7 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
     // For GRE version 1/PPTP, reset the protocol based on a value from the PPTP header.
     // TODO: where are these two values defined?
     if ( gre_version == 1 ) {
-        uint16_t pptp_proto = ntohs(*((uint16_t*)(data + gre_len + 2)));
+        uint16_t pptp_proto = ntohs(*reinterpret_cast<const uint16_t*>(data + gre_len + 2));
 
         if ( pptp_proto != 0x0021 && pptp_proto != 0x0057 ) {
             Weird("non_ip_packet_in_encap", packet);

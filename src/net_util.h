@@ -260,8 +260,8 @@ inline double ntohd(double d) {
     assert(sizeof(d) == 8);
 
     double tmp;
-    char* src = (char*)&d;
-    char* dst = (char*)&tmp;
+    char* src = reinterpret_cast<char*>(&d);
+    char* dst = reinterpret_cast<char*>(&tmp);
 
     dst[0] = src[7];
     dst[1] = src[6];
@@ -281,8 +281,8 @@ inline float ntohf(float f) {
     assert(sizeof(f) == 4);
 
     float tmp;
-    char* src = (char*)&f;
-    char* dst = (char*)&tmp;
+    char* src = reinterpret_cast<char*>(&f);
+    char* dst = reinterpret_cast<char*>(&tmp);
 
     dst[0] = src[3];
     dst[1] = src[2];

@@ -92,7 +92,7 @@ ipaddr32_t AnonymizeIPAddr_RandomMD5::anonymize(ipaddr32_t input) {
     uint8_t digest[16];
     ipaddr32_t output = 0;
 
-    util::detail::hmac_md5(sizeof(input), (u_char*)(&input), digest);
+    util::detail::hmac_md5(sizeof(input), reinterpret_cast<u_char*>(&input), digest);
 
     for ( int i = 0; i < 4; ++i )
         output = (output << 8) | digest[i];
@@ -117,7 +117,7 @@ ipaddr32_t AnonymizeIPAddr_PrefixMD5::anonymize(ipaddr32_t input) {
         prefix.prefix = htonl((input & ~(prefix_mask >> i)) | (1 << (31 - i)));
 
         // HK(PAD(x_0 ... x_{i-1})).
-        util::detail::hmac_md5(sizeof(prefix), (u_char*)&prefix, digest);
+        util::detail::hmac_md5(sizeof(prefix), reinterpret_cast<u_char*>(&prefix), digest);
 
         // f_{i-1} = LSB(HK(PAD(x_0 ... x_{i-1}))).
         ipaddr32_t bit_mask = (digest[0] & 1) << (31 - i);

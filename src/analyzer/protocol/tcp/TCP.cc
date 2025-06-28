@@ -40,8 +40,8 @@ void TCP_ApplicationAnalyzer::DeliverPacket(int len, const u_char* data, bool is
                                             int caplen) {
     Analyzer::DeliverPacket(len, data, is_orig, seq, ip, caplen);
     DBG_LOG(DBG_ANALYZER, "TCP_ApplicationAnalyzer ignoring DeliverPacket(%d, %s, %" PRIu64 ", %p, %d) [%s%s]", len,
-            is_orig ? "T" : "F", seq, ip, caplen, util::fmt_bytes((const char*)data, std::min(40, len)),
-            len > 40 ? "..." : "");
+            is_orig ? "T" : "F", seq, ip, caplen,
+            util::fmt_bytes(reinterpret_cast<const char*>(data), std::min(40, len)), len > 40 ? "..." : "");
 }
 
 void TCP_ApplicationAnalyzer::SetEnv(bool /* is_orig */, char* name, char* val) {

@@ -115,7 +115,7 @@ TEST_CASE("file reassembler") {
     auto f = std::make_unique<TestFile>("test_file_id", "test_source_name");
     auto r = std::make_unique<zeek::file_analysis::FileReassembler>(f.get(), 0);
 
-    const u_char* data = (u_char*)("0123456789ABCDEF");
+    const u_char* data = reinterpret_cast<const u_char*>("0123456789ABCDEF");
 
     SUBCASE("block overlap and 64bit overflow") {
         r->NewBlock(0.0, 0xfffffffffffffff7, 3, data);

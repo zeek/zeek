@@ -129,18 +129,18 @@ bool MMDB::Lookup(const zeek::IPAddr& addr, MMDB_lookup_result_s& result) {
     struct sockaddr_storage ss = {0};
 
     if ( IPv4 == addr.GetFamily() ) {
-        struct sockaddr_in* sa = (struct sockaddr_in*)&ss;
+        struct sockaddr_in* sa = reinterpret_cast<sockaddr_in*>(&ss);
         sa->sin_family = AF_INET;
         addr.CopyIPv4(&sa->sin_addr);
     }
     else {
-        struct sockaddr_in6* sa = (struct sockaddr_in6*)&ss;
+        struct sockaddr_in6* sa = reinterpret_cast<sockaddr_in6*>(&ss);
         sa->sin6_family = AF_INET6;
         addr.CopyIPv6(&sa->sin6_addr);
     }
 
     int mmdb_error;
-    result = MMDB_lookup_sockaddr(&mmdb, (struct sockaddr*)&ss, &mmdb_error);
+    result = MMDB_lookup_sockaddr(&mmdb, reinterpret_cast<sockaddr*>(&ss), &mmdb_error);
 
     if ( MMDB_SUCCESS != mmdb_error ) {
         report_msg("MaxMind DB lookup location error [%s]", MMDB_strerror(mmdb_error));

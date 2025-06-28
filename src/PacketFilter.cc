@@ -74,11 +74,11 @@ bool PacketFilter::RemoveDst(Val* dst) {
 }
 
 bool PacketFilter::Match(const std::shared_ptr<IP_Hdr>& ip, int len, int caplen) {
-    Filter* f = (Filter*)src_filter.Lookup(ip->SrcAddr(), 128);
+    Filter* f = reinterpret_cast<Filter*>(src_filter.Lookup(ip->SrcAddr(), 128));
     if ( f )
         return MatchFilter(*f, *ip, len, caplen);
 
-    f = (Filter*)dst_filter.Lookup(ip->DstAddr(), 128);
+    f = reinterpret_cast<Filter*>(dst_filter.Lookup(ip->DstAddr(), 128));
     if ( f )
         return MatchFilter(*f, *ip, len, caplen);
 
@@ -96,7 +96,7 @@ bool PacketFilter::MatchFilter(const Filter& f, const IP_Hdr& ip, int len, int c
             // Packet too short, will be dropped anyway.
             return false;
 
-        const struct tcphdr* tp = (const struct tcphdr*)ip.Payload();
+        const struct tcphdr* tp = reinterpret_cast<const tcphdr*>(ip.Payload());
 
         if ( tp->th_flags & f.tcp_flags )
             // At least one of the flags is set, so don't drop

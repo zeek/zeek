@@ -11,7 +11,7 @@
 namespace zeek::file_analysis::detail {
 
 static void analyzer_del_func(void* v) {
-    file_analysis::Analyzer* a = (file_analysis::Analyzer*)v;
+    file_analysis::Analyzer* a = reinterpret_cast<file_analysis::Analyzer*>(v);
 
     a->Done();
     delete a;

@@ -598,7 +598,7 @@ void HTTP_Message::BeginEntity(analyzer::mime::MIME_Entity* entity) {
     if ( DEBUG_http )
         DEBUG_MSG("%.6f: begin entity (%d)\n", run_state::network_time, is_orig);
 
-    current_entity = dynamic_cast<HTTP_Entity*>(entity);
+    current_entity = static_cast<HTTP_Entity*>(entity);
 
     if ( http_begin_entity )
         analyzer->EnqueueConnEvent(http_begin_entity, analyzer->ConnVal(), val_mgr->Bool(is_orig));
@@ -609,14 +609,14 @@ void HTTP_Message::EndEntity(analyzer::mime::MIME_Entity* entity) {
         DEBUG_MSG("%.6f: end entity (%d)\n", run_state::network_time, is_orig);
 
     if ( entity == top_level ) {
-        body_length += (dynamic_cast<HTTP_Entity*>(entity))->BodyLength();
-        header_length += (dynamic_cast<HTTP_Entity*>(entity))->HeaderLength();
+        body_length += (static_cast<HTTP_Entity*>(entity))->BodyLength();
+        header_length += (static_cast<HTTP_Entity*>(entity))->HeaderLength();
     }
 
     if ( http_end_entity )
         analyzer->EnqueueConnEvent(http_end_entity, analyzer->ConnVal(), val_mgr->Bool(is_orig));
 
-    current_entity = dynamic_cast<HTTP_Entity*>(entity->Parent());
+    current_entity = static_cast<HTTP_Entity*>(entity->Parent());
 
     if ( entity->Parent() && entity->Parent()->MIMEContentType() == analyzer::mime::CONTENT_TYPE_MULTIPART ) {
         content_line->SuppressWeirds(false);

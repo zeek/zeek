@@ -21,62 +21,62 @@ static bool same_singletons(ExprPtr e1, ExprPtr e2);
 
 ConstExpr* Expr::AsConstExpr() {
     CHECK_TAG(tag, EXPR_CONST, "ExprVal::AsConstExpr", expr_name)
-    return dynamic_cast<ConstExpr*>(this);
+    return static_cast<ConstExpr*>(this);
 }
 
 const FieldExpr* Expr::AsFieldExpr() const {
     CHECK_TAG(tag, EXPR_FIELD, "ExprVal::AsFieldExpr", expr_name)
-    return dynamic_cast<const FieldExpr*>(this);
+    return static_cast<const FieldExpr*>(this);
 }
 
 FieldExpr* Expr::AsFieldExpr() {
     CHECK_TAG(tag, EXPR_FIELD, "ExprVal::AsFieldExpr", expr_name)
-    return dynamic_cast<FieldExpr*>(this);
+    return static_cast<FieldExpr*>(this);
 }
 
 FieldAssignExpr* Expr::AsFieldAssignExpr() {
     CHECK_TAG(tag, EXPR_FIELD_ASSIGN, "ExprVal::AsFieldAssignExpr", expr_name)
-    return dynamic_cast<FieldAssignExpr*>(this);
+    return static_cast<FieldAssignExpr*>(this);
 }
 
 IntrusivePtr<FieldAssignExpr> Expr::AsFieldAssignExprPtr() {
     CHECK_TAG(tag, EXPR_FIELD_ASSIGN, "ExprVal::AsFieldAssignExpr", expr_name)
-    return {NewRef{}, dynamic_cast<FieldAssignExpr*>(this)};
+    return {NewRef{}, static_cast<FieldAssignExpr*>(this)};
 }
 
 HasFieldExpr* Expr::AsHasFieldExpr() {
     CHECK_TAG(tag, EXPR_HAS_FIELD, "ExprVal::AsHasFieldExpr", expr_name)
-    return dynamic_cast<HasFieldExpr*>(this);
+    return static_cast<HasFieldExpr*>(this);
 }
 
 const HasFieldExpr* Expr::AsHasFieldExpr() const {
     CHECK_TAG(tag, EXPR_HAS_FIELD, "ExprVal::AsHasFieldExpr", expr_name)
-    return dynamic_cast<const HasFieldExpr*>(this);
+    return static_cast<const HasFieldExpr*>(this);
 }
 
 const IsExpr* Expr::AsIsExpr() const {
     CHECK_TAG(tag, EXPR_IS, "ExprVal::AsIsExpr", expr_name)
-    return dynamic_cast<const IsExpr*>(this);
+    return static_cast<const IsExpr*>(this);
 }
 
 CallExpr* Expr::AsCallExpr() {
     CHECK_TAG(tag, EXPR_CALL, "ExprVal::AsCallExpr", expr_name)
-    return dynamic_cast<CallExpr*>(this);
+    return static_cast<CallExpr*>(this);
 }
 
 RefExpr* Expr::AsRefExpr() {
     CHECK_TAG(tag, EXPR_REF, "ExprVal::AsRefExpr", expr_name)
-    return dynamic_cast<RefExpr*>(this);
+    return static_cast<RefExpr*>(this);
 }
 
 LambdaExpr* Expr::AsLambdaExpr() {
     CHECK_TAG(tag, EXPR_LAMBDA, "ExprVal::AsLambdaExpr", expr_name)
-    return dynamic_cast<LambdaExpr*>(this);
+    return static_cast<LambdaExpr*>(this);
 }
 
 const LambdaExpr* Expr::AsLambdaExpr() const {
     CHECK_TAG(tag, EXPR_LAMBDA, "ExprVal::AsLambdaExpr", expr_name)
-    return dynamic_cast<const LambdaExpr*>(this);
+    return static_cast<const LambdaExpr*>(this);
 }
 
 ExprPtr Expr::GetOp1() const { return nullptr; }

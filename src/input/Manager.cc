@@ -1067,7 +1067,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const* vals) {
     assert(i);
 
     assert(i->stream_type == TABLE_STREAM);
-    TableStream* stream = dynamic_cast<TableStream*>(i);
+    TableStream* stream = static_cast<TableStream*>(i);
 
     zeek::detail::HashKey* idxhash = HashValues(stream->num_idx_fields, vals);
 
@@ -1385,7 +1385,7 @@ int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const* 
     assert(i);
 
     assert(i->stream_type == EVENT_STREAM);
-    EventStream* stream = dynamic_cast<EventStream*>(i);
+    EventStream* stream = static_cast<EventStream*>(i);
 
     list<Val*> out_vals;
     Ref(stream->description);
@@ -1439,7 +1439,7 @@ int Manager::PutTable(Stream* i, const Value* const* vals) {
     assert(i);
 
     assert(i->stream_type == TABLE_STREAM);
-    TableStream* stream = dynamic_cast<TableStream*>(i);
+    TableStream* stream = static_cast<TableStream*>(i);
 
     bool convert_error = false;
 
@@ -1560,7 +1560,7 @@ void Manager::Clear(ReaderFrontend* reader) {
 #endif
 
     assert(i->stream_type == TABLE_STREAM);
-    TableStream* stream = dynamic_cast<TableStream*>(i);
+    TableStream* stream = static_cast<TableStream*>(i);
 
     stream->tab->RemoveAll();
 }
@@ -1577,7 +1577,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value** vals) {
     int readVals = 0;
 
     if ( i->stream_type == TABLE_STREAM ) {
-        TableStream* stream = dynamic_cast<TableStream*>(i);
+        TableStream* stream = static_cast<TableStream*>(i);
         bool convert_error = false;
         Val* idxval = ValueToIndexVal(i, stream->num_idx_fields, stream->itype, vals, convert_error);
         readVals = stream->num_idx_fields + stream->num_val_fields;

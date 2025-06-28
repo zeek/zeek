@@ -138,7 +138,7 @@ void TelnetEncryptOption::RecvSubOption(u_char* data, int len) {
         ++did_encrypt_request;
 
     else if ( opt == ENCRYPT_STARTING_TO_ENCRYPT ) {
-        TelnetEncryptOption* peer = dynamic_cast<TelnetEncryptOption*>(endp->FindPeerOption(code));
+        TelnetEncryptOption* peer = static_cast<TelnetEncryptOption*>(endp->FindPeerOption(code));
 
         if ( ! peer ) {
             reporter->AnalyzerError(endp, "option peer missing in TelnetEncryptOption::RecvSubOption");
@@ -172,7 +172,7 @@ void TelnetAuthenticateOption::RecvSubOption(u_char* data, int len) {
 
     switch ( data[0] ) {
         case HERE_IS_AUTHENTICATION: {
-            TelnetAuthenticateOption* peer = dynamic_cast<TelnetAuthenticateOption*>(endp->FindPeerOption(code));
+            TelnetAuthenticateOption* peer = static_cast<TelnetAuthenticateOption*>(endp->FindPeerOption(code));
 
             if ( ! peer ) {
                 reporter->AnalyzerError(endp, "option peer missing in TelnetAuthenticateOption::RecvSubOption");

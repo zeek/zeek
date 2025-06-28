@@ -221,7 +221,7 @@ String* decode_base64(const String* s, const String* a, Connection* conn) {
     char* rbuf = new char[rlen];
 
     Base64Converter dec(conn, a ? a->CheckString() : "");
-    dec.Decode(s->Len(), (const char*)s->Bytes(), &rlen, &rbuf);
+    dec.Decode(s->Len(), reinterpret_cast<const char*>(s->Bytes()), &rlen, &rbuf);
 
     if ( dec.Errored() ) {
         delete[] rbuf;
@@ -236,7 +236,7 @@ String* decode_base64(const String* s, const String* a, Connection* conn) {
     rlen += rlen2;
 
     rbuf[rlen] = '\0';
-    return new String(true, (u_char*)rbuf, rlen);
+    return new String(true, reinterpret_cast<u_char*>(rbuf), rlen);
 }
 
 String* encode_base64(const String* s, const String* a, Connection* conn) {
@@ -250,7 +250,7 @@ String* encode_base64(const String* s, const String* a, Connection* conn) {
     Base64Converter enc(conn, a ? a->CheckString() : "");
     enc.Encode(s->Len(), (const unsigned char*)s->Bytes(), &outlen, &outbuf);
 
-    return new String(true, (u_char*)outbuf, outlen);
+    return new String(true, reinterpret_cast<u_char*>(outbuf), outlen);
 }
 
 } // namespace zeek::detail

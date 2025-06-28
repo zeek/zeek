@@ -22,7 +22,7 @@ using ZeekStringVal = zeek::StringVal*;
 using ZeekPacket = zeek::Packet;
 
 inline zeek::StringValPtr to_stringval(const_bytestring const& str) {
-    return zeek::make_intrusive<zeek::StringVal>(str.length(), (const char*)str.begin());
+    return zeek::make_intrusive<zeek::StringVal>(str.length(), reinterpret_cast<const char*>(str.begin()));
 }
 
 zeek::StringValPtr utf16_to_utf8_val(zeek::Connection* conn, const bytestring& utf16);

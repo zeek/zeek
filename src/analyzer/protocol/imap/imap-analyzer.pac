@@ -68,7 +68,7 @@ refine connection IMAP_Conn += {
 		for ( unsigned int i = 0; i< capabilities->size(); i++ )
 			{
 			const bytestring& capability = (*capabilities)[i]->cap();
-			capv->Assign(i, zeek::make_intrusive<zeek::StringVal>(capability.length(), (const char*)capability.data()));
+			capv->Assign(i, zeek::make_intrusive<zeek::StringVal>(capability.length(), reinterpret_cast<const char*>(capability.data())));
 			}
 
 		zeek::BifEvent::enqueue_imap_capabilities(zeek_analyzer(), zeek_analyzer()->Conn(), std::move(capv));

@@ -39,7 +39,8 @@ bool SMB_Analyzer::HasSMBHeader(int len, const u_char* data) {
     if ( len < 8 )
         return false;
 
-    return (strncmp((const char*)data + 4, "\xffSMB", 4) == 0 || strncmp((const char*)data + 4, "\xfeSMB", 4) == 0);
+    return (strncmp(reinterpret_cast<const char*>(data) + 4, "\xffSMB", 4) == 0 ||
+            strncmp(reinterpret_cast<const char*>(data) + 4, "\xfeSMB", 4) == 0);
 }
 
 void SMB_Analyzer::NeedResync() {

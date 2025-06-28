@@ -279,7 +279,7 @@ void X509::FreeRootStore() {
 void X509::ParseBasicConstraints(X509_EXTENSION* ex) {
     assert(OBJ_obj2nid(X509_EXTENSION_get_object(ex)) == NID_basic_constraints);
 
-    BASIC_CONSTRAINTS* constr = (BASIC_CONSTRAINTS*)X509V3_EXT_d2i(ex);
+    BASIC_CONSTRAINTS* constr = reinterpret_cast<BASIC_CONSTRAINTS*>(X509V3_EXT_d2i(ex));
 
     if ( constr ) {
         if ( x509_ext_basic_constraints ) {
@@ -321,7 +321,7 @@ void X509::ParseExtensionsSpecific(X509_EXTENSION* ex, bool global, ASN1_OBJECT*
 void X509::ParseSAN(X509_EXTENSION* ext) {
     assert(OBJ_obj2nid(X509_EXTENSION_get_object(ext)) == NID_subject_alt_name);
 
-    GENERAL_NAMES* altname = (GENERAL_NAMES*)X509V3_EXT_d2i(ext);
+    GENERAL_NAMES* altname = reinterpret_cast<GENERAL_NAMES*>(X509V3_EXT_d2i(ext));
     if ( ! altname ) {
         reporter->Weird(GetFile(), "x509_san_parse_error");
         return;
@@ -345,7 +345,7 @@ void X509::ParseSAN(X509_EXTENSION* ext) {
             }
 
             auto len = ASN1_STRING_length(gen->d.ia5);
-            const char* name = (const char*)ASN1_STRING_get0_data(gen->d.ia5);
+            const char* name = reinterpret_cast<const char*>(ASN1_STRING_get0_data(gen->d.ia5));
             auto bs = make_intrusive<StringVal>(len, name);
 
             switch ( gen->type ) {
@@ -378,7 +378,7 @@ void X509::ParseSAN(X509_EXTENSION* ext) {
             if ( ips == nullptr )
                 ips = make_intrusive<VectorVal>(id::find_type<VectorType>("addr_vec"));
 
-            uint32_t* addr = (uint32_t*)gen->d.ip->data;
+            uint32_t* addr = reinterpret_cast<uint32_t*>(gen->d.ip->data);
 
             if ( gen->d.ip->length == 4 )
                 ips->Assign(ips->Size(), make_intrusive<AddrVal>(*addr));

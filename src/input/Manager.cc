@@ -41,7 +41,7 @@ struct InputHash {
 InputHash::~InputHash() { delete idxkey; }
 
 static void input_hash_delete_func(void* val) {
-    InputHash* h = (InputHash*)val;
+    InputHash* h = reinterpret_cast<InputHash*>(val);
     delete h;
 }
 
@@ -198,7 +198,7 @@ bool Manager::CreateStream(Stream* info, RecordVal* description) {
     // get the source ...
     auto source_val = description->GetFieldOrDefault("source");
     const String* bsource = source_val->AsString();
-    string source((const char*)bsource->Bytes(), bsource->Len());
+    string source(reinterpret_cast<const char*>(bsource->Bytes()), bsource->Len());
 
     ReaderBackend::ReaderInfo rinfo;
     rinfo.source = util::copy_string(source.c_str(), source.size());
@@ -1068,7 +1068,7 @@ int Manager::SendEntryTable(Stream* i, const Value* const* vals) {
     assert(i);
 
     assert(i->stream_type == TABLE_STREAM);
-    TableStream* stream = (TableStream*)i;
+    TableStream* stream = static_cast<TableStream*>(i);
 
     zeek::detail::HashKey* idxhash = HashValues(stream->num_idx_fields, vals);
 
@@ -1386,7 +1386,7 @@ int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const* 
     assert(i);
 
     assert(i->stream_type == EVENT_STREAM);
-    EventStream* stream = (EventStream*)i;
+    EventStream* stream = static_cast<EventStream*>(i);
 
     list<Val*> out_vals;
     Ref(stream->description);
@@ -1440,7 +1440,7 @@ int Manager::PutTable(Stream* i, const Value* const* vals) {
     assert(i);
 
     assert(i->stream_type == TABLE_STREAM);
-    TableStream* stream = (TableStream*)i;
+    TableStream* stream = static_cast<TableStream*>(i);
 
     bool convert_error = false;
 
@@ -1561,7 +1561,7 @@ void Manager::Clear(ReaderFrontend* reader) {
 #endif
 
     assert(i->stream_type == TABLE_STREAM);
-    TableStream* stream = (TableStream*)i;
+    TableStream* stream = static_cast<TableStream*>(i);
 
     stream->tab->RemoveAll();
 }
@@ -1578,7 +1578,7 @@ bool Manager::Delete(ReaderFrontend* reader, Value** vals) {
     int readVals = 0;
 
     if ( i->stream_type == TABLE_STREAM ) {
-        TableStream* stream = (TableStream*)i;
+        TableStream* stream = static_cast<TableStream*>(i);
         bool convert_error = false;
         Val* idxval = ValueToIndexVal(i, stream->num_idx_fields, stream->itype, vals, convert_error);
         readVals = stream->num_idx_fields + stream->num_val_fields;
@@ -1897,12 +1897,12 @@ int Manager::CopyValue(char* data, const int startpos, const Value* val) const {
             switch ( val->val.addr_val.family ) {
                 case IPv4:
                     length = sizeof(val->val.addr_val.in.in4);
-                    memcpy(data + startpos, (const char*)&(val->val.addr_val.in.in4), length);
+                    memcpy(data + startpos, reinterpret_cast<const char*>(&val->val.addr_val.in.in4), length);
                     break;
 
                 case IPv6:
                     length = sizeof(val->val.addr_val.in.in6);
-                    memcpy(data + startpos, (const char*)&(val->val.addr_val.in.in6), length);
+                    memcpy(data + startpos, reinterpret_cast<const char*>(&val->val.addr_val.in.in6), length);
                     break;
 
                 default: assert(false);
@@ -1916,19 +1916,19 @@ int Manager::CopyValue(char* data, const int startpos, const Value* val) const {
             switch ( val->val.subnet_val.prefix.family ) {
                 case IPv4:
                     length = sizeof(val->val.addr_val.in.in4);
-                    memcpy(data + startpos, (const char*)&(val->val.subnet_val.prefix.in.in4), length);
+                    memcpy(data + startpos, reinterpret_cast<const char*>(&val->val.subnet_val.prefix.in.in4), length);
                     break;
 
                 case IPv6:
                     length = sizeof(val->val.addr_val.in.in6);
-                    memcpy(data + startpos, (const char*)&(val->val.subnet_val.prefix.in.in6), length);
+                    memcpy(data + startpos, reinterpret_cast<const char*>(&val->val.subnet_val.prefix.in.in6), length);
                     break;
 
                 default: assert(false);
             }
 
             int lengthlength = sizeof(val->val.subnet_val.length);
-            memcpy(data + startpos + length, (const char*)&(val->val.subnet_val.length), lengthlength);
+            memcpy(data + startpos + length, reinterpret_cast<const char*>(&val->val.subnet_val.length), lengthlength);
             length += lengthlength;
 
             return length;
@@ -2037,7 +2037,8 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, Type* request_type, 
         case TYPE_INTERVAL: return new IntervalVal(val->val.double_val);
 
         case TYPE_STRING: {
-            String* s = new String((const u_char*)val->val.string_val.data, val->val.string_val.length, true);
+            String* s =
+                new String(reinterpret_cast<const u_char*>(val->val.string_val.data), val->val.string_val.length, true);
             return new StringVal(s);
         }
 

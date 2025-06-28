@@ -130,9 +130,9 @@ public:
     void AddRaw(const std::string& s) { AddBytesRaw(s.data(), s.size()); }
 
     // Returns the description as a string.
-    const char* Description() const { return (const char*)base; }
+    const char* Description() const { return reinterpret_cast<const char*>(base); }
 
-    const u_char* Bytes() const { return (const u_char*)base; }
+    const u_char* Bytes() const { return reinterpret_cast<const u_char*>(base); }
     byte_vec TakeBytes() {
         const void* t = base;
         base = nullptr;

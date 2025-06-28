@@ -16,7 +16,7 @@ refine connection SMB_Conn += {
 	args->Assign(7, ${val.data_displacement});
 
 	auto parameters = zeek::make_intrusive<zeek::StringVal>(${val.parameters}.length(),
-	                                            (const char*)${val.parameters}.data());
+	                                            reinterpret_cast<const char*>(${val.parameters}.data()));
 	zeek::StringValPtr payload_str;
 
 	if ( ${val.data_count} > 0 )

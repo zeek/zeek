@@ -8,7 +8,7 @@
 namespace zeek::detail {
 
 prefix_t* PrefixTable::MakePrefix(const IPAddr& addr, int width) {
-    prefix_t* prefix = (prefix_t*)util::safe_malloc(sizeof(prefix_t));
+    prefix_t* prefix = reinterpret_cast<prefix_t*>(util::safe_malloc(sizeof(prefix_t)));
 
     addr.CopyIPv6(&prefix->add.sin6);
     prefix->family = AF_INET6;

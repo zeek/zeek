@@ -94,11 +94,11 @@ refine connection SOCKS_Conn += {
 
 			case 3:
 				sa->Assign(1, zeek::make_intrusive<zeek::StringVal>(${request.remote_name.domain_name.name}.length(),
-				                         (const char*) ${request.remote_name.domain_name.name}.data()));
+				                         reinterpret_cast<const char*>(${request.remote_name.domain_name.name}.data())));
 				break;
 
 			case 4:
-				sa->Assign(0, zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(IPv6, (const uint32_t*) ${request.remote_name.ipv6}, zeek::IPAddr::Network)));
+				sa->Assign(0, zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(IPv6, reinterpret_cast<const uint32_t*>(${request.remote_name.ipv6}), zeek::IPAddr::Network)));
 				break;
 
 			default:
@@ -134,11 +134,11 @@ refine connection SOCKS_Conn += {
 
 			case 3:
 				sa->Assign(1, zeek::make_intrusive<zeek::StringVal>(${reply.bound.domain_name.name}.length(),
-				                         (const char*) ${reply.bound.domain_name.name}.data()));
+				                         reinterpret_cast<const char*>(${reply.bound.domain_name.name}.data())));
 				break;
 
 			case 4:
-				sa->Assign(0, zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(IPv6, (const uint32_t*) ${reply.bound.ipv6}, zeek::IPAddr::Network)));
+				sa->Assign(0, zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(IPv6, reinterpret_cast<const uint32_t*>(${reply.bound.ipv6}), zeek::IPAddr::Network)));
 				break;
 
 			default:
@@ -164,8 +164,8 @@ refine connection SOCKS_Conn += {
 		if ( ! socks_login_userpass_request )
 			return true;
 
-		auto user = zeek::make_intrusive<zeek::StringVal>(${request.username}.length(), (const char*) ${request.username}.begin());
-		auto pass = zeek::make_intrusive<zeek::StringVal>(${request.password}.length(), (const char*) ${request.password}.begin());
+		auto user = zeek::make_intrusive<zeek::StringVal>(request->username().length(), reinterpret_cast<const char*>(${request.username}.begin()));
+		auto pass = zeek::make_intrusive<zeek::StringVal>(request->password().length(), reinterpret_cast<const char*>(${request.password}.begin()));
 
 		zeek::BifEvent::enqueue_socks_login_userpass_request(zeek_analyzer(),
 		                                               zeek_analyzer()->Conn(),

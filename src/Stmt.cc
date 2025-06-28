@@ -73,77 +73,77 @@ Stmt::~Stmt() { delete opt_info; }
 
 StmtList* Stmt::AsStmtList() {
     CHECK_TAG(tag, STMT_LIST, "Stmt::AsStmtList", stmt_name)
-    return (StmtList*)this;
+    return static_cast<StmtList*>(this);
 }
 
 const StmtList* Stmt::AsStmtList() const {
     CHECK_TAG(tag, STMT_LIST, "Stmt::AsStmtList", stmt_name)
-    return (const StmtList*)this;
+    return static_cast<const StmtList*>(this);
 }
 
 ForStmt* Stmt::AsForStmt() {
     CHECK_TAG(tag, STMT_FOR, "Stmt::AsForStmt", stmt_name)
-    return (ForStmt*)this;
+    return static_cast<ForStmt*>(this);
 }
 
 const ForStmt* Stmt::AsForStmt() const {
     CHECK_TAG(tag, STMT_FOR, "Stmt::AsForStmt", stmt_name)
-    return (const ForStmt*)this;
+    return static_cast<const ForStmt*>(this);
 }
 
 const InitStmt* Stmt::AsInitStmt() const {
     CHECK_TAG(tag, STMT_INIT, "Stmt::AsInitStmt", stmt_name)
-    return (const InitStmt*)this;
+    return static_cast<const InitStmt*>(this);
 }
 
 const IfStmt* Stmt::AsIfStmt() const {
     CHECK_TAG(tag, STMT_IF, "Stmt::AsIfStmt", stmt_name)
-    return (const IfStmt*)this;
+    return static_cast<const IfStmt*>(this);
 }
 
 const WhileStmt* Stmt::AsWhileStmt() const {
     CHECK_TAG(tag, STMT_WHILE, "Stmt::AsWhileStmt", stmt_name)
-    return (const WhileStmt*)this;
+    return static_cast<const WhileStmt*>(this);
 }
 
 const WhenStmt* Stmt::AsWhenStmt() const {
     CHECK_TAG(tag, STMT_WHEN, "Stmt::AsWhenStmt", stmt_name)
-    return (const WhenStmt*)this;
+    return static_cast<const WhenStmt*>(this);
 }
 
 const SwitchStmt* Stmt::AsSwitchStmt() const {
     CHECK_TAG(tag, STMT_SWITCH, "Stmt::AsSwitchStmt", stmt_name)
-    return (const SwitchStmt*)this;
+    return static_cast<const SwitchStmt*>(this);
 }
 
 const ExprStmt* Stmt::AsExprStmt() const {
     CHECK_TAG(tag, STMT_EXPR, "Stmt::AsExprStmt", stmt_name)
-    return (const ExprStmt*)this;
+    return static_cast<const ExprStmt*>(this);
 }
 
 const PrintStmt* Stmt::AsPrintStmt() const {
     CHECK_TAG(tag, STMT_PRINT, "Stmt::AsPrintStmt", stmt_name)
-    return (const PrintStmt*)this;
+    return static_cast<const PrintStmt*>(this);
 }
 
 const CatchReturnStmt* Stmt::AsCatchReturnStmt() const {
     CHECK_TAG(tag, STMT_CATCH_RETURN, "Stmt::AsCatchReturnStmt", stmt_name)
-    return (const CatchReturnStmt*)this;
+    return static_cast<const CatchReturnStmt*>(this);
 }
 
 const ReturnStmt* Stmt::AsReturnStmt() const {
     CHECK_TAG(tag, STMT_RETURN, "Stmt::AsReturnStmt", stmt_name)
-    return (const ReturnStmt*)this;
+    return static_cast<const ReturnStmt*>(this);
 }
 
 const NullStmt* Stmt::AsNullStmt() const {
     CHECK_TAG(tag, STMT_NULL, "Stmt::AsNullStmt", stmt_name)
-    return (const NullStmt*)this;
+    return static_cast<const NullStmt*>(this);
 }
 
 const AssertStmt* Stmt::AsAssertStmt() const {
     CHECK_TAG(tag, STMT_ASSERT, "Stmt::AsAssertStmt", stmt_name)
-    return (const AssertStmt*)this;
+    return static_cast<const AssertStmt*>(this);
 }
 
 bool Stmt::SetLocationInfo(const Location* start, const Location* end) {
@@ -630,7 +630,7 @@ TraversalCode Case::Traverse(TraversalCallback* cb) const {
     return TC_CONTINUE;
 }
 
-static void int_del_func(void* v) { delete (int*)v; }
+static void int_del_func(void* v) { delete reinterpret_cast<int*>(v); }
 
 void SwitchStmt::Init() {
     auto t = make_intrusive<TypeList>();
@@ -672,21 +672,21 @@ SwitchStmt::SwitchStmt(ExprPtr index, case_list* arg_cases)
                     switch ( expr->Tag() ) {
                         // Simplify trivial unary plus/minus expressions on consts.
                         case EXPR_NEGATE: {
-                            NegExpr* ne = (NegExpr*)(expr);
+                            NegExpr* ne = static_cast<NegExpr*>(expr);
 
                             if ( ne->Op()->IsConst() )
                                 Unref(exprs.replace(j, new ConstExpr(ne->Eval(nullptr))));
                         } break;
 
                         case EXPR_POSITIVE: {
-                            PosExpr* pe = (PosExpr*)(expr);
+                            PosExpr* pe = static_cast<PosExpr*>(expr);
 
                             if ( pe->Op()->IsConst() )
                                 Unref(exprs.replace(j, new ConstExpr(pe->Eval(nullptr))));
                         } break;
 
                         case EXPR_NAME: {
-                            NameExpr* ne = (NameExpr*)(expr);
+                            NameExpr* ne = static_cast<NameExpr*>(expr);
 
                             if ( ne->Id()->IsConst() ) {
                                 auto v = ne->Eval(nullptr);
@@ -1195,7 +1195,7 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) {
         StringVal* sval = v->AsStringVal();
 
         for ( int i = 0; i < sval->Len(); ++i ) {
-            auto sv = make_intrusive<StringVal>(1, (const char*)sval->Bytes() + i);
+            auto sv = make_intrusive<StringVal>(1, reinterpret_cast<const char*>(sval->Bytes()) + i);
             f->SetElement((*loop_vars)[0], std::move(sv));
             flow = FLOW_NEXT;
             ret = body->Exec(f, flow);

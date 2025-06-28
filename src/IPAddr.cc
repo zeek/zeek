@@ -132,11 +132,11 @@ std::string IPAddr::AsHexString() const {
     char buf[33];
 
     if ( GetFamily() == IPv4 ) {
-        uint32_t* p = (uint32_t*)&in6.s6_addr[12];
+        const uint32_t* p = reinterpret_cast<const uint32_t*>(&in6.s6_addr[12]);
         snprintf(buf, sizeof(buf), "%08x", (uint32_t)ntohl(*p));
     }
     else {
-        uint32_t* p = (uint32_t*)in6.s6_addr;
+        const uint32_t* p = reinterpret_cast<const uint32_t*>(in6.s6_addr);
         snprintf(buf, sizeof(buf), "%08x%08x%08x%08x", (uint32_t)ntohl(p[0]), (uint32_t)ntohl(p[1]),
                  (uint32_t)ntohl(p[2]), (uint32_t)ntohl(p[3]));
     }
@@ -147,7 +147,7 @@ std::string IPAddr::AsHexString() const {
 std::string IPAddr::PtrName() const {
     if ( GetFamily() == IPv4 ) {
         char buf[256];
-        uint32_t* p = (uint32_t*)&in6.s6_addr[12];
+        const uint32_t* p = reinterpret_cast<const uint32_t*>(&in6.s6_addr[12]);
         uint32_t a = ntohl(*p);
         uint32_t a3 = (a >> 24) & 0xff;
         uint32_t a2 = (a >> 16) & 0xff;
@@ -159,7 +159,7 @@ std::string IPAddr::PtrName() const {
     else {
         static const char hex_digit[] = "0123456789abcdef";
         std::string ptr_name("ip6.arpa");
-        uint32_t* p = (uint32_t*)in6.s6_addr;
+        const uint32_t* p = reinterpret_cast<const uint32_t*>(in6.s6_addr);
 
         for ( unsigned int i = 0; i < 4; ++i ) {
             uint32_t a = ntohl(p[i]);

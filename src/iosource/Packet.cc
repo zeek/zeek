@@ -165,7 +165,7 @@ RecordValPtr Packet::ToVal(const Packet* p) {
         val->Assign(1, static_cast<uint32_t>(p->ts.tv_usec));
         val->Assign(2, p->cap_len);
         val->Assign(3, p->len);
-        val->Assign(4, zeek::make_intrusive<zeek::StringVal>(p->cap_len, (const char*)p->data));
+        val->Assign(4, zeek::make_intrusive<zeek::StringVal>(p->cap_len, reinterpret_cast<const char*>(p->data)));
         val->Assign(5, zeek::BifType::Enum::link_encap->GetEnumVal(p->link_type));
     }
     else {

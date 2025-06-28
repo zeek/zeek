@@ -124,9 +124,11 @@ private:
 
 using bytestring = datastring<uint8>;
 
-inline const char* c_str(bytestring const& s) { return (const char*)s.begin(); }
+inline const char* c_str(bytestring const& s) { return reinterpret_cast<const char*>(s.begin()); }
 
-inline std::string std_str(const_bytestring const& s) { return {(const char*)s.begin(), (const char*)s.end()}; }
+inline std::string std_str(const_bytestring const& s) {
+    return {reinterpret_cast<const char*>(s.begin()), reinterpret_cast<const char*>(s.end())};
+}
 
 inline bool operator==(bytestring const& s1, const char* s2) { return strcmp(c_str(s1), s2) == 0; }
 

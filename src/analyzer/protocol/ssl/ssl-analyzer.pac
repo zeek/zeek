@@ -49,7 +49,7 @@ refine connection SSL_Conn += {
 			zeek::BifEvent::enqueue_ssl_client_hello(zeek_analyzer(), zeek_analyzer()->Conn(),
 							version, record_version(), ts,
 							zeek::make_intrusive<zeek::StringVal>(client_random.length(),
-							                                      (const char*) client_random.data()),
+							                                      reinterpret_cast<const char*>(client_random.data())),
 							{zeek::AdoptRef{}, to_string_val(session_id)},
 							std::move(cipher_vec), std::move(comp_vec));
 			}
@@ -81,13 +81,13 @@ refine connection SSL_Conn += {
 
 			uint32 ts = 0;
 			if ( v2 == 0 && server_random.length() >= 4 )
-				ts = ntohl(*((uint32*)server_random.data()));
+				ts = ntohl(*(reinterpret_cast<uint32*>(server_random.data())));
 
 			zeek::BifEvent::enqueue_ssl_server_hello(zeek_analyzer(),
 							zeek_analyzer()->Conn(),
 							version, record_version(), ts,
 							zeek::make_intrusive<zeek::StringVal>(server_random.length(),
-							                                      (const char*) server_random.data()),
+							                                      reinterpret_cast<const char*>(server_random.data())),
 							{zeek::AdoptRef{}, to_string_val(session_id)},
 							first_cipher, comp_method);
 			}

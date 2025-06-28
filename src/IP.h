@@ -62,13 +62,16 @@ public:
      */
     void ChangeNext(uint8_t next_type) {
         switch ( type ) {
-            case IPPROTO_IPV6: ((ip6_hdr*)data)->ip6_nxt = next_type; break;
+            data;
+            case IPPROTO_IPV6: const_cast<ip6_hdr*>(reinterpret_cast<const ip6_hdr*>(data))->ip6_nxt = next_type; break;
             case IPPROTO_HOPOPTS:
             case IPPROTO_DSTOPTS:
             case IPPROTO_ROUTING:
             case IPPROTO_FRAGMENT:
             case IPPROTO_AH:
-            case IPPROTO_MOBILITY: ((ip6_ext*)data)->ip6e_nxt = next_type; break;
+            case IPPROTO_MOBILITY:
+                const_cast<ip6_ext*>(reinterpret_cast<const ip6_ext*>(data))->ip6e_nxt = next_type;
+                break;
             case IPPROTO_ESP:
             default: break;
         }
@@ -82,13 +85,13 @@ public:
      */
     uint8_t NextHdr() const {
         switch ( type ) {
-            case IPPROTO_IPV6: return ((ip6_hdr*)data)->ip6_nxt;
+            case IPPROTO_IPV6: return (reinterpret_cast<const ip6_hdr*>(data))->ip6_nxt;
             case IPPROTO_HOPOPTS:
             case IPPROTO_DSTOPTS:
             case IPPROTO_ROUTING:
             case IPPROTO_FRAGMENT:
             case IPPROTO_AH:
-            case IPPROTO_MOBILITY: return ((ip6_ext*)data)->ip6e_nxt;
+            case IPPROTO_MOBILITY: return (reinterpret_cast<const ip6_ext*>(data))->ip6e_nxt;
             case IPPROTO_ESP:
             default: return IPPROTO_NONE;
         }
@@ -103,9 +106,9 @@ public:
             case IPPROTO_HOPOPTS:
             case IPPROTO_DSTOPTS:
             case IPPROTO_ROUTING:
-            case IPPROTO_MOBILITY: return 8 + 8 * ((ip6_ext*)data)->ip6e_len;
+            case IPPROTO_MOBILITY: return 8 + 8 * (reinterpret_cast<const ip6_ext*>(data))->ip6e_len;
             case IPPROTO_FRAGMENT: return 8;
-            case IPPROTO_AH: return 8 + 4 * ((ip6_ext*)data)->ip6e_len;
+            case IPPROTO_AH: return 8 + 4 * (reinterpret_cast<const ip6_ext*>(data))->ip6e_len;
             case IPPROTO_ESP: return 8; // encrypted payload begins after 8 bytes
             default: return 0;
         }
@@ -174,7 +177,7 @@ public:
      * Returns pointer to fragment header structure if the chain contains one.
      */
     const struct ip6_frag* GetFragHdr() const {
-        return IsFragment() ? (const struct ip6_frag*)chain[chain.size() - 1].Data() : nullptr;
+        return IsFragment() ? reinterpret_cast<const ip6_frag*>(chain[chain.size() - 1].Data()) : nullptr;
     }
 
     /**
@@ -277,7 +280,7 @@ public:
      * @param arg_del whether to take ownership of \a arg_ip4 pointer's memory.
      * @param reassembled whether this header is for a reassembled packet.
      */
-    IP_Hdr(const struct ip* arg_ip4, bool arg_del, bool reassembled = false)
+    IP_Hdr(const ip* arg_ip4, bool arg_del, bool reassembled = false)
         : ip4(arg_ip4), del(arg_del), reassembled(reassembled) {}
 
     /**
@@ -292,7 +295,7 @@ public:
      * @param c an already-constructed header chain to take ownership of.
      * @param reassembled whether this header is for a reassembled packet.
      */
-    IP_Hdr(const struct ip6_hdr* arg_ip6, bool arg_del, uint64_t len, const IPv6_Hdr_Chain* c = nullptr,
+    IP_Hdr(const ip6_hdr* arg_ip6, bool arg_del, uint64_t len, const IPv6_Hdr_Chain* c = nullptr,
            bool reassembled = false)
         : ip6(arg_ip6), ip6_hdrs(c ? c : new IPv6_Hdr_Chain(ip6, len)), del(arg_del), reassembled(reassembled) {}
 
@@ -310,8 +313,8 @@ public:
         delete ip6_hdrs;
 
         if ( del ) {
-            delete[] (struct ip*)ip4;
-            delete[] (struct ip6_hdr*)ip6;
+            delete[] ip4;
+            delete[] ip6;
         }
     }
 
@@ -356,9 +359,9 @@ public:
      */
     const u_char* Payload() const {
         if ( ip4 )
-            return ((const u_char*)ip4) + (ip4->ip_hl * static_cast<std::ptrdiff_t>(4));
+            return (reinterpret_cast<const u_char*>(ip4)) + (ip4->ip_hl * static_cast<std::ptrdiff_t>(4));
 
-        return ((const u_char*)ip6) + ip6_hdrs->TotalLength();
+        return (reinterpret_cast<const u_char*>(ip6)) + ip6_hdrs->TotalLength();
     }
 
     /**
@@ -371,7 +374,7 @@ public:
         else if ( (*ip6_hdrs)[ip6_hdrs->Size() - 1]->Type() != IPPROTO_MOBILITY )
             return nullptr;
         else
-            return (const ip6_mobility*)(*ip6_hdrs)[ip6_hdrs->Size() - 1]->Data();
+            return reinterpret_cast<const ip6_mobility*>((*ip6_hdrs)[ip6_hdrs->Size() - 1]->Data());
     }
 
     /**
@@ -498,8 +501,8 @@ public:
     bool Reassembled() const { return reassembled; }
 
 private:
-    const struct ip* ip4 = nullptr;
-    const struct ip6_hdr* ip6 = nullptr;
+    const ip* ip4 = nullptr;
+    const ip6_hdr* ip6 = nullptr;
     const IPv6_Hdr_Chain* ip6_hdrs = nullptr;
     bool del = false;
     bool reassembled = false;

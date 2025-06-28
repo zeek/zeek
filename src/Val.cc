@@ -62,13 +62,13 @@ Val::~Val() {
 #define CONVERTER(tag, ctype, name)                                                                                    \
     ctype name() {                                                                                                     \
         CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", type_name)                                                       \
-        return (ctype)(this);                                                                                          \
+        return static_cast<ctype>(this);                                                                               \
     }
 
 #define CONST_CONVERTER(tag, ctype, name)                                                                              \
     const ctype name() const {                                                                                         \
         CHECK_TAG(type->Tag(), tag, "Val::CONVERTER", type_name)                                                       \
-        return (const ctype)(this);                                                                                    \
+        return static_cast<const ctype>(this);                                                                         \
     }
 
 #define CONVERTERS(tag, ctype, name)                                                                                   \
@@ -1415,7 +1415,7 @@ RE_Matcher* ListVal::BuildRE() const {
 
     RE_Matcher* re = new RE_Matcher();
     for ( const auto& val : vals ) {
-        const char* vs = (const char*)(val->AsString()->Bytes());
+        const char* vs = reinterpret_cast<const char*>(val->AsString()->Bytes());
         re->AddPat(vs);
     }
 
@@ -1521,7 +1521,7 @@ void TableValTimer::Dispatch(double t, bool is_expire) {
 }
 
 static void table_entry_val_delete_func(void* val) {
-    TableEntryVal* tv = (TableEntryVal*)val;
+    TableEntryVal* tv = reinterpret_cast<TableEntryVal*>(val);
     delete tv;
 }
 
@@ -2093,7 +2093,7 @@ const detail::AttrPtr& TableVal::DefaultAttr() const {
 
 const ValPtr& TableVal::Find(const ValPtr& index) {
     if ( subnets ) {
-        TableEntryVal* v = (TableEntryVal*)subnets->Lookup(index.get());
+        TableEntryVal* v = reinterpret_cast<TableEntryVal*>(subnets->Lookup(index.get()));
         if ( v ) {
             if ( attrs && attrs->Find(detail::ATTR_EXPIRE_READ) )
                 v->SetExpireAccess(run_state::network_time);
@@ -2215,7 +2215,7 @@ bool TableVal::UpdateTimestamp(Val* index) {
     TableEntryVal* v;
 
     if ( subnets )
-        v = (TableEntryVal*)subnets->Lookup(index);
+        v = reinterpret_cast<TableEntryVal*>(subnets->Lookup(index));
     else {
         auto k = MakeHashKey(*index);
 

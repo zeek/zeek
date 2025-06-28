@@ -36,7 +36,7 @@ refine connection SMB_Conn += {
 		// We check if this is the case and run the NTLM analyzer directly.
 		if ( ${data}.length() >= 8 )
 			{
-			if ( strncmp((const char*)${data}.begin(), "NTLMSSP",7) == 0 )
+			if ( strncmp(reinterpret_cast<const char*>(${data}.begin()), "NTLMSSP",7) == 0 )
 				{
 				if ( ntlm )
 					ntlm->DeliverStream(${data}.length(), ${data}.begin(), is_orig);

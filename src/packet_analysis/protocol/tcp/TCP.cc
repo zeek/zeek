@@ -32,7 +32,7 @@ bool TCPAnalyzer::InitConnKey(size_t len, const uint8_t* data, Packet* packet, I
     if ( ! CheckHeaderTrunc(min_hdr_len, len, packet) )
         return false;
 
-    const struct tcphdr* tp = (const struct tcphdr*)packet->ip_hdr->Payload();
+    const struct tcphdr* tp = reinterpret_cast<const tcphdr*>(packet->ip_hdr->Payload());
     key.InitTuple(packet->ip_hdr->SrcAddr(), tp->th_sport, packet->ip_hdr->DstAddr(), tp->th_dport, packet->proto);
 
     return true;
@@ -40,7 +40,7 @@ bool TCPAnalyzer::InitConnKey(size_t len, const uint8_t* data, Packet* packet, I
 
 bool TCPAnalyzer::WantConnection(uint16_t src_port, uint16_t dst_port, const u_char* data, bool& flip_roles) const {
     flip_roles = false;
-    const struct tcphdr* tp = (const struct tcphdr*)data;
+    const struct tcphdr* tp = reinterpret_cast<const tcphdr*>(data);
     uint8_t tcp_flags = tp->th_flags;
 
     if ( ! (tcp_flags & TH_SYN) || (tcp_flags & TH_ACK) ) {
@@ -123,7 +123,7 @@ void TCPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 
 const struct tcphdr* TCPAnalyzer::ExtractTCP_Header(const u_char*& data, int& len, int& remaining,
                                                     TCPSessionAdapter* adapter) {
-    const struct tcphdr* tp = (const struct tcphdr*)data;
+    const struct tcphdr* tp = reinterpret_cast<const tcphdr*>(data);
     uint32_t tcp_hdr_len = tp->th_off * 4;
 
     if ( tcp_hdr_len < sizeof(struct tcphdr) ) {

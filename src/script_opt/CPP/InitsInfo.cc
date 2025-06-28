@@ -212,7 +212,7 @@ EnumConstInfo::EnumConstInfo(CPPCompile* c, ValPtr v) : CPP_InitInfo(v) {
 
 StringConstInfo::StringConstInfo(CPPCompile* c, ValPtr v) : CPP_InitInfo(v) {
     auto s = v->AsString();
-    const char* b = (const char*)(s->Bytes());
+    const char* b = reinterpret_cast<const char*>(s->Bytes());
 
     len = s->Len();
     chars = c->TrackString(CPPEscape(b, len));

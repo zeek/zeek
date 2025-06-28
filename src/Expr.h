@@ -1681,7 +1681,7 @@ extern const char* assign_to_index(ValPtr v1, ValPtr v2, ValPtr v3, bool& iterat
 inline Val* Expr::ExprVal() const {
     if ( ! IsConst() )
         BadTag("ExprVal::Val", expr_name(tag), expr_name(EXPR_CONST));
-    return ((ConstExpr*)this)->Value();
+    return (static_cast<const ConstExpr*>(this))->Value();
 }
 
 // Decides whether to return an AssignExpr or a RecordAssignExpr.

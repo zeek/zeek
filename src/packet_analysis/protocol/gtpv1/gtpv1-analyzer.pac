@@ -98,11 +98,11 @@ zeek::RecordValPtr BuildEndUserAddr(const InformationElement* ie)
 		switch ( ie->end_user_addr()->pdp_type_num() ) {
 		case 0x21:
 			ev->Assign(2, zeek::make_intrusive<zeek::AddrVal>(
-			  zeek::IPAddr(IPv4, (const uint32*) d, zeek::IPAddr::Network)));
+			  zeek::IPAddr(IPv4, reinterpret_cast<const uint32*>(d), zeek::IPAddr::Network)));
 			break;
 		case 0x57:
 			ev->Assign(2, zeek::make_intrusive<zeek::AddrVal>(
-			  zeek::IPAddr(IPv6, (const uint32*) d, zeek::IPAddr::Network)));
+			  zeek::IPAddr(IPv6, reinterpret_cast<const uint32*>(d), zeek::IPAddr::Network)));
 			break;
 		default:
 			ev->Assign(3, new zeek::String((const u_char*) d, len, false));
@@ -136,10 +136,10 @@ zeek::RecordValPtr BuildGSN_Addr(const InformationElement* ie)
 
 	if ( len == 4 )
 		ev->Assign(0, zeek::make_intrusive<zeek::AddrVal>(
-		  zeek::IPAddr(IPv4, (const uint32*) d, zeek::IPAddr::Network)));
+		  zeek::IPAddr(IPv4, reinterpret_cast<const uint32*>(d), zeek::IPAddr::Network)));
 	else if ( len == 16 )
 		ev->Assign(0, zeek::make_intrusive<zeek::AddrVal>(
-		  zeek::IPAddr(IPv6, (const uint32*) d, zeek::IPAddr::Network)));
+		  zeek::IPAddr(IPv6, reinterpret_cast<const uint32*>(d), zeek::IPAddr::Network)));
 	else
 		ev->Assign(1, new zeek::String((const u_char*) d, len, false));
 
@@ -220,9 +220,9 @@ zeek::ValPtr BuildChargingGatewayAddr(const InformationElement* ie)
 	const uint8* d = ie->charging_gateway_addr()->value().data();
 	int len = ie->charging_gateway_addr()->value().length();
 	if ( len == 4 )
-		return zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(IPv4, (const uint32*) d, zeek::IPAddr::Network));
+		return zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(IPv4, reinterpret_cast<const uint32*>(d), zeek::IPAddr::Network));
 	else if ( len == 16 )
-		return zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(IPv6, (const uint32*) d, zeek::IPAddr::Network));
+		return zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(IPv6, reinterpret_cast<const uint32*>(d), zeek::IPAddr::Network));
 	else
 		return nullptr;
 	}
@@ -716,7 +716,7 @@ flow GTPv1_Flow(is_orig: bool)
 			return false;
 			}
 
-		const struct ip* ip = (const struct ip*) ${pdu.packet}.data();
+		const struct ip* ip = reinterpret_cast<const struct ip*>(${pdu.packet}.data());
 
 		if ( ip->ip_v != 4 && ip->ip_v != 6 )
 			{

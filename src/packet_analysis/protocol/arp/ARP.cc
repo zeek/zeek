@@ -98,10 +98,10 @@ bool ARPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
     }
 
     // Check whether the packet is OK ("inspired" in tcpdump's print-arp.c).
-    auto ah = (const struct arp_pkthdr*)data;
+    auto ah = reinterpret_cast<const arp_pkthdr*>(data);
 
     // Check the size.
-    size_t min_length = (ar_tpa(ah) - (caddr_t)data) + ah->ar_pln;
+    size_t min_length = (ar_tpa(ah) - reinterpret_cast<caddr_t>(const_cast<uint8_t*>(data))) + ah->ar_pln;
     if ( min_length > len ) {
         Weird("truncated_ARP", packet);
         return false;
@@ -184,7 +184,7 @@ zeek::AddrValPtr ARPAnalyzer::ToAddrVal(const void* addr, size_t len) {
         return zeek::make_intrusive<zeek::AddrVal>(static_cast<uint32_t>(0));
 
     // Note: We only handle IPv4 addresses.
-    return zeek::make_intrusive<zeek::AddrVal>(*(const uint32_t*)addr);
+    return zeek::make_intrusive<zeek::AddrVal>(*reinterpret_cast<const uint32_t*>(addr));
 }
 
 zeek::StringValPtr ARPAnalyzer::ToEthAddrStr(const u_char* addr, size_t len) {

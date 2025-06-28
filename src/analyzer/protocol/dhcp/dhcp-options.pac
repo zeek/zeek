@@ -631,7 +631,7 @@ refine flow DHCP_Flow += {
 
 		if ( ${v.client_id.hwtype} == 0 )
 			sv = zeek::make_intrusive<zeek::StringVal>(${v.client_id.hwaddr}.length(),
-			                                     (const char*)${v.client_id.hwaddr}.begin());
+			                                     reinterpret_cast<const char*>(${v.client_id.hwaddr}.begin()));
 		else
 			sv = zeek::make_intrusive<zeek::StringVal>(zeek::fmt_mac(${v.client_id.hwaddr}.begin(),
 			                                     ${v.client_id.hwaddr}.length()));

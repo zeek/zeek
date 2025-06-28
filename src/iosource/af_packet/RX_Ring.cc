@@ -24,12 +24,12 @@ RX_Ring::RX_Ring(int sock, size_t bufsize, size_t blocksize, int blocktimeout_ms
         throw RX_RingException("unable to set TPacket version");
 
     InitLayout(bufsize, blocksize, blocktimeout_msec);
-    if ( setsockopt(sock, SOL_PACKET, PACKET_RX_RING, (uint8_t*)&layout, sizeof(layout)) != 0 )
+    if ( setsockopt(sock, SOL_PACKET, PACKET_RX_RING, reinterpret_cast<uint8_t*>(&layout), sizeof(layout)) != 0 )
         throw RX_RingException("unable to set ring layout");
 
     // Map memory
     size = static_cast<size_t>(layout.tp_block_size) * layout.tp_block_nr;
-    ring = (uint8_t*)mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, sock, 0);
+    ring = reinterpret_cast<uint8_t*>(mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, sock, 0));
     if ( ring == MAP_FAILED )
         throw RX_RingException("unable to map ring memory");
 
@@ -39,7 +39,7 @@ RX_Ring::RX_Ring(int sock, size_t bufsize, size_t blocksize, int blocktimeout_ms
     // Init block mapping
     blocks = new tpacket_block_desc*[layout.tp_block_nr];
     for ( size_t i = 0; i < layout.tp_block_nr; i++ )
-        blocks[i] = (struct tpacket_block_desc*)(ring + i * layout.tp_block_size);
+        blocks[i] = reinterpret_cast<tpacket_block_desc*>(ring + i * layout.tp_block_size);
 }
 
 RX_Ring::~RX_Ring() {
@@ -65,11 +65,12 @@ bool RX_Ring::GetNextPacket(tpacket3_hdr** hdr) {
             NextBlock();
             return false;
         }
-        packet = (struct tpacket3_hdr*)((uint8_t*)blocks[block_num] + block_hdr->offset_to_first_pkt);
+        packet = reinterpret_cast<tpacket3_hdr*>(reinterpret_cast<uint8_t*>(blocks[block_num]) +
+                                                 block_hdr->offset_to_first_pkt);
     }
     else
         // Continue with block
-        packet = (struct tpacket3_hdr*)((uint8_t*)packet + packet->tp_next_offset);
+        packet = reinterpret_cast<tpacket3_hdr*>(reinterpret_cast<uint8_t*>(packet) + packet->tp_next_offset);
 
     *hdr = packet;
     packet_num--;

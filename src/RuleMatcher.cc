@@ -485,11 +485,11 @@ void RuleMatcher::BuildPatternSets(RuleHdrTest::pattern_set_list* dst, const str
 // Get a 8/16/32-bit value from the given position in the packet header
 static inline uint32_t getval(const u_char* data, int size) {
     switch ( size ) {
-        case 1: return *(uint8_t*)data;
+        case 1: return *reinterpret_cast<const uint8_t*>(data);
 
-        case 2: return ntohs(*(uint16_t*)data);
+        case 2: return ntohs(*reinterpret_cast<const uint16_t*>(data));
 
-        case 4: return ntohl(*(uint32_t*)data);
+        case 4: return ntohl(*reinterpret_cast<const uint32_t*>(data));
 
         default: reporter->InternalError("illegal HdrTest size");
     }
@@ -735,14 +735,18 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer, const
                         if ( ! ip->IP4_Hdr() )
                             continue;
 
-                        match = compare(*h->vals, getval((const u_char*)ip->IP4_Hdr() + h->offset, h->size), h->comp);
+                        match = compare(*h->vals,
+                                        getval(reinterpret_cast<const u_char*>(ip->IP4_Hdr()) + h->offset, h->size),
+                                        h->comp);
                         break;
 
                     case RuleHdrTest::IPv6:
                         if ( ! ip->IP6_Hdr() )
                             continue;
 
-                        match = compare(*h->vals, getval((const u_char*)ip->IP6_Hdr() + h->offset, h->size), h->comp);
+                        match = compare(*h->vals,
+                                        getval(reinterpret_cast<const u_char*>(ip->IP6_Hdr()) + h->offset, h->size),
+                                        h->comp);
                         break;
 
                     case RuleHdrTest::ICMP:
@@ -769,7 +773,7 @@ RuleEndpointState* RuleMatcher::InitEndpoint(analyzer::Analyzer* analyzer, const
     state->matchers.resize(0);
 
     // Send BOL to payload matchers.
-    Match(state, Rule::PAYLOAD, (const u_char*)"", 0, true, false, false);
+    Match(state, Rule::PAYLOAD, reinterpret_cast<const u_char*>(""), 0, true, false, false);
 
     return state;
 }
@@ -790,7 +794,7 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type, const 
 
 #ifdef DEBUG
     if ( debug_logger.IsEnabled(DBG_RULES) ) {
-        const char* s = util::fmt_bytes((const char*)data, min(40, data_len));
+        const char* s = util::fmt_bytes(reinterpret_cast<const char*>(data), min(40, data_len));
 
         DBG_LOG(DBG_RULES, "Matching %s rules [%d,%d] on |%s%s|", Rule::TypeToString(type), bol, eol, s,
                 data_len > 40 ? "..." : "");
@@ -889,7 +893,7 @@ void RuleMatcher::Match(RuleEndpointState* state, Rule::PatternType type, const 
 
 void RuleMatcher::FinishEndpoint(RuleEndpointState* state) {
     // Send EOL to payload matchers.
-    Match(state, Rule::PAYLOAD, (const u_char*)"", 0, false, true, false);
+    Match(state, Rule::PAYLOAD, reinterpret_cast<const u_char*>(""), 0, false, true, false);
 
     // Some of the pure rules may match at the end of the connection,
     // although they have not matched at the beginning. So, we have

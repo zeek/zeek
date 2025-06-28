@@ -411,7 +411,7 @@ void init_random_seed(const char* read_file, const char* write_file, bool use_em
         pos += nbytes / sizeof(uint32_t);
 #else
         // Gather up some entropy.
-        gettimeofday((struct timeval*)(buf.data() + pos), nullptr);
+        gettimeofday(reinterpret_cast<timeval*>(buf.data() + pos), nullptr);
         pos += sizeof(struct timeval) / sizeof(uint32_t);
 
         // use urandom. For reasons see e.g. http://www.2uo.de/myths-about-urandom/
@@ -1448,7 +1448,7 @@ const char* vfmt(const char* format, va_list al) {
     static int buf_len = 1024;
 
     if ( ! buf )
-        buf = (char*)safe_malloc(buf_len);
+        buf = reinterpret_cast<char*>(safe_malloc(buf_len));
 
     va_list alc;
     va_copy(alc, al);
@@ -1456,7 +1456,7 @@ const char* vfmt(const char* format, va_list al) {
 
     if ( n > 0 && buf_len <= n ) { // Not enough room, grow the buffer.
         buf_len = n + 32;
-        buf = (char*)safe_realloc(buf, buf_len);
+        buf = reinterpret_cast<char*>(safe_realloc(buf, buf_len));
         n = vsnprintf(buf, buf_len, format, alc);
     }
 
@@ -1550,8 +1550,8 @@ std::string strstrip(std::string s) {
 }
 
 int int_list_cmp(const void* v1, const void* v2) {
-    std::intptr_t i1 = *(std::intptr_t*)v1;
-    std::intptr_t i2 = *(std::intptr_t*)v2;
+    std::intptr_t i1 = *reinterpret_cast<const std::intptr_t*>(v1);
+    std::intptr_t i2 = *reinterpret_cast<const std::intptr_t*>(v2);
 
     if ( i1 < i2 )
         return -1;
@@ -2003,11 +2003,11 @@ const void* memory_align(const void* ptr, size_t size) {
 }
 
 TEST_CASE("util memory_align") {
-    void* p1000 = (void*)0x1000;
-    void* p1001 = (void*)0x1001;
-    void* p1002 = (void*)0x1002;
-    void* p1003 = (void*)0x1003;
-    void* p1004 = (void*)0x1004;
+    void* p1000 = reinterpret_cast<void*>(0x1000);
+    void* p1001 = reinterpret_cast<void*>(0x1001);
+    void* p1002 = reinterpret_cast<void*>(0x1002);
+    void* p1003 = reinterpret_cast<void*>(0x1003);
+    void* p1004 = reinterpret_cast<void*>(0x1004);
 
     CHECK(memory_align(p1000, 0) == p1000);
     CHECK(memory_align(p1000, 1) == p1000);
@@ -2119,7 +2119,8 @@ void get_memory_usage(uint64_t* total, uint64_t* malloced) {
     struct mach_task_basic_info t_info;
     mach_msg_type_number_t t_info_count = MACH_TASK_BASIC_INFO;
 
-    if ( KERN_SUCCESS != task_info(mach_task_self(), MACH_TASK_BASIC_INFO, (task_info_t)&t_info, &t_info_count) )
+    if ( KERN_SUCCESS !=
+         task_info(mach_task_self(), MACH_TASK_BASIC_INFO, reinterpret_cast<task_info_t>(&t_info), &t_info_count) )
         ret_total = 0;
     else
         ret_total = t_info.resident_size;

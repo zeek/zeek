@@ -418,7 +418,7 @@ void BitTorrentTracker_Analyzer::ResponseBenc(int name_len, char* name, detail::
             // addresses in network order but PortVal's
             // take ports in host order.  BitTorrent specifies
             // that both are in network order here.
-            uint32_t ad = extract_uint32((u_char*)value);
+            uint32_t ad = extract_uint32(reinterpret_cast<u_char*>(value));
             uint16_t pt = ntohs((value[4] << 8) | value[5]);
 
             auto peer = make_intrusive<RecordVal>(bittorrent_peer);

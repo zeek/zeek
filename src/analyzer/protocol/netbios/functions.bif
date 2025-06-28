@@ -68,7 +68,7 @@ function decode_netbios_name%(name: string%): string
 		--length;
 		}
 
-	return zeek::make_intrusive<zeek::StringVal>(length, (const char *)buf);
+	return zeek::make_intrusive<zeek::StringVal>(length, reinterpret_cast<const char *>(buf));
 	%}
 
 ## Converts a NetBIOS name type to its corresponding numeric value.

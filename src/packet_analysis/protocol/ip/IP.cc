@@ -39,7 +39,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
 
     // Cast the current data pointer to an IP header pointer so we can use it to get some
     // data about the header.
-    auto ip = (const struct ip*)data;
+    auto ip = reinterpret_cast<const struct ip*>(data);
     uint32_t protocol = ip->ip_v;
     std::shared_ptr<IP_Hdr> ip_hdr;
 
@@ -53,7 +53,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
             return false;
         }
 
-        ip_hdr = std::make_shared<IP_Hdr>((const struct ip6_hdr*)data, false, static_cast<int>(len));
+        ip_hdr = std::make_shared<IP_Hdr>(reinterpret_cast<const ip6_hdr*>(data), false, static_cast<int>(len));
         packet->l3_proto = L3_IPV6;
     }
     else {
@@ -278,7 +278,7 @@ ParseResult zeek::packet_analysis::IP::ParsePacket(int caplen, const u_char* con
         if ( caplen < (int)sizeof(struct ip6_hdr) )
             return ParseResult::CAPLEN_TOO_SMALL;
 
-        const struct ip6_hdr* ip6 = (const struct ip6_hdr*)pkt;
+        const struct ip6_hdr* ip6 = reinterpret_cast<const ip6_hdr*>(pkt);
         inner = std::make_shared<zeek::IP_Hdr>(ip6, false, caplen);
         if ( (ip6->ip6_ctlun.ip6_un2_vfc & 0xF0) != 0x60 )
             return ParseResult::BAD_PROTOCOL;
@@ -288,7 +288,7 @@ ParseResult zeek::packet_analysis::IP::ParsePacket(int caplen, const u_char* con
         if ( caplen < (int)sizeof(struct ip) )
             return ParseResult::BAD_PROTOCOL;
 
-        const struct ip* ip4 = (const struct ip*)pkt;
+        const struct ip* ip4 = reinterpret_cast<const struct ip*>(pkt);
         inner = std::make_shared<zeek::IP_Hdr>(ip4, false);
         if ( ip4->ip_v != 4 )
             return ParseResult::BAD_PROTOCOL;

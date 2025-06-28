@@ -23,7 +23,7 @@ bool TeredoEncapsulation::DoParse(const u_char* data, size_t& len, bool found_or
         return false;
     }
 
-    uint16_t tag = ntohs((*((const uint16_t*)data)));
+    uint16_t tag = ntohs(*reinterpret_cast<const uint16_t*>(data));
 
     if ( tag == 0 ) {
         // Origin Indication
@@ -95,10 +95,10 @@ RecordValPtr TeredoEncapsulation::BuildVal(const std::shared_ptr<IP_Hdr>& inner)
 
     if ( auth ) {
         auto teredo_auth = make_intrusive<RecordVal>(teredo_auth_type);
-        uint8_t id_len = *((uint8_t*)(auth + 2));
-        uint8_t au_len = *((uint8_t*)(auth + 3));
-        uint64_t nonce = ntohll(*((uint64_t*)(auth + 4 + id_len + au_len)));
-        uint8_t conf = *((uint8_t*)(auth + 4 + id_len + au_len + 8));
+        uint8_t id_len = *reinterpret_cast<const uint8_t*>(auth + 2);
+        uint8_t au_len = *reinterpret_cast<const uint8_t*>(auth + 3);
+        uint64_t nonce = ntohll(*reinterpret_cast<const uint64_t*>(auth + 4 + id_len + au_len));
+        uint8_t conf = *(reinterpret_cast<const uint8_t*>(auth + 4 + id_len + au_len + 8));
         teredo_auth->Assign(0, new String(auth + 4, id_len, true));
         teredo_auth->Assign(1, new String(auth + 4 + id_len, au_len, true));
         teredo_auth->Assign(2, nonce);
@@ -108,8 +108,8 @@ RecordValPtr TeredoEncapsulation::BuildVal(const std::shared_ptr<IP_Hdr>& inner)
 
     if ( origin_indication ) {
         auto teredo_origin = make_intrusive<RecordVal>(teredo_origin_type);
-        uint16_t port = ntohs(*((uint16_t*)(origin_indication + 2))) ^ 0xFFFF;
-        uint32_t addr = ntohl(*((uint32_t*)(origin_indication + 4))) ^ 0xFFFFFFFF;
+        uint16_t port = ntohs(*reinterpret_cast<const uint16_t*>(origin_indication + 2)) ^ 0xFFFF;
+        uint32_t addr = ntohl(*reinterpret_cast<const uint32_t*>(origin_indication + 4)) ^ 0xFFFFFFFF;
         teredo_origin->Assign(0, val_mgr->Port(port, TRANSPORT_UDP));
         teredo_origin->Assign(1, make_intrusive<AddrVal>(htonl(addr)));
         teredo_hdr->Assign(1, std::move(teredo_origin));
@@ -159,7 +159,7 @@ bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
 
     detail::TeredoEncapsulation te(this, conn);
     if ( ! te.Parse(data, len) ) {
-        AnalyzerViolation("Bad Teredo encapsulation", conn, (const char*)data, len);
+        AnalyzerViolation("Bad Teredo encapsulation", conn, reinterpret_cast<const char*>(data), len);
         return false;
     }
 
@@ -174,14 +174,15 @@ bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
             // violation, but a little weird.
             Weird(conn, "Teredo_bubble_with_payload", true);
         else {
-            AnalyzerViolation("Teredo payload length", conn, (const char*)data, len);
+            AnalyzerViolation("Teredo payload length", conn, reinterpret_cast<const char*>(data), len);
             return false;
         }
     }
 
     if ( result == packet_analysis::IP::ParseResult::CAPLEN_TOO_SMALL ||
          result == packet_analysis::IP::ParseResult::BAD_PROTOCOL ) {
-        AnalyzerViolation("Truncated Teredo or invalid inner IP version", conn, (const char*)data, len);
+        AnalyzerViolation("Truncated Teredo or invalid inner IP version", conn, reinterpret_cast<const char*>(data),
+                          len);
         return false;
     }
 

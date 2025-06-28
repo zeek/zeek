@@ -730,7 +730,7 @@ int dbg_handle_debug_input() {
 
         // readline uses malloc, and we want to be consistent
         // with it.
-        input_line = (char*)util::safe_malloc(1024);
+        input_line = reinterpret_cast<char*>(util::safe_malloc(1024));
         input_line[1023] = 0;
         // ### Maybe it's not always stdin.
         input_line = fgets(input_line, 1023, stdin);

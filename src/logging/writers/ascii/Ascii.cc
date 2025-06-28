@@ -229,21 +229,25 @@ void Ascii::InitConfigOptions() {
     enable_utf_8 = BifConst::LogAscii::enable_utf_8;
     gzip_level = BifConst::LogAscii::gzip_level;
 
-    separator.assign((const char*)BifConst::LogAscii::separator->Bytes(), BifConst::LogAscii::separator->Len());
+    separator.assign(reinterpret_cast<const char*>(BifConst::LogAscii::separator->Bytes()),
+                     BifConst::LogAscii::separator->Len());
 
-    set_separator.assign((const char*)BifConst::LogAscii::set_separator->Bytes(),
+    set_separator.assign(reinterpret_cast<const char*>(BifConst::LogAscii::set_separator->Bytes()),
                          BifConst::LogAscii::set_separator->Len());
 
-    empty_field.assign((const char*)BifConst::LogAscii::empty_field->Bytes(), BifConst::LogAscii::empty_field->Len());
+    empty_field.assign(reinterpret_cast<const char*>(BifConst::LogAscii::empty_field->Bytes()),
+                       BifConst::LogAscii::empty_field->Len());
 
-    unset_field.assign((const char*)BifConst::LogAscii::unset_field->Bytes(), BifConst::LogAscii::unset_field->Len());
+    unset_field.assign(reinterpret_cast<const char*>(BifConst::LogAscii::unset_field->Bytes()),
+                       BifConst::LogAscii::unset_field->Len());
 
-    meta_prefix.assign((const char*)BifConst::LogAscii::meta_prefix->Bytes(), BifConst::LogAscii::meta_prefix->Len());
+    meta_prefix.assign(reinterpret_cast<const char*>(BifConst::LogAscii::meta_prefix->Bytes()),
+                       BifConst::LogAscii::meta_prefix->Len());
 
     json_timestamps = zeek::obj_desc_short(BifConst::LogAscii::json_timestamps);
     json_include_unset_fields = BifConst::LogAscii::json_include_unset_fields;
 
-    gzip_file_extension.assign((const char*)BifConst::LogAscii::gzip_file_extension->Bytes(),
+    gzip_file_extension.assign(reinterpret_cast<const char*>(BifConst::LogAscii::gzip_file_extension->Bytes()),
                                BifConst::LogAscii::gzip_file_extension->Len());
 
     logdir = zeek::id::find_const<StringVal>("Log::default_logdir")->ToStdString();
@@ -587,7 +591,7 @@ bool Ascii::DoWrite(int num_fields, const threading::Field* const* fields, threa
 
     desc.AddRaw("\n", 1);
 
-    const char* bytes = (const char*)desc.Bytes();
+    const char* bytes = reinterpret_cast<const char*>(desc.Bytes());
     size_t len = desc.Size();
 
     if ( strncmp(bytes, meta_prefix.data(), meta_prefix.size()) == 0 ) {

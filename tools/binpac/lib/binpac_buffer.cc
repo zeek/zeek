@@ -102,7 +102,7 @@ void FlowBuffer::ExpandBuffer(int length) {
 
     // Allocate a new buffer and copy the existing contents
     buffer_length_ = length;
-    unsigned char* new_buf = (unsigned char*)realloc(buffer_, buffer_length_);
+    unsigned char* new_buf = reinterpret_cast<unsigned char*>(realloc(buffer_, buffer_length_));
 
     if ( ! new_buf )
         throw ExceptionFlowBufferAlloc("expand realloc OOM");
@@ -115,7 +115,7 @@ void FlowBuffer::ContractBuffer() {
         return;
 
     buffer_length_ = policy.min_capacity;
-    unsigned char* new_buf = (unsigned char*)realloc(buffer_, buffer_length_);
+    unsigned char* new_buf = reinterpret_cast<unsigned char*>(realloc(buffer_, buffer_length_));
 
     if ( ! new_buf )
         throw ExceptionFlowBufferAlloc("contract realloc OOM");

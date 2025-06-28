@@ -72,7 +72,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig) {
         return;
 
     // const char* orig_line = line;
-    const char* line = (const char*)data;
+    const char* line = reinterpret_cast<const char*>(data);
     const char* end_of_line = line + length;
 
     if ( length == 0 )
@@ -120,11 +120,12 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig) {
         f = ftp_request;
         AnalyzerConfirmation();
 
-        if ( strncmp((const char*)cmd_str->Bytes(), "AUTH", cmd_len) == 0 )
+        if ( strncmp(reinterpret_cast<const char*>(cmd_str->Bytes()), "AUTH", cmd_len) == 0 )
             auth_requested = std::string(line, end_of_line - line);
 
         if ( detail::rule_matcher )
-            Conn()->Match(zeek::detail::Rule::FTP, (const u_char*)cmd, end_of_line - cmd, true, true, true, true);
+            Conn()->Match(zeek::detail::Rule::FTP, reinterpret_cast<const u_char*>(cmd), end_of_line - cmd, true, true,
+                          true, true);
     }
     else {
         uint32_t reply_code = get_reply_code(length, line);
@@ -147,11 +148,11 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig) {
             cont_resp = 0;
 
             if ( reply_code == 0 ) {
-                AnalyzerViolation("non-numeric reply code", (const char*)data, length);
+                AnalyzerViolation("non-numeric reply code", reinterpret_cast<const char*>(data), length);
                 return;
             }
             else if ( reply_code < 100 ) {
-                AnalyzerViolation("invalid reply code", (const char*)data, length);
+                AnalyzerViolation("invalid reply code", reinterpret_cast<const char*>(data), length);
                 return;
             }
             else if ( length > 3 && line[3] == '-' ) { // a continued reply
@@ -162,7 +163,7 @@ void FTP_Analyzer::DeliverStream(int length, const u_char* data, bool orig) {
             else if ( length > 3 && line[3] != ' ' ) {
                 // This is a proper reply code, but there's no space after
                 // the reply code even though the line is long enough.
-                AnalyzerViolation("invalid reply line", (const char*)data, length);
+                AnalyzerViolation("invalid reply line", reinterpret_cast<const char*>(data), length);
                 return;
             }
             else { // a self-contained reply
@@ -219,7 +220,7 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
     }
 
     bool done = false;
-    const char* line = (const char*)data;
+    const char* line = reinterpret_cast<const char*>(data);
     const char* end_of_line = line + len;
 
     String* decoded_adat = nullptr;
@@ -255,7 +256,8 @@ void FTP_ADAT_Analyzer::DeliverStream(int len, const u_char* data, bool orig) {
                 // record from the first byte (content type of 0x16) and
                 // that the fourth and fifth bytes indicating the length of
                 // the record match the length of the decoded data.
-                if ( msg_len < 5 || msg[0] != 0x16 || msg_len - 5 != ntohs(*((uint16_t*)(msg + 3))) ) {
+                if ( msg_len < 5 || msg[0] != 0x16 ||
+                     msg_len - 5 != ntohs(*reinterpret_cast<const uint16_t*>(msg + 3)) ) {
                     // Doesn't look like TLS/SSL, so done analyzing.
                     done = true;
                     delete decoded_adat;

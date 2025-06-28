@@ -248,7 +248,7 @@ void GenCaseStr(ExprList* index_list, Output* out_cc, Env* env, Type* switch_typ
                 case_type_width = case_type->StaticSize(env);
 
             if ( case_type_width > switch_type_width ) {
-                BuiltInType* st = (BuiltInType*)switch_type;
+                BuiltInType* st = dynamic_cast<BuiltInType*>(switch_type);
 
                 if ( switch_type_width == 1 ) {
                     if ( st->bit_type() == BuiltInType::INT8 ) {

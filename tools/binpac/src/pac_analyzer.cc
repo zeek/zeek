@@ -4,6 +4,7 @@
 
 #include "pac_action.h"
 #include "pac_context.h"
+#include "pac_dataunit.h"
 #include "pac_embedded.h"
 #include "pac_exception.h"
 #include "pac_expr.h"
@@ -50,16 +51,16 @@ void AnalyzerDecl::AddElements(AnalyzerElementList* elemlist) {
         switch ( elem->type() ) {
             case AnalyzerElement::STATE: {
                 ASSERT(0);
-                AnalyzerState* state_elem = (AnalyzerState*)elem;
+                AnalyzerState* state_elem = dynamic_cast<AnalyzerState*>(elem);
                 statevars_->insert(statevars_->end(), state_elem->statevars()->begin(), state_elem->statevars()->end());
             } break;
             case AnalyzerElement::ACTION: {
                 ASSERT(0);
-                AnalyzerAction* action_elem = (AnalyzerAction*)elem;
+                AnalyzerAction* action_elem = dynamic_cast<AnalyzerAction*>(elem);
                 actions_->push_back(action_elem);
             } break;
             case AnalyzerElement::HELPER: {
-                AnalyzerHelper* helper_elem = (AnalyzerHelper*)elem;
+                AnalyzerHelper* helper_elem = dynamic_cast<AnalyzerHelper*>(elem);
 
                 switch ( helper_elem->helper_type() ) {
                     case AnalyzerHelper::INIT_CODE: constructor_helpers_->push_back(helper_elem); break;
@@ -69,17 +70,17 @@ void AnalyzerDecl::AddElements(AnalyzerElementList* elemlist) {
                 }
             } break;
             case AnalyzerElement::FUNCTION: {
-                AnalyzerFunction* func_elem = (AnalyzerFunction*)elem;
+                AnalyzerFunction* func_elem = dynamic_cast<AnalyzerFunction*>(elem);
                 Function* func = func_elem->function();
                 func->set_analyzer_decl(this);
                 functions_->push_back(func);
             } break;
             case AnalyzerElement::FLOW: {
-                AnalyzerFlow* flow_elem = (AnalyzerFlow*)elem;
+                AnalyzerFlow* flow_elem = dynamic_cast<AnalyzerFlow*>(elem);
                 ProcessFlowElement(flow_elem);
             } break;
             case AnalyzerElement::DATAUNIT: {
-                AnalyzerDataUnit* dataunit_elem = (AnalyzerDataUnit*)elem;
+                AnalyzerDataUnit* dataunit_elem = dynamic_cast<AnalyzerDataUnit*>(elem);
                 ProcessDataUnitElement(dataunit_elem);
             } break;
         }

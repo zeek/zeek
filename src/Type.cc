@@ -76,22 +76,22 @@ Type::Type(TypeTag t, bool arg_base_type)
 
 const TypeList* Type::AsTypeList() const {
     CHECK_TYPE_TAG(TYPE_LIST, "Type::AsTypeList");
-    return (const TypeList*)this;
+    return static_cast<const TypeList*>(this);
 }
 
 TypeList* Type::AsTypeList() {
     CHECK_TYPE_TAG(TYPE_LIST, "Type::AsTypeList");
-    return (TypeList*)this;
+    return static_cast<TypeList*>(this);
 }
 
 const TableType* Type::AsTableType() const {
     CHECK_TYPE_TAG(TYPE_TABLE, "Type::AsTableType");
-    return (const TableType*)this;
+    return static_cast<const TableType*>(this);
 }
 
 TableType* Type::AsTableType() {
     CHECK_TYPE_TAG(TYPE_TABLE, "Type::AsTableType");
-    return (TableType*)this;
+    return static_cast<TableType*>(this);
 }
 
 #ifdef __GNUC__
@@ -101,13 +101,13 @@ TableType* Type::AsTableType() {
 const SetType* Type::AsSetType() const {
     if ( ! IsSet() )
         BadTag("Type::AsSetType", type_name(tag));
-    return (const SetType*)this;
+    return static_cast<const SetType*>(this);
 }
 
 SetType* Type::AsSetType() {
     if ( ! IsSet() )
         BadTag("Type::AsSetType", type_name(tag));
-    return (SetType*)this;
+    return static_cast<SetType*>(this);
 }
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
@@ -115,72 +115,72 @@ SetType* Type::AsSetType() {
 
 const RecordType* Type::AsRecordType() const {
     CHECK_TYPE_TAG(TYPE_RECORD, "Type::AsRecordType");
-    return (const RecordType*)this;
+    return static_cast<const RecordType*>(this);
 }
 
 RecordType* Type::AsRecordType() {
     CHECK_TYPE_TAG(TYPE_RECORD, "Type::AsRecordType");
-    return (RecordType*)this;
+    return static_cast<RecordType*>(this);
 }
 
 const FuncType* Type::AsFuncType() const {
     CHECK_TYPE_TAG(TYPE_FUNC, "Type::AsFuncType");
-    return (const FuncType*)this;
+    return static_cast<const FuncType*>(this);
 }
 
 FuncType* Type::AsFuncType() {
     CHECK_TYPE_TAG(TYPE_FUNC, "Type::AsFuncType");
-    return (FuncType*)this;
+    return static_cast<FuncType*>(this);
 }
 
 const FileType* Type::AsFileType() const {
     CHECK_TYPE_TAG(TYPE_FILE, "Type::AsFileType");
-    return (const FileType*)this;
+    return static_cast<const FileType*>(this);
 }
 
 FileType* Type::AsFileType() {
     CHECK_TYPE_TAG(TYPE_FILE, "Type::AsFileType");
-    return (FileType*)this;
+    return static_cast<FileType*>(this);
 }
 
 const EnumType* Type::AsEnumType() const {
     CHECK_TYPE_TAG(TYPE_ENUM, "Type::AsEnumType");
-    return (const EnumType*)this;
+    return static_cast<const EnumType*>(this);
 }
 
 EnumType* Type::AsEnumType() {
     CHECK_TYPE_TAG(TYPE_ENUM, "Type::AsEnumType");
-    return (EnumType*)this;
+    return static_cast<EnumType*>(this);
 }
 
 const VectorType* Type::AsVectorType() const {
     CHECK_TYPE_TAG(TYPE_VECTOR, "Type::AsVectorType");
-    return (const VectorType*)this;
+    return static_cast<const VectorType*>(this);
 }
 
 VectorType* Type::AsVectorType() {
     CHECK_TYPE_TAG(TYPE_VECTOR, "Type::AsVectorType");
-    return (VectorType*)this;
+    return static_cast<VectorType*>(this);
 }
 
 const OpaqueType* Type::AsOpaqueType() const {
     CHECK_TYPE_TAG(TYPE_OPAQUE, "Type::AsOpaqueType");
-    return (const OpaqueType*)this;
+    return static_cast<const OpaqueType*>(this);
 }
 
 OpaqueType* Type::AsOpaqueType() {
     CHECK_TYPE_TAG(TYPE_OPAQUE, "Type::AsOpaqueType");
-    return (OpaqueType*)this;
+    return static_cast<OpaqueType*>(this);
 }
 
 const TypeType* Type::AsTypeType() const {
     CHECK_TYPE_TAG(TYPE_TYPE, "Type::AsTypeType");
-    return (const TypeType*)this;
+    return static_cast<const TypeType*>(this);
 }
 
 TypeType* Type::AsTypeType() {
     CHECK_TYPE_TAG(TYPE_TYPE, "Type::AsTypeType");
-    return (TypeType*)this;
+    return static_cast<TypeType*>(this);
 }
 
 TypePtr Type::ShallowClone() {
@@ -1249,7 +1249,7 @@ static string container_type_name(const Type* ft) {
         else
             s = "table[";
 
-        const auto& tl = ((const IndexType*)ft)->GetIndexTypes();
+        const auto& tl = (static_cast<const IndexType*>(ft))->GetIndexTypes();
 
         for ( auto i = 0u; i < tl.size(); ++i ) {
             if ( i > 0 )
@@ -1956,14 +1956,14 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
             return true;
 
         case TYPE_OPAQUE: {
-            const OpaqueType* ot1 = (const OpaqueType*)t1;
-            const OpaqueType* ot2 = (const OpaqueType*)t2;
+            const OpaqueType* ot1 = static_cast<const OpaqueType*>(t1);
+            const OpaqueType* ot2 = static_cast<const OpaqueType*>(t2);
             return ot1->Name() == ot2->Name();
         }
 
         case TYPE_TABLE: {
-            const IndexType* it1 = (const IndexType*)t1;
-            const IndexType* it2 = (const IndexType*)t2;
+            const IndexType* it1 = static_cast<const IndexType*>(t1);
+            const IndexType* it2 = static_cast<const IndexType*>(t2);
 
             const auto& tl1 = it1->GetIndices();
             const auto& tl2 = it2->GetIndices();
@@ -1986,8 +1986,8 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
         }
 
         case TYPE_FUNC: {
-            const FuncType* ft1 = (const FuncType*)t1;
-            const FuncType* ft2 = (const FuncType*)t2;
+            const FuncType* ft1 = static_cast<const FuncType*>(t1);
+            const FuncType* ft2 = static_cast<const FuncType*>(t2);
 
             if ( ft1->Flavor() != ft2->Flavor() )
                 return false;
@@ -2001,8 +2001,8 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
         }
 
         case TYPE_RECORD: {
-            const RecordType* rt1 = (const RecordType*)t1;
-            const RecordType* rt2 = (const RecordType*)t2;
+            const RecordType* rt1 = static_cast<const RecordType*>(t1);
+            const RecordType* rt2 = static_cast<const RecordType*>(t2);
 
             if ( rt1->NumFields() != rt2->NumFields() )
                 return false;
@@ -2069,8 +2069,8 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
 
     switch ( t1->Tag() ) {
         case TYPE_TABLE: {
-            const IndexType* it1 = (const IndexType*)t1;
-            const IndexType* it2 = (const IndexType*)t2;
+            const IndexType* it1 = static_cast<const IndexType*>(t1);
+            const IndexType* it2 = static_cast<const IndexType*>(t2);
 
             const auto& tl1 = it1->GetIndices();
             const auto& tl2 = it2->GetIndices();
@@ -2093,8 +2093,8 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
         }
 
         case TYPE_FUNC: {
-            const FuncType* ft1 = (const FuncType*)t1;
-            const FuncType* ft2 = (const FuncType*)t2;
+            const FuncType* ft1 = static_cast<const FuncType*>(t1);
+            const FuncType* ft2 = static_cast<const FuncType*>(t2);
 
             if ( ! same_type(t1->Yield(), t2->Yield(), is_init, match_record_field_names) )
                 result = false;
@@ -2104,8 +2104,8 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
         }
 
         case TYPE_RECORD: {
-            const RecordType* rt1 = (const RecordType*)t1;
-            const RecordType* rt2 = (const RecordType*)t2;
+            const RecordType* rt1 = static_cast<const RecordType*>(t1);
+            const RecordType* rt2 = static_cast<const RecordType*>(t2);
 
             result = true;
 
@@ -2216,7 +2216,7 @@ const Type* flatten_type(const Type* t) {
     return t;
 }
 
-Type* flatten_type(Type* t) { return (Type*)flatten_type((const Type*)t); }
+Type* flatten_type(Type* t) { return const_cast<Type*>(flatten_type(static_cast<const Type*>(t))); }
 
 bool is_assignable(TypeTag t) {
     switch ( t ) {
@@ -2303,8 +2303,8 @@ TypePtr merge_enum_types(const Type* t1, const Type* t2) {
 }
 
 TypePtr merge_table_types(const Type* t1, const Type* t2) {
-    const IndexType* it1 = (const IndexType*)t1;
-    const IndexType* it2 = (const IndexType*)t2;
+    const IndexType* it1 = static_cast<const IndexType*>(t1);
+    const IndexType* it2 = static_cast<const IndexType*>(t2);
 
     const auto& tl1 = it1->GetIndexTypes();
     const auto& tl2 = it2->GetIndexTypes();
@@ -2349,8 +2349,8 @@ TypePtr merge_func_types(const Type* t1, const Type* t2) {
         return nullptr;
     }
 
-    const FuncType* ft1 = (const FuncType*)t1;
-    const FuncType* ft2 = (const FuncType*)t1;
+    const FuncType* ft1 = static_cast<const FuncType*>(t1);
+    const FuncType* ft2 = static_cast<const FuncType*>(t1);
     auto args = cast_intrusive<RecordType>(merge_types(ft1->Params(), ft2->Params()));
     auto yield = t1->Yield() ? merge_types(t1->Yield(), t2->Yield()) : nullptr;
 
@@ -2358,8 +2358,8 @@ TypePtr merge_func_types(const Type* t1, const Type* t2) {
 }
 
 TypePtr merge_record_types(const Type* t1, const Type* t2) {
-    const RecordType* rt1 = (const RecordType*)t1;
-    const RecordType* rt2 = (const RecordType*)t2;
+    const RecordType* rt1 = static_cast<const RecordType*>(t1);
+    const RecordType* rt2 = static_cast<const RecordType*>(t2);
 
     // We allow the records to have different numbers of fields.
     // We first go through all of the fields in rt1, and then we

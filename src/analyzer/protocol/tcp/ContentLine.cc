@@ -88,7 +88,7 @@ void ContentLine_Analyzer::DeliverStream(int len, const u_char* data, bool is_or
     if ( delivery_length == 0 ) {
         if ( HasPartialLine() ) {
             Weird("line_terminated_without_CRLF");
-            DoDeliver(2, (const u_char*)"\r\n");
+            DoDeliver(2, reinterpret_cast<const u_char*>("\r\n"));
         }
         delivery_length = -1;
     }
@@ -100,7 +100,7 @@ void ContentLine_Analyzer::Undelivered(uint64_t seq, int len, bool orig) { Forwa
 
 void ContentLine_Analyzer::EndpointEOF(bool is_orig) {
     if ( offset > 0 )
-        DeliverStream(1, (const u_char*)"\n", is_orig);
+        DeliverStream(1, reinterpret_cast<const u_char*>("\n"), is_orig);
 }
 
 void ContentLine_Analyzer::SetPlainDelivery(int64_t length) {

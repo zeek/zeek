@@ -847,7 +847,7 @@ bool Manager::TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, Tab
         }
 
         ++filter->num_fields;
-        filter->fields = (threading::Field**)tmp;
+        filter->fields = reinterpret_cast<threading::Field**>(tmp);
 
         TypeTag st = TYPE_VOID;
 

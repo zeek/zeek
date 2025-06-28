@@ -133,87 +133,87 @@ Expr::~Expr() { delete opt_info; }
 
 const ListExpr* Expr::AsListExpr() const {
     CHECK_TAG(tag, EXPR_LIST, "Expr::AsListExpr", expr_name)
-    return (const ListExpr*)this;
+    return static_cast<const ListExpr*>(this);
 }
 
 ListExpr* Expr::AsListExpr() {
     CHECK_TAG(tag, EXPR_LIST, "Expr::AsListExpr", expr_name)
-    return (ListExpr*)this;
+    return static_cast<ListExpr*>(this);
 }
 
 ListExprPtr Expr::AsListExprPtr() {
     CHECK_TAG(tag, EXPR_LIST, "Expr::AsListExpr", expr_name)
-    return {NewRef{}, (ListExpr*)this};
+    return {NewRef{}, static_cast<ListExpr*>(this)};
 }
 
 const NameExpr* Expr::AsNameExpr() const {
     CHECK_TAG(tag, EXPR_NAME, "Expr::AsNameExpr", expr_name)
-    return (const NameExpr*)this;
+    return static_cast<const NameExpr*>(this);
 }
 
 NameExpr* Expr::AsNameExpr() {
     CHECK_TAG(tag, EXPR_NAME, "Expr::AsNameExpr", expr_name)
-    return (NameExpr*)this;
+    return static_cast<NameExpr*>(this);
 }
 
 NameExprPtr Expr::AsNameExprPtr() {
     CHECK_TAG(tag, EXPR_NAME, "Expr::AsNameExpr", expr_name)
-    return {NewRef{}, (NameExpr*)this};
+    return {NewRef{}, static_cast<NameExpr*>(this)};
 }
 
 const ConstExpr* Expr::AsConstExpr() const {
     CHECK_TAG(tag, EXPR_CONST, "Expr::AsConstExpr", expr_name)
-    return (const ConstExpr*)this;
+    return static_cast<const ConstExpr*>(this);
 }
 
 ConstExprPtr Expr::AsConstExprPtr() {
     CHECK_TAG(tag, EXPR_CONST, "Expr::AsConstExpr", expr_name)
-    return {NewRef{}, (ConstExpr*)this};
+    return {NewRef{}, static_cast<ConstExpr*>(this)};
 }
 
 const CallExpr* Expr::AsCallExpr() const {
     CHECK_TAG(tag, EXPR_CALL, "Expr::AsCallExpr", expr_name)
-    return (const CallExpr*)this;
+    return static_cast<const CallExpr*>(this);
 }
 
 const AssignExpr* Expr::AsAssignExpr() const {
     CHECK_TAG(tag, EXPR_ASSIGN, "Expr::AsAssignExpr", expr_name)
-    return (const AssignExpr*)this;
+    return static_cast<const AssignExpr*>(this);
 }
 
 AssignExpr* Expr::AsAssignExpr() {
     CHECK_TAG(tag, EXPR_ASSIGN, "Expr::AsAssignExpr", expr_name)
-    return (AssignExpr*)this;
+    return static_cast<AssignExpr*>(this);
 }
 
 const IndexExpr* Expr::AsIndexExpr() const {
     CHECK_TAG(tag, EXPR_INDEX, "Expr::AsIndexExpr", expr_name)
-    return (const IndexExpr*)this;
+    return static_cast<const IndexExpr*>(this);
 }
 
 IndexExpr* Expr::AsIndexExpr() {
     CHECK_TAG(tag, EXPR_INDEX, "Expr::AsIndexExpr", expr_name)
-    return (IndexExpr*)this;
+    return static_cast<IndexExpr*>(this);
 }
 
 const EventExpr* Expr::AsEventExpr() const {
     CHECK_TAG(tag, EXPR_EVENT, "Expr::AsEventExpr", expr_name)
-    return (const EventExpr*)this;
+    return static_cast<const EventExpr*>(this);
 }
 
 EventExprPtr Expr::AsEventExprPtr() {
     CHECK_TAG(tag, EXPR_EVENT, "Expr::AsEventExpr", expr_name)
-    return {NewRef{}, (EventExpr*)this};
+    return {NewRef{}, static_cast<EventExpr*>(this)};
 }
 
 const RefExpr* Expr::AsRefExpr() const {
     CHECK_TAG(tag, EXPR_REF, "Expr::AsRefExpr", expr_name)
-    return (const RefExpr*)this;
+    return static_cast<const RefExpr*>(this);
 }
 
 RefExprPtr Expr::AsRefExprPtr() {
     CHECK_TAG(tag, EXPR_REF, "Expr::AsRefExpr", expr_name)
-    return {NewRef{}, (RefExpr*)this};
+    return {NewRef{}, static_cast<RefExpr*>(this)};
 }
 
 bool Expr::CanAdd() const { return false; }
@@ -2462,7 +2462,7 @@ TypePtr AssignExpr::InitType() const {
 bool AssignExpr::IsRecordElement(TypeDecl* td) const {
     if ( op1->Tag() == EXPR_NAME ) {
         if ( td ) {
-            const NameExpr* n = (const NameExpr*)op1.get();
+            const NameExpr* n = static_cast<const NameExpr*>(op1.get());
             td->type = op2->GetType();
             td->id = util::copy_string(n->Id()->Name());
         }
@@ -2940,7 +2940,7 @@ RecordConstructorExpr::RecordConstructorExpr(ListExprPtr constructor_list)
             continue;
         }
 
-        FieldAssignExpr* field = (FieldAssignExpr*)e;
+        FieldAssignExpr* field = static_cast<FieldAssignExpr*>(e);
         const auto& field_type = field->GetType();
         char* field_name = util::copy_string(field->FieldName());
         record_types->push_back(new TypeDecl(field_name, field_type));
@@ -4099,14 +4099,14 @@ CallExpr::CallExpr(ExprPtr arg_func, ListExprPtr arg_args, bool in_hook, bool _i
              // run-time errors when we apply this analysis during
              // parsing.  Really we should instead do it after we've
              // parsed the entire set of scripts.
-             util::streq(((NameExpr*)func.get())->Id()->Name(), "fmt") &&
+             util::streq((static_cast<NameExpr*>(func.get()))->Id()->Name(), "fmt") &&
              // The following is needed because fmt might not yet
              // be bound as a name.
              did_builtin_init ) {
             func_val = func->Eval(nullptr);
             if ( func_val ) {
                 zeek::Func* f = func_val->AsFunc();
-                if ( f->GetKind() == Func::BUILTIN_FUNC && ! check_built_in_call((BuiltinFunc*)f, this) )
+                if ( f->GetKind() == Func::BUILTIN_FUNC && ! check_built_in_call(static_cast<BuiltinFunc*>(f), this) )
                     SetError();
             }
         }
@@ -4561,7 +4561,7 @@ ListExpr::~ListExpr() {
 
 void ListExpr::Append(ExprPtr e) {
     exprs.push_back(e.release());
-    ((TypeList*)type.get())->Append(exprs.back()->GetType());
+    (static_cast<TypeList*>(type.get()))->Append(exprs.back()->GetType());
 }
 
 bool ListExpr::IsPure() const {
@@ -4710,7 +4710,7 @@ RecordAssignExpr::RecordAssignExpr(const ExprPtr& record, const ExprPtr& init_li
         }
 
         else if ( init->Tag() == EXPR_FIELD_ASSIGN ) {
-            FieldAssignExpr* rf = (FieldAssignExpr*)init;
+            FieldAssignExpr* rf = static_cast<FieldAssignExpr*>(init);
             rf->Ref();
 
             const char* field_name = ""; // rf->FieldName();

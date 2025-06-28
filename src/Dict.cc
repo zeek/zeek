@@ -120,7 +120,7 @@ TEST_CASE("dict iteration") {
 
     for ( const auto& entry : dict ) {
         auto* v = static_cast<uint32_t*>(entry.value);
-        uint64_t k = *(uint32_t*)entry.GetKey();
+        uint64_t k = *reinterpret_cast<const uint32_t*>(entry.GetKey());
 
         switch ( count ) {
             case 0:
@@ -172,7 +172,7 @@ TEST_CASE("dict robust iteration") {
 
         for ( ; it != dict.end_robust(); ++it ) {
             auto* v = it->value;
-            uint64_t k = *(uint32_t*)it->GetKey();
+            uint64_t k = *reinterpret_cast<const uint32_t*>(it->GetKey());
 
             switch ( count ) {
                 case 0:
@@ -205,7 +205,7 @@ TEST_CASE("dict robust iteration") {
 
         for ( ; it != dict.end_robust(); ++it ) {
             auto* v = it->value;
-            uint64_t k = *(uint32_t*)it->GetKey();
+            uint64_t k = *reinterpret_cast<const uint32_t*>(it->GetKey());
 
             switch ( count ) {
                 case 0:
@@ -265,7 +265,7 @@ TEST_CASE("dict ordered iteration") {
 
     for ( const auto& entry : dict ) {
         auto* v = static_cast<uint32_t*>(entry.value);
-        uint32_t k = *(uint32_t*)entry.GetKey();
+        uint32_t k = *reinterpret_cast<const uint32_t*>(entry.GetKey());
 
         // The keys should be returned in the same order we inserted
         // them, which is 5, 25, 45.
@@ -284,7 +284,7 @@ TEST_CASE("dict ordered iteration") {
 
     for ( const auto& entry : dict ) {
         auto* v = static_cast<uint32_t*>(entry.value);
-        uint32_t k = *(uint32_t*)entry.GetKey();
+        uint32_t k = *reinterpret_cast<const uint32_t*>(entry.GetKey());
 
         // The keys should be returned in the same order we inserted
         // them, which is 5, 25, 45, 35.
@@ -305,7 +305,7 @@ TEST_CASE("dict ordered iteration") {
 
     for ( const auto& entry : dict ) {
         auto* v = static_cast<uint32_t*>(entry.value);
-        uint32_t k = *(uint32_t*)entry.GetKey();
+        uint32_t k = *reinterpret_cast<const uint32_t*>(entry.GetKey());
 
         // The keys should be returned in the same order we inserted
         // them, which is 5, 45, 35.
@@ -367,7 +367,7 @@ TEST_CASE("dict robust iteration replacement") {
 
     // This shouldn't crash with AddressSanitizer
     for ( ; it != dict.end_robust(); ++it ) {
-        uint64_t k = *(uint32_t*)it->GetKey();
+        uint64_t k = *reinterpret_cast<const uint32_t*>(it->GetKey());
         auto* v = it->value;
         CHECK(v->v == 50);
     }

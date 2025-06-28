@@ -440,7 +440,8 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
         case TYPE_INTERVAL: return new IntervalVal(val->val.double_val);
 
         case TYPE_STRING: {
-            auto* s = new String((const u_char*)val->val.string_val.data, val->val.string_val.length, true);
+            auto* s =
+                new String(reinterpret_cast<const u_char*>(val->val.string_val.data), val->val.string_val.length, true);
             return new StringVal(s);
         }
 

@@ -318,7 +318,7 @@ void File::DeliverStream(const u_char* data, uint64_t len) {
 
     DBG_LOG(DBG_FILE_ANALYSIS, "[%s] %" PRIu64 " stream bytes in at offset %" PRIu64 "; %s [%s%s]", id.c_str(), len,
             stream_offset, IsComplete() ? "complete" : "incomplete",
-            util::fmt_bytes((const char*)data, std::min((uint64_t)40, len)), len > 40 ? "..." : "");
+            util::fmt_bytes(reinterpret_cast<const char*>(data), std::min(uint64_t(40), len)), len > 40 ? "..." : "");
 
     for ( const auto& entry : analyzers ) {
         auto* a = entry.value;
@@ -406,7 +406,7 @@ void File::DeliverChunk(const u_char* data, uint64_t len, uint64_t offset) {
 
     DBG_LOG(DBG_FILE_ANALYSIS, "[%s] %" PRIu64 " chunk bytes in at offset %" PRIu64 "; %s [%s%s]", id.c_str(), len,
             offset, IsComplete() ? "complete" : "incomplete",
-            util::fmt_bytes((const char*)data, std::min((uint64_t)40, len)), len > 40 ? "..." : "");
+            util::fmt_bytes(reinterpret_cast<const char*>(data), std::min(uint64_t(40), len)), len > 40 ? "..." : "");
 
     for ( const auto& entry : analyzers ) {
         auto* a = entry.value;
@@ -454,7 +454,7 @@ void File::EndOfFile() {
     if ( ! bof_buffer.full ) {
         DBG_LOG(DBG_FILE_ANALYSIS, "[%s] File over but bof_buffer not full.", id.c_str());
         bof_buffer.full = true;
-        DeliverStream((const u_char*)"", 0);
+        DeliverStream(reinterpret_cast<const u_char*>(""), 0);
     }
     analyzers.DrainModifications();
 
@@ -487,7 +487,7 @@ void File::Gap(uint64_t offset, uint64_t len) {
                 "bof_buffer.",
                 id.c_str());
         bof_buffer.full = true;
-        DeliverStream((const u_char*)"", 0);
+        DeliverStream(reinterpret_cast<const u_char*>(""), 0);
     }
 
     for ( const auto& entry : analyzers ) {

@@ -111,7 +111,7 @@ class Vsb
 op-types S I I
 eval	if ( $1.IsDoneIterating() )
 		$2
-	auto bytes = (const char*) $1.s->Bytes() + $1.iter;
+	auto bytes = reinterpret_cast<const char*>(StepIter(z.v2).s->Bytes()) + StepIter(z.v2).iter;
 	auto sv = new StringVal(1, bytes);
 	Unref($$);
 	$$ = sv;

@@ -39,7 +39,7 @@ void Ident_Analyzer::Done() {
 void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig) {
     analyzer::tcp::TCP_ApplicationAnalyzer::DeliverStream(length, data, is_orig);
 
-    const char* line = (const char*)data;
+    const char* line = reinterpret_cast<const char*>(data);
     const char* orig_line = line;
     const char* end_of_line = line + length;
 
@@ -71,7 +71,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
         }
 
         if ( line != end_of_line ) {
-            String s((const u_char*)orig_line, length, true);
+            String s(reinterpret_cast<const u_char*>(orig_line), length, true);
             Weird("ident_request_addendum", s.CheckString());
         }
 
@@ -149,7 +149,7 @@ void Ident_Analyzer::DeliverStream(int length, const u_char* data, bool is_orig)
             for ( ; sys_end > sys_type && isspace(*sys_end); --sys_end )
                 ;
 
-            String* sys_type_s = new String((const u_char*)sys_type, sys_end - sys_type + 1, true);
+            String* sys_type_s = new String(reinterpret_cast<const u_char*>(sys_type), sys_end - sys_type + 1, true);
 
             line = util::skip_whitespace(colon + 1, end_of_line);
 
@@ -206,13 +206,13 @@ const char* Ident_Analyzer::ParsePort(const char* line, const char* end_of_line,
 }
 
 void Ident_Analyzer::BadRequest(int length, const char* line) {
-    String s((const u_char*)line, length, true);
+    String s(reinterpret_cast<const u_char*>(line), length, true);
     Weird("bad_ident_request", s.CheckString());
 }
 
 void Ident_Analyzer::BadReply(int length, const char* line) {
     if ( ! did_bad_reply ) {
-        String s((const u_char*)line, length, true);
+        String s(reinterpret_cast<const u_char*>(line), length, true);
         Weird("bad_ident_reply", s.CheckString());
         did_bad_reply = true;
     }

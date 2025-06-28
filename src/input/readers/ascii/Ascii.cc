@@ -64,21 +64,22 @@ void Ascii::DoClose() { read_location.reset(); }
 bool Ascii::DoInit(const ReaderInfo& info, int num_fields, const Field* const* fields) {
     StopWarningSuppression();
 
-    separator.assign((const char*)BifConst::InputAscii::separator->Bytes(), BifConst::InputAscii::separator->Len());
+    separator.assign(reinterpret_cast<const char*>(BifConst::InputAscii::separator->Bytes()),
+                     BifConst::InputAscii::separator->Len());
 
-    set_separator.assign((const char*)BifConst::InputAscii::set_separator->Bytes(),
+    set_separator.assign(reinterpret_cast<const char*>(BifConst::InputAscii::set_separator->Bytes()),
                          BifConst::InputAscii::set_separator->Len());
 
-    empty_field.assign((const char*)BifConst::InputAscii::empty_field->Bytes(),
+    empty_field.assign(reinterpret_cast<const char*>(BifConst::InputAscii::empty_field->Bytes()),
                        BifConst::InputAscii::empty_field->Len());
 
-    unset_field.assign((const char*)BifConst::InputAscii::unset_field->Bytes(),
+    unset_field.assign(reinterpret_cast<const char*>(BifConst::InputAscii::unset_field->Bytes()),
                        BifConst::InputAscii::unset_field->Len());
 
     fail_on_invalid_lines = BifConst::InputAscii::fail_on_invalid_lines;
     fail_on_file_problem = BifConst::InputAscii::fail_on_file_problem;
 
-    path_prefix.assign((const char*)BifConst::InputAscii::path_prefix->Bytes(),
+    path_prefix.assign(reinterpret_cast<const char*>(BifConst::InputAscii::path_prefix->Bytes()),
                        BifConst::InputAscii::path_prefix->Len());
 
     // Set per-filter configuration options.

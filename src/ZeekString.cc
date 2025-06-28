@@ -172,14 +172,16 @@ std::pair<const char*, size_t> String::CheckStringWithSize() const {
         return {result, std::size(result) - 1};
     }
 
-    return {(const char*)b, n};
+    return {reinterpret_cast<const char*>(b), n};
 }
 
 const char* String::CheckString() const { return CheckStringWithSize().first; }
 
-std::string String::ToStdString() const { return {(char*)Bytes(), static_cast<size_t>(Len())}; }
+std::string String::ToStdString() const { return {reinterpret_cast<char*>(Bytes()), static_cast<size_t>(Len())}; }
 
-std::string_view String::ToStdStringView() const { return {(char*)Bytes(), static_cast<size_t>(Len())}; }
+std::string_view String::ToStdStringView() const {
+    return {reinterpret_cast<char*>(Bytes()), static_cast<size_t>(Len())};
+}
 
 char* String::Render(int format, int* len) const {
     // Maximum character expansion is as \xHH, so a factor of 4.
@@ -254,7 +256,7 @@ std::istream& String::Read(std::istream& is, int format) {
         is.read(buf, len);
         buf[len] = '\0'; // NUL-terminate just for safety
 
-        Adopt((u_char*)buf, len + 1);
+        Adopt(reinterpret_cast<u_char*>(buf), len + 1);
     }
     else {
         std::string str;
@@ -378,7 +380,7 @@ String* concatenate(std::vector<data_chunk_t>& v) {
 
     *b = '\0';
 
-    return new String(true, (byte_vec)data, len);
+    return new String(true, reinterpret_cast<byte_vec>(data), len);
 }
 
 String* concatenate(String::CVec& v) {
@@ -397,7 +399,7 @@ String* concatenate(String::CVec& v) {
     }
     *b = '\0';
 
-    return new String(true, (byte_vec)data, len);
+    return new String(true, reinterpret_cast<byte_vec>(data), len);
 }
 
 String* concatenate(String::Vec& v) {
@@ -458,7 +460,7 @@ TEST_CASE("construction") {
     zeek::String s9{false, text4, 6};
     CHECK_EQ(std::string(s9.CheckString()), "<string-with-NUL>");
 
-    zeek::byte_vec text5 = (zeek::byte_vec)malloc(7);
+    zeek::byte_vec text5 = reinterpret_cast<zeek::byte_vec>(malloc(7));
     memcpy(text5, text.c_str(), 7);
     zeek::String s10{true, text5, 6};
     s10.SetUseFreeToDelete(1);

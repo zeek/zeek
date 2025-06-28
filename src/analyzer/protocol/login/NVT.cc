@@ -138,7 +138,7 @@ void TelnetEncryptOption::RecvSubOption(u_char* data, int len) {
         ++did_encrypt_request;
 
     else if ( opt == ENCRYPT_STARTING_TO_ENCRYPT ) {
-        TelnetEncryptOption* peer = (TelnetEncryptOption*)endp->FindPeerOption(code);
+        TelnetEncryptOption* peer = static_cast<TelnetEncryptOption*>(endp->FindPeerOption(code));
 
         if ( ! peer ) {
             reporter->AnalyzerError(endp, "option peer missing in TelnetEncryptOption::RecvSubOption");
@@ -172,7 +172,7 @@ void TelnetAuthenticateOption::RecvSubOption(u_char* data, int len) {
 
     switch ( data[0] ) {
         case HERE_IS_AUTHENTICATION: {
-            TelnetAuthenticateOption* peer = (TelnetAuthenticateOption*)endp->FindPeerOption(code);
+            TelnetAuthenticateOption* peer = static_cast<TelnetAuthenticateOption*>(endp->FindPeerOption(code));
 
             if ( ! peer ) {
                 reporter->AnalyzerError(endp, "option peer missing in TelnetAuthenticateOption::RecvSubOption");
@@ -203,7 +203,7 @@ void TelnetAuthenticateOption::RecvSubOption(u_char* data, int len) {
 
         case AUTHENTICATION_NAME: {
             char* auth_name = new char[len];
-            util::safe_strncpy(auth_name, (char*)data + 1, len);
+            util::safe_strncpy(auth_name, reinterpret_cast<char*>(data) + 1, len);
             endp->SetAuthName(auth_name);
         } break;
 
@@ -570,7 +570,7 @@ void NVT_Analyzer::ScanOption(int& len, const u_char*& data) {
             int opt_start = IAC_pos + 2;
             int opt_stop = offset - 1;
             int opt_len = opt_stop - opt_start;
-            SawSubOption((const char*)&buf[opt_start], opt_len);
+            SawSubOption(reinterpret_cast<const char*>(&buf[opt_start]), opt_len);
 
             // Delete suboption.
             offset = IAC_pos;
@@ -612,7 +612,7 @@ void NVT_Analyzer::SawSubOption(const char* subopt, int len) {
 
     TelnetOption* opt = FindOption(subcode);
     if ( opt )
-        opt->RecvSubOption((u_char*)subopt, len);
+        opt->RecvSubOption(const_cast<u_char*>(reinterpret_cast<const u_char*>(subopt)), len);
 }
 
 void NVT_Analyzer::BadOptionTermination(unsigned int /* code */) { Event(bad_option_termination); }

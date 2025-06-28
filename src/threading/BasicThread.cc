@@ -21,7 +21,7 @@ BasicThread::BasicThread() {
     killed = false;
 
     buf_len = STD_FMT_BUF_LEN;
-    buf = (char*)util::safe_malloc(buf_len);
+    buf = reinterpret_cast<char*>(util::safe_malloc(buf_len));
 
     strerr_buffer = nullptr;
 
@@ -52,7 +52,7 @@ void BasicThread::SetOSName(const char* arg_name) {
 const char* BasicThread::Fmt(const char* format, ...) {
     if ( buf_len > 10 * STD_FMT_BUF_LEN ) {
         // Shrink back to normal.
-        buf = (char*)util::safe_realloc(buf, STD_FMT_BUF_LEN);
+        buf = reinterpret_cast<char*>(util::safe_realloc(buf, STD_FMT_BUF_LEN));
         buf_len = STD_FMT_BUF_LEN;
     }
 
@@ -63,7 +63,7 @@ const char* BasicThread::Fmt(const char* format, ...) {
 
     if ( (unsigned int)n >= buf_len ) { // Not enough room, grow the buffer.
         buf_len = n + 32;
-        buf = (char*)util::safe_realloc(buf, buf_len);
+        buf = reinterpret_cast<char*>(util::safe_realloc(buf, buf_len));
 
         // Is it portable to restart?
         va_start(al, format);
@@ -153,7 +153,7 @@ void BasicThread::Done() {
 }
 
 void* BasicThread::launcher(void* arg) {
-    BasicThread* thread = (BasicThread*)arg;
+    BasicThread* thread = reinterpret_cast<BasicThread*>(arg);
 
 #ifndef _MSC_VER
     // Block signals in thread. We handle signals only in the main

@@ -17,6 +17,11 @@
 
 using namespace std::chrono_literals;
 
+namespace {
+// Helper to check whether a database-stored `expire_time` is considered expired.
+bool is_expired(double expire_time) { return expire_time != 0 && expire_time < zeek::run_state::network_time; }
+} // namespace
+
 namespace zeek::storage::backend::sqlite {
 
 OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::string_view> value) {
@@ -190,7 +195,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
                                 "DO UPDATE SET value_str=?, expire_time=?",
                                 table_name.c_str()),
                         db),
-         std::make_pair(util::fmt("select value_str from %s where key_str=?", table_name.c_str()), db),
+         std::make_pair(util::fmt("select value_str, expire_time from %s where key_str=?", table_name.c_str()), db),
          std::make_pair(util::fmt("delete from %s where key_str=?", table_name.c_str()), db),
 
          std::make_pair(
@@ -497,15 +502,19 @@ OperationResult SQLite::Step(sqlite3_stmt* stmt, bool parse_value) {
     int step_status = sqlite3_step(stmt);
     if ( step_status == SQLITE_ROW ) {
         if ( parse_value ) {
-            auto blob = static_cast<const std::byte*>(sqlite3_column_blob(stmt, 0));
-            size_t blob_size = sqlite3_column_bytes(stmt, 0);
+            if ( sqlite3_column_type(stmt, 1) != SQLITE_NULL && is_expired(sqlite3_column_double(stmt, 1)) )
+                ret = {ReturnCode::KEY_NOT_FOUND, ""};
+            else {
+                auto blob = static_cast<const std::byte*>(sqlite3_column_blob(stmt, 0));
+                size_t blob_size = sqlite3_column_bytes(stmt, 0);
 
-            auto val = serializer->Unserialize({blob, blob_size}, val_type);
+                auto val = serializer->Unserialize({blob, blob_size}, val_type);
 
-            if ( val )
-                ret = {ReturnCode::SUCCESS, "", val.value()};
-            else
-                ret = {ReturnCode::OPERATION_FAILED, val.error()};
+                if ( val )
+                    ret = {ReturnCode::SUCCESS, "", val.value()};
+                else
+                    ret = {ReturnCode::OPERATION_FAILED, val.error()};
+            }
         }
         else {
             ret = {ReturnCode::OPERATION_FAILED, "sqlite3_step should not have returned a value"};

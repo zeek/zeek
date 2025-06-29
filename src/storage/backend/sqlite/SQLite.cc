@@ -190,7 +190,10 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
                                 "DO UPDATE SET value_str=?, expire_time=?",
                                 table_name.c_str()),
                         db),
-         std::make_pair(util::fmt("select value_str from %s where key_str=?", table_name.c_str()), db),
+         std::make_pair(util::fmt("select value_str, expire_time from %s where key_str=? and "
+                                  "(expire_time > ? OR expire_time == 0.0)",
+                                  table_name.c_str()),
+                        db),
          std::make_pair(util::fmt("delete from %s where key_str=?", table_name.c_str()), db),
 
          std::make_pair(
@@ -344,6 +347,11 @@ OperationResult SQLite::DoGet(ResultCallback* cb, ValPtr key) {
     auto stmt = unique_stmt_ptr(get_stmt.get(), sqlite3_reset);
 
     if ( auto res = CheckError(sqlite3_bind_blob(stmt.get(), 1, key_data->data(), key_data->size(), SQLITE_STATIC));
+         res.code != ReturnCode::SUCCESS ) {
+        return res;
+    }
+
+    if ( auto res = CheckError(sqlite3_bind_double(stmt.get(), 2, run_state::network_time));
          res.code != ReturnCode::SUCCESS ) {
         return res;
     }

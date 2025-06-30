@@ -92,6 +92,12 @@ private:
     EventHandlerPtr event_subscription;
     EventHandlerPtr event_unsubscription;
 
+    // xpub/xsub configuration
+    int xpub_sndhwm = 1000; // libzmq default
+    int xpub_sndbuf = -1;   // OS defaults
+    int xsub_rcvhwm = 1000; // libzmq default
+    int xsub_rcvbuf = -1;   // OS defaults
+
     zmq::context_t ctx;
     zmq::socket_t xsub;
     zmq::socket_t xpub;

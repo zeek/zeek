@@ -118,6 +118,12 @@ void ZeroMQBackend::DoInitPostScript() {
         zeek::telemetry_mgr
             ->CounterInstance("zeek", "cluster_zeromq_xpub_stalls", {},
                               "Counter for how many times sending on the XPUB socket stalled due to EAGAIN.");
+
+    // xpub/xsub hwm configuration
+    xpub_sndhwm = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::xpub_sndhwm")->AsInt());
+    xpub_sndbuf = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::xpub_sndbuf")->AsInt());
+    xsub_rcvhwm = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::xsub_rcvhwm")->AsInt());
+    xsub_rcvbuf = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::xsub_rcvbuf")->AsInt());
 }
 
 void ZeroMQBackend::DoTerminate() {
@@ -178,6 +184,11 @@ bool ZeroMQBackend::DoInit() {
     // functionality to work reliably.
     xpub.set(zmq::sockopt::xpub_nodrop, connect_xpub_nodrop);
     xpub.set(zmq::sockopt::xpub_verbose, 1);
+
+    xpub.set(zmq::sockopt::sndhwm, xpub_sndhwm);
+    xpub.set(zmq::sockopt::sndbuf, xpub_sndbuf);
+    xsub.set(zmq::sockopt::rcvhwm, xsub_rcvhwm);
+    xsub.set(zmq::sockopt::rcvbuf, xsub_rcvbuf);
 
     try {
         xsub.connect(connect_xsub_endpoint);

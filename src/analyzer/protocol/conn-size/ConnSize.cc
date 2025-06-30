@@ -37,6 +37,13 @@ void ConnSize_Analyzer::ThresholdEvent(EventHandlerPtr f, uint64_t threshold, bo
 }
 
 void ConnSize_Analyzer::CheckThresholds(bool is_orig) {
+    static const auto generic_packet_threshold = id::find_const("ConnThreshold::generic_packet_threshold")->AsCount();
+
+    if ( conn_generic_packet_threshold_crossed && generic_packet_threshold &&
+         (orig_pkts + resp_pkts) == generic_packet_threshold ) {
+        EnqueueConnEvent(conn_generic_packet_threshold_crossed, ConnVal());
+    }
+
     if ( is_orig ) {
         if ( orig_bytes_thresh && orig_bytes >= orig_bytes_thresh ) {
             ThresholdEvent(conn_bytes_threshold_crossed, orig_bytes_thresh, is_orig);

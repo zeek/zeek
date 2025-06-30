@@ -81,9 +81,9 @@ ws_port = os.environ['WEBSOCKET_PORT'].split('/')[0]
 ws_url = f'ws://127.0.0.1:{ws_port}/v1/messages/json'
 
 def run(ws_url):
-    with connect(ws_url) as ws1:
+    with connect(ws_url, additional_headers={"X-Application-Name": "super-duper-app"}) as ws1:
         with connect(ws_url) as ws2:
-            with connect(ws_url) as ws3:
+            with connect(ws_url, additional_headers={"X-Application-Name": "super-duper-app"}) as ws3:
                  clients = [ws1, ws2, ws3]
                  print("Connected!")
                  ids = set()

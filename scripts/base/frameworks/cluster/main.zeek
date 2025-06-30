@@ -398,6 +398,8 @@ export {
 	type EndpointInfo: record {
 		id: string;
 		network: NetworkInfo;
+		## The value of the X-Application-Name HTTP header, if any.
+		application_name: string &optional;
 	};
 }
 
@@ -675,17 +677,25 @@ function listen_websocket(options: WebSocketServerOptions): bool
 	return Cluster::__listen_websocket(options);
 	}
 
+function format_endpoint_info(ei: EndpointInfo): string
+	{
+	local s = fmt("'%s' (%s:%d)", ei$id, ei$network$address, ei$network$bound_port);
+	if ( ei?$application_name )
+		s += fmt(" application_name=%s", ei$application_name);
+	return s;
+	}
+
 event websocket_client_added(endpoint: EndpointInfo, subscriptions: string_vec)
 	{
-	local msg = fmt("WebSocket client '%s' (%s:%d) subscribed to %s",
-	                endpoint$id, endpoint$network$address, endpoint$network$bound_port, subscriptions);
+	local msg = fmt("WebSocket client %s subscribed to %s",
+	                format_endpoint_info(endpoint), subscriptions);
 	Cluster::log(msg);
 	}
 
 event websocket_client_lost(endpoint: EndpointInfo, code: count, reason: string)
 	{
-	local msg = fmt("WebSocket client '%s' (%s:%d) gone with code %d%s",
-	                endpoint$id, endpoint$network$address, endpoint$network$bound_port, code,
+	local msg = fmt("WebSocket client %s gone with code %d%s",
+	                format_endpoint_info(endpoint), code,
 	                |reason| > 0 ? fmt(" and reason '%s'", reason) : "");
 	Cluster::log(msg);
 	}

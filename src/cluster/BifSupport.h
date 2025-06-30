@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include <optional>
+#include <string>
+
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Span.h"
 #include "zeek/net_util.h"
@@ -60,7 +63,7 @@ bool is_cluster_pool(const zeek::Val* pool);
  * @returns A record value of type Cluster::EndpointInfo filled with the provided info.
  */
 zeek::RecordValPtr make_endpoint_info(const std::string& id, const std::string& address, uint32_t port,
-                                      TransportProto proto);
+                                      TransportProto proto, std::optional<std::string> application_name);
 
 /**
  * Helper to go from a vector or array of std::strings to a zeek::VectorVal.

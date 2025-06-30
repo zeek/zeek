@@ -178,6 +178,21 @@ bool ZeroMQBackend::DoInit() {
     xpub.set(zmq::sockopt::xpub_nodrop, connect_xpub_nodrop);
     xpub.set(zmq::sockopt::xpub_verbose, 1);
 
+    // High-water-mark and buffer settings for the node's XPUB and XSUB sockets.
+    auto xpub_sndhwm =
+        static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::xpub_sndhwm")->AsInt());
+    auto xpub_sndbuf =
+        static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::xpub_sndbuf")->AsInt());
+    auto xsub_rcvhwm =
+        static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::xsub_rcvhwm")->AsInt());
+    auto xsub_rcvbuf =
+        static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::xsub_rcvbuf")->AsInt());
+
+    xpub.set(zmq::sockopt::sndhwm, xpub_sndhwm);
+    xpub.set(zmq::sockopt::sndbuf, xpub_sndbuf);
+    xsub.set(zmq::sockopt::rcvhwm, xsub_rcvhwm);
+    xsub.set(zmq::sockopt::rcvbuf, xsub_rcvbuf);
+
     try {
         xsub.connect(connect_xsub_endpoint);
     } catch ( zmq::error_t& err ) {

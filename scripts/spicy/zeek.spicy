@@ -48,6 +48,29 @@ public function number_packets(): uint64 &cxxname="zeek::spicy::rt::number_packe
 ## Opaque handle to a protocol analyzer.
 public type ProtocolHandle = __library_type("zeek::spicy::rt::ProtocolHandle");
 
+## Differentiates between the types of analyzers Zeek provides.
+public type AnalyzerType = enum {
+    File,
+    Packet,
+    Protocol,
+}&cxxname = "zeek::spicy::rt::AnalyzerType";
+
+## Checks if there is a Zeek analyzer of a given name.
+##
+## analyzer: the Zeek-side name of the analyzer to check for
+## if_enabled: if true, only checks for analyzers that are enabled
+##
+## Returns the type of the analyzer if it exists, or ``Undef`` if it does not.
+public function has_analyzer(analyzer: string, if_enabled: bool = True): bool &cxxname="zeek::spicy::rt::has_analyzer";
+
+## Returns the type of a Zeek analyzer of a given name.
+##
+## analyzer: the Zeek-side name of the analyzer to check
+## if_enabled: if true, only checks for analyzers that are enabled
+##
+## Returns the type of the analyzer if it exists, or ``Undef`` if it does not.
+public function analyzer_type(analyzer: string, if_enabled: bool = True): AnalyzerType &cxxname="zeek::spicy::rt::analyzer_type";
+
 ## Adds a Zeek-side child protocol analyzer to the current connection.
 ##
 ## If the same analyzer was added previously with `protocol_handle_get_or_create` or

@@ -350,7 +350,7 @@ void WebSocketEventDispatcher::Process(const WebSocketOpen& open) {
     backend->InitPostScript();
     backend->Init(std::move(ws_id));
 
-    clients[id] = WebSocketClientEntry{id, wsc, std::move(backend)};
+    clients[id] = WebSocketClientEntry{id, wsc, std::move(backend), open.application_name};
 }
 
 void WebSocketEventDispatcher::Process(const WebSocketClose& close) {
@@ -375,8 +375,9 @@ void WebSocketEventDispatcher::Process(const WebSocketClose& close) {
         // Raise Cluster::websocket_client_lost() after the backend has terminated.
         // In case any messages/events were still pending, Cluster::websocket_client_lost()
         // should be the last event related to this WebSocket client.
-        auto rec = zeek::cluster::detail::bif::make_endpoint_info(backend->NodeId(), wsc->getRemoteIp(),
-                                                                  wsc->getRemotePort(), TRANSPORT_TCP);
+        auto rec =
+            zeek::cluster::detail::bif::make_endpoint_info(backend->NodeId(), wsc->getRemoteIp(), wsc->getRemotePort(),
+                                                           TRANSPORT_TCP, it->second.application_name);
         zeek::event_mgr.Enqueue(Cluster::websocket_client_lost, std::move(rec), zeek::val_mgr->Count(close.code),
                                 zeek::make_intrusive<zeek::StringVal>(close.reason));
     }
@@ -481,8 +482,9 @@ void WebSocketEventDispatcher::HandleSubscriptions(WebSocketClientEntry& entry, 
 void WebSocketEventDispatcher::HandleSubscriptionsActive(const WebSocketClientEntry& entry) {
     auto& wsc = entry.wsc;
 
-    auto rec = zeek::cluster::detail::bif::make_endpoint_info(entry.backend->NodeId(), wsc->getRemoteIp(),
-                                                              wsc->getRemotePort(), TRANSPORT_TCP);
+    auto rec =
+        zeek::cluster::detail::bif::make_endpoint_info(entry.backend->NodeId(), wsc->getRemoteIp(),
+                                                       wsc->getRemotePort(), TRANSPORT_TCP, entry.application_name);
     auto subscriptions_vec = zeek::cluster::detail::bif::make_string_vec(wsc->GetSubscriptions());
     zeek::event_mgr.Enqueue(Cluster::websocket_client_added, std::move(rec), std::move(subscriptions_vec));
 

@@ -233,6 +233,7 @@ private:
         std::string id;
         std::shared_ptr<WebSocketClient> wsc;
         std::shared_ptr<zeek::cluster::Backend> backend;
+        std::optional<std::string> application_name; // The value from the HTTP X-Application-Name header, if any.
         bool ready_to_publish = false;
         uint64_t msg_count = 0;
         std::list<WebSocketMessage> queue;

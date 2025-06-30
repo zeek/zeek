@@ -138,7 +138,7 @@ bool is_cluster_pool(const zeek::Val* pool) {
 }
 
 zeek::RecordValPtr make_endpoint_info(const std::string& id, const std::string& address, uint32_t port,
-                                      TransportProto proto) {
+                                      TransportProto proto, std::optional<std::string> application_name) {
     static const auto ep_info_type = zeek::id::find_type<zeek::RecordType>("Cluster::EndpointInfo");
     static const auto net_info_type = zeek::id::find_type<zeek::RecordType>("Cluster::NetworkInfo");
 
@@ -149,6 +149,8 @@ zeek::RecordValPtr make_endpoint_info(const std::string& id, const std::string& 
     auto ep_rec = zeek::make_intrusive<zeek::RecordVal>(ep_info_type);
     ep_rec->Assign(0, id);
     ep_rec->Assign(1, net_rec);
+    if ( application_name )
+        ep_rec->Assign(2, zeek::make_intrusive<zeek::StringVal>(*application_name));
 
     return ep_rec;
 }

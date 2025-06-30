@@ -1,3 +1,12 @@
+8.0.0-dev.562 | 2025-06-30 17:55:58 +0200
+
+  * cluster/WebSocket: Include X-Application-Name in cluster.log (Arne Welzel, Corelight)
+
+    A bit ad-hoc formatting for the log, but that's mostly because cluster.log
+    only has message field and I don't think having a dedicated application_name
+    column is worth it. That could also be added by custom scripts if it's really
+    wanted for a given deployment.
+
 8.0.0-dev.560 | 2025-06-30 13:29:07 +0200
 
   * cluster/Telemetry: Cache CallExpr locations (Arne Welzel, Corelight)

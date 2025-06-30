@@ -25,7 +25,11 @@ zeek::expected<zeek::ConnKeyPtr, std::string> Factory::DoConnKeyFromVal(const ze
     auto vl = v.AsRecordVal();
 
     // Indices into conn_id's record field value list:
-    int orig_h = 0, orig_p = 1, resp_h = 2, resp_p = 3, proto = 4;
+    int orig_h = 0;
+    int orig_p = 1;
+    int resp_h = 2;
+    int resp_p = 3;
+    int proto = 4;
 
     if ( vr != id::conn_id ) {
         // While it's not a conn_id, it may have equivalent fields.

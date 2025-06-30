@@ -872,9 +872,9 @@ void DNS_Mgr::Lookup(const std::string& name, int request_type, LookupCallback* 
 
 void DNS_Mgr::Resolve() {
     int nfds = 0;
-    struct timeval *tvp, tv;
     struct pollfd pollfds[1024];
 
+    struct timeval tv;
     tv.tv_sec = DNS_TIMEOUT;
     tv.tv_usec = 0;
 
@@ -903,7 +903,7 @@ void DNS_Mgr::Resolve() {
         }
 
         // poll() timeout is in milliseconds.
-        tvp = ares_timeout(channel, &tv, &tv);
+        struct timeval* tvp = ares_timeout(channel, &tv, &tv);
         int timeout_ms = tvp->tv_sec * 1000 + tvp->tv_usec / 1000;
 
         int res = poll(pollfds, nfds, timeout_ms);

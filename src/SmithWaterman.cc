@@ -227,7 +227,8 @@ private:
 //
 static void sw_collect_single(Substring::Vec* result, SWNodeMatrix& matrix, SWNode* node, SWParams& params) {
     std::string substring("");
-    int row = 0, col = 0;
+    int row = 0;
+    int col = 0;
 
     while ( node ) {
         //		printf("NODE: %i\n", node->id);
@@ -346,10 +347,11 @@ Substring::Vec* smith_waterman(const String* s1, const String* s2, SWParams& par
     // Length of both strings, plus one because SW needs
     // an extra row and column.
     //
-    int i, len1 = s1->Len() + 1;
-    int j, len2 = s2->Len() + 1;
+    int len1 = s1->Len() + 1;
+    int len2 = s2->Len() + 1;
 
-    int row = 0, col = 0;
+    int row = 0;
+    int col = 0;
 
     byte_vec string1 = s1->Bytes();
     byte_vec string2 = s2->Bytes();
@@ -374,14 +376,14 @@ Substring::Vec* smith_waterman(const String* s1, const String* s2, SWParams& par
 
     int counter = 1;
 
-    for ( i = 1; i < len1; ++i )
-        for ( j = 1; j < len2; ++j )
+    for ( int i = 1; i < len1; ++i )
+        for ( int j = 1; j < len2; ++j )
             matrix(i, j)->id = counter++;
 
     // Subsequence calculation --------------------------------------------
 
-    for ( i = 1; i < len1; ++i ) {
-        for ( j = 1; j < len2; ++j ) {
+    for ( int i = 1; i < len1; ++i ) {
+        for ( int j = 1; j < len2; ++j ) {
             // Current node, top/left neighbours.
             //
             SWNode* current = matrix(i, j);

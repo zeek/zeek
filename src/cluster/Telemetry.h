@@ -3,6 +3,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <string>
@@ -38,7 +39,7 @@ class Backend;
 
 namespace detail {
 
-enum class TelemetryScope {
+enum class TelemetryScope : uint8_t {
     Core,
     WebSocket,
 };

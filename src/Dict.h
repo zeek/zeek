@@ -582,7 +582,8 @@ public:
         // Look to see if this key is already in the table. If found, insert_position is the
         // position of the existing element. If not, insert_position is where it'll be inserted
         // and insert_distance is the distance of the key for the position.
-        int insert_position = -1, insert_distance = -1;
+        int insert_position = -1;
+        int insert_distance = -1;
         int position = LookupIndex(key, key_size, hash, &insert_position, &insert_distance);
         if ( position >= 0 ) {
             v = table[position].value;

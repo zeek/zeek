@@ -1,3 +1,18 @@
+8.0.0-dev.566 | 2025-06-30 14:19:26 -0700
+
+  * Make clang-tidy warnings report as errors to cause CI build to fail (Tim Wojtulewicz, Corelight)
+
+  * Fix a clang-tidy finding in cluster telemetry code (Tim Wojtulewicz, Corelight)
+
+  * Fix clang-tidy readability-isolate-declaration warnings (Benjamin Bannier, Corelight)
+
+    I missed one of these in review so a machine is probably better at
+    catching them.
+
+    I fixed the existing instances which where largely in code which look
+    dated. Where possible I slightly reorganized the code so we do not have
+    to leave values uninitialized, but did not touch up anything else.
+
 8.0.0-dev.562 | 2025-06-30 17:55:58 +0200
 
   * cluster/WebSocket: Include X-Application-Name in cluster.log (Arne Welzel, Corelight)

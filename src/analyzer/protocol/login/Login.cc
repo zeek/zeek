@@ -76,8 +76,8 @@ void Login_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
     char* str = new char[length + 1];
 
     // Eliminate NUL characters.
-    int i, j;
-    for ( i = 0, j = 0; i < length; ++i )
+    int j = 0;
+    for ( int i = 0; i < length; ++i )
         if ( line[i] != '\0' )
             str[j++] = line[i];
         else {

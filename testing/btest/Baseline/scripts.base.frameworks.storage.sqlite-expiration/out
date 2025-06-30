@@ -2,9 +2,14 @@
 open result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<opaque of BackendHandleVal>]
 put result 1, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<uninitialized>]
 put result 2, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<uninitialized>]
+put result 3.1, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<uninitialized>]
+put result 3.2, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<uninitialized>]
 get result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=value1234]
 get result same as inserted, T
 get result 2, [code=Storage::SUCCESS, error_str=<uninitialized>, value=value2345]
 get result 2 same as inserted, T
+get result 3, [code=Storage::SUCCESS, error_str=<uninitialized>, value=value3456]
+get result 3 same as inserted, T
 get result 1 after expiration, [code=Storage::KEY_NOT_FOUND, error_str=<uninitialized>, value=<uninitialized>]
 get result 2 after expiration, [code=Storage::SUCCESS, error_str=<uninitialized>, value=value2345]
+get result 3 after expiration, [code=Storage::SUCCESS, error_str=<uninitialized>, value=value3456]

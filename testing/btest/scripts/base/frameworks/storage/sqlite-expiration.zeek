@@ -16,6 +16,9 @@ global value1: string = "value1234";
 global key2: string = "key2345";
 global value2: string = "value2345";
 
+global key3: string = "key3456";
+global value3: string = "value3456";
+
 event check_removed()
 	{
 	local res = Storage::Sync::get(b, key1);
@@ -23,6 +26,9 @@ event check_removed()
 
 	res = Storage::Sync::get(b, key2);
 	print "get result 2 after expiration", res;
+
+	res = Storage::Sync::get(b, key3);
+	print "get result 3 after expiration", res;
 
 	Storage::Sync::close_backend(b);
 	terminate();
@@ -46,6 +52,14 @@ event setup_test()
 	res = Storage::Sync::put(b, [ $key=key2, $value=value2, $expire_time=20secs ]);
 	print "put result 2", res;
 
+	# Insert a key that should expire and then overwrite it with a new expiration time to
+	# set it to something that won't expire to verify that expiration gets reset.
+	res = Storage::Sync::put(b, [ $key=key3, $value=value3, $expire_time=2secs ]);
+	print "put result 3.1", res;
+
+	res = Storage::Sync::put(b, [ $key=key3, $value=value3, $expire_time=25secs, $overwrite=T ]);
+	print "put result 3.2", res;
+
 	res = Storage::Sync::get(b, key1);
 	print "get result", res;
 	if ( res$code == Storage::SUCCESS && res?$value )
@@ -55,6 +69,11 @@ event setup_test()
 	print "get result 2", res;
 	if ( res$code == Storage::SUCCESS && res?$value )
 		print "get result 2 same as inserted", value2 == ( res$value as string );
+
+	res = Storage::Sync::get(b, key3);
+	print "get result 3", res;
+	if ( res$code == Storage::SUCCESS && res?$value )
+		print "get result 3 same as inserted", value3 == ( res$value as string );
 
 	schedule 5secs { check_removed() };
 	}

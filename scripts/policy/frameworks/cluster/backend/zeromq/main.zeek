@@ -1,5 +1,7 @@
 ##! ZeroMQ cluster backend support.
 ##!
+##! Overview
+##!
 ##! For publish-subscribe functionality, one node in the Zeek cluster spawns a
 ##! thread running a central broker listening on a XPUB and XSUB socket.
 ##! These sockets are connected via `zmq_proxy() <https://libzmq.readthedocs.io/en/latest/zmq_proxy.html>`_.
@@ -22,7 +24,43 @@
 ##! possible to run non-Zeek logger nodes. All a logger node needs to do is
 ##! open a ZeroMQ PULL socket and interpret the format used by Zeek nodes
 ##! to send their log writes.
-
+##!
+##! Overload Behavior
+##!
+##! The ZeroMQ cluster backend by default drops outgoing and incoming events
+##! when the Zeek cluster is overloaded. Dropping of outgoing events is governed
+##! by the :zeek:see:`Cluster::Backend::ZeroMQ::xpub_sndhwm` setting. This
+##! is the High Water Mark (HWM) for the local XPUB socket's queue. Once reached,
+##! any outgoing events are dropped until there's room in the socket's queue again.
+##! The metric ``zeek_cluster_zeromq_xpub_drops_total`` is incremented for every
+##! dropped event.
+##!
+##! For incoming events, the :zeek:see:`Cluster::Backend::ZeroMQ::onloop_queue_hwm`
+##! setting is used. Remote events received via the local XSUB socket are first
+##! enqueued as raw event messages for processing on Zeek's main event loop.
+##! When this queue is full due to more remote events incoming than Zeek
+##! can possibly process in an event loop iteration, incoming events are dropped
+##! and the ``zeek_cluster_zeromq_onloop_drops_total`` metric is incremented.
+##!
+##! Incoming log batches or subscription and unsubscription events are passed
+##! through the onloop queue, but the HWM does currently not apply to them. The
+##! assumption is that 1) these are not frequent and 2) more important than
+##! arbitrary publish-subscribe events.
+##!
+##! To avoid dropping any events (e.g. for performance testing or offline PCAP
+##! processing), the recommended strategy is to set both
+##! :zeek:see:`Cluster::Backend::ZeroMQ::xpub_sndhwm` and
+##! :zeek:see:`Cluster::Backend::ZeroMQ::onloop_queue_hwm` to ``0``,
+##! disabling the HWM and dropping logic. It is up to the user to monitor CPU
+##! and memory usage of individual nodes to avoid overloading and running into
+##! out-of-memory situations.
+##!
+##! As a Zeek operator, you should monitor ``zeek_cluster_zeromq_xpub_drops_total``
+##! and ``zeek_cluster_zeromq_onloop_drops_total``. Any non-zero values for these
+##! metrics indicate an overloaded Zeek cluster. See the the cluster telemetry
+##! options :zeek:see:`Cluster::Telemetry::core_metrics` and
+##! :zeek:see:`Cluster::Telemetry::websocket_metrics` for ways to get a better
+##! understanding about the events published and received.
 @load base/utils/addrs
 
 module Cluster::Backend::ZeroMQ;
@@ -99,7 +137,8 @@ export {
 
 	## Send high water mark value for the XPUB socket.
 	##
-	## If reached, Zeek nodes will block or drop messages.
+	## Events published when the XPUB queue is full will be dropped and the
+	## ``zeek_cluster_zeromq_xpub_drops_total`` metric incremented.
 	##
 	## See ZeroMQ's `ZMQ_SNDHWM documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc46>`_
 	## for more details.
@@ -129,6 +168,19 @@ export {
 	## See ZeroMQ's `ZMQ_RCVBUF documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc34>`_
 	## for more details.
 	const xsub_rcvbuf: int = -1 &redef;
+
+	## Maximum number of incoming events queued for Zeek's event loop.
+	##
+	## This constant defines the maximum number of remote events queued
+	## by the ZeroMQ cluster backend for Zeek's event loop to drain in
+	## one go. If you set this value to 0 (unlimited), consider closely
+	## CPU and memory usage of cluster nodes as high remote event rates
+	## may starve packet processing.
+	##
+	## If more events are received than can fit the queue, new events will be
+	## dropped and the ``zeek_cluster_zeromq_onloop_drops_total`` metric
+	## incremented.
+	const onloop_queue_hwm = 10000 &redef;
 
 	## Configure ZeroMQ's immediate setting on PUSH sockets
 	##
@@ -188,7 +240,10 @@ export {
 	##
 	## Whether to configure ``ZMQ_XPUB_NODROP`` on the XPUB socket
 	## connecting to the proxy to detect when sending a message fails
-	## due to reaching the high-water-mark.
+	## due to reaching the high-water-mark. If you set this to **F**,
+	## then the XPUB drops metric will stop working as sending on the
+	## XPUB socket will always succeed. Unless you're developing on the
+	## ZeroMQ cluster backend, keep this set to **T**.
 	##
 	## See ZeroMQ's `ZMQ_XPUB_NODROP documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc61>`_
 	## for more details.

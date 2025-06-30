@@ -28,6 +28,45 @@
 module Cluster::Backend::ZeroMQ;
 
 export {
+	## Behavior when the local XPUB socket's queue reaches the high-water-mark (HWM).
+	type OverflowPolicy: enum {
+		BLOCK,  ##< Block publishing operations if overloaded.
+		DROP,   ##< Drop events if publishing operations would block due to overload.
+	};
+
+	## Overflow policy for ZeroMQ.
+	##
+	## When publishing an event via :zeek:see:`Cluster::publish` would fail
+	## due to a node's local XPUB socket reaching its high water mark
+	## (see :zeek:see:`Cluster::Backend::ZeroMQ::xpub_sndhwm`), Zeek may
+	## either block until there's room available to queue the event, or
+	## drop the event. The default behavior is to block. Note that this can
+	## eventually result in :zeek:see:`Cluster::publish` calls to block,
+	## thereby halting Zeek-script execution and packet processing until
+	## an event can be published. If packet processing is more important than
+	## cluster communication, it is recommended to select the drop policy.
+	##
+	## For PCAP processing or cluster performance testing, where packet drops
+	## are usually no concern, the block policy might be more appropriate.
+	##
+	## Note that the return value of :zeek:see:`Cluster::publish` is currently
+	## not affected, even if events are dropped. It will return **T**
+	## even if the event is later dropped locally as the logic is running
+	## on a separate thread.
+	##
+	## With either policy, metrics are incremented for Zeek operators to
+	## notice a potential cluster overload. For the the blocking policy,
+	## a counter labeled ``zeek_cluster_zeromq_xpub_blocks_total`` is
+	## incremented on every blocking operation. For the drop policy, the
+	## ``zeek_cluster_zeromq_xpub_drops_total`` metric is incremented for
+	## every dropped event.
+	##
+	## Increasing :zeek:see:`Cluster::Backend::ZeroMQ::xpub_sndhwm` can help
+	## to account for bursty publish behavior, but should be carefully evaluated
+	## as it may result in increased peak memory usage or even out-of-memory
+	## situations if set to 0.
+	const overflow_policy = BLOCK &redef;
+
 	## The central broker's XPUB endpoint to connect to.
 	##
 	## A node connects with its XSUB socket to the XPUB socket
@@ -188,7 +227,10 @@ export {
 	##
 	## Whether to configure ``ZMQ_XPUB_NODROP`` on the XPUB socket
 	## connecting to the proxy to detect when sending a message fails
-	## due to reaching the high-water-mark.
+	## due to reaching the high-water-mark. If you set this to **F**,
+	## the :zeek:see:`Cluster::Backend::ZeroMQ::overflow_policy` setting
+	## has no effect as sending on the XPUB socket will always succeed,
+	## but may silently drop messages.
 	##
 	## See ZeroMQ's `ZMQ_XPUB_NODROP documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc61>`_
 	## for more details.

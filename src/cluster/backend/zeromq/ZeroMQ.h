@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <thread>
 #include <zmq.hpp>
@@ -19,6 +20,14 @@ using CounterPtr = std::shared_ptr<Counter>;
 } // namespace telemetry
 
 namespace cluster::zeromq {
+
+/**
+ * The ZeroMQ overflow policies.
+ */
+enum class OverflowPolicy : uint8_t {
+    Block,
+    Drop,
+};
 
 class ZeroMQBackend : public cluster::ThreadedBackend {
 public:
@@ -126,7 +135,10 @@ private:
     std::map<std::string, SubscribeCallback> subscription_callbacks;
     std::set<std::string> xpub_subscriptions;
 
-    zeek::telemetry::CounterPtr total_xpub_stalls;
+    // Overload policy , initialized in DoInitPostScript()
+    OverflowPolicy overflow_policy = OverflowPolicy::Block;
+    zeek::telemetry::CounterPtr total_xpub_blocks;
+    zeek::telemetry::CounterPtr total_xpub_drops;
 };
 
 } // namespace cluster::zeromq

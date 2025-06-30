@@ -15,6 +15,7 @@
 #include <zmq.hpp>
 
 #include "zeek/DebugLogger.h"
+#include "zeek/Desc.h"
 #include "zeek/EventHandler.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/ID.h"
@@ -114,16 +115,34 @@ void ZeroMQBackend::DoInitPostScript() {
     event_unsubscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::unsubscription");
     event_subscription = zeek::event_registry->Register("Cluster::Backend::ZeroMQ::subscription");
 
-    total_xpub_stalls =
-        zeek::telemetry_mgr
-            ->CounterInstance("zeek", "cluster_zeromq_xpub_stalls", {},
-                              "Counter for how many times sending on the XPUB socket stalled due to EAGAIN.");
-
     // xpub/xsub hwm configuration
     xpub_sndhwm = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::xpub_sndhwm")->AsInt());
     xpub_sndbuf = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::xpub_sndbuf")->AsInt());
     xsub_rcvhwm = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::xsub_rcvhwm")->AsInt());
     xsub_rcvbuf = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::xsub_rcvbuf")->AsInt());
+    // The values of ZeroMQ::OverflowPolicy
+    static const auto& block_policy = zeek::id::find_val<zeek::EnumVal>("Cluster::Backend::ZeroMQ::BLOCK");
+    static const auto& drop_policy = zeek::id::find_val<zeek::EnumVal>("Cluster::Backend::ZeroMQ::DROP");
+    static const auto& selected_policy =
+        zeek::id::find_const<zeek::EnumVal>("Cluster::Backend::ZeroMQ::overflow_policy");
+
+    // There's only two policies right now. If there's ever a lot more or this
+    // can be generalized across backends, consider introducing a class.
+    if ( selected_policy == block_policy )
+        overflow_policy = OverflowPolicy::Block;
+    else if ( selected_policy == drop_policy )
+        overflow_policy = OverflowPolicy::Drop;
+    else
+        zeek::reporter->InternalError("Unknown ZeroMQ overflow_policy: %s", obj_desc(selected_policy).c_str());
+
+    // Metrics for blocking and dropping.
+    total_xpub_blocks =
+        zeek::telemetry_mgr->CounterInstance("zeek", "cluster_zeromq_xpub_blocks", {},
+                                             "Number of times publishing events stalled due to XPUB socket HWM.");
+
+    total_xpub_drops = zeek::telemetry_mgr->CounterInstance("zeek", "cluster_zeromq_xpub_drops", {},
+
+                                                            "Number of events dropped due to XPUB socket HWM.");
 }
 
 void ZeroMQBackend::DoTerminate() {
@@ -490,7 +509,13 @@ void ZeroMQBackend::Run() {
                 }
             }
             else if ( msg.size() == 4 ) {
+                // Send out a 4-part message over the XPUB socket.
+                bool skip_msg = false;
+
                 for ( auto& part : msg ) {
+                    if ( skip_msg )
+                        break;
+
                     zmq::send_flags flags = zmq::send_flags::dontwait;
                     if ( part.more() )
                         flags = flags | zmq::send_flags::sndmore;
@@ -510,16 +535,28 @@ void ZeroMQBackend::Run() {
                         }
 
                         // Empty result means xpub.send() returned EAGAIN. The socket reached
-                        // its high-water-mark and we cannot send right now. We simply attempt
-                        // to re-send the message without the dontwait flag after increasing
-                        // the xpub stall metric. This way, ZeroMQ will block in xpub.send() until
-                        // there's enough room available.
+                        // its high-water-mark and we cannot send right now.
+                        //
+                        // If the overflow policy is set to "drop", increment the metric and
+                        // skip processing all parts of this message by setting skip_msg=true.
+                        //
                         if ( ! result ) {
-                            total_xpub_stalls->Inc();
+                            if ( overflow_policy == OverflowPolicy::Drop ) {
+                                total_xpub_drops->Inc();
+                                skip_msg = true;
+                                break; // Breaks the do-while and skip_msg=true above breaks the outer for. I'm sorry.
+                            }
+
+                            // If the block policy is enabled, re-send the message without the dontwait
+                            // flag after increasing the xpub stall metric. This way, ZeroMQ will block
+                            // in xpub.send() until there's enough room available.
+                            assert(overflow_policy == OverflowPolicy::Block);
+                            total_xpub_blocks->Inc();
 
                             try {
-                                // We sent non-blocking above so we are able to observe and report stalls
-                                // in a metric. Now that we have done that switch to blocking send.
+                                // We sent non-blocking above so we are able to observe and report
+                                // blocking as metric. Now that we have done that switch to an actual
+                                // blocking send.
                                 zmq::send_flags block_flags =
                                     zmq::send_flags::none | (flags & zmq::send_flags::sndmore);
                                 result = xpub.send(part, block_flags);

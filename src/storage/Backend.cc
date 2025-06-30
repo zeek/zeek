@@ -241,6 +241,14 @@ void Backend::InitMetrics() {
                                                Tag(), metrics_config);
     erase_metrics = new detail::OperationMetrics(success_family, fail_family, timeout_family, latency_family, "erase",
                                                  Tag(), metrics_config);
+
+    bytes_stored_metric = telemetry_mgr->CounterInstance("zeek", "storage_data_stored",
+                                                         {{"backend_type", Tag()}, {"backend_config", metrics_config}},
+                                                         "Storage Data Stored", "bytes");
+    bytes_retrieved_metric =
+        telemetry_mgr->CounterInstance("zeek", "storage_data_retrieved",
+                                       {{"backend_type", Tag()}, {"backend_config", metrics_config}},
+                                       "Storage Data Retrieved", "bytes");
 }
 
 zeek::OpaqueTypePtr detail::backend_opaque;

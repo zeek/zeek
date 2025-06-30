@@ -66,7 +66,7 @@ redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(DCE_RPC::LOG, [$columns=Info, $path="dce_rpc", $policy=log_policy]);
+	Log::create_stream(DCE_RPC::LOG, Log::Stream($columns=Info, $path="dce_rpc", $policy=log_policy));
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DCE_RPC, ports);
 	}
 

@@ -50,12 +50,12 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(OpenFlow::LOG, [$columns=Info, $ev=log_openflow, $path="openflow", $policy=log_policy]);
+	Log::create_stream(OpenFlow::LOG, Log::Stream($columns=Info, $ev=log_openflow, $path="openflow", $policy=log_policy));
 	}
 
 function log_flow_mod(state: ControllerState, match: ofp_match, flow_mod: OpenFlow::ofp_flow_mod): bool
 	{
-	Log::write(OpenFlow::LOG, [$ts=network_time(), $dpid=state$log_dpid, $match=match, $flow_mod=flow_mod]);
+	Log::write(LOG, Info($ts=network_time(), $dpid=state$log_dpid, $match=match, $flow_mod=flow_mod));
 	if ( state$log_success_event )
 		event OpenFlow::flow_mod_success(state$_name, match, flow_mod);
 

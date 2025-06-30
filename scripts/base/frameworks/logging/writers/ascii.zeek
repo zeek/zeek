@@ -7,9 +7,9 @@
 ##! names is printed out as meta information, with no "# fields" prepended; no
 ##! other meta data gets included in that mode.  Example filter using this::
 ##!
-##!    local f: Log::Filter = [$name = "my-filter",
-##!                            $writer = Log::WRITER_ASCII,
-##!                            $config = table(["tsv"] = "T")];
+##!    local f = Log::Filter($name = "my-filter",
+##!                          $writer = Log::WRITER_ASCII,
+##!                          $config = table(["tsv"] = "T"));
 ##!
 
 module LogAscii;

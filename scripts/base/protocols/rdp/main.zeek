@@ -97,7 +97,7 @@ redef likely_server_ports += { rdp_ports, rdpeudp_ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(RDP::LOG, [$columns=RDP::Info, $ev=log_rdp, $path="rdp", $policy=log_policy]);
+	Log::create_stream(RDP::LOG, Log::Stream($columns=RDP::Info, $ev=log_rdp, $path="rdp", $policy=log_policy));
 	Analyzer::register_for_ports(Analyzer::ANALYZER_RDP, rdp_ports);
 	Analyzer::register_for_ports(Analyzer::ANALYZER_RDPEUDP, rdpeudp_ports);
 	}
@@ -154,7 +154,7 @@ function set_session(c: connection)
 	{
 	if ( ! c?$rdp )
 		{
-		c$rdp = [$ts=network_time(),$id=c$id,$uid=c$uid];
+		c$rdp = Info($ts=network_time(),$id=c$id,$uid=c$uid);
 		Conn::register_removal_hook(c, finalize_rdp);
 		# The RDP session is scheduled to be logged from
 		# the time it is first initiated.

@@ -22,11 +22,7 @@ TableTopicNormalizer::TableTopicNormalizer() {
 }
 
 std::string_view TableTopicNormalizer::operator()(std::string_view topic) {
-    // TODO: It'd be nice if we could just lookup via string_view so we can
-    // avoid the allocation of the intermediary StringVal just to match
-    // against the patterns.
-    auto sv = zeek::make_intrusive<zeek::StringVal>(topic);
-    VectorValPtr r = topic_normalizations->LookupPattern(sv);
+    VectorValPtr r = topic_normalizations->LookupPattern(topic);
 
     if ( r->Size() == 0 )
         return topic;
@@ -131,28 +127,44 @@ void VerboseTelemetry::OnIncomingEvent(std::string_view topic, std::string_view 
 
 namespace {
 
-std::string determine_script_location() {
-    std::string result = "none";
 
-    if ( zeek::detail::call_stack.empty() )
-        return result;
+// Cached lookup of a script location.
+std::string_view determine_script_location() {
+    // Global cache for CallExpr pointers to their location.
+    static std::map<const zeek::detail::CallExpr*, std::string> location_cache;
 
     ssize_t sidx = static_cast<ssize_t>(zeek::detail::call_stack.size()) - 1;
-
     while ( sidx >= 0 ) {
         const auto* func = zeek::detail::call_stack[sidx].func;
         const auto* ce = zeek::detail::call_stack[sidx].call;
 
-        // without_zeekpath_component looks pretty expensive and might be
-        // better to cache the result using the ce pointer instead of computing
-        // it over and over again.
+        // Cached?
+        if ( auto it = location_cache.find(ce); it != location_cache.end() )
+            return it->second;
+
+        // Future: Ignore wrapper functions if we ever come across some.
+        // We only care about Broker::publish() and Cluster::publish() and
+        // these aren't wrapped, so currently nothing to do here.
+        //
+        // if ( ignore func ) {
+        //     --sidx;
+        //      continue;
+        // }
+        //
+        // Check Func.cc::emit_builtin_error_common() for inspiration how to
+        // remove wrapper function.
+
         const auto* loc = ce->GetLocationInfo();
         std::string normalized_location = zeek::util::detail::without_zeekpath_component(loc->filename);
-        result = normalized_location + ":" + std::to_string(loc->first_line);
-        break;
+        normalized_location.append(":");
+        normalized_location.append(std::to_string(loc->first_line));
+
+        auto [it, inserted] = location_cache.emplace(ce, std::move(normalized_location));
+        assert(inserted);
+        return it->second;
     }
 
-    return result;
+    return "none";
 }
 
 } // namespace
@@ -198,11 +210,10 @@ DebugTelemetry::DebugTelemetry(TopicNormalizer topic_normalizer, std::string_vie
 void DebugTelemetry::OnOutgoingEvent(std::string_view topic, std::string_view handler_name,
                                      const SerializationInfo& info) {
     auto normalized_topic = topic_normalizer(topic);
-    std::string script_location = determine_script_location();
 
     labels_view[topic_idx].second = normalized_topic;
     labels_view[handler_idx].second = handler_name;
-    labels_view[script_location_idx].second = script_location;
+    labels_view[script_location_idx].second = determine_script_location();
 
     const auto& hist = out->GetOrAdd(labels_view);
     hist->Observe(static_cast<double>(info.Size()));

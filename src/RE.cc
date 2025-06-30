@@ -189,24 +189,37 @@ std::string Specific_RE_Matcher::LookupDef(const std::string& def) {
     return {};
 }
 
-bool Specific_RE_Matcher::MatchAll(const char* s) { return MatchAll((const u_char*)(s), strlen(s)); }
+bool Specific_RE_Matcher::MatchAll(const char* s) { return MatchAll(std::string_view{s}); }
 
-bool Specific_RE_Matcher::MatchAll(const String* s) {
-    // s->Len() does not include '\0'.
-    return MatchAll(s->Bytes(), s->Len());
+bool Specific_RE_Matcher::MatchAll(const String* s) { return MatchAll(s->ToStdStringView()); }
+
+bool Specific_RE_Matcher::MatchAll(std::string_view sv) {
+    return MatchAll(reinterpret_cast<const u_char*>(sv.data()), sv.size());
 }
 
 bool Specific_RE_Matcher::MatchSet(const String* s, std::vector<AcceptIdx>& matches) {
     return MatchAll(s->Bytes(), s->Len(), &matches);
 }
 
-int Specific_RE_Matcher::Match(const char* s) { return Match((const u_char*)(s), strlen(s)); }
+bool Specific_RE_Matcher::MatchSet(std::string_view sv, std::vector<AcceptIdx>& matches) {
+    return MatchAll(reinterpret_cast<const u_char*>(sv.data()), sv.size(), &matches);
+}
 
-int Specific_RE_Matcher::Match(const String* s) { return Match(s->Bytes(), s->Len()); }
+int Specific_RE_Matcher::Match(const char* s) { return Match(std::string_view{s}); }
 
-int Specific_RE_Matcher::LongestMatch(const char* s) { return LongestMatch((const u_char*)(s), strlen(s)); }
+int Specific_RE_Matcher::Match(const String* s) { return Match(s->ToStdStringView()); }
 
-int Specific_RE_Matcher::LongestMatch(const String* s) { return LongestMatch(s->Bytes(), s->Len()); }
+int Specific_RE_Matcher::Match(std::string_view sv) {
+    return Match(reinterpret_cast<const u_char*>(sv.data()), sv.size());
+}
+
+int Specific_RE_Matcher::LongestMatch(const char* s) { return LongestMatch(std::string_view{s}); }
+
+int Specific_RE_Matcher::LongestMatch(const String* s) { return LongestMatch(s->ToStdStringView()); }
+
+int Specific_RE_Matcher::LongestMatch(std::string_view sv) {
+    return LongestMatch(reinterpret_cast<const u_char*>(sv.data()), sv.size());
+}
 
 bool Specific_RE_Matcher::MatchAll(const u_char* bv, int n, std::vector<AcceptIdx>* matches) {
     if ( ! dfa )

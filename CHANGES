@@ -1,3 +1,19 @@
+8.0.0-dev.560 | 2025-06-30 13:29:07 +0200
+
+  * cluster/Telemetry: Cache CallExpr locations (Arne Welzel, Corelight)
+
+  * cluster/Telemetry: Avoid unneeded StringVal() construction (Arne Welzel, Corelight)
+
+  * Val: Switch TablePatternMatcher to std::string_view (Arne Welzel, Corelight)
+
+    ...and add TableVal::LookupPattern(std::string_view sv).
+
+  * RE: Add MatchAll() and MatchSet() for std::string_view (Arne Welzel, Corelight)
+
+  * cluster/websocket: Fix and test for invalid X-Application-Name (Arne Welzel, Corelight)
+
+  * cluster/telemetry: Move topic_normalization redef to zeromq (Arne Welzel, Corelight)
+
 8.0.0-dev.551 | 2025-06-26 20:21:31 +0100
 
   * Spicy SSL analyzer: make record layer version parsing more strict (Johanna Amann, Corelight)

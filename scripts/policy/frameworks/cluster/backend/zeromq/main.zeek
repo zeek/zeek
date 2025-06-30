@@ -97,6 +97,39 @@ export {
 	## for more details.
 	const linger_ms: int = 500 &redef;
 
+	## Send high water mark value for the XPUB socket.
+	##
+	## If reached, Zeek nodes will block or drop messages.
+	##
+	## See ZeroMQ's `ZMQ_SNDHWM documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc46>`_
+	## for more details.
+	const xpub_sndhwm: int = 1000 &redef;
+
+	## Kernel transmit buffer size for the XPUB socket.
+	##
+	## Using -1 will use the kernel's default.
+	##
+	## See ZeroMQ's `ZMQ_SNDBUF documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc45>`_
+	## for more details.
+	const xpub_sndbuf: int = -1 &redef;
+
+	## Receive high water mark value for the XSUB socket.
+	##
+	## If reached, the Zeek node will start reporting back pressure
+	## to the central XPUB socket.
+	##
+	## See ZeroMQ's `ZMQ_RCVHWM documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc35>`_
+	## for more details.
+	const xsub_rcvhwm: int = 1000 &redef;
+
+	## Kernel receive buffer size for the XSUB socket.
+	##
+	## Using -1 will use the kernel's default.
+	##
+	## See ZeroMQ's `ZMQ_RCVBUF documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc34>`_
+	## for more details.
+	const xsub_rcvbuf: int = -1 &redef;
+
 	## Configure ZeroMQ's immediate setting on PUSH sockets
 	##
 	## Setting this to ``T`` will queue log writes only to completed

@@ -49,6 +49,8 @@ void RequiresAnalyzerContext::ProcessExpr(Expr* expr) {
 
 bool RequiresAnalyzerContext::compute(DataDepElement* element) {
     RequiresAnalyzerContext visitor;
-    element->Traverse(&visitor);
+    // This result is intentionally ignored. We want to traverse, but always return
+    // the same result.
+    std::ignore = element->Traverse(&visitor);
     return visitor.requires_analyzer_context_;
 }

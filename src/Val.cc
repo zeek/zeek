@@ -2229,7 +2229,7 @@ bool TableVal::UpdateTimestamp(Val* index) {
 
 ListValPtr TableVal::RecreateIndex(const detail::HashKey& k) const { return GetTableHash()->RecoverVals(k); }
 
-void TableVal::CallChangeFunc(const ValPtr& index, const ValPtr& old_value, OnChangeType tpe) {
+void TableVal::CallChangeFunc(const ValPtr& index, const ValPtr& old_value, OnChangeType type) {
     if ( ! change_func || ! index || in_change_func )
         return;
 
@@ -2258,7 +2258,7 @@ void TableVal::CallChangeFunc(const ValPtr& index, const ValPtr& old_value, OnCh
 
         vl.emplace_back(NewRef{}, this);
 
-        switch ( tpe ) {
+        switch ( type ) {
             case ELEMENT_NEW:
                 vl.emplace_back(BifType::Enum::TableChange->GetEnumVal(BifEnum::TableChange::TABLE_ELEMENT_NEW));
                 break;
@@ -2290,7 +2290,7 @@ void TableVal::CallChangeFunc(const ValPtr& index, const ValPtr& old_value, OnCh
     in_change_func = false;
 }
 
-void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val, OnChangeType tpe) {
+void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val, OnChangeType type) {
     if ( broker_store.empty() || ! index )
         return;
 
@@ -2316,7 +2316,7 @@ void TableVal::SendToStore(const Val* index, const TableEntryVal* new_entry_val,
             return;
         }
 
-        switch ( tpe ) {
+        switch ( type ) {
             case ELEMENT_NEW:
             case ELEMENT_CHANGED: {
                 std::optional<broker::timespan> expiry;

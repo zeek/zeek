@@ -76,16 +76,16 @@ event OpenFlow::cluster_flow_clear(name: string)
 	}
 @endif
 
-function register_controller(tpe: OpenFlow::Plugin, name: string, controller: Controller)
+function register_controller(type_: OpenFlow::Plugin, name: string, controller: Controller)
 	{
-	controller$state$_name = cat(tpe, name);
-	controller$state$_plugin = tpe;
+	controller$state$_name = cat(type_, name);
+	controller$state$_plugin = type_;
 
 	# we only run the init functions on the manager.
 	if ( Cluster::local_node_type() != Cluster::MANAGER )
 		return;
 
-	register_controller_impl(tpe, name, controller);
+	register_controller_impl(type_, name, controller);
 	}
 
 function unregister_controller(controller: Controller)

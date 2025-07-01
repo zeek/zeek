@@ -38,7 +38,7 @@ void add_to_include_directories(string dirs) {
         if ( dir.length() > 0 && *(dir.end() - 1) != '/' )
             dir += '/';
 
-        FLAGS_include_directories.push_back(dir);
+        FLAGS_include_directories.push_back(std::move(dir));
         dir_begin = dir_end + 1;
     }
 }

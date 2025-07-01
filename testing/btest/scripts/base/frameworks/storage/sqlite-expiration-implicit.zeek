@@ -47,4 +47,15 @@ event zeek_init()
 	# An expired value does not exist.
 	get = Storage::Sync::get(h, key);
 	print "AFTER", get;
+
+	# Even though the entry still exists in the backend we can put a 
+	# new value in its place without specifying overwrite.
+	Storage::Sync::put(
+		h,
+		Storage::PutArgs(
+			$key=key,
+			$value=value+value));
+
+	get = Storage::Sync::get(h, key);
+	print "OVERWRITE", get;
 	}

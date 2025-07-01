@@ -1,3 +1,7 @@
+8.0.0-dev.569 | 2025-07-01 09:20:43 +0200
+
+  * SQLite: Reset expiration time on overwrite (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.566 | 2025-06-30 14:19:26 -0700
 
   * Make clang-tidy warnings report as errors to cause CI build to fail (Tim Wojtulewicz, Corelight)

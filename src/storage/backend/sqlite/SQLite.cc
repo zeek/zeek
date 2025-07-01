@@ -186,7 +186,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
                         db),
          std::make_pair(util::
                             fmt("insert into %s (key_str, value_str, expire_time) values(?, ?, ?) ON CONFLICT(key_str) "
-                                "DO UPDATE SET value_str=?",
+                                "DO UPDATE SET value_str=?, expire_time=?",
                                 table_name.c_str()),
                         db),
          std::make_pair(util::fmt("select value_str from %s where key_str=?", table_name.c_str()), db),
@@ -315,6 +315,12 @@ OperationResult SQLite::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool
 
     if ( overwrite ) {
         if ( auto res = CheckError(sqlite3_bind_blob(stmt.get(), 4, val_data->data(), val_data->size(), SQLITE_STATIC));
+             res.code != ReturnCode::SUCCESS ) {
+            return res;
+        }
+
+        // This duplicates the above binding, but it's to overwrite the expiration time on the entry.
+        if ( auto res = CheckError(sqlite3_bind_double(stmt.get(), 5, expiration_time));
              res.code != ReturnCode::SUCCESS ) {
             return res;
         }

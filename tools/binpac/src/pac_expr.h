@@ -1,6 +1,8 @@
 #ifndef pac_expr_h
 #define pac_expr_h
 
+#include <cstdint>
+
 #include "pac_common.h"
 #include "pac_datadep.h"
 
@@ -8,7 +10,7 @@ class CaseExpr;
 
 class Expr : public Object, public DataDepElement {
 public:
-    enum ExprType {
+    enum ExprType : uint8_t {
 #define EXPR_DEF(type, x, y) type,
 #include "pac_expr.def"
 #undef EXPR_DEF
@@ -93,16 +95,16 @@ protected:
 private:
     ExprType expr_type_;
 
-    int num_operands_;
-    Expr* operand_[3];
+    int num_operands_ = 0;
+    Expr* operand_[3] = {nullptr};
 
-    ID* id_;              // EXPR_ID
-    Number* num_;         // EXPR_NUM
-    ConstString* cstr_;   // EXPR_CSTR
-    RegEx* regex_;        // EXPR_REGEX
-    ExprList* args_;      // EXPR_CALLARGS
-    CaseExprList* cases_; // EXPR_CASE
-    Nullptr* nullp_;      // EXPR_NULLPTR
+    ID* id_ = nullptr;              // EXPR_ID
+    Number* num_ = nullptr;         // EXPR_NUM
+    ConstString* cstr_ = nullptr;   // EXPR_CSTR
+    RegEx* regex_ = nullptr;        // EXPR_REGEX
+    ExprList* args_ = nullptr;      // EXPR_CALLARGS
+    CaseExprList* cases_ = nullptr; // EXPR_CASE
+    Nullptr* nullp_ = nullptr;      // EXPR_NULLPTR
 
     string str_;  // value string
     string orig_; // original string for debugging info

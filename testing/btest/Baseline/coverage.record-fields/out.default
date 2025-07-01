@@ -589,7 +589,7 @@ connection {
         * cmd: record Redis::Command, log=T, optional=F
             Redis::Command {
               * key: string, log=T, optional=T
-              * known: enum Redis::KnownCommand, log=F, optional=T
+              * known: enum Redis::RedisCommand, log=F, optional=T
               * name: string, log=T, optional=F
               * raw: vector of string, log=F, optional=F
               * value: string, log=T, optional=T
@@ -598,7 +598,9 @@ connection {
             conn_id { ... }
         * reply: record Redis::ReplyData, log=T, optional=T
             Redis::ReplyData {
-              * value: string, log=T, optional=T
+              * attributes: string, log=F, optional=T
+              * min_protocol_version: count, log=F, optional=F
+              * value: string, log=T, optional=F
              }
         * success: bool, log=T, optional=T
         * ts: time, log=T, optional=F
@@ -615,6 +617,9 @@ connection {
              }
         * pending: table[count] of record Redis::Info, log=F, optional=F
             Redis::Info { ... }
+        * resp_version: enum Redis::RESPVersion, log=F, optional=T
+        * skip_commands: set[count], log=F, optional=F
+        * subscribed_mode: bool, log=F, optional=T
         * violation: bool, log=F, optional=T
        }
   * removal_hooks: set[func], log=F, optional=T

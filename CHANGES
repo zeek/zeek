@@ -1,3 +1,24 @@
+8.0.0-dev.577 | 2025-07-01 14:19:26 -0400
+
+  * Touchup TODOs in the Redis analyzer (Evan Typanski, Corelight)
+
+    Also renames `KnownCommand` to `RedisCommand` to avoid conflicts.
+
+  * Handle more Redis RESP3 protocol pieces (Evan Typanski, Corelight)
+
+    This passes the "minimum protocol version" along in the reply and adds
+    support for attributes, which were added relatively recently.
+
+  * Stringify all Redis-RESP serialized data (Evan Typanski, Corelight)
+
+  * GH-4504: Handle Redis protocol `message` separately (Evan Typanski, Corelight)
+
+    Closes #4504
+
+    Messages are not typical responses, so they need special handling. This
+    is different between RESP2 and 3, so this is the first instance where
+    the script layer needs to tell the difference.
+
 8.0.0-dev.571 | 2025-07-01 11:03:23 +0200
 
   * Bump pre-commit hooks (Benjamin Bannier, Corelight)

@@ -6,7 +6,7 @@ module Redis;
 
 import RESP;
 
-public type KnownCommand = enum {
+public type RedisCommand = enum {
     APPEND,
     AUTH,
     BITCOUNT,
@@ -34,6 +34,7 @@ public type KnownCommand = enum {
     GETRANGE,
     GETSET,
     HDEL,
+    HELLO,
     HGET,
     HSET,
     INCR,
@@ -43,11 +44,19 @@ public type KnownCommand = enum {
     MOVE,
     MSET,
     PERSIST,
+    PSUBSCRIBE,
+    PUNSUBSCRIBE,
+    QUIT,
     RENAME,
+    RESET,
     SET,
     STRLEN,
+    SUBSCRIBE,
+    SSUBSCRIBE,
+    SUNSUBSCRIBE,
     TTL,
     TYPE,
+    UNSUBSCRIBE,
 };
 
 type Command = struct {
@@ -55,7 +64,7 @@ type Command = struct {
     name: bytes;
     key: optional<bytes>;
     value: optional<bytes>;
-    known: optional<KnownCommand>;
+    known: optional<RedisCommand>;
 };
 
 # This just assumes all elements in the array is a bulk string and puts them in a vector
@@ -149,44 +158,44 @@ function parse_command(raw: vector<bytes>): Command {
 
     if (|raw| >= 2) {
         switch (*cmd) {
-            case KnownCommand::KEYS:
+            case RedisCommand::KEYS:
                 parsed.key = raw[1];
-            case KnownCommand::APPEND,
-                 KnownCommand::BITCOUNT,
-                 KnownCommand::BITFIELD,
-                 KnownCommand::BITFIELD_RO,
-                 KnownCommand::BITPOS,
-                 KnownCommand::BLPOP,
-                 KnownCommand::BRPOP,
-                 KnownCommand::COPY,
-                 KnownCommand::DECR,
-                 KnownCommand::DECRBY,
-                 KnownCommand::DEL,
-                 KnownCommand::DUMP,
-                 KnownCommand::EXISTS,
-                 KnownCommand::EXPIRE,
-                 KnownCommand::EXPIREAT,
-                 KnownCommand::EXPIRETIME,
-                 KnownCommand::GET,
-                 KnownCommand::GETBIT,
-                 KnownCommand::GETDEL,
-                 KnownCommand::GETEX,
-                 KnownCommand::GETRANGE,
-                 KnownCommand::GETSET,
-                 KnownCommand::HDEL,
-                 KnownCommand::HGET,
-                 KnownCommand::HSET,
-                 KnownCommand::INCR,
-                 KnownCommand::INCRBY,
-                 KnownCommand::MGET,
-                 KnownCommand::MOVE,
-                 KnownCommand::MSET,
-                 KnownCommand::PERSIST,
-                 KnownCommand::RENAME,
-                 KnownCommand::SET,
-                 KnownCommand::STRLEN,
-                 KnownCommand::TTL,
-                 KnownCommand::TYPE:
+            case RedisCommand::APPEND,
+                 RedisCommand::BITCOUNT,
+                 RedisCommand::BITFIELD,
+                 RedisCommand::BITFIELD_RO,
+                 RedisCommand::BITPOS,
+                 RedisCommand::BLPOP,
+                 RedisCommand::BRPOP,
+                 RedisCommand::COPY,
+                 RedisCommand::DECR,
+                 RedisCommand::DECRBY,
+                 RedisCommand::DEL,
+                 RedisCommand::DUMP,
+                 RedisCommand::EXISTS,
+                 RedisCommand::EXPIRE,
+                 RedisCommand::EXPIREAT,
+                 RedisCommand::EXPIRETIME,
+                 RedisCommand::GET,
+                 RedisCommand::GETBIT,
+                 RedisCommand::GETDEL,
+                 RedisCommand::GETEX,
+                 RedisCommand::GETRANGE,
+                 RedisCommand::GETSET,
+                 RedisCommand::HDEL,
+                 RedisCommand::HGET,
+                 RedisCommand::HSET,
+                 RedisCommand::INCR,
+                 RedisCommand::INCRBY,
+                 RedisCommand::MGET,
+                 RedisCommand::MOVE,
+                 RedisCommand::MSET,
+                 RedisCommand::PERSIST,
+                 RedisCommand::RENAME,
+                 RedisCommand::SET,
+                 RedisCommand::STRLEN,
+                 RedisCommand::TTL,
+                 RedisCommand::TYPE:
                 parsed.key = raw[1];
             default: ();
         }
@@ -194,22 +203,22 @@ function parse_command(raw: vector<bytes>): Command {
 
     if (|raw| >= 3) {
         switch (*cmd) {
-            case KnownCommand::SET,
-                 KnownCommand::APPEND,
-                 KnownCommand::DECRBY,
-                 KnownCommand::EXPIRE,
-                 KnownCommand::EXPIREAT,
-                 KnownCommand::GETBIT,
-                 KnownCommand::GETSET,
-                 KnownCommand::HDEL,
-                 KnownCommand::HGET,
-                 KnownCommand::INCRBY,
-                 KnownCommand::MOVE,
-                 KnownCommand::MSET,
-                 KnownCommand::RENAME:
+            case RedisCommand::SET,
+                 RedisCommand::APPEND,
+                 RedisCommand::DECRBY,
+                 RedisCommand::EXPIRE,
+                 RedisCommand::EXPIREAT,
+                 RedisCommand::GETBIT,
+                 RedisCommand::GETSET,
+                 RedisCommand::HDEL,
+                 RedisCommand::HGET,
+                 RedisCommand::INCRBY,
+                 RedisCommand::MOVE,
+                 RedisCommand::MSET,
+                 RedisCommand::RENAME:
                 parsed.value = raw[2];
             # Op first, destination second, then a list of keys. Just log dest
-            case KnownCommand::BITOP: parsed.key = raw[2];
+            case RedisCommand::BITOP: parsed.key = raw[2];
             default: ();
         }
     }
@@ -217,7 +226,7 @@ function parse_command(raw: vector<bytes>): Command {
     if (|raw| >= 4) {
         switch (*cmd) {
             # timeout, numkeys, then key
-            case KnownCommand::BLMPOP: parsed.key = raw[3];
+            case RedisCommand::BLMPOP: parsed.key = raw[3];
             default: ();
         }
     }
@@ -225,51 +234,60 @@ function parse_command(raw: vector<bytes>): Command {
     return parsed;
 }
 
-function command_from(cmd_bytes: bytes): optional<KnownCommand> {
-    local cmd: optional<KnownCommand> = Null;
+function command_from(cmd_bytes: bytes): optional<RedisCommand> {
+    local cmd: optional<RedisCommand> = Null;
     switch (cmd_bytes.lower()) {
-        case b"set": cmd = KnownCommand::SET;
-        case b"append": cmd = KnownCommand::APPEND;
-        case b"auth": cmd = KnownCommand::AUTH;
-        case b"bitcount": cmd = KnownCommand::BITCOUNT;
-        case b"bitfield": cmd = KnownCommand::BITFIELD;
-        case b"bitfield_ro": cmd = KnownCommand::BITFIELD_RO;
-        case b"bitop": cmd = KnownCommand::BITOP;
-        case b"bitpos": cmd = KnownCommand::BITPOS;
-        case b"blmpop": cmd = KnownCommand::BLMPOP;
-        case b"blpop": cmd = KnownCommand::BLPOP;
-        case b"brpop": cmd = KnownCommand::BRPOP;
-        case b"client": cmd = KnownCommand::CLIENT;
-        case b"copy": cmd = KnownCommand::COPY;
-        case b"decr": cmd = KnownCommand::DECR;
-        case b"decrby": cmd = KnownCommand::DECRBY;
-        case b"del": cmd = KnownCommand::DEL;
-        case b"dump": cmd = KnownCommand::DUMP;
-        case b"exists": cmd = KnownCommand::EXISTS;
-        case b"expire": cmd = KnownCommand::EXPIRE;
-        case b"expireat": cmd = KnownCommand::EXPIREAT;
-        case b"expiretime": cmd = KnownCommand::EXPIRETIME;
-        case b"expiretime": cmd = KnownCommand::EXPIRETIME;
-        case b"get": cmd = KnownCommand::GET;
-        case b"getbit": cmd = KnownCommand::GETBIT;
-        case b"getdel": cmd = KnownCommand::GETDEL;
-        case b"getex": cmd = KnownCommand::GETEX;
-        case b"getrange": cmd = KnownCommand::GETRANGE;
-        case b"getset": cmd = KnownCommand::GETSET;
-        case b"hdel": cmd = KnownCommand::HDEL;
-        case b"hget": cmd = KnownCommand::HGET;
-        case b"hset": cmd = KnownCommand::HSET;
-        case b"incr": cmd = KnownCommand::INCR;
-        case b"incrby": cmd = KnownCommand::INCRBY;
-        case b"keys": cmd = KnownCommand::KEYS;
-        case b"mget": cmd = KnownCommand::MGET;
-        case b"move": cmd = KnownCommand::MOVE;
-        case b"mset": cmd = KnownCommand::MSET;
-        case b"persist": cmd = KnownCommand::PERSIST;
-        case b"rename": cmd = KnownCommand::RENAME;
-        case b"strlen": cmd = KnownCommand::STRLEN;
-        case b"ttl": cmd = KnownCommand::TTL;
-        case b"type": cmd = KnownCommand::TYPE;
+        case b"append": cmd = RedisCommand::APPEND;
+        case b"auth": cmd = RedisCommand::AUTH;
+        case b"bitcount": cmd = RedisCommand::BITCOUNT;
+        case b"bitfield": cmd = RedisCommand::BITFIELD;
+        case b"bitfield_ro": cmd = RedisCommand::BITFIELD_RO;
+        case b"bitop": cmd = RedisCommand::BITOP;
+        case b"bitpos": cmd = RedisCommand::BITPOS;
+        case b"blmpop": cmd = RedisCommand::BLMPOP;
+        case b"blpop": cmd = RedisCommand::BLPOP;
+        case b"brpop": cmd = RedisCommand::BRPOP;
+        case b"client": cmd = RedisCommand::CLIENT;
+        case b"copy": cmd = RedisCommand::COPY;
+        case b"decr": cmd = RedisCommand::DECR;
+        case b"decrby": cmd = RedisCommand::DECRBY;
+        case b"del": cmd = RedisCommand::DEL;
+        case b"dump": cmd = RedisCommand::DUMP;
+        case b"exists": cmd = RedisCommand::EXISTS;
+        case b"expire": cmd = RedisCommand::EXPIRE;
+        case b"expireat": cmd = RedisCommand::EXPIREAT;
+        case b"expiretime": cmd = RedisCommand::EXPIRETIME;
+        case b"expiretime": cmd = RedisCommand::EXPIRETIME;
+        case b"get": cmd = RedisCommand::GET;
+        case b"getbit": cmd = RedisCommand::GETBIT;
+        case b"getdel": cmd = RedisCommand::GETDEL;
+        case b"getex": cmd = RedisCommand::GETEX;
+        case b"getrange": cmd = RedisCommand::GETRANGE;
+        case b"getset": cmd = RedisCommand::GETSET;
+        case b"hdel": cmd = RedisCommand::HDEL;
+        case b"hello": cmd = RedisCommand::HELLO;
+        case b"hget": cmd = RedisCommand::HGET;
+        case b"hset": cmd = RedisCommand::HSET;
+        case b"incr": cmd = RedisCommand::INCR;
+        case b"incrby": cmd = RedisCommand::INCRBY;
+        case b"keys": cmd = RedisCommand::KEYS;
+        case b"mget": cmd = RedisCommand::MGET;
+        case b"move": cmd = RedisCommand::MOVE;
+        case b"mset": cmd = RedisCommand::MSET;
+        case b"persist": cmd = RedisCommand::PERSIST;
+        case b"psubscribe": cmd = RedisCommand::PSUBSCRIBE;
+        case b"punsubscribe": cmd = RedisCommand::PUNSUBSCRIBE;
+        case b"quit": cmd = RedisCommand::QUIT;
+        case b"rename": cmd = RedisCommand::RENAME;
+        case b"reset": cmd = RedisCommand::RESET;
+        case b"set": cmd = RedisCommand::SET;
+        case b"strlen": cmd = RedisCommand::STRLEN;
+        case b"ssubscribe": cmd = RedisCommand::SSUBSCRIBE;
+        case b"subscribe": cmd = RedisCommand::SUBSCRIBE;
+        case b"sunsubscribe": cmd = RedisCommand::SUNSUBSCRIBE;
+        case b"ttl": cmd = RedisCommand::TTL;
+        case b"type": cmd = RedisCommand::TYPE;
+        case b"unsubscribe": cmd = RedisCommand::UNSUBSCRIBE;
         default: cmd = Null;
     }
 
@@ -334,7 +352,7 @@ public function make_set(command: Command): Set {
 }
 
 public function is_set(data: RESP::ClientData): bool {
-    return data.command.known && *(data.command.known) == KnownCommand::SET && data.command.key && data.command.value;
+    return data.command.known && *(data.command.known) == RedisCommand::SET && data.command.key && data.command.value;
 }
 
 type Get = struct {
@@ -347,7 +365,7 @@ public function make_get(command: Command): Get {
 }
 
 public function is_get(data: RESP::ClientData): bool {
-    return data.command.known && *(data.command.known) == KnownCommand::GET && |data.command.raw| >= 2;
+    return data.command.known && *(data.command.known) == RedisCommand::GET && |data.command.raw| >= 2;
 }
 
 type Auth = struct {
@@ -365,15 +383,45 @@ public function make_auth(command: Command): Auth {
 }
 
 public function is_auth(data: RESP::ClientData): bool {
-    return data.command.known && *(data.command.known) == KnownCommand::AUTH && |data.command.raw| >= 2;
+    return data.command.known && *(data.command.known) == RedisCommand::AUTH && |data.command.raw| >= 2;
+}
+
+type Hello = struct {
+    requested_resp_version: optional<bytes>;
+};
+
+public function make_hello(command: Command): Hello {
+    local hi: Hello = [$requested_resp_version = Null];
+    if (|command.raw| > 1)
+        hi.requested_resp_version = command.raw[1];
+    return hi;
+}
+
+public function is_hello(data: RESP::ClientData): bool {
+    return data.command.known && *(data.command.known) == RedisCommand::HELLO;
 }
 
 type ReplyData = struct {
-    value: optional<bytes>;
+    attributes: optional<bytes>;
+    value: bytes;
+    min_protocol_version: uint8;
 };
 
-public function is_err(server_data: RESP::ServerData): bool {
-    return server_data.data?.simple_error || server_data.data?.bulk_error;
+public type ReplyType = enum {
+    Reply, # A response to a command
+    Error, # An error response to a command
+    Push, # A server message that is not responding to a command
+};
+
+public function classify(server_data: RESP::ServerData): ReplyType {
+    if (server_data.data?.simple_error || server_data.data?.bulk_error)
+        return ReplyType::Error;
+
+    # We can tell with RESP3 this is push here, but RESP2 relies on scripts
+    if (server_data.data?.push)
+        return ReplyType::Push;
+
+    return ReplyType::Reply;
 }
 
 function bulk_string_content(bulk: RESP::BulkString): bytes {
@@ -383,21 +431,108 @@ function bulk_string_content(bulk: RESP::BulkString): bytes {
         return b"";
 }
 
+function stringify_map(data: RESP::Map&): bytes {
+    local res = b"{";
+    local first = True;
+    local i = 0;
+    # num_elements refers to the number of map entries, each with 2 entries
+    # in the raw data
+    while (i < data.num_elements) {
+        if (!first)
+            res += b", ";
+        res += stringify(data.raw_data[i * 2]);
+        res += b": ";
+        res += stringify(data.raw_data[(i * 2) + 1]);
+        i += 1;
+        first = False;
+    }
+    res += b"}";
+    return res;
+}
+
+# Returns the bytes string value of this, or Null if it cannot.
+function stringify(data: RESP::Data&): bytes {
+    if (data?.simple_string)
+        return data.simple_string.content;
+    else if (data?.simple_error)
+        return data.simple_error.content;
+    else if (data?.integer)
+        return data.integer.val;
+    else if (data?.bulk_string)
+        return bulk_string_content(data.bulk_string);
+    else if (data?.array) {
+        local res = b"[";
+        local first = True;
+        for (ele in data.array.elements) {
+            if (!first)
+                res += b", ";
+            res += stringify(ele);
+            first = False;
+        }
+        res += b"]";
+        return res;
+    } else if (data?.null)
+        return b"null";
+    else if (data?.boolean)
+        return data.boolean.val ? b"T" : b"F";
+    else if (data?.double)
+        return data.double.val;
+    else if (data?.big_num)
+        return data.big_num.val;
+    else if (data?.bulk_error)
+        return bulk_string_content(data.bulk_error);
+    else if (data?.verbatim_string)
+        return bulk_string_content(data.verbatim_string);
+    else if (data?.map_) {
+        return stringify_map(data.map_);
+    } else if (data?.set_) {
+        local res = b"(";
+        local first = True;
+        for (ele in data.set_.elements) {
+            if (!first)
+                res += b", ";
+            res += stringify(ele);
+            first = False;
+        }
+        res += b")";
+        return res;
+    } else if (data?.push) {
+        local res = b"[";
+        local first = True;
+        for (ele in data.push.elements) {
+            if (!first)
+                res += b", ";
+            res += stringify(ele);
+            first = False;
+        }
+        res += b"]";
+        return res;
+    }
+
+    throw "unknown RESP type";
+}
+
 # Gets the server reply in a simpler form
 public function make_server_reply(data: RESP::ServerData): ReplyData {
-    local res: ReplyData = [$value = Null];
-    if (data.data?.simple_error)
-        res.value = data.data.simple_error.content;
-    else if (data.data?.bulk_error)
-        res.value = bulk_string_content(data.data.bulk_error);
-    else if (data.data?.simple_string)
-        res.value = data.data.simple_string.content;
-    else if (data.data?.bulk_string)
-        res.value = bulk_string_content(data.data.bulk_string);
-    else if (data.data?.verbatim_string)
-        res.value = bulk_string_content(data.data.verbatim_string);
-    else if (data.data?.boolean)
-        res.value = data.data.boolean.val ? b"T" : b"F";
+    local min_protocol_version: uint8 = 2;
+    switch (data.data.ty) {
+        case RESP::DataType::NULL,
+             RESP::DataType::BOOLEAN,
+             RESP::DataType::DOUBLE,
+             RESP::DataType::BIG_NUM,
+             RESP::DataType::BULK_ERROR,
+             RESP::DataType::VERBATIM_STRING,
+             RESP::DataType::MAP,
+             RESP::DataType::SET,
+             RESP::DataType::PUSH: min_protocol_version = 3;
+        default: min_protocol_version = 2;
+    }
 
-    return res;
+    local attributes: optional<bytes> = Null;
+    if (data.data?.attributes) {
+        min_protocol_version = 3;
+        attributes = stringify_map(data.data.attributes);
+    }
+
+    return [$attributes = attributes, $value = stringify(data.data), $min_protocol_version = min_protocol_version];
 }

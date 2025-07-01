@@ -7,14 +7,19 @@ protocol analyzer Redis over TCP:
 import RESP;
 import Redis;
 
-export Redis::KnownCommand;
+export Redis::RedisCommand;
 
 on RESP::ClientData if ( Redis::is_set(self) ) -> event Redis::set_command($conn, Redis::make_set(self.command));
 on RESP::ClientData if ( Redis::is_get(self) ) -> event Redis::get_command($conn, Redis::make_get(self.command).key);
 on RESP::ClientData if ( Redis::is_auth(self) ) -> event Redis::auth_command($conn, Redis::make_auth(self.command));
+on RESP::ClientData if ( Redis::is_hello(self) ) -> event Redis::hello_command($conn, Redis::make_hello(self.command));
 
 # All client data is a command
 on RESP::ClientData -> event Redis::command($conn, self.command);
 
-on RESP::ServerData if ( ! Redis::is_err(self) ) -> event Redis::reply($conn, Redis::make_server_reply(self));
-on RESP::ServerData if ( Redis::is_err(self) ) -> event Redis::error($conn, Redis::make_server_reply(self));
+on RESP::ServerData if ( Redis::classify(self) == Redis::ReplyType::Reply ) -> 
+        event Redis::reply($conn, Redis::make_server_reply(self));
+on RESP::ServerData if ( Redis::classify(self) == Redis::ReplyType::Error ) ->
+        event Redis::error($conn, Redis::make_server_reply(self));
+on RESP::ServerData if ( Redis::classify(self) == Redis::ReplyType::Push ) -> 
+        event Redis::server_push($conn, Redis::make_server_reply(self));

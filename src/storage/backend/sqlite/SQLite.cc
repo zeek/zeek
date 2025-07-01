@@ -295,6 +295,33 @@ OperationResult SQLite::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool
     if ( ! key_data )
         return {ReturnCode::SERIALIZATION_FAILED, "Failed to serialize key"};
 
+    // If we are not already in overwrite mode check if an expired entry exists
+    // in the database. Such entries would not be visible to the user, but even
+    // outside of overwrite mode would need to be overwritten.
+    if ( ! overwrite ) {
+        auto stmt = unique_stmt_ptr(get_stmt.get(), sqlite3_reset);
+
+        if ( auto res = CheckError(sqlite3_bind_blob(stmt.get(), 1, key_data->data(), key_data->size(), SQLITE_STATIC));
+             res.code != ReturnCode::SUCCESS ) {
+            return res;
+        }
+
+        int step_status = sqlite3_step(stmt.get());
+        if ( step_status == SQLITE_ROW ) {
+            // If an expired entry exists, switch to overwrite mode.
+            overwrite =
+                sqlite3_column_type(stmt.get(), 1) != SQLITE_NULL && is_expired(sqlite3_column_double(stmt.get(), 0));
+        }
+        else if ( step_status == SQLITE_DONE ) {
+            // Nothing currently exists.
+        }
+        else if ( step_status == SQLITE_BUSY || step_status == SQLITE_LOCKED )
+            // TODO: this could retry a number of times instead of just failing
+            return {ReturnCode::TIMEOUT};
+        else
+            return {ReturnCode::OPERATION_FAILED};
+    }
+
     unique_stmt_ptr stmt;
     if ( ! overwrite )
         stmt = unique_stmt_ptr(put_stmt.get(), sqlite3_reset);

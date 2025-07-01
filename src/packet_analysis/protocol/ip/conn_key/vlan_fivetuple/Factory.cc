@@ -39,6 +39,8 @@ protected:
     }
 
     void DoPopulateConnIdVal(RecordVal& conn_id, RecordVal& ctx) override {
+        IPBasedConnKey::DoPopulateConnIdVal(conn_id, ctx);
+
         // Nothing to do if we have no VLAN tags at all.
         if ( key.vlan == 0 && key.inner_vlan == 0 )
             return;

@@ -16,6 +16,10 @@ Breaking Changes
   files. We tested builds of all of the existing third-party packages and only noticed one
   or two failures, but there is a possibility for breakage related to this cleanup.
 
+- The ``lookup_connection()`` and ``connection_exists()`` builtin functions
+  now require ``conn_id`` instances as argument, rather than internally supporting
+  duck type matching ``conn_id``-like records.
+
 - Network timestamps are not added to events by default anymore. Use the following
   redef line to enable them:
 

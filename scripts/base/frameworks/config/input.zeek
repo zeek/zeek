@@ -30,7 +30,7 @@ type EventFields: record {
 	option_val: string;
 };
 
-event config_line(description: Input::EventDescription, tpe: Input::Event, p: EventFields)
+event config_line(description: Input::EventDescription, type_: Input::Event, p: EventFields)
 	{
 	}
 

@@ -856,7 +856,7 @@ function determine_encryption_on(pr: PlaintextRecord, content_type: uint8, hands
 }
 
 type Heartbeat = unit(sh: Share, length: uint16) {
-    tpe: uint8;
+    type_: uint8;
     payload_length: uint16; # don't trust this one - there might still be people testing.
     data: bytes &size=(length - 3);
 };

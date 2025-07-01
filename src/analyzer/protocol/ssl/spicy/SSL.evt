@@ -79,7 +79,7 @@ on SSL::PSKKeyExchangeModes -> event ssl_extension_psk_key_exchange_modes($conn,
 
 on SSL::Alert_message -> event ssl_alert($conn, SSL::get_direction(sh), self.level, self.description);
 
-on SSL::Heartbeat -> event ssl_heartbeat($conn, SSL::get_direction(sh), length, self.tpe, self.payload_length, self.data);
+on SSL::Heartbeat -> event ssl_heartbeat($conn, SSL::get_direction(sh), length, self.type_, self.payload_length, self.data);
 
 on SSL::CertificateStatus -> event ssl_stapled_ocsp($conn, $is_orig, self.response);
 

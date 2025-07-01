@@ -58,7 +58,7 @@ type FileLine: record {
 	s: string;
 };
 
-event Exec::line(description: Input::EventDescription, tpe: Input::Event, s: string, is_stderr: bool)
+event Exec::line(description: Input::EventDescription, type_: Input::Event, s: string, is_stderr: bool)
 	{
 	local result = results[description$name];
 	if ( is_stderr )
@@ -77,7 +77,7 @@ event Exec::line(description: Input::EventDescription, tpe: Input::Event, s: str
 		}
 	}
 
-event Exec::file_line(description: Input::EventDescription, tpe: Input::Event, s: string)
+event Exec::file_line(description: Input::EventDescription, type_: Input::Event, s: string)
 	{
 	local parts = split_string1(description$name, /_/);
 	local name = parts[0];

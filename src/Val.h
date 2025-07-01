@@ -1067,10 +1067,10 @@ protected:
     enum OnChangeType : uint8_t { ELEMENT_NEW, ELEMENT_CHANGED, ELEMENT_REMOVED, ELEMENT_EXPIRED };
 
     // Calls &change_func.
-    void CallChangeFunc(const ValPtr& index, const ValPtr& old_value, OnChangeType tpe);
+    void CallChangeFunc(const ValPtr& index, const ValPtr& old_value, OnChangeType type);
 
     // Sends data on to backing Broker Store
-    void SendToStore(const Val* index, const TableEntryVal* new_entry_val, OnChangeType tpe);
+    void SendToStore(const Val* index, const TableEntryVal* new_entry_val, OnChangeType type);
 
     unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;
 

@@ -30,14 +30,7 @@ Connection::Connection(zeek::IPBasedConnKeyPtr k, double t, uint32_t flow, const
     resp_addr = key->DstAddr();
     orig_port = key->SrcPort();
     resp_port = key->DstPort();
-
-    switch ( key->Proto() ) {
-        case IPPROTO_TCP: proto = TRANSPORT_TCP; break;
-        case IPPROTO_UDP: proto = TRANSPORT_UDP; break;
-        case IPPROTO_ICMP:
-        case IPPROTO_ICMPV6: proto = TRANSPORT_ICMP; break;
-        default: proto = TRANSPORT_UNKNOWN; break;
-    }
+    proto = key->GetTransportProto();
 
     Init(flow, pkt);
 }
@@ -51,17 +44,11 @@ Connection::Connection(const detail::ConnKey& k, double t, const ConnTuple* id, 
     orig_port = id->src_port;
     resp_port = id->dst_port;
 
-    switch ( id->proto ) {
-        case IPPROTO_TCP: proto = TRANSPORT_TCP; break;
-        case IPPROTO_UDP: proto = TRANSPORT_UDP; break;
-        case IPPROTO_ICMP:
-        case IPPROTO_ICMPV6: proto = TRANSPORT_ICMP; break;
-        default: proto = TRANSPORT_UNKNOWN; break;
-    }
-
     key = std::make_unique<zeek::IPConnKey>();
     key->InitTuple(id->src_addr, id->src_port, id->dst_addr, id->dst_port, id->proto, id->is_one_way);
     key->Init(*pkt);
+
+    proto = key->GetTransportProto();
 
     Init(flow, pkt);
 }

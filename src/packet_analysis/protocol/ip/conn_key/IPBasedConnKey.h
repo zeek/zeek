@@ -7,6 +7,7 @@
 #include "zeek/Conn.h"
 #include "zeek/ConnKey.h"
 #include "zeek/IPAddr.h"
+#include "zeek/net_util.h"
 
 namespace zeek {
 
@@ -62,6 +63,19 @@ public:
      * The IP protocol the key got initialized with.
      */
     uint16_t Proto() const { return PackedTuple().proto; }
+
+    /**
+     * @return The TransportProto value for this key's IP proto.
+     */
+    TransportProto GetTransportProto() const {
+        switch ( Proto() ) {
+            case IPPROTO_TCP: return TRANSPORT_TCP;
+            case IPPROTO_UDP: return TRANSPORT_UDP;
+            case IPPROTO_ICMP:
+            case IPPROTO_ICMPV6: return TRANSPORT_ICMP;
+            default: return TRANSPORT_UNKNOWN;
+        }
+    }
 
     /**
      * Return a modifiable reference to the embedded PackedConnTuple.

@@ -2,6 +2,8 @@
 
 #include "zeek/packet_analysis/protocol/ip/conn_key/fivetuple/Factory.h"
 
+#include <netinet/in.h>
+
 #include "zeek/IP.h"
 #include "zeek/Val.h"
 #include "zeek/packet_analysis/protocol/ip/conn_key/IPBasedConnKey.h"
@@ -25,7 +27,7 @@ zeek::expected<zeek::ConnKeyPtr, std::string> Factory::DoConnKeyFromVal(const ze
     auto vl = v.AsRecordVal();
 
     // Indices into conn_id's record field value list:
-    int orig_h = 0, orig_p = 1, resp_h = 2, resp_p = 3, proto = 4;
+    int orig_h = 0, orig_p = 1, resp_h = 2, resp_p = 3;
 
     if ( vr != id::conn_id ) {
         // While it's not a conn_id, it may have equivalent fields.
@@ -33,21 +35,18 @@ zeek::expected<zeek::ConnKeyPtr, std::string> Factory::DoConnKeyFromVal(const ze
         resp_h = vr->FieldOffset("resp_h");
         orig_p = vr->FieldOffset("orig_p");
         resp_p = vr->FieldOffset("resp_p");
-        proto = vr->FieldOffset("proto");
 
         // clang-format off
         if ( orig_h < 0 || vr->GetFieldType(orig_h)->Tag() != TYPE_ADDR ||
 	     resp_h < 0 || vr->GetFieldType(resp_h)->Tag() != TYPE_ADDR ||
 	     orig_p < 0 || vr->GetFieldType(orig_p)->Tag() != TYPE_PORT ||
-	     resp_p < 0 || vr->GetFieldType(resp_p)->Tag() != TYPE_PORT ||
-	     proto < 0  || vr->GetFieldType(proto)->Tag() != TYPE_COUNT ) {
+	     resp_p < 0 || vr->GetFieldType(resp_p)->Tag() != TYPE_PORT ) {
             return unexpected_conn_id;
         }
         // clang-format on
     }
 
-    if ( ! vl->HasField(orig_h) || ! vl->HasField(resp_h) || ! vl->HasField(orig_p) || ! vl->HasField(resp_p) ||
-         ! vl->HasField(proto) ) {
+    if ( ! vl->HasField(orig_h) || ! vl->HasField(resp_h) || ! vl->HasField(orig_p) || ! vl->HasField(resp_p) ) {
         return unexpected_conn_id;
     }
 
@@ -57,8 +56,32 @@ zeek::expected<zeek::ConnKeyPtr, std::string> Factory::DoConnKeyFromVal(const ze
     const auto& orig_portv = vl->GetFieldAs<PortVal>(orig_p);
     const auto& resp_portv = vl->GetFieldAs<PortVal>(resp_p);
 
-    const auto& protov = vl->GetField<CountVal>(proto);
-    auto proto16_t = static_cast<uint16_t>(protov->AsCount());
+    uint16_t proto16_t;
+    // awelzel: In Zeek 7.0, there's no proto field in the conn_id record,
+    // so we determine proto based on port type and address to fill
+    // the ConnKey instance with a proto field.
+    switch ( orig_portv->PortType() ) {
+        case TRANSPORT_TCP: {
+            proto16_t = IPPROTO_TCP;
+            break;
+        }
+        case TRANSPORT_UDP: {
+            proto16_t = IPPROTO_UDP;
+            break;
+        }
+        case TRANSPORT_ICMP: {
+            if ( orig_addr.GetFamily() == IPFamily::IPv6 )
+                proto16_t = IPPROTO_ICMPV6;
+            else
+                proto16_t = IPPROTO_ICMP;
+
+            break;
+        }
+        default: {
+            proto16_t = UNKNOWN_IP_PROTO;
+            break;
+        }
+    }
 
     if ( proto16_t == UNKNOWN_IP_PROTO )
         return zeek::unexpected<std::string>(

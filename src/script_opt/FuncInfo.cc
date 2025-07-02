@@ -117,6 +117,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"Option::set_change_handler", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"PacketAnalyzer::GTPV1::remove_gtpv1_connection", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"PacketAnalyzer::Geneve::get_options", ATTR_NO_SCRIPT_SIDE_EFFECTS},
+    {"PacketAnalyzer::PPPoE::session_id", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"PacketAnalyzer::TEREDO::remove_teredo_connection", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"PacketAnalyzer::__disable_analyzer", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"PacketAnalyzer::__enable_analyzer", ATTR_NO_SCRIPT_SIDE_EFFECTS},

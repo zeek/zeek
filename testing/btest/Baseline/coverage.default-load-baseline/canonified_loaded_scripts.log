@@ -266,6 +266,7 @@ scripts/base/init-frameworks-and-bifs.zeek
     build/scripts/base/bif/plugins/Zeek_WebSocket.types.bif.zeek
     build/scripts/base/bif/plugins/Zeek_XMPP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_Cluster_Backend_ZeroMQ.cluster_backend_zeromq.bif.zeek
+    build/scripts/base/bif/plugins/Zeek_PPPoE.functions.bif.zeek
     build/scripts/base/bif/plugins/Zeek_ARP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_UDP.events.bif.zeek
     build/scripts/base/bif/plugins/Zeek_ICMP.events.bif.zeek

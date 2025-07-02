@@ -369,6 +369,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_PE.events.bif.zeek, <...>/Zeek_PE.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_POP3.consts.bif.zeek, <...>/Zeek_POP3.consts.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_POP3.events.bif.zeek, <...>/Zeek_POP3.events.bif.zeek) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./Zeek_PPPoE.functions.bif.zeek, <...>/Zeek_PPPoE.functions.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_RADIUS.events.bif.zeek, <...>/Zeek_RADIUS.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_RDP.events.bif.zeek, <...>/Zeek_RDP.events.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./Zeek_RDP.types.bif.zeek, <...>/Zeek_RDP.types.bif.zeek) -> -1
@@ -684,6 +685,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_PE.events.bif.zeek, <...>/Zeek_PE.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_POP3.consts.bif.zeek, <...>/Zeek_POP3.consts.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_POP3.events.bif.zeek, <...>/Zeek_POP3.events.bif.zeek) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_PPPoE.functions.bif.zeek, <...>/Zeek_PPPoE.functions.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_RADIUS.events.bif.zeek, <...>/Zeek_RADIUS.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_RDP.events.bif.zeek, <...>/Zeek_RDP.events.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./Zeek_RDP.types.bif.zeek, <...>/Zeek_RDP.types.bif.zeek) -> (-1, <no content>)
@@ -1310,6 +1312,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_PE.events.bif.zeek, <...>/Zeek_PE.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_POP3.consts.bif.zeek, <...>/Zeek_POP3.consts.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_POP3.events.bif.zeek, <...>/Zeek_POP3.events.bif.zeek)
+0.000000   MetaHookPre   LoadFile(0, ./Zeek_PPPoE.functions.bif.zeek, <...>/Zeek_PPPoE.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_RADIUS.events.bif.zeek, <...>/Zeek_RADIUS.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_RDP.events.bif.zeek, <...>/Zeek_RDP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./Zeek_RDP.types.bif.zeek, <...>/Zeek_RDP.types.bif.zeek)
@@ -1625,6 +1628,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_PE.events.bif.zeek, <...>/Zeek_PE.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_POP3.consts.bif.zeek, <...>/Zeek_POP3.consts.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_POP3.events.bif.zeek, <...>/Zeek_POP3.events.bif.zeek)
+0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_PPPoE.functions.bif.zeek, <...>/Zeek_PPPoE.functions.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_RADIUS.events.bif.zeek, <...>/Zeek_RADIUS.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_RDP.events.bif.zeek, <...>/Zeek_RDP.events.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./Zeek_RDP.types.bif.zeek, <...>/Zeek_RDP.types.bif.zeek)
@@ -2250,6 +2254,7 @@
 0.000000 | HookLoadFile  ./Zeek_PE.events.bif.zeek <...>/Zeek_PE.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_POP3.consts.bif.zeek <...>/Zeek_POP3.consts.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_POP3.events.bif.zeek <...>/Zeek_POP3.events.bif.zeek
+0.000000 | HookLoadFile  ./Zeek_PPPoE.functions.bif.zeek <...>/Zeek_PPPoE.functions.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_RADIUS.events.bif.zeek <...>/Zeek_RADIUS.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_RDP.events.bif.zeek <...>/Zeek_RDP.events.bif.zeek
 0.000000 | HookLoadFile  ./Zeek_RDP.types.bif.zeek <...>/Zeek_RDP.types.bif.zeek
@@ -2565,6 +2570,7 @@
 0.000000 | HookLoadFileExtended ./Zeek_PE.events.bif.zeek <...>/Zeek_PE.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_POP3.consts.bif.zeek <...>/Zeek_POP3.consts.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_POP3.events.bif.zeek <...>/Zeek_POP3.events.bif.zeek
+0.000000 | HookLoadFileExtended ./Zeek_PPPoE.functions.bif.zeek <...>/Zeek_PPPoE.functions.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_RADIUS.events.bif.zeek <...>/Zeek_RADIUS.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_RDP.events.bif.zeek <...>/Zeek_RDP.events.bif.zeek
 0.000000 | HookLoadFileExtended ./Zeek_RDP.types.bif.zeek <...>/Zeek_RDP.types.bif.zeek

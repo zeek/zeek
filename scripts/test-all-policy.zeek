@@ -113,6 +113,7 @@
 @load protocols/conn/known-services.zeek
 @load protocols/conn/mac-logging.zeek
 @load protocols/conn/vlan-logging.zeek
+@load protocols/conn/pppoe-session-id-logging.zeek
 @load protocols/conn/weirds.zeek
 #@load frameworks/conn_key/vlan_fivetuple.zeek
 #@load protocols/conn/speculative-service.zeek

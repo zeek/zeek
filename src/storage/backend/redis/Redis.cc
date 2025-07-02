@@ -11,6 +11,7 @@
 #include "zeek/Val.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/storage/ReturnCode.h"
+#include "zeek/telemetry/Counter.h"
 
 #include "hiredis/adapters/poll.h"
 #include "hiredis/async.h"
@@ -548,6 +549,8 @@ void Redis::DoExpire(double current_network_time) {
         freeReplyObject(del_reply);
         // TODO: do we care if this failed?
     }
+
+    expired_entries_metric->Inc(elements.size());
 
     freeReplyObject(reply);
 

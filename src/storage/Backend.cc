@@ -258,6 +258,11 @@ void Backend::InitMetrics() {
         telemetry_mgr->CounterInstance("zeek", "storage_data_retrieved",
                                        {{"backend_type", Tag()}, {"backend_config", metrics_config}},
                                        "Storage Data Retrieved", "bytes");
+
+    expired_entries_metric =
+        telemetry_mgr->CounterInstance("zeek", "storage_expired_entries",
+                                       {{"backend_type", Tag()}, {"backend_config", metrics_config}},
+                                       "Storage expired entries", "");
 }
 
 zeek::OpaqueTypePtr detail::backend_opaque;

@@ -492,6 +492,11 @@ void SQLite::DoExpire(double current_network_time) {
         Error(err.c_str());
     }
 
+    // Get the number of changes from the delete statement. This should be identical to the num_to_expire
+    // value earlier because we're under a transaction, but this should be the exact number that changed.
+    int changes = sqlite3_changes(db);
+    expired_entries_metric->Inc(changes);
+
     sqlite3_exec(expire_db, "commit transaction", nullptr, nullptr, &errMsg);
     sqlite3_free(errMsg);
 }

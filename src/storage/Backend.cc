@@ -114,6 +114,12 @@ void OpenResultCallback::Complete(OperationResult res) {
 Backend::Backend(uint8_t modes, std::string_view tag_name) : modes(modes) {
     tag = storage_mgr->BackendMgr().GetComponentTag(std::string{tag_name});
     tag_str = zeek::obj_desc_short(tag.AsVal().get());
+
+    // The rest of the metrics are initialized after the backend opens, but this one has
+    // to be here because it's possible it gets used by the open callback before Open()
+    // fully returns.
+    backends_opened_metric =
+        telemetry_mgr->CounterInstance("zeek", "storage_backends_opened", {}, "Number of backends opened", "");
 }
 
 Backend::~Backend() {
@@ -208,7 +214,10 @@ void Backend::CompleteCallback(ResultCallback* cb, const OperationResult& data) 
     }
 }
 
-void Backend::EnqueueBackendOpened() { event_mgr.Enqueue(Storage::backend_opened, tag.AsVal(), backend_options); }
+void Backend::EnqueueBackendOpened() {
+    event_mgr.Enqueue(Storage::backend_opened, tag.AsVal(), backend_options);
+    backends_opened_metric->Inc();
+}
 
 void Backend::EnqueueBackendLost(std::string_view reason) {
     event_mgr.Enqueue(Storage::backend_lost, tag.AsVal(), backend_options, make_intrusive<StringVal>(reason));

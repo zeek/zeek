@@ -7,6 +7,9 @@ add_executable(spicyz driver.cc glue-compiler.cc main.cc zeek-version.cc)
 target_compile_options(spicyz PRIVATE "-Wall")
 target_compile_features(spicyz PRIVATE "${ZEEK_CXX_STD}")
 set_target_properties(spicyz PROPERTIES CXX_EXTENSIONS OFF)
+# We do not compile spicyz's own sources with sanitizers — the global linker
+# flags ensure the ASan runtime is available for the sanitized HILTI runtime
+# objects in libhilti.so.
 
 target_include_directories(spicyz PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 

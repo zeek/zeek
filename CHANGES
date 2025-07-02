@@ -1,3 +1,11 @@
+8.0.0-dev.581 | 2025-07-02 07:47:32 +0100
+
+  * Spicy SSL analyzer: non-functional tweaks (Johanna Amann, Corelight).
+
+    Move the negotiated version outside of the possible range of protocol values,
+    and move exceptions to &requires & throw instead of directly calling
+    spicy::decline. This is stylistic with no functional changes.
+
 8.0.0-dev.577 | 2025-07-01 14:19:26 -0400
 
   * Touchup TODOs in the Redis analyzer (Evan Typanski, Corelight)

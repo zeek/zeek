@@ -177,7 +177,8 @@ type NameType = enum {
 #   anonymous = 0, rsa= 1, dsa= 2, ecdsa= 3
 # };
 
-const UNKNOWN_VERSION: uint16 = 0x0000;
+# UNKNOWN_VERSION is outside the 16-bit range of real possible versions
+const UNKNOWN_VERSION: uint32 = 0xFFFF0000;
 const SSLv2 = 0x0002;
 const SSLv3 = 0x0300;
 const TLSv10 = 0x0301;
@@ -567,7 +568,7 @@ type Share = unit {
     # version as seen in server_hello (for signature and hash-alg choice)
     var chosen_version_sh_outer: uint16;
     # final negotiated version - can e.g. be used to distinguished tls 1.3
-    var negotiated_version: uint16;
+    var negotiated_version: uint32 = UNKNOWN_VERSION;
     # set to true if chosen version is identified as a tls 1.3 version
     var tls_13: bool;
     var chosen_cipher: uint16;
@@ -660,7 +661,7 @@ public type Message = unit {
 
     sink handshakesink;
     sink alertsink;
-    var record_version: uint16;
+    var record_version: uint32;
     var dtls: bool = False;
     var partial: bool = False;
     var first_packet: bool = True; # needed for SSLv2, which sadly is quite stateful.
@@ -721,7 +722,7 @@ type SSL2Record = unit(lengthone: uint8, inout msg: Message, inout sh: Share) {
 
     on %init {
         if (sh.negotiated_version != UNKNOWN_VERSION && sh.negotiated_version != SSLv2) {
-            spicy::decline_input("Late switch to SSLv2 record");
+            throw "Late switch to SSLv2 record";
         }
     }
 };
@@ -971,7 +972,7 @@ type uint24 = unit {
 
 type SSL2ClientHello = unit(len: uint64, msg: Message, inout sh: Share) {
     direction_check: DirectionCheck(sh, True); # should be sent by originator
-    client_version: uint16;
+    client_version: uint16 &requires=($$ == SSLv2 || $$ == SSLv3 || $$ == TLSv10 || $$ == TLSv11 || $$ == TLSv12 : "Invalid version in SSL client hello. Version: %s" % $$);
     ciphers_len: uint16;
     session_len: uint16;
     chal_len: uint16;
@@ -979,16 +980,9 @@ type SSL2ClientHello = unit(len: uint64, msg: Message, inout sh: Share) {
     session_id: bytes &size=self.session_len;
     challenge: bytes &size=self.chal_len;
 
-    on client_version {
-        if (self.client_version != SSLv2 && self.client_version != SSLv3 && self.client_version != TLSv10 && self.client_version != TLSv11 && self.client_version != TLSv12) {
-            spicy::decline_input("Invalid version in SSL client hello. Version: %s, self.client_version"); # Version: " + self.client_version);
-            zeek::skip_input();
-        }
-    }
-
     on %init {
         if (msg.first_packet == False) {
-            spicy::decline_input("SSLv2 client hello late in connection");
+            throw "SSLv2 client hello late in connection";
         }
     }
 };
@@ -1007,7 +1001,7 @@ type SSL2ServerHello = unit(len: uint64, msg: Message, inout sh: Share) {
 
     on %init {
         if (msg.first_packet == False) {
-            spicy::decline_input("SSLv2 server hello late in connection");
+            throw "SSLv2 server hello late in connection";
         }
     }
 

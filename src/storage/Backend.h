@@ -292,6 +292,7 @@ protected:
     telemetry::CounterPtr bytes_stored_metric;
     telemetry::CounterPtr bytes_retrieved_metric;
     telemetry::CounterPtr backends_opened_metric;
+    telemetry::CounterPtr expired_entries_metric;
 
 private:
     /**

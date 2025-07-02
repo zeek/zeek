@@ -550,6 +550,8 @@ void Redis::DoExpire(double current_network_time) {
         // TODO: do we care if this failed?
     }
 
+    expired_entries_metric->Inc(elements.size());
+
     freeReplyObject(reply);
 
     // Remove all of the elements from the range-set that match the time range.

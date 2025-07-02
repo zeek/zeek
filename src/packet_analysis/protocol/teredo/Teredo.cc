@@ -153,12 +153,8 @@ bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
         return false;
     }
 
+    // awelzel: This is the code in 7.0. Creepy.
     conn = static_cast<Connection*>(packet->session);
-    zeek::detail::ConnKey conn_key = conn->Key();
-
-    OrigRespMap::iterator or_it = orig_resp_map.find(conn_key);
-    if ( or_it == orig_resp_map.end() )
-        or_it = orig_resp_map.insert(or_it, {conn_key, {}});
 
     detail::TeredoEncapsulation te(this);
     if ( ! te.Parse(data, len) ) {
@@ -188,8 +184,6 @@ bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
         return false;
     }
 
-<<<<<<< HEAD
-=======
     const auto& k = conn->Key();
     auto sk = k.SessionKey();
     OrigRespMap::iterator or_it = orig_resp_map.find(sk);
@@ -204,10 +198,9 @@ bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
         assert(inserted);
         or_it = it;
 
-        packet->session->EnqueueEvent(new_teredo_state, nullptr, packet->session->GetVal());
+        // packet->session->EnqueueEvent(new_teredo_state, nullptr, packet->session->GetVal());
     }
 
->>>>>>> cd934c460b (Merge remote-tracking branch 'origin/topic/christian/extensible-conntuples')
     if ( packet->is_orig )
         or_it->second.valid_orig = true;
     else

@@ -10,6 +10,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/Traverse.h"
 #include "zeek/Trigger.h"
+#include "zeek/conn_key/Manager.h"
 #include "zeek/script_opt/ScriptOpt.h"
 #include "zeek/script_opt/ZAM/Compile.h"
 #include "zeek/session/Manager.h"

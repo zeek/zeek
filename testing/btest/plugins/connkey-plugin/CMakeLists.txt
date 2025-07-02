@@ -10,6 +10,4 @@ set(CMAKE_MODULE_PATH ${ZEEK_DIST}/cmake)
 
 include(ZeekPlugin)
 
-zeek_add_plugin(
-    Demo Foo
-    SOURCES src/Plugin.cc src/Foo.cc)
+zeek_add_plugin(Demo Foo SOURCES src/Plugin.cc src/Foo.cc)

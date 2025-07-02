@@ -5,20 +5,12 @@
 #include <binpac.h>
 #include <algorithm>
 
-<<<<<<< HEAD
-=======
+#include "zeek/3rdparty/doctest.h"
 #include "zeek/Conn.h"
 #include "zeek/Event.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/packet_analysis/protocol/ip/conn_key/IPBasedConnKey.h"
 #include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
-
->>>>>>> cd934c460b (Merge remote-tracking branch 'origin/topic/christian/extensible-conntuples')
-#include "zeek/3rdparty/doctest.h"
-#include "zeek/Event.h"
-#include "zeek/ZeekString.h"
-#include "zeek/analyzer/Manager.h"
-#include "zeek/analyzer/protocol/pia/PIA.h"
 
 namespace zeek::analyzer {
 

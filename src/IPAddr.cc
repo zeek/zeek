@@ -28,7 +28,7 @@ ConnKey::ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 ConnKey::ConnKey(const ConnTuple& id) {
-    Init(id.src_addr, id.dst_addr, id.src_port, id.dst_port, id.proto, id.is_one_way);
+    Init(id.src_addr, id.dst_addr, id.src_port, id.dst_port, id.transport, id.is_one_way);
 }
 
 ConnKey& ConnKey::operator=(const ConnKey& rhs) {

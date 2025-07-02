@@ -39,21 +39,8 @@ void Component::Describe(ODesc* d) const {
 
         case component::SESSION_ADAPTER: d->Add("Session Adapter"); break;
 
-<<<<<<< HEAD
-=======
-        case component::CLUSTER_BACKEND: d->Add("Cluster Backend"); break;
-
-        case component::EVENT_SERIALIZER: d->Add("Event Serializer"); break;
-
-        case component::LOG_SERIALIZER: d->Add("Log Serializer"); break;
-
-        case component::STORAGE_BACKEND: d->Add("Storage Backend"); break;
-
-        case component::STORAGE_SERIALIZER: d->Add("Storage Serializer"); break;
-
         case component::CONNKEY: d->Add("ConnKey Factory"); break;
 
->>>>>>> cd934c460b (Merge remote-tracking branch 'origin/topic/christian/extensible-conntuples')
         default:
             reporter->InternalWarning("unknown component type in plugin::Component::Describe");
             d->Add("<unknown component type>");

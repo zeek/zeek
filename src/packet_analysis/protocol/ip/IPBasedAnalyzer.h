@@ -118,8 +118,8 @@ protected:
     /**
      * Parse the header from the packet into a ConnTuple object.
      */
-    [[deprecated("Remove in v8.1. Switch to InitConnKey() and key-only initialization.")]]
-    virtual bool BuildConnTuple(size_t len, const uint8_t* data, Packet* packet, ConnTuple& tuple) {
+    [[deprecated("Remove in v8.1. Switch to InitConnKey() and key-only initialization.")]] virtual bool BuildConnTuple(
+        size_t len, const uint8_t* data, Packet* packet, ConnTuple& tuple) {
         return false;
     }
 

@@ -60,14 +60,7 @@ bool UDPAnalyzer::InitConnKey(size_t len, const uint8_t* data, Packet* packet, I
         return false;
 
     const struct udphdr* up = (const struct udphdr*)packet->ip_hdr->Payload();
-<<<<<<< HEAD
-    tuple.src_port = up->uh_sport;
-    tuple.dst_port = up->uh_dport;
-    tuple.is_one_way = false;
-    tuple.proto = TRANSPORT_UDP;
-=======
     key.InitTuple(packet->ip_hdr->SrcAddr(), up->uh_sport, packet->ip_hdr->DstAddr(), up->uh_dport, packet->proto);
->>>>>>> cd934c460b (Merge remote-tracking branch 'origin/topic/christian/extensible-conntuples')
 
     return true;
 }

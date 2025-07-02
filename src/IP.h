@@ -32,6 +32,9 @@ namespace detail {
 class FragReassembler;
 }
 
+// From Zeek 8.0 for proto support.
+constexpr uint16_t UNKNOWN_IP_PROTO = 65535;
+
 #ifndef IPPROTO_MOBILITY
 #define IPPROTO_MOBILITY 135
 #endif

@@ -2514,8 +2514,11 @@ type V
 eval	auto teredo = zeek::packet_mgr->GetAnalyzer("Teredo");
 	if ( teredo )
 		{
-		zeek::detail::ConnKey conn_key(frame[z.v1].record_val);
-		static_cast<zeek::packet_analysis::teredo::TeredoAnalyzer*>(teredo.get())->RemoveConnection(conn_key);
+		auto r = zeek::conn_key_mgr->GetFactory().ConnKeyFromVal(*frame[z.v1].record_val);
+		if ( ! r.has_value() )
+			return zeek::val_mgr->False();
+		auto sk = r.value()->SessionKey();
+		static_cast<zeek::packet_analysis::teredo::TeredoAnalyzer*>(teredo.get())->RemoveConnection(sk);
 		}
 
 internal-op Remove-Teredo
@@ -2524,8 +2527,11 @@ type VV
 eval	auto teredo = zeek::packet_mgr->GetAnalyzer("Teredo");
 	if ( teredo )
 		{
-		zeek::detail::ConnKey conn_key(frame[z.v2].record_val);
-		static_cast<zeek::packet_analysis::teredo::TeredoAnalyzer*>(teredo.get())->RemoveConnection(conn_key);
+		auto r = zeek::conn_key_mgr->GetFactory().ConnKeyFromVal(*frame[z.v2].record_val);
+		if ( ! r.has_value() )
+			return zeek::val_mgr->False();
+		auto sk = r.value()->SessionKey();
+		static_cast<zeek::packet_analysis::teredo::TeredoAnalyzer*>(teredo.get())->RemoveConnection(sk);
 		}
 	frame[z.v1].int_val = 1;
 
@@ -2535,8 +2541,11 @@ type V
 eval	auto gtpv1 = zeek::packet_mgr->GetAnalyzer("GTPv1");
 	if ( gtpv1 )
 		{
-		zeek::detail::ConnKey conn_key(frame[z.v1].record_val);
-		static_cast<zeek::packet_analysis::gtpv1::GTPv1_Analyzer*>(gtpv1.get())->RemoveConnection(conn_key);
+		auto r = zeek::conn_key_mgr->GetFactory().ConnKeyFromVal(*frame[z.v1].record_val);
+		if ( ! r.has_value() )
+			return zeek::val_mgr->False();
+		auto sk = r.value()->SessionKey();
+		static_cast<zeek::packet_analysis::gtpv1::GTPv1_Analyzer*>(gtpv1.get())->RemoveConnection(sk);
 		}
 
 internal-op Remove-GTPv1
@@ -2545,8 +2554,11 @@ type VV
 eval	auto gtpv1 = zeek::packet_mgr->GetAnalyzer("GTPv1");
 	if ( gtpv1 )
 		{
-		zeek::detail::ConnKey conn_key(frame[z.v2].record_val);
-		static_cast<zeek::packet_analysis::gtpv1::GTPv1_Analyzer*>(gtpv1.get())->RemoveConnection(conn_key);
+		auto r = zeek::conn_key_mgr->GetFactory().ConnKeyFromVal(*frame[z.v2].record_val);
+		if ( ! r.has_value() )
+			return zeek::val_mgr->False();
+		auto sk = r.value()->SessionKey();
+		static_cast<zeek::packet_analysis::gtpv1::GTPv1_Analyzer*>(gtpv1.get())->RemoveConnection(sk);
 		}
 	frame[z.v1].int_val = 1;
 

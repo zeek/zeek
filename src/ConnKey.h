@@ -67,7 +67,7 @@ protected:
      *
      * @param pkt The packet that's currently being processed.
      */
-    virtual void DoInit(const Packet& pkt) {};
+    virtual void DoInit(const Packet& pkt){};
 
     /**
      * Hook method for ConnKey::PopulateConnIdVal.

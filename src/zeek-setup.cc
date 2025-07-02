@@ -54,12 +54,7 @@
 #include "zeek/analyzer/Manager.h"
 #include "zeek/binpac_zeek.h"
 #include "zeek/broker/Manager.h"
-<<<<<<< HEAD
-=======
-#include "zeek/cluster/Backend.h"
-#include "zeek/cluster/Manager.h"
 #include "zeek/conn_key/Manager.h"
->>>>>>> cd934c460b (Merge remote-tracking branch 'origin/topic/christian/extensible-conntuples')
 #include "zeek/file_analysis/Manager.h"
 #include "zeek/input.h"
 #include "zeek/input/Manager.h"

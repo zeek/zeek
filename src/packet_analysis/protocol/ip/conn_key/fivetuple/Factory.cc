@@ -5,7 +5,7 @@
 #include "zeek/IP.h"
 #include "zeek/Val.h"
 #include "zeek/packet_analysis/protocol/ip/conn_key/IPBasedConnKey.h"
-#include "zeek/util-types.h"
+#include "zeek/util.h"
 
 namespace zeek::conn_key::fivetuple {
 

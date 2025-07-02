@@ -22,18 +22,13 @@ bool GTPv1_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
     const auto& key = conn->Key();
     auto sk = key.SessionKey();
 
-<<<<<<< HEAD
-    auto cm_it = conn_map.find(conn_key);
-    if ( cm_it == conn_map.end() )
-        cm_it = conn_map.insert(cm_it, {conn_key, std::make_unique<binpac::GTPv1::GTPv1_Conn>(this)});
-=======
     auto cm_it = conn_map.find(sk);
     if ( cm_it == conn_map.end() ) {
         sk.CopyData(); // Copy key data to store in map.
         auto [it, inserted] = conn_map.emplace(std::move(sk), std::make_unique<binpac::GTPv1::GTPv1_Conn>(this));
         assert(inserted);
         cm_it = it;
->>>>>>> cd934c460b (Merge remote-tracking branch 'origin/topic/christian/extensible-conntuples')
+    }
 
     try {
         cm_it->second->set_raw_packet(packet);

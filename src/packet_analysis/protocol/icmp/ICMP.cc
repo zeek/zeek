@@ -38,13 +38,6 @@ bool ICMPAnalyzer::InitConnKey(size_t len, const uint8_t* data, Packet* packet, 
     if ( ! CheckHeaderTrunc(ICMP_MINLEN, len, packet) )
         return false;
 
-<<<<<<< HEAD
-    tuple.src_addr = packet->ip_hdr->SrcAddr();
-    tuple.dst_addr = packet->ip_hdr->DstAddr();
-    tuple.proto = TRANSPORT_ICMP;
-
-=======
->>>>>>> cd934c460b (Merge remote-tracking branch 'origin/topic/christian/extensible-conntuples')
     const struct icmp* icmpp = (const struct icmp*)data;
 
     uint32_t icmp_counter_type = 0;

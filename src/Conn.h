@@ -30,15 +30,9 @@ class RecordVal;
 using ValPtr = IntrusivePtr<Val>;
 using RecordValPtr = IntrusivePtr<RecordVal>;
 
-<<<<<<< HEAD
-namespace session {
-class Manager;
-}
-=======
 class IPBasedConnKey;
 using IPBasedConnKeyPtr = std::unique_ptr<IPBasedConnKey>;
 
->>>>>>> cd934c460b (Merge remote-tracking branch 'origin/topic/christian/extensible-conntuples')
 namespace detail {
 
 class Specific_RE_Matcher;
@@ -66,23 +60,14 @@ enum ConnEventToFlag {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 struct ConnTuple {
-<<<<<<< HEAD
-    IPAddr src_addr;
-    IPAddr dst_addr;
-    uint32_t src_port = 0;
-    uint32_t dst_port = 0;
-    bool is_one_way = false; // if true, don't canonicalize order
-    TransportProto proto = TRANSPORT_UNKNOWN;
-=======
 #pragma GCC diagnostic pop
     [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] IPAddr src_addr;
     [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] IPAddr dst_addr;
     [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] uint32_t src_port = 0;
     [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] uint32_t dst_port = 0;
-    [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] uint16_t proto = UNKNOWN_IP_PROTO;
+    [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] TransportProto transport = TRANSPORT_UNKNOWN;
     [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] bool is_one_way =
         false; // if true, don't canonicalize order
->>>>>>> cd934c460b (Merge remote-tracking branch 'origin/topic/christian/extensible-conntuples')
 };
 
 static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1, const IPAddr& addr2, uint32_t p2) {
@@ -93,8 +78,10 @@ class Connection final : public session::Session {
 public:
     Connection(zeek::IPBasedConnKeyPtr k, double t, uint32_t flow, const Packet* pkt);
 
-    [[deprecated("Remove in v8.1. Switch to ConnKey factories and the new zeek::ConnKey tree.")]]
-    Connection(const detail::ConnKey& k, double t, const ConnTuple* id, uint32_t flow, const Packet* pkt);
+    /* awelzel: Commented because it's a hard to make this work and it's deprecated anyhow.
+    [[deprecated("Remove in v8.1. Switch to ConnKey factories and the new zeek::ConnKey tree.")]] Connection(
+        const detail::ConnKey& k, double t, const ConnTuple* id, uint32_t flow, const Packet* pkt);
+    */
 
     ~Connection() override;
 

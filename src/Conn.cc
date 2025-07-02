@@ -48,15 +48,15 @@ Connection::Connection(zeek::IPBasedConnKeyPtr k, double t, uint32_t flow, const
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+/*
+ * awelzel: This is deprecated and a mess make work, so commented out.
+ *
 Connection::Connection(const detail::ConnKey& k, double t, const ConnTuple* id, uint32_t flow, const Packet* pkt)
     : Session(t, connection_timeout, connection_status_update, detail::connection_status_update_interval) {
     orig_addr = id->src_addr;
     resp_addr = id->dst_addr;
     orig_port = id->src_port;
     resp_port = id->dst_port;
-<<<<<<< HEAD
-    proto = TRANSPORT_UNKNOWN;
-=======
 
     switch ( id->proto ) {
         case IPPROTO_TCP: proto = TRANSPORT_TCP; break;
@@ -72,6 +72,7 @@ Connection::Connection(const detail::ConnKey& k, double t, const ConnTuple* id, 
 
     Init(flow, pkt);
 }
+*/
 #pragma GCC diagnostic pop
 
 Connection::~Connection() {
@@ -89,7 +90,6 @@ Connection::~Connection() {
 }
 
 void Connection::Init(uint32_t flow, const Packet* pkt) {
->>>>>>> cd934c460b (Merge remote-tracking branch 'origin/topic/christian/extensible-conntuples')
     orig_flow_label = flow;
     resp_flow_label = 0;
     saw_first_orig_packet = 1;

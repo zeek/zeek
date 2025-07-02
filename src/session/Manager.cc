@@ -18,12 +18,7 @@
 #include "zeek/RunState.h"
 #include "zeek/Timer.h"
 #include "zeek/TunnelEncapsulation.h"
-<<<<<<< HEAD
-#include "zeek/analyzer/Manager.h"
-#include "zeek/iosource/IOSource.h"
-=======
 #include "zeek/conn_key/Manager.h"
->>>>>>> cd934c460b (Merge remote-tracking branch 'origin/topic/christian/extensible-conntuples')
 #include "zeek/packet_analysis/Manager.h"
 #include "zeek/session/Session.h"
 #include "zeek/telemetry/Manager.h"
@@ -95,14 +90,10 @@ Connection* Manager::FindConnection(Val* v) {
     // different builder.
     auto r = conn_key_mgr->GetFactory().ConnKeyFromVal(*v);
 
-<<<<<<< HEAD
-    if ( ! conn_key.valid )
-=======
     if ( ! r.has_value() ) {
-        // Produce a loud error for invalid script-layer conn_id records.
         zeek::emit_builtin_error(r.error().c_str());
->>>>>>> cd934c460b (Merge remote-tracking branch 'origin/topic/christian/extensible-conntuples')
         return nullptr;
+    }
 
     return FindConnection(*r.value());
 }

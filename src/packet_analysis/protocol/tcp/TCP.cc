@@ -33,21 +33,8 @@ bool TCPAnalyzer::InitConnKey(size_t len, const uint8_t* data, Packet* packet, I
     if ( ! CheckHeaderTrunc(min_hdr_len, len, packet) )
         return false;
 
-<<<<<<< HEAD
-    tuple.src_addr = packet->ip_hdr->SrcAddr();
-    tuple.dst_addr = packet->ip_hdr->DstAddr();
-
-    data = packet->ip_hdr->Payload();
-
-    const struct tcphdr* tp = (const struct tcphdr*)data;
-    tuple.src_port = tp->th_sport;
-    tuple.dst_port = tp->th_dport;
-    tuple.is_one_way = false;
-    tuple.proto = TRANSPORT_TCP;
-=======
     const struct tcphdr* tp = (const struct tcphdr*)packet->ip_hdr->Payload();
     key.InitTuple(packet->ip_hdr->SrcAddr(), tp->th_sport, packet->ip_hdr->DstAddr(), tp->th_dport, packet->proto);
->>>>>>> cd934c460b (Merge remote-tracking branch 'origin/topic/christian/extensible-conntuples')
 
     return true;
 }

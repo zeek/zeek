@@ -9,7 +9,7 @@
 #include "zeek/iosource/Packet.h"
 #include "zeek/packet_analysis/protocol/ip/conn_key/IPBasedConnKey.h"
 #include "zeek/packet_analysis/protocol/ip/conn_key/fivetuple/Factory.h"
-#include "zeek/util-types.h"
+#include "zeek/util.h"
 
 namespace zeek::conn_key::vlan_fivetuple {
 

@@ -880,6 +880,9 @@ type connection: record {
 
 	## The inner VLAN, if applicable for this connection.
 	inner_vlan: int &optional;
+
+	## The PPPoE session id, if applicable for this connection.
+	pppoe_session_id: count &optional;
 };
 
 ## Default amount of time a file can be inactive before the file analysis

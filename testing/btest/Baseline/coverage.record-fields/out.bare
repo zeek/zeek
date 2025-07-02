@@ -22,6 +22,7 @@ connection {
         * size: count, log=F, optional=F
         * state: count, log=F, optional=F
        }
+  * pppoe_session_id: count, log=F, optional=T
   * removal_hooks: set[func], log=F, optional=T
   * resp: record endpoint, log=F, optional=F
       endpoint { ... }

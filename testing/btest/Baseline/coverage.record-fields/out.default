@@ -527,6 +527,7 @@ connection {
               * minor: count, log=F, optional=F
              }
        }
+  * pppoe_session_id: count, log=F, optional=T
   * quic: record QUIC::Info, log=F, optional=T
       QUIC::Info {
         * client_initial_dcid: string, log=T, optional=T

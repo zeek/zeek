@@ -164,6 +164,11 @@ public:
     uint32_t inner_vlan = 0;
 
     /**
+     * PPPoE session ID if any, else -1 (out of range).
+     */
+    uint32_t pppoe_session_id = UINT32_MAX;
+
+    /**
      * Layer 3 protocol identified (if any).
      */
     Layer3Proto l3_proto;

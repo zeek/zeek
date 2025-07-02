@@ -12,6 +12,8 @@ bool PPPoEAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packe
         return false;
     }
 
+    // uint32_t code = data[1];
+    packet->pppoe_session_id = (data[2] << 8u) + data[3];
     size_t payload_length = (data[4] << 8u) + data[5];
     // Extract protocol identifier
     uint32_t protocol = (data[6] << 8u) + data[7];

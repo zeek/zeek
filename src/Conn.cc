@@ -99,6 +99,7 @@ void Connection::Init(uint32_t flow, const Packet* pkt) {
 
     vlan = pkt->vlan;
     inner_vlan = pkt->inner_vlan;
+    pppoe_session_id = pkt->pppoe_session_id;
 
     weird = 0;
 
@@ -279,6 +280,9 @@ const RecordValPtr& Connection::GetVal() {
 
         if ( inner_vlan != 0 )
             conn_val->Assign(10, inner_vlan);
+
+        if ( pppoe_session_id != UINT32_MAX ) // pppoe_session_id is UINT32_MAX if not set
+            conn_val->Assign(11, pppoe_session_id);
     }
 
     if ( adapter )

@@ -64,7 +64,8 @@ void Manager::registerSpicyModuleEnd() {
 void Manager::registerProtocolAnalyzer(const std::string& name, hilti::rt::Protocol proto,
                                        const hilti::rt::Vector<::zeek::spicy::rt::PortRange>& ports,
                                        const std::string& parser_orig, const std::string& parser_resp,
-                                       const std::string& replaces, const std::string& linker_scope) {
+                                       const std::string& replaces,
+                                       const hilti::rt::integer::safe<uint64_t>& linker_scope) {
     SPICY_DEBUG(hilti::rt::fmt("Have Spicy protocol analyzer %s", name));
 
     ProtocolAnalyzerInfo info;
@@ -125,7 +126,7 @@ void Manager::registerProtocolAnalyzer(const std::string& name, hilti::rt::Proto
 
 void Manager::registerFileAnalyzer(const std::string& name, const hilti::rt::Vector<std::string>& mime_types,
                                    const std::string& parser, const std::string& replaces,
-                                   const std::string& linker_scope) {
+                                   const hilti::rt::integer::safe<uint64_t>& linker_scope) {
     SPICY_DEBUG(hilti::rt::fmt("Have Spicy file analyzer %s", name));
 
     FileAnalyzerInfo info;
@@ -170,7 +171,7 @@ void Manager::registerFileAnalyzer(const std::string& name, const hilti::rt::Vec
 }
 
 void Manager::registerPacketAnalyzer(const std::string& name, const std::string& parser, const std::string& replaces,
-                                     const std::string& linker_scope) {
+                                     const hilti::rt::integer::safe<uint64_t>& linker_scope) {
     SPICY_DEBUG(hilti::rt::fmt("Have Spicy packet analyzer %s", name));
 
     PacketAnalyzerInfo info;
@@ -651,7 +652,7 @@ void Manager::InitPostScript() {
 
     // Fill in the parser information now that we derived from the ASTs.
     auto find_parser = [](const std::string& analyzer, const std::string& parser,
-                          const std::string& linker_scope) -> const ::spicy::rt::Parser* {
+                          const auto& linker_scope) -> const ::spicy::rt::Parser* {
         if ( parser.empty() )
             return nullptr;
 

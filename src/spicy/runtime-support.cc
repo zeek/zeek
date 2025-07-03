@@ -29,20 +29,21 @@ void rt::register_spicy_module_end() { spicy_mgr->registerSpicyModuleEnd(); }
 void rt::register_protocol_analyzer(const std::string& name, hilti::rt::Protocol proto,
                                     const hilti::rt::Vector<::zeek::spicy::rt::PortRange>& ports,
                                     const std::string& parser_orig, const std::string& parser_resp,
-                                    const std::string& replaces, const std::string& linker_scope) {
+                                    const std::string& replaces,
+                                    const hilti::rt::integer::safe<uint64_t>& linker_scope) {
     auto _ = hilti::rt::profiler::start("zeek/rt/register_protocol_analyzer");
     spicy_mgr->registerProtocolAnalyzer(name, proto, ports, parser_orig, parser_resp, replaces, linker_scope);
 }
 
 void rt::register_file_analyzer(const std::string& name, const hilti::rt::Vector<std::string>& mime_types,
                                 const std::string& parser, const std::string& replaces,
-                                const std::string& linker_scope) {
+                                const hilti::rt::integer::safe<uint64_t>& linker_scope) {
     auto _ = hilti::rt::profiler::start("zeek/rt/register_file_analyzer");
     spicy_mgr->registerFileAnalyzer(name, mime_types, parser, replaces, linker_scope);
 }
 
 void rt::register_packet_analyzer(const std::string& name, const std::string& parser, const std::string& replaces,
-                                  const std::string& linker_scope) {
+                                  const hilti::rt::integer::safe<uint64_t>& linker_scope) {
     auto _ = hilti::rt::profiler::start("zeek/rt/register_packet_analyzer");
     spicy_mgr->registerPacketAnalyzer(name, parser, replaces, linker_scope);
 }

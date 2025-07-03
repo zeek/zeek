@@ -341,7 +341,7 @@ OperationResult SQLite::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool
             return res;
         }
 
-    auto step_result = Step(stmt.get(), false);
+    auto step_result = Step(stmt.get(), nullptr);
     if ( ! overwrite )
         if ( step_result.code == ReturnCode::SUCCESS ) {
             int changed = sqlite3_changes(db);
@@ -375,7 +375,19 @@ OperationResult SQLite::DoGet(ResultCallback* cb, ValPtr key) {
         return res;
     }
 
-    return Step(stmt.get(), true);
+    auto value_parser = [this](sqlite3_stmt* stmt) -> OperationResult {
+        auto blob = static_cast<const std::byte*>(sqlite3_column_blob(stmt, 0));
+        size_t blob_size = sqlite3_column_bytes(stmt, 0);
+
+        auto val = serializer->Unserialize({blob, blob_size}, val_type);
+
+        if ( val )
+            return {ReturnCode::SUCCESS, "", val.value()};
+
+        return {ReturnCode::OPERATION_FAILED, val.error()};
+    };
+
+    return Step(stmt.get(), value_parser);
 }
 
 /**
@@ -396,7 +408,7 @@ OperationResult SQLite::DoErase(ResultCallback* cb, ValPtr key) {
         return res;
     }
 
-    return Step(stmt.get(), false);
+    return Step(stmt.get(), nullptr);
 }
 
 /**
@@ -518,28 +530,18 @@ OperationResult SQLite::CheckError(int code) {
     return {ReturnCode::SUCCESS};
 }
 
-OperationResult SQLite::Step(sqlite3_stmt* stmt, bool parse_value) {
+OperationResult SQLite::Step(sqlite3_stmt* stmt, StepResultParser parser) {
     OperationResult ret;
 
     int step_status = sqlite3_step(stmt);
     if ( step_status == SQLITE_ROW ) {
-        if ( parse_value ) {
-            auto blob = static_cast<const std::byte*>(sqlite3_column_blob(stmt, 0));
-            size_t blob_size = sqlite3_column_bytes(stmt, 0);
-
-            auto val = serializer->Unserialize({blob, blob_size}, val_type);
-
-            if ( val )
-                ret = {ReturnCode::SUCCESS, "", val.value()};
-            else
-                ret = {ReturnCode::OPERATION_FAILED, val.error()};
-        }
-        else {
+        if ( parser )
+            ret = parser(stmt);
+        else
             ret = {ReturnCode::OPERATION_FAILED, "sqlite3_step should not have returned a value"};
-        }
     }
     else if ( step_status == SQLITE_DONE ) {
-        if ( parse_value )
+        if ( parser )
             ret = {ReturnCode::KEY_NOT_FOUND};
         else
             ret = {ReturnCode::SUCCESS};

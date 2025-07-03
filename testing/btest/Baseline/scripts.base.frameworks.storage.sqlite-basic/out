@@ -12,6 +12,8 @@ get result same as inserted, T
 
 Post-operation metrics:
 Telemetry::COUNTER, zeek, zeek_storage_backends_opened_total, [], [], 1.0
+Telemetry::GAUGE, zeek, zeek_storage_sqlite_database_size_bytes, [config], [test.sqlite-testing], 4096.0
+Telemetry::GAUGE, zeek, zeek_storage_sqlite_database_size_pages, [config], [test.sqlite-testing], 5.0
 Telemetry::COUNTER, zeek, zeek_storage_backend_data_read_bytes_total, [config, type], [test.sqlite-testing, Storage::STORAGE_BACKEND_SQLITE], 18.0
 Telemetry::COUNTER, zeek, zeek_storage_backend_expired_entries_total, [config, type], [test.sqlite-testing, Storage::STORAGE_BACKEND_SQLITE], 0.0
 Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config, operation, result, type], [test.sqlite-testing, erase, error, Storage::STORAGE_BACKEND_SQLITE], 0.0

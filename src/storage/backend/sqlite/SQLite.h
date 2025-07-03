@@ -76,6 +76,12 @@ private:
     std::string table_name;
     std::chrono::milliseconds pragma_timeout;
     std::chrono::milliseconds pragma_wait_on_busy;
+
+    telemetry::GaugePtr page_count_metric;
+    telemetry::GaugePtr file_size_metric;
+
+    double last_page_count_value = 0.0;
+    double last_file_size_value = 0.0;
 };
 
 } // namespace zeek::storage::backend::sqlite

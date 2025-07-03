@@ -2,6 +2,7 @@
 
 #include "zeek/storage/backend/sqlite/SQLite.h"
 
+#include <sys/stat.h>
 #include <filesystem>
 #include <thread>
 
@@ -12,7 +13,7 @@
 #include "zeek/Func.h"
 #include "zeek/Val.h"
 #include "zeek/storage/ReturnCode.h"
-#include "zeek/telemetry/Counter.h"
+#include "zeek/telemetry/Manager.h"
 
 #include "const.bif.netvar_h"
 
@@ -260,6 +261,33 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     get_expiry_last_run_stmt = std::move(stmt_ptrs[6]);
     update_expiry_last_run_stmt = std::move(stmt_ptrs[7]);
 
+    page_count_metric =
+        telemetry_mgr->GaugeInstance("zeek", "storage_sqlite_database_size", {{"config", GetConfigMetricsLabel()}},
+                                     "Storage sqlite backend value of page_count pragma", "pages", [this]() {
+                                         static auto double_parser = [](sqlite3_stmt* stmt) -> OperationResult {
+                                             double val = sqlite3_column_double(stmt, 0);
+                                             return {ReturnCode::SUCCESS, "", make_intrusive<DoubleVal>(val)};
+                                         };
+
+                                         auto res = RunPragma("page_count", std::nullopt, double_parser);
+                                         if ( res.code == ReturnCode::SUCCESS ) {
+                                             last_page_count_value = cast_intrusive<DoubleVal>(res.value)->Get();
+                                         }
+
+                                         return last_page_count_value;
+                                     });
+
+    file_size_metric =
+        telemetry_mgr->GaugeInstance("zeek", "storage_sqlite_database_size", {{"config", GetConfigMetricsLabel()}},
+                                     "Storage sqlite backend database file size on disk", "bytes", [this]() {
+                                         struct stat s{0};
+                                         if ( int ret = stat(full_path.c_str(), &s); ret == 0 ) {
+                                             last_file_size_value = static_cast<double>(s.st_size);
+                                         }
+
+                                         return last_file_size_value;
+                                     });
+
     return {ReturnCode::SUCCESS};
 }
 
@@ -305,6 +333,12 @@ OperationResult SQLite::DoClose(ResultCallback* cb) {
 
         expire_db = nullptr;
     }
+
+    if ( page_count_metric )
+        page_count_metric->RemoveCallback();
+
+    if ( file_size_metric )
+        file_size_metric->RemoveCallback();
 
     return op_res;
 }

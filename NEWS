@@ -90,14 +90,34 @@ New Functionality
 
 	@load frameworks/conn_key/vlan_fivetuple
 
-  This results in two additional fields in the conn_id record, showing any VLAN
-  tags involved in the flow. (Accordingly, every log using conn_id reflects the
-  change as well as these fields have the ``&log`` attribute.)
+  By convention, additional fields used by alternative ConnKey implementations are
+  added into the new ``ctx`` field of ``conn_id``. The type of ``ctx`` is ``conn_id_ctx``.
+
+  The ``vlan_fivetuple`` script adds two additional fields to the ``conn_id_ctx``
+  record type, representing any VLAN tags involved. Accordingly, every log
+  using ``conn_id`` reflects the change as well as ``ctx`` and the VLAN fields have
+  the ``&log`` attribute. The columns used for logging will be named ``id.ctx.vlan``
+  and ``id.ctx.inner_vlan``.
 
   This feature does not automatically provide a notion of endpoint that
-  corresponds with the effective flow tuple. For example, applications tracking
+  corresponds with the effective connection tuple. For example, applications tracking
   endpoints by IP address do not somehow become VLAN-aware when enabling
   VLAN-aware tracking.
+
+  Users may experiment with their own notion of endpoint by combining the ``orig_h``
+  or ``resp_h`` field of ``conn_id`` with the new ``ctx`` field. For example, tracking
+  the number of connections from a given host in a VLAN-aware fashion can be done
+  as follows:
+
+	global connection_counts: table[conn_id_ctx, addr] of count &default=0;
+
+	event new_connection(c: connection) {
+		++connection_counts[c$id$ctx, c$id$orig_h];
+	}
+
+  Note that this script snippet isn't VLAN-specific, yet it is VLAN-aware if the
+  ``vlan_fivetuple`` script is loaded. In future Zeek versions, this pattern is
+  likely to be used to adapt base and policy scripts for more "context awareness".
 
   Users may add their own plugins (for example via a zkg package) to provide
   alternative implementations. This involves implementing a factory for

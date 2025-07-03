@@ -19,7 +19,8 @@ using namespace std::chrono_literals;
 
 namespace zeek::storage::backend::sqlite {
 
-OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::string_view> value) {
+OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::string_view> value,
+                                  StepResultParser value_parser) {
     char* errorMsg = nullptr;
     std::chrono::milliseconds time_spent = 0ms;
 
@@ -29,12 +30,24 @@ OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::stri
 
     DBG_LOG(DBG_STORAGE, "Executing '%s' on %s", cmd.c_str(), full_path.c_str());
 
+    sqlite3_stmt* stmt;
+    if ( auto check_res = CheckError(sqlite3_prepare_v2(db, cmd.c_str(), static_cast<int>(cmd.size()), &stmt, nullptr));
+         check_res.code != ReturnCode::SUCCESS )
+        return check_res;
+
+    OperationResult success_res;
+
+    // Make a unique_ptr out of the statement so we don't have to manually call sqlite3_finalize
+    // one it when we return in various places.
+    unique_stmt_ptr stmt_ptr{stmt, sqlite3_finalize};
+
     while ( pragma_timeout == 0ms || time_spent < pragma_timeout ) {
-        int res = sqlite3_exec(db, cmd.c_str(), nullptr, nullptr, &errorMsg);
-        if ( res == SQLITE_OK ) {
+        auto res = Step(stmt, value_parser, true);
+        if ( res.code == ReturnCode::SUCCESS ) {
+            success_res = res;
             break;
         }
-        else if ( res == SQLITE_BUSY ) {
+        else if ( res.code == ReturnCode::TIMEOUT ) {
             // If we got back that the database is busy, it likely means that another process is trying to
             // do their pragmas at startup too. Exponentially back off and try again after a sleep.
             sqlite3_free(errorMsg);
@@ -42,8 +55,8 @@ OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::stri
             time_spent += pragma_wait_on_busy;
         }
         else {
-            std::string err = util::fmt("Error while executing '%s': %s (%d)", cmd.c_str(), errorMsg, res);
-            sqlite3_free(errorMsg);
+            std::string err =
+                util::fmt("Error while executing '%s': %s (%d)", cmd.c_str(), sqlite3_errmsg(db), sqlite3_errcode(db));
             DBG_LOG(DBG_STORAGE, "%s", err.c_str());
             return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
         }
@@ -57,7 +70,7 @@ OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::stri
 
     DBG_LOG(DBG_STORAGE, "'%s' successful", cmd.c_str());
 
-    return {ReturnCode::SUCCESS};
+    return success_res;
 }
 
 storage::BackendPtr SQLite::Instantiate() { return make_intrusive<SQLite>(); }
@@ -530,15 +543,19 @@ OperationResult SQLite::CheckError(int code) {
     return {ReturnCode::SUCCESS};
 }
 
-OperationResult SQLite::Step(sqlite3_stmt* stmt, StepResultParser parser) {
+OperationResult SQLite::Step(sqlite3_stmt* stmt, StepResultParser parser, bool is_pragma) {
     OperationResult ret;
 
     int step_status = sqlite3_step(stmt);
     if ( step_status == SQLITE_ROW ) {
         if ( parser )
             ret = parser(stmt);
-        else
+        else if ( ! is_pragma )
             ret = {ReturnCode::OPERATION_FAILED, "sqlite3_step should not have returned a value"};
+        else
+            // For most pragmas we don't care about the output, so we don't pass a parser. We still
+            // may get a row as a response, but we can discard it and just return SUCCESS.
+            ret = {ReturnCode::SUCCESS};
     }
     else if ( step_status == SQLITE_DONE ) {
         if ( parser )

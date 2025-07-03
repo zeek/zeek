@@ -29,7 +29,7 @@ function basic_functionality()
 		[11/udp, "braces", T] = "second" };
 	local t11: table[conn_id, bool] of count = {
 	    [ [$orig_h=1.1.1.1, $orig_p=1234/tcp,
-	       $resp_h=2.2.2.2, $resp_p=4321/tcp], T ] = 42 };
+	       $resp_h=2.2.2.2, $resp_p=4321/tcp, $ctx=[]], T ] = 42 };
 
 	# Type inference tests
 
@@ -127,11 +127,11 @@ function basic_functionality()
 	test_case( "in operator", 10 in t5 );
 
 	local cid = [$orig_h=1.1.1.1, $orig_p=1234/tcp,
-	             $resp_h=2.2.2.2, $resp_p=4321/tcp];
-	t11[[$orig_h=[::1], $orig_p=3/tcp, $resp_h=[::2], $resp_p=3/tcp], F] = 3;
+	             $resp_h=2.2.2.2, $resp_p=4321/tcp, $ctx=[]];
+	t11[[$orig_h=[::1], $orig_p=3/tcp, $resp_h=[::2], $resp_p=3/tcp, $ctx=[]], F] = 3;
 	test_case( "composite index add element", |t11| == 2 );
 	test_case( "composite index in operator", [cid, T] in t11 );
-	test_case( "composite index in operator", [[$orig_h=[::1], $orig_p=3/tcp, $resp_h=[::2], $resp_p=3/tcp], F] in t11 );
+	test_case( "composite index in operator", [[$orig_h=[::1], $orig_p=3/tcp, $resp_h=[::2], $resp_p=3/tcp, $ctx=[]], F] in t11 );
 
 	# Test removing elements from each table (Note: cannot remove elements
 	# from tables of multiple types)

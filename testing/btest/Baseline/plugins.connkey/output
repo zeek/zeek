@@ -5,31 +5,31 @@ Demo::Foo - A Foo ConnKey factory (dynamic, version 1.0.0)
 ===
 DoNewConnKey (0 key all_inits)
 DoNewConnKey (1 key all_inits)
-DoConnKeyFromVal for [orig_h=141.142.220.235, orig_p=50003/tcp, resp_h=199.233.217.249, resp_p=21/tcp, inits=0]
+DoConnKeyFromVal for [orig_h=141.142.220.235, orig_p=50003/tcp, resp_h=199.233.217.249, resp_p=21/tcp, ctx=[inits=0], inits=0]
 DoNewConnKey (2 key all_inits)
-DoConnKeyFromVal for [orig_h=141.142.220.235, orig_p=50003/tcp, resp_h=199.233.217.249, resp_p=21/tcp, inits=0]
+DoConnKeyFromVal for [orig_h=141.142.220.235, orig_p=50003/tcp, resp_h=199.233.217.249, resp_p=21/tcp, ctx=[inits=0], inits=0]
 DoNewConnKey (6 key all_inits)
 DoNewConnKey (22 key all_inits)
 DoNewConnKey (40 key all_inits)
-DoConnKeyFromVal for [orig_h=141.142.220.235, orig_p=37604/tcp, resp_h=199.233.217.249, resp_p=56666/tcp, inits=1]
+DoConnKeyFromVal for [orig_h=141.142.220.235, orig_p=37604/tcp, resp_h=199.233.217.249, resp_p=56666/tcp, ctx=[inits=1], inits=1]
 DoNewConnKey (53 key all_inits)
-DoConnKeyFromVal for [orig_h=141.142.220.235, orig_p=37604/tcp, resp_h=199.233.217.249, resp_p=56666/tcp, inits=1]
+DoConnKeyFromVal for [orig_h=141.142.220.235, orig_p=37604/tcp, resp_h=199.233.217.249, resp_p=56666/tcp, ctx=[inits=1], inits=1]
 DoNewConnKey (53 key all_inits)
-DoConnKeyFromVal for [orig_h=141.142.220.235, orig_p=59378/tcp, resp_h=199.233.217.249, resp_p=56667/tcp, inits=22]
+DoConnKeyFromVal for [orig_h=141.142.220.235, orig_p=59378/tcp, resp_h=199.233.217.249, resp_p=56667/tcp, ctx=[inits=22], inits=22]
 DoNewConnKey (54 key all_inits)
-DoConnKeyFromVal for [orig_h=141.142.220.235, orig_p=59378/tcp, resp_h=199.233.217.249, resp_p=56667/tcp, inits=22]
+DoConnKeyFromVal for [orig_h=141.142.220.235, orig_p=59378/tcp, resp_h=199.233.217.249, resp_p=56667/tcp, ctx=[inits=22], inits=22]
 DoNewConnKey (54 key all_inits)
 DoNewConnKey (60 key all_inits)
 DoNewConnKey (78 key all_inits)
-DoConnKeyFromVal for [orig_h=199.233.217.249, orig_p=61920/tcp, resp_h=141.142.220.235, resp_p=33582/tcp, inits=40]
+DoConnKeyFromVal for [orig_h=199.233.217.249, orig_p=61920/tcp, resp_h=141.142.220.235, resp_p=33582/tcp, ctx=[inits=40], inits=40]
 DoNewConnKey (90 key all_inits)
-DoConnKeyFromVal for [orig_h=199.233.217.249, orig_p=61920/tcp, resp_h=141.142.220.235, resp_p=33582/tcp, inits=40]
+DoConnKeyFromVal for [orig_h=199.233.217.249, orig_p=61920/tcp, resp_h=141.142.220.235, resp_p=33582/tcp, ctx=[inits=40], inits=40]
 DoNewConnKey (90 key all_inits)
-DoConnKeyFromVal for [orig_h=199.233.217.249, orig_p=61918/tcp, resp_h=141.142.220.235, resp_p=37835/tcp, inits=60]
+DoConnKeyFromVal for [orig_h=199.233.217.249, orig_p=61918/tcp, resp_h=141.142.220.235, resp_p=37835/tcp, ctx=[inits=60], inits=60]
 DoNewConnKey (95 key all_inits)
-DoConnKeyFromVal for [orig_h=199.233.217.249, orig_p=61918/tcp, resp_h=141.142.220.235, resp_p=37835/tcp, inits=60]
+DoConnKeyFromVal for [orig_h=199.233.217.249, orig_p=61918/tcp, resp_h=141.142.220.235, resp_p=37835/tcp, ctx=[inits=60], inits=60]
 DoNewConnKey (95 key all_inits)
-DoConnKeyFromVal for [orig_h=141.142.220.235, orig_p=50003/tcp, resp_h=199.233.217.249, resp_p=21/tcp, inits=0]
+DoConnKeyFromVal for [orig_h=141.142.220.235, orig_p=50003/tcp, resp_h=199.233.217.249, resp_p=21/tcp, ctx=[inits=0], inits=0]
 DoNewConnKey (95 key all_inits)
-DoConnKeyFromVal for [orig_h=141.142.220.235, orig_p=50003/tcp, resp_h=199.233.217.249, resp_p=21/tcp, inits=0]
+DoConnKeyFromVal for [orig_h=141.142.220.235, orig_p=50003/tcp, resp_h=199.233.217.249, resp_p=21/tcp, ctx=[inits=0], inits=0]
 DoNewConnKey (95 key all_inits)

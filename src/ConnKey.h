@@ -29,16 +29,22 @@ public:
     void Init(const Packet& pkt) { DoInit(pkt); }
 
     /**
-     * When Zeek renders a connection into a script-layer record, it calls this
-     * method to populate custom conn_id fields unique to this ConnKey, such as
-     * VLAN fields. This only needs to populate in fields in addition to Zeek's
-     * five-tuple (i.e., complete the record, not populate all of it).
+     * Populates the conn_id and conn_id_ctx records.
+     *
+     * When Zeek renders a connection key into a script-layer record, it calls this
+     * method to populate the conn_id's and conn_id_ctx's fields that are unique to
+     * this ConnKey.
+     *
+     * Currently, \a conn_id and \a ctx will always have the script-layer types conn_id
+     * and conn_id_ctx. They could be of different types in the future for non-IP
+     * connections.
      *
      * The default implementation does nothing.
      *
      * @param conn_id The conn_id record to populate.
+     * @param ctx The conn_id's ctx record to populate.
      */
-    void PopulateConnIdVal(RecordVal& conn_id) { DoPopulateConnIdVal(conn_id); };
+    void PopulateConnIdVal(RecordVal& conn_id, RecordVal& ctx) { DoPopulateConnIdVal(conn_id, ctx); };
 
     /**
      * Return a non-owning session::detail::Key instance for connection lookups.
@@ -72,9 +78,20 @@ protected:
     /**
      * Hook method for ConnKey::PopulateConnIdVal.
      *
+     * When Zeek renders a connection key into a script-layer record, it calls this
+     * method to populate the conn_id's and conn_id_ctx's fields that are unique to
+     * this ConnKey.
+     *
+     * Currently, \a conn_id and \a ctx will always have the script-layer types conn_id
+     * and conn_id_ctx. They could be of different types in the future for non-IP
+     * connections.
+     *
      * The default implementation does nothing.
+     *
+     * @param conn_id The conn_id record to populate.
+     * @param ctx The conn_id's ctx record to populate.
      */
-    virtual void DoPopulateConnIdVal(RecordVal& conn_id) {}
+    virtual void DoPopulateConnIdVal(RecordVal& conn_id, RecordVal& ctx) {}
 
     /**
      * Hook method for implementing ConnKey::SessionKey.

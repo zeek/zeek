@@ -4,7 +4,7 @@ file #0, 0, 0
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #0, 77, 0
-[orig_h=10.10.1.4, orig_p=1470/tcp, resp_h=74.53.140.153, resp_p=25/tcp]
+[orig_h=10.10.1.4, orig_p=1470/tcp, resp_h=74.53.140.153, resp_p=25/tcp, ctx=[]]
 FILE_BOF_BUFFER
 Hello\x0d\x0a\x0d\x0a \x0d
 MIME_TYPE
@@ -18,7 +18,7 @@ file #1, 0, 0
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #1, 1868, 0
-[orig_h=10.10.1.4, orig_p=1470/tcp, resp_h=74.53.140.153, resp_p=25/tcp]
+[orig_h=10.10.1.4, orig_p=1470/tcp, resp_h=74.53.140.153, resp_p=25/tcp, ctx=[]]
 FILE_BOF_BUFFER
 <html xmlns
 MIME_TYPE
@@ -32,7 +32,7 @@ file #2, 0, 0
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #2, 10809, 0
-[orig_h=10.10.1.4, orig_p=1470/tcp, resp_h=74.53.140.153, resp_p=25/tcp]
+[orig_h=10.10.1.4, orig_p=1470/tcp, resp_h=74.53.140.153, resp_p=25/tcp, ctx=[]]
 FILE_BOF_BUFFER
 Version 4.9
 MIME_TYPE
@@ -46,7 +46,7 @@ file #3, 0, 0
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #3, 204, 0
-[orig_h=192.168.133.100, orig_p=49648/tcp, resp_h=192.168.133.102, resp_p=25/tcp]
+[orig_h=192.168.133.100, orig_p=49648/tcp, resp_h=192.168.133.102, resp_p=25/tcp, ctx=[]]
 FILE_BOF_BUFFER
 \x0d\x0a> On 25 J
 MIME_TYPE
@@ -60,7 +60,7 @@ file #4, 0, 0
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #4, 1406, 0
-[orig_h=192.168.133.100, orig_p=49655/tcp, resp_h=17.167.150.73, resp_p=443/tcp]
+[orig_h=192.168.133.100, orig_p=49655/tcp, resp_h=17.167.150.73, resp_p=443/tcp, ctx=[]]
 MIME_TYPE
 application/x-x509-user-cert
 source: SSL
@@ -72,7 +72,7 @@ file #5, 0, 0
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #5, 1092, 0
-[orig_h=192.168.133.100, orig_p=49655/tcp, resp_h=17.167.150.73, resp_p=443/tcp]
+[orig_h=192.168.133.100, orig_p=49655/tcp, resp_h=17.167.150.73, resp_p=443/tcp, ctx=[]]
 MIME_TYPE
 application/x-x509-ca-cert
 source: SSL

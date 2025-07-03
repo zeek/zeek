@@ -4,7 +4,7 @@ file #0, 0, 0
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #0, 4, 0
-[orig_h=141.142.228.5, orig_p=57262/tcp, resp_h=54.243.88.146, resp_p=80/tcp]
+[orig_h=141.142.228.5, orig_p=57262/tcp, resp_h=54.243.88.146, resp_p=80/tcp, ctx=[]]
 FILE_BOF_BUFFER
 test
 source: HTTP
@@ -16,7 +16,7 @@ file #1, 0, 0
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #1, 5, 0
-[orig_h=141.142.228.5, orig_p=57262/tcp, resp_h=54.243.88.146, resp_p=80/tcp]
+[orig_h=141.142.228.5, orig_p=57262/tcp, resp_h=54.243.88.146, resp_p=80/tcp, ctx=[]]
 FILE_BOF_BUFFER
 test2
 source: HTTP
@@ -28,7 +28,7 @@ file #2, 0, 0
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #2, 5, 0
-[orig_h=141.142.228.5, orig_p=57262/tcp, resp_h=54.243.88.146, resp_p=80/tcp]
+[orig_h=141.142.228.5, orig_p=57262/tcp, resp_h=54.243.88.146, resp_p=80/tcp, ctx=[]]
 FILE_BOF_BUFFER
 test3
 source: HTTP
@@ -40,7 +40,7 @@ file #3, 0, 0
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #3, 465, 0
-[orig_h=141.142.228.5, orig_p=57262/tcp, resp_h=54.243.88.146, resp_p=80/tcp]
+[orig_h=141.142.228.5, orig_p=57262/tcp, resp_h=54.243.88.146, resp_p=80/tcp, ctx=[]]
 FILE_BOF_BUFFER
 {\x0a  "data":
 MIME_TYPE

@@ -7,6 +7,7 @@
 #include "zeek/Conn.h"
 #include "zeek/ConnKey.h"
 #include "zeek/IPAddr.h"
+#include "zeek/net_util.h"
 
 namespace zeek {
 
@@ -64,6 +65,41 @@ public:
     uint16_t Proto() const { return PackedTuple().proto; }
 
     /**
+     * @return The TransportProto value for this key's IP proto.
+     */
+    TransportProto GetTransportProto() const {
+        switch ( Proto() ) {
+            case IPPROTO_TCP: return TRANSPORT_TCP;
+            case IPPROTO_UDP: return TRANSPORT_UDP;
+            case IPPROTO_ICMP:
+            case IPPROTO_ICMPV6: return TRANSPORT_ICMP;
+            default: return TRANSPORT_UNKNOWN;
+        }
+    }
+
+    /**
+     * Flips the role of source and destination fields in the packed tuple.
+     */
+    void FlipRoles() { flipped = ! flipped; }
+
+    /**
+     * Flips the role of originator and responder.
+     *
+     * This overload will also flip fields of the conn_id and ctx record
+     * values. The DoFlipRoles hook can be overridden to customize this process,
+     * but that's usually not needed. The default implementation will flip
+     * the orig_h/resp_h and orig_p/resp_p pairs.
+     *
+     * @param conn_id The conn_id record to populate.
+     * @param ctx The conn_id's ctx record to populate.
+     */
+    void FlipRoles(RecordVal& conn_id, RecordVal& ctx) {
+        FlipRoles();
+
+        DoFlipRoles(conn_id, ctx);
+    }
+
+    /**
      * Return a modifiable reference to the embedded PackedConnTuple.
      *
      * This is virtual to give subclasses control over where
@@ -84,6 +120,36 @@ public:
     virtual const detail::PackedConnTuple& PackedTuple() const = 0;
 
 protected:
+    /**
+     * Overridden from ConnKey.
+     *
+     * This implementation sets orig_h, resp_h, orig_p, resp_p and proto
+     * on the \a conn_id record value and leaves \a ctx untouched.
+     *
+     * When implementing subclasses of IPBasedConnKey, redef the script-layer
+     * record type conn_id_ctx with the fields specific to your ConnKey implementation,
+     * e.g. VLAN IDs. Then override this method to populate the fields of \a ctx based
+     * on data stored in your custom ConnKey instance. Ensure to call
+     * IPBasedConnKey::DoPopulateConnIdVal() to populate the common \a conn_id fields, too.
+     *
+     * @param conn_id The conn_id record to populate.
+     * @param ctx The conn_id's ctx record to populate.
+     */
+    void DoPopulateConnIdVal(RecordVal& conn_id, RecordVal& ctx) override;
+
+    /**
+     * Hook for FlipRoles.
+     *
+     * The default implementation will flip the orig_h/resp_h and orig_p/resp_p pairs.
+     *
+     * @param conn_id The conn_id record to flip.
+     * @param ctx The conn_id's ctx record to flip.
+     */
+    virtual void DoFlipRoles(RecordVal& conn_id, RecordVal& ctx);
+
+    /**
+     * Flag for tracking if src and dst addresses provided to InitTuple() were flipped.
+     */
     bool flipped = false;
 };
 

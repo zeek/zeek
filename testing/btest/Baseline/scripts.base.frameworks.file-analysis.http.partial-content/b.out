@@ -4,7 +4,7 @@ file #0, 0, 0
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #0, 1022920, 0
-[orig_h=192.168.72.14, orig_p=3254/tcp, resp_h=65.54.95.206, resp_p=80/tcp]
+[orig_h=192.168.72.14, orig_p=3254/tcp, resp_h=65.54.95.206, resp_p=80/tcp, ctx=[]]
 FILE_BOF_BUFFER
 MZ\x90\x00\x03\x00\x00\x00\x04\x00\x00
 MIME_TYPE
@@ -21,6 +21,6 @@ FILE_TIMEOUT
 FILE_GAP
 FILE_STATE_REMOVE
 file #1, 206024, 816896
-[orig_h=192.168.72.14, orig_p=3257/tcp, resp_h=65.54.95.14, resp_p=80/tcp]
+[orig_h=192.168.72.14, orig_p=3257/tcp, resp_h=65.54.95.14, resp_p=80/tcp, ctx=[]]
 total bytes: 1022920
 source: HTTP

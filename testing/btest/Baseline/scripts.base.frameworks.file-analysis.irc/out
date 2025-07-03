@@ -4,7 +4,7 @@ file #0, 0, 0
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
 file #0, 42208, 0
-[orig_h=192.168.1.77, orig_p=57655/tcp, resp_h=209.197.168.151, resp_p=1024/tcp]
+[orig_h=192.168.1.77, orig_p=57655/tcp, resp_h=209.197.168.151, resp_p=1024/tcp, ctx=[]]
 FILE_BOF_BUFFER
 PK\x03\x04\x14\x00\x00\x00\x08\x00\xae
 MIME_TYPE

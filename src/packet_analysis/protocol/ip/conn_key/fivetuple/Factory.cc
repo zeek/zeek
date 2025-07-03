@@ -4,6 +4,7 @@
 
 #include <netinet/in.h>
 
+#include "zeek/Desc.h"
 #include "zeek/IP.h"
 #include "zeek/Val.h"
 #include "zeek/packet_analysis/protocol/ip/conn_key/IPBasedConnKey.h"
@@ -14,41 +15,25 @@ namespace zeek::conn_key::fivetuple {
 zeek::ConnKeyPtr Factory::DoNewConnKey() const { return std::make_unique<zeek::IPConnKey>(); }
 
 zeek::expected<zeek::ConnKeyPtr, std::string> Factory::DoConnKeyFromVal(const zeek::Val& v) const {
-    static auto unexpected_conn_id = zeek::unexpected<std::string>{"invalid connection ID record encountered"};
     auto ck = NewConnKey();
     auto* ick = static_cast<zeek::IPBasedConnKey*>(ck.get());
     auto& pt = ick->PackedTuple();
-    const auto& vt = v.GetType();
 
-    if ( ! IsRecord(vt->Tag()) )
-        return unexpected_conn_id;
+    if ( v.GetType() != id::conn_id )
+        return zeek::unexpected<std::string>{
+            util::fmt("expected conn_id, got %s", obj_desc_short(v.GetType().get()).c_str())};
 
-    auto* vr = vt->AsRecordType();
     auto vl = v.AsRecordVal();
 
     // Indices into conn_id's record field value list:
-    int orig_h = 0, orig_p = 1, resp_h = 2, resp_p = 3;
-
-    if ( vr != id::conn_id ) {
-        // While it's not a conn_id, it may have equivalent fields.
-        orig_h = vr->FieldOffset("orig_h");
-        resp_h = vr->FieldOffset("resp_h");
-        orig_p = vr->FieldOffset("orig_p");
-        resp_p = vr->FieldOffset("resp_p");
-
-        // clang-format off
-        if ( orig_h < 0 || vr->GetFieldType(orig_h)->Tag() != TYPE_ADDR ||
-	     resp_h < 0 || vr->GetFieldType(resp_h)->Tag() != TYPE_ADDR ||
-	     orig_p < 0 || vr->GetFieldType(orig_p)->Tag() != TYPE_PORT ||
-	     resp_p < 0 || vr->GetFieldType(resp_p)->Tag() != TYPE_PORT ) {
-            return unexpected_conn_id;
-        }
-        // clang-format on
-    }
-
-    if ( ! vl->HasField(orig_h) || ! vl->HasField(resp_h) || ! vl->HasField(orig_p) || ! vl->HasField(resp_p) ) {
-        return unexpected_conn_id;
-    }
+    constexpr int orig_h = 0;
+    constexpr int orig_p = 1;
+    constexpr int resp_h = 2;
+    constexpr int resp_p = 3;
+    constexpr int ctx = 4;
+    if ( ! vl->HasField(orig_h) || ! vl->HasField(resp_h) || ! vl->HasField(orig_p) || ! vl->HasField(resp_p) ||
+         ! vl->HasField(ctx) )
+        return zeek::unexpected<std::string>{"invalid connection ID record encountered"};
 
     const IPAddr& orig_addr = vl->GetFieldAs<AddrVal>(orig_h);
     const IPAddr& resp_addr = vl->GetFieldAs<AddrVal>(resp_h);
@@ -89,8 +74,6 @@ zeek::expected<zeek::ConnKeyPtr, std::string> Factory::DoConnKeyFromVal(const ze
             "Did you forget to set it?");
 
     ick->InitTuple(orig_addr, htons(orig_portv->Port()), resp_addr, htons(resp_portv->Port()), proto16_t);
-
-    // Asserting here on the absence of errors can fail btests.
 
     return ck;
 }

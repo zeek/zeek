@@ -11,19 +11,19 @@ global remote_ip = 192.168.1.100;
 
 global local2local: conn_id = [
     $orig_h = 10.0.0.100, $orig_p = 10000/tcp,
-    $resp_h = 10.0.0.200, $resp_p = 20000/tcp ];
+    $resp_h = 10.0.0.200, $resp_p = 20000/tcp, $ctx=[] ];
 
 global local2remote: conn_id = [
     $orig_h = 10.0.0.100,    $orig_p = 10000/tcp,
-    $resp_h = 192.168.1.100, $resp_p = 20000/tcp ];
+    $resp_h = 192.168.1.100, $resp_p = 20000/tcp, $ctx=[] ];
 
 global remote2local: conn_id = [
     $orig_h = 192.168.1.100,    $orig_p = 10000/tcp,
-    $resp_h = 10.0.0.100,       $resp_p = 20000/tcp ];
+    $resp_h = 10.0.0.100,       $resp_p = 20000/tcp, $ctx=[] ];
 
 global remote2remote: conn_id = [
     $orig_h = 192.168.1.100, $orig_p = 10000/tcp,
-    $resp_h = 192.168.1.200, $resp_p = 20000/tcp ];
+    $resp_h = 192.168.1.200, $resp_p = 20000/tcp, $ctx=[] ];
 
 function test_host(ip: addr, h: Host, expect: bool)
 	{

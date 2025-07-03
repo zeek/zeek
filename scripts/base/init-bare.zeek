@@ -203,6 +203,15 @@ type transport_proto: enum {
     icmp	##< ICMP.
 };
 
+## A record type containing the context of a conn_id instance.
+##
+## This context is used to discriminate between :zeek:see:`conn_id` instances
+## with identical five tuples, but not otherwise related due to, e.g. being observed
+## on different VLANs, or within independent tunnel connections like VXLAN or Geneve.
+##
+## This record type is meant to be extended by custom ConnKey implementations.
+type conn_id_ctx: record { };
+
 ## A connection's identifying 4-tuple of endpoints and ports.
 ##
 ## .. note:: It's actually a 5-tuple: the transport-layer protocol is stored as
@@ -213,11 +222,12 @@ type transport_proto: enum {
 ##    see :ref:`the manual's description of the connection record
 ##    <writing-scripts-connection-record>`.
 type conn_id: record {
-	orig_h: addr;	##< The originator's IP address.
-	orig_p: port;	##< The originator's port number.
-	resp_h: addr;	##< The responder's IP address.
-	resp_p: port;	##< The responder's port number.
-} &log;
+	orig_h: addr &log;	##< The originator's IP address.
+	orig_p: port &log;	##< The originator's port number.
+	resp_h: addr &log;	##< The responder's IP address.
+	resp_p: port &log;	##< The responder's port number.
+	ctx: conn_id_ctx &log &default=conn_id_ctx();  ##< The context in which this connection exists.
+};
 
 ## The identifying 4-tuple of a uni-directional flow.
 ##

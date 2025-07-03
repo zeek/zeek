@@ -4,6 +4,7 @@
 
 #include <memory>
 
+#include "zeek/Desc.h"
 #include "zeek/ID.h"
 #include "zeek/Val.h"
 #include "zeek/iosource/Packet.h"
@@ -37,32 +38,34 @@ protected:
         return {reinterpret_cast<const void*>(&key), sizeof(key), session::detail::Key::CONNECTION_KEY_TYPE};
     }
 
-    void DoPopulateConnIdVal(RecordVal& conn_id) override {
-        if ( conn_id.NumFields() <= 5 )
-            return;
+    void DoPopulateConnIdVal(RecordVal& conn_id, RecordVal& ctx) override {
+        IPBasedConnKey::DoPopulateConnIdVal(conn_id, ctx);
 
         // Nothing to do if we have no VLAN tags at all.
         if ( key.vlan == 0 && key.inner_vlan == 0 )
             return;
 
-        auto [vlan_offset, inner_vlan_offset] = GetConnIdFieldOffsets();
+        auto [vlan_offset, inner_vlan_offset] = GetConnCtxFieldOffsets();
 
         if ( key.vlan && vlan_offset >= 0 )
-            conn_id.Assign(vlan_offset, static_cast<int>(key.vlan));
+            ctx.Assign(vlan_offset, static_cast<int>(key.vlan));
         if ( key.inner_vlan && inner_vlan_offset >= 0 )
-            conn_id.Assign(inner_vlan_offset, static_cast<int>(key.inner_vlan));
+            ctx.Assign(inner_vlan_offset, static_cast<int>(key.inner_vlan));
     };
 
-    std::pair<int, int> GetConnIdFieldOffsets() {
-        static int vlan_offset = -2, inner_vlan_offset = -2;
+    std::pair<int, int> GetConnCtxFieldOffsets() {
+        static const auto& conn_id_ctx = zeek::id::find_type<zeek::RecordType>("conn_id_ctx");
+
+        static int vlan_offset = -2;
+        static int inner_vlan_offset = -2;
 
         if ( vlan_offset == -2 && inner_vlan_offset == -2 ) {
-            vlan_offset = id::conn_id->FieldOffset("vlan");
-            if ( vlan_offset < 0 || id::conn_id->GetFieldType(vlan_offset)->Tag() != TYPE_INT )
+            vlan_offset = conn_id_ctx->FieldOffset("vlan");
+            if ( vlan_offset < 0 || conn_id_ctx->GetFieldType(vlan_offset)->Tag() != TYPE_INT )
                 vlan_offset = -1;
 
-            inner_vlan_offset = id::conn_id->FieldOffset("inner_vlan");
-            if ( inner_vlan_offset < 0 || id::conn_id->GetFieldType(inner_vlan_offset)->Tag() != TYPE_INT )
+            inner_vlan_offset = conn_id_ctx->FieldOffset("inner_vlan");
+            if ( inner_vlan_offset < 0 || conn_id_ctx->GetFieldType(inner_vlan_offset)->Tag() != TYPE_INT )
                 inner_vlan_offset = -1;
         }
 
@@ -78,7 +81,6 @@ protected:
 private:
     friend class Factory;
 
-    // Key bytes:
     struct {
         struct detail::PackedConnTuple tuple;
         // Add 802.1Q vlan tags to connection tuples. The tag representation
@@ -98,30 +100,20 @@ zeek::expected<zeek::ConnKeyPtr, std::string> Factory::DoConnKeyFromVal(const ze
         return ck;
 
     auto* k = static_cast<IPVlanConnKey*>(ck.value().get());
-    auto rt = v.GetType()->AsRecordType();
     auto vl = v.AsRecordVal();
+    static int ctx_offset = id::conn_id->FieldOffset("ctx");
+    auto ctx = vl->GetFieldAs<zeek::RecordVal>(ctx_offset);
 
-    int vlan_offset, inner_vlan_offset;
-    if ( rt == id::conn_id ) {
-        std::tie(vlan_offset, inner_vlan_offset) = k->GetConnIdFieldOffsets();
-    }
-    else {
-        // We don't know what we've been passed.
-        vlan_offset = rt->FieldOffset("vlan");
-        inner_vlan_offset = rt->FieldOffset("inner_vlan");
-    }
+    auto [vlan_offset, inner_vlan_offset] = k->GetConnCtxFieldOffsets();
 
     if ( vlan_offset < 0 || inner_vlan_offset < 0 )
-        return zeek::unexpected<std::string>{"missing vlan or inner_vlan field"};
+        return zeek::unexpected<std::string>{"missing vlan or inner_vlan field in context"};
 
-    if ( rt->GetFieldType(vlan_offset)->Tag() != TYPE_INT || rt->GetFieldType(inner_vlan_offset)->Tag() != TYPE_INT )
-        return zeek::unexpected<std::string>{"vlan or inner_vlan field not of type int"};
+    if ( ctx->HasField(vlan_offset) )
+        k->key.vlan = ctx->GetFieldAs<zeek::IntVal>(vlan_offset);
 
-    if ( vl->HasField(vlan_offset) )
-        k->key.vlan = vl->GetFieldAs<zeek::IntVal>(vlan_offset);
-
-    if ( vl->HasField(inner_vlan_offset) )
-        k->key.inner_vlan = vl->GetFieldAs<zeek::IntVal>(inner_vlan_offset);
+    if ( ctx->HasField(inner_vlan_offset) )
+        k->key.inner_vlan = ctx->GetFieldAs<zeek::IntVal>(inner_vlan_offset);
 
     return ck;
 }

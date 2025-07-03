@@ -7,6 +7,6 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	fuid	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	source	depth	analyzers	mime_type	filename	duration	local_orig	is_orig	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timedout	parent_fuid	md5	sha1	sha256	extracted	extracted_cutoff	extracted_size
 #types	time	string	string	addr	port	addr	port	string	count	set[string]	string	string	interval	bool	bool	count	count	count	count	bool	string	string	string	string	string	bool	count
-XXXXXXXXXX.XXXXXX	FnoIda1WW6kUCpRjRc	ClEkJM2Vm5giqnMf4h	192.168.56.1	59763	192.168.56.101	63988	FTP_DATA	0	DATA_EVENT	text/plain	-	0.000000	T	F	270	-	0	0	F	-	-	-	-	-	-	-
-XXXXXXXXXX.XXXXXX	F1jSMF2ntWAIdj4juj	C4J4Th3PJpwUYZZ6gc	192.168.56.1	59764	192.168.56.101	37150	FTP_DATA	0	DATA_EVENT	text/plain	-	150.490904	T	F	23822	-	5416642848	0	F	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	FNgYRsu82bjmNF5u6	ClEkJM2Vm5giqnMf4h	192.168.56.1	59763	192.168.56.101	63988	FTP_DATA	0	DATA_EVENT	text/plain	-	0.000000	T	F	270	-	0	0	F	-	-	-	-	-	-	-
+XXXXXXXXXX.XXXXXX	Fy1ExH1QTbYMyWw8Fd	C4J4Th3PJpwUYZZ6gc	192.168.56.1	59764	192.168.56.101	37150	FTP_DATA	0	DATA_EVENT	text/plain	-	150.490904	T	F	23822	-	5416642848	0	F	-	-	-	-	-	-	-
 #close XXXX-XX-XX-XX-XX-XX

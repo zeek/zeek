@@ -12,7 +12,7 @@ file_stream, file #0, 663,  thread library when necessary (e.g.\x0a    PF_RING's
 file_chunk, file #0, 663, 4042,  thread library when necessary (e.g.\x0a    PF_RING's libpcap) (Jon Siwek)\x0a\x0a  * Install binaries with an RPATH (Jon Siwek)\x0a\x0a  * Workaround for FreeBSD CMake port missing debug flags (Jon Siwek)\x0a\x0a  * Rewrite of the update-changes script. (Robin Sommer)\x0a\x0a0.1-1 | 2011-06-14 21:12:41 -0700\x0a\x0a  * Add a script for generating Mozilla's CA list for the SSL analyzer.\x0a    (Seth Hall)\x0a\x0a0.1 | 2011-04-01 16:28:22 -0700\x0a\x0a  * Converting build process to CMake. (Jon Siwek)\x0a\x0a  * Removing cf/hf/ca-* from distribution. The README has a note where\x0a    to find them now. (Robin Sommer)\x0a\x0a  * General cleanup. (Robin Sommer)\x0a\x0a  * Initial import of bro/aux from SVN r7088. (Jon Siwek)\x0a
 FILE_STATE_REMOVE
 file #0, 4705, 0
-[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp]
+[orig_h=141.142.228.5, orig_p=59856/tcp, resp_h=192.150.187.43, resp_p=80/tcp, ctx=[]]
 FILE_BOF_BUFFER
 \x0a0.26 | 201
 MIME_TYPE

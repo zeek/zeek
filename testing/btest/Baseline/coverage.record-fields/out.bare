@@ -7,6 +7,9 @@ connection {
         * failure_reason: string, log=T, optional=F
         * id: record conn_id, log=T, optional=F
             conn_id {
+              * ctx: record conn_id_ctx, log=T, optional=T
+                  conn_id_ctx {
+                   }
               * orig_h: addr, log=T, optional=F
               * orig_p: port, log=T, optional=F
               * resp_h: addr, log=T, optional=F

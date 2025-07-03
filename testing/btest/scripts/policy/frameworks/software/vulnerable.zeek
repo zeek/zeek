@@ -13,11 +13,11 @@ redef Software::vulnerable_versions += {
 
 event zeek_init()
 	{
-	Software::found([$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=4.3.2.1, $resp_p=80/tcp], 
+	Software::found([$orig_h=1.2.3.4, $orig_p=1234/tcp, $resp_h=4.3.2.1, $resp_p=80/tcp, $ctx=[]],
 	                [$name="Java", $host=1.2.3.4, $version=[$major=1, $minor=7, $minor2=0, $minor3=15]]);
-	Software::found([$orig_h=1.2.3.5, $orig_p=1234/tcp, $resp_h=4.3.2.1, $resp_p=80/tcp], 
+	Software::found([$orig_h=1.2.3.5, $orig_p=1234/tcp, $resp_h=4.3.2.1, $resp_p=80/tcp, $ctx=[]],
 	                [$name="Java", $host=1.2.3.5, $version=[$major=1, $minor=6, $minor2=0, $minor3=43]]);
-	Software::found([$orig_h=1.2.3.6, $orig_p=1234/tcp, $resp_h=4.3.2.1, $resp_p=80/tcp], 
+	Software::found([$orig_h=1.2.3.6, $orig_p=1234/tcp, $resp_h=4.3.2.1, $resp_p=80/tcp, $ctx=[]],
 	                [$name="Java", $host=1.2.3.6, $version=[$major=1, $minor=6, $minor2=0, $minor3=50]]);
 
 	}

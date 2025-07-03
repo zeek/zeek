@@ -27,6 +27,8 @@ public:
     std::string GetConfigForMetrics() const override;
 
 private:
+    using StepResultParser = std::function<OperationResult(sqlite3_stmt*)>;
+
     OperationResult DoOpen(OpenResultCallback* cb, RecordValPtr options) override;
     OperationResult DoClose(ResultCallback* cb) override;
     OperationResult DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
@@ -47,7 +49,7 @@ private:
      * Abstracts calls to sqlite3_step to properly create an OperationResult
      * structure based on the result.
      */
-    OperationResult Step(sqlite3_stmt* stmt, bool parse_value = false);
+    OperationResult Step(sqlite3_stmt* stmt, StepResultParser parser);
 
     /**
      * Helper utility for running pragmas on the database.

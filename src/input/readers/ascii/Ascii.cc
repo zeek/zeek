@@ -149,7 +149,7 @@ bool Ascii::OpenFile() {
 
     if ( ! read_location ) {
         read_location = LocationPtr(new zeek::detail::Location());
-        read_location->filename = util::copy_string(fname.c_str(), fname.size());
+        read_location->SetFile(util::copy_string(fname.c_str(), fname.size()));
     }
 
     StopWarningSuppression();
@@ -228,8 +228,7 @@ bool Ascii::ReadHeader(bool useCached) {
 bool Ascii::GetLine(string& str) {
     while ( getline(file, str) ) {
         if ( read_location ) {
-            read_location->first_line++;
-            read_location->last_line++;
+            read_location->IncrementLine();
         }
 
         if ( str.empty() )
@@ -255,10 +254,8 @@ bool Ascii::DoUpdate() {
     if ( ! OpenFile() )
         return ! fail_on_file_problem;
 
-    if ( read_location ) {
-        read_location->first_line = 0;
-        read_location->last_line = 0;
-    }
+    if ( read_location )
+        read_location->SetLine(0);
 
     switch ( Info().mode ) {
         case MODE_REREAD: {
@@ -331,7 +328,7 @@ bool Ascii::DoUpdate() {
                 // add non-present field
                 fields[fpos] = new Value(fit.type, false);
                 if ( read_location )
-                    fields[fpos]->SetFileLineNumber(read_location->first_line);
+                    fields[fpos]->SetFileLineNumber(read_location->FirstLine());
                 fpos++;
                 continue;
             }
@@ -367,7 +364,7 @@ bool Ascii::DoUpdate() {
             }
 
             if ( read_location )
-                val->SetFileLineNumber(read_location->first_line);
+                val->SetFileLineNumber(read_location->FirstLine());
 
             if ( fit.secondary_position != -1 ) {
                 // we have a port definition :)

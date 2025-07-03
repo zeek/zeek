@@ -148,7 +148,7 @@ void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf, c
         stmts = pf->ProfiledExpr();
 
     auto loc = stmts->GetLocationInfo();
-    auto loc_info = string("\"") + loc->filename + "\", " + Fmt(loc->first_line);
+    auto loc_info = string("\"") + loc->FileName() + "\", " + Fmt(loc->FirstLine());
     Emit("%s_cl(const char* name%s) : CPPStmt(name, %s)%s { }", fname, addl_args, loc_info, inits);
 
     // An additional constructor just used to generate place-holder

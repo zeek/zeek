@@ -205,7 +205,7 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterType(const TypePtr& tp) {
             auto tr = tp->AsRecordType();
             for ( auto i = tr->NumOrigFields(); i < tr->NumFields(); ++i ) {
                 auto fd = tr->FieldDecl(i);
-                if ( filename_matches_opt_files(fd->GetLocationInfo()->filename) ) {
+                if ( filename_matches_opt_files(fd->GetLocationInfo()->FileName()) ) {
                     if ( addl_fields == 0 )
                         addl_fields = i;
                 }

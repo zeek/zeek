@@ -273,8 +273,7 @@ ESCSEQ	(\\([^\r\n]|[0-7]+|x[[:xdigit:]]+))
 
 <INITIAL,IGNORE>\r?\n	{
 			++line_number;
-			++yylloc.first_line;
-			++yylloc.last_line;
+			yylloc.IncrementLine();
 			}
 
 	/* IPv6 literal constant patterns */
@@ -748,24 +747,26 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 YYLTYPE zeek::detail::GetCurrentLocation() {
     static YYLTYPE currloc;
 
-    currloc.filename = filename;
-    currloc.first_line = currloc.last_line = line_number;
+    currloc.SetFile(filename);
+    currloc.SetLine(line_number);
 
     return currloc;
 }
 
 void zeek::detail::SetCurrentLocation(YYLTYPE currloc) {
-    ::filename = currloc.filename;
-    line_number = currloc.first_line;
+    ::filename = currloc.FileName();
+    line_number = currloc.FirstLine();
 }
 
 static int switch_to(const char* file, YY_BUFFER_STATE buffer) {
     yy_switch_to_buffer(buffer);
-    yylloc.first_line = yylloc.last_line = line_number = 1;
+    line_number = 1;
+    yylloc.SetLine(1);
 
     // Don't delete the old filename - it's pointed to by
     // every Obj created when parsing it.
-    yylloc.filename = filename = zeek::util::copy_string(file);
+    filename = zeek::util::copy_string(file);
+    yylloc.SetFile(filename);
 
     current_file_has_conditionals = files_with_conditionals.count(filename) > 0;
 
@@ -866,7 +867,8 @@ static int load_files(const char* orig_file) {
     }
 
     yy_switch_to_buffer(buffer);
-    yylloc.first_line = yylloc.last_line = line_number = 1;
+    line_number = 1;
+    yylloc.SetLine(1);
 
     return switch_to(file_path.c_str(), buffer);
 }
@@ -1178,7 +1180,8 @@ int yywrap() {
         }
 
         zeek::detail::params.clear();
-        yylloc.filename = filename = "<params>";
+        filename = "<params>";
+        yylloc.SetFile(filename);
         yy_scan_string(policy.c_str());
         return 0;
     }
@@ -1192,7 +1195,8 @@ int yywrap() {
         int tmp_len = strlen(zeek::detail::command_line_policy) + 32;
         char* tmp = new char[tmp_len];
         snprintf(tmp, tmp_len, "%s\n;\n", zeek::detail::command_line_policy);
-        yylloc.filename = filename = "<command line>";
+        filename = "<command line>";
+        yylloc.SetFile(filename);
 
         yy_scan_string(tmp);
         delete[] tmp;
@@ -1219,8 +1223,10 @@ FileInfo::~FileInfo() {
         fclose(yyin);
 
     yy_switch_to_buffer(buffer_state);
-    yylloc.filename = filename = name;
-    yylloc.first_line = yylloc.last_line = line_number = line;
+    filename = name;
+    line_number = line;
+    yylloc.SetFile(filename);
+    yylloc.SetLine(line);
 
     if ( restore_module != "" )
         zeek::detail::current_module = restore_module;

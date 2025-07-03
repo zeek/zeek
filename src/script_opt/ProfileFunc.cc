@@ -1450,12 +1450,12 @@ static std::unordered_map<std::string, std::string> filename_module;
 
 void switch_to_module(const char* module_name) {
     auto loc = GetCurrentLocation();
-    if ( loc.first_line != 0 && filename_module.count(loc.filename) == 0 )
-        filename_module[loc.filename] = module_name;
+    if ( loc.FirstLine() != 0 && filename_module.count(loc.FileName()) == 0 )
+        filename_module[loc.FileName()] = module_name;
 }
 
 std::string func_name_at_loc(std::string fname, const Location* loc) {
-    auto find_module = filename_module.find(loc->filename);
+    auto find_module = filename_module.find(loc->FileName());
     if ( find_module == filename_module.end() )
         // No associated module.
         return fname;
@@ -1476,15 +1476,14 @@ std::string func_name_at_loc(std::string fname, const Location* loc) {
 TraversalCode SetBlockLineNumbers::PreStmt(const Stmt* s) {
     auto loc = const_cast<Location*>(s->GetLocationInfo());
     UpdateLocInfo(loc);
-    block_line_range.emplace_back(loc->first_line, loc->last_line);
+    block_line_range.emplace_back(loc->FirstLine(), loc->LastLine());
     return TC_CONTINUE;
 }
 
 TraversalCode SetBlockLineNumbers::PostStmt(const Stmt* s) {
     auto loc = const_cast<Location*>(s->GetLocationInfo());
     auto r = block_line_range.back();
-    loc->first_line = r.first;
-    loc->last_line = r.second;
+    loc->SetLines(r.first, r.second);
 
     block_line_range.pop_back();
 
@@ -1505,12 +1504,8 @@ TraversalCode SetBlockLineNumbers::PreExpr(const Expr* e) {
 }
 
 void SetBlockLineNumbers::UpdateLocInfo(Location* loc) {
-    // Sometimes locations are generated with inverted line coverage.
-    if ( loc->first_line > loc->last_line )
-        std::swap(loc->first_line, loc->last_line);
-
-    auto first_line = loc->first_line;
-    auto last_line = loc->last_line;
+    auto first_line = loc->FirstLine();
+    auto last_line = loc->LastLine();
 
     if ( ! block_line_range.empty() ) {
         auto& r = block_line_range.back();
@@ -1573,7 +1568,7 @@ TraversalCode ASTBlockAnalyzer::PreExpr(const Expr* e) {
 }
 
 std::string ASTBlockAnalyzer::BuildExpandedDescription(const Location* loc) {
-    ASSERT(loc && loc->first_line != 0);
+    ASSERT(loc && loc->FirstLine() != 0);
 
     auto ls = LocWithFunc(loc);
     if ( ! parents.empty() ) {

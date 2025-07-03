@@ -29,6 +29,11 @@ public:
 private:
     using StepResultParser = std::function<OperationResult(sqlite3_stmt*)>;
 
+    struct MetricStats {
+        double page_count = 0.0;
+        double file_size = 0.0;
+    };
+
     OperationResult DoOpen(OpenResultCallback* cb, RecordValPtr options) override;
     OperationResult DoClose(ResultCallback* cb) override;
     OperationResult DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
@@ -57,6 +62,11 @@ private:
     OperationResult RunPragma(std::string_view name, std::optional<std::string_view> value = std::nullopt,
                               StepResultParser value_parser = nullptr);
 
+    /**
+     * Updates the current stats for metrics.
+     */
+    void UpdateMetricStats();
+
     sqlite3* db = nullptr;
     sqlite3* expire_db = nullptr;
 
@@ -77,6 +87,12 @@ private:
     std::string table_name;
     std::chrono::milliseconds pragma_timeout;
     std::chrono::milliseconds pragma_wait_on_busy;
+
+    telemetry::GaugePtr page_count_metric;
+    telemetry::GaugePtr file_size_metric;
+
+    MetricStats current_metric_stats;
+    double metric_stats_last_updated = 0.0;
 };
 
 } // namespace zeek::storage::backend::sqlite

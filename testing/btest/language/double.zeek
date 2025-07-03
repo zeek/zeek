@@ -29,6 +29,7 @@ global d19: double = 1.7976931348623157e308;  # maximum allowed value
 global d20 = 7.0;
 global d21 = 7e0;
 global d22 = 7e+1;
+global d23 = 7.0;
 
 event zeek_init()
 {
@@ -69,6 +70,11 @@ event zeek_init()
 	test_case( "relational operator", d17 >= d3 );
 	test_case( "relational operator", d17 > d3 );
 	test_case( "division operator", d3/2 == 1.5 );
+
+	d23 /= 3.5;
+	test_case( "compound division operator", d23 == 2.0 );
+	d23 *= 1.75;
+	test_case( "compound multiplcation operator", d23 == 3.5 );
 
 	# Max. value test
 
@@ -111,4 +117,3 @@ event zeek_init()
 	print 0.1;
 	print 1.0;
 }
-

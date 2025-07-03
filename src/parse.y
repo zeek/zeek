@@ -5,11 +5,12 @@
 // Switching parser table type fixes ambiguity problems.
 %define lr.type ielr
 
-%expect 217
+%expect 221
 
 %token TOK_ADD TOK_ADD_TO TOK_ADDR TOK_ANY TOK_ASSERT
 %token TOK_ATENDIF TOK_ATELSE TOK_ATIF TOK_ATIFDEF TOK_ATIFNDEF
 %token TOK_BOOL TOK_BREAK TOK_CASE TOK_OPTION TOK_CONST
+%token TOK_COMPOUND_MULTIPLY TOK_COMPOUND_DIVIDE
 %token TOK_CONSTANT TOK_COPY TOK_COUNT TOK_DEFAULT TOK_DELETE
 %token TOK_DOUBLE TOK_ELSE TOK_ENUM TOK_EVENT TOK_EXPORT TOK_FALLTHROUGH
 %token TOK_FILE TOK_FOR TOK_FUNCTION TOK_GLOBAL TOK_HOOK TOK_ID TOK_IF TOK_INT
@@ -37,7 +38,7 @@
 %token TOK_NO_TEST
 
 %left ','
-%right '=' TOK_ADD_TO TOK_REMOVE_FROM TOK_ADD TOK_DELETE
+%right '=' TOK_ADD_TO TOK_REMOVE_FROM TOK_ADD TOK_DELETE TOK_COMPOUND_MULTIPLY TOK_COMPOUND_DIVIDE
 %right '?' ':'
 %left TOK_OR_OR
 %left TOK_AND_AND
@@ -610,6 +611,32 @@ expr:
 			$$ = new TimesExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
 
+	|	expr TOK_COMPOUND_MULTIPLY rhs
+			{
+			set_location(@1, @3);
+
+			ExprPtr lhs = {AdoptRef{}, $1};
+			ExprPtr rhs = {AdoptRef{}, $3};
+			auto tag1 = $1->GetType()->Tag();
+
+			if ( IsArithmetic($1->GetType()->Tag()) ) {
+				// Script optimization assumes that each AST
+				// node is distinct, hence the call to
+				// Duplicate() here.
+				ExprPtr result = make_intrusive<TimesExpr>(lhs->Duplicate(), rhs);
+
+				if ( result->GetType()->Tag() != tag1 )
+					result = make_intrusive<ArithCoerceExpr>(result, tag1);
+
+				$$ = new AssignExpr(lhs, result, false);
+			}
+			else {
+				$$->Error("Compound multiplication operator is only allowed for arithmetic types");
+				$$->SetError();
+				YYERROR;
+			}
+            }
+
 	|	expr '/' expr
 			{
 			set_location(@1, @3);
@@ -618,6 +645,32 @@ expr:
 			else
 				$$ = new DivideExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
 			}
+
+	|	expr TOK_COMPOUND_DIVIDE rhs
+			{
+			set_location(@1, @3);
+
+			ExprPtr lhs = {AdoptRef{}, $1};
+			ExprPtr rhs = {AdoptRef{}, $3};
+			auto tag1 = $1->GetType()->Tag();
+
+			if ( IsArithmetic($1->GetType()->Tag()) ) {
+				// Script optimization assumes that each AST
+				// node is distinct, hence the call to
+				// Duplicate() here.
+				ExprPtr result = make_intrusive<DivideExpr>(lhs->Duplicate(), rhs);
+
+				if ( result->GetType()->Tag() != tag1 )
+					result = make_intrusive<ArithCoerceExpr>(result, tag1);
+
+				$$ = new AssignExpr(lhs, result, false);
+			}
+			else {
+				$$->Error("Compound division operator is only allowed for arithmetic types");
+				$$->SetError();
+				YYERROR;
+			}
+            }
 
 	|	expr '%' expr
 			{

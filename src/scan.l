@@ -304,6 +304,8 @@ ESCSEQ	(\\([^\r\n]|[0-7]+|x[[:xdigit:]]+))
 
 "+="	return TOK_ADD_TO;
 "-="	return TOK_REMOVE_FROM;
+"*="    return TOK_COMPOUND_MULTIPLY;
+"/="    return TOK_COMPOUND_DIVIDE;
 
 "=="	return TOK_EQ;
 "!="	return TOK_NE;

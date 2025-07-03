@@ -1,3 +1,16 @@
+8.0.0-dev.594 | 2025-07-03 20:43:51 +0200
+
+  * scripts: Use tpe instead of type_, again (Arne Welzel, Corelight)
+
+    The .rst generation doesn't escape the trailing `_` and the docs build
+    gets upset due to using `type` as a reference target then.
+
+    For the better or worse, revert to using tpe. Though I acknowledge this
+    means we need to be careful with trailing underscores because our docs
+    build is so fragile.
+
+    Partly reverts b9eabbabbab912c8f45c49013865a88c1256f342.
+
 8.0.0-dev.592 | 2025-07-03 18:41:29 +0200
 
   * NEWS: Adapt for conn_id$ctx introduction (Arne Welzel, Corelight)

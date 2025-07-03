@@ -113,12 +113,12 @@ export {
 	## Function to register a controller instance. This function
 	## is called automatically by the plugin _new functions.
 	##
-	## type_: Type of this plugin.
+	## tpe: Type of this plugin.
 	##
 	## name: Unique name of this controller instance.
 	##
 	## controller: The controller to register.
-	global register_controller: function(type_: OpenFlow::Plugin, name: string, controller: Controller);
+	global register_controller: function(tpe: OpenFlow::Plugin, name: string, controller: Controller);
 
 	## Function to unregister a controller instance. This function
 	## should be called when a specific controller should no longer
@@ -253,7 +253,7 @@ function controller_init_done(controller: Controller)
 
 # Functions that are called from cluster.zeek and non-cluster.zeek
 
-function register_controller_impl(type_: OpenFlow::Plugin, name: string, controller: Controller)
+function register_controller_impl(tpe: OpenFlow::Plugin, name: string, controller: Controller)
 	{
 	if ( controller$state$_name in name_to_controller )
 		{

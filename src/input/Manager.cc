@@ -881,13 +881,14 @@ bool Manager::UnrollRecordType(vector<Field*>* fields, const RecordType* rec, co
         if ( rec->GetFieldType(i)->Tag() == TYPE_RECORD ) {
             string prep = nameprepend + rec->FieldName(i) + ".";
 
-            if ( rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL) ) {
+            const auto* rt = rec->GetFieldType(i)->AsRecordType();
+            if ( rt->NumFields() > 0 && rec->FieldDecl(i)->GetAttr(zeek::detail::ATTR_OPTIONAL) ) {
                 reporter->Info("The input framework does not support optional record fields: \"%s\"",
                                rec->FieldName(i));
                 return false;
             }
 
-            if ( ! UnrollRecordType(fields, rec->GetFieldType(i)->AsRecordType(), prep, allow_file_func) ) {
+            if ( ! UnrollRecordType(fields, rt, prep, allow_file_func) ) {
                 return false;
             }
         }

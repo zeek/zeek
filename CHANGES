@@ -1,3 +1,60 @@
+8.0.0-dev.592 | 2025-07-03 18:41:29 +0200
+
+  * NEWS: Adapt for conn_id$ctx introduction (Arne Welzel, Corelight)
+
+  * conn_key/fivetuple: Drop support for non conn_id records (Arne Welzel, Corelight)
+
+    Previously, we supported any records that happened to have orig_h,
+    resp_h, etc. fields, but it's not exactly clear why we ever did. Users
+    that relied on this can instantiate an explicit conn_id instance, too.
+
+  * Conn: Move conn_id init and flip to IPBasedConnKey (Arne Welzel, Corelight)
+
+    This loosens the coupling of the script-layer conn_id record and
+    the code in Conn a bit, moving more into the IPBasedConnKey class.
+
+    I'm not quite sure whether moving the flipping logic is worth it,
+    but assuming Conn could become non-IP in the future, it might.
+
+  * IPBasedConnKey: Add GetTransportProto() helper (Arne Welzel, Corelight)
+
+  * input/Manager: Ignore empty record types (Arne Welzel, Corelight)
+
+    Somewhere record types with zero fields get the optional attribute
+    apparently. The input/sqlite/basic test failed due to complaining
+    that ctx is optional. It isn't optional and when it has zero fields
+    we can just ignore it, too.
+
+    Also adds a input framework test with an explicit empty record type
+
+  * external: Bump commit hashes for external suites (Arne Welzel, Corelight)
+
+    get_file_handle() may include c$id and perturbs their values when adding new
+    fields. I think that's reasonable, as files transferred in one VLAN should
+    be treated separate from files transferred in a different VLAN.
+
+  * ip/vlan_fivetuple: Populate nested conn_id_context, not conn_id (Arne Welzel, Corelight)
+
+    This also enforces conn_id and conn_id_ctx types instead of being
+    able to handle any conn_id-like record.
+
+  * ConnKey: Extend DoPopulateConnIdVal() with ctx (Arne Welzel, Corelight)
+
+    This prepares the move where ConnKey implementations should fill out
+    ctx rather than filling conn_id directly. The API continues to receive
+    both, conn_id and ctx, as adding fields to `conn_id` is reasonable
+    use-case even if it's just for logging purposes.
+
+  * btest: Update tests and baselines after adding ctx to conn_id (Arne Welzel, Corelight)
+
+  * init-bare: Add conn_id_ctx to conn_id (Arne Welzel, Corelight)
+
+    This nested record can be used to discriminate orig_h or resp_h being
+    observed in different "contexts". A context can be based on VLAN tags,
+    but any custom ConnKey implementation should populate the ctx field,
+    allowing to write context-aware Zeek scripts without needing to know
+    what the context really is.
+
 8.0.0-dev.581 | 2025-07-02 07:47:32 +0100
 
   * Spicy SSL analyzer: non-functional tweaks (Johanna Amann, Corelight).

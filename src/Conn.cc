@@ -30,14 +30,7 @@ Connection::Connection(zeek::IPBasedConnKeyPtr k, double t, uint32_t flow, const
     resp_addr = key->DstAddr();
     orig_port = key->SrcPort();
     resp_port = key->DstPort();
-
-    switch ( key->Proto() ) {
-        case IPPROTO_TCP: proto = TRANSPORT_TCP; break;
-        case IPPROTO_UDP: proto = TRANSPORT_UDP; break;
-        case IPPROTO_ICMP:
-        case IPPROTO_ICMPV6: proto = TRANSPORT_ICMP; break;
-        default: proto = TRANSPORT_UNKNOWN; break;
-    }
+    proto = key->GetTransportProto();
 
     Init(flow, pkt);
 }
@@ -51,17 +44,11 @@ Connection::Connection(const detail::ConnKey& k, double t, const ConnTuple* id, 
     orig_port = id->src_port;
     resp_port = id->dst_port;
 
-    switch ( id->proto ) {
-        case IPPROTO_TCP: proto = TRANSPORT_TCP; break;
-        case IPPROTO_UDP: proto = TRANSPORT_UDP; break;
-        case IPPROTO_ICMP:
-        case IPPROTO_ICMPV6: proto = TRANSPORT_ICMP; break;
-        default: proto = TRANSPORT_UNKNOWN; break;
-    }
-
     key = std::make_unique<zeek::IPConnKey>();
     key->InitTuple(id->src_addr, id->src_port, id->dst_addr, id->dst_port, id->proto, id->is_one_way);
     key->Init(*pkt);
+
+    proto = key->GetTransportProto();
 
     Init(flow, pkt);
 }
@@ -196,43 +183,15 @@ uint8_t Connection::KeyProto() const { return key->PackedTuple().proto; }
 
 bool Connection::IsReuse(double t, const u_char* pkt) { return adapter && adapter->IsReuse(t, pkt); }
 
-namespace {
-// Flip everything that needs to be flipped in the connection
-// record that is known on this level. This needs to align
-// with GetVal() and connection's layout in init-bare.
-void flip_conn_val(const RecordValPtr& conn_val) {
-    // Flip the the conn_id (c$id).
-    const auto& id_val = conn_val->GetField<zeek::RecordVal>(0);
-    const auto& tmp_addr = id_val->GetField<zeek::AddrVal>(0);
-    const auto& tmp_port = id_val->GetField<zeek::PortVal>(1);
-    id_val->Assign(0, id_val->GetField<zeek::AddrVal>(2));
-    id_val->Assign(1, id_val->GetField<zeek::PortVal>(3));
-    id_val->Assign(2, tmp_addr);
-    id_val->Assign(3, tmp_port);
-
-    // Flip the endpoints within connection.
-    const auto& tmp_endp = conn_val->GetField<zeek::RecordVal>(1);
-    conn_val->Assign(1, conn_val->GetField(2));
-    conn_val->Assign(2, tmp_endp);
-}
-} // namespace
-
 const RecordValPtr& Connection::GetVal() {
     if ( ! conn_val ) {
         conn_val = make_intrusive<RecordVal>(id::connection);
 
-        TransportProto prot_type = ConnTransport();
-
-        // XXX this could technically move into IPBasedConnKey.
         auto id_val = make_intrusive<RecordVal>(id::conn_id);
-        id_val->Assign(0, make_intrusive<AddrVal>(orig_addr));
-        id_val->Assign(1, val_mgr->Port(ntohs(orig_port), prot_type));
-        id_val->Assign(2, make_intrusive<AddrVal>(resp_addr));
-        id_val->Assign(3, val_mgr->Port(ntohs(resp_port), prot_type));
-        id_val->Assign(4, KeyProto());
+        auto* ctx = id_val->GetFieldAs<zeek::RecordVal>(5);
 
-        // Allow customized ConnKeys to augment the conn_id:
-        key->PopulateConnIdVal(*id_val);
+        // Allow customized ConnKeys to augment conn_id and ctx.
+        key->PopulateConnIdVal(*id_val, *ctx);
 
         auto orig_endp = make_intrusive<RecordVal>(id::endpoint);
         orig_endp->Assign(0, 0);
@@ -345,8 +304,22 @@ void Connection::FlipRoles() {
     resp_flow_label = orig_flow_label;
     orig_flow_label = tmp_flow;
 
-    if ( conn_val )
-        flip_conn_val(conn_val);
+    if ( conn_val ) {
+        // Delegate flipping of conn_id and ctx records to the key instance.
+        auto id_val = conn_val->GetField<zeek::RecordVal>(0);
+        auto* ctx = id_val->GetFieldAs<zeek::RecordVal>(5);
+        key->FlipRoles(*id_val, *ctx);
+
+        // Flip the connection's endpoints
+        const auto& tmp_endp = conn_val->GetField<zeek::RecordVal>(1);
+        conn_val->Assign(1, conn_val->GetField(2));
+        conn_val->Assign(2, tmp_endp);
+    }
+    else {
+        // Even we haven't yet allocated a connection value, still need to flip the key's
+        // idea of originator and responder
+        key->FlipRoles();
+    }
 
     if ( adapter )
         adapter->FlipRoles();

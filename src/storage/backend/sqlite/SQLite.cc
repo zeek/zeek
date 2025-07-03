@@ -11,7 +11,7 @@
 #include "zeek/Func.h"
 #include "zeek/Val.h"
 #include "zeek/storage/ReturnCode.h"
-#include "zeek/telemetry/Counter.h"
+#include "zeek/telemetry/Manager.h"
 
 #include "const.bif.netvar_h"
 
@@ -249,7 +249,45 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     get_expiry_last_run_stmt = std::move(stmt_ptrs[6]);
     update_expiry_last_run_stmt = std::move(stmt_ptrs[7]);
 
+    page_count_metric =
+        telemetry_mgr->GaugeInstance("zeek", "storage_sqlite_page_count", {{"backend_config", GetConfigForMetrics()}},
+                                     "Storage sqlite backend page count", "", [this]() {
+                                         UpdateMetricStats();
+                                         return current_metric_stats.page_count;
+                                     });
+
+    file_size_metric =
+        telemetry_mgr->GaugeInstance("zeek", "storage_sqlite_file_size", {{"backend_config", GetConfigForMetrics()}},
+                                     "Storage sqlite backend file size", "", [this]() {
+                                         UpdateMetricStats();
+                                         return current_metric_stats.file_size;
+                                     });
+
     return {ReturnCode::SUCCESS};
+}
+
+void SQLite::UpdateMetricStats() {
+    // Don't update multiple times with every scrape.
+    double now = util::current_time();
+    if ( metric_stats_last_updated > now - 0.01 )
+        return;
+
+    metric_stats_last_updated = now;
+
+    static auto double_parser = [](sqlite3_stmt* stmt) -> OperationResult {
+        double val = sqlite3_column_double(stmt, 0);
+        return {ReturnCode::SUCCESS, "", make_intrusive<DoubleVal>(val)};
+    };
+
+    auto res = RunPragma("page_count", std::nullopt, double_parser);
+    if ( res.code == ReturnCode::SUCCESS ) {
+        current_metric_stats.page_count = cast_intrusive<DoubleVal>(res.value)->Get();
+    }
+
+    struct stat s{0};
+    if ( int ret = stat(full_path.c_str(), &s); ret == 0 ) {
+        current_metric_stats.file_size = s.st_size;
+    }
 }
 
 /**

@@ -85,6 +85,7 @@ ot2 = "ot2"
 uses_seh = "uses_seh"
 ect0 = "ect0"
 ect1 = "ect1"
+tpe = "tpe"
 
 [default.extend-words]
 caf = "caf"

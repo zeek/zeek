@@ -25,12 +25,12 @@ function flow_clear(controller: Controller): bool
 		return F;
 	}
 
-function register_controller(type_: OpenFlow::Plugin, name: string, controller: Controller)
+function register_controller(tpe: OpenFlow::Plugin, name: string, controller: Controller)
 	{
-	controller$state$_name = cat(type_, name);
-	controller$state$_plugin = type_;
+	controller$state$_name = cat(tpe, name);
+	controller$state$_plugin = tpe;
 
-	register_controller_impl(type_, name, controller);
+	register_controller_impl(tpe, name, controller);
 	}
 
 function unregister_controller(controller: Controller)

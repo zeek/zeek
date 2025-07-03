@@ -27,11 +27,11 @@ export {
 	##
 	## desc: The :zeek:type:`Input::EventDescription` record which generated the event.
 	##
-	## type_: The type of input event.
+	## tpe: The type of input event.
 	##
 	## item: The intel item being read (of type :zeek:type:`Intel::Item`).
 	##
-	global read_entry: event(desc: Input::EventDescription, type_: Input::Event, item: Intel::Item);
+	global read_entry: event(desc: Input::EventDescription, tpe: Input::Event, item: Intel::Item);
 
 	## This event is raised each time the input framework detects an error
 	## while reading the intel file. It can be used to implement further checks
@@ -46,7 +46,7 @@ export {
 	global read_error: event(desc: Input::EventDescription, message: string, level: Reporter::Level);
 }
 
-event Intel::read_entry(desc: Input::EventDescription, type_: Input::Event, item: Intel::Item)
+event Intel::read_entry(desc: Input::EventDescription, tpe: Input::Event, item: Intel::Item)
 	{
 	Intel::insert(item);
 	}

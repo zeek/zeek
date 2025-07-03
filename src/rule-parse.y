@@ -456,7 +456,7 @@ void rules_error(const char* msg, const char* addl) {
 
 void rules_error(zeek::detail::Rule* r, const char* msg) {
     const zeek::detail::Location& l = r->GetLocation();
-    zeek::reporter->Error("Error in signature %s (%s:%d): %s", r->ID(), l.filename, l.first_line, msg);
+    zeek::reporter->Error("Error in signature %s (%s:%d): %s", r->ID(), l.FileName(), l.FirstLine(), msg);
     zeek::detail::rule_matcher->SetParseError();
 }
 

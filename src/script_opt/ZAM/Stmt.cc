@@ -12,9 +12,9 @@ namespace zeek::detail {
 
 const ZAMStmt ZAMCompiler::CompileStmt(const Stmt* s) {
     auto loc = s->GetLocationInfo();
-    ASSERT(loc->first_line != 0 || s->Tag() == STMT_NULL);
-    auto loc_copy =
-        std::make_shared<Location>(loc->filename, loc->first_line, loc->last_line, loc->first_column, loc->last_column);
+    ASSERT(loc->FirstLine() != 0 || s->Tag() == STMT_NULL);
+    auto loc_copy = std::make_shared<Location>(loc->FileName(), loc->FirstLine(), loc->LastLine(), loc->FirstColumn(),
+                                               loc->LastColumn());
     ASSERT(! AST_blocks || s->Tag() == STMT_NULL || AST_blocks->HaveExpDesc(loc_copy.get()));
     auto loc_parent = ZAM::curr_loc->Parent();
     ZAM::curr_loc = std::make_shared<ZAMLocInfo>(ZAM::curr_func, std::move(loc_copy), ZAM::curr_loc->Parent());

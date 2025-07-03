@@ -11,7 +11,7 @@ using namespace std;
 void CPPCompile::GenStmt(const Stmt* s) {
     auto loc = s->GetLocationInfo();
     if ( loc != &detail::no_location && s->Tag() != STMT_LIST )
-        Emit("// %s:%s", loc->filename, to_string(loc->first_line));
+        Emit("// %s:%d", loc->FileName(), loc->FirstLine());
 
     switch ( s->Tag() ) {
         case STMT_INIT: GenInitStmt(s->AsInitStmt()); break;
@@ -498,8 +498,8 @@ void CPPCompile::GenAssertStmt(const AssertStmt* a) {
         Emit("auto msg_val = zeek::val_mgr->EmptyString();");
 
     auto loc = a->GetLocationInfo();
-    Emit("static Location loc(\"%s\", %s, %s, %s, %s);", loc->filename, std::to_string(loc->first_line),
-         std::to_string(loc->last_line), std::to_string(loc->first_column), std::to_string(loc->last_column));
+    Emit("static Location loc(\"%s\", %s, %s, %s, %s);", loc->FileName(), std::to_string(loc->FirstLine()),
+         std::to_string(loc->LastLine()), std::to_string(loc->FirstColumn()), std::to_string(loc->LastColumn()));
     Emit("report_assert(assert_result, \"%s\", msg_val, &loc);", CPPEscape(a->CondDesc().c_str()).c_str());
     EndBlock();
 

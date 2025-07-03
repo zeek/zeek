@@ -488,16 +488,14 @@ static std::unique_ptr<detail::Location> _makeLocation(const std::string& locati
             return nullptr;
 
         auto loc = std::make_unique<detail::Location>();
-        loc->filename = filenames.insert(std::string(x[0])).first->c_str(); // we retain ownership
+        loc->SetFile(filenames.insert(std::string(x[0])).first->c_str()); // we retain ownership
 
         if ( x.size() >= 2 ) {
             auto y = hilti::rt::split(x[1], "-");
-            if ( y.size() >= 2 ) {
-                loc->first_line = std::stoi(std::string(y[0]));
-                loc->last_line = std::stoi(std::string(y[1]));
-            }
+            if ( y.size() >= 2 )
+                loc->SetLines(std::stoi(std::string(y[0])), std::stoi(std::string(y[1])));
             else if ( y[0].size() )
-                loc->first_line = loc->last_line = std::stoi(std::string(y[0]));
+                loc->SetLine(std::stoi(std::string(y[0])));
         }
 
         return loc;

@@ -16,30 +16,34 @@ Location start_location("<start uninitialized>", 0, 0, 0, 0);
 Location end_location("<end uninitialized>", 0, 0, 0, 0);
 
 void Location::Describe(ODesc* d) const {
-    if ( filename ) {
-        d->Add(filename);
+    if ( FileName() ) {
+        d->Add(FileName());
 
-        if ( first_line == 0 )
+        if ( FirstLine() == 0 )
             return;
 
         d->AddSP(",");
     }
 
-    if ( last_line != first_line ) {
+    if ( LastLine() != FirstLine() ) {
+        if ( LastLine() < FirstLine() )
+            reporter->InternalError("Location::Describe: %s inconsistent: last_line %d < first_line %d", FileName(),
+                                    LastLine(), FirstLine());
+
         d->Add("lines ");
-        d->Add(first_line);
+        d->Add(FirstLine());
         d->Add("-");
-        d->Add(last_line);
+        d->Add(LastLine());
     }
     else {
         d->Add("line ");
-        d->Add(first_line);
+        d->Add(FirstLine());
     }
 }
 
 bool Location::operator==(const Location& l) const {
-    if ( filename == l.filename || (filename && l.filename && util::streq(filename, l.filename)) )
-        return first_line == l.first_line && last_line == l.last_line;
+    if ( FileName() == l.FileName() || (FileName() && l.FileName() && util::streq(FileName(), l.FileName())) )
+        return FirstLine() == l.FirstLine() && LastLine() == l.LastLine();
     else
         return false;
 }
@@ -121,15 +125,15 @@ bool Obj::SetLocationInfo(const detail::Location* start, const detail::Location*
     if ( ! start || ! end )
         return false;
 
-    if ( end->filename && ! util::streq(start->filename, end->filename) )
+    if ( end->FileName() && ! util::streq(start->FileName(), end->FileName()) )
         return false;
 
     if ( location && (start == &detail::no_location || end == &detail::no_location) )
         // We already have a better location, so don't use this one.
         return true;
 
-    auto new_location =
-        new detail::Location(start->filename, start->first_line, end->last_line, start->first_column, end->last_column);
+    auto new_location = new detail::Location(start->FileName(), start->FirstLine(), end->LastLine(),
+                                             start->FirstColumn(), end->LastColumn());
 
     // Don't delete this until we've constructed the new location, in case
     // "start" or "end" are our own location.
@@ -143,8 +147,8 @@ void Obj::UpdateLocationEndInfo(const detail::Location& end) {
     if ( ! location )
         SetLocationInfo(&end, &end);
 
-    location->last_line = end.last_line;
-    location->last_column = end.last_column;
+    location->SetLastLine(end.LastLine());
+    location->SetLastColumn(end.LastColumn());
 }
 
 void Obj::DoMsg(ODesc* d, const char s1[], const Obj* obj2, bool pinpoint_only,

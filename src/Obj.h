@@ -3,6 +3,7 @@
 #pragma once
 
 #include <climits>
+#include <string>
 
 namespace zeek {
 
@@ -13,7 +14,9 @@ namespace detail {
 class Location final {
 public:
     constexpr Location(const char* fname, int line_f, int line_l, int col_f, int col_l) noexcept
-        : filename(fname), first_line(line_f), last_line(line_l), first_column(col_f), last_column(col_l) {}
+        : filename(fname), first_column(col_f), last_column(col_l) {
+        SetLines(line_f, line_l);
+    }
 
     Location() = default;
 
@@ -22,9 +25,42 @@ public:
     bool operator==(const Location& l) const;
     bool operator!=(const Location& l) const { return ! (*this == l); }
 
+    const char* FileName() const { return filename; }
+    int FirstLine() const { return first_line; }
+    int LastLine() const { return last_line; }
+
+    // Columns are actually not currently maintained.
+    auto FirstColumn() const { return first_column; }
+    auto LastColumn() const { return last_column; }
+
+    void SetFile(const char* fname) { filename = fname; }
+    void SetLine(int line) { SetLines(line, line); }
+    constexpr void SetLines(int first, int last) {
+        if ( first > last ) {
+            // We don't use std::swap() here because it's not
+            // constexpr-enabled on older versions of C++.
+            auto tmp = first;
+            first = last;
+            last = tmp;
+        }
+        first_line = first;
+        last_line = last;
+    }
+    void SetFirstLine(int line) { SetLines(line, last_line); }
+    void SetLastLine(int line) { SetLines(first_line, line); }
+    void IncrementLine(int incr = 1) {
+        first_line += incr;
+        last_line += incr;
+    }
+
+    void SetFirstColumn(int col) { first_column = col; }
+    void SetLastColumn(int col) { last_column = col; }
+
+
+private:
     const char* filename = nullptr;
     int first_line = 0, last_line = 0;
-    int first_column = 0, last_column = 0;
+    int first_column = 0, last_column = 0; // not currently maintained
 };
 
 #define YYLTYPE zeek::detail::yyltype
@@ -73,7 +109,7 @@ public:
         // of 0, which should only happen if it's been assigned
         // to no_location (or hasn't been initialized at all).
         location = nullptr;
-        if ( detail::start_location.first_line != 0 )
+        if ( detail::start_location.FirstLine() != 0 )
             SetLocationInfo(&detail::start_location, &detail::end_location);
     }
 

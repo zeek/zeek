@@ -32,13 +32,13 @@ void ScriptProfile::ChildFinished(const ScriptProfile* child) {
 void ScriptProfile::Report(FILE* f, bool with_traces) const {
     std::string l;
 
-    if ( loc.first_line == 0 )
+    if ( loc.FirstLine() == 0 )
         // Rather than just formatting the no-location loc, we'd like
         // a version that doesn't have a funky "line 0" in it, nor
         // an embedded blank.
         l = "<no-location>";
     else
-        l = std::string(loc.filename) + ":" + std::to_string(loc.first_line);
+        l = util::fmt("%s:%d", loc.FileName(), loc.FirstLine());
 
     std::string ftype = is_BiF ? "BiF" : func->GetType()->FlavorString();
     std::string call_stacks;

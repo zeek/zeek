@@ -139,7 +139,7 @@ bool filename_matches_opt_files(const char* filename) {
     return false;
 }
 
-bool obj_matches_opt_files(const Obj* obj) { return filename_matches_opt_files(obj->GetLocationInfo()->filename); }
+bool obj_matches_opt_files(const Obj* obj) { return filename_matches_opt_files(obj->GetLocationInfo()->FileName()); }
 
 static bool optimize_AST(ScriptFuncPtr f, std::shared_ptr<ProfileFunc>& pf, std::shared_ptr<Reducer>& rc,
                          ScopePtr scope, StmtPtr& body) {

@@ -239,7 +239,7 @@ void Manager::StartType(zeek::detail::IDPtr id) {
         return;
     }
 
-    string script = normalize_script_path(id->GetLocationInfo()->filename);
+    string script = normalize_script_path(id->GetLocationInfo()->FileName());
     ScriptInfo* script_info = scripts.GetInfo(script);
 
     if ( ! script_info ) {
@@ -291,7 +291,7 @@ void Manager::Identifier(zeek::detail::IDPtr id, bool from_redef) {
         return;
     }
 
-    string script = normalize_script_path(id->GetLocationInfo()->filename);
+    string script = normalize_script_path(id->GetLocationInfo()->FileName());
     ScriptInfo* script_info = scripts.GetInfo(script);
 
     if ( ! script_info ) {

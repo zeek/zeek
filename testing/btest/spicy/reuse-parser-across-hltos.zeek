@@ -1,7 +1,7 @@
 # @TEST-REQUIRES: have-spicy
 #
 # @TEST-EXEC: spicyz -d -o foo.hlto foo.spicy foo.evt
-# @TEST-EXEC: spicyz -d -o bar.hlto bar.spicy bar.evt foo.spicy
+# @TEST-EXEC: spicyz -d -o bar.hlto bar.spicy bar.evt
 # @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace foo.hlto %INPUT | sort >>output
 # @TEST-EXEC: echo >>output
 # @TEST-EXEC: zeek -r ${TRACES}/ssh/single-conn.trace bar.hlto %INPUT | sort >>output

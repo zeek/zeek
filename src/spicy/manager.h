@@ -2,10 +2,10 @@
 
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <set>
 #include <string>
-#include <tuple>
 #include <unordered_map>
 #include <vector>
 
@@ -32,8 +32,18 @@ struct Protocol;
 } // namespace hilti::rt
 
 namespace spicy::rt {
+
 struct Parser;
-}
+
+namespace detail {
+#if SPICY_VERSION_NUMBER >= 11400
+using LinkerScope = std::uint64_t;
+#else
+using LinkerScope = std::string;
+#endif
+} // namespace detail
+
+} // namespace spicy::rt
 
 namespace zeek {
 
@@ -99,7 +109,7 @@ public:
     void registerProtocolAnalyzer(const std::string& name, hilti::rt::Protocol proto,
                                   const hilti::rt::Vector<::zeek::spicy::rt::PortRange>& ports,
                                   const std::string& parser_orig, const std::string& parser_resp,
-                                  const std::string& replaces, const std::string& linker_scope);
+                                  const std::string& replaces, const ::spicy::rt::detail::LinkerScope& linker_scope);
 
     /**
      * Runtime method to register a file analyzer with its Zeek-side
@@ -117,7 +127,8 @@ public:
      * registration
      */
     void registerFileAnalyzer(const std::string& name, const hilti::rt::Vector<std::string>& mime_types,
-                              const std::string& parser, const std::string& replaces, const std::string& linker_scope);
+                              const std::string& parser, const std::string& replaces,
+                              const ::spicy::rt::detail::LinkerScope& linker_scope);
 
     /**
      * Runtime method to register a packet analyzer with its Zeek-side
@@ -134,7 +145,7 @@ public:
      * registration
      */
     void registerPacketAnalyzer(const std::string& name, const std::string& parser, const std::string& replaces,
-                                const std::string& linker_scope);
+                                const ::spicy::rt::detail::LinkerScope& linker_scope);
 
     /**
      * Runtime method to register a Spicy-generated type with Zeek. The type
@@ -345,7 +356,7 @@ private:
         std::string name_replaces;
         hilti::rt::Protocol protocol = hilti::rt::Protocol::Undef;
         std::vector<::zeek::spicy::rt::PortRange> ports; // we keep this sorted
-        std::string linker_scope;
+        ::spicy::rt::detail::LinkerScope linker_scope;
 
         // Computed and available once the analyzer has been registered.
         std::string name_zeek;
@@ -371,7 +382,7 @@ private:
         std::string name_parser;
         std::string name_replaces;
         hilti::rt::Vector<std::string> mime_types;
-        std::string linker_scope;
+        ::spicy::rt::detail::LinkerScope linker_scope;
 
         // Computed and available once the analyzer has been registered.
         std::string name_zeek;
@@ -395,7 +406,7 @@ private:
         std::string name_analyzer;
         std::string name_parser;
         std::string name_replaces;
-        std::string linker_scope;
+        ::spicy::rt::detail::LinkerScope linker_scope;
 
         // Computed and available once the analyzer has been registered.
         std::string name_zeek;

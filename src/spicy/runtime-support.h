@@ -111,14 +111,15 @@ void register_spicy_module_begin(const std::string& id, const std::string& descr
 void register_protocol_analyzer(const std::string& id, hilti::rt::Protocol proto,
                                 const hilti::rt::Vector<::zeek::spicy::rt::PortRange>& ports,
                                 const std::string& parser_orig, const std::string& parser_resp,
-                                const std::string& replaces, const std::string& linker_scope);
+                                const std::string& replaces, const ::spicy::rt::detail::LinkerScope& linker_scope);
 
 /**
  * Registers a Spicy file analyzer with its EVT meta information with the
  * plugin's runtime.
  */
 void register_file_analyzer(const std::string& id, const hilti::rt::Vector<std::string>& mime_types,
-                            const std::string& parser, const std::string& replaces, const std::string& linker_scope);
+                            const std::string& parser, const std::string& replaces,
+                            const ::spicy::rt::detail::LinkerScope& linker_scope);
 
 /** Reports a Zeek-side "weird". */
 void weird(const std::string& id, const std::string& addl);
@@ -128,7 +129,7 @@ void weird(const std::string& id, const std::string& addl);
  * plugin's runtime.
  */
 void register_packet_analyzer(const std::string& id, const std::string& parser, const std::string& replaces,
-                              const std::string& linker_scope);
+                              const ::spicy::rt::detail::LinkerScope& linker_scope);
 
 /** Registers a Spicy-generated type to make it available inside Zeek. */
 void register_type(const std::string& ns, const std::string& id, const TypePtr& type);

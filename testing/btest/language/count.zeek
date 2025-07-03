@@ -14,6 +14,7 @@ global c4: count = 255;
 global c5: count = 18446744073709551615;  # maximum allowed value
 global c6: count = 0xffffffffffffffff;    # maximum allowed value
 global c7 = 1;
+global c8: count = 10;
 
 event zeek_init()
 {
@@ -52,6 +53,11 @@ event zeek_init()
 	test_case( "bitwise complement", ~c6 == 0 );
 	test_case( "bitwise complement", ~~c4 == c4 );
 
+	c8 /= 5;
+	test_case( "compound division operator", c8 == 2 );
+	c8 *= 3;
+	test_case( "compound multiplication operator", c8 == 6 );
+
 	# Max. value tests
 
 	local str1 = fmt("max count value = %d", c5);
@@ -59,4 +65,3 @@ event zeek_init()
 	local str2 = fmt("max count value = %d", c6);
 	test_case( str2, str2 == "max count value = 18446744073709551615" );
 }
-

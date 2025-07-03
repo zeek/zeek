@@ -26,6 +26,8 @@ relational operator (PASS)
 relational operator (PASS)
 relational operator (PASS)
 division operator (PASS)
+compound division operator (PASS)
+compound multiplcation operator (PASS)
 max double value = 1.7976931348623157e+308 (PASS)
 
 4.9999999999999999e-13

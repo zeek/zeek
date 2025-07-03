@@ -18,6 +18,7 @@ global i8: int = 0xC;
 global i9: int = -0xC;
 global i10: int = -12;
 global i11 = +3;
+global i12: int = 10;
 
 event zeek_init()
 {
@@ -52,4 +53,9 @@ event zeek_init()
 	test_case( "assignment operator", i2 == 5 );
 	test_case( "bitwise lshift", i6 << 1 == 24 );
 	test_case( "bitwise rshift", i6 >> 1 == 6 );
+
+	i11 /= 5;
+	test_case( "compound division operator", i11 == 2 );
+	i11 *= 3;
+	test_case( "compound multiplication operator", i11 == 6 );
 }

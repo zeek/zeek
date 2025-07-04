@@ -29,6 +29,7 @@ public:
 protected:
     void DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen) override;
     void CheckThresholds(bool is_orig);
+    void NextGenericPacketThreshold();
 
     void ThresholdEvent(EventHandlerPtr f, uint64_t threshold, bool is_orig);
 
@@ -41,6 +42,9 @@ protected:
     uint64_t resp_bytes_thresh = 0;
     uint64_t orig_pkts_thresh = 0;
     uint64_t resp_pkts_thresh = 0;
+
+    uint64_t generic_pkt_thresh = 0;
+    size_t generic_pkt_thresh_next_idx = 0;
 
     double start_time = 0.0;
     double duration_thresh = 0.0;

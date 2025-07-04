@@ -32,9 +32,10 @@
 # @TEST-EXEC: test -f analyzer_debug.log && zeek-cut failure_reason <analyzer_debug.log | diff-remove-abspath >>output-1024-fins
 # @TEST-EXEC: btest-diff output-1024-fins
 
-# @TEST-EXEC: echo "=== Not enough data, missing FINs (expect no output)" >>output-1024-no-fins
+# @TEST-EXEC: echo "=== Not enough data, missing FINs (expect analyzer error)" >>output-1024-no-fins
 # @TEST-EXEC: rm -f analyzer_debug.log && zeek -b -r ${TRACES}/http/get-without-fins.trace Zeek::Spicy foo-1024.hlto %INPUT >>output-1024-no-fins
-# @TEST-EXEC: test '!' -f analyzer_debug.log
+# @TEST-EXEC: zeek-cut -d analyzer_name cause failure_reason <analyzer_debug.log >analyzer_debug-1024-no-fins.log
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=diff-canonifier-spicy btest-diff analyzer_debug-1024-no-fins.log
 # @TEST-EXEC: btest-diff output-1024-no-fins
 
 # @TEST-EXEC: echo "=== Until EOD, regular FINs (expect event output)" >>output-eod-fins

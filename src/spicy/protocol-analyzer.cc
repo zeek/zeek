@@ -161,7 +161,10 @@ void TCP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig) {
     Process(is_orig, len, nullptr);
 }
 
-void TCP_Analyzer::EndOfData(bool is_orig) { analyzer::tcp::TCP_ApplicationAnalyzer::EndOfData(is_orig); }
+void TCP_Analyzer::EndOfData(bool is_orig) {
+    analyzer::tcp::TCP_ApplicationAnalyzer::EndOfData(is_orig);
+    Finish(is_orig);
+}
 
 void TCP_Analyzer::FlipRoles() {
     analyzer::tcp::TCP_ApplicationAnalyzer::FlipRoles();

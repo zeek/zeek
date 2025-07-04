@@ -4,6 +4,7 @@
 
 #include <hilti/base/result.h>
 #include <hilti/base/util.h>
+#include <hilti/compiler/context.h>
 
 #include "config.h"
 #include "driver.h"
@@ -235,6 +236,28 @@ static hilti::Result<Nothing> parseOptions(int argc, char** argv, hilti::driver:
     return Nothing();
 }
 
+// Helper function to detect whether both intern and extern C++ namespace was set.
+static bool isCxxNamespacesSet(const hilti::Options& options) {
+    hilti::Options default_;
+    return options.cxx_namespace_intern != default_.cxx_namespace_intern &&
+           options.cxx_namespace_extern != default_.cxx_namespace_extern;
+}
+
+// A unique ID for the current run, derived from the inputs.
+static size_t runId(const std::vector<hilti::rt::filesystem::path>& inputs) {
+    auto string_hasher = std::hash<std::string>();
+
+    size_t hash = 0;
+
+    for ( const auto& p : inputs ) {
+        auto f = std::ifstream(p);
+        std::string str(std::istreambuf_iterator<char>{f}, {});
+        hash = hilti::rt::hashCombine(hash, string_hasher(str));
+    }
+
+    return hash;
+}
+
 int main(int argc, char** argv) try {
     Driver driver(std::make_unique<GlueCompiler>(), "", configuration::LibraryPath(),
                   configuration::ZeekVersionNumber());
@@ -248,6 +271,21 @@ int main(int argc, char** argv) try {
     if ( auto rc = parseOptions(argc, argv, &driver_options, &compiler_options); ! rc ) {
         hilti::logger().error(rc.error().description());
         return 1;
+    }
+
+    // Spicy uses two special strings to generate identifiers, some of which
+    // are weak symbols which need to be unique across the whole program, in
+    // particular the HLTO scope. Spicy parsers compiled into HLTO files
+    // register themself with the Spicy runtime, but we also inject code so
+    // they register themself as analyzers, both of which happens in the
+    // context of a HLTO scope. In order to support compiling the same parsers
+    // into different analyzer HLTOs we need to make the weak HLTO scopes
+    // unique symbols, so we generate unique strings based on inputs here to
+    // support that use case.
+    if ( ! isCxxNamespacesSet(compiler_options) ) {
+        auto run_id = runId(driver_options.inputs);
+        compiler_options.cxx_namespace_intern = hilti::util::fmt("_namespace_%zu", run_id);
+        compiler_options.cxx_namespace_extern = hilti::util::fmt("namespace_%zu", run_id);
     }
 
     driver.setDriverOptions(std::move(driver_options));

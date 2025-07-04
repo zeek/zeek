@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 
+#include "zeek/net_util.h"
 #include "zeek/threading/SerialTypes.h"
 
 using in4_addr = in_addr;
@@ -22,19 +23,22 @@ namespace detail {
 
 class HashKey;
 
+// Deprecated: Remove the whole class in v8.1. Switch usage to the conntuple factories and the new zeek::ConnKey tree.
 class ConnKey {
 public:
     in6_addr ip1;
     in6_addr ip2;
     uint16_t port1 = 0;
     uint16_t port2 = 0;
-    TransportProto transport = TRANSPORT_UNKNOWN;
+    TransportProto transport = TRANSPORT_UNKNOWN; // awelzel: In 8.0 this is proto. It's not used, so shrug.
     bool valid = true;
 
-    ConnKey(const IPAddr& src, const IPAddr& dst, uint16_t src_port, uint16_t dst_port, TransportProto t, bool one_way);
-    ConnKey(const ConnTuple& conn);
-    ConnKey(const ConnKey& rhs) { *this = rhs; }
-    ConnKey(Val* v);
+    [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] ConnKey(const IPAddr& src, const IPAddr& dst,
+                                                                               uint16_t src_port, uint16_t dst_port,
+                                                                               TransportProto t, bool one_way);
+    [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] ConnKey(const ConnTuple& conn);
+    [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] ConnKey(const ConnKey& rhs) { *this = rhs; }
+    [[deprecated("Remove in v8.1: Switch to new conn_key framework")]] ConnKey(Val* v);
 
     bool operator<(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) < 0; }
     bool operator<=(const ConnKey& rhs) const { return memcmp(this, &rhs, sizeof(ConnKey)) <= 0; }

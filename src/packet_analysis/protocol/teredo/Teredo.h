@@ -7,6 +7,7 @@
 #include "zeek/RE.h"
 #include "zeek/Reporter.h"
 #include "zeek/packet_analysis/Analyzer.h"
+#include "zeek/session/Key.h"
 
 namespace zeek::packet_analysis::teredo {
 
@@ -43,7 +44,7 @@ public:
 
     bool DetectProtocol(size_t len, const uint8_t* data, Packet* packet) override;
 
-    void RemoveConnection(const zeek::detail::ConnKey& conn_key) { orig_resp_map.erase(conn_key); }
+    void RemoveConnection(const zeek::session::detail::Key& conn_key) { orig_resp_map.erase(conn_key); }
 
 protected:
     Connection* conn = nullptr;
@@ -53,7 +54,7 @@ protected:
         bool valid_resp = false;
         bool confirmed = false;
     };
-    using OrigRespMap = std::map<zeek::detail::ConnKey, OrigResp>;
+    using OrigRespMap = std::map<zeek::session::detail::Key, OrigResp>;
     OrigRespMap orig_resp_map;
 
     std::unique_ptr<zeek::detail::Specific_RE_Matcher> pattern_re;

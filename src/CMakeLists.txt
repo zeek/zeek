@@ -173,6 +173,7 @@ gen_zam_target(${GEN_ZAM_SRC_DIR})
 option(USE_SQLITE "Should Zeek use SQLite?" ON)
 
 add_subdirectory(analyzer)
+add_subdirectory(conn_key)
 add_subdirectory(packet_analysis)
 add_subdirectory(broker)
 add_subdirectory(telemetry)
@@ -301,6 +302,7 @@ set(MAIN_SRCS
     CCL.cc
     CompHash.cc
     Conn.cc
+    ConnKey.h
     DFA.cc
     DbgBreakpoint.cc
     DbgHelp.cc

@@ -1,6 +1,8 @@
 @load test-all-policy.zeek
 
 # Scripts which are commented out in test-all-policy.zeek.
+@load frameworks/conn_key/vlan_fivetuple.zeek
+
 @load protocols/ssl/decryption.zeek
 @load frameworks/cluster/nodes-experimental/manager.zeek
 @load frameworks/control/controllee.zeek

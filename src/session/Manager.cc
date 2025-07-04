@@ -18,8 +18,7 @@
 #include "zeek/RunState.h"
 #include "zeek/Timer.h"
 #include "zeek/TunnelEncapsulation.h"
-#include "zeek/analyzer/Manager.h"
-#include "zeek/iosource/IOSource.h"
+#include "zeek/conn_key/Manager.h"
 #include "zeek/packet_analysis/Manager.h"
 #include "zeek/session/Session.h"
 #include "zeek/telemetry/Manager.h"
@@ -85,16 +84,22 @@ Manager::~Manager() {
 void Manager::Done() {}
 
 Connection* Manager::FindConnection(Val* v) {
-    zeek::detail::ConnKey conn_key(v);
+    // XXX: This could in the future dispatch to different factories for
+    // different kinds of Vals. ``v`` will usually be a conn_id instance, which
+    // is IP-specific. If ``v`` is something else, maybe we'd like to use a
+    // different builder.
+    auto r = conn_key_mgr->GetFactory().ConnKeyFromVal(*v);
 
-    if ( ! conn_key.valid )
+    if ( ! r.has_value() ) {
+        zeek::emit_builtin_error(r.error().c_str());
         return nullptr;
+    }
 
-    return FindConnection(conn_key);
+    return FindConnection(*r.value());
 }
 
-Connection* Manager::FindConnection(const zeek::detail::ConnKey& conn_key) {
-    detail::Key key(&conn_key, sizeof(conn_key), detail::Key::CONNECTION_KEY_TYPE, false);
+Connection* Manager::FindConnection(const zeek::ConnKey& conn_key) {
+    auto key = conn_key.SessionKey();
 
     auto it = session_map.find(key);
     if ( it != session_map.end() )

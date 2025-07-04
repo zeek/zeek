@@ -388,6 +388,19 @@ type endpoint_stats: record {
 	endian_type: count;
 };
 
+module ConnKey;
+
+export {
+	## The connection key factory to use for Zeek's internal connection
+	## tracking. This is a ``ConnKey::Tag`` plugin component enum value,
+	## and the default is Zeek's traditional 5-tuple-tracking based on
+	## IP/port endpoint pairs, plus transport protocol. Plugins can provide
+	## their own implementation. You'll usually not adjust this value in
+	## isolation, but with a corresponding redef of the :zeek:type:`conn_id`
+	## record to represent additional connection tuple members.
+	const factory = ConnKey::CONNKEY_FIVETUPLE &redef;
+}
+
 module TCP;
 export {
 	## A TCP Option field parsed from a TCP header.

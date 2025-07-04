@@ -153,12 +153,8 @@ bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
         return false;
     }
 
+    // awelzel: This is the code in 7.0. Creepy.
     conn = static_cast<Connection*>(packet->session);
-    zeek::detail::ConnKey conn_key = conn->Key();
-
-    OrigRespMap::iterator or_it = orig_resp_map.find(conn_key);
-    if ( or_it == orig_resp_map.end() )
-        or_it = orig_resp_map.insert(or_it, {conn_key, {}});
 
     detail::TeredoEncapsulation te(this);
     if ( ! te.Parse(data, len) ) {
@@ -186,6 +182,23 @@ bool TeredoAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
          result == packet_analysis::IP::ParseResult::BadProtocol ) {
         AnalyzerViolation("Truncated Teredo or invalid inner IP version", conn, (const char*)data, len);
         return false;
+    }
+
+    const auto& k = conn->Key();
+    auto sk = k.SessionKey();
+    OrigRespMap::iterator or_it = orig_resp_map.find(sk);
+
+    // The first time a teredo packet is parsed successfully, insert
+    // state into orig_resp_map so we can confirm when both sides
+    // see valid Teredo packets. Further, raise an event so that script
+    // layer can install a connection removal hooks to cleanup later.
+    if ( or_it == orig_resp_map.end() ) {
+        sk.CopyData(); // Copy key data to store in map.
+        auto [it, inserted] = orig_resp_map.emplace(std::move(sk), OrigResp{});
+        assert(inserted);
+        or_it = it;
+
+        // packet->session->EnqueueEvent(new_teredo_state, nullptr, packet->session->GetVal());
     }
 
     if ( packet->is_orig )

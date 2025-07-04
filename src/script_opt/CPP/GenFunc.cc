@@ -182,8 +182,8 @@ string CPPCompile::BodyName(const FuncInfo& func) {
 
     // Extend name with location information.
     auto loc = body->GetLocationInfo();
-    if ( loc->filename ) {
-        auto fn = loc->filename;
+    if ( loc->FileName() ) {
+        auto fn = loc->FileName();
 
         // Skip leading goop that gets added by search paths.
         while ( *fn == '.' || *fn == '/' )

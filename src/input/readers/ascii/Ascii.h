@@ -94,7 +94,7 @@ private:
     // correctly when the unique_ptr gets reset.
     struct LocationDeleter {
         void operator()(zeek::detail::Location* loc) const {
-            delete[] loc->filename;
+            delete[] loc->FileName();
             delete loc;
         }
     };

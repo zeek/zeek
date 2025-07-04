@@ -24,7 +24,7 @@ std::pair<int, std::optional<std::string>> Plugin::HookLoadFileExtended(const Lo
                                                                         const std::string& resolved) {
     // Zeek implicitly provides the location where the current '@load'
     // originated. If no location is available, filename will be a nullptr.
-    auto src = zeek::detail::GetCurrentLocation().filename;
+    auto src = zeek::detail::GetCurrentLocation().FileName();
     if ( ! src )
         src = "n/a";
 

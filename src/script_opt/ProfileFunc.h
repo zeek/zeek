@@ -686,17 +686,17 @@ private:
     // Return the key used to associate a Location object with its full
     // descriptiion.
     std::string LocKey(const Location* loc) const {
-        return std::string(loc->filename) + ":" + std::to_string(loc->first_line) + "-" +
-               std::to_string(loc->last_line);
+        return std::string(loc->FileName()) + ":" + std::to_string(loc->FirstLine()) + "-" +
+               std::to_string(loc->LastLine());
     }
 
     // Return the description of a location including its the function
     // in which it's embedded.
     std::string LocWithFunc(const Location* loc) const {
-        auto res = func_name_prefix + std::to_string(loc->first_line);
+        auto res = func_name_prefix + std::to_string(loc->FirstLine());
 
-        if ( loc->first_line != loc->last_line )
-            res += "-" + std::to_string(loc->last_line);
+        if ( loc->FirstLine() != loc->LastLine() )
+            res += "-" + std::to_string(loc->LastLine());
 
         return res;
     }

@@ -22,9 +22,8 @@ ZAMCompiler::ZAMCompiler(ScriptFuncPtr f, std::shared_ptr<ProfileFuncs> _pfs, st
     frame_sizeI = 0;
 
     auto loc = body->GetLocationInfo();
-    ASSERT(loc->first_line != 0 || body->Tag() == STMT_NULL);
-    auto loc_copy =
-        std::make_shared<Location>(loc->filename, loc->first_line, loc->last_line, loc->first_column, loc->last_column);
+    ASSERT(loc->FirstLine() != 0 || body->Tag() == STMT_NULL);
+    auto loc_copy = std::make_shared<Location>(loc->FileName(), loc->FirstLine(), loc->LastLine());
     ZAM::curr_func = func->GetName();
     ZAM::curr_loc = std::make_shared<ZAMLocInfo>(ZAM::curr_func, std::move(loc_copy), nullptr);
 

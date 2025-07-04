@@ -133,7 +133,7 @@ bool DbgBreakpoint::SetLocation(ParseLocationRec plr, std::string_view loc_str) 
         function_name = make_full_var_name(current_module.c_str(), loc_s.c_str());
         at_stmt = plr.stmt;
         const Location* loc = at_stmt->GetLocationInfo();
-        snprintf(description, sizeof(description), "%s at %s:%d", function_name.c_str(), loc->filename, loc->last_line);
+        snprintf(description, sizeof(description), "%s at %s", function_name.c_str(), loc->FileAndLastLine().c_str());
 
         debug_msg("Breakpoint %d set at %s\n", GetID(), Description());
     }
@@ -154,7 +154,7 @@ bool DbgBreakpoint::SetLocation(Stmt* stmt) {
     AddToGlobalMap();
 
     const Location* loc = stmt->GetLocationInfo();
-    snprintf(description, sizeof(description), "%s:%d", loc->filename, loc->last_line);
+    snprintf(description, sizeof(description), "%s", loc->FileAndLastLine().c_str());
 
     debug_msg("Breakpoint %d set at %s\n", GetID(), Description());
 
@@ -261,7 +261,7 @@ BreakCode DbgBreakpoint::ShouldBreak(Stmt* s) {
             break;
 
         case BP_LINE:
-            assert(s->GetLocationInfo()->first_line <= source_line && s->GetLocationInfo()->last_line >= source_line);
+            assert(s->GetLocationInfo()->FirstLine() <= source_line && s->GetLocationInfo()->LastLine() >= source_line);
             break;
 
         case BP_TIME: assert(false);
@@ -310,7 +310,7 @@ void DbgBreakpoint::PrintHitMsg() {
 
             const Location* loc = at_stmt->GetLocationInfo();
 
-            debug_msg("Breakpoint %d, %s at %s:%d\n", GetID(), d.Description(), loc->filename, loc->first_line);
+            debug_msg("Breakpoint %d, %s at %s\n", GetID(), d.Description(), loc->FileAndLine().c_str());
         }
             return;
 

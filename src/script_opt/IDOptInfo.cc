@@ -73,8 +73,8 @@ void IDOptInfo::AddInitExpr(ExprPtr init_expr, InitClass ic) {
     init_exprs.emplace_back(std::move(init_expr));
 }
 
-void IDOptInfo::DefinedAfter(const Stmt* s, const ExprPtr& e, const std::vector<const Stmt*>& conf_blocks,
-                             zeek_uint_t conf_start) {
+void IDOptInfo::SetDefinedAfter(const Stmt* s, const ExprPtr& e, const std::vector<const Stmt*>& conf_blocks,
+                                zeek_uint_t conf_start) {
     if ( tracing )
         printf("ID %s defined at %d: %s\n", trace_ID, s ? s->GetOptInfo()->stmt_num : NO_DEF,
                s ? obj_desc(s).c_str() : "<entry>");
@@ -122,6 +122,20 @@ void IDOptInfo::DefinedAfter(const Stmt* s, const ExprPtr& e, const std::vector<
     // Add in the remainder.
     for ( ; conf_start < conf_blocks.size(); ++conf_start )
         StartConfluenceBlock(conf_blocks[conf_start]);
+
+    if ( e ) {
+        // If we just ended a region that's (1) at the same block level,
+        // (2) definitive in terms of having assigned to the identifier,
+        // and (3) adjacent to the one we're about to start (no intervening
+        // confluence), then mark it as ended-due-to-assignment (as opposed
+        // to ended-due-to-confluence). Doing so enables us to propagate that
+        // assignment value to the beginning of this block in
+        // FindRegionBeforeIndex() so we can collapse assignment cascades;
+        // see the comment in that method.
+        auto& ub = usage_regions.back();
+        if ( ub.BlockLevel() == s->GetOptInfo()->block_level && ub.EndsAfter() == stmt_num - 1 && ub.DefExprAfter() )
+            ub.SetEndedDueToAssignment();
+    }
 
     // Create a new region corresponding to this definition.
     // This needs to come after filling out the confluence
@@ -433,7 +447,7 @@ void IDOptInfo::EndRegionsAfter(int stmt_num, int level) {
 int IDOptInfo::FindRegionBeforeIndex(int stmt_num) {
     int region_ind = NO_DEF;
     for ( auto i = 0U; i < usage_regions.size(); ++i ) {
-        auto ur = usage_regions[i];
+        auto& ur = usage_regions[i];
 
         if ( ur.StartsAfter() >= stmt_num )
             break;
@@ -441,8 +455,21 @@ int IDOptInfo::FindRegionBeforeIndex(int stmt_num) {
         // It's active for everything beyond its start.
         // or
         // It's active at the beginning of the statement of interest.
-        if ( (ur.EndsAfter() == NO_DEF) || (ur.EndsAfter() >= stmt_num - 1) )
+        if ( ur.EndsAfter() == NO_DEF || ur.EndsAfter() >= stmt_num )
             region_ind = i;
+
+        else if ( ur.EndsAfter() == stmt_num - 1 && ur.EndedDueToAssignment() ) {
+            // There's one other possibility, which occurs for a series of
+            // statements like:
+            //
+            //	a = some_val;
+            //	a = a + 1;
+            //
+            // Here, the assignment for "a = some_val" ends right after
+            // that statement due to new assignment to 'a' on the second line.
+            // However, it's okay to use the first region on the RHS.
+            region_ind = i;
+        }
     }
 
     ASSERT(region_ind != NO_DEF);

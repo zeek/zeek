@@ -51,6 +51,13 @@ public:
     int EndsAfter() const { return end_stmt; }
     void SetEndsAfter(int _end_stmt) { end_stmt = _end_stmt; }
 
+    // Returns or sets whether the region ended due to a new assignment to the
+    // identifier, or confluence (ending of a scope block). This information
+    // is used for an optimization in IDOptInfo::FindRegionBeforeIndex().
+    // The value defaults to false.
+    bool EndedDueToAssignment() const { return ended_due_to_assignment; }
+    void SetEndedDueToAssignment() { ended_due_to_assignment = true; }
+
     // The confluence nesting level associated with the region.  Other
     // regions that overlap take precedence if they have a higher
     // (= more inner) block level.
@@ -84,6 +91,10 @@ protected:
     // Number of the statement that this region applies to, *after*
     // its execution.
     int end_stmt = NO_DEF; // means the region hasn't ended yet
+
+    // Whether the region ended because of an immediately following
+    // assignment.
+    bool ended_due_to_assignment = false;
 
     // Degree of confluence nesting associated with this region.
     int block_level;
@@ -165,8 +176,8 @@ public:
     // gives the full set of surrounding confluence statements.
     // It should be processed starting at conf_start (note that
     // conf_blocks may be empty).
-    void DefinedAfter(const Stmt* s, const ExprPtr& e, const std::vector<const Stmt*>& conf_blocks,
-                      zeek_uint_t conf_start);
+    void SetDefinedAfter(const Stmt* s, const ExprPtr& e, const std::vector<const Stmt*>& conf_blocks,
+                         zeek_uint_t conf_start);
 
     // Called upon encountering a "return" statement.
     void ReturnAt(const Stmt* s);

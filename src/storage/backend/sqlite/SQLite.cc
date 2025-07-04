@@ -16,6 +16,11 @@
 
 using namespace std::chrono_literals;
 
+namespace {
+// Helper to check whether a database-stored `expire_time` is considered expired.
+bool is_expired(double expire_time) { return expire_time != 0 && expire_time < zeek::run_state::network_time; }
+} // namespace
+
 namespace zeek::storage::backend::sqlite {
 
 OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::string_view> value) {
@@ -189,7 +194,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
                                 "DO UPDATE SET value_str=?, expire_time=?",
                                 table_name.c_str()),
                         db),
-         std::make_pair(util::fmt("select value_str from %s where key_str=?", table_name.c_str()), db),
+         std::make_pair(util::fmt("select value_str, expire_time from %s where key_str=?", table_name.c_str()), db),
          std::make_pair(util::fmt("delete from %s where key_str=?", table_name.c_str()), db),
 
          std::make_pair(
@@ -288,6 +293,33 @@ OperationResult SQLite::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool
     auto key_data = serializer->Serialize(key);
     if ( ! key_data )
         return {ReturnCode::SERIALIZATION_FAILED, "Failed to serialize key"};
+
+    // If we are not already in overwrite mode check if an expired entry exists
+    // in the database. Such entries would not be visible to the user, but even
+    // outside of overwrite mode would need to be overwritten.
+    if ( ! overwrite ) {
+        auto stmt = unique_stmt_ptr(get_stmt.get(), sqlite3_reset);
+
+        if ( auto res = CheckError(sqlite3_bind_blob(stmt.get(), 1, key_data->data(), key_data->size(), SQLITE_STATIC));
+             res.code != ReturnCode::SUCCESS ) {
+            return res;
+        }
+
+        int step_status = sqlite3_step(stmt.get());
+        if ( step_status == SQLITE_ROW ) {
+            // If an expired entry exists, switch to overwrite mode.
+            overwrite =
+                sqlite3_column_type(stmt.get(), 1) != SQLITE_NULL && is_expired(sqlite3_column_double(stmt.get(), 0));
+        }
+        else if ( step_status == SQLITE_DONE ) {
+            // Nothing currently exists.
+        }
+        else if ( step_status == SQLITE_BUSY || step_status == SQLITE_LOCKED )
+            // TODO: this could retry a number of times instead of just failing
+            return {ReturnCode::TIMEOUT};
+        else
+            return {ReturnCode::OPERATION_FAILED};
+    }
 
     unique_stmt_ptr stmt;
     if ( ! overwrite )
@@ -496,15 +528,19 @@ OperationResult SQLite::Step(sqlite3_stmt* stmt, bool parse_value) {
     int step_status = sqlite3_step(stmt);
     if ( step_status == SQLITE_ROW ) {
         if ( parse_value ) {
-            auto blob = static_cast<const std::byte*>(sqlite3_column_blob(stmt, 0));
-            size_t blob_size = sqlite3_column_bytes(stmt, 0);
+            if ( sqlite3_column_type(stmt, 1) != SQLITE_NULL && is_expired(sqlite3_column_double(stmt, 1)) )
+                ret = {ReturnCode::KEY_NOT_FOUND, ""};
+            else {
+                auto blob = static_cast<const std::byte*>(sqlite3_column_blob(stmt, 0));
+                size_t blob_size = sqlite3_column_bytes(stmt, 0);
 
-            auto val = serializer->Unserialize({blob, blob_size}, val_type);
+                auto val = serializer->Unserialize({blob, blob_size}, val_type);
 
-            if ( val )
-                ret = {ReturnCode::SUCCESS, "", val.value()};
-            else
-                ret = {ReturnCode::OPERATION_FAILED, val.error()};
+                if ( val )
+                    ret = {ReturnCode::SUCCESS, "", val.value()};
+                else
+                    ret = {ReturnCode::OPERATION_FAILED, val.error()};
+            }
         }
         else {
             ret = {ReturnCode::OPERATION_FAILED, "sqlite3_step should not have returned a value"};

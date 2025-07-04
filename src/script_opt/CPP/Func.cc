@@ -37,7 +37,7 @@ CPPStmt::CPPStmt(const char* _name, const char* filename, int line_num) : Stmt(S
     auto empty_args = make_intrusive<ListExpr>();
 
     ce = make_intrusive<CallExpr>(make_intrusive<ConstExpr>(fv), empty_args);
-    Location loc(filename, line_num, line_num, 1, 1);
+    Location loc(filename, line_num, line_num);
     ce->SetLocationInfo(&loc);
 }
 

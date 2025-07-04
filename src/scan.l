@@ -53,7 +53,7 @@
 
 using namespace zeek::detail;
 
-extern YYLTYPE yylloc;	// holds start line and column of token
+extern YYLTYPE yylloc;	// holds location of token
 extern zeek::EnumType* cur_enum_type;
 
 // Track the @if... depth.
@@ -218,8 +218,6 @@ static int switch_to(const char* file, YY_BUFFER_STATE buffer);
 // for error reporting and debugging).
 static zeek::name_list input_files;
 static zeek::name_list essential_input_files;
-
-// ### TODO: columns too - use yyless with '.' action?
 %}
 
 %option nounput nodefault

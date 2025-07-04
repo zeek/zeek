@@ -108,7 +108,7 @@ rule_list:
 rule:
 		TOK_SIGNATURE TOK_IDENT
 			{
-			zeek::detail::Location l(current_rule_file, rules_line_number+1, 0, 0, 0);
+			zeek::detail::Location l(current_rule_file, rules_line_number+1, 0);
 			current_rule = new zeek::detail::Rule(yylval.str, l);
 			}
 		'{' rule_attr_list '}'

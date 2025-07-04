@@ -84,8 +84,7 @@ bool StmtLocMapping::StartsAfter(const StmtLocMapping* m2) {
     if ( ! m2 )
         reporter->InternalError("Assertion failed: m2 != 0");
 
-    return loc.FirstLine() > m2->loc.FirstLine() ||
-           (loc.FirstLine() == m2->loc.FirstLine() && loc.FirstColumn() > m2->loc.FirstColumn());
+    return loc.FirstLine() > m2->loc.FirstLine();
 }
 
 // Generic debug message output.

@@ -12,8 +12,8 @@
 namespace zeek {
 namespace detail {
 
-Location start_location("<start uninitialized>", 0, 0, 0, 0);
-Location end_location("<end uninitialized>", 0, 0, 0, 0);
+Location start_location("<start uninitialized>", 0, 0);
+Location end_location("<end uninitialized>", 0, 0);
 
 void Location::Describe(ODesc* d) const {
     if ( FileName() ) {
@@ -132,8 +132,7 @@ bool Obj::SetLocationInfo(const detail::Location* start, const detail::Location*
         // We already have a better location, so don't use this one.
         return true;
 
-    auto new_location = new detail::Location(start->FileName(), start->FirstLine(), end->LastLine(),
-                                             start->FirstColumn(), end->LastColumn());
+    auto new_location = new detail::Location(start->FileName(), start->FirstLine(), end->LastLine());
 
     // Don't delete this until we've constructed the new location, in case
     // "start" or "end" are our own location.
@@ -148,7 +147,6 @@ void Obj::UpdateLocationEndInfo(const detail::Location& end) {
         SetLocationInfo(&end, &end);
 
     location->SetLastLine(end.LastLine());
-    location->SetLastColumn(end.LastColumn());
 }
 
 void Obj::DoMsg(ODesc* d, const char s1[], const Obj* obj2, bool pinpoint_only,

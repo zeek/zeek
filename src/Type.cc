@@ -2626,7 +2626,7 @@ const TypePtr& base_type(TypeTag tag) {
     if ( ! base_types[tag] ) {
         base_types[tag] = make_intrusive<Type>(tag, true);
         // Give the base types a pseudo-location for easier identification.
-        detail::Location l(type_name(tag), 0, 0, 0, 0);
+        detail::Location l(type_name(tag), 0, 0);
         base_types[tag]->SetLocationInfo(&l);
     }
 

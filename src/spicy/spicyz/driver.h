@@ -133,32 +133,6 @@ public:
     /** Returns the glue compiler in use by the driver. */
     const auto* glueCompiler() const { return _glue.get(); }
 
-    /**
-     * Parses some options command-line style *before* Zeek-side scripts have
-     * been processed. Most of the option processing happens in
-     * `parseOptionsPostScript()` instead, except for things that must be in
-     * place already before script processing.
-     *
-     * @param options space-separated string of command line argument to parse
-     * @return success if all argument could be parsed, or a suitable error message
-     */
-    static hilti::Result<hilti::Nothing> parseOptionsPreScript(const std::string& options);
-
-    /**
-     * Parses options command-line style after Zeek-side scripts have been
-     * fully processed. Most of the option processing happens here (vs. in
-     * `parseOptionsPreScript()`) except for things that must be in place
-     * already before script processing.
-     *
-     * @param options space-separated string of command line argument to parse
-     * @param driver_options instance of options to update per parsed arguments
-     * @param compiler_options instance of options to update per parsed arguments
-     * @return success if all argument could be parsed, or a suitable error message
-     */
-    static hilti::Result<hilti::Nothing> parseOptionsPostScript(const std::string& options,
-                                                                hilti::driver::Options* driver_options,
-                                                                hilti::Options* compiler_options);
-
     /** Prints a usage message for options supported by `parseOptions{Pre,Post}Script()`. */
     static void usage(std::ostream& out);
 

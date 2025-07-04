@@ -2,6 +2,7 @@
 
 #include "zeek/plugin/Plugin.h"
 
+#include "zeek/Val.h"
 #include "zeek/analyzer/Component.h"
 #include "zeek/analyzer/protocol/conn-size/ConnSize.h"
 
@@ -17,6 +18,20 @@ public:
         config.name = "Zeek::ConnSize";
         config.description = "Connection size analyzer";
         return config;
+    }
+
+    void InitPostScript() override {
+        // Load generic_packet_thresholds at InitPostScript() time.
+        auto t = id::find_const<TableVal>("ConnThreshold::generic_packet_thresholds");
+        std::vector<uint64_t> thresholds;
+        thresholds.reserve(t->Size());
+
+        auto lv = t->ToPureListVal();
+        for ( auto i = 0; i < lv->Length(); i++ )
+            thresholds.emplace_back(lv->Idx(i)->AsCount());
+        std::sort(thresholds.begin(), thresholds.end());
+
+        zeek::analyzer::conn_size::ConnSize_Analyzer::SetGenericPacketThresholds(thresholds);
     }
 } plugin;
 

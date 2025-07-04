@@ -11,6 +11,8 @@
 
 namespace zeek::analyzer::conn_size {
 
+std::vector<uint64_t> ConnSize_Analyzer::generic_pkt_thresholds;
+
 ConnSize_Analyzer::ConnSize_Analyzer(Connection* c) : Analyzer("CONNSIZE", c) { start_time = c->StartTime(); }
 
 void ConnSize_Analyzer::Init() {
@@ -25,6 +27,11 @@ void ConnSize_Analyzer::Init() {
     orig_pkts_thresh = 0;
     resp_bytes_thresh = 0;
     resp_pkts_thresh = 0;
+
+    generic_pkt_thresh = 0;
+    generic_pkt_thresh_next_idx = 0;
+    if ( conn_generic_packet_threshold_crossed )
+        NextGenericPacketThreshold();
 }
 
 void ConnSize_Analyzer::Done() { Analyzer::Done(); }
@@ -36,12 +43,19 @@ void ConnSize_Analyzer::ThresholdEvent(EventHandlerPtr f, uint64_t threshold, bo
     EnqueueConnEvent(f, ConnVal(), val_mgr->Count(threshold), val_mgr->Bool(is_orig));
 }
 
-void ConnSize_Analyzer::CheckThresholds(bool is_orig) {
-    static const auto generic_packet_threshold = id::find_const("ConnThreshold::generic_packet_threshold")->AsCount();
+void ConnSize_Analyzer::NextGenericPacketThreshold() {
+    if ( generic_pkt_thresh_next_idx >= generic_pkt_thresholds.size() ) {
+        generic_pkt_thresh = 0;
+        return;
+    }
 
-    if ( conn_generic_packet_threshold_crossed && generic_packet_threshold &&
-         (orig_pkts + resp_pkts) == generic_packet_threshold ) {
-        EnqueueConnEvent(conn_generic_packet_threshold_crossed, ConnVal());
+    generic_pkt_thresh = generic_pkt_thresholds[generic_pkt_thresh_next_idx++];
+}
+
+void ConnSize_Analyzer::CheckThresholds(bool is_orig) {
+    if ( generic_pkt_thresh && (orig_pkts + resp_pkts) == generic_pkt_thresh ) {
+        EnqueueConnEvent(conn_generic_packet_threshold_crossed, ConnVal(), val_mgr->Count(generic_pkt_thresh));
+        NextGenericPacketThreshold();
     }
 
     if ( is_orig ) {

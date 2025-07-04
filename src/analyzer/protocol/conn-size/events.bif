@@ -51,5 +51,7 @@ event conn_duration_threshold_crossed%(c: connection, threshold: interval, is_or
 ## observed. Only one endpoint sending traffic is sufficient to trigger the event. This allows to handle new
 ## connections, while short interactions, like scans consisting of only a few packets, are ignored.
 ##
-## c: The connection.
-event conn_generic_packet_threshold_crossed%(c: connection%);
+## c: the connection.
+##
+## threshold: the threshold that was set
+event conn_generic_packet_threshold_crossed%(c: connection, threshold: count%);

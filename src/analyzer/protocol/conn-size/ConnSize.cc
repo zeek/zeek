@@ -25,6 +25,11 @@ void ConnSize_Analyzer::Init() {
     orig_pkts_thresh = 0;
     resp_bytes_thresh = 0;
     resp_pkts_thresh = 0;
+
+    generic_pkt_thresh = 0;
+    generic_pkt_thresh_next_idx = 0;
+    if ( conn_generic_packet_threshold_crossed )
+        NextGenericPacketThreshold();
 }
 
 void ConnSize_Analyzer::Done() { Analyzer::Done(); }
@@ -36,12 +41,31 @@ void ConnSize_Analyzer::ThresholdEvent(EventHandlerPtr f, uint64_t threshold, bo
     EnqueueConnEvent(f, ConnVal(), val_mgr->Count(threshold), val_mgr->Bool(is_orig));
 }
 
-void ConnSize_Analyzer::CheckThresholds(bool is_orig) {
-    static const auto generic_packet_threshold = id::find_const("ConnThreshold::generic_packet_threshold")->AsCount();
+void ConnSize_Analyzer::NextGenericPacketThreshold() {
+    static std::vector<uint64_t> threshold_cache;
+    static bool have_cache = false;
 
-    if ( conn_generic_packet_threshold_crossed && generic_packet_threshold &&
-         (orig_pkts + resp_pkts) == generic_packet_threshold ) {
-        EnqueueConnEvent(conn_generic_packet_threshold_crossed, ConnVal());
+    if ( ! have_cache ) {
+        auto thresholds = id::find_const<TableVal>("ConnThreshold::generic_packet_thresholds");
+        auto lv = thresholds->ToPureListVal();
+        for ( auto i = 0; i < lv->Length(); i++ )
+            threshold_cache.emplace_back(lv->Idx(i)->InternalUnsigned());
+        std::sort(threshold_cache.begin(), threshold_cache.end());
+        have_cache = true;
+    }
+
+    if ( generic_pkt_thresh_next_idx >= threshold_cache.size() ) {
+        generic_pkt_thresh = 0;
+        return;
+    }
+
+    generic_pkt_thresh = threshold_cache[generic_pkt_thresh_next_idx++];
+}
+
+void ConnSize_Analyzer::CheckThresholds(bool is_orig) {
+    if ( generic_pkt_thresh && (orig_pkts + resp_pkts) == generic_pkt_thresh ) {
+        EnqueueConnEvent(conn_generic_packet_threshold_crossed, ConnVal(), val_mgr->Count(generic_pkt_thresh));
+        NextGenericPacketThreshold();
     }
 
     if ( is_orig ) {

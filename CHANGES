@@ -1,3 +1,9 @@
+7.0.8-5 | 2025-07-14 14:15:46 -0700
+
+  * fix for error in ZAM's constant propagation logic (Vern Paxson, Corelight)
+
+    (cherry picked from commit 869bd181b20fc9840472e35e87249a946177273b)
+
 7.0.8-4 | 2025-07-14 14:12:46 -0700
 
   * btest/logging: Fly-by cleanup (Arne Welzel, Corelight)

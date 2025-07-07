@@ -11,6 +11,8 @@
 
 namespace zeek::analyzer::conn_size {
 
+std::vector<uint64_t> ConnSize_Analyzer::generic_pkt_thresholds;
+
 ConnSize_Analyzer::ConnSize_Analyzer(Connection* c) : Analyzer("CONNSIZE", c) { start_time = c->StartTime(); }
 
 void ConnSize_Analyzer::Init() {
@@ -42,24 +44,12 @@ void ConnSize_Analyzer::ThresholdEvent(EventHandlerPtr f, uint64_t threshold, bo
 }
 
 void ConnSize_Analyzer::NextGenericPacketThreshold() {
-    static std::vector<uint64_t> threshold_cache;
-    static bool have_cache = false;
-
-    if ( ! have_cache ) {
-        auto thresholds = id::find_const<TableVal>("ConnThreshold::generic_packet_thresholds");
-        auto lv = thresholds->ToPureListVal();
-        for ( auto i = 0; i < lv->Length(); i++ )
-            threshold_cache.emplace_back(lv->Idx(i)->InternalUnsigned());
-        std::sort(threshold_cache.begin(), threshold_cache.end());
-        have_cache = true;
-    }
-
-    if ( generic_pkt_thresh_next_idx >= threshold_cache.size() ) {
+    if ( generic_pkt_thresh_next_idx >= generic_pkt_thresholds.size() ) {
         generic_pkt_thresh = 0;
         return;
     }
 
-    generic_pkt_thresh = threshold_cache[generic_pkt_thresh_next_idx++];
+    generic_pkt_thresh = generic_pkt_thresholds[generic_pkt_thresh_next_idx++];
 }
 
 void ConnSize_Analyzer::CheckThresholds(bool is_orig) {
@@ -98,6 +88,10 @@ void ConnSize_Analyzer::CheckThresholds(bool is_orig) {
             duration_thresh = 0;
         }
     }
+}
+
+void ConnSize_Analyzer::SetGenericPacketThresholds(std::vector<uint64_t> thresholds) {
+    generic_pkt_thresholds = std::move(thresholds);
 }
 
 void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip,

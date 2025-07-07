@@ -26,6 +26,13 @@ public:
 
     static analyzer::Analyzer* Instantiate(Connection* conn) { return new ConnSize_Analyzer(conn); }
 
+    /**
+     * Update the generic packet thersholds.
+     *
+     * @param thresholds The generic packet thresholds to set.
+     */
+    static void SetGenericPacketThresholds(std::vector<uint64_t> offsets);
+
 protected:
     void DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen) override;
     void CheckThresholds(bool is_orig);
@@ -48,6 +55,8 @@ protected:
 
     double start_time = 0.0;
     double duration_thresh = 0.0;
+
+    static std::vector<uint64_t> generic_pkt_thresholds;
 };
 
 // Exposed to make it available to script optimization.

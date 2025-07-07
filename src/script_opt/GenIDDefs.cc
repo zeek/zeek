@@ -497,7 +497,7 @@ void GenIDDefs::TrackID(const ID* id, const ExprPtr& e) {
     // here to set the lowest limit for definitions. For now we leave
     // DefinedAfter as capable of supporting that distinction in case we
     // find need to revive it in the future.
-    oi->DefinedAfter(last_stmt_traversed, e, confluence_blocks, 0);
+    oi->SetDefinedAfter(last_stmt_traversed, e, confluence_blocks, 0);
 
     // Ensure we track this identifier across all relevant
     // confluence regions.

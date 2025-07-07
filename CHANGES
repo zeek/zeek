@@ -1,3 +1,9 @@
+7.2.1-8 | 2025-07-14 14:33:02 -0700
+
+  * fix for error in ZAM's constant propagation logic (Vern Paxson, Corelight)
+
+    (cherry picked from commit 869bd181b20fc9840472e35e87249a946177273b)
+
 7.2.1-7 | 2025-07-14 14:32:04 -0700
 
   * GH-4594: Align WebSocket error in cluster with one in Broker (Benjamin Bannier, Corelight)

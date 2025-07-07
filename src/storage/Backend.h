@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "zeek/OpaqueVal.h"
 #include "zeek/Tag.h"
 #include "zeek/Val.h"
@@ -11,6 +13,11 @@ namespace zeek::detail::trigger {
 class Trigger;
 using TriggerPtr = IntrusivePtr<Trigger>;
 } // namespace zeek::detail::trigger
+
+namespace zeek::telemetry {
+class Counter;
+using CounterPtr = std::shared_ptr<Counter>;
+} // namespace zeek::telemetry
 
 namespace zeek::storage {
 
@@ -98,6 +105,18 @@ public:
      * Update the metrics based on a return value.
      */
     void UpdateOperationMetrics(EnumValPtr c);
+
+    /**
+     * Stores the amount of data transferred in the operation. This can be used by async
+     * backends to set the amount transferred in Put operations so it can be added to the
+     * metrics when the operation finishes.
+     */
+    void AddDataTransferredSize(size_t size) { transferred_size += size; }
+
+    /**
+     * Returns the amount of data transferred in this operation.
+     */
+    size_t GetDataTransferredSize() const { return transferred_size; }
 
 protected:
     zeek::detail::trigger::TriggerPtr trigger;
@@ -269,6 +288,9 @@ protected:
     zeek::Tag tag;
     std::string tag_str;
     std::unique_ptr<Serializer> serializer;
+
+    telemetry::CounterPtr bytes_stored_metric;
+    telemetry::CounterPtr bytes_retrieved_metric;
 
 private:
     /**

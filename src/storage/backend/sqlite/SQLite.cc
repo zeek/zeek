@@ -11,6 +11,7 @@
 #include "zeek/Func.h"
 #include "zeek/Val.h"
 #include "zeek/storage/ReturnCode.h"
+#include "zeek/telemetry/Counter.h"
 
 #include "const.bif.netvar_h"
 
@@ -336,7 +337,11 @@ OperationResult SQLite::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool
         }
     }
 
-    return Step(stmt.get(), false);
+    auto step_result = Step(stmt.get(), false);
+    if ( step_result.code == ReturnCode::SUCCESS )
+        bytes_stored_metric->Inc(val_data->size());
+
+    return step_result;
 }
 
 /**
@@ -511,8 +516,10 @@ OperationResult SQLite::Step(sqlite3_stmt* stmt, bool parse_value) {
 
             auto val = serializer->Unserialize({blob, blob_size}, val_type);
 
-            if ( val )
+            if ( val ) {
+                bytes_retrieved_metric->Inc(blob_size);
                 ret = {ReturnCode::SUCCESS, "", val.value()};
+            }
             else
                 ret = {ReturnCode::OPERATION_FAILED, val.error()};
         }

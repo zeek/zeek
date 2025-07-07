@@ -456,7 +456,7 @@ int IDOptInfo::FindRegionBeforeIndex(int stmt_num) {
         // or
         // It's active at the beginning of the statement of interest.
         if ( ur.EndsAfter() == NO_DEF || ur.EndsAfter() >= stmt_num )
-            region_ind = i;
+            region_ind = i; // NOLINT(bugprone-branch-clone)
 
         else if ( ur.EndsAfter() == stmt_num - 1 && ur.EndedDueToAssignment() ) {
             // There's one other possibility, which occurs for a series of

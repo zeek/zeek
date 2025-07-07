@@ -1,3 +1,7 @@
+8.0.0-dev.599 | 2025-07-07 18:17:15 +0200
+
+  * Bump zeekjs to v0.18.0 (Arne Welzel, Corelight)
+
 8.0.0-dev.597 | 2025-07-07 18:13:44 +0200
 
   * fix for error in ZAM's constant propagation logic (Vern Paxson, Corelight)

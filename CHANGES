@@ -1,3 +1,21 @@
+8.0.0-dev.615 | 2025-07-08 17:53:56 +0200
+
+  * Add NEWS entry for generic packet thresholds (Jan Grashoefer, Corelight)
+
+  * Allow for multiple generic packet thresholds (Jan Grashoefer, Corelight)
+
+    Co-authored-by: Arne Welzel <arne.welzel@corelight.com>
+
+  * Add btest for conn_generic_packet_threshold_crossed event (Jan Grashoefer, Corelight)
+
+  * Update dump-events btest baseline (Jan Grashoefer, Corelight)
+
+    Changes in endpoint stats are a side-effect caused by the ConnSize
+    analyzer updating the conn record triggering the threshold event. The
+    phenomenon is described in https://github.com/zeek/zeek/issues/4214.
+
+  * Add conn_generic_packet_threshold_crossed event (Jan Grashoefer, Corelight)
+
 8.0.0-dev.609 | 2025-07-08 11:42:05 +0100
 
   * PPPoE: don't forward more bytes than header indicates (Johanna Amann, Corelight)

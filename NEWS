@@ -218,6 +218,17 @@ New Functionality
 
     get_tags_by_category("ANALYZER");
 
+- A new ``conn_generic_packet_threshold_crossed`` event was introduced. The event triggers
+  for any IP-based session that reaches a given threshold. Multiple packet thresholds can
+  be defined in ``ConnThreshold::generic_packet_thresholds``. The generic thresholds refer
+  to the total number of packets on a connection without taking direction into account
+  (i.e. the event also triggers on one-sided connections).
+
+  The event is intended as an alternative to the ``new_connection`` event that allows for
+  ignoring short-lived connections like DNS or scans. For example, it can be used to set
+  up traditional connection monitoring without introducing overhead for connections that
+  would never reach a larger threshold anyway.
+
 Changed Functionality
 ---------------------
 

@@ -6379,6 +6379,18 @@ export {
 	};
 }
 
+module ConnThreshold;
+
+export {
+	## Number of packets required to be observed on any IP-based session to
+	## trigger :zeek:id:`conn_generic_packet_threshold_crossed`. Note that the
+	## thresholds refers to the total number of packets transferred in both
+	## directions.
+	##
+	## .. zeek:see:: conn_generic_packet_threshold_crossed
+	const generic_packet_thresholds: set[count] = {} &redef;
+}
+
 module GLOBAL;
 
 @load base/bif/event.bif

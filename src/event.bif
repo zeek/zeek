@@ -106,7 +106,8 @@ event network_time_init%(%);
 ##
 ##    Handling this event is potentially expensive. For example, during a SYN
 ##    flooding attack, every spoofed SYN packet will lead to a new
-##    event.
+##    event. Consider to use events like :zeek:id:`connection_established` or
+##    :zeek:id:`conn_generic_packet_threshold_crossed` instead.
 event new_connection%(c: connection%);
 
 ## Generated for a connection whose tunneling has changed.  This could

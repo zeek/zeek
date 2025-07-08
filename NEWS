@@ -272,6 +272,9 @@ Changed Functionality
   Similarly, the related events and the Zeek data structures all interpreted
   times in X509 certificates as local times.
 
+- The PPPoE parser now respects the size value given in the PPPoE header. Data
+  beyon the size given in the header will be truncated.
+
 Removed Functionality
 ---------------------
 

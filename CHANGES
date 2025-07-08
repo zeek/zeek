@@ -1,3 +1,15 @@
+8.0.0-dev.609 | 2025-07-08 11:42:05 +0100
+
+  * PPPoE: don't forward more bytes than header indicates (Johanna Amann, Corelight)
+
+    This changes the PPPoE parser so that it doesn't forward extra bytes
+    that might be appended after the payload. Instead, it raises a weird if
+    the payload size doesn't match the size indicated by the header.
+
+    This is in line with what other protocol parsers (like UDP) are doing.
+
+    Addresses GH-4602
+
 8.0.0-dev.605 | 2025-07-08 10:40:45 +0200
 
   * Bump ZeekJS to work with new Location constructor (Arne Welzel, Corelight)

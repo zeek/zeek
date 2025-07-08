@@ -1,6 +1,6 @@
-# @TEST-DOC: The SSL analyzer picks up on the traffic in pppoe-over-qing, but then raises analyzer_violation_info
+# @TEST-DOC: The SSL analyzer picks up on the traffic, but then raises analyzer_violation_info
 # @TEST-REQUIRES: ! have-spicy-ssl
-# @TEST-EXEC: zeek -r $TRACES/pppoe-over-qinq.pcap %INPUT
+# @TEST-EXEC: zeek -r $TRACES/tls/tls-1.2-protocol-error.pcap %INPUT
 # @TEST-EXEC: btest-diff .stdout
 
 event analyzer_confirmation_info(tag: AllAnalyzers::Tag, info: AnalyzerConfirmationInfo)

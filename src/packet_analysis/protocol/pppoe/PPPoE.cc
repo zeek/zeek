@@ -12,8 +12,19 @@ bool PPPoEAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packe
         return false;
     }
 
-    // Extract protocol identifier
+    size_t payload_length = (data[4] << 8u) + data[5];
     uint32_t protocol = (data[6] << 8u) + data[7];
+
+    // PPPoE header is six bytes. The protocol identifier is not part of the header
+    if ( payload_length != len - 6 ) {
+        if ( payload_length < len - 6 )
+            Weird("pppoe_extra_data_after_payload", packet);
+        else
+            Weird("pppoe_truncated_payload");
+    }
+
+    payload_length = payload_length >= 2 ? payload_length - 2 : 0;
+
     // Skip the PPPoE session and PPP header
-    return ForwardPacket(len - 8, data + 8, packet, protocol);
+    return ForwardPacket(std::min(payload_length, len - 8), data + 8, packet, protocol);
 }

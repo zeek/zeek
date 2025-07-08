@@ -18,7 +18,8 @@ export {
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id:                    conn_id &log;
 		## Cookie value used by the client machine.
-		## This is typically a username.
+		## This is typically a username, but note that it will often
+		## be truncated on the wire, to a maximum of 9 characters.
 		cookie:                string  &log &optional;
 		## Status result for the connection.  It's a mix between
 		## RDP negotiation failure messages and GCC server create

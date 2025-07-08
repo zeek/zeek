@@ -185,6 +185,11 @@ zeek_uint_t bits_per_uid;
 
 zeek_uint_t tunnel_max_changes_per_connection;
 
+zeek_uint_t log_limit_field_string_bytes;
+zeek_uint_t log_limit_field_container_elements;
+zeek_uint_t log_limit_total_string_bytes;
+zeek_uint_t log_limit_total_container_elements;
+
 } // namespace zeek::detail
   // files.
 
@@ -325,6 +330,11 @@ void init_net_var() {
     dpd_ignore_ports = id::find_val("dpd_ignore_ports")->AsBool();
 
     tunnel_max_changes_per_connection = id::find_val("Tunnel::max_changes_per_connection")->AsCount();
+
+    log_limit_field_string_bytes = id::find_val("Log::limit_field_string_bytes")->AsCount();
+    log_limit_field_container_elements = id::find_val("Log::limit_field_container_elements")->AsCount();
+    log_limit_total_string_bytes = id::find_val("Log::limit_total_string_bytes")->AsCount();
+    log_limit_total_container_elements = id::find_val("Log::limit_total_container_elements")->AsCount();
 }
 
 } // namespace zeek::detail

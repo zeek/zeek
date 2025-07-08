@@ -1,3 +1,11 @@
+8.0.0-dev.605 | 2025-07-08 10:40:45 +0200
+
+  * Bump ZeekJS to work with new Location constructor (Arne Welzel, Corelight)
+
+  * remove non-functional column information from Location objects (Vern Paxson, Corelight)
+
+  * isolate Location specifics to private class variables to enforce correct line number ordering (Vern Paxson, Corelight)
+
 8.0.0-dev.601 | 2025-07-07 20:07:30 +0200
 
   * script_opt/IDOptInfo: Add NOLINT(bugprone-branch-clone) (Arne Welzel, Corelight)

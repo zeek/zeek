@@ -152,7 +152,7 @@ bool Stmt::SetLocationInfo(const Location* start, const Location* end) {
 
     // Update the Filemap of line number -> statement mapping for
     // breakpoints (Debug.h).
-    auto map_iter = g_dbgfilemaps.find(location->filename);
+    auto map_iter = g_dbgfilemaps.find(location->FileName());
     if ( map_iter == g_dbgfilemaps.end() )
         return false;
 

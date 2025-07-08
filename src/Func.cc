@@ -111,7 +111,7 @@ std::string render_call_stack() {
 
         if ( ci.call ) {
             auto loc = ci.call->GetLocationInfo();
-            rval += util::fmt(" at %s:%d", loc->filename, loc->first_line);
+            rval += util::fmt(" at %s:%d", loc->FileName(), loc->FirstLine());
         }
 
         ++lvl;
@@ -919,8 +919,8 @@ zeek::RecordValPtr make_backtrace_element(std::string_view name, const VectorVal
     elem->Assign(function_args_idx, args);
 
     if ( loc ) {
-        elem->Assign(file_location_idx, loc->filename);
-        elem->Assign(line_location_idx, loc->first_line);
+        elem->Assign(file_location_idx, loc->FileName());
+        elem->Assign(line_location_idx, loc->FirstLine());
     }
 
     return elem;

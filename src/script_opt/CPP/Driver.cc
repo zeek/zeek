@@ -193,7 +193,7 @@ bool CPPCompile::AnalyzeFuncBody(FuncInfo& fi, unordered_set<string>& filenames_
     const auto& f = fi.Func();
     auto& body = fi.Body();
 
-    string fn = body->GetLocationInfo()->filename;
+    string fn = body->GetLocationInfo()->FileName();
 
     if ( ! analysis_options.allow_cond && ! fi.ShouldSkip() ) {
         if ( ! analysis_options.only_files.empty() && files_with_conditionals.count(fn) > 0 ) {
@@ -358,7 +358,7 @@ void CPPCompile::RegisterCompiledBody(const string& f) {
     auto h = body_hashes[f];
     auto p = body_priorities[f];
     auto loc = body_locs[f];
-    auto body_info = Fmt(p) + ", " + Fmt(h) + ", \"" + loc->filename + " (C++)\", " + Fmt(loc->first_line);
+    auto body_info = Fmt(p) + ", " + Fmt(h) + ", \"" + loc->FileName() + " (C++)\", " + Fmt(loc->FirstLine());
 
     Emit("\tCPP_RegisterBody(\"%s\", (void*) %s, %s, %s, std::vector<std::string>(%s)),", f, f, Fmt(type_signature),
          body_info, events);

@@ -561,22 +561,22 @@ int dbg_cmd_list(DebugCmd cmd, const vector<string>& args) {
             return false;
         }
 
-        g_debugger_state.last_loc.filename = plr.filename;
-        g_debugger_state.last_loc.first_line = plr.line;
+        g_debugger_state.last_loc.SetFile(plr.filename);
+        g_debugger_state.last_loc.SetFirstLine(plr.line);
         pre_offset = 0;
     }
 
-    if ( (int)pre_offset + (int)g_debugger_state.last_loc.first_line - (int)CENTER_IDX < 0 )
-        pre_offset = CENTER_IDX - g_debugger_state.last_loc.first_line;
+    if ( (int)pre_offset + (int)g_debugger_state.last_loc.FirstLine() - (int)CENTER_IDX < 0 )
+        pre_offset = CENTER_IDX - g_debugger_state.last_loc.FirstLine();
 
-    g_debugger_state.last_loc.first_line += pre_offset;
+    g_debugger_state.last_loc.IncrementLine(pre_offset);
 
-    int last_line_in_file = how_many_lines_in(g_debugger_state.last_loc.filename);
+    int last_line_in_file = how_many_lines_in(g_debugger_state.last_loc.FileName());
 
-    if ( g_debugger_state.last_loc.first_line > last_line_in_file )
-        g_debugger_state.last_loc.first_line = last_line_in_file;
+    if ( g_debugger_state.last_loc.FirstLine() > last_line_in_file )
+        g_debugger_state.last_loc.SetLine(last_line_in_file);
 
-    PrintLines(g_debugger_state.last_loc.filename, g_debugger_state.last_loc.first_line - CENTER_IDX, 10, true);
+    PrintLines(g_debugger_state.last_loc.FileName(), g_debugger_state.last_loc.FirstLine() - CENTER_IDX, 10, true);
 
     g_debugger_state.already_did_list = true;
 

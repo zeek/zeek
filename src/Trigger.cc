@@ -109,7 +109,7 @@ Trigger::Trigger(std::shared_ptr<WhenInfo> wi, const IDSet& _globals, std::vecto
     attached = nullptr;
 
     if ( loc )
-        name = util::fmt("%s:%d-%d", loc->filename, loc->first_line, loc->last_line);
+        name = util::fmt("%s:%d-%d", loc->FileName(), loc->FirstLine(), loc->LastLine());
     else
         name = "<no-trigger-location>";
 

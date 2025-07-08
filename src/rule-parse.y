@@ -108,7 +108,7 @@ rule_list:
 rule:
 		TOK_SIGNATURE TOK_IDENT
 			{
-			zeek::detail::Location l(current_rule_file, rules_line_number+1, 0, 0, 0);
+			zeek::detail::Location l(current_rule_file, rules_line_number+1, 0);
 			current_rule = new zeek::detail::Rule(yylval.str, l);
 			}
 		'{' rule_attr_list '}'
@@ -456,7 +456,7 @@ void rules_error(const char* msg, const char* addl) {
 
 void rules_error(zeek::detail::Rule* r, const char* msg) {
     const zeek::detail::Location& l = r->GetLocation();
-    zeek::reporter->Error("Error in signature %s (%s:%d): %s", r->ID(), l.filename, l.first_line, msg);
+    zeek::reporter->Error("Error in signature %s (%s:%d): %s", r->ID(), l.FileName(), l.FirstLine(), msg);
     zeek::detail::rule_matcher->SetParseError();
 }
 

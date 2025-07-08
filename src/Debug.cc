@@ -84,8 +84,7 @@ bool StmtLocMapping::StartsAfter(const StmtLocMapping* m2) {
     if ( ! m2 )
         reporter->InternalError("Assertion failed: m2 != 0");
 
-    return loc.first_line > m2->loc.first_line ||
-           (loc.first_line == m2->loc.first_line && loc.first_column > m2->loc.first_column);
+    return loc.FirstLine() > m2->loc.FirstLine();
 }
 
 // Generic debug message output.
@@ -143,7 +142,6 @@ int TraceState::LogTrace(const char* fmt, ...) {
 
     const Stmt* stmt;
     Location loc;
-    loc.filename = nullptr;
 
     if ( g_frame_stack.size() > 0 && g_frame_stack.back() ) {
         stmt = g_frame_stack.back()->GetNextStmt();
@@ -156,13 +154,13 @@ int TraceState::LogTrace(const char* fmt, ...) {
         }
     }
 
-    if ( ! loc.filename ) {
+    if ( ! loc.FileName() ) {
         static constexpr const char str[] = "<no filename>";
-        loc.filename = str;
-        loc.last_line = 0;
+        loc.SetFile(str);
+        loc.SetLastLine(0);
     }
 
-    fprintf(trace_file, "%s:%d", loc.filename, loc.last_line);
+    fprintf(trace_file, "%s:%d", loc.FileName(), loc.LastLine());
 
     // Each stack frame is indented.
     for ( int i = 0; i < int(g_frame_stack.size()); ++i )
@@ -239,7 +237,7 @@ static void parse_function_name(vector<ParseLocationRec>& result, ParseLocationR
                 Stmt* first;
                 Location stmt_loc;
                 get_first_statement(bodies[i].stmts.get(), first, stmt_loc);
-                debug_msg("[%d] %s:%d\n", i + 1, stmt_loc.filename, stmt_loc.first_line);
+                debug_msg("[%d] %s:%d\n", i + 1, stmt_loc.FileName(), stmt_loc.FirstLine());
             }
 
             debug_msg("[a] All of the above\n");
@@ -283,8 +281,8 @@ static void parse_function_name(vector<ParseLocationRec>& result, ParseLocationR
         get_first_statement(body, first, stmt_loc);
         if ( first ) {
             plr.stmt = first;
-            plr.filename = stmt_loc.filename;
-            plr.line = stmt_loc.last_line;
+            plr.filename = stmt_loc.FileName();
+            plr.line = stmt_loc.LastLine();
         }
     }
 
@@ -299,8 +297,8 @@ static void parse_function_name(vector<ParseLocationRec>& result, ParseLocationR
 
             result_plr.type = PLR_FUNCTION;
             result_plr.stmt = first;
-            result_plr.filename = stmt_loc.filename;
-            result_plr.line = stmt_loc.last_line;
+            result_plr.filename = stmt_loc.FileName();
+            result_plr.line = stmt_loc.LastLine();
             result.push_back(result_plr);
         }
     }
@@ -317,7 +315,7 @@ vector<ParseLocationRec> parse_location_string(const string& s) {
     std::string loc_filename;
 
     if ( sscanf(s.c_str(), "%d", &plr.line) ) { // just a line number (implicitly referring to the current file)
-        loc_filename = g_debugger_state.last_loc.filename;
+        loc_filename = g_debugger_state.last_loc.FileName();
         plr.type = PLR_FILE_AND_LINE;
     }
 
@@ -360,12 +358,12 @@ vector<ParseLocationRec> parse_location_string(const string& s) {
 
         StmtLocMapping* hit = nullptr;
         for ( const auto entry : *(iter->second) ) {
-            plr.filename = entry->Loc().filename;
+            plr.filename = entry->Loc().FileName();
 
-            if ( entry->Loc().first_line > plr.line )
+            if ( entry->Loc().FirstLine() > plr.line )
                 break;
 
-            if ( plr.line >= entry->Loc().first_line && plr.line <= entry->Loc().last_line ) {
+            if ( plr.line >= entry->Loc().FirstLine() && plr.line <= entry->Loc().LastLine() ) {
                 hit = entry;
                 break;
             }
@@ -677,13 +675,13 @@ string get_context_description(const Stmt* stmt, const Frame* frame) {
         loc = *stmt->GetLocationInfo();
     else {
         static constexpr const char str[] = "<no filename>";
-        loc.filename = str;
-        loc.last_line = 0;
+        loc.SetFile(str);
+        loc.SetLastLine(0);
     }
 
-    size_t buf_size = strlen(d.Description()) + strlen(loc.filename) + 1024;
+    size_t buf_size = strlen(d.Description()) + strlen(loc.FileName()) + 1024;
     char* buf = new char[buf_size];
-    snprintf(buf, buf_size, "In %s at %s:%d", d.Description(), loc.filename, loc.last_line);
+    snprintf(buf, buf_size, "In %s at %s:%d", d.Description(), loc.FileName(), loc.LastLine());
 
     string retval(buf);
     delete[] buf;
@@ -720,7 +718,7 @@ int dbg_handle_debug_input() {
 
     step_or_next_pending = false;
 
-    PrintLines(loc.filename, loc.first_line, loc.last_line - loc.first_line + 1, true);
+    PrintLines(loc.FileName(), loc.FirstLine(), loc.LastLine() - loc.FirstLine() + 1, true);
     g_debugger_state.last_loc = loc;
 
     do {
@@ -872,8 +870,8 @@ ValPtr dbg_eval_expr(const char* expr) {
     // Fix filename and line number for the lexer/parser, which record it.
     filename = "<interactive>";
     line_number = 1;
-    yylloc.filename = filename;
-    yylloc.first_line = yylloc.last_line = line_number = 1;
+    yylloc.SetFile(filename);
+    yylloc.SetLine(1);
 
     // Parse the thing into an expr.
     ValPtr result;

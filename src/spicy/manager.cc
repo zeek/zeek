@@ -488,16 +488,14 @@ static std::unique_ptr<detail::Location> _makeLocation(const std::string& locati
             return nullptr;
 
         auto loc = std::make_unique<detail::Location>();
-        loc->filename = filenames.insert(std::string(x[0])).first->c_str(); // we retain ownership
+        loc->SetFile(filenames.insert(std::string(x[0])).first->c_str()); // we retain ownership
 
         if ( x.size() >= 2 ) {
             auto y = hilti::rt::split(x[1], "-");
-            if ( y.size() >= 2 ) {
-                loc->first_line = std::stoi(std::string(y[0]));
-                loc->last_line = std::stoi(std::string(y[1]));
-            }
+            if ( y.size() >= 2 )
+                loc->SetLines(std::stoi(std::string(y[0])), std::stoi(std::string(y[1])));
             else if ( y[0].size() )
-                loc->first_line = loc->last_line = std::stoi(std::string(y[0]));
+                loc->SetLine(std::stoi(std::string(y[0])));
         }
 
         return loc;
@@ -861,7 +859,7 @@ void Manager::searchModules(const std::string& paths) {
 
 detail::Location Manager::makeLocation(const std::string& fname) {
     auto x = _locations.insert(fname);
-    return {x.first->c_str(), 0, 0, 0, 0};
+    return {x.first->c_str(), 0, 0};
 }
 
 void Manager::autoDiscoverModules() {

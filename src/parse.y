@@ -369,7 +369,7 @@ zeek:
 			// associated with the last @load'd file rather than
 			// the script that includes the global statements.
 			auto loc = zeek::detail::GetCurrentLocation();
-			if ( loc.filename )
+			if ( loc.FileName() )
 				set_location(loc);
 			}
 		stmt_list

@@ -155,9 +155,9 @@ std::string_view determine_script_location() {
         // remove wrapper function.
 
         const auto* loc = ce->GetLocationInfo();
-        std::string normalized_location = zeek::util::detail::without_zeekpath_component(loc->filename);
+        std::string normalized_location = zeek::util::detail::without_zeekpath_component(loc->FileName());
         normalized_location.append(":");
-        normalized_location.append(std::to_string(loc->first_line));
+        normalized_location.append(std::to_string(loc->FirstLine()));
 
         auto [it, inserted] = location_cache.emplace(ce, std::move(normalized_location));
         assert(inserted);

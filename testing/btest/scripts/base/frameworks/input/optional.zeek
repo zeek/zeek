@@ -37,11 +37,11 @@ global servers: table[int] of Val = table();
 
 event zeek_init()
 	{
-    outfile = open("../out");
+	outfile = open("../out");
 	# first read in the old stuff into the table...
-	Input::add_table([$source="../input.log", $name="input", $idx=Idx, $val=Val, $destination=servers, 
-				$pred(typ: Input::Event, left: Idx, right: Val) = { right$notb = !right$b; return T; }
-				]);
+	Input::add_table([$source="../input.log", $name="input", $idx=Idx, $val=Val, $destination=servers,
+	                  $pred(typ: Input::Event, left: Idx, right: Val) = { right$notb = !right$b; return T; }
+	                 ]);
 	}
 
 event Input::end_of_data(name: string, source: string)

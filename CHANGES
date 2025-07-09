@@ -1,3 +1,7 @@
+8.0.0-dev.618 | 2025-07-08 17:45:16 -0700
+
+  * Clarify the cookie field's origin in the RDP log. (Christian Kreibich, Corelight)
+
 8.0.0-dev.615 | 2025-07-08 17:53:56 +0200
 
   * Add NEWS entry for generic packet thresholds (Jan Grashoefer, Corelight)

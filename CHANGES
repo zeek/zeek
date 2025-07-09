@@ -1,3 +1,22 @@
+8.0.0-dev.622 | 2025-07-09 15:10:03 -0700
+
+  * ZAM optimizer fix for += / -= set operations (Vern Paxson, Corelight)
+
+  * Bump `spicy-format` pre-commit hook (Benjamin Bannier, Corelight)
+
+    pre-commit ignores Cargo.lock files for Rust projects, so any movement
+    in a Rust project's dependencies can break a hook, even if no code in
+    the hook changed. I have tried to work with upstream on a fix, but they
+    basically told me they weren't interested and to get lost.
+
+    This bumps the `spicy-format` pre-commit hook to a new version which
+    explicitly deals with bumps of its dependencies. Having to do this
+    semi-regularly is not fun, and ideally somebody interested in using this
+    hook would help set up infrastructure in the hook so it just pulls
+    pre-built binaries. This is not directly supported by pre-commit, but
+    many projects work around this by declaring a Python module which then
+    pulls pre-build binaries which already exist for spicy-format.
+
 8.0.0-dev.618 | 2025-07-08 17:45:16 -0700
 
   * Clarify the cookie field's origin in the RDP log. (Christian Kreibich, Corelight)

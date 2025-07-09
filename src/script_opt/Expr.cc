@@ -767,6 +767,9 @@ bool AddToExpr::IsReduced(Reducer* c) const {
 }
 
 ExprPtr AddToExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
+    if ( c->Optimizing() )
+        op2 = c->UpdateExpr(op2);
+
     auto tag = op1->GetType()->Tag();
 
     switch ( tag ) {
@@ -869,6 +872,9 @@ bool RemoveFromExpr::IsReduced(Reducer* c) const {
 }
 
 ExprPtr RemoveFromExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
+    if ( c->Optimizing() )
+        op2 = c->UpdateExpr(op2);
+
     if ( op1->GetType()->Tag() == TYPE_TABLE ) {
         StmtPtr red_stmt1;
         StmtPtr red_stmt2;

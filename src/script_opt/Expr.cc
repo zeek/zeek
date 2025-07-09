@@ -767,6 +767,11 @@ bool AddToExpr::IsReduced(Reducer* c) const {
 }
 
 ExprPtr AddToExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
+    if ( c->Optimizing() ) {
+        op1 = c->UpdateExpr(op1);
+        op2 = c->UpdateExpr(op2);
+    }
+
     auto tag = op1->GetType()->Tag();
 
     switch ( tag ) {
@@ -869,6 +874,11 @@ bool RemoveFromExpr::IsReduced(Reducer* c) const {
 }
 
 ExprPtr RemoveFromExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
+    if ( c->Optimizing() ) {
+        op1 = c->UpdateExpr(op1);
+        op2 = c->UpdateExpr(op2);
+    }
+
     if ( op1->GetType()->Tag() == TYPE_TABLE ) {
         StmtPtr red_stmt1;
         StmtPtr red_stmt2;
@@ -1024,6 +1034,11 @@ ExprPtr BoolExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
 
     // It's either an EXPR_AND_AND or an EXPR_OR_OR.
     bool is_and = (tag == EXPR_AND_AND);
+
+    if ( c->Optimizing() ) { // Allow for alias expansion.
+        op1 = c->UpdateExpr(op1);
+        op2 = c->UpdateExpr(op2);
+    }
 
     if ( IsTrue(op1) ) {
         if ( is_and )

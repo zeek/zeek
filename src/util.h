@@ -622,17 +622,5 @@ inline std::vector<std::wstring_view> split(const wchar_t* s, const wchar_t* del
     return split(std::wstring_view(s), std::wstring_view(delim));
 }
 
-/**
- * Helper class that runs a function at destruction.
- */
-class Deferred {
-public:
-    Deferred(std::function<void()> deferred) : deferred(std::move(deferred)) {}
-    ~Deferred() { deferred(); }
-
-private:
-    std::function<void()> deferred;
-};
-
 } // namespace util
 } // namespace zeek

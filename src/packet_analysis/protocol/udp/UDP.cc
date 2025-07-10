@@ -2,6 +2,8 @@
 
 #include "zeek/packet_analysis/protocol/udp/UDP.h"
 
+#include <algorithm>
+
 #include "zeek/Conn.h"
 #include "zeek/RunState.h"
 #include "zeek/analyzer/Manager.h"

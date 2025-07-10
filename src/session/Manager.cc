@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include <pcap.h>
 #include <unistd.h>
+#include <algorithm>
 #include <cstdlib>
 
 #include "zeek/Conn.h"

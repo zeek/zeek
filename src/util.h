@@ -21,6 +21,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem> // Remove in v8.1.
 #include <string>
 #include <string_view>
 #include <vector>
@@ -79,18 +80,8 @@ extern "C" {
 
 #ifdef _MSC_VER
 #include <pthread.h>
-#include <filesystem>
-namespace zeek {
-namespace filesystem = std::filesystem;
-}
 inline constexpr std::string_view path_list_separator = ";";
 #else
-// Expose ghc::filesystem as zeek::filesystem until we can
-// switch to std::filesystem on all platforms.
-#include "zeek/3rdparty/ghc/filesystem.hpp"
-namespace zeek {
-namespace filesystem = ghc::filesystem;
-}
 inline constexpr std::string_view path_list_separator = ":";
 #endif
 
@@ -108,6 +99,10 @@ constexpr int UID_POOL_DEFAULT_SCRIPT = 2;
 constexpr int UID_POOL_CUSTOM_SCRIPT = 10; // First available custom script level pool.
 
 namespace zeek {
+
+// This alias is deprecated and should be removed in v8.1. There isn't a way to mark
+// it so the compiler will flag it.
+namespace filesystem = std::filesystem;
 
 class ODesc;
 class RecordVal;

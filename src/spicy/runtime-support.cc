@@ -792,7 +792,14 @@ void rt::protocol_handle_close(const ProtocolHandle& handle) {
             if ( child->IsFinished() || child->Removing() )
                 throw ValueUnavailable(hilti::rt::fmt("child analyzer %s no longer exist", handle));
 
-            child->NextEndOfData(true);
+            auto* tcp_child = dynamic_cast<analyzer::tcp::TCP_ApplicationAnalyzer*>(child);
+            if ( ! tcp_child )
+                throw ValueUnavailable(hilti::rt::fmt("child analyzer %s is not a TCP application analyzer", handle));
+
+            tcp_child->EndpointEOF(true); // For Spicy analyzers, this will trigger Finish() ...
+            child->NextEndOfData(true);   // ... whereas this won't.
+
+            tcp_child->EndpointEOF(false);
             child->NextEndOfData(false);
 
             c->analyzer->RemoveChildAnalyzer(handle.id());

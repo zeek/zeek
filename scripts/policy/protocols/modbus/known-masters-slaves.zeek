@@ -37,7 +37,7 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Known::MODBUS_LOG, [$columns=ModbusInfo, $ev=log_known_modbus, $path="known_modbus", $policy=log_policy_modbus]);
+	Log::create_stream(Known::MODBUS_LOG, Log::Stream($columns=ModbusInfo, $ev=log_known_modbus, $path="known_modbus", $policy=log_policy_modbus));
 	}
 
 event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool)
@@ -48,13 +48,13 @@ event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool)
 	if ( [master, MODBUS_MASTER] !in modbus_nodes )
 		{
 		add modbus_nodes[master, MODBUS_MASTER];
-		Log::write(MODBUS_LOG, [$ts=network_time(), $host=master, $device_type=MODBUS_MASTER]);
+		Log::write(MODBUS_LOG, ModbusInfo($ts=network_time(), $host=master, $device_type=MODBUS_MASTER));
 		}
 
 	if ( [slave, MODBUS_SLAVE] !in modbus_nodes )
 		{
 		add modbus_nodes[slave, MODBUS_SLAVE];
-		Log::write(MODBUS_LOG, [$ts=network_time(), $host=slave, $device_type=MODBUS_SLAVE]);
+		Log::write(MODBUS_LOG, ModbusInfo($ts=network_time(), $host=slave, $device_type=MODBUS_SLAVE));
 		}
 
 	}

@@ -120,7 +120,7 @@ redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(SMTP::LOG, [$columns=SMTP::Info, $ev=log_smtp, $path="smtp", $policy=log_policy]);
+	Log::create_stream(SMTP::LOG, Log::Stream($columns=SMTP::Info, $ev=log_smtp, $path="smtp", $policy=log_policy));
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SMTP, ports);
 	}
 

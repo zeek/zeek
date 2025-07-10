@@ -296,12 +296,12 @@ function register_counter_family(opts: MetricOpts): CounterFamily
 	}
 
 # Fallback Counter returned when there are issues with the labels.
-global error_counter_cf = register_counter_family([
+global error_counter_cf = register_counter_family(MetricOpts(
 	$prefix="zeek",
 	$name="telemetry_counter_usage_error",
 	$unit="",
 	$help_text="This counter is returned when label usage for counters is wrong. Check reporter.log if non-zero."
-]);
+));
 
 function counter_with(cf: CounterFamily, label_values: labels_vector): Counter
 	{
@@ -355,12 +355,12 @@ function register_gauge_family(opts: MetricOpts): GaugeFamily
 	}
 
 # Fallback Gauge returned when there are issues with the label usage.
-global error_gauge_cf = register_gauge_family([
+global error_gauge_cf = register_gauge_family(MetricOpts(
 	$prefix="zeek",
 	$name="telemetry_gauge_usage_error",
 	$unit="",
 	$help_text="This gauge is returned when label usage for gauges is wrong. Check reporter.log if non-zero."
-]);
+));
 
 function gauge_with(gf: GaugeFamily, label_values: labels_vector): Gauge
 	{
@@ -424,13 +424,13 @@ function register_histogram_family(opts: MetricOpts): HistogramFamily
 	}
 
 # Fallback Histogram when there are issues with the labels.
-global error_histogram_hf = register_histogram_family([
+global error_histogram_hf = register_histogram_family(MetricOpts(
 	$prefix="zeek",
 	$name="telemetry_histogram_usage_error",
 	$unit="",
 	$help_text="This histogram is returned when label usage for histograms is wrong. Check reporter.log if non-zero.",
 	$bounds=vector(1.0)
-]);
+));
 
 function histogram_with(hf: HistogramFamily, label_values: labels_vector): Histogram
 	{
@@ -474,14 +474,14 @@ event run_sync_hook()
 	}
 
 # Expose the Zeek version as Prometheus style info metric
-global version_gauge_family = Telemetry::register_gauge_family([
+global version_gauge_family = Telemetry::register_gauge_family(Telemetry::MetricOpts(
 	$prefix="zeek",
 	$name="version_info",
 	$unit="",
 	$help_text="The Zeek version",
 	$label_names=vector("version_number", "major", "minor", "patch", "commit",
                             "beta", "debug","version_string")
-]);
+));
 
 event zeek_init()
 	{

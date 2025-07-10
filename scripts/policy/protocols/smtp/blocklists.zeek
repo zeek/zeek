@@ -56,8 +56,8 @@ event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string,
 				message = fmt("%s is on an SMTP block list", c$id$orig_h);
 				}
 
-			NOTICE([$note=note, $conn=c, $msg=message, $sub=msg,
-			        $identifier=cat(c$id$orig_h)]);
+			NOTICE(Notice::Info($note=note, $conn=c, $msg=message, $sub=msg,
+			                    $identifier=cat(c$id$orig_h)));
 			}
 		}
 	}

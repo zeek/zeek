@@ -7,13 +7,13 @@ module Cluster;
 ## This gauge tracks the current number of locally queued messages in each
 ## Broker peering's send buffer. The "peer" label identifies the remote side of
 ## the peering, containing a Zeek cluster node name.
-global broker_peer_buffer_messages_gf = Telemetry::register_gauge_family([
+global broker_peer_buffer_messages_gf = Telemetry::register_gauge_family(Telemetry::MetricOpts(
     $prefix="zeek",
     $name="broker-peer-buffer-messages",
     $unit="",
     $label_names=vector("peer"),
     $help_text="Number of messages queued in Broker's send buffers",
-]);
+));
 
 ## This gauge tracks recent maximum queue lengths for each Broker peering's send
 ## buffer. Most of the time the send buffers are nearly empty, so this gauge
@@ -23,26 +23,26 @@ global broker_peer_buffer_messages_gf = Telemetry::register_gauge_family([
 ## observed message. That is, Zeek keeps a timestamp of when the window started,
 ## and once it notices that the interval has passed, it moves the start of the
 ## window to current time.
-global broker_peer_buffer_recent_max_messages_gf = Telemetry::register_gauge_family([
+global broker_peer_buffer_recent_max_messages_gf = Telemetry::register_gauge_family(Telemetry::MetricOpts(
     $prefix="zeek",
     $name="broker-peer-buffer-recent-max-messages",
     $unit="",
     $label_names=vector("peer"),
     $help_text="Maximum number of messages recently queued in Broker's send buffers",
-]);
+));
 
 ## This counter tracks for each Broker peering the number of times its send
 ## buffer has overflowed. For the "disconnect" policy this can at most be 1,
 ## since Broker stops the peering at this time. For the "drop_oldest" and
 ## "drop_newest" policies (see :zeek:see:`Broker:peer_overflow_policy`) the count
 ## instead reflects the number of messages lost.
-global broker_peer_buffer_overflows_cf = Telemetry::register_counter_family([
+global broker_peer_buffer_overflows_cf = Telemetry::register_counter_family(Telemetry::MetricOpts(
     $prefix="zeek",
     $name="broker-peer-buffer-overflows",
     $unit="",
     $label_names=vector("peer"),
     $help_text="Number of overflows in Broker's send buffers",
-]);
+));
 
 
 # A helper to track overflow counts over past peerings as well as the current

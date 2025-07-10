@@ -492,7 +492,7 @@ function nodeid_to_node(id: string): NamedNode
 			return NamedNode($name=name, $node=n);
 		}
 
-	return NamedNode($name="", $node=[$node_type=NONE, $ip=0.0.0.0]);
+	return NamedNode($name="", $node=Node($node_type=NONE, $ip=0.0.0.0));
 	}
 
 event Cluster::hello(name: string, id: string) &priority=10
@@ -572,7 +572,7 @@ event zeek_init() &priority=5
 		terminate();
 		}
 
-	Log::create_stream(Cluster::LOG, [$columns=Info, $path="cluster", $policy=log_policy]);
+	Log::create_stream(Cluster::LOG, Log::Stream($columns=Info, $path="cluster", $policy=log_policy));
 	}
 
 function create_store(name: string, persistent: bool &default=F): Cluster::StoreInfo
@@ -654,7 +654,7 @@ function create_store(name: string, persistent: bool &default=F): Cluster::Store
 
 function log(msg: string)
 	{
-	Log::write(Cluster::LOG, [$ts = network_time(), $node = node, $message = msg]);
+	Log::write(Cluster::LOG, Info($ts = network_time(), $node = node, $message = msg));
 	}
 
 function init(): bool

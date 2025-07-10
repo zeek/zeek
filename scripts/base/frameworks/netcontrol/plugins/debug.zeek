@@ -117,7 +117,7 @@ global debug_plugin = Plugin(
 
 function create_debug(do_something: bool, name: string) : PluginState
 	{
-	local p: PluginState = [$plugin=debug_plugin];
+	local p = PluginState($plugin=debug_plugin);
 
 	# FIXME: Why's the default not working?
 	p$config = table();
@@ -132,7 +132,7 @@ function create_debug(do_something: bool, name: string) : PluginState
 
 function create_debug_error(name: string) : PluginState
 	{
-	local p: PluginState = copy([$plugin=debug_plugin]);
+	local p = copy(PluginState($plugin=debug_plugin));
 	p$config["name"] = name;
 	p$config["all"] = "1";
 	p$plugin$add_rule = debug_add_rule_error;
@@ -141,7 +141,7 @@ function create_debug_error(name: string) : PluginState
 
 function create_debug_exists(name: string) : PluginState
 	{
-	local p: PluginState = copy([$plugin=debug_plugin]);
+	local p = copy(PluginState($plugin=debug_plugin));
 	p$config["name"] = name;
 	p$config["all"] = "1";
 	p$plugin$add_rule = debug_add_rule_exists;

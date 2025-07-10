@@ -49,7 +49,7 @@ redef record connection += {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(NTLM::LOG, [$columns=Info, $path="ntlm", $policy=log_policy]);
+	Log::create_stream(NTLM::LOG, Log::Stream($columns=Info, $path="ntlm", $policy=log_policy));
 	}
 
 function set_session(c: connection)

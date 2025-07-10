@@ -31,10 +31,10 @@ function get_indent(level: count): string
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(LoadedScripts::LOG, [$columns=Info, $path="loaded_scripts", $policy=log_policy]);
+	Log::create_stream(LoadedScripts::LOG, Log::Stream($columns=Info, $path="loaded_scripts", $policy=log_policy));
 	}
 
 event zeek_script_loaded(path: string, level: count)
 	{
-	Log::write(LoadedScripts::LOG, [$name=cat(get_indent(level), compress_path(path))]);
+	Log::write(LOG, Info($name=cat(get_indent(level), compress_path(path))));
 	}

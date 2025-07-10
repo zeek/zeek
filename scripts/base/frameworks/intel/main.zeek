@@ -280,7 +280,7 @@ global min_data_store: MinDataStore &redef;
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(LOG, [$columns=Info, $ev=log_intel, $path="intel", $policy=log_policy]);
+	Log::create_stream(LOG, Log::Stream($columns=Info, $ev=log_intel, $path="intel", $policy=log_policy));
 	}
 
 # Function that abstracts expiration of different types.
@@ -289,7 +289,7 @@ function expire_item(indicator: string, indicator_type: Type, metas: set[MetaDat
 	if ( hook item_expired(indicator, indicator_type, metas) )
 		return item_expiration;
 	else
-		remove([$indicator=indicator, $indicator_type=indicator_type, $meta=[$source=""]], T);
+		remove(Item($indicator=indicator, $indicator_type=indicator_type, $meta=MetaData($source="")), T);
 	return 0 sec;
 	}
 

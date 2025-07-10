@@ -78,9 +78,9 @@ function shunt_filters()
 
 event zeek_init() &priority=5
 	{
-	register_filter_plugin([
+	register_filter_plugin(FilterPlugin(
 		$func()={ return shunt_filters(); }
-		]);
+		));
 	}
 
 function current_shunted_conns(): set[conn_id]
@@ -97,8 +97,8 @@ function reached_max_shunts(): bool
 	{
 	if ( |shunted_conns| + |shunted_host_pairs| > max_bpf_shunts )
 		{
-		NOTICE([$note=No_More_Conn_Shunts_Available,
-		        $msg=fmt("%d BPF shunts are in place and no more will be added until space clears.", max_bpf_shunts)]);
+		NOTICE(Notice::Info($note=No_More_Conn_Shunts_Available,
+		                    $msg=fmt("%d BPF shunts are in place and no more will be added until space clears.", max_bpf_shunts)));
 		return T;
 		}
 	else
@@ -145,10 +145,10 @@ function shunt_conn(id: conn_id): bool
 	{
 	if ( is_v6_addr(id$orig_h) )
 		{
-		NOTICE([$note=Cannot_BPF_Shunt_Conn,
-		        $msg="IPv6 connections can't be shunted with BPF due to limitations in BPF",
-		        $sub="ipv6_conn",
-		        $id=id, $identifier=cat(id)]);
+		NOTICE(Notice::Info($note=Cannot_BPF_Shunt_Conn,
+		                    $msg="IPv6 connections can't be shunted with BPF due to limitations in BPF",
+		                    $sub="ipv6_conn",
+		                    $id=id, $identifier=cat(id)));
 		return F;
 		}
 

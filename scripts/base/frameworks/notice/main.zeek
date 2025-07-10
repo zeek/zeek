@@ -381,16 +381,16 @@ function log_mailing_postprocessor(info: Log::RotationInfo): bool
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Notice::LOG, [$columns=Info, $ev=log_notice, $path="notice", $policy=log_policy]);
+	Log::create_stream(Notice::LOG, Log::Stream($columns=Info, $ev=log_notice, $path="notice", $policy=log_policy));
 
-	Log::create_stream(Notice::ALARM_LOG, [$columns=Notice::Info, $path="notice_alarm", $policy=log_policy_alarm]);
+	Log::create_stream(Notice::ALARM_LOG, Log::Stream($columns=Notice::Info, $path="notice_alarm", $policy=log_policy_alarm));
 	# If Zeek is configured for mailing notices, set up mailing for alarms.
 	# Make sure that this alarm log is also output as text so that it can
 	# be packaged up and emailed later.
 	if ( ! reading_traces() && mail_dest != "" )
 		Log::add_filter(Notice::ALARM_LOG,
-		    [$name="alarm-mail", $path="alarm-mail", $writer=Log::WRITER_ASCII,
-		     $interv=24hrs, $postprocessor=log_mailing_postprocessor]);
+		                Log::Filter($name="alarm-mail", $path="alarm-mail", $writer=Log::WRITER_ASCII,
+		                            $interv=24hrs, $postprocessor=log_mailing_postprocessor));
 	}
 
 function email_headers(subject_desc: string, dest: string): string

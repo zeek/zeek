@@ -12,16 +12,16 @@ event mime_end_entity(c: connection) &group="Intel::ADDR"
 			local path = c$smtp$path;
 			for ( i in path )
 				{
-				Intel::seen([$host=path[i],
-				             $conn=c,
-				             $where=SMTP::IN_RECEIVED_HEADER]);
+				Intel::seen(Intel::Seen($host=path[i],
+				                        $conn=c,
+				                        $where=SMTP::IN_RECEIVED_HEADER));
 				}
 			}
 
 		if ( c$smtp?$x_originating_ip )
-			Intel::seen([$host=c$smtp$x_originating_ip,
-			             $conn=c,
-			             $where=SMTP::IN_X_ORIGINATING_IP_HEADER]);
+			Intel::seen(Intel::Seen($host=c$smtp$x_originating_ip,
+			                        $conn=c,
+			                        $where=SMTP::IN_X_ORIGINATING_IP_HEADER));
 		}
 	}
 
@@ -30,10 +30,10 @@ event mime_end_entity(c: connection) &group="Intel::SOFTWARE"
 	if ( c?$smtp )
 		{
 		if ( c$smtp?$user_agent )
-			Intel::seen([$indicator=c$smtp$user_agent,
-			             $indicator_type=Intel::SOFTWARE,
-			             $conn=c,
-			             $where=SMTP::IN_HEADER]);
+			Intel::seen(Intel::Seen($indicator=c$smtp$user_agent,
+			                        $indicator_type=Intel::SOFTWARE,
+			                        $conn=c,
+			                        $where=SMTP::IN_HEADER));
 		}
 	}
 
@@ -43,20 +43,20 @@ event mime_end_entity(c: connection) &group="Intel::EMAIL"
 		{
 		if ( c$smtp?$mailfrom )
 			{
-			Intel::seen([$indicator=c$smtp$mailfrom,
-			             $indicator_type=Intel::EMAIL,
-			             $conn=c,
-			             $where=SMTP::IN_MAIL_FROM]);
+			Intel::seen(Intel::Seen($indicator=c$smtp$mailfrom,
+			                        $indicator_type=Intel::EMAIL,
+			                        $conn=c,
+			                        $where=SMTP::IN_MAIL_FROM ));
 			}
 
 		if ( c$smtp?$rcptto )
 			{
 			for ( rcptto_addr in c$smtp$rcptto )
 				{
-				Intel::seen([$indicator=rcptto_addr,
-				             $indicator_type=Intel::EMAIL,
-				             $conn=c,
-				             $where=SMTP::IN_RCPT_TO]);
+				Intel::seen(Intel::Seen($indicator=rcptto_addr,
+				                        $indicator_type=Intel::EMAIL,
+				                        $conn=c,
+				                        $where=SMTP::IN_RCPT_TO));
 				}
 			}
 
@@ -64,10 +64,10 @@ event mime_end_entity(c: connection) &group="Intel::EMAIL"
 			{
 			for ( from_addr in extract_email_addrs_set(c$smtp$from) )
 				{
-				Intel::seen([$indicator=from_addr,
-				             $indicator_type=Intel::EMAIL,
-				             $conn=c,
-				             $where=SMTP::IN_FROM]);
+				Intel::seen(Intel::Seen($indicator=from_addr,
+				                        $indicator_type=Intel::EMAIL,
+				                        $conn=c,
+				                        $where=SMTP::IN_FROM));
 				}
 			}
 
@@ -75,10 +75,10 @@ event mime_end_entity(c: connection) &group="Intel::EMAIL"
 			{
 			for ( email_to_addr in c$smtp$to )
 				{
-				Intel::seen([$indicator=extract_first_email_addr(email_to_addr),
-				             $indicator_type=Intel::EMAIL,
-				             $conn=c,
-				             $where=SMTP::IN_TO]);
+				Intel::seen(Intel::Seen($indicator=extract_first_email_addr(email_to_addr),
+				                        $indicator_type=Intel::EMAIL,
+				                        $conn=c,
+				                        $where=SMTP::IN_TO));
 				}
 			}
 
@@ -86,19 +86,19 @@ event mime_end_entity(c: connection) &group="Intel::EMAIL"
 			{
 			for ( cc_addr in c$smtp$cc )
 				{
-				Intel::seen([$indicator=cc_addr,
-				             $indicator_type=Intel::EMAIL,
-				             $conn=c,
-				             $where=SMTP::IN_CC]);
+				Intel::seen(Intel::Seen($indicator=cc_addr,
+				                        $indicator_type=Intel::EMAIL,
+				                        $conn=c,
+				                        $where=SMTP::IN_CC));
 				}
 			}
 
 		if ( c$smtp?$reply_to )
 			{
-			Intel::seen([$indicator=c$smtp$reply_to,
-			             $indicator_type=Intel::EMAIL,
-			             $conn=c,
-			             $where=SMTP::IN_REPLY_TO]);
+			Intel::seen(Intel::Seen($indicator=c$smtp$reply_to,
+			                        $indicator_type=Intel::EMAIL,
+			                        $conn=c,
+			                        $where=SMTP::IN_REPLY_TO));
 			}
 		}
 	}

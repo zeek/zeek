@@ -164,7 +164,7 @@ redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(DNS::LOG, [$columns=Info, $ev=log_dns, $path="dns", $policy=log_policy]);
+	Log::create_stream(DNS::LOG, Log::Stream($columns=Info, $ev=log_dns, $path="dns", $policy=log_policy));
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DNS, ports);
 	}
 

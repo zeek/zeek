@@ -40,14 +40,14 @@ event zeek_init() &priority=5
 		return;
 
 	for ( fi in config_files )
-		Input::add_table([$reader=Input::READER_CONFIG,
+		Input::add_table(Input::TableDescription($reader=Input::READER_CONFIG,
 			$mode=Input::REREAD,
 			$source=fi,
 			$name=cat("config-", fi),
 			$idx=ConfigItem,
 			$val=ConfigItem,
 			$want_record=F,
-			$destination=current_config]);
+			$destination=current_config));
 	}
 
 event InputConfig::new_value(name: string, source: string, id: string, value: any)
@@ -67,11 +67,11 @@ function read_config(filename: string)
 
 	local iname = cat("config-oneshot-", filename);
 
-	Input::add_event([$reader=Input::READER_CONFIG,
+	Input::add_event(Input::EventDescription($reader=Input::READER_CONFIG,
 		$mode=Input::MANUAL,
 		$source=filename,
 		$name=iname,
 		$fields=EventFields,
-		$ev=config_line]);
+		$ev=config_line));
 	Input::remove(iname);
 	}

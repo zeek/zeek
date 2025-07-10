@@ -72,7 +72,7 @@ event zeek_init() &priority=3
 		$num_samples=1
 	);
 
-	SumStats::create([
+	SumStats::create(SumStats::SumStat(
 		$name="detect-sqli-attackers",
 		$epoch=sqli_requests_interval,
 		$reducers=set(r1),
@@ -86,16 +86,16 @@ event zeek_init() &priority=3
 			local r = result["http.sqli.attacker"];
 			local dst = to_addr(r$samples[0]$str);
 			local uid = r$samples[0]$uid;
-			NOTICE([$note=SQL_Injection_Attacker,
-				$msg="An SQL injection attacker was discovered!",
-				$uid=uid,
-				$src=key$host,
-				$dst=dst,
-				$identifier=cat(key$host)]);
+			NOTICE(Notice::Info($note=SQL_Injection_Attacker,
+			                    $msg="An SQL injection attacker was discovered!",
+			                    $uid=uid,
+			                    $src=key$host,
+			                    $dst=dst,
+			                    $identifier=cat(key$host)));
 			}
-	]);
+	));
 
-	SumStats::create([
+	SumStats::create(SumStats::SumStat(
 		$name="detect-sqli-victims",
 		$epoch=sqli_requests_interval,
 		$reducers=set(r2),
@@ -109,14 +109,14 @@ event zeek_init() &priority=3
 			local r = result["http.sqli.victim"];
 			local src = to_addr(r$samples[0]$str);
 			local uid = r$samples[0]$uid;
-			NOTICE([$note=SQL_Injection_Victim,
-				$msg="An SQL injection victim was discovered!",
-				$uid=uid,
-				$src=src,
-				$dst=key$host,
-				$identifier=cat(key$host)]);
+			NOTICE(Notice::Info($note=SQL_Injection_Victim,
+			                    $msg="An SQL injection victim was discovered!",
+			                    $uid=uid,
+			                    $src=src,
+			                    $dst=key$host,
+			                    $identifier=cat(key$host)));
 			}
-	]);
+	));
 	}
 
 event http_request(c: connection, method: string, original_URI: string,

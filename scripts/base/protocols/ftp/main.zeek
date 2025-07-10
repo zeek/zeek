@@ -88,7 +88,7 @@ redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(FTP::LOG, [$columns=Info, $ev=log_ftp, $path="ftp", $policy=log_policy]);
+	Log::create_stream(FTP::LOG, Log::Stream($columns=Info, $ev=log_ftp, $path="ftp", $policy=log_policy));
 	Analyzer::register_for_ports(Analyzer::ANALYZER_FTP, ports);
 	}
 
@@ -307,8 +307,8 @@ event ftp_request(c: connection, command: string, arg: string) &priority=5
 
 		if ( data$valid )
 			{
-			add_expected_data_channel(c$ftp, [$passive=F, $orig_h=id$resp_h,
-			                                  $resp_h=data$h, $resp_p=data$p]);
+			add_expected_data_channel(c$ftp, ExpectedDataChannel($passive=F, $orig_h=id$resp_h,
+			                                                     $resp_h=data$h, $resp_p=data$p));
 			}
 		else
 			{
@@ -403,8 +403,8 @@ event ftp_reply(c: connection, code: count, msg: string, cont_resp: bool) &prior
 			if ( code == 229 && data$h == [::] )
 				data$h = c$id$resp_h;
 
-			add_expected_data_channel(c$ftp, [$passive=T, $orig_h=c$id$orig_h,
-			                          $resp_h=data$h, $resp_p=data$p]);
+			add_expected_data_channel(c$ftp, ExpectedDataChannel($passive=T, $orig_h=c$id$orig_h,
+			                                                     $resp_h=data$h, $resp_p=data$p));
 			}
 		else
 			{

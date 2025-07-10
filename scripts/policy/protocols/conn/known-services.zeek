@@ -238,9 +238,8 @@ event known_service_add(info: ServicesInfo)
 			}
 		}
 
-	@if ( ! Cluster::is_enabled() ||
-	      Cluster::local_node_type() == Cluster::PROXY )
-		Log::write(Known::SERVICES_LOG, info_to_log);
+	@if ( ! Cluster::is_enabled() || Cluster::local_node_type() == Cluster::PROXY )
+	Log::write(Known::SERVICES_LOG, info_to_log);
 	@endif
 	}
 
@@ -376,8 +375,8 @@ event connection_state_remove(c: connection) &priority=-5
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Known::SERVICES_LOG, [$columns=ServicesInfo,
-	                                         $ev=log_known_services,
-	                                         $path="known_services",
-						 $policy=log_policy_services]);
+	Log::create_stream(Known::SERVICES_LOG, Log::Stream($columns=ServicesInfo,
+	                                                    $ev=log_known_services,
+	                                                    $path="known_services",
+	                                                    $policy=log_policy_services));
 	}

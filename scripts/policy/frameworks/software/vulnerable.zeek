@@ -47,7 +47,7 @@ function decode_vulnerable_version_range(vuln_sw: string): VulnerableVersionRang
 	{
 	# Create a max value with a dunce value only because the $max field
 	# is not optional.
-	local vvr: Software::VulnerableVersionRange = [$max=[$major=0]];
+	local vvr = Software::VulnerableVersionRange($max=Software::Version($major=0));
 
 	if ( /max=/ !in vuln_sw )
 		{
@@ -138,9 +138,9 @@ event log_software(rec: Info)
 			 (!version_range?$min || cmp_versions(rec$version, version_range$min) >= 0) )
 			{
 			# The software is inside a vulnerable version range.
-			NOTICE([$note=Vulnerable_Version, $src=rec$host,
-			        $msg=fmt("%s is running %s which is vulnerable.", rec$host, software_fmt(rec)),
-			        $sub=software_fmt(rec)]);
+			NOTICE(Notice::Info($note=Vulnerable_Version, $src=rec$host,
+			                    $msg=fmt("%s is running %s which is vulnerable.", rec$host, software_fmt(rec)),
+			                    $sub=software_fmt(rec)));
 			}
 		}
 	}

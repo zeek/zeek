@@ -29,8 +29,8 @@ global g_outputs: table[string] of NodeOutputStreams;
 
 function make_node_output_streams(node: string): NodeOutputStreams
 	{
-	local stdout = Queue::init([$max_len = Management::Supervisor::output_max_lines]);
-	local stderr = Queue::init([$max_len = Management::Supervisor::output_max_lines]);
+	local stdout = Queue::init(Queue::Settings($max_len = Management::Supervisor::output_max_lines));
+	local stderr = Queue::init(Queue::Settings($max_len = Management::Supervisor::output_max_lines));
 
 	local res = NodeOutputStreams($stdout=stdout, $stderr=stderr);
 	local status = Supervisor::status(node);

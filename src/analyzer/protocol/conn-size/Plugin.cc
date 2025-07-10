@@ -2,6 +2,8 @@
 
 #include "zeek/plugin/Plugin.h"
 
+#include <algorithm>
+
 #include "zeek/Val.h"
 #include "zeek/analyzer/Component.h"
 #include "zeek/analyzer/protocol/conn-size/ConnSize.h"

@@ -1,3 +1,10 @@
+8.0.0-dev.631 | 2025-07-10 08:55:39 -0700
+
+  * Modify known-services policy script to add storage framework support (Tim Wojtulewicz, Corelight)
+
+    This adds a flag to enable using the storage framework instead of Broker stores,
+    plus a btest for both broker and the the storage framework.
+
 8.0.0-dev.629 | 2025-07-10 09:38:32 +0200
 
   * Spicy: Add linker scope to debugging output. (Robin Sommer, Corelight)

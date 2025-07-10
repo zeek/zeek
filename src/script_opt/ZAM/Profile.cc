@@ -40,8 +40,10 @@ std::string ZAMLocInfo::Describe(bool include_lines) const {
 
         if ( include_lines ) {
             desc += ";" + func_name + ":" + std::to_string(loc->FirstLine());
-            if ( loc->LastLine() > loc->FirstLine() )
-                desc += "-" + std::to_string(loc->LastLine());
+            if ( loc->LastLine() > loc->FirstLine() ) {
+                desc.append("-");
+                desc.append(std::to_string(loc->LastLine()));
+            }
         }
     }
 

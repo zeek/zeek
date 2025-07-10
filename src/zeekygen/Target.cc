@@ -368,7 +368,9 @@ void PackageTarget::DoGenerate() const {
 
     for ( const auto& [pkg, info_vec] : pkg_manifest ) {
         string header = util::fmt("Package: %s", pkg->Name().c_str());
-        header += "\n" + string(header.size(), '=');
+        auto header_size = header.size();
+        header.append("\n");
+        header.append(string(header_size, '='));
 
         fprintf(file.f, "%s\n\n", header.c_str());
 

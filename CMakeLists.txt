@@ -90,8 +90,6 @@ set(ZEEK_ETC_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/etc"
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL
                                            "Whether to write a JSON compile commands database")
 
-set(ZEEK_CXX_STD cxx_std_17 CACHE STRING "The C++ standard to use.")
-
 set(ZEEK_SANITIZERS "" CACHE STRING "Sanitizers to use when building.")
 
 set(CPACK_SOURCE_IGNORE_FILES "" CACHE STRING "Files to be ignored by CPack")
@@ -194,7 +192,7 @@ if (MSVC)
         # TODO: This is disabled for now because there a bunch of known
         # compiler warnings on Windows that we don't have good fixes for.
         #set(WERROR_FLAG "/WX")
-        #set(WERROR_FLAG "/WX")
+        #set(WNOERROR_FLAG "/WX:NO")
     endif ()
 
     # Always build binpac in static mode if building on Windows
@@ -204,11 +202,26 @@ else ()
     include(GNUInstallDirs)
     if (BUILD_WITH_WERROR)
         set(WERROR_FLAG "-Werror")
+        set(WNOERROR_FLAG "-Wno-error")
+
+        # With versions >=13.0 GCC gained `-Warray-bounds` which reports false
+        # positives, see e.g., https://gcc.gnu.org/bugzilla/show_bug.cgi?id=111273.
+        if (CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13.0)
+            list(APPEND WERROR_FLAG "-Wno-error=array-bounds")
+        endif ()
+
+        # With versions >=11.0 GCC is returning false positives for -Wrestrict. See
+        # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100366. It's more prevalent
+        # building with -std=c++20.
+        if (CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 11.0)
+            list(APPEND WERROR_FLAG "-Wno-error=restrict")
+        endif ()
     endif ()
 endif ()
 
 include(cmake/CommonCMakeConfig.cmake)
 include(cmake/CheckCompilerArch.cmake)
+include(cmake/RequireCXXStd.cmake)
 
 string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
 
@@ -237,7 +250,7 @@ set(ZEEK_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 # zeek-plugin-create-package.sh. Needed by ZeekPluginConfig.cmake.in.
 set(ZEEK_PLUGIN_SCRIPTS_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
-# Our C++17 base target for propagating compiler and linker flags. Note: for
+# Our C++ base target for propagating compiler and linker flags. Note: for
 # now, we only use it for passing library dependencies around.
 add_library(zeek_internal INTERFACE)
 add_library(Zeek::Internal ALIAS zeek_internal)
@@ -356,7 +369,7 @@ endfunction ()
 find_package(Threads REQUIRED)
 
 # Interface library for propagating extra flags and include paths to dynamically
-# loaded plugins. Also propagates include paths and C++17 mode on the install
+# loaded plugins. Also propagates include paths and c++ standard mode on the install
 # interface.
 add_library(zeek_dynamic_plugin_base INTERFACE)
 target_include_directories(

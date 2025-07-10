@@ -1,3 +1,24 @@
+8.0.0-dev.636 | 2025-07-10 15:42:52 -0700
+
+  * Reduce some false-positive warnings from GCC to warnings with -Werror (Tim Wojtulewicz, Corelight)
+
+    This also works around some of the same warnings. These are known bugs
+    in GCC 11+ and GCC 13.x.
+
+  * Add zeek-namespaced alias for jthread (Tim Wojtulewicz, Corelight)
+
+    Apple Clang (as of version 17.0.0) does not support jthread unless
+    you enable experimental libcpp features by defining
+    _LIBCPP_ENABLE_EXPERIMENTAL or passing -fexperimental_library to
+    the compiler. Even if you don't do those, our 3rdparty jthread
+    library fails to build because of a bunch of namespace/naming
+    collisions. I moved our 3rdparty one to the `nonstd` namespace, and
+    am using an alias under __APPLE__ to avoid the collisions.
+
+  * Include RequireCXXStd.cmake from main CMakeLists.txt (Tim Wojtulewicz, Corelight)
+
+  * Update submodules to C++20-enabled versions (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.631 | 2025-07-10 08:55:39 -0700
 
   * Modify known-services policy script to add storage framework support (Tim Wojtulewicz, Corelight)

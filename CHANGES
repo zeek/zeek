@@ -1,3 +1,9 @@
+7.2.1-14 | 2025-07-17 08:48:26 -0700
+
+  * [Spicy] Let `zeek::protocol_handle_close()` send a TCP EOF. (Benjamin Bannier, Corelight)
+
+    (cherry picked from commit ce6c7a6cd1b3eb7f7b3c12772763edd9881b430e)
+
 7.2.1-13 | 2025-07-17 08:48:06 -0700
 
   * Bump auxil/spicy to spicy-1.13.2 (Benjamin Bannier, Corelight)

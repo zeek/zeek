@@ -1,3 +1,36 @@
+8.0.0-dev.629 | 2025-07-10 09:38:32 +0200
+
+  * Spicy: Add linker scope to debugging output. (Robin Sommer, Corelight)
+
+  * Spicy: Remove declarations for unimplemented functions. (Benjamin Bannier, Corelight)
+
+  * Spicy: Bump `auxil/spicy/` to latest development snapshot. (Benjamin Bannier & Robin Sommer, Corelight)
+
+  * Spicy: Let `zeek::protocol_handle_close()` send a TCP EOF. (Benjamin Bannier, Corelight)
+
+    Zeek's analyzer API makes it hard to determine during analyzer
+    shutdown whether a regular end-of-data has been reached, or if we're
+    aborting in the middle of a session (e.g., because Zeek missed the
+    remaining packets): the corresponding analyzer method, `EndOfData()`
+    gets called in both cases.
+
+    In an earlier change, we had stopped signaling Spicy analyzers a
+    regular finish when that `EndOfData()` method executes, because doing
+    so could trigger a parse error if it wasn't a regular shutdown—-which
+    isn't desired, a user request was to just silently stop processing in
+    this case.
+
+    However, that behavior now seems unfortunate in the case that one
+    deliberately calls `zeek::protocol_handle_close()` to terminate an
+    analyzer: this feels like a regular shutdown that should just
+    immediately happen. We achieve this now in this function by
+    additionally signaling the shutdown at the TCP layer as an "end of
+    file", which, for Spicy analyzers, happens to run the final, orderly
+    tear-down.
+
+    Not exactly great, but ti seems to thread the needle to achieve the
+    desired semantics in both cases.
+
 8.0.0-dev.622 | 2025-07-09 15:10:03 -0700
 
   * ZAM optimizer fix for += / -= set operations (Vern Paxson, Corelight)

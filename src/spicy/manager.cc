@@ -64,8 +64,9 @@ void Manager::registerSpicyModuleEnd() {
 void Manager::registerProtocolAnalyzer(const std::string& name, hilti::rt::Protocol proto,
                                        const hilti::rt::Vector<::zeek::spicy::rt::PortRange>& ports,
                                        const std::string& parser_orig, const std::string& parser_resp,
-                                       const std::string& replaces, const std::string& linker_scope) {
-    SPICY_DEBUG(hilti::rt::fmt("Have Spicy protocol analyzer %s", name));
+                                       const std::string& replaces,
+                                       const hilti::rt::integer::safe<uint64_t>& linker_scope) {
+    SPICY_DEBUG(hilti::rt::fmt("Have Spicy protocol analyzer %s (scope 0x%" PRIx64 ")", name, linker_scope.Ref()));
 
     ProtocolAnalyzerInfo info;
     info.name_analyzer = name;
@@ -125,8 +126,8 @@ void Manager::registerProtocolAnalyzer(const std::string& name, hilti::rt::Proto
 
 void Manager::registerFileAnalyzer(const std::string& name, const hilti::rt::Vector<std::string>& mime_types,
                                    const std::string& parser, const std::string& replaces,
-                                   const std::string& linker_scope) {
-    SPICY_DEBUG(hilti::rt::fmt("Have Spicy file analyzer %s", name));
+                                   const hilti::rt::integer::safe<uint64_t>& linker_scope) {
+    SPICY_DEBUG(hilti::rt::fmt("Have Spicy file analyzer %s (scope 0x%" PRIx64 ")", name, linker_scope.Ref()));
 
     FileAnalyzerInfo info;
     info.name_analyzer = name;
@@ -170,8 +171,8 @@ void Manager::registerFileAnalyzer(const std::string& name, const hilti::rt::Vec
 }
 
 void Manager::registerPacketAnalyzer(const std::string& name, const std::string& parser, const std::string& replaces,
-                                     const std::string& linker_scope) {
-    SPICY_DEBUG(hilti::rt::fmt("Have Spicy packet analyzer %s", name));
+                                     const hilti::rt::integer::safe<uint64_t>& linker_scope) {
+    SPICY_DEBUG(hilti::rt::fmt("Have Spicy packet analyzer %s (scope 0x%" PRIx64 ")", name, linker_scope.Ref()));
 
     PacketAnalyzerInfo info;
     info.name_analyzer = name;
@@ -651,7 +652,7 @@ void Manager::InitPostScript() {
 
     // Fill in the parser information now that we derived from the ASTs.
     auto find_parser = [](const std::string& analyzer, const std::string& parser,
-                          const std::string& linker_scope) -> const ::spicy::rt::Parser* {
+                          const auto& linker_scope) -> const ::spicy::rt::Parser* {
         if ( parser.empty() )
             return nullptr;
 
@@ -660,8 +661,8 @@ void Manager::InitPostScript() {
                 return p;
         }
 
-        reporter->InternalError("Unknown Spicy parser '%s' requested by analyzer '%s'", parser.c_str(),
-                                analyzer.c_str());
+        reporter->InternalError("Unknown Spicy parser '%s' (scope 0x%" PRIx64 ") requested by analyzer '%s'",
+                                parser.c_str(), linker_scope.Ref(), analyzer.c_str());
 
         return nullptr; // cannot be reached
     };
@@ -671,7 +672,8 @@ void Manager::InitPostScript() {
             // vector element not set
             continue;
 
-        SPICY_DEBUG(hilti::rt::fmt("Registering %s protocol analyzer %s with Zeek", p.protocol, p.name_analyzer));
+        SPICY_DEBUG(hilti::rt::fmt("Registering %s protocol analyzer %s (scope 0x%" PRIx64 ") with Zeek", p.protocol,
+                                   p.name_analyzer, p.linker_scope));
 
         p.parser_orig = find_parser(p.name_analyzer, p.name_parser_orig, p.linker_scope);
         p.parser_resp = find_parser(p.name_analyzer, p.name_parser_resp, p.linker_scope);
@@ -728,7 +730,8 @@ void Manager::InitPostScript() {
             // vector element not set
             continue;
 
-        SPICY_DEBUG(hilti::rt::fmt("Registering file analyzer %s with Zeek", p.name_analyzer.c_str()));
+        SPICY_DEBUG(hilti::rt::fmt("Registering file analyzer %s (scope 0x%" PRIx64 ") with Zeek",
+                                   p.name_analyzer.c_str(), p.linker_scope.Ref()));
 
         p.parser = find_parser(p.name_analyzer, p.name_parser, p.linker_scope);
 
@@ -763,7 +766,8 @@ void Manager::InitPostScript() {
             // vector element not set
             continue;
 
-        SPICY_DEBUG(hilti::rt::fmt("Registering packet analyzer %s with Zeek", p.name_analyzer.c_str()));
+        SPICY_DEBUG(hilti::rt::fmt("Registering packet analyzer %s (scope 0x%" PRIx64 ") with Zeek",
+                                   p.name_analyzer.c_str(), p.linker_scope.Ref()));
         p.parser = find_parser(p.name_analyzer, p.name_parser, p.linker_scope);
     }
 

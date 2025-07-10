@@ -2,15 +2,16 @@
 
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <set>
 #include <string>
-#include <tuple>
 #include <unordered_map>
 #include <vector>
 
 #include <hilti/rt/library.h>
 #include <hilti/rt/logging.h>
+#include <hilti/rt/safe-int.h>
 #include <hilti/rt/types/port.h>
 
 #include "zeek/Scope.h"
@@ -99,7 +100,7 @@ public:
     void registerProtocolAnalyzer(const std::string& name, hilti::rt::Protocol proto,
                                   const hilti::rt::Vector<::zeek::spicy::rt::PortRange>& ports,
                                   const std::string& parser_orig, const std::string& parser_resp,
-                                  const std::string& replaces, const std::string& linker_scope);
+                                  const std::string& replaces, const hilti::rt::integer::safe<uint64_t>& linker_scope);
 
     /**
      * Runtime method to register a file analyzer with its Zeek-side
@@ -117,7 +118,8 @@ public:
      * registration
      */
     void registerFileAnalyzer(const std::string& name, const hilti::rt::Vector<std::string>& mime_types,
-                              const std::string& parser, const std::string& replaces, const std::string& linker_scope);
+                              const std::string& parser, const std::string& replaces,
+                              const hilti::rt::integer::safe<uint64_t>& linker_scope);
 
     /**
      * Runtime method to register a packet analyzer with its Zeek-side
@@ -134,7 +136,7 @@ public:
      * registration
      */
     void registerPacketAnalyzer(const std::string& name, const std::string& parser, const std::string& replaces,
-                                const std::string& linker_scope);
+                                const hilti::rt::integer::safe<uint64_t>& linker_scope);
 
     /**
      * Runtime method to register a Spicy-generated type with Zeek. The type
@@ -345,7 +347,7 @@ private:
         std::string name_replaces;
         hilti::rt::Protocol protocol = hilti::rt::Protocol::Undef;
         std::vector<::zeek::spicy::rt::PortRange> ports; // we keep this sorted
-        std::string linker_scope;
+        hilti::rt::integer::safe<uint64_t> linker_scope;
 
         // Computed and available once the analyzer has been registered.
         std::string name_zeek;
@@ -371,7 +373,7 @@ private:
         std::string name_parser;
         std::string name_replaces;
         hilti::rt::Vector<std::string> mime_types;
-        std::string linker_scope;
+        hilti::rt::integer::safe<uint64_t> linker_scope;
 
         // Computed and available once the analyzer has been registered.
         std::string name_zeek;
@@ -395,7 +397,7 @@ private:
         std::string name_analyzer;
         std::string name_parser;
         std::string name_replaces;
-        std::string linker_scope;
+        hilti::rt::integer::safe<uint64_t> linker_scope;
 
         // Computed and available once the analyzer has been registered.
         std::string name_zeek;

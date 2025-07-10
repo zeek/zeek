@@ -18,9 +18,9 @@ type ZeekTypeTag = enum {
 } &cxxname="::zeek::spicy::rt::ZeekTypeTag";
 
 declare public void register_spicy_module_begin(string name, string description) &cxxname="zeek::spicy::rt::register_spicy_module_begin";
-declare public void register_protocol_analyzer(string name, hilti::Protocol protocol, vector<PortRange> ports, string parser_orig, string parser_resp, string replaces, string linker_scope) &cxxname="zeek::spicy::rt::register_protocol_analyzer" &have_prototype;
-declare public void register_file_analyzer(string name, vector<string> mime_types, string parser, string replaces, string linker_scope) &cxxname="zeek::spicy::rt::register_file_analyzer" &have_prototype;
-declare public void register_packet_analyzer(string name, string parser, string replaces, string linker_scope) &cxxname="zeek::spicy::rt::register_packet_analyzer" &have_prototype;
+declare public void register_protocol_analyzer(string name, hilti::Protocol protocol, vector<PortRange> ports, string parser_orig, string parser_resp, string replaces, uint<64> linker_scope) &cxxname="zeek::spicy::rt::register_protocol_analyzer" &have_prototype;
+declare public void register_file_analyzer(string name, vector<string> mime_types, string parser, string replaces, uint<64> linker_scope) &cxxname="zeek::spicy::rt::register_file_analyzer" &have_prototype;
+declare public void register_packet_analyzer(string name, string parser, string replaces, uint<64> linker_scope) &cxxname="zeek::spicy::rt::register_packet_analyzer" &have_prototype;
 declare public void register_type(string ns, string id, BroType t) &cxxname="zeek::spicy::rt::register_type" &have_prototype;
 declare public void register_spicy_module_end() &cxxname="zeek::spicy::rt::register_spicy_module_end";
 

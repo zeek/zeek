@@ -730,9 +730,10 @@ ExprPtr AddExpr::BuildSub(const ExprPtr& op1, const ExprPtr& op2) {
 }
 
 ExprPtr AggrAddDelExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
-    if ( type )
-        return UnaryExpr::Reduce(c, red_stmt);
-
+    // In the future, if we use add/delete for list operations or such,
+    // then the following becomes germane.
+    // if ( type )
+    //     return UnaryExpr::Reduce(c, red_stmt);
     if ( c->Optimizing() )
         op = c->UpdateExpr(op);
 

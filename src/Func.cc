@@ -15,6 +15,7 @@
 #include <cerrno>
 #include <csignal>
 #include <cstdlib>
+#include <ranges>
 
 // Most of these includes are needed for code included from bif files.
 #include "zeek/Base64.h"
@@ -88,11 +89,10 @@ std::string render_call_stack() {
     if ( ! detail::call_stack.empty() )
         rval += "| ";
 
-    for ( auto it = detail::call_stack.rbegin(); it != detail::call_stack.rend(); ++it ) {
+    for ( auto& ci : std::ranges::reverse_view(detail::call_stack) ) {
         if ( lvl > 0 )
             rval += " | ";
 
-        auto& ci = *it;
         const auto& name = ci.func->GetName();
         std::string arg_desc;
 
@@ -938,8 +938,7 @@ zeek::VectorValPtr get_current_script_backtrace() {
     // to prevent problems with iterator invalidation.
     auto cs_copy = zeek::detail::call_stack;
 
-    for ( auto it = cs_copy.rbegin(); it != cs_copy.rend(); ++it ) {
-        const auto& ci = *it;
+    for ( const auto& ci : std::ranges::reverse_view(cs_copy) ) {
         if ( ! ci.func )
             // This happens for compiled code.
             continue;

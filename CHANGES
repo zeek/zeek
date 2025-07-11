@@ -1,3 +1,7 @@
+8.0.0-dev.639 | 2025-07-11 12:58:06 -0400
+
+  * crash fixes for constructs that expect add/delete expressions to return values (Vern Paxson, Corelight)
+
 8.0.0-dev.636 | 2025-07-10 15:42:52 -0700
 
   * Reduce some false-positive warnings from GCC to warnings with -Werror (Tim Wojtulewicz, Corelight)

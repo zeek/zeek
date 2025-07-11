@@ -220,9 +220,9 @@ bool Expr::CanAdd() const { return false; }
 
 bool Expr::CanDel() const { return false; }
 
-TypePtr Expr::AddType() const { return nullptr; }
+TypePtr Expr::AddType() const { return base_type(TYPE_VOID); }
 
-TypePtr Expr::DelType() const { return nullptr; }
+TypePtr Expr::DelType() const { return base_type(TYPE_VOID); }
 
 ValPtr Expr::Add(Frame* /* f */) { Internal("Expr::Add called"); }
 

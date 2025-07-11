@@ -1,3 +1,7 @@
+8.0.0-dev.641 | 2025-07-11 12:13:45 -0700
+
+  * Add NEWS entry about C++ 20 [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.639 | 2025-07-11 12:58:06 -0400
 
   * crash fixes for constructs that expect add/delete expressions to return values (Vern Paxson, Corelight)

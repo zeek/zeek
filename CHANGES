@@ -1,3 +1,7 @@
+8.0.0-dev.643 | 2025-07-11 15:35:33 -0400
+
+  * Cleanup unused baselines (Evan Typanski, Corelight)
+
 8.0.0-dev.641 | 2025-07-11 12:13:45 -0700
 
   * Add NEWS entry about C++ 20 [nomail] [skip ci] (Tim Wojtulewicz, Corelight)

@@ -598,7 +598,7 @@ string normalize_path(std::string_view path) {
     }
     // "//" interferes with std::weakly_canonical
     string stringPath = string(path);
-    if ( stringPath._Starts_with("//") ) {
+    if ( stringPath.starts_with("//") ) {
         stringPath.erase(0, 2);
     }
     return zeek::filesystem::path(stringPath).lexically_normal().string();
@@ -1033,31 +1033,8 @@ TEST_CASE("util streq") {
 
 bool streq(const char* s1, const char* s2) { return strcmp(s1, s2) == 0; }
 
-bool starts_with(std::string_view s, std::string_view beginning) {
-    if ( beginning.size() > s.size() )
-        return false;
-
-    return std::equal(beginning.begin(), beginning.end(), s.begin());
-}
-
-TEST_CASE("util starts_with") {
-    CHECK(starts_with("abcde", "ab") == true);
-    CHECK(starts_with("abcde", "de") == false);
-    CHECK(starts_with("abcde", "abcedf") == false);
-}
-
-bool ends_with(std::string_view s, std::string_view ending) {
-    if ( ending.size() > s.size() )
-        return false;
-
-    return std::equal(ending.rbegin(), ending.rend(), s.rbegin());
-}
-
-TEST_CASE("util ends_with") {
-    CHECK(ends_with("abcde", "de") == true);
-    CHECK(ends_with("abcde", "fg") == false);
-    CHECK(ends_with("abcde", "abcedf") == false);
-}
+bool starts_with(std::string_view s, std::string_view beginning) { return s.starts_with(beginning); }
+bool ends_with(std::string_view s, std::string_view ending) { return s.ends_with(ending); }
 
 char* skip_whitespace(char* s) {
     while ( *s == ' ' || *s == '\t' )

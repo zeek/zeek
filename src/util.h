@@ -318,7 +318,9 @@ std::vector<std::string_view> tokenize_string(std::string_view input, const char
 extern char* copy_string(const char* str, size_t len);
 extern char* copy_string(const char* s);
 extern bool streq(const char* s1, const char* s2);
+[[deprecated("Remove in v8.1. Use std::string/std::string_view::starts_with()")]]
 extern bool starts_with(std::string_view s, std::string_view beginning);
+[[deprecated("Remove in v8.1. Use std::string/std::string_view::starts_with()")]]
 extern bool ends_with(std::string_view s, std::string_view ending);
 
 extern char* skip_whitespace(char* s);

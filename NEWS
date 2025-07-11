@@ -333,6 +333,10 @@ Deprecated Functionality
   tuples. The ConnTuple struct, used by this deprecated Connection constructor,
   is now deprecated as well.
 
+- ``zeek::util::starts_with`` and ``zeek::util::ends_with`` are deprecated.
+  ``std::string`` and ``std::string_view`` added ``begins_with`` and ``ends_with`` methods
+  in C++ 20, and those should be used instead.
+
 Zeek 7.2.0
 ==========
 

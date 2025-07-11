@@ -24,7 +24,16 @@ public:
      */
     bool IsOpen() override { return db != nullptr; }
 
+    std::string GetConfigForMetrics() const override;
+
 private:
+    using StepResultParser = std::function<OperationResult(sqlite3_stmt*)>;
+
+    struct MetricStats {
+        double page_count = 0.0;
+        double file_size = 0.0;
+    };
+
     OperationResult DoOpen(OpenResultCallback* cb, RecordValPtr options) override;
     OperationResult DoClose(ResultCallback* cb) override;
     OperationResult DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
@@ -45,12 +54,18 @@ private:
      * Abstracts calls to sqlite3_step to properly create an OperationResult
      * structure based on the result.
      */
-    OperationResult Step(sqlite3_stmt* stmt, bool parse_value = false);
+    OperationResult Step(sqlite3_stmt* stmt, StepResultParser parser, bool is_pragma = false);
 
     /**
      * Helper utility for running pragmas on the database.
      */
-    OperationResult RunPragma(std::string_view name, std::optional<std::string_view> value = std::nullopt);
+    OperationResult RunPragma(std::string_view name, std::optional<std::string_view> value = std::nullopt,
+                              StepResultParser value_parser = nullptr);
+
+    /**
+     * Updates the current stats for metrics.
+     */
+    void UpdateMetricStats();
 
     sqlite3* db = nullptr;
     sqlite3* expire_db = nullptr;
@@ -72,6 +87,12 @@ private:
     std::string table_name;
     std::chrono::milliseconds pragma_timeout;
     std::chrono::milliseconds pragma_wait_on_busy;
+
+    telemetry::GaugePtr page_count_metric;
+    telemetry::GaugePtr file_size_metric;
+
+    MetricStats current_metric_stats;
+    double metric_stats_last_updated = 0.0;
 };
 
 } // namespace zeek::storage::backend::sqlite

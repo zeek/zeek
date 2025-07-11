@@ -11,6 +11,7 @@
 #include "zeek/Val.h"
 #include "zeek/iosource/Manager.h"
 #include "zeek/storage/ReturnCode.h"
+#include "zeek/telemetry/Counter.h"
 
 #include "hiredis/adapters/poll.h"
 #include "hiredis/async.h"
@@ -246,6 +247,16 @@ constexpr char REQUIRED_VERSION[] = "6.2.0";
 
 storage::BackendPtr Redis::Instantiate() { return make_intrusive<Redis>(); }
 
+std::string Redis::GetConfigForMetrics() const {
+    std::string tag = util::fmt("%s-%s", server_addr.c_str(), key_prefix.c_str());
+    std::transform(tag.begin(), tag.end(), tag.begin(), [](unsigned char c) -> char {
+        if ( ! std::isalnum(c) )
+            return '-';
+        return c;
+    });
+    return tag;
+}
+
 /**
  * Called by the manager system to open the backend.
  */
@@ -406,6 +417,8 @@ OperationResult Redis::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool 
     if ( connected && status == REDIS_ERR )
         return {ReturnCode::OPERATION_FAILED, util::fmt("Failed to queue put operation: %s", async_ctx->errstr)};
 
+    cb->AddDataTransferredSize(key_data->size() + val_data->size());
+
     ++active_ops;
 
     // If reading pcaps insert into a secondary set that's ordered by expiration
@@ -537,6 +550,8 @@ void Redis::DoExpire(double current_network_time) {
         // TODO: do we care if this failed?
     }
 
+    expired_entries_metric->Inc(elements.size());
+
     freeReplyObject(reply);
 
     // Remove all of the elements from the range-set that match the time range.
@@ -566,6 +581,9 @@ void Redis::HandlePutResult(redisReply* reply, ResultCallback* callback) {
     else if ( reply->type == REDIS_REPLY_ERROR )
         res = ParseReplyError("put", reply->str);
 
+    if ( res.code == ReturnCode::SUCCESS )
+        bytes_stored_metric->Inc(callback->GetDataTransferredSize());
+
     freeReplyObject(reply);
     CompleteCallback(callback, res);
 }
@@ -584,8 +602,10 @@ void Redis::HandleGetResult(redisReply* reply, ResultCallback* callback) {
         res = ParseReplyError("get", reply->str);
     else {
         auto val = serializer->Unserialize({(std::byte*)reply->str, reply->len}, val_type);
-        if ( val )
+        if ( val ) {
             res = {ReturnCode::SUCCESS, "", val.value()};
+            bytes_retrieved_metric->Inc(reply->len);
+        }
         else
             res = {ReturnCode::OPERATION_FAILED, val.error()};
     }

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "zeek/OpaqueVal.h"
 #include "zeek/Tag.h"
 #include "zeek/Val.h"
@@ -12,7 +14,17 @@ class Trigger;
 using TriggerPtr = IntrusivePtr<Trigger>;
 } // namespace zeek::detail::trigger
 
+namespace zeek::telemetry {
+class Counter;
+using CounterPtr = std::shared_ptr<Counter>;
+} // namespace zeek::telemetry
+
 namespace zeek::storage {
+
+namespace detail {
+// Forward-declare this to avoid including all of the metrics headers from this file.
+struct OperationMetrics;
+} // namespace detail
 
 class Manager;
 
@@ -82,10 +94,37 @@ public:
 
     OperationResult Result() const { return result; }
 
+    /**
+     * Stores the collection of metrics instruments to update when the operation completes
+     * and sets the start time for an operation to be used to update the latency metric
+     * when the operation completes. This is unset for open/close callbacks.
+     */
+    void InitOperationMetrics(detail::OperationMetrics* m);
+
+    /**
+     * Update the metrics based on a return value.
+     */
+    void UpdateOperationMetrics(EnumValPtr c);
+
+    /**
+     * Stores the amount of data transferred in the operation. This can be used by async
+     * backends to set the amount transferred in Put operations so it can be added to the
+     * metrics when the operation finishes.
+     */
+    void AddDataTransferredSize(size_t size) { transferred_size += size; }
+
+    /**
+     * Returns the amount of data transferred in this operation.
+     */
+    size_t GetDataTransferredSize() const { return transferred_size; }
+
 protected:
     zeek::detail::trigger::TriggerPtr trigger;
     const void* assoc = nullptr;
     OperationResult result;
+    detail::OperationMetrics* operation_metrics = nullptr;
+    double start_time = 0.0;
+    size_t transferred_size = 0;
 };
 
 class OpenResultCallback;
@@ -98,10 +137,12 @@ enum SupportedModes : uint8_t { SYNC = 0x01, ASYNC = 0x02 };
 
 class Backend : public zeek::Obj {
 public:
+    ~Backend() override;
+
     /**
      * Returns a descriptive tag representing the source for debugging.
      */
-    const char* Tag() { return tag_str.c_str(); }
+    const char* Tag() const { return tag_str.c_str(); }
 
     /**
      * Store a new key/value pair in the backend.
@@ -234,6 +275,12 @@ protected:
      */
     void CompleteCallback(ResultCallback* cb, const OperationResult& data) const;
 
+    /**
+     * Returns a string compatible with Prometheus that's used as a tag to differentiate
+     * entries of backend instances.
+     */
+    virtual std::string GetConfigForMetrics() const = 0;
+
     TypePtr key_type;
     TypePtr val_type;
     RecordValPtr backend_options;
@@ -241,6 +288,11 @@ protected:
     zeek::Tag tag;
     std::string tag_str;
     std::unique_ptr<Serializer> serializer;
+
+    telemetry::CounterPtr bytes_stored_metric;
+    telemetry::CounterPtr bytes_retrieved_metric;
+    telemetry::CounterPtr backends_opened_metric;
+    telemetry::CounterPtr expired_entries_metric;
 
 private:
     /**
@@ -291,7 +343,19 @@ private:
      */
     virtual void DoExpire(double current_network_time) {}
 
+    /**
+     * Initializes the instruments for various storage metrics.
+     */
+    void InitMetrics();
+
     uint8_t modes;
+    bool metrics_initialized = false;
+
+    // These are owned by the backend but are passed into the callbacks to be
+    // updated when those complete/timeout.
+    detail::OperationMetrics* put_metrics = nullptr;
+    detail::OperationMetrics* get_metrics = nullptr;
+    detail::OperationMetrics* erase_metrics = nullptr;
 };
 
 using BackendPtr = zeek::IntrusivePtr<Backend>;

@@ -11,6 +11,7 @@
 #include "zeek/Func.h"
 #include "zeek/Val.h"
 #include "zeek/storage/ReturnCode.h"
+#include "zeek/telemetry/Manager.h"
 
 #include "const.bif.netvar_h"
 
@@ -18,7 +19,8 @@ using namespace std::chrono_literals;
 
 namespace zeek::storage::backend::sqlite {
 
-OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::string_view> value) {
+OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::string_view> value,
+                                  StepResultParser value_parser) {
     char* errorMsg = nullptr;
     std::chrono::milliseconds time_spent = 0ms;
 
@@ -28,12 +30,24 @@ OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::stri
 
     DBG_LOG(DBG_STORAGE, "Executing '%s' on %s", cmd.c_str(), full_path.c_str());
 
+    sqlite3_stmt* stmt;
+    if ( auto check_res = CheckError(sqlite3_prepare_v2(db, cmd.c_str(), static_cast<int>(cmd.size()), &stmt, nullptr));
+         check_res.code != ReturnCode::SUCCESS )
+        return check_res;
+
+    OperationResult success_res;
+
+    // Make a unique_ptr out of the statement so we don't have to manually call sqlite3_finalize
+    // one it when we return in various places.
+    unique_stmt_ptr stmt_ptr{stmt, sqlite3_finalize};
+
     while ( pragma_timeout == 0ms || time_spent < pragma_timeout ) {
-        int res = sqlite3_exec(db, cmd.c_str(), nullptr, nullptr, &errorMsg);
-        if ( res == SQLITE_OK ) {
+        auto res = Step(stmt, value_parser, true);
+        if ( res.code == ReturnCode::SUCCESS ) {
+            success_res = res;
             break;
         }
-        else if ( res == SQLITE_BUSY ) {
+        else if ( res.code == ReturnCode::TIMEOUT ) {
             // If we got back that the database is busy, it likely means that another process is trying to
             // do their pragmas at startup too. Exponentially back off and try again after a sleep.
             sqlite3_free(errorMsg);
@@ -41,8 +55,8 @@ OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::stri
             time_spent += pragma_wait_on_busy;
         }
         else {
-            std::string err = util::fmt("Error while executing '%s': %s (%d)", cmd.c_str(), errorMsg, res);
-            sqlite3_free(errorMsg);
+            std::string err =
+                util::fmt("Error while executing '%s': %s (%d)", cmd.c_str(), sqlite3_errmsg(db), sqlite3_errcode(db));
             DBG_LOG(DBG_STORAGE, "%s", err.c_str());
             return {ReturnCode::INITIALIZATION_FAILED, std::move(err)};
         }
@@ -56,10 +70,20 @@ OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::stri
 
     DBG_LOG(DBG_STORAGE, "'%s' successful", cmd.c_str());
 
-    return {ReturnCode::SUCCESS};
+    return success_res;
 }
 
 storage::BackendPtr SQLite::Instantiate() { return make_intrusive<SQLite>(); }
+
+std::string SQLite::GetConfigForMetrics() const {
+    std::string tag = util::fmt("%s-%s", full_path.c_str(), table_name.c_str());
+    std::transform(tag.begin(), tag.end(), tag.begin(), [](unsigned char c) -> char {
+        if ( ! std::isalnum(c) )
+            return '-';
+        return c;
+    });
+    return tag;
+}
 
 /**
  * Called by the manager system to open the backend.
@@ -117,7 +141,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         auto vs = iter.value->GetVal()->AsStringVal();
         auto vs_sv = vs->ToStdStringView();
 
-        auto pragma_res = RunPragma(ks_sv, vs_sv);
+        auto pragma_res = RunPragma(ks_sv, vs_sv, nullptr);
         if ( pragma_res.code != ReturnCode::SUCCESS ) {
             Error(pragma_res.err_str.c_str());
             Close(nullptr);
@@ -229,7 +253,45 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
     get_expiry_last_run_stmt = std::move(stmt_ptrs[6]);
     update_expiry_last_run_stmt = std::move(stmt_ptrs[7]);
 
+    page_count_metric =
+        telemetry_mgr->GaugeInstance("zeek", "storage_sqlite_page_count", {{"backend_config", GetConfigForMetrics()}},
+                                     "Storage sqlite backend page count", "", [this]() {
+                                         UpdateMetricStats();
+                                         return current_metric_stats.page_count;
+                                     });
+
+    file_size_metric =
+        telemetry_mgr->GaugeInstance("zeek", "storage_sqlite_file_size", {{"backend_config", GetConfigForMetrics()}},
+                                     "Storage sqlite backend file size", "", [this]() {
+                                         UpdateMetricStats();
+                                         return current_metric_stats.file_size;
+                                     });
+
     return {ReturnCode::SUCCESS};
+}
+
+void SQLite::UpdateMetricStats() {
+    // Don't update multiple times with every scrape.
+    double now = util::current_time();
+    if ( metric_stats_last_updated > now - 0.01 )
+        return;
+
+    metric_stats_last_updated = now;
+
+    static auto double_parser = [](sqlite3_stmt* stmt) -> OperationResult {
+        double val = sqlite3_column_double(stmt, 0);
+        return {ReturnCode::SUCCESS, "", make_intrusive<DoubleVal>(val)};
+    };
+
+    auto res = RunPragma("page_count", std::nullopt, double_parser);
+    if ( res.code == ReturnCode::SUCCESS ) {
+        current_metric_stats.page_count = cast_intrusive<DoubleVal>(res.value)->Get();
+    }
+
+    struct stat s{0};
+    if ( int ret = stat(full_path.c_str(), &s); ret == 0 ) {
+        current_metric_stats.file_size = s.st_size;
+    }
 }
 
 /**
@@ -274,6 +336,12 @@ OperationResult SQLite::DoClose(ResultCallback* cb) {
 
         expire_db = nullptr;
     }
+
+    if ( page_count_metric )
+        page_count_metric->RemoveCallback();
+
+    if ( file_size_metric )
+        file_size_metric->RemoveCallback();
 
     return op_res;
 }
@@ -326,7 +394,11 @@ OperationResult SQLite::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool
         }
     }
 
-    return Step(stmt.get(), false);
+    auto step_result = Step(stmt.get(), nullptr);
+    if ( step_result.code == ReturnCode::SUCCESS )
+        bytes_stored_metric->Inc(val_data->size());
+
+    return step_result;
 }
 
 /**
@@ -347,7 +419,21 @@ OperationResult SQLite::DoGet(ResultCallback* cb, ValPtr key) {
         return res;
     }
 
-    return Step(stmt.get(), true);
+    auto value_parser = [this](sqlite3_stmt* stmt) -> OperationResult {
+        auto blob = static_cast<const std::byte*>(sqlite3_column_blob(stmt, 0));
+        size_t blob_size = sqlite3_column_bytes(stmt, 0);
+
+        auto val = serializer->Unserialize({blob, blob_size}, val_type);
+
+        if ( val ) {
+            bytes_retrieved_metric->Inc(blob_size);
+            return {ReturnCode::SUCCESS, "", val.value()};
+        }
+
+        return {ReturnCode::OPERATION_FAILED, val.error()};
+    };
+
+    return Step(stmt.get(), value_parser);
 }
 
 /**
@@ -368,7 +454,7 @@ OperationResult SQLite::DoErase(ResultCallback* cb, ValPtr key) {
         return res;
     }
 
-    return Step(stmt.get(), false);
+    return Step(stmt.get(), nullptr);
 }
 
 /**
@@ -477,6 +563,11 @@ void SQLite::DoExpire(double current_network_time) {
         Error(err.c_str());
     }
 
+    // Get the number of changes from the delete statement. This should be identical to the num_to_expire
+    // value earlier because we're under a transaction, but this should be the exact number that changed.
+    int changes = sqlite3_changes(db);
+    expired_entries_metric->Inc(changes);
+
     sqlite3_exec(expire_db, "commit transaction", nullptr, nullptr, &errMsg);
     sqlite3_free(errMsg);
 }
@@ -490,28 +581,22 @@ OperationResult SQLite::CheckError(int code) {
     return {ReturnCode::SUCCESS};
 }
 
-OperationResult SQLite::Step(sqlite3_stmt* stmt, bool parse_value) {
+OperationResult SQLite::Step(sqlite3_stmt* stmt, StepResultParser parser, bool is_pragma) {
     OperationResult ret;
 
     int step_status = sqlite3_step(stmt);
     if ( step_status == SQLITE_ROW ) {
-        if ( parse_value ) {
-            auto blob = static_cast<const std::byte*>(sqlite3_column_blob(stmt, 0));
-            size_t blob_size = sqlite3_column_bytes(stmt, 0);
-
-            auto val = serializer->Unserialize({blob, blob_size}, val_type);
-
-            if ( val )
-                ret = {ReturnCode::SUCCESS, "", val.value()};
-            else
-                ret = {ReturnCode::OPERATION_FAILED, val.error()};
-        }
-        else {
+        if ( parser )
+            ret = parser(stmt);
+        else if ( ! is_pragma )
             ret = {ReturnCode::OPERATION_FAILED, "sqlite3_step should not have returned a value"};
-        }
+        else
+            // For most pragmas we don't care about the output, so we don't pass a parser. We still
+            // may get a row as a response, but we can discard it and just return SUCCESS.
+            ret = {ReturnCode::SUCCESS};
     }
     else if ( step_status == SQLITE_DONE ) {
-        if ( parse_value )
+        if ( parser )
             ret = {ReturnCode::KEY_NOT_FOUND};
         else
             ret = {ReturnCode::SUCCESS};

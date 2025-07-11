@@ -319,13 +319,8 @@ Options parse_cmdline(int argc, char** argv) {
     }
     else {
         if ( argc > 1 ) {
-            auto endsWith = [](const std::string& str, const std::string& suffix) {
-                return str.size() >= suffix.size() &&
-                       0 == str.compare(str.size() - suffix.size(), suffix.size(), suffix);
-            };
-
             auto i = 0;
-            for ( ; i < argc && ! endsWith(argv[i], "--"); ++i ) {
+            for ( ; i < argc && ! util::ends_with(argv[i], "--"); ++i ) {
                 zeek_args.emplace_back(argv[i]);
             }
 
@@ -333,17 +328,17 @@ Options parse_cmdline(int argc, char** argv) {
                 // If a script is invoked with Zeek as the interpreter, the arguments provided
                 // directly in the interpreter line of the script won't be broken apart in the
                 // argv on Linux so we split it up here.
-                if ( endsWith(argv[i], "--") && zeek_args.size() == 1 ) {
+                if ( util::ends_with(argv[i], "--") && zeek_args.size() == 1 ) {
                     std::istringstream iss(argv[i]);
                     for ( std::string s; iss >> s; ) {
-                        if ( ! endsWith(s, "--") ) {
+                        if ( ! s.ends_with("--") ) {
                             zeek_args.emplace_back(s);
                         }
                     }
                 }
 
                 // There is an additional increment here to skip over the "--" if it was found.
-                if ( endsWith(argv[i], "--") )
+                if ( util::ends_with(argv[i], "--") )
                     ++i;
 
                 // The first argument after the double hyphens in implicitly a script name.

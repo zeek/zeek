@@ -37,7 +37,7 @@ void IdentifierInfo::AddRedef(const string& script, zeek::detail::InitClass ic, 
                               vector<string> comments) {
     bool omit_value = false;
     for ( auto it = comments.begin(); it != comments.end(); ++it ) {
-        if ( it->find("@docs-omit-value") == 0 ) {
+        if ( it->starts_with("@docs-omit-value") ) {
             comments.erase(it);
             omit_value = true;
             break;

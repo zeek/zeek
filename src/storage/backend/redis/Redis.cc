@@ -635,7 +635,7 @@ void Redis::HandleInfoResult(redisReply* reply) {
                 continue;
 
             // We only care about the redis_version entry. Skip anything else.
-            if ( ! util::starts_with(e, "redis_version:") )
+            if ( ! e.starts_with("redis_version:") )
                 continue;
 
             auto splits = util::split(e, ':');

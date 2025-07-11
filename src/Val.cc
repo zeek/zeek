@@ -1053,8 +1053,7 @@ static zeek::expected<ValPtr, std::string> BuildVal(const rapidjson::Value& j, c
                 candidate.erase(candidate.size() - 1);
             }
             // Remove any surrounding "^?(" and ")$?", automatically added below.
-            if ( candidate.size() > 6 && candidate.substr(0, 3) == "^?(" &&
-                 candidate.substr(candidate.size() - 3, 3) == ")$?" ) {
+            if ( candidate.size() > 6 && candidate.starts_with("^?(") && candidate.ends_with(")$?") ) {
                 candidate.erase(0, 3);
                 candidate.erase(candidate.size() - 3);
             }

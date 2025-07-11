@@ -767,7 +767,7 @@ std::optional<broker::data> val_to_data(const Val* v) {
             broker::vector rval;
             rval.emplace_back(f->GetName());
 
-            if ( f->GetName().find("lambda_<") == 0 ) {
+            if ( f->GetName().starts_with("lambda_<") ) {
                 // Only ScriptFuncs have closures.
                 if ( auto b = dynamic_cast<const zeek::detail::ScriptFunc*>(f) ) {
                     auto bc = b->SerializeCaptures();

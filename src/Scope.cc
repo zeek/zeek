@@ -91,10 +91,10 @@ TraversalCode Scope::Traverse(TraversalCallback* cb) const {
 
 const IDPtr& lookup_ID(const char* name, const char* curr_module, bool no_global, bool same_module_only,
                        bool check_export) {
-    bool explicit_global = zeek::util::starts_with(name, "::");
+    bool explicit_global = std::string_view{name}.starts_with("::");
 
     static std::string global_prefix = util::fmt("%s::", GLOBAL_MODULE_NAME);
-    if ( zeek::util::starts_with(name, global_prefix) )
+    if ( std::string_view{name}.starts_with(global_prefix) )
         reporter->Error("Using GLOBAL:: as a prefix is invalid. Use :: instead (%s)", name);
 
     std::string fullname = make_full_var_name(curr_module, name);

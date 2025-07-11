@@ -1467,7 +1467,7 @@ std::string func_name_at_loc(std::string fname, const Location* loc) {
 
     auto mod_prefix = module + "::";
 
-    if ( fname.find(mod_prefix) == 0 )
+    if ( fname.starts_with(mod_prefix) )
         return fname; // it already has the module name
 
     return mod_prefix + fname;

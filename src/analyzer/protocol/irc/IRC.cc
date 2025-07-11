@@ -533,7 +533,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
             message = message.substr(1); // DCC
 
         // Check for DCC messages.
-        if ( message.size() > 3 && message.substr(0, 3) == "DCC" ) {
+        if ( message.size() > 3 && message.starts_with("DCC") ) {
             if ( message[message.size() - 1] == 1 )
                 message = message.substr(0, message.size() - 1);
 

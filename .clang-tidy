@@ -62,7 +62,6 @@ Checks: [-*,
 
          # These are features in newer version of C++ that we don't have
          # access to yet.
-         -modernize-use-starts-ends-with,
          -modernize-use-std-format,
          -modernize-use-std-numbers,
          -modernize-use-std-print,

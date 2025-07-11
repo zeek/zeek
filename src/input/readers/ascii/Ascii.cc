@@ -241,7 +241,7 @@ bool Ascii::GetLine(string& str) {
         if ( str[0] != '#' )
             return true;
 
-        if ( (str.length() > 8) && (str.compare(0, 7, "#fields") == 0) && (str[7] == separator[0]) ) {
+        if ( (str.length() > 8) && str.starts_with("#fields") && (str[7] == separator[0]) ) {
             str = str.substr(8);
             return true;
         }

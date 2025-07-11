@@ -173,7 +173,7 @@ std::optional<std::string> source_code_range(const zeek::detail::ID* id) {
             if ( id->IsType() ) {
                 loc = type->GetLocationInfo();
 
-                if ( zeek::util::ends_with(loc->FileName(), ".bif.zeek") )
+                if ( std::string_view{loc->FileName()}.ends_with(".bif.zeek") )
                     // Source code won't be available to reference, so fall back
                     // to identifier location which may actually be in a regular
                     // .zeek script.

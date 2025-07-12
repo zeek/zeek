@@ -90,6 +90,9 @@ void SMTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig) {
         if ( mail )
             mail->Undelivered(len);
 
+        if ( bdat )
+            bdat->Undelivered(seq, len, is_orig);
+
         EndData();
     }
 

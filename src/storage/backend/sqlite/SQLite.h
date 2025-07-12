@@ -74,8 +74,8 @@ private:
 
     std::string full_path;
     std::string table_name;
-    std::chrono::milliseconds pragma_timeout;
-    std::chrono::milliseconds pragma_wait_on_busy;
+    std::chrono::milliseconds pragma_timeout = {};
+    std::chrono::milliseconds pragma_wait_on_busy = {};
 
     telemetry::GaugePtr page_count_metric;
     telemetry::GaugePtr file_size_metric;

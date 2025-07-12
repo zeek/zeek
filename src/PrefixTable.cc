@@ -138,7 +138,7 @@ void* PrefixTable::Remove(const Val* value) {
 }
 
 PrefixTable::iterator PrefixTable::InitIterator() {
-    iterator i;
+    iterator i = {};
     i.Xsp = i.Xstack;
     i.Xrn = tree->head;
     i.Xnode = nullptr;

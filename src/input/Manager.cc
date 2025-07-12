@@ -103,9 +103,9 @@ public:
     EventHandlerPtr event;
 
     RecordType* fields = nullptr;
-    unsigned int num_fields;
+    unsigned int num_fields = 0;
 
-    bool want_record;
+    bool want_record = false;
     EventStream();
     ~EventStream() override;
 };

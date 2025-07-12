@@ -333,6 +333,12 @@ Deprecated Functionality
   tuples. The ConnTuple struct, used by this deprecated Connection constructor,
   is now deprecated as well.
 
+- The ``zeek::filesystem`` namespace alias is deprecated in favor of using
+  ``std::filesystem`` directly. Similarly, the ``ghc::filesystem`` submodule stored in
+  ``auxil/filessytem`` has been removed and the files included from it in the Zeek
+  installation will no longer be installed. Builds won't warn about the deprecation of
+  ``zeek::filesystem`` due to limitations of how we can mark deprecations in C++.
+
 Zeek 7.2.0
 ==========
 

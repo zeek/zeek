@@ -1057,9 +1057,6 @@ include(BuiltInSpicyAnalyzer)
 include_directories(BEFORE ${PCAP_INCLUDE_DIR} ${BIND_INCLUDE_DIR} ${BinPAC_INCLUDE_DIR}
                     ${ZLIB_INCLUDE_DIR} ${JEMALLOC_INCLUDE_DIR})
 
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/filesystem/include/ghc
-        DESTINATION include/zeek/3rdparty/)
-
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/prometheus-cpp/core/include/prometheus
         DESTINATION include/zeek/3rdparty/prometheus-cpp/include)
 
@@ -1069,15 +1066,8 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/auxil/prometheus-cpp/core/include/
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxil/expected-lite/include/nonstd
         DESTINATION include/zeek/3rdparty/)
 
-# Create 3rdparty/ghc within the build directory so that the include for
-# "zeek/3rdparty/ghc/filesystem.hpp" works within the build tree.
 execute_process(COMMAND "${CMAKE_COMMAND}" -E make_directory
                         "${CMAKE_CURRENT_BINARY_DIR}/3rdparty/")
-execute_process(
-    COMMAND
-        "${CMAKE_COMMAND}" -E create_symlink
-        "${CMAKE_CURRENT_SOURCE_DIR}/auxil/filesystem/include/ghc"
-        "${CMAKE_CURRENT_BINARY_DIR}/3rdparty/ghc")
 
 # Do the same for nonstd.
 execute_process(

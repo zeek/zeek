@@ -1,3 +1,7 @@
+%extern{
+#include <algorithm>
+%}
+
 refine connection IMAP_Conn += {
 
 	%member{

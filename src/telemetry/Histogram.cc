@@ -2,6 +2,8 @@
 
 #include "zeek/telemetry/Histogram.h"
 
+#include <algorithm>
+
 using namespace zeek::telemetry;
 
 double Histogram::Sum() const noexcept {

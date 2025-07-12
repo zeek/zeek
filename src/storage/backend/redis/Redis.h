@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <deque>
 #include <mutex>
 
 #include "zeek/iosource/IOSource.h"

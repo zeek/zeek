@@ -525,21 +525,23 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
     // Figure out how big of a buffer is needed here.
     va_list ap_copy;
     va_copy(ap_copy, ap);
-    size_t req_buffer_size = vsnprintf(nullptr, 0, fmt, ap_copy);
+    int req_buffer_size = vsnprintf(nullptr, 0, fmt, ap_copy);
 
     if ( req_buffer_size < 0 ) {
         va_end(ap_copy);
         FatalError("out of memory in Reporter");
     }
 
+    size_t new_buffer_size = req_buffer_size;
+
     if ( postfix && *postfix )
-        req_buffer_size += strlen(postfix) + 10;
+        new_buffer_size += strlen(postfix) + 10;
 
     // Add one byte for a null terminator.
-    req_buffer_size++;
+    new_buffer_size++;
 
-    if ( req_buffer_size > DEFAULT_BUFFER_SIZE ) {
-        buffer = (char*)malloc(req_buffer_size);
+    if ( new_buffer_size > DEFAULT_BUFFER_SIZE ) {
+        buffer = (char*)malloc(new_buffer_size);
         if ( ! buffer ) {
             va_end(ap_copy);
             FatalError("out of memory in Reporter");
@@ -550,7 +552,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
 
     va_end(ap_copy);
 
-    req_buffer_size = vsnprintf(buffer, req_buffer_size, fmt, ap);
+    req_buffer_size = vsnprintf(buffer, new_buffer_size, fmt, ap);
     if ( req_buffer_size < 0 )
         FatalError("out of memory in Reporter");
 

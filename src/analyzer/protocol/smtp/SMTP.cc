@@ -10,6 +10,8 @@
 #include "zeek/analyzer/protocol/smtp/BDAT.h"
 #include "zeek/analyzer/protocol/smtp/consts.bif.h"
 #include "zeek/analyzer/protocol/smtp/events.bif.h"
+#include "zeek/file_analysis/File.h"
+#include "zeek/file_analysis/Manager.h"
 
 #undef SMTP_CMD_DEF
 #define SMTP_CMD_DEF(cmd) #cmd,
@@ -126,8 +128,12 @@ void SMTP_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
         if ( bdat->RemainingChunkSize() < static_cast<uint64_t>(bdat_len) )
             bdat_len = static_cast<int>(bdat->RemainingChunkSize());
 
-        if ( bdat_len > 0 )
+        if ( bdat_len > 0 ) {
             bdat->NextStream(bdat_len, line, orig);
+
+            if ( ! mail_fuid.empty() )
+                MailDataFileAnalysis(line, bdat_len);
+        }
 
         // All BDAT chunks seen?
         if ( bdat->IsLastChunk() && bdat->RemainingChunkSize() == 0 )
@@ -844,7 +850,14 @@ void SMTP_Analyzer::UnexpectedReply(int cmd_code, int reply_code) {
     Unexpected(true, "unexpected reply", len, buf);
 }
 
-void SMTP_Analyzer::ProcessData(int length, const char* line) { mail->Deliver(length, line, true /* trailing_CRLF */); }
+void SMTP_Analyzer::ProcessData(int length, const char* line) {
+    mail->Deliver(length, line, true /* trailing_CRLF */);
+
+    if ( ! mail_fuid.empty() ) {
+        MailDataFileAnalysis(reinterpret_cast<const u_char*>(line), length);
+        MailDataFileAnalysis(reinterpret_cast<const u_char*>("\r\n"), 2);
+    }
+}
 
 bool SMTP_Analyzer::ProcessBdatArg(int arg_len, const char* arg, bool orig) {
     // For the BDAT command, parse out the chunk-size from the line
@@ -880,6 +893,10 @@ bool SMTP_Analyzer::ProcessBdatArg(int arg_len, const char* arg, bool orig) {
     return true;
 }
 
+std::string SMTP_Analyzer::MailDataFileAnalysis(const u_char* data, uint64_t len) {
+    return file_mgr->DataIn(data, len, GetAnalyzerTag(), Conn(), true, mail_fuid, "message/rfc822");
+}
+
 void SMTP_Analyzer::BeginData(bool orig, detail::SMTP_State new_state) {
     state = new_state;
     skip_data = false; // reset the flag at the beginning of the mail
@@ -890,6 +907,13 @@ void SMTP_Analyzer::BeginData(bool orig, detail::SMTP_State new_state) {
     }
 
     mail = new analyzer::mime::MIME_Mail(this, orig);
+
+    if ( zeek::BifConst::SMTP::enable_mail_data_file_analysis ) {
+        mail_fuid = MailDataFileAnalysis(reinterpret_cast<const u_char*>(""), 0);
+
+        auto* f = file_mgr->LookupFile(mail_fuid);
+        f->FileEvent(smtp_mail_data_file);
+    }
 }
 
 void SMTP_Analyzer::EndData() {
@@ -910,6 +934,11 @@ void SMTP_Analyzer::EndData() {
         mail->Done();
         delete mail;
         mail = nullptr;
+    }
+
+    if ( ! mail_fuid.empty() ) {
+        file_mgr->EndOfFile(mail_fuid);
+        mail_fuid.clear();
     }
 }
 

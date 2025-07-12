@@ -62,5 +62,17 @@ private:
     void DoFunc(const std::string& path, bool error_aborts = true);
 };
 
+/**
+ * Helper class that runs a function at destruction.
+ */
+class Deferred {
+public:
+    Deferred(std::function<void()> deferred) : deferred(std::move(deferred)) {}
+    ~Deferred() { deferred(); }
+
+private:
+    std::function<void()> deferred;
+};
+
 } // namespace util
 } // namespace zeek

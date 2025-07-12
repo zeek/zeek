@@ -518,6 +518,7 @@ void SQLite::DoExpire(double current_network_time) {
 
     // Check if the expiration control key is less than the interval. Exit if not.
     stmt = unique_stmt_ptr(get_expiry_last_run_stmt.get(), sqlite3_reset);
+    status = SQLITE_OK;
     while ( status != SQLITE_ROW ) {
         status = sqlite3_step(stmt.get());
         if ( status == SQLITE_ROW ) {

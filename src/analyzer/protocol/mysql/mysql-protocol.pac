@@ -751,6 +751,7 @@ refine connection MySQL_Conn += {
 		deprecate_eof_ = false;
 		server_query_attrs_ = false;
 		client_query_attrs_ = false;
+		client_capabilities_ = 0;
 		query_attr_idx_ = 0;
 	%}
 

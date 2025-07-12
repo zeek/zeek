@@ -21,10 +21,10 @@ namespace detail {
 class PrefixTable {
 private:
     struct iterator {
-        patricia_node_t* Xstack[PATRICIA_MAXBITS + 1];
-        patricia_node_t** Xsp;
-        patricia_node_t* Xrn;
-        patricia_node_t* Xnode;
+        patricia_node_t* Xstack[PATRICIA_MAXBITS + 1] = {};
+        patricia_node_t** Xsp = nullptr;
+        patricia_node_t* Xrn = nullptr;
+        patricia_node_t* Xnode = nullptr;
     };
 
 public:

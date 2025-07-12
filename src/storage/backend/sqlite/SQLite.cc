@@ -332,6 +332,7 @@ OperationResult SQLite::DoClose(ResultCallback* cb) {
         }
 
         expire_db = nullptr;
+        sqlite3_free(errmsg);
     }
 
     if ( page_count_metric )

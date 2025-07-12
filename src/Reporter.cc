@@ -525,7 +525,7 @@ void Reporter::DoLog(const char* prefix, EventHandlerPtr event, FILE* out, Conne
     // Figure out how big of a buffer is needed here.
     va_list ap_copy;
     va_copy(ap_copy, ap);
-    size_t req_buffer_size = vsnprintf(nullptr, 0, fmt, ap_copy);
+    int req_buffer_size = vsnprintf(nullptr, 0, fmt, ap_copy);
 
     if ( req_buffer_size < 0 ) {
         va_end(ap_copy);

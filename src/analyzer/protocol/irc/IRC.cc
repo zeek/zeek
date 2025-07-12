@@ -807,7 +807,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
     }
 
     else if ( irc_quit_message && command == "QUIT" ) {
-        string message = params;
+        string& message = params;
         if ( message[0] == ':' )
             message = message.substr(1);
 
@@ -823,7 +823,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
     }
 
     else if ( irc_nick_message && command == "NICK" ) {
-        string nick = params;
+        string& nick = params;
         if ( nick[0] == ':' )
             nick = nick.substr(1);
 
@@ -909,7 +909,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
     }
 
     else if ( irc_squit_message && command == "SQUIT" ) {
-        string server = params;
+        string& server = params;
         string message = "";
 
         unsigned int pos = params.find(' ');
@@ -946,8 +946,6 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
         AddSupportAnalyzer(new analyzer::zip::ZIP_Analyzer(Conn(), true));
         AddSupportAnalyzer(new analyzer::zip::ZIP_Analyzer(Conn(), false));
     }
-
-    return;
 }
 
 void IRC_Analyzer::StartTLS() {

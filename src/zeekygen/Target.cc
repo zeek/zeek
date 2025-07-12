@@ -483,7 +483,7 @@ void ScriptTarget::DoGenerate() const {
             if ( zeek::detail::zeekygen_mgr->IsUpToDate(target_filename, dep) )
                 continue;
 
-            TargetFile file(target_filename);
+            TargetFile file(std::move(target_filename));
 
             fprintf(file.f, "%s\n", d->ReStructuredText().c_str());
         }

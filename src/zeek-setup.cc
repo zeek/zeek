@@ -605,7 +605,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
 
     if ( options.supervisor_mode ) {
         Supervisor::Config cfg = {};
-        cfg.zeek_exe_path = zeek_exe_path;
+        cfg.zeek_exe_path = std::move(zeek_exe_path);
         options.filter_supervisor_options();
         supervisor_mgr = new Supervisor(std::move(cfg), std::move(*stem));
     }

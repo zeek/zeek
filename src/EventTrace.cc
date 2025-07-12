@@ -708,7 +708,7 @@ void EventTrace::Generate(FILE* f, ValTraceMgr& vtm, const EventTrace* predecess
         }
     }
 
-    Generate(f, vtm, deltas, successor);
+    Generate(f, vtm, deltas, std::move(successor));
 }
 
 void ValTraceMgr::TraceEventValues(std::shared_ptr<EventTrace> et, const zeek::Args* args) {
@@ -726,7 +726,7 @@ void ValTraceMgr::TraceEventValues(std::shared_ptr<EventTrace> et, const zeek::A
         ev_args += ValName(a);
     }
 
-    curr_ev->SetArgs(ev_args);
+    curr_ev->SetArgs(std::move(ev_args));
 
     // Now look for any values newly-processed with this event and
     // remember them so we can catch uses of them in future events.
@@ -780,7 +780,7 @@ void ValTraceMgr::AddVal(ValPtr v) {
     else {
         auto vt = std::make_shared<ValTrace>(v);
         AssessChange(vt.get(), mapping->second.get());
-        val_map[v.get()] = vt;
+        val_map[v.get()] = std::move(vt);
     }
 }
 
@@ -790,7 +790,7 @@ void ValTraceMgr::NewVal(ValPtr v) {
 
     auto vt = std::make_shared<ValTrace>(v);
     AssessChange(vt.get(), nullptr);
-    val_map[v.get()] = vt;
+    val_map[v.get()] = std::move(vt);
 }
 
 void ValTraceMgr::ValUsed(const ValPtr& v) {
@@ -834,7 +834,7 @@ void ValTraceMgr::AssessChange(const ValTrace* vt, const ValTrace* prev_vt) {
         previous_deltas.insert(std::move(full_delta));
 
         ValUsed(vp);
-        curr_ev->AddDelta(vp, rhs, needs_lhs, is_first_def);
+        curr_ev->AddDelta(vp, std::move(rhs), needs_lhs, is_first_def);
     }
 
     auto& v = vt->GetVal();
@@ -1025,7 +1025,7 @@ void EventTraceMgr::StartEvent(const ScriptFunc* ev, const zeek::Args* args) {
     auto et = std::make_shared<EventTrace>(ev, nt, events.size());
     events.emplace_back(et);
 
-    vtm.TraceEventValues(et, args);
+    vtm.TraceEventValues(std::move(et), args);
 }
 
 void EventTraceMgr::EndEvent(const ScriptFunc* ev, const zeek::Args* args) {

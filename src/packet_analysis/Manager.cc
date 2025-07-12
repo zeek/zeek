@@ -216,7 +216,8 @@ bool Manager::PermitUnknownProtocol(const std::string& analyzer, uint32_t protoc
     ++count;
 
     if ( count == 1 )
-        zeek::detail::timer_mgr->Add(new UnknownProtocolTimer(run_state::network_time, p, unknown_sampling_duration));
+        zeek::detail::timer_mgr->Add(
+            new UnknownProtocolTimer(run_state::network_time, std::move(p), unknown_sampling_duration));
 
     if ( count < unknown_sampling_threshold )
         return true;

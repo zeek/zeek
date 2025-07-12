@@ -4245,7 +4245,7 @@ LambdaExpr::LambdaExpr(FunctionIngredientsPtr arg_ing, IDPList arg_outer_ids, st
     if ( name.empty() )
         BuildName();
     else
-        my_name = name;
+        my_name = std::move(name);
 
     // Install that in the current scope.
     lambda_id = install_ID(my_name.c_str(), current_module.c_str(), true, false);

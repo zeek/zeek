@@ -136,7 +136,7 @@ bool ScriptCoverageManager::WriteStats() {
         auto ft = func->GetType<FuncType>();
         auto desc = ft->FlavorString() + " " + func->Name() + " BODY";
 
-        TrackUsage(body, desc, body->GetAccessCount());
+        TrackUsage(body, std::move(desc), body->GetAccessCount());
     }
 
     for ( const auto& [cond_loc, text, was_true] : cond_instances )

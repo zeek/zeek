@@ -340,7 +340,7 @@ vector<ParseLocationRec> parse_location_string(const string& s) {
                 return result;
             }
 
-            loc_filename = path;
+            loc_filename = std::move(path);
             plr.type = PLR_FILE_AND_LINE;
         }
     }

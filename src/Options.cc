@@ -616,7 +616,7 @@ Options parse_cmdline(int argc, char** argv) {
                 exit(1);
             }
 
-            *path = res;
+            *path = std::move(res);
 
             if ( (*path)[0] == '/' || (*path)[0] == '~' )
                 // Now an absolute path

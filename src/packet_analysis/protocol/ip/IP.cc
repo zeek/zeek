@@ -111,7 +111,7 @@ bool IPAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet) 
     }
 
     // If we got here, the IP_Hdr is most likely valid and safe to use.
-    packet->ip_hdr = ip_hdr;
+    packet->ip_hdr = std::move(ip_hdr);
 
     // If there's an encapsulation stack in this packet, meaning this packet is part of a chain
     // of tunnels, make sure to store the IP header in the last flow in the stack so it can be

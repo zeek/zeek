@@ -592,7 +592,7 @@ std::vector<T> split(T s, const T& delim) {
  */
 template<typename T, typename U = typename T::value_type*>
 std::vector<T> split(T s, U delim) {
-    return split(s, T{delim});
+    return split(std::move(s), std::move(T{delim}));
 }
 
 /**

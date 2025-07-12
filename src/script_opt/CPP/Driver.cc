@@ -204,7 +204,7 @@ bool CPPCompile::AnalyzeFuncBody(FuncInfo& fi, unordered_set<string>& filenames_
             else if ( filenames_reported_as_skipped.count(fn) == 0 ) {
                 reporter->Warning("skipping compilation of files in %s due to presence of conditional code",
                                   fn.c_str());
-                filenames_reported_as_skipped.insert(fn);
+                filenames_reported_as_skipped.emplace(fn);
             }
 
             fi.SetSkip(true);

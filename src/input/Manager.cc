@@ -1431,7 +1431,7 @@ int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const* 
             Unref(val);
     }
     else
-        SendEvent(stream->event, out_vals);
+        SendEvent(stream->event, std::move(out_vals));
 
     return stream->num_fields;
 }

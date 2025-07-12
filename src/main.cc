@@ -52,7 +52,14 @@ int main(int argc, char** argv) {
 #endif
 
     auto time_start = zeek::util::current_time(true);
-    auto setup_result = zeek::detail::setup(argc, argv);
+    zeek::detail::SetupResult setup_result;
+
+    try {
+        setup_result = zeek::detail::setup(argc, argv);
+    } catch ( const zeek::InterpreterException& e ) {
+        fprintf(stderr, "Exception caught during initial setup\n");
+        abort();
+    }
 
     if ( setup_result.code )
         return setup_result.code;

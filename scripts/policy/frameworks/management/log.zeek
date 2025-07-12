@@ -88,8 +88,8 @@ function debug(message: string)
 		return;
 
 	local node = Supervisor::node();
-	Log::write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[DEBUG],
-			 $role=r2s[Management::role], $message=message]);
+	Log::write(LOG, Info($ts=network_time(), $node=node$name, $level=l2s[DEBUG],
+	                     $role=r2s[Management::role], $message=message));
 	}
 
 function info(message: string)
@@ -98,8 +98,8 @@ function info(message: string)
 		return;
 
 	local node = Supervisor::node();
-	Log::write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[INFO],
-			 $role=r2s[Management::role], $message=message]);
+	Log::write(LOG, Info($ts=network_time(), $node=node$name, $level=l2s[INFO],
+	                     $role=r2s[Management::role], $message=message));
 	}
 
 function warning(message: string)
@@ -108,8 +108,8 @@ function warning(message: string)
 		return;
 
 	local node = Supervisor::node();
-	Log::write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[WARNING],
-			 $role=r2s[Management::role], $message=message]);
+	Log::write(LOG, Info($ts=network_time(), $node=node$name, $level=l2s[WARNING],
+	                     $role=r2s[Management::role], $message=message));
 	}
 
 function error(message: string)
@@ -118,8 +118,8 @@ function error(message: string)
 		return;
 
 	local node = Supervisor::node();
-	Log::write(LOG, [$ts=network_time(), $node=node$name, $level=l2s[ERROR],
-			 $role=r2s[Management::role], $message=message]);
+	Log::write(LOG, Info($ts=network_time(), $node=node$name, $level=l2s[ERROR],
+	                     $role=r2s[Management::role], $message=message));
 	}
 
 # Bump priority to ensure the log stream exists when other zeek_init handlers use it.

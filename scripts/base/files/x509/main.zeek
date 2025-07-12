@@ -117,7 +117,7 @@ redef record Files::Info += {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(X509::LOG, [$columns=Info, $ev=log_x509, $path="x509", $policy=log_policy]);
+	Log::create_stream(X509::LOG, Log::Stream($columns=Info, $ev=log_x509, $path="x509", $policy=log_policy));
 
 	# We use MIME types internally to distinguish between user and CA certificates.
 	# The first certificate in a connection always gets tagged as user-cert, all
@@ -167,7 +167,7 @@ event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certifi
 	{
 	local der_cert = x509_get_certificate_string(cert_ref);
 	local fp = hash_function(der_cert);
-	f$info$x509 = [$ts=f$info$ts, $fingerprint=fp, $certificate=cert, $handle=cert_ref];
+	f$info$x509 = X509::Info($ts=f$info$ts, $fingerprint=fp, $certificate=cert, $handle=cert_ref);
 	if ( f$info$mime_type == "application/x-x509-user-cert" )
 		f$info$x509$host_cert = T;
 	if ( f$is_orig )

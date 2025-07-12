@@ -59,13 +59,13 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(NetControl::DROP_LOG, [$columns=DropInfo, $ev=log_netcontrol_drop, $path="netcontrol_drop", $policy=log_policy_drop]);
+	Log::create_stream(NetControl::DROP_LOG, Log::Stream($columns=DropInfo, $ev=log_netcontrol_drop, $path="netcontrol_drop", $policy=log_policy_drop));
 	}
 
 function drop_connection(c: conn_id, t: interval, location: string &default="") : string
 	{
-	local e: Entity = [$ty=CONNECTION, $conn=c];
-	local r: Rule = [$ty=DROP, $target=FORWARD, $entity=e, $expire=t, $location=location];
+	local e = Entity($ty=CONNECTION, $conn=c);
+	local r = Rule($ty=DROP, $target=FORWARD, $entity=e, $expire=t, $location=location);
 
 	if ( ! hook NetControl::drop_rule_policy(r) )
 		return "";
@@ -88,8 +88,8 @@ function drop_connection(c: conn_id, t: interval, location: string &default="") 
 
 function drop_address(a: addr, t: interval, location: string &default="") : string
 	{
-	local e: Entity = [$ty=ADDRESS, $ip=addr_to_subnet(a)];
-	local r: Rule = [$ty=DROP, $target=FORWARD, $entity=e, $expire=t, $location=location];
+	local e = Entity($ty=ADDRESS, $ip=addr_to_subnet(a));
+	local r = Rule($ty=DROP, $target=FORWARD, $entity=e, $expire=t, $location=location);
 
 	if ( ! hook NetControl::drop_rule_policy(r) )
 		return "";

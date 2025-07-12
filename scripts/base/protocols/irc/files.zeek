@@ -26,7 +26,7 @@ function get_file_handle(c: connection, is_orig: bool): string
 event zeek_init() &priority=5
 	{
 	Files::register_protocol(Analyzer::ANALYZER_IRC_DATA,
-	                         [$get_file_handle = IRC::get_file_handle]);
+	                         Files::ProtoRegistration($get_file_handle = IRC::get_file_handle));
 	}
 
 event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5

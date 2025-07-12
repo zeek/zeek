@@ -14,10 +14,10 @@ event file_new(f: fa_file) &group="Intel::FILE_NAME"
             {
             local split_fname = split_string(c$smb_state$current_file$name, /\\/);
             local fname = split_fname[|split_fname|-1];
-            Intel::seen([$indicator=fname,
-                        $indicator_type=Intel::FILE_NAME,
-                        $f=f,
-                        $where=SMB::IN_FILE_NAME]);
+            Intel::seen(Intel::Seen($indicator=fname,
+                                    $indicator_type=Intel::FILE_NAME,
+                                    $f=f,
+                                    $where=SMB::IN_FILE_NAME));
             }
         }
     }

@@ -47,17 +47,17 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Broker::LOG, [$columns=Info, $path="broker", $policy=log_policy]);
+	Log::create_stream(Broker::LOG, Log::Stream($columns=Info, $path="broker", $policy=log_policy));
 	}
 
 function log_status(ev: string, endpoint: EndpointInfo, msg: string)
 	{
 	local r: Info;
 
-	r = [$ts = network_time(),
-	     $ev = ev,
-	     $ty = STATUS,
-	     $message = msg];
+	r = Broker::Info($ts = network_time(),
+	                 $ev = ev,
+	                 $ty = STATUS,
+	                 $message = msg);
 
 	if ( endpoint?$network )
 		r$peer = endpoint$network;
@@ -87,10 +87,10 @@ event Broker::error(code: ErrorCode, msg: string)
 	ev = subst_string(ev, "_", "-");
 	ev = to_lower(ev);
 
-	Log::write(Broker::LOG, [$ts = network_time(),
+	Log::write(Broker::LOG, Info($ts = network_time(),
 	           $ev = ev,
 	           $ty = ERROR,
-	           $message = msg]);
+	           $message = msg));
 
 	Reporter::error(fmt("Broker error (%s): %s", code, msg));
 	}
@@ -115,8 +115,8 @@ event Broker::internal_log_event(lvl: LogSeverityLevel, id: string, description:
 			severity = Broker::DEBUG_EVENT;
 			break;
 	}
-	Log::write(Broker::LOG, [$ts = network_time(),
+	Log::write(Broker::LOG, Info($ts = network_time(),
 	           $ty = severity,
 	           $ev = id,
-	           $message = description]);
+	           $message = description));
 	}

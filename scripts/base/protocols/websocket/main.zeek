@@ -228,5 +228,5 @@ event websocket_established(c: connection, aid: count) &priority=-5
 
 event zeek_init()
 	{
-	Log::create_stream(LOG, [$columns=Info, $ev=log_websocket, $path="websocket", $policy=log_policy]);
+	Log::create_stream(LOG, Log::Stream($columns=Info, $ev=log_websocket, $path="websocket", $policy=log_policy));
 	}

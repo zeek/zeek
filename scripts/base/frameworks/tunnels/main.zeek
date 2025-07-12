@@ -92,7 +92,7 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Tunnel::LOG, [$columns=Info, $path="tunnel", $policy=log_policy]);
+	Log::create_stream(Tunnel::LOG, Log::Stream($columns=Info, $path="tunnel", $policy=log_policy));
 	}
 
 function register_all(ecv: EncapsulatingConnVector)

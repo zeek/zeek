@@ -144,8 +144,8 @@ event zeek_init() &priority=5 {
   Analyzer::register_for_ports(Analyzer::ANALYZER_LDAP_TCP, LDAP::ports_tcp);
   Analyzer::register_for_ports(Analyzer::ANALYZER_LDAP_UDP, LDAP::ports_udp);
 
-  Log::create_stream(LDAP::LDAP_LOG, [$columns=MessageInfo, $ev=log_ldap, $path="ldap", $policy=log_policy]);
-  Log::create_stream(LDAP::LDAP_SEARCH_LOG, [$columns=SearchInfo, $ev=log_ldap_search, $path="ldap_search", $policy=log_policy_search]);
+  Log::create_stream(LDAP::LDAP_LOG, Log::Stream($columns=MessageInfo, $ev=log_ldap, $path="ldap", $policy=log_policy));
+  Log::create_stream(LDAP::LDAP_SEARCH_LOG, Log::Stream($columns=SearchInfo, $ev=log_ldap_search, $path="ldap_search", $policy=log_policy_search));
 }
 
 #############################################################################
@@ -163,17 +163,17 @@ function set_session(c: connection, message_id: int, opcode: LDAP::ProtocolOpcod
     c$ldap$searches = table();
 
   if ((opcode in OPCODES_SEARCH) && (message_id !in c$ldap$searches)) {
-    c$ldap$searches[message_id] = [$ts=network_time(),
-                                   $uid=c$uid,
-                                   $id=c$id,
-                                   $message_id=message_id,
-                                   $result_count=0];
+    c$ldap$searches[message_id] = SearchInfo($ts=network_time(),
+                                             $uid=c$uid,
+                                             $id=c$id,
+                                             $message_id=message_id,
+                                             $result_count=0);
 
   } else if ((opcode !in OPCODES_SEARCH) && (message_id !in c$ldap$messages)) {
-    c$ldap$messages[message_id] = [$ts=network_time(),
-                                   $uid=c$uid,
-                                   $id=c$id,
-                                   $message_id=message_id];
+    c$ldap$messages[message_id] = MessageInfo($ts=network_time(),
+                                              $uid=c$uid,
+                                              $id=c$id,
+                                              $message_id=message_id);
   }
 }
 

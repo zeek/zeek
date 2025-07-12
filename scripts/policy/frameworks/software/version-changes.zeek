@@ -30,8 +30,8 @@ event Software::version_change(old: Software::Info, new: Software::Info)
 	local msg = fmt("%.6f %s '%s' version changed from %s to %s",
 	                network_time(), old$software_type, old$name,
 	                software_fmt_version(old$version),
-                	software_fmt_version(new$version));
+	                software_fmt_version(new$version));
 
-	NOTICE([$note=Software_Version_Change, $src=new$host,
-	        $msg=msg, $sub=software_fmt(new)]);
+	NOTICE(Notice::Info($note=Software_Version_Change, $src=new$host,
+	                    $msg=msg, $sub=software_fmt(new)));
 	}

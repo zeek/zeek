@@ -68,8 +68,8 @@ event ssl_established(c: connection) &priority=3
 	if( result$result_string != "good" )
 		{
 		local message = fmt("OCSP response validation failed with (%s)", result$result_string);
-		NOTICE([$note=Invalid_Ocsp_Response, $msg=message,
-		        $sub=c$ssl$subject, $conn=c,
-		        $identifier=cat(c$id$resp_h,c$id$resp_p,c$ssl$ocsp_status)]);
+		NOTICE(Notice::Info($note=Invalid_Ocsp_Response, $msg=message,
+		                    $sub=c$ssl$subject, $conn=c,
+		                    $identifier=cat(c$id$resp_h,c$id$resp_p,c$ssl$ocsp_status)));
 		}
 	}

@@ -383,7 +383,7 @@ global rule_entities: table[Entity, RuleType] of Rule;
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(NetControl::LOG, [$columns=Info, $ev=log_netcontrol, $path="netcontrol", $policy=log_policy]);
+	Log::create_stream(NetControl::LOG, Log::Stream($columns=Info, $ev=log_netcontrol, $path="netcontrol", $policy=log_policy));
 	}
 
 function entity_to_info(info: Info, e: Entity)
@@ -489,22 +489,22 @@ function rule_to_info(info: Info, r: Rule)
 
 function log_msg(msg: string, p: PluginState)
 	{
-	Log::write(LOG, [$ts=network_time(), $category=MESSAGE, $msg=msg, $plugin=p$plugin$name(p)]);
+	Log::write(LOG, Info($ts=network_time(), $category=MESSAGE, $msg=msg, $plugin=p$plugin$name(p)));
 	}
 
 function log_error(msg: string, p: PluginState)
 	{
-	Log::write(LOG, [$ts=network_time(), $category=ERROR, $msg=msg, $plugin=p$plugin$name(p)]);
+	Log::write(LOG, Info($ts=network_time(), $category=ERROR, $msg=msg, $plugin=p$plugin$name(p)));
 	}
 
 function log_msg_no_plugin(msg: string)
 	{
-	Log::write(LOG, [$ts=network_time(), $category=MESSAGE, $msg=msg]);
+	Log::write(LOG, Info($ts=network_time(), $category=MESSAGE, $msg=msg));
 	}
 
 function log_rule(r: Rule, cmd: string, state: InfoState, p: PluginState, msg: string &default="")
 	{
-	local info: Info = [$ts=network_time()];
+	local info = Info($ts=network_time());
 	info$category = RULE;
 	info$cmd = cmd;
 	info$state = state;
@@ -519,14 +519,14 @@ function log_rule(r: Rule, cmd: string, state: InfoState, p: PluginState, msg: s
 
 function log_rule_error(r: Rule, msg: string, p: PluginState)
 	{
-	local info: Info = [$ts=network_time(), $category=ERROR, $msg=msg, $plugin=p$plugin$name(p)];
+	local info = Info($ts=network_time(), $category=ERROR, $msg=msg, $plugin=p$plugin$name(p));
 	rule_to_info(info, r);
 	Log::write(LOG, info);
 	}
 
 function log_rule_no_plugin(r: Rule, state: InfoState, msg: string)
 	{
-	local info: Info  = [$ts=network_time()];
+	local info  = Info($ts=network_time());
 	info$category = RULE;
 	info$state = state;
 	info$msg = msg;
@@ -538,16 +538,16 @@ function log_rule_no_plugin(r: Rule, state: InfoState, msg: string)
 
 function whitelist_address(a: addr, t: interval, location: string &default="") : string
 	{
-	local e: Entity = [$ty=ADDRESS, $ip=addr_to_subnet(a)];
-	local r: Rule = [$ty=WHITELIST, $priority=whitelist_priority, $target=FORWARD, $entity=e, $expire=t, $location=location];
+	local e = Entity($ty=ADDRESS, $ip=addr_to_subnet(a));
+	local r = Rule($ty=WHITELIST, $priority=whitelist_priority, $target=FORWARD, $entity=e, $expire=t, $location=location);
 
 	return add_rule(r);
 	}
 
 function whitelist_subnet(s: subnet, t: interval, location: string &default="") : string
 	{
-	local e: Entity = [$ty=ADDRESS, $ip=s];
-	local r: Rule = [$ty=WHITELIST, $priority=whitelist_priority, $target=FORWARD, $entity=e, $expire=t, $location=location];
+	local e = Entity($ty=ADDRESS, $ip=s);
+	local r = Rule($ty=WHITELIST, $priority=whitelist_priority, $target=FORWARD, $entity=e, $expire=t, $location=location);
 
 	return add_rule(r);
 	}
@@ -561,8 +561,8 @@ function redirect_flow(f: flow_id, out_port: count, t: interval, location: strin
 		$dst_h=addr_to_subnet(f$dst_h),
 		$dst_p=f$dst_p
 	);
-	local e: Entity = [$ty=FLOW, $flow=flow];
-	local r: Rule = [$ty=REDIRECT, $target=FORWARD, $entity=e, $expire=t, $location=location, $out_port=out_port];
+	local e = Entity($ty=FLOW, $flow=flow);
+	local r = Rule($ty=REDIRECT, $target=FORWARD, $entity=e, $expire=t, $location=location, $out_port=out_port);
 
 	return add_rule(r);
 	}
@@ -570,19 +570,19 @@ function redirect_flow(f: flow_id, out_port: count, t: interval, location: strin
 function quarantine_host(infected: addr, dns: addr, quarantine: addr, t: interval, location: string &default="") : vector of string
 	{
 	local orules: vector of string = vector();
-	local edrop: Entity = [$ty=FLOW, $flow=Flow($src_h=addr_to_subnet(infected))];
-	local rdrop: Rule = [$ty=DROP, $target=FORWARD, $entity=edrop, $expire=t, $location=location];
+	local edrop = Entity($ty=FLOW, $flow=Flow($src_h=addr_to_subnet(infected)));
+	local rdrop = Rule($ty=DROP, $target=FORWARD, $entity=edrop, $expire=t, $location=location);
 	orules += add_rule(rdrop);
 
-	local todnse: Entity = [$ty=FLOW, $flow=Flow($src_h=addr_to_subnet(infected), $dst_h=addr_to_subnet(dns), $dst_p=53/udp)];
+	local todnse = Entity($ty=FLOW, $flow=Flow($src_h=addr_to_subnet(infected), $dst_h=addr_to_subnet(dns), $dst_p=53/udp));
 	local todnsr = Rule($ty=MODIFY, $target=FORWARD, $entity=todnse, $expire=t, $location=location, $mod=FlowMod($dst_h=quarantine), $priority=+5);
 	orules += add_rule(todnsr);
 
-	local fromdnse: Entity = [$ty=FLOW, $flow=Flow($src_h=addr_to_subnet(dns), $src_p=53/udp, $dst_h=addr_to_subnet(infected))];
+	local fromdnse = Entity($ty=FLOW, $flow=Flow($src_h=addr_to_subnet(dns), $src_p=53/udp, $dst_h=addr_to_subnet(infected)));
 	local fromdnsr = Rule($ty=MODIFY, $target=FORWARD, $entity=fromdnse, $expire=t, $location=location, $mod=FlowMod($src_h=dns), $priority=+5);
 	orules += add_rule(fromdnsr);
 
-	local wle: Entity = [$ty=FLOW, $flow=Flow($src_h=addr_to_subnet(infected), $dst_h=addr_to_subnet(quarantine), $dst_p=80/tcp)];
+	local wle = Entity($ty=FLOW, $flow=Flow($src_h=addr_to_subnet(infected), $dst_h=addr_to_subnet(quarantine), $dst_p=80/tcp));
 	local wlr = Rule($ty=WHITELIST, $target=FORWARD, $entity=wle, $expire=t, $location=location, $priority=+5);
 	orules += add_rule(wlr);
 

@@ -30,9 +30,9 @@ event DHCP::aggregate_msgs(ts: time, id: conn_id, uid: string, is_orig: bool, ms
 		else
 			{
 			log_info$server_software = options$vendor_class;
-			Software::found(id, [$unparsed_version=options$vendor_class,
-			                     $host=id$resp_h,
-			                     $software_type=DHCP::SERVER]);
+			Software::found(id, Software::Info($unparsed_version=options$vendor_class,
+			                                   $host=id$resp_h,
+			                                   $software_type=DHCP::SERVER));
 			}
 		}
 	}
@@ -42,24 +42,24 @@ event DHCP::log_dhcp(rec: DHCP::Info)
 	if ( rec?$assigned_addr && rec?$server_addr &&
 	     (rec?$client_software || rec?$server_software) )
 		{
-		local id: conn_id = [$orig_h=rec$assigned_addr,
-		                     $orig_p=rec$client_port,
-		                     $resp_h=rec$server_addr,
-		                     $resp_p=rec$server_port,
-		                     $proto=17]; # DHCP is typically UDP
+		local id = conn_id($orig_h=rec$assigned_addr,
+		                   $orig_p=rec$client_port,
+		                   $resp_h=rec$server_addr,
+		                   $resp_p=rec$server_port,
+		                   $proto=17); # DHCP is typically UDP
 
 		if ( rec?$client_software && rec$assigned_addr != 255.255.255.255 )
 			{
-			Software::found(id, [$unparsed_version=rec$client_software,
-			                     $host=rec$assigned_addr, $host_p=id$orig_p,
-			                     $software_type=DHCP::CLIENT]);
+			Software::found(id, Software::Info($unparsed_version=rec$client_software,
+			                                   $host=rec$assigned_addr, $host_p=id$orig_p,
+			                                   $software_type=DHCP::CLIENT));
 			}
 
 		if ( rec?$server_software )
 			{
-			Software::found(id, [$unparsed_version=rec$server_software,
-			                     $host=rec$server_addr, $host_p=id$resp_p,
-			                     $software_type=DHCP::SERVER]);
+			Software::found(id, Software::Info($unparsed_version=rec$server_software,
+			                                   $host=rec$server_addr, $host_p=id$resp_p,
+			                                   $software_type=DHCP::SERVER));
 			}
 		}
 	}

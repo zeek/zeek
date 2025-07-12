@@ -5,8 +5,8 @@
 event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &group="Intel::URL"
 	{
 	if ( is_orig && c?$http )
-		Intel::seen([$indicator=HTTP::build_url(c$http),
-		             $indicator_type=Intel::URL,
-		             $conn=c,
-		             $where=HTTP::IN_URL]);
+		Intel::seen(Intel::Seen($indicator=HTTP::build_url(c$http),
+		                        $indicator_type=Intel::URL,
+		                        $conn=c,
+		                        $where=HTTP::IN_URL));
 	}

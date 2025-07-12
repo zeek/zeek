@@ -425,7 +425,7 @@ export {
 	};
 
 	## Sentinel value for indicating that a filter was not found when looked up.
-	const no_filter: Filter = [$name="<not found>"];
+	const no_filter = Filter($name="<not found>");
 
 	## Creates a new logging stream with the default filter.
 	##
@@ -997,7 +997,7 @@ function flush(id: ID): bool
 
 function add_default_filter(id: ID) : bool
 	{
-	return add_filter(id, [$name="default"]);
+	return add_filter(id, Filter($name="default"));
 	}
 
 function remove_default_filter(id: ID) : bool
@@ -1008,7 +1008,7 @@ function remove_default_filter(id: ID) : bool
 event zeek_init() &priority=5
 	{
 	if ( print_to_log != REDIRECT_NONE )
-		Log::create_stream(PRINTLOG, [$columns=PrintLogInfo, $ev=log_print, $path=print_log_path]);
+		Log::create_stream(PRINTLOG, Log::Stream($columns=PrintLogInfo, $ev=log_print, $path=print_log_path));
 	}
 
 function empty_post_delay_cb(rec: any, id: ID): bool {

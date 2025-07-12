@@ -40,11 +40,11 @@ event ssh_auth_successful(c: connection, auth_method_none: bool) &priority=3
 
 	if ( c$ssh$remote_location?$country_code && c$ssh$remote_location$country_code in watched_countries )
 		{
-		NOTICE([$note=Watched_Country_Login,
-		        $conn=c,
-		        $msg=fmt("SSH login %s watched country: %s",
-		                 (c$ssh$direction == OUTBOUND) ? "to" : "from",
-		                 c$ssh$remote_location$country_code)]);
+		NOTICE(Notice::Info($note=Watched_Country_Login,
+		                    $conn=c,
+		                    $msg=fmt("SSH login %s watched country: %s",
+		                             (c$ssh$direction == OUTBOUND) ? "to" : "from",
+		                             c$ssh$remote_location$country_code)));
 		}
 	}
 

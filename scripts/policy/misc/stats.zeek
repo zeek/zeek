@@ -89,56 +89,56 @@ export {
 	global log_stats: event(rec: Info);
 }
 
-global bytes_received_cf = Telemetry::register_counter_family([
+global bytes_received_cf = Telemetry::register_counter_family(Telemetry::MetricOpts(
     $prefix="zeek",
     $name="net-received-bytes",
     $unit="",
     $help_text="Total number of bytes received",
-]);
+));
 
-global packets_received_cf = Telemetry::register_counter_family([
+global packets_received_cf = Telemetry::register_counter_family(Telemetry::MetricOpts(
     $prefix="zeek",
     $name="net-received-packets",
     $unit="",
     $help_text="Total number of packets received",
-]);
+));
 
-global packets_dropped_cf = Telemetry::register_counter_family([
+global packets_dropped_cf = Telemetry::register_counter_family(Telemetry::MetricOpts(
     $prefix="zeek",
     $name="net-dropped-packets",
     $unit="",
     $help_text="Total number of packets dropped",
-]);
+));
 
-global link_packets_cf = Telemetry::register_counter_family([
+global link_packets_cf = Telemetry::register_counter_family(Telemetry::MetricOpts(
     $prefix="zeek",
     $name="net-link-packets",
     $unit="",
     $help_text="Total number of packets on the packet source link before filtering",
-]);
+));
 
-global packets_filtered_cf = Telemetry::register_counter_family([
+global packets_filtered_cf = Telemetry::register_counter_family(Telemetry::MetricOpts(
     $prefix="zeek",
     $name="net-filtered-packets",
     $unit="",
     $help_text="Total number of packets filtered",
-]);
+));
 
-global packet_lag_gf = Telemetry::register_gauge_family([
+global packet_lag_gf = Telemetry::register_gauge_family(Telemetry::MetricOpts(
     $prefix="zeek",
     $name="net-packet-lag",
     $unit="seconds",
     $help_text="Difference of network time and wallclock time in seconds.",
-]);
+));
 
 # Gauge as motivated by:
 # https://www.robustperception.io/are-increasing-timestamps-counters-or-gauges/
-global network_time_cf = Telemetry::register_gauge_family([
+global network_time_cf = Telemetry::register_gauge_family(Telemetry::MetricOpts(
     $prefix="zeek",
     $name="net-timestamp",
     $unit="seconds",
     $help_text="The current network time.",
-]);
+));
 
 global no_labels: vector of string;
 
@@ -164,7 +164,7 @@ hook Telemetry::sync()
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Stats::LOG, [$columns=Info, $ev=log_stats, $path="stats", $policy=log_policy]);
+	Log::create_stream(Stats::LOG, Log::Stream($columns=Info, $ev=log_stats, $path="stats", $policy=log_policy));
 	}
 
 event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: ProcStats, last_es: EventStats, last_rs: ReassemblerStats, last_ts: TimerStats, last_fs: FileAnalysisStats, last_ds: DNSStats)
@@ -179,36 +179,35 @@ event check_stats(then: time, last_ns: NetStats, last_cs: ConnStats, last_ps: Pr
 	local fs = get_file_analysis_stats();
 	local ds = get_dns_stats();
 
-	local info: Info = [$ts=nettime,
-			    $peer=peer_description,
-			    $mem=ps$mem/1048576,
-			    $pkts_proc=ns$pkts_recvd - last_ns$pkts_recvd,
-			    $bytes_recv = ns$bytes_recvd  - last_ns$bytes_recvd,
+	local info = Info($ts=nettime,
+	                  $peer=peer_description,
+	                  $mem=ps$mem/1048576,
+	                  $pkts_proc=ns$pkts_recvd - last_ns$pkts_recvd,
+	                  $bytes_recv = ns$bytes_recvd  - last_ns$bytes_recvd,
 
-			    $active_tcp_conns=cs$num_tcp_conns,
-			    $tcp_conns=cs$cumulative_tcp_conns - last_cs$cumulative_tcp_conns,
-			    $active_udp_conns=cs$num_udp_conns,
-			    $udp_conns=cs$cumulative_udp_conns - last_cs$cumulative_udp_conns,
-			    $active_icmp_conns=cs$num_icmp_conns,
-			    $icmp_conns=cs$cumulative_icmp_conns - last_cs$cumulative_icmp_conns,
+	                  $active_tcp_conns=cs$num_tcp_conns,
+	                  $tcp_conns=cs$cumulative_tcp_conns - last_cs$cumulative_tcp_conns,
+	                  $active_udp_conns=cs$num_udp_conns,
+	                  $udp_conns=cs$cumulative_udp_conns - last_cs$cumulative_udp_conns,
+	                  $active_icmp_conns=cs$num_icmp_conns,
+	                  $icmp_conns=cs$cumulative_icmp_conns - last_cs$cumulative_icmp_conns,
 
-			    $reassem_tcp_size=rs$tcp_size,
-			    $reassem_file_size=rs$file_size,
-			    $reassem_frag_size=rs$frag_size,
-			    $reassem_unknown_size=rs$unknown_size,
+	                  $reassem_tcp_size=rs$tcp_size,
+	                  $reassem_file_size=rs$file_size,
+	                  $reassem_frag_size=rs$frag_size,
+	                  $reassem_unknown_size=rs$unknown_size,
 
-			    $events_proc=es$dispatched - last_es$dispatched,
-			    $events_queued=es$queued - last_es$queued,
+	                  $events_proc=es$dispatched - last_es$dispatched,
+	                  $events_queued=es$queued - last_es$queued,
 
-			    $timers=ts$cumulative - last_ts$cumulative,
-			    $active_timers=ts$current,
+	                  $timers=ts$cumulative - last_ts$cumulative,
+	                  $active_timers=ts$current,
 
-			    $files=fs$cumulative - last_fs$cumulative,
-			    $active_files=fs$current,
+	                  $files=fs$cumulative - last_fs$cumulative,
+	                  $active_files=fs$current,
 
-			    $dns_requests=ds$requests - last_ds$requests,
-			    $active_dns_requests=ds$pending
-			    ];
+	                  $dns_requests=ds$requests - last_ds$requests,
+	                  $active_dns_requests=ds$pending);
 
 	# Someone's going to have to explain what this is and add a field to the Info record.
 	# info$util = 100.0*((ps$user_time + ps$system_time) - (last_ps$user_time + last_ps$system_time))/(now-then);

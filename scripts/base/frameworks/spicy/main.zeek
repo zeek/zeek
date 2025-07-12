@@ -8,8 +8,8 @@ export {
 
 event max_file_depth_exceeded(f: fa_file, args: Files::AnalyzerArgs, limit: count)
     {
-    NOTICE([
-            $note=Spicy::Spicy_Max_File_Depth_Exceeded,
-            $msg=fmt("Maximum file depth exceeded for file %s", f$id)
-    ]);
+    NOTICE(Notice::Info(
+                        $note=Spicy::Spicy_Max_File_Depth_Exceeded,
+                        $msg=fmt("Maximum file depth exceeded for file %s", f$id)
+    ));
     }

@@ -177,9 +177,9 @@ hook ssl_finishing(c: connection) &priority=20
 	if ( result$result_string != "ok" )
 		{
 		local message = fmt("SSL certificate validation failed with (%s)", c$ssl$validation_status);
-		NOTICE([$note=Invalid_Server_Cert, $msg=message,
-		        $sub=c$ssl$cert_chain[0]$x509$certificate$subject, $conn=c,
-		        $fuid=c$ssl$cert_chain[0]$fuid,
-		        $identifier=cat(c$id$resp_h,c$id$resp_p,hash,c$ssl$validation_code)]);
+		NOTICE(Notice::Info($note=Invalid_Server_Cert, $msg=message,
+		                    $sub=c$ssl$cert_chain[0]$x509$certificate$subject, $conn=c,
+		                    $fuid=c$ssl$cert_chain[0]$fuid,
+		                    $identifier=cat(c$id$resp_h,c$id$resp_p,hash,c$ssl$validation_code)));
 		}
 	}

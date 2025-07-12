@@ -5,10 +5,10 @@
 event ssl_extension_server_name(c: connection, is_orig: bool, names: string_vec) &group="Intel::DOMAIN"
 	{
 	if ( is_orig && c?$ssl && c$ssl?$server_name )
-		Intel::seen([$indicator=c$ssl$server_name,
-		             $indicator_type=Intel::DOMAIN,
-		             $conn=c,
-		             $where=SSL::IN_SERVER_NAME]);
+		Intel::seen(Intel::Seen($indicator=c$ssl$server_name,
+		                        $indicator_type=Intel::DOMAIN,
+		                        $conn=c,
+		                        $where=SSL::IN_SERVER_NAME));
 	}
 
 event ssl_established(c: connection) &group="Intel::DOMAIN"
@@ -18,9 +18,9 @@ event ssl_established(c: connection) &group="Intel::DOMAIN"
 		return;
 
 	if ( c$ssl$cert_chain[0]$x509?$certificate && c$ssl$cert_chain[0]$x509$certificate?$cn )
-		Intel::seen([$indicator=c$ssl$cert_chain[0]$x509$certificate$cn,
+		Intel::seen(Intel::Seen($indicator=c$ssl$cert_chain[0]$x509$certificate$cn,
 			$indicator_type=Intel::DOMAIN,
 			$fuid=c$ssl$cert_chain[0]$fuid,
 			$conn=c,
-			$where=X509::IN_CERT]);
+			$where=X509::IN_CERT));
 	}

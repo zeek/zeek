@@ -93,7 +93,7 @@ function get_protocol(c: connection, a: AllAnalyzers::Tag) : protocol
 			str = |str| > 0 ? fmt("%s/%s", str, p) : p;
 		}
 
-	return [$a=Analyzer::name(a), $sub=str];
+	return protocol($a=Analyzer::name(a), $sub=str);
 	}
 
 function fmt_protocol(p: protocol) : string
@@ -115,9 +115,9 @@ function do_notice(c: connection, a: AllAnalyzers::Tag, d: dir)
 	local p = get_protocol(c, a);
 	local s = fmt_protocol(p);
 
-	NOTICE([$note=Protocol_Found,
+	NOTICE(Notice::Info($note=Protocol_Found,
 		$msg=fmt("%s %s on port %s", id_string(c$id), s, c$id$resp_p),
-		$sub=s, $conn=c]);
+		$sub=s, $conn=c));
 
 	# We report multiple Server_Found's per host if we find a new
 	# sub-protocol.
@@ -130,10 +130,10 @@ function do_notice(c: connection, a: AllAnalyzers::Tag, d: dir)
 
 	if ( (! known || newsub) && a !in suppress_servers )
 		{
-		NOTICE([$note=Server_Found,
+		NOTICE(Notice::Info($note=Server_Found,
 			$msg=fmt("%s: %s server on port %s%s", c$id$resp_h, s,
 				c$id$resp_p, (known ? " (update)" : "")),
-			$p=c$id$resp_p, $sub=s, $conn=c, $src=c$id$resp_h]);
+			$p=c$id$resp_p, $sub=s, $conn=c, $src=c$id$resp_h));
 
 		if ( ! known )
 			servers[c$id$resp_h, c$id$resp_p, p$a] = set();

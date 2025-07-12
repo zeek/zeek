@@ -75,19 +75,19 @@ event CaptureLoss::take_measurement(last_ts: time, last_acks: count, last_gaps: 
 	local acks = g$ack_events - last_acks;
 	local gaps = g$gap_events - last_gaps;
 	local pct_lost = (acks == 0) ? 0.0 : (100 * (1.0 * gaps) / (1.0 * acks));
-	local info: Info = [$ts=now,
-	                    $ts_delta=now-last_ts,
-	                    $peer=peer_description,
-	                    $acks=acks, $gaps=gaps,
-	                    $percent_lost=pct_lost];
+	local info = Info($ts=now,
+	                  $ts_delta=now-last_ts,
+	                  $peer=peer_description,
+	                  $acks=acks, $gaps=gaps,
+	                  $percent_lost=pct_lost);
 
 	if ( pct_lost >= too_much_loss*100 )
-		NOTICE([$note=Too_Much_Loss,
-		        $msg=fmt("The capture loss script detected an estimated loss rate above %.3f%%", pct_lost)]);
+		NOTICE(Notice::Info($note=Too_Much_Loss,
+		                    $msg=fmt("The capture loss script detected an estimated loss rate above %.3f%%", pct_lost)));
 
 	if ( acks < minimum_acks )
-		NOTICE([$note=Too_Little_Traffic,
-		        $msg=fmt("Only observed %d TCP ACKs and was expecting at least %d.", acks, minimum_acks)]);
+		NOTICE(Notice::Info($note=Too_Little_Traffic,
+		                    $msg=fmt("Only observed %d TCP ACKs and was expecting at least %d.", acks, minimum_acks)));
 
 	Log::write(LOG, info);
 	schedule watch_interval { CaptureLoss::take_measurement(now, g$ack_events, g$gap_events) };
@@ -95,7 +95,7 @@ event CaptureLoss::take_measurement(last_ts: time, last_acks: count, last_gaps: 
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(LOG, [$columns=Info, $path="capture_loss", $policy=log_policy]);
+	Log::create_stream(LOG, Log::Stream($columns=Info, $path="capture_loss", $policy=log_policy));
 
 	# We only schedule the event if we are capturing packets.
 	if ( reading_live_traffic() || reading_traces() )

@@ -5,13 +5,13 @@
 
 module Cluster;
 
-global broker_backpressure_disconnects_cf = Telemetry::register_counter_family([
+global broker_backpressure_disconnects_cf = Telemetry::register_counter_family(Telemetry::MetricOpts(
     $prefix="zeek",
     $name="broker-backpressure-disconnects",
     $unit="",
     $label_names=vector("peer"),
     $help_text="Number of Broker peerings dropped due to a neighbor falling behind in message I/O",
-]);
+));
 
 event Broker::peer_removed(endpoint: Broker::EndpointInfo, msg: string)
 	{

@@ -28,7 +28,7 @@ event Dir::monitor_ev(dir: string, last_files: set[string],
                       callback: function(fname: string),
                       poll_interval: interval)
 	{
-	when [dir, last_files, callback, poll_interval] ( local result = Exec::run([$cmd=fmt("ls -1 %s/", safe_shell_quote(dir))]) )
+	when [dir, last_files, callback, poll_interval] ( local result = Exec::run(Exec::Command($cmd=fmt("ls -1 %s/", safe_shell_quote(dir)))) )
 		{
 		if ( result$exit_code != 0 )
 			{

@@ -156,7 +156,7 @@ redef likely_server_ports += { ports };
 # Initialize the HTTP logging stream and ports.
 event zeek_init() &priority=5
 	{
-	Log::create_stream(HTTP::LOG, [$columns=Info, $ev=log_http, $path="http", $policy=log_policy]);
+	Log::create_stream(HTTP::LOG, Log::Stream($columns=Info, $ev=log_http, $path="http", $policy=log_policy));
 	Analyzer::register_for_ports(Analyzer::ANALYZER_HTTP, ports);
 	}
 
@@ -299,7 +299,7 @@ event http_reply(c: connection, version: string, code: count, reason: string) &p
 		# "tunnel".
 		local tid = copy(c$id);
 		tid$orig_p = 0/tcp;
-		Tunnel::register([$cid=tid, $tunnel_type=Tunnel::HTTP]);
+		Tunnel::register(Tunnel::EncapsulatingConn($cid=tid, $tunnel_type=Tunnel::HTTP));
 		}
 	}
 

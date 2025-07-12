@@ -2,6 +2,8 @@
 
 #include "zeek/Scope.h"
 
+#include <ranges>
+
 #include "zeek/Desc.h"
 #include "zeek/ID.h"
 #include "zeek/IntrusivePtr.h"
@@ -112,8 +114,8 @@ const IDPtr& lookup_ID(const char* name, const char* curr_module, bool no_global
     if ( ! explicit_global ) {
         bool need_export = check_export && (ID_module != GLOBAL_MODULE_NAME && ID_module != curr_module);
 
-        for ( auto s_i = scopes.rbegin(); s_i != scopes.rend(); ++s_i ) {
-            const auto& id = (*s_i)->Find(fullname);
+        for ( const auto& s_i : std::ranges::reverse_view(scopes) ) {
+            const auto& id = s_i->Find(fullname);
 
             if ( id ) {
                 if ( need_export && ! id->IsExport() && ! in_debug )

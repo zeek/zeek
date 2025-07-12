@@ -1,1 +1,2 @@
 const SMTP::bdat_max_line_length: count;
+const SMTP::enable_rfc822_msg_file_analysis: bool;

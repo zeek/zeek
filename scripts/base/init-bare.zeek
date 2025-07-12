@@ -667,6 +667,14 @@ export {
 	## is introduced and a weird is raised. Conventionally, MIME messages
 	## have a maximum line length of 1000 octets when properly encoded.
 	const bdat_max_line_length = 4096 &redef;
+
+	## Whether to send data of individual top-level RFC822 messages
+	## in SMTP transactions to the file analysis framework.
+	##
+	## If this option is enabled, the first :zeek:see:`file_over_new_connection`
+	## event for a new SMTP transaction will be for the top-level RFC822
+	## message. The file's :zeek:field:`mime_type` will be ``message/rfc822``.
+	const enable_rfc822_msg_file_analysis = F &redef;
 }
 
 module TCP;

@@ -1,1 +1,2 @@
 const SMTP::bdat_max_line_length: count;
+const SMTP::enable_mail_data_file_analysis: bool;

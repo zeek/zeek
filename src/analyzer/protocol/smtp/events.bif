@@ -106,3 +106,15 @@ event smtp_unexpected%(c: connection, is_orig: bool, msg: string, detail: string
 ## c: The connection.
 ##
 event smtp_starttls%(c: connection%);
+
+## Generated when a new file is created for analyzing the full mail
+## of an RFC822 message in an SMTP transaction.
+##
+## This event can be leveraged to extract the full mail data to disk.
+##
+## c: The corresponding SMTP connection.
+##
+## f: The file corresponding to the mail data.
+##
+## .. zeek:see:: SMTP::enable_mail_data_file_analysis
+event smtp_mail_data_file%(f: fa_file, c: connection%);

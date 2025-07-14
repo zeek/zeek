@@ -1,0 +1,18 @@
+# @TEST-DOC: Test case for extracting a mail that contains attachments.
+#
+# @TEST-EXEC: zeek -C -b -r $TRACES/smtp-attachment-msg.pcap %INPUT
+# @TEST-EXEC: zeek-cut -m fuid uid mime_type seen_bytes parent_fuid sha1 < files.log > files.cut
+# @TEST-EXEC: btest-diff files.cut
+# @TEST-EXEC: btest-diff --binary extract_files/mail
+
+@load base/files/hash
+@load base/files/extract
+@load base/protocols/smtp
+
+redef SMTP::enable_mail_data_file_analysis = T;
+
+event smtp_mail_data_file(f: fa_file, c: connection)
+	{
+	Files::add_analyzer(f, Files::ANALYZER_SHA1);
+	Files::add_analyzer(f, Files::ANALYZER_EXTRACT, [$extract_filename="mail"]);
+	}

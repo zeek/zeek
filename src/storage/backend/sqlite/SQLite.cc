@@ -2,6 +2,7 @@
 
 #include "zeek/storage/backend/sqlite/SQLite.h"
 
+#include <filesystem>
 #include <thread>
 
 #include "zeek/3rdparty/sqlite3.h"
@@ -81,7 +82,7 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
 
     RecordValPtr backend_options = options->GetField<RecordVal>("sqlite");
     StringValPtr path = backend_options->GetField<StringVal>("database_path");
-    full_path = zeek::filesystem::path(path->ToStdString()).string();
+    full_path = std::filesystem::path(path->ToStdString()).string();
     table_name = backend_options->GetField<StringVal>("table_name")->ToStdString();
 
     auto busy_timeout = backend_options->GetField<IntervalVal>("busy_timeout")->Get();

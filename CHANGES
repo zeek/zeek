@@ -1,3 +1,9 @@
+8.0.0-dev.656 | 2025-07-14 13:09:11 -0700
+
+  * Fix some missing #includes resulting from removal of ghc::filesystem (Tim Wojtulewicz, Corelight)
+
+  * Remove ghc::filesystem submodule, switch to std::filesystem (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.653 | 2025-07-14 11:26:06 -0700
 
   * Documentation: connection_SYN_packet (Johanna Amann, Corelight)

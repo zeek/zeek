@@ -12,6 +12,7 @@
 #include <cerrno>
 #include <climits>
 #include <cstdlib>
+#include <filesystem>
 
 #include <stack>
 #include <list>
@@ -504,7 +505,7 @@ when	return TOK_WHEN;
 			// confused by any ZEEKPATH settings. Also, plugin files
 			// containing any relative @loads themselves will work.
 			std::error_code ec;
-			auto canonical = zeek::filesystem::canonical(input_files[0]);
+			auto canonical = std::filesystem::canonical(input_files[0]);
 			if ( ec )
 				zeek::reporter->FatalError("plugin script %s not found: %s",
 				                           input_files[0], ec.message().c_str());

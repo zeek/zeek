@@ -25,7 +25,6 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
-#include <sstream>
 
 #if defined(HAVE_MALLINFO) || defined(HAVE_MALLINFO2)
 #include <malloc.h>
@@ -40,7 +39,9 @@
 
 #include <algorithm>
 #include <array>
+#include <filesystem>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -601,7 +602,7 @@ string normalize_path(std::string_view path) {
     if ( stringPath._Starts_with("//") ) {
         stringPath.erase(0, 2);
     }
-    return zeek::filesystem::path(stringPath).lexically_normal().string();
+    return std::filesystem::path(stringPath).lexically_normal().string();
 #else
     if ( path.find("/.") == std::string_view::npos && path.find("//") == std::string_view::npos ) {
         // no need to normalize anything
@@ -691,7 +692,7 @@ string without_zeekpath_component(std::string_view path) {
 std::string get_exe_path(const std::string& invocation) {
     if ( invocation.empty() )
         return "";
-    zeek::filesystem::path invocation_path(invocation);
+    std::filesystem::path invocation_path(invocation);
 
     if ( invocation_path.is_absolute() || invocation_path.root_directory() == "~" )
         // Absolute path
@@ -706,7 +707,7 @@ std::string get_exe_path(const std::string& invocation) {
             exit(1);
         }
 
-        return (zeek::filesystem::path(cwd) / invocation_path).string();
+        return (std::filesystem::path(cwd) / invocation_path).string();
     }
 
     auto path = getenv("PATH");
@@ -1719,7 +1720,7 @@ static string find_file_in_path(const string& filename, const string& path, cons
     if ( filename.empty() )
         return {};
 
-    zeek::filesystem::path filepath(filename);
+    std::filesystem::path filepath(filename);
 
     // If file name is an absolute path, searching within *path* is pointless.
     if ( filepath.is_absolute() ) {
@@ -1729,7 +1730,7 @@ static string find_file_in_path(const string& filename, const string& path, cons
             return {};
     }
 
-    auto abs_path = (zeek::filesystem::path(path) / filepath).string();
+    auto abs_path = (std::filesystem::path(path) / filepath).string();
 
     if ( ! opt_ext.empty() ) {
         for ( const string& ext : opt_ext ) {
@@ -2425,19 +2426,19 @@ TEST_CASE("util filesystem") {
 #ifdef _MSC_VER
     // TODO: adapt these tests to Windows paths
 #else
-    zeek::filesystem::path path1("/a/b");
+    std::filesystem::path path1("/a/b");
     CHECK(path1.is_absolute());
     CHECK(! path1.is_relative());
     CHECK(path1.filename() == "b");
     CHECK(path1.parent_path() == "/a");
 
-    zeek::filesystem::path path2("/a//b//conn.log");
+    std::filesystem::path path2("/a//b//conn.log");
     CHECK(path2.lexically_normal() == "/a/b/conn.log");
 
-    zeek::filesystem::path path3("a//b//");
+    std::filesystem::path path3("a//b//");
     CHECK(path3.lexically_normal() == "a/b/");
 
-    auto info = zeek::filesystem::space(".");
+    auto info = std::filesystem::space(".");
     CHECK(info.capacity > 0);
 #endif
 }

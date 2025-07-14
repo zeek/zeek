@@ -10,6 +10,7 @@
 #include <cerrno>
 #include <cstdio>
 #include <ctime>
+#include <filesystem>
 #include <memory>
 #include <optional>
 #include <string>
@@ -88,7 +89,7 @@ struct LeftoverLog {
      * Return the "path" (logging framework parlance) of the log without the
      * directory or file extension. E.g. the "path" of "logs/conn.log" is just "conn".
      */
-    std::string Path() const { return zeek::filesystem::path(filename).stem().string(); }
+    std::string Path() const { return std::filesystem::path(filename).stem().string(); }
 
     /**
      * Deletes the shadow file and returns whether it succeeded.
@@ -102,7 +103,7 @@ struct LeftoverLog {
  * prefix_basename_with("logs/conn.log", ".shadow") -> logs/.shadow.conn.log"
  */
 static std::string prefix_basename_with(const std::string& path, const std::string& prefix) {
-    auto fspath = zeek::filesystem::path(path);
+    auto fspath = std::filesystem::path(path);
     auto new_filename = prefix + fspath.filename().string();
     return (fspath.parent_path() / new_filename).string();
 }
@@ -440,7 +441,7 @@ bool Ascii::DoInit(const WriterInfo& info, int num_fields, const threading::Fiel
         }
 
         if ( fname.front() != '/' && ! logdir.empty() )
-            fname = (zeek::filesystem::path(logdir) / fname).string();
+            fname = (std::filesystem::path(logdir) / fname).string();
 
         fname += ext;
 
@@ -679,10 +680,10 @@ static std::vector<LeftoverLog> find_leftover_logs() {
 
     // Find any .shadow files within Log::default_logdir or otherwise search in
     // the current working directory.
-    auto logdir = zeek::filesystem::current_path();
+    auto logdir = std::filesystem::current_path();
 
     if ( ! default_logdir.empty() )
-        logdir = zeek::filesystem::absolute(default_logdir);
+        logdir = std::filesystem::absolute(default_logdir);
 
     auto d = opendir(logdir.string().c_str());
     struct dirent* dp;

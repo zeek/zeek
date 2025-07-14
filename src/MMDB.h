@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <sys/stat.h>
+
 #include "zeek/Val.h"
 
 namespace zeek {

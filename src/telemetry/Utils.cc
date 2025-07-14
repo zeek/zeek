@@ -2,6 +2,8 @@
 
 #include "zeek/telemetry/Utils.h"
 
+#include <algorithm>
+
 #include "zeek/ID.h"
 #include "zeek/Reporter.h"
 #include "zeek/Val.h"

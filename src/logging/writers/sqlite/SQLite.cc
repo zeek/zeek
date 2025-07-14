@@ -3,6 +3,7 @@
 #include "zeek/logging/writers/sqlite/SQLite.h"
 
 #include <cerrno>
+#include <filesystem>
 #include <string>
 
 #include "zeek/Desc.h"
@@ -111,7 +112,7 @@ bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* con
     num_fields = arg_num_fields;
     fields = arg_fields;
 
-    auto fullpath = zeek::filesystem::path(zeek::id::find_const<StringVal>("Log::default_logdir")->ToStdString());
+    auto fullpath = std::filesystem::path(zeek::id::find_const<StringVal>("Log::default_logdir")->ToStdString());
 
     fullpath /= info.path;
     fullpath += ".sqlite";

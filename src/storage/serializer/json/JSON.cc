@@ -2,6 +2,8 @@
 
 #include "zeek/storage/serializer/json/JSON.h"
 
+#include <algorithm>
+
 #include "zeek/Func.h"
 
 namespace zeek::storage::serializer::json {

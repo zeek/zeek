@@ -2,6 +2,7 @@
 
 #include "zeek/Type.h"
 
+#include <algorithm>
 #include <cinttypes>
 #include <map>
 #include <string>

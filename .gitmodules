@@ -58,9 +58,6 @@
 [submodule "auxil/spicy"]
 	path = auxil/spicy
 	url = https://github.com/zeek/spicy
-[submodule "auxil/filesystem"]
-	path = auxil/filesystem
-	url = https://github.com/gulrak/filesystem.git
 [submodule "auxil/zeek-af_packet-plugin"]
 	path = auxil/zeek-af_packet-plugin
 	url = https://github.com/zeek/zeek-af_packet-plugin.git

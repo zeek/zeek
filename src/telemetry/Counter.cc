@@ -2,6 +2,8 @@
 
 #include "zeek/telemetry/Counter.h"
 
+#include <algorithm>
+
 using namespace zeek::telemetry;
 
 Counter::Counter(FamilyType* family, const prometheus::Labels& labels, detail::CollectCallbackPtr callback) noexcept

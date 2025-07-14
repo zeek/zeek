@@ -2,6 +2,8 @@
 
 #include "zeek/telemetry/Gauge.h"
 
+#include <algorithm>
+
 using namespace zeek::telemetry;
 
 double Gauge::Value() const noexcept {

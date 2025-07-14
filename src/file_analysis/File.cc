@@ -524,9 +524,13 @@ void File::FileEvent(EventHandlerPtr h, Args args) {
     if ( h == file_new || h == file_over_new_connection || h == file_sniff || h == file_timeout ||
          h == file_extraction_limit ) {
         // immediate feedback is required for these events.
-        event_mgr.Drain();
-        analyzers.DrainModifications();
+        FileEventDrain();
     }
+}
+
+void File::FileEventDrain() {
+    event_mgr.Drain();
+    analyzers.DrainModifications();
 }
 
 bool File::PermitWeird(const char* name, uint64_t threshold, uint64_t rate, double duration) {

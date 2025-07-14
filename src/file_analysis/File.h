@@ -177,6 +177,15 @@ public:
     void FileEvent(EventHandlerPtr h, Args args);
 
     /**
+     * Drain the event queue and this file's analyzer modifications after
+     * raising a custom event via FileEvent.
+     *
+     * Using internal events (file_new, file_over_new_connection, file_sniff
+     * and file_extraction_limit) invokes this automatically.
+     */
+    void FileEventDrain();
+
+    /**
      * Sets the MIME type for a file to a specific value.
      *
      * Setting the MIME type has to be done before the MIME type is

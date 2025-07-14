@@ -1,3 +1,7 @@
+8.0.0-dev.646 | 2025-07-13 19:22:52 -0700
+
+  * Move util::Deferred into util-types.h (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.643 | 2025-07-11 15:35:33 -0400
 
   * Cleanup unused baselines (Evan Typanski, Corelight)

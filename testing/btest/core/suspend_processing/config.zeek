@@ -7,7 +7,7 @@
 
 # @TEST-START-FILE intel.dat
 #fields	indicator	indicator_type	meta.source	meta.desc	meta.url
-putty.exe	Intel::FILE_NAME	source1	SSH utility	https://www.putty.org
+putty.exe	Intel::FILE_NAME	source1	SSH utility	https://www.chiark.greenend.org.uk/~sgtatham/putty/
 zeek.exe	Intel::FILE_NAME	source1	A network monitor	https://zeek.org
 # @TEST-END-FILE
 

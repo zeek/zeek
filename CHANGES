@@ -1,3 +1,9 @@
+7.0.8-2 | 2025-07-14 14:09:51 -0700
+
+  * Update ZeekJS to v0.18.0 (Tim Wojtulewicz, Corelight)
+
+    This is primarily to bring in 26c8c3684c46dce2f00b191ed009b1ea9bfe9159.
+
 7.0.8-1 | 2025-07-14 13:56:17 -0700
 
   * GH-4522: smtp: Fix last_reply column in smtp.log for BDAT LAST (Arne Welzel, Corelight)

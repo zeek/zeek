@@ -803,9 +803,13 @@ include_plugins_debian12_task:
   sync_submodules_script: git submodule update --recursive --init
   fetch_external_plugins_script:
     - cd /zeek/testing/builtin-plugins/external && git clone https://github.com/zeek/zeek-perf-support.git
+    - cd zeek-perf-support && echo "Cloned $(git rev-parse HEAD) for $(basename $(pwd))"
     - cd /zeek/testing/builtin-plugins/external && git clone https://github.com/zeek/zeek-more-hashes.git
+    - cd zeek-more-hashes && echo "Cloned $(git rev-parse HEAD) for $(basename $(pwd))"
     - cd /zeek/testing/builtin-plugins/external && git clone https://github.com/zeek/zeek-cluster-backend-nats.git
+    - cd zeek-cluster-backend-nats && echo "Cloned $(git rev-parse HEAD) for $(basename $(pwd))"
     - cd /zeek/testing/builtin-plugins/external && git clone https://github.com/SeisoLLC/zeek-kafka.git
+    - cd zeek-kafka && echo "Cloned $(git rev-parse HEAD) for $(basename $(pwd))"
   always:
     ccache_cache:
       folder: /tmp/ccache

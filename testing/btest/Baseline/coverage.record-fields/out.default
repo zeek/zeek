@@ -772,6 +772,7 @@ connection {
             conn_id { ... }
         * in_reply_to: string, log=T, optional=T
         * last_reply: string, log=T, optional=T
+        * mail_fuid: string, log=F, optional=T
         * mailfrom: string, log=T, optional=T
         * msg_id: string, log=T, optional=T
         * path: vector of addr, log=T, optional=T

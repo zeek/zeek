@@ -26,7 +26,6 @@ RUN apt-get -q update \
      libssl3 \
      libuv1 \
      libz1 \
-     libzmq5 \
      net-tools \
      procps \
      python3-minimal \

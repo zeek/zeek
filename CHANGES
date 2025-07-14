@@ -1,3 +1,13 @@
+8.0.0-dev.651 | 2025-07-14 09:31:19 -0700
+
+  * Use ranges::reverse_view to fix a few reverse ranged-for loops (Tim Wojtulewicz)
+
+  * Disable a few new modernize clang-tidy checkers, enabled by C++20 (Tim Wojtulewicz)
+
+  * btest: Switch putty.org usage in tests to official URL (Arne Welzel, Corelight)
+
+    Closes #4655
+
 8.0.0-dev.646 | 2025-07-13 19:22:52 -0700
 
   * Move util::Deferred into util-types.h (Tim Wojtulewicz, Corelight)

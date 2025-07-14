@@ -3,6 +3,7 @@
 #include "zeek/spicy/runtime-support.h"
 
 #include <memory>
+#include <ranges>
 
 #include <hilti/rt/exception.h>
 #include <hilti/rt/profiler.h>
@@ -886,9 +887,9 @@ const rt::cookie::FileState* rt::cookie::FileStateStack::find(const std::string&
     auto _ = hilti::rt::profiler::start("zeek/rt/file-stack-find");
 
     // Reverse search as the default state would be on top of the stack.
-    for ( auto i = _stack.rbegin(); i != _stack.rend(); i++ ) {
-        if ( i->fid == fid )
-            return &*i;
+    for ( const auto& i : std::ranges::reverse_view(_stack) ) {
+        if ( i.fid == fid )
+            return &i;
     }
 
     return nullptr;

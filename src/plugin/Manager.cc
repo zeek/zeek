@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <optional>
+#include <ranges>
 #include <regex>
 #include <sstream>
 
@@ -375,8 +376,8 @@ void Manager::ActivateDynamicPlugins(bool all) {
 }
 
 void Manager::UpdateInputFiles() {
-    for ( file_list::const_reverse_iterator i = scripts_to_load.rbegin(); i != scripts_to_load.rend(); i++ )
-        add_input_file_at_front((*i).c_str());
+    for ( const auto& script : std::ranges::reverse_view(scripts_to_load) )
+        add_input_file_at_front(script.c_str());
 
     scripts_to_load.clear();
 }

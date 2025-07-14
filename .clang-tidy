@@ -16,6 +16,7 @@ Checks: [-*,
          -bugprone-unchecked-optional-access,
          -performance-unnecessary-value-param,
          -modernize-use-equals-default,
+         -modernize-use-integer-sign-comparison,
 
          # The following cause either lots of pointless or advisory warnings
          -bugprone-easily-swappable-parameters,
@@ -43,6 +44,7 @@ Checks: [-*,
          -modernize-use-nodiscard,
          -modernize-use-ranges,
          -modernize-use-trailing-return-type,
+         -modernize-use-designated-initializers,
 
          # This one returns a bunch of findings in DFA and the sqlite library.
          # We're unlikely to fix either of them.
@@ -64,6 +66,10 @@ Checks: [-*,
          -modernize-use-std-format,
          -modernize-use-std-numbers,
          -modernize-use-std-print,
+
+         # C++20 supports constraints but until Spicy supports building with C++20
+         # this one has to stay disabled.
+         -modernize-use-constraints,
 ]
 
 HeaderFilterRegex: '.h'

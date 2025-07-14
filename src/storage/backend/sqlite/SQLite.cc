@@ -186,15 +186,16 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
 
     sqlite3_free(errorMsg);
 
+    // Roughly the same command is used for put and put-overwrite, just with an extra condition on put
+    // to only overwrite if the element is expired.
+    std::string put_base_cmd =
+        "insert into %s (key_str, value_str, expire_time) values(?, ?, ?) ON CONFLICT(key_str) "
+        "DO UPDATE SET value_str=?, expire_time=?";
+    std::string put_cmd = put_base_cmd + " WHERE expire_time > 0.0 AND expire_time < ?";
+
     static std::array<std::pair<std::string, sqlite3*>, 8> statements =
-        {std::make_pair(util::fmt("insert into %s (key_str, value_str, expire_time) values(?, ?, ?)",
-                                  table_name.c_str()),
-                        db),
-         std::make_pair(util::
-                            fmt("insert into %s (key_str, value_str, expire_time) values(?, ?, ?) ON CONFLICT(key_str) "
-                                "DO UPDATE SET value_str=?, expire_time=?",
-                                table_name.c_str()),
-                        db),
+        {std::make_pair(util::fmt(put_base_cmd.c_str(), table_name.c_str()), db),
+         std::make_pair(util::fmt(put_cmd.c_str(), table_name.c_str()), db),
          std::make_pair(util::fmt("select value_str, expire_time from %s where key_str=?", table_name.c_str()), db),
          std::make_pair(util::fmt("delete from %s where key_str=?", table_name.c_str()), db),
 
@@ -226,8 +227,8 @@ OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
         stmt_ptrs.emplace_back(ps, sqlite3_finalize);
     }
 
-    put_stmt = std::move(stmt_ptrs[0]);
-    put_update_stmt = std::move(stmt_ptrs[1]);
+    put_update_stmt = std::move(stmt_ptrs[0]);
+    put_stmt = std::move(stmt_ptrs[1]);
     get_stmt = std::move(stmt_ptrs[2]);
     erase_stmt = std::move(stmt_ptrs[3]);
     check_expire_stmt = std::move(stmt_ptrs[4]);
@@ -295,33 +296,6 @@ OperationResult SQLite::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool
     if ( ! key_data )
         return {ReturnCode::SERIALIZATION_FAILED, "Failed to serialize key"};
 
-    // If we are not already in overwrite mode check if an expired entry exists
-    // in the database. Such entries would not be visible to the user, but even
-    // outside of overwrite mode would need to be overwritten.
-    if ( ! overwrite ) {
-        auto stmt = unique_stmt_ptr(get_stmt.get(), sqlite3_reset);
-
-        if ( auto res = CheckError(sqlite3_bind_blob(stmt.get(), 1, key_data->data(), key_data->size(), SQLITE_STATIC));
-             res.code != ReturnCode::SUCCESS ) {
-            return res;
-        }
-
-        int step_status = sqlite3_step(stmt.get());
-        if ( step_status == SQLITE_ROW ) {
-            // If an expired entry exists, switch to overwrite mode.
-            overwrite =
-                sqlite3_column_type(stmt.get(), 1) != SQLITE_NULL && is_expired(sqlite3_column_double(stmt.get(), 0));
-        }
-        else if ( step_status == SQLITE_DONE ) {
-            // Nothing currently exists.
-        }
-        else if ( step_status == SQLITE_BUSY || step_status == SQLITE_LOCKED )
-            // TODO: this could retry a number of times instead of just failing
-            return {ReturnCode::TIMEOUT};
-        else
-            return {ReturnCode::OPERATION_FAILED};
-    }
-
     unique_stmt_ptr stmt;
     if ( ! overwrite )
         stmt = unique_stmt_ptr(put_stmt.get(), sqlite3_reset);
@@ -346,20 +320,31 @@ OperationResult SQLite::DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool
         return res;
     }
 
-    if ( overwrite ) {
-        if ( auto res = CheckError(sqlite3_bind_blob(stmt.get(), 4, val_data->data(), val_data->size(), SQLITE_STATIC));
-             res.code != ReturnCode::SUCCESS ) {
-            return res;
-        }
-
-        // This duplicates the above binding, but it's to overwrite the expiration time on the entry.
-        if ( auto res = CheckError(sqlite3_bind_double(stmt.get(), 5, expiration_time));
-             res.code != ReturnCode::SUCCESS ) {
-            return res;
-        }
+    if ( auto res = CheckError(sqlite3_bind_blob(stmt.get(), 4, val_data->data(), val_data->size(), SQLITE_STATIC));
+         res.code != ReturnCode::SUCCESS ) {
+        return res;
     }
 
-    return Step(stmt.get(), false);
+    // This duplicates the above binding, but it's to overwrite the expiration time on the entry.
+    if ( auto res = CheckError(sqlite3_bind_double(stmt.get(), 5, expiration_time)); res.code != ReturnCode::SUCCESS ) {
+        return res;
+    }
+
+    if ( ! overwrite )
+        if ( auto res = CheckError(sqlite3_bind_double(stmt.get(), 6, util::current_time()));
+             res.code != ReturnCode::SUCCESS ) {
+            return res;
+        }
+
+    auto step_result = Step(stmt.get(), false);
+    if ( ! overwrite )
+        if ( step_result.code == ReturnCode::SUCCESS ) {
+            int changed = sqlite3_changes(db);
+            if ( changed == 0 )
+                step_result.code = ReturnCode::KEY_EXISTS;
+        }
+
+    return step_result;
 }
 
 /**

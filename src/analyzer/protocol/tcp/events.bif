@@ -155,7 +155,8 @@ event connection_reset%(c: connection%);
 event connection_pending%(c: connection%);
 
 ## Generated for a SYN packet. Zeek raises this event for every SYN packet seen
-## by its TCP analyzer.
+## by its TCP analyzer. This includes packets that have other flags set - like
+## in the case of SYN-ACK packets.
 ##
 ## c: The connection.
 ##

@@ -1,3 +1,10 @@
+8.0.0-dev.653 | 2025-07-14 11:26:06 -0700
+
+  * Documentation: connection_SYN_packet (Johanna Amann, Corelight)
+
+    Slightly clarify documentation related to the connection_SYN_packet
+    event.
+
 8.0.0-dev.651 | 2025-07-14 09:31:19 -0700
 
   * Use ranges::reverse_view to fix a few reverse ranged-for loops (Tim Wojtulewicz)

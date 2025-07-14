@@ -57,13 +57,13 @@ private:
 	Properties props;
 	Stats stats;
 
-	int current_filter;
-	unsigned int num_discarded;
-	int checksum_mode;
+	int current_filter = 0;
+	unsigned int num_discarded = 0;
+	int checksum_mode = 0;
 
-	int socket_fd;
-	RX_Ring *rx_ring;
-	struct pcap_pkthdr current_hdr;
+	int socket_fd = -1;
+	RX_Ring *rx_ring = nullptr;
+	struct pcap_pkthdr current_hdr = {0};
 
 	struct InterfaceInfo {
 		int index = -1;

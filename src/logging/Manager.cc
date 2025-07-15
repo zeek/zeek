@@ -245,8 +245,11 @@ struct Manager::WriterInfo {
     string instantiating_filter;
 
     std::shared_ptr<telemetry::Counter> total_writes;
+    std::shared_ptr<telemetry::Counter> total_discarded_writes;
 
-    WriterInfo(std::shared_ptr<telemetry::Counter> total_writes) : total_writes(std::move(total_writes)) {}
+    WriterInfo(std::shared_ptr<telemetry::Counter> total_writes,
+               std::shared_ptr<telemetry::Counter> total_discarded_writes)
+        : total_writes(std::move(total_writes)), total_discarded_writes(std::move(total_discarded_writes)) {}
 };
 
 struct Manager::Stream {
@@ -484,7 +487,11 @@ Manager::Manager()
           telemetry_mgr
               ->CounterFamily("zeek", "log-writer-writes", {"writer", "module", "stream", "filter-name", "path"},
                               "Total number of log writes passed to a concrete log writer not vetoed by stream or "
-                              "filter policies.")) {
+                              "filter policies.")),
+      total_log_writer_discarded_writes_family(
+          telemetry_mgr->CounterFamily("zeek", "log-writer-discarded-writes",
+                                       {"writer", "module", "stream", "filter-name", "path"},
+                                       "Total number of log writes discarded due to size limitations.")) {
     rotations_pending = 0;
 }
 
@@ -496,6 +503,7 @@ Manager::~Manager() {
 void Manager::InitPostScript() {
     rotation_format_func = id::find_func("Log::rotation_format_func");
     log_stream_policy_hook = id::find_func("Log::log_stream_policy");
+    max_log_record_size = id::find_val("Log::max_log_record_size")->AsCount();
 }
 
 WriterBackend* Manager::CreateBackend(WriterFrontend* frontend, EnumVal* tag) {
@@ -1140,7 +1148,14 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
         assert(info);
 
         // Alright, can do the write now.
-        auto rec = RecordToLogRecord(stream, filter, columns.get());
+        size_t total_size = 0;
+        auto rec = RecordToLogRecord(stream, filter, columns.get(), total_size);
+
+        if ( total_size > max_log_record_size ) {
+            reporter->Weird("log_record_too_large", util::fmt("%s", stream->name.c_str()));
+            w->second->total_discarded_writes->Inc();
+            continue;
+        }
 
         if ( zeek::plugin_mgr->HavePluginForHook(zeek::plugin::HOOK_LOG_WRITE) ) {
             // The current HookLogWrite API takes a threading::Value**.
@@ -1373,7 +1388,7 @@ bool Manager::SetMaxDelayQueueSize(const EnumValPtr& id, zeek_uint_t queue_size)
     return true;
 }
 
-threading::Value Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty) {
+threading::Value Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty, size_t& total_size) {
     if ( ! val )
         return {ty->Tag(), false};
 
@@ -1381,7 +1396,10 @@ threading::Value Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty) {
 
     switch ( lval.type ) {
         case TYPE_BOOL:
-        case TYPE_INT: lval.val.int_val = val->AsInt(); break;
+        case TYPE_INT:
+            lval.val.int_val = val->AsInt();
+            total_size += sizeof(lval.val.int_val);
+            break;
 
         case TYPE_ENUM: {
             const char* s = ty->AsEnumType()->Lookup(val->AsInt());
@@ -1398,13 +1416,16 @@ threading::Value Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty) {
                 lval.val.string_val.data = util::copy_string("", 0);
                 lval.val.string_val.length = 0;
             }
+
+            total_size += lval.val.string_val.length;
+
             break;
         }
 
-        case TYPE_COUNT: {
+        case TYPE_COUNT:
             lval.val.uint_val = val->AsCount();
+            total_size += sizeof(lval.val.uint_val);
             break;
-        }
 
         case TYPE_PORT: {
             auto p = val->AsCount();
@@ -1420,16 +1441,26 @@ threading::Value Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty) {
 
             lval.val.port_val.port = p & ~PORT_SPACE_MASK;
             lval.val.port_val.proto = pt;
+            total_size += lval.val.port_val.size();
             break;
         }
 
-        case TYPE_SUBNET: val->AsSubNet()->Get().ConvertToThreadingValue(&lval.val.subnet_val); break;
+        case TYPE_SUBNET:
+            val->AsSubNet()->Get().ConvertToThreadingValue(&lval.val.subnet_val);
+            total_size += lval.val.subnet_val.size();
+            break;
 
-        case TYPE_ADDR: val->AsAddr()->Get().ConvertToThreadingValue(&lval.val.addr_val); break;
+        case TYPE_ADDR:
+            val->AsAddr()->Get().ConvertToThreadingValue(&lval.val.addr_val);
+            total_size += lval.val.addr_val.size();
+            break;
 
         case TYPE_DOUBLE:
         case TYPE_TIME:
-        case TYPE_INTERVAL: lval.val.double_val = val->AsDouble(); break;
+        case TYPE_INTERVAL:
+            lval.val.double_val = val->AsDouble();
+            total_size += sizeof(lval.val.double_val);
+            break;
 
         case TYPE_STRING: {
             const String* s = val->AsString()->AsString();
@@ -1438,6 +1469,7 @@ threading::Value Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty) {
 
             lval.val.string_val.data = buf;
             lval.val.string_val.length = s->Len();
+            total_size += lval.val.string_val.length;
             break;
         }
 
@@ -1447,6 +1479,7 @@ threading::Value Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty) {
             auto len = strlen(s);
             lval.val.string_val.data = util::copy_string(s, len);
             lval.val.string_val.length = len;
+            total_size += lval.val.string_val.length;
             break;
         }
 
@@ -1458,6 +1491,7 @@ threading::Value Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty) {
             auto len = strlen(s);
             lval.val.string_val.data = util::copy_string(s, len);
             lval.val.string_val.length = len;
+            total_size += lval.val.string_val.length;
             break;
         }
 
@@ -1474,14 +1508,15 @@ threading::Value Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty) {
             auto& set_t = tbl_t->GetIndexTypes()[0];
             bool is_managed = ZVal::IsManagedType(set_t);
 
-            lval.val.set_val.size = set->Length();
-            lval.val.set_val.vals = new threading::Value*[lval.val.set_val.size];
+            zeek_int_t set_length = set->Length();
+            lval.val.set_val.vals = new threading::Value*[set_length];
 
-            for ( zeek_int_t i = 0; i < lval.val.set_val.size; i++ ) {
+            for ( zeek_int_t i = 0; i < set_length && total_size < max_log_record_size; i++ ) {
                 std::optional<ZVal> s_i = ZVal(set->Idx(i), set_t);
-                lval.val.set_val.vals[i] = new threading::Value(ValToLogVal(s_i, set_t.get()));
+                lval.val.set_val.vals[i] = new threading::Value(ValToLogVal(s_i, set_t.get(), total_size));
                 if ( is_managed )
                     ZVal::DeleteManagedType(*s_i);
+                lval.val.set_val.size++;
             }
 
             break;
@@ -1489,14 +1524,15 @@ threading::Value Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty) {
 
         case TYPE_VECTOR: {
             VectorVal* vec = val->AsVector();
-            lval.val.vector_val.size = vec->Size();
-            lval.val.vector_val.vals = new threading::Value*[lval.val.vector_val.size];
+            zeek_int_t vec_length = vec->Size();
+            lval.val.vector_val.vals = new threading::Value*[vec_length];
 
             auto& vv = vec->RawVec();
             auto& vt = vec->GetType()->Yield();
 
-            for ( zeek_int_t i = 0; i < lval.val.vector_val.size; i++ ) {
-                lval.val.vector_val.vals[i] = new threading::Value(ValToLogVal(vv[i], vt.get()));
+            for ( zeek_int_t i = 0; i < vec_length && total_size < max_log_record_size; i++ ) {
+                lval.val.vector_val.vals[i] = new threading::Value(ValToLogVal(vv[i], vt.get(), total_size));
+                lval.val.vector_val.size++;
             }
 
             break;
@@ -1508,7 +1544,8 @@ threading::Value Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty) {
     return lval;
 }
 
-detail::LogRecord Manager::RecordToLogRecord(const Stream* stream, Filter* filter, RecordVal* columns) {
+detail::LogRecord Manager::RecordToLogRecord(const Stream* stream, Filter* filter, RecordVal* columns,
+                                             size_t& total_size) {
     RecordValPtr ext_rec;
 
     if ( filter->num_ext_fields > 0 ) {
@@ -1558,7 +1595,11 @@ detail::LogRecord Manager::RecordToLogRecord(const Stream* stream, Filter* filte
         }
 
         if ( val )
-            vals.emplace_back(ValToLogVal(val, vt));
+            vals.emplace_back(ValToLogVal(val, vt, total_size));
+
+        if ( total_size > max_log_record_size ) {
+            return {};
+        }
     }
 
     return vals;
@@ -1607,7 +1648,8 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
                                                        {"filter-name", instantiating_filter},
                                                        {"path", info->path}};
 
-    WriterInfo* winfo = new WriterInfo(zeek::log_mgr->total_log_writer_writes_family->GetOrAdd(labels));
+    WriterInfo* winfo = new WriterInfo(zeek::log_mgr->total_log_writer_writes_family->GetOrAdd(labels),
+                                       zeek::log_mgr->total_log_writer_discarded_writes_family->GetOrAdd(labels));
     winfo->type = writer->Ref()->AsEnumVal();
     winfo->writer = nullptr;
     winfo->open_time = run_state::network_time;

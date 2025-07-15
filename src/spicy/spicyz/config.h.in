@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <cstring>
 #include <string>
 
 #include <hilti/rt/filesystem.h>

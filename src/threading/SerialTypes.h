@@ -116,6 +116,7 @@ struct Value {
     struct port_t {
         zeek_uint_t port;
         TransportProto proto;
+        constexpr size_t size() { return sizeof(port) + sizeof(proto); }
     };
 
     struct addr_t {
@@ -124,6 +125,8 @@ struct Value {
             struct in_addr in4;
             struct in6_addr in6;
         } in;
+
+        constexpr size_t size() { return sizeof(in) + sizeof(IPFamily); }
     };
 
     // A small note for handling subnet values: Subnet values emitted from
@@ -136,6 +139,7 @@ struct Value {
     struct subnet_t {
         addr_t prefix;
         uint8_t length;
+        constexpr size_t size() { return prefix.size() + sizeof(length); }
     };
 
     /**

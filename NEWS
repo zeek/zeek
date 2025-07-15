@@ -6,9 +6,19 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 7.2.2
 ==========
 
-We would like to thank @cccs-jsjm and @edoardomich for their contributions to this release.
+We would like to thank @cccs-jsjm, @edoardomich, and the Canadian Cyber Defence Collective
+for their contributions to this release.
 
 This release fixes the following security issue:
+
+- Very large log records can cause Zeek to overflow memory and potentially crash. Due to
+  the possibility of building these log records with packets from remote hosts, this is a
+  DoS risk. The fix adds additional length checking when serializing log data for writing
+  to logging streams. This can be controlled via a new ``Log::max_log_record_size``
+  redefinable constant, and reports a new ``log_record_too_large`` weird if the limitation
+  is reached for any individual log entry. There is an also a new
+  ``log-writer-discarded-writes`` metric that tracks when this limitation is
+  reached.
 
 This release fixes the following bugs:
 
@@ -22,7 +32,7 @@ This release fixes the following bugs:
 
 - The response to BDAT ``LAST`` was never recognized by the SMTP analyzer, resulting in
   the BDAT ``LAST`` commands not being logged in a timely fashion and receiving the wrong
-  status. Zeek now correctly reports these comands.
+  status. Zeek now correctly reports these commands.
 
 - The Docker images for zeek 7.0 releases now include the ``net-tools`` (for ``iproute2``)
   package to silience a warning from ``zeekctl``. They also now include the ``procps``

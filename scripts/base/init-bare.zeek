@@ -3648,6 +3648,14 @@ export {
 	## .. :zeek:see:`Log::flush_interval`
 	const write_buffer_size = 1000 &redef;
 
+	## Maximum size of a message that can be sent to a remote logger or logged
+	## locally. If this limit is met, report a ``log_line_too_large`` weird and drop
+	## the log entry. This isn't necessarily the full size of a line that might be
+	## written to a log, but a general representation of the size as the log record is
+	## serialized for writing. The size of end result from serialization might be
+	## higher than this limit, but it prevents runaway-sized log entries from causing
+	## problems.
+	const max_log_record_size = 1024*1024*64 &redef;
 }
 
 module POP3;

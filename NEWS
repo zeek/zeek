@@ -153,6 +153,21 @@ New Functionality
   incoming and outgoing event metrics of a specific WebSocket application, simply
   by setting the X-Application-Name header.
 
+- The SMTP analyzer can now optionally forward the top-level RFC 822 message individual
+  SMTP transactions to the file analysis framework. This can be leveraged to extract
+  emails in form of ``.eml`` files from SMTP traffic to disk.
+
+  To enable this feature, set the ``SMTP::enable_rfc822_msg_file_analysis`` option
+  and implement an appropriate ``file_new()`` or ``file_over_new_connection()`` handler:
+
+	redef SMTP::enable_rfc822_msg_file_analysis = T;
+
+	event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) {
+		if ( f$id == c$smtp$rfc822_msg_fuid )
+			Files::add_analyzer(f, Files::ANALYZER_EXTRACT, [$extract_filename="email"]);
+	}
+
+
 - Generic event metadata support. A new ``EventMetadata`` module was added allowing
   to register generic event metadata types and accessing the current event's metadata
   using the functions ``current()`` and ``current_all()`` of this module.

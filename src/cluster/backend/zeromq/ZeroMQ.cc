@@ -120,6 +120,15 @@ void ZeroMQBackend::DoInitPostScript() {
     xpub_sndbuf = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::xpub_sndbuf")->AsInt());
     xsub_rcvhwm = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::xsub_rcvhwm")->AsInt());
     xsub_rcvbuf = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::xsub_rcvbuf")->AsInt());
+
+    // log push/pull socket configuration
+    log_immediate =
+        static_cast<int>(zeek::id::find_val<zeek::BoolVal>("Cluster::Backend::ZeroMQ::log_immediate")->AsBool());
+    log_sndhwm = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::log_sndhwm")->AsInt());
+    log_sndbuf = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::log_sndbuf")->AsInt());
+    log_rcvhwm = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::log_rcvhwm")->AsInt());
+    log_rcvbuf = static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::log_rcvbuf")->AsInt());
+
     // The values of ZeroMQ::OverflowPolicy
     static const auto& block_policy = zeek::id::find_val<zeek::EnumVal>("Cluster::Backend::ZeroMQ::BLOCK");
     static const auto& drop_policy = zeek::id::find_val<zeek::EnumVal>("Cluster::Backend::ZeroMQ::DROP");
@@ -225,22 +234,6 @@ bool ZeroMQBackend::DoInit() {
         return false;
     }
 
-
-    auto log_immediate =
-        static_cast<int>(zeek::id::find_val<zeek::BoolVal>("Cluster::Backend::ZeroMQ::log_immediate")->AsBool());
-
-    auto log_sndhwm =
-        static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::log_sndhwm")->AsInt());
-
-    auto log_sndbuf =
-        static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::log_sndbuf")->AsInt());
-
-    auto log_rcvhwm =
-        static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::log_rcvhwm")->AsInt());
-
-    auto log_rcvbuf =
-        static_cast<int>(zeek::id::find_val<zeek::IntVal>("Cluster::Backend::ZeroMQ::log_rcvbuf")->AsInt());
-
     ZEROMQ_DEBUG("Setting log_sndhwm=%d log_sndbuf=%d log_rcvhwm=%d log_rcvbuf=%d linger_ms=%d", log_sndhwm, log_sndbuf,
                  log_rcvhwm, log_rcvbuf, linger_ms);
 
@@ -263,6 +256,11 @@ bool ZeroMQBackend::DoInit() {
         }
     }
 
+    // The connect_log_endpoints variable may be modified by zeek_init(), so
+    // need to look it up here rather than during DoInitPostScript().
+    //
+    // We should've probably introduced a configuration record similar to the
+    // storage framework, too. Hmm. Maybe in the future.
     const auto& log_endpoints = zeek::id::find_val<zeek::VectorVal>("Cluster::Backend::ZeroMQ::connect_log_endpoints");
     for ( unsigned int i = 0; i < log_endpoints->Size(); i++ )
         connect_log_endpoints.push_back(log_endpoints->StringValAt(i)->ToStdString());

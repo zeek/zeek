@@ -107,6 +107,13 @@ private:
     int xsub_rcvhwm = 1000; // libzmq default
     int xsub_rcvbuf = -1;   // OS defaults
 
+    // log socket configuration
+    int log_immediate = false; // libzmq default
+    int log_sndhwm = 1000;     // libzmq default
+    int log_sndbuf = -1;       // OS defaults
+    int log_rcvhwm = 1000;     // libzmq defaults
+    int log_rcvbuf = -1;       // OS defaults
+
     zmq::context_t ctx;
     zmq::socket_t xsub;
     zmq::socket_t xpub;

@@ -170,7 +170,7 @@ enum class ZeekTypeTag : uint8_t {
     Void,
 };
 
-HILTI_RT_ENUM(AnalyzerType, Undef, File, Packet, Protocol);
+HILTI_RT_ENUM(AnalyzerType, Undef, File, Packet, Protocol); // NOLINT(performance-enum-size)
 
 extern TypePtr create_base_type(ZeekTypeTag tag);
 

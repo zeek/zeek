@@ -61,6 +61,7 @@ protected:
     void ProcessExtension(int ext_len, const char* ext);
     void ProcessData(int length, const char* line);
     bool ProcessBdatArg(int arg_len, const char* arg, bool orig);
+    std::string Rfc822MsgDataIn(int len, const u_char* data);
 
     void UpdateState(int cmd_code, int reply_code, bool orig);
 
@@ -90,6 +91,7 @@ protected:
     std::unique_ptr<detail::SMTP_BDAT_Analyzer> bdat; // if set, BDAT chunk transfer active
 
     analyzer::mime::MIME_Mail* mail;
+    std::string rfc822_msg_fuid; // fuid for mail data file analysis
 
 private:
     analyzer::tcp::ContentLine_Analyzer* cl_orig;

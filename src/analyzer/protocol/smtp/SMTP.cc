@@ -10,6 +10,8 @@
 #include "zeek/analyzer/protocol/smtp/BDAT.h"
 #include "zeek/analyzer/protocol/smtp/consts.bif.h"
 #include "zeek/analyzer/protocol/smtp/events.bif.h"
+#include "zeek/file_analysis/File.h"
+#include "zeek/file_analysis/Manager.h"
 
 #undef SMTP_CMD_DEF
 #define SMTP_CMD_DEF(cmd) #cmd,
@@ -88,6 +90,9 @@ void SMTP_Analyzer::Undelivered(uint64_t seq, int len, bool is_orig) {
         if ( mail )
             mail->Undelivered(len);
 
+        if ( bdat )
+            bdat->Undelivered(seq, len, is_orig);
+
         EndData();
     }
 
@@ -126,8 +131,12 @@ void SMTP_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
         if ( bdat->RemainingChunkSize() < static_cast<uint64_t>(bdat_len) )
             bdat_len = static_cast<int>(bdat->RemainingChunkSize());
 
-        if ( bdat_len > 0 )
+        if ( bdat_len > 0 ) {
             bdat->NextStream(bdat_len, line, orig);
+
+            if ( ! rfc822_msg_fuid.empty() )
+                Rfc822MsgDataIn(bdat_len, line);
+        }
 
         // All BDAT chunks seen?
         if ( bdat->IsLastChunk() && bdat->RemainingChunkSize() == 0 )
@@ -844,7 +853,14 @@ void SMTP_Analyzer::UnexpectedReply(int cmd_code, int reply_code) {
     Unexpected(true, "unexpected reply", len, buf);
 }
 
-void SMTP_Analyzer::ProcessData(int length, const char* line) { mail->Deliver(length, line, true /* trailing_CRLF */); }
+void SMTP_Analyzer::ProcessData(int length, const char* line) {
+    mail->Deliver(length, line, true /* trailing_CRLF */);
+
+    if ( ! rfc822_msg_fuid.empty() ) {
+        Rfc822MsgDataIn(length, reinterpret_cast<const u_char*>(line));
+        Rfc822MsgDataIn(2, reinterpret_cast<const u_char*>("\r\n"));
+    }
+}
 
 bool SMTP_Analyzer::ProcessBdatArg(int arg_len, const char* arg, bool orig) {
     // For the BDAT command, parse out the chunk-size from the line
@@ -880,6 +896,10 @@ bool SMTP_Analyzer::ProcessBdatArg(int arg_len, const char* arg, bool orig) {
     return true;
 }
 
+std::string SMTP_Analyzer::Rfc822MsgDataIn(int len, const u_char* data) {
+    return file_mgr->DataIn(data, len, GetAnalyzerTag(), Conn(), true, rfc822_msg_fuid, "message/rfc822");
+}
+
 void SMTP_Analyzer::BeginData(bool orig, detail::SMTP_State new_state) {
     state = new_state;
     skip_data = false; // reset the flag at the beginning of the mail
@@ -890,6 +910,9 @@ void SMTP_Analyzer::BeginData(bool orig, detail::SMTP_State new_state) {
     }
 
     mail = new analyzer::mime::MIME_Mail(this, orig);
+
+    if ( zeek::BifConst::SMTP::enable_rfc822_msg_file_analysis )
+        rfc822_msg_fuid = Rfc822MsgDataIn(0, reinterpret_cast<const u_char*>(""));
 }
 
 void SMTP_Analyzer::EndData() {
@@ -910,6 +933,11 @@ void SMTP_Analyzer::EndData() {
         mail->Done();
         delete mail;
         mail = nullptr;
+    }
+
+    if ( ! rfc822_msg_fuid.empty() ) {
+        file_mgr->EndOfFile(rfc822_msg_fuid);
+        rfc822_msg_fuid.clear();
     }
 }
 

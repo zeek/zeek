@@ -1,3 +1,23 @@
+8.0.0-dev.673 | 2025-07-16 12:38:09 +0200
+
+  * NEWS: Add entry about SMTP::enable_rfc822_msg_file_analysis (Arne Welzel, Corelight)
+
+  * btest: Add tests for full email extraction (cccs-jsjm)
+
+  * SMTP: Adapt scripts for enable_rfc822_msg_file_analysis (Arne Welzel, Corelight)
+
+    Specifically, set a MIME part's parent_id to the rfc822_msg_fuid if it
+    is set and take into account the current rfc822_msg_fuid for describe_file()
+    to avoid fuid collisions of the top-level RFC822 message and the first
+    MIME part.
+
+  * SMTP: Add missing Undelivered() call (Arne Welzel, Corelight)
+
+  * SMTP: Add enable_rfc822_msg_file_analysis (Arne Welzel, Corelight)
+
+    Enabling this option will instantiate a new fa_file instance for every
+    top-level RFC 822 message in an SMTP transaction.
+
 8.0.0-dev.667 | 2025-07-15 17:37:41 -0700
 
   * GH-4559: Prefer explicit construction to coercion in record initialization (Benjamin Bannier, Corelight)

@@ -1,0 +1,22 @@
+Content-Type: multipart/mixed; boundary="===============6117237608014356945=="
+MIME-Version: 1.0
+From: sender@example.com
+To: recipient@example.com
+Subject: subject
+
+--===============6117237608014356945==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+this is the body
+--===============6117237608014356945==
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: message/rfc822
+Content-Disposition: attachment; filename="test.msg"
+
+From: <attachment@example.com>
+
+
+--===============6117237608014356945==--

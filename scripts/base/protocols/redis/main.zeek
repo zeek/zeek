@@ -96,8 +96,8 @@ redef likely_server_ports += {ports};
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Redis::LOG, [$columns=Info, $path="redis",
-	    $policy=log_policy]);
+	Log::create_stream(Redis::LOG, Log::Stream($columns=Info, $path="redis",
+	    $policy=log_policy));
 
 	Analyzer::register_for_ports(Analyzer::ANALYZER_REDIS, ports);
 	}

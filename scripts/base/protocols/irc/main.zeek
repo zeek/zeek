@@ -45,7 +45,7 @@ redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(IRC::LOG, [$columns=Info, $ev=irc_log, $path="irc", $policy=log_policy]);
+	Log::create_stream(IRC::LOG, Log::Stream($columns=Info, $ev=irc_log, $path="irc", $policy=log_policy));
 	Analyzer::register_for_ports(Analyzer::ANALYZER_IRC, ports);
 	}
 

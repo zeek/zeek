@@ -41,8 +41,8 @@ function describe_file(f: fa_file): string
 event zeek_init() &priority=5
 	{
 	Files::register_protocol(Analyzer::ANALYZER_SMTP,
-	                         [$get_file_handle = SMTP::get_file_handle,
-	                          $describe        = SMTP::describe_file]);
+	                         Files::ProtoRegistration($get_file_handle = SMTP::get_file_handle,
+	                                                  $describe        = SMTP::describe_file));
 	}
 
 event file_over_new_connection(f: fa_file, c: connection, is_orig: bool) &priority=5

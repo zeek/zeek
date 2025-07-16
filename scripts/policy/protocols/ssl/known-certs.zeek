@@ -197,5 +197,5 @@ event ssl_established(c: connection) &priority=3
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Known::CERTS_LOG, [$columns=CertsInfo, $ev=log_known_certs, $path="known_certs", $policy=log_policy_certs]);
+	Log::create_stream(Known::CERTS_LOG, Log::Stream($columns=CertsInfo, $ev=log_known_certs, $path="known_certs", $policy=log_policy_certs));
 	}

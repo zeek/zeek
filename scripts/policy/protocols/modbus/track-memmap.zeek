@@ -56,7 +56,7 @@ redef record Modbus::Info += {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Modbus::REGISTER_CHANGE_LOG, [$columns=MemmapInfo, $path="modbus_register_change", $policy=log_policy_register_change]);
+	Log::create_stream(Modbus::REGISTER_CHANGE_LOG, Log::Stream($columns=MemmapInfo, $path="modbus_register_change", $policy=log_policy_register_change));
 	}
 
 event modbus_read_holding_registers_request(c: connection, headers: ModbusHeaders, start_address: count, quantity: count)
@@ -92,7 +92,7 @@ event modbus_read_holding_registers_response(c: connection, headers: ModbusHeade
 			}
 		else
 			{
-			local tmp_reg: RegisterValue = [$last_set=network_time(), $value=registers[i]];
+			local tmp_reg = RegisterValue($last_set=network_time(), $value=registers[i]);
 			slave_regs[c$modbus$track_address] = tmp_reg;
 			}
 
@@ -102,7 +102,7 @@ event modbus_read_holding_registers_response(c: connection, headers: ModbusHeade
 
 event Modbus::changed_register(c: connection, register: count, old_val: count, new_val: count, delta: interval)
 	{
-	local rec: MemmapInfo = [$ts=network_time(), $uid=c$uid, $id=c$id,
-	                         $register=register, $old_val=old_val, $new_val=new_val, $delta=delta];
+	local rec = MemmapInfo($ts=network_time(), $uid=c$uid, $id=c$id,
+	                       $register=register, $old_val=old_val, $new_val=new_val, $delta=delta);
 	Log::write(REGISTER_CHANGE_LOG, rec);
 	}

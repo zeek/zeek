@@ -187,8 +187,8 @@ event Telemetry::log()
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(LOG, [$columns=Info, $ev=log_telemetry, $path="telemetry", $policy=log_policy]);
-	Log::create_stream(LOG_HISTOGRAM, [$columns=HistogramInfo, $ev=log_telemetry_histogram, $path="telemetry_histogram", $policy=log_policy_histogram]);
+	Log::create_stream(LOG, Log::Stream($columns=Info, $ev=log_telemetry, $path="telemetry", $policy=log_policy));
+	Log::create_stream(LOG_HISTOGRAM, Log::Stream($columns=HistogramInfo, $ev=log_telemetry_histogram, $path="telemetry_histogram", $policy=log_policy_histogram));
 
 	schedule log_interval { Telemetry::log() };
 	}

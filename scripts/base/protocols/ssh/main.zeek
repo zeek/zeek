@@ -139,7 +139,7 @@ redef likely_server_ports += { ports };
 event zeek_init() &priority=5
 	{
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SSH, ports);
-	Log::create_stream(SSH::LOG, [$columns=Info, $ev=log_ssh, $path="ssh", $policy=log_policy]);
+	Log::create_stream(SSH::LOG, Log::Stream($columns=Info, $ev=log_ssh, $path="ssh", $policy=log_policy));
 	}
 
 function set_session(c: connection)

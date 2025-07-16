@@ -303,7 +303,7 @@ function create_acld(config: AcldConfig) : PluginState
 		add netcontrol_acld_topics[config$acld_topic];
 
 	local host = cat(config$acld_host);
-	local p: PluginState = [$acld_config=config, $plugin=acld_plugin, $acld_id=netcontrol_acld_current_id];
+	local p = PluginState($acld_config=config, $plugin=acld_plugin, $acld_id=netcontrol_acld_current_id);
 
 	if ( [config$acld_port, host] in netcontrol_acld_peers )
 		Reporter::warning(fmt("Peer %s:%s was added to NetControl acld plugin twice.", host, config$acld_port));

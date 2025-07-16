@@ -126,7 +126,7 @@ export {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Software::LOG, [$columns=Info, $ev=log_software, $path="software", $policy=log_policy]);
+	Log::create_stream(Software::LOG, Log::Stream($columns=Info, $ev=log_software, $path="software", $policy=log_policy));
 	}
 
 type Description: record {
@@ -163,7 +163,7 @@ function parse(unparsed_version: string): Description
 			else
 				v = Version($major=extract_count(vs));
 
-			return [$version=v, $unparsed_version=unparsed_version, $name=software_name];
+			return Description($version=v, $unparsed_version=unparsed_version, $name=software_name);
 			}
 		}
 	else
@@ -236,7 +236,7 @@ function parse(unparsed_version: string): Description
 			}
 		}
 
-	return [$version=v, $unparsed_version=unparsed_version, $name=alternate_names[software_name]];
+	return Description($version=v, $unparsed_version=unparsed_version, $name=alternate_names[software_name]);
 	}
 
 global parse_cache: table[string] of Description &read_expire=65secs;
@@ -269,13 +269,13 @@ function parse_mozilla(unparsed_version: string): Description
 		{
 		software_name = "MSIE";
 		if ( /Trident\/4\.0/ in unparsed_version )
-			v = [$major=8,$minor=0];
+			v = Version($major=8,$minor=0);
 		else if ( /Trident\/5\.0/ in unparsed_version )
-			v = [$major=9,$minor=0];
+			v = Version($major=9,$minor=0);
 		else if ( /Trident\/6\.0/ in unparsed_version )
-			v = [$major=10,$minor=0];
+			v = Version($major=10,$minor=0);
 		else if ( /Trident\/7\.0/ in unparsed_version )
-			v = [$major=11,$minor=0];
+			v = Version($major=11,$minor=0);
 		else
 			{
 			parts = split_string_all(unparsed_version, /MSIE [0-9]{1,2}\.*[0-9]*b?[0-9]*/);
@@ -373,7 +373,7 @@ function parse_mozilla(unparsed_version: string): Description
 			v = parse(parts[1])$version;
 		}
 
-	return [$version=v, $unparsed_version=unparsed_version, $name=software_name];
+	return Description($version=v, $unparsed_version=unparsed_version, $name=software_name);
 	}
 
 

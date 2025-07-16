@@ -74,7 +74,7 @@ event zeek_init()
 
 	if ( keylog_file != "" )
 		{
-		Input::add_table([$name=tls_decrypt_stream_name, $source=keylog_file, $destination=secrets, $idx=SecretsIdx, $val=SecretsVal, $want_record=F]);
+		Input::add_table(Input::TableDescription($name=tls_decrypt_stream_name, $source=keylog_file, $destination=secrets, $idx=SecretsIdx, $val=SecretsVal, $want_record=F));
 		Input::remove(tls_decrypt_stream_name);
 		}
 	}

@@ -7,8 +7,8 @@ export {
 	};
 
 	const statuses: table[count] of StatusCode = {
-		[0x00000000] = [$id="SUCCESS", $desc="The operation completed successfully."],
-	} &redef &default=function(i: count):StatusCode { local unknown=fmt("unknown-%d", i); return [$id=unknown, $desc=unknown]; };
+		[0x00000000] = StatusCode($id="SUCCESS", $desc="The operation completed successfully."),
+	} &redef &default=function(i: count):StatusCode { local unknown=fmt("unknown-%d", i); return StatusCode($id=unknown, $desc=unknown); };
 
 	## Heuristic detection of named pipes when the pipe
 	## mapping isn't seen. This variable is defined in

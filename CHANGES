@@ -1,3 +1,7 @@
+8.0.0-dev.667 | 2025-07-15 17:37:41 -0700
+
+  * GH-4559: Prefer explicit construction to coercion in record initialization (Benjamin Bannier, Corelight)
+
 8.0.0-dev.665 | 2025-07-15 17:36:31 -0700
 
   * Add missing header to allow std::sort() on GCC 15.1 (Christian Kreibich, Corelight)

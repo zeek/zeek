@@ -153,7 +153,7 @@ function config_option_changed(ID: string, new_value: any, location: string): an
 
 event zeek_init() &priority=10
 	{
-	Log::create_stream(LOG, [$columns=Info, $ev=log_config, $path="config", $policy=log_policy]);
+	Log::create_stream(LOG, Log::Stream($columns=Info, $ev=log_config, $path="config", $policy=log_policy));
 
 	# Limit logging to the manager - everyone else just feeds off it.
 @if ( !Cluster::is_enabled() || Cluster::local_node_type() == Cluster::MANAGER )

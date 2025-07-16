@@ -175,7 +175,7 @@ event filter_change_tracking()
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(PacketFilter::LOG, [$columns=Info, $path="packet_filter", $policy=log_policy]);
+	Log::create_stream(PacketFilter::LOG, Log::Stream($columns=Info, $path="packet_filter", $policy=log_policy));
 
 	# Preverify the capture and restrict filters to give more granular failure messages.
 	for ( id, cf in capture_filters )
@@ -303,9 +303,9 @@ function install(): bool
 		local error_string : string;
 		if ( state == Pcap::fatal )
 			{
-			NOTICE([$note=Compile_Failure,
-			        $msg=fmt("Compiling packet filter failed"),
-			        $sub=tmp_filter]);
+			NOTICE(Notice::Info($note=Compile_Failure,
+			                    $msg=fmt("Compiling packet filter failed"),
+			                    $sub=tmp_filter));
 
 			error_string = fmt("Bad pcap filter '%s': %s", tmp_filter,
 			                   Pcap::get_filter_state_string(DefaultPcapFilter));
@@ -326,8 +326,8 @@ function install(): bool
 		}
 	local diff = current_time()-ts;
 	if ( diff > max_filter_compile_time )
-		NOTICE([$note=Too_Long_To_Compile_Filter,
-		        $msg=fmt("A BPF filter is taking longer than %0.1f seconds to compile", diff)]);
+		NOTICE(Notice::Info($note=Too_Long_To_Compile_Filter,
+		                    $msg=fmt("A BPF filter is taking longer than %0.1f seconds to compile", diff)));
 
 	# Set it to the current filter if it passed precompiling
 	current_filter = tmp_filter;
@@ -350,9 +350,9 @@ function install(): bool
 		info$success = F;
 		info$failure_reason = Pcap::get_filter_state_string(DefaultPcapFilter);
 
-		NOTICE([$note=Install_Failure,
-		        $msg=fmt("Installing packet filter failed"),
-		        $sub=current_filter]);
+		NOTICE(Notice::Info($note=Install_Failure,
+		                    $msg=fmt("Installing packet filter failed"),
+		                    $sub=current_filter));
 		}
 
 	if ( reading_live_traffic() || reading_traces() )

@@ -61,7 +61,7 @@ function match_pattern(s: string, p: pattern): PatternMatchResult
 
 	if ( |a| == 1 )
 		# no match
-		return [$matched = F, $str = "", $off = 0];
+		return PatternMatchResult($matched = F, $str = "", $off = 0);
 	else
-		return [$matched = T, $str = a[1], $off = |a[0]| + 1];
+		return PatternMatchResult($matched = T, $str = a[1], $off = |a[0]| + 1);
 	}

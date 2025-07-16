@@ -33,10 +33,10 @@ function detect_external_names(c: connection, msg: dns_msg, ans: dns_answer, a: 
 	if ( Site::is_local_addr(a) &&            # referring to a local host
 	     ! Site::is_local_name(ans$query) )   # name isn't in a local zone.
 		{
-		NOTICE([$note=External_Name,
-		        $msg=fmt("%s is pointing to a local host - %s.", ans$query, a),
-		        $conn=c,
-		        $identifier=cat(a,ans$query)]);
+		NOTICE(Notice::Info($note=External_Name,
+		                    $msg=fmt("%s is pointing to a local host - %s.", ans$query, a),
+		                    $conn=c,
+		                    $identifier=cat(a,ans$query)));
 		}
 	}
 

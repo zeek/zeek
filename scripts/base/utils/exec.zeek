@@ -142,12 +142,12 @@ event InputRaw::process_finished(name: string, source:string, exit_code:count, s
 		delete pending_commands[name];
 	else
 		for ( read_file in pending_files[name] )
-			Input::add_event([$source=fmt("%s", read_file),
-			                  $name=fmt("%s_%s", name, read_file),
-			                  $reader=Input::READER_RAW,
-			                  $want_record=F,
-			                  $fields=FileLine,
-			                  $ev=Exec::file_line]);
+			Input::add_event(Input::EventDescription($source=fmt("%s", read_file),
+			                                         $name=fmt("%s_%s", name, read_file),
+			                                         $reader=Input::READER_RAW,
+			                                         $want_record=F,
+			                                         $fields=FileLine,
+			                                         $ev=Exec::file_line));
 	}
 
 function run(cmd: Command): Result
@@ -169,14 +169,14 @@ function run(cmd: Command): Result
 		["stdin"]       = cmd$stdin,
 		["read_stderr"] = "1",
 	};
-	Input::add_event([$name=cmd$uid,
-	                  $source=fmt("%s |", cmd$cmd),
-	                  $reader=Input::READER_RAW,
-	                  $mode=Input::STREAM,
-	                  $fields=Exec::OneLine,
-	                  $ev=Exec::line,
-	                  $want_record=F,
-	                  $config=config_strings]);
+	Input::add_event(Input::EventDescription($name=cmd$uid,
+	                                         $source=fmt("%s |", cmd$cmd),
+	                                         $reader=Input::READER_RAW,
+	                                         $mode=Input::STREAM,
+	                                         $fields=Exec::OneLine,
+	                                         $ev=Exec::line,
+	                                         $want_record=F,
+	                                         $config=config_strings));
 
 	return when [cmd] ( cmd$uid !in pending_commands )
 		{

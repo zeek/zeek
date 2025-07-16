@@ -33,7 +33,7 @@ redef record connection += {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(DPD::LOG, [$columns=Info, $path="dpd", $policy=log_policy]);
+	Log::create_stream(DPD::LOG, Log::Stream($columns=Info, $path="dpd", $policy=log_policy));
 	}
 
 # before the same event in dpd.zeek

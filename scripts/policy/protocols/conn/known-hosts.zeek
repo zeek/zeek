@@ -150,7 +150,7 @@ event Known::host_found(info: HostsInfo)
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Known::HOSTS_LOG, [$columns=HostsInfo, $ev=log_known_hosts, $path="known_hosts", $policy=log_policy_hosts]);
+	Log::create_stream(Known::HOSTS_LOG, Log::Stream($columns=HostsInfo, $ev=log_known_hosts, $path="known_hosts", $policy=log_policy_hosts));
 	}
 
 event connection_established(c: connection) &priority=5
@@ -165,5 +165,5 @@ event connection_established(c: connection) &priority=5
 
 	for ( host in set(id$orig_h, id$resp_h) )
 		if ( addr_matches_host(host, host_tracking) )
-			event Known::host_found([$ts = network_time(), $host = host]);
+			event Known::host_found(Known::HostsInfo($ts = network_time(), $host = host));
 	}

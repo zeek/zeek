@@ -42,7 +42,7 @@ redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(Modbus::LOG, [$columns=Info, $ev=log_modbus, $path="modbus", $policy=log_policy]);
+	Log::create_stream(Modbus::LOG, Log::Stream($columns=Info, $ev=log_modbus, $path="modbus", $policy=log_policy));
 	Analyzer::register_for_ports(Analyzer::ANALYZER_MODBUS, ports);
 	}
 	
@@ -69,7 +69,7 @@ event modbus_message(c: connection, headers: ModbusHeaders, is_orig: bool) &prio
 	{
 	if ( ! c?$modbus )
 		{
-		c$modbus = [$ts=network_time(), $uid=c$uid, $id=c$id];
+		c$modbus = Info($ts=network_time(), $uid=c$uid, $id=c$id);
 		}
 
 	c$modbus$ts   = network_time();

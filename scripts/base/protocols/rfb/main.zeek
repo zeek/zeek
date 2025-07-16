@@ -85,7 +85,7 @@ redef record connection += {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(RFB::LOG, [$columns=Info, $ev=log_rfb, $path="rfb", $policy=log_policy]);
+	Log::create_stream(RFB::LOG, Log::Stream($columns=Info, $ev=log_rfb, $path="rfb", $policy=log_policy));
 	}
 
 function write_log(c:connection)

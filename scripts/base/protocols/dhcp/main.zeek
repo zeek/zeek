@@ -130,7 +130,7 @@ redef likely_server_ports += { 67/udp };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(DHCP::LOG, [$columns=Info, $ev=log_dhcp, $path="dhcp", $policy=log_policy]);
+	Log::create_stream(DHCP::LOG, Log::Stream($columns=Info, $ev=log_dhcp, $path="dhcp", $policy=log_policy));
 	Analyzer::register_for_ports(Analyzer::ANALYZER_DHCP, ports);
 	}
 

@@ -59,12 +59,12 @@ event HTTP::log_http(rec: HTTP::Info) &priority=5
                 {
                 if ( rec$user_agent !in crypto_api_mapping )
                         {
-                        Software::found(rec$id, [$unparsed_version=sub(rec$user_agent, /Microsoft-CryptoAPI/, "Unknown CryptoAPI Version"), $host=rec$id$orig_h, $software_type=WINDOWS]);
+                        Software::found(rec$id, Software::Info($unparsed_version=sub(rec$user_agent, /Microsoft-CryptoAPI/, "Unknown CryptoAPI Version"), $host=rec$id$orig_h, $software_type=WINDOWS));
                         }
                 else
                         {
                         local result = crypto_api_mapping[rec$user_agent];
-                        Software::found(rec$id, [$version=result$version, $name=result$name, $host=rec$id$orig_h, $software_type=WINDOWS]);
+                        Software::found(rec$id, Software::Info($version=result$version, $name=result$name, $host=rec$id$orig_h, $software_type=WINDOWS));
                         }
                 }
         }

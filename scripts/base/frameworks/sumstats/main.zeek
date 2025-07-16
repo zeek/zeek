@@ -312,7 +312,7 @@ event zeek_init() &priority=100000
 
 function init_resultval(r: Reducer): ResultVal
 	{
-	local rv: ResultVal = [$begin=network_time(), $end=network_time()];
+	local rv = ResultVal($begin=network_time(), $end=network_time());
 	hook init_resultval_hook(r, rv);
 	return rv;
 	}

@@ -55,7 +55,7 @@ redef likely_server_ports += { ports };
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(SOCKS::LOG, [$columns=Info, $ev=log_socks, $path="socks", $policy=log_policy]);
+	Log::create_stream(SOCKS::LOG, Log::Stream($columns=Info, $ev=log_socks, $path="socks", $policy=log_policy));
 	Analyzer::register_for_ports(Analyzer::ANALYZER_SOCKS, ports);
 	}
 
@@ -67,7 +67,7 @@ function set_session(c: connection, version: count)
 	{
 	if ( ! c?$socks )
 		{
-		c$socks = [$ts=network_time(), $id=c$id, $uid=c$uid, $version=version];
+		c$socks = Info($ts=network_time(), $id=c$id, $uid=c$uid, $version=version);
 		Conn::register_removal_hook(c, finalize_socks);
 		}
 	}
@@ -85,7 +85,7 @@ event socks_request(c: connection, version: count, request_type: count,
 	# proxied connection.  We treat this as a singular "tunnel".
 	local cid = copy(c$id);
 	cid$orig_p = 0/tcp;
-	Tunnel::register([$cid=cid, $tunnel_type=Tunnel::SOCKS]);
+	Tunnel::register(Tunnel::EncapsulatingConn($cid=cid, $tunnel_type=Tunnel::SOCKS));
 	}
 
 event socks_reply(c: connection, version: count, reply: count, sa: SOCKS::Address, p: port) &priority=5

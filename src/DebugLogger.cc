@@ -5,6 +5,7 @@
 #include "zeek/DebugLogger.h"
 
 #include <unistd.h>
+#include <algorithm>
 #include <cstdlib>
 
 #include "zeek/RunState.h"

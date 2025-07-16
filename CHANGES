@@ -1,3 +1,17 @@
+8.0.0-dev.665 | 2025-07-15 17:36:31 -0700
+
+  * Add missing header to allow std::sort() on GCC 15.1 (Christian Kreibich, Corelight)
+
+  * Make PUT on SQLite backend implicitly overwrite expired entries (Benjamin Bannier, Corelight)
+
+  * Prevent SQLite storage backend from serving expired entries (Benjamin Bannier, Corelight)
+
+  * Update package-manager submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Update binpac submodule [nomail] (Tim Wojtulewicz, Corelight)
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
 8.0.0-dev.656 | 2025-07-14 13:09:11 -0700
 
   * Fix some missing #includes resulting from removal of ghc::filesystem (Tim Wojtulewicz, Corelight)

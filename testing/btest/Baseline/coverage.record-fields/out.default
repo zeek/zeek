@@ -779,6 +779,7 @@ connection {
         * process_smtp_headers: bool, log=F, optional=T
         * rcptto: set[string], log=T, optional=T
         * reply_to: string, log=T, optional=T
+        * rfc822_msg_fuid: string, log=F, optional=T
         * second_received: string, log=T, optional=T
         * subject: string, log=T, optional=T
         * tls: bool, log=T, optional=T

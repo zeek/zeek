@@ -1,0 +1,32 @@
+# @TEST-REQUIRES: have-spicy
+#
+# @TEST-EXEC: spicyz -d -o test.hlto %INPUT disable_ssh.cc
+# @TEST-EXEC: zeek test.hlto
+
+module Test;
+
+import zeek;
+
+assert zeek::has_analyzer("HTTP");
+assert ! zeek::has_analyzer("XXX");
+
+assert zeek::analyzer_type("HTTP") == zeek::AnalyzerType::Protocol;
+assert zeek::analyzer_type("SHA1") == zeek::AnalyzerType::File;
+assert zeek::analyzer_type("VLAN") == zeek::AnalyzerType::Packet;
+assert ! zeek::analyzer_type("XXX");
+
+# Disable the SSH analyzer and check that we pay attention to its state.
+public function disable_ssh() &cxxname="disable_ssh";
+disable_ssh();
+assert ! zeek::has_analyzer("SSH", True);
+assert zeek::has_analyzer("SSH", False);
+
+# @TEST-START-FILE disable_ssh.cc
+
+#include "zeek/analyzer/Manager.h"
+
+void disable_ssh() {
+    zeek::analyzer_mgr->Lookup("SSH")->SetEnabled(false);
+}
+
+

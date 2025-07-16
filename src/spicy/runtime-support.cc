@@ -10,12 +10,13 @@
 #include <hilti/rt/types/port.h>
 #include <hilti/rt/util.h>
 
-#include "net_util.h"
 #include "zeek/Event.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/file_analysis/File.h"
 #include "zeek/file_analysis/Manager.h"
+#include "zeek/net_util.h"
+#include "zeek/packet_analysis/Manager.h"
 #include "zeek/spicy/manager.h"
 
 using namespace zeek;
@@ -106,6 +107,17 @@ TypePtr rt::create_base_type(ZeekTypeTag tag) {
 
 std::string hilti::rt::detail::adl::to_string(const zeek::spicy::rt::ZeekTypeTag& v, detail::adl::tag /* unused */) {
     return type_name(zeekTypeForTag(v));
+}
+
+std::string hilti::rt::detail::adl::to_string(const zeek::spicy::rt::AnalyzerType& v, detail::adl::tag /* unused */) {
+    switch ( v.value() ) {
+        case zeek::spicy::rt::AnalyzerType::File: return "AnalyzerType::File";
+        case zeek::spicy::rt::AnalyzerType::Packet: return "AnalyzerType::Packet";
+        case zeek::spicy::rt::AnalyzerType::Protocol: return "AnalyzerType::Protocol";
+        case zeek::spicy::rt::AnalyzerType::Undef: return "AnalyzerType::Undef";
+    }
+
+    hilti::rt::cannot_be_reached();
 }
 
 TypePtr rt::create_enum_type(
@@ -513,6 +525,25 @@ void rt::weird(const std::string& id, const std::string& addl) {
     }
 
     throw ValueUnavailable("none of $conn, $file, or $packet available for weird reporting");
+}
+
+rt::AnalyzerType rt::analyzer_type(const std::string& analyzer, const hilti::rt::Bool& if_enabled) {
+    if ( auto* c = file_mgr->Lookup(analyzer.c_str()) ) {
+        if ( (! if_enabled) || c->Enabled() )
+            return AnalyzerType::File;
+    }
+
+    if ( auto* c = packet_mgr->Lookup(analyzer.c_str()) ) {
+        if ( (! if_enabled) || c->Enabled() )
+            return AnalyzerType::Packet;
+    }
+
+    if ( auto* c = analyzer_mgr->Lookup(analyzer.c_str()) ) {
+        if ( (! if_enabled) || c->Enabled() )
+            return AnalyzerType::Protocol;
+    }
+
+    return AnalyzerType::Undef;
 }
 
 void rt::protocol_begin(const std::optional<std::string>& analyzer, const ::hilti::rt::Protocol& proto) {

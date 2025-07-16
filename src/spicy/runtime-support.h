@@ -170,6 +170,8 @@ enum class ZeekTypeTag : uint8_t {
     Void,
 };
 
+HILTI_RT_ENUM(AnalyzerType, Undef, File, Packet, Protocol);
+
 extern TypePtr create_base_type(ZeekTypeTag tag);
 
 extern TypePtr create_enum_type(
@@ -343,6 +345,26 @@ private:
     std::optional<uint64_t> _id;
     ::hilti::rt::Protocol _proto = ::hilti::rt::Protocol::Undef;
 };
+
+/**
+ * Returns the Zeek-side type of an analyzer of a given name.
+ *
+ * @param analyzer the Zeek-side name of the analyzer to check for
+ * @param if_enabled if true, only checks for analyzers that are enabled
+ * @return the type of the analyzer if it exists, or `AnalyzerType::Undef` if it does not.
+ */
+AnalyzerType analyzer_type(const std::string& analyzer, const hilti::rt::Bool& if_enabled);
+
+/**
+ * Checks if there is an analyzer of a given name in Zeek.
+ *
+ * @param analyzer the Zeek-side name of the analyzer to check for
+ * @param if_enabled if true, only checks for analyzers that are enabled
+ * @return true if there is such an analyzer
+ */
+inline hilti::rt::Bool has_analyzer(const std::string& analyzer, const hilti::rt::Bool& if_enabled) {
+    return analyzer_type(analyzer, if_enabled) != AnalyzerType::Undef;
+}
 
 /**
  * Adds a Zeek-side child protocol analyzer to the current connection.
@@ -828,5 +850,6 @@ inline std::string to_string(const zeek::spicy::rt::ValVectorPtr& v, detail::adl
 }
 
 extern std::string to_string(const zeek::spicy::rt::ZeekTypeTag& v, detail::adl::tag /* unused */);
+extern std::string to_string(const zeek::spicy::rt::AnalyzerType& x, adl::tag /*unused*/);
 
 } // namespace hilti::rt::detail::adl

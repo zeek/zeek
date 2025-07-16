@@ -1,3 +1,33 @@
+8.0.0-dev.677 | 2025-07-16 17:46:48 +0200
+
+  * Spicy: Fix missing include. (Robin Sommer, Corelight)
+
+  * Bump Spicy. (Robin Sommer, Corelight)
+
+  * GH-4481: Spicy: Add functions to check if Zeek provides an analyzer of a given name. (Robin Sommer, Corelight)
+
+    ```
+    ## Checks if there is a Zeek analyzer of a given name.
+    ##
+    ## analyzer: the Zeek-side name of the analyzer to check for
+    ## if_enabled: if true, only checks for analyzers that are enabled
+    ##
+    ## Returns the type of the analyzer if it exists, or ``Undef`` if it does not.
+    public function has_analyzer(analyzer: string, if_enabled: bool = True): bool &cxxname="zeek::spicy::rt::has_analyzer";
+
+    ## Differentiates between the types of analyzers Zeek provides.
+    public type AnalyzerType = enum { Protocol, File, Packet, };
+
+    ## Returns the type of a Zeek analyzer of a given name.
+    ##
+    ## analyzer: the Zeek-side name of the analyzer to check
+    ## if_enabled: if true, only checks for analyzers that are enabled
+    ##
+    ## Returns the type of the analyzer if it exists, or ``Undef`` if it does not.
+    public function analyzer_type(analyzer: string, if_enabled: bool = True): AnalyzerType &cxxname="zeek::spicy::rt::analyzer_type";
+
+    ```
+
 8.0.0-dev.673 | 2025-07-16 12:38:09 +0200
 
   * NEWS: Add entry about SMTP::enable_rfc822_msg_file_analysis (Arne Welzel, Corelight)

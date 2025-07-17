@@ -1,3 +1,7 @@
+8.0.0-dev.684 | 2025-07-17 12:58:57 -0700
+
+  * Update libkqueue submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.682 | 2025-07-17 09:09:28 -0700
 
   * Use std::string/string_view versions of starts_with/ends_with where appropriate (Tim Wojtulewicz, Corelight)

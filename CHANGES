@@ -1,3 +1,7 @@
+8.0.0-dev.680 | 2025-07-17 08:40:49 -0700
+
+  * Add nolint for enum size for HILTI_RT_ENUM use (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.677 | 2025-07-16 17:46:48 +0200
 
   * Spicy: Fix missing include. (Robin Sommer, Corelight)

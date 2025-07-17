@@ -1,3 +1,18 @@
+7.0.8-9 | 2025-07-17 08:46:49 -0700
+
+  * CI: Remove spicy-head task (Tim Wojtulewicz, Corelight)
+
+  * [Spicy] Let `zeek::protocol_handle_close()` send a TCP EOF. (Benjamin Bannier, Corelight)
+
+    (cherry picked from commit ce6c7a6cd1b3eb7f7b3c12772763edd9881b430e)
+
+  * Remove libzmq5 from Docker images (Tim Wojtulewicz, Corelight)
+
+    This was accidentally added in 356685d82deea868f4340169b9a6c8d2e2109bed and
+    doesn't need to be in our official 7.0 images.
+
+  * CI: Force opensuse-tumbleweed image to rebuild (Tim Wojtulewicz, Corelight)
+
 7.0.8-5 | 2025-07-14 14:15:46 -0700
 
   * fix for error in ZAM's constant propagation logic (Vern Paxson, Corelight)

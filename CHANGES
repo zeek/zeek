@@ -1,3 +1,9 @@
+7.2.1-13 | 2025-07-17 08:48:06 -0700
+
+  * Bump auxil/spicy to spicy-1.13.2 (Benjamin Bannier, Corelight)
+
+  * CI: Force opensuse-tumbleweed image to rebuild (Tim Wojtulewicz, Corelight)
+
 7.2.1-9 | 2025-07-14 14:39:51 -0700
 
   * Update ZeekJS to v0.18.0 (Tim Wojtulewicz, Corelight)

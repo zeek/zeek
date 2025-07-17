@@ -28,9 +28,9 @@
 # @TEST-START-FILE common.zeek
 @load ./zeromq-test-bootstrap
 
-global start: event();
-global finish: event(name: string);
-global ping: event(sender: string, c: count);
+global tick: event() &is_used;
+global finish: event(name: string) &is_used;
+global ping: event(sender: string, c: count) &is_used;
 
 # Lower high watermarks from 1000 (default) to something much lower to provoke drops.
 redef Cluster::Backend::ZeroMQ::xpub_sndhwm = 20;
@@ -55,17 +55,19 @@ global nodes_up: set[string] = {"manager"};
 global nodes_down: set[string] = {"manager"};
 
 event send_finish() {
+	print "sending finish";
 	for ( n in nodes_up )
 		Cluster::publish(Cluster::node_topic(n), finish, Cluster::node);
 }
 
 event Cluster::node_up(name: string, id: string) {
 	add nodes_up[name];
-	print "B nodes_up", |nodes_up|;
+	print "nodes_up", |nodes_up|;
 
-	if ( |nodes_up| == 4 ) {
-		Cluster::publish(Cluster::worker_topic, start);
-		Cluster::publish(Cluster::proxy_topic, start);
+	# Get the ball rolling once all nodes are available.
+	if ( |nodes_up| == |Cluster::nodes| ) {
+		Cluster::publish(Cluster::worker_topic, tick);
+		Cluster::publish(Cluster::proxy_topic, tick);
 	}
 }
 
@@ -149,17 +151,11 @@ event tick() {
 	schedule s { tick() };
 }
 
-event start() {
-	print "start", current_time();
-	event tick();
-}
-
 event finish(name: string) {
 	terminate();
 }
 
 event zeek_done() {
-	print "zeek_done", current_time();
 	local drops = get_zeromq_drops();
 	if ( drops > 0 )
 		print "GOOD: Observed XPUB drops";

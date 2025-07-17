@@ -142,7 +142,7 @@ private:
     std::map<std::string, SubscribeCallback> subscription_callbacks;
     std::set<std::string> xpub_subscriptions;
 
-    // Overload policy , initialized in DoInitPostScript()
+    // Overflow policy and metrics. Initialized in DoInitPostScript().
     OverflowPolicy overflow_policy = OverflowPolicy::Block;
     zeek::telemetry::CounterPtr total_xpub_blocks;
     zeek::telemetry::CounterPtr total_xpub_drops;

@@ -189,7 +189,7 @@ RecordValPtr Manager::GetMetricOptsRecord(const prometheus::MetricFamily& metric
     record_val->Assign(prefix_idx, make_intrusive<zeek::StringVal>(prefix));
 
     // Assume that a metric ending with _total is always a summed metric so we can set that.
-    record_val->Assign(is_total_idx, val_mgr->Bool(util::ends_with(metric_family.name, "_total")));
+    record_val->Assign(is_total_idx, val_mgr->Bool(metric_family.name.ends_with("_total")));
 
     if ( metric_family.type == prometheus::MetricType::Counter )
         record_val->Assign(metric_type_idx, zeek::BifType::Enum::Telemetry::MetricType->GetEnumVal(

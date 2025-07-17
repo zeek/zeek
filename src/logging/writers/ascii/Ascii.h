@@ -40,7 +40,7 @@ private:
 
     static void RotateLeftoverLogs();
 
-    bool IsSpecial(const std::string& path) { return path.find("/dev/") == 0; }
+    bool IsSpecial(const std::string& path) { return path.starts_with("/dev/"); }
     bool WriteHeader(const std::string& path);
     bool WriteHeaderField(const std::string& key, const std::string& value);
     void CloseFile(double t);

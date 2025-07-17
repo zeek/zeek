@@ -1,3 +1,12 @@
+8.0.0-dev.682 | 2025-07-17 09:09:28 -0700
+
+  * Use std::string/string_view versions of starts_with/ends_with where appropriate (Tim Wojtulewicz, Corelight)
+
+    The util:: versions of these methods remain as a thin wrapper around them so
+    they can be used with const char* arguments. Otherwise callers have to manually
+    make string_view objects from the input.
+    s Please enter the commit message for your changes. Lines starting
+
 8.0.0-dev.680 | 2025-07-17 08:40:49 -0700
 
   * Add nolint for enum size for HILTI_RT_ENUM use (Tim Wojtulewicz, Corelight)

@@ -338,25 +338,6 @@ ubuntu22_spicy_task:
   benchmark_script: ./ci/benchmark.sh
   << : *BENCHMARK_ONLY_IF_TEMPLATE
 
-ubuntu22_spicy_head_task:
-  container:
-    # Ubuntu 22.04 EOL: April 2027
-    dockerfile: ci/ubuntu-22.04/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-  env:
-    ZEEK_CI_CREATE_ARTIFACT: 1
-    # Pull auxil/spicy to the latest head version. May or may not build.
-    ZEEK_CI_PREBUILD_COMMAND: 'cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive'
-  spicy_install_analyzers_script: ./ci/spicy-install-analyzers.sh
-  upload_binary_artifacts:
-    path: build.tgz
-  benchmark_script: ./ci/benchmark.sh
-  # Don't run this job on release branches. It tests against spicy HEAD, which
-  # will frequently require other fixes that won't be in a release branch.
-  skip: $CIRRUS_BRANCH =~ 'release/.*'
-  << : *BENCHMARK_ONLY_IF_TEMPLATE
-
 alpine_task:
   container:
     # Alpine releases typically happen every 6 months w/ support for 2 years.

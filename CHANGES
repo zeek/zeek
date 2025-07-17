@@ -1,3 +1,7 @@
+7.2.1-15 | 2025-07-17 08:49:29 -0700
+
+  * CI: Remove spicy-head task (Tim Wojtulewicz, Corelight)
+
 7.2.1-14 | 2025-07-17 08:48:26 -0700
 
   * [Spicy] Let `zeek::protocol_handle_close()` send a TCP EOF. (Benjamin Bannier, Corelight)

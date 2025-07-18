@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <thread>
 #include <zmq.hpp>
@@ -19,6 +20,14 @@ using CounterPtr = std::shared_ptr<Counter>;
 } // namespace telemetry
 
 namespace cluster::zeromq {
+
+/**
+ * The ZeroMQ overflow policies.
+ */
+enum class OverflowPolicy : uint8_t {
+    Block,
+    Drop,
+};
 
 class ZeroMQBackend : public cluster::ThreadedBackend {
 public:
@@ -92,6 +101,19 @@ private:
     EventHandlerPtr event_subscription;
     EventHandlerPtr event_unsubscription;
 
+    // configuration
+    int xpub_sndhwm = 1000; // libzmq default
+    int xpub_sndbuf = -1;   // OS defaults
+    int xsub_rcvhwm = 1000; // libzmq default
+    int xsub_rcvbuf = -1;   // OS defaults
+
+    // log socket configuration
+    int log_immediate = false; // libzmq default
+    int log_sndhwm = 1000;     // libzmq default
+    int log_sndbuf = -1;       // OS defaults
+    int log_rcvhwm = 1000;     // libzmq defaults
+    int log_rcvbuf = -1;       // OS defaults
+
     zmq::context_t ctx;
     zmq::socket_t xsub;
     zmq::socket_t xpub;
@@ -120,7 +142,10 @@ private:
     std::map<std::string, SubscribeCallback> subscription_callbacks;
     std::set<std::string> xpub_subscriptions;
 
-    zeek::telemetry::CounterPtr total_xpub_stalls;
+    // Overflow policy and metrics. Initialized in DoInitPostScript().
+    OverflowPolicy overflow_policy = OverflowPolicy::Block;
+    zeek::telemetry::CounterPtr total_xpub_blocks;
+    zeek::telemetry::CounterPtr total_xpub_drops;
 };
 
 } // namespace cluster::zeromq

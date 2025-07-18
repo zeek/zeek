@@ -493,7 +493,8 @@ public:
 
     BrokerData() = default;
 
-    template<class DataType, class = std::enable_if_t<std::is_same_v<DataType, broker::data>>>
+    template<class DataType>
+        requires std::is_same_v<DataType, broker::data>
     explicit BrokerData(DataType value) : value_(std::move(value)) {
         // Note: we use enable_if here to avoid nasty implicit conversions of broker::data.
     }

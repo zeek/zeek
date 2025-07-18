@@ -66,10 +66,6 @@ Checks: [-*,
          -modernize-use-std-format,
          -modernize-use-std-numbers,
          -modernize-use-std-print,
-
-         # C++20 supports constraints but until Spicy supports building with C++20
-         # this one has to stay disabled.
-         -modernize-use-constraints,
 ]
 
 HeaderFilterRegex: '.h'

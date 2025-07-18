@@ -54,12 +54,12 @@ public:
     template<size_t Size>
     constexpr Span(element_type (&arr)[Size]) noexcept : memory_block(arr), num_elements(Size) {}
 
-    template<class Container, class Data = typename Container::value_type,
-             class = std::enable_if_t<std::is_convertible_v<Data*, T*>>>
+    template<class Container, class Data = typename Container::value_type>
+        requires std::is_convertible_v<Data*, T*>
     Span(Container& xs) noexcept : memory_block(xs.data()), num_elements(xs.size()) {}
 
-    template<class Container, class Data = typename Container::value_type,
-             class = std::enable_if_t<std::is_convertible_v<const Data*, T*>>>
+    template<class Container, class Data = typename Container::value_type>
+        requires std::is_convertible_v<const Data*, T*>
     Span(const Container& xs) noexcept : memory_block(xs.data()), num_elements(xs.size()) {}
 
     constexpr Span(const Span&) noexcept = default;

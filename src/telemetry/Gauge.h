@@ -84,6 +84,7 @@ public:
 
     bool HasCallback() const noexcept { return callback != nullptr; }
     double RunCallback() const { return callback(); }
+    void RemoveCallback() { callback = nullptr; }
 
 private:
     FamilyType* family = nullptr;

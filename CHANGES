@@ -1,3 +1,17 @@
+8.0.0-dev.693 | 2025-07-18 14:28:29 -0700
+
+  * Add SQLite page_count and file_size metrics (Tim Wojtulewicz, Corelight)
+
+  * Add btests to cover storage metrics (Tim Wojtulewicz, Corelight)
+
+  * Add storage metrics for operations, expirations, data transferred (Tim Wojtulewicz, Corelight)
+
+  * Fix ordering of telemtry metrics when running under test (Tim Wojtulewicz, Corelight)
+
+  * Make RunPragma take an optional value parser to return data (Tim Wojtulewicz, Corelight)
+
+  * Make SQLite::Step take a callback function for parsing result data (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.684 | 2025-07-17 12:58:57 -0700
 
   * Update libkqueue submodule [nomail] (Tim Wojtulewicz, Corelight)

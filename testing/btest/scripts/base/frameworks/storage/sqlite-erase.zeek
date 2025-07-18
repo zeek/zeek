@@ -7,6 +7,11 @@
 @load base/frameworks/storage/sync
 @load policy/frameworks/storage/backend/sqlite
 
+event Storage::backend_opened(tag: Storage::Backend, config: any)
+	{
+	print "Storage::backend_opened", tag, config;
+	}
+
 event zeek_init()
 	{
 	# Create a database file in the .tmp directory with a 'testing' table

@@ -206,29 +206,6 @@ RecordValPtr Manager::GetMetricOptsRecord(const prometheus::MetricFamily& metric
     return record_val;
 }
 
-static bool compare_string_vectors(const VectorValPtr& a, const VectorValPtr& b) {
-    if ( a->Size() < b->Size() )
-        return true;
-    if ( a->Size() > b->Size() )
-        return false;
-
-    auto a_v = a->RawVec();
-    auto b_v = b->RawVec();
-
-    auto b_it = b_v.begin();
-    for ( auto a_it = a_v.begin(); a_it != a_v.end(); ++a_it, ++b_it ) {
-        if ( ! a_it->has_value() )
-            return false;
-        if ( ! b_it->has_value() )
-            return true;
-
-        if ( (*a_it)->AsString()->ToStdStringView() < (*b_it)->AsString()->ToStdStringView() )
-            return true;
-    }
-
-    return false;
-}
-
 static bool comparer(const std::optional<ZVal>& a, const std::optional<ZVal>& b, const RecordTypePtr& type) {
     if ( ! a )
         return false;
@@ -239,9 +216,40 @@ static bool comparer(const std::optional<ZVal>& a, const std::optional<ZVal>& b,
     auto a_r = a->ToVal(type)->AsRecordVal();
     auto b_r = b->ToVal(type)->AsRecordVal();
 
+    auto a_opts = a_r->GetField<RecordVal>("opts");
+    auto b_opts = b_r->GetField<RecordVal>("opts");
+
+    auto a_name = a_opts->GetField<StringVal>("name");
+    auto b_name = b_opts->GetField<StringVal>("name");
+    if ( a_name->Len() > b_name->Len() )
+        return false;
+    if ( a_name->Len() < b_name->Len() )
+        return true;
+    if ( memcmp(a_name->Bytes(), b_name->Bytes(), a_name->Len()) < 0 )
+        return true;
+
+    auto a_prefix = a_opts->GetField<StringVal>("prefix");
+    auto b_prefix = b_opts->GetField<StringVal>("prefix");
+    if ( a_prefix->Len() > b_prefix->Len() )
+        return false;
+    if ( a_prefix->Len() < b_prefix->Len() )
+        return true;
+    if ( memcmp(a_prefix->Bytes(), b_prefix->Bytes(), a_prefix->Len()) < 0 )
+        return true;
+
     auto a_labels = a_r->GetField<VectorVal>("label_values");
+    std::vector<std::string> a_label_vec;
+    a_label_vec.reserve(a_labels->Size());
+    for ( const auto& sv : a_labels->RawVec() )
+        a_label_vec.push_back(sv->AsString()->ToStdString());
+
     auto b_labels = b_r->GetField<VectorVal>("label_values");
-    return compare_string_vectors(a_labels, b_labels);
+    std::vector<std::string> b_label_vec;
+    b_label_vec.reserve(b_labels->Size());
+    for ( const auto& sv : b_labels->RawVec() )
+        b_label_vec.push_back(sv->AsString()->ToStdString());
+
+    return a_label_vec < b_label_vec;
 }
 
 static bool compare_metrics(const std::optional<ZVal>& a, const std::optional<ZVal>& b) {
@@ -308,6 +316,8 @@ ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view
         full_pattern.append("*");
 
     auto collected = prometheus_registry->Collect();
+    ret_val->Reserve(collected.size());
+
     for ( const auto& fam : collected ) {
         if ( fam.type == prometheus::MetricType::Histogram )
             continue;
@@ -350,7 +360,7 @@ ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view
         static auto running_under_test = id::find_val("running_under_test")->AsBool();
         if ( running_under_test ) {
             auto& vec = ret_val->RawVec();
-            std::sort(vec.begin(), vec.end(), compare_histograms);
+            std::sort(vec.begin(), vec.end(), compare_metrics);
         }
     }
 
@@ -388,6 +398,8 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
         full_pattern.append("*");
 
     auto collected = prometheus_registry->Collect();
+    ret_val->Reserve(collected.size());
+
     for ( const auto& fam : collected ) {
         if ( fam.type != prometheus::MetricType::Histogram )
             continue;

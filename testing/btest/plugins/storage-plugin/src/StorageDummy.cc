@@ -87,4 +87,6 @@ OperationResult StorageDummy::DoErase(ResultCallback* cb, ValPtr key) {
     return {ReturnCode::KEY_NOT_FOUND};
 }
 
+std::string StorageDummy::DoGetConfigMetricsLabel() const { return "storage-dummy"; }
+
 } // namespace btest::storage::backend

@@ -25,6 +25,8 @@ public:
     bool IsOpen() override { return db != nullptr; }
 
 private:
+    using StepResultParser = std::function<OperationResult(sqlite3_stmt*)>;
+
     OperationResult DoOpen(OpenResultCallback* cb, RecordValPtr options) override;
     OperationResult DoClose(ResultCallback* cb) override;
     OperationResult DoPut(ResultCallback* cb, ValPtr key, ValPtr value, bool overwrite,
@@ -32,6 +34,7 @@ private:
     OperationResult DoGet(ResultCallback* cb, ValPtr key) override;
     OperationResult DoErase(ResultCallback* cb, ValPtr key) override;
     void DoExpire(double current_network_time) override;
+    std::string DoGetConfigMetricsLabel() const override;
 
     /**
      * Checks whether a status code returned by an sqlite call is a success.
@@ -45,12 +48,13 @@ private:
      * Abstracts calls to sqlite3_step to properly create an OperationResult
      * structure based on the result.
      */
-    OperationResult Step(sqlite3_stmt* stmt, bool parse_value = false);
+    OperationResult Step(sqlite3_stmt* stmt, StepResultParser parser, bool is_pragma = false);
 
     /**
      * Helper utility for running pragmas on the database.
      */
-    OperationResult RunPragma(std::string_view name, std::optional<std::string_view> value = std::nullopt);
+    OperationResult RunPragma(std::string_view name, std::optional<std::string_view> value = std::nullopt,
+                              StepResultParser value_parser = nullptr);
 
     sqlite3* db = nullptr;
     sqlite3* expire_db = nullptr;
@@ -72,6 +76,12 @@ private:
     std::string table_name;
     std::chrono::milliseconds pragma_timeout;
     std::chrono::milliseconds pragma_wait_on_busy;
+
+    telemetry::GaugePtr page_count_metric;
+    telemetry::GaugePtr file_size_metric;
+
+    double last_page_count_value = 0.0;
+    double last_file_size_value = 0.0;
 };
 
 } // namespace zeek::storage::backend::sqlite

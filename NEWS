@@ -3,6 +3,37 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 7.2.2
+==========
+
+We would like to thank @cccs-jsjm and @edoardomich for their contributions to this release.
+
+This release fixes the following security issue:
+
+This release fixes the following bugs:
+
+- The Redis storage backend now requires libhiredis 1.1.0 or later.
+
+- The websocket support in the Cluster framework gained the ability to listen on IPv6
+  addresses. This change deprecates the ``WebSocketServerOptions$listen_host`` in favor of
+  ``WebSocketServerOptions$listen_addr``.
+
+- Likewise, the ZeroMQ cluster backend gained the ability to listen on IPv6 addresses.
+
+- The response to BDAT ``LAST`` was never recognized by the SMTP analyzer, resulting in
+  the BDAT ``LAST`` commands not being logged in a timely fashion and receiving the wrong
+  status. Zeek now correctly reports these comands.
+
+- The Docker images for zeek 7.0 releases now include the ``net-tools`` (for ``iproute2``)
+  package to silience a warning from ``zeekctl``. They also now include the ``procps``
+  package (for ``top``) to ensure the ``zeekctl`` top command works correctly.
+
+- The Spicy submodule was updated to v1.13.2. This version fixes an error when extracting
+  bytes with ``&eod``. This would previously result in a cryptic error message.
+
+- The ZeekJS submodule was updated to v0.18.0. This version fixes a compilation error with
+  debug builds and GCC 15.1, as well as adding future support for Node v24.
+
 Zeek 7.2.1
 ==========
 

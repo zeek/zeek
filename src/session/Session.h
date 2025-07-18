@@ -130,8 +130,8 @@ public:
      * A version of EnqueueEvent() taking a variable number of arguments.
      */
     template<class... Args>
-    std::enable_if_t<std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>> EnqueueEvent(
-        EventHandlerPtr h, analyzer::Analyzer* analyzer, Args&&... args) {
+        requires std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>
+    void EnqueueEvent(EventHandlerPtr h, analyzer::Analyzer* analyzer, Args&&... args) {
         return EnqueueEvent(h, analyzer, zeek::Args{std::forward<Args>(args)...});
     }
 

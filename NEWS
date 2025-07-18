@@ -130,6 +130,25 @@ New Functionality
   implementation in the ``src/packet_analysis/protocol/ip/conn_key/vlan_fivetuple``
   directory for an example.
 
+- Added support to ZeekControl for seamlessly switching to ZeroMQ as cluster
+  backend by adding the following settings to zeekctl.cfg:
+
+	ClusterBackend = ZeroMQ
+	UseWebSocket = 1
+
+  With the ZeroMQ cluster backend, Zeekctl requires to use Zeek's WebSocket API
+  to communicate with individual nodes for the ``print`` and ``netstats`` commands.
+  Setting the ``UseWebSocket`` option enables a WebSocket server on the manager
+  node, listening on 127.0.0.1:27759 by default (this is configurable with using
+  the newly introduced ``WebSocketHost`` and ``WebSocketPort`` options).
+  The ``UseWebSocket`` option can also be used when ``ClusterBackend`` is set
+  to ``Broker``, but isn't strictly required.
+
+  For ZeroMQ (or other future cluster backends), setting ``UseWebSocket`` is a
+  requirement as Zeekctl does not speak the native ZeroMQ protocol to communicate
+  with cluster nodes for executing commands. This functionality requires the
+  ``websockets`` Python package with version 11.0 or higher.
+
 - Cluster telemetry improvements. Zeek now exposes a configurable number of
   metrics regarding outgoing and incoming cluster events. By default, the number
   of events sent and received by a Zeek cluster node and any attached WebSocket

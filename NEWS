@@ -3,6 +3,26 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 7.0.9
+==========
+
+We would like to thank @cccs-jsjm and @edoardomich for their contributions to this release.
+
+This release fixes the following security issue:
+
+This release fixes the following bugs:
+
+- The response to BDAT ``LAST`` was never recognized by the SMTP analyzer, resulting in
+  the BDAT ``LAST`` commands not being logged in a timely fashion and receiving the wrong
+  status. Zeek now correctly reports these comands.
+
+- The Docker images for zeek 7.0 releases now include the ``net-tools`` (for ``iproute2``)
+  package to silience a warning from ``zeekctl``. They also now include the ``procps``
+  package (for ``top``) to ensure the ``zeekctl`` top command works correctly.
+
+- The ZeekJS submodule was updated to v0.18.0. This version fixes a compilation error with
+  debug builds and GCC 15.1, as well as adding future support for Node v24.
+
 Zeek 7.0.8
 ==========
 

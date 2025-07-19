@@ -1573,9 +1573,9 @@ TEST_CASE("dns_mgr default mode" * doctest::skip(true)) {
     CHECK_FALSE(host_result->EqualTo(TestDNS_Mgr::empty_addr_set()));
 
     auto addrs_from_request = get_result_addresses(host_result);
-    auto it = std::find(addrs_from_request.begin(), addrs_from_request.end(), ones4);
+    auto it = std::ranges::find(addrs_from_request, ones4);
     CHECK(it != addrs_from_request.end());
-    it = std::find(addrs_from_request.begin(), addrs_from_request.end(), ones6);
+    it = std::ranges::find(addrs_from_request, ones6);
     CHECK(it != addrs_from_request.end());
 
     auto addr_result = mgr.LookupAddr(ones4);
@@ -1613,7 +1613,7 @@ TEST_CASE("dns_mgr async host" * doctest::skip(true)) {
     if ( ! cb.timeout ) {
         REQUIRE_FALSE(cb.addr_results.empty());
         IPAddr ones("1.1.1.1");
-        auto it = std::find(cb.addr_results.begin(), cb.addr_results.end(), ones);
+        auto it = std::ranges::find(cb.addr_results, ones);
         CHECK(it != cb.addr_results.end());
     }
 

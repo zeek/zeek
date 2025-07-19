@@ -34,6 +34,6 @@ void CCL::Add(int sym) {
     syms->push_back(sym_p);
 }
 
-void CCL::Sort() { std::sort(syms->begin(), syms->end()); }
+void CCL::Sort() { std::ranges::sort(*syms); }
 
 } // namespace zeek::detail

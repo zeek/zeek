@@ -346,7 +346,7 @@ void HTTP_Entity::SubmitHeader(analyzer::mime::MIME_Header* h) {
         std::string byte_unit(vt.data, vt.length);
         vt = h->get_value_after_token();
         std::string byte_range(vt.data, vt.length);
-        byte_range.erase(remove(byte_range.begin(), byte_range.end(), ' '), byte_range.end());
+        byte_range.erase(std::ranges::begin(std::ranges::remove(byte_range, ' ')), std::end(byte_range));
 
         if ( byte_unit != "bytes" ) {
             http_message->Weird("HTTP_content_range_unknown_byte_unit");

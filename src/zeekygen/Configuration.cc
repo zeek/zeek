@@ -46,7 +46,7 @@ Config::Config(string arg_file, const string& delim)
         ++line_number;
         vector<string> tokens;
         util::tokenize_string(line, delim, &tokens);
-        tokens.erase(remove(tokens.begin(), tokens.end(), ""), tokens.end());
+        tokens.erase(std::ranges::begin(std::ranges::remove(tokens, "")), std::end(tokens));
 
         if ( tokens.empty() )
             // Blank line.

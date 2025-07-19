@@ -25,9 +25,9 @@ refine connection SSL_Conn += {
 			vector<int> cipher_suites;
 
 			if ( cipher_suites16 )
-				std::copy(cipher_suites16->begin(), cipher_suites16->end(), std::back_inserter(cipher_suites));
+				std::ranges::copy(*cipher_suites16, std::back_inserter(cipher_suites));
 			else
-				std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(cipher_suites), to_int());
+				std::ranges::transform(*cipher_suites24, std::back_inserter(cipher_suites), to_int());
 
 			auto cipher_vec = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
 
@@ -78,9 +78,9 @@ refine connection SSL_Conn += {
 			vector<int>* ciphers = new vector<int>();
 
 			if ( cipher_suites16 )
-				std::copy(cipher_suites16->begin(), cipher_suites16->end(), std::back_inserter(*ciphers));
+				std::ranges::copy(*cipher_suites16, std::back_inserter(*ciphers));
 			else
-				std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(*ciphers), to_int());
+				std::ranges::transform(*cipher_suites24, std::back_inserter(*ciphers), to_int());
 
 			uint32 ts = 0;
 			if ( v2 == 0 && server_random.length() >= 4 )

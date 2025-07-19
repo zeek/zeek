@@ -71,8 +71,6 @@ public:
         // If any of the groups are disabled, this body is disabled.
         // The disabled field is updated from EventGroup instances.
         bool disabled = false;
-
-        bool operator<(const Body& other) const { return priority > other.priority; } // reverse sort
     };
 
     const std::vector<Body>& GetBodies() const { return bodies; }

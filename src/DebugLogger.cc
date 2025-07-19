@@ -60,7 +60,7 @@ void DebugLogger::ShowStreamsHelp() {
 
     for ( const auto& stream : streams )
         prefixes.emplace_back(stream.prefix);
-    std::sort(prefixes.begin(), prefixes.end());
+    std::ranges::sort(prefixes);
 
     for ( const auto& prefix : prefixes )
         fprintf(stderr, "  %s\n", prefix.c_str());

@@ -22,7 +22,7 @@ std::shared_ptr<Gauge> GaugeFamily::GetOrAdd(Span<const LabelView> labels, detai
 
     auto check = [&](const std::shared_ptr<Gauge>& gauge) { return gauge->CompareLabels(p_labels); };
 
-    if ( auto it = std::find_if(gauges.begin(), gauges.end(), check); it != gauges.end() )
+    if ( auto it = std::ranges::find_if(gauges, check); it != gauges.end() )
         return *it;
 
     auto gauge = std::make_shared<Gauge>(family, p_labels, callback);

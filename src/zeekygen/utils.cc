@@ -113,7 +113,7 @@ size_t end_of_first_sentence(const string& s) {
 }
 
 bool is_all_whitespace(const string& s) {
-    auto it = std::find_if(s.begin(), s.end(), [](char c) { return ! isspace(c); });
+    auto it = std::ranges::find_if(s, [](char c) { return ! isspace(c); });
     return it == s.end();
 }
 

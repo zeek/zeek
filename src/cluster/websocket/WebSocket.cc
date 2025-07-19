@@ -297,7 +297,7 @@ void WebSocketEventDispatcher::Process(const WebSocketOpen& open) {
     std::string application_name = open.application_name.value_or("unknown");
 
     // A bit ad-hoc
-    bool good_application_name = std::all_of(application_name.begin(), application_name.end(), [](auto c) {
+    bool good_application_name = std::ranges::all_of(application_name, [](auto c) {
         return std::isalnum(c) || c == '/' || c == '_' || c == '-' || c == '.' || c == '=' || c == ':' || c == '*' ||
                c == '@';
     });

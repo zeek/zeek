@@ -20,7 +20,7 @@ std::shared_ptr<Histogram> HistogramFamily::GetOrAdd(Span<const LabelView> label
 
     auto check = [&](const std::shared_ptr<Histogram>& histo) { return histo->CompareLabels(p_labels); };
 
-    if ( auto it = std::find_if(histograms.begin(), histograms.end(), check); it != histograms.end() )
+    if ( auto it = std::ranges::find_if(histograms, check); it != histograms.end() )
         return *it;
 
     auto histogram = std::make_shared<Histogram>(family, p_labels, boundaries);
@@ -38,5 +38,5 @@ std::shared_ptr<Histogram> HistogramFamily::GetOrAdd(std::initializer_list<Label
 HistogramFamily::HistogramFamily(prometheus::Family<prometheus::Histogram>* family, Span<const double> bounds,
                                  Span<const std::string_view> labels)
     : MetricFamily(labels), family(family) {
-    std::copy(bounds.begin(), bounds.end(), std::back_inserter(boundaries));
+    std::ranges::copy(bounds, std::back_inserter(boundaries));
 }

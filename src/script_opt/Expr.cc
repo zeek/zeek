@@ -3065,10 +3065,10 @@ IDPtr ConstructFromRecordExpr::FindMostCommonRecordSource(const ListExprPtr& exp
         return nullptr;
 
     // Return the most common.
-    auto max_entry = std::max_element(id_cnt.begin(), id_cnt.end(),
-                                      [](const std::pair<IDPtr, int>& p1, const std::pair<IDPtr, int>& p2) {
-                                          return p1.second < p2.second;
-                                      });
+    auto max_entry =
+        std::ranges::max_element(id_cnt, [](const std::pair<IDPtr, int>& p1, const std::pair<IDPtr, int>& p2) {
+            return p1.second < p2.second;
+        });
     return max_entry->first;
 }
 

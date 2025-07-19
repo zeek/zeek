@@ -80,8 +80,10 @@ void Manager::registerProtocolAnalyzer(const std::string& name, hilti::rt::Proto
 
     // Store ports in a deterministic order. We can't (easily) sort the
     // `hilti::rt::Vector` unfortunately.
-    std::copy(ports.begin(), ports.end(), std::back_inserter(info.ports));
-    std::sort(info.ports.begin(), info.ports.end());
+    std::ranges::copy(ports, std::back_inserter(info.ports));
+    std::ranges::sort(info.ports, [](const ::zeek::spicy::rt::PortRange& l, const ::zeek::spicy::rt::PortRange& r) {
+        return l < r;
+    });
 
     // We may have that analyzer already iff it was previously pre-registered
     // without a linker scope. We'll then only set the scope now.

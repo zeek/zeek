@@ -41,6 +41,7 @@
 #include <array>
 #include <filesystem>
 #include <iostream>
+#include <ranges>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -1146,7 +1147,7 @@ void to_upper(char* s) {
 
 string to_upper(const std::string& s) {
     string t = s;
-    std::transform(t.begin(), t.end(), t.begin(), ::toupper);
+    std::ranges::transform(t, t.begin(), ::toupper);
     return t;
 }
 
@@ -1392,7 +1393,7 @@ TEST_CASE("util strtolower") {
 
 std::string strtolower(const std::string& s) {
     std::string t = s;
-    std::transform(t.begin(), t.end(), t.begin(), ::tolower);
+    std::ranges::transform(t, t.begin(), ::tolower);
     return t;
 }
 
@@ -1406,7 +1407,7 @@ TEST_CASE("util strtoupper") {
 
 std::string strtoupper(const std::string& s) {
     std::string t = s;
-    std::transform(t.begin(), t.end(), t.begin(), ::toupper);
+    std::ranges::transform(t, t.begin(), ::toupper);
     return t;
 }
 
@@ -1536,8 +1537,8 @@ TEST_CASE("util strstrip") {
 
 std::string strstrip(std::string s) {
     auto notspace = [](unsigned char c) { return ! std::isspace(c); };
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), notspace));
-    s.erase(std::find_if(s.rbegin(), s.rend(), notspace).base(), s.end());
+    s.erase(s.begin(), std::ranges::find_if(s, notspace));
+    s.erase(std::ranges::find_if(std::ranges::reverse_view(s), notspace).base(), s.end());
     return s;
 }
 

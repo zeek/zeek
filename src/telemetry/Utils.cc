@@ -20,7 +20,7 @@ std::string BuildFullPrometheusName(std::string_view prefix, std::string_view na
 
     std::string fn = util::fmt("%.*s_%.*s", static_cast<int>(prefix.size()), prefix.data(),
                                static_cast<int>(name.size()), name.data());
-    std::for_each(fn.begin(), fn.end(), [](char& c) {
+    std::ranges::for_each(fn, [](char& c) {
         if ( ! std::isalnum(c) )
             c = '_';
     });

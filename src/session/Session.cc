@@ -121,7 +121,7 @@ void Session::CancelTimers() {
     // traversing. Thus, we first make a copy of the list which we then
     // iterate through.
     TimerPList tmp(timers.length());
-    std::copy(timers.begin(), timers.end(), std::back_inserter(tmp));
+    std::ranges::copy(timers, std::back_inserter(tmp));
 
     for ( const auto& timer : tmp )
         zeek::detail::timer_mgr->Cancel(timer);

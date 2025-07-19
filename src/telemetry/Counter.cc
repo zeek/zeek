@@ -21,7 +21,7 @@ std::shared_ptr<Counter> CounterFamily::GetOrAdd(Span<const LabelView> labels, d
 
     auto check = [&](const std::shared_ptr<Counter>& counter) { return counter->CompareLabels(p_labels); };
 
-    if ( auto it = std::find_if(counters.begin(), counters.end(), check); it != counters.end() )
+    if ( auto it = std::ranges::find_if(counters, check); it != counters.end() )
         return *it;
 
     auto counter = std::make_shared<Counter>(family, p_labels, callback);

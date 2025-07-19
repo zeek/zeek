@@ -185,7 +185,7 @@ bool Ascii::ReadHeader(bool useCached) {
     for ( int i = 0; i < NumFields(); i++ ) {
         const Field* field = fields[i];
 
-        auto fit = std::find(ifields.begin(), ifields.end(), field->name);
+        auto fit = std::ranges::find(ifields, field->name);
         if ( fit == ifields.end() ) {
             if ( field->optional ) {
                 // we do not really need this field. mark it as not present and always send an undef
@@ -206,7 +206,7 @@ bool Ascii::ReadHeader(bool useCached) {
         FieldMapping f(field->name, field->type, field->subtype, index);
 
         if ( field->secondary_name && strlen(field->secondary_name) != 0 ) {
-            auto fit2 = std::find(ifields.begin(), ifields.end(), field->secondary_name);
+            auto fit2 = std::ranges::find(ifields, field->secondary_name);
             if ( fit2 == ifields.end() ) {
                 FailWarn(fail_on_file_problem,
                          Fmt("Could not find requested port type field %s in input data file %s.",

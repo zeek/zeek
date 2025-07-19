@@ -42,7 +42,6 @@ Checks: [-*,
          -modernize-raw-string-literal,
          -modernize-use-auto,
          -modernize-use-nodiscard,
-         -modernize-use-ranges,
          -modernize-use-trailing-return-type,
          -modernize-use-designated-initializers,
 

@@ -360,7 +360,7 @@ ValPtr Manager::CollectMetrics(std::string_view prefix_pattern, std::string_view
         static auto running_under_test = id::find_val("running_under_test")->AsBool();
         if ( running_under_test ) {
             auto& vec = ret_val->RawVec();
-            std::sort(vec.begin(), vec.end(), compare_metrics);
+            std::ranges::sort(vec, compare_metrics);
         }
     }
 
@@ -460,7 +460,7 @@ ValPtr Manager::CollectHistogramMetrics(std::string_view prefix_pattern, std::st
         static auto running_under_test = id::find_val("running_under_test")->AsBool();
         if ( running_under_test ) {
             auto& vec = ret_val->RawVec();
-            std::sort(vec.begin(), vec.end(), compare_histograms);
+            std::ranges::sort(vec, compare_histograms);
         }
     }
 

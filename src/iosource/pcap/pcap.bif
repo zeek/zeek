@@ -186,7 +186,7 @@ function findalldevs%(%): Pcap::Interfaces
 			r->Assign(1, d->description);
 
 		auto addrs = make_intrusive<ListVal>(TYPE_ADDR);
-		for ( auto addr = d->addresses; addr != NULL; addr = addr->next )
+		for ( auto addr = d->addresses; addr != nullptr; addr = addr->next )
 			{
 			if ( addr->addr->sa_family == AF_INET )
 				{

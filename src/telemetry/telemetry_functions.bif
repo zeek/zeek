@@ -82,7 +82,7 @@ auto to_std_vec(zeek::VectorVal* xs)
 	if( xs )
 		for ( unsigned index = 0; index < xs->Size() ; ++index )
 			{
-			if constexpr (std::is_same<IntOrDbl, int64_t>::value)
+			if constexpr (std::is_same_v<IntOrDbl, int64_t>)
 				result.emplace_back(xs->ValAt(index)->AsInt());
 			else
 				result.emplace_back(xs->ValAt(index)->AsDouble());

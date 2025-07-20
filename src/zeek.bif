@@ -1001,7 +1001,7 @@ function paraglob_init%(v: any%) : opaque of paraglob
 	for ( unsigned int i = 0; i < vv->Size(); ++i )
 		{
 		auto s = vv->StringAt(i);
-		patterns.push_back(std::string(reinterpret_cast<const char*>(s->Bytes()), s->Len()));
+		patterns.emplace_back(reinterpret_cast<const char*>(s->Bytes()), s->Len());
 		}
 
 	try
@@ -1053,7 +1053,7 @@ IntType fnva(zeek::Val* input, IntType offset, IntType prime) {
 	zeek::ODesc desc(zeek::DESC_BINARY);
 
 	auto length = 0;
-	const u_char* bytes = NULL;
+	const u_char* bytes = nullptr;
 
 	if (input->GetType()->Tag() == zeek::TYPE_STRING)
 		{
@@ -1266,8 +1266,12 @@ function file_magic%(data: string%): mime_matches
 ## .. zeek:see:: entropy_test_init entropy_test_add entropy_test_finish
 function find_entropy%(data: string%): entropy_test_result
 	%{
-	double montepi, scc, ent, mean, chisq;
-	montepi = scc = ent = mean = chisq = 0.0;
+	double montepi = 0.0;
+	double scc = 0.0;
+	double ent = 0.0;
+	double mean = 0.0;
+	double chisq = 0.0;
+
 	EntropyVal e;
 	e.Feed(data->Bytes(), data->Len());
 	e.Get(&ent, &chisq, &mean, &montepi, &scc);
@@ -1320,8 +1324,12 @@ function entropy_test_add%(handle: opaque of entropy, data: string%): bool
 ## .. zeek:see:: find_entropy entropy_test_init entropy_test_add
 function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 	%{
-	double montepi, scc, ent, mean, chisq;
-	montepi = scc = ent = mean = chisq = 0.0;
+	double montepi = 0.0;
+	double scc = 0.0;
+	double ent = 0.0;
+	double mean = 0.0;
+	double chisq = 0.0;
+
 	static_cast<EntropyVal*>(handle)->Get(&ent, &chisq, &mean, &montepi, &scc);
 
 	static auto entropy_test_result = zeek::id::find_type<zeek::RecordType>("entropy_test_result");
@@ -1636,7 +1644,7 @@ function sort%(v: any, ...%) : any
 		const auto& comp_type = comp->GetType();
 
 		if ( comp_type->Yield()->Tag() != zeek::TYPE_INT ||
-		     ! comp_type->ParamList()->AllMatch(elt_type, 0) ||
+		     ! comp_type->ParamList()->AllMatch(elt_type, false) ||
 		     comp_type->ParamList()->GetTypes().size() != 2 )
 			{
 			zeek::emit_builtin_error("invalid comparison function in call to sort()");
@@ -1700,7 +1708,7 @@ function order%(v: any, ...%) : index_vec
 
 		const auto& comp_type = comp->GetType();
 		if ( comp_type->Yield()->Tag() != zeek::TYPE_INT ||
-		     ! comp_type->ParamList()->AllMatch(elt_type, 0) ||
+		     ! comp_type->ParamList()->AllMatch(elt_type, false) ||
 		     comp_type->ParamList()->GetTypes().size() != 2 )
 			{
 			zeek::emit_builtin_error("invalid comparison function in call to order()");
@@ -2474,8 +2482,8 @@ function is_local_interface%(ip: addr%) : bool
 	if ( ent )
 		{
 		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
-			addrs.push_back(zeek::IPAddr(IPv4, (uint32_t*)ent->h_addr_list[len],
-			                       zeek::IPAddr::Network));
+			addrs.emplace_back(IPv4, (uint32_t*)ent->h_addr_list[len],
+			                   zeek::IPAddr::Network);
 		}
 
 	ent = gethostbyname2(host, AF_INET6);
@@ -2483,8 +2491,8 @@ function is_local_interface%(ip: addr%) : bool
 	if ( ent )
 		{
 		for ( unsigned int len = 0; ent->h_addr_list[len]; ++len )
-			addrs.push_back(zeek::IPAddr(IPv6, (uint32_t*)ent->h_addr_list[len],
-			                       zeek::IPAddr::Network));
+			addrs.emplace_back(IPv6, (uint32_t*)ent->h_addr_list[len],
+			                   zeek::IPAddr::Network);
 		}
 
 	list<zeek::IPAddr>::const_iterator it;
@@ -4023,8 +4031,10 @@ function dump_packet%(pkt: pcap_packet, file_name: string%) : bool
 	if ( ! addl_pkt_dumper->IsError() )
 		{
 		pkt_timeval ts;
-		uint32_t caplen, len, link_type;
-		u_char *data;
+		uint32_t caplen = 0;
+		uint32_t len = 0;
+		uint32_t link_type = 0;
+		u_char *data = nullptr;
 
 		auto pkt_r = pkt->As<zeek::RecordVal*>();
 
@@ -4057,7 +4067,7 @@ public:
 		lookup_name = arg_lookup_name;
 		}
 
-	~LookupHostCallback()
+	~LookupHostCallback() override
 		{
 		Unref(trigger);
 		}
@@ -4453,7 +4463,7 @@ function skip_further_processing%(cid: conn_id%): bool
 	if ( ! c )
 		return zeek::val_mgr->False();
 
-	c->GetSessionAdapter()->SetSkip(1);
+	c->GetSessionAdapter()->SetSkip(true);
 	return zeek::val_mgr->True();
 	%}
 
@@ -4608,7 +4618,7 @@ function set_buf%(f: file, buffered: bool%): any
 ##              rmdir unlink rename
 function flush_all%(%): bool
 	%{
-	return zeek::val_mgr->Bool(fflush(0) == 0);
+	return zeek::val_mgr->Bool(fflush(nullptr) == 0);
 	%}
 
 ## Creates a new directory.

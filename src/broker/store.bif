@@ -654,7 +654,7 @@ function Broker::__pop%(h: opaque of Broker::Store, k: any, e: interval%): bool
 		return zeek::val_mgr->False();
 		}
 
-	handle->store.pop(std::move(*key), zeek::Broker::detail::convert_expiry(e));
+	handle->store.pop(*key, zeek::Broker::detail::convert_expiry(e));
 	return zeek::val_mgr->True();
 	%}
 

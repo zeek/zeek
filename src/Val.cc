@@ -751,7 +751,7 @@ IPAddr SubNetVal::Mask() const {
     for ( w = subnet_val->Length(); w >= 32; w -= 32 )
         *(mp++) = 0xffffffff;
 
-    *mp = ~((1 << (32 - w)) - 1);
+    *mp = ~((static_cast<uint32_t>(1) << (32 - w)) - 1);
 
     while ( ++mp < m + 4 )
         *mp = 0;

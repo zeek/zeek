@@ -68,7 +68,12 @@ private:
 class Deferred {
 public:
     Deferred(std::function<void()> deferred) : deferred(std::move(deferred)) {}
-    ~Deferred() { deferred(); }
+    ~Deferred() {
+        if ( deferred ) {
+            deferred();
+        }
+    }
+    void Cancel() { deferred = nullptr; }
 
 private:
     std::function<void()> deferred;

@@ -496,7 +496,10 @@ void SQLite::DoExpire(double current_network_time) {
     // Automatically rollback the transaction when this object is deleted.
     auto deferred_rollback = util::Deferred([this]() {
         char* errMsg = nullptr;
-        sqlite3_exec(expire_db, "rollback transaction", nullptr, nullptr, &errMsg);
+        if ( int status = sqlite3_exec(expire_db, "rollback transaction", nullptr, nullptr, &errMsg);
+             status != SQLITE_OK )
+            reporter->Warning("SQLite backend failed to rollback transaction during expiration: %s", errMsg);
+
         sqlite3_free(errMsg);
     });
 
@@ -575,13 +578,21 @@ void SQLite::DoExpire(double current_network_time) {
         Error(err.c_str());
     }
 
-    // Get the number of changes from the delete statement. This should be identical to the num_to_expire
-    // value earlier because we're under a transaction, but this should be the exact number that changed.
+    // Get the number of changes from the delete statement. This should be identical to
+    // the num_to_expire value earlier because we're under a transaction, but this should
+    // be the exact number that changed.
     int changes = sqlite3_changes(db);
     IncExpiredEntriesMetric(changes);
 
-    sqlite3_exec(expire_db, "commit transaction", nullptr, nullptr, &errMsg);
+    status = sqlite3_exec(expire_db, "commit transaction", nullptr, nullptr, &errMsg);
+    if ( status != SQLITE_OK )
+        reporter->Warning("SQLite backend failed to commit transaction during expiration: %s", errMsg);
+
     sqlite3_free(errMsg);
+
+    // Don't try to rollback the transaction we just committed, since sqlite will just
+    // report an error.
+    deferred_rollback.Cancel();
 }
 
 // returns true in case of error

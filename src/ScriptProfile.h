@@ -35,7 +35,7 @@ public:
     ScriptProfileStats& operator=(ScriptProfileStats&&) = default;
     ScriptProfileStats& operator=(const ScriptProfileStats&) = default;
 
-    const auto Name() const { return name; }
+    const auto& Name() const { return name; }
 
     // Number of instances included in an aggregate (like for "all BiFs").
     // This is 1 for non-aggregates.

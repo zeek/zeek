@@ -1,3 +1,9 @@
+7.2.2 | 2025-07-21 10:20:10 -0700
+
+  * Return weird if a log line is over a configurable size limit (Tim Wojtulewicz, Corelight)
+
+  * Update NEWS for 7.2.2 release [skip ci] [nomail] (Tim Wojtulewicz, Corelight)
+
 7.2.1-15 | 2025-07-17 08:49:29 -0700
 
   * CI: Remove spicy-head task (Tim Wojtulewicz, Corelight)

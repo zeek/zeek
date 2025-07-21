@@ -370,8 +370,8 @@ protected:
     // operation that explictly omits any assignment.
     bool HasAssignmentLess() const { return ! assignment_less_op.empty(); }
     void SetAssignmentLess(string op, string op_class) {
-        assignment_less_op = op;
-        assignment_less_op_class = op_class;
+        assignment_less_op = std::move(op);
+        assignment_less_op_class = std::move(op_class);
     }
     const string& AssignmentLessOp() const { return assignment_less_op; }
     const string& AssignmentLessOpClass() const { return assignment_less_op_class; }

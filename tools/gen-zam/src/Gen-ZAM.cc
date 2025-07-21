@@ -661,7 +661,7 @@ static bool skippable_ot(ZAM_OperandClass oc) {
 string ZAM_OpTemplate::ExpandParams(const OCVec& oc, string eval, const vector<string>& accessors) const {
     auto have_target = eval.find("$$") != string::npos;
 
-    auto fl = GetOp1Flavor();
+    const auto& fl = GetOp1Flavor();
     auto need_target = fl == "OP1_WRITE";
 
     auto oc_size = oc.size();
@@ -699,16 +699,19 @@ string ZAM_OpTemplate::ExpandParams(const OCVec& oc, string eval, const vector<s
         case 4:
             if ( ! has_d4 )
                 Gripe("eval missing $4", eval);
+            [[fallthrough]];
         case 3:
             if ( ! has_d3 )
                 Gripe("eval missing $3", eval);
+            [[fallthrough]];
         case 2:
             if ( ! has_d2 )
                 Gripe("eval missing $2", eval);
+            [[fallthrough]];
         case 1:
             if ( ! has_d1 )
                 Gripe("eval missing $1", eval);
-
+            [[fallthrough]];
         case 0: break;
 
         default: Gripe("unexpected param size", to_string(max_param) + " - " + eval); break;
@@ -718,15 +721,19 @@ string ZAM_OpTemplate::ExpandParams(const OCVec& oc, string eval, const vector<s
         case 0:
             if ( has_d1 )
                 Gripe("extraneous $1 in eval", eval);
+            [[fallthrough]];
         case 1:
             if ( has_d2 )
                 Gripe("extraneous $2 in eval", eval);
+            [[fallthrough]];
         case 2:
             if ( has_d3 )
                 Gripe("extraneous $3 in eval", eval);
+            [[fallthrough]];
         case 3:
             if ( has_d4 )
                 Gripe("extraneous $4 in eval", eval);
+            [[fallthrough]];
 
         case 4: break;
 
@@ -892,8 +899,8 @@ void ZAM_OpTemplate::InstantiateAssignOp(const OCVec& oc, const string& suffix) 
     EmitTo(AssignFlavor);
     Emit(flavor_ind + " = empty_map;");
 
-    auto eval = GetEval();
-    auto v = GetAssignVal();
+    const auto& eval = GetEval();
+    const auto& v = GetAssignVal();
 
     for ( auto& ti : ZAM_type_info ) {
         auto op = g->GenOpCode(this, op_string + "_" + ti.suffix);
@@ -1026,7 +1033,7 @@ void ZAM_OpTemplate::GenAssignOpCore(const OCVec& oc, const string& eval, const 
 
 void ZAM_OpTemplate::GenAssignOpValCore(const OCVec& oc, const string& orig_eval, const string& accessor,
                                         bool is_managed) {
-    auto v = GetAssignVal();
+    const auto& v = GetAssignVal();
 
     // Maps Zeek types to how to get the underlying value from a ValPtr.
     static unordered_map<string, string> val_accessors = {
@@ -1040,7 +1047,7 @@ void ZAM_OpTemplate::GenAssignOpValCore(const OCVec& oc, const string& orig_eval
         {"Record", "->AsRecordVal()"}, {"Type", "->AsTypeVal()"},
     };
 
-    auto val_accessor = val_accessors[accessor];
+    const auto& val_accessor = val_accessors[accessor];
 
     string rhs;
     if ( IsInternalOp() )
@@ -1407,17 +1414,15 @@ void ZAM_ExprOpTemplate::GenMethodTest(ZAM_Type et1, ZAM_Type et2, const string&
     if ( if_tests.count(et1) == 0 || if_tests.count(et2) == 0 )
         Gripe("bad op-type");
 
-    auto if_test1 = if_tests[et1];
-    auto if_var1 = if_test1.first + "1";
-    auto if_val1 = if_test1.second;
+    const auto& [var, val] = if_tests[et1];
+    auto if_var1 = var + "1";
 
-    string test = if_var1 + " == " + if_val1;
+    string test = if_var1 + " == " + val;
 
     if ( Arity() > 1 ) {
-        auto if_test2 = if_tests[et2];
-        auto if_var2 = if_test2.first + "2";
-        auto if_val2 = if_test2.second;
-        test = test + " && " + if_var2 + " == " + if_val2;
+        const auto& [var2, val2] = if_tests[et2];
+        auto if_var2 = var2 + "2";
+        test = test + " && " + if_var2 + " == " + val2;
     }
 
     test = "if ( " + test + " )";
@@ -2032,7 +2037,7 @@ void ZAM_InternalOpTemplate::ParseCall(const string& line, const Words& words) {
     eval += "ZAM_PROFILE_PRE_CALL\n";
 
     if ( HasAssignVal() ) {
-        auto av = GetAssignVal();
+        const auto& av = GetAssignVal();
         eval += "auto " + av + " = " + func + "->Invoke(&args, f);\n";
         eval += "if ( ! " + av + " ) { ZAM_error = true; break; }\n";
 
@@ -2393,14 +2398,14 @@ bool ZAMGen::ParseTemplate() {
     if ( words.size() < 2 )
         Gripe("too few words at start of template", line);
 
-    auto op = words[0];
+    const auto& op = words[0];
 
     if ( op == "macro" ) {
         ReadMacro(line);
         return true;
     }
 
-    auto op_name = words[1];
+    const auto& op_name = words[1];
 
     // We track issues with the wrong number of template arguments
     // up front, to avoid mis-invoking constructors, but we don't

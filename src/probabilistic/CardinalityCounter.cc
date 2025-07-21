@@ -5,6 +5,7 @@
 #include <cinttypes>
 #include <cmath>
 #include <cstdint>
+#include <numbers>
 #include <utility>
 
 #include "zeek/Reporter.h"
@@ -13,7 +14,7 @@
 namespace zeek::probabilistic::detail {
 
 int CardinalityCounter::OptimalB(double error, double confidence) const {
-    double initial_estimate = 2 * (log(1.04) - log(error)) / log(2);
+    double initial_estimate = 2 * (log(1.04) - log(error)) / std::numbers::ln2;
     int answer = (int)floor(initial_estimate);
 
     // k is the number of standard deviations that we have to go to have
@@ -24,7 +25,7 @@ int CardinalityCounter::OptimalB(double error, double confidence) const {
     do {
         answer++;
         k = pow(2, (answer - initial_estimate) / 2);
-    } while ( erf(k / sqrt(2)) < confidence );
+    } while ( erf(k / std::numbers::sqrt2) < confidence );
 
     return answer;
 }

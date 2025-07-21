@@ -73,6 +73,13 @@ private:
 
     void DoReadyToPublishCallback(ReadyCallback cb) override;
 
+    // Inner thread helper methods.
+    using MultipartMessage = std::vector<zmq::message_t>;
+    void HandleInprocMessages(std::vector<MultipartMessage>& msgs);
+    void HandleLogMessages(const std::vector<MultipartMessage>& msgs);
+    void HandleXPubMessages(const std::vector<MultipartMessage>& msgs);
+    void HandleXSubMessages(const std::vector<MultipartMessage>& msgs);
+
     // Script level variables.
     std::string connect_xsub_endpoint;
     std::string connect_xpub_endpoint;

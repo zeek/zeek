@@ -162,7 +162,7 @@ void IPAddr::Mask(int top_bits_to_keep) {
     if ( res.quot < 4 )
         mask_bits[res.quot] = htonl(mask_bits[res.quot] & ~bit_mask32(32 - res.rem));
 
-    for ( unsigned int i = res.quot + 1; i < 4; ++i )
+    for ( size_t i = res.quot + 1; i < 4; ++i )
         mask_bits[i] = 0;
 
     uint32_t* p = reinterpret_cast<uint32_t*>(in6.s6_addr);
@@ -183,7 +183,7 @@ void IPAddr::ReverseMask(int top_bits_to_chop) {
     if ( res.quot < 4 )
         mask_bits[res.quot] = htonl(bit_mask32(32 - res.rem));
 
-    for ( unsigned int i = res.quot + 1; i < 4; ++i )
+    for ( size_t i = res.quot + 1; i < 4; ++i )
         mask_bits[i] = 0xffffffff;
 
     uint32_t* p = reinterpret_cast<uint32_t*>(in6.s6_addr);

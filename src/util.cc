@@ -832,7 +832,7 @@ void set_processing_status(const char* status, const char* reason) {
     auto write_str = [](int fd, const char* s) {
         int len = strlen(s);
         while ( len ) {
-            int n = write(fd, s, len);
+            ssize_t n = write(fd, s, len);
 
             if ( n < 0 && errno != EINTR && errno != EAGAIN )
                 // Ignore errors, as they're too difficult to
@@ -1882,7 +1882,7 @@ uint64_t calculate_unique_id(size_t pool) {
 
 bool safe_write(int fd, const char* data, int len) {
     while ( len > 0 ) {
-        int n = write(fd, data, len);
+        ssize_t n = write(fd, data, len);
 
         if ( n < 0 ) {
             if ( errno == EINTR )

@@ -8,26 +8,26 @@ Test::type_enum_C
 Test::type_enum_Undef
 Test::type_record_u, {
 [s] = [type_name=string, log=F, value=<uninitialized>, default_val=<uninitialized>],
-[u2] = [type_name=record , log=F, value=<uninitialized>, default_val=<uninitialized>],
-[b] = [type_name=bool, log=F, value=<uninitialized>, default_val=<uninitialized>]
+[b] = [type_name=bool, log=F, value=<uninitialized>, default_val=<uninitialized>],
+[u2] = [type_name=record , log=F, value=<uninitialized>, default_val=<uninitialized>]
 }
 Test::u
 Test::u2
 XYZ::type_record_sss, {
 [a] = [type_name=addr, log=F, value=<uninitialized>, default_val=<uninitialized>],
-[v] = [type_name=vector of string, log=F, value=<uninitialized>, default_val=<uninitialized>],
-[iv] = [type_name=interval, log=F, value=<uninitialized>, default_val=<uninitialized>],
-[t] = [type_name=time, log=F, value=<uninitialized>, default_val=<uninitialized>],
-[s] = [type_name=set[enum], log=F, value=<uninitialized>, default_val=<uninitialized>],
-[p] = [type_name=port, log=F, value=<uninitialized>, default_val=<uninitialized>],
 [b] = [type_name=string, log=F, value=<uninitialized>, default_val=<uninitialized>],
-[i] = [type_name=int, log=F, value=<uninitialized>, default_val=<uninitialized>],
-[o] = [type_name=string, log=F, value=<uninitialized>, default_val=<uninitialized>],
-[m] = [type_name=table[addr] of string, log=F, value=<uninitialized>, default_val=<uninitialized>],
-[u] = [type_name=record , log=F, value=<uninitialized>, default_val=<uninitialized>],
-[j] = [type_name=count, log=F, value=<uninitialized>, default_val=<uninitialized>],
 [e] = [type_name=enum, log=F, value=<uninitialized>, default_val=<uninitialized>],
-[r] = [type_name=double, log=F, value=<uninitialized>, default_val=<uninitialized>]
+[i] = [type_name=int, log=F, value=<uninitialized>, default_val=<uninitialized>],
+[iv] = [type_name=interval, log=F, value=<uninitialized>, default_val=<uninitialized>],
+[j] = [type_name=count, log=F, value=<uninitialized>, default_val=<uninitialized>],
+[m] = [type_name=table[addr] of string, log=F, value=<uninitialized>, default_val=<uninitialized>],
+[o] = [type_name=string, log=F, value=<uninitialized>, default_val=<uninitialized>],
+[p] = [type_name=port, log=F, value=<uninitialized>, default_val=<uninitialized>],
+[r] = [type_name=double, log=F, value=<uninitialized>, default_val=<uninitialized>],
+[s] = [type_name=set[enum], log=F, value=<uninitialized>, default_val=<uninitialized>],
+[t] = [type_name=time, log=F, value=<uninitialized>, default_val=<uninitialized>],
+[u] = [type_name=record , log=F, value=<uninitialized>, default_val=<uninitialized>],
+[v] = [type_name=vector of string, log=F, value=<uninitialized>, default_val=<uninitialized>]
 }
 type_record_u2, {
 [t] = [type_name=record , log=F, value=<uninitialized>, default_val=<uninitialized>]

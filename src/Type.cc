@@ -1213,7 +1213,12 @@ static string container_type_name(const Type* ft) {
 TableValPtr RecordType::GetRecordFieldsVal(const RecordVal* rv) const {
     static auto record_field = id::find_type<RecordType>("record_field");
     static auto record_field_table = id::find_type<TableType>("record_field_table");
-    auto rval = make_intrusive<TableVal>(record_field_table);
+
+    auto attrs = zeek::make_intrusive<detail::Attributes>(record_field_table,
+                                                          /*in_record=*/false,
+                                                          /*is_global=*/false);
+    attrs->AddAttr(make_intrusive<detail::Attr>(detail::ATTR_ORDERED));
+    auto rval = make_intrusive<TableVal>(record_field_table, std::move(attrs));
 
     for ( int i = 0; i < NumFields(); ++i ) {
         const auto& ft = GetFieldType(i);

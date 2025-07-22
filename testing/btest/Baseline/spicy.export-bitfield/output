@@ -2,14 +2,14 @@
 {
 [a] = [type_name=count, log=F, value=80, default_val=<uninitialized>, optional=T],
 [bf] = [type_name=record , log=F, value=[x1=79, y1=15, z1=4], default_val=<uninitialized>, optional=T],
+[x2] = [type_name=count, log=F, value=83, default_val=<uninitialized>, optional=T],
 [y2] = [type_name=count, log=F, value=3, default_val=<uninitialized>, optional=T],
 [z2] = [type_name=count, log=F, value=5, default_val=<uninitialized>, optional=T],
-[x2] = [type_name=count, log=F, value=83, default_val=<uninitialized>, optional=T],
 [b] = [type_name=count, log=F, value=84, default_val=<uninitialized>, optional=T]
 }
 {
-[z1] = [type_name=count, log=F, value=4, default_val=<uninitialized>, optional=F],
+[x1] = [type_name=count, log=F, value=79, default_val=<uninitialized>, optional=F],
 [y1] = [type_name=count, log=F, value=15, default_val=<uninitialized>, optional=F],
-[x1] = [type_name=count, log=F, value=79, default_val=<uninitialized>, optional=F]
+[z1] = [type_name=count, log=F, value=4, default_val=<uninitialized>, optional=F]
 }
 [a=80, bf=[x1=79, y1=15, z1=4], x2=83, y2=3, z2=5, b=84]

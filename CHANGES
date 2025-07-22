@@ -1,3 +1,7 @@
+8.0.0-dev.700 | 2025-07-22 11:40:19 -0700
+
+  * Update zeek-af_packet-plugin submodule to fix initialization [nomail] (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.698 | 2025-07-22 08:04:59 -0700
 
   * Return weird if a log line is over a configurable size limit (Tim Wojtulewicz, Corelight)

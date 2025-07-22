@@ -91,7 +91,10 @@ ZeroMQBackend::ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_pt
                                                "Number of published events dropped due to XPUB socket HWM.")),
       total_onloop_drops(
           zeek::telemetry_mgr->CounterInstance("zeek", "cluster_zeromq_onloop_drops", {},
-                                               "Number of received events dropped due to OnLoop queue full.")) {}
+                                               "Number of received events dropped due to OnLoop queue full.")),
+      total_msg_errors(
+          zeek::telemetry_mgr->CounterInstance("zeek", "cluster_zeromq_msg_errors", {},
+                                               "Number of events with the wrong number of message parts.")) {}
 
 ZeroMQBackend::~ZeroMQBackend() {
     try {
@@ -513,6 +516,7 @@ void ZeroMQBackend::HandleInprocMessages(std::vector<MultipartMessage>& msgs) {
         }
         else {
             ZEROMQ_THREAD_PRINTF("inproc: error: expected 2 or 4 parts, have %zu!\n", msg.size());
+            total_msg_errors->Inc();
         }
     }
 }
@@ -522,6 +526,7 @@ void ZeroMQBackend::HandleLogMessages(const std::vector<MultipartMessage>& msgs)
         // sender, format, type,  payload
         if ( msg.size() != 4 ) {
             ZEROMQ_THREAD_PRINTF("log: error: expected 4 parts, have %zu!\n", msg.size());
+            total_msg_errors->Inc();
             continue;
         }
 
@@ -540,6 +545,7 @@ void ZeroMQBackend::HandleXPubMessages(const std::vector<MultipartMessage>& msgs
     for ( const auto& msg : msgs ) {
         if ( msg.size() != 1 ) {
             ZEROMQ_THREAD_PRINTF("xpub: error: expected 1 part, have %zu!\n", msg.size());
+            total_msg_errors->Inc();
             continue;
         }
 
@@ -576,6 +582,7 @@ void ZeroMQBackend::HandleXSubMessages(const std::vector<MultipartMessage>& msgs
     for ( const auto& msg : msgs ) {
         if ( msg.size() != 4 ) {
             ZEROMQ_THREAD_PRINTF("xsub: error: expected 4 parts, have %zu!\n", msg.size());
+            total_msg_errors->Inc();
             continue;
         }
 

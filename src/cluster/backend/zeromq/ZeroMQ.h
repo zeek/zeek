@@ -140,6 +140,7 @@ private:
 
     zeek::telemetry::CounterPtr total_xpub_drops;   // events dropped due to XPUB socket hwm reached
     zeek::telemetry::CounterPtr total_onloop_drops; // events dropped due to onloop queue full
+    zeek::telemetry::CounterPtr total_msg_errors;   // messages with the wrong number of parts
 
     // Could rework to log-once-every X seconds if needed.
     double xpub_drop_last_warn_at = 0.0;

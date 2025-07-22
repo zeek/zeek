@@ -76,9 +76,9 @@ export {
 	## like to use that mode, make sure to set
 	## :zeek:see:`Management::Agent::listen_address` and
 	## :zeek:see:`Management::Agent::listen_port` as needed.
-	const controller = Broker::NetworkInfo(
-	    $address=Management::Controller::network_info()$address,
-	    $bound_port=Management::Controller::network_info()$bound_port) &redef;
+        const controller = Broker::NetworkInfo(
+            $address=Management::Controller::connect_network_info()$address,
+            $bound_port=Management::Controller::connect_network_info()$bound_port) &redef;
 
 	## An optional working directory for the agent. Agent and controller
 	## currently only log locally, not via the Zeek cluster's logger

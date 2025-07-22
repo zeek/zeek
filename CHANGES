@@ -1,3 +1,7 @@
+8.0.0-dev.698 | 2025-07-22 08:04:59 -0700
+
+  * Return weird if a log line is over a configurable size limit (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.693 | 2025-07-18 14:28:29 -0700
 
   * Add SQLite page_count and file_size metrics (Tim Wojtulewicz, Corelight)

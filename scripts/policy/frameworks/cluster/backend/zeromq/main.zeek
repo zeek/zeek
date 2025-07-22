@@ -136,7 +136,7 @@ export {
 	## Send high water mark value for the XPUB socket.
 	##
 	## Events published when the XPUB queue is full will be dropped and the
-	## `zeek_cluster_zeromq_xpub_drops_total`` metric incremented.
+	## ``zeek_cluster_zeromq_xpub_drops_total`` metric incremented.
 	##
 	## See ZeroMQ's `ZMQ_SNDHWM documentation <http://api.zeromq.org/4-2:zmq-setsockopt#toc46>`_
 	## for more details.
@@ -176,7 +176,7 @@ export {
 	## may starve packet processing.
 	##
 	## If more events are received than can fit the queue, these will be
-	## dropped and the `zeek_cluster_zeromq_onloop_drops_total`` metric
+	## dropped and the ``zeek_cluster_zeromq_onloop_drops_total`` metric
 	## incremented.
 	const onloop_queue_hwm = 10000 &redef;
 

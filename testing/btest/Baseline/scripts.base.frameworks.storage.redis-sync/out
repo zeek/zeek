@@ -14,7 +14,7 @@ Storage::backend_opened, Storage::STORAGE_BACKEND_REDIS, [serializer=Storage::ST
 
 Post-operation metrics:
 Telemetry::COUNTER, zeek, zeek_storage_backends_opened_total, [], [], 1.0
-Telemetry::COUNTER, zeek, zeek_storage_backend_data_read_bytes_total, [config, type], [server_addr-testing, Storage::STORAGE_BACKEND_REDIS], 102.0
+Telemetry::COUNTER, zeek, zeek_storage_backend_data_read_bytes_total, [config, type], [server_addr-testing, Storage::STORAGE_BACKEND_REDIS], 54.0
 Telemetry::COUNTER, zeek, zeek_storage_backend_expired_entries_total, [config, type], [server_addr-testing, Storage::STORAGE_BACKEND_REDIS], 0.0
 Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config, operation, result, type], [server_addr-testing, erase, error, Storage::STORAGE_BACKEND_REDIS], 0.0
 Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config, operation, result, type], [server_addr-testing, erase, fail, Storage::STORAGE_BACKEND_REDIS], 0.0
@@ -28,6 +28,6 @@ Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config,
 Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config, operation, result, type], [server_addr-testing, put, fail, Storage::STORAGE_BACKEND_REDIS], 1.0
 Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config, operation, result, type], [server_addr-testing, put, success, Storage::STORAGE_BACKEND_REDIS], 2.0
 Telemetry::COUNTER, zeek, zeek_storage_backend_operation_results_total, [config, operation, result, type], [server_addr-testing, put, timeout, Storage::STORAGE_BACKEND_REDIS], 0.0
-Telemetry::COUNTER, zeek, zeek_storage_backend_data_written_bytes_total, [config, type], [server_addr-testing, Storage::STORAGE_BACKEND_REDIS], 54.0
+Telemetry::COUNTER, zeek, zeek_storage_backend_data_written_bytes_total, [config, type], [server_addr-testing, Storage::STORAGE_BACKEND_REDIS], 102.0
 
 Storage::backend_lost, Storage::STORAGE_BACKEND_REDIS, [serializer=Storage::STORAGE_SERIALIZER_JSON, forced_sync=F, redis=[server_host=127.0.0.1, server_port=XXXX/tcp, server_unix_socket=<uninitialized>, key_prefix=testing, connect_timeout=5.0 secs, operation_timeout=5.0 secs, username=<uninitialized>, password=<uninitialized>]], Client disconnected

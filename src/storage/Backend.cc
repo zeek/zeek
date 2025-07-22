@@ -260,12 +260,12 @@ void Backend::InitMetrics() {
     erase_metrics =
         std::make_unique<detail::OperationMetrics>(results_family, latency_family, "erase", Tag(), metrics_config);
 
-    bytes_read_metric = telemetry_mgr->CounterInstance("zeek", "storage_backend_data_written",
-                                                       {{"type", Tag()}, {"config", metrics_config}},
-                                                       "Storage data written to backend", "bytes");
-    bytes_written_metric = telemetry_mgr->CounterInstance("zeek", "storage_backend_data_read",
+    bytes_written_metric = telemetry_mgr->CounterInstance("zeek", "storage_backend_data_written",
                                                           {{"type", Tag()}, {"config", metrics_config}},
-                                                          "Storage data read from backend", "bytes");
+                                                          "Storage data written to backend", "bytes");
+    bytes_read_metric = telemetry_mgr->CounterInstance("zeek", "storage_backend_data_read",
+                                                       {{"type", Tag()}, {"config", metrics_config}},
+                                                       "Storage data read from backend", "bytes");
 
     expired_entries_metric = telemetry_mgr->CounterInstance("zeek", "storage_backend_expired_entries",
                                                             {{"type", Tag()}, {"config", metrics_config}},

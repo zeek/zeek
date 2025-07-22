@@ -3,6 +3,9 @@
 module Storage;
 
 export {
+	# Default value for the BackendOptions::forced_sync field.
+	const default_forced_sync: bool = F &redef;
+
 	## Base record for backend options that can be passed to
 	## :zeek:see:`Storage::Async::open_backend` and
 	## :zeek:see:`Storage::Sync::open_backend`. Backend plugins can redef this record
@@ -10,6 +13,11 @@ export {
 	type BackendOptions: record {
 		## The serializer used for converting Zeek data.
 		serializer: Storage::Serializer &default=Storage::STORAGE_SERIALIZER_JSON;
+
+		## Sets the backend into forced-synchronous mode. All operations will run
+		## in synchronous mode, even if the async functions are called.  This
+		## should generally only be set to ``T`` during testing.
+		forced_sync : bool &default=Storage::default_forced_sync;
 	};
 
 	## Record for passing arguments to :zeek:see:`Storage::Async::put` and

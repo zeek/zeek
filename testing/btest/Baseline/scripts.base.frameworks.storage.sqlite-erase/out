@@ -2,7 +2,7 @@
 open result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<opaque of BackendHandleVal>]
 erase result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<uninitialized>]
 get result, [code=Storage::KEY_NOT_FOUND, error_str=<uninitialized>, value=<uninitialized>]
-Storage::backend_opened, Storage::STORAGE_BACKEND_SQLITE, [serializer=Storage::STORAGE_SERIALIZER_JSON, sqlite=[database_path=storage-test.sqlite, table_name=testing, busy_timeout=5.0 secs, pragma_commands={
+Storage::backend_opened, Storage::STORAGE_BACKEND_SQLITE, [serializer=Storage::STORAGE_SERIALIZER_JSON, forced_sync=F, sqlite=[database_path=storage-test.sqlite, table_name=testing, busy_timeout=5.0 secs, pragma_commands={
 [integrity_check] = ,
 [journal_mode] = WAL,
 [synchronous] = normal,

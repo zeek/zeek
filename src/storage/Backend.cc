@@ -127,6 +127,8 @@ OperationResult Backend::Open(OpenResultCallback* cb, RecordValPtr options, Type
     val_type = std::move(vt);
     backend_options = options;
 
+    forced_sync = options->GetField<BoolVal>("forced_sync")->Get();
+
     auto stype = options->GetField<EnumVal>("serializer");
     zeek::Tag stag{stype};
 

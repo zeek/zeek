@@ -22,3 +22,18 @@ function Storage::is_open%(backend: opaque of Storage::BackendHandle%) : bool
 	auto b = storage::detail::BackendHandleVal::CastFromAny(backend);
 	return zeek::val_mgr->Bool(b.has_value());
 	%}
+
+## Checks whether a storage backend was opened in forced-synchronous mode.
+##
+## backend: A handle to the backend to check.
+##
+## Returns: T if the forced_synchronous option was set to T, F otherwise or if the
+##          handle is invalid.
+function Storage::is_forced_sync%(backend: opaque of Storage::BackendHandle%) : bool
+	%{
+	auto b = storage::detail::BackendHandleVal::CastFromAny(backend);
+	if ( ! b.has_value() )
+		return zeek::val_mgr->Bool(false);
+
+	return zeek::val_mgr->Bool(b.value()->backend->IsForcedSync());
+	%}

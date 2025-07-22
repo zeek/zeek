@@ -63,7 +63,7 @@ private:
 
 	int socket_fd = -1;
 	RX_Ring *rx_ring = nullptr;
-	struct pcap_pkthdr current_hdr = {0};
+	struct pcap_pkthdr current_hdr = {};
 
 	struct InterfaceInfo {
 		int index = -1;

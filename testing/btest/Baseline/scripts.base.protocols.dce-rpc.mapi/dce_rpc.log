@@ -5,7 +5,7 @@
 #unset_field	-
 #path	dce_rpc
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	rtt	named_pipe	endpoint	operation
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	rtt	sec_addr	endpoint	operation
 #types	time	string	addr	port	addr	port	interval	string	string	string
 XXXXXXXXXX.XXXXXX	CmES5u32sYpV7JYN	192.168.0.173	1066	192.168.0.2	135	0.000375	135	epmapper	ept_map
 XXXXXXXXXX.XXXXXX	CP5puj4I8PtEU4qzYg	192.168.0.173	1067	192.168.0.2	4997	0.000749	4997	nspi	NspiBind

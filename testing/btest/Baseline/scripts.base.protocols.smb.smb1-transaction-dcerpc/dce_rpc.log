@@ -5,7 +5,7 @@
 #unset_field	-
 #path	dce_rpc
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	rtt	named_pipe	endpoint	operation
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	rtt	sec_addr	endpoint	operation
 #types	time	string	addr	port	addr	port	interval	string	string	string
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	205.227.227.226	49467	205.227.227.243	445	0.002138	\\PIPE\\lsass	dssetup	DsRolerGetPrimaryDomainInformation
 #close XXXX-XX-XX-XX-XX-XX

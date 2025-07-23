@@ -38,9 +38,10 @@ connection {
         * endpoint: string, log=T, optional=T
         * id: record conn_id, log=T, optional=F
             conn_id { ... }
-        * named_pipe: string, log=T, optional=T
+        * named_pipe: string, log=F, optional=T
         * operation: string, log=T, optional=T
         * rtt: interval, log=T, optional=T
+        * sec_addr: string, log=T, optional=T
         * ts: time, log=T, optional=F
         * uid: string, log=T, optional=F
        }
@@ -52,6 +53,7 @@ connection {
             DCE_RPC::State {
               * ctx_to_uuid: table[count] of string, log=F, optional=T
               * named_pipe: string, log=F, optional=T
+              * sec_addr: string, log=F, optional=T
               * uuid: string, log=F, optional=T
              }
        }

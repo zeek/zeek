@@ -5,7 +5,7 @@
 #unset_field	-
 #path	dce_rpc
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	rtt	named_pipe	endpoint	operation
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	rtt	sec_addr	endpoint	operation
 #types	time	string	addr	port	addr	port	interval	string	string	string
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	10.10.10.121	58774	10.10.10.100	49676	0.000758	49676	netlogon	NetrLogonSamLogonWithFlags
 #close XXXX-XX-XX-XX-XX-XX

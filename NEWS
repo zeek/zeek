@@ -12,6 +12,19 @@ release.
 Breaking Changes
 ----------------
 
+- The ``named_pipe`` field in ``dce_rpc.log`` was renamed to ``sec_addr`` to better
+  reflect the generic meaning of the field in DCE-RPC (it can be a port number, too).
+
+  The ``named_pipe`` field continues to exist on the ``DCE_RPC::Info`` record, but
+  will be removed with Zeek 8.1.
+
+  This might break your data pipeline. It's possible to re-instantiate the logging
+  of the ``named_pipe`` field with the following snippet:
+
+	redef record DCE_RPC::Info$named_pipe += { &log };
+
+  Not that this will stop working with Zeek 8.1.
+
 - Zeek and all of its associated submodules now require C++20-capable compilers to
   build. This will let us move forward in using more modern C++ features and replace some
   workarounds that we have been carrying. Minimum recommended versions of compilers are

@@ -5,7 +5,7 @@
 #unset_field	-
 #path	dce_rpc
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	rtt	named_pipe	endpoint	operation
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	rtt	sec_addr	endpoint	operation
 #types	time	string	addr	port	addr	port	interval	string	string	string
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.122.145	55614	192.168.122.3	1024	0.005544	\\PIPE\\drsuapi	drsuapi	DRSBind
 XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.122.145	55614	192.168.122.3	1024	0.000788	\\PIPE\\drsuapi	drsuapi	DRSCrackNames

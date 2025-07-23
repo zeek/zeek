@@ -21,7 +21,9 @@ export {
 		rtt        : interval &log &optional;
 
 		## Remote pipe name.
-		named_pipe : string   &log &optional;
+		named_pipe : string        &optional &deprecated="Remove in v8.1: Use sec_addr instead.";
+		## Secondary address, previously named named_pipe.
+		sec_addr   : string   &log &optional;
 		## Endpoint name looked up from the uuid.
 		endpoint   : string   &log &optional;
 		## Operation seen in the call.
@@ -38,7 +40,8 @@ export {
 
 	type State: record {
 		uuid       : string &optional;
-		named_pipe : string &optional;
+		named_pipe : string &optional &deprecated="Remove in v8.1: Use sec_addr.";
+		sec_addr   : string &optional;
 		ctx_to_uuid: table[count] of string &optional;
 	};
 
@@ -86,8 +89,14 @@ function set_state(c: connection, state_x: BackingState)
 
 	if ( c$dce_rpc_state?$uuid )
 		c$dce_rpc$endpoint = uuid_endpoint_map[c$dce_rpc_state$uuid];
+
+@pragma push ignore-deprecations
 	if ( c$dce_rpc_state?$named_pipe )
 		c$dce_rpc$named_pipe = c$dce_rpc_state$named_pipe;
+@pragma pop ignore-deprecations
+
+	if ( c$dce_rpc_state?$sec_addr )
+		c$dce_rpc$sec_addr = c$dce_rpc_state$sec_addr;
 	}
 
 function set_session(c: connection, fid: count)
@@ -142,8 +151,13 @@ event dce_rpc_bind_ack(c: connection, fid: count, sec_addr: string) &priority=5
 
 	if ( sec_addr != "" )
 		{
+@pragma push ignore-deprecations
 		c$dce_rpc_state$named_pipe = sec_addr;
 		c$dce_rpc$named_pipe = sec_addr;
+@pragma pop ignore-deprecations
+
+		c$dce_rpc_state$sec_addr = sec_addr;
+		c$dce_rpc$sec_addr = sec_addr;
 		}
 	}
 
@@ -169,9 +183,9 @@ event dce_rpc_response(c: connection, fid: count, ctx_id: count, opnum: count, s
 	# In the event that the binding wasn't seen, but the pipe
 	# name is known, go ahead and see if we have a pipe name to
 	# uuid mapping...
-	if ( ! c$dce_rpc?$endpoint && c$dce_rpc?$named_pipe )
+	if ( ! c$dce_rpc?$endpoint && c$dce_rpc?$sec_addr )
 		{
-		local npn = normalize_named_pipe_name(c$dce_rpc$named_pipe);
+		local npn = normalize_named_pipe_name(c$dce_rpc$sec_addr );
 		if ( npn in pipe_name_to_common_uuid )
 			{
 			c$dce_rpc_state$uuid = pipe_name_to_common_uuid[npn];
@@ -246,9 +260,9 @@ hook finalize_dce_rpc(c: connection)
 		# In the event that the binding wasn't seen, but the pipe
 		# name is known, go ahead and see if we have a pipe name to
 		# uuid mapping...
-		if ( ! c$dce_rpc?$endpoint && c$dce_rpc?$named_pipe )
+		if ( ! c$dce_rpc?$endpoint && c$dce_rpc?$sec_addr )
 			{
-			local npn = normalize_named_pipe_name(c$dce_rpc$named_pipe);
+			local npn = normalize_named_pipe_name(c$dce_rpc$sec_addr );
 			if ( npn in pipe_name_to_common_uuid )
 				{
 				c$dce_rpc_state$uuid = pipe_name_to_common_uuid[npn];

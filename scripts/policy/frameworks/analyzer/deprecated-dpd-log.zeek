@@ -49,7 +49,7 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 	local analyzer = Analyzer::name(atype);
 	# If the service hasn't been confirmed yet, or already failed,
 	# don't generate a log message for the protocol violation.
-	if ( analyzer !in c$service || analyzer in c$service_violation )
+	if ( analyzer !in c$service )
 		return;
 
 	local dpd: Info;

@@ -25,10 +25,6 @@ export {
 }
 
 redef record connection += {
-	## The set of services (analyzers) for which Zeek has observed a
-	## violation after the same service had previously been confirmed.
-	service_violation: set[string] &default=set() &ordered &deprecated="Remove in v8.1. Consider using failed_analyzers instead";
-
 	## The set of prototol analyzers that were removed due to a protocol
 	## violation after the same analyzer had previously been confirmed.
 	failed_analyzers: set[string] &default=set() &ordered;

@@ -43,7 +43,7 @@ void ZAMCompiler::Init() {
 
     TrackMemoryManagement();
 
-    non_recursive = non_recursive_funcs.count(func.get()) > 0;
+    non_recursive = non_recursive_funcs.contains(func.get());
 }
 
 void ZAMCompiler::InitGlobals() {
@@ -92,7 +92,7 @@ void ZAMCompiler::InitLocals() {
         if ( IsCapture(l) )
             continue;
 
-        if ( pf->WhenLocals().count(l) > 0 )
+        if ( pf->WhenLocals().contains(l) )
             continue;
 
         auto non_const_l = const_cast<ID*>(l);

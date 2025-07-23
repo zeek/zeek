@@ -136,7 +136,7 @@ public:
 
     // Returns true if at least one of the function bodies associated with
     // the function/hook/event handler of the given fname is not compilable.
-    bool NotFullyCompilable(const std::string& fname) const { return not_fully_compilable.count(fname) > 0; }
+    bool NotFullyCompilable(const std::string& fname) const { return not_fully_compilable.contains(fname); }
 
 private:
 #include "zeek/script_opt/CPP/Attrs.h"

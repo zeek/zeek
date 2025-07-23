@@ -43,7 +43,7 @@ function bloomfilter_basic_init%(fp: double, capacity: count,
 	size_t cells = zeek::probabilistic::BasicBloomFilter::M(fp, capacity);
 	size_t optimal_k = zeek::probabilistic::BasicBloomFilter::K(cells, capacity);
 	zeek::probabilistic::detail::Hasher::seed_t seed =
-		zeek::probabilistic::detail::Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0, name->Len());
+		zeek::probabilistic::detail::Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : nullptr, name->Len());
 	const zeek::probabilistic::detail::Hasher* h = new zeek::probabilistic::detail::DoubleHasher(optimal_k, seed);
 
 	return zeek::make_intrusive<zeek::BloomFilterVal>(new zeek::probabilistic::BasicBloomFilter(h, cells));
@@ -83,7 +83,7 @@ function bloomfilter_basic_init2%(k: count, cells: count,
 		}
 
 	zeek::probabilistic::detail::Hasher::seed_t seed =
-		zeek::probabilistic::detail::Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0, name->Len());
+		zeek::probabilistic::detail::Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : nullptr, name->Len());
 	const zeek::probabilistic::detail::Hasher* h = new zeek::probabilistic::detail::DoubleHasher(k, seed);
 
 	return zeek::make_intrusive<zeek::BloomFilterVal>(new zeek::probabilistic::BasicBloomFilter(h, cells));
@@ -122,7 +122,7 @@ function bloomfilter_counting_init%(k: count, cells: count, max: count,
 		}
 
 	zeek::probabilistic::detail::Hasher::seed_t seed =
-		zeek::probabilistic::detail::Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : 0, name->Len());
+		zeek::probabilistic::detail::Hasher::MakeSeed(name->Len() > 0 ? name->Bytes() : nullptr, name->Len());
 
 	const zeek::probabilistic::detail::Hasher* h = new zeek::probabilistic::detail::DefaultHasher(k, seed);
 

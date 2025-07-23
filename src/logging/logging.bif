@@ -122,7 +122,7 @@ function Log::__delay_finish%(id: Log::ID, rec: any, token: Log::DelayToken%): b
         if ( ! idptr || ! recptr )
                 return zeek::val_mgr->Bool(false);
 
-        bool result = zeek::log_mgr->DelayFinish(std::move(idptr), std::move(recptr), {zeek::NewRef{}, token});
+        bool result = zeek::log_mgr->DelayFinish(idptr, recptr, {zeek::NewRef{}, token});
         return zeek::val_mgr->Bool(result);
         %}
 

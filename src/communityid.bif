@@ -17,8 +17,8 @@ function community_id_v1%(cid: conn_id, seed: count &default=0, do_base64: bool 
     const auto *cid_rec = cid->AsRecordVal();
 
     uint16_t hash_seed = htons(seed);
-    const uint32_t *hash_src_addr = 0;
-    const uint32_t *hash_dst_addr = 0;
+    const uint32_t* hash_src_addr = nullptr;
+    const uint32_t* hash_dst_addr = nullptr;
     uint8_t hash_proto = 0;
     uint8_t hash_padbyte = 0;
     uint16_t hash_src_port = 0;
@@ -129,10 +129,10 @@ function community_id_v1%(cid: conn_id, seed: count &default=0, do_base64: bool 
     // We currently have no real versioning/hash configuration logic,
     // so we simply prefix "1:" to the hash.
     std::string ver("1:");
-    zeek::String *res = 0;
+    zeek::String* res = nullptr;
 
     if (do_base64) {
-        char *outbuf = 0;
+        char* outbuf = nullptr;
         int outlen = 0;
 
         zeek::detail::Base64Converter enc{nullptr};

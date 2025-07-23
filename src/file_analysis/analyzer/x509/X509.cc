@@ -246,7 +246,7 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f) {
 
 X509_STORE* X509::GetRootStore(TableVal* root_certs) {
     // If this certificate store was built previously, just reuse the old one.
-    if ( x509_stores.count(root_certs) > 0 )
+    if ( x509_stores.contains(root_certs) )
         return x509_stores[root_certs];
 
     X509_STORE* ctx = X509_STORE_new();

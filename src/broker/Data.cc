@@ -1072,7 +1072,7 @@ bool SetIterator::DoUnserializeData(BrokerDataView data) {
     // This is not perfect, as there's no guarantee that the restored
     // container will list the elements in the same order. But it's as
     // good as we can do, and it should generally work out.
-    if ( x->find((*v)[1]) == x->end() )
+    if ( ! x->contains((*v)[1]) )
         return false;
 
     dat = *x;
@@ -1097,7 +1097,7 @@ bool TableIterator::DoUnserializeData(BrokerDataView data) {
     // This is not perfect, as there's no guarantee that the restored
     // container will list the elements in the same order. But it's as
     // good as we can do, and it should generally work out.
-    if ( x->find((*v)[1]) == x->end() )
+    if ( ! x->contains((*v)[1]) )
         return false;
 
     dat = *x;

@@ -49,7 +49,7 @@ bool IRC_Analyzer::IsValidClientCommand(const std::string& command) {
          "SETNAME", "SILENCE",  "SQUERY",  "SQUIT",    "STATS",   "SUMMON", "TIME",    "TOPIC",    "TRACE",
          "USER",    "USERHOST", "USERS",   "VERSION",  "WALLOPS", "WHO",    "WHOIS",   "WHOWAS",   "STARTTLS"};
 
-    return validCommands.find(command) != validCommands.end();
+    return validCommands.contains(command);
 }
 
 void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {

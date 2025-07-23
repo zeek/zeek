@@ -22,7 +22,7 @@ bool ZAMCompiler::IsUnused(const IDPtr& id, const Stmt* where) const {
 
 bool ZAMCompiler::IsCapture(const ID* id) const {
     const auto& c = pf->CapturesOffsets();
-    return c.find(id) != c.end();
+    return c.contains(id);
 }
 
 int ZAMCompiler::CaptureOffset(const ID* id) const {
@@ -143,7 +143,7 @@ int ZAMCompiler::RawSlot(const ID* id) {
     return id_slot->second;
 }
 
-bool ZAMCompiler::HasFrameSlot(const ID* id) const { return frame_layout1.find(id) != frame_layout1.end(); }
+bool ZAMCompiler::HasFrameSlot(const ID* id) const { return frame_layout1.contains(id); }
 
 int ZAMCompiler::NewSlot(bool is_managed) {
     char buf[8192];

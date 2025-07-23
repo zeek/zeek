@@ -1,3 +1,20 @@
+8.0.0-dev.713 | 2025-07-23 19:31:13 +0200
+
+  * NEWS: ZeekControl, ZeroMQ and WebSocket (Arne Welzel, Corelight)
+
+  * Update zeekctl module for ClusterBackend and UseWebSocket (Arne Welzel, Corelight)
+
+  * control: Use Cluster::publish() for replying (Arne Welzel, Corelight)
+
+    Switching to ZeroMQ as cluster backend and dabbling with zeekctl
+    and WebSocket, replies didn't arrive due to the usage of
+    Broker::publish() rather than Cluster::publish(). Additionally,
+    add the node name to the topic on which we reply so that the
+    receiver can figure out which node sent the reply. It could've
+    been a separate event parameter, but the topic appears just fine.
+
+  * Fix clang-tidy findings in embedded C++ from bif files (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.707 | 2025-07-23 08:21:17 -0700
 
   * CI: Add weekly task for running builds with newest compilers (Tim Wojtulewicz, Corelight)

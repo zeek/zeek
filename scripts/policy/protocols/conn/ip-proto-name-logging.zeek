@@ -12,8 +12,6 @@ redef record Info += {
 };
 
 event new_connection(c: connection) &priority=5 {
-	# In case we're the first access
-	Conn::set_conn(c, F);
 	if ( c$conn?$ip_proto && c$conn$ip_proto in IP::protocol_names )
 		c$conn$ip_proto_name = IP::protocol_names[c$conn$ip_proto];
 }

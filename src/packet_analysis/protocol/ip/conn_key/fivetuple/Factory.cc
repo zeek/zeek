@@ -5,6 +5,7 @@
 #include "zeek/Desc.h"
 #include "zeek/IP.h"
 #include "zeek/Val.h"
+#include "zeek/packet_analysis/protocol/icmp/ICMP.h"
 #include "zeek/packet_analysis/protocol/ip/conn_key/IPBasedConnKey.h"
 #include "zeek/util-types.h"
 
@@ -43,12 +44,19 @@ zeek::expected<zeek::ConnKeyPtr, std::string> Factory::DoConnKeyFromVal(const ze
     const auto& protov = vl->GetField<CountVal>(proto);
     auto proto16_t = static_cast<uint16_t>(protov->AsCount());
 
-    if ( proto16_t == UNKNOWN_IP_PROTO )
+    bool is_one_way = false;
+
+    // For ICMP connections, ensure we have a proper is_one_way flag.
+    if ( proto16_t == IPPROTO_ICMP )
+        packet_analysis::ICMP::ICMP4_counterpart(ntohs(orig_portv->Port()), ntohs(resp_portv->Port()), is_one_way);
+    else if ( proto16_t == IPPROTO_ICMPV6 )
+        packet_analysis::ICMP::ICMP6_counterpart(ntohs(orig_portv->Port()), ntohs(resp_portv->Port()), is_one_way);
+    else if ( proto16_t == UNKNOWN_IP_PROTO )
         return zeek::unexpected<std::string>(
             "invalid connection ID record encountered: the proto field has the \"unknown\" 65535 value. "
             "Did you forget to set it?");
 
-    ick->InitTuple(orig_addr, htons(orig_portv->Port()), resp_addr, htons(resp_portv->Port()), proto16_t);
+    ick->InitTuple(orig_addr, htons(orig_portv->Port()), resp_addr, htons(resp_portv->Port()), proto16_t, is_one_way);
 
     return ck;
 }

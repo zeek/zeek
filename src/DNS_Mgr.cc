@@ -473,20 +473,20 @@ void DNS_Mgr::Done() {
 }
 
 void DNS_Mgr::RegisterSocket(int fd, bool read, bool write) {
-    if ( read && socket_fds.count(fd) == 0 ) {
+    if ( read && ! socket_fds.contains(fd) ) {
         socket_fds.insert(fd);
         iosource_mgr->RegisterFd(fd, this, IOSource::READ);
     }
-    else if ( ! read && socket_fds.count(fd) != 0 ) {
+    else if ( ! read && socket_fds.contains(fd) ) {
         socket_fds.erase(fd);
         iosource_mgr->UnregisterFd(fd, this, IOSource::READ);
     }
 
-    if ( write && write_socket_fds.count(fd) == 0 ) {
+    if ( write && ! write_socket_fds.contains(fd) ) {
         write_socket_fds.insert(fd);
         iosource_mgr->RegisterFd(fd, this, IOSource::WRITE);
     }
-    else if ( ! write && write_socket_fds.count(fd) != 0 ) {
+    else if ( ! write && write_socket_fds.contains(fd) ) {
         write_socket_fds.erase(fd);
         iosource_mgr->UnregisterFd(fd, this, IOSource::WRITE);
     }
@@ -1323,7 +1323,7 @@ double DNS_Mgr::GetNextTimeout() {
 }
 
 void DNS_Mgr::ProcessFd(int fd, int flags) {
-    if ( socket_fds.count(fd) != 0 ) {
+    if ( socket_fds.contains(fd) ) {
         int read_fd = (flags & IOSource::ProcessFlags::READ) != 0 ? fd : ARES_SOCKET_BAD;
         int write_fd = (flags & IOSource::ProcessFlags::WRITE) != 0 ? fd : ARES_SOCKET_BAD;
         ares_process_fd(channel, read_fd, write_fd);

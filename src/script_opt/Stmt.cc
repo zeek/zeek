@@ -771,7 +771,7 @@ static unsigned int find_rec_assignment_chain(const std::vector<StmtPtr>& stmts,
             return i;
 
         auto lhs_field = lhs->AsFieldExpr()->Field();
-        if ( fields_seen.count(lhs_field) > 0 )
+        if ( fields_seen.contains(lhs_field) )
             // Earlier in this chain we've already seen "x$a", so end the
             // chain at this repeated use because it's no longer a simple
             // block of field assignments.
@@ -925,7 +925,7 @@ static bool simplify_chain(const std::vector<StmtPtr>& stmts, unsigned int start
 
     // At this point, chain_stmts has only the remainders that weren't removed.
     for ( auto s : stmts )
-        if ( chain_stmts.count(s.get()) > 0 )
+        if ( chain_stmts.contains(s.get()) )
             f_stmts.push_back(std::move(s));
 
     return true;
@@ -1106,7 +1106,7 @@ bool WhenInfo::HasUnreducedIDs(Reducer* c) const {
     for ( auto& cp : *cl ) {
         const auto& cid = cp.Id();
 
-        if ( when_new_locals.count(cid.get()) == 0 && ! c->ID_IsReduced(cp.Id()) )
+        if ( ! when_new_locals.contains(cid.get()) && ! c->ID_IsReduced(cp.Id()) )
             return true;
     }
 
@@ -1120,7 +1120,7 @@ bool WhenInfo::HasUnreducedIDs(Reducer* c) const {
 void WhenInfo::UpdateIDs(Reducer* c) {
     for ( auto& cp : *cl ) {
         auto& cid = cp.Id();
-        if ( when_new_locals.count(cid.get()) == 0 )
+        if ( ! when_new_locals.contains(cid.get()) )
             cp.SetID(c->UpdateID(cid));
     }
 

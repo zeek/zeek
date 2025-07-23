@@ -26,7 +26,7 @@ public:
     TraversalCode PostExpr(const Expr*) override;
 
     TraversalCode PreType(const Type* t) override {
-        if ( types_seen.count(t) > 0 )
+        if ( types_seen.contains(t) )
             return TC_ABORTSTMT;
         types_seen.insert(t);
         return TC_CONTINUE;

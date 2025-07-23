@@ -83,9 +83,9 @@ public:
     bool IsNewLocal(const ID* id) const;
 
     bool IsTemporary(const ID* id) const { return FindTemporary(id) != nullptr; }
-    bool IsParamTemp(const ID* id) const { return param_temps.count(id) > 0; }
+    bool IsParamTemp(const ID* id) const { return param_temps.contains(id); }
 
-    bool IsConstantVar(const ID* id) const { return constant_vars.find(id) != constant_vars.end(); }
+    bool IsConstantVar(const ID* id) const { return constant_vars.contains(id); }
 
     // True if the Reducer is being used in the context of a second
     // pass over for AST optimization.
@@ -97,7 +97,7 @@ public:
 
     // A predicate that returns true if the given statement should
     // be removed due to AST optimization.
-    bool ShouldOmitStmt(const Stmt* s) const { return omitted_stmts.find(s) != omitted_stmts.end(); }
+    bool ShouldOmitStmt(const Stmt* s) const { return omitted_stmts.contains(s); }
 
     // Provides a replacement for the given statement due to
     // AST optimization, or nil if there's no replacement.

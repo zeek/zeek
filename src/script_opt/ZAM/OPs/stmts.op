@@ -118,7 +118,7 @@ eval	static auto any_val = ZVal();
 macro EvalSwitchBody(index, branch, cases, postscript)
 	{
 	auto t = cases[index];
-	if ( t.find(v) == t.end() )
+	if ( ! t.contains(v) )
 		pc = branch;
 	else
 		pc = t[v];

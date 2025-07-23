@@ -55,7 +55,7 @@ EventHandler* EventRegistry::Lookup(std::string_view name) {
 }
 
 bool EventRegistry::NotOnlyRegisteredFromScript(std::string_view name) {
-    return not_only_from_script.count(std::string(name)) > 0;
+    return not_only_from_script.contains(std::string(name));
 }
 
 EventRegistry::string_list EventRegistry::Match(RE_Matcher* pattern) {
@@ -174,12 +174,12 @@ namespace {
 class EventMetadataTypeRejector : public detail::TraversalCallback {
 public:
     detail::TraversalCode PreType(const Type* t) override {
-        if ( visited.count(t) > 0 )
+        if ( visited.contains(t) )
             return detail::TC_ABORTSTMT;
 
         visited.insert(t);
 
-        if ( reject.count(t->Tag()) )
+        if ( reject.contains(t->Tag()) )
             rejected.push_back(t);
 
         return detail::TC_CONTINUE;

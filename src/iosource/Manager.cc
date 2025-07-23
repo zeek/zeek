@@ -247,13 +247,13 @@ bool Manager::RegisterFd(int fd, IOSource* src, int flags) {
     std::vector<struct kevent> new_events;
 
     if ( (flags & IOSource::READ) != 0 ) {
-        if ( fd_map.count(fd) == 0 ) {
+        if ( ! fd_map.contains(fd) ) {
             new_events.push_back({});
             EV_SET(&(new_events.back()), fd, EVFILT_READ, EV_ADD, 0, 0, nullptr);
         }
     }
     if ( (flags & IOSource::WRITE) != 0 ) {
-        if ( write_fd_map.count(fd) == 0 ) {
+        if ( ! write_fd_map.contains(fd) ) {
             new_events.push_back({});
             EV_SET(&(new_events.back()), fd, EVFILT_WRITE, EV_ADD, 0, 0, nullptr);
         }
@@ -287,13 +287,13 @@ bool Manager::UnregisterFd(int fd, IOSource* src, int flags) {
     std::vector<struct kevent> new_events;
 
     if ( (flags & IOSource::READ) != 0 ) {
-        if ( fd_map.count(fd) != 0 ) {
+        if ( fd_map.contains(fd) ) {
             new_events.push_back({});
             EV_SET(&(new_events.back()), fd, EVFILT_READ, EV_DELETE, 0, 0, nullptr);
         }
     }
     if ( (flags & IOSource::WRITE) != 0 ) {
-        if ( write_fd_map.count(fd) != 0 ) {
+        if ( write_fd_map.contains(fd) ) {
             new_events.push_back({});
             EV_SET(&(new_events.back()), fd, EVFILT_WRITE, EV_DELETE, 0, 0, nullptr);
         }

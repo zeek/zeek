@@ -354,7 +354,7 @@ public:
 
     // Returns true if the script variable associated with the given value
     // needs to be global (because it's used across multiple events).
-    bool IsGlobal(const ValPtr& v) const { return globals.count(v.get()) > 0; }
+    bool IsGlobal(const ValPtr& v) const { return globals.contains(v.get()); }
 
     // Returns or sets the "base time" from which eligible times are
     // transformed into offsets rather than maintained as absolute

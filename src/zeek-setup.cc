@@ -275,7 +275,7 @@ static bool show_plugins(int level) {
     int count = 0;
 
     for ( plugin::Manager::plugin_list::const_iterator i = plugins.begin(); i != plugins.end(); i++ ) {
-        if ( requested_plugins.size() && requested_plugins.find((*i)->Name()) == requested_plugins.end() )
+        if ( requested_plugins.contains((*i)->Name()) )
             continue;
 
         (*i)->Describe(&d);

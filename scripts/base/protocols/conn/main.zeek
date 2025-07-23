@@ -295,14 +295,11 @@ function set_conn(c: connection, eoc: bool)
 
 event content_gap(c: connection, is_orig: bool, seq: count, length: count) &priority=5
 	{
-	set_conn(c, F);
-
 	c$conn$missed_bytes = c$conn$missed_bytes + length;
 	}
 
 event tunnel_changed(c: connection, e: EncapsulatingConnVector) &priority=5
 	{
-	set_conn(c, F);
 	if ( |e| > 0 )
 		{
 		if ( ! c$conn?$tunnel_parents )
@@ -310,6 +307,11 @@ event tunnel_changed(c: connection, e: EncapsulatingConnVector) &priority=5
 		add c$conn$tunnel_parents[e[|e|-1]$uid];
 		}
 	c$tunnel = e;
+	}
+
+event new_connection(c: connection) &priority=100
+	{
+	set_conn(c, F);
 	}
 
 event connection_state_remove(c: connection) &priority=5

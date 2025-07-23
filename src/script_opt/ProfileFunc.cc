@@ -52,7 +52,7 @@ ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fi
     num_params = profiled_func_t->Params()->NumFields();
 
     for ( auto l : locals ) {
-        if ( captures.count(l) == 0 && l->Offset() < num_params )
+        if ( ! captures.contains(l) && l->Offset() < num_params )
             params.insert(l);
     }
 }
@@ -470,7 +470,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             // types if needed.
             auto res_type = e->GetType().get();
             auto orig_type = e->GetOp1()->GetType().get();
-            if ( type_aliases.count(res_type) == 0 )
+            if ( ! type_aliases.contains(res_type) )
                 type_aliases[orig_type] = {res_type};
             else
                 type_aliases[orig_type].insert(res_type);
@@ -541,12 +541,12 @@ void ProfileFunc::TrackID(const ID* id) {
 }
 
 void ProfileFunc::TrackAssignment(const ID* id) {
-    if ( assignees.count(id) > 0 )
+    if ( assignees.contains(id) )
         ++assignees[id];
     else
         assignees[id] = 1;
 
-    if ( id->IsGlobal() || captures.count(id) > 0 )
+    if ( id->IsGlobal() || captures.contains(id) )
         non_local_assignees.insert(id);
 }
 
@@ -562,7 +562,7 @@ void ProfileFunc::CheckRecordConstructor(TypePtr t) {
             auto attrs = td->attrs.get();
             constructor_attrs[attrs] = rt;
 
-            if ( rec_constructor_attrs.count(rt.get()) == 0 )
+            if ( ! rec_constructor_attrs.contains(rt.get()) )
                 rec_constructor_attrs[rt.get()] = {attrs};
             else
                 rec_constructor_attrs[rt.get()].insert(attrs);
@@ -735,7 +735,7 @@ void ProfileFuncs::MergeInProfile(ProfileFunc* pf) {
         AnalyzeAttrs(a.first, a.second.get());
 
     for ( auto& ta : pf->TypeAliases() ) {
-        if ( type_aliases.count(ta.first) == 0 )
+        if ( ! type_aliases.contains(ta.first) )
             type_aliases[ta.first] = std::set<const Type*>{};
         type_aliases[ta.first].insert(ta.second.begin(), ta.second.end());
     }
@@ -1294,7 +1294,7 @@ bool ProfileFuncs::AssessSideEffects(const ExprPtr& e, IDSet& non_local_ids, Typ
         // in an attribute context indicates an implicit call.
         return GetCallSideEffects(e->AsNameExpr(), non_local_ids, aggrs, is_unknown);
 
-    ASSERT(expr_profs.count(e.get()) != 0);
+    ASSERT(expr_profs.contains(e.get()));
     auto pf = expr_profs[e.get()];
     return AssessSideEffects(pf.get(), non_local_ids, aggrs, is_unknown);
 }
@@ -1342,7 +1342,7 @@ bool ProfileFuncs::AssessSideEffects(const ProfileFunc* pf, IDSet& non_local_ids
         }
 
         auto pff = func_profs[f];
-        if ( active_func_profiles.count(pff) > 0 )
+        if ( active_func_profiles.contains(pff) )
             // We're already processing this function and arrived here via
             // recursion. Skip further analysis here, we'll do it instead
             // for the original instance.
@@ -1415,7 +1415,7 @@ bool ProfileFuncs::AssessSideEffects(const SideEffectsOp* se, SideEffectsOp::Acc
 }
 
 std::shared_ptr<SideEffectsOp> ProfileFuncs::GetCallSideEffects(const ScriptFunc* sf) {
-    if ( lambda_primaries.count(sf->GetName()) > 0 )
+    if ( lambda_primaries.contains(sf->GetName()) )
         sf = lambda_primaries[sf->GetName()];
 
     auto sf_se = func_side_effects.find(sf);
@@ -1427,7 +1427,7 @@ std::shared_ptr<SideEffectsOp> ProfileFuncs::GetCallSideEffects(const ScriptFunc
     IDSet nla;
     TypeSet mod_aggrs;
 
-    ASSERT(func_profs.count(sf) != 0);
+    ASSERT(func_profs.contains(sf));
     auto pf = func_profs[sf];
     if ( ! AssessSideEffects(pf.get(), nla, mod_aggrs, is_unknown) )
         // Can't figure it out yet.
@@ -1450,7 +1450,7 @@ static std::unordered_map<std::string, std::string> filename_module;
 
 void switch_to_module(const char* module_name) {
     auto loc = GetCurrentLocation();
-    if ( loc.FirstLine() != 0 && filename_module.count(loc.FileName()) == 0 )
+    if ( loc.FirstLine() != 0 && ! filename_module.contains(loc.FileName()) )
         filename_module[loc.FileName()] = module_name;
 }
 
@@ -1542,7 +1542,7 @@ ASTBlockAnalyzer::ASTBlockAnalyzer(std::vector<FuncInfo>& funcs) {
 
 static bool is_compound_stmt(const Stmt* s) {
     static std::set<StmtTag> compound_stmts = {STMT_FOR, STMT_IF, STMT_LIST, STMT_SWITCH, STMT_WHEN, STMT_WHILE};
-    return compound_stmts.count(s->Tag()) > 0;
+    return compound_stmts.contains(s->Tag());
 }
 
 TraversalCode ASTBlockAnalyzer::PreStmt(const Stmt* s) {
@@ -1580,7 +1580,7 @@ std::string ASTBlockAnalyzer::BuildExpandedDescription(const Location* loc) {
     }
 
     auto lk = LocKey(loc);
-    if ( exp_desc.count(lk) == 0 )
+    if ( ! exp_desc.contains(lk) )
         exp_desc[lk] = ls;
 
     return ls;

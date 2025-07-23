@@ -1186,7 +1186,7 @@ bool CmpExpr::IsHasElementsTest() const {
     static std::set<ExprTag> rel_tags = {EXPR_EQ, EXPR_NE, EXPR_LT, EXPR_LE, EXPR_GE, EXPR_GT};
 
     auto t = Tag(); // note, we may invert t below
-    if ( rel_tags.count(t) == 0 )
+    if ( ! rel_tags.contains(t) )
         return false;
 
     auto op1 = GetOp1();
@@ -2396,7 +2396,7 @@ bool LambdaExpr::IsReduced(Reducer* c) const {
     for ( auto& cp : *captures ) {
         auto& cid = cp.Id();
 
-        if ( private_captures.count(cid.get()) == 0 && ! c->ID_IsReduced(cid) )
+        if ( ! private_captures.contains(cid.get()) && ! c->ID_IsReduced(cid) )
             return NonReduced(this);
     }
 
@@ -2424,7 +2424,7 @@ void LambdaExpr::UpdateCaptures(Reducer* c) {
         for ( auto& cp : *captures ) {
             auto& cid = cp.Id();
 
-            if ( private_captures.count(cid.get()) == 0 )
+            if ( ! private_captures.contains(cid.get()) )
                 cp.SetID(c->UpdateID(cid));
         }
 
@@ -2955,7 +2955,7 @@ RecordFieldUpdatesExpr::RecordFieldUpdatesExpr(ExprTag t, const std::vector<cons
 
         // Consistency check that the statement is indeed in the pool,
         // before we remove it.
-        ASSERT(stmt_pool.count(s) > 0);
+        ASSERT(stmt_pool.contains(s));
         stmt_pool.erase(s);
     }
 

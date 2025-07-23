@@ -68,7 +68,7 @@ bool LoadPolicyFileText(const char* policy_filename, const std::optional<std::st
     if ( ! policy_filename )
         return true;
 
-    if ( policy_files.find(policy_filename) != policy_files.end() )
+    if ( policy_files.contains(policy_filename) )
         debug_msg("Policy file %s already loaded\n", policy_filename);
 
     PolicyFile* pf = new PolicyFile;

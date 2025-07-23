@@ -292,12 +292,8 @@ private:
         __attribute__((format(printf, 4, 5)));
     ;
     void UpdateWeirdStats(const char* name);
-    inline bool WeirdOnSamplingWhiteList(const char* name) {
-        return weird_sampling_whitelist.find(name) != weird_sampling_whitelist.end();
-    }
-    inline bool WeirdOnGlobalList(const char* name) {
-        return weird_sampling_global_list.find(name) != weird_sampling_global_list.end();
-    }
+    inline bool WeirdOnSamplingWhiteList(const char* name) { return weird_sampling_whitelist.contains(name); }
+    inline bool WeirdOnGlobalList(const char* name) { return weird_sampling_global_list.contains(name); }
     bool PermitNetWeird(const char* name);
     bool PermitFlowWeird(const char* name, const IPAddr& o, const IPAddr& r);
     bool PermitExpiredConnWeird(const char* name, const RecordVal& conn_id);

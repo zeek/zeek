@@ -173,14 +173,14 @@ public:
      *
      * @param tag The component tag to check.
      */
-    auto HasComponentMapping(const zeek::Tag& tag) const { return component_mapping_by_src.count(tag); }
+    bool HasComponentMapping(const zeek::Tag& tag) const { return component_mapping_by_src.contains(tag); }
 
     /**
      * Returns true if a given component is mapped to from a different one.
      *
      * @param tag The component tag to check.
      */
-    bool ProvidesComponentMapping(const zeek::Tag& tag) const { return component_mapping_by_dst.count(tag); }
+    bool ProvidesComponentMapping(const zeek::Tag& tag) const { return component_mapping_by_dst.contains(tag); }
 
 private:
     /** Script layer module in which component tags live. */

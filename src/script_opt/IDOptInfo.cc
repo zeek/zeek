@@ -216,7 +216,7 @@ void IDOptInfo::BranchBeyond(const Stmt* end_s, const Stmt* block, bool close_al
         printf("ID %s branching forward from %d beyond %d: %s\n", trace_ID, end_s->GetOptInfo()->stmt_num,
                block->GetOptInfo()->stmt_num, obj_desc(end_s).c_str());
 
-    ASSERT(pending_confluences.count(block) > 0);
+    ASSERT(pending_confluences.contains(block));
 
     auto ar = ActiveRegionIndex();
     if ( ar != NO_DEF )
@@ -332,12 +332,12 @@ void IDOptInfo::ConfluenceBlockEndsAfter(const Stmt* s, bool no_orig_flow) {
         if ( ur.EndsAfter() == NO_DEF ) { // End this region.
             ur.SetEndsAfter(stmt_num);
 
-            if ( ur.StartsAfter() <= cs_stmt_num && no_orig_flow && pc.count(i) == 0 )
+            if ( ur.StartsAfter() <= cs_stmt_num && no_orig_flow && ! pc.contains(i) )
                 // Don't include this region in our assessment.
                 continue;
         }
 
-        else if ( ur.EndsAfter() < cs_stmt_num || pc.count(i) == 0 )
+        else if ( ur.EndsAfter() < cs_stmt_num || ! pc.contains(i) )
             // Irrelevant, didn't extend into confluence region.
             // We test here just to avoid the set lookup in
             // the next test, which presumably will sometimes

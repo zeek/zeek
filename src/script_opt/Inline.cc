@@ -116,7 +116,7 @@ void Inliner::Analyze() {
                 for ( auto& ccc : call_set[cc] ) {
                     // For each of those, if we don't
                     // already have it, add it.
-                    if ( c.second.count(ccc) > 0 )
+                    if ( c.second.contains(ccc) )
                         // We already have it.
                         continue;
 
@@ -157,7 +157,7 @@ void Inliner::Analyze() {
         if ( func->Flavor() != FUNC_FLAVOR_FUNCTION )
             continue;
 
-        if ( non_recursive_funcs.count(func) == 0 )
+        if ( ! non_recursive_funcs.contains(func) )
             continue;
 
         if ( ! is_ZAM_compilable(f.Profile()) )
@@ -202,7 +202,7 @@ void Inliner::CoalesceEventHandlers() {
 
         if ( func->GetKind() == Func::SCRIPT_FUNC && func->GetBodies().size() > 1 ) {
             ++event_handlers[func];
-            ASSERT(body_to_info.count(body.get()) == 0);
+            ASSERT(! body_to_info.contains(body.get()));
             body_to_info[body.get()] = i;
         }
     }
@@ -420,7 +420,7 @@ ExprPtr Inliner::DoInline(ScriptFuncPtr sf, StmtPtr body, ListExprPtr args, Scop
     for ( int i = 0; i < nparam; ++i ) {
         auto& vi = vars[i];
         params.emplace_back(vi);
-        param_is_modified.emplace_back((pf->Assignees().count(vi.get()) > 0));
+        param_is_modified.emplace_back((pf->Assignees().contains(vi.get())));
     }
 
     // Recursively inline the body.  This is safe to do because we've

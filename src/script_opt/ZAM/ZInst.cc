@@ -653,7 +653,7 @@ bool ZInstI::IsGlobalLoad() const {
         }
     }
 
-    return global_ops.count(op) > 0;
+    return global_ops.contains(op);
 }
 
 bool ZInstI::IsCaptureLoad() const { return op == OP_LOAD_CAPTURE_Vi || op == OP_LOAD_MANAGED_CAPTURE_Vi; }

@@ -31,7 +31,7 @@ refine connection SMB_Conn += {
 
 	function get_is_file_a_pipe(id: uint16): bool
 		%{
-		if ( is_file_a_pipe.count(id) > 0 )
+		if ( is_file_a_pipe.contains(id) )
 			{
 			bool is_pipe = is_file_a_pipe.at(id);
 			is_file_a_pipe.erase(id);

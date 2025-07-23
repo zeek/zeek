@@ -52,9 +52,9 @@ void analyze_lambda(LambdaExpr* l) {
 
 void analyze_when_lambda(LambdaExpr* l) { when_lambdas.insert(l->PrimaryFunc().get()); }
 
-bool is_lambda(const ScriptFunc* f) { return lambdas.count(f) > 0; }
+bool is_lambda(const ScriptFunc* f) { return lambdas.contains(f); }
 
-bool is_when_lambda(const ScriptFunc* f) { return when_lambdas.count(f) > 0; }
+bool is_when_lambda(const ScriptFunc* f) { return when_lambdas.contains(f); }
 
 void analyze_global_stmts(Stmt* stmts) {
     if ( analysis_options.gen_standalone_CPP && obj_matches_opt_files(stmts) )
@@ -396,7 +396,7 @@ static void report_CPP() {
         }
 
         auto hash = f.Profile()->HashVal();
-        bool have = compiled_scripts.count(hash) > 0;
+        bool have = compiled_scripts.contains(hash);
 
         printf("script function %s (hash %llu): %s\n", name.c_str(), hash, have ? "yes" : "no");
 
@@ -408,7 +408,7 @@ static void report_CPP() {
 
     int addl = 0;
     for ( const auto& s : compiled_scripts )
-        if ( already_reported.count(s.first) == 0 ) {
+        if ( ! already_reported.contains(s.first) ) {
             printf("%s body (hash %llu)\n", s.second.body->Name().c_str(), s.first);
             ++addl;
         }
@@ -441,7 +441,7 @@ static void use_CPP() {
             // we're using code compiled for standalone.
             if ( f.Body()->Tag() != STMT_CPP ) {
                 auto func = f.Func();
-                if ( added_bodies[func->GetName()].count(hash) > 0 )
+                if ( added_bodies[func->GetName()].contains(hash) )
                     // We've already added the
                     // replacement.  Delete orig.
                     func->ReplaceBody(f.Body(), nullptr);
@@ -535,7 +535,7 @@ static void analyze_scripts_for_ZAM(std::shared_ptr<ProfileFuncs> pfs) {
         bool is_lambda = l != lambdas.end();
 
         if ( ! analysis_options.compile_all && ! is_lambda && inl && inl->WasFullyInlined(func.get()) &&
-             func_used_indirectly.count(func.get()) == 0 ) {
+             ! func_used_indirectly.contains(func.get()) ) {
             // No need to compile as it won't be called directly.  We'd
             // like to zero out the body to recover the memory, but a *few*
             // such functions do get called, such as by the event engine
@@ -732,7 +732,7 @@ bool has_AST_node_unknown_to_script_opt(const ProfileFunc* prof, bool /* is_ZAM 
     static_assert(NUM_STMTS == SCRIPT_OPT_NUM_STMTS);
 
     for ( auto& s : prof->Stmts() )
-        if ( known_stmts.count(s->Tag()) == 0 )
+        if ( ! known_stmts.contains(s->Tag()) )
             return true;
 
     // clang-format off
@@ -821,7 +821,7 @@ bool has_AST_node_unknown_to_script_opt(const ProfileFunc* prof, bool /* is_ZAM 
     static_assert(NUM_EXPRS == SCRIPT_OPT_NUM_EXPRS);
 
     for ( auto& e : prof->Exprs() )
-        if ( known_exprs.count(e->Tag()) == 0 )
+        if ( ! known_exprs.contains(e->Tag()) )
             return true;
 
     return false;

@@ -812,12 +812,10 @@ void Manager::Unpeer(const string& addr, uint16_t port) {
 }
 
 bool Manager::IsOutboundPeering(const string& addr, uint16_t port) const {
-    return bstate->outbound_peerings.find(broker::network_info(addr, port)) != bstate->outbound_peerings.end();
+    return bstate->outbound_peerings.contains(broker::network_info(addr, port));
 }
 
-bool Manager::IsOutboundPeering(const broker::network_info& ni) const {
-    return bstate->outbound_peerings.find(ni) != bstate->outbound_peerings.end();
-}
+bool Manager::IsOutboundPeering(const broker::network_info& ni) const { return bstate->outbound_peerings.contains(ni); }
 
 std::vector<broker::peer_info> Manager::Peers() const {
     if ( bstate->endpoint.is_shutdown() )
@@ -2110,7 +2108,7 @@ const Stats& Manager::GetStatistics() {
 TableValPtr Manager::GetPeeringStatsTable() { return bstate->peerBufferState->GetPeeringStatsTable(); }
 
 bool Manager::AddForwardedStore(const std::string& name, TableValPtr table) {
-    if ( forwarded_stores.find(name) != forwarded_stores.end() ) {
+    if ( forwarded_stores.contains(name) ) {
         reporter->Error("same &broker_store %s specified for two different variables", name.c_str());
         return false;
     }
@@ -2127,7 +2125,7 @@ void Manager::PrepareForwarding(const std::string& name) {
     if ( ! handle )
         return;
 
-    if ( forwarded_stores.find(name) == forwarded_stores.end() )
+    if ( ! forwarded_stores.contains(name) )
         return;
 
     handle->forward_to = forwarded_stores.at(name);

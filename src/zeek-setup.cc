@@ -275,11 +275,11 @@ static bool show_plugins(int level) {
 
     int count = 0;
 
-    for ( plugin::Manager::plugin_list::const_iterator i = plugins.begin(); i != plugins.end(); i++ ) {
-        if ( requested_plugins.size() && requested_plugins.find((*i)->Name()) == requested_plugins.end() )
+    for ( const auto& plugin : plugins ) {
+        if ( ! requested_plugins.empty() && ! requested_plugins.contains(plugin->Name()) )
             continue;
 
-        (*i)->Describe(&d);
+        plugin->Describe(&d);
 
         if ( ! d.IsShort() )
             d.Add("\n");

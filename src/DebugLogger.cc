@@ -148,7 +148,7 @@ bool DebugLogger::CheckStreams(const std::set<std::string>& plugin_names) {
         if ( ! stream.starts_with("plugin-") )
             continue;
 
-        if ( available_plugin_streams.count(stream) == 0 ) {
+        if ( ! available_plugin_streams.contains(stream) ) {
             reporter->Error("No plugin debug stream '%s' found", stream.c_str());
             ok = false;
         }
@@ -180,7 +180,7 @@ void DebugLogger::Log(DebugStream stream, const char* fmt, ...) {
 void DebugLogger::Log(const plugin::Plugin& plugin, const char* fmt, ...) {
     if ( ! all ) {
         std::string tok = PluginStreamName(plugin.Name());
-        if ( enabled_streams.find(tok) == enabled_streams.end() )
+        if ( ! enabled_streams.contains(tok) )
             return;
     }
 

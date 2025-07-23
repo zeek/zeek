@@ -415,7 +415,7 @@ static bool is_supported_index_type(const TypePtr& t, const char** tname, std::u
 
     // Handle recursive calls as good: If they turn out not
     // to be, that should've been discovered further down.
-    if ( seen.count(t) > 0 )
+    if ( seen.contains(t) )
         return true;
 
     seen.insert(t);
@@ -1006,7 +1006,7 @@ class RecordType::CreationInitsOptimizer : public detail::TraversalCallback {
 public:
     detail::TraversalCode PreTypedef(const detail::ID* id) override {
         const auto& t = id->GetType();
-        if ( analyzed_types.count(t) > 0 )
+        if ( analyzed_types.contains(t) )
             return detail::TC_ABORTSTMT;
 
         analyzed_types.emplace(t);
@@ -1102,7 +1102,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td) {
     // We defer error-checking until here so that we can keep deferred_inits
     // and managed_fields correctly tracking the associated fields.
 
-    if ( field_ids.count(td->id) != 0 ) {
+    if ( field_ids.contains(td->id) ) {
         reporter->Error("duplicate field '%s' found in record definition", td->id);
         deferred_inits.push_back(nullptr);
         return;
@@ -1168,7 +1168,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td) {
     deferred_inits.push_back(std::move(init));
 }
 
-bool RecordType::HasField(const char* field) const { return field_ids.count(field) != 0; }
+bool RecordType::HasField(const char* field) const { return field_ids.contains(field); }
 
 ValPtr RecordType::FieldDefault(int field) const {
     const TypeDecl* td = FieldDecl(field);
@@ -1654,8 +1654,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name, zeek
         // we can define an enum both in a *.bif and *.zeek for avoiding
         // cyclic dependencies.
         if ( ! id->IsEnumConst() || (id->HasVal() && val != id->GetVal()->AsEnum()) ||
-             GetName() != id->GetType()->GetName() ||
-             (names.find(fullname) != names.end() && names[fullname] != val) ) {
+             GetName() != id->GetType()->GetName() || (names.contains(fullname) && names[fullname] != val) ) {
             auto cl = detail::GetCurrentLocation();
             reporter->PushLocation(&cl, id->GetLocationInfo());
             reporter->Error("conflicting definition of enum value '%s' in type '%s'", fullname.data(),
@@ -1668,7 +1667,7 @@ void EnumType::CheckAndAddName(const string& module_name, const char* name, zeek
 
     AddNameInternal(module_name, name, val, is_export);
 
-    if ( vals.find(val) == vals.end() )
+    if ( ! vals.contains(val) )
         vals[val] = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, val);
 
     if ( ! id->HasVal() )
@@ -1694,7 +1693,7 @@ void EnumType::AddNameInternal(const string& full_name, zeek_int_t val) {
     names[full_name] = val;
     rev_names[val] = full_name;
 
-    if ( vals.find(val) == vals.end() )
+    if ( ! vals.contains(val) )
         vals[val] = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, val);
 }
 
@@ -2031,11 +2030,11 @@ bool same_type(const Type& arg_t1, const Type& arg_t2, bool is_init, bool match_
     // If we get to here, then we're dealing with a type with
     // subtypes, and thus potentially recursive.
 
-    if ( analyzed_types.count(t1) > 0 || analyzed_types.count(t2) > 0 ) {
+    if ( analyzed_types.contains(t1) || analyzed_types.contains(t2) ) {
         // We've analyzed at least one of the types previously.
         // Avoid infinite recursion.
 
-        if ( analyzed_types.count(t1) > 0 && analyzed_types.count(t2) > 0 )
+        if ( analyzed_types.contains(t1) && analyzed_types.contains(t2) )
             // We've analyzed them both.  In theory, this
             // could happen while the types are still different.
             // Checking for that is a pain - we could do so

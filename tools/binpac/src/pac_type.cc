@@ -912,7 +912,7 @@ Type* Type::LookUpByID(ID* id) {
 }
 
 void Type::AddPredefinedType(const string& type_name, Type* type) {
-    ASSERT(type_map_.find(type_name) == type_map_.end());
+    ASSERT(! type_map_.contains(type_name));
     type_map_[type_name] = type;
 }
 

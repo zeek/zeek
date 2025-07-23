@@ -9,12 +9,12 @@ using namespace std;
 
 void CPPCompile::CreateGlobal(const ID* g) {
     auto gn = string(g->Name());
-    bool is_bif = pfs->BiFGlobals().count(g) > 0;
+    bool is_bif = pfs->BiFGlobals().contains(g);
 
-    if ( accessed_globals.count(g) == 0 ) {
+    if ( ! accessed_globals.contains(g) ) {
         // Only used in the context of calls.  If it's compilable,
         // then we'll call it directly.
-        if ( compilable_funcs.count(gn) > 0 ) {
+        if ( compilable_funcs.contains(gn) ) {
             AddGlobal(gn, "zf");
             return;
         }
@@ -28,7 +28,7 @@ void CPPCompile::CreateGlobal(const ID* g) {
     if ( AddGlobal(gn, "gl") ) { // We'll be creating this global.
         Emit("IDPtr %s;", globals[gn]);
 
-        if ( accessed_events.count(gn) > 0 )
+        if ( accessed_events.contains(gn) )
             // This is an event that's also used as a variable.
             Emit("EventHandlerPtr %s_ev;", globals[gn]);
 
@@ -53,7 +53,7 @@ std::shared_ptr<CPP_InitInfo> CPPCompile::RegisterGlobal(const ID* g) {
 
     auto gn = string(g->Name());
 
-    if ( globals.count(gn) == 0 ) {
+    if ( ! globals.contains(gn) ) {
         // Create a name for it.
         (void)IDNameStr(g);
 
@@ -103,12 +103,12 @@ void CPPCompile::AddBiF(const ID* b, bool is_var) {
     if ( AddGlobal(n, "bif") )
         Emit("Func* %s;", globals[n]);
 
-    ASSERT(BiFs.count(globals[n]) == 0);
+    ASSERT(! BiFs.contains(globals[n]));
     BiFs[globals[n]] = bn;
 }
 
 bool CPPCompile::AddGlobal(const string& g, const char* suffix) {
-    if ( globals.count(g) > 0 )
+    if ( globals.contains(g) )
         return false;
 
     globals.emplace(g, GlobalName(g, suffix));
@@ -120,7 +120,7 @@ void CPPCompile::RegisterEvent(string ev_name) { body_events[body_name].emplace_
 const string& CPPCompile::IDNameStr(const ID* id) {
     if ( id->IsGlobal() ) {
         auto g = string(id->Name());
-        if ( globals.count(g) == 0 )
+        if ( ! globals.contains(g) )
             CreateGlobal(id);
         return globals[g];
     }

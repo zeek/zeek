@@ -175,7 +175,7 @@ bool Ascii::ReadHeader(bool useCached) {
         line = headerline;
 
     // construct list of field names.
-    auto ifields = util::split(line, separator[0]);
+    auto ifields = util::split(std::move(line), separator[0]);
 
     // printf("Updating fields from description %s\n", line.c_str());
     columnMap.clear();

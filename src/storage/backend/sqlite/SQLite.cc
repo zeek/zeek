@@ -46,7 +46,7 @@ OperationResult SQLite::RunPragma(std::string_view name, std::optional<std::stri
     while ( pragma_timeout == 0ms || time_spent < pragma_timeout ) {
         auto res = Step(stmt, value_parser, true);
         if ( res.code == ReturnCode::SUCCESS ) {
-            success_res = res;
+            success_res = std::move(res);
             break;
         }
         else if ( res.code == ReturnCode::TIMEOUT ) {

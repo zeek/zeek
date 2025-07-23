@@ -24,7 +24,7 @@ function register_packet_analyzer%(parent: PacketAnalyzer::Tag, identifier: coun
 	if ( ! child_analyzer )
 		return zeek::val_mgr->False();
 
-	parent_analyzer->RegisterProtocol(identifier, child_analyzer);
+	parent_analyzer->RegisterProtocol(identifier, std::move(child_analyzer));
 	return zeek::val_mgr->True();
 	%}
 
@@ -45,7 +45,7 @@ function try_register_packet_analyzer_by_name%(parent: string, identifier: count
 	if ( ! child_analyzer )
 		return zeek::val_mgr->False();
 
-	parent_analyzer->RegisterProtocol(identifier, child_analyzer);
+	parent_analyzer->RegisterProtocol(identifier, std::move(child_analyzer));
 	return zeek::val_mgr->True();
 	%}
 
@@ -74,7 +74,7 @@ function register_protocol_detection%(parent: PacketAnalyzer::Tag, child: Packet
 	if ( ! child_analyzer )
 		return zeek::val_mgr->False();
 
-	parent_analyzer->RegisterProtocolDetection(child_analyzer);
+	parent_analyzer->RegisterProtocolDetection(std::move(child_analyzer));
 	return zeek::val_mgr->True();
 	%}
 

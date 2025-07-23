@@ -1531,7 +1531,7 @@ TEST_CASE("util strstrip") {
     CHECK(strstrip(s) == "abcd");
 
     s = "  abcd  ";
-    CHECK(strstrip(s) == "abcd");
+    CHECK(strstrip(std::move(s)) == "abcd");
 }
 
 std::string strstrip(std::string s) {

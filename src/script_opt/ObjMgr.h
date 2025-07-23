@@ -41,7 +41,7 @@ private:
 class ObjMgr {
 public:
     void AddObj(const Obj* o) {
-        if ( obj_collection.count(o) == 0 )
+        if ( ! obj_collection.contains(o) )
             obj_collection.emplace(std::pair<const Obj*, ObjWrapper>{o, ObjWrapper(o)});
     }
 

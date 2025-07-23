@@ -373,7 +373,7 @@ bool Manager::RemoveFile(const string& file_id) {
     return true;
 }
 
-bool Manager::IsIgnored(const string& file_id) { return ignored.find(file_id) != ignored.end(); }
+bool Manager::IsIgnored(const string& file_id) { return ignored.contains(file_id); }
 
 string Manager::GetFileID(const zeek::Tag& tag, Connection* c, bool is_orig) {
     current_file_id.clear();

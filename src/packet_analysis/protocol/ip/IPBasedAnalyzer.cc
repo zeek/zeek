@@ -155,7 +155,7 @@ bool IPBasedAnalyzer::IsLikelyServerPort(uint32_t port) const {
     // We exploit our knowledge of PortVal's internal storage mechanism here.
     port |= server_port_mask;
 
-    return port_cache.find(port) != port_cache.end();
+    return port_cache.contains(port);
 }
 
 zeek::Connection* IPBasedAnalyzer::NewConn(IPBasedConnKeyPtr key, const Packet* pkt) {

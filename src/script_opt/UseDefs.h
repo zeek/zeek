@@ -27,7 +27,7 @@ public:
 
     void Replicate(const UDs& from) { use_defs = from->use_defs; }
 
-    bool HasID(const ID* id) { return use_defs.find(id) != use_defs.end(); }
+    bool HasID(const ID* id) { return use_defs.contains(id); }
 
     void Add(const ID* id) { use_defs.insert(id); }
     void Remove(const ID* id) { use_defs.erase(id); }
@@ -56,8 +56,8 @@ public:
     void Analyze();
 
     // True if we've computed use-defs for the given statement.
-    bool HasUsage(const Stmt* s) const { return use_defs_map.find(s) != use_defs_map.end(); }
     bool HasUsage(const StmtPtr& s) const { return HasUsage(s.get()); }
+    bool HasUsage(const Stmt* s) const { return use_defs_map.contains(s); }
 
     // Returns the use-defs for the given statement.
     UDs GetUsage(const Stmt* s) const { return FindUsage(s); }

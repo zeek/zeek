@@ -273,6 +273,34 @@ opensuse_tumbleweed_task:
   << : *CI_TEMPLATE
 #  << : *SKIP_TASK_ON_PR
 
+weekly_current_gcc_task:
+  container:
+    # Opensuse Tumbleweed has no EOL
+    dockerfile: ci/opensuse-tumbleweed/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  prepare_script: ./ci/opensuse-tumbleweed/prepare-weekly.sh
+  << : *CI_TEMPLATE
+  only_if: >
+    ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
+      $CIRRUS_BRANCH == 'master' ||
+      $CIRRUS_CRON == 'weekly'
+  env:
+    ZEEK_CI_COMPILER: gcc
+
+weekly_current_clang_task:
+  container:
+    # Opensuse Tumbleweed has no EOL
+    dockerfile: ci/opensuse-tumbleweed/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  prepare_script: ./ci/opensuse-tumbleweed/prepare-weekly.sh
+  << : *CI_TEMPLATE
+  only_if: >
+    ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
+      $CIRRUS_BRANCH == 'master' ||
+      $CIRRUS_CRON == 'weekly'
+  env:
+    ZEEK_CI_COMPILER: clang
+
 ubuntu24_10_task:
   container:
     # Ubuntu 24.10 EOL: 2025-07-30

@@ -1,3 +1,7 @@
+8.0.0-dev.707 | 2025-07-23 08:21:17 -0700
+
+  * CI: Add weekly task for running builds with newest compilers (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.705 | 2025-07-23 08:20:30 -0700
 
   * Output more information when cloning repos for include_plugins CI task (Tim Wojtulewicz, Corelight)

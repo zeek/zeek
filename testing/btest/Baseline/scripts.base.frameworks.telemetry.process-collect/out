@@ -5,9 +5,11 @@ process_cpu_system_seconds_total, [], >0.0, good
 process_resident_memory_bytes, [], >0.0, good
 process_virtual_memory_bytes, [], >0.0, good
 process_open_fds, [], >0.0, good
+process_start_time_seconds, [], >0.0, good
 zeek_done
 process_cpu_user_seconds_total, [], >0.0, good
 process_cpu_system_seconds_total, [], >0.0, good
 process_resident_memory_bytes, [], >0.0, good
 process_virtual_memory_bytes, [], >0.0, good
 process_open_fds, [], >0.0, good
+process_start_time_seconds, [], >0.0, good

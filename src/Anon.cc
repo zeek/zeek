@@ -259,6 +259,10 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::make_peer(ipaddr32_t a, Node* n)
     // swivel is first bit 'a' and 'old->input' differ.
     int swivel = bi_ffs(a ^ n->input);
 
+    // Shifting by more than 31 bits below results in undefined behavior.
+    // This shouldn't be possible, but check anyways.
+    ASSERT(swivel > 0);
+
     // bitvalue is the value of that bit of 'a'.
     int bitvalue = (a >> (32 - swivel)) & 1;
 
@@ -304,6 +308,10 @@ AnonymizeIPAddr_A50::Node* AnonymizeIPAddr_A50::find_node(ipaddr32_t a) {
             // swivel is the first bit in which the two children
             // differ.
             int swivel = bi_ffs(n->child[0]->input ^ n->child[1]->input);
+
+            // Shifting by more than 31 bits below results in undefined behavior.
+            // This shouldn't be possible, but check anyways.
+            ASSERT(swivel > 0);
 
             if ( bi_ffs(a ^ n->input) < swivel )
                 // Input differs earlier.

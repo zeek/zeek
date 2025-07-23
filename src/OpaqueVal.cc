@@ -759,7 +759,9 @@ ValPtr BloomFilterVal::DoClone(CloneState* state) {
     if ( bloom_filter ) {
         auto bf = make_intrusive<BloomFilterVal>(bloom_filter->Clone());
         assert(type);
-        bf->Typify(type);
+        if ( ! bf->Typify(type) )
+            reporter->InternalError("Failed to typify new bloom_filter clone, clone already had valid type");
+
         return state->NewClone(this, std::move(bf));
     }
 

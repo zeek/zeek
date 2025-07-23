@@ -554,10 +554,9 @@ void Contents_RPC::DeliverStream(int len, const u_char* data, bool orig) {
                 // know yet how much we expect, so we set expected to
                 // 0.
                 msg_buf.Init(MAX_RPC_LEN, 0);
-                last_frag = false;
                 state = WAIT_FOR_MARKER;
                 start_time = run_state::network_time;
-                // no break. fall through
+                [[fallthrough]];
 
             case WAIT_FOR_MARKER: {
                 bool got_marker = marker_buf.ConsumeChunk(data, len);

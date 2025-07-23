@@ -103,9 +103,9 @@ public:
     EventHandlerPtr event;
 
     RecordType* fields = nullptr;
-    unsigned int num_fields;
+    unsigned int num_fields = 0;
 
-    bool want_record;
+    bool want_record = false;
     EventStream();
     ~EventStream() override;
 };
@@ -1431,7 +1431,7 @@ int Manager::SendEventStreamEvent(Stream* i, EnumVal* type, const Value* const* 
             Unref(val);
     }
     else
-        SendEvent(stream->event, out_vals);
+        SendEvent(stream->event, std::move(out_vals));
 
     return stream->num_fields;
 }

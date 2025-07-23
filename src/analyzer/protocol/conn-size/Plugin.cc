@@ -33,7 +33,7 @@ public:
             thresholds.emplace_back(lv->Idx(i)->AsCount());
         std::sort(thresholds.begin(), thresholds.end());
 
-        zeek::analyzer::conn_size::ConnSize_Analyzer::SetGenericPacketThresholds(thresholds);
+        zeek::analyzer::conn_size::ConnSize_Analyzer::SetGenericPacketThresholds(std::move(thresholds));
     }
 } plugin;
 

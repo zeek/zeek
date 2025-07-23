@@ -45,7 +45,7 @@ public:
 private:
     StringValPtr msg;
     EventHandlerPtr handler;
-    bool want_end_of_match; // Whether handler accepts end_of_match parameter.
+    bool want_end_of_match = false; // Whether handler accepts end_of_match parameter.
 };
 
 class RuleActionMIME : public RuleAction {
@@ -62,7 +62,7 @@ public:
 
 private:
     std::string mime;
-    int strength;
+    int strength = 0;
 };
 
 // Base class for enable/disable actions.

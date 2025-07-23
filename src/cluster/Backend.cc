@@ -310,7 +310,7 @@ TEST_SUITE_BEGIN("cluster event");
 TEST_CASE("add metadata") {
     auto* handler = zeek::event_registry->Lookup("Supervisor::node_status");
     zeek::Args args{zeek::make_intrusive<zeek::StringVal>("TEST"), zeek::val_mgr->Count(42)};
-    zeek::cluster::detail::Event event{handler, args, nullptr};
+    zeek::cluster::detail::Event event{handler, std::move(args), nullptr};
 
     auto nts = zeek::id::find_val<zeek::EnumVal>("EventMetadata::NETWORK_TIMESTAMP");
     REQUIRE(nts);

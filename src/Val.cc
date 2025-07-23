@@ -751,7 +751,7 @@ IPAddr SubNetVal::Mask() const {
     for ( w = subnet_val->Length(); w >= 32; w -= 32 )
         *(mp++) = 0xffffffff;
 
-    *mp = ~((1 << (32 - w)) - 1);
+    *mp = ~((static_cast<uint32_t>(1) << (32 - w)) - 1);
 
     while ( ++mp < m + 4 )
         *mp = 0;
@@ -2398,7 +2398,7 @@ ValPtr TableVal::Remove(const Val& index, bool broker_forward, bool* iterators_i
     if ( broker_forward && ! broker_store.empty() )
         SendToStore(&index, nullptr, ELEMENT_REMOVED);
 
-    if ( change_func ) {
+    if ( change_func && k ) {
         // this is totally cheating around the fact that we need a Intrusive pointer.
         ValPtr changefunc_val = RecreateIndex(*(k.get()));
         CallChangeFunc(changefunc_val, va, ELEMENT_REMOVED);

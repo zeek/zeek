@@ -659,7 +659,7 @@ void analyze_scripts(bool no_unused_warnings) {
     }
 
     auto pfs = std::make_shared<ProfileFuncs>(funcs, nullptr, true, true);
-    analyze_scripts_for_ZAM(pfs);
+    analyze_scripts_for_ZAM(std::move(pfs));
 
     if ( reporter->Errors() > 0 )
         reporter->FatalError("Optimized script execution aborted due to errors");

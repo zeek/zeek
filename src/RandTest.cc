@@ -68,7 +68,6 @@ void RandTest::add(const void* buf, int bufl) {
         scct2 = scct2 + oc;
         scct3 = scct3 + (oc * oc);
         scclast = oc;
-        oc <<= 1;
     }
 }
 

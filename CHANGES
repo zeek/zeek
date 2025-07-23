@@ -1,3 +1,31 @@
+8.0.0-dev.730 | 2025-07-23 15:26:08 -0700
+
+  * Fix a few other minor issues reported by Coverity (Tim Wojtulewicz, Corelight)
+
+  * Add a few extra null checks, plus a missing initialization that led to a bad null check (Tim Wojtulewicz, Corelight)
+
+  * Fix some integer overflow issues reported by Coverity (Tim Wojtulewicz, Corelight)
+
+  * Ignore a couple of known-unused results reported by Coverity (Tim Wojtulewicz, Corelight)
+
+  * Fix some bit-shifting overflow/UB issues reported by Coverity (Tim Wojtulewicz, Corelight)
+
+  * Reset the value of a status variable in SQLite backend before using it in a loop (Tim Wojtulewicz, Corelight)
+
+  * Fix a potential memory leak reported by Coverity (Tim Wojtulewicz, Corelight)
+
+  * Avoid some string copies in IRC analyzer (Tim Wojtulewicz, Corelight)
+
+  * Add some additional std::moves reported by Coverity (Tim Wojtulewicz, Corelight)
+
+  * Fix an unsigned integer comparison reported by Coverity (Tim Wojtulewicz, Corelight)
+
+  * Fix uninitialized class member Coverity findings (Tim Wojtulewicz, Corelight)
+
+  * Handle uncaught exception during setup (Tim Wojtulewicz, Corelight)
+
+  * Update gen-zam submodule for Coverity findings (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.716 | 2025-07-23 14:03:47 -0700
 
   * Fix swapped storage metrics names (Tim Wojtulewicz, Corelight)

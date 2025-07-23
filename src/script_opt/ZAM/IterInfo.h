@@ -112,8 +112,8 @@ private:
     TableValPtr tv = nullptr;
 
     std::vector<ZVal*> loop_vars;
-    const std::vector<TypePtr>* loop_var_types;
-    const std::vector<bool>* lvt_is_managed;
+    const std::vector<TypePtr>* loop_var_types = nullptr;
+    const std::vector<bool>* lvt_is_managed = nullptr;
     TypePtr value_var_type;
 
     std::optional<DictIterator<TableEntryVal>> tbl_iter;

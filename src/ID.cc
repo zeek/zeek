@@ -490,6 +490,9 @@ void ID::DescribeReST(ODesc* d, bool roles_only) const {
          ModuleName() != "Version" ) {
         d->Add(":Default:");
         auto ii = zeekygen_mgr->GetIdentifierInfo(Name());
+        if ( ! ii )
+            return;
+
         auto redefs = ii->GetRedefs();
         const auto& iv = ! redefs.empty() && ii->InitialVal() ? ii->InitialVal() : val;
 

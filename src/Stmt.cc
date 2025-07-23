@@ -1734,10 +1734,10 @@ WhenInfo::WhenInfo(ExprPtr arg_cond, FuncType::CaptureList* arg_cl, bool arg_is_
 }
 
 WhenInfo::WhenInfo(const WhenInfo* orig) {
-    if ( orig->cl ) {
-        cl = new FuncType::CaptureList;
+    cl = new FuncType::CaptureList;
+
+    if ( orig->cl )
         *cl = *orig->cl;
-    }
 
     cond = orig->OrigCond()->Duplicate();
 

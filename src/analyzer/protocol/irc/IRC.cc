@@ -807,8 +807,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
     }
 
     else if ( irc_quit_message && command == "QUIT" ) {
-        string message = params;
-        if ( message[0] == ':' )
+        string_view message{params};
+        if ( message.starts_with(":") )
             message = message.substr(1);
 
         string nickname = "";
@@ -819,16 +819,16 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
         }
 
         EnqueueConnEvent(irc_quit_message, ConnVal(), val_mgr->Bool(orig), make_intrusive<StringVal>(nickname.c_str()),
-                         make_intrusive<StringVal>(message.c_str()));
+                         make_intrusive<StringVal>(message));
     }
 
     else if ( irc_nick_message && command == "NICK" ) {
-        string nick = params;
+        string_view nick{params};
         if ( nick[0] == ':' )
             nick = nick.substr(1);
 
         EnqueueConnEvent(irc_nick_message, ConnVal(), val_mgr->Bool(orig), make_intrusive<StringVal>(prefix.c_str()),
-                         make_intrusive<StringVal>(nick.c_str()));
+                         make_intrusive<StringVal>(nick));
     }
 
     else if ( irc_who_message && command == "WHO" ) {
@@ -909,8 +909,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
     }
 
     else if ( irc_squit_message && command == "SQUIT" ) {
-        string server = params;
-        string message = "";
+        string server;
+        string message;
 
         unsigned int pos = params.find(' ');
         if ( pos < params.size() ) {
@@ -946,8 +946,6 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
         AddSupportAnalyzer(new analyzer::zip::ZIP_Analyzer(Conn(), true));
         AddSupportAnalyzer(new analyzer::zip::ZIP_Analyzer(Conn(), false));
     }
-
-    return;
 }
 
 void IRC_Analyzer::StartTLS() {

@@ -207,17 +207,17 @@ public:
     bool Save();
 
     struct CachedStats {
-        unsigned long hosts;
-        unsigned long addresses;
-        unsigned long texts;
-        unsigned long total;
+        unsigned long hosts = 0;
+        unsigned long addresses = 0;
+        unsigned long texts = 0;
+        unsigned long total = 0;
     };
 
     struct Stats {
-        unsigned long requests; // These count only async requests.
-        unsigned long successful;
-        unsigned long failed;
-        unsigned long pending;
+        unsigned long requests = 0; // These count only async requests.
+        unsigned long successful = 0;
+        unsigned long failed = 0;
+        unsigned long pending = 0;
         CachedStats cached;
     };
 

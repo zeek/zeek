@@ -1,4 +1,4 @@
-# @TEST-DOC: Tests basic Redis storage backend functions in async mode
+# @TEST-DOC: Tests basic Redis storage backend functions in async mode when using the forced_synchronous flag.
 
 # @TEST-REQUIRES: have-redis
 # @TEST-PORT: REDIS_PORT
@@ -45,6 +45,7 @@ event print_metrics_and_close()
 event zeek_init()
 	{
 	local opts: Storage::BackendOptions;
+	opts$forced_sync = T;
 	opts$redis = [ $server_host="127.0.0.1", $server_port=to_port(getenv(
 	    "REDIS_PORT")), $key_prefix="testing" ];
 
@@ -75,16 +76,22 @@ event zeek_init()
 				print "get request timed out";
 				terminate();
 				}
+
+			print "inner get done";
 			}
 		timeout 5sec
 			{
 			print "put request timed out";
 			terminate();
 			}
+
+		print "inner put done";
 		}
 	timeout 5sec
 		{
 		print "open request timed out";
 		terminate();
 		}
+
+	print "outer open done";
 	}

@@ -127,6 +127,8 @@ OperationResult Backend::Open(OpenResultCallback* cb, RecordValPtr options, Type
     val_type = std::move(vt);
     backend_options = options;
 
+    forced_sync = options->GetField<BoolVal>("forced_sync")->Get();
+
     auto stype = options->GetField<EnumVal>("serializer");
     zeek::Tag stag{stype};
 
@@ -258,12 +260,12 @@ void Backend::InitMetrics() {
     erase_metrics =
         std::make_unique<detail::OperationMetrics>(results_family, latency_family, "erase", Tag(), metrics_config);
 
-    bytes_read_metric = telemetry_mgr->CounterInstance("zeek", "storage_backend_data_written",
-                                                       {{"type", Tag()}, {"config", metrics_config}},
-                                                       "Storage data written to backend", "bytes");
-    bytes_written_metric = telemetry_mgr->CounterInstance("zeek", "storage_backend_data_read",
+    bytes_written_metric = telemetry_mgr->CounterInstance("zeek", "storage_backend_data_written",
                                                           {{"type", Tag()}, {"config", metrics_config}},
-                                                          "Storage data read from backend", "bytes");
+                                                          "Storage data written to backend", "bytes");
+    bytes_read_metric = telemetry_mgr->CounterInstance("zeek", "storage_backend_data_read",
+                                                       {{"type", Tag()}, {"config", metrics_config}},
+                                                       "Storage data read from backend", "bytes");
 
     expired_entries_metric = telemetry_mgr->CounterInstance("zeek", "storage_backend_expired_entries",
                                                             {{"type", Tag()}, {"config", metrics_config}},

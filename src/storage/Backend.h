@@ -216,6 +216,11 @@ public:
      */
     const RecordValPtr& Options() const { return backend_options; }
 
+    /**
+     * Returns the state of the forced_sync option that was passed in the options record to Open().
+     */
+    bool IsForcedSync() const { return forced_sync; }
+
 protected:
     // Allow the manager to call Open/Close.
     friend class storage::Manager;
@@ -385,6 +390,7 @@ private:
     void InitMetrics();
 
     uint8_t modes;
+    bool forced_sync = false;
     bool metrics_initialized = false;
 
     // These are owned by the backend but are passed into the callbacks to be

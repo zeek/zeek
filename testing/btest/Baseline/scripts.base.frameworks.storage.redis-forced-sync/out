@@ -3,6 +3,9 @@ open result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<opaque of
 put result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=<uninitialized>]
 get result, [code=Storage::SUCCESS, error_str=<uninitialized>, value=value5678]
 get result same as inserted, T
+inner get done
+inner put done
+outer open done
 
 Post-operation metrics:
 Telemetry::COUNTER, zeek, zeek_storage_backends_opened_total, [], [], 1.0

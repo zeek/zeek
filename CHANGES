@@ -1,3 +1,11 @@
+8.0.0-dev.703 | 2025-07-23 13:37:56 +0200
+
+  * Type/RecordType: Make table returned by GetRecordFieldsVal() ordered (Arne Welzel, Corelight)
+
+    Seems only reasonable to provide that guarantee as pointed out in #4674.
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
 8.0.0-dev.700 | 2025-07-22 11:40:19 -0700
 
   * Update zeek-af_packet-plugin submodule to fix initialization [nomail] (Tim Wojtulewicz, Corelight)

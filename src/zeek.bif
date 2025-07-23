@@ -2403,7 +2403,10 @@ function lookup_ID%(id: string%) : any
 ##
 ## rec: The record value or type to inspect.
 ##
-## Returns: A table that describes the fields of a record.
+## Returns: A table that describes the fields of a record. The returned table has
+##          the :zeek:attr:`&ordered` attribute set. Iterating over the table will
+##          yield entries for the fields in the same order as the fields were
+##          declared.
 function record_fields%(rec: any%): record_field_table
 	%{
 	static auto record_field_table = zeek::id::find_type<zeek::TableType>("record_field_table");

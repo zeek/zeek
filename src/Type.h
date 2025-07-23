@@ -697,7 +697,10 @@ public:
     /**
      * Returns a "record_field_table" value for introspection purposes.
      * @param rv  an optional record value, if given the values of
-     * all fields will be provided in the returned table.
+     * all fields will be provided in the returned table. The table
+     * is initialized with the &ordered attribute such that iterating over
+     * the table will yield entries for fields in the same order as they
+     * are kept in the record type types list.
      */
     TableValPtr GetRecordFieldsVal(const RecordVal* rv = nullptr) const;
 

@@ -2,9 +2,9 @@
 [a=42, b=Foo, c=<uninitialized>, d=Bar, e=tt]
 {
 [a] = [type_name=count, log=F, value=42, default_val=<uninitialized>, optional=F],
-[d] = [type_name=string, log=T, value=Bar, default_val=<uninitialized>, optional=F],
 [b] = [type_name=string, log=F, value=Foo, default_val=Foo, optional=T],
 [c] = [type_name=double, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=T],
+[d] = [type_name=string, log=T, value=Bar, default_val=<uninitialized>, optional=F],
 [e] = [type_name=any, log=F, value=tt, default_val=<uninitialized>, optional=F]
 }
 c value, F
@@ -12,27 +12,27 @@ c default , F
 c optional, T
 {
 [a] = [type_name=bool, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F],
-[d] = [type_name=string, log=T, value=<uninitialized>, default_val=<uninitialized>, optional=F],
-[f] = [type_name=enum Monochrome::color, log=T, value=<uninitialized>, default_val=<uninitialized>, optional=F],
 [b] = [type_name=string, log=F, value=<uninitialized>, default_val=Bar, optional=T],
 [c] = [type_name=double, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=T],
-[m] = [type_name=record myrec, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F],
-[e] = [type_name=enum color, log=F, value=<uninitialized>, default_val=BLUE, optional=T]
+[d] = [type_name=string, log=T, value=<uninitialized>, default_val=<uninitialized>, optional=F],
+[e] = [type_name=enum color, log=F, value=<uninitialized>, default_val=BLUE, optional=T],
+[f] = [type_name=enum Monochrome::color, log=T, value=<uninitialized>, default_val=<uninitialized>, optional=F],
+[m] = [type_name=record myrec, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F]
 }
 {
 [a] = [type_name=bool, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F],
-[d] = [type_name=string, log=T, value=<uninitialized>, default_val=<uninitialized>, optional=F],
-[f] = [type_name=enum Monochrome::color, log=T, value=<uninitialized>, default_val=<uninitialized>, optional=F],
 [b] = [type_name=string, log=F, value=<uninitialized>, default_val=Bar, optional=T],
 [c] = [type_name=double, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=T],
-[m] = [type_name=record myrec, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F],
-[e] = [type_name=enum color, log=F, value=<uninitialized>, default_val=BLUE, optional=T]
+[d] = [type_name=string, log=T, value=<uninitialized>, default_val=<uninitialized>, optional=F],
+[e] = [type_name=enum color, log=F, value=<uninitialized>, default_val=BLUE, optional=T],
+[f] = [type_name=enum Monochrome::color, log=T, value=<uninitialized>, default_val=<uninitialized>, optional=F],
+[m] = [type_name=record myrec, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F]
 }
 {
 [a] = [type_name=count, log=F, value=42, default_val=<uninitialized>, optional=F],
-[d] = [type_name=string, log=T, value=Bar, default_val=<uninitialized>, optional=F],
 [b] = [type_name=string, log=F, value=Foo, default_val=Foo, optional=T],
 [c] = [type_name=double, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=T],
+[d] = [type_name=string, log=T, value=Bar, default_val=<uninitialized>, optional=F],
 [e] = [type_name=any, log=F, value=mystring, default_val=<uninitialized>, optional=F]
 }
 {
@@ -43,26 +43,26 @@ c optional, T
 }
 {
 [a] = [type_name=bool, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F],
-[d] = [type_name=string, log=T, value=<uninitialized>, default_val=<uninitialized>, optional=F],
-[f] = [type_name=enum Monochrome::color, log=T, value=<uninitialized>, default_val=<uninitialized>, optional=F],
 [b] = [type_name=string, log=F, value=<uninitialized>, default_val=Bar, optional=T],
 [c] = [type_name=double, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=T],
-[m] = [type_name=record myrec, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F],
-[e] = [type_name=enum color, log=F, value=<uninitialized>, default_val=BLUE, optional=T]
+[d] = [type_name=string, log=T, value=<uninitialized>, default_val=<uninitialized>, optional=F],
+[e] = [type_name=enum color, log=F, value=<uninitialized>, default_val=BLUE, optional=T],
+[f] = [type_name=enum Monochrome::color, log=T, value=<uninitialized>, default_val=<uninitialized>, optional=F],
+[m] = [type_name=record myrec, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F]
 }
 {
 [a] = [type_name=count, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F],
-[d] = [type_name=string, log=T, value=<uninitialized>, default_val=<uninitialized>, optional=F],
 [b] = [type_name=string, log=F, value=<uninitialized>, default_val=Foo, optional=T],
 [c] = [type_name=double, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=T],
+[d] = [type_name=string, log=T, value=<uninitialized>, default_val=<uninitialized>, optional=F],
 [e] = [type_name=any, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F]
 }
 {
 [a] = [type_name=set[double], log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F],
-[d] = [type_name=table[double,string] of table[string] of vector of string, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F],
-[f] = [type_name=vector of enum color, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F],
 [b] = [type_name=set[double,string], log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F],
 [c] = [type_name=set[double,record tt], log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F],
-[g] = [type_name=table[string] of enum color, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F],
-[e] = [type_name=vector of vector of string, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F]
+[d] = [type_name=table[double,string] of table[string] of vector of string, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F],
+[e] = [type_name=vector of vector of string, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F],
+[f] = [type_name=vector of enum color, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F],
+[g] = [type_name=table[string] of enum color, log=F, value=<uninitialized>, default_val=<uninitialized>, optional=F]
 }

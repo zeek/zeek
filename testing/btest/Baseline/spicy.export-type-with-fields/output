@@ -3,12 +3,12 @@
 name=x log=F
 === X1
 name=x log=F
-name=z log=F
 name=y log=F
+name=z log=F
 === X2
 name=x log=T
-name=z log=T
 name=y log=T
+name=z log=T
 === X3
 name=x log=F
 name=z log=T

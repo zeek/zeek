@@ -195,7 +195,17 @@ const RecordValPtr& Connection::GetVal() {
         conn_val = make_intrusive<RecordVal>(id::connection);
 
         auto id_val = make_intrusive<RecordVal>(id::conn_id);
-        auto* ctx = id_val->GetFieldAs<zeek::RecordVal>(5);
+
+        constexpr int ctx_offset = 5;
+
+        // If the conn_id_ctx type has no fields at all, set it to the singleton instance,
+        // otherwise the instance is initialized on first access through GetField() below.
+        if ( conn_id_ctx_singleton ) {
+            assert(id::conn_id_ctx->NumFields() == 0);
+            id_val->Assign(ctx_offset, conn_id_ctx_singleton);
+        }
+
+        auto ctx = id_val->GetField<zeek::RecordVal>(ctx_offset);
 
         // Allow customized ConnKeys to augment conn_id and ctx.
         key->PopulateConnIdVal(*id_val, *ctx);

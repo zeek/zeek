@@ -331,6 +331,10 @@ Changed Functionality
 - The PPPoE parser now respects the size value given in the PPPoE header. Data
   beyon the size given in the header will be truncated.
 
+- Record fields with ``&default`` attributes initializing empty ``vector``, ``table``
+  or ``set`` instances are now deferred until they are accessed, potentially
+  improving memory usage when such fields are never accessed.
+
 Removed Functionality
 ---------------------
 

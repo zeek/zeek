@@ -576,14 +576,16 @@ void ID::UpdateValID() {
 }
 #endif
 
-void ID::AddOptionHandler(FuncPtr callback, int priority) { option_handlers.emplace(priority, std::move(callback)); }
+void ID::AddOptionHandler(FuncPtr callback, int priority) {
+    option_handlers.emplace_front(priority, callback);
+    option_handlers.sort(
+        [](const OptionHandler& left, const OptionHandler& right) { return left.first < right.first; });
+}
 
 std::vector<Func*> ID::GetOptionHandlers() const {
-    // multimap is sorted
-    // It might be worth caching this if we expect it to be called
-    // a lot...
+    // It might be worth caching this if we expect it to be called a lot...
     std::vector<Func*> v;
-    for ( auto& element : option_handlers )
+    for ( const auto& element : option_handlers )
         v.push_back(element.second.get());
     return v;
 }

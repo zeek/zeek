@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <map>
+#include <forward_list>
 #include <string>
 #include <string_view>
 #include <unordered_set>
@@ -172,7 +172,8 @@ protected:
     AttributesPtr attrs;
 
     // contains list of functions that are called when an option changes
-    std::multimap<int, FuncPtr> option_handlers;
+    using OptionHandler = std::pair<int, FuncPtr>;
+    std::forward_list<OptionHandler> option_handlers;
 
     // Information managed by script optimization.  We package this
     // up into a separate object for purposes of modularity, and,

@@ -3,6 +3,7 @@
 #include "zeek/telemetry/Counter.h"
 
 #include <algorithm>
+#include <span>
 
 using namespace zeek::telemetry;
 
@@ -16,7 +17,8 @@ double Counter::Value() const noexcept {
     return handle.Value();
 }
 
-std::shared_ptr<Counter> CounterFamily::GetOrAdd(Span<const LabelView> labels, detail::CollectCallbackPtr callback) {
+std::shared_ptr<Counter> CounterFamily::GetOrAdd(std::span<const LabelView> labels,
+                                                 detail::CollectCallbackPtr callback) {
     prometheus::Labels p_labels = detail::BuildPrometheusLabels(labels);
 
     auto check = [&](const std::shared_ptr<Counter>& counter) { return counter->CompareLabels(p_labels); };
@@ -31,7 +33,7 @@ std::shared_ptr<Counter> CounterFamily::GetOrAdd(Span<const LabelView> labels, d
 
 std::shared_ptr<Counter> CounterFamily::GetOrAdd(std::initializer_list<LabelView> labels,
                                                  detail::CollectCallbackPtr callback) {
-    return GetOrAdd(Span{labels.begin(), labels.size()}, std::move(callback));
+    return GetOrAdd(std::span{labels.begin(), labels.size()}, std::move(callback));
 }
 
 void CounterFamily::RunCallbacks() {

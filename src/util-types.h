@@ -3,10 +3,10 @@
 #pragma once
 
 #include <cstdint>
+#include <span>
 #include <string>
 
 #include "zeek/3rdparty/nonstd/expected.hpp"
-#include "zeek/Span.h"
 
 // These two types are not namespaced intentionally.
 using zeek_int_t = int64_t;
@@ -24,7 +24,7 @@ using unexpected = nonstd::unexpected<E>;
 
 // Byte buffer types used by serialization code in storage and cluster.
 using byte_buffer = std::vector<std::byte>;
-using byte_buffer_span = Span<const std::byte>;
+using byte_buffer_span = std::span<const std::byte>;
 
 namespace util {
 namespace detail {

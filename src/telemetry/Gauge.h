@@ -7,9 +7,9 @@
 #include <unistd.h>
 #include <initializer_list>
 #include <memory>
+#include <span>
 
 #include "zeek/NetVar.h" // For BifEnum::Telemetry value
-#include "zeek/Span.h"
 #include "zeek/telemetry/MetricFamily.h"
 #include "zeek/telemetry/Utils.h"
 
@@ -103,7 +103,7 @@ public:
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    GaugePtr GetOrAdd(Span<const LabelView> labels, detail::CollectCallbackPtr callback = nullptr);
+    GaugePtr GetOrAdd(std::span<const LabelView> labels, detail::CollectCallbackPtr callback = nullptr);
 
     /**
      * @copydoc GetOrAdd
@@ -112,7 +112,7 @@ public:
 
     zeek_int_t MetricType() const noexcept override { return BifEnum::Telemetry::MetricType::GAUGE; }
 
-    GaugeFamily(prometheus::Family<prometheus::Gauge>* family, Span<const std::string_view> labels)
+    GaugeFamily(prometheus::Family<prometheus::Gauge>* family, std::span<const std::string_view> labels)
         : MetricFamily(labels), family(family) {}
 
     void RunCallbacks() override;

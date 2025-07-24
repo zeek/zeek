@@ -6,9 +6,9 @@
 #include <prometheus/histogram.h>
 #include <initializer_list>
 #include <memory>
+#include <span>
 
 #include "zeek/NetVar.h" // For BifEnum::Telemetry values
-#include "zeek/Span.h"
 #include "zeek/telemetry/MetricFamily.h"
 #include "zeek/telemetry/Utils.h"
 
@@ -49,14 +49,14 @@ class HistogramFamily : public MetricFamily {
 public:
     static inline const char* OpaqueName = "HistogramMetricFamilyVal";
 
-    HistogramFamily(prometheus::Family<prometheus::Histogram>* family, Span<const double> bounds,
-                    Span<const std::string_view> labels);
+    HistogramFamily(prometheus::Family<prometheus::Histogram>* family, std::span<const double> bounds,
+                    std::span<const std::string_view> labels);
 
     /**
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    HistogramPtr GetOrAdd(Span<const LabelView> labels);
+    HistogramPtr GetOrAdd(std::span<const LabelView> labels);
 
     /**
      * @copydoc GetOrAdd

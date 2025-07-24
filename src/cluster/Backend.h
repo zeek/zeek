@@ -6,12 +6,12 @@
 
 #include <memory>
 #include <optional>
+#include <span>
 #include <string_view>
 #include <variant>
 
 #include "zeek/Event.h"
 #include "zeek/EventHandler.h"
-#include "zeek/Span.h"
 #include "zeek/Tag.h"
 #include "zeek/Val.h"
 #include "zeek/ZeekArgs.h"
@@ -323,7 +323,7 @@ public:
      * @param records A span of logging::detail::LogRecords to be published.
      */
     bool PublishLogWrites(const zeek::logging::detail::LogWriteHeader& header,
-                          zeek::Span<zeek::logging::detail::LogRecord> records) {
+                          std::span<zeek::logging::detail::LogRecord> records) {
         return DoPublishLogWrites(header, records);
     }
 
@@ -531,7 +531,7 @@ private:
      * @return true if the message has been published successfully.
      */
     virtual bool DoPublishLogWrites(const zeek::logging::detail::LogWriteHeader& header,
-                                    zeek::Span<zeek::logging::detail::LogRecord> records);
+                                    std::span<zeek::logging::detail::LogRecord> records);
 
     /**
      * Send out a serialized log batch.
@@ -589,7 +589,7 @@ struct EventMessage {
     std::string format;
     byte_buffer payload;
 
-    auto payload_span() const { return Span(payload.data(), payload.size()); };
+    auto payload_span() const { return std::span(payload.data(), payload.size()); };
 };
 
 /**
@@ -599,7 +599,7 @@ struct LogMessage {
     std::string format;
     byte_buffer payload;
 
-    auto payload_span() const { return Span(payload.data(), payload.size()); };
+    auto payload_span() const { return std::span(payload.data(), payload.size()); };
 };
 
 /**
@@ -612,7 +612,7 @@ struct BackendMessage {
     int tag;
     byte_buffer payload;
 
-    auto payload_span() const { return Span(payload.data(), payload.size()); };
+    auto payload_span() const { return std::span(payload.data(), payload.size()); };
 };
 
 using QueueMessage = std::variant<EventMessage, LogMessage, BackendMessage>;

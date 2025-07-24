@@ -3,6 +3,7 @@
 #include "zeek/telemetry/Histogram.h"
 
 #include <algorithm>
+#include <span>
 
 using namespace zeek::telemetry;
 
@@ -15,7 +16,7 @@ Histogram::Histogram(FamilyType* family, const prometheus::Labels& labels,
                      prometheus::Histogram::BucketBoundaries bounds) noexcept
     : handle(family->Add(labels, std::move(bounds))), labels(labels) {}
 
-std::shared_ptr<Histogram> HistogramFamily::GetOrAdd(Span<const LabelView> labels) {
+std::shared_ptr<Histogram> HistogramFamily::GetOrAdd(std::span<const LabelView> labels) {
     prometheus::Labels p_labels = detail::BuildPrometheusLabels(labels);
 
     auto check = [&](const std::shared_ptr<Histogram>& histo) { return histo->CompareLabels(p_labels); };
@@ -32,11 +33,11 @@ std::shared_ptr<Histogram> HistogramFamily::GetOrAdd(Span<const LabelView> label
  * @copydoc GetOrAdd
  */
 std::shared_ptr<Histogram> HistogramFamily::GetOrAdd(std::initializer_list<LabelView> labels) {
-    return GetOrAdd(Span{labels.begin(), labels.size()});
+    return GetOrAdd(std::span{labels.begin(), labels.size()});
 }
 
-HistogramFamily::HistogramFamily(prometheus::Family<prometheus::Histogram>* family, Span<const double> bounds,
-                                 Span<const std::string_view> labels)
+HistogramFamily::HistogramFamily(prometheus::Family<prometheus::Histogram>* family, std::span<const double> bounds,
+                                 std::span<const std::string_view> labels)
     : MetricFamily(labels), family(family) {
     std::ranges::copy(bounds, std::back_inserter(boundaries));
 }

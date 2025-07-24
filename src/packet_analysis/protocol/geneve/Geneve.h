@@ -4,8 +4,8 @@
 
 #include <cstdint>
 #include <functional>
+#include <span>
 
-#include "zeek/Span.h"
 #include "zeek/iosource/Packet.h"
 #include "zeek/packet_analysis/Analyzer.h"
 
@@ -17,7 +17,7 @@ namespace detail {
  * Callback for parse_options(), passing the individual option pieces.
  */
 using Callback =
-    std::function<void(uint16_t opt_class, bool opt_critical, uint8_t opt_type, zeek::Span<const uint8_t> opt_data)>;
+    std::function<void(uint16_t opt_class, bool opt_critical, uint8_t opt_type, std::span<const uint8_t> opt_data)>;
 
 /**
  * Parse Geneve options from the header data.
@@ -27,7 +27,7 @@ using Callback =
  * @param data The data span to treat as a Geneve header.
  * @param cb The callback to invoke with each parsed option.
  */
-void parse_options(zeek::Span<const uint8_t> data, Callback cb);
+void parse_options(std::span<const uint8_t> data, Callback cb);
 
 } // namespace detail
 

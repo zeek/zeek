@@ -5,9 +5,9 @@
 #pragma once
 
 #include <optional>
+#include <span>
 #include <string>
 
-#include "zeek/Span.h"
 #include "zeek/logging/Types.h"
 
 namespace zeek::cluster {
@@ -80,7 +80,7 @@ public:
      * @param records The actual log writes.
      */
     virtual bool SerializeLogWrite(byte_buffer& buf, const logging::detail::LogWriteHeader& header,
-                                   zeek::Span<logging::detail::LogRecord> records) = 0;
+                                   std::span<logging::detail::LogRecord> records) = 0;
 
     /**
      * Unserialize log writes from a given byte buffer.

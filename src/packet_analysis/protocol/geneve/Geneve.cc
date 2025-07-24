@@ -2,13 +2,14 @@
 
 #include "zeek/packet_analysis/protocol/geneve/Geneve.h"
 
-#include "zeek/Span.h"
+#include <span>
+
 #include "zeek/packet_analysis/protocol/geneve/events.bif.h"
 #include "zeek/packet_analysis/protocol/iptunnel/IPTunnel.h"
 
 using namespace zeek::packet_analysis::Geneve;
 
-void zeek::packet_analysis::Geneve::detail::parse_options(zeek::Span<const uint8_t> data, detail::Callback cb) {
+void zeek::packet_analysis::Geneve::detail::parse_options(std::span<const uint8_t> data, detail::Callback cb) {
     size_t remaining = data.size();
 
     if ( remaining < 8 )
@@ -40,7 +41,7 @@ void zeek::packet_analysis::Geneve::detail::parse_options(zeek::Span<const uint8
         if ( remaining < opt_len )
             break;
 
-        cb(opt_class, opt_critical, opt_type, zeek::Span{p, opt_len});
+        cb(opt_class, opt_critical, opt_type, std::span{p, opt_len});
 
         p += opt_len;
     }

@@ -3,6 +3,7 @@
 #include "zeek/telemetry/Utils.h"
 
 #include <algorithm>
+#include <span>
 
 #include "zeek/ID.h"
 #include "zeek/Reporter.h"
@@ -42,7 +43,7 @@ std::string BuildFullPrometheusName(std::string_view prefix, std::string_view na
     return fn;
 }
 
-prometheus::Labels BuildPrometheusLabels(Span<const LabelView> labels) {
+prometheus::Labels BuildPrometheusLabels(std::span<const LabelView> labels) {
     prometheus::Labels p_labels;
 
     static std::string metrics_endpoint_label =

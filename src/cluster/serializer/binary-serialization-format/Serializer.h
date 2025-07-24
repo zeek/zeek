@@ -3,6 +3,7 @@
 #pragma once
 
 #include <optional>
+#include <span>
 
 #include "zeek/cluster/Serializer.h"
 #include "zeek/logging/Types.h"
@@ -14,7 +15,7 @@ public:
     BinarySerializationFormatLogSerializer() : LogSerializer("zeek-bin-serializer") {}
 
     bool SerializeLogWrite(byte_buffer& buf, const logging::detail::LogWriteHeader& header,
-                           zeek::Span<logging::detail::LogRecord> records) override;
+                           std::span<logging::detail::LogRecord> records) override;
 
     std::optional<logging::detail::LogWriteBatch> UnserializeLogWrite(byte_buffer_span buf) override;
 };

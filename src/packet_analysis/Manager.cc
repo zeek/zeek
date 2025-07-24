@@ -2,6 +2,8 @@
 
 #include "zeek/packet_analysis/Manager.h"
 
+#include <span>
+
 #include "zeek/Event.h"
 #include "zeek/RunState.h"
 #include "zeek/Stats.h"
@@ -251,8 +253,8 @@ void Manager::ReportUnknownProtocol(const std::string& analyzer, uint32_t protoc
     }
 }
 
-std::vector<zeek::Span<const uint8_t>> Manager::GetAnalyzerData(const AnalyzerPtr& analyzer) {
-    std::vector<zeek::Span<const uint8_t>> result;
+std::vector<std::span<const uint8_t>> Manager::GetAnalyzerData(const AnalyzerPtr& analyzer) {
+    std::vector<std::span<const uint8_t>> result;
     for ( const auto [sa, span] : analyzer_stack ) {
         if ( sa == analyzer.get() )
             result.push_back(span);

@@ -281,9 +281,7 @@ weekly_current_gcc_task:
   prepare_script: ./ci/opensuse-tumbleweed/prepare-weekly.sh
   << : *CI_TEMPLATE
   only_if: >
-    ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
-      $CIRRUS_BRANCH == 'master' ||
-      $CIRRUS_CRON == 'weekly'
+    $CIRRUS_REPO_NAME == 'zeek' && $CIRRUS_BRANCH == 'master' && $CIRRUS_CRON == 'weekly'
   env:
     ZEEK_CI_COMPILER: gcc
 
@@ -295,9 +293,7 @@ weekly_current_clang_task:
   prepare_script: ./ci/opensuse-tumbleweed/prepare-weekly.sh
   << : *CI_TEMPLATE
   only_if: >
-    ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
-      $CIRRUS_BRANCH == 'master' ||
-      $CIRRUS_CRON == 'weekly'
+    $CIRRUS_REPO_NAME == 'zeek' && $CIRRUS_BRANCH == 'master' && $CIRRUS_CRON == 'weekly'
   env:
     ZEEK_CI_COMPILER: clang
 

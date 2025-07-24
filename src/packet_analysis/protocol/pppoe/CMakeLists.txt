@@ -1,3 +1,4 @@
 zeek_add_plugin(
-    PacketAnalyzer PPPoE
-    SOURCES PPPoE.cc Plugin.cc)
+    Zeek PPPoE
+    SOURCES PPPoE.cc Plugin.cc
+    BIFS functions.bif)

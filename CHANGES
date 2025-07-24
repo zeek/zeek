@@ -1,3 +1,13 @@
+8.0.0-dev.734 | 2025-07-24 07:55:31 +0100
+
+  * PPPoE: add session id logging (Johanna Amann, Corelight)
+
+    This adds a new PacketAnalyzer::PPPoE::session_id bif, which extracts
+    the PPPoE session ID from the current packet.
+
+    Furthermore, a new policy script is added which adds the pppoe session
+    id to the connection log.
+
 8.0.0-dev.730 | 2025-07-23 15:26:08 -0700
 
   * Fix a few other minor issues reported by Coverity (Tim Wojtulewicz, Corelight)

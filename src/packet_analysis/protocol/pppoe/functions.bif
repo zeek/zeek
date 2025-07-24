@@ -1,0 +1,22 @@
+module PacketAnalyzer::PPPoE;
+
+%%{
+#include "zeek/packet_analysis/Manager.h"
+%%}
+
+## Returns the PPPoE Session ID of the current packet, if present.
+##
+## If no PPPoE Session ID is present, 0xFFFFFFFF is returned, which
+## is out of range of the session ID.
+##
+## Returns: The PPPoE session ID if present, 0xFFFFFFFF otherwise.
+function session_id%(%): count
+	%{
+	static const auto& analyzer = zeek::packet_mgr->GetAnalyzer("PPPoE");
+	auto spans = zeek::packet_mgr->GetAnalyzerData(analyzer);
+
+	if ( spans.size() == 0 || spans[0].size() <=8 )
+		return zeek::val_mgr->Count(0xFFFFFFFF);
+
+	return zeek::val_mgr->Count((spans[0][2] << 8u) + spans[0][3]);
+	%}

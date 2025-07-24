@@ -1,3 +1,11 @@
+8.0.0-dev.736 | 2025-07-24 09:48:54 +0200
+
+  * GH-4645: conn_key/fivetuple: Handle one-way ICMP conns in DoConnKeyFromVal() (Arne Welzel, Corelight)
+
+    When a conn_id represents a ICMP "connection", we need to determine the
+    is_one_way flag for InitTuple() in order to skip any flipping of address
+    and ports for one-way ICMP connections.
+
 8.0.0-dev.734 | 2025-07-24 07:55:31 +0100
 
   * PPPoE: add session id logging (Johanna Amann, Corelight)

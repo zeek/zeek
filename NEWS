@@ -357,6 +357,10 @@ Deprecated Functionality
   `dpd.log` is no longer created by default, but can be loaded using the
   `frameworks/analyzer/deprecated-dpd-log.zeek` policy script.
 
+  Relatedly, the `service_violation` field of the connection record is
+  deprecated and will only be present if the
+  `frameworks/analyzer/deprecated-dpd-log.zeek` policy script is loaded.
+
 - The ``protocols/http/detect-sqli.zeek`` script has been deprecated in favor of a
   new ``protocols/http/detect-sql-injection.zeek`` script to switch from the victim
   host being placed into the ``src`` field of a notice to instead use ``dst``.

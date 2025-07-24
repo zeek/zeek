@@ -6,6 +6,7 @@
 #include <cctype>
 
 #include "zeek/Desc.h"
+#include "zeek/ID.h"
 #include "zeek/NetVar.h"
 #include "zeek/Reporter.h"
 #include "zeek/RunState.h"
@@ -22,6 +23,12 @@ namespace zeek {
 
 uint64_t Connection::total_connections = 0;
 uint64_t Connection::current_connections = 0;
+zeek::RecordValPtr Connection::conn_id_ctx_singleton;
+
+void Connection::InitPostScript() {
+    if ( id::conn_id_ctx->NumFields() == 0 )
+        conn_id_ctx_singleton = zeek::make_intrusive<zeek::RecordVal>(id::conn_id_ctx);
+}
 
 Connection::Connection(zeek::IPBasedConnKeyPtr k, double t, uint32_t flow, const Packet* pkt)
     : Session(t, connection_timeout, connection_status_update, detail::connection_status_update_interval),

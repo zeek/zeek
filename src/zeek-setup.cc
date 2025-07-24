@@ -25,6 +25,7 @@
 
 #include <binpac.h>
 
+#include "zeek/Conn.h"
 #include "zeek/DNS_Mgr.h"
 #include "zeek/Debug.h"
 #include "zeek/Desc.h"
@@ -842,6 +843,7 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
             exit(1);
 
         RecordType::InitPostScript();
+        Connection::InitPostScript();
 
         conn_key_mgr->InitPostScript();
         telemetry_mgr->InitPostScript();

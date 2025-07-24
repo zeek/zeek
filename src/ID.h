@@ -259,6 +259,7 @@ IntrusivePtr<T> find_const(std::string_view name) {
 FuncPtr find_func(std::string_view name);
 
 extern RecordTypePtr conn_id;
+extern RecordTypePtr conn_id_ctx;
 extern RecordTypePtr endpoint;
 extern RecordTypePtr connection;
 extern RecordTypePtr fa_file;

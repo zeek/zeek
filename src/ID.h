@@ -157,9 +157,9 @@ protected:
 #endif
 
     const char* name;
+    TypePtr type;
     IDScope scope;
     bool is_export;
-    TypePtr type;
     bool is_capture = false;
     bool is_const = false;
     bool is_enum_const = false;

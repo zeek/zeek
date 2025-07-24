@@ -141,7 +141,7 @@ public:
 
     TraversalCode Traverse(TraversalCallback* cb) const;
 
-    bool HasOptionHandlers() const { return ! option_handlers.empty(); }
+    bool HasOptionHandlers() const { return option_handlers && ! option_handlers->empty(); }
 
     void AddOptionHandler(FuncPtr callback, int priority);
     std::vector<Func*> GetOptionHandlers() const;
@@ -172,7 +172,8 @@ protected:
     AttributesPtr attrs;
 
     // contains list of functions that are called when an option changes
-    std::multimap<int, FuncPtr> option_handlers;
+    using OptionHandlerMap = std::multimap<int, FuncPtr>;
+    std::unique_ptr<OptionHandlerMap> option_handlers;
 
     // Information managed by script optimization.  We package this
     // up into a separate object for purposes of modularity, and,

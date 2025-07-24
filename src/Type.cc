@@ -915,7 +915,22 @@ public:
         return {v, init_type};
     }
 
-    bool IsDeferrable() const override { return false; }
+    bool IsDeferrable() const override {
+        if ( init_expr->Tag() == EXPR_RECORD_CONSTRUCTOR ) {
+            // Special-case deferrable record construction.
+            auto rce = zeek::cast_intrusive<RecordConstructorExpr>(init_expr);
+            auto rt = rce->GetType<zeek::RecordType>();
+
+            // The empty constructor_list check here is a short-cut: If the
+            // constructor expression contained only further const expressions
+            // or only further deferrable record constructors, this could be
+            // more aggressively deferring initializations.
+            auto constructor_list = rce->Op();
+            return rt->IsDeferrable() && constructor_list->Exprs().empty();
+        }
+
+        return false;
+    }
 
     ExprPtr InitExpr() const override { return init_expr; }
 
@@ -995,6 +1010,8 @@ private:
             if ( ! ci.second->IsDeferrable() )
                 rt->creation_inits[i++] = std::move(ci);
             else {
+                // std::fprintf(stderr, "deferred %s$%s: %s\n", obj_desc_short(rt).c_str(), rt->FieldName(ci.first),
+                //             ci.second->InitExpr() ? obj_desc_short(ci.second->InitExpr()).c_str() : "<none>");
                 assert(! rt->deferred_inits[ci.first]);
                 rt->deferred_inits[ci.first].swap(ci.second);
             }

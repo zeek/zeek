@@ -282,6 +282,7 @@ private:
     CounterPtr cpu_user_counter;
     CounterPtr cpu_system_counter;
     GaugePtr fds_gauge;
+    GaugePtr process_start_time;
 
     std::shared_ptr<prometheus::Registry> prometheus_registry;
     std::unique_ptr<prometheus::Exposer> prometheus_exposer;

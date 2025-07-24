@@ -135,6 +135,10 @@ void Manager::InitPostScript() {
                               []() { return static_cast<double>(get_stats()->fds); });
 #endif
 
+    // These two metrics get set at startup and are never modified after.
+    process_start_time = GaugeInstance("process", "start_time", {}, "Process start time", "seconds");
+    process_start_time->Set(run_state::zeek_start_time);
+
     if ( ! iosource_mgr->RegisterFd(collector_flare.FD(), this) ) {
         reporter->FatalError("Failed to register telemetry collector descriptor");
     }

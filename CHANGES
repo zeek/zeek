@@ -1,3 +1,7 @@
+8.0.0-dev.740 | 2025-07-24 10:39:42 -0700
+
+  * Add process_start_time_seconds and process_pid metrics (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.738 | 2025-07-24 08:00:57 -0700
 
   * CI: Only run weekly tasks as part of cron (Tim Wojtulewicz, Corelight)

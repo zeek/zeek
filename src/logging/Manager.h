@@ -448,7 +448,14 @@ private:
     int rotations_pending = 0;    // Number of rotations not yet finished.
     FuncPtr rotation_format_func;
     FuncPtr log_stream_policy_hook;
+
     size_t max_log_record_size = 0;
+    size_t max_field_string_bytes = 0;
+    size_t max_total_string_bytes = 0;
+    size_t max_field_container_elements = 0;
+    size_t max_total_container_elements = 0;
+    size_t total_string_bytes = 0;
+    size_t total_container_elements = 0;
 
     std::shared_ptr<telemetry::CounterFamily> total_log_stream_writes_family;
     std::shared_ptr<telemetry::CounterFamily> total_log_writer_writes_family;

@@ -126,6 +126,7 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 
         if ( bad ) {
             adapter->HandleBadChecksum(is_orig);
+            adapter->ForwardSkippedPacket(len, data, is_orig, -1, ip.get(), pkt->cap_len);
             return;
         }
     }

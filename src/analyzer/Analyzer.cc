@@ -191,6 +191,19 @@ void Analyzer::NextPacket(int len, const u_char* data, bool is_orig, uint64_t se
     }
 }
 
+void Analyzer::NextSkippedPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip,
+                                 int caplen) {
+    if ( skip )
+        return;
+
+    SupportAnalyzer* next_sibling = FirstSupportAnalyzer(is_orig);
+
+    if ( next_sibling )
+        next_sibling->NextSkippedPacket(len, data, is_orig, seq, ip, caplen);
+    else
+        DeliverSkippedPacket(len, data, is_orig, seq, ip, caplen);
+}
+
 void Analyzer::NextStream(int len, const u_char* data, bool is_orig) {
     if ( skip )
         return;
@@ -251,6 +264,27 @@ void Analyzer::ForwardPacket(int len, const u_char* data, bool is_orig, uint64_t
 
         if ( ! (current->finished || current->removing) ) {
             current->NextPacket(len, data, is_orig, seq, ip, caplen);
+            ++i;
+        }
+        else
+            i = DeleteChild(i);
+    }
+
+    AppendNewChildren();
+}
+
+void Analyzer::ForwardSkippedPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip,
+                                    int caplen) {
+    if ( output_handler )
+        output_handler->DeliverSkippedPacket(len, data, is_orig, seq, ip, caplen);
+
+    AppendNewChildren();
+
+    for ( auto i = children.begin(); i != children.end(); ) {
+        Analyzer* current = *i;
+
+        if ( ! (current->finished || current->removing) ) {
+            current->NextSkippedPacket(len, data, is_orig, seq, ip, caplen);
             ++i;
         }
         else
@@ -584,6 +618,13 @@ SupportAnalyzer* Analyzer::FirstSupportAnalyzer(bool orig) {
 void Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen) {
     DBG_LOG(DBG_ANALYZER, "%s DeliverPacket(%d, %s, %" PRIu64 ", %p, %d) [%s%s]", fmt_analyzer(this).c_str(), len,
             is_orig ? "T" : "F", seq, ip, caplen, util::fmt_bytes((const char*)data, min(40, len)),
+            len > 40 ? "..." : "");
+}
+
+void Analyzer::DeliverSkippedPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip,
+                                    int caplen) {
+    DBG_LOG(DBG_ANALYZER, "%s DeliverSkippedPacket(%d, %s, %" PRIu64 ", %p, %d) [%s%s]", fmt_analyzer(this).c_str(),
+            len, is_orig ? "T" : "F", seq, ip, caplen, util::fmt_bytes((const char*)data, min(40, len)),
             len > 40 ? "..." : "");
 }
 

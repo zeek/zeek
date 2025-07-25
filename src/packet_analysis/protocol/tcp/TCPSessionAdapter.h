@@ -87,6 +87,8 @@ protected:
     void Init() override;
     void Done() override;
     void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen) override;
+    void DeliverSkippedPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip,
+                              int caplen) override;
     void DeliverStream(int len, const u_char* data, bool orig) override;
     void Undelivered(uint64_t seq, int len, bool orig) override;
     void FlipRoles() override;

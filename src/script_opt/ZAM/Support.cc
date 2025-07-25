@@ -197,7 +197,7 @@ StringValPtr ZAM_val_cat(const ValPtr& v) {
 
     v->Describe(&d);
 
-    String* s = new String(true, d.TakeBytes(), d.Len());
+    String* s = new String(true, d.TakeBytes(), d.Size());
     s->SetUseFreeToDelete(true);
 
     return make_intrusive<StringVal>(s);

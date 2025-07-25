@@ -144,7 +144,11 @@ public:
         return byte_vec(t);
     }
 
-    int Len() const { return offset; }
+    [[deprecated("Remove in v8.1. Use Size() that returns size_t instead.")]]
+    int Len() const {
+        return static_cast<int>(offset);
+    }
+    size_t Size() const { return offset; }
 
     void Clear();
 
@@ -157,11 +161,11 @@ public:
 protected:
     void Indent();
 
-    void AddBytes(const void* bytes, unsigned int n);
-    void AddBytesRaw(const void* bytes, unsigned int n);
+    void AddBytes(const void* bytes, size_t n);
+    void AddBytesRaw(const void* bytes, size_t n);
 
     // Make buffer big enough for n bytes beyond bufp.
-    void Grow(unsigned int n);
+    void Grow(size_t n);
 
     /**
      * Returns the location of the first place in the bytes to be hex-escaped.
@@ -188,9 +192,9 @@ protected:
     DescType type;
     DescStyle style;
 
-    void* base;          // beginning of buffer
-    unsigned int offset; // where we are in the buffer
-    unsigned int size;   // size of buffer in bytes
+    void* base;    // beginning of buffer
+    size_t offset; // where we are in the buffer
+    size_t size;   // size of buffer in bytes
 
     bool utf8;   // whether valid utf-8 sequences may pass through unescaped
     bool escape; // escape unprintable characters in output?

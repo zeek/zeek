@@ -1,3 +1,9 @@
+8.0.0-dev.751 | 2025-07-25 09:13:51 -0700
+
+  * Use size_t for byte sizes in SerializationFormat (Tim Wojtulewicz, Corelight)
+
+  * Add ODesc::Size() that returns size_t, deprecate ODesc::Len() (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.748 | 2025-07-25 10:58:16 +0200
 
   * RecordType: Allow field init deferral of deferrable record constructors (Arne Welzel, Corelight)

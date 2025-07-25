@@ -345,7 +345,7 @@ void do_print_stmt(const std::vector<ValPtr>& vals) {
         d.SetStyle(style);
 
         describe_vals(vals, &d, offset);
-        f->Write(d.Description(), d.Len());
+        f->Write(d.Description(), d.Size());
     }
     else {
         ODesc d(DESC_READABLE, f);

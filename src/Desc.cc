@@ -11,8 +11,8 @@
 #include "zeek/IPAddr.h"
 #include "zeek/Reporter.h"
 
-constexpr unsigned int DEFAULT_SIZE = 128;
-constexpr int SLOP = 10;
+constexpr size_t DEFAULT_SIZE = 128;
+constexpr size_t SLOP = 10;
 
 namespace zeek {
 
@@ -74,7 +74,7 @@ void ODesc::PopIndentNoNL() {
 }
 
 void ODesc::Add(const char* s, int do_indent) {
-    unsigned int n = strlen(s);
+    size_t n = strlen(s);
 
     if ( do_indent && IsReadable() && offset > 0 && ((const char*)base)[offset - 1] == '\n' )
         Indent();
@@ -235,7 +235,7 @@ std::pair<const char*, size_t> ODesc::FirstEscapeLoc(const char* bytes, size_t n
     return {nullptr, 0};
 }
 
-void ODesc::AddBytes(const void* bytes, unsigned int n) {
+void ODesc::AddBytes(const void* bytes, size_t n) {
     if ( ! escape ) {
         AddBytesRaw(bytes, n);
         return;
@@ -271,7 +271,7 @@ void ODesc::AddBytes(const void* bytes, unsigned int n) {
     }
 }
 
-void ODesc::AddBytesRaw(const void* bytes, unsigned int n) {
+void ODesc::AddBytesRaw(const void* bytes, size_t n) {
     if ( n == 0 )
         return;
 
@@ -304,7 +304,7 @@ void ODesc::AddBytesRaw(const void* bytes, unsigned int n) {
     }
 }
 
-void ODesc::Grow(unsigned int n) {
+void ODesc::Grow(size_t n) {
     bool size_changed = false;
     while ( offset + n + SLOP >= size ) {
         size *= 2;
@@ -319,7 +319,8 @@ void ODesc::Clear() {
     offset = 0;
 
     // If we've allocated an exceedingly large amount of space, free it.
-    if ( size > 10 * 1024 * 1024 ) {
+    constexpr size_t too_large = 10l * 1024 * 1024;
+    if ( size > too_large ) {
         free(base);
         size = DEFAULT_SIZE;
         base = util::safe_malloc(size);

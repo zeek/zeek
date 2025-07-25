@@ -121,7 +121,7 @@ function join_string_vec%(vec: string_vec, sep: string%): string
 		e->Describe(&d);
 		}
 
-	zeek::String* s = new zeek::String(true, d.TakeBytes(), d.Len());
+	zeek::String* s = new zeek::String(true, d.TakeBytes(), d.Size());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);
@@ -179,7 +179,7 @@ function join_string_set%(ss: string_set, sep: string%): string
 		++i;
 		}
 
-	zeek::String* str = new zeek::String(true, d.TakeBytes(), d.Len());
+	zeek::String* str = new zeek::String(true, d.TakeBytes(), d.Size());
 	str->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(str);

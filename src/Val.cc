@@ -2931,43 +2931,56 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->
 
         for ( auto& e : rt->CreationInits() ) {
             try {
-                record_val[e.first] = e.second->Generate();
+                record_val[e.first].Set(e.second->Generate());
             } catch ( InterpreterException& e ) {
                 if ( run_state::is_parsing )
                     parse_time_records[rt.get()].pop_back();
                 throw;
             }
         }
+
+        // Initialize the managed flag of each slot so that we don't need
+        // to go back to record type for figuring out if it's managed.
+        for ( size_t i = 0; i < record_val.size(); i++ )
+            record_val[i].SetManaged(IsManaged(i));
     }
 
     else
+        // This has to go through AppendField() which will
+        // initialize the slots managed flag properly.
         record_val.reserve(n);
 }
 
 RecordVal::RecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals)
     : Val(t), is_managed(t->ManagedFields()) {
     rt = std::move(t);
-    record_val = std::move(init_vals);
+
+    record_val.resize(rt->NumFields());
+
+    // std::fprintf(stderr, "optimized\n");
+
+    for ( size_t i = 0; i < record_val.size(); ++i ) {
+        if ( init_vals[i] )
+            record_val[i].Set(*init_vals[i]);
+
+        record_val[i].SetManaged(IsManaged(i));
+    }
 }
 
 RecordVal::~RecordVal() {
-    auto n = record_val.size();
-
-    for ( unsigned int i = 0; i < n; ++i ) {
-        auto f_i = record_val[i];
-        if ( f_i && IsManaged(i) )
-            ZVal::DeleteManagedType(*f_i);
-    }
+    for ( auto& slot : record_val )
+        slot.Delete();
 }
 
 ValPtr RecordVal::SizeVal() const { return val_mgr->Count(GetType()->AsRecordType()->NumFields()); }
 
 void RecordVal::Assign(int field, ValPtr new_val) {
+    auto& slot = record_val[field];
     if ( new_val ) {
-        DeleteFieldIfManaged(field);
+        slot.Delete();
 
         auto t = rt->GetFieldType(field);
-        record_val[field] = ZVal(new_val, t);
+        slot.Set(ZVal(new_val, t));
         Modified();
     }
     else
@@ -2975,12 +2988,12 @@ void RecordVal::Assign(int field, ValPtr new_val) {
 }
 
 void RecordVal::Remove(int field) {
-    auto& f_i = record_val[field];
-    if ( f_i ) {
-        if ( IsManaged(field) )
-            ZVal::DeleteManagedType(*f_i);
-
-        f_i = std::nullopt;
+    auto& slot = record_val[field];
+    if ( slot.IsSet() ) {
+        assert(! slot.IsDeleted());
+        slot.Delete();
+        assert(! slot.IsSet());
+        assert(slot.IsDeleted());
 
         Modified();
     }

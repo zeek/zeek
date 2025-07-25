@@ -1114,6 +1114,80 @@ struct is_zeek_val {
 template<typename T>
 inline constexpr bool is_zeek_val_v = is_zeek_val<T>::value;
 
+namespace detail {
+
+enum class RecordValSlotFlags : uint8_t {
+    None = 0,
+    Managed = 1, // replicates
+    Set = 2,
+    Deleted = 4,
+};
+
+constexpr RecordValSlotFlags operator|(RecordValSlotFlags l, RecordValSlotFlags r) {
+    return static_cast<RecordValSlotFlags>(static_cast<uint8_t>(l) | static_cast<uint8_t>(r));
+}
+constexpr RecordValSlotFlags operator&(RecordValSlotFlags l, RecordValSlotFlags r) {
+    return static_cast<RecordValSlotFlags>(static_cast<uint8_t>(l) & static_cast<uint8_t>(r));
+}
+
+constexpr RecordValSlotFlags operator~(RecordValSlotFlags x) {
+    return static_cast<RecordValSlotFlags>(~static_cast<uint8_t>(x));
+}
+
+/**
+ * Representation of a single slot for a field in a RecordVal.
+ *
+ * Previously this was a std::optional<ZVal> that was using 16bytes. This has
+ * been switched to a struct to be able to have access to the wasted bytes to
+ * store some additional flags.
+ */
+class RecordValSlot {
+public:
+    RecordValSlot() {}
+    RecordValSlot(ZVal zval, RecordValSlotFlags flags) : zval(zval), flags(flags) {}
+
+    bool IsManaged() const noexcept { return (flags & RecordValSlotFlags::Managed) == RecordValSlotFlags::Managed; }
+    bool IsDeleted() const noexcept { return (flags & RecordValSlotFlags::Deleted) == RecordValSlotFlags::Deleted; }
+    bool IsSet() const noexcept { return (flags & RecordValSlotFlags::Set) == RecordValSlotFlags::Set; }
+
+    void SetManaged(bool is_managed) noexcept {
+        if ( is_managed )
+            flags = flags | detail::RecordValSlotFlags::Managed;
+        else
+            flags = flags & (~detail::RecordValSlotFlags::Managed);
+    }
+
+    void Set(ZVal new_zval) noexcept {
+        flags = flags | RecordValSlotFlags::Set;
+        flags = flags & (~RecordValSlotFlags::Deleted);
+        zval = new_zval;
+    }
+
+    void Delete() {
+        if ( IsSet() && IsManaged() )
+            ZVal::DeleteManagedType(zval);
+
+        flags = flags | RecordValSlotFlags::Deleted;
+        flags = flags & (~RecordValSlotFlags::Set);
+    }
+
+    ValPtr ToVal(const TypePtr& t) const {
+        assert(IsSet());
+        return zval.ToVal(t);
+    }
+
+    auto& GetZVal() noexcept { return zval; }
+    const auto& GetZVal() const noexcept { return zval; }
+
+private:
+    friend class zeek::detail::CPPRuntime;
+    friend class zeek::RecordVal;
+    ZVal zval;
+    RecordValSlotFlags flags = RecordValSlotFlags::None;
+};
+
+} // namespace detail
+
 class RecordVal final : public Val, public notifier::detail::Modifiable {
 public:
     explicit RecordVal(RecordTypePtr t, bool init_fields = true);
@@ -1150,31 +1224,31 @@ public:
 
     // The following provide efficient record field assignments.
     void Assign(int field, bool new_val) {
-        record_val[field] = ZVal(zeek_int_t(new_val));
+        record_val[field].Set(ZVal(zeek_int_t(new_val)));
         AddedField(field);
     }
 
     // For int types, we provide both [u]int32_t and [u]int64_t versions for
     // convenience, since sometimes the caller has one rather than the other.
     void Assign(int field, int32_t new_val) {
-        record_val[field] = ZVal(zeek_int_t(new_val));
+        record_val[field].Set(ZVal(zeek_int_t(new_val)));
         AddedField(field);
     }
     void Assign(int field, int64_t new_val) {
-        record_val[field] = ZVal(zeek_int_t(new_val));
+        record_val[field].Set(ZVal(zeek_int_t(new_val)));
         AddedField(field);
     }
     void Assign(int field, uint32_t new_val) {
-        record_val[field] = ZVal(zeek_uint_t(new_val));
+        record_val[field].Set(ZVal(zeek_uint_t(new_val)));
         AddedField(field);
     }
     void Assign(int field, uint64_t new_val) {
-        record_val[field] = ZVal(zeek_uint_t(new_val));
+        record_val[field].Set(ZVal(zeek_uint_t(new_val)));
         AddedField(field);
     }
 
     void Assign(int field, double new_val) {
-        record_val[field] = ZVal(new_val);
+        record_val[field].Set(ZVal(new_val));
         AddedField(field);
     }
 
@@ -1186,10 +1260,12 @@ public:
     void AssignInterval(int field, double new_val) { Assign(field, new_val); }
 
     void Assign(int field, StringVal* new_val) {
-        auto& fv = record_val[field];
-        if ( fv )
-            ZVal::DeleteManagedType(*fv);
-        fv = ZVal(new_val);
+        auto& slot = record_val[field];
+        if ( slot.IsSet() ) {
+            assert(slot.IsManaged());
+            ZVal::DeleteManagedType(slot.zval);
+        }
+        slot.Set(ZVal(new_val));
         AddedField(field);
     }
     void Assign(int field, const char* new_val) { Assign(field, new StringVal(new_val)); }
@@ -1222,8 +1298,12 @@ public:
      * @return  Whether there's a value for the given field index.
      */
     bool HasField(int field) const {
-        if ( record_val[field] )
+        const auto& slot = record_val[field];
+        if ( slot.IsSet() )
             return true;
+
+        if ( slot.IsDeleted() )
+            return false;
 
         return rt->DeferredInits()[field] != nullptr;
     }
@@ -1245,16 +1325,18 @@ public:
      * @return  The value at the given field index.
      */
     ValPtr GetField(int field) const {
-        auto& fv = record_val[field];
-        if ( ! fv ) {
+        auto& slot = record_val[field];
+        if ( slot.IsDeleted() )
+            return nullptr;
+
+        if ( ! slot.IsSet() ) {
             const auto& fi = rt->DeferredInits()[field];
             if ( ! fi )
                 return nullptr;
 
-            fv = fi->Generate();
+            slot.Set(fi->Generate());
         }
-
-        return fv->ToVal(rt->GetFieldType(field));
+        return slot.ToVal(rt->GetFieldType(field));
     }
 
     /**
@@ -1321,7 +1403,10 @@ public:
 
     // Returns true if the slot for the given field is initialized.
     // This helper can be used to guard GetFieldAs() accesses.
-    bool HasRawField(int field) const { return record_val[field].has_value(); }
+    bool HasRawField(int field) const {
+        assert((record_val[field].IsSet() && ! record_val[field].IsDeleted()) || ! record_val[field].IsSet());
+        return record_val[field].IsSet();
+    }
 
     // The following return the given field converted to a particular
     // underlying value.  We provide these to enable efficient
@@ -1330,33 +1415,34 @@ public:
     // record (using HasRawField(), if necessary).
     template<typename T, typename std::enable_if_t<is_zeek_val_v<T>, bool> = true>
     auto GetFieldAs(int field) const -> std::invoke_result_t<decltype(&T::Get), T> {
+        const auto& slot = record_val[field];
         if constexpr ( std::is_same_v<T, BoolVal> || std::is_same_v<T, IntVal> || std::is_same_v<T, EnumVal> )
-            return record_val[field]->int_val;
+            return slot.zval.int_val;
         else if constexpr ( std::is_same_v<T, CountVal> )
-            return record_val[field]->uint_val;
+            return slot.zval.uint_val;
         else if constexpr ( std::is_same_v<T, DoubleVal> || std::is_same_v<T, TimeVal> ||
                             std::is_same_v<T, IntervalVal> )
-            return record_val[field]->double_val;
+            return slot.zval.double_val;
         else if constexpr ( std::is_same_v<T, PortVal> )
-            return val_mgr->Port(record_val[field]->uint_val);
+            return val_mgr->Port(slot.zval.uint_val);
         else if constexpr ( std::is_same_v<T, StringVal> )
-            return record_val[field]->string_val->Get();
+            return slot.zval.string_val->Get();
         else if constexpr ( std::is_same_v<T, AddrVal> )
-            return record_val[field]->addr_val->Get();
+            return slot.zval.addr_val->Get();
         else if constexpr ( std::is_same_v<T, SubNetVal> )
-            return record_val[field]->subnet_val->Get();
+            return slot.zval.subnet_val->Get();
         else if constexpr ( std::is_same_v<T, File> )
-            return *(record_val[field]->file_val);
+            return *(slot.zval.file_val);
         else if constexpr ( std::is_same_v<T, Func> )
-            return *(record_val[field]->func_val);
+            return *(slot.zval.func_val);
         else if constexpr ( std::is_same_v<T, PatternVal> )
-            return record_val[field]->re_val->Get();
+            return slot.zval.re_val->Get();
         else if constexpr ( std::is_same_v<T, RecordVal> )
-            return record_val[field]->record_val;
+            return slot.zval.record_val;
         else if constexpr ( std::is_same_v<T, VectorVal> )
-            return record_val[field]->vector_val;
+            return slot.zval.vector_val;
         else if constexpr ( std::is_same_v<T, TableVal> )
-            return record_val[field]->table_val->Get();
+            return slot.zval.table_val->Get();
         else {
             // It's an error to reach here, although because of
             // the type trait we really shouldn't ever wind up
@@ -1368,11 +1454,11 @@ public:
     template<typename T, typename std::enable_if_t<! is_zeek_val_v<T>, bool> = true>
     T GetFieldAs(int field) const {
         if constexpr ( std::is_integral_v<T> && std::is_signed_v<T> )
-            return record_val[field]->int_val;
+            return record_val[field].zval.int_val;
         else if constexpr ( std::is_integral_v<T> && std::is_unsigned_v<T> )
-            return record_val[field]->uint_val;
+            return record_val[field].zval.uint_val;
         else if constexpr ( std::is_floating_point_v<T> )
-            return record_val[field]->double_val;
+            return record_val[field].zval.double_val;
 
         // Note: we could add other types here using type traits,
         // such as is_same_v<T, std::string>, etc.
@@ -1448,33 +1534,31 @@ protected:
      * @param t  The type associated with the field.
      */
     void AppendField(ValPtr v, const TypePtr& t) {
+        detail::RecordValSlotFlags managed_flag =
+            IsManaged(record_val.size()) ? detail::RecordValSlotFlags::Managed : detail::RecordValSlotFlags::None;
+
         if ( v )
-            record_val.emplace_back(ZVal(v, t));
+            record_val.emplace_back(ZVal(v, t), managed_flag | detail::RecordValSlotFlags::Set);
         else
-            record_val.emplace_back(std::nullopt);
+            record_val.emplace_back(ZVal(), managed_flag);
     }
 
     // For internal use by low-level ZAM instructions and event tracing.
     // Caller assumes responsibility for memory management.  The first
     // version allows manipulation of whether the field is present at all.
     // The second version ensures that the optional value is present.
-    std::optional<ZVal>& RawOptField(int field) {
-        auto& f = record_val[field];
-        if ( ! f ) {
+    detail::RecordValSlot& RawOptField(int field) {
+        auto& slot = record_val[field];
+        if ( ! slot.IsSet() && ! slot.IsDeleted() ) {
             const auto& fi = rt->DeferredInits()[field];
             if ( fi )
-                f = fi->Generate();
+                slot.Set(fi->Generate());
         }
 
-        return f;
+        return slot;
     }
 
-    ZVal& RawField(int field) {
-        auto& f = RawOptField(field);
-        if ( ! f )
-            f = ZVal();
-        return *f;
-    }
+    ZVal& RawField(int field) { return record_val[field].zval; }
 
     ValPtr DoClone(CloneState* state) override;
 
@@ -1486,13 +1570,12 @@ protected:
     static RecordTypeValMap parse_time_records;
 
 private:
-    void DeleteFieldIfManaged(unsigned int field) {
-        auto& f = record_val[field];
-        if ( f && IsManaged(field) )
-            ZVal::DeleteManagedType(*f);
+    bool IsManaged(unsigned int offset) const {
+        bool r = GetType<zeek::RecordType>()->ManagedFields()[offset];
+        assert(r == is_managed[offset]);
+        return r;
     }
 
-    bool IsManaged(unsigned int offset) const { return is_managed[offset]; }
 
     // Just for template inferencing.
     RecordVal* Get() { return this; }
@@ -1505,7 +1588,7 @@ private:
     // Low-level values of each of the fields.
     //
     // Lazily modified during GetField(), so mutable.
-    mutable std::vector<std::optional<ZVal>> record_val;
+    mutable std::vector<detail::RecordValSlot> record_val;
 
     // Whether a given field requires explicit memory management.
     const std::vector<bool>& is_managed;

@@ -7,7 +7,7 @@ assign-val v
 eval	auto r = $1.AsRecord();
 	auto& rv = DirectOptField(r, $2);
 	ZVal v;
-	if ( ! rv )
+	if ( ! rv.IsSet() )
 		{
 		auto def = r->GetType<RecordType>()->FieldDefault($2);
 		if ( def )
@@ -16,7 +16,7 @@ eval	auto r = $1.AsRecord();
 			ERROR(util::fmt("field value missing: $%s", r->GetType()->AsRecordType()->FieldName($2)));
 		}
 	else
-		v = *rv;
+		v = rv.GetZVal();
 
 expr-op Has-Field
 class VRi
@@ -31,7 +31,7 @@ eval	$$ = $1->HasField($2);
 internal-op Has-Field
 class VRii
 op-types R R I I
-eval	DirectOptField($$, $2) = ZVal(zeek_int_t($1->HasField($3)));
+eval	DirectOptField($$, $2).Set(ZVal(zeek_int_t($1->HasField($3))));
 
 # The following generates an assignment version of Has-Field that we
 # don't use (because we need the one above that uses "includes-field-op")

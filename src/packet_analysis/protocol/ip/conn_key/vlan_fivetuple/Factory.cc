@@ -54,18 +54,16 @@ protected:
     };
 
     std::pair<int, int> GetConnCtxFieldOffsets() {
-        static const auto& conn_id_ctx = zeek::id::find_type<zeek::RecordType>("conn_id_ctx");
-
         static int vlan_offset = -2;
         static int inner_vlan_offset = -2;
 
         if ( vlan_offset == -2 && inner_vlan_offset == -2 ) {
-            vlan_offset = conn_id_ctx->FieldOffset("vlan");
-            if ( vlan_offset < 0 || conn_id_ctx->GetFieldType(vlan_offset)->Tag() != TYPE_INT )
+            vlan_offset = id::conn_id_ctx->FieldOffset("vlan");
+            if ( vlan_offset < 0 || id::conn_id_ctx->GetFieldType(vlan_offset)->Tag() != TYPE_INT )
                 vlan_offset = -1;
 
-            inner_vlan_offset = conn_id_ctx->FieldOffset("inner_vlan");
-            if ( inner_vlan_offset < 0 || conn_id_ctx->GetFieldType(inner_vlan_offset)->Tag() != TYPE_INT )
+            inner_vlan_offset = id::conn_id_ctx->FieldOffset("inner_vlan");
+            if ( inner_vlan_offset < 0 || id::conn_id_ctx->GetFieldType(inner_vlan_offset)->Tag() != TYPE_INT )
                 inner_vlan_offset = -1;
         }
 

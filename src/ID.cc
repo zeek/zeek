@@ -24,6 +24,7 @@
 namespace zeek {
 
 RecordTypePtr id::conn_id;
+RecordTypePtr id::conn_id_ctx;
 RecordTypePtr id::endpoint;
 RecordTypePtr id::connection;
 RecordTypePtr id::fa_file;
@@ -81,6 +82,7 @@ FuncPtr id::find_func(std::string_view name) {
 
 void id::detail::init_types() {
     conn_id = id::find_type<RecordType>("conn_id");
+    conn_id_ctx = id::find_type<RecordType>("conn_id_ctx");
     endpoint = id::find_type<RecordType>("endpoint");
     connection = id::find_type<RecordType>("connection");
     fa_file = id::find_type<RecordType>("fa_file");

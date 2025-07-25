@@ -209,6 +209,9 @@ public:
     // Returns true once Done() is called.
     bool IsFinished() { return finished; }
 
+    // Runs after all scripts have been parsed.
+    static void InitPostScript();
+
 private:
     // Common initialization for the constructors. This can move back into the
     // (sole) constructor when we remove the deprecated one in 8.1.
@@ -244,6 +247,11 @@ private:
     // Count number of connections.
     static uint64_t total_connections;
     static uint64_t current_connections;
+
+    // When the conn_id_ctx record type has no fields,
+    // this holds a singleton record value for it that
+    // is shared among all conn_id record values.
+    static RecordValPtr conn_id_ctx_singleton;
 };
 
 // The following is used by script optimization.

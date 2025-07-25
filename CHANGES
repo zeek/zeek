@@ -1,3 +1,23 @@
+8.0.0-dev.748 | 2025-07-25 10:58:16 +0200
+
+  * RecordType: Allow field init deferral of deferrable record constructors (Arne Welzel, Corelight)
+
+    The ctx: conn_id_ctx &default=conn_id_ctx() field was not optimized
+    as deferrable even though by default its an empty record and so deferring
+    initialization seems safe. Open-code the special record constructor
+    expression case in ExprFieldInit so that the ctx field is not default
+    initialized at record construction anymore. I am wondering a bit if the
+    same applies to &default=set() and &default=table().
+
+  * Conn: Use conn_id_ctx singleton (Arne Welzel, Corelight)
+
+  * Conn: Add InitPostScript() and conn_id_ctx singleton (Arne Welzel, Corelight)
+
+  * ID: Add conn_id_ctx (Arne Welzel, Corelight)
+
+    Seemed a bit unfortunate to use id::connection and id::conn_id, but
+    then do something different for conn_id_ctx.
+
 8.0.0-dev.742 | 2025-07-24 12:46:16 -0700
 
   * Update broker submodule to pull in clang 20 fix [nomail] (Tim Wojtulewicz, Corelight)

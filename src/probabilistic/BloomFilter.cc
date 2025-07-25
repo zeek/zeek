@@ -5,6 +5,7 @@
 #include <cinttypes>
 #include <cmath>
 #include <limits>
+#include <numbers>
 
 #include "zeek/Reporter.h"
 #include "zeek/broker/Data.h"
@@ -86,13 +87,13 @@ bool BloomFilter::DoUnserializeData(BrokerDataView data) {
 }
 
 size_t BasicBloomFilter::M(double fp, size_t capacity) {
-    double ln2 = std::log(2);
+    double ln2 = std::numbers::ln2;
     return std::ceil(-(capacity * std::log(fp) / ln2 / ln2));
 }
 
 size_t BasicBloomFilter::K(size_t cells, size_t capacity) {
     double frac = static_cast<double>(cells) / static_cast<double>(capacity);
-    return std::ceil(frac * std::log(2));
+    return std::ceil(frac * std::numbers::ln2);
 }
 
 bool BasicBloomFilter::Empty() const { return bits->AllZero(); }

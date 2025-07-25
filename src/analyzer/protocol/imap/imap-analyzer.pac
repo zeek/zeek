@@ -14,7 +14,7 @@ refine connection IMAP_Conn += {
 	function proc_imap_token(is_orig: bool, tag: bytestring, command: bytestring): bool
 		%{
 		string commands = std_str(command);
-		std::transform(commands.begin(), commands.end(), commands.begin(), ::tolower);
+		std::ranges::transform(commands, commands.begin(), ::tolower);
 
 		string tags = std_str(tag);
 

@@ -52,7 +52,7 @@ refine connection IMAP_Conn += {
 	function determine_command(is_orig: bool, tag: bytestring, command: bytestring): int
 		%{
 		string cmdstr = std_str(command);
-		std::transform(cmdstr.begin(), cmdstr.end(), cmdstr.begin(), ::tolower);
+		std::ranges::transform(cmdstr, cmdstr.begin(), ::tolower);
 
 		if ( !is_orig && cmdstr == "capability" && tag == "*" ) {
 			return CMD_CAPABILITY;

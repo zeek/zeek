@@ -111,7 +111,7 @@ OperationResult Manager::CloseBackend(BackendPtr backend, ResultCallback* cb) {
     // backend from the vector before actually closing it.
     {
         std::unique_lock<std::mutex> lk(backends_mtx);
-        auto it = std::find(backends.begin(), backends.end(), backend);
+        auto it = std::ranges::find(backends, backend);
         if ( it != backends.end() )
             backends.erase(it);
     }

@@ -301,7 +301,7 @@ NFA_state_list* epsilon_closure(NFA_state_list* states) {
     }
 
     // Sort all of the closures in the list by ID
-    std::sort(closure->begin(), closure->end(), NFA_state_cmp_neg);
+    std::ranges::sort(*closure, NFA_state_cmp_neg);
 
     // Make it fit.
     closure->resize(0);

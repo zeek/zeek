@@ -192,7 +192,7 @@ string CPPCompile::BodyName(const FuncInfo& func) {
         auto canonicalize = [](char c) -> char { return isalnum(c) ? c : '_'; };
 
         string fns = fn;
-        transform(fns.begin(), fns.end(), fns.begin(), canonicalize);
+        std::ranges::transform(fns, fns.begin(), canonicalize);
 
         if ( ! isalpha(fns[0]) )
             // This can happen for filenames beginning with numbers.

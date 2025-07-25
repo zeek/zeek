@@ -313,7 +313,7 @@ BitVector& BitVector::Set(size_type i, bool bit) {
 }
 
 BitVector& BitVector::Set() {
-    std::fill(bits.begin(), bits.end(), ~block_type(0));
+    std::ranges::fill(bits, ~block_type(0));
     zero_unused_bits();
     return *this;
 }
@@ -325,7 +325,7 @@ BitVector& BitVector::Reset(size_type i) {
 }
 
 BitVector& BitVector::Reset() {
-    std::fill(bits.begin(), bits.end(), block_type(0));
+    std::ranges::fill(bits, block_type(0));
     return *this;
 }
 

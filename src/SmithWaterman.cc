@@ -246,7 +246,7 @@ static void sw_collect_single(Substring::Vec* result, SWNodeMatrix& matrix, SWNo
         else {
             //			printf("GAP\n");
             if ( substring.size() >= params._min_toklen ) {
-                reverse(substring.begin(), substring.end());
+                std::ranges::reverse(substring);
                 auto* bst = new Substring(substring);
                 bst->AddAlignment(matrix.GetRowsString(), row - 1);
                 bst->AddAlignment(matrix.GetColsString(), col - 1);
@@ -263,7 +263,7 @@ static void sw_collect_single(Substring::Vec* result, SWNodeMatrix& matrix, SWNo
     // manually added and marked as the beginning of a new alignment.
     //
     if ( substring.size() > 0 ) {
-        reverse(substring.begin(), substring.end());
+        std::ranges::reverse(substring);
         auto* bst = new Substring(substring);
         bst->AddAlignment(matrix.GetRowsString(), row - 1);
         bst->AddAlignment(matrix.GetColsString(), col - 1);
@@ -488,9 +488,9 @@ Substring::Vec* smith_waterman(const String* s1, const String* s2, SWParams& par
         sw_collect_single(result, matrix, node_max, params);
 
     if ( len1 > len2 )
-        sort(result->begin(), result->end(), SubstringCmp(0));
+        std::ranges::sort(*result, SubstringCmp(0));
     else
-        sort(result->begin(), result->end(), SubstringCmp(1));
+        std::ranges::sort(*result, SubstringCmp(1));
 
     return result;
 }

@@ -102,7 +102,8 @@ public:
 
     IntrusivePtr(const IntrusivePtr& other) noexcept : IntrusivePtr(NewRef{}, other.get()) {}
 
-    template<class U, class = std::enable_if_t<std::is_convertible_v<U*, T*>>>
+    template<class U>
+        requires std::is_convertible_v<U*, T*>
     IntrusivePtr(IntrusivePtr<U> other) noexcept : ptr_(other.release()) {
         // nop
     }

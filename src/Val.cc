@@ -961,7 +961,8 @@ static zeek::expected<ValPtr, std::string> BuildVal(const rapidjson::Value& j, c
 
                 // Strip out any empty items. This can happen if there are
                 // strings of spaces in the original string.
-                parts.erase(std::remove_if(parts.begin(), parts.end(), [](auto x) { return x.empty(); }), parts.end());
+                parts.erase(std::ranges::begin(std::ranges::remove_if(parts, [](auto x) { return x.empty(); })),
+                            std::end(parts));
 
                 if ( (parts.size() % 2) != 0 )
                     return zeek::unexpected<std::string>("wrong interval format, must be pairs of values with units");
@@ -2565,7 +2566,7 @@ void TableVal::Describe(ODesc* d) const {
         reporter->InternalError("hash table overflow in TableVal::Describe");
 
     if ( determ ) {
-        sort(elem_descs.begin(), elem_descs.end());
+        ranges::sort(elem_descs);
         bool did_elems = false;
 
         for ( const auto& ed : elem_descs ) {
@@ -3539,7 +3540,7 @@ void VectorVal::Sort(Func* cmp_func) {
         }
     }
 
-    sort(vector_val.begin(), vector_val.end(), sort_func);
+    ranges::sort(vector_val, sort_func);
 }
 
 VectorValPtr VectorVal::Order(Func* cmp_func) {
@@ -3581,7 +3582,7 @@ VectorValPtr VectorVal::Order(Func* cmp_func) {
         index_map.emplace_back(&vector_val[i]);
     }
 
-    sort(ind_vv.begin(), ind_vv.end(), sort_func);
+    ranges::sort(ind_vv, sort_func);
 
     index_map.clear();
 

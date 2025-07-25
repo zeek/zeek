@@ -1493,7 +1493,7 @@ bool RecordType::IsDeferrable() const {
     // If all creation_inits are deferrable, this record type is deferrable, too.
     // It will be optimized later on. Note, all_of() returns true for an empty
     // range, which is correct.
-    return std::all_of(creation_inits.begin(), creation_inits.end(), is_deferrable);
+    return std::ranges::all_of(creation_inits, is_deferrable);
 }
 
 FileType::FileType(TypePtr yield_type) : Type(TYPE_FILE), yield(std::move(yield_type)) {}

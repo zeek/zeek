@@ -1328,7 +1328,8 @@ public:
     // access to record fields (without requiring an intermediary Val).
     // It is up to the caller to ensure that the field exists in the
     // record (using HasRawField(), if necessary).
-    template<typename T, typename std::enable_if_t<is_zeek_val_v<T>, bool> = true>
+    template<typename T>
+        requires is_zeek_val_v<T>
     auto GetFieldAs(int field) const -> std::invoke_result_t<decltype(&T::Get), T> {
         if constexpr ( std::is_same_v<T, BoolVal> || std::is_same_v<T, IntVal> || std::is_same_v<T, EnumVal> )
             return record_val[field]->int_val;
@@ -1365,7 +1366,8 @@ public:
         }
     }
 
-    template<typename T, typename std::enable_if_t<! is_zeek_val_v<T>, bool> = true>
+    template<typename T>
+        requires(! is_zeek_val_v<T>)
     T GetFieldAs(int field) const {
         if constexpr ( std::is_integral_v<T> && std::is_signed_v<T> )
             return record_val[field]->int_val;

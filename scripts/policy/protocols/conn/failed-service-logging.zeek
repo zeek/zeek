@@ -30,8 +30,6 @@ event analyzer_failed(ts: time, atype: AllAnalyzers::Tag, info: AnalyzerViolatio
 	if ( analyzer_name !in c$service || analyzer_name in c$failed_analyzers )
 		return;
 
-	set_conn(c, F);
-
 	local aname = to_lower(Analyzer::name(atype));
 	# No duplicate logging
 	if ( c$conn?$failed_service && aname in c$conn$failed_service )

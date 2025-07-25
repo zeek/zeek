@@ -4369,7 +4369,7 @@ void LambdaExpr::BuildName() {
 
     for ( ;; ) {
         hash128_t h;
-        KeyedHash::Hash128(d.Bytes(), d.Len(), &h);
+        KeyedHash::Hash128(d.Bytes(), d.Size(), &h);
 
         my_name = "lambda_<" + std::to_string(h[0]) + ">";
         auto fullname = make_full_var_name(current_module.data(), my_name.data());

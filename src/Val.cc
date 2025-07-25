@@ -397,7 +397,7 @@ static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool onl
             ODesc d;
             d.SetStyle(RAW_STYLE);
             val->Describe(&d);
-            writer.String(reinterpret_cast<const char*>(d.Bytes()), d.Len());
+            writer.String(reinterpret_cast<const char*>(d.Bytes()), d.Size());
             break;
         }
 
@@ -408,7 +408,7 @@ static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool onl
                 ODesc d;
                 d.SetStyle(RAW_STYLE);
                 val->Describe(&d);
-                writer.String(reinterpret_cast<const char*>(d.Bytes()), d.Len());
+                writer.String(reinterpret_cast<const char*>(d.Bytes()), d.Size());
             }
             break;
         }
@@ -420,7 +420,7 @@ static void BuildJSON(json::detail::NullDoubleWriter& writer, Val* val, bool onl
             ODesc d;
             d.SetStyle(RAW_STYLE);
             val->Describe(&d);
-            std::string desc(reinterpret_cast<const char*>(d.Bytes()), d.Len());
+            std::string desc(reinterpret_cast<const char*>(d.Bytes()), d.Size());
 
             // None of our function types should have surrounding
             // whitespace, but ODesc might produce it due to its

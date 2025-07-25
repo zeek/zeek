@@ -318,7 +318,7 @@ int SQLite::AddParams(Value* val, int pos) {
                 }
 
             desc.RemoveEscapeSequence(set_separator);
-            return sqlite3_bind_text(st, pos, (const char*)desc.Bytes(), desc.Len(), SQLITE_TRANSIENT);
+            return sqlite3_bind_text(st, pos, (const char*)desc.Bytes(), desc.Size(), SQLITE_TRANSIENT);
         }
 
         case TYPE_VECTOR: {
@@ -338,7 +338,7 @@ int SQLite::AddParams(Value* val, int pos) {
                 }
 
             desc.RemoveEscapeSequence(set_separator);
-            return sqlite3_bind_text(st, pos, (const char*)desc.Bytes(), desc.Len(), SQLITE_TRANSIENT);
+            return sqlite3_bind_text(st, pos, (const char*)desc.Bytes(), desc.Size(), SQLITE_TRANSIENT);
         }
 
         default: Error(Fmt("unsupported field format %d", val->type)); return 0;

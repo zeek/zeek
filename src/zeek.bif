@@ -266,13 +266,13 @@ static void do_fmt(const char*& fmt, zeek::Val* v, zeek::ODesc* d)
 			d->Add(" ");
 		}
 
-	d->AddN((const char*)(s.Bytes()), s.Len());
+	d->AddN((const char*)(s.Bytes()), s.Size());
 
 	// Right-padding with whitespace, if any.
 	if ( field_width > 0 && left_just )
 		{
-		int sl = s.Len();
-		while ( ++sl <= field_width )
+		size_t sl = s.Size();
+		while ( ++sl <= static_cast<size_t>(field_width) )
 			d->Add(" ");
 		}
 
@@ -1052,23 +1052,23 @@ template<typename IntType>
 IntType fnva(zeek::Val* input, IntType offset, IntType prime) {
 	zeek::ODesc desc(zeek::DESC_BINARY);
 
-	auto length = 0;
+	size_t length = 0;
 	const u_char* bytes = nullptr;
 
 	if (input->GetType()->Tag() == zeek::TYPE_STRING)
 		{
-		length = ((zeek::StringVal*) input) -> Len();
-		bytes = ((zeek::StringVal*) input)-> Bytes();
+		length = ((zeek::StringVal*) input)->Len();
+		bytes = ((zeek::StringVal*) input)->Bytes();
 		}
 	else
 		{
 		input->Describe(&desc);
 		bytes = desc.Bytes();
-		length = desc.Len();
+		length = desc.Size();
 		}
 
 	IntType rval = offset;
-	for ( auto i = 0; i < length; ++i )
+	for ( size_t i = 0; i < length; ++i )
 		{
 		rval ^= bytes[i];
 		rval *= prime;
@@ -1747,7 +1747,7 @@ function cat%(...%): string
 	for ( const auto& a : @ARG@ )
 		a->Describe(&d);
 
-	String* s = new String(true, d.TakeBytes(), d.Len());
+	String* s = new String(true, d.TakeBytes(), d.Size());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);
@@ -1784,7 +1784,7 @@ function cat_sep%(sep: string, def: string, ...%): string
 		v->Describe(&d);
 		}
 
-	String* s = new String(true, d.TakeBytes(), d.Len());
+	String* s = new String(true, d.TakeBytes(), d.Size());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);
@@ -1859,7 +1859,7 @@ function fmt%(...%): string
 		return zeek::val_mgr->EmptyString();
 		}
 
-	String* s = new String(true, d.TakeBytes(), d.Len());
+	String* s = new String(true, d.TakeBytes(), d.Size());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);
@@ -1877,7 +1877,7 @@ function print_raw%(...%): bool
 	zeek::ODesc d(DESC_READABLE);
 	d.SetStyle(RAW_STYLE);
 	describe_vals(@ARG@, &d, 0);
-	printf("%.*s", d.Len(), d.Description());
+	printf("%.*s", static_cast<int>(d.Size()), d.Description());
 	return zeek::val_mgr->Bool(true);
 	%}
 
@@ -2074,7 +2074,7 @@ function type_name%(t: any%): string
 	zeek::ODesc d;
 	t->GetType()->Describe(&d);
 
-	String* s = new String(true, d.TakeBytes(), d.Len());
+	String* s = new String(true, d.TakeBytes(), d.Size());
 	s->SetUseFreeToDelete(true);
 
 	return zeek::make_intrusive<zeek::StringVal>(s);

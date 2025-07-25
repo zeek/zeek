@@ -88,7 +88,7 @@ public:
     DescCatArg(TypePtr _t) : CatArg(), t(std::move(_t)) { d.SetStyle(RAW_STYLE); }
 
     void RenderInto(const ZVal& zv, char*& res) override {
-        auto n = d.Len();
+        auto n = d.Size();
         memcpy(res, d.Bytes(), n);
         res += n;
         d.Clear();
@@ -97,7 +97,7 @@ public:
 protected:
     size_t ComputeMaxSize(const ZVal& zv) override {
         zv.ToVal(t)->Describe(&d);
-        return d.Len();
+        return d.Size();
     }
 
     ODesc d;

@@ -240,10 +240,7 @@ void Ascii::InitConfigOptions() {
 
     meta_prefix.assign((const char*)BifConst::LogAscii::meta_prefix->Bytes(), BifConst::LogAscii::meta_prefix->Len());
 
-    ODesc tsfmt;
-    BifConst::LogAscii::json_timestamps->Describe(&tsfmt);
-    json_timestamps.assign((const char*)tsfmt.Bytes(), tsfmt.Len());
-
+    json_timestamps = zeek::obj_desc_short(BifConst::LogAscii::json_timestamps);
     json_include_unset_fields = BifConst::LogAscii::json_include_unset_fields;
 
     gzip_file_extension.assign((const char*)BifConst::LogAscii::gzip_file_extension->Bytes(),
@@ -591,7 +588,7 @@ bool Ascii::DoWrite(int num_fields, const threading::Field* const* fields, threa
     desc.AddRaw("\n", 1);
 
     const char* bytes = (const char*)desc.Bytes();
-    int len = desc.Len();
+    size_t len = desc.Size();
 
     if ( strncmp(bytes, meta_prefix.data(), meta_prefix.size()) == 0 ) {
         // It would so escape the first character.

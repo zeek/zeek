@@ -57,7 +57,7 @@ public:
      *             be reclaimed using "free()".
      * @return The number of bytes in the buffer object assigned to \a data.
      */
-    virtual uint32_t EndWrite(char** data);
+    virtual size_t EndWrite(char** data);
 
     virtual bool Write(int v, const char* tag) = 0;
     virtual bool Write(uint16_t v, const char* tag) = 0;
@@ -80,7 +80,7 @@ public:
     virtual bool WriteSeparator() = 0;
 
     // Returns number of raw bytes written since last call to StartWrite().
-    int BytesWritten() const { return bytes_written; }
+    size_t BytesWritten() const { return bytes_written; }
 
 protected:
     bool ReadData(void* buf, size_t count);
@@ -89,15 +89,15 @@ protected:
     static const uint32_t INITIAL_SIZE = 65536;
     static const float GROWTH_FACTOR;
     char* output = nullptr;
-    uint32_t output_size = 0;
-    uint32_t output_pos = 0;
+    size_t output_size = 0;
+    size_t output_pos = 0;
 
     const char* input = nullptr;
-    uint32_t input_len = 0;
-    uint32_t input_pos = 0;
+    size_t input_len = 0;
+    size_t input_pos = 0;
 
-    int bytes_written = 0;
-    int bytes_read = 0;
+    size_t bytes_written = 0;
+    size_t bytes_read = 0;
 };
 
 class BinarySerializationFormat final : public SerializationFormat {

@@ -40,8 +40,8 @@ void SerializationFormat::StartWrite() {
     bytes_written = 0;
 }
 
-uint32_t SerializationFormat::EndWrite(char** data) {
-    uint32_t rval = output_pos;
+size_t SerializationFormat::EndWrite(char** data) {
+    size_t rval = output_pos;
     *data = output;
     output = nullptr;
     output_size = 0;

@@ -4,6 +4,8 @@
 
 #include <sys/types.h> // for u_char
 #include <array>
+#include <memory>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -1186,6 +1188,42 @@ private:
     RecordValSlotFlags flags = RecordValSlotFlags::None;
 };
 
+/**
+ * A std::vector replacement for record slots with 32bit size and capacity so we
+ * end up with a 16 byte vector instead of 24 bytes. Anyone trying to put more than
+ * 500mio fields into a record likely has other problems to solve, first :-)
+ *
+ * Going to 16 bit doesn't save much as the whole class will still take 16 bytes
+ * with padding on a 64bit system.
+ */
+class RecordValSlots {
+public:
+    RecordValSlots() {}
+    RecordValSlots(size_t size) : data{new RecordValSlot[size]}, sz(size), cap(size) {}
+
+    const RecordValSlot& operator[](size_t i) const { return data[i]; }
+    RecordValSlot& operator[](size_t i) { return data[i]; }
+
+    void push_back(RecordValSlot slot) {
+        // No automatic resizing
+        if ( cap <= sz )
+            throw std::logic_error("capacity exceeded");
+
+        data[sz++] = std::move(slot);
+    }
+
+    void resize(size_t new_size);
+    void reserve(size_t new_capacity);
+
+    size_t size() const noexcept { return sz; }
+    size_t capacity() const noexcept { return cap; }
+
+private:
+    std::unique_ptr<RecordValSlot[]> data = nullptr;
+    uint32_t sz = 0;
+    uint32_t cap = 0;
+};
+
 } // namespace detail
 
 class RecordVal final : public Val, public notifier::detail::Modifiable {
@@ -1538,9 +1576,9 @@ protected:
             IsManaged(record_val.size()) ? detail::RecordValSlotFlags::Managed : detail::RecordValSlotFlags::None;
 
         if ( v )
-            record_val.emplace_back(ZVal(v, t), managed_flag | detail::RecordValSlotFlags::Set);
+            record_val.push_back({ZVal(v, t), managed_flag | detail::RecordValSlotFlags::Set});
         else
-            record_val.emplace_back(ZVal(), managed_flag);
+            record_val.push_back({ZVal(), managed_flag});
     }
 
     // For internal use by low-level ZAM instructions and event tracing.
@@ -1582,7 +1620,7 @@ private:
     // Low-level values of each of the fields.
     //
     // Lazily modified during GetField(), so mutable.
-    mutable std::vector<detail::RecordValSlot> record_val;
+    mutable detail::RecordValSlots record_val;
 };
 
 class EnumVal final : public detail::IntValImplementation {

@@ -16,6 +16,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <limits>
 #include <set>
 
 #include "zeek/Attr.h"
@@ -2921,6 +2922,47 @@ TableVal::TableRecordDependencies TableVal::parse_time_table_record_dependencies
 
 RecordVal::RecordTypeValMap RecordVal::parse_time_records;
 
+void detail::RecordValSlots::resize(size_t new_size) {
+    if ( new_size < sz || new_size < cap )
+        throw std::length_error("cannot truncate");
+
+    if ( new_size > std::numeric_limits<decltype(sz)>::max() )
+        throw std::length_error("new_size too large");
+
+    if ( new_size > cap ) {
+        // XXX: This default initializes the slots which we might not need to do
+        // in certain cases,  but then we probably can't use the nice new or
+        // std::make_unique() anymore and instead go for std::malloc(). There
+        // aren't supposed to be a lot of slots in a record.
+        //
+        // Also applies to reserve()
+        std::unique_ptr<RecordValSlot[]> new_data = std::make_unique<RecordValSlot[]>(new_size);
+        for ( size_t i = 0; i < sz; i++ )
+            new_data[i] = std::move(data[i]);
+        data = std::move(new_data);
+        sz = new_size;
+        cap = new_size;
+    }
+
+    sz = new_size;
+}
+
+void detail::RecordValSlots::reserve(size_t new_capacity) {
+    if ( cap > new_capacity )
+        throw std::length_error("cannot truncate");
+
+    if ( new_capacity > std::numeric_limits<decltype(cap)>::max() )
+        throw std::length_error("new_capacity too large");
+
+    if ( new_capacity > cap ) {
+        std::unique_ptr<RecordValSlot[]> new_data = std::make_unique<RecordValSlot[]>(new_capacity);
+        for ( size_t i = 0; i < sz; i++ )
+            new_data[i] = std::move(data[i]);
+        data = std::move(new_data);
+        cap = new_capacity;
+    }
+}
+
 RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t) {
     const auto rt = GetRecordType();
 
@@ -2966,8 +3008,8 @@ RecordVal::RecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals
 RecordVal::~RecordVal() {
     notifier::detail::Modifiable::Unregister();
 
-    for ( auto& slot : record_val )
-        slot.Delete();
+    for ( size_t i = 0; i < record_val.size(); i++ )
+        record_val[i].Delete();
 }
 
 ValPtr RecordVal::SizeVal() const { return val_mgr->Count(GetType()->AsRecordType()->NumFields()); }
@@ -3017,6 +3059,8 @@ void RecordVal::ResizeParseTimeRecords(RecordType* revised_rt) {
     for ( auto& rv : rvs ) {
         int current_length = rv->NumFields();
         auto required_length = revised_rt->NumFields();
+
+        rv->record_val.reserve(required_length);
 
         if ( required_length > current_length ) {
             for ( auto i = current_length; i < required_length; ++i )

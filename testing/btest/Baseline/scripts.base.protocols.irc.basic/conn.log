@@ -7,6 +7,7 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents	ip_proto
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]	count
-XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	192.168.1.77	57655	209.197.168.151	1024	tcp	irc-dcc-data	2.256935	124	42208	SF	T	F	0	ShAdDaFf	28	1592	43	44452	-	6
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.1.77	57640	66.198.80.67	6667	tcp	irc	178.237017	453	25404	S3	T	F	0	ShADdTtaf	63	3761	52	28194	-	6
+XXXXXXXXXX.XXXXXX	ClEkJM2Vm5giqnMf4h	10.0.0.22	43614	10.0.0.7	59130	tcp	irc-dcc-data	0.162309	352	1320211	SF	T	T	0	ShAadDfF	127	6964	962	1370247	-	6
+XXXXXXXXXX.XXXXXX	C4J4Th3PJpwUYZZ6gc	10.0.0.22	38016	10.0.0.7	59214	tcp	-	22.539051	22	10	SF	T	T	0	ShAaDdfF	7	394	8	438	-	6
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	10.0.0.7	59069	10.0.0.22	6667	tcp	irc	169.871683	638	9679	SF	T	T	0	ShADadfF	43	2886	37	11611	-	6
 #close XXXX-XX-XX-XX-XX-XX

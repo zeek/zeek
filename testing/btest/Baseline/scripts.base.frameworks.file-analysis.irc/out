@@ -3,13 +3,13 @@ FILE_NEW
 file #0, 0, 0
 FILE_OVER_NEW_CONNECTION
 FILE_STATE_REMOVE
-file #0, 42208, 0
-[orig_h=192.168.1.77, orig_p=57655/tcp, resp_h=209.197.168.151, resp_p=1024/tcp, proto=6, ctx=[]]
+file #0, 1320211, 0
+[orig_h=10.0.0.22, orig_p=43614/tcp, resp_h=10.0.0.7, resp_p=59130/tcp, proto=6, ctx=[]]
 FILE_BOF_BUFFER
-PK\x03\x04\x14\x00\x00\x00\x08\x00\xae
+\xd4\xc3\xb2\xa1\x02\x00\x04\x00\x00\x00\x00
 MIME_TYPE
-application/zip
+application/vnd.tcpdump.pcap
 source: IRC_DATA
-MD5: 8c0803242f549c2780cb88b9a9215c65
-SHA1: 8abe0239263fd7326eb803d4465cf494f8bea218
-SHA256: e4f0b0b9d7580e7a22dc1093c8db4df7d0115a4f3b03cc2875cc69705f0d0204
+MD5: 297a5922f7cd25f8d7d1104d585b2ce3
+SHA1: 8a56c159a0c53957377406dd23a886c7d1cf01e0
+SHA256: 566c4819a8130d65d29076930bd46dde5c2595a4a8be4a380857feb5b430ec6e

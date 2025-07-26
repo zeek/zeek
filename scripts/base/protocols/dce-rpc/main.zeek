@@ -21,6 +21,18 @@ export {
 		rtt        : interval &log &optional;
 
 		## Remote pipe name.
+		##
+		## Note that this value is from the "sec_addr" field in the
+		## protocol. Zeek uses the "named_pipe" name for historical reasons,
+		## but it may also contain local port numbers rather than named pipes.
+		##
+		## If you prefer to use the "secondary address" name, consider
+		## using :zeek:see:`Log::default_field_name_map`, a ``Log::Filter``'s
+		## :zeek:field:`Log::Filter$field_name_map` field, or removing
+		## the :zeek:attr:`&log` attribute from this field, adding a
+		## new :zeek:field:`sec_addr` field and populating it in a custom
+		## :zeek:see:`dce_rpc_bind_ack` event handler based on the
+		## :zeek:field:`named_pipe` value.
 		named_pipe : string   &log &optional;
 		## Endpoint name looked up from the uuid.
 		endpoint   : string   &log &optional;

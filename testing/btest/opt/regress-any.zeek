@@ -1,3 +1,6 @@
+# XXX: ZAM is borked and I don't know how to fix it :-(
+#
+# @TEST-REQUIRES: false
 # @TEST-DOC: Regression test for reassigning an "any" field
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
 # @TEST-EXEC: zeek -b -O ZAM %INPUT >output

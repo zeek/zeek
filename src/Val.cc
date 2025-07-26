@@ -16,6 +16,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <limits>
 #include <set>
 
 #include "zeek/Attr.h"
@@ -31,6 +32,7 @@
 #include "zeek/IPAddr.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/NetVar.h"
+#include "zeek/Notifier.h"
 #include "zeek/Overflow.h"
 #include "zeek/PrefixTable.h"
 #include "zeek/RE.h"
@@ -1711,6 +1713,8 @@ void TableVal::Init(TableTypePtr t, bool ordered) {
 }
 
 TableVal::~TableVal() {
+    notifier::detail::Modifiable::Unregister();
+
     if ( timer )
         detail::timer_mgr->Cancel(timer);
 
@@ -2918,56 +2922,105 @@ TableVal::TableRecordDependencies TableVal::parse_time_table_record_dependencies
 
 RecordVal::RecordTypeValMap RecordVal::parse_time_records;
 
-RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->ManagedFields()) {
-    rt = std::move(t);
+void detail::RecordValSlots::resize(size_t new_size) {
+    if ( new_size < sz || new_size < cap )
+        throw std::length_error("cannot truncate");
 
-    int n = rt->NumFields();
+    if ( new_size > std::numeric_limits<decltype(sz)>::max() )
+        throw std::length_error("new_size too large");
+
+    if ( new_size > cap ) {
+        // XXX: This default initializes the slots which we might not need to do
+        // in certain cases,  but then we probably can't use the nice new or
+        // std::make_unique() anymore and instead go for std::malloc(). There
+        // aren't supposed to be a lot of slots in a record.
+        //
+        // Also applies to reserve()
+        std::unique_ptr<RecordValSlot[]> new_data = std::make_unique<RecordValSlot[]>(new_size);
+        for ( size_t i = 0; i < sz; i++ )
+            new_data[i] = std::move(data[i]);
+        data = std::move(new_data);
+        sz = new_size;
+        cap = new_size;
+    }
+
+    sz = new_size;
+}
+
+void detail::RecordValSlots::reserve(size_t new_capacity) {
+    if ( cap > new_capacity )
+        throw std::length_error("cannot truncate");
+
+    if ( new_capacity > std::numeric_limits<decltype(cap)>::max() )
+        throw std::length_error("new_capacity too large");
+
+    if ( new_capacity > cap ) {
+        std::unique_ptr<RecordValSlot[]> new_data = std::make_unique<RecordValSlot[]>(new_capacity);
+        for ( size_t i = 0; i < sz; i++ )
+            new_data[i] = std::move(data[i]);
+        data = std::move(new_data);
+        cap = new_capacity;
+    }
+}
+
+RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t) {
+    const auto& rt = GetRecordType();
 
     if ( run_state::is_parsing )
-        parse_time_records[rt.get()].emplace_back(NewRef{}, this);
+        parse_time_records[&rt].emplace_back(NewRef{}, this);
 
     if ( init_fields ) {
-        record_val.resize(n);
+        record_val.resize(rt.NumFields());
 
-        for ( auto& e : rt->CreationInits() ) {
+        for ( auto& e : rt.CreationInits() ) {
             try {
-                record_val[e.first] = e.second->Generate();
+                record_val[e.first].Set(e.second->Generate());
             } catch ( InterpreterException& e ) {
                 if ( run_state::is_parsing )
-                    parse_time_records[rt.get()].pop_back();
+                    parse_time_records[&rt].pop_back();
                 throw;
             }
         }
+
+        // Initialize the managed flag of each slot so that we don't need
+        // to go back to record type for figuring out if it's managed.
+        for ( size_t i = 0; i < record_val.size(); i++ )
+            record_val[i].SetManaged(ZVal::IsManagedType(rt.GetFieldType(i)));
     }
 
     else
-        record_val.reserve(n);
+        // This has to go through AppendField() which will
+        // initialize the slots managed flag properly.
+        record_val.reserve(rt.NumFields());
 }
 
-RecordVal::RecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals)
-    : Val(t), is_managed(t->ManagedFields()) {
-    rt = std::move(t);
-    record_val = std::move(init_vals);
+RecordVal::RecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals) : Val(t) {
+    const auto& rt = GetRecordType();
+    record_val.resize(rt.NumFields());
+    assert(record_val.size() == init_vals.size());
+
+    for ( size_t i = 0; i < record_val.size(); ++i ) {
+        if ( init_vals[i] )
+            record_val[i].Set(*init_vals[i]);
+
+        record_val[i].SetManaged(ZVal::IsManagedType(rt.GetFieldType(i)));
+    }
 }
 
 RecordVal::~RecordVal() {
-    auto n = record_val.size();
+    notifier::detail::Modifiable::Unregister();
 
-    for ( unsigned int i = 0; i < n; ++i ) {
-        auto f_i = record_val[i];
-        if ( f_i && IsManaged(i) )
-            ZVal::DeleteManagedType(*f_i);
-    }
+    for ( size_t i = 0; i < record_val.size(); i++ )
+        record_val[i].Delete();
 }
 
 ValPtr RecordVal::SizeVal() const { return val_mgr->Count(GetType()->AsRecordType()->NumFields()); }
 
 void RecordVal::Assign(int field, ValPtr new_val) {
+    auto& slot = record_val[field];
     if ( new_val ) {
-        DeleteFieldIfManaged(field);
-
-        auto t = rt->GetFieldType(field);
-        record_val[field] = ZVal(new_val, t);
+        const auto& t = GetRecordType().GetFieldType(field);
+        slot.Set(ZVal(new_val, t)); // Will properly delete any set value.
         Modified();
     }
     else
@@ -2975,12 +3028,10 @@ void RecordVal::Assign(int field, ValPtr new_val) {
 }
 
 void RecordVal::Remove(int field) {
-    auto& f_i = record_val[field];
-    if ( f_i ) {
-        if ( IsManaged(field) )
-            ZVal::DeleteManagedType(*f_i);
-
-        f_i = std::nullopt;
+    auto& slot = record_val[field];
+    if ( slot.IsSet() ) {
+        slot.Delete();
+        assert(! slot.IsSet());
 
         Modified();
     }
@@ -3006,6 +3057,8 @@ void RecordVal::ResizeParseTimeRecords(RecordType* revised_rt) {
     for ( auto& rv : rvs ) {
         int current_length = rv->NumFields();
         auto required_length = revised_rt->NumFields();
+
+        rv->record_val.reserve(required_length);
 
         if ( required_length > current_length ) {
             for ( auto i = current_length; i < required_length; ++i )
@@ -3098,7 +3151,7 @@ void RecordVal::Describe(ODesc* d) const {
     auto n = record_val.size();
 
     if ( d->IsBinary() ) {
-        rt->Describe(d);
+        GetRecordType().Describe(d);
         d->SP();
         d->Add(static_cast<uint64_t>(n));
         d->SP();
@@ -3110,7 +3163,7 @@ void RecordVal::Describe(ODesc* d) const {
         if ( ! d->IsBinary() && i > 0 )
             d->Add(", ");
 
-        d->Add(rt->FieldName(i));
+        d->Add(GetRecordType().FieldName(i));
 
         if ( ! d->IsBinary() )
             d->Add("=");
@@ -3159,14 +3212,14 @@ ValPtr RecordVal::DoClone(CloneState* state) {
     // record. As we cannot guarantee that it will be zeroed out at the
     // appropriate time (as it seems to be guaranteed for the original record)
     // we don't touch it.
-    auto rv = make_intrusive<RecordVal>(rt, false);
+    auto rv = make_intrusive<RecordVal>(GetType<zeek::RecordType>(), false);
     state->NewClone(this, rv);
 
     int n = NumFields();
     for ( auto i = 0; i < n; ++i ) {
         auto f_i = GetField(i);
         auto v = f_i ? f_i->Clone(state) : nullptr;
-        rv->AppendField(std::move(v), rt->GetFieldType(i));
+        rv->AppendField(std::move(v), GetRecordType().GetFieldType(i));
     }
 
     return rv;
@@ -3233,6 +3286,8 @@ VectorVal::VectorVal(VectorTypePtr t, std::vector<std::optional<ZVal>>* vals) : 
 }
 
 VectorVal::~VectorVal() {
+    notifier::detail::Modifiable::Unregister();
+
     if ( yield_types ) {
         int n = yield_types->size();
         for ( auto i = 0; i < n; ++i ) {

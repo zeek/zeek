@@ -929,6 +929,20 @@ public:
             return rt->IsDeferrable() && constructor_list->Exprs().empty();
         }
 
+        // Allow deferring fairly common &default=vector() field initialization...
+        if ( init_expr->Tag() == EXPR_VECTOR_CONSTRUCTOR ) {
+            auto vce = zeek::cast_intrusive<VectorConstructorExpr>(init_expr);
+            return vce->GetType<zeek::VectorType>()->IsUnspecifiedVector();
+        }
+
+        // ...and also &default=table() and &default=set().
+        if ( init_expr->Tag() == EXPR_TABLE_COERCE || init_expr->Tag() == EXPR_TABLE_CONSTRUCTOR ||
+             init_expr->Tag() == EXPR_SET_CONSTRUCTOR ) {
+            auto une = zeek::cast_intrusive<UnaryExpr>(init_expr);
+            return une->Op()->GetType()->Tag() == TYPE_TABLE &&
+                   une->Op()->GetType<zeek::TableType>()->IsUnspecifiedTable();
+        }
+
         return false;
     }
 
@@ -1010,8 +1024,10 @@ private:
             if ( ! ci.second->IsDeferrable() )
                 rt->creation_inits[i++] = std::move(ci);
             else {
-                // std::fprintf(stderr, "deferred %s$%s: %s\n", obj_desc_short(rt).c_str(), rt->FieldName(ci.first),
-                //             ci.second->InitExpr() ? obj_desc_short(ci.second->InitExpr()).c_str() : "<none>");
+                // std::fprintf(stderr, "deferred %s$%s: %s (%s)\n", obj_desc_short(rt).c_str(),
+                // rt->FieldName(ci.first),
+                //             ci.second->InitExpr() ? obj_desc_short(ci.second->InitExpr()).c_str() : "<none>",
+                //            typeid(ci).name());
                 assert(! rt->deferred_inits[ci.first]);
                 rt->deferred_inits[ci.first].swap(ci.second);
             }

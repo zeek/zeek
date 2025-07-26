@@ -1,9 +1,14 @@
 # Test IRC events
 
-# @TEST-EXEC: zeek -b -r $TRACES/irc-dcc-send.trace %INPUT
-# @TEST-EXEC: zeek -b -r $TRACES/irc-basic.trace %INPUT
-# @TEST-EXEC: zeek -b -r $TRACES/irc-whitespace.trace %INPUT
-# @TEST-EXEC: btest-diff .stdout
+# @TEST-EXEC: echo "-------------- irc-dcc-send.trace --------------" > output
+# @TEST-EXEC: zeek -b -r $TRACES/irc-dcc-send.trace %INPUT >> output
+# @TEST-EXEC: echo "------------- irc-basic-send.trace -------------" >> output
+# @TEST-EXEC: zeek -b -r $TRACES/irc-basic.trace %INPUT >> output
+# @TEST-EXEC: echo "---------- irc-whitespace-send.trace -----------" >> output
+# @TEST-EXEC: zeek -b -r $TRACES/irc-whitespace.trace %INPUT >> output
+# @TEST-EXEC: echo "----------- irc-more-commands.trace ------------" >> output
+# @TEST-EXEC: zeek -C -b -r $TRACES/irc-more-commands.trace %INPUT >> output
+# @TEST-EXEC: btest-diff output
 
 @load base/protocols/irc
 
@@ -15,4 +20,168 @@ event irc_privmsg_message(c: connection, is_orig: bool, source: string, target: 
 event irc_quit_message(c: connection, is_orig: bool, nick: string, message: string)
 	{
 	print fmt("quit: %s (%s)", nick, message);
+	}
+
+event irc_notice_message(c: connection, is_orig: bool, source: string,
+                         target: string, message: string)
+	{
+	print fmt("notice_message: %s -> %s: %s", source, target, message);
+	}
+
+event irc_squery_message(c: connection, is_orig: bool, source: string,
+                         target: string, message: string)
+	{
+	print fmt("squery_message: %s -> %s: %s", source, target, message);
+	}
+
+event irc_join_message(c: connection, is_orig: bool, info_list: irc_join_list)
+	{
+	for ( info in info_list )
+		{
+		print fmt("join_message: %s", info);
+		}
+	}
+
+event irc_part_message(c: connection, is_orig: bool, nick: string,
+                       chans: string_set, message: string)
+	{
+	for ( chan in chans )
+		{
+		print fmt("part_message: %s (%s): %s", nick, chan, message);
+		}
+	}
+
+event irc_nick_message(c: connection, is_orig: bool, who: string, newnick: string)
+	{
+	print fmt("nick_message: %s %s", who, newnick);
+	}
+
+event irc_invalid_nick(c: connection, is_orig: bool)
+	{
+	print fmt("invalid_nick");
+	}
+
+event irc_network_info(c: connection, is_orig: bool, users: count,
+                       services: count, servers: count)
+	{
+	print fmt("network_info: %d users, %d services, %d servers", users, services, servers);
+	}
+
+event irc_server_info(c: connection, is_orig: bool, users: count,
+                      services: count, servers: count)
+	{
+	print fmt("server_info: %d users, %d services, %d servers", users, services, servers);
+	}
+
+event irc_channel_info(c: connection, is_orig: bool, chans: count)
+	{
+	print fmt("channel_info: %d channels", chans);
+	}
+
+event irc_who_line(c: connection, is_orig: bool, target_nick: string,
+                   channel: string, user: string, host: string,
+                   server: string, nick: string, params: string,
+                   hops: count, real_name: string)
+	{
+	print fmt("who_line: target %s, channel %s, user %s, host %s, server %s, nick %s, params %s, hops %d, real_name: %s",
+	          target_nick, channel, user, host, server, nick, params, hops, real_name);
+	}
+
+
+event irc_names_info(c: connection, is_orig: bool, c_type: string,
+                     channel: string, users: string_set)
+	{
+	for ( user in users )
+		{
+		print fmt("names_info: %s %s: %s", c_type, channel, user);
+		}
+	}
+
+event irc_whois_operator_line(c: connection, is_orig: bool, nick: string)
+	{
+	print fmt("whois_operator_line: %s", nick);
+	}
+
+event irc_whois_channel_line(c: connection, is_orig: bool, nick: string,
+                             chans: string_set)
+	{
+	for ( chan in chans )
+		{
+		print fmt("whois_channel_line: %s %s", nick, chan);
+		}
+	}
+
+event irc_whois_user_line(c: connection, is_orig: bool, nick: string,
+                          user: string, host: string, real_name: string)
+	{
+	print fmt("whois_user_line: nick %s, user %s, host %s, real_name %s", nick, user, host, real_name);
+	}
+
+event irc_oper_response(c: connection, is_orig: bool, got_oper: bool)
+	{
+	print fmt("oper_response: %d", got_oper);
+	}
+
+event irc_global_users(c: connection, is_orig: bool, prefix: string, msg: string)
+	{
+	print fmt("global_users: %s %s", prefix, msg);
+	}
+
+event irc_channel_topic(c: connection, is_orig: bool, channel: string, topic: string)
+	{
+	print fmt("channel_topic: %s: %s", channel, topic);
+	}
+
+event irc_who_message(c: connection, is_orig: bool, mask: string, oper: bool)
+	{
+	print fmt("who_message: %s %d", mask, oper);
+	}
+
+event irc_whois_message(c: connection, is_orig: bool, server: string, users: string)
+	{
+	print fmt("whois_message: %s %s", server, users);
+	}
+
+event irc_oper_message(c: connection, is_orig: bool, user: string, password: string)
+	{
+	print fmt("oper_message: %s %s", user, password);
+	}
+
+event irc_kick_message(c: connection, is_orig: bool, prefix: string,
+                       chans: string, users: string, comment: string)
+	{
+	print fmt("kick_message: %s %s %s: %s", prefix, chans, users, comment);
+	}
+
+event irc_error_message(c: connection, is_orig: bool, prefix: string, message: string)
+	{
+	print fmt("error_message: %s: %s", prefix, message);
+	}
+
+event irc_invite_message(c: connection, is_orig: bool, prefix: string,
+                         nickname: string, channel: string)
+	{
+	print fmt("invite_message: %s %s %s", prefix, nickname, channel);
+	}
+
+event irc_mode_message(c: connection, is_orig: bool, prefix: string, params: string)
+	{
+	print fmt("mode_message: %s %s", prefix, params);
+	}
+
+event irc_squit_message(c: connection, is_orig: bool, prefix: string,
+                        server: string, message: string)
+	{
+	print fmt("squit_message: %s %s: %s", prefix, server, message);
+	}
+
+event irc_user_message(c: connection, is_orig: bool, user: string, host: string,
+                       server: string, real_name: string)
+	{
+	print fmt("user_message: %s@%s %s %s", user, host, server, real_name);
+	}
+
+event irc_password_message(c: connection, is_orig: bool, password: string)
+	{
+	print fmt("password_message: %s", password);
 	}

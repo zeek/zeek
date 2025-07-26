@@ -31,6 +31,7 @@
 #include "zeek/IPAddr.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/NetVar.h"
+#include "zeek/Notifier.h"
 #include "zeek/Overflow.h"
 #include "zeek/PrefixTable.h"
 #include "zeek/RE.h"
@@ -1711,6 +1712,8 @@ void TableVal::Init(TableTypePtr t, bool ordered) {
 }
 
 TableVal::~TableVal() {
+    notifier::detail::Modifiable::Unregister();
+
     if ( timer )
         detail::timer_mgr->Cancel(timer);
 
@@ -2968,6 +2971,8 @@ RecordVal::RecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals
 }
 
 RecordVal::~RecordVal() {
+    notifier::detail::Modifiable::Unregister();
+
     for ( auto& slot : record_val )
         slot.Delete();
 }
@@ -3246,6 +3251,8 @@ VectorVal::VectorVal(VectorTypePtr t, std::vector<std::optional<ZVal>>* vals) : 
 }
 
 VectorVal::~VectorVal() {
+    notifier::detail::Modifiable::Unregister();
+
     if ( yield_types ) {
         int n = yield_types->size();
         for ( auto i = 0; i < n; ++i ) {

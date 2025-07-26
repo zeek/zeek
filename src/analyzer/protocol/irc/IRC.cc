@@ -78,6 +78,20 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
         return;
     }
 
+    // IRCv3 can pass arbitrary tags at the start of each line. Commonly this is @time,
+    // which is a timestamp for when the message was sent. They come as a semi-colon
+    // separated list, and are separated from the rest of the line by a space.
+    if ( myline.starts_with("@") ) {
+        std::size_t first_space = myline.find(' ');
+        // A set of tags doesn't necessarily need to be followed by a command. In this
+        // case just return.
+        if ( first_space == string::npos )
+            return;
+
+        // We don't do anything with tags right now. Just skip over them.
+        myline = myline.substr(first_space + 1);
+    }
+
     // Check for prefix.
     string prefix = "";
     if ( myline[0] == ':' ) { // find end of prefix and extract it

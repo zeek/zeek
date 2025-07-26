@@ -4,27 +4,35 @@
 0
 0
 0 secs
-Threshold set for [orig_h=192.168.1.77, orig_p=57640/tcp, resp_h=66.198.80.67, resp_p=6667/tcp, proto=6, ctx=[]]
+Threshold set for [orig_h=10.0.0.7, orig_p=52236/tcp, resp_h=10.0.0.22, resp_p=6667/tcp, proto=6, ctx=[]]
 3000
 2000
 63
 50
-100.0 msecs, 53.0 msecs 50.994873 usecs
-triggered duration, [orig_h=192.168.1.77, orig_p=57640/tcp, resp_h=66.198.80.67, resp_p=6667/tcp, proto=6, ctx=[]], 100.0 msecs, F, 105.0 msecs 79.889297 usecs
-triggered bytes, [orig_h=192.168.1.77, orig_p=57640/tcp, resp_h=66.198.80.67, resp_p=6667/tcp, proto=6, ctx=[]], 2000, F
-triggered bytes, [orig_h=192.168.1.77, orig_p=57640/tcp, resp_h=66.198.80.67, resp_p=6667/tcp, proto=6, ctx=[]], 3000, T
-triggered packets, [orig_h=192.168.1.77, orig_p=57640/tcp, resp_h=66.198.80.67, resp_p=6667/tcp, proto=6, ctx=[]], 50, F
+100.0 msecs, 17.0 msecs 195.940018 usecs
+triggered bytes, [orig_h=10.0.0.7, orig_p=52236/tcp, resp_h=10.0.0.22, resp_p=6667/tcp, proto=6, ctx=[]], 2000, F
+triggered duration, [orig_h=10.0.0.7, orig_p=52236/tcp, resp_h=10.0.0.22, resp_p=6667/tcp, proto=6, ctx=[]], 100.0 msecs, F, 1.0 sec 614.0 msecs 295.005798 usecs
 0
 0
 0
 0
 0 secs
-Threshold set for [orig_h=192.168.1.77, orig_p=57655/tcp, resp_h=209.197.168.151, resp_p=1024/tcp, proto=6, ctx=[]]
+Threshold set for [orig_h=10.0.0.22, orig_p=50102/tcp, resp_h=10.0.0.7, resp_p=52333/tcp, proto=6, ctx=[]]
 3000
 2000
 63
 50
-0 secs, 176.0 msecs 573.038101 usecs
-triggered duration, [orig_h=192.168.1.77, orig_p=57655/tcp, resp_h=209.197.168.151, resp_p=1024/tcp, proto=6, ctx=[]], 100.0 msecs, T, 176.0 msecs 573.038101 usecs
-triggered bytes, [orig_h=192.168.1.77, orig_p=57655/tcp, resp_h=209.197.168.151, resp_p=1024/tcp, proto=6, ctx=[]], 2000, F
-triggered packets, [orig_h=192.168.1.77, orig_p=57640/tcp, resp_h=66.198.80.67, resp_p=6667/tcp, proto=6, ctx=[]], 63, T
+100.0 msecs, 606.060028 usecs
+triggered bytes, [orig_h=10.0.0.22, orig_p=50102/tcp, resp_h=10.0.0.7, resp_p=52333/tcp, proto=6, ctx=[]], 2000, F
+0
+0
+0
+0
+0 secs
+Threshold set for [orig_h=10.0.0.22, orig_p=42114/tcp, resp_h=10.0.0.7, resp_p=52349/tcp, proto=6, ctx=[]]
+3000
+2000
+63
+50
+100.0 msecs, 722.885132 usecs
+triggered duration, [orig_h=10.0.0.22, orig_p=42114/tcp, resp_h=10.0.0.7, resp_p=52349/tcp, proto=6, ctx=[]], 100.0 msecs, F, 6.0 secs 600.0 msecs 922.822952 usecs

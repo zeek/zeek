@@ -1279,7 +1279,7 @@ public:
      */
     template<class T>
     void AssignField(const char* field_name, T&& val) {
-        int idx = rt->FieldOffset(field_name);
+        int idx = GetRecordType()->FieldOffset(field_name);
         if ( idx < 0 )
             reporter->InternalError("missing record field: %s", field_name);
         Assign(idx, std::forward<T>(val));
@@ -1305,7 +1305,7 @@ public:
         if ( slot.IsDeleted() )
             return false;
 
-        return rt->DeferredInits()[field] != nullptr;
+        return GetRecordType()->DeferredInits()[field] != nullptr;
     }
 
     /**
@@ -1315,7 +1315,7 @@ public:
      * @return  Whether there's a value for the given field name.
      */
     bool HasField(const char* field) const {
-        int idx = rt->FieldOffset(field);
+        int idx = GetRecordType()->FieldOffset(field);
         return (idx != -1) && HasField(idx);
     }
 
@@ -1330,13 +1330,13 @@ public:
             return nullptr;
 
         if ( ! slot.IsSet() ) {
-            const auto& fi = rt->DeferredInits()[field];
+            const auto& fi = GetRecordType()->DeferredInits()[field];
             if ( ! fi )
                 return nullptr;
 
             slot.Set(fi->Generate());
         }
-        return slot.ToVal(rt->GetFieldType(field));
+        return slot.ToVal(GetRecordType()->GetFieldType(field));
     }
 
     /**
@@ -1468,7 +1468,7 @@ public:
 
     template<typename T>
     auto GetFieldAs(const char* field) const {
-        int idx = rt->FieldOffset(field);
+        int idx = GetRecordType()->FieldOffset(field);
 
         if ( idx < 0 )
             reporter->InternalError("missing record field: %s", field);
@@ -1550,7 +1550,7 @@ protected:
     detail::RecordValSlot& RawOptField(int field) {
         auto& slot = record_val[field];
         if ( ! slot.IsSet() && ! slot.IsDeleted() ) {
-            const auto& fi = rt->DeferredInits()[field];
+            const auto& fi = GetRecordType()->DeferredInits()[field];
             if ( fi )
                 slot.Set(fi->Generate());
         }
@@ -1570,28 +1570,19 @@ protected:
     static RecordTypeValMap parse_time_records;
 
 private:
-    bool IsManaged(unsigned int offset) const {
-        bool r = GetType<zeek::RecordType>()->ManagedFields()[offset];
-        assert(r == is_managed[offset]);
-        return r;
-    }
+    RecordTypePtr GetRecordType() const { return GetType<zeek::RecordType>(); }
 
+    bool IsManaged(unsigned int offset) const { return GetRecordType()->ManagedFields()[offset]; }
 
     // Just for template inferencing.
     RecordVal* Get() { return this; }
 
     unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;
 
-    // Keep this handy for quick access during low-level operations.
-    RecordTypePtr rt;
-
     // Low-level values of each of the fields.
     //
     // Lazily modified during GetField(), so mutable.
     mutable std::vector<detail::RecordValSlot> record_val;
-
-    // Whether a given field requires explicit memory management.
-    const std::vector<bool>& is_managed;
 };
 
 class EnumVal final : public detail::IntValImplementation {

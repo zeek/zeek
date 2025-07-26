@@ -2921,16 +2921,14 @@ TableVal::TableRecordDependencies TableVal::parse_time_table_record_dependencies
 
 RecordVal::RecordTypeValMap RecordVal::parse_time_records;
 
-RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->ManagedFields()) {
-    rt = std::move(t);
-
-    int n = rt->NumFields();
+RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t) {
+    const auto rt = GetRecordType();
 
     if ( run_state::is_parsing )
         parse_time_records[rt.get()].emplace_back(NewRef{}, this);
 
     if ( init_fields ) {
-        record_val.resize(n);
+        record_val.resize(rt->NumFields());
 
         for ( auto& e : rt->CreationInits() ) {
             try {
@@ -2951,16 +2949,11 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->
     else
         // This has to go through AppendField() which will
         // initialize the slots managed flag properly.
-        record_val.reserve(n);
+        record_val.reserve(rt->NumFields());
 }
 
-RecordVal::RecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals)
-    : Val(t), is_managed(t->ManagedFields()) {
-    rt = std::move(t);
-
-    record_val.resize(rt->NumFields());
-
-    // std::fprintf(stderr, "optimized\n");
+RecordVal::RecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals) : Val(t) {
+    record_val.resize(GetRecordType()->NumFields());
 
     for ( size_t i = 0; i < record_val.size(); ++i ) {
         if ( init_vals[i] )
@@ -2984,7 +2977,7 @@ void RecordVal::Assign(int field, ValPtr new_val) {
     if ( new_val ) {
         slot.Delete();
 
-        auto t = rt->GetFieldType(field);
+        auto t = GetRecordType()->GetFieldType(field);
         slot.Set(ZVal(new_val, t));
         Modified();
     }
@@ -3116,7 +3109,7 @@ void RecordVal::Describe(ODesc* d) const {
     auto n = record_val.size();
 
     if ( d->IsBinary() ) {
-        rt->Describe(d);
+        GetRecordType()->Describe(d);
         d->SP();
         d->Add(static_cast<uint64_t>(n));
         d->SP();
@@ -3128,7 +3121,7 @@ void RecordVal::Describe(ODesc* d) const {
         if ( ! d->IsBinary() && i > 0 )
             d->Add(", ");
 
-        d->Add(rt->FieldName(i));
+        d->Add(GetRecordType()->FieldName(i));
 
         if ( ! d->IsBinary() )
             d->Add("=");
@@ -3177,14 +3170,14 @@ ValPtr RecordVal::DoClone(CloneState* state) {
     // record. As we cannot guarantee that it will be zeroed out at the
     // appropriate time (as it seems to be guaranteed for the original record)
     // we don't touch it.
-    auto rv = make_intrusive<RecordVal>(rt, false);
+    auto rv = make_intrusive<RecordVal>(GetRecordType(), false);
     state->NewClone(this, rv);
 
     int n = NumFields();
     for ( auto i = 0; i < n; ++i ) {
         auto f_i = GetField(i);
         auto v = f_i ? f_i->Clone(state) : nullptr;
-        rv->AppendField(std::move(v), rt->GetFieldType(i));
+        rv->AppendField(std::move(v), GetRecordType()->GetFieldType(i));
     }
 
     return rv;

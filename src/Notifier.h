@@ -99,8 +99,6 @@ extern Registry registry;
  */
 class Modifiable {
 public:
-    virtual ~Modifiable();
-
     /**
      * Calling this method signals to all registered receivers that the
      * object has been modified.
@@ -108,6 +106,17 @@ public:
     void Modified() {
         if ( num_receivers )
             registry.Modified(this);
+    }
+
+    /**
+     * Unregister this instance from the registry.
+     *
+     * Classes inheriting from Modifiable are required to call
+     * this from the destructor explicitly.
+     */
+    void Unregister() {
+        if ( num_receivers )
+            registry.Unregister(this);
     }
 
 protected:

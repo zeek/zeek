@@ -62,9 +62,4 @@ void Registry::Terminate() {
     }
 }
 
-Modifiable::~Modifiable() {
-    if ( num_receivers )
-        registry.Unregister(this);
-}
-
 } // namespace zeek::notifier::detail

@@ -16,6 +16,7 @@
 #include "zeek/Val.h"
 #include "zeek/ZeekArgs.h"
 #include "zeek/cluster/BifSupport.h"
+#include "zeek/cluster/OnLoop.h"
 #include "zeek/cluster/Serializer.h"
 #include "zeek/cluster/Telemetry.h"
 #include "zeek/logging/Types.h"
@@ -572,7 +573,7 @@ private:
 
 /**
  * A cluster backend may receive event and log messages asynchronously
- * through threads. The following structs can be used with QueueForProcessing()
+ * through threads. The following structs can be used with OnLoop()
  * to enqueue these messages onto the main IO loop for processing.
  *
  * EventMessage and LogMessage are processed in a generic fashion in
@@ -624,6 +625,13 @@ using QueueMessage = std::variant<EventMessage, LogMessage, BackendMessage>;
 class ThreadedBackend : public Backend {
 protected:
     /**
+     * Constructor with custom onloop parameter.
+     */
+    ThreadedBackend(std::string_view name, std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
+                    std::unique_ptr<detail::EventHandlingStrategy> ehs,
+                    zeek::detail::OnLoopProcess<ThreadedBackend, QueueMessage>* onloop);
+
+    /**
      * Constructor.
      */
     ThreadedBackend(std::string_view name, std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
@@ -637,6 +645,7 @@ protected:
      *
      * @param messages Messages to be enqueued.
      */
+    [[deprecated("Remove in v8.1: Use OnLoop() and QueueForProcessing() directly.")]]
     void QueueForProcessing(QueueMessage&& messages);
 
     /**
@@ -663,6 +672,11 @@ protected:
      * ThreadedBackend's DoTerminate() implementation.
      */
     void DoTerminate() override;
+
+    /**
+     * @return this backend's OnLoopProcess instance, or nullptr after DoTerminate().
+     */
+    zeek::detail::OnLoopProcess<ThreadedBackend, QueueMessage>* OnLoop() { return onloop; }
 
 private:
     /**

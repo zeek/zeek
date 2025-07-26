@@ -1606,7 +1606,7 @@ private:
     // Use a reference so we can avoid Ref() / Unref() that's tickled via `GetType<zeek::RecordType>()`
     const RecordType& GetRecordType() const {
         assert(GetType()->Tag() == TYPE_RECORD);
-        return *GetType()->AsRecordType();
+        return *static_cast<RecordType*>(GetType().get()); // AsRecordType() isn't inlined
     }
 
     bool IsManaged(unsigned int offset) const { return GetRecordType().ManagedFields()[offset]; }

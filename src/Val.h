@@ -1118,24 +1118,6 @@ inline constexpr bool is_zeek_val_v = is_zeek_val<T>::value;
 
 namespace detail {
 
-enum class RecordValSlotFlags : uint8_t {
-    None = 0,
-    Managed = 1, // replicates
-    Set = 2,
-    Deleted = 4,
-};
-
-constexpr RecordValSlotFlags operator|(RecordValSlotFlags l, RecordValSlotFlags r) {
-    return static_cast<RecordValSlotFlags>(static_cast<uint8_t>(l) | static_cast<uint8_t>(r));
-}
-constexpr RecordValSlotFlags operator&(RecordValSlotFlags l, RecordValSlotFlags r) {
-    return static_cast<RecordValSlotFlags>(static_cast<uint8_t>(l) & static_cast<uint8_t>(r));
-}
-
-constexpr RecordValSlotFlags operator~(RecordValSlotFlags x) {
-    return static_cast<RecordValSlotFlags>(~static_cast<uint8_t>(x));
-}
-
 /**
  * Representation of a single slot for a field in a RecordVal.
  *
@@ -1146,22 +1128,15 @@ constexpr RecordValSlotFlags operator~(RecordValSlotFlags x) {
 class RecordValSlot {
 public:
     RecordValSlot() {}
-    RecordValSlot(ZVal zval, RecordValSlotFlags flags) : zval(zval), flags(flags) {}
+    RecordValSlot(ZVal zval, bool is_managed) : zval(zval), is_managed(is_managed), is_set(true) {}
 
-    bool IsManaged() const noexcept { return (flags & RecordValSlotFlags::Managed) == RecordValSlotFlags::Managed; }
-    bool IsDeleted() const noexcept { return (flags & RecordValSlotFlags::Deleted) == RecordValSlotFlags::Deleted; }
-    bool IsSet() const noexcept { return (flags & RecordValSlotFlags::Set) == RecordValSlotFlags::Set; }
+    bool IsManaged() const noexcept { return is_managed; }
+    bool IsSet() const noexcept { return is_set; }
 
-    void SetManaged(bool is_managed) noexcept {
-        if ( is_managed )
-            flags = flags | detail::RecordValSlotFlags::Managed;
-        else
-            flags = flags & (~detail::RecordValSlotFlags::Managed);
-    }
+    void SetManaged(bool new_is_managed) noexcept { is_managed = new_is_managed; }
 
     void Set(ZVal new_zval) noexcept {
-        flags = flags | RecordValSlotFlags::Set;
-        flags = flags & (~RecordValSlotFlags::Deleted);
+        is_set = true;
         zval = new_zval;
     }
 
@@ -1169,8 +1144,7 @@ public:
         if ( IsSet() && IsManaged() )
             ZVal::DeleteManagedType(zval);
 
-        flags = flags | RecordValSlotFlags::Deleted;
-        flags = flags & (~RecordValSlotFlags::Set);
+        is_set = false;
     }
 
     ValPtr ToVal(const TypePtr& t) const {
@@ -1185,7 +1159,8 @@ private:
     friend class zeek::detail::CPPRuntime;
     friend class zeek::RecordVal;
     ZVal zval;
-    RecordValSlotFlags flags = RecordValSlotFlags::None;
+    bool is_managed = false;
+    bool is_set = false;
 };
 
 /**
@@ -1436,10 +1411,7 @@ public:
 
     // Returns true if the slot for the given field is initialized.
     // This helper can be used to guard GetFieldAs() accesses.
-    bool HasRawField(int field) const {
-        assert((record_val[field].IsSet() && ! record_val[field].IsDeleted()) || ! record_val[field].IsSet());
-        return record_val[field].IsSet();
-    }
+    bool HasRawField(int field) const noexcept { return record_val[field].IsSet(); }
 
     // The following return the given field converted to a particular
     // underlying value.  We provide these to enable efficient
@@ -1567,13 +1539,10 @@ protected:
      * @param t  The type associated with the field.
      */
     void AppendField(ValPtr v, const TypePtr& t) {
-        detail::RecordValSlotFlags managed_flag =
-            IsManaged(record_val.size()) ? detail::RecordValSlotFlags::Managed : detail::RecordValSlotFlags::None;
-
         if ( v )
-            record_val.push_back({ZVal(v, t), managed_flag | detail::RecordValSlotFlags::Set});
+            record_val.push_back({ZVal(v, t), /*is_managed=*/ZVal::IsManagedType(t)});
         else
-            record_val.push_back({ZVal(), managed_flag});
+            record_val.push_back({ZVal(), /*is_managed=*/ZVal::IsManagedType(t)});
     }
 
     // For internal use by low-level ZAM instructions and event tracing.
@@ -1582,7 +1551,7 @@ protected:
     // The second version ensures that the optional value is present.
     detail::RecordValSlot& RawOptField(int field) {
         auto& slot = record_val[field];
-        if ( ! slot.IsSet() && ! slot.IsDeleted() ) {
+        if ( ! slot.IsSet() ) {
             const auto& fi = GetRecordType().DeferredInits()[field];
             if ( fi )
                 slot.Set(fi->Generate());
@@ -1608,8 +1577,6 @@ private:
         assert(GetType()->Tag() == TYPE_RECORD);
         return *static_cast<RecordType*>(GetType().get()); // AsRecordType() isn't inlined
     }
-
-    bool IsManaged(unsigned int offset) const { return GetRecordType().ManagedFields()[offset]; }
 
     // Just for template inferencing.
     RecordVal* Get() { return this; }

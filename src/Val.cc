@@ -2985,7 +2985,7 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t) {
         // Initialize the managed flag of each slot so that we don't need
         // to go back to record type for figuring out if it's managed.
         for ( size_t i = 0; i < record_val.size(); i++ )
-            record_val[i].SetManaged(IsManaged(i));
+            record_val[i].SetManaged(ZVal::IsManagedType(rt.GetFieldType(i)));
     }
 
     else
@@ -2995,13 +2995,15 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t) {
 }
 
 RecordVal::RecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals) : Val(t) {
-    record_val.resize(GetRecordType().NumFields());
+    const auto& rt = GetRecordType();
+    record_val.resize(rt.NumFields());
+    assert(record_val.size() == init_vals.size());
 
     for ( size_t i = 0; i < record_val.size(); ++i ) {
         if ( init_vals[i] )
             record_val[i].Set(*init_vals[i]);
 
-        record_val[i].SetManaged(IsManaged(i));
+        record_val[i].SetManaged(ZVal::IsManagedType(rt.GetFieldType(i)));
     }
 }
 

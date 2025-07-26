@@ -70,6 +70,13 @@ public:
     virtual void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen) {}
 
     /**
+     * Hook for receiving skipped packet data. Parameters are the same as for
+     * Analyzer::DeliverSkippedPacket().
+     */
+    virtual void DeliverSkippedPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip,
+                                      int caplen) {}
+
+    /**
      * Hook for receiving stream data. Parameters are the same as for
      * Analyzer::DeliverStream().
      */
@@ -166,6 +173,29 @@ public:
                     int caplen = 0);
 
     /**
+     * Passes a skipped packet input to the analyzer for processing. The
+     * analyzer will process the input with any support analyzers first
+     * and then forward the data to DeliverSkippedPacket(), which derived
+     * classes can override.
+     *
+     * @param len The number of bytes passed in.
+     *
+     * @param data Pointer the input to process.
+     *
+     * @param is_orig True if this is originator-side input.
+     *
+     * @param seq Current sequence number, if available (only supported
+     * if the data is coming from the TCP analyzer.
+     *
+     * @param ip An IP packet header associated with the data, if
+     * available.
+     *
+     * @param caplen The packet's capture length, if available.
+     */
+    void NextSkippedPacket(int len, const u_char* data, bool is_orig, uint64_t seq = -1, const IP_Hdr* ip = nullptr,
+                           int caplen = 0);
+
+    /**
      * Passes stream input to the analyzer for processing. The analyzer
      * will process the input with any support analyzers first and then
      * forward the data to DeliverStream(), which derived classes can
@@ -217,6 +247,17 @@ public:
     virtual void ForwardPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen);
 
     /**
+     * Forwards skipped packet input on to all child analyzers. If the
+     * analyzer has an associated OutputHandlers, that one receives the
+     * input as well.
+     *
+     * Parameters are the same as for NextSkippedPacket().
+     */
+    virtual void ForwardSkippedPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip,
+                                      int caplen);
+
+
+    /**
      * Forwards stream input on to all child analyzers. If the analyzer
      * has an associated OutputHandlers, that one receives the input as
      * well.
@@ -245,6 +286,14 @@ public:
      * Parameters are the same.
      */
     virtual void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen);
+
+    /**
+     * Hook for accessing skipped packet during parsing. This is called by
+     * NextSkippedPacket and can be overridden by derived classes.
+     * Parameters are the same.
+     */
+    virtual void DeliverSkippedPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip,
+                                      int caplen);
 
     /**
      * Hook for accessing stream input for parsing. This is called by

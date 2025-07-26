@@ -83,8 +83,10 @@ void TCPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
     auto* adapter = static_cast<TCPSessionAdapter*>(c->GetSessionAdapter());
 
     const struct tcphdr* tp = ExtractTCP_Header(data, len, remaining, adapter);
-    if ( ! tp )
+    if ( ! tp ) {
+        adapter->DeliverSkippedPacket(len, data, is_orig, adapter->LastRelDataSeq(), pkt->ip_hdr.get(), pkt->cap_len);
         return;
+    }
 
     // We need the min() here because Ethernet frame padding can lead to
     // remaining > len.
@@ -95,8 +97,10 @@ void TCPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
     analyzer::tcp::TCP_Endpoint* peer = endpoint->peer;
     const std::shared_ptr<IP_Hdr>& ip = pkt->ip_hdr;
 
-    if ( ! ValidateChecksum(ip.get(), tp, endpoint, len, remaining, adapter) )
+    if ( ! ValidateChecksum(ip.get(), tp, endpoint, len, remaining, adapter) ) {
+        adapter->DeliverSkippedPacket(len, data, is_orig, adapter->LastRelDataSeq(), ip.get(), pkt->cap_len);
         return;
+    }
 
     adapter->Process(is_orig, tp, len, ip, data, remaining);
 

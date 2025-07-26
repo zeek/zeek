@@ -1012,6 +1012,30 @@ void TCPSessionAdapter::DeliverPacket(int len, const u_char* data, bool is_orig,
         ForwardPacket(len, data, is_orig, seq, ip, caplen);
 }
 
+void TCPSessionAdapter::DeliverSkippedPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip,
+                                             int caplen) {
+    analyzer::analyzer_list::iterator next;
+
+    for ( auto i = packet_children.begin(); i != packet_children.end(); /* nop */ ) {
+        auto child = *i;
+
+        if ( child->IsFinished() || child->Removing() ) {
+            if ( child->Removing() )
+                child->Done();
+
+            DBG_LOG(DBG_ANALYZER, "%s deleted child %s", fmt_analyzer(this).c_str(), fmt_analyzer(child).c_str());
+            i = packet_children.erase(i);
+            delete child;
+        }
+        else {
+            child->NextSkippedPacket(len, data, is_orig, seq, ip, caplen);
+            ++i;
+        }
+    }
+
+    ForwardSkippedPacket(len, data, is_orig, seq, ip, caplen);
+}
+
 void TCPSessionAdapter::DeliverStream(int len, const u_char* data, bool orig) {
     Analyzer::DeliverStream(len, data, orig);
 }

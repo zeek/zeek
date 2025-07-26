@@ -3019,10 +3019,8 @@ ValPtr RecordVal::SizeVal() const { return val_mgr->Count(GetType()->AsRecordTyp
 void RecordVal::Assign(int field, ValPtr new_val) {
     auto& slot = record_val[field];
     if ( new_val ) {
-        slot.Delete();
-
         const auto& t = GetRecordType().GetFieldType(field);
-        slot.Set(ZVal(new_val, t));
+        slot.Set(ZVal(new_val, t)); // Will properly delete any set value.
         Modified();
     }
     else
@@ -3032,10 +3030,8 @@ void RecordVal::Assign(int field, ValPtr new_val) {
 void RecordVal::Remove(int field) {
     auto& slot = record_val[field];
     if ( slot.IsSet() ) {
-        assert(! slot.IsDeleted());
         slot.Delete();
         assert(! slot.IsSet());
-        assert(slot.IsDeleted());
 
         Modified();
     }

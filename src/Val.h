@@ -1128,7 +1128,7 @@ namespace detail {
 class RecordValSlot {
 public:
     RecordValSlot() {}
-    RecordValSlot(ZVal zval, bool is_managed) : zval(zval), is_managed(is_managed), is_set(true) {}
+    RecordValSlot(ZVal zval, bool is_managed, bool is_set) : zval(zval), is_managed(is_managed), is_set(is_set) {}
 
     bool IsManaged() const noexcept { return is_managed; }
     bool IsSet() const noexcept { return is_set; }
@@ -1136,6 +1136,9 @@ public:
     void SetManaged(bool new_is_managed) noexcept { is_managed = new_is_managed; }
 
     void Set(ZVal new_zval) noexcept {
+        if ( IsSet() && IsManaged() )
+            ZVal::DeleteManagedType(zval);
+
         is_set = true;
         zval = new_zval;
     }
@@ -1184,7 +1187,7 @@ public:
         if ( cap <= sz )
             throw std::logic_error("capacity exceeded");
 
-        data[sz++] = std::move(slot);
+        data[sz++] = slot;
     }
 
     void resize(size_t new_size);
@@ -1274,10 +1277,6 @@ public:
 
     void Assign(int field, StringVal* new_val) {
         auto& slot = record_val[field];
-        if ( slot.IsSet() ) {
-            assert(slot.IsManaged());
-            ZVal::DeleteManagedType(slot.zval);
-        }
         slot.Set(ZVal(new_val));
         AddedField(field);
     }
@@ -1344,6 +1343,7 @@ public:
 
             slot.Set(fi->Generate());
         }
+
         return slot.ToVal(GetRecordType().GetFieldType(field));
     }
 
@@ -1540,9 +1540,9 @@ protected:
      */
     void AppendField(ValPtr v, const TypePtr& t) {
         if ( v )
-            record_val.push_back({ZVal(v, t), /*is_managed=*/ZVal::IsManagedType(t)});
+            record_val.push_back({ZVal(v, t), ZVal::IsManagedType(t), /*is_set=*/true});
         else
-            record_val.push_back({ZVal(), /*is_managed=*/ZVal::IsManagedType(t)});
+            record_val.push_back({ZVal(), ZVal::IsManagedType(t), /*is_set=*/false});
     }
 
     // For internal use by low-level ZAM instructions and event tracing.

@@ -69,6 +69,7 @@ macro StepIter(slot) step_iters[slot]
 macro TableIter(slot) (*tiv_ptr)[slot]
 
 macro DirectField(r, f) r->RawField(f)
+macro DirectFieldRef(r, f) r->RawFieldRef(f)
 macro DirectOptField(r, f) r->RawOptField(f)
 
 macro LogEnum(v) v.ToVal(ZAM::log_ID_enum_type)

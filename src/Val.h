@@ -1545,10 +1545,15 @@ protected:
             record_val.push_back({ZVal(), ZVal::IsManagedType(t), /*is_set=*/false});
     }
 
-    // For internal use by low-level ZAM instructions and event tracing.
-    // Caller assumes responsibility for memory management.  The first
-    // version allows manipulation of whether the field is present at all.
-    // The second version ensures that the optional value is present.
+    // Three record field accesses for internal use by low-level ZAM
+    // instructions and event tracing.
+
+    //  This version provides direct read-only access to the field's value.
+    ZVal RawField(int field) { return record_val[field].zval; }
+
+    // This version allows manipulation of the entire record slot, and
+    // ensures that any default value is present if the field is presently
+    // not set. If assigning a new value, use Set().
     detail::RecordValSlot& RawOptField(int field) {
         auto& slot = record_val[field];
         if ( ! slot.IsSet() ) {
@@ -1560,7 +1565,16 @@ protected:
         return slot;
     }
 
-    ZVal& RawField(int field) { return record_val[field].zval; }
+    // This version allows low-level assignment directly to the field's value.
+    // The caller is responsible for memory management of the current value
+    // (if appropriate) and *must* assign a value into the ZVal (or modify the
+    // existing value), as after this call the record slot is marked as being
+    // set even if currently it is not set.
+    ZVal& RawFieldRef(int field) {
+        auto& slot = RawOptField(field);
+        slot.is_set = true;
+        return slot.zval;
+    }
 
     ValPtr DoClone(CloneState* state) override;
 

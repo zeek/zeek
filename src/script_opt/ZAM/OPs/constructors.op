@@ -161,17 +161,13 @@ eval	SetUpRecFieldOps(map)
 macro DoManagedRecAssign(lhs, rhs)
 	auto is_managed = Z_AUX->is_managed;
 	for ( size_t i = 0U; i < n; ++i )
+		{
+		auto& lhs_i = lhs->RawOptField(lhs_map[i]);
+		auto rhs_i = rhs->RawField(rhs_map[i]);
 		if ( is_managed[i] )
-			{
-			auto& lhs_i = lhs->RawOptField(lhs_map[i]);
-			auto rhs_i = rhs->RawField(rhs_map[i]);
 			zeek::Ref(rhs_i.ManagedVal());
-			if ( lhs_i.IsSet() )
-				ZVal::DeleteManagedType(lhs_i.GetZVal());
-			lhs_i.Set(rhs_i);
-			}
-		else
-			lhs->RawOptField(lhs_map[i]).Set(rhs->RawField(rhs_map[i]));
+		lhs_i.Set(rhs_i);
+		}
 
 op Rec-Assign-Fields-Managed
 op1-read
@@ -190,8 +186,6 @@ eval	SetUpRecFieldOps(map)
 		auto& lhs_i = $1->RawOptField(lhs_map[i]);
 		auto rhs_i = $2->RawField(rhs_map[i]);
 		zeek::Ref(rhs_i.ManagedVal());
-		if ( lhs_i.IsSet() )
-			ZVal::DeleteManagedType(lhs_i.GetZVal());
 		lhs_i.Set(rhs_i);
 		}
 
@@ -201,7 +195,7 @@ class VV
 op-types R R
 eval	SetUpRecFieldOps(map)
 	for ( size_t i = 0U; i < n; ++i )
-		$1->RawField(lhs_map[i]).AsIntRef() += $2->RawField(rhs_map[i]).AsInt();
+		$1->RawFieldRef(lhs_map[i]).AsIntRef() += $2->RawField(rhs_map[i]).AsInt();
 
 op Rec-Add-Double-Fields
 op1-read
@@ -209,7 +203,7 @@ class VV
 op-types R R
 eval	SetUpRecFieldOps(map)
 	for ( size_t i = 0U; i < n; ++i )
-		$1->RawField(lhs_map[i]).AsDoubleRef() += $2->RawField(rhs_map[i]).AsDouble();
+		$1->RawFieldRef(lhs_map[i]).AsDoubleRef() += $2->RawField(rhs_map[i]).AsDouble();
 
 op Rec-Add-Fields
 op1-read
@@ -219,7 +213,7 @@ eval	SetUpRecFieldOps(map)
 	auto& types = Z_AUX->types;
 	for ( size_t i = 0U; i < n; ++i )
 		{
-		auto& lhs_i = $1->RawField(lhs_map[i]);
+		auto& lhs_i = $1->RawFieldRef(lhs_map[i]);
 		auto rhs_i = $2->RawField(rhs_map[i]);
 		auto tag = types[i]->Tag();
 		if ( tag == TYPE_INT )

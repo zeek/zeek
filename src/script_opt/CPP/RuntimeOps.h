@@ -18,8 +18,6 @@ namespace detail {
 
 class CPPRuntime {
 public:
-    static auto& RawField(const RecordValPtr& rv, int field) { return rv->RawField(field); }
-    static auto& RawField(RecordVal* rv, int field) { return rv->RawField(field); }
     static auto& RawOptField(const RecordValPtr& rv, int field) { return rv->RawOptField(field); }
     static auto& RawOptField(RecordVal* rv, int field) { return rv->RawOptField(field); }
 
@@ -133,7 +131,7 @@ inline ValPtr field_access__CPP(const RecordValPtr& rec, int field) {
 
 #define NATIVE_FIELD_ACCESS(type, zaccessor, vaccessor)                                                                \
     inline type field_access_##type##__CPP(const RecordValPtr& r, int field) {                                         \
-        auto rv = CPPRuntime::RawOptField(r, field);                                                                   \
+        auto& rv = CPPRuntime::RawOptField(r, field);                                                                  \
         if ( rv.IsSet() )                                                                                              \
             return rv.GetZVal().zaccessor();                                                                           \
         return field_access__CPP(r, field)->vaccessor();                                                               \
@@ -147,7 +145,7 @@ NATIVE_FIELD_ACCESS(double, AsDouble, AsDouble)
 
 #define VP_FIELD_ACCESS(type, zaccessor)                                                                               \
     inline type##Ptr field_access_##type##__CPP(const RecordValPtr& r, int field) {                                    \
-        auto rv = CPPRuntime::RawOptField(r, field);                                                                   \
+        auto& rv = CPPRuntime::RawOptField(r, field);                                                                  \
         if ( rv.IsSet() )                                                                                              \
             return {NewRef{}, rv.GetZVal().zaccessor()};                                                               \
         return cast_intrusive<type>(field_access__CPP(r, field));                                                      \

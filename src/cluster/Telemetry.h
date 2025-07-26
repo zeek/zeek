@@ -6,12 +6,12 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include "zeek/IntrusivePtr.h"
-#include "zeek/Span.h"
 
 
 namespace zeek {
@@ -175,7 +175,7 @@ private:
     std::vector<double> size_bounds;
     LabelList labels;
     LabelViewList labels_view;
-    zeek::Span<telemetry::LabelView> labels_view_no_location;
+    std::span<telemetry::LabelView> labels_view_no_location;
     size_t topic_idx, handler_idx,
         script_location_idx; // Index of topic, handler and script_location labels in labels_view
     telemetry::HistogramFamilyPtr in, out;

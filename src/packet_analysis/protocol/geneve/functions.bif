@@ -1,6 +1,7 @@
 module PacketAnalyzer::Geneve;
 
 %%{
+#include <span>
 #include "zeek/packet_analysis/Manager.h"
 #include "zeek/packet_analysis/protocol/geneve/Geneve.h"
 %%}
@@ -24,7 +25,7 @@ function get_options%(%): geneve_options_vec_vec
 
     for ( const auto& span : spans ) {
         auto v = zeek::make_intrusive<zeek::VectorVal>(vtype);
-        auto cb = [&v](uint16_t opt_class, bool opt_critical, uint8_t opt_type, zeek::Span<const uint8_t> opt_data) -> void {
+        auto cb = [&v](uint16_t opt_class, bool opt_critical, uint8_t opt_type, std::span<const uint8_t> opt_data) -> void {
             auto rv = zeek::make_intrusive<zeek::RecordVal>(rtype);
             rv->Assign(0, zeek::val_mgr->Count(opt_class));
             rv->Assign(1, zeek::val_mgr->Bool(opt_critical));

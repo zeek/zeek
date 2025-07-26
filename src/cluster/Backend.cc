@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <optional>
+#include <span>
 
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
@@ -196,7 +197,7 @@ bool Backend::DoPublishEvent(const std::string& topic, cluster::detail::Event& e
 
 // Default implementation doing log record serialization.
 bool Backend::DoPublishLogWrites(const zeek::logging::detail::LogWriteHeader& header,
-                                 zeek::Span<zeek::logging::detail::LogRecord> records) {
+                                 std::span<zeek::logging::detail::LogRecord> records) {
     byte_buffer buf;
 
     if ( ! log_serializer->SerializeLogWrite(buf, header, records) )

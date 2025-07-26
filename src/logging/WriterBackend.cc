@@ -3,6 +3,7 @@
 #include "zeek/logging/WriterBackend.h"
 
 #include <broker/data.hh>
+#include <span>
 
 #include "zeek/logging/Manager.h"
 #include "zeek/logging/WriterFrontend.h"
@@ -170,7 +171,7 @@ bool WriterBackend::Init(int arg_num_fields, const Field* const* arg_fields) {
     return true;
 }
 
-bool WriterBackend::Write(int arg_num_fields, zeek::Span<detail::LogRecord> records) {
+bool WriterBackend::Write(int arg_num_fields, std::span<detail::LogRecord> records) {
     // Double-check that the arguments match. If we get this from remote,
     // something might be mixed up.
     if ( num_fields != arg_num_fields ) {

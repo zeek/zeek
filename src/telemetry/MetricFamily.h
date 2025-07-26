@@ -2,10 +2,10 @@
 
 #pragma once
 
+#include <span>
 #include <string>
 #include <vector>
 
-#include "zeek/Span.h"
 #include "zeek/util-types.h"
 
 namespace zeek::telemetry {
@@ -25,7 +25,7 @@ public:
     virtual void RunCallbacks() = 0;
 
 protected:
-    MetricFamily(Span<const std::string_view> labels) {
+    MetricFamily(std::span<const std::string_view> labels) {
         for ( const auto& lbl : labels )
             label_names.emplace_back(lbl);
     }

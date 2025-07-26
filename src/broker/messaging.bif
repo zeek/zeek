@@ -3,15 +3,15 @@
 
 %%{
 #include <set>
+#include <span>
 #include <string>
 
-#include "zeek/Span.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/logging/Manager.h"
 
 namespace {
 
-using ArgsSpan = zeek::Span<const zeek::ValPtr>;
+using ArgsSpan = std::span<const zeek::ValPtr>;
 
 }
 

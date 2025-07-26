@@ -4,6 +4,7 @@ module Telemetry;
 
 %%{
 
+#include <span>
 #include "zeek/telemetry/Counter.h"
 #include "zeek/telemetry/Gauge.h"
 #include "zeek/telemetry/Histogram.h"
@@ -64,8 +65,8 @@ std::vector<zeek::telemetry::LabelView> sv_tbl(zeek::TableVal* xs)
 	return result;
 	}
 
-bool labels_valid(zeek::Span<const zeek::telemetry::LabelView> labels,
-              zeek::Span<const std::string> label_names)
+bool labels_valid(std::span<const zeek::telemetry::LabelView> labels,
+              std::span<const std::string> label_names)
 	{
 	auto key_in_label_names = [keys{label_names}](auto x)
 		{

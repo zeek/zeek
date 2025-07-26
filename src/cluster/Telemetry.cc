@@ -3,6 +3,7 @@
 #include "zeek/cluster/Telemetry.h"
 
 #include <cinttypes>
+#include <span>
 
 #include "zeek/Desc.h"
 #include "zeek/Expr.h"
@@ -187,7 +188,7 @@ DebugTelemetry::DebugTelemetry(TopicNormalizer topic_normalizer, std::string_vie
     labels.emplace_back("script_location", "");
 
     labels_view = to_label_view_vec(labels);
-    labels_view_no_location = zeek::Span{labels_view.data(), labels_view.size() - 1};
+    labels_view_no_location = std::span{labels_view.data(), labels_view.size() - 1};
 
     auto label_names = to_label_names_vec(labels);
 

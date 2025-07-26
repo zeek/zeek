@@ -6,9 +6,9 @@
 #include <prometheus/family.h>
 #include <initializer_list>
 #include <memory>
+#include <span>
 
 #include "zeek/NetVar.h" // For BifEnum::Telemetry value
-#include "zeek/Span.h"
 #include "zeek/telemetry/MetricFamily.h"
 #include "zeek/telemetry/Utils.h"
 
@@ -84,14 +84,14 @@ class CounterFamily : public MetricFamily {
 public:
     static inline const char* OpaqueName = "CounterMetricFamilyVal";
 
-    CounterFamily(prometheus::Family<prometheus::Counter>* family, Span<const std::string_view> labels)
+    CounterFamily(prometheus::Family<prometheus::Counter>* family, std::span<const std::string_view> labels)
         : MetricFamily(labels), family(family) {}
 
     /**
      * Returns the metrics handle for given labels, creating a new instance
      * lazily if necessary.
      */
-    CounterPtr GetOrAdd(Span<const LabelView> labels, detail::CollectCallbackPtr callback = nullptr);
+    CounterPtr GetOrAdd(std::span<const LabelView> labels, detail::CollectCallbackPtr callback = nullptr);
 
     /**
      * @copydoc GetOrAdd

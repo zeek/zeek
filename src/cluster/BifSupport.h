@@ -3,10 +3,10 @@
 #pragma once
 
 #include <optional>
+#include <span>
 #include <string>
 
 #include "zeek/IntrusivePtr.h"
-#include "zeek/Span.h"
 #include "zeek/net_util.h"
 
 // Helpers for cluster.bif
@@ -24,7 +24,7 @@ using VectorValPtr = IntrusivePtr<VectorVal>;
 
 class Val;
 using ValPtr = IntrusivePtr<Val>;
-using ArgsSpan = Span<const ValPtr>;
+using ArgsSpan = std::span<const ValPtr>;
 
 namespace cluster::detail::bif {
 
@@ -72,7 +72,7 @@ zeek::RecordValPtr make_endpoint_info(const std::string& id, const std::string& 
  *
  * @return a VectorVal instance of type string_vec filled with strings.
  */
-zeek::VectorValPtr make_string_vec(zeek::Span<const std::string> strings);
+zeek::VectorValPtr make_string_vec(std::span<const std::string> strings);
 
 } // namespace cluster::detail::bif
 

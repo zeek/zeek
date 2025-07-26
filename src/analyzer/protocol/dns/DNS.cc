@@ -1737,7 +1737,7 @@ RecordValPtr DNS_MsgInfo::BuildEDNS_Val() {
     // unsigned int DO = ttl & 0x8000;	// "DNSSEC OK" - RFC 3225
     unsigned int z = ttl & 0xffff;
 
-    unsigned int return_error = (ercode << 8) | rcode;
+    unsigned int return_error = (ercode << 4) | rcode;
 
     r->Assign(4, return_error);
     r->Assign(5, version);

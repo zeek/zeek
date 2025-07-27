@@ -298,6 +298,10 @@ Changed Functionality
   `Analyzer::DebugLogging`. Furthermore the default options changed to enable
   more detailed output by default.
 
+- Record fields with a ``&default`` attribute are now consistently re-initialized
+  after deleting such fields. Previously, this would only work for constant
+  expressions, but has been extended to apply to arbitrary expressions.
+
 - Publishing remote events with vector arguments that contain holes is now
   rejected. The receiver side never had a chance to figure out where these
   holes would have been. There's a chance this breaks scripts that accidentally

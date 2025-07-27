@@ -1021,14 +1021,29 @@ private:
     void OptimizeCreationInits(RecordType* rt) {
         int i = 0;
         for ( auto& ci : rt->creation_inits ) {
-            if ( ! ci.second->IsDeferrable() )
+            if ( ! ci.second->IsDeferrable() ) {
                 rt->creation_inits[i++] = std::move(ci);
+
+                // A non-deferrable field with a &default attribute is expected to also exist in deferred_inits
+                // such that re-initialization after deletion of the field works.
+                if ( rt->FieldDecl(ci.first)->GetAttr(detail::ATTR_DEFAULT) != detail::Attr::nil ) {
+                    if ( ! rt->deferred_inits[ci.first] )
+                        zeek::reporter->InternalError("non-deferrable field %s$%s with &default not in deferred_inits",
+                                                      rt->GetName().c_str(), rt->FieldName(i));
+
+                    if ( rt->deferred_inits[ci.first] != rt->creation_inits[i - 1].second )
+                        zeek::reporter->InternalError("non-deferrable field %s$%s with &default has inconsistent inits",
+                                                      rt->GetName().c_str(), rt->FieldName(i));
+                }
+            }
             else {
-                // std::fprintf(stderr, "deferred %s$%s: %s (%s)\n", obj_desc_short(rt).c_str(),
-                // rt->FieldName(ci.first),
-                //             ci.second->InitExpr() ? obj_desc_short(ci.second->InitExpr()).c_str() : "<none>",
-                //            typeid(ci).name());
-                assert(! rt->deferred_inits[ci.first]);
+                // If deferred_inits already has a value, it should be the same as the one
+                // stored in creation_inits. This happens for deferrable record fields
+                // that have a &default attribute.
+                if ( rt->deferred_inits[ci.first] && rt->deferred_inits[ci.first] != ci.second )
+                    zeek::reporter->InternalError("deferrable field %s$%s has inconsistent inits",
+                                                  rt->GetName().c_str(), rt->FieldName(i));
+
                 rt->deferred_inits[ci.first].swap(ci.second);
             }
         }
@@ -1120,8 +1135,13 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td) {
         }
 
         else {
-            auto efi = std::make_shared<detail::ExprFieldInit>(def_expr, type);
-            creation_inits.emplace_back(field, std::move(efi));
+            // Note that init is placed into creation_inits and deferred_inits
+            // such that accessing a record field after deleting it will run the
+            // &default expression to re-initialize it again.
+            //
+            // Also see RecordType::CreationInitsOptimizer.
+            init = std::make_shared<detail::ExprFieldInit>(def_expr, type);
+            creation_inits.emplace_back(field, init);
         }
     }
 

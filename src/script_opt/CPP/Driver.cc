@@ -67,7 +67,7 @@ void CPPCompile::Compile(bool report_uncompilable) {
             accessed_globals.insert(g.get());
 
             for ( const auto& i_e : g->GetOptInfo()->GetInitExprs() ) {
-                auto pf = std::make_shared<ProfileFunc>(i_e.get());
+                auto pf = std::make_shared<ProfileFunc>(i_e.get(), true);
                 for ( auto& t : pf->OrderedTypes() ) {
                     (void)pfs->HashType(t);
                     rep_types.insert(TypeRep(t));

@@ -1762,7 +1762,7 @@ WhenInfo::WhenInfo(bool arg_is_return) : is_return(arg_is_return) {
 }
 
 void WhenInfo::BuildProfile() {
-    ProfileFunc cond_pf(cond.get());
+    ProfileFunc cond_pf(cond.get(), false);
 
     auto when_expr_locals_set = cond_pf.Locals();
     when_expr_globals = cond_pf.AllGlobals();

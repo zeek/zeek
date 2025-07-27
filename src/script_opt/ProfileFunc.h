@@ -77,10 +77,14 @@ public:
 
     // Constructors for profiling an AST statement expression.  These exist
     // to support (1) profiling lambda expressions and loop bodies, and
-    // (2) traversing attribute expressions (such as &default=expr)
-    // to discover what components they include.
+    // (2) traversing attribute expressions (such as &default=expr) and
+    // global initializations to discover what components they include.
     ProfileFunc(const Stmt* body, bool abs_rec_fields = false);
-    ProfileFunc(const Expr* func, bool abs_rec_fields = false);
+
+    // The second argument is true if the expression is an initialization
+    // of a global. That enables us to disambiguate whether the global
+    // is ever re-assigned.
+    ProfileFunc(const Expr* e, bool is_init_expr, bool abs_rec_fields = false);
 
     // Returns the function, body, or expression profiled.  Each can be
     // null depending on the constructor used.
@@ -100,8 +104,10 @@ public:
     const IDSet& Params() const { return params; }
     const std::unordered_map<const ID*, int>& Assignees() const { return assignees; }
     const IDSet& NonLocalAssignees() const { return non_local_assignees; }
-    const auto& TableRefs() const { return tbl_refs; }
-    const auto& AggrMods() const { return aggr_mods; }
+    const auto& TableTypeRefs() const { return tbl_type_refs; }
+    const auto& AggrTypeMods() const { return aggr_type_mods; }
+    const auto& AggrIDHasPotentialAliases() const { return aggr_id_has_potential_aliases; }
+    const auto& AggrIDMods() const { return aggr_id_mods; }
     const IDSet& Inits() const { return inits; }
     const std::vector<StmtPtr>& Stmts() const { return stmts; }
     const std::vector<ExprPtr>& Exprs() const { return exprs; }
@@ -158,6 +164,10 @@ protected:
     // Take note of an assignment to an identifier.
     void TrackAssignment(const ID* id);
 
+    void TrackAggrIDMod(ExprPtr e) { TrackAggrIDMod(e.get()); }
+    void TrackAggrIDMod(const Expr* e);
+    void TrackAggrIDMod(const ID* id);
+
     // Extracts attributes of a record type used in a constructor (or implicit
     // initialization, or coercion, which does an implicit construction).
     void CheckRecordConstructor(TypePtr t);
@@ -204,10 +214,39 @@ protected:
     IDSet non_local_assignees;
 
     // TableType's that are used in table references (i.e., index operations).
-    TypeSet tbl_refs;
+    TypeSet tbl_type_refs;
 
     // Types corresponding to aggregates that are modified.
-    TypeSet aggr_mods;
+    TypeSet aggr_type_mods;
+
+    // Identifiers with aggregate types with potential aliases. These occur
+    // for some types of direct references to the aggregate, where its entire
+    // value is provided, not just an element of it. So for a record 'r',
+    // "do_my_work(r)" or "x = r" or "r = x" would qualify (for both of these
+    // last two, the assignment means that x and r will be aliases at a
+    // certain point). However, "r$foo" does not qualify, nor does "|r|"
+    // or "copy(r)".
+    //
+    // We want to track these because an identifier that does _not_ have any
+    // potential aliases can be optimized in certain circumstances (for
+    // example, treating it as a constant if it never has any modifications,
+    // either).
+    //
+    // Note that we only track these for globals.
+    IDSet aggr_id_has_potential_aliases;
+
+    // Identifiers with aggregate types that are modified (i.e., changes
+    // are made to the aggregate). Note that this doesn't include changes
+    // to sub-aggregates inside the aggregate. So for a record 'r',
+    // "++r$cnt" would qualify, as would "r = x", but not "++r$stats$cnt".
+    // For a table 't', "t[ind] = val" would qualify, as would "delete t[ind]".
+    //
+    // These are useful to track because an identifier that has no potential
+    // aliases (see above), no modifications, and no sub-aggregates of a type
+    // that's modified (per aggr_type_mods) can be treated as constant.
+    //
+    // Note that we only track these for globals.
+    IDSet aggr_id_mods;
 
     // Same for locals seen in initializations, so we can find,
     // for example, unused aggregates.
@@ -302,6 +341,18 @@ protected:
     // Whether we should treat record field accesses as absolute
     // (integer offset) or relative (name-based).
     bool abs_rec_fields;
+
+    // Whether we're profiling the initialization of a global. If so, then
+    // we don't treat it as modifying the global.
+    bool is_init_expr = false;
+
+    // Whether the next node visited by AST traversal should not treat
+    // the appearance of an aggregate identifier as potentially creating
+    // an alias for that identifier. We use this somewhat awkward notion
+    // because it turns out to simplify the logic needed to tell apart
+    // instances of "safe" identifier appearances (not creating aliases)
+    // versus the frequent case that they do in fact create an alias.
+    bool aggr_id_in_next_node_is_not_potential_alias = false;
 };
 
 // Describes an operation for which some forms of access can lead to state
@@ -371,6 +422,7 @@ public:
     // the (non-skipped) functions in "funcs".  See the comments for
     // the associated member variables for documentation.
     const IDSet& Globals() const { return globals; }
+    const auto& ConstAggrGlobals() const { return const_aggr_globals; }
     const IDSet& AllGlobals() const { return all_globals; }
     const std::unordered_set<const ConstExpr*>& Constants() const { return constants; }
     const std::vector<const Type*>& MainTypes() const { return main_types; }
@@ -380,6 +432,9 @@ public:
     const std::unordered_set<const LambdaExpr*>& Lambdas() const { return lambdas; }
     const std::unordered_set<std::string>& Events() const { return events; }
     const auto& ExprAttrs() const { return expr_attrs; }
+    const auto& AggrTypeMods() const { return aggr_type_mods; }
+    const auto& AggrIDHasPotentialAliases() const { return aggr_id_has_potential_aliases; }
+    const auto& AggrIDMods() const { return aggr_id_mods; }
 
     const auto& FuncProfs() const { return func_profs; }
 
@@ -505,9 +560,21 @@ protected:
     // as a signal so that this method can also be used during that analysis.
     std::shared_ptr<SideEffectsOp> GetCallSideEffects(const ScriptFunc* f);
 
+    // Determine which global aggregates can be safely treated as constants.
+    void FindConstGlobalAggrs();
+
+    // True if a given aggregate type is potentially modified, which includes
+    // whether any of its sub-aggregates might be modified. The second
+    // argument is to prevent infinite recursion for recursive types.
+    bool AggrTypePotentiallyModified(const TypePtr& t, std::unordered_set<const Type*> seen) const;
+
     // Globals seen across the functions, other than those solely seen
     // as the function being called in a call.
     IDSet globals;
+
+    // Which of the above globals are aggregates that can be safely assumed
+    // to be constant (they have no modifications and no potential aliases).
+    IDSet const_aggr_globals;
 
     // Same, but also includes globals only seen as called functions.
     IDSet all_globals;
@@ -570,6 +637,12 @@ protected:
     // shared across multiple distinct (though compatible) types.
     std::unordered_map<const Attr*, std::vector<const Type*>> expr_attrs;
 
+    // The sets of all aggregate types or identifiers that are modified or
+    // have potential aliases. See ProfileFunc for particulars.
+    TypeSet aggr_type_mods;
+    IDSet aggr_id_has_potential_aliases;
+    IDSet aggr_id_mods;
+
     // Tracks whether a given TableType has a &default that returns an
     // aggregate. Expressions involving indexing tables with such types
     // cannot be optimized out using CSE because each returned value is
@@ -615,7 +688,9 @@ protected:
 
     // Expressions that we've discovered that we need to further profile.
     // These can arise for example due to lambdas or record attributes.
-    std::vector<const Expr*> pending_exprs;
+    // The second argument is true if the expression appears in the context
+    // of an initialization of a global, false otherwise.
+    std::vector<std::pair<const Expr*, bool>> pending_exprs;
 
     // Whether to compute new hashes for the FuncInfo entries. If the FuncInfo
     // doesn't have a hash, it will always be computed.

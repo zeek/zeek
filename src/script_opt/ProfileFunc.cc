@@ -63,7 +63,7 @@ ProfileFunc::ProfileFunc(const Stmt* s, bool _abs_rec_fields) {
     s->Traverse(this);
 }
 
-ProfileFunc::ProfileFunc(const Expr* e, bool _abs_rec_fields) {
+ProfileFunc::ProfileFunc(const Expr* e, bool _is_init_expr, bool _abs_rec_fields) : is_init_expr(_is_init_expr) {
     profiled_expr = e;
 
     abs_rec_fields = _abs_rec_fields;
@@ -121,7 +121,8 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
 
             // Don't traverse further into the statement, since we
             // don't want to view the identifiers as locals unless
-            // they're also used elsewhere.
+            // they're also used elsewhere, and for aggregates we don't
+            // want to treat these as creating aliases or modifications.
             return TC_ABORTSTMT;
 
         case STMT_WHEN: {
@@ -139,11 +140,19 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
             auto loop_vars = sf->LoopVars();
             auto value_var = sf->ValueVar();
 
-            for ( auto id : *loop_vars )
+            for ( auto id : *loop_vars ) {
                 locals.insert(id);
+                if ( IsAggr(id->GetType()) )
+                    TrackAggrIDMod(id);
+            }
 
-            if ( value_var )
+            if ( value_var ) {
                 locals.insert(value_var.get());
+                if ( IsAggr(value_var->GetType()) )
+                    TrackAggrIDMod(value_var.get());
+            }
+            // Next node is the aggregate we're looping over.
+            aggr_id_in_next_node_is_not_potential_alias = true;
         } break;
 
         case STMT_SWITCH: {
@@ -162,11 +171,13 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
                 auto idl = c->TypeCases();
                 if ( idl ) {
                     for ( auto id : *idl )
-                        // Make sure it's not a placeholder
-                        // identifier, used when there's
-                        // no explicit one.
-                        if ( id->Name() )
+                        // Make sure it's not a placeholder identifier, used
+                        // when there's no explicit one.
+                        if ( id->Name() ) {
                             locals.insert(id);
+                            if ( IsAggr(id->GetType()) )
+                                TrackAggrIDMod(id);
+                        }
 
                     is_type_switch = true;
                 }
@@ -178,6 +189,8 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
                 expr_switches.insert(sw);
         } break;
 
+        case STMT_PRINT: aggr_id_in_next_node_is_not_potential_alias = true; break;
+
         default: break;
     }
 
@@ -186,6 +199,15 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
 
 TraversalCode ProfileFunc::PreExpr(const Expr* e) {
     exprs.emplace_back(NewRef{}, const_cast<Expr*>(e));
+
+    auto do_aliasing = ! aggr_id_in_next_node_is_not_potential_alias;
+
+    // After processing this node, we revert to the default (unless in
+    // the processing we turn this back on) ... except for EXPR_REF
+    // nodes, for which what we want to target is their operand, not
+    // the node itself.
+    if ( e->Tag() != EXPR_REF )
+        aggr_id_in_next_node_is_not_potential_alias = false;
 
     TrackType(e->GetType());
 
@@ -199,7 +221,11 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             // Turns out that NameExpr's can be constructed using a
             // different Type* than that of the identifier itself,
             // so be sure we track the latter too.
-            TrackType(id->GetType());
+            auto t = id->GetType();
+            TrackType(t);
+
+            if ( id->IsGlobal() && do_aliasing && IsAggr(t) )
+                aggr_id_has_potential_aliases.insert(id);
 
             if ( id->IsGlobal() ) {
                 PreID(id);
@@ -220,23 +246,30 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                 auto fn = e->AsFieldExpr()->FieldName();
                 addl_hashes.push_back(p_hash(fn));
             }
+
+            aggr_id_in_next_node_is_not_potential_alias = true;
             break;
 
-        case EXPR_HAS_FIELD:
+        case EXPR_HAS_FIELD: {
+            auto fe = e->AsHasFieldExpr();
             if ( abs_rec_fields ) {
-                auto f = e->AsHasFieldExpr()->Field();
+                auto f = fe->Field();
                 addl_hashes.push_back(std::hash<int>{}(f));
             }
             else {
-                auto fn = e->AsHasFieldExpr()->FieldName();
+                auto fn = fe->FieldName();
                 addl_hashes.push_back(std::hash<std::string>{}(fn));
             }
+            aggr_id_in_next_node_is_not_potential_alias = true;
             break;
+        }
 
         case EXPR_INDEX: {
-            auto lhs_t = e->GetOp1()->GetType();
+            auto lhs = e->GetOp1();
+            auto lhs_t = lhs->GetType();
             if ( lhs_t->Tag() == TYPE_TABLE )
-                tbl_refs.insert(lhs_t.get());
+                tbl_type_refs.insert(lhs_t.get());
+            aggr_id_in_next_node_is_not_potential_alias = true;
         } break;
 
         case EXPR_INCR:
@@ -283,8 +316,17 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                             // inside a when clause.
                             when_locals.insert(id);
                     }
-                    else if ( IsAggr(lhs_t->Tag()) )
-                        aggr_mods.insert(lhs_t.get());
+                    if ( IsAggr(lhs_t->Tag()) ) {
+                        if ( is_init_expr )
+                            aggr_id_in_next_node_is_not_potential_alias = true;
+                        else {
+                            TrackAggrIDMod(lhs);
+                            if ( ! is_assign ) {
+                                aggr_type_mods.insert(lhs_t.get());
+                                aggr_id_in_next_node_is_not_potential_alias = true;
+                            }
+                        }
+                    }
                 } break;
 
                 case EXPR_INDEX: {
@@ -296,9 +338,9 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                     // rather a's type. However, for any of the others,
                     // e.g. "a[b] -= aggr" it is a[b]'s type.
                     if ( is_assign )
-                        aggr_mods.insert(lhs_aggr_t.get());
+                        aggr_type_mods.insert(lhs_aggr_t.get());
                     else
-                        aggr_mods.insert(lhs_t.get());
+                        aggr_type_mods.insert(lhs_t.get());
 
                     if ( lhs_aggr_t->Tag() == TYPE_TABLE ) {
                         // We don't want the default recursion into the
@@ -306,7 +348,11 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                         // table modification as a reference instead. So
                         // do it manually. Given that, we need to do the
                         // expression's RHS manually too.
-                        lhs->GetOp1()->Traverse(this);
+                        if ( lhs_aggr->Tag() == EXPR_NAME ) {
+                            TrackAggrIDMod(lhs_aggr);
+                            aggr_id_in_next_node_is_not_potential_alias = true;
+                        }
+                        lhs_aggr->Traverse(this);
                         lhs->GetOp2()->Traverse(this);
 
                         auto rhs = e->GetOp2();
@@ -317,27 +363,38 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                     }
                 } break;
 
-                case EXPR_FIELD: aggr_mods.insert(lhs_t.get()); break;
+                case EXPR_FIELD:
+                    aggr_type_mods.insert(lhs_t.get());
+                    aggr_id_in_next_node_is_not_potential_alias = true;
+                    break;
 
-                case EXPR_LIST: {
+                case EXPR_LIST:
                     for ( auto id : lhs->AsListExpr()->Exprs() ) {
                         auto id_t = id->GetType();
                         if ( IsAggr(id_t->Tag()) )
-                            aggr_mods.insert(id_t.get());
+                            aggr_type_mods.insert(id_t.get());
                     }
-                } break;
+                    break;
 
                 default: reporter->InternalError("bad expression in ProfileFunc: %s", obj_desc(e).c_str());
             }
         } break;
 
+        case EXPR_LIST:
+            for ( auto e_i : e->AsListExpr()->Exprs() ) {
+                aggr_id_in_next_node_is_not_potential_alias = ! do_aliasing;
+                e_i->Traverse(this);
+            }
+            return TC_ABORTSTMT;
+
         case EXPR_AGGR_ADD:
         case EXPR_AGGR_DEL: {
-            auto lhs = e->GetOp1();
-            if ( lhs )
-                aggr_mods.insert(lhs->GetType().get());
-            else
-                aggr_mods.insert(e->GetType().get());
+            auto op = e->GetOp1();
+            auto aggr = op->GetOp1() ? op->GetOp1() : op;
+            aggr_type_mods.insert(aggr->GetType().get());
+            if ( aggr->Tag() == EXPR_NAME )
+                TrackAggrIDMod(aggr);
+            aggr_id_in_next_node_is_not_potential_alias = true;
         } break;
 
         case EXPR_CALL: {
@@ -476,6 +533,20 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                 type_aliases[orig_type].insert(res_type);
         } break;
 
+        case EXPR_CLONE:
+        case EXPR_SIZE:
+        case EXPR_IS: aggr_id_in_next_node_is_not_potential_alias = true; break;
+
+        case EXPR_IN:
+            // This one we need to traverse manually, so we can avoid
+            // viewing an aggregate appearing in either operand as potentially
+            // creating an alias.
+            aggr_id_in_next_node_is_not_potential_alias = true;
+            e->GetOp1()->Traverse(this);
+            aggr_id_in_next_node_is_not_potential_alias = true;
+            e->GetOp2()->Traverse(this);
+            return TC_ABORTSTMT;
+
         default: break;
     }
 
@@ -550,6 +621,13 @@ void ProfileFunc::TrackAssignment(const ID* id) {
         non_local_assignees.insert(id);
 }
 
+void ProfileFunc::TrackAggrIDMod(const Expr* e) { TrackAggrIDMod(e->AsNameExpr()->Id()); }
+
+void ProfileFunc::TrackAggrIDMod(const ID* id) {
+    if ( id->IsGlobal() )
+        aggr_id_mods.insert(id);
+}
+
 void ProfileFunc::CheckRecordConstructor(TypePtr t) {
     auto rt = cast_intrusive<RecordType>(t);
     for ( auto td : *rt->Types() )
@@ -618,6 +696,10 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred
     // Now that we have everything profiled, we can proceed to analyses
     // that require full global information.
     ComputeSideEffects();
+
+    // Finally, analyze aggregate globals for those that we can confidently
+    // deem constant.
+    FindConstGlobalAggrs();
 }
 
 bool ProfileFuncs::IsTableWithDefaultAggr(const Type* t) {
@@ -709,7 +791,7 @@ void ProfileFuncs::MergeInProfile(ProfileFunc* pf) {
         auto& init_exprs = g->GetOptInfo()->GetInitExprs();
         for ( const auto& i_e : init_exprs )
             if ( i_e ) {
-                pending_exprs.push_back(i_e.get());
+                pending_exprs.push_back({i_e.get(), true});
 
                 if ( i_e->Tag() == EXPR_LAMBDA )
                     lambdas.insert(i_e->AsLambdaExpr());
@@ -725,10 +807,14 @@ void ProfileFuncs::MergeInProfile(ProfileFunc* pf) {
     script_calls.insert(pf->ScriptCalls().begin(), pf->ScriptCalls().end());
     BiF_globals.insert(pf->BiFGlobals().begin(), pf->BiFGlobals().end());
     events.insert(pf->Events().begin(), pf->Events().end());
+    aggr_type_mods.insert(pf->AggrTypeMods().begin(), pf->AggrTypeMods().end());
+    aggr_id_has_potential_aliases.insert(pf->AggrIDHasPotentialAliases().begin(),
+                                         pf->AggrIDHasPotentialAliases().end());
+    aggr_id_mods.insert(pf->AggrIDMods().begin(), pf->AggrIDMods().end());
 
     for ( auto& i : pf->Lambdas() ) {
         lambdas.insert(i);
-        pending_exprs.push_back(i);
+        pending_exprs.push_back({i, false});
     }
 
     for ( auto& a : pf->ConstructorAttrs() )
@@ -813,8 +899,8 @@ void ProfileFuncs::DrainPendingExprs() {
         auto pe = pending_exprs;
         pending_exprs.clear();
 
-        for ( auto e : pe ) {
-            auto pf = std::make_shared<ProfileFunc>(e, full_record_hashes);
+        for ( auto [e, is_init] : pe ) {
+            auto pf = std::make_shared<ProfileFunc>(e, is_init, full_record_hashes);
 
             expr_profs[e] = pf;
             MergeInProfile(pf.get());
@@ -1089,7 +1175,7 @@ void ProfileFuncs::AnalyzeAttrs(const Attributes* attrs, const Type* t) {
         if ( ! e )
             continue;
 
-        pending_exprs.push_back(e.get());
+        pending_exprs.push_back({e.get(), false});
 
         auto prev_ea = expr_attrs.find(a.get());
         if ( prev_ea == expr_attrs.end() )
@@ -1210,7 +1296,7 @@ bool ProfileFuncs::DefinitelyHasNoSideEffects(const ExprPtr& e) const {
 
     const auto& pf = ep->second;
 
-    if ( ! pf->NonLocalAssignees().empty() || ! pf->TableRefs().empty() || ! pf->AggrMods().empty() ||
+    if ( ! pf->NonLocalAssignees().empty() || ! pf->TableTypeRefs().empty() || ! pf->AggrTypeMods().empty() ||
          ! pf->ScriptCalls().empty() )
         return false;
 
@@ -1322,11 +1408,11 @@ bool ProfileFuncs::AssessSideEffects(const ProfileFunc* pf, IDSet& non_local_ids
             // Not enough information yet to know all of the side effects.
             return false;
 
-    for ( auto& tr : pf->TableRefs() )
+    for ( auto& tr : pf->TableTypeRefs() )
         if ( ! AssessAggrEffects(SideEffectsOp::READ, tr, nla, mod_aggrs, is_unknown) )
             return false;
 
-    for ( auto& tm : pf->AggrMods() ) {
+    for ( auto& tm : pf->AggrTypeMods() ) {
         if ( tm->Tag() == TYPE_TABLE && ! AssessAggrEffects(SideEffectsOp::WRITE, tm, nla, mod_aggrs, is_unknown) )
             return false;
 
@@ -1443,6 +1529,74 @@ std::shared_ptr<SideEffectsOp> ProfileFuncs::GetCallSideEffects(const ScriptFunc
     func_side_effects[sf] = seo;
 
     return seo;
+}
+
+bool ProfileFuncs::AggrTypePotentiallyModified(const TypePtr& t, std::unordered_set<const Type*> seen) const {
+    if ( ! IsAggr(t) )
+        return false;
+
+    if ( seen.count(t.get()) > 0 )
+        return false;
+
+    if ( aggr_type_mods.count(t.get()) > 0 )
+        return true;
+
+    // Look for any sub-aggregates that themselves are potentially modified.
+    seen.insert(t.get());
+
+    switch ( t->Tag() ) {
+        case TYPE_RECORD: {
+            auto rt = cast_intrusive<RecordType>(t);
+            for ( const auto& td : *rt->Types() )
+                if ( AggrTypePotentiallyModified(td->type, seen) )
+                    return true;
+        } break;
+
+        case TYPE_VECTOR: {
+            const auto& yt = cast_intrusive<VectorType>(t)->Yield();
+            if ( AggrTypePotentiallyModified(yt, seen) )
+                return true;
+        } break;
+
+        case TYPE_TABLE: {
+            const auto& tt = cast_intrusive<TableType>(t);
+            const auto& tt_i = tt->GetIndices();
+            for ( const auto& t : tt_i->GetTypes() )
+                if ( AggrTypePotentiallyModified(t, seen) )
+                    return true;
+
+            const auto& yt = tt->Yield();
+            if ( yt && AggrTypePotentiallyModified(yt, seen) )
+                return true;
+        } break;
+
+        default:
+            reporter->InternalError("bad aggregate type in ProfileFuncs::AggrTypePotentiallyModified: %s",
+                                    obj_desc(t).c_str());
+    }
+    return false;
+}
+
+void ProfileFuncs::FindConstGlobalAggrs() {
+    for ( auto& g : Globals() ) {
+        auto& gt = g->GetType();
+
+        if ( ! IsAggr(gt) )
+            continue;
+
+        if ( aggr_id_has_potential_aliases.count(g) > 0 || aggr_id_mods.count(g) > 0 )
+            continue;
+
+        if ( g->GetAttr(ATTR_DEFAULT_INSERT) )
+            // A simple lookup can modify the aggregate.
+            continue;
+
+        std::unordered_set<const Type*> seen;
+        if ( AggrTypePotentiallyModified(gt, seen) )
+            continue;
+
+        const_aggr_globals.insert(g);
+    }
 }
 
 // We associate modules with filenames, and take the first one we see.

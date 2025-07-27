@@ -365,6 +365,10 @@ Deprecated Functionality
 
   The replacement script doesn't populate the ``email_body_sections`` anymore either.
 
+- Using ``&default`` and ``&optional`` together on a record field has been deprecated
+  as it would only result in ``&default`` behavior. This will become an error starting
+  with Zeek 8.1.
+
 - The ``zeek::Event()`` constructor was deprecated. Use ``event_mgr::Enqueue()``
   or ``event_mgr::Dispatch()`` instead.
 

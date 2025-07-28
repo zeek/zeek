@@ -1,3 +1,9 @@
+8.0.0-dev.763 | 2025-07-28 13:57:18 -0700
+
+  * Move ID::type in structure to fill memory padding (Tim Wojtulewicz, Corelight)
+
+  * Use sorted forward_list instead of multimap for ID option change handlers (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.760 | 2025-07-28 13:12:47 -0700
 
   * Remove intermediate cipher vectors in ssl-analyzer.pac (Tim Wojtulewicz, Corelight)

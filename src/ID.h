@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <map>
+#include <forward_list>
 #include <string>
 #include <string_view>
 #include <unordered_set>
@@ -157,9 +157,9 @@ protected:
 #endif
 
     const char* name;
+    TypePtr type;
     IDScope scope;
     bool is_export;
-    TypePtr type;
     bool is_capture = false;
     bool is_const = false;
     bool is_enum_const = false;
@@ -172,7 +172,8 @@ protected:
     AttributesPtr attrs;
 
     // contains list of functions that are called when an option changes
-    std::multimap<int, FuncPtr> option_handlers;
+    using OptionHandler = std::pair<int, FuncPtr>;
+    std::forward_list<OptionHandler> option_handlers;
 
     // Information managed by script optimization.  We package this
     // up into a separate object for purposes of modularity, and,

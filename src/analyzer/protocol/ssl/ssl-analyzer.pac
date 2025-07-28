@@ -22,30 +22,28 @@ refine connection SSL_Conn += {
 
 		if ( ssl_client_hello )
 			{
-			vector<int> cipher_suites;
-
-			if ( cipher_suites16 )
-				std::copy(cipher_suites16->begin(), cipher_suites16->end(), std::back_inserter(cipher_suites));
-			else
-				std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(cipher_suites), to_int());
-
 			auto cipher_vec = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
 
-			for ( unsigned int i = 0; i < cipher_suites.size(); ++i )
+			if ( cipher_suites16 )
 				{
-				auto cipher = zeek::val_mgr->Count(cipher_suites[i]);
-				cipher_vec->Assign(i, std::move(cipher));
+				cipher_vec->Reserve(cipher_suites16->size());
+				for ( uint32_t cipher : *cipher_suites16 )
+					cipher_vec->Append(zeek::val_mgr->Count(cipher));
+				}
+			else
+				{
+				cipher_vec->Reserve(cipher_suites24->size());
+				for ( auto cipher : *cipher_suites24 )
+					cipher_vec->Append(zeek::val_mgr->Count(to_int()(cipher)));
 				}
 
 			auto comp_vec = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
 
 			if ( compression_methods )
 				{
-				for ( unsigned int i = 0; i < compression_methods->size(); ++i )
-					{
-					auto comp = zeek::val_mgr->Count((*compression_methods)[i]);
-					comp_vec->Assign(i, comp);
-					}
+				comp_vec->Reserve(compression_methods->size());
+				for ( auto method : *compression_methods )
+					comp_vec->Append(zeek::val_mgr->Count(method));
 				}
 
 			zeek::BifEvent::enqueue_ssl_client_hello(zeek_analyzer(), zeek_analyzer()->Conn(),
@@ -75,12 +73,11 @@ refine connection SSL_Conn += {
 
 		if ( ssl_server_hello )
 			{
-			vector<int>* ciphers = new vector<int>();
-
-			if ( cipher_suites16 )
-				std::copy(cipher_suites16->begin(), cipher_suites16->end(), std::back_inserter(*ciphers));
-			else
-				std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(*ciphers), to_int());
+			int first_cipher = 0;
+			if ( cipher_suites16 && ! cipher_suites16->empty() )
+				first_cipher = cipher_suites16->front();
+			else if ( cipher_suites24 && ! cipher_suites24->empty() )
+				first_cipher = to_int()(cipher_suites24->front());
 
 			uint32 ts = 0;
 			if ( v2 == 0 && server_random.length() >= 4 )
@@ -92,9 +89,7 @@ refine connection SSL_Conn += {
 							zeek::make_intrusive<zeek::StringVal>(server_random.length(),
 							                                      (const char*) server_random.data()),
 							{zeek::AdoptRef{}, to_string_val(session_id)},
-							ciphers->size()==0 ? 0 : ciphers->at(0), comp_method);
-
-			delete ciphers;
+							first_cipher, comp_method);
 			}
 
 		return true;

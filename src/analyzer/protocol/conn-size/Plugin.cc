@@ -31,7 +31,7 @@ public:
         auto lv = t->ToPureListVal();
         for ( auto i = 0; i < lv->Length(); i++ )
             thresholds.emplace_back(lv->Idx(i)->AsCount());
-        std::sort(thresholds.begin(), thresholds.end());
+        std::ranges::sort(thresholds);
 
         zeek::analyzer::conn_size::ConnSize_Analyzer::SetGenericPacketThresholds(std::move(thresholds));
     }

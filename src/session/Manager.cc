@@ -173,7 +173,7 @@ void Manager::Drain() {
 
         for ( auto& entry : session_map )
             keys.push_back(&(entry.first));
-        std::sort(keys.begin(), keys.end(), [](const detail::Key* a, const detail::Key* b) { return *a < *b; });
+        std::ranges::sort(keys, [](const detail::Key* a, const detail::Key* b) { return *a < *b; });
 
         for ( const auto* k : keys ) {
             Session* tc = session_map.at(*k);

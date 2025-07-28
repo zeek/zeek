@@ -469,7 +469,7 @@ void Manager::Process() {
 }
 
 void Manager::Queue(Trigger* trigger) {
-    if ( std::find(pending->begin(), pending->end(), trigger) == pending->end() ) {
+    if ( std::ranges::find(*pending, trigger) == pending->end() ) {
         Ref(trigger);
         pending->push_back(trigger);
         trigger_count->Inc();

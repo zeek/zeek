@@ -48,9 +48,7 @@ namespace zeek::detail {
 
 uint32_t RuleHdrTest::idcounter = 0;
 
-static bool is_member_of(const int_list& l, int_list::value_type v) {
-    return std::find(l.begin(), l.end(), v) != l.end();
-}
+static bool is_member_of(const int_list& l, int_list::value_type v) { return std::ranges::find(l, v) != l.end(); }
 
 RuleHdrTest::RuleHdrTest(Prot arg_prot, uint32_t arg_offset, uint32_t arg_size, Comp arg_comp,
                          maskedvalue_list* arg_vals) {
@@ -188,8 +186,7 @@ RuleEndpointState::RuleEndpointState(analyzer::Analyzer* arg_analyzer, bool arg_
 }
 
 const RuleEndpointState::RulePatternMatch* RuleEndpointState::FindRulePatternMatch(const Rule* r) const {
-    const auto it =
-        std::find_if(pattern_matches.begin(), pattern_matches.end(), [r](const auto& m) { return m.rule == r; });
+    const auto it = std::ranges::find_if(pattern_matches, [r](const auto& m) { return m.rule == r; });
     if ( it != pattern_matches.end() )
         return &(*it);
 

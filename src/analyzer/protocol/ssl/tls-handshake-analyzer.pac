@@ -48,9 +48,9 @@ refine connection Handshake_Conn += {
 			vector<int> cipher_suites;
 
 			if ( cipher_suites16 )
-				std::copy(cipher_suites16->begin(), cipher_suites16->end(), std::back_inserter(cipher_suites));
+				std::ranges::copy(*cipher_suites16, std::back_inserter(cipher_suites));
 			else
-				std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(cipher_suites), to_int());
+				std::ranges::transform(*cipher_suites24, std::back_inserter(cipher_suites), to_int());
 
 			auto cipher_vec = zeek::make_intrusive<zeek::VectorVal>(zeek::id::index_vec);
 
@@ -103,9 +103,9 @@ refine connection Handshake_Conn += {
 			vector<int>* ciphers = new vector<int>();
 
 			if ( cipher_suites16 )
-				std::copy(cipher_suites16->begin(), cipher_suites16->end(), std::back_inserter(*ciphers));
+				std::ranges::copy(*cipher_suites16, std::back_inserter(*ciphers));
 			else
-				std::transform(cipher_suites24->begin(), cipher_suites24->end(), std::back_inserter(*ciphers), to_int());
+				std::ranges::transform(*cipher_suites24, std::back_inserter(*ciphers), to_int());
 
 			uint32 ts = 0;
 			if ( v2 == 0 && server_random.length() >= 4 )
@@ -374,8 +374,7 @@ refine connection Handshake_Conn += {
 		vector<X509Certificate*>* certs = cl;
 		vector<bytestring>* cert_list = new vector<bytestring>();
 
-		std::transform(certs->begin(), certs->end(),
-		std::back_inserter(*cert_list), extract_certs());
+		std::ranges::transform(*certs, std::back_inserter(*cert_list), extract_certs());
 
 		bool ret = proc_certificate(is_orig, flipped_, cert_list);
 		delete cert_list;

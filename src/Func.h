@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <forward_list>
 #include <memory>
 #include <string>
 #include <tuple>
@@ -66,13 +67,11 @@ public:
 
     struct Body {
         detail::StmtPtr stmts;
+        std::forward_list<EventGroupPtr> groups;
         int priority;
-        std::set<EventGroupPtr> groups;
         // If any of the groups are disabled, this body is disabled.
         // The disabled field is updated from EventGroup instances.
         bool disabled = false;
-
-        bool operator<(const Body& other) const { return priority > other.priority; } // reverse sort
     };
 
     const std::vector<Body>& GetBodies() const { return bodies; }
@@ -104,8 +103,8 @@ public:
      * A version of Invoke() taking a variable number of individual arguments.
      */
     template<class... Args>
-    std::enable_if_t<std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>, ValPtr> Invoke(
-        Args&&... args) const {
+        requires std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>
+    ValPtr Invoke(Args&&... args) const {
         auto zargs = zeek::Args{std::forward<Args>(args)...};
         return Invoke(&zargs);
     }

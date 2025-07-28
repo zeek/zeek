@@ -21,7 +21,7 @@ std::optional<byte_buffer> JSON::Serialize(ValPtr val) {
     auto json = val->ToJSON();
     buf.reserve(json->Len() + versioned_name.size() + 1);
 
-    std::transform(versioned_name.begin(), versioned_name.end(), std::back_inserter(buf), byte_converter);
+    std::ranges::transform(versioned_name, std::back_inserter(buf), byte_converter);
     buf.push_back(static_cast<std::byte>(';'));
     std::transform(json->Bytes(), json->Bytes() + json->Len(), std::back_inserter(buf), byte_converter);
 

@@ -154,7 +154,7 @@ void ScriptCoverageManager::TrackUsage(const Location* loc, std::string desc, ui
     loc->Describe(&location_info);
 
     static canonicalize_desc cd{delim};
-    for_each(desc.begin(), desc.end(), cd);
+    std::ranges::for_each(desc, cd);
 
     pair<string, string> location_desc(location_info.Description(), desc);
 

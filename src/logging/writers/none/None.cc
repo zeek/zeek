@@ -23,7 +23,7 @@ bool None::DoInit(const WriterInfo& info, int num_fields, const threading::Field
         for ( const auto& [key, value] : info.config )
             keys.emplace_back(key, value);
 
-        std::sort(keys.begin(), keys.end());
+        std::ranges::sort(keys);
 
         for ( const auto& [key, value] : keys )
             std::cout << "  config[" << key << "] = " << value << "\n";

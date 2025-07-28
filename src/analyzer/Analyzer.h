@@ -624,8 +624,8 @@ public:
      * A version of EnqueueConnEvent() taking a variable number of arguments.
      */
     template<class... Args>
-    std::enable_if_t<std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>> EnqueueConnEvent(
-        EventHandlerPtr h, Args&&... args) {
+        requires std::is_convertible_v<std::tuple_element_t<0, std::tuple<Args...>>, ValPtr>
+    void EnqueueConnEvent(EventHandlerPtr h, Args&&... args) {
         return EnqueueConnEvent(h, zeek::Args{std::forward<Args>(args)...});
     }
 

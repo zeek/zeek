@@ -293,7 +293,7 @@ ScriptFunc::ScriptFunc(std::string _name, FuncTypePtr ft, std::vector<StmtPtr> b
         bodies.push_back(std::move(b));
     }
 
-    std::stable_sort(bodies.begin(), bodies.end());
+    std::ranges::stable_sort(bodies, std::ranges::greater(), &Body::priority);
 
     if ( ! bodies.empty() ) {
         current_body = bodies[0].stmts;
@@ -315,7 +315,7 @@ ScriptFunc::~ScriptFunc() {
 }
 
 bool ScriptFunc::IsPure() const {
-    return std::all_of(bodies.begin(), bodies.end(), [](const Body& b) { return b.stmts->IsPure(); });
+    return std::ranges::all_of(bodies, [](const Body& b) { return b.stmts->IsPure(); });
 }
 
 ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
@@ -564,12 +564,12 @@ void ScriptFunc::AddBody(StmtPtr new_body, const std::vector<IDPtr>& new_inits, 
 
     Body b;
     b.stmts = new_body;
-    b.groups = groups;
+    b.groups = {groups.begin(), groups.end()};
     current_body = new_body;
     current_priority = b.priority = priority;
 
     bodies.push_back(std::move(b));
-    std::stable_sort(bodies.begin(), bodies.end());
+    std::ranges::stable_sort(bodies, std::ranges::greater(), &Body::priority);
 }
 
 void ScriptFunc::ReplaceBody(const StmtPtr& old_body, StmtPtr new_body) {

@@ -284,8 +284,6 @@ String* String::GetSubstring(int start, int len) const {
 int String::FindSubstring(const String* s) const { return util::strstr_n(n, b, s->Len(), s->Bytes()); }
 
 String::Vec* String::Split(const String::IdxVec& indices) const {
-    size_t i;
-
     if ( indices.empty() )
         return nullptr;
 
@@ -296,26 +294,28 @@ String::Vec* String::Split(const String::IdxVec& indices) const {
     idx.insert(idx.end(), indices.begin(), indices.end());
 
     // Sanity checks.
-    for ( i = 0; i < idx.size(); ++i )
-        if ( idx[i] >= n || idx[i] < 0 )
-            idx[i] = 0;
+    std::ranges::transform(idx.begin(), idx.end(), idx.begin(), [this](int v) {
+        if ( v >= n || v < 0 )
+            return 0;
+        return v;
+    });
 
     // Sort it:
-    sort(idx.begin(), idx.end());
+    std::ranges::sort(idx);
 
-    // Shuffle vector so duplicate entries are used only once:
-    IdxVecIt end = unique(idx.begin(), idx.end());
+    // Shuffle vector so duplicate entries are used only once. "ret" here is the first
+    // element after the last unique element. "last" should be the end of the vector.
+    auto [ret, last] = std::ranges::unique(idx);
 
     // Each element in idx is now the start index of a new
     // substring, and we know that all indices are within [0, n].
     //
     Vec* result = new Vec();
-    int last_idx = -1;
-    int next_idx;
-    i = 0;
+    result->reserve(std::distance(idx.begin(), ret));
 
-    for ( IdxVecIt it = idx.begin(); it != end; ++it, ++i ) {
-        int len = (it + 1 == end) ? -1 : idx[i + 1] - idx[i];
+    size_t i = 0;
+    for ( IdxVecIt it = idx.begin(); it != ret; ++it, ++i ) {
+        int len = (it + 1 == last) ? -1 : idx[i + 1] - idx[i];
         result->push_back(GetSubstring(idx[i], len));
     }
 
@@ -442,7 +442,7 @@ String* concatenate(String::CVec& v) {
 
 String* concatenate(String::Vec& v) {
     String::CVec cv;
-    std::copy(v.begin(), v.end(), std::back_inserter<String::CVec>(cv));
+    std::ranges::copy(v, std::back_inserter<String::CVec>(cv));
     return concatenate(cv);
 }
 
@@ -673,11 +673,11 @@ TEST_CASE("misc") {
     delete s;
 
     std::vector<zeek::String*> sv2 = {new zeek::String{"abcde"}, new zeek::String{"fghi"}};
-    std::sort(sv2.begin(), sv2.end(), zeek::StringLenCmp(true));
+    std::ranges::sort(sv2, zeek::StringLenCmp(true));
     CHECK_EQ(*(sv2.front()), "fghi");
     CHECK_EQ(*(sv2.back()), "abcde");
 
-    std::sort(sv2.begin(), sv2.end(), zeek::StringLenCmp(false));
+    std::ranges::sort(sv2, zeek::StringLenCmp(false));
     CHECK_EQ(*(sv2.front()), "abcde");
     CHECK_EQ(*(sv2.back()), "fghi");
 

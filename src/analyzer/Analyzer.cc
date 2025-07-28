@@ -419,7 +419,7 @@ void Analyzer::PreventChildren(const zeek::Tag& tag) {
 }
 
 bool Analyzer::IsPreventedChildAnalyzer(const zeek::Tag& tag) const {
-    return std::find(prevented.begin(), prevented.end(), tag) != prevented.end();
+    return std::ranges::find(prevented, tag) != prevented.end();
 }
 
 bool Analyzer::HasChildAnalyzer(const zeek::Tag& tag) const { return GetChildAnalyzer(tag) != nullptr; }
@@ -693,7 +693,7 @@ void Analyzer::CancelTimers() {
     // traversing.  Thus, we first make a copy of the list which we then
     // iterate through.
     TimerPList tmp(timers.length());
-    std::copy(timers.begin(), timers.end(), back_inserter(tmp));
+    std::ranges::copy(timers, back_inserter(tmp));
 
     // TODO: could be a for_each
     for ( auto timer : tmp )

@@ -1,3 +1,15 @@
+8.0.0-dev.760 | 2025-07-28 13:12:47 -0700
+
+  * Remove intermediate cipher vectors in ssl-analyzer.pac (Tim Wojtulewicz, Corelight)
+
+  * Reduce the size of Func::Body quite a bit with some extra packing (Tim Wojtulewicz, Corelight)
+
+  * Switch to using std::ranges algorithms (Tim Wojtulewicz, Corelight)
+
+  * Enable modernize-std-numbers clang-tidy checker, fix findings (Tim Wojtulewicz, Corelight)
+
+  * Switch to using c++20 constraints instead of std::enable_if (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.754 | 2025-07-28 12:24:41 -0400
 
   * Deprecate `record_type_to_vector` (Evan Typanski, Corelight)

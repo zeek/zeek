@@ -142,7 +142,7 @@ void EventGroup::UpdateFuncBodies() {
         func->has_enabled_bodies = false;
         func->all_bodies_enabled = true;
         for ( auto& b : func->bodies ) {
-            b.disabled = std::any_of(b.groups.cbegin(), b.groups.cend(), is_group_disabled);
+            b.disabled = std::ranges::any_of(b.groups, is_group_disabled);
             func->has_enabled_bodies |= is_body_enabled(b);
             func->all_bodies_enabled &= is_body_enabled(b);
         }

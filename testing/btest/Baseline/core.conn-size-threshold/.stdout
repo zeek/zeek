@@ -4,27 +4,39 @@
 0
 0
 0 secs
-Threshold set for [orig_h=192.168.1.77, orig_p=57640/tcp, resp_h=66.198.80.67, resp_p=6667/tcp, proto=6, ctx=[]]
+Threshold set for [orig_h=10.0.0.7, orig_p=59069/tcp, resp_h=10.0.0.22, resp_p=6667/tcp, proto=6, ctx=[]]
 3000
 2000
 63
 50
-100.0 msecs, 53.0 msecs 50.994873 usecs
-triggered duration, [orig_h=192.168.1.77, orig_p=57640/tcp, resp_h=66.198.80.67, resp_p=6667/tcp, proto=6, ctx=[]], 100.0 msecs, F, 105.0 msecs 79.889297 usecs
-triggered bytes, [orig_h=192.168.1.77, orig_p=57640/tcp, resp_h=66.198.80.67, resp_p=6667/tcp, proto=6, ctx=[]], 2000, F
-triggered bytes, [orig_h=192.168.1.77, orig_p=57640/tcp, resp_h=66.198.80.67, resp_p=6667/tcp, proto=6, ctx=[]], 3000, T
-triggered packets, [orig_h=192.168.1.77, orig_p=57640/tcp, resp_h=66.198.80.67, resp_p=6667/tcp, proto=6, ctx=[]], 50, F
+100.0 msecs, 2.0 msecs 675.771713 usecs
+triggered bytes, [orig_h=10.0.0.7, orig_p=59069/tcp, resp_h=10.0.0.22, resp_p=6667/tcp, proto=6, ctx=[]], 2000, F
+triggered duration, [orig_h=10.0.0.7, orig_p=59069/tcp, resp_h=10.0.0.22, resp_p=6667/tcp, proto=6, ctx=[]], 100.0 msecs, F, 1.0 sec 474.0 msecs 342.823029 usecs
 0
 0
 0
 0
 0 secs
-Threshold set for [orig_h=192.168.1.77, orig_p=57655/tcp, resp_h=209.197.168.151, resp_p=1024/tcp, proto=6, ctx=[]]
+Threshold set for [orig_h=10.0.0.22, orig_p=43614/tcp, resp_h=10.0.0.7, resp_p=59130/tcp, proto=6, ctx=[]]
 3000
 2000
 63
 50
-0 secs, 176.0 msecs 573.038101 usecs
-triggered duration, [orig_h=192.168.1.77, orig_p=57655/tcp, resp_h=209.197.168.151, resp_p=1024/tcp, proto=6, ctx=[]], 100.0 msecs, T, 176.0 msecs 573.038101 usecs
-triggered bytes, [orig_h=192.168.1.77, orig_p=57655/tcp, resp_h=209.197.168.151, resp_p=1024/tcp, proto=6, ctx=[]], 2000, F
-triggered packets, [orig_h=192.168.1.77, orig_p=57640/tcp, resp_h=66.198.80.67, resp_p=6667/tcp, proto=6, ctx=[]], 63, T
+100.0 msecs, 730.991364 usecs
+triggered bytes, [orig_h=10.0.0.22, orig_p=43614/tcp, resp_h=10.0.0.7, resp_p=59130/tcp, proto=6, ctx=[]], 2000, F
+triggered packets, [orig_h=10.0.0.22, orig_p=43614/tcp, resp_h=10.0.0.7, resp_p=59130/tcp, proto=6, ctx=[]], 50, F
+triggered bytes, [orig_h=10.0.0.22, orig_p=43614/tcp, resp_h=10.0.0.7, resp_p=59130/tcp, proto=6, ctx=[]], 3000, T
+triggered packets, [orig_h=10.0.0.22, orig_p=43614/tcp, resp_h=10.0.0.7, resp_p=59130/tcp, proto=6, ctx=[]], 63, T
+triggered duration, [orig_h=10.0.0.22, orig_p=43614/tcp, resp_h=10.0.0.7, resp_p=59130/tcp, proto=6, ctx=[]], 100.0 msecs, T, 133.0 msecs 142.948151 usecs
+0
+0
+0
+0
+0 secs
+Threshold set for [orig_h=10.0.0.22, orig_p=38016/tcp, resp_h=10.0.0.7, resp_p=59214/tcp, proto=6, ctx=[]]
+3000
+2000
+63
+50
+100.0 msecs, 689.983368 usecs
+triggered duration, [orig_h=10.0.0.22, orig_p=38016/tcp, resp_h=10.0.0.7, resp_p=59214/tcp, proto=6, ctx=[]], 100.0 msecs, T, 9.0 secs 29.0 msecs 998.064041 usecs

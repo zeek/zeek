@@ -1,3 +1,12 @@
+8.0.0-dev.766 | 2025-07-28 14:15:19 -0700
+
+  * Expand coverage of IRC analyzer with more commands (Tim Wojtulewicz, Corelight)
+
+  * Add support for ircv3 tags (Tim Wojtulewicz, Corelight)
+
+    This also replaces the irc-dcc-send.trace file in our pcap library with
+    a cleaner one that includes ircv3 tags.
+
 8.0.0-dev.763 | 2025-07-28 13:57:18 -0700
 
   * Move ID::type in structure to fill memory padding (Tim Wojtulewicz, Corelight)

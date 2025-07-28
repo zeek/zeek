@@ -2052,7 +2052,7 @@ function bare_mode%(%): bool
 ## rt: The name of the record type.
 ##
 ## Returns: A string vector with the field names of *rt*.
-function record_type_to_vector%(rt: string%): string_vec
+function record_type_to_vector%(rt: string%): string_vec &deprecated="Remove in v8.1: Consider using the ordered table from record_fields"
 	%{
 	auto result = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
 

@@ -6,114 +6,109 @@ import spicy;
 import zeek;
 
 const OPCODE_CONTINUATION = 0x00;
-const OPCODE_TEXT         = 0x01;
-const OPCODE_BINARY       = 0x02;
-const OPCODE_CLOSE        = 0x08;
-const OPCODE_PING         = 0x09;
-const OPCODE_PONG         = 0x0a;
+const OPCODE_TEXT = 0x01;
+const OPCODE_BINARY = 0x02;
+const OPCODE_CLOSE = 0x08;
+const OPCODE_PING = 0x09;
+const OPCODE_PONG = 0x0a;
 
-public function fast_unmask(
-  masking_key_idx: uint64,
-  masking_key: vector<uint8>,
-  chunk: bytes
-): bytes &cxxname="hlt_websocket::WebSocket::fast_unmask";
+public function fast_unmask(masking_key_idx: uint64, masking_key: vector<uint8>, chunk: bytes): bytes &cxxname="hlt_websocket::WebSocket::fast_unmask";
 
 type Frame = unit(m: Message) {
-  var payload_len: uint64;
-  var masking_key_idx: uint64;
-  var close_data: bytes;
-  var effective_opcode: uint8;
+    var payload_len: uint64;
+    var masking_key_idx: uint64;
+    var close_data: bytes;
+    var effective_opcode: uint8;
 
-  : bitfield(16) {
-    fin: 0 &convert=cast<bool>($$);
-    rsv: 1..3;
-    opcode: 4..7 &convert=cast<uint8>($$);
-    mask: 8 &convert=cast<bool>($$);
-    payload_len1: 9..15;
-  } &bit-order=spicy::BitOrder::MSB0;
+    : bitfield(16) {
+        fin: 0 &convert=cast<bool>($$);
+        rsv: 1..3;
+        opcode: 4..7 &convert=cast<uint8>($$);
+        mask: 8 &convert=cast<bool>($$);
+        payload_len1: 9..15;
+    } &bit-order=spicy::BitOrder::MSB0;
 
-  # Verify that this is either a continuation frame, or the Message does not
-  # yet have a non-continuation opcode, but this frame does.
-  : void &requires=(m.opcode != OPCODE_CONTINUATION && self.opcode == OPCODE_CONTINUATION || m.opcode == OPCODE_CONTINUATION && self.opcode != OPCODE_CONTINUATION);
+    # Verify that this is either a continuation frame, or the Message does not
+    # yet have a non-continuation opcode, but this frame does.
+    : void &requires=(m.opcode != OPCODE_CONTINUATION && self.opcode == OPCODE_CONTINUATION || m.opcode == OPCODE_CONTINUATION && self.opcode != OPCODE_CONTINUATION);
 
-  # Type/opcode to decide what to do with individual chunks.
-  : void {
-    self.effective_opcode = m.opcode != OPCODE_CONTINUATION ? m.opcode : self.opcode;
-  }
-
-  payload_len2: uint16 if (self.payload_len1 == 126);
-  payload_len8: uint64 if (self.payload_len1 == 127);
-
-  : void {
-    self.payload_len = self.payload_len1;
-    if ( self?.payload_len2 )
-      self.payload_len = self.payload_len2;
-    else if ( self?.payload_len8 )
-      self.payload_len = self.payload_len8;
-  }
-
-  # This being an uint8[] allows masking_key[x] indexing, while a bytes
-  # object would require *masking_key.at(i) which took roughly 20% more
-  # runtime when I tested it.
-  masking_key: uint8[] &size=4 if (self.mask);
-
-  chunk: bytes &size=self.payload_len &chunked {
-    # Don't use &convert with &chunked: https://github.com/zeek/spicy/issues/1661
-    if ( self.mask ) {
-      self.chunk = fast_unmask(self.masking_key_idx, self.masking_key, $$);
-      self.masking_key_idx += |$$|;
-    } else {
-      self.chunk = $$;
+    # Type/opcode to decide what to do with individual chunks.
+    : void {
+        self.effective_opcode = m.opcode != OPCODE_CONTINUATION ? m.opcode : self.opcode;
     }
 
-    # Forward TEXT and BINARY data to dowstream analyzers.
-    if ( self.effective_opcode == OPCODE_TEXT || self.effective_opcode == OPCODE_BINARY )
-      zeek::protocol_data_in(zeek::is_orig(), $$);
+    payload_len2: uint16 if(self.payload_len1 == 126);
+    payload_len8: uint64 if(self.payload_len1 == 127);
 
-    # Accumulate the unmasked data in close_data if this a close frame
-    # so it can be parsed by the outer Message. It's a bit of a hack.
-    if ( self.effective_opcode == OPCODE_CLOSE )
-      self.close_data += $$;
-  }
+    : void {
+        self.payload_len = self.payload_len1;
+        if (self?.payload_len2)
+            self.payload_len = self.payload_len2;
+        else if (self?.payload_len8)
+            self.payload_len = self.payload_len8;
+    }
+
+    # This being an uint8[] allows masking_key[x] indexing, while a bytes
+    # object would require *masking_key.at(i) which took roughly 20% more
+    # runtime when I tested it.
+    masking_key: uint8[] &size=4 if(self.mask);
+
+    chunk: bytes &size=self.payload_len &chunked {
+        # Don't use &convert with &chunked: https://github.com/zeek/spicy/issues/1661
+        if (self.mask) {
+            self.chunk = fast_unmask(self.masking_key_idx, self.masking_key, $$);
+            self.masking_key_idx += |$$|;
+        } else {
+            self.chunk = $$;
+        }
+
+        # Forward TEXT and BINARY data to dowstream analyzers.
+        if (self.effective_opcode == OPCODE_TEXT || self.effective_opcode == OPCODE_BINARY)
+            zeek::protocol_data_in(zeek::is_orig(), $$);
+
+        # Accumulate the unmasked data in close_data if this a close frame
+        # so it can be parsed by the outer Message. It's a bit of a hack.
+        if (self.effective_opcode == OPCODE_CLOSE)
+            self.close_data += $$;
+    }
 };
 
 type CloseFrame = unit {
-  var status: uint16;
-  var reason: bytes;
+    var status: uint16;
+    var reason: bytes;
 
-  : bytes &eod {
-    if ( |$$| > 0 ) {
-      self.status = cast<uint16>($$.sub(0, 2).to_uint(spicy::ByteOrder::Network));
-      self.reason = $$.sub(2, 0);
+    : bytes &eod {
+        if (|$$| > 0) {
+            self.status = cast<uint16>($$.sub(0, 2).to_uint(spicy::ByteOrder::Network));
+            self.reason = $$.sub(2, 0);
+        }
     }
-  }
 };
 
-
 public type Message = unit {
-  # transient trickery
-  var done: bool = False;
+    # transient trickery
+    var done: bool = False;
 
-  var opcode: uint8;
+    var opcode: uint8;
 
-  # Keep the first one persistent to have access
-  # to the payload if it's a close frame.
-  first_frame: Frame(self) {
-    self.opcode = $$.opcode;
-    self.done = $$.fin;
-  }
+    # Keep the first one persistent to have access
+    # to the payload if it's a close frame.
+    first_frame: Frame(self) {
+        self.opcode = $$.opcode;
+        self.done = $$.fin;
+    }
 
-  : Frame(self)[] &until=(self.done) if (!self.done) foreach {
-    self.done = $$.fin;
-  }
+    : Frame(self)[] &until=(self.done) if(!self.done) foreach {
+        self.done = $$.fin;
+    }
 
-  : CloseFrame &parse-from=self.first_frame.close_data if (self.opcode == OPCODE_CLOSE);
+    : CloseFrame &parse-from=self.first_frame.close_data if(self.opcode == OPCODE_CLOSE);
 
-  on %done {
-    spicy::accept_input();
-  }
+    on %done {
+        spicy::accept_input();
+    }
 };
 
 public type Messages = unit {
-  : Message[];
+    : Message[];
 };

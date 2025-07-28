@@ -1,3 +1,9 @@
+8.0.0-dev.770 | 2025-07-28 14:18:15 -0700
+
+  * dce-rpc: Make named_pipe filed docs extensive (Arne Welzel, Corelight)
+
+    Closes #3935
+
 8.0.0-dev.768 | 2025-07-28 14:16:16 -0700
 
   * Fix parsing of EDNS rcode (Johanna Amann, Corelight)

@@ -1,3 +1,10 @@
+8.0.0-dev.754 | 2025-07-28 12:24:41 -0400
+
+  * Deprecate `record_type_to_vector` (Evan Typanski, Corelight)
+
+    After #4682, record_fields is ordered so this is redundant. Furthermore,
+    it is incorrectly documented, as it says nested records are flattened.
+
 8.0.0-dev.751 | 2025-07-25 09:13:51 -0700
 
   * Use size_t for byte sizes in SerializationFormat (Tim Wojtulewicz, Corelight)

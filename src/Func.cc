@@ -564,7 +564,7 @@ void ScriptFunc::AddBody(StmtPtr new_body, const std::vector<IDPtr>& new_inits, 
 
     Body b;
     b.stmts = new_body;
-    b.groups = groups;
+    b.groups = {groups.begin(), groups.end()};
     current_body = new_body;
     current_priority = b.priority = priority;
 

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <forward_list>
 #include <memory>
 #include <string>
 #include <tuple>
@@ -66,8 +67,8 @@ public:
 
     struct Body {
         detail::StmtPtr stmts;
+        std::forward_list<EventGroupPtr> groups;
         int priority;
-        std::set<EventGroupPtr> groups;
         // If any of the groups are disabled, this body is disabled.
         // The disabled field is updated from EventGroup instances.
         bool disabled = false;

@@ -1,3 +1,18 @@
+8.0.0-dev.768 | 2025-07-28 14:16:16 -0700
+
+  * Fix parsing of EDNS rcode (Johanna Amann, Corelight)
+
+    The EDNS rcode was incorrectly calculated. The extended rcode is formed
+    by taking the upper 8 bits of the extended rcode field, plus the lower 4
+    bits of the existing rcode.
+
+    This also adds a new trace with an extended rcode, and a testcase
+    parsing it.
+
+    Reported by dwhitemv25.
+
+    Fixes GH-4656
+
 8.0.0-dev.766 | 2025-07-28 14:15:19 -0700
 
   * Expand coverage of IRC analyzer with more commands (Tim Wojtulewicz, Corelight)

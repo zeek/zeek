@@ -357,8 +357,8 @@ void get_final_stats() {
 
         double dropped_pct = s.dropped > 0 ? pct(s.dropped, s.received) : 0.0;
 
-        uint64_t not_processed = packet_mgr->GetUnprocessedCount();
-        double unprocessed_pct = not_processed > 0 ? ((double)not_processed / (double)s.received) * 100.0 : 0.0;
+        uint64_t unprocessed = packet_mgr->PacketsUnprocessed();
+        double unprocessed_pct = unprocessed > 0 ? ((double)unprocessed / (double)s.received) * 100.0 : 0.0;
 
         std::string filtered = "";
         if ( s.filtered ) {
@@ -368,7 +368,7 @@ void get_final_stats() {
 
         reporter->Info("%" PRIu64 " packets received on interface %s, %" PRIu64 " (%.2f%%) dropped, %" PRIu64
                        " (%.2f%%) not processed%s",
-                       s.received, ps->Path().c_str(), s.dropped, dropped_pct, not_processed, unprocessed_pct,
+                       s.received, ps->Path().c_str(), s.dropped, dropped_pct, unprocessed, unprocessed_pct,
                        filtered.c_str());
     }
 }

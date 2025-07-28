@@ -473,11 +473,18 @@ ExprPtr UnaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
     if ( ! op->IsSingleton(c) )
         op = op->ReduceToSingleton(c, red_stmt);
 
-    auto op_val = op->FoldVal();
-    if ( op_val ) {
-        auto fold = Fold(op_val.get());
-        if ( fold->GetType()->Tag() != TYPE_OPAQUE )
-            return TransformMe(make_intrusive<ConstExpr>(fold), c, red_stmt);
+    if ( tag != EXPR_VECTOR_CONSTRUCTOR && tag != EXPR_TABLE_CONSTRUCTOR && tag != EXPR_RECORD_CONSTRUCTOR ) {
+        auto op_val = op->FoldVal();
+        if ( ! op_val ) {
+            op_val = c->EvalIfGlobalAggrConstant(op);
+            if ( op_val )
+                printf("unary w/ global aggr fold: %s\n", obj_desc(this).c_str());
+        }
+        if ( op_val ) {
+            auto fold = Fold(op_val.get());
+            if ( fold->GetType()->Tag() != TYPE_OPAQUE )
+                return TransformMe(make_intrusive<ConstExpr>(fold), c, red_stmt);
+        }
     }
 
     if ( c->Optimizing() )
@@ -522,7 +529,13 @@ ExprPtr BinaryExpr::Reduce(Reducer* c, StmtPtr& red_stmt) {
         // We can turn the list into a ListVal.
         op1_fold_val = op1->Eval(nullptr);
 
+    if ( ! op1_fold_val )
+        op1_fold_val = c->EvalIfGlobalAggrConstant(op1);
+
     auto op2_fold_val = op2->FoldVal();
+    if ( ! op2_fold_val )
+        op2_fold_val = c->EvalIfGlobalAggrConstant(op2);
+
     if ( op1_fold_val && op2_fold_val ) {
         auto fold = Fold(op1_fold_val.get(), op2_fold_val.get());
         if ( fold->GetType()->Tag() != TYPE_OPAQUE )
@@ -2478,6 +2491,18 @@ ExprPtr ListExpr::Inline(Inliner* inl) {
     }
 
     return ThisPtr();
+}
+
+ValPtr ListExpr::FoldVal() const {
+    std::vector<ValPtr> vals;
+    vals.reserve(exprs.length());
+    loop_over_list(exprs, i) {
+        auto v = exprs[i]->FoldVal();
+        if ( ! v )
+            return nullptr;
+        vals.push_back(std::move(v));
+    }
+    return make_intrusive<ListVal>(cast_intrusive<TypeList>(type), std::move(vals));
 }
 
 bool ListExpr::IsReduced(Reducer* c) const {

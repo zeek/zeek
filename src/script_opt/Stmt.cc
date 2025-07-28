@@ -619,6 +619,8 @@ StmtPtr ForStmt::DoReduce(Reducer* c) {
         e = c->OptExpr(e);
     else {
         e = e->Reduce(c, red_e_stmt);
+        if ( c->EvalIfGlobalAggrConstant(e) )
+            printf("for loop opt: %s\n", obj_desc(this).c_str());
         c->UpdateIDs(loop_vars);
 
         if ( value_var )

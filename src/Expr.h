@@ -1568,6 +1568,8 @@ public:
     ExprPtr Duplicate() override;
     ExprPtr Inline(Inliner* inl) override;
 
+    ValPtr FoldVal() const override;
+
     bool IsReduced(Reducer* c) const override;
     bool HasReducedOps(Reducer* c) const override;
     ExprPtr Reduce(Reducer* c, StmtPtr& red_stmt) override;

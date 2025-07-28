@@ -634,6 +634,17 @@ ConstExprPtr Reducer::Fold(ExprPtr e) {
     return c;
 }
 
+ValPtr Reducer::EvalIfGlobalAggrConstant(ExprPtr e) const {
+    if ( e->Tag() != EXPR_NAME )
+        return nullptr;
+
+    auto id = e->AsNameExpr()->Id();
+    if ( id->IsGlobal() && pfs->ConstAggrGlobals().count(id) > 0 )
+        return id->GetVal();
+
+    return nullptr;
+}
+
 void Reducer::FoldedTo(ExprPtr e, ConstExprPtr c) {
     c->SetLocationInfo(e->GetLocationInfo());
     om.AddObj(e.get());

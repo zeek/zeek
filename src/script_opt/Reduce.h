@@ -145,6 +145,10 @@ public:
     // (which must have constant operands).
     ConstExprPtr Fold(ExprPtr e);
 
+    // If the given expression refers to a global that's both (1) an aggregate
+    // value, and (2) constant then returns its constant value, nil otherwise.
+    ValPtr EvalIfGlobalAggrConstant(ExprPtr e) const;
+
     // Notes that the given expression has been folded to the given constant.
     void FoldedTo(ExprPtr orig, ConstExprPtr c);
 

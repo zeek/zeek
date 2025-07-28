@@ -101,10 +101,11 @@ function get_conn_stats%(%): ConnStats
 		r->Assign(n++, static_cast<uint64_t>(s.num_ICMP_conns));
 		r->Assign(n++, static_cast<uint64_t>(s.max_ICMP_conns));
 		r->Assign(n++, static_cast<uint64_t>(s.cumulative_ICMP_conns));
+		r->Assign(n++, static_cast<uint64_t>(s.num_packets_unprocessed));
 	}
 	else {
 		// Skip all of the fields that would be set from session_mgr data.
-		n += 13;
+		n += 14;
 	}
 
 	r->Assign(n++, zeek::detail::killed_by_inactivity);

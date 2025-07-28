@@ -50,6 +50,7 @@ struct Stats {
     size_t num_fragments;
     size_t max_fragments;
     uint64_t num_packets;
+    uint64_t num_packets_unprocessed;
 };
 
 class Manager final {

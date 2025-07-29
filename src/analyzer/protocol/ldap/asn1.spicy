@@ -23,237 +23,222 @@ import spicy;
 # https://www.obj-sys.com/asn1tutorial/node10.html
 
 public type ASN1Type = enum {
-  Boolean = 1,
-  Integer = 2,
-  BitString = 3,
-  OctetString = 4,
-  NullVal = 5,
-  ObjectIdentifier = 6,
-  ObjectDescriptor = 7,
-  InstanceOf = 8,
-  Real = 9,
-  Enumerated = 10,
-  EmbeddedPDV = 11,
-  UTF8String = 12,
-  RelativeOID = 13,
-  Sequence = 16,
-  Set = 17,
-  NumericString = 18,
-  PrintableString = 19,
-  TeletextString = 20,
-  VideotextString = 21,
-  IA5String = 22,
-  UTCTime = 23,
-  GeneralizedTime = 24,
-  GraphicString = 25,
-  VisibleString = 26,
-  GeneralString = 27,
-  UniversalString = 28,
-  CharacterString = 29,
-  BMPString = 30
+    Boolean = 1,
+    Integer = 2,
+    BitString = 3,
+    OctetString = 4,
+    NullVal = 5,
+    ObjectIdentifier = 6,
+    ObjectDescriptor = 7,
+    InstanceOf = 8,
+    Real = 9,
+    Enumerated = 10,
+    EmbeddedPDV = 11,
+    UTF8String = 12,
+    RelativeOID = 13,
+    Sequence = 16,
+    Set = 17,
+    NumericString = 18,
+    PrintableString = 19,
+    TeletextString = 20,
+    VideotextString = 21,
+    IA5String = 22,
+    UTCTime = 23,
+    GeneralizedTime = 24,
+    GraphicString = 25,
+    VisibleString = 26,
+    GeneralString = 27,
+    UniversalString = 28,
+    CharacterString = 29,
+    BMPString = 30,
 };
 
 #- ASN.1 data classes --------------------------------------------------------
 
 public type ASN1Class = enum {
-  Universal = 0,
-  Application = 1,
-  ContextSpecific = 2,
-  Private = 3
+    Universal = 0,
+    Application = 1,
+    ContextSpecific = 2,
+    Private = 3,
 };
 
 #- ASN.1 tag definition (including length) ------------------------------------
 
 type LengthType = unit {
-  var len: uint64;
-  var tag_len: uint8;
+    var len: uint64;
+    var tag_len: uint8;
 
-  data : bitfield(8) {
-    num: 0..6;
-    islong: 7;
-  };
+    data: bitfield(8) {
+        num: 0..6;
+        islong: 7;
+    };
 
-
-  switch ( self.data.islong ) {
-    0 -> : void {
-      self.len = self.data.num;
-      self.tag_len = 1;
-    }
-    1 -> : bytes &size=self.data.num
-           &convert=$$.to_uint(spicy::ByteOrder::Network) {
-      self.len = $$;
-      self.tag_len = self.data.num + 1;
-    }
-  };
+    switch (self.data.islong) {
+        0 -> : void {
+            self.len = self.data.num;
+            self.tag_len = 1;
+        }
+        1 -> : bytes &size=self.data.num &convert=$$.to_uint(spicy::ByteOrder::Network) {
+            self.len = $$;
+            self.tag_len = self.data.num + 1;
+        }
+    };
 };
 
 type ASN1Tag = unit {
- : bitfield(8) {
-    type_: 0..4 &convert=ASN1Type($$);
-    constructed: 5 &convert=cast<bool>($$);
-    class: 6..7 &convert=ASN1Class($$);
-  };
+    : bitfield(8) {
+        type_: 0..4 &convert=ASN1Type($$);
+        constructed: 5 &convert=cast<bool>($$);
+        class: 6..7 &convert=ASN1Class($$);
+    };
 };
 
 #- ASN.1 bit string -----------------------------------------------------------
 # https://www.obj-sys.com/asn1tutorial/node10.html
 
 type ASN1BitString = unit(len: uint64, constructed: bool) {
-  : uint8; # unused bits
-  value_bits: bytes &size=(len - 1);
+    : uint8; # unused bits
+    value_bits: bytes &size=(len - 1);
 
-  # TODO - constructed form
-  # https://github.com/zeek/spicy/issues/921
-  # `bytes` needs << and >> support before we can implement complex bitstrings
-  #
+    # TODO - constructed form
+    # https://github.com/zeek/spicy/issues/921
+    # `bytes` needs << and >> support before we can implement complex bitstrings
+    #
 };
 
 #- ASN.1 octet string ---------------------------------------------------------
 # https://www.obj-sys.com/asn1tutorial/node10.html
 
 type ASN1OctetString = unit(len: uint64, constructed: bool) {
-  value: bytes &size = len;
+    value: bytes &size=len;
 
-  # TODO - constructed form
+    # TODO - constructed form
 };
 
 #- ASN.1 various string types -------------------------------------------------
 # https://www.obj-sys.com/asn1tutorial/node124.html
 
 type ASN1String = unit(tag: ASN1Tag, len: uint64) {
-  var encoding: spicy::Charset;
+    var encoding: spicy::Charset;
 
-  on %init {
-    switch ( tag.type_ ) {
-      # see "Restricted Character String Types" in
-      # "Generic String Encoding Rules (GSER) for ASN.1 Types"
-      # (https://datatracker.ietf.org/doc/html/rfc3641#section-3.2)
-
-      case ASN1Type::PrintableString,
-           ASN1Type::GeneralizedTime,
-           ASN1Type::UTCTime: {
-        self.encoding = spicy::Charset::ASCII;
-      }
-
-      case ASN1Type::UTF8String,
-           ASN1Type::GeneralString,
-           ASN1Type::CharacterString,
-           ASN1Type::GraphicString,
-           ASN1Type::IA5String,
-           ASN1Type::NumericString,
-           ASN1Type::TeletextString,
-           ASN1Type::VideotextString,
-           ASN1Type::VisibleString,
-           # TODO: RFC3641 mentions special UTF-8 mapping rules for
-           # BMPString and UniversalString. This *may* not be correct.
-           ASN1Type::BMPString,
-           ASN1Type::UniversalString: {
-        self.encoding = spicy::Charset::UTF8;
-      }
+    on %init {
+        switch (tag.type_) {
+            # see "Restricted Character String Types" in
+            # "Generic String Encoding Rules (GSER) for ASN.1 Types"
+            # (https://datatracker.ietf.org/doc/html/rfc3641#section-3.2)
+            case ASN1Type::PrintableString,
+                 ASN1Type::GeneralizedTime,
+                 ASN1Type::UTCTime: {
+                self.encoding = spicy::Charset::ASCII;
+            }
+            case ASN1Type::UTF8String,
+                 ASN1Type::GeneralString,
+                 ASN1Type::CharacterString,
+                 ASN1Type::GraphicString,
+                 ASN1Type::IA5String,
+                 ASN1Type::NumericString,
+                 ASN1Type::TeletextString,
+                 ASN1Type::VideotextString,
+                 ASN1Type::VisibleString,
+            # TODO: RFC3641 mentions special UTF-8 mapping rules for
+            # BMPString and UniversalString. This *may* not be correct.
+                 ASN1Type::BMPString,
+                 ASN1Type::UniversalString: {
+                self.encoding = spicy::Charset::UTF8;
+            }
+        }
     }
-  }
 
-  value: ASN1OctetString(len, tag.constructed) &convert=$$.value.decode(self.encoding);
+    value: ASN1OctetString(len, tag.constructed) &convert=$$.value.decode(self.encoding);
 } &convert=self.value;
 
 #- ASN.1 OID ------------------------------------------------------------------
 # https://www.obj-sys.com/asn1tutorial/node124.html
 
 type ASN1ObjectIdentifierNibble = unit {
-  data : bitfield(8) {
-    num: 0..6;
-    more: 7;
-  };
+    data: bitfield(8) {
+        num: 0..6;
+        more: 7;
+    };
 } &convert=self.data;
 
 type ASN1ObjectIdentifier = unit(len: uint64) {
-  var oidbytes: bytes;
-  var temp: uint64;
-  var oidstring: string;
+    var oidbytes: bytes;
+    var temp: uint64;
+    var oidstring: string;
 
-  : uint8 if ( len >= 1 ) {
-    self.temp = $$ / 40;
-    self.oidbytes += ("%d" % (self.temp)).encode();
-    self.temp = $$ % 40;
-    self.oidbytes += (".%d" % (self.temp)).encode();
-    self.temp = 0;
-  }
-
-  sublist: ASN1ObjectIdentifierNibble[len - 1] foreach {
-    self.temp = ( self.temp<<7 ) | $$.num;
-    if ( $$.more != 1 ) {
-      self.oidbytes += (".%d" % (self.temp)).encode();
-      self.temp = 0;
+    : uint8 if(len >= 1) {
+        self.temp = $$ / 40;
+        self.oidbytes += ("%d" % (self.temp)).encode();
+        self.temp = $$ % 40;
+        self.oidbytes += (".%d" % (self.temp)).encode();
+        self.temp = 0;
     }
-  }
 
-  on %done {
-    self.oidstring = self.oidbytes.decode();
-  }
+    sublist: ASN1ObjectIdentifierNibble[len - 1] foreach {
+        self.temp = (self.temp << 7) | $$.num;
+        if ($$.more != 1) {
+            self.oidbytes += (".%d" % (self.temp)).encode();
+            self.temp = 0;
+        }
+    }
+
+    on %done {
+        self.oidstring = self.oidbytes.decode();
+    }
 };
-
 
 #- ASN.1 message header (tag + length information) ----------------------------
 
 public type ASN1Header = unit {
-  tag: ASN1Tag;
-  len: LengthType;
+    tag: ASN1Tag;
+    len: LengthType;
 };
 
 #- ASN.1 message body ---------------------------------------------------------
 
 public type ASN1Body = unit(head: ASN1Header, recursive: bool) {
-  switch ( head.tag.type_ ) {
+    switch (head.tag.type_) {
+        ASN1Type::Boolean -> bool_value: uint8 &convert=cast<bool>($$) &requires=head.len.len == 1;
+        ASN1Type::Integer,
+        ASN1Type::Enumerated -> num_value: bytes &size=head.len.len &convert=$$.to_int(spicy::ByteOrder::Big);
+        ASN1Type::NullVal -> null_value: bytes &size=0 &requires=head.len.len == 0;
+        ASN1Type::BitString -> bitstr_value: ASN1BitString(head.len.len, head.tag.constructed);
+        ASN1Type::OctetString -> str_value: ASN1OctetString(head.len.len, head.tag.constructed) &convert=$$.value.decode(spicy::Charset::ASCII);
+        ASN1Type::ObjectIdentifier -> str_value: ASN1ObjectIdentifier(head.len.len) &convert=$$.oidstring;
+        ASN1Type::BMPString,
+        ASN1Type::CharacterString,
+        ASN1Type::GeneralizedTime,
+        ASN1Type::GeneralString,
+        ASN1Type::GraphicString,
+        ASN1Type::IA5String,
+        ASN1Type::NumericString,
+        ASN1Type::PrintableString,
+        ASN1Type::TeletextString,
+        ASN1Type::UTCTime,
+        ASN1Type::UTF8String,
+        ASN1Type::VideotextString,
+        ASN1Type::VisibleString,
+        ASN1Type::UniversalString -> str_value: ASN1String(head.tag, head.len.len);
+        ASN1Type::Sequence,
+        ASN1Type::Set -> seq: ASN1SubMessages(head.len.len) if(recursive);
 
-    ASN1Type::Boolean -> bool_value: uint8 &convert=cast<bool>($$) &requires=head.len.len==1;
+        # TODO: ASN1Type values not handled yet
+        ASN1Type::ObjectDescriptor,
+        ASN1Type::InstanceOf,
+        ASN1Type::Real,
+        ASN1Type::EmbeddedPDV,
+        ASN1Type::RelativeOID -> unimplemented_value: bytes &size=head.len.len;
 
-    ASN1Type::Integer,
-    ASN1Type::Enumerated -> num_value: bytes &size=head.len.len
-                                             &convert=$$.to_int(spicy::ByteOrder::Big);
-
-    ASN1Type::NullVal -> null_value: bytes &size=0 &requires=head.len.len==0;
-
-    ASN1Type::BitString -> bitstr_value: ASN1BitString(head.len.len, head.tag.constructed);
-
-    ASN1Type::OctetString -> str_value: ASN1OctetString(head.len.len, head.tag.constructed)
-                                        &convert=$$.value.decode(spicy::Charset::ASCII);
-
-    ASN1Type::ObjectIdentifier -> str_value: ASN1ObjectIdentifier(head.len.len)
-                                             &convert=$$.oidstring;
-
-    ASN1Type::BMPString,
-    ASN1Type::CharacterString,
-    ASN1Type::GeneralizedTime,
-    ASN1Type::GeneralString,
-    ASN1Type::GraphicString,
-    ASN1Type::IA5String,
-    ASN1Type::NumericString,
-    ASN1Type::PrintableString,
-    ASN1Type::TeletextString,
-    ASN1Type::UTCTime,
-    ASN1Type::UTF8String,
-    ASN1Type::VideotextString,
-    ASN1Type::VisibleString,
-    ASN1Type::UniversalString -> str_value: ASN1String(head.tag, head.len.len);
-
-    ASN1Type::Sequence, ASN1Type::Set -> seq: ASN1SubMessages(head.len.len) if (recursive);
-
-    # TODO: ASN1Type values not handled yet
-    ASN1Type::ObjectDescriptor,
-    ASN1Type::InstanceOf,
-    ASN1Type::Real,
-    ASN1Type::EmbeddedPDV,
-    ASN1Type::RelativeOID -> unimplemented_value: bytes &size=head.len.len;
-
-    # unknown (to me) ASN.1 enumeration, skip over silently
-    * -> unimplemented_value: bytes &size=head.len.len;
-  };
+        # unknown (to me) ASN.1 enumeration, skip over silently
+        * -> unimplemented_value: bytes &size=head.len.len;
+    };
 };
 
 #- ASN.1 array of ASN.1 sequence/set sub-messages (up to msgLen bytes) --------
 
 public type ASN1SubMessages = unit(msgLen: uint64) {
-  submessages: ASN1Message(True)[] &eod;
+    submessages: ASN1Message(True)[] &eod;
 } &size=msgLen;
 
 #- ASN.1 message with header and body -----------------------------------------
@@ -262,18 +247,15 @@ public type ASN1SubMessages = unit(msgLen: uint64) {
 # - else, application_data:bytes stores data array
 
 public type ASN1Message = unit(recursive: bool) {
-  var application_id: int32;
+    var application_id: int32;
 
-  head: ASN1Header;
-  switch ( self.head.tag.class ) {
-
-    ASN1Class::Universal -> body: ASN1Body(self.head, recursive);
-
-    ASN1Class::Application,
-    ASN1Class::ContextSpecific,
-    ASN1Class::Private -> application_data: bytes &size=self.head.len.len {
-      self.application_id = cast<int32>(self.head.tag.type_);
-    }
-
-  };
+    head: ASN1Header;
+    switch (self.head.tag.class) {
+        ASN1Class::Universal -> body: ASN1Body(self.head, recursive);
+        ASN1Class::Application,
+        ASN1Class::ContextSpecific,
+        ASN1Class::Private -> application_data: bytes &size=self.head.len.len {
+            self.application_id = cast<int32>(self.head.tag.type_);
+        }
+    };
 };

@@ -6,9 +6,9 @@ import LDAP;
 import zeek;
 
 on LDAP::TlsForward::%init {
-  zeek::protocol_begin("SSL");
+    zeek::protocol_begin("SSL");
 }
 
 on LDAP::TlsForward::chunk {
-  zeek::protocol_data_in(zeek::is_orig(), self.chunk);
+    zeek::protocol_data_in(zeek::is_orig(), self.chunk);
 }

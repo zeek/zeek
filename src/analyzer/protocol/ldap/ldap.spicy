@@ -11,119 +11,116 @@ import spicy;
 
 #- Operation opcode ----------------------------------------------------------
 public type ProtocolOpcode = enum {
-  BIND_REQUEST            = 0,
-  BIND_RESPONSE           = 1,
-  UNBIND_REQUEST          = 2,
-  SEARCH_REQUEST          = 3,
-  SEARCH_RESULT_ENTRY     = 4,
-  SEARCH_RESULT_DONE      = 5,
-  MODIFY_REQUEST          = 6,
-  MODIFY_RESPONSE         = 7,
-  ADD_REQUEST             = 8,
-  ADD_RESPONSE            = 9,
-  DEL_REQUEST             = 10,
-  DEL_RESPONSE            = 11,
-  MOD_DN_REQUEST          = 12,
-  MOD_DN_RESPONSE         = 13,
-  COMPARE_REQUEST         = 14,
-  COMPARE_RESPONSE        = 15,
-  ABANDON_REQUEST         = 16,
-  SEARCH_RESULT_REFERENCE = 19,
-  EXTENDED_REQUEST        = 23,
-  EXTENDED_RESPONSE       = 24,
-  INTERMEDIATE_RESPONSE   = 25,
+    BIND_REQUEST = 0,
+    BIND_RESPONSE = 1,
+    UNBIND_REQUEST = 2,
+    SEARCH_REQUEST = 3,
+    SEARCH_RESULT_ENTRY = 4,
+    SEARCH_RESULT_DONE = 5,
+    MODIFY_REQUEST = 6,
+    MODIFY_RESPONSE = 7,
+    ADD_REQUEST = 8,
+    ADD_RESPONSE = 9,
+    DEL_REQUEST = 10,
+    DEL_RESPONSE = 11,
+    MOD_DN_REQUEST = 12,
+    MOD_DN_RESPONSE = 13,
+    COMPARE_REQUEST = 14,
+    COMPARE_RESPONSE = 15,
+    ABANDON_REQUEST = 16,
+    SEARCH_RESULT_REFERENCE = 19,
+    EXTENDED_REQUEST = 23,
+    EXTENDED_RESPONSE = 24,
+    INTERMEDIATE_RESPONSE = 25,
 };
 
 #- Result code ---------------------------------------------------------------
 public type ResultCode = enum {
-  SUCCESS                         = 0,
-  OPERATIONS_ERROR                = 1,
-  PROTOCOL_ERROR                  = 2,
-  TIME_LIMIT_EXCEEDED             = 3,
-  SIZE_LIMIT_EXCEEDED             = 4,
-  COMPARE_FALSE                   = 5,
-  COMPARE_TRUE                    = 6,
-  AUTH_METHOD_NOT_SUPPORTED       = 7,
-  STRONGER_AUTH_REQUIRED          = 8,
-  PARTIAL_RESULTS                 = 9,
-  REFERRAL                        = 10,
-  ADMIN_LIMIT_EXCEEDED            = 11,
-  UNAVAILABLE_CRITICAL_EXTENSION  = 12,
-  CONFIDENTIALITY_REQUIRED        = 13,
-  SASL_BIND_IN_PROGRESS           = 14,
-  NO_SUCH_ATTRIBUTE               = 16,
-  UNDEFINED_ATTRIBUTE_TYPE        = 17,
-  INAPPROPRIATE_MATCHING          = 18,
-  CONSTRAINT_VIOLATION            = 19,
-  ATTRIBUTE_OR_VALUE_EXISTS       = 20,
-  INVALID_ATTRIBUTE_SYNTAX        = 21,
-  NO_SUCH_OBJECT                  = 32,
-  ALIAS_PROBLEM                   = 33,
-  INVALID_DNSYNTAX                = 34,
-  ALIAS_DEREFERENCING_PROBLEM     = 36,
-  INAPPROPRIATE_AUTHENTICATION    = 48,
-  INVALID_CREDENTIALS             = 49,
-  INSUFFICIENT_ACCESS_RIGHTS      = 50,
-  BUSY                            = 51,
-  UNAVAILABLE                     = 52,
-  UNWILLING_TO_PERFORM            = 53,
-  LOOP_DETECT                     = 54,
-  SORT_CONTROL_MISSING            = 60,
-  OFFSET_RANGE_ERROR              = 61,
-  NAMING_VIOLATION                = 64,
-  OBJECT_CLASS_VIOLATION          = 65,
-  NOT_ALLOWED_ON_NON_LEAF         = 66,
-  NOT_ALLOWED_ON_RDN              = 67,
-  ENTRY_ALREADY_EXISTS            = 68,
-  OBJECT_CLASS_MODS_PROHIBITED    = 69,
-  RESULTS_TOO_LARGE               = 70,
-  AFFECTS_MULTIPLE_DSAS           = 71,
-  CONTROL_ERROR                   = 76,
-  OTHER                           = 80,
-  SERVER_DOWN                     = 81,
-  LOCAL_ERROR                     = 82,
-  ENCODING_ERROR                  = 83,
-  DECODING_ERROR                  = 84,
-  TIMEOUT                         = 85,
-  AUTH_UNKNOWN                    = 86,
-  FILTER_ERROR                    = 87,
-  USER_CANCELED                   = 88,
-  PARAM_ERROR                     = 89,
-  NO_MEMORY                       = 90,
-  CONNECT_ERROR                   = 91,
-  NOT_SUPPORTED                   = 92,
-  CONTROL_NOT_FOUND               = 93,
-  NO_RESULTS_RETURNED             = 94,
-  MORE_RESULTS_TO_RETURN          = 95,
-  CLIENT_LOOP                     = 96,
-  REFERRAL_LIMIT_EXCEEDED         = 97,
-  INVALID_RESPONSE                = 100,
-  AMBIGUOUS_RESPONSE              = 101,
-  TLS_NOT_SUPPORTED               = 112,
-  INTERMEDIATE_RESPONSE           = 113,
-  UNKNOWN_TYPE                    = 114,
-  LCUP_INVALID_DATA               = 115,
-  LCUP_UNSUPPORTED_SCHEME         = 116,
-  LCUP_RELOAD_REQUIRED            = 117,
-  CANCELED                        = 118,
-  NO_SUCH_OPERATION               = 119,
-  TOO_LATE                        = 120,
-  CANNOT_CANCEL                   = 121,
-  ASSERTION_FAILED                = 122,
-  AUTHORIZATION_DENIED            = 123,
+    SUCCESS = 0,
+    OPERATIONS_ERROR = 1,
+    PROTOCOL_ERROR = 2,
+    TIME_LIMIT_EXCEEDED = 3,
+    SIZE_LIMIT_EXCEEDED = 4,
+    COMPARE_FALSE = 5,
+    COMPARE_TRUE = 6,
+    AUTH_METHOD_NOT_SUPPORTED = 7,
+    STRONGER_AUTH_REQUIRED = 8,
+    PARTIAL_RESULTS = 9,
+    REFERRAL = 10,
+    ADMIN_LIMIT_EXCEEDED = 11,
+    UNAVAILABLE_CRITICAL_EXTENSION = 12,
+    CONFIDENTIALITY_REQUIRED = 13,
+    SASL_BIND_IN_PROGRESS = 14,
+    NO_SUCH_ATTRIBUTE = 16,
+    UNDEFINED_ATTRIBUTE_TYPE = 17,
+    INAPPROPRIATE_MATCHING = 18,
+    CONSTRAINT_VIOLATION = 19,
+    ATTRIBUTE_OR_VALUE_EXISTS = 20,
+    INVALID_ATTRIBUTE_SYNTAX = 21,
+    NO_SUCH_OBJECT = 32,
+    ALIAS_PROBLEM = 33,
+    INVALID_DNSYNTAX = 34,
+    ALIAS_DEREFERENCING_PROBLEM = 36,
+    INAPPROPRIATE_AUTHENTICATION = 48,
+    INVALID_CREDENTIALS = 49,
+    INSUFFICIENT_ACCESS_RIGHTS = 50,
+    BUSY = 51,
+    UNAVAILABLE = 52,
+    UNWILLING_TO_PERFORM = 53,
+    LOOP_DETECT = 54,
+    SORT_CONTROL_MISSING = 60,
+    OFFSET_RANGE_ERROR = 61,
+    NAMING_VIOLATION = 64,
+    OBJECT_CLASS_VIOLATION = 65,
+    NOT_ALLOWED_ON_NON_LEAF = 66,
+    NOT_ALLOWED_ON_RDN = 67,
+    ENTRY_ALREADY_EXISTS = 68,
+    OBJECT_CLASS_MODS_PROHIBITED = 69,
+    RESULTS_TOO_LARGE = 70,
+    AFFECTS_MULTIPLE_DSAS = 71,
+    CONTROL_ERROR = 76,
+    OTHER = 80,
+    SERVER_DOWN = 81,
+    LOCAL_ERROR = 82,
+    ENCODING_ERROR = 83,
+    DECODING_ERROR = 84,
+    TIMEOUT = 85,
+    AUTH_UNKNOWN = 86,
+    FILTER_ERROR = 87,
+    USER_CANCELED = 88,
+    PARAM_ERROR = 89,
+    NO_MEMORY = 90,
+    CONNECT_ERROR = 91,
+    NOT_SUPPORTED = 92,
+    CONTROL_NOT_FOUND = 93,
+    NO_RESULTS_RETURNED = 94,
+    MORE_RESULTS_TO_RETURN = 95,
+    CLIENT_LOOP = 96,
+    REFERRAL_LIMIT_EXCEEDED = 97,
+    INVALID_RESPONSE = 100,
+    AMBIGUOUS_RESPONSE = 101,
+    TLS_NOT_SUPPORTED = 112,
+    INTERMEDIATE_RESPONSE = 113,
+    UNKNOWN_TYPE = 114,
+    LCUP_INVALID_DATA = 115,
+    LCUP_UNSUPPORTED_SCHEME = 116,
+    LCUP_RELOAD_REQUIRED = 117,
+    CANCELED = 118,
+    NO_SUCH_OPERATION = 119,
+    TOO_LATE = 120,
+    CANNOT_CANCEL = 121,
+    ASSERTION_FAILED = 122,
+    AUTHORIZATION_DENIED = 123,
 };
 
 #-----------------------------------------------------------------------------
 public type Result = unit {
-  code: ASN1::ASN1Message(True) &convert=cast<ResultCode>(cast<uint8>($$.body.num_value))
-                                &default=ResultCode::Undef;
-  matchedDN: ASN1::ASN1Message(True) &convert=$$.body.str_value
-                                     &default="";
-  diagnosticMessage: ASN1::ASN1Message(True) &convert=$$.body.str_value
-                                             &default="";
+    code: ASN1::ASN1Message(True) &convert=cast<ResultCode>(cast<uint8>($$.body.num_value)) &default=ResultCode::Undef;
+    matchedDN: ASN1::ASN1Message(True) &convert=$$.body.str_value &default="";
+    diagnosticMessage: ASN1::ASN1Message(True) &convert=$$.body.str_value &default="";
 
-  # TODO: if we want to parse referral URIs in result
-  # https://tools.ietf.org/html/rfc4511#section-4.1.10
+    # TODO: if we want to parse referral URIs in result
+    # https://tools.ietf.org/html/rfc4511#section-4.1.10
 };
 
 # 1.2.840.48018.1.2.2 (MS KRB5 - Microsoft Kerberos 5)
@@ -131,231 +128,231 @@ const GSSAPI_MECH_MS_KRB5 = "1.2.840.48018.1.2.2";
 
 # Supported SASL stripping modes.
 type MessageMode = enum {
-  MS_KRB5 = 1, # Payload starts with a 4 byte length followed by a wrap token that may or may not be sealed.
-  TLS = 2,     # Client/server used StartTLS, forward to SSL analyzer.
-  MAYBE_ENCRYPTED = 3,  # Use a heuristic to determine encrypted traffic.
-  CLEARTEXT = 4,  # Assume cleartext.
-  ENCRYPTED = 5,  # Assume encrypted.
+    MS_KRB5 = 1, # Payload starts with a 4 byte length followed by a wrap token that may or may not be sealed.
+    TLS = 2, # Client/server used StartTLS, forward to SSL analyzer.
+    MAYBE_ENCRYPTED = 3, # Use a heuristic to determine encrypted traffic.
+    CLEARTEXT = 4, # Assume cleartext.
+    ENCRYPTED = 5, # Assume encrypted.
 };
 
 type Ctx = struct {
-  messageMode: MessageMode;   # Message dispatching mode
-  saslMechanism: string;      # The SASL mechanism selected by the client.
-  startTlsRequested: bool;    # Did the client use the StartTLS extended request?
+    messageMode: MessageMode; # Message dispatching mode
+    saslMechanism: string; # The SASL mechanism selected by the client.
+    startTlsRequested: bool; # Did the client use the StartTLS extended request?
 };
 
 #-----------------------------------------------------------------------------
 public type Messages = unit {
-  %context = Ctx;
-  : MessageDispatch(self.context())[];
+    %context = Ctx;
+    : MessageDispatch(self.context())[];
 };
 
 #-----------------------------------------------------------------------------
 public type MessageDispatch = unit(ctx: Ctx&) {
-  switch( ctx.messageMode ) {
-    MessageMode::Undef -> : Message(ctx);
-    MessageMode::MS_KRB5 -> : SaslMsKrb5Stripper(ctx);
-    MessageMode::TLS -> : TlsForward;  # never returns
-    MessageMode::MAYBE_ENCRYPTED -> : MaybeEncrypted(ctx);
-    MessageMode::CLEARTEXT -> : Message(ctx);
-    MessageMode::ENCRYPTED -> : EncryptedMessage;
-  };
+    switch (ctx.messageMode) {
+        MessageMode::Undef -> : Message(ctx);
+        MessageMode::MS_KRB5 -> : SaslMsKrb5Stripper(ctx);
+        MessageMode::TLS -> : TlsForward; # never returns
+        MessageMode::MAYBE_ENCRYPTED -> : MaybeEncrypted(ctx);
+        MessageMode::CLEARTEXT -> : Message(ctx);
+        MessageMode::ENCRYPTED -> : EncryptedMessage;
+    };
 };
-
 
 #-----------------------------------------------------------------------------
 type MaybeEncrypted = unit(ctx: Ctx&) {
-  # A plaintext LDAP message always starts with at least 3 bytes and the first
-  # byte is 0x30 for the sequence. A SASL encrypted message starts with a 4 byte
-  # length field. The heuristic here is that if the first byte is a 0x30,
-  # assume it's unencrypted LDAP. This should be pretty good, if it was an
-  # encrypted/SASL wrapped message, it would have a size between 0x30000000 and
-  # 0x30FFFFFF, meaning at least a size of ~768MB, which seems unlikely.
-  var start: iterator<stream>;
-  var saslLen: uint64;
-  var mech: bytes;
+    # A plaintext LDAP message always starts with at least 3 bytes and the first
+    # byte is 0x30 for the sequence. A SASL encrypted message starts with a 4 byte
+    # length field. The heuristic here is that if the first byte is a 0x30,
+    # assume it's unencrypted LDAP. This should be pretty good, if it was an
+    # encrypted/SASL wrapped message, it would have a size between 0x30000000 and
+    # 0x30FFFFFF, meaning at least a size of ~768MB, which seems unlikely.
+    var start: iterator<stream>;
+    var saslLen: uint64;
+    var mech: bytes;
 
-  on %init {
-    self.start = self.input();
-    # Don't have starts_with() on string, work around that.
-    # https://github.com/zeek/spicy/issues/1807
-    self.mech = ctx.saslMechanism.encode(spicy::Charset::UTF8);
-  }
-
-  first: uint8 {
-    if ( $$ == 0x30 ) {
-      ctx.messageMode = MessageMode::CLEARTEXT;
-    } else {
-      ctx.messageMode = MessageMode::ENCRYPTED;
+    on %init {
+        self.start = self.input();
+        # Don't have starts_with() on string, work around that.
+        # https://github.com/zeek/spicy/issues/1807
+        self.mech = ctx.saslMechanism.encode(spicy::Charset::UTF8);
     }
-  }
 
-  # As a further heuristic, if encrypted mode was decided and the client
-  # requested GSSAPI or GSS-SPNEGO (or we just didn't see it) peak a bit
-  # into the SASL payload and check if it starts with a 0504 (WRAP_TOKEN).
-  # If so, switch into KRB mode assuming that's what is being used and
-  # have a chance seeing some more plaintext LDAP in non-sealed tokens.
-  rem: uint8[3] if ( ctx.messageMode == MessageMode::ENCRYPTED && (|self.mech| == 0 || self.mech.starts_with(b"GSS")) ) {
-    self.saslLen = (uint64(self.first) << 24) + (uint64($$[0]) << 16) + (uint64($$[1]) << 8) + uint64($$[2]);
-  }
-
-  : uint16 if ( self.saslLen >= 2 ) {
-    if ( $$ == 0x0504 ) {
-      ctx.messageMode = MessageMode::MS_KRB5;
+    first: uint8 {
+        if ($$ == 0x30) {
+            ctx.messageMode = MessageMode::CLEARTEXT;
+        } else {
+            ctx.messageMode = MessageMode::ENCRYPTED;
+        }
     }
-  }
 
-  # Rewind the input.
-  : void {
-    # Prevent MessageDispatch from recursing endlessly.
-    assert ctx.messageMode != MessageMode::MAYBE_ENCRYPTED;
-    self.set_input(self.start);
-  }
+    # As a further heuristic, if encrypted mode was decided and the client
+    # requested GSSAPI or GSS-SPNEGO (or we just didn't see it) peak a bit
+    # into the SASL payload and check if it starts with a 0504 (WRAP_TOKEN).
+    # If so, switch into KRB mode assuming that's what is being used and
+    # have a chance seeing some more plaintext LDAP in non-sealed tokens.
+    rem: uint8[3] if(ctx.messageMode == MessageMode::ENCRYPTED && (|self.mech| == 0 || self.mech.starts_with(b"GSS"))) {
+        self.saslLen = (uint64(self.first) << 24) + (uint64($$[0]) << 16) + (uint64($$[1]) << 8) + uint64($$[2]);
+    }
 
-  # One recursion to parse with the new ctx.messageMode setting.
-  : MessageDispatch(ctx);
+    : uint16 if(self.saslLen >= 2) {
+        if ($$ == 0x0504) {
+            ctx.messageMode = MessageMode::MS_KRB5;
+        }
+    }
+
+    # Rewind the input.
+    : void {
+        # Prevent MessageDispatch from recursing endlessly.
+        assert ctx.messageMode != MessageMode::MAYBE_ENCRYPTED;
+        self.set_input(self.start);
+    }
+
+    # One recursion to parse with the new ctx.messageMode setting.
+    : MessageDispatch(ctx);
 };
 
 #-----------------------------------------------------------------------------
 type EncryptedMessage = unit {
-  len: uint32;
-  : skip bytes &size=self.len;
+    len: uint32;
+    : skip bytes &size=self.len;
 };
 
 #-----------------------------------------------------------------------------
 type TlsForward = unit {
-  # Just consume everything. This is hooked in ldap_zeek.spicy
-  chunk: bytes &chunked &eod;
+    # Just consume everything. This is hooked in ldap_zeek.spicy
+    chunk: bytes &chunked &eod;
 };
 
 type KrbWrapToken = unit {
-  # https://datatracker.ietf.org/doc/html/rfc4121#section-4.2.6.2
+    # https://datatracker.ietf.org/doc/html/rfc4121#section-4.2.6.2
 
-  # Number of bytes to expect *after* the payload.
-  var trailer_ec: uint64;
-  var header_ec: uint64;
+    # Number of bytes to expect *after* the payload.
+    var trailer_ec: uint64;
+    var header_ec: uint64;
 
-  ctx_flags: bitfield(8) {
-    send_by_acceptor: 0;
-    sealed: 1;
-    acceptor_subkey: 2;
-  };
-  filler: skip b"\xff";
-  ec: uint16; # extra count
-  rrc: uint16 { # right rotation count
-    # Handle rrc == ec or rrc == 0.
-    if ( self.rrc == self.ec ) {
-      self.header_ec = self.ec;
-    } else if ( self.rrc == 0 ) {
-        self.trailer_ec = self.ec;
-    } else {
-      if ( ! self.ctx_flags.sealed )
-        # If it's sealed, we'll consume until &eod anyhow
-        # and ec/rrc shouldn't apply, otherwise, bail.
-        throw "Unhandled rc %s and ec %s" % (self.ec, self.rrc);
+    ctx_flags: bitfield(8) {
+        send_by_acceptor: 0;
+        sealed: 1;
+        acceptor_subkey: 2;
+    };
+    filler: skip b"\xff";
+    ec: uint16; # extra count
+    rrc: uint16 {
+        # right rotation count
+        # Handle rrc == ec or rrc == 0.
+        if (self.rrc == self.ec) {
+            self.header_ec = self.ec;
+        } else if (self.rrc == 0) {
+            self.trailer_ec = self.ec;
+        } else {
+            if (!self.ctx_flags.sealed)
+            # If it's sealed, we'll consume until &eod anyhow
+            # and ec/rrc shouldn't apply, otherwise, bail.
+            throw "Unhandled rc %s and ec %s" % (self.ec, self.rrc);
+        }
     }
-  }
 
-  snd_seq: uint64;
-  header_e: skip bytes &size=self.header_ec;
+    snd_seq: uint64;
+    header_e: skip bytes &size=self.header_ec;
 };
 
 #-----------------------------------------------------------------------------
 type SaslMsKrb5Stripper = unit(ctx: Ctx&) {
-  # This is based on Wireshark output and example traffic we have. There's always
-  # a 4 byte length field followed by the krb5_tok_id field in messages after
-  # MS_KRB5 was selected. I haven't read enough specs to understand if it's
-  # just this one case that works, or others could use the same stripping.
-  var switch_size: uint64;
+    # This is based on Wireshark output and example traffic we have. There's always
+    # a 4 byte length field followed by the krb5_tok_id field in messages after
+    # MS_KRB5 was selected. I haven't read enough specs to understand if it's
+    # just this one case that works, or others could use the same stripping.
+    var switch_size: uint64;
 
-  len: uint32;
-  krb5_tok_id: uint16;
+    len: uint32;
+    krb5_tok_id: uint16;
 
-  switch ( self.krb5_tok_id ) {
-    0x0504 -> krb_wrap_token: KrbWrapToken;
-    * -> : void;
-  };
+    switch (self.krb5_tok_id) {
+        0x0504 -> krb_wrap_token: KrbWrapToken;
+        * -> : void;
+    };
 
-  : skip bytes &size=0 {
-    self.switch_size = self.len - (self.offset() - 4);
-    if ( self?.krb_wrap_token )
-      self.switch_size -= self.krb_wrap_token.trailer_ec;
-  }
+    : skip bytes &size=0 {
+        self.switch_size = self.len - (self.offset() - 4);
+        if (self?.krb_wrap_token)
+            self.switch_size -= self.krb_wrap_token.trailer_ec;
+    }
 
-  switch ( self?.krb_wrap_token && ! self.krb_wrap_token.ctx_flags.sealed ) {
-    True -> : Message(ctx)[] &eod;
-    * -> : skip bytes &eod;
-  } &size=self.switch_size;
+    switch (self?.krb_wrap_token && !self.krb_wrap_token.ctx_flags.sealed) {
+        True -> : Message(ctx)[] &eod;
+        * -> : skip bytes &eod;
+    } &size=self.switch_size;
 
-  # Consume the wrap token trailer, if any.
-  trailer_e: skip bytes &size=self.krb_wrap_token.trailer_ec if (self?.krb_wrap_token);
+    # Consume the wrap token trailer, if any.
+    trailer_e: skip bytes &size=self.krb_wrap_token.trailer_ec if(self?.krb_wrap_token);
 };
 
 #-----------------------------------------------------------------------------
 public type Message = unit(ctx: Ctx&) {
-  var messageID: int64;
-  var opcode: ProtocolOpcode = ProtocolOpcode::Undef;
-  var unsetResultDefault: Result;
-  var result_: Result& = self.unsetResultDefault;
-  var obj: string = "";
-  var arg: string = "";
-  var seqHeaderLen: uint64;
-  var msgLen: uint64;
-  var opLen: uint64;
+    var messageID: int64;
+    var opcode: ProtocolOpcode = ProtocolOpcode::Undef;
+    var unsetResultDefault: Result;
+    var result_: Result& = self.unsetResultDefault;
+    var obj: string = "";
+    var arg: string = "";
+    var seqHeaderLen: uint64;
+    var msgLen: uint64;
+    var opLen: uint64;
 
-  seqHeader: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Universal && $$.tag.type_ == ASN1::ASN1Type::Sequence) {
-    self.msgLen = $$.len.len;
-  }
+    seqHeader: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Universal && $$.tag.type_ == ASN1::ASN1Type::Sequence) {
+        self.msgLen = $$.len.len;
+    }
 
-  # Use offset() to determine how many bytes the seqHeader took. This
-  # needs to be done after the seqHeader field hook.
-  : void {
-    self.seqHeaderLen = self.offset();
-  }
+    # Use offset() to determine how many bytes the seqHeader took. This
+    # needs to be done after the seqHeader field hook.
+    : void {
+        self.seqHeaderLen = self.offset();
+    }
 
-  messageID_header: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Universal && $$.tag.type_ == ASN1::ASN1Type::Integer);
-  : ASN1::ASN1Body(self.messageID_header, False) {
-    self.messageID = $$.num_value;
-  }
+    messageID_header: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Universal && $$.tag.type_ == ASN1::ASN1Type::Integer);
+    : ASN1::ASN1Body(self.messageID_header, False) {
+        self.messageID = $$.num_value;
+    }
 
-  protocolOp: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Application) {
-    self.opcode = cast<ProtocolOpcode>(cast<uint8>($$.tag.type_));
-    self.opLen = $$.len.len;
-  }
+    protocolOp: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Application) {
+        self.opcode = cast<ProtocolOpcode>(cast<uint8>($$.tag.type_));
+        self.opLen = $$.len.len;
+    }
 
-  switch ( self.opcode ) {
-    ProtocolOpcode::BIND_REQUEST            -> BIND_REQUEST:            BindRequest(self, ctx);
-    ProtocolOpcode::BIND_RESPONSE           -> BIND_RESPONSE:           BindResponse(self, ctx);
-    ProtocolOpcode::UNBIND_REQUEST          -> UNBIND_REQUEST:          UnbindRequest(self);
-    ProtocolOpcode::SEARCH_REQUEST          -> SEARCH_REQUEST:          SearchRequest(self);
-    ProtocolOpcode::SEARCH_RESULT_ENTRY     -> SEARCH_RESULT_ENTRY:     SearchResultEntry(self);
-    ProtocolOpcode::SEARCH_RESULT_DONE      -> SEARCH_RESULT_DONE:      SearchResultDone(self);
-    ProtocolOpcode::MODIFY_REQUEST          -> MODIFY_REQUEST:          ModifyRequest(self);
-    ProtocolOpcode::MODIFY_RESPONSE         -> MODIFY_RESPONSE:         ModifyResponse(self);
-    ProtocolOpcode::ADD_RESPONSE            -> ADD_RESPONSE:            AddResponse(self);
-    ProtocolOpcode::DEL_REQUEST             -> DEL_REQUEST:             DelRequest(self);
-    ProtocolOpcode::DEL_RESPONSE            -> DEL_RESPONSE:            DelResponse(self);
-    ProtocolOpcode::MOD_DN_RESPONSE         -> MOD_DN_RESPONSE:         ModDNResponse(self);
-    ProtocolOpcode::COMPARE_RESPONSE        -> COMPARE_RESPONSE:        CompareResponse(self);
-    ProtocolOpcode::ABANDON_REQUEST         -> ABANDON_REQUEST:         AbandonRequest(self);
+    switch (self.opcode) {
+        ProtocolOpcode::BIND_REQUEST -> BIND_REQUEST: BindRequest(self, ctx);
+        ProtocolOpcode::BIND_RESPONSE -> BIND_RESPONSE: BindResponse(self, ctx);
+        ProtocolOpcode::UNBIND_REQUEST -> UNBIND_REQUEST: UnbindRequest(self);
+        ProtocolOpcode::SEARCH_REQUEST -> SEARCH_REQUEST: SearchRequest(self);
+        ProtocolOpcode::SEARCH_RESULT_ENTRY -> SEARCH_RESULT_ENTRY: SearchResultEntry(self);
+        ProtocolOpcode::SEARCH_RESULT_DONE -> SEARCH_RESULT_DONE: SearchResultDone(self);
+        ProtocolOpcode::MODIFY_REQUEST -> MODIFY_REQUEST: ModifyRequest(self);
+        ProtocolOpcode::MODIFY_RESPONSE -> MODIFY_RESPONSE: ModifyResponse(self);
+        ProtocolOpcode::ADD_RESPONSE -> ADD_RESPONSE: AddResponse(self);
+        ProtocolOpcode::DEL_REQUEST -> DEL_REQUEST: DelRequest(self);
+        ProtocolOpcode::DEL_RESPONSE -> DEL_RESPONSE: DelResponse(self);
+        ProtocolOpcode::MOD_DN_RESPONSE -> MOD_DN_RESPONSE: ModDNResponse(self);
+        ProtocolOpcode::COMPARE_RESPONSE -> COMPARE_RESPONSE: CompareResponse(self);
+        ProtocolOpcode::ABANDON_REQUEST -> ABANDON_REQUEST: AbandonRequest(self);
 
-    # TODO: not yet implemented, redirect to NotImplemented because when we're
-    # just commenting this out, it will stop processing LDAP Messages in this connection
-    ProtocolOpcode::ADD_REQUEST             -> ADD_REQUEST:             NotImplemented(self);
-    ProtocolOpcode::COMPARE_REQUEST         -> COMPARE_REQUEST:         NotImplemented(self);
-    ProtocolOpcode::EXTENDED_REQUEST        -> EXTENDED_REQUEST:        ExtendedRequest(self, ctx);
-    ProtocolOpcode::EXTENDED_RESPONSE       -> EXTENDED_RESPONSE:       ExtendedResponse(self, ctx);
-    ProtocolOpcode::INTERMEDIATE_RESPONSE   -> INTERMEDIATE_RESPONSE:   NotImplemented(self);
-    ProtocolOpcode::MOD_DN_REQUEST          -> MOD_DN_REQUEST:          NotImplemented(self);
-    ProtocolOpcode::SEARCH_RESULT_REFERENCE -> SEARCH_RESULT_REFERENCE: NotImplemented(self);
-  } &size=self.opLen;
+        # TODO: not yet implemented, redirect to NotImplemented because when we're
+        # just commenting this out, it will stop processing LDAP Messages in this connection
+        ProtocolOpcode::ADD_REQUEST -> ADD_REQUEST: NotImplemented(self);
+        ProtocolOpcode::COMPARE_REQUEST -> COMPARE_REQUEST: NotImplemented(self);
+        ProtocolOpcode::EXTENDED_REQUEST -> EXTENDED_REQUEST: ExtendedRequest(self, ctx);
+        ProtocolOpcode::EXTENDED_RESPONSE -> EXTENDED_RESPONSE: ExtendedResponse(self, ctx);
+        ProtocolOpcode::INTERMEDIATE_RESPONSE -> INTERMEDIATE_RESPONSE: NotImplemented(self);
+        ProtocolOpcode::MOD_DN_REQUEST -> MOD_DN_REQUEST: NotImplemented(self);
+        ProtocolOpcode::SEARCH_RESULT_REFERENCE -> SEARCH_RESULT_REFERENCE: NotImplemented(self);
+    } &size=self.opLen;
 
-  # Ensure some invariants hold after parsing the command.
-  : void &requires=(self.offset() >= self.seqHeaderLen);
-  : void &requires=(self.msgLen >= (self.offset() - self.seqHeaderLen));
+    # Ensure some invariants hold after parsing the command.
+    : void &requires=(self.offset() >= self.seqHeaderLen);
+    : void &requires=(self.msgLen >= (self.offset() - self.seqHeaderLen));
 
-  # Eat the controls field if it exists.
-  : skip bytes &size=self.msgLen - (self.offset() - self.seqHeaderLen);
+    # Eat the controls field if it exists.
+    : skip bytes &size=self.msgLen - (self.offset() - self.seqHeaderLen);
 };
 
 #-----------------------------------------------------------------------------
@@ -363,198 +360,192 @@ public type Message = unit(ctx: Ctx&) {
 # https://tools.ietf.org/html/rfc4511#section-4.2
 
 public type BindAuthType = enum {
-  BIND_AUTH_SIMPLE = 0,
-  BIND_AUTH_SASL = 3,
+    BIND_AUTH_SIMPLE = 0,
+    BIND_AUTH_SASL = 3,
 
-  # https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/8b9dbfb2-5b6a-497a-a533-7e709cb9a982
-  # 5.1.1.1.3 Sicily Authentication
-  SICILY_PACKAGE_DISCOVERY = 9,
-  SICILY_NEGOTIATE = 10,
-  SICILY_RESPONSE = 11,
+    # https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/8b9dbfb2-5b6a-497a-a533-7e709cb9a982
+    # 5.1.1.1.3 Sicily Authentication
+    SICILY_PACKAGE_DISCOVERY = 9,
+    SICILY_NEGOTIATE = 10,
+    SICILY_RESPONSE = 11,
 };
 
 type GSS_SPNEGO_negTokenInit = unit {
-  oidHeader: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Universal && $$.tag.type_ == ASN1::ASN1Type::ObjectIdentifier);
-  oid: ASN1::ASN1ObjectIdentifier(self.oidHeader.len.len) &requires=(self.oid.oidstring == "1.3.6.1.5.5.2");
+    oidHeader: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::Universal && $$.tag.type_ == ASN1::ASN1Type::ObjectIdentifier);
+    oid: ASN1::ASN1ObjectIdentifier(self.oidHeader.len.len) &requires=(self.oid.oidstring == "1.3.6.1.5.5.2");
 
-  # TODO: Parse the rest of negTokenInit.
-  : skip bytes &eod;
+    # TODO: Parse the rest of negTokenInit.
+    : skip bytes &eod;
 };
 
 # Peak into GSS-SPNEGO payload and ensure it is indeed GSS-SPNEGO,
 # or GSS-SPNEGO with a NTMLSSP payload that starts with NTLMSSP.
 type GSS_SPNEGO_Init = unit {
-  # This is the optional octet string in SaslCredentials.
-  credentialsHeader: ASN1::ASN1Header &requires=($$.tag.type_ == ASN1::ASN1Type::OctetString);
+    # This is the optional octet string in SaslCredentials.
+    credentialsHeader: ASN1::ASN1Header &requires=($$.tag.type_ == ASN1::ASN1Type::OctetString);
 
-  # Now we either have the initial message as specified in RFC2743 or
-  # a continuation from RFC4178, or a "NTMLSSP" signature.
-  #
-  #   60 -> APPLICATION [0]  https://datatracker.ietf.org/doc/html/rfc2743#page-81
-  #   a1 -> CHOICE [1]       https://www.rfc-editor.org/rfc/rfc4178#section-4.2
-  #   "NTMLSSP"              https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-nlmp/907f519d-6217-45b1-b421-dca10fc8af0d
-  #
-  switch {
-    -> spnegoInitByte: uint8(0x60);
-    -> spnegoChoiceByte: uint8(0xa1);
-    -> ntlmSignature: skip b"NTLMSSP"; # Unsupported, should forward to child analyzer!
-  };
+    # Now we either have the initial message as specified in RFC2743 or
+    # a continuation from RFC4178, or a "NTMLSSP" signature.
+    #
+    #   60 -> APPLICATION [0]  https://datatracker.ietf.org/doc/html/rfc2743#page-81
+    #   a1 -> CHOICE [1]       https://www.rfc-editor.org/rfc/rfc4178#section-4.2
+    #   "NTMLSSP"              https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-nlmp/907f519d-6217-45b1-b421-dca10fc8af0d
+    #
+    switch {
+        -> spnegoInitByte: uint8(0x60);
+        -> spnegoChoiceByte: uint8(0xa1);
+        -> ntlmSignature: skip b"NTLMSSP"; # Unsupported, should forward to child analyzer!
+    };
 
-  spnegoLen: skip ASN1::LengthType if (self?.spnegoInitByte || self?.spnegoChoiceByte);
+    spnegoLen: skip ASN1::LengthType if(self?.spnegoInitByte || self?.spnegoChoiceByte);
 
-  # Peak into the SPNEGO_negTokenInit
-  spnegoInitial: skip GSS_SPNEGO_negTokenInit if (self?.spnegoInitByte);
+    # Peak into the SPNEGO_negTokenInit
+    spnegoInitial: skip GSS_SPNEGO_negTokenInit if(self?.spnegoInitByte);
 };
 
-type SaslCredentials = unit() {
-  mechanism: ASN1::ASN1Message(False) &convert=$$.body.str_value;
+type SaslCredentials = unit {
+    mechanism: ASN1::ASN1Message(False) &convert=$$.body.str_value;
 
-  # Peak into GSS-SPNEGO payload if we have any.
-  switch ( self.mechanism ) {
-    "GSS-SPNEGO" -> gss_spnego: GSS_SPNEGO_Init;
-    * -> : skip bytes &eod;
-  };
+    # Peak into GSS-SPNEGO payload if we have any.
+    switch (self.mechanism) {
+        "GSS-SPNEGO" -> gss_spnego: GSS_SPNEGO_Init;
+        * -> : skip bytes &eod;
+    };
 };
 
-type SicilyMessage = unit() {
-  # Just ensure the signature matches. We could do more,
-  # but it'd be better to forward to an NTLM analyzer.
-  signature: skip b"NTLMSSP";
-  var signature_decoded: string = "NTLMSSP";
+type SicilyMessage = unit {
+    # Just ensure the signature matches. We could do more,
+    # but it'd be better to forward to an NTLM analyzer.
+    signature: skip b"NTLMSSP";
+    var signature_decoded: string = "NTLMSSP";
 };
 
 type GSS_SPNEGO_Subsequent = unit {
-  switch {
-    -> spnegoChoiceByte: uint8(0xa1);
-    -> ntmlSignature: skip b"NTLMSSP"; # Unsupported, should forward to NTLM!
-  };
+    switch {
+        -> spnegoChoiceByte: uint8(0xa1);
+        -> ntmlSignature: skip b"NTLMSSP"; # Unsupported, should forward to NTLM!
+    };
 
-  spnegoChoiceLen: skip ASN1::LengthType if (self?.spnegoChoiceByte);
-  negTokenResp: GSS_SPNEGO_negTokenResp if (self?.spnegoChoiceByte);
+    spnegoChoiceLen: skip ASN1::LengthType if(self?.spnegoChoiceByte);
+    negTokenResp: GSS_SPNEGO_negTokenResp if(self?.spnegoChoiceByte);
 };
 
 type GSS_SPNEGO_negTokenResp = unit {
-  var accepted: bool;
-  var supportedMech: ASN1::ASN1Message;
-  var responseToken: optional<bytes>;
+    var accepted: bool;
+    var supportedMech: ASN1::ASN1Message;
+    var responseToken: optional<bytes>;
 
-  # Parse the contained Sequence.
-  seq: ASN1::ASN1Message(True) {
-    for ( msg in $$.body.seq.submessages ) {
-      # https://www.rfc-editor.org/rfc/rfc4178#section-4.2.2
-      if ( msg.application_id == 0 ) {
-        self.accepted = msg.application_data == b"\x0a\x01\x00";
-      } else if ( msg.application_id == 1 ) {
-        self.supportedMech = msg;
-      } else if ( msg.application_id == 2 ) {
-        self.responseToken = msg.application_data;
-      } else if ( msg.application_id == 3 ) {
-        # ignore mechListMec
-      } else {
-        throw "unhandled NegTokenResp id %s" % msg.application_id;
-      }
+    # Parse the contained Sequence.
+    seq: ASN1::ASN1Message(True) {
+        for (msg in $$.body.seq.submessages) {
+            # https://www.rfc-editor.org/rfc/rfc4178#section-4.2.2
+            if (msg.application_id == 0) {
+                self.accepted = msg.application_data == b"\x0a\x01\x00";
+            } else if (msg.application_id == 1) {
+                self.supportedMech = msg;
+            } else if (msg.application_id == 2) {
+                self.responseToken = msg.application_data;
+            } else if (msg.application_id == 3) {
+                # ignore mechListMec
+            } else {
+                throw "unhandled NegTokenResp id %s" % msg.application_id;
+            }
+        }
     }
-  }
 
-  switch ( self?.supportedMech ) {
-    True -> supportedMechOid: ASN1::ASN1Message(False) &convert=$$.body.str_value;
-    * -> : void;
-  } &parse-from=self.supportedMech.application_data;
+    switch (self?.supportedMech) {
+        True -> supportedMechOid: ASN1::ASN1Message(False) &convert=$$.body.str_value;
+        * -> : void;
+    } &parse-from=self.supportedMech.application_data;
 };
 
 # TODO(fox-ds): A helper unit for requests for which no handling has been implemented.
 # Eventually all uses of this unit should be replaced with actual parsers so this unit can be removed.
 type NotImplemented = unit(inout message: Message) {
-  : skip bytes &eod;
+    : skip bytes &eod;
 };
 
 type BindRequest = unit(inout message: Message, ctx: Ctx&) {
-  version: ASN1::ASN1Message(True) &convert=$$.body.num_value;
-  name: ASN1::ASN1Message(True) &convert=$$.body.str_value {
-    message.obj = self.name;
-  }
-  var authType: BindAuthType = BindAuthType::Undef;
-  var authData: bytes = b"";
-  var simpleCreds: string = "";
-
-  : ASN1::ASN1Message(True) {
-    if ($$?.application_id) {
-      self.authType = cast<BindAuthType>(cast<uint8>($$.application_id));
-      self.authData = $$.application_data;
+    version: ASN1::ASN1Message(True) &convert=$$.body.num_value;
+    name: ASN1::ASN1Message(True) &convert=$$.body.str_value {
+        message.obj = self.name;
     }
-  }
+    var authType: BindAuthType = BindAuthType::Undef;
+    var authData: bytes = b"";
+    var simpleCreds: string = "";
 
-  if ( |self.authData| > 0 ) {
-    switch ( self.authType ) {
-      BindAuthType::BIND_AUTH_SIMPLE ->
-        : void {
-          self.simpleCreds = self.authData.decode();
-          message.arg = self.simpleCreds;
+    : ASN1::ASN1Message(True) {
+        if ($$?.application_id) {
+            self.authType = cast<BindAuthType>(cast<uint8>($$.application_id));
+            self.authData = $$.application_data;
         }
+    }
 
-      BindAuthType::BIND_AUTH_SASL ->
-        saslCreds: SaslCredentials {
-          message.arg = self.saslCreds.mechanism;
-          ctx.saslMechanism = self.saslCreds.mechanism;
-        }
-
-      BindAuthType::SICILY_NEGOTIATE, BindAuthType::SICILY_RESPONSE ->
-        sicilyMessage: SicilyMessage {
-          message.arg = self.sicilyMessage.signature_decoded;
-        }
-
-      * -> : void;
-    } &parse-from=self.authData;
-  };
+    if (|self.authData| > 0) {
+        switch (self.authType) {
+            BindAuthType::BIND_AUTH_SIMPLE -> : void {
+                self.simpleCreds = self.authData.decode();
+                message.arg = self.simpleCreds;
+            }
+            BindAuthType::BIND_AUTH_SASL -> saslCreds: SaslCredentials {
+                message.arg = self.saslCreds.mechanism;
+                ctx.saslMechanism = self.saslCreds.mechanism;
+            }
+            BindAuthType::SICILY_NEGOTIATE,
+            BindAuthType::SICILY_RESPONSE -> sicilyMessage: SicilyMessage {
+                message.arg = self.sicilyMessage.signature_decoded;
+            }
+            * -> : void;
+        } &parse-from=self.authData;
+    };
 } &requires=(self?.authType && (self.authType != BindAuthType::Undef));
 
 type ServerSaslCreds = unit {
-  serverSaslCreds: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::ContextSpecific && $$.tag.type_ == ASN1::ASN1Type(7));
-  payload: bytes &size=self.serverSaslCreds.len.len;
+    serverSaslCreds: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::ContextSpecific && $$.tag.type_ == ASN1::ASN1Type(7));
+    payload: bytes &size=self.serverSaslCreds.len.len;
 };
 
 type BindResponse = unit(inout message: Message, ctx: Ctx&) {
-  : Result {
-    message.result_ = $$;
+    : Result {
+        message.result_ = $$;
 
-    # The SASL authentication was successful. We do not actually
-    # know if the following messages are encrypted or not. This may be
-    # mechanism and parameter specific. For example SCRAM-SHA512 or NTLM
-    # will continue to be cleartext, while SRP or GSS-API would be encrypted.
-    #
-    # Switch messageMode into trial mode which is explored via MessageDispatch
-    # and the MaybeEncrypted unit.
-    #
-    # Note, messageMode may be changed to something more specific like
-    # MS_KRB5 below.
-    if ( |ctx.saslMechanism| > 0 && $$.code == ResultCode::SUCCESS ) {
-      ctx.messageMode = MessageMode::MAYBE_ENCRYPTED;
-    }
-  }
-
-  # Try to parse serverSaslCreds if there's any input remaining. This
-  # unit is parsed with &size, so &eod here works.
-  #
-  # Technically we should be able to tell from the ASN.1 structure
-  # if the serverSaslCreds field exists or not. But, not sure we can
-  # check if there's any bytes left at this point outside of passing
-  # in the length and playing with offset().
-  serverSaslCreds: ServerSaslCreds[] &eod;
-
-  # If the client requested GSS-SPNEGO, try to parse the server's response
-  # to switch message mode.
-  gss_spnego: GSS_SPNEGO_Subsequent &parse-from=self.serverSaslCreds[0].payload
-      if (ctx.saslMechanism == "GSS-SPNEGO" && |self.serverSaslCreds| > 0) {
-
-    if ( $$?.negTokenResp ) {
-      local token = $$.negTokenResp;
-      if ( token.accepted && token?.supportedMechOid ) {
-        if ( token.supportedMechOid == GSSAPI_MECH_MS_KRB5 && token.responseToken ) {
-          ctx.messageMode = MessageMode::MS_KRB5;
+        # The SASL authentication was successful. We do not actually
+        # know if the following messages are encrypted or not. This may be
+        # mechanism and parameter specific. For example SCRAM-SHA512 or NTLM
+        # will continue to be cleartext, while SRP or GSS-API would be encrypted.
+        #
+        # Switch messageMode into trial mode which is explored via MessageDispatch
+        # and the MaybeEncrypted unit.
+        #
+        # Note, messageMode may be changed to something more specific like
+        # MS_KRB5 below.
+        if (|ctx.saslMechanism| > 0 && $$.code == ResultCode::SUCCESS) {
+            ctx.messageMode = MessageMode::MAYBE_ENCRYPTED;
         }
-      }
     }
-  }
+
+    # Try to parse serverSaslCreds if there's any input remaining. This
+    # unit is parsed with &size, so &eod here works.
+    #
+    # Technically we should be able to tell from the ASN.1 structure
+    # if the serverSaslCreds field exists or not. But, not sure we can
+    # check if there's any bytes left at this point outside of passing
+    # in the length and playing with offset().
+    serverSaslCreds: ServerSaslCreds[] &eod;
+
+    # If the client requested GSS-SPNEGO, try to parse the server's response
+    # to switch message mode.
+    gss_spnego: GSS_SPNEGO_Subsequent &parse-from=self.serverSaslCreds[0].payload if(ctx.saslMechanism == "GSS-SPNEGO" && |self.serverSaslCreds| > 0) {
+
+        if ($$?.negTokenResp) {
+            local token = $$.negTokenResp;
+            if (token.accepted && token?.supportedMechOid) {
+                if (token.supportedMechOid == GSSAPI_MECH_MS_KRB5 && token.responseToken) {
+                    ctx.messageMode = MessageMode::MS_KRB5;
+                }
+            }
+        }
+    }
 };
 
 #-----------------------------------------------------------------------------
@@ -562,7 +553,7 @@ type BindResponse = unit(inout message: Message, ctx: Ctx&) {
 # https://tools.ietf.org/html/rfc4511#section-4.3
 
 type UnbindRequest = unit(inout message: Message) {
-  # this page intentionally left blank
+    # this page intentionally left blank
 };
 
 #-----------------------------------------------------------------------------
@@ -570,66 +561,63 @@ type UnbindRequest = unit(inout message: Message) {
 # https://tools.ietf.org/html/rfc4511#section-4.5
 
 public type SearchScope = enum {
-  SEARCH_BASE    = 0,
-  SEARCH_SINGLE  = 1,
-  SEARCH_TREE    = 2,
+    SEARCH_BASE = 0,
+    SEARCH_SINGLE = 1,
+    SEARCH_TREE = 2,
 };
 
 public type SearchDerefAlias = enum {
-  DEREF_NEVER        = 0,
-  DEREF_IN_SEARCHING = 1,
-  DEREF_FINDING_BASE = 2,
-  DEREF_ALWAYS       = 3,
+    DEREF_NEVER = 0,
+    DEREF_IN_SEARCHING = 1,
+    DEREF_FINDING_BASE = 2,
+    DEREF_ALWAYS = 3,
 };
 
 type FilterType = enum {
-  FILTER_AND     = 0,
-  FILTER_OR      = 1,
-  FILTER_NOT     = 2,
-  FILTER_EQ      = 3,
-  FILTER_SUBSTR  = 4,
-  FILTER_GE      = 5,
-  FILTER_LE      = 6,
-  FILTER_PRESENT = 7,
-  FILTER_APPROX  = 8,
-  FILTER_EXT     = 9,
-  FILTER_INVALID = 254,
+    FILTER_AND = 0,
+    FILTER_OR = 1,
+    FILTER_NOT = 2,
+    FILTER_EQ = 3,
+    FILTER_SUBSTR = 4,
+    FILTER_GE = 5,
+    FILTER_LE = 6,
+    FILTER_PRESENT = 7,
+    FILTER_APPROX = 8,
+    FILTER_EXT = 9,
+    FILTER_INVALID = 254,
 };
 
 public type AttributeSelection = unit {
-  var attributes: vector<string>;
+    var attributes: vector<string>;
 
-  # TODO: parse AttributeSelection as per
-  # https://tools.ietf.org/html/rfc4511#section-4.5.1
-  # and decide how deep that should be fleshed out.
-  : ASN1::ASN1Message(True) {
-    if (($$.head.tag.type_ == ASN1::ASN1Type::Sequence) &&
-        ($$.body?.seq)) {
-      for (i in $$.body.seq.submessages) {
-        if (i.body?.str_value) {
-          self.attributes.push_back(i.body.str_value);
+    # TODO: parse AttributeSelection as per
+    # https://tools.ietf.org/html/rfc4511#section-4.5.1
+    # and decide how deep that should be fleshed out.
+    : ASN1::ASN1Message(True) {
+        if (($$.head.tag.type_ == ASN1::ASN1Type::Sequence) && ($$.body?.seq)) {
+            for (i in $$.body.seq.submessages) {
+                if (i.body?.str_value) {
+                    self.attributes.push_back(i.body.str_value);
+                }
+            }
         }
-      }
     }
-  }
 };
 
 type AttributeValueAssertion = unit {
-  var desc: string = "";
-  var val: string = "";
+    var desc: string = "";
+    var val: string = "";
 
-  : ASN1::ASN1Message(True) {
-    if (($$.head.tag.type_ == ASN1::ASN1Type::Sequence) &&
-        ($$.body?.seq) &&
-        (|$$.body.seq.submessages| >= 2)) {
-      if ($$.body.seq.submessages[0].body?.str_value) {
-        self.desc = $$.body.seq.submessages[0].body.str_value;
-      }
-      if ($$.body.seq.submessages[1].body?.str_value) {
-        self.val = $$.body.seq.submessages[1].body.str_value;
-      }
+    : ASN1::ASN1Message(True) {
+        if (($$.head.tag.type_ == ASN1::ASN1Type::Sequence) && ($$.body?.seq) && (|$$.body.seq.submessages| >= 2)) {
+            if ($$.body.seq.submessages[0].body?.str_value) {
+                self.desc = $$.body.seq.submessages[0].body.str_value;
+            }
+            if ($$.body.seq.submessages[1].body?.str_value) {
+                self.val = $$.body.seq.submessages[1].body.str_value;
+            }
+        }
     }
-  }
 };
 
 # An AND or OR search filter can consist of many sub-searchfilters, so we try to parse these
@@ -643,199 +631,184 @@ type ParseNestedNot = unit {
 
 # Helper functions to properly format some custom data structures
 
-public function utf16_guid_to_hex_repr(bts: bytes) : string {
-  # Rather ugly workaround to pretty-print the CLDAP DomainGuid UTF16-LE encoded string
-  # in the same format as Wireshark (aabbccdd-eeff-gghh-iijj-kkllmmnnoopp)
+public function utf16_guid_to_hex_repr(bts: bytes): string {
+    # Rather ugly workaround to pretty-print the CLDAP DomainGuid UTF16-LE encoded string
+    # in the same format as Wireshark (aabbccdd-eeff-gghh-iijj-kkllmmnnoopp)
 
-  # We need to have exactly 16 bytes...
-  if ( |bts| != 16 ) {
-    # ... and otherwise just return an error code
-    return "GUID_FORMAT_FAILED";
-  }
-
-  local ret = "";
-  for ( i in [[3, 2, 1, 0], [5, 4], [7, 6], [8, 9],  [10, 11, 12, 13, 14, 15]] ) {
-    for ( j in i ) {
-      local bt: uint8 = *bts.at(j);
-      ret = ret + "%02x" % bt;
-      if ( j in [0, 4, 6, 9] ) {
-        ret = ret + "-";
-      }
+    # We need to have exactly 16 bytes...
+    if (|bts| != 16) {
+        # ... and otherwise just return an error code
+        return "GUID_FORMAT_FAILED";
     }
-  }
-  return ret;
+
+    local ret = "";
+    for (i in [[3, 2, 1, 0], [5, 4], [7, 6], [8, 9], [10, 11, 12, 13, 14, 15]]) {
+        for (j in i) {
+            local bt: uint8 = *bts.at(j);
+            ret = ret + "%02x" % bt;
+            if (j in [0, 4, 6, 9]) {
+                ret = ret + "-";
+            }
+        }
+    }
+    return ret;
 }
 
-public function bytes_sid_to_hex_repr(bts: bytes) : string {
-  local ret = "";
-  local cnt = 0;
+public function bytes_sid_to_hex_repr(bts: bytes): string {
+    local ret = "";
+    local cnt = 0;
 
-  while ( cnt < |bts| ) {
-    local bt: uint8 = *bts.at(cnt);
-    ret = ret + "%02x" % bt;
+    while (cnt < |bts|) {
+        local bt: uint8 = *bts.at(cnt);
+        ret = ret + "%02x" % bt;
 
-    if ( cnt < |bts|-1 ) {
-      ret = ret + ":";
+        if (cnt < |bts| - 1) {
+            ret = ret + ":";
+        }
+        cnt += 1;
     }
-    cnt += 1;
-  }
-  return ret;
+    return ret;
 }
 
-public function bytes_sid_to_SID_repr(bts: bytes) : string {
-  # Example: SID -> S-1-5-21-1153942841-488947194-1912431946
+public function bytes_sid_to_SID_repr(bts: bytes): string {
+    # Example: SID -> S-1-5-21-1153942841-488947194-1912431946
 
-  # Needs to be exactly 24 bytes
-  if ( |bts| != 24 ) {
-    # ... and otherwise just return an error code
-    return "SID_FORMAT_FAILED";
-  }
-
-  local ret = "S-";
-  local cnt = 0;
-
-  # Mixed little and big endian, so turn everything to big endian first...
-  # Byte 1 seems to be skipped when parsing the SID
-  for ( i in [[0], [2, 3, 4, 5, 6, 7], [11, 10, 9, 8], [15, 14, 13, 12], [19, 18, 17, 16], [23, 22, 21, 20]] ) {
-    local dec_val_rep: bytes = b"";
-    for ( j in i ) {
-      local bt: uint8 = *bts.at(j);
-      dec_val_rep += bt;
-      cnt += 1;
+    # Needs to be exactly 24 bytes
+    if (|bts| != 24) {
+        # ... and otherwise just return an error code
+        return "SID_FORMAT_FAILED";
     }
 
-    # ... so we can represent this integer value in big endian
-    ret = ret + "%u" % dec_val_rep.to_uint(spicy::ByteOrder::Big);
+    local ret = "S-";
+    local cnt = 0;
 
-    # Only print the dash when we're not at the end
-    if ( cnt < 23 ) {
-      ret = ret + "-";
+    # Mixed little and big endian, so turn everything to big endian first...
+    # Byte 1 seems to be skipped when parsing the SID
+    for (i in [[0], [2, 3, 4, 5, 6, 7], [11, 10, 9, 8], [15, 14, 13, 12], [19, 18, 17, 16], [23, 22, 21, 20]]) {
+        local dec_val_rep: bytes = b"";
+        for (j in i) {
+            local bt: uint8 = *bts.at(j);
+            dec_val_rep += bt;
+            cnt += 1;
+        }
+
+        # ... so we can represent this integer value in big endian
+        ret = ret + "%u" % dec_val_rep.to_uint(spicy::ByteOrder::Big);
+
+        # Only print the dash when we're not at the end
+        if (cnt < 23) {
+            ret = ret + "-";
+        }
     }
-  }
-  return ret;
+    return ret;
 }
 
+public function uint32_to_hex_repr(bts: bytes): string {
+    # Needs to be exactly 4 bytes
+    if (|bts| != 4) {
+        # ... and otherwise just return an error code
+        return "HEX_FORMAT_FAILED";
+    }
 
-public function uint32_to_hex_repr(bts: bytes) : string {
-  # Needs to be exactly 4 bytes
-  if ( |bts| != 4 ) {
-    # ... and otherwise just return an error code
-    return "HEX_FORMAT_FAILED";
-  }
-
-  # Workaround to print the hex value of an uint32, prepended with '0x'
-  local ret = "0x";
-  for ( i in [3, 2, 1, 0] ) {
-    local bt: uint8 = *bts.at(i);
-    ret = ret + "%02x" % bt;
-  }
-  return ret;
+    # Workaround to print the hex value of an uint32, prepended with '0x'
+    local ret = "0x";
+    for (i in [3, 2, 1, 0]) {
+        local bt: uint8 = *bts.at(i);
+        ret = ret + "%02x" % bt;
+    }
+    return ret;
 }
 
 # Helper to compute a string representation of a `SearchFilter`.
 public function string_representation(search_filter: SearchFilter): string {
     local repr: string;
 
-    switch ( local fType = search_filter.filterType ) {
-      # The NOT, AND and OR filter types are trees and may hold many leaf nodes. So recursively get
-      # the stringPresentations for the leaf nodes and add them all in one final statement.
+    switch (local fType = search_filter.filterType) {
+        # The NOT, AND and OR filter types are trees and may hold many leaf nodes. So recursively get
+        # the stringPresentations for the leaf nodes and add them all in one final statement.
+        case FilterType::FILTER_NOT: {
+            repr = "(!%s)" % search_filter.FILTER_NOT.searchfilter.stringRepresentation;
+        }
+        case FilterType::FILTER_AND,
+             FilterType::FILTER_OR: {
+            local nestedObj: ParseNestedAndOr;
+            local printChar = "";
 
-      case FilterType::FILTER_NOT: {
-        repr = "(!%s)" % search_filter.FILTER_NOT.searchfilter.stringRepresentation;
-      }
+            if (fType == FilterType::FILTER_AND) {
+                printChar = "&";
+                nestedObj = search_filter.FILTER_AND;
+            } else {
+                printChar = "|";
+                nestedObj = search_filter.FILTER_OR;
+            }
 
-      case FilterType::FILTER_AND, FilterType::FILTER_OR: {
-        local nestedObj: ParseNestedAndOr;
-        local printChar = "";
+            # Build the nested AND/OR statement in this loop. When we encounter the first element,
+            # we open the statement. At the second element, we close our first complete statement. For every
+            # following statement, we extend the AND/OR statement by wrapping it around the already completed
+            # statement. Although it is also valid to not do this wrapping, which is logically equivalent, e.g:
+            #
+            #           (1)                         (2)
+            #   (?(a=b)(c=d)(e=f))    vs   (?(?(a=b)(c=d))(e=f))
+            #
+            # the latter version is also shown by Wireshark. So although the parsed structure actually represents
+            # version (1) of the query, we now choose to print version (2). If this is not desirable, swap the code
+            # for the following:
+            #
+            # # Construct the nested structure, like (1)
+            # for ( SF in nestedObj.searchfilters ) {
+            #    self.stringRepresentation = self.stringRepresentation + SF.stringRepresentation
+            # }
+            # # Close it with brackets and put the correct printChar for AND/OR in the statement
+            # self.stringRepresentation =  "(%s" % printChar + self.stringRepresentation + ")";
+            #
 
-        if ( fType == FilterType::FILTER_AND ) {
-          printChar = "&";
-          nestedObj = search_filter.FILTER_AND;
-        } else {
-          printChar = "|";
-          nestedObj = search_filter.FILTER_OR;
+            local i = 0;
+            for (searchFilter in nestedObj.searchfilters) {
+                switch (i) {
+                    case 0: {
+                        repr = "(%s%s%s" % (printChar, searchFilter.stringRepresentation,
+                        # If we have exactly one element immediately close the statement since we are done.
+                        |nestedObj.searchfilters| == 1 ? ")" : "");
+                    }
+                    case 1: {
+                        repr = repr + searchFilter.stringRepresentation + ")";
+                    }
+                    default: {
+                        repr = "(%s" % printChar + repr + searchFilter.stringRepresentation + ")";
+                    }
+                }
+                i += 1;
+            }
         }
 
-        # Build the nested AND/OR statement in this loop. When we encounter the first element,
-        # we open the statement. At the second element, we close our first complete statement. For every
-        # following statement, we extend the AND/OR statement by wrapping it around the already completed
-        # statement. Although it is also valid to not do this wrapping, which is logically equivalent, e.g:
-        #
-        #           (1)                         (2)
-        #   (?(a=b)(c=d)(e=f))    vs   (?(?(a=b)(c=d))(e=f))
-        #
-        # the latter version is also shown by Wireshark. So although the parsed structure actually represents
-        # version (1) of the query, we now choose to print version (2). If this is not desirable, swap the code
-        # for the following:
-        #
-        # # Construct the nested structure, like (1)
-        # for ( SF in nestedObj.searchfilters ) {
-        #    self.stringRepresentation = self.stringRepresentation + SF.stringRepresentation
-        # }
-        # # Close it with brackets and put the correct printChar for AND/OR in the statement
-        # self.stringRepresentation =  "(%s" % printChar + self.stringRepresentation + ")";
-        #
-
-        local i = 0;
-        for ( searchFilter in nestedObj.searchfilters ) {
-          switch ( i ) {
-            case 0: {
-              repr = "(%s%s%s" % (
-                  printChar,
-                  searchFilter.stringRepresentation,
-                  # If we have exactly one element immediately close the statement since we are done.
-                  |nestedObj.searchfilters| == 1 ? ")" : ""
-              );
-            }
-            case 1: {
-              repr = repr + searchFilter.stringRepresentation + ")";
-            }
-            default: {
-              repr = "(%s" % printChar + repr + searchFilter.stringRepresentation + ")";
-            }
-          }
-          i += 1;
+        # The following FilterTypes are leaf nodes and can thus be represented in a statement
+        case FilterType::FILTER_EXT: {
+            # For extended search filters the meaning of the individual fields in
+            # `DecodedAttributeValue` is slightly different.
+            repr = "(%s:%s:=%s)" % (search_filter.FILTER_EXT.assertionValueDecoded, search_filter.FILTER_EXT.attributeDesc.decode(), search_filter.FILTER_EXT.matchValue);
         }
-      }
+        case FilterType::FILTER_APPROX: {
+            repr = "(%s~=%s)" % (search_filter.FILTER_APPROX.attributeDesc.decode(), search_filter.FILTER_APPROX.assertionValueDecoded);
+        }
+        case FilterType::FILTER_EQ: {
+            repr = "(%s=%s)" % (search_filter.FILTER_EQ.attributeDesc.decode(), search_filter.FILTER_EQ.assertionValueDecoded);
+        }
+        case FilterType::FILTER_GE: {
+            repr = "(%s>=%s)" % (search_filter.FILTER_GE.attributeDesc.decode(), search_filter.FILTER_GE.assertionValueDecoded);
+        }
+        case FilterType::FILTER_LE: {
+            repr = "(%s<=%s)" % (search_filter.FILTER_LE.attributeDesc.decode(), search_filter.FILTER_LE.assertionValueDecoded);
+        }
+        case FilterType::FILTER_SUBSTR: {
+            local anys: string = "";
+            if (|search_filter.FILTER_SUBSTR.anys| > 0)
+                anys = b"*".join(search_filter.FILTER_SUBSTR.anys).decode() + "*";
 
-    # The following FilterTypes are leaf nodes and can thus be represented in a statement
-
-      case FilterType::FILTER_EXT: {
-        # For extended search filters the meaning of the individual fields in
-        # `DecodedAttributeValue` is slightly different.
-        repr = "(%s:%s:=%s)" % (search_filter.FILTER_EXT.assertionValueDecoded,
-                                search_filter.FILTER_EXT.attributeDesc.decode(),
-                                search_filter.FILTER_EXT.matchValue);
-      }
-      case FilterType::FILTER_APPROX: {
-        repr = "(%s~=%s)" % (search_filter.FILTER_APPROX.attributeDesc.decode(),
-                             search_filter.FILTER_APPROX.assertionValueDecoded);
-      }
-      case FilterType::FILTER_EQ: {
-        repr = "(%s=%s)" % (search_filter.FILTER_EQ.attributeDesc.decode(),
-                            search_filter.FILTER_EQ.assertionValueDecoded);
-      }
-      case FilterType::FILTER_GE: {
-        repr = "(%s>=%s)" % (search_filter.FILTER_GE.attributeDesc.decode(),
-                             search_filter.FILTER_GE.assertionValueDecoded);
-      }
-      case FilterType::FILTER_LE: {
-        repr = "(%s<=%s)" % (search_filter.FILTER_LE.attributeDesc.decode(),
-                             search_filter.FILTER_LE.assertionValueDecoded);
-      }
-      case FilterType::FILTER_SUBSTR: {
-        local anys: string = "";
-        if ( |search_filter.FILTER_SUBSTR.anys| > 0 )
-          anys = b"*".join(search_filter.FILTER_SUBSTR.anys).decode() + "*";
-
-        repr  = "(%s=%s*%s%s)" % (search_filter.FILTER_SUBSTR.attributeDesc.decode(),
-                                  search_filter.FILTER_SUBSTR.initial,
-                                  anys,
-                                  search_filter.FILTER_SUBSTR.final);
-      }
-      case FilterType::FILTER_PRESENT: {
-        repr = "(%s=*)" % search_filter.FILTER_PRESENT;
-      }
+            repr = "(%s=%s*%s%s)" % (search_filter.FILTER_SUBSTR.attributeDesc.decode(), search_filter.FILTER_SUBSTR.initial, anys, search_filter.FILTER_SUBSTR.final);
+        }
+        case FilterType::FILTER_PRESENT: {
+            repr = "(%s=*)" % search_filter.FILTER_PRESENT;
+        }
     }
 
     return repr;
@@ -843,165 +816,146 @@ public function string_representation(search_filter: SearchFilter): string {
 
 # Represents an (extended) key-value pair present in SearchFilters
 type DecodedAttributeValue = unit(fType: FilterType) {
-  var assertionValueDecoded: string = "";
+    var assertionValueDecoded: string = "";
 
-  : uint8;
-  attributeDesc_len: uint8;
-  attributeDesc: bytes &size=self.attributeDesc_len;
+    : uint8;
+    attributeDesc_len: uint8;
+    attributeDesc: bytes &size=self.attributeDesc_len;
 
-  : uint8;
-  assertionValue_len: uint8;
-  assertionValue: bytes &size=self.assertionValue_len;
+    : uint8;
+    assertionValue_len: uint8;
+    assertionValue: bytes &size=self.assertionValue_len;
 
-  # Only for the FILTER_EXT type, parse extra fields
-  : uint8 if ( fType == FilterType::FILTER_EXT );
-  matchValue_len: uint8 if( fType == FilterType::FILTER_EXT );
-  matchValue: bytes &size=self.matchValue_len if ( fType == FilterType::FILTER_EXT );
+    # Only for the FILTER_EXT type, parse extra fields
+    : uint8 if(fType == FilterType::FILTER_EXT);
+    matchValue_len: uint8 if(fType == FilterType::FILTER_EXT);
+    matchValue: bytes &size=self.matchValue_len if(fType == FilterType::FILTER_EXT);
 
-  on %done {
-    switch ( self.attributeDesc ) {
-      # Special parsing required for some CLDAP attributes,
-      # see https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/895a7744-aff3-4f64-bcfa-f8c05915d2e9
+    on %done {
+        switch (self.attributeDesc) {
+            # Special parsing required for some CLDAP attributes,
+            # see https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/895a7744-aff3-4f64-bcfa-f8c05915d2e9
+            case b"DomainGuid": {
+                self.assertionValueDecoded = utf16_guid_to_hex_repr(self.assertionValue);
+            }
+            case b"objectSid",
+                 b"AAC": {
+                self.assertionValueDecoded = bytes_sid_to_hex_repr(self.assertionValue);
+            }
+            case b"DomainSid": {
+                self.assertionValueDecoded = bytes_sid_to_SID_repr(self.assertionValue);
+            }
+            case b"NtVer": {
+                self.assertionValueDecoded = uint32_to_hex_repr(self.assertionValue);
+            }
 
-      case b"DomainGuid": {
-        self.assertionValueDecoded = utf16_guid_to_hex_repr(self.assertionValue);
-      }
-
-      case b"objectSid", b"AAC": {
-        self.assertionValueDecoded = bytes_sid_to_hex_repr(self.assertionValue);
-      }
-
-      case b"DomainSid": {
-        self.assertionValueDecoded = bytes_sid_to_SID_repr(self.assertionValue);
-      }
-
-      case b"NtVer": {
-        self.assertionValueDecoded = uint32_to_hex_repr(self.assertionValue);
-      }
-
-      # By default, decode with UTF-8
-      default: {
-        self.assertionValueDecoded = self.assertionValue.decode();
-      }
+            # By default, decode with UTF-8
+            default: {
+                self.assertionValueDecoded = self.assertionValue.decode();
+            }
+        }
     }
-  }
 };
 
 type SubstringFilter = unit {
-  var initial: string;
-  var final: string;
-  var anys: vector<string>;
+    var initial: string;
+    var final: string;
+    var anys: vector<string>;
 
-  : uint8;  # filter tag
-  attributeDesc_len: uint8;
-  attributeDesc: bytes &size=self.attributeDesc_len;
+    : uint8; # filter tag
+    attributeDesc_len: uint8;
+    attributeDesc: bytes &size=self.attributeDesc_len;
 
-  # Crunch through the sequence/choice of substrings.
-  #
-  # https://datatracker.ietf.org/doc/html/rfc4511#section-4.5.1
-  header: ASN1::ASN1Header;
-  : ASN1::ASN1Message(False)[] &size=self.header.len.len foreach {
-    local data = $$.application_data.decode();
-    if ( $$.application_id == 0 ) {
-      self.initial = data;
-    } else if ( $$.application_id == 1 ) {
-      self.anys.push_back(data);
-    } else if ( $$.application_id == 2 ) {
-      self.final = data;
-    } else {
-      throw "invalid substring choice %s" % $$.application_id;
+    # Crunch through the sequence/choice of substrings.
+    #
+    # https://datatracker.ietf.org/doc/html/rfc4511#section-4.5.1
+    header: ASN1::ASN1Header;
+    : ASN1::ASN1Message(False)[] &size=self.header.len.len foreach {
+        local data = $$.application_data.decode();
+        if ($$.application_id == 0) {
+            self.initial = data;
+        } else if ($$.application_id == 1) {
+            self.anys.push_back(data);
+        } else if ($$.application_id == 2) {
+            self.final = data;
+        } else {
+            throw "invalid substring choice %s" % $$.application_id;
+        }
     }
-  }
 };
 
 type SearchFilter = unit {
-  var filterType: FilterType = FilterType::Undef;
-  var filterBytes: bytes = b"";
-  var filterLen: uint64 = 0;
-  var stringRepresentation: string = "";
+    var filterType: FilterType = FilterType::Undef;
+    var filterBytes: bytes = b"";
+    var filterLen: uint64 = 0;
+    var stringRepresentation: string = "";
 
-  : ASN1::ASN1Message(True) {
-    if ($$?.application_id) {
-      self.filterType = cast<FilterType>(cast<uint8>($$.application_id));
-      self.filterBytes = $$.application_data;
-      self.filterLen = $$.head.len.len;
-    } else {
-      self.filterType = FilterType::FILTER_INVALID;
+    : ASN1::ASN1Message(True) {
+        if ($$?.application_id) {
+            self.filterType = cast<FilterType>(cast<uint8>($$.application_id));
+            self.filterBytes = $$.application_data;
+            self.filterLen = $$.head.len.len;
+        } else {
+            self.filterType = FilterType::FILTER_INVALID;
+        }
     }
-  }
 
-  switch ( self.filterType ) {
+    switch (self.filterType) {
 
-    # FilterTypes that hold one or more SearchFilters inside them
+        # FilterTypes that hold one or more SearchFilters inside them
+        FilterType::FILTER_AND -> FILTER_AND: ParseNestedAndOr() &parse-from=self.filterBytes;
+        FilterType::FILTER_OR -> FILTER_OR: ParseNestedAndOr() &parse-from=self.filterBytes;
+        FilterType::FILTER_NOT -> FILTER_NOT: ParseNestedNot() &parse-from=self.filterBytes;
 
-    FilterType::FILTER_AND     -> FILTER_AND:     ParseNestedAndOr()
-                                                  &parse-from=self.filterBytes;
-    FilterType::FILTER_OR      -> FILTER_OR:      ParseNestedAndOr()
-                                                  &parse-from=self.filterBytes;
-    FilterType::FILTER_NOT     -> FILTER_NOT:     ParseNestedNot()
-                                                  &parse-from=self.filterBytes;
+        # FilterTypes that we can actually convert to a string
+        FilterType::FILTER_EQ -> FILTER_EQ: DecodedAttributeValue(FilterType::FILTER_EQ) &parse-from=self.filterBytes;
+        FilterType::FILTER_SUBSTR -> FILTER_SUBSTR: SubstringFilter &parse-from=self.filterBytes;
+        FilterType::FILTER_GE -> FILTER_GE: DecodedAttributeValue(FilterType::FILTER_GE) &parse-from=self.filterBytes;
+        FilterType::FILTER_LE -> FILTER_LE: DecodedAttributeValue(FilterType::FILTER_LE) &parse-from=self.filterBytes;
+        FilterType::FILTER_APPROX -> FILTER_APPROX: DecodedAttributeValue(FilterType::FILTER_APPROX) &parse-from=self.filterBytes;
+        FilterType::FILTER_EXT -> FILTER_EXT: DecodedAttributeValue(FilterType::FILTER_EXT) &parse-from=self.filterBytes;
+        FilterType::FILTER_PRESENT -> FILTER_PRESENT: ASN1::ASN1OctetString(self.filterLen, False) &convert=$$.value.decode(spicy::Charset::ASCII) &parse-from=self.filterBytes;
+    };
 
-    # FilterTypes that we can actually convert to a string
+    # So when you're done with recursively parsing the filters, we can now leverage the tree structure to
+    # recursively get the stringRepresentations for those leaves, which are SearchFilters
 
-    FilterType::FILTER_EQ      -> FILTER_EQ:      DecodedAttributeValue(FilterType::FILTER_EQ)
-                                                  &parse-from=self.filterBytes;
-    FilterType::FILTER_SUBSTR  -> FILTER_SUBSTR:  SubstringFilter
-                                                  &parse-from=self.filterBytes;
-    FilterType::FILTER_GE      -> FILTER_GE:      DecodedAttributeValue(FilterType::FILTER_GE)
-                                                  &parse-from=self.filterBytes;
-    FilterType::FILTER_LE      -> FILTER_LE:      DecodedAttributeValue(FilterType::FILTER_LE)
-                                                  &parse-from=self.filterBytes;
-    FilterType::FILTER_APPROX  -> FILTER_APPROX:  DecodedAttributeValue(FilterType::FILTER_APPROX)
-                                                  &parse-from=self.filterBytes;
-    FilterType::FILTER_EXT     -> FILTER_EXT:     DecodedAttributeValue(FilterType::FILTER_EXT)
-                                                  &parse-from=self.filterBytes;
-    FilterType::FILTER_PRESENT -> FILTER_PRESENT: ASN1::ASN1OctetString(self.filterLen, False)
-                                                  &convert=$$.value.decode(spicy::Charset::ASCII)
-                                                  &parse-from=self.filterBytes;
-  };
+    on %done {
+        self.stringRepresentation = string_representation(self);
+    }
 
-  # So when you're done with recursively parsing the filters, we can now leverage the tree structure to
-  # recursively get the stringRepresentations for those leaves, which are SearchFilters
-
-  on %done {
-    self.stringRepresentation = string_representation(self);
-  }
-
-  on %error {
-    self.stringRepresentation = "FILTER_PARSING_ERROR";
-  }
-
+    on %error {
+        self.stringRepresentation = "FILTER_PARSING_ERROR";
+    }
 };
 
-public type SearchRequest = unit(inout message: Message)  {
-  baseObject: ASN1::ASN1Message(True) &convert=$$.body.str_value {
-    message.obj = self.baseObject;
-  }
-  scope: ASN1::ASN1Message(True) &convert=cast<SearchScope>(cast<uint8>($$.body.num_value))
-                                 &default=SearchScope::Undef {
-    message.arg = "%s" % self.scope;
-  }
-  deref: ASN1::ASN1Message(True) &convert=cast<SearchDerefAlias>(cast<uint8>($$.body.num_value))
-                                 &default=SearchDerefAlias::Undef;
-  sizeLimit: ASN1::ASN1Message(True) &convert=$$.body.num_value &default=0;
-  timeLimit: ASN1::ASN1Message(True) &convert=$$.body.num_value &default=0;
-  typesOnly: ASN1::ASN1Message(True) &convert=$$.body.bool_value &default=False;
-  filter: SearchFilter &convert=$$.stringRepresentation;
-  attributes: AttributeSelection &convert=$$.attributes;
+public type SearchRequest = unit(inout message: Message) {
+    baseObject: ASN1::ASN1Message(True) &convert=$$.body.str_value {
+        message.obj = self.baseObject;
+    }
+    scope: ASN1::ASN1Message(True) &convert=cast<SearchScope>(cast<uint8>($$.body.num_value)) &default=SearchScope::Undef {
+        message.arg = "%s" % self.scope;
+    }
+    deref: ASN1::ASN1Message(True) &convert=cast<SearchDerefAlias>(cast<uint8>($$.body.num_value)) &default=SearchDerefAlias::Undef;
+    sizeLimit: ASN1::ASN1Message(True) &convert=$$.body.num_value &default=0;
+    timeLimit: ASN1::ASN1Message(True) &convert=$$.body.num_value &default=0;
+    typesOnly: ASN1::ASN1Message(True) &convert=$$.body.bool_value &default=False;
+    filter: SearchFilter &convert=$$.stringRepresentation;
+    attributes: AttributeSelection &convert=$$.attributes;
 };
 
 type SearchResultEntry = unit(inout message: Message) {
-  objectName: ASN1::ASN1Message(True) &convert=$$.body.str_value {
-    message.obj = self.objectName;
-  }
-  # TODO: if we want to descend down into PartialAttributeList
-  attributes: ASN1::ASN1Message(True);
+    objectName: ASN1::ASN1Message(True) &convert=$$.body.str_value {
+        message.obj = self.objectName;
+    }
+    # TODO: if we want to descend down into PartialAttributeList
+    attributes: ASN1::ASN1Message(True);
 };
 
 type SearchResultDone = unit(inout message: Message) {
-  : Result {
-    message.result_ = $$;
-  }
+    : Result {
+        message.result_ = $$;
+    }
 };
 
 # TODO: implement SearchResultReference
@@ -1014,17 +968,17 @@ type SearchResultDone = unit(inout message: Message) {
 # https://tools.ietf.org/html/rfc4511#section-4.6
 
 type ModifyRequest = unit(inout message: Message) {
-  objectName: ASN1::ASN1Message(True) &convert=$$.body.str_value {
-    message.obj = self.objectName;
-  }
+    objectName: ASN1::ASN1Message(True) &convert=$$.body.str_value {
+        message.obj = self.objectName;
+    }
 
-  # TODO: parse changes
+    # TODO: parse changes
 };
 
 type ModifyResponse = unit(inout message: Message) {
-  : Result {
-    message.result_ = $$;
-  }
+    : Result {
+        message.result_ = $$;
+    }
 };
 
 #-----------------------------------------------------------------------------
@@ -1038,9 +992,9 @@ type ModifyResponse = unit(inout message: Message) {
 # };
 
 type AddResponse = unit(inout message: Message) {
-  : Result {
-    message.result_ = $$;
-  }
+    : Result {
+        message.result_ = $$;
+    }
 };
 
 #-----------------------------------------------------------------------------
@@ -1048,15 +1002,15 @@ type AddResponse = unit(inout message: Message) {
 # https://tools.ietf.org/html/rfc4511#section-4.8
 
 type DelRequest = unit(inout message: Message) {
-  objectName: ASN1::ASN1Message(True) &convert=$$.body.str_value {
-    message.obj = self.objectName;
-  }
+    objectName: ASN1::ASN1Message(True) &convert=$$.body.str_value {
+        message.obj = self.objectName;
+    }
 };
 
 type DelResponse = unit(inout message: Message) {
-  : Result {
-    message.result_ = $$;
-  }
+    : Result {
+        message.result_ = $$;
+    }
 };
 
 #-----------------------------------------------------------------------------
@@ -1069,9 +1023,9 @@ type DelResponse = unit(inout message: Message) {
 # };
 
 type ModDNResponse = unit(inout message: Message) {
-  : Result {
-    message.result_ = $$;
-  }
+    : Result {
+        message.result_ = $$;
+    }
 };
 
 #-----------------------------------------------------------------------------
@@ -1084,9 +1038,9 @@ type ModDNResponse = unit(inout message: Message) {
 # };
 
 type CompareResponse = unit(inout message: Message) {
-  : Result {
-    message.result_ = $$;
-  }
+    : Result {
+        message.result_ = $$;
+    }
 };
 
 #-----------------------------------------------------------------------------
@@ -1094,68 +1048,66 @@ type CompareResponse = unit(inout message: Message) {
 # https://tools.ietf.org/html/rfc4511#section-4.11
 
 type AbandonRequest = unit(inout message: Message) {
-  messageID: ASN1::ASN1Message(True) &convert=$$.body.num_value {
-    message.obj = "%d" % (self.messageID);
-  }
+    messageID: ASN1::ASN1Message(True) &convert=$$.body.num_value {
+        message.obj = "%d" % (self.messageID);
+    }
 };
 
 #-----------------------------------------------------------------------------
 # Extended Operation
 # https://tools.ietf.org/html/rfc4511#section-4.12
 type ExtendedRequest = unit(inout message: Message, ctx: Ctx&) {
-  var requestValue: bytes;
-  header: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::ContextSpecific);
-  requestName: bytes &size=self.header.len.len &convert=$$.decode(spicy::Charset::ASCII) {
-    message.obj = $$;
-  }
+    var requestValue: bytes;
+    header: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::ContextSpecific);
+    requestName: bytes &size=self.header.len.len &convert=$$.decode(spicy::Charset::ASCII) {
+        message.obj = $$;
+    }
 
-  # If there's more byte to parse, it's the requestValue.
-  : ASN1::ASN1Message(False)
-      &requires=($$.head.tag.class == ASN1::ASN1Class::ContextSpecific)
-      if ( message.opLen > self.offset() ) {
+    # If there's more byte to parse, it's the requestValue.
+    : ASN1::ASN1Message(False) &requires=($$.head.tag.class == ASN1::ASN1Class::ContextSpecific) if(message.opLen > self.offset()) {
 
-    self.requestValue = $$.application_data;
-  }
+        self.requestValue = $$.application_data;
+    }
 
-  on %done {
-    # Did the client request StartTLS?
-    #
-    # https://datatracker.ietf.org/doc/html/rfc4511#section-4.14.1
-    if ( self.requestName == "1.3.6.1.4.1.1466.20037" )
-      ctx.startTlsRequested = True;
-  }
+    on %done {
+        # Did the client request StartTLS?
+        #
+        # https://datatracker.ietf.org/doc/html/rfc4511#section-4.14.1
+        if (self.requestName == "1.3.6.1.4.1.1466.20037")
+            ctx.startTlsRequested = True;
+    }
 };
 
 #-----------------------------------------------------------------------------
 type ExtendedResponseEntry = unit(inout r: ExtendedResponse) {
-  : ASN1::ASN1Message(False) &requires=($$.head.tag.class == ASN1::ASN1Class::ContextSpecific) {
-    if ( $$.head.tag.type_ == ASN1::ASN1Type(10) )
-      r.responseName = $$.application_data;
-    else if ( $$.head.tag.type_ == ASN1::ASN1Type(11) )
-      r.responseValue = $$.application_data;
-    else
-      throw "Unhandled extended response tag %s" % $$.head.tag;
-  }
+    : ASN1::ASN1Message(False) &requires=($$.head.tag.class == ASN1::ASN1Class::ContextSpecific) {
+        if ($$.head.tag.type_ == ASN1::ASN1Type(10))
+            r.responseName = $$.application_data;
+        else if ($$.head.tag.type_ == ASN1::ASN1Type(11))
+            r.responseValue = $$.application_data;
+        else
+            throw "Unhandled extended response tag %s" % $$.head.tag;
+    }
 };
 
 #-----------------------------------------------------------------------------
 type ExtendedResponse = unit(inout message: Message, ctx: Ctx&) {
-  var responseName: bytes;
-  var responseValue: bytes;
-  : Result {
-    message.result_ = $$;
-  }
+    var responseName: bytes;
+    var responseValue: bytes;
+    : Result {
+        message.result_ = $$;
+    }
 
-  # Try to parse two ASN1 entries if there are bytes left in the unit.
-  # Both are optional and identified by context specific tagging.
-  : ExtendedResponseEntry(self) if ( message.opLen > self.offset() );
-  : ExtendedResponseEntry(self) if ( message.opLen > self.offset() );
+    # Try to parse two ASN1 entries if there are bytes left in the unit.
+    # Both are optional and identified by context specific tagging.
+    : ExtendedResponseEntry(self) if(message.opLen > self.offset());
+    : ExtendedResponseEntry(self) if(message.opLen > self.offset());
 
-  on %done {
-    # Client had requested StartTLS and it was successful? Switch to SSL.
-    if ( ctx.startTlsRequested && message.result_.code == ResultCode::SUCCESS )
-      ctx.messageMode = MessageMode::TLS;
-  }
+    on %done {
+        # Client had requested StartTLS and it was successful? Switch to SSL.
+        if (ctx.startTlsRequested && message.result_.code == ResultCode::SUCCESS)
+            ctx.messageMode = MessageMode::TLS;
+    }
 };
 
 #-----------------------------------------------------------------------------
@@ -1168,5 +1120,5 @@ type ExtendedResponse = unit(inout message: Message, ctx: Ctx&) {
 # };
 
 on LDAP::Message::%done {
-  spicy::accept_input();
+    spicy::accept_input();
 }

@@ -52,8 +52,7 @@ repos:
       exclude: '^(.typos.toml|src/SmithWaterman.cc|testing/.*|auxil/.*|scripts/base/frameworks/files/magic/.*|CHANGES|scripts/base/protocols/ssl/mozilla-ca-list.zeek)$'
 
 - repo: https://github.com/bbannier/spicy-format
-  rev: v0.25.0
+  rev: v0.26.0
   hooks:
     - id: spicy-format
-      # TODO: Reformat existing large analyzers just before 8.0.
-      exclude: '(^testing/.*)|(protocol/ldap/.*)|(protocol/quic/.*)|(protocol/websocket/.*)'
+      exclude: '^testing/.*'

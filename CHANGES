@@ -1,3 +1,11 @@
+8.0.0-dev.775 | 2025-07-29 10:05:20 +0200
+
+  * Update .git-blame-ignore-revs (Arne Welzel, Corelight)
+
+  * analyzer/protocol: Reformat with spicy-format (Arne Welzel, Corelight)
+
+  * pre-commit-config: Bump spicy-format to 0.26.0 (Arne Welzel, Corelight)
+
 8.0.0-dev.770 | 2025-07-28 14:18:15 -0700
 
   * dce-rpc: Make named_pipe filed docs extensive (Arne Welzel, Corelight)

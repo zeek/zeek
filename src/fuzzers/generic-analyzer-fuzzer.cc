@@ -17,9 +17,11 @@
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/analyzer/protocol/tcp/TCP.h"
+#include "zeek/conn_key/Manager.h"
 #include "zeek/fuzzers/FuzzBuffer.h"
 #include "zeek/fuzzers/fuzzer-setup.h"
 #include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
+#include "zeek/packet_analysis/protocol/ip/conn_key/IPBasedConnKey.h"
 #include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
 #include "zeek/packet_analysis/protocol/udp/UDPSessionAdapter.h"
 #include "zeek/session/Manager.h"
@@ -33,7 +35,7 @@ static const char* FUZZ_ANALYZER_TRANSPORT = TOSTRING(ZEEK_FUZZ_ANALYZER_TRANSPO
 
 class Fuzzer {
 public:
-    Fuzzer(TransportProto proto, const zeek::Tag& analyzer_tag) : proto{proto}, analyzer_tag{analyzer_tag} {}
+    Fuzzer(TransportProto proto, zeek::Tag analyzer_tag) : proto{proto}, analyzer_tag{std::move(analyzer_tag)} {}
 
     virtual ~Fuzzer() {};
 
@@ -41,16 +43,12 @@ public:
         static constexpr double network_time_start = 1439471031;
         zeek::run_state::detail::update_network_time(network_time_start);
 
+        zeek::ConnKeyPtr ck = zeek::conn_key_mgr->GetFactory().NewConnKey();
+        zeek::IPBasedConnKeyPtr key = zeek::IPBasedConnKeyPtr(static_cast<zeek::IPBasedConnKey*>(ck.release()));
+        key->InitTuple(zeek::IPAddr("1.2.3.4"), htons(23132), zeek::IPAddr("5.6.7.8"), htons(80), proto, false);
+
         zeek::Packet p;
-        zeek::ConnTuple conn_id;
-        conn_id.src_addr = zeek::IPAddr("1.2.3.4");
-        conn_id.dst_addr = zeek::IPAddr("5.6.7.8");
-        conn_id.src_port = htons(23132);
-        conn_id.dst_port = htons(80);
-        conn_id.is_one_way = false;
-        conn_id.proto = proto;
-        zeek::detail::ConnKey key(conn_id);
-        zeek::Connection* conn = new zeek::Connection(key, network_time_start, &conn_id, 1, &p);
+        zeek::Connection* conn = new zeek::Connection(std::move(key), network_time_start, 1, &p);
         conn->SetTransport(proto);
         zeek::session_mgr->Insert(conn);
         return conn;

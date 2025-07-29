@@ -54,10 +54,7 @@ class Frame;
 
 namespace cluster {
 class Backend;
-
-namespace detail {
 class Event;
-}
 } // namespace cluster
 
 namespace plugin {
@@ -433,7 +430,7 @@ public:
     /**
      * Constructor with cluster event argument.
      */
-    explicit HookArgument(zeek::cluster::detail::Event* event) {
+    explicit HookArgument(zeek::cluster::Event* event) {
         type = CLUSTER_EVENT;
         arg.cluster_event = event;
     }
@@ -592,7 +589,7 @@ public:
     /**
      * Returns the value for a cluster event argument.
      */
-    const zeek::cluster::detail::Event* AsClusterEvent() const {
+    const zeek::cluster::Event* AsClusterEvent() const {
         assert(type == CLUSTER_EVENT);
         return arg.cluster_event;
     }
@@ -627,7 +624,7 @@ private:
         const zeek::detail::Location* loc;
         const Packet* packet;
         const cluster::Backend* cluster_backend;
-        const cluster::detail::Event* cluster_event;
+        const cluster::Event* cluster_event;
     } arg;
 
     // Outside union because these have dtors.
@@ -1148,7 +1145,7 @@ protected:
      *         operation should be skipped.
      */
     virtual bool HookPublishEvent(zeek::cluster::Backend& backend, const std::string& topic,
-                                  zeek::cluster::detail::Event& event);
+                                  zeek::cluster::Event& event);
 
     // Meta hooks.
     virtual void MetaHookPre(HookType hook, const HookArgumentList& args);

@@ -45,7 +45,7 @@ private:
     void DoInitPostScript() override {}
     bool DoInit() override;
     void DoTerminate() override;
-    bool DoPublishEvent(const std::string& topic, zeek::cluster::detail::Event& event) override;
+    bool DoPublishEvent(const std::string& topic, zeek::cluster::Event& event) override;
     bool DoPublishEvent(const std::string& topic, const std::string& format, const zeek::byte_buffer& buf) override {
         throw new std::logic_error("not implemented");
     }

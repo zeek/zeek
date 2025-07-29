@@ -2,7 +2,6 @@
 
 #include "zeek/cluster/serializer/broker/Serializer.h"
 
-#include <cinttypes>
 #include <optional>
 
 #include "zeek/DebugLogger.h"
@@ -55,7 +54,7 @@ zeek::detail::EventMetadataVectorPtr detail::metadata_vector_from_broker_event(c
     return meta;
 }
 
-std::optional<broker::zeek::Event> detail::to_broker_event(const detail::Event& ev) {
+std::optional<broker::zeek::Event> detail::to_broker_event(const zeek::cluster::Event& ev) {
     broker::vector xs;
     xs.reserve(ev.Args().size());
 
@@ -96,7 +95,7 @@ std::optional<broker::zeek::Event> detail::to_broker_event(const detail::Event& 
     return broker::zeek::Event(ev.HandlerName(), xs, broker_meta);
 }
 
-std::optional<detail::Event> detail::to_zeek_event(const broker::zeek::Event& ev) {
+std::optional<zeek::cluster::Event> detail::to_zeek_event(const broker::zeek::Event& ev) {
     auto&& name = ev.name();
     auto&& args = ev.args();
 
@@ -141,10 +140,10 @@ std::optional<detail::Event> detail::to_zeek_event(const broker::zeek::Event& ev
     }
 
     auto meta = cluster::detail::metadata_vector_from_broker_event(ev);
-    return cluster::detail::Event{handler, std::move(vl), std::move(meta)};
+    return zeek::cluster::Event{handler, std::move(vl), std::move(meta)};
 }
 
-bool detail::BrokerBinV1_Serializer::SerializeEvent(byte_buffer& buf, const detail::Event& event) {
+bool detail::BrokerBinV1_Serializer::SerializeEvent(byte_buffer& buf, const zeek::cluster::Event& event) {
     auto ev = to_broker_event(event);
     if ( ! ev )
         return false;
@@ -160,7 +159,7 @@ bool detail::BrokerBinV1_Serializer::SerializeEvent(byte_buffer& buf, const deta
     return true;
 }
 
-std::optional<detail::Event> detail::BrokerBinV1_Serializer::UnserializeEvent(byte_buffer_span buf) {
+std::optional<zeek::cluster::Event> detail::BrokerBinV1_Serializer::UnserializeEvent(byte_buffer_span buf) {
     auto r = broker::data_envelope::deserialize(broker::endpoint_id::nil(), broker::endpoint_id::nil(), 0, "",
                                                 buf.data(), buf.size());
     if ( ! r )
@@ -185,7 +184,7 @@ struct PushBackAdapter {
 };
 
 
-bool detail::BrokerJsonV1_Serializer::SerializeEvent(byte_buffer& buf, const detail::Event& event) {
+bool detail::BrokerJsonV1_Serializer::SerializeEvent(byte_buffer& buf, const zeek::cluster::Event& event) {
     auto ev = to_broker_event(event);
     if ( ! ev )
         return false;
@@ -195,7 +194,7 @@ bool detail::BrokerJsonV1_Serializer::SerializeEvent(byte_buffer& buf, const det
     return true;
 }
 
-std::optional<detail::Event> detail::BrokerJsonV1_Serializer::UnserializeEvent(byte_buffer_span buf) {
+std::optional<zeek::cluster::Event> detail::BrokerJsonV1_Serializer::UnserializeEvent(byte_buffer_span buf) {
     broker::variant res;
     auto err =
         broker::format::json::v1::decode(std::string_view{reinterpret_cast<const char*>(buf.data()), buf.size()}, res);
@@ -213,8 +212,8 @@ TEST_SUITE_BEGIN("cluster serializer broker");
 
 TEST_CASE("roundtrip") {
     auto* handler = zeek::event_registry->Lookup("Supervisor::node_status");
-    detail::Event e{handler, zeek::Args{zeek::make_intrusive<zeek::StringVal>("TEST"), zeek::val_mgr->Count(42)},
-                    nullptr};
+    zeek::cluster::Event e{handler, zeek::Args{zeek::make_intrusive<zeek::StringVal>("TEST"), zeek::val_mgr->Count(42)},
+                           nullptr};
 
     // Register network timestamp metadata. This is idempotent.
     auto nts = zeek::id::find_val<zeek::EnumVal>("EventMetadata::NETWORK_TIMESTAMP");

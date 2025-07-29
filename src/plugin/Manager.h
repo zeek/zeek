@@ -456,8 +456,7 @@ public:
      * @return true if event should be published, false if the publish
      *         operation should be skipped.
      */
-    bool HookPublishEvent(zeek::cluster::Backend& backend, const std::string& topic,
-                          zeek::cluster::detail::Event& event) const;
+    bool HookPublishEvent(zeek::cluster::Backend& backend, const std::string& topic, zeek::cluster::Event& event) const;
 
     /**
      * Internal method that registers a freshly instantiated plugin with

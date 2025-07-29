@@ -30,8 +30,6 @@ class OnLoopProcess;
 
 namespace cluster {
 
-namespace detail {
-
 /**
  * Cluster event class.
  */
@@ -99,6 +97,8 @@ private:
     zeek::detail::EventMetadataVectorPtr meta;
 };
 
+namespace detail {
+
 /**
  * Interface for processing cluster::Event instances received
  * on a given topic.
@@ -123,7 +123,7 @@ public:
      *
      * @return true if the remote event was handled successfully, else false.
      */
-    bool ProcessEvent(std::string_view topic, Event e) { return DoProcessEvent(topic, std::move(e)); }
+    bool ProcessEvent(std::string_view topic, cluster::Event e) { return DoProcessEvent(topic, std::move(e)); }
 
     /**
      * Method for enquing backend specific events.
@@ -156,7 +156,7 @@ private:
      *
      * @return true if the remote event was handled successfully, else false.
      */
-    virtual bool DoProcessEvent(std::string_view topic, Event e) = 0;
+    virtual bool DoProcessEvent(std::string_view topic, cluster::Event e) = 0;
 
     /**
      * Hook method for implementing ProcessLocalEvent().
@@ -180,7 +180,7 @@ private:
  */
 class LocalEventHandlingStrategy : public EventHandlingStrategy {
 private:
-    bool DoProcessEvent(std::string_view topic, Event e) override;
+    bool DoProcessEvent(std::string_view topic, cluster::Event e) override;
     void DoProcessLocalEvent(EventHandlerPtr h, zeek::Args args) override;
     void DoProcessError(std::string_view tag, std::string_view message) override;
 };
@@ -223,13 +223,13 @@ public:
     void Terminate() { DoTerminate(); }
 
     /**
-     * Create a cluster::detail::Event instance given an event handler and the
+     * Create a cluster::Event instance given an event handler and the
      * script function arguments to it.
      *
      * @param handler A function val representing an event handler.
      * @param args The arguments for the event handler.
      */
-    std::optional<detail::Event> MakeClusterEvent(FuncValPtr handler, ArgsSpan args) const;
+    std::optional<cluster::Event> MakeClusterEvent(FuncValPtr handler, ArgsSpan args) const;
 
     /**
      * Publish a cluster::detail::Event instance to a given topic.
@@ -244,7 +244,7 @@ public:
      *
      * @return true if the event was successfully published.
      */
-    bool PublishEvent(const std::string& topic, cluster::detail::Event& event) { return DoPublishEvent(topic, event); }
+    bool PublishEvent(const std::string& topic, cluster::Event& event) { return DoPublishEvent(topic, event); }
 
     /**
      * Status codes for callbacks.
@@ -385,7 +385,7 @@ protected:
      * @param topic The topic on which the event was received.
      * @param e The event as cluster::detail::Event.
      */
-    bool ProcessEvent(std::string_view topic, detail::Event e);
+    bool ProcessEvent(std::string_view topic, cluster::Event e);
 
     /**
      * An error happened, pass it to the event handling strategy.
@@ -465,7 +465,7 @@ private:
      * This hook method only exists for the existing Broker implementation that
      * short-circuits serialization. Other backends should not override this.
      */
-    virtual bool DoPublishEvent(const std::string& topic, cluster::detail::Event& event);
+    virtual bool DoPublishEvent(const std::string& topic, cluster::Event& event);
 
     /**
      * Send a serialized cluster::detail::Event to the given topic.

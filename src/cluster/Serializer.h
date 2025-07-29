@@ -12,9 +12,7 @@
 
 namespace zeek::cluster {
 
-namespace detail {
 class Event;
-} // namespace detail
 
 /**
  * This class handles encoding of events into byte buffers and back.
@@ -34,7 +32,7 @@ public:
      *
      * @returns True on success, false in exceptional cases (e.g. unsupported serialization).
      */
-    virtual bool SerializeEvent(byte_buffer& buf, const detail::Event& event) = 0;
+    virtual bool SerializeEvent(byte_buffer& buf, const cluster::Event& event) = 0;
 
     /**
      * Unserialize an event from a given byte buffer.
@@ -43,7 +41,7 @@ public:
      *
      * @returns The event, or std::nullopt on error.
      */
-    virtual std::optional<cluster::detail::Event> UnserializeEvent(byte_buffer_span buf) = 0;
+    virtual std::optional<cluster::Event> UnserializeEvent(byte_buffer_span buf) = 0;
 
     /**
      * @returns The name of this event serializer instance.

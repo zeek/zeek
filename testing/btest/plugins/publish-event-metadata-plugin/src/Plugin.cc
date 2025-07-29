@@ -31,8 +31,7 @@ void Plugin::InitPostScript() {
     std::fprintf(stdout, "%.6f %-15s\n", zeek::run_state::network_time, "  InitPostScript");
 }
 
-bool Plugin::HookPublishEvent(zeek::cluster::Backend& backend, const std::string& topic,
-                              zeek::cluster::detail::Event& event) {
+bool Plugin::HookPublishEvent(zeek::cluster::Backend& backend, const std::string& topic, zeek::cluster::Event& event) {
     std::fprintf(stdout, "%.6f %s backend=%s topic=%s event=%s\n", zeek::run_state::network_time, "HookPublishEvent",
                  backend.Name().c_str(), topic.c_str(), std::string(event.HandlerName()).c_str());
 

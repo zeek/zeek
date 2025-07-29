@@ -350,8 +350,7 @@ bool Plugin::HookReporter(const std::string& prefix, const EventHandlerPtr event
 
 void Plugin::HookUnprocessedPacket(const Packet* packet) {}
 
-bool Plugin::HookPublishEvent(zeek::cluster::Backend& backend, const std::string& topic,
-                              zeek::cluster::detail::Event& event) {
+bool Plugin::HookPublishEvent(zeek::cluster::Backend& backend, const std::string& topic, zeek::cluster::Event& event) {
     return true;
 }
 

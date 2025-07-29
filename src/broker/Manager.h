@@ -420,7 +420,7 @@ private:
     void DoTerminate() override;
 
     // Broker overrides this to do its own serialization.
-    bool DoPublishEvent(const std::string& topic, cluster::detail::Event& event) override;
+    bool DoPublishEvent(const std::string& topic, cluster::Event& event) override;
 
     // This should never be reached, broker itself doesn't call this and overrides
     // the generic DoPublishEvent() method that would call this.

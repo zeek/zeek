@@ -828,7 +828,7 @@ std::vector<broker::peer_info> Manager::Peers() const {
 
 std::string Manager::NodeID() const { return to_string(bstate->endpoint.node_id()); }
 
-bool Manager::DoPublishEvent(const std::string& topic, cluster::detail::Event& event) {
+bool Manager::DoPublishEvent(const std::string& topic, cluster::Event& event) {
     bool do_publish = PLUGIN_HOOK_WITH_RESULT(HOOK_PUBLISH_EVENT, HookPublishEvent(*this, topic, event), true);
     if ( ! do_publish )
         return true;

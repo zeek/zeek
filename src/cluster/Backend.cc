@@ -27,7 +27,7 @@
 
 using namespace zeek::cluster;
 
-double detail::Event::Timestamp() const {
+double Event::Timestamp() const {
     if ( meta ) {
         for ( const auto& m : *meta ) {
             if ( m.Id() == static_cast<zeek_uint_t>(zeek::detail::MetadataType::NetworkTimestamp) )
@@ -38,7 +38,7 @@ double detail::Event::Timestamp() const {
     return zeek::detail::NO_TIMESTAMP;
 }
 
-bool detail::Event::AddMetadata(const EnumValPtr& id, zeek::ValPtr val) {
+bool Event::AddMetadata(const EnumValPtr& id, zeek::ValPtr val) {
     if ( ! id || ! val )
         return false;
 
@@ -58,11 +58,11 @@ bool detail::Event::AddMetadata(const EnumValPtr& id, zeek::ValPtr val) {
     return true;
 }
 
-std::tuple<zeek::EventHandlerPtr, zeek::Args, zeek::detail::EventMetadataVectorPtr> detail::Event::Take() && {
+std::tuple<zeek::EventHandlerPtr, zeek::Args, zeek::detail::EventMetadataVectorPtr> Event::Take() && {
     return {handler, std::move(args), std::move(meta)};
 }
 
-bool detail::LocalEventHandlingStrategy::DoProcessEvent(std::string_view topic, detail::Event e) {
+bool detail::LocalEventHandlingStrategy::DoProcessEvent(std::string_view topic, cluster::Event e) {
     auto [handler, args, meta] = std::move(e).Take();
     zeek::event_mgr.Enqueue(std::move(meta), handler, std::move(args), util::detail::SOURCE_BROKER);
     return true;
@@ -139,7 +139,7 @@ bool Backend::Init(std::string nid) {
     return DoInit();
 }
 
-std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsSpan args) const {
+std::optional<Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsSpan args) const {
     auto checked_args = detail::check_args(handler, args);
     if ( ! checked_args )
         return std::nullopt;
@@ -170,7 +170,7 @@ std::optional<detail::Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsS
     if ( zeek::BifConst::EventMetadata::add_network_timestamp )
         meta = zeek::detail::MakeEventMetadataVector(zeek::event_mgr.CurrentEventTime());
 
-    return zeek::cluster::detail::Event{eh, std::move(*checked_args), std::move(meta)};
+    return Event{eh, std::move(*checked_args), std::move(meta)};
 }
 
 void Backend::DoReadyToPublishCallback(Backend::ReadyCallback cb) {
@@ -179,7 +179,7 @@ void Backend::DoReadyToPublishCallback(Backend::ReadyCallback cb) {
 }
 
 // Default implementation doing the serialization.
-bool Backend::DoPublishEvent(const std::string& topic, cluster::detail::Event& event) {
+bool Backend::DoPublishEvent(const std::string& topic, cluster::Event& event) {
     byte_buffer buf;
 
     bool do_publish = PLUGIN_HOOK_WITH_RESULT(HOOK_PUBLISH_EVENT, HookPublishEvent(*this, topic, event), true);
@@ -209,7 +209,7 @@ void Backend::EnqueueEvent(EventHandlerPtr h, zeek::Args args) {
     event_handling_strategy->ProcessLocalEvent(h, std::move(args));
 }
 
-bool Backend::ProcessEvent(std::string_view topic, detail::Event e) {
+bool Backend::ProcessEvent(std::string_view topic, cluster::Event e) {
     return event_handling_strategy->ProcessEvent(topic, std::move(e));
 }
 
@@ -316,7 +316,7 @@ TEST_SUITE_BEGIN("cluster event");
 TEST_CASE("add metadata") {
     auto* handler = zeek::event_registry->Lookup("Supervisor::node_status");
     zeek::Args args{zeek::make_intrusive<zeek::StringVal>("TEST"), zeek::val_mgr->Count(42)};
-    zeek::cluster::detail::Event event{handler, std::move(args), nullptr};
+    zeek::cluster::Event event{handler, std::move(args), nullptr};
 
     auto nts = zeek::id::find_val<zeek::EnumVal>("EventMetadata::NETWORK_TIMESTAMP");
     REQUIRE(nts);

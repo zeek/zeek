@@ -1538,7 +1538,14 @@ TEST_CASE("util strstrip") {
 std::string strstrip(std::string s) {
     auto notspace = [](unsigned char c) { return ! std::isspace(c); };
     s.erase(s.begin(), std::ranges::find_if(s, notspace));
-    s.erase(std::ranges::find_if(std::ranges::reverse_view(s), notspace).base(), s.end());
+
+    // We require `std::reverse_iterator::base` here which in e.g., gcc-10.2.1
+    // is not implemented for the range equivalent of the code
+    // (`borrowed_iterator_t` over a `reverse_view`). Stick to the non-ranges
+    // version for now.
+    // NOLINTNEXTLINE(modernize-use-ranges)
+    s.erase(std::find_if(s.rbegin(), s.rend(), notspace).base(), s.end());
+
     return s;
 }
 

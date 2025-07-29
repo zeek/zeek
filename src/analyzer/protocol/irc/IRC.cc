@@ -239,8 +239,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
                     // else ###
                 }
 
-                EnqueueConnEvent(irc_network_info, ConnVal(), val_mgr->Bool(orig), val_mgr->Int(users),
-                                 val_mgr->Int(services), val_mgr->Int(servers));
+                EnqueueConnEvent(irc_network_info, ConnVal(), val_mgr->Bool(orig), val_mgr->Count(users),
+                                 val_mgr->Count(services), val_mgr->Count(servers));
             } break;
 
             // List of users in a channel (names command).
@@ -302,8 +302,8 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
                     // else ###
                 }
 
-                EnqueueConnEvent(irc_server_info, ConnVal(), val_mgr->Bool(orig), val_mgr->Int(users),
-                                 val_mgr->Int(services), val_mgr->Int(servers));
+                EnqueueConnEvent(irc_server_info, ConnVal(), val_mgr->Bool(orig), val_mgr->Count(users),
+                                 val_mgr->Count(services), val_mgr->Count(servers));
             } break;
 
             // Count of channels.
@@ -317,7 +317,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
                     if ( parts[i] == ":channels" )
                         channels = atoi(parts[i - 1].c_str());
 
-                EnqueueConnEvent(irc_channel_info, ConnVal(), val_mgr->Bool(orig), val_mgr->Int(channels));
+                EnqueueConnEvent(irc_channel_info, ConnVal(), val_mgr->Bool(orig), val_mgr->Count(channels));
             } break;
 
             // RPL_GLOBALUSERS
@@ -483,7 +483,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
                                  make_intrusive<StringVal>(parts[3].c_str()),
                                  make_intrusive<StringVal>(parts[4].c_str()),
                                  make_intrusive<StringVal>(parts[5].c_str()),
-                                 make_intrusive<StringVal>(parts[6].c_str()), val_mgr->Int(atoi(parts[7].c_str())),
+                                 make_intrusive<StringVal>(parts[6].c_str()), val_mgr->Count(atoi(parts[7].c_str())),
                                  make_intrusive<StringVal>(parts[8].c_str()));
             } break;
 

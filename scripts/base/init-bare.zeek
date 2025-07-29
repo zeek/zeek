@@ -1092,6 +1092,7 @@ type ConnStats: record {
 	num_icmp_conns: count;        ##< Current number of ICMP flows in memory.
 	max_icmp_conns: count;        ##< Maximum number of concurrent ICMP flows so far.
 	cumulative_icmp_conns: count; ##< Total number of ICMP flows so far.
+	num_packets_unprocessed: count; ##< Total number of packets not processed by any analyzer.
 
 	killed_by_inactivity: count;
 };

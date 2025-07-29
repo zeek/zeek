@@ -274,6 +274,11 @@ New Functionality
   The ``onn/pppoe-session-id-logging.zeek`` policy script adds pppoe session IDs to the
   connection log.
 
+  The ``get_conn_stats()`` function's return value now includes the number of packets
+  that have not been processed by any analyzer. Using data from ``get_conn_stats()`` and
+  ``get_net_stats()``, it's possible to determine the number of packets that have
+  been received and accepted by Zeek, but eventually discarded without processing.
+
 Changed Functionality
 ---------------------
 

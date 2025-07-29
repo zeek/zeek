@@ -218,6 +218,7 @@ void Manager::GetStats(Stats& s) {
     s.num_fragments = zeek::detail::fragment_mgr->Size();
     s.max_fragments = zeek::detail::fragment_mgr->MaxFragments();
     s.num_packets = packet_mgr->PacketsProcessed();
+    s.num_packets_unprocessed = packet_mgr->PacketsUnprocessed();
 }
 
 void Manager::Weird(const char* name, const Packet* pkt, const char* addl, const char* source) {

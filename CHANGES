@@ -1,3 +1,15 @@
+8.0.0-dev.778 | 2025-07-29 10:12:18 +0200
+
+  * ConnStats: Expose num_packets_unprocessed (Arne Welzel, Corelight)
+
+    Not sure it's the best place to put, but we don't have packet analysis stats
+    bif and also num_packets is already there, so seems reasonable to put the
+    num_packets_unprocessed into
+
+  * packet_analysis/Manager: Rename GetUnprocessedCount() to PacketsUnprocessed() (Arne Welzel, Corelight)
+
+    Mostly to align with PacketsProcessed()
+
 8.0.0-dev.775 | 2025-07-29 10:05:20 +0200
 
   * Update .git-blame-ignore-revs (Arne Welzel, Corelight)

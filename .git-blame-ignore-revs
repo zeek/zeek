@@ -33,3 +33,6 @@ f5a76c1aedc7f8886bc6abef0dfaa8065684b1f6
 
 # clang-format: Format JSON with clang-format
 e6256446ddef5c5d5240eefff974556f2e12ac46
+
+# analyzer/protocol: Reformat with spicy-format
+d70bcd07b9b26036b16092fe950eca40e2f5a032

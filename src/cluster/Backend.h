@@ -9,13 +9,13 @@
 #include <string_view>
 #include <variant>
 
-#include "zeek/Event.h"
 #include "zeek/EventHandler.h"
 #include "zeek/Span.h"
 #include "zeek/Tag.h"
 #include "zeek/Val.h"
 #include "zeek/ZeekArgs.h"
 #include "zeek/cluster/BifSupport.h"
+#include "zeek/cluster/Event.h"
 #include "zeek/cluster/OnLoop.h"
 #include "zeek/cluster/Serializer.h"
 #include "zeek/cluster/Telemetry.h"
@@ -31,73 +31,6 @@ class OnLoopProcess;
 namespace cluster {
 
 namespace detail {
-
-/**
- * Cluster event class.
- */
-class Event {
-public:
-    /**
-     * Constructor.
-     */
-    Event(const EventHandlerPtr& handler, zeek::Args args, zeek::detail::EventMetadataVectorPtr meta)
-        : handler(handler), args(std::move(args)), meta(std::move(meta)) {}
-
-    /**
-     * @return The name of the event.
-     */
-    std::string_view HandlerName() const { return handler->Name(); }
-
-    /**
-     * @return The event's handler.
-     */
-    const EventHandlerPtr& Handler() const { return handler; }
-
-    /**
-     * @return The event's arguments.
-     */
-    const zeek::Args& Args() const { return args; }
-    /**
-     * @return The event's arguments.
-     */
-    zeek::Args& Args() { return args; }
-
-    /**
-     * @return The network timestamp metadata of this event or -1.0 if not set.
-     */
-    double Timestamp() const;
-
-    /**
-     * Add metadata to this cluster event.
-     *
-     * The used metadata \a id has to be registered via the Zeek script-layer
-     * function EventMetadata::register(), or via the C++ API
-     * EventMgr::RegisterMetadata() during an InitPostScript() hook.
-     *
-     * Non-registered metadata will not be added and false is returned.
-     *
-     * @param id The enum value identifying the event metadata.
-     * @param val The value to use.
-
-     * @return true if \a val was was added, else false.
-     */
-    bool AddMetadata(const EnumValPtr& id, ValPtr val);
-
-    /**
-     * @return A pointer to the metadata vector, or nullptr if no Metadata has been added yet.
-     */
-    const zeek::detail::EventMetadataVector* Metadata() const { return meta.get(); }
-
-    /**
-     * Move data out of this event as preparation for Enqueue()
-     */
-    std::tuple<zeek::EventHandlerPtr, zeek::Args, zeek::detail::EventMetadataVectorPtr> Take() &&;
-
-private:
-    EventHandlerPtr handler;
-    zeek::Args args;
-    zeek::detail::EventMetadataVectorPtr meta;
-};
 
 /**
  * Interface for processing cluster::Event instances received
@@ -123,7 +56,7 @@ public:
      *
      * @return true if the remote event was handled successfully, else false.
      */
-    bool ProcessEvent(std::string_view topic, Event e) { return DoProcessEvent(topic, std::move(e)); }
+    bool ProcessEvent(std::string_view topic, cluster::Event e) { return DoProcessEvent(topic, std::move(e)); }
 
     /**
      * Method for enquing backend specific events.
@@ -156,7 +89,7 @@ private:
      *
      * @return true if the remote event was handled successfully, else false.
      */
-    virtual bool DoProcessEvent(std::string_view topic, Event e) = 0;
+    virtual bool DoProcessEvent(std::string_view topic, cluster::Event e) = 0;
 
     /**
      * Hook method for implementing ProcessLocalEvent().
@@ -180,7 +113,7 @@ private:
  */
 class LocalEventHandlingStrategy : public EventHandlingStrategy {
 private:
-    bool DoProcessEvent(std::string_view topic, Event e) override;
+    bool DoProcessEvent(std::string_view topic, cluster::Event e) override;
     void DoProcessLocalEvent(EventHandlerPtr h, zeek::Args args) override;
     void DoProcessError(std::string_view tag, std::string_view message) override;
 };
@@ -223,13 +156,13 @@ public:
     void Terminate() { DoTerminate(); }
 
     /**
-     * Create a cluster::detail::Event instance given an event handler and the
+     * Create a cluster::Event instance given an event handler and the
      * script function arguments to it.
      *
      * @param handler A function val representing an event handler.
      * @param args The arguments for the event handler.
      */
-    std::optional<detail::Event> MakeClusterEvent(FuncValPtr handler, ArgsSpan args) const;
+    std::optional<cluster::Event> MakeClusterEvent(FuncValPtr handler, ArgsSpan args) const;
 
     /**
      * Publish a cluster::detail::Event instance to a given topic.
@@ -244,7 +177,7 @@ public:
      *
      * @return true if the event was successfully published.
      */
-    bool PublishEvent(const std::string& topic, cluster::detail::Event& event) { return DoPublishEvent(topic, event); }
+    bool PublishEvent(const std::string& topic, cluster::Event& event) { return DoPublishEvent(topic, event); }
 
     /**
      * Status codes for callbacks.
@@ -385,7 +318,7 @@ protected:
      * @param topic The topic on which the event was received.
      * @param e The event as cluster::detail::Event.
      */
-    bool ProcessEvent(std::string_view topic, detail::Event e);
+    bool ProcessEvent(std::string_view topic, cluster::Event e);
 
     /**
      * An error happened, pass it to the event handling strategy.
@@ -465,7 +398,7 @@ private:
      * This hook method only exists for the existing Broker implementation that
      * short-circuits serialization. Other backends should not override this.
      */
-    virtual bool DoPublishEvent(const std::string& topic, cluster::detail::Event& event);
+    virtual bool DoPublishEvent(const std::string& topic, cluster::Event& event);
 
     /**
      * Send a serialized cluster::detail::Event to the given topic.

@@ -1,3 +1,16 @@
+8.0.0-dev.797 | 2025-07-29 18:23:35 +0200
+
+  * cluster::Event: Move implementation into cluster/Event.{h,cc} (Arne Welzel, Corelight)
+
+  * cluster: Move cluster::detail::Event to cluster::Event (Arne Welzel, Corelight)
+
+    This class is a parameter of virtual methods of the Backend API for users
+    to implement and also a parameter to the HookPublishEvent() API. Seems it
+    shouldn't be in detail and instead we should own it.
+
+    Alternatively, could mark the cluster APIs as not-stable-yet, but I
+    think we can move forward and make it non-detail for 8.0.
+
 8.0.0-dev.794 | 2025-07-29 07:41:13 -0700
 
   * Fix ConnKey deprecation warnings from generic fuzzer (Tim Wojtulewicz, Corelight)

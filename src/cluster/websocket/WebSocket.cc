@@ -55,7 +55,7 @@ private:
      * will need some abstractions if client's can opt to use different encodings
      * of events in the future.
      */
-    bool DoProcessEvent(std::string_view topic, zeek::cluster::detail::Event e) override {
+    bool DoProcessEvent(std::string_view topic, zeek::cluster::Event e) override {
         // If the client has left, no point in sending it any pending event.
         if ( wsc->IsTerminated() )
             return true;
@@ -71,7 +71,7 @@ private:
         // if that's faster.
         auto ev = zeek::cluster::detail::to_broker_event(e);
         if ( ! ev ) {
-            fprintf(stderr, "[ERROR] Unable to go from detail::Event to broker::event\n");
+            fprintf(stderr, "[ERROR] Unable to go from cluster::Event to broker::event\n");
             return false;
         }
 

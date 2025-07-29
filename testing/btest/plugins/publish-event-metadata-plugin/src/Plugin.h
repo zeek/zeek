@@ -11,7 +11,7 @@ protected:
     void InitPostScript() override;
 
     bool HookPublishEvent(zeek::cluster::Backend& backend, const std::string& topic,
-                          zeek::cluster::detail::Event& event) override;
+                          zeek::cluster::Event& event) override;
 };
 
 extern Plugin plugin;

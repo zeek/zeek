@@ -12,7 +12,7 @@ protected:
     void InitPostScript() override;
 
     bool HookPublishEvent(zeek::cluster::Backend& backend, const std::string& topic,
-                          zeek::cluster::detail::Event& event) override;
+                          zeek::cluster::Event& event) override;
 
     void MetaHookPre(zeek::plugin::HookType hook, const zeek::plugin::HookArgumentList& args) override;
     void MetaHookPost(zeek::plugin::HookType hook, const zeek::plugin::HookArgumentList& args,

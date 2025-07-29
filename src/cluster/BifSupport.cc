@@ -3,7 +3,6 @@
 #include "zeek/cluster/BifSupport.h"
 
 #include "zeek/Desc.h"
-#include "zeek/Event.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/Frame.h"
 #include "zeek/Func.h"
@@ -16,9 +15,9 @@
 
 namespace {
 
-// Convert a script-level Cluster::Event to a cluster::detail::Event.
-std::optional<zeek::cluster::detail::Event> to_cluster_event(const zeek::cluster::Backend* backend,
-                                                             const zeek::RecordValPtr& rec) {
+// Convert a script-level Cluster::Event to a cluster::Event.
+std::optional<zeek::cluster::Event> to_cluster_event(const zeek::cluster::Backend* backend,
+                                                     const zeek::RecordValPtr& rec) {
     const auto& func = rec->GetField<zeek::FuncVal>(0);
     const auto& vargs = rec->GetField<zeek::VectorVal>(1);
 

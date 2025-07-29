@@ -938,7 +938,7 @@ void Manager::HookUnprocessedPacket(const Packet* packet) const {
 }
 
 bool Manager::HookPublishEvent(zeek::cluster::Backend& backend, const std::string& topic,
-                               zeek::cluster::detail::Event& event) const {
+                               zeek::cluster::Event& event) const {
     HookArgumentList args;
 
     if ( HavePluginForHook(META_HOOK_PRE) ) {

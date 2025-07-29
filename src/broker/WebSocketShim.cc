@@ -111,7 +111,7 @@ void WebSocketShim::DoTerminate() {
     }
 }
 
-bool WebSocketShim::DoPublishEvent(const std::string& topic, zeek::cluster::detail::Event& event) {
+bool WebSocketShim::DoPublishEvent(const std::string& topic, cluster::Event& event) {
     auto r = cluster::detail::to_broker_event(event);
     if ( ! r ) {
         ProcessError("broker_error", "Failed to convert Zeek event to Broker event");

@@ -7,6 +7,7 @@ zeek_add_subdir_library(
     Backend.cc
     BifSupport.cc
     Component.cc
+    Event.cc
     Manager.cc
     Telemetry.cc
     BIFS

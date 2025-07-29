@@ -12,7 +12,7 @@
 #include "zeek/Reporter.h"
 #include "zeek/Type.h"
 #include "zeek/broker/Data.h"
-#include "zeek/cluster/Backend.h"
+#include "zeek/cluster/Event.h"
 
 #include "broker/data.bif.h"
 #include "broker/data_envelope.hh"

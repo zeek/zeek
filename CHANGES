@@ -1,3 +1,19 @@
+8.0.0-dev.802 | 2025-07-29 21:00:52 +0100
+
+  * DNS-fuzzer: raise new_connection event (Johanna Amann, Corelight)
+
+    The conn protocol scripts now assume that new_connection is run before
+    connection_state_remove. Update the DNS fuzzer to raise the
+    new_connection event.
+
+  * Move Conn::set_conn() from connection_state_remove to new_connection (Johanna Amann, Corelight)
+
+    c$conn is often needed for connection events, but it being established
+    in connection_state_removed can be a problem because event handlers have
+    to remember to call Con::set_conn().
+
+    This commit moves to call Conn::set_conn() in new_connection.
+
 8.0.0-dev.797 | 2025-07-29 18:23:35 +0200
 
   * cluster::Event: Move implementation into cluster/Event.{h,cc} (Arne Welzel, Corelight)

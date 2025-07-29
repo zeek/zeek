@@ -243,26 +243,31 @@ function conn_state(c: connection, trans: transport_proto): string
 ## Fill out the c$conn record for logging
 function set_conn(c: connection, eoc: bool)
 	{
-	if ( ! c?$conn )
-		{
-		local p = get_port_transport_proto(c$id$resp_p);
-		c$conn = Info($ts=c$start_time, $uid=c$uid, $proto=p);
-		}
+	if ( ! eoc ) {
+		if ( ! c?$conn )
+			{
+			local p = get_port_transport_proto(c$id$resp_p);
+			c$conn = Info($ts=c$start_time, $uid=c$uid, $proto=p);
+			}
 
-	c$conn$id=c$id;
-	if ( c?$tunnel && |c$tunnel| > 0 )
-		{
-		if ( ! c$conn?$tunnel_parents )
-			c$conn$tunnel_parents = set();
-		add c$conn$tunnel_parents[c$tunnel[|c$tunnel|-1]$uid];
-		}
-	if( |Site::local_nets| > 0 )
-		{
-		c$conn$local_orig=Site::is_local_addr(c$id$orig_h);
-		c$conn$local_resp=Site::is_local_addr(c$id$resp_h);
-		}
+		c$conn$id=c$id;
+		if ( c?$tunnel && |c$tunnel| > 0 )
+			{
+			if ( ! c$conn?$tunnel_parents )
+				c$conn$tunnel_parents = set();
+			add c$conn$tunnel_parents[c$tunnel[|c$tunnel|-1]$uid];
+			}
 
-	if ( eoc )
+		if ( c$id$proto != 65535 )
+			c$conn$ip_proto = c$id$proto;
+
+		if( |Site::local_nets| > 0 )
+			{
+			c$conn$local_orig = Site::is_local_addr(c$id$orig_h);
+			c$conn$local_resp = Site::is_local_addr(c$id$resp_h);
+			}
+		}
+	else
 		{
 		if ( c$duration > 0secs )
 			{
@@ -288,21 +293,15 @@ function set_conn(c: connection, eoc: bool)
 		if ( c$history != "" )
 			c$conn$history=c$history;
 		}
-
-	if ( c$id$proto != 65535 )
-		c$conn$ip_proto = c$id$proto;
 	}
 
 event content_gap(c: connection, is_orig: bool, seq: count, length: count) &priority=5
 	{
-	set_conn(c, F);
-
 	c$conn$missed_bytes = c$conn$missed_bytes + length;
 	}
 
 event tunnel_changed(c: connection, e: EncapsulatingConnVector) &priority=5
 	{
-	set_conn(c, F);
 	if ( |e| > 0 )
 		{
 		if ( ! c$conn?$tunnel_parents )
@@ -310,6 +309,21 @@ event tunnel_changed(c: connection, e: EncapsulatingConnVector) &priority=5
 		add c$conn$tunnel_parents[e[|e|-1]$uid];
 		}
 	c$tunnel = e;
+	}
+
+event new_connection(c: connection) &priority=100
+	{
+	set_conn(c, F);
+	}
+
+event connection_flipped(c: connection) &priority=5
+	{
+	# otherwise, set-conn has not been called yet. In that case we don't have to do anything
+	if ( c?$conn )
+		{
+		c$conn$local_orig = Site::is_local_addr(c$id$orig_h);
+		c$conn$local_resp = Site::is_local_addr(c$id$resp_h);
+		}
 	}
 
 event connection_state_remove(c: connection) &priority=5

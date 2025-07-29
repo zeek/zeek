@@ -19,9 +19,6 @@ event new_connection(c: connection)
 	if ( session_id == 0xFFFFFFFF )
 		return;
 
-	# FIXME: remove when GH-4688 is merged
-	set_conn(c, F);
-
 	c$conn$pppoe_session_id = session_id;
 	}
 

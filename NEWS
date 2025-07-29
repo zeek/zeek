@@ -282,6 +282,9 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- The `Conn::set_conn` function is now always run in `new_connection`, instead of only
+  being run in `connection_state_remove`.
+
 - Logging of failed analyzers has been overhauled. `dpd.log` was replaced
   by a new `analyzer.log` that presents a more unified and consistent view
   of failed analyzers. The previous `analyzer.log` was renamed to `analyzer-debug.log`;

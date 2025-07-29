@@ -1,3 +1,46 @@
+8.0.0-dev.788 | 2025-07-29 11:29:11 +0200
+
+  * cluster.bif: Improve Cluster::publish() docstring (Arne Welzel, Corelight)
+
+  * btest/cluster/zeromq: Add tests for overload behavior (Arne Welzel, Corelight)
+
+    The overload-drop.zeek and overload-no-drop.zeek tests have proxy,
+    worker-1 and worker-2 publish to the manager topic. For the drop
+    case, we verify that both, the senders, but also the manager drops
+    events. For the no-drop test, the HWMs are set such that all events
+    are buffered.
+
+    The overload-worker-proxy-topic*.zeek tests are similar, but instead
+    of publishing to the manager topic, proxy, worker-1 and worker-2 publish
+    to the proxy and worker topics to overload each other. This had
+    previously resulted in lockups and these tests verify that this doesn't
+    happen anymore.
+
+  * cluster/zeromq: Metric for msg errors (Arne Welzel, Corelight)
+
+  * cluster/zeromq: Drop events when overloaded (Arne Welzel, Corelight)
+
+    When either the XPUB socket's hwm is reached, or the onloop queue is
+    full, drop the events. Users can set ths xpub_sndhwm and
+    onloop_queue_hwm to 0 to avoid these drops at the risk of unbounded
+    memory growth.
+
+  * cluster/zeromq: Comments and move lookups to InitPostScript() (Arne Welzel, Corelight)
+
+  * cluster/zeromq: Rework lambdas to member functions (Arne Welzel, Corelight)
+
+  * cluster/zeromq: Support local XPUB/XSUB hwm and buf configurability (Arne Welzel, Corelight)
+
+  * cluster/OnLoop: Support DontBlock and Force flags for queueing (Arne Welzel, Corelight)
+
+    Also allow max_queue_size to be 0 for unlimited queueing.
+
+  * cluster/ThreadedBackend: Injectable OnLoopProcess instance (Arne Welzel, Corelight)
+
+    This allows injecting a custom onloop process to configure the
+    max_queue_size at instantiation time. Also allow access to the
+    instance directly and deprecate the QueueForProcessing() helper
+
 8.0.0-dev.778 | 2025-07-29 10:12:18 +0200
 
   * ConnStats: Expose num_packets_unprocessed (Arne Welzel, Corelight)

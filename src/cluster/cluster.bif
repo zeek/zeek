@@ -25,7 +25,10 @@ type Cluster::WebSocketTLSOptions: record;
 ##       :zeek:see:`Cluster::make_event` or the argument list to pass along
 ##       to it.
 ##
-## Returns: true if the message is sent.
+## Returns: T if the event was accepted for sending. Depending on
+##          the selected cluster backend, an event may be dropped
+##          when a Zeek cluster is overloadede. This can happen on
+##          the sending or receiving node.
 function Cluster::publish%(topic: string, ...%): bool
 	%{
 	ScriptLocationScope scope{frame};

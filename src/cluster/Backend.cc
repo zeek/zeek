@@ -264,14 +264,20 @@ bool ThreadedBackend::ProcessBackendMessage(int tag, byte_buffer_span payload) {
 }
 
 ThreadedBackend::ThreadedBackend(std::string_view name, std::unique_ptr<EventSerializer> es,
-                                 std::unique_ptr<LogSerializer> ls, std::unique_ptr<detail::EventHandlingStrategy> ehs)
-    : Backend(name, std::move(es), std::move(ls), std::move(ehs)) {
-    onloop = new zeek::detail::OnLoopProcess<ThreadedBackend, QueueMessage>(this, Name());
+                                 std::unique_ptr<LogSerializer> ls, std::unique_ptr<detail::EventHandlingStrategy> ehs,
+                                 zeek::detail::OnLoopProcess<ThreadedBackend, QueueMessage>* onloop)
+    : Backend(name, std::move(es), std::move(ls), std::move(ehs)), onloop(onloop) {
     onloop->Register(true); // Register as don't count first
 }
 
+
+ThreadedBackend::ThreadedBackend(std::string_view name, std::unique_ptr<EventSerializer> es,
+                                 std::unique_ptr<LogSerializer> ls, std::unique_ptr<detail::EventHandlingStrategy> ehs)
+    : ThreadedBackend(name, std::move(es), std::move(ls), std::move(ehs),
+                      new zeek::detail::OnLoopProcess<ThreadedBackend, QueueMessage>(this, name)) {}
+
 bool ThreadedBackend::DoInit() {
-    // Have the backend count so Zeek does not terminate.
+    // Have the onloop instance count so Zeek does not terminate.
     onloop->Register(/*dont_count=*/false);
     return true;
 }

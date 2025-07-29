@@ -26,7 +26,7 @@ public:
      * Constructor.
      */
     ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_ptr<LogSerializer> ls,
-                  std::unique_ptr<detail::EventHandlingStrategy> ehs);
+                  std::unique_ptr<detail::EventHandlingStrategy> ehs, zeek_uint_t onloop_max_queue_size);
 
     /**
      * Destructor.
@@ -49,9 +49,7 @@ public:
      */
     static std::unique_ptr<Backend> Instantiate(std::unique_ptr<EventSerializer> event_serializer,
                                                 std::unique_ptr<LogSerializer> log_serializer,
-                                                std::unique_ptr<detail::EventHandlingStrategy> ehs) {
-        return std::make_unique<ZeroMQBackend>(std::move(event_serializer), std::move(log_serializer), std::move(ehs));
-    }
+                                                std::unique_ptr<detail::EventHandlingStrategy> ehs);
 
 private:
     void DoInitPostScript() override;
@@ -73,6 +71,13 @@ private:
 
     void DoReadyToPublishCallback(ReadyCallback cb) override;
 
+    // Inner thread helper methods.
+    using MultipartMessage = std::vector<zmq::message_t>;
+    void HandleInprocMessages(std::vector<MultipartMessage>& msgs);
+    void HandleLogMessages(const std::vector<MultipartMessage>& msgs);
+    void HandleXPubMessages(const std::vector<MultipartMessage>& msgs);
+    void HandleXSubMessages(const std::vector<MultipartMessage>& msgs);
+
     // Script level variables.
     std::string connect_xsub_endpoint;
     std::string connect_xpub_endpoint;
@@ -91,6 +96,19 @@ private:
 
     EventHandlerPtr event_subscription;
     EventHandlerPtr event_unsubscription;
+
+    // xpub/xsub configuration
+    int xpub_sndhwm = 1000; // libzmq default
+    int xpub_sndbuf = -1;   // OS defaults
+    int xsub_rcvhwm = 1000; // libzmq default
+    int xsub_rcvbuf = -1;   // OS defaults
+
+    // log socket configuration
+    int log_immediate = false; // libzmq default
+    int log_sndhwm = 1000;     // libzmq default
+    int log_sndbuf = -1;       // OS defaults
+    int log_rcvhwm = 1000;     // libzmq defaults
+    int log_rcvbuf = -1;       // OS defaults
 
     zmq::context_t ctx;
     zmq::socket_t xsub;
@@ -120,7 +138,13 @@ private:
     std::map<std::string, SubscribeCallback> subscription_callbacks;
     std::set<std::string> xpub_subscriptions;
 
-    zeek::telemetry::CounterPtr total_xpub_stalls;
+    zeek::telemetry::CounterPtr total_xpub_drops;   // events dropped due to XPUB socket hwm reached
+    zeek::telemetry::CounterPtr total_onloop_drops; // events dropped due to onloop queue full
+    zeek::telemetry::CounterPtr total_msg_errors;   // messages with the wrong number of parts
+
+    // Could rework to log-once-every X seconds if needed.
+    double xpub_drop_last_warn_at = 0.0;
+    double onloop_drop_last_warn_at = 0.0;
 };
 
 } // namespace cluster::zeromq

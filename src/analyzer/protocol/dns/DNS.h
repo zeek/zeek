@@ -146,8 +146,9 @@ enum DNSSEC_Digest : uint8_t {
     SHA384 = 4,
 };
 
-///< all keys are defined in RFC draft
-///< https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-svcb-https-07#section-14.3.2
+// SVCB/HTTPS SvcParam keys as defined in
+// https://datatracker.ietf.org/doc/html/rfc9460#name-initial-contents
+// Keep in sync with scripts/base/protocols/dns/consts.zeek svcparam_keys.
 enum SVCPARAM_Key : uint8_t {
     mandatory = 0,
     alpn = 1,
@@ -278,6 +279,9 @@ struct LOC_DATA {
 struct SVCB_DATA {
     uint16_t svc_priority; // 2
     StringValPtr target_name;
+    // Better turn into a struct with members for each svcparam_keys value in
+    // scripts/base/protocols/dns/consts.zeek.
+    StringValPtr svc_params;
 };
 
 class DNS_MsgInfo {

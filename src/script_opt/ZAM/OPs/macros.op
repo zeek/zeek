@@ -71,4 +71,6 @@ macro TableIter(slot) (*tiv_ptr)[slot]
 macro DirectField(r, f) r->RawField(f)
 macro DirectOptField(r, f) r->RawOptField(f)
 
+macro FieldValWithCheck(r, f) ZBody::CheckAndLookupField(r, f, Z_LOC)
+
 macro LogEnum(v) v.ToVal(ZAM::log_ID_enum_type)

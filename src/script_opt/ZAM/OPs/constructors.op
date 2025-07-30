@@ -76,7 +76,7 @@ macro	AssignFromRec(rhs)
 	auto is_managed = Z_AUX->is_managed;
 	for ( size_t i = 0U; i < n; ++i )
 		{
-		auto rhs_i = rhs->RawField(rhs_map[i]);
+		auto rhs_i = FieldValWithCheck(rhs, rhs_map[i]);
 		auto& init_i = init_vals[lhs_map[i]];
 		if ( is_managed[i] )
 			{
@@ -156,7 +156,7 @@ class VV
 op-types R R
 eval	SetUpRecFieldOps(map)
 	for ( size_t i = 0U; i < n; ++i )
-		$1->RawOptField(lhs_map[i]) = $2->RawField(rhs_map[i]);
+		$1->RawOptField(lhs_map[i]) = FieldValWithCheck($2, rhs_map[i]);
 
 macro DoManagedRecAssign(lhs, rhs)
 	auto is_managed = Z_AUX->is_managed;
@@ -164,14 +164,14 @@ macro DoManagedRecAssign(lhs, rhs)
 		if ( is_managed[i] )
 			{
 			auto& lhs_i = lhs->RawOptField(lhs_map[i]);
-			auto rhs_i = rhs->RawField(rhs_map[i]);
+			auto rhs_i = FieldValWithCheck(rhs, rhs_map[i]);
 			zeek::Ref(rhs_i.ManagedVal());
 			if ( lhs_i )
 				ZVal::DeleteManagedType(*lhs_i);
 			lhs_i = rhs_i;
 			}
 		else
-			lhs->RawOptField(lhs_map[i]) = rhs->RawField(rhs_map[i]);
+			lhs->RawOptField(lhs_map[i]) = FieldValWithCheck(rhs, rhs_map[i]);
 
 op Rec-Assign-Fields-Managed
 op1-read
@@ -188,7 +188,7 @@ eval	SetUpRecFieldOps(map)
 	for ( size_t i = 0U; i < n; ++i )
 		{
 		auto& lhs_i = $1->RawOptField(lhs_map[i]);
-		auto rhs_i = $2->RawField(rhs_map[i]);
+		auto rhs_i = FieldValWithCheck($2, rhs_map[i]);
 		zeek::Ref(rhs_i.ManagedVal());
 		if ( lhs_i )
 			ZVal::DeleteManagedType(*lhs_i);
@@ -201,7 +201,9 @@ class VV
 op-types R R
 eval	SetUpRecFieldOps(map)
 	for ( size_t i = 0U; i < n; ++i )
-		$1->RawField(lhs_map[i]).AsIntRef() += $2->RawField(rhs_map[i]).AsInt();
+		$1->RawField(lhs_map[i]).AsIntRef() =
+			FieldValWithCheck($1, lhs_map[i]).AsInt() +
+			FieldValWithCheck($2, rhs_map[i]).AsInt();
 
 op Rec-Add-Double-Fields
 op1-read
@@ -209,7 +211,9 @@ class VV
 op-types R R
 eval	SetUpRecFieldOps(map)
 	for ( size_t i = 0U; i < n; ++i )
-		$1->RawField(lhs_map[i]).AsDoubleRef() += $2->RawField(rhs_map[i]).AsDouble();
+		$1->RawField(lhs_map[i]).AsDoubleRef() =
+			FieldValWithCheck($1, lhs_map[i]).AsDouble() +
+			FieldValWithCheck($2, rhs_map[i]).AsDouble();
 
 op Rec-Add-Fields
 op1-read
@@ -219,8 +223,10 @@ eval	SetUpRecFieldOps(map)
 	auto& types = Z_AUX->types;
 	for ( size_t i = 0U; i < n; ++i )
 		{
+		// We make this call to ensure that the field exists.
+		(void) FieldValWithCheck($1, lhs_map[i]);
 		auto& lhs_i = $1->RawField(lhs_map[i]);
-		auto rhs_i = $2->RawField(rhs_map[i]);
+		auto rhs_i = FieldValWithCheck($2, rhs_map[i]);
 		auto tag = types[i]->Tag();
 		if ( tag == TYPE_INT )
 			lhs_i.AsIntRef() += rhs_i.AsInt();

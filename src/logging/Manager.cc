@@ -1167,7 +1167,7 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
         size_t total_size = 0;
         total_string_bytes = 0;
         total_container_elements = 0;
-        auto rec = RecordToLogRecord(stream, filter, columns.get(), total_size);
+        auto rec = RecordToLogRecord(w->second, filter, columns.get(), total_size);
 
         if ( total_size > max_log_record_size ) {
             reporter->Weird("log_record_too_large", util::fmt("%s", stream->name.c_str()));
@@ -1406,7 +1406,7 @@ bool Manager::SetMaxDelayQueueSize(const EnumValPtr& id, zeek_uint_t queue_size)
     return true;
 }
 
-threading::Value Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty, size_t& total_size) {
+threading::Value Manager::ValToLogVal(WriterInfo* info, std::optional<ZVal>& val, Type* ty, size_t& total_size) {
     if ( ! val )
         return {ty->Tag(), false};
 
@@ -1544,7 +1544,7 @@ threading::Value Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty, size_t
 
             for ( size_t i = 0; i < allowed_elements && total_size < max_log_record_size; i++ ) {
                 std::optional<ZVal> s_i = ZVal(set->Idx(i), set_t);
-                lval.val.set_val.vals[i] = new threading::Value(ValToLogVal(s_i, set_t.get(), total_size));
+                lval.val.set_val.vals[i] = new threading::Value(ValToLogVal(info, s_i, set_t.get(), total_size));
                 if ( is_managed )
                     ZVal::DeleteManagedType(*s_i);
                 lval.val.set_val.size++;
@@ -1570,7 +1570,7 @@ threading::Value Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty, size_t
             auto& vt = vec->GetType()->Yield();
 
             for ( size_t i = 0; i < allowed_elements && total_size < max_log_record_size; i++ ) {
-                lval.val.vector_val.vals[i] = new threading::Value(ValToLogVal(vv[i], vt.get(), total_size));
+                lval.val.vector_val.vals[i] = new threading::Value(ValToLogVal(info, vv[i], vt.get(), total_size));
                 lval.val.vector_val.size++;
             }
 
@@ -1585,8 +1585,7 @@ threading::Value Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty, size_t
     return lval;
 }
 
-detail::LogRecord Manager::RecordToLogRecord(const Stream* stream, Filter* filter, RecordVal* columns,
-                                             size_t& total_size) {
+detail::LogRecord Manager::RecordToLogRecord(WriterInfo* info, Filter* filter, RecordVal* columns, size_t& total_size) {
     RecordValPtr ext_rec;
 
     if ( filter->num_ext_fields > 0 ) {
@@ -1636,7 +1635,7 @@ detail::LogRecord Manager::RecordToLogRecord(const Stream* stream, Filter* filte
         }
 
         if ( val )
-            vals.emplace_back(ValToLogVal(val, vt, total_size));
+            vals.emplace_back(ValToLogVal(info, val, vt, total_size));
 
         if ( total_size > max_log_record_size ) {
             return {};

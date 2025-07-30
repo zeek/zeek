@@ -1,3 +1,17 @@
+8.0.0-dev.809 | 2025-07-30 10:28:06 +0200
+
+  * RecordType: Ensure &default fields are always re-initialized (Arne Welzel, Corelight)
+
+    This started working partly after the deferral logic introduced with
+    Zeek 6.0 so this finishes it :-)
+
+  * Attr: Deprecate using &default and &optional together on record fields (Arne Welzel, Corelight)
+
+    If &default implies re-initialization of the field, using them together
+    doesn't make much sense.
+
+  * RecordType: Allow deferring &default=vector(), set(), table() fields (Arne Welzel, Corelight)
+
 8.0.0-dev.805 | 2025-07-30 10:07:50 +0200
 
   * fixes for specialized ZAM operations needing to check whether record fields exist (Vern Paxson, Corelight)

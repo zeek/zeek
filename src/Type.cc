@@ -929,6 +929,20 @@ public:
             return rt->IsDeferrable() && constructor_list->Exprs().empty();
         }
 
+        // Allow deferring fairly common &default=vector() field initialization...
+        if ( init_expr->Tag() == EXPR_VECTOR_CONSTRUCTOR ) {
+            auto vce = zeek::cast_intrusive<VectorConstructorExpr>(init_expr);
+            return vce->GetType<zeek::VectorType>()->IsUnspecifiedVector();
+        }
+
+        // ...and also &default=table() and &default=set().
+        if ( init_expr->Tag() == EXPR_TABLE_COERCE || init_expr->Tag() == EXPR_TABLE_CONSTRUCTOR ||
+             init_expr->Tag() == EXPR_SET_CONSTRUCTOR ) {
+            auto une = zeek::cast_intrusive<UnaryExpr>(init_expr);
+            return une->Op()->GetType()->Tag() == TYPE_TABLE &&
+                   une->Op()->GetType<zeek::TableType>()->IsUnspecifiedTable();
+        }
+
         return false;
     }
 
@@ -1007,12 +1021,29 @@ private:
     void OptimizeCreationInits(RecordType* rt) {
         int i = 0;
         for ( auto& ci : rt->creation_inits ) {
-            if ( ! ci.second->IsDeferrable() )
+            if ( ! ci.second->IsDeferrable() ) {
                 rt->creation_inits[i++] = std::move(ci);
+
+                // A non-deferrable field with a &default attribute is expected to also exist in deferred_inits
+                // such that re-initialization after deletion of the field works.
+                if ( rt->FieldDecl(ci.first)->GetAttr(detail::ATTR_DEFAULT) != detail::Attr::nil ) {
+                    if ( ! rt->deferred_inits[ci.first] )
+                        zeek::reporter->InternalError("non-deferrable field %s$%s with &default not in deferred_inits",
+                                                      rt->GetName().c_str(), rt->FieldName(i));
+
+                    if ( rt->deferred_inits[ci.first] != rt->creation_inits[i - 1].second )
+                        zeek::reporter->InternalError("non-deferrable field %s$%s with &default has inconsistent inits",
+                                                      rt->GetName().c_str(), rt->FieldName(i));
+                }
+            }
             else {
-                // std::fprintf(stderr, "deferred %s$%s: %s\n", obj_desc_short(rt).c_str(), rt->FieldName(ci.first),
-                //             ci.second->InitExpr() ? obj_desc_short(ci.second->InitExpr()).c_str() : "<none>");
-                assert(! rt->deferred_inits[ci.first]);
+                // If deferred_inits already has a value, it should be the same as the one
+                // stored in creation_inits. This happens for deferrable record fields
+                // that have a &default attribute.
+                if ( rt->deferred_inits[ci.first] && rt->deferred_inits[ci.first] != ci.second )
+                    zeek::reporter->InternalError("deferrable field %s$%s has inconsistent inits",
+                                                  rt->GetName().c_str(), rt->FieldName(i));
+
                 rt->deferred_inits[ci.first].swap(ci.second);
             }
         }
@@ -1104,8 +1135,13 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td) {
         }
 
         else {
-            auto efi = std::make_shared<detail::ExprFieldInit>(def_expr, type);
-            creation_inits.emplace_back(field, std::move(efi));
+            // Note that init is placed into creation_inits and deferred_inits
+            // such that accessing a record field after deleting it will run the
+            // &default expression to re-initialize it again.
+            //
+            // Also see RecordType::CreationInitsOptimizer.
+            init = std::make_shared<detail::ExprFieldInit>(def_expr, type);
+            creation_inits.emplace_back(field, init);
         }
     }
 

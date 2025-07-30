@@ -306,6 +306,10 @@ Changed Functionality
   `Analyzer::DebugLogging`. Furthermore the default options changed to enable
   more detailed output by default.
 
+- Record fields with a ``&default`` attribute are now consistently re-initialized
+  after deleting such fields. Previously, this would only work for constant
+  expressions, but has been extended to apply to arbitrary expressions.
+
 - Publishing remote events with vector arguments that contain holes is now
   rejected. The receiver side never had a chance to figure out where these
   holes would have been. There's a chance this breaks scripts that accidentally
@@ -339,6 +343,10 @@ Changed Functionality
 - The PPPoE parser now respects the size value given in the PPPoE header. Data
   beyon the size given in the header will be truncated.
 
+- Record fields with ``&default`` attributes initializing empty ``vector``, ``table``
+  or ``set`` instances are now deferred until they are accessed, potentially
+  improving memory usage when such fields are never accessed.
+
 Removed Functionality
 ---------------------
 
@@ -368,6 +376,10 @@ Deprecated Functionality
   ``notice.log`` entries.
 
   The replacement script doesn't populate the ``email_body_sections`` anymore either.
+
+- Using ``&default`` and ``&optional`` together on a record field has been deprecated
+  as it would only result in ``&default`` behavior. This will become an error starting
+  with Zeek 8.1.
 
 - The ``zeek::Event()`` constructor was deprecated. Use ``event_mgr::Enqueue()``
   or ``event_mgr::Dispatch()`` instead.

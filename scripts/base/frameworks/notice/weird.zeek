@@ -52,7 +52,7 @@ export {
 		## The peer that originated this weird.  This is helpful in
 		## cluster deployments if a particular cluster node is having
 		## trouble to help identify which node is having trouble.
-		peer:   string  &log &optional &default=peer_description;
+		peer:   string  &log &default=peer_description;
 
 		## The source of the weird. When reported by an analyzer, this
 		## should be the name of the analyzer.

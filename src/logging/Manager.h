@@ -422,8 +422,8 @@ private:
     bool TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, TableVal* include, TableVal* exclude,
                         const std::string& path, const std::list<int>& indices);
 
-    detail::LogRecord RecordToLogRecord(const Stream* stream, Filter* filter, RecordVal* columns, size_t& total_size);
-    threading::Value ValToLogVal(std::optional<ZVal>& val, Type* ty, size_t& total_size);
+    detail::LogRecord RecordToLogRecord(WriterInfo* info, Filter* filter, RecordVal* columns, size_t& total_size);
+    threading::Value ValToLogVal(WriterInfo* info, std::optional<ZVal>& val, Type* ty, size_t& total_size);
 
     Stream* FindStream(EnumVal* id);
     void RemoveDisabledWriters(Stream* stream);

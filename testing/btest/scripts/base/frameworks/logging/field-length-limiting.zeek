@@ -2,8 +2,11 @@
 #
 # @TEST-EXEC: zeek -b test.zeek %INPUT
 # @TEST-EXEC: btest-diff test.log
+# @TEST-EXEC: btest-diff .stdout
 
 # @TEST-START-FILE test.zeek
+
+@load base/frameworks/telemetry
 
 module Test;
 
@@ -32,6 +35,13 @@ event zeek_init()
 		}
 
 	Log::write(Test::LOG, rec);
+
+	local storage_metrics = Telemetry::collect_metrics("zeek", "log_writer_truncated*");
+	for (i in storage_metrics)
+		{
+		local m = storage_metrics[i];
+		print m$opts$metric_type, m$opts$prefix, m$opts$name, m$label_names, m$label_values, m$value;
+		}
 	}
 
 

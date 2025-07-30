@@ -246,10 +246,17 @@ struct Manager::WriterInfo {
 
     std::shared_ptr<telemetry::Counter> total_writes;
     std::shared_ptr<telemetry::Counter> total_discarded_writes;
+    std::shared_ptr<telemetry::Counter> total_truncated_string_fields;
+    std::shared_ptr<telemetry::Counter> total_truncated_containers;
 
     WriterInfo(std::shared_ptr<telemetry::Counter> total_writes,
-               std::shared_ptr<telemetry::Counter> total_discarded_writes)
-        : total_writes(std::move(total_writes)), total_discarded_writes(std::move(total_discarded_writes)) {}
+               std::shared_ptr<telemetry::Counter> total_discarded_writes,
+               std::shared_ptr<telemetry::Counter> total_truncated_string_fields,
+               std::shared_ptr<telemetry::Counter> total_truncated_containers)
+        : total_writes(std::move(total_writes)),
+          total_discarded_writes(std::move(total_discarded_writes)),
+          total_truncated_string_fields(std::move(total_truncated_string_fields)),
+          total_truncated_containers(std::move(total_truncated_containers)) {}
 };
 
 struct Manager::Stream {
@@ -491,7 +498,15 @@ Manager::Manager()
       total_log_writer_discarded_writes_family(
           telemetry_mgr->CounterFamily("zeek", "log-writer-discarded-writes",
                                        {"writer", "module", "stream", "filter-name", "path"},
-                                       "Total number of log writes discarded due to size limitations.")) {
+                                       "Total number of log writes discarded due to size limitations.")),
+      total_log_writer_truncated_string_fields_family(
+          telemetry_mgr->CounterFamily("zeek", "log-writer-truncated-string-fields",
+                                       {"writer", "module", "stream", "filter-name", "path"},
+                                       "Total number of logged string fields limited by length")),
+      total_log_writer_truncated_container_fields_family(
+          telemetry_mgr->CounterFamily("zeek", "log-writer-truncated-containers",
+                                       {"writer", "module", "stream", "filter-name", "path"},
+                                       "Total number of logged container fields limited by length")) {
     rotations_pending = 0;
 }
 
@@ -1486,6 +1501,10 @@ threading::Value Manager::ValToLogVal(WriterInfo* info, std::optional<ZVal>& val
             size_t allowed_bytes = std::min(
                 {static_cast<size_t>(s->Len()), max_field_string_bytes, max_total_string_bytes - total_string_bytes});
 
+            if ( allowed_bytes < static_cast<size_t>(s->Len()) )
+                // TODO: this could also log a reporter warning or a weird or something
+                info->total_truncated_string_fields->Inc();
+
             if ( allowed_bytes == 0 )
                 return lval;
 
@@ -1537,6 +1556,10 @@ threading::Value Manager::ValToLogVal(WriterInfo* info, std::optional<ZVal>& val
             size_t allowed_elements = std::min({static_cast<size_t>(set->Length()), max_field_container_elements,
                                                 max_total_container_elements - total_container_elements});
 
+            if ( allowed_elements < static_cast<size_t>(set->Length()) )
+                // TODO: this could also log a reporter warning or a weird or something
+                info->total_truncated_containers->Inc();
+
             if ( allowed_elements == 0 )
                 return lval;
 
@@ -1560,6 +1583,10 @@ threading::Value Manager::ValToLogVal(WriterInfo* info, std::optional<ZVal>& val
 
             size_t allowed_elements = std::min({static_cast<size_t>(vec->Size()), max_field_container_elements,
                                                 max_total_container_elements - total_container_elements});
+
+            if ( allowed_elements < static_cast<size_t>(vec->Size()) )
+                // TODO: this could also log a reporter warning or a weird or something
+                info->total_truncated_containers->Inc();
 
             if ( allowed_elements == 0 )
                 return lval;
@@ -1688,8 +1715,11 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
                                                        {"filter-name", instantiating_filter},
                                                        {"path", info->path}};
 
-    WriterInfo* winfo = new WriterInfo(zeek::log_mgr->total_log_writer_writes_family->GetOrAdd(labels),
-                                       zeek::log_mgr->total_log_writer_discarded_writes_family->GetOrAdd(labels));
+    WriterInfo* winfo =
+        new WriterInfo(zeek::log_mgr->total_log_writer_writes_family->GetOrAdd(labels),
+                       zeek::log_mgr->total_log_writer_discarded_writes_family->GetOrAdd(labels),
+                       zeek::log_mgr->total_log_writer_truncated_string_fields_family->GetOrAdd(labels),
+                       zeek::log_mgr->total_log_writer_truncated_container_fields_family->GetOrAdd(labels));
     winfo->type = writer->Ref()->AsEnumVal();
     winfo->writer = nullptr;
     winfo->open_time = run_state::network_time;

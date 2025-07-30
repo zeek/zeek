@@ -460,6 +460,8 @@ private:
     std::shared_ptr<telemetry::CounterFamily> total_log_stream_writes_family;
     std::shared_ptr<telemetry::CounterFamily> total_log_writer_writes_family;
     std::shared_ptr<telemetry::CounterFamily> total_log_writer_discarded_writes_family;
+    std::shared_ptr<telemetry::CounterFamily> total_log_writer_truncated_string_fields_family;
+    std::shared_ptr<telemetry::CounterFamily> total_log_writer_truncated_container_fields_family;
 
     zeek_uint_t last_delay_token = 0;
     std::vector<detail::WriteContext> active_writes;

@@ -10,6 +10,7 @@
 #include "zeek/EventHandler.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/Func.h"
+#include "zeek/ID.h"
 #include "zeek/Reporter.h"
 #include "zeek/Type.h"
 #include "zeek/Val.h"
@@ -136,6 +137,26 @@ std::optional<Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsSpan args
         meta = zeek::detail::MakeEventMetadataVector(zeek::event_mgr.CurrentEventTime());
 
     return Event{eh, std::move(*checked_args), std::move(meta)};
+}
+
+bool Backend::Subscribe(const std::string& topic_prefix, SubscribeCallback cb) {
+    static const auto on_subscribe = zeek::id::find_func("Cluster::on_subscribe");
+    assert(on_subscribe && on_subscribe->Flavor() == FUNC_FLAVOR_HOOK);
+
+    if ( on_subscribe && on_subscribe->HasEnabledBodies() )
+        on_subscribe->Invoke(zeek::make_intrusive<zeek::StringVal>(topic_prefix));
+
+    return DoSubscribe(topic_prefix, std::move(cb));
+}
+
+bool Backend::Unsubscribe(const std::string& topic_prefix) {
+    static const auto on_unsubscribe = zeek::id::find_func("Cluster::on_unsubscribe");
+    assert(on_unsubscribe && on_unsubscribe->Flavor() == FUNC_FLAVOR_HOOK);
+
+    if ( on_unsubscribe->HasEnabledBodies() )
+        on_unsubscribe->Invoke(zeek::make_intrusive<zeek::StringVal>(topic_prefix));
+
+    return DoUnsubscribe(topic_prefix);
 }
 
 void Backend::DoReadyToPublishCallback(Backend::ReadyCallback cb) {

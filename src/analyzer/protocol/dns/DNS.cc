@@ -8,7 +8,9 @@
 #include <sys/types.h>
 #include <cctype>
 
+#include "zeek/Base64.h"
 #include "zeek/Event.h"
+#include "zeek/IPAddr.h"
 #include "zeek/NetVar.h"
 #include "zeek/RunState.h"
 #include "zeek/Val.h"
@@ -1587,17 +1589,161 @@ bool DNS_Interpreter::ParseRR_CAA(detail::DNS_MsgInfo* msg, const u_char*& data,
     return rdlength == 0;
 }
 
+VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int svc_params_len) {
+    static auto dns_svcb_param_vec = id::find_type<VectorType>("dns_svcb_param_vec");
+    auto svc_params = make_intrusive<VectorVal>(dns_svcb_param_vec);
+
+    // Each service parameter is at least four bytes, two for key and value length each.
+    while ( svc_params_len >= 4 ) {
+        static auto dns_svcb_param = id::find_type<RecordType>("dns_svcb_param");
+        auto svc_param = make_intrusive<RecordVal>(dns_svcb_param);
+
+        const uint16_t key = ExtractShort(data, len);
+        uint16_t value_len = ExtractShort(data, len);
+        int item_len_parsed = 0;
+        svc_params_len -= 4;
+
+        if ( value_len > svc_params_len ) {
+            analyzer->Weird("DNS_SVCB_param_value_toobig", util::fmt("%d capped to %d", value_len, svc_params_len));
+            value_len = svc_params_len;
+            goto malformed;
+        }
+
+        svc_param->Assign(0, zeek::val_mgr->Count(key));
+
+        switch ( key ) {
+            case detail::mandatory: // list of keys
+            {
+                if ( value_len == 0 || value_len % 2 != 0 ) {
+                    analyzer->Weird("DNS_SVCB_mandatory_length_invalid");
+                    goto malformed;
+                }
+
+                auto mandatory = make_intrusive<VectorVal>(id::index_vec);
+
+                while ( item_len_parsed + 2 <= value_len ) {
+                    mandatory->Append(zeek::val_mgr->Count(ExtractShort(data, len)));
+                    item_len_parsed += 2;
+                }
+
+                svc_param->Assign(1, std::move(mandatory));
+                break;
+            }
+
+            case detail::alpn: // list of length-prefixed (1 octet) ALPN IDs
+            {
+                auto alpn = make_intrusive<VectorVal>(id::string_vec);
+
+                while ( item_len_parsed + 2 < value_len ) {
+                    const uint8_t alpn_len = ExtractByte(data, len);
+                    item_len_parsed += 1;
+
+                    if ( alpn_len == 0 || alpn_len > 255 || alpn_len + item_len_parsed > value_len ) {
+                        // Account for already consumed data first.
+                        value_len -= item_len_parsed;
+                        analyzer->Weird("DNS_SVCB_alpn_length_invalid");
+                        goto malformed;
+                    }
+
+                    alpn->Append(zeek::make_intrusive<zeek::StringVal>(alpn_len, reinterpret_cast<const char*>(data)));
+                    data += alpn_len;
+                    len -= alpn_len;
+                    item_len_parsed += alpn_len;
+                }
+
+                if ( alpn->Size() > 0 )
+                    svc_param->Assign(2, std::move(alpn));
+                break;
+            }
+
+            case detail::no_default_alpn:
+                if ( value_len > 0 ) {
+                    analyzer->Weird("DNS_SVCB_nodefaultalpn_value");
+                    goto malformed;
+                }
+                break;
+
+            case detail::port: // port
+                if ( value_len != 2 ) {
+                    analyzer->Weird("DNS_SVCB_port_length_invalid");
+                    break;
+                }
+
+                svc_param->Assign(3, zeek::val_mgr->Count(ExtractShort(data, len)));
+                item_len_parsed += 2;
+                break;
+
+            case detail::ipv4hint: // list of IPs
+            case detail::ipv6hint: // list of IPs
+            {
+                const bool is_ipv4 = key == detail::ipv4hint;
+                const int addr_len = is_ipv4 ? 4 : 16;
+
+                if ( value_len % addr_len != 0 ) {
+                    analyzer->Weird("DNS_SVCB_hint_length_invalid");
+                    goto malformed;
+                }
+
+                static auto addr_vec = id::find_type<VectorType>("addr_vec");
+                auto hint = make_intrusive<VectorVal>(addr_vec);
+
+                while ( item_len_parsed + addr_len <= value_len ) {
+                    const auto addr = zeek::IPAddr(is_ipv4 ? IPv4 : IPv6, reinterpret_cast<const uint32_t*>(data),
+                                                   zeek::IPAddr::Network);
+                    hint->Append(zeek::make_intrusive<zeek::AddrVal>(addr));
+
+                    data += addr_len;
+                    len -= addr_len;
+                    item_len_parsed += addr_len;
+                }
+
+                if ( hint->Size() > 0 )
+                    svc_param->Assign(4, std::move(hint));
+                break;
+            }
+
+            case detail::ech: // ECHConfigList
+            {
+                const String* ech = ExtractStream(data, len, value_len);
+                item_len_parsed += value_len;
+
+                // Convert binary blob to presentation format.
+                String* b64 = zeek::detail::encode_base64(ech, nullptr, analyzer->Conn());
+                delete ech;
+
+                svc_param->Assign(5, zeek::make_intrusive<zeek::StringVal>(b64));
+                break;
+            }
+
+            default:
+                analyzer->Weird("DNS_SVCB_key_reserved_or_invalid");
+            malformed:
+                svc_param->Assign(6, zeek::make_intrusive<StringVal>(ExtractStream(data, len, value_len)));
+                item_len_parsed += value_len;
+                break;
+        }
+
+        svc_params->Append(std::move(svc_param));
+        svc_params_len -= value_len;
+    }
+
+    return svc_params;
+}
+
+/**
+ * https://datatracker.ietf.org/doc/html/rfc9460#name-rdata-wire-format
+ */
 bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength,
                                    const u_char* msg_start, const RR_Type& svcb_type) {
     const u_char* data_start = data;
     // the smallest SVCB/HTTPS rr is 3 bytes:
     // the first 2 bytes are for the svc priority, and the third byte is root (0x0)
     if ( len < 3 ) {
-        analyzer->Weird("DNS_SVBC_wrong_length");
+        analyzer->Weird("DNS_SVCB_wrong_length");
         return false;
     }
 
-    uint16_t svc_priority = ExtractShort(data, len);
+    const uint16_t svc_priority = ExtractShort(data, len);
 
     u_char target_name[513];
     int name_len = sizeof(target_name) - 1;
@@ -1613,29 +1759,23 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
         name_end = target_name + 1;
     }
 
-    SVCB_DATA svcb_data = {svc_priority,
-                           make_intrusive<StringVal>(new String(target_name, name_end - target_name, true))};
-
-    // TODO: parse svcparams
-    // we consume all the remaining raw data (svc params) but do nothing.
-    // this should be removed if the svc param parser is ready
     std::ptrdiff_t parsed_bytes = data - data_start;
-    if ( parsed_bytes < rdlength ) {
-        len -= (rdlength - parsed_bytes);
-        data += (rdlength - parsed_bytes);
+    int svc_params_len = rdlength - parsed_bytes;
+    VectorValPtr svc_params = nullptr;
+
+    if ( svc_params_len > 0 ) {
+        if ( svc_priority == 0 )
+            analyzer->Weird("DNS_SVCB_aliasmode_with_params");
+
+        svc_params = Parse_SvcParams(data, len, svc_params_len);
     }
 
-    switch ( svcb_type ) {
-        case detail::TYPE_SVCB:
-            analyzer->EnqueueConnEvent(dns_SVCB, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildAnswerVal(),
-                                       msg->BuildSVCB_Val(svcb_data));
-            break;
-        case detail::TYPE_HTTPS:
-            analyzer->EnqueueConnEvent(dns_HTTPS, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildAnswerVal(),
-                                       msg->BuildSVCB_Val(svcb_data));
-            break;
-        default: break; // unreachable. for suppressing compiler warnings.
-    }
+    SVCB_DATA svcb_data = {svc_priority,
+                           make_intrusive<StringVal>(new String(target_name, name_end - target_name, true)),
+                           std::move(svc_params)};
+
+    analyzer->EnqueueConnEvent(svcb_type == detail::TYPE_SVCB ? dns_SVCB : dns_HTTPS, analyzer->ConnVal(),
+                               msg->BuildHdrVal(), msg->BuildAnswerVal(), msg->BuildSVCB_Val(svcb_data));
     return true;
 }
 
@@ -1947,8 +2087,9 @@ RecordValPtr DNS_MsgInfo::BuildSVCB_Val(const SVCB_DATA& svcb) {
 
     r->Assign(0, svcb.svc_priority);
     r->Assign(1, svcb.target_name);
+    if ( svcb.svc_params )
+        r->Assign(2, std::move(svcb.svc_params));
 
-    // TODO: assign values to svcparams
     return r;
 }
 

@@ -182,8 +182,9 @@ export {
 		[4] = "SHA384",
 	} &default = function(n: count): string { return fmt("digest-%d", n); };
 
-	## SVCB/HTTPS SvcParam keys, as defined in
-	## https://www.ietf.org/archive/id/draft-ietf-dnsop-svcb-https-07.txt, sec 14.3.2
+	## SVCB/HTTPS SvcParam keys as defined in
+	## https://datatracker.ietf.org/doc/html/rfc9460#name-initial-contents
+	## Keep in sync with src/analyzer/protocol/dns/DNS.h SVCPARAM_Key.
 	const svcparam_keys = {
 		[0] = "mandatory",
 		[1] = "alpn",

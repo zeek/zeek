@@ -80,6 +80,20 @@ private:
     void StmtDescribe(ODesc* d) const override;
     TraversalCode Traverse(TraversalCallback* cb) const override;
 
+    // Helper run-time function for looking up a field in a record, checking
+    // that it exists and complaining if it does not. A member here rather than
+    // a standalone run-time function because ZBody is a "friend" of RecordVal
+    // and can use its low-level record field accessors.
+    ZVal CheckAndLookupField(RecordVal* r, int f, const std::shared_ptr<ZAMLocInfo>& loc) {
+        auto opt_zv = r->RawOptField(f);
+        if ( ! opt_zv ) {
+            auto fn = r->GetType<RecordType>()->FieldName(f);
+            ZAM_run_time_error(loc, util::fmt("field value missing ($%s)", fn));
+        }
+
+        return *opt_zv;
+    }
+
     std::string func_name;
 
     const ZInst* insts = nullptr;

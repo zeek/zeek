@@ -1249,7 +1249,7 @@ public:
 
     /**
      * Returns the value of a given field index if it's previously been
-     * assigned, * or else returns the value created from evaluating the
+     * assigned, or else returns the value created from evaluating the
      * record field's &default expression.
      * @param field  The field index to retrieve.
      * @return  The value at the given field index or the default value if

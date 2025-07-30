@@ -1247,13 +1247,16 @@ type V
 eval	auto init_vals = z.aux->ToZValVecWithMap(frame);
 	ConstructRecordPost()
 
+macro Z_LOC z.loc
+macro FieldValWithCheck(r, f) ZBody::CheckAndLookupField(r, f, Z_LOC)
+
 macro	AssignFromRec()
 	/* The following is defined below, for use by Rec-Assign-Fields */
 	SetUpRecFieldOps(lhs_map)
 	auto is_managed = aux->is_managed;
 	for ( size_t i = 0U; i < n; ++i )
 		{
-		auto rhs_i = rhs->RawField(rhs_map[i]);
+        auto rhs_i = FieldValWithCheck(rhs, rhs_map[i]);
 		auto& init_i = init_vals[lhs_map[i]];
 		if ( is_managed[i] )
 			{
@@ -1328,7 +1331,7 @@ op1-read
 type VV
 eval	SetUpRecFieldOps(map)
 	for ( size_t i = 0U; i < n; ++i )
-		lhs->RawOptField(lhs_map[i]) = rhs->RawField(rhs_map[i]);
+		lhs->RawOptField(lhs_map[i]) = FieldValWithCheck(rhs, rhs_map[i]);
 
 macro DoManagedRecAssign()
 	auto is_managed = aux->is_managed;
@@ -1336,14 +1339,14 @@ macro DoManagedRecAssign()
 		if ( is_managed[i] )
 			{
 			auto& lhs_i = lhs->RawOptField(lhs_map[i]);
-			auto rhs_i = rhs->RawField(rhs_map[i]);
+			auto rhs_i = FieldValWithCheck(rhs, rhs_map[i]);
 			zeek::Ref(rhs_i.ManagedVal());
 			if ( lhs_i )
 				ZVal::DeleteManagedType(*lhs_i);
 			lhs_i = rhs_i;
 			}
 		else
-			lhs->RawOptField(lhs_map[i]) = rhs->RawField(rhs_map[i]);
+			lhs->RawOptField(lhs_map[i]) = FieldValWithCheck(rhs, rhs_map[i]);
 op Rec-Assign-Fields-Managed
 op1-read
 type VV
@@ -1357,7 +1360,7 @@ eval	SetUpRecFieldOps(map)
 	for ( size_t i = 0U; i < n; ++i )
 		{
 		auto& lhs_i = lhs->RawOptField(lhs_map[i]);
-		auto rhs_i = rhs->RawField(rhs_map[i]);
+		auto rhs_i = FieldValWithCheck(rhs, rhs_map[i]);
 		zeek::Ref(rhs_i.ManagedVal());
 		if ( lhs_i )
 			ZVal::DeleteManagedType(*lhs_i);
@@ -1369,14 +1372,18 @@ op1-read
 type VV
 eval	SetUpRecFieldOps(map)
 	for ( size_t i = 0U; i < n; ++i )
-		lhs->RawField(lhs_map[i]).int_val += rhs->RawField(rhs_map[i]).int_val;
+		lhs->RawField(lhs_map[i]).int_val =
+            FieldValWithCheck(lhs, lhs_map[i]).AsInt() +
+            FieldValWithCheck(rhs, rhs_map[i]).AsInt();
 
 op Rec-Add-Double-Fields
 op1-read
 type VV
 eval	SetUpRecFieldOps(map)
 	for ( size_t i = 0U; i < n; ++i )
-		lhs->RawField(lhs_map[i]).double_val += rhs->RawField(rhs_map[i]).double_val;
+		lhs->RawField(lhs_map[i]).double_val =
+            FieldValWithCheck(lhs, lhs_map[i]).AsDouble() +
+            FieldValWithCheck(rhs, rhs_map[i]).AsDouble();
 
 op Rec-Add-Fields
 op1-read
@@ -1385,8 +1392,9 @@ eval	SetUpRecFieldOps(map)
 	auto& types = aux->types;
 	for ( size_t i = 0U; i < n; ++i )
 		{
+        (void) FieldValWithCheck(lhs, lhs_map[i]);
 		auto& lhs_i = lhs->RawField(lhs_map[i]);
-		auto rhs_i = rhs->RawField(rhs_map[i]);
+		auto rhs_i = FieldValWithCheck(rhs, rhs_map[i]);
 		auto tag = types[i]->Tag();
 		if ( tag == TYPE_INT )
 			lhs_i.int_val += rhs_i.int_val;
@@ -3318,10 +3326,10 @@ eval	SetBytesThresh(frame[z.v2].record_val, z.c.uint_val, zeek_uint_t(z.v3))
 internal-op Func-Id-String
 type VV
 eval	auto id_rec = frame[z.v2].record_val;
-	auto orig_h = id_rec->RawField(0).addr_val->AsAddr().AsString();
-	auto resp_h = id_rec->RawField(2).addr_val->AsAddr().AsString();
-	auto orig_p = static_cast<uint32_t>(id_rec->RawField(1).uint_val) & ~PORT_SPACE_MASK;
-	auto resp_p = static_cast<uint32_t>(id_rec->RawField(3).uint_val) & ~PORT_SPACE_MASK;
+    auto orig_h = FieldValWithCheck(id_rec, 0).addr_val->AsAddr().AsString();
+    auto resp_h = FieldValWithCheck(id_rec, 2).addr_val->AsAddr().AsString();
+    auto orig_p = static_cast<uint32_t>(FieldValWithCheck(id_rec, 1).uint_val & ~PORT_SPACE_MASK);
+    auto resp_p = static_cast<uint32_t>(FieldValWithCheck(id_rec, 3).uint_val & ~PORT_SPACE_MASK);
 	/* Maximum address size is for IPv6 with no compression. Each
 	 * 8 16-bit hex elements plus 7 colons between them plus the two []'s
 	 * = 8*4 + 7 + 2 = 41 characters.

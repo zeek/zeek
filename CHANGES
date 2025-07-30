@@ -1,3 +1,9 @@
+7.0.9-3 | 2025-08-22 13:31:54 -0700
+
+  * fixes for specialized ZAM operations needing to check whether record fields exist (Vern Paxson, Corelight)
+
+    (cherry picked from commit d7fbd49d9e0699685fc5be035b966b19867785f8)
+
 7.0.9-2 | 2025-08-22 13:02:51 -0700
 
   * modified merge_types() to skip work if given identical types, which (Vern Paxson, Corelight)

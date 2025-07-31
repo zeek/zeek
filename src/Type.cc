@@ -1022,8 +1022,6 @@ private:
         int i = 0;
         for ( auto& ci : rt->creation_inits ) {
             if ( ! ci.second->IsDeferrable() ) {
-                rt->creation_inits[i++] = std::move(ci);
-
                 // A non-deferrable field with a &default attribute is expected to also exist in deferred_inits
                 // such that re-initialization after deletion of the field works.
                 if ( rt->FieldDecl(ci.first)->GetAttr(detail::ATTR_DEFAULT) != detail::Attr::nil ) {
@@ -1031,10 +1029,12 @@ private:
                         zeek::reporter->InternalError("non-deferrable field %s$%s with &default not in deferred_inits",
                                                       rt->GetName().c_str(), rt->FieldName(i));
 
-                    if ( rt->deferred_inits[ci.first] != rt->creation_inits[i - 1].second )
+                    else if ( rt->deferred_inits[ci.first] != ci.second )
                         zeek::reporter->InternalError("non-deferrable field %s$%s with &default has inconsistent inits",
                                                       rt->GetName().c_str(), rt->FieldName(i));
                 }
+
+                rt->creation_inits[i++] = std::move(ci);
             }
             else {
                 // If deferred_inits already has a value, it should be the same as the one

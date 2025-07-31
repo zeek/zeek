@@ -1,3 +1,9 @@
+8.0.0-dev.817 | 2025-07-31 10:34:43 -0700
+
+  * Fix use-after-move reported by clang-tidy (Tim Wojtulewicz, Corelight)
+
+    This was introduced by 9eb94ee151ec437fd076ef16d016af372391af65.
+
 8.0.0-dev.815 | 2025-07-31 16:10:33 +0100
 
   * Add tests for the deprecated-dpd-log.zeek policy script (Johanna Amann, Corelight)

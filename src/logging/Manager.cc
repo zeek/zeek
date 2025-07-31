@@ -243,6 +243,7 @@ struct Manager::WriterInfo {
     bool from_remote = false;
     bool hook_initialized = false;
     string instantiating_filter;
+    string stream_name;
 
     std::shared_ptr<telemetry::Counter> total_writes;
     std::shared_ptr<telemetry::Counter> total_discarded_writes;
@@ -1501,9 +1502,10 @@ threading::Value Manager::ValToLogVal(WriterInfo* info, std::optional<ZVal>& val
             size_t allowed_bytes = std::min(
                 {static_cast<size_t>(s->Len()), max_field_string_bytes, max_total_string_bytes - total_string_bytes});
 
-            if ( allowed_bytes < static_cast<size_t>(s->Len()) )
-                // TODO: this could also log a reporter warning or a weird or something
+            if ( allowed_bytes < static_cast<size_t>(s->Len()) ) {
+                reporter->Weird("log_string_field_truncated", util::fmt("%s", info->stream_name.c_str()));
                 info->total_truncated_string_fields->Inc();
+            }
 
             if ( allowed_bytes == 0 )
                 return lval;
@@ -1556,9 +1558,10 @@ threading::Value Manager::ValToLogVal(WriterInfo* info, std::optional<ZVal>& val
             size_t allowed_elements = std::min({static_cast<size_t>(set->Length()), max_field_container_elements,
                                                 max_total_container_elements - total_container_elements});
 
-            if ( allowed_elements < static_cast<size_t>(set->Length()) )
-                // TODO: this could also log a reporter warning or a weird or something
+            if ( allowed_elements < static_cast<size_t>(set->Length()) ) {
+                reporter->Weird("log_container_field_truncated", util::fmt("%s", info->stream_name.c_str()));
                 info->total_truncated_containers->Inc();
+            }
 
             if ( allowed_elements == 0 )
                 return lval;
@@ -1584,9 +1587,10 @@ threading::Value Manager::ValToLogVal(WriterInfo* info, std::optional<ZVal>& val
             size_t allowed_elements = std::min({static_cast<size_t>(vec->Size()), max_field_container_elements,
                                                 max_total_container_elements - total_container_elements});
 
-            if ( allowed_elements < static_cast<size_t>(vec->Size()) )
-                // TODO: this could also log a reporter warning or a weird or something
+            if ( allowed_elements < static_cast<size_t>(vec->Size()) ) {
+                reporter->Weird("log_container_field_truncated", util::fmt("%s", info->stream_name.c_str()));
                 info->total_truncated_containers->Inc();
+            }
 
             if ( allowed_elements == 0 )
                 return lval;
@@ -1730,6 +1734,7 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
     winfo->from_remote = from_remote;
     winfo->hook_initialized = false;
     winfo->instantiating_filter = instantiating_filter;
+    winfo->stream_name = stream->name;
 
     // Search for a corresponding filter for the writer/path pair and use its
     // rotation settings.  If no matching filter is found, fall back on

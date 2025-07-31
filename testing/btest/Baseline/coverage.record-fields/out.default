@@ -647,7 +647,6 @@ connection {
         * width: count, log=T, optional=T
        }
   * service: set[string], log=F, optional=F
-  * service_violation: set[string], log=F, optional=T
   * sip: record SIP::Info, log=F, optional=T
       SIP::Info {
         * call_id: string, log=T, optional=T

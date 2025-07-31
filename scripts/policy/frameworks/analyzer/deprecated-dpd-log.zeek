@@ -29,6 +29,10 @@ export {
 
 redef record connection += {
 	dpd: Info &optional;
+	## The set of services (analyzers) for which Zeek has observed a
+	## violation after the same service had previously been confirmed.
+	service_violation: set[string] &default=set() &ordered &deprecated="Remove in v8.1. Consider using failed_analyzers instead";
+
 };
 
 event zeek_init() &priority=5
@@ -51,6 +55,8 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 	# don't generate a log message for the protocol violation.
 	if ( analyzer !in c$service || analyzer in c$service_violation )
 		return;
+
+	add c$service_violation[analyzer];
 
 	local dpd: Info;
 	dpd$ts = network_time();

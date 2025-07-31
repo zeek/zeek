@@ -29,7 +29,6 @@ connection {
   * resp: record endpoint, log=F, optional=F
       endpoint { ... }
   * service: set[string], log=F, optional=F
-  * service_violation: set[string], log=F, optional=T
   * start_time: time, log=F, optional=F
   * tunnel: vector of record Tunnel::EncapsulatingConn, log=F, optional=T
       Tunnel::EncapsulatingConn {

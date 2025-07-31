@@ -1,3 +1,18 @@
+8.0.0-dev.815 | 2025-07-31 16:10:33 +0100
+
+  * Add tests for the deprecated-dpd-log.zeek policy script (Johanna Amann, Corelight)
+
+    This re-adds baselines for the old dpd.log to check functionality until
+    its removal in 8.1
+
+  * Move c$service_violation to deprecated-dpd-log.zeek (Johanna Amann, Corelight)
+
+    This moves c$service_violation to the deprecated-dpd-log policy script.
+
+    This is the only script in the distribution that uses the field, and it
+    is unlikely to be used externally. It is also responsible for a
+    significant amount of memory use by itself.
+
 8.0.0-dev.812 | 2025-07-31 07:57:52 -0700
 
   * Bump `auxil/spicy` to latest development snapshot (Benjamin Bannier, Corelight)

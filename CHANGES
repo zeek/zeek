@@ -1,3 +1,7 @@
+8.0.0-dev.821 | 2025-07-31 14:32:00 -0700
+
+  * Update CT/CA lists to versions from NSS 3.114 (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.817 | 2025-07-31 10:34:43 -0700
 
   * Fix use-after-move reported by clang-tidy (Tim Wojtulewicz, Corelight)

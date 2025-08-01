@@ -80,6 +80,7 @@ void ICMPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int rema
 
         if ( chksum != 0xffff ) {
             adapter->Weird("bad_ICMP_checksum");
+            adapter->ForwardSkippedPacket(len, data, is_orig, -1, ip.get(), pkt->cap_len);
             return;
         }
     }
@@ -103,6 +104,7 @@ void ICMPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int rema
         NextICMP6(run_state::current_timestamp, icmpp, len, remaining, data, ip.get(), adapter);
     else {
         reporter->Error("expected ICMP as IP packet's protocol, got %d", ip->NextProto());
+        adapter->ForwardSkippedPacket(len, data, is_orig, -1, ip.get(), pkt->cap_len);
         return;
     }
 

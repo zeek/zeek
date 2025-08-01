@@ -1,3 +1,7 @@
+8.0.0-dev.824 | 2025-08-01 14:49:35 +0200
+
+  * Remove zeek::Span and use std::span instead (Dominik Charousset, Corelight)
+
 8.0.0-dev.821 | 2025-07-31 14:32:00 -0700
 
   * Update CT/CA lists to versions from NSS 3.114 (Tim Wojtulewicz, Corelight)

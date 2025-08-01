@@ -11,12 +11,12 @@
 #include <broker/store.hh>
 #include <broker/zeek.hh>
 #include <memory>
+#include <span>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
 
 #include "zeek/IntrusivePtr.h"
-#include "zeek/Span.h"
 #include "zeek/broker/Data.h"
 #include "zeek/cluster/Backend.h"
 #include "zeek/iosource/IOSource.h"
@@ -284,7 +284,7 @@ public:
     [[deprecated("Remove in v8.1: Use the ArgsSpan version instead")]] RecordVal* MakeEvent(ValPList* args,
                                                                                             zeek::detail::Frame* frame);
 
-    using ArgsSpan = Span<const ValPtr>;
+    using ArgsSpan = std::span<const ValPtr>;
 
     /**
      * Create an `Event` record value from an event and its arguments.
@@ -433,7 +433,7 @@ private:
     //
     // TODO: Move log buffering out of broker and implement.
     bool DoPublishLogWrites(const logging::detail::LogWriteHeader& header,
-                            zeek::Span<logging::detail::LogRecord> records) override {
+                            std::span<logging::detail::LogRecord> records) override {
         // Not implemented by broker.
         throw std::logic_error("not implemented");
     }

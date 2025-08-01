@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include "zeek/Span.h"
+#include <span>
+
 #include "zeek/logging/Component.h"
 #include "zeek/logging/Types.h"
 #include "zeek/threading/MsgThread.h"
@@ -154,7 +155,7 @@ public:
      *
      * @return False if an error occurred.
      */
-    bool Write(int arg_num_fields, zeek::Span<detail::LogRecord> records);
+    bool Write(int arg_num_fields, std::span<detail::LogRecord> records);
 
     /**
      * Sets the buffering status for the writer, assuming the writer

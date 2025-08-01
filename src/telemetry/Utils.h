@@ -4,9 +4,8 @@
 
 #include <prometheus/family.h>
 #include <prometheus/labels.h>
+#include <span>
 #include <string_view>
-
-#include "zeek/Span.h"
 
 namespace zeek::telemetry {
 
@@ -18,7 +17,7 @@ namespace detail {
  * Builds a set of labels for prometheus based on a set of labels from
  * Zeek. This adds an 'endpoint' label if it's missing from the set.
  */
-prometheus::Labels BuildPrometheusLabels(Span<const LabelView> labels);
+prometheus::Labels BuildPrometheusLabels(std::span<const LabelView> labels);
 
 /**
  * Builds a full metric name for Prometheus from prefix, name, and unit values.

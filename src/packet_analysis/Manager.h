@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <span>
+
 #include "zeek/PacketFilter.h"
 #include "zeek/Tag.h"
 #include "zeek/iosource/Packet.h"
@@ -200,7 +202,7 @@ public:
      *
      * @returns An array of data spans.
      */
-    std::vector<zeek::Span<const uint8_t>> GetAnalyzerData(const AnalyzerPtr& analyzer);
+    std::vector<std::span<const uint8_t>> GetAnalyzerData(const AnalyzerPtr& analyzer);
 
 private:
     /**
@@ -253,7 +255,7 @@ private:
 
     struct StackEntry {
         const Analyzer* analyzer;
-        zeek::Span<const uint8_t> data; // Start of this layer, limited by span's size.
+        std::span<const uint8_t> data; // Start of this layer, limited by span's size.
     };
 
     std::vector<StackEntry> analyzer_stack;

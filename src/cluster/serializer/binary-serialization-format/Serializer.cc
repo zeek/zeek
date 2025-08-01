@@ -3,6 +3,7 @@
 #include "zeek/cluster/serializer/binary-serialization-format/Serializer.h"
 
 #include <cstdint>
+#include <span>
 
 #include "zeek/DebugLogger.h"
 #include "zeek/ID.h"
@@ -27,7 +28,7 @@ extern Plugin plugin;
 
 bool detail::BinarySerializationFormatLogSerializer::SerializeLogWrite(byte_buffer& buf,
                                                                        const logging::detail::LogWriteHeader& header,
-                                                                       zeek::Span<logging::detail::LogRecord> records) {
+                                                                       std::span<logging::detail::LogRecord> records) {
     zeek::detail::BinarySerializationFormat fmt;
 
     SERIALIZER_DEBUG("Serializing stream=%s writer=%s filter=%s path=%s num_fields=%zu num_records=%zu",

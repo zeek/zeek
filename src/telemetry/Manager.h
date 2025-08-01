@@ -6,12 +6,12 @@
 #include <cstdint>
 #include <initializer_list>
 #include <memory>
+#include <span>
 #include <string_view>
 #include <vector>
 
 #include "zeek/Flare.h"
 #include "zeek/IntrusivePtr.h"
-#include "zeek/Span.h"
 #include "zeek/iosource/IOSource.h"
 #include "zeek/telemetry/Counter.h"
 #include "zeek/telemetry/Gauge.h"
@@ -81,8 +81,9 @@ public:
      * @param helptext Short explanation of the metric.
      * @param unit Unit of measurement.
      */
-    CounterFamilyPtr CounterFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
-                                   std::string_view helptext, std::string_view unit = "");
+    CounterFamilyPtr CounterFamily(std::string_view prefix, std::string_view name,
+                                   std::span<const std::string_view> labels, std::string_view helptext,
+                                   std::string_view unit = "");
 
     /// @copydoc CounterFamily
     CounterFamilyPtr CounterFamily(std::string_view prefix, std::string_view name,
@@ -100,7 +101,7 @@ public:
      * @param callback Passing a callback method will enable asynchronous mode. The callback method will be called
      * by the metrics subsystem whenever data is requested.
      */
-    CounterPtr CounterInstance(std::string_view prefix, std::string_view name, Span<const LabelView> labels,
+    CounterPtr CounterInstance(std::string_view prefix, std::string_view name, std::span<const LabelView> labels,
                                std::string_view helptext, std::string_view unit = "",
                                detail::CollectCallbackPtr callback = nullptr);
 
@@ -117,7 +118,7 @@ public:
      * @param helptext Short explanation of the metric.
      * @param unit Unit of measurement.
      */
-    GaugeFamilyPtr GaugeFamily(std::string_view prefix, std::string_view name, Span<const std::string_view> labels,
+    GaugeFamilyPtr GaugeFamily(std::string_view prefix, std::string_view name, std::span<const std::string_view> labels,
                                std::string_view helptext, std::string_view unit = "");
 
     /// @copydoc GaugeFamily
@@ -136,7 +137,7 @@ public:
      * @param callback Passing a callback method will enable asynchronous mode. The callback method will be called
      * by the metrics subsystem whenever data is requested.
      */
-    GaugePtr GaugeInstance(std::string_view prefix, std::string_view name, Span<const LabelView> labels,
+    GaugePtr GaugeInstance(std::string_view prefix, std::string_view name, std::span<const LabelView> labels,
                            std::string_view helptext, std::string_view unit = "",
                            detail::CollectCallbackPtr callback = nullptr);
 
@@ -144,17 +145,6 @@ public:
     GaugePtr GaugeInstance(std::string_view prefix, std::string_view name, std::initializer_list<LabelView> labels,
                            std::string_view helptext, std::string_view unit = "",
                            detail::CollectCallbackPtr callback = nullptr);
-
-    // Forces the compiler to use the type `Span<const T>` instead of trying to
-    // match parameters to a `span`.
-    template<class T>
-    struct ConstSpanOracle {
-        using Type = Span<const T>;
-    };
-
-    // Convenience alias to safe some typing.
-    template<class T>
-    using ConstSpan = typename ConstSpanOracle<T>::Type;
 
     /**
      * Returns a histogram metric family. Creates the family lazily if
@@ -175,12 +165,12 @@ public:
      *       @p bounds via run-time configuration.
      */
     HistogramFamilyPtr HistogramFamily(std::string_view prefix, std::string_view name,
-                                       Span<const std::string_view> labels, ConstSpan<double> bounds,
+                                       std::span<const std::string_view> labels, std::span<const double> bounds,
                                        std::string_view helptext, std::string_view unit = "");
 
     /// @copydoc HistogramFamily
     HistogramFamilyPtr HistogramFamily(std::string_view prefix, std::string_view name,
-                                       std::initializer_list<std::string_view> labels, ConstSpan<double> bounds,
+                                       std::initializer_list<std::string_view> labels, std::span<const double> bounds,
                                        std::string_view helptext, std::string_view unit = "");
 
     /**
@@ -200,8 +190,9 @@ public:
      *       different bucket settings. Users may also override
      *       @p bounds via run-time configuration.
      */
-    HistogramPtr HistogramInstance(std::string_view prefix, std::string_view name, Span<const LabelView> labels,
-                                   ConstSpan<double> bounds, std::string_view helptext, std::string_view unit = "");
+    HistogramPtr HistogramInstance(std::string_view prefix, std::string_view name, std::span<const LabelView> labels,
+                                   std::span<const double> bounds, std::string_view helptext,
+                                   std::string_view unit = "");
 
     /// @copdoc HistogramInstance
     HistogramPtr HistogramInstance(std::string_view prefix, std::string_view name,
@@ -229,20 +220,20 @@ public:
 
 protected:
     template<class F>
-    static auto WithLabelNames(Span<const LabelView> xs, F continuation) {
+    static auto WithLabelNames(std::span<const LabelView> xs, F continuation) {
         if ( xs.size() <= 10 ) {
             std::string_view buf[10];
             for ( size_t index = 0; index < xs.size(); ++index )
                 buf[index] = xs[index].first;
 
-            return continuation(Span{buf, xs.size()});
+            return continuation(std::span{buf, xs.size()});
         }
         else {
             std::vector<std::string_view> buf;
             for ( auto x : xs )
                 buf.emplace_back(x.first);
 
-            return continuation(Span{buf});
+            return continuation(std::span{buf});
         }
     }
 

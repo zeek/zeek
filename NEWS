@@ -17,6 +17,11 @@ Breaking Changes
   workarounds that we have been carrying. Minimum recommended versions of compilers are
   GCC 10, Clang 8, and Visual Studio 2022.
 
+- The ``zeek::Span`` class has been deprecated and the APIs in the telemetry subsystem
+  switched to use ``std::span`` instead of ``zeek::Span``. If your plugin instantiates
+  counter or gauge instances using the telemetry subsystem and you've previously used
+  ``zeek::Span`` explicitly, updates may be needed.
+
 - The code base underwent a big cleanup of #include usage, across almost all of the
   files. We tested builds of all of the existing third-party packages and only noticed one
   or two failures, but there is a possibility for breakage related to this cleanup.

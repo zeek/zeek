@@ -2,8 +2,9 @@
 
 #include "zeek/logging/WriterFrontend.h"
 
+#include <span>
+
 #include "zeek/RunState.h"
-#include "zeek/Span.h"
 #include "zeek/broker/Manager.h"
 #include "zeek/cluster/Backend.h"
 #include "zeek/logging/Manager.h"
@@ -59,7 +60,7 @@ public:
           num_fields(num_fields),
           records(std::move(records)) {}
 
-    bool Process() override { return Object()->Write(num_fields, zeek::Span{records}); }
+    bool Process() override { return Object()->Write(num_fields, std::span{records}); }
 
 private:
     int num_fields;
@@ -234,7 +235,7 @@ void WriterFrontend::FlushWriteBuffer() {
     // is used, push all the buffered log records to it now.
     const bool broker_is_cluster_backend = zeek::cluster::backend == zeek::broker_mgr;
     if ( remote && ! broker_is_cluster_backend )
-        zeek::cluster::backend->PublishLogWrites(header, Span{records});
+        zeek::cluster::backend->PublishLogWrites(header, std::span{records});
 
     if ( backend )
         backend->SendIn(new WriteMessage(backend, num_fields, std::move(records)));

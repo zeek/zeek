@@ -2,6 +2,8 @@
 
 #include "zeek/cluster/BifSupport.h"
 
+#include <span>
+
 #include "zeek/Desc.h"
 #include "zeek/EventRegistry.h"
 #include "zeek/Frame.h"
@@ -29,7 +31,7 @@ std::optional<zeek::cluster::Event> to_cluster_event(const zeek::cluster::Backen
     for ( size_t i = 0; i < vargs->Size(); i++ )
         args[i] = vargs->ValAt(i);
 
-    return backend->MakeClusterEvent(func, zeek::Span{args});
+    return backend->MakeClusterEvent(func, std::span{args});
 }
 } // namespace
 
@@ -154,7 +156,7 @@ zeek::RecordValPtr make_endpoint_info(const std::string& id, const std::string& 
     return ep_rec;
 }
 
-zeek::VectorValPtr make_string_vec(zeek::Span<const std::string> strings) {
+zeek::VectorValPtr make_string_vec(std::span<const std::string> strings) {
     static const auto string_vec_type = zeek::id::find_type<zeek::VectorType>("string_vec");
     auto vec = zeek::make_intrusive<zeek::VectorVal>(string_vec_type);
     vec->Reserve(strings.size());

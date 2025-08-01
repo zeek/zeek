@@ -6,7 +6,7 @@ find_package(ZeroMQ)
 #
 # If a user enabled the cluster backend explicitly (-D ENABLE_CLUSTER_BACKEND_ZEROMQ:bool=ON),
 # but ZeroMQ wasn' found, hard bail.
-option(ENABLE_CLUSTER_BACKEND_ZEROMQ "Enable the ZeroMQ cluster backend" ${ZeroMQ_FOUND})
+option(ENABLE_CLUSTER_BACKEND_ZEROMQ "Enable the ZeroMQ cluster backend" ON)
 
 if (ENABLE_CLUSTER_BACKEND_ZEROMQ)
     if (NOT ZeroMQ_FOUND)

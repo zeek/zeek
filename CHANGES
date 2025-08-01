@@ -1,3 +1,11 @@
+8.0.0-dev.827 | 2025-08-01 17:10:13 +0200
+
+  * ci/windows: No ZeroMQ cluster backend (Arne Welzel, Corelight)
+
+    Doesn't seems there's libzmq available, so just skip building.
+
+  * cluster/zeromq: Bail on missing ZeroMQ by default (Arne Welzel, Corelight)
+
 8.0.0-dev.824 | 2025-08-01 14:49:35 +0200
 
   * Remove zeek::Span and use std::span instead (Dominik Charousset, Corelight)

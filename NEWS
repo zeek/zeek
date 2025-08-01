@@ -12,6 +12,12 @@ release.
 Breaking Changes
 ----------------
 
+- Zeek by default now depends on the availability of the ZeroMQ library for building
+  and running. This is in preparation of switching to the ZeroMQ-based cluster backend
+  by default in future Zeek versions. On an Ubuntu based system, the required system
+  packages are ``libzmq5``, ``libzmq3-dev`` and ``cppzmq-dev``. See the Dockerfiles
+  in the ``ci/`` directory for other supported platforms.
+
 - Zeek and all of its associated submodules now require C++20-capable compilers to
   build. This will let us move forward in using more modern C++ features and replace some
   workarounds that we have been carrying. Minimum recommended versions of compilers are

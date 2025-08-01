@@ -173,6 +173,10 @@ public:
                     int caplen = 0);
 
     /**
+     * A "skipped packet" is a packet that was sufficiently valid to be associated
+     * with a connection/session and the analyzer tree, but then processing was
+     * "skipped" due to checksum or other consistency errors.
+     *
      * Passes a skipped packet input to the analyzer for processing. The
      * analyzer will process the input with any support analyzers first
      * and then forward the data to DeliverSkippedPacket(), which derived

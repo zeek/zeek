@@ -101,6 +101,10 @@ export {
 	## controller's Broker connectivity.
 	global network_info: function(): Broker::NetworkInfo;
 
+        ## Returns a :zeek:see:`Broker::NetworkInfo` record describing how
+        ## to connect to the controller's Broker connectivity 
+        global connect_network_info: function(): Broker::NetworkInfo;
+
 	## Returns a :zeek:see:`Broker::NetworkInfo` record describing the
 	## controller's websocket connectivity.
 	global network_info_websocket: function(): Broker::NetworkInfo;
@@ -140,6 +144,25 @@ function network_info(): Broker::NetworkInfo
 
 	return ni;
 	}
+
+function connect_network_info(): Broker::NetworkInfo
+        {
+        local ni: Broker::NetworkInfo;
+
+        if ( Management::Controller::listen_address != "" )
+                ni$address = Management::Controller::listen_address;
+        else if ( Management::default_address != "" )
+                ni$address = Management::default_address;
+        else
+                ni$address = "127.0.0.1";
+
+        if ( Management::Controller::listen_port != "" )
+                ni$bound_port = to_port(Management::Controller::listen_port);
+        else
+                ni$bound_port = Management::Controller::default_port;
+
+        return ni;
+        }
 
 function network_info_websocket(): Broker::NetworkInfo
 	{

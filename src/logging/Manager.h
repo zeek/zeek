@@ -422,8 +422,8 @@ private:
     bool TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, TableVal* include, TableVal* exclude,
                         const std::string& path, const std::list<int>& indices);
 
-    detail::LogRecord RecordToLogRecord(const Stream* stream, Filter* filter, RecordVal* columns, size_t& total_size);
-    threading::Value ValToLogVal(std::optional<ZVal>& val, Type* ty, size_t& total_size);
+    detail::LogRecord RecordToLogRecord(WriterInfo* info, Filter* filter, RecordVal* columns, size_t& total_size);
+    threading::Value ValToLogVal(WriterInfo* info, std::optional<ZVal>& val, Type* ty, size_t& total_size);
 
     Stream* FindStream(EnumVal* id);
     void RemoveDisabledWriters(Stream* stream);
@@ -448,11 +448,20 @@ private:
     int rotations_pending = 0;    // Number of rotations not yet finished.
     FuncPtr rotation_format_func;
     FuncPtr log_stream_policy_hook;
+
     size_t max_log_record_size = 0;
+    size_t max_field_string_bytes = 0;
+    size_t max_total_string_bytes = 0;
+    size_t max_field_container_elements = 0;
+    size_t max_total_container_elements = 0;
+    size_t total_string_bytes = 0;
+    size_t total_container_elements = 0;
 
     std::shared_ptr<telemetry::CounterFamily> total_log_stream_writes_family;
     std::shared_ptr<telemetry::CounterFamily> total_log_writer_writes_family;
     std::shared_ptr<telemetry::CounterFamily> total_log_writer_discarded_writes_family;
+    std::shared_ptr<telemetry::CounterFamily> total_log_writer_limited_string_fields_family;
+    std::shared_ptr<telemetry::CounterFamily> total_log_writer_limited_containers_family;
 
     zeek_uint_t last_delay_token = 0;
     std::vector<detail::WriteContext> active_writes;

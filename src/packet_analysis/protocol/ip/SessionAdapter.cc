@@ -59,3 +59,10 @@ void SessionAdapter::TapSkippedPacket(const Packet* pkt, detail::SkipReason skip
     for ( const auto& ta : tap_analyzers )
         ta->SkippedPacket(*pkt, skip_reason);
 }
+
+void SessionAdapter::UpdateConnVal(RecordVal* conn_val) {
+    Analyzer::UpdateConnVal(conn_val);
+
+    for ( const auto& ta : tap_analyzers )
+        ta->UpdateConnVal(conn_val);
+}

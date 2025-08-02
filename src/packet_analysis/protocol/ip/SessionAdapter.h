@@ -48,6 +48,8 @@ public:
 
     virtual void SkippedPacket(const Packet& pkt, SkipReason skip_reason) = 0;
 
+    virtual void UpdateConnVal(RecordVal* conn_val) {}
+
     virtual void Done() {};
 };
 
@@ -148,6 +150,8 @@ public:
     void TapPacket(const Packet* pkt);
 
     void TapSkippedPacket(const Packet* pkt, detail::SkipReason skip_reason);
+
+    void UpdateConnVal(RecordVal* conn_val) override;
 
 protected:
     IPBasedAnalyzer* parent = nullptr;

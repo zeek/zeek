@@ -42,6 +42,8 @@ enum class SkipReason : uint8_t {
  */
 class TapAnalyzer {
 public:
+    virtual ~TapAnalyzer() = default;
+
     virtual void DeliverPacket(const Packet& pkt) = 0;
 
     virtual void SkippedPacket(const Packet& pkt, SkipReason skip_reason) = 0;

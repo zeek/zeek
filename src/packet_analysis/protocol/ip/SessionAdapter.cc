@@ -8,7 +8,14 @@
 
 using namespace zeek::packet_analysis::IP;
 
-void SessionAdapter::Done() { Analyzer::Done(); }
+void SessionAdapter::Done() {
+    Analyzer::Done();
+    for ( const auto& ta : tap_analyzers )
+        ta->Done();
+
+    // Ensure no DeliverPacket() or SkippedPacket() calls after Done() on TapAnalyzer instances.
+    tap_analyzers.clear();
+}
 
 bool SessionAdapter::IsReuse(double t, const u_char* pkt) { return parent->IsReuse(t, pkt); }
 
@@ -27,4 +34,28 @@ void SessionAdapter::PacketContents(const u_char* data, int len) {
         auto contents = make_intrusive<StringVal>(cbs);
         EnqueueConnEvent(packet_contents, ConnVal(), std::move(contents));
     }
+}
+
+void SessionAdapter::AddTapAnalyzer(detail::TapAnalyzerPtr ta) { tap_analyzers.push_back(std::move(ta)); }
+
+bool SessionAdapter::RemoveTapAnalyzer(const detail::TapAnalyzer* ta) {
+    // Find the raw pointer, call Done(), remove it from the list, thereby destructing it.
+    for ( auto it = tap_analyzers.begin(); it != tap_analyzers.end(); ++it ) {
+        if ( it->get() == ta ) {
+            (*it)->Done();
+            tap_analyzers.remove(*it);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void SessionAdapter::TapPacket(const Packet* pkt) {
+    for ( const auto& ta : tap_analyzers )
+        ta->DeliverPacket(*pkt);
+}
+void SessionAdapter::TapSkippedPacket(const Packet* pkt, detail::SkipReason skip_reason) {
+    for ( const auto& ta : tap_analyzers )
+        ta->SkippedPacket(*pkt, skip_reason);
 }

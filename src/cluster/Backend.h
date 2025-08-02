@@ -210,9 +210,7 @@ public:
      * @param cb callback invoked when the subscription was processed.
      * @return true if it's a new event subscription and it is now registered.
      */
-    bool Subscribe(const std::string& topic_prefix, SubscribeCallback cb = SubscribeCallback()) {
-        return DoSubscribe(topic_prefix, std::move(cb));
-    }
+    bool Subscribe(const std::string& topic_prefix, SubscribeCallback cb = SubscribeCallback());
 
     /**
      * Unregister interest in messages on a certain topic.
@@ -220,7 +218,7 @@ public:
      * @param topic_prefix a prefix previously supplied to Subscribe()
      * @return true if interest in topic prefix is no longer advertised.
      */
-    bool Unsubscribe(const std::string& topic_prefix) { return DoUnsubscribe(topic_prefix); }
+    bool Unsubscribe(const std::string& topic_prefix);
 
     /**
      * Information passed to a ready callback.

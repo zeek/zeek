@@ -13,6 +13,7 @@
 #include "zeek/analyzer/Manager.h"
 #include "zeek/packet_analysis/protocol/icmp/ICMPSessionAdapter.h"
 #include "zeek/packet_analysis/protocol/icmp/events.bif.h"
+#include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 #include "zeek/session/Manager.h"
 
 using namespace zeek::packet_analysis::ICMP;
@@ -80,6 +81,7 @@ void ICMPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int rema
 
         if ( chksum != 0xffff ) {
             adapter->Weird("bad_ICMP_checksum");
+            adapter->TapPacket(pkt, PacketAction::Skip, SkipReason::BadChecksum);
             return;
         }
     }
@@ -111,6 +113,9 @@ void ICMPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int rema
     pkt->session = c;
 
     ForwardPacket(std::min(len, remaining), data, pkt);
+
+    // Tap the packet before sending it to protocol analysis.
+    adapter->TapPacket(pkt);
 
     if ( remaining >= len )
         adapter->ForwardPacket(len, data, is_orig, -1, ip.get(), remaining);

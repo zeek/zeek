@@ -2,7 +2,10 @@
 
 #pragma once
 
+#include <memory>
+
 #include "zeek/analyzer/Analyzer.h"
+#include "zeek/iosource/Packet.h"
 
 namespace zeek::analyzer::pia {
 class PIA;
@@ -11,6 +14,48 @@ class PIA;
 namespace zeek::packet_analysis::IP {
 
 class IPBasedAnalyzer;
+
+namespace detail {
+
+/**
+ * Reason why a packet was skipped instead of forwarded to the root protocol analyzer.
+ *
+ * Passed into TapAnalyzer::SkippedBacked().
+ */
+enum class SkipReason : uint8_t {
+    BadProtoHeader,
+    BadChecksum,
+};
+
+/**
+ * An interface for a lightweight analyzer that receives all packets forwarded (or not)
+ * to child protocol analyzers of session adapters.
+ *
+ * A use case of tap analyzers is to attach them during HookSetupAnalyzerTree() to
+ * observe all raw packets of a session, including those that are invalid or corrupt
+ * and aren't delivered to child protocol analyzers.
+ *
+ * The Packet class has an *is_orig* field if directionality is required. Additionally,
+ * the Connection instance available during HookSetupAnalyzerTree() can be stored into
+ * a custom TapAnalyzer, allowing to associate packets with a given Connection. However,
+ * the TapAnalyzer interface itself does not provide provisions for this use case.
+ */
+class TapAnalyzer {
+public:
+    virtual ~TapAnalyzer() = default;
+
+    virtual void DeliverPacket(const Packet& pkt) = 0;
+
+    virtual void SkippedPacket(const Packet& pkt, SkipReason skip_reason) = 0;
+
+    virtual void UpdateConnVal(RecordVal* conn_val) {}
+
+    virtual void Done() {};
+};
+
+using TapAnalyzerPtr = std::unique_ptr<TapAnalyzer>;
+
+} // namespace detail
 
 /**
  * This class represents the interface between the packet analysis framework and
@@ -94,9 +139,24 @@ public:
      */
     void PacketContents(const u_char* data, int len);
 
+    void AddTapAnalyzer(detail::TapAnalyzerPtr ta);
+
+    // Remove the tap analyzer with the given raw pointer.
+    //
+    // This will call Done() and delete the analyzer. Callers
+    // should throw away their ta pointer immediately afterwards.
+    bool RemoveTapAnalyzer(const detail::TapAnalyzer* ta);
+
+    void TapPacket(const Packet* pkt);
+
+    void TapSkippedPacket(const Packet* pkt, detail::SkipReason skip_reason);
+
+    void UpdateConnVal(RecordVal* conn_val) override;
+
 protected:
     IPBasedAnalyzer* parent = nullptr;
     analyzer::pia::PIA* pia = nullptr;
+    std::list<detail::TapAnalyzerPtr> tap_analyzers;
 };
 
 } // namespace zeek::packet_analysis::IP

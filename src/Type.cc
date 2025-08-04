@@ -2170,6 +2170,9 @@ bool record_promotion_compatible(const RecordType* super_rec, const RecordType* 
         if ( same_type(sub_field_type, super_field_type) )
             continue;
 
+        if ( BothArithmetic(sub_field_type->Tag(), super_field_type->Tag()) )
+            continue;
+
         if ( sub_field_type->Tag() != TYPE_RECORD )
             return false;
 

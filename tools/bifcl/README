@@ -1,0 +1,19 @@
+.. _Zeek: https://www.zeek.org
+
+=================
+Zeek BIF Compiler
+=================
+
+The ``bifcl`` program simply takes a ``.bif`` file as input and
+generates C++ header/source files along with a ``.zeek`` script
+that all-together provide the declaration and implementation of Zeek_
+Built-In-Functions (BIFs), which can then be compiled and shipped
+as part of a Zeek plugin.
+
+A BIF allows one to write arbitrary C++ code and access it via a
+function call inside a Zeek script.  In this way, they can also be
+used to access parts of Zeek's internal C++ API that aren't already
+exposed via their own BIFs.
+
+At the moment, learning the format of a ``.bif`` file is likely easiest
+by just taking a look at the ``.bif`` files inside the Zeek source-tree.

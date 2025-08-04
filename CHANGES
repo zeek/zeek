@@ -1,3 +1,7 @@
+8.0.0-rc1 | 2025-08-04 09:39:08 -0700
+
+  * Release 8.0.0-rc1.
+
 8.0.0-dev.828 | 2025-08-04 09:38:55 -0700
 
   * Compile contributors for Zeek 8.0 in the NEWS file (Christian Kreibich, Corelight)

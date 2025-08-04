@@ -1,3 +1,9 @@
+8.1.0-dev.2 | 2025-08-04 09:35:41 -0700
+
+  * Compile contributors for Zeek 8.0 in the NEWS file (Christian Kreibich, Corelight)
+
+  * Start of 8.1.0 development (Tim Wojtulewicz, Corelight)
+
 8.0.0-dev.827 | 2025-08-01 17:10:13 +0200
 
   * ci/windows: No ZeroMQ cluster backend (Arne Welzel, Corelight)

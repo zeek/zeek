@@ -903,15 +903,3 @@ constexpr int CONTENTS_RESP = 2;
 constexpr int CONTENTS_BOTH = 3;
 
 } // namespace zeek::analyzer
-
-[[deprecated("Remove in v8.1. Use version in zeek::analyzer namespace.")]] constexpr int CONTENTS_NONE =
-    zeek::analyzer::CONTENTS_NONE;
-
-[[deprecated("Remove in v8.1. Use version in zeek::analyzer namespace.")]] constexpr int CONTENTS_ORIG =
-    zeek::analyzer::CONTENTS_ORIG;
-
-[[deprecated("Remove in v8.1. Use version in zeek::analyzer namespace.")]] constexpr int CONTENTS_RESP =
-    zeek::analyzer::CONTENTS_RESP;
-
-[[deprecated("Remove in v8.1. Use version in zeek::analyzer namespace.")]] constexpr int CONTENTS_BOTH =
-    zeek::analyzer::CONTENTS_BOTH;

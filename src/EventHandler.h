@@ -35,28 +35,8 @@ public:
 
     void SetFunc(FuncPtr f);
 
-    [[deprecated("Remove in v8.1, use explicit Publish().")]]
-    void AutoPublish(std::string topic) {
-        auto_publish.insert(std::move(topic));
-    }
-
-    [[deprecated("Remove in v8.1.")]]
-    void AutoUnpublish(const std::string& topic) {
-        auto_publish.erase(topic);
-    }
-
-    [[deprecated(
-        "Remove in v8.1. The no_remote and ts parameters are AutoPublish() specific and won't have an effect "
-        "in the future. Use Call(args)")]]
-    void Call(zeek::Args* vl, bool no_remote = false, double ts = run_state::network_time);
-
     // Call the function associated with this handler.
-    void Call(zeek::Args* vl) {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        Call(vl, false, run_state::network_time);
-#pragma GCC diagnostic pop
-    }
+    void Call(zeek::Args* vl);
 
     // Returns true if there is at least one local or remote handler.
     explicit operator bool() const;
@@ -89,8 +69,6 @@ private:
 
     // Initialize this lazy, so we don't expose metrics for 0 values.
     std::shared_ptr<zeek::telemetry::Counter> call_count;
-
-    std::unordered_set<std::string> auto_publish;
 };
 
 // Encapsulates a ptr to an event handler to overload the boolean operator.

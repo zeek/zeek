@@ -22,9 +22,7 @@ EventHandler::EventHandler(std::string arg_name) {
     generate_always = false;
 }
 
-EventHandler::operator bool() const {
-    return enabled && ((local && local->HasEnabledBodies()) || generate_always || ! auto_publish.empty());
-}
+EventHandler::operator bool() const { return enabled && ((local && local->HasEnabledBodies()) || generate_always); }
 
 const FuncTypePtr& EventHandler::GetType(bool check_export) {
     if ( type )
@@ -44,7 +42,7 @@ const FuncTypePtr& EventHandler::GetType(bool check_export) {
 
 void EventHandler::SetFunc(FuncPtr f) { local = std::move(f); }
 
-void EventHandler::Call(Args* vl, bool no_remote, double ts) {
+void EventHandler::Call(Args* vl) {
     if ( ! call_count ) {
         static auto eh_invocations_family =
             telemetry_mgr->CounterFamily("zeek", "event-handler-invocations", {"name"},
@@ -57,40 +55,6 @@ void EventHandler::Call(Args* vl, bool no_remote, double ts) {
 
     if ( new_event )
         NewEvent(vl);
-
-    if ( ! no_remote ) {
-        if ( ! auto_publish.empty() ) {
-            // Send event in form [name, xs...] where xs represent the arguments.
-            BrokerListBuilder xs;
-            xs.Reserve(vl->size());
-            bool valid_args = true;
-
-            for ( const auto& v : *vl ) {
-                if ( ! xs.Add(v) ) {
-                    valid_args = false;
-                    auto_publish.clear();
-                    reporter->Error("failed auto-remote event '%s', disabled", Name());
-                    break;
-                }
-            }
-
-            if ( valid_args ) {
-                auto ev_args = std::move(xs).Build();
-
-                for ( auto it = auto_publish.begin();; ) {
-                    const auto& topic = *it;
-                    ++it;
-
-                    if ( it != auto_publish.end() )
-                        broker_mgr->PublishEvent(topic, Name(), ev_args, ts);
-                    else {
-                        broker_mgr->PublishEvent(topic, Name(), std::move(ev_args), ts);
-                        break;
-                    }
-                }
-            }
-        }
-    }
 
     if ( local )
         // No try/catch here; we pass exceptions upstream.

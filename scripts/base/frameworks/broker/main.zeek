@@ -28,7 +28,7 @@ export {
 
 	## Default address on which to listen for WebSocket connections.
 	##
-	## .. zeek:see:: Broker::listen_websocket
+	## .. zeek:see:: Cluster::listen_websocket
 	const default_listen_address_websocket = getenv("ZEEK_DEFAULT_LISTEN_ADDRESS") &redef;
 
 	## Default interval to retry connecting to a peer if it cannot be made to
@@ -68,11 +68,6 @@ export {
 	## certificate. If set, Zeek will require valid certificates for
 	## all peers.
 	const ssl_keyfile = "" &redef;
-
-	## The number of buffered messages at the Broker/CAF layer after which
-	## a subscriber considers themselves congested (i.e. tune the congestion
-	## control mechanisms).
-	const congestion_queue_size = 200 &redef &deprecated="Remove in v8.1. Non-functional since v5.0";
 
 	## The max number of log entries per log stream to batch together when
 	## sending log messages to a remote logger.
@@ -319,27 +314,6 @@ export {
 	                        p: port &default = default_port,
 	                        retry: interval &default = default_listen_retry): port;
 
-	## Listen for remote connections using WebSocket.
-	##
-	## a: an address string on which to accept connections, e.g.
-	##    "127.0.0.1".  An empty string refers to INADDR_ANY.
-	##
-	## p: the TCP port to listen on. The value 0 means that the OS should choose
-	##    the next available free port.
-	##
-	## retry: If non-zero, retries listening in regular intervals if the port cannot be
-	##        acquired immediately. 0 disables retries.  If the
-	##        ZEEK_DEFAULT_LISTEN_RETRY environment variable is set (as number
-	##        of seconds), it overrides any value given here.
-	##
-	## Returns: the bound port or 0/? on failure.
-	##
-	## .. zeek:see:: Broker::status
-	global listen_websocket: function(a: string &default = default_listen_address_websocket,
-	                                  p: port &default = default_port_websocket,
-	                                  retry: interval &default = default_listen_retry): port
-		&deprecated="Remove in v8.1. Switch to Cluster::listen_websocket() instead.";
-
 	## Initiate a remote connection.
 	##
 	## a: an address to connect to, e.g. "localhost" or "127.0.0.1".
@@ -450,29 +424,6 @@ export {
 	##
 	## Returns: true if a new event forwarding/subscription is now registered.
 	global forward: function(topic_prefix: string): bool;
-
-	## Automatically send an event to any interested peers whenever it is
-	## locally dispatched. (For example, using "event my_event(...);" in a
-	## script.)
-	##
-	## topic: a topic string associated with the event message.
-	##        Peers advertise interest by registering a subscription to some
-	##        prefix of this topic name.
-	##
-	## ev: a Zeek event value.
-	##
-	## Returns: true if automatic event sending is now enabled.
-	global auto_publish: function(topic: string, ev: any): bool &deprecated="Remove in v8.1. Switch to explicit Cluster::publish() calls. Auto-publish won't work with all cluster backends.";
-
-	## Stop automatically sending an event to peers upon local dispatch.
-	##
-	## topic: a topic originally given to :zeek:see:`Broker::auto_publish`.
-	##
-	## ev: an event originally given to :zeek:see:`Broker::auto_publish`.
-	##
-	## Returns: true if automatic events will not occur for the topic/event
-	##          pair.
-	global auto_unpublish: function(topic: string, ev: any): bool &deprecated="Remove in v8.1. See Broker::auto_publish()";
 }
 
 @load base/bif/comm.bif
@@ -509,31 +460,6 @@ function listen(a: string, p: port, retry: interval): port
 
 		if ( retry != 0secs )
 			schedule retry { retry_listen(a, p, retry) };
-		}
-
-	return bound;
-	}
-
-event retry_listen_websocket(a: string, p: port, retry: interval)
-	{
-@pragma push ignore-deprecations
-	listen_websocket(a, p, retry);
-@pragma pop ignore-deprecations
-	}
-
-function listen_websocket(a: string, p: port, retry: interval): port
-	{
-	local bound = __listen(a, p, Broker::WEBSOCKET);
-
-	if ( bound == 0/tcp )
-		{
-		local e = getenv("ZEEK_DEFAULT_LISTEN_RETRY");
-
-		if ( e != "" )
-			retry = double_to_interval(to_double(e));
-
-		if ( retry != 0secs )
-			schedule retry { retry_listen_websocket(a, p, retry) };
 		}
 
 	return bound;
@@ -592,14 +518,4 @@ function forward(topic_prefix: string): bool
 function unsubscribe(topic_prefix: string): bool
 	{
 	return __unsubscribe(topic_prefix);
-	}
-
-function auto_publish(topic: string, ev: any): bool
-	{
-	return __auto_publish(topic, ev);
-	}
-
-function auto_unpublish(topic: string, ev: any): bool
-	{
-	return __auto_unpublish(topic, ev);
 	}

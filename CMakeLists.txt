@@ -396,14 +396,14 @@ endfunction ()
 
 add_zeek_dynamic_plugin_build_interface_include_directories(
     ${PROJECT_SOURCE_DIR}/src/include
-    ${PROJECT_SOURCE_DIR}/auxil/binpac/lib
+    ${PROJECT_SOURCE_DIR}/tools/binpac/lib
     ${PROJECT_SOURCE_DIR}/auxil/broker/libbroker
     ${PROJECT_SOURCE_DIR}/auxil/paraglob/include
     ${PROJECT_SOURCE_DIR}/auxil/prometheus-cpp/core/include
     ${PROJECT_SOURCE_DIR}/auxil/expected-lite/include
     ${CMAKE_BINARY_DIR}/src
     ${CMAKE_BINARY_DIR}/src/include
-    ${CMAKE_BINARY_DIR}/auxil/binpac/lib
+    ${CMAKE_BINARY_DIR}/tools/binpac/lib
     ${CMAKE_BINARY_DIR}/auxil/broker/libbroker
     ${CMAKE_BINARY_DIR}/auxil/prometheus-cpp/core/include)
 
@@ -892,12 +892,12 @@ if (BUILD_STATIC_BINPAC)
     set(ENABLE_STATIC_ONLY true)
 endif ()
 
-add_subdirectory(auxil/binpac)
+add_subdirectory(tools/binpac)
 set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
 
 # FIXME: avoid hard-coding a path for multi-config generator support. See the
 # TODO in ZeekPluginConfig.cmake.in.
-set(BINPAC_EXE_PATH "${CMAKE_BINARY_DIR}/auxil/binpac/src/binpac${CMAKE_EXECUTABLE_SUFFIX}")
+set(BINPAC_EXE_PATH "${CMAKE_BINARY_DIR}/tools/binpac/src/binpac${CMAKE_EXECUTABLE_SUFFIX}")
 set(_binpac_exe_path "included")
 
 # Need to call find_package so it sets up the include paths used by plugin builds.

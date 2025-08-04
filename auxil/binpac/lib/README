@@ -1,0 +1,3 @@
+This directory contains a library needed by generated C++ code from
+binpac. Note that the library is not needed by the binpac compiler
+itself.

@@ -1,9 +1,6 @@
 [submodule "auxil/zeek-aux"]
 	path = auxil/zeek-aux
 	url = https://github.com/zeek/zeek-aux
-[submodule "auxil/binpac"]
-	path = auxil/binpac
-	url = https://github.com/zeek/binpac
 [submodule "auxil/zeekctl"]
 	path = auxil/zeekctl
 	url = https://github.com/zeek/zeekctl

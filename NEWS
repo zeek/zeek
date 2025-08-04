@@ -6,7 +6,13 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 8.0.0
 ==========
 
-We would like to thank Bhaskar Bhar (@bhaskarbhar) for their contributions to this
+We would like to thank @aidans111, Anthony Verez (@netantho), Baa (@Baa14453),
+Bhaskar Bhar (@bhaskarbhar), @dwhitemv25, EdKo (@ephikos), @edoardomich, Fupeng
+Zhao (@AmazingPP), hendrik.schwartke@os-s.de (@hendrikschwartke), @i2z1, Jan
+Grashöfer (@J-Gras) Jean-Samuel Marier, Justin Azoff (@JustinAzoff), Mario D
+(@mari0d), Markus Elfring (@elfring), Peter Cullen (@pbcullen), Sean Donaghy,
+Simeon Miteff (@simeonmiteff), Steve Smoot (@stevesmoot), @timo-mue,
+@wojciech-graj, and Xiaochuan Ye (@XueSongTap) for their contributions to this
 release.
 
 Breaking Changes

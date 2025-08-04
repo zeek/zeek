@@ -38,6 +38,7 @@ extend-ignore-re = [
     "\"BaR\"",
     "\"xFoObar\"",
     "\"FoO\"",
+    "Smoot",
 ]
 
 extend-ignore-identifiers-re = [

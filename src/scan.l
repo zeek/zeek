@@ -663,14 +663,9 @@ F	RET_CONST(zeek::val_mgr->False()->Ref())
 
 ({H}".")+{HTLD} {
 	zeek::TableValPtr result;
-	std::string msg = zeek::util::fmt("Remove in v8.1: DNS lookup of host literal '%s' is deprecated. "
+	std::string msg = zeek::util::fmt("DNS lookup of host literal '%s' is not supported. "
 	                                  "Replace with blocking_lookup_hostname().", yytext);
-	zeek::reporter->Deprecation(msg.c_str());
-	if ( ! zeek::detail::parse_only )
-		result = zeek::detail::dns_mgr->LookupHost(yytext);
-	else
-		result = zeek::detail::dns_mgr->empty_addr_set();
-	RET_CONST(result.release());
+    zeek::reporter->Error("%s", msg.c_str());
 }
 
 \"([^\\\r\\\n\"]|{ESCSEQ})*\"	{

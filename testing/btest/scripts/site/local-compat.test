@@ -95,7 +95,7 @@ redef digest_salt = "Please change this value.";
 @load protocols/ssh/interesting-hostnames
 
 # Detect SQL injection attacks.
-@load protocols/http/detect-sqli
+@load protocols/http/detect-sql-injection
 
 #### Network File Handling ####
 

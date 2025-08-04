@@ -48,7 +48,7 @@ std::pair<bool, zeek::ValPtr> Plugin::HookFunctionCall(const zeek::Func* func, z
     zeek::plugin::HookArgument(args).Describe(&d);
     fprintf(stderr, "%.6f %-15s %s\n", zeek::run_state::network_time, "| HookFunctionCall", d.Description());
 
-    if ( zeek::util::streq(func->Name(), "foo") ) {
+    if ( func->GetName() == "foo" ) {
         auto& vl = *args;
         vl[0] = zeek::val_mgr->Count(42);
     }

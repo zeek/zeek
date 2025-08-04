@@ -322,46 +322,6 @@ String::Vec* String::Split(const String::IdxVec& indices) const {
     return result;
 }
 
-VectorVal* String::VecToPolicy(Vec* vec) {
-    auto result = make_intrusive<VectorVal>(id::string_vec);
-
-    for ( unsigned int i = 0; i < vec->size(); ++i ) {
-        String* string = (*vec)[i];
-        auto val = make_intrusive<StringVal>(string->Len(), (const char*)string->Bytes());
-        result->Assign(i, std::move(val));
-    }
-
-    return result.release();
-}
-
-String::Vec* String::VecFromPolicy(VectorVal* vec) {
-    Vec* result = new Vec();
-
-    for ( unsigned int i = 0; i < vec->Size(); ++i ) {
-        auto v = vec->StringAt(i);
-        if ( ! v )
-            continue;
-
-        String* string = new String(*v);
-        result->push_back(string);
-    }
-
-    return result;
-}
-
-char* String::VecToString(const Vec* vec) {
-    std::string result("[");
-
-    for ( const auto* str : *vec ) {
-        result += str->CheckString();
-        result += ",";
-    }
-
-    result += "]";
-
-    return strdup(result.c_str());
-}
-
 bool StringLenCmp::operator()(String* const& bst1, String* const& bst2) {
     return _increasing ? (bst1->Len() < bst2->Len()) : (bst1->Len() > bst2->Len());
 }
@@ -587,15 +547,8 @@ TEST_CASE("searching/modification") {
     CHECK_EQ(s, *s3);
     delete s3;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    char* temp = zeek::String::VecToString(splits);
-#pragma GCC diagnostic pop
-    CHECK_EQ(std::string(temp), "[this, is, a, test,]");
-    free(temp);
-
-    for ( auto* entry : *splits )
-        delete entry;
+    for ( auto& spl : *splits )
+        delete spl;
     delete splits;
 }
 

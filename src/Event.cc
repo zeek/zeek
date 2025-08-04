@@ -41,16 +41,6 @@ RecordValPtr detail::MetadataEntry::BuildVal() const {
     return rv;
 }
 
-Event::Event(const EventHandlerPtr& arg_handler, zeek::Args arg_args, util::detail::SourceID arg_src,
-             analyzer::ID arg_aid, Obj* arg_obj, double arg_ts)
-    : handler(arg_handler),
-      args(std::move(arg_args)),
-      meta(detail::MakeEventMetadataVector(arg_ts)),
-      src(arg_src),
-      aid(arg_aid),
-      obj(zeek::NewRef{}, arg_obj),
-      next_event(nullptr) {}
-
 Event::Event(detail::EventMetadataVectorPtr arg_meta, const EventHandlerPtr& arg_handler, zeek::Args arg_args,
              util::detail::SourceID arg_src, analyzer::ID arg_aid, Obj* arg_obj)
     : handler(arg_handler),
@@ -58,8 +48,7 @@ Event::Event(detail::EventMetadataVectorPtr arg_meta, const EventHandlerPtr& arg
       meta(std::move(arg_meta)),
       src(arg_src),
       aid(arg_aid),
-      obj(zeek::NewRef{}, arg_obj),
-      next_event(nullptr) {}
+      obj(zeek::NewRef{}, arg_obj) {}
 
 zeek::VectorValPtr Event::MetadataValues(const EnumValPtr& id) const {
     static const auto& any_vec_t = zeek::id::find_type<zeek::VectorType>("any_vec");
@@ -135,14 +124,8 @@ void Event::Dispatch(bool no_remote) {
         reporter->BeginErrorHandler();
 
     try {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        // Replace in v8.1 with handler->Call(&args).
-        handler->Call(&args, no_remote, Time());
-#pragma GCC diagnostic pop
-    }
-
-    catch ( InterpreterException& e ) {
+        handler->Call(&args);
+    } catch ( InterpreterException& e ) {
         // Already reported.
     }
 
@@ -161,15 +144,12 @@ EventMgr::~EventMgr() {
     }
 }
 
-void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl, util::detail::SourceID src, analyzer::ID aid, Obj* obj,
-                       DeprecatedTimestamp deprecated_ts) {
+void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl, util::detail::SourceID src, analyzer::ID aid, Obj* obj) {
     detail::EventMetadataVectorPtr meta;
-
-    double ts = double(deprecated_ts);
 
     // If this is a local event and EventMetadata::add_network_timestamp is
     // enabled, automatically set the network timestamp for this event to the
-    // current network time when it is < 0 (default of deprecated_ts is -1.0).
+    // current network time.
     //
     // See the other Enqueue() implementation for the local vs broker/remote
     // motivation of want_network_timestamp.
@@ -178,19 +158,8 @@ void EventMgr::Enqueue(const EventHandlerPtr& h, Args vl, util::detail::SourceID
         ((src == util::detail::SOURCE_LOCAL) ||
          (src == util::detail::SOURCE_BROKER && BifConst::EventMetadata::add_missing_remote_network_timestamp));
 
-    if ( want_network_timestamp ) {
-        if ( ts < 0.0 )
-            ts = run_state::network_time;
-
-        // In v8.1 when the deprecated_ts parameters is gone: Just use run_state::network_time directly here.
-        meta = detail::MakeEventMetadataVector(ts);
-    }
-    else if ( ts >= 0.0 ) {
-        // EventMetadata::add_network_timestamp is false, but EventMgr::Enqueue()
-        // with an explicit (non-negative) timestamp is used. That's a deprecated
-        // API, but we continue to support it until v8.1.
-        meta = detail::MakeEventMetadataVector(ts);
-    }
+    if ( want_network_timestamp )
+        meta = detail::MakeEventMetadataVector(run_state::network_time);
 
     QueueEvent(new Event(std::move(meta), h, std::move(vl), src, aid, obj));
 }
@@ -261,14 +230,6 @@ void EventMgr::QueueEvent(Event* event) {
     ++event_mgr.num_events_queued;
 }
 
-void EventMgr::Dispatch(Event* event, bool no_remote) {
-    Event* old_current = current;
-    current = event;
-    event->Dispatch(no_remote);
-    current = old_current;
-    Unref(event);
-}
-
 void EventMgr::Dispatch(const EventHandlerPtr& h, zeek::Args vl) {
     detail::EventMetadataVectorPtr meta;
 
@@ -284,11 +245,11 @@ void EventMgr::Dispatch(const EventHandlerPtr& h, zeek::Args vl) {
     if ( done )
         return;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    // TODO: Open-code the old Dispatch() implementation here in v8.1.
-    Dispatch(ev);
-#pragma GCC diagnostic pop
+    Event* old_current = current;
+    current = ev;
+    ev->Dispatch();
+    current = old_current;
+    Unref(ev);
 }
 
 void EventMgr::Drain() {

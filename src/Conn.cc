@@ -39,43 +39,6 @@ Connection::Connection(zeek::IPBasedConnKeyPtr k, double t, uint32_t flow, const
     resp_port = key->DstPort();
     proto = key->GetTransportProto();
 
-    Init(flow, pkt);
-}
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-Connection::Connection(const detail::ConnKey& k, double t, const ConnTuple* id, uint32_t flow, const Packet* pkt)
-    : Session(t, connection_timeout, connection_status_update, detail::connection_status_update_interval) {
-    orig_addr = id->src_addr;
-    resp_addr = id->dst_addr;
-    orig_port = id->src_port;
-    resp_port = id->dst_port;
-
-    key = std::make_unique<zeek::IPConnKey>();
-    key->InitTuple(id->src_addr, id->src_port, id->dst_addr, id->dst_port, id->proto, id->is_one_way);
-    key->Init(*pkt);
-
-    proto = key->GetTransportProto();
-
-    Init(flow, pkt);
-}
-#pragma GCC diagnostic pop
-
-Connection::~Connection() {
-    if ( ! finished )
-        reporter->InternalError("Done() not called before destruction of Connection");
-
-    CancelTimers();
-
-    if ( conn_val )
-        conn_val->SetOrigin(nullptr);
-
-    delete adapter;
-
-    --current_connections;
-}
-
-void Connection::Init(uint32_t flow, const Packet* pkt) {
     orig_flow_label = flow;
     resp_flow_label = 0;
     saw_first_orig_packet = 1;
@@ -107,6 +70,20 @@ void Connection::Init(uint32_t flow, const Packet* pkt) {
     ++total_connections;
 
     encapsulation = pkt->encap;
+}
+
+Connection::~Connection() {
+    if ( ! finished )
+        reporter->InternalError("Done() not called before destruction of Connection");
+
+    CancelTimers();
+
+    if ( conn_val )
+        conn_val->SetOrigin(nullptr);
+
+    delete adapter;
+
+    --current_connections;
 }
 
 void Connection::CheckEncapsulation(const std::shared_ptr<EncapsulationStack>& arg_encap) {

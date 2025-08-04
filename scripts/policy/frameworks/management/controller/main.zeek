@@ -4,6 +4,7 @@
 ##! by the supervisor.
 
 @load base/frameworks/broker
+@load base/frameworks/cluster
 
 @load policy/frameworks/management
 @load policy/frameworks/management/agent/config # For the agent topic prefix
@@ -1644,9 +1645,9 @@ event zeek_init()
 
 	if ( cni$bound_port != 0/unknown )
 		{
-@pragma push ignore-deprecations
-		Broker::listen_websocket(cat(cni$address), cni$bound_port);
-@pragma pop ignore-deprecations
+		local ws_opts = Cluster::WebSocketServerOptions($listen_addr=to_addr(cni$address),
+		                                                $listen_port=cni$bound_port);
+		Cluster::listen_websocket(ws_opts);
 		websocket_info = fmt("websocket port %s:%s", cni$address, cni$bound_port);
 		}
 

@@ -106,9 +106,6 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVa
     remote = arg_remote;
     info = new WriterBackend::WriterInfo(arg_info);
 
-    num_fields = 0;
-    fields = nullptr;
-
     const char* w = arg_writer->GetType()->AsEnumType()->Lookup(arg_writer->InternalInt());
     name = util::copy_string(util::fmt("%s/%s", arg_info.path, w));
 
@@ -124,11 +121,6 @@ WriterFrontend::WriterFrontend(const WriterBackend::WriterInfo& arg_info, EnumVa
 }
 
 WriterFrontend::~WriterFrontend() {
-    for ( auto i = 0; i < num_fields; ++i )
-        delete fields[i];
-
-    delete[] fields;
-
     delete info;
     delete[] name;
 }
@@ -154,27 +146,25 @@ void WriterFrontend::Init(int arg_num_fields, const Field* const* arg_fields) {
     if ( initialized )
         reporter->InternalError("writer initialize twice");
 
-    num_fields = arg_num_fields;
-    fields = arg_fields;
-
     initialized = true;
 
-    if ( backend ) {
-        auto fs = new Field*[num_fields];
-
-        for ( auto i = 0; i < num_fields; ++i )
-            fs[i] = new Field(*fields[i]);
-
-        backend->SendIn(new InitMessage(backend, arg_num_fields, fs));
-    }
+    header.fields.reserve(arg_num_fields);
+    for ( int i = 0; i < arg_num_fields; i++ )
+        header.fields.emplace_back(*arg_fields[i]);
 
     if ( remote ) {
         broker_mgr->PublishLogCreate(header.stream_id.get(), header.writer_id.get(), *info, arg_num_fields, arg_fields);
     }
 
-    header.fields.reserve(arg_num_fields);
-    for ( int i = 0; i < arg_num_fields; i++ )
-        header.fields.emplace_back(*arg_fields[i]);
+    if ( backend )
+        // InitMessage takes ownership of the pointer passed in here and deletes it and
+        // the fields when done processing the message.
+        backend->SendIn(new InitMessage(backend, arg_num_fields, arg_fields));
+    else {
+        for ( int i = 0; i < arg_num_fields; i++ )
+            delete arg_fields[i];
+        delete[] arg_fields;
+    }
 }
 
 void WriterFrontend::Write(detail::LogRecord&& arg_vals) {
@@ -183,9 +173,9 @@ void WriterFrontend::Write(detail::LogRecord&& arg_vals) {
     if ( disabled )
         return;
 
-    if ( vals.size() != static_cast<size_t>(num_fields) ) {
-        reporter->Warning("WriterFrontend %s expected %d fields in write, got %zu. Skipping line.", name, num_fields,
-                          vals.size());
+    if ( vals.size() != header.fields.size() ) {
+        reporter->Warning("WriterFrontend %s expected %zu fields in write, got %zu. Skipping line.", name,
+                          header.fields.size(), vals.size());
         return;
     }
 
@@ -238,7 +228,7 @@ void WriterFrontend::FlushWriteBuffer() {
         zeek::cluster::backend->PublishLogWrites(header, std::span{records});
 
     if ( backend )
-        backend->SendIn(new WriteMessage(backend, num_fields, std::move(records)));
+        backend->SendIn(new WriteMessage(backend, header.fields.size(), std::move(records)));
 }
 
 void WriterFrontend::SetBuf(bool enabled) {

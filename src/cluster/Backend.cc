@@ -277,11 +277,6 @@ void ThreadedBackend::DoTerminate() {
     }
 }
 
-void ThreadedBackend::QueueForProcessing(QueueMessage&& qmessages) {
-    if ( onloop )
-        onloop->QueueForProcessing(std::move(qmessages));
-}
-
 void ThreadedBackend::Process(QueueMessage&& msg) {
     // sonarlint wants to use std::visit. not sure...
     if ( auto* emsg = std::get_if<EventMessage>(&msg) ) {

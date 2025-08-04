@@ -36,17 +36,8 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
         key = IPBasedConnKeyPtr(static_cast<IPBasedConnKey*>(ck.release()));
     }
 
-    // Deprecated: remove ConnTuple use in 8.1 and only use InitConnKey().
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    ConnTuple tuple;
-    if ( BuildConnTuple(len, data, pkt, tuple) ) {
-        key->InitTuple(tuple.src_addr, tuple.src_port, tuple.dst_addr, tuple.dst_port, pkt->proto);
-#pragma GCC diagnostic pop
-    }
-    else if ( ! InitConnKey(len, data, pkt, *key) ) {
+    if ( ! InitConnKey(len, data, pkt, *key) )
         return false;
-    }
 
     key->Init(*pkt);
 

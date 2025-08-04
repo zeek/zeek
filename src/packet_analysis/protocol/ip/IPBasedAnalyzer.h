@@ -109,18 +109,7 @@ protected:
      * @return True if initialization succeeded, false otherwise (e.g. because
      * there wasn't enough data available).
      */
-    virtual bool InitConnKey(size_t len, const uint8_t* data, Packet* packet, IPBasedConnKey& key) {
-        // Given deprecation of BuildConnTuple below, make this pure virtual in 8.1.
-        return false;
-    }
-
-    /**
-     * Parse the header from the packet into a ConnTuple object.
-     */
-    [[deprecated("Remove in v8.1. Switch to InitConnKey() and key-only initialization.")]]
-    virtual bool BuildConnTuple(size_t len, const uint8_t* data, Packet* packet, ConnTuple& tuple) {
-        return false;
-    }
+    virtual bool InitConnKey(size_t len, const uint8_t* data, Packet* packet, IPBasedConnKey& key) = 0;
 
     /**
      * Continues process of packet after the connection has been inserted into the

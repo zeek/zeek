@@ -569,17 +569,6 @@ protected:
                     std::unique_ptr<detail::EventHandlingStrategy> ehs);
 
     /**
-     * To be used by implementations to enqueue messages for processing on the IO loop.
-     *
-     * It's safe to call this method from any thread before ThreadedBackend's
-     * DoTerminate() implementation is invoked.
-     *
-     * @param messages Messages to be enqueued.
-     */
-    [[deprecated("Remove in v8.1: Use OnLoop() and QueueForProcessing() directly.")]]
-    void QueueForProcessing(QueueMessage&& messages);
-
-    /**
      * The default DoInit() implementation of ThreadedBackend
      * registers itself as a counting IO source to keep the IO
      * loop alive after initialization.

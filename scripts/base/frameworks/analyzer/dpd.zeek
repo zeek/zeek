@@ -6,9 +6,6 @@
 module DPD;
 
 export {
-	## Deprecated, please see https://github.com/zeek/zeek/pull/4200 for details
-	option max_violations: table[Analyzer::Tag] of count = table() &deprecated="Remove in v8.1: This has become non-functional in Zeek 7.2, see PR #4200" &default = 5;
-
 	## Analyzers which you don't want to remove on violations.
 	option ignore_violations: set[Analyzer::Tag] = set();
 
@@ -110,4 +107,3 @@ event analyzer_violation_info(atype: AllAnalyzers::Tag, info: AnalyzerViolationI
 	if ( disabled )
 		event analyzer_failed(network_time(), atype, info);
 	}
-

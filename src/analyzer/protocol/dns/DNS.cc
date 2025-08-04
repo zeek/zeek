@@ -1352,6 +1352,8 @@ bool DNS_Interpreter::ParseRR_BINDS(detail::DNS_MsgInfo* msg, const u_char*& dat
                                    msg->BuildBINDS_Val(&binds));
     }
 
+    delete completeflag;
+
     return true;
 }
 
@@ -1912,9 +1914,8 @@ RecordValPtr DNS_MsgInfo::BuildBINDS_Val(BINDS_DATA* binds) {
     r->Assign(2, binds->algorithm);
     r->Assign(3, binds->key_id);
     r->Assign(4, binds->removal_flag);
-    r->Assign(5, binds->complete_flag); // Remove in v8.1: Move field 7 here. Drop String* usage.
+    r->Assign(5, binds->complete_flag->Len() > 0 ? binds->complete_flag->Bytes()[0] : 0);
     r->Assign(6, is_query);
-    r->Assign(7, binds->complete_flag->Len() > 0 ? binds->complete_flag->Bytes()[0] : 0);
 
     return r;
 }

@@ -11,7 +11,6 @@
 
 @load frameworks/analyzer/debug-logging.zeek
 @load frameworks/analyzer/detect-protocols.zeek
-# @load frameworks/analyzer/deprecated-dpd-log.zeek
 @load frameworks/analyzer/packet-segment-logging.zeek
 # @load frameworks/control/controllee.zeek
 # @load frameworks/control/controller.zeek
@@ -50,8 +49,6 @@
 @load frameworks/management/request.zeek
 @load frameworks/management/types.zeek
 @load frameworks/management/util.zeek
-# @load frameworks/dpd/detect-protocols.zeek
-# @load frameworks/dpd/packet-segment-logging.zeek
 @load frameworks/intel/do_notice.zeek
 @load frameworks/intel/do_expire.zeek
 @load frameworks/intel/whitelist.zeek
@@ -126,7 +123,6 @@
 @load protocols/ftp/detect-bruteforcing.zeek
 @load protocols/ftp/detect.zeek
 @load protocols/ftp/software.zeek
-# @load protocols/http/detect-sqli.zeek
 @load protocols/http/detect-sql-injection.zeek
 @load protocols/http/detect-webapps.zeek
 @load protocols/http/header-names.zeek

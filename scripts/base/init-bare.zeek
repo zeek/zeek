@@ -1726,18 +1726,6 @@ const tcp_excessive_data_without_further_acks = 10 * 1024 * 1024 &redef;
 ## buffering.
 const tcp_max_old_segments = 0 &redef;
 
-## For services without a handler, these sets define originator-side ports
-## that still trigger reassembly.
-##
-## .. zeek:see:: tcp_reassembler_ports_resp
-const tcp_reassembler_ports_orig: set[port] = {} &redef &deprecated="Remove in v8.1. Non-functional since v4.1";
-
-## For services without a handler, these sets define responder-side ports
-## that still trigger reassembly.
-##
-## .. zeek:see:: tcp_reassembler_ports_orig
-const tcp_reassembler_ports_resp: set[port] = {} &redef &deprecated="Remove in v8.1. Non-functional since v4.1";
-
 ## Defines destination TCP ports for which the contents of the originator stream
 ## should be delivered via :zeek:see:`tcp_contents`.
 ##
@@ -3063,9 +3051,8 @@ type dns_binds_rr: record {
 	algorithm: count;	##< Algorithm for Public Key.
 	key_id: count;		##< key tag.
 	removal_flag: count;	##< rm flag.
-	complte_flag: string &deprecated="Remove in v8.1: Use complete_flag instead.";	##< complete flag.
-	is_query: count;	##< The RR is a query/Response.
 	complete_flag: count;	##< complete flag.
+	is_query: count;	##< The RR is a query/Response.
 };
 
 ## A Private RR type LOC record.

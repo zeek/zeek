@@ -31,13 +31,9 @@ private:
 
 enum class ParseResult : int8_t {
     CAPLEN_TOO_SMALL = -1,
-    CaplenTooSmall [[deprecated("Remove in v8.1, use ParseResult::CAPLEN_TOO_SMALL.")]] = CAPLEN_TOO_SMALL,
     BAD_PROTOCOL = -2,
-    BadProtocol [[deprecated("Remove in v8.1, use ParseResult::BAD_PROTOCOL.")]] = BAD_PROTOCOL,
     OK = 0,
-    Ok [[deprecated("Remove in v8.1, use ParseResult::OK.")]] = OK,
     CAPLEN_TOO_LARGE = 1,
-    CaplenTooLarge [[deprecated("Remove in v8.1, use ParseResult::CAPLEN_TOO_LARGE.")]] = CAPLEN_TOO_LARGE,
 };
 
 /**

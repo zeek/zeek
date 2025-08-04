@@ -122,9 +122,3 @@ protected:
 };
 
 } // namespace zeek::analyzer::tcp
-
-// These were previously #defined, so they have to be outside of the namespace.
-[[deprecated("Remove in v8.1, use the version in the zeek:::analyzer::tcp namespace")]] constexpr int CR_as_EOL =
-    zeek::analyzer::tcp::CR_as_EOL;
-[[deprecated("Remove in v8.1, use the version in the zeek:::analyzer::tcp namespace")]] constexpr int LF_as_EOL =
-    zeek::analyzer::tcp::LF_as_EOL;

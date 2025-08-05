@@ -14,10 +14,10 @@ class MyTapAnalyzer : public zeek::packet_analysis::TapAnalyzer {
 public:
     MyTapAnalyzer(zeek::Connection* conn) : conn(conn) {}
 
-    void TapPacket(const zeek::Packet& pkt, zeek::packet_analysis::PacketAction verdict,
+    void TapPacket(const zeek::Packet& pkt, zeek::packet_analysis::PacketAction action,
                    const zeek::packet_analysis::SkipReason skip_reason) override {
-        std::printf("Packet(len=%d orig=%d, verdict=%d skip_reason=%d) uid=%s\n", pkt.len, pkt.is_orig,
-                    static_cast<int>(verdict), static_cast<int>(skip_reason), conn->GetUID().Base62().c_str());
+        std::printf("Packet(len=%d orig=%d, action=%d skip_reason=%d) uid=%s\n", pkt.len, pkt.is_orig,
+                    static_cast<int>(action), static_cast<int>(skip_reason), conn->GetUID().Base62().c_str());
     }
 
     void Init() override { std::printf("Init() uid=%s\n", conn->GetUID().Base62().c_str()); }

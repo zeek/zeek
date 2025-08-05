@@ -1,3 +1,9 @@
+8.1.0-dev.7 | 2025-08-05 20:00:19 +0200
+
+  * TapAnalyzer: More verdict to action rename (Arne Welzel, Corelight)
+
+    Relates to #4725 #4337
+
 8.1.0-dev.5 | 2025-08-05 19:48:50 +0200
 
   * IPBasedAnalyzer: Call TapPacket() when skipping (Arne Welzel, Corelight)

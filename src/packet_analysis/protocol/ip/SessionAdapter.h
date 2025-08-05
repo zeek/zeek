@@ -25,7 +25,7 @@ enum class PacketAction : uint8_t {
  * Reason why delivery of a packet would be skipped.
  */
 enum class SkipReason : uint8_t {
-    None,           ///< None is used when the verdict is Deliver.
+    None,           ///< None is used when the action is Deliver.
     Unknown,        ///< Placeholder if no other value fits.
     BadChecksum,    ///< The packet's checksum is invalid and ignore_checksums is false.
     BadProtoHeader, ///< Something was off with the lengths or offsets in the protocol header.
@@ -53,7 +53,7 @@ public:
      *
      * @param pkt The packet being processed.
      * @param action Either Deliver or Skip as determined by session analyzers.
-     * @param skip_reason If verdict is Skip, an indication why this packet is skipped, otherwise None.
+     * @param skip_reason If action is Skip, an indication why this packet is skipped, otherwise None.
      */
     virtual void TapPacket(const Packet& pkt, PacketAction action, SkipReason skip_reason) = 0;
 
@@ -195,10 +195,10 @@ public:
      * Helper to forward a packet to all attached TapAnalyzer instances.
      *
      * @param pkt The packet.
-     * @param verdict Whether the packet will be delivered or skipped.
-     * @param skip_reason If verdict is Skip, should be an indication why this packet is skipped.
+     * @param action Whether the packet will be delivered or skipped.
+     * @param skip_reason If action is Skip, should be an indication why this packet is skipped.
      */
-    void TapPacket(const Packet* pkt, PacketAction verdict = PacketAction::Deliver,
+    void TapPacket(const Packet* pkt, PacketAction action = PacketAction::Deliver,
                    SkipReason skip_reason = SkipReason::None) const;
 
     /**

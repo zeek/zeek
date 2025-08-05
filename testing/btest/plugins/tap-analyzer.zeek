@@ -14,8 +14,12 @@
 # @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/chksums/ip6-icmp6-good-chksum.pcap %INPUT >>output
 #
 # @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/http/get.trace %INPUT >>output
+# @TEST-EXEC: ZEEK_PLUGIN_ACTIVATE="Demo::TapAnalyzer" ZEEK_PLUGIN_PATH=`pwd` zeek -b -r $TRACES/http/get.trace %INPUT http_skip_further_processing=T >>output
 #
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff output
+
+@load base/protocols/http
+
 
 event zeek_init()
 	{
@@ -25,4 +29,13 @@ event zeek_init()
 event zeek_done()
 	{
 	print "===";
+	}
+
+
+global http_skip_further_processing = F &redef;
+
+event http_request(c: connection, method: string, original_URI: string, unescaped_URI: string, version: string)
+	{
+	if ( http_skip_further_processing )
+		skip_further_processing(c$id);
 	}

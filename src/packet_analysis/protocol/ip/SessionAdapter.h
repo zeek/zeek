@@ -29,6 +29,7 @@ enum class SkipReason : uint8_t {
     Unknown,        ///< Placeholder if no other value fits.
     BadChecksum,    ///< The packet's checksum is invalid and ignore_checksums is false.
     BadProtoHeader, ///< Something was off with the lengths or offsets in the protocol header.
+    SkipProcessing, ///< The session adapter's connection had skip_further_processing called on it.
 };
 
 /**

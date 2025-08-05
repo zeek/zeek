@@ -66,3 +66,22 @@ Packet(len=66 orig=0, verdict=0 skip_reason=0) uid=HhAvVGS1DHFjwGM9
 Packet(len=66 orig=1, verdict=0 skip_reason=0) uid=HhAvVGS1DHFjwGM9
 Done() uid=HhAvVGS1DHFjwGM9
 ===
+<...>/get.trace
+Init() uid=HhAvVGS1DHFjwGM9
+Analyzer added to HhAvVGS1DHFjwGM9
+Packet(len=78 orig=1, verdict=0 skip_reason=0) uid=HhAvVGS1DHFjwGM9
+Packet(len=74 orig=0, verdict=0 skip_reason=0) uid=HhAvVGS1DHFjwGM9
+Packet(len=66 orig=1, verdict=0 skip_reason=0) uid=HhAvVGS1DHFjwGM9
+Packet(len=202 orig=1, verdict=0 skip_reason=0) uid=HhAvVGS1DHFjwGM9
+Packet(len=66 orig=0, verdict=1 skip_reason=3) uid=HhAvVGS1DHFjwGM9
+Packet(len=1514 orig=0, verdict=1 skip_reason=3) uid=HhAvVGS1DHFjwGM9
+Packet(len=1514 orig=0, verdict=1 skip_reason=3) uid=HhAvVGS1DHFjwGM9
+Packet(len=1514 orig=0, verdict=1 skip_reason=3) uid=HhAvVGS1DHFjwGM9
+Packet(len=729 orig=0, verdict=1 skip_reason=3) uid=HhAvVGS1DHFjwGM9
+Packet(len=66 orig=1, verdict=1 skip_reason=3) uid=HhAvVGS1DHFjwGM9
+Packet(len=66 orig=1, verdict=1 skip_reason=3) uid=HhAvVGS1DHFjwGM9
+Packet(len=66 orig=1, verdict=1 skip_reason=3) uid=HhAvVGS1DHFjwGM9
+Packet(len=66 orig=0, verdict=1 skip_reason=3) uid=HhAvVGS1DHFjwGM9
+Packet(len=66 orig=1, verdict=1 skip_reason=3) uid=HhAvVGS1DHFjwGM9
+Done() uid=HhAvVGS1DHFjwGM9
+===

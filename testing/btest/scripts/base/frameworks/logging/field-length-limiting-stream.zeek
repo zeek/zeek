@@ -1,4 +1,4 @@
-# @TEST-DOC: Test the options that limit string and container lengths when logging
+# @TEST-DOC: Tests field length limiting at the stream level instead of at the global level.
 #
 # @TEST-EXEC: zeek -b test.zeek %INPUT
 # @TEST-EXEC: btest-diff test.log
@@ -31,10 +31,8 @@ event log_telemetry()
 		}
 	}
 
-event zeek_init()
+event zeek_init() &priority=-5
 	{
-	Log::create_stream(LOG, [$columns=Info, $path="test"]);
-
 	local rec = Test::Info();
 	local i = 0;
 
@@ -56,37 +54,53 @@ event zeek_init()
 # @TEST-END-FILE test.zeek
 
 # Limit the individual fields to 5 bytes, but keep the total maximum large enough that it
-# will write all of the fields. The weird test for this one will be off since it will
-# limit the name of the weird. It will pass, but the fields in the log will get truncated
-# like they're supposed to.
-redef Log::default_max_field_string_bytes = 5;
+# will write all of the fields.
+event zeek_init() &priority=10
+	{
+	Log::create_stream(Test::LOG, [$columns=Test::Info, $path="test", $max_field_string_bytes=5]);
+	}
 
 # @TEST-START-NEXT
 
 # Leave the individual field bytes alone, but set the maximum length to where it cuts off
 # the second field in the middle of a string.
-redef Log::default_max_total_string_bytes = 115;
+event zeek_init() &priority=10
+	{
+	Log::create_stream(Test::LOG, [$columns=Test::Info, $path="test", $max_total_string_bytes=115]);
+	}
 
 # @TEST-START-NEXT
 
 # Leave the individual field bytes alone, but set the maximum length to where it cuts off
 # the first field in the middle of a string. Second field should log empty strings.
-redef Log::default_max_total_string_bytes = 85;
+event zeek_init() &priority=10
+	{
+	Log::create_stream(Test::LOG, [$columns=Test::Info, $path="test", $max_total_string_bytes=85]);
+	}
 
 # @TEST-START-NEXT
 
 # Limit the individual containers to 5 items, but keep the total maximum large enough that
 # it will write all of the fields.
-redef Log::default_max_field_container_elements = 5;
+event zeek_init() &priority=10
+	{
+	Log::create_stream(Test::LOG, [$columns=Test::Info, $path="test", $max_field_container_elements=5]);
+	}
 
 # @TEST-START-NEXT
 
 # Leave the individual field items alone, but set the maximum length to where it cuts off
 # the second field in the middle.
-redef Log::default_max_total_container_elements = 15;
+event zeek_init() &priority=10
+	{
+	Log::create_stream(Test::LOG, [$columns=Test::Info, $path="test", $max_total_container_elements=15]);
+	}
 
 # @TEST-START-NEXT
 
 # Leave the individual field bytes alone, but set the maximum length to where it cuts off
 # the first field in the middle. Second field should log empty containers.
-redef Log::default_max_total_container_elements = 5;
+event zeek_init() &priority=10
+	{
+	Log::create_stream(Test::LOG, [$columns=Test::Info, $path="test", $max_total_container_elements=5]);
+	}

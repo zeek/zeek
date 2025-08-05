@@ -1,3 +1,16 @@
+8.1.0-dev.5 | 2025-08-05 19:48:50 +0200
+
+  * IPBasedAnalyzer: Call TapPacket() when skipping (Arne Welzel, Corelight)
+
+    When skip_further_processing() is called, a TapAnalyzer should still see
+    the packets as skipped with SkipReason "skipping".
+
+  * SessionAdapter: Introduce TapAnalyzer for session adapter (Arne Welzel, Corelight)
+
+    This commit introduces a mechanism to attach light weight analyzers to
+    the root analyzer of sessions in order to tap into the packets delivered
+    to child analyzer.
+
 8.1.0-dev.2 | 2025-08-04 09:35:41 -0700
 
   * Compile contributors for Zeek 8.0 in the NEWS file (Christian Kreibich, Corelight)

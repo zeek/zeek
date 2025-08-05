@@ -8,6 +8,7 @@
 #include "zeek/RunState.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 #include "zeek/packet_analysis/protocol/udp/UDPSessionAdapter.h"
 #include "zeek/packet_analysis/protocol/udp/events.bif.h"
 #include "zeek/session/Manager.h"
@@ -126,6 +127,7 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 
         if ( bad ) {
             adapter->HandleBadChecksum(is_orig);
+            adapter->TapPacket(pkt, PacketAction::Skip, SkipReason::BadChecksum);
             return;
         }
     }
@@ -193,6 +195,9 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
     // likely_server_ports. This also prevents us from processing things twice if protocol
     // detection has to be used.
     ForwardPacket(std::min(len, remaining), data, pkt, ntohs(c->RespPort()));
+
+    // Tap the packet before sending it to session analysis.
+    adapter->TapPacket(pkt);
 
     // Forward any data through session-analysis, too.
     adapter->ForwardPacket(std::min(len, remaining), data, is_orig, -1, ip.get(), pkt->cap_len);

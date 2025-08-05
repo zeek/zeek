@@ -8,6 +8,7 @@
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
 #include "zeek/conn_key/Manager.h"
+#include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 #include "zeek/packet_analysis/protocol/ip/conn_key/IPBasedConnKey.h"
 #include "zeek/plugin/Manager.h"
 #include "zeek/session/Manager.h"
@@ -105,9 +106,11 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
     run_state::current_timestamp = run_state::processing_start_time;
     run_state::current_pkt = pkt;
 
-    // TODO: Does this actually mean anything?
-    if ( conn->GetSessionAdapter()->Skipping() )
+    const auto* adapter = conn->GetSessionAdapter();
+    if ( adapter->Skipping() ) {
+        adapter->TapPacket(pkt, PacketAction::Skip, SkipReason::SkipProcessing);
         return true;
+    }
 
     DeliverPacket(conn, run_state::processing_start_time, is_orig, len, pkt);
 

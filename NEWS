@@ -14,6 +14,10 @@ Breaking Changes
 New Functionality
 -----------------
 
+- A new TapAnalyzer class was added allowing to tap into all packets delivered
+  to child analyzers attached to session adapters.
+
+
 Changed Functionality
 ---------------------
 

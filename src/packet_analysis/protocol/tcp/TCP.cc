@@ -4,6 +4,7 @@
 
 #include "zeek/RunState.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
+#include "zeek/packet_analysis/protocol/ip/SessionAdapter.h"
 #include "zeek/packet_analysis/protocol/tcp/TCPSessionAdapter.h"
 
 using namespace zeek;
@@ -83,8 +84,10 @@ void TCPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
     auto* adapter = static_cast<TCPSessionAdapter*>(c->GetSessionAdapter());
 
     const struct tcphdr* tp = ExtractTCP_Header(data, len, remaining, adapter);
-    if ( ! tp )
+    if ( ! tp ) {
+        adapter->TapPacket(pkt, PacketAction::Skip, SkipReason::BadProtoHeader);
         return;
+    }
 
     // We need the min() here because Ethernet frame padding can lead to
     // remaining > len.
@@ -95,8 +98,10 @@ void TCPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
     analyzer::tcp::TCP_Endpoint* peer = endpoint->peer;
     const std::shared_ptr<IP_Hdr>& ip = pkt->ip_hdr;
 
-    if ( ! ValidateChecksum(ip.get(), tp, endpoint, len, remaining, adapter) )
+    if ( ! ValidateChecksum(ip.get(), tp, endpoint, len, remaining, adapter) ) {
+        adapter->TapPacket(pkt, PacketAction::Skip, SkipReason::BadChecksum);
         return;
+    }
 
     adapter->Process(is_orig, tp, len, ip, data, remaining);
 
@@ -106,6 +111,9 @@ void TCPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 
     // Send the packet back into the packet analysis framework.
     ForwardPacket(std::min(len, remaining), data, pkt);
+
+    // Tap the packet before sending it to session analysis.
+    adapter->TapPacket(pkt);
 
     // Call DeliverPacket on the adapter directly here. Normally we'd call ForwardPacket
     // but this adapter does some other things in its DeliverPacket with the packet children

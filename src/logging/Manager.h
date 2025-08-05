@@ -422,8 +422,10 @@ private:
     bool TraverseRecord(Stream* stream, Filter* filter, RecordType* rt, TableVal* include, TableVal* exclude,
                         const std::string& path, const std::list<int>& indices);
 
-    detail::LogRecord RecordToLogRecord(WriterInfo* info, Filter* filter, RecordVal* columns, size_t& total_size);
-    threading::Value ValToLogVal(WriterInfo* info, std::optional<ZVal>& val, Type* ty, size_t& total_size);
+    detail::LogRecord RecordToLogRecord(WriterInfo* info, Filter* filter, const Stream* stream, RecordVal* columns,
+                                        size_t& total_size);
+    threading::Value ValToLogVal(WriterInfo* info, const Stream* stream, std::optional<ZVal>& val, Type* ty,
+                                 size_t& total_size);
 
     Stream* FindStream(EnumVal* id);
     void RemoveDisabledWriters(Stream* stream);
@@ -450,10 +452,6 @@ private:
     FuncPtr log_stream_policy_hook;
 
     size_t max_log_record_size = 0;
-    size_t max_field_string_bytes = 0;
-    size_t max_total_string_bytes = 0;
-    size_t max_field_container_elements = 0;
-    size_t max_total_container_elements = 0;
     size_t total_string_bytes = 0;
     size_t total_container_elements = 0;
 

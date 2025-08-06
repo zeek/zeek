@@ -1,3 +1,14 @@
+8.0.0-rc1.2 | 2025-08-11 11:33:46 -0700
+
+  * Add proto to analyzer.log (Johanna Amann, Corelight)
+
+    The analyzer.log file was missing the protocol field to distinguish
+    tcp/udp connections.
+
+    (cherry picked from commit 2f2f328a722c38c9d53aa3812e3b35724c7f9e9f)
+
+  * Update zeek-aux submodule with c++20 changes (Tim Wojtulewicz, Corelight)
+
 8.0.0-rc1 | 2025-08-04 09:39:08 -0700
 
   * Release 8.0.0-rc1.

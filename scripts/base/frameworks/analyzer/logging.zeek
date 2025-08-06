@@ -23,8 +23,10 @@ export {
 		uid:            string            &log &optional;
 		## File UID if available.
 		fuid:           string            &log &optional;
-		## Connection identifier if available
+		## Connection identifier if available.
 		id:             conn_id           &log &optional;
+		## Transport protocol for the violation, if available.
+		proto:          transport_proto   &log &optional;
 		## Failure or violation reason, if available.
 		failure_reason: string            &log;
 		## Data causing failure or violation if available. Truncated
@@ -62,6 +64,7 @@ function log_analyzer_failure(ts: time, atype: AllAnalyzers::Tag, info: Analyzer
 		{
 		rec$id = info$c$id;
 		rec$uid = info$c$uid;
+		rec$proto = get_port_transport_proto(info$c$id$orig_p);
 		}
 
 	if ( info?$f )

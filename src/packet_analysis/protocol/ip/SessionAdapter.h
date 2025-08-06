@@ -183,7 +183,7 @@ public:
      * Remove a TapAnalyzer instance by raw pointer.
      *
      * Note that the TapAnalyzer instance \a ta is pointing at will be destroyed
-     * during the call to RemoveTapAanalyzer() and should be discarded by the caller
+     * during the call to RemoveTapAnalyzer() and should be discarded by the caller
      * immediately. If you call RemoveTapAnalyzer() from within a TapAnalyzer's member
      * function, ensure not accessing \a this afterwards.
      *

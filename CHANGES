@@ -1,3 +1,9 @@
+8.1.0-dev.12 | 2025-08-06 09:10:08 -0400
+
+  * GH-4722: Fix record coercion with compatible types (Evan Typanski, Corelight)
+
+    Fixes #4722
+
 8.1.0-dev.10 | 2025-08-06 14:27:32 +0200
 
   * TapAnalyzer: Fix docstring (Arne Welzel, Corelight)

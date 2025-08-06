@@ -12,9 +12,6 @@ void SessionAdapter::Done() {
     Analyzer::Done();
     for ( const auto& ta : tap_analyzers )
         ta->Done();
-
-    // Ensure no more TapPacket() calls after Done() on TapAnalyzer instances.
-    tap_analyzers.clear();
 }
 
 bool SessionAdapter::IsReuse(double t, const u_char* pkt) { return parent->IsReuse(t, pkt); }

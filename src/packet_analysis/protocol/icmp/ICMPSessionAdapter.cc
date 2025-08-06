@@ -32,7 +32,7 @@ void ICMPSessionAdapter::UpdateConnVal(zeek::RecordVal* conn_val) {
     UpdateEndpointVal(orig_endp_val, true);
     UpdateEndpointVal(resp_endp_val, false);
 
-    analyzer::Analyzer::UpdateConnVal(conn_val);
+    SessionAdapter::UpdateConnVal(conn_val);
 }
 
 void ICMPSessionAdapter::UpdateEndpointVal(RecordVal* endp, bool is_orig) {

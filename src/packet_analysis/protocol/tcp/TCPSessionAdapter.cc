@@ -1044,7 +1044,7 @@ void TCPSessionAdapter::UpdateConnVal(RecordVal* conn_val) {
     resp_endp_val->Assign(1, resp->state);
 
     // Call children's UpdateConnVal
-    Analyzer::UpdateConnVal(conn_val);
+    SessionAdapter::UpdateConnVal(conn_val);
 
     // Have to do packet_children ourselves.
     for ( Analyzer* a : packet_children )

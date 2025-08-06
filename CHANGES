@@ -1,3 +1,10 @@
+8.1.0-dev.14 | 2025-08-06 14:37:50 +0100
+
+  * Add proto to analyzer.log (Johanna Amann, Corelight)
+
+    The analyzer.log file was missing the protocol field to distinguish
+    tcp/udp connections.
+
 8.1.0-dev.12 | 2025-08-06 09:10:08 -0400
 
   * GH-4722: Fix record coercion with compatible types (Evan Typanski, Corelight)

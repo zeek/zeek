@@ -5,7 +5,7 @@
 #unset_field	-
 #path	analyzer
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	analyzer_kind	analyzer_name	uid	fuid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	failure_reason	failure_data
-#types	time	string	string	string	string	addr	port	addr	port	string	string
-XXXXXXXXXX.XXXXXX	protocol	HTTP	CHhAvVGS1DHFjwGM9	-	192.168.12.5	51792	192.0.78.212	80	not a http request line	-
+#fields	ts	analyzer_kind	analyzer_name	uid	fuid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	failure_reason	failure_data
+#types	time	string	string	string	string	addr	port	addr	port	enum	string	string
+XXXXXXXXXX.XXXXXX	protocol	HTTP	CHhAvVGS1DHFjwGM9	-	192.168.12.5	51792	192.0.78.212	80	tcp	not a http request line	-
 #close XXXX-XX-XX-XX-XX-XX

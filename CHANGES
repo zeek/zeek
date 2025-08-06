@@ -1,3 +1,13 @@
+8.1.0-dev.10 | 2025-08-06 14:27:32 +0200
+
+  * TapAnalyzer: Fix docstring (Arne Welzel, Corelight)
+
+    Relates to #4337 #4725 #4734
+
+  * btest/plugins/tap-analyzer: Update baseline (Arne Welzel, Corelight)
+
+    Relates to #4337 #4725 #4734
+
 8.1.0-dev.7 | 2025-08-05 20:00:19 +0200
 
   * TapAnalyzer: More verdict to action rename (Arne Welzel, Corelight)

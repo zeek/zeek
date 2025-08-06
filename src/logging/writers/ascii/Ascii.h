@@ -33,7 +33,6 @@ protected:
     bool DoRotate(const char* rotated_path, double open, double close, bool terminating) override;
     bool DoFlush(double network_time) override;
     bool DoFinish(double network_time) override;
-    bool DoHeartbeat(double network_time, double current_time) override;
 
 private:
     friend class plugin::detail::Zeek_AsciiWriter::Plugin;

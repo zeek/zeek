@@ -1,6 +1,6 @@
-project(Zeek-Plugin-Demo-Foo)
-
 cmake_minimum_required(VERSION 3.15)
+
+project(Zeek-Plugin-Demo-Foo)
 
 if (NOT ZEEK_DIST)
     message(FATAL_ERROR "ZEEK_DIST not set")

@@ -1,12 +1,12 @@
-project(Zeek-Plugin-Demo-Foo)
-
 cmake_minimum_required(VERSION 3.15)
 
-if (NOT BRO_DIST)
-    message(FATAL_ERROR "BRO_DIST not set")
+project(Zeek-Plugin-Demo-Foo)
+
+if (NOT ZEEK_DIST)
+    message(FATAL_ERROR "ZEEK_DIST not set")
 endif ()
 
-set(CMAKE_MODULE_PATH ${BRO_DIST}/cmake)
+set(CMAKE_MODULE_PATH ${ZEEK_DIST}/cmake)
 
 include(ZeekPlugin)
 

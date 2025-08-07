@@ -1,6 +1,6 @@
-project(Zeek-Plugin-Conflict-Plugin)
-
 cmake_minimum_required(VERSION 3.15)
+
+project(Zeek-Plugin-Conflict-Plugin)
 
 if (NOT ZEEK_DIST)
     message(FATAL_ERROR "ZEEK_DIST not set")

@@ -59,8 +59,8 @@ builds_only_if_template: &BUILDS_ONLY_IF_TEMPLATE
     ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
     ( ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
       (
-      $CIRRUS_BRANCH == 'master' ||
-      $CIRRUS_BRANCH =~ 'release/.*'
+      $CIRRUS_BRANCH == 'topic/timw/ci-test-master' ||
+      $CIRRUS_BRANCH =~ 'topic/timw/ci-test-release/.*'
       )
     ) )
 
@@ -297,7 +297,7 @@ weekly_current_gcc_task:
   << : *CI_TEMPLATE
   only_if: >
     (( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
-     ( $CIRRUS_BRANCH == 'master' ) &&
+     ( $CIRRUS_BRANCH == 'topic/timw/ci-test-master' ) &&
      ( $CIRRUS_CRON == 'weekly' ))
   env:
     ZEEK_CI_COMPILER: gcc
@@ -311,7 +311,7 @@ weekly_current_clang_task:
   << : *CI_TEMPLATE
   only_if: >
     (( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
-     ( $CIRRUS_BRANCH == 'master' ) &&
+     ( $CIRRUS_BRANCH == 'topic/timw/ci-test-master' ) &&
      ( $CIRRUS_CRON == 'weekly' ))
   env:
     ZEEK_CI_COMPILER: clang
@@ -419,7 +419,7 @@ ubuntu22_spicy_head_task:
   benchmark_script: ./ci/benchmark.sh
   # Don't run this job on release branches. It tests against spicy HEAD, which
   # will frequently require other fixes that won't be in a release branch.
-  skip: $CIRRUS_BRANCH =~ 'release/.*'
+  skip: $CIRRUS_BRANCH =~ 'topic/timw/ci-test-release/.*'
   << : *BENCHMARK_ONLY_IF_TEMPLATE
 
 alpine_task:
@@ -595,7 +595,7 @@ docker_build_template: &DOCKER_BUILD_TEMPLATE
   only_if: >
     ( $CIRRUS_CRON == '' || $CIRRUS_CRON == 'nightly' ) &&
     ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
-        $CIRRUS_BRANCH == 'master' || $CIRRUS_BRANCH =~ 'release/.*' || $CIRRUS_TAG != '' )
+        $CIRRUS_BRANCH == 'topic/timw/ci-test-master' || $CIRRUS_BRANCH =~ 'topic/timw/ci-test-release/.*' || $CIRRUS_TAG != '' )
 
   env:
     ZEEK_CONFIGURE_FLAGS: --ccache --generator=Ninja --build-type=Release --disable-btest-pcaps --disable-cpp-tests --disable-broker-tests
@@ -767,7 +767,7 @@ cluster_testing_docker_builder:
   only_if: >
     ( $CIRRUS_CRON == '' ) &&
     ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
-        $CIRRUS_BRANCH == 'master' || $CIRRUS_BRANCH =~ 'release/.*' || $CIRRUS_TAG != '' )
+        $CIRRUS_BRANCH == 'topic/timw/ci-test-master' || $CIRRUS_BRANCH =~ 'topic/timw/ci-test-release/.*' || $CIRRUS_TAG != '' )
   env:
     CIRRUS_LOG_TIMESTAMP: true
   install_deps_script:
@@ -806,8 +806,8 @@ zeekctl_debian12_task:
     ( $CIRRUS_CRON == 'zeekctl-nightly' ) ||
     ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS =~ '.*CI: (Zeekctl|Full).*' ) ||
     ( $CIRRUS_REPO_NAME == 'zeek' && (
-        $CIRRUS_BRANCH == 'master' ||
-        $CIRRUS_BRANCH =~ 'release/.*' )
+        $CIRRUS_BRANCH == 'topic/timw/ci-test-master' ||
+        $CIRRUS_BRANCH =~ 'topic/timw/ci-test-release/.*' )
     )
   container:
     # Debian 12 (bookworm) EOL: TBD

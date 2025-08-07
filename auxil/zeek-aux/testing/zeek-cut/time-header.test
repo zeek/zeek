@@ -1,0 +1,30 @@
+# Test zeek-cut with both time conversion and show header options.
+#
+
+# Time format string does not affect the header timestamps.
+# @TEST-EXEC: cat $LOGS/test.log | zeek-cut -C -U "%H %M %y %m %d" > utc-fmt
+# @TEST-EXEC: btest-diff utc-fmt
+
+# Log file uses non-default field separator.
+# @TEST-EXEC: cat $LOGS/conncomma.log | zeek-cut -C -d proto ts id.orig_h > nondefault-separator
+# @TEST-EXEC: btest-diff nondefault-separator
+
+# Field separator changes between two log files.
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/conncomma.log | zeek-cut -C -d proto ts id.orig_h > different-field-separator
+# @TEST-EXEC: btest-diff different-field-separator
+
+# Column order changes between two log files.
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/conntimelast.log | zeek-cut -C -d proto ts id.orig_h > different-col-order
+# @TEST-EXEC: btest-diff different-col-order
+
+# One file has timestamps and one file does not.
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/onecolumn.log | zeek-cut -C -d ts id.orig_h > missing-ts-one-file
+# @TEST-EXEC: btest-diff missing-ts-one-file
+
+# Specify ts twice.
+# @TEST-EXEC: cat $LOGS/conn.log | zeek-cut -C -d ts id.orig_h ts > ts-twice
+# @TEST-EXEC: btest-diff ts-twice
+
+# File has more than one time column.
+# @TEST-EXEC: cat $LOGS/multiple-times.log | zeek-cut -C -d proto ts2 ts1 > multiple-times
+# @TEST-EXEC: btest-diff multiple-times

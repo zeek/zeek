@@ -1,0 +1,30 @@
+# Test zeek-cut with invalid log files.
+#
+
+# The "#separator" log header line is missing.
+# @TEST-EXEC: grep -v '^#separator' $LOGS/conn.log | zeek-cut uid proto > missing-sep-header
+# @TEST-EXEC: btest-diff missing-sep-header
+
+# The "#fields" log header line is missing (show header).
+# @TEST-EXEC-FAIL: grep -v '^#fields' $LOGS/conn.log | zeek-cut -C 2> missing-fields-header
+# @TEST-EXEC: btest-diff missing-fields-header
+
+# All log header lines are missing (show header).
+# @TEST-EXEC: grep -v '^#' $LOGS/conn.log | zeek-cut -c > no-header-show
+# @TEST-EXEC: btest-diff no-header-show
+
+# All log header lines are missing (select column to show).
+# @TEST-EXEC: grep -v '^#' $LOGS/conn.log | zeek-cut uid > no-header-column
+# @TEST-EXEC: btest-diff no-header-column
+
+# All log header lines are missing (select column to not show).
+# @TEST-EXEC: grep -v '^#' $LOGS/conn.log | zeek-cut -n uid > no-header-not-column
+# @TEST-EXEC: btest-diff no-header-not-column
+
+# Separator is missing
+# @TEST-EXEC-FAIL: cat $LOGS/missing-separator.log | zeek-cut 2> missing-separator
+# @TEST-EXEC: btest-diff missing-separator
+
+# Separator is \x00
+# @TEST-EXEC-FAIL: cat $LOGS/null-separator.log | zeek-cut 2> null-separator
+# @TEST-EXEC: btest-diff null-separator

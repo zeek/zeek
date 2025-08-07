@@ -1,0 +1,12 @@
+# Use a customized timestamp in output logs.
+# @TEST-EXEC: bash %INPUT
+
+. "$SCRIPTS/zeek-archiver-common.sh"
+
+log_in=test__2020-07-16_09-43-10__2020-07-16_09-43-10__.log
+log_out=test.09:43:10-09:43:10.log
+
+echo hello > "$(queue_dir)/${log_in}"
+zeek-archiver -1 -v --time-fmt %Y-%m-%d_%H-%M-%S "$(queue_dir)" "$(archive_dir)"
+
+test "$(gunzip <"$(archive_date_dir)/${log_out}.gz")" == "hello"

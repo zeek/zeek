@@ -1,0 +1,4 @@
+# Test zeek-cut with -h option.
+#
+# @TEST-EXEC-FAIL: zeek-cut -h > show-help
+# @TEST-EXEC: btest-diff show-help

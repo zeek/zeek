@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+# Hooks to add custom options to the configure script.
+#
+
+plugin_usage()
+{
+    : # Do nothing
+#    cat <<EOF
+#    --with-foo=DIR          Path to foo
+# EOF
+}
+
+plugin_option()
+{
+    case "$1" in
+#        --with-foo=*)
+#            append_cache_entry FOO_DIR PATH $optarg
+#            return 0
+#            ;;
+
+        *)
+            return 1;
+            ;;
+    esac
+}
+
+plugin_addl()
+{
+    : # Do nothing
+}

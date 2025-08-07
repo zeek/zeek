@@ -1,7 +1,9 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
 #include <arpa/inet.h>
+#include <net/ethernet.h>
 #include <netinet/in.h>
+#include <netinet/ip.h>
 #include <pcap.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,9 +11,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "ether.h"
 #include "ethertype.h"
-#include "ip.h"
 
 pcap_t* p;
 
@@ -20,7 +20,7 @@ const u_char* printEAddr(const u_char* pkt, u_char* endp) {
     int i = 0;
     ep = (const struct ether_header*)pkt;
 
-    if ( pkt + ETHER_HDRLEN > endp || ntohs(ep->ether_type) != ETHERTYPE_IP ) {
+    if ( pkt + ETHER_HDR_LEN > endp || ntohs(ep->ether_type) != ETHERTYPE_IP ) {
         return 0;
     }
 
@@ -36,7 +36,7 @@ const u_char* printEAddr(const u_char* pkt, u_char* endp) {
         printf("%02x", ep->ether_dhost[i]);
     }
     putchar(' ');
-    return (pkt + ETHER_HDRLEN);
+    return (pkt + ETHER_HDR_LEN);
 }
 
 void printIPAddr(const u_char* pkt, u_char* endp) {

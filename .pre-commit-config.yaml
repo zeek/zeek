@@ -10,7 +10,7 @@ repos:
     language: python
     files: '\.(h|c|cpp|cc|spicy|evt)$'
     types: [file]
-    exclude: '^(testing/btest/(Baseline|plugins|spicy|scripts)/.*|testing/builtin-plugins/.*)$'
+    exclude: '^(testing/btest/(Baseline|plugins|spicy|scripts)/.*|testing/builtin-plugins/.*|auxil/zeek-aux/plugin-support/skeleton/.*|auxil/zeek-aux/rst/rst.c|auxil/zeek-aux/testing/Baseline/update-changes.replace-version-in-c-header/header.h)$'
 
   - id: btest-command-commented
     name: Check that all BTest command lines are commented out
@@ -26,6 +26,7 @@ repos:
       - "c"
       - "c++"
       - "json"
+    exclude: '^(auxil/zeek-aux/plugin-support/skeleton/src/Plugin.*)'
 
 - repo: https://github.com/maxwinterstein/shfmt-py
   rev: v3.12.0.1

@@ -1,0 +1,96 @@
+#! /usr/bin/env bash
+
+function abspath {
+    (
+        cd "$1"
+        pwd
+    )
+}
+
+function relpath {
+    echo "$1" | sed "s#$(pwd)/\{0,1\}##g"
+}
+
+function lower {
+    echo "$1" | tr A-Z a-z
+}
+
+function upper {
+    echo "$1" | tr a-z A-Z
+}
+
+function init-skeleton {
+    for i in $(cd ${skeleton} && find * -type d); do
+        mkdir -p $(echo ${plugin_src}/$i)
+    done
+
+    for i in $(cd ${skeleton} && find * .??* -type f); do
+        src=${skeleton}/$i
+        dst=$(echo ${plugin_src}/$i)
+        dst=$(echo $dst | sed "s#%NS_LOWER#${plugin_ns_lower}#g")
+        dst=$(echo $dst | sed "s#%NAME_LOWER#${plugin_name_lower}#g")
+        dst=$(echo $dst | sed "s#%NS#${plugin_ns}#g")
+        dst=$(echo $dst | sed "s#%NAME#${plugin_name}#g")
+        dst=$(echo $dst | sed "s#@#/#g")
+
+        tmp=$dst.$$.tmp
+
+        mkdir -p $(dirname ${dst})
+        cp -p ${src} ${tmp} # Copy first to preserve permissions.
+        cat ${src} |
+            sed "s/@PLUGIN_NAME@/${plugin_name}/g" |
+            sed "s/@PLUGIN_NAMESPACE@/${plugin_ns}/g" |
+            sed "s/@PLUGIN_NAME_UPPER@/${plugin_name_upper}/g" |
+            sed "s/@PLUGIN_NAMESPACE_UPPER@/${plugin_ns_upper}/g" |
+            sed "s/@PLUGIN_NAME_LOWER@/${plugin_name_lower}/g" |
+            sed "s/@PLUGIN_NAMESPACE_LOWER@/${plugin_ns_lower}/g" \
+                >${tmp}
+
+        if [ -e ${dst} ]; then
+            cmp -s ${tmp} ${dst} || echo "$(relpath ${dst}) exists, not installing new version"
+            rm -f ${tmp}
+            continue
+        fi
+
+        echo Installing $(relpath ${dst}) ...
+        mv ${tmp} ${dst}
+
+    done
+}
+
+update=0
+
+if [ "$1" == "-u" ]; then
+    update=1
+    shift
+fi
+
+if [ $# != 3 ]; then
+    echo "Usage: $(basename $0) [-u] <dst-dir> <namespace> <plugin name>"
+    exit 1
+fi
+
+dstdir=$1
+
+if [ -e "${dstdir}" -a ${update} != 1 ]; then
+    echo "error: ${dstdir} already exists, use -u if you want to update skeleton files in there."
+    exit 1
+fi
+
+mkdir -p ${dstdir}
+dstdir=$(abspath ${dstdir})
+
+basedir=$(dirname $0)
+skeleton=$(abspath ${basedir})/skeleton
+plugin_ns=$2
+plugin_name=$3
+plugin_ns_lower=$(lower $2)
+plugin_name_lower=$(lower $3)
+plugin_ns_upper=$(upper $2)
+plugin_name_upper=$(upper $3)
+plugin_src=${dstdir}
+plugin_build=${dstdir}/dylib
+
+init-skeleton
+
+which git >/dev/null 2>&1 && (cd ${dstdir} && git init . && git add .)

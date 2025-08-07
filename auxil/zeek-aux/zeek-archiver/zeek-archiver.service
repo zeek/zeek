@@ -1,0 +1,21 @@
+[Unit]
+Description=Zeek Archiver
+After=network.target
+
+[Service]
+# Run as unprivileged user, never allow privilege escalation and mount
+# everything read-only except for where the source and destination
+# directories reside.
+User=zeek
+Group=zeek
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/usr/local/zeek/logs
+
+Nice=10
+ExecStart=/usr/local/zeek/bin/zeek-archiver -v /usr/local/zeek/logs/log-queue /usr/local/zeek/logs
+Restart=on-failure
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target

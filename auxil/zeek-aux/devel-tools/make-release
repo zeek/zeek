@@ -1,0 +1,129 @@
+#! /usr/bin/env bash
+#
+# Makes release tarballs for the repository in the current directory;
+# and if --recursive is given, also for all submodules.
+
+DEST="$(pwd)/build/dist" # Where to put the TGZs.
+LOGS="$DEST/.log"        # Where to put build logs.
+
+dists=""
+
+function usage() {
+    echo "Usage: $(basename $0) [--recursive]"
+}
+
+function release() {
+    mod=$1
+    tmp="$LOGS/make-release.$(basename $mod).log"
+
+    cat </dev/null >$tmp
+
+    echo "--- Building distribution for $mod" >&2
+    echo "Log in $tmp." >&2
+
+    make dist >$tmp 2>&1
+
+    cat $tmp | awk '/CPack:.*generated/ {print $4} /^Package: / {print $2}' | while read tgz; do
+        if echo $tgz | grep -qv ^/; then
+            tgz="$(pwd)/$tgz"
+        fi
+
+        version=$(git tag --contains HEAD | grep -E '^(release|beta)$')
+
+        if [ "$version" == "" ]; then
+            version="git"
+        fi
+
+        echo "Distribution in $tgz ($version)" >&2
+        ls -al $tgz | awk '{print "    ", $0; }' >&2
+
+        echo "$tgz#$version"
+    done
+}
+
+if [ "$1" == "--recursive" ]; then
+    submodules=1
+    shift
+fi
+
+if [ "$submodules" == "1" ]; then
+    mods=$(git submodule foreach -q --recursive pwd | grep -v /cmake)
+fi
+
+if [ -e $DEST ]; then
+    echo
+    echo "$DEST exists already, proceeding will delete it."
+    echo ">> Continue? (y/n)"
+    read line
+    if [ "$line" != "y" ]; then
+        exit 1
+    fi
+fi
+
+rm -rf $DEST
+install -d $DEST
+install -d $LOGS
+
+mods="$mods ."
+
+build=
+
+for mod in $mods; do
+    cwd=$(pwd)
+    cd $mod
+
+    if [ "$mod" = "." ]; then
+        mod=$(pwd)
+        mod=$(basename $mod)
+    fi
+
+    if [ ! '(' -e CMakeLists.txt -o -e Makefile ')' ]; then
+        echo "No CMakeLists.txt or Makefile in $mod, skipping."
+        cd $cwd
+        continue
+    fi
+
+    ignore=1
+
+    if [ "$(git describe HEAD)" = "$(git describe release 2>/dev/null)" ]; then
+        ignore=0
+    fi
+
+    if [ "$(git describe HEAD)" = "$(git describe beta 2>/dev/null)" ]; then
+        ignore=0
+    fi
+
+    if [ "$ignore" = "1" ]; then
+        echo "Module $mod is not tagged for release or beta, skipping."
+        cd $cwd
+        continue
+    fi
+
+    dist=$(release $mod)
+    (echo $dist | grep -qv "^ *$") || echo "No distribution found for $mod."
+
+    dists="$dists $dist"
+    echo
+
+    cd $cwd
+done
+
+for dist in $dists; do
+    tgz=$(echo $dist | cut -d '#' -f 1)
+    version=$(echo $dist | cut -d '#' -f 2)
+    dst=$(basename $tgz)
+    dst="$DEST/$version/$(echo $dst | sed 's/\.tgz/.tar.gz/g')"
+
+    install -d $DEST/$version
+    mv $tgz $dst
+
+    echo Signing $dst ...
+    sign-file $dst
+
+done
+
+echo "--- All distributions in $DEST:"
+
+all=$(find $DEST -path '*gz*')
+test "$all" != "" && ls -rl $all || echo "None."
+echo

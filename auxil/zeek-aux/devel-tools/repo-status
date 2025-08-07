@@ -1,0 +1,18 @@
+#! /usr/bin/env bash
+#
+# Helper for check-release.
+
+repo=$(basename $(git config --get remote.origin.url) | sed 's/^[^:]*://')
+head=$(basename $(git symbolic-ref -q HEAD))
+
+update_changes="$(dirname $0)/update-changes"
+
+printf "%20s    " "$repo"
+printf "%-10s " "$head"
+printf "%-8s " $($update_changes -c | grep -q NOT && echo 'old!' || echo ok)
+printf "%-8s " $(git log --oneline $head ^origin/$head | wc -l | awk '$1==0{printf("%s",$1)} $1!=0{printf("%s!",$1)}')
+printf "%-7s " $(git status --porcelain | awk 'NF!=1' | grep -q '.' && echo 'Mod!' || echo ok)
+printf "%-5s " $(git submodule status --recursive | sed 's/^\(\.\).*/\1/g' | grep -q '^ $' && echo 'Mod!' || echo ok)
+printf "%-15s " $(cat VERSION | awk '/-/{printf("%s!", $1); next} {printf("%s", $1)}')
+printf "%s" $(git tag -l --contains HEAD | sort -r | paste -sd ',' | awk '/release|beta/{printf("%s",$1); next;} {printf("%s!",$1)}')
+echo

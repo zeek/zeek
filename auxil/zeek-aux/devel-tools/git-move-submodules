@@ -1,0 +1,77 @@
+#! /usr/bin/env bash
+#
+# Recursively check outs the most recent version of all submodules on a given
+# branch, and commits the updates to the parents.
+
+branch=$1
+
+if [ "$branch" == "" ]; then
+    echo "usage: $(basename $0) <branch>"
+    exit 1
+fi
+
+paths_to_push=()
+
+function update_module {
+    local cwd=$1
+    local i
+    local modules=""
+
+    cd $cwd
+
+    # These submodules should be ignored by the loop below.
+    local ignored_modules=(
+        "3rdparty"
+        "IXWebSocket"
+        "c-ares"
+        "caf"
+        "cppzmq"
+        "expected-lite"
+        "filesystem"
+        "highwayhash"
+        "libkqueue"
+        "libunistd"
+        "out_ptr"
+        "prometheus-cpp"
+        "rapidjson"
+        "vcpkg")
+
+    # Note we don't use --recursive here, as we want to do a depth-first
+    # search so that we update children first.
+    for i in $(git submodule foreach -q 'echo $path' | grep -vE $(
+        IFS="|"
+        echo "${ignored_modules[*]}"
+    )); do
+        # See if repository has a branch of the given name. Otherwise leave it alone.
+        (cd $i && git show-ref --verify --quiet refs/heads/$branch) || continue
+
+        modules="$modules $i"
+
+        echo "--- Checking out $branch of $(basename $i)"
+        cd $i
+        git fetch -q || exit 1
+        git checkout -q $branch || exit 1
+        git merge origin/master || exit 1
+
+        update_module $cwd/$i
+
+        cd $cwd
+    done
+
+    if [ "$modules" != "" ]; then
+        if [ -n "$(git status --untracked-files=no --porcelain)" ]; then
+            echo "+++ Committing updates to $(basename $cwd)"
+            git commit -m 'Updating submodule(s) [nomail]' --only $modules
+            paths_to_push+=($cwd)
+        fi
+    fi
+
+}
+
+update_module $(pwd)
+
+echo
+echo "Added ${#paths_to_push[@]} commits. Run the following commands to push them:"
+for path in "${paths_to_push[@]}"; do
+    echo "(cd ${path} && git push)"
+done

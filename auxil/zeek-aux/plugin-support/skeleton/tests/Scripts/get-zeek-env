@@ -1,0 +1,36 @@
+#! /bin/sh
+#
+# BTest helper for getting values for Zeek-related environment variables.
+
+base=$(dirname $0)
+zeek_dist=$(cat ${base}/../../build/CMakeCache.txt | grep ZEEK_DIST | cut -d = -f 2)
+
+if [ -n "${zeek_dist}" ]; then
+    if [ "$1" = "zeekpath" ]; then
+        ${zeek_dist}/build/zeek-path-dev
+    elif [ "$1" = "zeek_plugin_path" ]; then
+        (cd ${base}/../.. && pwd)
+    elif [ "$1" = "path" ]; then
+        echo ${zeek_dist}/build/src:${zeek_dist}/aux/btest:${zeek_dist}/auxil/btest:${base}/:${zeek_dist}/aux/zeek-cut:${zeek_dist}/auxil/zeek-cut:$PATH
+    else
+        echo "usage: $(basename $0) <var>" >&2
+        exit 1
+    fi
+else
+    # Use Zeek installation for testing. In this case zeek-config must be in PATH.
+    if ! which zeek-config >/dev/null; then
+        echo "zeek-config not found" >&2
+        exit 1
+    fi
+
+    if [ "$1" = "zeekpath" ]; then
+        zeek-config --zeekpath
+    elif [ "$1" = "zeek_plugin_path" ]; then
+        (cd ${base}/../.. && pwd)
+    elif [ "$1" = "path" ]; then
+        echo ${PATH}
+    else
+        echo "usage: $(basename $0) <var>" >&2
+        exit 1
+    fi
+fi

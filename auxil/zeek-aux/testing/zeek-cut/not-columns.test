@@ -1,0 +1,38 @@
+# Test zeek-cut with the -n option.
+#
+
+# Show all columns but one.
+# @TEST-EXEC: cat $LOGS/test.log | zeek-cut -n uid > not-one
+# @TEST-EXEC: btest-diff not-one
+
+# Show all columns but two (and specify them in swapped order).
+# @TEST-EXEC: cat $LOGS/test.log | zeek-cut -n id.resp_h uid > not-two-swapped
+# @TEST-EXEC: btest-diff not-two-swapped
+
+# Show all columns but one, but specify the same column twice.
+# @TEST-EXEC: cat $LOGS/test.log | zeek-cut -n uid uid > not-one-twice
+# @TEST-EXEC: btest-diff not-one-twice
+
+# Column order changes between two log files.
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/conntimelast.log | zeek-cut -n ts uid > different-col-order
+# @TEST-EXEC: btest-diff different-col-order
+
+# Don't show any columns.
+# @TEST-EXEC: cat $LOGS/test.log | zeek-cut -n ts uid id.orig_h id.orig_p id.resp_h > not-all
+# @TEST-EXEC: btest-diff not-all
+
+# Don't show the only column in the log.
+# @TEST-EXEC: cat $LOGS/onecolumn.log | zeek-cut -n id.orig_h > not-only
+# @TEST-EXEC: btest-diff not-only
+
+# Don't exclude any columns.
+# @TEST-EXEC: cat $LOGS/test.log | zeek-cut -n > not-none
+# @TEST-EXEC: btest-diff not-none
+
+# Show all columns but one, and also specify a nonexistent column name.
+# @TEST-EXEC: cat $LOGS/test.log | zeek-cut -n uid proto > not-one-nonexistent
+# @TEST-EXEC: btest-diff not-one-nonexistent
+
+# Show that the -n option also affects the header.
+# @TEST-EXEC: cat $LOGS/test.log | zeek-cut -c -n uid > not-one-show-header
+# @TEST-EXEC: btest-diff not-one-show-header

@@ -1,0 +1,12 @@
+# Default behavior: compress the log.
+# @TEST-EXEC: bash %INPUT
+
+. "$SCRIPTS/zeek-archiver-common.sh"
+
+log_in=test__2020-07-16-09-43-10__2020-07-16-09-43-10__.log
+log_out=test.09:43:10-09:43:10.log
+
+echo hello > "$(queue_dir)/${log_in}"
+zeek-archiver -1 -v "$(queue_dir)" "$(archive_dir)"
+
+test "$(gunzip <"$(archive_date_dir)/${log_out}.gz")" == "hello"

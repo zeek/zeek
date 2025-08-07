@@ -1,0 +1,18 @@
+# Test zeek-cut with ZEEK_CUT_TIMEFMT environment variable.
+#
+
+# Output local time with format from environment.
+# @TEST-EXEC: cat $LOGS/conn.log | ZEEK_CUT_TIMEFMT="%H%M_%y%m%d" zeek-cut -d > env-local
+# @TEST-EXEC: btest-diff env-local
+
+# Output UTC with format from environment.
+# @TEST-EXEC: cat $LOGS/conn.log | ZEEK_CUT_TIMEFMT="%H%M_%y%m%d" zeek-cut -u > env-utc
+# @TEST-EXEC: btest-diff env-utc
+
+# The "-D" option overrides environment variable.
+# @TEST-EXEC: cat $LOGS/conn.log | ZEEK_CUT_TIMEFMT="%H%M_%y%m%d" zeek-cut -D "%H %M %y %m %d" > env-local-fmt
+# @TEST-EXEC: btest-diff env-local-fmt
+
+# The "-U" option overrides environment variable.
+# @TEST-EXEC: cat $LOGS/conn.log | ZEEK_CUT_TIMEFMT="%H%M_%y%m%d" zeek-cut -U "%H %M %y %m %d" > env-utc-fmt
+# @TEST-EXEC: btest-diff env-utc-fmt

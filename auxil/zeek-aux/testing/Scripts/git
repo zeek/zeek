@@ -1,0 +1,16 @@
+#! /usr/bin/env bash
+# Git wrapper script for use during testing.
+
+# Use original path so we find the system's installed git, not this wrapper.
+PATH="$ORIGPATH"
+
+# Unsetting the following prevents git from reading ~/.gitconfig,
+# including potential githooks.
+HOME=
+XDG_CONFIG_HOME=
+
+git -c init.defaultBranch=master \
+    -c protocol.file.allow=always \
+    -c user.name=zeektest \
+    -c user.email=zeektest@zeek.org \
+    "$@"

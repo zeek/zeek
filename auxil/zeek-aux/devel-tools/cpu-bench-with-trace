@@ -1,0 +1,32 @@
+#! /usr/bin/env bash
+#
+# This runs a number of Zeek configurations on trace $2. It
+# starts with the bare config and then
+# kept adding the scripts load from init-default.zeek and local.zeek one
+# by one, measuring user time for each run (i.e., the measurements are
+# cumulative).
+
+if [ "$2" == "" ]; then
+    echo "usage: $(basename $0) <zeekdir> <trace>"
+    exit 1
+fi
+
+zeek=$1
+trace=$2
+tmp=/tmp/bench.$$.zeek
+
+export ZEEKPATH=$($zeek/build/zeek-path-dev)
+
+cat </dev/null >$tmp
+
+cat $zeek/scripts/base/init-default.zeek $zeek/scripts/site/local.zeek | grep '^ *@load' | while read line; do
+    echo $line >>$tmp
+    script=$(echo $line | awk '{print $2}' | sed 's#/#.#g')
+    output="bench.output.$script.log"
+
+    (time -p $zeek/build/src/zeek -b -r $trace $tmp) >$output 2>&1
+    user=$(cat $output | grep user | awk '{print $2}')
+    printf "%40s %s\n" $script $user
+done
+
+rm -f $tmp

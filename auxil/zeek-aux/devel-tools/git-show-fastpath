@@ -1,0 +1,19 @@
+#! /usr/bin/env bash
+#
+# Shows pending fastpath commits for all modules.
+
+show="git show-ref -q origin/fastpath && git --no-pager log --format=oneline origin/fastpath ^master || exit 0"
+
+(echo "Entering <top-level>" && eval $show && git submodule foreach --recursive "$show") | awk '
+
+/Entering/ { current = $2; next }
+
+{
+    if ( current != "" )
+        print "==" current;
+
+    print;
+
+    current = "";
+}
+'

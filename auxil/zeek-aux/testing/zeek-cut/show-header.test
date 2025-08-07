@@ -1,0 +1,38 @@
+# Test zeek-cut with -c and -C options.
+#
+
+# Show first header for one log file.
+# @TEST-EXEC: cat $LOGS/conn.log | zeek-cut -c > one-1st-nocols
+# @TEST-EXEC: btest-diff one-1st-nocols
+
+# Show all headers for one log file.
+# @TEST-EXEC: cat $LOGS/conn.log | zeek-cut -C > one-all-nocols
+# @TEST-EXEC: btest-diff one-all-nocols
+
+# Show first header for two log files.
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/test.log | zeek-cut -c uid ts > two-1st-withcols
+# @TEST-EXEC: btest-diff two-1st-withcols
+
+# Show all headers for two log files.
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/test.log | zeek-cut -C uid ts > two-all-withcols
+# @TEST-EXEC: btest-diff two-all-withcols
+
+# Show all headers for two logs (-C overrides -c).
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/test.log | zeek-cut -c -C uid ts > both-c-opts-all
+# @TEST-EXEC: btest-diff both-c-opts-all
+
+# Show first header for two logs (-c overrides -C).
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/test.log | zeek-cut -C -c uid ts > both-c-opts-one
+# @TEST-EXEC: btest-diff both-c-opts-one
+
+# Log files use different field separators.
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/conncomma.log | zeek-cut -C proto uid > nondefault-separator
+# @TEST-EXEC: btest-diff nondefault-separator
+
+# Column order changes between two log files.
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/conntimelast.log | zeek-cut -C > different-col-order
+# @TEST-EXEC: btest-diff different-col-order
+
+# Column order changes between two log files (and don't show all columns).
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/conntimelast.log | zeek-cut -C ts uid > different-col-order-some
+# @TEST-EXEC: btest-diff different-col-order-some

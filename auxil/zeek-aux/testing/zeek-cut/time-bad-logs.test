@@ -1,0 +1,15 @@
+# Test zeek-cut time conversion with invalid log files.
+#
+
+# The "#types" log header line is missing.
+# @TEST-EXEC-FAIL: grep -v '^#types' $LOGS/conn.log | zeek-cut -d 2> missing-types-header
+# @TEST-EXEC: btest-diff missing-types-header
+
+# All log header lines are missing.
+# @TEST-EXEC: grep -v '^#' $LOGS/conn.log | zeek-cut -d > no-header-time
+# @TEST-EXEC: btest-diff no-header-time
+
+# Time field is invalid or out of range
+# @TEST-EXEC: cat $LOGS/invalid-time.log | zeek-cut -d > invalid-time-field 2> invalid-time-field.err
+# @TEST-EXEC: btest-diff invalid-time-field
+# @TEST-EXEC: btest-diff invalid-time-field.err

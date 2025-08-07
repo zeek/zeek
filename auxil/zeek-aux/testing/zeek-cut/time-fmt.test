@@ -1,0 +1,26 @@
+# Test zeek-cut with time conversion options (-D/-U).
+#
+
+# Test -D option.
+# @TEST-EXEC: cat $LOGS/conn.log | zeek-cut -D "%H %M %y %m %d" > local-fmt
+# @TEST-EXEC: btest-diff local-fmt
+
+# Test -U option.
+# @TEST-EXEC: cat $LOGS/conn.log | zeek-cut -U "%H %M %y %m %d" > utc-fmt
+# @TEST-EXEC: btest-diff utc-fmt
+
+# Output local time (-D overrides -u).
+# @TEST-EXEC: cat $LOGS/conn.log | zeek-cut -u -D "%H %M %y %m %d" > utc-local-fmt
+# @TEST-EXEC: btest-diff utc-local-fmt
+
+# Output UTC time, but with format string from -D.
+# @TEST-EXEC: cat $LOGS/conn.log | zeek-cut -D "%H %M %y %m %d" -u > local-fmt-utc
+# @TEST-EXEC: btest-diff local-fmt-utc
+
+# Output UTC time (-U overrides -d).
+# @TEST-EXEC: cat $LOGS/conn.log | zeek-cut -d -U "%H %M %y %m %d" > local-utc-fmt
+# @TEST-EXEC: btest-diff local-utc-fmt
+
+# Output local time, but with format string from -U.
+# @TEST-EXEC: cat $LOGS/conn.log | zeek-cut -U "%H %M %y %m %d" -d > utc-fmt-local
+# @TEST-EXEC: btest-diff utc-fmt-local

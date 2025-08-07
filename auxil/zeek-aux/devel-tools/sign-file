@@ -1,0 +1,29 @@
+#! /usr/bin/env bash
+#
+# Signs $1 with the Zeek GPG key. Signature will be written to $1.asc.
+#
+# GPG agent needs to be running.
+#
+# Needs gpg2.
+
+GPG=$(which gpg2)
+KEY=F8CB8019
+
+if [ "$GPG" == "" ]; then
+    echo "Can't find gpg2."
+    exit 1
+fi
+
+if [ "$#" != 1 ]; then
+    echo "usage: $(basename $0) <file>"
+    exit 1
+fi
+
+if ! gpg-agent -q; then
+    echo "GPG agent not running."
+    exit 1
+fi
+
+FILE=$1
+
+$GPG --detach-sign -a -u $KEY --openpgp -o $FILE.asc $FILE

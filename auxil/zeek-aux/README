@@ -1,0 +1,107 @@
+.. -*- mode: rst; -*-
+..
+.. Version number is filled in automatically.
+.. |version| replace:: 0.50-174
+
+=======================
+Zeek Auxiliary Programs
+=======================
+
+.. contents::
+
+:Version: |version|
+
+Handy auxiliary programs related to the use of the Zeek Network Security
+Monitor (https://www.zeek.org).
+
+Installation
+============
+
+Installation is simple and standard::
+
+    ./configure
+    make
+    make install
+
+adtrace
+=======
+
+The "adtrace" utility is used to compute the
+network address that compose the internal and extern nets that Zeek
+is monitoring. This program just reads a pcap
+(tcpdump) file and writes out the src MAC, dst MAC, src IP, dst
+IP for each packet seen in the file.
+
+zeek-archiver
+=============
+
+This is a modern replacement for Zeek's historical log-archival process. For
+details, please refer to its dedicated README in the zeek-archiver subdirectory.
+
+zeek-cut
+========
+
+The "zeek-cut" utility reads ASCII Zeek logs on standard input
+and outputs them to standard output with only the specified columns (the
+column names can be found in each log file in the "#fields" header line).
+If no column names are specified, then "zeek-cut" simply outputs all columns.
+
+There are several command-line options available to modify the output (run
+"zeek-cut -h" to see a list of all options).  There are options to convert
+timestamps into human-readable format, and options to specify whether or not
+to include the format header lines in the output (by default, they're not
+included).
+
+For example, the following command will output the three specified columns
+from conn.log with the timestamps from the "ts" column being converted to
+human-readable format::
+
+    cat conn.log | zeek-cut -d ts id.orig_h id.orig_p
+
+The specified order of the column names determines the output order of the
+columns (i.e., "zeek-cut" can reorder the columns).
+
+The "zeek-cut" utility can read the concatenation of one or more uncompressed
+ASCII log files (however, JSON format is not supported) produced by Zeek
+version 2.0 or newer, as long as each log file contains format header
+lines (these are the lines at the beginning of the file starting with "#").
+In fact, "zeek-cut" can process the concatenation of multiple ASCII log files
+that have different column layouts.
+
+To read a compressed log file, a tool such as "zcat" must be used to
+uncompress the file.  For example, "zeek-cut" can read a group of compressed
+conn.log files with a command like this::
+
+    zcat conn.*.log.gz | zeek-cut
+
+
+devel-tools
+===========
+
+A set of scripts used commonly for Zeek development. Note that none of
+these scripts are installed by 'make install'.
+
+extract-conn-by-uid
+    Extracts a connection from a trace file based
+    on its UID found in Zeek's conn.log
+
+gen-mozilla-ca-list.rb
+    Generates list of Mozilla SSL root certificates in
+    a format readable by Zeek.
+
+update-changes
+    A script to maintain the CHANGES and VERSION files.
+
+git-show-fastpath
+    Show commits to the fastpath branch not yet merged into master.
+
+cpu-bench-with-trace
+    Run a number of Zeek benchmarks on a trace file.
+
+
+rst
+===
+
+The "rst" utility can be invoked by a Zeek script to terminate an
+established TCP connection by forging RST tear-down packets.
+

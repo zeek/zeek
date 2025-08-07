@@ -190,14 +190,14 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
     // handling those properly.
     pkt->session = c;
 
+    // Tap the packet before processing/forwarding.
+    adapter->TapPacket(pkt);
+
     // Send the packet back into the packet analysis framework. We only check the response
     // port here because the orig/resp should have already swapped around based on
     // likely_server_ports. This also prevents us from processing things twice if protocol
     // detection has to be used.
     ForwardPacket(std::min(len, remaining), data, pkt, ntohs(c->RespPort()));
-
-    // Tap the packet before sending it to session analysis.
-    adapter->TapPacket(pkt);
 
     // Forward any data through session-analysis, too.
     adapter->ForwardPacket(std::min(len, remaining), data, is_orig, -1, ip.get(), pkt->cap_len);

@@ -1,3 +1,30 @@
+8.1.0-dev.19 | 2025-08-07 10:48:40 +0200
+
+  * btest/tap-analyzer: Update existing test and add new one for UpdateConnVal() (Arne Welzel, Corelight)
+
+    This also changes the output of connection UIDs from the tap analyzer to be
+    prefixed with C for easier correlation with other logs.
+
+  * SessionAdapter: Keep tap_analyzers until destruction (Arne Welzel, Corelight)
+
+    connection_state_remove() is invoked after Done(), so it's not a good
+    idea to remove the tap analyzers before in case they have up-to-date
+    information for the connection val.
+
+  * tcp,udp,icmp adapters: Move TapPacket() to earlier (Arne Welzel, Corelight)
+
+    Writing a test, the packet was tapped after protocol analysis at least
+    for TCP. Ensure tapping happens before. The adapter->Process() moving
+    after pkt->session made me a bit wondering if things are underspecified
+    here, but seems reasonable to set the session on pkt before adapter->Process().
+
+  * tcp,udp,icmp adapters: Fix UpdateConnVal() superclass call (Arne Welzel, Corelight)
+
+    Now that SessionAdapter implements UpdateConnVal(), the individual
+    adapters need to call that instead of Analyzer::UpdateConnVal()
+
+    Thanks clang-tidy.
+
 8.1.0-dev.14 | 2025-08-06 14:37:50 +0100
 
   * Add proto to analyzer.log (Johanna Amann, Corelight)

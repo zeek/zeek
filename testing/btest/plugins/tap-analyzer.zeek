@@ -36,6 +36,11 @@ global http_skip_further_processing = F &redef;
 
 event http_request(c: connection, method: string, original_URI: string, unescaped_URI: string, version: string)
 	{
+	print fmt("http_request: uid=%s", c$uid);
+
 	if ( http_skip_further_processing )
+		{
+		print fmt("skip_further_processing uid=%s", c$uid);
 		skip_further_processing(c$id);
+		}
 	}

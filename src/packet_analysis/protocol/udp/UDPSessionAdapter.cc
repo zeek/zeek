@@ -33,7 +33,7 @@ void UDPSessionAdapter::UpdateConnVal(RecordVal* conn_val) {
     UpdateEndpointVal(resp_endp_val, false);
 
     // Call children's UpdateConnVal
-    Analyzer::UpdateConnVal(conn_val);
+    SessionAdapter::UpdateConnVal(conn_val);
 }
 
 void UDPSessionAdapter::UpdateEndpointVal(RecordVal* endp, bool is_orig) {

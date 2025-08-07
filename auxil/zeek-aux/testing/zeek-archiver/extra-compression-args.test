@@ -1,0 +1,12 @@
+# Verify that passing extra parameters to the compression stage works.
+# @TEST-EXEC: bash %INPUT
+
+. "$SCRIPTS/zeek-archiver-common.sh"
+
+log_in=test__2020-07-16-09-43-10__2020-07-16-09-43-10__.log
+log_out=test.09:43:10-09:43:10.log
+
+echo hello > "$(queue_dir)/${log_in}"
+zeek-archiver -1 -v --compress 'gz,gzip -9' "$(queue_dir)" "$(archive_dir)"
+
+test "$(gunzip <"$(archive_date_dir)/${log_out}.gz")" == "hello"

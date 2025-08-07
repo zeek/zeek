@@ -1,0 +1,42 @@
+# Test zeek-cut with time conversion options (-d/-u).
+#
+
+# Test -d option.
+# @TEST-EXEC: cat $LOGS/conn.log | zeek-cut -d > local
+# @TEST-EXEC: btest-diff local
+
+# Test -u option.
+# @TEST-EXEC: cat $LOGS/conn.log | zeek-cut -u > utc
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-time-zone btest-diff utc
+
+# Test that -u can override -d. 
+# @TEST-EXEC: cat $LOGS/conn.log | zeek-cut -d -u > both-1
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-time-zone btest-diff both-1
+
+# Test that -d can override -u. 
+# @TEST-EXEC: cat $LOGS/conn.log | zeek-cut -u -d > both-2
+# @TEST-EXEC: btest-diff both-2
+
+# First time value is zero.
+# @TEST-EXEC: cat $LOGS/zerotime.log | zeek-cut -u > zero
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-time-zone btest-diff zero
+
+# File has timestamp, but not in the first column.
+# @TEST-EXEC: cat $LOGS/conntimelast.log | zeek-cut -d > time-last-col
+# @TEST-EXEC: btest-diff time-last-col
+
+# File has more than one time column, and some timestamps are duplicates.
+# @TEST-EXEC: cat $LOGS/multiple-times.log | zeek-cut -d > multiple-times
+# @TEST-EXEC: btest-diff multiple-times
+
+# Column order changes between two log files.
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/conntimelast.log | zeek-cut -d > different-col-order
+# @TEST-EXEC: btest-diff different-col-order
+
+# File has no timestamps.
+# @TEST-EXEC: cat $LOGS/onecolumn.log | zeek-cut -d > no-timestamps
+# @TEST-EXEC: btest-diff no-timestamps
+
+# Input is missing the log header lines.
+# @TEST-EXEC: grep -v '^#' $LOGS/conn.log | zeek-cut -d > missing-header
+# @TEST-EXEC: btest-diff missing-header

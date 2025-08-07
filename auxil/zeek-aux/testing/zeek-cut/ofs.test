@@ -1,0 +1,18 @@
+# Test zeek-cut with -F option.
+#
+
+# Use a different field separator on two columns.
+# @TEST-EXEC: cat $LOGS/conn.log | zeek-cut -F , uid ts > some-columns
+# @TEST-EXEC: btest-diff some-columns
+
+# Show that -F option is used even when field separator in log files changes.
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/conncomma.log | zeek-cut -F : proto uid > nondefault-separator
+# @TEST-EXEC: btest-diff nondefault-separator
+
+# Field separator is not relevant because log has only one column.
+# @TEST-EXEC: cat $LOGS/onecolumn.log | zeek-cut -F , > only-column
+# @TEST-EXEC: btest-diff only-column
+
+# Show header and use a different field separator.
+# @TEST-EXEC: cat $LOGS/conn.log | zeek-cut -F . -c > show-header
+# @TEST-EXEC: btest-diff show-header

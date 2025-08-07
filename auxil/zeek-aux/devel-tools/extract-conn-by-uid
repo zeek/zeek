@@ -1,0 +1,42 @@
+#! /usr/bin/env bash
+#
+# Searches the connection with UID $1 in conn.log, and then extracts
+# it from trace file $2.
+
+if [ $# != 2 ]; then
+    echo "usage: $(basename $0) <uid> <trace>"
+    exit 1
+fi
+
+uid=$1
+trace=$2
+
+if [ ! -e conn.log ]; then
+    echo "no conn.log found"
+    exit 1
+fi
+
+if [ ! -e $trace ]; then
+    echo "trace $trace not found"
+    exit 1
+fi
+
+filter=$(awk -v uid=$uid '$2==uid { printf("host %s and port %s and host %s and port %s\n", $3, $4, $5, $6)}' <conn.log)
+
+if [ "$filter" == "" ]; then
+    echo uid $uid not found in conn.log
+    exit 1
+fi
+
+echo filter: $filter
+
+out=$(basename $trace).$uid
+
+if echo $trace | grep -q '\.gz$'; then
+    cat $trace | gunzip | tcpdump -r - -w $out "$filter"
+else
+    tcpdump -r $trace -w $out "$filter"
+fi
+
+echo connection in $out
+ls -al $out

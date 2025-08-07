@@ -1,0 +1,36 @@
+# @TEST-DOC: Check file permissions with different umask settings.
+# @TEST-EXEC: bash %INPUT
+
+. "$SCRIPTS/zeek-archiver-common.sh"
+
+umask 0002
+
+log_in=test__2020-07-16-09-43-10__2020-07-16-09-43-10__.log
+log_out=test.09:43:10-09:43:10.log
+
+echo hello > "$(queue_dir)/${log_in}"
+zeek-archiver -1 -v "$(queue_dir)" "$(archive_dir)"
+
+dir_perms=$(ls -ld $(archive_date_dir) | cut -c -10)
+file_perms=$(ls -l $(archive_date_dir)/${log_out}.gz | cut -c -10)
+
+test "${dir_perms}" == "drwxrwxr-x"  || exit 1
+test "${file_perms}" == "-rw-rw-r--" || exit 1
+
+# @TEST-START-NEXT
+
+. "$SCRIPTS/zeek-archiver-common.sh"
+
+umask 0077
+
+log_in=test__2020-07-16-09-43-10__2020-07-16-09-43-10__.log
+log_out=test.09:43:10-09:43:10.log
+
+echo hello > "$(queue_dir)/${log_in}"
+zeek-archiver -1 -v "$(queue_dir)" "$(archive_dir)"
+
+dir_perms=$(ls -ld $(archive_date_dir) | cut -c -10)
+file_perms=$(ls -l $(archive_date_dir)/${log_out}.gz | cut -c -10)
+
+test "${dir_perms}" == "drwx------" || exit 1
+test "${file_perms}" == "-rw-------"  || exit 1

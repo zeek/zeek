@@ -1,0 +1,28 @@
+/* These autoconf variables are obsolete; it's portable to assume C89
+   and signal handlers that return void */
+#define RETSIGTYPE void
+#define RETSIGVAL 
+
+/* Define if you have the `sigaction' function. */
+#cmakedefine HAVE_SIGACTION
+
+/* Define if you have the `sigset' function. */
+#cmakedefine HAVE_SIGSET
+
+/* Define if you have the <memory.h> header file. */
+#cmakedefine HAVE_MEMORY_H
+
+/* Define if you have the `strerror' function. */
+#cmakedefine HAVE_STRERROR
+
+/* should explicitly declare socket() and friends */
+#cmakedefine DO_SOCK_DECL
+
+/* Compatibility for Darwin */
+#cmakedefine NEED_NAMESER_COMPAT_H
+
+/* have os-proto.h */
+#cmakedefine HAVE_OS_PROTO_H
+
+/* have sin_len field in sockaddr_in */
+#cmakedefine SIN_LEN

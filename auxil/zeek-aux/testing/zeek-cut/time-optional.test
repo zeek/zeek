@@ -1,0 +1,10 @@
+# Test zeek-cut with time conversion when a time field is optional and no value
+# is set.
+#
+
+# @TEST-EXEC: cat $LOGS/time-optional.log | zeek-cut -u > out 2>&1
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-time-zone btest-diff out
+
+# File has a non-default unset field string.
+# @TEST-EXEC: cat $LOGS/unset-field.log | zeek-cut -u > out2 2>&1
+# @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-time-zone btest-diff out2

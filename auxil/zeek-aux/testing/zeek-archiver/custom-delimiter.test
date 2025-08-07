@@ -1,0 +1,12 @@
+# Use a custom delimiter in the resulting logs.
+# @TEST-EXEC: bash %INPUT
+
+. "$SCRIPTS/zeek-archiver-common.sh"
+
+log_in=test_2020-07-16-09-43-10_2020-07-16-09-43-10_.log
+log_out=test.09:43:10-09:43:10.log
+
+echo hello > "$(queue_dir)/${log_in}"
+zeek-archiver -1 -v -d _ "$(queue_dir)" "$(archive_dir)"
+
+test "$(gunzip <$(archive_date_dir)/${log_out}.gz)" == "hello"

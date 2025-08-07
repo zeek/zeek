@@ -1,0 +1,50 @@
+# Test zeek-cut with -m and -M options.
+#
+
+# Show first header in minimal view for one log file.
+# @TEST-EXEC: cat $LOGS/conn.log | zeek-cut -m > one-all-nocols
+# @TEST-EXEC: btest-diff one-all-nocols
+
+# Show first header in minimal view for two log files.
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/test.log | zeek-cut -m uid ts > two-1st-withcols
+# @TEST-EXEC: btest-diff two-1st-withcols
+
+# Show all headers in minimal view for two log files.
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/test.log | zeek-cut -M uid ts > two-all-withcols
+# @TEST-EXEC: btest-diff two-all-withcols
+#
+# Show first header in minimal view for two log files with custom field separator.
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/test.log | zeek-cut -F, -m uid ts > two-1st-withcols-custom-sep
+# @TEST-EXEC: btest-diff two-1st-withcols-custom-sep
+
+# Show all headers in minimal view for two log files with custom field separator.
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/test.log | zeek-cut -F, -M uid ts > two-all-withcols-custom-sep
+# @TEST-EXEC: btest-diff two-all-withcols-custom-sep
+
+# Show all headers in minimal view for two logs (-M overrides -m).
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/test.log | zeek-cut -m -M uid ts > both-m-opts-all
+# @TEST-EXEC: btest-diff both-m-opts-all
+
+# Show first header in minimal view for two logs (-m overrides -M).
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/test.log | zeek-cut -M -m uid ts > both-m-opts-one
+# @TEST-EXEC: btest-diff both-m-opts-one
+
+# Show first header in minimal view for two logs (-m overrides -C).
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/test.log | zeek-cut -C -m uid ts > both-c-m-opts-m
+# @TEST-EXEC: btest-diff both-c-m-opts-m
+
+# Show all headers for two logs (-c overrides -M).
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/test.log | zeek-cut -M -c uid ts > both-m-c-opts-c
+# @TEST-EXEC: btest-diff both-m-c-opts-c
+
+# Log files use different field separators.
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/conncomma.log | zeek-cut -M proto uid > nondefault-separator
+# @TEST-EXEC: btest-diff nondefault-separator
+
+# Column order changes between two log files.
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/conntimelast.log | zeek-cut -M > different-col-order
+# @TEST-EXEC: btest-diff different-col-order
+
+# Column order changes between two log files (and don't show all columns).
+# @TEST-EXEC: cat $LOGS/conn.log $LOGS/conntimelast.log | zeek-cut -M ts uid > different-col-order-some
+# @TEST-EXEC: btest-diff different-col-order-some

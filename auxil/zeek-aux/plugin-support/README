@@ -1,0 +1,4 @@
+The init-plugin script instantiates a plugin template to provide you with a good
+starting point for your next Zeek plugin. Use this only if you want to develop
+a "pure" Zeek plugin -- if you're looking to start a Zeek package for the zkg
+package manager, then use the "zkg create" command instead.

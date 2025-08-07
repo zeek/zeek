@@ -1,0 +1,630 @@
+#! /usr/bin/env bash
+#
+# Assembles a draft CHANGES entry out of revisions committed since the last
+# entry was added. The entry is prepended to the current CHANGES file, and the
+# user then gets a chance to further edit it in the editor before it gets
+# committed.
+#
+# The script also maintains and updates a VERSION file.
+#
+# If the script finds a file called .update-changes.cfg it sources it at the
+# beginning. That script can define a function "new_version_hook" that will be
+# called with the new version number. It may use any of the replace_version_*
+# functions defined below to update other files as necessary.
+#
+# If $1 is given, it's interpreted as a release version and a corresponding
+# tag is created.
+#
+# To start using update-changes in a new project, proceed as follows:
+#
+# (1) Run "update-changes -I". This will initialize the CHANGES file and, if
+#     needed, establish suitable git tags that update-changes requires in order
+#     to start enumerating commits after a release. You can also prepare the
+#     initial version number in the VERSION file if you prefer that approach.
+#
+# (2) If you're planning to use an .update-changes.cfg file, add it as well as
+#     any corresponding changes it requires. Continue regular development, and
+#     when ready, run update-changes to reflect the first actual changeset in
+#     the CHANGES file.
+#
+file_changes="CHANGES"                         # The CHANGES file.
+file_version="VERSION"                         # The VERSION file.
+file_config=".update-changes.cfg"              # This will be sourced if available.
+new_version_hook="new_version_hook"            # Function that will be called with new version number.
+new_commit_msg="Updating CHANGES and VERSION." # Commit message when creating a new commit.
+init_commit_msg="Starting CHANGES."            # Commit message when we initialize CHANGES
+show_authors=1                                 # Include author names with commit.
+
+# The command line used to generate a revision's version string, such as
+# v1.0.0-23-gabcdef. This relies on tags to work, which update-changes checks
+# for. By default this only finds annotated tags; to allow lightweight ones as
+# well, add --tags.
+git_describe="git describe --tags" # {rev} will be added.
+
+# The command line used to generate a revision's date. The revision will be
+# appended.  Not used with Zeek-style CHANGES file.
+git_rev_date="git show -s --pretty=tformat:%ci"
+
+# The command line used to generate the list of revisions between old and new
+# state.
+git_rev_list="git rev-list --topo-order HEAD" # ^{past-rev} will be added.
+
+# The command line used to show the one-line summary of a revision before
+# editing.
+git_rev_summary="git show -s '--pretty=tformat: %h | %aN | %s'" # {rev} will be added.
+
+# The command line used to get a revision's author.
+git_author="git show -s --pretty=format:%aN"       # {rev} will be added.
+git_author_email="git show -s --pretty=format:%aE" # {rev} will be added.
+
+# The command line used to get a revision's message.
+git_msg=default_format_msg # {rev} will be added.
+
+# Portable access to ERE, see e.g. https://unix.stackexchange.com/a/131940
+if [ $(uname) == "Linux" ]; then
+    sed="sed -r"
+else
+    sed="sed -E"
+fi
+
+function usage {
+    echo "usage: $(basename $0) [options]"
+    echo
+    echo "    -p <rev>    Explicitly name the past revision to compare with."
+    echo "    -R <tag>    Tag the current revision as a release. Update VERSION to use that."
+    echo "    -B <tag>    Tag the current revision as a beta release. Update VERSION to use that."
+    echo "    -r          Tag the current revision as a release, using the next point version as version tag."
+    echo "    -I          Initialize a new, initially empty CHANGES file."
+    echo "    -c          Check whether CHANGES is up to date."
+    echo "    -n          Do not amend the HEAD commit when feasible, create a new one."
+    echo
+    exit 1
+}
+
+# Takes a version string as input and turns it into a Python-styled one. For
+# example, input "1.2-23" becomes "1.2.dev23". Other formats remain
+# unchanged. See: https://peps.python.org/pep-0440/#version-scheme
+function pythonic_version {
+    echo "$1" | $sed "s#-#.dev#"
+}
+
+### Functions that can be used to replace version strings in other files.
+### To use them, create a file $file_config and define a function
+### "new_version_hook" in there that does whatever is necessary, like calling
+### any of these.
+
+# Function that looks for lines of the form 'VERSION="1.2.3"' in $1. It will
+# replace the version number with $2 and then git-adds the change.
+function replace_version_in_script {
+    file=$1
+    version=$2
+
+    cat $file | $sed "s#^([[:blank:]]*VERSION[[:blank:]]*=[[:blank:]]*)\"([0-9.-]+)\"#\1\"$version\"#g" >$file.tmp
+    cat $file.tmp >$file
+    rm -f $file.tmp
+    git add $file
+}
+
+# Function that looks for lines of the form '.. |version| replace:: 0.3' in $1.
+# It will replace the version number with $2 and then git-adds the change.
+function replace_version_in_rst {
+    file=$1
+    version=$2
+
+    cat $file | $sed "s#^([[:blank:]]*\.\.[[:blank:]]*\|version\|[[:blank:]]*replace::[[:blank:]]*)([0-9a-zA-Z.-]+)#\1$version#g" >$file.tmp
+    cat $file.tmp >$file
+    rm -f $file.tmp
+    git add $file
+}
+
+# Function that checks file $1 for lines starting with 'version =
+# "<version>"', where the version string can be of release form (e.g. "1.2.3")
+# or a development one, expressed as "1.2-23" or the Python-styled "1.2.dev23".
+# It will replace the version number with a Python-styled form of $2, then
+# git-add the change.
+function replace_version_in_setup_py {
+    file=$1
+    version=$(pythonic_version $2)
+
+    # The version string can be a sequence of digits and dots, optionally
+    # followed by either "-" or ".dev" plus at least one digit.
+    cat $file | $sed "s#^([[:blank:]]*version[[:blank:]]*=[[:blank:]]*)\"[0-9.]+((-|\.dev)[0-9]+)?\"#\1\"$version\"#g" >$file.tmp
+    cat $file.tmp >$file
+    rm -f $file.tmp
+    git add $file
+}
+
+# Function that checks file $1 for lines starting with '__version__ =
+# "<version>"', where the version string can be of release form (e.g. "1.2.3")
+# or a development one, expressed as "1.2-23" or the Python-styled "1.2.dev23".
+# It will replace the version number with a Python-styled form of $2, then
+# git-add the change.
+function replace_version_in_python_package {
+    file=$1
+    version=$(pythonic_version $2)
+
+    # The version string can be a sequence of digits and dots, optionally
+    # followed by either "-" or ".dev" plus at least one digit.
+    cat $file | $sed "s#^([[:blank:]]*__version__[[:blank:]]*=[[:blank:]]*)\"[0-9.]+((-|\.dev)[0-9]+)?\"#\1\"$version\"#g" >$file.tmp
+    cat $file.tmp >$file
+    rm -f $file.tmp
+    git add $file
+}
+
+# Function that looks for lines of the form "#define .*VERSION "0.3"", with the
+# number being "version * 100". It will replace the version with $2 and then
+# git-adds the change.
+function replace_version_in_c_header {
+    file=$1
+    version=$2
+
+    cat $file | $sed "s#([[:blank:]]*\#define[[:blank:]]*[_A-Za-z0-9]*_VERSION[[:blank:]]*)\"[0-9.-]+\"#\1\"$version\"#g" >$file.tmp
+    mv $file.tmp $file
+    git add $file
+}
+
+# Default function for preparing commit message. This scans the message for
+# GitHub issue references to include.
+function default_format_msg {
+    if command -v gawk &>/dev/null; then
+        # We need gawk for the match().
+        git show -s --pretty=format:%B $1 |
+            gawk '
+                match($0, "([Ii]ssue|[Gg][Hh]|#)[ _-]?([0-9]+)", x) { issues[x[2]] = 1; }
+                                                                    { msg = msg $0 "\n"; }
+                END {
+                    if ( ! match(msg, "^GH-[0-9]+") ) {
+                        for ( i in issues )
+                            printf("GH-%s: ", i);
+                    }
+
+                    print msg;
+                }'
+    else
+        git show -s --pretty=format:%B $1
+    fi
+}
+
+###
+
+function version {
+    rev=$1
+    $git_describe $rev --match "v*" 2>/dev/null | $sed 's/^v//g' | $sed 's/-g.*//g' | $sed 's/-([[:alnum:]]+)-([0-9]+)$/-\1.\2/g'
+}
+
+function start_changes_entry {
+    version=$1
+    dst=$2
+
+    if [ "$zeek_style" == "0" ]; then
+        date=$($git_rev_date HEAD)
+        printf '%s | %s\n' "$version" "$date" >>$dst
+    else
+        date=$(date)
+        printf '%s %s\n' "$version" "$date" >>$dst
+    fi
+}
+
+function add_to_changes_entry {
+    rev=$1
+    dst=$2
+    msg=$3
+
+    author=""
+
+    if [ "$msg" == "" ]; then
+        if [ "$show_authors" == "1" ]; then
+            author_email=$($git_author_email $rev)
+            author=$($git_author $rev)
+
+            if [[ "$author_email" == *@corelight.com ]]; then
+                author=" ($author, Corelight)"
+            else
+                author=" ($author)"
+            fi
+        fi
+
+        msg=$($git_msg $rev)
+    fi
+
+    if [ "$msg" == "" ]; then
+        return 1
+    fi
+
+    if echo $msg | grep -q "^$new_commit_msg\$"; then
+        # Ignore our own automated commits.
+        return 1
+    fi
+
+    if [[ $(git show --no-patch --format='%P' "$rev" | wc -w) -gt 1 ]]; then
+        # Ignore merge commits, i.e., commits with more than one parent.
+        return 1
+    fi
+
+    echo >>$dst
+
+    if [ "$zeek_style" == "0" ]; then
+        bullet="  *"
+    else
+        bullet="-"
+    fi
+
+    echo -n "$msg" |
+        awk -v bullet="$bullet" -v author="$author" 'NR==1{printf "%s %s%s\n", bullet, $0, author; next }{printf "    %s\n", $0}' |
+        $sed 's/[[:blank:]]*$//' >>$dst
+
+    return 0
+}
+
+function init_changes {
+    for rev in $(git rev-list HEAD); do
+        version=$(version $rev)
+        [ -n "$version" ] && break
+    done
+
+    git_version=$version
+
+    if [ "$version" == "" ] && [ -f $file_version ]; then
+        # git doesn't offer version info, but there's a VERSION file.
+        # Consider it if the user's okay with it.
+        version=$(cat $file_version | head -1)
+        if [ -n "$version" ]; then
+            echo "This git repo doesn't yet offer suitable version tags."
+            read -p "Use '$version' from $file_version? Y/n " -n 1 -r
+            echo
+            if [ -n "$REPLY" ] && [[ $REPLY != [Yy] ]]; then
+                version=
+            fi
+        fi
+    fi
+
+    if [ "$version" == "" ]; then
+        read -p "No initial version available, please provide one (e.g. 0.1, 1.0.0): " -r version
+        if [[ "$version" == v* ]]; then
+            # We don't need a "v" prefix here, it only exists in the git tags.
+            version=${version:1}
+        fi
+    fi
+
+    # Subtle: if we're basing this CHANGES intro on a git tag, then we have a
+    # chicken-and-egg problem with correct numbering of the commit introducing
+    # CHANGES. It is itself going to be the _next_ commit. We could increment
+    # the git-derived version number arithmetically, but it's easier to just
+    # commit an empty CHANGES and then augment that below.
+    if [ -n "$git_version" ]; then
+        touch $file_changes
+        git add $file_changes
+        git commit -m "$init_commit_msg"
+        version=$(version HEAD)
+        flags="--amend"
+    fi
+
+    start_changes_entry $version $file_changes
+    echo >>$file_changes
+    echo "  * Starting $file_changes." >>$file_changes
+
+    git add $file_changes
+    git commit $flags -m "$init_commit_msg"
+
+    if [ -z "$git_version" ]; then
+        git tag "v$version"
+    fi
+}
+
+function get_last_rev {
+    version=$(cat $file_changes | grep -E '^[0-9a-zA-Z.-]+  *\|' | head -1 | awk '{print $1}')
+
+    if echo $version | grep -q -- '-'; then
+        # version is now e.g. 1.0.4-14 -- find the revision with that number.
+        for rev in $(git rev-list HEAD); do
+            v=$(version $rev)
+
+            if [ "$v" == "$version" ]; then
+                echo $rev
+                return
+            fi
+        done
+
+        echo "Cannot determine revision for version $version." >/dev/stderr
+        exit 1
+
+    else
+        # A tag.
+        echo "v$version"
+    fi
+}
+
+function check_release_tag {
+    if [ "$release" != "" ]; then
+        git tag -d $release 2>/dev/null
+        git tag -a $release -m "Version tag"
+        echo "Tagged with new tag $release."
+        echo
+        echo "Push with: "
+        echo
+        echo "    git push origin && git push origin $release"
+        echo
+    fi
+}
+
+function check_beta_tag {
+    if [ "$beta" != "" ]; then
+        git tag -d $beta 2>/dev/null
+        git tag -a $beta -m "Beta version tag"
+        echo "Tagged with new tag $beta."
+        echo
+        echo "Push with: "
+        echo
+        echo "    git push origin && git push origin $beta"
+        echo
+    fi
+}
+
+function check_submodules {
+    if git submodule status --recursive | grep ^+; then
+        cat <<EOF
+
+The revision recorded for the module(s) above does not
+match the one currently checked out in the respective
+subdirs.
+
+Please either update or checkout the recorded revision(s).
+
+Aborting.
+EOF
+
+        exit 1
+    fi
+}
+
+function get_release_version {
+    # If $1 is provided, return that. Otherwise look for most recent release
+    # version in CHANGES and increase its point version.
+    test -n "$1" && echo "$1" && return
+    old=$(cat $file_changes | grep -E '^[0-9]+\.[0-9]+\.[0-9]+(-(dev\.)?[0-9]+)? ' | cut -d ' ' -f 1 | head -1)
+    test -z "${old}" && echo "" && return
+    point=$(echo ${old} | cut -d - -f 1 | cut -d . -f 3)
+    point=$((${point} + 1))
+    new="$(echo ${old} | cut -d . -f 1-2).${point}"
+    echo v${new}
+}
+
+######
+
+last_rev=""
+release=""
+beta=""
+init=0
+check=0
+quiet=0
+no_amends=0
+
+while getopts "hp:rR:B:Icn" opt; do
+    case "$opt" in
+        p) last_rev="$OPTARG" ;;
+        R) release="$OPTARG" ;;
+        r)
+            release=$(get_release_version)
+            if [ -z "${release}" ]; then
+                echo "Cannot determine release version."
+                exit 1
+            fi
+            ;;
+        B) beta="$OPTARG" ;;
+        I) init=1 ;;
+        c)
+            check=1
+            quiet=1
+            ;;
+        n) no_amends=1 ;;
+        *) usage ;;
+    esac
+done
+
+if [ -e $file_config ]; then
+    if [ "$quiet" != "1" ]; then
+        echo Reading $file_config ...
+    fi
+    source ./$file_config
+fi
+
+if [ "$release" != "" -a "$beta" != "" ]; then
+    echo "Cannot tag as both beta and release."
+    exit 1
+fi
+
+if [ "$release" == "VERSION" ]; then
+    release="v$(cat VERSION)"
+fi
+
+if [ "$beta" == "VERSION" ]; then
+    beta="v$(cat VERSION)"
+fi
+
+zeek_style=0 # If 1, we use a slightly different format.
+
+if [ "$init" != "0" ]; then
+    if [ -e $file_changes ]; then
+        echo "$file_changes already exists, remove it first."
+        exit 1
+    else
+        echo "Initializing $file_changes ..."
+        init_changes
+        exit 0
+    fi
+else
+    if [ ! -e $file_changes ]; then
+        echo "$file_changes does not exist, initialize it with '-I'."
+        exit 1
+    else
+        # If we find this marker, it's Zeek-style CHANGES file.
+        grep -vq -- '-+-+-+-+-+-+-+-+-+-' $file_changes
+        zeek_style=$?
+    fi
+fi
+
+if [ "$release" != "" ]; then
+    if ! echo $release | grep -E -q '^v[0-9]+\.[0-9]+'; then
+        echo "Release tag must be of the form vX.Y[.Z]"
+        exit 1
+    fi
+
+    check_submodules
+fi
+
+if [ "$beta" != "" ]; then
+    if ! echo $beta | grep -E -q '^v[0-9]+\.[0-9]+(\.[0-9]+)?-(beta|rc)'; then
+        echo "Release tag must be of the form vX.Y[.Z]-(beta|rc)*"
+        exit 1
+    fi
+
+    check_submodules
+fi
+
+if [ "$last_rev" == "" ]; then
+    last_rev=$(get_last_rev)
+fi
+
+if [ "$last_rev" == "" ]; then
+    echo 'Cannot determine previous revision to compare with, specify with "-p <rev>".'
+    exit 1
+fi
+
+auto_version=$(version HEAD)
+
+if [ "$auto_version" == "" ]; then
+    echo "Cannot determine version, checking HEAD did not return anything."
+    exit 1
+fi
+
+tmp=${file_changes}.$$.tmp
+trap "rm -f $tmp" EXIT
+rm -f $tmp
+
+found=0
+
+new_version=$auto_version
+version=$(version $rev)
+
+if [ "$version" == "" ]; then
+    echo "Cannot determine version for $rev."
+    exit 1
+fi
+
+if [ "$release" != "" ]; then
+    new_version=$(echo $release | sed 's/v//g')
+fi
+
+if [ "$beta" != "" ]; then
+    new_version=$(echo $beta | sed 's/v//g')
+fi
+
+if [ "$quiet" != "1" ]; then
+    echo "New version is $new_version."
+    echo "Listing revisions committed since $(version $last_rev) ($last_rev) ... "
+    echo
+fi
+
+start_changes_entry $new_version $tmp
+
+for rev in $($git_rev_list ^$last_rev); do
+
+    version=$(version $rev)
+
+    if [ "$version" == "" ]; then
+        version="<no-version>"
+    fi
+
+    # printf "%15s |" $version
+
+    if add_to_changes_entry $rev $tmp; then
+        found=1
+
+        if [ "$quiet" != "1" ]; then
+            eval "$git_rev_summary $rev | grep -v '^$' | cat"
+        fi
+    fi
+
+done
+
+if [ "$found" == "0" ]; then
+    if [ "$check" == "1" ]; then
+        echo "CHANGES is up to date."
+        exit 0
+    fi
+
+    echo "  None."
+    echo
+
+    if [ "$release" != "" -o "$beta" != "" ]; then
+        add_to_changes_entry head $tmp "Release $new_version."
+    else
+        exit 0
+    fi
+fi
+
+if [ "$check" == "1" ]; then
+    echo "CHANGES is NOT up to date."
+    exit 1
+fi
+
+echo >>$tmp
+
+cat $file_changes >>$tmp
+
+# If we are ahead of origin, we can amend. If not, we need to create a new
+# commit even if the user wants otherwise. If the user requested -n (no
+# amendments), we skip all of this.
+amend=0
+
+if [ $no_amends == "0" ] &&
+    git remote | grep -q origin &&
+    git rev-list origin/$(git rev-parse --abbrev-ref HEAD)..HEAD | grep -q .; then
+    amend=1
+fi
+
+echo
+
+if [ "$amend" == "0" ]; then
+    echo Update to $file_changes will become a new commit.
+else
+    echo Update to $file_changes will be amended to last commit.
+fi
+
+echo
+echo Type Enter to edit new $file_changes, or CTRL-C to abort without any modifications.
+read
+
+# Run editor.
+if [ -z "$EDITOR" ]; then
+    EDITOR=vi
+fi
+eval $EDITOR $tmp
+
+# Put changes in place.
+mv $tmp $file_changes
+echo "Updated $file_changes."
+
+if [ "$file_version" != "" ]; then
+    echo $new_version >$file_version
+    echo "Updated $version to $new_version."
+fi
+
+# Call hook function if it exists.
+if type $new_version_hook >/dev/null 2>&1; then
+    $new_version_hook $new_version
+fi
+
+# Commit changes.
+git add $file_changes $file_version
+
+if [ "$amend" == "1" ]; then
+    git commit --amend
+else
+    git commit -m "$new_commit_msg"
+fi
+
+echo "Updates committed."
+
+check_release_tag
+check_beta_tag

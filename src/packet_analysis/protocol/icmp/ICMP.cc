@@ -112,10 +112,10 @@ void ICMPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int rema
     // handling those properly.
     pkt->session = c;
 
-    ForwardPacket(std::min(len, remaining), data, pkt);
-
-    // Tap the packet before sending it to protocol analysis.
+    // Tap the packet before processing/forwarding.
     adapter->TapPacket(pkt);
+
+    ForwardPacket(std::min(len, remaining), data, pkt);
 
     if ( remaining >= len )
         adapter->ForwardPacket(len, data, is_orig, -1, ip.get(), remaining);

@@ -103,17 +103,17 @@ void TCPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
         return;
     }
 
-    adapter->Process(is_orig, tp, len, ip, data, remaining);
-
     // Store the session in the packet in case we get an encapsulation here. We need it for
     // handling those properly.
     pkt->session = c;
 
+    // Tap the packet before processing/forwarding.
+    adapter->TapPacket(pkt);
+
+    adapter->Process(is_orig, tp, len, ip, data, remaining);
+
     // Send the packet back into the packet analysis framework.
     ForwardPacket(std::min(len, remaining), data, pkt);
-
-    // Tap the packet before sending it to session analysis.
-    adapter->TapPacket(pkt);
 
     // Call DeliverPacket on the adapter directly here. Normally we'd call ForwardPacket
     // but this adapter does some other things in its DeliverPacket with the packet children

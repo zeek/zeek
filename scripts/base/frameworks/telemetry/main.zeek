@@ -245,16 +245,6 @@ export {
 	                                          label_values: labels_vector,
 	                                          measurement: double): bool;
 
-	## Interval at which the :zeek:see:`Telemetry::sync` hook is invoked.
-	##
-	## By default, the hook is invoked on demand, setting this option to
-	## a positive interval allows to invoke it regularly, too. Regular
-	## invocations are relative to Zeek's network time.
-	##
-	## Note that on-demand hook invocation will happen even if this
-	## is set.
-	option sync_interval = 0sec &deprecated="Remove in 8.1. If you require regular sync invocation, do so explicitly in a scheduled event.";
-
 	## Collect all counter and gauge metrics matching the given *name* and *prefix*.
 	##
 	## For histogram metrics, use the :zeek:see:`Telemetry::collect_histogram_metrics`.
@@ -465,14 +455,6 @@ function collect_histogram_metrics(prefix: string, name: string): vector of Hist
 	return Telemetry::__collect_histogram_metrics(prefix, name);
 	}
 
-event run_sync_hook()
-	{
-	hook Telemetry::sync();
-@pragma push ignore-deprecations
-	schedule sync_interval { run_sync_hook() };
-@pragma pop ignore-deprecations
-	}
-
 # Expose the Zeek version as Prometheus style info metric
 global version_gauge_family = Telemetry::register_gauge_family(Telemetry::MetricOpts(
 	$prefix="zeek",
@@ -485,11 +467,6 @@ global version_gauge_family = Telemetry::register_gauge_family(Telemetry::Metric
 
 event zeek_init()
 	{
-@pragma push ignore-deprecations
-	if ( sync_interval > 0sec )
-		schedule sync_interval { run_sync_hook() };
-@pragma pop ignore-deprecations
-
 	local v = Version::info;
 	local labels = vector(cat(v$version_number),
 	                      cat(v$major), cat(v$minor), cat (v$patch),

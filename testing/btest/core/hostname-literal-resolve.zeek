@@ -8,4 +8,4 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff err
 # @TEST-EXEC: btest-diff out
 
-print "dns.example.com", dns.example.com;
+print "dns.example.com", blocking_lookup_hostname("dns.example.com");

@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include <cerrno>
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <optional>
 #include <ranges>

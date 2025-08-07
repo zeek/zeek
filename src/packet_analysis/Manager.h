@@ -171,11 +171,6 @@ public:
         return pkt_filter;
     }
 
-    [[deprecated("Remove in v8.1: Use PacketsUnprocessed() instead.")]]
-    uint64_t GetUnprocessedCount() const {
-        return PacketsUnprocessed();
-    }
-
     /**
      * Returns the total number of packets received that weren't considered
      * processed by some analyzer.

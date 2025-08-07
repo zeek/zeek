@@ -227,14 +227,6 @@ public:
     const WriterBackend::WriterInfo& Info() const { return *info; }
 
     /**
-     * Returns the number of log fields as passed into the constructor.
-     */
-    [[deprecated("Remove in v8.1: Use GetFields() instead")]]
-    int NumFields() const {
-        return num_fields;
-    }
-
-    /**
      * Returns a descriptive name for the writer, including the type of
      * the backend and the path used.
      *
@@ -246,14 +238,6 @@ public:
      * Returns the name of the filter for which this frontend was instantiated.
      */
     const std::string& GetFilterName() const { return info->filter_name; }
-
-    /**
-     * Returns the log fields as passed into the constructor.
-     */
-    [[deprecated("Remove in v8.1: Use GetFields() instead")]]
-    const threading::Field* const* Fields() const {
-        return fields;
-    }
 
     /**
      * Returns the log fields once Init() was called on the frontend.
@@ -270,10 +254,8 @@ protected:
     bool local;             // True if logging locally.
     bool remote;            // True if logging remotely.
 
-    const char* name;                      // Descriptive name of the
-    WriterBackend::WriterInfo* info;       // The writer information.
-    int num_fields;                        // Remove in v8.1.
-    const threading::Field* const* fields; // Remove in v8.1.
+    const char* name;                // Descriptive name of the writer.
+    WriterBackend::WriterInfo* info; // The writer information.
 
     detail::LogWriteHeader header;    // Collected information about the WriterFrontend.
     detail::WriteBuffer write_buffer; // Buffer for bulk writes.

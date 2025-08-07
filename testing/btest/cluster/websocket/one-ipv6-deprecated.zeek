@@ -1,4 +1,4 @@
-# @TEST-DOC: Use listen_host to listen on an IPv6 address, otherwise same as one-ipv6.zeek
+# @TEST-DOC: Use listen_addr to listen on an IPv6 address, otherwise same as one-ipv6.zeek
 #
 # @TEST-REQUIRES: have-zeromq
 # @TEST-REQUIRES: python3 -c 'import websockets.sync'
@@ -39,7 +39,7 @@ global pong: event(msg: string, c: count) &is_used;
 event zeek_init()
 	{
 	Cluster::subscribe("/test/pings/");
-	Cluster::listen_websocket([$listen_host="::1", $listen_port=to_port(getenv("WEBSOCKET_PORT"))]);
+	Cluster::listen_websocket([$listen_addr=to_addr("::1"), $listen_port=to_port(getenv("WEBSOCKET_PORT"))]);
 	}
 
 event ping(msg: string, n: count) &is_used

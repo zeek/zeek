@@ -300,10 +300,8 @@ bool Attributes::CheckAttr(Attr* a) {
             if ( global_var )
                 return AttrError("&optional is not valid for global variables");
 
-            // Remove in v8.1: Call AttrError()
             if ( in_record && Find(ATTR_DEFAULT) )
-                zeek::reporter->Deprecation(
-                    "Remove in v8.1: Using &default and &optional together results in &default behavior");
+                return AttrError("Using &default and &optional together results in &default behavior");
 
             break;
 
@@ -342,10 +340,8 @@ bool Attributes::CheckAttr(Attr* a) {
             if ( Find(ATTR_DEFAULT_INSERT) )
                 return AttrError("&default and &default_insert cannot be used together");
 
-            // Remove in v8.1: Call AttrError()
             if ( in_record && Find(ATTR_OPTIONAL) )
-                zeek::reporter->Deprecation(
-                    "Remove in v8.1: Using &default and &optional together results in &default behavior");
+                return AttrError("Using &default and &optional together results in &default behavior");
 
             std::string err_msg;
             if ( ! check_default_attr(a, type, global_var, in_record, err_msg) && ! err_msg.empty() )

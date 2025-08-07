@@ -67,8 +67,6 @@ extern void suspend_processing();
 extern void continue_processing();
 bool is_processing_suspended();
 
-[[deprecated("Remove with v8.1. Use run_state::current_pseudo directly if needed.")]]
-extern double current_packet_timestamp();
 extern double current_packet_wallclock();
 
 // Whether we're reading live traffic.

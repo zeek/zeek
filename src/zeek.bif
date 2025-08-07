@@ -2046,24 +2046,6 @@ function bare_mode%(%): bool
 	return zeek::val_mgr->Bool(zeek::run_state::detail::bare_mode);
 	%}
 
-## Converts a record type name to a vector of strings, where each element is
-## the name of a record field. Nested records are flattened.
-##
-## rt: The name of the record type.
-##
-## Returns: A string vector with the field names of *rt*.
-function record_type_to_vector%(rt: string%): string_vec &deprecated="Remove in v8.1: Consider using the ordered table from record_fields"
-	%{
-	auto result = zeek::make_intrusive<zeek::VectorVal>(zeek::id::string_vec);
-
-	zeek::RecordType* type = zeek::id::find_type(rt->CheckString())->AsRecordType();
-
-	for ( int i = 0; i < type->NumFields(); ++i )
-		result->Assign(i+1, zeek::make_intrusive<zeek::StringVal>(type->FieldName(i)));
-
-	return std::move(result);
-	%}
-
 ## Returns the type name of an arbitrary Zeek variable.
 ##
 ## t: An arbitrary object.

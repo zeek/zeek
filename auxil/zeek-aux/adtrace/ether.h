@@ -34,20 +34,20 @@
  *	@(#)if_ether.h	8.3 (Berkeley) 5/2/95
  */
 
-#define	ETHERMTU	1500
+#define ETHERMTU 1500
 
 /*
  * The number of bytes in an ethernet (MAC) address.
  */
-#define	ETHER_ADDR_LEN		6
+#define ETHER_ADDR_LEN 6
 
 /*
  * Structure of a DEC/Intel/Xerox or 802.3 Ethernet header.
  */
-struct	ether_header {
-	u_int8_t	ether_dhost[ETHER_ADDR_LEN];
-	u_int8_t	ether_shost[ETHER_ADDR_LEN];
-	u_int16_t	ether_type;
+struct ether_header {
+    u_int8_t ether_dhost[ETHER_ADDR_LEN];
+    u_int8_t ether_shost[ETHER_ADDR_LEN];
+    u_int16_t ether_type;
 };
 
 /*
@@ -56,4 +56,4 @@ struct	ether_header {
  * for example, so "sizeof (struct ether_header)" may not give the right
  * answer.
  */
-#define ETHER_HDRLEN		14
+#define ETHER_HDRLEN 14

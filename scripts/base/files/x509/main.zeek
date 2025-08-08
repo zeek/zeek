@@ -117,7 +117,11 @@ redef record Files::Info += {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(X509::LOG, Log::Stream($columns=Info, $ev=log_x509, $path="x509", $policy=log_policy));
+	# x509 can have some very large certificates and very large sets of URIs. Expand the log size filters
+	# so that we're not truncating those.
+	Log::create_stream(X509::LOG, Log::Stream($columns=Info, $ev=log_x509, $path="x509", $policy=log_policy,
+	                                          $max_field_string_bytes=24576, $max_field_container_elements=500,
+	                                          $max_total_container_elements=1500));
 
 	# We use MIME types internally to distinguish between user and CA certificates.
 	# The first certificate in a connection always gets tagged as user-cert, all
@@ -225,4 +229,3 @@ event file_state_remove(f: fa_file) &priority=5
 
 	Log::write(LOG, f$info$x509);
 	}
-

@@ -246,10 +246,17 @@ struct Manager::WriterInfo {
 
     std::shared_ptr<telemetry::Counter> total_writes;
     std::shared_ptr<telemetry::Counter> total_discarded_writes;
+    std::shared_ptr<telemetry::Counter> total_limited_string_fields;
+    std::shared_ptr<telemetry::Counter> total_limited_containers;
 
     WriterInfo(std::shared_ptr<telemetry::Counter> total_writes,
-               std::shared_ptr<telemetry::Counter> total_discarded_writes)
-        : total_writes(std::move(total_writes)), total_discarded_writes(std::move(total_discarded_writes)) {}
+               std::shared_ptr<telemetry::Counter> total_discarded_writes,
+               std::shared_ptr<telemetry::Counter> total_limited_string_fields,
+               std::shared_ptr<telemetry::Counter> total_limited_containers)
+        : total_writes(std::move(total_writes)),
+          total_discarded_writes(std::move(total_discarded_writes)),
+          total_limited_string_fields(std::move(total_limited_string_fields)),
+          total_limited_containers(std::move(total_limited_containers)) {}
 };
 
 struct Manager::Stream {
@@ -281,9 +288,12 @@ struct Manager::Stream {
     zeek_uint_t max_delay_queue_size = 1;
     bool evicting = false;
 
+    size_t max_field_string_bytes = 0;
+    size_t max_total_string_bytes = 0;
+    size_t max_field_container_elements = 0;
+    size_t max_total_container_elements = 0;
 
     ~Stream();
-
 
     const detail::DelayInfoPtr& GetDelayInfo(const detail::WriteContext& ctx);
 
@@ -491,7 +501,15 @@ Manager::Manager()
       total_log_writer_discarded_writes_family(
           telemetry_mgr->CounterFamily("zeek", "log-writer-discarded-writes",
                                        {"writer", "module", "stream", "filter-name", "path"},
-                                       "Total number of log writes discarded due to size limitations.")) {
+                                       "Total number of log writes discarded due to size limitations.")),
+      total_log_writer_limited_string_fields_family(
+          telemetry_mgr->CounterFamily("zeek", "log-writer-limited-string-fields",
+                                       {"writer", "module", "stream", "filter-name", "path"},
+                                       "Total number of logged string fields limited by length")),
+      total_log_writer_limited_containers_family(
+          telemetry_mgr->CounterFamily("zeek", "log-writer-limited-containers",
+                                       {"writer", "module", "stream", "filter-name", "path"},
+                                       "Total number of logged container fields limited by length")) {
     rotations_pending = 0;
 }
 
@@ -659,8 +677,23 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval) {
     streams[idx]->columns = columns->Ref()->AsRecordType();
     streams[idx]->max_delay_interval = sval->GetField("max_delay_interval")->AsInterval();
     streams[idx]->max_delay_queue_size = sval->GetField("max_delay_queue_size")->AsCount();
-
     streams[idx]->enable_remote = id::find_val("Log::enable_remote_logging")->AsBool();
+
+    streams[idx]->max_field_string_bytes = sval->GetField("max_field_string_bytes")->AsCount();
+    if ( streams[idx]->max_field_string_bytes == 0 )
+        streams[idx]->max_field_string_bytes = std::numeric_limits<size_t>::max();
+
+    streams[idx]->max_total_string_bytes = sval->GetField("max_total_string_bytes")->AsCount();
+    if ( streams[idx]->max_total_string_bytes == 0 )
+        streams[idx]->max_total_string_bytes = std::numeric_limits<size_t>::max();
+
+    streams[idx]->max_field_container_elements = sval->GetField("max_field_container_elements")->AsCount();
+    if ( streams[idx]->max_field_container_elements == 0 )
+        streams[idx]->max_field_container_elements = std::numeric_limits<size_t>::max();
+
+    streams[idx]->max_total_container_elements = sval->GetField("max_total_container_elements")->AsCount();
+    if ( streams[idx]->max_total_container_elements == 0 )
+        streams[idx]->max_total_container_elements = std::numeric_limits<size_t>::max();
 
     DBG_LOG(DBG_LOGGING, "Created new logging stream '%s', raising event %s", streams[idx]->name.c_str(),
             event ? streams[idx]->event->Name() : "<none>");
@@ -1149,7 +1182,9 @@ bool Manager::WriteToFilters(const Manager::Stream* stream, zeek::RecordValPtr c
 
         // Alright, can do the write now.
         size_t total_size = 0;
-        auto rec = RecordToLogRecord(stream, filter, columns.get(), total_size);
+        total_string_bytes = 0;
+        total_container_elements = 0;
+        auto rec = RecordToLogRecord(w->second, filter, stream, columns.get(), total_size);
 
         if ( total_size > max_log_record_size ) {
             reporter->Weird("log_record_too_large", util::fmt("%s", stream->name.c_str()));
@@ -1388,7 +1423,8 @@ bool Manager::SetMaxDelayQueueSize(const EnumValPtr& id, zeek_uint_t queue_size)
     return true;
 }
 
-threading::Value Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty, size_t& total_size) {
+threading::Value Manager::ValToLogVal(WriterInfo* info, const Stream* stream, std::optional<ZVal>& val, Type* ty,
+                                      size_t& total_size) {
     if ( ! val )
         return {ty->Tag(), false};
 
@@ -1464,12 +1500,25 @@ threading::Value Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty, size_t
 
         case TYPE_STRING: {
             const String* s = val->AsString()->AsString();
-            char* buf = new char[s->Len()];
-            memcpy(buf, s->Bytes(), s->Len());
+
+            size_t allowed_bytes = std::min({static_cast<size_t>(s->Len()), stream->max_field_string_bytes,
+                                             stream->max_total_string_bytes - total_string_bytes});
+
+            if ( allowed_bytes < s->Len() ) {
+                reporter->Weird("log_string_field_length_limited", util::fmt("%s", stream->name.c_str()));
+                info->total_limited_string_fields->Inc();
+            }
+
+            if ( allowed_bytes == 0 )
+                return lval;
+
+            char* buf = new char[allowed_bytes];
+            memcpy(buf, s->Bytes(), allowed_bytes);
 
             lval.val.string_val.data = buf;
-            lval.val.string_val.length = s->Len();
-            total_size += lval.val.string_val.length;
+            lval.val.string_val.length = allowed_bytes;
+            total_size += allowed_bytes;
+            total_string_bytes += allowed_bytes;
             break;
         }
 
@@ -1508,32 +1557,60 @@ threading::Value Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty, size_t
             auto& set_t = tbl_t->GetIndexTypes()[0];
             bool is_managed = ZVal::IsManagedType(set_t);
 
-            zeek_int_t set_length = set->Length();
-            lval.val.set_val.vals = new threading::Value*[set_length];
+            size_t allowed_elements =
+                std::min({static_cast<size_t>(set->Length()), stream->max_field_container_elements,
+                          stream->max_total_container_elements - total_container_elements});
 
-            for ( zeek_int_t i = 0; i < set_length && total_size < max_log_record_size; i++ ) {
+            if ( allowed_elements < set->Length() ) {
+                reporter->Weird("log_container_field_length_limited", util::fmt("%s", stream->name.c_str()));
+                info->total_limited_containers->Inc();
+            }
+
+            if ( allowed_elements == 0 )
+                return lval;
+
+            lval.val.set_val.vals = new threading::Value*[allowed_elements];
+
+            for ( zeek_int_t i = 0; i < allowed_elements && total_size < max_log_record_size; i++ ) {
                 std::optional<ZVal> s_i = ZVal(set->Idx(i), set_t);
-                lval.val.set_val.vals[i] = new threading::Value(ValToLogVal(s_i, set_t.get(), total_size));
+                lval.val.set_val.vals[i] =
+                    new threading::Value(ValToLogVal(info, stream, s_i, set_t.get(), total_size));
                 if ( is_managed )
                     ZVal::DeleteManagedType(*s_i);
                 lval.val.set_val.size++;
             }
+
+            total_container_elements += lval.val.set_val.size;
 
             break;
         }
 
         case TYPE_VECTOR: {
             VectorVal* vec = val->AsVector();
-            zeek_int_t vec_length = vec->Size();
-            lval.val.vector_val.vals = new threading::Value*[vec_length];
+
+            size_t allowed_elements = std::min({static_cast<size_t>(vec->Size()), stream->max_field_container_elements,
+                                                stream->max_total_container_elements - total_container_elements});
+
+            if ( allowed_elements < vec->Size() ) {
+                reporter->Weird("log_container_field_length_limited", util::fmt("%s", stream->name.c_str()));
+                info->total_limited_containers->Inc();
+            }
+
+            if ( allowed_elements == 0 )
+                return lval;
+
+            lval.val.vector_val.vals = new threading::Value*[allowed_elements];
 
             auto& vv = vec->RawVec();
             auto& vt = vec->GetType()->Yield();
 
-            for ( zeek_int_t i = 0; i < vec_length && total_size < max_log_record_size; i++ ) {
-                lval.val.vector_val.vals[i] = new threading::Value(ValToLogVal(vv[i], vt.get(), total_size));
+            for ( zeek_int_t i = 0; i < allowed_elements && total_size < max_log_record_size; i++ ) {
+                lval.val.vector_val.vals[i] =
+                    new threading::Value(ValToLogVal(info, stream, vv[i], vt.get(), total_size));
                 lval.val.vector_val.size++;
             }
+
+            total_container_elements += lval.val.vector_val.size;
 
             break;
         }
@@ -1544,7 +1621,7 @@ threading::Value Manager::ValToLogVal(std::optional<ZVal>& val, Type* ty, size_t
     return lval;
 }
 
-detail::LogRecord Manager::RecordToLogRecord(const Stream* stream, Filter* filter, RecordVal* columns,
+detail::LogRecord Manager::RecordToLogRecord(WriterInfo* info, Filter* filter, const Stream* stream, RecordVal* columns,
                                              size_t& total_size) {
     RecordValPtr ext_rec;
 
@@ -1595,7 +1672,7 @@ detail::LogRecord Manager::RecordToLogRecord(const Stream* stream, Filter* filte
         }
 
         if ( val )
-            vals.emplace_back(ValToLogVal(val, vt, total_size));
+            vals.emplace_back(ValToLogVal(info, stream, val, vt, total_size));
 
         if ( total_size > max_log_record_size ) {
             return {};
@@ -1649,7 +1726,9 @@ WriterFrontend* Manager::CreateWriter(EnumVal* id, EnumVal* writer, WriterBacken
                                                        {"path", info->path}};
 
     WriterInfo* winfo = new WriterInfo(zeek::log_mgr->total_log_writer_writes_family->GetOrAdd(labels),
-                                       zeek::log_mgr->total_log_writer_discarded_writes_family->GetOrAdd(labels));
+                                       zeek::log_mgr->total_log_writer_discarded_writes_family->GetOrAdd(labels),
+                                       zeek::log_mgr->total_log_writer_limited_string_fields_family->GetOrAdd(labels),
+                                       zeek::log_mgr->total_log_writer_limited_containers_family->GetOrAdd(labels));
     winfo->type = writer->Ref()->AsEnumVal();
     winfo->writer = nullptr;
     winfo->open_time = run_state::network_time;

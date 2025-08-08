@@ -401,6 +401,20 @@ export {
 		## The value of the X-Application-Name HTTP header, if any.
 		application_name: string &optional;
 	};
+
+	## A hook invoked for every :zeek:see:`Cluster::subscribe` call.
+	##
+	## Breaking from this hook has no effect.
+	##
+	## topic: The topic string as given to :zeek:see:`Cluster::subscribe`.
+	global on_subscribe: hook(topic: string);
+
+	## A hook invoked for every :zeek:see:`Cluster::subscribe` call.
+	##
+	## Breaking from this hook has no effect.
+	##
+	## topic: The topic string as given to :zeek:see:`Cluster::subscribe`.
+	global on_unsubscribe: hook(topic: string);
 }
 
 # Needs declaration of Cluster::Event type.

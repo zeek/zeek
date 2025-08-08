@@ -1,3 +1,9 @@
+8.0.0-rc1.3 | 2025-08-11 11:35:42 -0700
+
+  * GH-4176: cluster: Add on_subscribe() and on_unsubscribe() hooks (Arne Welzel, Corelight)
+
+    (cherry picked from commit 13f613eb1d29895924ae516ad51ca7090acd231f)
+
 8.0.0-rc1.2 | 2025-08-11 11:33:46 -0700
 
   * Add proto to analyzer.log (Johanna Amann, Corelight)

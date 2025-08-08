@@ -296,6 +296,10 @@ New Functionality
   ``get_net_stats()``, it's possible to determine the number of packets that have
   been received and accepted by Zeek, but eventually discarded without processing.
 
+- Two new hooks, ``Cluster::on_subscribe()`` and ``Cluster::on_unsubscribe()`` have
+  been added to allow observing ``Subscribe()`` and ``Unsubscribe()`` calls on
+  backends by Zeek scripts.
+
 Changed Functionality
 ---------------------
 

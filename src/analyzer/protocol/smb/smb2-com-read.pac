@@ -93,10 +93,11 @@ type SMB2_read_request(header: SMB2_Header) = record {
 
 type SMB2_read_response(header: SMB2_Header) = record {
 	structure_size    : uint16;
-	data_offset       : uint16;
+	data_offset       : uint8;
+	reserved1         : uint8;
 	data_len          : uint32;
 	data_remaining    : uint32;
-	reserved          : uint32;
+	reserved2         : uint32;
 	pad               : padding to data_offset - header.head_length;
 	data              : bytestring &length=data_len;
 } &let {

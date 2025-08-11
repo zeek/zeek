@@ -53,3 +53,6 @@ Trace Index/Sources:
 - ldap/adduser1.pcap ldap/adduser1-ntlm.pcap
   Provided by Mohan-Dhawan on #4275
   https://github.com/zeek/zeek/issues/4275
+- smb_v2_only_non_zero_reserved1.pcap
+  Provided by @predator89090 on #4730
+  https://github.com/zeek/zeek/issues/4730

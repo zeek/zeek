@@ -139,6 +139,14 @@ export {
 	## out and request/response tracking reset to prevent unbounded
 	## state growth.
 	option max_pending_requests = 100;
+
+	## The maximum number of bytes that a single string field can contain when
+	## logging. If a string reaches this limit, the log output for the field will be
+	## truncated. Setting this to zero disables the limiting. HTTP has no maximum
+	## length for various fields such as the URI, so this is set to zero by default.
+	##
+	## .. zeek:see:: Log::default_max_field_string_bytes
+	const default_max_field_string_bytes = 0 &redef;
 }
 
 # Add the http state tracking fields to the connection record.
@@ -156,7 +164,8 @@ redef likely_server_ports += { ports };
 # Initialize the HTTP logging stream and ports.
 event zeek_init() &priority=5
 	{
-	Log::create_stream(HTTP::LOG, Log::Stream($columns=Info, $ev=log_http, $path="http", $policy=log_policy));
+	Log::create_stream(HTTP::LOG, Log::Stream($columns=Info, $ev=log_http, $path="http", $policy=log_policy,
+	                                          $max_field_string_bytes=HTTP::default_max_field_string_bytes));
 	Analyzer::register_for_ports(Analyzer::ANALYZER_HTTP, ports);
 	}
 
@@ -394,4 +403,3 @@ hook finalize_http(c: connection)
 			}
 		}
 	}
-

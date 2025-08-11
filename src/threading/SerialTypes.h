@@ -126,8 +126,14 @@ struct Field {
  * those Vals supported).
  */
 struct Value {
-    TypeTag type;    //! The type of the value.
-    TypeTag subtype; //! Inner type for sets and vectors.
+    TypeTag type;           //! The type of the value.
+    TypeTag subtype;        //! Inner type for sets and vectors.
+    bool present = false;   //! False for optional record fields that are not set.
+    bool truncated = false; //! True if the string or container field was truncated.
+
+    // For values read by the input framework, this can represent the line number
+    // containing this value. Used by the Ascii reader primarily.
+    int32_t line_number = -1;
 
     struct set_t {
         zeek_int_t size;
@@ -185,8 +191,6 @@ struct Value {
 
         _val() { memset(this, 0, sizeof(_val)); }
     } val;
-
-    bool present = false; //! False for optional record fields that are not set.
 
     /**
      * Constructor.
@@ -275,13 +279,6 @@ struct Value {
 
     void SetFileLineNumber(int line) { line_number = line; }
     int GetFileLineNumber() const { return line_number; }
-
-private:
-    friend class IPAddr;
-
-    // For values read by the input framework, this can represent the line number
-    // containing this value. Used by the Ascii reader primarily.
-    int line_number = -1;
 };
 
 } // namespace zeek::threading

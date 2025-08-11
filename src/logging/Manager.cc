@@ -1506,6 +1506,7 @@ threading::Value Manager::ValToLogVal(WriterInfo* info, const Stream* stream, st
                                                      stream->max_total_string_bytes, total_string_bytes);
 
             if ( allowed_bytes < static_cast<size_t>(s->Len()) ) {
+                lval.truncated = true;
                 reporter->Weird("log_string_field_truncated", util::fmt("%s", stream->name.c_str()));
                 info->total_truncated_string_fields->Inc();
             }
@@ -1563,6 +1564,7 @@ threading::Value Manager::ValToLogVal(WriterInfo* info, const Stream* stream, st
                                   stream->max_total_container_elements, total_container_elements);
 
             if ( allowed_elements < static_cast<size_t>(set->Length()) ) {
+                lval.truncated = true;
                 reporter->Weird("log_container_field_truncated", util::fmt("%s", stream->name.c_str()));
                 info->total_truncated_containers->Inc();
             }
@@ -1593,6 +1595,7 @@ threading::Value Manager::ValToLogVal(WriterInfo* info, const Stream* stream, st
                                   stream->max_total_container_elements, total_container_elements);
 
             if ( allowed_elements < static_cast<size_t>(vec->Size()) ) {
+                lval.truncated = true;
                 reporter->Weird("log_container_field_truncated", util::fmt("%s", stream->name.c_str()));
                 info->total_truncated_containers->Inc();
             }

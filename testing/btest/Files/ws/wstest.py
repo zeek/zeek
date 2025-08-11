@@ -33,7 +33,13 @@ import time
 from typing import Any, Callable, Optional, Union
 
 import websockets.sync.client
+from websockets.exceptions import (
+    ConnectionClosedError,
+    ConnectionClosedOK,
+)
 from websockets.sync.client import ClientConnection
+
+_ = ConnectionClosedOK, ConnectionClosedError
 
 WS_PORT = (
     int(os.environ["WEBSOCKET_PORT"].split("/")[0])

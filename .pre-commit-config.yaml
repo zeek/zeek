@@ -26,7 +26,7 @@ repos:
       - "c"
       - "c++"
       - "json"
-    exclude: '^(auxil/zeek-aux/plugin-support/skeleton/src/Plugin.*)'
+    exclude: '^(auxil/zeek-aux/plugin-support/skeleton/src/Plugin.*|testing/btest/Baseline/zeek-aux.update-changes.replace-version-in-c-header/header.h)'
 
 - repo: https://github.com/maxwinterstein/shfmt-py
   rev: v3.12.0.1
@@ -40,6 +40,7 @@ repos:
     - id: ruff-check
       args: ["--fix"]
     - id: ruff-format
+      exclude: '^(testing/btest/Baseline/zeek-aux.update-changes.replace-version-in-.*/.*)$'
 
 - repo: https://github.com/cheshirekow/cmake-format-precommit
   rev: v0.6.13

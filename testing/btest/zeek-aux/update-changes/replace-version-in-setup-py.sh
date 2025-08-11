@@ -1,15 +1,14 @@
-# Verifies that update-changes correctly updates version strings in setup.py
-# files to Python-style versions, when .update-changes.cfg instructs it.
+# @TEST-DOC: Verifies that update-changes correctly updates version strings in setup.py files to Python-style versions, when .update-changes.cfg instructs it.
 #
 # @TEST-EXEC: bash %INPUT
 # @TEST-EXEC: btest-diff setup.py
 
-@TEST-START-FILE .update-changes.cfg
+# @TEST-START-FILE .update-changes.cfg
 function new_version_hook() {
     local version=$1
     replace_version_in_setup_py setup.py $version
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
 git init
 

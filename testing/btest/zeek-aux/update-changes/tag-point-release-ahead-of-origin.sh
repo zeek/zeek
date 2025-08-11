@@ -1,5 +1,4 @@
-# Test update-changes -r when the repo is cloned from an origin. With commits
-# ahead of CHANGES, the release commit should be augmented onto the last.
+# @TEST-DOC: Test update-changes -r when the repo is cloned from an origin. With commits ahead of CHANGES, the release commit should be augmented onto the last.
 #
 # @TEST-EXEC: bash %INPUT
 # @TEST-EXEC: cd clone && git describe --exact-match HEAD | grep -q v1.0.1

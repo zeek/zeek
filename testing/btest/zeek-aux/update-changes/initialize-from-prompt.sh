@@ -1,5 +1,4 @@
-# Test update-changes -I when no version information is present, and the user is
-# prompted to provide one.
+# @TEST-DOC: Test update-changes -I when no version information is present, and the user is prompted to provide one.
 #
 # @TEST-EXEC: bash %INPUT
 # @TEST-EXEC: test -f CHANGES

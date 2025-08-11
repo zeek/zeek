@@ -1,6 +1,4 @@
-# Test update-changes -c. On an absent repo, this should fail. When there have
-# not been commits since the last CHANGES update, it should succeed, and after
-# subsequent commits it should fail again.
+# @TEST-DOC: Test update-changes -c. On an absent repo, this should fail. When there have not been commits since the last CHANGES update, it should succeed, and after subsequent commits it should fail again.
 #
 # @TEST-EXEC-FAIL: update-changes -c
 # @TEST-EXEC: bash %INPUT

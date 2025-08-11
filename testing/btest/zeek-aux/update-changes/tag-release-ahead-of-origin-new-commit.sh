@@ -1,6 +1,4 @@
-# Test update-changes -R when the repo is cloned from an origin. With commits
-# ahead of CHANGES the release commit would be augmented onto the last, but
-# this also uses -n to create a new one.
+# @TEST-DOC: Test update-changes -R when the repo is cloned from an origin. With commits ahead of CHANGES the release commit would be augmented onto the last, but this also uses -n to create a new one.
 #
 # @TEST-EXEC: bash %INPUT
 # @TEST-EXEC: cd clone && git describe --exact-match HEAD | grep -q v2.0.0

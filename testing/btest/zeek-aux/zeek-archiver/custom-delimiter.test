@@ -1,7 +1,7 @@
-# Use a custom delimiter in the resulting logs.
+# @TEST-DOC: Use a custom delimiter in the resulting logs.
 # @TEST-EXEC: bash %INPUT
 
-. "$SCRIPTS/zeek-archiver-common.sh"
+. "${SCRIPTS}/zeek-aux/zeek-archiver-common.sh"
 
 log_in=test_2020-07-16-09-43-10_2020-07-16-09-43-10_.log
 log_out=test.09:43:10-09:43:10.log

@@ -1,3 +1,9 @@
+8.1.0-dev.27 | 2025-08-10 21:28:33 -0700
+
+  * GH-4176: cluster: Add on_subscribe() and on_unsubscribe() hooks (Arne Welzel, Corelight)
+
+    Closes #4176
+
 8.1.0-dev.24 | 2025-08-08 14:23:51 +0200
 
   * GH-4176: cluster: Add on_subscribe() and on_unsubscribe() hooks (Arne Welzel, Corelight)

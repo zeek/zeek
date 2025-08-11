@@ -1,7 +1,7 @@
 # @TEST-DOC: Check file permissions with different umask settings.
 # @TEST-EXEC: bash %INPUT
 
-. "$SCRIPTS/zeek-archiver-common.sh"
+. "${SCRIPTS}/zeek-aux/zeek-archiver-common.sh"
 
 umask 0002
 
@@ -19,7 +19,7 @@ test "${file_perms}" == "-rw-rw-r--" || exit 1
 
 # @TEST-START-NEXT
 
-. "$SCRIPTS/zeek-archiver-common.sh"
+. "${SCRIPTS}/zeek-aux/zeek-archiver-common.sh"
 
 umask 0077
 

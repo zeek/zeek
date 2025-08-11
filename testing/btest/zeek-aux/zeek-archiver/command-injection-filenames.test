@@ -1,7 +1,7 @@
-# Verify that commands injected via filenames do not execute.
+# @TEST-DOC: Verify that commands injected via filenames do not execute.
 # @TEST-EXEC: bash %INPUT
 
-. "$SCRIPTS/zeek-archiver-common.sh"
+. "${SCRIPTS}/zeek-aux/zeek-archiver-common.sh"
 
 log_in='test;uptime;__2020-07-16-09-43-10__2020-07-16-09-43-10__.log'
 log_out='test;uptime;.09:43:10-09:43:10.log'

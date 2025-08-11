@@ -1,5 +1,4 @@
-# Test update-changes -r when the repo is up to date with its origin. In that
-# case, the release commit should become a new one.
+# @TEST-DOC: Test update-changes -r when the repo is up to date with its origin. In that case, the release commit should become a new one.
 #
 # @TEST-EXEC: bash %INPUT
 # @TEST-EXEC: cd clone && git describe --exact-match HEAD | grep -q v1.0.1

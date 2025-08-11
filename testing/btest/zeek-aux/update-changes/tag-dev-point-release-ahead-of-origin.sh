@@ -1,5 +1,4 @@
-# Like tag-point-release-ahead-of-origin, but on top of a "-dev" git tag
-# to test the underlying -r regex.
+# @TEST-DOC: Like tag-point-release-ahead-of-origin, but on top of a "-dev" git tag to test the underlying -r regex.
 #
 # @TEST-EXEC: bash %INPUT
 # @TEST-EXEC: cd clone && git describe --exact-match HEAD | grep -q v1.0.1

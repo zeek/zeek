@@ -1,4 +1,4 @@
-# Test update-changes -I when version information is available from git tags.
+# @TEST-DOC: Test update-changes -I when version information is available from git tags.
 #
 # @TEST-EXEC: bash %INPUT
 # @TEST-EXEC: test -f CHANGES

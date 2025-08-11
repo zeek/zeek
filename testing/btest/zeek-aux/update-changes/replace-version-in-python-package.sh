@@ -1,15 +1,14 @@
-# Verifies that update-changes correctly updates __version__ values as given in
-# package-level __init__.py files, when .update-changes.cfg instructs it.
+# @TEST-DOC: Verifies that update-changes correctly updates __version__ values as given in package-level __init__.py files, when .update-changes.cfg instructs it.
 #
 # @TEST-EXEC: bash %INPUT
 # @TEST-EXEC: btest-diff __init__.py
 
-@TEST-START-FILE .update-changes.cfg
+# @TEST-START-FILE .update-changes.cfg
 function new_version_hook() {
     local version=$1
     replace_version_in_python_package __init__.py $version
 }
-@TEST-END-FILE
+# @TEST-END-FILE
 
 git init
 

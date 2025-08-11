@@ -1,5 +1,4 @@
-# Test update-changes -I when version information is in the VERSION file, which
-# update-changes wants confirmation for.
+# @TEST-DOC: Test update-changes -I when version information is in the VERSION file, which update-changes wants confirmation for.
 #
 # @TEST-EXEC: bash %INPUT
 # @TEST-EXEC: test -f CHANGES

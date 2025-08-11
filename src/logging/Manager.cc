@@ -680,20 +680,9 @@ bool Manager::CreateStream(EnumVal* id, RecordVal* sval) {
     streams[idx]->enable_remote = id::find_val("Log::enable_remote_logging")->AsBool();
 
     streams[idx]->max_field_string_bytes = sval->GetField("max_field_string_bytes")->AsCount();
-    if ( streams[idx]->max_field_string_bytes == 0 )
-        streams[idx]->max_field_string_bytes = std::numeric_limits<size_t>::max();
-
     streams[idx]->max_total_string_bytes = sval->GetField("max_total_string_bytes")->AsCount();
-    if ( streams[idx]->max_total_string_bytes == 0 )
-        streams[idx]->max_total_string_bytes = std::numeric_limits<size_t>::max();
-
     streams[idx]->max_field_container_elements = sval->GetField("max_field_container_elements")->AsCount();
-    if ( streams[idx]->max_field_container_elements == 0 )
-        streams[idx]->max_field_container_elements = std::numeric_limits<size_t>::max();
-
     streams[idx]->max_total_container_elements = sval->GetField("max_total_container_elements")->AsCount();
-    if ( streams[idx]->max_total_container_elements == 0 )
-        streams[idx]->max_total_container_elements = std::numeric_limits<size_t>::max();
 
     DBG_LOG(DBG_LOGGING, "Created new logging stream '%s', raising event %s", streams[idx]->name.c_str(),
             event ? streams[idx]->event->Name() : "<none>");
@@ -1423,6 +1412,20 @@ bool Manager::SetMaxDelayQueueSize(const EnumValPtr& id, zeek_uint_t queue_size)
     return true;
 }
 
+static size_t calculate_allowed(size_t field_size, size_t max_field_size, size_t max_total_size, size_t current_total) {
+    size_t allowed = field_size;
+
+    if ( max_field_size != 0 && max_field_size < allowed ) {
+        allowed = max_field_size;
+    }
+    if ( max_total_size != 0 && (max_total_size - current_total) < allowed ) {
+        allowed = max_total_size - current_total;
+    }
+
+    return allowed;
+}
+
+
 threading::Value Manager::ValToLogVal(WriterInfo* info, const Stream* stream, std::optional<ZVal>& val, Type* ty,
                                       size_t& total_size) {
     if ( ! val )
@@ -1500,9 +1503,8 @@ threading::Value Manager::ValToLogVal(WriterInfo* info, const Stream* stream, st
 
         case TYPE_STRING: {
             const String* s = val->AsString()->AsString();
-
-            size_t allowed_bytes = std::min({static_cast<size_t>(s->Len()), stream->max_field_string_bytes,
-                                             stream->max_total_string_bytes - total_string_bytes});
+            size_t allowed_bytes = calculate_allowed(static_cast<size_t>(s->Len()), stream->max_field_string_bytes,
+                                                     stream->max_total_string_bytes, total_string_bytes);
 
             if ( allowed_bytes < static_cast<size_t>(s->Len()) ) {
                 reporter->Weird("log_string_field_truncated", util::fmt("%s", stream->name.c_str()));
@@ -1558,8 +1560,8 @@ threading::Value Manager::ValToLogVal(WriterInfo* info, const Stream* stream, st
             bool is_managed = ZVal::IsManagedType(set_t);
 
             size_t allowed_elements =
-                std::min({static_cast<size_t>(set->Length()), stream->max_field_container_elements,
-                          stream->max_total_container_elements - total_container_elements});
+                calculate_allowed(static_cast<size_t>(set->Length()), stream->max_field_container_elements,
+                                  stream->max_total_container_elements, total_container_elements);
 
             if ( allowed_elements < static_cast<size_t>(set->Length()) ) {
                 reporter->Weird("log_container_field_truncated", util::fmt("%s", stream->name.c_str()));
@@ -1588,8 +1590,9 @@ threading::Value Manager::ValToLogVal(WriterInfo* info, const Stream* stream, st
         case TYPE_VECTOR: {
             VectorVal* vec = val->AsVector();
 
-            size_t allowed_elements = std::min({static_cast<size_t>(vec->Size()), stream->max_field_container_elements,
-                                                stream->max_total_container_elements - total_container_elements});
+            size_t allowed_elements =
+                calculate_allowed(static_cast<size_t>(vec->Size()), stream->max_field_container_elements,
+                                  stream->max_total_container_elements, total_container_elements);
 
             if ( allowed_elements < static_cast<size_t>(vec->Size()) ) {
                 reporter->Weird("log_container_field_truncated", util::fmt("%s", stream->name.c_str()));

@@ -1,0 +1,9 @@
+# @TEST-DOC: Regression test for #4730, ReadResponse not parsed properly.
+#
+# @TEST-EXEC: zeek -b -C -r $TRACES/smb/smb_v2_only_non_zero_reserved1.pcap %INPUT
+# @TEST-EXEC: btest-diff files.log
+# @TEST-EXEC: test ! -f analyzer.log
+# @TEST-EXEC: test ! -f weird.log
+
+@load base/protocols/smb
+

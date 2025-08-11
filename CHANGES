@@ -1,3 +1,14 @@
+8.0.0-rc1.4 | 2025-08-11 11:38:57 -0700
+
+  * smb2/read: Parse only 1 byte for data_offset, ignore reserved1 (Arne Welzel, Corelight)
+
+    A user provided a SMB2 pcap with the reserved1 field of a ReadResponse
+    set to 1 instead of 0. This confused the padding computation due to
+    including this byte into the offset. Properly split data_offset and
+    reserved1 into individual byte fields.
+
+    (cherry picked from commit 76289a8022d258f94c4cba003dfa657428a247b1)
+
 8.0.0-rc1.3 | 2025-08-11 11:35:42 -0700
 
   * GH-4176: cluster: Add on_subscribe() and on_unsubscribe() hooks (Arne Welzel, Corelight)

@@ -1,3 +1,14 @@
+7.0.9-1 | 2025-08-22 13:00:59 -0700
+
+  * smb2/read: Parse only 1 byte for data_offset, ignore reserved1 (Arne Welzel, Corelight)
+
+    A user provided a SMB2 pcap with the reserved1 field of a ReadResponse
+    set to 1 instead of 0. This confused the padding computation due to
+    including this byte into the offset. Properly split data_offset and
+    reserved1 into individual byte fields.
+
+    (cherry picked from commit 76289a8022d258f94c4cba003dfa657428a247b1)
+
 7.0.9 | 2025-07-21 10:23:17 -0700
 
   * Return weird if a log line is over a configurable size limit (Tim Wojtulewicz, Corelight)

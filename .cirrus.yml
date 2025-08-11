@@ -55,7 +55,12 @@ builds_only_if_template: &BUILDS_ONLY_IF_TEMPLATE
   # - Always build PRs, but not if they come from dependabot
   # - Always build master and release/* builds from the main repo
   only_if: >
-    ( $CIRRUS_CRON == '' ) &&
+
+builds_only_if_nightly_template: &BUILDS_ONLY_IF_NIGHTLY_TEMPLATE
+  # Rules for skipping nightly builds:
+  # - Same as the rules above, except allow builds run from the nightly cron job.
+  only_if: >
+    ( $CIRRUS_CRON == 'nightly' ) ||
     ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
     ( ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
       (
@@ -90,14 +95,6 @@ skip_task_if_not_nightly: &SKIP_TASK_IF_NOT_NIGHTLY
   # unless it has the CI: Full label or it's a release branch.
   skip: >
     ( ! ($CIRRUS_CRON == 'nightly' || $CIRRUS_PR_LABELS =~ '.*CI: Full.*' || $CIRRUS_BRANCH =~ 'topic/timw/ci-test-release/.*') ||
-      $CIRRUS_PR_LABELS =~ '.*CI: Skip All' )
-
-skip_task_if_not_nightly_zam: &SKIP_TASK_IF_NOT_NIGHTLY_ZAM
-  # Skip this task if it's not running under the nightly cron task
-  # unless it has the CI: Full or CI: ZAM labels  or it's a release
-  # branch.
-  skip: >
-    ( ! ($CIRRUS_CRON == 'nightly' || $CIRRUS_PR_LABELS =~ '.*CI: (Full|ZAM).*' || $CIRRUS_BRANCH =~ 'topic/timw/ci-test-release/.*') ||
       $CIRRUS_PR_LABELS =~ '.*CI: Skip All' )
 
 benchmark_only_if_template: &BENCHMARK_ONLY_IF_TEMPLATE
@@ -396,7 +393,8 @@ ubuntu22_spicy_task:
     dockerfile: ci/ubuntu-22.04/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
-  << : *SKIP_TASK_IF_NOT_NIGHTLY
+  << : *BUILDS_ONLY_IF_NIGHTLY_TEMPLATE
+  << : *SKIP_TASK_ON_PR
   env:
     ZEEK_CI_CREATE_ARTIFACT: 1
     ZEEK_CI_CONFIGURE_FLAGS: *SPICY_SSL_CONFIG
@@ -411,7 +409,8 @@ ubuntu22_spicy_head_task:
     dockerfile: ci/ubuntu-22.04/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
-  << : *SKIP_TASK_IF_NOT_NIGHTLY
+  << : *BUILDS_ONLY_IF_NIGHTLY_TEMPLATE
+  << : *SKIP_TASK_ON_PR
   env:
     ZEEK_CI_CREATE_ARTIFACT: 1
     ZEEK_CI_CONFIGURE_FLAGS: *SPICY_SSL_CONFIG
@@ -494,7 +493,8 @@ asan_sanitizer_zam_task:
     << : *RESOURCES_TEMPLATE
 
   << : *CI_TEMPLATE
-  << : *SKIP_TASK_IF_NOT_NIGHTLY_ZAM
+  << : *BUILDS_ONLY_IF_NIGHTLY_TEMPLATE
+  << : *ZAM_SKIP_TASK_ON_PR
   env:
     ZEEK_CI_CONFIGURE_FLAGS: *ASAN_SANITIZER_CONFIG
     ASAN_OPTIONS: detect_leaks=1:detect_odr_violation=0
@@ -527,7 +527,8 @@ ubsan_sanitizer_zam_task:
     << : *RESOURCES_TEMPLATE
 
   << : *CI_TEMPLATE
-  << : *SKIP_TASK_IF_NOT_NIGHTLY_ZAM
+  << : *BUILDS_ONLY_IF_NIGHTLY_TEMPLATE
+  << : *ZAM_SKIP_TASK_ON_PR
   env:
     CC: clang-19
     CXX: clang++-19
@@ -547,7 +548,8 @@ tsan_sanitizer_task:
     << : *RESOURCES_TEMPLATE
 
   << : *CI_TEMPLATE
-  << : *SKIP_TASK_IF_NOT_NIGHTLY
+  << : *BUILDS_ONLY_IF_NIGHTLY_TEMPLATE
+  << : *SKIP_TASK_ON_PR
   env:
     CC: clang-19
     CXX: clang++-19
@@ -657,7 +659,6 @@ arm64_container_image_docker_builder:
     CIRRUS_ARCH: arm64
   << : *DOCKER_BUILD_TEMPLATE
   only_if: >
-    ( $CIRRUS_CRON == '' ) &&
     ( $CIRRUS_REPO_FULL_NAME == 'zeek/zeek' &&
       ( $CIRRUS_CRON == 'nightly' ||
         $CIRRUS_TAG =~ 'v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$' ) )
@@ -672,7 +673,6 @@ container_image_manifest_docker_builder:
   cpu: 1
   # Push master builds to zeek/zeek-dev nightly, or tagged release branches to zeek/zeek
   only_if: >
-    ( $CIRRUS_CRON == '' ) &&
     ( $CIRRUS_REPO_FULL_NAME == 'zeek/zeek' &&
       ( $CIRRUS_CRON == 'nightly' ||
         $CIRRUS_TAG =~ 'v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$' ) )

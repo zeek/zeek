@@ -1,3 +1,15 @@
+8.0.0-rc1.6 | 2025-08-12 12:41:33 -0700
+
+  * Bump pre-commit hooks (Benjamin Bannier, Corelight)
+
+    (cherry picked from commit cc59bfa5d8a3e9fddc5d65adee68e1937ea5eda7)
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+    (cherry picked from commit cc59bfa5d8a3e9fddc5d65adee68e1937ea5eda7)
+
+  * Update docs submodule with 8.0.0-rc2 changes [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
 8.0.0-rc1.4 | 2025-08-11 11:38:57 -0700
 
   * smb2/read: Parse only 1 byte for data_offset, ignore reserved1 (Arne Welzel, Corelight)

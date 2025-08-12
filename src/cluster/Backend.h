@@ -59,7 +59,7 @@ public:
     bool ProcessEvent(std::string_view topic, cluster::Event e) { return DoProcessEvent(topic, std::move(e)); }
 
     /**
-     * Method for enquing backend specific events.
+     * Method for enqueuing backend specific events.
      *
      * Some backend's may raise events destined for the local
      * scripting layer. That's usually wanted, but not always.

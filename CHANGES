@@ -1,3 +1,7 @@
+8.0.0-rc2 | 2025-08-12 12:42:54 -0700
+
+  * Release 8.0.0-rc2.
+
 8.0.0-rc1.6 | 2025-08-12 12:41:33 -0700
 
   * Bump pre-commit hooks (Benjamin Bannier, Corelight)

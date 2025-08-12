@@ -1,3 +1,9 @@
+8.1.0-dev.38 | 2025-08-12 12:38:24 -0700
+
+  * Bump pre-commit hooks (Benjamin Bannier, Corelight)
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 8.1.0-dev.35 | 2025-08-12 11:01:12 -0700
 
   * Pass DNS complete_flag along as a uint8_t instead of a String (Tim Wojtulewicz, Corelight)

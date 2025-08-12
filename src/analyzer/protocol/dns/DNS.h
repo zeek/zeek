@@ -262,7 +262,7 @@ struct BINDS_DATA {
     unsigned short algorithm;    // 8
     unsigned short key_id;       // 16 : ExtractShort(data, len)
     unsigned short removal_flag; // 8
-    String* complete_flag;       // 8
+    uint8_t complete_flag;       // 8
 };
 
 struct LOC_DATA {
@@ -353,6 +353,7 @@ protected:
                         bool downcase = true);
     bool ExtractLabel(const u_char*& data, int& len, u_char*& label, int& label_len, const u_char* msg_start);
 
+    uint8_t ExtractByte(const u_char*& data, int& len);
     uint16_t ExtractShort(const u_char*& data, int& len);
     uint32_t ExtractLong(const u_char*& data, int& len);
     void ExtractOctets(const u_char*& data, int& len, String** p);

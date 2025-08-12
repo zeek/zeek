@@ -146,26 +146,6 @@ function Broker::__publish_id%(topic: string, id: string%): bool
 	return zeek::val_mgr->Bool(rval);
 	%}
 
-function Broker::__auto_publish%(topic: string, ev: any%): bool
-	%{
-	zeek::Broker::Manager::ScriptScopeGuard ssg;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	auto rval = zeek::broker_mgr->AutoPublishEvent(topic->CheckString(), ev);
-#pragma GCC diagnostic pop
-	return zeek::val_mgr->Bool(rval);
-	%}
-
-function Broker::__auto_unpublish%(topic: string, ev: any%): bool
-	%{
-	zeek::Broker::Manager::ScriptScopeGuard ssg;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	auto rval = zeek::broker_mgr->AutoUnpublishEvent(topic->CheckString(), ev);
-#pragma GCC diagnostic pop
-	return zeek::val_mgr->Bool(rval);
-	%}
-
 function Broker::__subscribe%(topic_prefix: string%): bool
 	%{
 	zeek::Broker::Manager::ScriptScopeGuard ssg;

@@ -144,10 +144,6 @@ public:
         return byte_vec(t);
     }
 
-    [[deprecated("Remove in v8.1. Use Size() that returns size_t instead.")]]
-    int Len() const {
-        return static_cast<int>(offset);
-    }
     size_t Size() const { return offset; }
 
     void Clear();

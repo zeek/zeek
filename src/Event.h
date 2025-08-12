@@ -55,10 +55,6 @@ constexpr double NO_TIMESTAMP = -1.0;
 
 class Event final : public Obj {
 public:
-    [[deprecated("Remove in v8.1: Do not instantiate raw events. Use EventMgr::Dispatch() or EventMgr::Enqueue().")]]
-    Event(const EventHandlerPtr& handler, zeek::Args args, util::detail::SourceID src = util::detail::SOURCE_LOCAL,
-          analyzer::ID aid = 0, Obj* obj = nullptr, double ts = run_state::network_time);
-
     void SetNext(Event* n) { next_event = n; }
     Event* NextEvent() const { return next_event; }
 
@@ -99,12 +95,10 @@ private:
     util::detail::SourceID src;
     analyzer::ID aid;
     zeek::IntrusivePtr<Obj> obj;
-    Event* next_event;
+    Event* next_event = nullptr;
 };
 
 class EventMgr final : public Obj, public iosource::IOSource {
-    class DeprecatedTimestamp;
-
 public:
     ~EventMgr() override;
 
@@ -123,7 +117,7 @@ public:
      * (defaults to current network time - deprecated).
      */
     void Enqueue(const EventHandlerPtr& h, zeek::Args vl, util::detail::SourceID src = util::detail::SOURCE_LOCAL,
-                 analyzer::ID aid = 0, Obj* obj = nullptr, DeprecatedTimestamp ts = {});
+                 analyzer::ID aid = 0, Obj* obj = nullptr);
 
     /**
      * A version of Enqueue() taking a variable number of arguments.
@@ -146,9 +140,6 @@ public:
      */
     void Enqueue(detail::EventMetadataVectorPtr meta, const EventHandlerPtr& h, zeek::Args vl,
                  util::detail::SourceID src = util::detail::SOURCE_LOCAL, analyzer::ID aid = 0, Obj* obj = nullptr);
-
-    [[deprecated("Remove in v8.1: Use Dispatch(handler, args) instead.")]]
-    void Dispatch(Event* event, bool no_remote = false);
 
     // Dispatch an event with the given handler and arguments immediately.
     //
@@ -196,24 +187,6 @@ public:
     uint64_t num_events_dispatched = 0;
 
 private:
-    /**
-     * Helper class to produce a compile time warning if Enqueue() is called with an explicit timestamp.
-     *
-     * Remove in v8.1.
-     */
-    class DeprecatedTimestamp {
-    public:
-        DeprecatedTimestamp() : d(-1.0) {}
-        [[deprecated("Use overload EventMgr::Enqueue(EventMetadataVectorPtr meta, ...) to pass timestamp metadata")]]
-        /*implicit*/ DeprecatedTimestamp(double d)
-            : d(d) {}
-
-        explicit operator double() const { return d; }
-
-    private:
-        double d;
-    };
-
     void QueueEvent(Event* event);
 
     Event* current = nullptr;

@@ -58,9 +58,6 @@ public:
     Manager();
     ~Manager();
 
-    [[deprecated("Remove in v8.1 - no functionality. Use Drain() and Clear().")]]
-    void Done() {};
-
     // Looks up the connection referred to by the given Val,
     // which should be a conn_id record.  Returns nil if there's
     // no such connection or the Val is ill-formed.

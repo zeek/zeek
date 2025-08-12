@@ -5,9 +5,9 @@
 redef exit_only_after_terminate = T;
 
 global addrs: set[addr] = {
-	google.com,
-	bing.com,
-	yahoo.com
+	blocking_lookup_hostname("google.com"),
+	blocking_lookup_hostname("bing.com"),
+	blocking_lookup_hostname("yahoo.com")
 };
 
 global c: count = 0;

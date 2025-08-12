@@ -176,11 +176,6 @@ public:
     std::vector<broker::peer_info> Peers() const;
 
     /**
-     * @return a unique identifier for this broker endpoint.
-     */
-    [[deprecated("Remove in v8.1: Use Backend::NodeId() instead.")]] std::string NodeID() const;
-
-    /**
      * Send an identifier's value to interested peers.
      * @param topic a topic string associated with the message.
      * @param id the name of the identifier to send.
@@ -251,38 +246,6 @@ public:
      */
     bool PublishLogWrite(EnumVal* stream, EnumVal* writer, const std::string& path,
                          const logging::detail::LogRecord& rec);
-
-    /**
-     * Automatically send an event to any interested peers whenever it is
-     * locally dispatched (e.g. using "event my_event(...);" in a script).
-     * @param topic a topic string associated with the event message.
-     * Peers advertise interest by registering a subscription to some prefix
-     * of this topic name.
-     * @param event a Zeek event value.
-     * @return true if automatic event sending is now enabled.
-     */
-    [[deprecated("Remove in v8.1, use explicit Publish().")]]
-    bool AutoPublishEvent(std::string topic, Val* event);
-
-    /**
-     * Stop automatically sending an event to peers upon local dispatch.
-     * @param topic a topic originally given to zeek::Broker::Manager::AutoPublish().
-     * @param event an event originally given to zeek::Broker::Manager::AutoPublish().
-     * @return true if automatic events will no occur for the topic/event pair.
-     */
-    [[deprecated("Remove in v8.1.")]]
-    bool AutoUnpublishEvent(const std::string& topic, Val* event);
-
-    /**
-     * Create an `Event` record value from an event and its arguments.
-     * @param args the event and its arguments.  The event is always the first
-     * elements in the list.
-     * @param frame the calling frame, used to report location info upon error
-     * @return an `Event` record value.  If an invalid event or arguments
-     * were supplied the optional "name" field will not be set.
-     */
-    [[deprecated("Remove in v8.1: Use the ArgsSpan version instead")]] RecordVal* MakeEvent(ValPList* args,
-                                                                                            zeek::detail::Frame* frame);
 
     using ArgsSpan = std::span<const ValPtr>;
 

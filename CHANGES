@@ -1,3 +1,13 @@
+8.1.0-dev.35 | 2025-08-12 11:01:12 -0700
+
+  * Pass DNS complete_flag along as a uint8_t instead of a String (Tim Wojtulewicz, Corelight)
+
+  * Update docs submodule with 8.1 deprecation removals (Tim Wojtulewicz, Corelight)
+
+  * Update zeekjs submodule with 8.1 deprecation fixes (Tim Wojtulewicz, Corelight)
+
+  * Remove deprecations tagged for v8.1 (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.29 | 2025-08-11 11:37:22 -0700
 
   * smb2/read: Parse only 1 byte for data_offset, ignore reserved1 (Arne Welzel, Corelight)

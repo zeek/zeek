@@ -21,7 +21,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <filesystem> // Remove in v8.1.
+#include <limits>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -99,10 +99,6 @@ constexpr int UID_POOL_DEFAULT_SCRIPT = 2;
 constexpr int UID_POOL_CUSTOM_SCRIPT = 10; // First available custom script level pool.
 
 namespace zeek {
-
-// This alias is deprecated and should be removed in v8.1. There isn't a way to mark
-// it so the compiler will flag it.
-namespace filesystem = std::filesystem;
 
 class ODesc;
 class RecordVal;

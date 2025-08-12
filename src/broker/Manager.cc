@@ -826,8 +826,6 @@ std::vector<broker::peer_info> Manager::Peers() const {
     return bstate->endpoint.peers();
 }
 
-std::string Manager::NodeID() const { return to_string(bstate->endpoint.node_id()); }
-
 bool Manager::DoPublishEvent(const std::string& topic, cluster::Event& event) {
     bool do_publish = PLUGIN_HOOK_WITH_RESULT(HOOK_PUBLISH_EVENT, HookPublishEvent(*this, topic, event), true);
     if ( ! do_publish )
@@ -1105,72 +1103,6 @@ void Manager::Error(const char* format, ...) {
         emit_builtin_error(msg);
     else
         reporter->Error("%s", msg);
-}
-
-bool Manager::AutoPublishEvent(string topic, Val* event) {
-    if ( event->GetType()->Tag() != TYPE_FUNC ) {
-        Error("Broker::auto_publish must operate on an event");
-        return false;
-    }
-
-    auto event_val = event->AsFunc();
-    if ( event_val->Flavor() != FUNC_FLAVOR_EVENT ) {
-        Error("Broker::auto_publish must operate on an event");
-        return false;
-    }
-
-    auto handler = event_registry->Lookup(event_val->GetName());
-    if ( ! handler ) {
-        Error("Broker::auto_publish failed to lookup event '%s'", event_val->GetName().c_str());
-        return false;
-    }
-
-    DBG_LOG(DBG_BROKER, "Enabling auto-publishing of event %s to topic %s", handler->Name(), topic.c_str());
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    handler->AutoPublish(std::move(topic));
-#pragma GCC diagnostic pop
-
-    return true;
-}
-
-bool Manager::AutoUnpublishEvent(const string& topic, Val* event) {
-    if ( event->GetType()->Tag() != TYPE_FUNC ) {
-        Error("Broker::auto_event_stop must operate on an event");
-        return false;
-    }
-
-    auto event_val = event->AsFunc();
-
-    if ( event_val->Flavor() != FUNC_FLAVOR_EVENT ) {
-        Error("Broker::auto_event_stop must operate on an event");
-        return false;
-    }
-
-    auto handler = event_registry->Lookup(event_val->GetName());
-
-    if ( ! handler ) {
-        Error("Broker::auto_event_stop failed to lookup event '%s'", event_val->GetName().c_str());
-        return false;
-    }
-
-    DBG_LOG(DBG_BROKER, "Disabling auto-publishing of event %s to topic %s", handler->Name(), topic.c_str());
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    handler->AutoUnpublish(topic);
-#pragma GCC diagnostic pop
-
-    return true;
-}
-
-RecordVal* Manager::MakeEvent(ValPList* args, zeek::detail::Frame* frame) {
-    // Deprecated MakeEvent() version using ValPList - requires extra copy.
-    zeek::Args cargs;
-    cargs.reserve(args->size());
-    for ( auto* a : *args )
-        cargs.emplace_back(zeek::NewRef{}, a);
-
-    return MakeEvent(ArgsSpan{cargs}, frame)->Ref()->AsRecordVal();
 }
 
 zeek::RecordValPtr Manager::MakeEvent(ArgsSpan args, zeek::detail::Frame* frame) {

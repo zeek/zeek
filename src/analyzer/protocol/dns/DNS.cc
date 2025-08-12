@@ -455,6 +455,19 @@ bool DNS_Interpreter::ExtractLabel(const u_char*& data, int& len, u_char*& name,
     return true;
 }
 
+uint8_t DNS_Interpreter::ExtractByte(const u_char*& data, int& len) {
+    if ( len < 1 )
+        return 0;
+
+    uint8_t val;
+    val = data[0];
+
+    ++data;
+    --len;
+
+    return val;
+}
+
 uint16_t DNS_Interpreter::ExtractShort(const u_char*& data, int& len) {
     if ( len < 2 )
         return 0;
@@ -1331,15 +1344,7 @@ bool DNS_Interpreter::ParseRR_BINDS(detail::DNS_MsgInfo* msg, const u_char*& dat
 
     unsigned int keyid = (keyid1 << 8) | keyid2;
 
-    String* completeflag = ExtractStream(data, len, rdlength - 4);
-
-    // We exposed the complete flag as a string to script land previously,
-    // but there should only ever be a single byte, so raise a weird if
-    // it is longer than that.
-    //
-    // https://bind9.readthedocs.io/en/latest/chapter5.html#monitoring-with-private-type-records
-    if ( completeflag->Len() > 1 )
-        analyzer->Weird("DNS_BINDS_complete_flag_length", util::fmt("%d", completeflag->Len()));
+    uint8_t completeflag = ExtractByte(data, len);
 
     if ( dns_BINDS ) {
         detail::BINDS_DATA binds;
@@ -1912,9 +1917,8 @@ RecordValPtr DNS_MsgInfo::BuildBINDS_Val(BINDS_DATA* binds) {
     r->Assign(2, binds->algorithm);
     r->Assign(3, binds->key_id);
     r->Assign(4, binds->removal_flag);
-    r->Assign(5, binds->complete_flag); // Remove in v8.1: Move field 7 here. Drop String* usage.
+    r->Assign(5, binds->complete_flag);
     r->Assign(6, is_query);
-    r->Assign(7, binds->complete_flag->Len() > 0 ? binds->complete_flag->Bytes()[0] : 0);
 
     return r;
 }

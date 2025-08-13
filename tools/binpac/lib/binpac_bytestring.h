@@ -3,7 +3,7 @@
 #ifndef binpac_bytestring_h
 #define binpac_bytestring_h
 
-#include <string.h>
+#include <cstring>
 #include <string>
 
 #include "binpac.h"
@@ -16,7 +16,7 @@ class datastring;
 template<class T>
 class const_datastring {
 public:
-    const_datastring() : begin_(0), end_(0) {}
+    const_datastring() : begin_(nullptr), end_(nullptr) {}
 
     const_datastring(T const* data, int length) : begin_(data), end_(data + length) {}
 
@@ -49,7 +49,7 @@ private:
     T const* end_;
 };
 
-typedef const_datastring<uint8> const_bytestring;
+using const_bytestring = const_datastring<uint8>;
 
 template<class T>
 class datastring {
@@ -65,6 +65,9 @@ public:
     explicit datastring(const_datastring<T> const& x) { set_const(x.begin(), x.length()); }
 
     datastring const& operator=(datastring<T> const& x) {
+        if ( this == &x )
+            return *this;
+
         BINPAC_ASSERT(! data_);
         set(x.data(), x.length());
         return *this;
@@ -76,7 +79,7 @@ public:
     }
 
     void clear() {
-        data_ = 0;
+        data_ = nullptr;
         length_ = 0;
     }
 
@@ -119,13 +122,11 @@ private:
     int length_;
 };
 
-typedef datastring<uint8> bytestring;
+using bytestring = datastring<uint8>;
 
 inline const char* c_str(bytestring const& s) { return (const char*)s.begin(); }
 
-inline std::string std_str(const_bytestring const& s) {
-    return std::string((const char*)s.begin(), (const char*)s.end());
-}
+inline std::string std_str(const_bytestring const& s) { return {(const char*)s.begin(), (const char*)s.end()}; }
 
 inline bool operator==(bytestring const& s1, const char* s2) { return strcmp(c_str(s1), s2) == 0; }
 

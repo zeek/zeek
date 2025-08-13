@@ -3,25 +3,26 @@
 #ifndef binpac_exception_h
 #define binpac_exception_h
 
-#include <inttypes.h>
-#include <stdint.h>
+#include <cinttypes>
+#include <cstdint>
+#include <string>
 
 namespace binpac {
 
 class Exception {
 public:
-    Exception(const char* m = 0) : msg_("binpac exception: ") {
+    Exception(const char* m = nullptr) : msg_("binpac exception: ") {
         if ( m )
             append(m);
         // abort();
     }
 
-    void append(string m) { msg_ += m; }
-    string msg() const { return msg_; }
+    void append(std::string m) { msg_ += m; }
+    std::string msg() const { return msg_; }
     const char* c_msg() const { return msg_.c_str(); }
 
 protected:
-    string msg_;
+    std::string msg_;
 };
 
 class ExceptionEnforceViolation : public Exception {
@@ -46,7 +47,7 @@ public:
 protected:
     const char* location_;
     int64_t index_;
-    string expected_;
+    std::string expected_;
 };
 
 class ExceptionInvalidCaseIndex : public Exception {

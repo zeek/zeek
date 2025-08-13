@@ -9,16 +9,16 @@
 
 #cmakedefine HOST_BIGENDIAN
 #ifdef HOST_BIGENDIAN
-#  define HOST_BYTEORDER	bigendian
+#define HOST_BYTEORDER bigendian
 #else
-#  define HOST_BYTEORDER	littleendian
+#define HOST_BYTEORDER littleendian
 #endif
 
-#include <assert.h>
-#include <stdarg.h>
-#include <stdio.h>
+#include <cassert>
+#include <cstdarg>
+#include <cstdint>
+#include <cstdio>
 #include <string>
-#include <memory>
 
 // Expose C99 functionality from inttypes.h, which would otherwise not be
 // available in C++.
@@ -26,9 +26,7 @@
 #define __STDC_FORMAT_MACROS
 #endif
 
-#include <inttypes.h>
-
-#define BINPAC_ASSERT(x)	assert(x)
+static constexpr void BINPAC_ASSERT(bool val) { assert(val); }
 
 using namespace std;
 
@@ -41,23 +39,21 @@ const int unspecified_byteorder = -1;
 #ifndef pac_type_defs
 #define pac_type_defs
 
-typedef int8_t		int8;
-typedef int16_t		int16;
-typedef int32_t		int32;
-typedef int64_t		int64;
-typedef uint8_t		uint8;
-typedef uint16_t	uint16;
-typedef uint32_t	uint32;
-typedef uint64_t	uint64;
-typedef void		*nulptr;
-typedef void		*voidptr;
-typedef uint8		*byteptr;
-typedef const uint8	*const_byteptr;
-typedef const char	*const_charptr;
+using int8 = int8_t;
+using int16 = int16_t;
+using int32 = int32_t;
+using int64 = int64_t;
+using uint8 = uint8_t;
+using uint16 = uint16_t;
+using uint32 = uint32_t;
+using uint64 = uint64_t;
+using nulptr = void*;
+using voidptr = void*;
+using byteptr = uint8*;
+using const_byteptr = const uint8*;
+using const_charptr = const char*;
 
-#if @SIZEOF_UNSIGNED_INT@ != 4
-#error "unexpected size of unsigned int"
-#endif
+static_assert(sizeof(unsigned int) == 4, "Unexpected size of unsigned int");
 
 #endif /* pac_type_defs */
 
@@ -65,106 +61,93 @@ typedef const char	*const_charptr;
 
 namespace {
 
-inline uint16 pac_swap(const uint16 x)
-	{
-	return (x >> 8) | ((x & 0xff) << 8);
-	}
+inline uint16 pac_swap(const uint16 x) { return (x >> 8) | ((x & 0xff) << 8); }
 
-inline int16 pac_swap(const int16 x)
-	{
-	// Forward to unsigned version with argument/result casted
-	// appropriately.
-	uint16 (*p)(const uint16) = &pac_swap;
-	return (*p)(x);
-	}
+inline int16 pac_swap(const int16 x) {
+    // Forward to unsigned version with argument/result casted
+    // appropriately.
+    uint16 (*p)(const uint16) = &pac_swap;
+    return (*p)(x);
+}
 
-inline uint32 pac_swap(const uint32 x)
-	{
-	return (x >> 24) |
-	  ((x & 0xff0000) >> 8) |
-	  ((x & 0xff00) << 8) |
-	  ((x & 0xff) << 24);
-	}
+inline uint32 pac_swap(const uint32 x) {
+    return (x >> 24) | ((x & 0xff0000) >> 8) | ((x & 0xff00) << 8) | ((x & 0xff) << 24);
+}
 
-inline int32 pac_swap(const int32 x)
-	{
-	// Forward to unsigned version with argument/result casted
-	// appropriately.
-	uint32 (*p)(const uint32) = &pac_swap;
-	return (*p)(x);
-	}
+inline int32 pac_swap(const int32 x) {
+    // Forward to unsigned version with argument/result casted
+    // appropriately.
+    uint32 (*p)(const uint32) = &pac_swap;
+    return (*p)(x);
+}
 
-inline uint64 pac_swap(const uint64 x) 
-	{
-	return x >> 56 |
-	  (x & 0xff000000000000) >> 40 |
-	  (x & 0xff0000000000) >> 24 |
-	  (x & 0xff00000000) >> 8 |
-	  (x & 0xff000000) << 8 |
-	  (x & 0xff0000) << 24 |
-	  (x & 0xff00) << 40 |
-	  (x & 0xff) << 56;
-	}
-	
-inline int64 pac_swap(const int64 x)
-	{
-	// Forward to unsigned version with argument/result casted
-	// appropriately.
-	uint64 (*p)(const uint64) = &pac_swap;
-	return (*p)(x);
-	}
+inline uint64 pac_swap(const uint64 x) {
+    return x >> 56 | (x & 0xff000000000000) >> 40 | (x & 0xff0000000000) >> 24 | (x & 0xff00000000) >> 8 |
+           (x & 0xff000000) << 8 | (x & 0xff0000) << 24 | (x & 0xff00) << 40 | (x & 0xff) << 56;
+}
 
-#define FixByteOrder(byteorder, x)	(byteorder == HOST_BYTEORDER ? (x) : pac_swap(x))
+inline int64 pac_swap(const int64 x) {
+    // Forward to unsigned version with argument/result casted
+    // appropriately.
+    uint64 (*p)(const uint64) = &pac_swap;
+    return (*p)(x);
+}
 
-template <class T>
-inline T UnMarshall(const unsigned char *data, int byteorder)
-	{
-	T result = 0;
-	for ( int i = 0; i < (int) sizeof(T); ++i )
-		result = ( result << 8 ) | 
-			data[byteorder == bigendian ? i : sizeof(T) - 1 - i];
-	return result;
-	}
+template<typename T>
+static constexpr T FixByteOrder(int byteorder, T x) {
+    if ( byteorder == HOST_BYTEORDER )
+        return x;
 
-inline const char* do_fmt(const char* format, va_list ap)
-	{
-	static char buf[1024];
-	vsnprintf(buf, sizeof(buf), format, ap);
-	return buf;
-	}
+    return static_cast<T>(pac_swap(x));
+}
 
-inline string strfmt(const char* format, ...)
-	{
-	va_list ap;
-	va_start(ap, format);
-	const char* r = do_fmt(format, ap);
-	va_end(ap);
-	return string(r);
-	}
+template<class T>
+inline T UnMarshall(const unsigned char* data, int byteorder) {
+    T result = 0;
+    for ( int i = 0; i < (int)sizeof(T); ++i )
+        result = (result << 8) | data[byteorder == bigendian ? i : sizeof(T) - 1 - i];
+    return result;
+}
+
+inline const char* do_fmt(const char* format, va_list ap) {
+    static char buf[1024];
+    vsnprintf(buf, sizeof(buf), format, ap);
+    return buf;
+}
+
+inline string strfmt(const char* format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    const char* r = do_fmt(format, ap);
+    va_end(ap);
+    return {r};
+}
 
 } // anonymous namespace
 
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define binpac_fmt(...) strfmt(__VA_ARGS__).c_str()
 
-class RefCount
-{
+class RefCount {
 public:
-	RefCount() 	{ count = 1; }
-	virtual ~RefCount() {}
-	void Ref() 	{ ++count; }
-	int Unref() 	{ BINPAC_ASSERT(count > 0); return --count; }
+    RefCount() { count = 1; }
+    virtual ~RefCount() {}
+    void Ref() { ++count; }
+    int Unref() {
+        BINPAC_ASSERT(count > 0);
+        return --count;
+    }
 
 private:
-	int count;
+    int count;
 };
 
 namespace {
-	inline void Unref(RefCount *x)
-		{
-		if ( x && x->Unref() <= 0 )
-			delete x;
-		}
-}  // anonymous namespace
+inline void Unref(RefCount* x) {
+    if ( x && x->Unref() <= 0 )
+        delete x;
+}
+} // anonymous namespace
 
 } // namespace binpac
 

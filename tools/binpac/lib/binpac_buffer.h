@@ -17,7 +17,7 @@ public:
         int contract_threshold;
     };
 
-    enum LineBreakStyle {
+    enum LineBreakStyle : uint8_t {
         CR_OR_LF,     // CR or LF or CRLF
         STRICT_CRLF,  // CR followed by LF
         CR_LF_NUL,    // CR or LF or CR-LF or CR-NUL
@@ -142,13 +142,13 @@ protected:
     LineBreakStyle linebreak_style_default;
     unsigned char linebreaker_;
 
-    enum {
+    enum : uint8_t {
         UNKNOWN_MODE,
         LINE_MODE,
         FRAME_MODE,
     } mode_;
 
-    enum {
+    enum : uint8_t {
         CR_OR_LF_0,
         CR_OR_LF_1,
         STRICT_CRLF_0,
@@ -163,7 +163,7 @@ protected:
     static Policy policy;
 };
 
-typedef FlowBuffer* flow_buffer_t;
+using flow_buffer_t = FlowBuffer*;
 
 } // namespace binpac
 

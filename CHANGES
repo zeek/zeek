@@ -1,3 +1,15 @@
+8.1.0-dev.56 | 2025-08-13 21:20:50 +0200
+
+  * ci: Run zeekctl and builtin tasks with Debian 13, too (Arne Welzel, Corelight)
+
+  * ci: Prepend timestamps to output (Arne Welzel, Corelight)
+
+  * ci: Enable Spicy for arm_debian13 (Arne Welzel, Corelight)
+
+  * ci: Add Debian 13.0 (trixie) (Arne Welzel, Corelight)
+
+  * docker: Bump to debian:trixie-slim (Arne Welzel, Corelight)
+
 8.1.0-dev.50 | 2025-08-12 17:42:46 -0700
 
   * Add NEWS entry for field length limiting (Tim Wojtulewicz, Corelight)

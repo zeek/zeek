@@ -3,7 +3,6 @@
 #include <ctype.h>
 #include <unistd.h>
 
-#include "config.h"
 #include "pac_common.h"
 #include "pac_decl.h"
 #include "pac_exception.h"
@@ -177,9 +176,6 @@ int compile(const char* filename) {
 }
 
 void usage() {
-#ifdef BINPAC_VERSION
-    fprintf(stderr, "binpac version %s\n", BINPAC_VERSION);
-#endif
     fprintf(stderr, "usage: binpac [options] <pac files>\n");
     fprintf(stderr, "     <pac files>           | pac-language input files\n");
     fprintf(stderr, "     -d <dir>              | use given directory for compiler output\n");

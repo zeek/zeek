@@ -1,5 +1,9 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #ifndef binpac_regex_h
 #define binpac_regex_h
+
+#include <vector>
 
 #include "zeek/RE.h"
 
@@ -16,7 +20,7 @@ namespace binpac {
 // Note, this must be declared/defined here, and inline, because the RE
 // functionality can only be used when compiling from inside Zeek.
 // A copy is made of any FlowBuffer policy struct data passed.
-inline void init(FlowBuffer::Policy* fbp = 0);
+inline void init(FlowBuffer::Policy* fbp = nullptr);
 
 // Internal vector recording not yet compiled matchers.
 extern std::vector<zeek::RE_Matcher*>* uncompiled_re_matchers;
@@ -50,8 +54,8 @@ inline void RegExMatcher::init() {
     if ( ! uncompiled_re_matchers )
         return;
 
-    for ( size_t i = 0; i < uncompiled_re_matchers->size(); ++i ) {
-        if ( ! (*uncompiled_re_matchers)[i]->Compile() ) {
+    for ( const auto& matcher : *uncompiled_re_matchers ) {
+        if ( ! matcher->Compile() ) {
             fprintf(stderr, "binpac: cannot compile regular expression\n");
             exit(1);
         }

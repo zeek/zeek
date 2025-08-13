@@ -1,3 +1,25 @@
+8.0.0-4 | 2025-08-22 09:21:32 -0700
+
+  * ci: Run zeekctl and builtin tasks with Debian 13, too (Arne Welzel, Corelight)
+
+    (cherry picked from commit 63574b9fd4645a2f21d7ba3388e16c1b4c55812d)
+
+  * ci: Prepend timestamps to output (Arne Welzel, Corelight)
+
+    (cherry picked from commit 63574b9fd4645a2f21d7ba3388e16c1b4c55812d)
+
+  * ci: Enable Spicy for arm_debian13 (Arne Welzel, Corelight)
+
+    (cherry picked from commit 63574b9fd4645a2f21d7ba3388e16c1b4c55812d)
+
+  * ci: Add Debian 13.0 (trixie) (Arne Welzel, Corelight)
+
+    (cherry picked from commit 63574b9fd4645a2f21d7ba3388e16c1b4c55812d)
+
+  * docker: Bump to debian:trixie-slim (Arne Welzel, Corelight)
+
+    (cherry picked from commit 63574b9fd4645a2f21d7ba3388e16c1b4c55812d)
+
 8.0.0-3 | 2025-08-22 09:18:56 -0700
 
   * Report PostgreSQL login success only after ReadyForQuery (Fupeng Zhao)

@@ -796,8 +796,8 @@ zeekctl_debian12_task:
         $CIRRUS_BRANCH =~ 'release/.*' )
     )
   container:
-    # Debian 12 (bookworm) EOL: TBD
-    dockerfile: ci/debian-12/Dockerfile
+    # Debian 13 (trixie) EOL: TBD
+    dockerfile: ci/debian-13/Dockerfile
     << : *RESOURCES_TEMPLATE
   sync_submodules_script: git submodule update --recursive --init
   always:
@@ -820,8 +820,8 @@ include_plugins_debian12_task:
   cpu: *CPUS
   memory: *MEMORY
   container:
-    # Debian 12 (bookworm) EOL: TBD
-    dockerfile: ci/debian-12/Dockerfile
+    # Debian 13 (trixie) EOL: TBD
+    dockerfile: ci/debian-13/Dockerfile
     << : *RESOURCES_TEMPLATE
   sync_submodules_script: git submodule update --recursive --init
   fetch_external_plugins_script:

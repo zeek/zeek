@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #ifndef pac_action_h
 #define pac_action_h
 

@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "pac_exttype.h"
 
 #include "pac_decl.h"

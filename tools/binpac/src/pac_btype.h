@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #ifndef pac_btype_h
 #define pac_btype_h
 

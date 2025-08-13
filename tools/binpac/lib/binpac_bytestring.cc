@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #define binpac_regex_h
 
 #include "binpac_bytestring.h"

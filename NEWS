@@ -21,6 +21,32 @@ New Functionality
   been added to allow observing ``Subscribe()`` and ``Unsubscribe()`` calls on
   backends by Zeek scripts.
 
+- The ability to control the length of strings and containers in log output was added. The
+  maximum length of individual log fields can be set, as well as the total length of all
+  string or container fields in a single log record. This feature is controlled via four
+  new script-level variables:
+
+	Log::default_max_field_string_bytes
+	Log::default_max_total_string_bytes
+	Log::default_max_field_container_elements
+	Log::default_max_total_container_elements
+
+  When one of the ``field`` limits is reached, the individual field is truncated. When one
+  of the ``total`` limits is reached, all further strings will returned as empty and all
+  further container elements will not be output. See the documentation for those variables
+  for more detail.
+
+  The above variables control the truncation globally, but they can also be set for log
+  streams individually. This is controlled by variables with the same names that can be
+  set when the log stream is created.
+
+  Two new weirds were added to report the truncation: ``log_string_field_truncated`` and
+  ``log_container_field_truncated``. New metrics were added to track how many truncations
+  have occurred: ``zeek_log_writer_truncated_string_fields_total`` and
+  ``zeek_log_writer_truncated_containers_total``. The metrics are reported for each log
+  stream.
+
+
 Changed Functionality
 ---------------------
 

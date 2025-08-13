@@ -422,6 +422,26 @@ export {
 		## .. :zeek:see:`Log::default_max_delay_queue_size`
 		## .. :zeek:see:`Log::set_max_delay_queue_size`
 		max_delay_queue_size: count &default=default_max_delay_queue_size;
+
+		## Maximum string size for field in a log record from this stream.
+		##
+		## .. :zeek:see:`Log::default_max_field_string_bytes`
+		max_field_string_bytes: count &default=Log::default_max_field_string_bytes;
+
+		## Maximum total string size in a log record from this stream.
+		##
+		## .. :zeek:see:`Log::default_max_total_string_bytes`
+		max_total_string_bytes: count &default=Log::default_max_total_string_bytes;
+
+		## Maximum container elements for field in a log record from this stream.
+		##
+		## .. :zeek:see:`Log::default_max_field_container_elements`
+		max_field_container_elements: count &default=Log::default_max_field_container_elements;
+
+		## Maximum total container elements in a log record from this stream.
+		##
+		## .. :zeek:see:`Log::default_max_total_container_elements`
+		max_total_container_elements: count &default=Log::default_max_total_container_elements;
 	};
 
 	## Sentinel value for indicating that a filter was not found when looked up.

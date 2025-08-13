@@ -19,6 +19,12 @@
 
 module Test;
 
+# Disable the string and container length filtering.
+redef Log::default_max_field_string_bytes = 0;
+redef Log::default_max_total_string_bytes = 0;
+redef Log::default_max_field_container_elements = 0;
+redef Log::default_max_total_container_elements = 0;
+
 export {
 	redef enum Log::ID += { LOG };
 

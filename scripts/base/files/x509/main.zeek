@@ -105,6 +105,29 @@ export {
 
 	## Event for accessing logged records.
 	global log_x509: event(rec: Info);
+
+	## The maximum number of bytes that a single string field can contain when
+	## logging. If a string reaches this limit, the log output for the field will be
+	## truncated. Setting this to zero disables the limiting.
+	##
+	## .. zeek:see:: Log::default_max_field_string_bytes
+	const default_max_field_string_bytes = Log::default_max_field_string_bytes &redef;
+
+	## The maximum number of elements a single container field can contain when
+	## logging. If a container reaches this limit, the log output for the field will
+	## be truncated. Setting this to zero disables the limiting.
+	##
+	## .. zeek:see:: Log::default_max_field_container_elements
+	const default_max_field_container_elements = 500 &redef;
+
+	## The maximum total number of container elements a record may log. This is the
+	## sum of all container elements logged for the record. If this limit is reached,
+	## all further containers will be logged as empty containers. If the limit is
+	## reached while processing a container, the container will be truncated in the
+	## output. Setting this to zero disables the limiting.
+	##
+	## .. zeek:see:: Log::default_max_total_container_elements
+	const default_max_total_container_elements = 1500 &redef;
 }
 
 global known_log_certs_with_broker: set[LogCertHash] &create_expire=relog_known_certificates_after &backend=Broker::MEMORY;
@@ -117,7 +140,12 @@ redef record Files::Info += {
 
 event zeek_init() &priority=5
 	{
-	Log::create_stream(X509::LOG, Log::Stream($columns=Info, $ev=log_x509, $path="x509", $policy=log_policy));
+	# x509 can have some very large certificates and very large sets of URIs. Expand the log size filters
+	# so that we're not truncating those.
+	Log::create_stream(X509::LOG, Log::Stream($columns=Info, $ev=log_x509, $path="x509", $policy=log_policy,
+	                                          $max_field_string_bytes=X509::default_max_field_string_bytes,
+	                                          $max_field_container_elements=X509::default_max_field_container_elements,
+	                                          $max_total_container_elements=X509::default_max_total_container_elements));
 
 	# We use MIME types internally to distinguish between user and CA certificates.
 	# The first certificate in a connection always gets tagged as user-cert, all
@@ -225,4 +253,3 @@ event file_state_remove(f: fa_file) &priority=5
 
 	Log::write(LOG, f$info$x509);
 	}
-

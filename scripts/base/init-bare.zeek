@@ -3743,6 +3743,31 @@ export {
 	## higher than this limit, but it prevents runaway-sized log entries from causing
 	## problems.
 	const max_log_record_size = 1024*1024*64 &redef;
+
+	## The maximum number of bytes that a single string field can contain when
+	## logging. If a string reaches this limit, the log output for the field will be
+	## truncated. Setting this to zero disables the limiting.
+	const default_max_field_string_bytes = 4096 &redef;
+
+	## The maximum number of elements a single container field can contain when
+	## logging. If a container reaches this limit, the log output for the field will
+	## be truncated. Setting this to zero disables the limiting.
+	const default_max_field_container_elements = 100 &redef;
+
+	## The maximum total bytes a record may log for string fields. This is the sum of
+	## all bytes in string fields logged for the record. If this limit is reached, all
+	## further string fields will be logged as empty strings. Any containers holding
+	## string fields will be logged as empty containers. If the limit is reached while
+	## processing a container holding string fields, the container will be truncated
+	## in the log output. Setting this to zero disables the limiting.
+	const default_max_total_string_bytes = 256000 &redef;
+
+	## The maximum total number of container elements a record may log. This is the
+	## sum of all container elements logged for the record. If this limit is reached,
+	## all further containers will be logged as empty containers. If the limit is
+	## reached while processing a container, the container will be truncated in the
+	## output. Setting this to zero disables the limiting.
+	const default_max_total_container_elements = 500 &redef;
 }
 
 module POP3;

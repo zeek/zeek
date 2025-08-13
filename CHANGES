@@ -1,3 +1,30 @@
+8.1.0-dev.50 | 2025-08-12 17:42:46 -0700
+
+  * Add NEWS entry for field length limiting (Tim Wojtulewicz, Corelight)
+
+  * Tag truncated values with a flag, plus pack threading::Value better (Tim Wojtulewicz, Corelight)
+
+  * Remove length limiting on string fields for HTTP (Tim Wojtulewicz, Corelight)
+
+  * Make total_size counter a member in logging::Manager (Tim Wojtulewicz, Corelight)
+
+  * Remove using numeric_limits and just check for zero instead (Tim Wojtulewicz, Corelight)
+
+  * Expand the size of the log-size filters for x509 (Tim Wojtulewicz, Corelight)
+
+  * Add options to filter at the stream level as well as globally (Tim Wojtulewicz, Corelight)
+
+  * Add a weird that gets emitted when strings/containers are over the limits (Tim Wojtulewicz, Corelight)
+
+  * Add metrics to track string and container fields limited by length (Tim Wojtulewicz, Corelight)
+
+  * Replace unused stream argument from RecordToLogRecord with WriterInfo (Tim Wojtulewicz, Corelight)
+
+    This also adds a WriterInfo argument to ValToLogVal and passes the one from
+    RecordToLogRecord into it.
+
+  * Implement string- and container-length filtering at the log record level (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.38 | 2025-08-12 12:38:24 -0700
 
   * Bump pre-commit hooks (Benjamin Bannier, Corelight)

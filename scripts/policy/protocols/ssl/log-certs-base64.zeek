@@ -10,6 +10,9 @@ redef record X509::Info += {
 	cert: string &log &optional;
 };
 
+## Certificates can be large and we don't want to risk truncating the output.
+redef X509::default_max_field_string_bytes = 0;
+
 event x509_certificate(f: fa_file, cert_ref: opaque of x509, cert: X509::Certificate) &priority=1
 	{
 	if ( ! f$info?$x509 )

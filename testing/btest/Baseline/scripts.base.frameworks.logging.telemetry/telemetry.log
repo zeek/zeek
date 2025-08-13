@@ -16,4 +16,10 @@ XXXXXXXXXX.XXXXXX	zeek	counter	zeek_log_writer_writes_total	filter_name,module,p
 XXXXXXXXXX.XXXXXX	zeek	counter	zeek_log_writer_discarded_writes_total	filter_name,module,path,stream,writer	default,Conn,conn,Conn::LOG,Log::WRITER_ASCII	0.0
 XXXXXXXXXX.XXXXXX	zeek	counter	zeek_log_writer_discarded_writes_total	filter_name,module,path,stream,writer	default,DNS,dns,DNS::LOG,Log::WRITER_ASCII	0.0
 XXXXXXXXXX.XXXXXX	zeek	counter	zeek_log_writer_discarded_writes_total	filter_name,module,path,stream,writer	default,HTTP,http,HTTP::LOG,Log::WRITER_ASCII	0.0
+XXXXXXXXXX.XXXXXX	zeek	counter	zeek_log_writer_truncated_containers_total	filter_name,module,path,stream,writer	default,Conn,conn,Conn::LOG,Log::WRITER_ASCII	0.0
+XXXXXXXXXX.XXXXXX	zeek	counter	zeek_log_writer_truncated_containers_total	filter_name,module,path,stream,writer	default,DNS,dns,DNS::LOG,Log::WRITER_ASCII	0.0
+XXXXXXXXXX.XXXXXX	zeek	counter	zeek_log_writer_truncated_containers_total	filter_name,module,path,stream,writer	default,HTTP,http,HTTP::LOG,Log::WRITER_ASCII	0.0
+XXXXXXXXXX.XXXXXX	zeek	counter	zeek_log_writer_truncated_string_fields_total	filter_name,module,path,stream,writer	default,Conn,conn,Conn::LOG,Log::WRITER_ASCII	0.0
+XXXXXXXXXX.XXXXXX	zeek	counter	zeek_log_writer_truncated_string_fields_total	filter_name,module,path,stream,writer	default,DNS,dns,DNS::LOG,Log::WRITER_ASCII	0.0
+XXXXXXXXXX.XXXXXX	zeek	counter	zeek_log_writer_truncated_string_fields_total	filter_name,module,path,stream,writer	default,HTTP,http,HTTP::LOG,Log::WRITER_ASCII	0.0
 #close XXXX-XX-XX-XX-XX-XX

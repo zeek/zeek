@@ -247,4 +247,26 @@ enum Level %{
 	ERROR = 2,
 %}
 
+module AF_Packet;
+
+## Available fanout modes.
+enum FanoutMode %{
+	FANOUT_HASH, # PACKET_FANOUT_HASH
+	FANOUT_CPU,  # PACKET_FANOUT_CPU
+	FANOUT_QM,   # PACKET_FANOUT_QM
+	FANOUT_CBPF, # PACKET_FANOUT_CBPF
+	FANOUT_EBPF, # PACKET_FANOUT_EBPF
+%}
+
+## Available checksum validation modes.
+enum ChecksumMode %{
+	## Ignore checksums, i.e. always assume they are correct.
+	CHECKSUM_OFF,
+	## Let Zeek compute and verify checksums.
+	CHECKSUM_ON,
+	## Let the kernel handle checksum offloading.
+	## Note: Semantics may depend on the kernel and driver version.
+	CHECKSUM_KERNEL,
+%}
+
 module GLOBAL;

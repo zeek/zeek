@@ -221,8 +221,6 @@ arm_debian13_task:
     dockerfile: ci/debian-13/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
-  env:
-    ZEEK_CI_CONFIGURE_FLAGS: *NO_SPICY_CONFIG
 
 debian13_static_task:
   container:

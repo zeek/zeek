@@ -1,7 +1,7 @@
 # See the file "COPYING" in the main distribution directory for copyright.
 
 # Final layer containing all artifacts.
-FROM debian:bookworm-slim
+FROM debian:13-slim
 
 # Make the shell split commands in the log so we can determine reasons for
 # failures more easily.
@@ -15,14 +15,15 @@ RUN echo 'Acquire::http::timeout "180";' > /etc/apt/apt.conf.d/99-timeouts
 RUN echo 'Acquire::https::timeout "180";' >> /etc/apt/apt.conf.d/99-timeouts
 
 RUN apt-get -q update \
+ && apt-get upgrade -q -y \
  && apt-get install -q -y --no-install-recommends \
      ca-certificates \
      git \
      jq \
      libmaxminddb0 \
-     libnode108 \
+     libnode115 \
      libpcap0.8 \
-     libpython3.11 \
+     libpython3.13 \
      libssl3 \
      libuv1 \
      libz1 \

@@ -18,7 +18,7 @@ event zeek_init()
 	test(.0001388889, 0, -.0001388889, 0);
 
 	# Distance of one second of longitude (crossing the prime meridian).
-	test(38, 0.000138999, 38, -0.000138999);
+	test(38, 0.000138889, 38, -0.000138889);
 
 	# Distance of one minute of longitude (test extreme longitude values).
 	test(38, 180, 38, -179.98333);

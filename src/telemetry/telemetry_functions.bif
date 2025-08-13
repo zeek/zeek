@@ -73,7 +73,7 @@ bool labels_valid(std::span<const zeek::telemetry::LabelView> labels,
 		return std::find(keys.begin(), keys.end(), x.first) != keys.end();
 		};
 	return labels.size() == label_names.size()
-	       && std::all_of(labels.begin(), labels.end(), key_in_label_names);
+	       && std::ranges::all_of(labels, key_in_label_names);
 	}
 
 template <class IntOrDbl>

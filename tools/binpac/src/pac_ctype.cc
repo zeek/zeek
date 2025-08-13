@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "pac_ctype.h"
 
 string CType::DeclareInstance(const string& var) const { return strfmt("%s %s", name().c_str(), var.c_str()); }

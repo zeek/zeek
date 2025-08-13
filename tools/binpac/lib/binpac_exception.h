@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #ifndef binpac_exception_h
 #define binpac_exception_h
 

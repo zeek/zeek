@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #ifndef binpac_bytestring_h
 #define binpac_bytestring_h
 

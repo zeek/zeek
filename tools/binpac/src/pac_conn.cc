@@ -1,3 +1,5 @@
+// See the file "COPYING" in the main distribution directory for copyright.
+
 #include "pac_conn.h"
 
 #include "pac_analyzer.h"

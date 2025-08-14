@@ -108,8 +108,14 @@ protected:
 // Manages a collection of attributes.
 class Attributes final : public Obj {
 public:
-    Attributes(std::vector<AttrPtr> a, TypePtr t, bool in_record, bool is_global);
-    Attributes(TypePtr t, bool in_record, bool is_global);
+    Attributes(std::vector<AttrPtr> a, TypePtr t, bool in_record, bool is_global, bool is_param);
+
+    Attributes(TypePtr t, bool in_record, bool is_global)
+        : Attributes(std::vector<AttrPtr>{}, std::move(t), in_record, is_global, false) {}
+
+    Attributes(std::vector<AttrPtr> a, TypePtr t, bool in_record, bool is_global)
+        : Attributes(a, std::move(t), in_record, is_global, false) {}
+
 
     ~Attributes() override = default;
 
@@ -142,6 +148,7 @@ protected:
 
     bool in_record;
     bool global_var;
+    bool is_param;
 };
 
 // Checks whether default attribute "a" is compatible with the given type.

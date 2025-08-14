@@ -4,7 +4,7 @@
 # Invalid on globals
 global a: int &optional;
 
-# TODO: Invalid on parameters
+# Invalid on parameters
 function f(a: int &optional)
 	{
 	# Invalid in locals

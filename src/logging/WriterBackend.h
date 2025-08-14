@@ -38,9 +38,28 @@ public:
      * frontend, it's running in a different thread.
      *
      * @param name A descriptive name for writer's type (e.g., \c Ascii).
-     *
      */
-    explicit WriterBackend(WriterFrontend* frontend);
+    [[deprecated(
+        "Remove in v9.1: Use WriterBackend(NoThreadingHeartbeats{}, frontend). If you have a use for heartbeats in "
+        "your WriterBackend, trigger these via a dedicated timer instead.")]]
+    explicit WriterBackend(WriterFrontend* frontend, bool send_heartbeats = true);
+
+    /**
+     * Marker struct to disable threading heartbeats.
+     */
+    struct NoThreadingHeartbeats {};
+
+    /**
+     * Constructor that disables heartbeats.
+     *
+     * @param frontend The frontend writer that created this backend. The
+     * *only* purpose of this value is to be passed back via messages as
+     * a argument to callbacks. One must not otherwise access the
+     * frontend, it's running in a different thread.
+     *
+     * @param name A descriptive name for writer's type (e.g., \c Ascii).
+     */
+    WriterBackend(NoThreadingHeartbeats, WriterFrontend* frontend);
 
     /**
      * Destructor.
@@ -263,6 +282,11 @@ protected:
     friend class FinishMessage;
 
     /**
+     * Overridden from MsgThread to skip sending heartbeats if disabled.
+     */
+    void Heartbeat() override;
+
+    /**
      * Writer-specific initialization method.
      *
      * A writer implementation must override this method. If it returns
@@ -371,7 +395,7 @@ protected:
      * This method can be overridden. Default implementation does
      * nothing.
      */
-    virtual bool DoHeartbeat(double network_time, double current_time) = 0;
+    virtual bool DoHeartbeat(double network_time, double current_time) { return true; }
 
 private:
     /**
@@ -389,6 +413,8 @@ private:
     bool buffering;                        // True if buffering is enabled.
 
     int rotation_counter; // Tracks FinishedRotation() calls.
+
+    bool send_heartbeats;
 };
 
 } // namespace zeek::logging

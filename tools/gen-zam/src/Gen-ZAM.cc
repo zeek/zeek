@@ -1,10 +1,12 @@
-// See the file "COPYING" in the toplevel directory for copyright.
+// See the file "COPYING" in the main distribution directory for copyright.
 
 #include "Gen-ZAM.h"
 
-#include <ctype.h>
+#include <cctype>
 #include <cstring>
+#include <map>
 #include <regex>
+#include <set>
 
 using namespace std;
 
@@ -654,7 +656,7 @@ void ZAM_OpTemplate::BuildInstruction(const OCVec& oc, const string& params, con
     Emit("z = GenInst(" + op + ", " + params + ");");
 }
 
-static bool skippable_ot(ZAM_OperandClass oc) {
+static bool skippable_op_type(ZAM_OperandClass oc) {
     return oc == ZAM_OC_EVENT_HANDLER || oc == ZAM_OC_AUX || oc == ZAM_OC_LIST;
 }
 
@@ -677,7 +679,7 @@ string ZAM_OpTemplate::ExpandParams(const OCVec& oc, string eval, const vector<s
             need_target = false;
     }
 
-    while ( oc_size > 0 && skippable_ot(oc[oc_size - 1]) )
+    while ( oc_size > 0 && skippable_op_type(oc[oc_size - 1]) )
         --oc_size;
 
     auto max_param = oc_size;
@@ -869,11 +871,11 @@ void ZAM_OpTemplate::StartDesc(const string& op_code, const string& oc_str) {
         Emit("\"\",");
     else {
         string ots;
-        for ( auto ot : op_types ) {
-            if ( ot == ZAM_TYPE_DEFAULT )
+        for ( auto typ : op_types ) {
+            if ( typ == ZAM_TYPE_DEFAULT )
                 ots += "X";
             else
-                ots += expr_name_types[ot];
+                ots += expr_name_types[typ];
         }
 
         Emit("\"" + ots + "\", ");
@@ -2217,8 +2219,8 @@ void ZAMGen::GenMacros() {
     }
 }
 
-string ZAMGen::GenOpCode(const ZAM_OpTemplate* ot, const string& suffix, ZAM_InstClass zc) {
-    auto op = "OP_" + ot->CanonicalName() + suffix;
+string ZAMGen::GenOpCode(const ZAM_OpTemplate* op_templ, const string& suffix, ZAM_InstClass zc) {
+    auto op = "OP_" + op_templ->CanonicalName() + suffix;
 
     static unordered_set<string> known_opcodes;
 
@@ -2237,16 +2239,16 @@ string ZAMGen::GenOpCode(const ZAM_OpTemplate* ot, const string& suffix, ZAM_Ins
     // ... the "flavor" of how it treats its first operand ...
     auto op_comment = ",\t// " + op;
     auto op1_always_read = (zc == ZIC_FIELD || zc == ZIC_COND);
-    auto flavor = op1_always_read ? "OP1_READ" : ot->GetOp1Flavor();
+    auto flavor = op1_always_read ? "OP1_READ" : op_templ->GetOp1Flavor();
     Emit(Op1Flavor, flavor + op_comment);
 
     // ... whether it has side effects ...
-    auto se = ot->HasSideEffects() ? "true" : "false";
+    auto se = op_templ->HasSideEffects() ? "true" : "false";
     Emit(OpSideEffects, se + op_comment);
 
     // ... and the switch case that maps the enum to a string
     // representation.
-    auto name = ot->BaseName();
+    auto name = op_templ->BaseName();
     transform(name.begin(), name.end(), name.begin(), ::tolower);
     name += suffix;
     transform(name.begin(), name.end(), name.begin(), under_to_dash);
@@ -2408,7 +2410,7 @@ bool ZAMGen::ParseTemplate() {
     const auto& op_name = words[1];
 
     // We track issues with the wrong number of template arguments
-    // up front, to avoid mis-invoking constructors, but we don't
+    // up front, to avoid misinvoking constructors, but we don't
     // report these until later because if the template names a
     // bad operation, it's better to report that as the core problem.
     const char* args_mismatch = nullptr;

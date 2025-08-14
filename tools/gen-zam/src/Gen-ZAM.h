@@ -1,4 +1,4 @@
-// See the file "COPYING" in the toplevel directory for copyright.
+// See the file "COPYING" in the main distribution directory for copyright.
 
 // Gen-ZAM is a standalone program that takes as input a file specifying
 // ZAM operations and from them generates a (large) set of C++ include
@@ -9,11 +9,9 @@
 
 #pragma once
 
-#include <assert.h>
-#include <map>
+#include <cassert>
 #include <memory>
 #include <optional>
-#include <set>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -442,15 +440,15 @@ protected:
 
     // Generates the C++ case statement for evaluating the given flavor
     // of operation.
-    void GenEval(EmitTarget et, const string& ot_str, const string& op_suffix, const string& eval, ZAM_InstClass zc);
+    void GenEval(EmitTarget et, const string& oc_str, const string& op_suffix, const string& eval, ZAM_InstClass zc);
 
     // Generates a description of the ZAM operation suitable for
     // reflection.
-    void GenDesc(const string& op_code, const string& ot_str, const string& eval);
+    void GenDesc(const string& op_code, const string& oc_str, const string& eval);
 
     // Generates the first part of a description, up to (but not including)
     // the evaluation.
-    void StartDesc(const string& op_code, const string& ot_str);
+    void StartDesc(const string& op_code, const string& oc_str);
 
     // Finishes a description, once the evaluation is done.
     void EndDesc();
@@ -929,7 +927,7 @@ public:
     // Generates a ZAM op-code for the given template, suffix, and
     // instruction class.  Also creates auxiliary information associated
     // with the instruction.
-    string GenOpCode(const ZAM_OpTemplate* ot, const string& suffix, ZAM_InstClass zc = ZIC_REGULAR);
+    string GenOpCode(const ZAM_OpTemplate* op_templ, const string& suffix, ZAM_InstClass zc = ZIC_REGULAR);
 
     // These methods provide low-level parsing (and error-reporting)
     // access to ZAM_OpTemplate objects.

@@ -736,7 +736,7 @@ bool ZeroMQBackend::DoProcessBackendMessage(int tag, byte_buffer_span payload) {
         if ( tag == 1 ) {
             // If this is the first time the subscription was observed, raise
             // the ZeroMQ internal event.
-            if ( xpub_subscriptions.count(topic) == 0 ) {
+            if ( ! xpub_subscriptions.contains(topic) ) {
                 eh = event_subscription;
                 xpub_subscriptions.insert(topic);
             }

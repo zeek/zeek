@@ -1071,7 +1071,7 @@ std::optional<SupervisedNode> Stem::Poll() {
 
         if ( cmd == "create" ) {
             const auto& node_json = msg_tokens[2];
-            assert(nodes.find(node_name) == nodes.end());
+            assert(! nodes.contains(node_name));
             auto node_config = Supervisor::NodeConfig::FromJSON(node_json);
             auto it = nodes.emplace(node_name, std::move(node_config)).first;
             auto& node = it->second;
@@ -1514,7 +1514,7 @@ std::string Supervisor::Create(const Supervisor::NodeConfig& node) {
     if ( node.name.find(' ') != std::string::npos )
         return util::fmt("node names must not contain spaces: '%s'", node.name.data());
 
-    if ( nodes.find(node.name) != nodes.end() )
+    if ( nodes.contains(node.name) )
         return util::fmt("node with name '%s' already exists", node.name.data());
 
     if ( node.interface.has_value() && node.pcap_file.has_value() )

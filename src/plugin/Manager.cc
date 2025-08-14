@@ -81,7 +81,7 @@ void Manager::SearchDynamicPlugins(const std::string& dir) {
 
     std::string canon_path = canon.string();
 
-    if ( searched_dirs.count(canon_path) )
+    if ( searched_dirs.contains(canon_path) )
         return;
 
     searched_dirs.emplace(canon_path);

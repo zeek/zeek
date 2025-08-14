@@ -30,7 +30,7 @@ public:
     ExprPtr CheckForInlining(CallExprPtr c);
 
     // True if every instance of the function was inlined.
-    bool WasFullyInlined(const Func* f) { return did_inline.count(f) > 0 && skipped_inlining.count(f) == 0; }
+    bool WasFullyInlined(const Func* f) { return did_inline.contains(f) && ! skipped_inlining.contains(f); }
 
 protected:
     // Driver routine that analyzes all of the script functions and

@@ -175,7 +175,7 @@ void WebSocketClient::SetSubscriptions(const std::vector<std::string>& topic_pre
 }
 
 void WebSocketClient::SetSubscriptionActive(const std::string& topic_prefix) {
-    if ( subscriptions_state.count(topic_prefix) == 0 ) {
+    if ( ! subscriptions_state.contains(topic_prefix) ) {
         zeek::reporter->InternalWarning("Unknown topic_prefix for WebSocket client %s!", topic_prefix.c_str());
         return;
     }

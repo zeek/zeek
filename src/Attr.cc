@@ -297,10 +297,10 @@ bool Attributes::CheckAttr(Attr* a) {
         case ATTR_IS_USED: break;
 
         case ATTR_OPTIONAL:
-            if ( global_var )
-                return AttrError("&optional is not valid for global variables");
+            if ( ! in_record )
+                return AttrError("&optional is only valid for record fields");
 
-            if ( in_record && Find(ATTR_DEFAULT) )
+            if ( Find(ATTR_DEFAULT) )
                 return AttrError("Using &default and &optional together results in &default behavior");
 
             break;

@@ -885,6 +885,8 @@ std::optional<broker::data> val_to_data(const Val* v, bool unwrap_broker_data) {
         case TYPE_RECORD: {
             auto rec = v->AsRecordVal();
 
+            // If unwrap_broker_data is set and this record is a Broker::Data record,
+            // use the contained data field directly.
             if ( unwrap_broker_data && rec->GetType() == BifType::Record::Broker::Data ) {
                 const auto ov = rec->GetField<zeek::OpaqueVal>(0);
                 // Sanity.

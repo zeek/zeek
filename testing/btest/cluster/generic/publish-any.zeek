@@ -34,9 +34,14 @@ global pong: event(c: count, what: string, val: any) &is_used;
 global i = 0;
 global pongs = 0;
 
+type R: record {
+	c: count;
+	a: any;
+};
+
 event send_any()
 	{
-	if ( i > 4 )
+	if ( i > 5 )
 		return;
 
 	local val: any;
@@ -48,8 +53,10 @@ event send_any()
 		val = 42/tcp;
 	else if ( i == 3 )
 		val = vector(1, 2, 3);
-	else
+	else if ( i == 4 )
 		val = double_to_time(42.0);
+	else
+		val = R($c=42, $a=vector(R($c=42, $a="hello")));
 
 	print "sending pings", i, type_name(val), val;
 	Cluster::publish_hrw(Cluster::worker_pool, cat(i), ping, i, type_name(val), val);
@@ -64,10 +71,10 @@ event pong(c: count, what: string, val: any)
 	++pongs;
 	print "got pong", pongs, "with", c, what, type_name(val), val;
 
-	# The manager sends 5 types of pings, in 3 different ways. The worker
-	# answers each ping in two ways, for a total of 30 expected pongs at the
+	# The manager sends 6 types of pings, in 3 different ways. The worker
+	# answers each ping in two ways, for a total of 36 expected pongs at the
 	# manager. Every batch of pings involves 6 pongs.
-	if ( pongs == 30 )
+	if ( pongs == 36 )
 		Cluster::publish(Cluster::worker_topic, finish);
 	else if ( pongs > 0 && pongs % 6  == 0 )
 		{

@@ -257,11 +257,11 @@ static void extend_record(ID* id, std::unique_ptr<type_decl_list> fields, std::u
     }
 }
 
-static AttributesPtr make_attributes(std::vector<AttrPtr>* attrs, TypePtr t, bool in_record, bool is_global) {
+static AttributesPtr make_attributes(std::vector<AttrPtr>* attrs, TypePtr t, bool in_record, bool is_param) {
     if ( ! attrs )
         return nullptr;
 
-    auto rval = make_intrusive<Attributes>(std::move(*attrs), std::move(t), in_record, is_global);
+    auto rval = make_intrusive<Attributes>(std::move(*attrs), std::move(t), in_record, /*is_global=*/false, is_param);
     delete attrs;
     return rval;
 }
@@ -1296,7 +1296,7 @@ type_decl:
 		TOK_ID ':' type opt_attr ';'
 			{
 			set_location(@1, @4);
-			auto attrs = make_attributes($4, {NewRef{}, $3}, in_record > 0, false);
+			auto attrs = make_attributes($4, {NewRef{}, $3}, in_record > 0, /*is_param=*/false);
 			$$ = new TypeDecl($1, {AdoptRef{}, $3}, std::move(attrs));
 
 			if ( in_record > 0 && cur_decl_type_id )
@@ -1327,7 +1327,7 @@ formal_args_decl:
 		TOK_ID ':' type opt_attr
 			{
 			set_location(@1, @4);
-			auto attrs = make_attributes($4, {NewRef{}, $3}, true, false);
+			auto attrs = make_attributes($4, {NewRef{}, $3}, /*in_record=*/false, /*is_param=*/true);
 			$$ = new TypeDecl($1, {AdoptRef{}, $3}, std::move(attrs));
 			}
 	;

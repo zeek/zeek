@@ -166,13 +166,9 @@ detail::TraversalCode Attr::Traverse(detail::TraversalCallback* cb) const {
     HANDLE_TC_ATTR_POST(tc);
 }
 
-Attributes::Attributes(TypePtr t, bool arg_in_record, bool is_global)
-    : Attributes(std::vector<AttrPtr>{}, std::move(t), arg_in_record, is_global) {}
-
-Attributes::Attributes(std::vector<AttrPtr> a, TypePtr t, bool arg_in_record, bool is_global) : type(std::move(t)) {
+Attributes::Attributes(std::vector<AttrPtr> a, TypePtr t, bool in_record, bool is_global, bool is_param)
+    : type(std::move(t)), in_record(in_record), global_var(is_global), is_param(is_param) {
     attrs.reserve(a.size());
-    in_record = arg_in_record;
-    global_var = is_global;
 
     SetLocationInfo(&start_location, &end_location);
 
@@ -297,10 +293,10 @@ bool Attributes::CheckAttr(Attr* a) {
         case ATTR_IS_USED: break;
 
         case ATTR_OPTIONAL:
-            if ( global_var )
-                return AttrError("&optional is not valid for global variables");
+            if ( ! in_record )
+                return AttrError("&optional is only valid for record fields");
 
-            if ( in_record && Find(ATTR_DEFAULT) )
+            if ( Find(ATTR_DEFAULT) )
                 return AttrError("Using &default and &optional together results in &default behavior");
 
             break;
@@ -331,7 +327,7 @@ bool Attributes::CheckAttr(Attr* a) {
                 return AttrError("&default and &default_insert cannot be used together");
 
             std::string err_msg;
-            if ( ! check_default_attr(a, type, global_var, in_record, err_msg) && ! err_msg.empty() )
+            if ( ! check_default_attr(a, type, global_var, in_record || is_param, err_msg) && ! err_msg.empty() )
                 return AttrError(err_msg.c_str());
             break;
         }
@@ -344,7 +340,7 @@ bool Attributes::CheckAttr(Attr* a) {
                 return AttrError("Using &default and &optional together results in &default behavior");
 
             std::string err_msg;
-            if ( ! check_default_attr(a, type, global_var, in_record, err_msg) && ! err_msg.empty() )
+            if ( ! check_default_attr(a, type, global_var, in_record || is_param, err_msg) && ! err_msg.empty() )
                 return AttrError(err_msg.c_str());
             break;
         }
@@ -586,7 +582,7 @@ bool Attributes::operator==(const Attributes& other) const {
     return true;
 }
 
-bool check_default_attr(Attr* a, const TypePtr& type, bool global_var, bool in_record, std::string& err_msg) {
+bool check_default_attr(Attr* a, const TypePtr& type, bool global_var, bool record_like, std::string& err_msg) {
     ASSERT(a->Tag() == ATTR_DEFAULT || a->Tag() == ATTR_DEFAULT_INSERT);
     std::string aname = attr_name(a->Tag());
     // &default is allowed for global tables, since it's used in
@@ -598,7 +594,7 @@ bool check_default_attr(Attr* a, const TypePtr& type, bool global_var, bool in_r
 
     const auto& atype = a->GetExpr()->GetType();
 
-    if ( type->Tag() != TYPE_TABLE || (type->IsSet() && ! in_record) ) {
+    if ( type->Tag() != TYPE_TABLE || (type->IsSet() && ! record_like) ) {
         if ( same_type(atype, type) )
             // Ok.
             return true;
@@ -628,7 +624,7 @@ bool check_default_attr(Attr* a, const TypePtr& type, bool global_var, bool in_r
     TableType* tt = type->AsTableType();
     const auto& ytype = tt->Yield();
 
-    if ( ! in_record ) { // &default applies to the type itself.
+    if ( ! record_like ) { // &default applies to the type itself.
         if ( same_type(atype, ytype) )
             return true;
 

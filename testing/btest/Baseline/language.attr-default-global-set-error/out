@@ -2,5 +2,5 @@
 error in <...>/attr-default-global-set-error.zeek, line 4: &default is not valid for global variables except for tables (&default=0)
 error in <...>/attr-default-global-set-error.zeek, line 9: &default is not valid for global variables except for tables (&default=10)
 error in <...>/attr-default-global-set-error.zeek, line 9: &default is not valid for global variables except for tables (&default=9)
-error in <...>/attr-default-global-set-error.zeek, line 9: &optional is not valid for global variables (&optional)
+error in <...>/attr-default-global-set-error.zeek, line 9: &optional is only valid for record fields (&optional)
 error in <...>/attr-default-global-set-error.zeek, line 10: &default is not valid for global variables except for tables (&default=set())

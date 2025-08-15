@@ -457,6 +457,7 @@ export {
 	##          a default filter added to it.
 	##
 	## .. zeek:see:: Log::add_default_filter Log::remove_default_filter
+	##    Log::stream_action
 	global create_stream: function(id: ID, stream: Stream) : bool;
 
 	## Removes a logging stream completely, stopping all the threads.
@@ -465,7 +466,7 @@ export {
 	##
 	## Returns: True if the stream was successfully removed.
 	##
-	## .. zeek:see:: Log::create_stream
+	## .. zeek:see:: Log::create_stream Log::stream_action
 	global remove_stream: function(id: ID) : bool;
 
 	## Enables a previously disabled logging stream.  Disabled streams
@@ -476,7 +477,7 @@ export {
 	##
 	## Returns: True if the stream is re-enabled or was not previously disabled.
 	##
-	## .. zeek:see:: Log::disable_stream
+	## .. zeek:see:: Log::disable_stream Log::stream_action
 	global enable_stream: function(id: ID) : bool;
 
 	## Disables a currently enabled logging stream.  Disabled streams
@@ -487,8 +488,35 @@ export {
 	##
 	## Returns: True if the stream is now disabled or was already disabled.
 	##
-	## .. zeek:see:: Log::enable_stream
+	## .. zeek:see:: Log::enable_stream Log::stream_action
 	global disable_stream: function(id: ID) : bool;
+
+	## Actions taken on log streams, as indicated by the
+	## :zeek:see:`Log::stream_action` hook.
+	type StreamAction: enum {
+		## A log stream just got created via
+		## :zeek:see:`Log::create_stream`.
+		STREAM_CREATE,
+		## A log stream is about to be removed via
+		## :zeek:see:`Log::remove_stream`.
+		STREAM_REMOVE,
+		## A log stream just got enabled via
+		## :zeek:see:`Log::enable_stream`.
+		STREAM_ENABLE,
+		## A log stream is about to be disabled via
+		## :zeek:see:`Log::disable_stream`.
+		STREAM_DISABLE
+	};
+
+	## A hook to get notified of updates to a log stream's  liveness.
+	##
+	## Invocation happens when the stream is in its functional state: for
+	## creation and enabling this is at the tail end of the operation when
+	## the stream is ready for use; for removal and disabling it's at the
+	## outset, prior to these actions taking place.
+	##
+	## Breaking from the hook has no effect.
+	global stream_action: hook(id: ID, action: StreamAction);
 
 	## Adds a custom filter to an existing logging stream.  If a filter
 	## with a matching ``name`` field already exists for the stream, it
@@ -888,11 +916,17 @@ function create_stream(id: ID, stream: Stream) : bool
 	active_streams[id] = stream;
 	all_streams[id] = stream;
 
-	return add_default_filter(id);
+	local res = add_default_filter(id);
+
+	hook stream_action(id, STREAM_CREATE);
+
+	return res;
 	}
 
 function remove_stream(id: ID) : bool
 	{
+	hook stream_action(id, STREAM_REMOVE);
+
 	delete active_streams[id];
 	delete all_streams[id];
 
@@ -908,6 +942,8 @@ function remove_stream(id: ID) : bool
 
 function disable_stream(id: ID) : bool
 	{
+	hook stream_action(id, STREAM_DISABLE);
+
 	delete active_streams[id];
 
 	if ( id in all_streams )
@@ -942,6 +978,8 @@ function enable_stream(id: ID) : bool
 				enable_event_group(group);
 			}
 		}
+
+	hook stream_action(id, STREAM_ENABLE);
 
 	return T;
 	}

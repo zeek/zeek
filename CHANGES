@@ -1,3 +1,33 @@
+8.1.0-dev.66 | 2025-08-15 14:02:08 -0700
+
+  * Fix some clang-tidy findings in generated BIF code (Tim Wojtulewicz, Corelight)
+
+  * Fix clang-tidy and pre-commit warnings for gen-zam code files (Tim Wojtulewicz, Corelight)
+
+  * Move gen-zam code into the main Zeek repository (Tim Wojtulewicz, Corelight)
+
+    This is based on commit 56a6db00b887c79d26f303676677cb490d1c296d from
+    the gen-zam repository.
+
+  * Move zeek-af_packet-plugin code into the main Zeek repository (Tim Wojtulewicz, Corelight)
+
+    This is based on commit b89a6f64123f778090d1dd6ec48e6b8e8906ea11 from
+    the zeek-af_packet-plugin repository.
+
+  * Move the bifcl code into the main Zeek repository (Tim Wojtulewicz, Corelight)
+
+    This is based on commit 5947749f7850b075f11d6a2aaefe7dad4f63cb62f from
+    the bifcl repository.
+
+  * Fix clang-tidy findings in the binpac lib code (Tim Wojtulewicz, Corelight)
+
+  * Add copyright headers to all of the binpac source files (Tim Wojtulewicz, Corelight)
+
+  * Move binpac code into the main Zeek repository (Tim Wojtulewicz, Corelight)
+
+    This is based on commit 48f75b5f6415fe9d597e3e991cec635b1bc400dc from
+    the binpac repository.
+
 8.1.0-dev.56 | 2025-08-13 21:20:50 +0200
 
   * ci: Run zeekctl and builtin tasks with Debian 13, too (Arne Welzel, Corelight)

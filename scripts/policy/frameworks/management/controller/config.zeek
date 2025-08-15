@@ -61,6 +61,17 @@ export {
 	## for websocket clients.
 	const default_port_websocket = 2149/tcp &redef;
 
+	# TLS options to use for the controller's WebSocket server.
+	#
+	# The default value is Broker's cert-less TLS config. To disable
+	# TLS, redef this value to ``Cluster::WebSocketTLSOptions()``.
+	const tls_options_websocket = Cluster::WebSocketTLSOptions(
+		$cert_file="",
+		$key_file="",
+		$ca_file="NONE",
+		$ciphers="AECDH-AES256-SHA@SECLEVEL=0:AECDH-AES256-SHA:P-384",
+	) &redef;
+
 	## Whether the controller should auto-assign Broker listening ports to
 	## cluster nodes that need them and don't have them explicitly specified
 	## in cluster configurations.

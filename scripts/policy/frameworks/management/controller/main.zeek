@@ -1646,7 +1646,8 @@ event zeek_init()
 	if ( cni$bound_port != 0/unknown )
 		{
 		local ws_opts = Cluster::WebSocketServerOptions($listen_addr=to_addr(cni$address),
-		                                                $listen_port=cni$bound_port);
+		                                                $listen_port=cni$bound_port,
+		                                                $tls_options=Management::Controller::tls_options_websocket);
 		Cluster::listen_websocket(ws_opts);
 		websocket_info = fmt("websocket port %s:%s", cni$address, cni$bound_port);
 		}

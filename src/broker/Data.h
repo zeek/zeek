@@ -76,9 +76,10 @@ EnumValPtr get_data_type(RecordVal* v, zeek::detail::Frame* frame);
 /**
  * Convert a Zeek value to a Broker data value.
  * @param v a Zeek value.
+ * @param unwrap_broker_data If v or any nested value is a Broker::Data record, use its data broker::value directly.
  * @return a Broker data value if the Zeek value could be converted to one.
  */
-std::optional<broker::data> val_to_data(const Val* v);
+std::optional<broker::data> val_to_data(const Val* v, bool unwrap_broker_data = false);
 
 /**
  * Convert a Broker data value to a Zeek value.

@@ -14,4 +14,7 @@ got ping, 3, vector of count, Broker::Data, [data=broker::data{(1, 2, 3)}]
 got ping, 4, time, Broker::Data, [data=broker::data{42000000000ns}]
 got ping, 4, time, Broker::Data, [data=broker::data{42000000000ns}]
 got ping, 4, time, Broker::Data, [data=broker::data{42000000000ns}]
+got ping, 5, R, Broker::Data, [data=broker::data{(42, ((42, hello)))}]
+got ping, 5, R, Broker::Data, [data=broker::data{(42, ((42, hello)))}]
+got ping, 5, R, Broker::Data, [data=broker::data{(42, ((42, hello)))}]
 got finish!

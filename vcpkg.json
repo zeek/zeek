@@ -3,7 +3,9 @@
   "version-string": "latest",
   "dependencies": [
     "c-ares",
+    "cppzmq",
     "libpcap",
+    "zeromq",
     "zlib"
   ]
 }

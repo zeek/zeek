@@ -5,6 +5,6 @@ find_package(ZeroMQ REQUIRED)
 zeek_add_plugin(
     Zeek Cluster_Backend_ZeroMQ
     INCLUDE_DIRS ${ZeroMQ_INCLUDE_DIRS}
-    DEPENDENCIES ${ZeroMQ_LIBRARIES}
+    DEPENDENCIES libzmq
     SOURCES Plugin.cc ZeroMQ-Proxy.cc ZeroMQ.cc
     BIFS cluster_backend_zeromq.bif)

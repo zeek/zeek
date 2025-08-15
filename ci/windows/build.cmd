@@ -7,5 +7,5 @@ call "c:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliar
 mkdir build
 cd build
 
-cmake.exe .. -DCMAKE_BUILD_TYPE=release -DVCPKG_TARGET_TRIPLET="x64-windows-static" -DENABLE_ZEEK_UNIT_TESTS=yes -DENABLE_CLUSTER_BACKEND_ZEROMQ=no -G Ninja
+cmake.exe .. -DCMAKE_BUILD_TYPE=release -DVCPKG_TARGET_TRIPLET="x64-windows-static" -DENABLE_ZEEK_UNIT_TESTS=yes -G Ninja
 cmake.exe --build .

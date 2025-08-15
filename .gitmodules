@@ -1,6 +1,9 @@
 [submodule "auxil/zeek-aux"]
 	path = auxil/zeek-aux
 	url = https://github.com/zeek/zeek-aux
+[submodule "auxil/binpac"]
+	path = auxil/binpac
+	url = https://github.com/zeek/binpac
 [submodule "auxil/zeekctl"]
 	path = auxil/zeekctl
 	url = https://github.com/zeek/zeekctl
@@ -19,6 +22,9 @@
 [submodule "auxil/netcontrol-connectors"]
 	path = auxil/netcontrol-connectors
 	url = https://github.com/zeek/zeek-netcontrol
+[submodule "auxil/bifcl"]
+	path = auxil/bifcl
+	url = https://github.com/zeek/bifcl
 [submodule "doc"]
 	path = doc
 	url = https://github.com/zeek/zeek-docs
@@ -40,6 +46,9 @@
 [submodule "auxil/zeek-client"]
 	path = auxil/zeek-client
 	url = https://github.com/zeek/zeek-client
+[submodule "auxil/gen-zam"]
+	path = auxil/gen-zam
+	url = https://github.com/zeek/gen-zam
 [submodule "auxil/c-ares"]
 	path = auxil/c-ares
 	url = https://github.com/c-ares/c-ares
@@ -49,6 +58,9 @@
 [submodule "auxil/spicy"]
 	path = auxil/spicy
 	url = https://github.com/zeek/spicy
+[submodule "auxil/zeek-af_packet-plugin"]
+	path = auxil/zeek-af_packet-plugin
+	url = https://github.com/zeek/zeek-af_packet-plugin.git
 [submodule "auxil/libunistd"]
 	path = auxil/libunistd
 	url = https://github.com/zeek/libunistd

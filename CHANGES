@@ -1,4 +1,6 @@
-8.1.0-dev.66 | 2025-08-15 14:02:08 -0700
+8.1.0-dev.68 | 2025-08-15 15:20:36 -0700
+
+  * Revert "Move BinPAC, bifcl, af_packet, and gen_zam submodules into main zeek repo" (Tim Wojtulewicz)
 
   * Fix some clang-tidy findings in generated BIF code (Tim Wojtulewicz, Corelight)
 

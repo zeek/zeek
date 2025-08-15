@@ -1251,7 +1251,7 @@ function hexdump%(data_str: string%) : string
 function reverse%(str: string%) : string
 	%{
 	string s = str->ToStdString();
-	std::ranges::reverse(s);
+	reverse(s.begin(), s.end());
 	return zeek::make_intrusive<zeek::StringVal>(s.length(), (const char*)s.c_str());
 	%}
 
@@ -1308,8 +1308,8 @@ static int64_t do_find_str(zeek::StringVal* str, zeek::StringVal* sub, int64_t s
 
 	if ( ! case_sensitive )
 		{
-		std::ranges::transform(s, s.begin(), ::tolower);
-		std::ranges::transform(sb, sb.begin(), ::tolower);
+		transform(s.begin(), s.end(), s.begin(), ::tolower);
+		transform(sb.begin(), sb.end(), sb.begin(), ::tolower);
 		}
 
 	if ( rfind )

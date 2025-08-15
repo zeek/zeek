@@ -17,7 +17,6 @@
 #include <cstring>
 #include <ctime>
 #include <vector>
-#include <numbers>
 
 #include "zeek/digest.h"
 #include "zeek/Reporter.h"
@@ -4223,13 +4222,12 @@ function blocking_lookup_hostname%(host: string%) : addr_set
 ## .. zeek:see:: haversine_distance_ip
 function haversine_distance%(lat1: double, long1: double, lat2: double, long2: double%): double
 	%{
-	constexpr double RADIUS = 3958.7615; // Mean radius of the Earth in miles.
-	constexpr double PI_360 = std::numbers::pi / 360.0;
-	constexpr double PI_180 = std::numbers::pi / 180.0;
+	const double PI = 3.14159;
+	const double RADIUS = 3958.8;  // Earth's radius in miles.
 
-	double s1 = pow(sin((lat2 - lat1) * PI_360), 2);
-	double s2 = pow(sin((long2 - long1) * PI_360), 2);
-	double a = s1 + (cos(lat1 * PI_180) * cos(lat2 * PI_180) * s2);
+	double s1 = sin((lat2 - lat1) * PI/360);
+	double s2 = sin((long2 - long1) * PI/360);
+	double a = s1 * s1 + cos(lat1 * PI/180) * cos(lat2 * PI/180) * s2 * s2;
 	double distance = 2 * RADIUS * asin(sqrt(a));
 
 	return zeek::make_intrusive<zeek::DoubleVal>(distance);

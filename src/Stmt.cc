@@ -426,10 +426,6 @@ IfStmt::IfStmt(ExprPtr test, StmtPtr arg_s1, StmtPtr arg_s2)
     : ExprStmt(STMT_IF, std::move(test)), s1(std::move(arg_s1)), s2(std::move(arg_s2)) {
     if ( ! e->IsError() && ! IsBool(e->GetType()->Tag()) )
         e->Error("conditional in test must be boolean");
-
-    const Location* loc1 = s1->GetLocationInfo();
-    const Location* loc2 = s2->GetLocationInfo();
-    SetLocationInfo(loc1, loc2);
 }
 
 IfStmt::~IfStmt() = default;
@@ -1488,7 +1484,7 @@ InitStmt::InitStmt(std::vector<IDPtr> arg_inits) : Stmt(STMT_INIT) {
     inits = std::move(arg_inits);
 
     if ( ! inits.empty() )
-        SetLocationInfo(inits[0]->GetLocationInfo());
+        SetLocationInfo(inits.front()->GetLocationInfo(), inits.back()->GetLocationInfo());
 }
 
 ValPtr InitStmt::Exec(Frame* f, StmtFlowType& flow) {

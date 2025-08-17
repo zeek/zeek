@@ -1,3 +1,9 @@
+8.1.0-dev.74 | 2025-08-17 17:28:59 +0200
+
+  * maintenance updates for ZAM BiF-tracking (Vern Paxson, Corelight)
+
+  * fix line numbers associated with "if" and initialization statements (Vern Paxson, Corelight)
+
 8.1.0-dev.71 | 2025-08-17 16:56:57 +0200
 
   * cluster/serializer/broker: Do not special case Broker::Data anymore (Arne Welzel, Corelight)

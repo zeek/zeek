@@ -1,3 +1,17 @@
+8.0.0-rc2.4 | 2025-08-18 16:36:59 +0000
+
+  * Merge remote-tracking branch 'origin/topic/vern/stmt-line-numbers' (Arne Welzel, Corelight)
+
+    * origin/topic/vern/stmt-line-numbers:
+      maintenance updates for ZAM BiF-tracking
+      fix line numbers associated with "if" and initialization statements
+
+    (cherry picked from commit c0a863cba0896f860a0c44ce0ff668c21267c239)
+
+  * Fix ci/update-zeekygen-docs to agree with ruff-format (Tim Wojtulewicz, Corelight)
+
+  * Bump auxil/spicy to spicy-1.14.0 (Benjamin Bannier, Corelight)
+
 8.0.0-rc2 | 2025-08-12 12:42:54 -0700
 
   * Release 8.0.0-rc2.

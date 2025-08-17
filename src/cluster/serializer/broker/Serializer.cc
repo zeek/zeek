@@ -59,19 +59,10 @@ std::optional<broker::zeek::Event> detail::to_broker_event(const zeek::cluster::
     xs.reserve(ev.Args().size());
 
     for ( const auto& a : ev.Args() ) {
-        if ( a->GetType() == zeek::BifType::Record::Broker::Data ) {
-            // When encountering a Broker::Data instance within args, pick out
-            // the broker::data directly to avoid double encoding, Broker::Data.
-            const auto& val = a->AsRecordVal()->GetField(0);
-            auto* data_val = static_cast<zeek::Broker::detail::DataVal*>(val.get());
-            xs.emplace_back(data_val->data);
-        }
-        else if ( auto res = zeek::Broker::detail::val_to_data(a.get()) ) {
+        if ( auto res = zeek::Broker::detail::val_to_data(a.get(), /*flatten_broker_dataval=*/true) )
             xs.emplace_back(std::move(res.value()));
-        }
-        else {
+        else
             return std::nullopt;
-        }
     }
 
     // Convert metadata from the cluster::detail::Event event to broker's event metadata format.

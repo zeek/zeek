@@ -1,3 +1,25 @@
+8.0.0-5 | 2025-08-22 09:24:21 -0700
+
+  * cluster/serializer/broker: Do not special case Broker::Data anymore (Arne Welzel, Corelight)
+
+    The previous approach ignored the fact that nested / inner values might
+    also be Broker::Data values. I'm not super sure about the validity of
+    the test, because it's essentially demonstrating any-nesting, but
+    it's not leading to extra Broker::Data encoding.
+
+    (cherry picked from commit 3d6a064ecce177868ad7f323c63b40524e7e8455)
+
+  * broker/Data: Support unwrapping Broker::Data records (Arne Welzel, Corelight)
+
+    Calling val_to_data() on a Broker::Data ends up wrapping the
+    Broker::Data record instead of using the contained broker::value
+    directly.
+
+    Seems this should be the default behavior and wonder if the flag
+    even makes sense, but for a 8.0 backport that seems more reasonable.
+
+    (cherry picked from commit 3d6a064ecce177868ad7f323c63b40524e7e8455)
+
 8.0.0-4 | 2025-08-22 09:21:32 -0700
 
   * ci: Run zeekctl and builtin tasks with Debian 13, too (Arne Welzel, Corelight)

@@ -1,3 +1,21 @@
+8.1.0-dev.71 | 2025-08-17 16:56:57 +0200
+
+  * cluster/serializer/broker: Do not special case Broker::Data anymore (Arne Welzel, Corelight)
+
+    The previous approach ignored the fact that nested / inner values might
+    also be Broker::Data values. I'm not super sure about the validity of
+    the test, because it's essentially demonstrating any-nesting, but
+    it's not leading to extra Broker::Data encoding.
+
+  * broker/Data: Support unwrapping Broker::Data records (Arne Welzel, Corelight)
+
+    Calling val_to_data() on a Broker::Data ends up wrapping the
+    Broker::Data record instead of using the contained broker::value
+    directly.
+
+    Seems this should be the default behavior and wonder if the flag
+    even makes sense, but for a 8.0 backport that seems more reasonable.
+
 8.1.0-dev.68 | 2025-08-15 15:20:36 -0700
 
   * Revert "Move BinPAC, bifcl, af_packet, and gen_zam submodules into main zeek repo" (Tim Wojtulewicz)

@@ -12,6 +12,7 @@
 #include "zeek/IntrusivePtr.h"
 #include "zeek/RE.h"
 #include "zeek/Scope.h"
+#include "zeek/Type.h"
 #include "zeek/broker/data.bif.h"
 #include "zeek/module_util.h"
 
@@ -718,7 +719,7 @@ ValPtr data_to_val(broker::data& d, Type* type) {
     return visit(val_converter{type}, d);
 }
 
-std::optional<broker::data> val_to_data(const Val* v) {
+std::optional<broker::data> val_to_data(const Val* v, bool unwrap_broker_data) {
     switch ( v->GetType()->Tag() ) {
         case TYPE_BOOL: return {v->AsBool()};
         case TYPE_INT: return {v->AsInt()};
@@ -804,7 +805,7 @@ std::optional<broker::data> val_to_data(const Val* v) {
                 composite_key.reserve(vl->Length());
 
                 for ( auto k = 0; k < vl->Length(); ++k ) {
-                    auto key_part = val_to_data(vl->Idx(k).get());
+                    auto key_part = val_to_data(vl->Idx(k).get(), unwrap_broker_data);
 
                     if ( ! key_part )
                         return std::nullopt;
@@ -822,7 +823,7 @@ std::optional<broker::data> val_to_data(const Val* v) {
                 if ( is_set )
                     get<broker::set>(rval).emplace(std::move(key));
                 else {
-                    auto val = val_to_data(te.value->GetVal().get());
+                    auto val = val_to_data(te.value->GetVal().get(), unwrap_broker_data);
 
                     if ( ! val )
                         return std::nullopt;
@@ -846,7 +847,7 @@ std::optional<broker::data> val_to_data(const Val* v) {
                     return std::nullopt;
                 }
 
-                auto item = val_to_data(item_val.get());
+                auto item = val_to_data(item_val.get(), unwrap_broker_data);
 
                 if ( ! item )
                     return std::nullopt;
@@ -871,7 +872,7 @@ std::optional<broker::data> val_to_data(const Val* v) {
                     return std::nullopt;
                 }
 
-                auto item = val_to_data(item_val.get());
+                auto item = val_to_data(item_val.get(), unwrap_broker_data);
 
                 if ( ! item )
                     return std::nullopt;
@@ -883,6 +884,21 @@ std::optional<broker::data> val_to_data(const Val* v) {
         }
         case TYPE_RECORD: {
             auto rec = v->AsRecordVal();
+
+            // If unwrap_broker_data is set and this record is a Broker::Data record,
+            // use the contained data field directly.
+            if ( unwrap_broker_data && rec->GetType() == BifType::Record::Broker::Data ) {
+                const auto ov = rec->GetField<zeek::OpaqueVal>(0);
+                // Sanity.
+                if ( ov->GetType() != opaque_of_data_type ) {
+                    reporter->Error("Broker::Data data field has wrong type: %s",
+                                    obj_desc_short(ov->GetType()).c_str());
+                    return std::nullopt;
+                }
+
+                return static_cast<const DataVal*>(ov.get())->data;
+            }
+
             broker::vector rval;
             size_t num_fields = v->GetType()->AsRecordType()->NumFields();
             rval.reserve(num_fields);
@@ -895,7 +911,7 @@ std::optional<broker::data> val_to_data(const Val* v) {
                     continue;
                 }
 
-                auto item = val_to_data(item_val.get());
+                auto item = val_to_data(item_val.get(), unwrap_broker_data);
 
                 if ( ! item )
                     return std::nullopt;

@@ -904,11 +904,11 @@ set(_binpac_exe_path "included")
 find_package(BinPAC REQUIRED)
 add_executable(Zeek::BinPAC ALIAS binpac)
 
-add_subdirectory(auxil/bifcl)
+add_subdirectory(tools/bifcl)
 add_executable(Zeek::BifCl ALIAS bifcl)
 # FIXME: avoid hard-coding a path for multi-config generator support. See the
 # TODO in ZeekPluginConfig.cmake.in.
-set(BIFCL_EXE_PATH "${CMAKE_BINARY_DIR}/auxil/bifcl/bifcl${CMAKE_EXECUTABLE_SUFFIX}")
+set(BIFCL_EXE_PATH "${CMAKE_BINARY_DIR}/tools/bifcl/bifcl${CMAKE_EXECUTABLE_SUFFIX}")
 set(_bifcl_exe_path "included")
 
 if (NOT GEN_ZAM_EXE_PATH)

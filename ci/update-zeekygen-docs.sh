@@ -64,7 +64,7 @@ branch="$(git branch --show-current)"
 if [[ "$branch" =~ ^release/.* ]]; then
     doc_config_file=$source_dir/doc/conf.py
     cat ${doc_config_file} | sed \
-        -e "s#\(zeek_code_version[[:space:]]*=[[:space:]]*\)[^\n]*#\1'$branch'#g" \
+        -e "s#\(zeek_code_version[[:space:]]*=[[:space:]]*\)[^\n]*#\1\"$branch\"#g" \
         >${doc_config_file}.tmp
     mv ${doc_config_file}.tmp ${doc_config_file}
 fi

@@ -1,3 +1,7 @@
+8.1.0-dev.91 | 2025-08-18 14:59:41 -0700
+
+  * Add a missing header for the broker cluster serializer (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.89 | 2025-08-18 14:46:57 -0700
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

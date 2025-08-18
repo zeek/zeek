@@ -2,6 +2,7 @@
 
 #include "zeek/cluster/serializer/broker/Serializer.h"
 
+#include <cinttypes>
 #include <optional>
 
 #include "zeek/DebugLogger.h"

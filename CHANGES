@@ -1,3 +1,18 @@
+8.1.0-dev.87 | 2025-08-18 14:39:10 -0400
+
+  * Fix parameter attributes pretending to be records (Evan Typanski, Corelight)
+
+    Parameters relied on is_record for a couple of validations, but they are
+    not records and should not be treated as such. This way we can validate
+    &optional better.
+
+  * Only allow `&optional` in records (Evan Typanski, Corelight)
+
+    There was some confusing behavior with &optional and locals, so this
+    should get rid of that by making it an error. However, there is a case
+    where function parameters are still allowed to have &optional - this is
+    because there are checks for &default in parameters as well.
+
 8.1.0-dev.83 | 2025-08-18 09:40:41 -0700
 
   * Add `record_type_to_vector` deprecation to NEWS (Evan Typanski, Corelight)

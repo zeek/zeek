@@ -11,6 +11,9 @@ We would like to thank ... for their contributions to this release.
 Breaking Changes
 ----------------
 
+- The ``&optional`` script attribute will now error when applied to anything that's
+  not a record field. Previously, this would have surprising behavior.
+
 New Functionality
 -----------------
 

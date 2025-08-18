@@ -1,10 +1,16 @@
+8.0.0-rc2.5 | 2025-08-18 16:41:20 +0000
+
+  * Add `record_type_to_vector` deprecation to NEWS (Evan Typanski, Corelight)
+
+    (cherry picked from commit a4da8d3f7bd455c7158465d12d25eb6030526f3f)
+
 8.0.0-rc2.4 | 2025-08-18 16:36:59 +0000
 
-  * Merge remote-tracking branch 'origin/topic/vern/stmt-line-numbers' (Arne Welzel, Corelight)
+  * maintenance updates for ZAM BiF-tracking (Vern Paxson, Corelight)
 
-    * origin/topic/vern/stmt-line-numbers:
-      maintenance updates for ZAM BiF-tracking
-      fix line numbers associated with "if" and initialization statements
+    (cherry picked from commit c0a863cba0896f860a0c44ce0ff668c21267c239)
+
+  * fix line numbers associated with "if" and initialization statements (Vern Paxson, Corelight)
 
     (cherry picked from commit c0a863cba0896f860a0c44ce0ff668c21267c239)
 

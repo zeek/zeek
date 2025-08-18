@@ -429,6 +429,9 @@ Deprecated Functionality
   ``std::string`` and ``std::string_view`` added ``begins_with`` and ``ends_with`` methods
   in C++ 20, and those should be used instead.
 
+- The ``record_type_to_vector`` BIF is deprecated in favor of using the newly ordered
+  ``record_fields`` BIF.
+
 Zeek 7.2.0
 ==========
 

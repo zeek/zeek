@@ -1,3 +1,19 @@
+8.1.0-dev.76 | 2025-08-18 09:40:05 +0200
+
+  * Report PostgreSQL login success only after ReadyForQuery (Fupeng Zhao)
+
+    Previously, Zeek treated the receipt of `AuthenticationOk` as a
+    successful login. However, according to the PostgreSQL
+    Frontend/Backend Protocol, the startup phase is not complete until
+    the server sends `ReadyForQuery`. It is still possible for the server
+    to emit an `ErrorResponse` (e.g. ERRCODE_INVALID_AUTHORIZATION_SPECIFICATION)
+    after `AuthenticationOk` but before `ReadyForQuery`.
+
+    This change updates the PostgreSQL analyzer to defer reporting login
+    success until `ReadyForQuery` is observed. This prevents false
+    positives in cases where authentication succeeds but session startup
+    fails.
+
 8.1.0-dev.74 | 2025-08-17 17:28:59 +0200
 
   * maintenance updates for ZAM BiF-tracking (Vern Paxson, Corelight)

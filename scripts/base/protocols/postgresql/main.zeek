@@ -53,7 +53,7 @@ export {
 		user: string &optional;
 		database: string &optional;
 		application_name: string &optional;
-		rows: count &default=0;
+		rows: count &optional;
 		errors: vector of string;
 	};
 
@@ -197,8 +197,6 @@ event PostgreSQL::authentication_ok(c: connection) {
 
 	c$postgresql$backend = "auth_ok";
 	c$postgresql$success = T;
-
-	emit_log(c);
 }
 
 event PostgreSQL::terminate(c: connection) {
@@ -224,6 +222,9 @@ event PostgreSQL::simple_query(c: connection, query: string) {
 event PostgreSQL::data_row(c: connection, column_values: count) {
 	hook set_session(c);
 
+	if ( ! c$postgresql_state?$rows )
+		c$postgresql_state$rows = 0;
+
 	++c$postgresql_state$rows;
 }
 
@@ -236,7 +237,11 @@ event PostgreSQL::ready_for_query(c: connection, transaction_status: string) {
 	if ( ! c$postgresql?$success )
 		c$postgresql$success = transaction_status == "I" || transaction_status == "T";
 
-	c$postgresql$rows = c$postgresql_state$rows;
+	if ( c$postgresql_state?$rows ) {
+		c$postgresql$rows = c$postgresql_state$rows;
+		delete c$postgresql_state$rows;
+	}
+
 	emit_log(c);
 }
 

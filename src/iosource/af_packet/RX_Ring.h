@@ -5,14 +5,17 @@
 extern "C" {
 #include <linux/if_packet.h> // AF_PACKET, etc.
 }
+
 #include <cstdint>
 #include <stdexcept>
-#include <string>
 
 #define TPACKET_VERSION TPACKET_V3
 
+namespace zeek::iosource::af_packet {
+
 class RX_RingException : public std::runtime_error {
 public:
+    RX_RingException(const char* what_arg) : std::runtime_error(what_arg) {}
     RX_RingException(const std::string& what_arg) : std::runtime_error(what_arg) {}
 };
 
@@ -42,3 +45,5 @@ private:
     uint8_t* ring;
     size_t size;
 };
+
+} // namespace zeek::iosource::af_packet

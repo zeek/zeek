@@ -1,0 +1,16 @@
+# See the file "COPYING" in the main distribution directory for copyright.
+
+# Options for the AF_Packet packet source.
+
+module AF_Packet;
+
+const buffer_size: count;
+const block_size: count;
+const block_timeout: interval;
+const enable_hw_timestamping: bool;
+const enable_defrag: bool;
+const enable_fanout: bool;
+const fanout_mode: FanoutMode;
+const fanout_id: count;
+const link_type: count;
+const checksum_validation_mode: ChecksumMode;

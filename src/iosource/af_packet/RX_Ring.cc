@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "RX_Ring.h"
+#include "zeek/iosource/af_packet/RX_Ring.h"
 
 #include <cstring>
 #include <utility>
@@ -12,34 +12,33 @@ extern "C" {
 #include <unistd.h>          // sysconf
 }
 
-RX_Ring::RX_Ring(int sock, size_t bufsize, size_t blocksize, int blocktimeout_msec) {
-    int ret, ver = TPACKET_VERSION;
+using namespace zeek::iosource::af_packet;
 
+RX_Ring::RX_Ring(int sock, size_t bufsize, size_t blocksize, int blocktimeout_msec) {
     if ( sock < 0 )
         throw RX_RingException("invalid socket");
 
     // Configure socket
-    ret = setsockopt(sock, SOL_PACKET, PACKET_VERSION, &ver, sizeof(ver));
-    if ( ret )
+    int ver = TPACKET_VERSION;
+    if ( setsockopt(sock, SOL_PACKET, PACKET_VERSION, &ver, sizeof(ver)) != 0 )
         throw RX_RingException("unable to set TPacket version");
 
     InitLayout(bufsize, blocksize, blocktimeout_msec);
-    ret = setsockopt(sock, SOL_PACKET, PACKET_RX_RING, (uint8_t*)&layout, sizeof(layout));
-    if ( ret )
+    if ( setsockopt(sock, SOL_PACKET, PACKET_RX_RING, (uint8_t*)&layout, sizeof(layout)) != 0 )
         throw RX_RingException("unable to set ring layout");
 
     // Map memory
-    size = layout.tp_block_size * layout.tp_block_nr;
-    ring = (uint8_t*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, sock, 0);
+    size = static_cast<size_t>(layout.tp_block_size) * layout.tp_block_nr;
+    ring = (uint8_t*)mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, sock, 0);
     if ( ring == MAP_FAILED )
         throw RX_RingException("unable to map ring memory");
 
     block_num = packet_num = 0;
-    packet = NULL;
+    packet = nullptr;
 
     // Init block mapping
     blocks = new tpacket_block_desc*[layout.tp_block_nr];
-    for ( unsigned int i = 0; i < layout.tp_block_nr; i++ )
+    for ( size_t i = 0; i < layout.tp_block_nr; i++ )
         blocks[i] = (struct tpacket_block_desc*)(ring + i * layout.tp_block_size);
 }
 
@@ -49,7 +48,7 @@ RX_Ring::~RX_Ring() {
     delete[] blocks;
     munmap(ring, size);
 
-    blocks = 0;
+    blocks = nullptr;
     size = 0;
 }
 
@@ -59,7 +58,7 @@ bool RX_Ring::GetNextPacket(tpacket3_hdr** hdr) {
     if ( (block_hdr->block_status & TP_STATUS_USER) == 0 )
         return false;
 
-    if ( packet == NULL ) {
+    if ( packet == nullptr ) {
         // New block
         packet_num = block_hdr->num_pkts;
         if ( packet_num == 0 ) {
@@ -96,5 +95,5 @@ void RX_Ring::NextBlock() {
 
     block_hdr->block_status = TP_STATUS_KERNEL;
     block_num = (block_num + 1) % layout.tp_block_nr;
-    packet = NULL;
+    packet = nullptr;
 }

@@ -17,10 +17,9 @@ extern "C" {
 }
 
 #include "zeek/iosource/PktSrc.h"
+#include "zeek/iosource/af_packet/RX_Ring.h"
 
-#include "RX_Ring.h"
-
-namespace af_packet::iosource::pktsrc {
+namespace zeek::iosource::af_packet {
 
 class AF_PacketSource : public zeek::iosource::PktSrc {
 public:
@@ -80,4 +79,4 @@ private:
     uint32_t GetFanoutMode(bool defrag);
 };
 
-} // namespace zeek::iosource::pktsrc
+} // namespace zeek::iosource::af_packet

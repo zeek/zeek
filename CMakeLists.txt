@@ -1189,18 +1189,6 @@ endif ()
 # Tell the plugin code that we're building as part of the main tree.
 set(ZEEK_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
 
-set(ZEEK_HAVE_AF_PACKET no)
-if (${CMAKE_SYSTEM_NAME} MATCHES Linux)
-    if (NOT DISABLE_AF_PACKET)
-        if (NOT AF_PACKET_PLUGIN_PATH)
-            set(AF_PACKET_PLUGIN_PATH ${CMAKE_SOURCE_DIR}/auxil/zeek-af_packet-plugin)
-        endif ()
-
-        list(APPEND ZEEK_INCLUDE_PLUGINS ${AF_PACKET_PLUGIN_PATH})
-        set(ZEEK_HAVE_AF_PACKET yes)
-    endif ()
-endif ()
-
 set(ZEEK_HAVE_JAVASCRIPT no)
 if (NOT DISABLE_JAVASCRIPT)
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/auxil/zeekjs/cmake)
@@ -1220,6 +1208,7 @@ if (NOT DISABLE_JAVASCRIPT)
     endif ()
 endif ()
 
+set(ZEEK_HAVE_AF_PACKET no CACHE INTERNAL "Zeek has AF_PACKET support")
 set(ZEEK_HAVE_JAVASCRIPT ${ZEEK_HAVE_JAVASCRIPT} CACHE INTERNAL "Zeek has JavaScript support")
 
 set(DEFAULT_ZEEKPATH_PATHS

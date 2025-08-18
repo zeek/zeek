@@ -49,9 +49,6 @@
 [submodule "auxil/spicy"]
 	path = auxil/spicy
 	url = https://github.com/zeek/spicy
-[submodule "auxil/zeek-af_packet-plugin"]
-	path = auxil/zeek-af_packet-plugin
-	url = https://github.com/zeek/zeek-af_packet-plugin.git
 [submodule "auxil/libunistd"]
 	path = auxil/libunistd
 	url = https://github.com/zeek/libunistd

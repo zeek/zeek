@@ -1,25 +1,15 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "zeek/zeek-config.h"
+#include "zeek/iosource/af_packet/AF_Packet.h"
 
-// Starting with Zeek 6.0, zeek-config.h does not provide the
-// ZEEK_VERSION_NUMBER macro anymore when compiling a included
-// plugin. Use the new zeek/zeek-version.h header if it exists.
-#if __has_include("zeek/zeek-version.h")
-#include "zeek/zeek-version.h"
-#endif
+#include "zeek/iosource/af_packet/RX_Ring.h"
+#include "zeek/iosource/af_packet/af_packet.bif.h"
 
-#include "AF_Packet.h"
-#include "RX_Ring.h"
-#include "af_packet.bif.h"
-
-// CentOS 7 if_packet.h does not yet have this define, provide it
-// explicitly if missing.
 #ifndef TP_STATUS_CSUM_VALID
 #define TP_STATUS_CSUM_VALID (1 << 7)
 #endif
 
-using namespace zeek::iosource::pktsrc;
+using namespace zeek::iosource::af_packet;
 
 AF_PacketSource::~AF_PacketSource() { Close(); }
 
@@ -165,15 +155,10 @@ bool AF_PacketSource::EnablePromiscMode(const AF_PacketSource::InterfaceInfo& in
 
 bool AF_PacketSource::ConfigureFanoutGroup(bool enabled, bool defrag) {
     if ( enabled ) {
-        uint32_t fanout_arg, fanout_id;
-        int ret;
+        uint32_t fanout_id = zeek::BifConst::AF_Packet::fanout_id;
+        uint32_t fanout_arg = ((fanout_id & 0xffff) | (GetFanoutMode(defrag) << 16));
 
-        fanout_id = zeek::BifConst::AF_Packet::fanout_id;
-        fanout_arg = ((fanout_id & 0xffff) | (GetFanoutMode(defrag) << 16));
-
-        ret = setsockopt(socket_fd, SOL_PACKET, PACKET_FANOUT, &fanout_arg, sizeof(fanout_arg));
-
-        if ( ret < 0 )
+        if ( setsockopt(socket_fd, SOL_PACKET, PACKET_FANOUT, &fanout_arg, sizeof(fanout_arg)) < 0 )
             return false;
     }
     return true;
@@ -183,7 +168,6 @@ bool AF_PacketSource::ConfigureHWTimestamping(bool enabled) {
     if ( enabled ) {
         struct ifreq ifr;
         struct hwtstamp_config hwts_cfg;
-        int ret, opt;
 
         memset(&hwts_cfg, 0, sizeof(hwts_cfg));
         hwts_cfg.tx_type = HWTSTAMP_TX_OFF;
@@ -192,13 +176,11 @@ bool AF_PacketSource::ConfigureHWTimestamping(bool enabled) {
         snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", props.path.c_str());
         ifr.ifr_data = &hwts_cfg;
 
-        ret = ioctl(socket_fd, SIOCSHWTSTAMP, &ifr);
-        if ( ret < 0 )
+        if ( ioctl(socket_fd, SIOCSHWTSTAMP, &ifr) < 0 )
             return false;
 
-        opt = SOF_TIMESTAMPING_RAW_HARDWARE | SOF_TIMESTAMPING_RX_HARDWARE;
-        ret = setsockopt(socket_fd, SOL_PACKET, PACKET_TIMESTAMP, &opt, sizeof(opt));
-        if ( ret < 0 )
+        int opt = SOF_TIMESTAMPING_RAW_HARDWARE | SOF_TIMESTAMPING_RX_HARDWARE;
+        if ( setsockopt(socket_fd, SOL_PACKET, PACKET_TIMESTAMP, &opt, sizeof(opt)) < 0 )
             return false;
     }
     return true;
@@ -244,7 +226,7 @@ bool AF_PacketSource::ExtractNextPacket(zeek::Packet* pkt) {
     if ( ! socket_fd )
         return false;
 
-    struct tpacket3_hdr* packet = 0;
+    struct tpacket3_hdr* packet = nullptr;
     const u_char* data;
     while ( true ) {
         if ( ! rx_ring->GetNextPacket(&packet) )
@@ -267,7 +249,6 @@ bool AF_PacketSource::ExtractNextPacket(zeek::Packet* pkt) {
         if ( packet->tp_status & TP_STATUS_VLAN_VALID )
             pkt->vlan = packet->hv1.tp_vlan_tci & 0x0fff;
 
-#if ZEEK_VERSION_NUMBER >= 50100
         switch ( checksum_mode ) {
             case BifEnum::AF_Packet::CHECKSUM_OFF: {
                 // If set to off, just accept whatever checksum in the packet is correct and
@@ -292,7 +273,6 @@ bool AF_PacketSource::ExtractNextPacket(zeek::Packet* pkt) {
                 break;
             }
         }
-#endif
 
         if ( current_hdr.len == 0 || current_hdr.caplen == 0 ) {
             Weird("empty_af_packet_header", pkt);

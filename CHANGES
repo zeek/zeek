@@ -1,3 +1,7 @@
+8.1.0-dev.89 | 2025-08-18 14:46:57 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
 8.1.0-dev.87 | 2025-08-18 14:39:10 -0400
 
   * Fix parameter attributes pretending to be records (Evan Typanski, Corelight)

@@ -1,3 +1,11 @@
+8.1.0-dev.81 | 2025-08-18 16:44:30 +0200
+
+  * cluster/serializer/broker: Drop unused include (Arne Welzel, Corelight)
+
+  * cluster/serializer/broker: fixup inconsistent param comment (Arne Welzel, Corelight)
+
+    References #4754 #4756
+
 8.1.0-dev.78 | 2025-08-18 13:13:21 +0200
 
   * Changed behavior of var-extraction-uri.zeek from policy/protocol/http to extract only the URI parameter names. Do not include the path in the first parameter name. Only extract uri vars if parameters actually exist. (Benjamin Grap)

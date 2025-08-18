@@ -55,7 +55,9 @@ constexpr double NO_TIMESTAMP = -1.0;
 
 class Event final : public Obj {
 public:
-    [[deprecated("Remove in v8.1: Do not instantiate raw events. Use EventMgr::Dispatch() or EventMgr::Enqueue().")]]
+    [[deprecated(
+        "Remove in v8.1: The public constructor for Event() is deprecated. Pass arguments directly to "
+        "EventMgr::Dispatch() or EventMgr::Enqueue() instead.")]]
     Event(const EventHandlerPtr& handler, zeek::Args args, util::detail::SourceID src = util::detail::SOURCE_LOCAL,
           analyzer::ID aid = 0, Obj* obj = nullptr, double ts = run_state::network_time);
 

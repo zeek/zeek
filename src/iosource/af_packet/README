@@ -91,7 +91,7 @@ To use the AF_Packet plugin with `zeekctl`, the `custom` load balance method can
     af_packet_fanout_mode=AF_Packet::FANOUT_HASH
     af_packet_buffer_size=128*1024*1024
 
-If all interfaces using `lb_method=custom` should be configured for AF_Packet, the prefix can be globally definied by adding the following line to `zeekctl.conf`:
+If all interfaces using `lb_method=custom` should be configured for AF_Packet, the prefix can be globally defined by adding the following line to `zeekctl.conf`:
 
     lb_custom.InterfacePrefix=af_packet::
 

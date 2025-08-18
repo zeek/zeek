@@ -13,32 +13,32 @@ extern "C" {
 
 class RX_RingException : public std::runtime_error {
 public:
-	RX_RingException(const std::string& what_arg) : std::runtime_error(what_arg) {}
+    RX_RingException(const std::string& what_arg) : std::runtime_error(what_arg) {}
 };
 
 class RX_Ring {
 public:
-	/**
-	 * Constructor
-	 */
-	RX_Ring(int sock, size_t bufsize, size_t blocksize, int blocktimeout_msec);
-	~RX_Ring();
+    /**
+     * Constructor
+     */
+    RX_Ring(int sock, size_t bufsize, size_t blocksize, int blocktimeout_msec);
+    ~RX_Ring();
 
-	bool GetNextPacket(tpacket3_hdr** hdr);
-	void ReleasePacket();
+    bool GetNextPacket(tpacket3_hdr** hdr);
+    void ReleasePacket();
 
 protected:
-	void InitLayout(size_t bufsize, size_t blocksize, int blocktimeout_msec);
-	void NextBlock();
+    void InitLayout(size_t bufsize, size_t blocksize, int blocktimeout_msec);
+    void NextBlock();
 
 private:
-	struct tpacket_req3 layout;
-	struct tpacket_block_desc** blocks;
-	struct tpacket3_hdr* packet;
+    struct tpacket_req3 layout;
+    struct tpacket_block_desc** blocks;
+    struct tpacket3_hdr* packet;
 
-	unsigned int block_num;
-	unsigned int packet_num;
+    unsigned int block_num;
+    unsigned int packet_num;
 
-	uint8_t* ring;
-	size_t size;
+    uint8_t* ring;
+    size_t size;
 };

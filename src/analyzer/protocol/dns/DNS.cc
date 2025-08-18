@@ -1657,11 +1657,14 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                     const uint16_t key_port = ExtractShort(data, len);
                     item_len_parsed += 2;
 
-                    svc_params += (item_cnt++ ? "," : "") + std::to_string(key_port);
+                    if ( item_cnt++ )
+                        svc_params += ",";
+                    svc_params += std::to_string(key_port);
                 }
                 break;
 
             case detail::alpn: // list of length-prefixed (1 octet) ALPN IDs (1-255 octets)
+                svc_params += "\"";
                 while ( item_len_parsed + 1 + 1 < value_len ) {
                     // XXX no Extract*() to get a single octet
                     uint8_t alpn_len = *data;
@@ -1674,14 +1677,15 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                         break;
                     }
 
-                    svc_params += item_cnt++ ? ",\"" : "\"";
+                    if ( item_cnt++ )
+                        svc_params += ",";
                     svc_params.append(reinterpret_cast<const char*>(data), alpn_len);
-                    svc_params += "\"";
 
                     data += alpn_len;
                     len -= alpn_len;
                     item_len_parsed += alpn_len;
                 }
+                svc_params += "\"";
                 break;
 
             case detail::ipv4hint: // list of IPs
@@ -1700,7 +1704,8 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                     char addr[addr_sz];
 
                     if ( zeek_inet_ntop(is_ipv4 ? AF_INET : AF_INET6, data, addr, addr_sz) ) {
-                        svc_params += item_cnt++ ? "," : "";
+                        if ( item_cnt++ )
+                            svc_params += ",";
                         svc_params.append(addr);
                     }
                     else

@@ -1,3 +1,21 @@
+8.0.0-3 | 2025-08-22 09:18:56 -0700
+
+  * Report PostgreSQL login success only after ReadyForQuery (Fupeng Zhao)
+
+    Previously, Zeek treated the receipt of `AuthenticationOk` as a
+    successful login. However, according to the PostgreSQL
+    Frontend/Backend Protocol, the startup phase is not complete until
+    the server sends `ReadyForQuery`. It is still possible for the server
+    to emit an `ErrorResponse` (e.g. ERRCODE_INVALID_AUTHORIZATION_SPECIFICATION)
+    after `AuthenticationOk` but before `ReadyForQuery`.
+
+    This change updates the PostgreSQL analyzer to defer reporting login
+    success until `ReadyForQuery` is observed. This prevents false
+    positives in cases where authentication succeeds but session startup
+    fails.
+
+    (cherry picked from commit e04f725523dc4eaeb4739c8bbfcdce8a9ba06f7b)
+
 8.0.0-2 | 2025-08-18 14:44:27 -0700
 
   * Clarify Event constructor deprectation message (Tim Wojtulewicz, Corelight)

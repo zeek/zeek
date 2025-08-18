@@ -1,3 +1,7 @@
+8.0.0 | 2025-08-18 17:08:25 +0000
+
+  * Update docs submodule for 8.0.0 [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
 8.0.0-rc2.5 | 2025-08-18 16:41:20 +0000
 
   * Add `record_type_to_vector` deprecation to NEWS (Evan Typanski, Corelight)

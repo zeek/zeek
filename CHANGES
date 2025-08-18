@@ -1,3 +1,7 @@
+8.1.0-dev.83 | 2025-08-18 09:40:41 -0700
+
+  * Add `record_type_to_vector` deprecation to NEWS (Evan Typanski, Corelight)
+
 8.1.0-dev.81 | 2025-08-18 16:44:30 +0200
 
   * cluster/serializer/broker: Drop unused include (Arne Welzel, Corelight)

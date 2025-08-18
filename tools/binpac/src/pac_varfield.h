@@ -10,8 +10,7 @@ class ParseVarField : public Field {
 public:
     ParseVarField(int is_class_member, ID* id, Type* type)
         : Field(PARSE_VAR_FIELD, TYPE_TO_BE_PARSED | is_class_member | NOT_PUBLIC_READABLE, id, type) {}
-    void GenPubDecls(Output* out, Env* env) override { /* do nothing */
-    }
+    void GenPubDecls(Output* out, Env* env) override { /* do nothing */ }
 };
 
 // A public variable
@@ -29,8 +28,7 @@ public:
         : Field(PRIV_VAR_FIELD, TYPE_NOT_TO_BE_PARSED | CLASS_MEMBER | NOT_PUBLIC_READABLE, id, type) {}
     ~PrivVarField() override {}
 
-    void GenPubDecls(Output* out, Env* env) override { /* do nothing */
-    }
+    void GenPubDecls(Output* out, Env* env) override { /* do nothing */ }
 };
 
 class TempVarField : public Field {

@@ -144,15 +144,11 @@ public:
 
     void Prepare(Env* env) override;
 
-    void GenPubDecls(Output* out, Env* env) override { /* nothing */
-    }
-    void GenPrivDecls(Output* out, Env* env) override { /* nothing */
-    }
+    void GenPubDecls(Output* out, Env* env) override { /* nothing */ }
+    void GenPrivDecls(Output* out, Env* env) override { /* nothing */ }
 
-    void GenInitCode(Output* out, Env* env) override { /* nothing */
-    }
-    void GenCleanUpCode(Output* out, Env* env) override { /* nothing */
-    }
+    void GenInitCode(Output* out, Env* env) override { /* nothing */ }
+    void GenCleanUpCode(Output* out, Env* env) override { /* nothing */ }
     void GenParseCode(Output* out, Env* env) override;
 
     int StaticSize(Env* env, int offset) const override;

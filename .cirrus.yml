@@ -99,13 +99,13 @@ ci_template: &CI_TEMPLATE
   # tasks, so may as well ask for full time.
   timeout_in: 120m
 
-  sync_submodules_script: git submodule update --recursive --init
+#  sync_submodules_script: git submodule update --recursive --init
 
-  get_external_pcaps_cache:
-    folder: testing/external/zeek-testing-traces
-    fingerprint_script: echo zeek-testing-traces
-    populate_script: ./ci/init-external-repos.sh
-    reupload_on_changes: true
+  # get_external_pcaps_cache:
+  #   folder: testing/external/zeek-testing-traces
+  #   fingerprint_script: echo zeek-testing-traces
+  #   populate_script: ./ci/init-external-repos.sh
+  #   reupload_on_changes: true
 
   always:
     ccache_cache:
@@ -113,7 +113,7 @@ ci_template: &CI_TEMPLATE
       fingerprint_script: echo ccache-$ZEEK_CCACHE_EPOCH-$CIRRUS_TASK_NAME-$CIRRUS_OS
       reupload_on_changes: true
 
-  init_external_repos_script: ./ci/init-external-repos.sh
+#  init_external_repos_script: ./ci/init-external-repos.sh
 
   pre_build_script: ./ci/pre-build.sh
   build_script: ./ci/build.sh

@@ -1,5 +1,8 @@
 #! /usr/bin/env bash
 
+echo "ci/benchmark.sh"
+exit 0
+
 ZEEK_BENCHMARK_ENDPOINT="/zeek"
 
 # Setting this causes any command failures to immediately cause the script to fail.

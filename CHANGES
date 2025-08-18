@@ -1,3 +1,7 @@
+8.1.0-dev.78 | 2025-08-18 13:13:21 +0200
+
+  * Changed behavior of var-extraction-uri.zeek from policy/protocol/http to extract only the URI parameter names. Do not include the path in the first parameter name. Only extract uri vars if parameters actually exist. (Benjamin Grap)
+
 8.1.0-dev.76 | 2025-08-18 09:40:05 +0200
 
   * Report PostgreSQL login success only after ReadyForQuery (Fupeng Zhao)

@@ -50,6 +50,9 @@ New Functionality
 Changed Functionality
 ---------------------
 
+- The var-extraction-uri.zeek policy does not include the path in the ``uri_vars``
+  field anymore.
+
 Removed Functionality
 ---------------------
 

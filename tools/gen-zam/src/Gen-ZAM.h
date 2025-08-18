@@ -367,7 +367,7 @@ protected:
 
     // An "assignment-less" operation is one that, if its result
     // is used in a dead assignment, should be converted to a different
-    // operation that explictly omits any assignment.
+    // operation that explicitly omits any assignment.
     bool HasAssignmentLess() const { return ! assignment_less_op.empty(); }
     void SetAssignmentLess(string op, string op_class) {
         assignment_less_op = std::move(op);
@@ -515,7 +515,7 @@ protected:
         IndentDown();
     }
 
-    // Start/finish emiting a (likely multi-line) string literal -
+    // Start/finish emitting a (likely multi-line) string literal -
     // see corresponding ZAMGen methods.
     void StartString();
     void EndString();

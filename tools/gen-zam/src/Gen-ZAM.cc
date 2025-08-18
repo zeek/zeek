@@ -136,7 +136,7 @@ ArgsManager::ArgsManager(const OCVec& oc_orig, ZAM_InstClass zc) {
 
 void ArgsManager::Differentiate() {
     // First, figure out which parameter names are used how often.
-    map<string, int> name_count;  // how often the name apepars
+    map<string, int> name_count;  // how often the name appears
     map<string, int> usage_count; // how often the name's been used so far
     for ( auto& arg : args ) {
         auto& name = arg.param_name;

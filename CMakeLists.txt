@@ -912,7 +912,7 @@ set(BIFCL_EXE_PATH "${CMAKE_BINARY_DIR}/tools/bifcl/bifcl${CMAKE_EXECUTABLE_SUFF
 set(_bifcl_exe_path "included")
 
 if (NOT GEN_ZAM_EXE_PATH)
-    add_subdirectory(auxil/gen-zam)
+    add_subdirectory(tools/gen-zam)
 endif ()
 
 if (ENABLE_JEMALLOC)

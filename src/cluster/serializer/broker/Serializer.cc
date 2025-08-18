@@ -59,7 +59,7 @@ std::optional<broker::zeek::Event> detail::to_broker_event(const zeek::cluster::
     xs.reserve(ev.Args().size());
 
     for ( const auto& a : ev.Args() ) {
-        if ( auto res = zeek::Broker::detail::val_to_data(a.get(), /*flatten_broker_dataval=*/true) )
+        if ( auto res = zeek::Broker::detail::val_to_data(a.get(), /*unwrap_broker_data=*/true) )
             xs.emplace_back(std::move(res.value()));
         else
             return std::nullopt;

@@ -1,7 +1,6 @@
 #include <ctype.h>
 #include <unistd.h>
 
-#include "config.h"
 #include "pac_common.h"
 #include "pac_decl.h"
 #include "pac_exception.h"

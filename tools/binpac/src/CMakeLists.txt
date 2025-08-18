@@ -1,14 +1,15 @@
-bison_target(PACParser pac_parse.yy ${BinPAC_BINARY_DIR}/src/pac_parse.cc
-             DEFINES_FILE ${BinPAC_BINARY_DIR}/src/pac_parse.h COMPILE_FLAGS "--debug")
-flex_target(PACScanner pac_scan.ll ${BinPAC_BINARY_DIR}/pac_scan.cc)
+find_package(FLEX REQUIRED)
+find_package(BISON REQUIRED)
+
+bison_target(PACParser pac_parse.yy ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.cc
+             DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.h COMPILE_FLAGS "--debug")
+flex_target(PACScanner pac_scan.ll ${CMAKE_CURRENT_BINARY_DIR}/pac_scan.cc)
 add_flex_bison_dependency(PACScanner PACParser)
 if (MSVC)
     set_property(SOURCE pac_scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "/wd4018")
 else ()
     set_property(SOURCE pac_scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
 endif ()
-
-include_directories(${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src)
 
 set(binpac_SRCS
     ${BISON_PACParser_INPUT}
@@ -52,62 +53,19 @@ set(binpac_SRCS
     pac_output.cc
     pac_utils.cc
     pac_exception.cc
-    pac_main.cc
-    pac_action.h
-    pac_analyzer.h
-    pac_array.h
-    pac_attr.h
-    pac_btype.h
-    pac_case.h
-    pac_cclass.h
-    pac_common.h
-    pac_conn.h
-    pac_context.h
-    pac_cstr.h
-    pac_ctype.h
-    pac_datadep.h
-    pac_dataptr.h
-    pac_dataunit.h
-    pac_dbg.h
-    pac_decl-inl.h
-    pac_decl.h
-    pac_embedded.h
-    pac_enum.h
-    pac_exception.h
-    pac_expr.h
-    pac_exttype.h
-    pac_field.h
-    pac_flow.h
-    pac_func.h
-    pac_id.h
-    pac_inputbuf.h
-    pac_let.h
-    pac_nullptr.h
-    pac_number.h
-    pac_output.h
-    pac_param.h
-    pac_paramtype.h
-    pac_primitive.h
-    pac_record.h
-    pac_redef.h
-    pac_regex.h
-    pac_state.h
-    pac_strtype.h
-    pac_type.h
-    pac_typedecl.h
-    pac_utils.h
-    pac_varfield.h
-    pac_withinput.h)
-
-include(${PROJECT_SOURCE_DIR}/cmake/RequireCXXStd.cmake)
+    pac_main.cc)
 
 add_executable(binpac ${binpac_SRCS})
 
+target_include_directories(binpac BEFORE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(binpac BEFORE PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+
 if (MSVC)
+    target_compile_options(binpac PUBLIC "/J")
     # If building separately from zeek, we need to add the libunistd subdirectory
     # so that linking doesn't fail.
     if ("${CMAKE_PROJECT_NAME}" STREQUAL "BinPAC")
-        add_subdirectory(auxil/libunistd EXCLUDE_FROM_ALL)
+        add_subdirectory(${PROJECT_SOURCE_DIR}auxil/libunistd EXCLUDE_FROM_ALL)
     endif ()
     target_link_libraries(binpac PRIVATE libunistd)
 endif ()

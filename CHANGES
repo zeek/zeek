@@ -1,3 +1,25 @@
+8.1.0-dev.97 | 2025-08-19 20:27:13 +0200
+
+  * logging/Manager: Also pass non-null vector and set (Arne Welzel, Corelight)
+
+    Primarily to align with strings and also to keep the plugin
+    API the same.
+
+  * logging/Manager: Non-null strings for empty strings (Arne Welzel, Corelight)
+
+    After #4724, empty strings would result in nullptrs being stored in the
+    threading::Value's string_val.data field instead of a valid pointer to
+    an empty strings. This upsets UBSAN's  nonnull check for memcpy()
+
+        [01:29:45.807]   ../../src/SerializationFormat.cc:80:33: runtime error: null pointer passed as argument 2, which is declared to never be null
+        [01:29:45.807]   /usr/include/string.h:44:28: note: nonnull attribute specified here
+        [01:29:45.807]       #0 0x5b2e9c933a3f in zeek::detail::SerializationFormat::WriteData(void const*, unsigned long) /zeek/build/src/../../src/SerializationFormat.cc:80:5
+        [01:29:45.807]       #1 0x5b2e9c935184 in zeek::detail::BinarySerializationFormat::Write(char const*, int, char const*) /zeek/build/src/../../src/SerializationFormat.cc:371:40
+
+    Continue to allocate the empty string for now as a fix.
+
+  * CI: Ubuntu 24.10 is eol, add Ubuntu 25.04 (Johanna Amann, Corelight)
+
 8.1.0-dev.91 | 2025-08-18 14:59:41 -0700
 
   * Add a missing header for the broker cluster serializer (Tim Wojtulewicz, Corelight)

@@ -1511,9 +1511,6 @@ threading::Value Manager::ValToLogVal(WriterInfo* info, const Stream* stream, st
                 info->total_truncated_string_fields->Inc();
             }
 
-            if ( allowed_bytes == 0 )
-                return lval;
-
             char* buf = new char[allowed_bytes];
             memcpy(buf, s->Bytes(), allowed_bytes);
 
@@ -1569,9 +1566,6 @@ threading::Value Manager::ValToLogVal(WriterInfo* info, const Stream* stream, st
                 info->total_truncated_containers->Inc();
             }
 
-            if ( allowed_elements == 0 )
-                return lval;
-
             lval.val.set_val.vals = new threading::Value*[allowed_elements];
 
             for ( size_t i = 0; i < allowed_elements && total_record_size < max_log_record_size; i++ ) {
@@ -1599,9 +1593,6 @@ threading::Value Manager::ValToLogVal(WriterInfo* info, const Stream* stream, st
                 reporter->Weird("log_container_field_truncated", util::fmt("%s", stream->name.c_str()));
                 info->total_truncated_containers->Inc();
             }
-
-            if ( allowed_elements == 0 )
-                return lval;
 
             lval.val.vector_val.vals = new threading::Value*[allowed_elements];
 

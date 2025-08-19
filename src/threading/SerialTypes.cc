@@ -376,7 +376,10 @@ bool Value::Write(detail::SerializationFormat* fmt) const {
         case TYPE_ENUM:
         case TYPE_STRING:
         case TYPE_FILE:
-        case TYPE_FUNC: return fmt->Write(val.string_val.data, val.string_val.length, "string");
+        case TYPE_FUNC: {
+            assert(val.string_val.data);
+            return fmt->Write(val.string_val.data, val.string_val.length, "string");
+        }
 
         case TYPE_TABLE: {
             if ( ! fmt->Write(val.set_val.size, "set_size") )

@@ -1,4 +1,4 @@
-FROM ubuntu:24.10
+FROM ubuntu:25.04
 
 ENV DEBIAN_FRONTEND="noninteractive" TZ="America/Los_Angeles"
 

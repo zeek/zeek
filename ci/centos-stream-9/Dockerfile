@@ -34,9 +34,9 @@ RUN dnf -y --nobest install \
     openssl \
     openssl-devel \
     procps-ng \
-    python3 \
-    python3-devel \
-    python3-pip\
+    python3.13 \
+    python3.13-devel \
+    python3.13-pip\
     sqlite \
     swig \
     tar \
@@ -46,5 +46,9 @@ RUN dnf -y --nobest install \
 
 # Set the crypto policy to allow SHA-1 certificates - which we have in our tests
 RUN dnf -y --nobest install crypto-policies-scripts && update-crypto-policies --set LEGACY
+
+# Override the default python3.9 installation paths with 3.13
+RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.13 10
+RUN alternatives --install /usr/bin/pip3 pip3 /usr/bin/pip3.13 10
 
 RUN pip3 install websockets junit2html

@@ -11,6 +11,8 @@ We would like to thank ... for their contributions to this release.
 Breaking Changes
 ----------------
 
+- Python 3.10 is now required for Zeek and all of its associated subprojects.
+
 - The ``&optional`` script attribute will now error when applied to anything that's
   not a record field. Previously, this would have surprising behavior.
 

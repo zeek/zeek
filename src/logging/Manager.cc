@@ -1511,9 +1511,6 @@ threading::Value Manager::ValToLogVal(WriterInfo* info, const Stream* stream, st
                 info->total_truncated_string_fields->Inc();
             }
 
-            if ( allowed_bytes == 0 )
-                return lval;
-
             char* buf = new char[allowed_bytes];
             memcpy(buf, s->Bytes(), allowed_bytes);
 

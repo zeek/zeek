@@ -16,6 +16,15 @@ Breaking Changes
 - The ``&optional`` script attribute will now error when applied to anything that's
   not a record field. Previously, this would have surprising behavior.
 
+- The BinPAC, Bifcl, and Gen-ZAM tools have all moved directly into the Zeek repo, which
+  should ease maintenance on them a bit. They were moved from the ``auxil`` directory to the
+  tools directory. Along with this, the ``--gen-zam`` argument for ``configure`` was
+  removed and the internal version will always be used.
+
+- The zeek-af_packet-plugin git submodule was moved directly into the Zeek repo. This used
+  to live in the ``auxil`` directory, after having moved there from an external plugin.
+  It is now built as part of main Zeek build whenever building on Linux.
+
 New Functionality
 -----------------
 

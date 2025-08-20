@@ -396,14 +396,14 @@ endfunction ()
 
 add_zeek_dynamic_plugin_build_interface_include_directories(
     ${PROJECT_SOURCE_DIR}/src/include
-    ${PROJECT_SOURCE_DIR}/auxil/binpac/lib
+    ${PROJECT_SOURCE_DIR}/tools/binpac/lib
     ${PROJECT_SOURCE_DIR}/auxil/broker/libbroker
     ${PROJECT_SOURCE_DIR}/auxil/paraglob/include
     ${PROJECT_SOURCE_DIR}/auxil/prometheus-cpp/core/include
     ${PROJECT_SOURCE_DIR}/auxil/expected-lite/include
     ${CMAKE_BINARY_DIR}/src
     ${CMAKE_BINARY_DIR}/src/include
-    ${CMAKE_BINARY_DIR}/auxil/binpac/lib
+    ${CMAKE_BINARY_DIR}/tools/binpac/lib
     ${CMAKE_BINARY_DIR}/auxil/broker/libbroker
     ${CMAKE_BINARY_DIR}/auxil/prometheus-cpp/core/include)
 
@@ -892,28 +892,26 @@ if (BUILD_STATIC_BINPAC)
     set(ENABLE_STATIC_ONLY true)
 endif ()
 
-add_subdirectory(auxil/binpac)
+add_subdirectory(tools/binpac)
 set(ENABLE_STATIC_ONLY ${ENABLE_STATIC_ONLY_SAVED})
 
 # FIXME: avoid hard-coding a path for multi-config generator support. See the
 # TODO in ZeekPluginConfig.cmake.in.
-set(BINPAC_EXE_PATH "${CMAKE_BINARY_DIR}/auxil/binpac/src/binpac${CMAKE_EXECUTABLE_SUFFIX}")
+set(BINPAC_EXE_PATH "${CMAKE_BINARY_DIR}/tools/binpac/src/binpac${CMAKE_EXECUTABLE_SUFFIX}")
 set(_binpac_exe_path "included")
 
 # Need to call find_package so it sets up the include paths used by plugin builds.
 find_package(BinPAC REQUIRED)
 add_executable(Zeek::BinPAC ALIAS binpac)
 
-add_subdirectory(auxil/bifcl)
+add_subdirectory(tools/bifcl)
 add_executable(Zeek::BifCl ALIAS bifcl)
 # FIXME: avoid hard-coding a path for multi-config generator support. See the
 # TODO in ZeekPluginConfig.cmake.in.
-set(BIFCL_EXE_PATH "${CMAKE_BINARY_DIR}/auxil/bifcl/bifcl${CMAKE_EXECUTABLE_SUFFIX}")
+set(BIFCL_EXE_PATH "${CMAKE_BINARY_DIR}/tools/bifcl/bifcl${CMAKE_EXECUTABLE_SUFFIX}")
 set(_bifcl_exe_path "included")
 
-if (NOT GEN_ZAM_EXE_PATH)
-    add_subdirectory(auxil/gen-zam)
-endif ()
+add_subdirectory(tools/gen-zam)
 
 if (ENABLE_JEMALLOC)
     if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
@@ -1189,18 +1187,6 @@ endif ()
 # Tell the plugin code that we're building as part of the main tree.
 set(ZEEK_PLUGIN_INTERNAL_BUILD true CACHE INTERNAL "" FORCE)
 
-set(ZEEK_HAVE_AF_PACKET no)
-if (${CMAKE_SYSTEM_NAME} MATCHES Linux)
-    if (NOT DISABLE_AF_PACKET)
-        if (NOT AF_PACKET_PLUGIN_PATH)
-            set(AF_PACKET_PLUGIN_PATH ${CMAKE_SOURCE_DIR}/auxil/zeek-af_packet-plugin)
-        endif ()
-
-        list(APPEND ZEEK_INCLUDE_PLUGINS ${AF_PACKET_PLUGIN_PATH})
-        set(ZEEK_HAVE_AF_PACKET yes)
-    endif ()
-endif ()
-
 set(ZEEK_HAVE_JAVASCRIPT no)
 if (NOT DISABLE_JAVASCRIPT)
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/auxil/zeekjs/cmake)
@@ -1220,6 +1206,7 @@ if (NOT DISABLE_JAVASCRIPT)
     endif ()
 endif ()
 
+set(ZEEK_HAVE_AF_PACKET no CACHE INTERNAL "Zeek has AF_PACKET support")
 set(ZEEK_HAVE_JAVASCRIPT ${ZEEK_HAVE_JAVASCRIPT} CACHE INTERNAL "Zeek has JavaScript support")
 
 set(DEFAULT_ZEEKPATH_PATHS
@@ -1558,11 +1545,8 @@ message("")
 
 output_summary_bool("AF_PACKET" ${ZEEK_HAVE_AF_PACKET})
 output_summary_bool("Aux. Tools" ${INSTALL_AUX_TOOLS})
-output_summary_line("BifCL" ${_bifcl_exe_path})
-output_summary_line("BinPAC" ${_binpac_exe_path})
 output_summary_bool("BTest" ${INSTALL_BTEST})
 output_summary_line("BTest tooling" ${_install_btest_tools_msg})
-output_summary_line("Gen-ZAM" ${_gen_zam_exe_path})
 output_summary_bool("JavaScript" ${ZEEK_HAVE_JAVASCRIPT})
 output_summary_line("Spicy" ${_spicy})
 output_summary_bool("Spicy analyzers" ${USE_SPICY_ANALYZERS})

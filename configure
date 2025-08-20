@@ -93,8 +93,6 @@ Usage: $0 [OPTION]... [VAR=VALUE]...
     --with-bison=PATH      path to bison executable
     --with-broker=PATH     path to Broker install root
                            (Zeek uses an embedded version by default)
-    --with-gen-zam=PATH    path to Gen-ZAM code generator
-                           (Zeek uses an embedded version by default)
     --with-flex=PATH       path to flex executable
     --with-libkqueue=PATH  path to libkqueue install root
                            (Zeek uses an embedded version by default)
@@ -377,9 +375,6 @@ while [ $# -ne 0 ]; do
             ;;
         --with-flex=*)
             append_cache_entry FLEX_EXECUTABLE PATH $optarg
-            ;;
-        --with-gen-zam=*)
-            append_cache_entry GEN_ZAM_EXE_PATH PATH $optarg
             ;;
         --with-geoip=*)
             append_cache_entry LibMMDB_ROOT_DIR PATH $optarg

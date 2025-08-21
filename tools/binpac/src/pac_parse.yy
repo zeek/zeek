@@ -1073,33 +1073,32 @@ optlinebreaker	:	/* nothing */
 
 const ID* current_decl_id = 0;
 
-int yyerror(const char msg[])
-	{
-	auto n = strlen(msg) + yyleng + 64;
-	char* msgbuf = new char[n];
+int yyerror(const char msg[]) {
+    auto n = strlen(msg) + yyleng + 64;
+    char* msgbuf = new char[n];
 
-	if ( ! yychar || ! yytext || yytext[0] == '\0' )
-		snprintf(msgbuf, n, "%s, at end of file", msg);
+    if ( ! yychar || ! yytext || yytext[0] == '\0' )
+        snprintf(msgbuf, n, "%s, at end of file", msg);
 
-	else if ( yytext[0] == '\n' )
-		snprintf(msgbuf, n, "%s, on previous line", msg);
+    else if ( yytext[0] == '\n' )
+        snprintf(msgbuf, n, "%s, on previous line", msg);
 
-	else
-		snprintf(msgbuf, n, "%s, at or near \"%s\"", msg, yytext);
+    else
+        snprintf(msgbuf, n, "%s, at or near \"%s\"", msg, yytext);
 
-	/*
-	extern int column;
-	sprintf(msgbuf, "%*s\n%*s\n", column, "^", column, msg);
-	*/
+    /*
+    extern int column;
+    sprintf(msgbuf, "%*s\n%*s\n", column, "^", column, msg);
+    */
 
-	if ( ! input_filename.empty() )
-		fprintf(stderr, "%s:%d: ", input_filename.c_str(), line_number);
-	else
-		fprintf(stderr, "line %d: ", line_number);
-	fprintf(stderr, "%s", msgbuf);
-	fprintf(stderr, " (yychar=%d)", yychar);
-	fprintf(stderr, "\n");
+    if ( ! input_filename.empty() )
+        fprintf(stderr, "%s:%d: ", input_filename.c_str(), line_number);
+    else
+        fprintf(stderr, "line %d: ", line_number);
+    fprintf(stderr, "%s", msgbuf);
+    fprintf(stderr, " (yychar=%d)", yychar);
+    fprintf(stderr, "\n");
 
-	delete[] msgbuf;
-	return 0;
-        }
+    delete[] msgbuf;
+    return 0;
+}

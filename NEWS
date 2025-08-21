@@ -348,7 +348,7 @@ New Functionality
 - Zeek now supports extracting the PPPoE session ID. The ``PacketAnalyzer::PPPoE::session_id``
   BiF can be used to get the session ID of the current packet.
 
-  The ``onn/pppoe-session-id-logging.zeek`` policy script adds pppoe session IDs to the
+  The ``conn/pppoe-session-id-logging.zeek`` policy script adds pppoe session IDs to the
   connection log.
 
   The ``get_conn_stats()`` function's return value now includes the number of packets
@@ -418,7 +418,7 @@ Changed Functionality
   times in X509 certificates as local times.
 
 - The PPPoE parser now respects the size value given in the PPPoE header. Data
-  beyon the size given in the header will be truncated.
+  beyond the size given in the header will be truncated.
 
 - Record fields with ``&default`` attributes initializing empty ``vector``, ``table``
   or ``set`` instances are now deferred until they are accessed, potentially
@@ -810,7 +810,7 @@ New Functionality
     some updates to Zeek's internal DNS resolver due to changes in the c-ares
     API. At least version v1.28.0 is now required to build Zeek.
 
-  - Python 3.9 is now required for Zeek and all of it's associated subprojects.
+  - Python 3.9 is now required for Zeek and all of its associated subprojects.
 
 - IP-based connections that were previously not logged due to using an unknown
   IP protocol (e.g. not TCP, UDP, or ICMP) now appear in conn.log. All conn.log
@@ -901,7 +901,7 @@ New Functionality
   analyzer used for processing the packet when the event is raised. The
   ``unknown_protocol.log`` file was extended to include this information.
 
-- The MySQL analyzer now generates a ``mysql_user_change()`` event when the user
+- The MySQL analyzer now generates a ``mysql_change_user()`` event when the user
   changes mid-session via the ``COM_USER_CHANGE`` command.
 
 - The DNS analyzer was extended to support TKEY RRs (RFC 2390). A corresponding

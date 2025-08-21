@@ -27,7 +27,7 @@ TypeDecl::~TypeDecl() {
     delete env_;
     delete type_;
 
-    delete_list(ParamList, params_);
+    delete_list(params_);
 }
 
 void TypeDecl::ProcessAttr(Attr* a) { type_->ProcessAttr(a); }

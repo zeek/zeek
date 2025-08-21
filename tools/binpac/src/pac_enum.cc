@@ -34,7 +34,7 @@ EnumDecl::EnumDecl(ID* id, EnumList* enumlist) : Decl(id, ENUM), enumlist_(enuml
 }
 
 EnumDecl::~EnumDecl() {
-    delete_list(EnumList, enumlist_);
+    delete_list(enumlist_);
     delete extern_typedecl_;
 }
 

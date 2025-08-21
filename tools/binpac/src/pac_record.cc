@@ -29,7 +29,7 @@ RecordType::RecordType(RecordFieldList* record_fields) : Type(RECORD) {
 }
 
 RecordType::~RecordType() {
-    // Do not delete_list(RecordFieldList, record_fields_)
+    // Do not delete_list(record_fields_)
     // because the fields are also in fields_.
     delete record_fields_;
     delete parsing_dataptr_var_field_;

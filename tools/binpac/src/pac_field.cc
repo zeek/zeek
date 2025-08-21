@@ -18,7 +18,7 @@ Field::Field(FieldType tof, int flags, ID* id, Type* type)
 Field::~Field() {
     delete id_;
     delete type_;
-    delete_list(AttrList, attrs_);
+    delete_list(attrs_);
 }
 
 void Field::AddAttr(AttrList* attrs) {

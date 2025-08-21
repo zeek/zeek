@@ -108,13 +108,13 @@ typedef vector<StateVar*> StateVarList;
     if ( pc )                                                                                                          \
         for ( ct::iterator i = (pc)->begin(); i != (pc)->end(); ++i )
 
-#define delete_list(ct, pc)                                                                                            \
-    {                                                                                                                  \
-        foreach (delete_list_i, ct, pc)                                                                                \
-            delete *delete_list_i;                                                                                     \
-        delete pc;                                                                                                     \
-        pc = 0;                                                                                                        \
-    }
+template<typename T>
+constexpr void delete_list(T* container) {
+    for ( auto& i : *container )
+        delete i;
+
+    delete container;
+}
 
 // Constants
 const char* const kComputeFrameLength = "compute_frame_length";

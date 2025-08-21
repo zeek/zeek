@@ -3,6 +3,8 @@
 #ifndef pac_action_h
 #define pac_action_h
 
+#include <cstdint>
+
 // Classes representing analyzer actions.
 
 #include "pac_analyzer.h"
@@ -10,7 +12,7 @@
 
 class AnalyzerAction : public AnalyzerElement {
 public:
-    enum When { BEFORE, AFTER };
+    enum When : uint8_t { BEFORE, AFTER };
 
     AnalyzerAction(ID* action_id, When when, ActionParam* param, EmbeddedCode* code);
 
@@ -35,7 +37,7 @@ private:
     When when_;
     ActionParam* param_;
     EmbeddedCode* code_;
-    AnalyzerDecl* analyzer_;
+    AnalyzerDecl* analyzer_ = nullptr;
 };
 
 class ActionParam {
@@ -56,7 +58,7 @@ private:
 
 class ActionParamType {
 public:
-    ActionParamType(const ID* type_id, const ID* field_id = 0) : type_id_(type_id), field_id_(field_id) {}
+    ActionParamType(const ID* type_id, const ID* field_id = nullptr) : type_id_(type_id), field_id_(field_id) {}
 
     const ID* type_id() const { return type_id_; }
     const ID* field_id() const { return field_id_; }

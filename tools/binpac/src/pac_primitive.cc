@@ -9,7 +9,7 @@
 
 string PPVal::ToCode(Env* env) {
     ASSERT(expr_);
-    return string(expr_->EvalExpr(nullptr, env));
+    return {expr_->EvalExpr(nullptr, env)};
 }
 
 string PPSet::ToCode(Env* env) {

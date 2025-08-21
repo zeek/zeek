@@ -6,7 +6,7 @@
 #include "pac_output.h"
 #include "pac_primitive.h"
 
-EmbeddedCodeSegment::EmbeddedCodeSegment(const string& s) : s_(s), primitive_(nullptr) {}
+EmbeddedCodeSegment::EmbeddedCodeSegment(string s) : s_(std::move(s)), primitive_(nullptr) {}
 
 EmbeddedCodeSegment::EmbeddedCodeSegment(PacPrimitive* primitive) : s_(""), primitive_(primitive) {}
 

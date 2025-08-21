@@ -8,11 +8,7 @@
 #include "pac_param.h"
 #include "pac_type.h"
 
-Function::Function(ID* id, Type* type, ParamList* params)
-    : id_(id), type_(type), params_(params), expr_(nullptr), code_(nullptr) {
-    analyzer_decl_ = nullptr;
-    env_ = nullptr;
-}
+Function::Function(ID* id, Type* type, ParamList* params) : id_(id), type_(type), params_(params) {}
 
 Function::~Function() {
     delete id_;

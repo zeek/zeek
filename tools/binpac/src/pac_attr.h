@@ -3,10 +3,12 @@
 #ifndef pac_attr_h
 #define pac_attr_h
 
+#include <cstdint>
+
 #include "pac_common.h"
 #include "pac_datadep.h"
 
-enum AttrType {
+enum AttrType : uint8_t {
     ATTR_BYTEORDER,
     ATTR_CHECK,
     ATTR_CHUNKED,

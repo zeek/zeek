@@ -696,7 +696,7 @@ string Type::DataSize(Output* out_cc, Env* env, const DataPtr& data) {
     }
     else {
         if ( ! size_var() || ! env->Evaluated(size_var()) ) {
-            ASSERT(out_cc != 0);
+            ASSERT(out_cc != nullptr);
             GenDynamicSize(out_cc, env, data);
             ASSERT(size_var());
         }

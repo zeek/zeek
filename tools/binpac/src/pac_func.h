@@ -27,16 +27,16 @@ public:
     void GenCode(Output* out_h, Output* out_cc);
 
 private:
-    Env* env_;
+    Env* env_ = nullptr;
 
     ID* id_;
     Type* type_;
     ParamList* params_;
 
-    AnalyzerDecl* analyzer_decl_;
+    AnalyzerDecl* analyzer_decl_ = nullptr;
 
-    Expr* expr_;
-    EmbeddedCode* code_;
+    Expr* expr_ = nullptr;
+    EmbeddedCode* code_ = nullptr;
 };
 
 class FuncDecl : public Decl {

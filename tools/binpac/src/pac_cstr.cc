@@ -77,7 +77,7 @@ int expand_escape(const char*& s) {
 
 } // namespace
 
-ConstString::ConstString(const string& s) : str_(s) {
+ConstString::ConstString(string s) : str_(std::move(s)) {
     // Copied from scan.l of Zeek
     try {
         const char* text = str_.c_str();

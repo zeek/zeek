@@ -168,9 +168,9 @@ Env::Env(Env* parent_env, Object* context_object) : parent(parent_env), context_
 }
 
 Env::~Env() {
-    for ( id_map_t::iterator it = id_map.begin(); it != id_map.end(); ++it ) {
-        delete it->second;
-        it->second = 0;
+    for ( auto& id : id_map ) {
+        delete id.second;
+        id.second = nullptr;
     }
 }
 
@@ -365,8 +365,8 @@ Env* global_env() {
         the_global_env->AddConstID(null_id, 0, extern_type_nullptr);
 
 #if 0
-		the_global_env->AddID(null_byteseg_id, 
-			GLOBAL_VAR, 
+		the_global_env->AddID(null_byteseg_id,
+			GLOBAL_VAR,
 			extern_type_const_byteseg);
 #endif
     }

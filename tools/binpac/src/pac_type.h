@@ -303,7 +303,7 @@ public:
     static Type* LookUpByID(ID* id);
 
 protected:
-    typedef map<string, Type*> type_map_t;
+    using type_map_t = map<string, Type*>;
     static type_map_t type_map_;
 };
 

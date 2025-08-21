@@ -3,11 +3,13 @@
 #ifndef pac_primitive_h
 #define pac_primitive_h
 
+#include <cstdint>
+
 #include "pac_common.h"
 
 class PacPrimitive {
 public:
-    enum PrimitiveType { VAL, SET, TYPE, CONST_DEF };
+    enum PrimitiveType : uint8_t { VAL, SET, TYPE, CONST_DEF };
 
     explicit PacPrimitive(PrimitiveType type) : type_(type) {}
     virtual ~PacPrimitive() {}

@@ -45,6 +45,7 @@ string EvalExprList(ExprList* exprlist, Output* out, Env* env) {
 }
 
 static const char* expr_fmt[] = {
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define EXPR_DEF(type, num_op, fmt) fmt,
 #include "pac_expr.def"
 #undef EXPR_DEF
@@ -311,11 +312,11 @@ void Expr::GenEval(Output* out_cc, Env* env) {
             Type* ty;
 
             try {
-                if ( (rf = GetRecordField(id, env)) != nullptr ) {
+                if ( rf = GetRecordField(id, env); rf != nullptr ) {
                     str_ = strfmt("%s", rf->FieldSize(out_cc, env));
                 }
             } catch ( ExceptionIDNotFound& e ) {
-                if ( (ty = TypeDecl::LookUpType(id)) != nullptr ) {
+                if ( ty = TypeDecl::LookUpType(id); ty != nullptr ) {
                     int ty_size = ty->StaticSize(global_env());
                     if ( ty_size >= 0 )
                         str_ = strfmt("%d", ty_size);
@@ -339,9 +340,9 @@ void Expr::GenEval(Output* out_cc, Env* env) {
 
         default:
             // Evaluate every operand by default
-            for ( int i = 0; i < 3; ++i )
-                if ( operand_[i] )
-                    operand_[i]->GenEval(out_cc, env);
+            for ( auto& op : operand_ )
+                if ( op )
+                    op->GenEval(out_cc, env);
             GenStrFromFormat(env);
             break;
     }
@@ -373,9 +374,9 @@ void Expr::ForceIDEval(Output* out_cc, Env* env) {
 
         default:
             // Evaluate every operand by default
-            for ( int i = 0; i < 3; ++i )
-                if ( operand_[i] )
-                    operand_[i]->ForceIDEval(out_cc, env);
+            for ( auto& op : operand_ )
+                if ( op )
+                    op->ForceIDEval(out_cc, env);
             break;
     }
 }
@@ -670,14 +671,14 @@ int Expr::MinimalHeaderSize(Env* env) {
             RecordField* rf;
             Type* ty;
 
-            if ( (rf = GetRecordField(id, env)) != nullptr ) {
+            if ( rf = GetRecordField(id, env); rf != nullptr ) {
                 if ( rf->StaticSize(env, -1) >= 0 )
                     mhs = 0;
                 else
                     mhs = mhs_recordfield(env, rf);
             }
 
-            else if ( (ty = TypeDecl::LookUpType(id)) != nullptr ) {
+            else if ( ty = TypeDecl::LookUpType(id); ty != nullptr ) {
                 mhs = 0;
             }
 
@@ -703,25 +704,24 @@ int Expr::MinimalHeaderSize(Env* env) {
         case EXPR_CALLARGS: {
             mhs = 0;
             if ( args_ )
-                for ( unsigned int i = 0; i < args_->size(); ++i )
-                    mhs = mhs_max(mhs, (*args_)[i]->MinimalHeaderSize(env));
+                for ( const auto& arg : *args_ )
+                    mhs = mhs_max(mhs, arg->MinimalHeaderSize(env));
         } break;
         case EXPR_CASE: {
             mhs = operand_[0]->MinimalHeaderSize(env);
-            for ( unsigned int i = 0; i < cases_->size(); ++i ) {
-                CaseExpr* ce = (*cases_)[i];
+            for ( const auto& ce : *cases_ ) {
                 if ( ce->index() )
-                    for ( unsigned int j = 0; j < ce->index()->size(); ++j )
-                        mhs = mhs_max(mhs, (*ce->index())[j]->MinimalHeaderSize(env));
+                    for ( const auto& idx : *(ce->index()) )
+                        mhs = mhs_max(mhs, idx->MinimalHeaderSize(env));
                 mhs = mhs_max(mhs, ce->value()->MinimalHeaderSize(env));
             }
         } break;
         default:
             // Evaluate every operand by default
             mhs = 0;
-            for ( int i = 0; i < 3; ++i )
-                if ( operand_[i] )
-                    mhs = mhs_max(mhs, operand_[i]->MinimalHeaderSize(env));
+            for ( auto& op : operand_ )
+                if ( op )
+                    mhs = mhs_max(mhs, op->MinimalHeaderSize(env));
             break;
     }
 
@@ -750,8 +750,8 @@ bool Expr::HasReference(const ID* id) const {
 
         default:
             // Evaluate every operand by default
-            for ( int i = 0; i < 3; ++i ) {
-                if ( operand_[i] && operand_[i]->HasReference(id) ) {
+            for ( auto& op : operand_ ) {
+                if ( op && op->HasReference(id) ) {
                     return true;
                 }
             }
@@ -788,8 +788,8 @@ bool Expr::DoTraverse(DataDepVisitor* visitor) {
 
         default:
             // Evaluate every operand by default
-            for ( int i = 0; i < 3; ++i ) {
-                if ( operand_[i] && ! operand_[i]->Traverse(visitor) ) {
+            for ( auto& op : operand_ ) {
+                if ( op && ! op->Traverse(visitor) ) {
                     return false;
                 }
             }
@@ -828,9 +828,9 @@ bool Expr::RequiresAnalyzerContext() const {
 
         default:
             // Evaluate every operand by default
-            for ( int i = 0; i < 3; ++i )
-                if ( operand_[i] && operand_[i]->RequiresAnalyzerContext() ) {
-                    DEBUG_MSG("'%s' requires analyzer context\n", operand_[i]->orig());
+            for ( auto& op : operand_ )
+                if ( op && op->RequiresAnalyzerContext() ) {
+                    DEBUG_MSG("'%s' requires analyzer context\n", op->orig());
                     return true;
                 }
             return false;

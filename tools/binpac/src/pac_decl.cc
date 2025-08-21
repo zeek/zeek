@@ -19,15 +19,13 @@
 DeclList* Decl::decl_list_ = nullptr;
 Decl::DeclMap Decl::decl_map_;
 
-Decl::Decl(ID* id, DeclType decl_type) : id_(id), decl_type_(decl_type), attrlist_(nullptr) {
+Decl::Decl(ID* id, DeclType decl_type) : id_(id), decl_type_(decl_type) {
     decl_map_[id_] = this;
     if ( ! decl_list_ )
         decl_list_ = new DeclList();
     decl_list_->push_back(this);
 
     DEBUG_MSG("Finished Decl %s\n", id_->Name());
-
-    analyzer_context_ = nullptr;
 }
 
 Decl::~Decl() {

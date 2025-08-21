@@ -4,11 +4,11 @@
 
 #include "binpac_bytestring.h"
 
-#include <stdlib.h>
+#include <cstdlib>
 
 namespace binpac {
 
-std::string std_string(bytestring const* s) { return std::string((const char*)s->begin(), (const char*)s->end()); }
+std::string std_string(bytestring const* s) { return {(const char*)s->begin(), (const char*)s->end()}; }
 
 int bytestring_to_int(bytestring const* s) { return atoi((const char*)s->begin()); }
 

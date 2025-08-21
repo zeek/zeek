@@ -3,9 +3,9 @@
 #ifndef pac_common_h
 #define pac_common_h
 
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cctype>
+#include <cstdlib>
+#include <cstring>
 #include <vector>
 
 #include "pac_utils.h"
@@ -87,26 +87,28 @@ class WithInputField;
 // The ID of the current declaration.
 extern const ID* current_decl_id;
 
-typedef vector<ActionParam*> ActionParamList;
-typedef vector<AnalyzerAction*> AnalyzerActionList;
-typedef vector<AnalyzerElement*> AnalyzerElementList;
-typedef vector<Attr*> AttrList;
-typedef vector<CaseExpr*> CaseExprList;
-typedef vector<CaseField*> CaseFieldList;
-typedef vector<ContextField*> ContextFieldList;
-typedef vector<Decl*> DeclList;
-typedef vector<Enum*> EnumList;
-typedef vector<Expr*> ExprList;
-typedef vector<Field*> FieldList;
-typedef vector<LetField*> LetFieldList;
-typedef vector<Number*> NumList;
-typedef vector<Param*> ParamList;
-typedef vector<RecordField*> RecordFieldList;
-typedef vector<StateVar*> StateVarList;
+using ActionParamList = vector<ActionParam*>;
+using AnalyzerActionList = vector<AnalyzerAction*>;
+using AnalyzerElementList = vector<AnalyzerElement*>;
+using AttrList = vector<Attr*>;
+using CaseExprList = vector<CaseExpr*>;
+using CaseFieldList = vector<CaseField*>;
+using ContextFieldList = vector<ContextField*>;
+using DeclList = vector<Decl*>;
+using EnumList = vector<Enum*>;
+using ExprList = vector<Expr*>;
+using FieldList = vector<Field*>;
+using LetFieldList = vector<LetField*>;
+using NumList = vector<Number*>;
+using ParamList = vector<Param*>;
+using RecordFieldList = vector<RecordField*>;
+using StateVarList = vector<StateVar*>;
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage,modernize-loop-convert)
 #define foreach(i, ct, pc)                                                                                             \
     if ( pc )                                                                                                          \
-        for ( ct::iterator i = (pc)->begin(); i != (pc)->end(); ++i )
+        for ( ct::iterator i = (pc)->begin(); (i) != (pc)->end(); ++(i) )
+// NOLINTEND(cppcoreguidelines-macro-usage,modernize-loop-convert)
 
 template<typename T>
 constexpr void delete_list(T* container) {
@@ -117,17 +119,17 @@ constexpr void delete_list(T* container) {
 }
 
 // Constants
-const char* const kComputeFrameLength = "compute_frame_length";
-const char* const kFlowBufferClass = "FlowBuffer";
-const char* const kFlowBufferVar = "flow_buffer";
-const char* const kFlowEOF = "FlowEOF";
-const char* const kFlowGap = "NewGap";
-const char* const kInitialBufferLengthFunc = "initial_buffer_length";
-const char* const kNeedMoreData = "need_more_data";
-const char* const kNewData = "NewData";
-const char* const kParseFuncWithBuffer = "ParseBuffer";
-const char* const kParseFuncWithoutBuffer = "Parse";
-const char* const kRefCountClass = "binpac::RefCount";
-const char* const kTypeWithLengthClass = "binpac::TypeWithLength";
+constexpr char kComputeFrameLength[] = "compute_frame_length";
+constexpr char kFlowBufferClass[] = "FlowBuffer";
+constexpr char kFlowBufferVar[] = "flow_buffer";
+constexpr char kFlowEOF[] = "FlowEOF";
+constexpr char kFlowGap[] = "NewGap";
+constexpr char kInitialBufferLengthFunc[] = "initial_buffer_length";
+constexpr char kNeedMoreData[] = "need_more_data";
+constexpr char kNewData[] = "NewData";
+constexpr char kParseFuncWithBuffer[] = "ParseBuffer";
+constexpr char kParseFuncWithoutBuffer[] = "Parse";
+constexpr char kRefCountClass[] = "binpac::RefCount";
+constexpr char kTypeWithLengthClass[] = "binpac::TypeWithLength";
 
 #endif // pac_common_h

@@ -7,7 +7,7 @@
 
 class ConstString : public Object {
 public:
-    ConstString(const string& s);
+    ConstString(string s);
 
     // The string in its escaped form, with surrounding '"'s
     const string& str() const { return str_; }

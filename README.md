@@ -15,8 +15,6 @@ traffic analysis and security monitoring.
 [_Development_](#development) —
 [_License_](#license)
 
-Follow us on Twitter at [@zeekurity](https://twitter.com/zeekurity).
-
 [![Coverage Status](https://coveralls.io/repos/github/zeek/zeek/badge.svg?branch=master)](https://coveralls.io/github/zeek/zeek?branch=master)
 [![Build Status](https://img.shields.io/cirrus/github/zeek/zeek)](https://cirrus-ci.com/github/zeek/zeek)
 

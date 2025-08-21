@@ -35,21 +35,20 @@ Decl* ProcessTypeRedef(const ID* id, FieldList* fieldlist) {
     ASSERT(type_decl);
     Type* type = type_decl->type();
 
-    foreach (i, FieldList, fieldlist) {
-        Field* f = *i;
-
-        // One cannot change data layout in 'redef'.
-        // Only 'let' or 'action' can be added
-        if ( f->tof() == LET_FIELD || f->tof() == WITHINPUT_FIELD ) {
-            type->AddField(f);
+    if ( fieldlist )
+        for ( const auto& f : *fieldlist ) {
+            // One cannot change data layout in 'redef'.
+            // Only 'let' or 'action' can be added
+            if ( f->tof() == LET_FIELD || f->tof() == WITHINPUT_FIELD ) {
+                type->AddField(f);
+            }
+            else if ( f->tof() == RECORD_FIELD || f->tof() == PADDING_FIELD ) {
+                throw Exception(f, "cannot change data layout in redef");
+            }
+            else if ( f->tof() == CASE_FIELD ) {
+                throw Exception(f, "use 'redef case' adding cases");
+            }
         }
-        else if ( f->tof() == RECORD_FIELD || f->tof() == PADDING_FIELD ) {
-            throw Exception(f, "cannot change data layout in redef");
-        }
-        else if ( f->tof() == CASE_FIELD ) {
-            throw Exception(f, "use 'redef case' adding cases");
-        }
-    }
 
     return decl;
 }
@@ -72,10 +71,9 @@ Decl* ProcessCaseTypeRedef(const ID* id, CaseFieldList* casefieldlist) {
     CaseType* casetype = static_cast<CaseType*>(type);
     ASSERT(casetype);
 
-    foreach (i, CaseFieldList, casefieldlist) {
-        CaseField* f = *i;
-        casetype->AddCaseField(f);
-    }
+    if ( casefieldlist )
+        for ( const auto& f : *casefieldlist )
+            casetype->AddCaseField(f);
 
     return decl;
 }
@@ -95,10 +93,9 @@ Decl* ProcessCaseExprRedef(const ID* id, CaseExprList* caseexprlist) {
         throw Exception(id, strfmt("function not defined by a case expression: %s", id->Name()));
     }
 
-    foreach (i, CaseExprList, caseexprlist) {
-        CaseExpr* e = *i;
-        expr->AddCaseExpr(e);
-    }
+    if ( caseexprlist )
+        for ( const auto& e : *caseexprlist )
+            expr->AddCaseExpr(e);
 
     return decl;
 }

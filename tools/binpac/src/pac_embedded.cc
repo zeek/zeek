@@ -47,10 +47,9 @@ void EmbeddedCode::GenCode(Output* out, Env* env) {
     // ID's name is used as its RValue
     env->set_allow_undefined_id(true);
 
-    foreach (i, EmbeddedCodeSegmentList, segments_) {
-        EmbeddedCodeSegment* segment = *i;
-        out->print("%s", segment->ToCode(env).c_str());
-    }
+    if ( segments_ )
+        for ( const auto& segment : *segments_ )
+            out->print("%s", segment->ToCode(env).c_str());
 
     env->set_allow_undefined_id(false);
     out->print("\n");

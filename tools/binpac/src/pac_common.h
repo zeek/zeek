@@ -104,10 +104,6 @@ typedef vector<Param*> ParamList;
 typedef vector<RecordField*> RecordFieldList;
 typedef vector<StateVar*> StateVarList;
 
-#define foreach(i, ct, pc)                                                                                             \
-    if ( pc )                                                                                                          \
-        for ( ct::iterator i = (pc)->begin(); i != (pc)->end(); ++i )
-
 template<typename T>
 constexpr void delete_list(T* container) {
     for ( auto& i : *container )

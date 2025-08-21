@@ -88,15 +88,13 @@ Type::~Type() {
 Type* Type::Clone() const {
     Type* clone = DoClone();
     if ( clone ) {
-        foreach (i, FieldList, fields_) {
-            Field* f = *i;
-            clone->AddField(f);
-        }
+        if ( fields_ )
+            for ( const auto& f : *fields_ )
+                clone->AddField(f);
 
-        foreach (i, AttrList, attrs_) {
-            Attr* a = *i;
-            clone->ProcessAttr(a);
-        }
+        if ( attrs_ )
+            for ( const auto& a : *attrs_ )
+                clone->ProcessAttr(a);
     }
     return clone;
 }
@@ -216,9 +214,9 @@ void Type::Prepare(Env* env, int flags) {
         lvalue_ = strfmt("%s", env_->LValue(value_var()));
     }
 
-    foreach (i, FieldList, attr_letfields_) {
-        AddField(*i);
-    }
+    if ( attr_letfields_ )
+        for ( const auto& field : *attr_letfields_ )
+            AddField(field);
 
     if ( attr_exportsourcedata_ ) {
         ASSERT(flags & TO_BE_PARSED);
@@ -252,10 +250,9 @@ void Type::Prepare(Env* env, int flags) {
         }
     }
 
-    foreach (i, FieldList, fields_) {
-        Field* f = *i;
-        f->Prepare(env);
-    }
+    if ( fields_ )
+        for ( const auto& f : *fields_ )
+            f->Prepare(env);
 }
 
 void Type::GenPubDecls(Output* out_h, Env* env) {
@@ -268,10 +265,9 @@ void Type::GenPubDecls(Output* out_h, Env* env) {
                            lvalue());
     }
 
-    foreach (i, FieldList, fields_) {
-        Field* f = *i;
-        f->GenPubDecls(out_h, env);
-    }
+    if ( fields_ )
+        for ( const auto& f : *fields_ )
+            f->GenPubDecls(out_h, env);
 }
 
 void Type::GenPrivDecls(Output* out_h, Env* env) {
@@ -279,17 +275,15 @@ void Type::GenPrivDecls(Output* out_h, Env* env) {
         out_h->println("%s %s;", DataTypeStr().c_str(), env->LValue(value_var()));
     }
 
-    foreach (i, FieldList, fields_) {
-        Field* f = *i;
-        f->GenPrivDecls(out_h, env);
-    }
+    if ( fields_ )
+        for ( const auto& f : *fields_ )
+            f->GenPrivDecls(out_h, env);
 }
 
 void Type::GenInitCode(Output* out_cc, Env* env) {
-    foreach (i, FieldList, fields_) {
-        Field* f = *i;
-        f->GenInitCode(out_cc, env);
-    }
+    if ( fields_ )
+        for ( const auto& f : *fields_ )
+            f->GenInitCode(out_cc, env);
 
     if ( parsing_state_var_field_ ) {
         out_cc->println("%s = 0;", env->LValue(parsing_state_var_field_->id()));
@@ -301,11 +295,10 @@ void Type::GenInitCode(Output* out_cc, Env* env) {
 }
 
 void Type::GenCleanUpCode(Output* out_cc, Env* env) {
-    foreach (i, FieldList, fields_) {
-        Field* f = *i;
-        if ( f->tof() != CASE_FIELD )
-            f->GenCleanUpCode(out_cc, env);
-    }
+    if ( fields_ )
+        for ( const auto& f : *fields_ )
+            if ( f->tof() != CASE_FIELD )
+                f->GenCleanUpCode(out_cc, env);
 }
 
 void Type::GenBufferConfiguration(Output* out_cc, Env* env) {
@@ -577,15 +570,13 @@ void Type::GenParseCode2(Output* out_cc, Env* env, const DataPtr& data, int flag
 }
 
 void Type::GenParseCode3(Output* out_cc, Env* env, const DataPtr& data, int flags) {
-    foreach (i, ExprList, attr_requires_) {
-        Expr* req = *i;
-        req->EvalExpr(out_cc, env);
-    }
+    if ( attr_requires_ )
+        for ( const auto& req : *attr_requires_ )
+            req->EvalExpr(out_cc, env);
 
-    foreach (i, FieldList, fields_) {
-        Field* f = *i;
-        f->GenTempDecls(out_cc, env);
-    }
+    if ( fields_ )
+        for ( const auto& f : *fields_ )
+            f->GenTempDecls(out_cc, env);
 
     DoGenParseCode(out_cc, env, data, flags);
 
@@ -596,17 +587,17 @@ void Type::GenParseCode3(Output* out_cc, Env* env, const DataPtr& data, int flag
 
     if ( ! fields_->empty() ) {
         out_cc->println("// Evaluate 'let' and 'withinput' fields");
-        foreach (i, FieldList, fields_) {
-            Field* f = *i;
-            if ( f->tof() == LET_FIELD ) {
-                LetField* lf = static_cast<LetField*>(f);
-                lf->GenParseCode(out_cc, env);
+        if ( fields_ )
+            for ( const auto& f : *fields_ ) {
+                if ( f->tof() == LET_FIELD ) {
+                    LetField* lf = static_cast<LetField*>(f);
+                    lf->GenParseCode(out_cc, env);
+                }
+                else if ( f->tof() == WITHINPUT_FIELD ) {
+                    WithInputField* af = static_cast<WithInputField*>(f);
+                    af->GenParseCode(out_cc, env);
+                }
             }
-            else if ( f->tof() == WITHINPUT_FIELD ) {
-                WithInputField* af = static_cast<WithInputField*>(f);
-                af->GenParseCode(out_cc, env);
-            }
-        }
     }
 
     if ( value_var() && anonymous_value_var() ) {
@@ -624,16 +615,16 @@ void Type::GenParseCode3(Output* out_cc, Env* env, const DataPtr& data, int flag
     if ( size_var() )
         ASSERT(env->Evaluated(size_var()));
 
-    foreach (i, ExprList, attr_enforces_) {
-        Expr* enforce = *i;
-        const char* enforce_expr = enforce->EvalExpr(out_cc, env);
-        out_cc->println("// Evaluate '&enforce' attribute");
-        out_cc->println("if (!%s) {", enforce_expr);
-        out_cc->inc_indent();
-        out_cc->println("throw binpac::ExceptionEnforceViolation(\"%s\");", data_id_str_.c_str());
-        out_cc->dec_indent();
-        out_cc->println("}");
-    }
+    if ( attr_enforces_ )
+        for ( const auto& enforce : *attr_enforces_ ) {
+            const char* enforce_expr = enforce->EvalExpr(out_cc, env);
+            out_cc->println("// Evaluate '&enforce' attribute");
+            out_cc->println("if (!%s) {", enforce_expr);
+            out_cc->inc_indent();
+            out_cc->println("throw binpac::ExceptionEnforceViolation(\"%s\");", data_id_str_.c_str());
+            out_cc->dec_indent();
+            out_cc->println("}");
+        }
 }
 
 Type* Type::MemberDataType(const ID* member_id) const {
@@ -740,15 +731,17 @@ bool Type::NeedsBufferingStateVar() const {
 }
 
 bool Type::DoTraverse(DataDepVisitor* visitor) {
-    foreach (i, FieldList, fields_) {
-        if ( ! (*i)->Traverse(visitor) )
-            return false;
-    }
+    if ( fields_ )
+        for ( const auto& f : *fields_ ) {
+            if ( ! f->Traverse(visitor) )
+                return false;
+        }
 
-    foreach (i, AttrList, attrs_) {
-        if ( ! (*i)->Traverse(visitor) )
-            return false;
-    }
+    if ( attrs_ )
+        for ( const auto& a : *attrs_ ) {
+            if ( ! a->Traverse(visitor) )
+                return false;
+        }
 
     return true;
 }
@@ -759,15 +752,16 @@ bool Type::RequiresAnalyzerContext() {
     if ( buffer_input() )
         return true;
 
-    foreach (i, FieldList, fields_) {
-        Field* f = *i;
-        if ( f->RequiresAnalyzerContext() )
-            return true;
-    }
+    if ( fields_ )
+        for ( const auto& f : *fields_ ) {
+            if ( f->RequiresAnalyzerContext() )
+                return true;
+        }
 
-    foreach (i, AttrList, attrs_)
-        if ( (*i)->RequiresAnalyzerContext() )
-            return true;
+    if ( attrs_ )
+        for ( const auto& a : *attrs_ )
+            if ( a->RequiresAnalyzerContext() )
+                return true;
 
     return false;
 }

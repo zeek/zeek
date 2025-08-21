@@ -35,8 +35,9 @@ void LetField::Prepare(Env* env) {
         else
             type_ = extern_type_int->Clone();
 
-        foreach (i, AttrList, attrs_)
-            ProcessAttr(*i);
+        if ( attrs_ )
+            for ( const auto& attr : *attrs_ )
+                ProcessAttr(attr);
     }
 
     Field::Prepare(env);

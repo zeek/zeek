@@ -2,6 +2,7 @@
 
 #include "pac_enum.h"
 
+#include "pac_common.h"
 #include "pac_exception.h"
 #include "pac_expr.h"
 #include "pac_exttype.h"
@@ -47,10 +48,11 @@ void EnumDecl::GenForwardDeclaration(Output* out_h) {
     out_h->println("enum %s {", id_->Name());
     out_h->inc_indent();
     int c = 0;
-    foreach (i, EnumList, enumlist_) {
-        (*i)->GenHeader(out_h, &c);
-        ++c;
-    }
+    if ( enumlist_ )
+        for ( const auto& e : *enumlist_ ) {
+            e->GenHeader(out_h, &c);
+            ++c;
+        }
     out_h->dec_indent();
     out_h->println("};");
 }

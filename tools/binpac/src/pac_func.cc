@@ -29,11 +29,11 @@ void Function::Prepare(Env* env) {
 
     env_ = new Env(env, this);
 
-    foreach (i, ParamList, params_) {
-        Param* p = *i;
-        env_->AddID(p->id(), FUNC_PARAM, p->type());
-        env_->SetEvaluated(p->id());
-    }
+    if ( params_ )
+        for ( const auto& p : *params_ ) {
+            env_->AddID(p->id(), FUNC_PARAM, p->type());
+            env_->SetEvaluated(p->id());
+        }
 }
 
 void Function::GenForwardDeclaration(Output* out_h) {

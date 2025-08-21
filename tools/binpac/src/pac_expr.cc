@@ -19,14 +19,14 @@
 string OrigExprList(ExprList* list) {
     bool first = true;
     string str;
-    foreach (i, ExprList, list) {
-        Expr* expr = *i;
-        if ( first )
-            first = false;
-        else
-            str += ", ";
-        str += expr->orig();
-    }
+    if ( list )
+        for ( const auto& expr : *list ) {
+            if ( first )
+                first = false;
+            else
+                str += ", ";
+            str += expr->orig();
+        }
     return str;
 }
 
@@ -34,12 +34,13 @@ string EvalExprList(ExprList* exprlist, Output* out, Env* env) {
     string val_list("");
     bool first = true;
 
-    foreach (i, ExprList, exprlist) {
-        if ( ! first )
-            val_list += ", ";
-        val_list += (*i)->EvalExpr(out, env);
-        first = false;
-    }
+    if ( exprlist )
+        for ( const auto& expr : *exprlist ) {
+            if ( ! first )
+                val_list += ", ";
+            val_list += expr->EvalExpr(out, env);
+            first = false;
+        }
 
     return val_list;
 }
@@ -143,10 +144,10 @@ Expr::Expr(Expr* index, CaseExprList* cases) : DataDepElement(EXPR) {
     cases_ = cases;
 
     orig_ = strfmt("case %s of { ", index->orig());
-    foreach (i, CaseExprList, cases_) {
-        CaseExpr* c = *i;
-        orig_ += strfmt("%s => %s; ", OrigExprList(c->index()).c_str(), c->value()->orig());
-    }
+    if ( cases_ )
+        for ( const auto& c : *cases_ )
+            orig_ += strfmt("%s => %s; ", OrigExprList(c->index()).c_str(), c->value()->orig());
+
     orig_ += "}";
 }
 
@@ -212,8 +213,9 @@ void Expr::GenCaseEval(Output* out_cc, Env* env) {
 
     // force evaluation of IDs appearing in case stmt
     operand_[0]->ForceIDEval(out_cc, env);
-    foreach (i, CaseExprList, cases_)
-        (*i)->value()->ForceIDEval(out_cc, env);
+    if ( cases_ )
+        for ( const auto& c : *cases_ )
+            c->value()->ForceIDEval(out_cc, env);
 
     out_cc->println("// NOLINTBEGIN(bugprone-branch-clone)");
     out_cc->println("switch ( %s ) {", operand_[0]->EvalExpr(out_cc, env));
@@ -222,22 +224,22 @@ void Expr::GenCaseEval(Output* out_cc, Env* env) {
     out_cc->inc_indent();
 
     CaseExpr* default_case = nullptr;
-    foreach (i, CaseExprList, cases_) {
-        CaseExpr* c = *i;
-        ExprList* index = c->index();
-        if ( ! index ) {
-            if ( default_case )
-                throw Exception(c, "duplicate default cases");
-            default_case = c;
+    if ( cases_ )
+        for ( const auto& c : *cases_ ) {
+            ExprList* index = c->index();
+            if ( ! index ) {
+                if ( default_case )
+                    throw Exception(c, "duplicate default cases");
+                default_case = c;
+            }
+            else {
+                GenCaseStr(index, out_cc, env, switch_type);
+                out_cc->inc_indent();
+                out_cc->println("%s = %s;", env->LValue(val_var), c->value()->EvalExpr(out_cc, env));
+                out_cc->println("break;");
+                out_cc->dec_indent();
+            }
         }
-        else {
-            GenCaseStr(index, out_cc, env, switch_type);
-            out_cc->inc_indent();
-            out_cc->println("%s = %s;", env->LValue(val_var), c->value()->EvalExpr(out_cc, env));
-            out_cc->println("break;");
-            out_cc->dec_indent();
-        }
-    }
 
     // Generate the default case after all other cases
     GenCaseStr(nullptr, out_cc, env, switch_type);
@@ -339,9 +341,9 @@ void Expr::GenEval(Output* out_cc, Env* env) {
 
         default:
             // Evaluate every operand by default
-            for ( int i = 0; i < 3; ++i )
-                if ( operand_[i] )
-                    operand_[i]->GenEval(out_cc, env);
+            for ( const auto& op : operand_ )
+                if ( op )
+                    op->GenEval(out_cc, env);
             GenStrFromFormat(env);
             break;
     }
@@ -361,21 +363,23 @@ void Expr::ForceIDEval(Output* out_cc, Env* env) {
         case EXPR_MEMBER: operand_[0]->ForceIDEval(out_cc, env); break;
 
         case EXPR_CALLARGS: {
-            foreach (i, ExprList, args_)
-                (*i)->ForceIDEval(out_cc, env);
+            if ( args_ )
+                for ( const auto& e : *args_ )
+                    e->ForceIDEval(out_cc, env);
         } break;
 
         case EXPR_CASE: {
             operand_[0]->ForceIDEval(out_cc, env);
-            foreach (i, CaseExprList, cases_)
-                (*i)->value()->ForceIDEval(out_cc, env);
+            if ( cases_ )
+                for ( const auto& c : *cases_ )
+                    c->value()->ForceIDEval(out_cc, env);
         } break;
 
         default:
             // Evaluate every operand by default
-            for ( int i = 0; i < 3; ++i )
-                if ( operand_[i] )
-                    operand_[i]->ForceIDEval(out_cc, env);
+            for ( const auto& op : operand_ )
+                if ( op )
+                    op->ForceIDEval(out_cc, env);
             break;
     }
 }
@@ -424,39 +428,40 @@ Type* Expr::DataType(Env* env) const {
                 Type* type1 = cases_->front()->value()->DataType(env);
                 Type* numeric_with_largest_width = nullptr;
 
-                foreach (i, CaseExprList, cases_) {
-                    Type* type2 = (*i)->value()->DataType(env);
-                    if ( ! Type::CompatibleTypes(type1, type2) ) {
-                        throw Exception(this, strfmt("type mismatch: %s vs %s", type1->DataTypeStr().c_str(),
-                                                     type2->DataTypeStr().c_str()));
-                    }
-                    if ( type1 == extern_type_nullptr )
-                        type1 = type2;
+                if ( cases_ )
+                    for ( const auto& c : *cases_ ) {
+                        Type* type2 = c->value()->DataType(env);
+                        if ( ! Type::CompatibleTypes(type1, type2) ) {
+                            throw Exception(this, strfmt("type mismatch: %s vs %s", type1->DataTypeStr().c_str(),
+                                                         type2->DataTypeStr().c_str()));
+                        }
+                        if ( type1 == extern_type_nullptr )
+                            type1 = type2;
 
-                    if ( type2 && type2->IsNumericType() ) {
-                        if ( numeric_with_largest_width ) {
-                            int largest;
-                            int contender;
+                        if ( type2 && type2->IsNumericType() ) {
+                            if ( numeric_with_largest_width ) {
+                                int largest;
+                                int contender;
 
-                            // External C++ types like "int", "bool", "enum" use "int"
-                            // storage internally.
-                            if ( numeric_with_largest_width->tot() == Type::EXTERN )
-                                largest = sizeof(int);
+                                // External C++ types like "int", "bool", "enum" use "int"
+                                // storage internally.
+                                if ( numeric_with_largest_width->tot() == Type::EXTERN )
+                                    largest = sizeof(int);
+                                else
+                                    largest = numeric_with_largest_width->StaticSize(env);
+
+                                if ( type2->tot() == Type::EXTERN )
+                                    contender = sizeof(int);
+                                else
+                                    contender = type2->StaticSize(env);
+
+                                if ( contender > largest )
+                                    numeric_with_largest_width = type2;
+                            }
                             else
-                                largest = numeric_with_largest_width->StaticSize(env);
-
-                            if ( type2->tot() == Type::EXTERN )
-                                contender = sizeof(int);
-                            else
-                                contender = type2->StaticSize(env);
-
-                            if ( contender > largest )
                                 numeric_with_largest_width = type2;
                         }
-                        else
-                            numeric_with_largest_width = type2;
                     }
-                }
                 data_type = numeric_with_largest_width ? numeric_with_largest_width : type1;
             }
             else
@@ -703,25 +708,26 @@ int Expr::MinimalHeaderSize(Env* env) {
         case EXPR_CALLARGS: {
             mhs = 0;
             if ( args_ )
-                for ( unsigned int i = 0; i < args_->size(); ++i )
-                    mhs = mhs_max(mhs, (*args_)[i]->MinimalHeaderSize(env));
+                if ( args_ )
+                    for ( const auto& arg : *args_ )
+                        mhs = mhs_max(mhs, arg->MinimalHeaderSize(env));
         } break;
         case EXPR_CASE: {
             mhs = operand_[0]->MinimalHeaderSize(env);
-            for ( unsigned int i = 0; i < cases_->size(); ++i ) {
-                CaseExpr* ce = (*cases_)[i];
-                if ( ce->index() )
-                    for ( unsigned int j = 0; j < ce->index()->size(); ++j )
-                        mhs = mhs_max(mhs, (*ce->index())[j]->MinimalHeaderSize(env));
-                mhs = mhs_max(mhs, ce->value()->MinimalHeaderSize(env));
-            }
+            if ( cases_ )
+                for ( const auto& ce : *cases_ ) {
+                    if ( ce->index() )
+                        for ( const auto& idx : *(ce->index()) )
+                            mhs = mhs_max(mhs, idx->MinimalHeaderSize(env));
+                    mhs = mhs_max(mhs, ce->value()->MinimalHeaderSize(env));
+                }
         } break;
         default:
             // Evaluate every operand by default
             mhs = 0;
-            for ( int i = 0; i < 3; ++i )
-                if ( operand_[i] )
-                    mhs = mhs_max(mhs, operand_[i]->MinimalHeaderSize(env));
+            for ( const auto& op : operand_ )
+                if ( op )
+                    mhs = mhs_max(mhs, op->MinimalHeaderSize(env));
             break;
     }
 
@@ -735,23 +741,25 @@ bool Expr::HasReference(const ID* id) const {
         case EXPR_MEMBER: return operand_[0]->HasReference(id);
 
         case EXPR_CALLARGS: {
-            foreach (i, ExprList, args_)
-                if ( (*i)->HasReference(id) )
-                    return true;
+            if ( args_ )
+                for ( const auto& arg : *args_ )
+                    if ( arg->HasReference(id) )
+                        return true;
         }
             return false;
 
         case EXPR_CASE: {
-            foreach (i, CaseExprList, cases_)
-                if ( (*i)->HasReference(id) )
-                    return true;
+            if ( cases_ )
+                for ( const auto& c : *cases_ )
+                    if ( c->HasReference(id) )
+                        return true;
         }
             return false;
 
         default:
             // Evaluate every operand by default
-            for ( int i = 0; i < 3; ++i ) {
-                if ( operand_[i] && operand_[i]->HasReference(id) ) {
+            for ( const auto& op : operand_ ) {
+                if ( op && op->HasReference(id) ) {
                     return true;
                 }
             }
@@ -775,21 +783,23 @@ bool Expr::DoTraverse(DataDepVisitor* visitor) {
             break;
 
         case EXPR_CALLARGS: {
-            foreach (i, ExprList, args_)
-                if ( ! (*i)->Traverse(visitor) )
-                    return false;
+            if ( args_ )
+                for ( const auto& arg : *args_ )
+                    if ( ! arg->Traverse(visitor) )
+                        return false;
         } break;
 
         case EXPR_CASE: {
-            foreach (i, CaseExprList, cases_)
-                if ( ! (*i)->Traverse(visitor) )
-                    return false;
+            if ( cases_ )
+                for ( const auto& c : *cases_ )
+                    if ( ! c->Traverse(visitor) )
+                        return false;
         } break;
 
         default:
             // Evaluate every operand by default
-            for ( int i = 0; i < 3; ++i ) {
-                if ( operand_[i] && ! operand_[i]->Traverse(visitor) ) {
+            for ( const auto& op : operand_ ) {
+                if ( op && ! op->Traverse(visitor) ) {
                     return false;
                 }
             }
@@ -813,24 +823,26 @@ bool Expr::RequiresAnalyzerContext() const {
             return operand_[0]->RequiresAnalyzerContext();
 
         case EXPR_CALLARGS: {
-            foreach (i, ExprList, args_)
-                if ( (*i)->RequiresAnalyzerContext() )
-                    return true;
+            if ( args_ )
+                for ( const auto& arg : *args_ )
+                    if ( arg->RequiresAnalyzerContext() )
+                        return true;
         }
             return false;
 
         case EXPR_CASE: {
-            foreach (i, CaseExprList, cases_)
-                if ( (*i)->RequiresAnalyzerContext() )
-                    return true;
+            if ( cases_ )
+                for ( const auto& c : *cases_ )
+                    if ( c->RequiresAnalyzerContext() )
+                        return true;
         }
             return false;
 
         default:
             // Evaluate every operand by default
-            for ( int i = 0; i < 3; ++i )
-                if ( operand_[i] && operand_[i]->RequiresAnalyzerContext() ) {
-                    DEBUG_MSG("'%s' requires analyzer context\n", operand_[i]->orig());
+            for ( const auto& op : operand_ )
+                if ( op && op->RequiresAnalyzerContext() ) {
+                    DEBUG_MSG("'%s' requires analyzer context\n", op->orig());
                     return true;
                 }
             return false;
@@ -847,9 +859,10 @@ CaseExpr::~CaseExpr() {
 }
 
 bool CaseExpr::DoTraverse(DataDepVisitor* visitor) {
-    foreach (i, ExprList, index_)
-        if ( ! (*i)->Traverse(visitor) )
-            return false;
+    if ( index_ )
+        for ( const auto& idx : *index_ )
+            if ( ! idx->Traverse(visitor) )
+                return false;
     return value_->Traverse(visitor);
 }
 

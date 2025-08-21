@@ -32,8 +32,9 @@ void Field::AddAttr(AttrList* attrs) {
         delete_attrs = true;
     }
 
-    foreach (i, AttrList, attrs)
-        ProcessAttr(*i);
+    if ( attrs )
+        for ( const auto& i : *attrs )
+            ProcessAttr(i);
 
     if ( delete_attrs )
         delete attrs;
@@ -108,9 +109,10 @@ bool Field::DoTraverse(DataDepVisitor* visitor) {
     // Check parameterized type
     if ( type_ && ! type_->Traverse(visitor) )
         return false;
-    foreach (i, AttrList, attrs_)
-        if ( ! (*i)->Traverse(visitor) )
-            return false;
+    if ( attrs_ )
+        for ( const auto& attr : *attrs_ )
+            if ( ! attr->Traverse(visitor) )
+                return false;
     return true;
 }
 
@@ -118,8 +120,9 @@ bool Field::RequiresAnalyzerContext() const {
     // Check parameterized type
     if ( type_ && type_->RequiresAnalyzerContext() )
         return true;
-    foreach (i, AttrList, attrs_)
-        if ( (*i)->RequiresAnalyzerContext() )
-            return true;
+    if ( attrs_ )
+        for ( const auto& attr : *attrs_ )
+            if ( attr->RequiresAnalyzerContext() )
+                return true;
     return false;
 }

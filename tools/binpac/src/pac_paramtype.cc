@@ -86,9 +86,10 @@ bool ParameterizedType::DoTraverse(DataDepVisitor* visitor) {
     if ( ! Type::DoTraverse(visitor) )
         return false;
 
-    foreach (i, ExprList, args_)
-        if ( ! (*i)->Traverse(visitor) )
-            return false;
+    if ( args_ )
+        for ( const auto& a : *args_ )
+            if ( ! a->Traverse(visitor) )
+                return false;
 
     Type* ty = ReferredDataType(false);
     if ( ty && ! ty->Traverse(visitor) )
@@ -104,11 +105,12 @@ bool ParameterizedType::RequiresAnalyzerContext() {
 
     bool ret = false;
     // If any argument expression refers to analyzer context
-    foreach (i, ExprList, args_)
-        if ( (*i)->RequiresAnalyzerContext() ) {
-            ret = true;
-            break;
-        }
+    if ( args_ )
+        for ( const auto& a : *args_ )
+            if ( a->RequiresAnalyzerContext() ) {
+                ret = true;
+                break;
+            }
     ret = ret || Type::RequiresAnalyzerContext();
 
     if ( ! ret ) {
@@ -141,14 +143,14 @@ string ParameterizedType::EvalParameters(Output* out_cc, Env* env) const {
     string arg_str;
 
     int first = 1;
-    foreach (i, ExprList, args_) {
-        Expr* e = *i;
-        if ( first )
-            first = 0;
-        else
-            arg_str += ", ";
-        arg_str += e->EvalExpr(out_cc, env);
-    }
+    if ( args_ )
+        for ( const auto& e : *args_ ) {
+            if ( first )
+                first = 0;
+            else
+                arg_str += ", ";
+            arg_str += e->EvalExpr(out_cc, env);
+        }
 
     return arg_str;
 }

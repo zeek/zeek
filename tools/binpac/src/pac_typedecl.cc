@@ -51,10 +51,11 @@ void TypeDecl::Prepare() {
 
     env_ = new Env(global_env(), this);
 
-    foreach (i, ParamList, params_) {
-        Param* p = *i;
-        // p->Prepare(env_);
-        type_->AddField(p->param_field());
+    if ( params_ ) {
+        for ( const auto& p : *params_ ) {
+            // p->Prepare(env_);
+            type_->AddField(p->param_field());
+        }
     }
 
     if ( type_->attr_byteorder_expr() ) {

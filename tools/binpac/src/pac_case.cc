@@ -219,7 +219,7 @@ CaseField::CaseField(ExprList* index, ID* id, Type* type)
     index_var_ = nullptr;
 }
 
-CaseField::~CaseField() { delete_list(ExprList, index_); }
+CaseField::~CaseField() { delete_list(index_); }
 
 void GenCaseStr(ExprList* index_list, Output* out_cc, Env* env, Type* switch_type) {
     if ( index_list ) {

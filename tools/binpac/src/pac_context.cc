@@ -53,7 +53,7 @@ AnalyzerContextDecl::AnalyzerContextDecl(ID* id, ContextFieldList* context_field
 AnalyzerContextDecl::~AnalyzerContextDecl() {
     delete context_name_id_;
     delete param_type_;
-    delete_list(ContextFieldList, context_fields_);
+    delete_list(context_fields_);
 }
 
 void AnalyzerContextDecl::GenForwardDeclaration(Output* out_h) {

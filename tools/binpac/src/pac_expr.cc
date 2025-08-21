@@ -155,8 +155,8 @@ Expr::~Expr() {
     delete operand_[0];
     delete operand_[1];
     delete operand_[2];
-    delete_list(ExprList, args_);
-    delete_list(CaseExprList, cases_);
+    delete_list(args_);
+    delete_list(cases_);
 }
 
 void Expr::AddCaseExpr(CaseExpr* case_expr) {
@@ -841,7 +841,8 @@ CaseExpr::CaseExpr(ExprList* index, Expr* value)
     : DataDepElement(DataDepElement::CASEEXPR), index_(index), value_(value) {}
 
 CaseExpr::~CaseExpr() {
-    delete_list(ExprList, index_);
+    delete_list(index_);
+    index_ = nullptr;
     delete value_;
 }
 

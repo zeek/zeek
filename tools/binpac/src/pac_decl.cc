@@ -32,7 +32,7 @@ Decl::Decl(ID* id, DeclType decl_type) : id_(id), decl_type_(decl_type), attrlis
 
 Decl::~Decl() {
     delete id_;
-    delete_list(AttrList, attrlist_);
+    delete_list(attrlist_);
 }
 
 void Decl::AddAttrs(AttrList* attrs) {

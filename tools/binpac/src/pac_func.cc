@@ -17,7 +17,7 @@ Function::Function(ID* id, Type* type, ParamList* params)
 Function::~Function() {
     delete id_;
     delete type_;
-    delete_list(ParamList, params_);
+    delete_list(params_);
     delete env_;
     delete expr_;
     delete code_;

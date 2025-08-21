@@ -1,3 +1,14 @@
+8.1.0-dev.449 | 2025-08-21 17:02:51 +0200
+
+  * README.md: Add Mastodon and Bluesky links (Arne Welzel, Corelight)
+
+  * README: Drop "Follow us on Twitter" (Arne Welzel, Corelight)
+
+  * Merge a number of submodules into Zeek (Tim Wojtulewicz, Corelight)
+
+    The code from the gen-zam, bifcl, binpac and zeek-af_packet-plugin
+    submodules has been merged into the Zeek tree.
+
 8.1.0-dev.101 | 2025-08-20 11:38:37 -0400
 
   * Fix Coverity issue with new `Attributes` ctor (Evan Typanski, Corelight)

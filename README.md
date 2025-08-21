@@ -15,13 +15,14 @@ traffic analysis and security monitoring.
 [_Development_](#development) —
 [_License_](#license)
 
-Follow us on Twitter at [@zeekurity](https://twitter.com/zeekurity).
-
 [![Coverage Status](https://coveralls.io/repos/github/zeek/zeek/badge.svg?branch=master)](https://coveralls.io/github/zeek/zeek?branch=master)
 [![Build Status](https://img.shields.io/cirrus/github/zeek/zeek)](https://cirrus-ci.com/github/zeek/zeek)
 
 [![Slack](https://img.shields.io/badge/slack-@zeek-brightgreen.svg?logo=slack)](https://zeek.org/slack)
 [![Discourse](https://img.shields.io/discourse/status?server=https%3A%2F%2Fcommunity.zeek.org)](https://community.zeek.org)
+
+[![Mastodon](https://img.shields.io/badge/mastodon-@zeek@infosec.exchange-brightgreen.svg?logo=mastodon)](https://infosec.exchange/@zeek)
+[![Bluesky](https://img.shields.io/badge/bluesky-@zeek-brightgreen.svg?logo=bluesky)](https://bsky.app/profile/zeek.org)
 
 </h4>
 

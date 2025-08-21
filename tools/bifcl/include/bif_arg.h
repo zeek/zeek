@@ -6,6 +6,7 @@
 #include <cstdio>
 
 enum builtin_func_arg_type : uint8_t {
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define DEFINE_BIF_TYPE(id, bif_type, bro_type, c_type, c_type_smart, accessor, accessor_smart, cast_smart,            \
                         constructor, ctor_smart)                                                                       \
     id,

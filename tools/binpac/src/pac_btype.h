@@ -3,11 +3,14 @@
 #ifndef pac_btype_h
 #define pac_btype_h
 
+#include <cstdint>
+
 #include "pac_type.h"
 
 class BuiltInType : public Type {
 public:
-    enum BITType {
+    enum BITType : uint8_t {
+    // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define TYPE_DEF(name, pactype, ctype, size) name,
 #include "pac_type.def"
 #undef TYPE_DEF
@@ -29,7 +32,7 @@ public:
 
     bool IsPointerType() const override { return false; }
 
-    bool ByteOrderSensitive() const override { return StaticSize(0) >= 2; }
+    bool ByteOrderSensitive() const override { return StaticSize(nullptr) >= 2; }
 
     void GenInitCode(Output* out_cc, Env* env) override;
 

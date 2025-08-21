@@ -3,6 +3,8 @@
 #ifndef pac_dataunit_h
 #define pac_dataunit_h
 
+#include <cstdint>
+
 #include "pac_analyzer.h"
 
 // The type and parameters of input data unit of a flow. For instance, the
@@ -10,7 +12,7 @@
 
 class AnalyzerDataUnit : public AnalyzerElement {
 public:
-    enum DataUnitType { DATAGRAM, FLOWUNIT };
+    enum DataUnitType : uint8_t { DATAGRAM, FLOWUNIT };
     AnalyzerDataUnit(DataUnitType type, ID* id, ExprList* type_params, ExprList* context_params);
     ~AnalyzerDataUnit() override;
 

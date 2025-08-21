@@ -1,8 +1,8 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h> // for memcpy
+#include <cstdio>
+#include <cstdlib>
+#include <cstring> // for memcpy
 
 #define binpac_regex_h
 
@@ -82,7 +82,7 @@ void FlowBuffer::ResetLineState() {
         case CR_OR_LF: state_ = CR_OR_LF_0; break;
         case STRICT_CRLF: state_ = STRICT_CRLF_0; break;
         case LINE_BREAKER: break; // Nothing to reset
-        default: BINPAC_ASSERT(0); break;
+        default: BINPAC_ASSERT(false); break;
     }
 }
 
@@ -248,7 +248,7 @@ void FlowBuffer::MarkOrCopyLine() {
         case CR_OR_LF: MarkOrCopyLine_CR_OR_LF(); break;
         case STRICT_CRLF: MarkOrCopyLine_STRICT_CRLF(); break;
         case LINE_BREAKER: MarkOrCopyLine_LINEBREAK(); break;
-        default: BINPAC_ASSERT(0); break;
+        default: BINPAC_ASSERT(false); break;
     }
 }
 

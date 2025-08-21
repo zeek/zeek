@@ -11,7 +11,7 @@
 #include "pac_utils.h"
 
 AnalyzerAction::AnalyzerAction(ID* action_id, When when, ActionParam* param, EmbeddedCode* code)
-    : AnalyzerElement(ACTION), action_id_(action_id), when_(when), param_(param), code_(code), analyzer_(nullptr) {}
+    : AnalyzerElement(ACTION), action_id_(action_id), when_(when), param_(param), code_(code) {}
 
 AnalyzerAction::~AnalyzerAction() {
     delete action_id_;

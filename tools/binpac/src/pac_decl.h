@@ -3,6 +3,8 @@
 #ifndef pac_decl_h
 #define pac_decl_h
 
+#include <cstdint>
+
 #include "pac_common.h"
 #include "pac_id.h"
 
@@ -10,7 +12,7 @@ class Decl : public Object {
 public:
     // Note: ANALYZER is not for AnalyzerDecl (which is an
     // abstract class) , but for AnalyzerContextDecl.
-    enum DeclType { ENUM, LET, TYPE, FUNC, CONN, FLOW, ANALYZER, HELPER, REGEX };
+    enum DeclType : uint8_t { ENUM, LET, TYPE, FUNC, CONN, FLOW, ANALYZER, HELPER, REGEX };
 
     Decl(ID* id, DeclType decl_type);
     virtual ~Decl();
@@ -41,8 +43,8 @@ protected:
 
     ID* id_;
     DeclType decl_type_;
-    AttrList* attrlist_;
-    AnalyzerContextDecl* analyzer_context_;
+    AttrList* attrlist_ = nullptr;
+    AnalyzerContextDecl* analyzer_context_ = nullptr;
 
 public:
     static void ProcessDecls(Output* out_h, Output* out_cc);
@@ -50,13 +52,13 @@ public:
 
 private:
     static DeclList* decl_list_;
-    typedef map<const ID*, Decl*, ID_ptr_cmp> DeclMap;
+    using DeclMap = map<const ID*, Decl*, ID_ptr_cmp>;
     static DeclMap decl_map_;
 };
 
 class HelperDecl : public Decl {
 public:
-    enum HelperType {
+    enum HelperType : uint8_t {
         HEADER,
         CODE,
         EXTERN,

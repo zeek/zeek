@@ -2,7 +2,7 @@
 
 #include "pac_case.h"
 
-#include <stdint.h>
+#include <cstdint>
 #include <limits>
 
 #include "pac_btype.h"

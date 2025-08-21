@@ -1,7 +1,7 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <ctype.h>
 #include <unistd.h>
+#include <cctype>
 
 #include "pac_common.h"
 #include "pac_decl.h"
@@ -9,7 +9,9 @@
 #include "pac_exttype.h"
 #include "pac_id.h"
 #include "pac_output.h"
+// NOLINTBEGIN
 #include "pac_parse.h"
+// NOLINTEND
 #include "pac_type.h"
 #include "pac_utils.h"
 
@@ -27,7 +29,8 @@ Output* header_output = nullptr;
 Output* source_output = nullptr;
 
 void add_to_include_directories(string dirs) {
-    unsigned int dir_begin = 0, dir_end;
+    unsigned int dir_begin = 0;
+    unsigned int dir_end = 0;
     while ( dir_begin < dirs.length() ) {
         for ( dir_end = dir_begin; dir_end < dirs.length(); ++dir_end )
             if ( dirs[dir_end] == ':' )

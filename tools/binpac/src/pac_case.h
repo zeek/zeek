@@ -49,7 +49,7 @@ protected:
     ID* index_var_;
     CaseFieldList* cases_;
 
-    typedef map<const ID*, CaseField*, ID_ptr_cmp> member_map_t;
+    using member_map_t = map<const ID*, CaseField*, ID_ptr_cmp>;
     member_map_t member_map_;
 };
 

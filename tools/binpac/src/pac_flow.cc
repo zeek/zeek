@@ -38,7 +38,7 @@ ParameterizedType* FlowDecl::flow_buffer_type() {
     return flow_buffer_type_;
 }
 
-void FlowDecl::AddBaseClass(vector<string>* base_classes) const { base_classes->push_back("binpac::FlowAnalyzer"); }
+void FlowDecl::AddBaseClass(vector<string>* base_classes) const { base_classes->emplace_back("binpac::FlowAnalyzer"); }
 
 void FlowDecl::ProcessFlowElement(AnalyzerFlow* flow_elem) {
     throw Exception(flow_elem, "flow should be defined in only a connection declaration");

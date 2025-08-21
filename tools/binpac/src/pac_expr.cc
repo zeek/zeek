@@ -46,6 +46,7 @@ string EvalExprList(ExprList* exprlist, Output* out, Env* env) {
 }
 
 static const char* expr_fmt[] = {
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define EXPR_DEF(type, num_op, fmt) fmt,
 #include "pac_expr.def"
 #undef EXPR_DEF
@@ -313,11 +314,11 @@ void Expr::GenEval(Output* out_cc, Env* env) {
             Type* ty;
 
             try {
-                if ( (rf = GetRecordField(id, env)) != nullptr ) {
+                if ( rf = GetRecordField(id, env); rf != nullptr ) {
                     str_ = strfmt("%s", rf->FieldSize(out_cc, env));
                 }
             } catch ( ExceptionIDNotFound& e ) {
-                if ( (ty = TypeDecl::LookUpType(id)) != nullptr ) {
+                if ( ty = TypeDecl::LookUpType(id); ty != nullptr ) {
                     int ty_size = ty->StaticSize(global_env());
                     if ( ty_size >= 0 )
                         str_ = strfmt("%d", ty_size);
@@ -675,14 +676,14 @@ int Expr::MinimalHeaderSize(Env* env) {
             RecordField* rf;
             Type* ty;
 
-            if ( (rf = GetRecordField(id, env)) != nullptr ) {
+            if ( rf = GetRecordField(id, env); rf != nullptr ) {
                 if ( rf->StaticSize(env, -1) >= 0 )
                     mhs = 0;
                 else
                     mhs = mhs_recordfield(env, rf);
             }
 
-            else if ( (ty = TypeDecl::LookUpType(id)) != nullptr ) {
+            else if ( ty = TypeDecl::LookUpType(id); ty != nullptr ) {
                 mhs = 0;
             }
 

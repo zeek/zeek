@@ -13,6 +13,7 @@ class CaseExpr;
 class Expr : public Object, public DataDepElement {
 public:
     enum ExprType : uint8_t {
+    // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define EXPR_DEF(type, x, y) type,
 #include "pac_expr.def"
 #undef EXPR_DEF

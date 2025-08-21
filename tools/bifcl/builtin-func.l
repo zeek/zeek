@@ -175,7 +175,7 @@ FILE* open_output_file(const char* surfix) {
     FILE* fp;
 
     snprintf(fn, sizeof(fn), "%s.%s", input_filename, surfix);
-    if ( (fp = fopen(fn, "w")) == NULL ) {
+    if ( fp = fopen(fn, "w"); fp == nullptr  ) {
         fprintf(stderr, "Error: cannot open file: %s\n", fn);
         err_exit();
     }
@@ -216,7 +216,7 @@ void init_alternative_mode() {
         fprintf(fp_func_register, "// %s\n\n", auto_gen_comment);
 
     static char guard[1024];
-    if ( getcwd(guard, sizeof(guard)) == NULL ) {
+    if ( getcwd(guard, sizeof(guard)) == nullptr ) {
         fprintf(stderr, "Error: cannot get current working directory\n");
         err_exit();
     }
@@ -341,7 +341,7 @@ int main(int argc, char* argv[]) {
         input_filename = input_filename_with_path = argv[i];
         char* slash = strrchr(input_filename, '/');
 
-        if ( (fp_input = fopen(input_filename, "r")) == NULL ) {
+        if ( fp_input = fopen(input_filename, "r"); fp_input == nullptr ) {
             fprintf(stderr, "Error: cannot open file: %s\n", input_filename);
             /* no output files open. can simply exit */
             exit(1);

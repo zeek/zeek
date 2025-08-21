@@ -12,8 +12,15 @@ add_flex_bison_dependency(BIFScanner BIFParser)
 set(bifcl_SRCS ${BISON_BIFParser_INPUT} ${FLEX_BIFScanner_INPUT} ${BISON_BIFParser_OUTPUTS}
                ${FLEX_BIFScanner_OUTPUTS} bif_arg.cc module_util.cc)
 
+set(bifcl_bison_generated_files
+    ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.cc ${CMAKE_CURRENT_BINARY_DIR}/bif_parse.h
+    ${CMAKE_CURRENT_BINARY_DIR}/bif_lex.cc)
+
+set_source_files_properties(${bifcl_bison_generated_files} PROPERTIES SKIP_LINTING ON)
+
 add_executable(bifcl ${bifcl_SRCS})
 target_include_directories(bifcl BEFORE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+zeek_target_add_linters(bifcl)
 
 if (MSVC)
     target_compile_options(bifcl PUBLIC "/J") # Similar to -funsigned-char on other platforms

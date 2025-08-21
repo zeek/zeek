@@ -164,6 +164,7 @@ static struct {
 	const char* constructor;
 	const char* ctor_smatr;
 } builtin_types[] = {
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define DEFINE_BIF_TYPE(id, bif_type, zeek_type, c_type, c_type_smart, accessor, accessor_smart, cast_smart, constructor, ctor_smart) \
 	{bif_type, zeek_type, c_type, c_type_smart, accessor, accessor_smart, cast_smart, constructor, ctor_smart},
 #include "bif_type.def"
@@ -238,14 +239,14 @@ static void print_event_c_body(FILE * fp) {
 
     fprintf(fp, "\tzeek::event_mgr.Enqueue(%s, zeek::Args{\n", decl.c_fullname.c_str());
 
-    for ( int i = 0; i < (int)args.size(); ++i ) {
+    for ( const auto& arg : args ) {
         fprintf(fp, "\t        ");
-        args[i]->PrintValConstructor(fp);
+        arg->PrintValConstructor(fp);
         fprintf(fp, ",\n");
 
-        if ( args[i]->Type() == TYPE_CONNECTION ) {
+        if ( arg->Type() == TYPE_CONNECTION ) {
             if ( connection_arg == nullptr )
-                connection_arg = args[i];
+                connection_arg = arg;
             else {
                 // We are seeing two connection type arguments.
                 yywarn(
@@ -453,7 +454,7 @@ enum_list:	enum_list TOK_ID opt_ws ',' opt_ws
 
 const_def:	TOK_CONST opt_ws TOK_ID opt_ws ':' opt_ws TOK_ID opt_ws ';'
 			{
-			set_definition_type(CONST_DEF, 0);
+			set_definition_type(CONST_DEF, nullptr);
 			set_decl_name($3);
 			int typeidx = get_type_index($7);
 			char accessor[1024];
@@ -504,11 +505,11 @@ opt_attr_list:
 	;
 
 func_prefix:	TOK_FUNCTION
-			{ set_definition_type(FUNC_DEF, 0); }
+			{ set_definition_type(FUNC_DEF, nullptr); }
 	;
 
 event_prefix:	TOK_EVENT
-			{ set_definition_type(EVENT_DEF, 0); }
+			{ set_definition_type(EVENT_DEF, nullptr); }
 	;
 
 end_of_head:	/* nothing */

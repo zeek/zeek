@@ -106,16 +106,24 @@ bool WriterBackend::WriterInfo::FromBroker(broker::data d) {
     return true;
 }
 
-WriterBackend::WriterBackend(WriterFrontend* arg_frontend) : MsgThread() {
+// Remove in v9.1
+WriterBackend::WriterBackend(WriterFrontend* arg_frontend, bool arg_send_heartbeats) : MsgThread() {
     num_fields = 0;
     fields = nullptr;
     buffering = true;
     frontend = arg_frontend;
     info = new WriterInfo(frontend->Info());
     rotation_counter = 0;
+    send_heartbeats = arg_send_heartbeats;
 
     SetName(frontend->Name());
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+WriterBackend::WriterBackend(NoThreadingHeartbeats, WriterFrontend* arg_frontend)
+    : WriterBackend(arg_frontend, false) {}
+#pragma GCC diagnostic pop
 
 WriterBackend::~WriterBackend() {
     if ( fields ) {
@@ -281,6 +289,13 @@ bool WriterBackend::Flush(double network_time) {
     }
 
     return true;
+}
+
+void WriterBackend::Heartbeat() {
+    if ( ! send_heartbeats )
+        return;
+
+    MsgThread::Heartbeat();
 }
 
 bool WriterBackend::OnFinish(double network_time) {

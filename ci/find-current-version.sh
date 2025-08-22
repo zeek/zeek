@@ -11,6 +11,9 @@
 #
 set -euo pipefail
 
+echo "8.0.0"
+exit 0
+
 REMOTE=${REMOTE:-origin}
 MAIN_BRANCH=${MAIN_BRANCH:-refs/remotes/${REMOTE}/master}
 

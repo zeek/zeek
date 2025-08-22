@@ -6,6 +6,9 @@
 # artifact upload happens.
 set -eux
 
+echo "ci/spicy-install-analyzers.sh"
+exit 0
+
 test -d ${CIRRUS_WORKING_DIR}/install
 
 # Install prefix

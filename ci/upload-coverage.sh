@@ -1,5 +1,8 @@
 #! /usr/bin/env bash
 
+echo "ci/upload-coverage.sh"
+exit 0
+
 # The ZEEK_COVERALLS_REPO_TOKEN environment variable must exist
 # for this script to work correctly. On Cirrus, this is provided
 # via the secured variables.

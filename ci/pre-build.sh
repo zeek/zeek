@@ -1,4 +1,8 @@
 #/usr/bin/env bash
+
+echo "ci/pre-build.sh"
+exit 0
+
 #
 # If ZEEK_CI_PREBUILD_COMMAND is not empty, execute it via bash -c. That's it.
 set -ex

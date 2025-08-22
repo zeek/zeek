@@ -15,6 +15,9 @@
 #
 set -eux
 
+echo "ci/container-images-tag-and-push.sh"
+exit 0
+
 REGISTRY_PREFIX=${REGISTRY_PREFIX:-}
 ZEEK_IMAGE_REPO=${ZEEK_IMAGE_REPO:-zeek}
 

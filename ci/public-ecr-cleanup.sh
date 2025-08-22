@@ -6,6 +6,9 @@
 # deletes them, then deletes all remaining untagged images.
 set -eu
 
+echo "ci/public-ecr-cleanup.sh"
+exit 0
+
 if ! command -v aws >/dev/null; then
     echo "missing aws command" >&2
     exit 1

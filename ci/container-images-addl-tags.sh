@@ -9,7 +9,10 @@
 # to work correctly. See the find-current-version.sh for details.
 set -eu
 
-dir="$(cd "$(dirname "$0")" && pwd)"
+echo "ci/container-images-addl-tags.sh"
+exit 0
+
+ir="$(cd "$(dirname "$0")" && pwd)"
 
 if [ $# -ne 1 ] || [ -z "${1}" ]; then
     echo "Usage: $0 <tag>" >&2

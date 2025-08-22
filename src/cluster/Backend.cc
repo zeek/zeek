@@ -132,10 +132,19 @@ std::optional<Event> Backend::MakeClusterEvent(FuncValPtr handler, ArgsSpan args
      *
      * @J-Gras prefers the current behavior. @awelzel wonders if there should
      * be an opt-in/opt-out for this behavior. Procrastinating it for now.
+     *
+     * In any case, if the current event has no timestamp information
+     * (detail::NO_TIMESTAMP is -1.0), use the current network time for
+     * the outgoing event instead as network timestamp metadata.
      */
     zeek::detail::EventMetadataVectorPtr meta;
-    if ( zeek::BifConst::EventMetadata::add_network_timestamp )
-        meta = zeek::detail::MakeEventMetadataVector(zeek::event_mgr.CurrentEventTime());
+    if ( zeek::BifConst::EventMetadata::add_network_timestamp ) {
+        auto ts = zeek::event_mgr.CurrentEventTime();
+        if ( ts == zeek::detail::NO_TIMESTAMP )
+            ts = run_state::network_time;
+
+        meta = zeek::detail::MakeEventMetadataVector(ts);
+    }
 
     return Event{eh, std::move(*checked_args), std::move(meta)};
 }

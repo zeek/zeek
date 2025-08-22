@@ -66,8 +66,8 @@ std::optional<broker::zeek::Event> detail::to_broker_event(const zeek::cluster::
     }
 
     // Convert metadata from the cluster::detail::Event event to broker's event metadata format.
-    broker::vector broker_meta;
     if ( const auto* meta = ev.Metadata(); meta != nullptr ) {
+        broker::vector broker_meta;
         broker_meta.reserve(meta->size());
 
         for ( const auto& m : *meta ) {
@@ -81,9 +81,11 @@ std::optional<broker::zeek::Event> detail::to_broker_event(const zeek::cluster::
                                       obj_desc_short(m.Val()).c_str());
             }
         }
+
+        return broker::zeek::Event(ev.HandlerName(), xs, broker_meta);
     }
 
-    return broker::zeek::Event(ev.HandlerName(), xs, broker_meta);
+    return broker::zeek::Event(ev.HandlerName(), xs);
 }
 
 std::optional<zeek::cluster::Event> detail::to_zeek_event(const broker::zeek::Event& ev) {

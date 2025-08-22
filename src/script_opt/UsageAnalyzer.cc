@@ -49,7 +49,7 @@ UsageAnalyzer::UsageAnalyzer(std::vector<FuncInfo>& funcs) {
         if ( t->AsFuncType()->Flavor() == FUNC_FLAVOR_FUNCTION )
             continue;
 
-        if ( reachables.count(id) > 0 )
+        if ( reachables.contains(id) )
             continue;
 
         auto flavor = t->AsFuncType()->FlavorString();
@@ -69,7 +69,7 @@ UsageAnalyzer::UsageAnalyzer(std::vector<FuncInfo>& funcs) {
     for ( auto& gpair : globals ) {
         auto& id = gpair.second;
 
-        if ( reachables.count(id.get()) > 0 )
+        if ( reachables.contains(id.get()) )
             continue;
 
         auto f = GetFuncIfAny(id);
@@ -109,7 +109,7 @@ public:
     }
 
     TraversalCode PreType(const Type* t) override {
-        if ( analyzed_types.count(t) > 0 )
+        if ( analyzed_types.contains(t) )
             return TC_ABORTSTMT;
 
         analyzed_types.insert(t);
@@ -117,7 +117,7 @@ public:
     }
 
     TraversalCode PreID(const ID* id) override {
-        if ( ids.count(id) > 0 )
+        if ( ids.contains(id) )
             return TC_ABORTSTMT;
 
         if ( attr_depth > 0 )
@@ -149,7 +149,7 @@ void UsageAnalyzer::FindSeeds(IDSet& seeds) const {
         auto f = GetFuncIfAny(id);
 
         if ( f && id->GetType<FuncType>()->Flavor() == FUNC_FLAVOR_EVENT ) {
-            if ( script_events.count(f->GetName()) == 0 )
+            if ( ! script_events.contains(f->GetName()) )
                 seeds.insert(id.get());
 
             continue;
@@ -225,7 +225,7 @@ void UsageAnalyzer::Expand(const ID* id) {
 }
 
 TraversalCode UsageAnalyzer::PreID(const ID* id) {
-    if ( analyzed_IDs.count(id) > 0 )
+    if ( analyzed_IDs.contains(id) )
         // No need to repeat the analysis.
         return TC_ABORTSTMT;
 
@@ -234,7 +234,7 @@ TraversalCode UsageAnalyzer::PreID(const ID* id) {
 
     auto f = GetFuncIfAny(id);
 
-    if ( f && reachables.count(id) == 0 )
+    if ( f && ! reachables.contains(id) )
         // Haven't seen this function before.
         new_reachables.insert(id);
 
@@ -254,7 +254,7 @@ TraversalCode UsageAnalyzer::PreID(const ID* id) {
 }
 
 TraversalCode UsageAnalyzer::PreType(const Type* t) {
-    if ( analyzed_types.count(t) > 0 )
+    if ( analyzed_types.contains(t) )
         return TC_ABORTSTMT;
 
     // Save processing by avoiding a re-traversal of this type.

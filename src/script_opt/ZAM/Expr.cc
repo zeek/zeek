@@ -322,7 +322,7 @@ const ZAMStmt ZAMCompiler::CompileRecFieldUpdates(const RecordFieldUpdatesExpr* 
     bool homogeneous = field_tags.size() == 1;
     // Here we leverage the fact that C++ "+=" works identically for
     // signed and unsigned int's.
-    if ( ! homogeneous && field_tags.size() == 2 && field_tags.count(TYPE_INT) > 0 && field_tags.count(TYPE_COUNT) > 0 )
+    if ( ! homogeneous && field_tags.size() == 2 && field_tags.contains(TYPE_INT) && field_tags.contains(TYPE_COUNT) )
         homogeneous = true;
 
     ZOp op;
@@ -338,7 +338,7 @@ const ZAMStmt ZAMCompiler::CompileRecFieldUpdates(const RecordFieldUpdatesExpr* 
     }
 
     else if ( homogeneous ) {
-        if ( field_tags.count(TYPE_DOUBLE) > 0 )
+        if ( field_tags.contains(TYPE_DOUBLE) )
             op = OP_REC_ADD_DOUBLE_FIELDS_VV;
         else
             // Here we leverage that += will work for both signed/unsigned.
@@ -951,7 +951,7 @@ const ZAMStmt ZAMCompiler::BuildLambda(int n_slot, ExprPtr e) {
     for ( int i = 0; i < ncaptures; ++i ) {
         auto& id_i = (*captures)[i].Id();
 
-        if ( pf->WhenLocals().count(id_i.get()) > 0 )
+        if ( pf->WhenLocals().contains(id_i.get()) )
             aux->Add(i, nullptr);
         else
             aux->Add(i, FrameSlot(id_i), id_i->GetType());

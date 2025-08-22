@@ -1,3 +1,21 @@
+8.1.0-dev.454 | 2025-08-22 10:12:35 +0200
+
+  * cluster/Backend: Fallback to current network time when current event has not timestamp (Arne Welzel, Corelight)
+
+    When a WebSocket client sends an event to Zeek without explicit network
+    timestamp metadata, Zeek would use -1.0 as a timestamp for any events
+    published while handling this event. Instead, it seems far more sensible
+    to use the current network time in that scenario.
+
+  * cluster/serializer/broker: Do not send empty metadata vectors around (Arne Welzel, Corelight)
+
+    Event when there's no metadata attached to an event, we'd still use the
+    constructor passing an empty metadata vector, resulting in an on-the-wire
+    representation with an empty trailing vector.
+
+    Particularly visible when just snooping events via websocat. There also
+    seems to be some bug with the timestamp -1 handling.
+
 8.1.0-dev.451 | 2025-08-21 17:10:05 -0700
 
   * Minor fixes to a few NEWS entries. (Christian Kreibich, Corelight)

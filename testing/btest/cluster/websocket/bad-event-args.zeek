@@ -105,7 +105,7 @@ def run(ws_url):
         # This should be good ping(string, count)
         ws.send(json.dumps(make_ping([{"@data-type": "string", "data": "Hello"}, {"@data-type": "count", "data": 42}])))
         pong = json.loads(ws.recv())
-        name, args, _ = pong["data"][2]["data"]
+        name, args = pong["data"][2]["data"]
         print("pong", name, args)
 
         # This one fails again

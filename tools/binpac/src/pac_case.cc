@@ -2,7 +2,7 @@
 
 #include "pac_case.h"
 
-#include <stdint.h>
+#include <cstdint>
 #include <limits>
 
 #include "pac_btype.h"
@@ -16,8 +16,9 @@
 
 CaseType::CaseType(Expr* index_expr, CaseFieldList* cases) : Type(CASE), index_expr_(index_expr), cases_(cases) {
     index_var_ = nullptr;
-    foreach (i, CaseFieldList, cases_)
-        AddField(*i);
+    if ( cases_ )
+        for ( const auto& c : *cases_ )
+            AddField(c);
 }
 
 CaseType::~CaseType() {
@@ -42,10 +43,9 @@ string CaseType::DataTypeStr() const {
 }
 
 Type* CaseType::ValueType() const {
-    foreach (i, CaseFieldList, cases_) {
-        CaseField* c = *i;
-        return c->type();
-    }
+    if ( cases_ )
+        for ( const auto& c : *cases_ )
+            return c->type();
     ASSERT(0);
     return nullptr;
 }
@@ -64,12 +64,12 @@ void CaseType::Prepare(Env* env, int flags) {
     CaseFieldList::iterator default_case_it = cases_->end(); // to avoid warning
     CaseField* default_case = nullptr;
 
-    foreach (i, CaseFieldList, cases_) {
-        CaseField* c = *i;
+    for ( auto it = cases_->begin(); it != cases_->end(); ++it ) {
+        CaseField* c = *it;
         if ( ! c->index() ) {
             if ( default_case )
                 throw Exception(c, "duplicate default case");
-            default_case_it = i;
+            default_case_it = it;
             default_case = c;
         }
     }
@@ -78,11 +78,11 @@ void CaseType::Prepare(Env* env, int flags) {
         cases_->push_back(default_case);
     }
 
-    foreach (i, CaseFieldList, cases_) {
-        CaseField* c = *i;
-        c->set_index_var(index_var_);
-        c->set_case_type(this);
-    }
+    if ( cases_ )
+        for ( const auto& c : *cases_ ) {
+            c->set_index_var(index_var_);
+            c->set_case_type(this);
+        }
 
     Type::Prepare(env, flags);
 }
@@ -122,10 +122,10 @@ void CaseType::GenCleanUpCode(Output* out_cc, Env* env) {
     out_cc->println("// NOLINTBEGIN(bugprone-branch-clone)");
     out_cc->println("switch ( %s ) {", env->RValue(index_var_));
     out_cc->inc_indent();
-    foreach (i, CaseFieldList, cases_) {
-        CaseField* c = *i;
-        c->GenCleanUpCode(out_cc, env);
-    }
+    if ( cases_ )
+        for ( const auto& c : *cases_ ) {
+            c->GenCleanUpCode(out_cc, env);
+        }
     out_cc->dec_indent();
     out_cc->println("}");
     out_cc->println("// NOLINTEND(bugprone-branch-clone)");
@@ -149,12 +149,12 @@ void CaseType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, int
     out_cc->println("switch ( %s ) {", env->RValue(index_var_));
     out_cc->inc_indent();
     bool has_default_case = false;
-    foreach (i, CaseFieldList, cases_) {
-        CaseField* c = *i;
-        c->GenParseCode(out_cc, env, data, compute_size_var ? size_var() : nullptr);
-        if ( c->IsDefaultCase() )
-            has_default_case = true;
-    }
+    if ( cases_ )
+        for ( const auto& c : *cases_ ) {
+            c->GenParseCode(out_cc, env, data, compute_size_var ? size_var() : nullptr);
+            if ( c->IsDefaultCase() )
+                has_default_case = true;
+        }
 
     if ( ! has_default_case ) {
         out_cc->println("default:");
@@ -177,37 +177,37 @@ void CaseType::GenDynamicSize(Output* out_cc, Env* env, const DataPtr& data) { G
 
 int CaseType::StaticSize(Env* env) const {
     int static_w = -1;
-    foreach (i, CaseFieldList, cases_) {
-        CaseField* c = *i;
-        int w = c->StaticSize(env);
-        if ( w < 0 || (static_w >= 0 && w != static_w) )
-            return -1;
-        static_w = w;
-    }
+    if ( cases_ )
+        for ( const auto& c : *cases_ ) {
+            int w = c->StaticSize(env);
+            if ( w < 0 || (static_w >= 0 && w != static_w) )
+                return -1;
+            static_w = w;
+        }
     return static_w;
 }
 
 void CaseType::SetBoundaryChecked() {
     Type::SetBoundaryChecked();
-    foreach (i, CaseFieldList, cases_) {
-        CaseField* c = *i;
-        c->SetBoundaryChecked();
-    }
+    if ( cases_ )
+        for ( const auto& c : *cases_ ) {
+            c->SetBoundaryChecked();
+        }
 }
 
 void CaseType::DoMarkIncrementalInput() {
-    foreach (i, CaseFieldList, cases_) {
-        CaseField* c = *i;
-        c->type()->MarkIncrementalInput();
-    }
+    if ( cases_ )
+        for ( const auto& c : *cases_ ) {
+            c->type()->MarkIncrementalInput();
+        }
 }
 
 bool CaseType::ByteOrderSensitive() const {
-    foreach (i, CaseFieldList, cases_) {
-        CaseField* c = *i;
-        if ( c->RequiresByteOrder() )
-            return true;
-    }
+    if ( cases_ )
+        for ( const auto& c : *cases_ ) {
+            if ( c->RequiresByteOrder() )
+                return true;
+        }
     return false;
 }
 
@@ -219,13 +219,11 @@ CaseField::CaseField(ExprList* index, ID* id, Type* type)
     index_var_ = nullptr;
 }
 
-CaseField::~CaseField() { delete_list(ExprList, index_); }
+CaseField::~CaseField() { delete_list(index_); }
 
 void GenCaseStr(ExprList* index_list, Output* out_cc, Env* env, Type* switch_type) {
     if ( index_list ) {
-        foreach (i, ExprList, index_list) {
-            Expr* index_expr = *i;
-
+        for ( const auto& index_expr : *index_list ) {
             Type* case_type = index_expr->DataType(env);
 
             if ( case_type->tot() == Type::BUILTIN && case_type->StaticSize(env) > 4 )

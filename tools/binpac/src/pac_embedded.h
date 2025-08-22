@@ -7,7 +7,7 @@
 
 class EmbeddedCodeSegment {
 public:
-    explicit EmbeddedCodeSegment(const string& s);
+    explicit EmbeddedCodeSegment(string s);
     explicit EmbeddedCodeSegment(PacPrimitive* primitive);
     ~EmbeddedCodeSegment();
 
@@ -18,7 +18,7 @@ private:
     PacPrimitive* primitive_;
 };
 
-typedef vector<EmbeddedCodeSegment*> EmbeddedCodeSegmentList;
+using EmbeddedCodeSegmentList = vector<EmbeddedCodeSegment*>;
 
 class EmbeddedCode : public Object {
 public:

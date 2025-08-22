@@ -17,6 +17,9 @@ public:
     DataPtr(DataPtr const& x) { *this = x; }
 
     DataPtr const& operator=(DataPtr const& x) {
+        if ( this == &x )
+            return *this;
+
         id_ = x.id();
         offset_ = x.offset();
         ptr_expr_ = x.ptr_expr();

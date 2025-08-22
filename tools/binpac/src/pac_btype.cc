@@ -19,6 +19,7 @@ bool BuiltInType::CompatibleBuiltInTypes(BuiltInType* type1, BuiltInType* type2)
 }
 
 static const char* basic_pactype_name[] = {
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define TYPE_DEF(name, pactype, ctype, size) pactype,
 #include "pac_type.def"
 #undef TYPE_DEF
@@ -40,6 +41,7 @@ int BuiltInType::LookUpByName(const char* name) {
 }
 
 static const char* basic_ctype_name[] = {
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define TYPE_DEF(name, pactype, ctype, size) ctype,
 #include "pac_type.def"
 #undef TYPE_DEF
@@ -52,6 +54,7 @@ string BuiltInType::DataTypeStr() const { return basic_ctype_name[bit_type_]; }
 
 int BuiltInType::StaticSize(Env* /* env */) const {
     static const size_t basic_type_size[] = {
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define TYPE_DEF(name, pactype, ctype, size) size,
 #include "pac_type.def"
 #undef TYPE_DEF

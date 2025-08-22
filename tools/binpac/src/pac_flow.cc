@@ -38,7 +38,7 @@ ParameterizedType* FlowDecl::flow_buffer_type() {
     return flow_buffer_type_;
 }
 
-void FlowDecl::AddBaseClass(vector<string>* base_classes) const { base_classes->push_back("binpac::FlowAnalyzer"); }
+void FlowDecl::AddBaseClass(vector<string>* base_classes) const { base_classes->emplace_back("binpac::FlowAnalyzer"); }
 
 void FlowDecl::ProcessFlowElement(AnalyzerFlow* flow_elem) {
     throw Exception(flow_elem, "flow should be defined in only a connection declaration");
@@ -117,9 +117,9 @@ void FlowDecl::GenEOFFunc(Output* out_h, Output* out_cc) {
     out_cc->println("void %s::%s {", class_name().c_str(), proto.c_str());
     out_cc->inc_indent();
 
-    foreach (i, AnalyzerHelperList, eof_helpers_) {
-        (*i)->GenCode(nullptr, out_cc, this);
-    }
+    if ( eof_helpers_ )
+        for ( const auto& helper : *eof_helpers_ )
+            helper->GenCode(nullptr, out_cc, this);
 
     if ( dataunit_->type() == AnalyzerDataUnit::FLOWUNIT ) {
         out_cc->println("%s->set_eof();", env_->LValue(flow_buffer_id));

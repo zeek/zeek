@@ -3,12 +3,14 @@
 #ifndef pac_strtype_h
 #define pac_strtype_h
 
+#include <cstdint>
+
 #include "pac_type.h"
 
 // TODO: question: shall we merge it with ArrayType?
 class StringType : public Type {
 public:
-    enum StringTypeEnum { CSTR, REGEX, ANYSTR };
+    enum StringTypeEnum : uint8_t { CSTR, REGEX, ANYSTR };
 
     explicit StringType(StringTypeEnum anystr);
     explicit StringType(ConstString* str);

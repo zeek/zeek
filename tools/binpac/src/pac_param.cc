@@ -30,15 +30,15 @@ string ParamDecls(ParamList* params) {
     string param_decls;
 
     int first = 1;
-    foreach (i, ParamList, params) {
-        Param* p = *i;
-        const char* decl_str = p->decl_str().c_str();
-        if ( first )
-            first = 0;
-        else
-            param_decls += ", ";
-        param_decls += decl_str;
-    }
+    if ( params )
+        for ( const auto& p : *params ) {
+            const char* decl_str = p->decl_str().c_str();
+            if ( first )
+                first = 0;
+            else
+                param_decls += ", ";
+            param_decls += decl_str;
+        }
     return param_decls;
 }
 

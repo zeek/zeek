@@ -34,57 +34,58 @@ AnalyzerDecl::AnalyzerDecl(ID* id, DeclType decl_type, ParamList* params) : Type
 }
 
 AnalyzerDecl::~AnalyzerDecl() {
-    delete_list(StateVarList, statevars_);
-    delete_list(AnalyzerActionList, actions_);
-    delete_list(AnalyzerHelperList, helpers_);
-    delete_list(FunctionList, functions_);
-    delete_list(ParamList, params_);
-    delete_list(AnalyzerHelperList, constructor_helpers_);
-    delete_list(AnalyzerHelperList, destructor_helpers_);
-    delete_list(AnalyzerHelperList, eof_helpers_);
+    delete_list(statevars_);
+    delete_list(actions_);
+    delete_list(helpers_);
+    delete_list(functions_);
+    delete_list(params_);
+    delete_list(constructor_helpers_);
+    delete_list(destructor_helpers_);
+    delete_list(eof_helpers_);
 }
 
 void AnalyzerDecl::AddElements(AnalyzerElementList* elemlist) {
     ASSERT(! env_);
-    foreach (i, AnalyzerElementList, elemlist) {
-        AnalyzerElement* elem = *i;
-        switch ( elem->type() ) {
-            case AnalyzerElement::STATE: {
-                ASSERT(0);
-                AnalyzerState* state_elem = (AnalyzerState*)elem;
-                statevars_->insert(statevars_->end(), state_elem->statevars()->begin(), state_elem->statevars()->end());
-            } break;
-            case AnalyzerElement::ACTION: {
-                ASSERT(0);
-                AnalyzerAction* action_elem = (AnalyzerAction*)elem;
-                actions_->push_back(action_elem);
-            } break;
-            case AnalyzerElement::HELPER: {
-                AnalyzerHelper* helper_elem = (AnalyzerHelper*)elem;
+    if ( elemlist )
+        for ( const auto& elem : *elemlist ) {
+            switch ( elem->type() ) {
+                case AnalyzerElement::STATE: {
+                    ASSERT(0);
+                    AnalyzerState* state_elem = (AnalyzerState*)elem;
+                    statevars_->insert(statevars_->end(), state_elem->statevars()->begin(),
+                                       state_elem->statevars()->end());
+                } break;
+                case AnalyzerElement::ACTION: {
+                    ASSERT(0);
+                    AnalyzerAction* action_elem = (AnalyzerAction*)elem;
+                    actions_->push_back(action_elem);
+                } break;
+                case AnalyzerElement::HELPER: {
+                    AnalyzerHelper* helper_elem = (AnalyzerHelper*)elem;
 
-                switch ( helper_elem->helper_type() ) {
-                    case AnalyzerHelper::INIT_CODE: constructor_helpers_->push_back(helper_elem); break;
-                    case AnalyzerHelper::CLEANUP_CODE: destructor_helpers_->push_back(helper_elem); break;
-                    case AnalyzerHelper::EOF_CODE: eof_helpers_->push_back(helper_elem); break;
-                    default: helpers_->push_back(helper_elem);
-                }
-            } break;
-            case AnalyzerElement::FUNCTION: {
-                AnalyzerFunction* func_elem = (AnalyzerFunction*)elem;
-                Function* func = func_elem->function();
-                func->set_analyzer_decl(this);
-                functions_->push_back(func);
-            } break;
-            case AnalyzerElement::FLOW: {
-                AnalyzerFlow* flow_elem = (AnalyzerFlow*)elem;
-                ProcessFlowElement(flow_elem);
-            } break;
-            case AnalyzerElement::DATAUNIT: {
-                AnalyzerDataUnit* dataunit_elem = (AnalyzerDataUnit*)elem;
-                ProcessDataUnitElement(dataunit_elem);
-            } break;
+                    switch ( helper_elem->helper_type() ) {
+                        case AnalyzerHelper::INIT_CODE: constructor_helpers_->push_back(helper_elem); break;
+                        case AnalyzerHelper::CLEANUP_CODE: destructor_helpers_->push_back(helper_elem); break;
+                        case AnalyzerHelper::EOF_CODE: eof_helpers_->push_back(helper_elem); break;
+                        default: helpers_->push_back(helper_elem);
+                    }
+                } break;
+                case AnalyzerElement::FUNCTION: {
+                    AnalyzerFunction* func_elem = (AnalyzerFunction*)elem;
+                    Function* func = func_elem->function();
+                    func->set_analyzer_decl(this);
+                    functions_->push_back(func);
+                } break;
+                case AnalyzerElement::FLOW: {
+                    AnalyzerFlow* flow_elem = (AnalyzerFlow*)elem;
+                    ProcessFlowElement(flow_elem);
+                } break;
+                case AnalyzerElement::DATAUNIT: {
+                    AnalyzerDataUnit* dataunit_elem = (AnalyzerDataUnit*)elem;
+                    ProcessDataUnitElement(dataunit_elem);
+                } break;
+            }
         }
-    }
 }
 
 string AnalyzerDecl::class_name() const { return id_->Name(); }
@@ -95,38 +96,36 @@ void AnalyzerDecl::Prepare() {
     ASSERT(statevars_->empty());
     ASSERT(actions_->empty());
 
-    foreach (i, FunctionList, functions_) {
-        Function* function = *i;
-        function->Prepare(env_);
-    }
-    foreach (i, StateVarList, statevars_) {
-        StateVar* statevar = *i;
-        env_->AddID(statevar->id(), STATE_VAR, statevar->type());
-    }
-    foreach (i, AnalyzerActionList, actions_) {
-        AnalyzerAction* action = *i;
-        action->InstallHook(this);
-    }
+    if ( functions_ )
+        for ( const auto& function : *functions_ )
+            function->Prepare(env_);
+
+    if ( statevars_ )
+        for ( const auto& statevar : *statevars_ )
+            env_->AddID(statevar->id(), STATE_VAR, statevar->type());
+
+    if ( actions_ )
+        for ( const auto& action : *actions_ )
+            action->InstallHook(this);
 }
 
 void AnalyzerDecl::GenForwardDeclaration(Output* out_h) {
     out_h->println("class %s;", class_name().c_str());
-    foreach (i, FunctionList, functions_) {
-        Function* function = *i;
-        function->GenForwardDeclaration(out_h);
-    }
+    if ( functions_ )
+        for ( const auto& function : *functions_ )
+            function->GenForwardDeclaration(out_h);
 }
 
 void AnalyzerDecl::GenActions(Output* out_h, Output* out_cc) {
-    foreach (i, AnalyzerActionList, actions_) {
-        (*i)->GenCode(out_h, out_cc, this);
-    }
+    if ( actions_ )
+        for ( const auto& action : *actions_ )
+            action->GenCode(out_h, out_cc, this);
 }
 
 void AnalyzerDecl::GenHelpers(Output* out_h, Output* out_cc) {
-    foreach (i, AnalyzerHelperList, helpers_) {
-        (*i)->GenCode(out_h, out_cc, this);
-    }
+    if ( helpers_ )
+        for ( const auto& helper : *helpers_ )
+            helper->GenCode(out_h, out_cc, this);
 }
 
 void AnalyzerDecl::GenPubDecls(Output* out_h, Output* out_cc) {
@@ -160,51 +159,46 @@ void AnalyzerDecl::GenPrivDecls(Output* out_h, Output* out_cc) {
 
 void AnalyzerDecl::GenInitCode(Output* out_cc) {
     TypeDecl::GenInitCode(out_cc);
-    foreach (i, AnalyzerHelperList, constructor_helpers_) {
-        (*i)->GenCode(nullptr, out_cc, this);
-    }
+    if ( constructor_helpers_ )
+        for ( const auto& helper : *constructor_helpers_ )
+            helper->GenCode(nullptr, out_cc, this);
 }
 
 void AnalyzerDecl::GenCleanUpCode(Output* out_cc) {
     TypeDecl::GenCleanUpCode(out_cc);
-    foreach (i, AnalyzerHelperList, destructor_helpers_) {
-        (*i)->GenCode(nullptr, out_cc, this);
-    }
+    if ( destructor_helpers_ )
+        for ( const auto& helper : *destructor_helpers_ )
+            helper->GenCode(nullptr, out_cc, this);
 }
 
 void AnalyzerDecl::GenStateVarDecls(Output* out_h) {
-    foreach (i, StateVarList, statevars_) {
-        StateVar* var = *i;
-        var->GenDecl(out_h, env_);
-    }
+    if ( statevars_ )
+        for ( const auto& var : *statevars_ )
+            var->GenDecl(out_h, env_);
 }
 
 void AnalyzerDecl::GenStateVarSetFunctions(Output* out_h) {
-    foreach (i, StateVarList, statevars_) {
-        StateVar* var = *i;
-        var->GenSetFunction(out_h, env_);
-    }
+    if ( statevars_ )
+        for ( const auto& var : *statevars_ )
+            var->GenSetFunction(out_h, env_);
 }
 
 void AnalyzerDecl::GenStateVarInitCode(Output* out_cc) {
-    foreach (i, StateVarList, statevars_) {
-        StateVar* var = *i;
-        var->GenInitCode(out_cc, env_);
-    }
+    if ( statevars_ )
+        for ( const auto& var : *statevars_ )
+            var->GenInitCode(out_cc, env_);
 }
 
 void AnalyzerDecl::GenStateVarCleanUpCode(Output* out_cc) {
-    foreach (i, StateVarList, statevars_) {
-        StateVar* var = *i;
-        var->GenCleanUpCode(out_cc, env_);
-    }
+    if ( statevars_ )
+        for ( const auto& var : *statevars_ )
+            var->GenCleanUpCode(out_cc, env_);
 }
 
 void AnalyzerDecl::GenFunctions(Output* out_h, Output* out_cc) {
-    foreach (i, FunctionList, functions_) {
-        Function* function = *i;
-        function->GenCode(out_h, out_cc);
-    }
+    if ( functions_ )
+        for ( const auto& function : *functions_ )
+            function->GenCode(out_h, out_cc);
 }
 
 AnalyzerState::~AnalyzerState() {

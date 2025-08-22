@@ -6,7 +6,7 @@
 #include "pac_id.h"
 #include "pac_type.h"
 
-DataDepElement::DataDepElement(DDE_Type type) : dde_type_(type), in_traversal(false) {}
+DataDepElement::DataDepElement(DDE_Type type) : dde_type_(type) {}
 
 bool DataDepElement::Traverse(DataDepVisitor* visitor) {
     // Avoid infinite loop

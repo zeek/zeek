@@ -19,20 +19,18 @@
 DeclList* Decl::decl_list_ = nullptr;
 Decl::DeclMap Decl::decl_map_;
 
-Decl::Decl(ID* id, DeclType decl_type) : id_(id), decl_type_(decl_type), attrlist_(nullptr) {
+Decl::Decl(ID* id, DeclType decl_type) : id_(id), decl_type_(decl_type) {
     decl_map_[id_] = this;
     if ( ! decl_list_ )
         decl_list_ = new DeclList();
     decl_list_->push_back(this);
 
     DEBUG_MSG("Finished Decl %s\n", id_->Name());
-
-    analyzer_context_ = nullptr;
 }
 
 Decl::~Decl() {
     delete id_;
-    delete_list(AttrList, attrlist_);
+    delete_list(attrlist_);
 }
 
 void Decl::AddAttrs(AttrList* attrs) {
@@ -40,10 +38,11 @@ void Decl::AddAttrs(AttrList* attrs) {
         return;
     if ( ! attrlist_ )
         attrlist_ = new AttrList();
-    foreach (i, AttrList, attrs) {
-        attrlist_->push_back(*i);
-        ProcessAttr(*i);
-    }
+    if ( attrs )
+        for ( const auto& attr : *attrs ) {
+            attrlist_->push_back(attr);
+            ProcessAttr(attr);
+        }
 }
 
 void Decl::ProcessAttr(Attr* attr) { throw Exception(attr, "unhandled attribute"); }
@@ -59,39 +58,39 @@ void Decl::ProcessDecls(Output* out_h, Output* out_cc) {
     if ( ! decl_list_ )
         return;
 
-    foreach (i, DeclList, decl_list_) {
-        Decl* decl = *i;
-        current_decl_id = decl->id();
-        decl->Prepare();
-    }
+    if ( decl_list_ )
+        for ( const auto& decl : *decl_list_ ) {
+            current_decl_id = decl->id();
+            decl->Prepare();
+        }
 
-    foreach (i, DeclList, decl_list_) {
-        Decl* decl = *i;
-        current_decl_id = decl->id();
-        decl->GenExternDeclaration(out_h);
-    }
+    if ( decl_list_ )
+        for ( const auto& decl : *decl_list_ ) {
+            current_decl_id = decl->id();
+            decl->GenExternDeclaration(out_h);
+        }
 
     out_h->println("namespace binpac {\n");
     out_cc->println("namespace binpac {\n");
 
     AnalyzerContextDecl* analyzer_context = AnalyzerContextDecl::current_analyzer_context();
 
-    foreach (i, DeclList, decl_list_) {
-        Decl* decl = *i;
-        current_decl_id = decl->id();
-        decl->GenForwardDeclaration(out_h);
-    }
+    if ( decl_list_ )
+        for ( const auto& decl : *decl_list_ ) {
+            current_decl_id = decl->id();
+            decl->GenForwardDeclaration(out_h);
+        }
 
     if ( analyzer_context )
         analyzer_context->GenNamespaceEnd(out_h);
 
     out_h->println("");
 
-    foreach (i, DeclList, decl_list_) {
-        Decl* decl = *i;
-        current_decl_id = decl->id();
-        decl->GenCode(out_h, out_cc);
-    }
+    if ( decl_list_ )
+        for ( const auto& decl : *decl_list_ ) {
+            current_decl_id = decl->id();
+            decl->GenCode(out_h, out_cc);
+        }
 
     if ( analyzer_context ) {
         analyzer_context->GenNamespaceEnd(out_h);

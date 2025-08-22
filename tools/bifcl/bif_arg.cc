@@ -1,6 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include "bif_arg.h"
+#include "include/bif_arg.h"
 
 #include <cstring>
 
@@ -16,6 +16,7 @@ static struct {
     const char* constructor;
     const char* ctor_smart;
 } builtin_func_arg_type[] = {
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define DEFINE_BIF_TYPE(id, bif_type, zeek_type, c_type, c_type_smart, accessor, accessor_smart, cast_smart,           \
                         constructor, ctor_smart)                                                                       \
     {#id, bif_type, zeek_type, c_type, c_type_smart, accessor, accessor_smart, cast_smart, constructor, ctor_smart},

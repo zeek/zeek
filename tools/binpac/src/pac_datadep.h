@@ -3,17 +3,18 @@
 #ifndef pac_datadep_h
 #define pac_datadep_h
 
+#include <cstdint>
+
 // To provide a way to traverse through the data dependency graph.
 // That is, to evaluate X, what must be evaluated.
 
 #include "pac_common.h"
-#include "pac_dbg.h"
 
 class DataDepVisitor;
 
 class DataDepElement {
 public:
-    enum DDE_Type {
+    enum DDE_Type : uint8_t {
         ATTR,
         CASEEXPR,
         EXPR,
@@ -38,7 +39,7 @@ public:
 
 protected:
     DDE_Type dde_type_;
-    bool in_traversal;
+    bool in_traversal = false;
 };
 
 class DataDepVisitor {
@@ -51,8 +52,6 @@ public:
 
 class RequiresAnalyzerContext : public DataDepVisitor {
 public:
-    RequiresAnalyzerContext() : requires_analyzer_context_(false) {}
-
     // Returns whether to continue traversal
     bool PreProcess(DataDepElement* element) override;
     bool PostProcess(DataDepElement* element) override;
@@ -64,7 +63,7 @@ public:
 protected:
     void ProcessExpr(Expr* expr);
 
-    bool requires_analyzer_context_;
+    bool requires_analyzer_context_ = false;
 };
 
 #endif // pac_datadep_h

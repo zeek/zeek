@@ -26,7 +26,7 @@ ConnDecl::~ConnDecl() {
 }
 
 void ConnDecl::AddBaseClass(vector<string>* base_classes) const {
-    base_classes->push_back("binpac::ConnectionAnalyzer");
+    base_classes->emplace_back("binpac::ConnectionAnalyzer");
 }
 
 void ConnDecl::ProcessFlowElement(AnalyzerFlow* flow_elem) {
@@ -75,10 +75,9 @@ void ConnDecl::GenEOFFunc(Output* out_h, Output* out_cc) {
     out_cc->println("else");
     out_cc->inc_indent();
     out_cc->println("%s->%s();", env_->LValue(downflow_id), kFlowEOF);
-
-    foreach (i, AnalyzerHelperList, eof_helpers_) {
-        (*i)->GenCode(nullptr, out_cc, this);
-    }
+    if ( eof_helpers_ )
+        for ( const auto& helper : *eof_helpers_ )
+            helper->GenCode(nullptr, out_cc, this);
 
     out_cc->dec_indent();
 

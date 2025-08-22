@@ -8,16 +8,12 @@
 #include "pac_param.h"
 #include "pac_type.h"
 
-Function::Function(ID* id, Type* type, ParamList* params)
-    : id_(id), type_(type), params_(params), expr_(nullptr), code_(nullptr) {
-    analyzer_decl_ = nullptr;
-    env_ = nullptr;
-}
+Function::Function(ID* id, Type* type, ParamList* params) : id_(id), type_(type), params_(params) {}
 
 Function::~Function() {
     delete id_;
     delete type_;
-    delete_list(ParamList, params_);
+    delete_list(params_);
     delete env_;
     delete expr_;
     delete code_;
@@ -29,11 +25,11 @@ void Function::Prepare(Env* env) {
 
     env_ = new Env(env, this);
 
-    foreach (i, ParamList, params_) {
-        Param* p = *i;
-        env_->AddID(p->id(), FUNC_PARAM, p->type());
-        env_->SetEvaluated(p->id());
-    }
+    if ( params_ )
+        for ( const auto& p : *params_ ) {
+            env_->AddID(p->id(), FUNC_PARAM, p->type());
+            env_->SetEvaluated(p->id());
+        }
 }
 
 void Function::GenForwardDeclaration(Output* out_h) {

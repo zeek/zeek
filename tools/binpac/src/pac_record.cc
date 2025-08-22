@@ -19,8 +19,9 @@ RecordType::RecordType(RecordFieldList* record_fields) : Type(RECORD) {
     value_var_ = nullptr;
 
     // Put all fields in fields_
-    foreach (i, RecordFieldList, record_fields)
-        AddField(*i);
+    if ( record_fields )
+        for ( const auto& rec : *record_fields )
+            AddField(rec);
 
     // Put RecordField's in record_fields_
     record_fields_ = record_fields;
@@ -29,7 +30,7 @@ RecordType::RecordType(RecordFieldList* record_fields) : Type(RECORD) {
 }
 
 RecordType::~RecordType() {
-    // Do not delete_list(RecordFieldList, record_fields_)
+    // Do not delete_list(record_fields_)
     // because the fields are also in fields_.
     delete record_fields_;
     delete parsing_dataptr_var_field_;
@@ -52,24 +53,24 @@ void RecordType::Prepare(Env* env, int flags) {
     RecordField* prev = nullptr;
     int offset = 0;
     int seq = 0;
-    foreach (i, RecordFieldList, record_fields_) {
-        RecordField* f = *i;
-        f->set_record_type(this);
-        f->set_prev(prev);
-        if ( prev )
-            prev->set_next(f);
-        prev = f;
-        if ( offset >= 0 ) {
-            f->set_static_offset(offset);
-            int w = f->StaticSize(env, offset);
-            if ( w < 0 )
-                offset = -1;
-            else
-                offset += w;
+    if ( record_fields_ )
+        for ( const auto& f : *record_fields_ ) {
+            f->set_record_type(this);
+            f->set_prev(prev);
+            if ( prev )
+                prev->set_next(f);
+            prev = f;
+            if ( offset >= 0 ) {
+                f->set_static_offset(offset);
+                int w = f->StaticSize(env, offset);
+                if ( w < 0 )
+                    offset = -1;
+                else
+                    offset += w;
+            }
+            ++seq;
+            f->set_parsing_state_seq(seq);
         }
-        ++seq;
-        f->set_parsing_state_seq(seq);
-    }
 
     if ( incremental_parsing() ) {
 #if 0
@@ -107,11 +108,11 @@ void RecordType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, i
 
         out_cc->println("case 0:");
         out_cc->inc_indent();
-        foreach (i, RecordFieldList, record_fields_) {
-            RecordField* f = *i;
-            f->GenParseCode(out_cc, env);
-            out_cc->println("");
-        }
+        if ( record_fields_ )
+            for ( const auto& f : *record_fields_ ) {
+                f->GenParseCode(out_cc, env);
+                out_cc->println("");
+            }
         out_cc->println("");
         out_cc->println("%s = true;", env->LValue(parsing_complete_var()));
         out_cc->dec_indent();
@@ -120,11 +121,11 @@ void RecordType::DoGenParseCode(Output* out_cc, Env* env, const DataPtr& data, i
     }
     else {
         ASSERT(data.id() == begin_of_data && data.offset() == 0);
-        foreach (i, RecordFieldList, record_fields_) {
-            RecordField* f = *i;
-            f->GenParseCode(out_cc, env);
-            out_cc->println("");
-        }
+        if ( record_fields_ )
+            for ( const auto& f : *record_fields_ ) {
+                f->GenParseCode(out_cc, env);
+                out_cc->println("");
+            }
         if ( incremental_input() ) {
             ASSERT(parsing_complete_var());
             out_cc->println("%s = true;", env->LValue(parsing_complete_var()));
@@ -150,13 +151,13 @@ void RecordType::GenDynamicSize(Output* out_cc, Env* env, const DataPtr& data) {
 
 int RecordType::StaticSize(Env* env) const {
     int tot_w = 0;
-    foreach (i, RecordFieldList, record_fields_) {
-        RecordField* f = *i;
-        int w = f->StaticSize(env, tot_w);
-        if ( w < 0 )
-            return -1;
-        tot_w += w;
-    }
+    if ( record_fields_ )
+        for ( const auto& f : *record_fields_ ) {
+            int w = f->StaticSize(env, tot_w);
+            if ( w < 0 )
+                return -1;
+            tot_w += w;
+        }
     return tot_w;
 }
 
@@ -169,27 +170,25 @@ void RecordType::SetBoundaryChecked() {
         // (whose value is not necessarily trustworthy).
         return;
 
-    foreach (i, RecordFieldList, record_fields_) {
-        RecordField* f = *i;
-        f->SetBoundaryChecked();
-    }
+    if ( record_fields_ )
+        for ( const auto& f : *record_fields_ )
+            f->SetBoundaryChecked();
 }
 
 void RecordType::DoMarkIncrementalInput() {
-    foreach (i, RecordFieldList, record_fields_) {
-        RecordField* f = *i;
-        f->type()->MarkIncrementalInput();
-    }
+    if ( record_fields_ )
+        for ( const auto& f : *record_fields_ )
+            f->type()->MarkIncrementalInput();
 }
 
 bool RecordType::DoTraverse(DataDepVisitor* visitor) { return Type::DoTraverse(visitor); }
 
 bool RecordType::ByteOrderSensitive() const {
-    foreach (i, RecordFieldList, record_fields_) {
-        RecordField* f = *i;
-        if ( f->RequiresByteOrder() )
-            return true;
-    }
+    if ( record_fields_ )
+        for ( const auto& f : *record_fields_ ) {
+            if ( f->RequiresByteOrder() )
+                return true;
+        }
     return false;
 }
 

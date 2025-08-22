@@ -22,10 +22,10 @@ namespace {
 ParamList* ContextFieldsToParams(ContextFieldList* context_fields) {
     // Convert context fields to parameters
     ParamList* params = new ParamList();
-    foreach (i, ContextFieldList, context_fields) {
-        ContextField* f = *i;
-        params->push_back(new Param(f->id()->clone(), f->type()));
-    }
+    if ( context_fields )
+        for ( const auto& f : *context_fields )
+            params->push_back(new Param(f->id()->clone(), f->type()));
+
     return params;
 }
 } // namespace
@@ -53,7 +53,7 @@ AnalyzerContextDecl::AnalyzerContextDecl(ID* id, ContextFieldList* context_field
 AnalyzerContextDecl::~AnalyzerContextDecl() {
     delete context_name_id_;
     delete param_type_;
-    delete_list(ContextFieldList, context_fields_);
+    delete_list(context_fields_);
 }
 
 void AnalyzerContextDecl::GenForwardDeclaration(Output* out_h) {

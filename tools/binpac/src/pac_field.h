@@ -3,12 +3,14 @@
 #ifndef pac_field_h
 #define pac_field_h
 
+#include <cstdint>
+
 #include "pac_common.h"
 #include "pac_datadep.h"
 
 // A "field" is a member of class.
 
-enum FieldType {
+enum FieldType : uint8_t {
     CASE_FIELD,
     CONTEXT_FIELD,
     FLOW_FIELD,

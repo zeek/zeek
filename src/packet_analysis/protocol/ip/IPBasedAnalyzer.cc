@@ -3,6 +3,7 @@
 #include "zeek/packet_analysis/protocol/ip/IPBasedAnalyzer.h"
 
 #include "zeek/Conn.h"
+#include "zeek/Event.h"
 #include "zeek/RunState.h"
 #include "zeek/Val.h"
 #include "zeek/analyzer/Manager.h"
@@ -41,6 +42,7 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
 
     key->Init(*pkt);
 
+    const auto queued_events_before = zeek::event_mgr.Size(); // Used for determining if any events were raised.
     const std::shared_ptr<IP_Hdr>& ip_hdr = pkt->ip_hdr;
     auto src_addr = key->SrcAddr();
     auto src_port = key->SrcPort();
@@ -107,6 +109,24 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
 
     run_state::current_timestamp = 0;
     run_state::current_pkt = nullptr;
+
+    // If any events were queued while processing the packet, call conn->GetVal()
+    // once more here to trigger a recursive UpdateConnVal() call on the analyzer tree.
+    // This is primarily for the ConnSize analyzer that implements UpdateConnVal(),
+    // but does usually not raise any events and therefore does not call GetVal().
+    // The ConnSize data is exposed on the script-level connection record through the
+    // orig and resp endpoint fields, however. This call ensures that these fields
+    // aren't stale events were only raised *before* the ConnSize analyzer.
+    //
+    // This is a bit unfortunate, as the GetVal() call will result in an extra
+    // GetVal() call that might not be needed. Maybe we could extend GetVal() to
+    // skip UpdateConnVal() when called from BinPac or Spicy going forward so that
+    // it is just called once after processing a packet. @awelzel hasn't seen
+    // UpdateConnVal() prominently in flame graphs though, so skipping this for now
+    // as it's not clear it'd actually be worth it.
+    const auto queued_events_after = zeek::event_mgr.Size();
+    if ( queued_events_after > queued_events_before )
+        (void)conn->GetVal();
 
     // If the packet is reassembled, disable packet dumping because the
     // pointer math to dump the data wouldn't work.

@@ -13,10 +13,6 @@
 
 module SSL;
 
-# Do not disable analyzers after detection - otherwise we will not receive
-# encrypted packets.
-redef SSL::disable_analyzer_after_detection = F;
-
 export {
 	## This can be set to a file that contains the session secrets for decryption, when parsing a pcap file.
 	## Please note that, when using this feature, you probably want to pause processing of data till this
@@ -109,3 +105,10 @@ event ssl_change_cipher_spec(c: connection, is_client: bool)
 			set_secret(c, secrets[c$ssl$client_random]);
 		}
 	}
+
+# Do not disable analyzers after detection - otherwise we will not receive
+# encrypted packets.
+hook Analyzer::disabling_analyzer(c: connection, atype: AllAnalyzers::Tag, aid: count)
+    {
+    break;
+    }

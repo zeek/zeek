@@ -1,3 +1,7 @@
+8.1.0-dev.451 | 2025-08-21 17:10:05 -0700
+
+  * Minor fixes to a few NEWS entries. (Christian Kreibich, Corelight)
+
 8.1.0-dev.449 | 2025-08-21 17:02:51 +0200
 
   * README.md: Add Mastodon and Bluesky links (Arne Welzel, Corelight)

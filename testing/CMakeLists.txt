@@ -14,7 +14,7 @@ install(
     CODE "execute_process( \
     COMMAND ${CMAKE_COMMAND} -E create_symlink \
     ${ZEEK_CONFIG_BTEST_TOOLS_DIR}/data \
-    ${CMAKE_INSTALL_PREFIX}/share/zeek/tests \
+    \$ENV{DESTDIR}/${CMAKE_INSTALL_PREFIX}/share/zeek/tests \
     )")
 
 install(DIRECTORY scripts/spicy/ DESTINATION ${ZEEK_CONFIG_BTEST_TOOLS_DIR}/data/Scripts

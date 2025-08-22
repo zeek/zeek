@@ -18,10 +18,6 @@ export {
 	};
 }
 
-# Do not disable analyzers after detection - otherwise we will not notice
-# encrypted attacks.
-redef SSL::disable_analyzer_after_detection=F;
-
 redef record SSL::Info += {
 	last_originator_heartbeat_request_size: count &optional;
 	last_responder_heartbeat_request_size: count &optional;
@@ -236,3 +232,10 @@ event ssl_encrypted_data(c: connection, is_client: bool, record_version: count, 
 		c$ssl$enc_appdata_bytes += length;
 		}
 	}
+
+# Do not disable analyzers after detection - otherwise we will not notice
+# encrypted attacks.
+hook Analyzer::disabling_analyzer(c: connection, atype: AllAnalyzers::Tag, aid: count)
+    {
+    break;
+    }

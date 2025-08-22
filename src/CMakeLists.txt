@@ -565,6 +565,7 @@ target_link_libraries(zeek_objs PRIVATE $<BUILD_INTERFACE:zeek_internal>)
 target_compile_definitions(zeek_objs PRIVATE ZEEK_CONFIG_SKIP_VERSION_H)
 add_dependencies(zeek_objs zeek_autogen_files)
 zeek_target_link_libraries(zeek_objs)
+zeek_target_enable_sanitizers(zeek_objs)
 
 # Add IWYU and clang-tidy to the target if enabled.
 zeek_target_add_linters(zeek_objs)

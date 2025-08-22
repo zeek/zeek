@@ -1,3 +1,14 @@
+8.0.0-8 | 2025-08-25 12:31:35 -0700
+
+  * Merge branch 'topic/christian/news-typos' (Christian Kreibich, Corelight)
+
+    * topic/christian/news-typos:
+      Minor fixes to a few NEWS entries.
+
+    (cherry picked from commit 2929f1eb175e86799c8926ac8b0f1eeb5c9eac3d)
+
+  * Bump zeekctl submodule for MetricsAddr docs (Tim Wojtulewicz, Corelight)
+
 8.0.0-6 | 2025-08-22 09:25:14 -0700
 
   * cluster/Backend: Fallback to current network time when current event has not timestamp (Arne Welzel, Corelight)

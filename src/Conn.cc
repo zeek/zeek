@@ -170,6 +170,7 @@ bool Connection::IsReuse(double t, const u_char* pkt) { return adapter && adapte
 const RecordValPtr& Connection::GetVal() {
     if ( ! conn_val ) {
         conn_val = make_intrusive<RecordVal>(id::connection);
+        conn_val->SetOrigin(this);
 
         auto id_val = make_intrusive<RecordVal>(id::conn_id);
 
@@ -237,7 +238,7 @@ const RecordValPtr& Connection::GetVal() {
     if ( adapter )
         adapter->UpdateConnVal(conn_val.get());
 
-    conn_val->AssignTime(3, start_time); // ###
+    conn_val->AssignTime(3, start_time);
     conn_val->AssignInterval(4, last_time - start_time);
 
     if ( ! history.empty() ) {
@@ -245,8 +246,6 @@ const RecordValPtr& Connection::GetVal() {
         if ( *v != history )
             conn_val->Assign(6, history);
     }
-
-    conn_val->SetOrigin(this);
 
     return conn_val;
 }

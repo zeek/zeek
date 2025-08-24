@@ -105,6 +105,13 @@ bool IPBasedAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pkt
 
     DeliverPacket(conn, run_state::processing_start_time, is_orig, len, pkt);
 
+    // The packet was delivered to all Analyzer and TapAnalyzer instances. If any of the
+    // analyzers marked the connection record as stale and no subsequent GetVal() call brought
+    // the connection record up-to-date, run UpdateConnVal() once more before event processing
+    // happens to ensure the connection record in script-land is current.
+    if ( conn->IsConnValStale() )
+        conn->UpdateConnVal();
+
     run_state::current_timestamp = 0;
     run_state::current_pkt = nullptr;
 

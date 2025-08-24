@@ -39,6 +39,8 @@ Connection::Connection(zeek::IPBasedConnKeyPtr k, double t, uint32_t flow, const
     resp_port = key->DstPort();
     proto = key->GetTransportProto();
 
+    conn_val_marked_stale = false;
+
     orig_flow_label = flow;
     resp_flow_label = 0;
     saw_first_orig_packet = 1;
@@ -214,7 +216,7 @@ const RecordValPtr& Connection::GetVal() {
         conn_val->Assign(0, std::move(id_val));
         conn_val->Assign(1, std::move(orig_endp));
         conn_val->Assign(2, std::move(resp_endp));
-        // 3 and 4 are set below.
+        // 3 (start_time) and 4 (duration) are set in UpdateConnVal()
         // Do not assign to 5 (service). It is a non-optional set, which will be default-initialized
         // using the script-level settings; this easily applies the &ordered attribute to it.
         // conn_val->Assign(5, make_intrusive<TableVal>(id::ordered_string_set)); // service
@@ -235,19 +237,44 @@ const RecordValPtr& Connection::GetVal() {
             conn_val->Assign(10, inner_vlan);
     }
 
-    if ( adapter )
-        adapter->UpdateConnVal(conn_val.get());
+    // Unconditionally update the ConnVal as done previously.
+    UpdateConnVal();
 
-    conn_val->AssignTime(3, start_time);
+    return conn_val;
+}
+
+bool Connection::IsConnValStale() const {
+    if ( conn_val_marked_stale )
+        return true;
+
+    if ( ! conn_val )
+        return false;
+
+    if ( history.empty() )
+        return false;
+
+    auto conn_val_history = conn_val->GetFieldAs<StringVal>(6);
+
+    return *conn_val_history != history;
+}
+
+void Connection::UpdateConnVal() {
+    if ( ! conn_val )
+        return;
+
+    conn_val->AssignTime(3, start_time); // XXX: When do we ever change start_time? This is weird.
     conn_val->AssignInterval(4, last_time - start_time);
 
     if ( ! history.empty() ) {
-        auto v = conn_val->GetFieldAs<StringVal>(6);
+        const auto* v = conn_val->GetFieldAs<StringVal>(6);
         if ( *v != history )
             conn_val->Assign(6, history);
     }
 
-    return conn_val;
+    if ( adapter )
+        adapter->UpdateConnVal(conn_val.get());
+
+    conn_val_marked_stale = false;
 }
 
 analyzer::Analyzer* Connection::FindAnalyzer(analyzer::ID id) { return adapter ? adapter->FindChild(id) : nullptr; }

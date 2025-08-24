@@ -103,6 +103,9 @@ void ConnSize_Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig,
         resp_pkts++;
     }
 
+    // Request UpdateConnState() before event processing.
+    Conn()->MarkConnValStale();
+
     CheckThresholds(is_orig);
 }
 

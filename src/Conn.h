@@ -138,6 +138,33 @@ public:
      */
     const RecordValPtr& GetVal() override;
 
+    /**
+     * Mark the script-level connection record stale.
+     *
+     * Analyzers or TapAnalyzers should call this method if they require the script-level
+     * connection value to be updated before events are drained. Technically these analyzers
+     * can also update the connection record directly but the proposed pattern currently is
+     * to mark the value as stale and once all analyzers have finished processing a packet,
+     * UpdateConnVal() is called recursively on the anallyzer tree.
+     */
+    void MarkConnValStale() { conn_val_marked_stale = true; };
+
+    /**
+     * @return True if UpdateConnVal() should be run to update the script-level connection value, else false.
+     */
+    bool IsConnValStale() const;
+
+    /**
+     * This method updates the conn_val to the current state.
+     *
+     * It also runs UpdateConnVal() recursively on the analyzer tree
+     * starting with the top-level session adapter.
+     *
+     * This method short-circuits if a connection record hasn't yet
+     * been allocated via GetVal().
+     */
+    void UpdateConnVal();
+
     void Match(detail::Rule::PatternType type, const u_char* data, int len, bool is_orig, bool bol, bool eol,
                bool clear_state);
 
@@ -201,6 +228,7 @@ private:
     IPAddr resp_addr;
     uint32_t orig_port, resp_port; // in network order
     TransportProto proto;
+    bool conn_val_marked_stale;                // Flag if some analyzer marked conn_val as stale.
     uint32_t orig_flow_label, resp_flow_label; // most recent IPv6 flow labels
     uint32_t vlan, inner_vlan;                 // VLAN this connection traverses, if available
     u_char orig_l2_addr[Packet::L2_ADDR_LEN];  // Link-layer originator address, if available

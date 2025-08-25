@@ -1,3 +1,7 @@
+8.1.0-dev.456 | 2025-08-25 12:29:32 -0700
+
+  * Bump zeekctl (Arne Welzel, Corelight)
+
 8.1.0-dev.454 | 2025-08-22 10:12:35 +0200
 
   * cluster/Backend: Fallback to current network time when current event has not timestamp (Arne Welzel, Corelight)

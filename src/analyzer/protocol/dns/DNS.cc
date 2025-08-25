@@ -1621,29 +1621,41 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
 
     // Parse SvcParams records, if any, according to
     // https://datatracker.ietf.org/doc/html/rfc9460#presentation
-    // construct one with all recognised keys (and values).
-    std::string svc_params;
+
+    // The type of a single SvcParam.
+    static auto dns_svcb_param = id::find_type<RecordType>("dns_svcb_param");
+    // An [optional] vector of SvcParam, to be assigned to dns_svcb_rr.
+    // XXX compile error: https://gist.github.com/klemens-ya/e2d13bfa9d824669cde81404961c1752
+    auto svc_params = make_intrusive<VectorVal>(dns_svcb_param);
+
     int svc_params_len = rdlength - parsed_bytes;
     int params_cnt = 0;
 
-    // https://datatracker.ietf.org/doc/html/rfc9460#name-initial-contents
-    const std::string key_names[] = {"mandatory", "alpn", "no-default-alpn", "port", "ipv4hint", "ech", "ipv6hint"};
-
     while ( svc_params_len >= 2 + 2 ) {
+        // A single SvcParam (key and value), to be assigned to svc_params.
+        auto svc_param = make_intrusive<RecordVal>(dns_svcb_param);
+        // An [optional] vector of SvcParamValue (string), to be assigned to svc_param.
+        // XXX There might be no value at all, it may be a single integer or
+        // a list of strings/addresses;  for now, a list of string suits all.
+        auto svc_param_values = make_intrusive<VectorVal>(id::string_vec);
+
         const uint16_t key = ExtractShort(data, len);
         const uint16_t value_len = ExtractShort(data, len);
         const u_char* value_start = data;
         svc_params_len -= 2 + 2;
+
+        if ( key > 6 ) {
+            analyzer->Weird("Reserved or invalid SvcParamKey");
+            break;
+        }
 
         if ( value_len > svc_params_len ) {
             analyzer->Weird("SvcParamValue overflows SvcParam");
             break;
         }
 
-        if ( key <= size(key_names) )
-            svc_params += (params_cnt++ ? " " : "") + key_names[key] + "=";
+        svc_param->Assign(0, key);
         int item_len_parsed = 0;
-        int item_cnt = 0;
 
         switch ( key ) {
             case detail::mandatory: // list of keys
@@ -1657,14 +1669,11 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                     const uint16_t key_port = ExtractShort(data, len);
                     item_len_parsed += 2;
 
-                    if ( item_cnt++ )
-                        svc_params += ",";
-                    svc_params += std::to_string(key_port);
+                    svc_param_values->Assign(svc_param_values->Size(), zeek::make_intrusive<zeek::StringVal>(std::to_string(key_port)));
                 }
                 break;
 
             case detail::alpn: // list of length-prefixed (1 octet) ALPN IDs (1-255 octets)
-                svc_params += "\"";
                 while ( item_len_parsed + 1 + 1 < value_len ) {
                     // XXX no Extract*() to get a single octet
                     uint8_t alpn_len = *data;
@@ -1677,15 +1686,12 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                         break;
                     }
 
-                    if ( item_cnt++ )
-                        svc_params += ",";
-                    svc_params.append(reinterpret_cast<const char*>(data), alpn_len);
+                    svc_param_values->Assign(svc_param_values->Size(), zeek::make_intrusive<zeek::StringVal>(alpn_len, reinterpret_cast<const char*>(data)));
 
                     data += alpn_len;
                     len -= alpn_len;
                     item_len_parsed += alpn_len;
                 }
-                svc_params += "\"";
                 break;
 
             case detail::ipv4hint: // list of IPs
@@ -1703,11 +1709,8 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                     const size_t addr_sz = INET6_ADDRSTRLEN;
                     char addr[addr_sz];
 
-                    if ( zeek_inet_ntop(is_ipv4 ? AF_INET : AF_INET6, data, addr, addr_sz) ) {
-                        if ( item_cnt++ )
-                            svc_params += ",";
-                        svc_params.append(addr);
-                    }
+                    if ( zeek_inet_ntop(is_ipv4 ? AF_INET : AF_INET6, data, addr, addr_sz) )
+                        svc_param_values->Assign(svc_param_values->Size(), zeek::make_intrusive<zeek::StringVal>(addr_sz - 1, addr));
                     else
                         analyzer->Weird("invalid ipv4/6hint address");
 
@@ -1733,6 +1736,11 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                 break;
         }
 
+        // Not every SvcParamKey has a SvcParamValue.
+        if ( svc_param_values->Size() > 0 )
+            svc_param->Assign(1, std::move(svc_param_values));
+        svc_params->Assign(svc_params->Size(), std::move(svc_param));
+
         const int bytes_left = value_len - item_len_parsed;
         if ( bytes_left > 0 ) {
             analyzer->Weird("reserved/invalid key or malformed value");
@@ -1754,7 +1762,8 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
 
     SVCB_DATA svcb_data = {svc_priority,
                            make_intrusive<StringVal>(new String(target_name, name_end - target_name, true)),
-                           make_intrusive<StringVal>(svc_params)};
+                           // Not every SVCB/HTTPS RR has a SvcParam.
+                           svc_params->Size() > 0 ? std::move(svc_params) : nullptr};
 
     analyzer->EnqueueConnEvent(svcb_type == detail::TYPE_SVCB ? dns_SVCB : dns_HTTPS, analyzer->ConnVal(),
                                msg->BuildHdrVal(), msg->BuildAnswerVal(), msg->BuildSVCB_Val(svcb_data));
@@ -2069,7 +2078,8 @@ RecordValPtr DNS_MsgInfo::BuildSVCB_Val(const SVCB_DATA& svcb) {
 
     r->Assign(0, svcb.svc_priority);
     r->Assign(1, svcb.target_name);
-    r->Assign(2, svcb.svc_params);
+    if ( svcb.svc_params )
+        r->Assign(2, svcb.svc_params);
 
     return r;
 }

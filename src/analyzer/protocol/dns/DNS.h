@@ -159,6 +159,11 @@ enum SVCPARAM_Key : uint8_t {
     ipv6hint = 6,
 };
 
+struct SvcParam {
+    uint16_t key;       ///< see SVCPARAM_Key 
+    VectorValPtr value; ///< optional list of string values
+};
+
 struct DNS_RawMsgHdr {
     unsigned short id;
     unsigned short flags;
@@ -279,9 +284,7 @@ struct LOC_DATA {
 struct SVCB_DATA {
     uint16_t svc_priority; // 2
     StringValPtr target_name;
-    // Better turn into a struct with members for each svcparam_keys value in
-    // scripts/base/protocols/dns/consts.zeek.
-    StringValPtr svc_params;
+    VectorValPtr svc_params;
 };
 
 class DNS_MsgInfo {

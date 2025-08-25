@@ -25,7 +25,7 @@ export {
 		## Timestamp for when the event happened
 		ts:             time    &log;
 		## Unique ID for the connection
-		uid:            string  &log;
+		uid:            conn_uid &log;
 		## The connection's 4-tuple of endpoint addresses/ports
 		id:             conn_id &log;
 
@@ -48,7 +48,7 @@ export {
 		## Timestamp for when the subscribe or unsubscribe request started
 		ts:                time     &log;
 		## UID for the connection
-		uid:               string   &log;
+		uid:               conn_uid   &log;
 		## ID fields for the connection
 		id:                conn_id  &log;
 
@@ -68,7 +68,7 @@ export {
 		## Timestamp for when the publish message started
 		ts:          time    &log;
 		## UID for the connection
-		uid:         string  &log;
+		uid:         conn_uid  &log;
 		## ID fields for the connection
 		id:          conn_id &log;
 

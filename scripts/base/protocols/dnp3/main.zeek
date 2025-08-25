@@ -14,7 +14,7 @@ export {
 		## Time of the request.
 		ts:         time           &log;
 		## Unique identifier for the connection.
-		uid:        string         &log;
+		uid:        conn_uid       &log;
 		## Identifier for the connection.
 		id:         conn_id        &log;
 		## The name of the function message in the request.

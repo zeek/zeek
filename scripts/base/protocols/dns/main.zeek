@@ -21,7 +21,7 @@ export {
 		ts:            time               &log;
 		## A unique identifier of the connection over which DNS messages
 		## are being transferred.
-		uid:           string             &log;
+		uid:           conn_uid           &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id:            conn_id            &log;
 		## The transport layer protocol of the connection.

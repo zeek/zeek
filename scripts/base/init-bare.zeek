@@ -230,6 +230,10 @@ type conn_id: record {
 	ctx: conn_id_ctx &log &default=conn_id_ctx();  ##< The context in which this connection exists.
 };
 
+## A connection's unique identifier. This can be used to pivot between logs
+## with the same connection (TODO expand on this?)
+type conn_uid: string;
+
 ## The identifying 4-tuple of a uni-directional flow.
 ##
 ## .. note:: It's actually a 5-tuple: the transport-layer protocol is stored as
@@ -885,7 +889,7 @@ type connection: record {
 	## creates an ID that is very likely unique across independent Zeek runs.
 	## These IDs can thus be used to tag and locate information associated
 	## with that connection.
-	uid: string;
+	uid: conn_uid;
 	## If the connection is tunneled, this field contains information about
 	## the encapsulating "connection(s)" with the outermost one starting
 	## at index zero.  It's also always the first such encapsulation seen

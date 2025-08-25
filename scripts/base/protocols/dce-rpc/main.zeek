@@ -12,7 +12,7 @@ export {
 		## Timestamp for when the event happened.
 		ts         : time     &log;
 		## Unique ID for the connection.
-		uid        : string   &log;
+		uid        : conn_uid &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id         : conn_id  &log;
 		## Round trip time from the request to the response.

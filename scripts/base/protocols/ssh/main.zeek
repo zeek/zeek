@@ -17,7 +17,7 @@ export {
 		## Time when the SSH connection began.
 		ts:              time         &log;
 		## Unique ID for the connection.
-		uid:             string       &log;
+		uid:             conn_uid     &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id:              conn_id      &log;
 		## SSH major version (1, 2, or unset). The version can be unset if the

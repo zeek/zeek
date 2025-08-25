@@ -18,7 +18,7 @@ export {
 		ts:               time            &log;
 		## Unique ID for the tunnel - may correspond to connection uid
 		## or be nonexistent.
-		uid:              string          &log;
+		uid:              conn_uid        &log;
 		## The connection's 4-tuple of endpoint addresses/ports.
 		id:               conn_id         &log;
 		## Protocol version of SOCKS.

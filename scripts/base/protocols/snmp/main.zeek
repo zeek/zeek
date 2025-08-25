@@ -14,7 +14,7 @@ export {
 		## Timestamp of first packet belonging to the SNMP session.
 		ts: time &log;
 		## The unique ID for the connection.
-		uid: string &log;
+		uid: conn_uid &log;
 		## The connection's 5-tuple of addresses/ports (ports inherently
 		## include transport protocol information)
 		id: conn_id &log;

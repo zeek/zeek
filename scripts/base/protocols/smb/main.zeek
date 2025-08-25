@@ -56,7 +56,7 @@ export {
 		## Time when the file was first discovered.
 		ts				: time    &log &default=network_time();
 		## Unique ID of the connection the file was sent over.
-		uid				: string  &log;
+		uid				: conn_uid &log;
 		## ID of the connection the file was sent over.
 		id				: conn_id &log;
 		## Unique ID of the file.
@@ -82,7 +82,7 @@ export {
 		## Time when the tree was mapped.
 		ts                  : time   &log &default=network_time();
 		## Unique ID of the connection the tree was mapped over.
-		uid                 : string  &log;
+		uid                 : conn_uid  &log;
 		## ID of the connection the tree was mapped over.
 		id                  : conn_id &log;
 
@@ -102,7 +102,7 @@ export {
 		## Timestamp of the command request.
 		ts				: time &log &default=network_time();
 		## Unique ID of the connection the request was sent over.
-		uid				: string &log;
+		uid				: conn_uid &log;
 		## ID of the connection the request was sent over.
 		id				: conn_id &log;
 

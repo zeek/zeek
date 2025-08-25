@@ -3077,6 +3077,8 @@ type dns_loc_rr: record {
 type dns_svcb_rr: record {
 	svc_priority: count;	##< Service priority for the current record, 0 indicates that this record is in AliasMode and cannot carry svc_params; otherwise this is in ServiceMode, and may include svc_params
 	target_name: string;	##< Target name, the hostname of the service endpoint.
+	svc_params: string;	##< Whitespace-separated list with each SvcParam consisting of a SvcParamKey=SvcParamValue pair or a standalone SvcParamKey. SvcParamValue may contain comma-separated lists.
+
 };
 
 ## A NAPTR record.

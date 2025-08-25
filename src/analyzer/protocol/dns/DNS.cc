@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <cctype>
 
+#include "zeek/3rdparty/zeek_inet_ntop.h"
 #include "zeek/Event.h"
 #include "zeek/NetVar.h"
 #include "zeek/RunState.h"
@@ -1587,6 +1588,9 @@ bool DNS_Interpreter::ParseRR_CAA(detail::DNS_MsgInfo* msg, const u_char*& data,
     return rdlength == 0;
 }
 
+/**
+ * https://datatracker.ietf.org/doc/html/rfc9460#name-rdata-wire-format
+ */
 bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength,
                                    const u_char* msg_start, const RR_Type& svcb_type) {
     const u_char* data_start = data;
@@ -1613,29 +1617,147 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
         name_end = target_name + 1;
     }
 
-    SVCB_DATA svcb_data = {svc_priority,
-                           make_intrusive<StringVal>(new String(target_name, name_end - target_name, true))};
-
-    // TODO: parse svcparams
-    // we consume all the remaining raw data (svc params) but do nothing.
-    // this should be removed if the svc param parser is ready
     std::ptrdiff_t parsed_bytes = data - data_start;
-    if ( parsed_bytes < rdlength ) {
-        len -= (rdlength - parsed_bytes);
-        data += (rdlength - parsed_bytes);
+
+    // Parse SvcParams records, if any, according to
+    // https://datatracker.ietf.org/doc/html/rfc9460#presentation
+    // construct one with all recognised keys (and values).
+    std::string svc_params;
+    int svc_params_len = rdlength - parsed_bytes;
+    int params_cnt = 0;
+
+    // https://datatracker.ietf.org/doc/html/rfc9460#name-initial-contents
+    const std::string key_names[] = {"mandatory", "alpn", "no-default-alpn", "port", "ipv4hint", "ech", "ipv6hint"};
+
+    while ( svc_params_len >= 2 + 2 ) {
+        const uint16_t key = ExtractShort(data, len);
+        const uint16_t value_len = ExtractShort(data, len);
+        const u_char* value_start = data;
+        svc_params_len -= 2 + 2;
+
+        if ( value_len > svc_params_len ) {
+            analyzer->Weird("SvcParamValue overflows SvcParam");
+            break;
+        }
+
+        if ( key <= size(key_names) )
+            svc_params += (params_cnt++ ? " " : "") + key_names[key] + "=";
+        int item_len_parsed = 0;
+        int item_cnt = 0;
+
+        switch ( key ) {
+            case detail::mandatory: // list of keys
+            case detail::port:      // port
+                if ( value_len % 2 != 0 ) {
+                    analyzer->Weird("invalid SvcParamValue size");
+                    break;
+                }
+
+                while ( item_len_parsed + 2 <= value_len ) {
+                    const uint16_t key_port = ExtractShort(data, len);
+                    item_len_parsed += 2;
+
+                    if ( item_cnt++ )
+                        svc_params += ",";
+                    svc_params += std::to_string(key_port);
+                }
+                break;
+
+            case detail::alpn: // list of length-prefixed (1 octet) ALPN IDs (1-255 octets)
+                svc_params += "\"";
+                while ( item_len_parsed + 1 + 1 < value_len ) {
+                    // XXX no Extract*() to get a single octet
+                    uint8_t alpn_len = *data;
+                    data += 1;
+                    len -= 1;
+                    item_len_parsed += 1;
+
+                    if ( alpn_len == 0 || item_len_parsed + alpn_len > value_len ) {
+                        analyzer->Weird("invalid alpn size");
+                        break;
+                    }
+
+                    if ( item_cnt++ )
+                        svc_params += ",";
+                    svc_params.append(reinterpret_cast<const char*>(data), alpn_len);
+
+                    data += alpn_len;
+                    len -= alpn_len;
+                    item_len_parsed += alpn_len;
+                }
+                svc_params += "\"";
+                break;
+
+            case detail::ipv4hint: // list of IPs
+            case detail::ipv6hint: // list of IPs
+            {
+                const bool is_ipv4 = key == detail::ipv4hint;
+                const int addr_len = is_ipv4 ? 4 : 16;
+
+                if ( value_len % addr_len != 0 ) {
+                    analyzer->Weird("invalid ipv4/6hint size");
+                    goto malformed;
+                }
+
+                while ( item_len_parsed + addr_len <= value_len ) {
+                    const size_t addr_sz = INET6_ADDRSTRLEN;
+                    char addr[addr_sz];
+
+                    if ( zeek_inet_ntop(is_ipv4 ? AF_INET : AF_INET6, data, addr, addr_sz) ) {
+                        if ( item_cnt++ )
+                            svc_params += ",";
+                        svc_params.append(addr);
+                    }
+                    else
+                        analyzer->Weird("invalid ipv4/6hint address");
+
+                    data += addr_len;
+                    len -= addr_len;
+                    item_len_parsed += addr_len;
+                }
+
+                break;
+            }
+
+            case detail::no_default_alpn:
+                if ( value_len > 0 )
+                    analyzer->Weird("no-default-alpn has value");
+            case detail::ech: // N/A
+            default:
+                analyzer->Weird("reserved or invalid SvcParam", util::fmt("key%d", key));
+            malformed:
+                // Silently consume the entire value, i.e. discard it.
+                data += value_len;
+                len -= value_len;
+                item_len_parsed += value_len;
+                break;
+        }
+
+        const int bytes_left = value_len - item_len_parsed;
+        if ( bytes_left > 0 ) {
+            analyzer->Weird("reserved/invalid key or malformed value");
+            data += bytes_left;
+            len -= bytes_left;
+        }
+
+        const int value_len_consumed = data - value_start;
+        const int value_len_diff = value_len - value_len_consumed;
+        if ( value_len_diff > 0 ) {
+            analyzer->Weird("trailing SvcParam data (parser bug)");
+            data += value_len_diff;
+            len -= value_len_diff;
+        }
+
+        // Advance to the next parameter.
+        svc_params_len -= value_len;
     }
 
-    switch ( svcb_type ) {
-        case detail::TYPE_SVCB:
-            analyzer->EnqueueConnEvent(dns_SVCB, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildAnswerVal(),
-                                       msg->BuildSVCB_Val(svcb_data));
-            break;
-        case detail::TYPE_HTTPS:
-            analyzer->EnqueueConnEvent(dns_HTTPS, analyzer->ConnVal(), msg->BuildHdrVal(), msg->BuildAnswerVal(),
-                                       msg->BuildSVCB_Val(svcb_data));
-            break;
-        default: break; // unreachable. for suppressing compiler warnings.
-    }
+    SVCB_DATA svcb_data = {svc_priority,
+                           make_intrusive<StringVal>(new String(target_name, name_end - target_name, true)),
+                           make_intrusive<StringVal>(svc_params)};
+
+    analyzer->EnqueueConnEvent(svcb_type == detail::TYPE_SVCB ? dns_SVCB : dns_HTTPS, analyzer->ConnVal(),
+                               msg->BuildHdrVal(), msg->BuildAnswerVal(), msg->BuildSVCB_Val(svcb_data));
     return true;
 }
 
@@ -1947,8 +2069,8 @@ RecordValPtr DNS_MsgInfo::BuildSVCB_Val(const SVCB_DATA& svcb) {
 
     r->Assign(0, svcb.svc_priority);
     r->Assign(1, svcb.target_name);
+    r->Assign(2, svcb.svc_params);
 
-    // TODO: assign values to svcparams
     return r;
 }
 

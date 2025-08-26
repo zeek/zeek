@@ -6,16 +6,14 @@
 #
 # @TEST-EXEC: cp $FILES/ws/wstest.py .
 #
-# @TEST-EXEC: zeek --parse-only ./worker.zeek
+# @TEST-EXEC: zeek --parse-only %INPUT
 #
-# @TEST-EXEC: btest-bg-run worker "zeek -r $TRACES/wikipedia.trace -b ../worker.zeek"
+# @TEST-EXEC: btest-bg-run worker "zeek -r $TRACES/wikipedia.trace -b %INPUT"
 # @TEST-EXEC: btest-bg-run client "python3 ../client.py"
 # @TEST-EXEC: btest-bg-wait 30
 #
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff worker/.stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff client/.stdout
-#
-# @TEST-START-FILE worker.zeek
 
 global my_new_connection: event(uid: string, c: count);
 
@@ -31,11 +29,6 @@ event zeek_init() &priority=-5
 		$listen_addr=127.0.0.1,
 		$listen_port=to_port(getenv("WEBSOCKET_PORT"))
 	]);
-	}
-
-event do_continue_processing() &is_used
-	{
-	print network_time(), "do_continue_processing";
 	}
 
 event Cluster::websocket_client_added(info: Cluster::EndpointInfo, subscriptions: string_vec)
@@ -74,8 +67,6 @@ event zeek_done()
 	{
 	print network_time(), "zeek_done";
 	}
-# @TEST-END-FILE
-
 
 # @TEST-START-FILE client.py
 import wstest

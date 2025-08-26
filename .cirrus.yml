@@ -240,6 +240,8 @@ fedora42_task:
   << : *CI_TEMPLATE
   << : *ONLY_IF_PR_MASTER_RELEASE
   << : *SKIP_IF_PR_SKIP_ALL
+  env:
+    ZEEK_CI_CONFIGURE_FLAGS: *BINARY_CONFIG
 
 fedora41_task:
   container:

@@ -159,9 +159,16 @@ enum SVCPARAM_Key : uint8_t {
     ipv6hint = 6,
 };
 
+union SvcParamValue {
+    VectorValPtr keys;    ///< see SVCPARAM_Key mandatory
+    VectorValPtr ids;     ///< see SVCPARAM_Key alpn
+    uint16_t port_number; ///< see SVCPARAM_Key port
+    VectorValPtr hints;   ///< see SVCPARAM_Key ipv4hint and ipv6hint
+};
+
 struct SvcParam {
-    uint16_t key;       ///< see SVCPARAM_Key 
-    VectorValPtr value; ///< optional list of string values
+    uint16_t key;        ///< see SVCPARAM_Key
+    SvcParamValue value; ///< see SvcParamValue
 };
 
 struct DNS_RawMsgHdr {

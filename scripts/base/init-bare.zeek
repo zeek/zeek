@@ -3071,11 +3071,22 @@ type dns_loc_rr: record {
 	is_query: count;	##< The RR is a query/Response.
 };
 
+## SvcParamValue
+## .. zeek:see:: dns_svcb_param
+type dns_svcb_param_value: record {
+	keys: vector of count &optional;	##< "mandatory" SvcParam keys
+	ids: vector of string &optional;	##< "alpn" IDs
+	port_number: port &optional;		##< "port"
+	hints: vector of addr &optional;	##< "ipv4hint" or "ipv6hint" addresses
+};
+
+type dns_svcb_param_value_vec: vector of dns_svcb_param_value;
+
 ## SvcParam
 ## .. zeek:see:: dns_svcb_rr
 type dns_svcb_param: record {
-	key: count;				##< ServiceParamKey.
-	value: vector of string &optional;	##< ServiceParamValue.
+	key: count;					##< ServiceParamKey.
+	value: dns_svcb_param_value_vec &optional;	##< ServiceParamValue.
 };
 
 type dns_svcb_param_vec: vector of dns_svcb_param;

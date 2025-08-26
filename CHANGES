@@ -1,3 +1,7 @@
+8.0.1 | 2025-08-26 17:58:37 +0000
+
+  * Update CHANGES, VERSION, and NEWS for v8.0.1 (Tim Wojtulewicz, Corelight)
+
 8.0.0-12 | 2025-08-26 09:47:30 -0700
 
   * cluster/serializer/broker: Drop unused include (Arne Welzel, Corelight)

@@ -3,6 +3,34 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 8.0.1
+==========
+
+We would like to thank Fupeng Zhao (@AmazingPP), Mike Dopheide (@dopheide-esnet), and
+@DigiAngel for their contributions to this release.
+
+- The official Zeek docker images are now based on Debian 13.0 (trixie).
+
+- Cluster data passed via websockets was previously double-wrapping Broker data records,
+  leading to decoding issues. This is now resolved.
+
+- Cluster events will no longer pass empty arrays for metadata if there was no metadata
+  for the event.
+
+- The PostgreSQL analyzer now only reports login success after a ``ReadyForQuery`` message
+  is received.
+
+- Zeekctl added a new ``MetricsAddr`` address to override the address that the telemetry
+  uses to communicate to Prometheus. It defaults to ``0.0.0.0`` and the documentation
+  describes how to override it.
+
+- Zeekctl added documentation for the ``MetricsPort`` option used to control what ports
+  the telemetry framework listens on to communicate with Prometheus. It describes how
+  the range is chosen, as well as how to override it.
+
+- The deprecation warning for the ``zeek::Event`` should be more clear as to what action
+  plugin authors need to take.
+
 Zeek 8.0.0
 ==========
 

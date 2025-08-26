@@ -3078,13 +3078,15 @@ type dns_svcb_param: record {
 	value: vector of string &optional;	##< ServiceParamValue.
 };
 
+type dns_svcb_param_vec: vector of dns_svcb_param;
+
 ## DNS SVCB and HTTPS RRs
 ##
 ## .. zeek:see:: dns_SVCB dns_HTTPS
 type dns_svcb_rr: record {
 	svc_priority: count;				##< Service priority for the current record, 0 indicates that this record is in AliasMode and cannot carry svc_params; otherwise this is in ServiceMode, and may include svc_params.
 	target_name: string;				##< Target name, the hostname of the service endpoint.
-	svc_params: vector of dns_svcb_param &optional;	##< All service parameters.
+	svc_params: dns_svcb_param_vec &optional;	##< All service parameters.
 };
 
 ## A NAPTR record.

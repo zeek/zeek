@@ -1622,16 +1622,17 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
     // Parse SvcParams records, if any, according to
     // https://datatracker.ietf.org/doc/html/rfc9460#presentation
 
-    // The type of a single SvcParam.
-    static auto dns_svcb_param = id::find_type<RecordType>("dns_svcb_param");
+    // The type of a vector of SvcParam.
+    static auto dns_svcb_param_vec = id::find_type<VectorType>("dns_svcb_param_vec");
     // An [optional] vector of SvcParam, to be assigned to dns_svcb_rr.
-    // XXX compile error: https://gist.github.com/klemens-ya/e2d13bfa9d824669cde81404961c1752
-    auto svc_params = make_intrusive<VectorVal>(dns_svcb_param);
+    auto svc_params = make_intrusive<VectorVal>(dns_svcb_param_vec);
 
     int svc_params_len = rdlength - parsed_bytes;
     int params_cnt = 0;
 
     while ( svc_params_len >= 2 + 2 ) {
+        // The type of a single SvcParam.
+        static auto dns_svcb_param = id::find_type<RecordType>("dns_svcb_param");
         // A single SvcParam (key and value), to be assigned to svc_params.
         auto svc_param = make_intrusive<RecordVal>(dns_svcb_param);
         // An [optional] vector of SvcParamValue (string), to be assigned to svc_param.

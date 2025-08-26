@@ -1,3 +1,17 @@
+8.1.0-dev.459 | 2025-08-26 08:59:20 -0700
+
+  * Fix installation of symlink with `DESTDIR` (Benjamin Bannier, Corelight)
+
+    We install test data which we also make available under an alternative
+    path for backwards compatibility. The installation of this symlink did
+    not take `DESTDIR` installs like used by Zeek's packaging into account
+    which caused installations from packages to behave different from
+    installs from source.
+
+    This patch fixes the symlink to respect a possible `DESTDIR`.
+
+    Closes #3266.
+
 8.1.0-dev.456 | 2025-08-25 12:29:32 -0700
 
   * Bump zeekctl (Arne Welzel, Corelight)

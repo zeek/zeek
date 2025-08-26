@@ -3,6 +3,15 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 7.0.10
+===========
+
+We would like to thank Artyom Kalabukhov (@predator89090) for their contribution to this
+release.
+
+- The SMB parser now correctly parses the data_offset field correctly. It previously tried
+  to parse it as 16 bits, when the field is only 8 bits in the spec.
+
 Zeek 7.0.9
 ==========
 

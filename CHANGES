@@ -1,3 +1,7 @@
+8.1.0-dev.461 | 2025-08-26 14:39:50 -0700
+
+  * CI: Rework layout of when each task runs (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.459 | 2025-08-26 08:59:20 -0700
 
   * Fix installation of symlink with `DESTDIR` (Benjamin Bannier, Corelight)

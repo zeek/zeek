@@ -1,3 +1,21 @@
+8.0.0-11 | 2025-08-26 09:04:29 -0700
+
+  * Fix installation of symlink with `DESTDIR` (Benjamin Bannier, Corelight)
+
+    We install test data which we also make available under an alternative
+    path for backwards compatibility. The installation of this symlink did
+    not take `DESTDIR` installs like used by Zeek's packaging into account
+    which caused installations from packages to behave different from
+    installs from source.
+
+    This patch fixes the symlink to respect a possible `DESTDIR`.
+
+    (cherry picked from commit d7db612b0f1f802316ab745e292c03aa3d69c5bd)
+
+  * Update zeekctl submodule for docs fixes [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
+  * Update docs submodule for v8.0.1 [nomail] [skip ci] (Tim Wojtulewicz, Corelight)
+
 8.0.0-8 | 2025-08-25 12:31:35 -0700
 
   * Merge branch 'topic/christian/news-typos' (Christian Kreibich, Corelight)

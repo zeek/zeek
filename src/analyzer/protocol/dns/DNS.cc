@@ -1710,7 +1710,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                     char addr[addr_sz];
 
                     if ( zeek_inet_ntop(is_ipv4 ? AF_INET : AF_INET6, data, addr, addr_sz) )
-                        svc_param_values->Assign(svc_param_values->Size(), zeek::make_intrusive<zeek::StringVal>(addr_sz - 1, addr));
+                        svc_param_values->Assign(svc_param_values->Size(), zeek::make_intrusive<zeek::StringVal>(strlen(addr), addr));
                     else
                         analyzer->Weird("invalid ipv4/6hint address");
 

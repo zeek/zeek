@@ -36,8 +36,8 @@ repos:
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.12.8
   hooks:
-    - id: ruff
-      args: [--fix]
+    - id: ruff-check
+      args: ["--fix"]
     - id: ruff-format
 
 - repo: https://github.com/cheshirekow/cmake-format-precommit

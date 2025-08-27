@@ -3071,27 +3071,30 @@ type dns_loc_rr: record {
 	is_query: count;	##< The RR is a query/Response.
 };
 
-## SvcParam
+## A SvcParamKey with an optional SvcParamValue.
+#
 ## .. zeek:see:: dns_svcb_rr
 type dns_svcb_param: record {
-	key: count;				##< ServiceParamKey.
-	mandatory: vector of count &optional;	##< "mandatory" SvcParam keys
+	key: count;				##< SvcParamKey
+	mandatory: vector of count &optional;	##< "mandatory" SvcParamKey values
 	alpn: vector of string &optional;	##< "alpn" IDs
 	p: count &optional;			##< "port" number, TCP or UDP
 	# XXX should be addr, but id::addr_vec does not work...
-	ipv4hint: vector of string &optional;	##< "ipv4hint" addresses
-	ipv6hint: vector of string &optional;	##< "ipv4hint" addresses
+	ipv4hint: vector of string &optional;	##< "ipv4hint" IP addresses
+	ipv6hint: vector of string &optional;	##< "ipv4hint" IP addresses
 };
 
 type dns_svcb_param_vec: vector of dns_svcb_param;
 
-## DNS SVCB and HTTPS RRs
+## A SVCB or HTTPS record.
+##
+## See also RFC 9460 - Service Binding and Parameter Specification via the DNS (SVCB and HTTPS Resource Records).
 ##
 ## .. zeek:see:: dns_SVCB dns_HTTPS
 type dns_svcb_rr: record {
-	svc_priority: count;				##< Service priority for the current record, 0 indicates that this record is in AliasMode and cannot carry svc_params; otherwise this is in ServiceMode, and may include svc_params.
+	svc_priority: count;				##< Service priority. If zero, the record is in AliasMode and has no SvcParam.
 	target_name: string;				##< Target name, the hostname of the service endpoint.
-	svc_params: dns_svcb_param_vec &optional;	##< All service parameters.
+	svc_params: dns_svcb_param_vec &optional;	##< Service parameters, if any.
 };
 
 ## A NAPTR record.

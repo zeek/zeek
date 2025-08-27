@@ -1619,19 +1619,18 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
 
     std::ptrdiff_t parsed_bytes = data - data_start;
 
-    // Parse SvcParams records, if any, according to
-    // https://datatracker.ietf.org/doc/html/rfc9460#presentation
-
+    // Parse the list of SvcParams, if any.
     static auto dns_svcb_param_vec = id::find_type<VectorType>("dns_svcb_param_vec");
     auto svc_params = make_intrusive<VectorVal>(dns_svcb_param_vec);
 
     int svc_params_len = rdlength - parsed_bytes;
-    int params_cnt = 0;
+
+    // In AliasMode, SvcParams MUST be ignored.
+    if ( svc_priority == 0 )
+        goto alias_mode;
 
     while ( svc_params_len >= 2 + 2 ) {
-        // The type of a single SvcParam.
         static auto dns_svcb_param = id::find_type<RecordType>("dns_svcb_param");
-        // A single SvcParam (key and value), to be assigned to svc_params.
         auto svc_param = make_intrusive<RecordVal>(dns_svcb_param);
 
         const uint16_t key = ExtractShort(data, len);
@@ -1747,9 +1746,9 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                     analyzer->Weird("no-default-alpn has value");
             case detail::ech: // N/A
             default:
-                analyzer->Weird("reserved or invalid SvcParam", util::fmt("key%d", key));
+                analyzer->Weird("reserved or invalid SvcParam");
             malformed:
-                // Silently consume the entire value, i.e. discard it.
+                // TODO Log or pass along malformed data instead of discarding it.
                 data += value_len;
                 len -= value_len;
                 item_len_parsed += value_len;
@@ -1773,13 +1772,12 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
             len -= value_len_diff;
         }
 
-        // Advance to the next parameter.
         svc_params_len -= value_len;
     }
 
+alias_mode:
     SVCB_DATA svcb_data = {svc_priority,
                            make_intrusive<StringVal>(new String(target_name, name_end - target_name, true)),
-                           // Not every SVCB/HTTPS RR has a SvcParam.
                            svc_params->Size() > 0 ? std::move(svc_params) : nullptr};
 
     analyzer->EnqueueConnEvent(svcb_type == detail::TYPE_SVCB ? dns_SVCB : dns_HTTPS, analyzer->ConnVal(),

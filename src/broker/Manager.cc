@@ -149,7 +149,7 @@ public:
     // arrivals (a push, is_push == true) and departures (a pull, is_push ==
     // false) as they happen. Note that this must not touch Zeek-side Vals.
     void Observe(const broker::endpoint_id& peer, bool is_push) {
-        std::lock_guard<std::mutex> lock(mutex);
+        std::scoped_lock<std::mutex> lock(mutex);
         auto it = stats_map.find(peer);
 
         if ( it == stats_map.end() ) {
@@ -186,7 +186,7 @@ public:
 
     // Updates the internal table[string] of BrokerPeeringStats and returns it.
     const zeek::TableValPtr& GetPeeringStatsTable() {
-        std::lock_guard<std::mutex> lock(mutex);
+        std::scoped_lock<std::mutex> lock(mutex);
 
         for ( auto it = stats_map.begin(); it != stats_map.end(); ) {
             auto& peer = it->first;
@@ -236,7 +236,7 @@ public:
     }
 
     void RemovePeer(const broker::endpoint_id& peer) {
-        std::lock_guard<std::mutex> lock(mutex);
+        std::scoped_lock<std::mutex> lock(mutex);
         if ( auto it = stats_map.find(peer); it != stats_map.end() )
             it->second.is_zombie = true;
     }
@@ -271,7 +271,7 @@ public:
         std::list<broker::event_ptr> tmp;
         tmp.emplace_back(std::move(event));
         {
-            std::lock_guard<std::mutex> lock(mutex_);
+            std::scoped_lock<std::mutex> lock(mutex_);
             queue_.splice(queue_.end(), tmp);
             if ( queue_.size() == 1 ) {
                 flare_.Fire();
@@ -281,7 +281,7 @@ public:
 
     auto Drain() {
         std::list<broker::event_ptr> events;
-        std::lock_guard<std::mutex> lock(mutex_);
+        std::scoped_lock<std::mutex> lock(mutex_);
         if ( ! queue_.empty() ) {
             queue_.swap(events);
             flare_.Extinguish();

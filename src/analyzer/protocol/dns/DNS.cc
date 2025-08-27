@@ -1601,7 +1601,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
         return false;
     }
 
-    uint16_t svc_priority = ExtractShort(data, len);
+    const uint16_t svc_priority = ExtractShort(data, len);
 
     u_char target_name[513];
     int name_len = sizeof(target_name) - 1;
@@ -1622,9 +1622,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
     // Parse SvcParams records, if any, according to
     // https://datatracker.ietf.org/doc/html/rfc9460#presentation
 
-    // The type of a vector of SvcParam.
     static auto dns_svcb_param_vec = id::find_type<VectorType>("dns_svcb_param_vec");
-    // An [optional] vector of SvcParam, to be assigned to dns_svcb_rr.
     auto svc_params = make_intrusive<VectorVal>(dns_svcb_param_vec);
 
     int svc_params_len = rdlength - parsed_bytes;
@@ -1635,17 +1633,6 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
         static auto dns_svcb_param = id::find_type<RecordType>("dns_svcb_param");
         // A single SvcParam (key and value), to be assigned to svc_params.
         auto svc_param = make_intrusive<RecordVal>(dns_svcb_param);
-
-        // The type of a vector of SvcParamValue.
-        static auto dns_svcb_param_value_vec = id::find_type<VectorType>("dns_svcb_param_value_vec");
-        // An [optional] vector of SvcParamValue, to be assigned to dns_svcb_param.
-        auto svc_param_values = make_intrusive<VectorVal>(dns_svcb_param_value_vec);
-
-        // The type of a single SvcParamValue.
-        static auto dns_svcb_param_value = id::find_type<RecordType>("dns_svcb_param_value");
-        // An [optional] SvcParamValue, to be assigned to dns_svcb_param_value_vec.
-        auto svc_param_value = make_intrusive<RecordVal>(dns_svcb_param_value);
-        bool has_value = false;
 
         const uint16_t key = ExtractShort(data, len);
         const uint16_t value_len = ExtractShort(data, len);
@@ -1662,15 +1649,14 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
             break;
         }
 
-        svc_param->Assign(0, key);
+        svc_param->Assign(0, make_intrusive<CountVal>(key));
         int item_len_parsed = 0;
 
         switch ( key ) {
             case detail::mandatory: // list of keys
             case detail::port: // port
             {
-                // A vector of keys, to be assigned to dns_svcb_param_value.
-                auto keys = make_intrusive<VectorVal>(id::index_vec);
+                auto mandatory = make_intrusive<VectorVal>(id::index_vec);
 
                 if ( value_len % 2 != 0 ) {
                     analyzer->Weird("invalid SvcParamValue size");
@@ -1682,21 +1668,19 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                     item_len_parsed += 2;
 
                     if ( key == detail::mandatory )
-                        keys->Assign(keys->Size(), std::move(key_port));
+                        mandatory->Assign(mandatory->Size(), std::move(key_port));
                     else
-                        svc_param_value->Assign(2, std::move(key_port));
+                        svc_param->Assign(3, std::move(key_port));
                 }
 
-                if ( keys->Size() > 0 )
-                    svc_param_value->Assign(0, std::move(keys));
-                has_value = true;
+                if ( mandatory->Size() > 0 )
+                    svc_param->Assign(1, std::move(mandatory));
                 break;
             }
 
             case detail::alpn: // list of length-prefixed (1 octet) ALPN IDs (1-255 octets)
             {
-                // A vector of ids, to be assigned to dns_svcb_param_value.
-                auto ids = make_intrusive<VectorVal>(id::string_vec);
+                auto alpn = make_intrusive<VectorVal>(id::string_vec);
 
                 while ( item_len_parsed + 1 + 1 < value_len ) {
                     // XXX no Extract*() to get a single octet
@@ -1710,29 +1694,26 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                         break;
                     }
 
-                    ids->Assign(ids->Size(), zeek::make_intrusive<zeek::StringVal>(alpn_len, reinterpret_cast<const char*>(data)));
+                    alpn->Assign(alpn->Size(), zeek::make_intrusive<zeek::StringVal>(alpn_len, reinterpret_cast<const char*>(data)));
 
                     data += alpn_len;
                     len -= alpn_len;
                     item_len_parsed += alpn_len;
                 }
 
-                if ( ids->Size() > 0 ) {
-                    svc_param_value->Assign(1, std::move(ids));
-                    has_value = true;
-                }
+                if ( alpn->Size() > 0 )
+                    svc_param->Assign(2, std::move(alpn));
                 break;
             }
 
             case detail::ipv4hint: // list of IPs
             case detail::ipv6hint: // list of IPs
             {
-                // A vector of addresses, to be assigned to dns_svcb_param_value.
                 // XXX error: ‘addr_vec’ is not a member of ‘zeek::id’
                 //     No idea how this one is special;  other id::*_vec are
                 //     defined in init-bare.zeek and used here.
                 // XXX Use string for now.
-                auto hints = make_intrusive<VectorVal>(id::string_vec);
+                auto hint = make_intrusive<VectorVal>(id::string_vec);
 
                 const bool is_ipv4 = key == detail::ipv4hint;
                 const int addr_len = is_ipv4 ? 4 : 16;
@@ -1747,7 +1728,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                     char addr[addr_sz];
 
                     if ( zeek_inet_ntop(is_ipv4 ? AF_INET : AF_INET6, data, addr, addr_sz) )
-                        hints->Assign(hints->Size(), zeek::make_intrusive<zeek::StringVal>(strlen(addr), addr));
+                        hint->Assign(hint->Size(), zeek::make_intrusive<zeek::StringVal>(strlen(addr), addr));
                     else
                         analyzer->Weird("invalid ipv4/6hint address");
 
@@ -1756,10 +1737,8 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                     item_len_parsed += addr_len;
                 }
 
-                if ( hints->Size() > 0 ) {
-                    svc_param_value->Assign(3, std::move(hints));
-                    has_value = true;
-                }
+                if ( hint->Size() > 0 )
+                    svc_param->Assign(is_ipv4 ? 4 : 5, std::move(hint));
                 break;
             }
 
@@ -1777,11 +1756,6 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                 break;
         }
 
-        // Not every SvcParamKey has a SvcParamValue.
-        if ( has_value ) {
-            svc_param_values->Assign(svc_param_values->Size(), std::move(svc_param_value));
-            svc_param->Assign(1, std::move(svc_param_values));
-        }
         svc_params->Assign(svc_params->Size(), std::move(svc_param));
 
         const int bytes_left = value_len - item_len_parsed;

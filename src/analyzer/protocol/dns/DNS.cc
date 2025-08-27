@@ -8,7 +8,7 @@
 #include <sys/types.h>
 #include <cctype>
 
-#include "zeek/IPAddr.h"
+#include "zeek/3rdparty/zeek_inet_ntop.h"
 #include "zeek/Event.h"
 #include "zeek/NetVar.h"
 #include "zeek/RunState.h"
@@ -1732,7 +1732,11 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
             case detail::ipv6hint: // list of IPs
             {
                 // A vector of addresses, to be assigned to dns_svcb_param_value.
-                auto hints = make_intrusive<VectorVal>(id::index_vec);
+                // XXX error: ‘addr_vec’ is not a member of ‘zeek::id’
+                //     No idea how this one is special;  other id::*_vec are
+                //     defined in init-bare.zeek and used here.
+                // XXX Use string for now.
+                auto hints = make_intrusive<VectorVal>(id::string_vec);
 
                 const bool is_ipv4 = key == detail::ipv4hint;
                 const int addr_len = is_ipv4 ? 4 : 16;
@@ -1743,7 +1747,13 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                 }
 
                 while ( item_len_parsed + addr_len <= value_len ) {
-                    hints->Assign(hints->Size(), zeek::make_intrusive<zeek::AddrVal>(zeek::IPAddr(is_ipv4 ? IPv4 : IPv6, reinterpret_cast<const uint32_t*>(data), zeek::IPAddr::Network)));
+                    const size_t addr_sz = INET6_ADDRSTRLEN;
+                    char addr[addr_sz];
+
+                    if ( zeek_inet_ntop(is_ipv4 ? AF_INET : AF_INET6, data, addr, addr_sz) )
+                        hints->Assign(hints->Size(), zeek::make_intrusive<zeek::StringVal>(strlen(addr), addr));
+                    else
+                        analyzer->Weird("invalid ipv4/6hint address");
 
                     data += addr_len;
                     len -= addr_len;
@@ -1751,7 +1761,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                 }
 
                 if ( hints->Size() > 0 ) {
-                    svc_param_value->Assign(3, hints);
+                    svc_param_value->Assign(3, std::move(hints));
                     has_value = true;
                 }
                 break;

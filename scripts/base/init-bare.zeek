@@ -3076,8 +3076,9 @@ type dns_loc_rr: record {
 type dns_svcb_param_value: record {
 	keys: vector of count &optional;	##< "mandatory" SvcParam keys
 	ids: vector of string &optional;	##< "alpn" IDs
-	port_number: port &optional;		##< "port"
-	hints: vector of addr &optional;	##< "ipv4hint" or "ipv6hint" addresses
+	p: port &optional;			##< "port"
+	# XXX should be addr, but id::addr_vec does not work...
+	hints: vector of string &optional;	##< "ipv4hint" or "ipv6hint" addresses
 };
 
 type dns_svcb_param_value_vec: vector of dns_svcb_param_value;

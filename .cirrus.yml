@@ -420,6 +420,7 @@ ubuntu22_task:
     # Ubuntu 22.04 EOL: June 2027
     dockerfile: ci/ubuntu-22.04/Dockerfile
     << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
   << : *ONLY_IF_PR_MASTER_RELEASE
   << : *SKIP_IF_PR_NOT_FULL_OR_BENCHMARK
   env:

@@ -1667,6 +1667,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
 
         switch ( key ) {
             case detail::mandatory: // list of keys
+            case detail::port: // port
             {
                 // A vector of keys, to be assigned to dns_svcb_param_value.
                 auto keys = make_intrusive<VectorVal>(id::index_vec);
@@ -1677,25 +1678,20 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                 }
 
                 while ( item_len_parsed + 2 <= value_len ) {
-                    keys->Assign(keys->Size(), make_intrusive<CountVal>(ExtractShort(data, len)));
+                    auto key_port = make_intrusive<CountVal>(ExtractShort(data, len));
                     item_len_parsed += 2;
+
+                    if ( key == detail::mandatory )
+                        keys->Assign(keys->Size(), std::move(key_port));
+                    else
+                        svc_param_value->Assign(2, std::move(key_port));
                 }
 
-                svc_param_value->Assign(0, std::move(keys));
+                if ( keys->Size() > 0 )
+                    svc_param_value->Assign(0, std::move(keys));
                 has_value = true;
                 break;
             }
-
-            case detail::port: // port
-                if ( value_len != 2 ) {
-                    analyzer->Weird("invalid SvcParamValue size");
-                    break;
-                }
-
-                svc_param_value->Assign(2, ExtractShort(data, len));
-                item_len_parsed += 2;
-                has_value = true;
-                break;
 
             case detail::alpn: // list of length-prefixed (1 octet) ALPN IDs (1-255 octets)
             {
@@ -1782,8 +1778,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
         }
 
         // Not every SvcParamKey has a SvcParamValue.
-        if ( has_value )
-        {
+        if ( has_value ) {
             svc_param_values->Assign(svc_param_values->Size(), std::move(svc_param_value));
             svc_param->Assign(1, std::move(svc_param_values));
         }

@@ -162,7 +162,7 @@ enum SVCPARAM_Key : uint8_t {
 union SvcParamValue {
     VectorValPtr keys;    ///< see SVCPARAM_Key mandatory
     VectorValPtr ids;     ///< see SVCPARAM_Key alpn
-    uint16_t port_number; ///< see SVCPARAM_Key port
+    uint16_t port;        ///< see SVCPARAM_Key port
     VectorValPtr hints;   ///< see SVCPARAM_Key ipv4hint and ipv6hint
 };
 

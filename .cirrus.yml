@@ -365,7 +365,7 @@ ubuntu25_04_task:
   << : *ONLY_IF_PR_MASTER_RELEASE
   << : *SKIP_IF_PR_NOT_FULL_CI
 
-ubuntu24_task:
+ubuntu24_04_task:
   container:
     # Ubuntu 24.04 EOL: Jun 2029
     dockerfile: ci/ubuntu-24.04/Dockerfile
@@ -375,7 +375,7 @@ ubuntu24_task:
   << : *SKIP_IF_PR_NOT_FULL_CI
 
 # Same as above, but running the ZAM tests instead of the regular tests.
-ubuntu24_zam_task:
+ubuntu24_04_zam_task:
   container:
     # Ubuntu 24.04 EOL: Jun 2029
     dockerfile: ci/ubuntu-24.04/Dockerfile
@@ -391,7 +391,7 @@ ubuntu24_zam_task:
     ZEEK_CI_BTEST_JOBS: 3
 
 # Same as above, but using Clang and libc++
-ubuntu24_clang_libcpp_task:
+ubuntu24_04_clang_libcpp_task:
   container:
     # Ubuntu 24.04 EOL: Jun 2029
     dockerfile: ci/ubuntu-24.04/Dockerfile
@@ -404,7 +404,7 @@ ubuntu24_clang_libcpp_task:
     CXX: clang++-19
     CXXFLAGS: -stdlib=libc++
 
-ubuntu24_clang_tidy_task:
+ubuntu24_04_clang_tidy_task:
   container:
     # Ubuntu 24.04 EOL: Jun 2029
     dockerfile: ci/ubuntu-24.04/Dockerfile
@@ -417,7 +417,7 @@ ubuntu24_clang_tidy_task:
     CXX: clang++-19
     ZEEK_CI_CONFIGURE_FLAGS: *CLANG_TIDY_CONFIG
 
-ubuntu22_task:
+ubuntu22_04_task:
   container:
     # Ubuntu 22.04 EOL: June 2027
     dockerfile: ci/ubuntu-22.04/Dockerfile
@@ -432,7 +432,7 @@ ubuntu22_task:
   benchmark_script: ./ci/benchmark.sh
 
 # Also enable Spicy SSL for this
-ubuntu24_spicy_task:
+ubuntu24_04_spicy_task:
   container:
     # Ubuntu 24.04 EOL: Jun 2029
     dockerfile: ci/ubuntu-24.04/Dockerfile
@@ -448,7 +448,7 @@ ubuntu24_spicy_task:
     path: build.tgz
   benchmark_script: ./ci/benchmark.sh
 
-ubuntu24_spicy_head_task:
+ubuntu24_04_spicy_head_task:
   container:
     # Ubuntu 24.04 EOL: Jun 2029
     dockerfile: ci/ubuntu-24.04/Dockerfile

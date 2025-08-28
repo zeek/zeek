@@ -1625,7 +1625,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
     int svc_params_len = rdlength - parsed_bytes;
 
     if ( svc_priority == 0 && svc_params_len > 0 )
-        analyzer->Weird("DNS_SVCB_AliasMode_with_SvcParams");
+        analyzer->Weird("DNS_SVCB_aliasmode_with_params");
 
     while ( svc_params_len >= 2 + 2 ) {
         static auto dns_svcb_param = id::find_type<RecordType>("dns_svcb_param");
@@ -1636,13 +1636,8 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
         const u_char* value_start = data;
         svc_params_len -= 2 + 2;
 
-        if ( key > detail::ipv6hint ) {
-            analyzer->Weird("Reserved or invalid SvcParamKey");
-            break;
-        }
-
         if ( value_len > svc_params_len ) {
-            analyzer->Weird("SvcParamValue overflows SvcParam");
+            analyzer->Weird("DNS_SVCB_param_value_toobig");
             break;
         }
 
@@ -1655,7 +1650,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                 auto mandatory = make_intrusive<VectorVal>(id::index_vec);
 
                 if ( value_len == 0 || value_len % 2 != 0 ) {
-                    analyzer->Weird("DNS_SVCB_invalid_mandatory_length");
+                    analyzer->Weird("DNS_SVCB_mandatory_length_invalid");
                     break;
                 }
 
@@ -1680,7 +1675,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                     item_len_parsed += 1;
 
                     if ( alpn_len == 0 || item_len_parsed + alpn_len > value_len ) {
-                        analyzer->Weird("invalid alpn size");
+                        analyzer->Weird("DNS_SVCB_alpn_length_invalid");
                         break;
                     }
 
@@ -1698,7 +1693,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
 
             case detail::port: // port
                 if ( value_len != 2 ) {
-                    analyzer->Weird("DNS_SVCB_invalid_port_length");
+                    analyzer->Weird("DNS_SVCB_port_length_invalid");
                     break;
                 }
 
@@ -1716,7 +1711,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                 const int addr_len = is_ipv4 ? 4 : 16;
 
                 if ( value_len % addr_len != 0 ) {
-                    analyzer->Weird("invalid ipv4/6hint size");
+                    analyzer->Weird("DNS_SVCB_hint_length_invalid");
                     goto malformed;
                 }
 
@@ -1736,10 +1731,10 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
 
             case detail::no_default_alpn:
                 if ( value_len > 0 )
-                    analyzer->Weird("no-default-alpn has value");
+                    analyzer->Weird("DNS_SVCB_nodefaultalpn_value");
             case detail::ech: // N/A
             default:
-                analyzer->Weird("reserved or invalid SvcParam");
+                analyzer->Weird("DNS_SVCB_key_reserved_or_invalid", util::fmt("%d", key));
             malformed:
                 // TODO Log or pass along malformed data instead of discarding it.
                 data += value_len;
@@ -1752,7 +1747,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
 
         const int bytes_left = value_len - item_len_parsed;
         if ( bytes_left > 0 ) {
-            analyzer->Weird("reserved/invalid key or malformed value");
+            analyzer->Weird("DNS_SVCB_invalid_value");
             data += bytes_left;
             len -= bytes_left;
         }
@@ -1760,7 +1755,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
         const int value_len_consumed = data - value_start;
         const int value_len_diff = value_len - value_len_consumed;
         if ( value_len_diff > 0 ) {
-            analyzer->Weird("trailing SvcParam data (parser bug)");
+            analyzer->Weird("DNS_SVCB_value_data_left");
             data += value_len_diff;
             len -= value_len_diff;
         }

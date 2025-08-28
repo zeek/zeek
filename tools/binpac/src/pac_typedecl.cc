@@ -27,7 +27,7 @@ TypeDecl::~TypeDecl() {
     delete env_;
     delete type_;
 
-    delete_list(ParamList, params_);
+    delete_list(params_);
 }
 
 void TypeDecl::ProcessAttr(Attr* a) { type_->ProcessAttr(a); }
@@ -101,7 +101,7 @@ void TypeDecl::GenCode(Output* out_h, Output* out_cc) {
     AddBaseClass(&base_classes);
 
     if ( type_->attr_refcount() )
-        base_classes.push_back(kRefCountClass);
+        base_classes.emplace_back(kRefCountClass);
 
     // The first line of class definition
     out_h->println("");
@@ -232,7 +232,8 @@ string TypeDecl::ParseFuncPrototype(Env* env) {
 }
 
 void TypeDecl::GenParsingEnd(Output* out_cc, Env* env, const DataPtr& data) {
-    string ret_val_0, ret_val_1;
+    string ret_val_0;
+    string ret_val_1;
 
     if ( type_->incremental_input() ) {
         ret_val_0 = type_->parsing_complete(env).c_str();
@@ -258,9 +259,6 @@ void TypeDecl::GenParsingEnd(Output* out_cc, Env* env, const DataPtr& data) {
         out_cc->inc_indent();
         out_cc->println("BINPAC_ASSERT(!(%s));", type_->parsing_complete(env).c_str());
         out_cc->println("return %s;", ret_val_1.c_str());
-    }
-    else if ( type_->incremental_input() ) {
-        out_cc->println("return %s;", ret_val_0.c_str());
     }
     else {
         out_cc->println("return %s;", ret_val_0.c_str());

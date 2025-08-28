@@ -3,6 +3,7 @@
 #ifndef pac_id_h
 #define pac_id_h
 
+#include <cstdint>
 #include <map>
 #include <string>
 using namespace std;
@@ -24,7 +25,7 @@ using namespace std;
 // Env -- a mapping from ID names to their L/R-value expressions and evaluation
 //   methods.
 
-enum IDType {
+enum IDType : uint8_t {
     CONST,
     GLOBAL_VAR,
     TEMP_VAR,
@@ -44,7 +45,7 @@ class Evaluatable;
 
 class ID : public Object {
 public:
-    ID(string arg_name) : name(arg_name), anonymous_id_(false) { locname = nfmt("%s:%s", Location(), Name()); }
+    ID(string arg_name) : name(std::move(arg_name)) { locname = nfmt("%s:%s", Location(), Name()); }
     ~ID() { delete[] locname; }
 
     bool operator==(ID const& x) const { return name == x.Name(); }
@@ -57,8 +58,8 @@ public:
 
 protected:
     string name;
-    bool anonymous_id_;
-    char* locname;
+    bool anonymous_id_ = false;
+    char* locname = nullptr;
     friend class ID_ptr_cmp;
 
 public:
@@ -146,7 +147,7 @@ public:
     void set_in_branch(bool x) { in_branch_ = x; }
 
     void AddID(const ID* id, IDType id_type, Type* type);
-    void AddConstID(const ID* id, const int c, Type* type = 0);
+    void AddConstID(const ID* id, const int c, Type* type = nullptr);
     void AddMacro(const ID* id, Expr* expr);
 
     // Generate a temp ID with a unique name
@@ -192,7 +193,7 @@ protected:
 private:
     Env* parent;
     Object* context_object_;
-    typedef map<const ID*, IDRecord*, ID_ptr_cmp> id_map_t;
+    using id_map_t = map<const ID*, IDRecord*, ID_ptr_cmp>;
     id_map_t id_map;
     bool allow_undefined_id_;
     bool in_branch_;

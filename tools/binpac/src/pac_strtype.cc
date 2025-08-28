@@ -273,11 +273,7 @@ void StringType::GenDynamicSizeRegEx(Output* out_cc, Env* env, const DataPtr& da
 void StringType::GenDynamicSizeAnyStr(Output* out_cc, Env* env, const DataPtr& data) {
     ASSERT(type_ == ANYSTR);
 
-    if ( attr_restofdata_ || attr_oneline_ ) {
-        out_cc->println("%s = (%s) - (%s);", env->LValue(string_length_var()), env->RValue(end_of_data),
-                        data.ptr_expr());
-    }
-    else if ( attr_restofflow_ ) {
+    if ( attr_restofdata_ || attr_oneline_ || attr_restofflow_ ) {
         out_cc->println("%s = (%s) - (%s);", env->LValue(string_length_var()), env->RValue(end_of_data),
                         data.ptr_expr());
     }

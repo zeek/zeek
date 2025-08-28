@@ -3,6 +3,8 @@
 #ifndef pac_analyzer_h
 #define pac_analyzer_h
 
+#include <cstdint>
+
 #include "pac_common.h"
 #include "pac_field.h"
 #include "pac_typedecl.h"
@@ -16,8 +18,8 @@ class AnalyzerDataUnit;
 class AnalyzerFunction;
 class ConnDecl;
 class FlowDecl;
-typedef vector<AnalyzerHelper*> AnalyzerHelperList;
-typedef vector<Function*> FunctionList;
+using AnalyzerHelperList = vector<AnalyzerHelper*>;
+using FunctionList = vector<Function*>;
 
 class AnalyzerDecl : public TypeDecl {
 public:
@@ -84,7 +86,7 @@ protected:
 
 class AnalyzerElement : public Object {
 public:
-    enum ElementType { STATE, ACTION, FUNCTION, HELPER, FLOW, DATAUNIT };
+    enum ElementType : uint8_t { STATE, ACTION, FUNCTION, HELPER, FLOW, DATAUNIT };
     AnalyzerElement(ElementType type) : type_(type) {}
     virtual ~AnalyzerElement() {}
 
@@ -109,7 +111,7 @@ private:
 // A collection of embedded C++ code
 class AnalyzerHelper : public AnalyzerElement {
 public:
-    enum Type {
+    enum Type : uint8_t {
         MEMBER_DECLS,
         INIT_CODE,
         CLEANUP_CODE,
@@ -140,7 +142,7 @@ public:
 
 class AnalyzerFlow : public AnalyzerElement {
 public:
-    enum Direction { UP, DOWN };
+    enum Direction : uint8_t { UP, DOWN };
     AnalyzerFlow(Direction dir, ID* type_id, ExprList* params);
     ~AnalyzerFlow() override;
 

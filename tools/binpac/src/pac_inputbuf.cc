@@ -31,5 +31,5 @@ DataPtr InputBuffer::GenDataBeginEnd(Output* out_cc, Env* env) {
     env->SetEvaluated(begin_of_data);
     env->SetEvaluated(end_of_data);
 
-    return DataPtr(env, begin_of_data, 0);
+    return {env, begin_of_data, 0};
 }

@@ -11,6 +11,18 @@ else ()
     set_property(SOURCE pac_scan.cc APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
 endif ()
 
+set(binpac_bison_generated_files
+    ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.cc ${CMAKE_CURRENT_BINARY_DIR}/pac_parse.h
+    ${CMAKE_CURRENT_BINARY_DIR}/pac_scan.cc)
+
+set_source_files_properties(${binpac_bison_generated_files} PROPERTIES SKIP_LINTING ON)
+
+# pac_main.cc includes up pac_parse.h, and so clang-tidy reports a bunch of warnings from
+# that header as part of it. adding NOLINTBEGIN/END around the include didn't resolve it.
+# I fixed the findings in pac_main.cc, but am ignoring it from here on to avoid the extra
+# noise.
+set_source_files_properties(pac_main.cc PROPERTIES SKIP_LINTING ON)
+
 set(binpac_SRCS
     ${BISON_PACParser_INPUT}
     ${FLEX_PACScanner_INPUT}
@@ -55,7 +67,9 @@ set(binpac_SRCS
     pac_exception.cc
     pac_main.cc)
 
-add_executable(binpac ${binpac_SRCS})
+add_executable(binpac)
+target_sources(binpac PRIVATE ${binpac_SRCS})
+zeek_target_add_linters(binpac)
 
 target_include_directories(binpac BEFORE PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(binpac BEFORE PUBLIC ${CMAKE_CURRENT_BINARY_DIR})

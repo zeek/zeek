@@ -3,6 +3,8 @@
 #ifndef pac_exttype_h
 #define pac_exttype_h
 
+#include <cstdint>
+
 #include "pac_type.h"
 
 // ExternType represent external C++ types that are not defined in
@@ -12,7 +14,7 @@
 
 class ExternType : public Type {
 public:
-    enum EXTType { PLAIN, NUMBER, POINTER, BOOLEAN };
+    enum EXTType : uint8_t { PLAIN, NUMBER, POINTER, BOOLEAN };
     ExternType(const ID* id, EXTType ext_type) : Type(EXTERN), id_(id), ext_type_(ext_type) {}
 
     bool DefineValueVar() const override;

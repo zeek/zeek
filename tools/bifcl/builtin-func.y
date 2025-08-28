@@ -65,92 +65,88 @@ struct decl_struct {
 	string enqueue_c_fullname;
 } decl;
 
-void set_definition_type(int type, const char *arg_type_name)
-	{
-	definition_type = type;
-	if ( type == TYPE_DEF && arg_type_name )
-		type_name = string(arg_type_name);
-	else
-		type_name = "";
-	}
+void set_definition_type(int type, const char* arg_type_name) {
+    definition_type = type;
+    if ( type == TYPE_DEF && arg_type_name )
+        type_name = string(arg_type_name);
+    else
+        type_name = "";
+}
 
-void set_decl_name(const char *name)
-	{
-	decl.bare_name = extract_var_name(name);
+void set_decl_name(const char* name) {
+    decl.bare_name = extract_var_name(name);
 
-	// make_full_var_name prepends the correct module, if any
-	// then we can extract the module name again.
-	string varname = make_full_var_name(current_module.c_str(), name);
-	decl.module_name = extract_module_name(varname.c_str());
+    // make_full_var_name prepends the correct module, if any
+    // then we can extract the module name again.
+    string varname = make_full_var_name(current_module.c_str(), name);
+    decl.module_name = extract_module_name(varname.c_str());
 
-	decl.c_namespace_start = "";
-	decl.c_namespace_end = "";
-	decl.c_fullname = "";
-	decl.zeek_fullname = "";
-	decl.zeek_name = "";
+    decl.c_namespace_start = "";
+    decl.c_namespace_end = "";
+    decl.c_fullname = "";
+    decl.zeek_fullname = "";
+    decl.zeek_name = "";
 
-	decl.enqueue_c_fullname = "";
-	decl.enqueue_c_barename = string("enqueue_") + decl.bare_name;
-	decl.enqueue_c_namespace_start = "";
-	decl.enqueue_c_namespace_end = "";
+    decl.enqueue_c_fullname = "";
+    decl.enqueue_c_barename = string("enqueue_") + decl.bare_name;
+    decl.enqueue_c_namespace_start = "";
+    decl.enqueue_c_namespace_end = "";
 
-	switch ( definition_type ) {
-	case TYPE_DEF:
-		decl.c_namespace_start = "BifType::" + type_name + "";
-		decl.c_fullname = "BifType::" + type_name + "::";
-		break;
+    switch ( definition_type ) {
+        case TYPE_DEF:
+            decl.c_namespace_start = "BifType::" + type_name + "";
+            decl.c_fullname = "BifType::" + type_name + "::";
+            break;
 
-	case CONST_DEF:
-		decl.c_namespace_start = "BifConst";
-		decl.c_fullname = "BifConst::";
-		break;
+        case CONST_DEF:
+            decl.c_namespace_start = "BifConst";
+            decl.c_fullname = "BifConst::";
+            break;
 
-	case FUNC_DEF:
-		decl.c_namespace_start = "BifFunc";
-		decl.c_fullname = "BifFunc::";
-		break;
+        case FUNC_DEF:
+            decl.c_namespace_start = "BifFunc";
+            decl.c_fullname = "BifFunc::";
+            break;
 
-	case EVENT_DEF:
-		decl.c_namespace_start = "";
-		decl.c_namespace_end = "";
-		decl.c_fullname = "::";  // need this for namespace qualified events due do event_c_body
-		decl.enqueue_c_namespace_start = "BifEvent";
-		decl.enqueue_c_fullname = "zeek::BifEvent::";
-		break;
+        case EVENT_DEF:
+            decl.c_namespace_start = "";
+            decl.c_namespace_end = "";
+            decl.c_fullname = "::"; // need this for namespace qualified events due do event_c_body
+            decl.enqueue_c_namespace_start = "BifEvent";
+            decl.enqueue_c_fullname = "zeek::BifEvent::";
+            break;
 
-	default:
-		break;
-	}
+        default: break;
+    }
 
-	if ( decl.module_name != GLOBAL_MODULE_NAME )
-		{
-		if ( decl.c_namespace_start.empty() ) {
-			decl.c_namespace_start += "namespace " + decl.module_name + " { ";
-			decl.c_namespace_end += " }";
-		}
-		else {
-			decl.c_namespace_start += "::" + decl.module_name;
-			decl.c_namespace_end = "";
-		}
-		decl.c_fullname += decl.module_name + "::";
-		decl.zeek_fullname += decl.module_name + "::";
+    if ( decl.module_name != GLOBAL_MODULE_NAME ) {
+        if ( decl.c_namespace_start.empty() ) {
+            decl.c_namespace_start += "namespace " + decl.module_name + " { ";
+            decl.c_namespace_end += " }";
+        }
+        else {
+            decl.c_namespace_start += "::" + decl.module_name;
+            decl.c_namespace_end = "";
+        }
+        decl.c_fullname += decl.module_name + "::";
+        decl.zeek_fullname += decl.module_name + "::";
 
-		if ( decl.enqueue_c_namespace_start.empty() ) {
-			decl.enqueue_c_namespace_start  += "namespace " + decl.module_name + " { ";
-			decl.enqueue_c_namespace_end += " } ";
-		}
-		else {
-			decl.enqueue_c_namespace_start  += "::" + decl.module_name;
-			decl.enqueue_c_namespace_end = "";
-		}
-		decl.enqueue_c_fullname += decl.module_name + "::";
-		}
+        if ( decl.enqueue_c_namespace_start.empty() ) {
+            decl.enqueue_c_namespace_start += "namespace " + decl.module_name + " { ";
+            decl.enqueue_c_namespace_end += " } ";
+        }
+        else {
+            decl.enqueue_c_namespace_start += "::" + decl.module_name;
+            decl.enqueue_c_namespace_end = "";
+        }
+        decl.enqueue_c_fullname += decl.module_name + "::";
+    }
 
-	decl.zeek_fullname += decl.bare_name;
-	decl.c_fullname += decl.bare_name;
-	decl.zeek_name += name;
-	decl.enqueue_c_fullname += decl.enqueue_c_barename;
-	}
+    decl.zeek_fullname += decl.bare_name;
+    decl.c_fullname += decl.bare_name;
+    decl.zeek_name += name;
+    decl.enqueue_c_fullname += decl.enqueue_c_barename;
+}
 
 const char* arg_list_name = "BiF_ARGS";
 
@@ -168,22 +164,20 @@ static struct {
 	const char* constructor;
 	const char* ctor_smatr;
 } builtin_types[] = {
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define DEFINE_BIF_TYPE(id, bif_type, zeek_type, c_type, c_type_smart, accessor, accessor_smart, cast_smart, constructor, ctor_smart) \
 	{bif_type, zeek_type, c_type, c_type_smart, accessor, accessor_smart, cast_smart, constructor, ctor_smart},
 #include "bif_type.def"
 #undef DEFINE_BIF_TYPE
 };
 
-int get_type_index(const char *type_name)
-	{
-	for ( int i = 0; builtin_types[i].bif_type[0] != '\0'; ++i )
-		{
-		if ( strcmp(builtin_types[i].bif_type, type_name) == 0 )
-			return i;
-		}
-		return TYPE_OTHER;
-	}
-
+int get_type_index(const char* type_name) {
+    for ( int i = 0; builtin_types[i].bif_type[0] != '\0'; ++i ) {
+        if ( strcmp(builtin_types[i].bif_type, type_name) == 0 )
+            return i;
+    }
+    return TYPE_OTHER;
+}
 
 int var_arg; // whether the number of arguments is variable
 std::vector<BuiltinFuncArg*> args;
@@ -192,108 +186,94 @@ extern int yyerror(const char[]);
 extern int yywarn(const char msg[]);
 extern int yylex();
 
-char* concat(const char* str1, const char* str2)
-	{
-	int len1 = strlen(str1);
-	int len2 = strlen(str2);
+char* concat(const char* str1, const char* str2) {
+    int len1 = strlen(str1);
+    int len2 = strlen(str2);
 
-	char* s = new char[len1 + len2 +1];
+    char* s = new char[len1 + len2 + 1];
 
-	memcpy(s, str1, len1);
-	memcpy(s + len1, str2, len2);
+    memcpy(s, str1, len1);
+    memcpy(s + len1, str2, len2);
 
-	s[len1+len2] = '\0';
+    s[len1 + len2] = '\0';
 
-	return s;
-	}
+    return s;
+}
 
-static void print_event_c_prototype_args(FILE* fp)
-	{
-	for ( auto i = 0u; i < args.size(); ++i )
-		{
-		if ( i > 0 )
-			fprintf(fp, ", ");
+static void print_event_c_prototype_args(FILE * fp) {
+    for ( auto i = 0u; i < args.size(); ++i ) {
+        if ( i > 0 )
+            fprintf(fp, ", ");
 
-		args[i]->PrintCArg(fp, i);
-		}
-	}
+        args[i]->PrintCArg(fp, i);
+    }
+}
 
-static void print_event_c_prototype_header(FILE* fp)
-	{
-	fprintf(fp, "namespace zeek::%s { void %s(zeek::analyzer::Analyzer* analyzer%s",
-	        decl.enqueue_c_namespace_start.c_str(),
-	        decl.enqueue_c_barename.c_str(),
-	        args.size() ? ", " : "" );
+static void print_event_c_prototype_header(FILE * fp) {
+    fprintf(fp, "namespace zeek::%s { void %s(zeek::analyzer::Analyzer* analyzer%s",
+            decl.enqueue_c_namespace_start.c_str(), decl.enqueue_c_barename.c_str(), args.size() ? ", " : "");
 
-	print_event_c_prototype_args(fp);
-	fprintf(fp, ")");
-	fprintf(fp, "; %s }\n", decl.enqueue_c_namespace_end.c_str());
-	}
+    print_event_c_prototype_args(fp);
+    fprintf(fp, ")");
+    fprintf(fp, "; %s }\n", decl.enqueue_c_namespace_end.c_str());
+}
 
-static void print_event_c_prototype_impl(FILE* fp)
-	{
-	fprintf(fp, "void %s(zeek::analyzer::Analyzer* analyzer%s",
-	        decl.enqueue_c_fullname.c_str(),
-	        args.size() ? ", " : "" );
+static void print_event_c_prototype_impl(FILE * fp) {
+    fprintf(fp, "void %s(zeek::analyzer::Analyzer* analyzer%s", decl.enqueue_c_fullname.c_str(),
+            args.size() ? ", " : "");
 
-	print_event_c_prototype_args(fp);
-	fprintf(fp, ")");
-	fprintf(fp, "\n");
-	}
+    print_event_c_prototype_args(fp);
+    fprintf(fp, ")");
+    fprintf(fp, "\n");
+}
 
-static void print_event_c_body(FILE* fp)
-	{
-	fprintf(fp, "\t{\n");
-	fprintf(fp, "\t// Note that it is intentional that here we do not\n");
-	fprintf(fp, "\t// check if %s is NULL, which should happen *before*\n",
-		decl.c_fullname.c_str());
-	fprintf(fp, "\t// %s is called to avoid unnecessary Val\n",
-		decl.enqueue_c_fullname.c_str());
-	fprintf(fp, "\t// allocation.\n");
-	fprintf(fp, "\n");
+static void print_event_c_body(FILE * fp) {
+    fprintf(fp, "\t{\n");
+    fprintf(fp, "\t// Note that it is intentional that here we do not\n");
+    fprintf(fp, "\t// check if %s is NULL, which should happen *before*\n", decl.c_fullname.c_str());
+    fprintf(fp, "\t// %s is called to avoid unnecessary Val\n", decl.enqueue_c_fullname.c_str());
+    fprintf(fp, "\t// allocation.\n");
+    fprintf(fp, "\n");
 
-	BuiltinFuncArg* connection_arg = nullptr;
+    BuiltinFuncArg* connection_arg = nullptr;
 
-	fprintf(fp, "\tzeek::event_mgr.Enqueue(%s, zeek::Args{\n", decl.c_fullname.c_str());
+    fprintf(fp, "\tzeek::event_mgr.Enqueue(%s, zeek::Args{\n", decl.c_fullname.c_str());
 
-	for ( int i = 0; i < (int) args.size(); ++i )
-		{
-		fprintf(fp, "\t        ");
-		args[i]->PrintValConstructor(fp);
-		fprintf(fp, ",\n");
+    for ( const auto& arg : args ) {
+        fprintf(fp, "\t        ");
+        arg->PrintValConstructor(fp);
+        fprintf(fp, ",\n");
 
-		if ( args[i]->Type() == TYPE_CONNECTION )
-			{
-			if ( connection_arg == nullptr )
-				connection_arg = args[i];
-			else
-				{
-				// We are seeing two connection type arguments.
-				yywarn("Warning: with more than connection-type "
-				       "event arguments, bifcl only passes "
-				       "the first one to EventMgr as cookie.");
-				}
-			}
-		}
+        if ( arg->Type() == TYPE_CONNECTION ) {
+            if ( connection_arg == nullptr )
+                connection_arg = arg;
+            else {
+                // We are seeing two connection type arguments.
+                yywarn(
+                    "Warning: with more than connection-type "
+                    "event arguments, bifcl only passes "
+                    "the first one to EventMgr as cookie.");
+            }
+        }
+    }
 
-	fprintf(fp, "\t        },\n\t    zeek::util::detail::SOURCE_LOCAL, analyzer ? analyzer->GetID() : 0");
+    fprintf(fp, "\t        },\n\t    zeek::util::detail::SOURCE_LOCAL, analyzer ? analyzer->GetID() : 0");
 
-	if ( connection_arg )
-		// Pass the connection to the EventMgr as the "cookie"
-		fprintf(fp, ", %s", connection_arg->Name());
+    if ( connection_arg )
+        // Pass the connection to the EventMgr as the "cookie"
+        fprintf(fp, ", %s", connection_arg->Name());
 
-	fprintf(fp, ");\n");
-	fprintf(fp, "\t}\n\n");
-	//fprintf(fp, "%s // end namespace\n", decl.enqueue_c_namespace_end.c_str());
-	}
+    fprintf(fp, ");\n");
+    fprintf(fp, "\t}\n\n");
+    // fprintf(fp, "%s // end namespace\n", decl.enqueue_c_namespace_end.c_str());
+}
 
-void record_bif_item(const char* id, const char* type)
-	{
-	if ( ! plugin )
-		return;
+void record_bif_item(const char* id, const char* type) {
+    if ( ! plugin )
+        return;
 
-	fprintf(fp_func_init, "\tplugin->AddBifItem(\"%s\", zeek::plugin::BifItem::%s);\n", id, type);
-	}
+    fprintf(fp_func_init, "\tplugin->AddBifItem(\"%s\", zeek::plugin::BifItem::%s);\n", id, type);
+}
 
 %}
 
@@ -474,7 +454,7 @@ enum_list:	enum_list TOK_ID opt_ws ',' opt_ws
 
 const_def:	TOK_CONST opt_ws TOK_ID opt_ws ':' opt_ws TOK_ID opt_ws ';'
 			{
-			set_definition_type(CONST_DEF, 0);
+			set_definition_type(CONST_DEF, nullptr);
 			set_decl_name($3);
 			int typeidx = get_type_index($7);
 			char accessor[1024];
@@ -525,11 +505,11 @@ opt_attr_list:
 	;
 
 func_prefix:	TOK_FUNCTION
-			{ set_definition_type(FUNC_DEF, 0); }
+			{ set_definition_type(FUNC_DEF, nullptr); }
 	;
 
 event_prefix:	TOK_EVENT
-			{ set_definition_type(EVENT_DEF, 0); }
+			{ set_definition_type(EVENT_DEF, nullptr); }
 	;
 
 end_of_head:	/* nothing */
@@ -792,44 +772,41 @@ extern char* input_filename;
 extern int line_number;
 void err_exit(void);
 
-void print_msg(const char msg[])
-	{
-	int msg_len = strlen(msg) + strlen(yytext) + 64;
-	char* msgbuf = new char[msg_len];
+void print_msg(const char msg[]) {
+    int msg_len = strlen(msg) + strlen(yytext) + 64;
+    char* msgbuf = new char[msg_len];
 
-	if ( yytext[0] == '\n' )
-		snprintf(msgbuf, msg_len, "%s, on previous line", msg);
+    if ( yytext[0] == '\n' )
+        snprintf(msgbuf, msg_len, "%s, on previous line", msg);
 
-	else if ( yytext[0] == '\0' )
-		snprintf(msgbuf, msg_len, "%s, at end of file", msg);
+    else if ( yytext[0] == '\0' )
+        snprintf(msgbuf, msg_len, "%s, at end of file", msg);
 
-	else
-		snprintf(msgbuf, msg_len, "%s, at or near \"%s\"", msg, yytext);
+    else
+        snprintf(msgbuf, msg_len, "%s, at or near \"%s\"", msg, yytext);
 
-	/*
-	extern int column;
-	sprintf(msgbuf, "%*s\n%*s\n", column, "^", column, msg);
-	*/
+    /*
+    extern int column;
+    sprintf(msgbuf, "%*s\n%*s\n", column, "^", column, msg);
+    */
 
-	if ( input_filename )
-		fprintf(stderr, "%s:%d: ", input_filename, line_number);
-	else
-		fprintf(stderr, "line %d: ", line_number);
-	fprintf(stderr, "%s\n", msgbuf);
+    if ( input_filename )
+        fprintf(stderr, "%s:%d: ", input_filename, line_number);
+    else
+        fprintf(stderr, "line %d: ", line_number);
+    fprintf(stderr, "%s\n", msgbuf);
 
-	delete [] msgbuf;
-	}
+    delete[] msgbuf;
+}
 
-int yywarn(const char msg[])
-	{
-	print_msg(msg);
-	return 0;
-	}
+int yywarn(const char msg[]) {
+    print_msg(msg);
+    return 0;
+}
 
-int yyerror(const char msg[])
-	{
-	print_msg(msg);
+int yyerror(const char msg[]) {
+    print_msg(msg);
 
-	err_exit();
-	return 0;
-	}
+    err_exit();
+    return 0;
+}

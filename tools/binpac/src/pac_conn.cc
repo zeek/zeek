@@ -26,7 +26,7 @@ ConnDecl::~ConnDecl() {
 }
 
 void ConnDecl::AddBaseClass(vector<string>* base_classes) const {
-    base_classes->push_back("binpac::ConnectionAnalyzer");
+    base_classes->emplace_back("binpac::ConnectionAnalyzer");
 }
 
 void ConnDecl::ProcessFlowElement(AnalyzerFlow* flow_elem) {

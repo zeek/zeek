@@ -45,38 +45,36 @@ int line_number = 1;
 int begin_pac_primitive(int tok);
 int end_pac_primitive();
 
-int string_token(int tok)
-	{
-	yylval.str = copy_string(yytext);
-	return tok;
-	}
+int string_token(int tok) {
+    yylval.str = copy_string(yytext);
+    return tok;
+}
 
-int char_token(int tok)
-	{
-	yylval.val = yytext[0];
-	return tok;
-	}
+int char_token(int tok) {
+    yylval.val = yytext[0];
+    return tok;
+}
 
-void include_file(const char *filename);
+void include_file(const char* filename);
 
-std::string do_dirname(std::string_view s)
-	{
+std::string do_dirname(std::string_view s) {
 #ifdef _MSC_VER
-	return std::filesystem::path(s).parent_path().string();
+    return std::filesystem::path(s).parent_path().string();
 #else
-	std::unique_ptr<char[]> tmp{new char[s.size()+1]};
-	strncpy(tmp.get(), s.data(), s.size());
-	tmp[s.size()] = '\0';
+    std::unique_ptr<char[]> tmp{new char[s.size() + 1]};
+    strncpy(tmp.get(), s.data(), s.size());
+    tmp[s.size()] = '\0';
 
-	char* dn = dirname(tmp.get());
-	if ( !dn )
-		return "";
+    char* dn = dirname(tmp.get());
+    if ( ! dn )
+        return "";
 
-	std::string res{dn};
+    std::string res{dn};
 
-	return res;
+    return res;
 #endif
-	}
+}
+
 %}
 
 /* EC -- embedded code state */
@@ -283,133 +281,109 @@ ESCSEQ	(\\([^\n]|[0-7]{3}|x[[:xdigit:]]{2}))
 
 %%
 
-void begin_RE()
-	{
-	BEGIN(RE);
-	}
+void begin_RE() {
+    BEGIN(RE);
+}
 
-void end_RE()
-	{
-	BEGIN(INITIAL);
-	}
+void end_RE() { BEGIN(INITIAL); }
 
 // The DECL state is deprecated
-void begin_decl()
-	{
-	// BEGIN(DECL);
-	}
+void begin_decl() {
+    // BEGIN(DECL);
+}
 
-void end_decl()
-	{
-	// BEGIN(INITIAL);
-	}
+void end_decl() {
+    // BEGIN(INITIAL);
+}
 
-int begin_pac_primitive(int tok)
-	{
-	BEGIN(PP);
-	return tok;
-	}
+int begin_pac_primitive(int tok) {
+    BEGIN(PP);
+    return tok;
+}
 
-int end_pac_primitive()
-	{
-	BEGIN(EC);
-	return TOK_END_PAC;
-	}
+int end_pac_primitive() {
+    BEGIN(EC);
+    return TOK_END_PAC;
+}
 
-const int MAX_INCLUDE_DEPTH = 100;
+constexpr int MAX_INCLUDE_DEPTH = 100;
 
 struct IncludeState {
-	YY_BUFFER_STATE yystate;
-	string input_filename;
-	int line_number;
+    YY_BUFFER_STATE yystate;
+    string input_filename;
+    int line_number;
 };
 
 IncludeState include_stack[MAX_INCLUDE_DEPTH];
 int include_stack_ptr = 0;
 
-void switch_to_file(FILE *fp)
-	{
-	yy_switch_to_buffer(yy_create_buffer(fp, YY_BUF_SIZE));
-	}
+void switch_to_file(FILE* fp) { yy_switch_to_buffer(yy_create_buffer(fp, YY_BUF_SIZE)); }
 
-void switch_to_file(const char *filename)
-	{
-	if ( include_stack_ptr >= MAX_INCLUDE_DEPTH )
-		{
-		fprintf( stderr, "Includes nested too deeply" );
-		exit( 1 );
-		}
+void switch_to_file(const char* filename) {
+    if ( include_stack_ptr >= MAX_INCLUDE_DEPTH ) {
+        fprintf(stderr, "Includes nested too deeply");
+        exit(1);
+    }
 
-	IncludeState state = 
-		{ YY_CURRENT_BUFFER, input_filename, line_number };
-	include_stack[include_stack_ptr++] = state;
+    IncludeState state = {YY_CURRENT_BUFFER, input_filename, line_number};
+    include_stack[include_stack_ptr++] = state;
 
-	FILE *fp = fopen(filename, "r");
+    FILE* fp = fopen(filename, "r");
 
-	if ( ! fp )
-		{
-		fprintf(stderr, "%s:%d: error: cannot include file \"%s\"\n", 
-			input_filename.c_str(), line_number,filename);
-		exit( 1 );
-		}
+    if ( ! fp ) {
+        fprintf(stderr, "%s:%d: error: cannot include file \"%s\"\n", input_filename.c_str(), line_number, filename);
+        exit(1);
+    }
 
-	yyin = fp;
-	input_filename = string(filename);
-	line_number = 1;
-	switch_to_file(yyin);
-	if ( !FLAGS_quiet )
-		fprintf(stderr, "switching to file %s\n", input_filename.c_str());
-	}
+    yyin = fp;
+    input_filename = string(filename);
+    line_number = 1;
+    switch_to_file(yyin);
+    if ( ! FLAGS_quiet )
+        fprintf(stderr, "switching to file %s\n", input_filename.c_str());
+}
 
-void include_file(const char *filename)
-	{
-	ASSERT(filename);
+void include_file(const char* filename) {
+    ASSERT(filename);
 
-	string full_filename;
-	if ( filename[0] == '/' )
-		full_filename = filename;
-	else if ( filename[0] == '.' )
-		{
-		string dir = do_dirname(input_filename);
+    string full_filename;
+    if ( filename[0] == '/' )
+        full_filename = filename;
+    else if ( filename[0] == '.' ) {
+        string dir = do_dirname(input_filename);
 
-		if ( ! dir.empty() )
-			full_filename = dir + "/" + filename;
-		else
-			{
-			fprintf(stderr, "%s:%d error: cannot include file \"%s\": %s\n",
-					input_filename.c_str(), line_number, filename,
-					strerror(errno));
-			exit( 1 );
-			}
-		}
-	else
-		{
-		int i;
-		for ( i = 0; i < (int) FLAGS_include_directories.size(); ++i )
-			{
-			full_filename = FLAGS_include_directories[i] + filename;
-			DEBUG_MSG("Try include file: \"%s\"\n", 
-				full_filename.c_str());
-			if ( access(full_filename.c_str(), R_OK) == 0 )
-				break;
-			}
-		if ( i >= (int) FLAGS_include_directories.size() )
-			full_filename = filename;
-		}
+        if ( ! dir.empty() )
+            full_filename = dir + "/" + filename;
+        else {
+            fprintf(stderr, "%s:%d error: cannot include file \"%s\": %s\n", input_filename.c_str(), line_number,
+                    filename, strerror(errno));
+            exit(1);
+        }
+    }
+    else {
+        int i;
+        for ( i = 0; i < (int)FLAGS_include_directories.size(); ++i ) {
+            full_filename = FLAGS_include_directories[i] + filename;
+            DEBUG_MSG("Try include file: \"%s\"\n", full_filename.c_str());
+            if ( access(full_filename.c_str(), R_OK) == 0 )
+                break;
+        }
+        if ( i >= (int)FLAGS_include_directories.size() )
+            full_filename = filename;
+    }
 
-	switch_to_file(full_filename.c_str());
-	}
+    switch_to_file(full_filename.c_str());
+}
 
-int yywrap()
-	{
-	yy_delete_buffer(YY_CURRENT_BUFFER);
-	--include_stack_ptr;
-	if ( include_stack_ptr < 0 )
-		return 1;
+int yywrap() {
+    yy_delete_buffer(YY_CURRENT_BUFFER);
+    --include_stack_ptr;
+    if ( include_stack_ptr < 0 )
+        return 1;
 
-	IncludeState state = include_stack[include_stack_ptr];
-	yy_switch_to_buffer(state.yystate);
-	input_filename = state.input_filename;
-	line_number = state.line_number;
-	return 0;
-	}
+    IncludeState state = include_stack[include_stack_ptr];
+    yy_switch_to_buffer(state.yystate);
+    input_filename = state.input_filename;
+    line_number = state.line_number;
+    return 0;
+}

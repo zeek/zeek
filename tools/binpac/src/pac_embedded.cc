@@ -6,7 +6,7 @@
 #include "pac_output.h"
 #include "pac_primitive.h"
 
-EmbeddedCodeSegment::EmbeddedCodeSegment(const string& s) : s_(s), primitive_(nullptr) {}
+EmbeddedCodeSegment::EmbeddedCodeSegment(string s) : s_(std::move(s)), primitive_(nullptr) {}
 
 EmbeddedCodeSegment::EmbeddedCodeSegment(PacPrimitive* primitive) : s_(""), primitive_(primitive) {}
 
@@ -20,7 +20,7 @@ string EmbeddedCodeSegment::ToCode(Env* env) {
 
 EmbeddedCode::EmbeddedCode() { segments_ = new EmbeddedCodeSegmentList(); }
 
-EmbeddedCode::~EmbeddedCode() { delete_list(EmbeddedCodeSegmentList, segments_); }
+EmbeddedCode::~EmbeddedCode() { delete_list(segments_); }
 
 void EmbeddedCode::Append(int atom) { current_segment_ += static_cast<char>(atom); }
 

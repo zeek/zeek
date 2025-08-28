@@ -135,7 +135,7 @@ protected:
     bool DoTraverse(DataDepVisitor* visitor) override;
 };
 
-enum PaddingType { PAD_BY_LENGTH, PAD_TO_OFFSET, PAD_TO_NEXT_WORD };
+enum PaddingType : uint8_t { PAD_BY_LENGTH, PAD_TO_OFFSET, PAD_TO_NEXT_WORD };
 
 class RecordPaddingField : public RecordField {
 public:

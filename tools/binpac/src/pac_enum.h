@@ -7,7 +7,7 @@
 
 class Enum {
 public:
-    Enum(ID* id, Expr* expr = 0);
+    Enum(ID* id, Expr* expr = nullptr);
     ~Enum();
 
     void GenHeader(Output* out_h, int* pval);

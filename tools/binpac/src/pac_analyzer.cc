@@ -34,14 +34,14 @@ AnalyzerDecl::AnalyzerDecl(ID* id, DeclType decl_type, ParamList* params) : Type
 }
 
 AnalyzerDecl::~AnalyzerDecl() {
-    delete_list(StateVarList, statevars_);
-    delete_list(AnalyzerActionList, actions_);
-    delete_list(AnalyzerHelperList, helpers_);
-    delete_list(FunctionList, functions_);
-    delete_list(ParamList, params_);
-    delete_list(AnalyzerHelperList, constructor_helpers_);
-    delete_list(AnalyzerHelperList, destructor_helpers_);
-    delete_list(AnalyzerHelperList, eof_helpers_);
+    delete_list(statevars_);
+    delete_list(actions_);
+    delete_list(helpers_);
+    delete_list(functions_);
+    delete_list(params_);
+    delete_list(constructor_helpers_);
+    delete_list(destructor_helpers_);
+    delete_list(eof_helpers_);
 }
 
 void AnalyzerDecl::AddElements(AnalyzerElementList* elemlist) {

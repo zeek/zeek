@@ -75,14 +75,14 @@ Type::~Type() {
     delete buffering_state_var_field_;
     delete has_value_field_;
     delete[] size_expr_;
-    delete_list(FieldList, fields_);
+    delete_list(fields_);
     delete attrs_;
     delete attr_byteorder_expr_;
     delete attr_if_expr_;
     delete attr_length_expr_;
-    delete_list(ExprList, attr_checks_);
-    delete_list(ExprList, attr_enforces_);
-    delete_list(ExprList, attr_requires_);
+    delete_list(attr_checks_);
+    delete_list(attr_enforces_);
+    delete_list(attr_requires_);
 }
 
 Type* Type::Clone() const {
@@ -696,7 +696,7 @@ string Type::DataSize(Output* out_cc, Env* env, const DataPtr& data) {
     }
     else {
         if ( ! size_var() || ! env->Evaluated(size_var()) ) {
-            ASSERT(out_cc != 0);
+            ASSERT(out_cc != nullptr);
             GenDynamicSize(out_cc, env, data);
             ASSERT(size_var());
         }

@@ -1,3 +1,13 @@
+8.1.0-dev.468 | 2025-08-28 13:06:25 -0700
+
+  * Link Prometheus symbols via Broker instead of directly (Tim Wojtulewicz, Corelight)
+
+  * CI: Restore build steps for ubuntu22 task (Tim Wojtulewicz, Corelight)
+
+    This got accidentally deleted during the reorganization of the CI tasks
+
+  * Fix ruff check legacy alias for pre-commit (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.461 | 2025-08-26 14:39:50 -0700
 
   * CI: Rework layout of when each task runs (Tim Wojtulewicz, Corelight)

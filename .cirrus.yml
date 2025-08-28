@@ -432,10 +432,10 @@ ubuntu22_task:
   benchmark_script: ./ci/benchmark.sh
 
 # Also enable Spicy SSL for this
-ubuntu22_spicy_task:
+ubuntu24_spicy_task:
   container:
-    # Ubuntu 22.04 EOL: April 2027
-    dockerfile: ci/ubuntu-22.04/Dockerfile
+    # Ubuntu 24.04 EOL: Jun 2029
+    dockerfile: ci/ubuntu-24.04/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
   << : *ONLY_IF_PR_MASTER_RELEASE
@@ -448,10 +448,10 @@ ubuntu22_spicy_task:
     path: build.tgz
   benchmark_script: ./ci/benchmark.sh
 
-ubuntu22_spicy_head_task:
+ubuntu24_spicy_head_task:
   container:
-    # Ubuntu 22.04 EOL: April 2027
-    dockerfile: ci/ubuntu-22.04/Dockerfile
+    # Ubuntu 24.04 EOL: Jun 2029
+    dockerfile: ci/ubuntu-24.04/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
   << : *ONLY_IF_PR_MASTER_RELEASE_NIGHTLY

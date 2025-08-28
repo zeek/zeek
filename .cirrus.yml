@@ -417,20 +417,6 @@ ubuntu24_04_clang_tidy_task:
     CXX: clang++-19
     ZEEK_CI_CONFIGURE_FLAGS: *CLANG_TIDY_CONFIG
 
-ubuntu22_04_task:
-  container:
-    # Ubuntu 22.04 EOL: June 2027
-    dockerfile: ci/ubuntu-22.04/Dockerfile
-    << : *RESOURCES_TEMPLATE
-  << : *CI_TEMPLATE
-  << : *ONLY_IF_PR_MASTER_RELEASE
-  << : *SKIP_IF_PR_NOT_FULL_OR_BENCHMARK
-  env:
-    ZEEK_CI_CREATE_ARTIFACT: 1
-  upload_binary_artifacts:
-    path: build.tgz
-  benchmark_script: ./ci/benchmark.sh
-
 # Also enable Spicy SSL for this
 ubuntu24_04_spicy_task:
   container:
@@ -462,6 +448,20 @@ ubuntu24_04_spicy_head_task:
     # Pull auxil/spicy to the latest head version. May or may not build.
     ZEEK_CI_PREBUILD_COMMAND: 'cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive'
   spicy_install_analyzers_script: ./ci/spicy-install-analyzers.sh
+  upload_binary_artifacts:
+    path: build.tgz
+  benchmark_script: ./ci/benchmark.sh
+
+ubuntu22_04_task:
+  container:
+    # Ubuntu 22.04 EOL: June 2027
+    dockerfile: ci/ubuntu-22.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_OR_BENCHMARK
+  env:
+    ZEEK_CI_CREATE_ARTIFACT: 1
   upload_binary_artifacts:
     path: build.tgz
   benchmark_script: ./ci/benchmark.sh

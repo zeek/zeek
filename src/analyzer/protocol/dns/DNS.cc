@@ -1597,7 +1597,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
     // the smallest SVCB/HTTPS rr is 3 bytes:
     // the first 2 bytes are for the svc priority, and the third byte is root (0x0)
     if ( len < 3 ) {
-        analyzer->Weird("DNS_SVBC_wrong_length");
+        analyzer->Weird("DNS_SVCB_wrong_length");
         return false;
     }
 
@@ -1617,17 +1617,15 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
         name_end = target_name + 1;
     }
 
-    std::ptrdiff_t parsed_bytes = data - data_start;
-
     // Parse the list of SvcParams, if any.
     static auto dns_svcb_param_vec = id::find_type<VectorType>("dns_svcb_param_vec");
     auto svc_params = make_intrusive<VectorVal>(dns_svcb_param_vec);
 
+    std::ptrdiff_t parsed_bytes = data - data_start;
     int svc_params_len = rdlength - parsed_bytes;
 
-    // In AliasMode, SvcParams MUST be ignored.
-    if ( svc_priority == 0 )
-        goto alias_mode;
+    if ( svc_priority == 0 && svc_params_len > 0 )
+        analyzer->Weird("DNS_SVCB_AliasMode_with_SvcParams");
 
     while ( svc_params_len >= 2 + 2 ) {
         static auto dns_svcb_param = id::find_type<RecordType>("dns_svcb_param");
@@ -1775,7 +1773,6 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
         svc_params_len -= value_len;
     }
 
-alias_mode:
     SVCB_DATA svcb_data = {svc_priority,
                            make_intrusive<StringVal>(new String(target_name, name_end - target_name, true)),
                            svc_params->Size() > 0 ? std::move(svc_params) : nullptr};

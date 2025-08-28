@@ -1665,7 +1665,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                     item_len_parsed += 2;
 
                     if ( key == detail::mandatory )
-                        mandatory->Assign(mandatory->Size(), std::move(key_port));
+                        mandatory->Append(std::move(key_port));
                     else
                         svc_param->Assign(3, std::move(key_port));
                 }
@@ -1691,7 +1691,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                         break;
                     }
 
-                    alpn->Assign(alpn->Size(), zeek::make_intrusive<zeek::StringVal>(alpn_len, reinterpret_cast<const char*>(data)));
+                    alpn->Append(zeek::make_intrusive<zeek::StringVal>(alpn_len, reinterpret_cast<const char*>(data)));
 
                     data += alpn_len;
                     len -= alpn_len;
@@ -1725,7 +1725,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                     char addr[addr_sz];
 
                     if ( zeek_inet_ntop(is_ipv4 ? AF_INET : AF_INET6, data, addr, addr_sz) )
-                        hint->Assign(hint->Size(), zeek::make_intrusive<zeek::StringVal>(strlen(addr), addr));
+                        hint->Append(zeek::make_intrusive<zeek::StringVal>(strlen(addr), addr));
                     else
                         analyzer->Weird("invalid ipv4/6hint address");
 
@@ -1753,7 +1753,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                 break;
         }
 
-        svc_params->Assign(svc_params->Size(), std::move(svc_param));
+        svc_params->Append(std::move(svc_param));
 
         const int bytes_left = value_len - item_len_parsed;
         if ( bytes_left > 0 ) {

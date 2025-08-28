@@ -164,8 +164,7 @@ struct SvcParam {
     VectorValPtr mandatory;
     VectorValPtr alpn;
     uint16_t p;
-    VectorValPtr ipv4hint;
-    VectorValPtr ipv6hint;
+    VectorValPtr hint;
 };
 
 struct DNS_RawMsgHdr {

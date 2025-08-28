@@ -3079,9 +3079,7 @@ type dns_svcb_param: record {
 	mandatory: vector of count &optional;	##< "mandatory" SvcParamKey values
 	alpn: vector of string &optional;	##< "alpn" IDs
 	p: count &optional;			##< "port" number, TCP or UDP
-	# XXX should be addr, but id::addr_vec does not work...
-	ipv4hint: vector of string &optional;	##< "ipv4hint" IP addresses
-	ipv6hint: vector of string &optional;	##< "ipv4hint" IP addresses
+	hint: vector of addr &optional;		##< "ipv4hint" or "ipv6hint" IP addresses
 };
 
 type dns_svcb_param_vec: vector of dns_svcb_param;

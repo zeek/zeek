@@ -1709,11 +1709,8 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
             case detail::ipv4hint: // list of IPs
             case detail::ipv6hint: // list of IPs
             {
-                // XXX error: ‘addr_vec’ is not a member of ‘zeek::id’
-                //     No idea how this one is special;  other id::*_vec are
-                //     defined in init-bare.zeek and used here.
-                // XXX Use string for now.
-                auto hint = make_intrusive<VectorVal>(id::string_vec);
+                static auto addr_vec = id::find_type<VectorType>("addr_vec");
+                auto hint = make_intrusive<VectorVal>(addr_vec);
 
                 const bool is_ipv4 = key == detail::ipv4hint;
                 const int addr_len = is_ipv4 ? 4 : 16;
@@ -1724,13 +1721,8 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                 }
 
                 while ( item_len_parsed + addr_len <= value_len ) {
-                    const size_t addr_sz = INET6_ADDRSTRLEN;
-                    char addr[addr_sz];
-
-                    if ( zeek_inet_ntop(is_ipv4 ? AF_INET : AF_INET6, data, addr, addr_sz) )
-                        hint->Append(zeek::make_intrusive<zeek::StringVal>(strlen(addr), addr));
-                    else
-                        analyzer->Weird("invalid ipv4/6hint address");
+                    const auto addr = zeek::IPAddr(is_ipv4 ? IPv4 : IPv6, reinterpret_cast<const uint32_t*>(data), zeek::IPAddr::Network);
+                    hint->Append(zeek::make_intrusive<zeek::AddrVal>(addr));
 
                     data += addr_len;
                     len -= addr_len;
@@ -1738,7 +1730,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                 }
 
                 if ( hint->Size() > 0 )
-                    svc_param->Assign(is_ipv4 ? 4 : 5, std::move(hint));
+                    svc_param->Assign(4, std::move(hint));
                 break;
             }
 

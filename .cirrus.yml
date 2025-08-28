@@ -400,8 +400,8 @@ ubuntu24_clang_libcpp_task:
   << : *ONLY_IF_PR_MASTER_RELEASE
   << : *SKIP_IF_PR_NOT_FULL_CI
   env:
-    CC: clang-19
-    CXX: clang++-19
+    CC: clang-21
+    CXX: clang++-21
     CXXFLAGS: -stdlib=libc++
 
 ubuntu24_clang_tidy_task:
@@ -413,8 +413,8 @@ ubuntu24_clang_tidy_task:
   << : *ONLY_IF_PR_MASTER_RELEASE
   << : *SKIP_IF_PR_NOT_FULL_CI
   env:
-    CC: clang-19
-    CXX: clang++-19
+    CC: clang-21
+    CXX: clang++-21
     ZEEK_CI_CONFIGURE_FLAGS: *CLANG_TIDY_CONFIG
 
 ubuntu22_task:
@@ -564,8 +564,8 @@ ubsan_sanitizer_task:
   << : *SKIP_IF_PR_NOT_FULL_CI
   test_fuzzers_script: ./ci/test-fuzzers.sh
   env:
-    CC: clang-19
-    CXX: clang++-19
+    CC: clang-21
+    CXX: clang++-21
     CXXFLAGS: -DZEEK_DICT_DEBUG
     ZEEK_CI_CONFIGURE_FLAGS: *UBSAN_SANITIZER_CONFIG
     ZEEK_TAILORED_UB_CHECKS: 1
@@ -580,8 +580,8 @@ ubsan_sanitizer_zam_task:
   << : *ONLY_IF_PR_NIGHTLY
   << : *SKIP_IF_PR_NOT_FULL_OR_ZAM
   env:
-    CC: clang-19
-    CXX: clang++-19
+    CC: clang-21
+    CXX: clang++-21
     ZEEK_CI_CONFIGURE_FLAGS: *UBSAN_SANITIZER_CONFIG
     ZEEK_TAILORED_UB_CHECKS: 1
     UBSAN_OPTIONS: print_stacktrace=1
@@ -601,8 +601,8 @@ tsan_sanitizer_task:
   << : *ONLY_IF_PR_NIGHTLY
   << : *SKIP_IF_PR_NOT_FULL_CI
   env:
-    CC: clang-19
-    CXX: clang++-19
+    CC: clang-21
+    CXX: clang++-21
     ZEEK_CI_CONFIGURE_FLAGS: *TSAN_SANITIZER_CONFIG
     ZEEK_CI_DISABLE_SCRIPT_PROFILING: 1
     # If this is defined directly in the environment, configure fails to find

@@ -1651,27 +1651,20 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
 
         switch ( key ) {
             case detail::mandatory: // list of keys
-            case detail::port: // port
             {
                 auto mandatory = make_intrusive<VectorVal>(id::index_vec);
 
-                if ( value_len % 2 != 0 ) {
-                    analyzer->Weird("invalid SvcParamValue size");
+                if ( value_len == 0 || value_len % 2 != 0 ) {
+                    analyzer->Weird("DNS_SVCB_invalid_mandatory_length");
                     break;
                 }
 
                 while ( item_len_parsed + 2 <= value_len ) {
-                    auto key_port = make_intrusive<CountVal>(ExtractShort(data, len));
+                    mandatory->Append(make_intrusive<CountVal>(ExtractShort(data, len)));
                     item_len_parsed += 2;
-
-                    if ( key == detail::mandatory )
-                        mandatory->Append(std::move(key_port));
-                    else
-                        svc_param->Assign(3, std::move(key_port));
                 }
 
-                if ( mandatory->Size() > 0 )
-                    svc_param->Assign(1, std::move(mandatory));
+                svc_param->Assign(1, std::move(mandatory));
                 break;
             }
 
@@ -1702,6 +1695,16 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
                     svc_param->Assign(2, std::move(alpn));
                 break;
             }
+
+            case detail::port: // port
+                if ( value_len != 2 ) {
+                    analyzer->Weird("DNS_SVCB_invalid_port_length");
+                    break;
+                }
+
+                svc_param->Assign(3, make_intrusive<CountVal>(ExtractShort(data, len)));
+                item_len_parsed += 2;
+                break;
 
             case detail::ipv4hint: // list of IPs
             case detail::ipv6hint: // list of IPs

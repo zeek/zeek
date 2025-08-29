@@ -1588,44 +1588,9 @@ bool DNS_Interpreter::ParseRR_CAA(detail::DNS_MsgInfo* msg, const u_char*& data,
     return rdlength == 0;
 }
 
-/**
- * https://datatracker.ietf.org/doc/html/rfc9460#name-rdata-wire-format
- */
-bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength,
-                                   const u_char* msg_start, const RR_Type& svcb_type) {
-    const u_char* data_start = data;
-    // the smallest SVCB/HTTPS rr is 3 bytes:
-    // the first 2 bytes are for the svc priority, and the third byte is root (0x0)
-    if ( len < 3 ) {
-        analyzer->Weird("DNS_SVCB_wrong_length");
-        return false;
-    }
-
-    const uint16_t svc_priority = ExtractShort(data, len);
-
-    u_char target_name[513];
-    int name_len = sizeof(target_name) - 1;
-    u_char* name_end = ExtractName(data, len, target_name, name_len, msg_start, false);
-    if ( ! name_end )
-        return false;
-
-    // target name can be root - in this case the alternative endpoint is
-    // qname itself. make sure that we print "." instead of an empty string
-    if ( name_end - target_name == 0 ) {
-        target_name[0] = '.';
-        target_name[1] = '\0';
-        name_end = target_name + 1;
-    }
-
-    // Parse the list of SvcParams, if any.
+VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int svc_params_len) {
     static auto dns_svcb_param_vec = id::find_type<VectorType>("dns_svcb_param_vec");
     auto svc_params = make_intrusive<VectorVal>(dns_svcb_param_vec);
-
-    std::ptrdiff_t parsed_bytes = data - data_start;
-    int svc_params_len = rdlength - parsed_bytes;
-
-    if ( svc_priority == 0 && svc_params_len > 0 )
-        analyzer->Weird("DNS_SVCB_aliasmode_with_params");
 
     while ( svc_params_len >= 2 + 2 ) {
         static auto dns_svcb_param = id::find_type<RecordType>("dns_svcb_param");
@@ -1763,9 +1728,52 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
         svc_params_len -= value_len;
     }
 
+    return svc_params;
+}
+
+/**
+ * https://datatracker.ietf.org/doc/html/rfc9460#name-rdata-wire-format
+ */
+bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength,
+                                   const u_char* msg_start, const RR_Type& svcb_type) {
+    const u_char* data_start = data;
+    // the smallest SVCB/HTTPS rr is 3 bytes:
+    // the first 2 bytes are for the svc priority, and the third byte is root (0x0)
+    if ( len < 3 ) {
+        analyzer->Weird("DNS_SVCB_wrong_length");
+        return false;
+    }
+
+    const uint16_t svc_priority = ExtractShort(data, len);
+
+    u_char target_name[513];
+    int name_len = sizeof(target_name) - 1;
+    u_char* name_end = ExtractName(data, len, target_name, name_len, msg_start, false);
+    if ( ! name_end )
+        return false;
+
+    // target name can be root - in this case the alternative endpoint is
+    // qname itself. make sure that we print "." instead of an empty string
+    if ( name_end - target_name == 0 ) {
+        target_name[0] = '.';
+        target_name[1] = '\0';
+        name_end = target_name + 1;
+    }
+
+    std::ptrdiff_t parsed_bytes = data - data_start;
+    int svc_params_len = rdlength - parsed_bytes;
+    VectorValPtr svc_params = nullptr;
+
+    if ( svc_params_len > 0 ) {
+        if ( svc_priority != 0 )
+            analyzer->Weird("DNS_SVCB_aliasmode_with_params");
+
+        svc_params = Parse_SvcParams(data, len, svc_params_len);
+    }
+
     SVCB_DATA svcb_data = {svc_priority,
                            make_intrusive<StringVal>(new String(target_name, name_end - target_name, true)),
-                           svc_params->Size() > 0 ? std::move(svc_params) : nullptr};
+                           std::move(svc_params)};
 
     analyzer->EnqueueConnEvent(svcb_type == detail::TYPE_SVCB ? dns_SVCB : dns_HTTPS, analyzer->ConnVal(),
                                msg->BuildHdrVal(), msg->BuildAnswerVal(), msg->BuildSVCB_Val(svcb_data));
@@ -2081,7 +2089,7 @@ RecordValPtr DNS_MsgInfo::BuildSVCB_Val(const SVCB_DATA& svcb) {
     r->Assign(0, svcb.svc_priority);
     r->Assign(1, svcb.target_name);
     if ( svcb.svc_params )
-        r->Assign(2, svcb.svc_params);
+        r->Assign(2, std::move(svcb.svc_params));
 
     return r;
 }

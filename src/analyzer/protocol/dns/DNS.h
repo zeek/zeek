@@ -370,6 +370,8 @@ protected:
 
     String* ExtractStream(const u_char*& data, int& len, int sig_len);
 
+    VectorValPtr Parse_SvcParams(const u_char*& data, int& len, int svc_params_len);
+
     bool ParseRR_Name(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength, const u_char* msg_start);
     bool ParseRR_SOA(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength, const u_char* msg_start);
     bool ParseRR_MX(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength, const u_char* msg_start);

@@ -8,8 +8,8 @@
 #include <sys/types.h>
 #include <cctype>
 
-#include "zeek/3rdparty/zeek_inet_ntop.h"
 #include "zeek/Event.h"
+#include "zeek/IPAddr.h"
 #include "zeek/NetVar.h"
 #include "zeek/RunState.h"
 #include "zeek/Val.h"

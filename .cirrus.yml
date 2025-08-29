@@ -372,7 +372,12 @@ ubuntu24_04_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
   << : *ONLY_IF_PR_MASTER_RELEASE
-  << : *SKIP_IF_PR_NOT_FULL_CI
+  << : *SKIP_IF_PR_SKIP_ALL
+  env:
+    ZEEK_CI_CREATE_ARTIFACT: 1
+  upload_binary_artifacts:
+    path: build.tgz
+  benchmark_script: ./ci/benchmark.sh
 
 # Same as above, but running the ZAM tests instead of the regular tests.
 ubuntu24_04_zam_task:
@@ -459,12 +464,7 @@ ubuntu22_04_task:
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
   << : *ONLY_IF_PR_MASTER_RELEASE
-  << : *SKIP_IF_PR_NOT_FULL_OR_BENCHMARK
-  env:
-    ZEEK_CI_CREATE_ARTIFACT: 1
-  upload_binary_artifacts:
-    path: build.tgz
-  benchmark_script: ./ci/benchmark.sh
+  << : *SKIP_IF_PR_NOT_FULL_CI
 
 alpine_task:
   container:

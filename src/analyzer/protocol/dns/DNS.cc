@@ -1607,7 +1607,7 @@ VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int
             break;
         }
 
-        svc_param->Assign(0, make_intrusive<CountVal>(key));
+        svc_param->Assign(0, zeek::val_mgr->Count(key));
         int item_len_parsed = 0;
 
         switch ( key ) {
@@ -1621,7 +1621,7 @@ VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int
                 }
 
                 while ( item_len_parsed + 2 <= value_len ) {
-                    mandatory->Append(make_intrusive<CountVal>(ExtractShort(data, len)));
+                    mandatory->Append(zeek::val_mgr->Count(ExtractShort(data, len)));
                     item_len_parsed += 2;
                 }
 
@@ -1663,7 +1663,7 @@ VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int
                     break;
                 }
 
-                svc_param->Assign(3, make_intrusive<CountVal>(ExtractShort(data, len)));
+                svc_param->Assign(3, zeek::val_mgr->Count(ExtractShort(data, len)));
                 item_len_parsed += 2;
                 break;
 

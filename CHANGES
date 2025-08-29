@@ -1,3 +1,16 @@
+8.1.0-dev.480 | 2025-08-29 15:08:29 -0700
+
+  * Move benchmarking to Ubnutu 24 task, add to normal PR builds (Tim Wojtulewicz, Corelight)
+
+    We already have a "regular Linux" build for PRs, but I'm adding this one
+    in so that we have benchmark coverage on PRs as well.
+
+  * Reorder ubuntu builds so 22.04 comes last (Tim Wojtulewicz, Corelight)
+
+  * Rename Ubuntu-based tasks to have the full version name (Tim Wojtulewicz, Corelight)
+
+  * Switch Zeek Spicy builds to Ubuntu 24 (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.475 | 2025-08-28 15:19:59 -0700
 
   * gen-zam: Move source files up a directory (Tim Wojtulewicz, Corelight)

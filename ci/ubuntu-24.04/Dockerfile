@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND="noninteractive" TZ="America/Los_Angeles"
 
 # A version field to invalidate Cirrus's build cache when needed, as suggested in
 # https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION 20250522
+ENV DOCKERFILE_VERSION=20250522
 
 RUN apt-get update && apt-get -y install \
     bc \
@@ -32,7 +32,9 @@ RUN apt-get update && apt-get -y install \
     make \
     python3 \
     python3-dev \
+    python3-git \
     python3-pip \
+    python3-semantic-version \
     redis-server \
     ruby \
     sqlite3 \

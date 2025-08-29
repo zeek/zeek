@@ -165,6 +165,7 @@ struct SvcParam {
     VectorValPtr alpn;
     uint16_t p;
     VectorValPtr hint;
+    StringValPtr ech;
 };
 
 struct DNS_RawMsgHdr {

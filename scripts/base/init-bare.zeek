@@ -3080,6 +3080,7 @@ type dns_svcb_param: record {
 	alpn: vector of string &optional;	##< "alpn" IDs
 	p: count &optional;			##< "port" number, TCP or UDP
 	hint: vector of addr &optional;		##< "ipv4hint" or "ipv6hint" IP addresses
+	ech: string &optional;			##< "ech" base64 encoded ECHConfigList blob
 };
 
 type dns_svcb_param_vec: vector of dns_svcb_param;

@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <cctype>
 
+#include "zeek/Base64.h"
 #include "zeek/Event.h"
 #include "zeek/IPAddr.h"
 #include "zeek/NetVar.h"
@@ -1694,10 +1695,21 @@ VectorValPtr DNS_Interpreter::Parse_SvcParams(const u_char*& data, int& len, int
                 break;
             }
 
+            case detail::ech:  // ECHConfigList
+            {
+                const String* ech = ExtractStream(data, len, value_len);
+                item_len_parsed += value_len;
+
+                // Convert binary blob to presentation format.
+                String* b64 = zeek::detail::encode_base64(std::move(ech), nullptr, analyzer->Conn());
+
+                svc_param->Assign(5, zeek::make_intrusive<zeek::StringVal>(std::move(b64)));
+                break;
+            }
+
             case detail::no_default_alpn:
                 if ( value_len > 0 )
                     analyzer->Weird("DNS_SVCB_nodefaultalpn_value");
-            case detail::ech: // N/A
             default:
                 analyzer->Weird("DNS_SVCB_key_reserved_or_invalid", util::fmt("%d", key));
             malformed:

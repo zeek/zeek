@@ -1777,7 +1777,7 @@ bool DNS_Interpreter::ParseRR_SVCB(detail::DNS_MsgInfo* msg, const u_char*& data
     VectorValPtr svc_params = nullptr;
 
     if ( svc_params_len > 0 ) {
-        if ( svc_priority != 0 )
+        if ( svc_priority == 0 )
             analyzer->Weird("DNS_SVCB_aliasmode_with_params");
 
         svc_params = Parse_SvcParams(data, len, svc_params_len);

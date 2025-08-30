@@ -82,7 +82,7 @@ void register_lambda__CPP(CPPStmtPtr body, p_hash_type hash, const char* name, T
 }
 
 void register_scripts__CPP(p_hash_type h, void (*callback)()) {
-    ASSERT(standalone_callbacks.count(h) == 0);
+    ASSERT(! standalone_callbacks.contains(h));
     standalone_callbacks[h] = callback;
 }
 

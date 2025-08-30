@@ -1532,7 +1532,7 @@ static void find_nested_record_types(const TypePtr& t, std::set<RecordType*>* fo
         case TYPE_RECORD: {
             auto rt = t->AsRecordType();
 
-            if ( analyzed_records->count(rt) > 0 )
+            if ( analyzed_records->contains(rt) )
                 return;
 
             analyzed_records->insert(rt);
@@ -2882,7 +2882,7 @@ void TableVal::RebuildParseTimeTables() {
 
     for ( auto& [tv, ptts] : parse_time_table_states ) {
         auto* tt = tv->table_type.get();
-        if ( table_types.count(tt) == 0 ) {
+        if ( ! table_types.contains(tt) ) {
             tt->RegenerateHash();
             table_types.insert(tt);
         }
@@ -4041,7 +4041,7 @@ unsigned int Val::Footprint(std::unordered_set<const Val*>* analyzed_vals) const
     // We only need to check containers for possible recursion, as there's
     // no way to construct a cycle using only non-aggregates.
     if ( is_aggr ) {
-        if ( analyzed_vals->count(this) > 0 )
+        if ( analyzed_vals->contains(this) )
             // Footprint is 1 for generating a cycle.
             return 1;
 

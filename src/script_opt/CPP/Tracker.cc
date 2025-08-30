@@ -15,7 +15,7 @@ void CPPTracker<T>::AddKey(IntrusivePtr<T> key, p_hash_type h) {
     if ( HasKey(key) )
         return;
 
-    if ( map2.count(h) == 0 ) {
+    if ( ! map2.contains(h) ) {
         auto index = keys.size();
         keys.push_back(key);
 

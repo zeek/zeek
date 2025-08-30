@@ -334,7 +334,7 @@ bool RuleMatcher::ReadFiles(const std::vector<SignatureFile>& files) {
 }
 
 void RuleMatcher::AddRule(Rule* rule) {
-    if ( rules_by_id.find(rule->ID()) != rules_by_id.end() ) {
+    if ( rules_by_id.contains(rule->ID()) ) {
         rules_error("rule defined twice");
         return;
     }
@@ -602,7 +602,7 @@ bool RuleMatcher::AllRulePatternsMatched(const Rule* r, MatchPos matchpos, const
 
     // Check whether all patterns of the rule have matched.
     for ( const auto& pattern : r->patterns ) {
-        if ( ams.find(pattern->id) == ams.end() )
+        if ( ! ams.contains(pattern->id) )
             return false;
 
         // See if depth is satisfied.

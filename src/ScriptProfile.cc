@@ -122,10 +122,10 @@ ScriptProfileMgr::~ScriptProfileMgr() {
             BiF_stats.AddIn(p);
         }
         else {
-            ASSERT(body_to_func.count(o) > 0);
+            ASSERT(body_to_func.contains(o));
             auto func = body_to_func[o];
 
-            if ( func_stats.count(func) == 0 )
+            if ( ! func_stats.contains(func) )
                 func_stats[func] = ScriptProfileStats(func->GetName());
 
             func_stats[func].AddIn(p);

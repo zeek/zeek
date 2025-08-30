@@ -102,7 +102,7 @@ void validate_ZAM_insts() {
 
     for ( int i = 0; i < int(OP_NOP); ++i ) {
         auto zop = ZOp(i);
-        if ( zam_inst_desc.find(zop) == zam_inst_desc.end() && assignment_flavor.find(zop) == assignment_flavor.end() )
+        if ( ! zam_inst_desc.contains(zop) && ! assignment_flavor.contains(zop) )
             reporter->InternalError("op %s missing from description", ZOP_name(zop));
     }
 

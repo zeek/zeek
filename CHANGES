@@ -1,3 +1,11 @@
+8.1.0-dev.484 | 2025-08-29 21:53:19 -0700
+
+  * Bump zeek-testing-cluster to pull in WebSocket TLS updates (Christian Kreibich, Corelight)
+
+  * Bump zeek-client to pull in TLS config updates (Christian Kreibich, Corelight)
+
+  * Management framework: add TLS options for controller's websocket server (Arne Welzel, Corelight)
+
 8.1.0-dev.480 | 2025-08-29 15:08:29 -0700
 
   * Move benchmarking to Ubnutu 24 task, add to normal PR builds (Tim Wojtulewicz, Corelight)

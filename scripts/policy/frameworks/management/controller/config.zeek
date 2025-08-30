@@ -61,6 +61,14 @@ export {
 	## for websocket clients.
 	const default_port_websocket = 2149/tcp &redef;
 
+	## TLS options for the controller's WebSocket server. The default is
+	## to operate unencrypted. To replicate Broker's default encryption
+	## without endpoint validation, set the
+	## :zeek:field:`Cluster::WebSocketTLSOptions$ca_file` field to
+	## "NONE" and :zeek:field:`Cluster::WebSocketTLSOptions$ciphers` to
+	## "AECDH-AES256-SHA@SECLEVEL=0:AECDH-AES256-SHA:P-384".
+	const tls_options_websocket = Cluster::WebSocketTLSOptions() &redef;
+
 	## Whether the controller should auto-assign Broker listening ports to
 	## cluster nodes that need them and don't have them explicitly specified
 	## in cluster configurations.

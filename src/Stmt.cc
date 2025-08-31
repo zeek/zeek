@@ -1018,7 +1018,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr) : ExprStmt(STMT_FOR,
             //
             return;
         }
-        else if ( static_cast<int>(indices.size()) != loop_vars->size() ) {
+        else if ( indices.size() != loop_vars->size() ) {
             e->Error("wrong index size");
             return;
         }

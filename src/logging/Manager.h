@@ -48,12 +48,12 @@ struct WriteContext {
     WriteIdx idx = 0; // Ever increasing counter.
 
     bool operator<(const WriteContext& o) const {
-        assert(id == o.id);
+        assert(id->Get() == o.id->Get());
         return idx < o.idx;
     }
 
     bool operator==(const WriteContext& o) const {
-        assert(id == o.id);
+        assert(id->Get() == o.id->Get());
         return idx == o.idx;
     }
 };

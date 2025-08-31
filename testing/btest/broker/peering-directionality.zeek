@@ -1,6 +1,10 @@
 # This tests whether the script-layer can correctly query if a given Broker
 # peering originated from the local node or from another node that peered with it.
 #
+# Can't use this test for -O gen-C++ because of multiple simultaneous
+# Zeek runs.
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
+#
 # @TEST-GROUP: broker
 # @TEST-PORT: BROKER_PORT
 #

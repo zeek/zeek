@@ -226,10 +226,10 @@ void CPPCompile::BuildLambda(const FuncTypePtr& ft, const ProfileFunc* pf, const
     // Frame object.
     Emit("void SetLambdaCaptures(Frame* f) override");
     StartBlock();
-    for ( int i = 0; i < nl; ++i ) {
+    for ( size_t i = 0; i < nl; ++i ) {
         auto l_i = (*lambda_ids)[i];
         const auto& t_i = l_i->GetType();
-        auto cap_i = string("f->GetElement(") + Fmt(i) + ")";
+        auto cap_i = string("f->GetElement(") + Fmt(static_cast<int>(i)) + ")";
         Emit("%s = %s;", lambda_names[l_i], GenericValPtrToGT(cap_i, t_i, GEN_NATIVE));
     }
     EndBlock();
@@ -238,7 +238,7 @@ void CPPCompile::BuildLambda(const FuncTypePtr& ft, const ProfileFunc* pf, const
     Emit("std::vector<ValPtr> SerializeLambdaCaptures() const override");
     StartBlock();
     Emit("std::vector<ValPtr> vals;");
-    for ( int i = 0; i < nl; ++i ) {
+    for ( size_t i = 0; i < nl; ++i ) {
         auto l_i = (*lambda_ids)[i];
         const auto& t_i = l_i->GetType();
         Emit("vals.emplace_back(%s);", NativeToGT(lambda_names[l_i], t_i, GEN_VAL_PTR));

@@ -331,7 +331,7 @@ static void refine_location(zeek::detail::ID* id) {
 	bool b;
 	char* str;
 	zeek::detail::ID* id;
-	zeek::IDPList* id_l;
+	zeek::detail::IDPList* id_l;
 	zeek::detail::InitClass ic;
 	zeek::Val* val;
 	zeek::RE_Matcher* re;
@@ -1996,12 +1996,12 @@ case:
 
 case_type_list:
 		case_type_list ',' case_type
-			{ $1->push_back($3); }
+			{ $1->push_back({AdoptRef{}, $3}); }
 	|
 		case_type
 			{
 			$$ = new IDPList;
-			$$->push_back($1);
+			$$->push_back({AdoptRef{}, $1});
 			}
 	;
 
@@ -2045,7 +2045,7 @@ for_head:
 			}
 
 			auto* loop_vars = new IDPList;
-			loop_vars->push_back(loop_var.release());
+			loop_vars->push_back(loop_var);
 
 			$$ = new ForStmt(loop_vars, {AdoptRef{}, $5});
 			}
@@ -2077,7 +2077,7 @@ for_head:
 				val_var = install_ID($5, module, false, false);
 
 			auto* loop_vars = new IDPList;
-			loop_vars->push_back(key_var.release());
+			loop_vars->push_back(key_var);
 
 			$$ = new ForStmt(loop_vars, {AdoptRef{}, $7}, std::move(val_var));
 			}
@@ -2101,11 +2101,11 @@ for_head:
 
 local_id_list:
 		local_id_list ',' local_id
-			{ $1->push_back($3); }
+			{ $1->push_back({AdoptRef{}, $3}); }
 	|	local_id
 			{
 			$$ = new IDPList;
-			$$->push_back($1);
+			$$->push_back({AdoptRef{}, $1});
 			}
 	;
 

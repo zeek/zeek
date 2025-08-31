@@ -536,14 +536,7 @@ Case::Case(ListExprPtr arg_expr_cases, IDPList* arg_type_cases, StmtPtr arg_s)
             }
 }
 
-Case::~Case() {
-    if ( type_cases ) {
-        for ( const auto& id : *type_cases )
-            Unref(id);
-
-        delete type_cases;
-    }
-}
+Case::~Case() { delete type_cases; }
 
 void Case::Describe(ODesc* d) const {
     if ( ! (expr_cases || type_cases) ) {
@@ -580,9 +573,10 @@ void Case::Describe(ODesc* d) const {
     if ( type_cases ) {
         const IDPList& t = *type_cases;
 
-        d->AddCount(t.length());
+        auto n = t.size();
+        d->AddCount(n);
 
-        loop_over_list(t, i) {
+        for ( auto i = 0U; i < n; ++i ) {
             if ( i > 0 && d->IsReadable() )
                 d->Add(",");
 
@@ -763,21 +757,21 @@ bool SwitchStmt::AddCaseLabelValueMapping(const Val* v, int idx) {
     return true;
 }
 
-bool SwitchStmt::AddCaseLabelTypeMapping(ID* t, int idx) {
+bool SwitchStmt::AddCaseLabelTypeMapping(IDPtr t, int idx) {
     for ( const auto& i : case_label_type_list ) {
         if ( same_type(i.first->GetType(), t->GetType()) )
             return false;
     }
 
-    auto e = std::make_pair(t, idx);
+    auto e = std::make_pair(std::move(t), idx);
     case_label_type_list.push_back(e);
 
     return true;
 }
 
-std::pair<int, ID*> SwitchStmt::FindCaseLabelMatch(const Val* v) const {
+std::pair<int, IDPtr> SwitchStmt::FindCaseLabelMatch(const Val* v) const {
     int label_idx = -1;
-    ID* label_id = nullptr;
+    IDPtr label_id;
 
     // Find matching expression cases.
     if ( case_label_hash_map.Length() ) {
@@ -817,7 +811,7 @@ ValPtr SwitchStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) {
 
     auto m = FindCaseLabelMatch(v);
     int matching_label_idx = m.first;
-    ID* matching_id = m.second;
+    auto matching_id = m.second;
 
     if ( matching_label_idx == -1 )
         return nullptr;
@@ -1015,7 +1009,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr) : ExprStmt(STMT_FOR,
     if ( e->GetType()->Tag() == TYPE_TABLE ) {
         const auto& indices = e->GetType()->AsTableType()->GetIndexTypes();
 
-        if ( loop_vars->length() == 1 && (*loop_vars)[0]->IsBlank() ) {
+        if ( loop_vars->size() == 1 && (*loop_vars)[0]->IsBlank() ) {
             // Special case support for looping with a single loop_var
             // ignoring the full index of a table.
             //
@@ -1024,12 +1018,12 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr) : ExprStmt(STMT_FOR,
             //
             return;
         }
-        else if ( static_cast<int>(indices.size()) != loop_vars->length() ) {
+        else if ( static_cast<int>(indices.size()) != loop_vars->size() ) {
             e->Error("wrong index size");
             return;
         }
 
-        for ( auto i = 0u; i < indices.size(); i++ ) {
+        for ( size_t i = 0; i < indices.size(); i++ ) {
             const auto& ind_type = indices[i];
             const auto& lv = (*loop_vars)[i];
             const auto& lvt = lv->GetType();
@@ -1042,14 +1036,13 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr) : ExprStmt(STMT_FOR,
                     e->Error("type clash in iteration", lvt.get());
             }
 
-            else {
-                add_local({NewRef{}, lv}, ind_type, INIT_SKIP, nullptr, nullptr, VAR_REGULAR);
-            }
+            else
+                add_local(lv, ind_type, INIT_SKIP, nullptr, nullptr, VAR_REGULAR);
         }
     }
 
     else if ( e->GetType()->Tag() == TYPE_VECTOR ) {
-        if ( loop_vars->length() != 1 ) {
+        if ( loop_vars->size() != 1 ) {
             e->Error("iterating over a vector requires only a single index type");
             return;
         }
@@ -1061,7 +1054,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr) : ExprStmt(STMT_FOR,
             // nop
         }
         else if ( ! t )
-            add_local({NewRef{}, lv}, base_type(TYPE_COUNT), INIT_SKIP, nullptr, nullptr, VAR_REGULAR);
+            add_local(lv, base_type(TYPE_COUNT), INIT_SKIP, nullptr, nullptr, VAR_REGULAR);
 
         else if ( ! IsIntegral(t->Tag()) ) {
             e->Error("vector index in \"for\" loop must be integral");
@@ -1070,7 +1063,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr) : ExprStmt(STMT_FOR,
     }
 
     else if ( e->GetType()->Tag() == TYPE_STRING ) {
-        if ( loop_vars->length() != 1 ) {
+        if ( loop_vars->size() != 1 ) {
             e->Error("iterating over a string requires only a single index type");
             return;
         }
@@ -1082,7 +1075,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr) : ExprStmt(STMT_FOR,
             // nop
         }
         else if ( ! t )
-            add_local({NewRef{}, (*loop_vars)[0]}, base_type(TYPE_STRING), INIT_SKIP, nullptr, nullptr, VAR_REGULAR);
+            add_local((*loop_vars)[0], base_type(TYPE_STRING), INIT_SKIP, nullptr, nullptr, VAR_REGULAR);
 
         else if ( t->Tag() != TYPE_STRING ) {
             e->Error("string index in \"for\" loop must be string");
@@ -1123,11 +1116,7 @@ ForStmt::ForStmt(IDPList* arg_loop_vars, ExprPtr loop_expr, IDPtr val_var)
         add_local(value_var, yield_type, INIT_SKIP, nullptr, nullptr, VAR_REGULAR);
 }
 
-ForStmt::~ForStmt() {
-    for ( const auto& var : *loop_vars )
-        Unref(var);
-    delete loop_vars;
-}
+ForStmt::~ForStmt() { delete loop_vars; }
 
 ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) {
     ValPtr ret;
@@ -1142,7 +1131,7 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) {
         // If there are only blank loop_vars (iterating over just the values),
         // we can avoid the RecreateIndex() overhead.
         bool all_loop_vars_blank = true;
-        for ( const auto* lv : *loop_vars )
+        for ( const auto& lv : *loop_vars )
             all_loop_vars_blank &= lv->IsBlank();
 
         for ( const auto& lve : *loop_vals ) {
@@ -1155,7 +1144,7 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) {
             if ( ! all_loop_vars_blank ) {
                 auto ind_lv = tv->RecreateIndex(*k);
                 for ( int i = 0; i < ind_lv->Length(); i++ ) {
-                    const auto* lv = (*loop_vars)[i];
+                    const auto& lv = (*loop_vars)[i];
                     if ( ! lv->IsBlank() )
                         f->SetElement(lv, ind_lv->Idx(i));
                 }
@@ -1173,7 +1162,7 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) {
         VectorVal* vv = v->AsVectorVal();
         const auto& raw_vv = vv->RawVec();
 
-        for ( auto i = 0u; i < vv->Size(); ++i ) {
+        for ( size_t i = 0; i < vv->Size(); ++i ) {
             if ( ! raw_vv[i] )
                 continue;
 
@@ -1182,7 +1171,7 @@ ValPtr ForStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) {
             if ( value_var )
                 f->SetElement(value_var, vv->ValAt(i));
 
-            const auto* lv = (*loop_vars)[0];
+            const auto& lv = (*loop_vars)[0];
             if ( ! lv->IsBlank() )
                 f->SetElement(lv, val_mgr->Count(i));
 
@@ -1227,16 +1216,16 @@ void ForStmt::StmtDescribe(ODesc* d) const {
     if ( d->IsReadable() )
         d->Add("(");
 
-    if ( loop_vars->length() )
+    if ( ! loop_vars->empty() )
         d->Add("[");
 
-    loop_over_list(*loop_vars, i) {
+    for ( size_t i = 0; i < loop_vars->size(); ++i ) {
         (*loop_vars)[i]->Describe(d);
         if ( i > 0 )
             d->Add(",");
     }
 
-    if ( loop_vars->length() )
+    if ( ! loop_vars->empty() )
         d->Add("]");
 
     if ( value_var ) {
@@ -1775,22 +1764,16 @@ void WhenInfo::BuildProfile() {
                 break;
             }
 
-        if ( ! is_present ) {
-            IDPtr wl_ptr = {NewRef{}, const_cast<ID*>(wl)};
-            cl->emplace_back(std::move(wl_ptr), false);
-        }
+        if ( ! is_present )
+            cl->emplace_back(wl, false);
 
         // In addition, don't treat them as external locals that
         // existed at the onset.
         when_expr_locals_set.erase(wl);
     }
 
-    for ( auto& w : when_expr_locals_set ) {
-        // We need IDPtr versions of the locals so we can manipulate
-        // them during script optimization.
-        auto non_const_w = const_cast<ID*>(w);
-        when_expr_locals.emplace_back(NewRef{}, non_const_w);
-    }
+    for ( auto& w : when_expr_locals_set )
+        when_expr_locals.emplace_back(w);
 }
 
 void WhenInfo::Build(StmtPtr ws) {

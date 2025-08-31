@@ -28,8 +28,7 @@ private:
 
     // Given an identifier, return its corresponding script function,
     // or nil if that's not applicable.
-    const Func* GetFuncIfAny(const ID* id) const;
-    const Func* GetFuncIfAny(const IDPtr& id) const { return GetFuncIfAny(id.get()); }
+    const Func* GetFuncIfAny(const IDPtr& id) const;
 
     // Iteratively follows reachability across the set of reachable
     // identifiers (starting with the seeds) until there's no more to reap.
@@ -41,7 +40,7 @@ private:
 
     // For a given identifier, populates new_reachables with new
     // identifiers directly reachable from it.
-    void Expand(const ID* f);
+    void Expand(const IDPtr& f);
 
     // Hooks into AST traversal to find reachable functions/hooks/events.
     TraversalCode PreID(const ID* id) override;

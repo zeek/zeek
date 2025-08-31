@@ -16,7 +16,7 @@ using AttributesPtr = IntrusivePtr<Attributes>;
 
 // Maps ZAM frame slots to associated identifiers. These are the simplest
 // types of frames, where each identifier has its own slot.
-using FrameMap = std::vector<const ID*>;
+using FrameMap = std::vector<IDPtr>;
 
 // Maps ZAM frame slots to information for sharing the slot across
 // multiple script variables.
@@ -25,7 +25,7 @@ public:
     // The variables sharing the slot.  ID's need to be non-const so we
     // can manipulate them, for example by changing their interpreter
     // frame offset.
-    std::vector<const ID*> ids;
+    std::vector<IDPtr> ids;
 
     // A parallel vector, only used for fully compiled code, which
     // gives the names of the identifiers.  When in use, the above

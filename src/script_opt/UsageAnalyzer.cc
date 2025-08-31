@@ -40,7 +40,7 @@ UsageAnalyzer::UsageAnalyzer(std::vector<FuncInfo>& funcs) {
     auto& globals = global_scope()->Vars();
 
     for ( auto& gpair : globals ) {
-        auto id = gpair.second.get();
+        auto& id = gpair.second;
         auto& t = id->GetType();
 
         if ( t->Tag() != TYPE_FUNC )
@@ -69,7 +69,7 @@ UsageAnalyzer::UsageAnalyzer(std::vector<FuncInfo>& funcs) {
     for ( auto& gpair : globals ) {
         auto& id = gpair.second;
 
-        if ( reachables.contains(id.get()) )
+        if ( reachables.count(id) > 0 )
             continue;
 
         auto f = GetFuncIfAny(id);
@@ -116,8 +116,10 @@ public:
         return TC_CONTINUE;
     }
 
-    TraversalCode PreID(const ID* id) override {
-        if ( ids.contains(id) )
+    TraversalCode PreID(const ID* raw_id) override {
+        IDPtr id{NewRef{}, const_cast<ID*>(raw_id)};
+
+        if ( ids.count(id) > 0 )
             return TC_ABORTSTMT;
 
         if ( attr_depth > 0 )
@@ -132,7 +134,7 @@ public:
     }
 
     int attr_depth = 0;                   // Are we in an attribute?
-    std::set<const detail::ID*> ids;      // List of IDs found in attributes.
+    std::unordered_set<IDPtr> ids;        // List of IDs found in attributes.
     std::set<const Type*> analyzed_types; // Endless recursion avoidance.
 };
 
@@ -142,15 +144,15 @@ void UsageAnalyzer::FindSeeds(IDSet& seeds) const {
         auto& id = gpair.second;
 
         if ( id->GetAttr(ATTR_IS_USED) || id->GetAttr(ATTR_DEPRECATED) ) {
-            seeds.insert(id.get());
+            seeds.insert(id);
             continue;
         }
 
         auto f = GetFuncIfAny(id);
 
         if ( f && id->GetType<FuncType>()->Flavor() == FUNC_FLAVOR_EVENT ) {
-            if ( ! script_events.contains(f->GetName()) )
-                seeds.insert(id.get());
+            if ( script_events.count(f->GetName()) == 0 )
+                seeds.insert(id);
 
             continue;
         }
@@ -159,7 +161,7 @@ void UsageAnalyzer::FindSeeds(IDSet& seeds) const {
         // it's meant to be used, even if the current scripts don't
         // use it.
         if ( id->IsExport() || id->ModuleName() == "GLOBAL" )
-            seeds.insert(id.get());
+            seeds.insert(id);
         else
             // ...otherwise, find all IDs referenced from attribute expressions
             // found through this identifier.
@@ -169,7 +171,7 @@ void UsageAnalyzer::FindSeeds(IDSet& seeds) const {
     seeds.insert(attr_ids_collector.ids.begin(), attr_ids_collector.ids.end());
 }
 
-const Func* UsageAnalyzer::GetFuncIfAny(const ID* id) const {
+const Func* UsageAnalyzer::GetFuncIfAny(const IDPtr& id) const {
     auto& t = id->GetType();
     if ( t->Tag() != TYPE_FUNC )
         return nullptr;
@@ -205,7 +207,7 @@ bool UsageAnalyzer::ExpandReachables(const IDSet& curr_r) {
     return ! new_reachables.empty();
 }
 
-void UsageAnalyzer::Expand(const ID* id) {
+void UsageAnalyzer::Expand(const IDPtr& id) {
     // A subtle problem arises for exported globals that refer to functions
     // that themselves generate events.  Because for identifiers we don't
     // traverse their values (since there's no Traverse infrastructure for
@@ -224,8 +226,10 @@ void UsageAnalyzer::Expand(const ID* id) {
     id->Traverse(this);
 }
 
-TraversalCode UsageAnalyzer::PreID(const ID* id) {
-    if ( analyzed_IDs.contains(id) )
+TraversalCode UsageAnalyzer::PreID(const ID* raw_id) {
+    IDPtr id{NewRef{}, const_cast<ID*>(raw_id)};
+
+    if ( analyzed_IDs.count(id) > 0 )
         // No need to repeat the analysis.
         return TC_ABORTSTMT;
 

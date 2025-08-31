@@ -47,13 +47,11 @@ void ZAMCompiler::Init() {
 }
 
 void ZAMCompiler::InitGlobals() {
-    for ( auto g : pf->Globals() ) {
-        auto non_const_g = const_cast<ID*>(g);
-
+    for ( auto& g : pf->Globals() ) {
         GlobalInfo info;
-        info.id = {NewRef{}, non_const_g};
-        info.slot = AddToFrame(non_const_g);
-        global_id_to_info[non_const_g] = globalsI.size();
+        info.id = g;
+        info.slot = AddToFrame(g);
+        global_id_to_info[g] = globalsI.size();
         globalsI.push_back(info);
     }
 }
@@ -70,9 +68,8 @@ void ZAMCompiler::InitArgs() {
         if ( --nparam < 0 )
             break;
 
-        auto arg_id = a.get();
-        if ( uds && uds->HasID(arg_id) )
-            LoadParam(arg_id);
+        if ( uds && uds->HasID(a) )
+            LoadParam(a);
         else {
             // printf("param %s unused\n", obj_desc(arg_id.get()));
         }
@@ -88,22 +85,20 @@ void ZAMCompiler::InitCaptures() {
 
 void ZAMCompiler::InitLocals() {
     // Assign slots for locals (which includes temporaries).
-    for ( auto l : pf->Locals() ) {
+    for ( auto& l : pf->Locals() ) {
         if ( IsCapture(l) )
             continue;
 
         if ( pf->WhenLocals().contains(l) )
             continue;
 
-        auto non_const_l = const_cast<ID*>(l);
-
         // Don't add locals that were already added because they're
         // parameters.
         //
         // Don't worry about unused variables, those will get
         // removed during low-level ZAM optimization.
-        if ( ! HasFrameSlot(non_const_l) )
-            (void)AddToFrame(non_const_l);
+        if ( ! HasFrameSlot(l) )
+            (void)AddToFrame(l);
     }
 }
 

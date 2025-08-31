@@ -17,21 +17,21 @@ bool ZAMCompiler::IsUnused(const IDPtr& id, const Stmt* where) const {
     // "usage" can be nil if due to constant propagation we've prune
     // all of the uses of the given identifier.
 
-    return ! usage || ! usage->HasID(id.get());
+    return ! usage || ! usage->HasID(id);
 }
 
-bool ZAMCompiler::IsCapture(const ID* id) const {
+bool ZAMCompiler::IsCapture(const IDPtr& id) const {
     const auto& c = pf->CapturesOffsets();
     return c.contains(id);
 }
 
-int ZAMCompiler::CaptureOffset(const ID* id) const {
+int ZAMCompiler::CaptureOffset(const IDPtr& id) const {
     auto id_offset = pf->CapturesOffsets().find(id);
     ASSERT(id_offset != pf->CapturesOffsets().end());
     return id_offset->second;
 }
 
-void ZAMCompiler::LoadParam(const ID* id) {
+void ZAMCompiler::LoadParam(const IDPtr& id) {
     if ( id->IsType() )
         reporter->InternalError("don't know how to compile local variable that's a type not a value");
 
@@ -50,7 +50,7 @@ void ZAMCompiler::LoadParam(const ID* id) {
     (void)AddInst(z);
 }
 
-const ZAMStmt ZAMCompiler::LoadGlobal(const ID* id) {
+const ZAMStmt ZAMCompiler::LoadGlobal(const IDPtr& id) {
     ZOp op;
 
     if ( id->IsType() )
@@ -68,12 +68,12 @@ const ZAMStmt ZAMCompiler::LoadGlobal(const ID* id) {
 
     // We use the id_val for reporting used-but-not-set errors.
     z.aux = new ZInstAux(0);
-    z.aux->id_val = {NewRef{}, const_cast<ID*>(id)};
+    z.aux->id_val = std::move(id);
 
     return AddInst(z, true);
 }
 
-const ZAMStmt ZAMCompiler::LoadCapture(const ID* id) {
+const ZAMStmt ZAMCompiler::LoadCapture(const IDPtr& id) {
     ZOp op;
 
     if ( ZVal::IsManagedType(id->GetType()) )
@@ -90,13 +90,13 @@ const ZAMStmt ZAMCompiler::LoadCapture(const ID* id) {
     return AddInst(z, true);
 }
 
-int ZAMCompiler::AddToFrame(const ID* id) {
+int ZAMCompiler::AddToFrame(const IDPtr& id) {
     frame_layout1[id] = frame_sizeI;
     frame_denizens.push_back(id);
     return frame_sizeI++;
 }
 
-int ZAMCompiler::FrameSlot(const ID* id) {
+int ZAMCompiler::FrameSlot(const IDPtr& id) {
     auto slot = RawSlot(id);
 
     if ( id->IsGlobal() )
@@ -108,7 +108,7 @@ int ZAMCompiler::FrameSlot(const ID* id) {
     return slot;
 }
 
-int ZAMCompiler::Frame1Slot(const ID* id, ZAMOp1Flavor fl) {
+int ZAMCompiler::Frame1Slot(const IDPtr& id, ZAMOp1Flavor fl) {
     if ( fl == OP1_READ )
         return FrameSlot(id);
 
@@ -134,7 +134,7 @@ int ZAMCompiler::Frame1Slot(const ID* id, ZAMOp1Flavor fl) {
     return slot;
 }
 
-int ZAMCompiler::RawSlot(const ID* id) {
+int ZAMCompiler::RawSlot(const IDPtr& id) {
     auto id_slot = frame_layout1.find(id);
 
     if ( id_slot == frame_layout1.end() )
@@ -143,7 +143,7 @@ int ZAMCompiler::RawSlot(const ID* id) {
     return id_slot->second;
 }
 
-bool ZAMCompiler::HasFrameSlot(const ID* id) const { return frame_layout1.contains(id); }
+bool ZAMCompiler::HasFrameSlot(const IDPtr& id) const { return frame_layout1.contains(id); }
 
 int ZAMCompiler::NewSlot(bool is_managed) {
     char buf[8192];
@@ -154,7 +154,7 @@ int ZAMCompiler::NewSlot(bool is_managed) {
 
     auto tag = is_managed ? TYPE_TABLE : TYPE_VOID;
 
-    auto internal_reg = new ID(buf, SCOPE_FUNCTION, false);
+    auto internal_reg = make_intrusive<ID>(buf, SCOPE_FUNCTION, false);
     internal_reg->SetType(base_type(tag));
 
     return AddToFrame(internal_reg);

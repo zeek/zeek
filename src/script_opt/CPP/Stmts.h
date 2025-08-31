@@ -16,7 +16,7 @@ void GenEventStmt(const EventStmt* ev);
 
 void GenSwitchStmt(const SwitchStmt* sw);
 void GenTypeSwitchStmt(const Expr* e, const case_list* cases);
-void GenTypeSwitchCase(const ID* id, int case_offset, bool is_multi);
+void GenTypeSwitchCase(const IDPtr id, int case_offset, bool is_multi);
 void GenValueSwitchStmt(const Expr* e, const case_list* cases);
 
 void GenWhenStmt(const WhenStmt* w);

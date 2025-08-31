@@ -74,7 +74,7 @@ bool UseDefs::RemoveUnused(int iter) {
             std::vector<IDPtr> used_ids;
 
             for ( const auto& id : inits )
-                if ( is_atomic_type(id->GetType()) || ! CheckIfUnused(s, id.get(), false) )
+                if ( is_atomic_type(id->GetType()) || ! CheckIfUnused(s, id, false) )
                     used_ids.emplace_back(id);
 
             if ( used_ids.empty() ) { // There aren't any ID's to keep.
@@ -118,7 +118,7 @@ bool UseDefs::RemoveUnused(int iter) {
         if ( n->Tag() != EXPR_NAME )
             reporter->InternalError("lhs name inconsistency in UseDefs::RemoveUnused");
 
-        auto id = n->AsNameExpr()->Id();
+        const auto& id = n->AsNameExpr()->IdPtr();
 
         auto rhs = a->GetOp2();
         auto rt = rhs->Tag();
@@ -146,7 +146,7 @@ bool UseDefs::RemoveUnused(int iter) {
     return did_omission;
 }
 
-bool UseDefs::CheckIfUnused(const Stmt* s, const ID* id, bool report) {
+bool UseDefs::CheckIfUnused(const Stmt* s, const IDPtr& id, bool report) {
     if ( id->IsGlobal() )
         return false;
 
@@ -247,7 +247,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
                 reporter->InternalError("lhs inconsistency in UseDefs::ExprUDs");
 
             auto lhs_var = lhs_ref->GetOp1();
-            auto lhs_id = lhs_var->AsNameExpr()->Id();
+            auto lhs_id = lhs_var->AsNameExpr()->IdPtr();
             auto lhs_UDs = RemoveID(lhs_id, succ_UDs);
             auto rhs_UDs = ExprUDs(a->GetOp2().get());
             auto uds = UD_Union(lhs_UDs, rhs_UDs);
@@ -361,7 +361,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 
             auto val_var = f->ValueVar();
             if ( val_var )
-                RemoveUDFrom(f_UDs, val_var.get());
+                RemoveUDFrom(f_UDs, val_var);
 
             // The loop might not execute at all.
             FoldInUDs(f_UDs, succ_UDs);
@@ -540,7 +540,7 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e) {
     switch ( e->Tag() ) {
         case EXPR_REF: AddInExprUDs(uds, e->GetOp1().get()); break;
 
-        case EXPR_NAME: AddID(uds, e->AsNameExpr()->Id()); break;
+        case EXPR_NAME: AddID(uds, e->AsNameExpr()->IdPtr()); break;
 
         case EXPR_LIST: {
             auto l = e->AsListExpr();
@@ -582,9 +582,9 @@ void UseDefs::AddInExprUDs(UDs uds, const Expr* e) {
     }
 }
 
-void UseDefs::AddID(UDs uds, const ID* id) const { uds->Add(id); }
+void UseDefs::AddID(UDs uds, IDPtr id) const { uds->Add(std::move(id)); }
 
-UDs UseDefs::RemoveID(const ID* id, const UDs& uds) {
+UDs UseDefs::RemoveID(const IDPtr& id, const UDs& uds) {
     if ( ! uds )
         return nullptr;
 
@@ -596,7 +596,7 @@ UDs UseDefs::RemoveID(const ID* id, const UDs& uds) {
     return new_uds;
 }
 
-void UseDefs::RemoveUDFrom(UDs uds, const ID* id) {
+void UseDefs::RemoveUDFrom(UDs uds, const IDPtr& id) {
     if ( uds )
         uds->Remove(id);
 }

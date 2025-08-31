@@ -163,7 +163,7 @@ const ZAMStmt ZAMCompiler::AddInst(const ZInstI& inst, bool suppress_non_local) 
         else
             op = OP_STORE_CAPTURE_Vi;
 
-        auto store_inst = ZInstI(op, RawSlot(c_id.get()), cs);
+        auto store_inst = ZInstI(op, RawSlot(c_id), cs);
         store_inst.op_type = OP_VV_I2;
 
         return AddInst(store_inst);

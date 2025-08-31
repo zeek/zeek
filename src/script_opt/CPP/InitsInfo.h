@@ -488,7 +488,7 @@ public:
 // then the global will be (re-)initialized to its value during compilation.
 class GlobalLookupInitInfo : public CPP_InitInfo {
 public:
-    GlobalLookupInitInfo(CPPCompile* c, const ID* g, std::string CPP_name, bool do_init = false);
+    GlobalLookupInitInfo(CPPCompile* c, IDPtr g, std::string CPP_name, bool do_init = false);
 
     std::string InitializerType() const override { return "CPP_GlobalLookupInit"; }
     void InitializerVals(std::vector<std::string>& ivs) const override;
@@ -502,7 +502,7 @@ protected:
 // Information for initializing a Zeek global.
 class GlobalInitInfo : public GlobalLookupInitInfo {
 public:
-    GlobalInitInfo(CPPCompile* c, const ID* g, std::string CPP_name);
+    GlobalInitInfo(CPPCompile* c, IDPtr g, std::string CPP_name);
 
     std::string InitializerType() const override { return "CPP_GlobalInit"; }
     void InitializerVals(std::vector<std::string>& ivs) const override;

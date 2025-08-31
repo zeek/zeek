@@ -112,7 +112,7 @@ TraversalCode GenIDDefs::PreStmt(const Stmt* s) {
 
             auto retvar = cr->RetVar();
             if ( retvar )
-                TrackID(retvar->Id());
+                TrackID(retvar->IdPtr());
 
             return TC_ABORTSTMT;
         }
@@ -278,7 +278,7 @@ TraversalCode GenIDDefs::PreExpr(const Expr* e) {
     e->GetOptInfo()->stmt_num = stmt_num;
 
     switch ( e->Tag() ) {
-        case EXPR_NAME: CheckVarUsage(e, e->AsNameExpr()->Id()); break;
+        case EXPR_NAME: CheckVarUsage(e, e->AsNameExpr()->IdPtr()); break;
 
         case EXPR_ASSIGN: {
             auto lhs = e->GetOp1();
@@ -358,7 +358,7 @@ bool GenIDDefs::CheckLHS(const ExprPtr& lhs, const ExprPtr& rhs) {
 
         case EXPR_NAME: {
             auto n = lhs->AsNameExpr();
-            TrackID(n->Id(), rhs);
+            TrackID(n->IdPtr(), rhs);
             return true;
         }
 
@@ -371,7 +371,7 @@ bool GenIDDefs::CheckLHS(const ExprPtr& lhs, const ExprPtr& rhs) {
                     return false;
 
                 auto n = expr->AsNameExpr();
-                TrackID(n->Id());
+                TrackID(n->IdPtr());
             }
 
             return true;
@@ -400,7 +400,7 @@ bool GenIDDefs::IsAggr(const Expr* e) const {
     return zeek::IsAggr(tag);
 }
 
-void GenIDDefs::CheckVarUsage(const Expr* e, const ID* id) {
+void GenIDDefs::CheckVarUsage(const Expr* e, const IDPtr& id) {
     if ( analysis_options.usage_issues != 1 || id->IsGlobal() || suppress_usage > 0 )
         return;
 
@@ -483,7 +483,7 @@ void GenIDDefs::ReturnAt(const Stmt* s) {
             id->GetOptInfo()->ReturnAt(s);
 }
 
-void GenIDDefs::TrackID(const ID* id, const ExprPtr& e) {
+void GenIDDefs::TrackID(const IDPtr& id, const ExprPtr& e) {
     auto oi = id->GetOptInfo();
 
     // The 4th argument here is hardwired to 0, meaning "assess across all

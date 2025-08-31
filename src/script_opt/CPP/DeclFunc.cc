@@ -154,7 +154,7 @@ void CPPCompile::DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf, c
     // An additional constructor just used to generate place-holder
     // instances, due to the misdesign that lambdas are identified
     // by their Func objects rather than their FuncVal objects.
-    if ( lambda_ids && lambda_ids->length() > 0 )
+    if ( lambda_ids && ! lambda_ids->empty() )
         Emit("%s_cl(const char* name) : CPPStmt(name, %s) { }", fname, loc_info);
 
     Emit("ValPtr Exec(Frame* f, StmtFlowType& flow) override");
@@ -216,7 +216,7 @@ void CPPCompile::BuildLambda(const FuncTypePtr& ft, const ProfileFunc* pf, const
 
     // Generate initialization to create and register the lambda.
     auto h = pf->HashVal();
-    auto nl = lambda_ids->length();
+    auto nl = lambda_ids->size();
     bool has_captures = nl > 0;
 
     auto gi = make_shared<LambdaRegistrationInfo>(this, l->Name(), ft, fname + "_cl", h, has_captures);
@@ -364,7 +364,7 @@ void CPPCompile::GatherParamNames(vector<string>& p_names, const FuncTypePtr& ft
             p_names.emplace_back(lambda_names[id]);
 }
 
-const ID* CPPCompile::FindParam(int i, const ProfileFunc* pf) {
+IDPtr CPPCompile::FindParam(int i, const ProfileFunc* pf) {
     const auto& params = pf->Params();
 
     for ( const auto& p : params )

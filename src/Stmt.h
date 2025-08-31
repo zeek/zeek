@@ -194,7 +194,7 @@ protected:
 
     int DefaultCaseIndex() const { return default_case_idx; }
     const auto& ValueMap() const { return case_label_value_map; }
-    const std::vector<std::pair<ID*, int>>* TypeMap() const { return &case_label_type_list; }
+    const std::vector<std::pair<IDPtr, int>>* TypeMap() const { return &case_label_type_list; }
     const CompositeHash* CompHash() const { return comp_hash; }
 
     ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) override;
@@ -212,20 +212,20 @@ protected:
     // Adds an entry in case_label_type_map for the given type (w/ ID) to
     // associate it with the given index in the cases list.  If an entry
     // for the type already exists, returns false; else returns true.
-    bool AddCaseLabelTypeMapping(ID* t, int idx);
+    bool AddCaseLabelTypeMapping(IDPtr t, int idx);
 
     // Returns index of a case label that matches the value, or
     // default_case_idx if no case label matches (which may be -1 if
     // there's no default label). The second tuple element is the ID of
     // the matching type-based case if it defines one.
-    std::pair<int, ID*> FindCaseLabelMatch(const Val* v) const;
+    std::pair<int, IDPtr> FindCaseLabelMatch(const Val* v) const;
 
     case_list* cases = nullptr;
     int default_case_idx = -1;
     CompositeHash* comp_hash = nullptr;
     std::unordered_map<const Val*, int> case_label_value_map;
     PDict<int> case_label_hash_map;
-    std::vector<std::pair<ID*, int>> case_label_type_list;
+    std::vector<std::pair<IDPtr, int>> case_label_type_list;
 };
 
 class EventStmt final : public ExprStmt {

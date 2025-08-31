@@ -98,7 +98,7 @@ public:
     const auto& CapturesOffsets() const { return captures_offsets; }
     const IDSet& WhenLocals() const { return when_locals; }
     const IDSet& Params() const { return params; }
-    const std::unordered_map<const ID*, int>& Assignees() const { return assignees; }
+    const std::unordered_map<IDPtr, int>& Assignees() const { return assignees; }
     const IDSet& NonLocalAssignees() const { return non_local_assignees; }
     const auto& TableRefs() const { return tbl_refs; }
     const auto& AggrMods() const { return aggr_mods; }
@@ -108,7 +108,7 @@ public:
     const std::vector<const LambdaExpr*>& Lambdas() const { return lambdas; }
     const std::vector<const ConstExpr*>& Constants() const { return constants; }
     const IDSet& UnorderedIdentifiers() const { return ids; }
-    const std::vector<const ID*>& OrderedIdentifiers() const { return ordered_ids; }
+    const std::vector<IDPtr>& OrderedIdentifiers() const { return ordered_ids; }
     const TypeSet& UnorderedTypes() const { return types; }
     const std::vector<const Type*>& OrderedTypes() const { return ordered_types; }
     const auto& TypeAliases() const { return type_aliases; }
@@ -153,10 +153,10 @@ protected:
     void TrackType(const TypePtr& t) { TrackType(t.get()); }
 
     // Take note of the presence of an identifier.
-    void TrackID(const ID* id);
+    void TrackID(IDPtr id);
 
     // Take note of an assignment to an identifier.
-    void TrackAssignment(const ID* id);
+    void TrackAssignment(IDPtr id);
 
     // Extracts attributes of a record type used in a constructor (or implicit
     // initialization, or coercion, which does an implicit construction).
@@ -198,7 +198,7 @@ protected:
     // they are assigned to (no entry if never).  Does not include
     // implicit assignments due to initializations, which are instead
     // captured in "inits".
-    std::unordered_map<const ID*, int> assignees;
+    std::unordered_map<IDPtr, int> assignees;
 
     // A subset of assignees reflecting those that are globals or captures.
     IDSet non_local_assignees;
@@ -230,7 +230,7 @@ protected:
     IDSet captures;
 
     // This maps capture identifiers to their offsets.
-    std::map<const ID*, int> captures_offsets;
+    std::unordered_map<IDPtr, int> captures_offsets;
 
     // Constants seen in the function.
     std::vector<const ConstExpr*> constants;
@@ -239,7 +239,7 @@ protected:
     IDSet ids;
 
     // The same, but in a deterministic order.
-    std::vector<const ID*> ordered_ids;
+    std::vector<IDPtr> ordered_ids;
 
     // Types seen in the function.  A set rather than a vector because
     // the same type can be seen numerous times.

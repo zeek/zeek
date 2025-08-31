@@ -371,10 +371,8 @@ IntrusivePtr<Case> Case::Duplicate() {
     if ( type_cases ) {
         new_type_cases = new IDPList();
 
-        for ( auto tc : *type_cases ) {
-            zeek::Ref(tc);
-            new_type_cases->append(tc);
-        }
+        for ( auto tc : *type_cases )
+            new_type_cases->emplace_back(std::move(tc));
     }
 
     return make_intrusive<Case>(nullptr, new_type_cases, s->Duplicate());
@@ -439,9 +437,9 @@ StmtPtr SwitchStmt::DoReduce(Reducer* rc) {
 
     // Update type cases.
     for ( auto& i : case_label_type_list ) {
-        IDPtr idp = {NewRef{}, i.first};
-        if ( idp->Name() )
-            i.first = rc->UpdateID(idp).release();
+        auto& id = i.first;
+        if ( id->Name() )
+            id = rc->UpdateID(id);
     }
 
     for ( const auto& c : *cases ) {
@@ -458,7 +456,7 @@ StmtPtr SwitchStmt::DoReduce(Reducer* rc) {
         if ( c_t ) {
             for ( auto& c_t_i : *c_t )
                 if ( c_t_i->Name() )
-                    c_t_i = rc->UpdateID({NewRef{}, c_t_i}).release();
+                    c_t_i = rc->UpdateID(c_t_i);
         }
 
         c->UpdateBody(c->Body()->Reduce(rc));
@@ -479,7 +477,7 @@ bool SwitchStmt::NoFlowAfter(bool ignore_break) const {
             return false;
 
         if ( (! c->ExprCases() || c->ExprCases()->Exprs().length() == 0) &&
-             (! c->TypeCases() || c->TypeCases()->length() == 0) )
+             (! c->TypeCases() || c->TypeCases()->empty()) )
             // We saw the default, and the test before this
             // one established that it has no flow after it.
             default_seen_with_no_flow_after = true;
@@ -570,12 +568,9 @@ bool WhileStmt::CouldReturn(bool ignore_break) const { return body->CouldReturn(
 StmtPtr ForStmt::Duplicate() {
     auto expr_copy = e->Duplicate();
 
-    auto new_loop_vars = new zeek::IDPList;
-    loop_over_list(*loop_vars, i) {
-        auto id = (*loop_vars)[i];
-        zeek::Ref(id);
-        new_loop_vars->append(id);
-    }
+    auto new_loop_vars = new IDPList;
+    for ( auto id : *loop_vars )
+        new_loop_vars->emplace_back(std::move(id));
 
     ForStmt* f;
     if ( value_var )
@@ -798,7 +793,7 @@ static unsigned int find_rec_assignment_chain(const std::vector<StmtPtr>& stmts,
     return i;
 }
 
-using OpChain = std::map<const ID*, std::vector<const Stmt*>>;
+using OpChain = std::unordered_map<IDPtr, std::vector<const Stmt*>>;
 
 static void update_assignment_chains(const StmtPtr& s, OpChain& assign_chains, OpChain& add_chains) {
     auto se = s->AsExprStmt()->StmtExpr();
@@ -854,7 +849,7 @@ static void update_assignment_chains(const StmtPtr& s, OpChain& assign_chains, O
         return;
 
     // If we get here, it's a keeper, record the associated statement.
-    auto id = f_rec->AsNameExpr()->Id();
+    auto id = f_rec->AsNameExpr()->IdPtr();
     (*c)[id].push_back(s.get());
 }
 
@@ -1000,7 +995,7 @@ bool StmtList::ReduceStmt(unsigned int& s_i, std::vector<StmtPtr>& f_stmts, Redu
             }
         }
 
-        if ( c->IsTemporary(var->Id()) && ! c->IsParamTemp(var->Id()) && c->IsCSE(a, var, rhs.get()) ) {
+        if ( c->IsTemporary(var->IdPtr()) && ! c->IsParamTemp(var->IdPtr()) && c->IsCSE(a, var, rhs.get()) ) {
             // printf("discarding %s as unnecessary\n", var->Id()->Name());
             // Skip this now unnecessary statement.
             return true;
@@ -1106,7 +1101,7 @@ bool WhenInfo::HasUnreducedIDs(Reducer* c) const {
     for ( auto& cp : *cl ) {
         const auto& cid = cp.Id();
 
-        if ( ! when_new_locals.contains(cid.get()) && ! c->ID_IsReduced(cp.Id()) )
+        if ( when_new_locals.count(cid) == 0 && ! c->ID_IsReduced(cp.Id()) )
             return true;
     }
 
@@ -1120,7 +1115,7 @@ bool WhenInfo::HasUnreducedIDs(Reducer* c) const {
 void WhenInfo::UpdateIDs(Reducer* c) {
     for ( auto& cp : *cl ) {
         auto& cid = cp.Id();
-        if ( ! when_new_locals.contains(cid.get()) )
+        if ( when_new_locals.count(cid) == 0 )
             cp.SetID(c->UpdateID(cid));
     }
 

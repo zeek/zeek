@@ -398,7 +398,7 @@ string ZInstI::VName(int n, const FrameMap* frame_ids, const FrameReMap* remappi
     if ( slot < 0 )
         return "<special>";
 
-    const ID* id;
+    IDPtr id;
 
     if ( remappings && live ) { // Find which identifier manifests at this instruction.
         ASSERT(slot >= 0 && static_cast<zeek_uint_t>(slot) < remappings->size());

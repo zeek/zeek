@@ -34,12 +34,10 @@ public:
     bool IDsAreReduced(const std::vector<IDPtr>& ids) const;
 
     IDPtr UpdateID(IDPtr id);
-    bool ID_IsReduced(const IDPtr& id) const { return ID_IsReduced(id.get()); }
-    bool ID_IsReduced(const ID* id) const;
+    bool ID_IsReduced(const IDPtr& id) const;
 
     // A version of ID_IsReduced() that tracks top-level variables, too.
-    bool ID_IsReducedOrTopLevel(const IDPtr& id) { return ID_IsReducedOrTopLevel(id.get()); }
-    bool ID_IsReducedOrTopLevel(const ID* id);
+    bool ID_IsReducedOrTopLevel(const IDPtr& id);
 
     // This is called *prior* to pushing a new inline block, in order
     // to generate the equivalent of function parameters.  "rhs" is
@@ -79,13 +77,13 @@ public:
     int NumTemps() const { return temps.size(); }
 
     // True if this name already reflects the replacement.
-    bool IsNewLocal(const NameExpr* n) const { return IsNewLocal(n->Id()); }
-    bool IsNewLocal(const ID* id) const;
+    bool IsNewLocal(const NameExpr* n) const { return IsNewLocal(n->IdPtr()); }
+    bool IsNewLocal(const IDPtr& id) const;
 
-    bool IsTemporary(const ID* id) const { return FindTemporary(id) != nullptr; }
-    bool IsParamTemp(const ID* id) const { return param_temps.contains(id); }
+    bool IsTemporary(const IDPtr& id) const { return FindTemporary(id) != nullptr; }
+    bool IsParamTemp(const IDPtr& id) const { return param_temps.count(id) > 0; }
 
-    bool IsConstantVar(const ID* id) const { return constant_vars.contains(id); }
+    bool IsConstantVar(const IDPtr& id) const { return constant_vars.find(id) != constant_vars.end(); }
 
     // True if the Reducer is being used in the context of a second
     // pass over for AST optimization.
@@ -183,16 +181,16 @@ protected:
 
     // Tests whether an expression computed at e1 (and assigned to "id")
     // remains valid for substitution at e2.
-    bool ExprValid(const ID* id, const Expr* e1, const Expr* e2) const;
+    bool ExprValid(const IDPtr& id, const Expr* e1, const Expr* e2) const;
 
     // Inspects the given expression for identifiers, adding any
     // observed to the given vector.  Assumes reduced form, so only
     // NameExpr's and ListExpr's are of interest - does not traverse
     // into compound expressions.
-    void CheckIDs(const Expr* e, std::vector<const ID*>& ids) const;
+    void CheckIDs(const ExprPtr& e, std::vector<IDPtr>& ids) const;
 
     IDPtr GenTemporary(TypePtr t, ExprPtr rhs, IDPtr id = nullptr);
-    std::shared_ptr<TempVar> FindTemporary(const ID* id) const;
+    std::shared_ptr<TempVar> FindTemporary(const IDPtr& id) const;
 
     // Retrieve the identifier corresponding to the new local for
     // the given expression.  Creates the local if necessary.
@@ -228,7 +226,7 @@ protected:
 
     // Lets us go from an identifier to an associated temporary
     // variable, if it corresponds to one.
-    std::unordered_map<const ID*, std::shared_ptr<TempVar>> ids_to_temps;
+    std::unordered_map<IDPtr, std::shared_ptr<TempVar>> ids_to_temps;
 
     // Identifiers that we're tracking (and don't want to replace).
     IDSet tracked_ids;
@@ -242,7 +240,7 @@ protected:
 
     // Mapping of original identifiers to new locals.  Used to
     // rename local variables when inlining.
-    std::unordered_map<const ID*, IDPtr> orig_to_new_locals;
+    std::unordered_map<IDPtr, IDPtr> orig_to_new_locals;
 
     // Tracks expressions we've folded, so that we can recognize them
     // for constant propagation.
@@ -269,7 +267,7 @@ protected:
     // Tracks locals introduced in the current block, remembering
     // their previous replacement value (per "orig_to_new_locals"),
     // if any.  When we pop the block, we restore the previous mapping.
-    std::vector<std::unordered_map<const ID*, IDPtr>> block_locals;
+    std::vector<std::unordered_map<IDPtr, IDPtr>> block_locals;
 
     // Memory management for AST elements that might change during
     // the reduction/optimization processes.

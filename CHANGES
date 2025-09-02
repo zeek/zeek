@@ -1,3 +1,13 @@
+8.1.0-dev.490 | 2025-09-02 11:47:44 -0700
+
+  * Fix a few more random clang-tidy findings (Tim Wojtulewicz, Corelight)
+
+  * Use std::numbers::pi instead of hard-coded value (Tim Wojtulewicz, Corelight)
+  
+  * Use std::scoped_lock instead of std::lock_guard (Tim Wojtulewicz, Corelight)
+
+  * Use .contains() instead of .find() or .count() (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.484 | 2025-08-29 21:53:19 -0700
 
   * Bump zeek-testing-cluster to pull in WebSocket TLS updates (Christian Kreibich, Corelight)

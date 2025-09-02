@@ -138,7 +138,7 @@ void CPPCompile::Compile(bool report_uncompilable) {
     for ( const auto& l : accessed_lambdas ) {
         const auto& n = l->Name();
         const auto body = l->Ingredients()->Body().get();
-        if ( lambda_ASTs.count(n) > 0 )
+        if ( lambda_ASTs.contains(n) )
             // Reuse previous body.
             body_names[body] = body_names[lambda_ASTs[n]];
         else {
@@ -157,7 +157,7 @@ void CPPCompile::Compile(bool report_uncompilable) {
     lambda_ASTs.clear();
     for ( const auto& l : accessed_lambdas ) {
         const auto& n = l->Name();
-        if ( lambda_ASTs.count(n) > 0 )
+        if ( lambda_ASTs.contains(n) )
             continue;
 
         CompileLambda(l, pfs->ExprProf(l).get());
@@ -196,12 +196,12 @@ bool CPPCompile::AnalyzeFuncBody(FuncInfo& fi, unordered_set<string>& filenames_
     string fn = body->GetLocationInfo()->FileName();
 
     if ( ! analysis_options.allow_cond && ! fi.ShouldSkip() ) {
-        if ( ! analysis_options.only_files.empty() && files_with_conditionals.count(fn) > 0 ) {
+        if ( ! analysis_options.only_files.empty() && files_with_conditionals.contains(fn) ) {
             if ( report_uncompilable )
                 reporter->Warning("%s cannot be compiled to C++ due to source file %s having conditional code",
                                   f->GetName().c_str(), fn.c_str());
 
-            else if ( filenames_reported_as_skipped.count(fn) == 0 ) {
+            else if ( ! filenames_reported_as_skipped.contains(fn) ) {
                 reporter->Warning("skipping compilation of files in %s due to presence of conditional code",
                                   fn.c_str());
                 filenames_reported_as_skipped.emplace(fn);

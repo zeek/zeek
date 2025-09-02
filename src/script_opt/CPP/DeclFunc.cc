@@ -31,7 +31,7 @@ void CPPCompile::DeclareLambda(const LambdaExpr* l, const ProfileFunc* pf) {
     auto& ids = l->OuterIDs();
 
     for ( auto lid : ids ) {
-        if ( lambda_names.count(lid) > 0 ) {
+        if ( lambda_names.contains(lid) ) {
             ASSERT(lambda_names[lid] == CaptureName(lid));
         }
         else
@@ -74,7 +74,7 @@ void CPPCompile::CreateFunction(const FuncTypePtr& ft, const ProfileFunc* pf, co
 
     func_index[fname] = cast;
 
-    if ( ! l && casting_index.count(cast) == 0 ) {
+    if ( ! l && ! casting_index.contains(cast) ) {
         casting_index[cast] = func_casting_glue.size();
 
         DispatchInfo di;
@@ -314,7 +314,7 @@ void CPPCompile::GatherParamTypes(vector<string>& p_types, const FuncTypePtr& ft
             // Native types are always pass-by-value.
             p_types.emplace_back(tn);
         else {
-            if ( param_id && pf->Assignees().count(param_id) > 0 )
+            if ( param_id && pf->Assignees().contains(param_id) )
                 // We modify the parameter.
                 p_types.emplace_back(tn);
             else

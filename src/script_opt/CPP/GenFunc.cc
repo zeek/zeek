@@ -159,11 +159,11 @@ void CPPCompile::DeclareLocals(const ProfileFunc* pf, const IDPList* lambda_ids)
         auto ln = LocalName(l);
         auto cn = CaptureName(l);
 
-        if ( capture_names.count(cn) > 0 )
+        if ( capture_names.contains(cn) )
             // No need to declare these, they're passed in as parameters.
             ln = cn;
 
-        else if ( params.count(l) == 0 && l->Offset() >= num_params ) { // Not a parameter, so must be a local.
+        else if ( ! params.contains(l) && l->Offset() >= num_params ) { // Not a parameter, so must be a local.
             Emit("%s %s;", FullTypeName(l->GetType()), ln);
             did_decl = true;
         }

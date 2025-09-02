@@ -43,10 +43,10 @@ void finalize_functions(const std::vector<FuncInfo>& funcs) {
     for ( auto& f : funcs ) {
         auto func = f.Func();
 
-        if ( leave_alone.count(func) > 0 )
+        if ( leave_alone.contains(func) )
             continue;
 
-        if ( remapped_intrp_frame_sizes.count(func) == 0 )
+        if ( ! remapped_intrp_frame_sizes.contains(func) )
             // No entry for this function, keep current frame size.
             continue;
 
@@ -282,7 +282,7 @@ bool ZAMCompiler::PruneUnused() {
             continue;
 
         int slot = inst->v1;
-        if ( denizen_ending.count(slot) > 0 )
+        if ( denizen_ending.contains(slot) )
             // Variable is used, keep assignment.
             continue;
 
@@ -306,7 +306,7 @@ bool ZAMCompiler::PruneUnused() {
         // can't remove the instruction entirely because it has
         // side effects.  Transform the instruction into its flavor
         // that doesn't make an assignment.
-        if ( assignmentless_op.count(inst->op) == 0 )
+        if ( ! assignmentless_op.contains(inst->op) )
             reporter->InternalError("inconsistency in re-flavoring instruction with side effects");
 
         inst->op_type = assignmentless_op_class[inst->op];
@@ -506,14 +506,14 @@ void ZAMCompiler::ReMapFrame() {
     for ( zeek_uint_t i = 0; i < insts1.size(); ++i ) {
         auto inst = insts1[i];
 
-        if ( inst_beginnings.count(inst) == 0 )
+        if ( ! inst_beginnings.contains(inst) )
             continue;
 
         auto vars = inst_beginnings[inst];
         for ( auto v : vars ) {
             // Don't remap variables whose values aren't actually used.
             int slot = frame_layout1[v];
-            if ( denizen_ending.count(slot) > 0 )
+            if ( denizen_ending.contains(slot) )
                 ReMapVar(v, slot, i);
         }
     }
@@ -667,7 +667,7 @@ void ZAMCompiler::ReMapInterpreterFrame() {
     // Update frame sizes for functions that might have more than
     // one body.
     auto f = func.get();
-    if ( remapped_intrp_frame_sizes.count(f) == 0 || remapped_intrp_frame_sizes[f] < next_interp_slot )
+    if ( ! remapped_intrp_frame_sizes.contains(f) || remapped_intrp_frame_sizes[f] < next_interp_slot )
         remapped_intrp_frame_sizes[f] = next_interp_slot;
 }
 
@@ -753,7 +753,7 @@ void ZAMCompiler::CheckSlotAssignment(int slot, const ZInstI* inst) {
 }
 
 void ZAMCompiler::SetLifetimeStart(int slot, const ZInstI* inst) {
-    if ( denizen_beginning.count(slot) > 0 ) {
+    if ( denizen_beginning.contains(slot) ) {
         // Beginning of denizen's lifetime already seen, nothing
         // more to do other than check for consistency.
         ASSERT(denizen_beginning[slot]->inst_num <= inst->inst_num);
@@ -762,7 +762,7 @@ void ZAMCompiler::SetLifetimeStart(int slot, const ZInstI* inst) {
     else { // denizen begins here
         denizen_beginning[slot] = inst;
 
-        if ( inst_beginnings.count(inst) == 0 )
+        if ( ! inst_beginnings.contains(inst) )
             // Need to create a set to track the denizens
             // beginning at the instruction.
             inst_beginnings[inst] = {};
@@ -777,7 +777,7 @@ void ZAMCompiler::CheckSlotUse(int slot, const ZInstI* inst) {
 
     ASSERT(static_cast<zeek_uint_t>(slot) < frame_denizens.size());
 
-    if ( denizen_beginning.count(slot) == 0 ) {
+    if ( ! denizen_beginning.contains(slot) ) {
         ODesc d;
         inst->loc->Loc()->Describe(&d);
         reporter->Error("%s: value used but not set: %s", d.Description(), frame_denizens[slot]->Name());
@@ -788,7 +788,7 @@ void ZAMCompiler::CheckSlotUse(int slot, const ZInstI* inst) {
     // at a lower loop depth than that for this instruction, then we
     // extend its lifetime to the end of this instruction's loop.
     if ( reducer->IsTemporary(frame_denizens[slot]) ) {
-        ASSERT(denizen_beginning.count(slot) > 0);
+        ASSERT(denizen_beginning.contains(slot));
         int definition_depth = denizen_beginning[slot]->loop_depth;
 
         if ( inst->loop_depth > definition_depth )
@@ -805,7 +805,7 @@ void ZAMCompiler::ExtendLifetime(int slot, const ZInstI* inst) {
     auto id = frame_denizens[slot];
     auto& t = id->GetType();
 
-    if ( denizen_ending.count(slot) > 0 ) {
+    if ( denizen_ending.contains(slot) ) {
         // End of denizen's lifetime already seen.  Check for
         // consistency and then extend as needed.
 
@@ -828,7 +828,7 @@ void ZAMCompiler::ExtendLifetime(int slot, const ZInstI* inst) {
         if ( old_inst->inst_num < inst->inst_num ) { // Extend.
             inst_endings[old_inst].erase(frame_denizens[slot]);
 
-            if ( inst_endings.count(inst) == 0 )
+            if ( ! inst_endings.contains(inst) )
                 inst_endings[inst] = {};
 
             inst_endings[inst].insert(frame_denizens[slot]);
@@ -839,7 +839,7 @@ void ZAMCompiler::ExtendLifetime(int slot, const ZInstI* inst) {
     else { // first time seeing a use of this denizen
         denizen_ending[slot] = inst;
 
-        if ( inst_endings.count(inst) == 0 ) {
+        if ( ! inst_endings.contains(inst) ) {
             IDSet denizens;
             inst_endings[inst] = denizens;
         }
@@ -988,9 +988,9 @@ void ZAMCompiler::KillInst(zeek_uint_t i) {
     if ( inst->aux && ! inst->aux->cft.empty() ) {
         auto& cft = inst->aux->cft;
 
-        if ( cft.count(CFT_ELSE) > 0 ) {
+        if ( cft.contains(CFT_ELSE) ) {
             // Push forward unless this was the end of the block.
-            if ( cft.count(CFT_BLOCK_END) == 0 ) {
+            if ( ! cft.contains(CFT_BLOCK_END) ) {
                 ASSERT(succ);
                 AddCFT(succ, CFT_ELSE);
             }
@@ -1007,15 +1007,15 @@ void ZAMCompiler::KillInst(zeek_uint_t i) {
         // because they just lead to their following instruction, and next's
         // if they become dead code. However, loops and loop conditionals
         // should not be killed.
-        ASSERT(cft.count(CFT_LOOP) == 0);
-        ASSERT(cft.count(CFT_LOOP_COND) == 0);
+        ASSERT(! cft.contains(CFT_LOOP));
+        ASSERT(! cft.contains(CFT_LOOP_COND));
     }
 }
 
 void ZAMCompiler::BackPropagateCFT(int inst_num, ControlFlowType cf_type) {
     auto inst = insts1[inst_num];
     auto& cft = inst->aux->cft;
-    if ( cft.count(cf_type) == 0 )
+    if ( ! cft.contains(cf_type) )
         return;
 
     int j = inst_num;

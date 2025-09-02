@@ -494,7 +494,7 @@ void ScriptTarget::DoGenerate() const {
         }
 
         for ( const auto& f : dir_contents ) {
-            if ( targets.find(f) != targets.end() )
+            if ( targets.contains(f) )
                 continue;
 
             if ( unlink(f.c_str()) < 0 )

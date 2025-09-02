@@ -49,7 +49,7 @@ void UseDefs::Dump() {
     for ( int i = stmts.size(); --i >= 0; ) {
         const auto& s = stmts[i];
         auto uds = FindUsage(s);
-        auto are_copies = (UDs_are_copies.find(s) != UDs_are_copies.end());
+        auto are_copies = (UDs_are_copies.contains(s));
 
         printf("UDs (%s) for %s:\n", are_copies ? "copy" : "orig", obj_desc(s).c_str());
 
@@ -186,7 +186,7 @@ UDs UseDefs::PropagateUDs(const Stmt* s, UDs succ_UDs, const Stmt* succ_stmt, bo
 
                 if ( i == int(stmts.size()) - 1 ) { // Very last statement.
                     succ = succ_stmt;
-                    if ( successor2.find(s) != successor2.end() ) {
+                    if ( successor2.contains(s) ) {
                         om.AddObj(s_i);
                         successor2[s_i] = successor2[s];
                     }
@@ -620,7 +620,7 @@ void UseDefs::FoldInUDs(UDs& main_UDs, const UDs& u1, const UDs& u2) {
 void UseDefs::UpdateUDs(const Stmt* s, const UDs& uds) {
     auto curr_uds = FindUsage(s);
 
-    if ( ! curr_uds || UDs_are_copies.find(s) != UDs_are_copies.end() ) {
+    if ( ! curr_uds || UDs_are_copies.contains(s) ) {
         // Copy-on-write.
         auto new_uds = std::make_shared<UseDefSet>();
 

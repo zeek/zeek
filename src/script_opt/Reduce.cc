@@ -327,7 +327,7 @@ bool Reducer::ID_IsReducedOrTopLevel(const ID* id) {
 }
 
 bool Reducer::ID_IsReduced(const ID* id) const {
-    return inline_block_level == 0 || tracked_ids.count(id) > 0 || id->IsGlobal() || IsTemporary(id);
+    return inline_block_level == 0 || tracked_ids.contains(id) || id->IsGlobal() || IsTemporary(id);
 }
 
 StmtPtr Reducer::GenParam(const IDPtr& id, ExprPtr rhs, bool is_modified) {
@@ -335,7 +335,7 @@ StmtPtr Reducer::GenParam(const IDPtr& id, ExprPtr rhs, bool is_modified) {
     param->SetLocationInfo(rhs->GetLocationInfo());
     auto rhs_id = rhs->Tag() == EXPR_NAME ? rhs->AsNameExpr()->IdPtr() : nullptr;
 
-    if ( rhs_id && pf->Locals().count(rhs_id.get()) == 0 && ! rhs_id->IsConst() )
+    if ( rhs_id && ! pf->Locals().contains(rhs_id.get()) && ! rhs_id->IsConst() )
         // It's hard to guarantee the RHS won't change during
         // the inline block's execution.
         is_modified = true;
@@ -838,14 +838,14 @@ IDPtr Reducer::GenLocal(const IDPtr& orig) {
         local_id->GetOptInfo()->SetTemp();
 
     IDPtr prev;
-    if ( orig_to_new_locals.count(orig.get()) )
+    if ( orig_to_new_locals.contains(orig.get()) )
         prev = orig_to_new_locals[orig.get()];
 
     AddNewLocal(local_id);
     om.AddObj(orig.get());
     orig_to_new_locals[orig.get()] = local_id;
 
-    if ( ! block_locals.empty() && ret_vars.count(orig.get()) == 0 )
+    if ( ! block_locals.empty() && ! ret_vars.contains(orig.get()) )
         block_locals.back()[orig.get()] = prev;
 
     return local_id;
@@ -853,7 +853,7 @@ IDPtr Reducer::GenLocal(const IDPtr& orig) {
 
 bool Reducer::IsNewLocal(const ID* id) const {
     ID* non_const_ID = (ID*)id; // I don't get why C++ requires this
-    return new_locals.count(non_const_ID) != 0;
+    return new_locals.contains(non_const_ID);
 }
 
 std::shared_ptr<TempVar> Reducer::FindTemporary(const ID* id) const {

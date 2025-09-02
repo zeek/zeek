@@ -73,7 +73,7 @@ string CPPCompile::GenericValPtrToGT(const string& expr, const TypePtr& t, GenTy
 }
 
 string CPPCompile::GenTypeName(const Type* t) {
-    ASSERT(processed_types.count(TypeRep(t)) > 0);
+    ASSERT(processed_types.contains(TypeRep(t)));
     return types.KeyName(TypeRep(t));
 }
 

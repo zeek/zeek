@@ -148,11 +148,11 @@ string CPPCompile::GenExpr(const Expr* e, GenType gt, bool top_level) {
 string CPPCompile::GenNameExpr(const NameExpr* ne, GenType gt) {
     const auto& t = ne->GetType();
     auto n = ne->Id();
-    bool is_global_var = global_vars.count(n) > 0;
+    bool is_global_var = global_vars.contains(n);
 
     if ( t->Tag() == TYPE_FUNC && ! is_global_var ) {
         auto func = n->Name();
-        if ( globals.count(func) > 0 && pfs->BiFGlobals().count(n) == 0 )
+        if ( globals.contains(func) && ! pfs->BiFGlobals().contains(n) )
             return GenericValPtrToGT(IDNameStr(n), t, gt);
     }
 
@@ -277,8 +277,8 @@ string CPPCompile::GenCallExpr(const CallExpr* c, GenType gt, bool top_level) {
         auto id_name = f_id->Name();
         auto nargs = args_l->Exprs().length();
 
-        bool is_compiled = compiled_simple_funcs.count(id_name) > 0;
-        bool was_compiled = hashed_funcs.count(id_name) > 0;
+        bool is_compiled = compiled_simple_funcs.contains(id_name);
+        bool was_compiled = hashed_funcs.contains(id_name);
         bool is_variadic = params->NumFields() == 1 && nargs != 1;
 
         if ( ! is_async && ! is_variadic && (is_compiled || was_compiled) ) { // Can call directly.
@@ -303,10 +303,10 @@ string CPPCompile::GenCallExpr(const CallExpr* c, GenType gt, bool top_level) {
         //
         // If it is a BiF *that's also a global variable*, then
         // we need to look up the BiF version of the global.
-        if ( pfs->BiFGlobals().count(f_id) == 0 )
+        if ( ! pfs->BiFGlobals().contains(f_id) )
             gen += +"->AsFunc()";
 
-        else if ( accessed_globals.count(f_id) > 0 )
+        else if ( accessed_globals.contains(f_id) )
             // The BiF version has an extra "_", per AddBiF(..., true).
             gen = globals[string(id_name) + "_"];
     }
@@ -1230,7 +1230,7 @@ string CPPCompile::GenField(const ExprPtr& rec, int field) {
     int mapping_slot;
 
     auto rfm = record_field_mappings.find(rt);
-    if ( rfm != record_field_mappings.end() && rfm->second.count(field) > 0 )
+    if ( rfm != record_field_mappings.end() && rfm->second.contains(field) )
         // We're already tracking this field.
         mapping_slot = rfm->second[field];
 
@@ -1269,7 +1269,7 @@ string CPPCompile::GenEnum(const TypePtr& t, const ValPtr& ev) {
     int mapping_slot;
 
     auto evm = enum_val_mappings.find(et);
-    if ( evm != enum_val_mappings.end() && evm->second.count(v) > 0 )
+    if ( evm != enum_val_mappings.end() && evm->second.contains(v) )
         // We're already tracking this value.
         mapping_slot = evm->second[v];
 

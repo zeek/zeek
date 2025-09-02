@@ -46,7 +46,7 @@ std::unique_ptr<LogSerializer> Manager::InstantiateLogSerializer(const zeek::Enu
 bool Manager::ListenWebSocket(const websocket::detail::ServerOptions& options) {
     WebSocketServerKey key{options.host, options.port};
 
-    if ( websocket_servers.count(key) != 0 ) {
+    if ( websocket_servers.contains(key) ) {
         const auto& entry = websocket_servers[key];
         if ( entry.options == options )
             return true;

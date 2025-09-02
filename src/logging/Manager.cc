@@ -1317,7 +1317,7 @@ bool Manager::DelayFinish(const EnumValPtr& id, const RecordValPtr& record, cons
 // Delaying has completed.
 bool Manager::DelayCompleted(Stream* stream, detail::DelayInfo& delay_info) {
     auto token = detail::to_internal_delay_token(delay_info.TokenVal());
-    assert(stream->delay_tokens.find(token) != stream->delay_tokens.end());
+    assert(stream->delay_tokens.contains(token));
 
     DBG_LOG(DBG_LOGGING, "DelayCompleted() for log record %p RefCnt=%d token=%" PRIu64, delay_info.Record().get(),
             delay_info.Record()->RefCnt(), token);

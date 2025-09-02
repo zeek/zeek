@@ -87,7 +87,7 @@ function Broker::__set_contains%(s: Broker::Data, key: any%): bool
 		return zeek::val_mgr->False();
 		}
 
-	return zeek::val_mgr->Bool(v.find(*k) != v.end());
+	return zeek::val_mgr->Bool(v.contains(*k));
 	%}
 
 function Broker::__set_insert%(s: Broker::Data, key: any%): bool
@@ -191,7 +191,7 @@ function Broker::__table_contains%(t: Broker::Data, key: any%): bool
 		return zeek::val_mgr->False();
 		}
 
-	return zeek::val_mgr->Bool(v.find(*k) != v.end());
+	return zeek::val_mgr->Bool(v.contains(*k));
 	%}
 
 function Broker::__table_insert%(t: Broker::Data, key: any, val: any%): Broker::Data

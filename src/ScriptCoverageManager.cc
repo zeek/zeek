@@ -158,7 +158,7 @@ void ScriptCoverageManager::TrackUsage(const Location* loc, std::string desc, ui
 
     pair<string, string> location_desc(location_info.Description(), desc);
 
-    if ( usage_map.find(location_desc) != usage_map.end() )
+    if ( usage_map.contains(location_desc) )
         usage_map[location_desc] += cnt;
     else
         usage_map[location_desc] = cnt;

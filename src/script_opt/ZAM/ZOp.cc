@@ -83,7 +83,7 @@ ZOp AssignmentFlavor(ZOp orig, TypeTag tag, bool strict) {
         default: break;
     }
 
-    if ( assignment_flavor.count(orig) == 0 ) {
+    if ( ! assignment_flavor.contains(orig) ) {
         if ( strict )
             ASSERT(false);
         else
@@ -92,7 +92,7 @@ ZOp AssignmentFlavor(ZOp orig, TypeTag tag, bool strict) {
 
     auto orig_map = assignment_flavor[orig];
 
-    if ( orig_map.count(tag) == 0 ) {
+    if ( ! orig_map.contains(tag) ) {
         if ( strict )
             ASSERT(false);
         else

@@ -732,7 +732,7 @@ void ValTraceMgr::TraceEventValues(std::shared_ptr<EventTrace> et, const zeek::A
     // remember them so we can catch uses of them in future events.
     for ( auto i = num_vals; i < vals.size(); ++i ) {
         processed_vals.insert(vals[i].get());
-        ASSERT(val_names.count(vals[i].get()) > 0);
+        ASSERT(val_names.contains(vals[i].get()));
     }
 }
 
@@ -794,8 +794,8 @@ void ValTraceMgr::NewVal(ValPtr v) {
 }
 
 void ValTraceMgr::ValUsed(const ValPtr& v) {
-    ASSERT(val_names.count(v.get()) > 0);
-    if ( processed_vals.count(v.get()) > 0 )
+    ASSERT(val_names.contains(v.get()));
+    if ( processed_vals.contains(v.get()) )
         // We saw this value when processing a previous event.
         globals.insert(v.get());
 }
@@ -818,17 +818,17 @@ void ValTraceMgr::AssessChange(const ValTrace* vt, const ValTrace* prev_vt) {
         bool needs_lhs = d->NeedsLHS();
         bool is_first_def = false;
 
-        if ( needs_lhs && val_names.count(v) == 0 ) {
+        if ( needs_lhs && ! val_names.contains(v) ) {
             TrackVar(v);
             is_first_def = true;
         }
 
-        ASSERT(val_names.count(v) > 0);
+        ASSERT(val_names.contains(v));
 
         // The "/" in the following is just to have a delimiter
         // to make sure the string is unambiguous.
         auto full_delta = val_names[v] + "/" + rhs;
-        if ( previous_deltas.count(full_delta) > 0 )
+        if ( previous_deltas.contains(full_delta) )
             continue;
 
         previous_deltas.insert(std::move(full_delta));
@@ -849,7 +849,7 @@ void ValTraceMgr::TrackVar(const Val* v) {
 
 std::string ValTraceMgr::GenValName(const ValPtr& v) {
     if ( IsAggr(v->GetType()) && ! IsUnspecifiedAggregate(v) ) { // Aggregate shouldn't exist; create it
-        ASSERT(val_map.count(v.get()) == 0);
+        ASSERT(! val_map.contains(v.get()));
         NewVal(v);
         return val_names[v.get()];
     }
@@ -1012,7 +1012,7 @@ void EventTraceMgr::Generate() {
 }
 
 void EventTraceMgr::StartEvent(const ScriptFunc* ev, const zeek::Args* args) {
-    if ( script_events.count(ev->GetName()) > 0 )
+    if ( script_events.contains(ev->GetName()) )
         return;
 
     auto nt = run_state::network_time;
@@ -1029,7 +1029,7 @@ void EventTraceMgr::StartEvent(const ScriptFunc* ev, const zeek::Args* args) {
 }
 
 void EventTraceMgr::EndEvent(const ScriptFunc* ev, const zeek::Args* args) {
-    if ( script_events.count(ev->GetName()) > 0 )
+    if ( script_events.contains(ev->GetName()) )
         return;
 
     if ( run_state::network_time > 0.0 && ev->GetName() != "zeek_init" )

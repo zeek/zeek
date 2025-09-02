@@ -674,7 +674,7 @@ public:
     // should always be true other than for certain functions with empty
     // bodies that are created post-parsing. Available for debugging so
     // we can assert we have these.
-    bool HaveExpDesc(const Location* loc) const { return exp_desc.count(LocKey(loc)) > 0; }
+    bool HaveExpDesc(const Location* loc) const { return exp_desc.contains(LocKey(loc)); }
 
 private:
     // Construct the full expanded description associated with the given

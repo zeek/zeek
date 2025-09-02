@@ -2999,7 +2999,7 @@ RecordConstructorExpr::RecordConstructorExpr(RecordTypePtr known_rt, ListExprPtr
 
     auto n = known_rt->NumFields();
     for ( i = 0; i < n; ++i )
-        if ( fields_seen.count(i) == 0 ) {
+        if ( ! fields_seen.contains(i) ) {
             const auto td_i = known_rt->FieldDecl(i);
             if ( IsAggr(td_i->type) )
                 // These are always initialized.
@@ -4307,7 +4307,7 @@ bool LambdaExpr::CheckCaptures(StmtPtr when_parent) {
             // already been an error message.
             continue;
 
-        if ( capture_is_matched.count(cid) > 0 ) {
+        if ( capture_is_matched.contains(cid) ) {
             auto msg = util::fmt("%s listed multiple times in capture", cid->Name());
             if ( when_parent )
                 when_parent->Error(msg);
@@ -4326,7 +4326,7 @@ bool LambdaExpr::CheckCaptures(StmtPtr when_parent) {
     }
 
     for ( auto id : outer_ids )
-        if ( outer_is_matched.count(id) == 0 ) {
+        if ( ! outer_is_matched.contains(id) ) {
             auto msg = util::fmt("%s is used inside %s but not captured", id->Name(), desc);
             if ( when_parent )
                 when_parent->Error(msg);
@@ -4338,7 +4338,7 @@ bool LambdaExpr::CheckCaptures(StmtPtr when_parent) {
 
     for ( const auto& c : *captures ) {
         auto cid = c.Id().get();
-        if ( cid && capture_is_matched.count(cid) == 0 ) {
+        if ( cid && ! capture_is_matched.contains(cid) ) {
             auto msg = util::fmt("%s is captured but not used inside %s", cid->Name(), desc);
             if ( when_parent )
                 when_parent->Error(msg);

@@ -200,7 +200,7 @@ void CPPCompile::InitializeGlobals() {
         if ( ! ofiles.empty() && ! obj_matches_opt_files(g) )
             continue;
 
-        if ( accessed_globals.count(g) == 0 )
+        if ( ! accessed_globals.contains(g) )
             continue;
 
         auto ic = ginit.IC();
@@ -281,7 +281,7 @@ void CPPCompile::GenStandaloneActivation() {
         auto fname = BodyName(func);
         auto bname = Canonicalize(fname) + "_zf";
 
-        if ( compiled_funcs.count(bname) == 0 )
+        if ( ! compiled_funcs.contains(bname) )
             // We didn't wind up compiling it.
             continue;
 

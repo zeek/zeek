@@ -3,8 +3,8 @@
 #ifndef pac_output_h
 #define pac_output_h
 
-#include <stdarg.h>
-#include <stdio.h>
+#include <cstdarg>
+#include <cstdio>
 #include <string>
 
 using namespace std;
@@ -12,7 +12,7 @@ using namespace std;
 class OutputException {
 public:
     OutputException(const char* arg_msg);
-    ~OutputException();
+    ~OutputException() = default;
     const char* errmsg() const { return msg.c_str(); }
 
 protected:

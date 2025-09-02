@@ -7,7 +7,6 @@
 #include "pac_context.h"
 #include "pac_dataptr.h"
 #include "pac_dataunit.h"
-#include "pac_embedded.h"
 #include "pac_exception.h"
 #include "pac_expr.h"
 #include "pac_exttype.h"

@@ -6,7 +6,6 @@
 #include "pac_exttype.h"
 #include "pac_id.h"
 #include "pac_output.h"
-#include "pac_type.h"
 
 InputBuffer::InputBuffer(Expr* expr) : DataDepElement(INPUT_BUFFER), expr_(expr) {}
 

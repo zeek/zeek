@@ -18,7 +18,7 @@ class PubVarField : public Field {
 public:
     PubVarField(ID* id, Type* type)
         : Field(PUB_VAR_FIELD, TYPE_NOT_TO_BE_PARSED | CLASS_MEMBER | PUBLIC_READABLE, id, type) {}
-    ~PubVarField() override {}
+    ~PubVarField() override = default;
 };
 
 // A private variable
@@ -26,7 +26,7 @@ class PrivVarField : public Field {
 public:
     PrivVarField(ID* id, Type* type)
         : Field(PRIV_VAR_FIELD, TYPE_NOT_TO_BE_PARSED | CLASS_MEMBER | NOT_PUBLIC_READABLE, id, type) {}
-    ~PrivVarField() override {}
+    ~PrivVarField() override = default;
 
     void GenPubDecls(Output* out, Env* env) override { /* do nothing */ }
 };
@@ -34,7 +34,7 @@ public:
 class TempVarField : public Field {
 public:
     TempVarField(ID* id, Type* type) : Field(TEMP_VAR_FIELD, TYPE_NOT_TO_BE_PARSED | NOT_CLASS_MEMBER, id, type) {}
-    ~TempVarField() override {}
+    ~TempVarField() override = default;
 };
 
 #endif // pac_varfield_h

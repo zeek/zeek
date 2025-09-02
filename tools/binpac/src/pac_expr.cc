@@ -7,12 +7,12 @@
 #include "pac_exception.h"
 #include "pac_exttype.h"
 #include "pac_id.h"
+#include "pac_let.h"
 #include "pac_nullptr.h"
 #include "pac_number.h"
 #include "pac_output.h"
 #include "pac_record.h"
 #include "pac_regex.h"
-#include "pac_strtype.h"
 #include "pac_typedecl.h"
 #include "pac_utils.h"
 

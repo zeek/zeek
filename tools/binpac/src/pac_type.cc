@@ -2,13 +2,10 @@
 
 #include "pac_type.h"
 
-#include "pac_action.h"
 #include "pac_array.h"
 #include "pac_attr.h"
 #include "pac_btype.h"
-#include "pac_context.h"
 #include "pac_dataptr.h"
-#include "pac_decl.h"
 #include "pac_exception.h"
 #include "pac_expr.h"
 #include "pac_exttype.h"
@@ -18,6 +15,7 @@
 #include "pac_output.h"
 #include "pac_paramtype.h"
 #include "pac_strtype.h"
+#include "pac_typedecl.h"
 #include "pac_utils.h"
 #include "pac_varfield.h"
 #include "pac_withinput.h"

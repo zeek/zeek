@@ -3,15 +3,18 @@
 #ifndef pac_cclass_h
 #define pac_cclass_h
 
+#include <string>
+#include <vector>
+
 class CClass;
 class CClassMember;
 class CClassMethod;
 class CType;
 class CVariable;
 
-typedef vector<CClassMember*> CClassMemberList;
-typedef vector<CClassMethod*> CClassMethodList;
-typedef vector<CVariable*> CVariableList;
+using CClassMemberList = std::vector<CClassMember*>;
+using CClassMethodList = std::vector<CClassMethod*>;
+using CVariableList = std::vector<CVariable*>;
 
 #include "pac_common.h"
 
@@ -44,7 +47,7 @@ protected:
 
 class CVariable {
 public:
-    CClassMember(const string& name, CType* type);
+    CVariable(const std::string& name, CType* type);
 
     string name() const { return name_; }
     CType* type() const { return type_; }

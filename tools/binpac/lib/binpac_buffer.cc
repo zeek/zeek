@@ -1,6 +1,5 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
-#include <cstdio>
 #include <cstdlib>
 #include <cstring> // for memcpy
 

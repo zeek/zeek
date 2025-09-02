@@ -3,8 +3,8 @@
 #ifndef pac_dbg_h
 #define pac_dbg_h
 
-#include <assert.h>
-#include <stdio.h>
+#include <cassert>
+#include <cstdio>
 
 extern bool FLAGS_pac_debug;
 

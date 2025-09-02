@@ -14,7 +14,6 @@
 #include "pac_paramtype.h"
 #include "pac_state.h"
 #include "pac_type.h"
-#include "pac_varfield.h"
 
 AnalyzerDecl::AnalyzerDecl(ID* id, DeclType decl_type, ParamList* params) : TypeDecl(id, params, new DummyType()) {
     decl_type_ = decl_type;

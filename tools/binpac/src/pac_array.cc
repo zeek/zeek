@@ -8,7 +8,6 @@
 #include "pac_expr.h"
 #include "pac_exttype.h"
 #include "pac_id.h"
-#include "pac_number.h"
 #include "pac_output.h"
 #include "pac_utils.h"
 #include "pac_varfield.h"

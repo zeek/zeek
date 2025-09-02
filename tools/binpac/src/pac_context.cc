@@ -4,7 +4,6 @@
 
 #include "pac_analyzer.h"
 #include "pac_exception.h"
-#include "pac_exttype.h"
 #include "pac_flow.h"
 #include "pac_id.h"
 #include "pac_output.h"

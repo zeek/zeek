@@ -6,7 +6,6 @@
 #include "pac_common.h"
 #include "pac_field.h"
 #include "pac_id.h"
-#include "pac_let.h"
 #include "pac_type.h"
 
 class RecordType : public Type {

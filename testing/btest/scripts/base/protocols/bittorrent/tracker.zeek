@@ -28,18 +28,4 @@ signature dpd_bittorrenttracker_server {
   enable "bittorrenttracker"
 }
 
-signature dpd_bittorrent_peer1 {
-  ip-proto == tcp
-  payload /^\x13BitTorrent protocol/
-  tcp-state originator
-}
-
-signature dpd_bittorrent_peer2 {
-  ip-proto == tcp
-  payload /^\x13BitTorrent protocol/
-  tcp-state responder
-  requires-reverse-signature dpd_bittorrent_peer1
-  enable "bittorrent"
-}
-
 # @TEST-END-FILE

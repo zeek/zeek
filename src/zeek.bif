@@ -9,13 +9,14 @@
 
 %%{ // C++ segment
 #include <sys/stat.h>
-#include <string>
 #include <algorithm>
 #include <cinttypes>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <ctime>
+#include <numbers>
+#include <string>
 #include <vector>
 
 #include "zeek/digest.h"
@@ -4222,7 +4223,7 @@ function blocking_lookup_hostname%(host: string%) : addr_set
 ## .. zeek:see:: haversine_distance_ip
 function haversine_distance%(lat1: double, long1: double, lat2: double, long2: double%): double
 	%{
-	const double PI = 3.14159;
+	const double PI = std::numbers::pi;
 	const double RADIUS = 3958.8;  // Earth's radius in miles.
 
 	double s1 = sin((lat2 - lat1) * PI/360);

@@ -68,7 +68,7 @@ void GatherParamNames(std::vector<std::string>& p_names, const FuncTypePtr& ft, 
 // Inspects the given profile to find the i'th parameter (starting at 0).
 // Returns nil if the profile indicates that the parameter is not used by the
 // function.
-const ID* FindParam(int i, const ProfileFunc* pf);
+IDPtr FindParam(int i, const ProfileFunc* pf);
 
 // Information associated with a CPPDynStmt dynamic dispatch.
 struct DispatchInfo {
@@ -92,7 +92,7 @@ std::unordered_map<std::string, std::string> func_index;
 // Names for lambda capture ID's.  These require a separate space that
 // incorporates the lambda's name, to deal with nested lambda's that refer
 // to the identifiers with the same name.
-std::unordered_map<const ID*, std::string> lambda_names;
+std::unordered_map<IDPtr, std::string> lambda_names;
 
 // The function's parameters.  Tracked so we don't re-declare them.
 IDSet params;

@@ -147,7 +147,7 @@ string CPPCompile::GenExpr(const Expr* e, GenType gt, bool top_level) {
 
 string CPPCompile::GenNameExpr(const NameExpr* ne, GenType gt) {
     const auto& t = ne->GetType();
-    auto n = ne->Id();
+    const auto& n = ne->IdPtr();
     bool is_global_var = global_vars.contains(n);
 
     if ( t->Tag() == TYPE_FUNC && ! is_global_var ) {
@@ -272,7 +272,7 @@ string CPPCompile::GenCallExpr(const CallExpr* c, GenType gt, bool top_level) {
     auto gen = GenExpr(f, GEN_DONT_CARE);
 
     if ( f->Tag() == EXPR_NAME ) {
-        auto f_id = f->AsNameExpr()->Id();
+        const auto& f_id = f->AsNameExpr()->IdPtr();
         const auto& params = f_id->GetType()->AsFuncType()->Params();
         auto id_name = f_id->Name();
         auto nargs = args_l->Exprs().length();
@@ -1046,7 +1046,7 @@ string CPPCompile::GenAssign(const ExprPtr& lhs, const ExprPtr& rhs, const strin
 
 string CPPCompile::GenDirectAssign(const ExprPtr& lhs, const string& rhs_native, const string& rhs_val_ptr, GenType gt,
                                    bool top_level) {
-    auto n = lhs->AsNameExpr()->Id();
+    const auto& n = lhs->AsNameExpr()->IdPtr();
 
     if ( n->IsBlank() )
         return rhs_native;
@@ -1134,7 +1134,7 @@ string CPPCompile::GenListAssign(const ExprPtr& lhs, const ExprPtr& rhs) {
 
         auto rhs_i = GenericValPtrToGT(rhs_i_base, t_i, GEN_NATIVE);
 
-        gen += IDNameStr(var->Id()) + " = " + rhs_i;
+        gen += IDNameStr(var->IdPtr()) + " = " + rhs_i;
 
         if ( i < n - 1 )
             gen += ", ";

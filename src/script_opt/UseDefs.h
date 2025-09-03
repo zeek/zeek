@@ -27,10 +27,10 @@ public:
 
     void Replicate(const UDs& from) { use_defs = from->use_defs; }
 
-    bool HasID(const ID* id) { return use_defs.contains(id); }
+    bool HasID(const IDPtr& id) { return use_defs.find(id) != use_defs.end(); }
 
-    void Add(const ID* id) { use_defs.insert(id); }
-    void Remove(const ID* id) { use_defs.erase(id); }
+    void Add(IDPtr id) { use_defs.insert(std::move(id)); }
+    void Remove(const IDPtr& id) { use_defs.erase(id); }
 
     const IDSet& IterateOver() const { return use_defs; }
 
@@ -83,7 +83,7 @@ private:
     // For a given identifier defined at a given statement, returns
     // whether it is unused.  If "report" is true, also reports
     // this fact.
-    bool CheckIfUnused(const Stmt* s, const ID* id, bool report);
+    bool CheckIfUnused(const Stmt* s, const IDPtr& id, bool report);
 
     // Propagates use-defs (backwards) across statement s,
     // given its successor's UDs.
@@ -112,14 +112,14 @@ private:
     void AddInExprUDs(UDs uds, const Expr* e);
 
     // Add an ID into an existing set of UDs.
-    void AddID(UDs uds, const ID* id) const;
+    void AddID(UDs uds, IDPtr id) const;
 
     // Returns a new use-def corresponding to the given one, but
     // with the definition of "id" removed.
-    UDs RemoveID(const ID* id, const UDs& uds);
+    UDs RemoveID(const IDPtr& id, const UDs& uds);
 
     // Similar, but updates the UDs in place.
-    void RemoveUDFrom(UDs uds, const ID* id);
+    void RemoveUDFrom(UDs uds, const IDPtr& id);
 
     // Adds in the additional UDs to the main UDs.  Always creates
     // a new use_def and updates main_UDs to point to it.

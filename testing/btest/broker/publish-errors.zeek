@@ -1,5 +1,9 @@
 # @TEST-DOC: Test that calling Broker::publish() with a Cluster::Event instance fails. Regression test for #4571.
 #
+# Can't use this test for -O gen-C++ because of multiple simultaneous
+# Zeek runs.
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
+#
 # @TEST-GROUP: broker
 #
 # @TEST-PORT: BROKER_PORT

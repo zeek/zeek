@@ -239,12 +239,12 @@ Reducer::Reducer(const ScriptFuncPtr& func, std::shared_ptr<ProfileFunc> _pf, st
     auto& scope_vars = current_scope()->OrderedVars();
 
     for ( auto i = 0; i < num_params; ++i )
-        tracked_ids.insert(scope_vars[i].get());
+        tracked_ids.insert(scope_vars[i]);
 
     // Now include any captures.
     if ( ft->GetCaptures() )
         for ( auto& c : *ft->GetCaptures() )
-            tracked_ids.insert(c.Id().get());
+            tracked_ids.insert(c.Id());
 }
 
 StmtPtr Reducer::Reduce(StmtPtr s) {
@@ -275,17 +275,12 @@ NameExprPtr Reducer::UpdateName(NameExprPtr n) {
     return ne;
 }
 
-bool Reducer::NameIsReduced(const NameExpr* n) { return ID_IsReducedOrTopLevel(n->Id()); }
+bool Reducer::NameIsReduced(const NameExpr* n) { return ID_IsReducedOrTopLevel(n->IdPtr()); }
 
 void Reducer::UpdateIDs(IDPList* ids) {
-    loop_over_list(*ids, i) {
-        IDPtr id = {NewRef{}, (*ids)[i]};
-
-        if ( ! ID_IsReducedOrTopLevel(id) ) {
-            Unref((*ids)[i]);
-            (*ids)[i] = UpdateID(id).release();
-        }
-    }
+    for ( auto& id : *ids )
+        if ( ! ID_IsReducedOrTopLevel(id) )
+            id = UpdateID(id);
 }
 
 void Reducer::UpdateIDs(std::vector<IDPtr>& ids) {
@@ -317,7 +312,7 @@ IDPtr Reducer::UpdateID(IDPtr id) {
     return FindNewLocal(id);
 }
 
-bool Reducer::ID_IsReducedOrTopLevel(const ID* id) {
+bool Reducer::ID_IsReducedOrTopLevel(const IDPtr& id) {
     if ( inline_block_level == 0 ) {
         tracked_ids.insert(id);
         return true;
@@ -326,8 +321,8 @@ bool Reducer::ID_IsReducedOrTopLevel(const ID* id) {
     return ID_IsReduced(id);
 }
 
-bool Reducer::ID_IsReduced(const ID* id) const {
-    return inline_block_level == 0 || tracked_ids.contains(id) || id->IsGlobal() || IsTemporary(id);
+bool Reducer::ID_IsReduced(const IDPtr& id) const {
+    return inline_block_level == 0 || tracked_ids.count(id) > 0 || id->IsGlobal() || IsTemporary(id);
 }
 
 StmtPtr Reducer::GenParam(const IDPtr& id, ExprPtr rhs, bool is_modified) {
@@ -335,7 +330,7 @@ StmtPtr Reducer::GenParam(const IDPtr& id, ExprPtr rhs, bool is_modified) {
     param->SetLocationInfo(rhs->GetLocationInfo());
     auto rhs_id = rhs->Tag() == EXPR_NAME ? rhs->AsNameExpr()->IdPtr() : nullptr;
 
-    if ( rhs_id && ! pf->Locals().contains(rhs_id.get()) && ! rhs_id->IsConst() )
+    if ( rhs_id && ! pf->Locals().contains(rhs_id) && ! rhs_id->IsConst() )
         // It's hard to guarantee the RHS won't change during
         // the inline block's execution.
         is_modified = true;
@@ -352,14 +347,14 @@ StmtPtr Reducer::GenParam(const IDPtr& id, ExprPtr rhs, bool is_modified) {
         // Can use a temporary variable, which then supports
         // optimization via alias propagation.
         auto param_id = GenTemporary(id->GetType(), rhs, param->IdPtr());
-        auto& tv = ids_to_temps[param_id.get()];
+        auto& tv = ids_to_temps[param_id];
 
         if ( rhs_id )
             tv->SetAlias(rhs_id);
         else if ( rhs->Tag() == EXPR_CONST )
             tv->SetConst(rhs->AsConstExpr());
 
-        param_temps.insert(param_id.get());
+        param_temps.insert(param_id);
         param = make_intrusive<NameExpr>(param_id);
         param->SetLocationInfo(rhs->GetLocationInfo());
     }
@@ -402,7 +397,7 @@ NameExprPtr Reducer::GetRetVar(TypePtr type) {
     ret_id->SetType(std::move(type));
     ret_id->GetOptInfo()->SetTemp();
 
-    ret_vars.insert(ret_id.get());
+    ret_vars.insert(ret_id);
 
     // Track this as a new local *if* we're in the outermost inlining
     // block.  If we're recursively deeper into inlining, then this
@@ -442,7 +437,7 @@ IDPtr Reducer::FindExprTmp(const Expr* rhs, const Expr* a, const std::shared_ptr
         if ( same_expr(rhs, et_i_expr, true) ) {
             // We have an apt candidate.  Make sure its value
             // always makes it here.
-            auto id = et_i->Id().get();
+            const auto& id = et_i->Id();
 
             auto stmt_num = a->GetOptInfo()->stmt_num;
             auto def = id->GetOptInfo()->DefinitionBefore(stmt_num);
@@ -464,7 +459,7 @@ IDPtr Reducer::FindExprTmp(const Expr* rhs, const Expr* a, const std::shared_ptr
     return nullptr;
 }
 
-bool Reducer::ExprValid(const ID* id, const Expr* e1, const Expr* e2) const {
+bool Reducer::ExprValid(const IDPtr& id, const Expr* e1, const Expr* e2) const {
     // First check for whether e1 is already known to itself have side effects.
     // If so, then it's never safe to reuse its associated identifier in lieu
     // of e2.
@@ -522,17 +517,17 @@ bool Reducer::ExprValid(const ID* id, const Expr* e1, const Expr* e2) const {
     // of script functions.
 
     // Tracks which ID's are germane for our analysis.
-    std::vector<const ID*> ids;
+    std::vector<IDPtr> ids;
 
-    ids.push_back(id);
+    ids.push_back(std::move(id));
 
     // Identify variables involved in the expression.
-    CheckIDs(e1->GetOp1().get(), ids);
-    CheckIDs(e1->GetOp2().get(), ids);
-    CheckIDs(e1->GetOp3().get(), ids);
+    CheckIDs(e1->GetOp1(), ids);
+    CheckIDs(e1->GetOp2(), ids);
+    CheckIDs(e1->GetOp3(), ids);
 
     if ( e1->Tag() == EXPR_NAME )
-        ids.push_back(e1->AsNameExpr()->Id());
+        ids.push_back(e1->AsNameExpr()->IdPtr());
 
     CSE_ValidityChecker vc(pfs, ids, e1, e2);
     reduction_root->Traverse(&vc);
@@ -540,22 +535,22 @@ bool Reducer::ExprValid(const ID* id, const Expr* e1, const Expr* e2) const {
     return vc.IsValid();
 }
 
-void Reducer::CheckIDs(const Expr* e, std::vector<const ID*>& ids) const {
+void Reducer::CheckIDs(const ExprPtr& e, std::vector<IDPtr>& ids) const {
     if ( ! e )
         return;
 
     if ( e->Tag() == EXPR_LIST ) {
         const auto& e_l = e->AsListExpr()->Exprs();
         for ( auto i = 0; i < e_l.length(); ++i )
-            CheckIDs(e_l[i], ids);
+            CheckIDs({NewRef{}, e_l[i]}, ids);
     }
 
     else if ( e->Tag() == EXPR_NAME )
-        ids.push_back(e->AsNameExpr()->Id());
+        ids.push_back(e->AsNameExpr()->IdPtr());
 }
 
 bool Reducer::IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs) {
-    auto lhs_id = lhs->Id();
+    auto lhs_id = lhs->IdPtr();
     auto lhs_tmp = FindTemporary(lhs_id); // nil if LHS not a temporary
     auto rhs_tmp = FindExprTmp(rhs, a, lhs_tmp);
 
@@ -572,8 +567,8 @@ bool Reducer::IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs) {
         }
 
         if ( rhs->Tag() == EXPR_NAME ) {
-            auto rhs_id = rhs->AsNameExpr()->IdPtr();
-            auto rhs_tmp_var = FindTemporary(rhs_id.get());
+            const auto& rhs_id = rhs->AsNameExpr()->IdPtr();
+            auto rhs_tmp_var = FindTemporary(rhs_id);
 
             if ( rhs_tmp_var ) {
                 if ( rhs_tmp_var->Const() )
@@ -659,16 +654,15 @@ ExprPtr Reducer::UpdateExpr(ExprPtr e) {
         return OptExpr(e);
 
     auto n = e->AsNameExpr();
-    auto id = n->Id();
+    const auto& id = n->IdPtr();
 
     if ( id->IsGlobal() )
         return e;
 
     auto tmp_var = FindTemporary(id);
     if ( ! tmp_var ) {
-        IDPtr id_ptr = {NewRef{}, id};
         auto stmt_num = e->GetOptInfo()->stmt_num;
-        auto is_const = CheckForConst(id_ptr, stmt_num);
+        auto is_const = CheckForConst(id, stmt_num);
 
         if ( is_const ) {
             // Remember this variable as one whose value
@@ -690,12 +684,12 @@ ExprPtr Reducer::UpdateExpr(ExprPtr e) {
     if ( alias ) {
         // Make sure that the definitions for the alias here are
         // the same as when the alias was created.
-        auto alias_tmp = FindTemporary(alias.get());
+        auto alias_tmp = FindTemporary(alias);
 
         // Resolve any alias chains.
         while ( alias_tmp && alias_tmp->Alias() ) {
             alias = alias_tmp->Alias();
-            alias_tmp = FindTemporary(alias.get());
+            alias_tmp = FindTemporary(alias);
         }
 
         return NewVarUsage(alias, e.get());
@@ -711,7 +705,7 @@ ExprPtr Reducer::UpdateExpr(ExprPtr e) {
 
 StmtPtr Reducer::MergeStmts(const NameExpr* lhs, ExprPtr rhs, const StmtPtr& succ_stmt) {
     // First check for tmp=rhs.
-    auto lhs_id = lhs->Id();
+    auto lhs_id = lhs->IdPtr();
     auto lhs_tmp = FindTemporary(lhs_id);
 
     if ( ! lhs_tmp )
@@ -738,8 +732,8 @@ StmtPtr Reducer::MergeStmts(const NameExpr* lhs, ExprPtr rhs, const StmtPtr& suc
         // Complex 2nd-statement assignment.
         return nullptr;
 
-    auto a_lhs_var = a_lhs_deref->AsNameExpr()->Id();
-    auto a_rhs_var = a_rhs->AsNameExpr()->Id();
+    const auto& a_lhs_var = a_lhs_deref->AsNameExpr()->IdPtr();
+    const auto& a_rhs_var = a_rhs->AsNameExpr()->IdPtr();
 
     if ( a_rhs_var != lhs_id )
         // 2nd statement is var=something else.
@@ -794,13 +788,13 @@ IDPtr Reducer::GenTemporary(TypePtr t, ExprPtr rhs, IDPtr id) {
     temps.push_back(temp);
 
     om.AddObj(temp_id.get());
-    ids_to_temps[temp_id.get()] = temp;
+    ids_to_temps[temp_id] = temp;
 
     return temp_id;
 }
 
 IDPtr Reducer::FindNewLocal(const IDPtr& id) {
-    auto mapping = orig_to_new_locals.find(id.get());
+    auto mapping = orig_to_new_locals.find(id);
 
     if ( mapping != orig_to_new_locals.end() )
         return mapping->second;
@@ -809,8 +803,8 @@ IDPtr Reducer::FindNewLocal(const IDPtr& id) {
 }
 
 void Reducer::AddNewLocal(const IDPtr& l) {
-    new_locals.insert(l.get());
-    tracked_ids.insert(l.get());
+    new_locals.insert(l);
+    tracked_ids.insert(l);
 }
 
 IDPtr Reducer::GenLocal(const IDPtr& orig) {
@@ -838,25 +832,22 @@ IDPtr Reducer::GenLocal(const IDPtr& orig) {
         local_id->GetOptInfo()->SetTemp();
 
     IDPtr prev;
-    if ( orig_to_new_locals.contains(orig.get()) )
-        prev = orig_to_new_locals[orig.get()];
+    if ( orig_to_new_locals.contains(orig) )
+        prev = orig_to_new_locals[orig];
 
     AddNewLocal(local_id);
     om.AddObj(orig.get());
-    orig_to_new_locals[orig.get()] = local_id;
+    orig_to_new_locals[orig] = local_id;
 
-    if ( ! block_locals.empty() && ! ret_vars.contains(orig.get()) )
-        block_locals.back()[orig.get()] = prev;
+    if ( ! block_locals.empty() && ! ret_vars.contains(orig) )
+        block_locals.back()[orig] = prev;
 
     return local_id;
 }
 
-bool Reducer::IsNewLocal(const ID* id) const {
-    ID* non_const_ID = (ID*)id; // I don't get why C++ requires this
-    return new_locals.contains(non_const_ID);
-}
+bool Reducer::IsNewLocal(const IDPtr& id) const { return new_locals.contains(id); }
 
-std::shared_ptr<TempVar> Reducer::FindTemporary(const ID* id) const {
+std::shared_ptr<TempVar> Reducer::FindTemporary(const IDPtr& id) const {
     auto tmp = ids_to_temps.find(id);
     if ( tmp == ids_to_temps.end() )
         return nullptr;

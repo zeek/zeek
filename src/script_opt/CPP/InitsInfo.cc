@@ -331,7 +331,7 @@ AttrInfo::AttrInfo(CPPCompile* _c, const AttrPtr& attr) : CompoundItemInfo(_c) {
         }
 
         else if ( a_e->Tag() == EXPR_NAME ) {
-            auto g = a_e->AsNameExpr()->Id();
+            auto g = a_e->AsNameExpr()->IdPtr();
             gi = c->RegisterGlobal(g);
             init_cohort = max(init_cohort, gi->InitCohort() + 1);
 
@@ -363,7 +363,7 @@ AttrsInfo::AttrsInfo(CPPCompile* _c, const AttributesPtr& _attrs) : CompoundItem
     }
 }
 
-GlobalLookupInitInfo::GlobalLookupInitInfo(CPPCompile* c, const ID* g, string _CPP_name, bool do_init)
+GlobalLookupInitInfo::GlobalLookupInitInfo(CPPCompile* c, IDPtr g, string _CPP_name, bool do_init)
     : CPP_InitInfo(g), CPP_name(std::move(_CPP_name)) {
     Zeek_name = g->Name();
     val = ValElem(c, do_init ? g->GetVal() : nullptr);
@@ -375,7 +375,7 @@ void GlobalLookupInitInfo::InitializerVals(std::vector<std::string>& ivs) const 
     ivs.push_back(val);
 }
 
-GlobalInitInfo::GlobalInitInfo(CPPCompile* c, const ID* g, string _CPP_name)
+GlobalInitInfo::GlobalInitInfo(CPPCompile* c, IDPtr g, string _CPP_name)
     : GlobalLookupInitInfo(c, g, std::move(_CPP_name)) {
     auto& gt = g->GetType();
     auto gi = c->RegisterType(gt);

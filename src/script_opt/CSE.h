@@ -17,7 +17,7 @@ class TempVar;
 
 class CSE_ValidityChecker : public TraversalCallback {
 public:
-    CSE_ValidityChecker(std::shared_ptr<ProfileFuncs> pfs, const std::vector<const ID*>& ids, const Expr* start_e,
+    CSE_ValidityChecker(std::shared_ptr<ProfileFuncs> pfs, const std::vector<IDPtr>& ids, const Expr* start_e,
                         const Expr* end_e);
 
     TraversalCode PreStmt(const Stmt*) override;
@@ -45,7 +45,7 @@ public:
 protected:
     // Returns true if an assignment involving the given identifier on
     // the LHS is in conflict with the identifiers we're tracking.
-    bool CheckID(const ID* id, bool ignore_orig);
+    bool CheckID(const IDPtr& id, bool ignore_orig);
 
     // Returns true if a modification to an aggregate of the given type
     // potentially aliases with one of the identifiers we're tracking.
@@ -83,7 +83,7 @@ protected:
 
     // The list of identifiers for which an assignment to one of them
     // renders the CSE unsafe.
-    const std::vector<const ID*>& ids;
+    const std::vector<IDPtr>& ids;
 
     // Where in the AST to start our analysis.  This is the initial
     // assignment expression.

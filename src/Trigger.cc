@@ -44,7 +44,7 @@ TraversalCode trigger::TriggerTraversalCallback::PreExpr(const Expr* expr) {
     switch ( expr->Tag() ) {
         case EXPR_NAME: {
             const auto* e = static_cast<const NameExpr*>(expr);
-            auto id = e->Id();
+            auto id = e->IdPtr();
 
             if ( id->IsGlobal() )
                 globals.insert(id);
@@ -184,7 +184,7 @@ void Trigger::ReInit(std::vector<ValPtr> index_expr_results) {
     }
 
     for ( auto g : globals ) {
-        Register(g);
+        Register(g.get());
 
         auto& v = g->GetVal();
         if ( v && v->Modifiable() )

@@ -431,7 +431,7 @@ void ZAMCompiler::ComputeFrameLifetimes() {
 
             case OP_STORE_GLOBAL_g: {
                 // Use of the global goes to here.
-                auto slot = frame_layout1[globalsI[inst->v1].id.get()];
+                const auto& slot = frame_layout1[globalsI[inst->v1].id];
                 ExtendLifetime(slot, EndOfLoop(inst, 1));
                 break;
             }
@@ -671,7 +671,7 @@ void ZAMCompiler::ReMapInterpreterFrame() {
         remapped_intrp_frame_sizes[f] = next_interp_slot;
 }
 
-void ZAMCompiler::ReMapVar(const ID* id, int slot, zeek_uint_t inst) {
+void ZAMCompiler::ReMapVar(const IDPtr& id, int slot, zeek_uint_t inst) {
     // A greedy algorithm for this is to simply find the first suitable
     // frame slot.  We do that with one twist: we also look for a
     // compatible slot for which its current end-of-scope is exactly

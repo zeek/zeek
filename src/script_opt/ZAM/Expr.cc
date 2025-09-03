@@ -951,7 +951,7 @@ const ZAMStmt ZAMCompiler::BuildLambda(int n_slot, ExprPtr e) {
     for ( int i = 0; i < ncaptures; ++i ) {
         auto& id_i = (*captures)[i].Id();
 
-        if ( pf->WhenLocals().contains(id_i.get()) )
+        if ( pf->WhenLocals().contains(id_i) )
             aux->Add(i, nullptr);
         else
             aux->Add(i, FrameSlot(id_i), id_i->GetType());

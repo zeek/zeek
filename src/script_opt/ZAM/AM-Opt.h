@@ -38,7 +38,7 @@ void ReMapInterpreterFrame();
 
 // Computes the remapping for a variable currently in the given slot,
 // whose scope begins at the given instruction.
-void ReMapVar(const ID* id, int slot, zeek_uint_t inst);
+void ReMapVar(const IDPtr& id, int slot, zeek_uint_t inst);
 
 // Look to initialize the beginning of local lifetime based on slot
 // assignment at instruction inst.

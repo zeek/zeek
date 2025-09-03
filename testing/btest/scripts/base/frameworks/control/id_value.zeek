@@ -1,3 +1,7 @@
+# Can't use this test for -O gen-C++ because of multiple simultaneous
+# Zeek runs.
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
+
 # @TEST-PORT: BROKER_PORT
 #
 # @TEST-EXEC: btest-bg-run controllee  ZEEKPATH=$ZEEKPATH:.. zeek -b %INPUT only-for-controllee frameworks/control/controllee Broker::default_port=$BROKER_PORT

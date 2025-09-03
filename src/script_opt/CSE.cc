@@ -6,7 +6,7 @@
 
 namespace zeek::detail {
 
-CSE_ValidityChecker::CSE_ValidityChecker(std::shared_ptr<ProfileFuncs> _pfs, const std::vector<const ID*>& _ids,
+CSE_ValidityChecker::CSE_ValidityChecker(std::shared_ptr<ProfileFuncs> _pfs, const std::vector<IDPtr>& _ids,
                                          const Expr* _start_e, const Expr* _end_e)
     : pfs(std::move(_pfs)), ids(_ids) {
     start_e = _start_e;
@@ -111,7 +111,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
             auto lhs_ref = e->GetOp1()->AsRefExprPtr();
             auto lhs = lhs_ref->GetOp1()->AsNameExpr();
 
-            if ( CheckID(lhs->Id(), false) )
+            if ( CheckID(lhs->IdPtr(), false) )
                 return TC_ABORTALL;
 
             // Note, we don't use CheckAggrMod() because this is a plain
@@ -127,7 +127,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
 
         case EXPR_INDEX_ASSIGN: {
             auto lhs_aggr = e->GetOp1();
-            auto lhs_aggr_id = lhs_aggr->AsNameExpr()->Id();
+            const auto& lhs_aggr_id = lhs_aggr->AsNameExpr()->IdPtr();
 
             if ( CheckID(lhs_aggr_id, true) || CheckTableMod(lhs_aggr->GetType()) )
                 return TC_ABORTALL;
@@ -135,7 +135,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
 
         case EXPR_FIELD_LHS_ASSIGN: {
             auto lhs = e->GetOp1();
-            auto lhs_aggr_id = lhs->AsNameExpr()->Id();
+            const auto& lhs_aggr_id = lhs->AsNameExpr()->IdPtr();
             auto lhs_field = static_cast<const FieldLHSAssignExpr*>(e)->Field();
 
             if ( CheckID(lhs_aggr_id, true) )
@@ -186,7 +186,7 @@ TraversalCode CSE_ValidityChecker::PreExpr(const Expr* e) {
             auto aggr_t = aggr->GetType();
 
             if ( in_aggr_mod_expr > 0 ) {
-                auto aggr_id = aggr->AsNameExpr()->Id();
+                const auto& aggr_id = aggr->AsNameExpr()->IdPtr();
 
                 if ( CheckID(aggr_id, true) || CheckAggrMod(aggr_t) )
                     return TC_ABORTALL;
@@ -211,7 +211,7 @@ TraversalCode CSE_ValidityChecker::PostExpr(const Expr* e) {
     return TC_CONTINUE;
 }
 
-bool CSE_ValidityChecker::CheckID(const ID* id, bool ignore_orig) {
+bool CSE_ValidityChecker::CheckID(const IDPtr& id, bool ignore_orig) {
     for ( auto i : ids ) {
         if ( ignore_orig && i == ids.front() )
             continue;

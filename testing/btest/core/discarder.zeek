@@ -1,3 +1,6 @@
+# Can't use this test for -O gen-C++ because of multiple differing Zeek runs.
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
+
 # @TEST-EXEC: zeek -b -C -r $TRACES/wikipedia.trace discarder-ip.zeek >output
 # @TEST-EXEC: zeek -b -C -r $TRACES/wikipedia.trace discarder-tcp.zeek >>output
 # @TEST-EXEC: zeek -b -C -r $TRACES/wikipedia.trace discarder-udp.zeek >>output

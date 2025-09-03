@@ -1,5 +1,10 @@
 # A test of prefix-based @load'ing
 
+# Can't use this test for -O gen-C++ because none of the scripts has
+# testing/btest in its path when loaded, so don't get recognized for
+# compilation.
+# @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
+
 # @TEST-EXEC: zeek -b base/utils/site base/protocols/http addprefixes >output
 # @TEST-EXEC: btest-diff output
 

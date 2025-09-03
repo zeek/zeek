@@ -6,37 +6,33 @@
 
 bool IsUnused(const IDPtr& id, const Stmt* where) const;
 
-bool IsCapture(const IDPtr& id) const { return IsCapture(id.get()); }
-bool IsCapture(const ID* id) const;
+bool IsCapture(const IDPtr& id) const;
+int CaptureOffset(const IDPtr& id) const;
 
-int CaptureOffset(const IDPtr& id) const { return IsCapture(id.get()); }
-int CaptureOffset(const ID* id) const;
+void LoadParam(const IDPtr& id);
+const ZAMStmt LoadGlobal(const IDPtr& id);
+const ZAMStmt LoadCapture(const IDPtr& id);
 
-void LoadParam(const ID* id);
-const ZAMStmt LoadGlobal(const ID* id);
-const ZAMStmt LoadCapture(const ID* id);
+int AddToFrame(const IDPtr&);
 
-int AddToFrame(const ID*);
-
-int FrameSlot(const IDPtr& id) { return FrameSlot(id.get()); }
-int FrameSlot(const ID* id);
+int FrameSlot(const IDPtr& id);
 int FrameSlotIfName(const Expr* e) {
     auto n = e->Tag() == EXPR_NAME ? e->AsNameExpr() : nullptr;
-    return n ? FrameSlot(n->Id()) : -1;
+    return n ? FrameSlot(n->IdPtr()) : -1;
 }
 
-int FrameSlot(const NameExpr* n) { return FrameSlot(n->Id()); }
-int Frame1Slot(const NameExpr* n, ZOp op) { return Frame1Slot(n->Id(), op); }
+int FrameSlot(const NameExpr* n) { return FrameSlot(n->IdPtr()); }
+int Frame1Slot(const NameExpr* n, ZOp op) { return Frame1Slot(n->IdPtr(), op); }
 
-int Frame1Slot(const ID* id, ZOp op) { return Frame1Slot(id, op1_flavor[op]); }
-int Frame1Slot(const NameExpr* n, ZAMOp1Flavor fl) { return Frame1Slot(n->Id(), fl); }
-int Frame1Slot(const ID* id, ZAMOp1Flavor fl);
+int Frame1Slot(const IDPtr& id, ZOp op) { return Frame1Slot(id, op1_flavor[op]); }
+int Frame1Slot(const NameExpr* n, ZAMOp1Flavor fl) { return Frame1Slot(n->IdPtr(), fl); }
+int Frame1Slot(const IDPtr& id, ZAMOp1Flavor fl);
 
 // The slot without doing any global-related checking.
-int RawSlot(const NameExpr* n) { return RawSlot(n->Id()); }
-int RawSlot(const ID* id);
+int RawSlot(const NameExpr* n) { return RawSlot(n->IdPtr()); }
+int RawSlot(const IDPtr& id);
 
-bool HasFrameSlot(const ID* id) const;
+bool HasFrameSlot(const IDPtr& id) const;
 
 int NewSlot(const TypePtr& t) { return NewSlot(ZVal::IsManagedType(t)); }
 int NewSlot(bool is_managed);

@@ -39,7 +39,7 @@ private:
 
     // If -u is active, checks for whether the given identifier present
     // in the given expression is undefined at that point.
-    void CheckVarUsage(const Expr* e, const ID* id);
+    void CheckVarUsage(const Expr* e, const IDPtr& id);
 
     // Begin a new confluence block with the given statement.
     void StartConfluenceBlock(const Stmt* s);
@@ -70,8 +70,7 @@ private:
     // statement in the current confluence block.  'e' is the
     // expression used to define the identifier, for simple direct
     // assignments.
-    void TrackID(const IDPtr& id, const ExprPtr& e = nullptr) { TrackID(id.get(), e); }
-    void TrackID(const ID* id, const ExprPtr& e = nullptr);
+    void TrackID(const IDPtr& id, const ExprPtr& e = nullptr);
 
     // Profile for the function.  Currently, all we actually need from
     // this is the list of globals and locals.

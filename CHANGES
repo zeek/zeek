@@ -1,3 +1,27 @@
+8.1.0-dev.508 | 2025-09-03 15:02:41 -0700
+
+  * fixup! fixup! shift much of the internal use of ID* identifier pointers over to IDPtr objects (Vern Paxson, Corelight)
+
+  * fixup! shift much of the internal use of ID* identifier pointers over to IDPtr objects (Vern Paxson, Corelight)
+
+  * fixup! shift much of the internal use of ID* identifier pointers over to IDPtr objects (Vern Paxson, Corelight)
+
+  * fixup! shift much of the internal use of ID* identifier pointers over to IDPtr objects (Vern Paxson, Corelight)
+
+  * annotate a number of BTests as unsuited for -O gen-C++ testing due to multiple Zeek runs (Vern Paxson, Corelight)
+
+  * BTest baseline updates for -O gen-C++ - all minor tweaks (Vern Paxson, Corelight)
+
+  * BTest updates for script optimization tracking of BiFs (Vern Paxson, Corelight)
+
+  * regression test for former ASAN issue with script optimization of lambdas (Vern Paxson, Corelight)
+
+  * shift much of the internal use of ID* identifier pointers over to IDPtr objects (Vern Paxson, Corelight)
+
+  * maintenance update for script optimization's knowledge of BiFs (Vern Paxson, Corelight)
+
+  * logger fix for interoperability with -O gen-C++ code (Vern Paxson, Corelight)
+
 8.1.0-dev.496 | 2025-09-03 16:17:23 -0400
 
   * tightened up parsing of $field=X record constructor expressions (Vern Paxson, Corelight)

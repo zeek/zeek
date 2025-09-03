@@ -156,7 +156,7 @@ private:
     std::shared_ptr<Reducer> reducer;
 
     // Maps identifiers to their (unique) frame location.
-    std::unordered_map<const ID*, int> frame_layout1;
+    std::unordered_map<IDPtr, int> frame_layout1;
 
     // Inverse mapping, used for tracking frame usage (and for dumping
     // statements).
@@ -201,7 +201,7 @@ private:
     // values that get finalized when constructing the corresponding
     // ZBody.
     std::vector<GlobalInfo> globalsI;
-    std::unordered_map<const ID*, int> global_id_to_info; // inverse
+    std::unordered_map<IDPtr, int> global_id_to_info; // inverse
 
     // Intermediary switch tables (branching to ZInst's rather
     // than concrete instruction offsets).

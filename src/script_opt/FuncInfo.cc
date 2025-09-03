@@ -414,7 +414,6 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"reading_live_traffic", ATTR_IDEMPOTENT},
     {"reading_traces", ATTR_IDEMPOTENT},
     {"record_fields", ATTR_FOLDABLE},
-    {"record_type_to_vector", ATTR_FOLDABLE},
     {"remask_addr", ATTR_FOLDABLE},
     {"remove_prefix", ATTR_FOLDABLE},
     {"remove_suffix", ATTR_FOLDABLE},

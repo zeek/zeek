@@ -7,7 +7,7 @@ namespace zeek::detail {
 
 using namespace std;
 
-void CPPCompile::CreateGlobal(const ID* g) {
+void CPPCompile::CreateGlobal(IDPtr g) {
     auto gn = string(g->Name());
     bool is_bif = pfs->BiFGlobals().contains(g);
 
@@ -45,7 +45,7 @@ void CPPCompile::CreateGlobal(const ID* g) {
     global_vars.emplace(g);
 }
 
-std::shared_ptr<CPP_InitInfo> CPPCompile::RegisterGlobal(const ID* g) {
+std::shared_ptr<CPP_InitInfo> CPPCompile::RegisterGlobal(IDPtr g) {
     auto gg = global_gis.find(g);
 
     if ( gg != global_gis.end() )
@@ -71,7 +71,7 @@ std::shared_ptr<CPP_InitInfo> CPPCompile::RegisterGlobal(const ID* g) {
     return gi;
 }
 
-std::shared_ptr<CPP_InitInfo> CPPCompile::GenerateGlobalInit(const ID* g) {
+std::shared_ptr<CPP_InitInfo> CPPCompile::GenerateGlobalInit(IDPtr g) {
     auto gn = string(g->Name());
     if ( ! standalone )
         return make_shared<GlobalLookupInitInfo>(this, g, globals[gn]);
@@ -94,7 +94,7 @@ std::shared_ptr<CPP_InitInfo> CPPCompile::GenerateGlobalInit(const ID* g) {
     return make_shared<GlobalLookupInitInfo>(this, g, globals[gn], needs_redef);
 }
 
-void CPPCompile::AddBiF(const ID* b, bool is_var) {
+void CPPCompile::AddBiF(IDPtr b, bool is_var) {
     auto bn = b->Name();
     auto n = string(bn);
     if ( is_var )
@@ -117,7 +117,7 @@ bool CPPCompile::AddGlobal(const string& g, const char* suffix) {
 
 void CPPCompile::RegisterEvent(string ev_name) { body_events[body_name].emplace_back(std::move(ev_name)); }
 
-const string& CPPCompile::IDNameStr(const ID* id) {
+const string& CPPCompile::IDNameStr(const IDPtr& id) {
     if ( id->IsGlobal() ) {
         auto g = string(id->Name());
         if ( ! globals.contains(g) )
@@ -130,7 +130,7 @@ const string& CPPCompile::IDNameStr(const ID* id) {
     return l->second;
 }
 
-static string trim_name(const ID* id) {
+static string trim_name(const IDPtr& id) {
     auto n = id->Name();
     auto without_module = strstr(n, "::");
 
@@ -152,9 +152,9 @@ static string trim_name(const ID* id) {
     return ns;
 }
 
-string CPPCompile::LocalName(const ID* l) const { return Canonicalize(trim_name(l)); }
+string CPPCompile::LocalName(const IDPtr& l) const { return Canonicalize(trim_name(l)); }
 
-string CPPCompile::CaptureName(const ID* c) const {
+string CPPCompile::CaptureName(const IDPtr& c) const {
     // We want to strip both the module and any inlining appendage.
     auto tn = trim_name(c);
 

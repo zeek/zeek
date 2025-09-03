@@ -702,13 +702,11 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val) 
     // variables are actually used in the body. Now that we have '_'
     // loop placeholder variables, this is no longer worth trying to
     // optimize for, though we still optimize for those placeholders.
-    int num_unused = 0;
+    size_t num_unused = 0;
 
     auto aux = new ZInstAux(0);
 
-    for ( auto i = 0; i < loop_vars->length(); ++i ) {
-        auto id = (*loop_vars)[i];
-
+    for ( const auto& id : *loop_vars ) {
         if ( id->IsBlank() )
             ++num_unused;
 
@@ -719,7 +717,7 @@ const ZAMStmt ZAMCompiler::LoopOverTable(const ForStmt* f, const NameExpr* val) 
         aux->is_managed.push_back(ZVal::IsManagedType(t));
     }
 
-    bool no_loop_vars = (num_unused == loop_vars->length());
+    bool no_loop_vars = (num_unused == loop_vars->size());
 
     if ( value_var )
         aux->value_var_type = value_var->GetType();

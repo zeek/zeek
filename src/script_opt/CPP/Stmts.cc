@@ -11,7 +11,7 @@ using namespace std;
 void CPPCompile::GenStmt(const Stmt* s) {
     auto loc = s->GetLocationInfo();
     if ( loc != &detail::no_location && s->Tag() != STMT_LIST )
-        Emit("// %s:%d", loc->FileName(), loc->FirstLine());
+        Emit("// %s:%s", loc->FileName(), to_string(loc->FirstLine()));
 
     switch ( s->Tag() ) {
         case STMT_INIT: GenInitStmt(s->AsInitStmt()); break;
@@ -82,7 +82,7 @@ void CPPCompile::GenInitStmt(const InitStmt* init) {
         auto type_type = TypeType(t);
         auto type_ind = GenTypeName(t);
 
-        if ( ! locals.contains(aggr.get()) ) {
+        if ( ! locals.contains(aggr) ) {
             // fprintf(stderr, "aggregate %s unused\n", obj_desc(aggr.get()).c_str());
             continue;
         }
@@ -223,7 +223,7 @@ void CPPCompile::GenTypeSwitchStmt(const Expr* e, const case_list* cases) {
     Emit("}"); // end the scoping block
 }
 
-void CPPCompile::GenTypeSwitchCase(const ID* id, int case_offset, bool is_multi) {
+void CPPCompile::GenTypeSwitchCase(const IDPtr id, int case_offset, bool is_multi) {
     Emit("case %s:", Fmt(case_offset));
 
     if ( ! id->Name() )
@@ -310,13 +310,13 @@ void CPPCompile::GenWhenStmt(const WhenStmt* w) {
 
     for ( auto& l : wi->WhenExprLocals() )
         if ( IsAggr(l->GetType()) )
-            local_aggrs.push_back(IDNameStr(l.get()));
+            local_aggrs.push_back(IDNameStr(l));
 
     auto when_lambda = GenExpr(wi->Lambda(), GEN_NATIVE);
     GenWhenStmt(wi.get(), when_lambda, w->GetLocationInfo(), std::move(local_aggrs));
 }
 
-void CPPCompile::GenWhenStmt(const WhenInfo* wi, const std::string& when_lambda, const Location* loc,
+void CPPCompile::GenWhenStmt(const WhenInfo* wi, const string& when_lambda, const Location* loc,
                              vector<string> local_aggrs) {
     auto is_return = wi->IsReturn() ? "true" : "false";
     auto timeout = wi->TimeoutExpr();
@@ -333,7 +333,7 @@ void CPPCompile::GenWhenStmt(const WhenInfo* wi, const std::string& when_lambda,
     StartBlock();
     Emit("CPP__wi = std::make_shared<WhenInfo>(%s);", is_return);
     for ( auto& wg : wi->WhenExprGlobals() )
-        Emit("CPP__w_globals.insert(find_global__CPP(\"%s\").get());", wg->Name());
+        Emit("CPP__w_globals.insert(find_global__CPP(\"%s\"));", wg->Name());
     EndBlock();
     NL();
 
@@ -430,7 +430,8 @@ void CPPCompile::GenForOverTable(const ExprPtr& tbl, const IDPtr& value_var, con
         Emit("%s = %s;", IDName(value_var),
              GenericValPtrToGT("current_tev__CPP->GetVal()", value_var->GetType(), GEN_NATIVE));
 
-    for ( int i = 0; i < loop_vars->length(); ++i ) {
+    int n = static_cast<int>(loop_vars->size());
+    for ( int i = 0; i < n; ++i ) {
         auto var = (*loop_vars)[i];
         if ( var->IsBlank() )
             continue;
@@ -498,8 +499,8 @@ void CPPCompile::GenAssertStmt(const AssertStmt* a) {
         Emit("auto msg_val = zeek::val_mgr->EmptyString();");
 
     auto loc = a->GetLocationInfo();
-    Emit("static Location loc(\"%s\", %s, %s);", loc->FileName(), std::to_string(loc->FirstLine()),
-         std::to_string(loc->LastLine()));
+    Emit("static Location loc(\"%s\", %s, %s);", loc->FileName(), to_string(loc->FirstLine()),
+         to_string(loc->LastLine()));
     Emit("report_assert(assert_result, \"%s\", msg_val, &loc);", CPPEscape(a->CondDesc().c_str()).c_str());
     EndBlock();
 

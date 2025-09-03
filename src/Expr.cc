@@ -4226,7 +4226,7 @@ LambdaExpr::LambdaExpr(FunctionIngredientsPtr arg_ing, IDPList arg_outer_ids, st
     if ( captures ) {
         outer_ids.clear();
         for ( auto& c : *captures )
-            outer_ids.append(c.Id().get());
+            outer_ids.emplace_back(c.Id());
     }
 
     // Install a primary version of the function globally.  This is used
@@ -4271,7 +4271,7 @@ LambdaExpr::LambdaExpr(LambdaExpr* orig) : Expr(EXPR_LAMBDA) {
     // We need to have our own copies of the outer IDs and captures so
     // we can rename them when inlined.
     for ( auto i : orig->outer_ids )
-        outer_ids.append(i);
+        outer_ids.emplace_back(i);
 
     if ( orig->captures ) {
         captures = std::vector<FuncType::Capture>{};
@@ -4295,11 +4295,11 @@ bool LambdaExpr::CheckCaptures(StmtPtr when_parent) {
         return true;
     }
 
-    std::set<const ID*> outer_is_matched;
-    std::set<const ID*> capture_is_matched;
+    std::unordered_set<IDPtr> outer_is_matched;
+    std::unordered_set<IDPtr> capture_is_matched;
 
     for ( const auto& c : *captures ) {
-        auto cid = c.Id().get();
+        auto cid = c.Id();
 
         if ( ! cid )
             // This happens for undefined/inappropriate
@@ -4317,7 +4317,7 @@ bool LambdaExpr::CheckCaptures(StmtPtr when_parent) {
             return false;
         }
 
-        for ( auto id : outer_ids )
+        for ( const auto& id : outer_ids )
             if ( cid == id ) {
                 outer_is_matched.insert(id);
                 capture_is_matched.insert(cid);
@@ -4337,7 +4337,7 @@ bool LambdaExpr::CheckCaptures(StmtPtr when_parent) {
         }
 
     for ( const auto& c : *captures ) {
-        auto cid = c.Id().get();
+        const auto& cid = c.Id();
         if ( cid && ! capture_is_matched.contains(cid) ) {
             auto msg = util::fmt("%s is captured but not used inside %s", cid->Name(), desc);
             if ( when_parent )

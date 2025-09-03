@@ -35,7 +35,7 @@ ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fi
         int offset = 0;
 
         for ( auto& c : *fcaps ) {
-            auto cid = c.Id().get();
+            auto cid = c.Id();
             captures.insert(cid);
             captures_offsets[cid] = offset++;
         }
@@ -88,7 +88,7 @@ ProfileFunc::ProfileFunc(const Expr* e, bool _abs_rec_fields) {
 
         auto& ov = profiled_scope->OrderedVars();
         for ( int i = 0; i < num_params; ++i )
-            params.insert(ov[i].get());
+            params.insert(ov[i]);
 
         TrackType(ft);
         body->Traverse(this);
@@ -106,7 +106,7 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
     switch ( s->Tag() ) {
         case STMT_INIT:
             for ( const auto& id : s->AsInitStmt()->Inits() ) {
-                inits.insert(id.get());
+                inits.insert(id);
 
                 auto& t = id->GetType();
                 TrackType(t);
@@ -143,7 +143,7 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
                 locals.insert(id);
 
             if ( value_var )
-                locals.insert(value_var.get());
+                locals.insert(value_var);
         } break;
 
         case STMT_SWITCH: {
@@ -194,7 +194,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
 
         case EXPR_NAME: {
             auto n = e->AsNameExpr();
-            auto id = n->Id();
+            auto id = n->IdPtr();
 
             // Turns out that NameExpr's can be constructed using a
             // different Type* than that of the identifier itself,
@@ -202,7 +202,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             TrackType(id->GetType());
 
             if ( id->IsGlobal() ) {
-                PreID(id);
+                PreID(id.get());
                 break;
             }
 
@@ -256,7 +256,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                     auto& rhs_id = rhs->AsNameExpr()->IdPtr();
                     const auto& t = rhs_id->GetType();
                     if ( t->Tag() == TYPE_FUNC && t->AsFuncType()->Flavor() == FUNC_FLAVOR_FUNCTION )
-                        indirect_funcs.insert(rhs_id.get());
+                        indirect_funcs.insert(rhs_id);
                 }
             }
 
@@ -272,7 +272,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
 
             switch ( lhs->Tag() ) {
                 case EXPR_NAME: {
-                    auto id = lhs->AsNameExpr()->Id();
+                    auto id = lhs->AsNameExpr()->IdPtr();
                     TrackAssignment(id);
 
                     if ( is_assign ) {
@@ -346,11 +346,11 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             auto f = c->Func();
 
             const NameExpr* n = nullptr;
-            const ID* func = nullptr;
+            IDPtr func;
 
             if ( f->Tag() == EXPR_NAME ) {
                 n = f->AsNameExpr();
-                func = n->Id();
+                func = n->IdPtr();
 
                 if ( ! func->IsGlobal() )
                     does_indirect_calls = true;
@@ -367,7 +367,7 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                         auto& arg_id = arg->AsNameExpr()->IdPtr();
                         const auto& t = arg_id->GetType();
                         if ( t->Tag() == TYPE_FUNC && t->AsFuncType()->Flavor() == FUNC_FLAVOR_FUNCTION )
-                            indirect_funcs.insert(arg_id.get());
+                            indirect_funcs.insert(arg_id);
                     }
             }
 
@@ -482,8 +482,8 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
     return TC_CONTINUE;
 }
 
-TraversalCode ProfileFunc::PreID(const ID* id) {
-    TrackID(id);
+TraversalCode ProfileFunc::PreID(const ID* id_raw) {
+    IDPtr id{NewRef{}, const_cast<ID*>(id_raw)};
 
     if ( id->IsGlobal() ) {
         globals.insert(id);
@@ -521,7 +521,7 @@ void ProfileFunc::TrackType(const Type* t) {
     ordered_types.push_back(t);
 }
 
-void ProfileFunc::TrackID(const ID* id) {
+void ProfileFunc::TrackID(const IDPtr id) {
     if ( ! id )
         return;
 
@@ -540,8 +540,8 @@ void ProfileFunc::TrackID(const ID* id) {
     ordered_ids.push_back(id);
 }
 
-void ProfileFunc::TrackAssignment(const ID* id) {
-    if ( assignees.contains(id) )
+void ProfileFunc::TrackAssignment(const IDPtr id) {
+    if ( assignees.count(id) > 0 )
         ++assignees[id];
     else
         assignees[id] = 1;

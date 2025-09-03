@@ -49,7 +49,8 @@ enum IDScope : uint8_t { SCOPE_FUNCTION, SCOPE_MODULE, SCOPE_GLOBAL };
 
 class ID;
 using IDPtr = IntrusivePtr<ID>;
-using IDSet = std::unordered_set<const ID*>;
+using IDPList = std::vector<IDPtr>;
+using IDSet = std::unordered_set<IDPtr>;
 
 class IDOptInfo;
 

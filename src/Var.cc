@@ -667,7 +667,7 @@ public:
     TraversalCode PostExpr(const Expr*) override;
 
     std::vector<ScopePtr> scopes;
-    std::unordered_set<ID*> outer_id_references;
+    std::unordered_set<IDPtr> outer_id_references;
 };
 
 TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr) {
@@ -681,7 +681,7 @@ TraversalCode OuterIDBindingFinder::PreExpr(const Expr* expr) {
         return TC_CONTINUE;
 
     auto e = static_cast<const NameExpr*>(expr);
-    auto id = e->Id();
+    auto id = e->IdPtr();
 
     if ( id->IsGlobal() )
         return TC_CONTINUE;
@@ -760,8 +760,8 @@ IDPList gather_outer_ids(ScopePtr scope, StmtPtr body) {
 
     IDPList idl;
 
-    for ( auto id : cb.outer_id_references )
-        idl.append(id);
+    for ( auto& id : cb.outer_id_references )
+        idl.emplace_back(std::move(id));
 
     return idl;
 }

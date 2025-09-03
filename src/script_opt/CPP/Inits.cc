@@ -195,7 +195,7 @@ void CPPCompile::InitializeGlobals() {
     auto& ofiles = analysis_options.only_files;
 
     for ( const auto& ginit : IDOptInfo::GetGlobalInitExprs() ) {
-        auto g = ginit.Id();
+        IDPtr g{NewRef{}, const_cast<ID*>(ginit.Id())};
 
         if ( ! ofiles.empty() && ! obj_matches_opt_files(g) )
             continue;

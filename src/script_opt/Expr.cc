@@ -2396,7 +2396,7 @@ bool LambdaExpr::IsReduced(Reducer* c) const {
     for ( auto& cp : *captures ) {
         auto& cid = cp.Id();
 
-        if ( ! private_captures.contains(cid.get()) && ! c->ID_IsReduced(cid) )
+        if ( ! private_captures.contains(cid) && ! c->ID_IsReduced(cid) )
             return NonReduced(this);
     }
 
@@ -2424,7 +2424,7 @@ void LambdaExpr::UpdateCaptures(Reducer* c) {
         for ( auto& cp : *captures ) {
             auto& cid = cp.Id();
 
-            if ( ! private_captures.contains(cid.get()) )
+            if ( ! private_captures.contains(cid) )
                 cp.SetID(c->UpdateID(cid));
         }
 

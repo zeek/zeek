@@ -1101,7 +1101,7 @@ bool WhenInfo::HasUnreducedIDs(Reducer* c) const {
     for ( auto& cp : *cl ) {
         const auto& cid = cp.Id();
 
-        if ( when_new_locals.count(cid) == 0 && ! c->ID_IsReduced(cp.Id()) )
+        if ( ! when_new_locals.contains(cid) && ! c->ID_IsReduced(cp.Id()) )
             return true;
     }
 
@@ -1115,7 +1115,7 @@ bool WhenInfo::HasUnreducedIDs(Reducer* c) const {
 void WhenInfo::UpdateIDs(Reducer* c) {
     for ( auto& cp : *cl ) {
         auto& cid = cp.Id();
-        if ( when_new_locals.count(cid) == 0 )
+        if ( ! when_new_locals.contains(cid) )
             cp.SetID(c->UpdateID(cid));
     }
 

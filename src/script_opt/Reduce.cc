@@ -330,7 +330,7 @@ StmtPtr Reducer::GenParam(const IDPtr& id, ExprPtr rhs, bool is_modified) {
     param->SetLocationInfo(rhs->GetLocationInfo());
     auto rhs_id = rhs->Tag() == EXPR_NAME ? rhs->AsNameExpr()->IdPtr() : nullptr;
 
-    if ( rhs_id && ! pf->Locals().contains(rhs_id.get()) && ! rhs_id->IsConst() )
+    if ( rhs_id && ! pf->Locals().contains(rhs_id) && ! rhs_id->IsConst() )
         // It's hard to guarantee the RHS won't change during
         // the inline block's execution.
         is_modified = true;
@@ -832,20 +832,20 @@ IDPtr Reducer::GenLocal(const IDPtr& orig) {
         local_id->GetOptInfo()->SetTemp();
 
     IDPtr prev;
-    if ( orig_to_new_locals.count(orig) )
+    if ( orig_to_new_locals.contains(orig) )
         prev = orig_to_new_locals[orig];
 
     AddNewLocal(local_id);
     om.AddObj(orig.get());
     orig_to_new_locals[orig] = local_id;
 
-    if ( ! block_locals.empty() && ret_vars.count(orig) == 0 )
+    if ( ! block_locals.empty() && ! ret_vars.contains(orig) )
         block_locals.back()[orig] = prev;
 
     return local_id;
 }
 
-bool Reducer::IsNewLocal(const IDPtr& id) const { return new_locals.count(id) != 0; }
+bool Reducer::IsNewLocal(const IDPtr& id) const { return new_locals.contains(id); }
 
 std::shared_ptr<TempVar> Reducer::FindTemporary(const IDPtr& id) const {
     auto tmp = ids_to_temps.find(id);

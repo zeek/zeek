@@ -81,7 +81,7 @@ public:
     bool IsNewLocal(const IDPtr& id) const;
 
     bool IsTemporary(const IDPtr& id) const { return FindTemporary(id) != nullptr; }
-    bool IsParamTemp(const IDPtr& id) const { return param_temps.count(id) > 0; }
+    bool IsParamTemp(const IDPtr& id) const { return param_temps.contains(id); }
 
     bool IsConstantVar(const IDPtr& id) const { return constant_vars.find(id) != constant_vars.end(); }
 

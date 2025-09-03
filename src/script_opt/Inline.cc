@@ -420,7 +420,7 @@ ExprPtr Inliner::DoInline(ScriptFuncPtr sf, StmtPtr body, ListExprPtr args, Scop
     for ( int i = 0; i < nparam; ++i ) {
         auto& vi = vars[i];
         params.emplace_back(vi);
-        param_is_modified.emplace_back((pf->Assignees().contains(vi.get())));
+        param_is_modified.emplace_back((pf->Assignees().contains(vi)));
     }
 
     // Recursively inline the body.  This is safe to do because we've

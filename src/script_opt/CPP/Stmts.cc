@@ -82,7 +82,7 @@ void CPPCompile::GenInitStmt(const InitStmt* init) {
         auto type_type = TypeType(t);
         auto type_ind = GenTypeName(t);
 
-        if ( ! locals.contains(aggr.get()) ) {
+        if ( ! locals.contains(aggr) ) {
             // fprintf(stderr, "aggregate %s unused\n", obj_desc(aggr.get()).c_str());
             continue;
         }

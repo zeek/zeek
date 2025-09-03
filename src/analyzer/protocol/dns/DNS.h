@@ -146,8 +146,9 @@ enum DNSSEC_Digest : uint8_t {
     SHA384 = 4,
 };
 
-///< all keys are defined in RFC draft
-///< https://datatracker.ietf.org/doc/html/draft-ietf-dnsop-svcb-https-07#section-14.3.2
+// SVCB/HTTPS SvcParam keys as defined in
+// https://datatracker.ietf.org/doc/html/rfc9460#name-initial-contents
+// Keep in sync with scripts/base/protocols/dns/consts.zeek svcparam_keys.
 enum SVCPARAM_Key : uint8_t {
     mandatory = 0,
     alpn = 1,
@@ -278,6 +279,7 @@ struct LOC_DATA {
 struct SVCB_DATA {
     uint16_t svc_priority; // 2
     StringValPtr target_name;
+    VectorValPtr svc_params;
 };
 
 class DNS_MsgInfo {
@@ -359,6 +361,8 @@ protected:
     void ExtractOctets(const u_char*& data, int& len, String** p);
 
     String* ExtractStream(const u_char*& data, int& len, int sig_len);
+
+    VectorValPtr Parse_SvcParams(const u_char*& data, int& len, int svc_params_len);
 
     bool ParseRR_Name(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength, const u_char* msg_start);
     bool ParseRR_SOA(detail::DNS_MsgInfo* msg, const u_char*& data, int& len, int rdlength, const u_char* msg_start);

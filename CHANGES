@@ -1,3 +1,46 @@
+8.1.0-dev.511 | 2025-09-03 15:35:49 -0700
+
+  * Parse SVCB/HTTPS SvcParams list (Klemens Nanni)
+
+    Add full support for RFC 9460's SvcParams list.
+
+    Amend the existing `dns_svcb_rr` record by a vector of new
+    `dns_svcb_param` records containing aptly typed SvcParamKey and
+    SvcParamValue pairs.  Example output:
+
+    ```
+    @load base/protocols/dns
+    event dns_HTTPS( c: connection , msg: dns_msg , ans: dns_answer , https: dns_svcb_rr ) {
+    	for (_, param in https$svc_params)
+    		print to_json(param);  # filter uninitialised values
+    }
+    ```
+
+    ```
+    $ dig https cloudflare-ech.com +short | tr [:space:] \\n
+    1
+    .
+    alpn="h3,h2"
+    ipv4hint=104.18.10.118,104.18.11.118
+    ech=AEX+DQBBHgAgACBGL2e9TiFwjK/w1Zg9AmRm7mgXHz3PjffP0mTFNMxmDQAEAAEAAQASY2xvdWRmbGFyZS1lY2guY29tAAA=
+    ipv6hint=2606:4700::6812:a76,2606:4700::6812:b76
+    ```
+
+    ```
+    {"key":1,"alpn":["h3","h2"]}
+    {"key":4,"hint":["104.18.10.118","104.18.11.118"]}
+    {"key":5,"ech":"AEX+DQBBHgAgACBGL2e9TiFwjK/w1Zg9AmRm7mgXHz3PjffP0mTFNMxmDQAEAAEAAQASY2xvdWRmbGFyZS1lY2guY29tAAA="}
+    {"key":6,"hint":["2606:4700::6812:a76","2606:4700::6812:b76"]}
+    ```
+
+    Values with malformed data or belonging to invalid/reserved keys
+    are passed raw bytes in network order for script-level inspection.
+
+    Follow up to "Initial Support to DNS SVCB/HTTPS RR"
+    https://github.com/zeek/zeek/pull/1808
+
+  * Clang-tidy fixes for recent IDPtr changes (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.508 | 2025-09-03 15:02:41 -0700
 
   * fixup! fixup! shift much of the internal use of ID* identifier pointers over to IDPtr objects (Vern Paxson, Corelight)

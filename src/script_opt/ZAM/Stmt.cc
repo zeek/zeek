@@ -528,7 +528,7 @@ const ZAMStmt ZAMCompiler::GenSwitch(const SwitchStmt* sw, int slot, InternalTyp
     // For type switches, we map them to consecutive numbers, and then use
     // a integer-valued switch on those.
     int tm_ctr = 0;
-    for ( auto [_, index] : *sw->TypeMap() ) {
+    for ( const auto& [_, index] : *sw->TypeMap() ) {
         auto case_body_start = case_start[index];
         new_int_cases[tm_ctr++] = case_body_start;
     }

@@ -609,11 +609,11 @@ void UseDefs::FoldInUDs(UDs& main_UDs, const UDs& u1, const UDs& u2) {
         main_UDs->Replicate(old_main);
 
     if ( u1 )
-        for ( auto ud : u1->IterateOver() )
+        for ( const auto& ud : u1->IterateOver() )
             main_UDs->Add(ud);
 
     if ( u2 )
-        for ( auto ud : u2->IterateOver() )
+        for ( const auto& ud : u2->IterateOver() )
             main_UDs->Add(ud);
 }
 
@@ -633,7 +633,7 @@ void UseDefs::UpdateUDs(const Stmt* s, const UDs& uds) {
     }
 
     if ( uds ) {
-        for ( auto u : uds->IterateOver() )
+        for ( const auto& u : uds->IterateOver() )
             curr_uds->Add(u);
     }
 }

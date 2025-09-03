@@ -69,7 +69,7 @@ UsageAnalyzer::UsageAnalyzer(std::vector<FuncInfo>& funcs) {
     for ( auto& gpair : globals ) {
         auto& id = gpair.second;
 
-        if ( reachables.count(id) > 0 )
+        if ( reachables.contains(id) )
             continue;
 
         auto f = GetFuncIfAny(id);
@@ -119,7 +119,7 @@ public:
     TraversalCode PreID(const ID* raw_id) override {
         IDPtr id{NewRef{}, const_cast<ID*>(raw_id)};
 
-        if ( ids.count(id) > 0 )
+        if ( ids.contains(id) )
             return TC_ABORTSTMT;
 
         if ( attr_depth > 0 )
@@ -151,7 +151,7 @@ void UsageAnalyzer::FindSeeds(IDSet& seeds) const {
         auto f = GetFuncIfAny(id);
 
         if ( f && id->GetType<FuncType>()->Flavor() == FUNC_FLAVOR_EVENT ) {
-            if ( script_events.count(f->GetName()) == 0 )
+            if ( ! script_events.contains(f->GetName()) )
                 seeds.insert(id);
 
             continue;
@@ -201,7 +201,7 @@ void UsageAnalyzer::FullyExpandReachables() {
 bool UsageAnalyzer::ExpandReachables(const IDSet& curr_r) {
     new_reachables.clear();
 
-    for ( auto r : curr_r )
+    for ( const auto& r : curr_r )
         Expand(r);
 
     return ! new_reachables.empty();
@@ -229,7 +229,7 @@ void UsageAnalyzer::Expand(const IDPtr& id) {
 TraversalCode UsageAnalyzer::PreID(const ID* raw_id) {
     IDPtr id{NewRef{}, const_cast<ID*>(raw_id)};
 
-    if ( analyzed_IDs.count(id) > 0 )
+    if ( analyzed_IDs.contains(id) )
         // No need to repeat the analysis.
         return TC_ABORTSTMT;
 

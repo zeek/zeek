@@ -68,7 +68,7 @@ const ZAMStmt ZAMCompiler::LoadGlobal(const IDPtr& id) {
 
     // We use the id_val for reporting used-but-not-set errors.
     z.aux = new ZInstAux(0);
-    z.aux->id_val = std::move(id);
+    z.aux->id_val = id;
 
     return AddInst(z, true);
 }

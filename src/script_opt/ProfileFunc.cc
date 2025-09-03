@@ -35,7 +35,7 @@ ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fi
         int offset = 0;
 
         for ( auto& c : *fcaps ) {
-            auto cid = c.Id();
+            const auto& cid = c.Id();
             captures.insert(cid);
             captures_offsets[cid] = offset++;
         }
@@ -51,7 +51,7 @@ ProfileFunc::ProfileFunc(const Func* func, const StmtPtr& body, bool _abs_rec_fi
     // declaration.
     num_params = profiled_func_t->Params()->NumFields();
 
-    for ( auto l : locals ) {
+    for ( const auto& l : locals ) {
         if ( ! captures.contains(l) && l->Offset() < num_params )
             params.insert(l);
     }
@@ -76,7 +76,7 @@ ProfileFunc::ProfileFunc(const Expr* e, bool _abs_rec_fields) {
 
         int offset = 0;
 
-        for ( auto oid : func->OuterIDs() ) {
+        for ( const auto& oid : func->OuterIDs() ) {
             captures.insert(oid);
             captures_offsets[oid] = offset++;
         }
@@ -130,7 +130,7 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
             auto w = s->AsWhenStmt();
             auto wi = w->Info();
 
-            for ( auto wl : wi->WhenNewLocals() )
+            for ( const auto& wl : wi->WhenNewLocals() )
                 when_locals.insert(wl);
         } break;
 
@@ -139,7 +139,7 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
             auto loop_vars = sf->LoopVars();
             auto value_var = sf->ValueVar();
 
-            for ( auto id : *loop_vars )
+            for ( const auto& id : *loop_vars )
                 locals.insert(id);
 
             if ( value_var )
@@ -161,7 +161,7 @@ TraversalCode ProfileFunc::PreStmt(const Stmt* s) {
             for ( auto& c : *sw->Cases() ) {
                 auto idl = c->TypeCases();
                 if ( idl ) {
-                    for ( auto id : *idl )
+                    for ( const auto& id : *idl )
                         // Make sure it's not a placeholder
                         // identifier, used when there's
                         // no explicit one.
@@ -541,7 +541,7 @@ void ProfileFunc::TrackID(const IDPtr id) {
 }
 
 void ProfileFunc::TrackAssignment(const IDPtr id) {
-    if ( assignees.count(id) > 0 )
+    if ( assignees.contains(id) )
         ++assignees[id];
     else
         assignees[id] = 1;
@@ -685,7 +685,7 @@ bool ProfileFuncs::GetCallSideEffects(const NameExpr* n, IDSet& non_local_ids, T
 
     for ( auto a : seo->ModAggrs() )
         aggrs.insert(a);
-    for ( auto nl : seo->ModNonLocals() )
+    for ( const auto& nl : seo->ModNonLocals() )
         non_local_ids.insert(nl);
 
     return true;
@@ -878,7 +878,7 @@ void ProfileFuncs::ComputeProfileHash(std::shared_ptr<ProfileFunc> pf) {
         h = merge_p_hashes(h, p_hash(i->Tag()));
 
     h = merge_p_hashes(h, p_hash("ids"));
-    for ( auto i : pf->OrderedIdentifiers() )
+    for ( const auto& i : pf->OrderedIdentifiers() )
         h = merge_p_hashes(h, p_hash(i->Name()));
 
     h = merge_p_hashes(h, p_hash("constants"));
@@ -1408,7 +1408,7 @@ bool ProfileFuncs::AssessSideEffects(const SideEffectsOp* se, SideEffectsOp::Acc
 
     for ( auto a : se->ModAggrs() )
         aggrs.insert(a);
-    for ( auto nl : se->ModNonLocals() )
+    for ( const auto& nl : se->ModNonLocals() )
         non_local_ids.insert(nl);
 
     return false;

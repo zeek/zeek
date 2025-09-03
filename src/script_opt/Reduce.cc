@@ -322,7 +322,7 @@ bool Reducer::ID_IsReducedOrTopLevel(const IDPtr& id) {
 }
 
 bool Reducer::ID_IsReduced(const IDPtr& id) const {
-    return inline_block_level == 0 || tracked_ids.count(id) > 0 || id->IsGlobal() || IsTemporary(id);
+    return inline_block_level == 0 || tracked_ids.contains(id) || id->IsGlobal() || IsTemporary(id);
 }
 
 StmtPtr Reducer::GenParam(const IDPtr& id, ExprPtr rhs, bool is_modified) {
@@ -518,8 +518,7 @@ bool Reducer::ExprValid(const IDPtr& id, const Expr* e1, const Expr* e2) const {
 
     // Tracks which ID's are germane for our analysis.
     std::vector<IDPtr> ids;
-
-    ids.push_back(std::move(id));
+    ids.push_back(id);
 
     // Identify variables involved in the expression.
     CheckIDs(e1->GetOp1(), ids);
@@ -550,7 +549,7 @@ void Reducer::CheckIDs(const ExprPtr& e, std::vector<IDPtr>& ids) const {
 }
 
 bool Reducer::IsCSE(const AssignExpr* a, const NameExpr* lhs, const Expr* rhs) {
-    auto lhs_id = lhs->IdPtr();
+    const auto& lhs_id = lhs->IdPtr();
     auto lhs_tmp = FindTemporary(lhs_id); // nil if LHS not a temporary
     auto rhs_tmp = FindExprTmp(rhs, a, lhs_tmp);
 
@@ -705,7 +704,7 @@ ExprPtr Reducer::UpdateExpr(ExprPtr e) {
 
 StmtPtr Reducer::MergeStmts(const NameExpr* lhs, ExprPtr rhs, const StmtPtr& succ_stmt) {
     // First check for tmp=rhs.
-    auto lhs_id = lhs->IdPtr();
+    const auto& lhs_id = lhs->IdPtr();
     auto lhs_tmp = FindTemporary(lhs_id);
 
     if ( ! lhs_tmp )

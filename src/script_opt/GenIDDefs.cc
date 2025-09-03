@@ -426,7 +426,7 @@ void GenIDDefs::StartConfluenceBlock(const Stmt* s) {
 }
 
 void GenIDDefs::EndConfluenceBlock(bool no_orig) {
-    for ( auto id : modified_IDs.back() )
+    for ( const auto& id : modified_IDs.back() )
         id->GetOptInfo()->ConfluenceBlockEndsAfter(last_stmt_traversed, no_orig);
 
     confluence_blocks.pop_back();
@@ -434,12 +434,12 @@ void GenIDDefs::EndConfluenceBlock(bool no_orig) {
 }
 
 void GenIDDefs::BranchBackTo(const Stmt* from, const Stmt* to, bool close_all) {
-    for ( auto id : modified_IDs.back() )
+    for ( const auto& id : modified_IDs.back() )
         id->GetOptInfo()->BranchBackTo(from, to, close_all);
 }
 
 void GenIDDefs::BranchBeyond(const Stmt* from, const Stmt* to, bool close_all) {
-    for ( auto id : modified_IDs.back() )
+    for ( const auto& id : modified_IDs.back() )
         id->GetOptInfo()->BranchBeyond(from, to, close_all);
 
     to->GetOptInfo()->contains_branch_beyond = true;
@@ -479,7 +479,7 @@ void GenIDDefs::ReturnAt(const Stmt* s) {
     // identifier as encountering a scope-ending "return" here.  By avoiding
     // that, we're able to do optimization across catch-return blocks.
     if ( cr_active.empty() || cr_active.back() != confluence_blocks.size() )
-        for ( auto id : modified_IDs.back() )
+        for ( const auto& id : modified_IDs.back() )
             id->GetOptInfo()->ReturnAt(s);
 }
 

@@ -4270,7 +4270,7 @@ LambdaExpr::LambdaExpr(LambdaExpr* orig) : Expr(EXPR_LAMBDA) {
 
     // We need to have our own copies of the outer IDs and captures so
     // we can rename them when inlined.
-    for ( auto i : orig->outer_ids )
+    for ( auto& i : orig->outer_ids )
         outer_ids.emplace_back(i);
 
     if ( orig->captures ) {
@@ -4325,7 +4325,7 @@ bool LambdaExpr::CheckCaptures(StmtPtr when_parent) {
             }
     }
 
-    for ( auto id : outer_ids )
+    for ( const auto& id : outer_ids )
         if ( ! outer_is_matched.contains(id) ) {
             auto msg = util::fmt("%s is used inside %s but not captured", id->Name(), desc);
             if ( when_parent )

@@ -510,7 +510,7 @@ void ZAMCompiler::ReMapFrame() {
             continue;
 
         auto vars = inst_beginnings[inst];
-        for ( auto v : vars ) {
+        for ( const auto& v : vars ) {
             // Don't remap variables whose values aren't actually used.
             int slot = frame_layout1[v];
             if ( denizen_ending.contains(slot) )

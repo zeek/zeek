@@ -145,7 +145,7 @@ void CPPCompile::DeclareLocals(const ProfileFunc* pf, const IDPList* lambda_ids)
     // latter can be inconsistent when inlining.
     set<string> capture_names;
     if ( lambda_ids )
-        for ( auto li : *lambda_ids )
+        for ( const auto& li : *lambda_ids )
             capture_names.insert(CaptureName(li));
 
     const auto& ls = pf->Locals();

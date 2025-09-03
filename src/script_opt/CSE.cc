@@ -212,7 +212,7 @@ TraversalCode CSE_ValidityChecker::PostExpr(const Expr* e) {
 }
 
 bool CSE_ValidityChecker::CheckID(const IDPtr& id, bool ignore_orig) {
-    for ( auto i : ids ) {
+    for ( const auto& i : ids ) {
         if ( ignore_orig && i == ids.front() )
             continue;
 
@@ -227,7 +227,7 @@ bool CSE_ValidityChecker::CheckAggrMod(const TypePtr& t) {
     if ( ! IsAggr(t) )
         return false;
 
-    for ( auto i : ids )
+    for ( const auto& i : ids )
         if ( same_type(t, i->GetType()) )
             return Invalid();
 
@@ -287,8 +287,8 @@ bool CSE_ValidityChecker::CheckSideEffects(const IDSet& non_local_ids, const Typ
         // This is far and away the most common case.
         return false;
 
-    for ( auto i : ids ) {
-        for ( auto nli : non_local_ids )
+    for ( const auto& i : ids ) {
+        for ( const auto& nli : non_local_ids )
             if ( nli == i )
                 return Invalid();
 

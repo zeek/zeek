@@ -27,7 +27,7 @@ public:
 
     void Replicate(const UDs& from) { use_defs = from->use_defs; }
 
-    bool HasID(const IDPtr& id) { return use_defs.find(id) != use_defs.end(); }
+    bool HasID(const IDPtr& id) const { return use_defs.contains(id); }
 
     void Add(IDPtr id) { use_defs.insert(std::move(id)); }
     void Remove(const IDPtr& id) { use_defs.erase(id); }

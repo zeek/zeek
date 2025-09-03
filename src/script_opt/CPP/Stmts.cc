@@ -178,7 +178,7 @@ void CPPCompile::GenTypeSwitchStmt(const Expr* e, const case_list* cases) {
     for ( const auto& c : *cases ) {
         auto tc = c->TypeCases();
         if ( tc )
-            for ( auto id : *tc )
+            for ( const auto& id : *tc )
                 Emit(Fmt(TypeOffset(id->GetType())) + ",");
     }
     EndBlock(true);
@@ -206,7 +206,7 @@ void CPPCompile::GenTypeSwitchStmt(const Expr* e, const case_list* cases) {
         auto tc = c->TypeCases();
         if ( tc ) {
             bool is_multi = tc->size() > 1;
-            for ( auto id : *tc )
+            for ( const auto& id : *tc )
                 GenTypeSwitchCase(id, case_offset++, is_multi);
         }
         else
@@ -432,7 +432,7 @@ void CPPCompile::GenForOverTable(const ExprPtr& tbl, const IDPtr& value_var, con
 
     int n = static_cast<int>(loop_vars->size());
     for ( int i = 0; i < n; ++i ) {
-        auto var = (*loop_vars)[i];
+        const auto& var = (*loop_vars)[i];
         if ( var->IsBlank() )
             continue;
 
@@ -454,7 +454,7 @@ void CPPCompile::GenForOverVector(const ExprPtr& vec, const IDPtr& value_var, co
 
     Emit("if ( ! vv__CPP->Has(i__CPP) ) continue;");
 
-    auto lv0 = (*loop_vars)[0];
+    const auto& lv0 = (*loop_vars)[0];
 
     if ( ! lv0->IsBlank() )
         Emit("%s = i__CPP;", IDName(lv0));
@@ -475,7 +475,7 @@ void CPPCompile::GenForOverString(const ExprPtr& str, const IDPList* loop_vars) 
 
     Emit("auto sv__CPP = make_intrusive<StringVal>(1, (const char*) sval__CPP->Bytes() + i__CPP);");
 
-    auto lv0 = (*loop_vars)[0];
+    const auto& lv0 = (*loop_vars)[0];
     if ( ! lv0->IsBlank() )
         Emit("%s = std::move(sv__CPP);", IDName(lv0));
 }

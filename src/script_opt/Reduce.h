@@ -83,7 +83,7 @@ public:
     bool IsTemporary(const IDPtr& id) const { return FindTemporary(id) != nullptr; }
     bool IsParamTemp(const IDPtr& id) const { return param_temps.contains(id); }
 
-    bool IsConstantVar(const IDPtr& id) const { return constant_vars.find(id) != constant_vars.end(); }
+    bool IsConstantVar(const IDPtr& id) const { return constant_vars.contains(id); }
 
     // True if the Reducer is being used in the context of a second
     // pass over for AST optimization.

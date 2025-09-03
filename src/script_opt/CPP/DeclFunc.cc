@@ -30,7 +30,7 @@ void CPPCompile::DeclareLambda(const LambdaExpr* l, const ProfileFunc* pf) {
     auto l_id = l->Ingredients()->GetID();
     auto& ids = l->OuterIDs();
 
-    for ( auto lid : ids ) {
+    for ( const auto& lid : ids ) {
         if ( lambda_names.contains(lid) ) {
             ASSERT(lambda_names[lid] == CaptureName(lid));
         }
@@ -227,7 +227,7 @@ void CPPCompile::BuildLambda(const FuncTypePtr& ft, const ProfileFunc* pf, const
     Emit("void SetLambdaCaptures(Frame* f) override");
     StartBlock();
     for ( size_t i = 0; i < nl; ++i ) {
-        auto l_i = (*lambda_ids)[i];
+        const auto& l_i = (*lambda_ids)[i];
         const auto& t_i = l_i->GetType();
         auto cap_i = string("f->GetElement(") + Fmt(static_cast<int>(i)) + ")";
         Emit("%s = %s;", lambda_names[l_i], GenericValPtrToGT(cap_i, t_i, GEN_NATIVE));
@@ -239,7 +239,7 @@ void CPPCompile::BuildLambda(const FuncTypePtr& ft, const ProfileFunc* pf, const
     StartBlock();
     Emit("std::vector<ValPtr> vals;");
     for ( size_t i = 0; i < nl; ++i ) {
-        auto l_i = (*lambda_ids)[i];
+        const auto& l_i = (*lambda_ids)[i];
         const auto& t_i = l_i->GetType();
         Emit("vals.emplace_back(%s);", NativeToGT(lambda_names[l_i], t_i, GEN_VAL_PTR));
     }

@@ -183,7 +183,7 @@ void Trigger::ReInit(std::vector<ValPtr> index_expr_results) {
         have_trigger_elems = true;
     }
 
-    for ( auto g : globals ) {
+    for ( const auto& g : globals ) {
         Register(g.get());
 
         auto& v = g->GetVal();
@@ -191,7 +191,7 @@ void Trigger::ReInit(std::vector<ValPtr> index_expr_results) {
             Register(v.get());
     }
 
-    for ( auto l : locals ) {
+    for ( const auto& l : locals ) {
         ASSERT(! l->GetVal());
     }
 

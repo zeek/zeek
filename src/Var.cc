@@ -761,7 +761,7 @@ IDPList gather_outer_ids(ScopePtr scope, StmtPtr body) {
     IDPList idl;
 
     for ( auto& id : cb.outer_id_references )
-        idl.emplace_back(std::move(id));
+        idl.emplace_back(id);
 
     return idl;
 }

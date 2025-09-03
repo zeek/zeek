@@ -77,7 +77,7 @@ void ZAMCompiler::InitArgs() {
 }
 
 void ZAMCompiler::InitCaptures() {
-    for ( auto c : pf->Captures() )
+    for ( const auto& c : pf->Captures() )
         (void)AddToFrame(c);
 }
 

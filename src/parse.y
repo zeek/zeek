@@ -61,7 +61,7 @@
 %type <id_l> local_id_list case_type_list
 %type <ic> init_class
 %type <val> TOK_CONSTANT
-%type <expr> expr opt_expr rhs opt_init anonymous_function lambda_body index_slice opt_deprecated when_condition
+%type <expr> expr opt_expr rhs opt_init anonymous_function lambda_body index_slice opt_deprecated when_condition field_assign
 %type <event_expr> event
 %type <stmt> stmt stmt_list func_body for_head
 %type <type> simple_type type opt_type enum_body
@@ -70,7 +70,7 @@
 %type <type_decl> type_decl formal_args_decl
 %type <type_decl_l> type_decl_list formal_args_decl_list
 %type <record> formal_args
-%type <list> expr_list opt_expr_list rhs_expr_list
+%type <list> expr_list opt_expr_list rhs_expr_list opt_exprs_or_field_assigns field_assigns
 %type <c_case> case
 %type <case_l> case_list
 %type <attr> attr
@@ -756,22 +756,6 @@ expr:
 			$$ = new FieldExpr({AdoptRef{}, $1}, $3);
 			}
 
-	|	'$' TOK_ID '=' expr
-			{
-			set_location(@1, @4);
-			$$ = new FieldAssignExpr($2, {AdoptRef{}, $4});
-			}
-
-	|	'$' TOK_ID begin_lambda '='
-			{
-			func_hdr_location = @1;
-			$3->SetInferReturnType(true);
-			}
-		lambda_body
-			{
-			$$ = new FieldAssignExpr($2, IntrusivePtr{AdoptRef{}, $6});
-			}
-
 	|	expr TOK_IN expr
 			{
 			set_location(@1, @3);
@@ -786,7 +770,7 @@ expr:
 			        ExprPtr{AdoptRef{}, $3}));
 			}
 
-	|	'[' opt_expr_list ']'
+	|	'[' opt_exprs_or_field_assigns ']'
 			{
 			set_location(@1, @3);
 
@@ -810,7 +794,7 @@ expr:
 				$$ = $2;
 			}
 
-	|	TOK_RECORD '(' expr_list ')'
+	|	TOK_RECORD '(' field_assigns expr_list_opt_comma ')'
 			{
 			set_location(@1, @4);
 			$$ = new RecordConstructorExpr({AdoptRef{}, $3});
@@ -843,7 +827,7 @@ expr:
 				++in_init;
 			}
 
-		opt_expr_list
+		opt_exprs_or_field_assigns
 			{
 			if ( expr_is_table_type_name($1) )
 				--in_init;
@@ -1015,6 +999,43 @@ expr:
 			{
 			set_location(@1, @3);
 			$$ = new IsExpr({AdoptRef{}, $1}, {AdoptRef{}, $3});
+			}
+	;
+
+opt_exprs_or_field_assigns:
+		{ $$ = new ListExpr(); }
+	| expr_list expr_list_opt_comma
+	| field_assigns expr_list_opt_comma
+	;
+
+field_assigns:
+		field_assigns ',' field_assign
+			{
+			set_location(@1, @3);
+			$1->Append({AdoptRef{}, $3});
+			}
+	|	field_assign
+			{
+			set_location(@1);
+			expr_list_has_opt_comma = 0;
+			$$ = new ListExpr({AdoptRef{}, $1});
+			}
+	;
+
+field_assign:	'$' TOK_ID '=' expr
+			{
+			set_location(@1, @4);
+			$$ = new FieldAssignExpr($2, {AdoptRef{}, $4});
+			}
+
+	|	'$' TOK_ID begin_lambda '='
+			{
+			func_hdr_location = @1;
+			$3->SetInferReturnType(true);
+			}
+		lambda_body
+			{
+			$$ = new FieldAssignExpr($2, IntrusivePtr{AdoptRef{}, $6});
 			}
 	;
 

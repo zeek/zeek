@@ -2088,7 +2088,7 @@ RecordValPtr DNS_MsgInfo::BuildSVCB_Val(const SVCB_DATA& svcb) {
     r->Assign(0, svcb.svc_priority);
     r->Assign(1, svcb.target_name);
     if ( svcb.svc_params )
-        r->Assign(2, std::move(svcb.svc_params));
+        r->Assign(2, svcb.svc_params);
 
     return r;
 }

@@ -48,9 +48,7 @@ void ZAMCompiler::Init() {
 
 void ZAMCompiler::InitGlobals() {
     for ( auto& g : pf->Globals() ) {
-        GlobalInfo info;
-        info.id = g;
-        info.slot = AddToFrame(g);
+        GlobalInfo info{.id = g, .slot = AddToFrame(g)};
         global_id_to_info[g] = globalsI.size();
         globalsI.push_back(info);
     }

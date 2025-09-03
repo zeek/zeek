@@ -1,3 +1,7 @@
+8.1.0-dev.494 | 2025-09-03 14:50:12 +0200
+
+  * Remove unnecessary peer signature from test `scripts.base.protocols.bittorrent.tracker` (Benjamin Bannier, Corelight)
+
 8.1.0-dev.492 | 2025-09-02 16:00:17 -0700
 
   * Remove some unnecessary #includes from binpac source files (Tim Wojtulewicz, Corelight)

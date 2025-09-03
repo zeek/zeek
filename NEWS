@@ -6,7 +6,7 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 8.1.0
 ==========
 
-We would like to thank ... for their contributions to this release.
+We would like to thank Klemens Nanni (@klemens-ya) for their contributions to this release.
 
 Breaking Changes
 ----------------
@@ -60,6 +60,8 @@ New Functionality
   ``zeek_log_writer_truncated_containers_total``. The metrics are reported for each log
   stream.
 
+- The DNS analyzer now returns the set of parameters for SVCB data. It previously handled
+  SVCB packets, but omitted the parameters while parsing.
 
 Changed Functionality
 ---------------------

@@ -1,3 +1,11 @@
+8.1.0-dev.516 | 2025-09-04 09:04:27 -0700
+
+  * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)
+
+  * Fix clang-tidy warning from recent SVCB merge (Tim Wojtulewicz, Corelight)
+
+  * NEWS: Add note about DNS SVCB changes (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.511 | 2025-09-03 15:35:49 -0700
 
   * Parse SVCB/HTTPS SvcParams list (Klemens Nanni)

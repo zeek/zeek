@@ -160,22 +160,22 @@ enum SVCPARAM_Key : uint8_t {
 };
 
 struct DNS_RawMsgHdr {
-    unsigned short id;
-    unsigned short flags;
-    unsigned short qdcount;
-    unsigned short ancount;
-    unsigned short nscount;
-    unsigned short arcount;
+    uint16_t id;
+    uint16_t flags;
+    uint16_t qdcount;
+    uint16_t ancount;
+    uint16_t nscount;
+    uint16_t arcount;
 };
 
-struct EDNS_ADDITIONAL {           // size
-    unsigned short name;           // -
-    unsigned short type;           // 16 : ExtractShort(data, len)
-    unsigned short payload_size;   // 16
-    unsigned short extended_rcode; // 8
-    unsigned short version;        // 8
-    unsigned short z;              // 16
-    unsigned short rdata_len;      // 16
+struct EDNS_ADDITIONAL {    // size
+    uint16_t name;          // -
+    uint16_t type;          // 16 : ExtractShort(data, len)
+    uint16_t payload_size;  // 16
+    uint8_t extended_rcode; // 8
+    uint8_t version;        // 8
+    uint16_t z;             // 16
+    uint16_t rdata_len;     // 16
 };
 
 struct EDNS_ECS {
@@ -197,83 +197,83 @@ struct EDNS_COOKIE {
 
 struct TKEY_DATA {
     String* alg_name;
-    unsigned long inception;
-    unsigned long expiration;
-    unsigned short mode;
-    unsigned short error;
+    uint32_t inception;
+    uint32_t expiration;
+    uint16_t mode;
+    uint16_t error;
     String* key;
 };
 
 struct TSIG_DATA {
     String* alg_name;
-    unsigned long time_s;
-    unsigned short time_ms;
+    uint32_t time_s;
+    uint16_t time_ms;
     String* sig;
-    unsigned short fudge;
-    unsigned short orig_id;
-    unsigned short rr_error;
+    uint16_t fudge;
+    uint16_t orig_id;
+    uint16_t rr_error;
 };
 
 struct RRSIG_DATA {
-    unsigned short type_covered; // 16 : ExtractShort(data, len)
-    unsigned short algorithm;    // 8
-    unsigned short labels;       // 8
-    uint32_t orig_ttl;           // 32
-    unsigned long sig_exp;       // 32
-    unsigned long sig_incep;     // 32
-    unsigned short key_tag;      // 16
+    uint16_t type_covered; // 16 : ExtractShort(data, len)
+    uint8_t algorithm;     // 8
+    uint8_t labels;        // 8
+    uint32_t orig_ttl;     // 32
+    uint32_t sig_exp;      // 32
+    uint32_t sig_incep;    // 32
+    uint16_t key_tag;      // 16
     String* signer_name;
     String* signature;
 };
 
 struct DNSKEY_DATA {
-    unsigned short dflags;     // 16 : ExtractShort(data, len)
-    unsigned short dalgorithm; // 8
-    unsigned short dprotocol;  // 8
-    String* public_key;        // Variable length Public Key
+    uint16_t dflags;    // 16 : ExtractShort(data, len)
+    uint8_t dalgorithm; // 8
+    uint8_t dprotocol;  // 8
+    String* public_key; // Variable length Public Key
 };
 
 struct NSEC3_DATA {
-    unsigned short nsec_flags;
-    unsigned short nsec_hash_algo;
-    unsigned short nsec_iter;
-    unsigned short nsec_salt_len;
+    uint16_t nsec_flags;
+    uint16_t nsec_hash_algo;
+    uint16_t nsec_iter;
+    uint16_t nsec_salt_len;
     String* nsec_salt;
-    unsigned short nsec_hlen;
+    uint16_t nsec_hlen;
     String* nsec_hash;
     VectorValPtr bitmaps;
 };
 
 struct NSEC3PARAM_DATA {
-    unsigned short nsec_flags;     // 8
-    unsigned short nsec_hash_algo; // 8
-    unsigned short nsec_iter;      // 16 : ExtractShort(data, len)
-    unsigned short nsec_salt_len;  // 8
-    String* nsec_salt;             // Variable length salt
+    uint8_t nsec_flags;     // 8
+    uint8_t nsec_hash_algo; // 8
+    uint16_t nsec_iter;     // 16 : ExtractShort(data, len)
+    uint8_t nsec_salt_len;  // 8
+    String* nsec_salt;      // Variable length salt
 };
 
 struct DS_DATA {
-    unsigned short key_tag;     // 16 : ExtractShort(data, len)
-    unsigned short algorithm;   // 8
-    unsigned short digest_type; // 8
-    String* digest_val;         // Variable length Digest of DNSKEY RR
+    uint16_t key_tag;    // 16 : ExtractShort(data, len)
+    uint8_t algorithm;   // 8
+    uint8_t digest_type; // 8
+    String* digest_val;  // Variable length Digest of DNSKEY RR
 };
 
 struct BINDS_DATA {
-    unsigned short algorithm;    // 8
-    unsigned short key_id;       // 16 : ExtractShort(data, len)
-    unsigned short removal_flag; // 8
-    uint8_t complete_flag;       // 8
+    uint8_t algorithm;     // 8
+    uint8_t removal_flag;  // 8
+    uint16_t key_id;       // 16 : ExtractShort(data, len)
+    uint8_t complete_flag; // 8
 };
 
 struct LOC_DATA {
-    unsigned short version;   // 8
-    unsigned short size;      // 8
-    unsigned short horiz_pre; // 8
-    unsigned short vert_pre;  // 8
-    unsigned long latitude;   // 32
-    unsigned long longitude;  // 32
-    unsigned long altitude;   // 32
+    uint8_t version;    // 8
+    uint8_t size;       // 8
+    uint8_t horiz_pre;  // 8
+    uint8_t vert_pre;   // 8
+    uint32_t latitude;  // 32
+    uint32_t longitude; // 32
+    uint32_t altitude;  // 32
 };
 
 struct SVCB_DATA {
@@ -284,7 +284,7 @@ struct SVCB_DATA {
 
 class DNS_MsgInfo {
 public:
-    DNS_MsgInfo(DNS_RawMsgHdr* hdr, int is_query);
+    DNS_MsgInfo(DNS_RawMsgHdr* hdr, bool is_query);
 
     RecordValPtr BuildHdrVal();
     RecordValPtr BuildAnswerVal();
@@ -303,34 +303,30 @@ public:
     RecordValPtr BuildLOC_Val(struct LOC_DATA*);
     RecordValPtr BuildSVCB_Val(const struct SVCB_DATA&);
 
-    int id;
-    int opcode;   ///< query type, see DNS_Opcode
-    int rcode;    ///< return code, see DNS_Code
-    int QR;       ///< query record flag
-    int AA;       ///< authoritative answer flag
-    int TC;       ///< truncated - size > 512 bytes for udp
-    int RD;       ///< recursion desired
-    int RA;       ///< recursion available
-    int Z;        ///< 3 bit field (includes AD and CD)
-    int AD;       ///< authentic data
-    int CD;       ///< checking disabled
-    int qdcount;  ///< number of questions
-    int ancount;  ///< number of answers
-    int nscount;  ///< number of authority RRs
-    int arcount;  ///< number of additional RRs
-    int is_query; ///< whether it came from the session initiator
+    uint16_t id;
+    uint8_t opcode;          ///< query type, see DNS_Opcode
+    uint16_t rcode;          ///< return code, see DNS_Code
+    bool QR;                 ///< query record flag
+    bool AA;                 ///< authoritative answer flag
+    bool TC;                 ///< truncated - size > 512 bytes for udp
+    bool RD;                 ///< recursion desired
+    bool RA;                 ///< recursion available
+    uint8_t Z;               ///< 3 bit field (includes AD and CD)
+    bool AD;                 ///< authentic data
+    bool CD;                 ///< checking disabled
+    uint16_t qdcount;        ///< number of questions
+    uint16_t ancount;        ///< number of answers
+    uint16_t nscount;        ///< number of authority RRs
+    uint16_t arcount;        ///< number of additional RRs
+    bool is_query = false;   ///< whether it came from the session initiator
+    bool skip_event = false; ///< if true, don't generate corresponding events
 
     StringValPtr query_name;
-    RR_Type atype;
-    int aclass; ///< normally = 1, inet
-    uint32_t ttl;
+    RR_Type atype = TYPE_ALL;
+    int aclass = 0; ///< normally = 1, inet
+    uint32_t ttl = 0;
 
-    DNS_AnswerType answer_type;
-    int skip_event; ///< if true, don't generate corresponding events
-    // int answer_count;	///< count of responders.  if >1 and not
-    ///< identical answer, there may be problems
-    // uint32* addr;	///< cache value to pass back results
-    ///< for forward lookups
+    DNS_AnswerType answer_type = DNS_QUESTION;
 };
 
 class DNS_Interpreter final {

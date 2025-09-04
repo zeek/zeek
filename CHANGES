@@ -1,3 +1,13 @@
+8.1.0-dev.518 | 2025-09-04 16:21:52 -0700
+
+  * libkqueue: Switch to using HEAD from upstream master (Tim Wojtulewicz, Corelight)
+
+    The upstream recently merge Christian's fixes for the fd_map allocations
+    so that patch doesn't need to be in our fork anymore. I also tested removing
+    the patch about timers from our fork, and it seems to only matter for Linux
+    kernels earlier than 5.3. All of our supported platforms are newer than
+    that.
+
 8.1.0-dev.516 | 2025-09-04 09:04:27 -0700
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

@@ -24,7 +24,6 @@ protected:
     bool DoRotate(const char* rotated_path, double open, double close, bool terminating) override;
     bool DoFlush(double network_time) override { return true; }
     bool DoFinish(double network_time) override { return true; }
-    bool DoHeartbeat(double network_time, double current_time) override { return true; }
 
 private:
     bool checkError(int code);

@@ -52,9 +52,7 @@ namespace detail {
 // since it's similar to DNS but does some things differently.
 constexpr int NETBIOS_PORT = 137;
 
-DNS_Interpreter::DNS_Interpreter(analyzer::Analyzer* arg_analyzer) {
-    analyzer = arg_analyzer;
-    first_message = true;
+DNS_Interpreter::DNS_Interpreter(analyzer::Analyzer* arg_analyzer) : analyzer(arg_analyzer) {
     is_netbios =
         ntohs(analyzer->Conn()->OrigPort()) == NETBIOS_PORT || ntohs(analyzer->Conn()->RespPort()) == NETBIOS_PORT;
 }
@@ -2184,8 +2182,6 @@ DNS_Analyzer::DNS_Analyzer(Connection* conn) : analyzer::tcp::TCP_ApplicationAna
 }
 
 DNS_Analyzer::~DNS_Analyzer() { delete interp; }
-
-void DNS_Analyzer::Init() {}
 
 void DNS_Analyzer::Done() {
     analyzer::tcp::TCP_ApplicationAnalyzer::Done();

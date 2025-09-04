@@ -393,9 +393,9 @@ protected:
     void SendReplyOrRejectEvent(detail::DNS_MsgInfo* msg, EventHandlerPtr event, const u_char*& data, int& len,
                                 String* question_name, String* original_name);
 
-    analyzer::Analyzer* analyzer;
-    bool first_message;
-    bool is_netbios;
+    analyzer::Analyzer* analyzer = nullptr;
+    bool first_message = true;
+    bool is_netbios = false;
 };
 
 enum TCP_DNS_state : uint8_t {
@@ -438,7 +438,6 @@ public:
 
     void DeliverPacket(int len, const u_char* data, bool orig, uint64_t seq, const IP_Hdr* ip, int caplen) override;
 
-    void Init() override;
     void Done() override;
     void ConnectionClosed(analyzer::tcp::TCP_Endpoint* endpoint, analyzer::tcp::TCP_Endpoint* peer,
                           bool gen_event) override;

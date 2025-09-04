@@ -2897,7 +2897,7 @@ type dns_msg: record {
 	num_auth: count;	##< Number of authoritative records.
 	num_addl: count;	##< Number of additional records.
 
-	is_netbios: bool;       ##< Whether this message came from NetBIOS.
+	is_netbios: bool;	##< Whether this message came from NetBIOS.
 };
 
 ## A DNS SOA record.
@@ -3133,10 +3133,12 @@ type dns_naptr_rr: record {
 # .. zeek:see:: dns_answer
 #
 # todo:: use enum to make them autodoc'able
-const DNS_QUERY = 0;	##< A query. This shouldn't occur, just for completeness.
-const DNS_ANS = 1;	##< An answer record.
-const DNS_AUTH = 2;	##< An authoritative record.
-const DNS_ADDL = 3;	##< An additional record.
+const DNS_QUERY = 0;		##< A query. This shouldn't occur, just for completeness.
+const DNS_ANS = 1;		##< An answer record.
+const DNS_AUTH = 2;		##< An authoritative record.
+const DNS_ADDL = 3;		##< An additional record.
+const DNS_PREREQUISITE = 4; 	##< A prerequisite record for dynamic update.
+const DNS_UPDATE = 5;		##< A update record for dynamic update.
 
 ## The general part of a DNS reply.
 ##

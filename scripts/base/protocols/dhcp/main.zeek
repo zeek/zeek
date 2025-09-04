@@ -24,7 +24,7 @@ export {
 		## DHCP is occurring.  This behavior with multiple connections is
 		## unique to DHCP because of the way it uses broadcast packets
 		## on local networks.
-		uids:           set[string] &log;
+		uids:           set[conn_uid] &log;
 
 		## IP address of the client.  If a transaction
 		## is only a client sending INFORM messages then

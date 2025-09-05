@@ -912,3 +912,68 @@ include_plugins_debian12_task:
       path: "testing/builtin-plugins/.tmp/**"
   << : *ONLY_IF_PR_MASTER_RELEASE
   << : *SKIP_IF_PR_NOT_FULL_CI
+
+nightly_status:
+  container:
+    dockerfile: ci/debian-13/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  depends_on:
+    - macos_sequoia
+    - freebsd14
+    - freebsd13
+    - arm64_container_image
+    - amd64_container_image
+    - fedora42
+    - fedora41
+    - centosstream9
+    - debian13
+    - arm_debian13
+    - debian13_static
+    - debian13_binary
+    - debian12
+    - opensuse_leap_15_6
+    - opensuse_tumbleweed
+    - ubuntu25_04
+    - ubuntu24_04
+    - ubuntu24_04_zam
+    - ubuntu24_04_clang_libcpp
+    - ubuntu24_04_clang_tidy
+    - ubuntu24_04_spicy
+    - ubuntu24_04_spicy_head
+    - ubuntu22_04
+    - alpine
+    - asan_sanitizer
+    - asan_sanitizer_zam
+    - ubsan_sanitizer
+    - ubsan_sanitizer_zam
+    - tsan_sanitizer
+    - windows
+    - container_image_manifest
+    - cluster_testing
+    - zeekctl_debian12
+    - include_plugins_debian12
+    - public_ecr_cleanup
+  on_failure: ./ci/send_cron_status_email.sh
+  env:
+    ZEEK_SMTP_HOST: ENCRYPTED[7cbf4159bd4a2f2d3df23fed2761d685f564f5ab08a1c55cade870520be1808946608118a6bc819748fca31fe8df31b8]
+    ZEEK_SMTP_PORT: ENCRYPTED[a3154dc7d236b30aae12b0eef3ef403285f84c301bc8bdfbd6f6ad10e6512a33d6ebc450bf7b635865d9f5ee4a4dc3b6]
+    ZEEK_SMTP_USERNAME: ENCRYPTED[a9d089453c8baa4240509a35744bf671d19336a43ad7d4fac2b797971715e3ce449397b877ecfd1a3129672e1bf4b641]
+    ZEEK_SMTP_PASSWORD: ENCRYPTED[56a73a6bd1bbf686ea1d3780492dae1339f86d1d0f6d4bf7e31238b88eb4147d1cedb09f2f9800df6e62ba297b110fa0]
+    ZEEK_CIRRUS_GRAPHQL_TOKEN: ENCRYPTED[80270bf79e19b9ccd6ba23e53ffbf64057cbdbb1c53987dfb4ea13ce87f91293e7508a9bf6bad831597fba7ffe9e7e5d]
+  << : *ONLY_IF_NIGHTLY
+
+weekly_status:
+  container:
+    dockerfile: ci/debian-13/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  depends_on:
+    - weekly_current_clang_task
+    - weekly_current_gcc_task
+  on_failure: ./ci/send_cron_status_email.sh
+  env:
+    ZEEK_SMTP_HOST: ENCRYPTED[7cbf4159bd4a2f2d3df23fed2761d685f564f5ab08a1c55cade870520be1808946608118a6bc819748fca31fe8df31b8]
+    ZEEK_SMTP_PORT: ENCRYPTED[a3154dc7d236b30aae12b0eef3ef403285f84c301bc8bdfbd6f6ad10e6512a33d6ebc450bf7b635865d9f5ee4a4dc3b6]
+    ZEEK_SMTP_USERNAME: ENCRYPTED[a9d089453c8baa4240509a35744bf671d19336a43ad7d4fac2b797971715e3ce449397b877ecfd1a3129672e1bf4b641]
+    ZEEK_SMTP_PASSWORD: ENCRYPTED[56a73a6bd1bbf686ea1d3780492dae1339f86d1d0f6d4bf7e31238b88eb4147d1cedb09f2f9800df6e62ba297b110fa0]
+    ZEEK_CIRRUS_GRAPHQL_TOKEN: ENCRYPTED[80270bf79e19b9ccd6ba23e53ffbf64057cbdbb1c53987dfb4ea13ce87f91293e7508a9bf6bad831597fba7ffe9e7e5d]
+  << : *ONLY_IF_WEEKLY

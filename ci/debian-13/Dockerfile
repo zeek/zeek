@@ -41,4 +41,4 @@ RUN apt-get update && apt-get -y install \
 
 # Debian trixie really doesn't like using pip to install system wide stuff, but
 # doesn't seem there's a python3-junit2html package, so not sure what we'd break.
-RUN pip3 install --break-system-packages junit2html
+RUN pip3 install --break-system-packages junit2html gql

@@ -254,8 +254,17 @@ fedora41_task:
 
 centosstream9_task:
   container:
-    # Stream 9 EOL: Around Dec 2027
+    # Stream 9 EOL: 31 May 2027
     dockerfile: ci/centos-stream-9/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_CI
+
+centosstream10_task:
+  container:
+    # Stream 10 EOL: 01 January 2030
+    dockerfile: ci/centos-stream-10/Dockerfile
     << : *RESOURCES_TEMPLATE
   << : *CI_TEMPLATE
   << : *ONLY_IF_PR_MASTER_RELEASE

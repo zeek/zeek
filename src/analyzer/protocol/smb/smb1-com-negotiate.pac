@@ -181,8 +181,8 @@ type SMB1_negotiate_lanman_response(header: SMB_Header) = record {
 	max_number_vcs        : uint16;
 	raw_mode              : uint16; # expanded in &let
 	session_key           : uint32;
-	server_time           : SMB_time;
-	server_date           : SMB_date;
+	server_time           : uint16;
+	server_date           : uint16;
 	server_tz             : uint16;
 	encryption_key_length : uint16;
 	reserved              : uint16; # must be zero

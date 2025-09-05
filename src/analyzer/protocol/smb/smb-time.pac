@@ -16,7 +16,7 @@ double filetime2zeektime(uint64_t ts)
 
 double time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz)
 	{
-	tm lTime;
+	tm lTime{0};
 	lTime.tm_sec = ${t.two_seconds} * 2;
 	lTime.tm_min = ${t.minutes};
 	lTime.tm_hour = ${t.hours};
@@ -24,7 +24,8 @@ double time_from_lanman(SMB_time* t, SMB_date* d, uint16_t tz)
 	lTime.tm_mon = ${d.month};
 	lTime.tm_year = 1980 + ${d.year};
 	lTime.tm_isdst = -1;
-	return mktime(&lTime) + tz;
+	lTime.tm_gmtoff = tz;
+	return mktime(&lTime);
 	}
 
 zeek::RecordValPtr SMB_BuildMACTimes(uint64_t modify, uint64_t access,

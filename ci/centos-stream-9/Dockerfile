@@ -2,7 +2,7 @@ FROM quay.io/centos/centos:stream9
 
 # A version field to invalidate Cirrus's build cache when needed, as suggested in
 # https://github.com/cirruslabs/cirrus-ci-docs/issues/544#issuecomment-566066822
-ENV DOCKERFILE_VERSION 20241024
+ENV DOCKERFILE_VERSION=20250905
 
 # dnf config-manager isn't available at first, and
 # we need it to install the CRB repo below.

@@ -1,3 +1,7 @@
+8.1.0-dev.522 | 2025-09-05 19:52:31 -0700
+
+  * Bump zeek-client to pull in more resilient controller I/O (Christian Kreibich, Corelight)
+
 8.1.0-dev.520 | 2025-09-05 12:56:24 -0700
 
   * Bump auxil/spicy to latest development snapshot (Benjamin Bannier, Corelight)

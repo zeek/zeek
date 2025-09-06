@@ -1,3 +1,11 @@
+8.1.0-dev.525 | 2025-09-06 04:26:32 +0000
+
+  * CI: Fix warning about ENV usage in CI dockerfiles (Tim Wojtulewicz, Corelight)
+
+    This also bumps the dates on the DOCKERFILE_VERSION values
+
+  * CI: Add centos stream 10 build (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.522 | 2025-09-05 19:52:31 -0700
 
   * Bump zeek-client to pull in more resilient controller I/O (Christian Kreibich, Corelight)

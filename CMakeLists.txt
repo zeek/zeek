@@ -560,6 +560,8 @@ if (MSVC)
     # paths are stored in the output file.
     configure_file(cmake_templates/zeek-path-dev.bat.in
                    ${CMAKE_CURRENT_BINARY_DIR}/zeek-path-dev.bat)
+    configure_file(cmake_templates/launch.vs.json.in
+                   ${CMAKE_CURRENT_SOURCE_DIR}/.vs/launch.vs.json)
 
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_binary_dir "${cmake_binary_dir}")
     string(REGEX REPLACE "^([A-Za-z]):/(.*)" "/\\1/\\2" cmake_current_binary_dir

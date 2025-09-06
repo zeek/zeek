@@ -143,6 +143,12 @@ skip_if_pr_not_full_or_zeekctl: &SKIP_IF_PR_NOT_FULL_OR_ZEEKCTL
       ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
     )
 
+skip_if_pr_not_full_or_windows: &SKIP_IF_PR_NOT_FULL_OR_WINDOWS
+  skip: >
+    ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ ".*CI: (Full|Windows).*" ) ||
+      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+    )
+
 ci_template: &CI_TEMPLATE
   # Default timeout is 60 minutes, Cirrus hard limit is 120 minutes for free
   # tasks, so may as well ask for full time.
@@ -633,7 +639,7 @@ windows_task:
   build_script: ci/windows/build.cmd
   test_script: ci/windows/test.cmd
   << : *ONLY_IF_PR_MASTER_RELEASE
-  << : *SKIP_IF_PR_NOT_FULL_CI
+  << : *SKIP_IF_PR_NOT_FULL_OR_WINDOWS
   env:
     ZEEK_CI_CPUS: 8
     # Give verbose error output on a test failure.

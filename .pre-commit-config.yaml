@@ -10,7 +10,7 @@ repos:
     language: python
     files: '\.(h|c|cpp|cc|spicy|evt)$'
     types: [file]
-    exclude: '^(testing/btest/(Baseline|plugins|spicy|scripts)/.*|testing/builtin-plugins/.*)$'
+    exclude: '^(testing/btest/(Baseline|plugins|spicy|scripts)/.*|testing/builtin-plugins/.*|src/3rdparty/.*)$'
 
   - id: btest-command-commented
     name: Check that all BTest command lines are commented out
@@ -26,6 +26,7 @@ repos:
       - "c"
       - "c++"
       - "json"
+    exclude: '^src/3rdparty/.*'
 
 - repo: https://github.com/maxwinterstein/shfmt-py
   rev: v3.12.0.1
@@ -49,7 +50,7 @@ repos:
   rev: v1.35.3
   hooks:
     - id: typos
-      exclude: '^(.typos.toml|src/SmithWaterman.cc|testing/.*|auxil/.*|scripts/base/frameworks/files/magic/.*|CHANGES|scripts/base/protocols/ssl/mozilla-ca-list.zeek)$'
+      exclude: '^(.typos.toml|src/SmithWaterman.cc|testing/.*|auxil/.*|scripts/base/frameworks/files/magic/.*|CHANGES|scripts/base/protocols/ssl/mozilla-ca-list.zeek|src/3rdparty/.*)$'
 
 - repo: https://github.com/bbannier/spicy-format
   rev: v0.26.0

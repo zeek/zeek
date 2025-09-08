@@ -1,3 +1,14 @@
+8.1.0-dev.531 | 2025-09-08 11:19:36 -0700
+
+  * btest/core/suspend_processing: Add WebSocket example (Arne Welzel, Corelight)
+
+    Add a test/example forwarding all new_connection() events produced during
+    `zeek -r wikipedia.trace` as my_new_connection() to a WebSocket client.
+
+    This is mostly to demonstrate and verify usage of suspend_processing(),
+    websocket_client_added(), resume_processing(), Pcap::file_done(),
+    websocket_client_lost() and terminate() together.
+
 8.1.0-dev.529 | 2025-09-08 11:02:39 -0700
 
   * Bump Spicy for Coverity fixes (Evan Typanski, Corelight)

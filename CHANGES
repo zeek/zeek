@@ -1,3 +1,7 @@
+8.1.0-dev.529 | 2025-09-08 11:02:39 -0700
+
+  * Bump Spicy for Coverity fixes (Evan Typanski, Corelight)
+
 8.1.0-dev.527 | 2025-09-08 11:02:05 -0700
 
   * Update src/3rdparty submodule for doctest v2.4.12 and include fix (Tim Wojtulewicz, Corelight)

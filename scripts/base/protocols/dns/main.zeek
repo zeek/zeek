@@ -71,6 +71,10 @@ export {
 		TTLs:          vector of interval &log &optional;
 		## The DNS query was rejected by the server.
 		rejected:      bool               &log &default=F;
+		## The opcode value of the DNS request/response.
+		opcode:        count              &log &optional;
+		## A descriptive string for the opcode.
+		opcode_name:   string             &log &optional;
 
 		## The total number of resource records in a reply message's
 		## answer section.
@@ -343,11 +347,20 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 		if ( msg$rcode != 0 && msg$num_queries == 0 )
 			c$dns$rejected = T;
 		}
+
+	c$dns$opcode = msg$opcode;
+	if ( msg$is_netbios )
+		if ( msg$opcode >= 5 )
+			c$dns$opcode_name = opcodes[msg$opcode + 0xFFFF];
+		else
+			c$dns$opcode_name = fmt("netbios-%s", opcodes[msg$opcode]);
+	else
+		c$dns$opcode_name = opcodes[msg$opcode];
 	}
 
 event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &priority=5
 	{
-	if ( msg$opcode != 0 )
+	if ( msg$opcode != 0 && msg$opcode != 5 )
 		# Currently only standard queries are tracked.
 		return;
 

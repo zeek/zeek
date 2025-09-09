@@ -193,4 +193,25 @@ export {
 		[5] = "ech",
 		[6] = "ipv6hint",
 	} &default = function(n: count): string { return fmt("key-%d", n); };
+
+	## Mapping of DNS operation type codes to human readable string representation.
+	const opcodes = {
+		[0] = "query",
+		[1] = "iquery",
+		[2] = "server-status",
+		[4] = "notify",
+		[5] = "dynamic-update",
+		[6] = "dso",
+	} &default = function(n: count): string { return fmt("opcode-%d", n); };
+
+	## Mapping of DNS operation type codes to human readable string representation for
+	## NetBIOS Name Service (NBNS) queries. These codes are defined in
+	## https://datatracker.ietf.org/doc/html/rfc1002#section-4.2.1.1
+	const netbios_opcodes = {
+		[0] = "netbios-query",
+		[5] = "netbios-registration",
+		[6] = "netbios-release",
+		[7] = "netbios-wack",
+		[8] = "netbios-refresh",
+	} &default = function(n: count): string { return fmt("netbios-opcode-%d", n); };
 }

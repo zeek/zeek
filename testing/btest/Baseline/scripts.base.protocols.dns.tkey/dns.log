@@ -5,7 +5,7 @@
 #unset_field	-
 #path	dns
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	rtt	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	AA	TC	RD	RA	Z	answers	TTLs	rejected
-#types	time	string	addr	port	addr	port	enum	count	interval	string	count	string	count	string	count	string	bool	bool	bool	bool	count	vector[string]	vector[interval]	bool
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.1.106	50138	192.168.1.108	53	tcp	52640	-	1068-ms-7.309-2c6e448.7a9463b8-b109-11ed-26a3-080027f220e5	1	C_INTERNET	249	TKEY	0	NOERROR	F	F	F	F	0	-	-	F
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	rtt	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	AA	TC	RD	RA	Z	answers	TTLs	rejected	opcode	opcode_name
+#types	time	string	addr	port	addr	port	enum	count	interval	string	count	string	count	string	count	string	bool	bool	bool	bool	count	vector[string]	vector[interval]	bool	count	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	192.168.1.106	50138	192.168.1.108	53	tcp	52640	-	1068-ms-7.309-2c6e448.7a9463b8-b109-11ed-26a3-080027f220e5	1	C_INTERNET	249	TKEY	0	NOERROR	F	F	F	F	0	-	-	F	0	query
 #close XXXX-XX-XX-XX-XX-XX

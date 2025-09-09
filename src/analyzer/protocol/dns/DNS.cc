@@ -1832,6 +1832,7 @@ RecordValPtr DNS_MsgInfo::BuildHdrVal() {
     r->Assign(12, ancount);
     r->Assign(13, nscount);
     r->Assign(14, arcount);
+    r->Assign(15, is_netbios);
 
     return r;
 }

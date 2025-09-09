@@ -2896,6 +2896,8 @@ type dns_msg: record {
 	num_answers: count;	##< Number of answer records.
 	num_auth: count;	##< Number of authoritative records.
 	num_addl: count;	##< Number of additional records.
+
+	is_netbios: bool;       ##< Whether this message came from NetBIOS.
 };
 
 ## A DNS SOA record.

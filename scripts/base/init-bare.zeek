@@ -2876,7 +2876,7 @@ global pkt_profile_file: file &redef;
 ## .. zeek:see:: dns_AAAA_reply dns_A_reply dns_CNAME_reply dns_EDNS_addl
 ##    dns_HINFO_reply dns_MX_reply dns_NS_reply dns_PTR_reply dns_SOA_reply
 ##    dns_SRV_reply dns_TSIG_addl dns_TXT_reply dns_WKS_reply dns_end
-##    dns_message dns_query_reply dns_rejected dns_request
+##    dns_message dns_query_reply dns_rejected dns_request dns_dynamic_update
 type dns_msg: record {
 	id: count;	##< Transaction ID.
 
@@ -2892,9 +2892,9 @@ type dns_msg: record {
 	AD: bool;	##< authentic data
 	CD: bool;	##< checking disabled
 
-	num_queries: count;	##< Number of query records.
-	num_answers: count;	##< Number of answer records.
-	num_auth: count;	##< Number of authoritative records.
+	num_queries: count;	##< Number of query records. For dynamic update messages, this is the number of zones.
+	num_answers: count;	##< Number of answer records. For dynamic update messages, this is the number of prerequisites.
+	num_auth: count;	##< Number of authoritative records. For dynamic update messages, this is the number of updates.
 	num_addl: count;	##< Number of additional records.
 
 	is_netbios: bool;	##< Whether this message came from NetBIOS.

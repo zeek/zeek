@@ -136,6 +136,9 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query) {
             return;
         }
 
+        StringValPtr zname = msg.query_name;
+        uint32_t zclass = msg.aclass;
+
         if ( ! ParseAnswers(&msg, msg.an_pr_count, detail::DNS_PREREQUISITES, data, len, msg_start) ) {
             EndMessage(&msg);
             return;
@@ -145,6 +148,12 @@ void DNS_Interpreter::ParseMessage(const u_char* data, int len, int is_query) {
             EndMessage(&msg);
             return;
         }
+
+        // Send an event if the first three parts parsed correctly, since they're the
+        // actual update bits.
+        if ( dns_dynamic_update )
+            analyzer->EnqueueConnEvent(dns_dynamic_update, analyzer->ConnVal(), msg.BuildHdrVal(), zname,
+                                       val_mgr->Count(zclass));
     }
     else {
         if ( ! ParseQuestions(&msg, data, len, msg_start) ) {

@@ -337,7 +337,7 @@ public:
 
     StringValPtr query_name;
     RR_Type atype = TYPE_ALL;
-    int aclass = 0; ///< normally = 1, inet
+    uint16_t aclass = 0; ///< normally = 1, inet
     uint32_t ttl = 0;
 
     DNS_AnswerType answer_type = DNS_QUESTION;

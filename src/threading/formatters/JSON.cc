@@ -35,7 +35,10 @@ bool JSON::Describe(ODesc* desc, int num_fields, const Field* const* fields, Val
     }
 
     writer.EndObject();
-    desc->Add(buffer.GetString());
+
+    std::string json{buffer.GetString()};
+    Finalize(json);
+    desc->Add(std::move(json));
 
     return true;
 }
@@ -57,8 +60,23 @@ bool JSON::Describe(ODesc* desc, Value* val, const std::string& name) const {
     BuildJSON(writer, val, name);
     writer.EndObject();
 
-    desc->Add(buffer.GetString());
+    std::string json{buffer.GetString()};
+    Finalize(json);
+    desc->Add(std::move(json));
+
     return true;
+}
+
+void JSON::Finalize(std::string& json) const {
+    // Replace all occurrences of the "\x" marker we may have inserted during
+    // escaping of the JSON input string with the backslash unicode codepoint.
+    static std::string pattern{"[zeek\\\\u005C]"};
+    size_t pos = 0;
+
+    while ( (pos = json.find(pattern, pos)) != std::string::npos ) {
+        json.replace(pos, pattern.length(), "\\u005C");
+        pos += pattern.length();
+    }
 }
 
 Value* JSON::ParseValue(const std::string& s, const std::string& name, TypeTag type, TypeTag subtype) const {

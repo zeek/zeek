@@ -36,6 +36,7 @@ public:
 
 private:
     void BuildJSON(zeek::json::detail::NullDoubleWriter& writer, Value* val, const std::string& name = "") const;
+    void Finalize(std::string& json) const;
 
     TimeFormat timestamps;
     bool include_unset_fields;

@@ -2242,8 +2242,9 @@ void zeek_strerror_r(int zeek_errno, char* buf, size_t buflen) {
 static string json_escape_byte(char c) {
     char hex[2] = {'0', '0'};
     bytetohex(c, hex);
-
-    string result = "\\x";
+    // Hack: put in place a "marker" that survives JSON-encoding,
+    // that we can then substitute in the resulting JSON.
+    string result = "[zeek\\u005C]x";
     result.append(hex, 2);
 
     return result;

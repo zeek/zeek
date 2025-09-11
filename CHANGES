@@ -1,3 +1,9 @@
+8.1.0-dev.534 | 2025-09-11 10:57:17 -0700
+
+  * Clean up initialization of DNS_Interpreter (Tim Wojtulewicz, Corelight)
+
+  * Switch types used in DNS analyzer to be more consistent (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.531 | 2025-09-08 11:19:36 -0700
 
   * btest/core/suspend_processing: Add WebSocket example (Arne Welzel, Corelight)

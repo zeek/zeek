@@ -104,6 +104,9 @@ std::unordered_map<std::string, std::string> hashed_funcs;
 // If true, the generated code should run "standalone".
 bool standalone = false;
 
+// If true, compilation skipped at least one function due to non-compilability.
+bool skipped_uncompilable_func = false;
+
 // Hash over the functions in this compilation.  This is only needed for
 // "seatbelts", to ensure that we can produce a unique hash relating to this
 // compilation (*and* its compilation time, which is why these are "seatbelts"

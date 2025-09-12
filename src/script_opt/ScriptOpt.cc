@@ -57,7 +57,7 @@ bool is_lambda(const ScriptFunc* f) { return lambdas.contains(f); }
 bool is_when_lambda(const ScriptFunc* f) { return when_lambdas.contains(f); }
 
 void analyze_global_stmts(Stmt* stmts) {
-    if ( analysis_options.gen_standalone_CPP && obj_matches_opt_files(stmts) )
+    if ( analysis_options.gen_standalone_CPP && obj_matches_opt_files(stmts) == AnalyzeDecision::SHOULD )
         reporter->FatalError("cannot include global statements with -O gen-standalone-C++: %s",
                              obj_desc(stmts).c_str());
 
@@ -88,19 +88,25 @@ std::pair<StmtPtr, ScopePtr> get_global_stmts() {
     return std::pair<StmtPtr, ScopePtr>{fi.Body(), fi.Scope()};
 }
 
-void add_func_analysis_pattern(AnalyOpt& opts, const char* pat) {
+void add_func_analysis_pattern(AnalyOpt& opts, const char* pat, bool is_only) {
     try {
         std::string full_pat = std::string("^(") + pat + ")$";
-        opts.only_funcs.emplace_back(std::move(full_pat));
+        if ( is_only )
+            opts.only_funcs.emplace_back(std::move(full_pat));
+        else
+            opts.skip_funcs.emplace_back(std::move(full_pat));
     } catch ( const std::regex_error& e ) {
         reporter->FatalError("bad file analysis pattern: %s", pat);
     }
 }
 
-void add_file_analysis_pattern(AnalyOpt& opts, const char* pat) {
+void add_file_analysis_pattern(AnalyOpt& opts, const char* pat, bool is_only) {
     try {
         std::string full_pat = std::string("^.*(") + pat + ").*$";
-        opts.only_files.emplace_back(std::move(full_pat));
+        if ( is_only )
+            opts.only_files.emplace_back(std::move(full_pat));
+        else
+            opts.skip_files.emplace_back(std::move(full_pat));
     } catch ( const std::regex_error& e ) {
         reporter->FatalError("bad file analysis pattern: %s", pat);
     }
@@ -108,39 +114,66 @@ void add_file_analysis_pattern(AnalyOpt& opts, const char* pat) {
 
 bool should_analyze(const ScriptFuncPtr& f, const StmtPtr& body) {
     auto& ofuncs = analysis_options.only_funcs;
+    auto& sfuncs = analysis_options.skip_funcs;
     auto& ofiles = analysis_options.only_files;
+    auto& sfiles = analysis_options.skip_files;
 
-    if ( ofiles.empty() && ofuncs.empty() )
+    bool have_onlies = ! ofiles.empty() || ! ofuncs.empty();
+
+    if ( ! have_onlies && sfiles.empty() && sfuncs.empty() )
+        // It's the default of compile-everything.
         return true;
 
-    if ( obj_matches_opt_files(body.get()) )
-        return true;
+    auto file_decision = obj_matches_opt_files(body.get());
+    if ( file_decision == AnalyzeDecision::SHOULD_NOT )
+        return false;
+
+    // Even if the file decision is SHOULD, that can be overridden by
+    // a function decision of "skip".
 
     const auto& fun = f->GetName();
+    for ( auto& s : sfuncs )
+        if ( std::regex_match(fun, s) )
+            return false; // matches a "skip" function
+
+    if ( file_decision == AnalyzeDecision::SHOULD )
+        // It matches a specified file, and there's no "skip" for the function.
+        return true;
 
     for ( auto& o : ofuncs )
         if ( std::regex_match(fun, o) )
-            return true;
+            return true; // matches an "only" function
 
-    return false;
+    // If we get here, neither the file nor the function has an "only"
+    // or "skip" decision. If our sole directives were for skip's, then
+    // we should analyze this function. If we have any only's, then we
+    // shouldn't.
+    return ! have_onlies;
 }
 
-bool filename_matches_opt_files(const char* filename) {
+AnalyzeDecision filename_matches_opt_files(const char* filename) {
     auto& ofiles = analysis_options.only_files;
+    auto& sfiles = analysis_options.skip_files;
 
-    if ( ofiles.empty() )
-        return false;
+    if ( ofiles.empty() && sfiles.empty() )
+        return AnalyzeDecision::DEFAULT;
 
     auto fin = util::detail::normalize_path(filename);
 
+    for ( auto& s : analysis_options.skip_files )
+        if ( std::regex_match(fin, s) )
+            return AnalyzeDecision::SHOULD_NOT;
+
     for ( auto& o : ofiles )
         if ( std::regex_match(fin, o) )
-            return true;
+            return AnalyzeDecision::SHOULD;
 
-    return false;
+    return AnalyzeDecision::DEFAULT;
 }
 
-bool obj_matches_opt_files(const Obj* obj) { return filename_matches_opt_files(obj->GetLocationInfo()->FileName()); }
+AnalyzeDecision obj_matches_opt_files(const Obj* obj) {
+    return filename_matches_opt_files(obj->GetLocationInfo()->FileName());
+}
 
 static bool optimize_AST(ScriptFuncPtr f, std::shared_ptr<ProfileFunc>& pf, std::shared_ptr<Reducer>& rc,
                          ScopePtr scope, StmtPtr& body) {
@@ -329,13 +362,25 @@ static void init_options() {
     if ( analysis_options.only_funcs.empty() ) {
         auto zo = getenv("ZEEK_OPT_FUNCS");
         if ( zo )
-            add_func_analysis_pattern(analysis_options, zo);
+            add_func_analysis_pattern(analysis_options, zo, true);
+    }
+
+    if ( analysis_options.skip_funcs.empty() ) {
+        auto zo = getenv("ZEEK_SKIP_FUNCS");
+        if ( zo )
+            add_func_analysis_pattern(analysis_options, zo, false);
     }
 
     if ( analysis_options.only_files.empty() ) {
         auto zo = getenv("ZEEK_OPT_FILES");
         if ( zo )
-            add_file_analysis_pattern(analysis_options, zo);
+            add_file_analysis_pattern(analysis_options, zo, true);
+    }
+
+    if ( analysis_options.skip_files.empty() ) {
+        auto zo = getenv("ZEEK_SKIP_FILES");
+        if ( zo )
+            add_file_analysis_pattern(analysis_options, zo, false);
     }
 
     if ( analysis_options.profile_ZAM ) {

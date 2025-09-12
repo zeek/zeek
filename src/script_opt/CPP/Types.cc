@@ -198,14 +198,14 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterType(const TypePtr& tp) {
     // If any of those conditions don't hold, then this variable will remain 0.
     int addl_fields = 0;
 
-    bool type_init_needed = standalone && obj_matches_opt_files(tp);
+    bool type_init_needed = standalone && obj_matches_opt_files(tp) == AnalyzeDecision::SHOULD;
 
     if ( standalone && ! type_init_needed ) {
         if ( tp->Tag() == TYPE_RECORD ) {
             auto tr = tp->AsRecordType();
             for ( auto i = tr->NumOrigFields(); i < tr->NumFields(); ++i ) {
                 auto fd = tr->FieldDecl(i);
-                if ( filename_matches_opt_files(fd->GetLocationInfo()->FileName()) ) {
+                if ( filename_matches_opt_files(fd->GetLocationInfo()->FileName()) == AnalyzeDecision::SHOULD ) {
                     if ( addl_fields == 0 )
                         addl_fields = i;
                 }

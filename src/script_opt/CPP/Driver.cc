@@ -25,6 +25,13 @@ CPPCompile::CPPCompile(vector<FuncInfo>& _funcs, std::shared_ptr<ProfileFuncs> _
     }
 
     Compile(report_uncompilable);
+
+    if ( standalone && skipped_uncompilable_func && ! analysis_options.allow_cond ) {
+        reporter->Error(
+            "standalone C++ compilation incomplete due to having to skip some functions; use \"-O allow-cond\" to "
+            "override");
+        exit(1);
+    }
 }
 
 CPPCompile::~CPPCompile() { fclose(write_file); }
@@ -208,6 +215,7 @@ bool CPPCompile::AnalyzeFuncBody(FuncInfo& fi, unordered_set<string>& filenames_
             }
 
             fi.SetSkip(true);
+            skipped_uncompilable_func = true;
         }
     }
 
@@ -252,6 +260,8 @@ bool CPPCompile::AnalyzeFuncBody(FuncInfo& fi, unordered_set<string>& filenames_
         }
 
         not_fully_compilable.insert(f->GetName());
+        skipped_uncompilable_func = true;
+
         return false;
     }
 

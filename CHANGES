@@ -1,3 +1,7 @@
+8.1.0-dev.538 | 2025-09-12 09:24:51 -0700
+
+  * for -O gen-standalone-C++, make the presence of uncompilable functions fatal unless -O allow-cond is used (Vern Paxson, Corelight)
+
 8.1.0-dev.536 | 2025-09-12 09:24:12 -0700
 
   * Bump zeekctl for new trace-summary/pysubnettree versions (Tim Wojtulewicz, Corelight)

@@ -117,6 +117,17 @@ bool file_mgr_set_reassembly_buffer(StringVal* file_id, uint64_t max) {
 bool ZAM_error = false;
 
 bool is_ZAM_compilable(const ProfileFunc* pf, const char** reason) {
+    auto func = pf->ProfiledFunc(); // can be nil for lambdas
+
+    if ( func ) {
+        auto& scope_id = pf->ProfiledScope()->GetID();
+        if ( scope_id && scope_id->GetAttr(ATTR_NO_ZAM_OPT) ) {
+            if ( reason )
+                *reason = "&no_ZAM_opt attribute";
+            return false;
+        }
+    }
+
     if ( has_AST_node_unknown_to_script_opt(pf, true) ) {
         if ( reason )
             *reason = "unknown AST node type";

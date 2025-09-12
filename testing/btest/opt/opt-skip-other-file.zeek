@@ -1,8 +1,8 @@
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
-# @TEST-EXEC: zeek -b -O ZAM --optimize-files=opt-files %INPUT >output
+# @TEST-EXEC: zeek -b -O ZAM --no-opt-files=Xopt-skip-other-file %INPUT >output
 # @TEST-EXEC: btest-diff output
 
-# Tests that we can selectively pick this file.
+# Tests that if we exclude a different file, we still compile this one.
 
 function my_test()
 	{

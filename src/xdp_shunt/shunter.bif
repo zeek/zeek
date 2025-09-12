@@ -4,6 +4,11 @@
 
 #include "common_defines.h"
 #include "common_user_bpf_xdp.h"
+#include "XDPProgram.h"
+// TODO: Don't include this like this
+#include "../xdp_programs/filter_common.h"
+
+#include <sys/ioctl.h>
 // #include <bpf/bpf_helpers.h>
 // #include <bpf/libbpf.h>
 
@@ -12,25 +17,61 @@ module XDP;
 
 # TODO: options
 # TODO: Don't exec the command, use the libxdp or whatever
-function start_shunt%(%) : bool %{
+function start_shunt%(%) : opaque of XDP::Program %{
     auto ps = zeek::iosource_mgr->GetPktSrc();
     if ( ! ps ) {
         zeek::reporter->Error("Packet source invalid!");
         return zeek::val_mgr->Bool(false);
     }
 
-    char cmd[512];
-    snprintf(cmd, sizeof(cmd), "xdp-loader load %s /home/etyp/src/zeek-xdp-shunter/xdp_programs/filter.o -m skb",
-             ps->Path().c_str());
-    int rc = system(cmd);
-    if ( rc != 0 )
-        zeek::reporter->Error("XDP loader failed: %s (rc=%d)", cmd, rc);
 
-    return zeek::val_mgr->Bool(rc == 0);
+    auto obj = bpf_object__open_file("/home/etyp/src/zeek-xdp-shunter/xdp_programs/filter.o", nullptr);
+    auto err = libbpf_get_error(obj);
+	  char errmsg[1024];
+    if (err) {
+        libxdp_strerror(err, errmsg, sizeof(errmsg));
+        zeek::reporter->Error(errmsg);
+        return zeek::val_mgr->Bool(false);
+    }
+
+	  LIBBPF_OPTS(xdp_program_opts, xdp_opts,
+                            .obj = obj,
+                            .prog_name = "xdp_filter");
+	  struct xdp_program *prog = xdp_program__create(&xdp_opts);
+    err = libxdp_get_error(prog);
+    if (err) {
+        libxdp_strerror(err, errmsg, sizeof(errmsg));
+        zeek::reporter->Error(errmsg);
+        return zeek::val_mgr->Bool(false);
+    }
+
+    // TODO: Don't hardcode the mode
+    // TODO: How could I get the ifindex without the if_nametoindex stuff?
+		auto ifindex = if_nametoindex(ps->Path().c_str());
+	  if (ifindex == 0) {
+        zeek::reporter->Error("Invalid device?");
+        return zeek::val_mgr->Bool(false);
+    }
+
+    err = xdp_program__attach(prog, ifindex, XDP_MODE_SKB, 0);
+    if (err) {
+        zeek::reporter->Error("Failed to attach");
+        return zeek::val_mgr->Bool(false);
+    }
+
+    //char cmd[512];
+    //snprintf(cmd, sizeof(cmd), "xdp-loader load %s /home/etyp/src/zeek-xdp-shunter/xdp_programs/filter.o -m skb",
+             //ps->Path().c_str());
+    //int rc = system(cmd);
+    //if ( rc != 0 )
+        //zeek::reporter->Error("XDP loader failed: %s (rc=%d)", cmd, rc);
+
+	  auto xdp_prog = zeek::make_intrusive<xdp::shunter::detail::XDPProgramVal>(prog);
+    return xdp_prog;
 %}
 
 # Adds this 5-tuple to the BPF map
-function drop%(cid: conn_id%) : bool %{
+function drop%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
     auto cid_r = cid->AsRecordVal();
     const zeek::IPAddr& orig_h = cid_r->GetFieldAs<zeek::AddrVal>(0);
     uint32_t orig_p = cid_r->GetFieldAs<zeek::PortVal>(1)->Port();
@@ -42,22 +83,48 @@ function drop%(cid: conn_id%) : bool %{
         zeek::reporter->Error("No IPV6 yet!!");
         return zeek::val_mgr->Bool(false);
     }
-    // TODO: Drop the packets, but we need a bpf_obj
-    // auto* map = bpf_object__find_map_by_name(bpf_obj, "filter_map");
-    // if (!map) {
-    // zeek::reporter->error("Failed to find 'filter_map' in BPF object");
-    // return zeek::val_mgr->Bool(false);
-    //}
+
+	  auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
+    auto* map = bpf_object__find_map_by_name(xdp_program__bpf_obj(prog), "filter_map");
+    if (!map) {
+        zeek::reporter->Error("Failed to find 'filter_map' in BPF object");
+        return zeek::val_mgr->Bool(false);
+    }
+    struct five_tuple tup = {0};
+    const uint32_t* bytes;
+    // TODO: Check len and stuff.
+    int len = orig_h.GetBytes(&bytes);
+    tup.ip_source = bytes[0];
+    len = resp_h.GetBytes(&bytes);
+    tup.ip_destination = bytes[0];
+    enum xdp_action action = XDP_DROP;
+    auto err = bpf_map__update_elem(map, &tup, sizeof(tup), &action, sizeof(action), 0);
+    if (err) {
+        zeek::reporter->Error("Failed to add to map");
+        return zeek::val_mgr->Bool(false);
+    }
+
     return zeek::val_mgr->Bool(true);
 %}
 
 # TODO: options
-function end_shunt%(%) : bool %{
+function end_shunt%(xdp_prog: opaque of XDP::Program%) : bool %{
+	  auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
     auto ps = zeek::iosource_mgr->GetPktSrc();
     if ( ! ps ) {
         zeek::reporter->Error("Packet source invalid!");
         return zeek::val_mgr->Bool(false);
     }
+
+    // TODO: Don't hardcode the mode
+    // TODO: How could I get the ifindex without the if_nametoindex stuff?
+		auto ifindex = if_nametoindex(ps->Path().c_str());
+	  if (ifindex == 0) {
+        zeek::reporter->Error("Invalid device?");
+        return zeek::val_mgr->Bool(false);
+    }
+
+    auto err = xdp_program__attach(prog, ifindex, XDP_MODE_SKB, 0);
 
     char cmd[512];
     snprintf(cmd, sizeof(cmd), "xdp-loader unload %s --all", ps->Path().c_str());

@@ -1,0 +1,69 @@
+%%{
+#include "zeek/iosource/Manager.h"
+#include "zeek/iosource/PktSrc.h"
+
+#include "common_defines.h"
+#include "common_user_bpf_xdp.h"
+// #include <bpf/bpf_helpers.h>
+// #include <bpf/libbpf.h>
+
+%%}
+module XDP;
+
+# TODO: options
+# TODO: Don't exec the command, use the libxdp or whatever
+function start_shunt%(%) : bool %{
+    auto ps = zeek::iosource_mgr->GetPktSrc();
+    if ( ! ps ) {
+        zeek::reporter->Error("Packet source invalid!");
+        return zeek::val_mgr->Bool(false);
+    }
+
+    char cmd[512];
+    snprintf(cmd, sizeof(cmd), "xdp-loader load %s /home/etyp/src/zeek-xdp-shunter/xdp_programs/filter.o -m skb",
+             ps->Path().c_str());
+    int rc = system(cmd);
+    if ( rc != 0 )
+        zeek::reporter->Error("XDP loader failed: %s (rc=%d)", cmd, rc);
+
+    return zeek::val_mgr->Bool(rc == 0);
+%}
+
+# Adds this 5-tuple to the BPF map
+function drop%(cid: conn_id%) : bool %{
+    auto cid_r = cid->AsRecordVal();
+    const zeek::IPAddr& orig_h = cid_r->GetFieldAs<zeek::AddrVal>(0);
+    uint32_t orig_p = cid_r->GetFieldAs<zeek::PortVal>(1)->Port();
+    const zeek::IPAddr& resp_h = cid_r->GetFieldAs<zeek::AddrVal>(2);
+    uint32_t resp_p = cid_r->GetFieldAs<zeek::PortVal>(3)->Port();
+
+    // TODO: IPv6
+    if ( orig_h.GetFamily() == IPv6 || resp_h.GetFamily() == IPv6 ) {
+        zeek::reporter->Error("No IPV6 yet!!");
+        return zeek::val_mgr->Bool(false);
+    }
+    // TODO: Drop the packets, but we need a bpf_obj
+    // auto* map = bpf_object__find_map_by_name(bpf_obj, "filter_map");
+    // if (!map) {
+    // zeek::reporter->error("Failed to find 'filter_map' in BPF object");
+    // return zeek::val_mgr->Bool(false);
+    //}
+    return zeek::val_mgr->Bool(true);
+%}
+
+# TODO: options
+function end_shunt%(%) : bool %{
+    auto ps = zeek::iosource_mgr->GetPktSrc();
+    if ( ! ps ) {
+        zeek::reporter->Error("Packet source invalid!");
+        return zeek::val_mgr->Bool(false);
+    }
+
+    char cmd[512];
+    snprintf(cmd, sizeof(cmd), "xdp-loader unload %s --all", ps->Path().c_str());
+    int rc = system(cmd);
+    if ( rc != 0 )
+        zeek::reporter->Error("XDP loader failed: %s (rc=%d)", cmd, rc);
+
+    return zeek::val_mgr->Bool(rc == 0);
+%}

@@ -295,10 +295,8 @@ ScriptFunc::ScriptFunc(std::string _name, FuncTypePtr ft, std::vector<StmtPtr> b
 
     std::ranges::stable_sort(bodies, std::ranges::greater(), &Body::priority);
 
-    if ( ! bodies.empty() ) {
-        current_body = bodies[0].stmts;
-        current_priority = bodies[0].priority;
-    }
+    if ( ! bodies.empty() )
+        current_body = bodies[0];
 }
 
 ScriptFunc::~ScriptFunc() {
@@ -562,13 +560,9 @@ void ScriptFunc::AddBody(StmtPtr new_body, const std::vector<IDPtr>& new_inits, 
         bodies.clear();
     }
 
-    Body b;
-    b.stmts = new_body;
-    b.groups = {groups.begin(), groups.end()};
-    current_body = new_body;
-    current_priority = b.priority = priority;
+    current_body = Body{.stmts = new_body, .groups = {groups.begin(), groups.end()}, .priority = priority};
 
-    bodies.push_back(std::move(b));
+    bodies.push_back(current_body);
     std::ranges::stable_sort(bodies, std::ranges::greater(), &Body::priority);
 }
 
@@ -577,18 +571,15 @@ void ScriptFunc::ReplaceBody(const StmtPtr& old_body, StmtPtr new_body) {
 
     for ( auto body = bodies.begin(); body != bodies.end(); ++body )
         if ( body->stmts.get() == old_body.get() ) {
-            if ( new_body ) {
+            if ( new_body )
                 body->stmts = new_body;
-                current_priority = body->priority;
-            }
             else
                 bodies.erase(body);
 
             found_it = true;
+            current_body = *body;
             break;
         }
-
-    current_body = new_body;
 }
 
 bool ScriptFunc::DeserializeCaptures(BrokerListView data) {

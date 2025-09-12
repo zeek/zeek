@@ -1,3 +1,7 @@
+8.1.0-dev.536 | 2025-09-12 09:24:12 -0700
+
+  * Bump zeekctl for new trace-summary/pysubnettree versions (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.534 | 2025-09-11 10:57:17 -0700
 
   * Clean up initialization of DNS_Interpreter (Tim Wojtulewicz, Corelight)

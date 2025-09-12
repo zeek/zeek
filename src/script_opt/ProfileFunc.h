@@ -107,7 +107,6 @@ public:
     const std::vector<ExprPtr>& Exprs() const { return exprs; }
     const std::vector<const LambdaExpr*>& Lambdas() const { return lambdas; }
     const std::vector<const ConstExpr*>& Constants() const { return constants; }
-    const IDSet& UnorderedIdentifiers() const { return ids; }
     const std::vector<IDPtr>& OrderedIdentifiers() const { return ordered_ids; }
     const TypeSet& UnorderedTypes() const { return types; }
     const std::vector<const Type*>& OrderedTypes() const { return ordered_types; }

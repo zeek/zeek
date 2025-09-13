@@ -154,19 +154,20 @@ using ScriptFuncPtr = IntrusivePtr<ScriptFunc>;
 // Info we need for tracking an instance of a function.
 class FuncInfo {
 public:
-    FuncInfo(ScriptFuncPtr _func, ScopePtr _scope, StmtPtr _body, int _priority)
-        : func(std::move(_func)), scope(std::move(_scope)), body(std::move(_body)), priority(_priority) {}
+    FuncInfo(ScriptFuncPtr _func, ScopePtr _scope, Func::Body _body)
+        : func(std::move(_func)), scope(std::move(_scope)), body(std::move(_body)) {}
 
     ScriptFunc* Func() const { return func.get(); }
     const ScriptFuncPtr& FuncPtr() const { return func; }
     const ScopePtr& Scope() const { return scope; }
-    const StmtPtr& Body() const { return body; }
-    int Priority() const { return priority; }
+    const StmtPtr& Body() const { return body.stmts; }
+    int Priority() const { return body.priority; }
+    auto EventGroups() const { return body.groups; }
     const ProfileFunc* Profile() const { return pf.get(); }
     std::shared_ptr<ProfileFunc> ProfilePtr() const { return pf; }
 
     void SetScope(ScopePtr new_scope) { scope = std::move(new_scope); }
-    void SetBody(StmtPtr new_body) { body = std::move(new_body); }
+    void SetBody(StmtPtr new_body) { body.stmts = std::move(new_body); }
     void SetProfile(std::shared_ptr<ProfileFunc> _pf) { pf = std::move(_pf); }
 
     bool ShouldAnalyze() const { return should_analyze; }
@@ -183,9 +184,8 @@ public:
 protected:
     ScriptFuncPtr func;
     ScopePtr scope;
-    StmtPtr body;
+    Func::Body body;
     std::shared_ptr<ProfileFunc> pf;
-    int priority;
 
     // Whether to analyze this function at all, per optimization selection
     // via --optimize-file/--optimize-func.  If those flags aren't used,

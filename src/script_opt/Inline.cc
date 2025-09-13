@@ -299,7 +299,11 @@ void Inliner::CoalesceEventHandlers(ScriptFuncPtr func, const std::vector<Func::
 
     PostInline(oi, inlined_func);
 
-    funcs.emplace_back(inlined_func, new_scope, merged_body, 0);
+    // We don't need to worry about event groups because the CoalescedScriptFunc
+    // wrapper checks at run-time for whether any handlers have been disabled,
+    // and if so skips coalesced execution.
+    Func::Body body{.stmts = merged_body, .priority = 0};
+    funcs.emplace_back(inlined_func, new_scope, std::move(body));
 
     auto pf = std::make_shared<ProfileFunc>(inlined_func.get(), merged_body, true);
     funcs.back().SetProfile(std::move(pf));

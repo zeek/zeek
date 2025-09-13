@@ -265,9 +265,7 @@ public:
      */
     void ReplaceBody(const detail::StmtPtr& old_body, detail::StmtPtr new_body);
 
-    StmtPtr CurrentBody() const { return current_body.stmts; }
-    int CurrentPriority() const { return current_body.priority; }
-    auto CurrentEventGroups() const { return current_body.groups; }
+    auto CurrentBody() const { return current_body; }
 
     /**
      * Returns the function's frame size.

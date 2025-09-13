@@ -41,7 +41,7 @@ void analyze_func(ScriptFuncPtr f) {
     // Even if we're analyzing only a subset of the scripts, we still
     // track all functions here because the inliner will need the full list.
     ASSERT(f->GetScope());
-    funcs.emplace_back(f, f->GetScope(), f->CurrentBody(), f->CurrentPriority());
+    funcs.emplace_back(f, f->GetScope(), f->CurrentBody());
 }
 
 void analyze_lambda(LambdaExpr* l) {
@@ -78,7 +78,8 @@ void analyze_global_stmts(Stmt* stmts) {
     global_stmts->SetScope(sc);
 
     global_stmts_ind = funcs.size();
-    funcs.emplace_back(global_stmts, sc, stmts->ThisPtr(), 0);
+    Func::Body body{.stmts = stmts->ThisPtr(), .priority = 0};
+    funcs.emplace_back(global_stmts, sc, body);
 }
 
 std::pair<StmtPtr, ScopePtr> get_global_stmts() {

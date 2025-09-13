@@ -500,6 +500,16 @@ protected:
 };
 
 // Information for initializing a Zeek global.
+
+// Tracks all of the characteristics associated with a global.
+struct GlobalCharacteristics {
+    bool is_exported = false;
+    bool is_const = false;
+    bool is_option = false;
+    bool is_enum_const = false;
+    bool is_type = false;
+};
+
 class GlobalInitInfo : public GlobalLookupInitInfo {
 public:
     GlobalInitInfo(CPPCompile* c, IDPtr g, std::string CPP_name);
@@ -511,8 +521,7 @@ protected:
     int type;
     int attrs;
     std::string val;
-    bool is_exported;
-    bool is_option;
+    GlobalCharacteristics gc;
     bool func_with_no_val = false; // needed to handle some error situations
 };
 

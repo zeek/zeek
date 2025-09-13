@@ -158,12 +158,21 @@ void activate_bodies__CPP(const char* fn, const char* module, bool exported, Typ
         g->AddFunc(f);
 }
 
-IDPtr lookup_global__CPP(const char* g, const TypePtr& t, bool exported) {
+IDPtr lookup_global__CPP(const char* g, const TypePtr& t, const GlobalCharacteristics& gc) {
     auto gl = lookup_ID(g, GLOBAL_MODULE_NAME, false, false, false);
 
     if ( ! gl ) {
-        gl = install_ID(g, GLOBAL_MODULE_NAME, true, exported);
+        gl = install_ID(g, GLOBAL_MODULE_NAME, true, gc.is_exported);
         gl->SetType(t);
+
+        if ( gc.is_const )
+            gl->SetConst();
+        if ( gc.is_option )
+            gl->SetOption();
+        if ( gc.is_enum_const )
+            gl->SetEnumConst();
+        if ( gc.is_type )
+            gl->MakeType();
     }
 
     return gl;

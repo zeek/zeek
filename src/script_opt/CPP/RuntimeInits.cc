@@ -481,10 +481,7 @@ void CPP_GlobalLookupInit::Generate(InitsManager* im, std::vector<void*>& /* ini
 
 void CPP_GlobalInit::Generate(InitsManager* im, std::vector<void*>& /* inits_vec */, int /* offset */) const {
     auto& t = im->Types(type);
-    global = lookup_global__CPP(name, t, is_exported);
-
-    if ( is_option )
-        global->SetOption();
+    global = lookup_global__CPP(name, t, gc);
 
     if ( ! global->HasVal() ) {
         if ( val >= 0 )

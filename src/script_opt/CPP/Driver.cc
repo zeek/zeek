@@ -383,10 +383,18 @@ void CPPCompile::RegisterCompiledBody(const string& f) {
     auto h = bi.hash;
     auto p = bi.priority;
     auto loc = bi.loc;
+
     auto body_info = Fmt(p) + ", " + Fmt(h) + ", \"" + loc->FileName() + " (C++)\", " + Fmt(loc->FirstLine());
 
-    Emit("\tCPP_RegisterBody(\"%s\", (void*) %s, %s, %s, std::vector<std::string>(%s)),", f, f, Fmt(type_signature),
-         body_info, events);
+    string module_group = "\"" + bi.module + "\"";
+
+    string attr_groups = "{";
+    for ( const auto& g : bi.groups )
+        attr_groups += " \"" + g + "\",";
+    attr_groups += " }";
+
+    Emit("\tCPP_RegisterBody(\"%s\", (void*) %s, %s, %s, std::vector<std::string>(%s), %s, %s),", f, f,
+         Fmt(type_signature), body_info, events, module_group, attr_groups);
 }
 
 void CPPCompile::GenEpilog() {
@@ -570,8 +578,12 @@ void CPPCompile::GenRegisterBodies() {
         "auto f = make_intrusive<CPPDynStmt>(b.func_name.c_str(), b.func, b.type_signature, "
         "b.filename, b.line_num);");
 
-    auto reg = standalone ? "register_standalone_body" : "register_body";
-    Emit("%s__CPP(f, b.priority, b.h, b.events, finish_init__CPP);", reg);
+    if ( standalone )
+        Emit(
+            "register_standalone_body__CPP(f, b.priority, b.h, b.events, b.module_group, b.attr_groups, "
+            "finish_init__CPP);");
+    else
+        Emit("register_body__CPP(f, b.priority, b.h, b.events, finish_init__CPP);");
     EndBlock();
 
     EndBlock();

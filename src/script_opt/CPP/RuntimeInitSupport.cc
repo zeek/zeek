@@ -46,16 +46,18 @@ void register_type__CPP(TypePtr t, const string& name) {
 }
 
 void register_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash, vector<string> events, void (*finish_init)()) {
-    compiled_scripts[hash] = {std::move(body), priority, std::move(events), finish_init};
+    compiled_scripts[hash] = {std::move(body), priority, std::move(events), {}, {}, finish_init};
 }
 
 static unordered_map<p_hash_type, CompiledScript> compiled_standalone_scripts;
 
 void register_standalone_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash, vector<string> events,
+                                   std::string module_group, std::vector<std::string> attr_groups,
                                    void (*finish_init)()) {
     // For standalone scripts we don't actually need finish_init, but
     // we keep it for symmetry with compiled_scripts.
-    compiled_standalone_scripts[hash] = {std::move(body), priority, std::move(events), finish_init};
+    compiled_standalone_scripts[hash] = {std::move(body),        priority,   std::move(events), std::move(module_group),
+                                         std::move(attr_groups), finish_init};
 }
 
 void register_lambda__CPP(CPPStmtPtr body, p_hash_type hash, const char* name, TypePtr t, bool has_captures) {
@@ -174,6 +176,7 @@ FuncValPtr lookup_func__CPP(string name, int num_bodies, vector<p_hash_type> has
 
     vector<StmtPtr> bodies;
     vector<int> priorities;
+    vector<EventGroupPtr> groups;
 
     for ( auto h : hashes ) {
         auto cs = compiled_scripts.find(h);
@@ -192,9 +195,21 @@ FuncValPtr lookup_func__CPP(string name, int num_bodies, vector<p_hash_type> has
         // the semantics for Register explicitly allow it.
         for ( auto& e : f.events )
             event_registry->Register(e);
+
+        vector<string> group_names = f.attr_groups;
+        if ( ! f.module_group.empty() )
+            group_names.push_back(f.module_group);
+
+        for ( const auto& g : group_names ) {
+            auto er = event_registry->RegisterGroup(EventGroupKind::Module, g);
+            groups.emplace_back(std::move(er));
+        }
     }
 
     auto sf = make_intrusive<ScriptFunc>(std::move(name), std::move(ft), std::move(bodies), std::move(priorities));
+
+    for ( auto& g : groups )
+        g->AddFunc(sf);
 
     return make_intrusive<FuncVal>(std::move(sf));
 }

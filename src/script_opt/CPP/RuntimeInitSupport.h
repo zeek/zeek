@@ -47,7 +47,8 @@ extern void register_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash, 
 
 // Same but for standalone function bodies.
 extern void register_standalone_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash,
-                                          std::vector<std::string> events, void (*finish_init)());
+                                          std::vector<std::string> events, std::string module_group,
+                                          std::vector<std::string> attr_groups, void (*finish_init)());
 
 // Registers a lambda body as associated with the given hash.  Includes
 // the name of the lambda (so it can be made available as a quasi-global

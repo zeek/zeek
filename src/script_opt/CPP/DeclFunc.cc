@@ -1,5 +1,6 @@
 // See the file "COPYING" in the main distribution directory for copyright.
 
+#include "zeek/EventRegistry.h"
 #include "zeek/script_opt/CPP/Compile.h"
 
 namespace zeek::detail {
@@ -15,8 +16,9 @@ void CPPCompile::DeclareFunc(const FuncInfo& func) {
     auto f = func.Func();
     const auto& body = func.Body();
     auto priority = func.Priority();
+    const auto& e_g = func.EventGroups();
 
-    CreateFunction(f->GetType(), pf, fname, body, priority, nullptr, f->Flavor());
+    CreateFunction(f->GetType(), pf, fname, body, priority, nullptr, f->Flavor(), &e_g);
 
     if ( f->GetBodies().size() == 1 )
         compiled_simple_funcs[f->GetName()] = fname;
@@ -42,7 +44,8 @@ void CPPCompile::DeclareLambda(const LambdaExpr* l, const ProfileFunc* pf) {
 }
 
 void CPPCompile::CreateFunction(const FuncTypePtr& ft, const ProfileFunc* pf, const string& fname, const StmtPtr& body,
-                                int priority, const LambdaExpr* l, FunctionFlavor flavor) {
+                                int priority, const LambdaExpr* l, FunctionFlavor flavor,
+                                const std::forward_list<EventGroupPtr>* e_g) {
     const auto& yt = ft->Yield();
     in_hook = flavor == FUNC_FLAVOR_HOOK;
 
@@ -103,7 +106,29 @@ void CPPCompile::CreateFunction(const FuncTypePtr& ft, const ProfileFunc* pf, co
         compiled_funcs.emplace(fname);
     }
 
-    body_info[fname] = {.hash = pf->HashVal(), .priority = priority, .loc = body->GetLocationInfo()};
+    string module_group;
+    vector<string> attr_groups;
+
+    if ( e_g )
+        for ( auto g : *e_g ) {
+            const auto& name = g->GetName();
+
+            if ( g->GetEventGroupKind() == EventGroupKind::Module ) {
+                if ( module_group.empty() )
+                    module_group = g->GetName();
+                else {
+                    ASSERT(module_group == name);
+                }
+            }
+            else
+                attr_groups.push_back(name);
+        }
+
+    body_info[fname] = {.hash = pf->HashVal(),
+                        .priority = priority,
+                        .loc = body->GetLocationInfo(),
+                        .module = module_group,
+                        .groups = std::move(attr_groups)};
     body_names.emplace(body.get(), fname);
 }
 

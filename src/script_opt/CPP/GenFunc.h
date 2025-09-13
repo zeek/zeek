@@ -54,7 +54,9 @@ std::unordered_map<const Stmt*, std::string> body_names;
 struct BodyInfo {
     p_hash_type hash;
     int priority;
-    const Location* loc; // for better-than-nothing error reporting
+    const Location* loc;             // for better-than-nothing error reporting
+    std::string module;              // if non-nil, used for "module" event groups
+    std::vector<std::string> groups; // attribute-based event groups
 };
 
 // Maps function names to their body info.

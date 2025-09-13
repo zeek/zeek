@@ -103,9 +103,7 @@ void CPPCompile::CreateFunction(const FuncTypePtr& ft, const ProfileFunc* pf, co
         compiled_funcs.emplace(fname);
     }
 
-    body_hashes[fname] = pf->HashVal();
-    body_priorities[fname] = priority;
-    body_locs[fname] = body->GetLocationInfo();
+    body_info[fname] = {.hash = pf->HashVal(), .priority = priority, .loc = body->GetLocationInfo()};
     body_names.emplace(body.get(), fname);
 }
 

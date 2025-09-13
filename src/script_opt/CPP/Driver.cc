@@ -378,9 +378,11 @@ void CPPCompile::RegisterCompiledBody(const string& f) {
     ASSERT(fi != func_index.end());
     auto type_signature = casting_index[fi->second];
 
-    auto h = body_hashes[f];
-    auto p = body_priorities[f];
-    auto loc = body_locs[f];
+    const auto& bi = body_info[f];
+
+    auto h = bi.hash;
+    auto p = bi.priority;
+    auto loc = bi.loc;
     auto body_info = Fmt(p) + ", " + Fmt(h) + ", \"" + loc->FileName() + " (C++)\", " + Fmt(loc->FirstLine());
 
     Emit("\tCPP_RegisterBody(\"%s\", (void*) %s, %s, %s, std::vector<std::string>(%s)),", f, f, Fmt(type_signature),

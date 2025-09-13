@@ -260,7 +260,7 @@ string CPPCompile::GenCondExpr(const Expr* e, GenType gt) {
     if ( op1->GetType()->Tag() == TYPE_VECTOR )
         return string("vector_select__CPP(") + gen1 + ", " + gen2 + ", " + gen3 + ")";
 
-    return string("(") + gen1 + ") ? (" + gen2 + ") : (" + gen3 + ")";
+    return string("((") + gen1 + ") ? (" + gen2 + ") : (" + gen3 + "))";
 }
 
 string CPPCompile::GenCallExpr(const CallExpr* c, GenType gt, bool top_level) {

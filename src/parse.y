@@ -1212,7 +1212,7 @@ simple_type:
 	|	TOK_SET '[' type_list ']'
 			{
 			set_location(@1, @4);
-			$$ = new SetType({AdoptRef{}, $3}, nullptr);
+			$$ = new SetType({AdoptRef{}, $3});
 			}
 
 	|	TOK_RECORD '{'

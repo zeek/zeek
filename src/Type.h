@@ -440,15 +440,10 @@ private:
 
 class SetType final : public TableType {
 public:
-    SetType(TypeListPtr ind, detail::ListExprPtr arg_elements);
-    ~SetType() override;
+    SetType(TypeListPtr ind) : TableType(std::move(ind), nullptr) {}
+    ~SetType() override = default;
 
-    TypePtr ShallowClone() override;
-
-    const detail::ListExprPtr& Elements() const { return elements; }
-
-protected:
-    detail::ListExprPtr elements;
+    TypePtr ShallowClone() override { return make_intrusive<SetType>(indices); }
 };
 
 class FuncType final : public Type {

@@ -1410,7 +1410,7 @@ TableValPtr DNS_Mgr::empty_addr_set() {
     auto addr_t = base_type(TYPE_ADDR);
     auto set_index = make_intrusive<TypeList>(addr_t);
     set_index->Append(std::move(addr_t));
-    auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
+    auto s = make_intrusive<SetType>(std::move(set_index));
     return make_intrusive<TableVal>(std::move(s));
 }
 

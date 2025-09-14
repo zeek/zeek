@@ -518,7 +518,7 @@ Val* Value::ValueToVal(const std::string& source, const Value* val, bool& have_e
                 set_index->Append(std::move(index_type));
             }
 
-            auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
+            auto s = make_intrusive<SetType>(std::move(set_index));
             auto t = make_intrusive<TableVal>(std::move(s));
             for ( int j = 0; j < val->val.set_val.size; j++ ) {
                 Val* assignval = ValueToVal(source, val->val.set_val.vals[j], have_error);

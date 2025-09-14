@@ -1436,7 +1436,7 @@ TableValPtr ListVal::ToSetVal() const {
     const auto& pt = type->AsTypeList()->GetPureType();
     auto set_index = make_intrusive<TypeList>(pt);
     set_index->Append(base_type(tag));
-    auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
+    auto s = make_intrusive<SetType>(std::move(set_index));
     auto t = make_intrusive<TableVal>(std::move(s));
 
     for ( const auto& val : vals )

@@ -562,50 +562,6 @@ bool TableType::DoExpireCheck(const detail::AttrPtr& attr) {
     return true;
 }
 
-SetType::SetType(TypeListPtr ind, detail::ListExprPtr arg_elements)
-    : TableType(std::move(ind), nullptr), elements(std::move(arg_elements)) {
-    if ( elements ) {
-        if ( indices ) { // We already have a type.
-            if ( ! check_and_promote_exprs(elements.get(), indices) )
-                SetError();
-        }
-        else {
-            TypeList* tl_type = elements->GetType()->AsTypeList();
-            const auto& tl = tl_type->GetTypes();
-
-            if ( tl.size() < 1 ) {
-                Error("no type given for set");
-                SetError();
-            }
-
-            else if ( tl.size() == 1 ) {
-                TypePtr ft{NewRef{}, flatten_type(tl[0].get())};
-                indices = make_intrusive<TypeList>(ft);
-                indices->Append(std::move(ft));
-            }
-
-            else {
-                auto t = merge_types(tl[0], tl[1]);
-
-                for ( size_t i = 2; t && i < tl.size(); ++i )
-                    t = merge_types(t, tl[i]);
-
-                if ( ! t ) {
-                    Error("bad set type");
-                    return;
-                }
-
-                indices = make_intrusive<TypeList>(t);
-                indices->Append(std::move(t));
-            }
-        }
-    }
-}
-
-TypePtr SetType::ShallowClone() { return make_intrusive<SetType>(indices, elements); }
-
-SetType::~SetType() = default;
-
 FuncType::Capture::Capture(detail::IDPtr _id, bool _deep_copy) : id(std::move(_id)), deep_copy(_deep_copy) {
     is_managed = id ? ZVal::IsManagedType(id->GetType()) : false;
     if ( ! is_managed )
@@ -2332,7 +2288,7 @@ TypePtr merge_table_types(const Type* t1, const Type* t2) {
     }
 
     if ( t1->IsSet() )
-        return make_intrusive<SetType>(std::move(tl3), nullptr);
+        return make_intrusive<SetType>(std::move(tl3));
     else
         return make_intrusive<TableType>(std::move(tl3), std::move(y3));
 }
@@ -2626,7 +2582,7 @@ static SetTypePtr init_set_type(detail::ListExpr* l) {
         ind_list->Append(index);
     }
 
-    return make_intrusive<SetType>(ind_list, nullptr);
+    return make_intrusive<SetType>(ind_list);
 }
 
 TypePtr init_type(const detail::ExprPtr& init) {

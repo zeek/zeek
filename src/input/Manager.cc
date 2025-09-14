@@ -2084,7 +2084,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, Type* request_type, 
             const auto& type = request_type->AsTableType()->GetIndices()->GetPureType();
             auto set_index = make_intrusive<TypeList>(type);
             set_index->Append(type);
-            auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
+            auto s = make_intrusive<SetType>(std::move(set_index));
             auto t = make_intrusive<TableVal>(std::move(s));
             for ( int j = 0; j < val->val.set_val.size; j++ ) {
                 Val* assignval = ValueToVal(i, val->val.set_val.vals[j], type.get(), have_error);

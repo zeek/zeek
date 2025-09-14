@@ -3366,7 +3366,7 @@ SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list, std::unique
     }
     else {
         if ( op->AsListExpr()->Exprs().empty() )
-            SetType(make_intrusive<zeek::SetType>(make_intrusive<TypeList>(base_type(TYPE_ANY)), nullptr));
+            SetType(make_intrusive<zeek::SetType>(make_intrusive<TypeList>(base_type(TYPE_ANY))));
         else
             SetType(init_type(op));
     }

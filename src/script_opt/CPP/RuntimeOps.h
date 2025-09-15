@@ -229,9 +229,6 @@ extern TableValPtr set_constructor__CPP(ValVec elements, TableTypePtr t, IntVec 
 extern TableValPtr table_constructor__CPP(ValVec indices, ValVec vals, TableTypePtr t, IntVec attr_tags,
                                           ValVec attr_vals);
 
-// Assigns a set of attributes to an identifier.
-extern void assign_attrs__CPP(IDPtr id, IntVec attr_tags, ValVec attr_vals);
-
 // Constructs a record of the given type, whose (ordered) fields are
 // assigned to the corresponding elements of the given vector of values.
 extern RecordValPtr record_constructor__CPP(ValVec vals, RecordTypePtr t);

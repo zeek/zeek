@@ -114,7 +114,7 @@ void CPPCompile::InitializeFieldMappings() {
         if ( standalone ) {
             // We can assess whether this field is one we need to generate
             // because if it is, it will have an &optional attribute that
-            // is local to one of the cmopiled source files.
+            // is local to one of the compiled source files.
             if ( td->attrs && obj_matches_opt_files(td->attrs) == AnalyzeDecision::SHOULD ) {
                 type_arg = Fmt(TypeOffset(td->type));
                 attrs_arg = Fmt(AttributesOffset(td->attrs));
@@ -225,10 +225,9 @@ void CPPCompile::InitializeGlobals() {
 
         const auto& attrs = g->GetAttrs();
         if ( attrs ) {
-            string attr_tags;
-            string attr_vals;
-            BuildAttrs(attrs, attr_tags, attr_vals);
-            Emit("assign_attrs__CPP(%s, %s, %s);", globals[g->Name()], attr_tags, attr_vals);
+            auto attrs_offset = AttributesOffset(attrs);
+            auto attrs_str = "CPP__Attributes__[" + Fmt(attrs_offset) + "]";
+            Emit("%s->SetAttrs(%s);", globals[g->Name()], attrs_str);
         }
     }
 

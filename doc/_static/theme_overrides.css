@@ -1,0 +1,32 @@
+/* override table width restrictions */
+@media screen and (min-width: 767px) {
+
+   .wy-table-responsive table td {
+      /* !important prevents the common CSS stylesheets from overriding
+         this as on RTD they are loaded after this stylesheet */
+      white-space: normal !important;
+   }
+
+   .wy-table-responsive {
+      overflow: visible !important;
+   }
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #294488;
+  font-family: 'Open Sans',Helvetica,Arial,Lucida,sans-serif!important;
+}
+
+a {
+  color: #2ea3f2;
+}
+
+body {
+  font-family: "Open Sans",Arial,sans-serif;
+  color: #666;
+}
+
+div.highlight pre strong {
+  font-weight: 800;
+  background-color: #ffffcc;
+}

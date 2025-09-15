@@ -1,0 +1,72 @@
+graph TD
+
+  w1-xpub-->broker-xsub
+  broker-xpub-->w1-xsub
+
+  w2-xpub-->broker-xsub
+  broker-xpub-->w2-xsub
+
+  w3-xpub-->broker-xsub
+  broker-xpub-->w3-xsub
+
+  p1-xpub-->broker-xsub
+  broker-xpub-->p1-xsub
+
+  p2-xpub-->broker-xsub
+  broker-xpub-->p2-xsub
+
+  l1-xpub-->broker-xsub
+  broker-xpub-->l1-xsub
+
+  l2-xpub-->broker-xsub
+  broker-xpub-->l2-xsub
+
+  m-xpub-->broker-xsub
+  broker-xpub-->m-xsub
+
+subgraph broker ["broker"]
+  broker-xpub((XPUB))
+  broker-xsub((XSUB))
+  broker-xpub-->broker-xsub
+  broker-xsub-->broker-xpub
+end
+
+subgraph l1 [logger-1]
+  l1-xpub((XPUB))
+  l1-xsub((XSUB))
+end
+
+subgraph l2 [logger-2]
+  l2-xpub((XPUB))
+  l2-xsub((XSUB))
+end
+subgraph m [manager]
+  m-xpub((XPUB))
+  m-xsub((XSUB))
+end
+
+subgraph p1 [proxy-1]
+  p1-xpub((XPUB))
+  p1-xsub((XSUB))
+end
+
+subgraph p2 [proxy-2]
+  p2-xpub((XPUB))
+  p2-xsub((XSUB))
+end
+
+subgraph w1 [worker-1]
+  w1-xpub((XPUB))
+  w1-xsub((XSUB))
+end
+
+subgraph w2 [worker-2]
+  w2-xpub((XPUB))
+  w2-xsub((XSUB))
+end
+
+subgraph w3 [worker-3]
+  w3-xpub((XPUB))
+  w3-xsub((XSUB))
+end
+

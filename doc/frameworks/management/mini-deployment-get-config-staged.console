@@ -1,0 +1,21 @@
+$ zeek-client get-config
+[instances]
+agent-testbox
+
+[logger]
+instance = agent-testbox
+role = LOGGER
+
+[manager]
+instance = agent-testbox
+role = MANAGER
+
+[worker-01]
+instance = agent-testbox
+role = WORKER
+interface = lo
+
+[worker-02]
+instance = agent-testbox
+role = WORKER
+interface = eth0

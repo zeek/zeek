@@ -1,0 +1,29 @@
+$ zeek-client deploy-config cluster.cfg
+{
+  "errors": [
+    "request timed out"
+  ],
+  "results": {
+    "id": "eed87b02-f851-11ec-80e7-7c10c94416bb",
+    "nodes": {
+      "logger": {
+        "instance": "agent-testbox",
+        "success": true
+      },
+      "manager": {
+        "instance": "agent-testbox",
+        "success": true
+      },
+      "worker-01": {
+        "instance": "agent-testbox",
+        "success": true
+      },
+      "worker-02": {
+        "instance": "agent-testbox",
+        "stderr": "fatal error: problem with interface not-a-valid-interface (pcap_error: No such device exists (pcap_activate))",
+        "stdout": "",
+        "success": false
+      }
+    }
+  }
+}

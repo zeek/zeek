@@ -1,0 +1,95 @@
+graph TD
+
+  w1-xpub-->broker-xsub
+  broker-xpub-->w1-xsub
+
+  w2-xpub-->broker-xsub
+  broker-xpub-->w2-xsub
+
+  w3-xpub-->broker-xsub
+  broker-xpub-->w3-xsub
+
+  p1-xpub-->broker-xsub
+  broker-xpub-->p1-xsub
+
+  p2-xpub-->broker-xsub
+  broker-xpub-->p2-xsub
+
+  l1-xpub-->broker-xsub
+  broker-xpub-->l1-xsub
+
+  l2-xpub-->broker-xsub
+  broker-xpub-->l2-xsub
+
+  m-xpub-->broker-xsub
+  broker-xpub-->m-xsub
+
+  %% Logging
+  w1-push-->l1-pull
+  w1-push-->l2-pull
+  w2-push-->l1-pull
+  w2-push-->l2-pull
+  w3-push-->l1-pull
+  w3-push-->l2-pull
+  p1-push-->l1-pull
+  p1-push-->l2-pull
+  p2-push-->l1-pull
+  p2-push-->l2-pull
+  m-push-->l1-pull
+  m-push-->l2-pull
+
+subgraph broker ["broker"]
+  broker-xpub((XPUB))
+  broker-xsub((XSUB))
+  broker-xpub-->broker-xsub
+  broker-xsub-->broker-xpub
+end
+
+
+subgraph l1 [logger-1]
+  l1-xpub((XPUB))
+  l1-xsub((XSUB))
+  l1-pull(PULL)
+end
+
+subgraph l2 [logger-2]
+  l2-xpub((XPUB))
+  l2-xsub((XSUB))
+  l2-pull(PULL)
+end
+
+subgraph manager
+  m-xpub((XPUB))
+  m-xsub((XSUB))
+  m-push(PUSH)
+end
+
+subgraph p1 [proxy-1]
+  p1-xpub((XPUB))
+  p1-xsub((XSUB))
+  p1-push(PUSH)
+end
+
+subgraph p2 [proxy-2]
+  p2-xpub((XPUB))
+  p2-xsub((XSUB))
+  p2-push(PUSH)
+end
+
+subgraph w1 [worker-1]
+  w1-xpub((XPUB))
+  w1-xsub((XSUB))
+  w1-push(PUSH)
+end
+
+subgraph w2 [worker-2]
+  w2-xpub((XPUB))
+  w2-xsub((XSUB))
+  w2-push(PUSH)
+end
+
+subgraph w3 [worker-3]
+  w3-xpub((XPUB))
+  w3-xsub((XSUB))
+  w3-push(PUSH)
+end

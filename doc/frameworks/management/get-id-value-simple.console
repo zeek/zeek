@@ -1,0 +1,10 @@
+$ zeek-client get-id-value LogAscii::use_json
+{
+  "errors": [],
+  "results": {
+    "logger": false,
+    "manager": false,
+    "worker-01": false,
+    "worker-02": false
+  }
+}

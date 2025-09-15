@@ -1,0 +1,25 @@
+$ zeek-client deploy-config cluster.cfg
+{
+  "errors": [],
+  "results": {
+    "id": "9befc56c-f7e8-11ec-8626-7c10c94416bb",
+    "nodes": {
+      "logger": {
+        "instance": "agent-testbox",
+        "success": true
+      },
+      "manager": {
+        "instance": "agent-testbox",
+        "success": true
+      },
+      "worker-01": {
+        "instance": "agent-testbox",
+        "success": true
+      },
+      "worker-02": {
+        "instance": "agent-testbox",
+        "success": true
+      }
+    }
+  }
+}

@@ -100,8 +100,6 @@ OperationResult Manager::OpenBackend(BackendPtr backend, OpenResultCallback* cb,
 
     RegisterBackend(std::move(backend));
 
-    // TODO: post Storage::backend_opened event
-
     return res;
 }
 
@@ -116,11 +114,7 @@ OperationResult Manager::CloseBackend(BackendPtr backend, ResultCallback* cb) {
             backends.erase(it);
     }
 
-    auto res = backend->Close(cb);
-
-    // TODO: post Storage::backend_lost event
-
-    return res;
+    return backend->Close(cb);
 }
 
 void Manager::Expire(double t) {

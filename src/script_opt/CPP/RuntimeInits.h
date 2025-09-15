@@ -401,17 +401,21 @@ protected:
 
 class CPP_GlobalInit : public CPP_Init<void*> {
 public:
-    CPP_GlobalInit(IDPtr& _global, const char* _name, int _type, int _attrs, int _val, bool _is_exported,
-                   bool _is_option, bool _func_with_no_val)
+    CPP_GlobalInit(IDPtr& _global, const char* _name, int _type, int _attrs, int _val, bool is_exported, bool is_const,
+                   bool is_option, bool is_enum_const, bool is_type, bool _func_with_no_val)
         : CPP_Init<void*>(),
           global(_global),
           name(_name),
           type(_type),
           attrs(_attrs),
           val(_val),
-          is_exported(_is_exported),
-          is_option(_is_option),
-          func_with_no_val(_func_with_no_val) {}
+          func_with_no_val(_func_with_no_val) {
+        gc.is_exported = is_exported;
+        gc.is_const = is_const;
+        gc.is_option = is_option;
+        gc.is_enum_const = is_enum_const;
+        gc.is_type = is_type;
+    }
 
     void Generate(InitsManager* im, std::vector<void*>& /* inits_vec */, int /* offset */) const override;
 
@@ -421,8 +425,7 @@ protected:
     int type;
     int attrs;
     int val;
-    bool is_exported;
-    bool is_option;
+    GlobalCharacteristics gc;
     bool func_with_no_val;
 };
 

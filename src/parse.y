@@ -1211,7 +1211,7 @@ simple_type:
 	|	TOK_SET '[' type_list ']'
 			{
 			set_location(@1, @4);
-			$$ = new SetType({AdoptRef{}, $3}, nullptr);
+			$$ = new TableType({AdoptRef{}, $3}, nullptr);
 			}
 
 	|	TOK_RECORD '{'

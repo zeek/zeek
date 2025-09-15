@@ -3366,7 +3366,7 @@ SetConstructorExpr::SetConstructorExpr(ListExprPtr constructor_list, std::unique
     }
     else {
         if ( op->AsListExpr()->Exprs().empty() )
-            SetType(make_intrusive<zeek::SetType>(make_intrusive<TypeList>(base_type(TYPE_ANY)), nullptr));
+            SetType(make_intrusive<TableType>(make_intrusive<TypeList>(base_type(TYPE_ANY)), nullptr));
         else
             SetType(init_type(op));
     }
@@ -4626,7 +4626,7 @@ TypePtr ListExpr::InitType() const {
 
             // Collapse any embedded sets or lists.
             if ( ti->IsSet() || ti->Tag() == TYPE_LIST ) {
-                TypeList* til = ti->IsSet() ? ti->AsSetType()->GetIndices().get() : ti->AsTypeList();
+                TypeList* til = ti->IsSet() ? ti->AsTableType()->GetIndices().get() : ti->AsTypeList();
 
                 if ( ! til->IsPure() || ! til->AllMatch(til->GetPureType(), true) )
                     tl->Append({NewRef{}, til});

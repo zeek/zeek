@@ -1437,7 +1437,7 @@ function table_keys%(t: any%): any
 		}
 
 	auto tl = t->GetType()->AsTableType()->GetIndices();
-	auto st = zeek::make_intrusive<zeek::SetType>(std::move(tl), nullptr);
+	auto st = zeek::make_intrusive<zeek::TableType>(std::move(tl), nullptr);
 	auto sv = zeek::make_intrusive<zeek::TableVal>(std::move(st));
 	auto th = t->AsTableVal()->GetTableHash();
 	for ( const auto& iter : *t->AsTable() )

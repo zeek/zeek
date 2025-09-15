@@ -3,24 +3,24 @@
 
 module MyHTTP;
 
-const Token      = /[^ \t\r\n]+/;
+const Token = /[^ \t\r\n]+/;
 const WhiteSpace = /[ \t]+/;
-const NewLine    = /\r?\n/;
+const NewLine = /\r?\n/;
 
 type Version = unit {
-    :       /HTTP\//;
+    : /HTTP\//;
     number: /[0-9]+\.[0-9]+/;
 };
 
 public type RequestLine = unit {
-    method:  Token;
-    :        WhiteSpace;
-    uri:     Token;
-    :        WhiteSpace;
+    method: Token;
+    : WhiteSpace;
+    uri: Token;
+    : WhiteSpace;
     version: Version;
-    :        NewLine;
+    : NewLine;
 
     on %done {
         print self.method, self.uri, self.version.number;
-        }
+    }
 };

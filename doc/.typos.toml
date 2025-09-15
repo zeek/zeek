@@ -55,6 +55,7 @@ tha = "tha"
 uses_seh = "uses_seh"
 exat = "exat"
 EXAT = "EXAT"
+tpe = "tpe"
 
 [default.extend-words]
 caf = "caf"

@@ -733,4 +733,3 @@ id: fully-qualified name of the global Zeek vector to check
 Returns the size of a Zeek vector.
 
 v: opaque handle to the Zeek vector, as returned by other functions
-

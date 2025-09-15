@@ -5,9 +5,5 @@ project(ZeekPluginEventLatency)
 include(ZeekPlugin)
 
 zeek_add_plugin(
-    Zeek
-    EventLatency
-    SOURCES
-    src/Plugin.cc
-    SCRIPT_FILES scripts/__load__.zeek
-)
+    Zeek EventLatency
+    SOURCES src/Plugin.cc SCRIPT_FILES scripts/__load__.zeek)

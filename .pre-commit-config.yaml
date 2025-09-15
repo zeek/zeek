@@ -10,7 +10,7 @@ repos:
     language: python
     files: '\.(h|c|cpp|cc|spicy|evt)$'
     types: [file]
-    exclude: '^(testing/btest/(Baseline|plugins|spicy|scripts)/.*|testing/builtin-plugins/.*)$'
+    exclude: '^(testing/btest/(Baseline|plugins|spicy|scripts)/.*|testing/builtin-plugins/.*|doc/.*)$'
 
   - id: btest-command-commented
     name: Check that all BTest command lines are commented out

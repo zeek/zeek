@@ -68,6 +68,14 @@ void Emit(const std::string& fmt, const std::string& arg1, const std::string& ar
     NL();
 }
 
+void Emit(const std::string& fmt, const std::string& arg1, const std::string& arg2, const std::string& arg3,
+          const std::string& arg4, const std::string& arg5, const std::string& arg6, const std::string& arg7) const {
+    Indent();
+    fprintf(write_file, fmt.c_str(), arg1.c_str(), arg2.c_str(), arg3.c_str(), arg4.c_str(), arg5.c_str(), arg6.c_str(),
+            arg7.c_str());
+    NL();
+}
+
 void NL() const { fputc('\n', write_file); }
 
 // Indents to the current indentation level.

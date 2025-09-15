@@ -41,7 +41,7 @@ void analyze_func(ScriptFuncPtr f) {
     // Even if we're analyzing only a subset of the scripts, we still
     // track all functions here because the inliner will need the full list.
     ASSERT(f->GetScope());
-    funcs.emplace_back(f, f->GetScope(), f->CurrentBody(), f->CurrentPriority());
+    funcs.emplace_back(f, f->GetScope(), f->CurrentBody());
 }
 
 void analyze_lambda(LambdaExpr* l) {
@@ -78,7 +78,8 @@ void analyze_global_stmts(Stmt* stmts) {
     global_stmts->SetScope(sc);
 
     global_stmts_ind = funcs.size();
-    funcs.emplace_back(global_stmts, sc, stmts->ThisPtr(), 0);
+    Func::Body body{.stmts = stmts->ThisPtr()};
+    funcs.emplace_back(global_stmts, sc, std::move(body));
 }
 
 std::pair<StmtPtr, ScopePtr> get_global_stmts() {
@@ -90,7 +91,7 @@ std::pair<StmtPtr, ScopePtr> get_global_stmts() {
 void add_func_analysis_pattern(AnalyOpt& opts, const char* pat) {
     try {
         std::string full_pat = std::string("^(") + pat + ")$";
-        opts.only_funcs.emplace_back(full_pat);
+        opts.only_funcs.emplace_back(std::move(full_pat));
     } catch ( const std::regex_error& e ) {
         reporter->FatalError("bad file analysis pattern: %s", pat);
     }
@@ -99,7 +100,7 @@ void add_func_analysis_pattern(AnalyOpt& opts, const char* pat) {
 void add_file_analysis_pattern(AnalyOpt& opts, const char* pat) {
     try {
         std::string full_pat = std::string("^.*(") + pat + ").*$";
-        opts.only_files.emplace_back(full_pat);
+        opts.only_files.emplace_back(std::move(full_pat));
     } catch ( const std::regex_error& e ) {
         reporter->FatalError("bad file analysis pattern: %s", pat);
     }

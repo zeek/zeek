@@ -544,7 +544,8 @@ protected:
 // code that loops over a vector of these to perform the registrations.
 struct CPP_RegisterBody {
     CPP_RegisterBody(std::string _func_name, void* _func, int _type_signature, int _priority, p_hash_type _h,
-                     const char* _filename, int _line_num, std::vector<std::string> _events)
+                     const char* _filename, int _line_num, std::vector<std::string> _events, std::string _module_group,
+                     std::vector<std::string> _attr_groups)
         : func_name(std::move(_func_name)),
           func(_func),
           type_signature(_type_signature),
@@ -552,7 +553,9 @@ struct CPP_RegisterBody {
           h(_h),
           filename(_filename),
           line_num(_line_num),
-          events(std::move(_events)) {}
+          events(std::move(_events)),
+          module_group(std::move(_module_group)),
+          attr_groups(std::move(_attr_groups)) {}
 
     std::string func_name; // name of the function
     void* func;            // pointer to C++
@@ -562,6 +565,8 @@ struct CPP_RegisterBody {
     const char* filename;
     int line_num;
     std::vector<std::string> events;
+    std::string module_group;
+    std::vector<std::string> attr_groups;
 };
 
 } // namespace zeek::detail

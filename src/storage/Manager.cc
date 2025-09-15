@@ -22,7 +22,7 @@ void detail::ExpirationTimer::Dispatch(double t, bool is_expire) {
     // start another one running. If this causes us to skip a cycle, that's not
     // a big deal as the next cycle will catch anything that should be expired
     // in the interim.
-    if ( ! expire_running.test_and_set() ) {
+    if ( ! expire_running.test_and_set() && storage_mgr->BackendCount() > 0 ) {
         DBG_LOG(DBG_STORAGE, "Starting new expiration thread");
         storage_mgr->expiration_thread = zeek::jthread([t]() { storage_mgr->Expire(t); });
     }
@@ -144,6 +144,13 @@ void Manager::RegisterBackend(BackendPtr backend) {
 
     backends.push_back(std::move(backend));
     DBG_LOG(DBG_STORAGE, "Registered backends: %zu", backends.size());
+}
+
+size_t Manager::BackendCount() {
+    // Expiration runs on a separate thread and loops over the vector of backends. The mutex
+    // here ensures exclusive access.
+    std::unique_lock<std::mutex> lk(backends_mtx);
+    return backends.size();
 }
 
 } // namespace zeek::storage

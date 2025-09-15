@@ -113,6 +113,7 @@ protected:
     friend class storage::detail::ExpirationTimer;
     void RunExpireThread();
     void StartExpirationTimer();
+    size_t BackendCount();
     zeek::jthread expiration_thread;
 
     friend class storage::OpenResultCallback;

@@ -15,15 +15,16 @@ import spicy;
 # |  TFTP Opcode  |
 #  ---------------
 
-public type Packet = unit {    # public top-level entry point for parsing
+public type Packet = unit {
+    # public top-level entry point for parsing
     op: uint16 &convert=Opcode($$);
-    switch ( self.op ) {
-        Opcode::RRQ   -> rrq:   Request(True);
-        Opcode::WRQ   -> wrq:   Request(False);
-        Opcode::DATA  -> data:  Data;
-        Opcode::ACK   -> ack:   Acknowledgement;
+    switch (self.op) {
+        Opcode::RRQ -> rrq: Request(True);
+        Opcode::WRQ -> wrq: Request(False);
+        Opcode::DATA -> data: Data;
+        Opcode::ACK -> ack: Acknowledgement;
         Opcode::ERROR -> error: Error;
-        };
+    };
 };
 
 # TFTP supports five types of packets [...]:
@@ -39,7 +40,7 @@ type Opcode = enum {
     WRQ = 0x02,
     DATA = 0x03,
     ACK = 0x04,
-    ERROR = 0x05
+    ERROR = 0x05,
 };
 
 # Figure 5-1: RRQ/WRQ packet
@@ -51,9 +52,11 @@ type Opcode = enum {
 
 type Request = unit(is_read: bool) {
     filename: bytes &until=b"\x00";
-    mode:     bytes &until=b"\x00";
+    mode: bytes &until=b"\x00";
 
-    on %done { spicy::accept_input(); }
+    on %done {
+        spicy::accept_input();
+    }
 };
 
 # Figure 5-2: DATA packet
@@ -64,7 +67,7 @@ type Request = unit(is_read: bool) {
 #   ----------------------------------
 
 type Data = unit {
-    num:  uint16;
+    num: uint16;
     data: bytes &eod;
 };
 
@@ -88,5 +91,5 @@ type Acknowledgement = unit {
 
 type Error = unit {
     code: uint16;
-    msg:  bytes &until=b"\x00";
+    msg: bytes &until=b"\x00";
 };

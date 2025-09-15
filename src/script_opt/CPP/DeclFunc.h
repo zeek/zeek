@@ -32,7 +32,8 @@ void DeclareLambda(const LambdaExpr* l, const ProfileFunc* pf);
 // dynamic casting approach, which only requires one additional class.
 
 void CreateFunction(const FuncTypePtr& ft, const ProfileFunc* pf, const std::string& fname, const StmtPtr& body,
-                    int priority, const LambdaExpr* l, FunctionFlavor flavor);
+                    int priority, const LambdaExpr* l, FunctionFlavor flavor,
+                    const std::forward_list<EventGroupPtr>* e_g = nullptr);
 
 // Used for the case of creating a custom subclass of CPPStmt.
 void DeclareSubclass(const FuncTypePtr& ft, const ProfileFunc* pf, const std::string& fname, const std::string& args,

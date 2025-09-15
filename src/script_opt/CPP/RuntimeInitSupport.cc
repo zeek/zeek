@@ -46,16 +46,18 @@ void register_type__CPP(TypePtr t, const string& name) {
 }
 
 void register_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash, vector<string> events, void (*finish_init)()) {
-    compiled_scripts[hash] = {std::move(body), priority, std::move(events), finish_init};
+    compiled_scripts[hash] = {std::move(body), priority, std::move(events), {}, {}, finish_init};
 }
 
 static unordered_map<p_hash_type, CompiledScript> compiled_standalone_scripts;
 
 void register_standalone_body__CPP(CPPStmtPtr body, int priority, p_hash_type hash, vector<string> events,
+                                   std::string module_group, std::vector<std::string> attr_groups,
                                    void (*finish_init)()) {
     // For standalone scripts we don't actually need finish_init, but
     // we keep it for symmetry with compiled_scripts.
-    compiled_standalone_scripts[hash] = {std::move(body), priority, std::move(events), finish_init};
+    compiled_standalone_scripts[hash] = {std::move(body),        priority,   std::move(events), std::move(module_group),
+                                         std::move(attr_groups), finish_init};
 }
 
 void register_lambda__CPP(CPPStmtPtr body, p_hash_type hash, const char* name, TypePtr t, bool has_captures) {
@@ -86,6 +88,19 @@ void register_scripts__CPP(p_hash_type h, void (*callback)()) {
     standalone_callbacks[h] = callback;
 }
 
+// Updates "groups" with the event groups present in "cs".
+static void update_event_groups(const CompiledScript& cs, unordered_set<EventGroupPtr> groups) {
+    if ( ! cs.module_group.empty() ) {
+        auto er = event_registry->RegisterGroup(EventGroupKind::Module, cs.module_group);
+        groups.insert(std::move(er));
+    }
+
+    for ( const auto& g : cs.attr_groups ) {
+        auto er = event_registry->RegisterGroup(EventGroupKind::Attribute, g);
+        groups.insert(std::move(er));
+    }
+}
+
 void activate_bodies__CPP(const char* fn, const char* module, bool exported, TypePtr t, vector<p_hash_type> hashes) {
     auto ft = cast_intrusive<FuncType>(t);
     auto fg = lookup_ID(fn, module, false, false, false);
@@ -108,13 +123,16 @@ void activate_bodies__CPP(const char* fn, const char* module, bool exported, Typ
         fg->SetVal(v);
     }
 
-    auto f = v->AsFunc();
+    auto f = cast_intrusive<ScriptFunc>(v->AsFuncVal()->AsFuncPtr());
 
     // Events we need to register.
     unordered_set<string> events;
 
     if ( ft->Flavor() == FUNC_FLAVOR_EVENT )
         events.insert(fn);
+
+    // Groups we need to add f to.
+    unordered_set<EventGroupPtr> groups;
 
     vector<detail::IDPtr> no_inits; // empty initialization vector
     int num_params = ft->Params()->NumFields();
@@ -129,10 +147,15 @@ void activate_bodies__CPP(const char* fn, const char* module, bool exported, Typ
         added_bodies[fn].insert(h);
 
         events.insert(cs.events.begin(), cs.events.end());
+
+        update_event_groups(cs, groups);
     }
 
     for ( const auto& e : events )
         event_registry->Register(e);
+
+    for ( auto& g : groups )
+        g->AddFunc(f);
 }
 
 IDPtr lookup_global__CPP(const char* g, const TypePtr& t, bool exported) {
@@ -174,6 +197,7 @@ FuncValPtr lookup_func__CPP(string name, int num_bodies, vector<p_hash_type> has
 
     vector<StmtPtr> bodies;
     vector<int> priorities;
+    unordered_set<EventGroupPtr> groups;
 
     for ( auto h : hashes ) {
         auto cs = compiled_scripts.find(h);
@@ -192,9 +216,14 @@ FuncValPtr lookup_func__CPP(string name, int num_bodies, vector<p_hash_type> has
         // the semantics for Register explicitly allow it.
         for ( auto& e : f.events )
             event_registry->Register(e);
+
+        update_event_groups(f, groups);
     }
 
     auto sf = make_intrusive<ScriptFunc>(std::move(name), std::move(ft), std::move(bodies), std::move(priorities));
+
+    for ( auto& g : groups )
+        g->AddFunc(sf);
 
     return make_intrusive<FuncVal>(std::move(sf));
 }

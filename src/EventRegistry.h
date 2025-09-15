@@ -216,6 +216,16 @@ public:
      */
     void AddFunc(detail::ScriptFuncPtr f);
 
+    /**
+     * @return The name associated with the group.
+     */
+    const auto& GetName() const { return name; }
+
+    /**
+     * @return The type of group.
+     */
+    const auto& GetEventGroupKind() const { return kind; }
+
 private:
     void UpdateFuncBodies();
 

@@ -90,6 +90,8 @@ struct CompiledScript {
     CPPStmtPtr body;
     int priority;
     std::vector<std::string> events;
+    std::string module_group;
+    std::vector<std::string> attr_groups;
     void (*finish_init_func)();
 };
 

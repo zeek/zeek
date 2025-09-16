@@ -86,14 +86,6 @@ std::string SQLite::DoGetConfigMetricsLabel() const {
  * Called by the manager system to open the backend.
  */
 OperationResult SQLite::DoOpen(OpenResultCallback* cb, RecordValPtr options) {
-    if ( sqlite3_threadsafe() == 0 ) {
-        std::string res =
-            "SQLite reports that it is not threadsafe. Zeek needs a threadsafe version of "
-            "SQLite. Aborting";
-        Error(res.c_str());
-        return {ReturnCode::INITIALIZATION_FAILED, std::move(res)};
-    }
-
     // Allow connections to same DB to use single data/schema cache. Also
     // allows simultaneous writes to one file.
 #ifndef ZEEK_TSAN

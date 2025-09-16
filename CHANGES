@@ -1,3 +1,7 @@
+8.1.0-dev.546 | 2025-09-16 11:31:04 -0700
+
+  * full tracking of the characteristics of globals when compiling scripts to C++ (Vern Paxson, Corelight)
+
 8.1.0-dev.544 | 2025-09-16 11:02:35 -0700
 
   * fix for associating attributes with globals for -O gen-standalone-C++ (Vern Paxson, Corelight)

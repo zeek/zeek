@@ -196,6 +196,8 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
             auto n = e->AsNameExpr();
             auto id = n->IdPtr();
 
+            TrackID(id);
+
             // Turns out that NameExpr's can be constructed using a
             // different Type* than that of the identifier itself,
             // so be sure we track the latter too.

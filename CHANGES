@@ -1,3 +1,7 @@
+8.1.0-dev.542 | 2025-09-16 10:53:04 -0700
+
+  * fix for tracking identifiers and aggregates when compiling to standalone-C++ (Vern Paxson, Corelight)
+
 8.1.0-dev.540 | 2025-09-16 10:52:44 -0700
 
   * fix for '?' operator precedence when compiling scripts to C++ (Vern Paxson, Corelight)

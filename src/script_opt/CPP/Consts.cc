@@ -43,16 +43,11 @@ shared_ptr<CPP_InitInfo> CPPCompile::RegisterConstant(const ValPtr& vp, int& con
         // render the same.
         t->Describe(&d);
 
-        // Likewise, tables that have attributes.
-        if ( t->Tag() == TYPE_TABLE ) {
-            const auto& attrs = v->AsTableVal()->GetAttrs();
-            if ( attrs )
-                attrs->Describe(&d);
-            else
-                d.Add("<no-attrs>");
-        }
-
         c_desc = d.Description();
+
+        // Aggregates need to be pointer-unique.
+        if ( IsAggr(t) )
+            c_desc += util::fmt("pointer %p", static_cast<void*>(v));
     }
 
     auto c = constants.find(c_desc);

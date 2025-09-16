@@ -1,7 +1,5 @@
-# Default to building ZeroMQ only if ZeroMQ was found.
-#
-# If a user enabled the cluster backend explicitly (-D ENABLE_CLUSTER_BACKEND_ZEROMQ:bool=ON),
-# but ZeroMQ wasn' found, hard bail.
+# Default to building ZeroMQ, but add an option that allows it to be disabled
+# via CMake.
 option(ENABLE_CLUSTER_BACKEND_ZEROMQ "Enable the ZeroMQ cluster backend" ON)
 
 if (ENABLE_CLUSTER_BACKEND_ZEROMQ)

@@ -467,8 +467,16 @@ set(THIRD_PARTY_SRCS
     3rdparty/strsep.c
     3rdparty/zeek_inet_ntop.c)
 
-if (USE_SQLITE AND WNOERROR_FLAG)
-    set_source_files_properties(3rdparty/sqlite3.c PROPERTIES COMPILE_FLAGS ${WNOERROR_FLAG})
+if (USE_SQLITE)
+    if (WNOERROR_FLAG)
+        set_source_files_properties(3rdparty/sqlite3.c PROPERTIES COMPILE_FLAGS ${WNOERROR_FLAG})
+    endif ()
+
+    # Always force building SQLite in thread-safe mode. This lets us remove sqlite3_threadsafe()
+    # checks in various places, since the library will always be guaranteed to be in thread-safe
+    # mode. This value is the default, but it's set here to be explicit about it.
+    set_source_files_properties(3rdparty/sqlite3.c PROPERTIES COMPILE_DEFINITIONS
+                                                              SQLITE_THREADSAFE=1)
 endif ()
 
 set_source_files_properties(${THIRD_PARTY_SRCS} PROPERTIES SKIP_LINTING ON)

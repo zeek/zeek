@@ -96,13 +96,6 @@ bool SQLite::checkError(int code) {
 }
 
 bool SQLite::DoInit(const WriterInfo& info, int arg_num_fields, const Field* const* arg_fields) {
-    if ( sqlite3_threadsafe() == 0 ) {
-        Error(
-            "SQLite reports that it is not threadsafe. Zeek needs a threadsafe version of "
-            "SQLite. Aborting");
-        return false;
-    }
-
     // Allow connections to same DB to use single data/schema cache. Also
     // allows simultaneous writes to one file.
 #ifndef ZEEK_TSAN

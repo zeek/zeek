@@ -1,3 +1,13 @@
+8.0.1-5 | 2025-10-07 13:53:33 -0700
+
+  * Avoid starting up storage expiration thread with zero backends (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 938073dfed2a9e4b19989a9517fe7d0938edc496)
+
+  * Remove a couple of obsolete TODOs in storage manager (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 938073dfed2a9e4b19989a9517fe7d0938edc496)
+
 8.0.1-4 | 2025-10-07 13:52:32 -0700
 
   * cluster/zeromq: Fix Cluster::subscribe() block if not initialized (Arne Welzel, Corelight)

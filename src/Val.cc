@@ -1436,7 +1436,7 @@ TableValPtr ListVal::ToSetVal() const {
     const auto& pt = type->AsTypeList()->GetPureType();
     auto set_index = make_intrusive<TypeList>(pt);
     set_index->Append(base_type(tag));
-    auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
+    auto s = make_intrusive<TableType>(std::move(set_index), nullptr);
     auto t = make_intrusive<TableVal>(std::move(s));
 
     for ( const auto& val : vals )
@@ -3915,7 +3915,7 @@ ValPtr cast_value_to_type(Val* v, Type* t) {
 
     // Allow casting between sets and vectors if the yield types are the same.
     if ( v->GetType()->IsSet() && IsVector(t->Tag()) ) {
-        auto set_type = v->GetType<SetType>();
+        auto set_type = v->GetType<TableType>();
         auto indices = set_type->GetIndices();
 
         if ( indices->GetTypes().size() > 1 )
@@ -3938,7 +3938,7 @@ ValPtr cast_value_to_type(Val* v, Type* t) {
         return ret;
     }
     else if ( IsVector(v->GetType()->Tag()) && t->IsSet() ) {
-        auto ret_type = IntrusivePtr<TableType>{NewRef{}, t->AsSetType()};
+        auto ret_type = IntrusivePtr<TableType>{NewRef{}, t->AsTableType()};
         auto ret = make_intrusive<TableVal>(ret_type);
 
         auto vv = v->AsVectorVal();
@@ -3960,11 +3960,11 @@ static bool can_cast_set_and_vector(const Type* t1, const Type* t2) {
     const VectorType* vt = nullptr;
 
     if ( t1->IsSet() && IsVector(t2->Tag()) ) {
-        st = t1->AsSetType();
+        st = t1->AsTableType();
         vt = t2->AsVectorType();
     }
     else if ( IsVector(t1->Tag()) && t2->IsSet() ) {
-        st = t2->AsSetType();
+        st = t2->AsTableType();
         vt = t1->AsVectorType();
     }
 

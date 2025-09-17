@@ -214,7 +214,10 @@ public:
     const TableType* AsTableType() const;
     TableType* AsTableType();
 
+    [[deprecated("Remove in v9.1. Use AsTableType() instead.")]]
     const SetType* AsSetType() const;
+
+    [[deprecated("Remove in v9.1. Use AsTableType() instead.")]]
     SetType* AsSetType();
 
     const RecordType* AsRecordType() const;
@@ -438,7 +441,7 @@ private:
     bool reported_error = false;
 };
 
-class SetType final : public TableType {
+class [[deprecated("Remove in v9.1. Use TableType instead.")]] SetType final : public TableType {
 public:
     SetType(TypeListPtr ind, detail::ListExprPtr arg_elements);
     ~SetType() override;

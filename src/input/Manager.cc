@@ -789,7 +789,7 @@ bool Manager::IsCompatibleType(Type* t, bool atomic_only) {
             if ( ! t->IsSet() )
                 return false;
 
-            const auto& indices = t->AsSetType()->GetIndices();
+            const auto& indices = t->AsTableType()->GetIndices();
 
             if ( indices->GetTypes().size() != 1 )
                 return false;
@@ -902,7 +902,7 @@ bool Manager::UnrollRecordType(vector<Field*>* fields, const RecordType* rec, co
             bool optional = false;
 
             if ( ty == TYPE_TABLE )
-                st = rec->GetFieldType(i)->AsSetType()->GetIndices()->GetPureType()->Tag();
+                st = rec->GetFieldType(i)->AsTableType()->GetIndices()->GetPureType()->Tag();
 
             else if ( ty == TYPE_VECTOR )
                 st = rec->GetFieldType(i)->AsVectorType()->Yield()->Tag();
@@ -2084,7 +2084,7 @@ Val* Manager::ValueToVal(const Stream* i, const Value* val, Type* request_type, 
             const auto& type = request_type->AsTableType()->GetIndices()->GetPureType();
             auto set_index = make_intrusive<TypeList>(type);
             set_index->Append(type);
-            auto s = make_intrusive<SetType>(std::move(set_index), nullptr);
+            auto s = make_intrusive<TableType>(std::move(set_index), nullptr);
             auto t = make_intrusive<TableVal>(std::move(s));
             for ( int j = 0; j < val->val.set_val.size; j++ ) {
                 Val* assignval = ValueToVal(i, val->val.set_val.vals[j], type.get(), have_error);

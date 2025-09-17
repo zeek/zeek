@@ -216,20 +216,6 @@ static void make_var(const IDPtr& id, TypePtr t, InitClass c, ExprPtr init, std:
         }
     }
 
-    if ( t && t->IsSet() ) { // Check for set with explicit elements.
-        SetType* st = t->AsTableType()->AsSetType();
-        const auto& elements = st->Elements();
-
-        if ( elements ) {
-            if ( init ) {
-                id->Error("double initialization", init.get());
-                return;
-            }
-
-            init = elements;
-        }
-    }
-
     if ( ! t ) { // Take type from initialization.
         if ( ! init ) {
             id->Error("no type given");

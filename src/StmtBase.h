@@ -68,9 +68,6 @@ public:
     }
     StmtPtr ThisPtr() { return {NewRef{}, this}; }
 
-    bool SetLocationInfo(const Location* loc) override { return Stmt::SetLocationInfo(loc, loc); }
-    bool SetLocationInfo(const Location* start, const Location* end) override;
-
     // True if the statement has no side effects, false otherwise.
     virtual bool IsPure() const;
 

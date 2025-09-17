@@ -83,7 +83,6 @@ void usage(const char* prog) {
     printf("    -a|--parse-only                 | exit immediately after parsing scripts\n");
     printf("    -b|--bare-mode                  | don't load scripts from the base/ directory\n");
     printf("    -c|--capture-unprocessed <file> | write unprocessed packets to a tcpdump file\n");
-    printf("    -d|--debug-script               | activate Zeek script debugging\n");
     printf("    -e|--exec <zeek code>           | augment loaded scripts by given code\n");
     printf("    -f|--filter <filter>            | tcpdump filter\n");
     printf("    -h|--help                       | command line help\n");
@@ -363,7 +362,6 @@ Options parse_cmdline(int argc, char** argv) {
         {"parse-only", no_argument, nullptr, 'a'},
         {"bare-mode", no_argument, nullptr, 'b'},
         {"capture-unprocessed", required_argument, nullptr, 'c'},
-        {"debug-script", no_argument, nullptr, 'd'},
         {"exec", required_argument, nullptr, 'e'},
         {"filter", required_argument, nullptr, 'f'},
         {"help", no_argument, nullptr, 'h'},
@@ -435,7 +433,6 @@ Options parse_cmdline(int argc, char** argv) {
             case 'a': rval.parse_only = true; break;
             case 'b': rval.bare_mode = true; break;
             case 'c': rval.unprocessed_output_file = optarg; break;
-            case 'd': rval.debug_scripts = true; break;
             case 'e': rval.script_code_to_exec = optarg; break;
             case 'f': rval.pcap_filter = optarg; break;
             case 'h': rval.print_usage = true; break;

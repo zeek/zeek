@@ -27,7 +27,6 @@
 
 #include "zeek/Conn.h"
 #include "zeek/DNS_Mgr.h"
-#include "zeek/Debug.h"
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
 #include "zeek/EventRegistry.h"
@@ -552,18 +551,8 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     perftools_profile = options.perftools_profile;
 #endif
 
-    if ( options.debug_scripts ) {
-        g_policy_debug = options.debug_scripts;
-        fprintf(stderr, "Zeek script debugging ON.\n");
-    }
-
     if ( options.script_code_to_exec )
         command_line_policy = options.script_code_to_exec->data();
-
-    if ( options.debug_script_tracing_file ) {
-        g_trace_state.SetTraceFile(options.debug_script_tracing_file->data());
-        g_trace_state.TraceOn();
-    }
 
     if ( options.process_status_file )
         proc_status_file = util::copy_string(options.process_status_file->data());
@@ -983,10 +972,6 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         file_mgr->InitMagic();
     }
 
-    if ( g_policy_debug )
-        // ### Add support for debug command file.
-        dbg_init_debugger(nullptr);
-
     if ( ! options.pcap_file && ! options.interface ) {
         const auto& interfaces_val = id::find_val("interfaces");
         if ( interfaces_val ) {
@@ -1026,11 +1011,9 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         run_state::detail::init_run(options.interface, options.pcap_file, options.pcap_output_file,
                                     options.use_watchdog);
 
-    if ( ! g_policy_debug ) {
-        (void)setsignal(SIGTERM, sig_handler);
-        (void)setsignal(SIGINT, sig_handler);
-        (void)setsignal(SIGPIPE, SIG_IGN);
-    }
+    (void)setsignal(SIGTERM, sig_handler);
+    (void)setsignal(SIGINT, sig_handler);
+    (void)setsignal(SIGPIPE, SIG_IGN);
 
     // Cooperate with nohup(1).
     if ( oldhandler = setsignal(SIGHUP, sig_handler); oldhandler != SIG_DFL )
@@ -1105,15 +1088,12 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         auto [body, scope] = get_global_stmts();
         StmtFlowType flow;
         Frame f(scope->Length(), nullptr, nullptr);
-        g_frame_stack.push_back(&f);
 
         try {
             body->Exec(&f, flow);
         } catch ( InterpreterException& ) {
             reporter->FatalError("failed to execute script statements at top-level scope");
         }
-
-        g_frame_stack.pop_back();
     }
 
     clear_script_analysis();

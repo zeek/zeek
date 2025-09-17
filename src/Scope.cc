@@ -118,7 +118,7 @@ const IDPtr& lookup_ID(const char* name, const char* curr_module, bool no_global
             const auto& id = s_i->Find(fullname);
 
             if ( id ) {
-                if ( need_export && ! id->IsExport() && ! in_debug )
+                if ( need_export && ! id->IsExport() )
                     reporter->Error("identifier is not exported: %s", fullname.c_str());
 
                 return id;

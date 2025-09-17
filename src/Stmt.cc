@@ -3,7 +3,6 @@
 #include "zeek/Stmt.h"
 
 #include "zeek/CompHash.h"
-#include "zeek/Debug.h"
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
 #include "zeek/EventTrace.h"
@@ -144,39 +143,6 @@ const NullStmt* Stmt::AsNullStmt() const {
 const AssertStmt* Stmt::AsAssertStmt() const {
     CHECK_TAG(tag, STMT_ASSERT, "Stmt::AsAssertStmt", stmt_name)
     return (const AssertStmt*)this;
-}
-
-bool Stmt::SetLocationInfo(const Location* start, const Location* end) {
-    if ( ! Obj::SetLocationInfo(start, end) )
-        return false;
-
-    // Update the Filemap of line number -> statement mapping for
-    // breakpoints (Debug.h).
-    auto map_iter = g_dbgfilemaps.find(location->FileName());
-    if ( map_iter == g_dbgfilemaps.end() )
-        return false;
-
-    Filemap& map = *(map_iter->second);
-
-    StmtLocMapping* new_mapping = new StmtLocMapping(GetLocationInfo(), this);
-
-    // Optimistically just put it at the end.
-    map.push_back(new_mapping);
-
-    size_t curr_idx = map.size() - 1;
-    if ( curr_idx == 0 )
-        return true;
-
-    // In case it wasn't actually lexically last, bubble it to the
-    // right place.
-    while ( map[curr_idx - 1]->StartsAfter(map[curr_idx]) ) {
-        StmtLocMapping t = *map[curr_idx - 1];
-        *map[curr_idx - 1] = *map[curr_idx];
-        *map[curr_idx] = t;
-        curr_idx--;
-    }
-
-    return true;
 }
 
 bool Stmt::IsPure() const { return false; }
@@ -433,18 +399,8 @@ IfStmt::~IfStmt() = default;
 ValPtr IfStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) {
     // Treat 0 as false, but don't require 1 for true.
     Stmt* do_stmt = v->IsZero() ? s2.get() : s1.get();
-
     f->SetNextStmt(do_stmt);
-
-    if ( ! pre_execute_stmt(do_stmt, f) ) { // ### Abort or something
-    }
-
-    auto result = do_stmt->Exec(f, flow);
-
-    if ( ! post_execute_stmt(do_stmt, f, result.get(), &flow) ) { // ### Abort or something
-    }
-
-    return result;
+    return do_stmt->Exec(f, flow);
 }
 
 bool IfStmt::IsPure() const { return e->IsPure() && s1->IsPure() && s2->IsPure(); }
@@ -1408,14 +1364,7 @@ ValPtr StmtList::Exec(Frame* f, StmtFlowType& flow) {
         auto stmt = stmt_ptr.get();
 
         f->SetNextStmt(stmt);
-
-        if ( ! pre_execute_stmt(stmt, f) ) { // ### Abort or something
-        }
-
         auto result = stmt->Exec(f, flow);
-
-        if ( ! post_execute_stmt(stmt, f, result.get(), &flow) ) { // ### Abort or something
-        }
 
         if ( flow != FLOW_NEXT || result || f->HasDelayed() )
             return result;

@@ -280,22 +280,6 @@ endmacro (COLLECT_HEADERS _var)
 
 cmake_policy(POP)
 
-# define a command that's used to run the make_dbg_constants.py script building
-# the zeek binary depends on the outputs of this script
-add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
-           ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdInfoConstants.cc
-    COMMAND ${Python_EXECUTABLE} ARGS ${CMAKE_CURRENT_SOURCE_DIR}/make_dbg_constants.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/DebugCmdInfoConstants.in
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/make_dbg_constants.py
-            ${CMAKE_CURRENT_SOURCE_DIR}/DebugCmdInfoConstants.in
-    COMMENT "[Python] Processing debug commands"
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-
-add_custom_target(zeek_debugcmd_gen DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
-                                            ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdInfoConstants.cc)
-add_dependencies(zeek_autogen_files zeek_debugcmd_gen)
-
 set(_gen_zeek_script_cpp ${CMAKE_CURRENT_BINARY_DIR}/../CPP-gen.cc)
 add_custom_command(OUTPUT ${_gen_zeek_script_cpp} COMMAND ${CMAKE_COMMAND} -E touch
                                                           ${_gen_zeek_script_cpp})
@@ -321,11 +305,6 @@ set(MAIN_SRCS
     Conn.cc
     ConnKey.h
     DFA.cc
-    DbgBreakpoint.cc
-    DbgHelp.cc
-    DbgWatch.cc
-    Debug.cc
-    DebugCmds.cc
     DebugLogger.cc
     Desc.cc
     Dict.cc
@@ -556,7 +535,6 @@ set(zeek_SRCS
     ${FLEX_Scanner_OUTPUTS}
     ${FLEX_Scanner_INPUT}
     ${BISON_Parser_INPUT}
-    ${CMAKE_CURRENT_BINARY_DIR}/DebugCmdConstants.h
     ${CMAKE_CURRENT_BINARY_DIR}/ZAM-MethodDecls.h)
 
 list(APPEND zeek_SRCS ${THIRD_PARTY_SRCS})

@@ -11,7 +11,6 @@
 #include <string>
 #include <vector>
 
-#include "zeek/Debug.h"
 #include "zeek/Reporter.h"
 #include "zeek/util.h"
 
@@ -43,7 +42,7 @@ int how_many_lines_in(const char* policy_filename) {
 
     FILE* throwaway = fopen(policy_filename, "r");
     if ( ! throwaway ) {
-        debug_msg("Could not open policy file: %s.\n", policy_filename);
+        fprintf(stderr, "Could not open policy file: %s.\n", policy_filename);
         return -1;
     }
 
@@ -55,7 +54,7 @@ int how_many_lines_in(const char* policy_filename) {
     if ( match == policy_files.end() ) {
         match = policy_files.find(policy_filename);
         if ( match == policy_files.end() ) {
-            debug_msg("Policy file %s was not loaded.\n", policy_filename);
+            fprintf(stderr, "Policy file %s was not loaded.\n", policy_filename);
             return -1;
         }
     }
@@ -69,7 +68,7 @@ bool LoadPolicyFileText(const char* policy_filename, const std::optional<std::st
         return true;
 
     if ( policy_files.contains(policy_filename) )
-        debug_msg("Policy file %s already loaded\n", policy_filename);
+        fprintf(stderr, "Policy file %s already loaded\n", policy_filename);
 
     PolicyFile* pf = new PolicyFile;
     policy_files.insert(PolicyFileMap::value_type(policy_filename, pf));
@@ -84,7 +83,7 @@ bool LoadPolicyFileText(const char* policy_filename, const std::optional<std::st
         FILE* f = fopen(policy_filename, "r");
 
         if ( ! f ) {
-            debug_msg("Could not open policy file: %s.\n", policy_filename);
+            fprintf(stderr, "Could not open policy file: %s.\n", policy_filename);
             return false;
         }
 
@@ -134,7 +133,7 @@ bool PrintLines(const char* policy_filename, unsigned int start_line, unsigned i
 
     FILE* throwaway = fopen(policy_filename, "r");
     if ( ! throwaway ) {
-        debug_msg("Could not open policy file: %s.\n", policy_filename);
+        fprintf(stderr, "Could not open policy file: %s.\n", policy_filename);
         return false;
     }
 
@@ -146,7 +145,7 @@ bool PrintLines(const char* policy_filename, unsigned int start_line, unsigned i
     if ( match == policy_files.end() ) {
         match = policy_files.find(policy_filename);
         if ( match == policy_files.end() ) {
-            debug_msg("Policy file %s was not loaded.\n", policy_filename);
+            fprintf(stderr, "Policy file %s was not loaded.\n", policy_filename);
             return false;
         }
     }
@@ -157,7 +156,8 @@ bool PrintLines(const char* policy_filename, unsigned int start_line, unsigned i
         start_line = 1;
 
     if ( start_line > pf->lines.size() ) {
-        debug_msg("Line number %d out of range; %s has %d lines\n", start_line, policy_filename, int(pf->lines.size()));
+        fprintf(stderr, "Line number %d out of range; %s has %d lines\n", start_line, policy_filename,
+                int(pf->lines.size()));
         return false;
     }
 
@@ -166,10 +166,10 @@ bool PrintLines(const char* policy_filename, unsigned int start_line, unsigned i
 
     for ( unsigned int i = 0; i < how_many_lines; ++i ) {
         if ( show_numbers )
-            debug_msg("%d\t", i + start_line);
+            fprintf(stderr, "%d\t", i + start_line);
 
         const char* line = pf->lines[start_line + i - 1];
-        debug_msg("%s\n", line);
+        fprintf(stderr, "%s\n", line);
     }
 
     return true;

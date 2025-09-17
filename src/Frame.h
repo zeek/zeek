@@ -144,14 +144,6 @@ public:
      */
     Stmt* GetNextStmt() const { return next_stmt; }
 
-    /** Used to implement "next" command in debugger. */
-    void BreakBeforeNextStmt(bool should_break) { break_before_next_stmt = should_break; }
-    bool BreakBeforeNextStmt() const { return break_before_next_stmt; }
-
-    /** Used to implement "finish" command in debugger. */
-    void BreakOnReturn(bool should_break) { break_on_return = should_break; }
-    bool BreakOnReturn() const { return break_on_return; }
-
     /**
      * Performs a deep copy of all the values in the current frame.
      *
@@ -241,7 +233,6 @@ private:
     /** The function this frame is associated with. */
     const ScriptFunc* function;
 
-    // The following is only needed for the debugger.
     /** The arguments to the function that this Frame is associated with. */
     const zeek::Args* func_args;
 
@@ -255,15 +246,3 @@ private:
 
 } // namespace detail
 } // namespace zeek
-
-/**
- * If we stopped using this and instead just made a struct of the information
- * that the debugger actually uses we could make the Frame a class a template.
- * The template argument could be <int frame_size> and doing this would allow
- * us to use an std::array under the hood rather than a c style array.
- *
- * Another way to do this might to be to have Frame inherit from a class
- * DebugFrame which provides the information that the debugger uses. See:
- * https://stackoverflow.com/a/16211097
- */
-extern std::vector<zeek::detail::Frame*> g_frame_stack;

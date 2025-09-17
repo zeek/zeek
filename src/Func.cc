@@ -19,7 +19,6 @@
 
 // Most of these includes are needed for code included from bif files.
 #include "zeek/Base64.h"
-#include "zeek/Debug.h"
 #include "zeek/Desc.h"
 #include "zeek/Event.h"
 #include "zeek/EventTrace.h"
@@ -339,7 +338,6 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
         f->SetTriggerAssoc(parent->GetTriggerAssoc());
     }
 
-    g_frame_stack.push_back(f.get()); // used for backtracing
     const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
     call_stack.emplace_back(CallInfo{call_expr, this, *args});
 
@@ -355,13 +353,6 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
 
     if ( event_trace_mgr && Flavor() == FUNC_FLAVOR_EVENT )
         event_trace_mgr->StartEvent(this, args);
-
-    if ( g_trace_state.DoTrace() ) {
-        ODesc d;
-        DescribeDebug(&d, args);
-
-        g_trace_state.LogTrace("%s called: %s\n", GetType()->FlavorString().c_str(), d.Description());
-    }
 
     StmtFlowType flow = FLOW_NEXT;
     ValPtr result;
@@ -391,7 +382,6 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
         catch ( InterpreterException& e ) {
             // Already reported, but now determine whether to unwind further.
             if ( Flavor() == FUNC_FLAVOR_FUNCTION ) {
-                g_frame_stack.pop_back();
                 call_stack.pop_back();
                 // Result not set b/c exception was thrown
                 throw;
@@ -440,15 +430,6 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
               (flow != FLOW_RETURN /* we fell off the end */ || ! result /* explicit return with no result */) &&
               ! f->HasDelayed() )
         reporter->Warning("non-void function returning without a value: %s", GetName().c_str());
-
-    if ( result && g_trace_state.DoTrace() ) {
-        ODesc d;
-        result->Describe(&d);
-
-        g_trace_state.LogTrace("Function return: %s\n", d.Description());
-    }
-
-    g_frame_stack.pop_back();
 
     return result;
 }
@@ -726,24 +707,10 @@ ValPtr BuiltinFunc::Invoke(Args* args, Frame* parent) const {
         return hook_result;
     }
 
-    if ( g_trace_state.DoTrace() ) {
-        ODesc d;
-        DescribeDebug(&d, args);
-
-        g_trace_state.LogTrace("\tBuiltin Function called: %s\n", d.Description());
-    }
-
     const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
     call_stack.emplace_back(CallInfo{call_expr, this, *args});
     auto result = func(parent, args);
     call_stack.pop_back();
-
-    if ( result && g_trace_state.DoTrace() ) {
-        ODesc d;
-        result->Describe(&d);
-
-        g_trace_state.LogTrace("\tFunction return: %s\n", d.Description());
-    }
 
     if ( spm )
         spm->EndInvocation();

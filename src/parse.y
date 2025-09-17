@@ -136,12 +136,6 @@ bool is_export = false; // true if in an export {} block
 // to do so can nest.
 std::vector<bool> hold_is_export;
 
-// When parsing an expression for the debugger, where to put the result
-// (obviously not reentrant).
-extern Expr* g_curr_debug_expr;
-extern bool in_debug;
-extern const char* g_curr_debug_error;
-
 extern int in_when_cond;
 
 static int in_hook = 0;
@@ -387,14 +381,6 @@ zeek:
 			// Any objects creates from here on out should not
 			// have file positions associated with them.
 			set_location(no_location);
-			}
-	|
-		/* Silly way of allowing the debugger to call yyparse()
-		 * on an expr rather than a file.
-		 */
-		TOK_DEBUG { in_debug = true; } expr
-			{
-			g_curr_debug_expr = $3;
 			}
 	;
 
@@ -903,19 +889,13 @@ expr:
 			auto id = lookup_ID($1, current_module.c_str());
 
 			if ( ! id ) {
-				if ( ! in_debug ) {
 /*	// CHECK THAT THIS IS NOT GLOBAL.
 					id = install_ID($1, current_module.c_str(),
 							        false, is_export);
 */
 
-					yyerror(util::fmt("unknown identifier %s", $1));
-					YYERROR;
-				}
-				else {
-					yyerror(util::fmt("unknown identifier %s", $1));
-					YYERROR;
-				}
+                yyerror(util::fmt("unknown identifier %s", $1));
+				YYERROR;
 			}
 			else {
 				if ( id->IsDeprecated() )
@@ -2276,9 +2256,6 @@ expr_list_opt_comma: ',' { expr_list_has_opt_comma = 1; }
 %%
 
 int yyerror(const char msg[]) {
-    if ( in_debug )
-        g_curr_debug_error = util::copy_string(msg);
-
     if ( last_tok[0] == '\n' )
         reporter->Error("%s, on previous line", msg);
     else if ( last_tok[0] == '\0' ) {

@@ -99,5 +99,3 @@ extern std::string current_module;
 
 } // namespace detail
 } // namespace zeek
-
-extern bool in_debug;

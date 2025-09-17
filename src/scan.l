@@ -35,7 +35,6 @@
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Val.h"
 #include "zeek/Var.h"
-#include "zeek/Debug.h"
 #include "zeek/PolicyFile.h"
 #include "zeek/Reporter.h"
 #include "zeek/RE.h"
@@ -414,8 +413,6 @@ when	return TOK_WHEN;
 @pragma.* {
 	do_pragma(zeek::util::skip_whitespace(yytext + 7));
 }
-
-@DEBUG	return TOK_DEBUG;	// marks input for debugger
 
 @DIR	{
 	std::string rval = zeek::util::SafeDirname(::filename).result;
@@ -799,12 +796,6 @@ static int load_files(const char* orig_file) {
         if ( zeek::util::streq(orig_file, "-") ) {
             f = stdin;
             file_path = zeek::detail::ScannedFile::canonical_stdin_path;
-
-            if ( zeek::detail::g_policy_debug ) {
-                zeek::detail::debug_msg(
-                    "Warning: can't use debugger while reading policy from stdin; turning off debugging.\n");
-                zeek::detail::g_policy_debug = false;
-            }
         }
         else {
             if ( file_path.empty() )
@@ -828,13 +819,6 @@ static int load_files(const char* orig_file) {
         }
 
         zeek::detail::files_scanned.push_back(std::move(sf));
-    }
-
-    if ( zeek::detail::g_policy_debug && ! file_path.empty() ) {
-        // Add the filename to the file mapping table (Debug.h).
-        zeek::detail::Filemap* map = new zeek::detail::Filemap;
-        zeek::detail::g_dbgfilemaps.emplace(file_path, map);
-        LoadPolicyFileText(file_path.c_str(), rc.second);
     }
 
     // Remember where we were to restore the module scope in which

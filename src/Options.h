@@ -52,7 +52,6 @@ struct Options {
     bool supervisor_mode = false;
     bool parse_only = false;
     bool bare_mode = false;
-    bool debug_scripts = false;
     bool perftools_check_leaks = false;
     bool perftools_profile = false;
     bool deterministic_mode = false;

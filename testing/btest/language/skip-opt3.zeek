@@ -1,4 +1,4 @@
-# @TEST-EXEC: zeek -b %INPUT --no-opt-file=skip-opt >out 2>&1
+# @TEST-EXEC: zeek -b %INPUT --no-optimize-file=skip-opt >out 2>&1
 # @TEST-EXEC: btest-diff out
 
 function always()

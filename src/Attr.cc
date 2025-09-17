@@ -555,8 +555,8 @@ bool Attributes::CheckAttr(Attr* a, const TypePtr& attrs_t) {
 
         case ATTR_NO_ZAM_OPT:
         case ATTR_NO_CPP_OPT: {
-            bool is_no_zam = a->Tag() == ATTR_NO_ZAM_OPT;
             if ( attrs_t->Tag() != TYPE_FUNC ) {
+                bool is_no_zam = a->Tag() == ATTR_NO_ZAM_OPT;
                 Error(util::fmt("&no_%s_opt must apply to a function", is_no_zam ? "ZAM" : "CPP"), attrs_t.get());
                 return false;
             }

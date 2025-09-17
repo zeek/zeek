@@ -125,13 +125,13 @@ void usage(const char* prog) {
         "    -0|--optimize-files=<pat>       | enable script optimization for all "
         "functions in files with names containing the given pattern\n");
     printf(
-        "       --no-opt-files=<pat>         | skip script optimization for all "
+        "       --no-optimize-files=<pat>    | skip script optimization for all "
         "functions in files with names containing the given pattern\n");
     printf(
         "    -o|--optimize-funcs=<pat>       | enable script optimization for "
         "functions with names fully matching the given pattern\n");
     printf(
-        "       --no-opt-funcs=<pat>         | skip script optimization for "
+        "       --no-optimize-funcs=<pat>    | skip script optimization for "
         "functions with names fully matching the given pattern\n");
     printf("    -P|--prime-dns                  | prime DNS\n");
     printf("    -Q|--time                       | print execution time summary to stderr\n");
@@ -399,8 +399,8 @@ Options parse_cmdline(int argc, char** argv) {
         {"re-level", required_argument, nullptr, 'T'},
         {"watchdog", no_argument, nullptr, 'W'},
         {"print-id", required_argument, nullptr, 'I'},
-        {"no-opt-funcs", required_argument, nullptr, '\001'},
-        {"no-opt-files", required_argument, nullptr, '\002'},
+        {"no-optimize-funcs", required_argument, nullptr, '1'},
+        {"no-optimize-files", required_argument, nullptr, '2'},
         {"status-file", required_argument, nullptr, 'U'},
         {"debug", required_argument, nullptr, 'B'},
 
@@ -522,8 +522,8 @@ Options parse_cmdline(int argc, char** argv) {
             case 'O': set_analysis_option(optarg, rval); break;
             case 'o': add_func_analysis_pattern(rval.analysis_options, optarg, true); break;
             case '0': add_file_analysis_pattern(rval.analysis_options, optarg, true); break;
-            case '\001': add_func_analysis_pattern(rval.analysis_options, optarg, false); break;
-            case '\002': add_file_analysis_pattern(rval.analysis_options, optarg, false); break;
+            case '1': add_func_analysis_pattern(rval.analysis_options, optarg, false); break;
+            case '2': add_file_analysis_pattern(rval.analysis_options, optarg, false); break;
             case 'P':
                 if ( rval.dns_mode != detail::DNS_DEFAULT ) {
                     fprintf(stderr, "ERROR: can only change DNS manager mode once\n");

@@ -110,7 +110,7 @@ void CPPCompile::CreateFunction(const FuncTypePtr& ft, const ProfileFunc* pf, co
     vector<string> attr_groups;
 
     if ( e_g )
-        for ( auto g : *e_g ) {
+        for ( const auto& g : *e_g ) {
             const auto& name = g->GetName();
 
             if ( g->GetEventGroupKind() == EventGroupKind::Module ) {

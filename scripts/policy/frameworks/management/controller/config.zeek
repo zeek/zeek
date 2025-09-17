@@ -106,12 +106,16 @@ export {
 	global get_name: function(): string;
 
 	## Returns a :zeek:see:`Broker::NetworkInfo` record describing the
-	## controller's Broker connectivity.
-	global network_info: function(): Broker::NetworkInfo;
+	## controller's Broker listening address and port. When the function
+	## cannot determine a configured listening address, it uses the provided
+	## fallback.
+	global network_info: function(fallback_address: string &default="0.0.0.0"): Broker::NetworkInfo;
 
 	## Returns a :zeek:see:`Broker::NetworkInfo` record describing the
-	## controller's websocket connectivity.
-	global network_info_websocket: function(): Broker::NetworkInfo;
+	## controller's websocket listening address and port. When the function
+	## cannot determine a configured listening address, it uses the provided
+	## fallback.
+	global network_info_websocket: function(fallback_address: string &default="0.0.0.0"): Broker::NetworkInfo;
 
 	## Returns a :zeek:see:`Broker::EndpointInfo` record describing the
 	## controller's Broker connectivity.
@@ -130,7 +134,7 @@ function get_name(): string
 	return fmt("controller-%s", gethostname());
 	}
 
-function network_info(): Broker::NetworkInfo
+function network_info(fallback_address: string &default="0.0.0.0"): Broker::NetworkInfo
 	{
 	local ni: Broker::NetworkInfo;
 
@@ -139,7 +143,7 @@ function network_info(): Broker::NetworkInfo
 	else if ( Management::default_address != "" )
 		ni$address = Management::default_address;
 	else
-		ni$address = "0.0.0.0";
+		ni$address = fallback_address;
 
 	if ( Management::Controller::listen_port != "" )
 		ni$bound_port = to_port(Management::Controller::listen_port);
@@ -149,7 +153,7 @@ function network_info(): Broker::NetworkInfo
 	return ni;
 	}
 
-function network_info_websocket(): Broker::NetworkInfo
+function network_info_websocket(fallback_address: string &default="0.0.0.0"): Broker::NetworkInfo
 	{
 	local ni: Broker::NetworkInfo;
 
@@ -158,7 +162,7 @@ function network_info_websocket(): Broker::NetworkInfo
 	else if ( Management::default_address != "" )
 		ni$address = Management::default_address;
 	else
-		ni$address = "0.0.0.0";
+		ni$address = fallback_address;
 
 	if ( Management::Controller::listen_port_websocket != "" )
 		ni$bound_port = to_port(Management::Controller::listen_port_websocket);

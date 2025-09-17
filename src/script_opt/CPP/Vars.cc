@@ -76,7 +76,7 @@ std::shared_ptr<CPP_InitInfo> CPPCompile::GenerateGlobalInit(IDPtr g) {
     if ( ! standalone )
         return make_shared<GlobalLookupInitInfo>(this, g, globals[gn]);
 
-    if ( obj_matches_opt_files(g) )
+    if ( obj_matches_opt_files(g) == AnalyzeDecision::SHOULD )
         return make_shared<GlobalInitInfo>(this, g, globals[gn]);
 
     // It's not a global that's created by the scripts we're compiling,
@@ -86,7 +86,7 @@ std::shared_ptr<CPP_InitInfo> CPPCompile::GenerateGlobalInit(IDPtr g) {
     bool needs_redef = false;
 
     for ( const auto& i_e : g->GetOptInfo()->GetInitExprs() )
-        if ( obj_matches_opt_files(i_e) ) {
+        if ( obj_matches_opt_files(i_e) == AnalyzeDecision::SHOULD ) {
             needs_redef = true;
             break;
         }

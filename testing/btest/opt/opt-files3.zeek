@@ -1,8 +1,8 @@
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
-# @TEST-EXEC: zeek -b -O ZAM --optimize-files='base/utils' --optimize-files='opt-files3' %INPUT >output
+# @TEST-EXEC: zeek -b -O ZAM --optimize-files=base/utils --optimize-files=opt-files3 %INPUT >output
 # @TEST-EXEC: btest-diff output
 
-# Tests that we can selectively pick a group of files *and* this one.
+# Tests that we can selectively pick a group of (other) files *and* this one.
 
 function my_test()
 	{

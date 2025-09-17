@@ -1,4 +1,4 @@
-# @TEST-EXEC-FAIL: zeek -b -O ZAM --optimize-files='my_func' %INPUT
+# @TEST-EXEC-FAIL: zeek -b -O ZAM --optimize-files=my_func %INPUT
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff .stderr
 
 # Make sure that --optimize-func anchors the regex.

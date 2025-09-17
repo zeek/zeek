@@ -39,6 +39,17 @@ string scope_prefix(const string& scope) { return "zeek::detail::CPP_" + scope; 
 string scope_prefix(int scope) { return scope_prefix(to_string(scope)); }
 
 bool is_CPP_compilable(const ProfileFunc* pf, const char** reason) {
+    auto func = pf->ProfiledFunc(); // can be nil for lambdas
+
+    if ( func ) {
+        auto& scope_id = pf->ProfiledScope()->GetID();
+        if ( scope_id && scope_id->GetAttr(ATTR_NO_CPP_OPT) ) {
+            if ( reason )
+                *reason = "&no_CPP_opt attribute";
+            return false;
+        }
+    }
+
     if ( has_AST_node_unknown_to_script_opt(pf, false) ) {
         if ( reason )
             *reason = "unknown AST node type";

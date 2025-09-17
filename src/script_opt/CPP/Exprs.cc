@@ -1278,7 +1278,7 @@ string CPPCompile::GenEnum(const TypePtr& t, const ValPtr& ev) {
         mapping_slot = num_ev_mappings++;
 
         string enum_name = et->Lookup(v);
-        bool create_if_missing = standalone && obj_matches_opt_files(ev);
+        bool create_if_missing = standalone && obj_matches_opt_files(ev) == AnalyzeDecision::SHOULD;
         enum_names.emplace_back(EnumMappingInfo{TypeOffset(t), std::move(enum_name), create_if_missing});
 
         if ( evm != enum_val_mappings.end() ) {

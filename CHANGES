@@ -1,3 +1,9 @@
+8.1.0-dev.559 | 2025-09-17 14:28:32 -0700
+
+  * tracking of event groups for compilation to standalone-C++ (Vern Paxson, Corelight)
+
+  * Deprecate SetType, as it can be replaced by TableType (Vern Paxson, Corelight)
+
 8.1.0-dev.555 | 2025-09-17 08:44:43 -0700
 
   * Avoid starting up storage expiration thread with zero backends (Tim Wojtulewicz, Corelight)

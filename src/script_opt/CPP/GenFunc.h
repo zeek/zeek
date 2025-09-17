@@ -51,15 +51,16 @@ std::unordered_map<std::string, std::string> compiled_simple_funcs;
 // Maps function bodies to the names we use for them.
 std::unordered_map<const Stmt*, std::string> body_names;
 
-// Maps function names to hashes of bodies.
-std::unordered_map<std::string, p_hash_type> body_hashes;
+struct BodyInfo {
+    p_hash_type hash = 0;
+    int priority = 0;
+    const Location* loc = nullptr;   // for better-than-nothing error reporting
+    std::string module;              // if non-nil, used for "module" event groups
+    std::vector<std::string> groups; // attribute-based event groups
+};
 
-// Maps function names to priorities, for hooks & event handlers.
-std::unordered_map<std::string, int> body_priorities;
-
-// Maps function names to script locations, for better-than-nothing error
-// reporting.
-std::unordered_map<std::string, const Location*> body_locs;
+// Maps function names to their body info.
+std::unordered_map<std::string, BodyInfo> body_info;
 
 // Maps function names to events relevant to them.
 std::unordered_map<std::string, std::vector<std::string>> body_events;

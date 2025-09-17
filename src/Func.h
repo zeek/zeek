@@ -68,7 +68,7 @@ public:
     struct Body {
         detail::StmtPtr stmts;
         std::forward_list<EventGroupPtr> groups;
-        int priority;
+        int priority = 0;
         // If any of the groups are disabled, this body is disabled.
         // The disabled field is updated from EventGroup instances.
         bool disabled = false;
@@ -265,8 +265,7 @@ public:
      */
     void ReplaceBody(const detail::StmtPtr& old_body, detail::StmtPtr new_body);
 
-    StmtPtr CurrentBody() const { return current_body; }
-    int CurrentPriority() const { return current_priority; }
+    auto CurrentBody() const { return current_body; }
 
     /**
      * Returns the function's frame size.
@@ -322,11 +321,8 @@ private:
 
     OffsetMap* captures_offset_mapping = nullptr;
 
-    // The most recently added/updated body ...
-    StmtPtr current_body;
-
-    // ... and its priority.
-    int current_priority = 0;
+    // A copy of the most recently added/updated Body.
+    Body current_body;
 };
 
 using built_in_func = ValPtr (*)(Frame* frame, const Args* args);

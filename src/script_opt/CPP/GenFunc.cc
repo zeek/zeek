@@ -224,10 +224,10 @@ p_hash_type CPPCompile::BodyHash(const Stmt* body) {
     ASSERT(bn != body_names.end());
 
     auto& body_name = bn->second;
-    auto bh = body_hashes.find(body_name);
-    ASSERT(bh != body_hashes.end());
+    auto bi = body_info.find(body_name);
+    ASSERT(bi != body_info.end());
 
-    return bh->second;
+    return bi->second.hash;
 }
 
 string CPPCompile::GenArgs(const RecordTypePtr& params, const Expr* e) {

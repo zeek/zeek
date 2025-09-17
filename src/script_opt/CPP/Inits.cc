@@ -284,9 +284,9 @@ void CPPCompile::GenStandaloneActivation() {
             // We didn't wind up compiling it.
             continue;
 
-        auto bh = body_hashes.find(bname);
-        ASSERT(bh != body_hashes.end());
-        func_bodies[f].push_back(bh->second);
+        auto bi = body_info.find(bname);
+        ASSERT(bi != body_info.end());
+        func_bodies[f].push_back(bi->second.hash);
     }
 
     for ( auto& fb : func_bodies ) {

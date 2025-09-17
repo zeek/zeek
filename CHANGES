@@ -1,3 +1,9 @@
+8.1.0-dev.555 | 2025-09-17 08:44:43 -0700
+
+  * Avoid starting up storage expiration thread with zero backends (Tim Wojtulewicz, Corelight)
+
+  * Remove a couple of obsolete TODOs in storage manager (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.552 | 2025-09-16 13:31:39 -0700
 
   * Reword comment about when ZeroMQ is required for the build (Tim Wojtulewicz, Corelight)

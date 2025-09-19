@@ -2,10 +2,9 @@
 #include "zeek/iosource/Manager.h"
 #include "zeek/iosource/PktSrc.h"
 
+#include "XDPProgram.h"
 #include "bpf/UserXDP.h"
 #include "bpf/filter_common.h"
-#include "XDPProgram.h"
-
 %%}
 module XDP;
 
@@ -17,20 +16,20 @@ function start_shunt%(%) : opaque of XDP::Program %{
         return zeek::val_mgr->Bool(false);
     }
 
-		auto ifindex = if_nametoindex(ps->Path().c_str());
-	  if (ifindex == 0) {
+    auto ifindex = if_nametoindex(ps->Path().c_str());
+    if ( ifindex == 0 ) {
         zeek::reporter->Error("Invalid device?");
         return zeek::val_mgr->Bool(false);
     }
 
     auto* skel = load_and_attach(ifindex);
-    if (!skel) {
+    if ( ! skel ) {
         // TODO: Make this error better since it can fail for 2 reasons
         zeek::reporter->Error("Failed to load BPF skeleton");
         return zeek::val_mgr->Bool(false);
     }
 
-	  auto xdp_prog = zeek::make_intrusive<xdp::shunter::detail::XDPProgramVal>(skel);
+    auto xdp_prog = zeek::make_intrusive<xdp::shunter::detail::XDPProgramVal>(skel);
     return xdp_prog;
 %}
 
@@ -49,31 +48,31 @@ function drop%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
         return zeek::val_mgr->Bool(false);
     }
 
-	  auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
+    auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
 
     const uint32_t* orig_bytes;
     int len = orig_h.GetBytes(&orig_bytes);
-    if (len != 1) {
+    if ( len != 1 ) {
         zeek::reporter->Error("No support for IPs greater than 1 byte yet");
         return zeek::val_mgr->Bool(false);
     }
     const uint32_t* resp_bytes;
     len = resp_h.GetBytes(&resp_bytes);
-    if (len != 1) {
+    if ( len != 1 ) {
         zeek::reporter->Error("No support for IPs greater than 1 byte yet");
         return zeek::val_mgr->Bool(false);
     }
 
     struct five_tuple tup = {
-      .ip_orig = orig_bytes[0],
-      .ip_resp = resp_bytes[0],
-      .port_orig = orig_p,
-      .port_resp = resp_p,
-      .protocol = proto,
+        .ip_orig = orig_bytes[0],
+        .ip_resp = resp_bytes[0],
+        .port_orig = orig_p,
+        .port_resp = resp_p,
+        .protocol = proto,
     };
     auto err = update_filter_map(prog, &tup, XDP_DROP);
 
-    if (err) {
+    if ( err ) {
         zeek::reporter->Error("Failed to add to map");
         return zeek::val_mgr->Bool(false);
     }
@@ -83,7 +82,7 @@ function drop%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
 
 # TODO: options
 function end_shunt%(xdp_prog: opaque of XDP::Program%) : bool %{
-	  auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
+    auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
     auto ps = zeek::iosource_mgr->GetPktSrc();
     if ( ! ps ) {
         zeek::reporter->Error("Packet source invalid!");
@@ -91,8 +90,8 @@ function end_shunt%(xdp_prog: opaque of XDP::Program%) : bool %{
     }
 
     // TODO: How could I get the ifindex without the if_nametoindex stuff?
-		auto ifindex = if_nametoindex(ps->Path().c_str());
-	  if (ifindex == 0) {
+    auto ifindex = if_nametoindex(ps->Path().c_str());
+    if ( ifindex == 0 ) {
         zeek::reporter->Error("Invalid device?");
         return zeek::val_mgr->Bool(false);
     }

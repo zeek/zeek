@@ -50,7 +50,20 @@ enum xdp_action {
 long libxdp_get_error(const void* ptr);
 int libxdp_strerror(int err, char* buf, size_t size);
 struct xdp_program* xdp_program__create(struct xdp_program_opts* opts);
-int xdp_program__attach(struct xdp_program* xdp_prog, int ifindex, enum xdp_attach_mode mode, unsigned int flags);
 struct bpf_object* xdp_program__bpf_obj(struct xdp_program* xdp_prog);
+
+struct bpf_link* bpf_program__attach_xdp(const struct bpf_program* prog, int ifindex);
+// TODO: These are getting really out of order :)
+int bpf_program__fd(const struct bpf_program* prog);
+int bpf_xdp_attach(int ifindex, int prog_fd, __u32 flags, const struct bpf_xdp_attach_opts* opts);
+void filter__destroy(struct filter* obj);
+void bpf_object__detach_skeleton(struct bpf_object_skeleton* s);
+struct filter;
 }
+
+struct filter* open_and_load_bpf();
+int get_bpf_program_fd(struct filter* skel);
+struct bpf_map* get_bpf_filter_map(struct filter* skel);
+void detach_and_destroy_filter(struct filter* skel, int ifindex);
+
 #endif /* __COMMON_USER_BPF_XDP_H */

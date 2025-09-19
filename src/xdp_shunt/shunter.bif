@@ -2,21 +2,15 @@
 #include "zeek/iosource/Manager.h"
 #include "zeek/iosource/PktSrc.h"
 
-#include "common_defines.h"
-#include "common_user_bpf_xdp.h"
+#include "bpf/common_defines.h"
+#include "bpf/common_user_bpf_xdp.h"
+#include "bpf/filter_common.h"
 #include "XDPProgram.h"
-// TODO: Don't include this like this
-#include "../xdp_programs/filter_common.h"
-
-#include <sys/ioctl.h>
-// #include <bpf/bpf_helpers.h>
-// #include <bpf/libbpf.h>
 
 %%}
 module XDP;
 
 # TODO: options
-# TODO: Don't exec the command, use the libxdp or whatever
 function start_shunt%(%) : opaque of XDP::Program %{
     auto ps = zeek::iosource_mgr->GetPktSrc();
     if ( ! ps ) {
@@ -24,24 +18,9 @@ function start_shunt%(%) : opaque of XDP::Program %{
         return zeek::val_mgr->Bool(false);
     }
 
-
-    auto obj = bpf_object__open_file("/home/etyp/src/zeek-xdp-shunter/xdp_programs/filter.o", nullptr);
-    auto err = libbpf_get_error(obj);
-	  char errmsg[1024];
-    if (err) {
-        libxdp_strerror(err, errmsg, sizeof(errmsg));
-        zeek::reporter->Error(errmsg);
-        return zeek::val_mgr->Bool(false);
-    }
-
-	  LIBBPF_OPTS(xdp_program_opts, xdp_opts,
-                            .obj = obj,
-                            .prog_name = "xdp_filter");
-	  struct xdp_program *prog = xdp_program__create(&xdp_opts);
-    err = libxdp_get_error(prog);
-    if (err) {
-        libxdp_strerror(err, errmsg, sizeof(errmsg));
-        zeek::reporter->Error(errmsg);
+    auto* skel = open_and_load_bpf();
+    if (!skel) {
+        zeek::reporter->Error("Failed to load BPF skeleton");
         return zeek::val_mgr->Bool(false);
     }
 
@@ -53,20 +32,19 @@ function start_shunt%(%) : opaque of XDP::Program %{
         return zeek::val_mgr->Bool(false);
     }
 
-    err = xdp_program__attach(prog, ifindex, XDP_MODE_SKB, 0);
+    auto prog_fd = get_bpf_program_fd(skel);
+    if (prog_fd == 0) {
+        zeek::reporter->Error("Failed to get FD");
+        return zeek::val_mgr->Bool(false);
+    }
+
+    int err = bpf_xdp_attach(ifindex, prog_fd, XDP_MODE_SKB, 0);
     if (err) {
         zeek::reporter->Error("Failed to attach");
         return zeek::val_mgr->Bool(false);
     }
 
-    //char cmd[512];
-    //snprintf(cmd, sizeof(cmd), "xdp-loader load %s /home/etyp/src/zeek-xdp-shunter/xdp_programs/filter.o -m skb",
-             //ps->Path().c_str());
-    //int rc = system(cmd);
-    //if ( rc != 0 )
-        //zeek::reporter->Error("XDP loader failed: %s (rc=%d)", cmd, rc);
-
-	  auto xdp_prog = zeek::make_intrusive<xdp::shunter::detail::XDPProgramVal>(prog);
+	  auto xdp_prog = zeek::make_intrusive<xdp::shunter::detail::XDPProgramVal>(skel);
     return xdp_prog;
 %}
 
@@ -85,7 +63,7 @@ function drop%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
     }
 
 	  auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
-    auto* map = bpf_object__find_map_by_name(xdp_program__bpf_obj(prog), "filter_map");
+    auto* map = get_bpf_filter_map(prog);
     if (!map) {
         zeek::reporter->Error("Failed to find 'filter_map' in BPF object");
         return zeek::val_mgr->Bool(false);
@@ -116,7 +94,6 @@ function end_shunt%(xdp_prog: opaque of XDP::Program%) : bool %{
         return zeek::val_mgr->Bool(false);
     }
 
-    // TODO: Don't hardcode the mode
     // TODO: How could I get the ifindex without the if_nametoindex stuff?
 		auto ifindex = if_nametoindex(ps->Path().c_str());
 	  if (ifindex == 0) {
@@ -124,13 +101,7 @@ function end_shunt%(xdp_prog: opaque of XDP::Program%) : bool %{
         return zeek::val_mgr->Bool(false);
     }
 
-    auto err = xdp_program__attach(prog, ifindex, XDP_MODE_SKB, 0);
+    detach_and_destroy_filter(prog, ifindex);
 
-    char cmd[512];
-    snprintf(cmd, sizeof(cmd), "xdp-loader unload %s --all", ps->Path().c_str());
-    int rc = system(cmd);
-    if ( rc != 0 )
-        zeek::reporter->Error("XDP loader failed: %s (rc=%d)", cmd, rc);
-
-    return zeek::val_mgr->Bool(rc == 0);
+    return zeek::val_mgr->Bool(true);
 %}

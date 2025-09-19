@@ -63,7 +63,6 @@ int xdp_filter(struct xdp_md* ctx) {
         return XDP_PASS;
     }
 
-    bpf_printk("XDP: Looking up key src_ip: %pI4, dst_ip: %pI4", &tuple.ip_source, &tuple.ip_destination);
     __u32* action = bpf_map_lookup_elem(&filter_map, &tuple);
     if ( action )
         return *action;

@@ -59,6 +59,19 @@ function drop%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
     tup.ip_destination = bytes[0];
     enum xdp_action action = XDP_DROP;
     auto err = update_filter_map(prog, &tup, action);
+
+    if (err) {
+        zeek::reporter->Error("Failed to add to map");
+        return zeek::val_mgr->Bool(false);
+    }
+
+    // Workaround: Now shunt the other direction :) just for demonstration
+    // This may get encoded in the update filter map, or not. idk.
+    auto tmp = tup.ip_destination;
+    tup.ip_destination = tup.ip_source;
+    tup.ip_source = tmp;
+    err = update_filter_map(prog, &tup, action);
+
     if (err) {
         zeek::reporter->Error("Failed to add to map");
         return zeek::val_mgr->Bool(false);

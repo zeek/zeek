@@ -2,8 +2,7 @@
 #include "zeek/iosource/Manager.h"
 #include "zeek/iosource/PktSrc.h"
 
-#include "bpf/common_defines.h"
-#include "bpf/common_user_bpf_xdp.h"
+#include "bpf/UserXDP.h"
 #include "bpf/filter_common.h"
 #include "XDPProgram.h"
 
@@ -18,29 +17,16 @@ function start_shunt%(%) : opaque of XDP::Program %{
         return zeek::val_mgr->Bool(false);
     }
 
-    auto* skel = open_and_load_bpf();
-    if (!skel) {
-        zeek::reporter->Error("Failed to load BPF skeleton");
-        return zeek::val_mgr->Bool(false);
-    }
-
-    // TODO: Don't hardcode the mode
-    // TODO: How could I get the ifindex without the if_nametoindex stuff?
 		auto ifindex = if_nametoindex(ps->Path().c_str());
 	  if (ifindex == 0) {
         zeek::reporter->Error("Invalid device?");
         return zeek::val_mgr->Bool(false);
     }
 
-    auto prog_fd = get_bpf_program_fd(skel);
-    if (prog_fd == 0) {
-        zeek::reporter->Error("Failed to get FD");
-        return zeek::val_mgr->Bool(false);
-    }
-
-    int err = bpf_xdp_attach(ifindex, prog_fd, XDP_MODE_SKB, 0);
-    if (err) {
-        zeek::reporter->Error("Failed to attach");
+    auto* skel = load_and_attach(ifindex);
+    if (!skel) {
+        // TODO: Make this error better since it can fail for 2 reasons
+        zeek::reporter->Error("Failed to load BPF skeleton");
         return zeek::val_mgr->Bool(false);
     }
 
@@ -63,11 +49,7 @@ function drop%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
     }
 
 	  auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
-    auto* map = get_bpf_filter_map(prog);
-    if (!map) {
-        zeek::reporter->Error("Failed to find 'filter_map' in BPF object");
-        return zeek::val_mgr->Bool(false);
-    }
+
     struct five_tuple tup = {0};
     const uint32_t* bytes;
     // TODO: Check len and stuff.
@@ -76,7 +58,7 @@ function drop%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
     len = resp_h.GetBytes(&bytes);
     tup.ip_destination = bytes[0];
     enum xdp_action action = XDP_DROP;
-    auto err = bpf_map__update_elem(map, &tup, sizeof(tup), &action, sizeof(action), 0);
+    auto err = update_filter_map(prog, &tup, action);
     if (err) {
         zeek::reporter->Error("Failed to add to map");
         return zeek::val_mgr->Bool(false);

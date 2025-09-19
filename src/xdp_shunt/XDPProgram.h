@@ -1,7 +1,7 @@
 #include <zeek/IntrusivePtr.h>
 #include <zeek/OpaqueVal.h>
 
-#include "bpf/common_user_bpf_xdp.h"
+#include "bpf/UserXDP.h"
 
 namespace xdp::shunter::detail {
 

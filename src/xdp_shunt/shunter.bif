@@ -51,33 +51,27 @@ function drop%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
 
 	  auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
 
-    struct five_tuple tup = {0};
-    const uint32_t* bytes;
-    // TODO: Check len and stuff.
-    int len = orig_h.GetBytes(&bytes);
-    tup.ip_source = bytes[0];
-    tup.port_source = orig_p;
-    len = resp_h.GetBytes(&bytes);
-    tup.ip_destination = bytes[0];
-    tup.port_destination = resp_p;
-    tup.protocol = proto;
-    enum xdp_action action = XDP_DROP;
-    auto err = update_filter_map(prog, &tup, action);
-
-    if (err) {
-        zeek::reporter->Error("Failed to add to map");
+    const uint32_t* orig_bytes;
+    int len = orig_h.GetBytes(&orig_bytes);
+    if (len != 1) {
+        zeek::reporter->Error("No support for IPs greater than 1 byte yet");
+        return zeek::val_mgr->Bool(false);
+    }
+    const uint32_t* resp_bytes;
+    len = resp_h.GetBytes(&resp_bytes);
+    if (len != 1) {
+        zeek::reporter->Error("No support for IPs greater than 1 byte yet");
         return zeek::val_mgr->Bool(false);
     }
 
-    // Workaround: Now shunt the other direction :) just for demonstration
-    // This may get encoded in the update filter map, or not. idk.
-    auto tmp = tup.ip_destination;
-    tup.ip_destination = tup.ip_source;
-    tup.ip_source = tmp;
-    auto port_tmp = tup.port_destination;
-    tup.port_destination = tup.port_source;
-    tup.port_source = port_tmp;
-    err = update_filter_map(prog, &tup, action);
+    struct five_tuple tup = {
+      .ip_orig = orig_bytes[0],
+      .ip_resp = resp_bytes[0],
+      .port_orig = orig_p,
+      .port_resp = resp_p,
+      .protocol = proto,
+    };
+    auto err = update_filter_map(prog, &tup, XDP_DROP);
 
     if (err) {
         zeek::reporter->Error("Failed to add to map");

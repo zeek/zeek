@@ -36,31 +36,43 @@ int xdp_filter(struct xdp_md* ctx) {
     if ( iph + 1 > data_end )
         return XDP_PASS;
 
-    struct five_tuple tuple = {0};
-    tuple.ip_source = iph->saddr;
-    tuple.ip_destination = iph->daddr;
-    tuple.protocol = iph->protocol;
-
+    __u16 port_source = 0;
+    __u16 port_dest = 0;
     if ( iph->protocol == IPPROTO_TCP ) {
         struct tcphdr* tcph = (void*)iph + sizeof(*iph);
         if ( (void*)tcph + sizeof(*tcph) > data_end )
             return XDP_PASS;
 
-        tuple.port_source = bpf_ntohs(tcph->source);
-        tuple.port_destination = bpf_ntohs(tcph->dest);
+        port_source = bpf_ntohs(tcph->source);
+        port_dest = bpf_ntohs(tcph->dest);
     }
     else if ( iph->protocol == IPPROTO_UDP ) {
         struct udphdr* udph = (void*)iph + sizeof(*iph);
         if ( (void*)udph + sizeof(*udph) > data_end )
             return XDP_PASS;
 
-        tuple.port_source = bpf_ntohs(udph->source);
-        tuple.port_destination = bpf_ntohs(udph->dest);
+        port_source = bpf_ntohs(udph->source);
+        port_dest = bpf_ntohs(udph->dest);
     }
     else
         return XDP_PASS;
 
+
+    struct five_tuple tuple = {.ip_orig = iph->saddr,
+                               .ip_resp = iph->daddr,
+                               .port_orig = port_source,
+                               .port_resp = port_dest,
+                               .protocol = iph->protocol};
     __u32* action = bpf_map_lookup_elem(&filter_map, &tuple);
+    if ( action )
+        return *action;
+
+    // Else check the other direction
+    tuple.ip_orig = iph->daddr;
+    tuple.ip_resp = iph->saddr;
+    tuple.port_orig = port_dest;
+    tuple.port_resp = port_source;
+    action = bpf_map_lookup_elem(&filter_map, &tuple);
     if ( action )
         return *action;
 

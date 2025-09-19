@@ -38,9 +38,10 @@ function start_shunt%(%) : opaque of XDP::Program %{
 function drop%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
     auto cid_r = cid->AsRecordVal();
     const zeek::IPAddr& orig_h = cid_r->GetFieldAs<zeek::AddrVal>(0);
-    uint32_t orig_p = cid_r->GetFieldAs<zeek::PortVal>(1)->Port();
+    uint16_t orig_p = cid_r->GetFieldAs<zeek::PortVal>(1)->Port();
     const zeek::IPAddr& resp_h = cid_r->GetFieldAs<zeek::AddrVal>(2);
-    uint32_t resp_p = cid_r->GetFieldAs<zeek::PortVal>(3)->Port();
+    uint16_t resp_p = cid_r->GetFieldAs<zeek::PortVal>(3)->Port();
+    uint8_t proto = cid_r->GetFieldAs<zeek::CountVal>(4);
 
     // TODO: IPv6
     if ( orig_h.GetFamily() == IPv6 || resp_h.GetFamily() == IPv6 ) {
@@ -55,8 +56,11 @@ function drop%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
     // TODO: Check len and stuff.
     int len = orig_h.GetBytes(&bytes);
     tup.ip_source = bytes[0];
+    tup.port_source = orig_p;
     len = resp_h.GetBytes(&bytes);
     tup.ip_destination = bytes[0];
+    tup.port_destination = resp_p;
+    tup.protocol = proto;
     enum xdp_action action = XDP_DROP;
     auto err = update_filter_map(prog, &tup, action);
 
@@ -70,6 +74,9 @@ function drop%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
     auto tmp = tup.ip_destination;
     tup.ip_destination = tup.ip_source;
     tup.ip_source = tmp;
+    auto port_tmp = tup.port_destination;
+    tup.port_destination = tup.port_source;
+    tup.port_source = port_tmp;
     err = update_filter_map(prog, &tup, action);
 
     if (err) {

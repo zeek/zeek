@@ -7,6 +7,7 @@
 #include <linux/udp.h>
 #include <netinet/in.h>
 #include <bpf/bpf_helpers.h>
+#include <bpf/bpf_endian.h>
 // clang-format on
 
 #include "filter_common.h"
@@ -25,43 +26,39 @@ int xdp_filter(struct xdp_md* ctx) {
     void* data = (void*)(long)ctx->data;
     struct ethhdr* eth = data;
 
-    if ( data + sizeof(*eth) > data_end ) {
+    if ( data + sizeof(*eth) > data_end )
         return XDP_PASS;
-    }
 
-    if ( eth->h_proto != __constant_htons(ETH_P_IP) ) {
+    if ( eth->h_proto != __constant_htons(ETH_P_IP) )
         return XDP_PASS;
-    }
 
     struct iphdr* iph = data + sizeof(*eth);
-    if ( iph + 1 > data_end ) {
+    if ( iph + 1 > data_end )
         return XDP_PASS;
-    }
 
     struct five_tuple tuple = {0};
     tuple.ip_source = iph->saddr;
     tuple.ip_destination = iph->daddr;
-    // tuple.protocol = iph->protocol;
+    tuple.protocol = iph->protocol;
 
     if ( iph->protocol == IPPROTO_TCP ) {
         struct tcphdr* tcph = (void*)iph + sizeof(*iph);
-        if ( (void*)tcph + sizeof(*tcph) > data_end ) {
+        if ( (void*)tcph + sizeof(*tcph) > data_end )
             return XDP_PASS;
-        }
-        // tuple.port_source = tcph->source;
-        // tuple.port_destination = tcph->dest;
+
+        tuple.port_source = bpf_ntohs(tcph->source);
+        tuple.port_destination = bpf_ntohs(tcph->dest);
     }
     else if ( iph->protocol == IPPROTO_UDP ) {
         struct udphdr* udph = (void*)iph + sizeof(*iph);
-        if ( (void*)udph + sizeof(*udph) > data_end ) {
+        if ( (void*)udph + sizeof(*udph) > data_end )
             return XDP_PASS;
-        }
-        // tuple.port_source = udph->source;
-        // tuple.port_destination = udph->dest;
+
+        tuple.port_source = bpf_ntohs(udph->source);
+        tuple.port_destination = bpf_ntohs(udph->dest);
     }
-    else {
+    else
         return XDP_PASS;
-    }
 
     __u32* action = bpf_map_lookup_elem(&filter_map, &tuple);
     if ( action )

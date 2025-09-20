@@ -86,6 +86,10 @@ void CPPCompile::Compile(bool report_uncompilable) {
             }
         }
 
+        for ( auto& t : pfs->MainTypes() )
+            if ( obj_matches_opt_files(t) == AnalyzeDecision::SHOULD )
+                rep_types.insert(TypeRep(t));
+
         for ( auto& l : pfs->Lambdas() )
             if ( obj_matches_opt_files(l) == AnalyzeDecision::SHOULD )
                 accessed_lambdas.insert(l);

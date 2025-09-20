@@ -86,6 +86,9 @@ void CPPCompile::Compile(bool report_uncompilable) {
             }
         }
 
+        for ( auto& g : pfs->BiFGlobals() )
+            all_accessed_globals.insert(g);
+
         for ( auto& t : pfs->MainTypes() )
             if ( obj_matches_opt_files(t) == AnalyzeDecision::SHOULD )
                 rep_types.insert(TypeRep(t));

@@ -622,6 +622,20 @@ ProfileFuncs::ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred
     ComputeSideEffects();
 }
 
+void ProfileFuncs::ProfileLambda(const LambdaExpr* l) {
+    if ( lambdas.contains(l) )
+        return;
+
+    lambdas.insert(l);
+    pending_exprs.push_back(l);
+
+    do
+        DrainPendingExprs();
+    while ( ! pending_exprs.empty() );
+
+    AnalyzeLambdaProfile(l);
+}
+
 bool ProfileFuncs::IsTableWithDefaultAggr(const Type* t) {
     auto analy = tbl_has_aggr_default.find(t);
     if ( analy != tbl_has_aggr_default.end() )
@@ -848,14 +862,23 @@ void ProfileFuncs::ComputeBodyHashes(std::vector<FuncInfo>& funcs) {
             ComputeProfileHash(f.ProfilePtr());
     }
 
-    for ( auto& l : lambdas ) {
-        auto pf = ExprProf(l);
-        func_profs[l->PrimaryFunc().get()] = pf;
-        lambda_primaries[l->Name()] = l->PrimaryFunc().get();
+    for ( auto& l : lambdas )
+        AnalyzeLambdaProfile(l);
+}
 
-        if ( compute_func_hashes || ! pf->HasHashVal() )
-            ComputeProfileHash(pf);
-    }
+void ProfileFuncs::AnalyzeLambdaProfile(const LambdaExpr* l) {
+    static std::unordered_set<const LambdaExpr*> processed_lambdas;
+    if ( processed_lambdas.contains(l) )
+        return;
+
+    processed_lambdas.insert(l);
+
+    auto pf = ExprProf(l);
+    func_profs[l->PrimaryFunc().get()] = pf;
+    lambda_primaries[l->Name()] = l->PrimaryFunc().get();
+
+    if ( compute_func_hashes || ! pf->HasHashVal() )
+        ComputeProfileHash(pf);
 }
 
 void ProfileFuncs::ComputeProfileHash(std::shared_ptr<ProfileFunc> pf) {

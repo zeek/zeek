@@ -27,11 +27,11 @@
 #include "zeek/probabilistic/BloomFilter.h"
 #include "zeek/probabilistic/CardinalityCounter.h"
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
 inline void* EVP_MD_CTX_md_data(const EVP_MD_CTX* ctx) { return ctx->md_data; }
 #endif
 
-#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L )
 #include <openssl/md5.h>
 #endif
 
@@ -225,7 +225,7 @@ constexpr size_t SHA1VAL_STATE_SIZE = sizeof(SHA_CTX);
 
 constexpr size_t SHA256VAL_STATE_SIZE = sizeof(SHA256_CTX);
 
-#if ( OPENSSL_VERSION_NUMBER < 0x30000000L ) || defined(LIBRESSL_VERSION_NUMBER)
+#if ( OPENSSL_VERSION_NUMBER < 0x30000000L )
 
 // -- MD5
 

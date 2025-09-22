@@ -34,15 +34,6 @@ jobs:
         with:
           submodules: "recursive"
 
-      # Only reset the submodule pointer for scheduled builds. The reason to do
-      # this is to pick up any merge commits or anything that may have been
-      # missed in a merge, but not have any actual content. We don't want to do
-      # it otherwise because PRs should just use the submodule they're pointing
-      # at.
-      - name: Switch doc submodule to master
-        if: github.event_name == 'schedule'
-        run: cd doc && git checkout master
-
       - name: Fetch Dependencies
         run: |
           sudo apt-get update
@@ -119,9 +110,6 @@ jobs:
 
           cd doc
 
-          echo "*** Running pre-commit ***"
-          pre-commit run -a --show-diff-on-failure --color=always
-
           echo "*** Generating Sphinx Docs ***"
           make > make.out 2>&1
           make_status=$?
@@ -132,7 +120,7 @@ jobs:
           grep -q WARNING make.out && exit 1
           rm make.out
 
-      - name: Push zeek-docs Changes
+      - name: Push docs Changes
         if: github.event_name == 'schedule'
         run: |
           cd doc
@@ -141,16 +129,6 @@ jobs:
           # git commit errors when there's nothing to commit, so guard it
           # with a check that detects whether there's anything staged.
           git diff-index --cached --quiet HEAD || { git commit -m "Generate docs" && git push; }
-
-      - name: Update zeek-docs Submodule
-        if: github.event_name == 'schedule'
-        run: |
-          git config --global user.name zeek-bot
-          git config --global user.email info@zeek.org
-          git add doc
-          git status
-          # Similar logic here: proceed only if there's a change in the submodule.
-          git diff-index --cached --quiet HEAD || { git commit -m 'Update doc submodule [nomail] [skip ci]' && git push; }
 
       - name: Send email
         # Only send notifications for scheduled runs. Runs from pull requests

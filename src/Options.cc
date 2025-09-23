@@ -125,7 +125,13 @@ void usage(const char* prog) {
         "    -0|--optimize-files=<pat>       | enable script optimization for all "
         "functions in files with names containing the given pattern\n");
     printf(
+        "       --no-optimize-files=<pat>    | skip script optimization for all "
+        "functions in files with names containing the given pattern\n");
+    printf(
         "    -o|--optimize-funcs=<pat>       | enable script optimization for "
+        "functions with names fully matching the given pattern\n");
+    printf(
+        "       --no-optimize-funcs=<pat>    | skip script optimization for "
         "functions with names fully matching the given pattern\n");
     printf("    -P|--prime-dns                  | prime DNS\n");
     printf("    -Q|--time                       | print execution time summary to stderr\n");
@@ -355,6 +361,8 @@ Options parse_cmdline(int argc, char** argv) {
     int profile_script_call_stacks = 0;
     std::string profile_filename;
     int no_unused_warnings = 0;
+    int no_optimize_files = 0;
+    int no_optimize_funcs = 0;
 
     bool enable_script_profile = false;
     bool enable_script_profile_call_stacks = false;
@@ -393,6 +401,8 @@ Options parse_cmdline(int argc, char** argv) {
         {"re-level", required_argument, nullptr, 'T'},
         {"watchdog", no_argument, nullptr, 'W'},
         {"print-id", required_argument, nullptr, 'I'},
+        {"no-optimize-funcs", required_argument, &no_optimize_funcs, 1},
+        {"no-optimize-files", required_argument, &no_optimize_files, 1},
         {"status-file", required_argument, nullptr, 'U'},
         {"debug", required_argument, nullptr, 'B'},
 
@@ -512,8 +522,8 @@ Options parse_cmdline(int argc, char** argv) {
             case 'I': rval.identifier_to_print = optarg; break;
             case 'N': ++rval.print_plugins; break;
             case 'O': set_analysis_option(optarg, rval); break;
-            case 'o': add_func_analysis_pattern(rval.analysis_options, optarg); break;
-            case '0': add_file_analysis_pattern(rval.analysis_options, optarg); break;
+            case 'o': add_func_analysis_pattern(rval.analysis_options, optarg, true); break;
+            case '0': add_file_analysis_pattern(rval.analysis_options, optarg, true); break;
             case 'P':
                 if ( rval.dns_mode != detail::DNS_DEFAULT ) {
                     fprintf(stderr, "ERROR: can only change DNS manager mode once\n");
@@ -562,6 +572,13 @@ Options parse_cmdline(int argc, char** argv) {
 
                 if ( no_unused_warnings )
                     rval.no_unused_warnings = true;
+
+                if ( no_optimize_files )
+                    add_file_analysis_pattern(rval.analysis_options, optarg, false);
+
+                if ( no_optimize_funcs )
+                    add_func_analysis_pattern(rval.analysis_options, optarg, false);
+
                 break;
 
             case '?':

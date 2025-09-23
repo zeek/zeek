@@ -41,6 +41,8 @@ const char* attr_name(AttrTag t) {
 		"&is_assigned",
 		"&is_used",
 		"&ordered",
+		"&no_ZAM_opt",
+		"&no_CPP_opt",
 	};
     // clang-format on
 
@@ -198,9 +200,19 @@ void Attributes::AddAttr(AttrPtr attr, bool is_redef) {
             return true;
         }
 
-        return new_tag == ATTR_LOG || new_tag == ATTR_OPTIONAL || new_tag == ATTR_REDEF ||
-               new_tag == ATTR_BROKER_STORE_ALLOW_COMPLEX || new_tag == ATTR_RAW_OUTPUT ||
-               new_tag == ATTR_ERROR_HANDLER || new_tag == ATTR_IS_USED;
+        static const std::set<AttrTag> acceptable = {
+            ATTR_BROKER_STORE_ALLOW_COMPLEX,
+            ATTR_ERROR_HANDLER,
+            ATTR_IS_USED,
+            ATTR_LOG,
+            ATTR_NO_CPP_OPT,
+            ATTR_NO_ZAM_OPT,
+            ATTR_OPTIONAL,
+            ATTR_RAW_OUTPUT,
+            ATTR_REDEF,
+        };
+
+        return acceptable.contains(new_tag);
     };
 
     // A `redef` is allowed to overwrite an existing attribute instead of
@@ -221,7 +233,7 @@ void Attributes::AddAttr(AttrPtr attr, bool is_redef) {
     // that's a signal to skip the checking. If the type is error,
     // there's no point checking attributes either.
     if ( type && ! IsErrorType(type->Tag()) ) {
-        if ( ! CheckAttr(attr.get()) ) {
+        if ( ! CheckAttr(attr.get(), type) ) {
             // Get rid of it, so we don't get error cascades down the line.
             RemoveAttr(attr->Tag());
             return;
@@ -289,7 +301,7 @@ void Attributes::DescribeReST(ODesc* d, bool shorten) const {
     }
 }
 
-bool Attributes::CheckAttr(Attr* a) {
+bool Attributes::CheckAttr(Attr* a, const TypePtr& attrs_t) {
     switch ( a->Tag() ) {
         case ATTR_DEPRECATED:
         case ATTR_REDEF:
@@ -548,6 +560,15 @@ bool Attributes::CheckAttr(Attr* a) {
             if ( type->Tag() != TYPE_TABLE )
                 return AttrError("&ordered only applicable to tables");
             break;
+
+        case ATTR_NO_ZAM_OPT:
+        case ATTR_NO_CPP_OPT: {
+            if ( attrs_t->Tag() != TYPE_FUNC ) {
+                bool is_no_zam = a->Tag() == ATTR_NO_ZAM_OPT;
+                Error(util::fmt("&no_%s_opt must apply to a function", is_no_zam ? "ZAM" : "CPP"), attrs_t.get());
+                return false;
+            }
+        } break;
 
         default: BadTag("Attributes::CheckAttr", attr_name(a->Tag()));
     }

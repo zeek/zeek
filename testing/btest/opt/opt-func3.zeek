@@ -1,5 +1,5 @@
 # @TEST-REQUIRES: test "${ZEEK_USE_CPP}" != "1"
-# @TEST-EXEC: zeek -b -O ZAM --optimize-func='my_test' --optimize-func='another_test' %INPUT >output
+# @TEST-EXEC: zeek -b -O ZAM --optimize-func=my_test --optimize-func=another_test %INPUT >output
 # @TEST-EXEC: btest-diff output
 
 # Tests that we can selectively pick a bunch of functions (event handlers),

@@ -34,6 +34,11 @@ struct AnalyOpt {
     // Same, but for the filenames where the function is found.
     std::vector<std::regex> only_files;
 
+    // The inverses of those - functions and files to skip. These
+    // have higher precedence than the only_'s.
+    std::vector<std::regex> skip_funcs;
+    std::vector<std::regex> skip_files;
+
     // For a given compilation target, report functions that can't
     // be compiled.
     bool report_uncompilable = false;
@@ -245,21 +250,23 @@ extern std::pair<StmtPtr, ScopePtr> get_global_stmts();
 // Used to associate module names with profiling information.
 extern void switch_to_module(const char* module);
 
-// Add a pattern to the "only_funcs" list.
-extern void add_func_analysis_pattern(AnalyOpt& opts, const char* pat);
+// Add a pattern to the "only_funcs" (if is_only true) or "skip_funcs" list.
+extern void add_func_analysis_pattern(AnalyOpt& opts, const char* pat, bool is_only);
 
-// Add a pattern to the "only_files" list.
-extern void add_file_analysis_pattern(AnalyOpt& opts, const char* pat);
+// Add a pattern to the "only_files" / "skip_files" list.
+extern void add_file_analysis_pattern(AnalyOpt& opts, const char* pat, bool is_only);
 
 // True if the given script function & body should be analyzed; otherwise
 // it should be skipped.
 extern bool should_analyze(const ScriptFuncPtr& f, const StmtPtr& body);
 
-// True if the given filename or object location matches one specified by
-// --optimize-files=...
-extern bool filename_matches_opt_files(const char* filename);
-extern bool obj_matches_opt_files(const Obj* obj);
-inline bool obj_matches_opt_files(const ObjPtr& obj) { return obj_matches_opt_files(obj.get()); }
+// SHOULD if the given filename or object location matches one specified by
+// --optimize-files=..., SHOULD_NOT if it matches one specified by
+// --no-opt-files=... (which takes precedence), DEFAULT if neither.
+enum class AnalyzeDecision : uint8_t { SHOULD, SHOULD_NOT, DEFAULT };
+extern AnalyzeDecision filename_matches_opt_files(const char* filename);
+extern AnalyzeDecision obj_matches_opt_files(const Obj* obj);
+inline auto obj_matches_opt_files(const ObjPtr& obj) { return obj_matches_opt_files(obj.get()); }
 
 // Analyze all of the parsed scripts collectively for usage issues (unless
 // suppressed by the flag) and optimization.

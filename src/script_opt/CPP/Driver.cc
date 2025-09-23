@@ -44,11 +44,11 @@ void CPPCompile::Compile(bool report_uncompilable) {
             reporter->FatalError("aborting standalone compilation to C++ due to having to skip some functions");
 
         for ( auto& g : global_scope()->OrderedVars() ) {
-            bool compiled_global = obj_matches_opt_files(g);
+            bool compiled_global = obj_matches_opt_files(g) == AnalyzeDecision::SHOULD;
 
             if ( ! compiled_global )
                 for ( const auto& i_e : g->GetOptInfo()->GetInitExprs() )
-                    if ( obj_matches_opt_files(i_e) ) {
+                    if ( obj_matches_opt_files(i_e) == AnalyzeDecision::SHOULD ) {
                         compiled_global = true;
                         break;
                     }
@@ -80,11 +80,11 @@ void CPPCompile::Compile(bool report_uncompilable) {
         }
 
         for ( auto& l : pfs->Lambdas() )
-            if ( obj_matches_opt_files(l) )
+            if ( obj_matches_opt_files(l) == AnalyzeDecision::SHOULD )
                 accessed_lambdas.insert(l);
 
         for ( auto& ea : pfs->ExprAttrs() )
-            if ( obj_matches_opt_files(ea.first) ) {
+            if ( obj_matches_opt_files(ea.first) == AnalyzeDecision::SHOULD ) {
                 auto& attr = ea.first;
                 attrs.insert(attr);
                 auto& t = attr->GetExpr()->GetType();
@@ -177,11 +177,11 @@ void CPPCompile::Compile(bool report_uncompilable) {
         // to generate, make sure we track their attributes.
         for ( const auto& fd : field_decls ) {
             auto td = fd.second;
-            if ( obj_matches_opt_files(td->type) ) {
+            if ( obj_matches_opt_files(td->type) == AnalyzeDecision::SHOULD ) {
                 TypePtr tp = {NewRef{}, const_cast<Type*>(TypeRep(td->type))};
                 RegisterType(tp);
             }
-            if ( obj_matches_opt_files(td->attrs) )
+            if ( obj_matches_opt_files(td->attrs) == AnalyzeDecision::SHOULD )
                 RegisterAttributes(td->attrs);
         }
 
@@ -194,6 +194,19 @@ bool CPPCompile::AnalyzeFuncBody(FuncInfo& fi, unordered_set<string>& filenames_
     auto& body = fi.Body();
 
     string fn = body->GetLocationInfo()->FileName();
+
+    if ( fi.ShouldAnalyze() && fi.ShouldSkip() ) {
+        const char* reason = nullptr;
+        auto is_compilable = is_CPP_compilable(fi.Profile(), &reason);
+        ASSERT(! is_compilable);
+        ASSERT(reason);
+        if ( standalone || report_uncompilable )
+            reporter->Warning("%s cannot be compiled to C++ due to %s", f->GetName().c_str(), reason);
+
+        fi.SetSkip(true);
+        if ( standalone )
+            return false;
+    }
 
     if ( ! analysis_options.allow_cond && ! fi.ShouldSkip() ) {
         if ( ! analysis_options.only_files.empty() && files_with_conditionals.count(fn) > 0 ) {

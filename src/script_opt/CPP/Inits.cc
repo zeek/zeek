@@ -115,7 +115,7 @@ void CPPCompile::InitializeFieldMappings() {
             // We can assess whether this field is one we need to generate
             // because if it is, it will have an &optional attribute that
             // is local to one of the cmopiled source files.
-            if ( td->attrs && obj_matches_opt_files(td->attrs) ) {
+            if ( td->attrs && obj_matches_opt_files(td->attrs) == AnalyzeDecision::SHOULD ) {
                 type_arg = Fmt(TypeOffset(td->type));
                 attrs_arg = Fmt(AttributesOffset(td->attrs));
             }
@@ -197,7 +197,7 @@ void CPPCompile::InitializeGlobals() {
     for ( const auto& ginit : IDOptInfo::GetGlobalInitExprs() ) {
         auto g = ginit.Id();
 
-        if ( ! ofiles.empty() && ! obj_matches_opt_files(g) )
+        if ( ! ofiles.empty() && obj_matches_opt_files(g) != AnalyzeDecision::SHOULD )
             continue;
 
         if ( accessed_globals.count(g) == 0 )

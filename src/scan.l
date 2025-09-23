@@ -394,6 +394,8 @@ when	return TOK_WHEN;
 &broker_allow_complex_type	return TOK_ATTR_BROKER_STORE_ALLOW_COMPLEX;
 &backend	return TOK_ATTR_BACKEND;
 &ordered	return TOK_ATTR_ORDERED;
+&no_ZAM_opt	return TOK_ATTR_NO_ZAM_OPT;
+&no_CPP_opt	return TOK_ATTR_NO_CPP_OPT;
 
 @deprecated.* {
 	auto num_files = file_stack.length();

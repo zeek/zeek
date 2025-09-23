@@ -50,6 +50,8 @@ enum AttrTag : uint8_t {
     ATTR_IS_ASSIGNED, // to suppress usage warnings
     ATTR_IS_USED,     // to suppress usage warnings
     ATTR_ORDERED,     // used to store tables in ordered mode
+    ATTR_NO_ZAM_OPT,  // avoid ZAM optimization
+    ATTR_NO_CPP_OPT,  // avoid -O gen-C++ optimization
     NUM_ATTRS         // this item should always be last
 };
 
@@ -132,7 +134,7 @@ public:
 
 protected:
     // Returns true if the attribute is okay, false if not.
-    bool CheckAttr(Attr* attr);
+    bool CheckAttr(Attr* attr, const TypePtr& attrs_t);
 
     // Reports an attribute error and returns false (handy for CheckAttr()).
     bool AttrError(const char* msg);

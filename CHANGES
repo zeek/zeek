@@ -1,3 +1,9 @@
+8.1.0-dev.570 | 2025-09-23 09:05:53 -0700
+
+  * BTests & baselines for testing selective skipping of script optimization (Vern Paxson, Corelight)
+
+  * added &no_ZAM_opt/&no_CPP_opt attributes and --no-opt-files/--no-opt-funcs for controlling skipping script optimization (Vern Paxson, Corelight)
+
 8.1.0-dev.567 | 2025-09-23 13:07:24 +0200
 
   * GH-4842: utils/decompose_uri: Support URIs containing IPv6 addresses (Arne Welzel, Corelight)

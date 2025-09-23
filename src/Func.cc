@@ -808,7 +808,10 @@ static int get_func_priority(const std::vector<AttrPtr>& attrs) {
     int priority = 0;
 
     for ( const auto& a : attrs ) {
-        if ( a->Tag() == ATTR_DEPRECATED || a->Tag() == ATTR_IS_USED || a->Tag() == ATTR_GROUP )
+        static const std::set<AttrTag> ok_for_func = {
+            ATTR_DEPRECATED, ATTR_GROUP, ATTR_IS_USED, ATTR_NO_CPP_OPT, ATTR_NO_ZAM_OPT,
+        };
+        if ( ok_for_func.contains(a->Tag()) )
             continue;
 
         if ( a->Tag() != ATTR_PRIORITY ) {
@@ -879,12 +882,16 @@ FunctionIngredients::FunctionIngredients(ScopePtr _scope, StmtPtr _body, const s
 
         groups = get_func_groups(*attrs);
 
-        for ( const auto& a : *attrs )
-            if ( a->Tag() == ATTR_IS_USED ) {
+        for ( const auto& a : *attrs ) {
+            static const std::set<AttrTag> assoc_with_id = {
+                ATTR_IS_USED,
+                ATTR_NO_CPP_OPT,
+                ATTR_NO_ZAM_OPT,
+            };
+            if ( assoc_with_id.contains(a->Tag()) )
                 // Associate this with the identifier, too.
-                id->AddAttr(make_intrusive<Attr>(ATTR_IS_USED));
-                break;
-            }
+                id->AddAttr(make_intrusive<Attr>(a->Tag()));
+        }
     }
     else
         priority = 0;

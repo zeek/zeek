@@ -161,3 +161,11 @@
 @load protocols/ssl/weak-keys.zeek
 @load tuning/json-logs.zeek
 @load tuning/track-all-assets.zeek
+
+
+# Disable cluster backend by switching to the none backend after loading
+# all the scripts in order to skip initialization of cluster backend that
+# ended up being selected. Cluster backends may keep the IO loop alive once
+# registered due to registering IO sources and loading test-all-policy should
+# not result in such behavior.
+redef Cluster::backend = Cluster::CLUSTER_BACKEND_NONE;

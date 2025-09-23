@@ -1,3 +1,14 @@
+7.0.10-2 | 2025-10-07 13:06:08 -0700
+
+  * GH-4842: utils/decompose_uri: Support URIs containing IPv6 addresses (Arne Welzel, Corelight)
+
+    An URI containing a bracketed or non-bracketed IPv6 address of the form
+    http://[::1]:42 was previously split on the first colon for port extraction,
+    causing a subsequent to_count() call to fail. Harden this to check for a
+    digits in the last :[0-9]+ component.
+
+    (cherry picked from commit 2bde66c9d62240ea342a6224de894bd09008cecd)
+
 7.0.10-1 | 2025-10-07 13:02:39 -0700
 
   * GH-4845: iosource/Packet: Allow ToRawPktHdrVal() for reassembled packets (Arne Welzel, Corelight)

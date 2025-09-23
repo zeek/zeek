@@ -11,6 +11,9 @@ This release fixes the following bugs:
 - The ``get_current_packet_header()`` BIF now populates the returned record also for
   fragmented IP datagrams.
 
+- The ``decompose_uri()`` script function now correctly handles URIs containing IPv6
+  addresses.
+
 Zeek 7.0.10
 ===========
 

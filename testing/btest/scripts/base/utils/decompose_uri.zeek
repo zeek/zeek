@@ -1,5 +1,6 @@
 # @TEST-EXEC: zeek -b %INPUT > output
 # @TEST-EXEC: btest-diff output
+# @TEST-EXEC: btest-diff .stderr
 
 @load base/utils/urls
 
@@ -29,5 +30,21 @@ event zeek_init()
 	dc("https://www.bro.org/documentation/faq.html?=v");
 	dc("file:///documentation/faq.html?=v");
 	dc("www.bro.org/?foo=bar");
+
+	# Bracketed IPv6
+	dc("http://[::1]:8080/?foo=bar&baz=qux");
+	dc("http://[::1]/foo/bar");
+	dc("http://[::1]/foo/bar");
+	dc("[::1]:80/test/a/b.exe?a=b");
+
+	# Un-bracketed is ambiguous, but not causing errors.
+	dc("http://beeb:deed::1/test");
+	dc("http://beeb:deed::1:8080/test");
+
+	# Ensure colons in path or query parameters do not
+	# cause trouble.
+	dc("https://en.wikipedia.org/wiki/Template:Welcome");
+	dc("https://[::1]:8080/wiki/Template:Welcome");
+	dc("https://[::1]:8080/wiki/Template:Welcome?key=:&value=:");
 	}
 

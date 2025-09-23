@@ -5,3 +5,5 @@
 # @TEST-EXEC: btest-diff .stderr
 
 @load test-all-policy
+
+redef Cluster::backend = Cluster::CLUSTER_BACKEND_NONE;

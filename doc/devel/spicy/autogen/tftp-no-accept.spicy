@@ -53,6 +53,9 @@ type Opcode = enum {
 type Request = unit(is_read: bool) {
     filename: bytes &until=b"\x00";
     mode: bytes &until=b"\x00";
+
+    on %done {
+    }
 };
 
 # Figure 5-2: DATA packet

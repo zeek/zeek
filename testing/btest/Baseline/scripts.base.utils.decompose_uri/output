@@ -50,3 +50,30 @@ file:///documentation/faq.html?=v
 www.bro.org/?foo=bar
     -> [scheme=<uninitialized>, netlocation=www.bro.org, portnum=<uninitialized>, path=/, file_name=<uninitialized>, file_base=<uninitialized>, file_ext=<uninitialized>, params={\x0a\x09[foo] = bar\x0a}]
 
+http://[::1]:8080/?foo=bar&baz=qux
+    -> [scheme=http, netlocation=[::1], portnum=8080, path=/, file_name=<uninitialized>, file_base=<uninitialized>, file_ext=<uninitialized>, params={\x0a\x09[foo] = bar,\x0a\x09[baz] = qux\x0a}]
+
+http://[::1]/foo/bar
+    -> [scheme=http, netlocation=[::1], portnum=<uninitialized>, path=/foo/bar, file_name=bar, file_base=bar, file_ext=<uninitialized>, params=<uninitialized>]
+
+http://[::1]/foo/bar
+    -> [scheme=http, netlocation=[::1], portnum=<uninitialized>, path=/foo/bar, file_name=bar, file_base=bar, file_ext=<uninitialized>, params=<uninitialized>]
+
+[::1]:80/test/a/b.exe?a=b
+    -> [scheme=<uninitialized>, netlocation=[::1], portnum=80, path=/test/a/b.exe, file_name=b.exe, file_base=b, file_ext=exe, params={\x0a\x09[a] = b\x0a}]
+
+http://beeb:deed::1/test
+    -> [scheme=http, netlocation=beeb:deed:, portnum=1, path=/test, file_name=test, file_base=test, file_ext=<uninitialized>, params=<uninitialized>]
+
+http://beeb:deed::1:8080/test
+    -> [scheme=http, netlocation=beeb:deed::1, portnum=8080, path=/test, file_name=test, file_base=test, file_ext=<uninitialized>, params=<uninitialized>]
+
+https://en.wikipedia.org/wiki/Template:Welcome
+    -> [scheme=https, netlocation=en.wikipedia.org, portnum=<uninitialized>, path=/wiki/Template:Welcome, file_name=Template:Welcome, file_base=Template:Welcome, file_ext=<uninitialized>, params=<uninitialized>]
+
+https://[::1]:8080/wiki/Template:Welcome
+    -> [scheme=https, netlocation=[::1], portnum=8080, path=/wiki/Template:Welcome, file_name=Template:Welcome, file_base=Template:Welcome, file_ext=<uninitialized>, params=<uninitialized>]
+
+https://[::1]:8080/wiki/Template:Welcome?key=:&value=:
+    -> [scheme=https, netlocation=[::1], portnum=8080, path=/wiki/Template:Welcome, file_name=Template:Welcome, file_base=Template:Welcome, file_ext=<uninitialized>, params={\x0a\x09[key] = :,\x0a\x09[value] = :\x0a}]
+

@@ -3,6 +3,17 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 8.0.2
+==========
+
+We would like to thank Peter Cullen (@pbcullen) for their contribution to this release.
+
+This release fixes the following bugs:
+
+- The ``decompose_uri()`` script function now correctly handles URIs containing IPv6
+  addresses.
+
+
 Zeek 8.0.1
 ==========
 

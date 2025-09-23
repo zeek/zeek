@@ -117,15 +117,14 @@ function decompose_uri(uri: string): URI
 			}
 		}
 
-	if ( /:/ in s )
+	if ( /:[0-9]*$/ in s )
 		{
-		# Parse location and port.
-		parts = split_string1(s, /:/);
-		u$netlocation = parts[0];
-		if ( parts[1] != "" )
-		    {
-		    u$portnum = to_count(parts[1]);
-		    }
+		# Input ends with a numeric port or just colon: Strip it
+		# for netlocation and convert any port digits into portnum.
+		u$netlocation = gsub(s, /:[0-9]*$/, "");
+		local portstr = s[|u$netlocation| + 1:];
+		if ( portstr != "" )
+			u$portnum = to_count(portstr);
 		}
 	else
 		{

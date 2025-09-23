@@ -1,3 +1,14 @@
+8.1.0-dev.567 | 2025-09-23 13:07:24 +0200
+
+  * GH-4842: utils/decompose_uri: Support URIs containing IPv6 addresses (Arne Welzel, Corelight)
+
+    An URI containing a bracketed or non-bracketed IPv6 address of the form
+    http://[::1]:42 was previously split on the first colon for port extraction,
+    causing a subsequent to_count() call to fail. Harden this to check for a
+    digits in the last :[0-9]+ component.
+
+    Fixes #4842
+
 8.1.0-dev.565 | 2025-09-22 07:45:57 -0700
 
   * Restore the SetType constructor and destructor (Tim Wojtulewicz, Corelight)

@@ -14,6 +14,7 @@
 
 # @TEST-START-FILE common.zeek
 @load base/frameworks/cluster
+@load base/frameworks/telemetry
 @load policy/frameworks/cluster/experimental
 
 redef exit_only_after_terminate = T;

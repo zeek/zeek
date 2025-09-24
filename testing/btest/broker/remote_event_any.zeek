@@ -106,10 +106,4 @@ event ping(msg: string, n: any)
 			# internals should not wrap n into another Broker::Data record
 			Broker::publish("zeek/event/my_topic", pong, msg, n);
         }
-
-event zeek_done()
-	{
-	print get_broker_stats();
-	}
-
 # @TEST-END-FILE

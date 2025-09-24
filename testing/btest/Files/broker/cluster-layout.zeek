@@ -18,6 +18,8 @@
 # The existence of the environment variable will add a corresponding node
 # to Cluster::nodes.
 
+# Explicitly set the broker backend here.
+redef Cluster::backend = Cluster::CLUSTER_BACKEND_BROKER;
 
 # Redef'ed to F if logger-1 or logger-2 are active.
 redef Cluster::manager_is_logger = T;

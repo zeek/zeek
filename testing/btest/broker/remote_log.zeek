@@ -15,6 +15,9 @@
 
 redef exit_only_after_terminate = T;
 
+# Make the logging framework use broker!
+redef Cluster::backend = Cluster::CLUSTER_BACKEND_BROKER;
+
 module Test;
 
 export {

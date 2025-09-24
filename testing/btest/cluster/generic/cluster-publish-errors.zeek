@@ -7,6 +7,9 @@
 
 module Cluster;
 
+# Enable the Broker backend.
+redef Cluster::backend = Cluster::CLUSTER_BACKEND_BROKER;
+
 event ping1(c: count, how: string) &is_used
 	{
 	}

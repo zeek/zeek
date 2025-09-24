@@ -84,6 +84,8 @@ event zeek_done()
 
 @else
 
+redef Cluster::backend = Cluster::CLUSTER_BACKEND_BROKER;
+
 event zeek_init()
 	{
 	print "supervised node zeek_init()", Cluster::node;

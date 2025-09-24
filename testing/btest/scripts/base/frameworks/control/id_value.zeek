@@ -20,6 +20,9 @@ const test_var = "Original value" &redef;
 redef test_var = "This is the value from the controllee";
 # @TEST-END-FILE
 
+# This ensures the controllee script starts listening using Broker.
+redef Cluster::backend = Cluster::CLUSTER_BACKEND_BROKER;
+
 event Control::id_value_response(id: string, val: string)
 	{
 	print fmt("Got an id_value_response(%s, %s) event", id, val);

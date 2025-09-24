@@ -38,6 +38,9 @@ redef Log::max_log_record_size = 1024 * 1024;
 
 redef Broker::disable_ssl = T;
 
+# Pass log record from logging manager to broker.
+redef Cluster::backend = Cluster::CLUSTER_BACKEND_BROKER;
+
 event zeek_init()
 	{
 	Log::create_stream(LOG, [$columns=Info, $path="test"]);

@@ -24,6 +24,8 @@
 # @TEST-EXEC: btest-diff manager/services.out
 
 # @TEST-START-FILE cluster-layout.zeek
+redef Cluster::backend = Cluster::CLUSTER_BACKEND_BROKER;
+
 redef Cluster::nodes = {
 	["manager"] = [$node_type=Cluster::MANAGER, $ip=127.0.0.1, $p=to_port(getenv("BROKER_MANAGER_PORT")), $metrics_port=to_port(getenv("METRICS_PORT1"))],
 	["logger-1"] = [$node_type=Cluster::LOGGER,   $ip=127.0.0.1, $p=to_port(getenv("BROKER_LOGGER1_PORT")), $manager="manager", $metrics_port=to_port(getenv("METRICS_PORT2"))],

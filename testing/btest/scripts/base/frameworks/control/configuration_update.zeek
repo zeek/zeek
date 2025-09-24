@@ -13,6 +13,9 @@ const test_var = "ORIGINAL VALUE (this should be printed out first)" &redef;
 redef test_var = "NEW VALUE (this should be printed out second)";
 # @TEST-END-FILE
 
+# This ensures the controllee script starts listening using Broker.
+redef Cluster::backend = Cluster::CLUSTER_BACKEND_BROKER;
+
 event zeek_init()
 	{
 	print test_var;

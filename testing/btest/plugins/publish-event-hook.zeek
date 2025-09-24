@@ -6,6 +6,7 @@
 
 redef allow_network_time_forward = F;
 
+redef Cluster::backend = Cluster::CLUSTER_BACKEND_BROKER;
 
 module App;
 

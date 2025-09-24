@@ -1,3 +1,5 @@
+@load base/frameworks/telemetry
+
 module Cluster::Backend::ZeroMQ;
 
 export {

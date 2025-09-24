@@ -2,9 +2,13 @@
 #
 # @TEST-REQUIRES: python3 -c 'import websockets.sync'
 #
+# @TEST-PORT: XPUB_PORT
+# @TEST-PORT: XSUB_PORT
 # @TEST-PORT: WEBSOCKET_PORT
 #
+# @TEST-EXEC: cp $FILES/zeromq/single-node.zeek zeromq-single-node.zeek
 # @TEST-EXEC: cp $FILES/ws/wstest.py .
+#
 # @TEST-EXEC: zeek -b --parse-only manager.zeek
 # @TEST-EXEC: python3 -m py_compile client.py
 #
@@ -19,6 +23,8 @@
 # @TEST-EXEC: btest-diff ./client/.stderr
 
 # @TEST-START-FILE manager.zeek
+@load zeromq-single-node
+
 redef exit_only_after_terminate = T;
 
 # Force dispatcher queue being full quickly!

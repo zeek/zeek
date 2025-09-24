@@ -2,18 +2,23 @@
 #
 # @TEST-REQUIRES: python3 -c 'import websockets.sync'
 #
+# @TEST-PORT: XPUB_PORT
+# @TEST-PORT: XSUB_PORT
 # @TEST-PORT: WEBSOCKET_PORT
 #
+# @TEST-EXEC: cp $FILES/zeromq/single-node.zeek zeromq-single-node.zeek
 # @TEST-EXEC: cp $FILES/ws/wstest.py .
 #
 # @TEST-EXEC: zeek --parse-only %INPUT
 #
-# @TEST-EXEC: btest-bg-run worker "zeek -r $TRACES/wikipedia.trace -b %INPUT"
+# @TEST-EXEC: btest-bg-run worker "ZEEKPATH=..:$ZEEKPATH zeek -r $TRACES/wikipedia.trace -b %INPUT"
 # @TEST-EXEC: btest-bg-run client "python3 ../client.py"
 # @TEST-EXEC: btest-bg-wait 30
 #
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff worker/.stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff client/.stdout
+
+@load zeromq-single-node
 
 global my_new_connection: event(uid: string, c: count);
 

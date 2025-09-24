@@ -15,12 +15,6 @@ redef Broker::log_topic = Cluster::rr_log_topic;
 # Add a cluster prefix.
 @prefixes += cluster
 
-# Broker-specific additions:
-@if ( Cluster::backend == Cluster::CLUSTER_BACKEND_BROKER )
-@load ./broker-backpressure
-@load ./broker-telemetry
-@endif
-
 @if ( Supervisor::is_supervised() )
 # When running a supervised cluster, populate Cluster::nodes from the node table
 # the Supervisor provides to new Zeek nodes. The management framework configures
@@ -37,6 +31,12 @@ redef Cluster::manager_is_logger = F;
 # contain the cluster definition in the :zeek:id:`Cluster::nodes` variable.
 # The zeekctl tool manages this file for you.
 @load cluster-layout
+@endif
+
+# Broker-specific additions:
+@if ( Cluster::backend == Cluster::CLUSTER_BACKEND_BROKER )
+@load ./broker-backpressure
+@load ./broker-telemetry
 @endif
 
 @if ( Cluster::node in Cluster::nodes )

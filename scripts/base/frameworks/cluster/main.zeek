@@ -263,6 +263,15 @@ export {
 	##
 	## Returns: T on success, else F.
 	global listen_websocket: function(options: WebSocketServerOptions): bool;
+
+	## This hook is called when the local node connects to other nodes based on
+	## the given cluster layout. Breaking from the hook will prevent connection
+	## establishment.
+	##
+	## This hook only applies to the Broker cluster backend.
+	##
+	## connectee: The node to connect to.
+	global connect_node_hook: hook(connectee: NamedNode);
 }
 
 @load base/bif/cluster.bif
@@ -381,27 +390,6 @@ event Cluster::hello(name: string, id: string) &priority=10
 	if ( n$node_type !in active_node_ids )
 		active_node_ids[n$node_type] = set();
 	add active_node_ids[n$node_type][id];
-	}
-
-event Broker::peer_added(endpoint: Broker::EndpointInfo, msg: string) &priority=10
-	{
-	if ( ! Cluster::is_enabled() )
-		return;
-
-	local e = Broker::make_event(Cluster::hello, node, Cluster::node_id());
-	Broker::publish(nodeid_topic(endpoint$id), e);
-	}
-
-event Broker::peer_lost(endpoint: Broker::EndpointInfo, msg: string) &priority=10
-	{
-	for ( node_name, n in nodes )
-		{
-		if ( n?$id && n$id == endpoint$id )
-			{
-			event Cluster::node_down(node_name, endpoint$id);
-			break;
-			}
-		}
 	}
 
 event node_down(name: string, id: string) &priority=10

@@ -1,0 +1,929 @@
+##################################################################################
+# Please note:                                                                   #
+#                                                                                #
+# After updating this file, please also update CI column of the support matrix   #
+# at https://github.com/zeek/zeek/wiki/Zeek-Operating-System-Support-Matrix      #
+##################################################################################
+
+cpus: &CPUS 4
+btest_jobs: &BTEST_JOBS 4
+btest_retries: &BTEST_RETRIES 2
+memory: &MEMORY 16GB
+
+config: &CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror -D FETCHCONTENT_FULLY_DISCONNECTED:BOOL=ON
+no_spicy_config: &NO_SPICY_CONFIG --build-type=release --disable-broker-tests --disable-spicy --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror
+static_config: &STATIC_CONFIG --build-type=release --disable-broker-tests --enable-static-broker --enable-static-binpac --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror
+binary_config: &BINARY_CONFIG --prefix=$CIRRUS_WORKING_DIR/install --libdir=$CIRRUS_WORKING_DIR/install/lib --binary-package --enable-static-broker --enable-static-binpac --disable-broker-tests --build-type=Release --ccache --enable-werror
+spicy_ssl_config: &SPICY_SSL_CONFIG --build-type=release --disable-broker-tests --enable-spicy-ssl --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror
+asan_sanitizer_config: &ASAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=address --enable-fuzzers --enable-coverage --ccache --enable-werror
+ubsan_sanitizer_config: &UBSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=undefined --enable-fuzzers --ccache --enable-werror
+tsan_sanitizer_config: &TSAN_SANITIZER_CONFIG --build-type=debug --disable-broker-tests --sanitizers=thread --enable-fuzzers --ccache --enable-werror
+macos_config: &MACOS_CONFIG --build-type=release --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror --with-krb5=/opt/homebrew/opt/krb5
+clang_tidy_config: &CLANG_TIDY_CONFIG --build-type=debug --disable-broker-tests --prefix=$CIRRUS_WORKING_DIR/install --ccache --enable-werror --enable-clang-tidy
+
+resources_template: &RESOURCES_TEMPLATE
+  cpu: *CPUS
+  memory: *MEMORY
+  # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
+  greedy: true
+
+macos_environment: &MACOS_ENVIRONMENT
+  # https://medium.com/cirruslabs/new-macos-task-execution-architecture-for-cirrus-ci-604250627c94
+  # suggests we can go faster here:
+  env:
+    ZEEK_CI_CPUS: 12
+    ZEEK_CI_BTEST_JOBS: 12
+    # No permission to write to default location of /zeek
+    CIRRUS_WORKING_DIR: /tmp/zeek
+    ZEEK_CI_CONFIGURE_FLAGS: *MACOS_CONFIG
+
+freebsd_resources_template: &FREEBSD_RESOURCES_TEMPLATE
+  cpu: 8
+  memory: *MEMORY
+  # For greediness, see https://medium.com/cirruslabs/introducing-greedy-container-instances-29aad06dc2b4
+  greedy: true
+
+freebsd_environment: &FREEBSD_ENVIRONMENT
+  env:
+    ZEEK_CI_CPUS: 8
+    ZEEK_CI_BTEST_JOBS: 8
+
+only_if_pr_master_release: &ONLY_IF_PR_MASTER_RELEASE
+  only_if: >
+    ( ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
+      ( $CIRRUS_CRON != 'weekly' ) &&
+      ( $CIRRUS_PR != '' ||
+        $CIRRUS_BRANCH == 'master' ||
+        $CIRRUS_BRANCH =~ 'release/.*'
+      )
+    )
+
+only_if_pr_master_release_nightly: &ONLY_IF_PR_MASTER_RELEASE_NIGHTLY
+  only_if: >
+    ( ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
+      ( $CIRRUS_CRON != 'weekly' ) &&
+      ( $CIRRUS_PR != '' ||
+        $CIRRUS_BRANCH == 'master' ||
+        $CIRRUS_BRANCH =~ 'release/.*' ||
+        ( $CIRRUS_CRON == 'nightly' && $CIRRUS_BRANCH == 'master' )
+      )
+    )
+
+only_if_pr_release_and_nightly: &ONLY_IF_PR_RELEASE_AND_NIGHTLY
+  only_if: >
+    ( ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
+      ( $CIRRUS_CRON != 'weekly' ) &&
+      ( $CIRRUS_PR != '' ||
+        $CIRRUS_BRANCH =~ 'release/.*' ||
+        ( $CIRRUS_CRON == 'nightly' && $CIRRUS_BRANCH == 'master' )
+      )
+    )
+
+only_if_pr_nightly: &ONLY_IF_PR_NIGHTLY
+  only_if: >
+    ( ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
+      ( $CIRRUS_CRON != 'weekly' ) &&
+      ( $CIRRUS_PR != '' ||
+        ( $CIRRUS_CRON == 'nightly' && $CIRRUS_BRANCH == 'master' )
+      )
+    )
+
+only_if_release_tag_nightly: &ONLY_IF_RELEASE_TAG_NIGHTLY
+  only_if: >
+    ( ( $CIRRUS_REPO_NAME == 'zeek' ) &&
+      ( $CIRRUS_CRON != 'weekly' ) &&
+      ( ( $CIRRUS_BRANCH =~ 'release/.*' && $CIRRUS_TAG =~ 'v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$' ) ||
+        ( $CIRRUS_CRON == 'nightly' && $CIRRUS_BRANCH == 'master' )
+      )
+    )
+
+only_if_nightly: &ONLY_IF_NIGHTLY
+  only_if: >
+    ( ( $CIRRUS_REPO_NAME == 'zeek' ) &&
+      ( $CIRRUS_CRON == 'nightly' && $CIRRUS_BRANCH == 'master' )
+    )
+
+only_if_weekly: &ONLY_IF_WEEKLY
+  only_if: >
+    ( ( $CIRRUS_REPO_NAME == 'zeek' || $CIRRUS_REPO_NAME == 'zeek-security' ) &&
+      ( $CIRRUS_CRON == 'weekly' && $CIRRUS_BRANCH == 'master' )
+    )
+
+skip_if_pr_skip_all: &SKIP_IF_PR_SKIP_ALL
+  skip: >
+    ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+
+skip_if_pr_not_full_ci: &SKIP_IF_PR_NOT_FULL_CI
+  skip: >
+    ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ ".*CI: Full.*") ||
+      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+    )
+
+skip_if_pr_not_full_or_benchmark: &SKIP_IF_PR_NOT_FULL_OR_BENCHMARK
+  skip: >
+    ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ ".*CI: (Full|Benchmark).*" ) ||
+      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+    )
+
+skip_if_pr_not_full_or_cluster_test: &SKIP_IF_PR_NOT_FULL_OR_CLUSTER_TEST
+  skip: >
+    ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ ".*CI: (Full|Cluster Test).*" ) ||
+      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+    )
+
+skip_if_pr_not_full_or_zam: &SKIP_IF_PR_NOT_FULL_OR_ZAM
+  skip: >
+    ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ ".*CI: (Full|ZAM).*" ) ||
+      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+    )
+
+skip_if_pr_not_full_or_zeekctl: &SKIP_IF_PR_NOT_FULL_OR_ZEEKCTL
+  skip: >
+    ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ ".*CI: (Full|Zeekctl).*" ) ||
+      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+    )
+
+skip_if_pr_not_full_or_windows: &SKIP_IF_PR_NOT_FULL_OR_WINDOWS
+  skip: >
+    ( ( $CIRRUS_PR != '' && $CIRRUS_PR_LABELS !=~ ".*CI: (Full|Windows).*" ) ||
+      ( $CIRRUS_PR_LABELS =~ ".*CI: Skip All.*" )
+    )
+
+ci_template: &CI_TEMPLATE
+  # Default timeout is 60 minutes, Cirrus hard limit is 120 minutes for free
+  # tasks, so may as well ask for full time.
+  timeout_in: 120m
+
+  sync_submodules_script: git submodule update --recursive --init
+
+  get_external_pcaps_cache:
+    folder: testing/external/zeek-testing-traces
+    fingerprint_script: echo zeek-testing-traces
+    populate_script: ./ci/init-external-repos.sh
+    reupload_on_changes: true
+
+  always:
+    ccache_cache:
+      folder: /tmp/ccache
+      fingerprint_script: echo ccache-$ZEEK_CCACHE_EPOCH-$CIRRUS_TASK_NAME-$CIRRUS_OS
+      reupload_on_changes: true
+
+  init_external_repos_script: ./ci/init-external-repos.sh
+
+  pre_build_script: ./ci/pre-build.sh
+  build_script: ./ci/build.sh
+  test_script: ./ci/test.sh
+
+  on_failure:
+    upload_btest_tmp_dir_artifacts:
+      path: "testing/**/tmp.tar.gz"
+  always:
+    upload_btest_xml_results_artifacts:
+      path: "testing/**/btest-results.xml"
+      type: text/xml
+      format: junit
+    upload_btest_html_results_artifacts:
+      path: "testing/**/btest-results.html"
+      type: text/html
+    cache_statistics_script:
+      ccache --show-stats
+    ccache_prune_script:
+      # Evit some of the cached build artifacts not used in this build.
+      CCACHE_MAXSIZE=${ZEEK_CCACHE_PRUNE_SIZE} ccache -c
+
+env:
+  CIRRUS_WORKING_DIR: /zeek
+  CIRRUS_LOG_TIMESTAMP: true
+  ZEEK_CI_CPUS: *CPUS
+  ZEEK_CI_BTEST_JOBS: *BTEST_JOBS
+  ZEEK_CI_BTEST_RETRIES: *BTEST_RETRIES
+  ZEEK_CI_CONFIGURE_FLAGS: *CONFIG
+  # This is a single-purpose, read-only GitHub deploy key (SSH private key) for
+  # the zeek-testing-private repository.
+  ZEEK_TESTING_PRIVATE_SSH_KEY: ENCRYPTED[!dbdba93df9c166f926480cebff52dab303589257b3b3ee53aa392021aff2881ed9aafefef26aa9a1b71a49d663d1361c!]
+
+  # This is the key used to create HMAC auth keys for the benchmark script. This
+  # was generated by creating a new key using openssl, and then running sha256
+  # on it.
+  ZEEK_BENCHMARK_HMAC_KEY: ENCRYPTED[!468e2f3ea05543c4d24eb6c776c0c10695b24faec3a11d22c8da99e1df0d5b56da5b705887b1c038962a7db3eae0b9a4!]
+
+  # This is the https endpoint host and port used for benchmarking. It's kept
+  # encrypted as a security measure to avoid leaking the host's information.
+  ZEEK_BENCHMARK_HOST: ENCRYPTED[!bcda5b49af0825ee5581b27f6a86106a15605a434c9c52827eb21eade8210e668af0456d14fffbe76c098cd2d30f5d48!]
+  ZEEK_BENCHMARK_PORT: ENCRYPTED[!793057d6d8a5d1ebb5e0392786e53cf81a2ff5adb1f5386b6c8914d2bf0c4d2ead09e8f3c08c28c91a17380a5db7e2fa!]
+
+  # The repo token used for uploading data to Coveralls.io
+  ZEEK_COVERALLS_REPO_TOKEN: ENCRYPTED[7ffd1e041f848f02b62f5abc7fda8a5a8a1561fbb2b46d88cefb67c74408ddeef6ea6f3b279c7953ca14ae9b4d050e2d]
+
+  CCACHE_BASEDIR: $CIRRUS_WORKING_DIR
+  CCACHE_DIR: /tmp/ccache
+  CCACHE_COMPRESS: 1
+  # Ensure reasonable ccache upper limits to avoid spending
+  # too much time on pulling and pushing the cache folder.
+  # However, cache eviction with Cirrus CI is currently random
+  # due to mtime not being preserved through the cache instruction:
+  # https://github.com/cirruslabs/cirrus-ci-agent/issues/277
+  CCACHE_MAXSIZE: 1000M
+  CCACHE_MAXFILES: 20000
+
+  # Size to use when manually pruning the cache below. This size should be
+  # roughly `CCACHE_MAXSIZE - <build_size>`. This works around
+  # https://github.com/cirruslabs/cirrus-ci-agent/issues/277.
+  ZEEK_CCACHE_PRUNE_SIZE: 700M
+
+  # Increase this to flush the ccache cache. Mainly useful until there's
+  # a solution for the mtime pruning above.
+  ZEEK_CCACHE_EPOCH: 2
+
+# Linux EOL timelines: https://linuxlifecycle.com/
+# Fedora (~13 months): https://fedoraproject.org/wiki/Fedora_Release_Life_Cycle
+
+fedora42_task:
+  container:
+    # Fedora 42 EOL: Around May 2026
+    dockerfile: ci/fedora-42/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_SKIP_ALL
+  env:
+    ZEEK_CI_CONFIGURE_FLAGS: *BINARY_CONFIG
+
+fedora41_task:
+  container:
+    # Fedora 41 EOL: Around Nov 2025
+    dockerfile: ci/fedora-41/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_CI
+
+centosstream9_task:
+  container:
+    # Stream 9 EOL: 31 May 2027
+    dockerfile: ci/centos-stream-9/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_CI
+
+centosstream10_task:
+  container:
+    # Stream 10 EOL: 01 January 2030
+    dockerfile: ci/centos-stream-10/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_CI
+
+debian13_task:
+  container:
+    # Debian 13 (trixie) EOL: TBD
+    dockerfile: ci/debian-13/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_CI
+
+arm_debian13_task:
+  arm_container:
+    # Debian 13 (trixie) EOL: TBD
+    dockerfile: ci/debian-13/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_SKIP_ALL
+
+debian13_static_task:
+  container:
+    # Just use a recent/common distro to run a static compile test.
+    # Debian 13 (trixie) EOL: TBD
+    dockerfile: ci/debian-13/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_CI
+  env:
+    ZEEK_CI_CONFIGURE_FLAGS: *STATIC_CONFIG
+
+debian13_binary_task:
+  container:
+    # Just use a recent/common distro to run binary mode compile test.
+    # As of 2024-03, the used configure flags are equivalent to the flags
+    # that we use to create binary packages.
+    # Just use a recent/common distro to run a static compile test.
+    # Debian 13 (trixie) EOL: TBD
+    dockerfile: ci/debian-13/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_CI
+  env:
+    ZEEK_CI_CONFIGURE_FLAGS: *BINARY_CONFIG
+
+debian12_task:
+  container:
+    # Debian 12 (bookworm) EOL: TBD
+    dockerfile: ci/debian-12/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_CI
+
+opensuse_leap_15_6_task:
+  container:
+    # Opensuse Leap 15.6 EOL: ~Dec 2025
+    dockerfile: ci/opensuse-leap-15.6/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_CI
+
+opensuse_tumbleweed_task:
+  container:
+    # Opensuse Tumbleweed has no EOL
+    dockerfile: ci/opensuse-tumbleweed/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  prepare_script: ./ci/opensuse-tumbleweed/prepare.sh
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_CI
+
+weekly_current_gcc_task:
+  container:
+    # Opensuse Tumbleweed has no EOL
+    dockerfile: ci/opensuse-tumbleweed/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  prepare_script: ./ci/opensuse-tumbleweed/prepare-weekly.sh
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_WEEKLY
+  env:
+    ZEEK_CI_COMPILER: gcc
+
+weekly_current_clang_task:
+  container:
+    # Opensuse Tumbleweed has no EOL
+    dockerfile: ci/opensuse-tumbleweed/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  prepare_script: ./ci/opensuse-tumbleweed/prepare-weekly.sh
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_WEEKLY
+  env:
+    ZEEK_CI_COMPILER: clang
+
+ubuntu25_04_task:
+  container:
+    # Ubuntu 25.04 EOL: 2026-01-31
+    dockerfile: ci/ubuntu-25.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_CI
+
+ubuntu24_04_task:
+  container:
+    # Ubuntu 24.04 EOL: Jun 2029
+    dockerfile: ci/ubuntu-24.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_SKIP_ALL
+  env:
+    ZEEK_CI_CREATE_ARTIFACT: 1
+  upload_binary_artifacts:
+    path: build.tgz
+  benchmark_script: ./ci/benchmark.sh
+
+# Same as above, but running the ZAM tests instead of the regular tests.
+ubuntu24_04_zam_task:
+  container:
+    # Ubuntu 24.04 EOL: Jun 2029
+    dockerfile: ci/ubuntu-24.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_OR_ZAM
+  env:
+    ZEEK_CI_SKIP_UNIT_TESTS: 1
+    ZEEK_CI_SKIP_EXTERNAL_BTESTS: 1
+    ZEEK_CI_BTEST_EXTRA_ARGS: -a zam
+    # Use a lower number of jobs due to OOM issues with ZAM tasks
+    ZEEK_CI_BTEST_JOBS: 3
+
+# Same as above, but using Clang and libc++
+ubuntu24_04_clang_libcpp_task:
+  container:
+    # Ubuntu 24.04 EOL: Jun 2029
+    dockerfile: ci/ubuntu-24.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_CI
+  env:
+    CC: clang-19
+    CXX: clang++-19
+    CXXFLAGS: -stdlib=libc++
+
+ubuntu24_04_clang_tidy_task:
+  container:
+    # Ubuntu 24.04 EOL: Jun 2029
+    dockerfile: ci/ubuntu-24.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_CI
+  env:
+    CC: clang-19
+    CXX: clang++-19
+    ZEEK_CI_CONFIGURE_FLAGS: *CLANG_TIDY_CONFIG
+
+# Also enable Spicy SSL for this
+ubuntu24_04_spicy_task:
+  container:
+    # Ubuntu 24.04 EOL: Jun 2029
+    dockerfile: ci/ubuntu-24.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_OR_BENCHMARK
+  env:
+    ZEEK_CI_CREATE_ARTIFACT: 1
+    ZEEK_CI_CONFIGURE_FLAGS: *SPICY_SSL_CONFIG
+  spicy_install_analyzers_script: ./ci/spicy-install-analyzers.sh
+  upload_binary_artifacts:
+    path: build.tgz
+  benchmark_script: ./ci/benchmark.sh
+
+ubuntu24_04_spicy_head_task:
+  container:
+    # Ubuntu 24.04 EOL: Jun 2029
+    dockerfile: ci/ubuntu-24.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE_NIGHTLY
+  << : *SKIP_IF_PR_NOT_FULL_OR_BENCHMARK
+  env:
+    ZEEK_CI_CREATE_ARTIFACT: 1
+    ZEEK_CI_CONFIGURE_FLAGS: *SPICY_SSL_CONFIG
+    # Pull auxil/spicy to the latest head version. May or may not build.
+    ZEEK_CI_PREBUILD_COMMAND: 'cd auxil/spicy && git fetch && git reset --hard origin/main && git submodule update --init --recursive'
+  spicy_install_analyzers_script: ./ci/spicy-install-analyzers.sh
+  upload_binary_artifacts:
+    path: build.tgz
+  benchmark_script: ./ci/benchmark.sh
+
+ubuntu22_04_task:
+  container:
+    # Ubuntu 22.04 EOL: June 2027
+    dockerfile: ci/ubuntu-22.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_CI
+
+alpine_task:
+  container:
+    # Alpine releases typically happen every 6 months w/ support for 2 years.
+    # The Dockerfile simply tracks latest Alpine release and shouldn't
+    # generally need updating based on particular Alpine release timelines.
+    dockerfile: ci/alpine/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_CI
+
+# Cirrus only supports the following macos runner currently, selecting
+# anything else automatically upgrades to this one.
+#
+#    ghcr.io/cirruslabs/macos-runner:sequoia
+#
+# See also: https://cirrus-ci.org/guide/macOS/
+macos_sequoia_task:
+  macos_instance:
+    image: ghcr.io/cirruslabs/macos-runner:sequoia
+  prepare_script: ./ci/macos/prepare.sh
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_SKIP_ALL
+  << : *MACOS_ENVIRONMENT
+
+# FreeBSD EOL timelines: https://www.freebsd.org/security/#sup
+freebsd14_task:
+  freebsd_instance:
+    # FreeBSD 14 EOL: Nov 30 2028
+    image_family: freebsd-14-2
+    << : *FREEBSD_RESOURCES_TEMPLATE
+
+  prepare_script: ./ci/freebsd/prepare.sh
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_SKIP_ALL
+  << : *FREEBSD_ENVIRONMENT
+
+freebsd13_task:
+  freebsd_instance:
+    # FreeBSD 13 EOL: January 31, 2026
+    image_family: freebsd-13-4
+    << : *FREEBSD_RESOURCES_TEMPLATE
+
+  prepare_script: ./ci/freebsd/prepare.sh
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_CI
+  << : *FREEBSD_ENVIRONMENT
+
+asan_sanitizer_task:
+  container:
+    # Just uses a recent/common distro to run memory error/leak checks.
+    dockerfile: ci/ubuntu-24.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_SKIP_ALL
+  test_fuzzers_script: ./ci/test-fuzzers.sh
+  coverage_script: ./ci/upload-coverage.sh
+  env:
+    CXXFLAGS: -DZEEK_DICT_DEBUG
+    ZEEK_CI_CONFIGURE_FLAGS: *ASAN_SANITIZER_CONFIG
+    ASAN_OPTIONS: detect_leaks=1:detect_odr_violation=0
+    # Use absolute paths for coverage files.
+    CCACHE_BASEDIR:
+
+# ASAN task executing btests with zam alternative.
+asan_sanitizer_zam_task:
+  container:
+    dockerfile: ci/ubuntu-24.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_NIGHTLY
+  << : *SKIP_IF_PR_NOT_FULL_OR_ZAM
+  env:
+    ZEEK_CI_CONFIGURE_FLAGS: *ASAN_SANITIZER_CONFIG
+    ASAN_OPTIONS: detect_leaks=1:detect_odr_violation=0
+    ZEEK_CI_SKIP_UNIT_TESTS: 1
+    ZEEK_CI_SKIP_EXTERNAL_BTESTS: 1
+    ZEEK_CI_BTEST_EXTRA_ARGS: -a zam
+    # Use a lower number of jobs due to OOM issues with ZAM tasks
+    ZEEK_CI_BTEST_JOBS: 3
+
+ubsan_sanitizer_task:
+  container:
+    # Just uses a recent/common distro to run undefined behavior checks.
+    dockerfile: ci/ubuntu-24.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_NIGHTLY
+  << : *SKIP_IF_PR_NOT_FULL_CI
+  test_fuzzers_script: ./ci/test-fuzzers.sh
+  env:
+    CC: clang-19
+    CXX: clang++-19
+    CXXFLAGS: -DZEEK_DICT_DEBUG
+    ZEEK_CI_CONFIGURE_FLAGS: *UBSAN_SANITIZER_CONFIG
+    ZEEK_TAILORED_UB_CHECKS: 1
+    UBSAN_OPTIONS: print_stacktrace=1
+
+ubsan_sanitizer_zam_task:
+  container:
+    dockerfile: ci/ubuntu-24.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_NIGHTLY
+  << : *SKIP_IF_PR_NOT_FULL_OR_ZAM
+  env:
+    CC: clang-19
+    CXX: clang++-19
+    ZEEK_CI_CONFIGURE_FLAGS: *UBSAN_SANITIZER_CONFIG
+    ZEEK_TAILORED_UB_CHECKS: 1
+    UBSAN_OPTIONS: print_stacktrace=1
+    ZEEK_CI_SKIP_UNIT_TESTS: 1
+    ZEEK_CI_SKIP_EXTERNAL_BTESTS: 1
+    ZEEK_CI_BTEST_EXTRA_ARGS: -a zam
+    # Use a lower number of jobs due to OOM issues with ZAM tasks
+    ZEEK_CI_BTEST_JOBS: 3
+
+tsan_sanitizer_task:
+  container:
+    # Just uses a recent/common distro to run memory error/leak checks.
+    dockerfile: ci/ubuntu-24.04/Dockerfile
+    << : *RESOURCES_TEMPLATE
+
+  << : *CI_TEMPLATE
+  << : *ONLY_IF_PR_NIGHTLY
+  << : *SKIP_IF_PR_NOT_FULL_CI
+  env:
+    CC: clang-19
+    CXX: clang++-19
+    ZEEK_CI_CONFIGURE_FLAGS: *TSAN_SANITIZER_CONFIG
+    ZEEK_CI_DISABLE_SCRIPT_PROFILING: 1
+    # If this is defined directly in the environment, configure fails to find
+    # OpenSSL. Instead we define it with a different name and then give it
+    # the correct name in the testing scripts.
+    ZEEK_TSAN_OPTIONS: suppressions=/zeek/ci/tsan_suppressions.txt
+
+windows_task:
+  # 2 hour timeout just for potential of building Docker image taking a while
+  timeout_in: 120m
+  windows_container:
+    dockerfile: ci/windows/Dockerfile
+    os_version: 2019
+    cpu: 8
+    # Not allowed to request less than 8GB for an 8 CPU Windows VM.
+    memory: 8GB
+  sync_submodules_script: git submodule update --recursive --init
+  prepare_script: ci/windows/prepare.cmd
+  build_script: ci/windows/build.cmd
+  test_script: ci/windows/test.cmd
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_OR_WINDOWS
+  env:
+    ZEEK_CI_CPUS: 8
+    # Give verbose error output on a test failure.
+    CTEST_OUTPUT_ON_FAILURE: 1
+
+
+# Container images
+#
+# Use two separate tasks to build images for amd64 and arm64.
+# Use use a third docker_builder task to collect the produced images
+# (through CIRRUS_HTTP_CACHE) and push them to the registry as
+# zeek/zeek:v1.2.3-<arch> or zeek/zeek-dev:latest-<arch> tags. Once
+# pushed, create a manifest for zeek/zeek:v1.2.3 or zeek/zeek-dev:latest
+# that includes the just pushed architecture specific images.
+#
+# We've previously tried using docker buildx with QEMU using GitHub
+# actions. The emulated arm64 build on the amd64 VMs they provide took
+# more than 6 hours and timed out. Using separate builders on Cirrus allows
+# us build natively and much faster at the expense of the docker manifest
+# wrangling (and not being able to use the nice GitHub actions).
+docker_build_template: &DOCKER_BUILD_TEMPLATE
+  cpu: *CPUS
+  memory: *MEMORY
+  set_image_tag_script: echo "IMAGE_TAG=zeek/zeek-multiarch:${CIRRUS_ARCH}" >> $CIRRUS_ENV
+  only_if: >
+    ( $CIRRUS_CRON == '' ) &&
+    ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
+        $CIRRUS_BRANCH == 'master' || $CIRRUS_BRANCH =~ 'release/.*' || $CIRRUS_TAG != '' )
+
+  env:
+    ZEEK_CONFIGURE_FLAGS: --ccache --generator=Ninja --build-type=Release --disable-btest-pcaps --disable-cpp-tests --disable-broker-tests
+    CIRRUS_LOG_TIMESTAMP: true
+    BUILDER_IMAGE_CACHE_DIR: /tmp/builder-image-cache
+    ZEEK_IMAGE_CACHE_DIR: /tmp/zeek-image-cache-${CIRRUS_ARCH}
+    BUILDKIT_PROGRESS: plain
+
+  always:
+    ccache_cache:
+      folder: /tmp/ccache
+      fingerprint_script: echo ccache-$ZEEK_CCACHE_EPOCH-$CIRRUS_TASK_NAME-$CIRRUS_OS
+      reupload_on_changes: true
+
+    builder_image_cache:
+      folder: /tmp/builder-image-cache
+      fingerprint_script: echo builder-image-cache-$CIRRUS_TASK_NAME-$CIRRUS_OS
+      reupload_on_changes: true
+
+    zeek_image_cache:
+      folder: /tmp/zeek-image-cache-${CIRRUS_ARCH}
+      fingerprint_key: zeek-image-cache-${CIRRUS_BUILD_ID}-${CIRRUS_ARCH}
+      reupload_on_changes: true
+
+  sync_submodules_script: git submodule update --recursive --init --recommend-shallow -j $(nproc)
+
+  prepare_builder_script:
+    - set -x
+    - mkdir -p ${BUILDER_IMAGE_CACHE_DIR} ${ZEEK_IMAGE_CACHE_DIR}
+    - if [ -f ${BUILDER_IMAGE_CACHE_DIR}/builder.zst ]; then zstd -d < ${BUILDER_IMAGE_CACHE_DIR}/builder.zst | docker load; fi
+    - if [ -f ${BUILDER_IMAGE_CACHE_DIR}/final.zst ]; then zstd -d < ${BUILDER_IMAGE_CACHE_DIR}/final.zst | docker load; fi
+    - cd docker && docker build --cache-from zeek-builder:latest -t zeek-builder:latest -f builder.Dockerfile .
+    - docker save zeek-builder:latest | zstd > ${BUILDER_IMAGE_CACHE_DIR}/builder.zst
+  build_zeek_script: |
+    set -x
+    docker run --name zeek-builder-container \
+        -e CCACHE_MAXSIZE=$CCACHE_MAXSIZE \
+        -e CCACHE_MAXFILES=$CCACHE_MAXFILES \
+        -e CCACHE_DIR=/tmp/ccache \
+        -e CCACHE_NOSTATS=1 \
+        -v $(pwd):/src/zeek -v/tmp/ccache:/tmp/ccache -w /src/zeek zeek-builder:latest \
+        bash -c "./configure $ZEEK_CONFIGURE_FLAGS && ninja -C build install"
+
+    # The "zeek-build" tag is used within final.Dockerfile using COPY --from=...
+    docker commit zeek-builder-container zeek-build
+  build_final_script:
+    - cd docker && docker build --cache-from ${IMAGE_TAG} -t ${IMAGE_TAG} -f final.Dockerfile .
+    - docker save ${IMAGE_TAG} | zstd > ${ZEEK_IMAGE_CACHE_DIR}/final.zst
+  test_script:
+    - docker tag ${IMAGE_TAG} zeek:latest
+    - make -C docker/btest
+
+arm64_container_image_docker_builder:
+  env:
+    CIRRUS_ARCH: arm64
+  << : *DOCKER_BUILD_TEMPLATE
+  << : *ONLY_IF_RELEASE_TAG_NIGHTLY
+
+amd64_container_image_docker_builder:
+  env:
+    CIRRUS_ARCH: amd64
+  << : *DOCKER_BUILD_TEMPLATE
+  << : *ONLY_IF_PR_MASTER_RELEASE_NIGHTLY
+  << : *SKIP_IF_PR_NOT_FULL_OR_CLUSTER_TEST
+
+container_image_manifest_docker_builder:
+  cpu: 1
+  << : *ONLY_IF_RELEASE_TAG_NIGHTLY
+  env:
+    DOCKER_USERNAME: ENCRYPTED[!505b3dee552a395730a7e79e6aab280ffbe1b84ec62ae7616774dfefe104e34f896d2e20ce3ad701f338987c13c33533!]
+    DOCKER_PASSWORD: ENCRYPTED[!6c4b2f6f0e5379ef1091719cc5d2d74c90cfd2665ac786942033d6d924597ffb95dbbc1df45a30cc9ddeec76c07ac620!]
+    AWS_ECR_ACCESS_KEY_ID: ENCRYPTED[!eff52f6442e1bc78bce5b15a23546344df41bf519f6201924cb70c7af12db23f442c0e5f2b3687c2d856ceb11fcb8c49!]
+    AWS_ECR_SECRET_ACCESS_KEY: ENCRYPTED[!748bc302dd196140a5fa8e89c9efd148882dc846d4e723787d2de152eb136fa98e8dea7e6d2d6779d94f72dd3c088228!]
+  login_script: |
+    docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+    AWS_ACCESS_KEY_ID=$AWS_ECR_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_ECR_SECRET_ACCESS_KEY aws ecr-public get-login-password --region us-east-1 | \
+        docker login --username AWS --password-stdin public.ecr.aws
+  set_image_tag_script: |
+    # If we have a CIRRUS_TAG, use the value in VERSION to push the multiarch
+    # images, otherwise use latest. Basically we push the arch images as
+    #    zeek/zeek:1.2.3-<amd64|arm64> or
+    #    zeek/zeek-dev:latest-<amd64|arm64>
+    # and using these, create a manifest of the form zeek/zeek:${CIRRUS_TAG}
+    # for tags, or zeek/zeek-dev:latest for pushes to master.
+    set -x
+    if [ -n "${CIRRUS_TAG}" ]; then
+      echo "IMAGE_NAME=zeek"  >> $CIRRUS_ENV
+      echo "IMAGE_TAG=$(cat VERSION)" >> $CIRRUS_ENV
+      if [ "${CIRRUS_TAG}" != "v$(cat VERSION)" ]; then
+        echo "CIRRUS_TAG '${CIRRUS_TAG}' and VERSION '$(cat VERSION)' inconsistent!" >&2
+        exit 1
+      fi
+    elif [ "${CIRRUS_BRANCH}" = "master" ]; then
+      echo "IMAGE_NAME=zeek-dev"  >> $CIRRUS_ENV
+      echo "IMAGE_TAG=latest" >> $CIRRUS_ENV
+    # Hunk for testing and pushing into zeek/zeek-next. Make sure
+    # to allow the branch in the above only_if attribute of this task.
+    # elif [ "${CIRRUS_BRANCH}" = "topic/awelzel/2674-arm64-containers-on-cirrus" ]; then
+    #  echo "IMAGE_NAME=zeek-next"  >> $CIRRUS_ENV
+    #  echo "IMAGE_TAG=latest" >> $CIRRUS_ENV
+    else
+      echo "Bad tag/branch for container_image_manifest"
+      env
+      exit 1
+    fi
+
+  set_additional_manifest_tags_script: |
+    set -x
+    if [ -z "${CIRRUS_TAG}" ]; then
+      exit 0
+    fi
+
+    # Populate the checkout with all the repository information we need
+    # to determine what the current feature and lts versions are.
+    git fetch --tags origin \
+        '+refs/heads/release/*:refs/remotes/origin/release/*' \
+        '+refs/heads/master:refs/remotes/origin/master'
+
+    ./ci/container-images-addl-tags.sh "${CIRRUS_TAG}" | tee -a $CIRRUS_ENV
+
+  # These should've been populated by the previous jobs
+  zeek_image_arm64_cache:
+    folder: /tmp/zeek-image-cache-arm64
+    fingerprint_key: zeek-image-cache-${CIRRUS_BUILD_ID}-arm64
+
+  zeek_image_amd64_cache:
+    folder: /tmp/zeek-image-cache-amd64
+    fingerprint_key: zeek-image-cache-${CIRRUS_BUILD_ID}-amd64
+
+  load_image_script:
+    - set -x;
+    - ls -lha /tmp/zeek-image-cache-*/
+    - zstd -d < /tmp/zeek-image-cache-arm64/final.zst | docker load
+    - zstd -d < /tmp/zeek-image-cache-amd64/final.zst | docker load
+  tag_push_script:
+    # Tag images and push to Docker Hub and AWS ECR "zeek" account
+    - ./ci/container-images-tag-and-push.sh
+    - REGISTRY_PREFIX=public.ecr.aws/ ./ci/container-images-tag-and-push.sh
+  depends_on:
+    - arm64_container_image
+    - amd64_container_image
+
+# Once we've published new images in container_image_manifest, remove any untagged
+# images from the public ECR repository to stay within free-tier bounds.
+public_ecr_cleanup_docker_builder:
+  cpu: 1
+  << : *ONLY_IF_NIGHTLY
+  env:
+    AWS_ACCESS_KEY_ID: ENCRYPTED[!eff52f6442e1bc78bce5b15a23546344df41bf519f6201924cb70c7af12db23f442c0e5f2b3687c2d856ceb11fcb8c49!]
+    AWS_SECRET_ACCESS_KEY: ENCRYPTED[!748bc302dd196140a5fa8e89c9efd148882dc846d4e723787d2de152eb136fa98e8dea7e6d2d6779d94f72dd3c088228!]
+    AWS_REGION: us-east-1
+  cleanup_script:
+    - ./ci/public-ecr-cleanup.sh
+  depends_on:
+    - container_image_manifest
+
+cluster_testing_docker_builder:
+  cpu: *CPUS
+  memory: *MEMORY
+  only_if: >
+    ( $CIRRUS_CRON == '' ) &&
+    ( ( $CIRRUS_PR != '' && $CIRRUS_BRANCH !=~ 'dependabot/.*' ) ||
+        $CIRRUS_BRANCH == 'master' || $CIRRUS_BRANCH =~ 'release/.*' || $CIRRUS_TAG != '' )
+  env:
+    CIRRUS_LOG_TIMESTAMP: true
+  install_deps_script:
+    # The cluster tests depend on jq and docker_builder doesn't have that :-(
+    - apt-get -q update && apt-get install -y --no-install-recommends jq
+  sync_btest_script: git submodule update --init ./auxil/btest/
+  checkout_script:
+    - set -x; cd testing/external/ && git clone https://github.com/zeek/zeek-testing-cluster.git && make checkout-repos
+  zeek_image_amd64_cache:
+    folder: /tmp/zeek-image-cache-amd64
+    fingerprint_key: zeek-image-cache-${CIRRUS_BUILD_ID}-amd64
+  load_image_script:
+    - zstd -d < /tmp/zeek-image-cache-amd64/final.zst | docker load
+    - docker tag zeek/zeek-multiarch:amd64 zeektest:latest
+  test_script:
+    # Invoke btest directly here. This mirrors ci/test.sh, ensures we don't
+    # accidentally build a Docker image, and enables console-level output:
+    - cd testing/external/zeek-testing-cluster && ../../../auxil/btest/btest -A -d -b -j ${ZEEK_CI_BTEST_JOBS}
+  on_failure:
+    upload_cluster_testing_artifacts:
+      path: "testing/external/zeek-testing-cluster/.tmp/**"
+  depends_on:
+    - amd64_container_image
+  << : *ONLY_IF_PR_RELEASE_AND_NIGHTLY
+  << : *SKIP_IF_PR_NOT_FULL_OR_CLUSTER_TEST
+
+
+# Test zeekctl upon master and release pushes and also when
+# a PR has a "CI: Zeekctl" or "CI: Full" label.
+#
+# Also triggers on CIRRUS_CRON == 'zeekctl-nightly' if that is configured
+# through the Cirrus Web UI.
+zeekctl_debian12_task:
+  cpu: *CPUS
+  memory: *MEMORY
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_OR_ZEEKCTL
+  container:
+    # Debian 13 (trixie) EOL: TBD
+    dockerfile: ci/debian-13/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  sync_submodules_script: git submodule update --recursive --init
+  always:
+    ccache_cache:
+      folder: /tmp/ccache
+      fingerprint_script: echo zeekctl-ccache-$ZEEK_CCACHE_EPOCH-$CIRRUS_TASK_NAME-$CIRRUS_OS
+      reupload_on_changes: true
+  install_iproute2_script:
+    # No iproute2 in default Zeek build container, but zeekctl tests need it.
+    - apt-get update && apt-get install -y --no-install-recommends iproute2
+  build_script:
+    - cd auxil/zeekctl/testing && ./Scripts/build-zeek
+  test_script:
+    - cd auxil/zeekctl/testing && ../../btest/btest -A -d -j ${ZEEK_CI_BTEST_JOBS}
+  on_failure:
+    upload_zeekctl_testing_artifacts:
+      path: "auxil/zeekctl/testing/.tmp/**"
+
+include_plugins_debian12_task:
+  cpu: *CPUS
+  memory: *MEMORY
+  container:
+    # Debian 13 (trixie) EOL: TBD
+    dockerfile: ci/debian-13/Dockerfile
+    << : *RESOURCES_TEMPLATE
+  sync_submodules_script: git submodule update --recursive --init
+  fetch_external_plugins_script:
+    - cd /zeek/testing/builtin-plugins/external && git clone https://github.com/zeek/zeek-perf-support.git
+    - cd zeek-perf-support && echo "Cloned $(git rev-parse HEAD) for $(basename $(pwd))"
+    - cd /zeek/testing/builtin-plugins/external && git clone https://github.com/zeek/zeek-more-hashes.git
+    - cd zeek-more-hashes && echo "Cloned $(git rev-parse HEAD) for $(basename $(pwd))"
+    - cd /zeek/testing/builtin-plugins/external && git clone https://github.com/zeek/zeek-cluster-backend-nats.git
+    - cd zeek-cluster-backend-nats && echo "Cloned $(git rev-parse HEAD) for $(basename $(pwd))"
+    - cd /zeek/testing/builtin-plugins/external && git clone https://github.com/SeisoLLC/zeek-kafka.git
+    - cd zeek-kafka && echo "Cloned $(git rev-parse HEAD) for $(basename $(pwd))"
+  always:
+    ccache_cache:
+      folder: /tmp/ccache
+      fingerprint_script: echo builtin-plugins-ccache-$ZEEK_CCACHE_EPOCH-$CIRRUS_TASK_NAME-$CIRRUS_OS
+      reupload_on_changes: true
+  build_script: ZEEK_CI_CONFIGURE_FLAGS="${ZEEK_CI_CONFIGURE_FLAGS} --include-plugins='/zeek/testing/builtin-plugins/Files/protocol-plugin;/zeek/testing/builtin-plugins/Files/py-lib-plugin;/zeek/testing/builtin-plugins/Files/zeek-version-plugin;/zeek/testing/builtin-plugins/external/zeek-perf-support;/zeek/testing/builtin-plugins/external/zeek-more-hashes;/zeek/testing/builtin-plugins/external/zeek-cluster-backend-nats;/zeek/testing/builtin-plugins/external/zeek-kafka'" ./ci/build.sh
+  test_script:
+    - cd testing/builtin-plugins && ../../auxil/btest/btest -d -b -j ${ZEEK_CI_BTEST_JOBS}
+  test_external_plugins_script: |
+    . /zeek/build/zeek-path-dev.sh
+    set -ex
+    # For now, just check if the external plugins are available.
+    zeek -N Zeek::PerfSupport
+    zeek -N Zeek::MoreHashes
+    zeek -N Zeek::Cluster_Backend_NATS
+    zeek -N Seiso::Kafka
+  on_failure:
+    upload_include_plugins_testing_artifacts:
+      path: "testing/builtin-plugins/.tmp/**"
+  << : *ONLY_IF_PR_MASTER_RELEASE
+  << : *SKIP_IF_PR_NOT_FULL_CI

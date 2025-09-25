@@ -1,6 +1,8 @@
 ##! Implements Zeek process supervision API and default behavior for its
 ##! associated (remote) control events.
 
+@load base/frameworks/cluster/pubsub
+
 @load ./api
 @load ./control
 
@@ -49,7 +51,7 @@ event zeek_init() &priority=10
 		Broker::listen();
 		}
 
-	Broker::subscribe(SupervisorControl::topic_prefix);
+	Cluster::subscribe(SupervisorControl::topic_prefix);
 	}
 
 event SupervisorControl::stop_request()
@@ -67,7 +69,7 @@ event SupervisorControl::status_request(reqid: string, node: string)
 
 	local res = Supervisor::status(node);
 	local topic = SupervisorControl::topic_prefix + fmt("/status_response/%s", reqid);
-	Broker::publish(topic, SupervisorControl::status_response, reqid, res);
+	Cluster::publish(topic, SupervisorControl::status_response, reqid, res);
 	}
 
 event SupervisorControl::create_request(reqid: string, node: Supervisor::NodeConfig)
@@ -77,7 +79,7 @@ event SupervisorControl::create_request(reqid: string, node: Supervisor::NodeCon
 
 	local res = Supervisor::create(node);
 	local topic = SupervisorControl::topic_prefix + fmt("/create_response/%s", reqid);
-	Broker::publish(topic, SupervisorControl::create_response, reqid, res);
+	Cluster::publish(topic, SupervisorControl::create_response, reqid, res);
 	}
 
 event SupervisorControl::destroy_request(reqid: string, node: string)
@@ -87,7 +89,7 @@ event SupervisorControl::destroy_request(reqid: string, node: string)
 
 	local res = Supervisor::destroy(node);
 	local topic = SupervisorControl::topic_prefix + fmt("/destroy_response/%s", reqid);
-	Broker::publish(topic, SupervisorControl::destroy_response, reqid, res);
+	Cluster::publish(topic, SupervisorControl::destroy_response, reqid, res);
 	}
 
 event SupervisorControl::restart_request(reqid: string, node: string)
@@ -97,7 +99,7 @@ event SupervisorControl::restart_request(reqid: string, node: string)
 
 	local res = Supervisor::restart(node);
 	local topic = SupervisorControl::topic_prefix + fmt("/restart_response/%s", reqid);
-	Broker::publish(topic, SupervisorControl::restart_response, reqid, res);
+	Cluster::publish(topic, SupervisorControl::restart_response, reqid, res);
 	}
 
 event Supervisor::node_status(node: string, pid: count)
@@ -106,5 +108,5 @@ event Supervisor::node_status(node: string, pid: count)
 		return;
 
 	local topic = SupervisorControl::topic_prefix + "/node_status";
-	Broker::publish(topic, SupervisorControl::node_status, node, pid);
+	Cluster::publish(topic, SupervisorControl::node_status, node, pid);
 	}

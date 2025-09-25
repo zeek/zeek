@@ -17,12 +17,6 @@ redef Broker::log_topic = Cluster::rr_log_topic;
 # Add a cluster prefix.
 @prefixes += cluster
 
-# Broker-specific additions:
-@if ( Cluster::backend == Cluster::CLUSTER_BACKEND_BROKER )
-@load ./broker-backpressure
-@load ./broker-telemetry
-@endif
-
 @if ( Supervisor::is_supervised() )
 # When running a supervised cluster, populate Cluster::nodes from the node table
 # the Supervisor provides to new Zeek nodes. The management framework configures

@@ -15,7 +15,9 @@
 # @load frameworks/control/controllee.zeek
 # @load frameworks/control/controller.zeek
 @load frameworks/cluster/backend/broker/__load__.zeek
+@load frameworks/cluster/backend/broker/backpressure.zeek
 @load frameworks/cluster/backend/broker/main.zeek
+@load frameworks/cluster/backend/broker/telemetry.zeek
 @ifdef ( Cluster::CLUSTER_BACKEND_ZEROMQ )
 @load frameworks/cluster/backend/zeromq/__load__.zeek
 # @load frameworks/cluster/backend/zeromq/connect.zeek

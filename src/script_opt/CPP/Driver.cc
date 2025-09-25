@@ -83,8 +83,21 @@ void CPPCompile::Compile(bool report_uncompilable) {
                     accessed_globals.insert(g);
                 for ( auto& ag : pf->AllGlobals() )
                     all_accessed_globals.insert(ag);
+                for ( auto& l : pf->Lambdas() )
+                    // We might not have profiled this previously if none
+                    // of the functions refer to the global. This can
+                    // happen for example for a global "const" table that's
+                    // made available for external lookup use.
+                    pfs->ProfileLambda(l);
             }
         }
+
+        for ( auto& g : pfs->BiFGlobals() )
+            all_accessed_globals.insert(g);
+
+        for ( auto& t : pfs->MainTypes() )
+            if ( obj_matches_opt_files(t) == AnalyzeDecision::SHOULD )
+                rep_types.insert(TypeRep(t));
 
         for ( auto& l : pfs->Lambdas() )
             if ( obj_matches_opt_files(l) == AnalyzeDecision::SHOULD )

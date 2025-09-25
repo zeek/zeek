@@ -136,10 +136,12 @@ scripts/base/init-frameworks-and-bifs.zeek
     scripts/base/frameworks/cluster/main.zeek
       scripts/base/frameworks/control/__load__.zeek
         scripts/base/frameworks/control/main.zeek
-      build/scripts/base/bif/cluster.bif.zeek
+      scripts/base/frameworks/cluster/types.zeek
       build/scripts/base/bif/plugins/Zeek_Cluster_WebSocket.events.bif.zeek
+      build/scripts/base/bif/cluster.bif.zeek
     scripts/base/frameworks/cluster/pools.zeek
       scripts/base/utils/hash_hrw.zeek
+    scripts/base/frameworks/cluster/pubsub.zeek
     scripts/base/frameworks/cluster/telemetry.zeek
   scripts/base/frameworks/config/__load__.zeek
     scripts/base/frameworks/config/main.zeek

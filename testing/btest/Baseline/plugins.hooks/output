@@ -477,6 +477,7 @@
 0.000000   MetaHookPost  LoadFile(0, ./polling, <...>/polling.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./pools, <...>/pools.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./postprocessors, <...>/postprocessors) -> -1
+0.000000   MetaHookPost  LoadFile(0, ./pubsub, <...>/pubsub.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./removal-hooks, <...>/removal-hooks.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./reporter.bif.zeek, <...>/reporter.bif.zeek) -> -1
 0.000000   MetaHookPost  LoadFile(0, ./scp, <...>/scp.zeek) -> -1
@@ -793,6 +794,7 @@
 0.000000   MetaHookPost  LoadFileExtended(0, ./polling, <...>/polling.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./pools, <...>/pools.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./postprocessors, <...>/postprocessors) -> (-1, <no content>)
+0.000000   MetaHookPost  LoadFileExtended(0, ./pubsub, <...>/pubsub.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./removal-hooks, <...>/removal-hooks.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./reporter.bif.zeek, <...>/reporter.bif.zeek) -> (-1, <no content>)
 0.000000   MetaHookPost  LoadFileExtended(0, ./scp, <...>/scp.zeek) -> (-1, <no content>)
@@ -1419,6 +1421,7 @@
 0.000000   MetaHookPre   LoadFile(0, ./polling, <...>/polling.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./pools, <...>/pools.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./postprocessors, <...>/postprocessors)
+0.000000   MetaHookPre   LoadFile(0, ./pubsub, <...>/pubsub.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./removal-hooks, <...>/removal-hooks.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./reporter.bif.zeek, <...>/reporter.bif.zeek)
 0.000000   MetaHookPre   LoadFile(0, ./scp, <...>/scp.zeek)
@@ -1735,6 +1738,7 @@
 0.000000   MetaHookPre   LoadFileExtended(0, ./polling, <...>/polling.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./pools, <...>/pools.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./postprocessors, <...>/postprocessors)
+0.000000   MetaHookPre   LoadFileExtended(0, ./pubsub, <...>/pubsub.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./removal-hooks, <...>/removal-hooks.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./reporter.bif.zeek, <...>/reporter.bif.zeek)
 0.000000   MetaHookPre   LoadFileExtended(0, ./scp, <...>/scp.zeek)
@@ -2371,6 +2375,7 @@
 0.000000 | HookLoadFile  ./pools <...>/pools.zeek
 0.000000 | HookLoadFile  ./postprocessors <...>/postprocessors
 0.000000 | HookLoadFile  ./programming <...>/programming.sig
+0.000000 | HookLoadFile  ./pubsub <...>/pubsub.zeek
 0.000000 | HookLoadFile  ./python <...>/python.sig
 0.000000 | HookLoadFile  ./removal-hooks <...>/removal-hooks.zeek
 0.000000 | HookLoadFile  ./reporter.bif.zeek <...>/reporter.bif.zeek
@@ -2687,6 +2692,7 @@
 0.000000 | HookLoadFileExtended ./pools <...>/pools.zeek
 0.000000 | HookLoadFileExtended ./postprocessors <...>/postprocessors
 0.000000 | HookLoadFileExtended ./programming <...>/programming.sig
+0.000000 | HookLoadFileExtended ./pubsub <...>/pubsub.zeek
 0.000000 | HookLoadFileExtended ./python <...>/python.sig
 0.000000 | HookLoadFileExtended ./removal-hooks <...>/removal-hooks.zeek
 0.000000 | HookLoadFileExtended ./reporter.bif.zeek <...>/reporter.bif.zeek

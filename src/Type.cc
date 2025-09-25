@@ -1649,8 +1649,11 @@ void EnumType::AddNameInternal(const string& full_name, zeek_int_t val) {
     names[full_name] = val;
     rev_names[val] = full_name;
 
-    if ( ! vals.contains(val) )
+    if ( ! vals.contains(val) ) {
+        if ( counter >= 0 && val == vals.size() )
+            ++counter;
         vals[val] = make_intrusive<EnumVal>(IntrusivePtr{NewRef{}, this}, val);
+    }
 }
 
 zeek_int_t EnumType::Lookup(const string& module_name, const char* name) const {

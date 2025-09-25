@@ -650,8 +650,17 @@ void ZeroMQBackend::Run() {
         // Awkward.
         std::vector<std::vector<MultipartMessage>> rcv_messages(sockets.size());
         try {
-            int r = zmq::poll(poll_items, std::chrono::seconds(-1));
-            ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::POLL, "poll: r=%d", r);
+            try {
+                int r = zmq::poll(poll_items, std::chrono::seconds(-1));
+                ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::POLL, "poll: r=%d", r);
+            } catch ( const zmq::error_t& err ) {
+                ZEROMQ_DEBUG_THREAD_PRINTF(DebugFlag::POLL, "poll exception: what=%s num=%d", err.what(), err.num());
+                // Retry interrupted zmq::poll() calls.
+                if ( err.num() == EINTR )
+                    continue;
+
+                throw;
+            }
 
             for ( size_t i = 0; i < poll_items.size(); i++ ) {
                 const auto& item = poll_items[i];
@@ -691,7 +700,17 @@ void ZeroMQBackend::Run() {
 
                     // Read a multi-part message.
                     do {
-                        auto recv_result = sockets[i].socket.recv(msg, zmq::recv_flags::dontwait);
+                        zmq::recv_result_t recv_result;
+                        try {
+                            recv_result = sockets[i].socket.recv(msg, zmq::recv_flags::dontwait);
+                        } catch ( const zmq::error_t& err ) {
+                            // Retry interrupted recv() calls.
+                            if ( err.num() == EINTR )
+                                continue;
+
+                            throw;
+                        }
+
                         if ( recv_result ) {
                             consumed_one = true;
                             more = msg.more();
@@ -708,7 +727,7 @@ void ZeroMQBackend::Run() {
                 assert(rcv_messages[i].back().size() == 0);
                 rcv_messages[i].pop_back();
             }
-        } catch ( zmq::error_t& err ) {
+        } catch ( const zmq::error_t& err ) {
             if ( err.num() != ETERM )
                 throw;
 

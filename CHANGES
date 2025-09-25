@@ -1,3 +1,10 @@
+8.1.0-dev.572 | 2025-09-25 13:52:46 +0200
+
+  * cluster/zeromq: Improve EINTR handling (Arne Welzel, Corelight)
+
+    When using ZeroMQ also within the Supervisor process, zmq::poll() and
+    recv() were observed to return EINTR, handle these.
+
 8.1.0-dev.570 | 2025-09-23 09:05:53 -0700
 
   * BTests & baselines for testing selective skipping of script optimization (Vern Paxson, Corelight)

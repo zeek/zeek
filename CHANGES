@@ -1,3 +1,12 @@
+8.0.1-2 | 2025-10-07 13:51:02 -0700
+
+  * cluster/zeromq: Improve EINTR handling (Arne Welzel, Corelight)
+
+    When using ZeroMQ also within the Supervisor process, zmq::poll() and
+    recv() were observed to return EINTR, handle these.
+
+    (cherry picked from commit d2cda5a68c11ad7ab552663f0adb12f1547b20d0)
+
 8.0.1-1 | 2025-10-07 13:49:54 -0700
 
   * GH-4842: utils/decompose_uri: Support URIs containing IPv6 addresses (Arne Welzel, Corelight)

@@ -20,15 +20,23 @@ namespace {
 void thread_fun(ProxyThread::Args* args) {
     zeek::util::detail::set_thread_name("zmq-proxy-thread");
 
-    try {
-        zmq::proxy(args->xsub, args->xpub, zmq::socket_ref{} /*capture*/);
-    } catch ( zmq::error_t& err ) {
-        args->xsub.close();
-        args->xpub.close();
+    bool done = false;
 
-        if ( err.num() != ETERM ) {
-            std::fprintf(stderr, "[zeromq] unexpected zmq_proxy() error: %s (%d)", err.what(), err.num());
-            throw;
+    while ( ! done ) {
+        try {
+            zmq::proxy(args->xsub, args->xpub, zmq::socket_ref{} /*capture*/);
+        } catch ( zmq::error_t& err ) {
+            if ( err.num() == EINTR )
+                continue;
+
+            done = true;
+            args->xsub.close();
+            args->xpub.close();
+
+            if ( err.num() != ETERM ) {
+                std::fprintf(stderr, "[zeromq] unexpected zmq_proxy() error: %s (%d)", err.what(), err.num());
+                throw;
+            }
         }
     }
 }

@@ -2,11 +2,11 @@
 Configuration for builds for Cirrus.
 """
 
-load("ci/alpine/config.star", "config")
+load("ci/alpine/config.star", alpine_config="config")
 load("cirrus", environ = "env")
 
 task_configs = {}
-task_configs["alpine"] = config()
+task_configs["alpine"] = alpine_config()
 
 def main():
     print("CIRRUS_PR", environ.get("CIRRUS_PR"))

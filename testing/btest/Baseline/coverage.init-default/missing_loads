@@ -7,6 +7,7 @@
 -./frameworks/cluster/nodes/proxy.zeek
 -./frameworks/cluster/nodes/worker.zeek
 -./frameworks/cluster/setup-connections.zeek
+-./frameworks/cluster/setup-subscriptions.zeek
 -./frameworks/cluster/supervisor.zeek
 -./frameworks/intel/cluster.zeek
 -./frameworks/netcontrol/cluster.zeek

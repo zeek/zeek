@@ -43,7 +43,7 @@ redef Cluster::manager_is_logger = F;
 
 @if ( Cluster::node in Cluster::nodes )
 
-@load ./setup-connections
+@load ./setup-subscriptions
 
 @if ( Cluster::local_node_type() == Cluster::MANAGER )
 @load ./nodes/manager

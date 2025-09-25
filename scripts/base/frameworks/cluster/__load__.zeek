@@ -1,7 +1,9 @@
 # Load the core cluster support.
 @load ./main
 @load ./pools
+@load ./pubsub
 @load ./telemetry
+@load ./types
 
 @if ( Cluster::is_enabled() )
 

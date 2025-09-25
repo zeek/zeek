@@ -9,6 +9,8 @@
 # @TEST-EXEC: btest-bg-wait 30
 # @TEST-EXEC: btest-diff controller/.stdout
 
+@load frameworks/cluster/backend/broker
+
 @load base/frameworks/control
 
 # This value shouldn't ever be printed to the controllers stdout.

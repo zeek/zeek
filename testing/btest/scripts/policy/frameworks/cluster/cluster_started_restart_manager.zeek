@@ -12,6 +12,7 @@
 # @TEST-EXEC: btest-diff zeek/worker-1/stdout
 # @TEST-EXEC: btest-diff zeek/proxy-1/stdout
 
+@load frameworks/cluster/backend/broker
 @load policy/frameworks/cluster/experimental
 
 # So the supervised node doesn't terminate right away.

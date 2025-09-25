@@ -17,6 +17,9 @@
 # @TEST-START-FILE common.zeek
 @load base/frameworks/notice/weird
 
+# Ensure logging is done via Broker
+@load frameworks/cluster/backend/broker
+
 module Test;
 
 # Disable the string and container length filtering.

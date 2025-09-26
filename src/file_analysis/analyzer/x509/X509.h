@@ -26,36 +26,6 @@
 #define EVP_PKEY_get0_EC_KEY(p) ((p)->pkey.ec)
 #define EVP_PKEY_get0_RSA(p) ((p)->pkey.rsa)
 
-#if ! defined(LIBRESSL_VERSION_NUMBER) || (LIBRESSL_VERSION_NUMBER < 0x2070000fL)
-
-#define OCSP_SINGLERESP_get0_id(s) (s)->certId
-
-static X509* X509_OBJECT_get0_X509(const X509_OBJECT* a) {
-    if ( a == nullptr || a->type != X509_LU_X509 )
-        return nullptr;
-    return a->data.x509;
-}
-
-static void DSA_get0_pqg(const DSA* d, const BIGNUM** p, const BIGNUM** q, const BIGNUM** g) {
-    if ( p != nullptr )
-        *p = d->p;
-    if ( q != nullptr )
-        *q = d->q;
-    if ( g != nullptr )
-        *g = d->g;
-}
-
-static void RSA_get0_key(const RSA* r, const BIGNUM** n, const BIGNUM** e, const BIGNUM** d) {
-    if ( n != nullptr )
-        *n = r->n;
-    if ( e != nullptr )
-        *e = r->e;
-    if ( d != nullptr )
-        *d = r->d;
-}
-
-#endif
-
 #endif
 
 namespace zeek::file_analysis::detail {

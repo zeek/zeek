@@ -6,7 +6,7 @@
 #include "bpf/UserXDP.h"
 #include "bpf/filter_common.h"
 
-std::optional<struct five_tuple> makeBPFMapTuple(zeek::RecordVal* cid_r) {
+std::optional<canonical_tuple> makeBPFMapTuple(zeek::RecordVal* cid_r) {
     const zeek::IPAddr& orig_h = cid_r->GetFieldAs<zeek::AddrVal>(0);
     uint16_t orig_p = cid_r->GetFieldAs<zeek::PortVal>(1)->Port();
     const zeek::IPAddr& resp_h = cid_r->GetFieldAs<zeek::AddrVal>(2);
@@ -33,13 +33,22 @@ std::optional<struct five_tuple> makeBPFMapTuple(zeek::RecordVal* cid_r) {
         return {};
     }
 
-    return five_tuple{
-        .ip_orig = orig_bytes[0],
-        .ip_resp = resp_bytes[0],
-        .port_orig = orig_p,
-        .port_resp = resp_p,
+    auto tup = canonical_tuple{
+        .ip1 = orig_bytes[0],
+        .ip2 = resp_bytes[0],
+        .port1 = orig_p,
+        .port2 = resp_p,
         .protocol = proto,
     };
+
+    // We order first by ip, or if they're equal, by port.
+    if ( tup.ip2 < tup.ip1 || (tup.ip1 == tup.ip2 && tup.port2 < tup.port1) ) {
+        // Flip them, they're out of order
+        std::swap(tup.ip1, tup.ip2);
+        std::swap(tup.port1, tup.port2);
+    }
+
+    return tup;
 }
 
 %%}

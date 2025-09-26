@@ -15,7 +15,7 @@
 struct {
     __uint(type, BPF_MAP_TYPE_HASH);
     __uint(max_entries, 1024);
-    __type(key, struct five_tuple);
+    __type(key, struct canonical_tuple);
     __type(value, __u32);
     __uint(pinning, LIBBPF_PIN_BY_NAME);
 } filter_map SEC(".maps");
@@ -57,22 +57,24 @@ int xdp_filter(struct xdp_md* ctx) {
     else
         return XDP_PASS;
 
+    struct canonical_tuple tuple;
+    tuple.protocol = iph->protocol;
 
-    struct five_tuple tuple = {.ip_orig = iph->saddr,
-                               .ip_resp = iph->daddr,
-                               .port_orig = port_source,
-                               .port_resp = port_dest,
-                               .protocol = iph->protocol};
+    // Make sure they're in the correct order
+    if ( iph->saddr < iph->daddr || (iph->saddr == iph->daddr && port_source <= port_dest) ) {
+        tuple.ip1 = iph->saddr;
+        tuple.ip2 = iph->daddr;
+        tuple.port1 = port_source;
+        tuple.port2 = port_dest;
+    }
+    else {
+        tuple.ip1 = iph->daddr;
+        tuple.ip2 = iph->saddr;
+        tuple.port1 = port_dest;
+        tuple.port2 = port_source;
+    }
+
     __u32* action = bpf_map_lookup_elem(&filter_map, &tuple);
-    if ( action )
-        return *action;
-
-    // Else check the other direction
-    tuple.ip_orig = iph->daddr;
-    tuple.ip_resp = iph->saddr;
-    tuple.port_orig = port_dest;
-    tuple.port_resp = port_source;
-    action = bpf_map_lookup_elem(&filter_map, &tuple);
     if ( action )
         return *action;
 

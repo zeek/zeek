@@ -31,8 +31,8 @@ struct xdp_options {
 };
 
 struct filter* load_and_attach(int ifindex, xdp_options opts);
-int update_filter_map(struct filter* skel, struct five_tuple* tup, xdp_action action);
-int remove_from_filter_map(struct filter* skel, struct five_tuple* tup);
+int update_filter_map(struct filter* skel, canonical_tuple* tup, xdp_action action);
+int remove_from_filter_map(struct filter* skel, canonical_tuple* tup);
 void detach_and_destroy_filter(struct filter* skel, int ifindex);
 
 #endif /* __COMMON_USER_BPF_XDP_H */

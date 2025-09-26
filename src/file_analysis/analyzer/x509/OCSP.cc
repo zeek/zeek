@@ -26,28 +26,11 @@ namespace zeek::file_analysis::detail {
 static constexpr size_t OCSP_STRING_BUF_SIZE = 2048;
 
 static bool OCSP_RESPID_bio(OCSP_BASICRESP* basic_resp, BIO* bio) {
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
-    ASN1_OCTET_STRING* key = nullptr;
-    X509_NAME* name = nullptr;
-
-    if ( ! basic_resp->tbsResponseData )
-        return false;
-
-    auto resp_id = basic_resp->tbsResponseData->responderId;
-
-    if ( resp_id->type == V_OCSP_RESPID_NAME )
-        name = resp_id->value.byName;
-    else if ( resp_id->type == V_OCSP_RESPID_KEY )
-        key = resp_id->value.byKey;
-    else
-        return false;
-#else
     const ASN1_OCTET_STRING* key = nullptr;
     const X509_NAME* name = nullptr;
 
     if ( ! OCSP_resp_get0_id(basic_resp, &key, &name) )
         return false;
-#endif
 
     if ( name )
         X509_NAME_print_ex(bio, name, 0, XN_FLAG_ONELINE);
@@ -149,8 +132,6 @@ bool OCSP::EndOfFile() {
 
     return true;
 }
-
-#if ( OPENSSL_VERSION_NUMBER >= 0x10100000L )
 
 struct ASN1Seq {
     ASN1Seq(const unsigned char** der_in, long length) { decoded = d2i_ASN1_SEQUENCE_ANY(nullptr, der_in, length); }
@@ -345,7 +326,6 @@ static uint64_t parse_request_version(OCSP_REQUEST* req) {
     OPENSSL_free(der_req_dat);
     return asn1_int;
 }
-#endif
 
 void OCSP::ParseRequest(OCSP_REQUEST* req) {
     char buf[OCSP_STRING_BUF_SIZE]; // we need a buffer for some of the openssl functions
@@ -353,13 +333,8 @@ void OCSP::ParseRequest(OCSP_REQUEST* req) {
 
     uint64_t version = 0;
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
-    if ( req->tbsRequest->version )
-        version = (uint64_t)ASN1_INTEGER_get(req->tbsRequest->version);
-#else
     version = parse_request_version(req);
     // TODO: try to parse out general name ?
-#endif
 
     if ( ocsp_request )
         event_mgr.Enqueue(ocsp_request, GetFile()->ToVal(), val_mgr->Count(version));
@@ -425,20 +400,10 @@ void OCSP::ParseResponse(OCSP_RESPONSE* resp) {
     if ( ! basic_resp )
         goto clean_up;
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
-    resp_data = basic_resp->tbsResponseData;
-    if ( ! resp_data )
-        goto clean_up;
-#endif
-
     vl.emplace_back(GetFile()->ToVal());
     vl.emplace_back(std::move(status_val));
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
-    vl.emplace_back(val_mgr->Count((uint64_t)ASN1_INTEGER_get(resp_data->version)));
-#else
     vl.emplace_back(parse_basic_resp_data_version(basic_resp));
-#endif
 
     // responderID
     if ( OCSP_RESPID_bio(basic_resp, bio) ) {
@@ -452,11 +417,7 @@ void OCSP::ParseResponse(OCSP_RESPONSE* resp) {
     }
 
     // producedAt
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
-    produced_at = resp_data->producedAt;
-#else
     produced_at = OCSP_resp_get0_produced_at(basic_resp);
-#endif
 
     vl.emplace_back(make_intrusive<TimeVal>(GetTimeFromAsn1(produced_at, GetFile(), reporter)));
 
@@ -477,11 +438,7 @@ void OCSP::ParseResponse(OCSP_RESPONSE* resp) {
         // cert id
         const OCSP_CERTID* cert_id = nullptr;
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
-        cert_id = single_resp->certId;
-#else
         cert_id = OCSP_SINGLERESP_get0_id(single_resp);
-#endif
 
         ocsp_add_cert_id(cert_id, &rvl, bio);
         BIO_reset(bio);
@@ -550,14 +507,7 @@ void OCSP::ParseResponse(OCSP_RESPONSE* resp) {
         }
     }
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
-    i2a_ASN1_OBJECT(bio, basic_resp->signatureAlgorithm->algorithm);
-    len = BIO_read(bio, buf, sizeof(buf));
-    vl.emplace_back(make_intrusive<StringVal>(len, buf));
-    BIO_reset(bio);
-#else
     vl.emplace_back(parse_basic_resp_sig_alg(basic_resp, bio, buf, sizeof(buf)));
-#endif
 
     // i2a_ASN1_OBJECT(bio, basic_resp->signature);
     // len = BIO_read(bio, buf, sizeof(buf));
@@ -567,11 +517,7 @@ void OCSP::ParseResponse(OCSP_RESPONSE* resp) {
     certs_vector = new VectorVal(id::find_type<VectorType>("x509_opaque_vector"));
     vl.emplace_back(AdoptRef{}, certs_vector);
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
-    certs = basic_resp->certs;
-#else
     certs = OCSP_resp_get0_certs(basic_resp);
-#endif
 
     if ( certs ) {
         int num_certs = sk_X509_num(certs);

@@ -110,6 +110,12 @@ void activate_bodies__CPP(const char* fn, const char* module, bool exported, Typ
         fg->SetType(ft);
     }
 
+    if ( ! fg->GetType() )
+        // This can happen both because we just installed the ID, but also
+        // because events registered by Spicy don't have types associated
+        // with them initially.
+        fg->SetType(ft);
+
     if ( ! fg->GetAttr(ATTR_IS_USED) )
         fg->AddAttr(make_intrusive<Attr>(ATTR_IS_USED));
 
@@ -174,6 +180,9 @@ IDPtr lookup_global__CPP(const char* g, const TypePtr& t, const GlobalCharacteri
         if ( gc.is_type )
             gl->MakeType();
     }
+
+    else if ( ! gl->GetType() )
+        gl->SetType(t);
 
     return gl;
 }

@@ -148,8 +148,9 @@ public:
     // be done with the ExprPtr form of ID::SetVal.
     void AddInitExpr(ExprPtr init_expr, InitClass ic = INIT_NONE);
 
-    // Returns the initialization expressions for this identifier.
+    // Returns the initialization expressions or classes for this identifier.
     const std::vector<ExprPtr>& GetInitExprs() const { return init_exprs; }
+    const std::vector<InitClass>& GetInitClasses() const { return init_classes; }
 
     // Returns a list of the initialization expressions seen for all
     // globals, ordered by when they were processed.
@@ -252,6 +253,11 @@ private:
     // because it's possible that a global value gets created using
     // one of the earlier instances rather than the last one.
     std::vector<ExprPtr> init_exprs;
+
+    // A parallel array of the associated initialization classes.
+    // We keep the two separate rather than a std::pair because the
+    // most common use is to just loop over the expressions.
+    std::vector<InitClass> init_classes;
 
     // Tracks initializations of globals in the order they're seen.
     static std::vector<IDInitInfo> global_init_exprs;

@@ -176,8 +176,7 @@ string CPPCompile::GenConstExpr(const ConstExpr* c, GenType gt) {
 
     if ( ! IsNativeType(t) ) {
         auto v = c->ValuePtr();
-        int consts_offset; // ignored
-        (void)RegisterConstant(v, consts_offset);
+        (void)RegisterConstant(v);
         return NativeToGT(const_vals[v.get()]->Name(), t, gt);
     }
 
@@ -1294,6 +1293,29 @@ string CPPCompile::GenEnum(const TypePtr& t, const ValPtr& ev) {
     }
 
     return string("enum_mapping[") + Fmt(mapping_slot) + "]";
+}
+
+int CPPCompile::ReadyExpr(const ExprPtr& e) {
+    auto pf = make_unique<ProfileFunc>(e.get());
+    int max_cohort = 0;
+
+    for ( const auto& g : pf->AllGlobals() )
+        max_cohort = max(max_cohort, GenerateGlobalInit(g)->FinalInitCohort());
+    for ( const auto& c : pf->Constants() )
+        max_cohort = max(max_cohort, RegisterConstant(c->ValuePtr())->FinalInitCohort());
+
+    for ( const auto& t : pf->OrderedTypes() ) {
+        TypePtr tp{NewRef{}, const_cast<Type*>(t)};
+        max_cohort = max(max_cohort, RegisterType(tp)->FinalInitCohort());
+    }
+
+    for ( auto& [attrs, t] : pf->ConstructorAttrs() ) {
+        AttributesPtr ap{NewRef{}, const_cast<Attributes*>(attrs)};
+        max_cohort = max(max_cohort, RegisterAttributes(ap)->FinalInitCohort());
+        max_cohort = max(max_cohort, RegisterType(t)->FinalInitCohort());
+    }
+
+    return max_cohort;
 }
 
 } // namespace zeek::detail

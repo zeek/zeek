@@ -185,6 +185,46 @@ void CPPCompile::InitializeConsts() {
     EndBlock(true);
 }
 
+void CPPCompile::InitializeGlobal(const IDPtr& g) {
+    const auto& oi = g->GetOptInfo();
+    if ( ! oi )
+        return;
+
+    const auto& exprs = oi->GetInitExprs();
+    const auto& init_classes = oi->GetInitClasses();
+
+    ASSERT(exprs.size() == init_classes.size());
+
+    auto init = exprs.begin();
+    auto ic = init_classes.begin();
+
+    for ( ; init != exprs.end(); ++init, ++ic ) {
+        if ( *ic == INIT_NONE )
+            Emit(GenExpr(*init, GEN_NATIVE, true) + ";");
+
+        else {
+            // This branch occurs for += or -= initializations that
+            // use associated functions.
+            string ics;
+            if ( *ic == INIT_EXTRA )
+                ics = "INIT_EXTRA";
+            else if ( *ic == INIT_REMOVE )
+                ics = "INIT_REMOVE";
+            else
+                reporter->FatalError("bad initialization class in CPPCompile::InitializeGlobal()");
+
+            Emit("%s->SetValue(%s, %s);", globals[g->Name()], GenExpr(*init, GEN_NATIVE, true), ics);
+        }
+
+        const auto& attrs = g->GetAttrs();
+        if ( attrs ) {
+            auto attrs_offset = AttributesOffset(attrs);
+            auto attrs_str = "CPP__Attributes__[" + Fmt(attrs_offset) + "]";
+            Emit("%s->SetAttrs(%s);", globals[g->Name()], attrs_str);
+        }
+    }
+}
+
 void CPPCompile::InitializeGlobals() {
     Emit("static void init_globals__CPP()");
     StartBlock();

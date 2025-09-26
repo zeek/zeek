@@ -413,7 +413,7 @@ void CPPCompile::RegisterCompiledBody(const string& f) {
 void CPPCompile::GenEpilog() {
     if ( standalone ) {
         NL();
-        InitializeGlobals();
+        // InitializeGlobals();
     }
 
     NL();
@@ -537,6 +537,7 @@ void CPPCompile::GenFinishInit() {
     Emit("generate_indices_set(CPP__Indices__init, InitIndices);");
 
     Emit("std::map<TypeTag, std::shared_ptr<CPP_AbstractInitAccessor>> InitConsts;");
+    Emit("Frame* f__CPP = nullptr;");
 
     NL();
     for ( const auto& ci : const_info ) {
@@ -555,9 +556,17 @@ void CPPCompile::GenFinishInit() {
         max_cohort = std::max(max_cohort, gi->MaxCohort());
 
     for ( auto c = 0; c <= max_cohort; ++c )
-        for ( const auto& gi : all_global_info )
-            if ( gi->CohortSize(c) > 0 )
-                Emit("%s.InitializeCohort(&im, %s);", gi->InitializersName(), Fmt(c));
+        for ( const auto& gi : all_global_info ) {
+            if ( gi->CohortSize(c) == 0 )
+                continue;
+
+            Emit("%s.InitializeCohort(&im, %s);", gi->InitializersName(), Fmt(c));
+            vector<IDPtr> init_ids;
+            gi->GetCohortIDs(c, init_ids);
+
+            for ( auto& ii : init_ids )
+                InitializeGlobal(ii);
+        }
 
     // Populate mappings for dynamic offsets.
     NL();
@@ -571,7 +580,7 @@ void CPPCompile::GenFinishInit() {
 
     Emit("load_BiFs__CPP();");
 
-    if ( standalone )
+    if ( standalone && false )
         // Note, BiFs will also be loaded again later, because the
         // main initialization finishes upon loading of the activation
         // script, rather than after all scripts have been parsed

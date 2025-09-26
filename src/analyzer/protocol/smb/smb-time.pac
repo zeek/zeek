@@ -58,15 +58,3 @@ zeek::RecordValPtr SMB_BuildMACTimes(uint64_t modify, uint64_t access,
 
 type SMB_timestamp32 = uint32;
 type SMB_timestamp = uint64;
-
-type SMB_time = record {
-	two_seconds : uint16;
-	minutes     : uint16;
-	hours       : uint16;
-} &byteorder = littleendian;
-
-type SMB_date = record {
-	day   : uint16;
-	month : uint16;
-	year  : uint16;
-} &byteorder = littleendian;

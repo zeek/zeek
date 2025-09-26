@@ -34,6 +34,18 @@ struct filter* load_and_attach(int ifindex, xdp_options opts) {
 
 struct bpf_map* get_bpf_filter_map(struct filter* skel) { return skel->maps.filter_map; }
 
+int update_src_ip_map(struct filter* skel, ip_lpm_key* ip, xdp_action action) {
+    auto err = bpf_map_update_elem(bpf_map__fd(skel->maps.source_ip_map), ip, &action, 0);
+    // TODO: Better error here if possible
+    return err;
+}
+
+int remove_from_src_ip_map(struct filter* skel, ip_lpm_key* ip) {
+    auto err = bpf_map_delete_elem(bpf_map__fd(skel->maps.source_ip_map), ip);
+    // TODO: Better error here if possible
+    return err;
+}
+
 int update_filter_map(struct filter* skel, canonical_tuple* tup, xdp_action action) {
     auto err = bpf_map_update_elem(bpf_map__fd(skel->maps.filter_map), tup, &action, 0);
     // TODO: Better error here if possible

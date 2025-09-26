@@ -82,6 +82,33 @@ function start_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
     return xdp_prog;
 %}
 
+# Adds the provided subnet to the source map. That means any addresses within that subnet
+# as the source IP will get dropped.
+function drop_src_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : bool %{
+    auto net_val = net->AsSubNetVal();
+    auto ip = net_val->Prefix();
+    const uint32_t* bytes;
+    int len = ip.GetBytes(&bytes);
+    if ( len != 1 ) {
+        zeek::reporter->Error("No support for IPs greater than 1 byte yet");
+        return {};
+    }
+    auto key = ip_lpm_key {
+        .prefixlen = static_cast<__u32>(net_val->Width()),
+        .ip = bytes[0],
+    };
+
+    auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
+    auto err = update_src_ip_map(prog, &key, XDP_DROP);
+
+    if ( err ) {
+        zeek::reporter->Error("Failed to add to map");
+        return zeek::val_mgr->Bool(false);
+    }
+
+    return zeek::val_mgr->Bool(true);
+%}
+
 # Adds this 5-tuple to the BPF map
 function drop%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
     auto opt_tup = makeBPFMapTuple(cid->AsRecordVal());

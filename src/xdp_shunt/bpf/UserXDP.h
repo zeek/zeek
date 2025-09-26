@@ -31,6 +31,8 @@ struct xdp_options {
 };
 
 struct filter* load_and_attach(int ifindex, xdp_options opts);
+int update_src_ip_map(struct filter* skel, ip_lpm_key* ip, xdp_action action);
+int remove_from_src_ip_map(struct filter* skel, ip_lpm_key* ip);
 int update_filter_map(struct filter* skel, canonical_tuple* tup, xdp_action action);
 int remove_from_filter_map(struct filter* skel, canonical_tuple* tup);
 void detach_and_destroy_filter(struct filter* skel, int ifindex);

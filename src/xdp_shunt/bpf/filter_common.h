@@ -13,4 +13,9 @@ struct canonical_tuple {
     __u8 protocol;
 };
 
+struct ip_lpm_key {
+    __u32 prefixlen;
+    __u32 ip;
+};
+
 #endif /* __FILTER_COMMON_H */

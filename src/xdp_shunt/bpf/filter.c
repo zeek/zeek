@@ -33,7 +33,7 @@ int xdp_filter(struct xdp_md* ctx) {
         return XDP_PASS;
 
     struct iphdr* iph = data + sizeof(*eth);
-    if ( iph + 1 > data_end )
+    if ( (void*)iph + sizeof(*iph) > data_end )
         return XDP_PASS;
 
     __u16 port_source = 0;

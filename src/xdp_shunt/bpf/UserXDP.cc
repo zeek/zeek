@@ -1,20 +1,30 @@
+// clang-format off
 #include <bpf/bpf.h>
 #include <bpf/libbpf.h>
 #include <xdp/libxdp.h>
 
+#include "UserXDP.h"
+
 #include "bpf/filter.skel.h"
 #include "bpf/filter_common.h"
+// clang-format on
 
-// TODO: This should probably take a custom opts struct
-struct filter* load_and_attach(int ifindex) {
+struct filter* load_and_attach(int ifindex, xdp_options opts) {
     auto* skel = filter::open_and_load();
-    // TODO: How could I get the ifindex without the if_nametoindex stuff?
     auto prog_fd = bpf_program__fd(skel->progs.xdp_filter);
     if ( prog_fd == 0 )
         return nullptr;
 
-    // TODO: Don't hardcode the mode
-    int err = bpf_xdp_attach(ifindex, prog_fd, XDP_MODE_SKB, nullptr);
+    uint32_t flags = 0;
+    switch ( opts.mode ) {
+        case XDP_MODE_UNSPEC: break;
+        case XDP_MODE_NATIVE: flags |= (1U << 2); break;
+        case XDP_MODE_SKB: flags |= (1U << 1); break;
+        case XDP_MODE_HW: flags |= (1U << 3); break;
+    }
+
+    // TODO: We can get a nicer error here with libbpf_strerror
+    int err = bpf_xdp_attach(ifindex, prog_fd, flags, nullptr);
     if ( err )
         return nullptr;
 

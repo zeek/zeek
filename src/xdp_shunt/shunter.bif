@@ -5,11 +5,16 @@
 #include "XDPProgram.h"
 #include "bpf/UserXDP.h"
 #include "bpf/filter_common.h"
+
+
 %%}
 module XDP;
 
-# TODO: options
-function start_shunt%(%) : opaque of XDP::Program %{
+function start_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
+    auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
+    auto opts = xdp_options {
+        .mode = static_cast<xdp_attach_mode>(options_val->GetFieldAs<zeek::EnumVal>("attach_mode")),
+    };
     auto ps = zeek::iosource_mgr->GetPktSrc();
     if ( ! ps ) {
         zeek::reporter->Error("Packet source invalid!");
@@ -22,7 +27,7 @@ function start_shunt%(%) : opaque of XDP::Program %{
         return zeek::val_mgr->Bool(false);
     }
 
-    auto* skel = load_and_attach(ifindex);
+    auto* skel = load_and_attach(ifindex, opts);
     if ( ! skel ) {
         // TODO: Make this error better since it can fail for 2 reasons
         zeek::reporter->Error("Failed to load BPF skeleton");

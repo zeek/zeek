@@ -8,6 +8,8 @@
 
 struct filter;
 
+// TODO: Prevent these from conflicting better
+#ifndef __LIBXDP_LIBXDP_H
 enum xdp_action {
     XDP_ABORTED = 0,
     XDP_DROP,
@@ -22,9 +24,14 @@ enum xdp_attach_mode {
     XDP_MODE_SKB,
     XDP_MODE_HW,
 };
+#endif
 
-struct filter* load_and_attach(int ifindex);
-bool update_filter_map(struct filter* skel, struct five_tuple* tup, xdp_action action);
+struct xdp_options {
+    xdp_attach_mode mode;
+};
+
+struct filter* load_and_attach(int ifindex, xdp_options opts);
+int update_filter_map(struct filter* skel, struct five_tuple* tup, xdp_action action);
 void detach_and_destroy_filter(struct filter* skel, int ifindex);
 
 #endif /* __COMMON_USER_BPF_XDP_H */

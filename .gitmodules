@@ -10,9 +10,6 @@
 [submodule "cmake"]
 	path = cmake
 	url = https://github.com/zeek/cmake
-[submodule "src/3rdparty"]
-	path = src/3rdparty
-	url = https://github.com/zeek/zeek-3rdparty
 [submodule "auxil/broker"]
 	path = auxil/broker
 	url = https://github.com/zeek/broker

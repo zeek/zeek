@@ -1,3 +1,14 @@
+8.1.0-dev.603 | 2025-09-26 02:56:58 +0000
+
+  * Ignore src/3rdparty for pre-commit (Tim Wojtulewicz, Corelight)
+
+  * Merge src/3rdparty repo into the main Zeek repo (Tim Wojtulewicz, Corelight)
+
+  * cluster/zeromq: Improve EINTR handling (Arne Welzel, Corelight)
+
+    When using ZeroMQ also within the Supervisor process, zmq::poll() and
+    recv() were observed to return EINTR, handle these.
+
 8.1.0-dev.572 | 2025-09-25 13:52:46 +0200
 
   * cluster/zeromq: Improve EINTR handling (Arne Welzel, Corelight)

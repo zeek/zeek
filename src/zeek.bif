@@ -3951,6 +3951,16 @@ function get_current_packet%(%) : pcap_packet
 ## .. note::
 ##
 ##      See :zeek:see:`get_current_packet` for caveats.
+##
+## .. note::
+##
+##      Zeek currently does not expose individual IP datagram fragments to the
+##      script-layer. Therefore, this function either returns the original header
+##      of a non-fragmented IP datagram, or, if the last fragment has been received,
+##      the header of a reassembled datagram. A reassembled IP datagram's header can
+##      be recognized by ``MF=T`` in the ``ip`` field. The ``ip$len`` field for a
+##      reassembled IP datagram represents the first fragment's header length plus
+##      the sum of the individual fragment data lengths.
 function get_current_packet_header%(%) : raw_pkt_hdr
 	%{
 	const Packet* p;

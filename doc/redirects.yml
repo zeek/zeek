@@ -1,0 +1,58 @@
+# WARNING: New redirects cannot be added, since RTD introduced a cap of 100
+# redirects. You can, however, manually edit and remove redirects in the UI.
+# When doing so, modify this file as well for documentation.
+#
+# These are all the Page Redirects required for RTD project at docs.zeek.org.
+# A nice thing about RTD redirects is that they are only utilized if a page
+# 404s, so redirects can be added as soon as a broken link needs to be fixed in
+# latest/master and it won't automatically try to redirect the still-working
+# page in stable/release.
+#
+# RTD doesn't have an official API to add all the redirects defined here, but
+# this tool uses its HTML interface:
+#
+#     https://github.com/honzajavorek/rtd-redirects
+
+redirects:
+  # "Book of Zeek" revisions.
+  "/configuration/index.html": "/cluster-setup.html#cluster-configuration"
+  "/configuration/": "/cluster-setup.html#cluster-configuration"
+  "/install/guidelines.html": "/install.html"
+  "/install/NEWS.html": "https://github.com/zeek/zeek/blob/master/NEWS"
+  "/install/release-notes.html": "https://github.com/zeek/zeek/blob/master/NEWS"
+  "/install/changes.html": "https://github.com/zeek/zeek/blob/master/CHANGES"
+  "/install/install.html": "/install.html"
+  "/install/upgrade.html": "/install.html"
+  "/install/cross-compiling.html": "/building-from-source.html#cross-compiling"
+  "/install/index.html": "/install.html"
+  "/install/": "/install.html"
+  "/examples/index.html": "/index.html"
+  "/examples/": "/index.html"
+  "/examples/ids/index.html": "/scripting/index.html"
+  "/examples/ids/": "/scripting/index.html"
+  "/examples/mimestats/index.html": "/scripting/index.html"
+  "/examples/mimestats/": "/scripting/index.html"
+  "/examples/scripting/index.html": "/scripting/index.html"
+  "/examples/scripting/": "/scripting/index.html"
+  "/examples/httpmonitor/index.html": "/logs/http.html"
+  "/examples/httpmonitor/": "/logs/http.html"
+  "/examples/logs/index.html": "/log-formats.html"
+  "/examples/logs/": "/log-formats.html"
+  "/cluster/index.html": "/cluster-setup.html"
+  "/cluster/": "/cluster-setup.html"
+  "/quickstart/index.html": "/quickstart.html"
+  "/quickstart/": "/quickstart.html"
+  "/devel/maintainers/index.html": "/devel/maintainers.html"
+  "/devel/maintainers/": "/devel/maintainers.html"
+  "/devel/maintainers/release-process.html": "/devel/maintainers.html"
+  "/devel/contributors/coding-style.html": "/devel/contributors.html"
+  "/devel/contributors/index.html": "/devel/contributors.html"
+  "/devel/contributors/": "/devel/contributors.html"
+  "/devel/contributors/documentation-style.html": "/devel/contributors.html"
+  "/devel/contributors/memory-checks.html": "/devel/contributors.html"
+  "/intro/index.html": "/about.html"
+  "/intro/": "/about.html"
+  # Revamped geolocation docs
+  "/frameworks/geoip.html": "/customizations.html#address-geolocation-and-as-lookups"
+  # Moved coding style doc when re-organizing maintainer/contributor guides.
+  "/devel/style_guide.html": "/devel/contributors/coding-style.html"

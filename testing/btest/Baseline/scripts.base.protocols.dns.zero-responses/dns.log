@@ -5,7 +5,7 @@
 #unset_field	-
 #path	dns
 #open XXXX-XX-XX-XX-XX-XX
-#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	rtt	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	AA	TC	RD	RA	Z	answers	TTLs	rejected
-#types	time	string	addr	port	addr	port	enum	count	interval	string	count	string	count	string	count	string	bool	bool	bool	bool	count	vector[string]	vector[interval]	bool
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	10.0.0.64	49204	146.186.163.66	53	udp	17323	-	psu.edu	1	C_INTERNET	28	AAAA	0	NOERROR	F	F	T	F	0	-	-	F
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	rtt	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	AA	TC	RD	RA	Z	answers	TTLs	rejected	opcode	opcode_name
+#types	time	string	addr	port	addr	port	enum	count	interval	string	count	string	count	string	count	string	bool	bool	bool	bool	count	vector[string]	vector[interval]	bool	count	string
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	10.0.0.64	49204	146.186.163.66	53	udp	17323	-	psu.edu	1	C_INTERNET	28	AAAA	0	NOERROR	F	F	T	F	0	-	-	F	0	query
 #close XXXX-XX-XX-XX-XX-XX

@@ -836,3 +836,16 @@ event dns_HTTPS%(c: connection, msg: dns_msg, ans: dns_answer, https: dns_svcb_r
 ##    dns_rejected dns_request dns_max_queries dns_session_timeout
 ##    dns_skip_addl dns_skip_all_addl dns_skip_all_auth dns_skip_auth
 event dns_end%(c: connection, msg: dns_msg%);
+
+## Generated for DNS Dynamic Update messages. See `RFC for Dynamic Updates in the Domain Name System (DNS UPDATE) <https://datatracker.ietf.org/doc/html/rfc2136`__
+## for more information about Dynamic Updates.
+##
+## c: The connection, which may be UDP or TCP depending on the type of the
+##    transport-layer session being analyzed.
+##
+## msg: The parsed DNS message header.
+##
+## zname: The name from the Zone section of the message.
+##
+## zclass: The class from the Zone section of the message.
+event dns_dynamic_update%(c: connection, msg: dns_msg, zname: string, zclass: count%);

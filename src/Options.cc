@@ -445,7 +445,15 @@ Options parse_cmdline(int argc, char** argv) {
             case 'a': rval.parse_only = true; break;
             case 'b': rval.bare_mode = true; break;
             case 'c': rval.unprocessed_output_file = optarg; break;
-            case 'd': rval.debug_scripts = true; break;
+            case 'd':
+#if DEBUG
+                rval.debug_scripts = true;
+                break;
+#else
+                fprintf(stderr, "ERROR: Debugger is disabled in non-debug builds\n");
+                exit(1);
+                break;
+#endif
             case 'e': rval.script_code_to_exec = optarg; break;
             case 'f': rval.pcap_filter = optarg; break;
             case 'h': rval.print_usage = true; break;
@@ -489,7 +497,15 @@ Options parse_cmdline(int argc, char** argv) {
                 rval.pcap_file = optarg;
                 break;
             case 's': rval.signature_files.emplace_back(optarg); break;
-            case 't': rval.debug_script_tracing_file = optarg; break;
+            case 't':
+#ifdef DEBUG
+                rval.debug_script_tracing_file = optarg;
+                break;
+#else
+                fprintf(stderr, "ERROR: Script tracing is disabled in non-debug builds\n");
+                exit(1);
+                break;
+#endif
             case 'u': ++rval.analysis_options.usage_issues; break;
             case 'v': rval.print_version = true; break;
             case 'V': rval.print_build_info = true; break;

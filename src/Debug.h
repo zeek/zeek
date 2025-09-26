@@ -60,7 +60,13 @@ public:
     // Returns previous filename.
     FILE* SetTraceFile(const char* trace_filename);
 
-    bool DoTrace() const { return dbgtrace; }
+    bool DoTrace() const {
+#if DEBUG
+        return dbgtrace;
+#else
+        return false;
+#endif
+    }
     void TraceOn();
     void TraceOff();
 

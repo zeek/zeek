@@ -1,4 +1,5 @@
 # @TEST-REQUIRES: have-spicy
+# @TEST-REQUIRES: test "$($BUILD/zeek-config --build_type)" = "debug"
 #
 # @TEST-EXEC: spicyz -d -o text.hlto text.spicy ./text.evt
 # @TEST-EXEC: zeek -r ${TRACES}/http/post.trace text.hlto %INPUT Spicy::enable_print=T | sort -k 3 >output

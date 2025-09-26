@@ -66,7 +66,7 @@ void KRB_Analyzer::DeliverPacket(int len, const u_char* data, bool orig, uint64_
     }
 }
 
-StringValPtr KRB_Analyzer::GetAuthenticationInfo(const String* principal, const String* ciphertext,
+StringValPtr KRB_Analyzer::GetAuthenticationInfo(const String* realm, const String* principal, const String* ciphertext,
                                                  const zeek_uint_t enctype) {
 #ifdef USE_KRB5
     if ( ! krb_available )
@@ -84,9 +84,11 @@ StringValPtr KRB_Analyzer::GetAuthenticationInfo(const String* principal, const 
         reporter->Warning("KRB: Couldn't parse principal (%s)", principal->CheckString());
         return nullptr;
     }
+
     krb5_principal sprinc;
-    krb5_error_code retval =
-        krb5_sname_to_principal(krb_context, hostname->CheckString(), service->CheckString(), KRB5_NT_SRV_HST, &sprinc);
+    const auto [realm_cstr, realm_len] = realm->CheckStringWithSize();
+    krb5_error_code retval = krb5_build_principal(krb_context, &sprinc, realm_len, realm_cstr, service->CheckString(),
+                                                  hostname->CheckString(), nullptr);
     if ( retval ) {
         warn_krb("KRB: Couldn't generate principal name", krb_context, retval);
         return nullptr;

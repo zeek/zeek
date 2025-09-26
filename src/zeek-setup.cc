@@ -1052,7 +1052,8 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         auto [body, scope] = get_global_stmts();
         StmtFlowType flow;
         Frame f(scope->Length(), nullptr, nullptr);
-        g_frame_stack.push_back(&f);
+        if ( g_policy_debug )
+            g_frame_stack.push_back(&f);
 
         try {
             body->Exec(&f, flow);
@@ -1060,7 +1061,8 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
             reporter->FatalError("failed to execute script statements at top-level scope");
         }
 
-        g_frame_stack.pop_back();
+        if ( g_policy_debug )
+            g_frame_stack.pop_back();
     }
 
     clear_script_analysis();

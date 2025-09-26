@@ -147,8 +147,10 @@ const AssertStmt* Stmt::AsAssertStmt() const {
 }
 
 bool Stmt::SetLocationInfo(const Location* start, const Location* end) {
-    if ( ! Obj::SetLocationInfo(start, end) )
-        return false;
+    // Skip the rest of this code if the debugger isn't active or if the initial set
+    // failed.
+    if ( bool res = Obj::SetLocationInfo(start, end); ! res || ! detail::g_policy_debug )
+        return res;
 
     // Update the Filemap of line number -> statement mapping for
     // breakpoints (Debug.h).
@@ -436,12 +438,12 @@ ValPtr IfStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) {
 
     f->SetNextStmt(do_stmt);
 
-    if ( ! pre_execute_stmt(do_stmt, f) ) { // ### Abort or something
+    if ( g_policy_debug && ! pre_execute_stmt(do_stmt, f) ) { // ### Abort or something
     }
 
     auto result = do_stmt->Exec(f, flow);
 
-    if ( ! post_execute_stmt(do_stmt, f, result.get(), &flow) ) { // ### Abort or something
+    if ( g_policy_debug && ! post_execute_stmt(do_stmt, f, result.get(), &flow) ) { // ### Abort or something
     }
 
     return result;
@@ -1409,12 +1411,12 @@ ValPtr StmtList::Exec(Frame* f, StmtFlowType& flow) {
 
         f->SetNextStmt(stmt);
 
-        if ( ! pre_execute_stmt(stmt, f) ) { // ### Abort or something
+        if ( g_policy_debug && ! pre_execute_stmt(stmt, f) ) { // ### Abort or something
         }
 
         auto result = stmt->Exec(f, flow);
 
-        if ( ! post_execute_stmt(stmt, f, result.get(), &flow) ) { // ### Abort or something
+        if ( g_policy_debug && ! post_execute_stmt(stmt, f, result.get(), &flow) ) { // ### Abort or something
         }
 
         if ( flow != FLOW_NEXT || result || f->HasDelayed() )

@@ -85,6 +85,7 @@ ZeroMQBackend::ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_pt
     : ThreadedBackend("ZeroMQ", std::move(es), std::move(ls), std::move(ehs),
                       new zeek::detail::OnLoopProcess<ThreadedBackend, QueueMessage>(this, "ZeroMQ", onloop_queue_hwm)),
       main_inproc(zmq::socket_t(ctx, zmq::socket_type::pair)),
+      child_inproc(zmq::socket_t(ctx, zmq::socket_type::pair)),
       // Counters for block and drop metrics.
       total_xpub_drops(
           zeek::telemetry_mgr->CounterInstance("zeek", "cluster_zeromq_xpub_drops", {},
@@ -94,7 +95,13 @@ ZeroMQBackend::ZeroMQBackend(std::unique_ptr<EventSerializer> es, std::unique_pt
                                                "Number of received events dropped due to OnLoop queue full.")),
       total_msg_errors(
           zeek::telemetry_mgr->CounterInstance("zeek", "cluster_zeromq_msg_errors", {},
-                                               "Number of events with the wrong number of message parts.")) {}
+                                               "Number of events with the wrong number of message parts.")) {
+    // Establish the socket connection between main thread and child thread
+    // already in the constructor. This allows Subscribe() and Unsubscribe()
+    // calls to be delayed until DoInit() was called.
+    main_inproc.bind("inproc://inproc-bridge");
+    child_inproc.connect("inproc://inproc-bridge");
+}
 
 ZeroMQBackend::~ZeroMQBackend() {
     try {
@@ -169,10 +176,11 @@ void ZeroMQBackend::DoTerminate() {
     ctx.shutdown();
 
     // Close the sockets that are used from the main thread,
-    // the remaining sockets were closed by self_thread during
-    // shutdown already.
+    // the remaining sockets except for the child_inproc one
+    // were closed by self_thread during shutdown already.
     log_push.close();
     main_inproc.close();
+    child_inproc.close();
 
     ZEROMQ_DEBUG("Closing ctx");
     ctx.close();
@@ -197,7 +205,6 @@ bool ZeroMQBackend::DoInit() {
     xpub = zmq::socket_t(ctx, zmq::socket_type::xpub);
     log_push = zmq::socket_t(ctx, zmq::socket_type::push);
     log_pull = zmq::socket_t(ctx, zmq::socket_type::pull);
-    child_inproc = zmq::socket_t(ctx, zmq::socket_type::pair);
 
     xpub.set(zmq::sockopt::linger, linger_ms);
 
@@ -285,10 +292,6 @@ bool ZeroMQBackend::DoInit() {
     // following post might be useful:
     //
     // https://funcptr.net/2012/09/10/zeromq---edge-triggered-notification/
-
-    // Setup connectivity between main and child thread.
-    main_inproc.bind("inproc://inproc-bridge");
-    child_inproc.connect("inproc://inproc-bridge");
 
     // Thread is joined in backend->DoTerminate(), backend outlives it.
     self_thread = std::thread([](auto* backend) { backend->Run(); }, this);
@@ -634,7 +637,6 @@ void ZeroMQBackend::Run() {
 
     // Called when Run() terminates.
     auto deferred_close = util::Deferred([this]() {
-        child_inproc.close();
         xpub.close();
         xsub.close();
         log_pull.close();

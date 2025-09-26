@@ -339,7 +339,9 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
         f->SetTriggerAssoc(parent->GetTriggerAssoc());
     }
 
+#if DEBUG
     g_frame_stack.push_back(f.get()); // used for backtracing
+#endif
     const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
     call_stack.emplace_back(CallInfo{call_expr, this, *args});
 
@@ -391,7 +393,9 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
         catch ( InterpreterException& e ) {
             // Already reported, but now determine whether to unwind further.
             if ( Flavor() == FUNC_FLAVOR_FUNCTION ) {
+#if DEBUG
                 g_frame_stack.pop_back();
+#endif
                 call_stack.pop_back();
                 // Result not set b/c exception was thrown
                 throw;
@@ -448,7 +452,9 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
         g_trace_state.LogTrace("Function return: %s\n", d.Description());
     }
 
+#if DEBUG
     g_frame_stack.pop_back();
+#endif
 
     return result;
 }

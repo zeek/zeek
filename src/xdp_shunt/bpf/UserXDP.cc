@@ -1,6 +1,7 @@
 // clang-format off
 #include <bpf/bpf.h>
 #include <bpf/libbpf.h>
+#include <unistd.h>
 #include <xdp/libxdp.h>
 
 #include "UserXDP.h"
@@ -40,6 +41,7 @@ int update_filter_map(struct filter* skel, struct five_tuple* tup, xdp_action ac
 }
 
 void detach_and_destroy_filter(struct filter* skel, int ifindex) {
+    unlink(bpf_map__pin_path(skel->maps.filter_map));
     struct bpf_xdp_attach_opts opts = {
         .old_prog_fd = bpf_program__fd(skel->progs.xdp_filter),
     };

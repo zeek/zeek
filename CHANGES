@@ -1,3 +1,14 @@
+8.1.0-dev.605 | 2025-09-26 11:19:17 -0700
+
+  * OpaqueVal, OCSP, X509: drop outdated LibreSSL guards to fix OpenBSD (Klemens Nanni)
+    build
+
+    Whatever is used with recent OpenSSL is also available with latest LibreSSL
+    on OpenBSD 7.8-beta as of today.
+
+    Some of these hunks have been in the net/bro port for years, others I
+    recently added whilst gradually updating from 6.0.5 to 8.0.1.
+
 8.1.0-dev.603 | 2025-09-26 02:56:58 +0000
 
   * Ignore src/3rdparty for pre-commit (Tim Wojtulewicz, Corelight)

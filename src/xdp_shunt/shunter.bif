@@ -6,6 +6,41 @@
 #include "bpf/UserXDP.h"
 #include "bpf/filter_common.h"
 
+std::optional<struct five_tuple> makeBPFMapTuple(zeek::RecordVal* cid_r) {
+    const zeek::IPAddr& orig_h = cid_r->GetFieldAs<zeek::AddrVal>(0);
+    uint16_t orig_p = cid_r->GetFieldAs<zeek::PortVal>(1)->Port();
+    const zeek::IPAddr& resp_h = cid_r->GetFieldAs<zeek::AddrVal>(2);
+    uint16_t resp_p = cid_r->GetFieldAs<zeek::PortVal>(3)->Port();
+    uint8_t proto = cid_r->GetFieldAs<zeek::CountVal>(4);
+
+    // TODO: IPv6
+    if ( orig_h.GetFamily() == IPv6 || resp_h.GetFamily() == IPv6 ) {
+        zeek::reporter->Error("No IPV6 yet!!");
+        // TODO: Make a result type for these errors
+        return {};
+    }
+
+    const uint32_t* orig_bytes;
+    int len = orig_h.GetBytes(&orig_bytes);
+    if ( len != 1 ) {
+        zeek::reporter->Error("No support for IPs greater than 1 byte yet");
+        return {};
+    }
+    const uint32_t* resp_bytes;
+    len = resp_h.GetBytes(&resp_bytes);
+    if ( len != 1 ) {
+        zeek::reporter->Error("No support for IPs greater than 1 byte yet");
+        return {};
+    }
+
+    return five_tuple{
+        .ip_orig = orig_bytes[0],
+        .ip_resp = resp_bytes[0],
+        .port_orig = orig_p,
+        .port_resp = resp_p,
+        .protocol = proto,
+    };
+}
 
 %%}
 module XDP;
@@ -40,45 +75,33 @@ function start_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
 
 # Adds this 5-tuple to the BPF map
 function drop%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
-    auto cid_r = cid->AsRecordVal();
-    const zeek::IPAddr& orig_h = cid_r->GetFieldAs<zeek::AddrVal>(0);
-    uint16_t orig_p = cid_r->GetFieldAs<zeek::PortVal>(1)->Port();
-    const zeek::IPAddr& resp_h = cid_r->GetFieldAs<zeek::AddrVal>(2);
-    uint16_t resp_p = cid_r->GetFieldAs<zeek::PortVal>(3)->Port();
-    uint8_t proto = cid_r->GetFieldAs<zeek::CountVal>(4);
-
-    // TODO: IPv6
-    if ( orig_h.GetFamily() == IPv6 || resp_h.GetFamily() == IPv6 ) {
-        zeek::reporter->Error("No IPV6 yet!!");
+    auto opt_tup = makeBPFMapTuple(cid->AsRecordVal());
+    if ( ! opt_tup )
         return zeek::val_mgr->Bool(false);
-    }
 
     auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
-
-    const uint32_t* orig_bytes;
-    int len = orig_h.GetBytes(&orig_bytes);
-    if ( len != 1 ) {
-        zeek::reporter->Error("No support for IPs greater than 1 byte yet");
-        return zeek::val_mgr->Bool(false);
-    }
-    const uint32_t* resp_bytes;
-    len = resp_h.GetBytes(&resp_bytes);
-    if ( len != 1 ) {
-        zeek::reporter->Error("No support for IPs greater than 1 byte yet");
-        return zeek::val_mgr->Bool(false);
-    }
-
-    struct five_tuple tup = {
-        .ip_orig = orig_bytes[0],
-        .ip_resp = resp_bytes[0],
-        .port_orig = orig_p,
-        .port_resp = resp_p,
-        .protocol = proto,
-    };
-    auto err = update_filter_map(prog, &tup, XDP_DROP);
+    auto err = update_filter_map(prog, &*opt_tup, XDP_DROP);
 
     if ( err ) {
         zeek::reporter->Error("Failed to add to map");
+        return zeek::val_mgr->Bool(false);
+    }
+
+    return zeek::val_mgr->Bool(true);
+%}
+
+# Removes this 5-tuple to the BPF map
+# TODO: Rename this :')
+function undrop%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
+    auto opt_tup = makeBPFMapTuple(cid->AsRecordVal());
+    if ( ! opt_tup )
+        return zeek::val_mgr->Bool(false);
+
+    auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
+    auto err = remove_from_filter_map(prog, &*opt_tup);
+
+    if ( err ) {
+        zeek::reporter->Error("Failed to remove from map");
         return zeek::val_mgr->Bool(false);
     }
 

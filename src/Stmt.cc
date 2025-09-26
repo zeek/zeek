@@ -147,6 +147,7 @@ const AssertStmt* Stmt::AsAssertStmt() const {
 }
 
 bool Stmt::SetLocationInfo(const Location* start, const Location* end) {
+#if DEBUG
     if ( ! Obj::SetLocationInfo(start, end) )
         return false;
 
@@ -177,6 +178,9 @@ bool Stmt::SetLocationInfo(const Location* start, const Location* end) {
     }
 
     return true;
+#else
+    return Obj::SetLocationInfo(start, end);
+#endif
 }
 
 bool Stmt::IsPure() const { return false; }
@@ -436,13 +440,17 @@ ValPtr IfStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) {
 
     f->SetNextStmt(do_stmt);
 
+#if DEBUG
     if ( ! pre_execute_stmt(do_stmt, f) ) { // ### Abort or something
     }
+#endif
 
     auto result = do_stmt->Exec(f, flow);
 
+#if DEBUG
     if ( ! post_execute_stmt(do_stmt, f, result.get(), &flow) ) { // ### Abort or something
     }
+#endif
 
     return result;
 }
@@ -1409,13 +1417,17 @@ ValPtr StmtList::Exec(Frame* f, StmtFlowType& flow) {
 
         f->SetNextStmt(stmt);
 
+#if DEBUG
         if ( ! pre_execute_stmt(stmt, f) ) { // ### Abort or something
         }
+#endif
 
         auto result = stmt->Exec(f, flow);
 
+#if DEBUG
         if ( ! post_execute_stmt(stmt, f, result.get(), &flow) ) { // ### Abort or something
         }
+#endif
 
         if ( flow != FLOW_NEXT || result || f->HasDelayed() )
             return result;

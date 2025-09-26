@@ -349,7 +349,7 @@ void X509::ParseSAN(X509_EXTENSION* ext) {
             }
 
             auto len = ASN1_STRING_length(gen->d.ia5);
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
+#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
             const char* name = (const char*)ASN1_STRING_data(gen->d.ia5);
 #else
             const char* name = (const char*)ASN1_STRING_get0_data(gen->d.ia5);

@@ -65,19 +65,8 @@ X509* x509_get_ocsp_signer(const STACK_OF(X509)* certs,
 	const ASN1_OCTET_STRING* key  = nullptr;
 	const X509_NAME*         name = nullptr;
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
-	OCSP_RESPID* resp_id = basic_resp->tbsResponseData->responderId;
-
-	if ( resp_id->type == V_OCSP_RESPID_NAME )
-		name = resp_id->value.byName;
-	else if ( resp_id->type == V_OCSP_RESPID_KEY )
-		key = resp_id->value.byKey;
-	else
-		return nullptr;
-#else
 	if ( ! OCSP_resp_get0_id(basic_resp, &key, &name) )
 		return nullptr;
-#endif
 
 	if ( name )
 		return X509_find_by_subject(const_cast<STACK_OF(X509)*>(certs),
@@ -359,11 +348,7 @@ function x509_ocsp_verify%(certs: x509_opaque_vector, ocsp_reply: string, root_c
 
 	// Because we actually want to be able to give nice error messages that show why we were
 	// not able to verify the OCSP response - do our own verification logic first.
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
-	signer = x509_get_ocsp_signer(basic->certs, basic);
-#else
 	signer = x509_get_ocsp_signer(OCSP_resp_get0_certs(basic), basic);
-#endif
 
 	/*
 	Do this perhaps - OpenSSL also cannot do it, so I do not really feel bad about it.
@@ -730,12 +715,7 @@ function sct_verify%(cert: opaque of x509, logid: string, log_key: string, signa
 	uint32_t cert_length;
 	if ( precert )
 		{
-#if ( OPENSSL_VERSION_NUMBER < 0x10002000L )
-		x->cert_info->enc.modified = 1;
-		cert_length = i2d_X509_CINF(x->cert_info, &cert_out);
-#else
 		cert_length = i2d_re_X509_tbs(x, &cert_out);
-#endif
 		data.append(reinterpret_cast<const char*>(issuer_key_hash->Bytes()), issuer_key_hash->Len());
 		}
 	else
@@ -1058,11 +1038,7 @@ function x509_check_cert_hostname%(cert_opaque: opaque of x509, hostname: string
 				continue;
 
 			std::size_t len = ASN1_STRING_length(gen->d.ia5);
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
-			auto* name = reinterpret_cast<const char*>(ASN1_STRING_data(gen->d.ia5));
-#else
 			auto* name = reinterpret_cast<const char*>(ASN1_STRING_get0_data(gen->d.ia5));
-#endif
 			std::string_view nameview {name, len};
 			if ( check_hostname(hostview, nameview) )
 				{

@@ -97,58 +97,6 @@ int perftools_leaks = 0;
 int perftools_profile = 0;
 #endif
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-struct CRYPTO_dynlock_value {
-    std::mutex mtx;
-};
-
-namespace {
-
-std::unique_ptr<std::mutex[]> ssl_mtx_tbl;
-
-void ssl_lock_fn(int mode, int n, const char*, int) {
-    if ( mode & CRYPTO_LOCK )
-        ssl_mtx_tbl[static_cast<size_t>(n)].lock();
-    else
-        ssl_mtx_tbl[static_cast<size_t>(n)].unlock();
-}
-
-CRYPTO_dynlock_value* ssl_dynlock_create(const char*, int) { return new CRYPTO_dynlock_value; }
-
-void ssl_dynlock_lock(int mode, CRYPTO_dynlock_value* ptr, const char*, int) {
-    if ( mode & CRYPTO_LOCK )
-        ptr->mtx.lock();
-    else
-        ptr->mtx.unlock();
-}
-
-void ssl_dynlock_destroy(CRYPTO_dynlock_value* ptr, const char*, int) { delete ptr; }
-
-void do_ssl_init() {
-    ERR_load_crypto_strings();
-    OPENSSL_add_all_algorithms_conf();
-    SSL_library_init();
-    SSL_load_error_strings();
-    ssl_mtx_tbl.reset(new std::mutex[CRYPTO_num_locks()]);
-    CRYPTO_set_locking_callback(ssl_lock_fn);
-    CRYPTO_set_dynlock_create_callback(ssl_dynlock_create);
-    CRYPTO_set_dynlock_lock_callback(ssl_dynlock_lock);
-    CRYPTO_set_dynlock_destroy_callback(ssl_dynlock_destroy);
-}
-
-void do_ssl_deinit() {
-    ERR_free_strings();
-    EVP_cleanup();
-    CRYPTO_cleanup_all_ex_data();
-    CRYPTO_set_locking_callback(nullptr);
-    CRYPTO_set_dynlock_create_callback(nullptr);
-    CRYPTO_set_dynlock_lock_callback(nullptr);
-    CRYPTO_set_dynlock_destroy_callback(nullptr);
-    ssl_mtx_tbl.reset();
-}
-
-} // namespace
-#else
 namespace {
 
 void do_ssl_init() { OPENSSL_init_ssl(0, nullptr); }
@@ -160,7 +108,6 @@ void do_ssl_deinit() {
 }
 
 } // namespace
-#endif
 
 zeek::ValManager* zeek::val_mgr = nullptr;
 zeek::packet_analysis::Manager* zeek::packet_mgr = nullptr;

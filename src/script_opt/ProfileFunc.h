@@ -366,6 +366,10 @@ public:
     ProfileFuncs(std::vector<FuncInfo>& funcs, is_compilable_pred pred, bool compute_func_hashes,
                  bool full_record_hashes);
 
+    // Used to profile additional lambdas that (potentially) weren't part
+    // of the overall function profiling.
+    void ProfileLambda(const LambdaExpr* l);
+
     // The following accessors provide a global profile across all of
     // the (non-skipped) functions in "funcs".  See the comments for
     // the associated member variables for documentation.
@@ -448,6 +452,9 @@ protected:
 
     // Compute hashes to associate with each function
     void ComputeBodyHashes(std::vector<FuncInfo>& funcs);
+
+    // For a given lambda, completes analysis of its profile.
+    void AnalyzeLambdaProfile(const LambdaExpr* l);
 
     // Compute the hash associated with a single function profile.
     void ComputeProfileHash(std::shared_ptr<ProfileFunc> pf);
@@ -539,6 +546,10 @@ protected:
 
     // And for lambda's.
     std::unordered_set<const LambdaExpr*> lambdas;
+
+    // Lambdas that we have already processed. An optimization to avoid
+    // unnecessary work.
+    std::unordered_set<const LambdaExpr*> processed_lambdas;
 
     // Names of generated events.
     std::unordered_set<std::string> events;

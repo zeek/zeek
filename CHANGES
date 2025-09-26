@@ -1,3 +1,7 @@
+8.1.0-dev.607 | 2025-09-26 14:19:40 -0700
+
+  * Fixes for -O gen-standalone-C++ for tracking BiFs, lambdas, attribute types, and independent globals (Vern Paxson, Corelight)
+
 8.1.0-dev.605 | 2025-09-26 11:19:17 -0700
 
   * OpaqueVal, OCSP, X509: drop outdated LibreSSL guards to fix OpenBSD (Klemens Nanni)

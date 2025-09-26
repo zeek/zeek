@@ -9,6 +9,14 @@ Zeek 7.0.11
 We would like to thank Jeff McJunkin (@jeffmcjunkin) and Peter Cullen (@pbcullen) for
 their contributions to this release.
 
+This release fixes the following security issue:
+
+- The KRB analyzer can leak information about hosts in analyzed traffic via external DNS
+  lookups. This only happens if the script-level variable ``KRB::keytab`` is set to point
+  at a valid Kerberos keytab file. We're opting to fix the analyzer so it can't happen at
+  all. The fix is to use a different method from libkrb5 that reuses known host
+  information from the packets instead of re-requesting the same information externally.
+
 This release fixes the following bugs:
 
 - The ``get_current_packet_header()`` BIF now populates the returned record also for

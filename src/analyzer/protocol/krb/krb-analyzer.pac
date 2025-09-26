@@ -264,6 +264,7 @@ refine connection KRB_Conn += {
 
 			auto rvticket = proc_ticket(${msg.ticket});
 			auto authenticationinfo = zeek_analyzer()->GetAuthenticationInfo(
+				rvticket->GetFieldAs<zeek::StringVal>(1),
 				rvticket->GetFieldAs<zeek::StringVal>(2),
 				rvticket->GetFieldAs<zeek::StringVal>(4),
 				rvticket->GetFieldAs<zeek::CountVal>(3));

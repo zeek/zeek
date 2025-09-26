@@ -161,13 +161,9 @@ RecordValPtr X509::ParseCertificate(X509Val* cert_val, file_analysis::File* f) {
 
     pX509Cert->Assign(7, buf);
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L )
-    i2a_ASN1_OBJECT(bio, ssl_cert->sig_alg->algorithm);
-#else
     const ASN1_OBJECT* alg;
     X509_ALGOR_get0(&alg, nullptr, nullptr, X509_get0_tbs_sigalg(ssl_cert));
     i2a_ASN1_OBJECT(bio, alg);
-#endif
     len = BIO_gets(bio, buf, sizeof(buf));
     pX509Cert->Assign(13, make_intrusive<StringVal>(len, buf));
     BIO_free(bio);
@@ -349,11 +345,7 @@ void X509::ParseSAN(X509_EXTENSION* ext) {
             }
 
             auto len = ASN1_STRING_length(gen->d.ia5);
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
-            const char* name = (const char*)ASN1_STRING_data(gen->d.ia5);
-#else
             const char* name = (const char*)ASN1_STRING_get0_data(gen->d.ia5);
-#endif
             auto bs = make_intrusive<StringVal>(len, name);
 
             switch ( gen->type ) {

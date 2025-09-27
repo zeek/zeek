@@ -1315,10 +1315,7 @@ public:
     void AssignInterval(int field, double new_val) { Assign(field, new_val); }
 
     void Assign(int field, StringVal* new_val) {
-        auto& fv = record_val[field];
-        if ( fv )
-            ZVal::DeleteManagedType(*fv);
-        fv = ZVal(new_val);
+        record_val[field] = ZVal(new_val);
         AddedField(field);
     }
     void Assign(int field, const char* new_val) { Assign(field, new StringVal(new_val)); }
@@ -1383,7 +1380,7 @@ public:
             fv = fi->Generate();
         }
 
-        return fv->ToVal(rt->GetFieldType(field));
+        return fv.ToVal(rt->GetFieldType(field));
     }
 
     /**
@@ -1450,7 +1447,7 @@ public:
 
     // Returns true if the slot for the given field is initialized.
     // This helper can be used to guard GetFieldAs() accesses.
-    bool HasRawField(int field) const { return record_val[field].has_value(); }
+    bool HasRawField(int field) const { return record_val[field].IsSet(); }
 
     // The following return the given field converted to a particular
     // underlying value.  We provide these to enable efficient
@@ -1580,16 +1577,18 @@ protected:
      */
     void AppendField(ValPtr v, const TypePtr& t) {
         if ( v )
-            record_val.emplace_back(ZVal(v, t));
+            record_val.emplace_back(ZValSlot(v, t));
         else
-            record_val.emplace_back(std::nullopt);
+            record_val.emplace_back(ZValSlot(t));
     }
 
     // For internal use by low-level ZAM instructions and event tracing.
     // Caller assumes responsibility for memory management.  The first
     // version allows manipulation of whether the field is present at all.
     // The second version ensures that the optional value is present.
-    std::optional<ZVal>& RawOptField(int field) {
+    //
+    // TODO: Fix name!
+    ZValSlot& RawOptField(int field) {
         auto& f = record_val[field];
         if ( ! f ) {
             const auto& fi = rt->DeferredInits()[field];
@@ -1600,10 +1599,13 @@ protected:
         return f;
     }
 
+    // TODO: Fix name!
     ZVal& RawField(int field) {
         auto& f = RawOptField(field);
         if ( ! f )
             f = ZVal();
+
+        assert(f.IsSet());
         return *f;
     }
 
@@ -1617,14 +1619,6 @@ protected:
     static RecordTypeValMap parse_time_records;
 
 private:
-    void DeleteFieldIfManaged(unsigned int field) {
-        auto& f = record_val[field];
-        if ( f && IsManaged(field) )
-            ZVal::DeleteManagedType(*f);
-    }
-
-    bool IsManaged(unsigned int offset) const { return is_managed[offset]; }
-
     // Just for template inferencing.
     RecordVal* Get() { return this; }
 
@@ -1636,10 +1630,7 @@ private:
     // Low-level values of each of the fields.
     //
     // Lazily modified during GetField(), so mutable.
-    mutable std::vector<std::optional<ZVal>> record_val;
-
-    // Whether a given field requires explicit memory management.
-    const std::vector<bool>& is_managed;
+    mutable std::vector<ZValSlot> record_val;
 };
 
 class EnumVal final : public detail::IntValImplementation {

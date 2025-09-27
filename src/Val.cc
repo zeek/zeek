@@ -2924,7 +2924,7 @@ TableVal::TableRecordDependencies TableVal::parse_time_table_record_dependencies
 
 RecordVal::RecordTypeValMap RecordVal::parse_time_records;
 
-RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->ManagedFields()) {
+RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t) {
     rt = std::move(t);
 
     int n = rt->NumFields();
@@ -2934,6 +2934,10 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->
 
     if ( init_fields ) {
         record_val.resize(n);
+
+        // Properly initialize all slots.
+        for ( size_t i = 0; i < record_val.size(); i++ )
+            record_val[i] = ZValSlot(rt->GetFieldType(i));
 
         for ( auto& e : rt->CreationInits() ) {
             try {
@@ -2947,35 +2951,34 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->
     }
 
     else
+        // This needs to go through AppendField() which will do the right thing
+        // for the individual slots.
         record_val.reserve(n);
 }
 
-RecordVal::RecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals)
-    : Val(t), is_managed(t->ManagedFields()) {
+RecordVal::RecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals) : Val(t) {
     rt = std::move(t);
-    record_val = std::move(init_vals);
-}
 
-RecordVal::~RecordVal() {
-    notifier::detail::Modifiable::Unregister();
+    // TODO: Change so that callers pass init_vals as ZValSlot instead?
+    record_val.reserve(rt->NumFields());
+    size_t n = rt->NumFields();
 
-    auto n = record_val.size();
+    for ( size_t i = 0; i < n; i++ ) {
+        record_val.emplace_back(ZValSlot(rt->GetFieldType(i)));
 
-    for ( unsigned int i = 0; i < n; ++i ) {
-        auto f_i = record_val[i];
-        if ( f_i && IsManaged(i) )
-            ZVal::DeleteManagedType(*f_i);
+        if ( init_vals[i].has_value() )
+            record_val[i] = init_vals[i].value();
     }
 }
+
+RecordVal::~RecordVal() { notifier::detail::Modifiable::Unregister(); }
 
 ValPtr RecordVal::SizeVal() const { return val_mgr->Count(GetType()->AsRecordType()->NumFields()); }
 
 void RecordVal::Assign(int field, ValPtr new_val) {
     if ( new_val ) {
-        DeleteFieldIfManaged(field);
-
         auto t = rt->GetFieldType(field);
-        record_val[field] = ZVal(new_val, t);
+        record_val[field] = ZValSlot(new_val, t);
         Modified();
     }
     else
@@ -2983,15 +2986,11 @@ void RecordVal::Assign(int field, ValPtr new_val) {
 }
 
 void RecordVal::Remove(int field) {
-    auto& f_i = record_val[field];
-    if ( f_i ) {
-        if ( IsManaged(field) )
-            ZVal::DeleteManagedType(*f_i);
+    bool was_set = record_val[field].IsSet();
+    record_val[field].Reset();
 
-        f_i = std::nullopt;
-
+    if ( was_set )
         Modified();
-    }
 }
 
 ValPtr RecordVal::GetFieldOrDefault(int field) const {
@@ -4224,6 +4223,25 @@ TEST_CASE("copy slot") {
     zeek::ZValSlot slot2 = slot1;
 
     CHECK(v->RefCnt() == 3); // v1, slot1 and slot2
+}
+
+TEST_SUITE_END();
+
+TEST_SUITE_BEGIN("RecordVal");
+
+TEST_CASE("assign string") {
+    auto t = zeek::id::find_type<zeek::RecordType>("PacketSource");
+    auto v = zeek::make_intrusive<zeek::RecordVal>(t);
+
+    std::string path = "test-path";
+
+    v->Assign(1, path);
+
+    auto sv = v->GetField(1);
+    CHECK(sv->RefCnt() == 2); // sv and v
+
+    v.reset();
+    CHECK(sv->RefCnt() == 1); // record was destroyed
 }
 
 TEST_SUITE_END();

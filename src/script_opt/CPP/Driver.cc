@@ -125,8 +125,16 @@ void CPPCompile::Compile(bool report_uncompilable) {
 
     NL();
 
+    IDSet globals_to_initialize;
     for ( auto& g : all_accessed_globals )
-        CreateGlobal(g);
+        if ( CreateGlobal(g) )
+            globals_to_initialize.insert(g);
+
+    for ( auto& g : globals_to_initialize ) {
+        auto gi = GenerateGlobalInit(g);
+        global_id_info->AddInstance(gi);
+        global_gis[g] = std::move(gi);
+    }
 
     for ( const auto& e : accessed_events )
         if ( AddGlobal(e, "gl") )

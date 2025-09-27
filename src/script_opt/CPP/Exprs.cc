@@ -1300,19 +1300,19 @@ int CPPCompile::ReadyExpr(const ExprPtr& e) {
     int max_cohort = 0;
 
     for ( const auto& g : pf->AllGlobals() )
-        max_cohort = max(max_cohort, GenerateGlobalInit(g)->FinalInitCohort());
+        max_cohort = max(max_cohort, GenerateGlobalInit(g)->FinalInitCohort() + 1);
     for ( const auto& c : pf->Constants() )
-        max_cohort = max(max_cohort, RegisterConstant(c->ValuePtr())->FinalInitCohort());
+        max_cohort = max(max_cohort, RegisterConstant(c->ValuePtr())->FinalInitCohort() + 1);
 
     for ( const auto& t : pf->OrderedTypes() ) {
         TypePtr tp{NewRef{}, const_cast<Type*>(t)};
-        max_cohort = max(max_cohort, RegisterType(tp)->FinalInitCohort());
+        max_cohort = max(max_cohort, RegisterType(tp)->FinalInitCohort() + 1);
     }
 
     for ( auto& [attrs, t] : pf->ConstructorAttrs() ) {
         AttributesPtr ap{NewRef{}, const_cast<Attributes*>(attrs)};
-        max_cohort = max(max_cohort, RegisterAttributes(ap)->FinalInitCohort());
-        max_cohort = max(max_cohort, RegisterType(t)->FinalInitCohort());
+        max_cohort = max(max_cohort, RegisterAttributes(ap)->FinalInitCohort() + 1);
+        max_cohort = max(max_cohort, RegisterType(t)->FinalInitCohort() + 1);
     }
 
     return max_cohort;

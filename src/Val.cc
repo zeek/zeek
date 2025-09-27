@@ -2924,13 +2924,12 @@ TableVal::TableRecordDependencies TableVal::parse_time_table_record_dependencies
 
 RecordVal::RecordTypeValMap RecordVal::parse_time_records;
 
-RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t) {
-    rt = std::move(t);
-
+RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t)) {
+    const auto* rt = GetRecordType();
     int n = rt->NumFields();
 
     if ( run_state::is_parsing )
-        parse_time_records[rt.get()].emplace_back(NewRef{}, this);
+        parse_time_records[rt].emplace_back(NewRef{}, this);
 
     if ( init_fields ) {
         record_val.resize(n);
@@ -2944,7 +2943,7 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t) {
                 record_val[e.first] = e.second->Generate();
             } catch ( InterpreterException& e ) {
                 if ( run_state::is_parsing )
-                    parse_time_records[rt.get()].pop_back();
+                    parse_time_records[rt].pop_back();
                 throw;
             }
         }
@@ -2956,12 +2955,11 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t) {
         record_val.reserve(n);
 }
 
-RecordVal::RecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals) : Val(t) {
-    rt = std::move(t);
-
+RecordVal::RecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals) : Val(std::move(t)) {
     // TODO: Change so that callers pass init_vals as ZValElement instead?
-    record_val.reserve(rt->NumFields());
+    const auto* rt = GetRecordType();
     size_t n = rt->NumFields();
+    record_val.reserve(n);
 
     for ( size_t i = 0; i < n; i++ ) {
         record_val.emplace_back(ZValElement(rt->GetFieldType(i)));
@@ -2977,7 +2975,7 @@ ValPtr RecordVal::SizeVal() const { return val_mgr->Count(GetType()->AsRecordTyp
 
 void RecordVal::Assign(int field, ValPtr new_val) {
     if ( new_val ) {
-        auto t = rt->GetFieldType(field);
+        const auto& t = GetRecordType()->GetFieldType(field);
         record_val[field] = ZVal(new_val, t);
         Modified();
     }
@@ -3105,7 +3103,7 @@ void RecordVal::Describe(ODesc* d) const {
     auto n = record_val.size();
 
     if ( d->IsBinary() ) {
-        rt->Describe(d);
+        GetRecordType()->Describe(d);
         d->SP();
         d->Add(static_cast<uint64_t>(n));
         d->SP();
@@ -3117,7 +3115,7 @@ void RecordVal::Describe(ODesc* d) const {
         if ( ! d->IsBinary() && i > 0 )
             d->Add(", ");
 
-        d->Add(rt->FieldName(i));
+        d->Add(GetRecordType()->FieldName(i));
 
         if ( ! d->IsBinary() )
             d->Add("=");
@@ -3166,6 +3164,7 @@ ValPtr RecordVal::DoClone(CloneState* state) {
     // record. As we cannot guarantee that it will be zeroed out at the
     // appropriate time (as it seems to be guaranteed for the original record)
     // we don't touch it.
+    auto rt = GetType<RecordType>();
     auto rv = make_intrusive<RecordVal>(rt, false);
     state->NewClone(this, rv);
 

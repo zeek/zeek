@@ -1329,7 +1329,7 @@ public:
      */
     template<class T>
     void AssignField(const char* field_name, T&& val) {
-        int idx = rt->FieldOffset(field_name);
+        int idx = GetRecordType()->FieldOffset(field_name);
         if ( idx < 0 )
             reporter->InternalError("missing record field: %s", field_name);
         Assign(idx, std::forward<T>(val));
@@ -1351,7 +1351,7 @@ public:
         if ( record_val[field] )
             return true;
 
-        return rt->DeferredInits()[field] != nullptr;
+        return GetRecordType()->DeferredInits()[field] != nullptr;
     }
 
     /**
@@ -1361,7 +1361,7 @@ public:
      * @return  Whether there's a value for the given field name.
      */
     bool HasField(const char* field) const {
-        int idx = rt->FieldOffset(field);
+        int idx = GetRecordType()->FieldOffset(field);
         return (idx != -1) && HasField(idx);
     }
 
@@ -1373,14 +1373,14 @@ public:
     ValPtr GetField(int field) const {
         auto& fv = record_val[field];
         if ( ! fv ) {
-            const auto& fi = rt->DeferredInits()[field];
+            const auto& fi = GetRecordType()->DeferredInits()[field];
             if ( ! fi )
                 return nullptr;
 
             fv = fi->Generate();
         }
 
-        return fv.ToVal(rt->GetFieldType(field));
+        return fv.ToVal(GetRecordType()->GetFieldType(field));
     }
 
     /**
@@ -1510,7 +1510,7 @@ public:
 
     template<typename T>
     auto GetFieldAs(const char* field) const {
-        int idx = rt->FieldOffset(field);
+        int idx = GetRecordType()->FieldOffset(field);
 
         if ( idx < 0 )
             reporter->InternalError("missing record field: %s", field);
@@ -1591,7 +1591,7 @@ protected:
     ZValSlot& RawOptField(int field) {
         auto& f = record_val[field];
         if ( ! f ) {
-            const auto& fi = rt->DeferredInits()[field];
+            const auto& fi = GetRecordType()->DeferredInits()[field];
             if ( fi )
                 f = fi->Generate();
         }
@@ -1621,11 +1621,12 @@ protected:
 private:
     // Just for template inferencing.
     RecordVal* Get() { return this; }
+    const RecordType* GetRecordType() const noexcept {
+        assert(GetType()->Tag() == TYPE_RECORD);
+        return static_cast<RecordType*>(GetType().get());
+    }
 
     unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;
-
-    // Keep this handy for quick access during low-level operations.
-    RecordTypePtr rt;
 
     // Low-level values of each of the fields.
     //

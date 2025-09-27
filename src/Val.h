@@ -1484,7 +1484,7 @@ protected:
 
     Obj* origin = nullptr;
 
-    using RecordTypeValMap = std::unordered_map<RecordType*, std::vector<RecordValPtr>>;
+    using RecordTypeValMap = std::unordered_map<const RecordType*, std::vector<RecordValPtr>>;
     static RecordTypeValMap parse_time_records;
 
 private:

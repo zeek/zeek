@@ -1114,6 +1114,154 @@ struct is_zeek_val {
 template<typename T>
 inline constexpr bool is_zeek_val_v = is_zeek_val<T>::value;
 
+/**
+ * A ZValElement holds a ZVal member and enough auxiliary information as
+ * members that allows automatic memory management as well as acting as
+ * an optional.
+ *
+ * This class originates from the observation that a std::optional<ZVal>
+ * as previously used in RecordVal objects already takes up 16 bytes on
+ * 64 bit architectures with GCC. The ZValElement class essentially uses
+ * the left-over padding bytes from the std::optional to facilitate easier
+ * memory management of ZVal instances without needing to keep external
+ * auxilarly information around.
+ *
+ * The is_managed flag and tag members are meant to be immutable except
+ * when a ZValElement assigned another ZValElement instance.
+ *
+ * A ZValElement's ZVal instance may hold a pointer to a managed value. Copying,
+ * destructing or assigning such a ZValElement will update the reference count
+ * of the managed value accordingly.
+ */
+class ZValElement {
+public:
+    /**
+     * Default constructor.
+     */
+    ZValElement() = default;
+
+    /**
+     * Initialize a ZValElement given a ValPtr and corresponding TypePtr.
+     *
+     * This has the same ref counting semantics as the corresponding ZVal
+     * constructor, increasing the ref count of any managed value by one.
+     *
+     * @param v The value.
+     * @param t The value's type.
+     */
+    ZValElement(ValPtr v, const TypePtr& t)
+        : is_set(true), is_managed(ZVal::IsManagedType(t)), tag(t->Tag()), zval(v, t) {}
+
+    /**
+     * Initialize a ZValElement with just the TypePtr.
+     *
+     * This is useful for optional fields in a record value where
+     * the type is known at construction time.
+     *
+     * @param t The type to initialize the element with.
+     */
+    ZValElement(const TypePtr& t) : is_managed(ZVal::IsManagedType(t)), tag(t->Tag()) {}
+
+    /**
+     * Copy constructor.
+     */
+    ZValElement(const ZValElement& s) : is_set(s.is_set), is_managed(s.is_managed), tag(s.tag), zval(s.zval) {
+        if ( is_set && is_managed )
+            Ref(zval.ManagedVal());
+    }
+
+    /**
+     * Destructor.
+     */
+    ~ZValElement() { Reset(); }
+
+    /**
+     * Assign one ZValElement instance to another with automatic memory management
+     * based on is_managed.
+     */
+    ZValElement& operator=(const ZValElement& s) {
+        if ( this == &s )
+            return *this;
+
+        if ( is_set && is_managed )
+            Unref(zval.ManagedVal());
+
+        is_set = s.is_set;
+        is_managed = s.is_managed;
+        tag = s.tag;
+        zval = s.zval;
+
+        if ( is_set && is_managed )
+            Ref(zval.ManagedVal());
+
+        return *this;
+    }
+
+    /**
+     * Assign a ZVal to ZValElement.
+     *
+     * This uses the is_managed member to determine if the contained
+     * ZVal is managed and should be unreferenced upon the assignment.
+     *
+     * Note that assigning a ZVal to a managed ZValElement adopts a reference
+     * from the incoming ZVal. This is a bit quirky, but it's what the plain
+     * ZVal constructors also do, so that seems consistent.
+     */
+    ZValElement& operator=(const ZVal& zv) {
+        if ( is_set && is_managed )
+            Unref(zval.ManagedVal());
+
+        is_set = true;
+        zval = zv;
+
+        return *this;
+    }
+
+    operator bool() const noexcept { return is_set; }
+    const ZVal* operator->() const noexcept { return &zval; }
+    ZVal& operator*() noexcept { return zval; }
+    const ZVal& operator*() const noexcept { return zval; }
+
+    bool IsSet() const noexcept { return is_set; }
+    bool IsManaged() const noexcept { return is_managed; }
+    TypeTag Tag() const noexcept { return tag; }
+
+    /**
+     * Reset this ZValElement.
+     *
+     * If the contained ZVal instance is managed, its reference
+     * count will be decreased.
+     */
+    void Reset() {
+        if ( is_set && is_managed )
+            Unref(zval.ManagedVal());
+
+        is_set = false;
+    }
+
+    /**
+     * Convert the contained ZVal instance to a ValPtr given a TypePtr.
+     *
+     * @param t Type to use for conversion to Val. Needs to agree with the type that was used to initialize the
+     * slot.
+     *
+     * @return A ValPtr instance for the slot.
+     */
+    ValPtr ToVal(const TypePtr& t) {
+        assert(IsSet());
+        return zval.ToVal(t);
+    }
+
+private:
+    bool is_set = false;
+    bool is_managed = false;
+    TypeTag tag = TYPE_ERROR;
+    // 5 bytes of padding here.
+    ZVal zval;
+};
+
+static_assert(sizeof(ZValElement) <= 16);
+
 class RecordVal final : public Val, public notifier::detail::Modifiable {
 public:
     explicit RecordVal(RecordTypePtr t, bool init_fields = true);

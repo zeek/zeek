@@ -44,6 +44,8 @@
 #include "zeek/broker/Store.h"
 #include "zeek/threading/formatters/detail/json.h"
 
+#include "zeek/3rdparty/doctest.h"
+
 using namespace std;
 
 namespace zeek {
@@ -4120,3 +4122,127 @@ const PortValPtr& ValManager::Port(uint32_t port_num) {
 }
 
 } // namespace zeek
+
+TEST_SUITE_BEGIN("ZValElement");
+
+TEST_CASE("default constructor") {
+    // default constructor doesn't do anything.
+    zeek::ZValElement element;
+    CHECK(! element.IsSet());
+    CHECK(! element.IsManaged());
+}
+
+TEST_CASE("holds CountVal") {
+    auto t = zeek::base_type(zeek::TYPE_COUNT);
+    auto v = zeek::make_intrusive<zeek::CountVal>(104242);
+    zeek::ZValElement element = zeek::ZValElement(v, t);
+
+    CHECK(element.IsSet());
+    CHECK(element.Tag() == zeek::TYPE_COUNT);
+    CHECK(! element.IsManaged());
+    CHECK(v->RefCnt() == 1); // Not managed, so the element does not hold a ref to the original value.
+    CHECK(element->AsCount() == 104242);
+
+    auto nv = element->ToVal(t);
+    CHECK(nv->RefCnt() == 1); // Not managed, so the element does not hold a ref to the original value.
+    CHECK(nv != v);
+}
+
+TEST_CASE("holds RecordVal") {
+    auto t = zeek::id::find_type<zeek::RecordType>("conn_id_ctx");
+    auto v = zeek::make_intrusive<zeek::RecordVal>(t);
+    CHECK(v->RefCnt() == 1);
+    zeek::ZValElement element = zeek::ZValElement(v, t);
+
+    CHECK(element.IsSet());
+    CHECK(element.Tag() == zeek::TYPE_RECORD);
+    CHECK(element.IsManaged());
+    CHECK(v->RefCnt() == 2); // Managed, element takes a ref.
+
+    auto nv = element->ToVal(t);
+    CHECK(nv->RefCnt() == 3);
+    CHECK(nv == v);
+
+    nv.reset();
+    element.Reset();
+
+    CHECK(v->RefCnt() == 1);
+    v = nullptr;
+}
+
+TEST_CASE("assign count ZVal") {
+    auto t = zeek::base_type(zeek::TYPE_COUNT);
+    auto v1 = zeek::make_intrusive<zeek::CountVal>(42);
+    auto v2 = zeek::make_intrusive<zeek::CountVal>(100000);
+
+    zeek::ZValElement element = zeek::ZValElement(v1, t);
+    CHECK(v1->RefCnt() == 1);
+
+    element = zeek::ZVal(v2, t);
+
+    // Unmanaged
+    CHECK(v1->RefCnt() == 1);
+    CHECK(v2->RefCnt() == 1);
+
+    auto v3 = element->ToVal(t);
+
+    // New CountVal for 100000
+    CHECK(v3 != v2);
+    CHECK(v3->RefCnt() == 1);
+}
+
+TEST_CASE("assign managed ZVal to ZValElement") {
+    auto t = zeek::id::find_type<zeek::RecordType>("conn_id_ctx");
+    auto v1 = zeek::make_intrusive<zeek::RecordVal>(t);
+    auto v2 = zeek::make_intrusive<zeek::RecordVal>(t);
+
+    zeek::ZValElement element = zeek::ZValElement(v1, t);
+    CHECK(v1->RefCnt() == 2); // v1 and element
+
+    zeek::ZVal zval(v2, t);
+    CHECK(v2->RefCnt() == 2); // ZVal takes a reference.
+
+    element = zval;
+    CHECK(v2->RefCnt() == 2); // Assigning ZVal to ZValElement adopts the reference!
+
+    CHECK(v1->RefCnt() == 1); // Reference to contained ZVal (v1) was released.
+
+    auto v3 = element->ToVal(t);
+    CHECK(v3 == v2);
+    CHECK(v2->RefCnt() == 3); // v2, element and v3
+}
+
+TEST_CASE("assignment") {
+    auto t = zeek::id::find_type<zeek::RecordType>("conn_id_ctx");
+    auto v1 = zeek::make_intrusive<zeek::RecordVal>(t);
+    auto v2 = zeek::make_intrusive<zeek::RecordVal>(t);
+
+    zeek::ZValElement element1 = zeek::ZValElement(v1, t);
+    zeek::ZValElement element2 = zeek::ZValElement(v2, t);
+
+    CHECK(v1->RefCnt() == 2); // v1 and element1
+    CHECK(v2->RefCnt() == 2); // v2 and element2
+
+    element1 = element2;
+    CHECK(v1->RefCnt() == 1); // element1 released reference to v1.
+    CHECK(v2->RefCnt() == 3); // v2, element1 and element2 hold references
+    element2 = element1;
+    CHECK(v1->RefCnt() == 1); // Nothing should've changed - they were the same.
+    CHECK(v2->RefCnt() == 3);
+}
+
+TEST_CASE("copy constructor") {
+    auto t = zeek::id::find_type<zeek::RecordType>("conn_id_ctx");
+    auto v = zeek::make_intrusive<zeek::RecordVal>(t);
+
+    zeek::ZValElement element1 = zeek::ZValElement(v, t);
+    CHECK(v->RefCnt() == 2); // v, element1
+    zeek::ZValElement element2 = element1;
+    CHECK(v->RefCnt() == 3); // v, element1, element2
+    zeek::ZValElement element3 = element2;
+    CHECK(v->RefCnt() == 4); // v, element1, element2, element3
+    element3 = element2;     // assignment
+    CHECK(v->RefCnt() == 4); // v, element1, element2, element3
+}
+
+TEST_SUITE_END();

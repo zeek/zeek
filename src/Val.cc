@@ -44,6 +44,8 @@
 #include "zeek/broker/Store.h"
 #include "zeek/threading/formatters/detail/json.h"
 
+#include "zeek/3rdparty/doctest.h"
+
 using namespace std;
 
 namespace zeek {
@@ -4120,3 +4122,108 @@ const PortValPtr& ValManager::Port(uint32_t port_num) {
 }
 
 } // namespace zeek
+
+TEST_SUITE_BEGIN("ZValSlot");
+
+TEST_CASE("default constructor") {
+    // default constructor doesn't do anything.
+    zeek::ZValSlot slot;
+}
+
+TEST_CASE("slot hold CountVal") {
+    auto t = zeek::base_type(zeek::TYPE_COUNT);
+    auto v = zeek::make_intrusive<zeek::CountVal>(104242);
+    zeek::ZValSlot slot = zeek::ZValSlot(v, t);
+
+    CHECK(slot.IsSet());
+    CHECK(slot.Tag() == zeek::TYPE_COUNT);
+    CHECK(! slot.IsManaged());
+    CHECK(v->RefCnt() == 1); // Not managed, so the slot does not hold a ref to the original value.
+    CHECK(slot->AsCount() == 104242);
+
+    auto nv = slot->ToVal(t);
+    CHECK(nv->RefCnt() == 1); // Not managed, so the slot does not hold a ref to the original value.
+}
+
+TEST_CASE("slot hold RecordVal") {
+    auto t = zeek::id::find_type<zeek::RecordType>("conn_id_ctx");
+    auto v = zeek::make_intrusive<zeek::RecordVal>(t);
+    CHECK(v->RefCnt() == 1);
+    zeek::ZValSlot slot = zeek::ZValSlot(v, t);
+
+    CHECK(slot.IsSet());
+    CHECK(slot.Tag() == zeek::TYPE_RECORD);
+    CHECK(slot.IsManaged());
+    CHECK(v->RefCnt() == 2); // Managed, slot takes a ref.
+
+    slot.Reset();
+
+    CHECK(v->RefCnt() == 1);
+    v = nullptr;
+}
+
+TEST_CASE("assign count ZVal to slot") {
+    auto t = zeek::base_type(zeek::TYPE_COUNT);
+    auto v1 = zeek::make_intrusive<zeek::CountVal>(42);
+    auto v2 = zeek::make_intrusive<zeek::CountVal>(100000);
+
+    zeek::ZValSlot slot = zeek::ZValSlot(v1, t);
+    CHECK(v1->RefCnt() == 1);
+
+    slot = zeek::ZVal(v2, t);
+
+    // Unmanaged
+    CHECK(v1->RefCnt() == 1);
+    CHECK(v2->RefCnt() == 1);
+
+    auto v3 = slot->ToVal(t);
+
+    // New CountVal for 100000
+    CHECK(v3 != v2);
+    CHECK(v3->RefCnt() == 1);
+}
+
+TEST_CASE("assign record ZVal to slot") {
+    auto t = zeek::id::find_type<zeek::RecordType>("conn_id_ctx");
+    auto v1 = zeek::make_intrusive<zeek::RecordVal>(t);
+    auto v2 = zeek::make_intrusive<zeek::RecordVal>(t);
+
+    zeek::ZValSlot slot = zeek::ZValSlot(v1, t);
+    CHECK(v1->RefCnt() == 2); // v1 and slot
+
+    slot = zeek::ZVal(v2, t);
+    CHECK(v1->RefCnt() == 1); // slot released
+    CHECK(v2->RefCnt() == 2); // v2 and slot
+
+    auto v3 = slot->ToVal(t);
+    CHECK(v3 == v2);
+    CHECK(v2->RefCnt() == 3); // v2, slot and v3
+}
+
+TEST_CASE("assign slot assignment") {
+    auto t = zeek::id::find_type<zeek::RecordType>("conn_id_ctx");
+    auto v1 = zeek::make_intrusive<zeek::RecordVal>(t);
+    auto v2 = zeek::make_intrusive<zeek::RecordVal>(t);
+
+    zeek::ZValSlot slot1 = zeek::ZValSlot(v1, t);
+    zeek::ZValSlot slot2 = zeek::ZValSlot(v2, t);
+
+    CHECK(v1->RefCnt() == 2); // v1 and slot1
+    CHECK(v2->RefCnt() == 2); // v2 and slot2
+
+    slot1 = slot2;
+    CHECK(v1->RefCnt() == 1); // slot1 released
+    CHECK(v2->RefCnt() == 3); // v2, slot1 and slot2
+}
+
+TEST_CASE("copy slot") {
+    auto t = zeek::id::find_type<zeek::RecordType>("conn_id_ctx");
+    auto v = zeek::make_intrusive<zeek::RecordVal>(t);
+
+    zeek::ZValSlot slot1 = zeek::ZValSlot(v, t);
+    zeek::ZValSlot slot2 = slot1;
+
+    CHECK(v->RefCnt() == 3); // v1, slot1 and slot2
+}
+
+TEST_SUITE_END();

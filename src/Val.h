@@ -1114,6 +1114,135 @@ struct is_zeek_val {
 template<typename T>
 inline constexpr bool is_zeek_val_v = is_zeek_val<T>::value;
 
+/**
+ * A ZValSlot holds a ZVal instance and some auxiliary information that allows automatic
+ * memory management as well as acting as an optional unset field.
+ *
+ * This class originated from the observation that a std::optional<ZVal>
+ * as previously used in VectorVal and RecordVal objects already takes up
+ * 16 bytes on 64 bit architectures with GCC. The ZValSlot class essentially
+ * uses the left-over 7 bytes from the std::optional to allow easier memory
+ * management without needing to keep external auxilarly information around.
+ *
+ * The is_managed flag and type_tag flags are meant to be immutable except
+ * when a ZValSlot is reassigned.
+ *
+ * A ZValSlot instance holds a reference to a managed value. Such ZValSlot
+ * instances can be copied or assigned and the reference count of the ZVal
+ * will be updated accordingly.
+ */
+class ZValSlot {
+public:
+    /**
+     * Totally uninitialized, watch out!
+     */
+    ZValSlot() {}
+
+    /**
+     * Initialize a set ZValSlot given a ValPtr and corresponding TypePtr.
+     *
+     * This has the same ref counting semantics as the corresponding ZVal
+     * constructor, increasing the ref count of any managed value.
+     */
+    ZValSlot(ValPtr v, const TypePtr& t)
+        : is_set(true), is_managed(ZVal::IsManagedType(t)), type_tag(t->Tag()), zval(v, t) {}
+
+    /**
+     * Initialize a ZValSlot with just the TypePtr.
+     *
+     * This is useful for optional fields in a record value where
+     * the type is known at construction time.
+     */
+    ZValSlot(const TypePtr& t) : is_set(false), is_managed(ZVal::IsManagedType(t)), type_tag(t->Tag()) {}
+
+    /**
+     * Copy constructor.
+     */
+    ZValSlot(const ZValSlot& s) : is_set(s.is_set), is_managed(s.is_managed), type_tag(s.type_tag), zval(s.zval) {
+        if ( is_set && is_managed )
+            Ref(zval.ManagedVal());
+    }
+
+    /**
+     * Destructor.
+     */
+    ~ZValSlot() { Reset(); }
+
+    ZValSlot& operator=(const ZValSlot& s) {
+        if ( is_set && is_managed )
+            Unref(zval.ManagedVal());
+
+        is_set = s.is_set;
+        is_managed = s.is_managed;
+        type_tag = s.type_tag;
+        zval = s.zval;
+
+        if ( is_set && is_managed )
+            Ref(zval.ManagedVal());
+
+        return *this;
+    }
+
+    /**
+     * Assign a ZVal to a slot.
+     *
+     * This uses the is_managed member to determine if the
+     * given ZVal should be treated as managed and whether.
+     *
+     * Assigning a ZVal to a managed slot adopts a reference!
+     * This is a bit quirky, but it's what the plain ZVal
+     * constructors also do.
+     */
+    ZValSlot& operator=(const ZVal& zv) {
+        if ( is_set && is_managed )
+            Unref(zval.ManagedVal());
+
+        is_set = true;
+        zval = zv;
+
+        return *this;
+    }
+
+    operator bool() const noexcept { return is_set; }
+    const ZVal* operator->() const noexcept { return &zval; }
+    ZVal& operator*() noexcept { return zval; }
+    const ZVal& operator*() const noexcept { return zval; }
+
+    bool IsSet() const noexcept { return is_set; }
+    bool IsManaged() const noexcept { return is_managed; }
+    TypeTag Tag() const noexcept { return type_tag; }
+
+    void Reset() {
+        if ( is_set && is_managed )
+            Unref(zval.ManagedVal());
+
+        is_set = false;
+    }
+
+    /**
+     * Convert a slot's ZVal to a ValPtr given a TypePtr.
+     *
+     * @param t Type to use for conversion to Val. Needs to agree with the type that was used to initialize the
+     * slot.
+     *
+     * @return A ValPtr instance for the slot.
+     */
+    ValPtr ToVal(const TypePtr& t) {
+        assert(IsSet());
+        // assert(Tag() == TYPE_ANY || Tag() == t->Tag());
+
+        return zval.ToVal(t);
+    }
+
+private:
+    bool is_set;
+    bool is_managed;
+    TypeTag type_tag;
+    ZVal zval;
+};
+
+static_assert(sizeof(ZValSlot) <= 16);
+
 class RecordVal final : public Val, public notifier::detail::Modifiable {
 public:
     explicit RecordVal(RecordTypePtr t, bool init_fields = true);

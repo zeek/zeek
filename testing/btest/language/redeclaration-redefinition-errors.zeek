@@ -59,3 +59,11 @@ global f: function();
 global f = function() { };
 global f: hook();
 global f: event();
+
+# @TEST-START-NEXT
+global f = function() { };
+type f: bool;
+
+# @TEST-START-NEXT
+type f: record {};
+type f: bool;

@@ -81,8 +81,6 @@ macro	AssignFromRec(rhs)
 		if ( is_managed[i] )
 			{
 			zeek::Ref(rhs_i.ManagedVal());
-			if ( init_i )
-				ZVal::DeleteManagedType(*init_i);
 			}
 		init_i = rhs_i;
 		}
@@ -166,8 +164,6 @@ macro DoManagedRecAssign(lhs, rhs)
 			auto& lhs_i = lhs->RawOptField(lhs_map[i]);
 			auto rhs_i = FieldValWithCheck(rhs, rhs_map[i]);
 			zeek::Ref(rhs_i.ManagedVal());
-			if ( lhs_i )
-				ZVal::DeleteManagedType(*lhs_i);
 			lhs_i = rhs_i;
 			}
 		else
@@ -190,8 +186,6 @@ eval	SetUpRecFieldOps(map)
 		auto& lhs_i = $1->RawOptField(lhs_map[i]);
 		auto rhs_i = FieldValWithCheck($2, rhs_map[i]);
 		zeek::Ref(rhs_i.ManagedVal());
-		if ( lhs_i )
-			ZVal::DeleteManagedType(*lhs_i);
 		lhs_i = rhs_i;
 		}
 

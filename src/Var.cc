@@ -351,21 +351,28 @@ void add_type(ID* id, TypePtr t, std::unique_ptr<std::vector<AttrPtr>> attr) {
     if ( const auto& old_t = id->GetType() ) {
         // The identifier already has a type associated with it. This can
         // be okay if (1) it's already been marked as a Type identifier,
-        // (2) the previous type is a stub.
+        // (2) (2) the previous type is a stub, or an equivalent enum.
         if ( ! id->IsType() ) {
             reporter->Error("Identifier %s has already been declared and is not a type", id->Name());
             return;
         }
 
-        if ( old_t->Tag() == t->Tag() &&
-             ((old_t->Tag() == TYPE_RECORD && old_t->AsRecordType()->NumFields() == 0) || t->Tag() == TYPE_ENUM) )
+        if ( old_t->Tag() == t->Tag() && ((old_t->Tag() == TYPE_RECORD && old_t->AsRecordType()->NumFields() == 0) ||
+                                          (t->Tag() == TYPE_ENUM && same_type(t, old_t))) )
             // It has a consistent tag and is either redeclaring a stub
             // record (used in init-bare.zeek) or an enum (which can
             // appear due to specifiers in BiFs, for example).
             ;
 
         else {
-            reporter->Error("Type %s has already been declared", id->Name());
+            std::string loc;
+            auto li = id->GetLocationInfo();
+            auto fn = li->FileName();
+            int ln = li->FirstLine();
+            if ( fn && fn[0] != '\0' )
+                loc = " at " + std::string(fn) + ":" + std::to_string(ln);
+
+            reporter->Error("Type %s has already been declared%s", id->Name(), loc.c_str());
             return;
         }
     }

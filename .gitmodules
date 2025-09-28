@@ -16,9 +16,6 @@
 [submodule "auxil/netcontrol-connectors"]
 	path = auxil/netcontrol-connectors
 	url = https://github.com/zeek/zeek-netcontrol
-[submodule "doc"]
-	path = doc
-	url = https://github.com/zeek/zeek-docs
 [submodule "auxil/paraglob"]
 	path = auxil/paraglob
 	url = https://github.com/zeek/paraglob

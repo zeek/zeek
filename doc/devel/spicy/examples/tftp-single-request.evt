@@ -1,0 +1,7 @@
+protocol analyzer spicy::TFTP over UDP:
+    parse with TFTP::Packet,
+    port 69/udp;
+
+import TFTP;
+
+on TFTP::Request -> event tftp::request($conn);

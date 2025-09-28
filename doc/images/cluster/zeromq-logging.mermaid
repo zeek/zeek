@@ -1,0 +1,49 @@
+flowchart TD
+
+  %% Logging
+  w1-push-->l1-pull
+  w1-push-->l2-pull
+  w2-push-->l1-pull
+  w2-push-->l2-pull
+  w3-push-->l1-pull
+  w3-push-->l2-pull
+  p1-push-->l1-pull
+  p1-push-->l2-pull
+  p2-push-->l1-pull
+  p2-push-->l2-pull
+  m-push-->l1-pull
+  m-push-->l2-pull
+
+subgraph l1 [logger-1]
+  l1-pull(PULL)
+end
+
+subgraph l2 [logger-2]
+  l2-pull(PULL)
+end
+
+subgraph m [manager]
+  m-push(PUSH)
+end
+
+subgraph p1 [proxy-1]
+  p1-push(PUSH)
+end
+
+subgraph p2 [proxy-2]
+  p2-push(PUSH)
+end
+
+subgraph w1 [worker-1]
+  w1-push(PUSH)
+end
+
+subgraph w2 [worker-2]
+  w2-push(PUSH)
+end
+
+subgraph w3 [worker-3]
+
+  w3-push(PUSH)
+end
+

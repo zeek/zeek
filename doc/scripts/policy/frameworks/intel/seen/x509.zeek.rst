@@ -1,0 +1,33 @@
+:tocdepth: 3
+
+policy/frameworks/intel/seen/x509.zeek
+======================================
+.. zeek:namespace:: Intel
+
+
+:Namespace: Intel
+:Imports: :doc:`base/files/x509 </scripts/base/files/x509/index>`, :doc:`base/frameworks/intel </scripts/base/frameworks/intel/index>`, :doc:`policy/frameworks/intel/seen/where-locations.zeek </scripts/policy/frameworks/intel/seen/where-locations.zeek>`
+
+Summary
+~~~~~~~
+Runtime Options
+###############
+================================================================================================= =============================================================================
+:zeek:id:`Intel::enable_x509_ext_subject_alternative_name`: :zeek:type:`bool` :zeek:attr:`&redef` Enables the extraction of subject alternate names from the X509 SAN DNS field
+================================================================================================= =============================================================================
+
+
+Detailed Interface
+~~~~~~~~~~~~~~~~~~
+Runtime Options
+###############
+.. zeek:id:: Intel::enable_x509_ext_subject_alternative_name
+   :source-code: policy/frameworks/intel/seen/x509.zeek 9 9
+
+   :Type: :zeek:type:`bool`
+   :Attributes: :zeek:attr:`&redef`
+   :Default: ``T``
+
+   Enables the extraction of subject alternate names from the X509 SAN DNS field
+
+

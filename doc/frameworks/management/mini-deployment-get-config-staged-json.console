@@ -1,0 +1,55 @@
+$ zeek-client get-config --as-json
+{
+  "id": "5e90197a-f850-11ec-a77f-7c10c94416bb",
+  "instances": [
+    {
+      "name": "agent-testbox"
+    }
+  ],
+  "nodes": [
+    {
+      "cpu_affinity": null,
+      "env": {},
+      "instance": "agent-testbox",
+      "interface": null,
+      "name": "logger",
+      "options": null,
+      "port": null,
+      "role": "LOGGER",
+      "scripts": null
+    },
+    {
+      "cpu_affinity": null,
+      "env": {},
+      "instance": "agent-testbox",
+      "interface": null,
+      "name": "manager",
+      "options": null,
+      "port": null,
+      "role": "MANAGER",
+      "scripts": null
+    },
+    {
+      "cpu_affinity": null,
+      "env": {},
+      "instance": "agent-testbox",
+      "interface": "lo",
+      "name": "worker-01",
+      "options": null,
+      "port": null,
+      "role": "WORKER",
+      "scripts": null
+    },
+    {
+      "cpu_affinity": null,
+      "env": {},
+      "instance": "agent-testbox",
+      "interface": "eth0",
+      "name": "worker-02",
+      "options": null,
+      "port": null,
+      "role": "WORKER",
+      "scripts": null
+    }
+  ]
+}

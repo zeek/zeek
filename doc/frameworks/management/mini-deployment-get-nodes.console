@@ -1,0 +1,47 @@
+$ zeek-client get-nodes
+{
+  "errors": [],
+  "results": {
+    "agent-testbox": {
+      "agent-testbox": {
+        "cluster_role": null,
+        "mgmt_role": "AGENT",
+        "pid": 52076,
+        "state": "RUNNING"
+      },
+      "controller-testbox": {
+        "cluster_role": null,
+        "mgmt_role": "CONTROLLER",
+        "pid": 52075,
+        "port": 2151,
+        "state": "RUNNING"
+      },
+      "logger": {
+        "cluster_role": "LOGGER",
+        "mgmt_role": null,
+        "pid": 54075,
+        "port": 2201,
+        "state": "RUNNING"
+      },
+      "manager": {
+        "cluster_role": "MANAGER",
+        "mgmt_role": null,
+        "pid": 54073,
+        "port": 2200,
+        "state": "RUNNING"
+      },
+      "worker-01": {
+        "cluster_role": "WORKER",
+        "mgmt_role": null,
+        "pid": 54074,
+        "state": "RUNNING"
+      },
+      "worker-02": {
+        "cluster_role": "WORKER",
+        "mgmt_role": null,
+        "pid": 54072,
+        "state": "RUNNING"
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+$ zeek-client get-id-value Log::all_streams worker-01
+{
+  "errors": [],
+  "results": {
+    "worker-01": {
+      "Broker::LOG": {
+        "columns": null,
+        "path": "broker",
+        "policy": "Broker::log_policy"
+      },
+      "Cluster::LOG": {
+        "columns": null,
+        "path": "cluster",
+        "policy": "Cluster::log_policy"
+      },
+      ...
+      "X509::LOG": {
+        "columns": null,
+        "ev": "X509::log_x509",
+        "path": "x509",
+        "policy": "X509::log_policy"
+      },
+      "mysql::LOG": {
+        "columns": null,
+        "ev": "MySQL::log_mysql",
+        "path": "mysql",
+        "policy": "MySQL::log_policy"
+      }
+    }
+  }
+}

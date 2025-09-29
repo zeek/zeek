@@ -220,7 +220,7 @@ private:
     analyzer::pia::PIA* primary_PIA;
 
     UID uid; // Globally unique connection ID.
-    detail::WeirdStateMap weird_state;
+    std::unique_ptr<detail::WeirdStateMap> weird_state;
 
     // Count number of connections.
     static uint64_t total_connections;

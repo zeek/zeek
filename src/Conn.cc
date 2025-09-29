@@ -4,6 +4,7 @@
 
 #include <binpac.h>
 #include <cctype>
+#include <memory>
 
 #include "zeek/Desc.h"
 #include "zeek/ID.h"
@@ -12,6 +13,7 @@
 #include "zeek/RunState.h"
 #include "zeek/Timer.h"
 #include "zeek/TunnelEncapsulation.h"
+#include "zeek/WeirdState.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
@@ -399,7 +401,10 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label) {
 }
 
 bool Connection::PermitWeird(const char* name, uint64_t threshold, uint64_t rate, double duration) {
-    return detail::PermitWeird(weird_state, name, threshold, rate, duration);
+    if ( ! weird_state )
+        weird_state = std::make_unique<detail::WeirdStateMap>();
+
+    return detail::PermitWeird(*weird_state, name, threshold, rate, duration);
 }
 
 } // namespace zeek

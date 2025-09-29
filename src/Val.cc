@@ -2926,17 +2926,15 @@ RecordVal::RecordTypeValMap RecordVal::parse_time_records;
 
 RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t)) {
     const auto* rt = GetRecordType();
-    int n = rt->NumFields();
 
     if ( run_state::is_parsing )
         parse_time_records[rt].emplace_back(NewRef{}, this);
 
     if ( init_fields ) {
-        record_val.resize(n);
+        record_val.resize(rt->NumFields());
 
         // Properly initialize all fields.
-        for ( size_t i = 0; i < record_val.size(); i++ )
-            record_val[i] = ZValElement(rt->GetFieldType(i));
+        Init(record_val.data());
 
         for ( auto& e : rt->CreationInits() ) {
             try {
@@ -2952,7 +2950,7 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t)) {
     else
         // This needs to go through AppendField() which will do the right thing
         // for the individual fields.
-        record_val.reserve(n);
+        record_val.reserve(rt->NumFields());
 }
 
 RecordVal::RecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals) : Val(std::move(t)) {

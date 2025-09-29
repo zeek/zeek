@@ -18,6 +18,7 @@
 #include "zeek/Traverse.h"
 #include "zeek/Val.h"
 #include "zeek/Var.h"
+#include "zeek/ZVal.h"
 #include "zeek/module_util.h"
 #include "zeek/zeekygen/IdentifierInfo.h"
 #include "zeek/zeekygen/Manager.h"
@@ -822,13 +823,14 @@ detail::TraversalCode TypeType::Traverse(detail::TraversalCallback* cb) const {
 }
 
 TypeDecl::TypeDecl(const char* i, TypePtr t, detail::AttributesPtr arg_attrs)
-    : type(std::move(t)), attrs(std::move(arg_attrs)), id(i) {}
+    : type(std::move(t)), attrs(std::move(arg_attrs)), id(i), is_managed(ZVal::IsManagedType(type)) {}
 
 TypeDecl::TypeDecl(const TypeDecl& other) {
     type = other.type;
     attrs = other.attrs;
 
     id = util::copy_string(other.id);
+    is_managed = other.is_managed;
 }
 
 TypeDecl::~TypeDecl() { delete[] id; }

@@ -1153,6 +1153,11 @@ public:
         : is_set(true), is_managed(ZVal::IsManagedType(t)), tag(t->Tag()), zval(v, t) {}
 
     /**
+     * Initialize a ZValElement using a TypeDecl.
+     */
+    ZValElement(const TypeDecl& td) : is_set(false), is_managed(td.is_managed), tag(td.type->Tag()) {}
+
+    /**
      * Initialize a ZValElement with just the TypePtr.
      *
      * This is useful for optional fields in a record value where
@@ -1642,6 +1647,20 @@ private:
     const RecordType* GetRecordType() const noexcept {
         assert(type->Tag() == TYPE_RECORD);
         return static_cast<RecordType*>(type.get());
+    }
+
+    /**
+     * Initialize the record_val ZValElements using the type's field decls.
+     *
+     * This avoids IsManagedType() calls as their result is always the same
+     * and cached in the TypeDecl instances for each field.
+     */
+    void Init(ZValElement* elements) {
+        const auto* rt = GetRecordType();
+        size_t n = NumFields();
+        assert(n == rt->Types()->size());
+        for ( size_t i = 0; i < n; i++ )
+            elements[i] = ZValElement(*rt->FieldDecl(i));
     }
 
     unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;

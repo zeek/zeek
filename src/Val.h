@@ -1148,6 +1148,11 @@ public:
         : is_set(true), is_managed(ZVal::IsManagedType(t)), type_tag(t->Tag()), zval(v, t) {}
 
     /**
+     * Initialize a ZValSlot using its properties.
+     */
+    ZValSlot(const RecordFieldProperties p) : is_set(false), is_managed(p.is_managed), type_tag(p.type_tag) {}
+
+    /**
      * Initialize a ZValSlot with just the TypePtr.
      *
      * This is useful for optional fields in a record value where

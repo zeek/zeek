@@ -203,7 +203,7 @@ int Base64Converter::Done(int* pblen, char** pbuf) {
 }
 
 void Base64Converter::IllegalEncoding(const char* msg) {
-    // strncpy(error_msg, msg, sizeof(error_msg));
+    // strlcpy(error_msg, msg, sizeof(error_msg));
     if ( conn )
         conn->Weird("base64_illegal_encoding", msg);
     else

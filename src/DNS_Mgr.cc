@@ -419,7 +419,7 @@ static void query_cb(void* arg, ares_status_t status, size_t timeouts, const are
                 }
 
                 he.h_name = new char[abin_len + 1];
-                strncpy(he.h_name, reinterpret_cast<const char*>(abin), abin_len);
+                strlcpy(he.h_name, reinterpret_cast<const char*>(abin), abin_len + 1);
                 he.h_name[abin_len] = 0;
                 he.h_aliases = nullptr;
 

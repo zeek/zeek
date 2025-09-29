@@ -1316,11 +1316,8 @@ char* uitoa_n(uint64_t value, char* str, int n, int base, const char* prefix) {
     uint64_t v;
     char c;
 
-    if ( prefix ) {
-        strncpy(str, prefix, n - 1);
-        str[n - 1] = '\0';
-        i += strlen(prefix);
-    }
+    if ( prefix )
+        i += strlcpy(str, prefix, n - 1);
 
     if ( i >= n - 1 )
         return str;
@@ -2220,7 +2217,7 @@ static void strerror_r_helper(char* result, char* buf, size_t buflen) {
     // Seems the GNU flavor of strerror_r may return a pointer to a static
     // string. So try to copy as much as possible into desired buffer.
     auto len = strlen(result);
-    strncpy(buf, result, buflen);
+    strlcpy(buf, result, buflen);
 
     if ( len >= buflen )
         buf[buflen - 1] = 0;

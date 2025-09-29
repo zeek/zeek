@@ -93,7 +93,7 @@ const char* last_tok_filename = 0;
 const char* last_last_tok_filename = 0;
 char last_tok[128];
 
-#define YY_USER_ACTION	strncpy(last_tok, yytext, sizeof(last_tok) - 1); \
+#define YY_USER_ACTION	strlcpy(last_tok, yytext, sizeof(last_tok)); \
                         last_last_tok_filename = last_tok_filename; \
                         last_tok_filename = ::filename;
 #define YY_USER_INIT	last_tok[0] = '\0';

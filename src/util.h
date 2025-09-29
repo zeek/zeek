@@ -470,9 +470,8 @@ inline void* safe_malloc(size_t size) {
 }
 
 inline char* safe_strncpy(char* dest, const char* src, size_t n) {
-    char* result = strncpy(dest, src, n - 1);
-    dest[n - 1] = '\0';
-    return result;
+    size_t last = strlcpy(dest, src, n);
+    return &dest[last];
 }
 
 // Memory alignment helpers.

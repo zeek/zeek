@@ -2933,7 +2933,7 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t)) {
     if ( init_fields ) {
         record_val.resize(rt->NumFields());
 
-        rt->InitSlots(record_val);
+        rt->InitSlots(std::span{record_val.data(), record_val.size()});
 
         for ( auto& e : rt->CreationInits() ) {
             try {
@@ -2955,11 +2955,10 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t)) {
 RecordVal::RecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals) : Val(std::move(t)) {
     // TODO: Change so that callers pass init_vals as ZValSlot instead?
     size_t n = GetRecordType()->NumFields();
-    record_val.reserve(n);
+    record_val.resize(n);
+    GetRecordType()->InitSlots(std::span{record_val.data(), record_val.size()});
 
     for ( size_t i = 0; i < n; i++ ) {
-        record_val.emplace_back(ZValSlot(GetRecordType()->GetFieldType(i)));
-
         if ( init_vals[i].has_value() )
             record_val[i] = init_vals[i].value();
     }
@@ -3009,6 +3008,7 @@ void RecordVal::ResizeParseTimeRecords(RecordType* revised_rt) {
         auto required_length = revised_rt->NumFields();
 
         if ( required_length > current_length ) {
+            rv->record_val.reserve(required_length);
             for ( auto i = current_length; i < required_length; ++i )
                 rv->AppendField(revised_rt->FieldDefault(i), revised_rt->GetFieldType(i));
         }

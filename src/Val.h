@@ -1656,9 +1656,9 @@ protected:
      */
     void AppendField(ValPtr v, const TypePtr& t) {
         if ( v )
-            record_val.emplace_back(ZValSlot(v, t));
+            record_val.push_back(ZValSlot(v, t));
         else
-            record_val.emplace_back(ZValSlot(t));
+            record_val.push_back(ZValSlot(t));
     }
 
     // For internal use by low-level ZAM instructions and event tracing.
@@ -1710,7 +1710,7 @@ private:
     // Low-level values of each of the fields.
     //
     // Lazily modified during GetField(), so mutable.
-    mutable std::vector<ZValSlot> record_val;
+    mutable detail::vector32<ZValSlot> record_val;
 };
 
 class EnumVal final : public detail::IntValImplementation {

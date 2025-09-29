@@ -4,6 +4,7 @@
 
 #include <sys/types.h> // for u_char
 #include <array>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -1247,6 +1248,79 @@ private:
 };
 
 static_assert(sizeof(ZValSlot) <= 16);
+
+namespace detail {
+/**
+ * A std::vector replacement for record slots with 32bit size and capacity so we
+ * end up with a 16 byte vector instead of 24 bytes. Anyone trying to put more than
+ * 500mio fields into a record likely has other problems to solve, first :-)
+ *
+ * Going to 16 bit doesn't save much as the whole class will still take 16 bytes
+ * with padding on a 64bit system.
+ */
+template<class T>
+class vector32 {
+public:
+    vector32() {}
+    vector32(size_t size) : d(std::make_unique<T[]>(size)), sz(size), cap(size) {}
+
+    const T& operator[](size_t i) const noexcept { return d[i]; }
+    T& operator[](size_t i) noexcept { return d[i]; }
+    const T* data() const noexcept { return d.get(); }
+    T* data() noexcept { return d.get(); }
+
+    void push_back(T slot) {
+        // No automatic resizing
+        if ( cap <= sz )
+            throw std::logic_error("capacity exceeded");
+
+        d[sz++] = slot;
+    }
+
+    void resize(size_t new_size) {
+        if ( new_size < sz || new_size < cap )
+            throw std::length_error("cannot truncate");
+
+        if ( new_size > std::numeric_limits<decltype(sz)>::max() )
+            throw std::length_error("new_size too large");
+
+        if ( new_size > cap ) {
+            std::unique_ptr<T[]> new_data = std::make_unique<T[]>(new_size);
+            for ( size_t i = 0; i < sz; i++ )
+                new_data[i] = std::move(d[i]);
+            d = std::move(new_data);
+            sz = new_size;
+            cap = new_size;
+        }
+
+        sz = new_size;
+    }
+
+    void reserve(size_t new_capacity) {
+        if ( cap > new_capacity )
+            throw std::length_error("cannot truncate");
+
+        if ( new_capacity > std::numeric_limits<decltype(cap)>::max() )
+            throw std::length_error("new_capacity too large");
+
+        if ( new_capacity > cap ) {
+            std::unique_ptr<T[]> new_data = std::make_unique<T[]>(new_capacity);
+            for ( size_t i = 0; i < sz; i++ )
+                new_data[i] = std::move(d[i]);
+            d = std::move(new_data);
+            cap = new_capacity;
+        }
+    }
+
+    size_t size() const noexcept { return sz; }
+    size_t capacity() const noexcept { return cap; }
+
+private:
+    std::unique_ptr<T[]> d = nullptr;
+    uint32_t sz = 0;
+    uint32_t cap = 0;
+};
+} // namespace detail
 
 class RecordVal final : public Val, public notifier::detail::Modifiable {
 public:

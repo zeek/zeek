@@ -1,3 +1,17 @@
+8.0.1-4 | 2025-10-07 13:52:32 -0700
+
+  * cluster/zeromq: Fix Cluster::subscribe() block if not initialized (Arne Welzel, Corelight)
+
+    If Cluster::init() hasn't been invoked yet, Cluster::subscribe() with the
+    ZeroMQ backend would block because the main_inproc socket didn't
+    yet have a connection from the child thread. Prevent this by connecting
+    the main and child socket pair at construction time.
+
+    This will queue the subscriptions and start processing them once the
+    child thread has started.
+
+    (cherry picked from commit 3abc1116a15f17230cfd74c22b95c80405ac1fa6)
+
 8.0.1-3 | 2025-10-07 13:51:49 -0700
 
   * Supervisor: Make last_signal atomic to squelch data race (Arne Welzel, Corelight)

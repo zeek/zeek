@@ -147,7 +147,7 @@ public:
     void RemovalEvent() override;
 
     void Weird(const char* name, const char* addl = "", const char* source = "");
-    bool DidWeird() const { return weird != 0; }
+    bool DidWeird() const { return weird; }
 
     inline bool FlagEvent(ConnEventToFlag e) {
         if ( e >= 0 && e < NUM_EVENTS_TO_FLAG ) {
@@ -199,8 +199,7 @@ private:
 
     IPAddr orig_addr;
     IPAddr resp_addr;
-    uint32_t orig_port, resp_port; // in network order
-    TransportProto proto;
+    uint32_t orig_port, resp_port;             // in network order
     uint32_t orig_flow_label, resp_flow_label; // most recent IPv6 flow labels
     uint32_t vlan, inner_vlan;                 // VLAN this connection traverses, if available
     u_char orig_l2_addr[Packet::L2_ADDR_LEN];  // Link-layer originator address, if available
@@ -208,13 +207,15 @@ private:
     int suppress_event;                        // suppress certain events to once per conn.
     RecordValPtr conn_val;
     std::shared_ptr<EncapsulationStack> encapsulation; // tunnels
-    uint8_t tunnel_changes = 0;
 
     IPBasedConnKeyPtr key;
 
-    unsigned int weird : 1;
-    unsigned int finished : 1;
-    unsigned int saw_first_orig_packet : 1, saw_first_resp_packet : 1;
+    TransportProto proto;
+    uint8_t tunnel_changes = 0;
+    bool weird;
+    bool finished;
+    bool saw_first_orig_packet;
+    bool saw_first_resp_packet;
 
     packet_analysis::IP::SessionAdapter* adapter;
     analyzer::pia::PIA* primary_PIA;

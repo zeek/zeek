@@ -3,6 +3,7 @@
 #pragma once
 
 #include <sys/types.h>
+#include <atomic>
 #include <chrono>
 #include <map>
 #include <memory>
@@ -323,7 +324,7 @@ private:
 
     Config config;
     pid_t stem_pid;
-    int last_signal = -1;
+    std::atomic<int> last_signal = -1;
     std::unique_ptr<detail::PipePair> stem_pipe;
     detail::LineBufferedPipe stem_stdout;
     detail::LineBufferedPipe stem_stderr;

@@ -1,3 +1,17 @@
+8.1.0-dev.612 | 2025-09-29 18:04:24 +0200
+
+  * Supervisor: Make last_signal atomic to squelch data race (Arne Welzel, Corelight)
+
+    When the stem process terminates and SIGCHLD is sent to the supervisor,
+    the signal might be handled by the main thread or any other threads that
+    aren't blocking SIGCHLD explicitly. Convert last_signal to a std::atomic<int>
+    such that non-main threads can safely set last_signal without triggering
+    data race as reported by TSAN. This doesn't make it less racy to work
+    last_signal, but it appears we only use it for debug printing anyhow and
+    another option might have been to just remove last_signal altogether.
+
+    Follow-up for #4849
+
 8.1.0-dev.610 | 2025-09-29 08:21:01 -0700
 
   * Update docs submodule [nomail] (Tim Wojtulewicz, Corelight)

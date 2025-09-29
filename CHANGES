@@ -1,3 +1,15 @@
+8.1.0-dev.609 | 2025-09-29 13:08:15 +0200
+
+  * cluster/zeromq: Fix Cluster::subscribe() block if not initialized (Arne Welzel, Corelight)
+
+    If Cluster::init() hasn't been invoked yet, Cluster::subscribe() with the
+    ZeroMQ backend would block because the main_inproc socket didn't
+    yet have a connection from the child thread. Prevent this by connecting
+    the main and child socket pair at construction time.
+
+    This will queue the subscriptions and start processing them once the
+    child thread has started.
+
 8.1.0-dev.607 | 2025-09-26 14:19:40 -0700
 
   * Fixes for -O gen-standalone-C++ for tracking BiFs, lambdas, attribute types, and independent globals (Vern Paxson, Corelight)

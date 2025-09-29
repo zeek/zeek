@@ -195,10 +195,7 @@ export {
 		[6] = "ipv6hint",
 	} &default = function(n: count): string { return fmt("key-%d", n); };
 
-	## Mapping of DNS operation type codes to human readable string
-	## representation. The NetBIOS opcodes overlap the standard opcodes,
-	## hence putting the string versions at invalid values to make lookups
-	## possible.
+	## Mapping of DNS operation type codes to human readable string representation.
 	const opcodes = {
 		[0] = "query",
 		[1] = "iquery",
@@ -206,9 +203,16 @@ export {
 		[4] = "notify",
 		[5] = "dynamic-update",
 		[6] = "dso",
-		[0xFFFF5] = "netbios-registration",
-		[0xFFFF6] = "netbios-release",
-		[0xFFFF7] = "netbios-wack",
-		[0xFFFF8] = "netbios-refresh",
 	} &default = function(n: count): string { return fmt("opcode-%d", n); };
+
+	## Mapping of DNS operation type codes to human readable string representation for
+	## NetBIOS Name Service (NBNS) queries. These codes are defined in
+	## https://datatracker.ietf.org/doc/html/rfc1002#section-4.2.1.1
+	const netbios_opcodes = {
+		[0] = "netbios-query",
+		[5] = "netbios-registration",
+		[6] = "netbios-release",
+		[7] = "netbios-wack",
+		[8] = "netbios-refresh",
+	} &default = function(n: count): string { return fmt("netbios-opcode-%d", n); };
 }

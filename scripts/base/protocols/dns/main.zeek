@@ -350,10 +350,7 @@ hook set_session(c: connection, msg: dns_msg, is_query: bool) &priority=5
 
 	c$dns$opcode = msg$opcode;
 	if ( msg$is_netbios )
-		if ( msg$opcode >= 5 )
-			c$dns$opcode_name = opcodes[msg$opcode + 0xFFFF];
-		else
-			c$dns$opcode_name = fmt("netbios-%s", opcodes[msg$opcode]);
+		c$dns$opcode_name = netbios_opcodes[msg$opcode];
 	else
 		c$dns$opcode_name = opcodes[msg$opcode];
 	}

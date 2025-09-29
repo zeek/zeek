@@ -1,3 +1,17 @@
+8.0.1-3 | 2025-10-07 13:51:49 -0700
+
+  * Supervisor: Make last_signal atomic to squelch data race (Arne Welzel, Corelight)
+
+    When the stem process terminates and SIGCHLD is sent to the supervisor,
+    the signal might be handled by the main thread or any other threads that
+    aren't blocking SIGCHLD explicitly. Convert last_signal to a std::atomic<int>
+    such that non-main threads can safely set last_signal without triggering
+    data race as reported by TSAN. This doesn't make it less racy to work
+    last_signal, but it appears we only use it for debug printing anyhow and
+    another option might have been to just remove last_signal altogether.
+
+    (cherry picked from commit 6af1459f5eab6eaee9ce216d45b77fce59c3e3f5)
+
 8.0.1-2 | 2025-10-07 13:51:02 -0700
 
   * cluster/zeromq: Improve EINTR handling (Arne Welzel, Corelight)

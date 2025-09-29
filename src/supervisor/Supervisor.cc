@@ -415,7 +415,7 @@ static ForkResult fork_with_stdio_redirect(const char* where) {
 
 void Supervisor::HandleChildSignal() {
     if ( last_signal >= 0 ) {
-        DBG_LOG(DBG_SUPERVISOR, "Supervisor received signal %d", last_signal);
+        DBG_LOG(DBG_SUPERVISOR, "Supervisor received signal %d", last_signal.load());
         last_signal = -1;
     }
 

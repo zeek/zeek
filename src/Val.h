@@ -4,6 +4,7 @@
 
 #include <sys/types.h> // for u_char
 #include <array>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -1114,6 +1115,213 @@ struct is_zeek_val {
 template<typename T>
 inline constexpr bool is_zeek_val_v = is_zeek_val<T>::value;
 
+/**
+ * A ZValSlot holds a ZVal instance and some auxiliary information that allows automatic
+ * memory management as well as acting as an optional unset field.
+ *
+ * This class originated from the observation that a std::optional<ZVal>
+ * as previously used in VectorVal and RecordVal objects already takes up
+ * 16 bytes on 64 bit architectures with GCC. The ZValSlot class essentially
+ * uses the left-over 7 bytes from the std::optional to allow easier memory
+ * management without needing to keep external auxilarly information around.
+ *
+ * The is_managed flag and type_tag flags are meant to be immutable except
+ * when a ZValSlot is reassigned.
+ *
+ * A ZValSlot instance holds a reference to a managed value. Such ZValSlot
+ * instances can be copied or assigned and the reference count of the ZVal
+ * will be updated accordingly.
+ */
+class ZValSlot {
+public:
+    /**
+     * Totally uninitialized, watch out!
+     */
+    ZValSlot() {}
+
+    /**
+     * Initialize a set ZValSlot given a ValPtr and corresponding TypePtr.
+     *
+     * This has the same ref counting semantics as the corresponding ZVal
+     * constructor, increasing the ref count of any managed value.
+     */
+    ZValSlot(ValPtr v, const TypePtr& t)
+        : is_set(true), is_managed(ZVal::IsManagedType(t)), type_tag(t->Tag()), zval(v, t) {}
+
+    /**
+     * Initialize a ZValSlot using its properties.
+     */
+    ZValSlot(const RecordFieldProperties p) : is_set(false), is_managed(p.is_managed), type_tag(p.type_tag) {}
+
+    /**
+     * Initialize a ZValSlot with just the TypePtr.
+     *
+     * This is useful for optional fields in a record value where
+     * the type is known at construction time.
+     */
+    ZValSlot(const TypePtr& t) : is_set(false), is_managed(ZVal::IsManagedType(t)), type_tag(t->Tag()) {}
+
+    /**
+     * Copy constructor.
+     */
+    ZValSlot(const ZValSlot& s) : is_set(s.is_set), is_managed(s.is_managed), type_tag(s.type_tag), zval(s.zval) {
+        if ( is_set && is_managed )
+            Ref(zval.ManagedVal());
+    }
+
+    /**
+     * Destructor.
+     */
+    ~ZValSlot() { Reset(); }
+
+    ZValSlot& operator=(const ZValSlot& s) {
+        if ( is_set && is_managed )
+            Unref(zval.ManagedVal());
+
+        is_set = s.is_set;
+        is_managed = s.is_managed;
+        type_tag = s.type_tag;
+        zval = s.zval;
+
+        if ( is_set && is_managed )
+            Ref(zval.ManagedVal());
+
+        return *this;
+    }
+
+    /**
+     * Assign a ZVal to a slot.
+     *
+     * This uses the is_managed member to determine if the
+     * given ZVal should be treated as managed and whether.
+     *
+     * Assigning a ZVal to a managed slot adopts a reference!
+     * This is a bit quirky, but it's what the plain ZVal
+     * constructors also do.
+     */
+    ZValSlot& operator=(const ZVal& zv) {
+        if ( is_set && is_managed )
+            Unref(zval.ManagedVal());
+
+        is_set = true;
+        zval = zv;
+
+        return *this;
+    }
+
+    operator bool() const noexcept { return is_set; }
+    const ZVal* operator->() const noexcept { return &zval; }
+    ZVal& operator*() noexcept { return zval; }
+    const ZVal& operator*() const noexcept { return zval; }
+
+    bool IsSet() const noexcept { return is_set; }
+    bool IsManaged() const noexcept { return is_managed; }
+    TypeTag Tag() const noexcept { return type_tag; }
+
+    void Reset() {
+        if ( is_set && is_managed )
+            Unref(zval.ManagedVal());
+
+        is_set = false;
+    }
+
+    /**
+     * Convert a slot's ZVal to a ValPtr given a TypePtr.
+     *
+     * @param t Type to use for conversion to Val. Needs to agree with the type that was used to initialize the
+     * slot.
+     *
+     * @return A ValPtr instance for the slot.
+     */
+    ValPtr ToVal(const TypePtr& t) {
+        assert(IsSet());
+        // assert(Tag() == TYPE_ANY || Tag() == t->Tag());
+
+        return zval.ToVal(t);
+    }
+
+private:
+    bool is_set;
+    bool is_managed;
+    TypeTag type_tag;
+    ZVal zval;
+};
+
+static_assert(sizeof(ZValSlot) <= 16);
+
+namespace detail {
+/**
+ * A std::vector replacement for record slots with 32bit size and capacity so we
+ * end up with a 16 byte vector instead of 24 bytes. Anyone trying to put more than
+ * 500mio fields into a record likely has other problems to solve, first :-)
+ *
+ * Going to 16 bit doesn't save much as the whole class will still take 16 bytes
+ * with padding on a 64bit system.
+ */
+template<class T>
+class vector32 {
+public:
+    vector32() {}
+    vector32(size_t size) : d(std::make_unique<T[]>(size)), sz(size), cap(size) {}
+
+    const T& operator[](size_t i) const noexcept { return d[i]; }
+    T& operator[](size_t i) noexcept { return d[i]; }
+    const T* data() const noexcept { return d.get(); }
+    T* data() noexcept { return d.get(); }
+
+    void push_back(T slot) {
+        // No automatic resizing
+        if ( cap <= sz )
+            throw std::logic_error("capacity exceeded");
+
+        d[sz++] = slot;
+    }
+
+    void resize(size_t new_size) {
+        if ( new_size < sz || new_size < cap )
+            throw std::length_error("cannot truncate");
+
+        if ( new_size > std::numeric_limits<decltype(sz)>::max() )
+            throw std::length_error("new_size too large");
+
+        if ( new_size > cap ) {
+            std::unique_ptr<T[]> new_data = std::make_unique<T[]>(new_size);
+            for ( size_t i = 0; i < sz; i++ )
+                new_data[i] = std::move(d[i]);
+            d = std::move(new_data);
+            sz = new_size;
+            cap = new_size;
+        }
+
+        sz = new_size;
+    }
+
+    void reserve(size_t new_capacity) {
+        if ( cap > new_capacity )
+            throw std::length_error("cannot truncate");
+
+        if ( new_capacity > std::numeric_limits<decltype(cap)>::max() )
+            throw std::length_error("new_capacity too large");
+
+        if ( new_capacity > cap ) {
+            std::unique_ptr<T[]> new_data = std::make_unique<T[]>(new_capacity);
+            for ( size_t i = 0; i < sz; i++ )
+                new_data[i] = std::move(d[i]);
+            d = std::move(new_data);
+            cap = new_capacity;
+        }
+    }
+
+    size_t size() const noexcept { return sz; }
+    size_t capacity() const noexcept { return cap; }
+
+private:
+    std::unique_ptr<T[]> d = nullptr;
+    uint32_t sz = 0;
+    uint32_t cap = 0;
+};
+} // namespace detail
+
 class RecordVal final : public Val, public notifier::detail::Modifiable {
 public:
     explicit RecordVal(RecordTypePtr t, bool init_fields = true);
@@ -1186,10 +1394,7 @@ public:
     void AssignInterval(int field, double new_val) { Assign(field, new_val); }
 
     void Assign(int field, StringVal* new_val) {
-        auto& fv = record_val[field];
-        if ( fv )
-            ZVal::DeleteManagedType(*fv);
-        fv = ZVal(new_val);
+        record_val[field] = ZVal(new_val);
         AddedField(field);
     }
     void Assign(int field, const char* new_val) { Assign(field, new StringVal(new_val)); }
@@ -1203,7 +1408,7 @@ public:
      */
     template<class T>
     void AssignField(const char* field_name, T&& val) {
-        int idx = rt->FieldOffset(field_name);
+        int idx = GetRecordType()->FieldOffset(field_name);
         if ( idx < 0 )
             reporter->InternalError("missing record field: %s", field_name);
         Assign(idx, std::forward<T>(val));
@@ -1225,7 +1430,7 @@ public:
         if ( record_val[field] )
             return true;
 
-        return rt->DeferredInits()[field] != nullptr;
+        return GetRecordType()->DeferredInits()[field] != nullptr;
     }
 
     /**
@@ -1235,7 +1440,7 @@ public:
      * @return  Whether there's a value for the given field name.
      */
     bool HasField(const char* field) const {
-        int idx = rt->FieldOffset(field);
+        int idx = GetRecordType()->FieldOffset(field);
         return (idx != -1) && HasField(idx);
     }
 
@@ -1247,14 +1452,14 @@ public:
     ValPtr GetField(int field) const {
         auto& fv = record_val[field];
         if ( ! fv ) {
-            const auto& fi = rt->DeferredInits()[field];
+            const auto& fi = GetRecordType()->DeferredInits()[field];
             if ( ! fi )
                 return nullptr;
 
             fv = fi->Generate();
         }
 
-        return fv->ToVal(rt->GetFieldType(field));
+        return fv.ToVal(GetRecordType()->GetFieldType(field));
     }
 
     /**
@@ -1321,7 +1526,7 @@ public:
 
     // Returns true if the slot for the given field is initialized.
     // This helper can be used to guard GetFieldAs() accesses.
-    bool HasRawField(int field) const { return record_val[field].has_value(); }
+    bool HasRawField(int field) const { return record_val[field].IsSet(); }
 
     // The following return the given field converted to a particular
     // underlying value.  We provide these to enable efficient
@@ -1384,7 +1589,7 @@ public:
 
     template<typename T>
     auto GetFieldAs(const char* field) const {
-        int idx = rt->FieldOffset(field);
+        int idx = GetRecordType()->FieldOffset(field);
 
         if ( idx < 0 )
             reporter->InternalError("missing record field: %s", field);
@@ -1451,19 +1656,21 @@ protected:
      */
     void AppendField(ValPtr v, const TypePtr& t) {
         if ( v )
-            record_val.emplace_back(ZVal(v, t));
+            record_val.push_back(ZValSlot(v, t));
         else
-            record_val.emplace_back(std::nullopt);
+            record_val.push_back(ZValSlot(t));
     }
 
     // For internal use by low-level ZAM instructions and event tracing.
     // Caller assumes responsibility for memory management.  The first
     // version allows manipulation of whether the field is present at all.
     // The second version ensures that the optional value is present.
-    std::optional<ZVal>& RawOptField(int field) {
+    //
+    // TODO: Fix name!
+    ZValSlot& RawOptField(int field) {
         auto& f = record_val[field];
         if ( ! f ) {
-            const auto& fi = rt->DeferredInits()[field];
+            const auto& fi = GetRecordType()->DeferredInits()[field];
             if ( fi )
                 f = fi->Generate();
         }
@@ -1471,10 +1678,13 @@ protected:
         return f;
     }
 
+    // TODO: Fix name!
     ZVal& RawField(int field) {
         auto& f = RawOptField(field);
         if ( ! f )
             f = ZVal();
+
+        assert(f.IsSet());
         return *f;
     }
 
@@ -1484,33 +1694,23 @@ protected:
 
     Obj* origin = nullptr;
 
-    using RecordTypeValMap = std::unordered_map<RecordType*, std::vector<RecordValPtr>>;
+    using RecordTypeValMap = std::unordered_map<const RecordType*, std::vector<RecordValPtr>>;
     static RecordTypeValMap parse_time_records;
 
 private:
-    void DeleteFieldIfManaged(unsigned int field) {
-        auto& f = record_val[field];
-        if ( f && IsManaged(field) )
-            ZVal::DeleteManagedType(*f);
-    }
-
-    bool IsManaged(unsigned int offset) const { return is_managed[offset]; }
-
     // Just for template inferencing.
     RecordVal* Get() { return this; }
+    const RecordType* GetRecordType() const noexcept {
+        assert(GetType()->Tag() == TYPE_RECORD);
+        return static_cast<RecordType*>(GetType().get());
+    }
 
     unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;
-
-    // Keep this handy for quick access during low-level operations.
-    RecordTypePtr rt;
 
     // Low-level values of each of the fields.
     //
     // Lazily modified during GetField(), so mutable.
-    mutable std::vector<std::optional<ZVal>> record_val;
-
-    // Whether a given field requires explicit memory management.
-    const std::vector<bool>& is_managed;
+    mutable detail::vector32<ZValSlot> record_val;
 };
 
 class EnumVal final : public detail::IntValImplementation {

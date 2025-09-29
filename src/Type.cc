@@ -18,6 +18,7 @@
 #include "zeek/Traverse.h"
 #include "zeek/Val.h"
 #include "zeek/Var.h"
+#include "zeek/ZVal.h"
 #include "zeek/module_util.h"
 #include "zeek/zeekygen/IdentifierInfo.h"
 #include "zeek/zeekygen/Manager.h"
@@ -1105,6 +1106,7 @@ void RecordType::AddField(unsigned int field, const TypeDecl* td) {
     ASSERT(field == managed_fields.size());
 
     managed_fields.push_back(ZVal::IsManagedType(td->type));
+    field_properties.push_back({.is_managed = ZVal::IsManagedType(td->type), .type_tag = td->type->Tag()});
 
     // We defer error-checking until here so that we can keep deferred_inits
     // and managed_fields correctly tracking the associated fields.
@@ -1537,6 +1539,15 @@ bool RecordType::IsDeferrable() const {
     // It will be optimized later on. Note, all_of() returns true for an empty
     // range, which is correct.
     return std::ranges::all_of(creation_inits, is_deferrable);
+}
+
+void RecordType::InitSlots(std::span<zeek::ZValSlot> slots) const {
+    int n = NumFields();
+    if ( slots.size() != field_properties.size() )
+        zeek::reporter->InternalError("wrong number of slots and slot properties");
+
+    for ( int i = 0; i < n; i++ )
+        slots[i] = field_properties[i];
 }
 
 FileType::FileType(TypePtr yield_type) : Type(TYPE_FILE), yield(std::move(yield_type)) {}

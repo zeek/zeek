@@ -21,6 +21,7 @@ namespace zeek {
 
 class Val;
 union ZVal;
+class ZValSlot;
 class EnumVal;
 class RecordVal;
 class TableVal;
@@ -635,6 +636,11 @@ private:
 
 using type_decl_list = PList<TypeDecl>;
 
+struct RecordFieldProperties {
+    bool is_managed = false;
+    TypeTag type_tag = TYPE_VOID;
+};
+
 class RecordType final : public Type {
 public:
     explicit RecordType(type_decl_list* types);
@@ -692,7 +698,11 @@ public:
 
     // Returns flags corresponding to which fields in the record
     // have types requiring memory management (reference counting).
-    const std::vector<bool>& ManagedFields() const { return managed_fields; }
+    [[deprecated("Remove in v9.1: Unused and optimization related internal. Use FieldProperties() instead.")]]
+    const std::vector<bool>& ManagedFields() const {
+        return managed_fields;
+    }
+    const std::vector<RecordFieldProperties>& FieldProperties() const { return field_properties; }
 
     int NumFields() const { return num_fields; }
     int NumOrigFields() const { return num_orig_fields; }
@@ -771,9 +781,15 @@ private:
     const auto& DeferredInits() const { return deferred_inits; }
     const auto& CreationInits() const { return creation_inits; }
 
+    // Initialize the slots using slot_properties.
+    void InitSlots(std::span<zeek::ZValSlot> slots) const;
+
     // If we were willing to bound the size of records, then we could
     // use std::bitset here instead.
     std::vector<bool> managed_fields;
+
+    // Field properties for ZvalSlot initialization
+    std::vector<RecordFieldProperties> field_properties;
 
     // Number of fields in the type.
     int num_fields = 0;

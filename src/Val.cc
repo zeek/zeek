@@ -31,6 +31,7 @@
 #include "zeek/IPAddr.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/NetVar.h"
+#include "zeek/Notifier.h"
 #include "zeek/Overflow.h"
 #include "zeek/PrefixTable.h"
 #include "zeek/RE.h"
@@ -42,6 +43,8 @@
 #include "zeek/broker/Manager.h"
 #include "zeek/broker/Store.h"
 #include "zeek/threading/formatters/detail/json.h"
+
+#include "zeek/3rdparty/doctest.h"
 
 using namespace std;
 
@@ -1712,6 +1715,8 @@ void TableVal::Init(TableTypePtr t, bool ordered) {
 }
 
 TableVal::~TableVal() {
+    notifier::detail::Modifiable::Unregister();
+
     if ( timer )
         detail::timer_mgr->Cancel(timer);
 
@@ -2919,56 +2924,54 @@ TableVal::TableRecordDependencies TableVal::parse_time_table_record_dependencies
 
 RecordVal::RecordTypeValMap RecordVal::parse_time_records;
 
-RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(t), is_managed(t->ManagedFields()) {
-    rt = std::move(t);
-
-    int n = rt->NumFields();
+RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t)) {
+    auto* rt = GetRecordType();
 
     if ( run_state::is_parsing )
-        parse_time_records[rt.get()].emplace_back(NewRef{}, this);
+        parse_time_records[rt].emplace_back(NewRef{}, this);
 
     if ( init_fields ) {
-        record_val.resize(n);
+        record_val.resize(rt->NumFields());
+
+        rt->InitSlots(std::span{record_val.data(), record_val.size()});
 
         for ( auto& e : rt->CreationInits() ) {
             try {
                 record_val[e.first] = e.second->Generate();
             } catch ( InterpreterException& e ) {
                 if ( run_state::is_parsing )
-                    parse_time_records[rt.get()].pop_back();
+                    parse_time_records[rt].pop_back();
                 throw;
             }
         }
     }
 
     else
-        record_val.reserve(n);
+        // This needs to go through AppendField() which will do the right thing
+        // for the individual slots.
+        record_val.reserve(rt->NumFields());
 }
 
-RecordVal::RecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals)
-    : Val(t), is_managed(t->ManagedFields()) {
-    rt = std::move(t);
-    record_val = std::move(init_vals);
-}
+RecordVal::RecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals) : Val(std::move(t)) {
+    // TODO: Change so that callers pass init_vals as ZValSlot instead?
+    size_t n = GetRecordType()->NumFields();
+    record_val.resize(n);
+    GetRecordType()->InitSlots(std::span{record_val.data(), record_val.size()});
 
-RecordVal::~RecordVal() {
-    auto n = record_val.size();
-
-    for ( unsigned int i = 0; i < n; ++i ) {
-        auto f_i = record_val[i];
-        if ( f_i && IsManaged(i) )
-            ZVal::DeleteManagedType(*f_i);
+    for ( size_t i = 0; i < n; i++ ) {
+        if ( init_vals[i].has_value() )
+            record_val[i] = init_vals[i].value();
     }
 }
+
+RecordVal::~RecordVal() { notifier::detail::Modifiable::Unregister(); }
 
 ValPtr RecordVal::SizeVal() const { return val_mgr->Count(GetType()->AsRecordType()->NumFields()); }
 
 void RecordVal::Assign(int field, ValPtr new_val) {
     if ( new_val ) {
-        DeleteFieldIfManaged(field);
-
-        auto t = rt->GetFieldType(field);
-        record_val[field] = ZVal(new_val, t);
+        const auto& t = GetRecordType()->GetFieldType(field);
+        record_val[field] = ZValSlot(new_val, t);
         Modified();
     }
     else
@@ -2976,15 +2979,11 @@ void RecordVal::Assign(int field, ValPtr new_val) {
 }
 
 void RecordVal::Remove(int field) {
-    auto& f_i = record_val[field];
-    if ( f_i ) {
-        if ( IsManaged(field) )
-            ZVal::DeleteManagedType(*f_i);
+    bool was_set = record_val[field].IsSet();
+    record_val[field].Reset();
 
-        f_i = std::nullopt;
-
+    if ( was_set )
         Modified();
-    }
 }
 
 ValPtr RecordVal::GetFieldOrDefault(int field) const {
@@ -3009,6 +3008,7 @@ void RecordVal::ResizeParseTimeRecords(RecordType* revised_rt) {
         auto required_length = revised_rt->NumFields();
 
         if ( required_length > current_length ) {
+            rv->record_val.reserve(required_length);
             for ( auto i = current_length; i < required_length; ++i )
                 rv->AppendField(revised_rt->FieldDefault(i), revised_rt->GetFieldType(i));
         }
@@ -3099,7 +3099,7 @@ void RecordVal::Describe(ODesc* d) const {
     auto n = record_val.size();
 
     if ( d->IsBinary() ) {
-        rt->Describe(d);
+        GetRecordType()->Describe(d);
         d->SP();
         d->Add(static_cast<uint64_t>(n));
         d->SP();
@@ -3111,7 +3111,7 @@ void RecordVal::Describe(ODesc* d) const {
         if ( ! d->IsBinary() && i > 0 )
             d->Add(", ");
 
-        d->Add(rt->FieldName(i));
+        d->Add(GetRecordType()->FieldName(i));
 
         if ( ! d->IsBinary() )
             d->Add("=");
@@ -3160,14 +3160,14 @@ ValPtr RecordVal::DoClone(CloneState* state) {
     // record. As we cannot guarantee that it will be zeroed out at the
     // appropriate time (as it seems to be guaranteed for the original record)
     // we don't touch it.
-    auto rv = make_intrusive<RecordVal>(rt, false);
+    auto rv = make_intrusive<RecordVal>(GetType<zeek::RecordType>(), false);
     state->NewClone(this, rv);
 
     int n = NumFields();
     for ( auto i = 0; i < n; ++i ) {
         auto f_i = GetField(i);
         auto v = f_i ? f_i->Clone(state) : nullptr;
-        rv->AppendField(std::move(v), rt->GetFieldType(i));
+        rv->AppendField(std::move(v), GetRecordType()->GetFieldType(i));
     }
 
     return rv;
@@ -3234,6 +3234,8 @@ VectorVal::VectorVal(VectorTypePtr t, std::vector<std::optional<ZVal>>* vals) : 
 }
 
 VectorVal::~VectorVal() {
+    notifier::detail::Modifiable::Unregister();
+
     if ( yield_types ) {
         int n = yield_types->size();
         for ( auto i = 0; i < n; ++i ) {
@@ -4113,3 +4115,127 @@ const PortValPtr& ValManager::Port(uint32_t port_num) {
 }
 
 } // namespace zeek
+
+TEST_SUITE_BEGIN("ZValSlot");
+
+TEST_CASE("default constructor") {
+    // default constructor doesn't do anything.
+    zeek::ZValSlot slot;
+}
+
+TEST_CASE("slot hold CountVal") {
+    auto t = zeek::base_type(zeek::TYPE_COUNT);
+    auto v = zeek::make_intrusive<zeek::CountVal>(104242);
+    zeek::ZValSlot slot = zeek::ZValSlot(v, t);
+
+    CHECK(slot.IsSet());
+    CHECK(slot.Tag() == zeek::TYPE_COUNT);
+    CHECK(! slot.IsManaged());
+    CHECK(v->RefCnt() == 1); // Not managed, so the slot does not hold a ref to the original value.
+    CHECK(slot->AsCount() == 104242);
+
+    auto nv = slot->ToVal(t);
+    CHECK(nv->RefCnt() == 1); // Not managed, so the slot does not hold a ref to the original value.
+}
+
+TEST_CASE("slot hold RecordVal") {
+    auto t = zeek::id::find_type<zeek::RecordType>("conn_id_ctx");
+    auto v = zeek::make_intrusive<zeek::RecordVal>(t);
+    CHECK(v->RefCnt() == 1);
+    zeek::ZValSlot slot = zeek::ZValSlot(v, t);
+
+    CHECK(slot.IsSet());
+    CHECK(slot.Tag() == zeek::TYPE_RECORD);
+    CHECK(slot.IsManaged());
+    CHECK(v->RefCnt() == 2); // Managed, slot takes a ref.
+
+    slot.Reset();
+
+    CHECK(v->RefCnt() == 1);
+    v = nullptr;
+}
+
+TEST_CASE("assign count ZVal to slot") {
+    auto t = zeek::base_type(zeek::TYPE_COUNT);
+    auto v1 = zeek::make_intrusive<zeek::CountVal>(42);
+    auto v2 = zeek::make_intrusive<zeek::CountVal>(100000);
+
+    zeek::ZValSlot slot = zeek::ZValSlot(v1, t);
+    CHECK(v1->RefCnt() == 1);
+
+    slot = zeek::ZVal(v2, t);
+
+    // Unmanaged
+    CHECK(v1->RefCnt() == 1);
+    CHECK(v2->RefCnt() == 1);
+
+    auto v3 = slot->ToVal(t);
+
+    // New CountVal for 100000
+    CHECK(v3 != v2);
+    CHECK(v3->RefCnt() == 1);
+}
+
+TEST_CASE("assign record ZVal to slot") {
+    auto t = zeek::id::find_type<zeek::RecordType>("conn_id_ctx");
+    auto v1 = zeek::make_intrusive<zeek::RecordVal>(t);
+    auto v2 = zeek::make_intrusive<zeek::RecordVal>(t);
+
+    zeek::ZValSlot slot = zeek::ZValSlot(v1, t);
+    CHECK(v1->RefCnt() == 2); // v1 and slot
+
+    slot = zeek::ZVal(v2, t);
+    CHECK(v1->RefCnt() == 1); // slot released
+    CHECK(v2->RefCnt() == 2); // v2 and slot
+
+    auto v3 = slot->ToVal(t);
+    CHECK(v3 == v2);
+    CHECK(v2->RefCnt() == 3); // v2, slot and v3
+}
+
+TEST_CASE("assign slot assignment") {
+    auto t = zeek::id::find_type<zeek::RecordType>("conn_id_ctx");
+    auto v1 = zeek::make_intrusive<zeek::RecordVal>(t);
+    auto v2 = zeek::make_intrusive<zeek::RecordVal>(t);
+
+    zeek::ZValSlot slot1 = zeek::ZValSlot(v1, t);
+    zeek::ZValSlot slot2 = zeek::ZValSlot(v2, t);
+
+    CHECK(v1->RefCnt() == 2); // v1 and slot1
+    CHECK(v2->RefCnt() == 2); // v2 and slot2
+
+    slot1 = slot2;
+    CHECK(v1->RefCnt() == 1); // slot1 released
+    CHECK(v2->RefCnt() == 3); // v2, slot1 and slot2
+}
+
+TEST_CASE("copy slot") {
+    auto t = zeek::id::find_type<zeek::RecordType>("conn_id_ctx");
+    auto v = zeek::make_intrusive<zeek::RecordVal>(t);
+
+    zeek::ZValSlot slot1 = zeek::ZValSlot(v, t);
+    zeek::ZValSlot slot2 = slot1;
+
+    CHECK(v->RefCnt() == 3); // v1, slot1 and slot2
+}
+
+TEST_SUITE_END();
+
+TEST_SUITE_BEGIN("RecordVal");
+
+TEST_CASE("assign string") {
+    auto t = zeek::id::find_type<zeek::RecordType>("PacketSource");
+    auto v = zeek::make_intrusive<zeek::RecordVal>(t);
+
+    std::string path = "test-path";
+
+    v->Assign(1, path);
+
+    auto sv = v->GetField(1);
+    CHECK(sv->RefCnt() == 2); // sv and v
+
+    v.reset();
+    CHECK(sv->RefCnt() == 1); // record was destroyed
+}
+
+TEST_SUITE_END();

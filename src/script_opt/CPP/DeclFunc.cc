@@ -127,7 +127,7 @@ void CPPCompile::CreateFunction(const FuncTypePtr& ft, const ProfileFunc* pf, co
     body_info[fname] = {.hash = pf->HashVal(),
                         .priority = priority,
                         .loc = body->GetLocationInfo(),
-                        .module = module_group,
+                        .module = std::move(module_group),
                         .groups = std::move(attr_groups)};
     body_names.emplace(body.get(), fname);
 }

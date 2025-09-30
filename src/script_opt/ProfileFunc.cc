@@ -880,7 +880,7 @@ void ProfileFuncs::AnalyzeLambdaProfile(const LambdaExpr* l) {
     lambda_primaries[l->Name()] = l->PrimaryFunc().get();
 
     if ( compute_func_hashes || ! pf->HasHashVal() )
-        ComputeProfileHash(pf);
+        ComputeProfileHash(std::move(pf));
 }
 
 void ProfileFuncs::ComputeProfileHash(std::shared_ptr<ProfileFunc> pf) {

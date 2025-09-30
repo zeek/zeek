@@ -8,7 +8,7 @@
 #include "zeek/script_opt/CPP/AttrExprType.h"
 #include "zeek/script_opt/CPP/Compile.h"
 #include "zeek/script_opt/CPP/RuntimeInits.h"
-#include "zeek/script_opt/IdOptInfo.h"
+#include "zeek/script_opt/IDOptInfo.h"
 
 using namespace std;
 

@@ -1,3 +1,9 @@
+8.0.1-10 | 2025-10-08 09:59:39 -0700
+
+  * fixed bug in logic for including/excluding files for script optimization (Vern Paxson, Corelight)
+
+    (cherry picked from commit 63291eca754109cfd88a80b409eac8636efed025)
+
 8.0.1-9 | 2025-10-08 09:58:53 -0700
 
   * BTests & baselines for testing selective skipping of script optimization (Vern Paxson, Corelight)

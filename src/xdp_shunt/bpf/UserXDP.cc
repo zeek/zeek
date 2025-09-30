@@ -32,31 +32,28 @@ struct filter* load_and_attach(int ifindex, xdp_options opts) {
     return skel;
 }
 
-struct bpf_map* get_bpf_filter_map(struct filter* skel) { return skel->maps.filter_map; }
+struct bpf_map* get_canonical_id_map(struct filter* skel) { return skel->maps.filter_map; }
+struct bpf_map* get_src_ip_map(struct filter* skel) { return skel->maps.source_ip_map; }
 
-int update_src_ip_map(struct filter* skel, ip_lpm_key* ip, xdp_action action) {
-    auto err = bpf_map_update_elem(bpf_map__fd(skel->maps.source_ip_map), ip, &action, 0);
+template<SupportedBpfKey Key>
+int update_map(struct bpf_map* map, Key* key, xdp_action action) {
+    auto err = bpf_map_update_elem(bpf_map__fd(map), key, &action, 0);
     // TODO: Better error here if possible
     return err;
 }
 
-int remove_from_src_ip_map(struct filter* skel, ip_lpm_key* ip) {
-    auto err = bpf_map_delete_elem(bpf_map__fd(skel->maps.source_ip_map), ip);
+template int update_map<canonical_tuple>(struct bpf_map* map, canonical_tuple* key, xdp_action action);
+template int update_map<ip_lpm_key>(struct bpf_map* map, ip_lpm_key* key, xdp_action action);
+
+template<SupportedBpfKey Key>
+int remove_from_map(struct bpf_map* map, Key* key) {
+    auto err = bpf_map_delete_elem(bpf_map__fd(map), key);
     // TODO: Better error here if possible
     return err;
 }
 
-int update_filter_map(struct filter* skel, canonical_tuple* tup, xdp_action action) {
-    auto err = bpf_map_update_elem(bpf_map__fd(skel->maps.filter_map), tup, &action, 0);
-    // TODO: Better error here if possible
-    return err;
-}
-
-int remove_from_filter_map(struct filter* skel, canonical_tuple* tup) {
-    auto err = bpf_map_delete_elem(bpf_map__fd(skel->maps.filter_map), tup);
-    // TODO: Better error here if possible
-    return err;
-}
+template int remove_from_map<canonical_tuple>(struct bpf_map* map, canonical_tuple* key);
+template int remove_from_map<ip_lpm_key>(struct bpf_map* map, ip_lpm_key* key);
 
 void detach_and_destroy_filter(struct filter* skel, int ifindex) {
     unlink(bpf_map__pin_path(skel->maps.filter_map));

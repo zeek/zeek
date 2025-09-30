@@ -15,6 +15,8 @@
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff worker/.stdout
 # @TEST-EXEC: TEST_DIFF_CANONIFIER=$SCRIPTS/diff-remove-abspath btest-diff client/.stdout
 
+@load frameworks/cluster/backend/broker
+
 global my_new_connection: event(uid: string, c: count);
 
 event zeek_init()

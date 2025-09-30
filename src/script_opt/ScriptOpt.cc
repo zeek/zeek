@@ -160,15 +160,18 @@ AnalyzeDecision filename_matches_opt_files(const char* filename) {
 
     auto fin = util::detail::normalize_path(filename);
 
-    for ( auto& s : analysis_options.skip_files )
+    for ( auto& s : sfiles )
         if ( std::regex_match(fin, s) )
             return AnalyzeDecision::SHOULD_NOT;
+
+    if ( ofiles.empty() )
+        return AnalyzeDecision::DEFAULT;
 
     for ( auto& o : ofiles )
         if ( std::regex_match(fin, o) )
             return AnalyzeDecision::SHOULD;
 
-    return AnalyzeDecision::DEFAULT;
+    return AnalyzeDecision::SHOULD_NOT;
 }
 
 AnalyzeDecision obj_matches_opt_files(const Obj* obj) {

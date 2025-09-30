@@ -1,3 +1,7 @@
+8.1.0-dev.617 | 2025-09-30 20:12:14 +0000
+
+  * fixed bug in logic for including/excluding files for script optimization (Vern Paxson, Corelight)
+
 8.1.0-dev.615 | 2025-09-30 19:12:05 +0000
 
   * Remove checks for OpenSSL 1.x versions (Tim Wojtulewicz, Corelight)

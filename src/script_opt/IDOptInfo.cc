@@ -71,6 +71,7 @@ void IDOptInfo::AddInitExpr(ExprPtr init_expr, InitClass ic) {
         global_init_exprs.emplace_back(my_id, init_expr, ic);
 
     init_exprs.emplace_back(std::move(init_expr));
+    init_classes.emplace_back(ic);
 }
 
 void IDOptInfo::SetDefinedAfter(const Stmt* s, const ExprPtr& e, const std::vector<const Stmt*>& conf_blocks,

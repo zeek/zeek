@@ -93,6 +93,10 @@ void InitializeHashes();
 // Generate code to initialize indirect references to constants.
 void InitializeConsts();
 
+// Generate code to initialize a global (using dynamic statements rather than
+// constants).
+void InitializeGlobal(const IDPtr& g);
+
 // Generate code to initialize globals (using dynamic statements rather than
 // constants).
 void InitializeGlobals();

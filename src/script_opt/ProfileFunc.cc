@@ -388,7 +388,10 @@ TraversalCode ProfileFunc::PreExpr(const Expr* e) {
                     auto sf = static_cast<ScriptFunc*>(func_vf);
                     script_calls.insert(sf);
                 }
-                else
+
+                // Track the BiF, though not if we know we're not going to
+                // compile the call to it.
+                else if ( obj_matches_opt_files(e) != AnalyzeDecision::SHOULD_NOT )
                     BiF_globals.insert(func);
             }
             else {

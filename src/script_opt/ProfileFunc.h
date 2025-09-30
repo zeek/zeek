@@ -256,7 +256,8 @@ protected:
     std::unordered_set<ScriptFunc*> script_calls;
 
     // Same for BiF's, though for them we record the corresponding global
-    // rather than the BuiltinFunc*.
+    // rather than the BuiltinFunc*. In addition, we only track BiFs germane
+    // to code we're compiling.
     IDSet BiF_globals;
 
     // Script functions appearing in "when" clauses.

@@ -1,3 +1,7 @@
+8.1.0-dev.619 | 2025-09-30 20:45:19 +0000
+
+  * Fix for standalone initializations that require BiFs, and streamlining of standalone BiF-tracking (Vern Paxson, Corelight)
+
 8.1.0-dev.617 | 2025-09-30 20:12:14 +0000
 
   * fixed bug in logic for including/excluding files for script optimization (Vern Paxson, Corelight)

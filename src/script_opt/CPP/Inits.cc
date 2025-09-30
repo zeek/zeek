@@ -322,7 +322,9 @@ void CPPCompile::GenStandaloneActivation() {
     Emit("void standalone_init__CPP()");
     StartBlock();
     Emit("init__CPP();");
+    Emit("load_BiFs__CPP(); // support initializations that call BiFs ...");
     Emit("standalone_activation__CPP();");
+    Emit("// ... and later use of BiFs from plugins not initially available");
     Emit("standalone_finalizations.push_back(load_BiFs__CPP);");
     EndBlock();
 }

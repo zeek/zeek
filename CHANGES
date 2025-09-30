@@ -1,3 +1,7 @@
+8.1.0-dev.621 | 2025-09-30 20:46:27 +0000
+
+  * GH-2686: fixes for re-declaring type identifiers in inconsistent ways - addresses GH-2686 (Vern Paxson, Corelight)
+
 8.1.0-dev.619 | 2025-09-30 20:45:19 +0000
 
   * Fix for standalone initializations that require BiFs, and streamlining of standalone BiF-tracking (Vern Paxson, Corelight)

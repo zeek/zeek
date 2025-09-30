@@ -1,3 +1,9 @@
+8.1.0-dev.615 | 2025-09-30 19:12:05 +0000
+
+  * Remove checks for OpenSSL 1.x versions (Tim Wojtulewicz, Corelight)
+
+  * Remove some additional LibreSSL checks (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.612 | 2025-09-29 18:04:24 +0200
 
   * Supervisor: Make last_signal atomic to squelch data race (Arne Welzel, Corelight)

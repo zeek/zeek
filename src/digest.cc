@@ -12,11 +12,6 @@
 
 #include "zeek/Reporter.h"
 
-#if ( OPENSSL_VERSION_NUMBER < 0x10100000L ) || defined(LIBRESSL_VERSION_NUMBER)
-#define EVP_MD_CTX_new EVP_MD_CTX_create
-#define EVP_MD_CTX_free EVP_MD_CTX_destroy
-#endif
-
 static_assert(ZEEK_MD5_DIGEST_LENGTH == MD5_DIGEST_LENGTH);
 
 static_assert(ZEEK_SHA_DIGEST_LENGTH == SHA_DIGEST_LENGTH);

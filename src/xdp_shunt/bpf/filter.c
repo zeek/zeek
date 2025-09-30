@@ -28,6 +28,14 @@ struct {
     __uint(map_flags, BPF_F_NO_PREALLOC);
 } source_ip_map SEC(".maps");
 
+struct {
+    __uint(type, BPF_MAP_TYPE_LPM_TRIE);
+    __uint(max_entries, 1024);
+    __type(key, struct ip_lpm_key);
+    __type(value, __u32);
+    __uint(map_flags, BPF_F_NO_PREALLOC);
+} dest_ip_map SEC(".maps");
+
 SEC("xdp")
 int xdp_filter(struct xdp_md* ctx) {
     void* data_end = (void*)(long)ctx->data_end;
@@ -93,6 +101,16 @@ int xdp_filter(struct xdp_md* ctx) {
     };
 
     action = bpf_map_lookup_elem(&source_ip_map, &src_key);
+    if ( action )
+        return *action;
+
+    // Check dest ip map
+    struct ip_lpm_key dest_key = {
+        .prefixlen = 32,
+        .ip = iph->daddr,
+    };
+
+    action = bpf_map_lookup_elem(&dest_ip_map, &dest_key);
     if ( action )
         return *action;
 

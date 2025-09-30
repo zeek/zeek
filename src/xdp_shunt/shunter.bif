@@ -51,6 +51,38 @@ std::optional<canonical_tuple> makeBPFMapTuple(zeek::RecordVal* cid_r) {
     return tup;
 }
 
+int shuntSubnet(struct bpf_map* map, zeek::SubNetVal* subnet) {
+    auto ip = subnet->Prefix();
+    const uint32_t* bytes;
+    int len = ip.GetBytes(&bytes);
+    if ( len != 1 ) {
+        zeek::reporter->Error("No support for IPs greater than 1 byte yet");
+        return -1;
+    }
+    auto key = ip_lpm_key {
+        .prefixlen = static_cast<__u32>(subnet->Width()),
+        .ip = bytes[0],
+    };
+
+    return update_map(map, &key, XDP_DROP);
+}
+
+int unshuntSubnet(struct bpf_map* map, zeek::SubNetVal* subnet) {
+    auto ip = subnet->Prefix();
+    const uint32_t* bytes;
+    int len = ip.GetBytes(&bytes);
+    if ( len != 1 ) {
+        zeek::reporter->Error("No support for IPs greater than 1 byte yet");
+        return {};
+    }
+    auto key = ip_lpm_key {
+        .prefixlen = static_cast<__u32>(subnet->Width()),
+        .ip = bytes[0],
+    };
+
+    return remove_from_map(map, &key);
+}
+
 %%}
 module XDP;
 
@@ -85,21 +117,8 @@ function start_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
 # Adds the provided subnet to the source map. That means any addresses within that subnet
 # as the source IP will get dropped.
 function shunt_src_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : bool %{
-    auto net_val = net->AsSubNetVal();
-    auto ip = net_val->Prefix();
-    const uint32_t* bytes;
-    int len = ip.GetBytes(&bytes);
-    if ( len != 1 ) {
-        zeek::reporter->Error("No support for IPs greater than 1 byte yet");
-        return {};
-    }
-    auto key = ip_lpm_key {
-        .prefixlen = static_cast<__u32>(net_val->Width()),
-        .ip = bytes[0],
-    };
-
     auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
-    auto err = update_map(get_src_ip_map(prog), &key, XDP_DROP);
+    auto err = shuntSubnet(get_src_ip_map(prog), net->AsSubNetVal());
 
     if ( err ) {
         zeek::reporter->Error("Failed to add to map");
@@ -111,21 +130,8 @@ function shunt_src_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : boo
 
 # Stops shunting this source subnet
 function unshunt_src_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : bool %{
-    auto net_val = net->AsSubNetVal();
-    auto ip = net_val->Prefix();
-    const uint32_t* bytes;
-    int len = ip.GetBytes(&bytes);
-    if ( len != 1 ) {
-        zeek::reporter->Error("No support for IPs greater than 1 byte yet");
-        return {};
-    }
-    auto key = ip_lpm_key {
-        .prefixlen = static_cast<__u32>(net_val->Width()),
-        .ip = bytes[0],
-    };
-
     auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
-    auto err = update_map(get_src_ip_map(prog), &key, XDP_DROP);
+    auto err = unshuntSubnet(get_src_ip_map(prog), net->AsSubNetVal());
 
     if ( err ) {
         zeek::reporter->Error("Failed to remove from map");
@@ -135,6 +141,32 @@ function unshunt_src_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : b
     return zeek::val_mgr->Bool(true);
 %}
 
+# Adds the provided subnet to the destination map. That means any addresses within that subnet
+# as the destination IP will get dropped.
+function shunt_dest_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : bool %{
+    auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
+    auto err = shuntSubnet(get_dest_ip_map(prog), net->AsSubNetVal());
+
+    if ( err ) {
+        zeek::reporter->Error("Failed to add to map");
+        return zeek::val_mgr->Bool(false);
+    }
+
+    return zeek::val_mgr->Bool(true);
+%}
+
+# Stops shunting this source subnet
+function unshunt_dest_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : bool %{
+    auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
+    auto err = unshuntSubnet(get_dest_ip_map(prog), net->AsSubNetVal());
+
+    if ( err ) {
+        zeek::reporter->Error("Failed to remove from map");
+        return zeek::val_mgr->Bool(false);
+    }
+
+    return zeek::val_mgr->Bool(true);
+%}
 
 # Shunts based on the 5-tuple, in both directions.
 function shunt_conn_id%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{

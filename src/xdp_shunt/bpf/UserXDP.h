@@ -44,6 +44,7 @@ void detach_and_destroy_filter(struct filter* skel, int ifindex);
 
 struct bpf_map* get_canonical_id_map(struct filter* skel);
 struct bpf_map* get_src_ip_map(struct filter* skel);
+struct bpf_map* get_dest_ip_map(struct filter* skel);
 
 template<SupportedBpfKey Key>
 int update_map(struct bpf_map* map, Key* key, xdp_action action);

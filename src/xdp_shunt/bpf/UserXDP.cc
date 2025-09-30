@@ -34,6 +34,7 @@ struct filter* load_and_attach(int ifindex, xdp_options opts) {
 
 struct bpf_map* get_canonical_id_map(struct filter* skel) { return skel->maps.filter_map; }
 struct bpf_map* get_src_ip_map(struct filter* skel) { return skel->maps.source_ip_map; }
+struct bpf_map* get_dest_ip_map(struct filter* skel) { return skel->maps.dest_ip_map; }
 
 template<SupportedBpfKey Key>
 int update_map(struct bpf_map* map, Key* key, xdp_action action) {
@@ -57,6 +58,8 @@ template int remove_from_map<ip_lpm_key>(struct bpf_map* map, ip_lpm_key* key);
 
 void detach_and_destroy_filter(struct filter* skel, int ifindex) {
     unlink(bpf_map__pin_path(skel->maps.filter_map));
+    unlink(bpf_map__pin_path(skel->maps.source_ip_map));
+    unlink(bpf_map__pin_path(skel->maps.dest_ip_map));
     struct bpf_xdp_attach_opts opts = {
         .old_prog_fd = bpf_program__fd(skel->progs.xdp_filter),
     };

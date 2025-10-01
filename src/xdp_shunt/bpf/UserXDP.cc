@@ -38,9 +38,7 @@ struct bpf_map* get_dest_ip_map(struct filter* skel) { return skel->maps.dest_ip
 
 template<SupportedBpfKey Key>
 int update_map(struct bpf_map* map, Key* key, xdp_action action) {
-    auto err = bpf_map_update_elem(bpf_map__fd(map), key, &action, BPF_NOEXIST);
-    // TODO: Better error here if possible
-    return err;
+    return bpf_map_update_elem(bpf_map__fd(map), key, &action, BPF_NOEXIST);
 }
 
 template int update_map<canonical_tuple>(struct bpf_map* map, canonical_tuple* key, xdp_action action);
@@ -48,9 +46,7 @@ template int update_map<ip_lpm_key>(struct bpf_map* map, ip_lpm_key* key, xdp_ac
 
 template<SupportedBpfKey Key>
 int remove_from_map(struct bpf_map* map, Key* key) {
-    auto err = bpf_map_delete_elem(bpf_map__fd(map), key);
-    // TODO: Better error here if possible
-    return err;
+    return bpf_map_delete_elem(bpf_map__fd(map), key);
 }
 
 template int remove_from_map<canonical_tuple>(struct bpf_map* map, canonical_tuple* key);

@@ -51,36 +51,42 @@ std::optional<canonical_tuple> makeBPFMapTuple(zeek::RecordVal* cid_r) {
     return tup;
 }
 
-int shuntSubnet(struct bpf_map* map, zeek::SubNetVal* subnet) {
+std::optional<std::string> shuntSubnet(struct bpf_map* map, zeek::SubNetVal* subnet) {
     auto ip = subnet->Prefix();
     const uint32_t* bytes;
     int len = ip.GetBytes(&bytes);
-    if ( len != 1 ) {
-        zeek::reporter->Error("No support for IPs greater than 1 byte yet");
-        return -1;
-    }
+    if ( len != 1 )
+        return "No support for IPs greater than 1 byte yet";
+
     auto key = ip_lpm_key {
         .prefixlen = static_cast<__u32>(subnet->Width()),
         .ip = bytes[0],
     };
 
-    return update_map(map, &key, XDP_DROP);
+    auto err = update_map(map, &key, XDP_DROP);
+    if ( err )
+        return strerror(err);
+
+    return {};
 }
 
-int unshuntSubnet(struct bpf_map* map, zeek::SubNetVal* subnet) {
+std::optional<std::string> unshuntSubnet(struct bpf_map* map, zeek::SubNetVal* subnet) {
     auto ip = subnet->Prefix();
     const uint32_t* bytes;
     int len = ip.GetBytes(&bytes);
-    if ( len != 1 ) {
-        zeek::reporter->Error("No support for IPs greater than 1 byte yet");
-        return {};
-    }
+    if ( len != 1 )
+        return "No support for IPs greater than 1 byte yet";
+
     auto key = ip_lpm_key {
         .prefixlen = static_cast<__u32>(subnet->Width()),
         .ip = bytes[0],
     };
 
-    return remove_from_map(map, &key);
+    auto err = remove_from_map(map, &key);
+    if ( err )
+        return strerror(err);
+
+    return {};
 }
 
 %%}
@@ -138,7 +144,7 @@ function shunt_src_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : boo
     auto err = shuntSubnet(get_src_ip_map(prog), net->AsSubNetVal());
 
     if ( err ) {
-        zeek::reporter->Error("Failed to add to map");
+        zeek::reporter->Error(zeek::util::fmt("Failed to add to map: %s", *err));
         return zeek::val_mgr->Bool(false);
     }
 
@@ -151,7 +157,7 @@ function unshunt_src_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : b
     auto err = unshuntSubnet(get_src_ip_map(prog), net->AsSubNetVal());
 
     if ( err ) {
-        zeek::reporter->Error("Failed to remove from map");
+        zeek::reporter->Error(zeek::util::fmt("Failed to remove from map: %s", *err));
         return zeek::val_mgr->Bool(false);
     }
 
@@ -165,7 +171,7 @@ function shunt_dest_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : bo
     auto err = shuntSubnet(get_dest_ip_map(prog), net->AsSubNetVal());
 
     if ( err ) {
-        zeek::reporter->Error("Failed to add to map");
+        zeek::reporter->Error(zeek::util::fmt("Failed to add to map: %s", *err));
         return zeek::val_mgr->Bool(false);
     }
 
@@ -178,7 +184,7 @@ function unshunt_dest_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : 
     auto err = unshuntSubnet(get_dest_ip_map(prog), net->AsSubNetVal());
 
     if ( err ) {
-        zeek::reporter->Error("Failed to remove from map");
+        zeek::reporter->Error(zeek::util::fmt("Failed to remove from map: %s", *err));
         return zeek::val_mgr->Bool(false);
     }
 
@@ -195,7 +201,7 @@ function shunt_conn_id%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool 
     auto err = update_map(get_canonical_id_map(prog), &*opt_tup, XDP_DROP);
 
     if ( err ) {
-        zeek::reporter->Error("Failed to add to map");
+        zeek::reporter->Error(zeek::util::fmt("Failed to add to map: %s", strerror(err)));
         return zeek::val_mgr->Bool(false);
     }
 
@@ -212,7 +218,7 @@ function unshunt_conn_id%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : boo
     auto err = remove_from_map(get_canonical_id_map(prog), &*opt_tup);
 
     if ( err ) {
-        zeek::reporter->Error("Failed to remove from map");
+        zeek::reporter->Error(zeek::util::fmt("Failed to remove from map: %s", strerror(err)));
         return zeek::val_mgr->Bool(false);
     }
 

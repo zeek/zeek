@@ -49,6 +49,7 @@ struct bpf_map* get_dest_ip_map(struct filter* skel);
 
 template<SupportedBpfKey Key>
 int update_map(struct bpf_map* map, Key* key, xdp_action action);
+
 template<SupportedBpfKey Key>
 int remove_from_map(struct bpf_map* map, Key* key);
 template<SupportedBpfKey Key>

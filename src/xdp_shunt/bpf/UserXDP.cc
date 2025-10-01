@@ -38,7 +38,7 @@ struct bpf_map* get_dest_ip_map(struct filter* skel) { return skel->maps.dest_ip
 
 template<SupportedBpfKey Key>
 int update_map(struct bpf_map* map, Key* key, xdp_action action) {
-    auto err = bpf_map_update_elem(bpf_map__fd(map), key, &action, 0);
+    auto err = bpf_map_update_elem(bpf_map__fd(map), key, &action, BPF_NOEXIST);
     // TODO: Better error here if possible
     return err;
 }

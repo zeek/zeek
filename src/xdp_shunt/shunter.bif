@@ -114,6 +114,23 @@ function start_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
     return xdp_prog;
 %}
 
+function get_canonical_id_map_keys%(xdp_prog: opaque of XDP::Program%) : bool %{
+    auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
+    auto keys = get_map<canonical_tuple>(get_canonical_id_map(prog));
+    auto zeek_keys = zeek::make_intrusive<zeek::VectorVal>(zeek::make_intrusive<zeek::VectorType>(zeek::id::conn_id));
+    for (auto key : keys) {
+	      auto zeek_key = zeek::make_intrusive<zeek::RecordVal>(zeek::id::conn_id);
+        zeek_key->Assign(0, zeek::make_intrusive<zeek::AddrVal>(key.ip1));
+        zeek_key->Assign(1, zeek::val_mgr->Port(key.port1));
+        zeek_key->Assign(2, zeek::make_intrusive<zeek::AddrVal>(key.ip2));
+        zeek_key->Assign(3, zeek::val_mgr->Port(key.port2));
+        zeek_key->Assign(4, zeek::val_mgr->Count(key.protocol));
+        zeek_keys->Append(zeek_key);
+    }
+
+    return zeek_keys;
+%}
+
 # Adds the provided subnet to the source map. That means any addresses within that subnet
 # as the source IP will get dropped.
 function shunt_src_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : bool %{

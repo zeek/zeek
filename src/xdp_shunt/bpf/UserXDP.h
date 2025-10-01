@@ -4,6 +4,7 @@
 
 #include <net/if.h>
 #include <concepts>
+#include <vector>
 
 #include "bpf/filter_common.h"
 
@@ -50,5 +51,7 @@ template<SupportedBpfKey Key>
 int update_map(struct bpf_map* map, Key* key, xdp_action action);
 template<SupportedBpfKey Key>
 int remove_from_map(struct bpf_map* map, Key* key);
+template<SupportedBpfKey Key>
+std::vector<Key> get_map(struct bpf_map* map);
 
 #endif /* __COMMON_USER_BPF_XDP_H */

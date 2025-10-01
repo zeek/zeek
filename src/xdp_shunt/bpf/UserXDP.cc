@@ -56,6 +56,23 @@ int remove_from_map(struct bpf_map* map, Key* key) {
 template int remove_from_map<canonical_tuple>(struct bpf_map* map, canonical_tuple* key);
 template int remove_from_map<ip_lpm_key>(struct bpf_map* map, ip_lpm_key* key);
 
+template<SupportedBpfKey Key>
+std::vector<Key> get_map(struct bpf_map* map) {
+    std::vector<Key> keys;
+    Key key;
+    Key next_key;
+    Key* prev_key = nullptr;
+    while ( bpf_map_get_next_key(bpf_map__fd(map), prev_key, &next_key) == 0 ) {
+        keys.push_back(next_key);
+        prev_key = &next_key;
+    }
+
+    return keys;
+}
+
+template std::vector<canonical_tuple> get_map<canonical_tuple>(struct bpf_map* map);
+template std::vector<ip_lpm_key> get_map<ip_lpm_key>(struct bpf_map* map);
+
 void detach_and_destroy_filter(struct filter* skel, int ifindex) {
     unlink(bpf_map__pin_path(skel->maps.filter_map));
     unlink(bpf_map__pin_path(skel->maps.source_ip_map));

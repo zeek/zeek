@@ -1,3 +1,9 @@
+7.0.10-1 | 2025-10-07 13:02:39 -0700
+
+  * GH-4845: iosource/Packet: Allow ToRawPktHdrVal() for reassembled packets (Arne Welzel, Corelight)
+
+    (cherry picked from commit 4de7a2b947d8b1367238ff7bcebcc6638764f377)
+
 7.0.10 | 2025-08-26 10:39:08 -0700
 
   * Update CHANGES, VERSION, and NEWS for 7.0.10 (Tim Wojtulewicz, Corelight)

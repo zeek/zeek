@@ -70,6 +70,9 @@ Changed Functionality
 - The var-extraction-uri.zeek policy does not include the path in the ``uri_vars``
   field anymore.
 
+- The ``get_current_packet_header()`` now populates the returned record also for
+  fragmented IP datagrams.
+
 Removed Functionality
 ---------------------
 

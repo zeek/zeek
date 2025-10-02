@@ -2,20 +2,35 @@
 #define __FILTER_COMMON_H
 
 #include <linux/types.h>
+#include <netinet/in.h>
 
-// Keep Zeek's orig/resp distinction here. The filter program should check
-// both directions anyway. The distinction is just for matching ip/port.
 struct canonical_tuple {
-    __u32 ip1;   // The lower IP
-    __u32 ip2;   // The higher IP
-    __u16 port1; // The port corresponding with ip1
-    __u16 port2; // The port corresponding with ip2
+    struct in6_addr ip1; // The lower IP
+    struct in6_addr ip2; // The higher IP
+    __u16 port1;         // The port corresponding with ip1
+    __u16 port2;         // The port corresponding with ip2
     __u8 protocol;
 };
 
 struct ip_lpm_key {
     __u32 prefixlen;
-    __u32 ip;
+    struct in6_addr ip;
 };
+
+static __always_inline int compare_ips(struct in6_addr* ip1, struct in6_addr* ip2) {
+    __u64* a64 = (__u64*)&ip1;
+    __u64* b64 = (__u64*)&ip2;
+
+    if ( a64[0] < b64[0] )
+        return -1;
+    if ( a64[0] > b64[0] )
+        return 1;
+    if ( a64[1] < b64[1] )
+        return -1;
+    if ( a64[1] > b64[1] )
+        return 1;
+
+    return 0;
+}
 
 #endif /* __FILTER_COMMON_H */

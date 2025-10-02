@@ -249,7 +249,7 @@ eval	auto rt = cast_intrusive<RecordType>(Z_TYPE);
 	auto n = aux->n;
 	for ( auto i = 0; i < n; ++i )
 		{
-		auto ind = aux->elems[i].IntVal();
+		auto ind = RecordField(r, aux->elems[i].IntVal());
 		auto v_i = r->GetField(ind);
 		ASSERT(v_i);
 		if ( v_i->GetType<VectorType>()->IsUnspecifiedVector() )

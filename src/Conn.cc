@@ -4,6 +4,7 @@
 
 #include <binpac.h>
 #include <cctype>
+#include <memory>
 
 #include "zeek/Desc.h"
 #include "zeek/ID.h"
@@ -12,6 +13,7 @@
 #include "zeek/RunState.h"
 #include "zeek/Timer.h"
 #include "zeek/TunnelEncapsulation.h"
+#include "zeek/WeirdState.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/analyzer/Manager.h"
 #include "zeek/analyzer/protocol/pia/PIA.h"
@@ -41,8 +43,8 @@ Connection::Connection(zeek::IPBasedConnKeyPtr k, double t, uint32_t flow, const
 
     orig_flow_label = flow;
     resp_flow_label = 0;
-    saw_first_orig_packet = 1;
-    saw_first_resp_packet = 0;
+    saw_first_orig_packet = true;
+    saw_first_resp_packet = false;
 
     if ( pkt->l2_src )
         memcpy(orig_l2_addr, pkt->l2_src, sizeof(orig_l2_addr));
@@ -57,11 +59,11 @@ Connection::Connection(zeek::IPBasedConnKeyPtr k, double t, uint32_t flow, const
     vlan = pkt->vlan;
     inner_vlan = pkt->inner_vlan;
 
-    weird = 0;
+    weird = false;
 
     suppress_event = 0;
 
-    finished = 0;
+    finished = false;
 
     adapter = nullptr;
     primary_PIA = nullptr;
@@ -117,7 +119,7 @@ void Connection::CheckEncapsulation(const std::shared_ptr<EncapsulationStack>& a
 }
 
 void Connection::Done() {
-    finished = 1;
+    finished = true;
 
     if ( adapter ) {
         if ( ConnTransport() == TRANSPORT_TCP ) {
@@ -271,7 +273,7 @@ void Connection::RemovalEvent() {
 }
 
 void Connection::Weird(const char* name, const char* addl, const char* source) {
-    weird = 1;
+    weird = true;
     reporter->Weird(this, name, addl ? addl : "", source ? source : "");
 }
 
@@ -393,13 +395,16 @@ void Connection::CheckFlowLabel(bool is_orig, uint32_t flow_label) {
     }
 
     if ( is_orig )
-        saw_first_orig_packet = 1;
+        saw_first_orig_packet = true;
     else
-        saw_first_resp_packet = 1;
+        saw_first_resp_packet = true;
 }
 
 bool Connection::PermitWeird(const char* name, uint64_t threshold, uint64_t rate, double duration) {
-    return detail::PermitWeird(weird_state, name, threshold, rate, duration);
+    if ( ! weird_state )
+        weird_state = std::make_unique<detail::WeirdStateMap>();
+
+    return detail::PermitWeird(*weird_state, name, threshold, rate, duration);
 }
 
 } // namespace zeek

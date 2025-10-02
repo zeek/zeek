@@ -71,11 +71,7 @@ std::optional<std::string> shuntSubnet(struct bpf_map* map, zeek::SubNetVal* sub
         .ip = ip_addr,
     };
 
-    auto err = update_map(map, &key, XDP_DROP);
-    if ( err )
-        return strerror(err);
-
-    return {};
+    return update_map(map, &key, XDP_DROP);
 }
 
 std::optional<std::string> unshuntSubnet(struct bpf_map* map, zeek::SubNetVal* subnet) {
@@ -96,11 +92,7 @@ std::optional<std::string> unshuntSubnet(struct bpf_map* map, zeek::SubNetVal* s
         .ip = ip_addr,
     };
 
-    auto err = remove_from_map(map, &key);
-    if ( err )
-        return strerror(err);
-
-    return {};
+    return remove_from_map(map, &key);
 }
 
 %%}
@@ -123,10 +115,10 @@ function start_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
         return zeek::val_mgr->Bool(false);
     }
 
-    auto* skel = load_and_attach(ifindex, opts);
-    if ( ! skel ) {
-        // TODO: Make this error better since it can fail for 2 reasons
-        zeek::reporter->Error("Failed to load BPF skeleton");
+    struct filter* skel = nullptr;
+    auto err = load_and_attach(ifindex, opts, &skel);
+    if ( err ) {
+        zeek::reporter->Error("Failed to load BPF skeleton: %s", (*err).c_str());
         return zeek::val_mgr->Bool(false);
     }
 
@@ -168,7 +160,7 @@ function shunt_src_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : boo
     auto err = shuntSubnet(get_src_ip_map(prog), net->AsSubNetVal());
 
     if ( err ) {
-        zeek::reporter->Error(zeek::util::fmt("Failed to add to map: %s", *err));
+        zeek::reporter->Error(zeek::util::fmt("Failed to add to map: %s", (*err).c_str()));
         return zeek::val_mgr->Bool(false);
     }
 
@@ -181,7 +173,7 @@ function unshunt_src_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : b
     auto err = unshuntSubnet(get_src_ip_map(prog), net->AsSubNetVal());
 
     if ( err ) {
-        zeek::reporter->Error(zeek::util::fmt("Failed to remove from map: %s", *err));
+        zeek::reporter->Error(zeek::util::fmt("Failed to remove from map: %s", (*err).c_str()));
         return zeek::val_mgr->Bool(false);
     }
 
@@ -195,7 +187,7 @@ function shunt_dest_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : bo
     auto err = shuntSubnet(get_dest_ip_map(prog), net->AsSubNetVal());
 
     if ( err ) {
-        zeek::reporter->Error(zeek::util::fmt("Failed to add to map: %s", *err));
+        zeek::reporter->Error(zeek::util::fmt("Failed to add to map: %s", (*err).c_str()));
         return zeek::val_mgr->Bool(false);
     }
 
@@ -208,7 +200,7 @@ function unshunt_dest_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : 
     auto err = unshuntSubnet(get_dest_ip_map(prog), net->AsSubNetVal());
 
     if ( err ) {
-        zeek::reporter->Error(zeek::util::fmt("Failed to remove from map: %s", *err));
+        zeek::reporter->Error(zeek::util::fmt("Failed to remove from map: %s", (*err).c_str()));
         return zeek::val_mgr->Bool(false);
     }
 
@@ -225,7 +217,7 @@ function shunt_conn_id%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool 
     auto err = update_map(get_canonical_id_map(prog), &*opt_tup, XDP_DROP);
 
     if ( err ) {
-        zeek::reporter->Error(zeek::util::fmt("Failed to add to map: %s", strerror(err)));
+        zeek::reporter->Error(zeek::util::fmt("Failed to add to map: %s", (*err).c_str()));
         return zeek::val_mgr->Bool(false);
     }
 
@@ -242,7 +234,7 @@ function unshunt_conn_id%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : boo
     auto err = remove_from_map(get_canonical_id_map(prog), &*opt_tup);
 
     if ( err ) {
-        zeek::reporter->Error(zeek::util::fmt("Failed to remove from map: %s", strerror(err)));
+        zeek::reporter->Error(zeek::util::fmt("Failed to remove from map: %s", (*err).c_str()));
         return zeek::val_mgr->Bool(false);
     }
 
@@ -258,7 +250,6 @@ function end_shunt%(xdp_prog: opaque of XDP::Program%) : bool %{
         return zeek::val_mgr->Bool(false);
     }
 
-    // TODO: How could I get the ifindex without the if_nametoindex stuff?
     auto ifindex = if_nametoindex(ps->Path().c_str());
     if ( ifindex == 0 ) {
         zeek::reporter->Error("Invalid device?");

@@ -1,6 +1,8 @@
 // clang-format off
 #include <bpf/bpf.h>
 #include <bpf/libbpf.h>
+#include <optional>
+#include <string>
 #include <unistd.h>
 #include <xdp/libxdp.h>
 
@@ -10,11 +12,11 @@
 #include "bpf/filter_common.h"
 // clang-format on
 
-struct filter* load_and_attach(int ifindex, xdp_options opts) {
-    auto* skel = filter::open_and_load();
-    auto prog_fd = bpf_program__fd(skel->progs.xdp_filter);
+std::optional<std::string> load_and_attach(int ifindex, xdp_options opts, struct filter** skel) {
+    *skel = filter::open_and_load();
+    auto prog_fd = bpf_program__fd((*skel)->progs.xdp_filter);
     if ( prog_fd == 0 )
-        return nullptr;
+        return "Could not find BPF program";
 
     uint32_t flags = 0;
     switch ( opts.mode ) {
@@ -24,12 +26,14 @@ struct filter* load_and_attach(int ifindex, xdp_options opts) {
         case XDP_MODE_HW: flags |= (1U << 3); break;
     }
 
-    // TODO: We can get a nicer error here with libbpf_strerror
     int err = bpf_xdp_attach(ifindex, prog_fd, flags, nullptr);
-    if ( err )
-        return nullptr;
+    if ( err ) {
+        char err_buf[256];
+        libbpf_strerror(err, err_buf, sizeof(err_buf));
+        return std::string(err_buf);
+    }
 
-    return skel;
+    return {};
 }
 
 struct bpf_map* get_canonical_id_map(struct filter* skel) { return skel->maps.filter_map; }
@@ -37,20 +41,35 @@ struct bpf_map* get_src_ip_map(struct filter* skel) { return skel->maps.source_i
 struct bpf_map* get_dest_ip_map(struct filter* skel) { return skel->maps.dest_ip_map; }
 
 template<SupportedBpfKey Key>
-int update_map(struct bpf_map* map, Key* key, xdp_action action) {
-    return bpf_map_update_elem(bpf_map__fd(map), key, &action, BPF_NOEXIST);
+std::optional<std::string> update_map(struct bpf_map* map, Key* key, xdp_action action) {
+    auto err = bpf_map_update_elem(bpf_map__fd(map), key, &action, BPF_NOEXIST);
+    if ( err ) {
+        char err_buf[256];
+        libbpf_strerror(err, err_buf, sizeof(err_buf));
+        return std::string(err_buf);
+    }
+
+    return {};
 }
 
-template int update_map<canonical_tuple>(struct bpf_map* map, canonical_tuple* key, xdp_action action);
-template int update_map<ip_lpm_key>(struct bpf_map* map, ip_lpm_key* key, xdp_action action);
+template std::optional<std::string> update_map<canonical_tuple>(struct bpf_map* map, canonical_tuple* key,
+                                                                xdp_action action);
+template std::optional<std::string> update_map<ip_lpm_key>(struct bpf_map* map, ip_lpm_key* key, xdp_action action);
 
 template<SupportedBpfKey Key>
-int remove_from_map(struct bpf_map* map, Key* key) {
-    return bpf_map_delete_elem(bpf_map__fd(map), key);
+std::optional<std::string> remove_from_map(struct bpf_map* map, Key* key) {
+    auto err = bpf_map_delete_elem(bpf_map__fd(map), key);
+    if ( err ) {
+        char err_buf[256];
+        libbpf_strerror(err, err_buf, sizeof(err_buf));
+        return std::string(err_buf);
+    }
+
+    return {};
 }
 
-template int remove_from_map<canonical_tuple>(struct bpf_map* map, canonical_tuple* key);
-template int remove_from_map<ip_lpm_key>(struct bpf_map* map, ip_lpm_key* key);
+template std::optional<std::string> remove_from_map<canonical_tuple>(struct bpf_map* map, canonical_tuple* key);
+template std::optional<std::string> remove_from_map<ip_lpm_key>(struct bpf_map* map, ip_lpm_key* key);
 
 template<SupportedBpfKey Key>
 std::vector<Key> get_map(struct bpf_map* map) {

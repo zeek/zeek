@@ -4,6 +4,8 @@
 
 #include <net/if.h>
 #include <concepts>
+#include <optional>
+#include <string>
 #include <vector>
 
 #include "bpf/filter_common.h"
@@ -40,7 +42,7 @@ concept IsAnyOf = (std::same_as<T, U> || ...);
 template<typename T>
 concept SupportedBpfKey = IsAnyOf<T, canonical_tuple, ip_lpm_key>;
 
-struct filter* load_and_attach(int ifindex, xdp_options opts);
+std::optional<std::string> load_and_attach(int ifindex, xdp_options opts, struct filter**);
 void detach_and_destroy_filter(struct filter* skel, int ifindex);
 
 struct bpf_map* get_canonical_id_map(struct filter* skel);
@@ -48,10 +50,10 @@ struct bpf_map* get_src_ip_map(struct filter* skel);
 struct bpf_map* get_dest_ip_map(struct filter* skel);
 
 template<SupportedBpfKey Key>
-int update_map(struct bpf_map* map, Key* key, xdp_action action);
+std::optional<std::string> update_map(struct bpf_map* map, Key* key, xdp_action action);
 
 template<SupportedBpfKey Key>
-int remove_from_map(struct bpf_map* map, Key* key);
+std::optional<std::string> remove_from_map(struct bpf_map* map, Key* key);
 template<SupportedBpfKey Key>
 std::vector<Key> get_map(struct bpf_map* map);
 

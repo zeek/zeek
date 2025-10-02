@@ -1,3 +1,9 @@
+8.0.1-6 | 2025-10-07 13:54:32 -0700
+
+  * GH-4845: iosource/Packet: Allow ToRawPktHdrVal() for reassembled packets (Arne Welzel, Corelight)
+
+    (cherry picked from commit 4de7a2b947d8b1367238ff7bcebcc6638764f377)
+
 8.0.1-5 | 2025-10-07 13:53:33 -0700
 
   * Avoid starting up storage expiration thread with zero backends (Tim Wojtulewicz, Corelight)

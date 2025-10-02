@@ -10,7 +10,7 @@ namespace zeek::logging::writer::detail {
 
 class None : public WriterBackend {
 public:
-    explicit None(WriterFrontend* frontend) : WriterBackend(frontend) {}
+    explicit None(WriterFrontend* frontend) : WriterBackend(frontend, /*send_heartbeats=*/false) {}
     ~None() override {};
 
     static WriterBackend* Instantiate(WriterFrontend* frontend) { return new None(frontend); }
@@ -24,7 +24,6 @@ protected:
     bool DoRotate(const char* rotated_path, double open, double close, bool terminating) override;
     bool DoFlush(double network_time) override { return true; }
     bool DoFinish(double network_time) override { return true; }
-    bool DoHeartbeat(double network_time, double current_time) override { return true; }
 };
 
 } // namespace zeek::logging::writer::detail

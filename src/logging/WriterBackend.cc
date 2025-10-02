@@ -106,13 +106,14 @@ bool WriterBackend::WriterInfo::FromBroker(broker::data d) {
     return true;
 }
 
-WriterBackend::WriterBackend(WriterFrontend* arg_frontend) : MsgThread() {
+WriterBackend::WriterBackend(WriterFrontend* arg_frontend, bool arg_send_heartbeats) : MsgThread() {
     num_fields = 0;
     fields = nullptr;
     buffering = true;
     frontend = arg_frontend;
     info = new WriterInfo(frontend->Info());
     rotation_counter = 0;
+    send_heartbeats = arg_send_heartbeats;
 
     SetName(frontend->Name());
 }
@@ -281,6 +282,13 @@ bool WriterBackend::Flush(double network_time) {
     }
 
     return true;
+}
+
+void WriterBackend::Heartbeat() {
+    if ( ! send_heartbeats )
+        return;
+
+    MsgThread::Heartbeat();
 }
 
 bool WriterBackend::OnFinish(double network_time) {

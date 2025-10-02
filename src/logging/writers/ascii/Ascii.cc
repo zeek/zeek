@@ -205,7 +205,7 @@ static std::optional<LeftoverLog> parse_shadow_log(const std::string& fname) {
     return rval;
 }
 
-Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend) {
+Ascii::Ascii(WriterFrontend* frontend) : WriterBackend(frontend, /*send_heartbeats=*/false) {
     fd = 0;
     ascii_done = false;
     output_to_stdout = false;
@@ -660,11 +660,6 @@ bool Ascii::DoRotate(const char* rotated_path, double open, double close, bool t
 }
 
 bool Ascii::DoSetBuf(bool enabled) {
-    // Nothing to do.
-    return true;
-}
-
-bool Ascii::DoHeartbeat(double network_time, double current_time) {
     // Nothing to do.
     return true;
 }

@@ -37,10 +37,11 @@ public:
      * a argument to callbacks. One must not otherwise access the
      * frontend, it's running in a different thread.
      *
-     * @param name A descriptive name for writer's type (e.g., \c Ascii).
-     *
+     * @param send_heartbeats Whether to send regular heartbeat messages to the backend thread.
+     * If the writer does not override the DoHeartbeat() method, this should be set to false
+     * for improved performance.
      */
-    explicit WriterBackend(WriterFrontend* frontend);
+    explicit WriterBackend(WriterFrontend* frontend, bool send_heartbeats = true);
 
     /**
      * Destructor.
@@ -263,6 +264,11 @@ protected:
     friend class FinishMessage;
 
     /**
+     * Overridden from MsgThread to skip sending heartbeats if disabled.
+     */
+    void Heartbeat() override;
+
+    /**
      * Writer-specific initialization method.
      *
      * A writer implementation must override this method. If it returns
@@ -365,13 +371,16 @@ protected:
      * @param network_time The network time when the finish is triggered.
      */
     virtual bool DoFinish(double network_time) = 0;
+
     /**
      * Triggered by regular heartbeat messages from the main thread.
      *
-     * This method can be overridden. Default implementation does
-     * nothing.
+     * This method can be overridden. The default implementation does
+     * nothing. If you do not override this method, consider passing
+     * send_heartbeats=false to the WriterBackend constructor to skip
+     * sending heartbeat messages to the writer backend thread.
      */
-    virtual bool DoHeartbeat(double network_time, double current_time) = 0;
+    virtual bool DoHeartbeat(double network_time, double current_time) { return true; }
 
 private:
     /**
@@ -389,6 +398,8 @@ private:
     bool buffering;                        // True if buffering is enabled.
 
     int rotation_counter; // Tracks FinishedRotation() calls.
+
+    bool send_heartbeats;
 };
 
 } // namespace zeek::logging

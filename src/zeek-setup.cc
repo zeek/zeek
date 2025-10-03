@@ -979,6 +979,14 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
         (void)setsignal(SIGPIPE, SIG_IGN);
     }
 
+    // After the debugger would have started up, check for whether to track frame
+    // state. This allows users of addons that require it to enable the frame tracking
+    // without actually starting the debugger.
+    if ( ! g_policy_debug ) {
+        const auto& track_frame_state = id::find_val("track_script_frame_stack");
+        g_policy_debug = track_frame_state->AsBool();
+    }
+
     // Cooperate with nohup(1).
     if ( oldhandler = setsignal(SIGHUP, sig_handler); oldhandler != SIG_DFL )
         (void)setsignal(SIGHUP, oldhandler);

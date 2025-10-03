@@ -248,8 +248,10 @@ const ZAMStmt ZAMCompiler::GenCond(const Expr* e, int& branch_v) {
 
     if ( e->Tag() == EXPR_HAS_FIELD ) {
         auto hf = e->AsHasFieldExpr();
-        auto z = GenInst(OP_HAS_FIELD_COND_Vib, op1->AsNameExpr(), hf->Field());
+        auto f = hf->Field();
+        auto z = GenInst(OP_HAS_FIELD_COND_Vib, op1->AsNameExpr(), f);
         z.op_type = OP_VVV_I2_I3;
+        z.TrackRecordTypeForField(cast_intrusive<RecordType>(op1->GetType()), f);
         branch_v = 3;
         return AddInst(z);
     }

@@ -1,3 +1,5 @@
+##! BIFs for shunting with XDP. This is the main interface for XDP shunting.
+
 %%{
 #include "zeek/iosource/Manager.h"
 #include "zeek/iosource/PktSrc.h"
@@ -66,7 +68,7 @@ std::optional<std::string> shuntSubnet(struct bpf_map* map, zeek::SubNetVal* sub
     else
         memcpy(&ip_addr, bytes, sizeof(struct in6_addr));
 
-    auto key = ip_lpm_key {
+    auto key = ip_lpm_key{
         .prefixlen = static_cast<__u32>(subnet->Width()),
         .ip = ip_addr,
     };
@@ -87,7 +89,7 @@ std::optional<std::string> unshuntSubnet(struct bpf_map* map, zeek::SubNetVal* s
     else
         memcpy(&ip_addr, bytes, sizeof(struct in6_addr));
 
-    auto key = ip_lpm_key {
+    auto key = ip_lpm_key{
         .prefixlen = static_cast<__u32>(subnet->Width()),
         .ip = ip_addr,
     };
@@ -96,22 +98,29 @@ std::optional<std::string> unshuntSubnet(struct bpf_map* map, zeek::SubNetVal* s
 }
 
 %%}
+
 module XDP;
 
+## Begins shunting with XDP by loading the XDP program and necessary BPF maps.
+##
+## Returns: An opaque value representing the now-attached BPF program
+##
+## .. zeek:see:: end_shunt
 function start_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
     auto options_val = IntrusivePtr<RecordVal>{NewRef{}, options->AsRecordVal()};
-    auto opts = xdp_options {
+    auto opts = xdp_options{
         .mode = static_cast<xdp_attach_mode>(options_val->GetFieldAs<zeek::EnumVal>("attach_mode")),
     };
     auto ps = zeek::iosource_mgr->GetPktSrc();
     if ( ! ps ) {
         zeek::reporter->Error("Packet source invalid!");
+        // TODO: This is returning false, but should probably be another expected type
         return zeek::val_mgr->Bool(false);
     }
 
     auto ifindex = if_nametoindex(ps->Path().c_str());
     if ( ifindex == 0 ) {
-        zeek::reporter->Error("Invalid device?");
+        zeek::reporter->Error("Invalid device");
         return zeek::val_mgr->Bool(false);
     }
 
@@ -126,23 +135,37 @@ function start_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
     return xdp_prog;
 %}
 
-function get_canonical_id_map_keys%(xdp_prog: opaque of XDP::Program%) : bool %{
-    auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
-    auto keys = get_map<canonical_tuple>(get_canonical_id_map(prog));
+## Retrieves the current values in the canonical ID map.
+##
+## Returns: A vector of the "canonical" connection IDs getting shunted
+function get_canonical_id_map_keys%(xdp_prog: opaque of XDP::Program%) : any_vec %{
+    auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     auto zeek_keys = zeek::make_intrusive<zeek::VectorVal>(zeek::make_intrusive<zeek::VectorType>(zeek::id::conn_id));
-    for (auto key : keys) {
-	      auto zeek_key = zeek::make_intrusive<zeek::RecordVal>(zeek::id::conn_id);
+    if ( ! zeek_prog ) {
+        zeek::reporter->Error(zeek_prog.error().c_str());
+        return zeek_keys;
+    }
+
+    auto prog = (*zeek_prog)->prog;
+
+    auto keys = get_map<canonical_tuple>(get_canonical_id_map(prog));
+    for ( auto key : keys ) {
+        auto zeek_key = zeek::make_intrusive<zeek::RecordVal>(zeek::id::conn_id);
         if ( IN6_IS_ADDR_V4MAPPED(&key.ip1) )
-            zeek_key->Assign(0, zeek::make_intrusive<zeek::AddrVal>(*reinterpret_cast<const uint32_t*>(&key.ip1.s6_addr[12])));
+            zeek_key->Assign(0, zeek::make_intrusive<zeek::AddrVal>(
+                                    *reinterpret_cast<const uint32_t*>(&key.ip1.s6_addr[12])));
         else
-            zeek_key->Assign(0, zeek::make_intrusive<zeek::AddrVal>(reinterpret_cast<const uint32_t*>(&key.ip1.s6_addr)));
+            zeek_key->Assign(0,
+                             zeek::make_intrusive<zeek::AddrVal>(reinterpret_cast<const uint32_t*>(&key.ip1.s6_addr)));
 
         zeek_key->Assign(1, zeek::val_mgr->Port(key.port1));
 
         if ( IN6_IS_ADDR_V4MAPPED(&key.ip2) )
-            zeek_key->Assign(2, zeek::make_intrusive<zeek::AddrVal>(*reinterpret_cast<const uint32_t*>(&key.ip2.s6_addr[12])));
+            zeek_key->Assign(2, zeek::make_intrusive<zeek::AddrVal>(
+                                    *reinterpret_cast<const uint32_t*>(&key.ip2.s6_addr[12])));
         else
-            zeek_key->Assign(2, zeek::make_intrusive<zeek::AddrVal>(reinterpret_cast<const uint32_t*>(&key.ip2.s6_addr)));
+            zeek_key->Assign(2,
+                             zeek::make_intrusive<zeek::AddrVal>(reinterpret_cast<const uint32_t*>(&key.ip2.s6_addr)));
 
         zeek_key->Assign(3, zeek::val_mgr->Port(key.port2));
         zeek_key->Assign(4, zeek::val_mgr->Count(key.protocol));
@@ -153,10 +176,19 @@ function get_canonical_id_map_keys%(xdp_prog: opaque of XDP::Program%) : bool %{
     return zeek_keys;
 %}
 
-# Adds the provided subnet to the source map. That means any addresses within that subnet
-# as the source IP will get dropped.
+## Starts shunting anything within the subnet in the source IP.
+##
+## Returns: Whether the operation succeeded
+##
+## .. zeek:see:: unshunt_src_subnet
 function shunt_src_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : bool %{
-    auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
+    auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
+    if ( ! zeek_prog ) {
+        zeek::reporter->Error(zeek_prog.error().c_str());
+        return zeek::val_mgr->Bool(false);
+    }
+
+    auto prog = (*zeek_prog)->prog;
     auto err = shuntSubnet(get_src_ip_map(prog), net->AsSubNetVal());
 
     if ( err ) {
@@ -167,9 +199,19 @@ function shunt_src_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : boo
     return zeek::val_mgr->Bool(true);
 %}
 
-# Stops shunting this source subnet
+## Stops shunting anything within the subnet in the source IP.
+##
+## Returns: Whether the operation succeeded
+##
+## .. zeek:see:: shunt_src_subnet
 function unshunt_src_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : bool %{
-    auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
+    auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
+    if ( ! zeek_prog ) {
+        zeek::reporter->Error(zeek_prog.error().c_str());
+        return zeek::val_mgr->Bool(false);
+    }
+
+    auto prog = (*zeek_prog)->prog;
     auto err = unshuntSubnet(get_src_ip_map(prog), net->AsSubNetVal());
 
     if ( err ) {
@@ -180,10 +222,19 @@ function unshunt_src_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : b
     return zeek::val_mgr->Bool(true);
 %}
 
-# Adds the provided subnet to the destination map. That means any addresses within that subnet
-# as the destination IP will get dropped.
+## Starts shunting anything within the subnet in the destination IP.
+##
+## Returns: Whether the operation succeeded
+##
+## .. zeek:see:: unshunt_dest_subnet
 function shunt_dest_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : bool %{
-    auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
+    auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
+    if ( ! zeek_prog ) {
+        zeek::reporter->Error(zeek_prog.error().c_str());
+        return zeek::val_mgr->Bool(false);
+    }
+
+    auto prog = (*zeek_prog)->prog;
     auto err = shuntSubnet(get_dest_ip_map(prog), net->AsSubNetVal());
 
     if ( err ) {
@@ -194,9 +245,19 @@ function shunt_dest_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : bo
     return zeek::val_mgr->Bool(true);
 %}
 
-# Stops shunting this source subnet
+## Stops shunting anything within the subnet in the destination IP.
+##
+## Returns: Whether the operation succeeded
+##
+## .. zeek:see:: shunt_dest_subnet
 function unshunt_dest_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : bool %{
-    auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
+    auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
+    if ( ! zeek_prog ) {
+        zeek::reporter->Error(zeek_prog.error().c_str());
+        return zeek::val_mgr->Bool(false);
+    }
+
+    auto prog = (*zeek_prog)->prog;
     auto err = unshuntSubnet(get_dest_ip_map(prog), net->AsSubNetVal());
 
     if ( err ) {
@@ -207,13 +268,23 @@ function unshunt_dest_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : 
     return zeek::val_mgr->Bool(true);
 %}
 
-# Shunts based on the 5-tuple, in both directions.
+## Starts shunting anything with the conn_id. This is bidirectional.
+##
+## Returns: Whether the operation succeeded
+##
+## .. zeek:see:: unshunt_conn_id
 function shunt_conn_id%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
     auto opt_tup = makeBPFMapTuple(cid->AsRecordVal());
     if ( ! opt_tup )
         return zeek::val_mgr->Bool(false);
 
-    auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
+    auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
+    if ( ! zeek_prog ) {
+        zeek::reporter->Error(zeek_prog.error().c_str());
+        return zeek::val_mgr->Bool(false);
+    }
+
+    auto prog = (*zeek_prog)->prog;
     auto err = update_map(get_canonical_id_map(prog), &*opt_tup, XDP_DROP);
 
     if ( err ) {
@@ -224,13 +295,23 @@ function shunt_conn_id%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool 
     return zeek::val_mgr->Bool(true);
 %}
 
-# Stops shunting this conn_id
+## Stops shunting anything with the conn_id.
+##
+## Returns: Whether the operation succeeded
+##
+## .. zeek:see:: shunt_conn_id
 function unshunt_conn_id%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
     auto opt_tup = makeBPFMapTuple(cid->AsRecordVal());
     if ( ! opt_tup )
         return zeek::val_mgr->Bool(false);
 
-    auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
+    auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
+    if ( ! zeek_prog ) {
+        zeek::reporter->Error(zeek_prog.error().c_str());
+        return zeek::val_mgr->Bool(false);
+    }
+
+    auto prog = (*zeek_prog)->prog;
     auto err = remove_from_map(get_canonical_id_map(prog), &*opt_tup);
 
     if ( err ) {
@@ -241,9 +322,19 @@ function unshunt_conn_id%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : boo
     return zeek::val_mgr->Bool(true);
 %}
 
-# TODO: options
+## Stops the XDP shunting program.
+##
+## Returns: Whether the operation succeeded
+##
+## .. zeek:see:: start_shunt
 function end_shunt%(xdp_prog: opaque of XDP::Program%) : bool %{
-    auto prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog)->prog;
+    auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
+    if ( ! zeek_prog ) {
+        zeek::reporter->Error(zeek_prog.error().c_str());
+        return zeek::val_mgr->Bool(false);
+    }
+
+    auto prog = (*zeek_prog)->prog;
     auto ps = zeek::iosource_mgr->GetPktSrc();
     if ( ! ps ) {
         zeek::reporter->Error("Packet source invalid!");

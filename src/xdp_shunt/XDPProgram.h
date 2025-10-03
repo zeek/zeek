@@ -9,15 +9,19 @@ extern zeek::OpaqueTypePtr program_opaque;
 
 class XDPProgramVal : public zeek::OpaqueVal {
 public:
-    XDPProgramVal() : zeek::OpaqueVal(detail::program_opaque) {}
-    XDPProgramVal(struct filter* prog) : OpaqueVal(detail::program_opaque), prog(std::move(prog)) {}
+    XDPProgramVal() : zeek::OpaqueVal(program_opaque) {}
+    XDPProgramVal(struct filter* prog) : OpaqueVal(detail::program_opaque), prog(prog) {}
     ~XDPProgramVal() override = default;
 
-    static xdp::shunter::detail::XDPProgramVal* CastFromAny(Val* prog) {
-        // TODO
+    static zeek::expected<xdp::shunter::detail::XDPProgramVal*, std::string> CastFromAny(Val* prog) {
         if ( prog->GetType() != detail::program_opaque )
-            ;
-        return dynamic_cast<xdp::shunter::detail::XDPProgramVal*>(prog);
+            return zeek::unexpected<std::string>("Invalid XDP program");
+
+        auto xdp_prog = dynamic_cast<xdp::shunter::detail::XDPProgramVal*>(prog);
+        if ( ! xdp_prog )
+            return zeek::unexpected<std::string>("Invalid XDP program");
+
+        return xdp_prog;
     }
 
     struct filter* prog;

@@ -12,9 +12,8 @@
 
 struct filter;
 
-// TODO: Prevent these from conflicting better
 #ifndef __LIBXDP_LIBXDP_H
-enum xdp_action {
+enum xdp_action { // NOLINT(performance-enum-size)
     XDP_ABORTED = 0,
     XDP_DROP,
     XDP_PASS,
@@ -22,7 +21,7 @@ enum xdp_action {
     XDP_REDIRECT,
 };
 
-enum xdp_attach_mode {
+enum xdp_attach_mode { // NOLINT(performance-enum-size)
     XDP_MODE_UNSPEC = 0,
     XDP_MODE_NATIVE,
     XDP_MODE_SKB,

@@ -12,23 +12,24 @@ struct canonical_tuple {
     __u8 protocol;
 };
 
-struct ip_lpm_key {
-    __u32 prefixlen;
-    struct in6_addr ip;
+struct ip_pair_key {
+    struct in6_addr ip1;
+    struct in6_addr ip2;
 };
 
 static __always_inline int compare_ips(struct in6_addr* ip1, struct in6_addr* ip2) {
-    __u64* a64 = (__u64*)&ip1;
-    __u64* b64 = (__u64*)&ip2;
+    const __u64* a64 = (const __u64*)ip1;
+    const __u64* b64 = (const __u64*)ip2;
 
+    if ( a64[0] > b64[0] )
+        return 1;
     if ( a64[0] < b64[0] )
         return -1;
-    if ( a64[0] > b64[0] )
+
+    if ( a64[1] > b64[1] )
         return 1;
     if ( a64[1] < b64[1] )
         return -1;
-    if ( a64[1] > b64[1] )
-        return 1;
 
     return 0;
 }

@@ -37,8 +37,7 @@ std::optional<std::string> load_and_attach(int ifindex, xdp_options opts, struct
 }
 
 struct bpf_map* get_canonical_id_map(struct filter* skel) { return skel->maps.filter_map; }
-struct bpf_map* get_src_ip_map(struct filter* skel) { return skel->maps.source_ip_map; }
-struct bpf_map* get_dest_ip_map(struct filter* skel) { return skel->maps.dest_ip_map; }
+struct bpf_map* get_ip_pair_map(struct filter* skel) { return skel->maps.ip_pair_map; }
 
 template<SupportedBpfKey Key>
 std::optional<std::string> update_map(struct bpf_map* map, Key* key, xdp_action action) {
@@ -54,7 +53,7 @@ std::optional<std::string> update_map(struct bpf_map* map, Key* key, xdp_action 
 
 template std::optional<std::string> update_map<canonical_tuple>(struct bpf_map* map, canonical_tuple* key,
                                                                 xdp_action action);
-template std::optional<std::string> update_map<ip_lpm_key>(struct bpf_map* map, ip_lpm_key* key, xdp_action action);
+template std::optional<std::string> update_map<ip_pair_key>(struct bpf_map* map, ip_pair_key* key, xdp_action action);
 
 template<SupportedBpfKey Key>
 std::optional<std::string> remove_from_map(struct bpf_map* map, Key* key) {
@@ -69,7 +68,7 @@ std::optional<std::string> remove_from_map(struct bpf_map* map, Key* key) {
 }
 
 template std::optional<std::string> remove_from_map<canonical_tuple>(struct bpf_map* map, canonical_tuple* key);
-template std::optional<std::string> remove_from_map<ip_lpm_key>(struct bpf_map* map, ip_lpm_key* key);
+template std::optional<std::string> remove_from_map<ip_pair_key>(struct bpf_map* map, ip_pair_key* key);
 
 template<SupportedBpfKey Key>
 std::vector<Key> get_map(struct bpf_map* map) {
@@ -86,12 +85,11 @@ std::vector<Key> get_map(struct bpf_map* map) {
 }
 
 template std::vector<canonical_tuple> get_map<canonical_tuple>(struct bpf_map* map);
-template std::vector<ip_lpm_key> get_map<ip_lpm_key>(struct bpf_map* map);
+template std::vector<ip_pair_key> get_map<ip_pair_key>(struct bpf_map* map);
 
 void detach_and_destroy_filter(struct filter* skel, int ifindex) {
     unlink(bpf_map__pin_path(skel->maps.filter_map));
-    unlink(bpf_map__pin_path(skel->maps.source_ip_map));
-    unlink(bpf_map__pin_path(skel->maps.dest_ip_map));
+    unlink(bpf_map__pin_path(skel->maps.ip_pair_map));
     struct bpf_xdp_attach_opts opts = {
         .old_prog_fd = bpf_program__fd(skel->progs.xdp_filter),
     };

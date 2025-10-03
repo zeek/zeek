@@ -8,6 +8,21 @@
 #include "bpf/UserXDP.h"
 #include "bpf/filter_common.h"
 
+struct in6_addr addrToIpVal(const zeek::IPAddr& addr) {
+    const uint32_t* bytes;
+    int len = addr.GetBytes(&bytes);
+    struct in6_addr ip = {0};
+    if ( len == 1 ) {
+        ip.s6_addr[10] = 0xff;
+        ip.s6_addr[11] = 0xff;
+        memcpy(&ip.s6_addr[12], &bytes[0], sizeof(uint32_t));
+    }
+    else
+        memcpy(&ip, bytes, sizeof(struct in6_addr));
+
+    return ip;
+}
+
 std::optional<canonical_tuple> makeBPFMapTuple(zeek::RecordVal* cid_r) {
     const zeek::IPAddr& orig_h = cid_r->GetFieldAs<zeek::AddrVal>(0);
     uint16_t orig_p = cid_r->GetFieldAs<zeek::PortVal>(1)->Port();
@@ -15,27 +30,8 @@ std::optional<canonical_tuple> makeBPFMapTuple(zeek::RecordVal* cid_r) {
     uint16_t resp_p = cid_r->GetFieldAs<zeek::PortVal>(3)->Port();
     uint8_t proto = cid_r->GetFieldAs<zeek::CountVal>(4);
 
-    const uint32_t* orig_bytes;
-    int len = orig_h.GetBytes(&orig_bytes);
-    struct in6_addr ip1 = {0};
-    if ( len == 1 ) {
-        ip1.s6_addr[10] = 0xff;
-        ip1.s6_addr[11] = 0xff;
-        memcpy(&ip1.s6_addr[12], &orig_bytes[0], sizeof(uint32_t));
-    }
-    else
-        memcpy(&ip1, orig_bytes, sizeof(struct in6_addr));
-
-    const uint32_t* resp_bytes;
-    struct in6_addr ip2 = {0};
-    len = resp_h.GetBytes(&resp_bytes);
-    if ( len == 1 ) {
-        ip2.s6_addr[10] = 0xff;
-        ip2.s6_addr[11] = 0xff;
-        memcpy(&ip2.s6_addr[12], &resp_bytes[0], sizeof(uint32_t));
-    }
-    else
-        memcpy(&ip2, resp_bytes, sizeof(struct in6_addr));
+    auto ip1 = addrToIpVal(orig_h);
+    auto ip2 = addrToIpVal(resp_h);
 
     auto tup = canonical_tuple{
         .ip1 = ip1,
@@ -53,48 +49,6 @@ std::optional<canonical_tuple> makeBPFMapTuple(zeek::RecordVal* cid_r) {
     }
 
     return tup;
-}
-
-std::optional<std::string> shuntSubnet(struct bpf_map* map, zeek::SubNetVal* subnet) {
-    auto ip = subnet->Prefix();
-    const uint32_t* bytes;
-    int len = ip.GetBytes(&bytes);
-    struct in6_addr ip_addr = {0};
-    if ( len == 1 ) {
-        ip_addr.s6_addr[10] = 0xff;
-        ip_addr.s6_addr[11] = 0xff;
-        memcpy(&ip_addr.s6_addr[12], &bytes[0], sizeof(uint32_t));
-    }
-    else
-        memcpy(&ip_addr, bytes, sizeof(struct in6_addr));
-
-    auto key = ip_lpm_key{
-        .prefixlen = static_cast<__u32>(subnet->Width()),
-        .ip = ip_addr,
-    };
-
-    return update_map(map, &key, XDP_DROP);
-}
-
-std::optional<std::string> unshuntSubnet(struct bpf_map* map, zeek::SubNetVal* subnet) {
-    auto ip = subnet->Prefix();
-    const uint32_t* bytes;
-    int len = ip.GetBytes(&bytes);
-    struct in6_addr ip_addr = {0};
-    if ( len == 1 ) {
-        ip_addr.s6_addr[10] = 0xff;
-        ip_addr.s6_addr[11] = 0xff;
-        memcpy(&ip_addr.s6_addr[12], &bytes[0], sizeof(uint32_t));
-    }
-    else
-        memcpy(&ip_addr, bytes, sizeof(struct in6_addr));
-
-    auto key = ip_lpm_key{
-        .prefixlen = static_cast<__u32>(subnet->Width()),
-        .ip = ip_addr,
-    };
-
-    return remove_from_map(map, &key);
 }
 
 %%}
@@ -176,12 +130,12 @@ function get_canonical_id_map_keys%(xdp_prog: opaque of XDP::Program%) : any_vec
     return zeek_keys;
 %}
 
-## Starts shunting anything within the subnet in the source IP.
+## Starts shunting anything between two IPs.
 ##
 ## Returns: Whether the operation succeeded
 ##
-## .. zeek:see:: unshunt_src_subnet
-function shunt_src_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : bool %{
+## .. zeek:see:: unshunt_ip_pair
+function shunt_ip_pair%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr%) : bool %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
         zeek::reporter->Error(zeek_prog.error().c_str());
@@ -189,7 +143,17 @@ function shunt_src_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : boo
     }
 
     auto prog = (*zeek_prog)->prog;
-    auto err = shuntSubnet(get_src_ip_map(prog), net->AsSubNetVal());
+    auto ip1 = addrToIpVal(ip1_val->AsAddrVal()->Get());
+    auto ip2 = addrToIpVal(ip2_val->AsAddrVal()->Get());
+
+    auto ip2_higher = compare_ips(&ip1, &ip2) < 0;
+
+    auto key = ip_pair_key{
+        .ip1 = ip2_higher ? ip1 : ip2,
+        .ip2 = ip2_higher ? ip2 : ip1,
+    };
+
+    auto err = update_map(get_ip_pair_map(prog), &key, XDP_DROP);
 
     if ( err ) {
         zeek::reporter->Error(zeek::util::fmt("Failed to add to map: %s", (*err).c_str()));
@@ -199,12 +163,12 @@ function shunt_src_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : boo
     return zeek::val_mgr->Bool(true);
 %}
 
-## Stops shunting anything within the subnet in the source IP.
+## Stops shunting anything between two IPs.
 ##
 ## Returns: Whether the operation succeeded
 ##
-## .. zeek:see:: shunt_src_subnet
-function unshunt_src_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : bool %{
+## .. zeek:see:: unshunt_ip_pair
+function unshunt_ip_pair%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr%) : bool %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
         zeek::reporter->Error(zeek_prog.error().c_str());
@@ -212,56 +176,20 @@ function unshunt_src_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : b
     }
 
     auto prog = (*zeek_prog)->prog;
-    auto err = unshuntSubnet(get_src_ip_map(prog), net->AsSubNetVal());
+    auto ip1 = addrToIpVal(ip1_val->AsAddrVal()->Get());
+    auto ip2 = addrToIpVal(ip2_val->AsAddrVal()->Get());
 
-    if ( err ) {
-        zeek::reporter->Error(zeek::util::fmt("Failed to remove from map: %s", (*err).c_str()));
-        return zeek::val_mgr->Bool(false);
-    }
+    auto ip2_higher = compare_ips(&ip1, &ip2) > 0;
 
-    return zeek::val_mgr->Bool(true);
-%}
+    auto key = ip_pair_key{
+        .ip1 = ip2_higher ? ip1 : ip2,
+        .ip2 = ip2_higher ? ip2 : ip1,
+    };
 
-## Starts shunting anything within the subnet in the destination IP.
-##
-## Returns: Whether the operation succeeded
-##
-## .. zeek:see:: unshunt_dest_subnet
-function shunt_dest_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : bool %{
-    auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
-    if ( ! zeek_prog ) {
-        zeek::reporter->Error(zeek_prog.error().c_str());
-        return zeek::val_mgr->Bool(false);
-    }
-
-    auto prog = (*zeek_prog)->prog;
-    auto err = shuntSubnet(get_dest_ip_map(prog), net->AsSubNetVal());
+    auto err = remove_from_map(get_ip_pair_map(prog), &key);
 
     if ( err ) {
         zeek::reporter->Error(zeek::util::fmt("Failed to add to map: %s", (*err).c_str()));
-        return zeek::val_mgr->Bool(false);
-    }
-
-    return zeek::val_mgr->Bool(true);
-%}
-
-## Stops shunting anything within the subnet in the destination IP.
-##
-## Returns: Whether the operation succeeded
-##
-## .. zeek:see:: shunt_dest_subnet
-function unshunt_dest_subnet%(xdp_prog: opaque of XDP::Program, net: subnet%) : bool %{
-    auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
-    if ( ! zeek_prog ) {
-        zeek::reporter->Error(zeek_prog.error().c_str());
-        return zeek::val_mgr->Bool(false);
-    }
-
-    auto prog = (*zeek_prog)->prog;
-    auto err = unshuntSubnet(get_dest_ip_map(prog), net->AsSubNetVal());
-
-    if ( err ) {
-        zeek::reporter->Error(zeek::util::fmt("Failed to remove from map: %s", (*err).c_str()));
         return zeek::val_mgr->Bool(false);
     }
 

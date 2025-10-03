@@ -22,20 +22,12 @@ struct {
 } filter_map SEC(".maps");
 
 struct {
-    __uint(type, BPF_MAP_TYPE_LPM_TRIE);
+    __uint(type, BPF_MAP_TYPE_HASH);
     __uint(max_entries, 1024);
-    __type(key, struct ip_lpm_key);
+    __type(key, struct ip_pair_key);
     __type(value, __u32);
-    __uint(map_flags, BPF_F_NO_PREALLOC);
-} source_ip_map SEC(".maps");
-
-struct {
-    __uint(type, BPF_MAP_TYPE_LPM_TRIE);
-    __uint(max_entries, 1024);
-    __type(key, struct ip_lpm_key);
-    __type(value, __u32);
-    __uint(map_flags, BPF_F_NO_PREALLOC);
-} dest_ip_map SEC(".maps");
+    __uint(pinning, LIBBPF_PIN_BY_NAME);
+} ip_pair_map SEC(".maps");
 
 SEC("xdp")
 int xdp_filter(struct xdp_md* ctx) {
@@ -85,10 +77,6 @@ int xdp_filter(struct xdp_md* ctx) {
         }
         default: return XDP_PASS;
     }
-    bpf_printk("XDP_DBG: Source IPv6 is %pI6", &src_ip);
-
-    // Print the destination IPv6 address
-    bpf_printk("XDP_DBG: Dest IPv6 is %pI6", &dest_ip);
 
     struct canonical_tuple tuple = {0};
     void* transport_header;
@@ -104,8 +92,8 @@ int xdp_filter(struct xdp_md* ctx) {
         struct tcphdr* tcph = transport_header;
         if ( (void*)tcph + sizeof(*tcph) > data_end )
             return XDP_PASS;
-        port_source = bpf_ntohs(tcph->source); // Host byte order for comparison
-        port_dest = bpf_ntohs(tcph->dest);     // Host byte order for comparison
+        port_source = bpf_ntohs(tcph->source);
+        port_dest = bpf_ntohs(tcph->dest);
     }
     else if ( l4_protocol == IPPROTO_UDP ) {
         struct udphdr* udph = transport_header;
@@ -137,24 +125,13 @@ int xdp_filter(struct xdp_md* ctx) {
     if ( action )
         return *action;
 
-    // Check src ip map
-    __u32 prefixlen = is_ipv4 ? 32 : 128;
-    struct ip_lpm_key src_key = {
-        .prefixlen = prefixlen,
-        .ip = src_ip,
+    // Check IP pairs
+    struct ip_pair_key pair = {
+        .ip1 = tuple.ip1,
+        .ip2 = tuple.ip2,
     };
 
-    action = bpf_map_lookup_elem(&source_ip_map, &src_key);
-    if ( action )
-        return *action;
-
-    // Check dest ip map
-    struct ip_lpm_key dest_key = {
-        .prefixlen = prefixlen,
-        .ip = dest_ip,
-    };
-
-    action = bpf_map_lookup_elem(&dest_ip_map, &dest_key);
+    action = bpf_map_lookup_elem(&ip_pair_map, &pair);
     if ( action )
         return *action;
 

@@ -126,6 +126,10 @@ public:
     // to the given cohort c.
     int CohortSize(int c) const { return c > MaxCohort() ? 0 : instances[c].size(); }
 
+    // Populates the given vector with associated identifiers seen
+    // in the cohort, if any.
+    void GetCohortIDs(int c, std::vector<IDPtr>& ids) const;
+
     // Returns the C++ type associated with this collection's run-time vector.
     // This might be, for example, "PatternVal"
     const std::string& CPPType() const { return CPP_type; }
@@ -301,6 +305,9 @@ public:
     // Returns values used for creating this value, one element per
     // constructor parameter.
     virtual void InitializerVals(std::vector<std::string>& ivs) const = 0;
+
+    // Returns any associated identifier, or nil if none.
+    virtual IDPtr InitIdentifier() const { return nullptr; }
 
     const Obj* InitObj() const { return o; }
 
@@ -517,7 +524,10 @@ public:
     std::string InitializerType() const override { return "CPP_GlobalInit"; }
     void InitializerVals(std::vector<std::string>& ivs) const override;
 
+    IDPtr InitIdentifier() const override { return g; }
+
 protected:
+    IDPtr g;
     int type;
     int attrs;
     std::string val;

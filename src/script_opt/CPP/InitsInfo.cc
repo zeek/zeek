@@ -8,12 +8,22 @@
 #include "zeek/script_opt/CPP/AttrExprType.h"
 #include "zeek/script_opt/CPP/Compile.h"
 #include "zeek/script_opt/CPP/RuntimeInits.h"
+#include "zeek/script_opt/IDOptInfo.h"
 
 using namespace std;
 
 namespace zeek::detail {
 
 string CPP_InitsInfo::Name(int index) const { return base_name + "[" + Fmt(index) + "]"; }
+
+void CPP_InitsInfo::GetCohortIDs(int c, std::vector<IDPtr>& ids) const {
+    if ( c > MaxCohort() )
+        return;
+
+    for ( auto& co : instances[c] )
+        if ( auto id = co->InitIdentifier() )
+            ids.emplace_back(std::move(id));
+}
 
 void CPP_InitsInfo::AddInstance(shared_ptr<CPP_InitInfo> g) {
     auto final_init_cohort = g->FinalInitCohort();
@@ -375,16 +385,17 @@ void GlobalLookupInitInfo::InitializerVals(std::vector<std::string>& ivs) const 
     ivs.push_back(val);
 }
 
-GlobalInitInfo::GlobalInitInfo(CPPCompile* c, IDPtr g, string _CPP_name)
-    : GlobalLookupInitInfo(c, g, std::move(_CPP_name)) {
+GlobalInitInfo::GlobalInitInfo(CPPCompile* c, IDPtr _g, string _CPP_name)
+    : GlobalLookupInitInfo(c, _g, std::move(_CPP_name)) {
+    g = std::move(_g);
     auto& gt = g->GetType();
     auto gi = c->RegisterType(gt);
-    init_cohort = max(init_cohort, gi->InitCohort() + 1);
+    init_cohort = max(init_cohort, gi->FinalInitCohort() + 1);
     type = gi->Offset();
 
     gi = c->RegisterAttributes(g->GetAttrs());
     if ( gi ) {
-        init_cohort = max(init_cohort, gi->InitCohort() + 1);
+        init_cohort = max(init_cohort, gi->FinalInitCohort() + 1);
         attrs = gi->Offset();
     }
     else
@@ -396,7 +407,18 @@ GlobalInitInfo::GlobalInitInfo(CPPCompile* c, IDPtr g, string _CPP_name)
     gc.is_enum_const = g->IsEnumConst();
     gc.is_type = g->IsType();
 
-    val = ValElem(c, nullptr); // empty because we initialize dynamically
+    // We don't initialize the global directly because its initialization
+    // might be an expression rather than a simple constant. Instead we
+    // make sure that it can be generated per the use of GetCohortIDs()
+    // in CPPCompile::GenFinishInit().
+    val = ValElem(c, nullptr);
+
+    // This code here parallels that of CPPCompile::InitializeGlobal().
+    const auto& oi = g->GetOptInfo();
+    for ( auto& init : oi->GetInitExprs() )
+        // We use GetOp2() because initialization expressions are
+        // capture in the form of some sort of assignment.
+        init_cohort = max(init_cohort, c->ReadyExpr(init->GetOp2()) + 1);
 
     if ( gt->Tag() == TYPE_FUNC && (! g->GetVal() || g->GetVal()->AsFunc()->GetKind() == Func::BUILTIN_FUNC) )
         // Be sure not to try to create BiFs. In addition, GetVal() can be

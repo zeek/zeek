@@ -185,42 +185,35 @@ void CPPCompile::InitializeConsts() {
     EndBlock(true);
 }
 
-void CPPCompile::InitializeGlobals() {
-    Emit("static void init_globals__CPP()");
-    StartBlock();
+void CPPCompile::InitializeGlobal(const IDPtr& g) {
+    const auto& oi = g->GetOptInfo();
+    if ( ! oi )
+        return;
 
-    Emit("Frame* f__CPP = nullptr;");
-    NL();
+    const auto& exprs = oi->GetInitExprs();
+    const auto& init_classes = oi->GetInitClasses();
 
-    auto& ofiles = analysis_options.only_files;
+    ASSERT(exprs.size() == init_classes.size());
 
-    for ( const auto& ginit : IDOptInfo::GetGlobalInitExprs() ) {
-        IDPtr g{NewRef{}, const_cast<ID*>(ginit.Id())};
+    auto init = exprs.begin();
+    auto ic = init_classes.begin();
 
-        if ( ! ofiles.empty() && obj_matches_opt_files(g) != AnalyzeDecision::SHOULD )
-            continue;
-
-        if ( ! accessed_globals.contains(g) )
-            continue;
-
-        auto ic = ginit.IC();
-        auto& init = ginit.Init();
-
-        if ( ic == INIT_NONE )
-            Emit(GenExpr(init, GEN_NATIVE, true) + ";");
+    for ( ; init != exprs.end(); ++init, ++ic ) {
+        if ( *ic == INIT_NONE )
+            Emit(GenExpr(*init, GEN_NATIVE, true) + ";");
 
         else {
             // This branch occurs for += or -= initializations that
             // use associated functions.
             string ics;
-            if ( ic == INIT_EXTRA )
+            if ( *ic == INIT_EXTRA )
                 ics = "INIT_EXTRA";
-            else if ( ic == INIT_REMOVE )
+            else if ( *ic == INIT_REMOVE )
                 ics = "INIT_REMOVE";
             else
-                reporter->FatalError("bad initialization class in CPPCompile::InitializeGlobals()");
+                reporter->FatalError("bad initialization class in CPPCompile::InitializeGlobal()");
 
-            Emit("%s->SetValue(%s, %s);", globals[g->Name()], GenExpr(init, GEN_NATIVE, true), ics);
+            Emit("%s->SetValue(%s, %s);", globals[g->Name()], GenExpr(*init, GEN_NATIVE, true), ics);
         }
 
         const auto& attrs = g->GetAttrs();
@@ -230,8 +223,6 @@ void CPPCompile::InitializeGlobals() {
             Emit("%s->SetAttrs(%s);", globals[g->Name()], attrs_str);
         }
     }
-
-    EndBlock();
 }
 
 void CPPCompile::GenInitHook() {

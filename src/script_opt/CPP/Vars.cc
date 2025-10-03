@@ -7,7 +7,7 @@ namespace zeek::detail {
 
 using namespace std;
 
-void CPPCompile::CreateGlobal(IDPtr g) {
+bool CPPCompile::CreateGlobal(IDPtr g) {
     auto gn = string(g->Name());
     bool is_bif = pfs->BiFGlobals().contains(g);
 
@@ -16,14 +16,16 @@ void CPPCompile::CreateGlobal(IDPtr g) {
         // then we'll call it directly.
         if ( compilable_funcs.contains(gn) ) {
             AddGlobal(gn, "zf");
-            return;
+            return false;
         }
 
         if ( is_bif ) {
             AddBiF(g, false);
-            return;
+            return false;
         }
     }
+
+    bool should_init = false;
 
     if ( AddGlobal(gn, "gl") ) { // We'll be creating this global.
         Emit("IDPtr %s;", globals[gn]);
@@ -32,9 +34,7 @@ void CPPCompile::CreateGlobal(IDPtr g) {
             // This is an event that's also used as a variable.
             Emit("EventHandlerPtr %s_ev;", globals[gn]);
 
-        auto gi = GenerateGlobalInit(g);
-        global_id_info->AddInstance(gi);
-        global_gis[g] = std::move(gi);
+        should_init = true;
     }
 
     if ( is_bif )
@@ -43,6 +43,8 @@ void CPPCompile::CreateGlobal(IDPtr g) {
         AddBiF(g, true);
 
     global_vars.emplace(g);
+
+    return should_init;
 }
 
 std::shared_ptr<CPP_InitInfo> CPPCompile::RegisterGlobal(IDPtr g) {

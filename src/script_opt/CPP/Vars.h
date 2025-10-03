@@ -12,7 +12,10 @@ std::shared_ptr<CPP_InitInfo> RegisterGlobal(IDPtr g);
 private:
 // Generate declarations associated with the given global, and, if it's used
 // as a variable (not just as a function being called), track it as such.
-void CreateGlobal(IDPtr g);
+//
+// Returns true if it needs initialization (which we do separately to avoid
+// tripping across dependencies between globals).
+bool CreateGlobal(IDPtr g);
 
 // Low-level function for generating an initializer for a global. Takes
 // into account differences for standalone-compilation.
@@ -49,10 +52,6 @@ std::string CaptureName(const IDPtr& l) const;
 // Returns a canonicalized name, with various non-alphanumeric characters
 // stripped or transformed, and guaranteed not to conflict with C++ keywords.
 std::string Canonicalize(const std::string& name) const;
-
-// Returns the name of the global corresponding to an expression (which must
-// be a EXPR_NAME).
-std::string GlobalName(const ExprPtr& e) { return globals[e->AsNameExpr()->Id()->Name()]; }
 
 // Globals that are used (appear in the profiles) of the bodies we're
 // compiling. Includes globals just used as functions to call.

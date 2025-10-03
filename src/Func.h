@@ -265,7 +265,7 @@ public:
      */
     void ReplaceBody(const detail::StmtPtr& old_body, detail::StmtPtr new_body);
 
-    auto CurrentBody() const { return current_body; }
+    const Body& CurrentBody() const { return current_body; }
 
     /**
      * Returns the function's frame size.

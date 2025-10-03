@@ -574,7 +574,7 @@ void ScriptFunc::ReplaceBody(const StmtPtr& old_body, StmtPtr new_body) {
             if ( new_body )
                 body->stmts = new_body;
             else
-                bodies.erase(body);
+                body = bodies.erase(body);
 
             found_it = true;
             current_body = *body;

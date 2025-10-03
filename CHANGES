@@ -1,3 +1,7 @@
+8.1.0-dev.629 | 2025-10-03 09:13:28 -0700
+
+  * Fix some recent Coverity findings (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.626 | 2025-10-02 14:10:44 +0200
 
   * GH-4845: iosource/Packet: Allow ToRawPktHdrVal() for reassembled packets (Arne Welzel, Corelight)

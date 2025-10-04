@@ -605,6 +605,11 @@ const running_under_test: bool = F &redef;
 ## out and is removed.
 const netbios_ssn_session_timeout: interval = 15 sec &redef;
 
+## Whether Zeek should keep track of the script frame stack during runtime. This
+## can be used by plugins to do profiling, for example. This tracking is
+## automatically enabled when running the built-in script debugger.
+const track_script_frame_stack: bool = F &redef;
+
 module EventMetadata;
 
 export {

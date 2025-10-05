@@ -149,7 +149,7 @@ public:
     // Broker does not expose send-buffer/queue state explicitly, so track
     // arrivals (a push, is_push == true) and departures (a pull, is_push ==
     // false) as they happen. Note that this must not touch Zeek-side Vals.
-    void Observe(const broker::endpoint_id& peer, bool is_push) {
+    void Observe(const broker::endpoint_id& peer, size_t size_change, bool is_push) {
         std::scoped_lock<std::mutex> lock(mutex);
         auto it = stats_map.find(peer);
 
@@ -179,7 +179,12 @@ public:
         if ( is_push && stats.queued == buffer_size )
             stats.overflows += 1;
         else {
-            stats.queued += is_push ? 1 : -1;
+            if ( is_push ) {
+                stats.queued += static_cast<uint32_t>(size_change);
+            }
+            else {
+                stats.queued -= static_cast<uint32_t>(size_change);
+            }
             if ( stats.queued > stats.max_queued_recently )
                 stats.max_queued_recently = stats.queued;
         }
@@ -309,12 +314,17 @@ public:
     explicit Observer(LogSeverityLevel severity, LoggerQueuePtr queue, PeerBufferStatePtr pbstate)
         : severity_(severity), queue_(std::move(queue)), pbstate_(std::move(pbstate)) {}
 
-    void on_peer_buffer_push(const broker::endpoint_id& peer, const broker::node_message&) override {
-        pbstate_->Observe(peer, true);
+    void on_peer_connect(const broker::endpoint_id& peer, const broker::network_info&) override {
+        // When a peer connect, we "observe" a push of 0 messages to initialize the peer's stats.
+        pbstate_->Observe(peer, 0, true);
     }
 
-    void on_peer_buffer_pull(const broker::endpoint_id& peer, const broker::node_message&) override {
-        pbstate_->Observe(peer, false);
+    void on_peer_buffer_push(const broker::endpoint_id& peer, size_t count) override {
+        pbstate_->Observe(peer, count, true);
+    }
+
+    void on_peer_buffer_pull(const broker::endpoint_id& peer, size_t count) override {
+        pbstate_->Observe(peer, count, false);
     }
 
     void on_peer_disconnect(const broker::endpoint_id& peer, const broker::error&) override {

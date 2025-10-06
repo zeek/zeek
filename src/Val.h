@@ -4,6 +4,7 @@
 
 #include <sys/types.h> // for u_char
 #include <array>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -1363,7 +1364,7 @@ public:
      * Returns the number of fields in the record.
      * @return  The number of fields in the record.
      */
-    unsigned int NumFields() const { return record_val.size(); }
+    unsigned int NumFields() const { return num_fields; }
 
     /**
      * Returns true if the given field is in the record, false if
@@ -1601,10 +1602,11 @@ protected:
      * @param t  The type associated with the field.
      */
     void AppendField(ValPtr v, const TypePtr& t) {
+        assert(num_fields < static_cast<size_t>(GetRecordType()->NumFields()));
         if ( v )
-            record_val.emplace_back(ZValElement(v, t));
+            record_val[num_fields++] = ZValElement(v, t);
         else
-            record_val.emplace_back(ZValElement(t));
+            record_val[num_fields++] = ZValElement(t);
     }
 
     // For internal use by low-level ZAM instructions and event tracing.
@@ -1665,10 +1667,10 @@ private:
 
     unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;
 
+    // Number of fields in record_val populated.
+    size_t num_fields = 0;
     // Low-level values of each of the fields.
-    //
-    // Lazily modified during GetField(), so mutable.
-    mutable std::vector<ZValElement> record_val;
+    std::unique_ptr<ZValElement[]> record_val;
 };
 
 class EnumVal final : public detail::IntValImplementation {

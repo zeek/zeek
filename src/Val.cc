@@ -16,6 +16,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <memory>
 #include <set>
 
 #include "zeek/Attr.h"
@@ -2926,15 +2927,16 @@ RecordVal::RecordTypeValMap RecordVal::parse_time_records;
 
 RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t)) {
     const auto* rt = GetRecordType();
+    size_t n = rt->NumFields();
+    record_val = std::make_unique<ZValElement[]>(n);
 
     if ( run_state::is_parsing )
         parse_time_records[rt].emplace_back(NewRef{}, this);
 
     if ( init_fields ) {
-        record_val.resize(rt->NumFields());
-
         // Properly initialize all fields.
-        Init(record_val.data());
+        num_fields = n;
+        Init(record_val.get());
 
         for ( auto& e : rt->CreationInits() ) {
             try {
@@ -2946,22 +2948,22 @@ RecordVal::RecordVal(RecordTypePtr t, bool init_fields) : Val(std::move(t)) {
             }
         }
     }
-
-    else
+    else {
         // This needs to go through AppendField() which will do the right thing
         // for the individual fields.
-        record_val.reserve(rt->NumFields());
+    }
 }
 
 RecordVal::RecordVal(RecordTypePtr t, std::vector<std::optional<ZVal>> init_vals) : Val(std::move(t)) {
     // TODO: Change so that callers pass init_vals as ZValElement instead?
     const auto* rt = GetRecordType();
-    size_t n = rt->NumFields();
-    record_val.reserve(n);
+    num_fields = rt->NumFields();
+    record_val = std::make_unique<ZValElement[]>(num_fields);
+    Init(record_val.get());
 
-    for ( size_t i = 0; i < n; i++ ) {
-        record_val.emplace_back(ZValElement(rt->GetFieldType(i)));
+    assert(num_fields == init_vals.size());
 
+    for ( size_t i = 0; i < num_fields; i++ ) {
         if ( init_vals[i].has_value() )
             record_val[i] = init_vals[i].value();
     }
@@ -3007,12 +3009,21 @@ void RecordVal::ResizeParseTimeRecords(RecordType* revised_rt) {
     auto& rvs = it->second;
 
     for ( auto& rv : rvs ) {
-        int current_length = rv->NumFields();
-        auto required_length = revised_rt->NumFields();
+        size_t current_length = rv->NumFields();
+        size_t required_length = revised_rt->NumFields();
 
         if ( required_length > current_length ) {
+            auto new_record_val = std::make_unique<ZValElement[]>(required_length);
+            for ( size_t i = 0; i < current_length; i++ )
+                new_record_val[i] = rv->record_val[i];
+
+            // Replace record_val with the new array.
+            rv->record_val = std::move(new_record_val);
+
             for ( auto i = current_length; i < required_length; ++i )
                 rv->AppendField(revised_rt->FieldDefault(i), revised_rt->GetFieldType(i));
+
+            assert(static_cast<int>(rv->NumFields()) == revised_rt->NumFields());
         }
     }
 }
@@ -3098,7 +3109,7 @@ RecordValPtr RecordVal::CoerceTo(RecordTypePtr t, bool allow_orphaning) {
 TableValPtr RecordVal::GetRecordFieldsVal() const { return GetType()->AsRecordType()->GetRecordFieldsVal(this); }
 
 void RecordVal::Describe(ODesc* d) const {
-    auto n = record_val.size();
+    auto n = NumFields();
 
     if ( d->IsBinary() ) {
         GetRecordType()->Describe(d);
@@ -3131,7 +3142,7 @@ void RecordVal::Describe(ODesc* d) const {
 }
 
 void RecordVal::DescribeReST(ODesc* d) const {
-    auto n = record_val.size();
+    auto n = NumFields();
     auto rt = GetType()->AsRecordType();
 
     d->Add("{");

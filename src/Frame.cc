@@ -21,13 +21,6 @@ Frame::Frame(int arg_size, const ScriptFunc* func, const zeek::Args* fn_args) {
     function = func;
     func_args = fn_args;
 
-    next_stmt = nullptr;
-    break_before_next_stmt = false;
-    break_on_return = false;
-
-    call = nullptr;
-    delayed = false;
-
     // We could Ref()/Unref() the captures frame, but there's really
     // no need because by definition this current frame exists to
     // enable execution of the function, and its captures frame won't
@@ -35,7 +28,6 @@ Frame::Frame(int arg_size, const ScriptFunc* func, const zeek::Args* fn_args) {
     // after this frame does.
     captures = function ? function->GetCapturesFrame() : nullptr;
     captures_offset_map = function ? function->GetCapturesOffsetMap() : nullptr;
-    current_offset = 0;
 }
 
 void Frame::SetElement(int n, ValPtr v) {

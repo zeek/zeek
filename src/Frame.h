@@ -216,9 +216,9 @@ private:
     /** The number of vals that can be stored in this frame. */
     int size;
 
-    bool break_before_next_stmt;
-    bool break_on_return;
-    bool delayed;
+    bool break_before_next_stmt = false;
+    bool break_on_return = false;
+    bool delayed = false;
 
     /** Associates ID's offsets with values. */
     std::unique_ptr<Element[]> frame;
@@ -228,25 +228,25 @@ private:
      * This is how we support inlined functions without having to
      * alter the offsets associated with their local variables.
      */
-    int current_offset;
+    int current_offset = 0;
 
     /** Frame used for lambda/when captures. */
-    Frame* captures;
+    Frame* captures = nullptr;
 
     /** Maps IDs to offsets into the "captures" frame.  If the ID
      * isn't present, then it's not a capture.
      */
-    const OffsetMap* captures_offset_map;
+    const OffsetMap* captures_offset_map = nullptr;
 
     /** The function this frame is associated with. */
-    const ScriptFunc* function;
+    const ScriptFunc* function = nullptr;
 
     // The following is only needed for the debugger.
     /** The arguments to the function that this Frame is associated with. */
-    const zeek::Args* func_args;
+    const zeek::Args* func_args = nullptr;
 
     /** The next statement to be evaluated in the context of this frame. */
-    Stmt* next_stmt;
+    Stmt* next_stmt = nullptr;
 
     trigger::TriggerPtr trigger;
     const CallExpr* call = nullptr;

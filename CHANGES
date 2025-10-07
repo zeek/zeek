@@ -1,3 +1,7 @@
+8.1.0-dev.636 | 2025-10-07 09:33:31 -0700
+
+  * Reworked initialization of globals for -O gen-standalone-C++ code (Vern Paxson, Corelight)
+
 8.1.0-dev.634 | 2025-10-07 09:16:10 -0700
 
   * Remove SMB_time and SMB_date record types (Tim Wojtulewicz, Corelight)

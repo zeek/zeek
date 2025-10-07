@@ -87,7 +87,17 @@ void CPPCompile::GenInitStmt(const InitStmt* init) {
             continue;
         }
 
-        Emit("%s = make_intrusive<%s>(cast_intrusive<%s>(%s));", IDName(aggr), type_name, type_type, type_ind);
+        auto aggr_name = IDName(aggr);
+
+        Emit("%s = make_intrusive<%s>(cast_intrusive<%s>(%s));", aggr_name, type_name, type_type, type_ind);
+
+        const auto& attrs = aggr->GetAttrs();
+        if ( ! attrs )
+            continue;
+
+        auto attrs_offset = AttributesOffset(attrs);
+        auto attrs_str = "CPP__Attributes__[" + Fmt(attrs_offset) + "]";
+        Emit("%s->SetAttrs(%s);", aggr_name, attrs_str);
     }
 }
 

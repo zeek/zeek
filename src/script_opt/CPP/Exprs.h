@@ -117,6 +117,11 @@ std::string GenIntVector(const std::vector<int>& vec);
 std::string GenField(const ExprPtr& rec, int field);
 std::string GenEnum(const TypePtr& et, const ValPtr& ev);
 
+// Creates all the initializations needed to evaluate the given expression.
+// Returns the maximum cohort associated with these.
+friend class GlobalInitInfo;
+int ReadyExpr(const ExprPtr& e);
+
 // For record that are extended via redef's, maps fields beyond the original
 // definition to locations in the global (in the compiled code) "field_mapping"
 // array.

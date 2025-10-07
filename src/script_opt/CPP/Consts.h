@@ -15,8 +15,12 @@ public:
 // Returns the associated initialization info.  In addition, consts_offset
 // returns an offset into an initialization-time global that tracks all
 // constructed globals, providing general access to them for aggregate
-// constants.
+// constants. The second form is for when this isn't needed.
 std::shared_ptr<CPP_InitInfo> RegisterConstant(const ValPtr& vp, int& consts_offset);
+std::shared_ptr<CPP_InitInfo> RegisterConstant(const ValPtr& vp) {
+    [[maybe_unused]] int consts_offset; // ignored
+    return RegisterConstant(vp, consts_offset);
+}
 
 private:
 // Maps (non-native) constants to associated C++ globals.

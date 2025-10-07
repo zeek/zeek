@@ -6,7 +6,8 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 8.0.2
 ==========
 
-We would like to thank Peter Cullen (@pbcullen) for their contribution to this release.
+We would like to thank Jeff McJunkin (@jeffmcjunkin) and Peter Cullen (@pbcullen) for
+their contributions to this release.
 
 This release fixes the following bugs:
 

@@ -6,6 +6,9 @@ release. For an exhaustive list of changes, see the ``CHANGES`` file
 Zeek 7.0.11
 ===========
 
+We would like to thank Jeff McJunkin (@jeffmcjunkin) and Peter Cullen (@pbcullen) for
+their contributions to this release.
+
 This release fixes the following bugs:
 
 - The ``get_current_packet_header()`` BIF now populates the returned record also for

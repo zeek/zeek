@@ -56,3 +56,6 @@ Trace Index/Sources:
 - smb_v2_only_non_zero_reserved1.pcap
   Provided by @predator89090 on #4730
   https://github.com/zeek/zeek/issues/4730
+- smb/cifs_negotiate_lanman.pcap
+  Generated with scapy/chatgpt by @Mohan-Dhawan
+  https://github.com/zeek/zeek/issues/4545

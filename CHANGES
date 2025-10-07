@@ -1,3 +1,14 @@
+8.1.0-dev.634 | 2025-10-07 09:16:10 -0700
+
+  * Remove SMB_time and SMB_date record types (Tim Wojtulewicz, Corelight)
+
+  * SMB: Init lanman time and set TZ correctly before calling mktime (Tim Wojtulewicz, Corelight)
+
+    This makes a change to the record for smb1-negotiate-response as well.
+    Times and dates are two 2-byte sections, not three. Switch the parsing
+    to just use two uint16s, and pass those into the lanman time conversion
+    function.
+
 8.1.0-dev.631 | 2025-10-03 14:07:06 -0700
 
   * fix to enable -O gen-standalone-C++ code to extend enum types (Vern Paxson, Corelight)

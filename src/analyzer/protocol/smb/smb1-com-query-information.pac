@@ -31,7 +31,7 @@ type SMB1_query_information_request(header: SMB_Header) = record {
 type SMB1_query_information_response(header: SMB_Header) = record {
 	word_count      : uint8;
 	file_attribs    : uint16;
-	last_write_time : SMB_time;
+	last_write_time : uint32;
 	file_size       : uint32;
 	reserved        : uint16[5];
 	byte_count      : uint16;

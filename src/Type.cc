@@ -1201,10 +1201,6 @@ int RecordType::FieldOffset(const char* field) const {
 
 const char* RecordType::FieldName(int field) const { return FieldDecl(field)->id; }
 
-const TypeDecl* RecordType::FieldDecl(int field) const { return (*types)[field]; }
-
-TypeDecl* RecordType::FieldDecl(int field) { return (*types)[field]; }
-
 void RecordType::DoDescribe(ODesc* d) const {
     d->PushType(this);
 

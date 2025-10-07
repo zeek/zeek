@@ -688,8 +688,8 @@ public:
     type_decl_list* Types() { return types; }
 
     // Given an offset, returns the field's TypeDecl.
-    const TypeDecl* FieldDecl(int field) const;
-    TypeDecl* FieldDecl(int field);
+    const TypeDecl* FieldDecl(int field) const { return (*types)[field]; }
+    TypeDecl* FieldDecl(int field) { return (*types)[field]; }
 
     // Returns flags corresponding to which fields in the record
     // have types requiring memory management (reference counting).

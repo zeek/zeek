@@ -102,7 +102,7 @@ protected:
     ExprPtr e;
 };
 
-class IfStmt final : public ExprStmt {
+class IfStmt : public ExprStmt {
 public:
     IfStmt(ExprPtr test, StmtPtr s1, StmtPtr s2);
     ~IfStmt() override;
@@ -133,6 +133,15 @@ protected:
 
     StmtPtr s1;
     StmtPtr s2;
+};
+
+class DebugIfStmt final : public IfStmt {
+public:
+    DebugIfStmt(ExprPtr test, StmtPtr s1, StmtPtr s2) : IfStmt(test, s1, s2) {}
+    ~DebugIfStmt() override = default;
+
+protected:
+    ValPtr DoExec(Frame* f, Val* v, StmtFlowType& flow) override;
 };
 
 class Case final : public Obj {
@@ -450,6 +459,14 @@ protected:
     bool ReduceStmt(unsigned int& s_i, std::vector<StmtPtr>& f_stmts, Reducer* c);
 
     void ResetStmts(std::vector<StmtPtr> new_stmts) { stmts = std::move(new_stmts); }
+};
+
+class DebugStmtList : public StmtList {
+public:
+    DebugStmtList() = default;
+    ~DebugStmtList() override = default;
+
+    ValPtr Exec(Frame* f, StmtFlowType& flow) override;
 };
 
 class InitStmt final : public Stmt {

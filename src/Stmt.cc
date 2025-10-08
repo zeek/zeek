@@ -436,15 +436,7 @@ ValPtr IfStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) {
 
     f->SetNextStmt(do_stmt);
 
-    if ( ! pre_execute_stmt(do_stmt, f) ) { // ### Abort or something
-    }
-
-    auto result = do_stmt->Exec(f, flow);
-
-    if ( ! post_execute_stmt(do_stmt, f, result.get(), &flow) ) { // ### Abort or something
-    }
-
-    return result;
+    return do_stmt->Exec(f, flow);
 }
 
 bool IfStmt::IsPure() const { return e->IsPure() && s1->IsPure() && s2->IsPure(); }
@@ -486,6 +478,23 @@ TraversalCode IfStmt::Traverse(TraversalCallback* cb) const {
 
     tc = cb->PostStmt(this);
     HANDLE_TC_STMT_POST(tc);
+}
+
+ValPtr DebugIfStmt::DoExec(Frame* f, Val* v, StmtFlowType& flow) {
+    // Treat 0 as false, but don't require 1 for true.
+    Stmt* do_stmt = v->IsZero() ? s2.get() : s1.get();
+
+    f->SetNextStmt(do_stmt);
+
+    if ( ! pre_execute_stmt(do_stmt, f) ) { // ### Abort or something
+    }
+
+    auto result = do_stmt->Exec(f, flow);
+
+    if ( ! post_execute_stmt(do_stmt, f, result.get(), &flow) ) { // ### Abort or something
+    }
+
+    return result;
 }
 
 static StmtTag get_last_stmt_tag(const Stmt* stmt) {
@@ -1409,13 +1418,7 @@ ValPtr StmtList::Exec(Frame* f, StmtFlowType& flow) {
 
         f->SetNextStmt(stmt);
 
-        if ( ! pre_execute_stmt(stmt, f) ) { // ### Abort or something
-        }
-
         auto result = stmt->Exec(f, flow);
-
-        if ( ! post_execute_stmt(stmt, f, result.get(), &flow) ) { // ### Abort or something
-        }
 
         if ( flow != FLOW_NEXT || result || f->HasDelayed() )
             return result;
@@ -1467,6 +1470,30 @@ TraversalCode StmtList::Traverse(TraversalCallback* cb) const {
 
     tc = cb->PostStmt(this);
     HANDLE_TC_STMT_POST(tc);
+}
+
+ValPtr DebugStmtList::Exec(Frame* f, StmtFlowType& flow) {
+    RegisterAccess();
+    flow = FLOW_NEXT;
+
+    for ( const auto& stmt_ptr : stmts ) {
+        auto stmt = stmt_ptr.get();
+
+        f->SetNextStmt(stmt);
+
+        if ( ! pre_execute_stmt(stmt, f) ) { // ### Abort or something
+        }
+
+        auto result = stmt->Exec(f, flow);
+
+        if ( ! post_execute_stmt(stmt, f, result.get(), &flow) ) { // ### Abort or something
+        }
+
+        if ( flow != FLOW_NEXT || result || f->HasDelayed() )
+            return result;
+    }
+
+    return nullptr;
 }
 
 InitStmt::InitStmt(std::vector<IDPtr> arg_inits) : Stmt(STMT_INIT) {

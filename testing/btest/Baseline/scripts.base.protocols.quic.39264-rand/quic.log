@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	client_initial_dcid	client_scid	server_scid	server_name	client_protocol	history
 #types	time	string	addr	port	addr	port	string	string	string	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	765b:b77b:dad1:7e73:56f9:5a0f:52a3:f4f	39264	725f:1f71:525f:a3b:525f:3673:525f:3673	443	1	ceef7990f5bb4071	1e6dc7	eeef7990f5bb4071	tr6.snapchat.com	h3	IIISZiiiiishIH
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	765b:b77b:dad1:7e73:56f9:5a0f:52a3:f4f	39264	725f:1f71:525f:a3b:525f:3673:525f:3673	443	1	ceef7990f5bb4071	1e6dc7	eeef7990f5bb4071	tr6.snapchat.com	h3	IXIXISZXiiiiishIH
 #close XXXX-XX-XX-XX-XX-XX

@@ -59,6 +59,7 @@ export {
 		## C       CONNECTION_CLOSE packet
 		## S       SSL Client/Server Hello
 		## U       Unfamiliar QUIC version
+		## X       Discarded packet after successful decryption of INITIAL packets.
 		## ======  ====================================================
 		history: string &log &default="";
 
@@ -77,6 +78,10 @@ export {
 
 	## The maximum length of the history field.
 	option max_history_length = 100;
+
+	## Maximum number of QUIC::discarded packet() events to generate.
+	## Set to 0 for unlimited, -1 for disabled.
+	const max_discarded_packet_events: int = 100 &redef;
 }
 
 redef record connection += {
@@ -162,6 +167,18 @@ event QUIC::retry_packet(c: connection, is_orig: bool, version: count, dcid: str
 	log_record(c$quic);
 
 	delete c$quic;
+	}
+
+event QUIC::discarded_packet(c: connection, is_orig: bool, total_decrypted: count)
+	{
+	if ( ! c?$quic )
+		{
+		# This should not happen.
+		Reporter::conn_weird("QUIC_spurious_discarded_packet", c);
+		return;
+		}
+
+	add_to_history(c, is_orig, "Xdiscarded");
 	}
 
 # If we couldn't handle a version, log it as a single record.

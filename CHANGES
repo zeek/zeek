@@ -1,3 +1,19 @@
+8.1.0-dev.639 | 2025-10-08 09:21:05 +0200
+
+  * logging/writers: Disable heartbeats (Arne Welzel, Corelight)
+
+    None of the built-in log writers have a use for heartbeats, disable
+    sending them to the thread.
+
+  * logging/WriterBackend: Support disabling heartbeats (Arne Welzel, Corelight)
+
+    The regular heartbeats to the WriterBackend threads can result in
+    significant processing overhead when analyzing long and sparse PCAPs
+    for which the number of heartbeat messages far exceeds the number of
+    log writes. This patch allows implementors to disable heartbeats.
+
+    Relates to discussion #4731
+
 8.1.0-dev.636 | 2025-10-07 09:33:31 -0700
 
   * Reworked initialization of globals for -O gen-standalone-C++ code (Vern Paxson, Corelight)

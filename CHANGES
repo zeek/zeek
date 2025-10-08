@@ -1,3 +1,21 @@
+8.0.1-11 | 2025-10-08 10:01:02 -0700
+
+  * logging/writers: Disable heartbeats (Arne Welzel, Corelight)
+
+    None of the built-in log writers have a use for heartbeats, disable
+    sending them to the thread.
+
+    (cherry picked from commit 050035e33eed88cc1248c5d857508da60b86ee3a)
+
+  * logging/WriterBackend: Support disabling heartbeats (Arne Welzel, Corelight)
+
+    The regular heartbeats to the WriterBackend threads can result in
+    significant processing overhead when analyzing long and sparse PCAPs
+    for which the number of heartbeat messages far exceeds the number of
+    log writes. This patch allows implementors to disable heartbeats.
+
+    (cherry picked from commit 050035e33eed88cc1248c5d857508da60b86ee3a)
+
 8.0.1-10 | 2025-10-08 09:59:39 -0700
 
   * fixed bug in logic for including/excluding files for script optimization (Vern Paxson, Corelight)

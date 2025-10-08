@@ -17,7 +17,7 @@ using zeek::threading::Value;
 
 namespace zeek::logging::writer::detail {
 
-SQLite::SQLite(WriterFrontend* frontend) : WriterBackend(frontend) {
+SQLite::SQLite(WriterFrontend* frontend) : WriterBackend(frontend, /*send_heartbeats=*/false) {
     set_separator.assign((const char*)BifConst::LogSQLite::set_separator->Bytes(),
                          BifConst::LogSQLite::set_separator->Len());
 

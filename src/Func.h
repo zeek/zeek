@@ -42,6 +42,7 @@ class Frame;
 using ScopePtr = IntrusivePtr<Scope>;
 using IDPtr = IntrusivePtr<ID>;
 using StmtPtr = IntrusivePtr<Stmt>;
+using FramePtr = IntrusivePtr<Frame>;
 
 class ScriptFunc;
 class FunctionIngredients;
@@ -348,8 +349,7 @@ extern bool check_built_in_call(BuiltinFunc* f, CallExpr* call);
 
 struct CallInfo {
     const CallExpr* call = nullptr;
-    const Func* func = nullptr;
-    const zeek::Args& args;
+    const FramePtr frame;
 };
 
 // Class that collects all the specifics defining a Func.

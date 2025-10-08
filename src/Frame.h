@@ -20,11 +20,11 @@ using ValPtr = IntrusivePtr<Val>;
 
 class BrokerListView;
 class BrokerData;
+class Func;
 
 namespace detail {
 
 class CallExpr;
-class ScriptFunc;
 using IDPtr = IntrusivePtr<ID>;
 
 namespace trigger {
@@ -47,7 +47,7 @@ public:
      * @param func the function that is creating this frame
      * @param fn_args the arguments being passed to that function.
      */
-    Frame(int size, const ScriptFunc* func, const zeek::Args* fn_args);
+    Frame(int size, const Func* func, const zeek::Args* fn_args);
 
     /**
      * Returns the size of the frame.
@@ -117,7 +117,7 @@ public:
     /**
      * @return the function that the frame is associated with.
      */
-    const ScriptFunc* GetFunction() const { return function; }
+    const Func* GetFunction() const { return function; }
 
     /**
      * @return the arguments passed to the function that this frame
@@ -130,7 +130,7 @@ public:
      *
      * @param func the function for the frame to be associated with.
      */
-    void SetFunction(ScriptFunc* func) { function = func; }
+    void SetFunction(Func* func) { function = func; }
 
     /**
      * Sets the next statement to be executed in the context of the frame.
@@ -239,7 +239,7 @@ private:
     const OffsetMap* captures_offset_map = nullptr;
 
     /** The function this frame is associated with. */
-    const ScriptFunc* function = nullptr;
+    const Func* function = nullptr;
 
     // The following is only needed for the debugger.
     /** The arguments to the function that this Frame is associated with. */
@@ -266,4 +266,4 @@ private:
  * DebugFrame which provides the information that the debugger uses. See:
  * https://stackoverflow.com/a/16211097
  */
-extern std::vector<zeek::detail::Frame*> g_frame_stack;
+// extern std::vector<zeek::detail::Frame*> g_frame_stack;

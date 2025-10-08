@@ -11,13 +11,12 @@
 #include "zeek/Val.h"
 #include "zeek/broker/Data.h"
 
-std::vector<zeek::detail::Frame*> g_frame_stack;
-
 namespace zeek::detail {
 
-Frame::Frame(int arg_size, const ScriptFunc* func, const zeek::Args* fn_args) {
+Frame::Frame(int arg_size, const Func* func, const zeek::Args* fn_args) {
     size = arg_size;
-    frame = std::make_unique<Element[]>(size);
+    if ( size > 0 )
+        frame = std::make_unique<Element[]>(size);
     function = func;
     func_args = fn_args;
 
@@ -26,8 +25,11 @@ Frame::Frame(int arg_size, const ScriptFunc* func, const zeek::Args* fn_args) {
     // enable execution of the function, and its captures frame won't
     // go away until the function itself goes away, which can only be
     // after this frame does.
-    captures = function ? function->GetCapturesFrame() : nullptr;
-    captures_offset_map = function ? function->GetCapturesOffsetMap() : nullptr;
+    if ( function && function->GetKind() == Func::SCRIPT_FUNC ) {
+        auto* sf = static_cast<const ScriptFunc*>(function);
+        captures = sf->GetCapturesFrame();
+        captures_offset_map = sf->GetCapturesOffsetMap();
+    }
 }
 
 void Frame::SetElement(int n, ValPtr v) {

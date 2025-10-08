@@ -143,15 +143,13 @@ int TraceState::LogTrace(const char* fmt, ...) {
     const Stmt* stmt;
     Location loc;
 
-    if ( g_frame_stack.size() > 0 && g_frame_stack.back() ) {
-        stmt = g_frame_stack.back()->GetNextStmt();
+    if ( ! call_stack.empty() ) {
+        const auto& frame = call_stack.back().frame;
+        stmt = frame->GetNextStmt();
         if ( stmt )
             loc = *stmt->GetLocationInfo();
-        else {
-            const ScriptFunc* f = g_frame_stack.back()->GetFunction();
-            if ( f )
-                loc = *f->GetLocationInfo();
-        }
+        else if ( const Func* f = frame->GetFunction() )
+            loc = *f->GetLocationInfo();
     }
 
     if ( ! loc.FileName() ) {
@@ -163,7 +161,7 @@ int TraceState::LogTrace(const char* fmt, ...) {
     fprintf(trace_file, "%s:%d", loc.FileName(), loc.LastLine());
 
     // Each stack frame is indented.
-    for ( int i = 0; i < int(g_frame_stack.size()); ++i )
+    for ( const auto& call : call_stack )
         fprintf(trace_file, "\t");
 
     retval = vfprintf(trace_file, fmt, args);
@@ -589,16 +587,18 @@ static int dbg_dispatch_cmd(DebugCmd cmd_code, const vector<string>& args) {
 
         case dcQuit: debug_msg("Program Terminating\n"); exit(0);
 
-        case dcNext:
-            g_frame_stack.back()->BreakBeforeNextStmt(true);
+        case dcNext: {
+            Frame* frame = call_stack.back().frame;
+            frame->BreakBeforeNextStmt(true);
             step_or_next_pending = true;
-            last_frame = g_frame_stack.back();
+            last_frame = frame;
             break;
+        }
 
         case dcStep:
             g_debugger_state.BreakBeforeNextStmt(true);
             step_or_next_pending = true;
-            last_frame = g_frame_stack.back();
+            last_frame = call_stack.back().frame;
             break;
 
         case dcContinue:
@@ -607,7 +607,7 @@ static int dbg_dispatch_cmd(DebugCmd cmd_code, const vector<string>& args) {
             break;
 
         case dcFinish:
-            g_frame_stack.back()->BreakOnReturn(true);
+            call_stack.back().frame->BreakOnReturn(true);
             g_debugger_state.BreakBeforeNextStmt(false);
             break;
 
@@ -663,7 +663,7 @@ static char* get_prompt(bool reset_counter = false) {
 
 string get_context_description(const Stmt* stmt, const Frame* frame) {
     ODesc d;
-    const ScriptFunc* func = frame ? frame->GetFunction() : nullptr;
+    const Func* func = frame ? frame->GetFunction() : nullptr;
 
     if ( func )
         func->DescribeDebug(&d, frame->GetFuncArgs());
@@ -698,9 +698,8 @@ int dbg_handle_debug_input() {
         g_debugger_state.BreakFromSignal(false);
     }
 
-    Frame* curr_frame = g_frame_stack.back();
-    const ScriptFunc* func = curr_frame->GetFunction();
-    if ( func )
+    auto curr_frame = call_stack.back().frame;
+    if ( const Func* func = curr_frame->GetFunction() )
         current_module = extract_module_name(func->GetName().c_str());
     else
         current_module = GLOBAL_MODULE_NAME;
@@ -711,8 +710,8 @@ int dbg_handle_debug_input() {
 
     const Location loc = *stmt->GetLocationInfo();
 
-    if ( ! step_or_next_pending || g_frame_stack.back() != last_frame ) {
-        string context = get_context_description(stmt, g_frame_stack.back());
+    if ( ! step_or_next_pending || call_stack.back().frame != last_frame ) {
+        string context = get_context_description(stmt, call_stack.back().frame);
         debug_msg("%s\n", context.c_str());
     }
 
@@ -848,16 +847,16 @@ ValPtr dbg_eval_expr(const char* expr) {
     // Push the current frame's associated scope.
     // Note: g_debugger_state.curr_frame_idx is the user-visible number,
     //       while the array index goes in the opposite direction
-    int frame_idx = (g_frame_stack.size() - 1) - g_debugger_state.curr_frame_idx;
+    int frame_idx = (call_stack.size() - 1) - g_debugger_state.curr_frame_idx;
 
-    if ( ! (frame_idx >= 0 && (unsigned)frame_idx < g_frame_stack.size()) )
-        reporter->InternalError("Assertion failed: frame_idx >= 0 && (unsigned) frame_idx < g_frame_stack.size()");
+    if ( ! (frame_idx >= 0 && static_cast<size_t>(frame_idx) < call_stack.size()) )
+        reporter->InternalError("Assertion failed: frame_idx >= 0 && (unsigned) frame_idx < call_stack.size()");
 
-    Frame* frame = g_frame_stack[frame_idx];
-    if ( ! (frame) )
+    const auto& frame = call_stack[frame_idx].frame;
+    if ( ! frame )
         reporter->InternalError("Assertion failed: frame");
 
-    const ScriptFunc* func = frame->GetFunction();
+    const Func* func = frame->GetFunction();
     if ( func )
         push_existing_scope(func->GetScope());
 

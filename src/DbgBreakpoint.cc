@@ -303,17 +303,16 @@ void DbgBreakpoint::PrintHitMsg() {
         case BP_FUNC:
         case BP_LINE: {
             ODesc d;
-            Frame* f = g_frame_stack.back();
-            const ScriptFunc* func = f->GetFunction();
+            const auto& f = call_stack.back().frame;
 
-            if ( func )
+            if ( const Func* func = f->GetFunction() )
                 func->DescribeDebug(&d, f->GetFuncArgs());
 
             const Location* loc = at_stmt->GetLocationInfo();
 
             debug_msg("Breakpoint %d, %s at %s:%d\n", GetID(), d.Description(), loc->FileName(), loc->FirstLine());
-        }
             return;
+        }
 
         case BP_TIME: assert(false);
 

@@ -348,8 +348,7 @@ extern bool check_built_in_call(BuiltinFunc* f, CallExpr* call);
 
 struct CallInfo {
     const CallExpr* call = nullptr;
-    const Func* func = nullptr;
-    const zeek::Args& args;
+    Frame* frame = nullptr;
 };
 
 // Class that collects all the specifics defining a Func.

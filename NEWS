@@ -73,6 +73,9 @@ Changed Functionality
 - The ``get_current_packet_header()`` now populates the returned record also for
   fragmented IP datagrams.
 
+- The QUIC parser discards packets with the fixed_bit field set to 0, rather than
+  continuing to parse potentially running into analyzer violations.
+
 Removed Functionality
 ---------------------
 

@@ -221,6 +221,8 @@ constexpr size_t SHA1VAL_STATE_SIZE = sizeof(SHA_CTX);
 
 constexpr size_t SHA256VAL_STATE_SIZE = sizeof(SHA256_CTX);
 
+constexpr size_t SHA512VAL_STATE_SIZE = sizeof(SHA512_CTX);
+
 #if ( OPENSSL_VERSION_NUMBER < 0x30000000L )
 
 // -- MD5
@@ -313,6 +315,38 @@ void do_unserialize(SHA256Val::StatePtr ptr, const char* bytes, size_t len) {
 
 void do_destroy(SHA256Val::StatePtr ptr) { hash_state_free(to_digest_ptr(ptr)); }
 
+// -- SHA512
+
+auto* to_native_ptr(SHA512Val::StatePtr ptr) { return reinterpret_cast<EVP_MD_CTX*>(ptr); }
+
+auto* to_digest_ptr(SHA512Val::StatePtr ptr) { return reinterpret_cast<detail::HashDigestState*>(ptr); }
+
+void do_init(SHA512Val::StatePtr& ptr) {
+    ptr = reinterpret_cast<SHA512Val::StatePtr>(detail::hash_init(detail::Hash_SHA512));
+}
+
+void do_clone(SHA512Val::StatePtr out, SHA512Val::StatePtr in) {
+    detail::hash_copy(to_digest_ptr(out), to_digest_ptr(in));
+}
+
+void do_feed(SHA512Val::StatePtr ptr, const void* data, size_t size) {
+    detail::hash_update(to_digest_ptr(ptr), data, size);
+}
+
+void do_get(SHA512Val::StatePtr ptr, u_char* digest) { detail::hash_final_no_free(to_digest_ptr(ptr), digest); }
+
+std::string do_serialize(SHA512Val::StatePtr ptr) {
+    auto* md = reinterpret_cast<SHA512_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
+    return {reinterpret_cast<const char*>(md), sizeof(SHA512_CTX)};
+}
+
+void do_unserialize(SHA512Val::StatePtr ptr, const char* bytes, size_t len) {
+    auto* md = reinterpret_cast<SHA512_CTX*>(EVP_MD_CTX_md_data(to_native_ptr(ptr)));
+    memcpy(md, bytes, len);
+}
+
+void do_destroy(SHA512Val::StatePtr ptr) { hash_state_free(to_digest_ptr(ptr)); }
+
 #else
 
 // -- MD5
@@ -380,6 +414,28 @@ std::string do_serialize(SHA256Val::StatePtr ptr) { return {reinterpret_cast<con
 void do_unserialize(SHA256Val::StatePtr ptr, const char* bytes, size_t len) { memcpy(ptr, bytes, len); }
 
 void do_destroy(SHA256Val::StatePtr ptr) { delete to_native_ptr(ptr); }
+
+// -- SHA512
+
+auto* to_native_ptr(SHA512Val::StatePtr ptr) { return reinterpret_cast<SHA512_CTX*>(ptr); }
+
+void do_init(SHA512Val::StatePtr& ptr) {
+    auto ctx = new SHA512_CTX;
+    SHA512_Init(ctx);
+    ptr = reinterpret_cast<SHA512Val::StatePtr>(ctx);
+}
+
+void do_clone(SHA512Val::StatePtr out, SHA512Val::StatePtr in) { *to_native_ptr(out) = *to_native_ptr(in); }
+
+void do_feed(SHA512Val::StatePtr ptr, const void* data, size_t size) { SHA512_Update(to_native_ptr(ptr), data, size); }
+
+void do_get(SHA512Val::StatePtr ptr, u_char* digest) { SHA512_Final(digest, to_native_ptr(ptr)); }
+
+std::string do_serialize(SHA512Val::StatePtr ptr) { return {reinterpret_cast<const char*>(ptr), sizeof(SHA512_CTX)}; }
+
+void do_unserialize(SHA512Val::StatePtr ptr, const char* bytes, size_t len) { memcpy(ptr, bytes, len); }
+
+void do_destroy(SHA512Val::StatePtr ptr) { delete to_native_ptr(ptr); }
 
 #endif
 
@@ -640,6 +696,91 @@ bool SHA256Val::DoUnserializeData(BrokerDataView data) {
     auto s = d[1].ToString();
 
     if ( s.size() != SHA256VAL_STATE_SIZE )
+        return false;
+
+    Init();
+    do_unserialize(ctx, s.data(), s.size());
+    return true;
+}
+
+SHA512Val::SHA512Val() : HashVal(sha512_type) {}
+
+SHA512Val::~SHA512Val() {
+    if ( ctx != nullptr )
+        do_destroy(ctx);
+}
+
+ValPtr SHA512Val::DoClone(CloneState* state) {
+    auto out = make_intrusive<SHA512Val>();
+
+    if ( IsValid() ) {
+        if ( ! out->Init() )
+            return nullptr;
+
+        do_clone(out->ctx, ctx);
+    }
+
+    return state->NewClone(this, std::move(out));
+}
+
+bool SHA512Val::DoInit() {
+    assert(! IsValid());
+    do_init(ctx);
+    return true;
+}
+
+bool SHA512Val::DoFeed(const void* data, size_t size) {
+    if ( ! IsValid() )
+        return false;
+
+    do_feed(ctx, data, size);
+    return true;
+}
+
+StringValPtr SHA512Val::DoGet() {
+    if ( ! IsValid() )
+        return val_mgr->EmptyString();
+
+    u_char digest[SHA512_DIGEST_LENGTH];
+    do_get(ctx, digest);
+    return make_intrusive<StringVal>(detail::sha512_digest_print(digest));
+}
+
+IMPLEMENT_OPAQUE_VALUE(SHA512Val)
+
+std::optional<BrokerData> SHA512Val::DoSerializeData() const {
+    BrokerListBuilder builder;
+
+    if ( ! IsValid() ) {
+        builder.Add(false);
+        return std::move(builder).Build();
+    }
+
+    builder.Add(true);
+    builder.Add(do_serialize(ctx));
+    return std::move(builder).Build();
+}
+
+bool SHA512Val::DoUnserializeData(BrokerDataView data) {
+    if ( ! data.IsList() )
+        return false;
+
+    auto d = data.ToList();
+
+    if ( d.IsEmpty() || ! d[0].IsBool() )
+        return false;
+
+    if ( ! d[0].ToBool() ) {
+        assert(! IsValid()); // default set by ctor
+        return true;
+    }
+
+    if ( d.Size() != 2 || ! d[1].IsString() )
+        return false;
+
+    auto s = d[1].ToString();
+
+    if ( s.size() != SHA512VAL_STATE_SIZE )
         return false;
 
     Init();

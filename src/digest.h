@@ -60,6 +60,10 @@ inline const char* sha256_digest_print(const u_char digest[ZEEK_SHA256_DIGEST_LE
     return digest_print(digest, ZEEK_SHA256_DIGEST_LENGTH);
 }
 
+inline const char* sha512_digest_print(const u_char digest[ZEEK_SHA512_DIGEST_LENGTH]) {
+    return digest_print(digest, ZEEK_SHA512_DIGEST_LENGTH);
+}
+
 struct HashDigestState;
 
 /**

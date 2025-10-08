@@ -313,6 +313,34 @@ private:
     StatePtr ctx = nullptr;
 };
 
+class SHA512Val : public HashVal {
+public:
+    struct State;
+
+    using StatePtr = State*;
+
+    template<class T>
+    static void digest(const T& vlist, u_char result[ZEEK_SHA512_DIGEST_LENGTH]) {
+        digest_all(detail::Hash_SHA512, vlist, result);
+    }
+
+    SHA512Val();
+    ~SHA512Val() override;
+
+    ValPtr DoClone(CloneState* state) override;
+
+protected:
+    friend class Val;
+
+    bool DoInit() override;
+    bool DoFeed(const void* data, size_t size) override;
+    StringValPtr DoGet() override;
+
+    DECLARE_OPAQUE_VALUE_DATA(SHA512Val)
+private:
+    StatePtr ctx = nullptr;
+};
+
 class EntropyVal : public OpaqueVal {
 public:
     EntropyVal();

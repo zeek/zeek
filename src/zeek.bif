@@ -737,6 +737,7 @@ function sleep%(i: interval%): interval
 ## .. zeek:see:: md5_hmac md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+##    sha512_hash_init sha512_hash_update sha512_hash_finish
 ##
 ## .. note::
 ##
@@ -757,6 +758,7 @@ function md5_hash%(...%): string
 ## .. zeek:see:: md5_hash md5_hmac md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+##    sha512_hash_init sha512_hash_update sha512_hash_finish
 ##
 ## .. note::
 ##
@@ -777,6 +779,7 @@ function sha1_hash%(...%): string
 ## .. zeek:see:: md5_hash md5_hmac md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash_init sha256_hash_update sha256_hash_finish
+##    sha512_hash_init sha512_hash_update sha512_hash_finish
 ##
 ## .. note::
 ##
@@ -790,6 +793,27 @@ function sha256_hash%(...%): string
 	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::sha256_digest_print(digest));
 	%}
 
+## Computes the SHA512 hash value of the provided list of arguments.
+##
+## Returns: The SHA512 hash value of the concatenated arguments.
+##
+## .. zeek:see:: md5_hash md5_hmac md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash_init sha256_hash_update sha256_hash_finish
+##    sha512_hash_init sha512_hash_update sha512_hash_finish
+##
+## .. note::
+##
+##      This function performs a one-shot computation of its arguments.
+##      For incremental hash computation, see :zeek:id:`sha512_hash_init` and
+##      friends.
+function sha512_hash%(...%): string
+	%{
+	unsigned char digest[ZEEK_SHA512_DIGEST_LENGTH];
+	SHA512Val::digest(@ARG@, digest);
+	return zeek::make_intrusive<zeek::StringVal>(zeek::detail::sha512_digest_print(digest));
+	%}
+
 ## Computes an HMAC-MD5 hash value of the provided list of arguments. The HMAC
 ## secret key is generated from available entropy when Zeek starts up, or it can
 ## be specified for repeatability using the ``-K`` command line flag.
@@ -799,6 +823,7 @@ function sha256_hash%(...%): string
 ## .. zeek:see:: md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+##    sha512_hash_init sha512_hash_update sha512_hash_finish
 function md5_hmac%(...%): string
 	%{
 	unsigned char hmac[ZEEK_MD5_DIGEST_LENGTH];
@@ -881,6 +906,32 @@ function sha256_hash_init%(%): opaque of sha256
 	return std::move(digest);
 	%}
 
+## Constructs an SHA512 handle to enable incremental hash computation. You can
+## feed data to the returned opaque value with :zeek:id:`sha512_hash_update` and
+## finally need to call :zeek:id:`sha512_hash_finish` to finish the computation
+## and get the hash digest.
+##
+## For example, when computing incremental SHA512 values of transferred files in
+## multiple concurrent HTTP connections, one keeps an optional handle in the
+## HTTP session record. Then, one would call
+## ``c$http$sha512_handle = sha512_hash_init()`` once before invoking
+## ``sha512_hash_update(c$http$sha512_handle, some_more_data)`` in the
+## :zeek:id:`http_entity_data` event handler. When all data has arrived, a call
+## to :zeek:id:`sha512_hash_finish` returns the final hash value.
+##
+## Returns: The opaque handle associated with this hash computation.
+##
+## .. zeek:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update
+##    sha512_hash sha512_hash_update sha512_hash_finish
+function sha512_hash_init%(%): opaque of sha512
+	%{
+	auto digest = zeek::make_intrusive<zeek::SHA512Val>();
+	digest->Init();
+	return std::move(digest);
+	%}
+
 ## Updates the MD5 value associated with a given index. It is required to
 ## call :zeek:id:`md5_hash_init` once before calling this
 ## function.
@@ -894,6 +945,7 @@ function sha256_hash_init%(%): opaque of sha256
 ## .. zeek:see:: md5_hmac md5_hash md5_hash_init md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+##    sha512_hash sha512_hash_update sha512_hash_finish
 function md5_hash_update%(handle: opaque of md5, data: string%): bool
 	%{
 	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
@@ -913,6 +965,7 @@ function md5_hash_update%(handle: opaque of md5, data: string%): bool
 ## .. zeek:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+##    sha512_hash sha512_hash_update sha512_hash_finish
 function sha1_hash_update%(handle: opaque of sha1, data: string%): bool
 	%{
 	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
@@ -932,7 +985,28 @@ function sha1_hash_update%(handle: opaque of sha1, data: string%): bool
 ## .. zeek:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_finish
+##    sha512_hash sha512_hash_update sha512_hash_finish
 function sha256_hash_update%(handle: opaque of sha256, data: string%): bool
+	%{
+	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
+	return zeek::val_mgr->Bool(rc);
+	%}
+
+## Updates the SHA512 value associated with a given index. It is required to
+## call :zeek:id:`sha512_hash_init` once before calling this
+## function.
+##
+## handle: The opaque handle associated with this hash computation.
+##
+## data: The data to add to the hash computation.
+##
+## Returns: True on success.
+##
+## .. zeek:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update
+##    sha512_hash sha512_hash_init sha512_hash_finish
+function sha512_hash_update%(handle: opaque of sha512, data: string%): bool
 	%{
 	bool rc = static_cast<HashVal*>(handle)->Feed(data->Bytes(), data->Len());
 	return zeek::val_mgr->Bool(rc);
@@ -947,6 +1021,7 @@ function sha256_hash_update%(handle: opaque of sha256, data: string%): bool
 ## .. zeek:see:: md5_hmac md5_hash md5_hash_init md5_hash_update
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+##    sha512_hash sha512_hash_update sha512_hash_finish
 function md5_hash_finish%(handle: opaque of md5%): string
 	%{
 	return static_cast<HashVal*>(handle)->Get();
@@ -961,6 +1036,7 @@ function md5_hash_finish%(handle: opaque of md5%): string
 ## .. zeek:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update
 ##    sha256_hash sha256_hash_init sha256_hash_update sha256_hash_finish
+##    sha512_hash sha512_hash_update sha512_hash_finish
 function sha1_hash_finish%(handle: opaque of sha1%): string
 	%{
 	return static_cast<HashVal*>(handle)->Get();
@@ -975,7 +1051,23 @@ function sha1_hash_finish%(handle: opaque of sha1%): string
 ## .. zeek:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
 ##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
 ##    sha256_hash sha256_hash_init sha256_hash_update
+##    sha512_hash sha512_hash_update sha512_hash_finish
 function sha256_hash_finish%(handle: opaque of sha256%): string
+	%{
+	return static_cast<HashVal*>(handle)->Get();
+	%}
+
+## Returns the final SHA512 digest of an incremental hash computation.
+##
+## handle: The opaque handle associated with this hash computation.
+##
+## Returns: The hash value associated with the computation of *handle*.
+##
+## .. zeek:see:: md5_hmac md5_hash md5_hash_init md5_hash_update md5_hash_finish
+##    sha1_hash sha1_hash_init sha1_hash_update sha1_hash_finish
+##    sha256_hash sha256_hash_init sha256_hash_update
+##    sha512_hash sha512_hash_init sha512_hash_update
+function sha512_hash_finish%(handle: opaque of sha512%): string
 	%{
 	return static_cast<HashVal*>(handle)->Get();
 	%}

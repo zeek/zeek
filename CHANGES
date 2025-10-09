@@ -1,3 +1,12 @@
+8.0.1-12 | 2025-10-09 11:01:44 -0700
+
+  * GH-4847: QUIC: Skip packets with fixed_bit 0 (Arne Welzel, Corelight)
+
+    The RFC specifies that QUIC packets with unset fixed_bit need to be
+    discarded. Do so.
+
+    (cherry picked from commit 9345a8c84ea1325eaaf39cc854dcab385bbafb2c)
+
 8.0.1-11 | 2025-10-08 10:01:02 -0700
 
   * logging/writers: Disable heartbeats (Arne Welzel, Corelight)

@@ -516,6 +516,16 @@ type Packet = unit(from_client: bool, context: Context&) {
     # Peek into the first byte and determine the header type.
     first_byte: bitfield(8) {
         header_form: 7 &convert=HeaderForm($$);
+
+        # The next bit (0x40) of byte 0 is set to 1. Packets containing a zero
+        # value for this bit are not valid packets in this version and MUST be
+        # discarded. A value of 1 for this bit allows QUIC to coexist with other
+        # protocols; see [RFC7983].
+        #
+        # https://datatracker.ietf.org/doc/html/rfc9000#name-short-header-packets
+        #
+        # We use this to avoid parsing the short/long header below.
+        fixed_bit: 6;
     };
 
     # TODO: Consider bitfield based look-ahead-parsing in the switch below
@@ -525,84 +535,94 @@ type Packet = unit(from_client: bool, context: Context&) {
     }
 
     # Depending on the header, parse it and update the src/dest ConnectionID's
-    switch (self.first_byte.header_form) {
-        HeaderForm::SHORT -> short_header: ShortHeader(context.client_cid_len);
-        HeaderForm::LONG -> long_header: LongHeaderPacket {
-            # For now, only allow a change of src/dest ConnectionID's for INITIAL packets.
+    switch (cast<bool>(self.first_byte.fixed_bit)) {
+        True -> {
+            switch (self.first_byte.header_form) {
+                HeaderForm::SHORT -> short_header: ShortHeader(context.client_cid_len);
+                HeaderForm::LONG -> long_header: LongHeaderPacket {
+                    # For now, only allow a change of src/dest ConnectionID's for INITIAL packets.
 
-            # If we see a retry packet from the responder, reset the decryption
-            # context such that the next DCID from the client is used for decryption.
-            if (self.long_header.is_retry) {
-                reset_crypto(context);
+                    # If we see a retry packet from the responder, reset the decryption
+                    # context such that the next DCID from the client is used for decryption.
+                    if (self.long_header.is_retry) {
+                        reset_crypto(context);
 
-                self.crypto = Null;
-                self.crypto_sink = Null;
+                        self.crypto = Null;
+                        self.crypto_sink = Null;
+                    }
+                }
+            };
+
+            : void {
+                if (self?.long_header && can_decrypt(self.long_header, context, self.crypto))
+                # If we have parsed an initial packet that we can decrypt the payload,
+                # determine the size to store into a buffer.
+                self.packet_size = self.offset();
             }
+
+            # Buffer the whole packet if we determined we have a chance to decrypt.
+            packet_data: bytes &parse-at=self.start &size=self.packet_size if(self.packet_size > 0) {
+
+                if (from_client) {
+                    context.server_cid_len = self.long_header.dest_conn_id_len;
+                    context.client_cid_len = self.long_header.src_conn_id_len;
+
+                    # This is the first INITIAL packet we attempt to decrypt and it is
+                    # coming from the client. Use its destination connection ID for
+                    # decryption purposes.
+                    if (!context.initial_destination_conn_id) {
+                        context.initial_destination_conn_id = self.long_header.dest_conn_id;
+                    }
+
+                    # This means that here, we can try to decrypt the initial packet!
+                    # All data is accessible via the `long_header` unit
+                    self.decrypted_data = decrypt_crypto_payload(
+                        self.long_header.version,
+                        self.packet_data,
+                        *context.initial_destination_conn_id,
+                        self.long_header.encrypted_offset,
+                        self.long_header.payload_length,
+                        from_client
+                    );
+                } else {
+                    context.server_cid_len = self.long_header.src_conn_id_len;
+                    context.client_cid_len = self.long_header.dest_conn_id_len;
+
+                    self.decrypted_data = decrypt_crypto_payload(
+                        self.long_header.version,
+                        self.packet_data,
+                        *context.initial_destination_conn_id,
+                        self.long_header.encrypted_offset,
+                        self.long_header.payload_length,
+                        from_client
+                    );
+                }
+
+                # We attempted decryption, but it failed. Just reject the
+                # input and assume Zeek will disable the analyzer for this
+                # connection.
+                if (|self.decrypted_data| == 0)
+                    throw "decryption failed";
+
+                # We were able to decrypt the INITIAL packet. Confirm QUIC!
+                spicy::accept_input();
+            }
+
+            # If this packet has a SHORT header, consume until &eod, there's nothing
+            # we can do with it anyhow, but only if fixed_bit == 1.
+            : ShortPacketPayload if(self.first_byte.header_form == HeaderForm::SHORT);
+
+            # If this was packet with a long header and decrypted data exists, attempt
+            # to parse the plain QUIC frames from it.
+            frames: Frame(self.long_header, from_client, self.crypto, self.crypto_sink)[] &parse-from=self.decrypted_data if(self.first_byte.header_form == HeaderForm::LONG && |self.decrypted_data| > 0);
+        }
+        False -> {
+            # Consume the packet if fixed_bit is not 1. Basically discard it.
+            #
+            # # TODO: Raise QUIC::discarded_packet() when this happens.
+            : skip bytes &eod;
         }
     };
-
-    : void {
-        if (self?.long_header && can_decrypt(self.long_header, context, self.crypto))
-        # If we have parsed an initial packet that we can decrypt the payload,
-        # determine the size to store into a buffer.
-        self.packet_size = self.offset();
-    }
-
-    # Buffer the whole packet if we determined we have a chance to decrypt.
-    packet_data: bytes &parse-at=self.start &size=self.packet_size if(self.packet_size > 0) {
-
-        if (from_client) {
-            context.server_cid_len = self.long_header.dest_conn_id_len;
-            context.client_cid_len = self.long_header.src_conn_id_len;
-
-            # This is the first INITIAL packet we attempt to decrypt and it is
-            # coming from the client. Use its destination connection ID for
-            # decryption purposes.
-            if (!context.initial_destination_conn_id) {
-                context.initial_destination_conn_id = self.long_header.dest_conn_id;
-            }
-
-            # This means that here, we can try to decrypt the initial packet!
-            # All data is accessible via the `long_header` unit
-            self.decrypted_data = decrypt_crypto_payload(
-                self.long_header.version,
-                self.packet_data,
-                *context.initial_destination_conn_id,
-                self.long_header.encrypted_offset,
-                self.long_header.payload_length,
-                from_client
-            );
-        } else {
-            context.server_cid_len = self.long_header.src_conn_id_len;
-            context.client_cid_len = self.long_header.dest_conn_id_len;
-
-            self.decrypted_data = decrypt_crypto_payload(
-                self.long_header.version,
-                self.packet_data,
-                *context.initial_destination_conn_id,
-                self.long_header.encrypted_offset,
-                self.long_header.payload_length,
-                from_client
-            );
-        }
-
-        # We attempted decryption, but it failed. Just reject the
-        # input and assume Zeek will disable the analyzer for this
-        # connection.
-        if (|self.decrypted_data| == 0)
-            throw "decryption failed";
-
-        # We were able to decrypt the INITIAL packet. Confirm QUIC!
-        spicy::accept_input();
-    }
-
-    # If this packet has a SHORT header, consume until &eod, there's nothing
-    # we can do with it anyhow.
-    : ShortPacketPayload if(self.first_byte.header_form == HeaderForm::SHORT);
-
-    # If this was packet with a long header and decrypted data exists, attempt
-    # to parse the plain QUIC frames from it.
-    frames: Frame(self.long_header, from_client, self.crypto, self.crypto_sink)[] &parse-from=self.decrypted_data if(self.first_byte.header_form == HeaderForm::LONG && |self.decrypted_data| > 0);
 };
 
 ##############

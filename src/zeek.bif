@@ -1444,10 +1444,16 @@ function entropy_test_finish%(handle: opaque of entropy%): entropy_test_result
 ## .. zeek:see:: unique_id_from
 function unique_id%(prefix: string%) : string
 	%{
-	char tmp[20];
-	uint64_t uid = zeek::util::calculate_unique_id(UID_POOL_DEFAULT_SCRIPT);
-	return zeek::make_intrusive<zeek::StringVal>(
-		zeek::util::uitoa_n(uid, tmp, sizeof(tmp), 62, prefix->CheckString()));
+	// This value isn't set until later in startup than some uses of it in script-land.
+	// If it's unset, temporarily look it up via find_val.
+	zeek_uint_t bits = zeek::detail::bits_per_uid;
+	if ( bits == 0 ) {
+	   auto bpu = id::find_val("bits_per_uid");
+	   bits = bpu->AsCount();
+	}
+
+	UID uid(bits, nullptr, 0, UID_POOL_DEFAULT_SCRIPT);
+	return zeek::make_intrusive<zeek::StringVal>(uid.Base62(prefix->CheckString()));
 	%}
 
 ## Creates an identifier that is unique with high probability.
@@ -1461,12 +1467,17 @@ function unique_id%(prefix: string%) : string
 ## .. zeek:see:: unique_id
 function unique_id_from%(pool: int, prefix: string%) : string
 	%{
-	pool += UID_POOL_CUSTOM_SCRIPT; // Make sure we don't conflict with internal pool.
+	// This value isn't set until later in startup than some uses of it in script-land.
+	// If it's unset, temporarily look it up via find_val.
+	zeek_uint_t bits = zeek::detail::bits_per_uid;
+	if ( bits == 0 ) {
+	   auto bpu = id::find_val("bits_per_uid");
+	   bits = bpu->AsCount();
+	}
 
-	char tmp[20];
-	uint64_t uid = zeek::util::calculate_unique_id(pool);
-	return zeek::make_intrusive<zeek::StringVal>(
-	       zeek::util::uitoa_n(uid, tmp, sizeof(tmp), 62, prefix->CheckString()));
+	pool += UID_POOL_CUSTOM_SCRIPT; // Make sure we don't conflict with internal pool.
+	UID uid(zeek::detail::bits_per_uid, nullptr, 0, pool);
+	return zeek::make_intrusive<zeek::StringVal>(uid.Base62(prefix->CheckString()));
 	%}
 
 # ===========================================================================

@@ -94,3 +94,15 @@ global QUIC::connection_close_frame: event(c: connection, is_orig: bool, version
 ##
 ## scid: The Source Connection ID field.
 global QUIC::unhandled_version: event(c: connection, is_orig: bool, version: count, dcid: string, scid: string);
+
+## Generated when a QUIC packet with fixed_bit 0 is encountered.
+##
+## This event is only generated if some INITIAL QUIC packets were successfully
+## decrypted previously.
+##
+## c: The connection.
+##
+## is_orig: True if the packet is from the the connection's originator.
+##
+## total_decrypted: The number of QUIC packets successfully decrypted previously.
+global QUIC::discarded_packet: event(c: connection, is_orig: bool, total_decrypted: count);

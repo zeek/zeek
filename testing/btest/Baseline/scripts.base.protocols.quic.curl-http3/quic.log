@@ -7,5 +7,5 @@
 #open XXXX-XX-XX-XX-XX-XX
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	client_initial_dcid	client_scid	server_scid	server_name	client_protocol	history
 #types	time	string	addr	port	addr	port	string	string	string	string	string	string	string
-XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	172.17.0.2	34347	64.233.166.94	443	1	815d62c70884f4b51e8ccadd5beed372	e5ec6b26584229be98a164349ae910351c40d10b	c15d62c70884f4b5	www.google.de	h3	ISishIHhHhhH
+XXXXXXXXXX.XXXXXX	CHhAvVGS1DHFjwGM9	172.17.0.2	34347	64.233.166.94	443	1	815d62c70884f4b51e8ccadd5beed372	e5ec6b26584229be98a164349ae910351c40d10b	c15d62c70884f4b5	www.google.de	h3	ISXishIHXhHhhH
 #close XXXX-XX-XX-XX-XX-XX

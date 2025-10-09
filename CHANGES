@@ -1,3 +1,10 @@
+8.1.0-dev.644 | 2025-10-09 13:13:10 +0200
+
+  * QUIC: Introduce discarded_packet() event (Arne Welzel, Corelight)
+
+    And include its occurrence into the history as X. The event raising is
+    configurable with a new const redef QUIC::max_discarded_packet_events.
+
 8.1.0-dev.642 | 2025-10-09 09:16:33 +0200
 
   * GH-4847: QUIC: Skip packets with fixed_bit 0 (Arne Welzel, Corelight)

@@ -6,6 +6,8 @@ module QUIC;
 import spicy;
 import zeek;
 
+global max_discarded_packet_events: optional<int64>;
+
 # The interface to the C++ code that handles the decryption of the INITIAL packet payload using well-known keys
 public function decrypt_crypto_payload(version: uint32, data: bytes, connection_id: bytes, encrypted_offset: uint64, payload_offset: uint64, from_client: bool): bytes &cxxname="QUIC_decrypt_crypto_payload";
 
@@ -125,6 +127,9 @@ type Context = struct {
     server_sink: sink&;
 
     ssl_handle: zeek::ProtocolHandle &optional;
+
+    total_decrypted: uint64;
+    total_discarded: uint64;
 };
 
 ##############
@@ -483,6 +488,8 @@ type Packet = unit(from_client: bool, context: Context&) {
 
     var crypto: CryptoSinkUnit&;
     var crypto_sink: sink&;
+    var raise_discarded_packet: bool = False;
+    var total_decrypted: uint64;
 
     # Attach an SSL analyzer to this connection once.
     on %init {
@@ -606,6 +613,9 @@ type Packet = unit(from_client: bool, context: Context&) {
 
                 # We were able to decrypt the INITIAL packet. Confirm QUIC!
                 spicy::accept_input();
+
+                # Keep track of the packets decrypted, too.
+                ++context.total_decrypted;
             }
 
             # If this packet has a SHORT header, consume until &eod, there's nothing
@@ -618,9 +628,20 @@ type Packet = unit(from_client: bool, context: Context&) {
         }
         False -> {
             # Consume the packet if fixed_bit is not 1. Basically discard it.
-            #
-            # # TODO: Raise QUIC::discarded_packet() when this happens.
-            : skip bytes &eod;
+            : skip bytes &eod {
+                ++context.total_discarded;
+
+                # Initialize the global if it hasn't been initialized yet.
+                if (!max_discarded_packet_events)
+                    max_discarded_packet_events = zeek::as_int(zeek::get_value("QUIC::max_discarded_packet_events"));
+
+                # If enabled and we haven't raised too many events yet, set
+                # a flag such that in .evt QUIC::discarded_packet() is raised.
+                if (cast<int64>(context.total_decrypted) > 0 && (*max_discarded_packet_events == 0 || cast<int64>(context.total_discarded) <= *max_discarded_packet_events)) {
+                    self.raise_discarded_packet = True;
+                    self.total_decrypted = context.total_decrypted;
+                }
+            }
         }
     };
 };

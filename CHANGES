@@ -1,3 +1,63 @@
+8.1.0-dev.658 | 2025-10-09 20:17:21 +0200
+
+  * Type: Cache tag into TypeDecl (Arne Welzel, Corelight)
+
+    TypeDecl instances are fixed and redundantly caching shouldn't hurt,
+    this avoids an indirection to the field's type just to get its tag.
+
+  * ZAM: Drop some unneeded DeleteManagedTyped() calls (Arne Welzel, Corelight)
+
+    The delete happens by assigning to a slot now. Seems the * and ->
+    operators added to ZValElement correctly works with the remaining
+    usages for RawOptField() and RawField().
+
+  * RecordVal: Replace std::vector with ZValSlot[] (Arne Welzel, Corelight)
+
+    A std::vector is 24 bytes, while num_fields + unique_ptr ends up 16
+    bytes, bringing RecordVal instances down to 64 bytes.
+
+  * RecordType: Inline FieldDecl (Arne Welzel, Corelight)
+
+  * RecordType/RecordVal: Support ZValElement initialization (Arne Welzel, Corelight)
+
+    This will avoid IsManagedType() calls within the RecordVal constructor
+    and instead initialize slots based on the RecordType's types directly.
+
+    TypeDecl might not be the most appropriate place, but it does carry
+    enough information already and avoids adding a separate member
+    array-like member to RecordType mirroring the fields. Maybe TypeDecl could
+    be more thought of as FieldProperties ?
+
+  * logging/Manager: Adapt RawOptField() usage for ZValElement (Arne Welzel, Corelight)
+
+  * RecordVal: Remove rt member (Arne Welzel, Corelight)
+
+    This doesn't seem to be really needed and costs 8 bytes per record value
+
+  * RecordVal: Replace std::optional<ZVal> with ZValElement (Arne Welzel, Corelight)
+
+    Drop the is_managed reference and DeleteManagedType() helper that
+    is unused given all that information is stored in ZValElement
+    itself.
+
+  * Val: Introduce ZValElement (Arne Welzel, Corelight)
+
+    This introduces a new class for replacing the std::optional in
+    RecordVal's record_val vector. It may also be useful within
+    VectorVal in the future.
+
+  * Modifiable: No virtual destructor (Arne Welzel, Corelight)
+
+    There's only three classes that inherit from Modifiable today. The
+    virtual destructor adds an extra 8 byte vtable to every instance of
+    table, record or vector values.
+    Calling Unregister() explicitly from the destructors saves 8 bytes
+    of memory for each instance.
+
+  * RecordVal: Use const pointer in parse_time_records (Arne Welzel, Corelight)
+
+    It's just an index.
+
 8.1.0-dev.646 | 2025-10-09 14:03:15 +0100
 
   * Add SHA512 BiFs and OpaqueVals (Johanna Amann, Corelight)

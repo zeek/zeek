@@ -628,6 +628,8 @@ public:
     TypePtr type;
     detail::AttributesPtr attrs;
     const char* id = nullptr;
+    bool is_managed = false;
+    TypeTag tag = TYPE_ERROR;
 
 private:
     detail::Location loc = detail::GetCurrentLocation();
@@ -687,12 +689,16 @@ public:
     type_decl_list* Types() { return types; }
 
     // Given an offset, returns the field's TypeDecl.
-    const TypeDecl* FieldDecl(int field) const;
-    TypeDecl* FieldDecl(int field);
+    const TypeDecl* FieldDecl(int field) const { return (*types)[field]; }
+    TypeDecl* FieldDecl(int field) { return (*types)[field]; }
 
     // Returns flags corresponding to which fields in the record
     // have types requiring memory management (reference counting).
-    const std::vector<bool>& ManagedFields() const { return managed_fields; }
+    [[deprecated(
+        "Remove in v9.1: Unused and optimization related internal. Use TypeDecl's is_managed member instead.")]]
+    const std::vector<bool>& ManagedFields() const {
+        return managed_fields;
+    }
 
     int NumFields() const { return num_fields; }
     int NumOrigFields() const { return num_orig_fields; }
@@ -773,6 +779,7 @@ private:
 
     // If we were willing to bound the size of records, then we could
     // use std::bitset here instead.
+    // Remove in v9.1: Accessor is removed so this should be unused.
     std::vector<bool> managed_fields;
 
     // Number of fields in the type.

@@ -4,6 +4,7 @@
 
 #include <sys/types.h> // for u_char
 #include <array>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -1114,6 +1115,159 @@ struct is_zeek_val {
 template<typename T>
 inline constexpr bool is_zeek_val_v = is_zeek_val<T>::value;
 
+/**
+ * A ZValElement holds a ZVal member and enough auxiliary information as
+ * members that allows automatic memory management as well as acting as
+ * an optional.
+ *
+ * This class originates from the observation that a std::optional<ZVal>
+ * as previously used in RecordVal objects already takes up 16 bytes on
+ * 64 bit architectures with GCC. The ZValElement class essentially uses
+ * the left-over padding bytes from the std::optional to facilitate easier
+ * memory management of ZVal instances without needing to keep external
+ * auxilarly information around.
+ *
+ * The is_managed flag and tag members are meant to be immutable except
+ * when a ZValElement assigned another ZValElement instance.
+ *
+ * A ZValElement's ZVal instance may hold a pointer to a managed value. Copying,
+ * destructing or assigning such a ZValElement will update the reference count
+ * of the managed value accordingly.
+ */
+class ZValElement {
+public:
+    /**
+     * Default constructor.
+     */
+    ZValElement() = default;
+
+    /**
+     * Initialize a ZValElement given a ValPtr and corresponding TypePtr.
+     *
+     * This has the same ref counting semantics as the corresponding ZVal
+     * constructor, increasing the ref count of any managed value by one.
+     *
+     * @param v The value.
+     * @param t The value's type.
+     */
+    ZValElement(ValPtr v, const TypePtr& t)
+        : is_set(true), is_managed(ZVal::IsManagedType(t)), tag(t->Tag()), zval(v, t) {}
+
+    /**
+     * Initialize a ZValElement using a TypeDecl.
+     */
+    ZValElement(const TypeDecl& td) : is_managed(td.is_managed), tag(td.tag) {}
+
+    /**
+     * Initialize a ZValElement with just the TypePtr.
+     *
+     * This is useful for optional fields in a record value where
+     * the type is known at construction time.
+     *
+     * @param t The type to initialize the element with.
+     */
+    ZValElement(const TypePtr& t) : is_managed(ZVal::IsManagedType(t)), tag(t->Tag()) {}
+
+    /**
+     * Copy constructor.
+     */
+    ZValElement(const ZValElement& s) : is_set(s.is_set), is_managed(s.is_managed), tag(s.tag), zval(s.zval) {
+        if ( is_set && is_managed )
+            Ref(zval.ManagedVal());
+    }
+
+    /**
+     * Destructor.
+     */
+    ~ZValElement() { Reset(); }
+
+    /**
+     * Assign one ZValElement instance to another with automatic memory management
+     * based on is_managed.
+     */
+    ZValElement& operator=(const ZValElement& s) {
+        if ( this == &s )
+            return *this;
+
+        if ( is_set && is_managed )
+            Unref(zval.ManagedVal());
+
+        is_set = s.is_set;
+        is_managed = s.is_managed;
+        tag = s.tag;
+        zval = s.zval;
+
+        if ( is_set && is_managed )
+            Ref(zval.ManagedVal());
+
+        return *this;
+    }
+
+    /**
+     * Assign a ZVal to ZValElement.
+     *
+     * This uses the is_managed member to determine if the contained
+     * ZVal is managed and should be unreferenced upon the assignment.
+     *
+     * Note that assigning a ZVal to a managed ZValElement adopts a reference
+     * from the incoming ZVal. This is a bit quirky, but it's what the plain
+     * ZVal constructors also do, so that seems consistent.
+     */
+    ZValElement& operator=(const ZVal& zv) {
+        if ( is_set && is_managed )
+            Unref(zval.ManagedVal());
+
+        is_set = true;
+        zval = zv;
+
+        return *this;
+    }
+
+    operator bool() const noexcept { return is_set; }
+    const ZVal* operator->() const noexcept { return &zval; }
+    ZVal& operator*() noexcept { return zval; }
+    const ZVal& operator*() const noexcept { return zval; }
+
+    bool IsSet() const noexcept { return is_set; }
+    bool IsManaged() const noexcept { return is_managed; }
+    TypeTag Tag() const noexcept { return tag; }
+
+    /**
+     * Reset this ZValElement.
+     *
+     * If the contained ZVal instance is managed, its reference
+     * count will be decreased.
+     */
+    void Reset() {
+        if ( is_set && is_managed )
+            Unref(zval.ManagedVal());
+
+        is_set = false;
+    }
+
+    /**
+     * Convert the contained ZVal instance to a ValPtr given a TypePtr.
+     *
+     * @param t Type to use for conversion to Val. Needs to agree with the type that was used to initialize the
+     * slot.
+     *
+     * @return A ValPtr instance for the slot.
+     */
+    ValPtr ToVal(const TypePtr& t) {
+        assert(IsSet());
+        return zval.ToVal(t);
+    }
+
+private:
+    bool is_set = false;
+    bool is_managed = false;
+    TypeTag tag = TYPE_ERROR;
+    // 5 bytes of padding here.
+    ZVal zval;
+};
+
+static_assert(sizeof(ZValElement) <= 16);
+
 class RecordVal final : public Val, public notifier::detail::Modifiable {
 public:
     explicit RecordVal(RecordTypePtr t, bool init_fields = true);
@@ -1186,10 +1340,7 @@ public:
     void AssignInterval(int field, double new_val) { Assign(field, new_val); }
 
     void Assign(int field, StringVal* new_val) {
-        auto& fv = record_val[field];
-        if ( fv )
-            ZVal::DeleteManagedType(*fv);
-        fv = ZVal(new_val);
+        record_val[field] = ZVal(new_val);
         AddedField(field);
     }
     void Assign(int field, const char* new_val) { Assign(field, new StringVal(new_val)); }
@@ -1203,7 +1354,7 @@ public:
      */
     template<class T>
     void AssignField(const char* field_name, T&& val) {
-        int idx = rt->FieldOffset(field_name);
+        int idx = GetRecordType()->FieldOffset(field_name);
         if ( idx < 0 )
             reporter->InternalError("missing record field: %s", field_name);
         Assign(idx, std::forward<T>(val));
@@ -1213,7 +1364,7 @@ public:
      * Returns the number of fields in the record.
      * @return  The number of fields in the record.
      */
-    unsigned int NumFields() const { return record_val.size(); }
+    unsigned int NumFields() const { return num_fields; }
 
     /**
      * Returns true if the given field is in the record, false if
@@ -1225,7 +1376,7 @@ public:
         if ( record_val[field] )
             return true;
 
-        return rt->DeferredInits()[field] != nullptr;
+        return GetRecordType()->DeferredInits()[field] != nullptr;
     }
 
     /**
@@ -1235,7 +1386,7 @@ public:
      * @return  Whether there's a value for the given field name.
      */
     bool HasField(const char* field) const {
-        int idx = rt->FieldOffset(field);
+        int idx = GetRecordType()->FieldOffset(field);
         return (idx != -1) && HasField(idx);
     }
 
@@ -1245,6 +1396,7 @@ public:
      * @return  The value at the given field index.
      */
     ValPtr GetField(int field) const {
+        const auto* rt = GetRecordType();
         auto& fv = record_val[field];
         if ( ! fv ) {
             const auto& fi = rt->DeferredInits()[field];
@@ -1254,7 +1406,7 @@ public:
             fv = fi->Generate();
         }
 
-        return fv->ToVal(rt->GetFieldType(field));
+        return fv.ToVal(rt->GetFieldType(field));
     }
 
     /**
@@ -1321,7 +1473,7 @@ public:
 
     // Returns true if the slot for the given field is initialized.
     // This helper can be used to guard GetFieldAs() accesses.
-    bool HasRawField(int field) const { return record_val[field].has_value(); }
+    bool HasRawField(int field) const { return record_val[field].IsSet(); }
 
     // The following return the given field converted to a particular
     // underlying value.  We provide these to enable efficient
@@ -1384,7 +1536,7 @@ public:
 
     template<typename T>
     auto GetFieldAs(const char* field) const {
-        int idx = rt->FieldOffset(field);
+        int idx = GetRecordType()->FieldOffset(field);
 
         if ( idx < 0 )
             reporter->InternalError("missing record field: %s", field);
@@ -1450,20 +1602,21 @@ protected:
      * @param t  The type associated with the field.
      */
     void AppendField(ValPtr v, const TypePtr& t) {
+        assert(num_fields < static_cast<size_t>(GetRecordType()->NumFields()));
         if ( v )
-            record_val.emplace_back(ZVal(v, t));
+            record_val[num_fields++] = ZValElement(v, t);
         else
-            record_val.emplace_back(std::nullopt);
+            record_val[num_fields++] = ZValElement(t);
     }
 
     // For internal use by low-level ZAM instructions and event tracing.
     // Caller assumes responsibility for memory management.  The first
     // version allows manipulation of whether the field is present at all.
     // The second version ensures that the optional value is present.
-    std::optional<ZVal>& RawOptField(int field) {
+    ZValElement& RawOptField(int field) {
         auto& f = record_val[field];
         if ( ! f ) {
-            const auto& fi = rt->DeferredInits()[field];
+            const auto& fi = GetRecordType()->DeferredInits()[field];
             if ( fi )
                 f = fi->Generate();
         }
@@ -1475,6 +1628,8 @@ protected:
         auto& f = RawOptField(field);
         if ( ! f )
             f = ZVal();
+
+        assert(f.IsSet());
         return *f;
     }
 
@@ -1484,33 +1639,38 @@ protected:
 
     Obj* origin = nullptr;
 
-    using RecordTypeValMap = std::unordered_map<RecordType*, std::vector<RecordValPtr>>;
+    using RecordTypeValMap = std::unordered_map<const RecordType*, std::vector<RecordValPtr>>;
     static RecordTypeValMap parse_time_records;
 
 private:
-    void DeleteFieldIfManaged(unsigned int field) {
-        auto& f = record_val[field];
-        if ( f && IsManaged(field) )
-            ZVal::DeleteManagedType(*f);
-    }
-
-    bool IsManaged(unsigned int offset) const { return is_managed[offset]; }
-
     // Just for template inferencing.
     RecordVal* Get() { return this; }
 
+    const RecordType* GetRecordType() const noexcept {
+        assert(type->Tag() == TYPE_RECORD);
+        return static_cast<RecordType*>(type.get());
+    }
+
+    /**
+     * Initialize the record_val ZValElements using the type's field decls.
+     *
+     * This avoids IsManagedType() calls as their result is always the same
+     * and cached in the TypeDecl instances for each field.
+     */
+    void Init(ZValElement* elements) {
+        const auto* rt = GetRecordType();
+        size_t n = NumFields();
+        assert(n == rt->Types()->size());
+        for ( size_t i = 0; i < n; i++ )
+            elements[i] = ZValElement(*rt->FieldDecl(i));
+    }
+
     unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;
 
-    // Keep this handy for quick access during low-level operations.
-    RecordTypePtr rt;
-
+    // Number of fields in record_val populated.
+    size_t num_fields = 0;
     // Low-level values of each of the fields.
-    //
-    // Lazily modified during GetField(), so mutable.
-    mutable std::vector<std::optional<ZVal>> record_val;
-
-    // Whether a given field requires explicit memory management.
-    const std::vector<bool>& is_managed;
+    std::unique_ptr<ZValElement[]> record_val;
 };
 
 class EnumVal final : public detail::IntValImplementation {

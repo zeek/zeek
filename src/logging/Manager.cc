@@ -1653,15 +1653,17 @@ detail::LogRecord Manager::RecordToLogRecord(WriterInfo* info, Filter* filter, c
         list<int>& indices = filter->indices[i];
 
         for ( int index : indices ) {
-            auto vr = val->AsRecord();
-            val = vr->RawOptField(index);
+            auto* vr = val->AsRecord();
+            const auto& field = vr->RawOptField(index);
 
-            if ( ! val ) {
+            if ( ! field.IsSet() ) {
                 // Value, or any of its parents, is not set.
                 vals.emplace_back(filter->fields[i]->type, false);
+                val = std::nullopt;
                 break;
             }
 
+            val = *field;
             vt = cast_intrusive<RecordType>(vr->GetType())->GetFieldType(index).get();
         }
 

@@ -18,6 +18,7 @@
 #include "zeek/Traverse.h"
 #include "zeek/Val.h"
 #include "zeek/Var.h"
+#include "zeek/ZVal.h"
 #include "zeek/module_util.h"
 #include "zeek/zeekygen/IdentifierInfo.h"
 #include "zeek/zeekygen/Manager.h"
@@ -822,13 +823,15 @@ detail::TraversalCode TypeType::Traverse(detail::TraversalCallback* cb) const {
 }
 
 TypeDecl::TypeDecl(const char* i, TypePtr t, detail::AttributesPtr arg_attrs)
-    : type(std::move(t)), attrs(std::move(arg_attrs)), id(i) {}
+    : type(std::move(t)), attrs(std::move(arg_attrs)), id(i), is_managed(ZVal::IsManagedType(type)), tag(type->Tag()) {}
 
 TypeDecl::TypeDecl(const TypeDecl& other) {
     type = other.type;
     attrs = other.attrs;
 
     id = util::copy_string(other.id);
+    is_managed = other.is_managed;
+    tag = other.tag;
 }
 
 TypeDecl::~TypeDecl() { delete[] id; }
@@ -1198,10 +1201,6 @@ int RecordType::FieldOffset(const char* field) const {
 }
 
 const char* RecordType::FieldName(int field) const { return FieldDecl(field)->id; }
-
-const TypeDecl* RecordType::FieldDecl(int field) const { return (*types)[field]; }
-
-TypeDecl* RecordType::FieldDecl(int field) { return (*types)[field]; }
 
 void RecordType::DoDescribe(ODesc* d) const {
     d->PushType(this);

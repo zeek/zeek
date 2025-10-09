@@ -134,7 +134,7 @@ function get_canonical_id_map_keys%(xdp_prog: opaque of XDP::Program%) : any_vec
 ##
 ## Returns: Whether the operation succeeded
 ##
-## .. zeek:see:: unshunt_ip_pair
+## .. zeek:see:: unshunt_ip_pair is_ip_pair_shunted
 function shunt_ip_pair%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr%) : bool %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
@@ -153,7 +153,7 @@ function shunt_ip_pair%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val
         .ip2 = ip2_higher ? ip2 : ip1,
     };
 
-    auto err = update_map(get_ip_pair_map(prog), &key, XDP_DROP);
+    auto err = update_map(get_ip_pair_map(prog), &key);
 
     if ( err ) {
         zeek::reporter->Error(zeek::util::fmt("Failed to add to map: %s", (*err).c_str()));
@@ -163,11 +163,43 @@ function shunt_ip_pair%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val
     return zeek::val_mgr->Bool(true);
 %}
 
+## Determines if this IP pair is getting shunted.
+##
+## TODO: This should just return an optional shunted statistics, so if it's set,
+## it's shunted, if not, it's not shunted? Two birds one stone. I just don't have
+## the type value in script land yet.
+##
+## Returns: Whether the connection ID is shunted or not
+##
+## .. zeek:see:: shunt_ip_pair unshunt_ip_pair
+function is_ip_pair_shunted%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr%) : bool %{
+    auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
+    if ( ! zeek_prog ) {
+        zeek::reporter->Error(zeek_prog.error().c_str());
+        return zeek::val_mgr->Bool(false);
+    }
+    auto prog = (*zeek_prog)->prog;
+    auto ip1 = addrToIpVal(ip1_val->AsAddrVal()->Get());
+    auto ip2 = addrToIpVal(ip2_val->AsAddrVal()->Get());
+
+    auto ip2_higher = compare_ips(&ip1, &ip2) < 0;
+
+    auto key = ip_pair_key{
+        .ip1 = ip2_higher ? ip1 : ip2,
+        .ip2 = ip2_higher ? ip2 : ip1,
+    };
+    auto val = get_val(get_ip_pair_map(prog), &key);
+
+    return zeek::val_mgr->Bool(val.has_value());
+%}
+
 ## Stops shunting anything between two IPs.
+##
+## TODO: Make this return the value?
 ##
 ## Returns: Whether the operation succeeded
 ##
-## .. zeek:see:: unshunt_ip_pair
+## .. zeek:see:: shunt_ip_pair is_ip_pair_shunted
 function unshunt_ip_pair%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr%) : bool %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
@@ -179,7 +211,7 @@ function unshunt_ip_pair%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_v
     auto ip1 = addrToIpVal(ip1_val->AsAddrVal()->Get());
     auto ip2 = addrToIpVal(ip2_val->AsAddrVal()->Get());
 
-    auto ip2_higher = compare_ips(&ip1, &ip2) > 0;
+    auto ip2_higher = compare_ips(&ip1, &ip2) < 0;
 
     auto key = ip_pair_key{
         .ip1 = ip2_higher ? ip1 : ip2,
@@ -200,7 +232,7 @@ function unshunt_ip_pair%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_v
 ##
 ## Returns: Whether the operation succeeded
 ##
-## .. zeek:see:: unshunt_conn_id
+## .. zeek:see:: unshunt_conn_id is_conn_id_shunted
 function shunt_conn_id%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
     auto opt_tup = makeBPFMapTuple(cid->AsRecordVal());
     if ( ! opt_tup )
@@ -213,7 +245,7 @@ function shunt_conn_id%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool 
     }
 
     auto prog = (*zeek_prog)->prog;
-    auto err = update_map(get_canonical_id_map(prog), &*opt_tup, XDP_DROP);
+    auto err = update_map(get_canonical_id_map(prog), &*opt_tup);
 
     if ( err ) {
         zeek::reporter->Error(zeek::util::fmt("Failed to add to map: %s", (*err).c_str()));
@@ -223,11 +255,39 @@ function shunt_conn_id%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool 
     return zeek::val_mgr->Bool(true);
 %}
 
+## Determines if this connection ID is getting shunted.
+##
+## TODO: This should just return an optional shunted statistics, so if it's set,
+## it's shunted, if not, it's not shunted? Two birds one stone. I just don't have
+## the type value in script land yet.
+##
+## Returns: Whether the connection ID is shunted or not
+##
+## .. zeek:see:: shunt_conn_id unshunt_conn_id
+function is_conn_id_shunted%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
+    auto opt_tup = makeBPFMapTuple(cid->AsRecordVal());
+    if ( ! opt_tup )
+        return zeek::val_mgr->Bool(false);
+
+    auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
+    if ( ! zeek_prog ) {
+        zeek::reporter->Error(zeek_prog.error().c_str());
+        return zeek::val_mgr->Bool(false);
+    }
+
+    auto prog = (*zeek_prog)->prog;
+    auto val = get_val(get_canonical_id_map(prog), &*opt_tup);
+
+    return zeek::val_mgr->Bool(val.has_value());
+%}
+
 ## Stops shunting anything with the conn_id.
+##
+## TODO: Make this return the value?
 ##
 ## Returns: Whether the operation succeeded
 ##
-## .. zeek:see:: shunt_conn_id
+## .. zeek:see:: shunt_conn_id is_conn_id_shunted
 function unshunt_conn_id%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
     auto opt_tup = makeBPFMapTuple(cid->AsRecordVal());
     if ( ! opt_tup )

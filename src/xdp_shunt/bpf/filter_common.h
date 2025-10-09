@@ -20,6 +20,14 @@ struct ip_pair_key {
     struct in6_addr ip2;
 };
 
+// Statistics for shunted flows
+struct shunt_val {
+    __u64 packets_from_1; // packets from IP 1 as the source
+    __u64 packets_from_2; // packets from IP 2 as the source
+    __u64 bytes_from_1;   // bytes from IP 1 as the source
+    __u64 bytes_from_2;   // bytes from IP 2 as the source
+};
+
 static __always_inline int compare_ips(struct in6_addr* ip1, struct in6_addr* ip2) {
     const __u64* a64 = (const __u64*)ip1;
     const __u64* b64 = (const __u64*)ip2;

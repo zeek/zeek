@@ -17,7 +17,7 @@ struct {
     __uint(type, BPF_MAP_TYPE_HASH);
     __uint(max_entries, 1024);
     __type(key, struct canonical_tuple);
-    __type(value, __u32);
+    __type(value, struct shunt_val);
     __uint(pinning, LIBBPF_PIN_BY_NAME);
 } filter_map SEC(".maps");
 
@@ -25,9 +25,22 @@ struct {
     __uint(type, BPF_MAP_TYPE_HASH);
     __uint(max_entries, 1024);
     __type(key, struct ip_pair_key);
-    __type(value, __u32);
+    __type(value, struct shunt_val);
     __uint(pinning, LIBBPF_PIN_BY_NAME);
 } ip_pair_map SEC(".maps");
+
+#ifndef lock_xadd
+#define lock_xadd(ptr, val) ((void)__sync_fetch_and_add(ptr, val))
+#endif
+
+void update_value(struct shunt_val* val, struct xdp_md* ctx, int from_ip1) {
+    // TODO: From the basic03 xdp tutorial, mostly. Consider swapping to PER_CPU
+    lock_xadd(from_ip1 ? &val->packets_from_1 : &val->packets_from_2, 1);
+    void* data_end = (void*)(long)ctx->data_end;
+    void* data = (void*)(long)ctx->data;
+    __u64 bytes = data_end - data;
+    lock_xadd(from_ip1 ? &val->bytes_from_1 : &val->bytes_from_2, bytes);
+}
 
 SEC("xdp")
 int xdp_filter(struct xdp_md* ctx) {
@@ -107,6 +120,7 @@ int xdp_filter(struct xdp_md* ctx) {
 
     tuple.ip1 = src_ip;
     tuple.ip2 = dest_ip;
+    int from_ip1 = 1;
     // Make sure they're in the correct order
     if ( compare_ips(&src_ip, &dest_ip) < 0 || ((compare_ips(&src_ip, &dest_ip) == 0) && port_source <= port_dest) ) {
         tuple.ip1 = src_ip;
@@ -115,15 +129,18 @@ int xdp_filter(struct xdp_md* ctx) {
         tuple.port2 = bpf_htons(port_dest);
     }
     else {
+        from_ip1 = 0;
         tuple.ip1 = dest_ip;
         tuple.ip2 = src_ip;
         tuple.port1 = bpf_htons(port_dest);
         tuple.port2 = bpf_htons(port_source);
     }
 
-    __u32* action = bpf_map_lookup_elem(&filter_map, &tuple);
-    if ( action )
-        return *action;
+    struct shunt_val* val = bpf_map_lookup_elem(&filter_map, &tuple);
+    if ( val ) {
+        update_value(val, ctx, from_ip1);
+        return XDP_DROP;
+    }
 
     // Check IP pairs
     struct ip_pair_key pair = {
@@ -131,9 +148,11 @@ int xdp_filter(struct xdp_md* ctx) {
         .ip2 = tuple.ip2,
     };
 
-    action = bpf_map_lookup_elem(&ip_pair_map, &pair);
-    if ( action )
-        return *action;
+    val = bpf_map_lookup_elem(&ip_pair_map, &pair);
+    if ( val ) {
+        update_value(val, ctx, from_ip1);
+        return XDP_DROP;
+    }
 
     return XDP_PASS;
 }

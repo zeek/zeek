@@ -48,11 +48,13 @@ struct bpf_map* get_canonical_id_map(struct filter* skel);
 struct bpf_map* get_ip_pair_map(struct filter* skel);
 
 template<SupportedBpfKey Key>
-std::optional<std::string> update_map(struct bpf_map* map, Key* key, xdp_action action);
+std::optional<std::string> update_map(struct bpf_map* map, Key* key);
 
 template<SupportedBpfKey Key>
 std::optional<std::string> remove_from_map(struct bpf_map* map, Key* key);
 template<SupportedBpfKey Key>
 std::vector<Key> get_map(struct bpf_map* map);
+template<SupportedBpfKey Key>
+std::optional<shunt_val> get_val(struct bpf_map* map, Key* key);
 
 #endif /* __COMMON_USER_BPF_XDP_H */

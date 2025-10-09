@@ -40,8 +40,14 @@ struct bpf_map* get_canonical_id_map(struct filter* skel) { return skel->maps.fi
 struct bpf_map* get_ip_pair_map(struct filter* skel) { return skel->maps.ip_pair_map; }
 
 template<SupportedBpfKey Key>
-std::optional<std::string> update_map(struct bpf_map* map, Key* key, xdp_action action) {
-    auto err = bpf_map_update_elem(bpf_map__fd(map), key, &action, BPF_NOEXIST);
+std::optional<std::string> update_map(struct bpf_map* map, Key* key) {
+    auto val = shunt_val{
+        .packets_from_1 = 0,
+        .packets_from_2 = 0,
+        .bytes_from_1 = 0,
+        .bytes_from_2 = 0,
+    };
+    auto err = bpf_map_update_elem(bpf_map__fd(map), key, &val, BPF_NOEXIST);
     if ( err ) {
         char err_buf[256];
         libbpf_strerror(err, err_buf, sizeof(err_buf));
@@ -51,9 +57,8 @@ std::optional<std::string> update_map(struct bpf_map* map, Key* key, xdp_action 
     return {};
 }
 
-template std::optional<std::string> update_map<canonical_tuple>(struct bpf_map* map, canonical_tuple* key,
-                                                                xdp_action action);
-template std::optional<std::string> update_map<ip_pair_key>(struct bpf_map* map, ip_pair_key* key, xdp_action action);
+template std::optional<std::string> update_map<canonical_tuple>(struct bpf_map* map, canonical_tuple* key);
+template std::optional<std::string> update_map<ip_pair_key>(struct bpf_map* map, ip_pair_key* key);
 
 template<SupportedBpfKey Key>
 std::optional<std::string> remove_from_map(struct bpf_map* map, Key* key) {
@@ -86,6 +91,19 @@ std::vector<Key> get_map(struct bpf_map* map) {
 
 template std::vector<canonical_tuple> get_map<canonical_tuple>(struct bpf_map* map);
 template std::vector<ip_pair_key> get_map<ip_pair_key>(struct bpf_map* map);
+
+template<SupportedBpfKey Key>
+std::optional<shunt_val> get_val(struct bpf_map* map, Key* key) {
+    shunt_val value;
+
+    if ( bpf_map_lookup_elem(bpf_map__fd(map), key, &value) != 0 )
+        return std::nullopt;
+
+    return value;
+}
+
+template std::optional<shunt_val> get_val<canonical_tuple>(struct bpf_map* map, canonical_tuple* key);
+template std::optional<shunt_val> get_val<ip_pair_key>(struct bpf_map* map, ip_pair_key* key);
 
 void detach_and_destroy_filter(struct filter* skel, int ifindex) {
     unlink(bpf_map__pin_path(skel->maps.filter_map));

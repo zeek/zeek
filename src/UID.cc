@@ -9,7 +9,7 @@
 
 namespace zeek {
 
-void UID::Set(zeek_uint_t bits, const uint64_t* v, size_t n) {
+void UID::Set(zeek_uint_t bits, const uint64_t* v, size_t n, size_t pool) {
     initialized = true;
 
     memset(uid, 0, sizeof(uid));
@@ -21,7 +21,7 @@ void UID::Set(zeek_uint_t bits, const uint64_t* v, size_t n) {
     size_t size = res.rem ? res.quot + 1 : res.quot;
 
     for ( size_t i = 0; i < size; ++i )
-        uid[i] = v && i < n ? v[i] : util::calculate_unique_id();
+        uid[i] = v && i < n ? v[i] : util::calculate_unique_id(pool);
 
     if ( res.rem )
         uid[0] >>= 64 - res.rem;

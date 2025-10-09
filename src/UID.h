@@ -30,7 +30,9 @@ public:
      * Construct a UID of a given bit-length, optionally from given values.
      * @see UID::Set
      */
-    explicit UID(zeek_uint_t bits, const uint64_t* v = nullptr, size_t n = 0) { Set(bits, v, n); }
+    explicit UID(zeek_uint_t bits, const uint64_t* v = nullptr, size_t n = 0, size_t pool = UID_POOL_DEFAULT_INTERNAL) {
+        Set(bits, v, n, pool);
+    }
 
     /**
      * Copy constructor.
@@ -47,8 +49,9 @@ public:
      *          calculate_unique_id().  If \a bits isn't evenly divisible by
      *          64, then a value is truncated to bit in desired bit-length.
      * @param n number of 64-bit elements in array pointed to by \a v.
+     * @param pool the pool of UIDs that is used.
      */
-    void Set(zeek_uint_t bits, const uint64_t* v = nullptr, size_t n = 0);
+    void Set(zeek_uint_t bits, const uint64_t* v = nullptr, size_t n = 0, size_t pool = UID_POOL_DEFAULT_INTERNAL);
 
     /**
      * Returns a base62 (characters 0-9, A-Z, a-z) representation of the UID.

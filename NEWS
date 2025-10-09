@@ -96,6 +96,9 @@ New Functionality
 - Added SHA256 calculation BiFs: ``sha512_hash``, ``sha512_hash_init`, ``sha512_hash_update``,
   and ``sha512_hash_finish``.
 
+- Added the ``TCP::raw_options`` BiF, which returns the list of TCP options in the current
+  packet, including their raw data.
+
 Changed Functionality
 ---------------------
 

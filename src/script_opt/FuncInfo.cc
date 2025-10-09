@@ -172,6 +172,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"Supervisor::__restart", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Supervisor::__status", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"Supervisor::__stem_pid", ATTR_NO_SCRIPT_SIDE_EFFECTS},
+    {"TCP::raw_options", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Telemetry::__collect_histogram_metrics", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Telemetry::__collect_metrics", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Telemetry::__counter_family", ATTR_NO_SCRIPT_SIDE_EFFECTS},

@@ -11,6 +11,10 @@ namespace zeek {
 
 constexpr size_t UID_LEN = 2;
 
+constexpr int UID_POOL_DEFAULT_INTERNAL = 1;
+constexpr int UID_POOL_DEFAULT_SCRIPT = 2;
+constexpr int UID_POOL_CUSTOM_SCRIPT = 10; // First available custom script level pool.
+
 /**
  * A class for creating/managing UIDs of arbitrary bit-length and converting
  * them to human-readable strings in Base62 format.

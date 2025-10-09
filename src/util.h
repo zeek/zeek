@@ -85,6 +85,7 @@ inline constexpr std::string_view path_list_separator = ";";
 inline constexpr std::string_view path_list_separator = ":";
 #endif
 
+#include "zeek/UID.h"
 #include "zeek/util-types.h"
 
 #ifndef HAVE_STRCASESTR
@@ -94,9 +95,12 @@ extern char* strcasestr(const char* s, const char* find);
 // This is used by the patricia code and so it remains outside of the namespace.
 extern "C" void out_of_memory(const char* where);
 
-constexpr int UID_POOL_DEFAULT_INTERNAL = 1;
-constexpr int UID_POOL_DEFAULT_SCRIPT = 2;
-constexpr int UID_POOL_CUSTOM_SCRIPT = 10; // First available custom script level pool.
+[[deprecated("Remove in v9.1. Use zeek::UID_POOL_DEFAULT_INTERNAL instead.")]]
+constexpr int UID_POOL_DEFAULT_INTERNAL = zeek::UID_POOL_DEFAULT_INTERNAL;
+[[deprecated("Remove in v9.1. Use zeek::UID_POOL_DEFAULT_SCRIPT instead.")]]
+constexpr int UID_POOL_DEFAULT_SCRIPT = zeek::UID_POOL_DEFAULT_SCRIPT;
+[[deprecated("Remove in v9.1. Use zeek::UID_POOL_CUSTOM_SCRIPT instead.")]]
+constexpr int UID_POOL_CUSTOM_SCRIPT = zeek::UID_POOL_CUSTOM_SCRIPT;
 
 namespace zeek {
 

@@ -24,6 +24,9 @@ opaque of sha1
 opaque of sha256
 25b6746d5172ed6352966a013d93ac846e1110d5a25e8f183b5931f4688842a1
 25b6746d5172ed6352966a013d93ac846e1110d5a25e8f183b5931f4688842a1
+opaque of sha512
+04aebe936d8eab8a145ce973d1101ac89ea8a2192ca43d3c986ba73ad3de1a58a6a5c95d85d86fc1900d24bad1334d56e550d1a23baf3f867f56fb64aaed0d59
+04aebe936d8eab8a145ce973d1101ac89ea8a2192ca43d3c986ba73ad3de1a58a6a5c95d85d86fc1900d24bad1334d56e550d1a23baf3f867f56fb64aaed0d59
 ============ X509
 opaque of x509
 [version=3, serial=040000000001154B5AC394, subject=CN=GlobalSign Root CA,OU=Root CA,O=GlobalSign nv-sa,C=BE, issuer=CN=GlobalSign Root CA,OU=Root CA,O=GlobalSign nv-sa,C=BE, cn=GlobalSign Root CA, not_valid_before=XXXXXXXXXX.XXXXXX, not_valid_after=1832673600.0, key_alg=rsaEncryption, sig_alg=sha1WithRSAEncryption, key_type=rsa, key_length=2048, exponent=65537, curve=<uninitialized>, tbs_sig_alg=sha1WithRSAEncryption]

@@ -69,6 +69,9 @@ New Functionality
   This functionality can be controlled with ``QUIC::max_discarded_packet_events``,
   setting this variable to -1 disabled the ``QUIC::discarded_packet`` event.
 
+- Added SHA256 calculation BiFs: ``sha512_hash``, ``sha512_hash_init`, ``sha512_hash_update``,
+  and ``sha512_hash_finish``.
+
 Changed Functionality
 ---------------------
 

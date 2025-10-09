@@ -1,0 +1,16 @@
+# @TEST-EXEC: zeek -b %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+print sha512_hash("one");
+print sha512_hash("one", "two", "three");
+
+local a = sha512_hash_init();
+local b = sha512_hash_init();
+
+sha512_hash_update(a, "one");
+sha512_hash_update(b, "one");
+sha512_hash_update(b, "two");
+sha512_hash_update(b, "three");
+
+print sha512_hash_finish(a);
+print sha512_hash_finish(b);

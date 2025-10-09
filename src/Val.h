@@ -1156,7 +1156,7 @@ public:
     /**
      * Initialize a ZValElement using a TypeDecl.
      */
-    ZValElement(const TypeDecl& td) : is_set(false), is_managed(td.is_managed), tag(td.type->Tag()) {}
+    ZValElement(const TypeDecl& td) : is_managed(td.is_managed), tag(td.tag) {}
 
     /**
      * Initialize a ZValElement with just the TypePtr.

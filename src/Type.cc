@@ -823,7 +823,7 @@ detail::TraversalCode TypeType::Traverse(detail::TraversalCallback* cb) const {
 }
 
 TypeDecl::TypeDecl(const char* i, TypePtr t, detail::AttributesPtr arg_attrs)
-    : type(std::move(t)), attrs(std::move(arg_attrs)), id(i), is_managed(ZVal::IsManagedType(type)) {}
+    : type(std::move(t)), attrs(std::move(arg_attrs)), id(i), is_managed(ZVal::IsManagedType(type)), tag(type->Tag()) {}
 
 TypeDecl::TypeDecl(const TypeDecl& other) {
     type = other.type;
@@ -831,6 +831,7 @@ TypeDecl::TypeDecl(const TypeDecl& other) {
 
     id = util::copy_string(other.id);
     is_managed = other.is_managed;
+    tag = other.tag;
 }
 
 TypeDecl::~TypeDecl() { delete[] id; }

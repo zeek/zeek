@@ -629,6 +629,7 @@ public:
     detail::AttributesPtr attrs;
     const char* id = nullptr;
     bool is_managed = false;
+    TypeTag tag = TYPE_ERROR;
 
 private:
     detail::Location loc = detail::GetCurrentLocation();

@@ -51,6 +51,41 @@ std::optional<canonical_tuple> makeBPFMapTuple(zeek::RecordVal* cid_r) {
     return tup;
 }
 
+// Probably a better way to do this.
+zeek::RecordValPtr makeEmptyShuntedStats() {
+	  static auto shunt_stats_type = zeek::id::find_type<zeek::RecordType>("XDP::ShuntedStats");
+
+    auto stats = zeek::make_intrusive<zeek::RecordVal>(shunt_stats_type);
+		stats->Assign(0, zeek::val_mgr->Count(0));
+		stats->Assign(1, zeek::val_mgr->Count(0));
+		stats->Assign(2, zeek::val_mgr->Count(0));
+		stats->Assign(3, zeek::val_mgr->Count(0));
+		stats->Assign(4, zeek::val_mgr->Bool(false));
+
+    return stats;
+}
+
+// The boolean decides which way ip1 was in the map
+zeek::RecordValPtr makeShuntedStats(bool orig_is_ip1, shunt_val* val) {
+	  static auto shunt_stats_type = zeek::id::find_type<zeek::RecordType>("XDP::ShuntedStats");
+    auto stats = zeek::make_intrusive<zeek::RecordVal>(shunt_stats_type);
+
+    if (orig_is_ip1) {
+        stats->Assign(0, zeek::val_mgr->Count(val->packets_from_1));
+        stats->Assign(1, zeek::val_mgr->Count(val->bytes_from_1));
+        stats->Assign(2, zeek::val_mgr->Count(val->packets_from_2));
+        stats->Assign(3, zeek::val_mgr->Count(val->bytes_from_2));
+    } else {
+        stats->Assign(0, zeek::val_mgr->Count(val->packets_from_2));
+        stats->Assign(1, zeek::val_mgr->Count(val->bytes_from_2));
+        stats->Assign(2, zeek::val_mgr->Count(val->packets_from_1));
+        stats->Assign(3, zeek::val_mgr->Count(val->bytes_from_1));
+    }
+    stats->Assign(4, zeek::val_mgr->Bool(true));
+
+    return stats;
+}
+
 %%}
 
 module XDP;
@@ -134,7 +169,7 @@ function get_canonical_id_map_keys%(xdp_prog: opaque of XDP::Program%) : any_vec
 ##
 ## Returns: Whether the operation succeeded
 ##
-## .. zeek:see:: unshunt_ip_pair is_ip_pair_shunted
+## .. zeek:see:: unshunt_ip_pair ip_pair_shunt_stats
 function shunt_ip_pair%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr%) : bool %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
@@ -163,24 +198,21 @@ function shunt_ip_pair%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val
     return zeek::val_mgr->Bool(true);
 %}
 
-## Determines if this IP pair is getting shunted.
+## Provides the shunting statistics for this IP pair.
 ##
-## TODO: This should just return an optional shunted statistics, so if it's set,
-## it's shunted, if not, it's not shunted? Two birds one stone. I just don't have
-## the type value in script land yet.
-##
-## Returns: Whether the connection ID is shunted or not
+## Returns: The shunting statistics
 ##
 ## .. zeek:see:: shunt_ip_pair unshunt_ip_pair
-function is_ip_pair_shunted%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr%) : bool %{
+function ip_pair_shunt_stats%(xdp_prog: opaque of XDP::Program, orig_h: addr, resp_h: addr%) : XDP::ShuntedStats %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
         zeek::reporter->Error(zeek_prog.error().c_str());
-        return zeek::val_mgr->Bool(false);
+        return makeEmptyShuntedStats();
     }
+
     auto prog = (*zeek_prog)->prog;
-    auto ip1 = addrToIpVal(ip1_val->AsAddrVal()->Get());
-    auto ip2 = addrToIpVal(ip2_val->AsAddrVal()->Get());
+    auto ip1 = addrToIpVal(orig_h->AsAddrVal()->Get());
+    auto ip2 = addrToIpVal(resp_h->AsAddrVal()->Get());
 
     auto ip2_higher = compare_ips(&ip1, &ip2) < 0;
 
@@ -188,9 +220,11 @@ function is_ip_pair_shunted%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip
         .ip1 = ip2_higher ? ip1 : ip2,
         .ip2 = ip2_higher ? ip2 : ip1,
     };
-    auto val = get_val(get_ip_pair_map(prog), &key);
+    auto opt_val = get_val(get_ip_pair_map(prog), &key);
+    if ( ! opt_val )
+        return makeEmptyShuntedStats();
 
-    return zeek::val_mgr->Bool(val.has_value());
+    return makeShuntedStats(ip2_higher, &*opt_val);
 %}
 
 ## Stops shunting anything between two IPs.
@@ -199,7 +233,7 @@ function is_ip_pair_shunted%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip
 ##
 ## Returns: Whether the operation succeeded
 ##
-## .. zeek:see:: shunt_ip_pair is_ip_pair_shunted
+## .. zeek:see:: shunt_ip_pair ip_pair_shunt_stats
 function unshunt_ip_pair%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr%) : bool %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
@@ -232,7 +266,7 @@ function unshunt_ip_pair%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_v
 ##
 ## Returns: Whether the operation succeeded
 ##
-## .. zeek:see:: unshunt_conn_id is_conn_id_shunted
+## .. zeek:see:: unshunt_conn_id conn_id_shunt_stats
 function shunt_conn_id%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
     auto opt_tup = makeBPFMapTuple(cid->AsRecordVal());
     if ( ! opt_tup )
@@ -255,30 +289,38 @@ function shunt_conn_id%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool 
     return zeek::val_mgr->Bool(true);
 %}
 
-## Determines if this connection ID is getting shunted.
+## Provides the shunting statistics for this connection ID.
 ##
-## TODO: This should just return an optional shunted statistics, so if it's set,
-## it's shunted, if not, it's not shunted? Two birds one stone. I just don't have
-## the type value in script land yet.
-##
-## Returns: Whether the connection ID is shunted or not
+## Returns: The shunting statistics
 ##
 ## .. zeek:see:: shunt_conn_id unshunt_conn_id
-function is_conn_id_shunted%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
+function conn_id_shunt_stats%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : XDP::ShuntedStats %{
     auto opt_tup = makeBPFMapTuple(cid->AsRecordVal());
     if ( ! opt_tup )
-        return zeek::val_mgr->Bool(false);
+        return makeEmptyShuntedStats();
 
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
     if ( ! zeek_prog ) {
         zeek::reporter->Error(zeek_prog.error().c_str());
-        return zeek::val_mgr->Bool(false);
+        return makeEmptyShuntedStats();
     }
 
     auto prog = (*zeek_prog)->prog;
-    auto val = get_val(get_canonical_id_map(prog), &*opt_tup);
+    auto opt_val = get_val(get_canonical_id_map(prog), &*opt_tup);
+    if ( ! opt_val )
+        return makeEmptyShuntedStats();
 
-    return zeek::val_mgr->Bool(val.has_value());
+    const zeek::IPAddr& orig_h = cid->AsRecordVal()->GetFieldAs<zeek::AddrVal>(0);
+    const zeek::IPAddr& resp_h = cid->AsRecordVal()->GetFieldAs<zeek::AddrVal>(2);
+
+    auto ip1 = addrToIpVal(orig_h);
+    auto ip2 = addrToIpVal(resp_h);
+
+    // TODO: Check if this is accurate, might be flipped
+    // TODO: It might be better to make makeBPFMapTuple return unsorted, then just sort it in a
+    // different function.
+    auto orig_is_ip1 = compare_ips(&ip1, &ip2) < 0;
+    return makeShuntedStats(orig_is_ip1, &*opt_val);
 %}
 
 ## Stops shunting anything with the conn_id.
@@ -287,7 +329,7 @@ function is_conn_id_shunted%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : 
 ##
 ## Returns: Whether the operation succeeded
 ##
-## .. zeek:see:: shunt_conn_id is_conn_id_shunted
+## .. zeek:see:: shunt_conn_id conn_id_shunt_stats
 function unshunt_conn_id%(xdp_prog: opaque of XDP::Program, cid: conn_id%) : bool %{
     auto opt_tup = makeBPFMapTuple(cid->AsRecordVal());
     if ( ! opt_tup )

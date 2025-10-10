@@ -2558,6 +2558,8 @@ InlineExpr::InlineExpr(ScriptFuncPtr arg_sf, ListExprPtr arg_args, std::vector<I
                        std ::vector<bool> arg_param_is_modified, StmtPtr arg_body, int _frame_offset, TypePtr ret_type)
     : Expr(EXPR_INLINE), sf(std::move(arg_sf)), args(std::move(arg_args)), body(std::move(arg_body)) {
     params = std::move(arg_params);
+    for ( auto& p : params )
+        zeek::Ref(p.get());
     param_is_modified = std::move(arg_param_is_modified);
     frame_offset = _frame_offset;
     type = std::move(ret_type);

@@ -4248,8 +4248,9 @@ TEST_CASE("copy constructor") {
     CHECK(v->RefCnt() == 3); // v, element1, element2
     zeek::ZValElement element3 = element2;
     CHECK(v->RefCnt() == 4); // v, element1, element2, element3
-    element3 = element2;     // assignment
+    element2 = element3;     // squelch clang-tidy
     CHECK(v->RefCnt() == 4); // v, element1, element2, element3
+    element1 = element3;     // squelch clang-tidy
 }
 
 TEST_SUITE_END();

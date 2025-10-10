@@ -6,7 +6,7 @@ set -e
 set -x
 
 env ASSUME_ALWAYS_YES=YES pkg bootstrap
-pkg install -y bash cppzmq git cmake swig bison python3 base64 flex ccache jq dnsmasq krb5
+pkg install -y bash cppzmq git cmake-core swig bison python3 base64 flex ccache jq dnsmasq krb5
 pkg upgrade -y curl
 pyver=$(python3 -c 'import sys; print(f"py{sys.version_info[0]}{sys.version_info[1]}")')
 pkg install -y $pyver-sqlite3

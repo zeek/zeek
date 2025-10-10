@@ -1,3 +1,7 @@
+7.0.11-1 | 2025-10-13 15:25:07 +0000
+
+  * CI: Pin to python 3.13 on macOS (Tim Wojtulewicz, Corelight)
+
 7.0.11 | 2025-10-10 21:33:43 +0000
 
   * Release 7.0.11.

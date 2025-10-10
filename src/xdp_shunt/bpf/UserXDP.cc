@@ -41,12 +41,7 @@ struct bpf_map* get_ip_pair_map(struct filter* skel) { return skel->maps.ip_pair
 
 template<SupportedBpfKey Key>
 std::optional<std::string> update_map(struct bpf_map* map, Key* key) {
-    auto val = shunt_val{
-        .packets_from_1 = 0,
-        .packets_from_2 = 0,
-        .bytes_from_1 = 0,
-        .bytes_from_2 = 0,
-    };
+    auto val = shunt_val{0};
     auto err = bpf_map_update_elem(bpf_map__fd(map), key, &val, BPF_NOEXIST);
     if ( err ) {
         char err_buf[256];

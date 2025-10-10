@@ -22,10 +22,19 @@ struct ip_pair_key {
 
 // Statistics for shunted flows
 struct shunt_val {
+// Since BPF headers conflict in user code with the pcap ones, we need
+// to use __u32 in user code for the lock.
+#ifdef __bpf__
+    struct bpf_spin_lock lock;
+#else
+    __u32 lock_pad;
+#endif
+
     __u64 packets_from_1; // packets from IP 1 as the source
     __u64 packets_from_2; // packets from IP 2 as the source
     __u64 bytes_from_1;   // bytes from IP 1 as the source
     __u64 bytes_from_2;   // bytes from IP 2 as the source
+    __u64 timestamp;      // monotonic NS since boot from last packet
 };
 
 static __always_inline int compare_ips(struct in6_addr* ip1, struct in6_addr* ip2) {

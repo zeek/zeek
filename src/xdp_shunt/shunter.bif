@@ -60,9 +60,28 @@ zeek::RecordValPtr makeEmptyShuntedStats() {
 		stats->Assign(1, zeek::val_mgr->Count(0));
 		stats->Assign(2, zeek::val_mgr->Count(0));
 		stats->Assign(3, zeek::val_mgr->Count(0));
-		stats->Assign(4, zeek::val_mgr->Bool(false));
+
+		stats->Assign(5, zeek::val_mgr->Bool(false));
 
     return stats;
+}
+
+double mono_to_wall(uint64_t bpf_monotonic_ns) {
+    // TODO: Should this use zeek's current_time? Probably! :)
+    struct timespec real_now;
+    clock_gettime(CLOCK_REALTIME, &real_now);
+    uint64_t real_now_ns = (uint64_t)real_now.tv_sec * 1000000000 + real_now.tv_nsec;
+
+    struct timespec mono_now;
+    clock_gettime(CLOCK_MONOTONIC, &mono_now);
+    uint64_t mono_now_ns = (uint64_t)mono_now.tv_sec * 1000000000 + mono_now.tv_nsec;
+
+    uint64_t delta_ns = mono_now_ns - bpf_monotonic_ns;
+
+    uint64_t packet_wall_time_ns = real_now_ns - delta_ns;
+
+    // Convert to double-of-seconds
+    return (double)packet_wall_time_ns / 1e9;
 }
 
 // The boolean decides which way ip1 was in the map
@@ -81,7 +100,13 @@ zeek::RecordValPtr makeShuntedStats(bool orig_is_ip1, shunt_val* val) {
         stats->Assign(2, zeek::val_mgr->Count(val->packets_from_1));
         stats->Assign(3, zeek::val_mgr->Count(val->bytes_from_1));
     }
-    stats->Assign(4, zeek::val_mgr->Bool(true));
+
+    if (val->timestamp != 0) {
+        double packet_wall_time = mono_to_wall(val->timestamp);
+        stats->Assign(4, zeek::make_intrusive<zeek::TimeVal>(packet_wall_time));
+    }
+
+    stats->Assign(5, zeek::val_mgr->Bool(true));
 
     return stats;
 }

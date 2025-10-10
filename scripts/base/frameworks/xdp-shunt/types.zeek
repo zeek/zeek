@@ -17,6 +17,7 @@ export {
         bytes_from_orig: count;
         packets_from_resp: count;
         bytes_from_resp: count;
+        timestamp: time &optional; # The last shunted timestamp seen, if any
 
         present: bool; # If this means anything :) probably a better way
     };

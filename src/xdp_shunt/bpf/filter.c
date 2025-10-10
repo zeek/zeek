@@ -33,13 +33,29 @@ struct {
 #define lock_xadd(ptr, val) ((void)__sync_fetch_and_add(ptr, val))
 #endif
 
-void update_value(struct shunt_val* val, struct xdp_md* ctx, int from_ip1) {
-    // TODO: From the basic03 xdp tutorial, mostly. Consider swapping to PER_CPU
-    lock_xadd(from_ip1 ? &val->packets_from_1 : &val->packets_from_2, 1);
+static __always_inline void update_value(struct shunt_val* val, struct xdp_md* ctx, int from_ip1) {
+    __u64 new_ts = bpf_ktime_get_ns(); // Call before getting lock
+
+    bpf_spin_lock(&val->lock);
+
+    // TODO: Consider swapping to PER_CPU
     void* data_end = (void*)(long)ctx->data_end;
     void* data = (void*)(long)ctx->data;
     __u64 bytes = data_end - data;
-    lock_xadd(from_ip1 ? &val->bytes_from_1 : &val->bytes_from_2, bytes);
+    if ( from_ip1 ) {
+        val->packets_from_1++;
+        val->bytes_from_1 += bytes;
+    }
+    else {
+        val->packets_from_2++;
+        val->bytes_from_2 += bytes;
+    }
+
+    // Only update the timestamp if the new one is more recent
+    if ( new_ts > val->timestamp )
+        val->timestamp = new_ts;
+
+    bpf_spin_unlock(&val->lock);
 }
 
 SEC("xdp")

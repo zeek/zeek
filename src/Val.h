@@ -1154,11 +1154,6 @@ public:
         : is_set(true), is_managed(ZVal::IsManagedType(t)), tag(t->Tag()), zval(v, t) {}
 
     /**
-     * Initialize a ZValElement using a TypeDecl.
-     */
-    ZValElement(const TypeDecl& td) : is_managed(td.is_managed), tag(td.tag) {}
-
-    /**
      * Initialize a ZValElement with just the TypePtr.
      *
      * This is useful for optional fields in a record value where
@@ -1222,6 +1217,21 @@ public:
 
         return *this;
     }
+
+    /**
+     * Initialize a ZValElement using a TypeDecl assignment.
+     *
+     * This is used at record construction time to set the is_managed
+     * and tag fields properly.
+     */
+    const ZValElement& operator=(const TypeDecl& td) noexcept {
+        assert(! IsSet());
+        assert(tag == TYPE_ERROR);
+        is_managed = td.is_managed;
+        tag = td.tag;
+        return *this;
+    }
+
 
     operator bool() const noexcept { return is_set; }
     const ZVal* operator->() const noexcept { return &zval; }
@@ -1662,7 +1672,7 @@ private:
         size_t n = NumFields();
         assert(n == rt->Types()->size());
         for ( size_t i = 0; i < n; i++ )
-            elements[i] = ZValElement(*rt->FieldDecl(i));
+            elements[i] = *rt->FieldDecl(i);
     }
 
     unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;

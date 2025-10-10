@@ -130,10 +130,11 @@ void DNS_Mapping::Init(struct hostent* h) {
 
     if ( h->h_addr_list ) {
         for ( int i = 0; h->h_addr_list[i] != nullptr; ++i ) {
+            auto* addr = reinterpret_cast<uint32_t*>(h->h_addr_list[i]);
             if ( h->h_addrtype == AF_INET )
-                addrs.emplace_back(IPv4, (uint32_t*)h->h_addr_list[i], IPAddr::Network);
+                addrs.emplace_back(IPv4, addr, IPAddr::Network);
             else if ( h->h_addrtype == AF_INET6 )
-                addrs.emplace_back(IPv6, (uint32_t*)h->h_addr_list[i], IPAddr::Network);
+                addrs.emplace_back(IPv6, addr, IPAddr::Network);
         }
     }
 

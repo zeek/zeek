@@ -72,7 +72,7 @@ bool Discarder::NextPacket(const std::shared_ptr<IP_Hdr>& ip, int len, int caple
 
     if ( is_tcp ) {
         if ( check_tcp ) {
-            const struct tcphdr* tp = (const struct tcphdr*)data;
+            const struct tcphdr* tp = reinterpret_cast<const tcphdr*>(data);
             int th_len = tp->th_off * 4;
 
             zeek::Args args{
@@ -92,7 +92,7 @@ bool Discarder::NextPacket(const std::shared_ptr<IP_Hdr>& ip, int len, int caple
 
     else if ( is_udp ) {
         if ( check_udp ) {
-            const struct udphdr* up = (const struct udphdr*)data;
+            const struct udphdr* up = reinterpret_cast<const udphdr*>(data);
             int uh_len = sizeof(struct udphdr);
 
             zeek::Args args{
@@ -112,7 +112,7 @@ bool Discarder::NextPacket(const std::shared_ptr<IP_Hdr>& ip, int len, int caple
 
     else {
         if ( check_icmp ) {
-            const struct icmp* ih = (const struct icmp*)data;
+            const struct icmp* ih = reinterpret_cast<const icmp*>(data);
 
             zeek::Args args{ip->ToPktHdrVal()};
 

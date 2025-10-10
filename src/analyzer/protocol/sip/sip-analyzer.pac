@@ -121,7 +121,7 @@ refine flow SIP_Flow += {
 		if ( name.length() > 0 )
 			{
 			// Make it all uppercase.
-			name_val = zeek::make_intrusive<zeek::StringVal>(name.length(), (const char*) name.begin());
+			name_val = zeek::make_intrusive<zeek::StringVal>(name.length(), reinterpret_cast<const char*>(name.begin()));
 			name_val->ToUpper();
 			}
 		else

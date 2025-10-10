@@ -167,7 +167,7 @@ class HTTP_Entity::UncompressedOutput : public analyzer::OutputHandler {
 public:
     UncompressedOutput(HTTP_Entity* e) { entity = e; }
     void DeliverStream(int len, const u_char* data, bool orig) override {
-        entity->DeliverBodyClear(len, (char*)data, false);
+        entity->DeliverBodyClear(len, reinterpret_cast<const char*>(data), false);
     }
 
 private:
@@ -185,7 +185,7 @@ void HTTP_Entity::DeliverBody(int len, const char* data, bool trailing_CRLF) {
             zip->SetOutputHandler(new UncompressedOutput(this));
         }
 
-        zip->NextStream(len, (const u_char*)data, false);
+        zip->NextStream(len, reinterpret_cast<const u_char*>(data), false);
     }
     else
         DeliverBodyClear(len, data, trailing_CRLF);
@@ -204,11 +204,11 @@ void HTTP_Entity::DeliverBodyClear(int len, const char* data, bool trailing_CRLF
     zeek::detail::Rule::PatternType rule =
         http_message->IsOrig() ? zeek::detail::Rule::HTTP_REQUEST_BODY : zeek::detail::Rule::HTTP_REPLY_BODY;
 
-    http_message->MyHTTP_Analyzer()->Conn()->Match(rule, (const u_char*)data, len, http_message->IsOrig(), new_data,
-                                                   false, new_data);
+    http_message->MyHTTP_Analyzer()->Conn()->Match(rule, reinterpret_cast<const u_char*>(data), len,
+                                                   http_message->IsOrig(), new_data, false, new_data);
 
     // FIXME: buffer data for forwarding (matcher might match later).
-    http_message->MyHTTP_Analyzer()->ForwardStream(len, (const u_char*)data, http_message->IsOrig());
+    http_message->MyHTTP_Analyzer()->ForwardStream(len, reinterpret_cast<const u_char*>(data), http_message->IsOrig());
 }
 
 // Returns 1 if the undelivered bytes are completely within the body,
@@ -599,7 +599,7 @@ void HTTP_Message::BeginEntity(analyzer::mime::MIME_Entity* entity) {
     if ( DEBUG_http )
         DEBUG_MSG("%.6f: begin entity (%d)\n", run_state::network_time, is_orig);
 
-    current_entity = (HTTP_Entity*)entity;
+    current_entity = static_cast<HTTP_Entity*>(entity);
 
     if ( http_begin_entity )
         analyzer->EnqueueConnEvent(http_begin_entity, analyzer->ConnVal(), val_mgr->Bool(is_orig));
@@ -610,14 +610,14 @@ void HTTP_Message::EndEntity(analyzer::mime::MIME_Entity* entity) {
         DEBUG_MSG("%.6f: end entity (%d)\n", run_state::network_time, is_orig);
 
     if ( entity == top_level ) {
-        body_length += ((HTTP_Entity*)entity)->BodyLength();
-        header_length += ((HTTP_Entity*)entity)->HeaderLength();
+        body_length += (static_cast<HTTP_Entity*>(entity))->BodyLength();
+        header_length += (static_cast<HTTP_Entity*>(entity))->HeaderLength();
     }
 
     if ( http_end_entity )
         analyzer->EnqueueConnEvent(http_end_entity, analyzer->ConnVal(), val_mgr->Bool(is_orig));
 
-    current_entity = (HTTP_Entity*)entity->Parent();
+    current_entity = static_cast<HTTP_Entity*>(entity->Parent());
 
     if ( entity->Parent() && entity->Parent()->MIMEContentType() == analyzer::mime::CONTENT_TYPE_MULTIPART ) {
         content_line->SuppressWeirds(false);
@@ -1248,7 +1248,8 @@ bool HTTP_Analyzer::ParseRequest(const char* line, const char* end_of_line) {
     // NormalizeURI(line, end_of_uri);
 
     request_URI = make_intrusive<StringVal>(end_of_uri - line, line);
-    unescaped_URI = make_intrusive<StringVal>(unescape_URI((const u_char*)line, (const u_char*)end_of_uri, this));
+    unescaped_URI = make_intrusive<StringVal>(
+        unescape_URI(reinterpret_cast<const u_char*>(line), reinterpret_cast<const u_char*>(end_of_uri), this));
 
     return true;
 }
@@ -1305,7 +1306,7 @@ StringValPtr HTTP_Analyzer::TruncateURI(const StringValPtr& uri) {
 void HTTP_Analyzer::HTTP_Request() {
     AnalyzerConfirmation();
 
-    const char* method = (const char*)request_method->AsString()->Bytes();
+    const char* method = reinterpret_cast<const char*>(request_method->AsString()->Bytes());
     int method_len = request_method->AsString()->Len();
 
     if ( strncasecmp(method, "CONNECT", method_len) == 0 )
@@ -1544,7 +1545,7 @@ int HTTP_Analyzer::ExpectReplyMessageBody() {
 
     const String* method = UnansweredRequestMethod();
 
-    if ( method && strncasecmp((const char*)(method->Bytes()), "HEAD", method->Len()) == 0 )
+    if ( method && strncasecmp(reinterpret_cast<const char*>(method->Bytes()), "HEAD", method->Len()) == 0 )
         return HTTP_BODY_NOT_EXPECTED;
 
     if ( (reply_code >= 100 && reply_code < 200) || reply_code == 204 || reply_code == 304 )
@@ -1580,9 +1581,10 @@ void HTTP_Analyzer::HTTP_Header(bool is_orig, analyzer::mime::MIME_Header* h) {
         data_chunk_t hd_name = h->get_name();
         data_chunk_t hd_value = h->get_value();
 
-        Conn()->Match(rule, (const u_char*)hd_name.data, hd_name.length, is_orig, true, false, true);
-        Conn()->Match(rule, (const u_char*)": ", 2, is_orig, false, false, false);
-        Conn()->Match(rule, (const u_char*)hd_value.data, hd_value.length, is_orig, false, true, false);
+        Conn()->Match(rule, reinterpret_cast<const u_char*>(hd_name.data), hd_name.length, is_orig, true, false, true);
+        Conn()->Match(rule, reinterpret_cast<const u_char*>(": "), 2, is_orig, false, false, false);
+        Conn()->Match(rule, reinterpret_cast<const u_char*>(hd_value.data), hd_value.length, is_orig, false, true,
+                      false);
 
         if ( DEBUG_http )
             DEBUG_MSG("%.6f http_header\n", run_state::network_time);

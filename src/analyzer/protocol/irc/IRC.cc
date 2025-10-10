@@ -69,7 +69,7 @@ void IRC_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
         return;
     }
 
-    string myline = string((const char*)line, length);
+    string myline = string(reinterpret_cast<const char*>(line), length);
     SkipLeadingWhitespace(myline);
 
     if ( myline.length() < 3 ) {

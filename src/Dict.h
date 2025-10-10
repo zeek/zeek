@@ -114,7 +114,7 @@ public:
         if ( key_size <= 8 ) {
             memcpy(key_here, arg_key, key_size);
             if ( ! copy_key )
-                delete[] (char*)arg_key; // own the arg_key, now don't need it.
+                delete[] reinterpret_cast<char*>(arg_key); // own the arg_key, now don't need it.
         }
         else {
             if ( copy_key ) {
@@ -122,7 +122,7 @@ public:
                 memcpy(key, arg_key, key_size);
             }
             else {
-                key = (char*)arg_key;
+                key = reinterpret_cast<char*>(arg_key);
             }
         }
     }
@@ -589,7 +589,7 @@ public:
             v = table[position].value;
             table[position].value = val;
             if ( ! copy_key )
-                delete[] (char*)key;
+                delete[] reinterpret_cast<char*>(key);
 
             if ( iterators && ! iterators->empty() )
                 // need to set new v for iterators too.
@@ -747,7 +747,7 @@ public:
 
     T* NthEntry(int n, const char*& key) const {
         int key_len;
-        return NthEntry(n, (const void*&)key, key_len);
+        return NthEntry(n, key, key_len);
     }
 
     void SetDeleteFunc(dict_delete_func f) { delete_func = f; }
@@ -927,7 +927,7 @@ public:
             for ( int idx = 0; idx < Capacity(); idx++ )
                 if ( ! table[idx].Empty() ) {
                     int key_size = table[idx].key_size;
-                    f.write((const char*)&key_size, sizeof(int));
+                    f.write(reinterpret_cast<const char*>(&key_size), sizeof(int));
                     f.write(table[idx].GetKey(), table[idx].key_size);
                 }
         }
@@ -1129,7 +1129,7 @@ private:
     int LinearLookupIndex(const void* key, int key_size, detail::hash_t hash) const {
         auto current_cap = Capacity();
         for ( int i = 0; i < current_cap; i++ )
-            if ( ! table[i].Empty() && table[i].Equal((const char*)key, key_size, hash) )
+            if ( ! table[i].Empty() && table[i].Equal(reinterpret_cast<const char*>(key), key_size, hash) )
                 return i;
         return -1;
     }
@@ -1189,7 +1189,7 @@ private:
         ASSERT(begin >= 0 && begin < Buckets());
         int i = begin;
         for ( ; i < end && ! table[i].Empty() && BucketByPosition(i) <= begin; i++ )
-            if ( BucketByPosition(i) == begin && table[i].Equal((char*)key, key_size, hash) )
+            if ( BucketByPosition(i) == begin && table[i].Equal(reinterpret_cast<const char*>(key), key_size, hash) )
                 return i;
 
         // no such cluster, or not found in the cluster.

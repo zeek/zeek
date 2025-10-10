@@ -188,6 +188,6 @@ void bad_ref(int type) {
     abort();
 }
 
-void obj_delete_func(void* v) { Unref((Obj*)v); }
+void obj_delete_func(void* v) { Unref(reinterpret_cast<Obj*>(v)); }
 
 } // namespace zeek

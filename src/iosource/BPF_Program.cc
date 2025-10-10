@@ -77,7 +77,7 @@ bool BPF_Program::Compile(pcap_t* pcap, const char* filter, uint32_t netmask, bo
 
     FreeCode();
 
-    if ( pcap_compile(pcap, &m_program, (char*)filter, optimize, netmask) < 0 ) {
+    if ( pcap_compile(pcap, &m_program, const_cast<char*>(filter), optimize, netmask) < 0 ) {
         state_message = std::string(pcap_geterr(pcap));
         state = GetStateFromMessage(state_message);
         return false;

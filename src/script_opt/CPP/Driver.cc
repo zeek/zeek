@@ -119,7 +119,7 @@ void CPPCompile::Compile(bool report_uncompilable) {
 
     // Track all of the types we'll be using.
     for ( const auto& t : rep_types ) {
-        TypePtr tp{NewRef{}, (Type*)(t)};
+        TypePtr tp{NewRef{}, const_cast<Type*>(t)};
         types.AddKey(tp, pfs->HashType(t));
     }
 

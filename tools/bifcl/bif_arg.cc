@@ -73,7 +73,7 @@ void BuiltinFuncArg::PrintCDef(FILE* fp, int n, bool runtime_type_check) {
     // Print the accessor expression.
     fprintf(fp, builtin_func_arg_type[type].accessor, buf);
 
-    fprintf(fp, ");\n");
+    fprintf(fp, "); // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)\n");
 }
 
 void BuiltinFuncArg::PrintCArg(FILE* fp, int n) {

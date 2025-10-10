@@ -122,7 +122,7 @@ void SSL_Analyzer::SetSecret(const zeek::StringVal& secret) { SetSecret(secret.L
 
 void SSL_Analyzer::SetSecret(size_t len, const u_char* data) {
     secret.clear();
-    secret.append((const char*)data, len);
+    secret.append(reinterpret_cast<const char*>(data), len);
 }
 
 void SSL_Analyzer::SetKeys(const zeek::StringVal& nkeys) {

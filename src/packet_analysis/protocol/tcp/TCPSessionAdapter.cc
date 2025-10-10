@@ -301,8 +301,8 @@ static zeek::RecordValPtr build_syn_packet_val(bool is_orig, const zeek::IP_Hdr*
     std::optional<uint64_t> TSecr;
 
     // Parse TCP options.
-    u_char* options = (u_char*)tcp + sizeof(struct tcphdr);
-    u_char* opt_end = (u_char*)tcp + static_cast<ptrdiff_t>(tcp->th_off * 4);
+    const u_char* options = reinterpret_cast<const u_char*>(tcp) + sizeof(struct tcphdr);
+    const u_char* opt_end = reinterpret_cast<const u_char*>(tcp) + static_cast<ptrdiff_t>(tcp->th_off * 4);
 
     while ( options < opt_end ) {
         unsigned int opt = options[0];
@@ -496,7 +496,7 @@ void TCPSessionAdapter::Process(bool is_orig, const struct tcphdr* tp, int len, 
     analyzer::tcp::TCP_Flags flags(tp);
     uint32_t base_seq = ntohl(tp->th_seq);
     uint32_t ack_seq = ntohl(tp->th_ack);
-    uint32_t tcp_hdr_len = data - (const u_char*)tp;
+    uint32_t tcp_hdr_len = data - reinterpret_cast<const u_char*>(tp);
 
     analyzer::tcp::TCP_Endpoint* endpoint = is_orig ? orig : resp;
     analyzer::tcp::TCP_Endpoint* peer = endpoint->peer;
@@ -976,7 +976,7 @@ void TCPSessionAdapter::GeneratePacketEvent(uint64_t rel_seq, uint64_t rel_ack, 
                      val_mgr->Count(rel_seq), val_mgr->Count(flags.ACK() ? rel_ack : 0), val_mgr->Count(len),
                      // We need the min() here because Ethernet padding can lead to
                      // caplen > len.
-                     make_intrusive<StringVal>(std::min(caplen, len), (const char*)data));
+                     make_intrusive<StringVal>(std::min(caplen, len), reinterpret_cast<const char*>(data)));
 }
 
 bool TCPSessionAdapter::DeliverData(double t, const u_char* data, int len, int caplen, const IP_Hdr* ip,
@@ -1353,7 +1353,7 @@ void TCPSessionAdapter::CheckPIA_FirstPacket(bool is_orig, const IP_Hdr* ip) {
 }
 
 bool TCPSessionAdapter::IsReuse(double t, const u_char* pkt) {
-    const struct tcphdr* tp = (const struct tcphdr*)pkt;
+    const struct tcphdr* tp = reinterpret_cast<const tcphdr*>(pkt);
 
     if ( unsigned(tp->th_off) < sizeof(struct tcphdr) / 4 )
         // Bogus header, don't interpret further.
@@ -1464,8 +1464,8 @@ void TCPSessionAdapter::SynWeirds(analyzer::tcp::TCP_Flags flags, analyzer::tcp:
 
 int TCPSessionAdapter::ParseTCPOptions(const struct tcphdr* tcp, bool is_orig) {
     // Parse TCP options.
-    const u_char* options = (const u_char*)tcp + sizeof(struct tcphdr);
-    const u_char* opt_end = (const u_char*)tcp + static_cast<ptrdiff_t>(tcp->th_off * 4);
+    const u_char* options = reinterpret_cast<const u_char*>(tcp) + sizeof(struct tcphdr);
+    const u_char* opt_end = reinterpret_cast<const u_char*>(tcp) + static_cast<ptrdiff_t>(tcp->th_off * 4);
     std::vector<const u_char*> opts;
 
     while ( options < opt_end ) {

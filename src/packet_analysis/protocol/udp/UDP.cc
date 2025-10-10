@@ -61,7 +61,7 @@ bool UDPAnalyzer::InitConnKey(size_t len, const uint8_t* data, Packet* packet, I
     if ( ! CheckHeaderTrunc(min_hdr_len, len, packet) )
         return false;
 
-    const struct udphdr* up = (const struct udphdr*)packet->ip_hdr->Payload();
+    const struct udphdr* up = reinterpret_cast<const udphdr*>(packet->ip_hdr->Payload());
     key.InitTuple(packet->ip_hdr->SrcAddr(), up->uh_sport, packet->ip_hdr->DstAddr(), up->uh_dport, packet->proto);
 
     return true;
@@ -77,7 +77,7 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
     if ( len == 0 )
         len = remaining;
 
-    const struct udphdr* up = (const struct udphdr*)data;
+    const struct udphdr* up = reinterpret_cast<const udphdr*>(data);
     const std::shared_ptr<IP_Hdr>& ip = pkt->ip_hdr;
 
     adapter->DeliverPacket(len, data, is_orig, -1, ip.get(), remaining);
@@ -172,7 +172,7 @@ void UDPAnalyzer::DeliverPacket(Connection* c, double t, bool is_orig, int remai
 
         if ( do_udp_contents )
             adapter->EnqueueConnEvent(udp_contents, adapter->ConnVal(), val_mgr->Bool(is_orig),
-                                      make_intrusive<StringVal>(len, (const char*)data));
+                                      make_intrusive<StringVal>(len, reinterpret_cast<const char*>(data)));
     }
 
     if ( is_orig ) {

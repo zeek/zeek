@@ -248,7 +248,8 @@ void Manager::ReportUnknownProtocol(const std::string& analyzer, uint32_t protoc
             int bytes_len = std::min(unknown_first_bytes_count, static_cast<uint64_t>(len));
 
             event_mgr.Enqueue(unknown_protocol, make_intrusive<StringVal>(analyzer), val_mgr->Count(protocol),
-                              make_intrusive<StringVal>(bytes_len, (const char*)data), BuildAnalyzerHistory());
+                              make_intrusive<StringVal>(bytes_len, reinterpret_cast<const char*>(data)),
+                              BuildAnalyzerHistory());
         }
     }
 }

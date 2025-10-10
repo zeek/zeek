@@ -583,13 +583,13 @@ SupportAnalyzer* Analyzer::FirstSupportAnalyzer(bool orig) {
 
 void Analyzer::DeliverPacket(int len, const u_char* data, bool is_orig, uint64_t seq, const IP_Hdr* ip, int caplen) {
     DBG_LOG(DBG_ANALYZER, "%s DeliverPacket(%d, %s, %" PRIu64 ", %p, %d) [%s%s]", fmt_analyzer(this).c_str(), len,
-            is_orig ? "T" : "F", seq, ip, caplen, util::fmt_bytes((const char*)data, min(40, len)),
+            is_orig ? "T" : "F", seq, ip, caplen, util::fmt_bytes(reinterpret_cast<const char*>(data), min(40, len)),
             len > 40 ? "..." : "");
 }
 
 void Analyzer::DeliverStream(int len, const u_char* data, bool is_orig) {
     DBG_LOG(DBG_ANALYZER, "%s DeliverStream(%d, %s) [%s%s]", fmt_analyzer(this).c_str(), len, is_orig ? "T" : "F",
-            util::fmt_bytes((const char*)data, min(40, len)), len > 40 ? "..." : "");
+            util::fmt_bytes(reinterpret_cast<const char*>(data), min(40, len)), len > 40 ? "..." : "");
 }
 
 void Analyzer::Undelivered(uint64_t seq, int len, bool is_orig) {

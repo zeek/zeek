@@ -162,7 +162,7 @@ void SMTP_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
     // Some weird client uses '\r\r\n' for end-of-line sequence
     // So we make a compromise here to allow /(\r)*\n/ as end-of-line sequences
     if ( length > 0 && line[length - 1] == '\r' ) {
-        Unexpected(is_sender, "more than one <CR> at the end of line", length, (const char*)line);
+        Unexpected(is_sender, "more than one <CR> at the end of line", length, reinterpret_cast<const char*>(line));
         do
             --length;
         while ( length > 0 && line[length - 1] == '\r' );
@@ -170,11 +170,12 @@ void SMTP_Analyzer::DeliverStream(int length, const u_char* line, bool orig) {
 
     for ( int i = 0; i < length; ++i )
         if ( line[i] == '\r' || line[i] == '\n' ) {
-            Unexpected(is_sender, "Bare <CR> or <LF> appears in the middle of line", length, (const char*)line);
+            Unexpected(is_sender, "Bare <CR> or <LF> appears in the middle of line", length,
+                       reinterpret_cast<const char*>(line));
             break;
         }
 
-    ProcessLine(length, (const char*)line, orig);
+    ProcessLine(length, reinterpret_cast<const char*>(line), orig);
 }
 
 void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig) {
@@ -196,7 +197,7 @@ void SMTP_Analyzer::ProcessLine(int length, const char* line, bool orig) {
             // a data line.
             delete line_after_gap;
 
-            line_after_gap = new String((const u_char*)line, length, true);
+            line_after_gap = new String(reinterpret_cast<const u_char*>(line), length, true);
         }
 
         else if ( state == detail::SMTP_IN_DATA && line[0] == '.' && length == 1 ) {

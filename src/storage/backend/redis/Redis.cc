@@ -6,7 +6,6 @@
 #include <cinttypes>
 
 #include "zeek/DebugLogger.h"
-#include "zeek/Func.h"
 #include "zeek/RunState.h"
 #include "zeek/Val.h"
 #include "zeek/iosource/Manager.h"
@@ -602,7 +601,7 @@ void Redis::HandleGetResult(redisReply* reply, ResultCallback* callback) {
         res = ParseReplyError("get", reply->str);
     else {
         IncBytesReadMetric(reply->len);
-        auto val = serializer->Unserialize({(std::byte*)reply->str, reply->len}, val_type);
+        auto val = serializer->Unserialize({reinterpret_cast<std::byte*>(reply->str), reply->len}, val_type);
         if ( val )
             res = {ReturnCode::SUCCESS, "", val.value()};
         else

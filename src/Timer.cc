@@ -175,8 +175,8 @@ double TimerMgr::GetNextTimeout() {
     return -1;
 }
 
-Timer* TimerMgr::Remove() { return (Timer*)q->Remove(); }
+Timer* TimerMgr::Remove() { return static_cast<Timer*>(q->Remove()); }
 
-Timer* TimerMgr::Top() { return (Timer*)q->Top(); }
+Timer* TimerMgr::Top() { return static_cast<Timer*>(q->Top()); }
 
 } // namespace zeek::detail

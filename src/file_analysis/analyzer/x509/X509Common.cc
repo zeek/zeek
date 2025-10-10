@@ -31,7 +31,7 @@ double X509Common::GetTimeFromAsn1(const ASN1_TIME* atime, file_analysis::File* 
     char lBuffer[26];
     char* pBuffer = lBuffer;
 
-    const char* pString = (const char*)atime->data;
+    const char* pString = reinterpret_cast<const char*>(atime->data);
     unsigned int remaining = atime->length;
 
     if ( atime->type == V_ASN1_UTCTIME ) {
@@ -176,7 +176,7 @@ void X509Common::ParseSignedCertificateTimestamps(X509_EXTENSION* ext) {
     // the octet string of the extension contains the octet string which in turn
     // contains the SCT. Obviously.
 
-    unsigned char* ext_val_copy = (unsigned char*)OPENSSL_malloc(ext_val->length);
+    unsigned char* ext_val_copy = reinterpret_cast<unsigned char*>(OPENSSL_malloc(ext_val->length));
     unsigned char* ext_val_second_pointer = ext_val_copy;
     memcpy(ext_val_copy, ext_val->data, ext_val->length);
 
@@ -285,7 +285,7 @@ StringValPtr X509Common::GetExtensionFromBIO(BIO* bio, file_analysis::File* f) {
         return val_mgr->EmptyString();
     }
 
-    char* buffer = (char*)malloc(length);
+    char* buffer = reinterpret_cast<char*>(malloc(length));
 
     if ( ! buffer ) {
         // Just emit an error here and try to continue instead of aborting

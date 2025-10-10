@@ -313,7 +313,7 @@ void TCP_Reassembler::RecordToSeq(uint64_t start_seq, uint64_t stop_seq, const F
 }
 
 void TCP_Reassembler::RecordBlock(const DataBlock& b, const FilePtr& f) {
-    if ( f->Write((const char*)b.block, b.Size()) )
+    if ( f->Write(reinterpret_cast<const char*>(b.block), b.Size()) )
         return;
 
     reporter->Error("TCP_Reassembler contents write failed");
@@ -537,7 +537,8 @@ void TCP_Reassembler::DeliverBlock(uint64_t seq, int len, const u_char* data) {
 
     if ( deliver_tcp_contents )
         tcp_analyzer->EnqueueConnEvent(tcp_contents, tcp_analyzer->ConnVal(), val_mgr->Bool(IsOrig()),
-                                       val_mgr->Count(seq), make_intrusive<StringVal>(len, (const char*)data));
+                                       val_mgr->Count(seq),
+                                       make_intrusive<StringVal>(len, reinterpret_cast<const char*>(data)));
 
     // Q. Can we say this because it is already checked in DataSent()?
     // ASSERT(!Conn()->Skipping() && !SkipDeliveries());

@@ -29,12 +29,12 @@ bool VXLAN_Analyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* pack
     constexpr uint16_t hdr_size = 8;
 
     if ( hdr_size > len ) {
-        AnalyzerViolation("VXLAN header truncation", packet->session, (const char*)data, len);
+        AnalyzerViolation("VXLAN header truncation", packet->session, reinterpret_cast<const char*>(data), len);
         return false;
     }
 
     if ( (data[0] & 0x08) == 0 ) {
-        AnalyzerViolation("VXLAN 'I' flag not set", packet->session, (const char*)data, len);
+        AnalyzerViolation("VXLAN 'I' flag not set", packet->session, reinterpret_cast<const char*>(data), len);
         return false;
     }
 

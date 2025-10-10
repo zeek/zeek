@@ -1,3 +1,11 @@
+8.1.0-dev.664 | 2025-10-10 09:19:40 -0700
+
+  * Skip setting tm_gmtoff on Windows (Tim Wojtulewicz, Corelight)
+
+    tm_gmtoff is a POSIX extension to the tm struct that Windows doesn't
+    support it. It doesn't appear to change the output from the btest,
+    so we can just skip it.
+
 8.1.0-dev.662 | 2025-10-10 12:52:02 +0200
 
   * Bump CI to freebsd-13.5 (Benjamin Bannier, Corelight)

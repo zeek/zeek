@@ -163,6 +163,10 @@ static int func_hdr_cond_epoch = 0;
 EnumType* cur_enum_type = nullptr;
 static ID* cur_decl_type_id = nullptr;
 
+namespace zeek::detail {
+extern bool g_policy_debug;
+}
+
 static void parse_new_enum(void) {
     // Starting a new enum definition.
     assert(cur_enum_type == nullptr);
@@ -1843,7 +1847,10 @@ stmt:
 			{
 			reject_directive($5);
 			set_location(@1, @4);
-			$$ = new IfStmt({AdoptRef{}, $3}, {AdoptRef{}, $5}, make_intrusive<NullStmt>());
+			if ( g_policy_debug )
+				$$ = new DebugIfStmt({AdoptRef{}, $3}, {AdoptRef{}, $5}, make_intrusive<NullStmt>());
+			else
+				$$ = new IfStmt({AdoptRef{}, $3}, {AdoptRef{}, $5}, make_intrusive<NullStmt>());
 			script_coverage_mgr.AddStmt($$);
 			}
 
@@ -1852,7 +1859,10 @@ stmt:
 			reject_directive($5);
 			reject_directive($7);
 			set_location(@1, @4);
-			$$ = new IfStmt({AdoptRef{}, $3}, {AdoptRef{}, $5}, {AdoptRef{}, $7});
+			if ( g_policy_debug )
+				$$ = new DebugIfStmt({AdoptRef{}, $3}, {AdoptRef{}, $5}, {AdoptRef{}, $7});
+			else
+				$$ = new IfStmt({AdoptRef{}, $3}, {AdoptRef{}, $5}, {AdoptRef{}, $7});
 			script_coverage_mgr.AddStmt($$);
 			}
 
@@ -1976,7 +1986,12 @@ stmt_list:
 			$1->UpdateLocationEndInfo(@2);
 			}
 	|
-			{ $$ = new StmtList(); }
+			{
+			if ( g_policy_debug )
+				$$ = new DebugStmtList();
+			else
+				$$ = new StmtList();
+			}
 	;
 
 event:

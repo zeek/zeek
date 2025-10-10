@@ -1,3 +1,9 @@
+8.0.1-19 | 2025-10-10 13:29:48 -0700
+
+  * Revert "Bump zeek-testing-cluster commit hash" (Tim Wojtulewicz, Corelight)
+
+    This reverts commit 1f40b624c739922d101117107b10b5d13bc5f48c.
+
 8.0.1-18 | 2025-10-10 11:28:02 -0700
 
   * CI: Pin to python 3.13 on macOS (Tim Wojtulewicz, Corelight)

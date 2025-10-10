@@ -1166,7 +1166,7 @@ public:
     /**
      * Copy constructor.
      */
-    ZValElement(const ZValElement& s) : is_set(s.is_set), is_managed(s.is_managed), tag(s.tag), zval(s.zval) {
+    ZValElement(const ZValElement& o) : is_set(o.is_set), is_managed(o.is_managed), tag(o.tag), zval(o.zval) {
         if ( is_set && is_managed )
             Ref(zval.ManagedVal());
     }
@@ -1180,17 +1180,17 @@ public:
      * Assign one ZValElement instance to another with automatic memory management
      * based on is_managed.
      */
-    ZValElement& operator=(const ZValElement& s) {
-        if ( this == &s )
+    ZValElement& operator=(const ZValElement& o) {
+        if ( this == &o )
             return *this;
 
         if ( is_set && is_managed )
             Unref(zval.ManagedVal());
 
-        is_set = s.is_set;
-        is_managed = s.is_managed;
-        tag = s.tag;
-        zval = s.zval;
+        is_set = o.is_set;
+        is_managed = o.is_managed;
+        tag = o.tag;
+        zval = o.zval;
 
         if ( is_set && is_managed )
             Ref(zval.ManagedVal());

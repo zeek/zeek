@@ -1,3 +1,15 @@
+8.1.0-dev.662 | 2025-10-10 12:52:02 +0200
+
+  * Bump CI to freebsd-13.5 (Benjamin Bannier, Corelight)
+
+  * Use package `cmake-core` instead of `cmake` on FreeBSD (Benjamin Bannier, Corelight)
+
+    The package `cmake` seems to have unreliable availability on e.g.,
+    freebsd-13. Switch to the `cmake-core` subpackage which already has all
+    the functionality we need.
+
+  * Update doc submodule [nomail] [skip ci] (zeek-bot)
+
 8.1.0-dev.658 | 2025-10-09 20:17:21 +0200
 
   * Type: Cache tag into TypeDecl (Arne Welzel, Corelight)

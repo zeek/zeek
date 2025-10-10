@@ -523,7 +523,7 @@ freebsd14_task:
 freebsd13_task:
   freebsd_instance:
     # FreeBSD 13 EOL: January 31, 2026
-    image_family: freebsd-13-4
+    image_family: freebsd-13-5
     << : *FREEBSD_RESOURCES_TEMPLATE
 
   prepare_script: ./ci/freebsd/prepare.sh

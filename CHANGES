@@ -1,3 +1,7 @@
+8.0.1-18 | 2025-10-10 11:28:02 -0700
+
+  * CI: Pin to python 3.13 on macOS (Tim Wojtulewicz, Corelight)
+
 8.0.1-17 | 2025-10-10 10:50:07 -0700
 
   * Bump CI to freebsd-13.5 (Benjamin Bannier, Corelight)

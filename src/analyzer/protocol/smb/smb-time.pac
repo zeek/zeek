@@ -33,9 +33,12 @@ double time_from_lanman(uint32_t smb_time, uint32_t smb_date, uint16_t tz)
 	lTime.tm_year = ((smb_date >> 9) & 0x7f) + 80;
 	lTime.tm_isdst = -1;
 
+#ifndef _MSC_VER
 	// The timezone passed in the data is the number of minutes from UTC, while
-	// tm_gmtoff is the number of seconds east of UTC. Adjust for that.
+	// tm_gmtoff is the number of seconds east of UTC. Adjust for that. This field
+	// is a POSIX extension that Windows doesn't support.
 	lTime.tm_gmtoff = static_cast<long>(tz) * 60;
+#endif
 
 	return timegm(&lTime);
 	}

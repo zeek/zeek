@@ -1,3 +1,17 @@
+8.0.1-15 | 2025-10-10 10:37:57 -0700
+
+  * Fix a potential use-after-free in script_opt (Tim Wojtulewicz, Corelight)
+
+    A more extensive fix for the problem will be in 8.1, but this takes care
+    of it in a brute-force manner. It potentially uses a little extra memory
+    but nothing that grows over time.
+
+  * Bump zeek-testing-cluster commit hash (Tim Wojtulewicz, Corelight)
+
+  * CI: Update CentOS 9 to Python 3.13 (Tim Wojtulewicz, Corelight)
+
+    (cherry picked from commit 963ee89528ec36fd60b1ea0ad8407cd14669aa4d)
+
 8.0.1-12 | 2025-10-09 11:01:44 -0700
 
   * GH-4847: QUIC: Skip packets with fixed_bit 0 (Arne Welzel, Corelight)

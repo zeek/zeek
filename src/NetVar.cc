@@ -181,7 +181,7 @@ int dpd_ignore_ports;
 
 int record_all_packets;
 
-zeek_uint_t bits_per_uid;
+zeek_uint_t bits_per_uid = 0;
 
 zeek_uint_t tunnel_max_changes_per_connection;
 

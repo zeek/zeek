@@ -1199,6 +1199,30 @@ public:
     }
 
     /**
+     * Move assignment operator.
+     *
+     * Adopts the reference if \a o holds a managed ZVal.
+     */
+    ZValElement& operator=(ZValElement&& o) noexcept {
+        if ( this == &o )
+            return *this;
+
+        if ( is_set && is_managed )
+            Unref(zval.ManagedVal());
+
+        is_set = o.is_set;
+        is_managed = o.is_managed;
+        tag = o.tag;
+        zval = o.zval; // Adopts the reference.
+
+        // Keep is_managed and tag members valid.
+        o.is_set = false;
+        o.zval = ZVal();
+
+        return *this;
+    }
+
+    /**
      * Assign a ZVal to ZValElement.
      *
      * This uses the is_managed member to determine if the contained

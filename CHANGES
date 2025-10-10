@@ -1,3 +1,17 @@
+8.0.1-17 | 2025-10-10 10:50:07 -0700
+
+  * Bump CI to freebsd-13.5 (Benjamin Bannier, Corelight)
+
+    (cherry picked from commit fed2be36fd0804b0c9eb10ebdc09b8df51983174)
+
+  * Use package `cmake-core` instead of `cmake` on FreeBSD (Benjamin Bannier, Corelight)
+
+    The package `cmake` seems to have unreliable availability on e.g.,
+    freebsd-13. Switch to the `cmake-core` subpackage which already has all
+    the functionality we need.
+
+    (cherry picked from commit fed2be36fd0804b0c9eb10ebdc09b8df51983174)
+
 8.0.1-15 | 2025-10-10 10:37:57 -0700
 
   * Fix a potential use-after-free in script_opt (Tim Wojtulewicz, Corelight)

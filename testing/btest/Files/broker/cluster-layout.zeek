@@ -19,6 +19,12 @@
 # to Cluster::nodes.
 
 
+# Using this testing cluster-layout.zeek switches Zeek to use Broker.
+#
+# This is side-loaded here to keep all existing tests that rely on
+# this Broker testing cluster setup to continue working.
+@load frameworks/cluster/backend/broker
+
 # Redef'ed to F if logger-1 or logger-2 are active.
 redef Cluster::manager_is_logger = T;
 

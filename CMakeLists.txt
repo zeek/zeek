@@ -913,6 +913,8 @@ set(_bifcl_exe_path "included")
 
 add_subdirectory(tools/gen-zam)
 
+add_subdirectory(tools/systemd-generator)
+
 if (ENABLE_JEMALLOC)
     if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
         if (DEFINED JEMALLOC_ROOT_DIR)
@@ -1551,6 +1553,7 @@ output_summary_bool("JavaScript" ${ZEEK_HAVE_JAVASCRIPT})
 output_summary_line("Spicy" ${_spicy})
 output_summary_bool("Spicy analyzers" ${USE_SPICY_ANALYZERS})
 output_summary_bool("zeek-client" ${INSTALL_ZEEK_CLIENT})
+output_summary_bool("zeek-systemd-generator" ${ENABLE_ZEEK_SYSTEMD_GENERATOR})
 output_summary_bool("ZeekControl" ${INSTALL_ZEEKCTL})
 output_summary_bool("zkg" ${INSTALL_ZKG})
 message("")

@@ -41,12 +41,12 @@ eval	auto& v = $$;
 
 internal-op Load-Capture
 class Vi
-eval	$$ = Z_FRAME->GetFunction()->GetCapturesVec()[$1];
+eval	$$ = static_cast<const ScriptFunc*>(Z_FRAME->GetFunction())->GetCapturesVec()[$1];
 
 internal-op Load-Managed-Capture
 class Vi
 eval	auto& lhs = $$;
-	auto& rhs = Z_FRAME->GetFunction()->GetCapturesVec()[$1];
+	auto& rhs = static_cast<const ScriptFunc*>(Z_FRAME->GetFunction())->GetCapturesVec()[$1];
 	zeek::Ref(rhs.ManagedVal());
 	ZVal::DeleteManagedType(lhs);
 	lhs = rhs;
@@ -62,12 +62,12 @@ eval	GlobalID($1)->SetVal(GlobalVal($1).ToVal(Z_TYPE));
 internal-op Store-Capture
 op1-read
 class Vi
-eval	Z_FRAME->GetFunction()->GetCapturesVec()[$2] = $1;
+eval	static_cast<const ScriptFunc*>(Z_FRAME->GetFunction())->GetCapturesVec()[$2] = $1;
 
 internal-op Store-Managed-Capture
 op1-read
 class Vi
-eval	auto& lhs = Z_FRAME->GetFunction()->GetCapturesVec()[$2];
+eval	auto& lhs = static_cast<const ScriptFunc*>(Z_FRAME->GetFunction())->GetCapturesVec()[$2];
 	auto& rhs = $1;
 	zeek::Ref(rhs.ManagedVal());
 	ZVal::DeleteManagedType(lhs);

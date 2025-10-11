@@ -173,7 +173,7 @@ int find_all_matching_cmds(const string& prefix, const char* array_of_matches[])
 
 // Start, end bounds of which frame numbers to print
 static int dbg_backtrace_internal(int start, int end) {
-    if ( start < 0 || end < 0 || (unsigned)start >= g_frame_stack.size() || (unsigned)end >= g_frame_stack.size() )
+    if ( start < 0 || end < 0 || (unsigned)start >= call_stack.size() || (unsigned)end >= call_stack.size() )
         reporter->InternalError("Invalid stack frame index in DbgBacktraceInternal\n");
 
     if ( start < end ) {
@@ -183,11 +183,11 @@ static int dbg_backtrace_internal(int start, int end) {
     }
 
     for ( int i = start; i >= end; --i ) {
-        const Frame* f = g_frame_stack[i];
+        const auto& f = call_stack[i].frame;
         const Stmt* stmt = f ? f->GetNextStmt() : nullptr;
 
         string context = get_context_description(stmt, f);
-        debug_msg("#%d  %s\n", int(g_frame_stack.size() - 1 - i), context.c_str());
+        debug_msg("#%d  %s\n", int(call_stack.size() - 1 - i), context.c_str());
     };
 
     return 1;
@@ -196,7 +196,7 @@ static int dbg_backtrace_internal(int start, int end) {
 // Returns 0 for illegal arguments, or 1 on success.
 int dbg_cmd_backtrace(DebugCmd cmd, const vector<string>& args) {
     assert(cmd == dcBacktrace);
-    assert(g_frame_stack.size() > 0);
+    assert(! call_stack.empty());
 
     unsigned int start_iter;
     int end_iter;
@@ -210,20 +210,20 @@ int dbg_cmd_backtrace(DebugCmd cmd, const vector<string>& args) {
         }
 
         if ( how_many > 0 ) { // innermost N frames
-            start_iter = g_frame_stack.size() - 1;
+            start_iter = call_stack.size() - 1;
             end_iter = start_iter - how_many + 1;
             if ( end_iter < 0 )
                 end_iter = 0;
         }
         else { // outermost N frames
             start_iter = how_many - 1;
-            if ( start_iter + 1 > g_frame_stack.size() )
-                start_iter = g_frame_stack.size() - 1;
+            if ( start_iter + 1 > call_stack.size() )
+                start_iter = call_stack.size() - 1;
             end_iter = 0;
         }
     }
     else {
-        start_iter = g_frame_stack.size() - 1;
+        start_iter = call_stack.size() - 1;
         end_iter = 0;
     }
 
@@ -248,7 +248,7 @@ int dbg_cmd_frame(DebugCmd cmd, const vector<string>& args) {
                 return 0;
             }
 
-            if ( idx < 0 || (unsigned int)idx >= g_frame_stack.size() ) {
+            if ( idx < 0 || (unsigned int)idx >= call_stack.size() ) {
                 debug_msg("No frame %d", idx);
                 return 0;
             }
@@ -267,7 +267,7 @@ int dbg_cmd_frame(DebugCmd cmd, const vector<string>& args) {
     }
 
     else if ( cmd == dcUp ) {
-        if ( (unsigned int)(g_debugger_state.curr_frame_idx + 1) == g_frame_stack.size() ) {
+        if ( (unsigned int)(g_debugger_state.curr_frame_idx + 1) == call_stack.size() ) {
             debug_msg("Outermost frame already selected\n");
             return 0;
         }
@@ -275,11 +275,11 @@ int dbg_cmd_frame(DebugCmd cmd, const vector<string>& args) {
         ++g_debugger_state.curr_frame_idx;
     }
 
-    int user_frame_number = g_frame_stack.size() - 1 - g_debugger_state.curr_frame_idx;
+    int user_frame_number = call_stack.size() - 1 - g_debugger_state.curr_frame_idx;
 
     // Set the current location to the new frame being looked at
     // for 'list', 'break', etc.
-    const Stmt* stmt = g_frame_stack[user_frame_number]->GetNextStmt();
+    const Stmt* stmt = call_stack[user_frame_number].frame->GetNextStmt();
     if ( ! stmt )
         reporter->InternalError("Assertion failed: stmt is null");
 
@@ -310,9 +310,9 @@ int dbg_cmd_break(DebugCmd cmd, const vector<string>& args) {
     int cond_index = -1; // at which argument pos. does bp condition start?
 
     if ( args.empty() || args[0] == "if" ) { // break on next stmt
-        int user_frame_number = g_frame_stack.size() - 1 - g_debugger_state.curr_frame_idx;
+        int user_frame_number = call_stack.size() - 1 - g_debugger_state.curr_frame_idx;
 
-        Stmt* stmt = g_frame_stack[user_frame_number]->GetNextStmt();
+        Stmt* stmt = call_stack[user_frame_number].frame->GetNextStmt();
         if ( ! stmt )
             reporter->InternalError("Assertion failed: stmt is null");
 

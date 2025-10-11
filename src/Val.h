@@ -1154,11 +1154,6 @@ public:
         : is_set(true), is_managed(ZVal::IsManagedType(t)), tag(t->Tag()), zval(v, t) {}
 
     /**
-     * Initialize a ZValElement using a TypeDecl.
-     */
-    ZValElement(const TypeDecl& td) : is_managed(td.is_managed), tag(td.tag) {}
-
-    /**
      * Initialize a ZValElement with just the TypePtr.
      *
      * This is useful for optional fields in a record value where
@@ -1171,7 +1166,7 @@ public:
     /**
      * Copy constructor.
      */
-    ZValElement(const ZValElement& s) : is_set(s.is_set), is_managed(s.is_managed), tag(s.tag), zval(s.zval) {
+    ZValElement(const ZValElement& o) : is_set(o.is_set), is_managed(o.is_managed), tag(o.tag), zval(o.zval) {
         if ( is_set && is_managed )
             Ref(zval.ManagedVal());
     }
@@ -1185,20 +1180,44 @@ public:
      * Assign one ZValElement instance to another with automatic memory management
      * based on is_managed.
      */
-    ZValElement& operator=(const ZValElement& s) {
-        if ( this == &s )
+    ZValElement& operator=(const ZValElement& o) {
+        if ( this == &o )
             return *this;
 
         if ( is_set && is_managed )
             Unref(zval.ManagedVal());
 
-        is_set = s.is_set;
-        is_managed = s.is_managed;
-        tag = s.tag;
-        zval = s.zval;
+        is_set = o.is_set;
+        is_managed = o.is_managed;
+        tag = o.tag;
+        zval = o.zval;
 
         if ( is_set && is_managed )
             Ref(zval.ManagedVal());
+
+        return *this;
+    }
+
+    /**
+     * Move assignment operator.
+     *
+     * Adopts the reference if \a o holds a managed ZVal.
+     */
+    ZValElement& operator=(ZValElement&& o) noexcept {
+        if ( this == &o )
+            return *this;
+
+        if ( is_set && is_managed )
+            Unref(zval.ManagedVal());
+
+        is_set = o.is_set;
+        is_managed = o.is_managed;
+        tag = o.tag;
+        zval = o.zval; // Adopts the reference.
+
+        // Keep is_managed and tag members valid.
+        o.is_set = false;
+        o.zval = ZVal();
 
         return *this;
     }
@@ -1222,6 +1241,21 @@ public:
 
         return *this;
     }
+
+    /**
+     * Initialize a ZValElement using a TypeDecl assignment.
+     *
+     * This is used at record construction time to set the is_managed
+     * and tag fields properly.
+     */
+    const ZValElement& operator=(const TypeDecl& td) noexcept {
+        assert(! IsSet());
+        assert(tag == TYPE_ERROR);
+        is_managed = td.is_managed;
+        tag = td.tag;
+        return *this;
+    }
+
 
     operator bool() const noexcept { return is_set; }
     const ZVal* operator->() const noexcept { return &zval; }
@@ -1662,7 +1696,7 @@ private:
         size_t n = NumFields();
         assert(n == rt->Types()->size());
         for ( size_t i = 0; i < n; i++ )
-            elements[i] = ZValElement(*rt->FieldDecl(i));
+            elements[i] = *rt->FieldDecl(i);
     }
 
     unsigned int ComputeFootprint(std::unordered_set<const Val*>* analyzed_vals) const override;

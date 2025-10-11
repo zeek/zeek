@@ -1,3 +1,17 @@
+8.1.0-dev.671 | 2025-10-11 12:38:21 +0200
+
+  * ZValElement: s to o renaming (Arne Welzel, Corelight)
+
+  * ZValElement: Implement move assignment operator (Arne Welzel, Corelight)
+
+  * Val: Fix clang-tidy warning in doctest (Arne Welzel, Corelight)
+
+  * RecordVal: Avoid intermediate ZValElement during init (Arne Welzel, Corelight)
+
+    ZValElement(TypeDecl) would first construct a ZValElement, then use the
+    assignment operator for the ZValElement. Switch to support assigning a
+    TypeDecl to a ZValElement for initialization purposes directly.
+
 8.1.0-dev.666 | 2025-10-10 10:46:09 -0700
 
   * Add versions of IfStmt and StmtList for use in debugger (Tim Wojtulewicz, Corelight)

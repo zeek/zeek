@@ -4238,6 +4238,19 @@ TEST_CASE("assignment") {
     CHECK(v2->RefCnt() == 3);
 }
 
+TEST_CASE("move assignment") {
+    auto t = zeek::id::find_type<zeek::RecordType>("conn_id_ctx");
+    auto v1 = zeek::make_intrusive<zeek::RecordVal>(t);
+    auto v2 = zeek::make_intrusive<zeek::RecordVal>(t);
+
+    zeek::ZValElement element1 = zeek::ZValElement(v1, t);
+    CHECK(v1->RefCnt() == 2);            // v1 and element1
+    element1 = zeek::ZValElement(v2, t); // Should use move assignment.
+
+    CHECK(v1->RefCnt() == 1); // Only v1 holds the ref.
+    CHECK(v2->RefCnt() == 2); // v1 and element1 adopted ref from temporary.
+}
+
 TEST_CASE("copy constructor") {
     auto t = zeek::id::find_type<zeek::RecordType>("conn_id_ctx");
     auto v = zeek::make_intrusive<zeek::RecordVal>(t);
@@ -4248,8 +4261,9 @@ TEST_CASE("copy constructor") {
     CHECK(v->RefCnt() == 3); // v, element1, element2
     zeek::ZValElement element3 = element2;
     CHECK(v->RefCnt() == 4); // v, element1, element2, element3
-    element3 = element2;     // assignment
+    element2 = element3;     // squelch clang-tidy
     CHECK(v->RefCnt() == 4); // v, element1, element2, element3
+    element1 = element3;     // squelch clang-tidy
 }
 
 TEST_SUITE_END();

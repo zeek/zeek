@@ -166,7 +166,7 @@ public:
     }
 
     // Returns the elements converted to a vector of ZVal's.
-    const auto& ToZValVec(const ZVal* frame) {
+    const std::vector<std::optional<ZVal>>& ToZValVec(const ZVal* frame) {
         for ( auto i = 0; i < n; ++i )
             zvec[i] = elems[i].ToZVal(frame);
         return zvec;
@@ -175,7 +175,7 @@ public:
     // Same, but using the "map" to determine where to place the values.
     // Returns a non-const value because in this situation other updates
     // may be coming to the vector, too.
-    auto& ToZValVecWithMap(const ZVal* frame) {
+    std::vector<std::optional<ZVal>>& ToZValVecWithMap(const ZVal* frame) {
         for ( auto i = 0; i < n; ++i )
             zvec[map[i]] = elems[i].ToZVal(frame);
         return zvec;

@@ -186,7 +186,7 @@ static int dbg_backtrace_internal(int start, int end) {
         const auto& f = call_stack[i].frame;
         const Stmt* stmt = f ? f->GetNextStmt() : nullptr;
 
-        string context = get_context_description(stmt, f.get());
+        string context = get_context_description(stmt, f);
         debug_msg("#%d  %s\n", int(call_stack.size() - 1 - i), context.c_str());
     };
 

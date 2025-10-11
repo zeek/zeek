@@ -15,7 +15,8 @@ namespace zeek::detail {
 
 Frame::Frame(int arg_size, const Func* func, const zeek::Args* fn_args) {
     size = arg_size;
-    frame = std::make_unique<Element[]>(size);
+    if ( size > 0 )
+        frame = std::make_unique<Element[]>(size);
     function = func;
     func_args = fn_args;
 

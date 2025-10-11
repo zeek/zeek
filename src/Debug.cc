@@ -47,7 +47,7 @@ std::map<string, zeek::detail::Filemap*> zeek::detail::g_dbgfilemaps;
 // current context; you don't want to do it after a step or next
 // command unless you've exited a function.
 static bool step_or_next_pending = false;
-static zeek::detail::FramePtr last_frame;
+static zeek::detail::Frame* last_frame;
 
 // The following values are needed by parse.y.
 // Evaluates the given expression in the context of the currently selected
@@ -588,10 +588,10 @@ static int dbg_dispatch_cmd(DebugCmd cmd_code, const vector<string>& args) {
         case dcQuit: debug_msg("Program Terminating\n"); exit(0);
 
         case dcNext: {
-            auto frame = call_stack.back().frame;
+            Frame* frame = call_stack.back().frame;
             frame->BreakBeforeNextStmt(true);
             step_or_next_pending = true;
-            last_frame = std::move(frame);
+            last_frame = frame;
             break;
         }
 
@@ -711,7 +711,7 @@ int dbg_handle_debug_input() {
     const Location loc = *stmt->GetLocationInfo();
 
     if ( ! step_or_next_pending || call_stack.back().frame != last_frame ) {
-        string context = get_context_description(stmt, call_stack.back().frame.get());
+        string context = get_context_description(stmt, call_stack.back().frame);
         debug_msg("%s\n", context.c_str());
     }
 
@@ -886,7 +886,7 @@ ValPtr dbg_eval_expr(const char* expr) {
         }
     }
     else
-        result = g_curr_debug_expr->Eval(frame.get());
+        result = g_curr_debug_expr->Eval(frame);
 
     if ( func )
         pop_scope();

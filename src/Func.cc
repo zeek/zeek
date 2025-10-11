@@ -332,16 +332,16 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
         return Flavor() == FUNC_FLAVOR_HOOK ? val_mgr->True() : nullptr;
     }
 
-    auto f = make_intrusive<Frame>(frame_size, this, args);
+    Frame f{static_cast<int>(frame_size), this, args};
 
     // Hand down any trigger.
     if ( parent ) {
-        f->SetTrigger({NewRef{}, parent->GetTrigger()});
-        f->SetTriggerAssoc(parent->GetTriggerAssoc());
+        f.SetTrigger({NewRef{}, parent->GetTrigger()});
+        f.SetTriggerAssoc(parent->GetTriggerAssoc());
     }
 
     const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
-    call_stack.emplace_back(call_expr, f);
+    call_stack.emplace_back(call_expr, &f);
 
     // If a script function is ever invoked with more arguments than it has
     // parameters log an error and return. Most likely a "variadic function"
@@ -374,18 +374,18 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
         for ( auto j = 0u; j < args->size(); ++j ) {
             const auto& arg = (*args)[j];
 
-            if ( f->GetElement(j) != arg )
+            if ( f.GetElement(j) != arg )
                 // Either not yet set, or somebody reassigned the frame slot.
-                f->SetElement(j, arg);
+                f.SetElement(j, arg);
         }
 
         if ( spm )
             spm->StartInvocation(this, body.stmts);
 
-        f->Reset(args->size());
+        f.Reset(args->size());
 
         try {
-            result = body.stmts->Exec(f.get(), flow);
+            result = body.stmts->Exec(&f, flow);
         }
 
         catch ( InterpreterException& e ) {
@@ -403,7 +403,7 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
         if ( spm )
             spm->EndInvocation();
 
-        if ( f->HasDelayed() ) {
+        if ( f.HasDelayed() ) {
             assert(! result);
             assert(parent);
             parent->SetDelayed();
@@ -435,7 +435,7 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
     // the function without an explicit return, or without a value.
     else if ( GetType()->Yield() && GetType()->Yield()->Tag() != TYPE_VOID && ! GetType()->ExpressionlessReturnOkay() &&
               (flow != FLOW_RETURN /* we fell off the end */ || ! result /* explicit return with no result */) &&
-              ! f->HasDelayed() )
+              ! f.HasDelayed() )
         reporter->Warning("non-void function returning without a value: %s", GetName().c_str());
 
     if ( result && g_trace_state.DoTrace() ) {
@@ -730,9 +730,10 @@ ValPtr BuiltinFunc::Invoke(Args* args, Frame* parent) const {
         g_trace_state.LogTrace("\tBuiltin Function called: %s\n", d.Description());
     }
 
-    auto f = make_intrusive<Frame>(0, this, args);
+    Frame f{0, this, args};
+
     const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
-    call_stack.emplace_back(call_expr, f);
+    call_stack.emplace_back(call_expr, &f);
     auto result = func(parent, args);
     call_stack.pop_back();
 

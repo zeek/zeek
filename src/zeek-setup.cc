@@ -1053,11 +1053,11 @@ SetupResult setup(int argc, char** argv, Options* zopts) {
     if ( stmts ) {
         auto [body, scope] = get_global_stmts();
         StmtFlowType flow;
-        auto f = make_intrusive<Frame>(scope->Length(), nullptr, nullptr);
-        call_stack.emplace_back(nullptr, f);
+        Frame f(scope->Length(), nullptr, nullptr);
+        call_stack.emplace_back(nullptr, &f);
 
         try {
-            body->Exec(f.get(), flow);
+            body->Exec(&f, flow);
         } catch ( InterpreterException& ) {
             reporter->FatalError("failed to execute script statements at top-level scope");
         }

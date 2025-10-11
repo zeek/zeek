@@ -53,7 +53,7 @@ repos:
       exclude: '^(.typos.toml|src/SmithWaterman.cc|testing/.*|auxil/.*|scripts/base/frameworks/files/magic/.*|CHANGES|scripts/base/protocols/ssl/mozilla-ca-list.zeek|src/3rdparty/.*)$'
 
 - repo: https://github.com/bbannier/spicy-format
-  rev: v0.26.0
+  rev: v0.27.1
   hooks:
     - id: spicy-format
       exclude: '^testing/.*'

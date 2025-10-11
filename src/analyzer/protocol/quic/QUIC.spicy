@@ -562,9 +562,9 @@ type Packet = unit(from_client: bool, context: Context&) {
 
             : void {
                 if (self?.long_header && can_decrypt(self.long_header, context, self.crypto))
-                # If we have parsed an initial packet that we can decrypt the payload,
-                # determine the size to store into a buffer.
-                self.packet_size = self.offset();
+                    # If we have parsed an initial packet that we can decrypt the payload,
+                    # determine the size to store into a buffer.
+                    self.packet_size = self.offset();
             }
 
             # Buffer the whole packet if we determined we have a chance to decrypt.

@@ -1397,6 +1397,14 @@ public:
     void Assign(int field, ValPtr new_val);
 
     /**
+     * Assign a callback to a record field.
+     *
+     * @param field The Field index to assign
+     * @param cb The ZValCallback instance to assign.
+     */
+    void AssignCallback(int field, detail::ZValCallback* cb);
+
+    /**
      * Assign a value of type @c T to a record field, as constructed from
      * the provided arguments.
      * @param field  The field index to assign.
@@ -1486,7 +1494,9 @@ public:
      * @return  Whether there's a value for the given field index.
      */
     bool HasField(int field) const {
-        if ( record_val[field] )
+        const auto& f = record_val[field];
+
+        if ( f.IsSet() || f.HoldsCallback() )
             return true;
 
         return GetRecordType()->DeferredInits()[field] != nullptr;
@@ -1511,6 +1521,22 @@ public:
     ValPtr GetField(int field) const {
         const auto* rt = GetRecordType();
         auto& fv = record_val[field];
+
+        if ( fv.HoldsCallback() ) {
+            // XXX: Can only construct ZVal with non-const record.
+            //      We pass the result ZVal as const ZVal& into
+            //      the callback, so this should be fine.
+            ZVal obj(const_cast<RecordVal*>(this));
+            ZVal k(static_cast<zeek_int_t>(field));
+            ZVal result = (*fv.Callback())(obj, k);
+            // Adopt reference from callback into ZValElement
+            // so it's automatically released if needed upon
+            // return. The ZValElement for a callback still
+            // has the right type / is_managed information.
+            ZValElement el(fv.Tag(), fv.IsManaged(), result);
+            return el->ToVal(rt->GetFieldType(field));
+        }
+
         if ( ! fv ) {
             const auto& fi = rt->DeferredInits()[field];
             if ( ! fi )

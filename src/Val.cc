@@ -2983,6 +2983,23 @@ void RecordVal::Assign(int field, ValPtr new_val) {
         Remove(field);
 }
 
+void RecordVal::AssignCallback(int field, detail::ZValCallback* cb) {
+    const auto* rt = GetRecordType();
+    const auto* fd = rt->FieldDecl(field);
+
+    // Only allow callbacks on &volatile fields and otherwise
+    // crash hard. This always involves a plugin something in
+    // the core, so a FatalErrorWithCore() seems fine.
+    if ( fd->GetAttr(detail::ATTR_VOLATILE) == detail::Attr::nil )
+        reporter->FatalErrorWithCore("cannot assign callback - %s$%s is not &volatile", rt->GetName().c_str(),
+                                     rt->FieldName(field));
+
+    // Assigning a callback to a ZValElement does the right
+    // thing even when there is a managed value stored in
+    // the element.
+    record_val[field] = cb;
+}
+
 void RecordVal::Remove(int field) {
     bool was_set = record_val[field].IsSet();
     record_val[field].Reset();
@@ -4283,6 +4300,82 @@ TEST_CASE("assign string") {
 
     v.reset();
     CHECK(sv->RefCnt() == 1); // record was destroyed
+}
+
+TEST_SUITE_END();
+
+TEST_SUITE_BEGIN("ZValCallback");
+
+TEST_CASE("assign callback to record val") {
+    auto t = zeek::id::find_type<zeek::RecordType>("endpoint");
+    auto rv = zeek::make_intrusive<zeek::RecordVal>(t);
+
+    class MyCallback : public zeek::detail::ZValCallback {
+    public:
+        MyCallback() {}
+        zeek::ZVal operator()(const zeek::ZVal& record_val, const zeek::ZVal& field) const override {
+            return zeek::ZVal(static_cast<uint64_t>(value++));
+        }
+
+    private:
+        mutable int value = 42;
+    };
+
+    auto cb = MyCallback();
+
+    // endpoint has at index 0 the volatile size field.
+    rv->AssignCallback(0, &cb);
+
+    auto v1 = rv->GetField<zeek::CountVal>(0);
+    REQUIRE(v1 != nullptr);
+    auto v2 = rv->GetField<zeek::CountVal>(0);
+    REQUIRE(v2 != nullptr);
+
+    CHECK_EQ(v1->Get(), 42);
+    CHECK_EQ(v2->Get(), 43);
+}
+
+TEST_CASE("GetField() and HasField()") {
+    auto t = zeek::id::find_type<zeek::RecordType>("endpoint");
+    auto rv = zeek::make_intrusive<zeek::RecordVal>(t);
+
+    class MyCallback : public zeek::detail::ZValCallback {
+    public:
+        MyCallback() {}
+        zeek::ZVal operator()(const zeek::ZVal& record_val, const zeek::ZVal& field) const override {
+            if ( value == 42 || value == 43 )
+                return zeek::ZVal(static_cast<zeek_uint_t>(value++));
+
+            // Unset otherwise. Real implementations shouldn't do this!
+            return zeek::ZVal();
+        }
+
+    private:
+        mutable int value = 42;
+    };
+
+    auto cb = MyCallback();
+
+    // endpoint has at index 0 the volatile size field.
+    rv->AssignCallback(0, &cb);
+
+    CHECK(rv->HasField(0));
+    CHECK(rv->HasField(0));
+    CHECK(rv->HasField(0));
+
+    auto v1 = rv->GetField<zeek::CountVal>(0); // 42
+    REQUIRE(v1 != nullptr);
+    CHECK_EQ(v1->Get(), 42);
+
+    auto v2 = rv->GetField<zeek::CountVal>(0); // 43
+    REQUIRE(v2 != nullptr);
+    CHECK_EQ(v2->Get(), 43);
+
+    // The following invocations returns the empty ZVal that ends up being 0.
+    CHECK(rv->HasField(0));
+    auto v3 = rv->GetField<zeek::CountVal>(0);
+    REQUIRE(v3 != nullptr);
+    CHECK_EQ(v3->Get(), 0);
 }
 
 TEST_SUITE_END();

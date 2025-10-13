@@ -1,3 +1,12 @@
+8.1.0-dev.685 | 2025-10-13 14:13:44 -0700
+
+  * Logging: Add BiF to flush all logs (Jan Grashoefer, Corelight)
+
+  * Dust off OpenBSD docs bits (Tim Wojtulewicz, Corelight)
+
+    This was originally https://github.com/zeek/zeek-docs/pull/359, but
+    wasn't merged before the docs were merged into the Zeek repo.
+
 8.1.0-dev.682 | 2025-10-13 12:22:48 -0700
 
   * Adapt docs github workflow to remove zeek-docs submodule (Tim Wojtulewicz, Corelight)

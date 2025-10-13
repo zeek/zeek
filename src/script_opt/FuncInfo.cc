@@ -107,6 +107,7 @@ static std::unordered_map<std::string, unsigned int> func_attrs = {
     {"Log::__disable_stream", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Log::__enable_stream", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Log::__flush", ATTR_NO_SCRIPT_SIDE_EFFECTS},
+    {"Log::flush_all", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Log::__get_delay_queue_size", ATTR_NO_ZEEK_SIDE_EFFECTS},
     {"Log::__remove_filter", ATTR_NO_SCRIPT_SIDE_EFFECTS},
     {"Log::__remove_stream", ATTR_NO_SCRIPT_SIDE_EFFECTS},

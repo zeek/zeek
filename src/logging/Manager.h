@@ -340,6 +340,11 @@ public:
     bool Flush(EnumVal* id);
 
     /**
+     * Flushes all log streams including all associated writers.
+     */
+    void FlushAll();
+
+    /**
      * Signals the manager to shutdown at Zeek's termination.
      */
     void Terminate();
@@ -390,9 +395,6 @@ protected:
     // Signals that a file has been rotated.
     bool FinishedRotation(WriterFrontend* writer, const char* new_name, const char* old_name, double open, double close,
                           bool success, bool terminating);
-
-    // Flush write buffers of all writers.
-    void FlushAllWriteBuffers();
 
     // Start the regular log flushing timer.
     void StartLogFlushTimer();

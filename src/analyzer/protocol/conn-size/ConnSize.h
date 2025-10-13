@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include "zeek/analyzer/Analyzer.h"
 
 namespace zeek::analyzer::conn_size {
@@ -13,6 +15,11 @@ public:
 
     void Init() override;
     void Done() override;
+
+    uint64_t OrigBytes() const noexcept { return orig_bytes; }
+    uint64_t RespBytes() const noexcept { return resp_bytes; }
+    uint64_t OrigPackets() const noexcept { return orig_pkts; }
+    uint64_t RespPackets() const noexcept { return resp_pkts; }
 
     // from Analyzer.h
     void UpdateConnVal(RecordVal* conn_val) override;

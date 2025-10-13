@@ -4,7 +4,7 @@
 ## doesn't.
 ##
 ## See `Wikipedia
-## <http://en.wikipedia.org/wiki/Internet_Control_Message_Protocol>`__ for more
+## <https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol>`__ for more
 ## information about the ICMP protocol.
 ##
 ## c: The connection record for the corresponding ICMP flow.
@@ -36,7 +36,7 @@ event icmp_sent_payload%(c: connection, info: icmp_info, payload: string%);
 ## Generated for ICMP *echo request* messages.
 ##
 ## See `Wikipedia
-## <http://en.wikipedia.org/wiki/Internet_Control_Message_Protocol>`__ for more
+## <https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol>`__ for more
 ## information about the ICMP protocol.
 ##
 ## c: The connection record for the corresponding ICMP flow.
@@ -60,7 +60,7 @@ event icmp_echo_request%(c: connection, info: icmp_info, id: count, seq: count, 
 ## Generated for ICMP *echo reply* messages.
 ##
 ## See `Wikipedia
-## <http://en.wikipedia.org/wiki/Internet_Control_Message_Protocol>`__ for more
+## <https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol>`__ for more
 ## information about the ICMP protocol.
 ##
 ## c: The connection record for the corresponding ICMP flow.
@@ -87,7 +87,7 @@ event icmp_echo_reply%(c: connection, info: icmp_info, id: count, seq: count, pa
 ## as a fallback for those it doesn't.
 ##
 ## See `Wikipedia
-## <http://en.wikipedia.org/wiki/ICMPv6>`__ for more
+## <https://en.wikipedia.org/wiki/ICMPv6>`__ for more
 ## information about the ICMPv6 protocol.
 ##
 ## c: The connection record for the corresponding ICMP flow.
@@ -110,7 +110,7 @@ event icmp_error_message%(c: connection, info: icmp_info, code: count, context: 
 ## Generated for ICMP *destination unreachable* messages.
 ##
 ## See `Wikipedia
-## <http://en.wikipedia.org/wiki/Internet_Control_Message_Protocol>`__ for more
+## <https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol>`__ for more
 ## information about the ICMP protocol.
 ##
 ## c: The connection record for the corresponding ICMP flow.
@@ -137,7 +137,7 @@ event icmp_unreachable%(c: connection, info: icmp_info, code: count, context: ic
 ## Generated for ICMPv6 *packet too big* messages.
 ##
 ## See `Wikipedia
-## <http://en.wikipedia.org/wiki/ICMPv6>`__ for more
+## <https://en.wikipedia.org/wiki/ICMPv6>`__ for more
 ## information about the ICMPv6 protocol.
 ##
 ## c: The connection record for the corresponding ICMP flow.
@@ -164,7 +164,7 @@ event icmp_packet_too_big%(c: connection, info: icmp_info, code: count, context:
 ## Generated for ICMP *time exceeded* messages.
 ##
 ## See `Wikipedia
-## <http://en.wikipedia.org/wiki/Internet_Control_Message_Protocol>`__ for more
+## <https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol>`__ for more
 ## information about the ICMP protocol.
 ##
 ## c: The connection record for the corresponding ICMP flow.
@@ -191,7 +191,7 @@ event icmp_time_exceeded%(c: connection, info: icmp_info, code: count, context: 
 ## Generated for ICMPv6 *parameter problem* messages.
 ##
 ## See `Wikipedia
-## <http://en.wikipedia.org/wiki/ICMPv6>`__ for more
+## <https://en.wikipedia.org/wiki/ICMPv6>`__ for more
 ## information about the ICMPv6 protocol.
 ##
 ## c: The connection record for the corresponding ICMP flow.
@@ -218,7 +218,7 @@ event icmp_parameter_problem%(c: connection, info: icmp_info, code: count, conte
 ## Generated for ICMP *router solicitation* messages.
 ##
 ## See `Wikipedia
-## <http://en.wikipedia.org/wiki/Internet_Control_Message_Protocol>`__ for more
+## <https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol>`__ for more
 ## information about the ICMP protocol.
 ##
 ## c: The connection record for the corresponding ICMP flow.
@@ -238,7 +238,7 @@ event icmp_router_solicitation%(c: connection, info: icmp_info, options: icmp6_n
 ## Generated for ICMP *router advertisement* messages.
 ##
 ## See `Wikipedia
-## <http://en.wikipedia.org/wiki/Internet_Control_Message_Protocol>`__ for more
+## <https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol>`__ for more
 ## information about the ICMP protocol.
 ##
 ## c: The connection record for the corresponding ICMP flow.
@@ -279,7 +279,7 @@ event icmp_router_advertisement%(c: connection, info: icmp_info, cur_hop_limit: 
 ## Generated for ICMP *neighbor solicitation* messages.
 ##
 ## See `Wikipedia
-## <http://en.wikipedia.org/wiki/Internet_Control_Message_Protocol>`__ for more
+## <https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol>`__ for more
 ## information about the ICMP protocol.
 ##
 ## c: The connection record for the corresponding ICMP flow.
@@ -301,7 +301,7 @@ event icmp_neighbor_solicitation%(c: connection, info: icmp_info, tgt: addr, opt
 ## Generated for ICMP *neighbor advertisement* messages.
 ##
 ## See `Wikipedia
-## <http://en.wikipedia.org/wiki/Internet_Control_Message_Protocol>`__ for more
+## <https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol>`__ for more
 ## information about the ICMP protocol.
 ##
 ## c: The connection record for the corresponding ICMP flow.
@@ -330,7 +330,7 @@ event icmp_neighbor_advertisement%(c: connection, info: icmp_info, router: bool,
 ## Generated for ICMP *redirect* messages.
 ##
 ## See `Wikipedia
-## <http://en.wikipedia.org/wiki/Internet_Control_Message_Protocol>`__ for more
+## <https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol>`__ for more
 ## information about the ICMP protocol.
 ##
 ## c: The connection record for the corresponding ICMP flow.

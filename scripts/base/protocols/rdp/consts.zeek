@@ -1,7 +1,7 @@
 module RDP;
 
 export {
-	# http://www.c-amie.co.uk/technical/mstsc-versions/
+	# https://www.c-amie.co.uk/technical/mstsc-versions/
 	const builds = {
 		[0419] = "RDP 4.0",
 		[2195] = "RDP 5.0",
@@ -79,7 +79,7 @@ export {
 		[4] = "Locked conference",
 	} &default = function(n: count): string { return fmt("result-%d", n); };
 
-	# http://msdn.microsoft.com/en-us/goglobal/bb964664.aspx
+	# https://msdn.microsoft.com/en-us/goglobal/bb964664.aspx
 	# https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/windows-language-pack-default-values
 	const languages = {
 		[1078] = "Afrikaans - South Africa",

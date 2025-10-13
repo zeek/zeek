@@ -1,6 +1,6 @@
 ## Generated for client-side SMTP commands.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
+## See `Wikipedia <https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
 ## for more information about the SMTP protocol.
 ##
 ## c: The connection.
@@ -25,7 +25,7 @@ event smtp_request%(c: connection, is_orig: bool, command: string, arg: string%)
 
 ## Generated for server-side SMTP commands.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
+## See `Wikipedia <https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
 ## for more information about the SMTP protocol.
 ##
 ## c: The connection.
@@ -59,7 +59,7 @@ event smtp_reply%(c: connection, is_orig: bool, code: count, cmd: string, msg: s
 ## corresponding end marker ``.`` is seen. A handler may want to reassemble
 ## the pieces as they come in if stream-analysis is required.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
+## See `Wikipedia <https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
 ## for more information about the SMTP protocol.
 ##
 ## c: The connection.
@@ -84,7 +84,7 @@ event smtp_data%(c: connection, is_orig: bool, data: string%);
 ## event that it sees even though it would not expect so at the current point
 ## of the communication.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
+## See `Wikipedia <https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
 ## for more information about the SMTP protocol.
 ##
 ## c: The connection.

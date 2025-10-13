@@ -3,7 +3,7 @@
 ## reply, or an unanswered request has timed out.
 ##
 ## NFS is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
 ## information about the service.
 ##
 ## c: The RPC connection.
@@ -26,7 +26,7 @@ event nfs_proc_null%(c: connection, info: NFS3::info_t%);
 ## reply, or an unanswered request has timed out.
 ##
 ## NFS is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
 ## information about the service.
 ##
 ## c: The RPC connection.
@@ -54,7 +54,7 @@ event nfs_proc_getattr%(c: connection, info: NFS3::info_t, fh: string, attrs: NF
 ## reply, or an unanswered request has timed out.
 ##
 ## NFS is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
 ## information about the service.
 ##
 ## c: The RPC connection.
@@ -82,7 +82,7 @@ event nfs_proc_sattr%(c: connection, info: NFS3::info_t, req: NFS3::sattrargs_t,
 ## reply, or an unanswered request has timed out.
 ##
 ## NFS is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
 ## information about the service.
 ##
 ## c: The RPC connection.
@@ -110,7 +110,7 @@ event nfs_proc_lookup%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t
 ## reply, or an unanswered request has timed out.
 ##
 ## NFS is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
 ## information about the service.
 ##
 ## c: The RPC connection.
@@ -138,7 +138,7 @@ event nfs_proc_read%(c: connection, info: NFS3::info_t, req: NFS3::readargs_t, r
 ## reply, or an unanswered request has timed out.
 ##
 ## NFS is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
 ## information about the service.
 ##
 ## c: The RPC connection.
@@ -166,7 +166,7 @@ event nfs_proc_readlink%(c: connection, info: NFS3::info_t, fh: string, rep: NFS
 ## reply, or an unanswered request has timed out.
 ##
 ## NFS is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
 ## information about the service.
 ##
 ## c: The RPC connection.
@@ -194,7 +194,7 @@ event nfs_proc_symlink%(c: connection, info: NFS3::info_t, req: NFS3::symlinkarg
 ## reply, or an unanswered request has timed out.
 ##
 ## NFS is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
 ## information about the service.
 ##
 ## c: The RPC connection.
@@ -222,7 +222,7 @@ event nfs_proc_link%(c: connection, info: NFS3::info_t, req: NFS3::linkargs_t, r
 ## reply, or an unanswered request has timed out.
 ##
 ## NFS is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
 ## information about the service.
 ##
 ## c: The RPC connection.
@@ -251,7 +251,7 @@ event nfs_proc_write%(c: connection, info: NFS3::info_t, req: NFS3::writeargs_t,
 ## reply, or an unanswered request has timed out.
 ##
 ## NFS is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
 ## information about the service.
 ##
 ## c: The RPC connection.
@@ -279,7 +279,7 @@ event nfs_proc_create%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t
 ## reply, or an unanswered request has timed out.
 ##
 ## NFS is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
 ## information about the service.
 ##
 ## c: The RPC connection.
@@ -307,7 +307,7 @@ event nfs_proc_mkdir%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t,
 ## reply, or an unanswered request has timed out.
 ##
 ## NFS is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
 ## information about the service.
 ##
 ## c: The RPC connection.
@@ -335,7 +335,7 @@ event nfs_proc_remove%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t
 ## reply, or an unanswered request has timed out.
 ##
 ## NFS is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
 ## information about the service.
 ##
 ## c: The RPC connection.
@@ -363,7 +363,7 @@ event nfs_proc_rmdir%(c: connection, info: NFS3::info_t, req: NFS3::diropargs_t,
 ## reply, or an unanswered request has timed out.
 ##
 ## NFS is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
 ## information about the service.
 ##
 ## c: The RPC connection.
@@ -391,7 +391,7 @@ event nfs_proc_rename%(c: connection, info: NFS3::info_t, req: NFS3::renameoparg
 ## reply, or an unanswered request has timed out.
 ##
 ## NFS is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
 ## information about the service.
 ##
 ## c: The RPC connection.
@@ -418,7 +418,7 @@ event nfs_proc_readdir%(c: connection, info: NFS3::info_t, req: NFS3::readdirarg
 ## analyzer does not implement.
 ##
 ## NFS is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+## <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
 ## information about the service.
 ##
 ## c: The RPC connection.
@@ -458,7 +458,7 @@ event nfs_reply_status%(n: connection, info: NFS3::info_t%);
 ## Generated for Portmapper requests of type *null*.
 ##
 ## Portmapper is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+## <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
 ## service.
 ##
 ## r: The RPC connection.
@@ -477,7 +477,7 @@ event pm_request_null%(r: connection%);
 ## Generated for Portmapper request/reply dialogues of type *set*.
 ##
 ## Portmapper is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+## <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
 ## service.
 ##
 ## r: The RPC connection.
@@ -502,7 +502,7 @@ event pm_request_set%(r: connection, m: pm_mapping, success: bool%);
 ## Generated for Portmapper request/reply dialogues of type *unset*.
 ##
 ## Portmapper is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+## <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
 ## service.
 ##
 ## r: The RPC connection.
@@ -527,7 +527,7 @@ event pm_request_unset%(r: connection, m: pm_mapping, success: bool%);
 ## Generated for Portmapper request/reply dialogues of type *getport*.
 ##
 ## Portmapper is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+## <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
 ## service.
 ##
 ## r: The RPC connection.
@@ -550,7 +550,7 @@ event pm_request_getport%(r: connection, pr: pm_port_request, p: port%);
 ## Generated for Portmapper request/reply dialogues of type *dump*.
 ##
 ## Portmapper is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+## <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
 ## service.
 ##
 ## r: The RPC connection.
@@ -572,7 +572,7 @@ event pm_request_dump%(r: connection, m: pm_mappings%);
 ## Generated for Portmapper request/reply dialogues of type *callit*.
 ##
 ## Portmapper is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+## <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
 ## service.
 ##
 ## r: The RPC connection.
@@ -596,7 +596,7 @@ event pm_request_callit%(r: connection, call: pm_callit_request, p: port%);
 ## Generated for failed Portmapper requests of type *null*.
 ##
 ## Portmapper is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+## <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
 ## service.
 ##
 ## r: The RPC connection.
@@ -619,7 +619,7 @@ event pm_attempt_null%(r: connection, status: rpc_status%);
 ## Generated for failed Portmapper requests of type *set*.
 ##
 ## Portmapper is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+## <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
 ## service.
 ##
 ## r: The RPC connection.
@@ -644,7 +644,7 @@ event pm_attempt_set%(r: connection, status: rpc_status, m: pm_mapping%);
 ## Generated for failed Portmapper requests of type *unset*.
 ##
 ## Portmapper is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+## <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
 ## service.
 ##
 ## r: The RPC connection.
@@ -669,7 +669,7 @@ event pm_attempt_unset%(r: connection, status: rpc_status, m: pm_mapping%);
 ## Generated for failed Portmapper requests of type *getport*.
 ##
 ## Portmapper is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+## <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
 ## service.
 ##
 ## r: The RPC connection.
@@ -693,7 +693,7 @@ event pm_attempt_getport%(r: connection, status: rpc_status, pr: pm_port_request
 ## Generated for failed Portmapper requests of type *dump*.
 ##
 ## Portmapper is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+## <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
 ## service.
 ##
 ## r: The RPC connection.
@@ -716,7 +716,7 @@ event pm_attempt_dump%(r: connection, status: rpc_status%);
 ## Generated for failed Portmapper requests of type *callit*.
 ##
 ## Portmapper is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+## <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
 ## service.
 ##
 ## r: The RPC connection.
@@ -744,7 +744,7 @@ event pm_attempt_callit%(r: connection, status: rpc_status, call: pm_callit_requ
 ## event is generated.
 ##
 ## Portmapper is a service running on top of RPC. See `Wikipedia
-## <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+## <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
 ## service.
 ##
 ## r: The RPC connection.
@@ -769,7 +769,7 @@ event pm_bad_port%(r: connection, bad_p: count%);
 ## eventually on timeout. In that case, *status* will be set to
 ## :zeek:enum:`RPC_TIMEOUT`.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/ONC_RPC>`__ for more information
+## See `Wikipedia <https://en.wikipedia.org/wiki/ONC_RPC>`__ for more information
 ## about the ONC RPC protocol.
 ##
 ## c: The connection.
@@ -801,7 +801,7 @@ event rpc_dialogue%(c: connection, prog: count, ver: count, proc: count, status:
 
 ## Generated for RPC *call* messages.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/ONC_RPC>`__ for more information
+## See `Wikipedia <https://en.wikipedia.org/wiki/ONC_RPC>`__ for more information
 ## about the ONC RPC protocol.
 ##
 ## c: The connection.
@@ -828,7 +828,7 @@ event rpc_call%(c: connection, xid: count, prog: count, ver: count, proc: count,
 
 ## Generated for RPC *reply* messages.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/ONC_RPC>`__ for more information
+## See `Wikipedia <https://en.wikipedia.org/wiki/ONC_RPC>`__ for more information
 ## about the ONC RPC protocol.
 ##
 ## c: The connection.

@@ -1,7 +1,7 @@
 ## Generated for encountered X509 certificates, e.g., in the clear SSL/TLS
 ## connection handshake.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/X.509>`__ for more information
+## See `Wikipedia <https://en.wikipedia.org/wiki/X.509>`__ for more information
 ## about the X.509 format.
 ##
 ## f: The file.
@@ -18,7 +18,7 @@ event x509_certificate%(f: fa_file, cert_ref: opaque of x509, cert: X509::Certif
 
 ## Generated for X509 extensions seen in a certificate.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/X.509>`__ for more information
+## See `Wikipedia <https://en.wikipedia.org/wiki/X.509>`__ for more information
 ## about the X.509 format.
 ##
 ## f: The file.

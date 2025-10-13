@@ -1,4 +1,4 @@
-##! Detect the TLS heartbleed attack. See http://heartbleed.com for more.
+##! Detect the TLS heartbleed attack. See https://heartbleed.com for more.
 
 @load base/protocols/ssl
 @load base/frameworks/notice

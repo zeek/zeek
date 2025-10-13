@@ -245,7 +245,7 @@ event login_display%(c: connection, display: string%);
 ## option is sent from client to server and the server replies that it accepts
 ## the authentication, then the event engine generates this event.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+## See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
 ## about the Telnet protocol.
 ##
 ## name: The authenticated name.
@@ -270,7 +270,7 @@ event authentication_accepted%(name: string, c: connection%);
 ## is sent from client to server and the server replies that it did not accept
 ## the authentication, then the event engine generates this event.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+## See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
 ## about the Telnet protocol.
 ##
 ## name: The attempted authentication name.
@@ -293,7 +293,7 @@ event authentication_rejected%(name: string, c: connection%);
 ## Generated for Telnet/Rlogin sessions when a pattern match indicates
 ## that no authentication is performed.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+## See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
 ## about the Telnet protocol.
 ##
 ## c: The connection.
@@ -318,7 +318,7 @@ event authentication_skipped%(c: connection%);
 ## This information is extracted out of environment variables sent as Telnet
 ## options.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+## See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
 ## about the Telnet protocol.
 ##
 ## c: The connection.
@@ -339,7 +339,7 @@ event login_prompt%(c: connection, prompt: string%);
 ## protocol includes options for negotiating encryption. When such a series of
 ## options is successfully negotiated, the event engine generates this event.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+## See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
 ## about the Telnet protocol.
 ##
 ## c: The connection.
@@ -357,7 +357,7 @@ event activating_encryption%(c: connection%);
 ## do, or what it itself offered in terms of options in the past, then the
 ## engine generates this event.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+## See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
 ## about the Telnet protocol.
 ##
 ## c: The connection.
@@ -370,7 +370,7 @@ event inconsistent_option%(c: connection%);
 
 ## Generated for an ill-formed or unrecognized Telnet option.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+## See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
 ## about the Telnet protocol.
 ##
 ## c: The connection.
@@ -389,7 +389,7 @@ event bad_option%(c: connection%);
 
 ## Generated for a Telnet option that's incorrectly terminated.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+## See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
 ## about the Telnet protocol.
 ##
 ## c: The connection.

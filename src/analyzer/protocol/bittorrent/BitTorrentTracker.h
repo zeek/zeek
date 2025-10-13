@@ -31,7 +31,7 @@ enum BTT_States : uint8_t {
     BTT_RES_DONE
 };
 
-// "benc" = Bencode ("Bee-Encode"), per http://en.wikipedia.org/wiki/Bencode
+// "benc" = Bencode ("Bee-Encode"), per https://en.wikipedia.org/wiki/Bencode
 enum BTT_BencTypes : uint8_t {
     BENC_TYPE_INT = 0,
     BENC_TYPE_STR = 1,

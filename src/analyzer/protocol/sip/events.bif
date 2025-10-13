@@ -2,7 +2,7 @@
 ##
 ## This event is generated as soon as a request's initial line has been parsed.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
+## See `Wikipedia <https://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
 ## for more information about the :abbr:`SIP (Session Initiation Protocol)` protocol.
 ##
 ## c: The connection.
@@ -20,7 +20,7 @@ event sip_request%(c: connection, method: string, original_URI: string, version:
 ##
 ## This event is generated as soon as a reply's initial line has been parsed.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
+## See `Wikipedia <https://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
 ## for more information about the :abbr:`SIP (Session Initiation Protocol)` protocol.
 ##
 ## c: The connection.
@@ -36,7 +36,7 @@ event sip_reply%(c: connection, version: string, code: count, reason: string%);
 
 ## Generated for each :abbr:`SIP (Session Initiation Protocol)` header.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
+## See `Wikipedia <https://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
 ## for more information about the :abbr:`SIP (Session Initiation Protocol)` protocol.
 ##
 ## c: The connection.
@@ -52,7 +52,7 @@ event sip_header%(c: connection, is_orig: bool, name: string, value: string%);
 
 ## Generated once for all :abbr:`SIP (Session Initiation Protocol)` headers from the originator or responder.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
+## See `Wikipedia <https://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
 ## for more information about the :abbr:`SIP (Session Initiation Protocol)` protocol.
 ##
 ## c: The connection.
@@ -68,7 +68,7 @@ event sip_all_headers%(c: connection, is_orig: bool, hlist: mime_header_list%);
 ##
 ## This event is generated as soon as a message's initial line has been parsed.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
+## See `Wikipedia <https://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
 ## for more information about the :abbr:`SIP (Session Initiation Protocol)` protocol.
 ##
 ## c: The connection.
@@ -80,7 +80,7 @@ event sip_begin_entity%(c: connection, is_orig: bool%);
 
 ## Generated at the end of a :abbr:`SIP (Session Initiation Protocol)` message.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
+## See `Wikipedia <https://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
 ## for more information about the :abbr:`SIP (Session Initiation Protocol)` protocol.
 ##
 ## c: The connection.

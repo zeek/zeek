@@ -1,6 +1,6 @@
 ## Generated for all DNS messages.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
@@ -25,7 +25,7 @@ event dns_message%(c: connection, is_orig: bool, msg: dns_msg, len: count%);
 ## Generated for DNS requests. For requests with multiple queries, this event
 ## is raised once for each.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
@@ -57,7 +57,7 @@ event dns_request%(c: connection, msg: dns_msg, query: string, qtype: count, qcl
 ## answers to a query. Note that all of the event's parameters are parsed out of
 ## the reply; there's no stateful correlation with the query.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
@@ -86,7 +86,7 @@ event dns_rejected%(c: connection, msg: dns_msg, query: string, qtype: count, qc
 
 ## Generated for each entry in the Question section of a DNS reply.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
@@ -118,7 +118,7 @@ event dns_query_reply%(c: connection, msg: dns_msg, query: string,
 ## Generated for DNS replies of type *A*. For replies with multiple answers, an
 ## individual event of the corresponding type is raised for each.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
@@ -143,7 +143,7 @@ event dns_A_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%);
 ## Generated for DNS replies of type *AAAA*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
@@ -168,7 +168,7 @@ event dns_AAAA_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%);
 ## Generated for DNS replies of type *A6*. For replies with multiple answers, an
 ## individual event of the corresponding type is raised for each.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
@@ -193,7 +193,7 @@ event dns_A6_reply%(c: connection, msg: dns_msg, ans: dns_answer, a: addr%);
 ## Generated for DNS replies of type *NS*. For replies with multiple answers, an
 ## individual event of the corresponding type is raised for each.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
@@ -218,7 +218,7 @@ event dns_NS_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%)
 ## Generated for DNS replies of type *CNAME*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
@@ -243,7 +243,7 @@ event dns_CNAME_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: strin
 ## Generated for DNS replies of type *PTR*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
@@ -268,7 +268,7 @@ event dns_PTR_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string%
 ## Generated for DNS replies of type *CNAME*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
@@ -293,7 +293,7 @@ event dns_SOA_reply%(c: connection, msg: dns_msg, ans: dns_answer, soa: dns_soa%
 ## Generated for DNS replies of type *WKS*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
@@ -316,7 +316,7 @@ event dns_WKS_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
 ## Generated for DNS replies of type *HINFO*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
@@ -339,7 +339,7 @@ event dns_HINFO_reply%(c: connection, msg: dns_msg, ans: dns_answer, cpu: string
 ## Generated for DNS replies of type *MX*. For replies with multiple answers, an
 ## individual event of the corresponding type is raised for each.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
@@ -366,7 +366,7 @@ event dns_MX_reply%(c: connection, msg: dns_msg, ans: dns_answer, name: string, 
 ## Generated for DNS replies of type *TXT*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
@@ -391,7 +391,7 @@ event dns_TXT_reply%(c: connection, msg: dns_msg, ans: dns_answer, strs: string_
 ## Generated for DNS replies of type *SPF*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
@@ -435,7 +435,7 @@ event dns_CAA_reply%(c: connection, msg: dns_msg, ans: dns_answer, flags: count,
 ## Generated for DNS replies of type *SRV*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
@@ -502,7 +502,7 @@ event dns_unknown_reply%(c: connection, msg: dns_msg, ans: dns_answer%);
 ## Generated for DNS replies of type *EDNS*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
@@ -530,7 +530,7 @@ event dns_EDNS_addl%(c: connection, msg: dns_msg, ans: dns_edns_additional%);
 ## Generated for DNS replies of type *EDNS*. For replies with multiple options,
 ## an individual event is raised for each.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
@@ -559,7 +559,7 @@ event dns_EDNS_ecs%(c: connection, msg: dns_msg, opt: dns_edns_ecs%);
 ## an opt-type of 11. For replies with multiple option fields, an individual event is
 ## raised for each.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. See `RFC7828 <https://tools.ietf.org/html/rfc7828>`__ for
 ## more information about EDNS0 TCP keepalive. Zeek analyzes both UDP and TCP DNS
 ## sessions.
@@ -589,7 +589,7 @@ event dns_EDNS_tcp_keepalive%(c: connection, msg: dns_msg, opt: dns_edns_tcp_kee
 ## an opt-type of 10. For replies with multiple options fields, an individual event
 ## is raised for each.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. See `RFC7873 <https://tools.ietf.org/html/rfc7873>`__ for
 ## more information about EDNS0 cookie. Zeek analyzes both UDP and TCP DNS
 ## sessions.
@@ -618,7 +618,7 @@ event dns_EDNS_cookie%(c: connection, msg: dns_msg, opt: dns_edns_cookie%);
 ## Generated for DNS replies of type *TKEY*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. See `RFC2930 <https://tools.ietf.org/html/rfc2930>`__
 ## for more information about TKEY. Zeek analyzes both UDP and TCP DNS sessions.
 ##
@@ -640,7 +640,7 @@ event dns_TKEY%(c: connection, msg: dns_msg, ans: dns_tkey%);
 ## Generated for DNS replies of type *TSIG*. For replies with multiple answers,
 ## an individual event of the corresponding type is raised for each.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##
@@ -819,7 +819,7 @@ event dns_HTTPS%(c: connection, msg: dns_msg, ans: dns_answer, https: dns_svcb_r
 ## ``dns_*`` event that will be raised for a DNS query/reply and signals that
 ## all resource records have been passed on.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
 ## information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
 ## sessions.
 ##

@@ -433,7 +433,7 @@ Things to keep in mind when writing signatures
   signature engine and can be matched with ``\r`` and ``\n``,
   respectively. Generally, Zeek follows `flex's regular expression
   syntax
-  <http://westes.github.io/flex/manual/Patterns.html>`_.
+  <https://westes.github.io/flex/manual/Patterns.html>`_.
   See the DPD signatures in ``base/frameworks/dpd/dpd.sig`` for some examples
   of fairly complex payload patterns.
 

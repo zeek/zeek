@@ -13,6 +13,7 @@
 #include "zeek/Timer.h"
 #include "zeek/UID.h"
 #include "zeek/WeirdState.h"
+#include "zeek/ZValCallback.h"
 #include "zeek/ZeekArgs.h"
 #include "zeek/analyzer/Analyzer.h"
 #include "zeek/iosource/Packet.h"
@@ -56,6 +57,69 @@ enum ConnEventToFlag : uint8_t {
 static inline int addr_port_canon_lt(const IPAddr& addr1, uint32_t p1, const IPAddr& addr2, uint32_t p2) {
     return addr1 < addr2 || (addr1 == addr2 && p1 < p2);
 }
+
+class Connection;
+
+namespace detail {
+
+/**
+ * Object backing the script-layer connection record data type for the fields
+ *
+ * - duration
+ * - history
+ *
+ * One instance of this class is embededd into the Connection itself.
+ */
+class ConnectionRecordValCallback : public detail::ZValCallback {
+public:
+    ConnectionRecordValCallback() = default;
+
+    ~ConnectionRecordValCallback() override {
+        if ( HasCallbacksAssigned() )
+            RemoveCallbacks(*conn_val);
+    }
+
+    /**
+     * Called when the Connection's record_val is creatd for the first time
+     * to install the callbacks into it.
+     */
+    void AssignCallbacks(const Connection* conn, RecordVal& conn_val);
+
+    /**
+     * Removes the callbacks from the connection record
+     * and replaces them with the most recent values.
+     */
+    void RemoveCallbacks(RecordVal& conn_val);
+
+
+    /**
+     * Whether this instance has been installed as callback into a record.
+     */
+    bool HasCallbacksAssigned() const noexcept { return conn != nullptr && conn_val != nullptr; }
+
+
+    /**
+     * Field lookup callback.
+     *
+     * val == conn_val and field is the field offset.
+     */
+    ZVal operator()(const ZVal& val, const ZVal& field) const override;
+
+    /**
+     * Populate field offsets.
+     */
+    void static InitPostScript();
+
+private:
+    const Connection* conn = nullptr;
+    RecordVal* conn_val = nullptr;
+    mutable ZValElement cached_history;
+
+    static int duration_offset;
+    static int history_offset;
+};
+
+} // namespace detail
 
 class Connection final : public session::Session {
 public:
@@ -163,7 +227,6 @@ public:
     void IDString(ODesc* d) const;
 
     // Statistics.
-
     static uint64_t TotalConnections() { return total_connections; }
     static uint64_t CurrentConnections() { return current_connections; }
 
@@ -205,7 +268,11 @@ private:
     u_char orig_l2_addr[Packet::L2_ADDR_LEN];  // Link-layer originator address, if available
     u_char resp_l2_addr[Packet::L2_ADDR_LEN];  // Link-layer responder address, if available
     int suppress_event;                        // suppress certain events to once per conn.
+
+    // Script-layer connection record val.
     RecordValPtr conn_val;
+    detail::ConnectionRecordValCallback conn_val_cb;
+
     std::shared_ptr<EncapsulationStack> encapsulation; // tunnels
 
     IPBasedConnKeyPtr key;

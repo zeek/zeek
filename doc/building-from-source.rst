@@ -265,9 +265,6 @@ installation path can be chosen by specifying the ``configure`` script
 the standard prefixes for binary Zeek packages to be installed, so those are
 typically not good choices unless you are creating such a package.
 
-OpenBSD users, please see our `FAQ <https://zeek.org/faq/>`_ if you are having
-problems installing Zeek.
-
 Depending on the Zeek package you downloaded, there may be auxiliary
 tools and libraries available in the ``auxil/`` directory. Some of them
 will be automatically built and installed along with Zeek. There are

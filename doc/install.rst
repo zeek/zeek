@@ -10,9 +10,9 @@ Installing Zeek
 
 To run Zeek, grab our official Docker images, download our Linux binary
 packages, install via Homebrew_ on your Mac, use the ports collections on FreeBSD
-and OpenBSD. See the :doc:`building-from-source` section to build Zeek yourself. 
+and OpenBSD. See the :doc:`building-from-source` section to build Zeek yourself.
 For details about our release cadence and the significance of Zeek's version
-numbers, please refer to our `Release Cadence 
+numbers, please refer to our `Release Cadence
 <https://github.com/zeek/zeek/wiki/Release-Cadence>`_ wiki page.
 
 .. _docker-images:
@@ -134,7 +134,6 @@ To install:
 
   .. code-block:: console
 
-     sudo pkg_add zeek
+     doas pkg_add zeek
 
 These packages are not maintained by the Zeek project.
-

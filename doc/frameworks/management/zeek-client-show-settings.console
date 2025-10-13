@@ -1,0 +1,14 @@
+$ zeek-client show-settings
+[client]
+request_timeout_secs = 20
+peer_retry_secs = 1
+peering_status_attempts = 10
+peering_status_retry_delay_secs = 0.5
+rich_logging_format = False
+pretty_json = True
+verbosity = 0
+
+[controller]
+host = 127.0.0.1
+port = 2150
+

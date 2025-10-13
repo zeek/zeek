@@ -1,0 +1,23 @@
+$ zeek-client get-config --deployed
+[instances]
+agent-testbox
+
+[logger]
+instance = agent-testbox
+role = LOGGER
+port = 2201
+
+[manager]
+instance = agent-testbox
+role = MANAGER
+port = 2200
+
+[worker-01]
+instance = agent-testbox
+role = WORKER
+interface = lo
+
+[worker-02]
+instance = agent-testbox
+role = WORKER
+interface = eth0

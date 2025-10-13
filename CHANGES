@@ -1,3 +1,18 @@
+8.1.0-dev.682 | 2025-10-13 12:22:48 -0700
+
+  * Adapt docs github workflow to remove zeek-docs submodule (Tim Wojtulewicz, Corelight)
+
+  * Move readthedocs.yml file out of docs into main directory (Tim Wojtulewicz, Corelight)
+
+  * Run pre-commit on the imported docs files (Tim Wojtulewicz, Corelight)
+
+  * Copy docs into Zeek repo directly (Tim Wojtulewicz, Corelight)
+
+    This is based on commit 99e6942efec5feff50523f6b2a1f5868f19ab638 from the
+    zeek-docs repo.
+
+  * Remove doc submodule (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.676 | 2025-10-13 09:54:47 -0700
 
   * Replace g_frame_stack with call_stack used by ScriptProfiler (Tim Wojtulewicz, Corelight)

@@ -1,0 +1,7 @@
+Jinja2==3.1.6
+Pygments==2.19.2
+sphinx-rtd-theme==3.0.2
+# This version is the last version that supports Python 3.9.
+# 8.1.x is the last version series that supports Python 3.10.
+Sphinx==7.4.7
+GitPython==3.1.45

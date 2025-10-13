@@ -136,6 +136,7 @@ global known_BiFs = set(
 	"Log::__disable_stream",
 	"Log::__enable_stream",
 	"Log::__flush",
+	"Log::flush_all",
 	"Log::__get_delay_queue_size",
 	"Log::__remove_filter",
 	"Log::__remove_stream",

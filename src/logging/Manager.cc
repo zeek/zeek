@@ -47,7 +47,7 @@ public:
     explicit LogFlushWriteBufferTimer(double t) : Timer(t, zeek::detail::TIMER_LOG_FLUSH_WRITE_BUFFER) {}
 
     void Dispatch(double t, bool is_expire) override {
-        zeek::log_mgr->FlushAllWriteBuffers();
+        zeek::log_mgr->FlushAll();
 
         if ( ! is_expire )
             zeek::log_mgr->StartLogFlushTimer();
@@ -2265,7 +2265,7 @@ bool Manager::FinishedRotation(WriterFrontend* writer, const char* new_name, con
     return result;
 }
 
-void Manager::FlushAllWriteBuffers() {
+void Manager::FlushAll() {
     for ( const auto* s : zeek::log_mgr->streams ) {
         if ( ! s ) // may store nullptr
             continue;

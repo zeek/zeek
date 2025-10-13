@@ -99,6 +99,12 @@ namespace
 		}
 %%}
 
+function Log::flush_all%(%): any
+	%{
+	zeek::log_mgr->FlushAll();
+	return nullptr;
+	%}
+
 function Log::__delay%(id: Log::ID, rec: any, post_delay_cb: PostDelayCallback%): Log::DelayToken
         %{
         auto idptr = enum_ref(id);

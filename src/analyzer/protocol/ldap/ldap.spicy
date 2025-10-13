@@ -247,9 +247,9 @@ type KrbWrapToken = unit {
             self.trailer_ec = self.ec;
         } else {
             if (!self.ctx_flags.sealed)
-            # If it's sealed, we'll consume until &eod anyhow
-            # and ec/rrc shouldn't apply, otherwise, bail.
-            throw "Unhandled rc %s and ec %s" % (self.ec, self.rrc);
+                # If it's sealed, we'll consume until &eod anyhow
+                # and ec/rrc shouldn't apply, otherwise, bail.
+                throw "Unhandled rc %s and ec %s" % (self.ec, self.rrc);
         }
     }
 

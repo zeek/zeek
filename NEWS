@@ -26,6 +26,14 @@ Breaking Changes
   to live in the ``auxil`` directory, after having moved there from an external plugin.
   It is now built as part of main Zeek build whenever building on Linux.
 
+- The global ``g_frame_stack`` C++ variable was removed. This variable was used to track
+  the current stack of script-function frames, mostly for the built-in script debugger. We
+  realized that we were also tracking this information in the global ``call_stack``
+  variable, used by the script profiler. These two have now been combined together into
+  ``call_stack``. Plugins using ``g_frame_stack`` will need to be adapted to use the other
+  variable. We opted to not use a deprecation cycle for this due to the complication with
+  managing the data across both variables.
+
 New Functionality
 -----------------
 

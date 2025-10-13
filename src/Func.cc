@@ -93,10 +93,11 @@ std::string render_call_stack() {
         if ( lvl > 0 )
             rval += " | ";
 
-        const auto& name = ci.func->GetName();
+        const auto& name = ci.frame->GetFunction()->GetName();
         std::string arg_desc;
 
-        for ( const auto& arg : ci.args ) {
+        const auto& args = ci.frame->GetFuncArgs();
+        for ( const auto& arg : *args ) {
             ODesc d;
             d.SetShort();
             arg->Describe(&d);
@@ -331,17 +332,16 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
         return Flavor() == FUNC_FLAVOR_HOOK ? val_mgr->True() : nullptr;
     }
 
-    auto f = make_intrusive<Frame>(frame_size, this, args);
+    Frame f{static_cast<int>(frame_size), this, args};
 
     // Hand down any trigger.
     if ( parent ) {
-        f->SetTrigger({NewRef{}, parent->GetTrigger()});
-        f->SetTriggerAssoc(parent->GetTriggerAssoc());
+        f.SetTrigger({NewRef{}, parent->GetTrigger()});
+        f.SetTriggerAssoc(parent->GetTriggerAssoc());
     }
 
-    g_frame_stack.push_back(f.get()); // used for backtracing
     const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
-    call_stack.emplace_back(CallInfo{call_expr, this, *args});
+    call_stack.emplace_back(call_expr, &f);
 
     // If a script function is ever invoked with more arguments than it has
     // parameters log an error and return. Most likely a "variadic function"
@@ -374,24 +374,23 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
         for ( auto j = 0u; j < args->size(); ++j ) {
             const auto& arg = (*args)[j];
 
-            if ( f->GetElement(j) != arg )
+            if ( f.GetElement(j) != arg )
                 // Either not yet set, or somebody reassigned the frame slot.
-                f->SetElement(j, arg);
+                f.SetElement(j, arg);
         }
 
         if ( spm )
             spm->StartInvocation(this, body.stmts);
 
-        f->Reset(args->size());
+        f.Reset(args->size());
 
         try {
-            result = body.stmts->Exec(f.get(), flow);
+            result = body.stmts->Exec(&f, flow);
         }
 
         catch ( InterpreterException& e ) {
             // Already reported, but now determine whether to unwind further.
             if ( Flavor() == FUNC_FLAVOR_FUNCTION ) {
-                g_frame_stack.pop_back();
                 call_stack.pop_back();
                 // Result not set b/c exception was thrown
                 throw;
@@ -404,7 +403,7 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
         if ( spm )
             spm->EndInvocation();
 
-        if ( f->HasDelayed() ) {
+        if ( f.HasDelayed() ) {
             assert(! result);
             assert(parent);
             parent->SetDelayed();
@@ -424,8 +423,6 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
         }
     }
 
-    call_stack.pop_back();
-
     if ( Flavor() == FUNC_FLAVOR_HOOK ) {
         if ( ! result )
             result = val_mgr->True();
@@ -438,7 +435,7 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
     // the function without an explicit return, or without a value.
     else if ( GetType()->Yield() && GetType()->Yield()->Tag() != TYPE_VOID && ! GetType()->ExpressionlessReturnOkay() &&
               (flow != FLOW_RETURN /* we fell off the end */ || ! result /* explicit return with no result */) &&
-              ! f->HasDelayed() )
+              ! f.HasDelayed() )
         reporter->Warning("non-void function returning without a value: %s", GetName().c_str());
 
     if ( result && g_trace_state.DoTrace() ) {
@@ -448,7 +445,7 @@ ValPtr ScriptFunc::Invoke(zeek::Args* args, Frame* parent) const {
         g_trace_state.LogTrace("Function return: %s\n", d.Description());
     }
 
-    g_frame_stack.pop_back();
+    call_stack.pop_back();
 
     return result;
 }
@@ -733,8 +730,10 @@ ValPtr BuiltinFunc::Invoke(Args* args, Frame* parent) const {
         g_trace_state.LogTrace("\tBuiltin Function called: %s\n", d.Description());
     }
 
+    Frame f{0, this, args};
+
     const CallExpr* call_expr = parent ? parent->GetCall() : nullptr;
-    call_stack.emplace_back(CallInfo{call_expr, this, *args});
+    call_stack.emplace_back(call_expr, &f);
     auto result = func(parent, args);
     call_stack.pop_back();
 
@@ -937,15 +936,15 @@ zeek::VectorValPtr get_current_script_backtrace() {
     auto cs_copy = zeek::detail::call_stack;
 
     for ( const auto& ci : std::ranges::reverse_view(cs_copy) ) {
-        if ( ! ci.func )
-            // This happens for compiled code.
+        if ( ! ci.frame->GetFunction() )
+            // This happens for compiled code and BIFs.
             continue;
 
-        const auto& params = ci.func->GetType()->Params();
-        auto args = MakeCallArgumentVector(ci.args, params);
+        const auto& params = ci.frame->GetFunction()->GetType()->Params();
+        auto args = MakeCallArgumentVector(*ci.frame->GetFuncArgs(), params);
 
-        auto elem =
-            make_backtrace_element(ci.func->GetName(), std::move(args), ci.call ? ci.call->GetLocationInfo() : nullptr);
+        auto elem = make_backtrace_element(ci.frame->GetFunction()->GetName(), std::move(args),
+                                           ci.call ? ci.call->GetLocationInfo() : nullptr);
         rval->Append(std::move(elem));
     }
 
@@ -990,7 +989,7 @@ static void emit_builtin_error_common(const char* msg, Obj* arg, bool unwind) {
         return;
     }
 
-    auto last_call = call_stack.back();
+    const auto& last_call = call_stack.back();
 
     if ( call_stack.size() < 2 ) {
         // Don't need to check for wrapper function like "<module>::__<func>"
@@ -998,10 +997,13 @@ static void emit_builtin_error_common(const char* msg, Obj* arg, bool unwind) {
         return;
     }
 
+    if ( ! last_call.frame->GetFunction() )
+        return;
+
     auto starts_with_double_underscore = [](const std::string& name) -> bool {
         return name.size() > 2 && name[0] == '_' && name[1] == '_';
     };
-    const std::string& last_func = last_call.func->GetName();
+    const std::string& last_func = last_call.frame->GetFunction()->GetName();
 
     auto pos = last_func.find_first_of("::");
     std::string wrapper_func;
@@ -1027,7 +1029,10 @@ static void emit_builtin_error_common(const char* msg, Obj* arg, bool unwind) {
     }
 
     auto parent_call = call_stack[call_stack.size() - 2];
-    const auto& parent_func = parent_call.func->GetName();
+
+    std::string parent_func;
+    if ( const auto* pcf = parent_call.frame->GetFunction() )
+        parent_func = pcf->GetName();
 
     if ( wrapper_func == parent_func )
         emit(parent_call.call);

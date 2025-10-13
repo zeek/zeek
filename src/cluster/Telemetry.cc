@@ -7,6 +7,7 @@
 
 #include "zeek/Desc.h"
 #include "zeek/Expr.h"
+#include "zeek/Frame.h"
 #include "zeek/Func.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/Reporter.h"
@@ -136,7 +137,7 @@ std::string_view determine_script_location() {
 
     ssize_t sidx = static_cast<ssize_t>(zeek::detail::call_stack.size()) - 1;
     while ( sidx >= 0 ) {
-        const auto* func = zeek::detail::call_stack[sidx].func;
+        const auto* func = zeek::detail::call_stack[sidx].frame->GetFunction();
         const auto* ce = zeek::detail::call_stack[sidx].call;
 
         // Cached?

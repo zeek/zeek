@@ -339,21 +339,16 @@ public:
     void Describe(ODesc* d) const override;
 
 protected:
-    BuiltinFunc() {
-        func = nullptr;
-        is_pure = false;
-    }
-
-    built_in_func func;
-    bool is_pure;
+    BuiltinFunc() = default;
+    built_in_func func = nullptr;
+    bool is_pure = false;
 };
 
 extern bool check_built_in_call(BuiltinFunc* f, CallExpr* call);
 
 struct CallInfo {
-    const CallExpr* call;
-    const Func* func;
-    const zeek::Args& args;
+    const CallExpr* call = nullptr;
+    Frame* frame = nullptr;
 };
 
 // Class that collects all the specifics defining a Func.

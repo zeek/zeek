@@ -1,3 +1,21 @@
+8.1.0-dev.676 | 2025-10-13 09:54:47 -0700
+
+  * Replace g_frame_stack with call_stack used by ScriptProfiler (Tim Wojtulewicz, Corelight)
+
+  * Clean up initialization in Func.h (Tim Wojtulewicz, Corelight)
+
+  * Bump spicy-format (Benjamin Bannier, Corelight)
+
+    This brings in two changes:
+
+    - proper indention for blocks starting with multiple comments
+    - switch the hook from `language: rust` to `language: python` to avoid
+      nonsense due to pre-commit ignore Rust lock files,
+      https://github.com/pre-commit/pre-commit/issues/3162.
+
+    The second one should help avoid future instances of the hook randomly
+    breaking as its dependencies accidentially break semver.
+
 8.1.0-dev.671 | 2025-10-11 12:38:21 +0200
 
   * ZValElement: s to o renaming (Arne Welzel, Corelight)

@@ -29,6 +29,7 @@ to connect with the community.
 
    get-started
    about
+   tutorial/index
    monitoring
    log-formats
    logs/index

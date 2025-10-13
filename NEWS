@@ -9,7 +9,7 @@ Zeek 8.0.2
 We would like to thank Jeff McJunkin (@jeffmcjunkin) and Peter Cullen (@pbcullen) for
 their contributions to this release.
 
-This release fixes the following bugs:
+This release fixes the following security issue:
 
 - The KRB analyzer can leak information about hosts in analyzed traffic via external DNS
   lookups. This only happens if the script-level variable ``KRB::keytab`` is set to point
@@ -17,14 +17,16 @@ This release fixes the following bugs:
   all. The fix is to use a different method from libkrb5 that reuses known host
   information from the packets instead of re-requesting the same information externally.
 
+This release fixes the following bugs:
+
 - The ``get_current_packet_header()`` BIF now populates the returned record also for
   fragmented IP datagrams.
 
 - The ``decompose_uri()`` script function now correctly handles URIs containing IPv6
   addresses.
 
-- The QUIC parser discards packets with the fixed_bit field set to 0, rather than
-  continuing to parse potentially running into analyzer violations.
+- The QUIC parser now discards packets with the fixed_bit field set to 0, rather than
+  continuing to parse and potentially running into analyzer violations.
 
 Zeek 8.0.1
 ==========

@@ -712,6 +712,17 @@ export {
 
 	## The full list of TCP Option fields parsed from a TCP header.
 	type OptionList: vector of Option;
+
+	## A Raw TCP Option field from a TCP header
+	type RawOption: record {
+		## Number identifying the option
+		kind: count;
+		## Raw, unparsed data of the option
+		data: string;
+	};
+
+	## The full list of TCP option fields in a TCP header.
+	type RawOptionList: vector of RawOption;
 }
 
 module Tunnel;

@@ -410,7 +410,7 @@ Multicast (SSM). However, IANA’s Service Name and Transport Protocol Port
 Number Registry also lists “Message Submission over TLS” for port 465 TCP,
 which is the encrypted version of its entry for port 25 TCP and SMTP.
 
-http://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.txt
+https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.txt
 
 In any case, for a sample SMTPS of port 465 TCP traffic for SMTP connection,
 Zeek produced the following logs.

@@ -1,3 +1,9 @@
+7.0.11 | 2025-10-10 21:33:43 +0000
+
+  * Release 7.0.11.
+
+  * Update docs submodule [nomail] (Tim Wojtulewicz, Corelight)
+
 7.0.10-4 | 2025-10-10 21:29:44 +0000
 
   * KRB: Use krb5_build_principal() over krb5_sname_to_principal() (Arne Welzel, Corelight)

@@ -36,7 +36,7 @@ Events
    mails. This event is generated once for each line that's part of such a
    response.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/POP3>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
    about the POP3 protocol.
    
 
@@ -63,7 +63,7 @@ Events
 
    Generated for unsuccessful authentications on POP3 connections.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/POP3>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
    about the POP3 protocol.
    
 
@@ -94,7 +94,7 @@ Events
 
    Generated for successful authentications on POP3 connections.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/POP3>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
    about the POP3 protocol.
    
 
@@ -125,7 +125,7 @@ Events
 
    Generated for server-side replies to commands on POP3 connections.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/POP3>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
    about the POP3 protocol.
    
 
@@ -159,7 +159,7 @@ Events
 
    Generated for client-side commands on POP3 connections.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/POP3>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
    about the POP3 protocol.
    
 
@@ -193,7 +193,7 @@ Events
    generated if that happens and the analyzer then stops processing the
    connection.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/POP3>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
    about the POP3 protocol.
    
 
@@ -216,7 +216,7 @@ Events
    finds state transitions that do not conform to the protocol specification,
    or other situations it can't handle, it raises this event.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/POP3>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
    about the POP3 protocol.
    
 

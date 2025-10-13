@@ -93,7 +93,7 @@ Events
 
    Generated for ARP requests.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Address_Resolution_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Address_Resolution_Protocol>`__
    for more information about the ARP protocol.
    
 
@@ -123,7 +123,7 @@ Events
 
    Generated for ARP replies.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Address_Resolution_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Address_Resolution_Protocol>`__
    for more information about the ARP protocol.
    
 

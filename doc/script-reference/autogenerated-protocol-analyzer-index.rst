@@ -431,7 +431,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -447,7 +447,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -463,7 +463,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel
@@ -479,7 +479,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -495,7 +495,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -511,7 +511,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -527,7 +527,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -543,7 +543,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see::  bittorrent_peer_cancel bittorrent_peer_choke bittorrent_peer_handshake
@@ -559,7 +559,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -575,7 +575,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -591,7 +591,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield  bittorrent_peer_choke
@@ -607,7 +607,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -623,7 +623,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -639,7 +639,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -655,7 +655,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -671,7 +671,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -687,7 +687,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -703,7 +703,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -2217,7 +2217,7 @@ Events
 
    Generated for all DNS messages.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -2251,7 +2251,7 @@ Events
    Generated for DNS requests. For requests with multiple queries, this event
    is raised once for each.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -2293,7 +2293,7 @@ Events
    answers to a query. Note that all of the event's parameters are parsed out of
    the reply; there's no stateful correlation with the query.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -2332,7 +2332,7 @@ Events
 
    Generated for each entry in the Question section of a DNS reply.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -2371,7 +2371,7 @@ Events
    Generated for DNS replies of type *A*. For replies with multiple answers, an
    individual event of the corresponding type is raised for each.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -2404,7 +2404,7 @@ Events
    Generated for DNS replies of type *AAAA*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -2437,7 +2437,7 @@ Events
    Generated for DNS replies of type *A6*. For replies with multiple answers, an
    individual event of the corresponding type is raised for each.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -2470,7 +2470,7 @@ Events
    Generated for DNS replies of type *NS*. For replies with multiple answers, an
    individual event of the corresponding type is raised for each.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -2503,7 +2503,7 @@ Events
    Generated for DNS replies of type *CNAME*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -2536,7 +2536,7 @@ Events
    Generated for DNS replies of type *PTR*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -2569,7 +2569,7 @@ Events
    Generated for DNS replies of type *CNAME*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -2602,7 +2602,7 @@ Events
    Generated for DNS replies of type *WKS*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -2632,7 +2632,7 @@ Events
    Generated for DNS replies of type *HINFO*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -2662,7 +2662,7 @@ Events
    Generated for DNS replies of type *MX*. For replies with multiple answers, an
    individual event of the corresponding type is raised for each.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -2698,7 +2698,7 @@ Events
    Generated for DNS replies of type *TXT*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -2731,7 +2731,7 @@ Events
    Generated for DNS replies of type *SPF*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -2793,7 +2793,7 @@ Events
    Generated for DNS replies of type *SRV*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -2886,7 +2886,7 @@ Events
    Generated for DNS replies of type *EDNS*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -2921,7 +2921,7 @@ Events
    Generated for DNS replies of type *EDNS*. For replies with multiple options,
    an individual event is raised for each.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -2957,7 +2957,7 @@ Events
    an opt-type of 11. For replies with multiple option fields, an individual event is
    raised for each.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. See `RFC7828 <https://tools.ietf.org/html/rfc7828>`__ for
    more information about EDNS0 TCP keepalive. Zeek analyzes both UDP and TCP DNS
    sessions.
@@ -2994,7 +2994,7 @@ Events
    an opt-type of 10. For replies with multiple options fields, an individual event
    is raised for each.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. See `RFC7873 <https://tools.ietf.org/html/rfc7873>`__ for
    more information about EDNS0 cookie. Zeek analyzes both UDP and TCP DNS
    sessions.
@@ -3030,7 +3030,7 @@ Events
    Generated for DNS replies of type *TKEY*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. See `RFC2930 <https://tools.ietf.org/html/rfc2930>`__
    for more information about TKEY. Zeek analyzes both UDP and TCP DNS sessions.
    
@@ -3059,7 +3059,7 @@ Events
    Generated for DNS replies of type *TSIG*. For replies with multiple answers,
    an individual event of the corresponding type is raised for each.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -3334,7 +3334,7 @@ Events
    ``dns_*`` event that will be raised for a DNS query/reply and signals that
    all resource records have been passed on.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
    information about the DNS protocol. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -3536,7 +3536,7 @@ Events
 
    Generated for Finger requests.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Finger_protocol>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Finger_protocol>`__ for more
    information about the Finger protocol.
    
 
@@ -3560,7 +3560,7 @@ Events
 
    Generated for Finger replies.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Finger_protocol>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Finger_protocol>`__ for more
    information about the Finger protocol.
    
 
@@ -3625,7 +3625,7 @@ Events
 
    Generated for client-side FTP commands.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/File_Transfer_Protocol>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/File_Transfer_Protocol>`__ for
    more information about the FTP protocol.
    
 
@@ -3647,7 +3647,7 @@ Events
 
    Generated for server-side FTP replies.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/File_Transfer_Protocol>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/File_Transfer_Protocol>`__ for
    more information about the FTP protocol.
    
 
@@ -3790,7 +3790,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
    .. zeek:see::  gnutella_binary_msg gnutella_establish gnutella_http_notify
@@ -3809,7 +3809,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
    .. zeek:see:: gnutella_establish gnutella_http_notify gnutella_not_establish
@@ -3827,7 +3827,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
    .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
@@ -3845,7 +3845,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
    .. zeek:see:: gnutella_binary_msg  gnutella_http_notify gnutella_not_establish
@@ -3863,7 +3863,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
    .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
@@ -3881,7 +3881,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
    .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_not_establish
@@ -3946,7 +3946,7 @@ Events
    dialogues. This event is generated as soon as a request's initial line has
    been parsed, and before any :zeek:id:`http_header` events are raised.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
    
 
@@ -3978,7 +3978,7 @@ Events
    dialogues. This event is generated as soon as a reply's initial line has
    been parsed, and before any :zeek:id:`http_header` events are raised.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
    
 
@@ -4007,7 +4007,7 @@ Events
    sessions and raises corresponding events as it parses client/server
    dialogues.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
    
 
@@ -4041,7 +4041,7 @@ Events
    once. Zeek supports persistent and pipelined HTTP sessions and raises
    corresponding events as it parses client/server dialogues.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
    
 
@@ -4073,7 +4073,7 @@ Events
    entities. Zeek raises this event just before it starts parsing each entity's
    content.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
    
 
@@ -4098,7 +4098,7 @@ Events
    entities. Zeek raises this event at the point when it has finished parsing an
    entity's content.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
    
 
@@ -4128,7 +4128,7 @@ Events
    can be quite expensive for HTTP tranders. At the very least, one should
    impose an upper size limit on how much data is being buffered.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
    
 
@@ -4159,7 +4159,7 @@ Events
    type as specified by the ``Content-Type`` header. If that header is
    missing, this event is still raised with a default value of ``text/plain``.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
    
 
@@ -4195,7 +4195,7 @@ Events
    message have been processed (and their corresponding ``http_entity_*`` events
    generated).
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
    
 
@@ -4219,7 +4219,7 @@ Events
 
    Generated for errors found when decoding HTTP requests or replies.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
    
 
@@ -4336,7 +4336,7 @@ Events
 
    Generated for Ident requests.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/ident_protocol>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/ident_protocol>`__ for more
    information about the Ident protocol.
    
 
@@ -4362,7 +4362,7 @@ Events
 
    Generated for Ident replies.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/ident_protocol>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/ident_protocol>`__ for more
    information about the Ident protocol.
    
 
@@ -4394,7 +4394,7 @@ Events
 
    Generated for Ident error replies.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/ident_protocol>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/ident_protocol>`__ for more
    information about the Ident protocol.
    
 
@@ -4480,7 +4480,7 @@ Events
 
    Generated for all client-side IRC commands.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -4517,7 +4517,7 @@ Events
    Generated for all IRC replies. IRC replies are sent in response to a
    request and come with a reply code.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -4550,7 +4550,7 @@ Events
 
    Generated for IRC commands forwarded from the server to the client.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -4589,7 +4589,7 @@ Events
    Generated for IRC messages of type *quit*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -4619,7 +4619,7 @@ Events
    Generated for IRC messages of type *privmsg*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -4652,7 +4652,7 @@ Events
    Generated for IRC messages of type *notice*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -4685,7 +4685,7 @@ Events
    Generated for IRC messages of type *squery*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -4718,7 +4718,7 @@ Events
    Generated for IRC messages of type *join*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -4745,7 +4745,7 @@ Events
    Generated for IRC messages of type *part*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -4778,7 +4778,7 @@ Events
    Generated for IRC messages of type *nick*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -4807,7 +4807,7 @@ Events
 
    Generated when a server rejects an IRC nickname.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -4830,7 +4830,7 @@ Events
 
    Generated for an IRC reply of type *luserclient*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -4862,7 +4862,7 @@ Events
 
    Generated for an IRC reply of type *luserme*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -4894,7 +4894,7 @@ Events
 
    Generated for an IRC reply of type *luserchannels*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -4920,7 +4920,7 @@ Events
 
    Generated for an IRC reply of type *whoreply*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -4970,7 +4970,7 @@ Events
 
    Generated for an IRC reply of type *namereply*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -5002,7 +5002,7 @@ Events
 
    Generated for an IRC reply of type *whoisoperator*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -5028,7 +5028,7 @@ Events
 
    Generated for an IRC reply of type *whoischannels*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -5057,7 +5057,7 @@ Events
 
    Generated for an IRC reply of type *whoisuser*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -5092,7 +5092,7 @@ Events
 
    Generated for IRC replies of type *youreoper* and *nooperhost*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -5119,7 +5119,7 @@ Events
 
    Generated for an IRC reply of type *globalusers*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -5149,7 +5149,7 @@ Events
 
    Generated for an IRC reply of type *topic*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -5179,7 +5179,7 @@ Events
    Generated for IRC messages of type *who*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -5209,7 +5209,7 @@ Events
    Generated for IRC messages of type *whois*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -5239,7 +5239,7 @@ Events
    Generated for IRC messages of type *oper*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -5269,7 +5269,7 @@ Events
    Generated for IRC messages of type *kick*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -5306,7 +5306,7 @@ Events
    Generated for IRC messages of type *error*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -5337,7 +5337,7 @@ Events
    Generated for IRC messages of type *invite*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -5371,7 +5371,7 @@ Events
    Generated for IRC messages of type *mode*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -5402,7 +5402,7 @@ Events
    Generated for IRC messages of type *squit*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -5436,7 +5436,7 @@ Events
    Generated for IRC messages of type *dcc*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
    See `Wikipedia <https://en.wikipedia.org/wiki/Direct_Client-to-Client>`__ for more
@@ -5485,7 +5485,7 @@ Events
    Generated for IRC messages of type *dcc*. This event is generated for
    DCC SEND acknowledge message.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
    See `Wikipedia <https://en.wikipedia.org/wiki/Direct_Client-to-Client>`__ for more
@@ -5511,7 +5511,7 @@ Events
    Generated for IRC messages of type *user*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -5547,7 +5547,7 @@ Events
    Generated for IRC messages of type *password*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -6062,7 +6062,7 @@ Events
    encrypted Ticket Granting Ticket (TGT) for that user. The TGT
    can then be used to request further tickets for other services.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
    
 
@@ -6084,7 +6084,7 @@ Events
    contains an encrypted Ticket Granting Ticket (TGT) for that user.
    The TGT can then be used to request further tickets for other services.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
    
 
@@ -6107,7 +6107,7 @@ Events
    authenticate to a Kerberized service, the client requests a Service
    Ticket, which will be returned in the TGS reply.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
    
 
@@ -6129,7 +6129,7 @@ Events
    which is encrypted with the service's long-term key, and which the
    client can use to authenticate to that service.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
    
 
@@ -6151,7 +6151,7 @@ Events
    that should be part of the first message in an authenticated
    transaction.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
    
 
@@ -6177,7 +6177,7 @@ Events
    doesn't have much useful data, but it's provided in case it's important
    to know that this message was sent.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
    
 
@@ -6196,7 +6196,7 @@ Events
    have much useful data, but it's provided in case it's important to
    know that this message was sent.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
    
 
@@ -6216,7 +6216,7 @@ Events
    A Kerberos 5 ``Safe Message`` as defined in :rfc:`4120`. This is a
    safe (checksummed) application message.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
    
 
@@ -6239,7 +6239,7 @@ Events
    A Kerberos 5 ``Credential Message`` as defined in :rfc:`4120`. This is
    a private (encrypted) message to forward credentials.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
    
 
@@ -6261,7 +6261,7 @@ Events
 
    A Kerberos 5 ``Error Message`` as defined in :rfc:`4120`.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
    
 
@@ -7134,7 +7134,7 @@ Events
    option is sent from client to server and the server replies that it accepts
    the authentication, then the event engine generates this event.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
    
 
@@ -7165,7 +7165,7 @@ Events
    is sent from client to server and the server replies that it did not accept
    the authentication, then the event engine generates this event.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
    
 
@@ -7194,7 +7194,7 @@ Events
    Generated for Telnet/Rlogin sessions when a pattern match indicates
    that no authentication is performed.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
    
 
@@ -7224,7 +7224,7 @@ Events
    This information is extracted out of environment variables sent as Telnet
    options.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
    
 
@@ -7251,7 +7251,7 @@ Events
    protocol includes options for negotiating encryption. When such a series of
    options is successfully negotiated, the event engine generates this event.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
    
 
@@ -7274,7 +7274,7 @@ Events
    do, or what it itself offered in terms of options in the past, then the
    engine generates this event.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
    
 
@@ -7292,7 +7292,7 @@ Events
 
    Generated for an ill-formed or unrecognized Telnet option.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
    
 
@@ -7316,7 +7316,7 @@ Events
 
    Generated for a Telnet option that's incorrectly terminated.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
    
 
@@ -7420,7 +7420,7 @@ Events
    begins parsing a MIME entity extracted from an email protocol.
    
    Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-   `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+   `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
 
@@ -7444,7 +7444,7 @@ Events
    finished parsing a MIME entity extracted from an email protocol.
    
    Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-   `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+   `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
 
@@ -7467,7 +7467,7 @@ Events
    files, along with corresponding metadata, for transmission.
    
    Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-   `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+   `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
 
@@ -7493,7 +7493,7 @@ Events
    text and files, along with corresponding metadata, for transmission.
    
    Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-   `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+   `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
 
@@ -7527,7 +7527,7 @@ Events
    the data. Thus, if possible, this event should be preferred.
    
    Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-   `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+   `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
 
@@ -7560,7 +7560,7 @@ Events
    the latter should be preferred.
    
    Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-   `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+   `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
 
@@ -7590,7 +7590,7 @@ Events
    expensive.
    
    Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-   `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+   `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
 
@@ -7616,7 +7616,7 @@ Events
    Generated for errors found when decoding email MIME entities.
    
    Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-   `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+   `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
 
@@ -7645,7 +7645,7 @@ Events
    each MIME entity.
    
    Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-   `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+   `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
 
@@ -8642,7 +8642,7 @@ Events
 
    Generated for a command request from a MySQL client.
    
-   See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+   See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
    for more information about the MySQL protocol.
    
 
@@ -8663,7 +8663,7 @@ Events
 
    Generated for a change user command from a MySQL client.
    
-   See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+   See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
    for more information about the MySQL protocol.
    
 
@@ -8681,7 +8681,7 @@ Events
 
    Generated for an unsuccessful MySQL response.
    
-   See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+   See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
    for more information about the MySQL protocol.
    
 
@@ -8702,7 +8702,7 @@ Events
 
    Generated for a successful MySQL response.
    
-   See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+   See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
    for more information about the MySQL protocol.
    
 
@@ -8720,7 +8720,7 @@ Events
 
    Generated for a MySQL EOF packet.
    
-   See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+   See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
    for more information about the MySQL protocol.
    
 
@@ -8738,7 +8738,7 @@ Events
 
    Generated for each MySQL ResultsetRow response packet.
    
-   See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+   See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
    for more information about the MySQL protocol.
    
 
@@ -8756,7 +8756,7 @@ Events
 
    Generated for the initial server handshake packet, which includes the MySQL server version.
    
-   See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+   See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
    for more information about the MySQL protocol.
    
 
@@ -8775,7 +8775,7 @@ Events
    Generated for a client handshake response packet, which includes the username the client is attempting
    to connect as.
    
-   See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+   See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
    for more information about the MySQL protocol.
    
 
@@ -8793,7 +8793,7 @@ Events
 
    Generated for a short client handshake response packet with the CLIENT_SSL
    flag set. Usually the client will initiate a TLS handshake afterwards.
-   See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+   See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
    for more information about the MySQL protocol.
    
 
@@ -8900,7 +8900,7 @@ Events
 
    Generated for NCP requests (Netware Core Protocol).
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/NetWare_Core_Protocol>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/NetWare_Core_Protocol>`__ for
    more information about the NCP protocol.
    
 
@@ -8929,7 +8929,7 @@ Events
 
    Generated for NCP replies (Netware Core Protocol).
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/NetWare_Core_Protocol>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/NetWare_Core_Protocol>`__ for
    more information about the NCP protocol.
    
 
@@ -8983,7 +8983,7 @@ Events
    processes the NetBIOS session service running on TCP port 139, and (despite
    its name!) the NetBIOS datagram service on UDP port 138.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
    the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
@@ -9006,7 +9006,7 @@ Events
       netbios_session_ret_arg_resp  decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
+      `SMB/CIFS <https://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
    .. todo:: Zeek's current default configuration does not activate the protocol
@@ -9023,7 +9023,7 @@ Events
    analyzer processes the NetBIOS session service running on TCP port 139, and
    (despite its name!) the NetBIOS datagram service on UDP port 138.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
    the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
@@ -9040,7 +9040,7 @@ Events
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
+      `SMB/CIFS <https://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
    .. todo:: Zeek's current default configuration does not activate the protocol
@@ -9057,7 +9057,7 @@ Events
    NetBIOS analyzer processes the NetBIOS session service running on TCP port
    139, and (despite its name!) the NetBIOS datagram service on UDP port 138.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
    the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
@@ -9074,7 +9074,7 @@ Events
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
+      `SMB/CIFS <https://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
    .. todo:: Zeek's current default configuration does not activate the protocol
@@ -9091,7 +9091,7 @@ Events
    NetBIOS analyzer processes the NetBIOS session service running on TCP port
    139, and (despite its name!) the NetBIOS datagram service on UDP port 138.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
    the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
@@ -9108,7 +9108,7 @@ Events
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
+      `SMB/CIFS <https://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
    .. todo:: Zeek's current default configuration does not activate the protocol
@@ -9127,7 +9127,7 @@ Events
    NetBIOS analyzer processes the NetBIOS session service running on TCP port
    139, and (despite its name!) the NetBIOS datagram service on UDP port 138.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
    the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
@@ -9147,7 +9147,7 @@ Events
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
+      `SMB/CIFS <https://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
    .. todo:: This is an oddly named event. In fact, it's probably an odd event
@@ -9167,7 +9167,7 @@ Events
    analyzer processes the NetBIOS session service running on TCP port 139, and
    (despite its name!) the NetBIOS datagram service on UDP port 138.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
    the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
@@ -9184,7 +9184,7 @@ Events
       netbios_session_request decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
+      `SMB/CIFS <https://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
    .. todo:: This is an oddly named event.
@@ -9203,7 +9203,7 @@ Events
    processes the NetBIOS session service running on TCP port 139, and (despite
    its name!) the NetBIOS datagram service on UDP port 138.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
    the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
@@ -9220,7 +9220,7 @@ Events
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
+      `SMB/CIFS <https://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
    .. todo:: Zeek's current default configuration does not activate the protocol
@@ -9955,7 +9955,7 @@ Events
    Generated for all NTP messages. Different from many other of Zeek's events,
    this one is generated for both client-side and server-side messages.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Network_Time_Protocol>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Network_Time_Protocol>`__ for
    more information about the NTP protocol.
    
 
@@ -10030,7 +10030,7 @@ Events
 
    Generated for client-side commands on POP3 connections.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/POP3>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
    about the POP3 protocol.
    
 
@@ -10061,7 +10061,7 @@ Events
 
    Generated for server-side replies to commands on POP3 connections.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/POP3>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
    about the POP3 protocol.
    
 
@@ -10098,7 +10098,7 @@ Events
    mails. This event is generated once for each line that's part of such a
    response.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/POP3>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
    about the POP3 protocol.
    
 
@@ -10127,7 +10127,7 @@ Events
    finds state transitions that do not conform to the protocol specification,
    or other situations it can't handle, it raises this event.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/POP3>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
    about the POP3 protocol.
    
 
@@ -10159,7 +10159,7 @@ Events
    generated if that happens and the analyzer then stops processing the
    connection.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/POP3>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
    about the POP3 protocol.
    
 
@@ -10180,7 +10180,7 @@ Events
 
    Generated for successful authentications on POP3 connections.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/POP3>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
    about the POP3 protocol.
    
 
@@ -10211,7 +10211,7 @@ Events
 
    Generated for unsuccessful authentications on POP3 connections.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/POP3>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
    about the POP3 protocol.
    
 
@@ -10480,7 +10480,7 @@ Events
 
    Generated for RADIUS messages.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/RADIUS>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/RADIUS>`__ for more
    information about RADIUS.
    
 
@@ -10497,7 +10497,7 @@ Events
 
    Generated for each RADIUS attribute.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/RADIUS>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/RADIUS>`__ for more
    information about RADIUS.
    
 
@@ -11147,7 +11147,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -11176,7 +11176,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -11212,7 +11212,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -11248,7 +11248,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -11284,7 +11284,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -11320,7 +11320,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -11356,7 +11356,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -11392,7 +11392,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -11428,7 +11428,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -11465,7 +11465,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -11501,7 +11501,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -11537,7 +11537,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -11573,7 +11573,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -11609,7 +11609,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -11645,7 +11645,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -11680,7 +11680,7 @@ Events
    analyzer does not implement.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -11733,7 +11733,7 @@ Events
    Generated for Portmapper requests of type *null*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -11757,7 +11757,7 @@ Events
    Generated for Portmapper request/reply dialogues of type *set*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -11789,7 +11789,7 @@ Events
    Generated for Portmapper request/reply dialogues of type *unset*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -11821,7 +11821,7 @@ Events
    Generated for Portmapper request/reply dialogues of type *getport*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -11851,7 +11851,7 @@ Events
    Generated for Portmapper request/reply dialogues of type *dump*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -11879,7 +11879,7 @@ Events
    Generated for Portmapper request/reply dialogues of type *callit*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -11910,7 +11910,7 @@ Events
    Generated for failed Portmapper requests of type *null*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -11939,7 +11939,7 @@ Events
    Generated for failed Portmapper requests of type *set*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -11971,7 +11971,7 @@ Events
    Generated for failed Portmapper requests of type *unset*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -12003,7 +12003,7 @@ Events
    Generated for failed Portmapper requests of type *getport*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -12034,7 +12034,7 @@ Events
    Generated for failed Portmapper requests of type *dump*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -12063,7 +12063,7 @@ Events
    Generated for failed Portmapper requests of type *callit*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -12098,7 +12098,7 @@ Events
    event is generated.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -12129,7 +12129,7 @@ Events
    eventually on timeout. In that case, *status* will be set to
    :zeek:enum:`RPC_TIMEOUT`.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/ONC_RPC>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/ONC_RPC>`__ for more information
    about the ONC RPC protocol.
    
 
@@ -12173,7 +12173,7 @@ Events
 
    Generated for RPC *call* messages.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/ONC_RPC>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/ONC_RPC>`__ for more information
    about the ONC RPC protocol.
    
 
@@ -12210,7 +12210,7 @@ Events
 
    Generated for RPC *reply* messages.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/ONC_RPC>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/ONC_RPC>`__ for more information
    about the ONC RPC protocol.
    
 
@@ -12415,7 +12415,7 @@ Events
    
    This event is generated as soon as a request's initial line has been parsed.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
    for more information about the :abbr:`SIP (Session Initiation Protocol)` protocol.
    
 
@@ -12441,7 +12441,7 @@ Events
    
    This event is generated as soon as a reply's initial line has been parsed.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
    for more information about the :abbr:`SIP (Session Initiation Protocol)` protocol.
    
 
@@ -12465,7 +12465,7 @@ Events
 
    Generated for each :abbr:`SIP (Session Initiation Protocol)` header.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
    for more information about the :abbr:`SIP (Session Initiation Protocol)` protocol.
    
 
@@ -12489,7 +12489,7 @@ Events
 
    Generated once for all :abbr:`SIP (Session Initiation Protocol)` headers from the originator or responder.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
    for more information about the :abbr:`SIP (Session Initiation Protocol)` protocol.
    
 
@@ -12512,7 +12512,7 @@ Events
    
    This event is generated as soon as a message's initial line has been parsed.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
    for more information about the :abbr:`SIP (Session Initiation Protocol)` protocol.
    
 
@@ -12530,7 +12530,7 @@ Events
 
    Generated at the end of a :abbr:`SIP (Session Initiation Protocol)` message.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
    for more information about the :abbr:`SIP (Session Initiation Protocol)` protocol.
    
 
@@ -14850,7 +14850,7 @@ Events
    Generated for all :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` version 1
    messages.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for more information about the
+   See `Wikipedia <https://en.wikipedia.org/wiki/Server_Message_Block>`__ for more information about the
    :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` protocol. Zeek's
    :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` analyzer parses
    both :abbr:`SMB (Server Message Block)`-over-:abbr:`NetBIOS (Network Basic Input/Output System)` on
@@ -15613,7 +15613,7 @@ Events
    Generated for :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)`
    version 2 messages.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Server_Message_Block>`__ for more information about the
+   See `Wikipedia <https://en.wikipedia.org/wiki/Server_Message_Block>`__ for more information about the
    :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` protocol. Zeek's
    :abbr:`SMB (Server Message Block)`/:abbr:`CIFS (Common Internet File System)` analyzer parses
    both :abbr:`SMB (Server Message Block)`-over-:abbr:`NetBIOS (Network Basic Input/Output System)` on
@@ -15732,7 +15732,7 @@ Events
 
    Generated for client-side SMTP commands.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
    for more information about the SMTP protocol.
    
 
@@ -15765,7 +15765,7 @@ Events
 
    Generated for server-side SMTP commands.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
    for more information about the SMTP protocol.
    
 
@@ -15809,7 +15809,7 @@ Events
    corresponding end marker ``.`` is seen. A handler may want to reassemble
    the pieces as they come in if stream-analysis is required.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
    for more information about the SMTP protocol.
    
 
@@ -15841,7 +15841,7 @@ Events
    event that it sees even though it would not expect so at the current point
    of the communication.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
    for more information about the SMTP protocol.
    
 
@@ -17256,7 +17256,7 @@ Events
    of that as it can. This event provides access to the initial information
    sent by the client.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
    more information about the SSL/TLS protocol.
    
 
@@ -17307,7 +17307,7 @@ Events
    of that as it can. This event provides access to the initial information
    sent by the client.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
    more information about the SSL/TLS protocol.
    
 
@@ -17913,7 +17913,7 @@ Events
    handshake and its endpoints consider it as fully established. Typically,
    everything from now on will be encrypted.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
    more information about the SSL/TLS protocol.
    
 
@@ -17933,7 +17933,7 @@ Events
    sends an *alert* record, that in turn triggers this event. After an *alert*,
    any endpoint may close the connection immediately.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
    more information about the SSL/TLS protocol.
    
 
@@ -17967,7 +17967,7 @@ Events
    ticket to the client that can later be used for resuming the session. The
    mechanism is described in :rfc:`4507`.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
    more information about the SSL/TLS protocol.
    
 
@@ -18401,7 +18401,7 @@ Events
 
    Generated for monitored Syslog messages.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Syslog>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Syslog>`__ for more
    information about the Syslog protocol.
    
 

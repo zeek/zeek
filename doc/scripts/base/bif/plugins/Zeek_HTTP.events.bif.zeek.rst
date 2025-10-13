@@ -41,7 +41,7 @@ Events
    once. Zeek supports persistent and pipelined HTTP sessions and raises
    corresponding events as it parses client/server dialogues.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
    
 
@@ -73,7 +73,7 @@ Events
    entities. Zeek raises this event just before it starts parsing each entity's
    content.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
    
 
@@ -116,7 +116,7 @@ Events
    type as specified by the ``Content-Type`` header. If that header is
    missing, this event is still raised with a default value of ``text/plain``.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
    
 
@@ -150,7 +150,7 @@ Events
    entities. Zeek raises this event at the point when it has finished parsing an
    entity's content.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
    
 
@@ -180,7 +180,7 @@ Events
    can be quite expensive for HTTP tranders. At the very least, one should
    impose an upper size limit on how much data is being buffered.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
    
 
@@ -208,7 +208,7 @@ Events
 
    Generated for errors found when decoding HTTP requests or replies.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
    
 
@@ -235,7 +235,7 @@ Events
    sessions and raises corresponding events as it parses client/server
    dialogues.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
    
 
@@ -273,7 +273,7 @@ Events
    message have been processed (and their corresponding ``http_entity_*`` events
    generated).
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
    
 
@@ -300,7 +300,7 @@ Events
    dialogues. This event is generated as soon as a reply's initial line has
    been parsed, and before any :zeek:id:`http_header` events are raised.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
    
 
@@ -329,7 +329,7 @@ Events
    dialogues. This event is generated as soon as a request's initial line has
    been parsed, and before any :zeek:id:`http_header` events are raised.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol>`__
    for more information about the HTTP protocol.
    
 

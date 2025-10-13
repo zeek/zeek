@@ -27,7 +27,7 @@ Events
 
    Generated for Finger replies.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Finger_protocol>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Finger_protocol>`__ for more
    information about the Finger protocol.
    
 
@@ -45,7 +45,7 @@ Events
 
    Generated for Finger requests.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Finger_protocol>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Finger_protocol>`__ for more
    information about the Finger protocol.
    
 

@@ -74,7 +74,7 @@ Events
    sends an *alert* record, that in turn triggers this event. After an *alert*,
    any endpoint may close the connection immediately.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
    more information about the SSL/TLS protocol.
    
 
@@ -157,7 +157,7 @@ Events
    of that as it can. This event provides access to the initial information
    sent by the client.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
    more information about the SSL/TLS protocol.
    
 
@@ -354,7 +354,7 @@ Events
    handshake and its endpoints consider it as fully established. Typically,
    everything from now on will be encrypted.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
    more information about the SSL/TLS protocol.
    
 
@@ -942,7 +942,7 @@ Events
    of that as it can. This event provides access to the initial information
    sent by the client.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
    more information about the SSL/TLS protocol.
    
 
@@ -1029,7 +1029,7 @@ Events
    ticket to the client that can later be used for resuming the session. The
    mechanism is described in :rfc:`4507`.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Transport_Layer_Security>`__ for
    more information about the SSL/TLS protocol.
    
 

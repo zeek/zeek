@@ -32,7 +32,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
    .. zeek:see:: gnutella_establish gnutella_http_notify gnutella_not_establish
@@ -50,7 +50,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
    .. zeek:see:: gnutella_binary_msg  gnutella_http_notify gnutella_not_establish
@@ -68,7 +68,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
    .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_not_establish
@@ -86,7 +86,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
    .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
@@ -104,7 +104,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
    .. zeek:see:: gnutella_binary_msg gnutella_establish gnutella_http_notify
@@ -122,7 +122,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Gnutella>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Gnutella>`__ for more
    information about the Gnutella protocol.
    
    .. zeek:see::  gnutella_binary_msg gnutella_establish gnutella_http_notify

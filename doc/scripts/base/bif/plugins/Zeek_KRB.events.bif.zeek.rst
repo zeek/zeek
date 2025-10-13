@@ -45,7 +45,7 @@ Events
    that should be part of the first message in an authenticated
    transaction.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
    
 
@@ -71,7 +71,7 @@ Events
    doesn't have much useful data, but it's provided in case it's important
    to know that this message was sent.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
    
 
@@ -91,7 +91,7 @@ Events
    encrypted Ticket Granting Ticket (TGT) for that user. The TGT
    can then be used to request further tickets for other services.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
    
 
@@ -113,7 +113,7 @@ Events
    contains an encrypted Ticket Granting Ticket (TGT) for that user.
    The TGT can then be used to request further tickets for other services.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
    
 
@@ -133,7 +133,7 @@ Events
    A Kerberos 5 ``Credential Message`` as defined in :rfc:`4120`. This is
    a private (encrypted) message to forward credentials.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
    
 
@@ -155,7 +155,7 @@ Events
 
    A Kerberos 5 ``Error Message`` as defined in :rfc:`4120`.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
    
 
@@ -177,7 +177,7 @@ Events
    have much useful data, but it's provided in case it's important to
    know that this message was sent.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
    
 
@@ -197,7 +197,7 @@ Events
    A Kerberos 5 ``Safe Message`` as defined in :rfc:`4120`. This is a
    safe (checksummed) application message.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
    
 
@@ -223,7 +223,7 @@ Events
    authenticate to a Kerberized service, the client requests a Service
    Ticket, which will be returned in the TGS reply.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
    
 
@@ -245,7 +245,7 @@ Events
    which is encrypted with the service's long-term key, and which the
    client can use to authenticate to that service.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/Kerberos_%28protocol%29>`__ for
    more information about the Kerberos protocol.
    
 

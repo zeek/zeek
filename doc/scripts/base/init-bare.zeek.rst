@@ -10868,7 +10868,7 @@ Types
 
 
    BitTorrent "benc" value. Note that "benc" = Bencode ("Bee-Encode"), per
-   http://en.wikipedia.org/wiki/Bencode.
+   https://en.wikipedia.org/wiki/Bencode.
    
    .. zeek:see:: bittorrent_benc_dir
 
@@ -12453,7 +12453,7 @@ Types
 
    Computed entropy values. The record captures a number of measures that are
    computed in parallel. See `A Pseudorandom Number Sequence Test Program
-   <http://www.fourmilab.ch/random>`_ for more information, Zeek uses the same
+   <https://www.fourmilab.ch/random>`_ for more information, Zeek uses the same
    code.
    
    .. zeek:see:: entropy_test_add entropy_test_finish entropy_test_init find_entropy

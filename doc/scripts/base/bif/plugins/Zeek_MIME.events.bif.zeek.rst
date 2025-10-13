@@ -44,7 +44,7 @@ Events
    expensive.
    
    Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-   `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+   `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
 
@@ -72,7 +72,7 @@ Events
    text and files, along with corresponding metadata, for transmission.
    
    Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-   `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+   `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
 
@@ -101,7 +101,7 @@ Events
    begins parsing a MIME entity extracted from an email protocol.
    
    Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-   `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+   `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
 
@@ -124,7 +124,7 @@ Events
    each MIME entity.
    
    Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-   `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+   `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
 
@@ -153,7 +153,7 @@ Events
    finished parsing a MIME entity extracted from an email protocol.
    
    Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-   `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+   `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
 
@@ -180,7 +180,7 @@ Events
    the latter should be preferred.
    
    Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-   `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+   `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
 
@@ -206,7 +206,7 @@ Events
    Generated for errors found when decoding email MIME entities.
    
    Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-   `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+   `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
 
@@ -235,7 +235,7 @@ Events
    files, along with corresponding metadata, for transmission.
    
    Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-   `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+   `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
 
@@ -267,7 +267,7 @@ Events
    the data. Thus, if possible, this event should be preferred.
    
    Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-   `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+   `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
    about MIME.
    
 

@@ -61,7 +61,7 @@ Events
 
    Generated for an IRC reply of type *luserchannels*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -87,7 +87,7 @@ Events
 
    Generated for an IRC reply of type *topic*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -117,7 +117,7 @@ Events
    Generated for IRC messages of type *dcc*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
    See `Wikipedia <https://en.wikipedia.org/wiki/Direct_Client-to-Client>`__ for more
@@ -166,7 +166,7 @@ Events
    Generated for IRC messages of type *dcc*. This event is generated for
    DCC SEND acknowledge message.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
    See `Wikipedia <https://en.wikipedia.org/wiki/Direct_Client-to-Client>`__ for more
@@ -192,7 +192,7 @@ Events
    Generated for IRC messages of type *error*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -222,7 +222,7 @@ Events
 
    Generated for an IRC reply of type *globalusers*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -252,7 +252,7 @@ Events
 
    Generated when a server rejects an IRC nickname.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -276,7 +276,7 @@ Events
    Generated for IRC messages of type *invite*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -310,7 +310,7 @@ Events
    Generated for IRC messages of type *join*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -337,7 +337,7 @@ Events
    Generated for IRC messages of type *kick*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -373,7 +373,7 @@ Events
 
    Generated for IRC commands forwarded from the server to the client.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -412,7 +412,7 @@ Events
    Generated for IRC messages of type *mode*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -442,7 +442,7 @@ Events
 
    Generated for an IRC reply of type *namereply*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -474,7 +474,7 @@ Events
 
    Generated for an IRC reply of type *luserclient*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -507,7 +507,7 @@ Events
    Generated for IRC messages of type *nick*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -537,7 +537,7 @@ Events
    Generated for IRC messages of type *notice*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -570,7 +570,7 @@ Events
    Generated for IRC messages of type *oper*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -599,7 +599,7 @@ Events
 
    Generated for IRC replies of type *youreoper* and *nooperhost*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -627,7 +627,7 @@ Events
    Generated for IRC messages of type *part*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -660,7 +660,7 @@ Events
    Generated for IRC messages of type *password*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -687,7 +687,7 @@ Events
    Generated for IRC messages of type *privmsg*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -720,7 +720,7 @@ Events
    Generated for IRC messages of type *quit*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -750,7 +750,7 @@ Events
    Generated for all IRC replies. IRC replies are sent in response to a
    request and come with a reply code.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -783,7 +783,7 @@ Events
 
    Generated for all client-side IRC commands.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -819,7 +819,7 @@ Events
 
    Generated for an IRC reply of type *luserme*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -852,7 +852,7 @@ Events
    Generated for IRC messages of type *squery*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -885,7 +885,7 @@ Events
    Generated for IRC messages of type *squit*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -931,7 +931,7 @@ Events
    Generated for IRC messages of type *user*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -966,7 +966,7 @@ Events
 
    Generated for an IRC reply of type *whoreply*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -1017,7 +1017,7 @@ Events
    Generated for IRC messages of type *who*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -1046,7 +1046,7 @@ Events
 
    Generated for an IRC reply of type *whoischannels*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -1076,7 +1076,7 @@ Events
    Generated for IRC messages of type *whois*. This event is generated for
    messages coming from both the client and the server.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -1105,7 +1105,7 @@ Events
 
    Generated for an IRC reply of type *whoisoperator*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 
@@ -1131,7 +1131,7 @@ Events
 
    Generated for an IRC reply of type *whoisuser*.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
    information about the IRC protocol.
    
 

@@ -28,7 +28,7 @@ Events
 
    Generated for NCP replies (Netware Core Protocol).
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/NetWare_Core_Protocol>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/NetWare_Core_Protocol>`__ for
    more information about the NCP protocol.
    
 
@@ -63,7 +63,7 @@ Events
 
    Generated for NCP requests (Netware Core Protocol).
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/NetWare_Core_Protocol>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/NetWare_Core_Protocol>`__ for
    more information about the NCP protocol.
    
 

@@ -26,7 +26,7 @@ Events
 
    Generated for monitored Syslog messages.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Syslog>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Syslog>`__ for more
    information about the Syslog protocol.
    
 

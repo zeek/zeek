@@ -32,7 +32,7 @@ Events
 
    Generated once for all :abbr:`SIP (Session Initiation Protocol)` headers from the originator or responder.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
    for more information about the :abbr:`SIP (Session Initiation Protocol)` protocol.
    
 
@@ -55,7 +55,7 @@ Events
    
    This event is generated as soon as a message's initial line has been parsed.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
    for more information about the :abbr:`SIP (Session Initiation Protocol)` protocol.
    
 
@@ -73,7 +73,7 @@ Events
 
    Generated at the end of a :abbr:`SIP (Session Initiation Protocol)` message.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
    for more information about the :abbr:`SIP (Session Initiation Protocol)` protocol.
    
 
@@ -91,7 +91,7 @@ Events
 
    Generated for each :abbr:`SIP (Session Initiation Protocol)` header.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
    for more information about the :abbr:`SIP (Session Initiation Protocol)` protocol.
    
 
@@ -117,7 +117,7 @@ Events
    
    This event is generated as soon as a reply's initial line has been parsed.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
    for more information about the :abbr:`SIP (Session Initiation Protocol)` protocol.
    
 
@@ -143,7 +143,7 @@ Events
    
    This event is generated as soon as a request's initial line has been parsed.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Session_Initiation_Protocol>`__
    for more information about the :abbr:`SIP (Session Initiation Protocol)` protocol.
    
 

@@ -4,9 +4,75 @@
 
 #include <cstdint>
 
+#include "zeek/ZValCallback.h"
 #include "zeek/analyzer/Analyzer.h"
 
+namespace zeek {
+class RecordVal;
+}
+
 namespace zeek::analyzer::conn_size {
+
+class ConnSize_Analyzer;
+
+namespace detail {
+
+/**
+ * ZValCallback class for num_pkts and num_bytes_ip in the endpoint
+ *
+ * This is a helper class providing a ZValCallback for the volatile fields on endpoint.
+ *
+ * type endpoint: record {
+ *     size: count;
+ *     state: count;
+ *     num_pkts: count &optional;  <<
+ *     num_bytes_ip: count &optional; <<
+ * }
+ */
+class EndpointRecordValCallback : public zeek::detail::ZValCallback {
+public:
+    EndpointRecordValCallback() = default;
+
+    /**
+     * Destructor removes the field callbacks.
+     */
+    ~EndpointRecordValCallback() override {
+        if ( HasCallbacksAssigned() )
+            RemoveCallbacks(*endp_val, is_orig);
+    }
+
+    /**
+     * Assign callbacks.
+     *
+     * When should we best call this?
+     */
+    void AssignCallbacks(ConnSize_Analyzer* conn_size, RecordVal* endp_val, bool is_orig);
+
+    /**
+     * Removes the callbacks from the endpoint record
+     * and replaces them with the most recent values.
+     */
+    void RemoveCallbacks(RecordVal& endp_val, bool is_orig);
+
+    bool HasCallbacksAssigned() const noexcept { return conn_size != nullptr && endp_val != nullptr; }
+
+    /**
+     * Field lookup callback.
+     */
+    ZVal operator()(const ZVal& val, const ZVal& field) const override;
+
+    static void InitPostScript();
+
+private:
+    ConnSize_Analyzer* conn_size = nullptr;
+    RecordVal* endp_val = nullptr;
+    bool is_orig = false;
+
+    static int num_pkts_offset;
+    static int num_bytes_ip_offset;
+};
+
+} // namespace detail
 
 class ConnSize_Analyzer : public analyzer::Analyzer {
 public:
@@ -64,6 +130,10 @@ protected:
 
     double start_time = 0.0;
     double duration_thresh = 0.0;
+
+    // Callbacks objects for the endpoint record vals;
+    detail::EndpointRecordValCallback orig_cb;
+    detail::EndpointRecordValCallback resp_cb;
 
     static std::vector<uint64_t> generic_pkt_thresholds;
 };

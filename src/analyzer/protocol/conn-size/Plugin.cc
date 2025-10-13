@@ -34,6 +34,8 @@ public:
         std::ranges::sort(thresholds);
 
         zeek::analyzer::conn_size::ConnSize_Analyzer::SetGenericPacketThresholds(std::move(thresholds));
+
+        zeek::analyzer::conn_size::detail::EndpointRecordValCallback::InitPostScript();
     }
 } plugin;
 

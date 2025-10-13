@@ -1,3 +1,9 @@
+8.1.0-dev.687 | 2025-10-13 14:48:05 -0700
+
+  * Bump libkqueue to latest upstream master version (Tim Wojtulewicz, Corelight)
+
+    This fixes a bug with debug builds failing on Windows, amongst a few other things.
+
 8.1.0-dev.685 | 2025-10-13 14:13:44 -0700
 
   * Logging: Add BiF to flush all logs (Jan Grashoefer, Corelight)

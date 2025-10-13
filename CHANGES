@@ -1,3 +1,7 @@
+8.0.2 | 2025-10-10 21:32:42 +0000
+
+  * Release 8.0.2.
+
 8.0.1-20 | 2025-10-10 21:32:36 +0000
 
   * KRB: Use krb5_build_principal() over krb5_sname_to_principal() (Arne Welzel, Corelight)

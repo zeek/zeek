@@ -20,7 +20,8 @@ public:
     // Overridden from analyzer::tcp::TCP_ApplicationAnalyzer.
     void EndpointEOF(bool is_orig) override;
 
-    StringValPtr GetAuthenticationInfo(const String* principal, const String* ciphertext, const zeek_uint_t enctype) {
+    StringValPtr GetAuthenticationInfo(const String* realm, const String* principal, const String* ciphertext,
+                                       const zeek_uint_t enctype) {
         return val_mgr->EmptyString();
     }
 

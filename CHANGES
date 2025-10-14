@@ -1,3 +1,21 @@
+8.1.0-dev.696 | 2025-10-14 11:39:33 -0700
+
+  * KRB: Use krb5_build_principal() over krb5_sname_to_principal() (Arne Welzel, Corelight)
+
+    The krb5_sname_to_principal() can result in DNS lookups due to
+    canonicalization and determining the realm. Its documentation has the
+    following part:
+
+        This function converts a @a hostname and @a sname into @a krb5_principal
+        structure @a ret_princ.  The returned principal will be of the form
+        @a sname\/hostname\@REALM where REALM is determined by krb5_get_host_realm()
+        In some cases this may be the referral (empty) realm.
+
+    Given we actually parse the realm already from the ticket, pass that
+    through to GetAuthenticationInfo() and use krb5_build_principal() with
+    the known realm directly. That should avoid any canonicalization or realm
+    lookups.
+
 8.1.0-dev.694 | 2025-10-14 10:02:37 -0700
 
   * Update some btest baselines due to http/https changes (Tim Wojtulewicz, Corelight)

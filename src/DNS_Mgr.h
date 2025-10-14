@@ -185,6 +185,17 @@ public:
     void LookupAddr(const IPAddr& addr, LookupCallback* callback);
 
     /**
+     * Looks up the text entries for a given address. This is a shorthand method for doing
+     * TXT requests. This is an asynchronous request. The response will be handled via the
+     * provided callback object.
+     *
+     * @param name The name or address to make a request for. If this is an
+     * address it should be in arpa format (x.x.x.x.in-addr.arpa or x-*.ip6.arpa).
+     * @param callback A callback object for handling the response.
+     */
+    void LookupText(const std::string& host, LookupCallback* callback) { Lookup(host, ns_t_txt, callback); }
+
+    /**
      * Performs a generic request to the DNS server. This is an asynchronous
      * request. The response will be handled via the provided callback
      * object.

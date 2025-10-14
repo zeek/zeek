@@ -22,7 +22,7 @@ fi
 set -o errexit
 set -o nounset
 
-ZEEK="$(cd "$( dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)/../../.."
+ZEEK="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)/../../.."
 DOC="${ZEEK}/doc"
 SPICY="${ZEEK}/auxil/spicy"
 SPICYDOC="${ZEEK}/build/auxil/spicy/bin/spicy-doc"
@@ -33,16 +33,15 @@ if [ ! -x "${SPICYDOC}" ]; then
     exit 0
 fi
 
-"${SPICY}/doc/scripts/autogen-spicy-lib" functions zeek  < "${ZEEK}/scripts/spicy/zeek.spicy" > "${AUTOGEN_FINAL}/zeek-functions.spicy" || exit 1
+"${SPICY}/doc/scripts/autogen-spicy-lib" functions zeek <"${ZEEK}/scripts/spicy/zeek.spicy" >"${AUTOGEN_FINAL}/zeek-functions.spicy" || exit 1
 
 # Copy some static files over.
 cp "${TFTP}"/scripts/main.zeek "${AUTOGEN_FINAL}"/tftp.zeek || exit 1
 cp "${TFTP}"/analyzer/tftp.spicy "${AUTOGEN_FINAL}"/tftp.spicy || exit 1
 cp "${TFTP}"/analyzer/tftp.evt "${AUTOGEN_FINAL}"/tftp.evt || exit 1
-cat "${TFTP}"/analyzer/tftp.spicy | grep -v spicy::accept_input > "${AUTOGEN_FINAL}"/tftp-no-accept.spicy || exit 1
+cat "${TFTP}"/analyzer/tftp.spicy | grep -v spicy::accept_input >"${AUTOGEN_FINAL}"/tftp-no-accept.spicy || exit 1
 
 # Copy some files from the Zeek source tree so that zeek-docs remains standaline for CI.
 cp "${ZEEK}/scripts/base/frameworks/spicy/init-bare.zeek" "${AUTOGEN_FINAL}/"
 cp "${ZEEK}/scripts/base/frameworks/spicy/init-framework.zeek" "${AUTOGEN_FINAL}/"
 cp "${ZEEK}/auxil/spicy/doc/scripts/spicy-pygments.py" "${DOC}/ext"
-

@@ -409,8 +409,7 @@ extern double curr_CPU_time();
 // instances. The integer can be drawn from different pools, which is helpful
 // when the random number generator is seeded to be deterministic. In that
 // case, the same sequence of integers is generated per pool.
-extern uint64_t calculate_unique_id();
-extern uint64_t calculate_unique_id(const size_t pool);
+extern uint64_t calculate_unique_id(const size_t pool = zeek::UID_POOL_DEFAULT_INTERNAL);
 
 // Use for map's string keys.
 struct ltstr {

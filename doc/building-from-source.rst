@@ -1,5 +1,5 @@
 
-.. _CMake: https://www.cmake.org
+.. _CMake: https://cmake.org
 .. _SWIG: https://www.swig.org
 .. _Xcode: https://developer.apple.com/xcode/
 .. _MacPorts: https://www.macports.org
@@ -38,7 +38,7 @@ development headers for libraries:
     * BIND8 library or greater (if not covered by system's libresolv)
     * Bison 3.3 or greater (https://www.gnu.org/software/bison/)
     * C/C++ compiler with C++17 support (GCC 8+ or Clang 9+)
-    * CMake 3.15 or greater (https://www.cmake.org)
+    * CMake 3.15 or greater (https://cmake.org)
     * Flex (lexical analyzer generator) 2.6 or greater (https://github.com/westes/flex)
     * Libpcap (https://www.tcpdump.org)
     * Make

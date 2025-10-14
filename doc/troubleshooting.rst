@@ -208,7 +208,7 @@ Visualizing flame graphs this way removes the time dimension. `FlameScope`_ is
 a project allowing exploration of different time ranges within the recorded data
 which can be valuable if you observe Zeek processes freezing or hanging.
 
-.. _perf: https://perf.wiki.kernel.org/index.php/Main_Page
+.. _perf: https://perfwiki.github.io/
 .. _Flame Graphs: https://www.brendangregg.com/flamegraphs.html
 .. _FlameGraph: https://github.com/brendangregg/FlameGraph
 .. _FlameScope: https://github.com/Netflix/flamescope
@@ -372,13 +372,13 @@ The following provides an example of :file:`prof.log` content:
    1684828262.344351 Conns: total=84712 current=6759/6759
    1684828262.344351 Conns: tcp=3847/3860 udp=2815/2883 icmp=97/98
    1684828262.344351 TCP-States:        Inact.  Syn.    SA      Part.   Est.    Fin.    Rst.
-   1684828262.344351 TCP-States:Inact.                                                          
-   1684828262.344351 TCP-States:Syn.    76                                              36      
-   1684828262.344351 TCP-States:SA                                                              
-   1684828262.344351 TCP-States:Part.                                                           
-   1684828262.344351 TCP-States:Est.                                    652     2214    36      
-   1684828262.344351 TCP-States:Fin.                                            753             
-   1684828262.344351 TCP-States:Rst.                                    16      64              
+   1684828262.344351 TCP-States:Inact.
+   1684828262.344351 TCP-States:Syn.    76                                              36
+   1684828262.344351 TCP-States:SA
+   1684828262.344351 TCP-States:Part.
+   1684828262.344351 TCP-States:Est.                                    652     2214    36
+   1684828262.344351 TCP-States:Fin.                                            753
+   1684828262.344351 TCP-States:Rst.                                    16      64
    1684828262.344351 Connections expired due to inactivity: 2426
    1684828262.344351 Timers: current=47708 max=47896 lag=0.00s
    1684828262.344351 DNS_Mgr: requests=1596 successful=1596 failed=0 pending=0 cached_hosts=0 cached_addrs=1207

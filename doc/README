@@ -1,4 +1,4 @@
-.. _zeek-docs: https://github.com/zeek/zeek-docs
+.. _zeek-docs: https://app.readthedocs.org/projects/zeek-docs
 .. _Read the Docs: https://docs.readthedocs.io/en/stable/index.html
 .. _Zeek repo: https://github.com/zeek/zeek
 .. _Sphinx: https://www.sphinx-doc.org/en/master
@@ -77,7 +77,7 @@ First make sure you have the required dependencies used for building docs:
 
 * Python interpreter >= 3.9
 * Sphinx: https://www.sphinx-doc.org/en/master/
-* Read the Docs Sphinx Theme: https://github.com/rtfd/sphinx_rtd_theme
+* Read the Docs Sphinx Theme: https://github.com/readthedocs/sphinx_rtd_theme
 * GitPython: https://github.com/gitpython-developers/GitPython
 
 If you have pip_, you may just use the command ``pip3 install -r
@@ -98,7 +98,7 @@ Hosting
 
 Documentation is hosted by `Read the Docs`_ (RTD), so you can generally read
 about how it works there.  The web-interface is accessible via
-https://readthedocs.org/projects/zeek-docs.
+https://app.readthedocs.org/projects/zeek-docs.
 
 How zeek-docs_ is configured to use RTD is a combination of some custom
 settings in its ``.readthedocs.yml`` file and others only accessible through
@@ -107,7 +107,7 @@ settings are likely understandable just by browsing the web-interface and
 RTD's guides, but a few particular points to mention:
 
 * There is an associated, always-failing project at
-  https://readthedocs.org/projects/zeek.  It's always-failing because
+  https://app.readthedocs.org/projects/zeek/.  It's always-failing because
   RTD redirects only activate when pages 404 and this project exists so that
   all attempts to use https://zeek.rtfd.io or https://zeek.readthedocs.io
   get redirected to https://docs.zeek.org.  Those would have been the project

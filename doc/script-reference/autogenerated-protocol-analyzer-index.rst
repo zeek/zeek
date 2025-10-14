@@ -2764,7 +2764,7 @@ Events
    Generated for DNS replies of type *CAA* (Certification Authority Authorization).
    For replies with multiple answers, an individual event of the corresponding type
    is raised for each.
-   See `RFC 6844 <https://tools.ietf.org/html/rfc6844>`__ for more details.
+   See `RFC 6844 <https://datatracker.ietf.org/doc/html/rfc6844>`__ for more details.
    
 
    :param c: The connection, which may be UDP or TCP depending on the type of the
@@ -2958,7 +2958,7 @@ Events
    raised for each.
    
    See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. See `RFC7828 <https://tools.ietf.org/html/rfc7828>`__ for
+   information about the DNS protocol. See `RFC7828 <https://datatracker.ietf.org/doc/html/rfc7828>`__ for
    more information about EDNS0 TCP keepalive. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -2995,7 +2995,7 @@ Events
    is raised for each.
    
    See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. See `RFC7873 <https://tools.ietf.org/html/rfc7873>`__ for
+   information about the DNS protocol. See `RFC7873 <https://datatracker.ietf.org/doc/html/rfc7873>`__ for
    more information about EDNS0 cookie. Zeek analyzes both UDP and TCP DNS
    sessions.
    
@@ -3031,7 +3031,7 @@ Events
    an individual event of the corresponding type is raised for each.
    
    See `Wikipedia <https://en.wikipedia.org/wiki/Domain_Name_System>`__ for more
-   information about the DNS protocol. See `RFC2930 <https://tools.ietf.org/html/rfc2930>`__
+   information about the DNS protocol. See `RFC2930 <https://datatracker.ietf.org/doc/html/rfc2930>`__
    for more information about TKEY. Zeek analyzes both UDP and TCP DNS sessions.
    
 
@@ -4336,7 +4336,7 @@ Events
 
    Generated for Ident requests.
    
-   See `Wikipedia <https://en.wikipedia.org/wiki/ident_protocol>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Ident_protocol>`__ for more
    information about the Ident protocol.
    
 
@@ -4362,7 +4362,7 @@ Events
 
    Generated for Ident replies.
    
-   See `Wikipedia <https://en.wikipedia.org/wiki/ident_protocol>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Ident_protocol>`__ for more
    information about the Ident protocol.
    
 
@@ -4394,7 +4394,7 @@ Events
 
    Generated for Ident error replies.
    
-   See `Wikipedia <https://en.wikipedia.org/wiki/ident_protocol>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/Ident_protocol>`__ for more
    information about the Ident protocol.
    
 

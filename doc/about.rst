@@ -95,7 +95,7 @@ program, however.
 
 When looking at data derived from the network, there are four types of data
 available to analysts. As defined by the `network security monitoring paradigm
-<https://corelight.blog/2019/04/30/do-you-know-your-nsm-data-types/>`_, these
+<https://corelight.com/blog/do-you-know-your-nsm-data-types>`_, these
 four data types are *full content*, *transaction data*, *extracted content*,
 and *alert data*. Using these data types, one can record traffic, summarize
 traffic, extract traffic (or perhaps more accurately, extract content
@@ -158,7 +158,7 @@ still leads the ICSI `Networking and Security group <https://www.icir.org/>`_.)
 
 Over the years, a growing team of ICSI researchers and students kept adding
 novel functions to Zeek, while LBNL continued its support with funding from the
-`Department of Energy (DOE) <https://www.doe.gov/>`_. Much of Zeek’s
+`Department of Energy (DOE) <https://www.energy.gov/>`_. Much of Zeek’s
 capabilities originate in academic research projects, with results often
 published at top-tier conferences. A key to Zeek’s success was the project’s
 ability to bridge the gap between academia and operations. This relationship

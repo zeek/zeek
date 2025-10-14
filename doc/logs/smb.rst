@@ -40,11 +40,11 @@ to Microsoft.
 
 SMB version 1 is posted here:
 
-https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-smb/f210069c-7086-4dc2-885e-861d837df688
+https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-smb/f210069c-7086-4dc2-885e-861d837df688
 
 SMB versions 2 and 3 are posted here:
 
-https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-smb2/5606ad47-5ee0-437a-817e-70c366052962
+https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-smb2/5606ad47-5ee0-437a-817e-70c366052962
 
 For information on the individual field values in these SMB-affiliated logs,
 please refer to :zeek:see:`DCE_RPC::Info`, :zeek:see:`KRB::Info`,
@@ -210,14 +210,14 @@ client… Named pipes can be used to provide communication between processes on
 the same computer or between processes on different computers across a
 network.”
 
-Ref: https://docs.microsoft.com/en-us/windows/win32/ipc/pipes
+Ref: https://learn.microsoft.com/en-us/windows/win32/ipc/pipes
 
 The lsass named pipe refers to the Local Security Authority Subsystem Service
 (LSASS). The endpoint, ``samr``, refers to the Security Accounts Manager.
 Microsoft’s documentation says “the SamrConnect5 method obtains a handle to a
 server object.”
 
-Ref: https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-samr/c842a897-0a42-4ca5-a607-2afd05271dae
+Ref: https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-samr/c842a897-0a42-4ca5-a607-2afd05271dae
 
 Even if you do not fully understand all of these details (and who does!), it
 appears that ``192.168.10.31`` is trying to remotely access ``192.168.10.10``
@@ -1290,7 +1290,7 @@ Microsoft describes PsExec in the following terms:
   remote-enabling tools like IpConfig that otherwise do not have the ability to
   show information about remote systems.”
 
-Ref: https://docs.microsoft.com/en-us/sysinternals/downloads/psexec
+Ref: https://learn.microsoft.com/en-us/sysinternals/downloads/psexec
 
 Intruders are fond of PsExec for the very capabilities that Microsoft
 describes.

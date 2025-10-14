@@ -3,6 +3,9 @@
 build*
 !ci/windows/build.cmd
 
+# Don't ignore things in the docs directory
+!doc/**
+
 tmp
 *.gcov
 

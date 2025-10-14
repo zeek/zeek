@@ -1,0 +1,5 @@
+protocol analyzer spicy::MyHTTP over TCP:
+    parse originator with MyHTTP::RequestLine,
+    port 12345/tcp;
+
+on MyHTTP::RequestLine -> event MyHTTP::request_line($conn, self.method, self.uri, self.version.number);

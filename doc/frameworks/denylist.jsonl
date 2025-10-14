@@ -1,0 +1,3 @@
+{"ip": "192.168.17.1", "timestamp": 1333252748, "reason": "Malware host"}
+{"ip": "192.168.27.2", "timestamp": 1330235733, "reason": "Botnet server"}
+{"ip": "192.168.250.3", "timestamp": 1333145108, "reason": "Virus detected"}

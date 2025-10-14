@@ -89,7 +89,7 @@ ZVal ConnectionRecordValCallback::operator()(const ZVal& val, const ZVal& arg_fi
     }
 
     // This is bad.
-    reporter->InternalError("connection callback: bad field %zu requested (duration_offset=%d, history_offset=%d)",
+    reporter->InternalError("connection callback: bad field %d requested (duration_offset=%d, history_offset=%d)",
                             field, duration_offset, history_offset);
     return ZVal();
 }

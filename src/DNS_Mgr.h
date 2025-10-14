@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <arpa/nameser.h>
 #include <netdb.h>
 #include <list>
 #include <map>
@@ -18,15 +19,23 @@
 struct ares_channeldata;
 using ares_channel = struct ares_channeldata*;
 
-#ifndef T_PTR
+// Remove in v9.1. These two #ifdef blocks should be removed when the
+// constants are removed below.
+#ifdef T_PTR
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
-#define T_PTR 12
+#undef T_PTR
 #endif
 
-#ifndef T_TXT
+#ifdef T_TXT
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
-#define T_TXT 16
+#undef T_TXT
 #endif
+
+[[deprecated("Remove in v9.1. Use ns_t_ptr from arpa/nameser.h instead.")]]
+constexpr int T_PTR = ns_t_ptr;
+
+[[deprecated("Remove in v9.1. Use ns_t_txt from arpa/nameser.h instead.")]]
+constexpr int T_TXT = ns_t_txt;
 
 namespace zeek {
 class Val;

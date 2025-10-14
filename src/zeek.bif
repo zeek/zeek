@@ -4265,7 +4265,7 @@ function lookup_hostname_txt%(host: string%) : string
 	frame->SetDelayed();
 	trigger->Hold();
 
-	zeek::detail::dns_mgr->Lookup(host->CheckString(), T_TXT,
+	zeek::detail::dns_mgr->Lookup(host->CheckString(), ns_t_txt,
 				 new LookupHostCallback(trigger, frame->GetTriggerAssoc(), true));
 	return nullptr;
 	%}

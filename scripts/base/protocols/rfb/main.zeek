@@ -151,7 +151,7 @@ event rfb_server_parameters(c: connection, name: string, width: count, height: c
 
 event rfb_auth_result(c: connection, result: bool) &priority=5
 	{
-	c$rfb$auth = !result;
+	c$rfb$auth = result;
 	}
 
 event rfb_share_flag(c: connection, flag: bool) &priority=5

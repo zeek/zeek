@@ -1,0 +1,16 @@
+version: 2
+
+formats:
+  - htmlzip
+
+build:
+  os: ubuntu-24.04
+  tools:
+    python: "3.13"
+
+python:
+  install:
+    - requirements: doc/requirements.txt
+
+sphinx:
+  configuration: doc/conf.py

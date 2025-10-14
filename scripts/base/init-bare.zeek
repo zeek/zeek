@@ -1552,7 +1552,7 @@ const mmdb_stale_check_interval: interval = 5min &redef;
 
 ## Computed entropy values. The record captures a number of measures that are
 ## computed in parallel. See `A Pseudorandom Number Sequence Test Program
-## <http://www.fourmilab.ch/random>`_ for more information, Zeek uses the same
+## <https://www.fourmilab.ch/random>`_ for more information, Zeek uses the same
 ## code.
 ##
 ## .. zeek:see:: entropy_test_add entropy_test_finish entropy_test_init find_entropy
@@ -3247,7 +3247,7 @@ type bittorrent_peer: record {
 type bittorrent_peer_set: set[bittorrent_peer];
 
 ## BitTorrent "benc" value. Note that "benc" = Bencode ("Bee-Encode"), per
-## http://en.wikipedia.org/wiki/Bencode.
+## https://en.wikipedia.org/wiki/Bencode.
 ##
 ## .. zeek:see:: bittorrent_benc_dir
 type bittorrent_benc_value: record {

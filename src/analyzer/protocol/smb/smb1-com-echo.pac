@@ -19,7 +19,7 @@ refine connection SMB_Conn += {
 };
 
 
-# http://msdn.microsoft.com/en-us/library/ee441746.aspx
+# https://msdn.microsoft.com/en-us/library/ee441746.aspx
 type SMB1_echo_request(header: SMB_Header) = record {
 	word_count : uint8;
 	echo_count : uint16;
@@ -30,7 +30,7 @@ type SMB1_echo_request(header: SMB_Header) = record {
 	proc : bool = $context.connection.proc_smb1_echo_request(header, this);
 };
 
-# http://msdn.microsoft.com/en-us/library/ee441626.aspx
+# https://msdn.microsoft.com/en-us/library/ee441626.aspx
 type SMB1_echo_response(header: SMB_Header) = record {
 	word_count : uint8;
 	seq_num    : uint16;

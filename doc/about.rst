@@ -139,9 +139,9 @@ History
 =======
 
 Zeek has a rich history stretching back to the 1990s. `Vern Paxson
-<http://www.icir.org/vern/>`_ designed and implemented the initial version in
+<https://www.icir.org/vern/>`_ designed and implemented the initial version in
 1995 as a researcher at the `Lawrence Berkeley National Laboratory (LBNL)
-<http://www.lbl.gov/>`_. The original software was called “Bro,” as an
+<https://www.lbl.gov/>`_. The original software was called “Bro,” as an
 “Orwellian reminder that monitoring comes hand in hand with the potential
 for privacy violations”.
 
@@ -149,16 +149,16 @@ LBNL first deployed Zeek in 1996, and the USENIX Security Symposium published
 Vern’s original paper on Zeek in 1998, and awarded it the Best Paper Award that
 year He published a refined version of the paper in 1999 as `Bro: A System for
 Detecting Network Intruders in Real-Time
-<http://www.icir.org/vern/papers/bro-CN99.pdf>`_.
+<https://www.icir.org/vern/papers/bro-CN99.pdf>`_.
 
-In 2003, the `National Science Foundation (NSF) <http://www.nsf.gov/>`_ began
+In 2003, the `National Science Foundation (NSF) <https://www.nsf.gov/>`_ began
 supporting research and advanced development on Bro at the `International
-Computer Science Institute (ICSI) <http://www.icsi.berkeley.edu/>`_. (Vern
-still leads the ICSI `Networking and Security group <http://www.icir.org/>`_.)
+Computer Science Institute (ICSI) <https://www.icsi.berkeley.edu/>`_. (Vern
+still leads the ICSI `Networking and Security group <https://www.icir.org/>`_.)
 
 Over the years, a growing team of ICSI researchers and students kept adding
 novel functions to Zeek, while LBNL continued its support with funding from the
-`Department of Energy (DOE) <http://www.doe.gov/>`_. Much of Zeek’s
+`Department of Energy (DOE) <https://www.doe.gov/>`_. Much of Zeek’s
 capabilities originate in academic research projects, with results often
 published at top-tier conferences. A key to Zeek’s success was the project’s
 ability to bridge the gap between academia and operations. This relationship
@@ -172,7 +172,7 @@ As a result, deploying Zeek required overcoming a steep learning curve.
 
 In 2010, NSF sought to address this challenge by awarding ICSI a grant from its
 Software Development for Cyberinfrastructure fund. The `National Center for
-Supercomputing Applications (NCSA) <http://www.ncsa.illinois.edu/>`_ joined the
+Supercomputing Applications (NCSA) <https://www.ncsa.illinois.edu/>`_ joined the
 team as a core partner, and the Zeek project began to overhaul many of the
 user-visible parts of the system for the 2.0 release in 2012.
 

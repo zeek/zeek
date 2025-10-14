@@ -1327,7 +1327,7 @@ Functions
    :Type: :zeek:type:`function` (data: :zeek:type:`string`) : :zeek:type:`entropy_test_result`
 
    Performs an entropy test on the given data.
-   See http://www.fourmilab.ch/random.
+   See https://www.fourmilab.ch/random.
    
 
    :param data: The data to compute the entropy for.
@@ -1854,7 +1854,7 @@ Functions
    See `<https://en.wikipedia.org/wiki/Rendezvous_hashing>`_.
    The weight function used is the one recommended in the original
 
-   :param paper: `<http://www.eecs.umich.edu/techreports/cse/96/CSE-TR-316-96.pdf>`_.
+   :param paper: `<https://www.eecs.umich.edu/techreports/cse/96/CSE-TR-316-96.pdf>`_.
    
 
    :param key_digest: A 32-bit digest of a key.  E.g. use :zeek:see:`fnv1a32` to
@@ -4102,7 +4102,7 @@ Functions
    Converts a bytes representation of a UUID into its string form. For example,
    given a string of 16 bytes, it produces an output string in this format:
    ``550e8400-e29b-41d4-a716-446655440000``.
-   See `<http://en.wikipedia.org/wiki/Universally_unique_identifier>`_.
+   See `<https://en.wikipedia.org/wiki/Universally_unique_identifier>`_.
    
 
    :param uuid: The 16 bytes of the UUID.

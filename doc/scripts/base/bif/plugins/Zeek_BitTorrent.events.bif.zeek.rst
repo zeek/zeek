@@ -44,7 +44,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see::  bittorrent_peer_cancel bittorrent_peer_choke bittorrent_peer_handshake
@@ -60,7 +60,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield  bittorrent_peer_choke
@@ -76,7 +76,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel
@@ -92,7 +92,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -108,7 +108,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -124,7 +124,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -140,7 +140,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -156,7 +156,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -172,7 +172,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -188,7 +188,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -204,7 +204,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -220,7 +220,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -236,7 +236,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -252,7 +252,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -268,7 +268,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -284,7 +284,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -300,7 +300,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke
@@ -316,7 +316,7 @@ Events
 
    TODO.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/BitTorrent_(protocol)>`__ for
    more information about the BitTorrent protocol.
    
    .. zeek:see:: bittorrent_peer_bitfield bittorrent_peer_cancel bittorrent_peer_choke

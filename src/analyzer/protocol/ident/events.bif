@@ -1,6 +1,6 @@
 ## Generated for Ident requests.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/ident_protocol>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/ident_protocol>`__ for more
 ## information about the Ident protocol.
 ##
 ## c: The connection.
@@ -19,7 +19,7 @@ event ident_request%(c: connection, lport: port, rport: port%);
 
 ## Generated for Ident replies.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/ident_protocol>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/ident_protocol>`__ for more
 ## information about the Ident protocol.
 ##
 ## c: The connection.
@@ -42,7 +42,7 @@ event ident_reply%(c: connection, lport: port, rport: port, user_id: string, sys
 
 ## Generated for Ident error replies.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/ident_protocol>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/ident_protocol>`__ for more
 ## information about the Ident protocol.
 ##
 ## c: The connection.
@@ -60,4 +60,3 @@ event ident_reply%(c: connection, lport: port, rport: port, user_id: string, sys
 ##    been ported. To still enable this event, one needs to
 ##    register a port for it or add a DPD payload signature.
 event ident_error%(c: connection, lport: port, rport: port, line: string%);
-

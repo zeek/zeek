@@ -1,6 +1,6 @@
 ## Generated for a command request from a MySQL client.
 ##
-## See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+## See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
 ## for more information about the MySQL protocol.
 ##
 ## c: The connection.
@@ -14,7 +14,7 @@ event mysql_command_request%(c: connection, command: count, arg: string%);
 
 ## Generated for a change user command from a MySQL client.
 ##
-## See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+## See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
 ## for more information about the MySQL protocol.
 ##
 ## c: The connection.
@@ -26,7 +26,7 @@ event mysql_change_user%(c: connection, username: string%);
 
 ## Generated for an unsuccessful MySQL response.
 ##
-## See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+## See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
 ## for more information about the MySQL protocol.
 ##
 ## c: The connection.
@@ -40,7 +40,7 @@ event mysql_error%(c: connection, code: count, msg: string%);
 
 ## Generated for a successful MySQL response.
 ##
-## See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+## See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
 ## for more information about the MySQL protocol.
 ##
 ## c: The connection.
@@ -52,7 +52,7 @@ event mysql_ok%(c: connection, affected_rows: count%);
 
 ## Generated for a MySQL EOF packet.
 ##
-## See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+## See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
 ## for more information about the MySQL protocol.
 ##
 ## c: The connection.
@@ -64,7 +64,7 @@ event mysql_eof%(c: connection, is_intermediate: bool%);
 
 ## Generated for each MySQL ResultsetRow response packet.
 ##
-## See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+## See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
 ## for more information about the MySQL protocol.
 ##
 ## c: The connection.
@@ -76,7 +76,7 @@ event mysql_result_row%(c: connection, row: string_vec%);
 
 ## Generated for the initial server handshake packet, which includes the MySQL server version.
 ##
-## See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+## See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
 ## for more information about the MySQL protocol.
 ##
 ## c: The connection.
@@ -89,7 +89,7 @@ event mysql_server_version%(c: connection, ver: string%);
 ## Generated for a client handshake response packet, which includes the username the client is attempting
 ## to connect as.
 ##
-## See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+## See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
 ## for more information about the MySQL protocol.
 ##
 ## c: The connection.
@@ -102,7 +102,7 @@ event mysql_handshake%(c: connection, username: string%);
 ## Generated for a short client handshake response packet with the CLIENT_SSL
 ## flag set. Usually the client will initiate a TLS handshake afterwards.
 #
-## See the MySQL `documentation <http://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+## See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
 ## for more information about the MySQL protocol.
 ##
 ## c: The connection.

@@ -1047,7 +1047,7 @@ pattern
 A type representing regular-expression patterns that can be used for fast
 text-searching operations.  Pattern constants are created by enclosing text
 within forward slashes (``/``) and support a large subset of the `flex lexical
-analyzer <http://westes.github.io/flex/manual/Patterns.html>`_ syntax.  As in
+analyzer <https://westes.github.io/flex/manual/Patterns.html>`_ syntax.  As in
 other implementations, patterns consist of ordinary and special characters.
 Patterns such as ``/a/`` or ``/A0123/`` match that specific character byte or
 character sequence, case-sensitively. Special characters and modifiers customize

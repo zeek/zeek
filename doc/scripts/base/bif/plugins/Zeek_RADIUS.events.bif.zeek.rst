@@ -28,7 +28,7 @@ Events
 
    Generated for each RADIUS attribute.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/RADIUS>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/RADIUS>`__ for more
    information about RADIUS.
    
 
@@ -48,7 +48,7 @@ Events
 
    Generated for RADIUS messages.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/RADIUS>`__ for more
+   See `Wikipedia <https://en.wikipedia.org/wiki/RADIUS>`__ for more
    information about RADIUS.
    
 

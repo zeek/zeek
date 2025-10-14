@@ -1,3 +1,15 @@
+8.1.0-dev.694 | 2025-10-14 10:02:37 -0700
+
+  * Update some btest baselines due to http/https changes (Tim Wojtulewicz, Corelight)
+
+  * Fix other external http links to https (Tim Wojtulewicz, Corelight)
+
+  * Regenerate docs with src and script changes (Tim Wojtulewicz, Corelight)
+
+  * Change http to https links in src and script files (Tim Wojtulewicz, Corelight)
+
+  * Fix output of docs generation script to not mention zeek-docs (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.687 | 2025-10-13 14:48:05 -0700
 
   * Bump libkqueue to latest upstream master version (Tim Wojtulewicz, Corelight)

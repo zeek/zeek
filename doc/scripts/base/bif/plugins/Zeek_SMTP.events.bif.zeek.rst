@@ -34,7 +34,7 @@ Events
    corresponding end marker ``.`` is seen. A handler may want to reassemble
    the pieces as they come in if stream-analysis is required.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
    for more information about the SMTP protocol.
    
 
@@ -63,7 +63,7 @@ Events
 
    Generated for server-side SMTP commands.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
    for more information about the SMTP protocol.
    
 
@@ -104,7 +104,7 @@ Events
 
    Generated for client-side SMTP commands.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
    for more information about the SMTP protocol.
    
 
@@ -153,7 +153,7 @@ Events
    event that it sees even though it would not expect so at the current point
    of the communication.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
+   See `Wikipedia <https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol>`__
    for more information about the SMTP protocol.
    
 

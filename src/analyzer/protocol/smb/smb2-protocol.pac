@@ -1,5 +1,5 @@
 # Documentation for SMB2 protocol from here:
-#     http://msdn.microsoft.com/en-us/library/cc246497(v=PROT.13).aspx
+#     https://msdn.microsoft.com/en-us/library/cc246497(v=PROT.13).aspx
 
 %header{
 zeek::RecordValPtr BuildSMB2HeaderVal(SMB2_Header* hdr);

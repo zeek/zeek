@@ -1,6 +1,6 @@
 ## Generated for Finger requests.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Finger_protocol>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Finger_protocol>`__ for more
 ## information about the Finger protocol.
 ##
 ## c: The connection.
@@ -21,7 +21,7 @@ event finger_request%(c: connection, full: bool, username: string, hostname: str
 
 ## Generated for Finger replies.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Finger_protocol>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Finger_protocol>`__ for more
 ## information about the Finger protocol.
 ##
 ## c: The connection.
@@ -35,4 +35,3 @@ event finger_request%(c: connection, full: bool, username: string, hostname: str
 ##    been ported. To still enable this event, one needs to
 ##    register a port for it or add a DPD payload signature.
 event finger_reply%(c: connection, reply_line: string%);
-

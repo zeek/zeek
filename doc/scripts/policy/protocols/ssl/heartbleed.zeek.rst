@@ -4,7 +4,7 @@ policy/protocols/ssl/heartbleed.zeek
 ====================================
 .. zeek:namespace:: Heartbleed
 
-Detect the TLS heartbleed attack. See http://heartbleed.com for more.
+Detect the TLS heartbleed attack. See https://heartbleed.com for more.
 
 :Namespace: Heartbleed
 :Imports: :doc:`base/frameworks/notice </scripts/base/frameworks/notice/index>`, :doc:`base/protocols/ssl </scripts/base/protocols/ssl/index>`

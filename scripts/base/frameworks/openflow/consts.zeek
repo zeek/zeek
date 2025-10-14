@@ -23,7 +23,7 @@ const COOKIE_UID_START = 0;
 
 export {
 	# All ethertypes can be found at
-	# http://standards.ieee.org/develop/regauth/ethertype/eth.txt
+	# https://standards.ieee.org/develop/regauth/ethertype/eth.txt
 	# but are not interesting for us at this point
 #type ethertype: enum {
 	# Internet protocol version 4
@@ -69,7 +69,7 @@ export {
 #};
 
 	# A list of ip protocol numbers can be found at
-	# http://en.wikipedia.org/wiki/List_of_IP_protocol_numbers
+	# https://en.wikipedia.org/wiki/List_of_IP_protocol_numbers
 #type iptype: enum {
 	# IPv6 Hop-by-Hop Option (RFC2460)
 	const IP_HOPOPT = 0x00;

@@ -1,6 +1,6 @@
 ## Generated for client-side commands on POP3 connections.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/POP3>`__ for more information
+## See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
 ## about the POP3 protocol.
 ##
 ## c: The connection.
@@ -24,7 +24,7 @@ event pop3_request%(c: connection, is_orig: bool,
 
 ## Generated for server-side replies to commands on POP3 connections.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/POP3>`__ for more information
+## See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
 ## about the POP3 protocol.
 ##
 ## c: The connection.
@@ -53,7 +53,7 @@ event pop3_reply%(c: connection, is_orig: bool, cmd: string, msg: string%);
 ## mails. This event is generated once for each line that's part of such a
 ## response.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/POP3>`__ for more information
+## See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
 ## about the POP3 protocol.
 ##
 ## c: The connection.
@@ -75,7 +75,7 @@ event pop3_data%(c: connection, is_orig: bool, data: string%);
 ## finds state transitions that do not conform to the protocol specification,
 ## or other situations it can't handle, it raises this event.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/POP3>`__ for more information
+## See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
 ## about the POP3 protocol.
 ##
 ## c: The connection.
@@ -100,7 +100,7 @@ event pop3_unexpected%(c: connection, is_orig: bool,
 ## generated if that happens and the analyzer then stops processing the
 ## connection.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/POP3>`__ for more information
+## See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
 ## about the POP3 protocol.
 ##
 ## c: The connection.
@@ -116,7 +116,7 @@ event pop3_starttls%(c: connection%);
 
 ## Generated for successful authentications on POP3 connections.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/POP3>`__ for more information
+## See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
 ## about the POP3 protocol.
 ##
 ## c: The connection.
@@ -140,7 +140,7 @@ event pop3_login_success%(c: connection, is_orig: bool,
 
 ## Generated for unsuccessful authentications on POP3 connections.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/POP3>`__ for more information
+## See `Wikipedia <https://en.wikipedia.org/wiki/POP3>`__ for more information
 ## about the POP3 protocol.
 ##
 ## c: The connection.
@@ -161,4 +161,3 @@ event pop3_login_success%(c: connection, is_orig: bool,
 ##    register a port for it or add a DPD payload signature.
 event pop3_login_failure%(c: connection, is_orig: bool,
 				user: string, password: string%);
-

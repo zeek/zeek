@@ -1,6 +1,6 @@
 ## Generated for NCP requests (Netware Core Protocol).
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/NetWare_Core_Protocol>`__ for
+## See `Wikipedia <https://en.wikipedia.org/wiki/NetWare_Core_Protocol>`__ for
 ## more information about the NCP protocol.
 ##
 ## c: The connection.
@@ -21,7 +21,7 @@ event ncp_request%(c: connection, frame_type: count, length: count, func: count%
 
 ## Generated for NCP replies (Netware Core Protocol).
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/NetWare_Core_Protocol>`__ for
+## See `Wikipedia <https://en.wikipedia.org/wiki/NetWare_Core_Protocol>`__ for
 ## more information about the NCP protocol.
 ##
 ## c: The connection.
@@ -43,4 +43,3 @@ event ncp_request%(c: connection, frame_type: count, length: count, func: count%
 ##    been ported. To still enable this event, one needs to
 ##    register a port for it or add a DPD payload signature.
 event ncp_reply%(c: connection, frame_type: count, length: count, req_frame: count, req_func: count, completion_code: count%);
-

@@ -149,7 +149,7 @@ export {
 
 	# Map SSL Extension values to consts for easier readability of code.
 	# More information can be found here:
-	# http://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xml
+	# https://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xml
 	const SSL_EXTENSION_SERVER_NAME = 0;
 	const SSL_EXTENSION_MAX_FRAGMENT_LENGTH = 1;
 	const SSL_EXTENSION_CLIENT_CERTIFICATE_URL = 2;
@@ -227,7 +227,7 @@ export {
 	## Mapping between numeric codes and human readable strings for SSL/TLS
 	## extensions.
 	# More information can be found here:
-	# http://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xml
+	# https://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xml
 	const extensions: table[count] of string = {
 		[0] = "server_name",
 		[1] = "max_fragment_length",
@@ -322,7 +322,7 @@ export {
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	## Mapping between numeric codes and human readable string for SSL/TLS elliptic curves.
-	# See http://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
+	# See https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-8
 	const ec_curves: table[count] of string = {
 		[1] = "sect163k1", # 1-23 are TLS 1.3 obsoleted
 		[2] = "sect163r1",
@@ -404,7 +404,7 @@ export {
 	} &default=function(i: count):string { return fmt("unknown-%d", i); };
 
 	## Mapping between numeric codes and human readable string for SSL/TLS EC point formats.
-	# See http://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-9
+	# See https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-9
 	const ec_point_formats: table[count] of string = {
 		[0] = "uncompressed",
 		[1] = "ansiX962_compressed_prime",

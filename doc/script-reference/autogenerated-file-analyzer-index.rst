@@ -472,7 +472,7 @@ Events
    Generated for encountered X509 certificates, e.g., in the clear SSL/TLS
    connection handshake.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/X.509>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/X.509>`__ for more information
    about the X.509 format.
    
 
@@ -496,7 +496,7 @@ Events
 
    Generated for X509 extensions seen in a certificate.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/X.509>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/X.509>`__ for more information
    about the X.509 format.
    
 

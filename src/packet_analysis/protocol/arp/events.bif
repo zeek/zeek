@@ -1,6 +1,6 @@
 ## Generated for ARP requests.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Address_Resolution_Protocol>`__
+## See `Wikipedia <https://en.wikipedia.org/wiki/Address_Resolution_Protocol>`__
 ## for more information about the ARP protocol.
 ##
 ## mac_src: The request's source MAC address.
@@ -21,7 +21,7 @@ event arp_request%(mac_src: string, mac_dst: string, SPA: addr, SHA: string,
 
 ## Generated for ARP replies.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Address_Resolution_Protocol>`__
+## See `Wikipedia <https://en.wikipedia.org/wiki/Address_Resolution_Protocol>`__
 ## for more information about the ARP protocol.
 ##
 ## mac_src: The reply's source MAC address.

@@ -4,7 +4,7 @@
 ## begins parsing a MIME entity extracted from an email protocol.
 ##
 ## Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-## `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+## `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
 ## about MIME.
 ##
 ## c: The connection.
@@ -23,7 +23,7 @@ event mime_begin_entity%(c: connection%);
 ## finished parsing a MIME entity extracted from an email protocol.
 ##
 ## Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-## `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+## `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
 ## about MIME.
 ##
 ## c: The connection.
@@ -41,7 +41,7 @@ event mime_end_entity%(c: connection%);
 ## files, along with corresponding metadata, for transmission.
 ##
 ## Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-## `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+## `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
 ## about MIME.
 ##
 ## c: The connection.
@@ -61,7 +61,7 @@ event mime_one_header%(c: connection, h: mime_header_rec%);
 ## text and files, along with corresponding metadata, for transmission.
 ##
 ## Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-## `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+## `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
 ## about MIME.
 ##
 ## c: The connection.
@@ -89,7 +89,7 @@ event mime_all_headers%(c: connection, hlist: mime_header_list%);
 ## the data. Thus, if possible, this event should be preferred.
 ##
 ## Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-## `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+## `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
 ## about MIME.
 ##
 ## c: The connection.
@@ -115,7 +115,7 @@ event mime_segment_data%(c: connection, length: count, data: string%);
 ## the latter should be preferred.
 ##
 ## Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-## `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+## `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
 ## about MIME.
 ##
 ## c: The connection.
@@ -138,7 +138,7 @@ event mime_entity_data%(c: connection, length: count, data: string%);
 ## expensive.
 ##
 ## Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-## `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+## `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
 ## about MIME.
 ##
 ## c: The connection.
@@ -157,7 +157,7 @@ event mime_all_data%(c: connection, length: count, data: string%);
 ## Generated for errors found when decoding email MIME entities.
 ##
 ## Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-## `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+## `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
 ## about MIME.
 ##
 ## c: The connection.
@@ -179,7 +179,7 @@ event mime_event%(c: connection, event_type: string, detail: string%);
 ## each MIME entity.
 ##
 ## Zeek's MIME analyzer for emails currently supports SMTP and POP3. See
-## `Wikipedia <http://en.wikipedia.org/wiki/MIME>`__ for more information
+## `Wikipedia <https://en.wikipedia.org/wiki/MIME>`__ for more information
 ## about MIME.
 ##
 ## c: The connection.
@@ -194,4 +194,3 @@ event mime_event%(c: connection, event_type: string, detail: string%);
 ## .. note:: While Zeek also decodes MIME entities extracted from HTTP
 ##    sessions, there's no corresponding event for that currently.
 event mime_content_hash%(c: connection, content_len: count, hash_value: string%);
-

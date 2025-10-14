@@ -478,7 +478,7 @@ processes at appropriate offsets.
 PF_RING Cluster Configuration
 -----------------------------
 
-`PF_RING <http://www.ntop.org/products/pf_ring/>`_ allows speeding up the
+`PF_RING <https://www.ntop.org/products/pf_ring/>`_ allows speeding up the
 packet capture process by installing a new type of socket in Linux systems.
 It supports 10Gbit hardware packet filtering using standard network adapters,
 and user-space DNA (Direct NIC Access) for fast packet capture/transmission.

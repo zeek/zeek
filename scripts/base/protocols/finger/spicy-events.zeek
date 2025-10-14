@@ -4,7 +4,7 @@
 
 ## Generated for Finger requests.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Finger_protocol>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Finger_protocol>`__ for more
 ## information about the Finger protocol.
 ##
 ## c: The connection.
@@ -20,7 +20,7 @@ global finger_request: event(c: connection, full: bool, username: string, hostna
 
 ## Generated for Finger replies.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Finger_protocol>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Finger_protocol>`__ for more
 ## information about the Finger protocol.
 ##
 ## c: The connection.

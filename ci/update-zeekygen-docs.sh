@@ -70,7 +70,7 @@ if [[ "$branch" =~ ^release/.* ]]; then
 fi
 
 if [ -n "$(cd $source_dir/doc && git status --porcelain)" ]; then
-    echo "*** There are changes in zeek-docs that need a review, commit, and push ***"
+    echo "*** There are changes in the doc directory that need a review, commit, and push ***"
 else
     echo "No changes or further action needed"
 fi

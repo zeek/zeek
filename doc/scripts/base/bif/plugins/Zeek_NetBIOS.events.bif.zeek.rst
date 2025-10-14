@@ -36,7 +36,7 @@ Events
    NetBIOS analyzer processes the NetBIOS session service running on TCP port
    139, and (despite its name!) the NetBIOS datagram service on UDP port 138.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
    the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
@@ -53,7 +53,7 @@ Events
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
+      `SMB/CIFS <https://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
    .. todo:: Zeek's current default configuration does not activate the protocol
@@ -70,7 +70,7 @@ Events
    processes the NetBIOS session service running on TCP port 139, and (despite
    its name!) the NetBIOS datagram service on UDP port 138.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
    the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
@@ -87,7 +87,7 @@ Events
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
+      `SMB/CIFS <https://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
    .. todo:: Zeek's current default configuration does not activate the protocol
@@ -104,7 +104,7 @@ Events
    processes the NetBIOS session service running on TCP port 139, and (despite
    its name!) the NetBIOS datagram service on UDP port 138.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
    the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
@@ -127,7 +127,7 @@ Events
       netbios_session_ret_arg_resp  decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
+      `SMB/CIFS <https://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
    .. todo:: Zeek's current default configuration does not activate the protocol
@@ -146,7 +146,7 @@ Events
    NetBIOS analyzer processes the NetBIOS session service running on TCP port
    139, and (despite its name!) the NetBIOS datagram service on UDP port 138.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
    the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
@@ -166,7 +166,7 @@ Events
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
+      `SMB/CIFS <https://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
    .. todo:: This is an oddly named event. In fact, it's probably an odd event
@@ -186,7 +186,7 @@ Events
    NetBIOS analyzer processes the NetBIOS session service running on TCP port
    139, and (despite its name!) the NetBIOS datagram service on UDP port 138.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
    the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
@@ -203,7 +203,7 @@ Events
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
+      `SMB/CIFS <https://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
    .. todo:: Zeek's current default configuration does not activate the protocol
@@ -220,7 +220,7 @@ Events
    analyzer processes the NetBIOS session service running on TCP port 139, and
    (despite its name!) the NetBIOS datagram service on UDP port 138.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
    the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
@@ -237,7 +237,7 @@ Events
       netbios_session_ret_arg_resp decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
+      `SMB/CIFS <https://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
    .. todo:: Zeek's current default configuration does not activate the protocol
@@ -254,7 +254,7 @@ Events
    analyzer processes the NetBIOS session service running on TCP port 139, and
    (despite its name!) the NetBIOS datagram service on UDP port 138.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/NetBIOS>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/NetBIOS>`__ for more information
    about NetBIOS.  :rfc:`1002` describes
    the packet format for NetBIOS over TCP/IP, which Zeek parses.
    
@@ -271,7 +271,7 @@ Events
       netbios_session_request decode_netbios_name decode_netbios_name_type
    
    .. note:: These days, NetBIOS is primarily used as a transport mechanism for
-      `SMB/CIFS <http://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
+      `SMB/CIFS <https://en.wikipedia.org/wiki/Server_Message_Block>`__. Zeek's
       SMB analyzer parses both SMB-over-NetBIOS and SMB-over-TCP on port 445.
    
    .. todo:: This is an oddly named event.

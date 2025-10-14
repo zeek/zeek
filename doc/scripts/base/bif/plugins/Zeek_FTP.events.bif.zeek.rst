@@ -29,7 +29,7 @@ Events
 
    Generated for server-side FTP replies.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/File_Transfer_Protocol>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/File_Transfer_Protocol>`__ for
    more information about the FTP protocol.
    
 
@@ -57,7 +57,7 @@ Events
 
    Generated for client-side FTP commands.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/File_Transfer_Protocol>`__ for
+   See `Wikipedia <https://en.wikipedia.org/wiki/File_Transfer_Protocol>`__ for
    more information about the FTP protocol.
    
 

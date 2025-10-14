@@ -48,7 +48,7 @@ Events
    protocol includes options for negotiating encryption. When such a series of
    options is successfully negotiated, the event engine generates this event.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
    
 
@@ -68,7 +68,7 @@ Events
    option is sent from client to server and the server replies that it accepts
    the authentication, then the event engine generates this event.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
    
 
@@ -99,7 +99,7 @@ Events
    is sent from client to server and the server replies that it did not accept
    the authentication, then the event engine generates this event.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
    
 
@@ -128,7 +128,7 @@ Events
    Generated for Telnet/Rlogin sessions when a pattern match indicates
    that no authentication is performed.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
    
 
@@ -156,7 +156,7 @@ Events
 
    Generated for an ill-formed or unrecognized Telnet option.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
    
 
@@ -180,7 +180,7 @@ Events
 
    Generated for a Telnet option that's incorrectly terminated.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
    
 
@@ -210,7 +210,7 @@ Events
    do, or what it itself offered in terms of options in the past, then the
    engine generates this event.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
    
 
@@ -404,7 +404,7 @@ Events
    This information is extracted out of environment variables sent as Telnet
    options.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/Telnet>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/Telnet>`__ for more information
    about the Telnet protocol.
    
 

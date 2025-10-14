@@ -434,7 +434,7 @@ Functions
    :Type: :zeek:type:`function` (s1: :zeek:type:`string`, s2: :zeek:type:`string`) : :zeek:type:`count`
 
    Calculates the Levenshtein distance between the two strings. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Levenshtein_distance>`__ for more information.
+   <https://en.wikipedia.org/wiki/Levenshtein_distance>`__ for more information.
    
 
    :param s1: The first string.
@@ -724,7 +724,7 @@ Functions
    :Type: :zeek:type:`function` (s1: :zeek:type:`string`, s2: :zeek:type:`string`, params: :zeek:type:`sw_params`) : :zeek:type:`sw_substring_vec`
 
    Uses the Smith-Waterman algorithm to find similar/overlapping substrings.
-   See `Wikipedia <http://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm>`__.
+   See `Wikipedia <https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm>`__.
    
 
    :param s1: The first string.

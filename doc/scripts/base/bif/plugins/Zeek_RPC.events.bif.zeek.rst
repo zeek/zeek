@@ -229,7 +229,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -265,7 +265,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -301,7 +301,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -337,7 +337,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -373,7 +373,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -408,7 +408,7 @@ Events
    analyzer does not implement.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -439,7 +439,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -468,7 +468,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -504,7 +504,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -540,7 +540,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -576,7 +576,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -612,7 +612,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -648,7 +648,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -684,7 +684,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -720,7 +720,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -756,7 +756,7 @@ Events
    reply, or an unanswered request has timed out.
    
    NFS is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
+   <https://en.wikipedia.org/wiki/Network_File_System_(protocol)>`__ for more
    information about the service.
    
 
@@ -815,7 +815,7 @@ Events
    Generated for failed Portmapper requests of type *callit*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -847,7 +847,7 @@ Events
    Generated for failed Portmapper requests of type *dump*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -876,7 +876,7 @@ Events
    Generated for failed Portmapper requests of type *getport*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -907,7 +907,7 @@ Events
    Generated for failed Portmapper requests of type *null*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -936,7 +936,7 @@ Events
    Generated for failed Portmapper requests of type *set*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -968,7 +968,7 @@ Events
    Generated for failed Portmapper requests of type *unset*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -1003,7 +1003,7 @@ Events
    event is generated.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -1031,7 +1031,7 @@ Events
    Generated for Portmapper request/reply dialogues of type *callit*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -1062,7 +1062,7 @@ Events
    Generated for Portmapper request/reply dialogues of type *dump*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -1090,7 +1090,7 @@ Events
    Generated for Portmapper request/reply dialogues of type *getport*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -1120,7 +1120,7 @@ Events
    Generated for Portmapper requests of type *null*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -1144,7 +1144,7 @@ Events
    Generated for Portmapper request/reply dialogues of type *set*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -1176,7 +1176,7 @@ Events
    Generated for Portmapper request/reply dialogues of type *unset*.
    
    Portmapper is a service running on top of RPC. See `Wikipedia
-   <http://en.wikipedia.org/wiki/Portmap>`__ for more information about the
+   <https://en.wikipedia.org/wiki/Portmap>`__ for more information about the
    service.
    
 
@@ -1207,7 +1207,7 @@ Events
 
    Generated for RPC *call* messages.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/ONC_RPC>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/ONC_RPC>`__ for more information
    about the ONC RPC protocol.
    
 
@@ -1248,7 +1248,7 @@ Events
    eventually on timeout. In that case, *status* will be set to
    :zeek:enum:`RPC_TIMEOUT`.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/ONC_RPC>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/ONC_RPC>`__ for more information
    about the ONC RPC protocol.
    
 
@@ -1292,7 +1292,7 @@ Events
 
    Generated for RPC *reply* messages.
    
-   See `Wikipedia <http://en.wikipedia.org/wiki/ONC_RPC>`__ for more information
+   See `Wikipedia <https://en.wikipedia.org/wiki/ONC_RPC>`__ for more information
    about the ONC RPC protocol.
    
 

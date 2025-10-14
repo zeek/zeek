@@ -1,7 +1,7 @@
 
 ## Generated for all client-side IRC commands.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -30,7 +30,7 @@ event irc_request%(c: connection, is_orig: bool, prefix: string,
 ## Generated for all IRC replies. IRC replies are sent in response to a
 ## request and come with a reply code.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -55,7 +55,7 @@ event irc_reply%(c: connection, is_orig: bool, prefix: string,
 
 ## Generated for IRC commands forwarded from the server to the client.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -86,7 +86,7 @@ event irc_message%(c: connection, is_orig: bool, prefix: string,
 ## Generated for IRC messages of type *quit*. This event is generated for
 ## messages coming from both the client and the server.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -108,7 +108,7 @@ event irc_quit_message%(c: connection, is_orig: bool, nick: string, message: str
 ## Generated for IRC messages of type *privmsg*. This event is generated for
 ## messages coming from both the client and the server.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -133,7 +133,7 @@ event irc_privmsg_message%(c: connection, is_orig: bool, source: string,
 ## Generated for IRC messages of type *notice*. This event is generated for
 ## messages coming from both the client and the server.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -158,7 +158,7 @@ event irc_notice_message%(c: connection, is_orig: bool, source: string,
 ## Generated for IRC messages of type *squery*. This event is generated for
 ## messages coming from both the client and the server.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -183,7 +183,7 @@ event irc_squery_message%(c: connection, is_orig: bool, source: string,
 ## Generated for IRC messages of type *join*. This event is generated for
 ## messages coming from both the client and the server.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -203,7 +203,7 @@ event irc_join_message%(c: connection, is_orig: bool, info_list: irc_join_list%)
 ## Generated for IRC messages of type *part*. This event is generated for
 ## messages coming from both the client and the server.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -228,7 +228,7 @@ event irc_part_message%(c: connection, is_orig: bool, nick: string,
 ## Generated for IRC messages of type *nick*. This event is generated for
 ## messages coming from both the client and the server.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -249,7 +249,7 @@ event irc_nick_message%(c: connection, is_orig: bool, who: string, newnick: stri
 
 ## Generated when a server rejects an IRC nickname.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -266,7 +266,7 @@ event irc_invalid_nick%(c: connection, is_orig: bool%);
 
 ## Generated for an IRC reply of type *luserclient*.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -290,7 +290,7 @@ event irc_network_info%(c: connection, is_orig: bool, users: count,
 
 ## Generated for an IRC reply of type *luserme*.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -314,7 +314,7 @@ event irc_server_info%(c: connection, is_orig: bool, users: count,
 
 ## Generated for an IRC reply of type *luserchannels*.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -333,7 +333,7 @@ event irc_channel_info%(c: connection, is_orig: bool, chans: count%);
 
 ## Generated for an IRC reply of type *whoreply*.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -372,7 +372,7 @@ event irc_who_line%(c: connection, is_orig: bool, target_nick: string,
 
 ## Generated for an IRC reply of type *namereply*.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -396,7 +396,7 @@ event irc_names_info%(c: connection, is_orig: bool, c_type: string,
 
 ## Generated for an IRC reply of type *whoisoperator*.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -415,7 +415,7 @@ event irc_whois_operator_line%(c: connection, is_orig: bool, nick: string%);
 
 ## Generated for an IRC reply of type *whoischannels*.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -437,7 +437,7 @@ event irc_whois_channel_line%(c: connection, is_orig: bool, nick: string,
 
 ## Generated for an IRC reply of type *whoisuser*.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -463,7 +463,7 @@ event irc_whois_user_line%(c: connection, is_orig: bool, nick: string,
 
 ## Generated for IRC replies of type *youreoper* and *nooperhost*.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -483,7 +483,7 @@ event irc_oper_response%(c: connection, is_orig: bool, got_oper: bool%);
 
 ## Generated for an IRC reply of type *globalusers*.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -505,7 +505,7 @@ event irc_global_users%(c: connection, is_orig: bool, prefix: string, msg: strin
 
 ## Generated for an IRC reply of type *topic*.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -527,7 +527,7 @@ event irc_channel_topic%(c: connection, is_orig: bool, channel: string, topic: s
 ## Generated for IRC messages of type *who*. This event is generated for
 ## messages coming from both the client and the server.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -549,7 +549,7 @@ event irc_who_message%(c: connection, is_orig: bool, mask: string, oper: bool%);
 ## Generated for IRC messages of type *whois*. This event is generated for
 ## messages coming from both the client and the server.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -571,7 +571,7 @@ event irc_whois_message%(c: connection, is_orig: bool, server: string, users: st
 ## Generated for IRC messages of type *oper*. This event is generated for
 ## messages coming from both the client and the server.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -593,7 +593,7 @@ event irc_oper_message%(c: connection, is_orig: bool, user: string, password: st
 ## Generated for IRC messages of type *kick*. This event is generated for
 ## messages coming from both the client and the server.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -621,7 +621,7 @@ event irc_kick_message%(c: connection, is_orig: bool, prefix: string,
 ## Generated for IRC messages of type *error*. This event is generated for
 ## messages coming from both the client and the server.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -644,7 +644,7 @@ event irc_error_message%(c: connection, is_orig: bool, prefix: string, message: 
 ## Generated for IRC messages of type *invite*. This event is generated for
 ## messages coming from both the client and the server.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -670,7 +670,7 @@ event irc_invite_message%(c: connection, is_orig: bool, prefix: string,
 ## Generated for IRC messages of type *mode*. This event is generated for
 ## messages coming from both the client and the server.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -693,7 +693,7 @@ event irc_mode_message%(c: connection, is_orig: bool, prefix: string, params: st
 ## Generated for IRC messages of type *squit*. This event is generated for
 ## messages coming from both the client and the server.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -719,7 +719,7 @@ event irc_squit_message%(c: connection, is_orig: bool, prefix: string,
 ## Generated for IRC messages of type *dcc*. This event is generated for
 ## messages coming from both the client and the server.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## See `Wikipedia <https://en.wikipedia.org/wiki/Direct_Client-to-Client>`__ for more
@@ -758,7 +758,7 @@ event irc_dcc_message%(c: connection, is_orig: bool,
 ## Generated for IRC messages of type *dcc*. This event is generated for
 ## DCC SEND acknowledge message.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## See `Wikipedia <https://en.wikipedia.org/wiki/Direct_Client-to-Client>`__ for more
@@ -778,7 +778,7 @@ event irc_dcc_send_ack%(c: connection, bytes_received: count%);
 ## Generated for IRC messages of type *user*. This event is generated for
 ## messages coming from both the client and the server.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.
@@ -804,7 +804,7 @@ event irc_user_message%(c: connection, is_orig: bool, user: string, host: string
 ## Generated for IRC messages of type *password*. This event is generated for
 ## messages coming from both the client and the server.
 ##
-## See `Wikipedia <http://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
+## See `Wikipedia <https://en.wikipedia.org/wiki/Internet_Relay_Chat>`__ for more
 ## information about the IRC protocol.
 ##
 ## c: The connection.

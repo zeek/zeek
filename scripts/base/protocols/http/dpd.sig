@@ -1,5 +1,5 @@
 # List of HTTP headers pulled from:
-#   http://annevankesteren.nl/2007/10/http-methods
+#   https://annevankesteren.nl/2007/10/http-methods
 #
 # We match each side of the connection independently to avoid missing
 # large HTTP sessions where one side exceeds the DPD buffer size on

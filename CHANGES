@@ -1,3 +1,16 @@
+8.1.0-dev.698 | 2025-10-14 22:27:03 +0200
+
+  * ZAM: Fix memory leak in Construct-Known-Record-With-Inits (Arne Welzel, Corelight)
+
+    Commit b5d17f7f49c32e2b87856da01b51cf512c52e0e9 mistakenly removed Unref()
+    for init_vals pre-generated, but then potentially replaced by values from a
+    record. Re-instantiate it and add a test that tickled the leak.
+
+    This also replaced some autos with the concrete types, even if they
+    are a mouthful. Mostly to make my poor man's grep-based workflow a bit
+    easier. Also, given not everything is in .cc files, using an IDE to
+    figure out types is semi successful (works for the generated code only).
+
 8.1.0-dev.696 | 2025-10-14 11:39:33 -0700
 
   * KRB: Use krb5_build_principal() over krb5_sname_to_principal() (Arne Welzel, Corelight)

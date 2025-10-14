@@ -76,11 +76,20 @@ macro	AssignFromRec(rhs)
 	auto is_managed = Z_AUX->is_managed;
 	for ( size_t i = 0U; i < n; ++i )
 		{
-		auto rhs_i = FieldValWithCheck(rhs, rhs_map[i]);
-		auto& init_i = init_vals[lhs_map[i]];
+		ZVal rhs_i = FieldValWithCheck(rhs, rhs_map[i]);
+		std::optional<ZVal>& init_i = init_vals[lhs_map[i]];
+		/*
+		 * ConstructRecordPost() used after AssignFromRec() calls the
+		 * optimization specific RecordVal(t, init_vals) constructor
+		 * which adpots managed ZVal references, so need to 1) ref any
+		 * managed fields from rhs and 2) unref managed ZVal values
+		 * existing in init_vals created during GenInits().
+		 */
 		if ( is_managed[i] )
 			{
 			zeek::Ref(rhs_i.ManagedVal());
+			if ( init_i.has_value() )
+				zeek::Unref(init_i->ManagedVal());
 			}
 		init_i = rhs_i;
 		}
@@ -111,9 +120,9 @@ eval	auto init_vals = Z_AUX->ToZValVecWithMap(frame);
 	ConstructRecordPost($$)
 
 macro GenInits()
-	auto init_vals = Z_AUX->ToZValVecWithMap(frame);
-	for ( auto& fi : *Z_AUX->field_inits )
-		init_vals[fi.first] = fi.second->Generate();
+	std::vector<std::optional<ZVal>> init_vals = Z_AUX->ToZValVecWithMap(frame);
+	for ( const auto& [idx, field_init] : *Z_AUX->field_inits )
+		init_vals[idx] = field_init->Generate();
 
 op Construct-Known-Record-With-Inits
 class V

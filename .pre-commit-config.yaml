@@ -21,6 +21,7 @@ repos:
   rev: v0.40.2
   hooks:
   - id: yapf
+    exclude: '^doc/ext/spicy-pygments.py$'
 
 - repo: https://github.com/cheshirekow/cmake-format-precommit
   rev: v0.6.13

@@ -105,7 +105,7 @@ Events
 
    Generated for a change user command from a MySQL client.
    
-   See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+   See the MySQL `documentation <https://dev.mysql.com/doc/dev/mysql-server/latest/PAGE_PROTOCOL.html>`__
    for more information about the MySQL protocol.
    
 
@@ -123,7 +123,7 @@ Events
 
    Generated for a command request from a MySQL client.
    
-   See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+   See the MySQL `documentation <https://dev.mysql.com/doc/dev/mysql-server/latest/PAGE_PROTOCOL.html>`__
    for more information about the MySQL protocol.
    
 
@@ -144,7 +144,7 @@ Events
 
    Generated for a MySQL EOF packet.
    
-   See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+   See the MySQL `documentation <https://dev.mysql.com/doc/dev/mysql-server/latest/PAGE_PROTOCOL.html>`__
    for more information about the MySQL protocol.
    
 
@@ -162,7 +162,7 @@ Events
 
    Generated for an unsuccessful MySQL response.
    
-   See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+   See the MySQL `documentation <https://dev.mysql.com/doc/dev/mysql-server/latest/PAGE_PROTOCOL.html>`__
    for more information about the MySQL protocol.
    
 
@@ -184,7 +184,7 @@ Events
    Generated for a client handshake response packet, which includes the username the client is attempting
    to connect as.
    
-   See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+   See the MySQL `documentation <https://dev.mysql.com/doc/dev/mysql-server/latest/PAGE_PROTOCOL.html>`__
    for more information about the MySQL protocol.
    
 
@@ -202,7 +202,7 @@ Events
 
    Generated for a successful MySQL response.
    
-   See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+   See the MySQL `documentation <https://dev.mysql.com/doc/dev/mysql-server/latest/PAGE_PROTOCOL.html>`__
    for more information about the MySQL protocol.
    
 
@@ -220,7 +220,7 @@ Events
 
    Generated for each MySQL ResultsetRow response packet.
    
-   See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+   See the MySQL `documentation <https://dev.mysql.com/doc/dev/mysql-server/latest/PAGE_PROTOCOL.html>`__
    for more information about the MySQL protocol.
    
 
@@ -238,7 +238,7 @@ Events
 
    Generated for the initial server handshake packet, which includes the MySQL server version.
    
-   See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+   See the MySQL `documentation <https://dev.mysql.com/doc/dev/mysql-server/latest/PAGE_PROTOCOL.html>`__
    for more information about the MySQL protocol.
    
 
@@ -256,7 +256,7 @@ Events
 
    Generated for a short client handshake response packet with the CLIENT_SSL
    flag set. Usually the client will initiate a TLS handshake afterwards.
-   See the MySQL `documentation <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>`__
+   See the MySQL `documentation <https://dev.mysql.com/doc/dev/mysql-server/latest/PAGE_PROTOCOL.html>`__
    for more information about the MySQL protocol.
    
 

@@ -6,7 +6,7 @@
 .. _Fink: https://www.finkproject.org
 .. _Homebrew: https://brew.sh
 .. _downloads page: https://zeek.org/get-zeek
-.. _devtoolset: https://developers.redhat.com/products/developertoolset/hello-world
+.. _devtoolset: https://developers.redhat.com/products/red-hat-developer-toolset/getting-started
 .. _zkg package manager: https://docs.zeek.org/projects/package-manager/en/stable/
 .. _crosstool-NG: https://crosstool-ng.github.io/
 .. _CMake toolchain: https://cmake.org/cmake/help/latest/manual/cmake-toolchains.7.html

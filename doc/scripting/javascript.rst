@@ -497,7 +497,7 @@ tested, but not integrated with ZeekJS at this point.
 
 
 .. _ZeekJS documentation: https://zeekjs.readthedocs.io/en/latest/
-.. _Node.js: https://nodejs.org/enhttps://nodejs.org/en
+.. _Node.js: https://nodejs.org/en
 .. _ZeekJS: https://github.com/corelight/zeekjs
 .. _BigInt: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
 .. _Number: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number

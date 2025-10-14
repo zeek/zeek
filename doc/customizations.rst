@@ -70,7 +70,7 @@ or used in custom scripts.
     1:yvyB8h+3dnggTZW0UEITWCst97w=
 
 .. _Community ID Flow Hashing: https://github.com/corelight/community-id-spec
-.. _zeek-community-id: https://github.com/corelight/zeek-community-id/>`_
+.. _zeek-community-id: https://github.com/corelight/zeek-community-id
 
 .. _geolocation:
 

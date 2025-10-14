@@ -1,5 +1,5 @@
 ##! Detect file downloads that have hash values matching files in Team
-##! Cymru's Malware Hash Registry (https://www.team-cymru.com/mhr.html).
+##! Cymru's Malware Hash Registry (https://www.team-cymru.com/mhr).
 
 @load base/frameworks/files
 @load base/frameworks/notice

@@ -21,7 +21,7 @@ extra scripts needed or used by the documentation process.
    
    Comments in the from ``##!`` are meant to summarize the script's
    purpose.  They are transferred directly into the generated
-   `reStructuredText <http://docutils.sourceforge.net/rst.html>`_
+   `reStructuredText <https://docutils.sourceforge.net/rst.html>`_
    (reST) document associated with the script.
    
    .. tip:: You can embed directives and roles within ``##``-stylized comments.

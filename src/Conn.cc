@@ -67,7 +67,7 @@ void ConnectionRecordValCallback::RemoveCallbacks(RecordVal& arg_conn_val) {
 }
 
 ZVal ConnectionRecordValCallback::operator()(const ZVal& val, const ZVal& arg_field) const {
-    auto field = arg_field.AsInt();
+    auto field = static_cast<int>(arg_field.AsCount());
 
     if ( val.ManagedVal() != conn_val )
         reporter->FatalErrorWithCore("connection callback: wrong val %p != %p", val.ManagedVal(), conn_val);

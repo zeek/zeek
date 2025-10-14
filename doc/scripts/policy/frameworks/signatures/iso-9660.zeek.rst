@@ -1,0 +1,21 @@
+:tocdepth: 3
+
+policy/frameworks/signatures/iso-9660.zeek
+==========================================
+
+Load signature for ISO 9660 disk image and increase
+default_file_bof_buffer_size to make it functional.
+
+
+Summary
+~~~~~~~
+Redefinitions
+#############
+=============================================================================== =
+:zeek:id:`default_file_bof_buffer_size`: :zeek:type:`count` :zeek:attr:`&redef` 
+=============================================================================== =
+
+
+Detailed Interface
+~~~~~~~~~~~~~~~~~~
+

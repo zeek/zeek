@@ -1,0 +1,16 @@
+# Copyright (c) 2021 by the Zeek Project. See LICENSE for details.
+#
+# Note: When line numbers change in this file, update the documentation that pulls it in.
+
+protocol analyzer spicy::TFTP over UDP:
+    parse with TFTP::Packet,
+    port 69/udp;
+
+import TFTP;
+
+on TFTP::Request if ( is_read )   -> event tftp::read_request($conn, $is_orig, self.filename, self.mode);
+on TFTP::Request if ( ! is_read ) -> event tftp::write_request($conn, $is_orig, self.filename, self.mode);
+
+on TFTP::Data            -> event tftp::data($conn, $is_orig, self.num, self.data);
+on TFTP::Acknowledgement -> event tftp::ack($conn, $is_orig, self.num);
+on TFTP::Error           -> event tftp::error($conn, $is_orig, self.code, self.msg);

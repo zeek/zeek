@@ -1,0 +1,20 @@
+Traces used in the examples of the docs.
+
+* tm1t.pcap
+
+  ?
+
+* 20171220_smb_at_schedule.pcap
+
+  References:
+
+  https://redmine.openinfosecfoundation.org/issues/3109
+  https://github.com/tianyulab/Hunting_lateral_movement/blob/master/20171220_smb_at_schedule.pcap
+
+  SHA1:
+
+  b5c5329536c7add1267cbbc50ac1436387c0b773
+
+* get.trace
+
+  That's the zeek/testing/btest/Traces/http/get.trace one.

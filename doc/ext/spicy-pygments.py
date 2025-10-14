@@ -329,11 +329,16 @@ class SpicyEvtLexer(RegexLexer):
             include("function-call"),
             include("identifiers"),
         ],
-        "whitespace": SpicyLexer.tokens["whitespace"],
-        "comments": SpicyLexer.tokens["comments"],
-        "directives": SpicyLexer.tokens["directives"],
-        "hooks": SpicyLexer.tokens["hooks"],
-        "modules": SpicyLexer.tokens["modules"],
+        "whitespace":
+        SpicyLexer.tokens["whitespace"],
+        "comments":
+        SpicyLexer.tokens["comments"],
+        "directives":
+        SpicyLexer.tokens["directives"],
+        "hooks":
+        SpicyLexer.tokens["hooks"],
+        "modules":
+        SpicyLexer.tokens["modules"],
         "keywords": [
             (
                 rf"\b(analyzer|with|replaces)(\s+)({_id}(::{_id})*)",
@@ -375,10 +380,14 @@ class SpicyEvtLexer(RegexLexer):
                 Keyword,
             ),
         ],
-        "literals": SpicyLexer.tokens["literals"],
-        "operators": SpicyLexer.tokens["operators"],
-        "punctuation": SpicyLexer.tokens["punctuation"],
-        "function-call": SpicyLexer.tokens["function-call"],
+        "literals":
+        SpicyLexer.tokens["literals"],
+        "operators":
+        SpicyLexer.tokens["operators"],
+        "punctuation":
+        SpicyLexer.tokens["punctuation"],
+        "function-call":
+        SpicyLexer.tokens["function-call"],
         "identifiers": [
             (r"\b(ZEEK_VERSION)\b", Name.Builtin),
             (r"\b(self)\b", Name.Builtin.Pseudo),
@@ -386,6 +395,8 @@ class SpicyEvtLexer(RegexLexer):
             (r"([a-zA-Z_]\w*)(::)", bygroups(Name, Punctuation)),
             (r"[a-zA-Z_]\w*", Name),
         ],
-        "string": SpicyLexer.tokens["string"],
-        "regex": SpicyLexer.tokens["regex"],
+        "string":
+        SpicyLexer.tokens["string"],
+        "regex":
+        SpicyLexer.tokens["regex"],
     }

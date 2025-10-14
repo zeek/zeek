@@ -67,10 +67,10 @@ except:
         version = u"git/master"
 
         version_tag_re = r'v\d+\.\d+(\.\d+)?'
-        version_tags = [t for t in repo.tags if
-                t.commit == repo.head.commit and
-                re.match(version_tag_re, str(t))
-                ]
+        version_tags = [
+            t for t in repo.tags
+            if t.commit == repo.head.commit and re.match(version_tag_re, str(t))
+        ]
         # Note: sorting by tag date doesn't necessarily give correct
         # order in terms of version numbers, but doubtful that will ever be
         # a problem (if we ever do re-tag an old version number on a given
@@ -138,7 +138,6 @@ highlight_language = 'none'
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
 
-
 # -- Options for HTML output ---------------------------------------------------
 
 html_theme = 'sphinx_rtd_theme'
@@ -179,12 +178,14 @@ html_favicon = 'images/zeek-favicon.ico'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
+
 def setup(app):
     app.add_css_file("theme_overrides.css")
     from sphinx.highlighting import lexers
     from zeek_pygments import ZeekLexer
     lexers['zeek'] = ZeekLexer()
     app.add_config_value('zeek-code-url', zeek_code_url, 'env')
+
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -243,8 +244,7 @@ htmlhelp_basename = 'zeek-docs'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'Zeek.tex', u'Zeek Documentation',
-   u'The Zeek Project', 'manual'),
+    ('index', 'Zeek.tex', u'Zeek Documentation', u'The Zeek Project', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -274,13 +274,10 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    ('index', 'zeek', u'Zeek Documentation',
-     [u'The Zeek Project'], 1)
-]
+man_pages = [('index', 'zeek', u'Zeek Documentation', [u'The Zeek Project'], 1)]
 
 # -- Options for todo plugin --------------------------------------------
-todo_include_todos=True
+todo_include_todos = True
 
 extlinks = {
     'slacklink': ('https://zeek.org/slack%s', None),

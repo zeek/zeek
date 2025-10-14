@@ -2,6 +2,7 @@
     The Zeek domain for Sphinx.
 """
 
+
 def setup(Sphinx):
     Sphinx.add_domain(ZeekDomain)
     Sphinx.add_node(see)
@@ -10,6 +11,7 @@ def setup(Sphinx):
     return {
         'parallel_read_safe': True,
     }
+
 
 from sphinx import addnodes
 from sphinx.domains import Domain, ObjType, Index
@@ -21,6 +23,7 @@ from sphinx.util.nodes import make_refnode
 from sphinx import version_info
 
 from sphinx.util import logging
+
 logger = logging.getLogger(__name__)
 
 from docutils import nodes
@@ -28,8 +31,10 @@ from docutils.parsers.rst import Directive
 from docutils.parsers.rst import directives
 from docutils.parsers.rst.roles import set_classes
 
+
 class see(nodes.General, nodes.Element):
     refs = []
+
 
 class SeeDirective(Directive):
     has_content = True
@@ -39,6 +44,7 @@ class SeeDirective(Directive):
         n.refs = " ".join(self.content).split()
         return [n]
 
+
 # Wrapper for creating a tuple for index nodes, staying backwards
 # compatible to Sphinx < 1.4:
 def make_index_tuple(indextype, indexentry, targetname, targetname2):
@@ -46,6 +52,7 @@ def make_index_tuple(indextype, indexentry, targetname, targetname2):
         return (indextype, indexentry, targetname, targetname2, None)
     else:
         return (indextype, indexentry, targetname, targetname2)
+
 
 def process_see_nodes(app, doctree, fromdocname):
     for node in doctree.traverse(see):
@@ -55,12 +62,15 @@ def process_see_nodes(app, doctree, fromdocname):
         for name in node.refs:
             join_str = " "
             if name != node.refs[0]:
-                join_str  = ", "
-            link_txt = join_str + name;
+                join_str = ", "
+            link_txt = join_str + name
 
             if name not in app.env.domaindata['zeek']['idtypes']:
                 # Just create the text and issue warning
-                logger.warning('%s: unknown target for ".. zeek:see:: %s"', fromdocname, name, location=node)
+                logger.warning('%s: unknown target for ".. zeek:see:: %s"',
+                               fromdocname,
+                               name,
+                               location=node)
                 para += nodes.Text(link_txt, link_txt)
             else:
                 # Create a reference
@@ -70,8 +80,7 @@ def process_see_nodes(app, doctree, fromdocname):
                 newnode = nodes.reference('', '')
                 innernode = nodes.literal(_(name), _(name), classes=['xref'])
                 newnode['refdocname'] = todocname
-                newnode['refuri'] = app.builder.get_relative_uri(
-                    fromdocname, todocname)
+                newnode['refuri'] = app.builder.get_relative_uri(fromdocname, todocname)
                 newnode['refuri'] += '#' + typ + '-' + name
                 newnode.append(innernode)
                 para += nodes.Text(join_str, join_str)
@@ -80,10 +89,9 @@ def process_see_nodes(app, doctree, fromdocname):
         content.append(para)
         node.replace_self(content)
 
+
 class ZeekGeneric(ObjectDescription):
-    option_spec = {
-        'source-code': directives.unchanged
-    }
+    option_spec = {'source-code': directives.unchanged}
 
     def __init__(self, *args, **kwargs):
         super(ObjectDescription, self).__init__(*args, **kwargs)
@@ -123,13 +131,11 @@ class ZeekGeneric(ObjectDescription):
             objects = self.env.domaindata['zeek']['objects']
             key = (self.get_obj_name(), name)
 
-            if ( key in objects and self.get_obj_name() != "id" and
-                 self.get_obj_name() != "type" ):
-                logger.warning('%s: duplicate description of %s %s, ' %
-                        (self.env.docname, self.get_obj_name(), name) +
-                        'other instance in ' +
-                        self.env.doc2path(objects[key]),
-                        self.lineno)
+            if (key in objects and self.get_obj_name() != "id" and self.get_obj_name() != "type"):
+                logger.warning(
+                    '%s: duplicate description of %s %s, ' %
+                    (self.env.docname, self.get_obj_name(), name) + 'other instance in ' +
+                    self.env.doc2path(objects[key]), self.lineno)
 
             objects[key] = self.env.docname
             self.update_type_map(name)
@@ -137,18 +143,15 @@ class ZeekGeneric(ObjectDescription):
         indextext = self.get_index_text(name)
 
         if indextext:
-            self.indexnode['entries'].append(make_index_tuple('single',
-                                             indextext, targetname,
-                                             targetname))
+            self.indexnode['entries'].append(
+                make_index_tuple('single', indextext, targetname, targetname))
 
     def get_index_text(self, name):
         return _('%s (%s)') % (name, self.get_obj_name())
 
     def handle_signature(self, sig, signode):
         if self.code_url:
-            signode += nodes.reference(sig, sig,
-                                       refuri=self.code_url,
-                                       reftitle='View Source Code')
+            signode += nodes.reference(sig, sig, refuri=self.code_url, reftitle='View Source Code')
 
             # Could embed snippets directly, but would probably want to clean
             # up how it's done: don't use an external script, figure out why
@@ -175,7 +178,9 @@ class ZeekGeneric(ObjectDescription):
 
         return sig
 
+
 class ZeekNamespace(ZeekGeneric):
+
     def add_target_and_index(self, name, sig, signode):
         targetname = self.get_obj_name() + '-' + name
 
@@ -191,11 +196,10 @@ class ZeekNamespace(ZeekGeneric):
             self.update_type_map(name)
 
         indextext = self.get_index_text(name)
-        self.indexnode['entries'].append(make_index_tuple('single', indextext,
-                                          targetname, targetname))
-        self.indexnode['entries'].append(make_index_tuple('single',
-                                          "namespaces; %s" % (sig),
-                                          targetname, targetname))
+        self.indexnode['entries'].append(
+            make_index_tuple('single', indextext, targetname, targetname))
+        self.indexnode['entries'].append(
+            make_index_tuple('single', "namespaces; %s" % (sig), targetname, targetname))
 
     def get_index_text(self, name):
         return _('%s (namespace); %s') % (name, self.env.docname)
@@ -204,7 +208,9 @@ class ZeekNamespace(ZeekGeneric):
         signode += addnodes.desc_name("", sig)
         return sig
 
+
 class ZeekEnum(ZeekGeneric):
+
     def add_target_and_index(self, name, sig, signode):
         targetname = self.get_obj_name() + '-' + name
 
@@ -228,12 +234,11 @@ class ZeekEnum(ZeekGeneric):
         if m[1] == "Notice::Type":
             if 'notices' not in self.env.domaindata['zeek']:
                 self.env.domaindata['zeek']['notices'] = []
-            self.env.domaindata['zeek']['notices'].append(
-                                (m[0], self.env.docname, targetname))
+            self.env.domaindata['zeek']['notices'].append((m[0], self.env.docname, targetname))
 
-        self.indexnode['entries'].append(make_index_tuple('single',
-                                          "%s (enum values); %s" % (m[1], m[0]),
-                                          targetname, targetname))
+        self.indexnode['entries'].append(
+            make_index_tuple('single', "%s (enum values); %s" % (m[1], m[0]), targetname,
+                             targetname))
 
     def handle_signature(self, sig, signode):
         m = sig.split()
@@ -241,15 +246,15 @@ class ZeekEnum(ZeekGeneric):
         signode += addnodes.desc_name("", name)
         return name
 
+
 class ZeekParamField(docfields.GroupedField):
     has_arg = True
     is_typed = True
 
+
 class ZeekIdentifier(ZeekGeneric):
     zeek_param_field = ZeekParamField('param', label='Parameters', can_collapse=True)
-    field_type_map = {
-        'param': (zeek_param_field, False)
-    }
+    field_type_map = {'param': (zeek_param_field, False)}
 
     def get_index_text(self, name):
         return name
@@ -257,7 +262,9 @@ class ZeekIdentifier(ZeekGeneric):
     def get_field_type_map(self):
         return self.field_type_map
 
+
 class ZeekNative(ZeekGeneric):
+
     def handle_signature(self, sig, signode):
         # The run() method is overridden to drop signode anyway in favor of
         # simply adding the index and a target nodes and leaving up
@@ -281,21 +288,28 @@ class ZeekNative(ZeekGeneric):
         # Replace the description node from Sphinx with a simple target node
         return [index_node, target_node]
 
+
 class ZeekKeyword(ZeekNative):
+
     def get_index_text(self, name):
         if name and name[0] == '@':
             return _('%s (directive)') % (name)
         else:
             return _('%s (keyword)') % (name)
 
+
 class ZeekAttribute(ZeekNative):
+
     def get_index_text(self, name):
         return _('%s (attribute)') % (name)
 
+
 class ZeekNativeType(ZeekNative):
+
     def get_obj_name(self):
         # As opposed to using 'native-type', just imitate 'type'.
         return 'type'
+
 
 class ZeekNotices(Index):
     """
@@ -321,39 +335,40 @@ class ZeekNotices(Index):
 
         return content, False
 
+
 class ZeekDomain(Domain):
     """Zeek domain."""
     name = 'zeek'
     label = 'Zeek'
 
     object_types = {
-        'type':             ObjType(_('type'),             'type'),
-        'native-type':      ObjType(_('type'),             'type'),
-        'namespace':        ObjType(_('namespace'),        'namespace'),
-        'id':               ObjType(_('id'),               'id'),
-        'keyword':          ObjType(_('keyword'),          'keyword'),
-        'enum':             ObjType(_('enum'),             'enum'),
-        'attr':             ObjType(_('attr'),             'attr'),
+        'type': ObjType(_('type'), 'type'),
+        'native-type': ObjType(_('type'), 'type'),
+        'namespace': ObjType(_('namespace'), 'namespace'),
+        'id': ObjType(_('id'), 'id'),
+        'keyword': ObjType(_('keyword'), 'keyword'),
+        'enum': ObjType(_('enum'), 'enum'),
+        'attr': ObjType(_('attr'), 'attr'),
     }
 
     directives = {
-        'type':             ZeekGeneric,
-        'native-type':      ZeekNativeType,
-        'namespace':        ZeekNamespace,
-        'id':               ZeekIdentifier,
-        'keyword':          ZeekKeyword,
-        'enum':             ZeekEnum,
-        'attr':             ZeekAttribute,
+        'type': ZeekGeneric,
+        'native-type': ZeekNativeType,
+        'namespace': ZeekNamespace,
+        'id': ZeekIdentifier,
+        'keyword': ZeekKeyword,
+        'enum': ZeekEnum,
+        'attr': ZeekAttribute,
     }
 
     roles = {
-        'type':             XRefRole(),
-        'namespace':        XRefRole(),
-        'id':               XRefRole(),
-        'keyword':          XRefRole(),
-        'enum':             XRefRole(),
-        'attr':             XRefRole(),
-        'see':              XRefRole(),
+        'type': XRefRole(),
+        'namespace': XRefRole(),
+        'id': XRefRole(),
+        'keyword': XRefRole(),
+        'enum': XRefRole(),
+        'attr': XRefRole(),
+        'see': XRefRole(),
     }
 
     indices = [
@@ -374,8 +389,7 @@ class ZeekDomain(Domain):
         for (typ, name) in to_delete:
             del self.data['objects'][typ, name]
 
-    def resolve_xref(self, env, fromdocname, builder, typ, target, node,
-                     contnode):
+    def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):
         objects = self.data['objects']
 
         if typ == "see":
@@ -383,21 +397,18 @@ class ZeekDomain(Domain):
                 logger.warning('%s: unknown target for ":zeek:see:`%s`"', fromdocname, target)
                 return []
             objtype = self.data['idtypes'][target]
-            return make_refnode(builder, fromdocname,
-                                        objects[objtype, target],
-                                        objtype + '-' + target,
-                                        contnode, target + ' ' + objtype)
+            return make_refnode(builder, fromdocname, objects[objtype, target],
+                                objtype + '-' + target, contnode, target + ' ' + objtype)
         else:
             objtypes = self.objtypes_for_role(typ)
 
             for objtype in objtypes:
                 if (objtype, target) in objects:
-                    return make_refnode(builder, fromdocname,
-                                        objects[objtype, target],
-                                        objtype + '-' + target,
-                                        contnode, target + ' ' + objtype)
+                    return make_refnode(builder, fromdocname, objects[objtype, target],
+                                        objtype + '-' + target, contnode, target + ' ' + objtype)
                 else:
-                    logger.warning('%s: unknown target for ":zeek:%s:`%s`"', fromdocname, typ, target)
+                    logger.warning('%s: unknown target for ":zeek:%s:`%s`"', fromdocname, typ,
+                                   target)
 
     def get_objects(self):
         for (typ, name), docname in self.data['objects'].items():

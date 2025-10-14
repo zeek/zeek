@@ -28,6 +28,7 @@ Functions
 :zeek:id:`Log::__set_max_delay_interval`: :zeek:type:`function`   
 :zeek:id:`Log::__set_max_delay_queue_size`: :zeek:type:`function` 
 :zeek:id:`Log::__write`: :zeek:type:`function`                    
+:zeek:id:`Log::flush_all`: :zeek:type:`function`                  
 ================================================================= =
 
 
@@ -48,13 +49,13 @@ Functions
 
 
 .. zeek:id:: Log::__delay
-   :source-code: base/bif/logging.bif.zeek 52 52
+   :source-code: base/bif/logging.bif.zeek 55 55
 
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, rec: :zeek:type:`any`, post_delay_cb: :zeek:type:`Log::PostDelayCallback`) : :zeek:type:`Log::DelayToken`
 
 
 .. zeek:id:: Log::__delay_finish
-   :source-code: base/bif/logging.bif.zeek 55 55
+   :source-code: base/bif/logging.bif.zeek 58 58
 
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, rec: :zeek:type:`any`, token: :zeek:type:`Log::DelayToken`) : :zeek:type:`bool`
 
@@ -78,7 +79,7 @@ Functions
 
 
 .. zeek:id:: Log::__get_delay_queue_size
-   :source-code: base/bif/logging.bif.zeek 64 64
+   :source-code: base/bif/logging.bif.zeek 67 67
 
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`) : :zeek:type:`int`
 
@@ -102,13 +103,13 @@ Functions
 
 
 .. zeek:id:: Log::__set_max_delay_interval
-   :source-code: base/bif/logging.bif.zeek 58 58
+   :source-code: base/bif/logging.bif.zeek 61 61
 
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, max_delay: :zeek:type:`interval`) : :zeek:type:`bool`
 
 
 .. zeek:id:: Log::__set_max_delay_queue_size
-   :source-code: base/bif/logging.bif.zeek 61 61
+   :source-code: base/bif/logging.bif.zeek 64 64
 
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, max_queue_size: :zeek:type:`count`) : :zeek:type:`bool`
 
@@ -117,6 +118,12 @@ Functions
    :source-code: base/bif/logging.bif.zeek 41 41
 
    :Type: :zeek:type:`function` (id: :zeek:type:`Log::ID`, columns: :zeek:type:`any`) : :zeek:type:`bool`
+
+
+.. zeek:id:: Log::flush_all
+   :source-code: base/bif/logging.bif.zeek 52 52
+
+   :Type: :zeek:type:`function` () : :zeek:type:`any`
 
 
 

@@ -1,3 +1,7 @@
+8.1.0-dev.704 | 2025-10-15 12:29:11 +0200
+
+  * Logging: Consider broker buffering for flush_all (Jan Grashoefer, Corelight)
+
 8.1.0-dev.702 | 2025-10-15 12:24:15 +0200
 
   * broker: Make MakeHub() filter_type to empty, adapt WebSocketShim (Arne Welzel, Corelight)

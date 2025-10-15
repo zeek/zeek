@@ -57,70 +57,6 @@ constexpr int MAX_PENDING_REQUESTS = 20;
 // requests until a response is larger than this.
 constexpr int MAX_UDP_BUFFER_SIZE = 4096;
 
-// This unfortunately doesn't exist in c-ares, even though it seems rather useful.
-static const char* request_type_string(int request_type) {
-    switch ( request_type ) {
-        case T_A: return "T_A";
-        case T_NS: return "T_NS";
-        case T_MD: return "T_MD";
-        case T_MF: return "T_MF";
-        case T_CNAME: return "T_CNAME";
-        case T_SOA: return "T_SOA";
-        case T_MB: return "T_MB";
-        case T_MG: return "T_MG";
-        case T_MR: return "T_MR";
-        case T_NULL: return "T_NULL";
-        case T_WKS: return "T_WKS";
-        case T_PTR: return "T_PTR";
-        case T_HINFO: return "T_HINFO";
-        case T_MINFO: return "T_MINFO";
-        case T_MX: return "T_MX";
-        case T_TXT: return "T_TXT";
-        case T_RP: return "T_RP";
-        case T_AFSDB: return "T_AFSDB";
-        case T_X25: return "T_X25";
-        case T_ISDN: return "T_ISDN";
-        case T_RT: return "T_RT";
-        case T_NSAP: return "T_NSAP";
-        case T_NSAP_PTR: return "T_NSAP_PTR";
-        case T_SIG: return "T_SIG";
-        case T_KEY: return "T_KEY";
-        case T_PX: return "T_PX";
-        case T_GPOS: return "T_GPOS";
-        case T_AAAA: return "T_AAAA";
-        case T_LOC: return "T_LOC";
-        case T_NXT: return "T_NXT";
-        case T_EID: return "T_EID";
-        case T_NIMLOC: return "T_NIMLOC";
-        case T_SRV: return "T_SRV";
-        case T_ATMA: return "T_ATMA";
-        case T_NAPTR: return "T_NAPTR";
-        case T_KX: return "T_KX";
-        case T_CERT: return "T_CERT";
-        case T_A6: return "T_A6";
-        case T_DNAME: return "T_DNAME";
-        case T_SINK: return "T_SINK";
-        case T_OPT: return "T_OPT";
-        case T_APL: return "T_APL";
-        case T_DS: return "T_DS";
-        case T_SSHFP: return "T_SSHFP";
-        case T_RRSIG: return "T_RRSIG";
-        case T_NSEC: return "T_NSEC";
-        case T_DNSKEY: return "T_DNSKEY";
-        case T_TKEY: return "T_TKEY";
-        case T_TSIG: return "T_TSIG";
-        case T_IXFR: return "T_IXFR";
-        case T_AXFR: return "T_AXFR";
-        case T_MAILB: return "T_MAILB";
-        case T_MAILA: return "T_MAILA";
-        case T_ANY: return "T_ANY";
-        case T_URI: return "T_URI";
-        case T_CAA: return "T_CAA";
-        case T_MAX: return "T_MAX";
-        default: return "";
-    }
-}
-
 struct ares_deleter {
     void operator()(char* s) const { ares_free_string(s); }
     void operator()(ares_addrinfo* s) const { ares_freeaddrinfo(s); }
@@ -614,7 +550,7 @@ static TableValPtr fake_name_lookup_result(const std::string& name) {
 }
 
 static std::string fake_lookup_result(const std::string& name, int request_type) {
-    return util::fmt("fake_lookup_result_%s_%s", request_type_string(request_type), name.c_str());
+    return util::fmt("fake_lookup_result_%d_%s", request_type, name.c_str());
 }
 
 static std::string fake_addr_lookup_result(const IPAddr& addr) {
@@ -656,8 +592,7 @@ ValPtr DNS_Mgr::Lookup(const std::string& name, int request_type) {
         }
 
         case DNS_FORCE:
-            reporter->FatalError("can't find DNS entry for %s (req type %d / %s) in cache", name.c_str(), request_type,
-                                 request_type_string(request_type));
+            reporter->FatalError("can't find DNS entry for %s (req type %d) in cache", name.c_str(), request_type);
             return nullptr;
 
         case DNS_DEFAULT: {

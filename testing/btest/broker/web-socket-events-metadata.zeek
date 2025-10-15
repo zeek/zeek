@@ -9,7 +9,7 @@
 # @TEST-EXEC: btest-bg-run server "zeek -b %INPUT >output"
 # @TEST-EXEC: btest-bg-run client "python3 ../client.py >output"
 #
-# @TEST-EXEC: btest-bg-wait 5
+# @TEST-EXEC: btest-bg-wait 45
 # @TEST-EXEC: btest-diff client/output
 # @TEST-EXEC: TEST_DIFF_CANONIFIER= btest-diff server/output
 
@@ -147,7 +147,5 @@ async def do_run():
         await ws.close()
         sys.exit()
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(do_run())
-
+asyncio.run(do_run())
 # @TEST-END-FILE

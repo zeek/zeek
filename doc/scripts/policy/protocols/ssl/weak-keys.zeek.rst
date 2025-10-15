@@ -88,7 +88,7 @@ Runtime Options
    Warn if a server negotiates a SSL session with a protocol version smaller than
    the specified version. By default, the minimal version is TLSv10 because SSLv2
    and v3 have serious security issued.
-   See https://tools.ietf.org/html/draft-thomson-sslv3-diediedie-00
+   See https://datatracker.ietf.org/doc/html/draft-thomson-sslv3-diediedie-00
    To disable, set to SSLv20
 
 .. zeek:id:: SSL::unsafe_ciphers_regex

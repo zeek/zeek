@@ -140,7 +140,7 @@ Native Prometheus Export
 Every Zeek process, regardless of whether it's running long-term standalone or
 as part of a cluster, can run an HTTP server that renders current telemetry in
 Prometheus's `text-based exposition format
-<https://github.com/prometheus/docs/blob/main/content/docs/instrumenting/exposition_formats.md#text-format-example>`_.
+<https://github.com/prometheus/docs/blob/main/docs/instrumenting/exposition_formats.md>`_.
 
 The :zeek:see:`Telemetry::metrics_port` variable controls this behavior. Its
 default of ``0/unknown`` disables exposing the port; setting it to another TCP

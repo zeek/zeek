@@ -33,7 +33,7 @@ The best references on the contents of the weird.log appear in the briefings
 and writings by Fatema Bannat Wala, such as What Is Weird in Zeek, published 13
 November 2019.
 
-https://zeek.org/2019/11/13/what-is-weird-in-zeek/
+https://zeek.org/2019/11/what-is-weird-in-zeek/
 
 She spoke on the topic in 2018:
 

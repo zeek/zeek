@@ -1,7 +1,7 @@
 # See the file "COPYING" in the main distribution directory for copyright.
 #
 # All information is from the MySQL internals documentation at:
-# <https://dev.mysql.com/doc/internals/en/client-server-protocol.html>
+# <https://dev.mysql.com/doc/dev/mysql-server/latest/PAGE_PROTOCOL.html>
 #
 
 # Basic Types

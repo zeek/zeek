@@ -5,7 +5,7 @@ module LDAP;
 import ASN1;
 import spicy;
 
-# https://tools.ietf.org/html/rfc4511#
+# https://datatracker.ietf.org/doc/html/rfc4511#
 # https://ldap.com/ldapv3-wire-protocol-reference-asn1-ber/
 # https://lapo.it/asn1js
 
@@ -120,7 +120,7 @@ public type Result = unit {
     diagnosticMessage: ASN1::ASN1Message(True) &convert=$$.body.str_value &default="";
 
     # TODO: if we want to parse referral URIs in result
-    # https://tools.ietf.org/html/rfc4511#section-4.1.10
+    # https://datatracker.ietf.org/doc/html/rfc4511#section-4.1.10
 };
 
 # 1.2.840.48018.1.2.2 (MS KRB5 - Microsoft Kerberos 5)
@@ -357,7 +357,7 @@ public type Message = unit(ctx: Ctx&) {
 
 #-----------------------------------------------------------------------------
 # Bind Operation
-# https://tools.ietf.org/html/rfc4511#section-4.2
+# https://datatracker.ietf.org/doc/html/rfc4511#section-4.2
 
 public type BindAuthType = enum {
     BIND_AUTH_SIMPLE = 0,
@@ -550,7 +550,7 @@ type BindResponse = unit(inout message: Message, ctx: Ctx&) {
 
 #-----------------------------------------------------------------------------
 # Unbind Operation
-# https://tools.ietf.org/html/rfc4511#section-4.3
+# https://datatracker.ietf.org/doc/html/rfc4511#section-4.3
 
 type UnbindRequest = unit(inout message: Message) {
     # this page intentionally left blank
@@ -558,7 +558,7 @@ type UnbindRequest = unit(inout message: Message) {
 
 #-----------------------------------------------------------------------------
 # Search Operation
-# https://tools.ietf.org/html/rfc4511#section-4.5
+# https://datatracker.ietf.org/doc/html/rfc4511#section-4.5
 
 public type SearchScope = enum {
     SEARCH_BASE = 0,
@@ -591,7 +591,7 @@ public type AttributeSelection = unit {
     var attributes: vector<string>;
 
     # TODO: parse AttributeSelection as per
-    # https://tools.ietf.org/html/rfc4511#section-4.5.1
+    # https://datatracker.ietf.org/doc/html/rfc4511#section-4.5.1
     # and decide how deep that should be fleshed out.
     : ASN1::ASN1Message(True) {
         if (($$.head.tag.type_ == ASN1::ASN1Type::Sequence) && ($$.body?.seq)) {
@@ -965,7 +965,7 @@ type SearchResultDone = unit(inout message: Message) {
 
 #-----------------------------------------------------------------------------
 # Modify Operation
-# https://tools.ietf.org/html/rfc4511#section-4.6
+# https://datatracker.ietf.org/doc/html/rfc4511#section-4.6
 
 type ModifyRequest = unit(inout message: Message) {
     objectName: ASN1::ASN1Message(True) &convert=$$.body.str_value {
@@ -983,7 +983,7 @@ type ModifyResponse = unit(inout message: Message) {
 
 #-----------------------------------------------------------------------------
 # Add Operation
-# https://tools.ietf.org/html/rfc4511#section-4.7
+# https://datatracker.ietf.org/doc/html/rfc4511#section-4.7
 
 # TODO: implement AddRequest
 # type AddRequest = unit(inout message: Message) {
@@ -999,7 +999,7 @@ type AddResponse = unit(inout message: Message) {
 
 #-----------------------------------------------------------------------------
 # Delete Operation
-# https://tools.ietf.org/html/rfc4511#section-4.8
+# https://datatracker.ietf.org/doc/html/rfc4511#section-4.8
 
 type DelRequest = unit(inout message: Message) {
     objectName: ASN1::ASN1Message(True) &convert=$$.body.str_value {
@@ -1015,7 +1015,7 @@ type DelResponse = unit(inout message: Message) {
 
 #-----------------------------------------------------------------------------
 # Modify DN Operation
-# https://tools.ietf.org/html/rfc4511#section-4.8
+# https://datatracker.ietf.org/doc/html/rfc4511#section-4.8
 
 # TODO: implement ModDNRequest
 # type ModDNRequest = unit(inout message: Message) {
@@ -1030,7 +1030,7 @@ type ModDNResponse = unit(inout message: Message) {
 
 #-----------------------------------------------------------------------------
 # Compare Operation
-# https://tools.ietf.org/html/rfc4511#section-4.10
+# https://datatracker.ietf.org/doc/html/rfc4511#section-4.10
 
 # TODO: implement CompareRequest
 # type CompareRequest = unit(inout message: Message) {
@@ -1045,7 +1045,7 @@ type CompareResponse = unit(inout message: Message) {
 
 #-----------------------------------------------------------------------------
 # Abandon Operation
-# https://tools.ietf.org/html/rfc4511#section-4.11
+# https://datatracker.ietf.org/doc/html/rfc4511#section-4.11
 
 type AbandonRequest = unit(inout message: Message) {
     messageID: ASN1::ASN1Message(True) &convert=$$.body.num_value {
@@ -1055,7 +1055,7 @@ type AbandonRequest = unit(inout message: Message) {
 
 #-----------------------------------------------------------------------------
 # Extended Operation
-# https://tools.ietf.org/html/rfc4511#section-4.12
+# https://datatracker.ietf.org/doc/html/rfc4511#section-4.12
 type ExtendedRequest = unit(inout message: Message, ctx: Ctx&) {
     var requestValue: bytes;
     header: ASN1::ASN1Header &requires=($$.tag.class == ASN1::ASN1Class::ContextSpecific);
@@ -1112,7 +1112,7 @@ type ExtendedResponse = unit(inout message: Message, ctx: Ctx&) {
 
 #-----------------------------------------------------------------------------
 # IntermediateResponse Message
-# https://tools.ietf.org/html/rfc4511#section-4.13
+# https://datatracker.ietf.org/doc/html/rfc4511#section-4.13
 
 # TODO: implement IntermediateResponse
 # type IntermediateResponse = unit(inout message: Message) {

@@ -29,7 +29,7 @@ looking at a complete script and breaking it down into its
 identifiable components.  In this example, we'll take a look at how
 Zeek checks the SHA1 hash of various files extracted from network traffic
 against the `Team Cymru Malware hash registry
-<https://www.team-cymru.org/Services/MHR/>`_.  Part of the Team Cymru Malware
+<https://www.team-cymru.com>`_.  Part of the Team Cymru Malware
 Hash registry includes the ability to do a host lookup on a domain with the format
 ``<MALWARE_HASH>.malware.hash.cymru.com`` where ``<MALWARE_HASH>`` is the SHA1 hash of a file.
 Team Cymru also populates the TXT record of their DNS responses with both a "first seen"
@@ -1320,7 +1320,7 @@ log files into subsets or duplicate that information to another
 output.  The final output of the data is defined by the writer.  Zeek's
 default writer is simple tab separated ASCII files but Zeek also
 includes support for `DataSeries <https://github.com/dataseries>`_
-and `Elasticsearch <https://www.elasticsearch.org>`_ outputs as well as
+and `Elasticsearch <https://www.elastic.co>`_ outputs as well as
 additional writers currently in development.  While these new terms
 and ideas may give the impression that the Logging Framework is
 difficult to work with, the actual learning curve is, in actuality,

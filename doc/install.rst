@@ -50,7 +50,7 @@ analyzer packages.
     apt-get install -y --no-install-recommends g++ cmake make libpcap-dev
 
 The source files used to create the container images are on
-`GitHub <https://github.com/zeek/zeek/blob/master/docker>`_.
+`GitHub <https://github.com/zeek/zeek/tree/master/docker>`_.
 
 .. _binary-packages:
 

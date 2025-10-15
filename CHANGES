@@ -1,3 +1,22 @@
+8.1.0-dev.716 | 2025-10-15 13:14:50 -0700
+
+  * Add linkcheck to docs generation workflow (Tim Wojtulewicz, Corelight)
+
+  * Docs: Remove broken link (DNS failure) to packetlife.net (Tim Wojtulewicz, Corelight)
+
+  * Docs: Fix various other broken links and redirects (Tim Wojtulewicz, Corelight)
+
+  * Docs: Update all permanent redirects (Tim Wojtulewicz, Corelight)
+
+  * Docs: add ignore rules for sphinx link checker (Tim Wojtulewicz, Corelight)
+
+    GitHub consistently fails to find anchors and will eventually
+    rate limit requests. This makes the whole process take forever.
+    Assume that the links are valid and move on. The SSH entry is
+    something with sphinx-build thinking that's a URL.
+
+  * Change README.rst back to a symlink (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.709 | 2025-10-15 09:01:45 -0700
 
   * Make unique_id bifs use UID instead of calling calculate_unique_id directly (Tim Wojtulewicz, Corelight)

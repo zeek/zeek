@@ -25,10 +25,10 @@ flow tuples. If you're not familiar with plugin development, head over to the
 :ref:`Writing Plugins <writing-plugins>` section.
 
 Our goal is to implement a custom connection key to scope connections
-transported within a `VXLAN <https://datatracker.ietf.org/doc/html/rfc7348/index.html>`_
+transported within a `VXLAN <https://datatracker.ietf.org/doc/html/rfc7348.html>`_
 tunnel by the VXLAN Network Identifier (VNI).
 
-As a test case, we have encapsulated the `HTTP GET trace <https://github.com/zeek/zeek/raw/refs/heads/master/testing/btest/Traces/http/get.trace>`_
+As a test case, we have encapsulated the `HTTP GET trace <https://raw.githubusercontent.com/zeek/zeek/refs/heads/master/testing/btest/Traces/http/get.trace>`_
 from the Zeek repository twice with VXLAN using VNIs 4711 and 4242, respectively,
 and merged the resulting two PCAP files with the original PCAP.
 The :download:`resulting PCAP <connkey-vxlan-fivetuple-plugin-src/Traces/vxlan-overlapping-http-get.pcap>`

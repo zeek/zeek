@@ -211,6 +211,6 @@ analysts identify when authorized or unauthorized users access systems via RDP.
 For more information on analyzing RDP in context of vulnerabilities that
 appeared in 2020, please see the following blog posts:
 
-https://corelight.blog/2019/05/23/how-to-use-corelight-and-zeek-logs-to-mitigate-rds-rdp-vulnerabilities/
+https://corelight.com/blog/how-to-use-corelight-and-zeek-logs-to-mitigate-rds-rdp-vulnerabilities
 
-https://corelight.blog/2020/05/13/analyzing-encrypted-rdp-connections/
+https://corelight.com/blog/analyzing-encrypted-rdp-connections

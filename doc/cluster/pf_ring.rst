@@ -8,7 +8,7 @@ Installing PF_RING
 ******************
 
 1. Download and install PF_RING for your system following the instructions
-   `here <https://www.ntop.org/get-started/download/#PF_RING>`_.  The following
+   `here <https://www.ntop.org/guides/pf_ring/get_started/index.html>`_.  The following
    commands will install the PF_RING libraries and kernel module (replace
    the version number 5.6.2 in this example with the version that you
    downloaded)::

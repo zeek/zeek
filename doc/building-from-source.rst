@@ -1,12 +1,12 @@
 
-.. _CMake: https://www.cmake.org
+.. _CMake: https://cmake.org
 .. _SWIG: https://www.swig.org
 .. _Xcode: https://developer.apple.com/xcode/
 .. _MacPorts: https://www.macports.org
 .. _Fink: https://www.finkproject.org
 .. _Homebrew: https://brew.sh
 .. _downloads page: https://zeek.org/get-zeek
-.. _devtoolset: https://developers.redhat.com/products/developertoolset/hello-world
+.. _devtoolset: https://developers.redhat.com/products/red-hat-developer-toolset/getting-started
 .. _zkg package manager: https://docs.zeek.org/projects/package-manager/en/stable/
 .. _crosstool-NG: https://crosstool-ng.github.io/
 .. _CMake toolchain: https://cmake.org/cmake/help/latest/manual/cmake-toolchains.7.html
@@ -38,7 +38,7 @@ development headers for libraries:
     * BIND8 library or greater (if not covered by system's libresolv)
     * Bison 3.3 or greater (https://www.gnu.org/software/bison/)
     * C/C++ compiler with C++17 support (GCC 8+ or Clang 9+)
-    * CMake 3.15 or greater (https://www.cmake.org)
+    * CMake 3.15 or greater (https://cmake.org)
     * Flex (lexical analyzer generator) 2.6 or greater (https://github.com/westes/flex)
     * Libpcap (https://www.tcpdump.org)
     * Make

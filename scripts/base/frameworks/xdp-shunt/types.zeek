@@ -21,4 +21,12 @@ export {
 
         present: bool; # If this means anything :) probably a better way
     };
+
+    type shunt_table: table[conn_id] of ShuntedStats;
+
+    type ip_pair: record {
+        ip1: addr;
+        ip2: addr;
+    };
+    type ip_pair_shunt_table: table[ip_pair] of ShuntedStats;
 }

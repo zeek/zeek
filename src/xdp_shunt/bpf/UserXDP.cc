@@ -12,6 +12,33 @@
 #include "bpf/filter_common.h"
 // clang-format on
 
+bool operator<(const canonical_tuple& lhs, const canonical_tuple& rhs) {
+    auto ip1_cmp = compare_ips(&lhs.ip1, &rhs.ip1);
+    if ( ip1_cmp != 0 )
+        return ip1_cmp < 0;
+
+    auto ip2_cmp = compare_ips(&lhs.ip2, &rhs.ip2);
+    if ( ip2_cmp != 0 )
+        return ip2_cmp < 0;
+
+    if ( lhs.port1 != rhs.port1 )
+        return lhs.port1 < rhs.port1;
+
+    if ( lhs.port2 != rhs.port2 )
+        return lhs.port2 < rhs.port2;
+
+    return lhs.protocol < rhs.protocol;
+}
+
+bool operator<(const ip_pair_key& lhs, const ip_pair_key& rhs) {
+    int ip1_cmp = compare_ips(&lhs.ip1, &rhs.ip1);
+    if ( ip1_cmp != 0 )
+        return ip1_cmp < 0;
+
+    int ip2_cmp = compare_ips(&lhs.ip2, &rhs.ip2);
+    return ip2_cmp < 0;
+}
+
 std::optional<std::string> load_and_attach(int ifindex, xdp_options opts, struct filter** skel) {
     *skel = filter::open_and_load();
     auto prog_fd = bpf_program__fd((*skel)->progs.xdp_filter);
@@ -71,21 +98,25 @@ template std::optional<std::string> remove_from_map<canonical_tuple>(struct bpf_
 template std::optional<std::string> remove_from_map<ip_pair_key>(struct bpf_map* map, ip_pair_key* key);
 
 template<SupportedBpfKey Key>
-std::vector<Key> get_map(struct bpf_map* map) {
-    std::vector<Key> keys;
-    Key key;
+std::map<Key, struct shunt_val> get_map(struct bpf_map* map) {
+    std::map<Key, struct shunt_val> found_map;
     Key next_key;
     Key* prev_key = nullptr;
     while ( bpf_map_get_next_key(bpf_map__fd(map), prev_key, &next_key) == 0 ) {
-        keys.push_back(next_key);
+        shunt_val value;
+        if ( bpf_map_lookup_elem(bpf_map__fd(map), &next_key, &value) != 0 )
+            // TODO: what would I do?
+            return {};
+
+        found_map[next_key] = value;
         prev_key = &next_key;
     }
 
-    return keys;
+    return found_map;
 }
 
-template std::vector<canonical_tuple> get_map<canonical_tuple>(struct bpf_map* map);
-template std::vector<ip_pair_key> get_map<ip_pair_key>(struct bpf_map* map);
+template std::map<canonical_tuple, struct shunt_val> get_map<canonical_tuple>(struct bpf_map* map);
+template std::map<ip_pair_key, struct shunt_val> get_map<ip_pair_key>(struct bpf_map* map);
 
 template<SupportedBpfKey Key>
 std::optional<shunt_val> get_val(struct bpf_map* map, Key* key) {

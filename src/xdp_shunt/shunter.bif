@@ -85,7 +85,7 @@ double mono_to_wall(uint64_t bpf_monotonic_ns) {
 }
 
 // The boolean decides which way ip1 was in the map
-zeek::RecordValPtr makeShuntedStats(bool orig_is_ip1, shunt_val* val) {
+zeek::RecordValPtr makeShuntedStats(bool orig_is_ip1, const shunt_val* val) {
     static auto shunt_stats_type = zeek::id::find_type<zeek::RecordType>("XDP::ShuntedStats");
     auto stats = zeek::make_intrusive<zeek::RecordVal>(shunt_stats_type);
 
@@ -162,19 +162,21 @@ function start_shunt%(options: XDP::ShuntOptions%) : opaque of XDP::Program %{
 
 ## Retrieves the current values in the canonical ID map.
 ##
-## Returns: A vector of the "canonical" connection IDs getting shunted
-function get_canonical_id_map_keys%(xdp_prog: opaque of XDP::Program%) : any_vec %{
+## Returns: A table of the "canonical" connection IDs getting shunted
+function get_canonical_id_map%(xdp_prog: opaque of XDP::Program%) : shunt_table %{
     auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
-    auto zeek_keys = zeek::make_intrusive<zeek::VectorVal>(zeek::make_intrusive<zeek::VectorType>(zeek::id::conn_id));
+	static auto shunt_table = zeek::id::find_type<zeek::TableType>("XDP::shunt_table");
+    auto zeek_table = zeek::make_intrusive<zeek::TableVal>(shunt_table);
+
     if ( ! zeek_prog ) {
         zeek::reporter->Error(zeek_prog.error().c_str());
-        return zeek_keys;
+        return zeek_table;
     }
 
     auto prog = (*zeek_prog)->prog;
 
-    auto keys = get_map<canonical_tuple>(get_canonical_id_map(prog));
-    for ( auto key : keys ) {
+    auto shunt_map = get_map<canonical_tuple>(get_canonical_id_map(prog));
+    for ( const auto&[key, val] : shunt_map ) {
         auto zeek_key = zeek::make_intrusive<zeek::RecordVal>(zeek::id::conn_id);
         if ( IN6_IS_ADDR_V4MAPPED(&key.ip1) )
             zeek_key->Assign(0, zeek::make_intrusive<zeek::AddrVal>(
@@ -195,10 +197,49 @@ function get_canonical_id_map_keys%(xdp_prog: opaque of XDP::Program%) : any_vec
         zeek_key->Assign(3, zeek::val_mgr->Port(key.port2));
         zeek_key->Assign(4, zeek::val_mgr->Count(key.protocol));
 
-        zeek_keys->Append(zeek_key);
+        zeek_table->Assign(zeek_key, makeShuntedStats(true, &val));
     }
 
-    return zeek_keys;
+    return zeek_table;
+%}
+
+## Retrieves the current values in the canonical ID map.
+##
+## Returns: A table of the IP pairs getting shunted
+function get_ip_pair_map%(xdp_prog: opaque of XDP::Program%) : ip_pair_shunt_table %{
+    auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
+	static auto ip_shunt_table = zeek::id::find_type<zeek::TableType>("XDP::ip_pair_shunt_table");
+	static auto ip_pair = zeek::id::find_type<zeek::RecordType>("XDP::ip_pair");
+    auto zeek_table = zeek::make_intrusive<zeek::TableVal>(ip_shunt_table);
+
+    if ( ! zeek_prog ) {
+        zeek::reporter->Error(zeek_prog.error().c_str());
+        return zeek_table;
+    }
+
+    auto prog = (*zeek_prog)->prog;
+
+    auto shunt_map = get_map<ip_pair_key>(get_ip_pair_map(prog));
+    for ( const auto&[key, val] : shunt_map ) {
+        auto zeek_key = zeek::make_intrusive<zeek::RecordVal>(ip_pair);
+        if ( IN6_IS_ADDR_V4MAPPED(&key.ip1) )
+            zeek_key->Assign(0, zeek::make_intrusive<zeek::AddrVal>(
+                                    *reinterpret_cast<const uint32_t*>(&key.ip1.s6_addr[12])));
+        else
+            zeek_key->Assign(0,
+                             zeek::make_intrusive<zeek::AddrVal>(reinterpret_cast<const uint32_t*>(&key.ip1.s6_addr)));
+
+        if ( IN6_IS_ADDR_V4MAPPED(&key.ip2) )
+            zeek_key->Assign(1, zeek::make_intrusive<zeek::AddrVal>(
+                                    *reinterpret_cast<const uint32_t*>(&key.ip2.s6_addr[12])));
+        else
+            zeek_key->Assign(1,
+                             zeek::make_intrusive<zeek::AddrVal>(reinterpret_cast<const uint32_t*>(&key.ip2.s6_addr)));
+
+        zeek_table->Assign(zeek_key, makeShuntedStats(true, &val));
+    }
+
+    return zeek_table;
 %}
 
 ## Starts shunting anything between two IPs.

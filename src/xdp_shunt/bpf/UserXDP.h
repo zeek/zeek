@@ -6,7 +6,7 @@
 #include <concepts>
 #include <optional>
 #include <string>
-#include <vector>
+#include <map>
 
 #include "bpf/filter_common.h"
 
@@ -53,7 +53,7 @@ std::optional<std::string> update_map(struct bpf_map* map, Key* key);
 template<SupportedBpfKey Key>
 std::optional<std::string> remove_from_map(struct bpf_map* map, Key* key);
 template<SupportedBpfKey Key>
-std::vector<Key> get_map(struct bpf_map* map);
+std::map<Key, struct shunt_val> get_map(struct bpf_map* map);
 template<SupportedBpfKey Key>
 std::optional<shunt_val> get_val(struct bpf_map* map, Key* key);
 

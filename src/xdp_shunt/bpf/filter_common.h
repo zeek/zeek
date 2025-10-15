@@ -37,7 +37,7 @@ struct shunt_val {
     __u64 timestamp;      // monotonic NS since boot from last packet
 };
 
-static __always_inline int compare_ips(struct in6_addr* ip1, struct in6_addr* ip2) {
+static __always_inline int compare_ips(const struct in6_addr* ip1, const struct in6_addr* ip2) {
     const __u64* a64 = (const __u64*)ip1;
     const __u64* b64 = (const __u64*)ip2;
 

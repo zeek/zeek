@@ -1,0 +1,151 @@
+##! BIFs for shunting with XDP. This is the main interface for XDP shunting.
+
+%%{
+#include "zeek/IPAddr.h"
+#include "zeek/Val.h"
+
+#include "bpf/UserXDP.h"
+#include "bpf/filter_common.h"
+#include "shunt-util.h"
+#include "XDPProgram.h"
+%%}
+
+module XDP::ShuntIPPair;
+
+## Retrieves the current values in the canonical ID map.
+##
+## Returns: A table of the IP pairs getting shunted
+function get_map%(xdp_prog: opaque of XDP::Program%) : XDP::ip_pair_shunt_table %{
+    auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
+    static auto ip_shunt_table = zeek::id::find_type<zeek::TableType>("XDP::ip_pair_shunt_table");
+	static auto ip_pair = zeek::id::find_type<zeek::RecordType>("XDP::ip_pair");
+    auto zeek_table = zeek::make_intrusive<zeek::TableVal>(ip_shunt_table);
+
+    if ( ! zeek_prog ) {
+        zeek::reporter->Error(zeek_prog.error().c_str());
+        return zeek_table;
+    }
+
+    auto prog = (*zeek_prog)->prog;
+
+    auto shunt_map = get_map<ip_pair_key>(get_ip_pair_map(prog));
+    for ( const auto&[key, val] : shunt_map ) {
+        auto zeek_key = zeek::make_intrusive<zeek::RecordVal>(ip_pair);
+        if ( IN6_IS_ADDR_V4MAPPED(&key.ip1) )
+            zeek_key->Assign(0, zeek::make_intrusive<zeek::AddrVal>(
+                                    *reinterpret_cast<const uint32_t*>(&key.ip1.s6_addr[12])));
+        else
+            zeek_key->Assign(0,
+                             zeek::make_intrusive<zeek::AddrVal>(reinterpret_cast<const uint32_t*>(&key.ip1.s6_addr)));
+
+        if ( IN6_IS_ADDR_V4MAPPED(&key.ip2) )
+            zeek_key->Assign(1, zeek::make_intrusive<zeek::AddrVal>(
+                                    *reinterpret_cast<const uint32_t*>(&key.ip2.s6_addr[12])));
+        else
+            zeek_key->Assign(1,
+                             zeek::make_intrusive<zeek::AddrVal>(reinterpret_cast<const uint32_t*>(&key.ip2.s6_addr)));
+
+        zeek_table->Assign(zeek_key, makeShuntedStats(true, &val));
+    }
+
+    return zeek_table;
+%}
+
+## Starts shunting anything between two IPs.
+##
+## Returns: Whether the operation succeeded
+##
+## .. zeek:see:: unshunt shunt_stats
+function shunt%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr%) : bool %{
+    auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
+    if ( ! zeek_prog ) {
+        zeek::reporter->Error(zeek_prog.error().c_str());
+        return zeek::val_mgr->Bool(false);
+    }
+
+    auto prog = (*zeek_prog)->prog;
+    auto ip1 = addrToIpVal(ip1_val->AsAddrVal()->Get());
+    auto ip2 = addrToIpVal(ip2_val->AsAddrVal()->Get());
+
+    auto ip2_higher = compare_ips(&ip1, &ip2) < 0;
+
+    auto key = ip_pair_key{
+        .ip1 = ip2_higher ? ip1 : ip2,
+        .ip2 = ip2_higher ? ip2 : ip1,
+    };
+
+    auto err = update_map(get_ip_pair_map(prog), &key);
+
+    if ( err ) {
+        zeek::reporter->Error(zeek::util::fmt("Failed to add to map: %s", (*err).c_str()));
+        return zeek::val_mgr->Bool(false);
+    }
+
+    return zeek::val_mgr->Bool(true);
+%}
+
+## Provides the shunting statistics for this IP pair.
+##
+## Returns: The shunting statistics
+##
+## .. zeek:see:: shunt unshunt
+function shunt_stats%(xdp_prog: opaque of XDP::Program, orig_h: addr, resp_h: addr%) : XDP::ShuntedStats %{
+    auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
+    if ( ! zeek_prog ) {
+        zeek::reporter->Error(zeek_prog.error().c_str());
+        return makeEmptyShuntedStats();
+    }
+
+    auto prog = (*zeek_prog)->prog;
+    auto ip1 = addrToIpVal(orig_h->AsAddrVal()->Get());
+    auto ip2 = addrToIpVal(resp_h->AsAddrVal()->Get());
+
+    auto ip2_higher = compare_ips(&ip1, &ip2) < 0;
+
+    auto key = ip_pair_key{
+        .ip1 = ip2_higher ? ip1 : ip2,
+        .ip2 = ip2_higher ? ip2 : ip1,
+    };
+    auto opt_val = get_val(get_ip_pair_map(prog), &key);
+    if ( ! opt_val )
+        return makeEmptyShuntedStats();
+
+    return makeShuntedStats(ip2_higher, &*opt_val);
+%}
+
+## Stops shunting anything between two IPs.
+##
+## Returns: The shunted statistics right before removing
+##
+## .. zeek:see:: shunt shunt_stats
+function unshunt%(xdp_prog: opaque of XDP::Program, ip1_val: addr, ip2_val: addr%) : XDP::ShuntedStats %{
+    auto zeek_prog = xdp::shunter::detail::XDPProgramVal::CastFromAny(xdp_prog);
+    if ( ! zeek_prog ) {
+        zeek::reporter->Error(zeek_prog.error().c_str());
+        return makeEmptyShuntedStats();
+    }
+
+    auto prog = (*zeek_prog)->prog;
+    auto ip1 = addrToIpVal(ip1_val->AsAddrVal()->Get());
+    auto ip2 = addrToIpVal(ip2_val->AsAddrVal()->Get());
+
+    auto ip2_higher = compare_ips(&ip1, &ip2) < 0;
+
+    auto key = ip_pair_key{
+        .ip1 = ip2_higher ? ip1 : ip2,
+        .ip2 = ip2_higher ? ip2 : ip1,
+    };
+
+    auto opt_val = get_val(get_ip_pair_map(prog), &key);
+    if ( ! opt_val )
+        return makeEmptyShuntedStats();
+
+    auto err = remove_from_map(get_ip_pair_map(prog), &key);
+
+    if ( err ) {
+        zeek::reporter->Error(zeek::util::fmt("Failed to add to map: %s", (*err).c_str()));
+        return makeEmptyShuntedStats();
+    }
+
+    return makeShuntedStats(ip2_higher, &*opt_val);
+%}

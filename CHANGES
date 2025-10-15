@@ -1,3 +1,7 @@
+8.0.2-17 | 2025-10-15 15:44:45 +0000
+
+  * Bump zeekctl for trace-summary fix (Tim Wojtulewicz, Corelight)
+
 8.0.2-16 | 2025-10-15 15:41:20 +0000
 
   * broker: Make MakeHub() filter_type to empty, adapt WebSocketShim (Arne Welzel, Corelight)

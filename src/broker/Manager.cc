@@ -2132,9 +2132,9 @@ void Manager::PrepareForwarding(const std::string& name) {
     DBG_LOG(DBG_BROKER, "Resolved table forward for data store %s", name.c_str());
 }
 
-broker::hub Manager::MakeHub(broker::filter_type ft) {
+broker::hub Manager::MakeHub() {
     ++hub_count;
-    return bstate->endpoint.make_hub(std::move(ft));
+    return bstate->endpoint.make_hub({});
 }
 
 void Manager::DestroyHub(broker::hub&& hub) { --hub_count; }

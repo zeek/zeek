@@ -22,7 +22,7 @@ namespace zeek::Broker {
 
 class WebSocketState {
 public:
-    WebSocketState() : hub(broker_mgr->MakeHub({broker::topic::errors()})) {}
+    WebSocketState() : hub(broker_mgr->MakeHub()) {}
     ~WebSocketState() {
         // Let the manager know we're done with this hook.
         broker_mgr->DestroyHub(std::move(hub));
@@ -154,16 +154,7 @@ void WebSocketShim::Process() {
     BROKER_WS_DEBUG("Shim: Process() got %zu messages (%s)", messages.size(), NodeId().c_str());
     for ( auto& message : messages ) {
         auto&& topic = broker::get_topic(message);
-        if ( broker::is_prefix(topic, broker::topic::errors_str) ) {
-            std::string err_msg = broker::to_string(message);
-            ProcessError("broker_error", broker::to_string(err_msg));
-        }
-        else if ( broker::is_prefix(topic, broker::topic::statuses_str) ) {
-            // Ignore status messages for WebSocket clients
-        }
-        else {
-            broker::zeek::visit_as_message([this, topic](auto& msg) { ProcessMessage(topic, msg); }, message);
-        }
+        broker::zeek::visit_as_message([this, topic](auto& msg) { ProcessMessage(topic, msg); }, message);
     }
 }
 

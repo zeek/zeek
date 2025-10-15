@@ -3,6 +3,22 @@ This document summarizes the most important changes in the current Zeek
 release. For an exhaustive list of changes, see the ``CHANGES`` file
 (note that submodules, such as Broker, come with their own ``CHANGES``.)
 
+Zeek 8.0.3
+==========
+
+We would like to thank Zeek Slack user James_inthe_box for their contributions to this
+release.
+
+This release fixes the following bugs:
+
+- `zeekctl stats` should no longer report a Python error.
+
+- The management framework controller configuration has a new ``tls_options_websocket``
+  variable for setting TLS options for the controller's Websocket server.
+
+- Fixed Broker errors being visible/sent to WebSocket clients unrelated to their own
+  connection.
+
 Zeek 8.0.2
 ==========
 

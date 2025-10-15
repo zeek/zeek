@@ -48,21 +48,27 @@ Manager::Manager() {
 }
 
 Manager::~Manager() {
-    delete wakeup;
-    wakeup = nullptr;
+    opener_thread.join();
 
-    // Make sure all of the sources are done before we try to delete any of them.
-    for ( auto& src : sources )
-        src->src->Done();
+    {
+        std::scoped_lock<std::recursive_mutex> lk(sources_mutex);
 
-    for ( auto& src : sources ) {
-        if ( src->manage_lifetime )
-            delete src->src;
+        delete wakeup;
+        wakeup = nullptr;
 
-        delete src;
+        // Make sure all of the sources are done before we try to delete any of them.
+        for ( auto& src : sources )
+            src->src->Done();
+
+        for ( auto& src : sources ) {
+            if ( src->manage_lifetime )
+                delete src->src;
+
+            delete src;
+        }
+
+        sources.clear();
     }
-
-    sources.clear();
 
     for ( PktDumper* dumper : pkt_dumpers ) {
         dumper->Done();
@@ -132,40 +138,44 @@ void Manager::FindReadySources(ReadySources* ready) {
     }
 
     // Find the source with the next timeout value.
-    for ( auto i = sources.begin(); i != sources.end(); /* noop */ ) {
-        auto* src = *i;
-        auto iosource = src->src;
-        if ( iosource->IsOpen() ) {
-            double next = iosource->GetNextTimeout();
+    {
+        std::scoped_lock<std::recursive_mutex> lk(sources_mutex);
 
-            if ( timeout == -1 || (next >= 0.0 && next < timeout) ) {
-                timeout = next;
-                timeout_src = iosource;
-            }
+        for ( auto i = sources.begin(); i != sources.end(); /* noop */ ) {
+            auto* src = *i;
+            auto iosource = src->src;
+            if ( iosource->IsOpen() ) {
+                double next = iosource->GetNextTimeout();
 
-            // If a source has a zero timeout then it's ready. Just add it to the
-            // list already. Only do this if it's not time to poll though, since
-            // we don't want things in the vector passed into Poll() or it'll end
-            // up inserting duplicates. A source with a zero timeout that was not
-            // selected as the timeout_src can be safely added, whether it's time
-            // to poll or not though.
-            if ( next == 0 && (! time_to_poll || iosource != timeout_src) ) {
-                ready->push_back({iosource, -1, 0});
-            }
-            else if ( iosource == pkt_src ) {
-                if ( pkt_src->IsLive() ) {
-                    if ( ! time_to_poll )
-                        // Avoid calling Poll() if we can help it since on very
-                        // high-traffic networks, we spend too much time in
-                        // Poll() and end up dropping packets.
-                        ready->push_back({pkt_src, -1, 0});
+                if ( timeout == -1 || (next >= 0.0 && next < timeout) ) {
+                    timeout = next;
+                    timeout_src = iosource;
                 }
+
+                // If a source has a zero timeout then it's ready. Just add it to the
+                // list already. Only do this if it's not time to poll though, since
+                // we don't want things in the vector passed into Poll() or it'll end
+                // up inserting duplicates. A source with a zero timeout that was not
+                // selected as the timeout_src can be safely added, whether it's time
+                // to poll or not though.
+                if ( next == 0 && (! time_to_poll || iosource != timeout_src) ) {
+                    ready->push_back({iosource, -1, 0});
+                }
+                else if ( iosource == pkt_src ) {
+                    if ( pkt_src->IsLive() ) {
+                        if ( ! time_to_poll )
+                            // Avoid calling Poll() if we can help it since on very
+                            // high-traffic networks, we spend too much time in
+                            // Poll() and end up dropping packets.
+                            ready->push_back({pkt_src, -1, 0});
+                    }
+                }
+                ++i;
             }
-            ++i;
-        }
-        else {
-            ReapSource(src);
-            i = sources.erase(i);
+            else {
+                ReapSource(src);
+                i = sources.erase(i);
+            }
         }
     }
 
@@ -328,6 +338,8 @@ bool Manager::UnregisterFd(int fd, IOSource* src, int flags) {
 }
 
 void Manager::Register(IOSource* src, bool dont_count, bool manage_lifetime) {
+    std::scoped_lock<std::recursive_mutex> lk(sources_mutex);
+
     // First see if we already have registered that source. If so, just
     // adjust dont_count.
     for ( const auto& iosrc : sources ) {
@@ -352,6 +364,8 @@ void Manager::Register(IOSource* src, bool dont_count, bool manage_lifetime) {
 }
 
 void Manager::Register(PktSrc* src) {
+    std::scoped_lock<std::recursive_mutex> lk(sources_mutex);
+
     pkt_src = src;
 
     Register(src, false, false);
@@ -385,6 +399,11 @@ static std::pair<std::string, std::string> split_prefix(std::string path) {
 
     return std::make_pair(prefix, path);
 }
+
+void Manager::ThreadedOpen(const std::string& path, bool is_live) {
+    opener_thread = std::thread{[path, is_live, this]() { OpenPktSrc(path, is_live); }};
+}
+
 
 PktSrc* Manager::OpenPktSrc(const std::string& path, bool is_live) {
     std::pair<std::string, std::string> t = split_prefix(path);

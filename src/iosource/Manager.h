@@ -3,7 +3,9 @@
 #pragma once
 
 #include <map>
+#include <mutex>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "zeek/Flare.h"
@@ -96,6 +98,8 @@ public:
      * @return The new packet source, or null if an error occurred.
      */
     PktSrc* OpenPktSrc(const std::string& path, bool is_live);
+
+    void ThreadedOpen(const std::string& path, bool is_live);
 
     /**
      * Opens a new packet dumper.
@@ -233,6 +237,9 @@ private:
     // This is only used for the output of the call to kqueue in FindReadySources().
     // The actual events are stored as part of the queue.
     std::vector<struct kevent> events;
+
+    std::thread opener_thread;
+    std::recursive_mutex sources_mutex;
 };
 
 } // namespace iosource

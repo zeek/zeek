@@ -163,12 +163,7 @@ void init_run(const std::optional<std::string>& interface, const std::optional<s
     if ( pcap_input_file ) {
         reading_live = pseudo_realtime > 0.0;
         reading_traces = true;
-
-        iosource::PktSrc* ps = iosource_mgr->OpenPktSrc(*pcap_input_file, false);
-        assert(ps);
-
-        if ( ! ps->IsOpen() )
-            reporter->FatalError("problem with trace file %s (%s)", pcap_input_file->c_str(), ps->ErrorMsg());
+        iosource_mgr->ThreadedOpen(*pcap_input_file, false);
     }
     else if ( interface ) {
         reading_live = true;

@@ -1,3 +1,21 @@
+8.0.2-9 | 2025-10-15 15:34:21 +0000
+
+  * Docs: Remove tftp-no-accept.spicy from autogen (Tim Wojtulewicz, Corelight)
+
+  * Update spicy autogen docs based on repo changes (Tim Wojtulewicz, Corelight)
+
+  * Run pre-commit on the imported docs files (Tim Wojtulewicz, Corelight)
+
+  * Adapt the github docs generation workflow for the move (Tim Wojtulewicz, Corelight)
+
+  * Move the readthedocs config to the main directory (Tim Wojtulewicz, Corelight)
+
+  * Copy release/8.0 docs into Zeek repo directly (Tim Wojtulewicz, Corelight)
+
+  * Remove doc submodule (Tim Wojtulewicz, Corelight)
+
+  * Fix v8.0.2 release note formatting (Tim Wojtulewicz, Corelight)
+
 8.0.2 | 2025-10-10 21:32:42 +0000
 
   * Release 8.0.2.

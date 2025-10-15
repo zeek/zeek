@@ -1,0 +1,63 @@
+[default]
+extend-ignore-re = [
+    # seh too close to she
+    "registered SEH to support IDL",
+    # ALLO is a valid FTP command
+    "\"ALLO\".*[0-9]{3}",
+    "des-ede3-cbc-Env-OID",
+    # On purpose
+    "\"THE NETBIOS NAM\"",
+    # NFS stuff.
+    "commited :zeek:type:`NFS3::stable_how_t`",
+    "\\/fo\\(o",
+    "  nd\\.<br",
+    "\"BaR\"",
+    "Not-ECT",
+    "Ninteenth: Ninteenth",
+
+    # Connecton and file UIDs
+    "[CF][a-zA-Z0-9]{17}",
+
+    # Smoot
+    "Smoot",
+]
+
+extend-ignore-identifiers-re = [
+    "TLS_.*_EDE.*_.*",
+    "SSL.*_EDE.*_.*",
+    "_3DES_EDE_CBC_SHA",
+    "GOST_R_.*",
+    "icmp6_nd_.*",
+    "pn", # Use for `PoolNode` variables
+    "complte_flag", # Existing use in exported record in base.
+    "VidP(n|N)", # In SMB.
+    "iin", # In DNP3.
+    "(ScValidatePnPService|ScSendPnPMessage)", # In DCE-RPC.
+    "snet", # Used as shorthand for subnet in base scripts.
+    "typ",
+    "tpe",
+]
+
+[default.extend-identifiers]
+MCA_OCCURED = "MCA_OCCURED"
+MNT3ERR_ACCES = "MNT3ERR_ACCES"
+ND_QUEUE_OVERFLOW = "ND_QUEUE_OVERFLOW"
+ND_REDIRECT = "ND_REDIRECT"
+NFS3ERR_ACCES = "NFS3ERR_ACCES"
+NO_SEH = "NO_SEH"
+RPC_NT_CALL_FAILED_DNE = "RPC_NT_CALL_FAILED_DNE"
+RpcAddPrintProvidor = "RpcAddPrintProvidor"
+RpcDeletePrintProvidor = "RpcDeletePrintProvidor"
+THA = "THA"
+tha = "tha"
+uses_seh = "uses_seh"
+exat = "exat"
+EXAT = "EXAT"
+
+[default.extend-words]
+caf = "caf"
+helo = "helo"
+# Seems we use this in the management framework
+requestor = "requestor"
+# `inout` is used as a keyword in Spicy, but looks like a typo of `input`.
+inout = "inout"

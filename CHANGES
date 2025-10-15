@@ -1,3 +1,21 @@
+8.0.2-12 | 2025-10-15 15:35:39 +0000
+
+  * Merge branch 'topic/christian/fix-cluster-testing-get-instances-c2a' (Christian Kreibich, Corelight)
+
+    * topic/christian/fix-cluster-testing-get-instances-c2a:
+      Bump zeek-client to pull in more resilient controller I/O
+
+    (cherry picked from commit a58323c36701e9403554dbf1d1b97ba9ef93ff92)
+
+  * Merge branch 'topic/christian/management-framework-tls' (Christian Kreibich, Corelight)
+
+    * topic/christian/management-framework-tls:
+      Bump zeek-testing-cluster to pull in WebSocket TLS updates
+      Bump zeek-client to pull in TLS config updates
+      Management framework: add TLS options for controller's websocket server
+
+    (cherry picked from commit f38ac30418552d0c91eab7f592d074651813b05f)
+
 8.0.2-9 | 2025-10-15 15:34:21 +0000
 
   * Docs: Remove tftp-no-accept.spicy from autogen (Tim Wojtulewicz, Corelight)

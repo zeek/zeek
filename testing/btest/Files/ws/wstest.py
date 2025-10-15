@@ -79,9 +79,9 @@ class TestClient:
         self.send_json([self.__own_topic] + topics[:])
         ack = self.recv_json()
         assert "type" in ack, repr(ack)
-        assert ack["type"] == "ack"
+        assert ack["type"] == "ack", repr(ack)
         assert "endpoint" in ack, repr(ack)
-        assert "version" in ack
+        assert "version" in ack, repr(ack)
         return ack
 
     def recv_json(self, timeout=DEFAULT_RECV_TIMEOUT) -> dict:
@@ -129,6 +129,7 @@ def recv_until_timeout(
             data = None
             try:
                 data = tc.recv_json(timeout=timeout)
+                all_timeout = False
                 ev = data["data"][2]["data"]
                 info = {
                     "client": tc.name,
@@ -137,7 +138,8 @@ def recv_until_timeout(
                     "event_args": ev[1]["data"],
                 }
                 msgs += [info]
-                all_timeout = False
+            except KeyError as e:
+                msgs += [{"client": tc.name, "error": repr(e), "data": data}]
             except TimeoutError:
                 msgs += [{"client": tc.name, "timeout": True}]
 

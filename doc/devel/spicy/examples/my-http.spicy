@@ -1,0 +1,26 @@
+# @TEST-EXEC: echo "GET /index.html HTTP/1.0" | spicy-driver %INPUT >output
+# @TEST-EXEC: btest-diff output
+
+module MyHTTP;
+
+const Token      = /[^ \t\r\n]+/;
+const WhiteSpace = /[ \t]+/;
+const NewLine    = /\r?\n/;
+
+type Version = unit {
+    :       /HTTP\//;
+    number: /[0-9]+\.[0-9]+/;
+};
+
+public type RequestLine = unit {
+    method:  Token;
+    :        WhiteSpace;
+    uri:     Token;
+    :        WhiteSpace;
+    version: Version;
+    :        NewLine;
+
+    on %done {
+        print self.method, self.uri, self.version.number;
+        }
+};

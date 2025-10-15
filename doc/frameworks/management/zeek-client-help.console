@@ -1,0 +1,45 @@
+$ zeek-client --help
+usage: zeek-client [-h] [-c FILE] [--controller HOST:PORT]
+                   [--set SECTION.KEY=VAL] [--quiet | --verbose] [--version]
+                   {deploy,deploy-config,get-config,get-id-value,get-instances,get-nodes,monitor,restart,stage-config,show-settings,test-timeout}
+                   ...
+
+A Zeek management client
+
+options:
+  -h, --help            show this help message and exit
+  -c FILE, --configfile FILE
+                        Path to zeek-client config file. (Default:
+                        /usr/local/zeek/etc/zeek-client.cfg)
+  --controller HOST:PORT
+                        Address and port of the controller, either of which
+                        may be omitted (default: 127.0.0.1:2149)
+  --set SECTION.KEY=VAL
+                        Adjust a configuration setting. Can use repeatedly.
+                        See show-settings.
+  --quiet, -q           Suppress informational output to stderr.
+  --verbose, -v         Increase informational output to stderr. Repeat for
+                        more output (e.g. -vvv).
+  --version             Show version number and exit.
+
+commands:
+  {deploy,deploy-config,get-config,get-id-value,get-instances,get-nodes,monitor,restart,stage-config,show-settings,test-timeout}
+                        See `zeek-client <command> -h` for per-command usage
+                        info.
+    deploy              Deploy a staged cluster configuration.
+    deploy-config       Upload a cluster configuration and deploy it.
+    get-config          Retrieve staged or deployed cluster configuration.
+    get-id-value        Show the value of a given identifier in Zeek cluster
+                        nodes.
+    get-instances       Show instances connected to the controller.
+    get-nodes           Show active Zeek nodes at each instance.
+    monitor             For troubleshooting: do nothing, just report events.
+    restart             Restart cluster nodes.
+    stage-config        Upload a cluster configuration for later deployment.
+    show-settings       Show zeek-client's own configuration.
+    test-timeout        Send timeout test event.
+
+environment variables:
+
+    ZEEK_CLIENT_CONFIG_FILE:      Same as `--configfile` argument, but lower precedence.
+    ZEEK_CLIENT_CONFIG_SETTINGS:  Same as a space-separated series of `--set` arguments, but lower precedence.

@@ -21,6 +21,7 @@ repos:
   rev: v0.40.2
   hooks:
   - id: yapf
+    exclude: '^doc/ext/spicy-pygments.py$'
 
 - repo: https://github.com/cheshirekow/cmake-format-precommit
   rev: v0.6.13
@@ -32,4 +33,4 @@ repos:
   rev: v1.16.21
   hooks:
     - id: typos
-      exclude: '^(.typos.toml|src/SmithWaterman.cc|testing/.*|auxil/.*|scripts/base/frameworks/files/magic/.*|CHANGES|scripts/base/protocols/ssl/mozilla-ca-list.zeek)$'
+      exclude: '^(.typos.toml|src/SmithWaterman.cc|testing/.*|auxil/.*|scripts/base/frameworks/files/magic/.*|CHANGES|scripts/base/protocols/ssl/mozilla-ca-list.zeek|doc/.*)$'

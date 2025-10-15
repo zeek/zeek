@@ -1833,8 +1833,6 @@ struct UIDEntry {
 
 static std::vector<UIDEntry> uid_pool;
 
-uint64_t calculate_unique_id() { return calculate_unique_id(UID_POOL_DEFAULT_INTERNAL); }
-
 uint64_t calculate_unique_id(size_t pool) {
     uint64_t uid_instance = 0;
 

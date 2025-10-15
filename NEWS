@@ -34,6 +34,10 @@ Breaking Changes
   variable. We opted to not use a deprecation cycle for this due to the complication with
   managing the data across both variables.
 
+- The `unique_id` and `unique_id_from` BIFs now return 96-bit UIDs, which makes them
+  consistent with other UIDs created by Zeek such as connection IDs. They were previously
+  returning shorter 64-bit UIDs.
+
 New Functionality
 -----------------
 

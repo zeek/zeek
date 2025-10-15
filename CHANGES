@@ -1,3 +1,13 @@
+8.1.0-dev.709 | 2025-10-15 09:01:45 -0700
+
+  * Make unique_id bifs use UID instead of calling calculate_unique_id directly (Tim Wojtulewicz, Corelight)
+
+  * Remove extra calculate_unique_id method (Tim Wojtulewicz, Corelight)
+
+  * Make UID constructor/UID::Set capable of taking a pool value (Tim Wojtulewicz, Corelight)
+
+  * Move UID pool constants to UID.h (Tim Wojtulewicz, Corelight)
+
 8.1.0-dev.704 | 2025-10-15 12:29:11 +0200
 
   * Logging: Consider broker buffering for flush_all (Jan Grashoefer, Corelight)
